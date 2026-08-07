@@ -1,0 +1,24 @@
+{
+  "schemaVersion": "open-design-assistance/compatibility-baseline/v1",
+  "task": "ODA4-0301",
+  "observed_date": "2026-08-07",
+  "installed": {
+    "version": "0.13.0",
+    "source": "D:\\Programs\\Open Design\\resources\\open-design-config.json (appVersion)",
+    "type": "electron-desktop",
+    "namespace": "release-stable-win",
+    "daemon": "app/prebundled/daemon/daemon-cli.mjs",
+    "daemon_sidecar": "app/prebundled/daemon/daemon-sidecar.mjs",
+    "web_sidecar": "app/prebundled/web-sidecar.mjs"
+  },
+  "versions": {
+    "minimum": "0.13.0",
+    "tested": "0.13.0",
+    "latest": "UNCONFIRMED"
+  },
+  "notes": [
+    "Taskpack prior candidate 0.18.1 NOT confirmed on this machine; installed is 0.13.0.",
+    "All E3 runtime/plugin/scenario alignment MUST target 0.13.0 (measured).",
+    "latest requires official source confirmation; not fabricated without network."
+  ]
+}
