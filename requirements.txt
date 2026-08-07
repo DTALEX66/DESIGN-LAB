@@ -1,0 +1,4 @@
+# OPEN-DESIGN-Assistance Python dependencies (reproducible)
+# ODA4-0103. Core verifiers use only the Python standard library.
+# jsonschema is the only third-party dependency (used by verify_evidence_cards.py).
+jsonschema>=4.18,<5
