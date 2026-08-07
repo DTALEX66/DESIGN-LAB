@@ -2732,6 +2732,18 @@ const ANALYTICS_EVENTS = Object.freeze([
   'anomaly_trigger',
 ]);
 
+const ANALYTICS_SCHEMA_VERSION = 'minigame/analytics/v1';
+
+const SENSITIVE_KEYS = new Set([
+  'token',
+  'password',
+  'secret',
+  'cookie',
+  'auth',
+  'prompt',
+  'response',
+]);
+
 const EVENT_SET = new Set(ANALYTICS_EVENTS);
 
 function createConsoleAnalyticsSink(logger = console) {
@@ -2740,7 +2752,23 @@ function createConsoleAnalyticsSink(logger = console) {
   };
 }
 
-let analyticsSink = createConsoleAnalyticsSink();
+function createAnalyticsSink({ environment = 'development', logger = console, transport } = {}) {
+  if (environment === 'development') {
+    return createConsoleAnalyticsSink(logger);
+  }
+  if (environment !== 'production') {
+    throw new Error(`Unknown analytics environment: ${environment}`);
+  }
+  if (typeof transport !== 'function') {
+    throw new TypeError('production analytics transport must be a function');
+  }
+  return (event) => transport({
+    ...event,
+    schema_version: ANALYTICS_SCHEMA_VERSION,
+  });
+}
+
+let analyticsSink = createAnalyticsSink({ environment: 'development' });
 
 function setAnalyticsSink(sink) {
   if (typeof sink !== 'function') {
@@ -2757,12 +2785,18 @@ function trackEvent(name, payload = {}, options = {}) {
   if (!EVENT_SET.has(name)) {
     throw new Error(`Unknown analytics event: ${name}`);
   }
+  for (const key of Object.keys(payload)) {
+    if (SENSITIVE_KEYS.has(key.toLowerCase())) {
+      throw new Error(`Sensitive analytics payload key: ${key}`);
+    }
+  }
 
   const now = options.now || Date.now;
   const event = {
     name,
     ts: now(),
     ...payload,
+    schema_version: ANALYTICS_SCHEMA_VERSION,
   };
 
   analyticsSink(event);
@@ -2770,13 +2804,17 @@ function trackEvent(name, payload = {}, options = {}) {
 }
 
 __exports_src_analytics_js["ANALYTICS_EVENTS"] = ANALYTICS_EVENTS;
+__exports_src_analytics_js["ANALYTICS_SCHEMA_VERSION"] = ANALYTICS_SCHEMA_VERSION;
 __exports_src_analytics_js["createConsoleAnalyticsSink"] = createConsoleAnalyticsSink;
+__exports_src_analytics_js["createAnalyticsSink"] = createAnalyticsSink;
 __exports_src_analytics_js["setAnalyticsSink"] = setAnalyticsSink;
 __exports_src_analytics_js["resetAnalyticsSink"] = resetAnalyticsSink;
 __exports_src_analytics_js["trackEvent"] = trackEvent;
 }
 var ANALYTICS_EVENTS = __exports_src_analytics_js["ANALYTICS_EVENTS"];
+var ANALYTICS_SCHEMA_VERSION = __exports_src_analytics_js["ANALYTICS_SCHEMA_VERSION"];
 var createConsoleAnalyticsSink = __exports_src_analytics_js["createConsoleAnalyticsSink"];
+var createAnalyticsSink = __exports_src_analytics_js["createAnalyticsSink"];
 var setAnalyticsSink = __exports_src_analytics_js["setAnalyticsSink"];
 var resetAnalyticsSink = __exports_src_analytics_js["resetAnalyticsSink"];
 var trackEvent = __exports_src_analytics_js["trackEvent"];
