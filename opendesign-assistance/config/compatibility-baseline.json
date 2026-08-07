@@ -2,23 +2,27 @@
   "schemaVersion": "open-design-assistance/compatibility-baseline/v1",
   "task": "ODA4-0301",
   "observed_date": "2026-08-07",
+  "last_updated": "2026-08-07 (0.13.0 -> 0.18.0)",
   "installed": {
-    "version": "0.13.0",
-    "source": "D:\\Programs\\Open Design\\resources\\open-design-config.json (appVersion)",
+    "version": "0.18.0",
+    "source": "official setup open-design-0.18.0-win-x64-setup.exe",
+    "setup_sha256": "a76a4c28016de2239b864f0e1a864933bea211c5aca638fc3b27bd2ac02f48cb",
     "type": "electron-desktop",
     "namespace": "release-stable-win",
-    "daemon": "app/prebundled/daemon/daemon-cli.mjs",
-    "daemon_sidecar": "app/prebundled/daemon/daemon-sidecar.mjs",
-    "web_sidecar": "app/prebundled/web-sidecar.mjs"
+    "amr_profile": "prod",
+    "daemon": "app/prebundled/daemon/daemon-cli.mjs"
   },
   "versions": {
     "minimum": "0.13.0",
-    "tested": "0.13.0",
-    "latest": "UNCONFIRMED"
+    "tested": "0.18.0",
+    "latest": "0.18.0"
   },
+  "upgrade_history": [
+    {"from": "0.13.0", "to": "0.18.0", "date": "2026-08-07", "method": "official NSIS silent install (/S)"}
+  ],
   "notes": [
-    "Taskpack prior candidate 0.18.1 NOT confirmed on this machine; installed is 0.13.0.",
-    "All E3 runtime/plugin/scenario alignment MUST target 0.13.0 (measured).",
-    "latest requires official source confirmation; not fabricated without network."
+    "0.18.0 confirmed as latest stable via official /download/ directAssets field.",
+    "Downloaded from releases.open-design.ai/stable/versions/0.18.0/.",
+    "Installer NSIS silent upgrade, appVersion read back as 0.18.0."
   ]
 }
