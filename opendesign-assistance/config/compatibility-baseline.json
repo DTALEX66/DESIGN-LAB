@@ -2,27 +2,30 @@
   "schemaVersion": "open-design-assistance/compatibility-baseline/v1",
   "task": "ODA4-0301",
   "observed_date": "2026-08-07",
-  "last_updated": "2026-08-07 (0.13.0 -> 0.18.0)",
+  "last_updated": "2026-08-07",
   "installed": {
-    "version": "0.18.0",
-    "source": "official setup open-design-0.18.0-win-x64-setup.exe",
-    "setup_sha256": "a76a4c28016de2239b864f0e1a864933bea211c5aca638fc3b27bd2ac02f48cb",
-    "type": "electron-desktop",
+    "runtime_version": "0.18.1",
+    "major_package_version": "0.18.0",
+    "channel": "stable",
+    "runtime_type": "packaged",
+    "platform": "win32",
+    "arch": "x64",
+    "auto_update": true,
     "namespace": "release-stable-win",
-    "amr_profile": "prod",
-    "daemon": "app/prebundled/daemon/daemon-cli.mjs"
+    "source": "official setup 0.18.0 + in-app auto-update to 0.18.1"
   },
   "versions": {
     "minimum": "0.13.0",
-    "tested": "0.18.0",
-    "latest": "0.18.0"
+    "tested": "0.18.1",
+    "latest": "0.18.1"
   },
   "upgrade_history": [
-    {"from": "0.13.0", "to": "0.18.0", "date": "2026-08-07", "method": "official NSIS silent install (/S)"}
+    {"from": "0.13.0", "to": "0.18.0", "date": "2026-08-07", "method": "official NSIS silent install (/S)"},
+    {"from": "0.18.0", "to": "0.18.1", "date": "2026-08-07", "method": "in-app auto-update (auto-install enabled)"}
   ],
   "notes": [
-    "0.18.0 confirmed as latest stable via official /download/ directAssets field.",
-    "Downloaded from releases.open-design.ai/stable/versions/0.18.0/.",
-    "Installer NSIS silent upgrade, appVersion read back as 0.18.0."
+    "Runtime version 0.18.1 confirmed via Settings->About (latest stable).",
+    "appVersion in open-design-config.json reports 0.18.0 (major package); UI shows 0.18.1 patch.",
+    "All E3 runtime alignment targets 0.18.1."
   ]
 }
