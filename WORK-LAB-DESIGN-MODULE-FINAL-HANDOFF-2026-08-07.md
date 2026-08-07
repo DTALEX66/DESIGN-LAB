@@ -11,7 +11,9 @@
 - Target repository: `DTALEX66/OPEN-DESIGN-Assistance`
 - Target main baseline: `c8212401e891e7c3f0e4a6f36cdb11dbcca24e27`
 - Migration branch: `migration/work-lab-design-extraction-20260807`
-- Final remote migration commit: `1d1394c`
+- Migration payload commit: `8d63e36`
+- Handoff metadata commits: `1d1394c`, `d45657c`
+- Final migration branch tip: recorded by M-140 remote readback evidence
 - Manifest SHA-256: `d8e08233d361ab4b2509a14bc5ae8e020131475b5f01736895180a420fa8242b`
 
 ## Manifest and decisions
