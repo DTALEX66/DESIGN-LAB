@@ -120,12 +120,42 @@ def generate_templates_index(root: Path) -> None:
     (templates_dir / "INDEX.md").write_text("\n".join(lines), encoding="utf-8")
 
 
+def generate_capability_index(root: Path) -> Path:
+    """Generate capability index from product-manifest capabilityFamilies (SSOT)."""
+    manifest = json.loads((root / ASSISTANCE_DIR / "config" / "product-manifest.json").read_text(encoding="utf-8"))
+    families = manifest.get("capabilityFamilies") or []
+    out = root / ASSISTANCE_DIR / "config" / "CAPABILITY_INDEX.md"
+    rows = []
+    for f in families:
+        name = f.get("id", "")
+        title = f.get("title", "")
+        level = f.get("minimumEvidence", "")
+        domain = f.get("domain", "")
+        owner = f.get("owner", "")
+        paths = ", ".join(f.get("paths") or [])
+        rows.append(f"| `{name}` | {title} | {level} | {domain} | {owner} | `{paths}` |")
+    content = "\n".join([
+        "# Capability index",
+        "",
+        "Generated from `opendesign-assistance/config/product-manifest.json` (single source of truth).",
+        "",
+        "| Capability | Title | Min evidence | Domain | Owner | Paths |",
+        "|---|---|---|---|---|---|",
+        *rows,
+        "",
+    ])
+    out.write_text(content, encoding="utf-8")
+    return out
+
+
 def main() -> int:
     root = repo_root()
     generate_plugins_index(root)
     generate_templates_index(root)
+    cap = generate_capability_index(root)
     print("generated opendesign-assistance/plugins/INDEX.md")
     print("generated opendesign-assistance/templates/INDEX.md")
+    print(f"generated {cap.relative_to(root).as_posix()}")
     return 0
 
 
