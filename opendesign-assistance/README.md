@@ -1,6 +1,6 @@
 # OpenDesign Assistance Layer
 
-这里是 V3 主开发区：专门为 **Open Design 软件本体** 提供 Open Design-first 商业设计智能、视觉质量、风格研究、专业生产和可编辑交付增强。
+这里是 **V4** 主开发区：以 **Open Design 软件本体** 为主入口，模型中立、风格中立、领域中立、工具中立、权利安全的 Open Design-first 商业设计智能、视觉质量、风格研究、专业生产和可编辑交付增强层。权威定义见 `project-memory/PRODUCT_DEFINITION_V4.md`，总入口见 `START_HERE.md`。
 
 ## 定位
 
