@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT
 """ODA4-0101 security regression tests for Open Design Windows scripts.
 
 Verifies the safe revisions actually lack the DANGEROUS CODE PATHS (not just

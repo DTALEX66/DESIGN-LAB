@@ -1,15 +1,25 @@
-# Repository licensing decision required
+# Repository licensing decision (RESOLVED)
 
-The public repository currently uses license fields inside plugin manifests but does not establish one verified root license for all historical code, documentation, generated media and absorbed assets.
+**Decision (2026-08-07, by repository owner DTALEX66): MIT.**
 
-Before public commercial distribution:
+- Root license: `LICENSE` (MIT), also mirrored as `LICENSES/MIT.txt` (REUSE convention).
+- `NOTICE` records third-party / absorbed material and the quarantine of
+  unknown or noncommercial-rights content.
+- Original code and documentation: MIT.
+- MiniGame runtime and design-system absorbed assets: keep their own
+  provenance; unknown-rights content stays quarantined (see NOTICE).
+- Commercial distribution: permitted under MIT for original work; third-party
+  material remains governed by its own license (reference records are not
+  vendored code).
 
-1. Inventory copyright owners and origins.
-2. Choose the root license(s) for original code and documentation.
-3. Add `LICENSES/` and per-file SPDX metadata using REUSE conventions.
-4. Keep copyleft/external-tool adapters separated.
-5. Add `.license` sidecars for binary assets.
-6. Generate SPDX or CycloneDX BOM and notices.
-7. Remove or quarantine anything with unknown rights.
+## Remaining REUSE/SPDX work (tracked in ODA4-0102)
 
-This file intentionally does not choose a license on the owner's behalf.
+1. Per-file SPDX headers on source files (`SPDX-License-Identifier: MIT`).
+2. `.license` sidecars for binary assets (audio/PNG/GIF) under `LICENSES/`.
+3. A generated SPDX/CycloneDX SBOM and third-party BOM for release packages.
+4. Keeping copyleft/external-tool adapters separated (none redistributed yet).
+
+Historical note: prior to this decision the repository had only plugin-level
+`MIT` declarations and no root license. The root MIT decision now supersedes
+that. `NO_PUBLIC_COMMERCIAL_RELEASE` is lifted for original MIT-covered work;
+release still requires the full V4 gate (E4/E5 evidence).

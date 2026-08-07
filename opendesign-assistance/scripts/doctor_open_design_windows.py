@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+# SPDX-License-Identifier: MIT
 """Diagnose a Windows Open Design + Codex + OPEN-DESIGN-Assistance setup (SAFE revision).
 
 ODA4-0101 security remediation:

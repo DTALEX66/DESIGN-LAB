@@ -1,0 +1,51 @@
+NOTICE
+
+OPEN-DESIGN-Assistance
+Copyright (c) 2026 DTALEX66 and contributors
+SPDX-License-Identifier: MIT
+
+This repository aggregates original code, documentation, design protocols,
+templates, absorbed reference material, and MiniGame runtime assets. The
+root license is MIT (see LICENSE and LICENSES/MIT.txt). However, MIT applies
+to the ORIGINAL work owned by this project. Third-party and absorbed
+material is governed by its own license and rights status, as recorded below.
+
+----------------------------------------------------------------------
+Third-party & absorbed material
+----------------------------------------------------------------------
+
+1. MINIGAME runtime (`minigame-runtime/`) — absorbed reference product and
+   cross-media benchmark. Its assets (audio, PNG, GIF, visual packs) carry
+   their own provenance. A dedicated rights ledger is maintained; content
+   with unknown or noncommercial rights is quarantined, not redistributed.
+
+2. Open-source / reference source registries:
+   - `opendesign-assistance/research/...` — 112 generic sources (V2),
+     22 visual sources (V2.1). These are REFERENCE records, not vendored
+     code. Integration mode, license status and benchmark status govern
+     promotion. See THIRD_PARTY_SOURCES_V2.md and
+     THIRD_PARTY_SOURCES_VISUAL_V21.md.
+
+3. Design-system / absorbed design assets (`design-system/`) — imported
+   design protocol and token references for Open Design use.
+
+4. IQA-PyTorch is QUARANTINED (noncommercial repository license). LPIPS and
+   DISTS are optional adapters only.
+
+5. Any font, model weight, installer, private runtime state, or credential
+   is NOT redistributed. Master studies are method/protocol material;
+   protected signature copying is not a capability.
+
+----------------------------------------------------------------------
+SPDX metadata
+----------------------------------------------------------------------
+Source files in this repository carry SPDX headers where applicable:
+`SPDX-License-Identifier: MIT`. Binary assets use `.license` sidecars in
+`LICENSES/` (REUSE convention) as they are added.
+
+For third-party components with distinct licenses, the corresponding SPDX
+license texts are stored under `LICENSES/` and referenced from their asset
+ledger.
+
+This NOTICE does not grant any additional license. Distribution in binary or
+source form must preserve the applicable copyright and license notices.

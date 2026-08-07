@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+# SPDX-License-Identifier: MIT
 """Configure Open Design on Windows to reuse this assistance repo (SAFE revision).
 
 ODA4-0101 security remediation:
