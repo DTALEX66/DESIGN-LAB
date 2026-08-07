@@ -35,18 +35,18 @@ The source candidate contained 493 files in the declared design scope. Generated
 
 - `20-design/open-design/opendesign-assistance/` → `opendesign-assistance/`
 - `20-design/open-design/design-system/` → `design-system/`
-- `20-design/open-design/minigame-runtime/` → `minigame-runtime/`
+- `20-design/open-design/minigame-runtime/` plus `30-products/minigame/` → `minigame-runtime/` (the MiniGame product tree is the canonical payload; target-only generated GIFs are preserved)
 - `20-design/open-design/project-memory/` → `project-memory/`
 - design-specific domain packs, schemas, benchmark fixtures and tests → corresponding `opendesign-assistance/` subdirectories
 - WORK-LAB root `AGENTS.md`, `.gitignore`, `.gitattributes`, and README were not imported as target rules
-- `30-products/minigame` was not read or migrated; only the declared Open Design design-side domain pack/runtime fixture was reconciled
+- `30-products/minigame` was subsequently migrated in the M-150 scope correction; the WORK-LAB source tree was removed only after 422 tracked files passed source/target SHA readback
 
 ## Capability and rights boundaries
 
 - Open Design desktop/runtime remains the actual design, canvas, agent-call and artifact surface.
 - This repository remains an assistance/enhancement layer: prompts, plugins, scenarios, design systems, templates, schemas, visual-quality protocols, source/provenance records and editable-delivery guidance.
 - Master studies and style references are method/protocol material; protected signature copying is not a capability.
-- MINIGAME content remains a design/domain reference and runtime fixture boundary. Platform release, advertising, paid provider smoke and commercial acceptance are not claimed.
+- MINIGAME product/runtime content is now owned by this target under `minigame-runtime/`. Platform release, advertising, paid provider smoke and commercial acceptance are not claimed.
 - The target main root has no detected `LICENSE` or `NOTICE`; the three license-like source files remain `LICENSE_BLOCKED`. No license decision was invented and no license content was copied.
 - Credentials, auth state, cookies, private runtime state and provider state were not migrated.
 
@@ -64,6 +64,7 @@ Executed on the migration branch after candidate apply:
 - `verify_benchmark_registry.py`: `BENCHMARK_REGISTRY_PASS benchmarks=12 human_calibration_required=true`
 - `verify_evidence_cards.py`: `EVIDENCE_CARDS_PASS cards=12 human_calibration_required=true authoritative_accepts=0`
 - `verify_minigame_domain_pack.py`: `MINIGAME_DOMAIN_PACK_BOUNDARY_PASS contract=manifest fixture=minigame-runtime evidence=E2`
+- M-150 MiniGame payload readback: initial copy `422 tracked files`, `SHA mismatches=0`; post-verification target build normalization is explicitly recorded as four final byte deltas plus one no-byte-change normalization note
 - `git diff --check`: pass
 
 The MINIGAME verifier received a target-layout path fix because its imported source version assumed `domain-packs/` at repository root while the target V3 layout is `opendesign-assistance/domain-packs/`. This is recorded as a target-layout compatibility patch, not source-byte parity.
@@ -77,7 +78,7 @@ Evidence levels remain structural/isolated (E1/E2). Open Design live registratio
 - Before migration branch commit, target `main` remained untouched at its fetched baseline.
 - Rollback is `git switch main` and discard/delete only the migration branch after review; no force-push or main rewrite is required.
 - Candidate files are source-addressed by the manifest and SHA-256 readback; target-only and target-newer files were not deleted or overwritten.
-- WORK-LAB source tree was not modified during candidate extraction or target apply.
+- WORK-LAB `30-products/minigame` was removed after payload readback; ignored local platform artifacts were preserved outside the Git payload under `.hermes/task-runtime/tmp/`.
 
 ## Ownership transfer
 

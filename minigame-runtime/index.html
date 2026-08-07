@@ -7,24 +7,20 @@
     <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
-    <main class="console-shell game-shell" data-skin="elevator" data-tone="normal">
-      <header class="topbar top-status-bar">
-        <div class="shift-identity">
+    <main class="console-shell" data-skin="elevator" data-tone="normal">
+      <header class="topbar">
+        <div>
           <p class="eyebrow" id="gameSubtitle">MINIGAME · ANOMALY SYSTEM SIM</p>
           <h1 id="gameTitle" class="game-title">异常电梯控制台</h1>
         </div>
         <div class="shift-card">
-          <span id="remainingLabel">TIMER</span>
+          <span id="remainingLabel">值守倒计时</span>
           <strong id="remaining">60</strong>
-        </div>
-        <div class="quick-telemetry" aria-label="核心系统状态">
-          <span id="systemState">SYSTEM: STABLE</span>
-          <span id="powerQuick">PWR 100</span>
         </div>
       </header>
 
       <section class="grid">
-        <section class="panel status-panel support-rail">
+        <section class="panel status-panel">
           <div class="panel-title" id="statusPanelTitle">电梯状态</div>
           <dl class="status-list">
             <div data-priority="critical"><span class="hud-icon">F</span><dt id="floorLabel">楼层</dt><dd id="floor">1</dd></div>
@@ -40,47 +36,89 @@
           </dl>
         </section>
 
-        <section class="panel monitor-panel cctv-monitor" id="monitor" aria-live="polite">
-          <div class="panel-title" id="monitorPanelTitle">CCTV</div>
-          <img class="cctv-gif" data-cctv-gif src="assets/generated/cctv-basement-lift-door-open-lite-loop.gif" alt="" onerror="this.hidden=true" />
-          <div class="cctv-fallback" aria-hidden="true"></div>
-          <div class="cctv-overlay" aria-hidden="true">
-            <div class="camera-label">CAM-03</div>
-            <div class="camera-timecode">23:59:47</div>
-            <div class="rec-dot">REC</div>
-            <div class="floor-indicator">F<span id="monitorFloor">1</span></div>
-            <div class="cctv-multiview camera-thumbnails" aria-label="辅助摄像头">
-              <button type="button"><b>CAM-01</b><i></i></button>
-              <button type="button"><b>CAM-07</b><i></i></button>
-              <button type="button"><b>THERM</b><i></i></button>
+        <section class="panel monitor-panel">
+          <div class="panel-title" id="monitorPanelTitle">监控画面</div>
+          <div class="monitor" id="monitor" aria-live="polite">
+            <div class="cctv-stage" aria-hidden="true">
+              <div class="camera-label">CAM-03 · ELEVATOR SHAFT</div>
+              <div class="camera-timecode">23:59:47 · REC</div>
+              <div class="cctv-noise"></div>
+              <div class="signal-tear-layer"></div>
+              <div class="freeze-frame"></div>
+              <div class="infrared-flicker"></div>
+              <div class="snow-burst"></div>
+              <div class="camera-frame">
+                <div class="hall-perspective">
+                  <span></span><span></span><span></span>
+                </div>
+                <div class="scene-vignette"></div>
+                <div class="cctv-loop"></div>
+                <div class="door-gap-glow"></div>
+                <div class="distant-shadow"></div>
+                <div class="thermal-ghost"></div>
+                <div class="detection-corners"></div>
+                <div class="floor-indicator">F<span id="monitorFloor">1</span></div>
+              </div>
+              <div class="cctv-multiview" aria-label="辅助摄像头">
+                <div><b>CAM-01</b><i></i></div>
+                <div><b>CAM-07</b><i></i></div>
+                <div><b>THERM</b><i></i></div>
+              </div>
             </div>
-            <div class="monitor-hud" aria-label="监控信号状态">
-              <span id="monitorSignal">SYSTEM: STABLE</span>
-              <span id="monitorThreat">THREAT: 0</span>
-            </div>
+            <p class="monitor-caption" id="monitorCaption">监控画面稳定：1 层轿厢内有 1 名乘客。</p>
           </div>
-          <p class="monitor-caption" id="monitorCaption">监控画面稳定：1 层轿厢内有 1 名乘客。</p>
+          <div class="monitor-hud" aria-label="监控信号状态">
+            <span id="monitorSignal">SIGNAL: STABLE</span>
+            <span id="operatorCue" class="operator-cue">STANDBY: 首个异常 8s 内出现；盯住 CCTV。</span>
+            <span id="monitorThreat">THREAT: 0</span>
+          </div>
+          <div class="scanline"></div>
         </section>
 
-        <section class="panel action-panel hardware-console">
-          <div class="panel-title" id="actionPanelTitle">CTRL</div>
-          <div class="control-bed">
-            <div id="actions" class="actions elevator-keypad"></div>
+        <section class="panel action-panel">
+          <div class="panel-title" id="actionPanelTitle">操作面板</div>
+          <div class="action-dock" aria-label="主要操作">
+            <div id="actions" class="actions"></div>
+            <button id="moreActions" class="more-actions-button" type="button" aria-expanded="false" aria-controls="secondaryActionsSheet">
+              <span class="action-keycap">
+                <span class="action-icon" aria-hidden="true">MORE</span>
+                <span class="action-label">更多</span>
+              </span>
+              <span id="secondaryActionCount" class="more-action-count">0</span>
+            </button>
+          </div>
+          <div class="action-guide" aria-label="操作提示">
+            <article class="directive-card">
+              <strong>先看 CCTV</strong>
+              <span>画面异常优先于楼层读数。</span>
+            </article>
+            <article class="directive-card">
+              <strong>按推荐键</strong>
+              <span>黄色高亮是当前建议动作。</span>
+            </article>
           </div>
           <button id="forceAnomaly" class="secondary diagnostic-trigger" type="button">ANOM</button>
         </section>
 
-        <section class="panel log-panel log-ticker">
-          <div class="panel-title" id="logPanelTitle">LOG</div>
+        <section class="panel log-panel">
+          <div class="panel-title" id="logPanelTitle">系统日志</div>
           <ol id="logs" class="logs"></ol>
         </section>
       </section>
 
-      <section id="startOverlay" class="handoff-strip start-overlay" data-testid="start-handoff">
+      <section id="startOverlay" class="start-overlay" data-testid="start-handoff">
         <div class="start-card">
-          <span id="startTitle">接管电梯</span>
-          <button id="startButton" data-role="primary-start" type="button">OVERRIDE</button>
-          <button id="openArchiveBtn" type="button" class="secondary" hidden>ARCHIVE</button>
+          <p class="eyebrow">OPERATOR HANDOFF REQUIRED</p>
+          <h2 id="startTitle">等待接管异常电梯</h2>
+          <p id="startCopy" class="start-copy">60 秒守住轿厢。看监控，按键处置。</p>
+          <div id="startChecklist" class="mission-strip" aria-label="任务目标">
+            <span>60s</span><span>CCTV</span><span>NO FAIL</span>
+          </div>
+          <div id="startFailureRules" class="risk-strip" aria-label="风险提示">
+            <span>POWER</span><span>STABILITY</span><span>ANOMALY</span>
+          </div>
+          <button id="startButton" data-role="primary-start" type="button">开始接管</button>
+          <button id="openArchiveBtn" type="button" class="secondary" hidden>📋 异常档案库</button>
         </div>
       </section>
 
@@ -99,6 +137,20 @@
         </div>
       </section>
 
+      <section id="secondaryActionsSheet" class="secondary-actions-sheet" hidden>
+        <button id="secondaryActionsBackdrop" class="secondary-actions-backdrop" type="button" aria-label="关闭更多操作"></button>
+        <div class="secondary-actions-panel" role="dialog" aria-modal="true" aria-labelledby="secondaryActionsTitle">
+          <div class="secondary-actions-head">
+            <div>
+              <p class="eyebrow">SECONDARY CONTROLS</p>
+              <h2 id="secondaryActionsTitle">低频操作</h2>
+            </div>
+            <button id="closeSecondaryActions" class="secondary sheet-close" type="button">收起</button>
+          </div>
+          <div id="secondaryActions" class="secondary-actions"></div>
+        </div>
+      </section>
+
       <!-- 异常档案库 -->
       <section id="archiveOverlay" class="failure-overlay archive-overlay" hidden>
         <div class="failure-card archive-card">
@@ -113,7 +165,7 @@
       <!-- 假结局 -->
       <section id="fakeEndingOverlay" class="failure-overlay fake-ending" hidden>
         <div class="failure-card ending-card">
-          <p id="fakeEndingEyebrow" class="eyebrow">SYSTEM ANOMALY DETECTED</p>
+          <p id="fakeEndingEyebrow" class="eyebrow">⚠ SYSTEM ANOMALY DETECTED</p>
           <h2 id="fakeEndingTitle">操作员关联异常</h2>
           <pre id="fakeEndingText" class="ending-text"></pre>
           <pre id="fakeEndingTruth" class="ending-truth"></pre>

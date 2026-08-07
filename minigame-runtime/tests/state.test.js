@@ -1,8 +1,9 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
 
 import { findRollbackSnapshot } from '../src/rollback.js';
-import { createInitialState, cloneState, recordFailure, recordSuccessfulShift, reviveFromAd, saveSnapshot } from '../src/state.js';
+import { createInitialState, cloneState, checkFailure, recordFailure, recordSuccessfulShift, reviveFromAd, saveSnapshot, tickState } from '../src/state.js';
 import CONFIG from '../src/gameConfig.js';
 
 test('createInitialState returns the elevator console baseline', () => {
@@ -15,12 +16,20 @@ test('createInitialState returns the elevator console baseline', () => {
   assert.equal(state.power, 100);
   assert.equal(state.stability, 100);
   assert.equal(state.anomalyLevel, 0);
-  assert.equal(state.passengers, 1);
+  assert.equal(state.passengers, 0);
   assert.equal(state.gameOver, false);
+  assert.equal(state.result, 'playing');
   assert.equal(state.adRevivesUsed, 0);
   assert.ok(Array.isArray(state.logs));
   assert.ok(Array.isArray(state.snapshots), 'snapshots should be initialized as empty array');
   assert.equal(state.snapshots.length, 0);
+});
+
+test('elevator skin initial monitor copy matches the zero-passenger baseline', () => {
+  const skin = JSON.parse(readFileSync(new URL('../src/skins/elevator/skin.json', import.meta.url), 'utf8'));
+  assert.equal(CONFIG.initial.passengers, 0);
+  assert.match(skin.monitor.initial, /为空|0 名乘客/);
+  assert.doesNotMatch(skin.monitor.initial, /1 名乘客/);
 });
 
 test('cloneState creates a deep copy suitable for rollback snapshots', () => {
@@ -30,6 +39,71 @@ test('cloneState creates a deep copy suitable for rollback snapshots', () => {
 
   assert.equal(state.logs.length, 1);
   assert.notEqual(copy.logs, state.logs);
+});
+
+test('initial state includes an isolated V5 night and investigation baseline', () => {
+  const first = createInitialState();
+  const second = createInitialState();
+
+  assert.deepEqual(first.night, {
+    activeProtocols: [],
+    currentShift: null,
+    roundType: 'quick',
+    shiftIndex: 0,
+    decisions: [],
+    eventChains: {},
+    eventChainFlags: [],
+    eventChainHistory: [],
+    timelineSequence: 0,
+    nextShiftModifiers: [],
+  });
+  assert.equal(first.investigation.power, first.power);
+  assert.equal(first.investigation.activeCamera, 'cam01');
+  assert.deepEqual(first.investigation.discoveredEvidence, []);
+  assert.equal(first.investigation.tools.thermal.remaining, 2);
+  assert.equal(first.investigation.tools.replay.remaining, 2);
+  assert.equal(first.investigation.tools.protocol.powerCost, 0);
+
+  first.night.activeProtocols.push({ id: 'protocol-mutated' });
+  first.investigation.tools.thermal.remaining = 0;
+  assert.deepEqual(second.night.activeProtocols, []);
+  assert.equal(second.investigation.tools.thermal.remaining, 2);
+});
+
+test('ad revive rolls back V5 night and investigation state as deep copies', () => {
+  const prepared = createInitialState();
+  prepared.elapsed = 20;
+  prepared.night.activeProtocols = [{ id: 'protocol-floor-13' }];
+  prepared.night.currentShift = { id: 'shift-07', evidence: { cameras: { cam01: [] } } };
+  prepared.night.roundType = 'investigation';
+  prepared.investigation.activeCamera = 'cam07';
+  prepared.investigation.tools.thermal.remaining = 1;
+  prepared.investigation.discoveredEvidence.push({ id: 'evidence-before-failure' });
+
+  const snapshotted = saveSnapshot(prepared);
+  const failed = {
+    ...snapshotted,
+    elapsed: 49,
+    gameOver: true,
+    result: 'failure',
+    anomalyLevel: CONFIG.failure.anomalyLevelMax,
+  };
+  failed.night.currentShift.evidence.cameras.cam01.push({ id: 'late-evidence' });
+  failed.investigation.discoveredEvidence.push({ id: 'late-discovery' });
+
+  const revived = reviveFromAd(failed);
+
+  assert.equal(revived.night.roundType, 'investigation');
+  assert.equal(revived.night.currentShift.id, 'shift-07');
+  assert.deepEqual(revived.night.currentShift.evidence.cameras.cam01, []);
+  assert.equal(revived.investigation.activeCamera, 'cam07');
+  assert.equal(revived.investigation.tools.thermal.remaining, 1);
+  assert.deepEqual(revived.investigation.discoveredEvidence, [{ id: 'evidence-before-failure' }]);
+
+  revived.night.activeProtocols[0].id = 'mutated-after-revive';
+  revived.investigation.discoveredEvidence[0].id = 'mutated-after-revive';
+  assert.equal(failed.snapshots[0].state.night.activeProtocols[0].id, 'protocol-floor-13');
+  assert.equal(failed.snapshots[0].state.investigation.discoveredEvidence[0].id, 'evidence-before-failure');
 });
 
 test('saveSnapshot appends a deep copy without nesting snapshots inside the saved state', () => {
@@ -137,10 +211,66 @@ test('reviveFromAd preserves snapshot history after restore', () => {
   assert.equal(revived.snapshots[0].at, 20);
 });
 
+test('initial state includes mobile score, streak and progressive tutorial fields', () => {
+  const state = createInitialState();
+  assert.equal(state.score, 0);
+  assert.equal(state.streak, 0);
+  assert.equal(state.bestStreak, 0);
+  assert.equal(state.tutorialStep, 0);
+});
+
 test('initial state includes post-run summary tracking fields', () => {
   const s = createInitialState();
   assert.equal(s.anomaliesTriggeredTotal, 0, 'should start with zero triggered anomalies');
   assert.equal(s.maxAnomalySeverity, 0, 'should start with zero max severity');
+});
+
+test('successful countdown produces a success result rather than a failure overlay state', () => {
+  const completed = tickState({
+    ...createInitialState(),
+    remaining: 1,
+    activeAnomaly: 'floor_jump',
+    inspection: { id: 'floor_jump', kind: 'anomaly', status: 'pending' },
+  }, 1);
+
+  assert.equal(completed.gameOver, true);
+  assert.equal(completed.result, 'success');
+  assert.equal(completed.activeAnomaly, null);
+  assert.equal(completed.inspection, null);
+  assert.match(completed.lastFeedback, /本轮结束/);
+  assert.match(completed.logs.at(-1).text, /本轮结束|值守/);
+});
+
+test('countdown completion wins when a resource threshold is crossed in the same tick', () => {
+  const completed = tickState({
+    ...createInitialState(),
+    remaining: 1,
+    power: 0.1,
+  }, 1);
+
+  assert.equal(completed.gameOver, true);
+  assert.equal(completed.result, 'success');
+  assert.match(completed.logs.at(-1).text, /本轮结束|值守/);
+  assert.doesNotMatch(completed.logs.at(-1).text, /崩溃/);
+});
+
+test('resource exhaustion produces an explicit failure result', () => {
+  const failed = checkFailure({ ...createInitialState(), power: 0 });
+
+  assert.equal(failed.gameOver, true);
+  assert.equal(failed.result, 'failure');
+});
+
+test('reviveFromAd restores the active playing result', () => {
+  const revived = reviveFromAd({
+    ...createInitialState(),
+    gameOver: true,
+    result: 'failure',
+    anomalyLevel: CONFIG.failure.anomalyLevelMax,
+  });
+
+  assert.equal(revived.gameOver, false);
+  assert.equal(revived.result, 'playing');
 });
 
 test('recordFailure triggers fake ending at threshold and starts cooldown', () => {

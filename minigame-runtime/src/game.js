@@ -1,9 +1,9 @@
 import { getAvailableActions, performAction } from './actions.js';
 import { applyAnomaly, pickNextAnomaly } from './events.js';
-import { getToneForState, summarizeFailure } from './feedback.js';
+import { summarizeFailure } from './feedback.js';
 import { recordFailure, recordSuccessfulShift, reviveFromAd, saveSnapshot, tickState } from './state.js';
 import CONFIG from './gameConfig.js';
-import { playClick, playSuccess, playFail, playAnomaly, playWarning, playCrash, playRevive, playRestart } from './audio.js';
+import { playClick, playSuccess, playFail, playAnomaly, playWarning, playCrash, playRevive, playRestart, setMusicState, pauseMusic, resumeMusic, stopMusic } from './audio.js';
 import { t, actionLabel, getSkin, getAnomalies } from './skinManager.js';
 import { createRewardedAd } from '../platform/platform.js';
 import { getDecodedMonitorText, getDirectionLabel, getDomLabels, getDoorLabel } from './uiLabels.js';
@@ -15,8 +15,12 @@ import {
   scheduleNextAnomalyAfterRevive,
   scheduleNextAnomalyAfterTrigger,
 } from './runtimeSession.js';
+import { deriveVisualState } from './visualState.js';
+import { getOperatorCue } from './firstRunGuidance.js';
+import { shouldApplyReward } from './rewardGuard.js';
 
 const root = document.querySelector('.console-shell');
+const debugMode = new URLSearchParams(window.location.search).get('debug') === '1';
 const els = {
   remaining: document.querySelector('#remaining'),
   floor: document.querySelector('#floor'),
@@ -39,12 +43,18 @@ const els = {
   fakeEndingTruthBtn: document.querySelector('#fakeEndingTruthBtn'),
   fakeEndingRestartBtn: document.querySelector('#fakeEndingRestartBtn'),
   monitor: document.querySelector('#monitor'),
-  cctvGif: document.querySelector('[data-cctv-gif]'),
   monitorCaption: document.querySelector('#monitorCaption'),
   monitorFloor: document.querySelector('#monitorFloor'),
   monitorSignal: document.querySelector('#monitorSignal'),
+  operatorCue: document.querySelector('#operatorCue'),
   monitorThreat: document.querySelector('#monitorThreat'),
   actions: document.querySelector('#actions'),
+  moreActions: document.querySelector('#moreActions'),
+  secondaryActionCount: document.querySelector('#secondaryActionCount'),
+  secondaryActionsSheet: document.querySelector('#secondaryActionsSheet'),
+  secondaryActionsBackdrop: document.querySelector('#secondaryActionsBackdrop'),
+  closeSecondaryActions: document.querySelector('#closeSecondaryActions'),
+  secondaryActions: document.querySelector('#secondaryActions'),
   logs: document.querySelector('#logs'),
   forceAnomaly: document.querySelector('#forceAnomaly'),
   startOverlay: document.querySelector('#startOverlay'),
@@ -66,8 +76,6 @@ const els = {
   reviveButton: document.querySelector('#reviveButton'),
   restartButton: document.querySelector('#restartButton'),
   remainingLabel: document.querySelector('#remainingLabel'),
-  systemState: document.querySelector('#systemState'),
-  powerQuick: document.querySelector('#powerQuick'),
   statusPanelTitle: document.querySelector('#statusPanelTitle'),
   monitorPanelTitle: document.querySelector('#monitorPanelTitle'),
   actionPanelTitle: document.querySelector('#actionPanelTitle'),
@@ -92,6 +100,8 @@ let timer = null;
 let lastTone = 'normal';
 let crashPlayed = false;
 let fakeEndingTracked = false;
+let runToken = 0;
+let musicStarted = false;
 
 function analyticsPayload(extra = {}) {
   return {
@@ -126,7 +136,8 @@ function bindPress(element, handler) {
 }
 
 const showReviveAd = createRewardedAd(CONFIG.adUnits.revive, {
-  onReward: () => {
+  onReward: (meta) => {
+    if (!shouldApplyReward(meta, runToken, 'revive', state)) return;
     trackEvent('revive_ad_reward', analyticsPayload({ adUnitId: CONFIG.adUnits.revive }));
     playRevive();
     state = reviveFromAd(state);
@@ -135,7 +146,8 @@ const showReviveAd = createRewardedAd(CONFIG.adUnits.revive, {
   },
 });
 const showDecodeAd = createRewardedAd(CONFIG.adUnits.decode, {
-  onReward: () => {
+  onReward: (meta) => {
+    if (!shouldApplyReward(meta, runToken, 'decode', state)) return;
     const before = state.adHintsUsed;
     runAction('unlockHiddenLog');
     if (state.adHintsUsed > before) {
@@ -144,7 +156,8 @@ const showDecodeAd = createRewardedAd(CONFIG.adUnits.decode, {
   },
 });
 const showTruthAd = createRewardedAd(CONFIG.adUnits.truth, {
-  onReward: () => {
+  onReward: (meta) => {
+    if (!shouldApplyReward(meta, runToken, 'truth', state)) return;
     playRevive();
     state = structuredClone(state);
     state.fakeEndingUnlocked = true;
@@ -160,7 +173,7 @@ const ACTION_ICONS = {
   emergencyStop: 'STOP',
   restartSystem: '↻',
   inspectLog: 'LOG',
-  unlockHiddenLog: 'DEC',
+  unlockHiddenLog: 'KEY',
 };
 
 const ACTION_SHORT_LABELS = {
@@ -174,66 +187,84 @@ const ACTION_SHORT_LABELS = {
   unlockHiddenLog: '解码',
 };
 
-const CCTV_GIF_ASSETS = {
-  elevator: 'assets/generated/cctv-basement-lift-door-open-lite-loop.gif',
-  hospital: 'assets/generated/cctv-hospital-ward-native-lite-loop.gif',
-  security: 'assets/generated/cctv-security-room-native-lite-loop.gif',
-  factory: 'assets/generated/cctv-factory-native-lite-loop.gif',
-  subway: 'assets/generated/cctv-subway-platform-native-lite-loop.gif',
-  hotel: 'assets/generated/cctv-hotel-lobby-native-lite-loop.gif',
-};
+const PRIMARY_ACTION_IDS = new Set(['closeDoor', 'moveUp', 'emergencyStop']);
 
-function syncCctvBackground(skinId) {
-  const asset = CCTV_GIF_ASSETS[skinId] || CCTV_GIF_ASSETS.elevator;
-  if (els.cctvGif && !els.cctvGif.src.endsWith(asset)) {
-    els.cctvGif.hidden = false;
-    els.cctvGif.src = asset;
-  }
+function isPrimaryAction(actionId) {
+  return PRIMARY_ACTION_IDS.has(actionId);
 }
 
+function closeSecondaryActions() {
+  if (!els.secondaryActionsSheet) return;
+  els.secondaryActionsSheet.hidden = true;
+  if (els.moreActions) els.moreActions.setAttribute('aria-expanded', 'false');
+}
 
-function renderActions() {
+function openSecondaryActions() {
+  if (!els.secondaryActionsSheet) return;
+  els.secondaryActionsSheet.hidden = false;
+  if (els.moreActions) els.moreActions.setAttribute('aria-expanded', 'true');
+}
+
+function createActionButton(action, lockedCount, visual) {
+  const button = document.createElement('button');
+  button.type = 'button';
+  button.dataset.action = action.id;
+  button.dataset.recommended = String(visual.highlightAction === action.id);
+  const keycap = document.createElement('span');
+  keycap.className = 'action-keycap';
+  const icon = document.createElement('span');
+  icon.className = 'action-icon';
+  icon.setAttribute('aria-hidden', 'true');
+  icon.textContent = ACTION_ICONS[action.id] || '●';
+  const label = document.createElement('span');
+  label.className = 'action-label';
+  label.textContent = ACTION_SHORT_LABELS[action.id] || (action.id === 'unlockHiddenLog'
+    ? actionLabel(action.id, lockedCount)
+    : action.label);
+  button.setAttribute('aria-label', action.id === 'unlockHiddenLog'
+    ? actionLabel(action.id, lockedCount)
+    : action.label);
+  keycap.append(icon, label);
+  button.append(keycap);
+  bindPress(button, () => dispatchAction(action.id));
+  return button;
+}
+
+function renderActions(visual = deriveVisualState(state)) {
   els.actions.replaceChildren();
+  els.secondaryActions?.replaceChildren();
   const lockedCount = state.hiddenLogs.filter(h => h.locked).length;
+  let secondaryCount = 0;
+  let secondaryRecommended = false;
   for (const action of getAvailableActions()) {
     // 解码加密记录按钮只在有锁定日志时显示
     if (action.id === 'unlockHiddenLog' && lockedCount === 0) continue;
-    const button = document.createElement('button');
-    button.type = 'button';
-    button.dataset.action = action.id;
-    button.className = [
-      'hardware-key',
-      action.id === 'emergencyStop' ? 'danger emergency-stop' : '',
-      action.id === 'unlockHiddenLog' ? 'decode-key' : '',
-    ].filter(Boolean).join(' ');
-    const led = document.createElement('span');
-    led.className = 'key-led';
-    led.setAttribute('aria-hidden', 'true');
-    const keycap = document.createElement('span');
-    keycap.className = 'action-keycap';
-    const icon = document.createElement('span');
-    icon.className = 'action-icon';
-    icon.setAttribute('aria-hidden', 'true');
-    icon.textContent = ACTION_ICONS[action.id] || '●';
-    const label = document.createElement('span');
-    label.className = 'action-label';
-    label.textContent = ACTION_SHORT_LABELS[action.id] || (action.id === 'unlockHiddenLog'
-      ? actionLabel(action.id, lockedCount)
-      : action.label);
-    button.setAttribute('aria-label', action.id === 'unlockHiddenLog'
-      ? actionLabel(action.id, lockedCount)
-      : action.label);
-    keycap.append(icon, label);
-    button.append(led, keycap);
-    bindPress(button, () => dispatchAction(action.id));
-    els.actions.append(button);
+    const button = createActionButton(action, lockedCount, visual);
+    if (isPrimaryAction(action.id) || !els.secondaryActions) {
+      els.actions.append(button);
+    } else {
+      secondaryCount += 1;
+      if (visual.highlightAction === action.id) secondaryRecommended = true;
+      els.secondaryActions.append(button);
+    }
+  }
+  if (els.secondaryActionCount) els.secondaryActionCount.textContent = String(secondaryCount);
+  if (els.moreActions) {
+    els.moreActions.hidden = secondaryCount === 0;
+    els.moreActions.dataset.recommended = String(secondaryRecommended);
+    if (secondaryCount === 0) closeSecondaryActions();
   }
 }
 
 function render() {
   const labels = getDomLabels();
-  renderActions();
-  root.dataset.tone = getToneForState(state);
+  const visual = deriveVisualState(state);
+  if (musicStarted) {
+    if (state.gameOver) stopMusic();
+    else setMusicState(state.activeAnomaly ? 'pressure' : 'calm');
+  }
+  renderActions(visual);
+  root.dataset.tone = visual.tone;
   els.remaining.textContent = Math.ceil(state.remaining);
   els.floor.textContent = state.floor;
   els.door.textContent = getDoorLabel(state.door);
@@ -241,7 +272,6 @@ function render() {
   els.passengers.textContent = state.passengers;
   els.power.value = state.power;
   els.powerText.textContent = Math.round(state.power);
-  if (els.powerQuick) els.powerQuick.textContent = `PWR ${Math.round(state.power)}`;
   els.stability.value = state.stability;
   els.stabilityText.textContent = Math.round(state.stability);
   els.anomalyLevel.textContent = state.anomalyLevel;
@@ -252,7 +282,7 @@ function render() {
   const unlockedCount = state.hiddenLogs.filter(h => !h.locked).length;
   if (els.hiddenLogsCount) els.hiddenLogsCount.textContent = lockedCount;
   if (els.adHintsCount) els.adHintsCount.textContent = state.adHintsUsed;
-  const tone = getToneForState(state);
+  const tone = visual.tone;
   if (els.monitorSignal) {
     const signal = tone === 'danger' || tone === 'critical'
       ? labels.monitorSignal.corrupted
@@ -260,9 +290,12 @@ function render() {
         ? labels.monitorSignal.unstable
         : labels.monitorSignal.stable;
     els.monitorSignal.textContent = signal;
-    if (els.systemState) els.systemState.textContent = signal;
   }
   if (els.monitorThreat) els.monitorThreat.textContent = labels.monitorThreat(state.anomalyLevel);
+  if (els.operatorCue) {
+    const recommendedLabel = visual.highlightAction ? (ACTION_SHORT_LABELS[visual.highlightAction] || actionLabel(visual.highlightAction)) : null;
+    els.operatorCue.textContent = getOperatorCue(state, nextAnomalyAt, recommendedLabel);
+  }
   // 显示已解锁的隐藏日志内容
   const unlockedHidden = state.hiddenLogs.filter(h => !h.locked);
   const monitorText = unlockedHidden.length > 0
@@ -274,7 +307,11 @@ function render() {
   if (els.monitor) {
     els.monitor.dataset.door = state.door;
     els.monitor.dataset.moving = String(state.moving);
-    els.monitor.dataset.anomaly = state.anomalyLevel > 0 ? 'active' : 'clear';
+    els.monitor.dataset.anomaly = visual.glitch ? 'active' : 'clear';
+    els.monitor.dataset.glitch = String(visual.glitch);
+    els.monitor.dataset.shake = String(visual.shake);
+    els.monitor.dataset.cctvState = visual.cctvState;
+    els.monitor.style.setProperty('--cctv-noise', String(visual.noise));
     els.monitor.dataset.passengers = state.passengers > 0 ? 'present' : 'missing';
   }
 
@@ -288,7 +325,8 @@ function render() {
   els.logs.scrollTop = els.logs.scrollHeight;
 
   if (state.gameOver) {
-    if (state.fakeEndingTriggered) {
+    const isSuccess = state.result === 'success';
+    if (!isSuccess && state.fakeEndingTriggered) {
       // 假结局
       els.overlay.hidden = true;
       els.fakeEndingOverlay.hidden = false;
@@ -308,7 +346,11 @@ function render() {
       // 正常失败
       els.fakeEndingOverlay.hidden = true;
       els.overlay.hidden = false;
-      els.failureReason.textContent = summarizeFailure(state);
+      els.overlay.dataset.result = isSuccess ? 'success' : 'failure';
+      els.failureTitle.textContent = isSuccess ? t('ui.shiftComplete') : labels.failureTitle;
+      els.failureReason.textContent = isSuccess ? t('ui.successfulShift') : summarizeFailure(state);
+      els.reviveButton.hidden = isSuccess;
+      els.adHint.hidden = isSuccess;
       if (els.failureMetrics) {
         const metrics = labels.failureMetrics.map(({ key, label }) => {
           const value = key === 'remaining' ? Math.ceil(state.remaining) : Math.round(state[key]);
@@ -361,10 +403,11 @@ function render() {
 function dispatchAction(actionId) {
   ensureTimer();
   playClick();
+  closeSecondaryActions();
   trackEvent('action_click', analyticsPayload({ actionId }));
   if (actionId === 'unlockHiddenLog') {
     trackEvent('hidden_log_ad_start', analyticsPayload({ adUnitId: CONFIG.adUnits.decode }));
-    showDecodeAd();
+    showDecodeAd({ runToken });
     return;
   }
   runAction(actionId);
@@ -399,10 +442,13 @@ function triggerAnomaly() {
 function loop() {
   if (state.gameOver) {
     if (!crashPlayed) {
-      playCrash();
+      const isSuccess = state.result === 'success';
+      if (isSuccess) playSuccess();
+      else playCrash();
       crashPlayed = true;
       trackEvent('game_over', analyticsPayload({
-        reason: summarizeFailure(state).reason,
+        result: state.result,
+        reason: isSuccess ? 'shift_complete' : summarizeFailure(state),
         anomaliesTriggeredTotal: state.anomaliesTriggeredTotal || 0,
         maxAnomalySeverity: state.maxAnomalySeverity || 0,
       }));
@@ -428,7 +474,7 @@ function loop() {
   state = tickState(state, 1);
 
   // 成功值守 → 重置连续失败计数
-  if (state.gameOver && state.remaining <= 0) {
+  if (state.gameOver && state.result === 'success') {
     state = recordSuccessfulShift(state);
     render();
     return;
@@ -451,7 +497,7 @@ function loop() {
   }
   if (!state.gameOver && state.elapsed >= nextAnomalyAt) triggerAnomaly();
   // Play warning sound on tone transitions to critical/danger
-  const currentTone = getToneForState(state);
+  const currentTone = deriveVisualState(state).tone;
   if (currentTone === 'danger' || currentTone === 'critical') {
     if (lastTone !== currentTone) playWarning();
   }
@@ -460,12 +506,13 @@ function loop() {
 }
 
 function restart() {
+  runToken += 1;
   if (timer) {
     window.clearInterval(timer);
     timer = null;
   }
   if (els.startOverlay) els.startOverlay.hidden = false;
-  session = restartRuntimeSession();
+  session = restartRuntimeSession({ state });
   state = session.state;
   nextAnomalyAt = session.nextAnomalyAt;
   fakeEndingTracked = false;
@@ -524,14 +571,15 @@ function renderArchive() {
 
 function applyDomLabels() {
   const labels = getDomLabels();
-  els.remainingLabel.textContent = 'TIMER';
-  els.statusPanelTitle.textContent = 'STATUS';
-  els.monitorPanelTitle.textContent = 'CCTV';
-  els.actionPanelTitle.textContent = 'CTRL';
-  els.logPanelTitle.textContent = 'LOG';
+  els.remainingLabel.textContent = labels.countdown;
+  els.statusPanelTitle.textContent = labels.statusPanel;
+  els.monitorPanelTitle.textContent = labels.monitorPanel;
+  els.actionPanelTitle.textContent = labels.actionPanel;
+  els.logPanelTitle.textContent = labels.logPanel;
   els.failureTitle.textContent = labels.failureTitle;
   els.forceAnomaly.textContent = 'ANOM';
   els.forceAnomaly.setAttribute('aria-label', labels.forceAnomaly);
+  els.forceAnomaly.hidden = !debugMode;
   els.reviveButton.textContent = labels.revive;
   els.restartButton.textContent = labels.restart;
   els.fakeEndingTruthBtn.textContent = labels.revealTruth;
@@ -557,28 +605,36 @@ function applyDomLabels() {
       return chip;
     }));
   }
-  els.floorLabel.textContent = 'F';
-  els.doorLabel.textContent = 'DOOR';
-  els.directionLabel.textContent = 'DIR';
-  els.passengersLabel.textContent = 'PAX';
-  els.powerLabel.textContent = 'PWR';
-  els.stabilityLabel.textContent = 'STB';
-  els.anomalyLevelLabel.textContent = 'ANOM';
-  els.reviveCountLabel.textContent = 'REV';
-  els.adHintsCountLabel.textContent = 'DEC';
-  els.hiddenLogsCountLabel.textContent = 'LOCK';
+  els.floorLabel.textContent = labels.status.floor;
+  els.doorLabel.textContent = labels.status.door;
+  els.directionLabel.textContent = labels.status.direction;
+  els.passengersLabel.textContent = labels.status.passengers;
+  els.powerLabel.textContent = labels.status.power;
+  els.stabilityLabel.textContent = labels.status.stability;
+  els.anomalyLevelLabel.textContent = labels.status.anomalyLevel;
+  els.reviveCountLabel.textContent = labels.status.reviveCount;
+  els.adHintsCountLabel.textContent = labels.status.adHintsCount;
+  els.hiddenLogsCountLabel.textContent = labels.status.hiddenLogsCount;
 }
 
 applyDomLabels();
 refreshArchiveButton();
 bindPress(els.startButton, () => {
   playClick();
+  musicStarted = true;
+  setMusicState('calm');
   ensureTimer();
 });
 bindPress(els.forceAnomaly, triggerAnomaly);
+bindPress(els.moreActions, openSecondaryActions);
+bindPress(els.closeSecondaryActions, closeSecondaryActions);
+bindPress(els.secondaryActionsBackdrop, closeSecondaryActions);
+window.addEventListener('keydown', (event) => {
+  if (event.key === 'Escape') closeSecondaryActions();
+});
 bindPress(els.reviveButton, () => {
   trackEvent('revive_ad_start', analyticsPayload({ adUnitId: CONFIG.adUnits.revive }));
-  showReviveAd();
+  showReviveAd({ runToken });
 });
 bindPress(els.restartButton, () => {
   playRestart();
@@ -587,7 +643,7 @@ bindPress(els.restartButton, () => {
 
 // 假结局按钮
 bindPress(els.fakeEndingTruthBtn, () => {
-  showTruthAd();
+  showTruthAd({ runToken });
 });
 bindPress(els.fakeEndingRestartBtn, () => {
   playRestart();
@@ -611,8 +667,14 @@ if (meta) {
   if (titleEl) titleEl.textContent = meta.name;
   if (subEl) subEl.textContent = meta.subtitle;
   root.dataset.skin = meta.id;
-  syncCctvBackground(meta.id);
 }
 
 render();
-window.addEventListener('beforeunload', () => window.clearInterval(timer));
+document.addEventListener('visibilitychange', () => {
+  if (document.hidden) pauseMusic();
+  else if (musicStarted && !state.gameOver) resumeMusic();
+});
+window.addEventListener('beforeunload', () => {
+  window.clearInterval(timer);
+  stopMusic();
+});

@@ -1,6 +1,27 @@
 # MINIGAME 后续任务列表
 
-> 当前基线：`npm test` 89/89 pass；`npm run verify:summary` 通过；微信 strict 为 0 blocker；Android APK build/inspect 通过；Android WebView 已安装验证；`npm run release:check` 在默认占位配置下预期失败。
+> 2026-07-11 全面审计、首批 P0 修复与后续接手顺序见：[`PROJECT_AUDIT_HANDOFF_2026-07-11.md`](./PROJECT_AUDIT_HANDOFF_2026-07-11.md)。本文保留历史任务；如有冲突，以交接文档和当前测试为准。
+
+> 当前基线以实际命令输出为准：本轮 `npm test` 已通过；微信 strict 为 0 blocker；Android APK build/inspect 依赖项目内便携 `.tools` 工具链，缺失时需要先恢复工具链；`npm run release:check` 在默认占位配置下预期失败。
+
+
+## P0｜平台定位 / 目录治理
+
+### 0. 小游戏合集平台目录已建立
+
+当前定位已调整为：MINIGAME 是小游戏合集平台，首发游戏是：
+
+```text
+games/find-anomaly/elevator-console
+```
+
+当前只建立分类、manifest 和 runtime 映射，不移动 `src/` 源码，避免破坏 H5 / 微信 / Android 验收链。
+
+下一步目录治理建议：
+
+1. 玩家入口继续保持当前单游戏直进，不做合集首页/游戏选择页。
+2. `games/`、manifest 和 runtime 映射先作为后台生产目录保留。
+3. 新游戏一律先进入 `games/<category>/<game-id>/`，再决定是否复用现有 runtime。
 
 ## 已完成的近期地基
 
@@ -14,7 +35,7 @@
 - P3：皮肤生成脚本 `scripts/create-skin-from-template.mjs` 与 `npm run skin:new -- <id> [名称]`。
 - P2：轻量埋点接口 `src/analytics.js`，已接入 H5 开始、失败、广告、操作、异常路径。
 - P2：跨局异常档案库已按皮肤记录场次、遭遇异常、解锁日志和收集进度。
-- P5：监控画面已接入更真实的低清 CCTV 背景 `assets/generated/monitor-cctv-real-basement-lift.png`，并在 Android WebView 资源准备脚本中打包验证。
+- P5：H5 Debug Console 的低清 CCTV 背景已由 `styles.css` 中当前仍被引用的生成资产提供；未接线旧候选图已清理。
 - P5：图像生成提示词包已落地 `docs/IMAGE_GENERATION_PROMPT_PACK.md`，用于后续重做 UI/监控画面资产。
 - P4：GitHub Actions verify workflow。
 - P4：`npm run android:install` 真机/模拟器安装启动命令。
@@ -172,9 +193,10 @@ npm run release:check
 
 ## 建议下一步执行顺序
 
-1. P3-7：第 6 套皮肤候选（建议无人酒店前台）。
-2. P5-11：异常态监控撕裂 / freeze frame / 红外闪烁。
-3. P4-8：Android release APK / 签名流程。
-4. P5-10：游戏内新手引导压缩。
-5. P1-2：微信开发者工具真实导入测试。
-6. P4-9：GitHub Actions APK artifact 上传。
+1. P5-10：继续压缩首局体验，确保 10 秒内看见异常、知道推荐按键。
+2. P2-4：局后复盘页继续产品化，强化复玩和广告复活循环。
+3. P5-11：异常态监控撕裂 / freeze frame / 红外闪烁。
+4. P4-8：Android release APK / 签名流程。
+5. P3-7：第 6 套皮肤候选（建议无人酒店前台，等 Game001 单局体验更稳后再做）。
+6. P1-2：微信开发者工具真实导入测试。
+7. P4-9：GitHub Actions APK artifact 上传。

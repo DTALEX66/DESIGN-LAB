@@ -5,7 +5,7 @@
     "subtitle": "MINIGAME · ANOMALY SYSTEM SIM"
   },
   "monitor": {
-    "initial": "监控画面稳定：1 层轿厢内有 1 名乘客。",
+    "initial": "监控画面稳定：1 层轿厢为空。",
     "actions": {
       "openDoor": "监控：{floor} 层电梯门已打开。门外走廊光线异常。",
       "closeDoor": "监控：轿厢门闭合。画面存在轻微拖影。",
@@ -42,7 +42,7 @@
     "logPanel": "系统日志",
     "forceAnomaly": "触发异常测试",
     "failureTitle": "系统崩溃",
-    "failureEyebrow": "SYSTEM FAILURE",
+    "failureEyebrow": "系统故障",
     "monitorSignalStable": "SYSTEM: STABLE",
     "monitorSignalUnstable": "SYSTEM: UNSTABLE",
     "monitorSignalCorrupted": "SYSTEM: CORRUPTED",
@@ -56,7 +56,8 @@
     "moveUp_doorNotClosed": "门未关闭，禁止移动。",
     "moveDown_doorNotClosed": "门未关闭，禁止移动。",
     "unknownAction": "未知操作：{actionId}",
-    "gameOver": "系统已崩溃，必须复活或重新开始。"
+    "gameOver": "系统已崩溃，必须复活或重新开始。",
+    "systemBusy": "当前动作尚未完成，请等待电梯状态稳定。"
   },
   "actionFeedback": {
     "openDoor": "电梯门已打开。", "closeDoor": "电梯门已关闭。",
@@ -81,9 +82,9 @@
   "anomalies": [
     {
       "id": "phantom_floor", "title": "不存在的楼层", "severity": 2,
-      "monitor": "监控：电梯停在 13 层。建筑图纸中不存在该楼层。",
-      "adHint": "当楼层显示 13 时，不要开门，先执行系统重启。",
-      "effects": { "floor": 13, "anomalyLevel": 2, "stability": -10 }
+      "monitor": "监控：楼层读数跳到 {normalFloorPlus2} 层。该楼层在建筑图纸中不存在。",
+      "adHint": "楼层显示异常时不要开门，先执行系统重启。",
+      "effects": { "floor": "+2", "anomalyLevel": 2, "stability": -10 }
     },
     {
       "id": "camera_delay", "title": "监控延迟", "severity": 1,
@@ -153,7 +154,7 @@
     }
   ],
   "hiddenLogs": {
-    "phantom_floor": { "title": "第13层施工记录", "content": "2019年施工记录：第13层在竣工前被从建筑图纸中删除。\n原因：施工期间发生III级安全事件，3名工人失踪。\n楼层控制面板已被物理封堵，但系统仍能响应来自该层的按钮信号。" },
+    "phantom_floor": { "title": "未归档楼层施工记录", "content": "施工记录（编号模糊）：存在未归档的夹层结构，位于正常楼层之间。\\n档案中未找到该夹层的施工许可或验收记录。\\n控制面板能收到来自该夹层的按钮信号，尽管物理按钮不存在于任何楼层。\\n技术人员备注：该信号可能与 3 年前失踪的 3 名工人有关。" },
     "camera_delay": { "title": "监控系统校准记录", "content": "校准日志 #4417：摄像头#03 与#07 存在 3 秒信号延迟。\n技术人员备注：延迟与第 13 层信号干扰有关，建议不要在 13 层停靠。" },
     "zero_passenger_shadow": { "title": "乘客记录异常说明", "content": "传感器技术手册（节选）：\n红外传感器在非营业时段多次检测到热源信号，但乘客计数器持续归零。\n维修记录：传感器无故障。热源信号经比对——与员工体温档案不匹配。" },
     "log_echo": { "title": "日志系统诊断报告", "content": "诊断报告 #FD-22-019：\n系统日志缓冲区检测到重复写入操作。重复内容「不要开门」的写入时间戳早于当前值班员登录时间。\n建议：检查前一值班员的退出状态。" },
@@ -169,6 +170,7 @@
   "failure": {
     "summaries": { "power": "电源耗尽", "stability": "稳定度归零", "anomalyLevel": "异常等级失控", "passengers": "乘客记录出现负数", "default": "系统拒绝继续响应" },
     "defaultHint": "先关门，再重启系统，避免连续移动。",
+    "firstRunAdvice": "下次先核对画面、楼层、人数和门状态；一致放行，矛盾封锁。",
     "adHintPrefix": "广告提示：{hint}",
     "adReviveRollback": "广告复活完成：回滚 {seconds} 秒，恢复至可控状态。",
     "adReviveMonitor": "广告复活完成：回滚到 {seconds} 秒前的系统状态。",
@@ -190,15 +192,46 @@
     "triggerTest": "触发异常测试",
     "decodePrefix": "[解码记录]",
     "initialLog": "异常电梯控制台已接管。等待操作员指令。",
+    "initialFeedback": "等待下一班电梯",
+    "tutorialNormal": "信息一致，点击放行",
+    "tutorialAnomaly": "发现矛盾，点击封锁",
+    "coreRule": "核对画面和数据：一致放行，矛盾封锁",
+    "standby": "等待下一班",
+    "wrongTutorial": "再看一眼：核对楼层、人数和门状态",
+    "wrongTreatment": "处置错误，异常仍在持续。",
+    "inspectionReady": "请核对当前画面和三项数据",
+    "treatmentTutorial": "最后一步：按亮起的处置键解除异常",
+    "wrongTreatmentTutorial": "这项处置不对应当前线索，再看一次",
+    "autoResolutionCorrect": "封锁成功，系统已自动处置",
+    "autoResolutionWrong": "判断错误，系统已紧急隔离",
+    "autoResolutionTimeout": "判断超时，系统已自动隔离",
     "anomalyEventLog": "异常事件：{title}。{hint}",
     "startTitle": "等待接管异常电梯",
-    "startCopy": "目标：值守 60 秒，观察监控、处理异常、避免系统崩溃。接管后倒计时才会启动。",
-    "startChecklist": "先读监控画面和系统日志\n异常出现时按提示执行操作\n失败后可通过模拟广告复活",
+    "startCopy": "核对楼层、人数和门状态：对得上就放行，对不上就封锁。前两班会在实际画面中教会你。",
+    "startChecklist": "三项一致：放行\n任意一项矛盾：封锁\n前两班点错不会扣分",
     "startFailureRulesTitle": "失败条件",
     "startFailureRules": "电源归零\n稳定度归零\n异常等级失控",
     "startButton": "开始接管",
-    "successfulShift": "本轮值守结束。系统仍未解释全部异常。",
-    "shiftComplete": "值守完成。连续失败计数已重置。",
+    "sidebarEntry": "侧边栏入口",
+    "pausedTitle": "值守已暂停",
+    "pausedCopy": "返回前台后继续，不计算后台时间",
+    "audioOn": "声音开",
+    "audioOff": "已静音",
+    "adUnavailable": "广告暂不可用，请稍后重试",
+    "reportNormal": "放行",
+    "reportAnomaly": "封锁",
+    "inspectionLabel": "请在 {seconds}s 内判断",
+    "baselineInspectionTitle": "核对画面与数据",
+    "anomalyInspectionTitle": "核对画面与数据",
+    "anomalyResolved": "处置完成：{action} 已解除当前异常。",
+    "anomalyResolvedMonitor": "监控恢复稳定，等待下一轮巡检。",
+    "inspectionPrompt": "巡检判定：{title}（{seconds}秒内响应）",
+    "inspectionCorrectNormal": "判定正确：当前画面正常。",
+    "inspectionCorrectAnomaly": "判定正确：异常已上报，系统压力下降。",
+    "inspectionWrong": "判定错误：稳定度下降，异常压力上升。",
+    "inspectionTimeout": "判定超时：未完成本次巡检。",
+    "successfulShift": "本轮结束，连续失败计数已重置。",
+    "shiftComplete": "值守完成",
     "hiddenLogCaptured": "加密记录已捕获：{title}。使用「查看日志」功能解码。",
     "unlockResult": "已解码：{title}",
     "decodeMonitor": "解码完成：{title}。完整内容已写入系统日志。"

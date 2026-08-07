@@ -2,6 +2,23 @@ import CONFIG from './gameConfig.js';
 import { createFeedbackLine } from './feedback.js';
 import { findRollbackSnapshot } from './rollback.js';
 import { t } from './skinManager.js';
+import { createContaminationState } from './contamination.js';
+import { createInvestigationState } from './investigationTools.js';
+
+function createNightState() {
+  return {
+    activeProtocols: [],
+    currentShift: null,
+    roundType: 'quick',
+    shiftIndex: 0,
+    decisions: [],
+    eventChains: {},
+    eventChainFlags: [],
+    eventChainHistory: [],
+    timelineSequence: 0,
+    nextShiftModifiers: [],
+  };
+}
 
 export function createInitialState() {
   const c = CONFIG.initial;
@@ -10,11 +27,16 @@ export function createInitialState() {
     door: c.door,
     moving: c.moving,
     direction: c.direction,
+    transition: null,
     power: c.power,
     stability: c.stability,
     anomalyLevel: c.anomalyLevel,
+    contamination: createContaminationState(),
+    night: createNightState(),
+    investigation: createInvestigationState({ power: c.power }),
     passengers: c.passengers,
     gameOver: c.gameOver,
+    result: 'playing',
     elapsed: 0,
     remaining: c.duration,
     adRevivesUsed: 0,
@@ -33,12 +55,25 @@ export function createInitialState() {
     // 复盘统计（局内累积）
     anomaliesTriggeredTotal: 0,
     maxAnomalySeverity: 0,
+    inspection: null,
+    decisionsCorrect: 0,
+    decisionsWrong: 0,
+    score: 0,
+    streak: 0,
+    bestStreak: 0,
+    tutorialStep: 0,
+    lastFeedback: t('ui.initialFeedback'),
     logs: [createFeedbackLine('info', t('ui.initialLog'), 0)],
   };
 }
 
+function cloneValue(value) {
+  if (value === undefined || value === null) return value;
+  return JSON.parse(JSON.stringify(value));
+}
+
 export function cloneState(state) {
-  return structuredClone(state);
+  return cloneValue(state);
 }
 
 export function appendLog(state, type, message) {
@@ -57,8 +92,10 @@ export function checkFailure(state) {
   const f = CONFIG.failure;
   if (next.power <= f.powerMin || next.stability <= f.stabilityMin || next.anomalyLevel >= f.anomalyLevelMax || next.passengers < f.passengersMin) {
     next.gameOver = true;
+    next.result = 'failure';
     next.moving = false;
     next.direction = 'idle';
+    next.transition = null;
   }
   return next;
 }
@@ -69,7 +106,7 @@ export function saveSnapshot(state) {
   const clean = {};
   for (const key of Object.keys(state)) {
     if (key === 'snapshots') continue;
-    clean[key] = structuredClone(state[key]);
+    clean[key] = cloneValue(state[key]);
   }
   snapshots.push({ at: state.elapsed, state: clean });
   const next = cloneState(state);
@@ -97,9 +134,11 @@ export function reviveFromAd(state) {
   }
 
   next.gameOver = false;
+  next.result = 'playing';
   next.door = 'closed';
   next.moving = false;
   next.direction = 'idle';
+  next.transition = null;
   next.activeAnomaly = null;
   next.adRevivesUsed += 1;
   next.monitor = t('failure.adReviveMonitor', { seconds: next.rollbackSeconds });
@@ -118,15 +157,35 @@ export function tickState(state, seconds = 1) {
   } else {
     next.power = clamp(next.power - seconds * tk.powerDrainIdle, 0, 100);
   }
+  if (next.transition) {
+    next.transition.remaining = Math.max(0, Number(next.transition.remaining || 0) - seconds);
+    if (next.transition.remaining <= 0) {
+      if (next.transition.kind === 'movingUp' || next.transition.kind === 'movingDown') {
+        next.moving = false;
+        next.direction = 'idle';
+      }
+      next.transition = null;
+    }
+  }
   if (next.remaining <= 0) {
     next.gameOver = true;
-    next = appendLog(next, 'success', t('ui.successfulShift'));
+    next.result = 'success';
+    next.activeAnomaly = null;
+    next.inspection = null;
+    next.transition = null;
+    next.moving = false;
+    next.direction = 'idle';
+    next.lastFeedback = t('ui.successfulShift');
+    next = appendLog(next, 'success', next.lastFeedback);
+    return next;
   }
+
   return checkFailure(next);
 }
 
 export function recordSuccessfulShift(state) {
   let next = cloneState(state);
+  next.result = 'success';
   next.consecutiveFailures = 0;
   next.fakeEndingCooldownRemaining = 0;
   next.fakeEndingTriggered = false;
@@ -139,6 +198,7 @@ export function recordSuccessfulShift(state) {
 export function recordFailure(state) {
   const fe = CONFIG.fakeEnding;
   const next = cloneState(state);
+  next.result = 'failure';
   next.consecutiveFailures += 1;
 
   if (next.fakeEndingCooldownRemaining > 0) {
