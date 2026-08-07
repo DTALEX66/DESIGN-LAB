@@ -202,6 +202,25 @@ def verify_capability_status(status: dict[str, Any], results: list[Result]) -> N
         check(results, f"hard rule guards {phrase}", phrase.lower() in hard_rules.lower(), hard_rules)
 
 
+def verify_v4_extensions(manifest: dict[str, Any], results: list[Result]) -> None:
+    product = manifest.get("product") or {}
+    five = product.get("fiveNeutralities") or {}
+    for key in ["modelNeutral", "styleNeutral", "domainNeutral", "toolNeutral", "rightsNeutral"]:
+        check(results, f"V4 five-neutralities includes {key}", bool(five.get(key)), str(five.get(key)))
+    check(results, "V4 product version is 4.x", str(product.get("version", "")).startswith("4."), str(product.get("version")))
+    families = manifest.get("capabilityFamilies") if isinstance(manifest.get("capabilityFamilies"), list) else []
+    for item in families:
+        if not isinstance(item, dict):
+            continue
+        fid = str(item.get("id"))
+        check(results, f"family {fid}: V4 domain present", bool(item.get("domain")), str(item.get("domain")))
+        check(results, f"family {fid}: V4 owner present", bool(item.get("owner")), str(item.get("owner")))
+        check(results, f"family {fid}: V4 license present", bool(item.get("license")), str(item.get("license")))
+    entrypoints = manifest.get("entrypoints") or {}
+    human = entrypoints.get("human") or []
+    check(results, "V4 human entrypoint includes PRODUCT_DEFINITION_V4", "project-memory/PRODUCT_DEFINITION_V4.md" in human, str(human))
+
+
 def verify_v3_docs(root: Path, results: list[Result]) -> None:
     for rel in [PROJECT_DEFINITION_REL, ARCHITECTURE_REL, "README.md", f"{ASSISTANCE_DIR}/README.md"]:
         path = require_path(results, root, rel, file=True)
@@ -251,6 +270,7 @@ def main() -> int:
     manifest, capability_status = verify_json_contracts(root, results)
     verify_manifest_shape(root, manifest, results)
     verify_capability_status(capability_status, results)
+    verify_v4_extensions(manifest, results)
     verify_v3_docs(root, results)
     return print_results(results)
 

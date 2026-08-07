@@ -19,7 +19,18 @@
         "positioning": {"type": "string", "minLength": 20},
         "primaryRuntime": {"type": "string", "minLength": 1},
         "agentRuntimes": {"type": "array", "items": {"type": "string", "minLength": 1}, "minItems": 1},
-        "nonGoals": {"type": "array", "items": {"type": "string", "minLength": 1}, "minItems": 1}
+        "nonGoals": {"type": "array", "items": {"type": "string", "minLength": 1}, "minItems": 1},
+        "fiveNeutralities": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "modelNeutral": {"type": "string", "minLength": 1},
+            "styleNeutral": {"type": "string", "minLength": 1},
+            "domainNeutral": {"type": "string", "minLength": 1},
+            "toolNeutral": {"type": "string", "minLength": 1},
+            "rightsNeutral": {"type": "string", "minLength": 1}
+          }
+        }
       }
     },
     "evidencePolicy": {
@@ -55,7 +66,14 @@
           "id": {"type": "string", "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"},
           "title": {"type": "string", "minLength": 1},
           "paths": {"type": "array", "items": {"type": "string", "minLength": 1}, "minItems": 1},
-          "minimumEvidence": {"enum": ["E0", "E1", "E2", "E3", "E4", "E5"]}
+          "minimumEvidence": {"enum": ["E0", "E1", "E2", "E3", "E4", "E5"]},
+          "domain": {"type": "string", "minLength": 1},
+          "adapters": {"type": "array", "items": {"type": "string", "minLength": 1}},
+          "standards": {"type": "array", "items": {"type": "string", "minLength": 1}},
+          "license": {"type": "string", "minLength": 1},
+          "benchmark": {"type": "string", "minLength": 1},
+          "owner": {"type": "string", "minLength": 1},
+          "lastVerified": {"type": "string"}
         }
       },
       "minItems": 1
