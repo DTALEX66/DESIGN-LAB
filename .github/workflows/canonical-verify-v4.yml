@@ -1,0 +1,108 @@
+name: Canonical Verify (V4)
+
+on:
+  push:
+    paths:
+      - 'opendesign-assistance/**'
+      - 'minigame-runtime/**'
+      - 'design-system/**'
+      - 'project-memory/**'
+      - '.github/workflows/**'
+      - 'scripts/**'
+      - 'requirements.txt'
+      - 'LICENSE'
+      - 'LICENSES/**'
+      - 'NOTICE'
+  pull_request:
+    paths:
+      - 'opendesign-assistance/**'
+      - 'minigame-runtime/**'
+      - 'design-system/**'
+      - 'project-memory/**'
+      - '.github/workflows/**'
+      - 'scripts/**'
+
+permissions:
+  contents: read
+
+jobs:
+  python-gate:
+    name: Python gate (V3 verifiers + unit tests)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install deps
+        run: python -m pip install -r requirements.txt
+      - name: V3 product manifest
+        run: python opendesign-assistance/scripts/verify_product_manifest_v3.py
+      - name: V3 runtime contracts
+        run: python opendesign-assistance/scripts/verify_runtime_contracts_v3.py
+      - name: V3 visual scoring
+        run: python opendesign-assistance/scripts/verify_visual_scoring_v3.py
+      - name: Unified structural gate
+        run: python opendesign-assistance/scripts/verify_open_design_assistance.py
+      - name: V2 / V2.1 protocols
+        run: |
+          python opendesign-assistance/scripts/verify_source_registry_v2.py
+          python opendesign-assistance/scripts/verify_v2_protocols.py
+          python opendesign-assistance/scripts/verify_visual_quality_v21.py
+      - name: Python unit tests
+        run: python scripts/run_python_tests.py
+      - name: JSON/Schema parse check
+        run: python -m compileall -q opendesign-assistance/scripts
+
+  node-gate:
+    name: MiniGame node gate (+ drift check)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Run MiniGame unit tests
+        run: node scripts/run-tests.cjs
+        working-directory: minigame-runtime
+      - name: Rebuild android + webview and assert no drift
+        run: node scripts/check-android-drift.mjs
+        working-directory: minigame-runtime
+      - name: Confirm worktree clean after build
+        run: git diff --exit-code -- minigame-runtime
+
+  generated-artifact-gate:
+    name: Generated-artifact clean-tree gate
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Rebuild and assert committed bundles unchanged
+        run: |
+          cd minigame-runtime
+          node build.js android
+          node scripts/prepare-android-webview.mjs
+          git diff --exit-code -- android-minigame android-webview/app/src/main/assets
+      - name: Assert full tree clean
+        run: git status --porcelain --ignored=no | wc -l
+
+  license-secret-gate:
+    name: License & secret hygiene gate
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Root license present
+        run: test -f LICENSE && echo "LICENSE present"
+      - name: SPDX mirror present
+        run: test -f LICENSES/MIT.txt && echo "LICENSES/MIT.txt present"
+      - name: No obvious secret files tracked
+        run: |
+          set +e
+          git ls-files | grep -iE '(auth\.json|\.env$|id_rsa|\.pem$|credentials)'
+          code=$?
+          set -e
+          if [ "$code" -eq 1 ]; then echo "no secret-like files tracked"; else echo "SECRET-LIKE FILE FOUND"; exit 1; fi
+      - name: No CRLF-forbidden diff whitespace
+        run: git diff --check
