@@ -11,6 +11,10 @@ coverage/
 MINIGAME_V4_Starter_Pack.zip
 android-minigame/
 android-webview/app/src/main/assets/
+wechat-minigame/audio/
+wechat-minigame/visual/
+douyin-minigame/audio/
+douyin-minigame/visual/
 .tools/
 .gradle/
 android-webview/.gradle/
