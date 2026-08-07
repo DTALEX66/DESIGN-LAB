@@ -1,0 +1,14 @@
+{
+  "schemaVersion": "open-design-assistance/adapter-registry/v1",
+  "task": "ODA4-0206",
+  "primaryRuntime": "Open Design",
+  "adapters": [
+    {"adapter_id": "adapter-open-design", "tool": "Open Design", "capabilities": [{"name": "studio-canvas", "supported": true}, {"name": "agent-launch", "supported": true}, {"name": "artifact-export", "supported": true}], "status": "available", "mode": "in-process", "license": "proprietary (runtime), used via plugin contract", "fallback": "none"},
+    {"adapter_id": "adapter-figma", "tool": "Figma", "capabilities": [{"name": "import", "supported": true}, {"name": "export", "supported": true}], "status": "available", "mode": "external-cli", "license": "reference", "fallback": "Penpot"},
+    {"adapter_id": "adapter-penpot", "tool": "Penpot", "capabilities": [{"name": "import", "supported": true}], "status": "available", "mode": "external-cli", "license": "MPL-2.0", "fallback": "Figma"},
+    {"adapter_id": "adapter-blender", "tool": "Blender", "capabilities": [{"name": "3d-render", "supported": false}, {"name": "gltf-export", "supported": false}], "status": "missing", "mode": "process-isolated", "license": "GPL-2.0+", "fallback": "glTF via adapter; process isolation required"},
+    {"adapter_id": "adapter-ffmpeg", "tool": "FFmpeg", "capabilities": [{"name": "video-transcode", "supported": false}, {"name": "audio-encode", "supported": false}], "status": "missing", "mode": "process-isolated", "license": "LGPL/GPL", "fallback": "none yet"},
+    {"adapter_id": "adapter-browser", "tool": "Chromium/browser", "capabilities": [{"name": "dom-render", "supported": true}, {"name": "visual-regression", "supported": true}, {"name": "axe-a11y", "supported": true}], "status": "available", "mode": "external-cli", "license": "MIT/BSD", "fallback": "Playwright"}
+  ],
+  "note": "Large tools (Blender, FFmpeg, 3D/video) require process isolation; missing capabilities are truthfully marked and never presented as available."
+}
