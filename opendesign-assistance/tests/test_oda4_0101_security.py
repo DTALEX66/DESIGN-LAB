@@ -17,6 +17,9 @@ from pathlib import Path
 REPO = Path(__file__).resolve().parents[2]  # opendesign-assistance/scripts -> repo root
 CONFIGURE = REPO / "opendesign-assistance" / "scripts" / "configure_open_design_windows.py"
 DOCTOR = REPO / "opendesign-assistance" / "scripts" / "doctor_open_design_windows.py"
+# The user-home block must use the SAME home the script resolves at runtime, so the
+# test is self-consistent on any machine/CI runner (not hard-coded to one user).
+USER_HOME = str(Path.home())
 
 # Code paths that would constitute the dangerous behaviors. Docstrings may
 # mention these words; real code must not call them.
@@ -87,7 +90,7 @@ class ConfigureCLIBehaviorTest(unittest.TestCase):
         self.assertIn("SECURITY_BLOCK", result.stdout + result.stderr)
 
     def test_user_home_blocked(self):
-        result = self.run_cli(r"C:\Users\ALEX")
+        result = self.run_cli(USER_HOME)
         self.assertIn("SECURITY_BLOCK", result.stdout + result.stderr)
 
 

@@ -53,7 +53,7 @@ def read_json(path: Path) -> dict[str, Any]:
     return json.loads(path.read_text(encoding="utf-8"))
 
 
-def find_codex_bin(explicit: str | None) -> str:
+def find_codex_bin(explicit: str | None, required: bool) -> str | None:
     if explicit:
         return str(Path(explicit))
     candidates: list[Path] = []
@@ -67,6 +67,9 @@ def find_codex_bin(explicit: str | None) -> str:
         if found:
             candidates.append(Path(found))
     if not candidates:
+        if not required:
+            # Dry-run: absence of Codex is informational, not fatal.
+            return None
         raise SystemExit(
             "Could not find Codex CLI. Install/log in to Codex first, then pass --codex-bin explicitly."
         )
@@ -157,7 +160,6 @@ def main() -> None:
     project_root = Path(args.project_root).resolve()
     config_path = Path(args.config)
     codex_home = Path(args.codex_home)
-    codex_bin = find_codex_bin(args.codex_bin)
 
     # Security guard: reject a wide root as the PROJECT target. A wide root is
     # exactly a drive root, the user home, or the D:\All projects parent itself.
@@ -183,19 +185,24 @@ def main() -> None:
     if not project_root.exists():
         raise SystemExit(f"Project root does not exist: {project_root}")
 
+    # Tool detection runs AFTER the security boundary so the guard is fail-closed
+    # even when the environment lacks Codex CLI (e.g. a CI runner).
+    # Codex is only required for --apply; dry-run tolerates its absence.
+    codex_bin = find_codex_bin(args.codex_bin, required=args.apply)
+
     # Presence-only OAuth check (never reads content).
     auth_ok = codex_auth_present(codex_home)
     if not auth_ok:
         print(f"WARN: Codex auth.json not found at {codex_home}. OAuth presence check failed (not blocking).")
 
-    version = smoke_codex(codex_bin, codex_home)
+    version = smoke_codex(codex_bin, codex_home) if codex_bin else "(not found; dry-run only)"
 
     # Build the minimal config we WOULD write (report always; write only with --apply).
     config = read_json(config_path)
     config.setdefault("onboardingCompleted", True)
     config["agentId"] = "codex"
     config.setdefault("agentModels", {}).setdefault("codex", {})["model"] = args.model
-    config.setdefault("agentCliEnv", {}).setdefault("codex", {})["CODEX_BIN"] = codex_bin
+    config.setdefault("agentCliEnv", {}).setdefault("codex", {})["CODEX_BIN"] = codex_bin or "(auto-detect on apply)"
     config["agentCliEnv"]["codex"]["CODEX_HOME"] = str(codex_home)
     location = build_project_location(project_root)
     locations = [loc for loc in config.get("projectLocations", []) if loc.get("id") != LOCATION_ID]
