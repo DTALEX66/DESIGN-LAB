@@ -69,26 +69,34 @@ class ConfigureSecurityCodePathTest(unittest.TestCase):
 
 
 class ConfigureCLIBehaviorTest(unittest.TestCase):
+    """CLI path-semantics tests. configure_open_design_windows.py is Windows-only;
+    its Windows drive-path semantics (E:\, D:\All projects) are meaningless on a
+    POSIX runner, so these run only on Windows."""
+
     def run_cli(self, project_root):
         return subprocess.run(
             [sys.executable, str(CONFIGURE), "--project-root", project_root],
             capture_output=True, text=True,
         )
 
+    @unittest.skipUnless(sys.platform == "win32", "Windows-only path semantics")
     def test_exact_project_root_allowed_dry_run(self):
         result = self.run_cli(r"D:\All projects\OPEN-DESIGN-Assistance")
         self.assertNotIn("SECURITY_BLOCK", result.stdout + result.stderr)
         self.assertIn("OPEN_DESIGN_ASSISTANCE_CONFIG_OK", result.stdout)
 
+    @unittest.skipUnless(sys.platform == "win32", "Windows-only path semantics")
     def test_wide_root_blocked(self):
         for wide in (r"D:\All projects", "D:\\", "C:\\", "E:\\"):
             result = self.run_cli(wide)
             self.assertIn("SECURITY_BLOCK", result.stdout + result.stderr)
 
+    @unittest.skipUnless(sys.platform == "win32", "Windows-only path semantics")
     def test_e_drive_blocked(self):
         result = self.run_cli(r"E:\x")
         self.assertIn("SECURITY_BLOCK", result.stdout + result.stderr)
 
+    @unittest.skipUnless(sys.platform == "win32", "Windows-only path semantics")
     def test_user_home_blocked(self):
         result = self.run_cli(USER_HOME)
         self.assertIn("SECURITY_BLOCK", result.stdout + result.stderr)
