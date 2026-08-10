@@ -1,3 +1,7 @@
+> [!DEPRECATED] 本文件记录迁移前/冻结前的旧定位口径（合集平台、IAA 变现）。
+> 当前权威边界见 `project-memory/MINIGAME_FROZEN_BOUNDARY.md`；
+> 本文件仅作历史参考，不用于指导新改动。
+
 # PROJECT CONTEXT — SINGLE SOURCE OF TRUTH
 
 ## 一、项目本质（必须始终记住）
