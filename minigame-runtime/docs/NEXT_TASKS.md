@@ -1,3 +1,7 @@
+> [!DEPRECATED] 本文件记录迁移前/冻结前的旧定位口径（合集平台、IAA 变现）。
+> 当前权威边界见 `project-memory/MINIGAME_FROZEN_BOUNDARY.md`；
+> 本文件仅作历史参考，不用于指导新改动。
+
 # MINIGAME 后续任务列表
 
 > 2026-07-11 全面审计、首批 P0 修复与后续接手顺序见：[`PROJECT_AUDIT_HANDOFF_2026-07-11.md`](./PROJECT_AUDIT_HANDOFF_2026-07-11.md)。本文保留历史任务；如有冲突，以交接文档和当前测试为准。

@@ -1,14 +1,129 @@
 {
-  "schemaVersion": "open-design-assistance/adapter-registry/v1",
-  "task": "ODA4-0206",
+  "schemaVersion": "open-design-assistance/adapter-registry/v2",
+  "task": "V42-0107",
   "primaryRuntime": "Open Design",
+  "status_model": {
+    "declared": "documented intent only (E0); no schema, version or task evidence",
+    "structural": "schema/manifest/version present and statically verified (E1); no live runtime task",
+    "runtime": "real runtime task executed with artifact + exit code (E2/E3); evidence fields populated",
+    "missing": "tool not installed / capability unsupported; never advertised as available"
+  },
   "adapters": [
-    {"adapter_id": "adapter-open-design", "tool": "Open Design", "capabilities": [{"name": "studio-canvas", "supported": true}, {"name": "agent-launch", "supported": true}, {"name": "artifact-export", "supported": true}], "status": "available", "mode": "in-process", "license": "proprietary (runtime), used via plugin contract", "fallback": "none"},
-    {"adapter_id": "adapter-figma", "tool": "Figma", "capabilities": [{"name": "import", "supported": true}, {"name": "export", "supported": true}], "status": "available", "mode": "external-cli", "license": "reference", "fallback": "Penpot"},
-    {"adapter_id": "adapter-penpot", "tool": "Penpot", "capabilities": [{"name": "import", "supported": true}], "status": "available", "mode": "external-cli", "license": "MPL-2.0", "fallback": "Figma"},
-    {"adapter_id": "adapter-blender", "tool": "Blender", "capabilities": [{"name": "3d-render", "supported": false}, {"name": "gltf-export", "supported": false}], "status": "missing", "mode": "process-isolated", "license": "GPL-2.0+", "fallback": "glTF via adapter; process isolation required"},
-    {"adapter_id": "adapter-ffmpeg", "tool": "FFmpeg", "capabilities": [{"name": "video-transcode", "supported": false}, {"name": "audio-encode", "supported": false}], "status": "missing", "mode": "process-isolated", "license": "LGPL/GPL", "fallback": "none yet"},
-    {"adapter_id": "adapter-browser", "tool": "Chromium/browser", "capabilities": [{"name": "dom-render", "supported": true}, {"name": "visual-regression", "supported": true}, {"name": "axe-a11y", "supported": true}], "status": "available", "mode": "external-cli", "license": "MIT/BSD", "fallback": "Playwright"}
+    {
+      "adapter_id": "adapter-open-design",
+      "tool": "Open Design",
+      "capabilities": [
+        {"name": "studio-canvas", "supported": true},
+        {"name": "agent-launch", "supported": true},
+        {"name": "artifact-export", "supported": true}
+      ],
+      "status": "structural",
+      "mode": "in-process",
+      "license": "proprietary (runtime), used via plugin contract",
+      "fallback": "none",
+      "evidence": {
+        "level": "E1",
+        "runtime_version": "0.18.1 (compatibility-baseline.json)",
+        "task_ids": [],
+        "artifact_paths": [],
+        "note": "Plugin/Bundle manifests exist and pass structural verification; live Open Design runtime registration (E3) is pending Phase 3."
+      }
+    },
+    {
+      "adapter_id": "adapter-figma",
+      "tool": "Figma",
+      "capabilities": [
+        {"name": "import", "supported": true},
+        {"name": "export", "supported": true}
+      ],
+      "status": "declared",
+      "mode": "external-cli",
+      "license": "reference",
+      "fallback": "Penpot",
+      "evidence": {
+        "level": "E0",
+        "runtime_version": null,
+        "task_ids": [],
+        "artifact_paths": [],
+        "note": "No versioned CLI integration or runtime task recorded; capability is reference-only until exercised."
+      }
+    },
+    {
+      "adapter_id": "adapter-penpot",
+      "tool": "Penpot",
+      "capabilities": [
+        {"name": "import", "supported": true}
+      ],
+      "status": "declared",
+      "mode": "external-cli",
+      "license": "MPL-2.0",
+      "fallback": "Figma",
+      "evidence": {
+        "level": "E0",
+        "runtime_version": null,
+        "task_ids": [],
+        "artifact_paths": [],
+        "note": "No versioned CLI integration or runtime task recorded; capability is reference-only until exercised."
+      }
+    },
+    {
+      "adapter_id": "adapter-blender",
+      "tool": "Blender",
+      "capabilities": [
+        {"name": "3d-render", "supported": false},
+        {"name": "gltf-export", "supported": false}
+      ],
+      "status": "missing",
+      "mode": "process-isolated",
+      "license": "GPL-2.0+",
+      "fallback": "glTF via adapter; process isolation required",
+      "evidence": {
+        "level": "E0",
+        "runtime_version": null,
+        "task_ids": [],
+        "artifact_paths": [],
+        "note": "Blender not installed in current environment; capabilities stay unsupported and are never advertised as available."
+      }
+    },
+    {
+      "adapter_id": "adapter-ffmpeg",
+      "tool": "FFmpeg",
+      "capabilities": [
+        {"name": "video-transcode", "supported": false},
+        {"name": "audio-encode", "supported": false}
+      ],
+      "status": "missing",
+      "mode": "process-isolated",
+      "license": "LGPL/GPL",
+      "fallback": "none yet",
+      "evidence": {
+        "level": "E0",
+        "runtime_version": null,
+        "task_ids": [],
+        "artifact_paths": [],
+        "note": "FFmpeg not installed in current environment; capabilities stay unsupported and are never advertised as available."
+      }
+    },
+    {
+      "adapter_id": "adapter-browser",
+      "tool": "Chromium/browser",
+      "capabilities": [
+        {"name": "dom-render", "supported": true},
+        {"name": "visual-regression", "supported": true},
+        {"name": "axe-a11y", "supported": true}
+      ],
+      "status": "declared",
+      "mode": "external-cli",
+      "license": "MIT/BSD",
+      "fallback": "Playwright",
+      "evidence": {
+        "level": "E0",
+        "runtime_version": null,
+        "task_ids": [],
+        "artifact_paths": [],
+        "note": "Browser/Playwright harness not yet exercised against a pinned version; declared only until a runtime task records artifact + exit code."
+      }
+    }
   ],
-  "note": "Large tools (Blender, FFmpeg, 3D/video) require process isolation; missing capabilities are truthfully marked and never presented as available."
+  "note": "No adapter is labelled 'available' without runtime evidence. Statuses follow the model above; E3 claims require a task ID, artifact path/hash and exit code in the evidence block."
 }

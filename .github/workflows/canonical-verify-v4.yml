@@ -13,6 +13,12 @@ on:
       - 'LICENSE'
       - 'LICENSES/**'
       - 'NOTICE'
+      - 'README.md'
+      - 'THIRD_PARTY_SOURCES*.md'
+      - 'LICENSING_DECISION_REQUIRED.md'
+      - 'WORK-LAB-DESIGN-MODULE-FINAL-HANDOFF-*.md'
+      - '.gitignore'
+      - '.gitattributes'
   pull_request:
     paths:
       - 'opendesign-assistance/**'
@@ -21,6 +27,16 @@ on:
       - 'project-memory/**'
       - '.github/workflows/**'
       - 'scripts/**'
+      - 'requirements.txt'
+      - 'LICENSE'
+      - 'LICENSES/**'
+      - 'NOTICE'
+      - 'README.md'
+      - 'THIRD_PARTY_SOURCES*.md'
+      - 'LICENSING_DECISION_REQUIRED.md'
+      - 'WORK-LAB-DESIGN-MODULE-FINAL-HANDOFF-*.md'
+      - '.gitignore'
+      - '.gitattributes'
 
 permissions:
   contents: read
@@ -86,7 +102,14 @@ jobs:
           node scripts/prepare-android-webview.mjs
           git diff --exit-code -- android-minigame android-webview/app/src/main/assets
       - name: Assert full tree clean
-        run: git status --porcelain --ignored=no | wc -l
+        run: |
+          dirt=$(git status --porcelain --ignored=no)
+          if [ -n "$dirt" ]; then
+            echo "FAIL-CLOSED: worktree is dirty after rebuild"
+            echo "$dirt"
+            exit 1
+          fi
+          echo "clean tree confirmed"
 
   license-secret-gate:
     name: License & secret hygiene gate
