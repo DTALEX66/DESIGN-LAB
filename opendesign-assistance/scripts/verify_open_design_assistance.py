@@ -350,6 +350,78 @@ def verify_scripts(root: Path, results: list[Result]) -> None:
             check(results, f"script compiles: {rel}", False, str(exc))
 
 
+def verify_asset_counts(root: Path, results: list[Result]) -> None:
+    """V42-0106: asset-counts.json must match real directory scans and registries.
+
+    Hand-maintained counts in entrypoint-convergence.json must agree with the
+    auto-generated single source of truth; otherwise the counts have drifted.
+    """
+    counts_path = root / ASSISTANCE_DIR / "config" / "asset-counts.json"
+    if not counts_path.is_file():
+        check(results, "asset-counts.json exists (run generate_open_design_indexes.py)", False)
+        return
+    try:
+        counts = load_json(counts_path)
+    except Exception as exc:  # noqa: BLE001
+        check(results, "asset-counts.json parses", False, str(exc))
+        return
+    if not isinstance(counts, dict):
+        check(results, "asset-counts.json is an object", False)
+        return
+
+    def dir_count(rel_dir: str, manifest_name: str = "open-design.json") -> int:
+        target = root / ASSISTANCE_DIR / rel_dir
+        if not target.is_dir():
+            return 0
+        return sum(1 for p in target.iterdir() if p.is_dir() and (p / manifest_name).is_file())
+
+    def json_file_count(rel_dir: str) -> int:
+        target = root / ASSISTANCE_DIR / rel_dir
+        if not target.is_dir():
+            return 0
+        return len([p for p in target.iterdir() if p.is_file() and p.suffix == ".json"])
+
+    expected = {
+        "plugins": dir_count("plugins"),
+        "bundles": dir_count("bundles"),
+        "domain_packs": dir_count("domain-packs", manifest_name="manifest.json"),
+        "atoms": dir_count("atoms"),
+        "scenarios": dir_count("scenarios"),
+        "rubrics": json_file_count("evals/rubrics"),
+    }
+    for key, real in expected.items():
+        declared = counts.get(key)
+        check(
+            results,
+            f"asset-count {key} matches directory scan",
+            declared == real,
+            f"declared={declared} real={real}",
+        )
+
+    # entrypoint-convergence counts must agree with the generated index.
+    convergence_path = root / ASSISTANCE_DIR / "config" / "entrypoint-convergence.json"
+    if convergence_path.is_file():
+        try:
+            convergence = load_json(convergence_path)
+            conv_counts = convergence.get("counts") if isinstance(convergence, dict) else None
+            if isinstance(conv_counts, dict):
+                pairs = [
+                    ("public_bundles", counts.get("bundles")),
+                    ("internal_atoms", counts.get("atoms")),
+                    ("compatibility_plugins", counts.get("plugins")),
+                ]
+                for field, expected_value in pairs:
+                    declared_conv = conv_counts.get(field)
+                    check(
+                        results,
+                        f"entrypoint-convergence {field} matches asset-counts",
+                        declared_conv == expected_value,
+                        f"declared={declared_conv} generated={expected_value}",
+                    )
+        except Exception as exc:  # noqa: BLE001
+            check(results, "entrypoint-convergence parses for count check", False, str(exc))
+
+
 def verify_secondary_verifiers(root: Path, results: list[Result]) -> None:
     verifiers = [
         "opendesign-assistance/scripts/verify_product_manifest_v3.py",
@@ -431,6 +503,7 @@ def main() -> int:
     verify_json_files(root, results)
     verify_indexes(root, results)
     verify_scripts(root, results)
+    verify_asset_counts(root, results)
     verify_secondary_verifiers(root, results)
     verify_docs(root, results)
     return print_results(results)
