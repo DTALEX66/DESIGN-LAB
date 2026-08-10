@@ -1,7 +1,9 @@
 # Open Design Compatibility Matrix（ODA4-0302）
 
-- 版本基线：Open Design `0.13.0`（ODA4-0301 实测）
-- 证据：E2
+- 版本基线：Open Design `0.18.1`（当前已测基线；`compatibility-baseline.json` 为 SSOT）
+- 历史记录：`0.13.0` 于 2026-08-07 在就地升级前观测，仅作历史，不作为支持基线
+- 证据：E2（结构/隔离验证）；Open Design live runtime 注册需 Phase 3 的 E3 证据
+- 版本协商策略：不将实现永久锁死到单一版本；新接口以官方 `--help`/schema/运行时回读为准现场发现
 
 ## 插件 / Bundle 兼容清单
 
@@ -20,7 +22,7 @@
 
 **全部 10 个 manifest** 均引用官方 `https://open-design.ai/schemas/plugin.v1.json`、合法 JSON、MIT。
 
-## 兼容矩阵（Open Design 0.13.0）
+## 兼容矩阵（Open Design 0.18.1）
 
 | 契约 | 当前状态 | 说明 |
 |---|---|---|

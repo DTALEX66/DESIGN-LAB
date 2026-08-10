@@ -200,7 +200,6 @@ VERIFY_RESULT=OK total=456 failed=0
 ```bash
 python opendesign-assistance/scripts/configure_open_design_windows.py \
   --project-root "D:\\All projects\\OPEN-DESIGN-Assistance" \
-  --permission-root "D:\\All projects" \
   --dry-run
 
 python opendesign-assistance/scripts/doctor_open_design_windows.py \
