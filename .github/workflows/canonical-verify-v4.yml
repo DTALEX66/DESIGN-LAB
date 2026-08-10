@@ -17,6 +17,7 @@ on:
       - 'THIRD_PARTY_SOURCES*.md'
       - 'LICENSING_DECISION_REQUIRED.md'
       - 'WORK-LAB-DESIGN-MODULE-FINAL-HANDOFF-*.md'
+      - 'reports/**'
       - '.gitignore'
       - '.gitattributes'
   pull_request:
@@ -35,6 +36,7 @@ on:
       - 'THIRD_PARTY_SOURCES*.md'
       - 'LICENSING_DECISION_REQUIRED.md'
       - 'WORK-LAB-DESIGN-MODULE-FINAL-HANDOFF-*.md'
+      - 'reports/**'
       - '.gitignore'
       - '.gitattributes'
 
