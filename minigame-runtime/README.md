@@ -177,7 +177,7 @@ node build.js wechat     # 构建微信小游戏 bundle
 
 ## 当前文档
 
-- `docs/PLATFORM_POSITIONING.md`：小游戏合集平台定位
+- `docs/PLATFORM_POSITIONING.md`：旧平台定位（已 DEPRECATED，见冻结边界文档）
 - `docs/DIRECTORY_MAP.md`：目录分层与游戏分类
 - `docs/PROJECT_CONTEXT.md`：项目单一事实源
 - `docs/WORKFLOW.md`：AI 协作与开发约束
@@ -198,5 +198,5 @@ node build.js wechat     # 构建微信小游戏 bundle
 - 每次只做一个功能
 - 先设计，后开发
 - 所有修改必须可回滚
-- 不偏离“小游戏合集平台 + 找异常首发游戏”的定位
+- 不偏离"Open Design 设计 fixture / runtime reference"的冻结边界（见 `project-memory/MINIGAME_FROZEN_BOUNDARY.md`）
 - 真实 AppID / adUnitId / 私密配置只放 ignored 本地文件，不提交源码
