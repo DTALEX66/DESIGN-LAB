@@ -4,8 +4,12 @@
   "product": {
     "id": "open-design-assistance",
     "name": "OPEN-DESIGN-Assistance",
-    "version": "4.0.0-staging",
+    "version": "4.2.0",
     "positioning": "Open Design-first neutral professional design intelligence and visual quality platform: model-neutral, style-neutral, domain-neutral, tool-neutral, rights-safe, with commercial production preflight and editable delivery.",
+    "productDefinition": "project-memory/PRODUCT_DEFINITION_V42.md",
+    "boundaryContract": "project-memory/BOUNDARY_CONTRACT_V42.md",
+    "userModes": "opendesign-assistance/profiles/user-modes.json",
+    "objectModel": "opendesign-assistance/config/object-model.json",
     "primaryRuntime": "Open Design",
     "agentRuntimes": ["Hermes", "Codex", "compatible local CLI agents"],
     "fiveNeutralities": {
@@ -64,8 +68,8 @@
     {"id": "release-evidence", "title": "Review, exact-SHA CI and release evidence", "paths": [".github/workflows/", "opendesign-assistance/evals/", "opendesign-assistance/config/capability-status.json", "opendesign-assistance/schemas/release-evidence.schema.json", "opendesign-assistance/scripts/verify_release_evidence.py"], "minimumEvidence": "E4", "domain": "governance", "adapters": [], "standards": ["release-evidence schema", "exact-SHA CI"], "license": "MIT", "benchmark": "release evidence contract", "owner": "DTALEX66", "lastVerified": "2026-08-07"}
   ],
   "entrypoints": {
-    "human": ["README.md", "opendesign-assistance/README.md", "project-memory/PRODUCT_DEFINITION_V4.md"],
-    "machine": ["opendesign-assistance/config/product-manifest.json", "opendesign-assistance/config/capability-status.json"],
+    "human": ["README.md", "opendesign-assistance/README.md", "project-memory/PRODUCT_DEFINITION_V4.md", "project-memory/PRODUCT_DEFINITION_V42.md", "project-memory/BOUNDARY_CONTRACT_V42.md", "project-memory/USER_MODES_V42.md", "project-memory/OBJECT_MODEL_V42.md", "project-memory/MINIMAL_LOCAL_SERVICE_V42.md"],
+    "machine": ["opendesign-assistance/config/product-manifest.json", "opendesign-assistance/config/capability-status.json", "opendesign-assistance/config/object-model.json", "opendesign-assistance/profiles/user-modes.json"],
     "verification": [
       "opendesign-assistance/scripts/verify_open_design_assistance.py",
       "opendesign-assistance/scripts/verify_product_manifest_v3.py",

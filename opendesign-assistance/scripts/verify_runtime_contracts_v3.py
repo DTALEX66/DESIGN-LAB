@@ -21,17 +21,31 @@ ASSISTANCE_DIR = "opendesign-assistance"
 EVIDENCE_LEVELS = {"E0", "E1", "E2", "E3", "E4", "E5"}
 EVIDENCE_STATES = {"NOT_RUN", "PASS", "FAIL", "BLOCKED", "UNVERIFIED", "SKIPPED_OPTIONAL"}
 FIRST_PARTY_ATOMS = {
-    "research-search",
+    # V42-0303 (live Open Design daemon discovery): the daemon's built-in
+    # atom vocabulary (FIRST_PARTY_ATOMS in the installed daemon). context.atoms
+    # in bundles/plugins must only reference these.
     "discovery-question-form",
     "direction-picker",
     "todo-write",
     "file-read",
     "file-write",
+    "file-edit",
+    "research-search",
     "media-image",
     "media-video",
     "media-audio",
     "live-artifact",
+    "connector",
     "critique-theater",
+    "code-import",
+    "design-extract",
+    "figma-extract",
+    "token-map",
+    "rewrite-plan",
+    "patch-edit",
+    "build-test",
+    "diff-review",
+    "handoff",
 }
 EXPECTED_CORE_SCENARIOS = {"commercial-design-router", "brand-campaign-360"}
 EXPECTED_CORE_BUNDLES = {"commercial-design-core", "visual-quality-core"}
@@ -173,8 +187,23 @@ def verify_bundles(root: Path, results: list[Result], atom_ids: set[str]) -> Non
         context = object_at(results, f"bundle {name}: context", od.get("context"))
         atoms = {str(atom) for atom in context.get("atoms", []) if isinstance(atom, str)}
         check(results, f"bundle {name}: atom list present", bool(atoms), str(atoms))
-        missing = sorted(atoms - atom_ids)
-        check(results, f"bundle {name}: atoms resolvable", not missing, str(missing))
+        # V42-0303 (live Open Design daemon discovery): doctor raises
+        # atom.unknown errors for any context.atoms id outside the daemon's
+        # built-in FIRST_PARTY_ATOMS. Local custom atoms (21 professional
+        # atoms under atoms/) must be referenced via context.assets, not
+        # context.atoms, to match the upstream contract.
+        non_builtin = sorted(atoms - FIRST_PARTY_ATOMS)
+        check(results, f"bundle {name}: atoms are daemon builtin", not non_builtin, str(non_builtin))
+        assets = {str(asset) for asset in context.get("assets", []) if isinstance(asset, str)}
+        local_atoms = local_atom_ids(root)
+        check(results, f"bundle {name}: local atom refs declared via assets", bool(assets), str(assets))
+        # Only atom-dir asset refs (…/atoms/<id>/SKILL.md) must resolve to a
+        # local atom; research/registry assets are data references, not atoms.
+        atom_asset_refs = {a for a in assets if "/atoms/" in a}
+        declared_assets = {a.split("/")[-2] for a in atom_asset_refs if "/" in a}
+        if declared_assets:
+            unresolved_assets = sorted(declared_assets - local_atoms)
+            check(results, f"bundle {name}: asset atom refs resolvable", not unresolved_assets, str(unresolved_assets))
     check(results, "core bundles present", EXPECTED_CORE_BUNDLES <= bundle_ids, str(sorted(EXPECTED_CORE_BUNDLES - bundle_ids)))
 
 

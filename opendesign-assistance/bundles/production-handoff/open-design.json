@@ -26,7 +26,7 @@
   },
   "od": {
     "kind": "bundle",
-    "taskKind": "production-handoff",
+    "taskKind": "new-generation",
     "mode": "bundle",
     "useCase": {
       "query": {
@@ -47,10 +47,17 @@
         }
       ],
       "atoms": [
-        "commercial-preflight",
-        "delivery-packager",
-        "micro-detail-finisher",
-        "cross-format-coherence-critic"
+        "handoff",
+        "live-artifact",
+        "file-read",
+        "file-write",
+        "design-extract"
+      ],
+      "assets": [
+        "../../atoms/commercial-preflight/SKILL.md",
+        "../../atoms/delivery-packager/SKILL.md",
+        "../../atoms/micro-detail-finisher/SKILL.md",
+        "../../atoms/cross-format-coherence-critic/SKILL.md"
       ],
       "schemas": [
         "preflight",

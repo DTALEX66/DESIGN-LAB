@@ -24,6 +24,7 @@
   "od": {
     "kind": "bundle",
     "mode": "bundle",
+    "taskKind": "tune-collab",
     "context": {
       "skills": [
         {
@@ -31,20 +32,11 @@
         }
       ],
       "atoms": [
-        "anti-ai-slop-diagnostician",
-        "art-direction-synthesizer",
-        "color-material-light-director",
-        "cross-format-coherence-critic",
-        "master-evidence-auditor",
-        "master-method-researcher",
-        "micro-detail-finisher",
-        "photorealism-artifact-auditor",
-        "style-lineage-mapper",
-        "style-vector-builder",
-        "typography-composition-director",
-        "visual-polish-loop",
-        "visual-reference-dna-analyzer",
-        "visual-taste-jury"
+        "critique-theater",
+        "media-image",
+        "live-artifact",
+        "file-read",
+        "file-write"
       ],
       "assets": [
         "../../research/master-studies/MASTER_REGISTRY.json",

@@ -2,7 +2,7 @@
 
 > **以 Open Design 为主入口，模型中立、风格中立、领域中立、工具中立、权利安全的专业设计智能与视觉质量平台。**
 
-面向 **Open Design 软件** 的 Open Design-first / Agent-compatible 商业设计智能、视觉质量、专业生产与可编辑交付增强层（**V4**）。当前权威定义见 `project-memory/PRODUCT_DEFINITION_V4.md`。
+面向 **Open Design 软件** 的 Open Design-first / Agent-compatible 商业设计智能、视觉质量、专业生产与可编辑交付增强层（**V4.2**）。当前唯一权威定义见 `project-memory/PRODUCT_DEFINITION_V42.md`（SSOT，与 `opendesign-assistance/config/product-manifest.json` 双向一致）。
 
 本项目**不是**新的设计系统软件，也**不替代** Open Design 的工作流。用户进行设计流程、主窗口画布操作、AI 调用和设计生成时，以 **Open Design 软件本体**（当前本机基线 **0.18.1**，stable）为主；本仓库提供专业设计方法、Domain Pack、视觉质量、来源权利、生产预检、可编辑交付、Benchmark 与证据。
 
@@ -112,7 +112,10 @@ opendesign-assistance/scripts/verify_visual_scoring_v3.py
 
 ```text
 opendesign-assistance/START_HERE.md
-project-memory/PRODUCT_DEFINITION_V4.md
+project-memory/PRODUCT_DEFINITION_V42.md        ← 唯一权威产品定义（V4.2 SSOT）
+project-memory/BOUNDARY_CONTRACT_V42.md         ← Open Design / Assistance 职责边界
+project-memory/USER_MODES_V42.md                ← 五类用户与五种渐进模式
+project-memory/OBJECT_MODEL_V42.md              ← Project/Knowledge/Evidence/Artifact 对象模型
 project-memory/OPEN_DESIGN_VERSION_BASELINE.md
 project-memory/MIGRATION_STATUS.md
 opendesign-assistance/config/product-manifest.json
