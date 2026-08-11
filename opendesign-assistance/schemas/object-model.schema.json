@@ -1,0 +1,73 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://open-design-assistance.local/schemas/object-model.schema.json",
+  "title": "OPEN-DESIGN-Assistance Four-Object Model (Project/Knowledge/Evidence/Artifact)",
+  "description": "V42-0204: lifecycle, versioning, rights and reference contracts for the four core objects.",
+  "type": "object",
+  "required": ["schemaVersion", "objects"],
+  "additionalProperties": false,
+  "properties": {
+    "$schema": {"type": "string"},
+    "schemaVersion": {"const": "open-design-assistance/object-model/v1"},
+    "objects": {
+      "type": "array",
+      "minItems": 4,
+      "uniqueItems": true,
+      "items": {
+        "type": "object",
+        "required": ["id", "lifecycle", "versioning", "rights", "references"],
+        "additionalProperties": false,
+        "properties": {
+          "id": {"enum": ["project", "knowledge", "evidence", "artifact"]},
+          "lifecycle": {
+            "type": "object",
+            "required": ["stages", "terminalStates"],
+            "additionalProperties": false,
+            "properties": {
+              "stages": {"type": "array", "items": {"type": "string", "minLength": 1}, "minItems": 2},
+              "terminalStates": {"type": "array", "items": {"type": "string", "minLength": 1}, "minItems": 1}
+            }
+          },
+          "versioning": {
+            "type": "object",
+            "required": ["scheme", "immutable"],
+            "additionalProperties": false,
+            "properties": {
+              "scheme": {"type": "string", "minLength": 1},
+              "immutable": {"type": "boolean"}
+            }
+          },
+          "rights": {
+            "type": "object",
+            "required": ["licenseStatus", "requiresReview"],
+            "additionalProperties": false,
+            "properties": {
+              "licenseStatus": {"enum": ["owned", "allowed", "reference-only", "review-required", "unknown"]},
+              "requiresReview": {"type": "boolean"}
+            }
+          },
+          "references": {
+            "type": "object",
+            "required": ["outgoing"],
+            "additionalProperties": false,
+            "properties": {
+              "outgoing": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": ["target", "relation"],
+                  "additionalProperties": false,
+                  "properties": {
+                    "target": {"enum": ["project", "knowledge", "evidence", "artifact"]},
+                    "relation": {"type": "string", "minLength": 1}
+                  }
+                },
+                "minItems": 1
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

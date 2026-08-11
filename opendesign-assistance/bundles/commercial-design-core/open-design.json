@@ -47,13 +47,21 @@
         }
       ],
       "atoms": [
-        "source-intake-gate",
-        "brief-normalizer",
-        "reference-dna-analyzer",
-        "design-direction-jury",
-        "design-quality-jury",
-        "commercial-preflight",
-        "delivery-packager"
+        "todo-write",
+        "research-search",
+        "direction-picker",
+        "critique-theater",
+        "live-artifact",
+        "handoff"
+      ],
+      "assets": [
+        "../../atoms/source-intake-gate/SKILL.md",
+        "../../atoms/brief-normalizer/SKILL.md",
+        "../../atoms/reference-dna-analyzer/SKILL.md",
+        "../../atoms/design-direction-jury/SKILL.md",
+        "../../atoms/design-quality-jury/SKILL.md",
+        "../../atoms/commercial-preflight/SKILL.md",
+        "../../atoms/delivery-packager/SKILL.md"
       ]
     }
   }

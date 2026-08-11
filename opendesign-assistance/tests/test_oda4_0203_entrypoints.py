@@ -24,10 +24,16 @@ class EntrypointConvergenceTest(unittest.TestCase):
             self.assertTrue((BUNDLES / b / "SKILL.md").exists(), f"{b} missing SKILL.md")
 
     def test_production_handoff_has_preflight_atoms(self):
+        # V42-0303 (live daemon discovery): context.atoms must reference
+        # daemon built-in atoms; local professional atoms are declared via
+        # context.assets (SKILL.md paths).
         m = json.loads((BUNDLES / "production-handoff" / "open-design.json").read_text(encoding="utf-8"))
-        atoms = m["od"]["context"]["atoms"]
-        self.assertIn("commercial-preflight", atoms)
-        self.assertIn("delivery-packager", atoms)
+        ctx = m["od"]["context"]
+        atoms = ctx["atoms"]
+        self.assertIn("handoff", atoms)
+        assets = " ".join(ctx.get("assets", []))
+        self.assertIn("commercial-preflight", assets)
+        self.assertIn("delivery-packager", assets)
 
     def test_convergence_map_covers_plugins(self):
         conv = json.loads(CONFIG.read_text(encoding="utf-8"))

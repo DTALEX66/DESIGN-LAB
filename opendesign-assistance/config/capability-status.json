@@ -21,6 +21,16 @@
     "blocked",
     "superseded"
   ],
+  "capabilityRecords": {
+    "source-governance": {"state": "structural-pass", "evidenceLevel": "E1", "lastVerified": "2026-08-07", "note": "source registry + governance rules structurally present; E3 pending"},
+    "brief-routing": {"state": "declared-only", "evidenceLevel": "E0", "lastVerified": "2026-08-07", "note": "atoms/scenarios present; isolated run not yet evidenced"},
+    "visual-quality": {"state": "structural-pass", "evidenceLevel": "E1", "lastVerified": "2026-08-07", "note": "rubrics + scoring scripts verified; live Open Design run pending"},
+    "style-master-method": {"state": "declared-only", "evidenceLevel": "E0", "lastVerified": "2026-08-07", "note": "master records exist; source verification and method cards pending (Phase 7)"},
+    "domain-scenarios": {"state": "declared-only", "evidenceLevel": "E0", "lastVerified": "2026-08-07", "note": "scenarios/profiles present; first domain pack not yet closed (Phase 4)"},
+    "production-handoff": {"state": "structural-pass", "evidenceLevel": "E1", "lastVerified": "2026-08-07", "note": "preflight/handoff schemas verified; production adapters pending"},
+    "runtime-integration": {"state": "missing", "evidenceLevel": "E0", "lastVerified": "2026-08-07", "note": "no E3 registration evidence yet (Phase 3)"},
+    "release-evidence": {"state": "structural-pass", "evidenceLevel": "E1", "lastVerified": "2026-08-10", "note": "exact-SHA CI for c2f5fbc/f160240 passed; E4 requires frozen-tree release"}
+  },
   "promotionRules": [
     {"from": "declared-only", "to": "structural-pass", "requires": ["JSON/Markdown/schema parse", "referenced local paths exist", "status PASS"]},
     {"from": "structural-pass", "to": "isolated-pass", "requires": ["staging command executed", "exit code 0", "artifact/read-back evidence"]},

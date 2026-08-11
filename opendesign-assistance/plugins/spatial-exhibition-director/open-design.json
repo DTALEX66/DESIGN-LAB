@@ -10,6 +10,13 @@
   },
   "license": "MIT",
   "entry": "SKILL.md",
+  "tags": [
+    "spatial-design",
+    "exhibition",
+    "culture-wall",
+    "3d",
+    "environmental-graphics"
+  ],
   "od": {
     "kind": "skill",
     "categories": [

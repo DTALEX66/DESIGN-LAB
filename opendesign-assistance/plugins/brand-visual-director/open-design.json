@@ -10,6 +10,13 @@
   },
   "license": "MIT",
   "entry": "SKILL.md",
+  "tags": [
+    "brand",
+    "visual-identity",
+    "key-visual",
+    "graphic-design",
+    "art-direction"
+  ],
   "od": {
     "kind": "skill",
     "categories": [

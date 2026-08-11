@@ -38,6 +38,20 @@
       "maxItems": 9,
       "uniqueItems": true
     },
+    "capabilityRecords": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "required": ["state", "evidenceLevel"],
+        "additionalProperties": false,
+        "properties": {
+          "state": {"enum": ["missing", "declared-only", "structural-pass", "isolated-pass", "runtime-pass", "release-verified", "commercially-proven", "blocked", "superseded"]},
+          "evidenceLevel": {"enum": ["E0", "E1", "E2", "E3", "E4", "E5"]},
+          "lastVerified": {"type": "string"},
+          "note": {"type": "string"}
+        }
+      }
+    },
     "promotionRules": {
       "type": "array",
       "items": {
