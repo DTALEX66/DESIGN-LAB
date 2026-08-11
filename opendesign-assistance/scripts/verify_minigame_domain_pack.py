@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: MIT
 """Verify the MINIGAME domain-pack source-of-truth boundary."""
 
 from __future__ import annotations

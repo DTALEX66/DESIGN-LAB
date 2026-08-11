@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: MIT
 """Verify V3 Scenario/Atom/Bundle runtime contracts without live side effects.
 
 This verifier checks the contracts that must exist before E3 Open Design runtime

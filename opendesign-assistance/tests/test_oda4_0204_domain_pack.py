@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT
 """ODA4-0204: Domain Pack Spec V2 validator tests (positive + negative fixtures)."""
 from __future__ import annotations
 

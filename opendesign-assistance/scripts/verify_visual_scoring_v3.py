@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: MIT
 """Verify V3 visual-quality scoring and regression guard behavior."""
 
 from __future__ import annotations

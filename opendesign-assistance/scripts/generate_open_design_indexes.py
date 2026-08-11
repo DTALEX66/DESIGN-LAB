@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: MIT
 """Generate Open Design assistance index files."""
 
 from __future__ import annotations

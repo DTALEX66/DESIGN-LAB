@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT
 """ODA4-0203: three public entrypoints + plugin convergence tests."""
 from __future__ import annotations
 

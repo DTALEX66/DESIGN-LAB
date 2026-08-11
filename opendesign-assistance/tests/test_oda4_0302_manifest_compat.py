@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT
 """ODA4-0302: plugin/bundle manifest compatibility gate.
 
 V42-0302: manifest contracts align with the upstream Open Design plugin

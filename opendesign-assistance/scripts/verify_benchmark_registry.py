@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: MIT
 """Fail-closed verification for repeatable Open Design benchmarks."""
 from __future__ import annotations
 
