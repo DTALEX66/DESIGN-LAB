@@ -122,6 +122,10 @@ jobs:
         run: test -f LICENSE && echo "LICENSE present"
       - name: SPDX mirror present
         run: test -f LICENSES/MIT.txt && echo "LICENSES/MIT.txt present"
+      - name: License coverage (SPDX headers + binary sidecars)
+        run: python opendesign-assistance/scripts/verify_license_coverage.py
+      - name: SPDX SBOM present
+        run: test -f opendesign-assistance/config/sbom-v42.spdx.json && echo "sbom-v42.spdx.json present"
       - name: No obvious secret files tracked
         run: |
           set +e

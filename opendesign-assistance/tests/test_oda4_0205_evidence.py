@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT
 """ODA4-0205: capability evidence promotion + provenance roundtrip tests."""
 from __future__ import annotations
 

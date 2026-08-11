@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: MIT
 """Scaffold a local Open Design plugin directory."""
 
 from __future__ import annotations

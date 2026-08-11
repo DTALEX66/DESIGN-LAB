@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: MIT
 """Verify OPEN-DESIGN-Assistance integration assets.
 
 This is a focused repository validator for the Open Design assistance layer:
@@ -431,6 +432,7 @@ def verify_secondary_verifiers(root: Path, results: list[Result]) -> None:
         "opendesign-assistance/scripts/verify_v2_protocols.py",
         "opendesign-assistance/scripts/verify_visual_quality_v21.py",
         "opendesign-assistance/scripts/verify_capability_evidence_v4.py",
+        "opendesign-assistance/scripts/verify_license_coverage.py",
     ]
     for rel in verifiers:
         path = root / rel

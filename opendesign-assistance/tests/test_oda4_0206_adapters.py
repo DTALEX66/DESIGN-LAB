@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT
 """ODA4-0206 / V42-0107: adapter neutrality, evidence-gated status, fallback/unsupported tests."""
 from __future__ import annotations
 

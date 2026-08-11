@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT
 """ODA4-0107: release-evidence schema + SHA readback tests.
 
 Verifies:

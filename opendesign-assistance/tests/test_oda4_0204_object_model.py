@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT
 """ODA4-0203/0204 / V42-0203/0204: user modes and four-object model contracts.
 
 V42-0203: Guided/Copilot/Director/Method/Production modes over a single engine.

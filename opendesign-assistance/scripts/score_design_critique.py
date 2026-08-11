@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: MIT
 """Score an evidence-based design critique record."""
 
 from __future__ import annotations

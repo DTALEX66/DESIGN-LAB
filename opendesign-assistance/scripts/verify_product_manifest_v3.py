@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: MIT
 """Verify OPEN-DESIGN-Assistance V3 product manifest convergence.
 
 The repository intentionally keeps this verifier dependency-free. It performs the

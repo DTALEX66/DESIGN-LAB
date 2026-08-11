@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: MIT
 """Score a visual-quality report against a weighted rubric.
 
 Hard gates and evidence completeness are fail-closed: a high numeric score does
