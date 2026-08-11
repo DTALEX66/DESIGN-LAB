@@ -2,6 +2,10 @@
 
 Generated from `opendesign-assistance/config/product-manifest.json` (single source of truth).
 
+> Actual per-capability evidence level (E0-E5, bound to tree SHA) lives in
+> `opendesign-assistance/config/capability-evidence-index.json`, validated by
+> `opendesign-assistance/scripts/verify_capability_evidence_v4.py`.
+
 | Capability | Title | Min evidence | Domain | Owner | Paths |
 |---|---|---|---|---|---|
 | `source-governance` | Source, rights and security governance | E1 | governance | DTALEX66 | `knowledge/governance/, research/global-absorption/, LICENSING_DECISION_REQUIRED.md` |
