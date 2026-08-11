@@ -1,0 +1,122 @@
+{
+  "schemaVersion": "open-design-assistance/capability-evidence-index/v2",
+  "task": "V42 Phase 10 (capability evidence index)",
+  "generatedAt": "2026-08-11",
+  "boundTree": "d4716a45ae7becc9ccdc99418199b434bb5fa9c7",
+  "environment": "Windows 10 (local), Open Design 0.18.1, daemon not running at generation time",
+  "rule": "Every capability is bound to an E0-E5 evidence level, the tree/SHA, environment, and (where applicable) run/artifact/reviewer. No static file, test count, or declaration may impersonate runtime evidence. E1 = structural validation passes (files/schema/tests). E2 = isolated runtime. E3 = real runtime use. E4 = frozen + independent review. E5 = external validation. Evidence files live in .hermes/task-runtime/ (gitignored) and reports/.",
+  "evidenceLevels": {
+    "E0": {"label": "declared", "state": "declared-only", "proof": "document path or task card"},
+    "E1": {"label": "structural", "state": "structural-pass", "proof": "hash, parser, schema or linter output"},
+    "E2": {"label": "isolated-runtime", "state": "isolated-pass", "proof": "command output in isolated env"},
+    "E3": {"label": "runtime", "state": "runtime-pass", "proof": "runtime id + task id + artifact provenance"},
+    "E4": {"label": "frozen", "state": "release-verified", "proof": "frozen tree + independent review + exact-SHA CI"},
+    "E5": {"label": "external", "state": "commercially-proven", "proof": "external acceptance"}
+  },
+  "capabilities": [
+    {
+      "id": "source-governance",
+      "title": "Source, rights and security governance",
+      "minimumRequiredEvidence": "E1",
+      "actualEvidence": "E1",
+      "evidence": "Declaration + structural: source registry, governance rules, REUSE headers and license coverage structurally present and verified.",
+      "run": "verify_open_design_assistance.py -> VERIFY_RESULT=OK total=465 failed=0",
+      "artifact": "config/capability-status.json, knowledge/governance/CAPABILITY_EVIDENCE_LEVELS.md",
+      "reviewer": "HERMES (self-verified)"
+    },
+    {
+      "id": "brief-routing",
+      "title": "Brief normalization and commercial design routing",
+      "minimumRequiredEvidence": "E2",
+      "actualEvidence": "E1",
+      "evidence": "Structural: atoms/brief-normalizer (SKILL.md + open-design.json), 6 scenarios incl. commercial-design-router present; brief-related tests pass. No live Open Design runtime brief run evidenced in this tree.",
+      "run": "pytest -k 'brief or rout' -> 2 passed",
+      "artifact": "atoms/brief-normalizer/, scenarios/commercial-design-router/",
+      "reviewer": "HERMES (self-verified)"
+    },
+    {
+      "id": "visual-quality",
+      "title": "Visual quality, design feeling and anti-AI-slop engine",
+      "minimumRequiredEvidence": "E2",
+      "actualEvidence": "E1",
+      "evidence": "Structural: rubrics, visual-scoring scripts and verify_visual_scoring_v3.py pass (10/0). V4.2 Axe E3 scan (0 violations) is recorded in reports/ but the run artifact is not present in this tree, so runtime level is not claimed here.",
+      "run": "verify_visual_scoring_v3.py -> VERIFY_VISUAL_SCORING_V3=OK total=10 failed=0",
+      "artifact": "evals/rubrics/, design-systems/uiux-commercial-light/",
+      "reviewer": "HERMES (self-verified)"
+    },
+    {
+      "id": "style-master-method",
+      "title": "Master records and professional method cards",
+      "minimumRequiredEvidence": "E2",
+      "actualEvidence": "E0",
+      "evidence": "Declared: master records exist; source verification and 77 method cards are Phase 7 scope (V42-0701..0707). Not yet structurally gated.",
+      "run": "n/a",
+      "artifact": "project-memory/PRODUCT_DEFINITION_V42.md (scope reference)",
+      "reviewer": "HERMES (self-verified)"
+    },
+    {
+      "id": "domain-scenarios",
+      "title": "Domain pack scenarios and golden benchmarks",
+      "minimumRequiredEvidence": "E2",
+      "actualEvidence": "E1",
+      "evidence": "Structural: uiux-design Domain Pack with 5 golden cases (b2b-backoffice, ecommerce-pdp-checkout, mobile-task-flow, settings-account, content-page), each with brief/case/design/handoff/implementations(baseline+enhanced)/tokens/preflight; verify_domain_pack_v2.py PASS.",
+      "run": "verify_domain_pack_v2.py opendesign-assistance/domain-packs/uiux-design -> DOMAIN_PACK_V2=PASS",
+      "artifact": "domain-packs/uiux-design/",
+      "reviewer": "HERMES (self-verified)"
+    },
+    {
+      "id": "production-handoff",
+      "title": "Production-ready handoff and delivery",
+      "minimumRequiredEvidence": "E2",
+      "actualEvidence": "E1",
+      "evidence": "Structural: preflight/handoff schemas and verify_release_evidence.py contract present. Production adapters (figma/penpot/browser) declared; runtime delivery evidence pending (V42-0409/0410 human gate).",
+      "run": "verify_open_design_assistance.py -> structural pass",
+      "artifact": "schemas/release-evidence.schema.json, config/RELEASE_EVIDENCE_CONTRACT.md",
+      "reviewer": "HERMES (self-verified)"
+    },
+    {
+      "id": "runtime-integration",
+      "title": "Open Design daemon runtime registration",
+      "minimumRequiredEvidence": "E3",
+      "actualEvidence": "E0",
+      "evidence": "V4.2 reports (V42_HANDOFF_SUMMARY_20260811.md) record an E3 daemon registration (10 plugins, task/artifact readback, failure/recovery) with ELECTRON_RUN_AS_NODE=1. The run artifact is not present in this tree (.hermes/task-runtime/ has no V42-03xx evidence) and the daemon is not running at generation time (doctor: ports 5294/5499 unreachable). Runtime level is NOT claimed until reproduced with captured evidence.",
+      "run": "doctor_open_design_windows.py -> DOCTOR_RESULT=FAIL (daemon down, codex CLI path issue)",
+      "artifact": "reports/V42_HANDOFF_SUMMARY_20260811.md (recorded, not re-verified)",
+      "reviewer": "HERMES (self-verified; reproduction required before E3 claim)"
+    },
+    {
+      "id": "release-evidence",
+      "title": "Exact-SHA release evidence and CI verification",
+      "minimumRequiredEvidence": "E1",
+      "actualEvidence": "E1",
+      "evidence": "Structural + recorded: exact-SHA CI passed for c2f5fbc/f160240 (V4.2); verify_release_evidence.py enforces live checkout + remote readback. E4 requires frozen-tree release with independent review.",
+      "run": "verify_release_evidence.py (contract), canonical CI exact-SHA",
+      "artifact": "config/RELEASE_EVIDENCE_CONTRACT.md, reports/V42_*_20260811.md",
+      "reviewer": "HERMES (self-verified)"
+    }
+  ],
+  "evidenceCards": {
+    "count": 12,
+    "status": "all-not-run-E0",
+    "note": "All 12 evidence cards in evals/evidence/evidence-cards.json are card_status=not-run, evidence_level=E0. Per verify_evidence_cards.py, human_calibration_policy.required_for_promotion=true and authoritative_accepts=0; a not-run card must remain E0. Promotion requires V42-0409 human professional Jury (E3 human gate). No card was artificially promoted."
+  },
+  "honesty": {
+    "declaration": "All E-level assignments above are grounded in artifacts present in this tree or explicit recorded-but-not-reverified notes. No capability is claimed above its verifiable evidence. runtime-integration and visual-quality E3 claims from V4.2 reports are NOT restated here because their run artifacts are absent and the daemon was not running at generation time.",
+    "blockers": [
+      "V42-0409 human professional Jury (>=82 score) + preference test (>=70%) - requires human review",
+      "V42-0410 golden slice freeze - blocked on 0409",
+      "runtime-integration E3 reproduction - requires Open Design daemon running with captured evidence",
+      "style-master-method - Phase 7 scope (497 master records, 77 method cards)"
+    ]
+  },
+  "records": [
+    {"capability_id": "source-governance", "evidence_level": "E1", "artifacts": ["declaration_doc", "schema", "linter"]},
+    {"capability_id": "brief-routing", "evidence_level": "E1", "artifacts": ["declaration_doc", "tests"]},
+    {"capability_id": "visual-quality", "evidence_level": "E1", "artifacts": ["declaration_doc", "linter", "visual_scoring"]},
+    {"capability_id": "style-master-method", "evidence_level": "E0", "artifacts": ["declaration_doc"]},
+    {"capability_id": "domain-scenarios", "evidence_level": "E1", "artifacts": ["declaration_doc", "linter", "domain_pack"]},
+    {"capability_id": "production-handoff", "evidence_level": "E1", "artifacts": ["declaration_doc", "schema"]},
+    {"capability_id": "runtime-integration", "evidence_level": "E0", "artifacts": ["declaration_doc"]},
+    {"capability_id": "release-evidence", "evidence_level": "E1", "artifacts": ["declaration_doc", "exact_sha_ci"]}
+  ]
+}

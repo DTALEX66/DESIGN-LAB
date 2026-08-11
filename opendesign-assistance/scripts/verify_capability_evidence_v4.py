@@ -68,11 +68,10 @@ def validate_record(rec: dict) -> list[str]:
 
 def main() -> int:
     parser = argparse.ArgumentParser()
-    parser.add_argument("records", nargs="?", help="JSON file with {records:[...]}")
+    parser.add_argument("records", nargs="?", help="JSON file with {records:[...]} (default: config/capability-evidence-index.json)")
     args = parser.parse_args()
     if not args.records:
-        print("USAGE: verify_capability_evidence_v4.py <records.json>")
-        return 0
+        args.records = str(REPO / "config" / "capability-evidence-index.json")
     data = json.loads(Path(args.records).read_text(encoding="utf-8"))
     records = data.get("records") if isinstance(data, dict) else data
     errors: list[str] = []
