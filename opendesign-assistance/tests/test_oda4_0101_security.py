@@ -69,7 +69,7 @@ class ConfigureSecurityCodePathTest(unittest.TestCase):
 
     def test_doctor_tracks_current_full_power_codex_model(self):
         src = DOCTOR.read_text(encoding="utf-8")
-        self.assertIn('DEFAULT_MODEL = "gpt-5.6-terra"', src)
+        self.assertIn('DEFAULT_MODEL = "gpt-5.6-luna"', src)
         self.assertNotIn('DEFAULT_MODEL = "gpt-5.5"', src)
 
 

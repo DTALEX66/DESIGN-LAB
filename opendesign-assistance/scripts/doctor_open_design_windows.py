@@ -22,7 +22,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
-DEFAULT_MODEL = "gpt-5.6-terra"
+DEFAULT_MODEL = "gpt-5.6-luna"
 DEFAULT_PORTS = (5294, 5499)
 LOCATION_ID = "loc_open_design_assistance"
 
@@ -73,7 +73,7 @@ def find_codex_bin(config: dict[str, Any] | None, explicit: str | None) -> str |
     if explicit:
         return explicit
     configured = (((config or {}).get("agentCliEnv") or {}).get("codex") or {}).get("CODEX_BIN")
-    if configured:
+    if configured and Path(str(configured)).exists():
         return str(configured)
     for name in ("codex.cmd", "codex.exe", "codex"):
         found = shutil.which(name)
