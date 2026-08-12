@@ -1,6 +1,6 @@
 # OPEN-DESIGN-Assistance Architecture V3
 
-This is the Open Design-first architecture for keeping the assistance repository subordinate to the Open Design runtime while still adding professional design intelligence.
+This is the Agent-platform-neutral architecture for keeping the assistance repository subordinate to any design AGENT platform runtime (current reference host: Open Design) while still adding professional design intelligence, capability, and visual quality.
 
 ```text
 User / files / images / references / existing project

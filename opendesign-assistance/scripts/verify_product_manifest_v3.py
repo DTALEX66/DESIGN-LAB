@@ -72,7 +72,8 @@ RUNTIME_READY_MARKERS = [
     "artifact and provenance read-back",
 ]
 V3_DOC_MARKERS = [
-    "Open Design-first",
+    "Agent-platform-neutral",
+    "Open Design",
     "evidence",
     "runtime",
     "commercial",
@@ -127,7 +128,7 @@ def verify_manifest_shape(root: Path, manifest: dict[str, Any], results: list[Re
     positioning = str(product.get("positioning", ""))
     for marker in ["Open Design", "commercial", "visual quality", "editable delivery"]:
         check(results, f"product positioning includes {marker}", marker.lower() in positioning.lower(), positioning)
-    check(results, "primary runtime is Open Design", product.get("primaryRuntime") == "Open Design", str(product.get("primaryRuntime")))
+    check(results, "primary runtime is Open Design (reference host)", str(product.get("primaryRuntime", "")).startswith("Open Design"), str(product.get("primaryRuntime")))
     agent_runtimes = product.get("agentRuntimes") if isinstance(product.get("agentRuntimes"), list) else []
     check(results, "agent runtime includes Hermes", "Hermes" in agent_runtimes, str(agent_runtimes))
     check(results, "agent runtime includes Codex", "Codex" in agent_runtimes, str(agent_runtimes))

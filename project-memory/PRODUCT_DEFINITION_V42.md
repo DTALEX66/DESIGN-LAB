@@ -8,17 +8,17 @@
 
 ## 中文定位
 
-> **以 Open Design 为主入口，模型中立、风格中立、领域中立、工具中立、权利安全的专业设计智能与视觉质量平台。**
+> **面向任意设计 AGENT 平台的能力增强中立层：模型中立、风格中立、领域中立、平台中立、权利安全，全面提升设计能力与设计质感。当前以 Open Design 软件平台为参考宿主/主入口（不绑定版本）。**
 
 ## 英文定位（manifest 一致）
 
-> **Open Design-first Neutral Professional Design Intelligence & Visual Quality Platform: model-neutral, style-neutral, domain-neutral, tool-neutral, rights-safe, with commercial production preflight and editable delivery.**
+> **Agent-platform-neutral Design Capability & Visual Quality Enhancement Layer: model-neutral, style-neutral, domain-neutral, platform-neutral, rights-safe, with commercial production preflight and editable delivery. Current reference host / primary entry: Open Design (version-agnostic).**
 
 ## 产品名称
 
-- 仓库技术身份：`OPEN-DESIGN-Assistance`
-- 产品层推荐名：**Open Design Professional Design Intelligence**
-  （Open Design 专业设计智能与商业交付系统）
+- 仓库技术身份：`OPEN-DESIGN-Assistance`（保持兼容）
+- 产品层推荐名：**Design Intelligence Capability Kit**
+  （设计智能与设计质感能力增强套件 —— 面向任意设计 AGENT 平台）
 
 ## 一句话承诺
 
@@ -54,7 +54,7 @@
 | 模型中立 | 不把某一家模型能力写死为产品能力；通过受控 Agent/媒体适配器接入 |
 | 风格中立 | 不把 Apple、黑金、科技蓝、HUD 或任何大师风格设为全局默认 |
 | 领域中立 | 公共内核服务 UI/UX、平面、品牌、电商、空间、3D、动效、视频、音频、游戏等 |
-| 工具中立 | Open Design 是主入口，下游可适配 Figma、Penpot、Blender、FFmpeg 等工具 |
+| 平台中立 | 面向任意设计 AGENT 平台（Open Design / Figma / Penpot / Blender / FFmpeg 等）作为宿主与入口，当前以 Open Design 为参考宿主，架构不绑定任何单一平台或版本 |
 | 权利中立 | 每项来源、素材、字体、模型、标准和参考均有权利状态与使用模式 |
 
 ## 不可破坏原则
@@ -69,7 +69,7 @@
 
 | 组件 | 唯一职责 |
 |---|---|
-| Open Design | 项目、Studio/画布、Agent 启动、插件/Scenario/Atom 运行、Stage event、GenUI、Artifact、预览与导出 |
+| Open Design | 当前参考宿主/主入口：项目、Studio/画布、Agent 启动、插件/Scenario/Atom 运行、Stage event、GenUI、Artifact、预览与导出（任意设计 AGENT 平台可接入） |
 | OPEN-DESIGN-Assistance | 专业方法、Domain Pack、质量、来源权利、预检、交付合同、Benchmark 和证据 |
 | 执行协调器 | 任务编排、状态、风险、审批、工具路由与证据汇总（Hermes/Codex/兼容 CLI，客户端中立） |
 | MiniGame | `minigame-runtime` 为参考产品 + 跨媒体 Benchmark；冻结边界内安全修复与构建 |
@@ -77,7 +77,8 @@
 | GitHub | 分支、PR、exact-SHA CI、远端事实和发布证据 |
 
 **边界硬规则**：本仓库不得拥有第二前端、第二 Agent runtime、模型网关、
-独立账号系统或泛用向量库；Open Design 是唯一设计主入口。
+独立账号系统或泛用向量库；Open Design 是当前主入口（参考宿主），架构面向
+任意设计 AGENT 平台，不绑定单一平台或版本。
 
 ## 五类用户与五种渐进模式（详见 USER_MODES_V42）
 
@@ -113,7 +114,7 @@ Inspiration → Brief → Research → Direction → Design System
 ## 七层目标架构
 
 ```text
-Open Design Studio / Agent Entry
+Design AGENT Platform / Studio / Agent Entry（当前参考宿主：Open Design）
           ↓
 Neutral Intake & Design Router
           ↓
@@ -135,7 +136,7 @@ Editable Multi-format Delivery
 4. 能力层：可测试 Atom；对外收敛为三个公开入口
    `commercial-design-core` / `visual-quality-core` / `production-handoff`。
 5. 领域层：职业 Domain Pack。
-6. 执行与适配层：Open Design 主运行时 + 受控 Adapter。
+6. 执行与适配层：当前 Open Design 主运行时（参考宿主）+ 受控 Adapter，任意设计 AGENT 平台可接入。
 7. 证据层：确定性检查、视觉回归、人工 Jury、真实生产反馈、exact-SHA CI 与客户验收。
 
 ## WORK-LAB 与 MiniGame 边界

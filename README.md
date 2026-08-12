@@ -1,31 +1,34 @@
 # OPEN-DESIGN-Assistance
 
-> **以 Open Design 为主入口，模型中立、风格中立、领域中立、工具中立、权利安全的专业设计智能与视觉质量平台。**
+> **面向任意设计 AGENT 平台的能力增强中立层：模型中立、风格中立、领域中立、平台中立、权利安全，全面提升设计能力与设计质感。当前以 Open Design 软件平台为参考宿主/主入口（不绑定版本）。**
 
-面向 **Open Design 软件** 的 Open Design-first / Agent-compatible 商业设计智能、视觉质量、专业生产与可编辑交付增强层（**V4.2**）。当前唯一权威定义见 `project-memory/PRODUCT_DEFINITION_V42.md`（SSOT，与 `opendesign-assistance/config/product-manifest.json` 双向一致）。
+> **Agent-platform-neutral Design Capability & Visual Quality Enhancement Layer: model-neutral, style-neutral, domain-neutral, platform-neutral, rights-safe, with commercial production preflight and editable delivery. Current reference host / primary entry: Open Design (version-agnostic).**
 
-本项目**不是**新的设计系统软件，也**不替代** Open Design 的工作流。用户进行设计流程、主窗口画布操作、AI 调用和设计生成时，以 **Open Design 软件本体**（当前本机基线 **0.18.1**，stable）为主；本仓库提供专业设计方法、Domain Pack、视觉质量、来源权利、生产预检、可编辑交付、Benchmark 与证据。
+面向**任意设计 AGENT 平台**的设计能力增强套件（**V4.2**）：设计技能、设计体系、设计规范、大师风格方法、设计 SKILL、插件 / 2D / 3D 能力规范、生产预检与可编辑交付。**不绑定软件、不绑定版本、中立性项目**——当前以 **Open Design 软件平台**为参考宿主/主入口，架构上任何设计 AGENT 平台均可接入。当前唯一权威定义见 `project-memory/PRODUCT_DEFINITION_V42.md`（SSOT，与 `opendesign-assistance/config/product-manifest.json` 双向一致）。
+
+本项目**不是**新的设计系统软件，也**不替代**任何宿主的工作流。用户进行设计流程、主窗口画布操作、AI 调用和设计生成时，以所接入的设计 AGENT 平台为主（当前为 **Open Design 软件本体**，stable）；本仓库提供专业设计方法、Domain Pack、视觉质量、来源权利、生产预检、可编辑交付、Benchmark 与证据。
 
 ## 项目定义
 
 ```text
-Open Design 软件
+设计 AGENT 平台（当前参考宿主：Open Design 软件）
   = 真正的设计入口、主窗口/Figma-like 画布、AI 调用界面、设计流程执行处、插件/Scenario/Atom 运行时
 
 OPEN-DESIGN-Assistance
-  = Open Design 的增强层：Brief/来源/权利、专业设计方法、Domain Pack、风格谱系、
-    质量 Rubric、生产预检、可编辑交付、Benchmark Case、commercial evidence 与 provenance 证据
+  = 面向任意设计 AGENT 平台的能力增强层：Brief/来源/权利、专业设计方法、Domain Pack、风格谱系、
+    质量 Rubric、设计技能/设计体系/设计规范、生产预检、可编辑交付、Benchmark Case、commercial evidence 与 provenance 证据
 
 被吸收的 MINIGAME / Design-system
-  = 给 Open Design 提供参考、样板、素材、Schema/Tokens、运行时验证对象；不再单独定义主流程
+  = 给宿主平台提供参考、样板、素材、Schema/Tokens、运行时验证对象；不再单独定义主流程
 ```
 
-## 五种中立（V4）
+## 六种中立（V4）
 
 - **模型中立**：不把任一模型写死；通过受控 Agent/媒体适配器接入。
 - **风格中立**：Apple / 黑金 / 科技蓝 / HUD / 大师风格均非全局默认。
 - **领域中立**：公共内核服务所有领域；领域包不污染公共内核。
-- **工具中立**：Open Design 是主入口；下游可适配 Figma / Penpot / Blender / FFmpeg 等。
+- **平台中立**：面向任意设计 AGENT 平台作为宿主与入口，当前以 Open Design 为参考宿主，架构不绑定任何单一平台或版本。
+- **版本中立**：不绑定宿主平台版本；能力随宿主适配器演进。
 - **权利中立**：每项来源/素材/字体/模型/标准有权利状态与使用模式。
 
 ## 三个公开入口
@@ -154,7 +157,7 @@ reports/V4_HANDOFF_SUMMARY_20260807.md
 
 ## 端到端能力模型
 
-Open Design-first 的目标不是"生成一个看起来像设计的文件"，而是把专业判断和交付约束接到 Open Design 的实际设计界面与 Agent 执行链上：
+本套件（Agent-platform-neutral）的目标不是"生成一个看起来像设计的文件"，而是把专业判断和交付约束接到所接入设计 AGENT 平台的实际设计界面与 Agent 执行链上（当前参考宿主：Open Design）：
 
 ```text
 Brief / 文件 / 图片 / 参考

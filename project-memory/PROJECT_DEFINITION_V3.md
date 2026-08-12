@@ -2,7 +2,7 @@
 
 ## One-line definition
 
-OPEN-DESIGN-Assistance is an **Open Design-first, Agent-compatible commercial design intelligence, visual quality, professional production, and editable delivery enhancement layer**.
+OPEN-DESIGN-Assistance is an **Agent-platform-neutral design capability and visual quality enhancement layer** (current reference host: Open Design), with model-neutral, style-neutral, domain-neutral, platform-neutral, rights-safe design intelligence, professional production, and editable delivery.
 
 It helps Open Design and compatible agents move from “can generate a design-looking artifact” to “can reason with professional design judgment, source and rights boundaries, style lineage, master-method research, quality gates, production constraints, and delivery evidence.”
 

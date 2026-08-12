@@ -1,12 +1,14 @@
 # OpenDesign Assistance Layer
 
-这里是 **V4** 主开发区：以 **Open Design 软件本体** 为主入口，模型中立、风格中立、领域中立、工具中立、权利安全的 Open Design-first 商业设计智能、视觉质量、风格研究、专业生产和可编辑交付增强层。权威定义见 `project-memory/PRODUCT_DEFINITION_V4.md`，总入口见 `START_HERE.md`。
+这里是 **V4** 主开发区：面向**任意设计 AGENT 平台**的中立设计能力与视觉质量增强层（当前以 **Open Design 软件本体**为参考宿主/主入口，不绑定版本）：模型中立、风格中立、领域中立、平台中立、权利安全，覆盖设计技能、设计体系、设计规范、大师风格方法、设计 SKILL、插件 / 2D / 3D 能力规范、视觉质量、风格研究、专业生产和可编辑交付。权威定义见 `project-memory/PRODUCT_DEFINITION_V42.md`，总入口见 `START_HERE.md`。
 
 ## 定位
 
+> Agent-platform-neutral Design Capability & Visual Quality Enhancement Layer (current reference host: Open Design).
+
 ```text
-Open Design 软件 = 设计流程、主窗口画布、AI 调用、原型生成、预览和导出的实际入口
-opendesign-assistance/ = 给 Open Design 提供 Brief/来源/权利、Scenario/Atom/Bundle、专业知识、Rubric、生产预检、交付合同和证据索引
+设计 AGENT 平台（当前参考宿主：Open Design 软件）= 设计流程、主窗口画布、AI 调用、原型生成、预览和导出的实际入口
+opendesign-assistance/ = 面向任意设计 AGENT 平台的能力增强层：Brief/来源/权利、Scenario/Atom/Bundle、专业知识、Rubric、设计技能/设计体系/设计规范、生产预检、交付合同和证据索引
 ```
 
 这里不负责替代 Open Design 的工作流，也不负责把设计流程从 Open Design 软件里搬出来。静态文件只能证明结构存在；运行可用必须由 Open Design runtime 注册、真实任务、产物读回、evidence 和 provenance 证据证明。
