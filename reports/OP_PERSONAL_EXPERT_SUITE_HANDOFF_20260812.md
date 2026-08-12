@@ -2,7 +2,7 @@
 
 ## 状态与范围
 
-本报告记录 `OPEN-DESIGN-Assistance` 仓库资产配置到 Open Design 0.19+ Personal Workspace 的当前方法、验证结果、错误复盘和发布边界。仓库是唯一 SSOT；Open Design namespace 内的资源是通过官方事务生成的可重建运行镜像，不是第二份源码真相。
+本报告记录 `OPEN-DESIGN-Assistance` 仓库资产配置到 Open Design 0.19+ Personal Workspace 的当前方法、验证结果、错误复盘和发布边界。仓库是唯一 SSOT；Open Design namespace 内的资源是可重建运行镜像，不是第二份源码真相。Skills、Design Systems 和 plugin catalog 注册使用 Open Design API；plugin source mirror 则按 Open Design 的稳定本地 source 约定写入当前 namespace 的 `data/local-plugin-sources/`，两者不是同一个事务平面。
 
 当前目标资产：
 
@@ -39,14 +39,14 @@
 - role、member status 和 lifecycle state 必须透传 Open Design directory API；缺失时失败关闭，不默认 `owner`，不伪造 capability。
 - Personal Skills 使用官方 `/api/skills/install`；内容发生变化时通过官方删除/安装事务刷新，并在失败时通过官方接口恢复旧内容。
 - Design Systems 使用官方 Design System API，并保持 Personal Workspace scope。
-- plugins/bundles 通过官方本地安装事务注册；依赖顺序是 atoms → plugins → bundles。
+- plugins/bundles 通过 Open Design 本地安装 API 注册；21 个自定义 atoms 不写入 `od.context.atoms` 内置闭集，也不冒充独立 Personal catalog 项，而是先进入稳定镜像，作为受管 plugin/bundle manifests 的本地 asset closure 解析；随后再注册 plugins → bundles。
 - `app.sqlite` 仅允许 `mode=ro` 审计，禁止 `INSERT`、`UPDATE` 或 `DELETE`。
 
 ### 升级稳定性
 
 - 仓库是资源源；运行镜像位于 namespace 的非版本目录 `data/local-plugin-sources/open-design-assistance`。
 - 不把临时 staging 或 `versions/<version>/payload` 作为稳定 source。
-- 新镜像完成全部安装和 catalog/readback 后才提交；失败时恢复旧镜像并重新绑定旧 catalog。
+- 新镜像完成全部安装和 catalog/readback 后才提交；失败时恢复旧镜像，并比较安装前后的 catalog 快照。当前 API 没有被本项目验证过的通用 plugin uninstall/restore 逆操作，因此 catalog 若已部分变化，安装器必须失败关闭并报告精确 delta，不能声称自动恢复旧 catalog。
 - `.previous` 只在事务中保留，成功后删除；失败后用于恢复，不能提前删除。
 - Skill 的 delete → install 不是天然原子操作，必须先保存旧 frontmatter/body，并实现安装失败恢复。
 - Skill rollback staging 固定在仓库 `.hermes/task-runtime/tmp/`，不向系统 Temp 写入项目数据。
@@ -122,7 +122,7 @@ CCTV、控制台、暗色 HUD、异常电梯和 IAA 布局仍可用，但只在 
 
 错误：旧镜像 `.previous` 曾可能过早删除；第 N 个资源失败会留下新旧混合 catalog；Skill delete 后 install 失败会丢失旧 Skill。
 
-修复：实现延迟提交、旧镜像/catalog 恢复和旧 Skill 官方接口恢复；行为测试覆盖第 5 个资源失败和 Skill 安装失败。
+修复：实现镜像延迟提交与回滚、catalog 前后快照和 partial-mutation 报告，以及旧 Skill 官方接口恢复；行为测试覆盖第 5 个资源失败和 Skill 安装失败。由于当前未验证通用 plugin catalog 逆操作，安装器不再盲目重装全部资源或宣称 catalog 已恢复。
 
 ### 7. 验证入口与路径误用
 
@@ -168,6 +168,18 @@ CCTV、控制台、暗色 HUD、异常电梯和 IAA 布局仍可用，但只在 
 
 修复：任何写操作前先通过官方 `/api/health` 验证显式 sidecar；随后要求同一规范化 `app_url` 在 namespace Web 日志中精确映射到唯一 namespace，再从该绑定 namespace 解析 `data/local-plugin-sources/open-design-assistance`。零匹配或多匹配都失败关闭。
 
+### 14. 稳定镜像 asset closure 不完整
+
+错误：早期稳定镜像只复制 7 个 plugins 和 3 个 bundles；manifest 中 `../../atoms/...` 与 `../../research/...` 的相对引用在仓库源中存在，但在运行镜像中可能悬空。
+
+修复：镜像固定包含 21 个 atoms，并从每个受管 manifest 自动解析和复制其 `od.context.assets` 闭包；路径逃逸或源文件缺失时失败关闭。行为测试在项目内临时目录构造真实镜像并逐条解析所有 asset 引用。
+
+### 15. 晚到审查与证据重锚
+
+错误：第一份异步审查在旧工作树上结束较晚，其中 Design System managed identity 等结论已被后续树修复覆盖，但 asset closure、lifecycle、catalog 回滚措辞、生成计数和 UUID ignore 问题仍能在已合并 SHA 上复现。不能因为审查对象较旧就整体丢弃。
+
+修复：逐项在当前 `main` 重现，只吸收仍成立的发现；Personal Workspace lifecycle 现在严格要求 `active`，asset counts 增加 15 Personal Skills 和 3 Design Systems，plugin index 使用相对自身位置的链接，根级 OP working-copy ignore 改为 UUID-shaped 模式。本轮通过独立补救 PR 交付，不改写既有历史。
+
 ## 当前验证摘要
 
 本轮最终候选树得到以下本地证据：
@@ -176,10 +188,10 @@ CCTV、控制台、暗色 HUD、异常电梯和 IAA 布局仍可用，但只在 
 - runtime contracts：235/235；
 - product manifest：254/254；
 - visual scoring：10/10；
-- Python tests：86/86；
+- Python tests：90/90；
 - MiniGame Node tests：321/321；
 - Android/WebView drift：PASS；
-- Personal installer focused tests：25/25；
+- Personal installer focused tests：30/30；
 - 专项 MINIGAME ad-hoc：16 checks PASS；
 - 项目内安装器加固 ad-hoc：6 checks PASS（临时验证器位于项目 `.hermes/task-runtime/tmp/`，运行后已清理；不替代正式 suite）；
 - 正式安装读回：`EXPERT_RESOURCE_READBACK=PASS`、`USER_CONFIG_PRESERVED=PASS`、`OP_EXPERT_SUITE_INSTALL=OK`；
@@ -215,7 +227,7 @@ cd minigame-runtime && npm test && node scripts/check-android-drift.mjs
 
 - 代码通过 Git/PR 回退；
 - Personal Skill 刷新失败由安装器恢复旧正文；
-- plugin stable-source 事务失败恢复旧镜像和 catalog；
+- plugin stable-source 事务失败恢复旧镜像；catalog 快照不变时确认无 catalog 漂移，发生变化时失败关闭并报告 delta，不能虚称自动恢复；
 - 不直接修改 `app.sqlite`；
 - 不修改 Open Design 版本 payload；
 - 不删除用户 Workspace、聊天、认证或个人配置。

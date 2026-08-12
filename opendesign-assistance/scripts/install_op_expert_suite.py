@@ -1,12 +1,13 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 # SPDX-License-Identifier: MIT
-"""Install the OP personal design system through Open Design's official API.
+"""Install the OP personal expert suite through Open Design's supported surfaces.
 
 Open Design 0.19+ owns both the user-skill files and their Personal Workspace
 binding. This installer therefore calls ``POST /api/skills/install`` with a
-local source folder; it never copies into the runtime data tree directly and
-never edits app.sqlite.
+local source folder. Plugins and bundles are registered through
+``POST /api/plugins/install`` from an upgrade-stable mirror under the active
+namespace's ``data/local-plugin-sources`` directory. It never edits app.sqlite.
 
 The installer maintains editable user design systems and user skills. The
 default is content-aware and idempotent: matching skills are left untouched,
@@ -36,6 +37,7 @@ SUITE_SRC = REPO_ROOT / "opendesign-assistance" / "op-expert-suite" / "skills"
 DESIGN_SYSTEMS_ROOT = REPO_ROOT / "opendesign-assistance" / "design-systems"
 PLUGINS_ROOT = REPO_ROOT / "opendesign-assistance" / "plugins"
 BUNDLES_ROOT = REPO_ROOT / "opendesign-assistance" / "bundles"
+ATOMS_ROOT = REPO_ROOT / "opendesign-assistance" / "atoms"
 EXPERT_RESOURCE_SOURCES = (
     *(('plugins', name) for name in (
         'anomaly-monitor-hud',
@@ -192,7 +194,7 @@ def select_workspace(app_url: str) -> dict[str, str]:
         item
         for item in data.get("items", [])
         if item.get("memberStatus") == "active"
-        and item.get("lifecycleState") != "deleted"
+        and item.get("lifecycleState") == "active"
     ]
     personal = [item for item in items if item.get("workspaceType") == "personal"]
     active_id = data.get("activeWorkspaceId")
@@ -229,11 +231,28 @@ def read_app_config(app_url: str, headers: dict[str, str]) -> dict[str, Any]:
 
 
 def copy_expert_resource_sources(destination: Path) -> None:
-    """Copy the managed plugin and bundle sources into a new mirror tree."""
+    """Copy managed resources and their complete local asset closure."""
+    shutil.copytree(ATOMS_ROOT, destination / "atoms")
     for kind, root in (("plugins", PLUGINS_ROOT), ("bundles", BUNDLES_ROOT)):
         for source_kind, name in EXPERT_RESOURCE_SOURCES:
             if source_kind == kind:
                 shutil.copytree(root / name, destination / kind / name)
+    assistance_root = REPO_ROOT / "opendesign-assistance"
+    for kind, name in EXPERT_RESOURCE_SOURCES:
+        manifest_path = destination / kind / name / "open-design.json"
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        for relative in manifest.get("od", {}).get("context", {}).get("assets", []):
+            source = (assistance_root / kind / name / relative).resolve()
+            try:
+                source_relative = source.relative_to(assistance_root.resolve())
+            except ValueError as exc:
+                raise ApiError(f"asset escapes assistance root: {relative}") from exc
+            if not source.is_file():
+                raise ApiError(f"missing expert resource asset: {source_relative.as_posix()}")
+            target = destination / source_relative
+            target.parent.mkdir(parents=True, exist_ok=True)
+            if not target.exists():
+                shutil.copy2(source, target)
 
 
 class StableSourceUpdate:
@@ -362,13 +381,45 @@ def verify_expert_resources(app_url: str, headers: dict[str, str]) -> None:
         )
 
 
+def list_plugin_catalog(
+    app_url: str, headers: dict[str, str]
+) -> dict[str, dict[str, Any]]:
+    """Read a stable projection of this suite's managed catalog entries."""
+    status, data = api_request(app_url, "/api/plugins", headers=headers)
+    if status != 200:
+        raise ApiError(f"plugin catalog snapshot failed: HTTP {status} {data}")
+    managed_ids = {resource_id for _kind, resource_id in EXPERT_RESOURCE_SOURCES}
+    return {
+        str(item["id"]): {
+            key: item.get(key)
+            for key in ("id", "version", "source", "sourceKind", "trust", "status")
+        }
+        for item in data.get("plugins", [])
+        if isinstance(item, dict) and item.get("id") in managed_ids
+    }
+
+
+def describe_catalog_delta(
+    before: dict[str, dict[str, Any]], after: dict[str, dict[str, Any]]
+) -> str:
+    """Describe catalog mutations without exposing unrelated catalog content."""
+    before_ids = set(before)
+    after_ids = set(after)
+    changed = sorted(key for key in before_ids & after_ids if before[key] != after[key])
+    return (
+        f"added={sorted(after_ids - before_ids)}, "
+        f"removed={sorted(before_ids - after_ids)}, changed={changed}"
+    )
+
+
 def install_expert_resources_transactionally(
     app_url: str,
     headers: dict[str, str],
     *,
     before_commit: Callable[[], None] | None = None,
 ) -> int:
-    """Install all resources, restoring the old mirror/catalog on any failure."""
+    """Install resources; restore the mirror and report any catalog mutation."""
+    catalog_before = list_plugin_catalog(app_url, headers)
     source_update = begin_stable_resource_source_update(app_url)
     installed_count = 0
     try:
@@ -382,17 +433,21 @@ def install_expert_resources_transactionally(
     except Exception as install_error:
         source_update.rollback()
         try:
-            for kind, name in EXPERT_RESOURCE_SOURCES:
-                install_expert_resource(app_url, headers, kind, name)
-            verify_expert_resources(app_url, headers)
-        except Exception as restore_error:
+            catalog_after = list_plugin_catalog(app_url, headers)
+        except Exception as snapshot_error:
             raise ApiError(
-                "expert resource installation failed and previous catalog restore "
-                f"failed: install={install_error}; restore={restore_error}"
-            ) from restore_error
+                "expert resource installation failed; mirror restored, but catalog "
+                f"state is unknown: install={install_error}; snapshot={snapshot_error}"
+            ) from snapshot_error
+        if catalog_after != catalog_before:
+            raise ApiError(
+                "expert resource installation failed; mirror restored with partial "
+                f"catalog mutation: {describe_catalog_delta(catalog_before, catalog_after)}; "
+                f"install={install_error}"
+            ) from install_error
         raise ApiError(
-            f"expert resource installation failed; restored previous expert resources: "
-            f"{install_error}"
+            "expert resource installation failed; mirror restored and catalog "
+            f"snapshot is unchanged: {install_error}"
         ) from install_error
     source_update.commit()
     return installed_count

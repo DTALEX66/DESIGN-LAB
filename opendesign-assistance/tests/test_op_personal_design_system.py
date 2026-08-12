@@ -10,6 +10,7 @@ from unittest import mock
 
 
 ROOT = Path(__file__).resolve().parents[1]
+REPO_ROOT = ROOT.parent
 SKILLS = ROOT / "op-expert-suite" / "skills"
 DESIGN_SYSTEMS = ROOT / "design-systems"
 PLUGINS = ROOT / "plugins"
@@ -24,6 +25,11 @@ class PersonalDesignSystemTest(unittest.TestCase):
         assert spec and spec.loader
         cls.installer = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(cls.installer)
+
+    def project_temporary_directory(self):
+        runtime_tmp = REPO_ROOT / ".hermes" / "task-runtime" / "tmp"
+        runtime_tmp.mkdir(parents=True, exist_ok=True)
+        return tempfile.TemporaryDirectory(dir=runtime_tmp)
 
     def test_three_personal_design_systems_are_packaged(self):
         expected = {
@@ -189,6 +195,24 @@ class PersonalDesignSystemTest(unittest.TestCase):
             with self.assertRaises(self.installer.ApiError):
                 self.installer.select_workspace("http://op")
 
+    def test_non_active_personal_workspace_lifecycle_fails_closed(self):
+        directory = {
+            "activeWorkspaceId": "personal-1",
+            "items": [
+                {
+                    "workspaceId": "personal-1",
+                    "workspaceMemberId": "member-1",
+                    "workspaceType": "personal",
+                    "role": "owner",
+                    "memberStatus": "active",
+                    "lifecycleState": "suspended",
+                }
+            ],
+        }
+        with mock.patch.object(self.installer, "api_request", return_value=(200, directory)):
+            with self.assertRaisesRegex(self.installer.ApiError, "active Personal Workspace"):
+                self.installer.select_workspace("http://op")
+
     def test_multiple_personal_workspaces_fail_closed(self):
         items = [
             {
@@ -210,7 +234,7 @@ class PersonalDesignSystemTest(unittest.TestCase):
                 self.installer.select_workspace("http://op")
 
     def test_active_namespace_is_discovered_from_current_web_log(self):
-        with tempfile.TemporaryDirectory() as tmp:
+        with self.project_temporary_directory() as tmp:
             appdata = Path(tmp)
             old_log = (
                 appdata
@@ -253,7 +277,7 @@ class PersonalDesignSystemTest(unittest.TestCase):
                 )
 
     def test_namespace_data_root_is_bound_to_explicit_app_url(self):
-        with tempfile.TemporaryDirectory() as tmp:
+        with self.project_temporary_directory() as tmp:
             appdata = Path(tmp)
             expected_log = (
                 appdata / "Open Design" / "namespaces" / "expected" / "logs" / "web" / "latest.log"
@@ -392,7 +416,7 @@ class PersonalDesignSystemTest(unittest.TestCase):
         )
 
     def test_stable_source_transaction_can_roll_back_after_install_failure(self):
-        with tempfile.TemporaryDirectory() as tmp:
+        with self.project_temporary_directory() as tmp:
             data_root = Path(tmp)
             target = data_root / "local-plugin-sources" / "open-design-assistance"
             target.mkdir(parents=True)
@@ -408,7 +432,22 @@ class PersonalDesignSystemTest(unittest.TestCase):
             transaction.rollback()
             self.assertEqual((target / "marker.txt").read_text(encoding="utf-8"), "old")
 
-    def test_expert_resource_failure_restores_old_catalog_from_rollback_tree(self):
+    def test_stable_mirror_contains_atoms_and_resolves_every_asset_reference(self):
+        runtime_tmp = REPO_ROOT / ".hermes" / "task-runtime" / "tmp"
+        runtime_tmp.mkdir(parents=True, exist_ok=True)
+        with tempfile.TemporaryDirectory(dir=runtime_tmp) as tmp:
+            mirror = Path(tmp)
+            self.installer.copy_expert_resource_sources(mirror)
+            self.assertEqual(len(list((mirror / "atoms").glob("*/open-design.json"))), 21)
+            for kind, name in self.installer.EXPERT_RESOURCE_SOURCES:
+                manifest_path = mirror / kind / name / "open-design.json"
+                manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+                for relative in manifest.get("od", {}).get("context", {}).get("assets", []):
+                    self.assertTrue(
+                        (manifest_path.parent / relative).resolve().is_file(), relative
+                    )
+
+    def test_expert_resource_failure_reports_partial_catalog_mutation(self):
         transaction = mock.Mock()
         calls = []
 
@@ -417,27 +456,61 @@ class PersonalDesignSystemTest(unittest.TestCase):
             if len(calls) == 5:
                 raise self.installer.ApiError("fifth install failed")
 
-        with mock.patch.object(
-            self.installer,
-            "begin_stable_resource_source_update",
-            return_value=transaction,
-        ):
+        with mock.patch.object(self.installer, "begin_stable_resource_source_update", return_value=transaction):
             with mock.patch.object(
-                self.installer, "install_expert_resource", side_effect=install
-            ) as install_resource:
-                with mock.patch.object(self.installer, "verify_expert_resources"):
+                self.installer,
+                "list_plugin_catalog",
+                side_effect=[
+                    {"anomaly-monitor-hud": {"id": "anomaly-monitor-hud", "version": "0.1.0"}},
+                    {
+                        "anomaly-monitor-hud": {"id": "anomaly-monitor-hud", "version": "0.2.0"},
+                        "brand-visual-director": {"id": "brand-visual-director", "version": "0.1.0"},
+                    },
+                ],
+                create=True,
+            ):
+                with mock.patch.object(
+                    self.installer, "install_expert_resource", side_effect=install
+                ) as install_resource:
                     with self.assertRaisesRegex(
-                        self.installer.ApiError, "restored previous expert resources"
+                        self.installer.ApiError,
+                        "partial catalog mutation.*brand-visual-director.*anomaly-monitor-hud",
                     ):
                         self.installer.install_expert_resources_transactionally(
                             "http://op", {}
                         )
         transaction.rollback.assert_called_once_with()
         transaction.commit.assert_not_called()
-        self.assertEqual(
-            install_resource.call_count,
-            5 + len(self.installer.EXPERT_RESOURCE_SOURCES),
+        self.assertEqual(install_resource.call_count, 5)
+
+    def test_plugin_catalog_snapshot_excludes_unmanaged_ids(self):
+        managed_id = self.installer.EXPERT_RESOURCE_SOURCES[0][1]
+        response = {
+            "plugins": [
+                {"id": managed_id, "version": "1.0.0", "sourceKind": "local"},
+                {"id": "user-concurrent-plugin", "version": "9.0.0"},
+            ]
+        }
+        with mock.patch.object(
+            self.installer, "api_request", return_value=(200, response)
+        ):
+            catalog = self.installer.list_plugin_catalog("http://op", {})
+        self.assertEqual(set(catalog), {managed_id})
+
+    def test_generated_personal_counts_and_plugin_index_links_are_portable(self):
+        counts = json.loads(
+            (ROOT / "config" / "asset-counts.json").read_text(encoding="utf-8")
         )
+        self.assertEqual(counts["personal_skills"], 15)
+        self.assertEqual(counts["design_systems"], 3)
+        index = (ROOT / "plugins" / "INDEX.md").read_text(encoding="utf-8")
+        self.assertNotIn("(opendesign-assistance/plugins/", index)
+
+    def test_gitignore_uses_portable_root_uuid_pattern(self):
+        ignore = (REPO_ROOT / ".gitignore").read_text(encoding="utf-8")
+        self.assertIn("/[0-9a-f]", ignore)
+        self.assertNotIn("/1d864770-e234-43fe-8994-27bf9350690a/", ignore)
+        self.assertNotIn("/244d938a-abaf-42bd-880b-6fca4b651799/", ignore)
 
     def test_skill_refresh_restores_previous_skill_when_install_fails(self):
         current = {
