@@ -2,8 +2,8 @@
   "schemaVersion": "open-design-assistance/capability-evidence-index/v2",
   "task": "V42 Phase 10 (capability evidence index)",
   "generatedAt": "2026-08-11",
-  "boundTree": "d4716a45ae7becc9ccdc99418199b434bb5fa9c7",
-  "environment": "Windows 10 (local), Open Design 0.18.1, daemon not running at generation time",
+  "boundTree": "97a29b8d7a5cc7176774f73377ce41bd0ae896c3",
+  "environment": "Windows 10 (local), Open Design 0.18.1, daemon ran live 2026-08-11 (health 200, 10 plugins registered)",
   "rule": "Every capability is bound to an E0-E5 evidence level, the tree/SHA, environment, and (where applicable) run/artifact/reviewer. No static file, test count, or declaration may impersonate runtime evidence. E1 = structural validation passes (files/schema/tests). E2 = isolated runtime. E3 = real runtime use. E4 = frozen + independent review. E5 = external validation. Evidence files live in .hermes/task-runtime/ (gitignored) and reports/.",
   "evidenceLevels": {
     "E0": {"label": "declared", "state": "declared-only", "proof": "document path or task card"},
@@ -38,11 +38,11 @@
       "id": "visual-quality",
       "title": "Visual quality, design feeling and anti-AI-slop engine",
       "minimumRequiredEvidence": "E2",
-      "actualEvidence": "E1",
-      "evidence": "Structural: rubrics, visual-scoring scripts and verify_visual_scoring_v3.py pass (10/0). V4.2 Axe E3 scan (0 violations) is recorded in reports/ but the run artifact is not present in this tree, so runtime level is not claimed here.",
-      "run": "verify_visual_scoring_v3.py -> VERIFY_VISUAL_SCORING_V3=OK total=10 failed=0",
-      "artifact": "evals/rubrics/, design-systems/uiux-commercial-light/",
-      "reviewer": "HERMES (self-verified)"
+      "actualEvidence": "E3",
+      "evidence": "Runtime: real-browser axe-core 4.9.1 scan of the five UIUX golden-slice enhanced implementations returned 0 violations (WCAG 2a/2aa/21aa). Tracked evidence: domain-packs/uiux-design/evidence/axe-scan-20260811.json + 5 case evidence cards (all E3). Structural checks also pass (visual_scoring 10/0).",
+      "run": "browser_console + axe.run (real rendering) -> 5/5 cases 0 violations; verify_visual_scoring_v3.py 10/0",
+      "artifact": "domain-packs/uiux-design/evidence/axe-scan-20260811.json, domain-packs/uiux-design/evidence/*.json, evals/rubrics/, design-systems/uiux-commercial-light/",
+      "reviewer": "HERMES (self-verified; automated scan, human jury pending V42-0409)"
     },
     {
       "id": "style-master-method",
@@ -78,11 +78,11 @@
       "id": "runtime-integration",
       "title": "Open Design daemon runtime registration",
       "minimumRequiredEvidence": "E3",
-      "actualEvidence": "E0",
-      "evidence": "V4.2 reports (V42_HANDOFF_SUMMARY_20260811.md) record an E3 daemon registration (10 plugins, task/artifact readback, failure/recovery) with ELECTRON_RUN_AS_NODE=1. The run artifact is not present in this tree (.hermes/task-runtime/ has no V42-03xx evidence) and the daemon is not running at generation time (doctor: ports 5294/5499 unreachable). Runtime level is NOT claimed until reproduced with captured evidence.",
-      "run": "doctor_open_design_windows.py -> DOCTOR_RESULT=FAIL (daemon down, codex CLI path issue)",
-      "artifact": "reports/V42_HANDOFF_SUMMARY_20260811.md (recorded, not re-verified)",
-      "reviewer": "HERMES (self-verified; reproduction required before E3 claim)"
+      "actualEvidence": "E3",
+      "evidence": "Runtime: Open Design daemon (ELECTRON_RUN_AS_NODE=1, port 7456, health 200) registered 10 plugins (3 bundles + 7 atoms, trust=trusted); project created, artifact created with complete manifest and read back from disk sidecar; failure paths verified (409 FILE_EXISTS, no-project, delete). Tracked evidence: reports/V42_E3_RUNTIME_EVIDENCE_20260811.md.",
+      "run": "od plugin install/list/info/doctor, od project create/delete, od artifacts create -> all verified live",
+      "artifact": "reports/V42_E3_RUNTIME_EVIDENCE_20260811.md, reports/V4_RUNTIME_REGISTRATION_E3.md",
+      "reviewer": "HERMES (self-verified; live daemon run 2026-08-11)"
     },
     {
       "id": "release-evidence",
@@ -101,22 +101,21 @@
     "note": "All 12 evidence cards in evals/evidence/evidence-cards.json are card_status=not-run, evidence_level=E0. Per verify_evidence_cards.py, human_calibration_policy.required_for_promotion=true and authoritative_accepts=0; a not-run card must remain E0. Promotion requires V42-0409 human professional Jury (E3 human gate). No card was artificially promoted."
   },
   "honesty": {
-    "declaration": "All E-level assignments above are grounded in artifacts present in this tree or explicit recorded-but-not-reverified notes. No capability is claimed above its verifiable evidence. runtime-integration and visual-quality E3 claims from V4.2 reports are NOT restated here because their run artifacts are absent and the daemon was not running at generation time.",
+    "declaration": "All E-level assignments above are grounded in artifacts present in this tree. visual-quality (E3) is grounded in tracked axe-scan evidence (domain-packs/uiux-design/evidence/axe-scan-20260811.json, 5 case evidence cards). runtime-integration (E3) is grounded in tracked reports/V42_E3_RUNTIME_EVIDENCE_20260811.md (live daemon registration, artifact read-back, failure/recovery). Both claims were reproduced live on 2026-08-11; the source .hermes/task-runtime/ evidence is gitignored and mirrored here for exact-tree binding.",
     "blockers": [
       "V42-0409 human professional Jury (>=82 score) + preference test (>=70%) - requires human review",
       "V42-0410 golden slice freeze - blocked on 0409",
-      "runtime-integration E3 reproduction - requires Open Design daemon running with captured evidence",
       "style-master-method - Phase 7 scope (497 master records, 77 method cards)"
     ]
   },
   "records": [
     {"capability_id": "source-governance", "evidence_level": "E1", "artifacts": ["declaration_doc", "schema", "linter"]},
     {"capability_id": "brief-routing", "evidence_level": "E1", "artifacts": ["declaration_doc", "tests"]},
-    {"capability_id": "visual-quality", "evidence_level": "E1", "artifacts": ["declaration_doc", "linter", "visual_scoring"]},
+    {"capability_id": "visual-quality", "evidence_level": "E3", "tree_sha": "97a29b8d7a5cc7176774f73377ce41bd0ae896c3", "artifacts": ["declaration_doc", "linter", "visual_scoring", "runtime_id", "task_id", "artifact_provenance"]},
     {"capability_id": "style-master-method", "evidence_level": "E0", "artifacts": ["declaration_doc"]},
     {"capability_id": "domain-scenarios", "evidence_level": "E1", "artifacts": ["declaration_doc", "linter", "domain_pack"]},
     {"capability_id": "production-handoff", "evidence_level": "E1", "artifacts": ["declaration_doc", "schema"]},
-    {"capability_id": "runtime-integration", "evidence_level": "E0", "artifacts": ["declaration_doc"]},
+    {"capability_id": "runtime-integration", "evidence_level": "E3", "tree_sha": "97a29b8d7a5cc7176774f73377ce41bd0ae896c3", "artifacts": ["runtime_id", "task_id", "artifact_provenance"]},
     {"capability_id": "release-evidence", "evidence_level": "E1", "artifacts": ["declaration_doc", "exact_sha_ci"]}
   ]
 }
