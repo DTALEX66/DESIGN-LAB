@@ -2,9 +2,9 @@
   "$schema": "https://open-design.ai/schemas/plugin.v1.json",
   "specVersion": "1.0.0",
   "name": "minigame-ui-director",
-  "title": "Minigame UI Director",
-  "version": "0.1.0",
-  "description": "Open Design skill for mobile minigame HUD, console, and IAA screen generation.",
+  "title": "Minigame Design Director",
+  "version": "0.2.0",
+  "description": "General Open Design capability for minigame concept, core loop, rules, levels, UX/UI, economy, platform adaptation, validation, and production handoff.",
   "license": "MIT",
   "entry": "SKILL.md",
   "tags": [
@@ -18,10 +18,11 @@
     "kind": "skill",
     "categories": [
       "game-ui",
-      "hud",
+      "game-design",
       "mobile",
       "minigame",
-      "iaa"
+      "level-design",
+      "game-economy"
     ],
     "capabilities": [
       "prompt:inject",
@@ -30,15 +31,15 @@
     ],
     "suggestedInputs": [
       "platform",
-      "screen",
-      "theme",
+      "genre",
+      "visualDirection",
       "monetization"
     ],
     "taskKind": "new-generation",
     "useCase": {
       "query": {
-        "en": "Design a {{screen}} screen for a {{platform}} minigame using {{theme}}.",
-        "zh-CN": "Design a {{screen}} screen for a {{platform}} minigame using {{theme}}."
+        "en": "Design a complete {{genre}} minigame for {{platform}} using a {{visualDirection}} visual direction and {{monetization}} monetization strategy.",
+        "zh-CN": "为 {{platform}} 设计完整的 {{genre}} 小游戏，视觉方向为 {{visualDirection}}，商业化策略为 {{monetization}}。"
       }
     },
     "context": {
@@ -48,9 +49,14 @@
         }
       ],
       "atoms": [
-        "layout-zones",
-        "visual-style-notes",
-        "implementation-hints"
+        "direction-picker",
+        "build-test",
+        "handoff"
+      ],
+      "assets": [
+        "../../atoms/art-direction-synthesizer/SKILL.md",
+        "../../atoms/visual-taste-jury/SKILL.md",
+        "../../atoms/delivery-packager/SKILL.md"
       ],
       "schemas": [
         "opendesign-assistance/schemas/design-brief.schema.json",
@@ -74,19 +80,19 @@
         "default": "h5"
       },
       {
-        "name": "screen",
+        "name": "genre",
         "type": "string",
-        "default": "main"
+        "default": "auto"
       },
       {
-        "name": "theme",
+        "name": "visualDirection",
         "type": "string",
-        "default": "anomaly-monitor-dark"
+        "default": "brief-driven"
       },
       {
         "name": "monetization",
         "type": "string",
-        "default": "rewarded-ad"
+        "default": "brief-driven"
       }
     ],
     "mode": "compat-plugin",
@@ -101,9 +107,9 @@
         "digital-ui"
       ],
       "outputContracts": [
-        "HUD/mobile control layout",
-        "runtime reference mapping",
-        "playable export checklist"
+        "core loop, rules and state model",
+        "level/content and UX/UI design",
+        "economy, platform and production handoff"
       ],
       "evidence": {
         "level": "E2",

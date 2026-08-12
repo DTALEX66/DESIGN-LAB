@@ -1,7 +1,7 @@
 ---
 name: anomaly-monitor-hud
 zh_name: "异常监控 HUD"
-description: "Specialized Open Design skill for CCTV, surveillance, anomaly monitor, and control-console HUD interfaces."
+description: "Optional visual specialization for CCTV, surveillance, anomaly monitoring, and control-console interfaces; not a universal minigame default."
 triggers:
   - "异常监控"
   - "CCTV HUD"
@@ -11,11 +11,11 @@ triggers:
 
 # Anomaly Monitor HUD
 
-Use this skill for dark surveillance, monitoring-room, CCTV, anomaly-detection, and hardware-control interfaces.
+这是按需加载的**可选视觉专精**，用于 dark surveillance、monitoring-room、CCTV、anomaly-detection 和 hardware-control 界面。不要把所有小游戏默认设计成 CCTV；只有 brief 明确要求监控、异常侦测、安防或控制台题材时才启用。
 
 ## Inputs
 
-- `scene`: `elevator`, `hospital`, `security`, `factory`, `subway`, `hotel`, or custom.
+- `scene`: custom from brief; examples include elevator, hospital, security, factory, subway or hotel.
 - `riskLevel`: `low`, `medium`, `high`, `critical`.
 - `surface`: `mobile`, `desktop`, `tablet`, `stream-overlay`.
 

@@ -48,9 +48,14 @@
         }
       ],
       "atoms": [
-        "hud-layout",
-        "telemetry-chips",
-        "control-console"
+        "direction-picker",
+        "critique-theater",
+        "build-test"
+      ],
+      "assets": [
+        "../../atoms/visual-reference-dna-analyzer/SKILL.md",
+        "../../atoms/photorealism-artifact-auditor/SKILL.md",
+        "../../atoms/color-material-light-director/SKILL.md"
       ],
       "schemas": [
         "opendesign-assistance/schemas/design-brief.schema.json",
@@ -71,7 +76,7 @@
       {
         "name": "scene",
         "type": "string",
-        "default": "elevator"
+        "default": "custom"
       },
       {
         "name": "riskLevel",
