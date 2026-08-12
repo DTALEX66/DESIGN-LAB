@@ -123,6 +123,7 @@ opendesign-assistance/config/CAPABILITY_INDEX.md
 opendesign-assistance/config/OPEN_DESIGN_COMPATIBILITY_MATRIX.md
 opendesign-assistance/config/RELEASE_EVIDENCE_CONTRACT.md
 opendesign-assistance/README.md
+reports/OP_PERSONAL_EXPERT_SUITE_HANDOFF_20260812.md  ← OP Personal 配置、错误复盘与重建方法
 reports/V4_HANDOFF_SUMMARY_20260807.md
 ```
 

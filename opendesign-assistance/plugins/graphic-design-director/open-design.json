@@ -49,9 +49,14 @@
         }
       ],
       "atoms": [
-        "composition-grid",
-        "typography-hierarchy",
-        "export-sizes"
+        "direction-picker",
+        "critique-theater",
+        "handoff"
+      ],
+      "assets": [
+        "../../atoms/typography-composition-director/SKILL.md",
+        "../../atoms/art-direction-synthesizer/SKILL.md",
+        "../../atoms/delivery-packager/SKILL.md"
       ],
       "schemas": [
         "opendesign-assistance/schemas/design-brief.schema.json",

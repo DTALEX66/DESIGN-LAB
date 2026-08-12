@@ -49,9 +49,14 @@
         }
       ],
       "atoms": [
-        "navigation-model",
-        "responsive-layout",
-        "component-inventory"
+        "direction-picker",
+        "build-test",
+        "handoff"
+      ],
+      "assets": [
+        "../../atoms/brief-normalizer/SKILL.md",
+        "../../atoms/design-direction-jury/SKILL.md",
+        "../../atoms/typography-composition-director/SKILL.md"
       ],
       "schemas": [
         "opendesign-assistance/schemas/design-brief.schema.json",

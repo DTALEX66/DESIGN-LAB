@@ -67,6 +67,11 @@ class ConfigureSecurityCodePathTest(unittest.TestCase):
         self.assertNotIn("rglob(", src)
         self.assertNotIn("discover_od_skill_roots", src)
 
+    def test_doctor_tracks_current_full_power_codex_model(self):
+        src = DOCTOR.read_text(encoding="utf-8")
+        self.assertIn('DEFAULT_MODEL = "gpt-5.6-terra"', src)
+        self.assertNotIn('DEFAULT_MODEL = "gpt-5.5"', src)
+
 
 class ConfigureCLIBehaviorTest(unittest.TestCase):
     """CLI path-semantics tests. configure_open_design_windows.py is Windows-only;

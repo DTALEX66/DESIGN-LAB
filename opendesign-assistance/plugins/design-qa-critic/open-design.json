@@ -47,9 +47,14 @@
         }
       ],
       "atoms": [
-        "scorecard",
-        "fix-list",
-        "next-prompt"
+        "critique-theater",
+        "build-test",
+        "handoff"
+      ],
+      "assets": [
+        "../../atoms/design-quality-jury/SKILL.md",
+        "../../atoms/anti-ai-slop-diagnostician/SKILL.md",
+        "../../atoms/visual-polish-loop/SKILL.md"
       ],
       "schemas": [
         "opendesign-assistance/schemas/design-critique.schema.json",
