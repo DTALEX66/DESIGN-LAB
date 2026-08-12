@@ -579,6 +579,60 @@ class PersonalDesignSystemTest(unittest.TestCase):
             with self.assertRaisesRegex(self.installer.ApiError, "unmanaged skill"):
                 self.installer.require_managed_skill(current, source)
 
+    def test_skill_matches_source_ignores_metadata_when_body_is_identical(self):
+        current = {
+            "id": "sample",
+            "name": "renamed-by-user",
+            "description": "different description",
+            "triggers": ["other"],
+            "mode": "personal",
+            "category": "other",
+            "upstream": "https://example.invalid/user-edit",
+            "body": "# 同一正文\r\nline2\n",
+        }
+        source = mock.Mock()
+        with mock.patch.object(
+            self.installer,
+            "parse_skill_source",
+            return_value={
+                "name": "sample",
+                "description": "managed",
+                "triggers": [],
+                "mode": "personal",
+                "category": "test",
+                "upstream": "https://github.com/DTALEX66/OPEN-DESIGN-Assistance",
+                "body": "# 同一正文\nline2",
+            },
+        ):
+            self.assertTrue(self.installer.skill_matches_source(current, source))
+
+    def test_skill_matches_source_is_false_when_body_differs(self):
+        current = {
+            "id": "sample",
+            "name": "sample",
+            "description": "managed",
+            "triggers": [],
+            "mode": "personal",
+            "category": "test",
+            "upstream": "https://github.com/DTALEX66/OPEN-DESIGN-Assistance",
+            "body": "# 不同的正文",
+        }
+        source = mock.Mock()
+        with mock.patch.object(
+            self.installer,
+            "parse_skill_source",
+            return_value={
+                "name": "sample",
+                "description": "managed",
+                "triggers": [],
+                "mode": "personal",
+                "category": "test",
+                "upstream": "https://github.com/DTALEX66/OPEN-DESIGN-Assistance",
+                "body": "# 仓库正文",
+            },
+        ):
+            self.assertFalse(self.installer.skill_matches_source(current, source))
+
 
 if __name__ == "__main__":
     unittest.main(verbosity=2)
