@@ -537,10 +537,6 @@ def parse_skill_source(source_dir: Path) -> dict[str, Any]:
 
 def skill_matches_source(current: dict[str, Any], source_dir: Path) -> bool:
     expected = parse_skill_source(source_dir)
-    comparable = ("name", "description", "triggers", "mode", "category", "upstream")
-    for field in comparable:
-        if expected.get(field) != current.get(field):
-            return False
     current_body = str(current.get("body", "")).replace("\r\n", "\n").strip("\n")
     expected_body = str(expected["body"]).replace("\r\n", "\n").strip("\n")
     return current_body == expected_body
