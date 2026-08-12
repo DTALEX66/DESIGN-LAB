@@ -2,7 +2,7 @@
   "schemaVersion": "open-design-assistance/capability-evidence-index/v2",
   "task": "V42 Phase 10 (capability evidence index)",
   "generatedAt": "2026-08-11",
-  "boundTree": "97a29b8d7a5cc7176774f73377ce41bd0ae896c3",
+  "boundTree": "c8ff829d212f8040457c8be53c85a3a610f2c980",
   "environment": "Windows 10 (local), Open Design 0.18.1, daemon ran live 2026-08-11 (health 200, 10 plugins registered)",
   "rule": "Every capability is bound to an E0-E5 evidence level, the tree/SHA, environment, and (where applicable) run/artifact/reviewer. No static file, test count, or declaration may impersonate runtime evidence. E1 = structural validation passes (files/schema/tests). E2 = isolated runtime. E3 = real runtime use. E4 = frozen + independent review. E5 = external validation. Evidence files live in .hermes/task-runtime/ (gitignored) and reports/.",
   "evidenceLevels": {
@@ -111,11 +111,11 @@
   "records": [
     {"capability_id": "source-governance", "evidence_level": "E1", "artifacts": ["declaration_doc", "schema", "linter"]},
     {"capability_id": "brief-routing", "evidence_level": "E1", "artifacts": ["declaration_doc", "tests"]},
-    {"capability_id": "visual-quality", "evidence_level": "E3", "tree_sha": "97a29b8d7a5cc7176774f73377ce41bd0ae896c3", "artifacts": ["declaration_doc", "linter", "visual_scoring", "runtime_id", "task_id", "artifact_provenance"]},
+    {"capability_id": "visual-quality", "evidence_level": "E3", "tree_sha": "c8ff829d212f8040457c8be53c85a3a610f2c980", "artifacts": ["declaration_doc", "linter", "visual_scoring", "runtime_id", "task_id", "artifact_provenance"]},
     {"capability_id": "style-master-method", "evidence_level": "E0", "artifacts": ["declaration_doc"]},
     {"capability_id": "domain-scenarios", "evidence_level": "E1", "artifacts": ["declaration_doc", "linter", "domain_pack"]},
     {"capability_id": "production-handoff", "evidence_level": "E1", "artifacts": ["declaration_doc", "schema"]},
-    {"capability_id": "runtime-integration", "evidence_level": "E3", "tree_sha": "97a29b8d7a5cc7176774f73377ce41bd0ae896c3", "artifacts": ["runtime_id", "task_id", "artifact_provenance"]},
+    {"capability_id": "runtime-integration", "evidence_level": "E3", "tree_sha": "c8ff829d212f8040457c8be53c85a3a610f2c980", "artifacts": ["runtime_id", "task_id", "artifact_provenance"]},
     {"capability_id": "release-evidence", "evidence_level": "E1", "artifacts": ["declaration_doc", "exact_sha_ci"]}
   ]
 }
