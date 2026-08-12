@@ -180,6 +180,14 @@ CCTV、控制台、暗色 HUD、异常电梯和 IAA 布局仍可用，但只在 
 
 修复：逐项在当前 `main` 重现，只吸收仍成立的发现；Personal Workspace lifecycle 现在严格要求 `active`，asset counts 增加 15 Personal Skills 和 3 Design Systems，plugin index 使用相对自身位置的链接，根级 OP working-copy ignore 改为 UUID-shaped 模式。本轮通过独立补救 PR 交付，不改写既有历史。
 
+### 16. 晚到审查第二批：Skill skip 语义与文档去硬编码
+
+错误：异步复审 `deleg_5dada29a`（绑定初次交付旧 tree）指出：安装器以 `name/description/triggers/mode/category/upstream` 加 body 的多字段比较决定 Skill 是否 skip，导致正文完全相同但任一元数据不同的 Skill 不会跳过，而会进入删除/重装刷新，这与“正文相同即只读 skip”的预期不一致；并指出 `OP_PERSONAL_EXPERT_SUITE.md` 仍称“六个技能”、skip 行为描述与实际不符、且硬编码 `release-stable-win` namespace 路径。
+
+修复：`skill_matches_source()` 改为仅按规范化正文比较——正文相同即无条件 skip（不再受元数据差异影响）；只有正文不同才走刷新路径，并经 `require_managed_skill()` 校验归属（非本仓库 owned 则失败关闭，拒绝覆盖用户内容）。文档更新为 15 Personal Skills + 3 Personal Design Systems、按真实 skip/refresh 语义描述，并把 namespace 改为动态发现、去除 `release-stable-win` 硬编码。新增 `test_skill_matches_source_ignores_metadata_when_body_is_identical` 与 `test_skill_matches_source_is_false_when_body_differs` 覆盖正/负向控制。经 PR #11 交付。
+
+经验：skip 判定应聚焦“用户内容是否变更”这一本质（正文），而非外围元数据；文档必须与代码实际行为一致，namespace/端口/模型基线等运行依赖一律动态或可配置，禁止硬编码。
+
 ## 当前验证摘要
 
 本轮最终候选树得到以下本地证据：
@@ -188,10 +196,10 @@ CCTV、控制台、暗色 HUD、异常电梯和 IAA 布局仍可用，但只在 
 - runtime contracts：235/235；
 - product manifest：254/254；
 - visual scoring：10/10；
-- Python tests：90/90；
+- Python tests：93/93；
 - MiniGame Node tests：321/321；
 - Android/WebView drift：PASS；
-- Personal installer focused tests：30/30；
+- Personal installer focused tests：32/32；
 - 专项 MINIGAME ad-hoc：16 checks PASS；
 - 项目内安装器加固 ad-hoc：6 checks PASS（临时验证器位于项目 `.hermes/task-runtime/tmp/`，运行后已清理；不替代正式 suite）；
 - 正式安装读回：`EXPERT_RESOURCE_READBACK=PASS`、`USER_CONFIG_PRESERVED=PASS`、`OP_EXPERT_SUITE_INSTALL=OK`；
