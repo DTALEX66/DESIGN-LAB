@@ -10,9 +10,9 @@
 **不成为第二前端、第二 Agent runtime、模型网关、独立账号系统或泛用向量库**。
 任何实现、文档或能力声明不得越过本合同的边界。
 
-## 1. Open Design（上游软件本体）的唯一职责
+## 1. Open Design（当前参考宿主/上游软件本体）的职责
 
-Open Design 软件本体（当前基线 0.18.1，stable）是**唯一设计主入口**，负责：
+Open Design 软件本体（stable）是**当前主入口/参考宿主**（架构面向任意设计 AGENT 平台，不绑定版本），负责：
 
 | 领域 | 职责 |
 |---|---|
@@ -23,11 +23,11 @@ Open Design 软件本体（当前基线 0.18.1，stable）是**唯一设计主�
 | 产物 | Artifact 创建、预览、导出、版本管理 |
 | 配置 | 插件发现、安装、权限、私有 app-config（本仓库不得写） |
 
-**推论**：一切设计流程执行、AI 调用、画布操作和生成都发生在 Open Design 里。
+**推论**：当前一切设计流程执行、AI 调用、画布操作和生成都发生在 Open Design（参考宿主）里；架构上任意设计 AGENT 平台均可作为宿主接入。
 
 ## 2. OPEN-DESIGN-Assistance 的职责（只做增强，不做替代）
 
-本仓库是 Open Design 的**增强层**，只负责：
+本仓库是**面向任意设计 AGENT 平台的能力增强层**（当前参考宿主：Open Design），只负责：
 
 - 协议与合同：Brief、Reference DNA、Direction、Design System、Score、
   Preflight、Handoff、Provenance、Evidence Schema；
@@ -79,7 +79,7 @@ Open Design 软件本体（当前基线 0.18.1，stable）是**唯一设计主�
 
 ## 7. 一致性检查
 
-- `config/product-manifest.json` 的 `primaryRuntime: "Open Design"`、`nonGoals`
+- `config/product-manifest.json` 的 `primaryRuntime: "Open Design (current reference host...)"`、`nonGoals`
   与本文件一致；
 - `README.md`、`PRODUCT_DEFINITION_V42.md`、架构文档、能力矩阵引用同一 SSOT；
 - 若发现上述任一条被违反，按 `06_PROJECT_DRIFT_CONTROL` 标记 `DRIFTED` 并修复，
