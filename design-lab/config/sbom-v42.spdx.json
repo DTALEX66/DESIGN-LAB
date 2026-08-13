@@ -499,6 +499,15 @@
       "copyrightText": "NOASSERTION (vendored from https://github.com/ca-who-codes/ultimate.UIUX.design.skills)",
       "supplier": "NOASSERTION",
       "downloadLocation": "https://github.com/ca-who-codes/ultimate.UIUX.design.skills"
+    },
+    {
+      "SPDXID": "SPDXRef-vendor-hue",
+      "name": "design-lab/knowledge/visual-quality/hue",
+      "licenseConcluded": "MIT",
+      "licenseDeclared": "MIT",
+      "copyrightText": "NOASSERTION (vendored from https://github.com/dominikmartn/hue)",
+      "supplier": "NOASSERTION",
+      "downloadLocation": "https://github.com/dominikmartn/hue"
     }
   ],
   "relationships": [
@@ -766,6 +775,11 @@
       "spdxElementId": "SPDXRef-DOCUMENT",
       "relationshipType": "DESCRIBES",
       "relatedSpdxElement": "SPDXRef-vendor-48"
+    },
+    {
+      "spdxElementId": "SPDXRef-DOCUMENT",
+      "relationshipType": "DESCRIBES",
+      "relatedSpdxElement": "SPDXRef-vendor-hue"
     }
   ]
 }

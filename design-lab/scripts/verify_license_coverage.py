@@ -64,6 +64,7 @@ EXCLUDE_PREFIX = (
     "knowledge/visual-quality/design-thinking/",
     "knowledge/visual-quality/game-creative/",
     "knowledge/visual-quality/design-md-skill/",
+    "knowledge/visual-quality/hue/",
     "knowledge/visual-quality/document-design-system/",
     "knowledge/visual-quality/dataviz-critique/",
     "knowledge/visual-quality/brand-identity-generator/",
