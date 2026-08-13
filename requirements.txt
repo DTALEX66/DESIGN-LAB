@@ -1,4 +1,7 @@
 # DESIGN-LAB Python dependencies (reproducible)
 # ODA4-0103. Core verifiers use only the Python standard library.
 # jsonschema is the only third-party dependency (used by verify_evidence_cards.py).
+# rpds-py is pinned to modern builds: 0.30.x wheels are broken on Python 3.12
+# (missing rpds.rpds binary module), which breaks jsonschema import in CI.
 jsonschema>=4.18,<5
+rpds-py>=2025.6.0
