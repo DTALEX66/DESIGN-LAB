@@ -13,14 +13,15 @@
 | J4 | 工具适配器（Adapter Registry、Adobe PS、ComfyUI、MiniMax H3）| 🔄 E0 合同全就绪；**E3 取证待运行时** |
 | J5 | 证据、CI 与交付（evidence index、identity gate、exact-SHA CI、人工验收）| 🔄 DL-EVD-001/CI-001..004 ✅；**DL-REL-001 人工验收待用户** |
 
-## 已完成交付（截至 main `f156ce2`）
+## 已完成交付（截至 main `e4ad929`）
 
 - 34/34 任务有产物；Definition of Done 13/13 通过
 - 身份迁移 R3：旧名 `opendesign-assistance` 已退出活动命名 → `design-lab`（git mv，历史可追踪，见历史归档）
-- 九份 SSOT + 13 核心对象 + 6 E0 适配器合同 + Visual Quality Jury V1 + Production Preflight V1
+- 九份 SSOT + 13 核心对象 + **9 适配器合同（open-design/figma/penpot/blender/ffmpeg/browser/comfyui/adobe/h3，全部 E0 就绪）** + Visual Quality Jury V1 + Production Preflight V1
 - DL-KNW-001 十三批吸收：35 个 MIT/Apache/CC0 设计 SKILL 源码级 vendoring + 7 reference 登记（hallmark/taste-skill/huashu/uiux-pro-max/motion×2/shipit/design-checklist/game-ui/blender/motion-engine/brand×3/design-system-prompt/claude2figma/extract-ds/anydesign/ppt-agent/swiftui/a11y×2/brandbook/logo/ecommerce/motion-forensics/springy/genjutsu/baoyu/ultimate-uiux/hue/qiaomu/interface-design/visual-note-card/affiliate 等）
 - SOURCE_REGISTRY 162 条（schema 校验通过）；CAPABILITY_INDEX count=2222
-- identity gate / unified verifier（9 检查）/ MiniGame fixture 边界 / CI 5 gate 全绿
+- identity gate / unified verifier（**14 检查**，含 adapter/benchmark/evidence 防漂移）/ MiniGame fixture 边界 / CI 4 gate 全绿
+- 评测资产：12 benchmark briefs + 19 rubrics + 12 evidence cards + 评分单模板（DL-REL-001 验收路径就绪）
 
 ## 待人工/运行时任务（自动推进已尽）
 
