@@ -23,6 +23,9 @@ SCRIPTS = [
     "verify_visual_quality_v21.py",
     "verify_comfyui_gate.py",
     "verify_sbom.py",
+    "verify_adapter_registry.py",
+    "verify_benchmark_registry.py",
+    "verify_evidence_cards.py",
 ]
 
 # E1 确定性检查（DL-QLT-001 / DL-PRD-001），以参数化方式运行
@@ -50,7 +53,7 @@ def main() -> int:
         print(f"\n===== {name} =====")
         r = subprocess.run([sys.executable, str(script)], capture_output=True, text=True)
         tail = r.stdout.strip().splitlines()
-        summary = next((line for line in reversed(tail) if line.startswith(("VERIFY_", "PASS", "FAIL"))), "")
+        summary = next((line for line in reversed(tail) if line.startswith(("VERIFY_", "ADAPTER_", "BENCHMARK_", "EVIDENCE_", "PASS", "FAIL"))), "")
         print(summary)
         if r.returncode != 0:
             # print the specific failing checks for diagnosis
