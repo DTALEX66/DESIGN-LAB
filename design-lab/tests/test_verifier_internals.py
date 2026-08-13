@@ -139,5 +139,29 @@ class VisualQualityV21Tests(unittest.TestCase):
         self.assertIn("ERRORS=0", r.stdout)
 
 
+class CapabilityIndexTests(unittest.TestCase):
+    def test_index_is_sorted_deterministic(self):
+        """DL-MIG-011: capability-index must be deterministically sorted."""
+        idx = json.loads((ROOT / "config/capability-index.json").read_text(encoding="utf-8"))
+        items = idx.get("capabilities", idx.get("items", []))
+        self.assertGreater(len(items), 1000, "capability index must be substantial")
+        keys = [i.get("id", i.get("name", "")) for i in items]
+        self.assertEqual(keys, sorted(keys), "capability index must be sorted")
+
+    def test_generated_at_fixed_format(self):
+        idx = json.loads((ROOT / "config/capability-index.json").read_text(encoding="utf-8"))
+        ga = idx.get("generated_at", "")
+        self.assertRegex(ga, r"^\d{4}-\d{2}-\d{2}(T\d{2}:\d{2}:\d{2})?$", f"generated_at format: {ga}")
+
+
+class AggregateChainTests(unittest.TestCase):
+    def test_aggregate_verify_runs(self):
+        """verify_design_lab.py must exit 0 with the aggregate OK line."""
+        r = subprocess.run([sys.executable, str(SCRIPTS / "verify_design_lab.py")],
+                           capture_output=True, text=True, cwd=ROOT)
+        self.assertEqual(r.returncode, 0, r.stdout[-2000:] + r.stderr)
+        self.assertIn("VERIFY_DESIGN_LAB=OK", r.stdout)
+
+
 if __name__ == "__main__":
     unittest.main()
