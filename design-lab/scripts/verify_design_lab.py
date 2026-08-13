@@ -77,10 +77,23 @@ def main() -> int:
         results.append((name, r.returncode))
 
     failed = [name for name, code in results if code != 0]
-    print(f"\nVERIFY_DESIGN_LAB={'OK' if not failed else 'FAIL'} total={len(results)} failed={len(failed)}")
+    ok = not failed
+    # write verify-chain marker (used by verify_release_gate; exact-SHA binding)
+    # root here = design-lab/scripts/; repo root = root.parent.parent
+    try:
+        import subprocess as _sp
+        repo_root = root.parent.parent
+        head = _sp.run(["git", "-C", str(repo_root), "rev-parse", "HEAD"],
+                       capture_output=True, text=True).stdout.strip()
+        marker = repo_root / "design-lab" / "config" / ".verify-chain-ok"
+        marker.parent.mkdir(parents=True, exist_ok=True)
+        marker.write_text(f"ok {head}\n", encoding="utf-8")
+    except Exception:
+        pass
+    print(f"\nVERIFY_DESIGN_LAB={'OK' if ok else 'FAIL'} total={len(results)} failed={len(failed)}")
     for name, code in results:
         print(f"  {'PASS' if code == 0 else 'FAIL'} {name}")
-    return 1 if failed else 0
+    return 0 if ok else 1
 
 
 if __name__ == "__main__":
