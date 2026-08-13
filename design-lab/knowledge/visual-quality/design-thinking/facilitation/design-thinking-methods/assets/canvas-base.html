@@ -1,0 +1,377 @@
+<!--
+  canvas-base.html — generic renderer for design thinking canvases.
+
+  At render time the skill replaces ONLY the /*__METHOD_CONFIG__*/
+  block with a JSON object of this schema:
+
+  {
+    "session_id":   "dt-2026-08-03-a1",       // required, assigned by the skill
+    "method_id":    "crazy-8s",               // required, = id in frontmatter
+    "phase":        "ideate",                 // required
+    "title":        "Crazy 8s",               // display name, conversation language
+    "instructions": "8 ideas in 8 minutes …", // 1-3 sentences, conversation language
+    "layout":       "grid" | "quadrants" | "list",
+    "time_per_zone": 60,                      // seconds; omit = no timer
+    "context":      { "problem_statement": "…" },  // requires_input values (keys stay English)
+    "steps": [                                // from the method file's Steps section
+      { "title": "Pick the user (5 min)", "text": "One concrete person …" }
+    ],
+    "tips": [ "Whoever votes first, anchors." ],   // Facilitation notes, optional
+    "zones": [
+      { "id": "z1", "title": "Idea 1", "hint": "…",
+        "info": "longer explanation, expandable behind ⓘ" }  // info optional
+    ],
+    "ui": {                                   // optional overrides, conversation language;
+      "how_to": "So wird's durchgeführt"      // defaults below are English
+    }
+  }
+
+  All user-facing strings (title, instructions, steps, tips, zone
+  title/hint/info, ui) are produced in the conversation language.
+  Zone ids, context keys, and export fields stay English — contract.
+
+  Everything else in this file stays unchanged. If a method can't be
+  rendered with this, that's a schema problem — report it, don't fork
+  the renderer.
+-->
+<meta charset="utf-8">
+<title>Design Thinking Canvas</title>
+<style>
+  :root {
+    --bg: #f6f5f2; --panel: #ffffff; --ink: #1d1c1a; --muted: #6f6b64;
+    --line: #e2ded7; --accent: #2f6f5e; --accent-ink: #ffffff;
+    --active: #f0e9d8; --danger: #a4432f;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #191817; --panel: #232120; --ink: #ece9e4; --muted: #9b968e;
+      --line: #38352f; --accent: #4d9a83; --accent-ink: #10201b;
+      --active: #3a3423; --danger: #d07a5f;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #191817; --panel: #232120; --ink: #ece9e4; --muted: #9b968e;
+    --line: #38352f; --accent: #4d9a83; --accent-ink: #10201b;
+    --active: #3a3423; --danger: #d07a5f;
+  }
+  :root[data-theme="light"] {
+    --bg: #f6f5f2; --panel: #ffffff; --ink: #1d1c1a; --muted: #6f6b64;
+    --line: #e2ded7; --accent: #2f6f5e; --accent-ink: #ffffff;
+    --active: #f0e9d8; --danger: #a4432f;
+  }
+  [hidden] { display: none !important; }
+  body { background: var(--bg); color: var(--ink); font: 16px/1.5 system-ui, sans-serif; margin: 0; padding: 1.5rem; }
+  main { max-width: 64rem; margin: 0 auto; }
+  h1 { font-size: 1.4rem; margin: 0 0 .25rem; }
+  .phase-tag { font-size: .75rem; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); }
+  .instructions { color: var(--muted); margin: .5rem 0 1rem; }
+  .context { background: var(--panel); border: 1px solid var(--line); border-left: 4px solid var(--accent); border-radius: 6px; padding: .75rem 1rem; margin-bottom: 1.25rem; }
+  .context dt { font-size: .75rem; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); }
+  .context dd { margin: .1rem 0 .5rem; }
+  .context dd:last-child { margin-bottom: 0; }
+  details.info { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; margin-bottom: 1.25rem; }
+  details.info > summary { cursor: pointer; padding: .6rem 1rem; font-weight: 600; list-style: none; display: flex; align-items: center; gap: .5rem; }
+  details.info > summary::-webkit-details-marker { display: none; }
+  details.info > summary .chev { margin-left: auto; transition: transform .15s; color: var(--muted); }
+  details.info[open] > summary .chev { transform: rotate(90deg); }
+  .info-badge { display: inline-flex; align-items: center; justify-content: center; width: 1.25rem; height: 1.25rem; border-radius: 50%; background: var(--accent); color: var(--accent-ink); font-size: .8rem; font-style: normal; font-weight: 700; flex: none; }
+  details.info .body { padding: 0 1rem .9rem; }
+  details.info ol { margin: 0 0 .5rem; padding-left: 1.3rem; }
+  details.info ol li { margin-bottom: .4rem; }
+  details.info ol li strong { display: block; }
+  details.info .tips { margin: .5rem 0 0; padding-left: 1.3rem; color: var(--muted); }
+  details.info .tips-title { font-size: .75rem; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); margin: .75rem 0 .25rem; }
+  details.zone-info { margin: 0 0 .5rem; }
+  details.zone-info > summary { cursor: pointer; list-style: none; font-size: .8rem; color: var(--accent); display: inline-flex; align-items: center; gap: .3rem; }
+  details.zone-info > summary::-webkit-details-marker { display: none; }
+  details.zone-info p { font-size: .85rem; color: var(--muted); margin: .35rem 0 0; padding: .5rem .65rem; background: var(--bg); border-left: 3px solid var(--accent); border-radius: 4px; }
+  .toolbar { display: flex; flex-wrap: wrap; gap: .5rem; align-items: center; margin-bottom: 1.25rem; }
+  button { font: inherit; border: 1px solid var(--line); background: var(--panel); color: var(--ink); border-radius: 6px; padding: .4rem .9rem; cursor: pointer; }
+  button.primary { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); font-weight: 600; }
+  button:disabled { opacity: .5; cursor: default; }
+  .timer { font-variant-numeric: tabular-nums; font-weight: 700; font-size: 1.1rem; min-width: 4.5rem; }
+  .timer.warn { color: var(--danger); }
+  .zones { display: grid; gap: .9rem; }
+  .zones.grid { grid-template-columns: repeat(auto-fill, minmax(13rem, 1fr)); }
+  .zones.quadrants { grid-template-columns: repeat(2, 1fr); }
+  .zones.list { grid-template-columns: 1fr; }
+  @media (max-width: 40rem) { .zones.quadrants { grid-template-columns: 1fr; } }
+  .zone { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: .8rem; }
+  .zone.active { background: var(--active); border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent); }
+  .zone h2 { font-size: .95rem; margin: 0 0 .15rem; }
+  .zone .hint { font-size: .8rem; color: var(--muted); margin: 0 0 .5rem; }
+  .entries { list-style: none; margin: 0 0 .5rem; padding: 0; display: flex; flex-direction: column; gap: .35rem; }
+  .entries li { display: flex; gap: .4rem; align-items: flex-start; background: var(--bg); border: 1px solid var(--line); border-radius: 6px; padding: .35rem .55rem; }
+  .entries li span { flex: 1; white-space: pre-wrap; overflow-wrap: anywhere; }
+  .entries button { padding: 0 .45rem; line-height: 1.4; color: var(--muted); border: none; background: none; }
+  .add-row { display: flex; gap: .4rem; }
+  .add-row textarea { flex: 1; font: inherit; resize: vertical; min-height: 2.3rem; border: 1px solid var(--line); border-radius: 6px; background: var(--bg); color: var(--ink); padding: .35rem .55rem; }
+  .footer { margin-top: 1.5rem; display: flex; flex-wrap: wrap; gap: .75rem; align-items: center; }
+  .footer label { color: var(--muted); font-size: .9rem; }
+  .footer input[type="number"] { width: 4rem; font: inherit; border: 1px solid var(--line); border-radius: 6px; background: var(--panel); color: var(--ink); padding: .3rem .4rem; }
+  .hint-line { width: 100%; color: var(--muted); font-size: .9rem; }
+  .status { font-size: .9rem; color: var(--accent); min-height: 1.2em; }
+</style>
+
+<main>
+  <div class="phase-tag" id="phaseTag"></div>
+  <h1 id="title"></h1>
+  <p class="instructions" id="instructions"></p>
+  <details class="info" id="howTo" hidden>
+    <summary><i class="info-badge">i</i> <span id="howToLabel"></span> <span class="chev">›</span></summary>
+    <div class="body">
+      <ol id="steps"></ol>
+      <div id="tipsWrap" hidden>
+        <p class="tips-title" id="tipsLabel"></p>
+        <ul class="tips" id="tips"></ul>
+      </div>
+    </div>
+  </details>
+  <dl class="context" id="context" hidden></dl>
+
+  <div class="toolbar" id="timerbar" hidden>
+    <button class="primary" id="timerBtn"></button>
+    <span class="timer" id="timerDisplay">–:––</span>
+    <span id="timerZone" class="hint-line" style="width:auto"></span>
+  </div>
+
+  <div class="zones" id="zones"></div>
+
+  <div class="footer">
+    <label><span id="participantsLabel"></span> <input type="number" id="participants" min="1" max="99"></label>
+    <button class="primary" id="exportBtn"></button>
+    <span class="status" id="status"></span>
+    <p class="hint-line" id="exportHint"></p>
+  </div>
+</main>
+
+<script>
+const CONFIG = /*__METHOD_CONFIG__*/;
+
+/* UI strings — English defaults, overridable per render via CONFIG.ui. */
+const UI = Object.assign({
+  how_to: "How to run this",
+  facilitation_notes: "Facilitation notes",
+  timer_start: "Start timer",
+  timer_stop: "Stop",
+  timer_paused: "Paused.",
+  timer_done: "Done — all zones completed.",
+  current_zone: "Current zone: ",
+  participants: "Participants:",
+  export_button: "Export result",
+  export_hint: "Done? Click export and paste the copied JSON into the chat.",
+  entry_placeholder: "Entry …",
+  remove: "Remove",
+  more_info: "More",
+  copied: "Copied — now paste it into the chat.",
+  clipboard_blocked: "Clipboard blocked — copy the JSON below manually."
+}, CONFIG.ui || {});
+
+const STORAGE_KEY = "dt:" + CONFIG.session_id;
+
+/* Persistence: window.storage (claude.ai artifacts) with localStorage fallback. */
+const store = {
+  async get() {
+    try {
+      if (window.storage?.get) {
+        const v = await window.storage.get(STORAGE_KEY);
+        return v ? JSON.parse(typeof v === "string" ? v : v.value) : null;
+      }
+    } catch (e) {}
+    try { return JSON.parse(localStorage.getItem(STORAGE_KEY)); } catch (e) { return null; }
+  },
+  async set(data) {
+    const s = JSON.stringify(data);
+    try { if (window.storage?.set) { await window.storage.set(STORAGE_KEY, s); return; } } catch (e) {}
+    try { localStorage.setItem(STORAGE_KEY, s); } catch (e) {}
+  }
+};
+
+let state = { entries: {}, participants: null, elapsedS: 0 };
+CONFIG.zones.forEach(z => state.entries[z.id] = state.entries[z.id] || []);
+
+function saveState() { store.set(state); }
+
+/* --- Header --- */
+document.getElementById("phaseTag").textContent = CONFIG.phase + " · " + CONFIG.method_id + " · " + CONFIG.session_id;
+document.getElementById("title").textContent = CONFIG.title || CONFIG.method_id;
+document.getElementById("instructions").textContent = CONFIG.instructions || "";
+document.title = (CONFIG.title || CONFIG.method_id) + " – Canvas";
+document.getElementById("participantsLabel").textContent = UI.participants;
+document.getElementById("exportBtn").textContent = UI.export_button;
+document.getElementById("exportHint").textContent = UI.export_hint;
+
+/* --- How-to panel (ⓘ) --- */
+if (CONFIG.steps?.length) {
+  document.getElementById("howTo").hidden = false;
+  document.getElementById("howToLabel").textContent = UI.how_to;
+  const ol = document.getElementById("steps");
+  for (const s of CONFIG.steps) {
+    const li = document.createElement("li");
+    if (s.title) { const b = document.createElement("strong"); b.textContent = s.title; li.append(b); }
+    li.append(document.createTextNode(s.text || ""));
+    ol.append(li);
+  }
+  if (CONFIG.tips?.length) {
+    document.getElementById("tipsWrap").hidden = false;
+    document.getElementById("tipsLabel").textContent = UI.facilitation_notes;
+    const ul = document.getElementById("tips");
+    for (const t of CONFIG.tips) {
+      const li = document.createElement("li"); li.textContent = t; ul.append(li);
+    }
+  }
+}
+
+/* --- Context --- */
+const ctx = document.getElementById("context");
+const contextEntries = Object.entries(CONFIG.context || {});
+if (contextEntries.length) {
+  ctx.hidden = false;
+  for (const [k, v] of contextEntries) {
+    const dt = document.createElement("dt"); dt.textContent = k.replaceAll("_", " ");
+    const dd = document.createElement("dd"); dd.textContent = typeof v === "string" ? v : JSON.stringify(v);
+    ctx.append(dt, dd);
+  }
+}
+
+/* --- Zones --- */
+const zonesEl = document.getElementById("zones");
+zonesEl.className = "zones " + (CONFIG.layout || "list");
+
+function renderZone(zone) {
+  const el = document.createElement("section");
+  el.className = "zone"; el.id = "zone-" + zone.id;
+  const h = document.createElement("h2"); h.textContent = zone.title; el.append(h);
+  if (zone.hint) { const p = document.createElement("p"); p.className = "hint"; p.textContent = zone.hint; el.append(p); }
+  if (zone.info) {
+    const det = document.createElement("details"); det.className = "zone-info";
+    const sum = document.createElement("summary");
+    const badge = document.createElement("i"); badge.className = "info-badge"; badge.textContent = "i";
+    sum.append(badge, document.createTextNode(" " + UI.more_info));
+    const p = document.createElement("p"); p.textContent = zone.info;
+    det.append(sum, p); el.append(det);
+  }
+  const ul = document.createElement("ul"); ul.className = "entries"; el.append(ul);
+
+  function renderEntries() {
+    ul.replaceChildren(...state.entries[zone.id].map((text, i) => {
+      const li = document.createElement("li");
+      const span = document.createElement("span"); span.textContent = text;
+      const del = document.createElement("button"); del.textContent = "×"; del.title = UI.remove;
+      del.onclick = () => { state.entries[zone.id].splice(i, 1); saveState(); renderEntries(); };
+      li.append(span, del);
+      return li;
+    }));
+  }
+  renderEntries();
+  el._renderEntries = renderEntries;
+
+  const row = document.createElement("div"); row.className = "add-row";
+  const ta = document.createElement("textarea"); ta.placeholder = UI.entry_placeholder;
+  ta.addEventListener("keydown", e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); add(); } });
+  const btn = document.createElement("button"); btn.textContent = "+"; btn.onclick = add;
+  function add() {
+    const t = ta.value.trim(); if (!t) return;
+    state.entries[zone.id].push(t); ta.value = ""; saveState(); renderEntries(); ta.focus();
+  }
+  row.append(ta, btn); el.append(row);
+  return el;
+}
+CONFIG.zones.forEach(z => zonesEl.append(renderZone(z)));
+
+/* --- Timer (only when time_per_zone is set) --- */
+let ticker = null;
+if (CONFIG.time_per_zone) {
+  document.getElementById("timerbar").hidden = false;
+  const display = document.getElementById("timerDisplay");
+  const zoneLabel = document.getElementById("timerZone");
+  const btn = document.getElementById("timerBtn");
+  btn.textContent = UI.timer_start;
+  let idx = -1, remaining = 0;
+
+  function highlight() {
+    document.querySelectorAll(".zone").forEach(z => z.classList.remove("active"));
+    if (idx >= 0 && idx < CONFIG.zones.length)
+      document.getElementById("zone-" + CONFIG.zones[idx].id)?.classList.add("active");
+  }
+  function fmt(s) { return Math.floor(s / 60) + ":" + String(s % 60).padStart(2, "0"); }
+  function tick() {
+    state.elapsedS++; remaining--;
+    if (remaining <= 0) {
+      idx++;
+      if (idx >= CONFIG.zones.length) { stop(UI.timer_done); return; }
+      remaining = CONFIG.time_per_zone;
+      zoneLabel.textContent = UI.current_zone + CONFIG.zones[idx].title;
+      highlight();
+    }
+    display.textContent = fmt(remaining);
+    display.classList.toggle("warn", remaining <= 10);
+    if (state.elapsedS % 5 === 0) saveState();
+  }
+  function stop(msg) {
+    clearInterval(ticker); ticker = null; idx = -1; highlight();
+    btn.textContent = UI.timer_start; zoneLabel.textContent = msg || ""; saveState();
+  }
+  btn.onclick = () => {
+    if (ticker) { stop(UI.timer_paused); return; }
+    if (idx < 0) { idx = 0; remaining = CONFIG.time_per_zone; }
+    zoneLabel.textContent = UI.current_zone + CONFIG.zones[idx].title;
+    highlight(); btn.textContent = UI.timer_stop;
+    display.textContent = fmt(remaining);
+    ticker = setInterval(tick, 1000);
+  };
+} else {
+  /* No zone timer: still measure total duration once the first input happens. */
+  let started = false;
+  zonesEl.addEventListener("input", () => {
+    if (started) return; started = true;
+    setInterval(() => { state.elapsedS++; if (state.elapsedS % 15 === 0) saveState(); }, 1000);
+  }, { once: false });
+}
+
+/* --- Participants --- */
+const ptInput = document.getElementById("participants");
+ptInput.addEventListener("change", () => {
+  state.participants = ptInput.value ? parseInt(ptInput.value, 10) : null; saveState();
+});
+
+/* --- Export per references/export-contract.md (v1) --- */
+document.getElementById("exportBtn").onclick = async () => {
+  const payload = {
+    contract_version: 1,
+    session_id: CONFIG.session_id,
+    method_id: CONFIG.method_id,
+    phase: CONFIG.phase,
+    context: CONFIG.context || {},
+    entries: CONFIG.zones.flatMap(z =>
+      state.entries[z.id].map(text => ({ zone: z.id, text, author: null }))
+    ),
+    meta: {
+      actual_duration_min: state.elapsedS ? Math.round(state.elapsedS / 60) : null,
+      participants: state.participants,
+      exported_at: new Date().toISOString()
+    }
+  };
+  const json = JSON.stringify(payload, null, 2);
+  const status = document.getElementById("status");
+  try {
+    await navigator.clipboard.writeText(json);
+    status.textContent = "✓ " + payload.entries.length + " — " + UI.copied;
+  } catch (e) {
+    /* Clipboard may be blocked in sandboxed iframes: show JSON for manual copy. */
+    const pre = document.createElement("textarea");
+    pre.value = json; pre.style.cssText = "width:100%;min-height:12rem;margin-top:.75rem;font:12px/1.4 monospace;";
+    document.querySelector(".footer").append(pre); pre.select();
+    status.textContent = UI.clipboard_blocked;
+  }
+};
+
+/* --- Load saved state --- */
+store.get().then(saved => {
+  if (!saved) return;
+  state = { entries: {}, participants: saved.participants ?? null, elapsedS: saved.elapsedS || 0 };
+  CONFIG.zones.forEach(z => state.entries[z.id] = (saved.entries && saved.entries[z.id]) || []);
+  if (state.participants) ptInput.value = state.participants;
+  document.querySelectorAll(".zone").forEach(el => el._renderEntries && el._renderEntries());
+});
+</script>

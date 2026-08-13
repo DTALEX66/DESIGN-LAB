@@ -1,0 +1,13 @@
+# dependencies
+node_modules/
+
+# build output
+dist/
+.vite/
+
+# os / editor
+.DS_Store
+*.log
+
+# gstack
+.gstack/

@@ -60,12 +60,16 @@ EXCLUDE_PREFIX = (
     "knowledge/visual-quality/logo-designer/",
     "knowledge/visual-quality/screenshot-to-ds/",
     "knowledge/ecommerce-ai/",
+    "knowledge/visual-quality/springy-motion/",
+    "knowledge/visual-quality/design-thinking/",
     "intelligence/ui-ux-pro-max/",
     "intelligence/shipit-ui/",
     "intelligence/motion-engine/",
     "intelligence/design-system-prompt/",
     "intelligence/anydesign/",
     "intelligence/claude-design-skill/",
+    "intelligence/motion-forensics/",
+    "intelligence/web-content-designer/",
 )
 
 

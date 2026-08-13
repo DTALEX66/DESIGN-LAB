@@ -2127,6 +2127,62 @@
         "tokens",
         "design-system"
       ]
+    },
+    {
+      "id": "motion-forensics",
+      "name": "ui-clone-skills (voidmatcha)",
+      "url": "https://github.com/voidmatcha/ui-clone-skills",
+      "license": "Apache-2.0",
+      "license_verified": true,
+      "integration_mode": "vendor-adapt",
+      "status": "adopt-now",
+      "use": "web 动效取证/逆向",
+      "categories": [
+        "motion",
+        "forensics"
+      ]
+    },
+    {
+      "id": "springy-motion",
+      "name": "springy-motion",
+      "url": "https://github.com/OtherdaysStudio/springy-motion",
+      "license": "MIT",
+      "license_verified": true,
+      "integration_mode": "vendor-adapt",
+      "status": "adopt-now",
+      "use": "物理动效（spring-based）",
+      "categories": [
+        "motion",
+        "css"
+      ]
+    },
+    {
+      "id": "design-thinking-facilitation",
+      "name": "kopfwelt skills",
+      "url": "https://github.com/kopfwelt/skills",
+      "license": "MIT",
+      "license_verified": true,
+      "integration_mode": "vendor-adapt",
+      "status": "adopt-now",
+      "use": "设计思维引导",
+      "categories": [
+        "process",
+        "facilitation"
+      ]
+    },
+    {
+      "id": "web-content-designer",
+      "name": "web-content-designer",
+      "url": "https://github.com/lowtidebuild/web-content-designer",
+      "license": "Apache-2.0",
+      "license_verified": true,
+      "integration_mode": "vendor-adapt",
+      "status": "adopt-now",
+      "use": "文本→生产级单文件 HTML",
+      "categories": [
+        "html",
+        "content"
+      ]
     }
   ]
 }
