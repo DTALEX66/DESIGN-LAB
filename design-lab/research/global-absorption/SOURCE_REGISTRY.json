@@ -1863,6 +1863,90 @@
       "absorb": "Style Dictionary transforms/formats/filters（令牌工程化候选）",
       "restrictions": "工程包待 adapter 化",
       "reviewed_at": "2026-08-13"
+    },
+    {
+      "id": "game-ui-mobile-skill",
+      "name": "game-ui-mobile-friendly-design-agent-skill",
+      "license": "MIT",
+      "license_verified": true,
+      "integration_mode": "vendor-adapt",
+      "status": "adopt-now",
+      "use": "mobile game UI/UX & touch interaction design",
+      "categories": [
+        "game",
+        "ui-ux"
+      ],
+      "url": "https://github.com/dungnotnull/game-ui-mobile-friendly-design-agent-skill"
+    },
+    {
+      "id": "blender-3d-skill",
+      "name": "blender (3D design via MCP)",
+      "license": "Apache-2.0",
+      "license_verified": true,
+      "integration_mode": "vendor-adapt",
+      "status": "adopt-now",
+      "use": "AI-powered 3D design in Blender",
+      "categories": [
+        "3d",
+        "creative-tools"
+      ],
+      "url": "https://github.com/jithinolickal/blender"
+    },
+    {
+      "id": "motion-engine-skill",
+      "name": "ai-ui-ux-motion-engine (Opace)",
+      "license": "MIT",
+      "license_verified": true,
+      "integration_mode": "vendor-adapt",
+      "status": "adopt-now",
+      "use": "cinematic UI motion design",
+      "categories": [
+        "motion",
+        "ui-ux"
+      ],
+      "url": "https://github.com/OpaceDigitalAgency/skills"
+    },
+    {
+      "id": "brand-systems-skill",
+      "name": "evidence-based-brand-systems",
+      "license": "MIT",
+      "license_verified": true,
+      "integration_mode": "vendor-adapt",
+      "status": "adopt-now",
+      "use": "complete verifiable brand systems",
+      "categories": [
+        "brand",
+        "identity"
+      ],
+      "url": "https://github.com/arome3/evidence-based-brand-systems"
+    },
+    {
+      "id": "brand-identity-skill",
+      "name": "brand-visual-identity",
+      "license": "MIT",
+      "license_verified": true,
+      "integration_mode": "vendor-adapt",
+      "status": "adopt-now",
+      "use": "brand visual identity skills (8)",
+      "categories": [
+        "brand",
+        "identity"
+      ],
+      "url": "https://github.com/SkillMedev/brand-visual-identity"
+    },
+    {
+      "id": "ai-graphic-design-skill",
+      "name": "ai-graphic-design-skill",
+      "license": "MIT",
+      "license_verified": true,
+      "integration_mode": "vendor-adapt",
+      "status": "adopt-now",
+      "use": "logos, brand identities, visual assets",
+      "categories": [
+        "brand",
+        "graphic"
+      ],
+      "url": "https://github.com/designrique/ai-graphic-design-skill"
     }
   ]
 }
