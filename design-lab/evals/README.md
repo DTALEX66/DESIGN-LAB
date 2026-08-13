@@ -20,6 +20,26 @@ evals/
 | 3D | 至少 1 个 3D 场景/资产案例 | ⏳ 待验收 | Blender 适配器 E3 |
 | 游戏视觉 | 至少 1 个 fixture 视觉回归案例 | ⏳ 待验收 | minigame 多端渲染读回 |
 
+## 评分流程（E1 辅助，人工校准）
+
+```bash
+# 1. 枚举可用 rubric
+python design-lab/scripts/score_artifact.py --list
+
+# 2. 写评分单（JSON）：scores 填各轴 0-10，权重自动应用
+#    {"artifact": "案例路径", "reviewer": "审批人", "scores": {"axis-id": 9.0, ...}}
+
+# 3. 机算判定
+python design-lab/scripts/score_artifact.py \
+  --rubric design-lab/evals/rubrics/<域>.rubric.json \
+  --scores <评分单>.json
+# → 输出加权分 + ACCEPT/REVISE/REJECT（缺分/越界 fail-closed）
+
+# 4. 每个域 ≥1 案例 ACCEPT 后，在本 README 添加验收标记：
+#    标记格式：DL-REL-001 状态 ACCEPTED（即 `DL-REL-001: <验收状态>`）
+#    （该标记是 release gate 的启用条件之一；在真正验收前不要写入）
+```
+
 ## 证据纪律
 
 - 每案例记录：boundTreeSha、生成时间、执行环境、工具版本、输入 hash、人工审批人
