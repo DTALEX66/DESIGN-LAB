@@ -163,5 +163,81 @@ class AggregateChainTests(unittest.TestCase):
         self.assertIn("VERIFY_DESIGN_LAB=OK", r.stdout)
 
 
+class VisualQualityScoringTests(unittest.TestCase):
+    """score_visual_quality.score_report: weighted axes + hard gates."""
+
+    def _rubric(self):
+        return {
+            "scale": {"min": 0, "max": 10},
+            "acceptance": {"accept": 8.0, "revise": 6.5},
+            "axes": [
+                {"id": "layout", "weight": 1.0, "requires_evidence": True},
+                {"id": "color", "weight": 1.2, "requires_evidence": True},
+            ],
+            "hard_gates": ["source-and-license"],
+        }
+
+    def _report(self, axes, gates=None):
+        rep = {"axes": axes, "hard_gates": gates if gates is not None else
+               [{"id": "source-and-license", "result": "pass", "pass": True}]}
+        return rep
+
+    def test_accept(self):
+        m = load("score_visual_quality.py")
+        report = self._report({
+            "layout": {"score": 9, "evidence": ["e1"]},
+            "color": {"score": 9, "evidence": ["e2"]},
+        })
+        out = m.score_report(report, self._rubric())
+        self.assertEqual(out["decision"], "accept")
+        self.assertGreaterEqual(out["score"], 8.0)
+
+    def test_reject_low_score(self):
+        m = load("score_visual_quality.py")
+        report = self._report({
+            "layout": {"score": 5, "evidence": ["e1"]},
+            "color": {"score": 5, "evidence": ["e2"]},
+        })
+        out = m.score_report(report, self._rubric())
+        self.assertEqual(out["decision"], "reject")
+
+    def test_reject_missing_axis(self):
+        m = load("score_visual_quality.py")
+        report = self._report({"layout": {"score": 9, "evidence": ["e1"]}})
+        out = m.score_report(report, self._rubric())
+        self.assertEqual(out["decision"], "reject")
+        self.assertIn("color", out.get("missing_axes", []))
+
+    def test_reject_failed_hard_gate(self):
+        m = load("score_visual_quality.py")
+        report = self._report(
+            {"layout": {"score": 9, "evidence": ["e1"]}, "color": {"score": 9, "evidence": ["e2"]}},
+            gates=[{"id": "source-and-license", "result": "fail", "pass": False}],
+        )
+        out = m.score_report(report, self._rubric())
+        self.assertEqual(out["decision"], "reject")
+        self.assertIn("source-and-license", out.get("failed_gates", []))
+
+    def test_reject_missing_evidence(self):
+        m = load("score_visual_quality.py")
+        report = self._report({
+            "layout": {"score": 9, "evidence": []},  # requires_evidence but empty
+            "color": {"score": 9, "evidence": ["e2"]},
+        })
+        out = m.score_report(report, self._rubric())
+        self.assertEqual(out["decision"], "reject")
+        self.assertIn("layout", out.get("missing_evidence", []))
+
+    def test_out_of_range_rejected(self):
+        m = load("score_visual_quality.py")
+        report = self._report({
+            "layout": {"score": 15, "evidence": ["e1"]},  # > max 10
+            "color": {"score": 9, "evidence": ["e2"]},
+        })
+        out = m.score_report(report, self._rubric())
+        self.assertEqual(out["decision"], "reject")
+        self.assertIn("layout", out.get("invalid_axes", []))
+
+
 if __name__ == "__main__":
     unittest.main()
