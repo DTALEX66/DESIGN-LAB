@@ -1,0 +1,64 @@
+/* ── Prototyping Kit — global styles ───────────────────── */
+
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+html, body {
+  margin: 0; padding: 0;
+  background: #FFFFFF;
+  font-family: 'Geist', -apple-system, system-ui, sans-serif;
+  overscroll-behavior-x: none;
+}
+
+#root {
+  min-height: 100vh;
+  display: block;
+  padding: 0;
+}
+
+html, body { height: 100%; }
+
+button { font-family: inherit; border: none; background: none; cursor: pointer; padding: 0; color: inherit; }
+input, textarea { font-family: inherit; }
+
+/* hide scrollbars inside the phone */
+.scroll { overflow-y: auto; overflow-x: hidden; -webkit-overflow-scrolling: touch; }
+.scroll::-webkit-scrollbar, .hscroll::-webkit-scrollbar { display: none; }
+.scroll, .hscroll { scrollbar-width: none; }
+.hscroll { overflow-x: auto; overflow-y: hidden; }
+
+/* ── App stage ──────────────────────────── */
+.app-root {
+  position: absolute; inset: 0;
+  background: #FFFFFF;
+  overflow: hidden;
+}
+
+/* screen layers */
+.layer {
+  position: absolute; inset: 0;
+  background: #FFFFFF;
+  display: flex; flex-direction: column;
+  will-change: transform;
+}
+.layer.grouped { background: #FFFFFF; }
+
+/* ── transitions ─────────────────────────────────────────────── */
+@keyframes slideInRight { from { transform: translateX(100%); } to { transform: translateX(0); } }
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes fadeUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes toastPop { from { opacity: 0; transform: translate(-50%, -50%) scale(.94); } to { opacity: 1; transform: translate(-50%, -50%) scale(1); } }
+@keyframes sheetUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+@keyframes scrimIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes spin { to { transform: rotate(360deg); } }
+@keyframes popIn { 0% { transform: scale(0.4); opacity: 0; } 60% { transform: scale(1.08); } 100% { transform: scale(1); opacity: 1; } }
+
+.fade-in { animation: fadeIn .26s ease both; }
+.fade-up { animation: fadeUp .32s cubic-bezier(.22,.61,.36,1) both; }
+
+/* pressable feedback */
+.press { transition: transform .08s ease, opacity .12s ease; }
+.press:active { transform: scale(0.97); opacity: 0.9; }
+.press-sm:active { transform: scale(0.93); }
+
+input::placeholder, textarea::placeholder { color: rgba(60, 60, 67, 0.3); }
+input:focus, textarea:focus { outline: none; }

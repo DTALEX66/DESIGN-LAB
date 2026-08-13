@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>AI Product OS — Figma Artboard Board</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@100..900&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet" />
+
+<link rel="stylesheet" href="styles.css" />
+<style>
+  html, body { overflow: auto !important; height: auto !important; }
+  body { margin: 0; background-color: #1a1a2e; font-family: 'Geist', sans-serif; }
+
+  .header-banner {
+    background: #0d0d1a;
+    color: #fff;
+    padding: 24px 40px;
+    border-bottom: 3px solid #6366f1;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .header-banner h1 {
+    margin: 0; font-size: 22px; font-weight: 800; letter-spacing: -0.03em;
+    display: flex; align-items: center; gap: 10px;
+  }
+  .header-banner h1 .badge {
+    background: #6366f1; color: #fff; font-size: 10px;
+    padding: 3px 8px; border-radius: 4px; font-weight: 700; letter-spacing: 0.05em;
+  }
+  .header-banner p { margin: 0; font-size: 13px; color: rgba(255,255,255,0.45); }
+
+  .header-stat { font-size: 12px; color: rgba(255,255,255,0.4); text-align: right; }
+  .header-stat .count { font-size: 28px; font-weight: 800; color: #818cf8; line-height: 1; }
+
+  .section-divider {
+    padding: 32px 40px 12px;
+    display: flex; align-items: center; gap: 12px;
+  }
+  .section-label {
+    font-size: 11px; font-weight: 700; color: rgba(255,255,255,0.35);
+    text-transform: uppercase; letter-spacing: 0.08em;
+    padding: 4px 12px; background: rgba(255,255,255,0.07);
+    border-radius: 12px; white-space: nowrap;
+  }
+  .section-line { flex: 1; height: 1px; background: rgba(255,255,255,0.08); }
+
+  /* Group header (persona strip) */
+  .group-header {
+    margin: 40px 40px 0;
+    border-radius: 16px;
+    padding: 20px 24px;
+    display: flex; align-items: center; gap: 16px;
+  }
+  .group-avatar {
+    width: 48px; height: 48px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px; font-weight: 700; flex-shrink: 0;
+  }
+  .group-meta h2 { margin: 0; font-size: 18px; font-weight: 800; }
+  .group-meta p { margin: 4px 0 0; font-size: 13px; opacity: 0.65; }
+  .group-count {
+    margin-left: auto; font-size: 11px; font-weight: 700;
+    letter-spacing: 0.05em; padding: 4px 12px; border-radius: 20px;
+    opacity: 0.9;
+  }
+
+  /* Artboard grid */
+  .figma-grid {
+    display: flex; flex-wrap: wrap;
+    gap: 40px 28px; padding: 20px 40px 60px;
+  }
+  .screen-card { display: flex; flex-direction: column; gap: 10px; align-items: center; }
+  .screen-title {
+    font-size: 12px; font-weight: 700;
+    color: rgba(255,255,255,0.55);
+    background: rgba(255,255,255,0.08);
+    padding: 5px 12px; border-radius: 20px;
+    white-space: nowrap; max-width: 390px;
+    overflow: hidden; text-overflow: ellipsis;
+  }
+
+  /* Phone artboard */
+  .phone-frame {
+    width: 390px; height: 844px;
+    border: none; border-radius: 0;
+    overflow: hidden; position: relative; background: #ffffff;
+    box-shadow: 0 0 0 1px rgba(255,255,255,0.08), 0 24px 60px rgba(0,0,0,0.5);
+    border-radius: 4px;
+  }
+
+  /* Sheet / dialog overlays */
+  .sheet-overlay { position: absolute; inset: 0; z-index: 70; }
+  .sheet-scrim { position: absolute; inset: 0; background: rgba(0,0,0,0.42); }
+  .sheet-panel {
+    position: absolute; left: 0; right: 0; bottom: 0; background: #fff;
+    border-radius: 20px 20px 0 0; padding: 10px 16px 30px;
+    box-shadow: 0 -4px 20px rgba(0,0,0,0.12); max-height: 82%; overflow-y: auto;
+  }
+  .sheet-handle { width: 38px; height: 5px; border-radius: 3px; background: #e5e7eb; margin: 0 auto 14px; }
+  .dialog-overlay {
+    position: absolute; inset: 0; z-index: 72;
+    display: flex; align-items: center; justify-content: center; padding: 28px;
+  }
+  .dialog-scrim { position: absolute; inset: 0; background: rgba(0,0,0,0.42); }
+  .dialog-panel {
+    position: relative; width: 100%; background: #fff;
+    border-radius: 20px; padding: 22px; box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+  }
+
+  .phone-frame input, .phone-frame textarea, .phone-frame select { outline: none; }
+</style>
+</head>
+<body>
+
+<!-- ── Header ── -->
+<div class="header-banner">
+  <div>
+    <h1>Prototype <span class="badge">FIGMA BOARD</span></h1>
+    <p style="margin-top:4px">All screens, overlays &amp; flows — interactive artboard review</p>
+  </div>
+  <div class="header-stat">
+    <div class="count" id="screen-count">—</div>
+    <div>design screens</div>
+  </div>
+</div>
+
+<div id="figma-root"></div>
+
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" crossorigin="anonymous"></script>
+
+<script>
+  window.IS_FIGMA = true;
+  window.isFigma = true;
+</script>
+
+<script type="text/babel" src="data.jsx"></script>
+<script type="text/babel" src="shared.jsx"></script>
+<script type="text/babel" src="screens-onboarding.jsx"></script>
+<script type="text/babel" src="screens-home.jsx"></script>
+<script type="text/babel" src="app.jsx"></script>
+
+<script type="text/babel">
+// ─────────────────────────────────────────────────────────────────────────────
+// SCREEN REGISTRY — add new screens here whenever you create them
+// Each entry is either:
+//   { group: true, ... }   — persona / portal header strip
+//   { section: 'Name' }    — section divider within a group
+//   { screen: 'key', title: 'NN. Screen Name', ...options }
+// ─────────────────────────────────────────────────────────────────────────────
+const figmaScreens = [
+
+  // ══════════════════════════════════════════════════════════════════
+  // MAIN APP — User Flow
+  // ══════════════════════════════════════════════════════════════════
+  {
+    group: true,
+    name: 'App Prototype',
+    role: 'Interactive User Flows',
+    avatar: '⚡',
+    count: '4 screens',
+    accent: '#6366f1',
+    accentBg: 'rgba(99,102,241,0.15)',
+    bg: 'rgba(99,102,241,0.06)',
+  },
+
+  { section: 'Onboarding' },
+  { screen: 'launcher', title: '01. Launcher — Portal Entry' },
+
+  { section: 'Core Screens' },
+  { screen: 'home',    title: '02. Home Dashboard' },
+  { screen: 'home',    title: '02b. Home — Sheet Open', overlay: 'sheet' },
+  { screen: 'home',    title: '02c. Home — Dialog Open', overlay: 'dialog' },
+  { screen: 'profile', title: '03. User Profile' },
+];
+
+// ─────────────────────────────────────────────────────────────────────────────
+// OVERLAY PRIMITIVES
+// ─────────────────────────────────────────────────────────────────────────────
+function SheetWrap({ children }) {
+  return (
+    <div className="sheet-overlay">
+      <div className="sheet-scrim" />
+      <div className="sheet-panel">
+        <div className="sheet-handle" />
+        {children}
+      </div>
+    </div>
+  );
+}
+function DialogWrap({ children }) {
+  return (
+    <div className="dialog-overlay">
+      <div className="dialog-scrim" />
+      <div className="dialog-panel">{children}</div>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// OVERLAY COMPONENTS — add your own overlays here as the app grows
+// ─────────────────────────────────────────────────────────────────────────────
+function SampleSheetOverlay() {
+  return (
+    <SheetWrap>
+      <div style={{ fontSize: 18, fontWeight: 700, color: T.label, marginBottom: 8 }}>Interactive Bottom Sheet</div>
+      <p style={{ fontSize: 14, color: T.label2, lineHeight: 1.5, margin: '0 0 20px' }}>
+        This bottom sheet is rendered via <code style={{ background: T.bg2, padding: '1px 5px', borderRadius: 4, fontSize: 12 }}>api.sheet()</code> and auto-handles gestures and viewport fit.
+      </p>
+      <PrimaryBtn>Got it</PrimaryBtn>
+    </SheetWrap>
+  );
+}
+
+function SampleDialogOverlay() {
+  return (
+    <DialogWrap>
+      <div style={{ textAlign: 'center', padding: '4px 0' }}>
+        <div style={{
+          width: 56, height: 56, borderRadius: '50%', background: T.redTint,
+          display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px'
+        }}>
+          <Ph n="bell" size={24} color={T.red} />
+        </div>
+        <div style={{ fontSize: 18, fontWeight: 700, color: T.label, marginBottom: 8 }}>Action Required</div>
+        <p style={{ fontSize: 14, color: T.label2, lineHeight: 1.45, margin: '0 0 24px' }}>
+          Modal dialogs block the interface and ask for confirmation on high-risk actions.
+        </p>
+        <div style={{ display: 'flex', gap: 10 }}>
+          <button style={{ flex: 1, height: 44, borderRadius: 22, background: T.bg2, color: T.label, fontWeight: 600, fontSize: 14 }}>Dismiss</button>
+          <PrimaryBtn style={{ flex: 1, height: 44 }}>Confirm</PrimaryBtn>
+        </div>
+      </div>
+    </DialogWrap>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// SCREEN → COMPONENT MAP — add new screen keys here as you build them
+// ─────────────────────────────────────────────────────────────────────────────
+const SCREEN_MAP = {
+  launcher: 'LauncherScreen',
+  home:     'HomeScreen',
+  profile:  'ProfileScreen',
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
+// STUB API (prevents useApp() crashes in screen components on the board)
+// Add stubs for any new api fields you add in app.jsx
+// ─────────────────────────────────────────────────────────────────────────────
+const stubApi = {
+  push: () => {},
+  pop: () => {},
+  setTab: () => {},
+  resetToLauncher: () => {},
+  toast: () => {},
+  sheet: () => {},
+  closeSheet: () => {},
+  dialog: () => {},
+  closeDialog: () => {},
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
+// OVERLAY RESOLVER — maps overlay key → overlay component
+// ─────────────────────────────────────────────────────────────────────────────
+const OVERLAY_MAP = {
+  sheet:  <SampleSheetOverlay />,
+  dialog: <SampleDialogOverlay />,
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
+// LOCAL BOTTOM NAV — static version for the figma board (no state side-effects)
+// ─────────────────────────────────────────────────────────────────────────────
+function BottomNavLocal({ activeTab }) {
+  const tabs = [
+    { id: 'home', icon: 'home', label: 'Home' },
+    { id: 'profile', icon: 'user', label: 'Profile' },
+  ];
+  return (
+    <div style={{
+      position: 'absolute', left: 0, right: 0, bottom: 0, zIndex: 40,
+      height: 84, paddingBottom: 22,
+      background: 'rgba(255,255,255,0.96)', backdropFilter: 'blur(16px)',
+      borderTop: '1px solid ' + T.sep, boxShadow: T.lg, display: 'flex',
+    }}>
+      {tabs.map(t => {
+        const on = activeTab === t.id;
+        return (
+          <button key={t.id} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 5, paddingTop: 8 }}>
+            <div style={{
+              width: 58, height: 30, borderRadius: 15,
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              background: on ? T.brand3 : 'transparent',
+            }}>
+              <Ph n={t.icon} size={20} color={on ? T.brand : T.label2} />
+            </div>
+            <span style={{ fontSize: 11, fontWeight: on ? 600 : 500, color: on ? T.brand : T.label2 }}>{t.label}</span>
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// RENDER A SINGLE SCREEN ARTBOARD
+// ─────────────────────────────────────────────────────────────────────────────
+function renderScreen(item) {
+  const compName = SCREEN_MAP[item.screen];
+  const Comp = compName ? window[compName] : null;
+  if (!Comp) {
+    return (
+      <div style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 8, background: '#f9fafb', padding: 24, textAlign: 'center' }}>
+        <div style={{ fontSize: 28 }}>🚧</div>
+        <div style={{ fontSize: 13, fontWeight: 700, color: T.label }}>Screen not registered</div>
+        <div style={{ fontSize: 11, color: T.label2, fontFamily: T.mono, background: T.bg2, padding: '4px 10px', borderRadius: 6 }}>{item.screen}</div>
+        <div style={{ fontSize: 11, color: T.label3, marginTop: 4 }}>Add to SCREEN_MAP in figma.html</div>
+      </div>
+    );
+  }
+
+  // Determine which tabs show the bottom nav
+  const tabScreens = ['home', 'profile'];
+  const showNav = tabScreens.includes(item.screen);
+  const activeTab = tabScreens.includes(item.screen) ? item.screen : 'home';
+
+  // Overlay (sheet / dialog) layered on top of the screen
+  const overlayNode = item.overlay ? OVERLAY_MAP[item.overlay] : null;
+
+  return (
+    <AppCtx.Provider value={stubApi}>
+      <div style={{ position: 'relative', width: '100%', height: '100%' }}>
+        <Comp params={item.params || {}} />
+        {showNav && <BottomNavLocal activeTab={activeTab} />}
+        {overlayNode}
+      </div>
+    </AppCtx.Provider>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// MAIN FIGMA BOARD COMPONENT
+// ─────────────────────────────────────────────────────────────────────────────
+function FigmaBoard() {
+  let totalScreens = figmaScreens.filter(e => e.screen).length;
+  React.useEffect(() => {
+    const el = document.getElementById('screen-count');
+    if (el) el.textContent = totalScreens;
+  }, []);
+
+  const elements = [];
+  let currentGroupAccent = '#6366f1';
+
+  figmaScreens.forEach((item, idx) => {
+    // ── Group header
+    if (item.group) {
+      currentGroupAccent = item.accent || '#6366f1';
+      elements.push(
+        <div key={'g' + idx} className="group-header" style={{ background: item.accentBg || 'rgba(255,255,255,0.05)', color: '#fff' }}>
+          <div className="group-avatar" style={{ background: item.accentBg, color: item.accent, fontSize: typeof item.avatar === 'string' && item.avatar.length > 2 ? 22 : 18 }}>
+            {item.avatar}
+          </div>
+          <div className="group-meta">
+            <h2 style={{ color: '#fff' }}>{item.name}</h2>
+            <p style={{ color: 'rgba(255,255,255,0.55)' }}>{item.role}</p>
+          </div>
+          <div className="group-count" style={{ background: item.accentBg, color: item.accent }}>
+            {item.count}
+          </div>
+        </div>
+      );
+      // Start a new grid after each group header
+      elements.push(<div key={'grid-start-' + idx} className="figma-grid" style={{ paddingTop: 20 }} id={'grid-' + idx} />);
+      return;
+    }
+
+    // ── Section divider
+    if (item.section) {
+      elements.push(
+        <div key={'s' + idx} className="section-divider">
+          <div className="section-line" />
+          <div className="section-label" style={{ borderLeft: `3px solid ${currentGroupAccent}`, borderRadius: '0 12px 12px 0', paddingLeft: 10 }}>
+            {item.section}
+          </div>
+          <div className="section-line" />
+        </div>
+      );
+      return;
+    }
+
+    // ── Screen artboard
+    if (item.screen) {
+      elements.push(
+        <div key={'sc' + idx} className="screen-card">
+          <div className="screen-title">{item.title}</div>
+          <div className="phone-frame">
+            {renderScreen(item)}
+          </div>
+        </div>
+      );
+    }
+  });
+
+  // Merge screen cards into grids — collect cards between grid markers
+  // Simple approach: just wrap everything in a single flex-wrap grid per group
+  // We'll use a flat layout — React will handle this naturally with CSS flex-wrap
+  const grouped = [];
+  let currentGrid = [];
+
+  elements.forEach((el) => {
+    if (el && el.props && el.props.className === 'group-header') {
+      // Flush current grid
+      if (currentGrid.length > 0) {
+        grouped.push(<div key={'cg-' + grouped.length} className="figma-grid">{currentGrid}</div>);
+        currentGrid = [];
+      }
+      grouped.push(el);
+    } else if (el && el.props && el.props.className === 'section-divider') {
+      // Flush current grid, add section, start new grid
+      if (currentGrid.length > 0) {
+        grouped.push(<div key={'cg-' + grouped.length} className="figma-grid">{currentGrid}</div>);
+        currentGrid = [];
+      }
+      grouped.push(el);
+    } else if (el && el.props && el.props.className === 'screen-card') {
+      currentGrid.push(el);
+    } else if (el && el.props && el.props.id && el.props.id.startsWith('grid-')) {
+      // skip the placeholder grid divs
+    } else if (el) {
+      grouped.push(el);
+    }
+  });
+  if (currentGrid.length > 0) {
+    grouped.push(<div key={'cg-final'} className="figma-grid">{currentGrid}</div>);
+  }
+
+  return <div>{grouped}</div>;
+}
+
+ReactDOM.createRoot(document.getElementById('figma-root')).render(<FigmaBoard />);
+</script>
+</body>
+</html>

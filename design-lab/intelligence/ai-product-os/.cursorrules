@@ -1,0 +1,56 @@
+# Google AI Product Design Rules & Guidelines
+
+These guidelines govern the design and development of AI-powered features in the application, focusing on value, confidence calibration, low-friction feedback loops, trust, and graceful error recovery.
+
+## Philosophy
+AI features fail when they are built for the happy path (demo) and not for the edge cases. The system should be useful when the AI is right and graceful when the AI is wrong. The technology is a means to solve user problems, not an end.
+
+---
+
+## 1. The Confidence Spectrum & Autonomy Tiering
+
+Design for all regions of model confidence:
+
+*   **High Confidence (>95%)**: Auto-apply, show results directly with a clear undo option.
+*   **Medium Confidence (70-95%)**: Suggest the output clearly with an option to modify or confirm with one click.
+*   **Low Confidence (40-70%)**: Present multiple options, letting the user select, or default to a manual fallback.
+*   **Very Low Confidence (<40%)**: Silence the AI output entirely and gracefully default to the manual workflow.
+
+### Tiered Autonomy based on Risk:
+*   *Low Risk + High Confidence*: Automate (e.g., auto-saving address changes).
+*   *Low Risk + Low Confidence*: Suggest choices.
+*   *High Risk + High Confidence*: Suggest with dynamic explanation.
+*   *High Risk + Low Confidence*: Escalate to human review (or manual workflow).
+
+---
+
+## 2. Low-Friction Feedback Loops
+
+Design low-friction mechanisms to let the system learn from user behavior:
+
+*   **Implicit Feedback**:
+    *   User accepts suggestion -> positive signal.
+    *   User ignores/overrides suggestion -> negative signal/correction data.
+    *   User explicitly dismisses -> strong negative signal.
+*   **Explicit Feedback**:
+    *   Low-friction icons (e.g., thumbs up/down, checkmarks) are highly preferred over multi-field feedback forms.
+    *   Provide simple correction interfaces (1-2 taps to fix).
+
+---
+
+## 3. Design for Failure (Graceful Degradation)
+
+Every AI feature must have three error recovery safeguards:
+
+1.  **Graceful Degradation**: Never show raw, unvalidated model outputs. Fallback immediately to manual input forms if validation fails.
+2.  **Transparent Uncertainty**: Use carefully calibrated copy (e.g., "Suggested" vs "Confirmed") and highlight uncertain values visually.
+3.  **One-Tap Recovery**: Every automated action must be easily reversible/undoable with a single tap.
+
+---
+
+## 4. Key Metrics for AI Product UX
+
+*   **Suggestion Acceptance Rate**: The percentage of suggested actions accepted by the user (target > 60%).
+*   **Override Rate**: The frequency of manual correction.
+*   **Appropriate Reliance**: Ensuring users neither over-trust (blind reliance) nor under-trust the model outputs.
+*   **Recovery Satisfaction**: User satisfaction with error correction flows.

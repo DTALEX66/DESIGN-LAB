@@ -1,0 +1,214 @@
+# Changelog
+
+All notable changes to this plugin are documented here. Format inspired by [Keep a Changelog](https://keepachangelog.com/).
+
+## v3.3.0 - 2026-07-31
+
+Cowork compatibility: the pipelines now find themselves on a third surface, and stop being too heavy for it.
+
+### Fixed
+
+- **Sub-skill resolution on Cowork.** `cast` and `paint` resolved `$SKILL_BASE` from two fixed layouts only: `/mnt/skills/user` (claude.ai) and `${CLAUDE_PLUGIN_ROOT}` / `~/.claude/plugins/cache` (Claude Code). Cowork mounts the tree under a per-session root instead, for example `/sessions/<session-id>/mnt/.claude/skills/genjutsu/_jutsu`, so the `find` returned nothing, `$SKILL_BASE` stayed empty and every `load_skill` call failed. The pipeline ran without a single one of its fifteen sub-skills. A fourth branch now probes for `*/.claude/skills/*/_jutsu`: `$PWD` and its ancestors first, then `~/.claude/skills`, `/mnt/.claude/skills` and `/sessions`. Every probe is depth-capped, so none of them can walk the filesystem.
+- The same fix landed in the claude.ai bundle router, which hardcoded `find /mnt/skills/user -path '*/cast/SKILL.md'` for both pipelines.
+- Resolution failure is now explicit. The error message names each root that was tried and what to do per host, instead of leaving a silent `cat` of an empty path.
+
+### Added
+
+- **Preview gate host mapping.** The gate offered "artifact / live preview / inline" as if every surface implemented them the same way. It now detects the host before `LOAD` runs and maps each option: on Cowork, artifact means the host's persistent artifact and inline means its inline widget, while live preview is usually unavailable because there is no project checkout to write into. Cowork is tested before Claude Code, since both can have a `~/.claude` tree and only Cowork has the session-rooted mount.
+- **Light scope in `paint`.** The five-phase pipeline is disproportionate for the short requests that dominate on Cowork. When the target is one isolated component, no visual identity is at stake, and nothing downstream depends on the result being systematised, `paint` now shortens to a single brainstorm question, the interaction thesis alone, and no `MASTER.md`. It announces the shortened path in one line so it can be overruled. The gates themselves stay: only their number goes down.
+
+### Changed
+
+- `cast` is now the documented default entry point. The bundle router used to spend a question on ambiguous intent; it now runs `cast` and says so in one line, since a `paint` that turns out to be a single component has its own shortened path.
+- Iron rules 1 and 4 in `paint` name the light-scope exception rather than reading as absolutes that the shortened path would contradict.
+- Cowork is named as a supported surface in the README: the badge, the opening line, its own install section, and a `Cowork compatibility` section documenting the resolution order and the preview mapping.
+- Both ancestor walks are hard-bounded and guard against a `.` or empty `$PWD`, which would otherwise never reach `/` and spin the shell. The fixed skills roots are capped at depth 2, where `_jutsu` actually sits; only a session root gets more.
+
+### Notes
+
+- No change to claude.ai or Claude Code resolution. The new branch runs only after both existing ones miss, and the `genjutsu:shared:skill-base` and `genjutsu:shared:preview` regions stay byte-identical between the two orchestrators, enforced by the CI drift check.
+
+## v3.2.0 - 2026-07-31
+
+Presentation release: the validation gates now show their work instead of describing it.
+
+### Added
+
+- **The preview gate.** `cast` and `paint` stop at a handful of points to have you approve something visual - an interaction thesis, a set of variants, a visual identity, a design system. Until now each was described in prose and rendered as plain text in the transcript, which meant approving an easing curve you could not see and a palette you could not look at. Both skills now ask **how you want to see it** before the first of those gates:
+  - **Artifact** - a live page: the easing curve plotted with its exact value, an element actually performing the motion with a replay button, the raw numbers (duration, delay, stagger, spring parameters), a reduced-motion toggle. For a design system: swatches with their contrast ratios, a real type specimen, the five states of every component, light and dark side by side.
+  - **Live preview** - a throwaway route in your own project with your real stack and tokens; a `@Preview` / `#Preview` scratch file on Compose / SwiftUI, where an HTML page can only approximate.
+  - **Inline** - the existing behavior, and still the recommended default for a 150ms hover.
+
+  The question is asked **once**. The choice holds for the session, later gates only announce the mode in one line, and you switch by saying so.
+- The gate is a cross-cutting protocol rather than a new pipeline stage, so `cast` keeps its seven steps and `paint` its five phases. It ships as a new `genjutsu:shared:preview` guarded region, byte-identical in both orchestrators and enforced by the existing CI drift check.
+- New iron rule in both skills: **the preview is throwaway and never becomes the implementation.** This matters most on Compose / SwiftUI, where an HTML preview approximates timing and curve only, not rendering - and now says so on the page. Supporting rules: the live-preview route is deleted after validation, no dependency is installed to build a preview, no dev server is started without asking, and only values that are already in the thesis may appear in it (otherwise the preview becomes a second, unvalidated thesis).
+
+### Changed
+
+- `allowed-tools` in `cast` and `paint` now includes `Artifact`. Artifact production degrades cleanly across surfaces: native on claude.ai, the `Artifact` tool on Claude Code, and a self-contained HTML file written to a temp path when neither is available.
+
+### Notes
+
+- `paint`'s page-by-page validation (Phase 4) is deliberately excluded - it is judged in the real project, where a preview would only add a copy step.
+- The docs site ([genjutsu.athevon.dev](https://genjutsu.athevon.dev)) lives in a separate repository; its `cast` and `paint` pages do not describe the gate yet.
+
+## v3.1.0 - 2026-07-24
+
+Correctness + reach release: the design dataset is refreshed, the technical guidance is more accurate across every stack, and claude.ai now installs in a single upload.
+
+### Added
+
+- **Single-upload claude.ai bundle.** `package-for-claude-ai.sh` now produces `genjutsu.zip` - one self-contained skill (a router `SKILL.md` + `cast` + `paint` + every sub-skill) that installs in **one** upload instead of ~18. It resolves its sub-skills from its own bundled `_jutsu/`; the à-la-carte individual ZIPs still work unchanged. New install section + `docs/claude-ai-testing.md`. (#13)
+
+### Changed
+
+- **`ui-ux-pro-max` synced to upstream v2.11.0** ([nextlevelbuilder/ui-ux-pro-max-skill](https://github.com/nextlevelbuilder/ui-ux-pro-max-skill), MIT). Data roughly doubled: 84 styles, 192 palettes, 74 font pairings, 161 UI-reasoning rows, 192 products, plus new `google-fonts` (1923) and `motion` datasets and 22 stacks. The engine gains the design dials (`--variance` / `--motion` / `--density`), `--force`, and a test suite. Now properly attributed (README credits + `UPSTREAM.md`). (#8)
+- Item counts stated across the skill and README corrected to match the shipped data. (#8)
+
+### Fixed
+
+- **API accuracy across the sub-skills** (#7): Liquid Glass used non-existent `.glassEffect(.thin/.thick)` (iOS 26 `Glass` exposes only `.regular` / `.clear` / `.identity`); the Android reduce-motion signal `AccessibilityManager.areTransitionsEnabled()` does not exist (now `ValueAnimator.areAnimatorsEnabled()`); the `@Animatable` macro is iOS 26+, not 17+; CSS `inset-area` renamed to `position-area`; GSAP `ScrollTrigger.matchMedia()` deprecated (now `gsap.matchMedia()`) and all former Club plugins are free since 3.13; `.snappy` spring duration corrected.
+- **claude.ai sub-skill resolution hardened** (#9): detect the mount robustly, warn instead of failing on a missing sub-skill, and stop the cache fallback from picking a stale clone.
+- **`/cast`'s audit checklist drift** with `/paint` (missing web checks) fixed, plus a CI guard so the shared cast/paint blocks can no longer diverge silently. (#11)
+
+### Security / hygiene
+
+- Removed the agent-run `sudo` / `brew` / `winget` install commands from `ui-ux-pro-max` (supply-chain trust). (#8)
+- Pinned CI actions to commit SHAs and added `homepage` / `repository` / `license` / `keywords` to `plugin.json`. (#10)
+
+## v3.0.3 - 2026-07-23
+
+### Fixed
+
+- `paint`: the brainstorm question shown when the user tries to skip brainstorming was still in French and got emitted verbatim to the user. It is now English, matching the rest of the skill (same class of leak as #3, one occurrence had been missed).
+
+### Changed
+
+- Translated the `gsap` reference docs (`_jutsu/gsap/references/core.md` and `timeline.md`) from French to English, so the sub-skill is fully English like the rest of the plugin. Translation only, no API or code changes (the remaining French flagged in #3).
+
+## v3.0.2 - 2026-07-23
+
+### Security
+
+- `ui-ux-pro-max`: the `--persist` flow no longer lets `--project-name` or `--page` escape the output directory. Both values were turned into filesystem paths with only lowercase + space-to-dash, so a `../` or an absolute value could write outside `design-system/` (an arbitrary-write primitive when the script is agent-driven). They now pass through a shared `safe_path_component()` that collapses each value to a single safe path segment. Thanks to @reevesc88 (#4).
+
+### Fixed
+
+- `cast` and `paint` now resolve `_jutsu` sub-skills from the installed plugin version via `${CLAUDE_PLUGIN_ROOT}`, instead of a `find | head -1` that could pick the marketplace clone (a stale version after `/plugin marketplace update`). A guarded, cache-restricted fallback covers the case where the placeholder is not substituted. Thanks to @malle-van-moa (#3).
+- Removed a stale v2.0 rollout note in `cast` and `paint` that told the agent to skip the Compose/SwiftUI sub-skills; those shipped in v3.0.1 and the note contradicted the LOAD table above it. (#3)
+
+### Changed
+
+- Translated the remaining French user-facing strings in `cast` and `paint` (the legacy-bridge question and one DISCOVER example) to English. (#3)
+
+## v3.0.1 - 2026-07-18
+
+### Fixed
+
+- Sub-skill resolution in `cast` and `paint` now works when genjutsu is installed via the marketplace. The `PLUGIN_ROOT` lookup is version-tolerant and matches the versioned cache layout (`~/.claude/plugins/cache/genjutsu/genjutsu/<version>/skills/`) in addition to git-clone installs. Previously the versioned path never matched, so all 15 `_jutsu` sub-skills failed to load on marketplace installs. Thanks to @SatishRockzz (#2).
+
+## v3.0.0 - 2026-04-26
+
+**BREAKING CHANGE - Rebrand**: `creative-excellence` is now `genjutsu`. The two orchestrators have new names that match the new theme.
+
+### Renamed
+
+- Plugin: `creative-excellence` -> `genjutsu`
+- Orchestrator (creative coding): `creative-excellence` -> `cast` (The Illusionist)
+- Orchestrator (design pipeline): `design-excellence` -> `paint` (The Master Painter)
+- Internal sub-skills directory: `_creative/` -> `_jutsu/`
+- GitHub repository: `AThevon/creative-excellence` -> `AThevon/genjutsu`
+
+### Migration guide
+
+**For users on Claude Code:**
+
+```bash
+# 1. Uninstall the old plugin
+/plugin uninstall creative-excellence
+
+# 2. Remove the old marketplace
+/plugin marketplace remove creative-excellence
+
+# 3. Add the new marketplace
+/plugin marketplace add git@github.com:AThevon/genjutsu.git
+
+# 4. Install
+/plugin install genjutsu
+```
+
+Old invocations -> new invocations:
+
+| Old | New |
+|---|---|
+| `/creative-excellence:creative-excellence` | `/genjutsu:cast` |
+| `/creative-excellence:design-excellence` | `/genjutsu:paint` |
+
+**For users on claude.ai:**
+
+1. Remove the old `creative-excellence` and `design-excellence` skills from your skills list.
+2. Re-download the latest release ZIPs (now named `cast.zip`, `paint.zip`, plus the renamed `genjutsu-all.zip`).
+3. Re-upload everything.
+
+**For users with the dotfiles submodule pattern:**
+
+```bash
+cd ~/.dotfiles
+
+# Deinit the old submodule
+git submodule deinit -f claude/plugins/creative-excellence
+git rm -rf claude/plugins/creative-excellence
+rm -rf .git/modules/claude/plugins/creative-excellence
+
+# Re-add with the new URL
+git submodule add git@github.com:AThevon/genjutsu.git claude/plugins/genjutsu
+
+# Update install.sh and settings.json (replace creative-excellence with genjutsu)
+# Then run install
+./install.sh
+```
+
+### Added
+
+- Voice rules in both `cast/SKILL.md` and `paint/SKILL.md`: light ninja flair during execution, plain factual reports at the end (no mystic prose in summaries).
+
+### Notes
+
+- Zero functional change. All sub-skills (`motion-principles`, `gsap`, `compose-motion`, `swiftui-graphics`, etc.) work identically. Only naming and voice changed.
+- The old GitHub URL `github.com/AThevon/creative-excellence` automatically redirects to the new one.
+
+## v2.0.0 - 2026-04-25
+
+Major release: cross-platform expansion. The plugin now covers Web, Android (Jetpack Compose / Compose Multiplatform), and Apple (SwiftUI iOS + macOS) in addition to the existing web stacks.
+
+### Added
+
+- New shared layer `mobile-principles` (touch targets, no-hover doctrine, thumb zones, safe areas, gestures, mobile perf budgets) with 2 deep-dive references (`gestures-deep.md`, `accessibility-mobile.md`).
+- New shared layer `desktop-principles` (hover-mandatory, pointer precision, keyboard shortcuts, multi-window, focus management) with 2 deep-dive references (`keyboard-patterns.md`, `multi-window.md`).
+- New stack `compose-motion` (Jetpack Compose animation foundations: `animate*AsState`, `AnimatedVisibility`, `SharedTransitionLayout`, springs, gestures) with 3 deep-dives (`shared-transitions.md`, `gestures-compose.md`, `recomposition-and-anim.md`).
+- New stack `compose-graphics` (advanced Compose visuals: M3 Expressive motion physics, AGSL shaders Android 13+, Canvas/DrawScope generative) with 3 deep-dives (`agsl-recipes.md`, `m3-expressive-deep.md`, `canvas-generative.md`).
+- New stack `compose-multiplatform` (KMP/CMP patterns, expect/actual, iOS/Android/Desktop interop) with 2 deep-dives (`cmp-interop.md`, `cmp-platform-quirks.md`).
+- New stack `swiftui-motion` (`withAnimation`, transitions, `matchedGeometryEffect`, `PhaseAnimator`, `KeyframeAnimator`, gestures) with 3 deep-dives (`springs-cheatsheet.md`, `phase-keyframe-deep.md`, `gestures-swiftui.md`).
+- New stack `swiftui-graphics` (Metal shaders, `.visualEffect`, Liquid Glass iOS 26, Canvas) with 3 deep-dives (`metal-recipes.md`, `liquid-glass-deep.md`, `canvas-swiftui.md`).
+- Stack-aware MASTER.md generation in `design-excellence` (now `genjutsu:paint`): produces Tailwind/CSS for web, Kotlin Theme.kt for Compose, Swift extensions for SwiftUI, KMP commonMain for CMP.
+- Cross-platform AUDIT checklist in both orchestrators (Layout Inspector, Macrobenchmark, Instruments Time Profiler, Hitches Instrument, GPU Frame Capture).
+- Conditional DISCOVER question for legacy bridge integration (XIB / storyboard / layout XML / setContentView detection).
+
+### Changed
+
+- Phase SCAN extended in both orchestrators to detect Android Compose (`androidx.compose`), Compose Multiplatform (`org.jetbrains.compose` + `kotlin-multiplatform`), SwiftUI (Package.swift / xcodeproj / @main App), and to distinguish iOS vs macOS targets.
+- Phase LOAD restructured into layered tables (foundation always / context layers by detection / stack-specific by SCAN). Advanced sub-skills (`compose-graphics`, `swiftui-graphics`) only loaded for advanced thesis containing terms like "shader", "Metal", "AGSL", "Liquid Glass", "M3 Expressive".
+- IRON RULES 7-8 generalized to be stack-agnostic (previously React/GSAP-specific).
+- THESIS examples extended with cross-platform examples (SwiftUI matchedGeometryEffect, Compose SharedTransitionLayout, macOS hover, AGSL shader).
+- `motion-principles` reduced-motion section now covers 5 platforms (Web CSS, Web JS, SwiftUI, UIKit, Compose) with code examples.
+- `motion-principles` Universal Do Not Rules now include native (SwiftUI + Compose) BAD/GOOD examples in addition to CSS/JS/GSAP.
+- `design-audit` now greps multi-stack (web + Compose + SwiftUI), reports bundle sizes for native libs (Lottie/Rive), and includes a stack-specific audit subsection (Layout Inspector / Macrobenchmark / Instruments Time Profiler / Hitches / GPU Frame Capture).
+
+### Notes
+
+- Zero web regression: existing web sub-skills (`gsap`, `framer-motion`, `css-native`, `threejs-r3f`, `canvas-generative`) and `ui-ux-pro-max` are unchanged.
+- The plugin grows from 8 sub-skills to 15. The `package-for-claude-ai.sh` script automatically picks up new sub-skills (no script change needed).
+
+## v1.1.0 and earlier
+
+See git tags for details on previous releases.
