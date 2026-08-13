@@ -3,7 +3,7 @@
   "benchmark_id": "color-logic",
   "discipline": "color",
   "version": "1.0.0",
-  "seed": "work-lab-color-logic-v1",
+  "seed": "design-lab-color-logic-v1",
   "viewport": {
     "width": 1440,
     "height": 900,

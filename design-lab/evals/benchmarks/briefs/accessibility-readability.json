@@ -3,7 +3,7 @@
   "benchmark_id": "accessibility-readability",
   "discipline": "accessibility",
   "version": "1.0.0",
-  "seed": "work-lab-accessibility-readability-v1",
+  "seed": "design-lab-accessibility-readability-v1",
   "viewport": {
     "width": 1440,
     "height": 900,

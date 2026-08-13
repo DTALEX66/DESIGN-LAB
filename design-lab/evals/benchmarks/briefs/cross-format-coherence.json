@@ -3,7 +3,7 @@
   "benchmark_id": "cross-format-coherence",
   "discipline": "cross-format",
   "version": "1.0.0",
-  "seed": "work-lab-cross-format-coherence-v1",
+  "seed": "design-lab-cross-format-coherence-v1",
   "viewport": {
     "width": 1440,
     "height": 900,

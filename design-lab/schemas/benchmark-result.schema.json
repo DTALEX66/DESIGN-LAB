@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "work-lab/benchmark-result/v1",
+  "$id": "design-lab/benchmark-result/v1",
   "title": "WORK-LAB Benchmark Result",
   "type": "object",
   "required": ["benchmarkId", "evidenceLevel", "status", "scores"],

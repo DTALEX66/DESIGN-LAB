@@ -3,7 +3,7 @@
   "benchmark_id": "typography-system",
   "discipline": "typography",
   "version": "1.0.0",
-  "seed": "work-lab-typography-system-v1",
+  "seed": "design-lab-typography-system-v1",
   "viewport": {
     "width": 1440,
     "height": 900,

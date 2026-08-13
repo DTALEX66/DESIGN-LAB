@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "work-lab/minigame-design-brief/v1",
+  "$id": "design-lab/minigame-design-brief/v1",
   "title": "MINIGAME Design Brief",
   "type": "object",
   "required": ["briefId", "screenGoal", "visualState", "viewport", "evidenceLevel"],

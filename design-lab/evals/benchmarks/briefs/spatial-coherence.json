@@ -3,7 +3,7 @@
   "benchmark_id": "spatial-coherence",
   "discipline": "spatial",
   "version": "1.0.0",
-  "seed": "work-lab-spatial-coherence-v1",
+  "seed": "design-lab-spatial-coherence-v1",
   "viewport": {
     "width": 1440,
     "height": 900,

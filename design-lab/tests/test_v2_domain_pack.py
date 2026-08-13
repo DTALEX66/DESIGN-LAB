@@ -23,7 +23,7 @@ class DomainPackTests(unittest.TestCase):
 
     def test_brief_schema_parses(self):
         schema = json.loads((PACK / "schemas/brief.schema.json").read_text(encoding="utf-8"))
-        self.assertEqual(schema["$id"], "work-lab/minigame-design-brief/v1")
+        self.assertEqual(schema["$id"], "design-lab/minigame-design-brief/v1")
 
 
 if __name__ == "__main__":

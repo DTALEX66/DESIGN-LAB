@@ -1,12 +1,12 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "work-lab/evidence-card/v1",
+  "$id": "design-lab/evidence-card/v1",
   "title": "Open Design Evidence Card",
   "type": "object",
   "additionalProperties": false,
   "required": ["schema_version", "card_id", "benchmark_id", "card_status", "evidence_level", "artifact", "references", "hard_gates", "human_calibration"],
   "properties": {
-    "schema_version": {"const": "work-lab/evidence-card/v1"},
+    "schema_version": {"const": "design-lab/evidence-card/v1"},
     "card_id": {"type": "string", "minLength": 1},
     "benchmark_id": {"type": "string", "minLength": 1},
     "card_status": {"enum": ["not-run", "isolated", "human-review", "accepted", "blocked"]},

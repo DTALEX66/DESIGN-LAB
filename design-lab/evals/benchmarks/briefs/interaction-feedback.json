@@ -3,7 +3,7 @@
   "benchmark_id": "interaction-feedback",
   "discipline": "interaction",
   "version": "1.0.0",
-  "seed": "work-lab-interaction-feedback-v1",
+  "seed": "design-lab-interaction-feedback-v1",
   "viewport": {
     "width": 1440,
     "height": 900,

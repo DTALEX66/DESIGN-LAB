@@ -3,7 +3,7 @@
   "benchmark_id": "motion-pacing",
   "discipline": "motion",
   "version": "1.0.0",
-  "seed": "work-lab-motion-pacing-v1",
+  "seed": "design-lab-motion-pacing-v1",
   "viewport": {
     "width": 1440,
     "height": 900,
