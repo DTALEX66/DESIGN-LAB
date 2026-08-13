@@ -1,0 +1,40 @@
+{
+  "name": "vibrant-tech",
+  "description": "Violet-to-cyan palette for AI, dev tools, and modern SaaS marketing. Hue anchored ~285 (violet) with cyan accent for gradients. Mid-high chroma, deep dark mode.",
+  "hue_anchor_oklch": 285,
+  "light": {
+    "50":  "#f7f4ff",
+    "100": "#ece5ff",
+    "200": "#d6c8ff",
+    "300": "#b69dff",
+    "400": "#9270ff",
+    "500": "#6f44ec",
+    "600": "#5631c4",
+    "700": "#42259b",
+    "800": "#311c72",
+    "900": "#21134d",
+    "950": "#100929"
+  },
+  "dark": {
+    "50":  "#0c071a",
+    "100": "#150d28",
+    "200": "#21163d",
+    "300": "#312357",
+    "400": "#473378",
+    "500": "#634ba0",
+    "600": "#8467c6",
+    "700": "#a489e0",
+    "800": "#c5b1f0",
+    "900": "#e0d5f8",
+    "950": "#f3eefc"
+  },
+  "pairs": [
+    { "fg": "#21134d", "bg": "#f7f4ff", "ratio": 14.6, "use": "body text on light page" },
+    { "fg": "#311c72", "bg": "#ece5ff", "ratio": 11.0, "use": "headings on light surface" },
+    { "fg": "#f7f4ff", "bg": "#42259b", "ratio": 10.1, "use": "white on primary button" },
+    { "fg": "#f7f4ff", "bg": "#6f44ec", "ratio": 5.3,  "use": "white on brand-500 (AA at all sizes)" },
+    { "fg": "#f3eefc", "bg": "#0c071a", "ratio": 17.9, "use": "body text on deep dark page" },
+    { "fg": "#c5b1f0", "bg": "#150d28", "ratio": 10.7, "use": "secondary text on dark card" },
+    { "fg": "#100929", "bg": "#a489e0", "ratio": 8.0,  "use": "dark text on violet accent in dark mode" }
+  ]
+}
