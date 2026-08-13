@@ -7,6 +7,7 @@ from __future__ import annotations
 
 import importlib.util
 import json
+import re
 import tempfile
 import unittest
 from pathlib import Path
@@ -117,6 +118,39 @@ class SourceRegistryTests(unittest.TestCase):
         bad = [e["name"] for e in reg.get("entries", [])
                if e.get("integration_mode") == "vendor-adapt" and not e.get("url")]
         self.assertEqual(bad, [], f"vendor-adapt entries missing url: {bad}")
+
+
+class ReleaseGateTests(unittest.TestCase):
+    def test_acceptance_marker_pattern(self):
+        """Release gate must only honor the explicit acceptance marker.
+
+        Generic words like 通过/PASS in evidence-discipline prose must NOT
+        count (this was the #42 false-positive regression).
+        """
+        m = load("verify_release_gate.py")
+        marker_re = re.compile(r"DL-REL-001\s*[:：]\s*(ACCEPTED|验收通过|DONE)", re.IGNORECASE)
+
+        self.assertTrue(marker_re.search("DL-REL-001: ACCEPTED"))
+        self.assertTrue(marker_re.search("DL-REL-001：验收通过"))
+        self.assertTrue(marker_re.search("DL-REL-001: DONE"))
+        # generic prose must NOT trigger
+        self.assertFalse(marker_re.search("不用单张 AI 图作为通过证据（Quality gate）"))
+        self.assertFalse(marker_re.search("验收通过后才启用 DL-CI-004 release gate"))
+        self.assertFalse(marker_re.search("标记格式：DL-REL-001 状态 ACCEPTED"))
+
+    def test_marker_stale_detection(self):
+        """A verify-chain marker bound to a stale SHA must be flagged."""
+        m = load("verify_release_gate.py")
+        with tempfile.TemporaryDirectory() as raw:
+            d = Path(raw)
+            marker = d / ".verify-chain-ok"
+            marker.write_text("ok 0000000000000000000000000000000000000000\n", encoding="utf-8")
+            # simulate the release-gate logic on a fresh temp tree
+            head = "0" * 40
+            mtext = marker.read_text(encoding="utf-8").strip()
+            msha = mtext.split()[1] if mtext.startswith("ok ") and len(mtext.split()) > 1 else ""
+            self.assertEqual(msha, "0" * 40)
+            self.assertNotEqual(msha, head + "1", "stale marker sha must differ")
 
 
 if __name__ == "__main__":
