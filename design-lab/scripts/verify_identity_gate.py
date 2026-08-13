@@ -58,6 +58,11 @@ def scan() -> list[str]:
             "design-lab/scripts/doctor_open_design_windows.py",
         ):
             continue
+        # Terminology policy documents declare legacy names as denylist entries (DL-MIG-002)
+        if rel in (
+            "project-memory/DL-MIG-002-terminology.md",
+        ):
+            continue
         if "/.git/" in rel or rel.startswith(".git") or ".hermes" in rel:
             continue
         if "node_modules" in rel or "__pycache__" in rel or ".pytest_cache" in rel:
@@ -69,7 +74,7 @@ def scan() -> list[str]:
         # Exempt lines that declare the legacy name retired (prohibition/history context)
         exempt_lines = []
         for line in text.splitlines():
-            if any(w in line for w in ["退出活动", "历史归档", "不再作为活动", "仅允许出现在", "retired"]):
+            if any(w in line for w in ["退出活动", "历史归档", "不再作为活动", "仅允许出现在", "retired", "denylist", "Denylist", "allowlist"]):
                 exempt_lines.append(line)
         for exempt in exempt_lines:
             text = text.replace(exempt, "")

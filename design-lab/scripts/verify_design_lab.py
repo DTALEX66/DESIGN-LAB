@@ -23,6 +23,14 @@ SCRIPTS = [
     "verify_visual_quality_v21.py",
 ]
 
+# E1 确定性检查（DL-QLT-001 / DL-PRD-001），以参数化方式运行
+EXTRA_CHECKS = [
+    (
+        "jury-anti-slop",
+        ["quality/jury/check_anti_slop.py", "knowledge/visual-quality/hallmark"],
+    ),
+]
+
 
 def main() -> int:
     root = Path(__file__).resolve().parent
@@ -45,6 +53,17 @@ def main() -> int:
         results.append((name, r.returncode))
         if r.returncode != 0 and r.stderr.strip():
             print(r.stderr.strip()[-500:])
+
+    for name, args in EXTRA_CHECKS:
+        print(f"\n===== {name} =====")
+        r = subprocess.run([sys.executable, *(str(root.parent / a) for a in args)], capture_output=True, text=True)
+        tail = r.stdout.strip().splitlines()
+        summary = tail[-1] if tail else "(no output)"
+        print(summary)
+        if r.returncode != 0:
+            for line in tail[:-1]:
+                print(f"  {line}")
+        results.append((name, r.returncode))
 
     failed = [name for name, code in results if code != 0]
     print(f"\nVERIFY_DESIGN_LAB={'OK' if not failed else 'FAIL'} total={len(results)} failed={len(failed)}")
