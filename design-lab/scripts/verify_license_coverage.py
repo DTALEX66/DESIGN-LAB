@@ -64,6 +64,9 @@ EXCLUDE_PREFIX = (
     "knowledge/visual-quality/design-thinking/",
     "knowledge/visual-quality/game-creative/",
     "knowledge/visual-quality/design-md-skill/",
+    "knowledge/visual-quality/document-design-system/",
+    "knowledge/visual-quality/dataviz-critique/",
+    "knowledge/visual-quality/brand-identity-generator/",
     "intelligence/ui-ux-pro-max/",
     "intelligence/shipit-ui/",
     "intelligence/motion-engine/",
@@ -75,6 +78,7 @@ EXCLUDE_PREFIX = (
     "intelligence/genjutsu/",
     "intelligence/ai-product-os/",
     "intelligence/baoyu-design/",
+    "intelligence/ultimate-uiux/",
 )
 
 
