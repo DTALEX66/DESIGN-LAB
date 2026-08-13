@@ -2227,6 +2227,35 @@
         "brand",
         "workflow"
       ]
+    },
+    {
+      "id": "baoyu-design",
+      "name": "baoyu-design (JimLiu)",
+      "url": "https://github.com/JimLiu/baoyu-design",
+      "license": "MIT",
+      "license_verified": true,
+      "integration_mode": "vendor-adapt",
+      "status": "adopt-now",
+      "use": "本地 Claude Design：64 设计技能",
+      "categories": [
+        "design-system",
+        "ui-ux",
+        "skill-pack"
+      ]
+    },
+    {
+      "id": "design-md-skill",
+      "name": "design-md-skill (arumwu)",
+      "url": "https://github.com/arumwu/design-md-skill",
+      "license": "MIT",
+      "license_verified": true,
+      "integration_mode": "vendor-adapt",
+      "status": "adopt-now",
+      "use": "74 个真实品牌设计系统参考",
+      "categories": [
+        "design-system",
+        "reference"
+      ]
     }
   ]
 }
