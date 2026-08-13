@@ -19,7 +19,7 @@ def verify(path: Path) -> list[str]:
         registry = json.loads(path.read_text(encoding="utf-8"))
     except (OSError, UnicodeError, json.JSONDecodeError) as exc:
         return [f"registry unreadable: {exc}"]
-    if registry.get("schema_version") != "open-design/benchmark-registry/v1":
+    if registry.get("schema_version") != "design-lab/benchmark-registry/v1":
         errors.append("wrong registry schema_version")
     if registry.get("repeatability", {}).get("human_calibration_required_for_promotion") is not True:
         errors.append("human calibration must be required before promotion")

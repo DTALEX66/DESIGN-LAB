@@ -1,5 +1,5 @@
 {
-  "schema_version": "open-design/benchmark-brief/v1",
+  "schema_version": "design-lab/benchmark-brief/v1",
   "benchmark_id": "production-readiness",
   "discipline": "production",
   "version": "1.0.0",
