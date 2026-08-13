@@ -24,12 +24,49 @@ def git_head() -> str:
     return r.stdout.strip() if r.returncode == 0 else ""
 
 
+def check() -> list[str]:
+    findings: list[str] = []
+    head = git_head()
+    if not head:
+        return ["git HEAD unresolvable"]
+
+    try:
+        index = json.loads(INDEX.read_text(encoding="utf-8"))
+        cards = json.loads(CARDS.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as exc:
+        return [f"unreadable: {exc}"]
+
+    current = index.get("boundTree", "")
+
+    # Accept boundTree == HEAD or HEAD^ (squash-merge semantics: a rebind
+    # merged as the parent of HEAD is still "the last verified tree").
+    # Anything older is a real staleness.
+    acceptable = {head}
+    r = subprocess.run(["git", "-C", str(ROOT), "rev-parse", head + "^"],
+                       capture_output=True, text=True)
+    if r.returncode == 0:
+        acceptable.add(r.stdout.strip())
+
+    if current in acceptable:
+        print(f"UPDATE_EVIDENCE_BINDING=OK (bound {current[:12]})")
+        return findings
+
+    findings.append(f"STALE current={current[:12]} head={head[:12]} (re-run without --check)")
+    return findings
+
+
 def main() -> int:
     check_only = "--check" in sys.argv
     head = git_head()
     if not head:
         print("UPDATE_EVIDENCE_BINDING=FAIL (git HEAD unresolvable)")
         return 1
+
+    if check_only:
+        findings = check()
+        for f in findings:
+            print(f"UPDATE_EVIDENCE_BINDING={f}")
+        return 1 if findings else 0
 
     try:
         index = json.loads(INDEX.read_text(encoding="utf-8"))
@@ -42,10 +79,6 @@ def main() -> int:
     if current == head:
         print(f"UPDATE_EVIDENCE_BINDING=OK (already bound to {head[:12]})")
         return 0
-
-    if check_only:
-        print(f"UPDATE_EVIDENCE_BINDING=STALE current={current[:12]} head={head[:12]} (re-run without --check)")
-        return 1
 
     index["boundTree"] = head
     INDEX.write_text(json.dumps(index, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
