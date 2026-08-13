@@ -3,7 +3,7 @@
 - 任务：`ODA4-0101`（P0，risk=critical）
 - 日期：2026-08-07
 - 证据等级：`E2`（隔离 dry-run + 安全回归测试通过）
-- 目标脚本：`opendesign-assistance/scripts/configure_open_design_windows.py`、`doctor_open_design_windows.py`
+- 目标脚本：`design-lab/scripts/configure_open_design_windows.py`、`doctor_open_design_windows.py`
 
 ## 移除的危险行为
 
@@ -22,14 +22,14 @@
 - `E:` 盘任意路径（铁律禁止）
 - 用户 home（`C:\Users\<user>`）
 
-放行：`D:\All projects\OPEN-DESIGN-Assistance` 这类精确深层项目路径。
+放行：`D:\All projects\DESIGN-LAB` 这类精确深层项目路径。
 
 ## 验证结果
 
 **CLI 行为测试（5 场景）**：
 | 场景 | 结果 |
 |---|---|
-| 精确项目根 `D:\All projects\OPEN-DESIGN-Assistance` | ✅ 放行（dry-run，`CONFIG_OK`） |
+| 精确项目根 `D:\All projects\DESIGN-LAB` | ✅ 放行（dry-run，`CONFIG_OK`） |
 | 宽根 `D:\All projects` | ✅ `SECURITY_BLOCK` |
 | 盘符根 `D:\` / `C:\` / `E:\` | ✅ `SECURITY_BLOCK` |
 | `E:\x` | ✅ `SECURITY_BLOCK`（forbidden root） |

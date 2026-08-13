@@ -1,15 +1,15 @@
 # V4.2 Phase 10 — Capability Evidence Index 交接文档
 
 > 日期：2026-08-11
-> 目标仓库：`DTALEX66/OPEN-DESIGN-Assistance`
+> 目标仓库：`DTALEX66/DESIGN-LAB`
 > 基线：`d4716a4`（V4.2 main 权威，双端一致）
 > 关联遗留：V42_PROBLEM_SUMMARY_20260811.md 遗留项 5
 
 ## 交付：capability-evidence-index.json
 
-**新增** `opendesign-assistance/config/capability-evidence-index.json`
+**新增** `design-lab/config/capability-evidence-index.json`
 
-- schemaVersion `open-design-assistance/capability-evidence-index/v2`
+- schemaVersion `design-lab/capability-evidence-index/v2`
 - 绑定 tree SHA `d4716a4`
 - 8 个能力族如实标定 E0-E5 级 + run/artifact/reviewer
 - 提供 `records` 视图（与 `verify_capability_evidence_v4.py` 兼容）

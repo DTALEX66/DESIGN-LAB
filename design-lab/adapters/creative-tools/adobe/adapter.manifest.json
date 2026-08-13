@@ -1,0 +1,19 @@
+{
+  "adapter_id": "tool-adobe-photoshop",
+  "tool": "Adobe Photoshop",
+  "type": "tool",
+  "mode": "external-cli",
+  "status": "E0-declared",
+  "defaultBinding": "none",
+  "capabilityScope": ["editable-document-operations"],
+  "supportedObjects": ["Artifact", "ToolRun"],
+  "requiredPermissions": ["user-local Adobe app"],
+  "secretHandling": "no secrets in repo",
+  "networkPolicy": "local; no public exposure",
+  "installPolicy": "no auto-install",
+  "rightsDependencies": "Adobe license compliance",
+  "rollback": "reversible commands; readback; editable-file modification",
+  "evidenceLevel": "E0",
+  "lastVerified": "2026-08-13",
+  "note": "E0 contract only (MVP). Mouse/visual automation only as a last resort under human observation. E3 requires reversible editable-document ops with readback."
+}

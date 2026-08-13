@@ -43,25 +43,20 @@ test('verify script runs the full release acceptance gate', () => {
   assert.match(verifyScript, /check-apk-metadata\.mjs/, 'verify should inspect APK metadata');
 });
 
-test('Douyin scripts provide build, strict validation, target release gate and package commands', () => {
+test('Douyin scripts provide build and strict validation commands', () => {
   assert.equal(pkg.scripts['douyin:build'], 'node build.js douyin');
   assert.equal(pkg.scripts['douyin:check'], 'node scripts/check-douyin-bundle.mjs --strict');
   assert.equal(pkg.scripts['douyin:compliance'], 'node scripts/check-douyin-compliance.mjs --strict');
-  assert.equal(pkg.scripts['douyin:release:check'], 'node scripts/check-release-readiness.mjs --target=douyin');
-  assert.equal(pkg.scripts['douyin:package'], 'node scripts/package-douyin-release.mjs');
+  assert.equal(pkg.scripts['douyin:release:check'], undefined, 'release commands are removed (fixture boundary)');
+  assert.equal(pkg.scripts['douyin:package'], undefined, 'release commands are removed (fixture boundary)');
+  assert.equal(pkg.scripts['release:check'], undefined, 'release commands are removed (fixture boundary)');
 });
 
-test('release check blocks placeholder publishing configuration', () => {
-  const releaseScript = readFileSync(new URL('../scripts/check-release-readiness.mjs', import.meta.url), 'utf8');
-
-  assert.equal(pkg.scripts['release:check'], 'node scripts/check-release-readiness.mjs');
-  assert.match(releaseScript, /wechatAppId/, 'release check should validate WeChat AppID');
-  assert.match(releaseScript, /CONFIG\.adUnits\.\$\{key\}/, 'release check should validate rewarded-video ad units');
-  assert.match(releaseScript, /releaseMode/, 'release check should require fail-closed ad behavior');
-  assert.match(releaseScript, /Release is NOT ready/, 'release check should fail closed when blockers exist');
-  assert.match(releaseScript, /wechatBundleBlockers/, 'release check should include runtime bundle blockers');
-  assert.match(releaseScript, /douyinBundleBlockers/, 'release check should include Douyin runtime bundle blockers');
-  assert.match(releaseScript, /douyinCompliance/, 'release check should include Douyin compliance blockers');
-  assert.match(releaseScript, /target/, 'release check should support a platform target');
-  assert.match(releaseScript, /androidApkMetadata/, 'release check should include Android APK metadata');
+test('release gate scripts are removed under fixture boundary', () => {
+  // Taskpack H2: release/publish commands and their gate scripts are removed
+  // from the game-visual fixture; only build/verify commands remain.
+  assert.equal(pkg.scripts['release:check'], undefined);
+  assert.equal(pkg.scripts['douyin:package'], undefined);
+  const releaseScript = new URL('../scripts/check-release-readiness.mjs', import.meta.url);
+  assert.throws(() => readFileSync(releaseScript, 'utf8'), 'release gate script should be removed');
 });

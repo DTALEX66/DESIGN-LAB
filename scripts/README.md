@@ -5,7 +5,7 @@
 - Locked in `requirements.txt` (`jsonschema>=4.18,<5`).
 - Install: `python -m pip install -r requirements.txt`
 - Test entrypoint: `python scripts/run_python_tests.py`
-  - Discovers all `opendesign-assistance/tests/test_*.py` (unittest).
+  - Discovers all `design-lab/tests/test_*.py` (unittest).
   - Currently runs **16 tests** (includes ODA4-0101 security regression suite).
 
 ## Node (MiniGame runtime)
@@ -19,4 +19,4 @@
 ## Root CI usage (ODA4-0104)
 - Python: `pip install -r requirements.txt && python scripts/run_python_tests.py`
 - Node: `cd minigame-runtime && npm test && node scripts/check-android-drift.mjs --check`
-- Verifiers: `python opendesign-assistance/scripts/verify_*.py`
+- Verifiers: `python design-lab/scripts/verify_*.py`

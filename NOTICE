@@ -1,6 +1,6 @@
 NOTICE
 
-OPEN-DESIGN-Assistance
+DESIGN-LAB
 Copyright (c) 2026 DTALEX66 and contributors
 SPDX-License-Identifier: MIT
 
@@ -20,7 +20,7 @@ Third-party & absorbed material
    with unknown or noncommercial rights is quarantined, not redistributed.
 
 2. Open-source / reference source registries:
-   - `opendesign-assistance/research/...` — 112 generic sources (V2),
+   - `design-lab/research/...` — 112 generic sources (V2),
      22 visual sources (V2.1). These are REFERENCE records, not vendored
      code. Integration mode, license status and benchmark status govern
      promotion. See THIRD_PARTY_SOURCES_V2.md and

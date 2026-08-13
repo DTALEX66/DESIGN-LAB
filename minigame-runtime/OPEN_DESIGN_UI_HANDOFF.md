@@ -24,9 +24,9 @@
 
 ## Open Design 产出位置
 
-- 预览 HTML：`D:\All projects\OPEN-DESIGN-Assistance\1d864770-e234-43fe-8994-27bf9350690a\index.html`
-- 评分文件：`D:\All projects\OPEN-DESIGN-Assistance\1d864770-e234-43fe-8994-27bf9350690a\critique.json`
-- 初版迁移说明：`D:\All projects\OPEN-DESIGN-Assistance\1d864770-e234-43fe-8994-27bf9350690a\implementation-handoff.md`
+- 预览 HTML：`D:\All projects\DESIGN-LAB\1d864770-e234-43fe-8994-27bf9350690a\index.html`
+- 评分文件：`D:\All projects\DESIGN-LAB\1d864770-e234-43fe-8994-27bf9350690a\critique.json`
+- 初版迁移说明：`D:\All projects\DESIGN-LAB\1d864770-e234-43fe-8994-27bf9350690a\implementation-handoff.md`
 
 ## 已经在 MINIGAME 落地的部分
 

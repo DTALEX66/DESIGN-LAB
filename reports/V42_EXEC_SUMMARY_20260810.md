@@ -1,7 +1,7 @@
 # V4.2 执行摘要（Execution Summary）— 2026-08-10
 
-> TaskPack `OPEN-DESIGN-Assistance-Final-TaskPack-v4.2-2026-08-10`
-> 目标仓库 `DTALEX66/OPEN-DESIGN-Assistance`，Windows 本地 `D:\All projects\OPEN-DESIGN-Assistance`
+> TaskPack `DESIGN-LAB-Final-TaskPack-v4.2-2026-08-10`
+> 目标仓库 `DTALEX66/DESIGN-LAB`，Windows 本地 `D:\All projects\DESIGN-LAB`
 
 ## 总体状态：✅ Phase 0 + Phase 1 完成，已交付云端 main（`c2f5fbc`）
 

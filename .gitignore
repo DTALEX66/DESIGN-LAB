@@ -44,3 +44,13 @@ yarn-error.log*
 # Local Open Design live project working copies (root UUID-shaped directories;
 # canonical exports live under opendesign-assistance/exports/)
 /[0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f]-[0-9a-f][0-9a-f][0-9a-f][0-9a-f]-[0-9a-f][0-9a-f][0-9a-f][0-9a-f]-[0-9a-f][0-9a-f][0-9a-f][0-9a-f]-[0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f]/
+
+# DL-KNW-000: 外置设计资料库（本地原始真源，不进入 Git）
+/Design assets/
+/design-assets/
+# 本地知识缓存（DL-KNW-001 转换缓存，不入库）
+design-lab/knowledge/.cache/
+design-lab/knowledge/derived/local-cache/
+# 本地 profile / 项目级宿主选择（DL-ARC-002）
+design-lab/config/local-profile.json
+design-lab/config/*.local.json

@@ -2,7 +2,7 @@
 
 ## 状态：✅ READY_FOR_UPLOAD（本地全量验证通过，待 PR 流程）
 
-- 目标仓库：`DTALEX66/OPEN-DESIGN-Assistance`
+- 目标仓库：`DTALEX66/DESIGN-LAB`
 - 基线：云端 main `f160240`（fetch 后 0 ahead / 0 behind）
 - 本阶段：**Phase 2（产品宪章与数据模型）+ Phase 3（Open Design 原生运行合同，含 E3）+ Phase 4 前置（UIUX 黄金纵切）**
 

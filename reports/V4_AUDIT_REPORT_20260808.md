@@ -1,7 +1,7 @@
 # 项目审计报告（Audit Report）— 2026-08-08
 
 ## 审计范围
-- 仓库：`D:\All projects\OPEN-DESIGN-Assistance` @ `migration/work-lab-minigame-cutover-20260807`
+- 仓库：`D:\All projects\DESIGN-LAB` @ `migration/work-lab-minigame-cutover-20260807`
 - 基线 HEAD：`5744b3f`（main = migration = 云端一致）
 - 维度：Git 一致性、验证链、CI、测试、安全、文档、体积
 

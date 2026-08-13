@@ -1,0 +1,28 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://design-lab.local/schemas/source-record.schema.json",
+  "title": "SourceRecord — 受治理知识来源记录",
+  "type": "object",
+  "required": ["sourceId", "origin", "author", "license", "allowedUsage", "acquiredAt", "contentHash", "redistributable", "modelInputAllowed", "commercialUse", "reviewedBy"],
+  "additionalProperties": false,
+  "properties": {
+    "sourceId": {"type": "string", "minLength": 1},
+    "origin": {
+      "oneOf": [
+        {"type": "string", "format": "uri"},
+        {"type": "string", "pattern": "^external-library-alias:"}
+      ]
+    },
+    "author": {"type": "string", "minLength": 1},
+    "license": {"type": "string", "minLength": 1},
+    "licenseStatus": {"enum": ["reviewed", "unknown", "reference-only"]},
+    "allowedUsage": {"type": "string", "minLength": 1},
+    "acquiredAt": {"type": "string", "format": "date"},
+    "version": {"type": "string"},
+    "contentHash": {"type": "string", "minLength": 8},
+    "redistributable": {"type": "boolean"},
+    "modelInputAllowed": {"type": "boolean"},
+    "commercialUse": {"type": "boolean"},
+    "reviewedBy": {"type": "string", "minLength": 1}
+  }
+}

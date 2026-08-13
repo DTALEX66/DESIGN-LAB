@@ -28,10 +28,12 @@ test('douyin compliance checker validates privacy, age-rating and sensitive API 
   assert.match(output, /reviewAdPaths/);
 });
 
-test('Douyin release package injects the private appid into the archived project config', () => {
-  const source = readFileSync(resolve(root, 'scripts', 'package-douyin-release.mjs'), 'utf8');
-  assert.match(source, /projectConfig\.appid\s*=\s*privateConfig\.appid/);
-  assert.match(source, /release package requires a real Douyin appid/);
+test('Douyin release package script is removed under fixture boundary', () => {
+  // Taskpack H2: release/package scripts are removed; only build/check remain.
+  assert.throws(
+    () => readFileSync(resolve(root, 'scripts', 'package-douyin-release.mjs'), 'utf8'),
+    'package-douyin-release.mjs should be removed (fixture boundary)'
+  );
 });
 
 test('douyin strict checker rejects a known-broken project', () => {

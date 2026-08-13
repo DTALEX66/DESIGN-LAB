@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 # SPDX-License-Identifier: MIT
-"""Root Python test entrypoint for OPEN-DESIGN-Assistance (ODA4-0103).
+"""Root Python test entrypoint for DESIGN-LAB (ODA4-0103).
 
 Discovers and runs every `test_*.py` unittest module under
-`opendesign-assistance/tests/`. Exits non-zero if any test fails.
+`design-lab/tests/`. Exits non-zero if any test fails.
 
 Usage:
     python scripts/run_python_tests.py
@@ -15,7 +15,7 @@ import unittest
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-TEST_DIR = ROOT / "opendesign-assistance" / "tests"
+TEST_DIR = ROOT / "design-lab" / "tests"
 
 
 def main() -> int:

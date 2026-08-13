@@ -1,8 +1,8 @@
-# MINIGAME 游戏合集目录
+# MINIGAME 游戏视觉 fixture 目录
 
-本目录用于管理 MINIGAME 的游戏分类和每个游戏的本地 manifest。
+本目录用于管理 MINIGAME 游戏视觉 fixture 的分类和本地 manifest。
 
-MINIGAME 当前定位：**小游戏合集平台**。每个游戏不是孤立项目，而是平台上的一个可发布、可换皮、可复用生产链的内容单元。
+MINIGAME 当前定位：**游戏视觉设计 fixture 集合**。每个游戏 fixture 不是产品单元，而是视觉/HUD/交互设计参考样板，仅用于 DESIGN-LAB 的游戏视觉回归与设计参考。
 
 ## 分类
 
@@ -22,6 +22,6 @@ MINIGAME 当前定位：**小游戏合集平台**。每个游戏不是孤立项�
 
 每个新游戏目录至少包含：
 
-- `README.md`：玩家体验、玩法循环、广告点、目标平台
-- `game.manifest.json`：稳定 ID、分类、入口、构建目标、广告点、内容包关系
-- `runtime-map.md`：当前代码入口和资源映射
+- `README.md`：视觉/交互设计参考说明、fixture 目标
+- `game.manifest.json`：稳定 ID、分类、入口、构建目标、fixture 视觉目标
+- `runtime-map.md`：当前代码入口和资源映射（fixture 参考）

@@ -1,0 +1,74 @@
+# design-lab/ — DESIGN-LAB 能力层
+
+这里是 **DESIGN-LAB（设计实验室）** 的能力层主目录：面向任意设计 AGENT 平台的中立设计能力与视觉质量增强层。
+
+> **Agent-platform-neutral design intelligence and production laboratory for professional visual design with commercial production preflight and editable delivery. Host-native; current reference host: Open Design (no default binding).**
+
+## 权威文档（SSOT）
+
+```text
+project-memory/PRODUCT_DEFINITION.md    ← 唯一产品定义
+project-memory/ARCHITECTURE.md          ← 技术架构
+project-memory/BOUNDARY_CONTRACT.md     ← 职责边界
+project-memory/NEUTRALITY_POLICY.md     ← 平台中立
+project-memory/EVIDENCE_POLICY.md       ← 证据政策
+project-memory/ADAPTER_POLICY.md        ← 适配器政策
+project-memory/OBJECT_MODEL.md          ← 核心对象模型
+project-memory/USER_MODES.md            ← 五类用户/五种模式
+project-memory/ROADMAP.md               ← 路线图
+```
+
+## 机器可读 SSOT
+
+```text
+design-lab/config/product-manifest.json   ← 产品 manifest（design-lab/product-manifest/v1）
+design-lab/config/capability-status.json  ← 能力状态
+design-lab/config/object-model.json       ← 13 核心对象
+design-lab/adapters/adapter-registry.json ← 适配器注册（defaultBinding=none）
+```
+
+## 验证入口
+
+```bash
+python design-lab/scripts/verify_design_lab.py        # 全验证链（统一入口）
+python design-lab/scripts/verify_identity_gate.py     # 身份边界 gate
+python design-lab/scripts/verify_product_manifest_v3.py
+python design-lab/scripts/verify_runtime_contracts_v3.py
+python design-lab/scripts/verify_visual_scoring_v3.py
+python design-lab/scripts/verify_source_registry_v2.py
+python -m pytest design-lab/tests/                    # 单元 + fixture 测试
+```
+
+## 目录
+
+```text
+core/           对象、契约、政策
+intelligence/   intake、direction、system、critique
+atoms/          可测试小能力
+bundles/        公开复合体（commercial-design-core / visual-quality-core / production-handoff）
+scenarios/      端到端视觉设计场景
+domain-packs/   专业领域包
+quality/        Rubric、Jury、视觉回归
+production/     Preflight、Handoff、Provenance、Rollback
+knowledge/      受治理来源与方法（sources/curated/derived/methods/standards/registries）
+research/       风格谱系、视觉基准、领域研究、实验记录
+evals/          测试 fixtures 与证据索引
+schemas/        中性 JSON schemas
+config/         checked-in 中性注册表
+scripts/        确定性生成器/验证器
+templates/      模板
+assets/         资产
+adapters/       host/agent/tool/model 适配器（无默认绑定）
+```
+
+## 适配器
+
+- `adapters/hosts/open-design/`：Open Design host projection（F1 兼容层）
+- `adapters/creative-tools/`：ComfyUI / MiniMax H3 / Adobe PS 等 E0 合同
+- `adapters/agents/`：Hermes / Codex agent 协调
+
+## 证据纪律
+
+- 未达 E3 不写"已集成"；静态文件只证明 E1；
+- 旧树 E3 证据不误用于新树（见 capability-evidence-index.json 的 requiresRequalification）；
+- 外置资料库 `D:\All projects\Design assets` 仅登记，不复制、不索引原件。

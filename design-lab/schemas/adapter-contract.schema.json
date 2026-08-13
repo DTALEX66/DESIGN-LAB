@@ -1,0 +1,42 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://design-lab.local/schemas/adapter-contract.schema.json",
+  "title": "DESIGN-LAB Tool Adapter Contract (ODA4-0206, V42-0107)",
+  "type": "object",
+  "required": ["adapter_id", "tool", "capabilities", "status", "mode", "evidence"],
+  "additionalProperties": false,
+  "properties": {
+    "adapter_id": {"type": "string", "minLength": 1},
+    "tool": {"type": "string", "minLength": 1},
+    "hostAdapter": {"type": "string", "minLength": 1},
+    "capabilities": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["name", "supported"],
+        "additionalProperties": false,
+        "properties": {
+          "name": {"type": "string", "minLength": 1},
+          "supported": {"type": "boolean"},
+          "note": {"type": "string"}
+        }
+      }
+    },
+    "status": {"enum": ["declared", "structural", "runtime", "missing", "unsupported"]},
+    "mode": {"enum": ["process-isolated", "in-process", "external-cli", "none"]},
+    "license": {"type": "string", "minLength": 1},
+    "fallback": {"type": "string", "minLength": 1},
+    "evidence": {
+      "type": "object",
+      "required": ["level", "runtime_version", "task_ids", "artifact_paths", "note"],
+      "additionalProperties": false,
+      "properties": {
+        "level": {"enum": ["E0", "E1", "E2", "E3", "E4", "E5"]},
+        "runtime_version": {"type": ["string", "null"]},
+        "task_ids": {"type": "array", "items": {"type": "string"}},
+        "artifact_paths": {"type": "array", "items": {"type": "string"}},
+        "note": {"type": "string"}
+      }
+    }
+  }
+}

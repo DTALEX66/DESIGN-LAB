@@ -2,7 +2,7 @@
 
 Canonical machine-readable registry:
 
-`opendesign-assistance/research/global-absorption/SOURCE_REGISTRY.json`
+`design-lab/research/global-absorption/SOURCE_REGISTRY.json`
 
 Snapshot includes 112 sources. A registry entry is not permission to copy. `integration_mode`, `license_verified`, restrictions and benchmark status control promotion.
 

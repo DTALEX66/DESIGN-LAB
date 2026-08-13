@@ -10,9 +10,9 @@
 |---|---|---|
 | 真实 Open Design 进程可识别 | 9 个 `Open Design.exe` 进程 + 3 个命名管道（daemon/web/desktop） | ✅ |
 | runtime ID / version 可回读 | `0.18.1`（About 界面 + 官方插件源路径 `versions\0.18.1` + config） | ✅ |
-| 本仓库注册为项目位置 | `projectLocations` 含 `OPEN-DESIGN-Assistance -> D:\All projects\OPEN-DESIGN-Assistance` | ✅ |
+| 本仓库注册为项目位置 | `projectLocations` 含 `DESIGN-LAB -> D:\All projects\DESIGN-LAB` | ✅ |
 | 真实项目数据 | `项目初筛`（baseDir 在本仓库下）+ 应用插件快照 `f1a22a65` | ✅ |
-| **本仓库产物被运行时真实使用** | `anomaly-monitor-dark` 设计系统：`status=published`、`designSystemId=user:anomaly-monitor-dark`（当前活动设计系统）、provenance="Imported from D:\All projects\OPEN-DESIGN-Assistance\design-system\DESIGN.md" | ✅ |
+| **本仓库产物被运行时真实使用** | `anomaly-monitor-dark` 设计系统：`status=published`、`designSystemId=user:anomaly-monitor-dark`（当前活动设计系统）、provenance="Imported from D:\All projects\DESIGN-LAB\design-system\DESIGN.md" | ✅ |
 
 ## 待办（三公开入口 bundle 注册）
 

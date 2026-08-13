@@ -1,8 +1,8 @@
-# Project Definition｜OPEN-DESIGN-Assistance
+# Project Definition｜DESIGN-LAB
 
 ## 最终定义
 
-`OPEN-DESIGN-Assistance` 是一个 **全面辅助增强 Open Design 软件** 的仓库。
+`DESIGN-LAB` 是一个 **全面辅助增强 Open Design 软件** 的仓库。
 
 它不是：
 
@@ -68,7 +68,7 @@ Open Design 的设计上下文 / Schema-Tokens 参考 / 视觉合同样板
 Open Design 的游戏 UI 生成参考 / 运行时落地样板 / 平台适配验证对象
 ```
 
-### opendesign-assistance/
+### design-lab/
 
 这是后续主开发区。它承载：
 
@@ -85,10 +85,10 @@ Open Design 输出到运行样板的落地方法
 - 工作流怎么走、在哪里设计、调用什么 AI：以 Open Design 软件本体为主。
 - 本仓库不再争夺“流程主控”定位。
 - 本仓库只做 Open Design 的资料增强、上下文增强、样板增强、落地增强。
-- 后续新增内容应优先放入 `opendesign-assistance/`，除非明确是在维护被吸收样板。
+- 后续新增内容应优先放入 `design-lab/`，除非明确是在维护被吸收样板。
 
 ## 一句话
 
 ```text
-Open Design 负责设计与 AI 调用；OPEN-DESIGN-Assistance 负责让 Open Design 更懂项目、更会生成、更容易落地。
+Open Design 负责设计与 AI 调用；DESIGN-LAB 负责让 Open Design 更懂项目、更会生成、更容易落地。
 ```

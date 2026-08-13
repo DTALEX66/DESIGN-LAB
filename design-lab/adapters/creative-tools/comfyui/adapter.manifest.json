@@ -1,0 +1,19 @@
+{
+  "adapter_id": "tool-comfyui-local",
+  "tool": "ComfyUI",
+  "type": "tool",
+  "mode": "external-local-api",
+  "status": "E0-declared",
+  "defaultBinding": "none",
+  "capabilityScope": ["media-generation-workflow", "visual-prototyping"],
+  "supportedObjects": ["MediaGenerationRequest", "Artifact", "ToolRun"],
+  "requiredPermissions": ["user-started loopback ComfyUI"],
+  "secretHandling": "no secrets in repo",
+  "networkPolicy": "loopback-only; no public exposure",
+  "installPolicy": "no auto-install; no vendoring; no managed daemon",
+  "rightsDependencies": "workflow JSON + node/model source + hash + license required before E3",
+  "rollback": "pinned workflow version; dependency lock; output readback",
+  "evidenceLevel": "E0",
+  "lastVerified": "2026-08-13",
+  "note": "E0 contract only. No ComfyUI install, model download, node execution, or network call is performed. E1 requires loopback + no-auto-install checks."
+}
