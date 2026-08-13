@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: MIT
 """DESIGN-LAB canonical verifier entry (DL-MIG-011).
 
 Aggregates the DESIGN-LAB verification chain under one entrypoint:
@@ -36,6 +37,11 @@ def main() -> int:
         tail = r.stdout.strip().splitlines()
         summary = next((line for line in reversed(tail) if line.startswith(("VERIFY_", "PASS", "FAIL"))), "")
         print(summary)
+        if r.returncode != 0:
+            # print the specific failing checks for diagnosis
+            for line in tail:
+                if line.startswith("FAIL"):
+                    print(f"  {line}")
         results.append((name, r.returncode))
         if r.returncode != 0 and r.stderr.strip():
             print(r.stderr.strip()[-500:])

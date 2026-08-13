@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: MIT
 """DL-CI-001: Identity-boundary gate.
 
 Fail-closed: active product paths must not contain the legacy identity

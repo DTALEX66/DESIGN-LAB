@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT
 """DL-GV-003: MiniGame game-visual fixture boundary gate.
 
 Fail-closed: active paths in minigame-runtime must NOT re-introduce

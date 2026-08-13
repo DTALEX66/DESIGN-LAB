@@ -13,7 +13,7 @@ minigame-runtime = Game Visual Design Fixture / Runtime Reference
 
 允许：HUD、UI、图标、皮肤、交互反馈、场景氛围、动态视觉、资产规范、
       跨端可视化回归、可运行视觉 fixture 的安全/构建/测试维护。
-禁止：小游戏合集平台、独立产品线、发行渠道、广告/IAA/变现、运营、
+禁止：游戏平台产品线、发行渠道、广告/IAA/变现、运营、
       新玩法系统、内容包扩张、发布/增长路线图。
 ```
 
@@ -47,10 +47,11 @@ npm run android:inspect                       # APK 元数据检查
 
 ```bash
 npm run serve            # 本地 H5 预览
-npm test                 # 测试
+npm test                 # 测试（测试数以实际输出为准）
 npm run verify           # 一键视觉回归验收
 npm run android:build    # 构建 Android WebView debug APK（视觉回归）
 npm run android:inspect  # 检查 APK 元数据
+npm run android:install  # 安装并启动 Android debug APK（需 adb 设备在线）
 npm run skin:new -- <id> [名称]  # 从模板生成新视觉皮肤
 node build.js wechat     # 构建微信小游戏视觉 bundle
 ```
