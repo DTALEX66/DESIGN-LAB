@@ -67,6 +67,8 @@ EXCLUDE_PREFIX = (
     "knowledge/visual-quality/hue/",
     "knowledge/visual-quality/qiaomu-design/",
     "knowledge/visual-quality/interface-design/",
+    "knowledge/visual-quality/visual-note-card/",
+    "knowledge/visual-quality/affiliate-skills/",
     "knowledge/visual-quality/document-design-system/",
     "knowledge/visual-quality/dataviz-critique/",
     "knowledge/visual-quality/brand-identity-generator/",

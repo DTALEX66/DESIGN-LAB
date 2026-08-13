@@ -2357,6 +2357,28 @@
       "note": "界面设计系统模板（system-template + examples）",
       "absorbed_at": "2026-08-14",
       "id": "interface-design"
+    },
+    {
+      "id": "visual-note-card",
+      "name": "design-lab/knowledge/visual-quality/visual-note-card",
+      "url": "https://github.com/beilunyang/visual-note-card-skills",
+      "license": "MIT",
+      "license_verified": true,
+      "integration_mode": "vendor-adapt",
+      "status": "adopt-now",
+      "note": "中文视觉笔记卡片/信息图（SKILL.md + html2png）",
+      "absorbed_at": "2026-08-14"
+    },
+    {
+      "id": "affiliate-skills",
+      "name": "design-lab/knowledge/visual-quality/affiliate-skills",
+      "url": "https://github.com/Affitor/affiliate-skills",
+      "license": "MIT",
+      "license_verified": true,
+      "integration_mode": "vendor-adapt",
+      "status": "adopt-now",
+      "note": "联盟营销 32 skill（landing/内容/分析/自动化）",
+      "absorbed_at": "2026-08-14"
     }
   ]
 }

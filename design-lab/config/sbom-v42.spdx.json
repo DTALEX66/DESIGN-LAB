@@ -526,6 +526,24 @@
       "copyrightText": "NOASSERTION (vendored from https://github.com/Dammyjay93/interface-design)",
       "supplier": "NOASSERTION",
       "downloadLocation": "https://github.com/Dammyjay93/interface-design"
+    },
+    {
+      "SPDXID": "SPDXRef-vendor-visual-note-card",
+      "name": "design-lab/knowledge/visual-quality/visual-note-card",
+      "licenseConcluded": "MIT",
+      "licenseDeclared": "MIT",
+      "copyrightText": "NOASSERTION (vendored from https://github.com/beilunyang/visual-note-card-skills)",
+      "supplier": "NOASSERTION",
+      "downloadLocation": "https://github.com/beilunyang/visual-note-card-skills"
+    },
+    {
+      "SPDXID": "SPDXRef-vendor-affiliate-skills",
+      "name": "design-lab/knowledge/visual-quality/affiliate-skills",
+      "licenseConcluded": "MIT",
+      "licenseDeclared": "MIT",
+      "copyrightText": "NOASSERTION (vendored from https://github.com/Affitor/affiliate-skills)",
+      "supplier": "NOASSERTION",
+      "downloadLocation": "https://github.com/Affitor/affiliate-skills"
     }
   ],
   "relationships": [
@@ -808,6 +826,16 @@
       "spdxElementId": "SPDXRef-DOCUMENT",
       "relationshipType": "DESCRIBES",
       "relatedSpdxElement": "SPDXRef-vendor-interface-design"
+    },
+    {
+      "spdxElementId": "SPDXRef-DOCUMENT",
+      "relationshipType": "DESCRIBES",
+      "relatedSpdxElement": "SPDXRef-vendor-visual-note-card"
+    },
+    {
+      "spdxElementId": "SPDXRef-DOCUMENT",
+      "relationshipType": "DESCRIBES",
+      "relatedSpdxElement": "SPDXRef-vendor-affiliate-skills"
     }
   ]
 }
