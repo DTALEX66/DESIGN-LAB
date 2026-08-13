@@ -67,6 +67,10 @@ def scan() -> list[str]:
             continue
         if "node_modules" in rel or "__pycache__" in rel or ".pytest_cache" in rel:
             continue
+        # Test files asserting the gate's detection logic legitimately embed
+        # the legacy patterns as fixtures (semantic requirement, not violation).
+        if rel.startswith("design-lab/tests/") and rel.endswith(".py"):
+            continue
         try:
             text = p.read_text(encoding="utf-8")
         except Exception:
