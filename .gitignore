@@ -54,3 +54,5 @@ design-lab/knowledge/derived/local-cache/
 # 本地 profile / 项目级宿主选择（DL-ARC-002）
 design-lab/config/local-profile.json
 design-lab/config/*.local.json
+# verify-chain marker（动态产物，release gate 运行时生成）
+design-lab/config/.verify-chain-ok

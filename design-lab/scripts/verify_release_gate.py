@@ -50,6 +50,14 @@ def check(skip_dirty: bool = False) -> list[str]:
     marker = ROOT / "design-lab" / "config" / ".verify-chain-ok"
     if not marker.exists():
         findings.append("VERIFY-CHAIN-MARKER-MISSING (run verify_design_lab.py first)")
+    else:
+        m = marker.read_text(encoding="utf-8").strip()
+        if not m.startswith("ok "):
+            findings.append("VERIFY-CHAIN-MARKER-INVALID")
+        else:
+            marker_sha = m.split()[1] if len(m.split()) > 1 else ""
+            if marker_sha and marker_sha != head:
+                findings.append(f"VERIFY-CHAIN-STALE marker={marker_sha[:12]} head={head[:12]} (re-run verify_design_lab)")
 
     # 4. release evidence contract present
     contract = ROOT / "design-lab" / "config" / "RELEASE_EVIDENCE_CONTRACT.md"
