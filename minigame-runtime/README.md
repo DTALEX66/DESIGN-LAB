@@ -43,6 +43,12 @@ npm run android:build                         # Android WebView debug APK（视�
 npm run android:inspect                       # APK 元数据检查
 ```
 
+Android APK 产物：
+
+```text
+android-webview/app/build/outputs/apk/debug/app-debug.apk
+```
+
 ## 常用命令
 
 ```bash

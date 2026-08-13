@@ -89,10 +89,10 @@
     "mode": "compat-plugin",
     "v3": {
       "productFamilies": [
-        "source-governance",
-        "visual-quality",
         "production-handoff",
-        "release-evidence"
+        "release-evidence",
+        "research-evidence",
+        "visual-quality"
       ],
       "productionProfiles": [
         "digital-ui",

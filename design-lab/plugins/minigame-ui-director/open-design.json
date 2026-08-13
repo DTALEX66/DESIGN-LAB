@@ -98,10 +98,10 @@
     "mode": "compat-plugin",
     "v3": {
       "productFamilies": [
-        "brief-routing",
-        "visual-quality",
-        "domain-scenarios",
-        "runtime-integration"
+        "creative-toolchain",
+        "design-intelligence",
+        "professional-visual-domains",
+        "visual-quality"
       ],
       "productionProfiles": [
         "digital-ui"

@@ -72,11 +72,10 @@
     },
     "v3": {
       "productFamilies": [
-        "brief-routing",
-        "style-master-method",
-        "visual-quality",
-        "domain-scenarios",
-        "production-handoff"
+        "design-intelligence",
+        "production-handoff",
+        "professional-visual-domains",
+        "visual-quality"
       ],
       "productionProfiles": [
         "print-commercial",

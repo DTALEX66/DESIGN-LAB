@@ -116,7 +116,7 @@ const CONFIG = {
     adVideoDuration: 2000,
   },
 
-  /* ── 提示位（fixture 参考：宿主激励接口适配） ── */
+  /* ── 广告位 ── */
   adUnits: {
     revive: 'adunit-xxxxx_revive',
     decode: 'adunit-xxxxx_decode',

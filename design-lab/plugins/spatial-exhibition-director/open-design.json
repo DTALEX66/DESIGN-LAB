@@ -69,10 +69,10 @@
     },
     "v3": {
       "productFamilies": [
-        "source-governance",
-        "visual-quality",
-        "domain-scenarios",
-        "production-handoff"
+        "production-handoff",
+        "professional-visual-domains",
+        "research-evidence",
+        "visual-quality"
       ],
       "productionProfiles": [
         "spatial-exhibition"

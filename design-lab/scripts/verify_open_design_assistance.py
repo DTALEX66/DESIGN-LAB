@@ -453,24 +453,23 @@ def verify_secondary_verifiers(root: Path, results: list[Result]) -> None:
 
 def verify_docs(root: Path, results: list[Result]) -> None:
     required_refs = [
-        "design-lab/plugins/brand-visual-director/README.md",
-        "design-lab/plugins/spatial-exhibition-director/README.md",
-        "design-lab/templates/spatial/culture-wall.md",
-        "design-lab/templates/visual/3d-design.md",
-        "design-lab/scripts/verify_open_design_assistance.py",
-        "design-lab/scripts/generate_open_design_indexes.py",
-        "design-lab/scripts/scaffold_open_design_plugin.py",
-        "design-lab/plugins/INDEX.md",
-        "design-lab/templates/INDEX.md",
-        "design-lab/usage-notes/OPEN_DESIGN_PLUGIN_INSTALL.md",
-        "design-lab/exports/minigame-mobile-controls/README.md",
-        "project-memory/PROJECT_DEFINITION_V3.md",
-        "design-lab/ARCHITECTURE_V3.md",
+        "project-memory/PRODUCT_DEFINITION.md",
+        "project-memory/ARCHITECTURE.md",
+        "project-memory/BOUNDARY_CONTRACT.md",
+        "project-memory/NEUTRALITY_POLICY.md",
+        "project-memory/EVIDENCE_POLICY.md",
+        "project-memory/ADAPTER_POLICY.md",
+        "project-memory/OBJECT_MODEL.md",
+        "project-memory/USER_MODES.md",
+        "project-memory/ROADMAP.md",
         "design-lab/config/product-manifest.json",
         "design-lab/config/capability-status.json",
+        "design-lab/scripts/verify_design_lab.py",
+        "design-lab/scripts/verify_identity_gate.py",
         "design-lab/scripts/verify_product_manifest_v3.py",
         "design-lab/scripts/verify_runtime_contracts_v3.py",
         "design-lab/scripts/verify_visual_scoring_v3.py",
+        "design-lab/scripts/verify_source_registry_v2.py",
     ]
     root_readme = root / "README.md"
     assistance_readme = root / ASSISTANCE_DIR / "README.md"

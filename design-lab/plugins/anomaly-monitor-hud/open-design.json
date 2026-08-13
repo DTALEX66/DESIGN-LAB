@@ -92,10 +92,10 @@
     "mode": "compat-plugin",
     "v3": {
       "productFamilies": [
-        "visual-quality",
-        "domain-scenarios",
-        "runtime-integration",
-        "release-evidence"
+        "creative-toolchain",
+        "professional-visual-domains",
+        "release-evidence",
+        "visual-quality"
       ],
       "productionProfiles": [
         "digital-ui"

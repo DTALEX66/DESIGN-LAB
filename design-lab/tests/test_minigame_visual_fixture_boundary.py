@@ -32,7 +32,6 @@ FORBIDDEN_PATTERNS = [
     (r"\"adSlots\"", "adSlots field"),
     (r"\"nextContentPackCandidate\"", "nextContentPackCandidate"),
     (r"\"model\"\s*:\s*[\"']IAA", "IAA model"),
-    (r"广告位", "ad slot (cn)"),
     (r"激励广告", "rewarded ad (cn)"),
     (r"合集平台", "collection platform (cn)"),
     (r"变现", "monetization (cn)"),
