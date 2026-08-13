@@ -75,6 +75,8 @@ jobs:
         run: python scripts/run_python_tests.py
       - name: MiniGame fixture boundary test
         run: python -m unittest design-lab.tests.test_minigame_visual_fixture_boundary -v
+      - name: Visual Quality Jury deterministic check
+        run: python design-lab/quality/jury/check_anti_slop.py design-lab/knowledge/visual-quality/hallmark
       - name: JSON/Schema parse check
         run: python -m compileall -q design-lab/scripts
 
