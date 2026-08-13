@@ -2,7 +2,7 @@
   "$schema": "../../schemas/capability-index.schema.json",
   "version": "1.0.0",
   "generated_at": "2026-08-13",
-  "capability_count": 1938,
+  "capability_count": 2222,
   "capabilities": [
     {
       "path": "adapters/NEUTRALITY_POLICY.md",
@@ -7151,6 +7151,1032 @@
       "sha256": "bd5e4acdbe639bb4"
     },
     {
+      "path": "knowledge/visual-quality/affiliate-skills/.cursorrules",
+      "label": "knowledge",
+      "bytes": 2775,
+      "sha256": "598ae25ba742b236"
+    },
+    {
+      "path": "knowledge/visual-quality/affiliate-skills/API.md",
+      "label": "knowledge",
+      "bytes": 6311,
+      "sha256": "633f6bd0177ab222"
+    },
+    {
+      "path": "knowledge/visual-quality/affiliate-skills/CHANGELOG.md",
+      "label": "knowledge",
+      "bytes": 1887,
+      "sha256": "91d9094603a5bcfd"
+    },
+    {
+      "path": "knowledge/visual-quality/affiliate-skills/CLAUDE.md",
+      "label": "knowledge",
+      "bytes": 5349,
+      "sha256": "932a05003cefdb80"
+    },
+    {
+      "path": "knowledge/visual-quality/affiliate-skills/CONTRIBUTING.md",
+      "label": "knowledge",
+      "bytes": 4381,
+      "sha256": "a9c90bddc0b8eb3c"
+    },
+    {
+      "path": "knowledge/visual-quality/affiliate-skills/LICENSE",
+      "label": "knowledge",
+      "bytes": 1064,
+      "sha256": "6a660236717b5aed"
+    },
+    {
+      "path": "knowledge/visual-quality/affiliate-skills/PLAN-launch-content.md",
+      "label": "knowledge",
+      "bytes": 11190,
+      "sha256": "dd0e2d3ab2be28fc"
+    },
+    {
+      "path": "knowledge/visual-quality/affiliate-skills/PLAN-social-intelligence-upgrade.md",
+      "label": "knowledge",
+      "bytes": 27478,
+      "sha256": "71a5c7acebe5e2a6"
+    },
+    {
+      "path": "knowledge/visual-quality/affiliate-skills/PLAN-v2-skills-expansion.md",
+      "label": "knowledge",
+      "bytes": 12675,
+      "sha256": "1e3c130926060f65"
+    },
+    {
+      "path": "knowledge/visual-quality/affiliate-skills/QUICKSTART.md",
+      "label": "knowledge",
+      "bytes": 5194,
+      "sha256": "9d22f00885707316"
+    },
+    {
+      "path": "knowledge/visual-quality/affiliate-skills/README.md",
+      "label": "knowledge",
+      "bytes": 21877,
+      "sha256": "28e731b069b3a4bf"
+    },
+    {
+      "path": "knowledge/visual-quality/affiliate-skills/SKILL.md",
+      "label": "knowledge",
+      "bytes": 3237,
+      "sha256": "b6d7e8fffdf380db"
+    },
+    {
+      "path": "knowledge/visual-quality/affiliate-skills/SOURCE.md",
+      "label": "knowledge",
+      "bytes": 480,
+      "sha256": "a32f7ff6ff9a4b98"
+    },
+    {
+      "path": "knowledge/visual-quality/affiliate-skills/VERSION",
+      "label": "knowledge",
+      "bytes": 6,
+      "sha256": "1e5b51cde515396a"
+    },
+    {
+      "path": "knowledge/visual-quality/affiliate-skills/docs/AGENT-SOURCE-OF-TRUTH.md",
+      "label": "knowledge",
+      "bytes": 7595,
+      "sha256": "716d74bcb6c2592b"
+    },
+    {
+      "path": "knowledge/visual-quality/affiliate-skills/docs/affiliate-funnel-overview.md",
+      "label": "knowledge",
+      "bytes": 3213,
+      "sha256": "b65bc55f89fd5fd1"
+    },
+    {
+      "path": "knowledge/visual-quality/affiliate-skills/docs/distribution-strategy.md",
+      "label": "knowledge",
+      "bytes": 14046,
+      "sha256": "ccf1bf6130690763"
+    },
+    {
+      "path": "knowledge/visual-quality/affiliate-skills/docs/launch-content/devto-article.md",
+      "label": "knowledge",
+      "bytes": 2649,
+      "sha256": "a7915da17e1592b0"
+    },
+    {
+      "path": "knowledge/visual-quality/affiliate-skills/docs/launch-content/linkedin-post.md",
+      "label": "knowledge",
+      "bytes": 1132,
+      "sha256": "ce4d5d1e7d5f6977"
+    },
+    {
+      "path": "knowledge/visual-quality/affiliate-skills/docs/launch-content/reddit-claudeai.md",
+      "label": "knowledge",
+      "bytes": 1417,
+      "sha256": "64ff2d9bbaa20c9f"
+    },
+    {
+      "path": "knowledge/visual-quality/affiliate-skills/docs/launch-content/show-hn.md",
+      "label": "knowledge",
+      "bytes": 1246,
+      "sha256": "05903ef3f6c7a067"
+    },
+    {
+      "path": "knowledge/visual-quality/affiliate-skills/docs/launch-content/twitter-thread.md",
+      "label": "knowledge",
+      "bytes": 1618,
+      "sha256": "f27db9fd6a46f437"
+    },
+    {
+      "path": "knowledge/visual-quality/affiliate-skills/docs/pr-templates/awesome-list-pr-body.md",
+      "label": "knowledge",
+      "bytes": 818,
+      "sha256": "2767bb82dddffbd4"
+    },
+    {
+      "path": "knowledge/visual-quality/affiliate-skills/docs/pr-templates/list-entries.md",
+      "label": "knowledge",
+      "bytes": 1684,
+      "sha256": "87da519bdeaf741b"
+    },
+    {
+      "path": "knowledge/visual-quality/affiliate-skills/docs/sdd-review-prompt.md",
+      "label": "knowledge",
+      "bytes": 12685,
+      "sha256": "0b19eb93ad99aef5"
+    },
+    {
+      "path": "knowledge/visual-quality/affiliate-skills/docs/skill-roadmap.md",
+      "label": "knowledge",
+      "bytes": 7001,
+      "sha256": "681c3d26dfdc9470"
+    },
+    {
+      "path": "knowledge/visual-quality/affiliate-skills/evals/evals.json",
+      "label": "knowledge",
+      "bytes": 30225,
+      "sha256": "e179c2d99b8a1b84"
+    },
+    {
+      "path": "knowledge/visual-quality/affiliate-skills/package.json",
+      "label": "knowledge",
+      "bytes": 481,
+      "sha256": "6920bc2fcdbfc3b3"
+    },
+    {
+      "path": "knowledge/visual-quality/affiliate-skills/platforms/chatgpt.md",
+      "label": "knowledge",
+      "bytes": 3187,
+      "sha256": "23b183647ce1bcf4"
+    },
+    {
+      "path": "knowledge/visual-quality/affiliate-skills/platforms/cursor.md",
+      "label": "knowledge",
+      "bytes": 2916,
+      "sha256": "20083a2bd7ba1872"
+    },
+    {
+      "path": "knowledge/visual-quality/affiliate-skills/platforms/gemini.md",
+      "label": "knowledge",
+      "bytes": 3438,
+      "sha256": "416db71c4844d91d"
+    },
+    {
+      "path": "knowledge/visual-quality/affiliate-skills/platforms/openclaw.md",
+      "label": "knowledge",
+      "bytes": 4579,
+      "sha256": "bcbd253942227439"
+    },
+    {
+      "path": "knowledge/visual-quality/affiliate-skills/prompts/bootstrap.md",
+      "label": "knowledge",
+      "bytes": 6202,
+      "sha256": "09a011147ad8a55a"
+    },
+    {
+      "path": "knowledge/visual-quality/affiliate-skills/registry.json",
+      "label": "knowledge",
+      "bytes": 44922,
+      "sha256": "59ba50d14171142c"
+    },
+    {
+      "path": "knowledge/visual-quality/affiliate-skills/scripts/distribute.sh",
+      "label": "knowledge",
+      "bytes": 17693,
+      "sha256": "9a3de770a4864d2d"
+    },
+    {
+      "path": "knowledge/visual-quality/affiliate-skills/scripts/fix-frontmatter.js",
+      "label": "knowledge",
+      "bytes": 5952,
+      "sha256": "0a4049e6c98f2559"
+    },
+    {
+      "path": "knowledge/visual-quality/affiliate-skills/scripts/generate-registry.js",
+      "label": "knowledge",
+      "bytes": 4239,
+      "sha256": "04b4a96a3d60509a"
+    },
+    {
+      "path": "knowledge/visual-quality/affiliate-skills/scripts/run-evals.sh",
+      "label": "knowledge",
+      "bytes": 6832,
+      "sha256": "b9b9fd930b06106b"
+    },
+    {
+      "path": "knowledge/visual-quality/affiliate-skills/setup",
+      "label": "knowledge",
+      "bytes": 3261,
+      "sha256": "e0d9bf261d4fc7ce"
+    },
+    {
+      "path": "knowledge/visual-quality/affiliate-skills/shared/references/affiliate-glossary.md",
+      "label": "knowledge",
+      "bytes": 3050,
+      "sha256": "05fd65d03119236a"
+    },
+    {
+      "path": "knowledge/visual-quality/affiliate-skills/shared/references/affitor-branding.md",
+      "label": "knowledge",
+      "bytes": 1037,
+      "sha256": "f2b7ec939517a865"
+    },
+    {
+      "path": "knowledge/visual-quality/affiliate-skills/shared/references/case-studies.md",
+      "label": "knowledge",
+      "bytes": 4262,
+      "sha256": "210fc5d284060cc0"
+    },
+    {
+      "path": "knowledge/visual-quality/affiliate-skills/shared/references/feedback-protocol.md",
+      "label": "knowledge",
+      "bytes": 7876,
+      "sha256": "1518fe5d32690c66"
+    },
+    {
+      "path": "knowledge/visual-quality/affiliate-skills/shared/references/flywheel-connections.md",
+      "label": "knowledge",
+      "bytes": 9472,
+      "sha256": "fb31d089724a65be"
+    },
+    {
+      "path": "knowledge/visual-quality/affiliate-skills/shared/references/ftc-compliance.md",
+      "label": "knowledge",
+      "bytes": 2711,
+      "sha256": "ec8ed48eff890747"
+    },
+    {
+      "path": "knowledge/visual-quality/affiliate-skills/shared/references/offer-frameworks.md",
+      "label": "knowledge",
+      "bytes": 5058,
+      "sha256": "7a4109743740a4ae"
+    },
+    {
+      "path": "knowledge/visual-quality/affiliate-skills/shared/references/platform-rules.md",
+      "label": "knowledge",
+      "bytes": 2828,
+      "sha256": "591d56465f4d749e"
+    },
+    {
+      "path": "knowledge/visual-quality/affiliate-skills/shared/references/sample-api-response.json",
+      "label": "knowledge",
+      "bytes": 5432,
+      "sha256": "4e982238f750cf62"
+    },
+    {
+      "path": "knowledge/visual-quality/affiliate-skills/shared/references/seo-strategy.md",
+      "label": "knowledge",
+      "bytes": 5530,
+      "sha256": "8a8b0bf24aa04c50"
+    },
+    {
+      "path": "knowledge/visual-quality/affiliate-skills/shared/references/social-data-providers.md",
+      "label": "knowledge",
+      "bytes": 13898,
+      "sha256": "fc7f5be2eeb1b0eb"
+    },
+    {
+      "path": "knowledge/visual-quality/affiliate-skills/shared/references/version-check.md",
+      "label": "knowledge",
+      "bytes": 5256,
+      "sha256": "d7491361fc61b4b6"
+    },
+    {
+      "path": "knowledge/visual-quality/affiliate-skills/skills/analytics/ab-test-generator/LICENSE.txt",
+      "label": "knowledge",
+      "bytes": 1064,
+      "sha256": "6a660236717b5aed"
+    },
+    {
+      "path": "knowledge/visual-quality/affiliate-skills/skills/analytics/ab-test-generator/SKILL.md",
+      "label": "knowledge",
+      "bytes": 8779,
+      "sha256": "7cd824d11cd22012"
+    },
+    {
+      "path": "knowledge/visual-quality/affiliate-skills/skills/analytics/conversion-tracker/LICENSE.txt",
+      "label": "knowledge",
+      "bytes": 1064,
+      "sha256": "6a660236717b5aed"
+    },
+    {
+      "path": "knowledge/visual-quality/affiliate-skills/skills/analytics/conversion-tracker/SKILL.md",
+      "label": "knowledge",
+      "bytes": 8463,
+      "sha256": "bed5f9c10a24c359"
+    },
+    {
+      "path": "knowledge/visual-quality/affiliate-skills/skills/analytics/conversion-tracker/agents/openai.yaml",
+      "label": "knowledge",
+      "bytes": 143,
+      "sha256": "d0f7715a76c49915"
+    },
+    {
+      "path": "knowledge/visual-quality/affiliate-skills/skills/analytics/conversion-tracker/references/tracking-templates.md",
+      "label": "knowledge",
+      "bytes": 2485,
+      "sha256": "41c93e8694927fc0"
+    },
+    {
+      "path": "knowledge/visual-quality/affiliate-skills/skills/analytics/internal-linking-optimizer/SKILL.md",
+      "label": "knowledge",
+      "bytes": 9541,
+      "sha256": "7e50a88dc221e330"
+    },
+    {
+      "path": "knowledge/visual-quality/affiliate-skills/skills/analytics/performance-report/LICENSE.txt",
+      "label": "knowledge",
+      "bytes": 1064,
+      "sha256": "6a660236717b5aed"
+    },
+    {
+      "path": "knowledge/visual-quality/affiliate-skills/skills/analytics/performance-report/SKILL.md",
+      "label": "knowledge",
+      "bytes": 10064,
+      "sha256": "b520bb7c7bb38abd"
+    },
+    {
+      "path": "knowledge/visual-quality/affiliate-skills/skills/analytics/performance-report/agents/openai.yaml",
+      "label": "knowledge",
+      "bytes": 138,
+      "sha256": "0bf290538c7d0824"
+    },
+    {
+      "path": "knowledge/visual-quality/affiliate-skills/skills/analytics/performance-report/references/benchmarks.md",
+      "label": "knowledge",
+      "bytes": 2857,
+      "sha256": "32f176c36188c45b"
+    },
+    {
+      "path": "knowledge/visual-quality/affiliate-skills/skills/analytics/seo-audit/LICENSE.txt",
+      "label": "knowledge",
+      "bytes": 1064,
+      "sha256": "6a660236717b5aed"
+    },
+    {
+      "path": "knowledge/visual-quality/affiliate-skills/skills/analytics/seo-audit/SKILL.md",
+      "label": "knowledge",
+      "bytes": 9852,
+      "sha256": "0fc31231a35f79d5"
+    },
+    {
+      "path": "knowledge/visual-quality/affiliate-skills/skills/automation/content-repurposer/LICENSE.txt",
+      "label": "knowledge",
+      "bytes": 1064,
+      "sha256": "6a660236717b5aed"
+    },
+    {
+      "path": "knowledge/visual-quality/affiliate-skills/skills/automation/content-repurposer/SKILL.md",
+      "label": "knowledge",
+      "bytes": 10610,
+      "sha256": "2baef18c14482dc2"
+    },
+    {
+      "path": "knowledge/visual-quality/affiliate-skills/skills/automation/email-automation-builder/LICENSE.txt",
+      "label": "knowledge",
+      "bytes": 1064,
+      "sha256": "6a660236717b5aed"
+    },
+    {
+      "path": "knowledge/visual-quality/affiliate-skills/skills/automation/email-automation-builder/SKILL.md",
+      "label": "knowledge",
+      "bytes": 11747,
+      "sha256": "edd85ca94d9e5b11"
+    },
+    {
+      "path": "knowledge/visual-quality/affiliate-skills/skills/automation/multi-program-manager/LICENSE.txt",
+      "label": "knowledge",
+      "bytes": 1064,
+      "sha256": "6a660236717b5aed"
+    },
+    {
+      "path": "knowledge/visual-quality/affiliate-skills/skills/automation/multi-program-manager/SKILL.md",
+      "label": "knowledge",
+      "bytes": 9447,
+      "sha256": "bf31c6c6e4685119"
+    },
+    {
+      "path": "knowledge/visual-quality/affiliate-skills/skills/automation/paid-ad-copy-writer/LICENSE.txt",
+      "label": "knowledge",
+      "bytes": 1064,
+      "sha256": "6a660236717b5aed"
+    },
+    {
+      "path": "knowledge/visual-quality/affiliate-skills/skills/automation/paid-ad-copy-writer/SKILL.md",
+      "label": "knowledge",
+      "bytes": 12236,
+      "sha256": "617ed2669cdd5901"
+    },
+    {
+      "path": "knowledge/visual-quality/affiliate-skills/skills/automation/proprietary-data-generator/SKILL.md",
+      "label": "knowledge",
+      "bytes": 11408,
+      "sha256": "c31521bd90be667e"
+    },
+    {
+      "path": "knowledge/visual-quality/affiliate-skills/skills/blog/affiliate-blog-builder/LICENSE.txt",
+      "label": "knowledge",
+      "bytes": 1064,
+      "sha256": "6a660236717b5aed"
+    },
+    {
+      "path": "knowledge/visual-quality/affiliate-skills/skills/blog/affiliate-blog-builder/SKILL.md",
+      "label": "knowledge",
+      "bytes": 16986,
+      "sha256": "13288f066c6941ae"
+    },
+    {
+      "path": "knowledge/visual-quality/affiliate-skills/skills/blog/affiliate-blog-builder/agents/openai.yaml",
+      "label": "knowledge",
+      "bytes": 265,
+      "sha256": "5dad02e410cb2895"
+    },
+    {
+      "path": "knowledge/visual-quality/affiliate-skills/skills/blog/affiliate-blog-builder/references/blog-templates.md",
+      "label": "knowledge",
+      "bytes": 8011,
+      "sha256": "fedc63f33ae093a5"
+    },
+    {
+      "path": "knowledge/visual-quality/affiliate-skills/skills/blog/affiliate-blog-builder/references/seo-checklist.md",
+      "label": "knowledge",
+      "bytes": 5434,
+      "sha256": "ced43fd0af407a0b"
+    },
+    {
+      "path": "knowledge/visual-quality/affiliate-skills/skills/blog/affiliate-blog-builder/references/wordpress-deploy.md",
+      "label": "knowledge",
+      "bytes": 5394,
+      "sha256": "7dc7b98c3412ec2f"
+    },
+    {
+      "path": "knowledge/visual-quality/affiliate-skills/skills/blog/comparison-post-writer/LICENSE.txt",
+      "label": "knowledge",
+      "bytes": 1064,
+      "sha256": "6a660236717b5aed"
+    },
+    {
+      "path": "knowledge/visual-quality/affiliate-skills/skills/blog/comparison-post-writer/SKILL.md",
+      "label": "knowledge",
+      "bytes": 14346,
+      "sha256": "4ffc20d115dd1b25"
+    },
+    {
+      "path": "knowledge/visual-quality/affiliate-skills/skills/blog/content-decay-detector/SKILL.md",
+      "label": "knowledge",
+      "bytes": 8224,
+      "sha256": "2abaa1b6f53f772b"
+    },
+    {
+      "path": "knowledge/visual-quality/affiliate-skills/skills/blog/content-moat-calculator/SKILL.md",
+      "label": "knowledge",
+      "bytes": 9011,
+      "sha256": "b8ced32a1efd5cd2"
+    },
+    {
+      "path": "knowledge/visual-quality/affiliate-skills/skills/blog/how-to-tutorial-writer/LICENSE.txt",
+      "label": "knowledge",
+      "bytes": 1064,
+      "sha256": "6a660236717b5aed"
+    },
+    {
+      "path": "knowledge/visual-quality/affiliate-skills/skills/blog/how-to-tutorial-writer/SKILL.md",
+      "label": "knowledge",
+      "bytes": 14559,
+      "sha256": "65b7766236b66e59"
+    },
+    {
+      "path": "knowledge/visual-quality/affiliate-skills/skills/blog/keyword-cluster-architect/SKILL.md",
+      "label": "knowledge",
+      "bytes": 9576,
+      "sha256": "85fb28567cc65aee"
+    },
+    {
+      "path": "knowledge/visual-quality/affiliate-skills/skills/blog/listicle-generator/LICENSE.txt",
+      "label": "knowledge",
+      "bytes": 1064,
+      "sha256": "6a660236717b5aed"
+    },
+    {
+      "path": "knowledge/visual-quality/affiliate-skills/skills/blog/listicle-generator/SKILL.md",
+      "label": "knowledge",
+      "bytes": 14042,
+      "sha256": "52807704f33bdfb8"
+    },
+    {
+      "path": "knowledge/visual-quality/affiliate-skills/skills/content/content-pillar-atomizer/SKILL.md",
+      "label": "knowledge",
+      "bytes": 12382,
+      "sha256": "0ca41c3c85bcebb4"
+    },
+    {
+      "path": "knowledge/visual-quality/affiliate-skills/skills/content/content-research-brief/SKILL.md",
+      "label": "knowledge",
+      "bytes": 16741,
+      "sha256": "c7e41b3abe6fd0f8"
+    },
+    {
+      "path": "knowledge/visual-quality/affiliate-skills/skills/content/infographic-generator/SKILL.md",
+      "label": "knowledge",
+      "bytes": 16476,
+      "sha256": "fa0b5a425372cdcb"
+    },
+    {
+      "path": "knowledge/visual-quality/affiliate-skills/skills/content/reddit-post-writer/LICENSE.txt",
+      "label": "knowledge",
+      "bytes": 1064,
+      "sha256": "6a660236717b5aed"
+    },
+    {
+      "path": "knowledge/visual-quality/affiliate-skills/skills/content/reddit-post-writer/SKILL.md",
+      "label": "knowledge",
+      "bytes": 16378,
+      "sha256": "88d0e387d895bea5"
+    },
+    {
+      "path": "knowledge/visual-quality/affiliate-skills/skills/content/tiktok-script-writer/LICENSE.txt",
+      "label": "knowledge",
+      "bytes": 1064,
+      "sha256": "6a660236717b5aed"
+    },
+    {
+      "path": "knowledge/visual-quality/affiliate-skills/skills/content/tiktok-script-writer/SKILL.md",
+      "label": "knowledge",
+      "bytes": 14710,
+      "sha256": "d83f5bd49eb2fb54"
+    },
+    {
+      "path": "knowledge/visual-quality/affiliate-skills/skills/content/twitter-thread-writer/LICENSE.txt",
+      "label": "knowledge",
+      "bytes": 1064,
+      "sha256": "6a660236717b5aed"
+    },
+    {
+      "path": "knowledge/visual-quality/affiliate-skills/skills/content/twitter-thread-writer/SKILL.md",
+      "label": "knowledge",
+      "bytes": 14368,
+      "sha256": "e6b49522c7526319"
+    },
+    {
+      "path": "knowledge/visual-quality/affiliate-skills/skills/content/viral-post-writer/LICENSE.txt",
+      "label": "knowledge",
+      "bytes": 1064,
+      "sha256": "6a660236717b5aed"
+    },
+    {
+      "path": "knowledge/visual-quality/affiliate-skills/skills/content/viral-post-writer/SKILL.md",
+      "label": "knowledge",
+      "bytes": 15325,
+      "sha256": "c6c41e03eb7d1b34"
+    },
+    {
+      "path": "knowledge/visual-quality/affiliate-skills/skills/content/viral-post-writer/agents/openai.yaml",
+      "label": "knowledge",
+      "bytes": 178,
+      "sha256": "627af1938d4f58e6"
+    },
+    {
+      "path": "knowledge/visual-quality/affiliate-skills/skills/content/viral-post-writer/references/platform-specs.md",
+      "label": "knowledge",
+      "bytes": 5559,
+      "sha256": "408c4be3c5411da8"
+    },
+    {
+      "path": "knowledge/visual-quality/affiliate-skills/skills/content/viral-post-writer/references/viral-frameworks.md",
+      "label": "knowledge",
+      "bytes": 8607,
+      "sha256": "5a73c6097329d431"
+    },
+    {
+      "path": "knowledge/visual-quality/affiliate-skills/skills/distribution/bio-link-deployer/LICENSE.txt",
+      "label": "knowledge",
+      "bytes": 1064,
+      "sha256": "6a660236717b5aed"
+    },
+    {
+      "path": "knowledge/visual-quality/affiliate-skills/skills/distribution/bio-link-deployer/SKILL.md",
+      "label": "knowledge",
+      "bytes": 12259,
+      "sha256": "765c01398867440f"
+    },
+    {
+      "path": "knowledge/visual-quality/affiliate-skills/skills/distribution/bio-link-deployer/agents/openai.yaml",
+      "label": "knowledge",
+      "bytes": 218,
+      "sha256": "bd4a1a93eb99cb71"
+    },
+    {
+      "path": "knowledge/visual-quality/affiliate-skills/skills/distribution/bio-link-deployer/references/domain-setup.md",
+      "label": "knowledge",
+      "bytes": 3156,
+      "sha256": "f9b18799d63151ba"
+    },
+    {
+      "path": "knowledge/visual-quality/affiliate-skills/skills/distribution/bio-link-deployer/templates/bio-link.html",
+      "label": "knowledge",
+      "bytes": 9680,
+      "sha256": "00580d44461169fa"
+    },
+    {
+      "path": "knowledge/visual-quality/affiliate-skills/skills/distribution/email-drip-sequence/LICENSE.txt",
+      "label": "knowledge",
+      "bytes": 1064,
+      "sha256": "6a660236717b5aed"
+    },
+    {
+      "path": "knowledge/visual-quality/affiliate-skills/skills/distribution/email-drip-sequence/SKILL.md",
+      "label": "knowledge",
+      "bytes": 12164,
+      "sha256": "a5b8ba883e19d321"
+    },
+    {
+      "path": "knowledge/visual-quality/affiliate-skills/skills/distribution/github-pages-deployer/LICENSE.txt",
+      "label": "knowledge",
+      "bytes": 1064,
+      "sha256": "6a660236717b5aed"
+    },
+    {
+      "path": "knowledge/visual-quality/affiliate-skills/skills/distribution/github-pages-deployer/SKILL.md",
+      "label": "knowledge",
+      "bytes": 15227,
+      "sha256": "fb2d8848c6c27199"
+    },
+    {
+      "path": "knowledge/visual-quality/affiliate-skills/skills/distribution/social-media-scheduler/LICENSE.txt",
+      "label": "knowledge",
+      "bytes": 1064,
+      "sha256": "6a660236717b5aed"
+    },
+    {
+      "path": "knowledge/visual-quality/affiliate-skills/skills/distribution/social-media-scheduler/SKILL.md",
+      "label": "knowledge",
+      "bytes": 14305,
+      "sha256": "74559875a0b3b5f4"
+    },
+    {
+      "path": "knowledge/visual-quality/affiliate-skills/skills/landing/bonus-stack-builder/SKILL.md",
+      "label": "knowledge",
+      "bytes": 10410,
+      "sha256": "26ac00d7c2411623"
+    },
+    {
+      "path": "knowledge/visual-quality/affiliate-skills/skills/landing/grand-slam-offer/SKILL.md",
+      "label": "knowledge",
+      "bytes": 10836,
+      "sha256": "95ff9e4068a90314"
+    },
+    {
+      "path": "knowledge/visual-quality/affiliate-skills/skills/landing/guarantee-generator/SKILL.md",
+      "label": "knowledge",
+      "bytes": 9682,
+      "sha256": "63d219fe3b5fb6fb"
+    },
+    {
+      "path": "knowledge/visual-quality/affiliate-skills/skills/landing/landing-page-creator/LICENSE.txt",
+      "label": "knowledge",
+      "bytes": 1064,
+      "sha256": "6a660236717b5aed"
+    },
+    {
+      "path": "knowledge/visual-quality/affiliate-skills/skills/landing/landing-page-creator/SKILL.md",
+      "label": "knowledge",
+      "bytes": 14599,
+      "sha256": "69ba5e0cc356c0de"
+    },
+    {
+      "path": "knowledge/visual-quality/affiliate-skills/skills/landing/landing-page-creator/agents/openai.yaml",
+      "label": "knowledge",
+      "bytes": 253,
+      "sha256": "97a8e71ccccf7f55"
+    },
+    {
+      "path": "knowledge/visual-quality/affiliate-skills/skills/landing/landing-page-creator/references/conversion-principles.md",
+      "label": "knowledge",
+      "bytes": 5342,
+      "sha256": "2170640057992f9f"
+    },
+    {
+      "path": "knowledge/visual-quality/affiliate-skills/skills/landing/landing-page-creator/templates/comparison.html",
+      "label": "knowledge",
+      "bytes": 17643,
+      "sha256": "3433ff10817b3fba"
+    },
+    {
+      "path": "knowledge/visual-quality/affiliate-skills/skills/landing/landing-page-creator/templates/single-product.html",
+      "label": "knowledge",
+      "bytes": 13573,
+      "sha256": "7941e3fe64ad1b69"
+    },
+    {
+      "path": "knowledge/visual-quality/affiliate-skills/skills/landing/product-showcase-page/LICENSE.txt",
+      "label": "knowledge",
+      "bytes": 1064,
+      "sha256": "6a660236717b5aed"
+    },
+    {
+      "path": "knowledge/visual-quality/affiliate-skills/skills/landing/product-showcase-page/SKILL.md",
+      "label": "knowledge",
+      "bytes": 14408,
+      "sha256": "35f8c002e68552c5"
+    },
+    {
+      "path": "knowledge/visual-quality/affiliate-skills/skills/landing/product-showcase-page/references/conversion-principles.md",
+      "label": "knowledge",
+      "bytes": 5342,
+      "sha256": "2170640057992f9f"
+    },
+    {
+      "path": "knowledge/visual-quality/affiliate-skills/skills/landing/squeeze-page-builder/LICENSE.txt",
+      "label": "knowledge",
+      "bytes": 1064,
+      "sha256": "6a660236717b5aed"
+    },
+    {
+      "path": "knowledge/visual-quality/affiliate-skills/skills/landing/squeeze-page-builder/SKILL.md",
+      "label": "knowledge",
+      "bytes": 14401,
+      "sha256": "88c67aacdde3f920"
+    },
+    {
+      "path": "knowledge/visual-quality/affiliate-skills/skills/landing/squeeze-page-builder/references/conversion-principles.md",
+      "label": "knowledge",
+      "bytes": 5342,
+      "sha256": "2170640057992f9f"
+    },
+    {
+      "path": "knowledge/visual-quality/affiliate-skills/skills/landing/value-ladder-architect/SKILL.md",
+      "label": "knowledge",
+      "bytes": 10096,
+      "sha256": "ad41d002a0751150"
+    },
+    {
+      "path": "knowledge/visual-quality/affiliate-skills/skills/landing/webinar-registration-page/LICENSE.txt",
+      "label": "knowledge",
+      "bytes": 1064,
+      "sha256": "6a660236717b5aed"
+    },
+    {
+      "path": "knowledge/visual-quality/affiliate-skills/skills/landing/webinar-registration-page/SKILL.md",
+      "label": "knowledge",
+      "bytes": 17475,
+      "sha256": "1543e9ceab753700"
+    },
+    {
+      "path": "knowledge/visual-quality/affiliate-skills/skills/landing/webinar-registration-page/references/conversion-principles.md",
+      "label": "knowledge",
+      "bytes": 5342,
+      "sha256": "2170640057992f9f"
+    },
+    {
+      "path": "knowledge/visual-quality/affiliate-skills/skills/meta/category-designer/SKILL.md",
+      "label": "knowledge",
+      "bytes": 11360,
+      "sha256": "f9ae3cfe0d081cd5"
+    },
+    {
+      "path": "knowledge/visual-quality/affiliate-skills/skills/meta/compliance-checker/LICENSE.txt",
+      "label": "knowledge",
+      "bytes": 1064,
+      "sha256": "6a660236717b5aed"
+    },
+    {
+      "path": "knowledge/visual-quality/affiliate-skills/skills/meta/compliance-checker/SKILL.md",
+      "label": "knowledge",
+      "bytes": 10687,
+      "sha256": "b475852079499ee1"
+    },
+    {
+      "path": "knowledge/visual-quality/affiliate-skills/skills/meta/compliance-checker/agents/openai.yaml",
+      "label": "knowledge",
+      "bytes": 131,
+      "sha256": "509c9aca35c1a819"
+    },
+    {
+      "path": "knowledge/visual-quality/affiliate-skills/skills/meta/create-skill/SKILL.md",
+      "label": "knowledge",
+      "bytes": 17368,
+      "sha256": "43f40d822c59cfb9"
+    },
+    {
+      "path": "knowledge/visual-quality/affiliate-skills/skills/meta/funnel-planner/LICENSE.txt",
+      "label": "knowledge",
+      "bytes": 1064,
+      "sha256": "6a660236717b5aed"
+    },
+    {
+      "path": "knowledge/visual-quality/affiliate-skills/skills/meta/funnel-planner/SKILL.md",
+      "label": "knowledge",
+      "bytes": 9016,
+      "sha256": "decaefae1ec7b809"
+    },
+    {
+      "path": "knowledge/visual-quality/affiliate-skills/skills/meta/self-improver/LICENSE.txt",
+      "label": "knowledge",
+      "bytes": 1064,
+      "sha256": "6a660236717b5aed"
+    },
+    {
+      "path": "knowledge/visual-quality/affiliate-skills/skills/meta/self-improver/SKILL.md",
+      "label": "knowledge",
+      "bytes": 10359,
+      "sha256": "a087a51ae3e41771"
+    },
+    {
+      "path": "knowledge/visual-quality/affiliate-skills/skills/meta/skill-finder/LICENSE.txt",
+      "label": "knowledge",
+      "bytes": 1064,
+      "sha256": "6a660236717b5aed"
+    },
+    {
+      "path": "knowledge/visual-quality/affiliate-skills/skills/meta/skill-finder/SKILL.md",
+      "label": "knowledge",
+      "bytes": 8283,
+      "sha256": "d218d3a86bcdcc8c"
+    },
+    {
+      "path": "knowledge/visual-quality/affiliate-skills/skills/meta/skill-finder/agents/openai.yaml",
+      "label": "knowledge",
+      "bytes": 106,
+      "sha256": "13fce3c94fe9a7cc"
+    },
+    {
+      "path": "knowledge/visual-quality/affiliate-skills/skills/research/affiliate-program-search/LICENSE.txt",
+      "label": "knowledge",
+      "bytes": 1064,
+      "sha256": "6a660236717b5aed"
+    },
+    {
+      "path": "knowledge/visual-quality/affiliate-skills/skills/research/affiliate-program-search/SKILL.md",
+      "label": "knowledge",
+      "bytes": 9572,
+      "sha256": "1419f23ef376df46"
+    },
+    {
+      "path": "knowledge/visual-quality/affiliate-skills/skills/research/affiliate-program-search/agents/openai.yaml",
+      "label": "knowledge",
+      "bytes": 298,
+      "sha256": "b89d052c1c01ec45"
+    },
+    {
+      "path": "knowledge/visual-quality/affiliate-skills/skills/research/affiliate-program-search/references/openaffiliate-api.md",
+      "label": "knowledge",
+      "bytes": 3730,
+      "sha256": "d55f674e1dadf804"
+    },
+    {
+      "path": "knowledge/visual-quality/affiliate-skills/skills/research/affiliate-program-search/references/platform-rules.md",
+      "label": "knowledge",
+      "bytes": 2828,
+      "sha256": "591d56465f4d749e"
+    },
+    {
+      "path": "knowledge/visual-quality/affiliate-skills/skills/research/affiliate-program-search/references/scoring-criteria.md",
+      "label": "knowledge",
+      "bytes": 5256,
+      "sha256": "b8776c4c9c31eb23"
+    },
+    {
+      "path": "knowledge/visual-quality/affiliate-skills/skills/research/commission-calculator/LICENSE.txt",
+      "label": "knowledge",
+      "bytes": 1064,
+      "sha256": "6a660236717b5aed"
+    },
+    {
+      "path": "knowledge/visual-quality/affiliate-skills/skills/research/commission-calculator/SKILL.md",
+      "label": "knowledge",
+      "bytes": 13510,
+      "sha256": "b8c7603f81ff5941"
+    },
+    {
+      "path": "knowledge/visual-quality/affiliate-skills/skills/research/competitor-spy/LICENSE.txt",
+      "label": "knowledge",
+      "bytes": 1064,
+      "sha256": "6a660236717b5aed"
+    },
+    {
+      "path": "knowledge/visual-quality/affiliate-skills/skills/research/competitor-spy/SKILL.md",
+      "label": "knowledge",
+      "bytes": 15021,
+      "sha256": "ae854372edef2ef6"
+    },
+    {
+      "path": "knowledge/visual-quality/affiliate-skills/skills/research/content-angle-ranker/SKILL.md",
+      "label": "knowledge",
+      "bytes": 19454,
+      "sha256": "c036e50672c3b58a"
+    },
+    {
+      "path": "knowledge/visual-quality/affiliate-skills/skills/research/monopoly-niche-finder/SKILL.md",
+      "label": "knowledge",
+      "bytes": 8990,
+      "sha256": "bbd1020f85fb1b89"
+    },
+    {
+      "path": "knowledge/visual-quality/affiliate-skills/skills/research/niche-opportunity-finder/LICENSE.txt",
+      "label": "knowledge",
+      "bytes": 1064,
+      "sha256": "6a660236717b5aed"
+    },
+    {
+      "path": "knowledge/visual-quality/affiliate-skills/skills/research/niche-opportunity-finder/SKILL.md",
+      "label": "knowledge",
+      "bytes": 10964,
+      "sha256": "111eb481e4a62e63"
+    },
+    {
+      "path": "knowledge/visual-quality/affiliate-skills/skills/research/purple-cow-audit/SKILL.md",
+      "label": "knowledge",
+      "bytes": 9926,
+      "sha256": "683ddbfd6943a957"
+    },
+    {
+      "path": "knowledge/visual-quality/affiliate-skills/skills/research/submit-program/SKILL.md",
+      "label": "knowledge",
+      "bytes": 16214,
+      "sha256": "1ed272b8a1350213"
+    },
+    {
+      "path": "knowledge/visual-quality/affiliate-skills/skills/research/traffic-analyzer/SKILL.md",
+      "label": "knowledge",
+      "bytes": 15210,
+      "sha256": "f8e353290113f6dc"
+    },
+    {
+      "path": "knowledge/visual-quality/affiliate-skills/skills/research/trending-content-scout/SKILL.md",
+      "label": "knowledge",
+      "bytes": 21753,
+      "sha256": "1971b8fe24dc560a"
+    },
+    {
+      "path": "knowledge/visual-quality/affiliate-skills/spec/README.md",
+      "label": "knowledge",
+      "bytes": 2031,
+      "sha256": "2012ed6a4fe2d599"
+    },
+    {
+      "path": "knowledge/visual-quality/affiliate-skills/template/SKILL.md",
+      "label": "knowledge",
+      "bytes": 4290,
+      "sha256": "6db6e693e6aa2da2"
+    },
+    {
+      "path": "knowledge/visual-quality/affiliate-skills/tests/test-doc-contracts.ts",
+      "label": "knowledge",
+      "bytes": 2250,
+      "sha256": "6e2988100dc55dd0"
+    },
+    {
+      "path": "knowledge/visual-quality/affiliate-skills/tests/test-registry-invariants.ts",
+      "label": "knowledge",
+      "bytes": 3062,
+      "sha256": "81fba953c94995d5"
+    },
+    {
+      "path": "knowledge/visual-quality/affiliate-skills/tools/src/api.ts",
+      "label": "knowledge",
+      "bytes": 5250,
+      "sha256": "fd13b5d8b6d7ce88"
+    },
+    {
+      "path": "knowledge/visual-quality/affiliate-skills/tools/src/cache.ts",
+      "label": "knowledge",
+      "bytes": 1627,
+      "sha256": "64dcae45fb4ad4b5"
+    },
+    {
+      "path": "knowledge/visual-quality/affiliate-skills/tools/src/cli.ts",
+      "label": "knowledge",
+      "bytes": 7345,
+      "sha256": "3ef9ca5d21f6d835"
+    },
+    {
+      "path": "knowledge/visual-quality/affiliate-skills/tools/src/format.ts",
+      "label": "knowledge",
+      "bytes": 4753,
+      "sha256": "be1d111a77a312fc"
+    },
+    {
+      "path": "knowledge/visual-quality/affiliate-skills/tools/src/server.ts",
+      "label": "knowledge",
+      "bytes": 8482,
+      "sha256": "cbc2aef83ffaa88b"
+    },
+    {
       "path": "knowledge/visual-quality/ai-graphic-design/CONTRIBUTING.md",
       "label": "knowledge",
       "bytes": 2469,
@@ -9947,6 +10973,150 @@
       "sha256": "c2830f3b7d68e962"
     },
     {
+      "path": "knowledge/visual-quality/hue/LICENSE",
+      "label": "knowledge",
+      "bytes": 1071,
+      "sha256": "36c580eea1b0bd48"
+    },
+    {
+      "path": "knowledge/visual-quality/hue/README.md",
+      "label": "knowledge",
+      "bytes": 2834,
+      "sha256": "f739a93614d7836d"
+    },
+    {
+      "path": "knowledge/visual-quality/hue/SKILL.md",
+      "label": "knowledge",
+      "bytes": 62649,
+      "sha256": "9d4632d0e7cc13c6"
+    },
+    {
+      "path": "knowledge/visual-quality/hue/SOURCE.md",
+      "label": "knowledge",
+      "bytes": 563,
+      "sha256": "1364bfcce06f35f3"
+    },
+    {
+      "path": "knowledge/visual-quality/hue/docs/2026-04-17-cross-platform-codex.md",
+      "label": "knowledge",
+      "bytes": 16983,
+      "sha256": "a6c51c1db3bf838b"
+    },
+    {
+      "path": "knowledge/visual-quality/hue/references/app-screen-template.md",
+      "label": "knowledge",
+      "bytes": 11376,
+      "sha256": "007e70226439fda7"
+    },
+    {
+      "path": "knowledge/visual-quality/hue/references/background-graphics.md",
+      "label": "knowledge",
+      "bytes": 20293,
+      "sha256": "526d4687854d701a"
+    },
+    {
+      "path": "knowledge/visual-quality/hue/references/background-shaders.md",
+      "label": "knowledge",
+      "bytes": 20458,
+      "sha256": "4fe9e1514ba55449"
+    },
+    {
+      "path": "knowledge/visual-quality/hue/references/component-library-template.md",
+      "label": "knowledge",
+      "bytes": 32273,
+      "sha256": "e9f9f650a34edb99"
+    },
+    {
+      "path": "knowledge/visual-quality/hue/references/components-template.md",
+      "label": "knowledge",
+      "bytes": 19847,
+      "sha256": "1be112774e14c294"
+    },
+    {
+      "path": "knowledge/visual-quality/hue/references/hero-stage.md",
+      "label": "knowledge",
+      "bytes": 38913,
+      "sha256": "4f8adbf68d7df155"
+    },
+    {
+      "path": "knowledge/visual-quality/hue/references/icon-kits.md",
+      "label": "knowledge",
+      "bytes": 10480,
+      "sha256": "62c0989c1f46d6f9"
+    },
+    {
+      "path": "knowledge/visual-quality/hue/references/landing-page-template.md",
+      "label": "knowledge",
+      "bytes": 17172,
+      "sha256": "b25e7b89a3b7b056"
+    },
+    {
+      "path": "knowledge/visual-quality/hue/references/platform-mapping-template.md",
+      "label": "knowledge",
+      "bytes": 13282,
+      "sha256": "d5b8ccb452a65b01"
+    },
+    {
+      "path": "knowledge/visual-quality/hue/references/preview-template.md",
+      "label": "knowledge",
+      "bytes": 10761,
+      "sha256": "ba787247b69d8282"
+    },
+    {
+      "path": "knowledge/visual-quality/hue/references/skill-template.md",
+      "label": "knowledge",
+      "bytes": 2111,
+      "sha256": "f18d3c6d98487da2"
+    },
+    {
+      "path": "knowledge/visual-quality/hue/references/tokens-template.md",
+      "label": "knowledge",
+      "bytes": 12749,
+      "sha256": "dea56372d8480ab0"
+    },
+    {
+      "path": "knowledge/visual-quality/hue/scripts/validate.mjs",
+      "label": "knowledge",
+      "bytes": 18227,
+      "sha256": "a67bce6625e529e3"
+    },
+    {
+      "path": "knowledge/visual-quality/interface-design/LICENSE",
+      "label": "knowledge",
+      "bytes": 1072,
+      "sha256": "54c405ef24e71634"
+    },
+    {
+      "path": "knowledge/visual-quality/interface-design/README.md",
+      "label": "knowledge",
+      "bytes": 11262,
+      "sha256": "0673dd349234afd1"
+    },
+    {
+      "path": "knowledge/visual-quality/interface-design/SOURCE.md",
+      "label": "knowledge",
+      "bytes": 484,
+      "sha256": "69c2b0cc6b28665c"
+    },
+    {
+      "path": "knowledge/visual-quality/interface-design/reference/examples/system-precision.md",
+      "label": "knowledge",
+      "bytes": 1191,
+      "sha256": "9fcf8381011d749c"
+    },
+    {
+      "path": "knowledge/visual-quality/interface-design/reference/examples/system-warmth.md",
+      "label": "knowledge",
+      "bytes": 1237,
+      "sha256": "c0c38c3075fa8b0b"
+    },
+    {
+      "path": "knowledge/visual-quality/interface-design/reference/system-template.md",
+      "label": "knowledge",
+      "bytes": 1272,
+      "sha256": "d76b413d43abb064"
+    },
+    {
       "path": "knowledge/visual-quality/logo-designer/.claude-plugin/plugin.json",
       "label": "knowledge",
       "bytes": 327,
@@ -10895,6 +12065,504 @@
       "sha256": "d91787273ebec00a"
     },
     {
+      "path": "knowledge/visual-quality/qiaomu-design/CHANGELOG.md",
+      "label": "knowledge",
+      "bytes": 11225,
+      "sha256": "dd7f52b73c4a52d1"
+    },
+    {
+      "path": "knowledge/visual-quality/qiaomu-design/LICENSE",
+      "label": "knowledge",
+      "bytes": 1066,
+      "sha256": "54ab321ca83fe9c9"
+    },
+    {
+      "path": "knowledge/visual-quality/qiaomu-design/README.md",
+      "label": "knowledge",
+      "bytes": 14720,
+      "sha256": "8b11ac7805bc9b4b"
+    },
+    {
+      "path": "knowledge/visual-quality/qiaomu-design/SKILL.md",
+      "label": "knowledge",
+      "bytes": 43765,
+      "sha256": "9a5f544df28bd83b"
+    },
+    {
+      "path": "knowledge/visual-quality/qiaomu-design/SOURCE.md",
+      "label": "knowledge",
+      "bytes": 526,
+      "sha256": "26e3d42bb26f579b"
+    },
+    {
+      "path": "knowledge/visual-quality/qiaomu-design/references/animation-vocabulary.md",
+      "label": "knowledge",
+      "bytes": 6489,
+      "sha256": "68695cc8a182a4df"
+    },
+    {
+      "path": "knowledge/visual-quality/qiaomu-design/references/apple-fluid-interfaces.md",
+      "label": "knowledge",
+      "bytes": 7682,
+      "sha256": "9964ae0e907e136f"
+    },
+    {
+      "path": "knowledge/visual-quality/qiaomu-design/references/assets-and-readability.md",
+      "label": "knowledge",
+      "bytes": 4935,
+      "sha256": "6b2cef8cc1fb00f1"
+    },
+    {
+      "path": "knowledge/visual-quality/qiaomu-design/references/carbon-components.md",
+      "label": "knowledge",
+      "bytes": 9479,
+      "sha256": "ea341fb0c3abf3b4"
+    },
+    {
+      "path": "knowledge/visual-quality/qiaomu-design/references/carbon-data-visualization.md",
+      "label": "knowledge",
+      "bytes": 5435,
+      "sha256": "40a6b7afe4c08e2f"
+    },
+    {
+      "path": "knowledge/visual-quality/qiaomu-design/references/carbon-foundations.md",
+      "label": "knowledge",
+      "bytes": 9023,
+      "sha256": "f8fa34200b04706a"
+    },
+    {
+      "path": "knowledge/visual-quality/qiaomu-design/references/carbon-patterns.md",
+      "label": "knowledge",
+      "bytes": 8672,
+      "sha256": "4edb48207d85fb24"
+    },
+    {
+      "path": "knowledge/visual-quality/qiaomu-design/references/carbon-source-map.md",
+      "label": "knowledge",
+      "bytes": 6942,
+      "sha256": "293ba2ef87622ccc"
+    },
+    {
+      "path": "knowledge/visual-quality/qiaomu-design/references/chinese-typography.md",
+      "label": "knowledge",
+      "bytes": 5001,
+      "sha256": "a851dc72f99d127f"
+    },
+    {
+      "path": "knowledge/visual-quality/qiaomu-design/references/craft-loop.md",
+      "label": "knowledge",
+      "bytes": 4178,
+      "sha256": "46e595c41b28c1ec"
+    },
+    {
+      "path": "knowledge/visual-quality/qiaomu-design/references/design-systems-catalog.md",
+      "label": "knowledge",
+      "bytes": 7774,
+      "sha256": "36cb621b679c260c"
+    },
+    {
+      "path": "knowledge/visual-quality/qiaomu-design/references/design-systems/airbnb/DESIGN.md",
+      "label": "knowledge",
+      "bytes": 14051,
+      "sha256": "06ab677dbc15696e"
+    },
+    {
+      "path": "knowledge/visual-quality/qiaomu-design/references/design-systems/airtable/DESIGN.md",
+      "label": "knowledge",
+      "bytes": 3559,
+      "sha256": "e1f7733a48ebd03a"
+    },
+    {
+      "path": "knowledge/visual-quality/qiaomu-design/references/design-systems/apple/DESIGN.md",
+      "label": "knowledge",
+      "bytes": 20418,
+      "sha256": "685f82343656c656"
+    },
+    {
+      "path": "knowledge/visual-quality/qiaomu-design/references/design-systems/bmw/DESIGN.md",
+      "label": "knowledge",
+      "bytes": 9812,
+      "sha256": "4ca29b57e955beba"
+    },
+    {
+      "path": "knowledge/visual-quality/qiaomu-design/references/design-systems/cal/DESIGN.md",
+      "label": "knowledge",
+      "bytes": 17801,
+      "sha256": "483fa8b01cd1c1fc"
+    },
+    {
+      "path": "knowledge/visual-quality/qiaomu-design/references/design-systems/claude/DESIGN.md",
+      "label": "knowledge",
+      "bytes": 20296,
+      "sha256": "8cade52537515a45"
+    },
+    {
+      "path": "knowledge/visual-quality/qiaomu-design/references/design-systems/clay/DESIGN.md",
+      "label": "knowledge",
+      "bytes": 17332,
+      "sha256": "c42b9e13859a9b78"
+    },
+    {
+      "path": "knowledge/visual-quality/qiaomu-design/references/design-systems/clickhouse/DESIGN.md",
+      "label": "knowledge",
+      "bytes": 15394,
+      "sha256": "b121b041d88dc168"
+    },
+    {
+      "path": "knowledge/visual-quality/qiaomu-design/references/design-systems/cohere/DESIGN.md",
+      "label": "knowledge",
+      "bytes": 14757,
+      "sha256": "ba4ff31c47cc0430"
+    },
+    {
+      "path": "knowledge/visual-quality/qiaomu-design/references/design-systems/coinbase/DESIGN.md",
+      "label": "knowledge",
+      "bytes": 5008,
+      "sha256": "951ed4230e169272"
+    },
+    {
+      "path": "knowledge/visual-quality/qiaomu-design/references/design-systems/composio/DESIGN.md",
+      "label": "knowledge",
+      "bytes": 20914,
+      "sha256": "1b28d2573f8e63f7"
+    },
+    {
+      "path": "knowledge/visual-quality/qiaomu-design/references/design-systems/cursor/DESIGN.md",
+      "label": "knowledge",
+      "bytes": 19081,
+      "sha256": "7e9ca29b7efb1336"
+    },
+    {
+      "path": "knowledge/visual-quality/qiaomu-design/references/design-systems/elevenlabs/DESIGN.md",
+      "label": "knowledge",
+      "bytes": 15192,
+      "sha256": "ac1ef3d01ad19bf6"
+    },
+    {
+      "path": "knowledge/visual-quality/qiaomu-design/references/design-systems/expo/DESIGN.md",
+      "label": "knowledge",
+      "bytes": 18680,
+      "sha256": "aebb4c4878a83a78"
+    },
+    {
+      "path": "knowledge/visual-quality/qiaomu-design/references/design-systems/ferrari/DESIGN.md",
+      "label": "knowledge",
+      "bytes": 25490,
+      "sha256": "bb47b52cd5a971f4"
+    },
+    {
+      "path": "knowledge/visual-quality/qiaomu-design/references/design-systems/figma/DESIGN.md",
+      "label": "knowledge",
+      "bytes": 11617,
+      "sha256": "11eff29a84d0eaf5"
+    },
+    {
+      "path": "knowledge/visual-quality/qiaomu-design/references/design-systems/framer/DESIGN.md",
+      "label": "knowledge",
+      "bytes": 17570,
+      "sha256": "792918848683a1c9"
+    },
+    {
+      "path": "knowledge/visual-quality/qiaomu-design/references/design-systems/hashicorp/DESIGN.md",
+      "label": "knowledge",
+      "bytes": 15639,
+      "sha256": "89855806734a147b"
+    },
+    {
+      "path": "knowledge/visual-quality/qiaomu-design/references/design-systems/ibm/DESIGN.md",
+      "label": "knowledge",
+      "bytes": 19555,
+      "sha256": "00a29200f8278bc0"
+    },
+    {
+      "path": "knowledge/visual-quality/qiaomu-design/references/design-systems/intercom/DESIGN.md",
+      "label": "knowledge",
+      "bytes": 6421,
+      "sha256": "1e7e446f530416b6"
+    },
+    {
+      "path": "knowledge/visual-quality/qiaomu-design/references/design-systems/kraken/DESIGN.md",
+      "label": "knowledge",
+      "bytes": 4353,
+      "sha256": "bf760e4034c161be"
+    },
+    {
+      "path": "knowledge/visual-quality/qiaomu-design/references/design-systems/lamborghini/DESIGN.md",
+      "label": "knowledge",
+      "bytes": 21122,
+      "sha256": "ab5c0eeda471fc1f"
+    },
+    {
+      "path": "knowledge/visual-quality/qiaomu-design/references/design-systems/linear.app/DESIGN.md",
+      "label": "knowledge",
+      "bytes": 22449,
+      "sha256": "64f634df9baf4cf9"
+    },
+    {
+      "path": "knowledge/visual-quality/qiaomu-design/references/design-systems/lovable/DESIGN.md",
+      "label": "knowledge",
+      "bytes": 17387,
+      "sha256": "c773b90d95fc6104"
+    },
+    {
+      "path": "knowledge/visual-quality/qiaomu-design/references/design-systems/minimax/DESIGN.md",
+      "label": "knowledge",
+      "bytes": 14285,
+      "sha256": "f813d03b579cb720"
+    },
+    {
+      "path": "knowledge/visual-quality/qiaomu-design/references/design-systems/mintlify/DESIGN.md",
+      "label": "knowledge",
+      "bytes": 17429,
+      "sha256": "438219f01fa714d1"
+    },
+    {
+      "path": "knowledge/visual-quality/qiaomu-design/references/design-systems/miro/DESIGN.md",
+      "label": "knowledge",
+      "bytes": 4797,
+      "sha256": "84a4b699ca8957f1"
+    },
+    {
+      "path": "knowledge/visual-quality/qiaomu-design/references/design-systems/mistral.ai/DESIGN.md",
+      "label": "knowledge",
+      "bytes": 15635,
+      "sha256": "cc96c576eee1af9d"
+    },
+    {
+      "path": "knowledge/visual-quality/qiaomu-design/references/design-systems/mongodb/DESIGN.md",
+      "label": "knowledge",
+      "bytes": 15015,
+      "sha256": "003cd5fdbbc97090"
+    },
+    {
+      "path": "knowledge/visual-quality/qiaomu-design/references/design-systems/notion/DESIGN.md",
+      "label": "knowledge",
+      "bytes": 18349,
+      "sha256": "9ac7c7d32a49377e"
+    },
+    {
+      "path": "knowledge/visual-quality/qiaomu-design/references/design-systems/nvidia/DESIGN.md",
+      "label": "knowledge",
+      "bytes": 17093,
+      "sha256": "496cfd3fe7763865"
+    },
+    {
+      "path": "knowledge/visual-quality/qiaomu-design/references/design-systems/ollama/DESIGN.md",
+      "label": "knowledge",
+      "bytes": 15521,
+      "sha256": "146aefde2fd345b4"
+    },
+    {
+      "path": "knowledge/visual-quality/qiaomu-design/references/design-systems/opencode.ai/DESIGN.md",
+      "label": "knowledge",
+      "bytes": 15529,
+      "sha256": "2452e5d3b614dd12"
+    },
+    {
+      "path": "knowledge/visual-quality/qiaomu-design/references/design-systems/pinterest/DESIGN.md",
+      "label": "knowledge",
+      "bytes": 11921,
+      "sha256": "a39638f47fb86f57"
+    },
+    {
+      "path": "knowledge/visual-quality/qiaomu-design/references/design-systems/posthog/DESIGN.md",
+      "label": "knowledge",
+      "bytes": 18561,
+      "sha256": "2e5ea88532564145"
+    },
+    {
+      "path": "knowledge/visual-quality/qiaomu-design/references/design-systems/raycast/DESIGN.md",
+      "label": "knowledge",
+      "bytes": 18487,
+      "sha256": "b7620b8d30893176"
+    },
+    {
+      "path": "knowledge/visual-quality/qiaomu-design/references/design-systems/renault/DESIGN.md",
+      "label": "knowledge",
+      "bytes": 24297,
+      "sha256": "3b97a821240bed41"
+    },
+    {
+      "path": "knowledge/visual-quality/qiaomu-design/references/design-systems/replicate/DESIGN.md",
+      "label": "knowledge",
+      "bytes": 14161,
+      "sha256": "aafc376349c52bee"
+    },
+    {
+      "path": "knowledge/visual-quality/qiaomu-design/references/design-systems/resend/DESIGN.md",
+      "label": "knowledge",
+      "bytes": 18431,
+      "sha256": "196e1f456f4af0e5"
+    },
+    {
+      "path": "knowledge/visual-quality/qiaomu-design/references/design-systems/revolut/DESIGN.md",
+      "label": "knowledge",
+      "bytes": 8622,
+      "sha256": "6e1d12ac94cda28d"
+    },
+    {
+      "path": "knowledge/visual-quality/qiaomu-design/references/design-systems/runwayml/DESIGN.md",
+      "label": "knowledge",
+      "bytes": 14356,
+      "sha256": "e359d97cd694d44f"
+    },
+    {
+      "path": "knowledge/visual-quality/qiaomu-design/references/design-systems/sanity/DESIGN.md",
+      "label": "knowledge",
+      "bytes": 21234,
+      "sha256": "45eaed231faf949a"
+    },
+    {
+      "path": "knowledge/visual-quality/qiaomu-design/references/design-systems/sentry/DESIGN.md",
+      "label": "knowledge",
+      "bytes": 14753,
+      "sha256": "5e10d6a5a5606443"
+    },
+    {
+      "path": "knowledge/visual-quality/qiaomu-design/references/design-systems/spacex/DESIGN.md",
+      "label": "knowledge",
+      "bytes": 11323,
+      "sha256": "1a76cac6f92e5c5f"
+    },
+    {
+      "path": "knowledge/visual-quality/qiaomu-design/references/design-systems/spotify/DESIGN.md",
+      "label": "knowledge",
+      "bytes": 12958,
+      "sha256": "867ab58c2cbcbfda"
+    },
+    {
+      "path": "knowledge/visual-quality/qiaomu-design/references/design-systems/stripe/DESIGN.md",
+      "label": "knowledge",
+      "bytes": 20450,
+      "sha256": "8a8c73d51dd125ec"
+    },
+    {
+      "path": "knowledge/visual-quality/qiaomu-design/references/design-systems/supabase/DESIGN.md",
+      "label": "knowledge",
+      "bytes": 14803,
+      "sha256": "01bfdc6db369f389"
+    },
+    {
+      "path": "knowledge/visual-quality/qiaomu-design/references/design-systems/superhuman/DESIGN.md",
+      "label": "knowledge",
+      "bytes": 18928,
+      "sha256": "050a4e3da3607328"
+    },
+    {
+      "path": "knowledge/visual-quality/qiaomu-design/references/design-systems/tesla/DESIGN.md",
+      "label": "knowledge",
+      "bytes": 22215,
+      "sha256": "5f9b93f798f60670"
+    },
+    {
+      "path": "knowledge/visual-quality/qiaomu-design/references/design-systems/together.ai/DESIGN.md",
+      "label": "knowledge",
+      "bytes": 14287,
+      "sha256": "b7cee5e1ba931abc"
+    },
+    {
+      "path": "knowledge/visual-quality/qiaomu-design/references/design-systems/uber/DESIGN.md",
+      "label": "knowledge",
+      "bytes": 18657,
+      "sha256": "f20b9f796b438c5f"
+    },
+    {
+      "path": "knowledge/visual-quality/qiaomu-design/references/design-systems/vercel/DESIGN.md",
+      "label": "knowledge",
+      "bytes": 19457,
+      "sha256": "d3e20ee2a6bbb9d4"
+    },
+    {
+      "path": "knowledge/visual-quality/qiaomu-design/references/design-systems/voltagent/DESIGN.md",
+      "label": "knowledge",
+      "bytes": 26323,
+      "sha256": "43013270684dd962"
+    },
+    {
+      "path": "knowledge/visual-quality/qiaomu-design/references/design-systems/warp/DESIGN.md",
+      "label": "knowledge",
+      "bytes": 16671,
+      "sha256": "4103a809076eca82"
+    },
+    {
+      "path": "knowledge/visual-quality/qiaomu-design/references/design-systems/webflow/DESIGN.md",
+      "label": "knowledge",
+      "bytes": 4122,
+      "sha256": "c656da6c667cff86"
+    },
+    {
+      "path": "knowledge/visual-quality/qiaomu-design/references/design-systems/wise/DESIGN.md",
+      "label": "knowledge",
+      "bytes": 8467,
+      "sha256": "a855eed2d63b9218"
+    },
+    {
+      "path": "knowledge/visual-quality/qiaomu-design/references/design-systems/x.ai/DESIGN.md",
+      "label": "knowledge",
+      "bytes": 16285,
+      "sha256": "a23e2bed6cdb9fdc"
+    },
+    {
+      "path": "knowledge/visual-quality/qiaomu-design/references/design-systems/zapier/DESIGN.md",
+      "label": "knowledge",
+      "bytes": 18743,
+      "sha256": "fd57a70c4558610b"
+    },
+    {
+      "path": "knowledge/visual-quality/qiaomu-design/references/divergence-playbook.md",
+      "label": "knowledge",
+      "bytes": 5164,
+      "sha256": "4a4d0e4ab79d549f"
+    },
+    {
+      "path": "knowledge/visual-quality/qiaomu-design/references/engineering-checklist.md",
+      "label": "knowledge",
+      "bytes": 4895,
+      "sha256": "5898a5cbcd780db6"
+    },
+    {
+      "path": "knowledge/visual-quality/qiaomu-design/references/motion-craft.md",
+      "label": "knowledge",
+      "bytes": 9078,
+      "sha256": "aac1f7c670141a00"
+    },
+    {
+      "path": "knowledge/visual-quality/qiaomu-design/references/motion-review.md",
+      "label": "knowledge",
+      "bytes": 4708,
+      "sha256": "7377f54a5acab9ca"
+    },
+    {
+      "path": "knowledge/visual-quality/qiaomu-design/references/preflight.md",
+      "label": "knowledge",
+      "bytes": 12699,
+      "sha256": "734c0b66024b741a"
+    },
+    {
+      "path": "knowledge/visual-quality/qiaomu-design/references/style-preview.md",
+      "label": "knowledge",
+      "bytes": 20558,
+      "sha256": "8ba03b5b02c91314"
+    },
+    {
+      "path": "knowledge/visual-quality/qiaomu-design/references/user-preferences.md",
+      "label": "knowledge",
+      "bytes": 19859,
+      "sha256": "87eec4846d520410"
+    },
+    {
+      "path": "knowledge/visual-quality/qiaomu-design/scripts/qiaomu-design-preview-server.mjs",
+      "label": "knowledge",
+      "bytes": 24131,
+      "sha256": "2ad697bec513ce5a"
+    },
+    {
+      "path": "knowledge/visual-quality/qiaomu-design/scripts/qiaomu-design-watch-selection.mjs",
+      "label": "knowledge",
+      "bytes": 2598,
+      "sha256": "8ad6d8414c6a2f9b"
+    },
+    {
       "path": "knowledge/visual-quality/screenshot-to-ds/.gitignore",
       "label": "knowledge",
       "bytes": 53,
@@ -11481,6 +13149,42 @@
       "label": "knowledge",
       "bytes": 2214,
       "sha256": "041a3f07c3df41ee"
+    },
+    {
+      "path": "knowledge/visual-quality/visual-note-card/CONTRIBUTING.md",
+      "label": "knowledge",
+      "bytes": 985,
+      "sha256": "db2c1d50925af9c0"
+    },
+    {
+      "path": "knowledge/visual-quality/visual-note-card/LICENSE",
+      "label": "knowledge",
+      "bytes": 1067,
+      "sha256": "c21cb06ee1a33fe6"
+    },
+    {
+      "path": "knowledge/visual-quality/visual-note-card/README.md",
+      "label": "knowledge",
+      "bytes": 5435,
+      "sha256": "6f0d7c2587cb9c97"
+    },
+    {
+      "path": "knowledge/visual-quality/visual-note-card/SKILL.md",
+      "label": "knowledge",
+      "bytes": 10191,
+      "sha256": "ebfcef1351764732"
+    },
+    {
+      "path": "knowledge/visual-quality/visual-note-card/SOURCE.md",
+      "label": "knowledge",
+      "bytes": 481,
+      "sha256": "c94504dd2ae3aa27"
+    },
+    {
+      "path": "knowledge/visual-quality/visual-note-card/scripts/html2png.py",
+      "label": "knowledge",
+      "bytes": 3353,
+      "sha256": "0eea70c126f65bfc"
     },
     {
       "path": "production/README.md",
