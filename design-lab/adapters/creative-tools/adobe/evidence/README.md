@@ -1,7 +1,6 @@
-# Adobe Photoshop — evidence
+# adobe — 取证目录
 
-- 状态：E0 placeholder。
-- 未执行任何文档打开/编辑/导出。
-- 未达 E3 不得写"已集成"。
-- DL-ADB-PS-001（Photoshop MVP）前置：用户本机 Photoshop 运行时就绪，逐项取证
-  （可逆编辑操作、可编辑 PSD 交付、E3 读回）。
+- **任务**：DL-ADB-PS-001
+- **当前**：E0 占位（declared）——运行时未就绪
+- **E3 恢复**：运行时可用后，在此记录：任务 ID + 产物路径/hash + 退出码
+- **生成物**：仅写入 `80-evidence/` 或 `.hermes/task-runtime/`（忽略目录）

@@ -1,19 +1,29 @@
 {
-  "adapter_id": "tool-comfyui-local",
+  "adapter_id": "adapter-comfyui",
   "tool": "ComfyUI",
-  "type": "tool",
-  "mode": "external-local-api",
-  "status": "E0-declared",
-  "defaultBinding": "none",
-  "capabilityScope": ["media-generation-workflow", "visual-prototyping"],
-  "supportedObjects": ["MediaGenerationRequest", "Artifact", "ToolRun"],
-  "requiredPermissions": ["user-started loopback ComfyUI"],
-  "secretHandling": "no secrets in repo",
-  "networkPolicy": "loopback-only; no public exposure",
-  "installPolicy": "no auto-install; no vendoring; no managed daemon",
-  "rightsDependencies": "workflow JSON + node/model source + hash + license required before E3",
-  "rollback": "pinned workflow version; dependency lock; output readback",
-  "evidenceLevel": "E0",
-  "lastVerified": "2026-08-13",
-  "note": "E0 contract only. No ComfyUI install, model download, node execution, or network call is performed. E1 requires loopback + no-auto-install checks."
+  "schemaVersion": "design-lab/adapter-manifest/v1",
+  "status": "declared",
+  "mode": "process-isolated",
+  "license": "GPL-3.0 (runtime), custom nodes vary",
+  "capabilities": [
+    {
+      "name": "image-generation",
+      "supported": false,
+      "note": "Requires ComfyUI runtime (user installing); E0 placeholder until loopback E3"
+    },
+    {
+      "name": "workflow-execution",
+      "supported": false,
+      "note": "Requires ComfyUI runtime (user installing); E0 placeholder until loopback E3"
+    }
+  ],
+  "fallback": "none",
+  "evidence": {
+    "level": "E0",
+    "runtime_version": null,
+    "task_ids": [],
+    "artifact_paths": [],
+    "note": "DL-CFY-001/002: E0 占位已建；运行时由用户下载安装后恢复 E3 取证"
+  },
+  "rollback": "git revert of generated artifacts; process isolation prevents host state mutation"
 }

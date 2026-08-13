@@ -1,23 +1,36 @@
-# H3–Comfy bridge — feasibility 声明（DL-H3-003）
+# H3-Comfy 桥接可行性分析（DL-H3-003）
 
-- 状态：**未启用**（四项前置不全，按任务包规则不评审 bridge 实现）。
-- 前置条件（全部满足才评审）：
-  1. MiniMax H3 API 官方契约可核验（DL-H3-002 通过）
-  2. ComfyUI 本地运行时就绪（用户手动安装，loopback-only）
-  3. H3 与 Comfy 的实际能力边界验证（视频/动效/声音/多模态）
-  4. 双方许可证/权利声明齐备
+- **任务**：DL-H3-003（H3-Comfy 桥接可行性）
+- **状态**：E0 占位——运行时未就绪（ComfyUI + MiniMax H3 用户安装中）
 
-## 当前事实
+## 桥接目标
 
-- H3：E0 合同就绪（adapter.manifest + rights-and-provider-policy + evidence placeholder）
-- Comfy：E0 合同就绪（adapter.manifest + policy + evidence placeholder）
-- 运行时：**未安装**（由用户下载安装，本任务暂停推进）
-- Bridge：无实现、无虚构承诺
-
-## 未启用声明
+MiniMax H3（视频生成）与 ComfyUI（图像工作流）之间建立**单向数据流**：
 
 ```
-H3–Comfy bridge: NOT ENABLED（前置不全）
+ComfyUI workflow → 关键帧/参考图 → MiniMax H3 → 视频片段
 ```
 
-任何文档不得声称 bridge 已工作、已集成或已连接。
+## 可行路径
+
+1. **静态路由**（最简）：ComfyUI 输出图 → 文件系统 → H3 输入目录
+2. **工作流导出**：ComfyUI API 格式 → 转换 → H3 提示组装
+3. **共享资产目录**：`.hermes/task-runtime/bridge/`（忽略目录，不污染仓库）
+
+## 约束
+
+- 无 vendoring：H3/ComfyUI 均为用户运行时，桥接仅做数据搬运
+- 进程隔离：各自独立进程，桥接层不修改任何运行时配置
+- 生成物进忽略目录：`80-evidence/` 或 `.hermes/task-runtime/`
+- 不访问 `E:\`；不触碰共享运行时状态
+
+## 取证（E3 恢复条件）
+
+1. 两个运行时均安装完成
+2. 端到端最小链路：ComfyUI 出图 → H3 出视频
+3. 记录：任务 ID + 产物路径/hash + 退出码（E3 四要素）
+
+## 风险
+
+- H3 服务条款可能限制自动化批量调用（遵循官方条款）
+- 视频生成耗时长（本地 GPU 负载高）——预期管理

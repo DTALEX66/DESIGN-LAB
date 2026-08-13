@@ -1,10 +1,31 @@
-# ComfyUI — 权利与运行政策（E0）
+# ComfyUI 适配器 — 权利与 Provider 策略
 
-- 状态：E0 声明合同；未达 E3 不得写"已集成"。
-- 安装/下载：**不自动安装**、不自动下载模型、不开放外网端口（loopback-only）。
-- 运行：由用户手动启动本地 ComfyUI 服务；DESIGN-LAB 只提供合同与验证。
-- 端口：仅绑定 127.0.0.1（loopback）；禁止绑定 0.0.0.0 或暴露公网。
-- 依赖：锁定 requirements/工作流版本；输出可复现（seed + 参数记录）。
-- 密钥：无外部 API 密钥需求；本地模型权重按各自许可（checkpoint/LoRA 的许可声明在 SourceRecord）。
-- 证据：每次工作流执行记录 boundTreeSha、命令、环境、输入 hash、输出读回。
-- 未达 E3 不得写"已集成"；DL-CFY-002 受批准工作流 E3 取证待用户安装 ComfyUI 后执行。
+- **任务**：DL-CFY-001（ComfyUI 适配器）/ DL-CFY-002（ComfyUI 取证）
+- **状态**：E0 占位（declared）——运行时未就绪，不宣称可用
+- **运行时**：ComfyUI（用户下载安装中）
+
+## 权利
+
+- ComfyUI 本体：GPL-3.0（开源）；自定义节点许可各异（使用前逐节点核验）
+- 生成资产：用户拥有（本工具不主张权利）
+- 模型权重：各自许可（SD/FLUX 等 Checkpoint 逐模型核验，遵守 LICENSE）
+
+## Provider 策略
+
+- **模型路由**：ComfyUI 本地推理（loopback-only，绑定 127.0.0.1），不走远程 provider
+- **启动**：手动启动（manual launch）——用户自行启动 ComfyUI 后适配器才可连接
+- **无 rate limit / 无 cost cap**：本地 GPU 推理，不设人为限制
+- **reasoning 降级**：不适用（推理在模型自身，不干预）
+- **凭证**：不读取、不存储任何 API key（本地节点除外，用户自管）
+
+## 边界
+
+- 生成物仅写入 `80-evidence/` 或 `.hermes/task-runtime/`（忽略目录）
+- 不访问 `E:\`；不触碰共享运行时状态
+- 进程隔离：ComfyUI 以独立进程运行，不修改宿主配置
+
+## 取证（E3 恢复条件）
+
+1. 用户安装 ComfyUI 完成
+2. 运行 loopback workflow（txt2img 最小图）
+3. 记录：任务 ID + 产物路径/hash + 退出码（E3 四要素）
