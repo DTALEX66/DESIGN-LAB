@@ -2030,6 +2030,103 @@
         "ui-ux",
         "frontend"
       ]
+    },
+    {
+      "id": "claude-dolphin",
+      "name": "claude-dolphin",
+      "url": "https://github.com/nyldn/claude-dolphin",
+      "license": "MIT",
+      "license_verified": true,
+      "integration_mode": "vendor-adapt",
+      "status": "adopt-now",
+      "use": "UX/UI 设计系统 + WCAG 2.2 审计",
+      "categories": [
+        "ui-ux",
+        "accessibility"
+      ]
+    },
+    {
+      "id": "ux-audit-skill",
+      "name": "ux-audit-skill (EliaAlberti)",
+      "url": "https://github.com/EliaAlberti/ux-audit-skill",
+      "license": "MIT",
+      "license_verified": true,
+      "integration_mode": "vendor-adapt",
+      "status": "adopt-now",
+      "use": "启发式 UX 审计（severity 分级）",
+      "categories": [
+        "ui-ux",
+        "review"
+      ]
+    },
+    {
+      "id": "claude-design-skill-jiji",
+      "name": "claude-design-skill (jiji262)",
+      "url": "https://github.com/jiji262/claude-design-skill",
+      "license": "MIT",
+      "license_verified": true,
+      "integration_mode": "vendor-adapt",
+      "status": "adopt-now",
+      "use": "HTML 设计专家（设计决策 + 参考）",
+      "categories": [
+        "html",
+        "ui-ux"
+      ]
+    },
+    {
+      "id": "brandbook-skill",
+      "name": "brandbook-skill",
+      "url": "https://github.com/echowang97/brandbook-skill",
+      "license": "MIT",
+      "license_verified": true,
+      "integration_mode": "vendor-adapt",
+      "status": "adopt-now",
+      "use": "URL → 品牌系统（token + 手册）",
+      "categories": [
+        "brand"
+      ]
+    },
+    {
+      "id": "logo-designer-skill",
+      "name": "logo-designer-skill (neonwatty)",
+      "url": "https://github.com/neonwatty/logo-designer-skill",
+      "license": "MIT",
+      "license_verified": true,
+      "integration_mode": "vendor-adapt",
+      "status": "adopt-now",
+      "use": "SVG logo 迭代设计",
+      "categories": [
+        "logo",
+        "svg"
+      ]
+    },
+    {
+      "id": "ecommerce-ai-skills",
+      "name": "ecommerce-ai-skills (kangise)",
+      "url": "https://github.com/kangise/ecommerce-ai-skills",
+      "license": "CC0-1.0",
+      "license_verified": true,
+      "integration_mode": "vendor-adapt",
+      "status": "adopt-now",
+      "use": "跨境电商 AI 知识库",
+      "categories": [
+        "ecommerce",
+        "knowledge-base"
+      ]
+    },
+    {
+      "id": "screenshot-to-design-system",
+      "name": "screenshot-to-design-system",
+      "url": "https://github.com/WCF900905/screenshot-to-design-system",
+      "license": "MIT",
+      "license_verified": true,
+      "integration_mode": "vendor-adapt",
+      "status": "adopt-now",
+      "use": "UI 截图 → 设计 token",
+      "categories": [
+        "tokens",
+        "design-system"
+      ]
     }
   ]
 }
