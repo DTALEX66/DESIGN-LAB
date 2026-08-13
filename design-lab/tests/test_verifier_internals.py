@@ -405,5 +405,68 @@ class OpenDesignAssistanceTests(unittest.TestCase):
         self.assertEqual(r.returncode, 0, r.stdout[-600:] + r.stderr)
 
 
+class CapabilityIndexGenTests(unittest.TestCase):
+    """generate_capability_indexes.collect_capabilities: deterministic."""
+
+    def test_collect_is_deterministic(self):
+        m = load("generate_capability_indexes.py")
+        a = m.collect_capabilities()
+        b = m.collect_capabilities()
+        self.assertEqual(a, b, "capability collection must be deterministic")
+        self.assertGreater(len(a), 100, "expected a rich capability index")
+
+    def test_entries_have_expected_keys(self):
+        m = load("generate_capability_indexes.py")
+        caps = m.collect_capabilities()
+        for entry in caps[:20]:
+            self.assertIn("path", entry)
+            self.assertIn("label", entry)
+            self.assertIn("sha256", entry)
+
+
+class OpenDesignIndexHelpersTests(unittest.TestCase):
+    """generate_open_design_indexes: heading/paragraph extraction helpers."""
+
+    def test_first_heading(self):
+        m = load("generate_open_design_indexes.py")
+        with tempfile.NamedTemporaryFile("w", suffix=".md", delete=False, encoding="utf-8") as f:
+            f.write("intro line\n# Real Title\nbody\n")
+            tmp = Path(f.name)
+        try:
+            self.assertEqual(m.first_heading(tmp), "Real Title")
+        finally:
+            tmp.unlink(missing_ok=True)
+
+    def test_first_paragraph(self):
+        m = load("generate_open_design_indexes.py")
+        with tempfile.NamedTemporaryFile("w", suffix=".md", delete=False, encoding="utf-8") as f:
+            f.write("# Title\n\nFirst real paragraph here.\n\nMore text.\n")
+            tmp = Path(f.name)
+        try:
+            para = m.first_paragraph(tmp)
+            self.assertIn("First real paragraph", para)
+            self.assertLessEqual(len(para), 200)
+        finally:
+            tmp.unlink(missing_ok=True)
+
+
+class ScaffoldHelpersTests(unittest.TestCase):
+    """scaffold_open_design_plugin: slug/title/csv helpers."""
+
+    def test_slugify(self):
+        m = load("scaffold_open_design_plugin.py")
+        self.assertEqual(m.slugify("My Cool Plugin!"), "my-cool-plugin")
+        self.assertEqual(m.slugify("  UPPER  case  "), "upper-case")
+
+    def test_titleize(self):
+        m = load("scaffold_open_design_plugin.py")
+        self.assertEqual(m.titleize("my-cool-plugin"), "My Cool Plugin")
+
+    def test_parse_csv(self):
+        m = load("scaffold_open_design_plugin.py")
+        self.assertEqual(m.parse_csv("a, b ,c"), ["a", "b", "c"])
+        self.assertEqual(m.parse_csv(""), [])
+
+
 if __name__ == "__main__":
     unittest.main()
