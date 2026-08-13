@@ -10,6 +10,7 @@ evals/
 │  ├─ benchmark-registry.json   # 基准注册（12 项，seed/viewport explicit-per-case）
 │  └─ briefs/                   # 12 份评测 brief（描述/输入/流程/输出 schema）
 ├─ rubrics/              # 质量 Rubric（19 份，轴+权重+阈值）
+├─ templates/            # 评分单模板（score-sheet.template.json）
 ├─ evidence/             # 验收证据（evidence-cards.json，12 卡）
 └─ README.md             # 本文件
 ```
@@ -46,6 +47,7 @@ python design-lab/scripts/compare_visual_iterations.py before.json after.json --
 python design-lab/scripts/score_artifact.py --list
 
 # 2. 写评分单（JSON）：scores 填各轴 0-10，权重自动应用
+#    模板：design-lab/evals/templates/score-sheet.template.json（24 轴占位，复制后填分）
 #    {"artifact": "案例路径", "reviewer": "审批人", "scores": {"axis-id": 9.0, ...}}
 
 # 3. 机算判定
