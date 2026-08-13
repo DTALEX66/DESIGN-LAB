@@ -6,9 +6,28 @@ DL-REL-001：人工可视与生产验收。**UI/UX、平面、3D、游戏视觉�
 
 ```text
 evals/
-├─ benchmarks/   # BenchmarkCase（含吸收的 rubrics）
-├─ rubrics/      # 质量 Rubric（19 份）
-└─ evidence/     # 验收证据（E3 读回记录）
+├─ benchmarks/           # BenchmarkCase（12 个域基准 + brief 定义）
+│  ├─ benchmark-registry.json   # 基准注册（12 项，seed/viewport explicit-per-case）
+│  └─ briefs/                   # 12 份评测 brief（描述/输入/流程/输出 schema）
+├─ rubrics/              # 质量 Rubric（19 份，轴+权重+阈值）
+├─ evidence/             # 验收证据（evidence-cards.json，12 卡）
+└─ README.md             # 本文件
+```
+
+## 基准评测（12 域）
+
+每个域对应一份 `briefs/<域>.json`（layout/typography/color/material/lighting/spatial/motion/interaction/accessibility/cross-format/originality/production），描述评测目标、输入资产、流程与输出。注册表校验：
+
+```bash
+python design-lab/scripts/verify_benchmark_registry.py
+# → BENCHMARK_REGISTRY_PASS benchmarks=12 human_calibration_required=true
+```
+
+### 迭代回归对比
+
+```bash
+python design-lab/scripts/compare_visual_iterations.py before.json after.json --tolerance 0.5
+# → 输出 overall_delta / axis_deltas / regressions；有回归时退出码 1
 ```
 
 ## 验收矩阵（DL-REL-001）
@@ -48,5 +67,6 @@ python design-lab/scripts/score_artifact.py \
 
 ## 当前证据
 
-- `evidence/`：1 文件（E0 合同级占位）
+- `evidence/evidence-cards.json`：12 卡（E0-E2 合同/结构级，与 12 benchmarks 对齐）
+- `benchmarks/briefs/`：12 份评测 brief 已就绪（BENCHMARK_REGISTRY_PASS）
 - 全部 E3 读回待运行时就绪（ComfyUI/MiniMax H3 由用户下载安装，暂停推进）
