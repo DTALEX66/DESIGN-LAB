@@ -2,7 +2,7 @@
 
 ## 状态：✅ DELIVERED_TO_MAIN（云端 main 已同步，本地一致）
 
-- 目标仓库：`DTALEX66/OPEN-DESIGN-Assistance`
+- 目标仓库：`DTALEX66/DESIGN-LAB`
 - 云端 main HEAD：`c2f5fbc51bd82b915cc9685c30c30f3e54579dae`
 - 本地 main HEAD：`c2f5fbc51bd82b915cc9685c30c30f3e54579dae`（0/0 同步）
 - 工作树：clean

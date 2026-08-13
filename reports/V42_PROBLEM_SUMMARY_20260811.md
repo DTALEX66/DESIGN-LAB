@@ -1,6 +1,6 @@
 # V4.2 问题总结（Problem Summary）— 2026-08-11
 
-> 依据 `OPEN-DESIGN-Assistance-Final-TaskPack-v4.2-2026-08-10`（Phase 2/3/4 执行）
+> 依据 `DESIGN-LAB-Final-TaskPack-v4.2-2026-08-10`（Phase 2/3/4 执行）
 > 基线：`f160240`（云端 main）
 
 ## 一、本阶段发现并已修复的问题

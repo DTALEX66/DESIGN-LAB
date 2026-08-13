@@ -8,7 +8,7 @@
 现在思考怎么增强 OPEN，去网上找找
 ```
 
-本文件记录对 `nexu-io/open-design` 官方仓库、README、docs、tree、issues、releases 的在线调研，并转成 `OPEN-DESIGN-Assistance` 后续可执行增强方向。
+本文件记录对 `nexu-io/open-design` 官方仓库、README、docs、tree、issues、releases 的在线调研，并转成 `DESIGN-LAB` 后续可执行增强方向。
 
 ## 在线调研来源
 
@@ -90,7 +90,7 @@ local-first desktop design workspace
 因此本仓库最应优先做的是：
 
 ```text
-opendesign-assistance/plugins/
+design-lab/plugins/
   minigame-ui-director/
   anomaly-monitor-hud/
   design-qa-critic/
@@ -121,7 +121,7 @@ design-system/05_DESIGN_COMMAND_CENTER/component-rules/*.json
 后续应把 `Anomaly Monitor Dark` 进一步整理成 Open Design 原生 design system 包，而不是只当项目文档：
 
 ```text
-opendesign-assistance/design-systems/anomaly-monitor-dark/
+design-lab/design-systems/anomaly-monitor-dark/
   DESIGN.md
   manifest.json
   design-tokens.json
@@ -172,7 +172,7 @@ minigame-runtime/assets/generated/
 后续可以增强成：
 
 ```text
-opendesign-assistance/assets/visual-packs/anomaly-monitor-cctv/
+design-lab/assets/visual-packs/anomaly-monitor-cctv/
   manifest.json
   prompts.md
   selected-assets.md
@@ -206,14 +206,14 @@ opendesign-assistance/assets/visual-packs/anomaly-monitor-cctv/
 已经有：
 
 ```text
-opendesign-assistance/scripts/configure_open_design_windows.py
-opendesign-assistance/usage-notes/PORTABLE_OPEN_DESIGN_SETUP.md
+design-lab/scripts/configure_open_design_windows.py
+design-lab/usage-notes/PORTABLE_OPEN_DESIGN_SETUP.md
 ```
 
 建议补：
 
 ```text
-opendesign-assistance/scripts/doctor_open_design_windows.py
+design-lab/scripts/doctor_open_design_windows.py
 ```
 
 检查：
@@ -250,7 +250,7 @@ opendesign-assistance/scripts/doctor_open_design_windows.py
 目标目录：
 
 ```text
-opendesign-assistance/design-systems/anomaly-monitor-dark/
+design-lab/design-systems/anomaly-monitor-dark/
 ```
 
 从现有内容吸收：
@@ -276,7 +276,7 @@ preview/index.html
 把 `minigame-runtime/assets/generated/` 中仍保留的 8 个运行必需资产转成 Open Design 可读资产包：
 
 ```text
-opendesign-assistance/assets/visual-packs/anomaly-monitor-cctv/
+design-lab/assets/visual-packs/anomaly-monitor-cctv/
   manifest.json
   README.md
   prompts.md
@@ -295,7 +295,7 @@ opendesign-assistance/assets/visual-packs/anomaly-monitor-cctv/
 
 ## 当前结论
 
-`OPEN-DESIGN-Assistance` 下一步不应先改 Open Design 源码，而应先做“贴近 Open Design 官方扩展机制”的增强包：
+`DESIGN-LAB` 下一步不应先改 Open Design 源码，而应先做“贴近 Open Design 官方扩展机制”的增强包：
 
 ```text
 1. doctor/configure scripts
@@ -308,7 +308,7 @@ opendesign-assistance/assets/visual-packs/anomaly-monitor-cctv/
 最优第一刀：
 
 ```text
-创建 opendesign-assistance/plugins/minigame-ui-director/
+创建 design-lab/plugins/minigame-ui-director/
 ```
 
 因为它能最快把原 MINIGAME / Design-system 的价值变成 Open Design 软件里可直接调用的增强能力。

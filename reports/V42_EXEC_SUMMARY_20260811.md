@@ -1,7 +1,7 @@
 # V4.2 执行摘要（Execution Summary）— 2026-08-11
 
-> TaskPack `OPEN-DESIGN-Assistance-Final-TaskPack-v4.2-2026-08-10`（Phase 2/3/4 延续）
-> 目标仓库 `DTALEX66/OPEN-DESIGN-Assistance`，基线 `f160240`
+> TaskPack `DESIGN-LAB-Final-TaskPack-v4.2-2026-08-10`（Phase 2/3/4 延续）
+> 目标仓库 `DTALEX66/DESIGN-LAB`，基线 `f160240`
 
 ## 总体状态：✅ Phase 2 完成、Phase 3 完成（含 E3）、Phase 4 前置完成
 

@@ -20,7 +20,7 @@
 | doctor | ✅ commercial-design-core / visual-quality-core / production-handoff 仅 warnings（pipeline:/media: 词汇 + skill-ref 未解析），**无 error** |
 | 命令面兼容 | ✅ plugin / artifacts / project / tools / mcp / research 全在 |
 | Codex 连接 | ✅ `POST /api/test/connection` → `{"ok":true, agentName:"Codex CLI", model:"gpt-5.5", latencyMs:~12s}` |
-| app-config | ✅ CODEX_BIN 指向当前版本 `8e8bf206e63ac436`、默认项目 = OPEN-DESIGN-Assistance（备份 1 份留存） |
+| app-config | ✅ CODEX_BIN 指向当前版本 `8e8bf206e63ac436`、默认项目 = DESIGN-LAB（备份 1 份留存） |
 
 ## 版本标识注意点
 

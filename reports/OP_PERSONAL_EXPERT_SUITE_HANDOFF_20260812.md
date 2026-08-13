@@ -2,7 +2,7 @@
 
 ## 状态与范围
 
-本报告记录 `OPEN-DESIGN-Assistance` 仓库资产配置到 Open Design 0.19+ Personal Workspace 的当前方法、验证结果、错误复盘和发布边界。仓库是唯一 SSOT；Open Design namespace 内的资源是可重建运行镜像，不是第二份源码真相。Skills、Design Systems 和 plugin catalog 注册使用 Open Design API；plugin source mirror 则按 Open Design 的稳定本地 source 约定写入当前 namespace 的 `data/local-plugin-sources/`，两者不是同一个事务平面。
+本报告记录 `DESIGN-LAB` 仓库资产配置到 Open Design 0.19+ Personal Workspace 的当前方法、验证结果、错误复盘和发布边界。仓库是唯一 SSOT；Open Design namespace 内的资源是可重建运行镜像，不是第二份源码真相。Skills、Design Systems 和 plugin catalog 注册使用 Open Design API；plugin source mirror 则按 Open Design 的稳定本地 source 约定写入当前 namespace 的 `data/local-plugin-sources/`，两者不是同一个事务平面。
 
 当前目标资产：
 
@@ -16,9 +16,9 @@
 
 ## 项目与产品定位
 
-- 项目 SSOT：`D:\All projects\OPEN-DESIGN-Assistance`。
+- 项目 SSOT：`D:\All projects\DESIGN-LAB`。
 - 产品定义：`project-memory/PRODUCT_DEFINITION_V42.md`。
-- 机器 SSOT：`opendesign-assistance/config/product-manifest.json`。
+- 机器 SSOT：`design-lab/config/product-manifest.json`。
 - Open Design 是唯一设计主入口，拥有 Studio/画布、Agent 启动、插件运行、Artifact、预览与导出。
 - 本仓库只拥有专业方法、Domain Pack、视觉质量、来源权利、生产预检、可编辑交付、Benchmark 和证据合同。
 - 本仓库不建立第二前端、第二 Agent runtime、模型网关、独立账号系统或泛用向量库。
@@ -44,7 +44,7 @@
 
 ### 升级稳定性
 
-- 仓库是资源源；运行镜像位于 namespace 的非版本目录 `data/local-plugin-sources/open-design-assistance`。
+- 仓库是资源源；运行镜像位于 namespace 的非版本目录 `data/local-plugin-sources/design-lab`。
 - 不把临时 staging 或 `versions/<version>/payload` 作为稳定 source。
 - 新镜像完成全部安装和 catalog/readback 后才提交；失败时恢复旧镜像，并比较安装前后的 catalog 快照。当前 API 没有被本项目验证过的通用 plugin uninstall/restore 逆操作，因此 catalog 若已部分变化，安装器必须失败关闭并报告精确 delta，不能声称自动恢复旧 catalog。
 - `.previous` 只在事务中保留，成功后删除；失败后用于恢复，不能提前删除。
@@ -90,9 +90,9 @@ CCTV、控制台、暗色 HUD、异常电梯和 IAA 布局仍可用，但只在 
 
 ### 1. Hermes Project 上下文错位
 
-错误：会话最初绑定 `WORK-LAB`，但操作目标是 `OPEN-DESIGN-Assistance`，导致自动注入的是错误项目规则。
+错误：会话最初绑定 `WORK-LAB`，但操作目标是 `DESIGN-LAB`，导致自动注入的是错误项目规则。
 
-防复发：开始任务先读取 Desktop Project；项目切换必须使用 Hermes Project switch，而不是只在 terminal 中 `cd`。当前项目已切换为 `OPEN-DESIGN-Assistance`。
+防复发：开始任务先读取 Desktop Project；项目切换必须使用 Hermes Project switch，而不是只在 terminal 中 `cd`。当前项目已切换为 `DESIGN-LAB`。
 
 ### 2. 根级项目规则缺失
 
@@ -160,13 +160,13 @@ CCTV、控制台、暗色 HUD、异常电梯和 IAA 布局仍可用，但只在 
 
 错误：早期实现只按 `source=user` 和 Skill ID 识别已安装对象；同 ID、正文不同但属于用户自己的 Skill 可能进入 delete/install 刷新路径。
 
-修复：仓库 15 个 Skills 与 OP 已安装副本均使用稳定 `upstream=https://github.com/DTALEX66/OPEN-DESIGN-Assistance` 作为 managed identity。正文完全一致时只读 skip；只有正文需要更新且 current upstream 与仓库 upstream 精确一致时才允许刷新，否则失败关闭，避免覆盖用户内容。
+修复：仓库 15 个 Skills 与 OP 已安装副本均使用稳定 `upstream=https://github.com/DTALEX66/DESIGN-LAB` 作为 managed identity。正文完全一致时只读 skip；只有正文需要更新且 current upstream 与仓库 upstream 精确一致时才允许刷新，否则失败关闭，避免覆盖用户内容。
 
 ### 13. Sidecar URL 与 namespace 镜像目标未绑定
 
 错误：早期动态 namespace 只按 `latest.log` mtime 选择；显式 `--app-url` 可能连接一个 sidecar，却把稳定资源镜像写入另一个较新日志对应的 namespace。
 
-修复：任何写操作前先通过官方 `/api/health` 验证显式 sidecar；随后要求同一规范化 `app_url` 在 namespace Web 日志中精确映射到唯一 namespace，再从该绑定 namespace 解析 `data/local-plugin-sources/open-design-assistance`。零匹配或多匹配都失败关闭。
+修复：任何写操作前先通过官方 `/api/health` 验证显式 sidecar；随后要求同一规范化 `app_url` 在 namespace Web 日志中精确映射到唯一 namespace，再从该绑定 namespace 解析 `data/local-plugin-sources/design-lab`。零匹配或多匹配都失败关闭。
 
 ### 14. 稳定镜像 asset closure 不完整
 
@@ -219,14 +219,14 @@ CCTV、控制台、暗色 HUD、异常电梯和 IAA 布局仍可用，但只在 
 重建入口：
 
 ```bash
-python opendesign-assistance/scripts/install_op_expert_suite.py --dry-run
-python opendesign-assistance/scripts/install_op_expert_suite.py
+python design-lab/scripts/install_op_expert_suite.py --dry-run
+python design-lab/scripts/install_op_expert_suite.py
 ```
 
 验证入口：
 
 ```bash
-python opendesign-assistance/scripts/verify_open_design_assistance.py
+python design-lab/scripts/verify_open_design_assistance.py
 python scripts/run_python_tests.py
 cd minigame-runtime && npm test && node scripts/check-android-drift.mjs
 ```

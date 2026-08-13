@@ -1,6 +1,6 @@
 # 找异常：异常电梯控制台
 
-## 所属平台分类
+## fixture 路径
 
 ```text
 MINIGAME / games / find-anomaly / elevator-console
@@ -8,7 +8,7 @@ MINIGAME / games / find-anomaly / elevator-console
 
 ## 游戏定位
 
-这是 MINIGAME 小游戏合集平台中的首发游戏，玩法归类为 **找异常**。
+这是 MINIGAME 游戏视觉设计 fixture 中的首发参考样板，视觉归类为 **找异常（异常电梯控制台）**。
 
 玩家不是单纯模拟电梯操作员，而是在 CCTV、状态 HUD 和系统日志中寻找异常，并在倒计时内完成处置。
 
@@ -20,7 +20,7 @@ MINIGAME / games / find-anomaly / elevator-console
 |---|---|
 | H5 入口 | `index.html`, `styles.css`, `src/game.js` |
 | 核心逻辑 | `src/state.js`, `src/actions.js`, `src/events.js`, `src/feedback.js` |
-| 内容包/皮肤 | `src/skins/*/skin.json` |
+| 皮肤参考 | `src/skins/*/skin.json` |
 | Canvas 小游戏 runtime | `platform/miniGameRuntime.js`, `platform/canvasRenderer.js` |
 | 微信产物 | `wechat-minigame/` |
 | Android WebView | `android-webview/` |

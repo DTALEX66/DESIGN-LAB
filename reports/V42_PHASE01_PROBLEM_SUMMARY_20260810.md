@@ -1,6 +1,6 @@
 # V4.2 问题总结（Problem Summary）— 2026-08-10
 
-> 依据 `OPEN-DESIGN-Assistance-Final-TaskPack-v4.2-2026-08-10`（Phase 0 事实冻结 + Phase 1 P0 修复）
+> 依据 `DESIGN-LAB-Final-TaskPack-v4.2-2026-08-10`（Phase 0 事实冻结 + Phase 1 P0 修复）
 > 基线：`4ae0981b1d75ac1d20cac3a231b7e157854a4fb9` → 当前：`c2f5fbc`（main）
 
 ## 一、Phase 0 审计发现的问题（基线 `4ae0981`）

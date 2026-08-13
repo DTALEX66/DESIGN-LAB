@@ -105,8 +105,8 @@ function createHostRewardedAd(hostApi, adUnitId, callbacks, label) {
 }
 
 /**
- * 创建激励视频广告
- * @param {string} adUnitId - 广告位 ID
+ * 创建激励视频广告（fixture 参考：宿主激励接口适配）
+ * @param {string} adUnitId - 宿主激励单元 ID（fixture 参考）
  * @param {object} callbacks - { onReward, onError }
  * @returns {function} show() 函数
  */

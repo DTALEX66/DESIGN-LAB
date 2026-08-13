@@ -1,0 +1,19 @@
+{
+  "adapter_id": "model-minimax-h3",
+  "tool": "MiniMax H3",
+  "type": "model",
+  "mode": "external-provider-api",
+  "status": "E0-declared",
+  "defaultBinding": "none",
+  "capabilityScope": ["video", "motion", "audio", "multimodal-visual-experiments"],
+  "supportedObjects": ["MediaGenerationRequest", "Artifact", "ToolRun"],
+  "requiredPermissions": ["user-local credentials only"],
+  "secretHandling": "credentials local to user machine; never in repo/UI/logs/reports/screenshots",
+  "networkPolicy": "official MiniMax API endpoints only, after contract pinned",
+  "installPolicy": "no install; no local inference commitment (RTX 3060 Ti 8G not assumed)",
+  "rightsDependencies": "official model/weights license; region/version/pricing locked from official docs before E3",
+  "rollback": "API version pin; request/response evidence",
+  "evidenceLevel": "E0",
+  "lastVerified": "2026-08-13",
+  "note": "E0 contract only. Not a chat model, not a general reasoner, not an orchestrator. No fabricated API/weights/endpoints; pin from official MiniMax docs before any E1+."
+}

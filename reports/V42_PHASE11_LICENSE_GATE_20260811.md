@@ -1,12 +1,12 @@
 # V4.2 Phase 11 — 许可合规 Gate 交接文档（2026-08-11）
 
-> 目标：`DTALEX66/OPEN-DESIGN-Assistance`，基线 `cf6c7c6`（V4.2 main + Phase 10）
+> 目标：`DTALEX66/DESIGN-LAB`，基线 `cf6c7c6`（V4.2 main + Phase 10）
 > 关联遗留：V42_PROBLEM_SUMMARY_20260811.md 遗留项 6（REUSE/SBOM/第三方 BOM/二进制 sidecar 许可 Gate）
 
 ## 交付内容
 
 ### 1. 源文件 SPDX 头（REUSE）
-- 为 **26 个** `opendesign-assistance/` 源文件补齐 `# SPDX-License-Identifier: MIT` 头（scripts 16 + tests 10），保留 shebang/BOM/docstring
+- 为 **26 个** `design-lab/` 源文件补齐 `# SPDX-License-Identifier: MIT` 头（scripts 16 + tests 10），保留 shebang/BOM/docstring
 - 闭合 V4.2 官方契约声明（`product-manifest.json` source-governance `standards: ["SPDX","REUSE","C2PA"]`）
 
 ### 2. 二进制资产 sidecar
