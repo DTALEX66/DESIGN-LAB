@@ -1947,6 +1947,89 @@
         "graphic"
       ],
       "url": "https://github.com/designrique/ai-graphic-design-skill"
+    },
+    {
+      "id": "design-system-prompt",
+      "name": "claude-design-system-prompt (Trystan-SA)",
+      "url": "https://github.com/Trystan-SA/claude-design-system-prompt",
+      "license": "MIT",
+      "license_verified": true,
+      "integration_mode": "vendor-adapt",
+      "status": "adopt-now",
+      "use": "设计系统 prompt 库（15 skills + system-prompt）",
+      "categories": [
+        "design-system",
+        "ui-ux"
+      ]
+    },
+    {
+      "id": "claude2figma",
+      "name": "claude2figma",
+      "url": "https://github.com/senlindesign/claude2figma",
+      "license": "MIT",
+      "license_verified": true,
+      "integration_mode": "vendor-adapt",
+      "status": "adopt-now",
+      "use": "Figma 设计系统强制",
+      "categories": [
+        "design-system",
+        "figma"
+      ]
+    },
+    {
+      "id": "extract-design-system",
+      "name": "extract-design-system",
+      "url": "https://github.com/arvindrk/extract-design-system",
+      "license": "MIT",
+      "license_verified": true,
+      "integration_mode": "vendor-adapt",
+      "status": "adopt-now",
+      "use": "从公开网站提取设计 token",
+      "categories": [
+        "design-system",
+        "tokens"
+      ]
+    },
+    {
+      "id": "anydesign",
+      "name": "anydesign (uxKero)",
+      "url": "https://github.com/uxKero/anydesign",
+      "license": "MIT",
+      "license_verified": true,
+      "integration_mode": "vendor-adapt",
+      "status": "adopt-now",
+      "use": "多模态设计分析 → 结构化设计规范",
+      "categories": [
+        "analysis",
+        "design-system"
+      ]
+    },
+    {
+      "id": "ppt-agent-skill",
+      "name": "ppt-agent-skill (Akxan)",
+      "url": "https://github.com/Akxan/ppt-agent-skill",
+      "license": "MIT",
+      "license_verified": true,
+      "integration_mode": "vendor-adapt",
+      "status": "adopt-now",
+      "use": "演示生成（26 风格 + 18 图表）",
+      "categories": [
+        "presentation"
+      ]
+    },
+    {
+      "id": "swiftui-design-skill",
+      "name": "swiftui-design-skill",
+      "url": "https://github.com/Wholiver/swiftui-design-skill",
+      "license": "MIT",
+      "license_verified": true,
+      "integration_mode": "vendor-adapt",
+      "status": "adopt-now",
+      "use": "SwiftUI 设计六铁律 anti-slop",
+      "categories": [
+        "ui-ux",
+        "frontend"
+      ]
     }
   ]
 }

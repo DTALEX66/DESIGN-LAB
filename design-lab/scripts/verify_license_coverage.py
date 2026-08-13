@@ -50,9 +50,15 @@ EXCLUDE_PREFIX = (
     "knowledge/visual-quality/brand-systems/",
     "knowledge/visual-quality/brand-identity/",
     "knowledge/visual-quality/ai-graphic-design/",
+    "knowledge/visual-quality/claude2figma/",
+    "knowledge/visual-quality/extract-design-system/",
+    "knowledge/visual-quality/ppt-agent/",
+    "knowledge/visual-quality/swiftui-design/",
     "intelligence/ui-ux-pro-max/",
     "intelligence/shipit-ui/",
     "intelligence/motion-engine/",
+    "intelligence/design-system-prompt/",
+    "intelligence/anydesign/",
 )
 
 
