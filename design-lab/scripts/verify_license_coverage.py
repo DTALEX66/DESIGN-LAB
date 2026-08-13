@@ -38,6 +38,21 @@ EXCLUDE_PREFIX = (
     "design-lab/domain-packs/",
     "design-lab/design-systems/",
     "design-lab/evals/",
+    # vendored third-party skill trees: each carries its own LICENSE + SOURCE.md
+    # (REUSE: vendored trees are excluded from project header coverage;
+    #  NOTE: rel paths are relative to design-lab/ because git_ls runs with cwd=REPO)
+    "knowledge/visual-quality/hallmark/",
+    "knowledge/visual-quality/taste-skill/",
+    "knowledge/visual-quality/motion-design-skill/",
+    "knowledge/visual-quality/design-motion-principles/",
+    "knowledge/visual-quality/game-ui-mobile/",
+    "knowledge/visual-quality/blender-3d/",
+    "knowledge/visual-quality/brand-systems/",
+    "knowledge/visual-quality/brand-identity/",
+    "knowledge/visual-quality/ai-graphic-design/",
+    "intelligence/ui-ux-pro-max/",
+    "intelligence/shipit-ui/",
+    "intelligence/motion-engine/",
 )
 
 

@@ -28,10 +28,15 @@ SCRIPTS = [
 EXTRA_CHECKS = [
     (
         "jury-anti-slop",
-        ["quality/jury/check_anti_slop.py", "knowledge/visual-quality/hallmark"],
+        [
+            "quality/jury/check_anti_slop.py",
+            # scan design-lab/ (resolved absolute below), skipping vendored/template trees
+            ".",
+            "--skip-prefixes",
+            "knowledge/,intelligence/,templates/,evals/,exports/,domain-packs/uiux-design/benchmarks/,design-systems/",
+        ],
     ),
 ]
-
 
 def main() -> int:
     root = Path(__file__).resolve().parent
@@ -56,8 +61,12 @@ def main() -> int:
             print(r.stderr.strip()[-500:])
 
     for name, args in EXTRA_CHECKS:
-        print(f"\n===== {name} =====")
-        r = subprocess.run([sys.executable, *(str(root.parent / a) for a in args)], capture_output=True, text=True)
+        print(f"\n===== {name} =====\n")
+        # first arg is the script path (resolve under root.parent);
+        # "." target resolves to design-lab/ absolute (scan scope), rest are literal args
+        script_arg = str(root.parent / args[0])
+        resolved_args = [str(root.parent) if a == "." else a for a in args[1:]]
+        r = subprocess.run([sys.executable, script_arg, *resolved_args], capture_output=True, text=True)
         tail = r.stdout.strip().splitlines()
         summary = tail[-1] if tail else "(no output)"
         print(summary)

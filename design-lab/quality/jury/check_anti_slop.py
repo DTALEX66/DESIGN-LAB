@@ -45,15 +45,23 @@ def check_file(path: Path) -> list[str]:
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("target", type=Path)
+    ap.add_argument("--skip-prefixes", default="",
+                    help="comma-separated relative path prefixes to skip (vendored/templates)")
     args = ap.parse_args()
 
-    if args.target.is_dir():
-        files = [p for p in args.target.rglob("*") if p.suffix in {".html", ".css"}]
+    skip = [p for p in args.skip_prefixes.split(",") if p]
+
+    target = args.target.resolve()
+    if target.is_dir():
+        files = [p for p in target.rglob("*") if p.suffix in {".html", ".css"}]
     else:
-        files = [args.target]
+        files = [target]
 
     all_findings = []
     for f in files:
+        rel = f.relative_to(target).as_posix() if target.is_dir() else f.name
+        if any(rel.startswith(s) or rel.startswith("/" + s.lstrip("/")) for s in skip):
+            continue
         for finding in check_file(f):
             all_findings.append(f"{f.name}: {finding}")
 
