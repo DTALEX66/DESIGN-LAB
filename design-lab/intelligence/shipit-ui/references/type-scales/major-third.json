@@ -1,0 +1,22 @@
+{
+  "name": "major-third",
+  "ratio": 1.250,
+  "base_px": 12,
+  "description": "Default scale. Balanced rhythm between body and headings. Works for most product UI; the recommended starting point.",
+  "use_when": [
+    "General-purpose product UI",
+    "Marketing pages with moderate hierarchy",
+    "Most SaaS and consumer apps"
+  ],
+  "sizes": [
+    { "name": "xs",   "px": 12, "rem": 0.750, "line_height": 1.50, "letter_spacing_em": 0.005, "use": "captions, micro-labels" },
+    { "name": "sm",   "px": 15, "rem": 0.938, "line_height": 1.50, "letter_spacing_em": 0.002, "use": "secondary body" },
+    { "name": "base", "px": 18, "rem": 1.125, "line_height": 1.55, "letter_spacing_em": 0.000, "use": "body text" },
+    { "name": "md",   "px": 23, "rem": 1.438, "line_height": 1.45, "letter_spacing_em": 0.000, "use": "lead paragraph" },
+    { "name": "lg",   "px": 29, "rem": 1.813, "line_height": 1.35, "letter_spacing_em": -0.010, "use": "h4, card title" },
+    { "name": "xl",   "px": 36, "rem": 2.250, "line_height": 1.25, "letter_spacing_em": -0.015, "use": "h3, section heading" },
+    { "name": "2xl",  "px": 45, "rem": 2.813, "line_height": 1.15, "letter_spacing_em": -0.020, "use": "h2, hero secondary" },
+    { "name": "3xl",  "px": 56, "rem": 3.500, "line_height": 1.10, "letter_spacing_em": -0.025, "use": "h1, hero" }
+  ],
+  "notes": "Comfortable balance between density and impact. This is the `/design init` default."
+}

@@ -1758,6 +1758,66 @@
       "absorb": "web design / knowledge retrieval / image generation skill 集合（候选评估）",
       "restrictions": "待评估后决定吸收范围（review-required）",
       "reviewed_at": "2026-08-13"
+    },
+    {
+      "id": "motion-design-skill",
+      "name": "Motion Design Skill (LottieFiles)",
+      "category": "motion-format",
+      "url": "https://github.com/LottieFiles/motion-design-skill",
+      "license": "MIT",
+      "license_verified": true,
+      "source_tier": "A",
+      "integration_mode": "vendor-adapt",
+      "status": "adopt-now",
+      "target": "knowledge/visual-quality/motion-design-skill/",
+      "absorb": "动效设计原则——timing/easing/choreography/motion 系统",
+      "restrictions": "MIT 版权保留",
+      "reviewed_at": "2026-08-13"
+    },
+    {
+      "id": "design-motion-principles",
+      "name": "Design Motion Principles",
+      "category": "motion-format",
+      "url": "https://github.com/kylezantos/design-motion-principles",
+      "license": "MIT",
+      "license_verified": true,
+      "source_tier": "A",
+      "integration_mode": "vendor-adapt",
+      "status": "adopt-now",
+      "target": "knowledge/visual-quality/design-motion-principles/",
+      "absorb": "动效设计双模式——有目的交互构建 + 动效原则",
+      "restrictions": "MIT 版权保留",
+      "reviewed_at": "2026-08-13"
+    },
+    {
+      "id": "shipit-ui-design",
+      "name": "ShipIt UI Design (11 skills)",
+      "category": "design-intelligence",
+      "url": "https://github.com/shipiit/shipit-ui-design",
+      "license": "MIT",
+      "license_verified": true,
+      "source_tier": "A",
+      "integration_mode": "vendor-adapt",
+      "status": "adopt-now",
+      "target": "intelligence/shipit-ui/",
+      "absorb": "color-engineering/design-system-keeper/motion/svg/three-d/data-viz 11 skills + 62 references",
+      "restrictions": "MIT 版权保留",
+      "reviewed_at": "2026-08-13"
+    },
+    {
+      "id": "terrazzo-dtcg",
+      "name": "Terrazzo (DTCG tokens compiler)",
+      "category": "design-tokens",
+      "url": "https://github.com/terrazzoapp/terrazzo",
+      "license": "MIT",
+      "license_verified": true,
+      "source_tier": "B",
+      "integration_mode": "adapter",
+      "status": "adapter-next",
+      "target": "adapters/tools/terrazzo/",
+      "absorb": "DTCG 设计令牌 JSON → 多平台代码编译器（工程包，待 adapter 化）",
+      "restrictions": "工程包不 vendoring；按 adapter 集成",
+      "reviewed_at": "2026-08-13"
     }
   ]
 }

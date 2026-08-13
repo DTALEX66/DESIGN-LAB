@@ -1,0 +1,40 @@
+{
+  "name": "deep-monochrome",
+  "description": "Pure neutral grayscale ramp. For typography-led portfolios, documentation, and surfaces where color comes from content (photos, charts). Zero chroma, perceptually-tuned lightness steps.",
+  "hue_anchor_oklch": 0,
+  "light": {
+    "50":  "#fafafa",
+    "100": "#f2f2f2",
+    "200": "#e5e5e5",
+    "300": "#d1d1d1",
+    "400": "#a8a8a8",
+    "500": "#7a7a7a",
+    "600": "#585858",
+    "700": "#3f3f3f",
+    "800": "#2a2a2a",
+    "900": "#171717",
+    "950": "#0a0a0a"
+  },
+  "dark": {
+    "50":  "#0a0a0a",
+    "100": "#141414",
+    "200": "#222222",
+    "300": "#333333",
+    "400": "#4d4d4d",
+    "500": "#6e6e6e",
+    "600": "#919191",
+    "700": "#b3b3b3",
+    "800": "#d1d1d1",
+    "900": "#e8e8e8",
+    "950": "#f7f7f7"
+  },
+  "pairs": [
+    { "fg": "#171717", "bg": "#fafafa", "ratio": 17.3, "use": "primary body text on light page" },
+    { "fg": "#3f3f3f", "bg": "#f2f2f2", "ratio": 10.4, "use": "secondary text on light card" },
+    { "fg": "#585858", "bg": "#fafafa", "ratio": 6.9,  "use": "muted body / labels on light" },
+    { "fg": "#fafafa", "bg": "#2a2a2a", "ratio": 14.4, "use": "white on dark button" },
+    { "fg": "#f7f7f7", "bg": "#0a0a0a", "ratio": 19.6, "use": "primary text on dark page" },
+    { "fg": "#d1d1d1", "bg": "#141414", "ratio": 12.7, "use": "secondary text on dark card" },
+    { "fg": "#919191", "bg": "#0a0a0a", "ratio": 6.4,  "use": "muted text on dark, AA at any size" }
+  ]
+}

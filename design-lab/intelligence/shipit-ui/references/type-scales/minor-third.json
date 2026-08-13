@@ -1,0 +1,22 @@
+{
+  "name": "minor-third",
+  "ratio": 1.200,
+  "base_px": 12,
+  "description": "Tight, dense scale. Best for data-heavy UI, dashboards, admin tools, or any surface where many sizes must coexist without dominating. Headings are not loud.",
+  "use_when": [
+    "Information-dense dashboards",
+    "Tabular and report-heavy surfaces",
+    "Documentation with many heading levels"
+  ],
+  "sizes": [
+    { "name": "xs",   "px": 12, "rem": 0.750, "line_height": 1.50, "letter_spacing_em": 0.005, "use": "captions, footnotes, small labels" },
+    { "name": "sm",   "px": 14, "rem": 0.875, "line_height": 1.50, "letter_spacing_em": 0.002, "use": "secondary body, meta" },
+    { "name": "base", "px": 17, "rem": 1.063, "line_height": 1.55, "letter_spacing_em": 0.000, "use": "body text" },
+    { "name": "md",   "px": 20, "rem": 1.250, "line_height": 1.45, "letter_spacing_em": 0.000, "use": "lead paragraph, large body" },
+    { "name": "lg",   "px": 24, "rem": 1.500, "line_height": 1.40, "letter_spacing_em": -0.005, "use": "h4, card title" },
+    { "name": "xl",   "px": 29, "rem": 1.813, "line_height": 1.35, "letter_spacing_em": -0.010, "use": "h3, section heading" },
+    { "name": "2xl",  "px": 35, "rem": 2.188, "line_height": 1.25, "letter_spacing_em": -0.015, "use": "h2" },
+    { "name": "3xl",  "px": 42, "rem": 2.625, "line_height": 1.15, "letter_spacing_em": -0.020, "use": "h1, page title" }
+  ],
+  "notes": "Tight ratio — make weight and color carry hierarchy. Pair with strong weight contrast (400 body, 700 headings)."
+}

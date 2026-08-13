@@ -1,0 +1,40 @@
+{
+  "name": "neon-brutalism",
+  "description": "High-chroma magenta-and-cyan with near-black neutrals. Built for brutalist landing pages, dev tools, and bold marketing. Heavy contrast, no subtlety.",
+  "hue_anchor_oklch": 340,
+  "light": {
+    "50":  "#fff0f7",
+    "100": "#ffd9ec",
+    "200": "#ffb3d8",
+    "300": "#ff7fbd",
+    "400": "#ff3d9a",
+    "500": "#f00084",
+    "600": "#c4006e",
+    "700": "#950055",
+    "800": "#65003c",
+    "900": "#380022",
+    "950": "#1a0010"
+  },
+  "dark": {
+    "50":  "#0a0008",
+    "100": "#15000d",
+    "200": "#260017",
+    "300": "#420026",
+    "400": "#6b0040",
+    "500": "#a00060",
+    "600": "#d50080",
+    "700": "#ff3d9a",
+    "800": "#ff85bf",
+    "900": "#ffc6dd",
+    "950": "#ffeaf3"
+  },
+  "pairs": [
+    { "fg": "#1a0010", "bg": "#fff0f7", "ratio": 19.2, "use": "near-black on near-white, brutalist body" },
+    { "fg": "#ffeaf3", "bg": "#0a0008", "ratio": 19.0, "use": "near-white on near-black" },
+    { "fg": "#fff0f7", "bg": "#f00084", "ratio": 4.6,  "use": "white on neon button (AA large only)" },
+    { "fg": "#1a0010", "bg": "#ff3d9a", "ratio": 5.1,  "use": "black text on hot-pink, recommended" },
+    { "fg": "#ffeaf3", "bg": "#950055", "ratio": 8.2,  "use": "white on deep magenta" },
+    { "fg": "#380022", "bg": "#ffb3d8", "ratio": 9.4,  "use": "deep magenta on light pink surface" },
+    { "fg": "#ffc6dd", "bg": "#260017", "ratio": 12.9, "use": "soft pink on dark background" }
+  ]
+}
