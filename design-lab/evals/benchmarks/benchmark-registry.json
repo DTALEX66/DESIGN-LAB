@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "work-lab/open-design/benchmark-registry/v1",
+  "$id": "design-lab/open-design/benchmark-registry/v1",
   "schema_version": "open-design/benchmark-registry/v1",
   "repeatability": {
     "seed_policy": "explicit-per-case",

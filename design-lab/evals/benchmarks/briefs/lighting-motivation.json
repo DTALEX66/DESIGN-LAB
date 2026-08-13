@@ -3,7 +3,7 @@
   "benchmark_id": "lighting-motivation",
   "discipline": "lighting",
   "version": "1.0.0",
-  "seed": "work-lab-lighting-motivation-v1",
+  "seed": "design-lab-lighting-motivation-v1",
   "viewport": {
     "width": 1440,
     "height": 900,

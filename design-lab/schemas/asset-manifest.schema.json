@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "work-lab/asset-manifest/v1",
+  "$id": "design-lab/asset-manifest/v1",
   "title": "WORK-LAB Asset Manifest",
   "type": "object",
   "required": ["manifestId", "assets"],

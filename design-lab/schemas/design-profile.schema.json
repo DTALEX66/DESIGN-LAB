@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "work-lab/design-profile/v1",
+  "$id": "design-lab/design-profile/v1",
   "title": "WORK-LAB Design Profile",
   "type": "object",
   "required": ["profileId", "version", "domain", "evidenceLevel"],

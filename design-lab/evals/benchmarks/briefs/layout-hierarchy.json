@@ -3,7 +3,7 @@
   "benchmark_id": "layout-hierarchy",
   "discipline": "layout",
   "version": "1.0.0",
-  "seed": "work-lab-layout-hierarchy-v1",
+  "seed": "design-lab-layout-hierarchy-v1",
   "viewport": {
     "width": 1440,
     "height": 900,
