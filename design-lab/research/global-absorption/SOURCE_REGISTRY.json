@@ -2256,6 +2256,74 @@
         "design-system",
         "reference"
       ]
+    },
+    {
+      "id": "document-design-system",
+      "name": "document-design-system (Avinava)",
+      "url": "https://github.com/Avinava/document-design-system",
+      "license": "MIT",
+      "license_verified": true,
+      "integration_mode": "vendor-adapt",
+      "status": "adopt-now",
+      "use": "文档设计系统（报告/图表/deck）",
+      "categories": [
+        "document",
+        "report"
+      ]
+    },
+    {
+      "id": "dataviz-critique-skills",
+      "name": "dataviz-critique-skills",
+      "url": "https://github.com/zhanyi789/dataviz-critique-skills",
+      "license": "MIT",
+      "license_verified": true,
+      "integration_mode": "vendor-adapt",
+      "status": "adopt-now",
+      "use": "数据可视化图表评审",
+      "categories": [
+        "dataviz",
+        "review"
+      ]
+    },
+    {
+      "id": "brand-identity-generator",
+      "name": "brand-identity-generator",
+      "url": "https://github.com/AbdulkareemKR/brand-identity-generator",
+      "license": "MIT",
+      "license_verified": true,
+      "integration_mode": "vendor-adapt",
+      "status": "adopt-now",
+      "use": "品牌身份生成",
+      "categories": [
+        "brand"
+      ]
+    },
+    {
+      "id": "ultimate-uiux-design-skills",
+      "name": "ultimate.UIUX.design.skills",
+      "url": "https://github.com/ca-who-codes/ultimate.UIUX.design.skills",
+      "license": "MIT",
+      "license_verified": true,
+      "integration_mode": "vendor-adapt",
+      "status": "adopt-now",
+      "use": "UI/UX 设计上下文包",
+      "categories": [
+        "ui-ux",
+        "context-pack"
+      ]
+    },
+    {
+      "id": "ux-writing-skill",
+      "name": "ux-writing-skill (content-designer)",
+      "url": "https://github.com/content-designer/ux-writing-skill",
+      "license": "UNVERIFIED",
+      "license_verified": false,
+      "integration_mode": "reference",
+      "status": "reference-now",
+      "use": "UX 写作系统（147⭐，仓库无 LICENSE 文件 → reference-only）",
+      "categories": [
+        "ux-writing"
+      ]
     }
   ]
 }
