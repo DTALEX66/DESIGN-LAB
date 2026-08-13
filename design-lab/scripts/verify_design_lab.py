@@ -21,6 +21,7 @@ SCRIPTS = [
     "verify_source_registry_v2.py",
     "verify_v2_protocols.py",
     "verify_visual_quality_v21.py",
+    "verify_comfyui_gate.py",
 ]
 
 # E1 确定性检查（DL-QLT-001 / DL-PRD-001），以参数化方式运行
