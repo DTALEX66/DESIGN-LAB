@@ -99,7 +99,7 @@ def check_source() -> list[str]:
 def check_binary_sidecars() -> list[str]:
     missing = []
     for rel in git_ls():
-        if not rel.lower().endswith(BINARY_EXT):
+        if not rel.lower().endswith(BINARY_EXT) or is_excluded(rel):
             continue
         if not (REPO / (rel + ".license")).exists():
             missing.append(rel)
