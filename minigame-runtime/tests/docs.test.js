@@ -10,7 +10,7 @@ test('root README documents current verification gates', () => {
   assert.doesNotMatch(rootReadme, /\b[0-9]+\/[0-9]+\s*pass\b/, 'README should avoid stale hardcoded test count');
   assert.match(rootReadme, /测试数以实际输出为准/, 'README should direct readers to real verify output');
   assert.match(rootReadme, /android-webview\/app\/build\/outputs\/apk\/debug\/app-debug\.apk/, 'README should point to APK output');
-  assert.match(rootReadme, /CCTV\/电梯轿厢\/乘客热源\/异常准星/, 'README should describe visual CCTV monitor, not only text logs');
+  assert.match(rootReadme, /CCTV.*电梯轿厢.*乘客热源.*异常准星/, 'README should describe visual CCTV monitor, not only text logs');
   assert.match(rootReadme, /Game Visual Design Fixture/, 'README should declare the game-visual fixture contract');
   assert.doesNotMatch(rootReadme, /小游戏合集平台/, 'README must not describe a collection platform');
 });

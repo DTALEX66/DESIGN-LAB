@@ -74,7 +74,7 @@ jobs:
       - name: Python unit tests
         run: python scripts/run_python_tests.py
       - name: MiniGame fixture boundary test
-        run: python -m pytest design-lab/tests/test_minigame_visual_fixture_boundary.py -q
+        run: python -m unittest design-lab.tests.test_minigame_visual_fixture_boundary -v
       - name: JSON/Schema parse check
         run: python -m compileall -q design-lab/scripts
 
