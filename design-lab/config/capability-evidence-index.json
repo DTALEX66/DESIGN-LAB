@@ -1,31 +1,55 @@
 {
-  "schemaVersion": "design-lab/capability-evidence-index/v2",
-  "task": "V42 Phase 10 (capability evidence index)",
-  "generatedAt": "2026-08-11",
-  "boundTree": "c8ff829d212f8040457c8be53c85a3a610f2c980",
+  "schemaVersion": "design-lab/capability-evidence-index/v3",
+  "task": "DL-EVD-001 (DESIGN-LAB migration R3)",
+  "generatedAt": "2026-08-13",
+  "boundTree": "9e432a58a136317c0d0dd613b0ab75082279ba04",
   "environment": "Windows 10 (local), Open Design 0.18.1, daemon ran live 2026-08-11 (health 200, 10 plugins registered)",
   "rule": "Every capability is bound to an E0-E5 evidence level, the tree/SHA, environment, and (where applicable) run/artifact/reviewer. No static file, test count, or declaration may impersonate runtime evidence. E1 = structural validation passes (files/schema/tests). E2 = isolated runtime. E3 = real runtime use. E4 = frozen + independent review. E5 = external validation. Evidence files live in .hermes/task-runtime/ (gitignored) and reports/.",
   "evidenceLevels": {
-    "E0": {"label": "declared", "state": "declared-only", "proof": "document path or task card"},
-    "E1": {"label": "structural", "state": "structural-pass", "proof": "hash, parser, schema or linter output"},
-    "E2": {"label": "isolated-runtime", "state": "isolated-pass", "proof": "command output in isolated env"},
-    "E3": {"label": "runtime", "state": "runtime-pass", "proof": "runtime id + task id + artifact provenance"},
-    "E4": {"label": "frozen", "state": "release-verified", "proof": "frozen tree + independent review + exact-SHA CI"},
-    "E5": {"label": "external", "state": "commercially-proven", "proof": "external acceptance"}
+    "E0": {
+      "label": "declared",
+      "state": "declared-only",
+      "proof": "document path or task card"
+    },
+    "E1": {
+      "label": "structural",
+      "state": "structural-pass",
+      "proof": "hash, parser, schema or linter output"
+    },
+    "E2": {
+      "label": "isolated-runtime",
+      "state": "isolated-pass",
+      "proof": "command output in isolated env"
+    },
+    "E3": {
+      "label": "runtime",
+      "state": "runtime-pass",
+      "proof": "runtime id + task id + artifact provenance"
+    },
+    "E4": {
+      "label": "frozen",
+      "state": "release-verified",
+      "proof": "frozen tree + independent review + exact-SHA CI"
+    },
+    "E5": {
+      "label": "external",
+      "state": "commercially-proven",
+      "proof": "external acceptance"
+    }
   },
   "capabilities": [
     {
-      "id": "source-governance",
+      "id": "research-evidence",
       "title": "Source, rights and security governance",
       "minimumRequiredEvidence": "E1",
       "actualEvidence": "E1",
       "evidence": "Declaration + structural: source registry, governance rules, REUSE headers and license coverage structurally present and verified.",
-      "run": "verify_open_design_assistance.py -> VERIFY_RESULT=OK total=465 failed=0",
+      "run": "verify_design_lab.py -> VERIFY_DESIGN_LAB=OK total=8 failed=0",
       "artifact": "config/capability-status.json, knowledge/governance/CAPABILITY_EVIDENCE_LEVELS.md",
       "reviewer": "HERMES (self-verified)"
     },
     {
-      "id": "brief-routing",
+      "id": "design-intelligence",
       "title": "Brief normalization and commercial design routing",
       "minimumRequiredEvidence": "E2",
       "actualEvidence": "E1",
@@ -38,24 +62,15 @@
       "id": "visual-quality",
       "title": "Visual quality, design feeling and anti-AI-slop engine",
       "minimumRequiredEvidence": "E2",
-      "actualEvidence": "E3",
-      "evidence": "Runtime: real-browser axe-core 4.9.1 scan of the five UIUX golden-slice enhanced implementations returned 0 violations (WCAG 2a/2aa/21aa). Tracked evidence: domain-packs/uiux-design/evidence/axe-scan-20260811.json + 5 case evidence cards (all E3). Structural checks also pass (visual_scoring 10/0).",
+      "actualEvidence": "E1",
+      "evidence": "Runtime: real-browser axe-core 4.9.1 scan of the five UIUX golden-slice enhanced implementations returned 0 violations (WCAG 2a/2aa/21aa). Tracked evidence: domain-packs/uiux-design/evidence/axe-scan-20260811.json + 5 case evidence cards (all E3). Structural checks also pass (visual_scoring 10/0). [旧树 E3 证据绑定旧 SHA，新树迁移后需重新取证，当前为 E1 结构验证]",
       "run": "browser_console + axe.run (real rendering) -> 5/5 cases 0 violations; verify_visual_scoring_v3.py 10/0",
       "artifact": "domain-packs/uiux-design/evidence/axe-scan-20260811.json, domain-packs/uiux-design/evidence/*.json, evals/rubrics/, design-systems/uiux-commercial-light/",
-      "reviewer": "HERMES (self-verified; automated scan, human jury pending V42-0409)"
+      "reviewer": "HERMES (self-verified; automated scan, human jury pending V42-0409)",
+      "requiresRequalification": true
     },
     {
-      "id": "style-master-method",
-      "title": "Master records and professional method cards",
-      "minimumRequiredEvidence": "E2",
-      "actualEvidence": "E0",
-      "evidence": "Declared: master records exist; source verification and 77 method cards are Phase 7 scope (V42-0701..0707). Not yet structurally gated.",
-      "run": "n/a",
-      "artifact": "project-memory/PRODUCT_DEFINITION_V42.md (scope reference)",
-      "reviewer": "HERMES (self-verified)"
-    },
-    {
-      "id": "domain-scenarios",
+      "id": "professional-visual-domains",
       "title": "Domain pack scenarios and golden benchmarks",
       "minimumRequiredEvidence": "E2",
       "actualEvidence": "E1",
@@ -75,14 +90,15 @@
       "reviewer": "HERMES (self-verified)"
     },
     {
-      "id": "runtime-integration",
+      "id": "creative-toolchain",
       "title": "Open Design daemon runtime registration",
       "minimumRequiredEvidence": "E3",
-      "actualEvidence": "E3",
-      "evidence": "Runtime: Open Design daemon (ELECTRON_RUN_AS_NODE=1, port 7456, health 200) registered 10 plugins (3 bundles + 7 atoms, trust=trusted); project created, artifact created with complete manifest and read back from disk sidecar; failure paths verified (409 FILE_EXISTS, no-project, delete). Tracked evidence: reports/V42_E3_RUNTIME_EVIDENCE_20260811.md.",
+      "actualEvidence": "E1",
+      "evidence": "Runtime: Open Design daemon (ELECTRON_RUN_AS_NODE=1, port 7456, health 200) registered 10 plugins (3 bundles + 7 atoms, trust=trusted); project created, artifact created with complete manifest and read back from disk sidecar; failure paths verified (409 FILE_EXISTS, no-project, delete). Tracked evidence: reports/V42_E3_RUNTIME_EVIDENCE_20260811.md. [旧树 E3 证据绑定旧 SHA，新树迁移后需重新取证，当前为 E1 结构验证]",
       "run": "od plugin install/list/info/doctor, od project create/delete, od artifacts create -> all verified live",
       "artifact": "reports/V42_E3_RUNTIME_EVIDENCE_20260811.md, reports/V4_RUNTIME_REGISTRATION_E3.md",
-      "reviewer": "HERMES (self-verified; live daemon run 2026-08-11)"
+      "reviewer": "HERMES (self-verified; live daemon run 2026-08-11)",
+      "requiresRequalification": true
     },
     {
       "id": "release-evidence",
@@ -109,13 +125,77 @@
     ]
   },
   "records": [
-    {"capability_id": "source-governance", "evidence_level": "E1", "artifacts": ["declaration_doc", "schema", "linter"]},
-    {"capability_id": "brief-routing", "evidence_level": "E1", "artifacts": ["declaration_doc", "tests"]},
-    {"capability_id": "visual-quality", "evidence_level": "E3", "tree_sha": "c8ff829d212f8040457c8be53c85a3a610f2c980", "artifacts": ["declaration_doc", "linter", "visual_scoring", "runtime_id", "task_id", "artifact_provenance"]},
-    {"capability_id": "style-master-method", "evidence_level": "E0", "artifacts": ["declaration_doc"]},
-    {"capability_id": "domain-scenarios", "evidence_level": "E1", "artifacts": ["declaration_doc", "linter", "domain_pack"]},
-    {"capability_id": "production-handoff", "evidence_level": "E1", "artifacts": ["declaration_doc", "schema"]},
-    {"capability_id": "runtime-integration", "evidence_level": "E3", "tree_sha": "c8ff829d212f8040457c8be53c85a3a610f2c980", "artifacts": ["runtime_id", "task_id", "artifact_provenance"]},
-    {"capability_id": "release-evidence", "evidence_level": "E1", "artifacts": ["declaration_doc", "exact_sha_ci"]}
+    {
+      "capability_id": "source-governance",
+      "evidence_level": "E1",
+      "artifacts": [
+        "declaration_doc",
+        "schema",
+        "linter"
+      ]
+    },
+    {
+      "capability_id": "brief-routing",
+      "evidence_level": "E1",
+      "artifacts": [
+        "declaration_doc",
+        "tests"
+      ]
+    },
+    {
+      "capability_id": "visual-quality",
+      "evidence_level": "E3",
+      "tree_sha": "c8ff829d212f8040457c8be53c85a3a610f2c980",
+      "artifacts": [
+        "declaration_doc",
+        "linter",
+        "visual_scoring",
+        "runtime_id",
+        "task_id",
+        "artifact_provenance"
+      ]
+    },
+    {
+      "capability_id": "style-master-method",
+      "evidence_level": "E0",
+      "artifacts": [
+        "declaration_doc"
+      ]
+    },
+    {
+      "capability_id": "domain-scenarios",
+      "evidence_level": "E1",
+      "artifacts": [
+        "declaration_doc",
+        "linter",
+        "domain_pack"
+      ]
+    },
+    {
+      "capability_id": "production-handoff",
+      "evidence_level": "E1",
+      "artifacts": [
+        "declaration_doc",
+        "schema"
+      ]
+    },
+    {
+      "capability_id": "runtime-integration",
+      "evidence_level": "E3",
+      "tree_sha": "c8ff829d212f8040457c8be53c85a3a610f2c980",
+      "artifacts": [
+        "runtime_id",
+        "task_id",
+        "artifact_provenance"
+      ]
+    },
+    {
+      "capability_id": "release-evidence",
+      "evidence_level": "E1",
+      "artifacts": [
+        "declaration_doc",
+        "exact_sha_ci"
+      ]
+    }
   ]
 }
