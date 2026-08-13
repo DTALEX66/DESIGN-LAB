@@ -1,0 +1,73 @@
+{
+  "environment": "development",
+  "log_level": "INFO",
+  "debug_mode": false,
+  "llm": {
+    "model_name": "claude-opus-4-7",
+    "temperature": 0.7,
+    "max_tokens": 4096,
+    "top_p": 0.95,
+    "top_k": 40,
+    "timeout_seconds": 120,
+    "max_retries": 3,
+    "retry_delay": 1.0
+  },
+  "knowledge": {
+    "arxiv_categories": [],
+    "semantic_scholar_base": "https://api.semanticscholar.org/graph/v1/paper/search",
+    "rss_feeds": [],
+    "authoritative_docs": [
+      "International Journal of Human-Computer Studies \u2014 Elsevier",
+      "Interacting with Computers \u2014 Oxford",
+      "Computers in Human Behavior \u2014 Elsevier",
+      "IEEE Transactions on Games",
+      "Entertainment Computing \u2014 Elsevier",
+      "Human Factors \u2014 SAGE"
+    ],
+    "scoring_weights": {
+      "recency": 0.4,
+      "keyword_relevance": 0.4,
+      "citation_count": 0.2
+    },
+    "max_results_per_source": 10,
+    "max_new_entries_per_run": 20,
+    "crawl_interval_weekly": 7,
+    "crawl_interval_daily": 1
+  },
+  "quality_gates": {
+    "universal_gates": [
+      "U1",
+      "U2",
+      "U3",
+      "U4",
+      "U5",
+      "U6"
+    ],
+    "domain_gates": [
+      "G1",
+      "G2",
+      "G3",
+      "G4"
+    ],
+    "max_retries_per_gate": 2,
+    "enforce_strict": true,
+    "fail_on_unfixable": false
+  },
+  "features": {
+    "enable_knowledge_pipeline": true,
+    "enable_auto_quality_gates": true,
+    "enable_hooks": true,
+    "enable_caching": true,
+    "enable_metrics": true,
+    "enable_degradation_levels": true,
+    "enable_multilingual": true
+  },
+  "domain_keywords": [
+    "mobile game UI design",
+    "thumb zone touch ergonomics",
+    "Fitts law touch target",
+    "mobile UI density contrast",
+    "gesture discoverability game",
+    "one-handed accessibility mobile"
+  ]
+}

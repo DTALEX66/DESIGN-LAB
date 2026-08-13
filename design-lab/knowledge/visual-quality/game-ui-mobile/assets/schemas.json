@@ -1,0 +1,233 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "game-ui-mobile-friendly-design Skill Schemas",
+  "description": "JSON schemas for the game-ui-mobile-friendly-design skill system",
+  "definitions": {
+    "HookEvent": {
+      "type": "string",
+      "enum": [
+        "before_skill_load",
+        "after_skill_load",
+        "before_skill_execute",
+        "after_skill_execute",
+        "before_sub_skill_invoke",
+        "after_sub_skill_invoke",
+        "before_quality_gate",
+        "after_quality_gate",
+        "quality_gate_failed",
+        "quality_gate_fixed",
+        "before_data_fetch",
+        "after_data_fetch",
+        "before_data_write",
+        "after_data_write",
+        "before_knowledge_query",
+        "after_knowledge_query",
+        "before_knowledge_update",
+        "after_knowledge_update",
+        "degradation_level_changed",
+        "fallback_triggered",
+        "error_occurred",
+        "shutdown"
+      ]
+    },
+    "HookContext": {
+      "type": "object",
+      "required": ["event", "timestamp"],
+      "properties": {
+        "event": { "$ref": "#/definitions/HookEvent" },
+        "timestamp": { "type": "string", "format": "date-time" },
+        "skill_name": { "type": "string" },
+        "sub_skill_name": { "type": "string" },
+        "gate_name": { "type": "string" },
+        "degradation_level": { "type": "integer", "minimum": 0, "maximum": 4 },
+        "data": { "type": "object" },
+        "error": { "type": "string" }
+      }
+    },
+    "HookResult": {
+      "type": "object",
+      "required": ["success"],
+      "properties": {
+        "success": { "type": "boolean" },
+        "data": { "type": "object" },
+        "error": { "type": "string" },
+        "should_abort": { "type": "boolean" }
+      }
+    },
+    "DegradationLevel": {
+      "type": "integer",
+      "enum": [0, 1, 2, 3, 4],
+      "description": "0=Full, 1=Partial, 2=Knowledge Base Only, 3=Data Unavailable, 4=Complete Failure"
+    },
+    "StateSnapshot": {
+      "type": "object",
+      "required": ["session_id", "timestamp", "skill_name", "current_step", "total_steps"],
+      "properties": {
+        "session_id": { "type": "string" },
+        "timestamp": { "type": "string", "format": "date-time" },
+        "skill_name": { "type": "string" },
+        "current_step": { "type": "integer", "minimum": 1 },
+        "total_steps": { "type": "integer", "minimum": 1 },
+        "data": { "type": "object" },
+        "metadata": { "type": "object" }
+      }
+    },
+    "Requirements": {
+      "type": "object",
+      "required": ["object", "scope", "language"],
+      "properties": {
+        "object": { "type": "string", "description": "The UI/element/game being analyzed" },
+        "scope": { "type": "array", "items": { "type": "string" }, "description": "Aspects in scope" },
+        "timeframe": { "type": "string", "description": "Analysis deadline" },
+        "available_inputs": { "type": "array", "items": { "type": "string" } },
+        "target_audience": { "type": "string", "description": "End user description" },
+        "language": { "type": "string", "enum": ["en", "vi"], "description": "Output language" }
+      }
+    },
+    "EvidenceBundle": {
+      "type": "object",
+      "required": ["current_data", "authoritative_docs"],
+      "properties": {
+        "current_data": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "source": { "type": "string" },
+              "content": { "type": "string" },
+              "date": { "type": "string", "format": "date" },
+              "tier": { "type": "integer", "minimum": 1, "maximum": 4 }
+            }
+          }
+        },
+        "authoritative_docs": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "title": { "type": "string" },
+              "source": { "type": "string" },
+              "url": { "type": "string", "format": "uri" },
+              "tier": { "type": "integer", "minimum": 1, "maximum": 4 }
+            }
+          }
+        },
+        "recent_news": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "title": { "type": "string" },
+              "source": { "type": "string" },
+              "url": { "type": "string", "format": "uri" },
+              "date": { "type": "string", "format": "date" }
+            }
+          }
+        }
+      }
+    },
+    "AnalysisScorecard": {
+      "type": "object",
+      "required": ["touch_targets", "thumb_zone", "gestures", "accessibility"],
+      "properties": {
+        "touch_targets": {
+          "type": "object",
+          "properties": {
+            "status": { "type": "string", "enum": ["pass", "fail", "conditional"] },
+            "findings": { "type": "array", "items": { "type": "string" } },
+            "recommendations": { "type": "array", "items": { "type": "string" } }
+          }
+        },
+        "thumb_zone": {
+          "type": "object",
+          "properties": {
+            "status": { "type": "string", "enum": ["pass", "fail", "conditional"] },
+            "placement_analysis": { "type": "array", "items": { "type": "string" } },
+            "recommendations": { "type": "array", "items": { "type": "string" } }
+          }
+        },
+        "gestures": {
+          "type": "object",
+          "properties": {
+            "status": { "type": "string", "enum": ["pass", "fail", "conditional"] },
+            "discoverability": { "type": "array", "items": { "type": "string" } },
+            "recommendations": { "type": "array", "items": { "type": "string" } }
+          }
+        },
+        "accessibility": {
+          "type": "object",
+          "properties": {
+            "status": { "type": "string", "enum": ["pass", "fail", "conditional"] },
+            "colorblind_safe": { "type": "boolean" },
+            "screen_reader_compatible": { "type": "boolean" },
+            "recommendations": { "type": "array", "items": { "type": "string" } }
+          }
+        }
+      }
+    },
+    "Verdict": {
+      "type": "string",
+      "enum": ["Touch-Friendly & Usable", "Conditional (reach tweaks)", "Poor Ergonomics", "Inconclusive"]
+    },
+    "FinalReport": {
+      "type": "object",
+      "required": ["verdict", "disclosure", "evidence_chain"],
+      "properties": {
+        "verdict": { "$ref": "#/definitions/Verdict" },
+        "scenarios": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "name": { "type": "string" },
+              "description": { "type": "string" },
+              "probability": { "type": "number", "minimum": 0, "maximum": 1 }
+            }
+          }
+        },
+        "key_risks": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "risk": { "type": "string" },
+              "mitigation": { "type": "string" },
+              "priority": { "type": "string", "enum": ["P0", "P1", "P2", "P3"] }
+            }
+          }
+        },
+        "evidence_chain": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "claim": { "type": "string" },
+              "source": { "type": "string" },
+              "tier": { "type": "integer", "minimum": 1, "maximum": 4 }
+            }
+          }
+        },
+        "disclosure": {
+          "type": "object",
+          "properties": {
+            "limitations": { "type": "array", "items": { "type": "string" } },
+            "data_availability": { "type": "string" },
+            "confidence_level": { "type": "string", "enum": ["High", "Medium", "Low"] }
+          }
+        },
+        "recommended_actions": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "action": { "type": "string" },
+              "priority": { "type": "string", "enum": ["P0", "P1", "P2", "P3"] },
+              "effort": { "type": "string" },
+              "impact": { "type": "string" }
+            }
+          }
+        }
+      }
+    }
+  }
+}

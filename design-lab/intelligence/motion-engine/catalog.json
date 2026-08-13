@@ -1,0 +1,40 @@
+{
+  "schemaVersion": 1,
+  "collection": "https://github.com/OpaceDigitalAgency/skills",
+  "publisher": {
+    "name": "Opace Digital Agency",
+    "url": "https://opace.agency/services/web-design/"
+  },
+  "skills": [
+    {
+      "name": "ai-ui-ux-motion-engine",
+      "displayName": "AI UI/UX Motion Engine",
+      "version": "1.6.4",
+      "status": "available",
+      "source": "ai-ui-ux-motion-engine/SKILL.md",
+      "repository": "https://github.com/OpaceDigitalAgency/ai-ui-ux-motion-engine",
+      "release": "https://github.com/OpaceDigitalAgency/ai-ui-ux-motion-engine/releases/latest",
+      "keywords": [
+        "ai website design",
+        "codex skill",
+        "claude code skill",
+        "cursor skill",
+        "github copilot skill",
+        "antigravity skill",
+        "gemini cli skill",
+        "windsurf skill",
+        "ui design",
+        "ux design",
+        "motion graphics",
+        "cinematic scroll",
+        "product film",
+        "video scrubber",
+        "frontend design",
+        "gsap",
+        "framer motion",
+        "three.js",
+        "web accessibility"
+      ]
+    }
+  ]
+}
