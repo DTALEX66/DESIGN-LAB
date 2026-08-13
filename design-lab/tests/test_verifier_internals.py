@@ -12,6 +12,7 @@ import json
 import re
 import subprocess
 import sys
+import tempfile
 import unittest
 from pathlib import Path
 
@@ -237,6 +238,122 @@ class VisualQualityScoringTests(unittest.TestCase):
         out = m.score_report(report, self._rubric())
         self.assertEqual(out["decision"], "reject")
         self.assertIn("layout", out.get("invalid_axes", []))
+
+
+class CritiqueScoringTests(unittest.TestCase):
+    """score_design_critique.score_critique: weighted + blockers."""
+
+    def test_accept(self):
+        m = load("score_design_critique.py")
+        c = {"scores": [
+            {"axis": "layout", "score": 9, "weight": 1, "evidence": ["e1"]},
+            {"axis": "color", "score": 9, "weight": 1, "evidence": ["e2"]},
+        ], "automated_checks": []}
+        out = m.score_critique(c, threshold=8.0)
+        self.assertTrue(out["accept"])
+        self.assertEqual(out["weighted_score"], 9.0)
+
+    def test_blocker_fails(self):
+        m = load("score_design_critique.py")
+        c = {"scores": [
+            {"axis": "layout", "score": 9, "weight": 1, "evidence": ["e1"]},
+        ], "automated_checks": [{"id": "anti-slop", "result": "fail", "severity": "blocker"}]}
+        out = m.score_critique(c, threshold=8.0)
+        self.assertFalse(out["accept"])
+        self.assertIn("anti-slop", out["blockers"])
+
+    def test_invalid_score_fails(self):
+        m = load("score_design_critique.py")
+        c = {"scores": [
+            {"axis": "layout", "score": 99, "weight": 1, "evidence": ["e1"]},
+        ], "automated_checks": []}
+        out = m.score_critique(c, threshold=8.0)
+        self.assertFalse(out["accept"])
+        self.assertIn("layout", out["invalid_scores"])
+
+    def test_missing_evidence_fails(self):
+        m = load("score_design_critique.py")
+        c = {"scores": [
+            {"axis": "layout", "score": 9, "weight": 1, "evidence": []},
+        ], "automated_checks": []}
+        out = m.score_critique(c, threshold=8.0)
+        self.assertFalse(out["accept"])
+        self.assertIn("layout", out["missing_evidence"])
+
+
+class MinigameDomainPackTests(unittest.TestCase):
+    def test_boundary_pass(self):
+        """verify_minigame_domain_pack: E2 fixture boundary must pass."""
+        r = subprocess.run([sys.executable, str(SCRIPTS / "verify_minigame_domain_pack.py")],
+                           capture_output=True, text=True, cwd=ROOT)
+        self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
+        self.assertIn("MINIGAME_DOMAIN_PACK_BOUNDARY_PASS", r.stdout)
+
+
+class StyleRecipeTests(unittest.TestCase):
+    def test_valid_recipe(self):
+        """A well-formed recipe passes weight constraints."""
+        m = load("validate_style_recipe.py")
+        recipe = {
+            "project_dna": {"weight": 0.6},
+            "lineage_weights": [{"weight": 0.2}],
+            "master_method_refs": [{"id": "genjutsu", "weight": 0.2}],
+            "originality_guard": {"name_free_generation_prompt": "design a landing page with clean layout"},
+        }
+        with tempfile.NamedTemporaryFile("w", suffix=".json", delete=False, encoding="utf-8") as f:
+            json.dump(recipe, f)
+            tmp = Path(f.name)
+        try:
+            r = subprocess.run([sys.executable, str(SCRIPTS / "validate_style_recipe.py"), str(tmp)],
+                               capture_output=True, text=True, cwd=ROOT)
+            self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
+            out = json.loads(r.stdout)
+            self.assertTrue(out["valid"])
+        finally:
+            tmp.unlink(missing_ok=True)
+
+    def test_lineage_overweight(self):
+        """Combined lineage weight > 0.45 must fail."""
+        m = load("validate_style_recipe.py")
+        recipe = {
+            "project_dna": {"weight": 0.6},
+            "lineage_weights": [{"weight": 0.3}, {"weight": 0.3}],
+            "master_method_refs": [{"id": "genjutsu", "weight": 0.1}],
+            "originality_guard": {"name_free_generation_prompt": "clean prompt"},
+        }
+        with tempfile.NamedTemporaryFile("w", suffix=".json", delete=False, encoding="utf-8") as f:
+            json.dump(recipe, f)
+            tmp = Path(f.name)
+        try:
+            r = subprocess.run([sys.executable, str(SCRIPTS / "validate_style_recipe.py"), str(tmp)],
+                               capture_output=True, text=True, cwd=ROOT)
+            self.assertEqual(r.returncode, 1, "overweight lineage must fail")
+            out = json.loads(r.stdout)
+            self.assertFalse(out["valid"])
+            self.assertTrue(any("lineage" in e for e in out["errors"]))
+        finally:
+            tmp.unlink(missing_ok=True)
+
+    def test_master_name_in_prompt(self):
+        """Generation prompt containing a master name must fail."""
+        m = load("validate_style_recipe.py")
+        recipe = {
+            "project_dna": {"weight": 0.6},
+            "lineage_weights": [{"weight": 0.2}],
+            "master_method_refs": [{"id": "genjutsu", "weight": 0.2}],
+            "originality_guard": {"name_free_generation_prompt": "use genjutsu motion principles here"},
+        }
+        with tempfile.NamedTemporaryFile("w", suffix=".json", delete=False, encoding="utf-8") as f:
+            json.dump(recipe, f)
+            tmp = Path(f.name)
+        try:
+            r = subprocess.run([sys.executable, str(SCRIPTS / "validate_style_recipe.py"), str(tmp)],
+                               capture_output=True, text=True, cwd=ROOT)
+            self.assertEqual(r.returncode, 1, "master name in prompt must fail")
+            out = json.loads(r.stdout)
+            self.assertIn("master name", out["errors"][0])
+        finally:
+            tmp.unlink(missing_ok=True)
 
 
 if __name__ == "__main__":
