@@ -62,6 +62,7 @@ EXCLUDE_PREFIX = (
     "knowledge/ecommerce-ai/",
     "knowledge/visual-quality/springy-motion/",
     "knowledge/visual-quality/design-thinking/",
+    "knowledge/visual-quality/game-creative/",
     "intelligence/ui-ux-pro-max/",
     "intelligence/shipit-ui/",
     "intelligence/motion-engine/",
@@ -70,6 +71,8 @@ EXCLUDE_PREFIX = (
     "intelligence/claude-design-skill/",
     "intelligence/motion-forensics/",
     "intelligence/web-content-designer/",
+    "intelligence/genjutsu/",
+    "intelligence/ai-product-os/",
 )
 
 

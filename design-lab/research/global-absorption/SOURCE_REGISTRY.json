@@ -2183,6 +2183,50 @@
         "html",
         "content"
       ]
+    },
+    {
+      "id": "genjutsu",
+      "name": "genjutsu (AThevon)",
+      "url": "https://github.com/AThevon/genjutsu",
+      "license": "MIT",
+      "license_verified": true,
+      "integration_mode": "vendor-adapt",
+      "status": "adopt-now",
+      "use": "creative coding：动画/3D/设计系统/动效原则",
+      "categories": [
+        "creative-coding",
+        "motion",
+        "3d"
+      ]
+    },
+    {
+      "id": "game-creative-skills",
+      "name": "GameCreative-skills",
+      "url": "https://github.com/wotonger/GameCreative-skills",
+      "license": "MIT",
+      "license_verified": true,
+      "integration_mode": "vendor-adapt",
+      "status": "adopt-now",
+      "use": "游戏/应用设计全管线",
+      "categories": [
+        "game",
+        "pipeline"
+      ]
+    },
+    {
+      "id": "ai-product-os",
+      "name": "AI-Product-OS",
+      "url": "https://github.com/Nihalgraphics/AI-Product-OS-for-UI-UX-Brand-Prototype",
+      "license": "MIT",
+      "license_verified": true,
+      "integration_mode": "vendor-adapt",
+      "status": "adopt-now",
+      "use": "8 设计师技能 + 15 步 UI/UX/品牌/原型流程",
+      "categories": [
+        "ui-ux",
+        "brand",
+        "workflow"
+      ]
     }
   ]
 }
