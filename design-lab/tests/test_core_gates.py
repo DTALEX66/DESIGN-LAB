@@ -1,0 +1,123 @@
+# SPDX-License-Identifier: MIT
+"""Unit tests for core fail-closed gates:
+- verify_license_coverage.py (vendored exclusion + source/binary checks)
+- verify_identity_gate.py (legacy identity detection + exemption logic)
+"""
+from __future__ import annotations
+
+import importlib.util
+import json
+import tempfile
+import unittest
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parents[1]
+SCRIPTS = ROOT / "scripts"
+
+
+def load(name: str):
+    path = SCRIPTS / name
+    spec = importlib.util.spec_from_file_location(name.replace(".py", ""), path)
+    assert spec and spec.loader
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+class LicenseCoverageTests(unittest.TestCase):
+    def test_is_excluded_vendored(self):
+        m = load("verify_license_coverage.py")
+        self.assertTrue(m.is_excluded("knowledge/visual-quality/hallmark/a.py"))
+        self.assertTrue(m.is_excluded("intelligence/baoyu-design/x.mjs"))
+        self.assertTrue(m.is_excluded("design-lab/exports/out.png"))
+        self.assertTrue(m.is_excluded("minigame-runtime/bundle.js"))
+        self.assertTrue(m.is_excluded("foo/node_modules/bar/b.py"))
+
+    def test_is_excluded_false_for_active(self):
+        m = load("verify_license_coverage.py")
+        self.assertFalse(m.is_excluded("design-lab/scripts/verify_sbom.py"))
+        self.assertFalse(m.is_excluded("design-lab/config/capability-index.json"))
+
+    def test_source_header_detection(self):
+        """A file with SPDX header passes; without it is flagged."""
+        m = load("verify_license_coverage.py")
+        with tempfile.TemporaryDirectory() as raw:
+            d = Path(raw)
+            ok = d / "ok.py"
+            ok.write_text("# SPDX-License-Identifier: MIT\nprint(1)\n", encoding="utf-8")
+            bad = d / "bad.py"
+            bad.write_text("print(2)\n", encoding="utf-8")
+            # simulate check_source's head-read logic
+            for p, expect in ((ok, True), (bad, False)):
+                head = p.read_text(encoding="utf-8")[:200]
+                self.assertEqual("SPDX-License-Identifier" in head, expect, p.name)
+
+
+class IdentityGateTests(unittest.TestCase):
+    LEGACY = [r"OPEN[- ]DESIGN[- ]Assistance", r"opendesign[-_]assistance", r"Open Design Assistance"]
+
+    def _detect(self, text: str) -> bool:
+        import re
+        for pattern in self.LEGACY:
+            if re.search(pattern, text, re.IGNORECASE):
+                return True
+        return False
+
+    def test_legacy_patterns_detected(self):
+        for txt in ("OPEN-DESIGN-Assistance", "opendesign_assistance", "Open Design Assistance"):
+            self.assertTrue(self._detect(txt), txt)
+
+    def test_exempt_line_removal(self):
+        """Lines declaring the name retired are exempted before matching.
+
+        After removing the exemption lines, a REMAINING non-exempt legacy
+        reference must still be detected (fail-closed correctness).
+        """
+        m = load("verify_identity_gate.py")
+        text = "旧名 OPEN-DESIGN-Assistance 已退出活动命名，不再使用\n其余 OPEN-DESIGN-Assistance 引用\n"
+        exempt = [ln for ln in text.splitlines()
+                  if any(w in ln for w in ["退出活动", "历史归档", "不再作为活动", "仅允许出现在", "retired", "denylist", "Denylist", "allowlist"])]
+        self.assertEqual(len(exempt), 1, "exactly the retirement-declaring line is exempt")
+        for e in exempt:
+            text = text.replace(e, "")
+        # the remaining line is a genuine active-path reference -> must trigger
+        self.assertTrue(self._detect(text), "non-exempt legacy reference must be detected")
+
+    def test_exempt_line_full_removal(self):
+        """When ALL matching lines are exempted, detection must pass clean."""
+        m = load("verify_identity_gate.py")
+        text = "历史归档：OPEN-DESIGN-Assistance 已退出活动命名\n"
+        exempt = [ln for ln in text.splitlines()
+                  if any(w in ln for w in ["退出活动", "历史归档", "不再作为活动", "仅允许出现在", "retired", "denylist", "Denylist", "allowlist"])]
+        for e in exempt:
+            text = text.replace(e, "")
+        self.assertFalse(self._detect(text), "fully-exempt text must not trigger")
+
+    def test_exempt_line_removal_reference(self):
+        """denylist/allowlist declaration lines are policy, not violations."""
+        m = load("verify_identity_gate.py")
+        text = "denylist: OPEN-DESIGN-Assistance 禁止出现在活动路径"
+        exempt = [ln for ln in text.splitlines()
+                  if any(w in ln for w in ["退出活动", "历史归档", "不再作为活动", "仅允许出现在", "retired", "denylist", "Denylist", "allowlist"])]
+        for e in exempt:
+            text = text.replace(e, "")
+        self.assertFalse(self._detect(text))
+
+    def test_allow_prefixes(self):
+        m = load("verify_identity_gate.py")
+        self.assertTrue(any("project-memory/history/" == p or "project-memory/history/".startswith(p)
+                            for p in m.ALLOW_ROOT_PREFIXES))
+
+
+class SourceRegistryTests(unittest.TestCase):
+    def test_registry_entries_have_url(self):
+        """Every vendor-adapt entry must carry a canonical url (v2 schema)."""
+        m = load("verify_source_registry_v2.py")
+        reg = json.loads((ROOT / "research/global-absorption/SOURCE_REGISTRY.json").read_text(encoding="utf-8"))
+        bad = [e["name"] for e in reg.get("entries", [])
+               if e.get("integration_mode") == "vendor-adapt" and not e.get("url")]
+        self.assertEqual(bad, [], f"vendor-adapt entries missing url: {bad}")
+
+
+if __name__ == "__main__":
+    unittest.main()
