@@ -1818,6 +1818,51 @@
       "absorb": "DTCG 设计令牌 JSON → 多平台代码编译器（工程包，待 adapter 化）",
       "restrictions": "工程包不 vendoring；按 adapter 集成",
       "reviewed_at": "2026-08-13"
+    },
+    {
+      "id": "front-end-design-checklist",
+      "name": "Front-End Design Checklist",
+      "category": "design-contract",
+      "url": "https://github.com/thedaviddias/Front-End-Design-Checklist",
+      "license": "CC0-1.0",
+      "license_verified": true,
+      "source_tier": "A",
+      "integration_mode": "vendor-adapt",
+      "status": "adopt-now",
+      "target": "knowledge/standards/front-end-design-checklist/",
+      "absorb": "前端设计检查清单（颜色/字体/表单/无障碍/性能）",
+      "restrictions": "CC0 公有领域",
+      "reviewed_at": "2026-08-13"
+    },
+    {
+      "id": "brand-resources-links",
+      "name": "Brand Resources (links collection)",
+      "category": "brand",
+      "url": "https://github.com/sturobson/brand-resources",
+      "license": "MIT",
+      "license_verified": true,
+      "source_tier": "C",
+      "integration_mode": "reference",
+      "status": "reference-now",
+      "target": "knowledge/standards/brand-resources/",
+      "absorb": "品牌身份指南链接清单（TFL/Lloyds/Oxford 等 PDF 外链）",
+      "restrictions": "仅链接引用，不复制 PDF",
+      "reviewed_at": "2026-08-13"
+    },
+    {
+      "id": "style-dictionary-utils",
+      "name": "Style Dictionary Utils",
+      "category": "design-tokens",
+      "url": "https://github.com/lukasoppermann/style-dictionary-utils",
+      "license": "MIT",
+      "license_verified": true,
+      "source_tier": "B",
+      "integration_mode": "adapter",
+      "status": "adapter-next",
+      "target": "adapters/tools/style-dictionary/",
+      "absorb": "Style Dictionary transforms/formats/filters（令牌工程化候选）",
+      "restrictions": "工程包待 adapter 化",
+      "reviewed_at": "2026-08-13"
     }
   ]
 }
