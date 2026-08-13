@@ -14,6 +14,7 @@ exist; this script validates the preconditions and reports enable state.
 from __future__ import annotations
 
 import json
+import re
 import subprocess
 import sys
 from pathlib import Path
@@ -65,11 +66,13 @@ def check(skip_dirty: bool = False) -> list[str]:
         findings.append("MISSING-RELEASE-EVIDENCE-CONTRACT")
 
     # 5. enable state: human acceptance + E3 evidence
+    #    require an explicit acceptance marker; generic "通过/PASS" words
+    #    in evidence-discipline prose must NOT count (false positive guard)
     evals_readme = ROOT / "design-lab" / "evals" / "README.md"
     human_done = False
     if evals_readme.exists():
         text = evals_readme.read_text(encoding="utf-8")
-        human_done = "通过" in text or "PASS" in text.upper()
+        human_done = bool(re.search(r"DL-REL-001\s*[:：]\s*(ACCEPTED|验收通过|DONE)", text, re.IGNORECASE))
     if not human_done:
         findings.append("HUMAN-ACCEPTANCE-PENDING (DL-REL-001)")
 
