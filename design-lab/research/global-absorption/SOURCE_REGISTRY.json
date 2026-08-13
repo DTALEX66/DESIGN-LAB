@@ -1,7 +1,7 @@
 {
   "$schema": "../../schemas/source-registry.schema.json",
   "version": "2.0.0-draft",
-  "generated_at": "2026-08-04",
+  "generated_at": "2026-08-13",
   "policy": "Only sources with explicit integration_mode and license review may enter runtime context.",
   "entries": [
     {
@@ -1683,6 +1683,81 @@
       "absorb": "Artifact signing and transparency logs.",
       "restrictions": "Keyless signing requires identity/privacy review.",
       "reviewed_at": "2026-08-04"
+    },
+    {
+      "id": "hallmark-skill",
+      "name": "Hallmark (anti-AI-slop design skill)",
+      "category": "design-intelligence",
+      "url": "https://github.com/Nutlope/hallmark",
+      "license": "MIT",
+      "license_verified": true,
+      "source_tier": "A",
+      "integration_mode": "vendor-adapt",
+      "status": "adopt-now",
+      "target": "knowledge/visual-quality/hallmark/",
+      "absorb": "anti-AI-slop 设计原则、结构多样性、主题目录（21 宏结构）、组件配方（60+）、slop-test 评分体系（107 文件）",
+      "restrictions": "MIT 版权声明保留；仅设计能力参考",
+      "reviewed_at": "2026-08-13"
+    },
+    {
+      "id": "taste-skill",
+      "name": "Taste-Skill (anti-slop frontend)",
+      "category": "design-intelligence",
+      "url": "https://github.com/Leonxlnx/taste-skill",
+      "license": "MIT",
+      "license_verified": true,
+      "source_tier": "A",
+      "integration_mode": "vendor-adapt",
+      "status": "adopt-now",
+      "target": "knowledge/visual-quality/taste-skill/",
+      "absorb": "brief 推断、设计阅读、防默认纪律、风格语言（brutalist/minimalist/soft）、redesign audit-first",
+      "restrictions": "MIT 版权声明保留；仅设计能力参考",
+      "reviewed_at": "2026-08-13"
+    },
+    {
+      "id": "huashu-design-skill",
+      "name": "Huashu-Design（花叔Design，中文）",
+      "category": "design-intelligence",
+      "url": "https://github.com/alchaincyf/huashu-design",
+      "license": "MIT",
+      "license_verified": true,
+      "source_tier": "A",
+      "integration_mode": "vendor-adapt",
+      "status": "adopt-now",
+      "target": "knowledge/production/huashu-design/",
+      "absorb": "HTML 高保真原型、幻灯片、动画、评审、品牌协议、摄影语言、分镜（32 references，中文）",
+      "restrictions": "MIT 版权声明保留；assets/ 大文件不复制",
+      "reviewed_at": "2026-08-13"
+    },
+    {
+      "id": "uiux-pro-max-data",
+      "name": "UI/UX Pro Max (design intelligence data)",
+      "category": "design-intelligence",
+      "url": "https://github.com/nextlevelbuilder/ui-ux-pro-max-skill",
+      "license": "MIT",
+      "license_verified": true,
+      "source_tier": "A",
+      "integration_mode": "vendor-adapt",
+      "status": "adopt-now",
+      "target": "intelligence/ui-ux-pro-max/",
+      "absorb": "84 UI 风格、192 色板、74 字体配对、98 UX 指南、25 图表、22 技术栈（CSV 中性数据）",
+      "restrictions": "MIT 版权声明保留；cli/ 工程不吸收",
+      "reviewed_at": "2026-08-13"
+    },
+    {
+      "id": "garden-skills",
+      "name": "Garden Skills (ConardLi)",
+      "category": "skill-governance",
+      "url": "https://github.com/ConardLi/garden-skills",
+      "license": "MIT",
+      "license_verified": true,
+      "source_tier": "A",
+      "integration_mode": "quarantine",
+      "status": "review-required",
+      "target": "knowledge/visual-quality/",
+      "absorb": "web design / knowledge retrieval / image generation skill 集合（候选评估）",
+      "restrictions": "待评估后决定吸收范围（review-required）",
+      "reviewed_at": "2026-08-13"
     }
   ]
 }
