@@ -1,9 +1,10 @@
-# MINIGAME 云端状态与冻结边界（V42-0108）
+# MINIGAME 云端状态与冻结边界（DL-GV-001/002/003）
 
-## 云端事实（2026-08-10 回读）
+## 云端事实（2026-08-10 回读，迁移后复核）
 
-- `minigame-runtime/` 已存在于云端 `main`（当前 HEAD `4ae0981b1d75ac1d20cac3a231b7e157854a4fb9`）。
-- 它在本仓库中的角色是 **Open Design 设计能力的设计 fixture / runtime reference**，
+- `minigame-runtime/` 已存在于云端 `main`（当前 HEAD `5c4fe55`，DESIGN-LAB R3 迁移后）。
+- 它在本仓库中的角色是 **游戏视觉设计 fixture / runtime reference**
+  （`fixtureRole: game-visual-design-reference`，任务包 H2），
   不是独立游戏产品仓库，也不是本仓库的产品主线。
 - 现有内容：游戏运行样板（`src/`、`platform/`）、平台样板（wechat/douyin/android）、
   schema、模板、测试、构建脚本、精简视觉资产（CCTV GIF、面板纹理）。
