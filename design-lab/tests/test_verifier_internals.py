@@ -98,5 +98,46 @@ class V2ProtocolsTests(unittest.TestCase):
         self.assertIn("VERIFY_V2_PROTOCOLS=OK", r.stdout)
 
 
+class AdapterRegistryTests(unittest.TestCase):
+    def test_six_adapters_all_rollback(self):
+        """DL-ADP-001: every adapter must declare rollback semantics."""
+        r = subprocess.run([sys.executable, str(SCRIPTS / "verify_adapter_registry.py")],
+                           capture_output=True, text=True, cwd=ROOT)
+        self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
+        m = re.search(r"adapters=(\d+)", r.stdout)
+        self.assertTrue(m, "adapter report must include count")
+        self.assertGreaterEqual(int(m.group(1)), 6)
+
+    def test_registry_json_has_rollback(self):
+        reg = json.loads((ROOT / "adapters/adapter-registry.json").read_text(encoding="utf-8"))
+        adapters = reg if isinstance(reg, list) else reg.get("adapters", [])
+        self.assertGreaterEqual(len(adapters), 6)
+        for a in adapters:
+            self.assertTrue(a.get("rollback"), f"adapter {a.get('id')} missing rollback")
+
+
+class RuntimeContractsTests(unittest.TestCase):
+    def test_contracts_ok(self):
+        r = subprocess.run([sys.executable, str(SCRIPTS / "verify_runtime_contracts_v3.py")],
+                           capture_output=True, text=True, cwd=ROOT)
+        self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
+        self.assertIn("VERIFY_RUNTIME_CONTRACTS_V3=OK", r.stdout)
+        m = re.search(r"total=(\d+)", r.stdout)
+        self.assertTrue(m, "contracts report must include total")
+        self.assertGreaterEqual(int(m.group(1)), 200)
+
+
+class VisualQualityV21Tests(unittest.TestCase):
+    def test_v21_ok_with_rubrics(self):
+        r = subprocess.run([sys.executable, str(SCRIPTS / "verify_visual_quality_v21.py")],
+                           capture_output=True, text=True, cwd=ROOT)
+        self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
+        self.assertIn("VERIFY_VISUAL_QUALITY_V21=OK", r.stdout)
+        m = re.search(r"RUBRICS=(\d+)", r.stdout)
+        self.assertTrue(m, "v21 report must include RUBRICS count")
+        self.assertGreaterEqual(int(m.group(1)), 19)
+        self.assertIn("ERRORS=0", r.stdout)
+
+
 if __name__ == "__main__":
     unittest.main()
