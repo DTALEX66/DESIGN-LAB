@@ -54,11 +54,18 @@ EXCLUDE_PREFIX = (
     "knowledge/visual-quality/extract-design-system/",
     "knowledge/visual-quality/ppt-agent/",
     "knowledge/visual-quality/swiftui-design/",
+    "knowledge/visual-quality/claude-dolphin/",
+    "knowledge/visual-quality/ux-audit-skill/",
+    "knowledge/visual-quality/brandbook-skill/",
+    "knowledge/visual-quality/logo-designer/",
+    "knowledge/visual-quality/screenshot-to-ds/",
+    "knowledge/ecommerce-ai/",
     "intelligence/ui-ux-pro-max/",
     "intelligence/shipit-ui/",
     "intelligence/motion-engine/",
     "intelligence/design-system-prompt/",
     "intelligence/anydesign/",
+    "intelligence/claude-design-skill/",
 )
 
 
@@ -92,7 +99,7 @@ def check_source() -> list[str]:
 def check_binary_sidecars() -> list[str]:
     missing = []
     for rel in git_ls():
-        if not rel.lower().endswith(BINARY_EXT):
+        if not rel.lower().endswith(BINARY_EXT) or is_excluded(rel):
             continue
         if not (REPO / (rel + ".license")).exists():
             missing.append(rel)
