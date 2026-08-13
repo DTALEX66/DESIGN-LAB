@@ -2324,6 +2324,16 @@
       "categories": [
         "ux-writing"
       ]
+    },
+    {
+      "name": "design-lab/knowledge/visual-quality/hue",
+      "url": "https://github.com/dominikmartn/hue",
+      "license": "MIT",
+      "license_verified": true,
+      "integration_mode": "vendor-adapt",
+      "status": "adopt-now",
+      "note": "色彩系统设计 skill + 12 模板；排除 examples/ 演示资产",
+      "absorbed_at": "2026-08-14"
     }
   ]
 }
