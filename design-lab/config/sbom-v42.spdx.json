@@ -3,9 +3,9 @@
   "dataLicense": "CC0-1.0",
   "SPDXID": "SPDXRef-DOCUMENT",
   "name": "DESIGN-LAB binary-asset + third-party inventory",
-  "documentNamespace": "https://github.com/DTALEX66/DESIGN-LAB/spdx/v42-phase11-sbom",
+  "documentNamespace": "https://dtalex66.local/design-lab/f33d0b4bdf99",
   "creationInfo": {
-    "created": "2026-08-11T00:00:00Z",
+    "created": "2026-08-14T00:00:00Z",
     "creators": [
       "Tool: hermes-agent (V42 Phase 11)"
     ]
@@ -18,7 +18,13 @@
       "licenseDeclared": "MIT",
       "copyrightText": "2026 DTALEX66",
       "supplier": "Organization: DTALEX66",
-      "externalRefs": [{"referenceCategory": "SECURITY", "referenceType": "cpe23Type", "referenceLocator": "cpe:2.3:a:dtalex66:design-lab:*:*:*:*:*:*:*:*"}]
+      "externalRefs": [
+        {
+          "referenceCategory": "SECURITY",
+          "referenceType": "cpe23Type",
+          "referenceLocator": "cpe:2.3:a:dtalex66:design-lab:*:*:*:*:*:*:*:*"
+        }
+      ]
     },
     {
       "SPDXID": "SPDXRef-bin-1",
@@ -45,7 +51,454 @@
       "licenseDeclared": "MIT",
       "copyrightText": "Copyright (c) Julian Berman",
       "supplier": "Organization: python-jsonschema",
-      "externalRefs": [{"referenceCategory": "PACKAGE-MANAGER", "referenceType": "purl", "referenceLocator": "pkg:pypi/jsonschema@4.26.0"}]
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceType": "purl",
+          "referenceLocator": "pkg:pypi/jsonschema@4.26.0"
+        }
+      ]
+    },
+    {
+      "SPDXID": "SPDXRef-vendor-0",
+      "name": "Google DESIGN.md",
+      "licenseConcluded": "Apache-2.0",
+      "licenseDeclared": "Apache-2.0",
+      "copyrightText": "NOASSERTION (vendored from https://github.com/google-labs-code/design.md)",
+      "supplier": "NOASSERTION",
+      "downloadLocation": "https://github.com/google-labs-code/design.md"
+    },
+    {
+      "SPDXID": "SPDXRef-vendor-1",
+      "name": "W3C Design Tokens Community Group",
+      "licenseConcluded": "W3C Community Final Specification Agreement",
+      "licenseDeclared": "W3C Community Final Specification Agreement",
+      "copyrightText": "NOASSERTION (vendored from https://github.com/design-tokens/community-group)",
+      "supplier": "NOASSERTION",
+      "downloadLocation": "https://github.com/design-tokens/community-group"
+    },
+    {
+      "SPDXID": "SPDXRef-vendor-2",
+      "name": "18F Methods",
+      "licenseConcluded": "US-Public-Domain / CC0",
+      "licenseDeclared": "US-Public-Domain / CC0",
+      "copyrightText": "NOASSERTION (vendored from https://guides.18f.org/methods/about/)",
+      "supplier": "NOASSERTION",
+      "downloadLocation": "https://guides.18f.org/methods/about/"
+    },
+    {
+      "SPDXID": "SPDXRef-vendor-3",
+      "name": "18F UX Guide",
+      "licenseConcluded": "CC0-1.0",
+      "licenseDeclared": "CC0-1.0",
+      "copyrightText": "NOASSERTION (vendored from https://guides.18f.org/ux-guide/)",
+      "supplier": "NOASSERTION",
+      "downloadLocation": "https://guides.18f.org/ux-guide/"
+    },
+    {
+      "SPDXID": "SPDXRef-vendor-4",
+      "name": "Lottie Animation Format",
+      "licenseConcluded": "Community Specification License",
+      "licenseDeclared": "Community Specification License",
+      "copyrightText": "NOASSERTION (vendored from https://github.com/lottie-animation-community/docs)",
+      "supplier": "NOASSERTION",
+      "downloadLocation": "https://github.com/lottie-animation-community/docs"
+    },
+    {
+      "SPDXID": "SPDXRef-vendor-5",
+      "name": "glTF 2.0",
+      "licenseConcluded": "Khronos Specification License",
+      "licenseDeclared": "Khronos Specification License",
+      "copyrightText": "NOASSERTION (vendored from https://github.com/KhronosGroup/glTF)",
+      "supplier": "NOASSERTION",
+      "downloadLocation": "https://github.com/KhronosGroup/glTF"
+    },
+    {
+      "SPDXID": "SPDXRef-vendor-6",
+      "name": "OpenPBR Surface",
+      "licenseConcluded": "Apache-2.0",
+      "licenseDeclared": "Apache-2.0",
+      "copyrightText": "NOASSERTION (vendored from https://github.com/AcademySoftwareFoundation/OpenPBR)",
+      "supplier": "NOASSERTION",
+      "downloadLocation": "https://github.com/AcademySoftwareFoundation/OpenPBR"
+    },
+    {
+      "SPDXID": "SPDXRef-vendor-7",
+      "name": "SPDX Specification",
+      "licenseConcluded": "Community Specification License",
+      "licenseDeclared": "Community Specification License",
+      "copyrightText": "NOASSERTION (vendored from https://github.com/spdx/spdx-spec)",
+      "supplier": "NOASSERTION",
+      "downloadLocation": "https://github.com/spdx/spdx-spec"
+    },
+    {
+      "SPDXID": "SPDXRef-vendor-8",
+      "name": "CycloneDX",
+      "licenseConcluded": "Apache-2.0",
+      "licenseDeclared": "Apache-2.0",
+      "copyrightText": "NOASSERTION (vendored from https://github.com/CycloneDX/specification)",
+      "supplier": "NOASSERTION",
+      "downloadLocation": "https://github.com/CycloneDX/specification"
+    },
+    {
+      "SPDXID": "SPDXRef-vendor-9",
+      "name": "Hallmark (anti-AI-slop design skill)",
+      "licenseConcluded": "MIT",
+      "licenseDeclared": "MIT",
+      "copyrightText": "NOASSERTION (vendored from https://github.com/Nutlope/hallmark)",
+      "supplier": "NOASSERTION",
+      "downloadLocation": "https://github.com/Nutlope/hallmark"
+    },
+    {
+      "SPDXID": "SPDXRef-vendor-10",
+      "name": "Taste-Skill (anti-slop frontend)",
+      "licenseConcluded": "MIT",
+      "licenseDeclared": "MIT",
+      "copyrightText": "NOASSERTION (vendored from https://github.com/Leonxlnx/taste-skill)",
+      "supplier": "NOASSERTION",
+      "downloadLocation": "https://github.com/Leonxlnx/taste-skill"
+    },
+    {
+      "SPDXID": "SPDXRef-vendor-11",
+      "name": "Huashu-Design（花叔Design，中文）",
+      "licenseConcluded": "MIT",
+      "licenseDeclared": "MIT",
+      "copyrightText": "NOASSERTION (vendored from https://github.com/alchaincyf/huashu-design)",
+      "supplier": "NOASSERTION",
+      "downloadLocation": "https://github.com/alchaincyf/huashu-design"
+    },
+    {
+      "SPDXID": "SPDXRef-vendor-12",
+      "name": "UI/UX Pro Max (design intelligence data)",
+      "licenseConcluded": "MIT",
+      "licenseDeclared": "MIT",
+      "copyrightText": "NOASSERTION (vendored from https://github.com/nextlevelbuilder/ui-ux-pro-max-skill)",
+      "supplier": "NOASSERTION",
+      "downloadLocation": "https://github.com/nextlevelbuilder/ui-ux-pro-max-skill"
+    },
+    {
+      "SPDXID": "SPDXRef-vendor-13",
+      "name": "Motion Design Skill (LottieFiles)",
+      "licenseConcluded": "MIT",
+      "licenseDeclared": "MIT",
+      "copyrightText": "NOASSERTION (vendored from https://github.com/LottieFiles/motion-design-skill)",
+      "supplier": "NOASSERTION",
+      "downloadLocation": "https://github.com/LottieFiles/motion-design-skill"
+    },
+    {
+      "SPDXID": "SPDXRef-vendor-14",
+      "name": "Design Motion Principles",
+      "licenseConcluded": "MIT",
+      "licenseDeclared": "MIT",
+      "copyrightText": "NOASSERTION (vendored from https://github.com/kylezantos/design-motion-principles)",
+      "supplier": "NOASSERTION",
+      "downloadLocation": "https://github.com/kylezantos/design-motion-principles"
+    },
+    {
+      "SPDXID": "SPDXRef-vendor-15",
+      "name": "ShipIt UI Design (11 skills)",
+      "licenseConcluded": "MIT",
+      "licenseDeclared": "MIT",
+      "copyrightText": "NOASSERTION (vendored from https://github.com/shipiit/shipit-ui-design)",
+      "supplier": "NOASSERTION",
+      "downloadLocation": "https://github.com/shipiit/shipit-ui-design"
+    },
+    {
+      "SPDXID": "SPDXRef-vendor-16",
+      "name": "Front-End Design Checklist",
+      "licenseConcluded": "CC0-1.0",
+      "licenseDeclared": "CC0-1.0",
+      "copyrightText": "NOASSERTION (vendored from https://github.com/thedaviddias/Front-End-Design-Checklist)",
+      "supplier": "NOASSERTION",
+      "downloadLocation": "https://github.com/thedaviddias/Front-End-Design-Checklist"
+    },
+    {
+      "SPDXID": "SPDXRef-vendor-17",
+      "name": "game-ui-mobile-friendly-design-agent-skill",
+      "licenseConcluded": "MIT",
+      "licenseDeclared": "MIT",
+      "copyrightText": "NOASSERTION (vendored from https://github.com/dungnotnull/game-ui-mobile-friendly-design-agent-skill)",
+      "supplier": "NOASSERTION",
+      "downloadLocation": "https://github.com/dungnotnull/game-ui-mobile-friendly-design-agent-skill"
+    },
+    {
+      "SPDXID": "SPDXRef-vendor-18",
+      "name": "blender (3D design via MCP)",
+      "licenseConcluded": "Apache-2.0",
+      "licenseDeclared": "Apache-2.0",
+      "copyrightText": "NOASSERTION (vendored from https://github.com/jithinolickal/blender)",
+      "supplier": "NOASSERTION",
+      "downloadLocation": "https://github.com/jithinolickal/blender"
+    },
+    {
+      "SPDXID": "SPDXRef-vendor-19",
+      "name": "ai-ui-ux-motion-engine (Opace)",
+      "licenseConcluded": "MIT",
+      "licenseDeclared": "MIT",
+      "copyrightText": "NOASSERTION (vendored from https://github.com/OpaceDigitalAgency/skills)",
+      "supplier": "NOASSERTION",
+      "downloadLocation": "https://github.com/OpaceDigitalAgency/skills"
+    },
+    {
+      "SPDXID": "SPDXRef-vendor-20",
+      "name": "evidence-based-brand-systems",
+      "licenseConcluded": "MIT",
+      "licenseDeclared": "MIT",
+      "copyrightText": "NOASSERTION (vendored from https://github.com/arome3/evidence-based-brand-systems)",
+      "supplier": "NOASSERTION",
+      "downloadLocation": "https://github.com/arome3/evidence-based-brand-systems"
+    },
+    {
+      "SPDXID": "SPDXRef-vendor-21",
+      "name": "brand-visual-identity",
+      "licenseConcluded": "MIT",
+      "licenseDeclared": "MIT",
+      "copyrightText": "NOASSERTION (vendored from https://github.com/SkillMedev/brand-visual-identity)",
+      "supplier": "NOASSERTION",
+      "downloadLocation": "https://github.com/SkillMedev/brand-visual-identity"
+    },
+    {
+      "SPDXID": "SPDXRef-vendor-22",
+      "name": "ai-graphic-design-skill",
+      "licenseConcluded": "MIT",
+      "licenseDeclared": "MIT",
+      "copyrightText": "NOASSERTION (vendored from https://github.com/designrique/ai-graphic-design-skill)",
+      "supplier": "NOASSERTION",
+      "downloadLocation": "https://github.com/designrique/ai-graphic-design-skill"
+    },
+    {
+      "SPDXID": "SPDXRef-vendor-23",
+      "name": "claude-design-system-prompt (Trystan-SA)",
+      "licenseConcluded": "MIT",
+      "licenseDeclared": "MIT",
+      "copyrightText": "NOASSERTION (vendored from https://github.com/Trystan-SA/claude-design-system-prompt)",
+      "supplier": "NOASSERTION",
+      "downloadLocation": "https://github.com/Trystan-SA/claude-design-system-prompt"
+    },
+    {
+      "SPDXID": "SPDXRef-vendor-24",
+      "name": "claude2figma",
+      "licenseConcluded": "MIT",
+      "licenseDeclared": "MIT",
+      "copyrightText": "NOASSERTION (vendored from https://github.com/senlindesign/claude2figma)",
+      "supplier": "NOASSERTION",
+      "downloadLocation": "https://github.com/senlindesign/claude2figma"
+    },
+    {
+      "SPDXID": "SPDXRef-vendor-25",
+      "name": "extract-design-system",
+      "licenseConcluded": "MIT",
+      "licenseDeclared": "MIT",
+      "copyrightText": "NOASSERTION (vendored from https://github.com/arvindrk/extract-design-system)",
+      "supplier": "NOASSERTION",
+      "downloadLocation": "https://github.com/arvindrk/extract-design-system"
+    },
+    {
+      "SPDXID": "SPDXRef-vendor-26",
+      "name": "anydesign (uxKero)",
+      "licenseConcluded": "MIT",
+      "licenseDeclared": "MIT",
+      "copyrightText": "NOASSERTION (vendored from https://github.com/uxKero/anydesign)",
+      "supplier": "NOASSERTION",
+      "downloadLocation": "https://github.com/uxKero/anydesign"
+    },
+    {
+      "SPDXID": "SPDXRef-vendor-27",
+      "name": "ppt-agent-skill (Akxan)",
+      "licenseConcluded": "MIT",
+      "licenseDeclared": "MIT",
+      "copyrightText": "NOASSERTION (vendored from https://github.com/Akxan/ppt-agent-skill)",
+      "supplier": "NOASSERTION",
+      "downloadLocation": "https://github.com/Akxan/ppt-agent-skill"
+    },
+    {
+      "SPDXID": "SPDXRef-vendor-28",
+      "name": "swiftui-design-skill",
+      "licenseConcluded": "MIT",
+      "licenseDeclared": "MIT",
+      "copyrightText": "NOASSERTION (vendored from https://github.com/Wholiver/swiftui-design-skill)",
+      "supplier": "NOASSERTION",
+      "downloadLocation": "https://github.com/Wholiver/swiftui-design-skill"
+    },
+    {
+      "SPDXID": "SPDXRef-vendor-29",
+      "name": "claude-dolphin",
+      "licenseConcluded": "MIT",
+      "licenseDeclared": "MIT",
+      "copyrightText": "NOASSERTION (vendored from https://github.com/nyldn/claude-dolphin)",
+      "supplier": "NOASSERTION",
+      "downloadLocation": "https://github.com/nyldn/claude-dolphin"
+    },
+    {
+      "SPDXID": "SPDXRef-vendor-30",
+      "name": "ux-audit-skill (EliaAlberti)",
+      "licenseConcluded": "MIT",
+      "licenseDeclared": "MIT",
+      "copyrightText": "NOASSERTION (vendored from https://github.com/EliaAlberti/ux-audit-skill)",
+      "supplier": "NOASSERTION",
+      "downloadLocation": "https://github.com/EliaAlberti/ux-audit-skill"
+    },
+    {
+      "SPDXID": "SPDXRef-vendor-31",
+      "name": "claude-design-skill (jiji262)",
+      "licenseConcluded": "MIT",
+      "licenseDeclared": "MIT",
+      "copyrightText": "NOASSERTION (vendored from https://github.com/jiji262/claude-design-skill)",
+      "supplier": "NOASSERTION",
+      "downloadLocation": "https://github.com/jiji262/claude-design-skill"
+    },
+    {
+      "SPDXID": "SPDXRef-vendor-32",
+      "name": "brandbook-skill",
+      "licenseConcluded": "MIT",
+      "licenseDeclared": "MIT",
+      "copyrightText": "NOASSERTION (vendored from https://github.com/echowang97/brandbook-skill)",
+      "supplier": "NOASSERTION",
+      "downloadLocation": "https://github.com/echowang97/brandbook-skill"
+    },
+    {
+      "SPDXID": "SPDXRef-vendor-33",
+      "name": "logo-designer-skill (neonwatty)",
+      "licenseConcluded": "MIT",
+      "licenseDeclared": "MIT",
+      "copyrightText": "NOASSERTION (vendored from https://github.com/neonwatty/logo-designer-skill)",
+      "supplier": "NOASSERTION",
+      "downloadLocation": "https://github.com/neonwatty/logo-designer-skill"
+    },
+    {
+      "SPDXID": "SPDXRef-vendor-34",
+      "name": "ecommerce-ai-skills (kangise)",
+      "licenseConcluded": "CC0-1.0",
+      "licenseDeclared": "CC0-1.0",
+      "copyrightText": "NOASSERTION (vendored from https://github.com/kangise/ecommerce-ai-skills)",
+      "supplier": "NOASSERTION",
+      "downloadLocation": "https://github.com/kangise/ecommerce-ai-skills"
+    },
+    {
+      "SPDXID": "SPDXRef-vendor-35",
+      "name": "screenshot-to-design-system",
+      "licenseConcluded": "MIT",
+      "licenseDeclared": "MIT",
+      "copyrightText": "NOASSERTION (vendored from https://github.com/WCF900905/screenshot-to-design-system)",
+      "supplier": "NOASSERTION",
+      "downloadLocation": "https://github.com/WCF900905/screenshot-to-design-system"
+    },
+    {
+      "SPDXID": "SPDXRef-vendor-36",
+      "name": "ui-clone-skills (voidmatcha)",
+      "licenseConcluded": "Apache-2.0",
+      "licenseDeclared": "Apache-2.0",
+      "copyrightText": "NOASSERTION (vendored from https://github.com/voidmatcha/ui-clone-skills)",
+      "supplier": "NOASSERTION",
+      "downloadLocation": "https://github.com/voidmatcha/ui-clone-skills"
+    },
+    {
+      "SPDXID": "SPDXRef-vendor-37",
+      "name": "springy-motion",
+      "licenseConcluded": "MIT",
+      "licenseDeclared": "MIT",
+      "copyrightText": "NOASSERTION (vendored from https://github.com/OtherdaysStudio/springy-motion)",
+      "supplier": "NOASSERTION",
+      "downloadLocation": "https://github.com/OtherdaysStudio/springy-motion"
+    },
+    {
+      "SPDXID": "SPDXRef-vendor-38",
+      "name": "kopfwelt skills",
+      "licenseConcluded": "MIT",
+      "licenseDeclared": "MIT",
+      "copyrightText": "NOASSERTION (vendored from https://github.com/kopfwelt/skills)",
+      "supplier": "NOASSERTION",
+      "downloadLocation": "https://github.com/kopfwelt/skills"
+    },
+    {
+      "SPDXID": "SPDXRef-vendor-39",
+      "name": "web-content-designer",
+      "licenseConcluded": "Apache-2.0",
+      "licenseDeclared": "Apache-2.0",
+      "copyrightText": "NOASSERTION (vendored from https://github.com/lowtidebuild/web-content-designer)",
+      "supplier": "NOASSERTION",
+      "downloadLocation": "https://github.com/lowtidebuild/web-content-designer"
+    },
+    {
+      "SPDXID": "SPDXRef-vendor-40",
+      "name": "genjutsu (AThevon)",
+      "licenseConcluded": "MIT",
+      "licenseDeclared": "MIT",
+      "copyrightText": "NOASSERTION (vendored from https://github.com/AThevon/genjutsu)",
+      "supplier": "NOASSERTION",
+      "downloadLocation": "https://github.com/AThevon/genjutsu"
+    },
+    {
+      "SPDXID": "SPDXRef-vendor-41",
+      "name": "GameCreative-skills",
+      "licenseConcluded": "MIT",
+      "licenseDeclared": "MIT",
+      "copyrightText": "NOASSERTION (vendored from https://github.com/wotonger/GameCreative-skills)",
+      "supplier": "NOASSERTION",
+      "downloadLocation": "https://github.com/wotonger/GameCreative-skills"
+    },
+    {
+      "SPDXID": "SPDXRef-vendor-42",
+      "name": "AI-Product-OS",
+      "licenseConcluded": "MIT",
+      "licenseDeclared": "MIT",
+      "copyrightText": "NOASSERTION (vendored from https://github.com/Nihalgraphics/AI-Product-OS-for-UI-UX-Brand-Prototype)",
+      "supplier": "NOASSERTION",
+      "downloadLocation": "https://github.com/Nihalgraphics/AI-Product-OS-for-UI-UX-Brand-Prototype"
+    },
+    {
+      "SPDXID": "SPDXRef-vendor-43",
+      "name": "baoyu-design (JimLiu)",
+      "licenseConcluded": "MIT",
+      "licenseDeclared": "MIT",
+      "copyrightText": "NOASSERTION (vendored from https://github.com/JimLiu/baoyu-design)",
+      "supplier": "NOASSERTION",
+      "downloadLocation": "https://github.com/JimLiu/baoyu-design"
+    },
+    {
+      "SPDXID": "SPDXRef-vendor-44",
+      "name": "design-md-skill (arumwu)",
+      "licenseConcluded": "MIT",
+      "licenseDeclared": "MIT",
+      "copyrightText": "NOASSERTION (vendored from https://github.com/arumwu/design-md-skill)",
+      "supplier": "NOASSERTION",
+      "downloadLocation": "https://github.com/arumwu/design-md-skill"
+    },
+    {
+      "SPDXID": "SPDXRef-vendor-45",
+      "name": "document-design-system (Avinava)",
+      "licenseConcluded": "MIT",
+      "licenseDeclared": "MIT",
+      "copyrightText": "NOASSERTION (vendored from https://github.com/Avinava/document-design-system)",
+      "supplier": "NOASSERTION",
+      "downloadLocation": "https://github.com/Avinava/document-design-system"
+    },
+    {
+      "SPDXID": "SPDXRef-vendor-46",
+      "name": "dataviz-critique-skills",
+      "licenseConcluded": "MIT",
+      "licenseDeclared": "MIT",
+      "copyrightText": "NOASSERTION (vendored from https://github.com/zhanyi789/dataviz-critique-skills)",
+      "supplier": "NOASSERTION",
+      "downloadLocation": "https://github.com/zhanyi789/dataviz-critique-skills"
+    },
+    {
+      "SPDXID": "SPDXRef-vendor-47",
+      "name": "brand-identity-generator",
+      "licenseConcluded": "MIT",
+      "licenseDeclared": "MIT",
+      "copyrightText": "NOASSERTION (vendored from https://github.com/AbdulkareemKR/brand-identity-generator)",
+      "supplier": "NOASSERTION",
+      "downloadLocation": "https://github.com/AbdulkareemKR/brand-identity-generator"
+    },
+    {
+      "SPDXID": "SPDXRef-vendor-48",
+      "name": "ultimate.UIUX.design.skills",
+      "licenseConcluded": "MIT",
+      "licenseDeclared": "MIT",
+      "copyrightText": "NOASSERTION (vendored from https://github.com/ca-who-codes/ultimate.UIUX.design.skills)",
+      "supplier": "NOASSERTION",
+      "downloadLocation": "https://github.com/ca-who-codes/ultimate.UIUX.design.skills"
     }
   ],
   "relationships": [
@@ -68,6 +521,251 @@
       "spdxElementId": "SPDXRef-DOCUMENT",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-pkg-jsonschema"
+    },
+    {
+      "spdxElementId": "SPDXRef-DOCUMENT",
+      "relationshipType": "DESCRIBES",
+      "relatedSpdxElement": "SPDXRef-vendor-0"
+    },
+    {
+      "spdxElementId": "SPDXRef-DOCUMENT",
+      "relationshipType": "DESCRIBES",
+      "relatedSpdxElement": "SPDXRef-vendor-1"
+    },
+    {
+      "spdxElementId": "SPDXRef-DOCUMENT",
+      "relationshipType": "DESCRIBES",
+      "relatedSpdxElement": "SPDXRef-vendor-2"
+    },
+    {
+      "spdxElementId": "SPDXRef-DOCUMENT",
+      "relationshipType": "DESCRIBES",
+      "relatedSpdxElement": "SPDXRef-vendor-3"
+    },
+    {
+      "spdxElementId": "SPDXRef-DOCUMENT",
+      "relationshipType": "DESCRIBES",
+      "relatedSpdxElement": "SPDXRef-vendor-4"
+    },
+    {
+      "spdxElementId": "SPDXRef-DOCUMENT",
+      "relationshipType": "DESCRIBES",
+      "relatedSpdxElement": "SPDXRef-vendor-5"
+    },
+    {
+      "spdxElementId": "SPDXRef-DOCUMENT",
+      "relationshipType": "DESCRIBES",
+      "relatedSpdxElement": "SPDXRef-vendor-6"
+    },
+    {
+      "spdxElementId": "SPDXRef-DOCUMENT",
+      "relationshipType": "DESCRIBES",
+      "relatedSpdxElement": "SPDXRef-vendor-7"
+    },
+    {
+      "spdxElementId": "SPDXRef-DOCUMENT",
+      "relationshipType": "DESCRIBES",
+      "relatedSpdxElement": "SPDXRef-vendor-8"
+    },
+    {
+      "spdxElementId": "SPDXRef-DOCUMENT",
+      "relationshipType": "DESCRIBES",
+      "relatedSpdxElement": "SPDXRef-vendor-9"
+    },
+    {
+      "spdxElementId": "SPDXRef-DOCUMENT",
+      "relationshipType": "DESCRIBES",
+      "relatedSpdxElement": "SPDXRef-vendor-10"
+    },
+    {
+      "spdxElementId": "SPDXRef-DOCUMENT",
+      "relationshipType": "DESCRIBES",
+      "relatedSpdxElement": "SPDXRef-vendor-11"
+    },
+    {
+      "spdxElementId": "SPDXRef-DOCUMENT",
+      "relationshipType": "DESCRIBES",
+      "relatedSpdxElement": "SPDXRef-vendor-12"
+    },
+    {
+      "spdxElementId": "SPDXRef-DOCUMENT",
+      "relationshipType": "DESCRIBES",
+      "relatedSpdxElement": "SPDXRef-vendor-13"
+    },
+    {
+      "spdxElementId": "SPDXRef-DOCUMENT",
+      "relationshipType": "DESCRIBES",
+      "relatedSpdxElement": "SPDXRef-vendor-14"
+    },
+    {
+      "spdxElementId": "SPDXRef-DOCUMENT",
+      "relationshipType": "DESCRIBES",
+      "relatedSpdxElement": "SPDXRef-vendor-15"
+    },
+    {
+      "spdxElementId": "SPDXRef-DOCUMENT",
+      "relationshipType": "DESCRIBES",
+      "relatedSpdxElement": "SPDXRef-vendor-16"
+    },
+    {
+      "spdxElementId": "SPDXRef-DOCUMENT",
+      "relationshipType": "DESCRIBES",
+      "relatedSpdxElement": "SPDXRef-vendor-17"
+    },
+    {
+      "spdxElementId": "SPDXRef-DOCUMENT",
+      "relationshipType": "DESCRIBES",
+      "relatedSpdxElement": "SPDXRef-vendor-18"
+    },
+    {
+      "spdxElementId": "SPDXRef-DOCUMENT",
+      "relationshipType": "DESCRIBES",
+      "relatedSpdxElement": "SPDXRef-vendor-19"
+    },
+    {
+      "spdxElementId": "SPDXRef-DOCUMENT",
+      "relationshipType": "DESCRIBES",
+      "relatedSpdxElement": "SPDXRef-vendor-20"
+    },
+    {
+      "spdxElementId": "SPDXRef-DOCUMENT",
+      "relationshipType": "DESCRIBES",
+      "relatedSpdxElement": "SPDXRef-vendor-21"
+    },
+    {
+      "spdxElementId": "SPDXRef-DOCUMENT",
+      "relationshipType": "DESCRIBES",
+      "relatedSpdxElement": "SPDXRef-vendor-22"
+    },
+    {
+      "spdxElementId": "SPDXRef-DOCUMENT",
+      "relationshipType": "DESCRIBES",
+      "relatedSpdxElement": "SPDXRef-vendor-23"
+    },
+    {
+      "spdxElementId": "SPDXRef-DOCUMENT",
+      "relationshipType": "DESCRIBES",
+      "relatedSpdxElement": "SPDXRef-vendor-24"
+    },
+    {
+      "spdxElementId": "SPDXRef-DOCUMENT",
+      "relationshipType": "DESCRIBES",
+      "relatedSpdxElement": "SPDXRef-vendor-25"
+    },
+    {
+      "spdxElementId": "SPDXRef-DOCUMENT",
+      "relationshipType": "DESCRIBES",
+      "relatedSpdxElement": "SPDXRef-vendor-26"
+    },
+    {
+      "spdxElementId": "SPDXRef-DOCUMENT",
+      "relationshipType": "DESCRIBES",
+      "relatedSpdxElement": "SPDXRef-vendor-27"
+    },
+    {
+      "spdxElementId": "SPDXRef-DOCUMENT",
+      "relationshipType": "DESCRIBES",
+      "relatedSpdxElement": "SPDXRef-vendor-28"
+    },
+    {
+      "spdxElementId": "SPDXRef-DOCUMENT",
+      "relationshipType": "DESCRIBES",
+      "relatedSpdxElement": "SPDXRef-vendor-29"
+    },
+    {
+      "spdxElementId": "SPDXRef-DOCUMENT",
+      "relationshipType": "DESCRIBES",
+      "relatedSpdxElement": "SPDXRef-vendor-30"
+    },
+    {
+      "spdxElementId": "SPDXRef-DOCUMENT",
+      "relationshipType": "DESCRIBES",
+      "relatedSpdxElement": "SPDXRef-vendor-31"
+    },
+    {
+      "spdxElementId": "SPDXRef-DOCUMENT",
+      "relationshipType": "DESCRIBES",
+      "relatedSpdxElement": "SPDXRef-vendor-32"
+    },
+    {
+      "spdxElementId": "SPDXRef-DOCUMENT",
+      "relationshipType": "DESCRIBES",
+      "relatedSpdxElement": "SPDXRef-vendor-33"
+    },
+    {
+      "spdxElementId": "SPDXRef-DOCUMENT",
+      "relationshipType": "DESCRIBES",
+      "relatedSpdxElement": "SPDXRef-vendor-34"
+    },
+    {
+      "spdxElementId": "SPDXRef-DOCUMENT",
+      "relationshipType": "DESCRIBES",
+      "relatedSpdxElement": "SPDXRef-vendor-35"
+    },
+    {
+      "spdxElementId": "SPDXRef-DOCUMENT",
+      "relationshipType": "DESCRIBES",
+      "relatedSpdxElement": "SPDXRef-vendor-36"
+    },
+    {
+      "spdxElementId": "SPDXRef-DOCUMENT",
+      "relationshipType": "DESCRIBES",
+      "relatedSpdxElement": "SPDXRef-vendor-37"
+    },
+    {
+      "spdxElementId": "SPDXRef-DOCUMENT",
+      "relationshipType": "DESCRIBES",
+      "relatedSpdxElement": "SPDXRef-vendor-38"
+    },
+    {
+      "spdxElementId": "SPDXRef-DOCUMENT",
+      "relationshipType": "DESCRIBES",
+      "relatedSpdxElement": "SPDXRef-vendor-39"
+    },
+    {
+      "spdxElementId": "SPDXRef-DOCUMENT",
+      "relationshipType": "DESCRIBES",
+      "relatedSpdxElement": "SPDXRef-vendor-40"
+    },
+    {
+      "spdxElementId": "SPDXRef-DOCUMENT",
+      "relationshipType": "DESCRIBES",
+      "relatedSpdxElement": "SPDXRef-vendor-41"
+    },
+    {
+      "spdxElementId": "SPDXRef-DOCUMENT",
+      "relationshipType": "DESCRIBES",
+      "relatedSpdxElement": "SPDXRef-vendor-42"
+    },
+    {
+      "spdxElementId": "SPDXRef-DOCUMENT",
+      "relationshipType": "DESCRIBES",
+      "relatedSpdxElement": "SPDXRef-vendor-43"
+    },
+    {
+      "spdxElementId": "SPDXRef-DOCUMENT",
+      "relationshipType": "DESCRIBES",
+      "relatedSpdxElement": "SPDXRef-vendor-44"
+    },
+    {
+      "spdxElementId": "SPDXRef-DOCUMENT",
+      "relationshipType": "DESCRIBES",
+      "relatedSpdxElement": "SPDXRef-vendor-45"
+    },
+    {
+      "spdxElementId": "SPDXRef-DOCUMENT",
+      "relationshipType": "DESCRIBES",
+      "relatedSpdxElement": "SPDXRef-vendor-46"
+    },
+    {
+      "spdxElementId": "SPDXRef-DOCUMENT",
+      "relationshipType": "DESCRIBES",
+      "relatedSpdxElement": "SPDXRef-vendor-47"
+    },
+    {
+      "spdxElementId": "SPDXRef-DOCUMENT",
+      "relationshipType": "DESCRIBES",
+      "relatedSpdxElement": "SPDXRef-vendor-48"
     }
   ]
 }
