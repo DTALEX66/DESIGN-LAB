@@ -16,7 +16,7 @@
 ## 已完成交付（截至 main `f156ce2`）
 
 - 34/34 任务有产物；Definition of Done 13/13 通过
-- 身份迁移 R3：`opendesign-assistance` → `design-lab`（git mv，历史可追踪）
+- 身份迁移 R3：旧名 `opendesign-assistance` 已退出活动命名 → `design-lab`（git mv，历史可追踪，见历史归档）
 - 九份 SSOT + 13 核心对象 + 6 E0 适配器合同 + Visual Quality Jury V1 + Production Preflight V1
 - DL-KNW-001 三批吸收：8 个 MIT/CC0 设计 SKILL 源码级 vendoring（hallmark/taste-skill/huashu-design/uiux-pro-max/motion×2/shipit-ui/design-checklist）
 - SOURCE_REGISTRY 124 条（schema 校验通过）
