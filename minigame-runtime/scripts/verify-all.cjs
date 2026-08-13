@@ -88,6 +88,9 @@ run('Douyin mini-game build', modern.executable, ['build.js', 'douyin']);
 run('Douyin strict bundle check', modern.executable, ['scripts/check-douyin-bundle.mjs', '--strict']);
 run('Douyin compliance check', modern.executable, ['scripts/check-douyin-compliance.mjs', '--strict']);
 printSummary('[verify] douyin strict: 0 blocker');
+run('Skin schema validation', modern.executable, ['scripts/validate-skins.mjs']);
+run('V5 content validation', modern.executable, ['scripts/validate-v5-content.mjs']);
+printSummary('[verify] skins + v5 content: pass');
 // Android debug APK build requires the portable Android toolchain (JDK 17 +
 // Android SDK + Gradle). It is an external environment dependency — when the
 // toolchain is absent, skip with a marker instead of hard-failing, so the
