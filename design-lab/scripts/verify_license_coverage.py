@@ -66,6 +66,8 @@ EXCLUDE_PREFIX = (
     "intelligence/design-system-prompt/",
     "intelligence/anydesign/",
     "intelligence/claude-design-skill/",
+    "intelligence/motion-forensics/",
+    "intelligence/web-content-designer/",
 )
 
 

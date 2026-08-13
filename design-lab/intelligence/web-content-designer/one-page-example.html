@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Global Semiconductor Capacity Outlook 2026 — Executive Briefing</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/fonts-archive/Paperlogy/subsets/Paperlogy-dynamic-subset.css" type="text/css"/>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+:root {
+    --primary:    #051c2c;
+    --primary-2:  #1a3a54;
+    --primary-3:  #315676;
+    --primary-4:  #507995;
+    --primary-5:  #7099b4;
+    --accent:     #c4a35a;
+    --bg:         #ffffff;
+    --bg-alt:     #f5f6f8;
+    --border:     #d9dce1;
+    --text:       #1a1a2e;
+    --text-mid:   #3d4456;
+    --text-light: #6b7280;
+}
+html, body {
+    height: 100vh;
+    overflow: hidden;
+    font-family: "Paperlogy", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    -webkit-font-smoothing: antialiased;
+}
+
+.summary-grid {
+    display: grid;
+    grid-template-rows: auto auto auto 1fr auto;
+    height: 100vh;
+    padding: 1.75rem 2.25rem;
+    gap: 1rem;
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+/* Header */
+.header-section {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    border-bottom: 2px solid var(--primary);
+    padding-bottom: 0.85rem;
+}
+.eyebrow {
+    font-size: 0.62rem;
+    font-weight: 800;
+    color: var(--accent);
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    margin-bottom: 0.35rem;
+}
+.header-title {
+    font-size: 1.65rem;
+    font-weight: 800;
+    color: var(--primary);
+    line-height: 1.15;
+    letter-spacing: -0.02em;
+}
+.header-subtitle {
+    font-size: 0.72rem;
+    color: var(--text-light);
+    margin-top: 0.25rem;
+    font-weight: 600;
+}
+.header-meta {
+    font-size: 0.62rem;
+    color: var(--text-light);
+    text-align: right;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    line-height: 1.65;
+}
+.header-meta strong { color: var(--primary); font-weight: 800; }
+
+/* Executive Summary */
+.exec-summary {
+    background: var(--bg-alt);
+    padding: 0.95rem 1.2rem;
+    font-size: 0.82rem;
+    line-height: 1.65;
+    border-left: 3px solid var(--primary);
+    color: var(--text-mid);
+}
+.exec-summary strong { color: var(--text); font-weight: 700; }
+
+/* KPI Row */
+.kpi-row {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0.75rem;
+}
+.kpi-card {
+    background: #fff;
+    padding: 1rem 1.1rem;
+    border: 1px solid var(--border);
+    border-top: 3px solid var(--primary);
+}
+.kpi-eyebrow {
+    font-size: 0.56rem;
+    font-weight: 800;
+    color: var(--text-light);
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    margin-bottom: 0.35rem;
+}
+.kpi-number {
+    font-size: 1.6rem;
+    font-weight: 800;
+    color: var(--primary);
+    line-height: 1;
+    letter-spacing: -0.02em;
+}
+.kpi-label {
+    font-size: 0.66rem;
+    color: var(--text-light);
+    margin-top: 0.4rem;
+    line-height: 1.35;
+    font-weight: 600;
+}
+
+/* Content area */
+.content-area {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    min-height: 0;
+}
+.card {
+    background: #fff;
+    padding: 1.25rem 1.35rem;
+    border: 1px solid var(--border);
+    border-top: 3px solid var(--primary);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+}
+.card-title {
+    font-size: 0.66rem;
+    font-weight: 800;
+    color: var(--text-light);
+    margin-bottom: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    flex-shrink: 0;
+}
+.key-point {
+    font-size: 0.76rem;
+    line-height: 1.55;
+    padding: 0.65rem 0;
+    border-bottom: 1px solid var(--border);
+    color: var(--text-mid);
+}
+.key-point:first-of-type { padding-top: 0.25rem; }
+.key-point:last-child { border-bottom: none; padding-bottom: 0; }
+.key-point strong { color: var(--primary); font-weight: 800; }
+.chart-wrapper {
+    position: relative;
+    flex: 1;
+    min-height: 0;
+}
+
+/* Footer recommendation */
+.footer-bar {
+    background: var(--primary);
+    color: #fff;
+    padding: 0.95rem 1.35rem;
+    font-size: 0.82rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    position: relative;
+    overflow: hidden;
+}
+.footer-bar::before {
+    content: 'RECOMMENDATION';
+    font-size: 0.56rem;
+    font-weight: 800;
+    color: var(--accent);
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    padding-right: 1rem;
+    border-right: 1px solid rgba(255,255,255,0.25);
+    flex-shrink: 0;
+}
+.footer-bar::after {
+    content: '';
+    position: absolute;
+    top: 0; right: 0;
+    width: 110px; height: 100%;
+    background: var(--accent);
+    opacity: 0.1;
+    transform: skewX(-12deg) translateX(40px);
+}
+.footer-text { position: relative; z-index: 1; line-height: 1.5; }
+
+@media (max-width: 768px) {
+    html, body { overflow: auto; height: auto; }
+    .summary-grid { height: auto !important; padding: 1.25rem; }
+    .kpi-row { grid-template-columns: repeat(2, 1fr) !important; }
+    .content-area { grid-template-columns: 1fr !important; }
+    .header-title { font-size: 1.25rem; }
+}
+</style>
+</head>
+<body>
+
+<div class="summary-grid">
+
+    <!-- HEADER -->
+    <div class="header-section">
+        <div>
+            <p class="eyebrow">Executive Briefing · Semiconductor Sector</p>
+            <h1 class="header-title">Global Semiconductor Capacity Outlook 2026</h1>
+            <p class="header-subtitle">The subsidy-driven capacity build-out is entering its second phase</p>
+        </div>
+        <div class="header-meta">
+            <div><strong>March 2026</strong></div>
+            <div>Source: SEMI / TrendForce</div>
+            <div>Composite · 3-year horizon</div>
+        </div>
+    </div>
+
+    <!-- EXECUTIVE SUMMARY -->
+    <div class="exec-summary">
+        Global wafer-fab capacity will grow <strong>42% by 2028</strong>, driven primarily by state-subsidized construction in the U.S., EU, and Japan. However, <strong>65% of the announced capacity is concentrated in mature nodes</strong> — creating a structural oversupply risk at the trailing edge while leaving leading-edge production still dangerously concentrated in Taiwan. The policy instruments and the market outcomes are diverging.
+    </div>
+
+    <!-- KPI ROW -->
+    <div class="kpi-row">
+        <div class="kpi-card">
+            <p class="kpi-eyebrow">Capacity Growth</p>
+            <p class="kpi-number">+42%</p>
+            <p class="kpi-label">Global wafer-fab capacity, 2025-2028</p>
+        </div>
+        <div class="kpi-card">
+            <p class="kpi-eyebrow">Subsidy Commitments</p>
+            <p class="kpi-number">$280B</p>
+            <p class="kpi-label">Direct state funding announced, 2022-2025</p>
+        </div>
+        <div class="kpi-card">
+            <p class="kpi-eyebrow">Node Concentration</p>
+            <p class="kpi-number">65%</p>
+            <p class="kpi-label">Share of new capacity at ≥28nm mature nodes</p>
+        </div>
+        <div class="kpi-card">
+            <p class="kpi-eyebrow">Leading-Edge Share</p>
+            <p class="kpi-number">92%</p>
+            <p class="kpi-label">Sub-5nm production still located in Taiwan</p>
+        </div>
+    </div>
+
+    <!-- CONTENT AREA: Key Points + Chart -->
+    <div class="content-area">
+        <div class="card">
+            <p class="card-title">Key Findings</p>
+            <div class="key-point">
+                <strong>Mature-node glut forming.</strong> Chinese, U.S., and European expansions are concentrated at ≥28nm — the same process nodes China has already oversupplied. Pricing pressure is expected by late 2027.
+            </div>
+            <div class="key-point">
+                <strong>Leading-edge gap unclosed.</strong> Despite CHIPS Act funding, no U.S. fab will produce sub-3nm wafers at scale before 2028. Taiwan remains the single point of failure.
+            </div>
+            <div class="key-point">
+                <strong>Subsidy capture risk.</strong> Three of the five largest announced U.S. projects have already requested amended milestones. The gap between commitment and execution is widening.
+            </div>
+            <div class="key-point">
+                <strong>Equipment bottleneck.</strong> ASML EUV delivery lead times have extended to 36 months. Capacity growth is now constrained more by tools than by funding.
+            </div>
+        </div>
+        <div class="card">
+            <p class="card-title">Announced Wafer-Fab Capacity by Region, 2025-2028</p>
+            <div class="chart-wrapper">
+                <canvas id="summaryChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- STRATEGIC RECOMMENDATION -->
+    <div class="footer-bar">
+        <span class="footer-text">Investors and policy planners should underweight trailing-edge capacity, watch tool-supply constraints as the binding bottleneck, and treat the U.S.-Taiwan leading-edge gap as unchanged through the 2028 horizon.</span>
+    </div>
+
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const ctx = document.getElementById('summaryChart');
+    if (ctx) {
+        new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: ['Taiwan', 'China', 'United States', 'South Korea', 'Japan', 'Europe'],
+                datasets: [
+                    {
+                        label: 'Existing (2025)',
+                        data: [4800, 3600, 1800, 2400, 1600, 900],
+                        backgroundColor: '#051c2c',
+                        borderWidth: 0
+                    },
+                    {
+                        label: 'Announced (2026-2028)',
+                        data: [1200, 1800, 1600, 900, 1100, 800],
+                        backgroundColor: '#507995',
+                        borderWidth: 0
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                indexAxis: 'y',
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            font: { family: 'Paperlogy', size: 10, weight: '600' },
+                            color: '#3d4456',
+                            boxWidth: 10,
+                            boxHeight: 10,
+                            padding: 10
+                        }
+                    },
+                    tooltip: {
+                        backgroundColor: '#051c2c',
+                        titleFont: { family: 'Paperlogy', size: 11, weight: '700' },
+                        bodyFont: { family: 'Paperlogy', size: 10 },
+                        padding: 10,
+                        cornerRadius: 2,
+                        displayColors: false,
+                        callbacks: {
+                            label: function(ctx) { return ctx.dataset.label + ': ' + ctx.parsed.x.toLocaleString() + ' KWPM'; }
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        stacked: true,
+                        beginAtZero: true,
+                        grid: { color: 'rgba(0,0,0,0.04)' },
+                        ticks: {
+                            font: { family: 'Paperlogy', size: 9 },
+                            color: '#6b7280',
+                            callback: function(val) { return (val / 1000).toFixed(0) + 'K'; }
+                        }
+                    },
+                    y: {
+                        stacked: true,
+                        grid: { display: false },
+                        ticks: {
+                            font: { family: 'Paperlogy', size: 10, weight: '700' },
+                            color: '#3d4456'
+                        }
+                    }
+                }
+            }
+        });
+    }
+});
+</script>
+
+</body>
+</html>

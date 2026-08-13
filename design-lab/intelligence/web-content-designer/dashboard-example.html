@@ -1,0 +1,626 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Drew Bent — AI 네이티브 사고와 교육의 미래</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/fonts-archive/Paperlogy/subsets/Paperlogy-dynamic-subset.css" type="text/css"/>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+:root {
+    --primary:   #051c2c;
+    --primary-2: #1a3a54;
+    --primary-3: #315676;
+    --primary-4: #507995;
+    --accent:    #c4a35a;
+    --bg:        #ffffff;
+    --bg-alt:    #f5f6f8;
+    --border:    #d9dce1;
+    --text:      #1a1a2e;
+    --text-mid:  #3d4456;
+    --text-light:#6b7280;
+}
+* { box-sizing: border-box; margin: 0; }
+body {
+    font-family: "Paperlogy", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background: var(--bg); color: var(--text);
+}
+/* Sidebar */
+.sidebar-link {
+    transition: all 0.15s; font-size: 0.82rem; color: rgba(255,255,255,0.6);
+    border-left: 3px solid transparent; letter-spacing: 0.01em;
+}
+.sidebar-link:hover { color: #fff; background: rgba(255,255,255,0.06); }
+.sidebar-link.active {
+    color: #fff; font-weight: 700; background: rgba(255,255,255,0.08);
+    border-left-color: var(--accent);
+}
+/* Sections */
+.content-section { scroll-margin-top: 4.5rem; }
+.s-title {
+    font-size: 1.15rem; font-weight: 800; color: var(--primary);
+    text-transform: uppercase; letter-spacing: 0.04em;
+    padding-bottom: 0.6rem; margin-bottom: 1.25rem;
+    border-bottom: 3px solid var(--primary);
+    display: flex; align-items: center; gap: 0.5rem;
+}
+.s-title .num {
+    font-size: 0.75rem; font-weight: 800; color: #fff;
+    background: var(--primary); border-radius: 2px;
+    width: 24px; height: 24px; display: inline-flex;
+    align-items: center; justify-content: center; flex-shrink: 0;
+}
+/* Cards */
+.insight-box {
+    border: 1px solid var(--border); border-top: 3px solid var(--primary);
+    padding: 1.25rem; background: #fff;
+}
+.insight-box.mid-top { border-top-color: var(--primary-3); }
+.insight-box.accent-top { border-top-color: var(--accent); }
+.stat-card {
+    text-align: center; padding: 1.25rem 1rem;
+    border: 1px solid var(--border); background: var(--bg-alt);
+}
+.stat-val { font-size: 2rem; font-weight: 800; color: var(--primary); line-height: 1; }
+.stat-label { font-size: 0.72rem; color: var(--text-light); margin-top: 0.4rem; line-height: 1.3; }
+/* Quote */
+.pull-quote {
+    border-left: 4px solid var(--primary); padding: 1rem 1.5rem;
+    background: var(--bg-alt); font-style: italic; font-size: 0.88rem;
+    color: var(--text-mid); line-height: 1.7; margin: 1rem 0;
+}
+.featured-banner {
+    background: var(--primary); color: #fff; padding: 1.5rem 2rem;
+    position: relative; overflow: hidden;
+}
+.featured-banner::after {
+    content: ''; position: absolute; top: 0; right: 0;
+    width: 120px; height: 100%; background: var(--accent); opacity: 0.12;
+    transform: skewX(-12deg) translateX(40px);
+}
+/* Misc */
+.pill {
+    display: inline-block; padding: 0.15rem 0.55rem; border-radius: 2px;
+    font-size: 0.65rem; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 0.05em; background: var(--bg-alt); color: var(--text-light);
+    border: 1px solid var(--border);
+}
+.pill-navy { background: var(--primary); color: #fff; border-color: var(--primary); }
+.chart-container { position: relative; height: 270px; }
+.divider { border: none; border-top: 1px solid var(--border); margin: 1.5rem 0; }
+.yt-btn {
+    display: inline-flex; align-items: center; gap: 0.4rem;
+    padding: 0.45rem 1rem; font-size: 0.78rem; font-weight: 700;
+    color: #fff; background: #c00; text-decoration: none;
+    transition: background 0.15s; letter-spacing: 0.02em;
+}
+.yt-btn:hover { background: #a00; }
+.sub-text { font-size: 0.82rem; line-height: 1.7; color: var(--text-mid); }
+.sub-text strong { color: var(--text); }
+.step-num {
+    width: 20px; height: 20px; border-radius: 50%; font-size: 0.65rem; font-weight: 800;
+    display: inline-flex; align-items: center; justify-content: center;
+    background: var(--primary); color: #fff; flex-shrink: 0;
+}
+@media (max-width: 767px) { #sidebar { width: 260px; } }
+</style>
+</head>
+<body class="flex h-screen overflow-hidden">
+
+<!-- Mobile -->
+<div class="md:hidden fixed top-3 left-3 z-50">
+    <button id="mobile-menu-button" class="p-2 bg-white border shadow-sm" style="border-color:var(--border)">
+        <svg width="20" height="20" fill="none" stroke="var(--primary)" stroke-width="2.5"><path d="M3 5h14M3 10h14M3 15h14"/></svg>
+    </button>
+</div>
+
+<!-- Sidebar -->
+<nav id="sidebar" class="w-60 flex-shrink-0 h-full overflow-y-auto transform -translate-x-full md:translate-x-0 transition-transform duration-300 fixed md:relative z-40" style="background:var(--primary)">
+    <div class="p-5">
+        <div class="mb-6 pb-5" style="border-bottom:1px solid rgba(255,255,255,0.1)">
+            <p class="text-xs font-bold uppercase tracking-widest mb-2" style="color:var(--accent)">Anthropic</p>
+            <h1 class="text-white text-sm font-bold leading-snug">AI 네이티브 사고와<br>교육의 미래</h1>
+            <p class="text-xs mt-2" style="color:rgba(255,255,255,0.4)">Drew Bent · 2026</p>
+        </div>
+        <ul id="main-nav" class="space-y-0.5">
+            <li><a href="#overview" class="sidebar-link block py-2 px-3 active">01 — 개요</a></li>
+            <li><a href="#ai-native" class="sidebar-link block py-2 px-3">02 — AI 네이티브 사고</a></li>
+            <li><a href="#ambition" class="sidebar-link block py-2 px-3">03 — 야망의 격상</a></li>
+            <li><a href="#education" class="sidebar-link block py-2 px-3">04 — AI와 교육</a></li>
+            <li><a href="#context" class="sidebar-link block py-2 px-3">05 — 컨텍스트의 힘</a></li>
+            <li><a href="#social-skill" class="sidebar-link block py-2 px-3">06 — 소셜 스킬</a></li>
+            <li><a href="#future" class="sidebar-link block py-2 px-3">07 — 2030 비전</a></li>
+            <li><a href="#agents" class="sidebar-link block py-2 px-3">08 — 에이전트 시대</a></li>
+        </ul>
+    </div>
+</nav>
+<div id="sidebar-overlay" class="fixed inset-0 bg-black bg-opacity-30 z-30 hidden md:hidden"></div>
+
+<!-- Main -->
+<main class="flex-1 h-full overflow-y-auto relative scroll-smooth bg-white">
+    <header class="sticky top-0 z-10 bg-white border-b" style="border-color:var(--border)">
+        <div class="px-8 py-3 flex justify-between items-center ml-10 md:ml-0">
+            <div class="flex items-center gap-3">
+                <span class="text-xs font-bold uppercase tracking-widest" style="color:var(--text-light)">Briefing</span>
+                <span style="color:var(--border)">|</span>
+                <span class="text-xs" style="color:var(--text-light)">Drew Bent on AI & Education</span>
+            </div>
+            <span class="text-xs font-bold" style="color:var(--text-light)">2026</span>
+        </div>
+    </header>
+
+    <div class="px-8 py-8 space-y-10 max-w-5xl mx-auto pb-20">
+
+        <!-- Hero -->
+        <div>
+            <p class="text-xs font-bold uppercase tracking-widest mb-4" style="color:var(--text-light)">Executive Summary</p>
+            <h2 class="text-2xl md:text-3xl font-extrabold leading-tight mb-4" style="color:var(--primary)">AI는 더 이상 도구가 아니라 동료다.<br>교육과 업무의 근본적 패러다임이 전환되고 있다.</h2>
+            <p class="sub-text max-w-3xl mb-5">Anthropic 교육 담당 <strong>Drew Bent</strong>의 강연 전문 분석. 르완다·인도의 AI 네이티브 관찰, Anthropic 내부 연구 데이터, Schoolhouse.world 글로벌 튜터링 실험, 2030년 교실 비전까지 — 교육·업무·사회 전반에 걸친 AI 활용 패러다임 전환을 다층적으로 조망한다.</p>
+            <a href="https://www.youtube.com/watch?app=desktop&v=XwjfzwR4XO0" target="_blank" rel="noopener noreferrer" class="yt-btn">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>
+                원본 영상
+            </a>
+        </div>
+
+        <hr class="divider">
+
+        <!-- KPIs -->
+        <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            <div class="stat-card"><p class="stat-val">17%</p><p class="stat-label">AI 사용 그룹<br>개념 이해도 하락</p></div>
+            <div class="stat-card"><p class="stat-val">40</p><p class="stat-label">1인 마케터 운영<br>AI 에이전트 수</p></div>
+            <div class="stat-card"><p class="stat-val">$500</p><p class="stat-label">vs $50K/월<br>AI 에이전트 비용</p></div>
+            <div class="stat-card"><p class="stat-val">1.5M</p><p class="stat-label">단일 LinkedIn 포스트<br>임프레션</p></div>
+        </div>
+
+        <!-- Featured Banner -->
+        <div class="featured-banner relative z-10">
+            <p class="text-xs font-bold uppercase tracking-widest mb-2" style="color:var(--accent)">Key Thesis</p>
+            <p class="text-base md:text-lg font-bold leading-relaxed">과거 40년 동안 마이크로소프트 엑셀을 다루는 능력이 필수적이었던 것처럼, 앞으로의 40년은 'AI 에이전트를 구축하는 능력'이 모든 전문가의 직업적 성공을 좌우할 필수 요건이 될 것이다.</p>
+            <p class="text-xs mt-3" style="color:rgba(255,255,255,0.5)">— Drew Bent, Head of Education, Anthropic</p>
+        </div>
+
+        <!-- 01 Overview -->
+        <section id="overview" class="content-section">
+            <h3 class="s-title"><span class="num">01</span>연사 소개 & 개요</h3>
+            <div class="grid md:grid-cols-3 gap-6">
+                <div class="md:col-span-2 space-y-3">
+                    <p class="sub-text"><strong>Drew Bent</strong> — Anthropic 교육 부문 리드. 부모가 모두 교육자인 가정에서 자란 교육 전문가로, 학창 시절부터 또래 튜터링에 몰두했다. 이후 튜터링 비영리단체를 직접 설립하고, 고등학교 수학 교사로 현장에 섰으며, 고교 시절 Khan Academy에서 인턴 경험을 쌓았다.</p>
+                    <p class="sub-text">Sal Khan과의 인연은 Khan Academy 인턴 시절로 거슬러 올라간다. Khan 본인이 사촌들에게 Skype로 1:1 튜터링을 하다 Khan Academy를 만들었듯, Drew도 "1:1 튜터링의 효과를 어떻게 대규모로 확장할 것인가"라는 동일한 질문을 평생 추구해 왔다. 이것이 피어 튜터링 플랫폼 <strong>Schoolhouse.world</strong> 공동 설립과 현재 Anthropic에서의 AI 튜터 연구로 이어졌다.</p>
+                    <p class="sub-text"><em>"월드클래스 교육은 싸울 가치가 있는 것이었지만 규모가 항상 도전이었다. 이제 드디어 AI로 이전에는 그만한 돈이 있어야만 가능했던 교육을 전 세계에 제공할 수 있게 되었다."</em></p>
+                </div>
+                <div>
+                    <div class="insight-box">
+                        <p class="text-xs font-bold uppercase tracking-wider mb-3" style="color:var(--text-light)">Career Path</p>
+                        <div class="space-y-2 text-xs" style="color:var(--text-mid)">
+                            <div class="flex gap-2 items-start"><span class="step-num">1</span><span>교육자 부모, 또래 튜터링</span></div>
+                            <div class="flex gap-2 items-start"><span class="step-num">2</span><span>튜터링 비영리단체 설립</span></div>
+                            <div class="flex gap-2 items-start"><span class="step-num">3</span><span>고등학교 수학 교사</span></div>
+                            <div class="flex gap-2 items-start"><span class="step-num">4</span><span>Khan Academy 인턴</span></div>
+                            <div class="flex gap-2 items-start"><span class="step-num">5</span><span>Schoolhouse.world 공동 설립</span></div>
+                            <div class="flex gap-2 items-start"><span class="step-num">6</span><span>Anthropic Education Lead</span></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <hr class="divider">
+
+        <!-- 02 AI Native -->
+        <section id="ai-native" class="content-section">
+            <h3 class="s-title"><span class="num">02</span>AI 네이티브 사고</h3>
+            <p class="sub-text mb-3">Drew는 르완다·인도 등 개발도상국에서 직접 관찰한 경험을 공유한다. 이 지역에서는 휴대전화·WhatsApp 다음으로 접한 기술이 바로 AI 도구였다. 과거 모델의 한계를 경험한 적이 없기 때문에 "오늘의 AI가 무엇을 할 수 있는가"를 편견 없이 파악하고 활용한다.</p>
+            <p class="sub-text mb-5">반면 2022년부터 AI를 써온 사용자들은 과거 모델의 한계에 갇혀 쉬운 작업만 시키는 악순환에 빠진다. Drew는 이것을 <strong>"역량 과소평가의 함정"</strong>이라 부르며, 이 함정에서 벗어나는 것이 AI 활용의 첫 번째 관문이라 강조한다.</p>
+
+            <div class="grid md:grid-cols-2 gap-5 mb-5">
+                <div class="insight-box">
+                    <p class="text-xs font-bold uppercase tracking-wider mb-3" style="color:var(--text-light)">2022 Mindset</p>
+                    <ul class="space-y-2 text-xs list-none" style="color:var(--text-mid)">
+                        <li><strong>인식:</strong> AI = 시키는 것만 하는 수동적 "어시스턴트"</li>
+                        <li><strong>문제 수준:</strong> 작년 모델 기준의 쉬운 과제만 부여</li>
+                        <li><strong>접근법:</strong> "단계별 플레이북을 달라"는 방식</li>
+                        <li><strong>결과:</strong> AI 역량의 1%만 활용하는 만성적 저활용</li>
+                    </ul>
+                </div>
+                <div class="insight-box mid-top">
+                    <p class="text-xs font-bold uppercase tracking-wider mb-3" style="color:var(--primary-3)">AI-Native Mindset</p>
+                    <ul class="space-y-2 text-xs list-none" style="color:var(--text-mid)">
+                        <li><strong>인식:</strong> AI = 판단력을 가진 "동료(colleague)"</li>
+                        <li><strong>문제 수준:</strong> 오늘의 모델 역량에 맞는 복잡한 문제 위임</li>
+                        <li><strong>접근법:</strong> 컨텍스트를 충분히 주고 AI가 스스로 판단</li>
+                        <li><strong>결과:</strong> 이전에 불가능하다고 생각한 작업까지 수행</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="insight-box accent-top mb-4" style="background:var(--bg-alt)">
+                <p class="text-xs font-bold uppercase tracking-wider mb-2" style="color:var(--accent)">Drew의 개인 경험</p>
+                <p class="text-xs leading-relaxed" style="color:var(--text-mid)">"나 자신도 이 함정에 빠져 있었다. 작년 모델이 할 수 있는 수준의 문제만 계속 주고 있었는데, 동료들이 AI로 내가 가능한 줄도 몰랐던 것들을 해내는 것을 보고 눈이 떠졌다. 결국은 다른 사람들이 하는 것을 관찰하고, 직접 실험하는 수밖에 없다."</p>
+            </div>
+
+            <div class="pull-quote">"이전에 이 기술을 한 번도 접해보지 않은 사람이 오히려 유리할 수 있다. 기술이 오늘 무엇을 할 수 있고 어디로 향하는지를 있는 그대로 볼 수 있기 때문이다."</div>
+        </section>
+
+        <hr class="divider">
+
+        <!-- 03 Ambition -->
+        <section id="ambition" class="content-section">
+            <h3 class="s-title"><span class="num">03</span>야망의 격상 — Elevating Ambition</h3>
+            <p class="sub-text mb-3">인간은 선형적이고 정적인 환경에 적응한 존재다. "동료의 역량이 한 달 만에 두 배가 되는" 상황을 직관적으로 이해할 수 없다. 그 결과 우리는 항상 <strong>지난달의 역량</strong>으로 AI를 대하게 된다.</p>
+            <p class="sub-text mb-5">Drew 본인도 스톱워치로 시간을 측정해본 결과, AI를 사용했을 때 오히려 수작업보다 느린 경우가 있었다고 인정한다. 그러나 기하급수적 발전의 초입에서 이러한 실험이 이후 비약적 생산성 향상으로 이어진다고 강조한다.</p>
+
+            <div class="chart-container mb-6"><canvas id="ambitionChart"></canvas></div>
+
+            <div class="grid md:grid-cols-3 gap-4 mb-5">
+                <div class="insight-box">
+                    <p class="text-xs font-bold uppercase tracking-wider mb-2" style="color:var(--primary)">전략 1</p>
+                    <p class="text-sm font-bold mb-1" style="color:var(--primary)">R&amp;D 시간 확보</p>
+                    <p class="text-xs" style="color:var(--text-mid)">모든 것을 AI로 하려 하지 말고, 일정 비율의 시간을 실험에 할당하라. 2026년 현 시점에서 일부 비효율은 정상이다.</p>
+                </div>
+                <div class="insight-box mid-top">
+                    <p class="text-xs font-bold uppercase tracking-wider mb-2" style="color:var(--primary-3)">전략 2</p>
+                    <p class="text-sm font-bold mb-1" style="color:var(--primary)">일시적 비효율 감수</p>
+                    <p class="text-xs" style="color:var(--text-mid)">오늘 시간을 약간 잃더라도 AI 도구의 한계를 이해하는 것 자체가 투자다. Drew는 이를 "R&amp;D — 연구 개발"에 비유한다.</p>
+                </div>
+                <div class="insight-box accent-top">
+                    <p class="text-xs font-bold uppercase tracking-wider mb-2" style="color:var(--accent)">전략 3</p>
+                    <p class="text-sm font-bold mb-1" style="color:var(--primary)">다음 모델 대비</p>
+                    <p class="text-xs" style="color:var(--text-mid)">오늘의 모델로 아직 불가능한 것을 시도하라. 다음 모델 출시 시 같은 것을 다시 시도하면, 아무도 가능한 줄 몰랐던 것의 최전선에 서게 된다.</p>
+                </div>
+            </div>
+
+            <div class="pull-quote">"동료가 매일 출근할 때마다 기하급수적으로 더 나아지고 있다고 상상해 보라. 인간에겐 그런 사고 방식이 없다. 그래서 항상 지난달의 역량으로 동료를 대하게 되는데, 실은 역량이 두 배가 되었을 수도 있다."</div>
+        </section>
+
+        <hr class="divider">
+
+        <!-- 04 Education -->
+        <section id="education" class="content-section">
+            <h3 class="s-title"><span class="num">04</span>AI와 교육 — 스킬 위축(Skill Atrophy) 경고</h3>
+            <p class="sub-text mb-3">약 1년 전, Anthropic은 사용자 데이터 분석에서 코딩 다음으로 <strong>교육</strong>이 Claude의 주요 사용처임을 확인했다. 그러나 데이터를 깊이 들여다보자 학생들이 AI를 주로 숙제 답을 얻기 위한 "크러치(crutch)"로 사용하는 패턴이 드러났다. Drew는 "솔직히 밤에 잠을 설치게 하는 문제"라고 말한다.</p>
+            <p class="sub-text mb-5">Anthropic 리서치 펠로우의 코딩 교육 실험에서 AI를 사용한 그룹은 과제를 빠르게 완료했으나, 이후 AI 없이 치른 평가에서 개념 이해도가 <strong>17% 낮았다</strong>. AI 없이 직접 고군분투한 그룹이 개념을 더 깊이 내면화한 것이다.</p>
+
+            <div class="grid md:grid-cols-2 gap-6 mb-6">
+                <div class="chart-container"><canvas id="studyChart"></canvas></div>
+                <div class="space-y-4">
+                    <div class="insight-box" style="border-top:3px solid #6b1220; background:var(--bg-alt)">
+                        <p class="text-xs font-bold uppercase tracking-wider mb-2" style="color:#6b1220">Warning</p>
+                        <p class="text-xs" style="color:var(--text-mid)">AI를 트랜잭셔널(거래적)으로 사용 — 빠르게 답을 얻고 넘기기 — 하면 과제 속도는 올라가지만 실질적 학습은 위축된다.</p>
+                    </div>
+                    <div class="insight-box mid-top" style="background:var(--bg-alt)">
+                        <p class="text-xs font-bold uppercase tracking-wider mb-2" style="color:var(--primary-3)">Good News</p>
+                        <p class="text-xs" style="color:var(--text-mid)">AI를 탐구적(inquiry) 방식으로 — 질문하고, 탐색하며, 개념을 파고들며 — 사용한 학생들은 최종 평가에서도 좋은 성적을 유지했다.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid md:grid-cols-2 gap-5 mb-5">
+                <div class="insight-box" style="border-top:3px solid #6b1220">
+                    <p class="text-xs font-bold mb-2" style="color:#6b1220">트랜잭셔널 방식 ✕</p>
+                    <p class="text-xs" style="color:var(--text-mid)">특정 솔루션을 염두에 두고 좁은 질문을 던짐. AI는 좁은 범위 안에서만 답변하여 학습의 폭이 극히 제한된다.</p>
+                    <p class="text-xs mt-2" style="color:var(--text-mid)"><strong>예:</strong> "이 함수의 구문 오류를 고쳐줘" → 답 복사 → 다음</p>
+                </div>
+                <div class="insight-box mid-top">
+                    <p class="text-xs font-bold mb-2" style="color:var(--primary-3)">탐구적 방식 ✓</p>
+                    <p class="text-xs" style="color:var(--text-mid)">솔루션이 아닌 <strong>문제(problem)</strong>를 가져간다. 2026년의 모델들은 이러한 열린 문제를 상당히 잘 다룰 수 있다.</p>
+                    <p class="text-xs mt-2" style="color:var(--text-mid)"><strong>예:</strong> "내 접근 방식 자체에 문제가 있을까?" → 대화 → 깊은 이해</p>
+                </div>
+            </div>
+
+            <div class="insight-box accent-top" style="background:var(--bg-alt)">
+                <p class="text-xs font-bold uppercase tracking-wider mb-2" style="color:var(--accent)">Anthropic 내부 데이터의 교훈</p>
+                <p class="text-xs leading-relaxed" style="color:var(--text-mid)">교육 분야가 코딩 바로 다음의 주요 사용처라는 사실은 놀라웠다. 더 깊이 파고들자 학생들이 주로 숙제 답을 얻기 위해 사용하는 패턴이 드러났다. 이 발견은 Anthropic이 교육 팀을 만들고 "좋은 AI 학습"이 무엇인지 연구하게 된 직접적 계기가 되었다.</p>
+            </div>
+        </section>
+
+        <hr class="divider">
+
+        <!-- 05 Context -->
+        <section id="context" class="content-section">
+            <h3 class="s-title"><span class="num">05</span>컨텍스트의 힘</h3>
+            <p class="sub-text mb-3">"AI 도구를 잘 쓰는 사람과 못 쓰는 사람의 <strong>가장 큰 차이</strong>는 아마 이것일 것이다" — Drew가 단언하는 핵심 변수는 컨텍스트 제공량이다.</p>
+            <p class="sub-text mb-5">AI 모델은 대량의 컨텍스트를 통합하여 엮어내는 능력이 탁월하지만, 적은 맥락만으로 세상을 추론하는 데는 구조적 한계가 있다. 사용자가 어떻게 생각하고 있는지를 모르면 좋은 답을 줄 수 없다.</p>
+
+            <div class="chart-container mb-6"><canvas id="contextChart"></canvas></div>
+
+            <div class="grid md:grid-cols-2 gap-5">
+                <div class="insight-box">
+                    <p class="text-xs font-bold uppercase tracking-wider mb-3" style="color:var(--primary)">Drew의 실제 워크플로</p>
+                    <div class="space-y-2 text-xs" style="color:var(--text-mid)">
+                        <div class="flex gap-2 items-start"><span class="step-num">1</span><span>질문하기 <strong>전에</strong> 관련 문서, 이전 작성물, 회사 정보를 모두 투입</span></div>
+                        <div class="flex gap-2 items-start"><span class="step-num">2</span><span>현재 고민, 생각의 방향성을 함께 제공</span></div>
+                        <div class="flex gap-2 items-start"><span class="step-num">3</span><span><strong>의식의 흐름(stream of consciousness)</strong>까지 입력</span></div>
+                        <div class="flex gap-2 items-start"><span class="step-num">4</span><span>그 위에 실제 질문을 던짐</span></div>
+                    </div>
+                    <p class="text-xs mt-3" style="color:var(--text-light)">"질문을 하기도 전에 대부분의 시간을 컨텍스트 투입에 쓴다."</p>
+                </div>
+                <div class="insight-box mid-top">
+                    <p class="text-xs font-bold uppercase tracking-wider mb-3" style="color:var(--primary-3)">2026년의 전환</p>
+                    <p class="text-xs leading-relaxed mb-3" style="color:var(--text-mid)">과거에는 "단계별 플레이북을 달라"는 방식이 통했다. 하지만 2026년 현재, 필요한 것은 플레이북이 아니라 <strong>충분한 컨텍스트를 AI에게 주고 알아서 하게 놔두는 것</strong>이다.</p>
+                    <p class="text-xs leading-relaxed" style="color:var(--text-mid)">2026년의 모델들은 더 복잡하고 털이 많은(hairy) 문제도 꽤 잘 다룰 수 있다. 문제는 모델의 역량이 아니라, 사용자가 충분한 맥락을 제공하느냐의 여부다.</p>
+                </div>
+            </div>
+        </section>
+
+        <hr class="divider">
+
+        <!-- 06 Social Skill -->
+        <section id="social-skill" class="content-section">
+            <h3 class="s-title"><span class="num">06</span>소셜 스킬로서의 AI 활용</h3>
+            <p class="sub-text mb-3">Drew의 가장 도발적인 주장: AI 활용은 이제 기술적 스킬이 아니라 <strong>소셜 스킬</strong>이다. 프롬프트를 정교하게 다듬는 시대는 끝났으며, 동료와 효과적으로 소통하듯 AI와 상호작용하는 능력이 핵심이다.</p>
+            <p class="sub-text mb-5">우리는 15년 이상의 학교 교육으로 다른 인간과 생산적으로 상호작용하는 법을 배웠다. 이제 <strong>"완전히 새로운 종류의 존재"</strong>인 인공지능이 직장에 동료로, 학교에 학습 도구로 등장했다. 이것과 협업하는 법은 기존 교육에서 배운 적이 없는 완전히 새로운 역량이다.</p>
+
+            <p class="text-xs font-bold uppercase tracking-widest mb-4" style="color:var(--text-light)">AI 활용 역량의 진화 — Drew의 프레임워크</p>
+            <div class="grid md:grid-cols-3 gap-4 mb-6">
+                <div class="insight-box">
+                    <p class="text-xs font-bold uppercase tracking-wider mb-1" style="color:var(--text-light)">Phase 1 — 초기</p>
+                    <p class="text-sm font-extrabold mb-2" style="color:var(--primary)">프롬프트 엔지니어링</p>
+                    <p class="text-xs leading-relaxed" style="color:var(--text-mid)">정확한 키워드, 구조화된 지시문, 출력 형식 지정. <strong>기술적 능력</strong>이 핵심이던 시기.</p>
+                    <p class="text-xs mt-3 font-bold" style="color:var(--text-light)">핵심 역량 → 기술 스킬</p>
+                </div>
+                <div class="insight-box mid-top">
+                    <p class="text-xs font-bold uppercase tracking-wider mb-1" style="color:var(--primary-3)">Phase 2 — 현재 (2026)</p>
+                    <p class="text-sm font-extrabold mb-2" style="color:var(--primary)">동료로서 협업</p>
+                    <p class="text-xs leading-relaxed" style="color:var(--text-mid)">"내가 원하는 것을 AI가 이해하고, AI가 어떻게 작동하는지 내가 이해하는" 양방향 대화.</p>
+                    <p class="text-xs mt-3 font-bold" style="color:var(--primary-3)">핵심 역량 → 소셜 스킬</p>
+                </div>
+                <div class="insight-box accent-top">
+                    <p class="text-xs font-bold uppercase tracking-wider mb-1" style="color:var(--accent)">Phase 3 — 미래</p>
+                    <p class="text-sm font-extrabold mb-2" style="color:var(--primary)">통제의 역전</p>
+                    <p class="text-xs leading-relaxed" style="color:var(--text-mid)">AI가 전략적 사고를 수행하고, 인간은 <strong>취향(taste)</strong>과 <strong>주체성(agency)</strong>이 필요한 영역을 담당.</p>
+                    <p class="text-xs mt-3 font-bold" style="color:var(--accent)">핵심 역량 → 판단력 · 주체성</p>
+                </div>
+            </div>
+
+            <div class="insight-box" style="background:var(--bg-alt)">
+                <p class="text-xs font-bold uppercase tracking-wider mb-2" style="color:var(--primary)">다중 에이전트 환경의 도래</p>
+                <p class="text-xs leading-relaxed" style="color:var(--text-mid)">Drew는 미래의 업무 환경을 이렇게 묘사한다: 여러 인간이 공유된 AI들과 함께 일하는 <strong>"다면적(multifaceted) 환경"</strong>. AI는 어느 날 Slack에 동료로 나타날 것이고, 학교에도 등장할 것이다. 이 새로운 환경에서 인간-AI, 인간-인간, 인간-다중AI 사이의 협업 역학을 이해하고 다루는 것이 핵심 역량이 된다.</p>
+            </div>
+
+            <div class="pull-quote">"AI와 시간을 보내며, 동료처럼 대하며, 상호작용하며, 한계와 역량을 체감하라. 그것은 연습과 반복(practice and reps)을 통해서만 온다."</div>
+        </section>
+
+        <hr class="divider">
+
+        <!-- 07 Future -->
+        <section id="future" class="content-section">
+            <h3 class="s-title"><span class="num">07</span>2030년 교육 비전</h3>
+            <p class="sub-text mb-5">Drew는 2030년의 교실 모습을 구체적으로 그려보고, 이미 오늘 현장에서 일어나고 있는 변화의 징후들을 공유한다.</p>
+
+            <div class="grid md:grid-cols-2 gap-5 mb-5">
+                <div class="insight-box">
+                    <p class="text-xs font-bold uppercase tracking-wider mb-3" style="color:var(--primary)">2030 Classroom</p>
+                    <ul class="space-y-2 text-xs list-none" style="color:var(--text-mid)">
+                        <li>· 교실에 들어가면 <strong>기술이 보이지 않는다</strong> — 모든 것이 뒤에서 작동</li>
+                        <li>· 교사가 AI로 시간을 절약하고 개인화된 수업 설계 및 학생 그룹핑</li>
+                        <li>· 현재 <strong>사립학교</strong>에서나 가능한 풍부한 학습 환경이 모든 학교에</li>
+                        <li>· AI는 인간-인간 연결을 대체하는 것이 아니라 <strong>강화</strong></li>
+                    </ul>
+                </div>
+                <div class="insight-box mid-top">
+                    <p class="text-xs font-bold uppercase tracking-wider mb-3" style="color:var(--primary-3)">Learning Companion — 두 가지 조건</p>
+                    <div class="space-y-3 text-xs" style="color:var(--text-mid)">
+                        <div>
+                            <p class="font-bold">1. 학습 맥락의 이해</p>
+                            <p>범용 커리큘럼이 아닌, 해당 학교 교과과정과 주(state) 교육 기준까지 이해하고 모든 것을 그 맥락에 연결.</p>
+                        </div>
+                        <div>
+                            <p class="font-bold">2. 학생 개인의 이해</p>
+                            <p>교사가 매번 "너 지금 뭐 하고 있어?"라고 물으면 학생들이 실망할 것이다. 2026년의 AI가 바로 그 상태. 2030년에는 학생과 함께 성장하는 동반자가 되어야 한다.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="insight-box mb-4" style="background:var(--bg-alt)">
+                <p class="text-xs font-bold uppercase tracking-wider mb-2" style="color:var(--primary)">Schoolhouse.world — 글로벌 피어 튜터링 실험</p>
+                <p class="text-xs leading-relaxed mb-2" style="color:var(--text-mid)">2020년 "1:1 튜터링 경험을 어떻게 더 많은 사람에게 재현할 수 있을까"를 고민하며 만든 플랫폼. 전 세계 누구나 무료로 수학·과학·시험 준비 등의 피어 튜터링을 받거나 자원봉사 튜터로 참여할 수 있다.</p>
+                <p class="text-xs leading-relaxed mb-2" style="color:var(--text-mid)">Drew가 직접 경험한 세션: 러시아, 콜롬비아, 미국, 중국 학생이 같은 Zoom 세션에서 수학을 공부하며 "우리 학교에서는 이렇게 가르쳐"라고 서로 공유. <strong>"마법 같았다(something kind of magical)"</strong>고 회고한다.</p>
+                <p class="text-xs leading-relaxed" style="color:var(--text-mid)">핵심 통찰: AI 튜터링이 아무리 발전해도, <strong>당신의 진전에 관심을 갖고 책임감을 부여하는 사람의 존재</strong>는 "더 중요하지는 않더라도 동등하게 중요하다."</p>
+            </div>
+
+            <div class="grid md:grid-cols-2 gap-5">
+                <div class="insight-box">
+                    <p class="text-xs font-bold uppercase tracking-wider mb-2" style="color:var(--primary)">Claude Code × 교육</p>
+                    <p class="text-xs leading-relaxed" style="color:var(--text-mid)">코딩 에이전트 Claude Code를 학습 도구로 활용하는 예상치 못한 사례. 새로운 언어·경제학 개념을 배우면서 자신에 대한 정보를 메모리와 컨텍스트로 쌓아 개인 코치처럼 활용한다. Drew는 이것이 학습의 미래 인터페이스를 가리킨다고 본다.</p>
+                </div>
+                <div class="insight-box accent-top">
+                    <p class="text-xs font-bold uppercase tracking-wider mb-2" style="color:var(--accent)">WhatsApp 교사 그룹</p>
+                    <p class="text-xs leading-relaxed" style="color:var(--text-mid)">전 세계 여러 나라의 교사들이 매일 아침 Claude로 플래시카드 앱, 형성평가 도구, 새로운 평가 방식을 만들어 당일 수업에 배포한다. 이전에는 새 커리큘럼이나 평가 도구를 만드는 데 1년이 걸렸을 일이다.</p>
+                </div>
+            </div>
+        </section>
+
+        <hr class="divider">
+
+        <!-- 08 Agents -->
+        <section id="agents" class="content-section">
+            <h3 class="s-title"><span class="num">08</span>AI 에이전트 시대</h3>
+            <p class="sub-text mb-3">강연 후반의 사례: Related App의 유일한 마케터가 <strong>40개의 AI 마케팅 에이전트</strong>를 구축하여 1인 마케팅 팀을 운영한다. 주간 AI 코치로부터 "이번 주에 잘 먹힌 테마와 스타일"에 대한 피드백을 받고, 그 결과 "내가 실제로 사용하는 40개 마케팅 에이전트"라는 LinkedIn 포스트가 <strong>150만 임프레션</strong>과 역대 최다 댓글을 기록했다.</p>
+
+            <div class="chart-container mb-6"><canvas id="costChart"></canvas></div>
+
+            <div class="insight-box mb-5" style="background:var(--bg-alt)">
+                <p class="text-xs font-bold uppercase tracking-wider mb-2" style="color:var(--primary)">비용 구조의 근본적 변화</p>
+                <p class="text-xs leading-relaxed" style="color:var(--text-mid)">고품질 외주 인력 4명: $12,500 × 4 = <strong>$50,000/월</strong>. AI 에이전트 40개: <strong>$500/월</strong>. 100배의 격차. 이 수치는 단순히 "AI가 싸다"는 의미가 아니라, <strong>개인이 팀 단위의 생산성을 가질 수 있는 시대</strong>가 왔음을 보여준다.</p>
+            </div>
+
+            <div class="insight-box mb-5" style="border-top:3px solid #6b1220">
+                <p class="text-xs font-bold uppercase tracking-wider mb-2" style="color:#6b1220">소멸하는 직무의 경고</p>
+                <p class="text-xs leading-relaxed" style="color:var(--text-mid)">"당신의 직무가 주니어 콘텐츠 마케터로서 YouTube 영상을 보고 블로그 포스트를 작성하는 것이라면, 그 일자리는 더 이상 존재하지 않을 것이다." 이것은 특정 직무에 대한 경고이자, 모든 직무가 AI 에이전트와의 협업으로 재정의될 것이라는 신호다.</p>
+            </div>
+
+            <div class="grid md:grid-cols-2 gap-5">
+                <div class="insight-box">
+                    <p class="text-xs font-bold uppercase tracking-wider mb-2" style="color:var(--primary)">So What</p>
+                    <p class="text-xs leading-relaxed" style="color:var(--text-mid)">AI 에이전트 구축 능력은 선택이 아니라 <strong>필수(requirement)</strong>다. 과거에 스프레드시트를 다루지 못하면 경쟁에서 뒤처졌듯, 앞으로는 AI 에이전트를 다루지 못하면 같은 상황에 놓인다.</p>
+                </div>
+                <div class="insight-box accent-top">
+                    <p class="text-xs font-bold uppercase tracking-wider mb-2" style="color:var(--accent)">Closing</p>
+                    <p class="text-xs leading-relaxed" style="color:var(--text-mid)">"우리 모두 AI를 사용해야 할 것의 <strong>1%</strong>만 사용하고 있다. 수십에서 수백 개의 에이전트가 우리를 위해 일하게 해야 한다. AI는 과대평가가 아니다. <strong style="color:var(--accent)">AI는 과소평가(underhyped)</strong>되고 있다."</p>
+                </div>
+            </div>
+        </section>
+
+        <hr class="divider">
+        <p class="text-center text-xs pb-4" style="color:var(--text-light)">Source: Drew Bent, Anthropic · YouTube 2026 · Dashboard generated by Claude</p>
+
+    </div>
+</main>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const NAVY = '#051c2c';
+    const NAVY_MID = '#315676';
+    const SLATE = '#507995';
+    const WARM = '#c4a35a';
+    const GRAY = '#94a3b8';
+    const OXBLOOD = '#6b1220';
+    const GRID = 'rgba(0,0,0,0.06)';
+    const TK = '#6b7280';
+
+    Chart.defaults.color = TK;
+    Chart.defaults.font.family = '"Paperlogy", sans-serif';
+
+    // Scroll-spy
+    const sections = document.querySelectorAll('.content-section');
+    const navLinks = document.querySelectorAll('.sidebar-link');
+    const mc = document.querySelector('main');
+    if (mc && sections.length && navLinks.length) {
+        mc.addEventListener('scroll', () => {
+            let cur = '';
+            sections.forEach(s => { if (mc.scrollTop >= s.offsetTop - mc.offsetTop - 150) cur = s.id; });
+            navLinks.forEach(l => { l.classList.toggle('active', l.getAttribute('href') === '#' + cur); });
+        });
+    }
+
+    // Mobile
+    const mb = document.getElementById('mobile-menu-button');
+    const sb = document.getElementById('sidebar');
+    const ov = document.getElementById('sidebar-overlay');
+    if (mb && sb) {
+        mb.addEventListener('click', () => { sb.classList.toggle('-translate-x-full'); if (ov) ov.classList.toggle('hidden'); });
+        if (ov) ov.addEventListener('click', () => { sb.classList.add('-translate-x-full'); ov.classList.add('hidden'); });
+        document.querySelectorAll('.sidebar-link').forEach(l => {
+            l.addEventListener('click', () => { if (window.innerWidth < 768) { sb.classList.add('-translate-x-full'); if (ov) ov.classList.add('hidden'); } });
+        });
+    }
+
+    // Chart 1: Ambition — navy solid vs warm gold dashed
+    const c1 = document.getElementById('ambitionChart');
+    if (c1) new Chart(c1, {
+        type: 'line',
+        data: {
+            labels: ['2022', '2023', '2024', '2025', '2026', '2027'],
+            datasets: [{
+                label: 'AI 모델 실제 역량',
+                data: [10, 25, 50, 80, 130, 200],
+                borderColor: NAVY, backgroundColor: 'rgba(5,28,44,0.06)',
+                fill: true, tension: 0.4, pointRadius: 5, borderWidth: 2.5, pointBackgroundColor: NAVY
+            }, {
+                label: '사용자 인식 수준',
+                data: [10, 15, 22, 30, 40, 55],
+                borderColor: WARM, backgroundColor: 'rgba(196,163,90,0.06)',
+                fill: true, tension: 0.4, pointRadius: 5, borderWidth: 2.5, pointBackgroundColor: WARM,
+                borderDash: [6, 4]
+            }]
+        },
+        options: {
+            responsive: true, maintainAspectRatio: false,
+            plugins: {
+                title: { display: true, text: 'AI 역량의 기하급수적 발전 vs 사용자 인식의 선형적 성장', font: { size: 13, weight: 'bold' }, color: NAVY, padding: { bottom: 16 } },
+                legend: { position: 'bottom', labels: { font: { size: 11 }, usePointStyle: true, pointStyle: 'circle', padding: 20 } }
+            },
+            scales: {
+                y: { beginAtZero: true, grid: { color: GRID }, ticks: { color: TK } },
+                x: { grid: { display: false }, ticks: { color: TK } }
+            }
+        }
+    });
+
+    // Chart 2: Study — navy / red / sky (highly distinct)
+    const c2 = document.getElementById('studyChart');
+    if (c2) new Chart(c2, {
+        type: 'bar',
+        data: {
+            labels: ['AI 미사용', 'AI (트랜잭셔널)', 'AI (탐구적)'],
+            datasets: [{
+                label: '개념 이해도',
+                data: [85, 70, 83],
+                backgroundColor: [NAVY, OXBLOOD, SLATE],
+                borderRadius: 3, barPercentage: 0.6
+            }]
+        },
+        options: {
+            responsive: true, maintainAspectRatio: false,
+            plugins: {
+                title: { display: true, text: '코딩 교육 실험: AI 활용 방식별 개념 이해도', font: { size: 12, weight: 'bold' }, color: NAVY, padding: { bottom: 16 } },
+                legend: { display: false }
+            },
+            scales: {
+                y: { beginAtZero: true, max: 100, grid: { color: GRID }, ticks: { color: TK, callback: v => v + '점' } },
+                x: { grid: { display: false }, ticks: { color: TK, font: { size: 10 } } }
+            }
+        }
+    });
+
+    // Chart 3: Context Radar — navy vs warm gold
+    const c3 = document.getElementById('contextChart');
+    if (c3) new Chart(c3, {
+        type: 'radar',
+        data: {
+            labels: ['관련 문서', '회사/프로젝트 배경', '사전 사고 공유', '질문 구체성', '목표/제약 명시', '의식의 흐름'],
+            datasets: [{
+                label: '우수 활용자 (Drew 방식)',
+                data: [95, 90, 85, 80, 90, 75],
+                borderColor: NAVY, backgroundColor: 'rgba(5,28,44,0.08)',
+                pointBackgroundColor: NAVY, borderWidth: 2.5
+            }, {
+                label: '일반 활용자',
+                data: [30, 20, 10, 70, 25, 5],
+                borderColor: WARM, backgroundColor: 'rgba(196,163,90,0.06)',
+                pointBackgroundColor: WARM, borderWidth: 2, borderDash: [4, 3]
+            }]
+        },
+        options: {
+            responsive: true, maintainAspectRatio: false,
+            plugins: {
+                title: { display: true, text: '컨텍스트 제공 패턴 비교', font: { size: 12, weight: 'bold' }, color: NAVY, padding: { bottom: 12 } },
+                legend: { position: 'bottom', labels: { font: { size: 11 }, usePointStyle: true, pointStyle: 'circle', padding: 20 } }
+            },
+            scales: { r: { beginAtZero: true, max: 100, grid: { color: 'rgba(0,0,0,0.06)' }, angleLines: { color: 'rgba(0,0,0,0.06)' }, ticks: { font: { size: 9 }, backdropColor: 'transparent', color: TK, stepSize: 25 }, pointLabels: { font: { size: 10 }, color: TK } } }
+        }
+    });
+
+    // Chart 4: Cost — navy vs gray
+    const c5 = document.getElementById('costChart');
+    if (c5) new Chart(c5, {
+        type: 'bar',
+        data: {
+            labels: ['인간 외주 (4인 × $12,500)', 'AI 에이전트 (40개)'],
+            datasets: [{
+                label: '월 비용',
+                data: [50000, 500],
+                backgroundColor: [GRAY, NAVY],
+                borderRadius: 3, barPercentage: 0.45
+            }]
+        },
+        options: {
+            responsive: true, maintainAspectRatio: false,
+            indexAxis: 'y',
+            plugins: {
+                title: { display: true, text: '마케팅 비용 비교: 100배의 격차', font: { size: 12, weight: 'bold' }, color: NAVY, padding: { bottom: 12 } },
+                legend: { display: false },
+                tooltip: { callbacks: { label: c => '$' + c.parsed.x.toLocaleString() + '/월' } }
+            },
+            scales: {
+                x: { beginAtZero: true, ticks: { callback: v => '$' + v.toLocaleString(), color: TK }, grid: { color: GRID } },
+                y: { grid: { display: false }, ticks: { color: NAVY, font: { size: 11, weight: 'bold' } } }
+            }
+        }
+    });
+});
+</script>
+</body>
+</html>
