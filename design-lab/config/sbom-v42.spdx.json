@@ -508,6 +508,24 @@
       "copyrightText": "NOASSERTION (vendored from https://github.com/dominikmartn/hue)",
       "supplier": "NOASSERTION",
       "downloadLocation": "https://github.com/dominikmartn/hue"
+    },
+    {
+      "SPDXID": "SPDXRef-vendor-qiaomu-design",
+      "name": "design-lab/knowledge/visual-quality/qiaomu-design",
+      "licenseConcluded": "MIT",
+      "licenseDeclared": "MIT",
+      "copyrightText": "NOASSERTION (vendored from https://github.com/joeseesun/qiaomu-design)",
+      "supplier": "NOASSERTION",
+      "downloadLocation": "https://github.com/joeseesun/qiaomu-design"
+    },
+    {
+      "SPDXID": "SPDXRef-vendor-interface-design",
+      "name": "design-lab/knowledge/visual-quality/interface-design",
+      "licenseConcluded": "MIT",
+      "licenseDeclared": "MIT",
+      "copyrightText": "NOASSERTION (vendored from https://github.com/Dammyjay93/interface-design)",
+      "supplier": "NOASSERTION",
+      "downloadLocation": "https://github.com/Dammyjay93/interface-design"
     }
   ],
   "relationships": [
@@ -780,6 +798,16 @@
       "spdxElementId": "SPDXRef-DOCUMENT",
       "relationshipType": "DESCRIBES",
       "relatedSpdxElement": "SPDXRef-vendor-hue"
+    },
+    {
+      "spdxElementId": "SPDXRef-DOCUMENT",
+      "relationshipType": "DESCRIBES",
+      "relatedSpdxElement": "SPDXRef-vendor-qiaomu-design"
+    },
+    {
+      "spdxElementId": "SPDXRef-DOCUMENT",
+      "relationshipType": "DESCRIBES",
+      "relatedSpdxElement": "SPDXRef-vendor-interface-design"
     }
   ]
 }

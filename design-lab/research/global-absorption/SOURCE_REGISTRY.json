@@ -2333,7 +2333,30 @@
       "integration_mode": "vendor-adapt",
       "status": "adopt-now",
       "note": "色彩系统设计 skill + 12 模板；排除 examples/ 演示资产",
-      "absorbed_at": "2026-08-14"
+      "absorbed_at": "2026-08-14",
+      "id": "hue"
+    },
+    {
+      "name": "design-lab/knowledge/visual-quality/qiaomu-design",
+      "url": "https://github.com/joeseesun/qiaomu-design",
+      "license": "MIT",
+      "license_verified": true,
+      "integration_mode": "vendor-adapt",
+      "status": "adopt-now",
+      "note": "乔木设计系统 skill + 76 参考（Apple fluid/Carbon/中文排版）；排除 docs/",
+      "absorbed_at": "2026-08-14",
+      "id": "qiaomu-design"
+    },
+    {
+      "name": "design-lab/knowledge/visual-quality/interface-design",
+      "url": "https://github.com/Dammyjay93/interface-design",
+      "license": "MIT",
+      "license_verified": true,
+      "integration_mode": "vendor-adapt",
+      "status": "adopt-now",
+      "note": "界面设计系统模板（system-template + examples）",
+      "absorbed_at": "2026-08-14",
+      "id": "interface-design"
     }
   ]
 }
