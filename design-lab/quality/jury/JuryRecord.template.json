@@ -1,0 +1,31 @@
+{
+  "$schema": "../../../schemas/jury-record.schema.json",
+  "jury_id": "replace-with-jury-id",
+  "boundTreeSha": "replace-with-git-sha",
+  "target": "replace-with-artifact-path",
+  "axes": {
+    "antiSlop": 0,
+    "layout": 0,
+    "material": 0,
+    "readability": 0,
+    "commercial": 0
+  },
+  "deterministic": {
+    "check": "check_anti_slop.py",
+    "result": "OK",
+    "runAt": "2026-08-13T00:00:00Z"
+  },
+  "humanReview": {
+    "reviewer": "replace-with-reviewer",
+    "date": "2026-08-13",
+    "verdict": "PASS | REVISE | REJECT",
+    "notes": "replace-with-human-notes"
+  },
+  "evidence": [
+    {
+      "level": "E1",
+      "artifact": "replace-with-evidence-path"
+    }
+  ],
+  "verdict": "PASS | REVISE | REJECT"
+}
