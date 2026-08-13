@@ -356,5 +356,54 @@ class StyleRecipeTests(unittest.TestCase):
             tmp.unlink(missing_ok=True)
 
 
+class IterationCompareTests(unittest.TestCase):
+    """compare_visual_iterations.compare_reports: regression detection."""
+
+    def _rep(self, axes, overall=None):
+        r = {"axes": axes}
+        if overall is not None:
+            r["overall"] = overall
+        return r
+
+    def test_improvement_no_regression(self):
+        m = load("compare_visual_iterations.py")
+        before = self._rep({"layout": 7, "color": 6}, overall=6.5)
+        after = self._rep({"layout": 8, "color": 7}, overall=7.5)
+        out = m.compare_reports(before, after)
+        self.assertEqual(out["regressions"], [])
+        self.assertGreater(out["overall_delta"], 0)
+
+    def test_regression_detected(self):
+        m = load("compare_visual_iterations.py")
+        before = self._rep({"layout": 8, "color": 8}, overall=8.0)
+        after = self._rep({"layout": 5, "color": 8}, overall=6.5)
+        out = m.compare_reports(before, after)
+        self.assertIn("layout", out["regressions"])
+        self.assertLess(out["overall_delta"], 0)
+
+    def test_tolerance_absorbs_small_drops(self):
+        m = load("compare_visual_iterations.py")
+        before = self._rep({"layout": 8})
+        after = self._rep({"layout": 7.5})
+        out = m.compare_reports(before, after, tolerance=0.6)
+        self.assertEqual(out["regressions"], [])
+
+    def test_new_axis_delta(self):
+        m = load("compare_visual_iterations.py")
+        before = self._rep({"layout": 8})
+        after = self._rep({"layout": 8, "color": 9})
+        out = m.compare_reports(before, after)
+        self.assertIn("color", out["axis_deltas"])
+        self.assertEqual(out["axis_deltas"]["color"], 9.0)
+
+
+class OpenDesignAssistanceTests(unittest.TestCase):
+    def test_boundary_pass(self):
+        """verify_open_design_assistance: config boundary must pass read-only."""
+        r = subprocess.run([sys.executable, str(SCRIPTS / "verify_open_design_assistance.py")],
+                           capture_output=True, text=True, cwd=ROOT)
+        self.assertEqual(r.returncode, 0, r.stdout[-600:] + r.stderr)
+
+
 if __name__ == "__main__":
     unittest.main()
