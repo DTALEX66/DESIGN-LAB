@@ -18,8 +18,8 @@
 - 34/34 任务有产物；Definition of Done 13/13 通过
 - 身份迁移 R3：旧名 `opendesign-assistance` 已退出活动命名 → `design-lab`（git mv，历史可追踪，见历史归档）
 - 九份 SSOT + 13 核心对象 + 6 E0 适配器合同 + Visual Quality Jury V1 + Production Preflight V1
-- DL-KNW-001 三批吸收：8 个 MIT/CC0 设计 SKILL 源码级 vendoring（hallmark/taste-skill/huashu-design/uiux-pro-max/motion×2/shipit-ui/design-checklist）
-- SOURCE_REGISTRY 124 条（schema 校验通过）
+- DL-KNW-001 十批吸收：30 个 MIT/Apache/CC0 设计 SKILL 源码级 vendoring + 7 reference 登记（hallmark/taste-skill/huashu/uiux-pro-max/motion×2/shipit/design-checklist/game-ui/blender/motion-engine/brand×3/design-system-prompt/claude2figma/extract-ds/anydesign/ppt-agent/swiftui/a11y×2/brandbook/logo/ecommerce/motion-forensics/springy/genjutsu/baoyu/ultimate-uiux 等）
+- SOURCE_REGISTRY 157 条（schema 校验通过）；CAPABILITY_INDEX count=1938
 - identity gate / unified verifier（9 检查）/ MiniGame fixture 边界 / CI 5 gate 全绿
 
 ## 待人工/运行时任务（自动推进已尽）

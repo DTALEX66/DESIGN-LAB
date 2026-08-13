@@ -1,39 +1,78 @@
 # DL-KNW-001 — 设计类资料吸收记录
 
 - 任务：DL-KNW-001 Knowledge Acquisition（人工资料审核与吸收）
-- 状态：✅ 第一批吸收完成（2026-08-13）
-- 方式：GitHub 公开设计 SKILL/项目，MIT 许可核验后源码级 vendoring
+- 状态：✅ 十批吸收完成（2026-08-14）——30 个设计技能源码级 vendoring + 7 reference 登记
+- 方式：GitHub 公开设计 SKILL/项目，MIT/Apache/CC0 许可核验后源码级 vendoring；无 LICENSE 文件者降级 reference-only
 
 ## 吸收清单（源码级 vendoring，含 LICENSE + SOURCE.md）
 
-| 来源 | 许可 | 落点 | 内容 | 规模 |
-|---|---|---|---|---|
-| [Hallmark](https://github.com/Nutlope/hallmark) | MIT | `knowledge/visual-quality/hallmark/` | anti-AI-slop 设计原则、结构多样性、21 宏结构、60+ 组件配方、slop-test 评分 | 107 文件 / 675KB |
-| [Taste-Skill](https://github.com/Leonxlnx/taste-skill) | MIT | `knowledge/visual-quality/taste-skill/` | brief 推断、设计阅读、防默认纪律、风格语言（brutalist/minimalist/soft）、redesign audit-first | 8 文件 / 144KB |
-| [Huashu-Design 花叔](https://github.com/alchaincyf/huashu-design) | MIT | `knowledge/production/huashu-design/` | HTML 高保真原型、幻灯片、动画、评审、品牌协议、分镜（中文 32 references） | 36 文件 / 568KB |
-| [UI/UX Pro Max](https://github.com/nextlevelbuilder/ui-ux-pro-max-skill) | MIT | `intelligence/ui-ux-pro-max/` | 84 UI 风格、192 色板、74 字体配对、98 UX 指南、25 图表、22 技术栈（CSV 中性数据） | 41 文件 / 1.6MB |
+### 批次 1（PR #17，2026-08-13）
+
+| 来源 | 许可 | 落点 | 内容 |
+|---|---|---|---|
+| Hallmark | MIT | `knowledge/visual-quality/hallmark/` | anti-AI-slop、21 宏结构、60+ 组件配方、slop-test |
+| Taste-Skill | MIT | `knowledge/visual-quality/taste-skill/` | brief 推断、设计阅读、防默认纪律 |
+| Huashu-Design | MIT | `knowledge/production/huashu-design/` | HTML 原型、幻灯片、动画、评审、品牌协议 |
+| UI/UX Pro Max | MIT | `intelligence/ui-ux-pro-max/` | 84 风格、192 色板、74 字体配对、98 UX 指南 |
+
+### 批次 2–3（PR #18–#19）
+
+| 来源 | 许可 | 落点 | 内容 |
+|---|---|---|---|
+| motion-design-skill (LottieFiles) | MIT | `visual-quality/motion-design-skill/` | 动效设计原则 |
+| design-motion-principles | MIT | `visual-quality/design-motion-principles/` | 动效设计 skill |
+| shipit-ui | MIT | `intelligence/shipit-ui/` | 11 UI 设计 skills |
+| Front-End-Design-Checklist | CC0 | `knowledge/standards/front-end-design-checklist/` | 前端设计检查清单 |
+
+### 批次 4（PR #30）— 游戏/3D/品牌
+
+game-ui-mobile（MIT）、blender-3d（Apache）、motion-engine（MIT）、brand-systems（MIT）、brand-identity（MIT）、ai-graphic-design（MIT）
+
+### 批次 5（PR #31）— 设计系统/Figma/演示
+
+design-system-prompt（1889⭐ MIT）、claude2figma（MIT）、extract-design-system（MIT）、anydesign（MIT）、ppt-agent（MIT）、swiftui-design（MIT）
+
+### 批次 6（PR #32）— 无障碍/品牌书/logo
+
+claude-dolphin（MIT）、ux-audit-skill（MIT）、claude-design-skill（MIT）、brandbook-skill（MIT）、logo-designer（MIT）、ecommerce-ai（CC0）、screenshot-to-ds（MIT）
+
+### 批次 7（PR #33）— 动效取证/设计思维
+
+motion-forensics（Apache）、springy-motion（MIT）、design-thinking（MIT）、web-content-designer（Apache）
+
+### 批次 8（PR #34）— creative coding/游戏管线
+
+genjutsu（216⭐ MIT）、game-creative（MIT）、ai-product-os（MIT）
+
+### 批次 9（PR #35）— 本地设计系统
+
+baoyu-design（3411⭐ MIT）、design-md-skill（MIT，74 品牌参考）
+
+### 批次 10（PR #36）— 文档/图表/品牌/上下文
+
+document-design-system（MIT）、dataviz-critique（MIT）、brand-identity-generator（MIT）、ultimate-uiux（MIT）+ ux-writing-skill（147⭐ **无 LICENSE → reference-only 登记**）
 
 ## 治理（每份均含）
 
-- `LICENSE` 副本（MIT，随吸收保留版权声明）
+- `LICENSE` 副本（随吸收保留版权声明）
 - `SOURCE.md`：来源/作者/许可/日期/用途/再分发/模型输入/商用状态
 - SOURCE_REGISTRY.json 登记（`vendor-adapt`/`adopt-now`，schema 校验通过）
-
-## 候选待评估
-
-- [Garden Skills](https://github.com/ConardLi/garden-skills)（MIT）→ 登记 `quarantine`/`review-required`，待评估吸收范围
+- vendored 目录进 `verify_license_coverage.py` EXCLUDE（REUSE 语义：目录自带 LICENSE 覆盖源码+二进制）
+- ux-writing-skill（无 LICENSE 文件）→ `reference`/`reference-now`，不 vendoring
 
 ## 未吸收（按边界规则）
 
-- huashu-design `assets/`（30MB 素材——不复制大文件）
-- ui-ux-pro-max `cli/`（190 文件工程代码）、`stack/`、`gallery/`、`screenshots/`
-- taste-skill `imagegen-frontend-*`（图像生成工作流）、`stitch`（MCP 绑定）
+- 各来源大文件（huashu assets 30MB、ppt-agent assets/ppt-output 7MB、ecommerce-ai i18n 11.6MB、design-md palette.png 542KB）
+- 无 LICENSE 文件的项目（ux-writing-skill 等）→ reference-only
+- NO-LICENSE 项目（plugin87/ux-ui-agent-skills 496⭐ 等）→ 不吸收
 
 ## 证据
 
-- `VERIFY_SOURCE_REGISTRY=OK`（117 条，0 错误）
-- `VERIFY_DESIGN_LAB=OK total=8 failed=0`
-- 全测试 96 passed + 5 subtests
+- `VERIFY_SOURCE_REGISTRY=OK`（157 条，0 错误）
+- `VERIFY_DESIGN_LAB=OK total=10 failed=0`
+- `LICENSE_COVERAGE=OK`（source headers + binary sidecars）
+- 全测试 100 passed + 5 subtests
+- `CAPABILITY_INDEX=OK count=1938`
 
 ## 下一步（人工）
 
