@@ -1,7 +1,6 @@
-# ComfyUI — evidence
+# comfyui — 取证目录
 
-- 状态：E0 placeholder。
-- 未执行任何工作流、模型下载或生成。
-- 未达 E3 不得写"已集成"。
-- DL-CFY-002（受批准 workflow E3）前置：用户手动安装并启动 ComfyUI（loopback-only）、依赖锁定、输出可复现。
-- DL-CFY-001（E0/E1）：loopback 与禁止自动安装检查——见 `rights-and-provider-policy.md`。
+- **任务**：DL-CFY-001/002
+- **当前**：E0 占位（declared）——运行时未就绪
+- **E3 恢复**：运行时可用后，在此记录：任务 ID + 产物路径/hash + 退出码
+- **生成物**：仅写入 `80-evidence/` 或 `.hermes/task-runtime/`（忽略目录）

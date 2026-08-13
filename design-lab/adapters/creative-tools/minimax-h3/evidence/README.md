@@ -1,5 +1,6 @@
-# MiniMax H3 — evidence
+# minimax-h3 — 取证目录
 
-- 状态：E0 placeholder。
-- 未执行任何 API 调用、权重下载或生成。
-- 未达 E3 不得写"已集成"。
+- **任务**：DL-H3-001/002/003
+- **当前**：E0 占位（declared）——运行时未就绪
+- **E3 恢复**：运行时可用后，在此记录：任务 ID + 产物路径/hash + 退出码
+- **生成物**：仅写入 `80-evidence/` 或 `.hermes/task-runtime/`（忽略目录）

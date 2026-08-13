@@ -170,6 +170,84 @@
         "note": "Browser/Playwright harness not yet exercised against a pinned version; declared only until a runtime task records artifact + exit code."
       },
       "rollback": "switch to fallback (Playwright) or git revert of captured evidence"
+    },
+    {
+      "adapter_id": "adapter-comfyui",
+      "tool": "ComfyUI",
+      "capabilities": [
+        {
+          "name": "image-generation",
+          "supported": false
+        },
+        {
+          "name": "workflow-execution",
+          "supported": false
+        }
+      ],
+      "status": "declared",
+      "mode": "process-isolated",
+      "license": "GPL-3.0 (runtime), custom nodes vary",
+      "fallback": "none",
+      "evidence": {
+        "level": "E0",
+        "runtime_version": null,
+        "task_ids": [],
+        "artifact_paths": [],
+        "note": "DL-CFY-001/002: E0 占位已建；运行时由用户下载安装后恢复 E3 取证（manifest/policy 已补全）"
+      },
+      "rollback": "git revert of generated artifacts; process isolation prevents host state mutation"
+    },
+    {
+      "adapter_id": "adapter-adobe-photoshop",
+      "tool": "Adobe Photoshop",
+      "capabilities": [
+        {
+          "name": "editable-delivery",
+          "supported": false
+        },
+        {
+          "name": "psd-export",
+          "supported": false
+        }
+      ],
+      "status": "declared",
+      "mode": "process-isolated",
+      "license": "proprietary (Adobe subscription), used via scripting contract",
+      "fallback": "Krita / GIMP (open alternatives, not yet bound)",
+      "evidence": {
+        "level": "E0",
+        "runtime_version": null,
+        "task_ids": [],
+        "artifact_paths": [],
+        "note": "DL-ADB-PS-001: E0 占位已建；需真实 Photoshop 运行时（manifest/policy 已补全）"
+      },
+      "rollback": "git revert of exported PSD/artifacts; process isolation prevents host state mutation"
+    },
+    {
+      "adapter_id": "adapter-minimax-h3",
+      "tool": "MiniMax H3",
+      "capabilities": [
+        {
+          "name": "video-generation",
+          "supported": false
+        },
+        {
+          "name": "motion-bridge",
+          "supported": false
+        }
+      ],
+      "status": "declared",
+      "mode": "process-isolated",
+      "license": "proprietary (MiniMax API/weights terms)",
+      "fallback": "none",
+      "evidence": {
+        "level": "E0",
+        "runtime_version": null,
+        "task_ids": [],
+        "artifact_paths": [],
+        "note": "DL-H3-001/002/003: E0 占位已建；运行时由用户下载安装后恢复 E3 取证（manifest/policy 已补全）"
+      },
+      "rollback": "git revert of generated video artifacts; process isolation prevents host state mutation"
     }
   ],
   "note": "No adapter is labelled 'available' without runtime evidence. Statuses follow the model above; E3 claims require a task ID, artifact path/hash and exit code in the evidence block."
