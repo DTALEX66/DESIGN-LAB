@@ -58,6 +58,9 @@ jobs:
         run: python design-lab/scripts/verify_identity_gate.py
       - name: DESIGN-LAB unified verify
         run: python design-lab/scripts/verify_design_lab.py
+      - name: Evidence boundTree freshness
+        if: github.event_name == 'push'
+        run: python design-lab/scripts/update_evidence_binding.py --check
       - name: V3 product manifest
         run: python design-lab/scripts/verify_product_manifest_v3.py
       - name: V3 runtime contracts

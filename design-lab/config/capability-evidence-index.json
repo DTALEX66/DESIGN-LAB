@@ -2,7 +2,7 @@
   "schemaVersion": "design-lab/capability-evidence-index/v3",
   "task": "DL-EVD-001 (DESIGN-LAB migration R3)",
   "generatedAt": "2026-08-13",
-  "boundTree": "ed3133953fc3123a2d8889eebd055934b0b191ec",
+  "boundTree": "943a988ac411969c43b07984e5e0a35a62888bf5",
   "environment": "Windows 10 (local), Open Design 0.18.1, daemon ran live 2026-08-11 (health 200, 10 plugins registered)",
   "rule": "Every capability is bound to an E0-E5 evidence level, the tree/SHA, environment, and (where applicable) run/artifact/reviewer. No static file, test count, or declaration may impersonate runtime evidence. E1 = structural validation passes (files/schema/tests). E2 = isolated runtime. E3 = real runtime use. E4 = frozen + independent review. E5 = external validation. Evidence files live in .hermes/task-runtime/ (gitignored) and reports/.",
   "evidenceLevels": {
