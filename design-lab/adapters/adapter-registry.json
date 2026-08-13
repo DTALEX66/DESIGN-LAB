@@ -15,9 +15,18 @@
       "tool": "Open Design",
       "hostAdapter": "open-design",
       "capabilities": [
-        {"name": "studio-canvas", "supported": true},
-        {"name": "agent-launch", "supported": true},
-        {"name": "artifact-export", "supported": true}
+        {
+          "name": "studio-canvas",
+          "supported": true
+        },
+        {
+          "name": "agent-launch",
+          "supported": true
+        },
+        {
+          "name": "artifact-export",
+          "supported": true
+        }
       ],
       "status": "structural",
       "mode": "in-process",
@@ -29,14 +38,21 @@
         "task_ids": [],
         "artifact_paths": [],
         "note": "Plugin/Bundle manifests exist and pass structural verification; live Open Design runtime registration (E3) is pending Phase 3."
-      }
+      },
+      "rollback": "git history revert + plugin manifest version pin; host updates are user-managed (第三方应用更新缓存不迁移)"
     },
     {
       "adapter_id": "adapter-figma",
       "tool": "Figma",
       "capabilities": [
-        {"name": "import", "supported": true},
-        {"name": "export", "supported": true}
+        {
+          "name": "import",
+          "supported": true
+        },
+        {
+          "name": "export",
+          "supported": true
+        }
       ],
       "status": "declared",
       "mode": "external-cli",
@@ -48,13 +64,17 @@
         "task_ids": [],
         "artifact_paths": [],
         "note": "No versioned CLI integration or runtime task recorded; capability is reference-only until exercised."
-      }
+      },
+      "rollback": "switch to fallback (Penpot) or git revert of exported tokens/manifest"
     },
     {
       "adapter_id": "adapter-penpot",
       "tool": "Penpot",
       "capabilities": [
-        {"name": "import", "supported": true}
+        {
+          "name": "import",
+          "supported": true
+        }
       ],
       "status": "declared",
       "mode": "external-cli",
@@ -66,14 +86,21 @@
         "task_ids": [],
         "artifact_paths": [],
         "note": "No versioned CLI integration or runtime task recorded; capability is reference-only until exercised."
-      }
+      },
+      "rollback": "switch to fallback (Figma) or git revert of exported tokens/manifest"
     },
     {
       "adapter_id": "adapter-blender",
       "tool": "Blender",
       "capabilities": [
-        {"name": "3d-render", "supported": false},
-        {"name": "gltf-export", "supported": false}
+        {
+          "name": "3d-render",
+          "supported": false
+        },
+        {
+          "name": "gltf-export",
+          "supported": false
+        }
       ],
       "status": "missing",
       "mode": "process-isolated",
@@ -85,14 +112,21 @@
         "task_ids": [],
         "artifact_paths": [],
         "note": "Blender not installed in current environment; capabilities stay unsupported and are never advertised as available."
-      }
+      },
+      "rollback": "git revert of blend/gLTF artifacts; process isolation prevents host state mutation"
     },
     {
       "adapter_id": "adapter-ffmpeg",
       "tool": "FFmpeg",
       "capabilities": [
-        {"name": "video-transcode", "supported": false},
-        {"name": "audio-encode", "supported": false}
+        {
+          "name": "video-transcode",
+          "supported": false
+        },
+        {
+          "name": "audio-encode",
+          "supported": false
+        }
       ],
       "status": "missing",
       "mode": "process-isolated",
@@ -104,15 +138,25 @@
         "task_ids": [],
         "artifact_paths": [],
         "note": "FFmpeg not installed in current environment; capabilities stay unsupported and are never advertised as available."
-      }
+      },
+      "rollback": "git revert of transcoded outputs; no host state mutation"
     },
     {
       "adapter_id": "adapter-browser",
       "tool": "Chromium/browser",
       "capabilities": [
-        {"name": "dom-render", "supported": true},
-        {"name": "visual-regression", "supported": true},
-        {"name": "axe-a11y", "supported": true}
+        {
+          "name": "dom-render",
+          "supported": true
+        },
+        {
+          "name": "visual-regression",
+          "supported": true
+        },
+        {
+          "name": "axe-a11y",
+          "supported": true
+        }
       ],
       "status": "declared",
       "mode": "external-cli",
@@ -124,7 +168,8 @@
         "task_ids": [],
         "artifact_paths": [],
         "note": "Browser/Playwright harness not yet exercised against a pinned version; declared only until a runtime task records artifact + exit code."
-      }
+      },
+      "rollback": "switch to fallback (Playwright) or git revert of captured evidence"
     }
   ],
   "note": "No adapter is labelled 'available' without runtime evidence. Statuses follow the model above; E3 claims require a task ID, artifact path/hash and exit code in the evidence block."
