@@ -1,7 +1,7 @@
 # DL-KNW-001 — 设计类资料吸收记录
 
 - 任务：DL-KNW-001 Knowledge Acquisition（人工资料审核与吸收）
-- 状态：✅ 十批吸收完成（2026-08-14）——30 个设计技能源码级 vendoring + 7 reference 登记
+- 状态：✅ 十三批吸收完成（2026-08-14）——35 个设计技能源码级 vendoring + 7 reference 登记
 - 方式：GitHub 公开设计 SKILL/项目，MIT/Apache/CC0 许可核验后源码级 vendoring；无 LICENSE 文件者降级 reference-only
 
 ## 吸收清单（源码级 vendoring，含 LICENSE + SOURCE.md）
@@ -52,6 +52,14 @@ baoyu-design（3411⭐ MIT）、design-md-skill（MIT，74 品牌参考）
 
 document-design-system（MIT）、dataviz-critique（MIT）、brand-identity-generator（MIT）、ultimate-uiux（MIT）+ ux-writing-skill（147⭐ **无 LICENSE → reference-only 登记**）
 
+### 批次 11–13（PR #58–#60，2026-08-14）— 色彩/设计系统/营销
+
+- hue（797⭐ MIT）：色彩系统 skill + 12 模板 → `knowledge/visual-quality/hue/`
+- qiaomu-design（489⭐ MIT）：乔木设计系统 + 50+ 真实品牌 DESIGN.md（Linear/Stripe/Vercel/Apple/Notion）→ `knowledge/visual-quality/qiaomu-design/`
+- interface-design（5438⭐ MIT）：界面设计系统模板 → `knowledge/visual-quality/interface-design/`
+- visual-note-card（78⭐ MIT）：中文视觉笔记卡片/信息图 → `knowledge/visual-quality/visual-note-card/`
+- affiliate-skills（606⭐ MIT）：32 联盟营销 skill → `knowledge/visual-quality/affiliate-skills/`
+
 ## 治理（每份均含）
 
 - `LICENSE` 副本（随吸收保留版权声明）
@@ -68,11 +76,11 @@ document-design-system（MIT）、dataviz-critique（MIT）、brand-identity-gen
 
 ## 证据
 
-- `VERIFY_SOURCE_REGISTRY=OK`（157 条，0 错误）
-- `VERIFY_DESIGN_LAB=OK total=10 failed=0`
+- `VERIFY_SOURCE_REGISTRY=OK`（162 条，0 错误）
+- `VERIFY_DESIGN_LAB=OK total=11 failed=0`
 - `LICENSE_COVERAGE=OK`（source headers + binary sidecars）
-- 全测试 100 passed + 5 subtests
-- `CAPABILITY_INDEX=OK count=1938`
+- 全测试 137 passed + 5 subtests
+- `CAPABILITY_INDEX=OK count=2222`
 
 ## 下一步（人工）
 
