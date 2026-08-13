@@ -29,6 +29,17 @@ def load(name: str):
     return module
 
 
+def load_rel(rel: str):
+    """Load a module by repo-relative path (quality/, production/, ...)."""
+    path = ROOT / rel
+    mod_name = Path(rel).stem
+    spec = importlib.util.spec_from_file_location(mod_name, path)
+    assert spec and spec.loader
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
 class ComfyuiGatePatternTests(unittest.TestCase):
     def test_forbidden_patterns(self):
         """Forbidden semantics must be detected by the gate's patterns."""
@@ -466,6 +477,89 @@ class ScaffoldHelpersTests(unittest.TestCase):
         m = load("scaffold_open_design_plugin.py")
         self.assertEqual(m.parse_csv("a, b ,c"), ["a", "b", "c"])
         self.assertEqual(m.parse_csv(""), [])
+
+
+class AntiSlopTests(unittest.TestCase):
+    """quality/jury/check_anti_slop.check_file: deterministic gates."""
+
+    def test_ai_purple_gradient_detected(self):
+        m = load_rel("quality/jury/check_anti_slop.py")
+        with tempfile.NamedTemporaryFile("w", suffix=".html", delete=False, encoding="utf-8") as f:
+            f.write("body { background: linear-gradient(135deg, purple, blue); }")
+            tmp = Path(f.name)
+        try:
+            findings = m.check_file(tmp)
+            self.assertTrue(any("AI-DEFAULT" in x for x in findings))
+        finally:
+            tmp.unlink(missing_ok=True)
+
+    def test_clean_file_passes(self):
+        m = load_rel("quality/jury/check_anti_slop.py")
+        with tempfile.NamedTemporaryFile("w", suffix=".html", delete=False, encoding="utf-8") as f:
+            f.write(":root { --brand: #e2b63a; }\nbody { color: var(--brand); font-family: system-ui; overflow-x: hidden; }")
+            tmp = Path(f.name)
+        try:
+            findings = m.check_file(tmp)
+            self.assertEqual(findings, [])
+        finally:
+            tmp.unlink(missing_ok=True)
+
+    def test_token_locked_required(self):
+        m = load_rel("quality/jury/check_anti_slop.py")
+        with tempfile.NamedTemporaryFile("w", suffix=".css", delete=False, encoding="utf-8") as f:
+            f.write("body { color: #333; }")
+            tmp = Path(f.name)
+        try:
+            findings = m.check_file(tmp)
+            self.assertTrue(any("MISSING: token-locked" in x for x in findings))
+        finally:
+            tmp.unlink(missing_ok=True)
+
+    def test_italic_header_violation(self):
+        m = load_rel("quality/jury/check_anti_slop.py")
+        with tempfile.NamedTemporaryFile("w", suffix=".css", delete=False, encoding="utf-8") as f:
+            f.write(".title { font-style: italic; }\nh1 { color: var(--x); overflow-x: hidden; }")
+            tmp = Path(f.name)
+        try:
+            findings = m.check_file(tmp)
+            self.assertTrue(any("VIOLATION: italic-header" in x for x in findings))
+        finally:
+            tmp.unlink(missing_ok=True)
+
+    def test_skip_prefixes(self):
+        """skip-prefixes must exclude vendored/template subtrees."""
+        m = load_rel("quality/jury/check_anti_slop.py")
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            (root / "knowledge").mkdir()
+            (root / "knowledge" / "bad.html").write_text("background: linear-gradient(45deg, purple, red);", encoding="utf-8")
+            skip = ["knowledge"]
+            target = root.resolve()
+            files = [p for p in target.rglob("*") if p.suffix in {".html", ".css"}]
+            kept = []
+            for f in files:
+                rel = f.relative_to(target).as_posix()
+                if any(rel.startswith(s) for s in skip):
+                    continue
+                kept.append(f)
+            self.assertEqual(kept, [])
+
+
+class PreflightHashTests(unittest.TestCase):
+    """production/preflight/check_preflight.file_hash: deterministic."""
+
+    def test_hash_stable(self):
+        m = load_rel("production/preflight/check_preflight.py")
+        with tempfile.NamedTemporaryFile("w", delete=False, encoding="utf-8") as f:
+            f.write("stable content")
+            tmp = Path(f.name)
+        try:
+            h1 = m.file_hash(tmp)
+            h2 = m.file_hash(tmp)
+            self.assertEqual(h1, h2)
+            self.assertGreater(len(h1), 10)
+        finally:
+            tmp.unlink(missing_ok=True)
 
 
 if __name__ == "__main__":
