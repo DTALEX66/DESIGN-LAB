@@ -13,7 +13,7 @@ ROOT = Path(__file__).resolve().parents[1]
 CARD_SCHEMA = json.loads((ROOT / "schemas/visual-quality/evidence-card.schema.json").read_text(encoding="utf-8"))
 CARD_VALIDATOR = Draft202012Validator(CARD_SCHEMA)
 REGISTRY = ROOT / "evals/benchmarks/benchmark-registry.json"
-REQUIRED_GATES = {"no-signature-copy", "one-clear-focal-system", "source-and-license-record"}
+REQUIRED_GATES = {"no-signature-copy", "source-and-license-record"}
 
 
 def _load(path: Path) -> Any:
@@ -71,8 +71,12 @@ def verify(path: Path) -> list[str]:
         if card["human_calibration"]["status"] != "completed" and card["card_status"] == "accepted":
             errors.append(f"{card_id}: non-completed calibration is non-authoritative")
         gate_ids = {gate["id"] for gate in card["hard_gates"]}
+        # Every card must carry at least one governance hard gate: either
+        # originality (no-signature-copy) or source/license record. Domain
+        # gates (typography/motion/material/etc.) are per-benchmark and not
+        # universally required. Codex review finding 4.
         if not REQUIRED_GATES & gate_ids:
-            errors.append(f"{card_id}: no originality/source hard gate recorded")
+            errors.append(f"{card_id}: missing governance hard gate (need no-signature-copy or source-and-license-record)")
     if set(card["benchmark_id"] for card in cards if isinstance(card, dict)) != set(benchmarks):
         errors.append("card benchmark id set does not match registry")
     return errors
@@ -85,7 +89,11 @@ def main() -> int:
         for error in errors:
             print(f"EVIDENCE_CARDS_FAIL {error}")
         return 1
-    print("EVIDENCE_CARDS_PASS cards=12 human_calibration_required=true authoritative_accepts=0")
+    data = _load(path)
+    cards = data.get("cards") if isinstance(data, dict) else data
+    n_cards = len(cards) if isinstance(cards, list) else 0
+    accepted = sum(1 for c in cards if isinstance(c, dict) and c.get("card_status") == "accepted")
+    print(f"EVIDENCE_CARDS_PASS cards={n_cards} human_calibration_required=true authoritative_accepts={accepted}")
     return 0
 
 

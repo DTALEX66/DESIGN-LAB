@@ -89,11 +89,15 @@ def main() -> int:
     ok = not failed
     # write verify-chain marker ONLY on full pass; on failure remove/leave FAIL.
     # root here = design-lab/scripts/; repo root = root.parent.parent
+    # Fail-closed: marker write / HEAD resolution failures must not silently
+    # turn a pass into OK without the marker (Codex review finding 6).
     try:
         import subprocess as _sp
         repo_root = root.parent.parent
         head = _sp.run(["git", "-C", str(repo_root), "rev-parse", "HEAD"],
                        capture_output=True, text=True).stdout.strip()
+        if not head:
+            raise RuntimeError("git rev-parse HEAD returned empty")
         marker = repo_root / "design-lab" / "config" / ".verify-chain-ok"
         if ok:
             marker.parent.mkdir(parents=True, exist_ok=True)
@@ -101,8 +105,11 @@ def main() -> int:
         else:
             if marker.exists():
                 marker.write_text(f"FAIL {head}\n", encoding="utf-8")
-    except Exception:
-        pass
+    except Exception as exc:
+        results.append(("verify-chain-marker", 1))
+        failed.append("verify-chain-marker")
+        ok = False
+        print(f"verify-chain-marker: FAIL ({exc})")
     print(f"\nVERIFY_DESIGN_LAB={'OK' if ok else 'FAIL'} total={len(results)} failed={len(failed)}")
     for name, code in results:
         print(f"  {'PASS' if code == 0 else 'FAIL'} {name}")

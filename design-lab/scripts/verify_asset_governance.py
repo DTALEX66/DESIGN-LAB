@@ -58,13 +58,16 @@ def main() -> int:
             if rel.startswith("design-lab/research/quarantine/"):
                 try:
                     quarantine_bytes += (REPO / rel).stat().st_size
-                except OSError:
-                    pass
+                except OSError as exc:
+                    errors.append(f"cannot stat quarantine file: {rel} ({exc})")
             continue
         p = REPO / rel
         try:
             size = p.stat().st_size
-        except OSError:
+        except OSError as exc:
+            # Fail-closed: an unstatable tracked file must not silently pass
+            # the size gate (Codex review finding 2).
+            errors.append(f"cannot stat tracked file: {rel} ({exc})")
             continue
         if size > SINGLE_FILE_MIB * 1024 * 1024:
             errors.append(f"file exceeds {SINGLE_FILE_MIB} MiB cap: {rel} ({size/1048576:.1f} MiB)")

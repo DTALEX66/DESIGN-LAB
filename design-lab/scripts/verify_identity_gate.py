@@ -71,9 +71,21 @@ def scan() -> list[str]:
         # the legacy patterns as fixtures (semantic requirement, not violation).
         if rel.startswith("design-lab/tests/") and rel.endswith(".py"):
             continue
+        # Binary assets are not text; identity patterns cannot appear in them.
+        # Skipping them is not fail-open (patterns are text-only by definition).
+        if Path(rel).suffix.lower() in {
+            ".png", ".jpg", ".jpeg", ".gif", ".webp", ".mp4", ".mp3", ".wav",
+            ".pdf", ".zip", ".gz", ".7z", ".ttf", ".otf", ".woff", ".woff2",
+            ".exe", ".dll", ".so", ".dylib", ".bin", ".model", ".onnx", ".pb",
+            ".fig", ".sketch", ".psd", ".ai", ".ico", ".cur", ".svgz",
+        }:
+            continue
         try:
             text = p.read_text(encoding="utf-8")
-        except Exception:
+        except Exception as exc:
+            # Fail-closed: an unreadable text file must not bypass the
+            # identity scan (Codex review finding 3).
+            hits.append(f"{rel}: unreadable ({exc})")
             continue
         # Exempt lines that declare the legacy name retired (prohibition/history context)
         exempt_lines = []
