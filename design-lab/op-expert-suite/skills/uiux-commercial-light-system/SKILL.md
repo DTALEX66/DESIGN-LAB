@@ -17,7 +17,7 @@ od:
 
 # UIUX Commercial Light 设计系统
 
-> 个人专家技能（源自 DESIGN-LAB V4.2）。
+> 个人专家技能（源自 DESIGN-LAB 历史能力版本；当前 SSOT 以本仓库产品定义与边界合同为准）。
 
 ## 设计系统：UIUX Commercial Light
 
