@@ -76,8 +76,13 @@ def check() -> list[str]:
         findings.append("MISSING: evidence/README.md")
     else:
         ev = evidence_path.read_text(encoding="utf-8")
-        if "E0" not in ev and "未执行" not in ev:
-            findings.append("EVIDENCE: must declare E0 placeholder (no execution)")
+        # 双态：E0 占位（未执行）或 E3 运行时已验证（有证据文件 + 运行时版本）
+        has_e0 = "E0" in ev and "未执行" in ev
+        has_e3 = "E3" in ev and "E3-" in ev and ("运行时" in ev or "runtime" in ev.lower())
+        if not has_e0 and not has_e3:
+            findings.append("EVIDENCE: must declare E0 placeholder (no execution) or E3 runtime evidence")
+        if has_e3 and not any(evidence_path.parent.glob("E3-*.md")):
+            findings.append("EVIDENCE: E3 declared but no E3-*.md evidence file present")
 
     return findings
 
@@ -89,7 +94,9 @@ def main() -> int:
     if findings:
         print(f"\nVERIFY_COMFYUI_GATE=FAIL findings={len(findings)}")
         return 1
-    print("\nVERIFY_COMFYUI_GATE=OK (loopback-only, no auto-install; E0 placeholder)")
+    ev = (COMFY_DIR / "evidence" / "README.md").read_text(encoding="utf-8")
+    state = "E3 runtime verified" if "E3" in ev and "E3-" in ev else "E0 placeholder"
+    print(f"\nVERIFY_COMFYUI_GATE=OK (loopback-only, no auto-install; {state})")
     return 0
 
 
