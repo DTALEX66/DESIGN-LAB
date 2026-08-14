@@ -2,28 +2,30 @@
   "adapter_id": "adapter-comfyui",
   "tool": "ComfyUI",
   "schemaVersion": "design-lab/adapter-manifest/v1",
-  "status": "declared",
+  "status": "active",
   "mode": "process-isolated",
   "license": "GPL-3.0 (runtime), custom nodes vary",
   "capabilities": [
     {
       "name": "image-generation",
-      "supported": false,
-      "note": "Requires ComfyUI runtime (user installing); E0 placeholder until loopback E3"
+      "supported": true,
+      "note": "ComfyUI v0.33.1 runtime installed; loopback E3 verified (system_stats + CUDA OK)"
     },
     {
       "name": "workflow-execution",
-      "supported": false,
-      "note": "Requires ComfyUI runtime (user installing); E0 placeholder until loopback E3"
+      "supported": true,
+      "note": "Runtime E3 verified; MiniMax H3 models downloading for video-generation chain"
     }
   ],
   "fallback": "none",
   "evidence": {
-    "level": "E0",
-    "runtime_version": null,
-    "task_ids": [],
-    "artifact_paths": [],
-    "note": "DL-CFY-001/002: E0 占位已建；运行时由用户下载安装后恢复 E3 取证"
+    "level": "E3",
+    "runtime_version": "0.33.1 (commit 72865f4)",
+    "task_ids": ["DL-CFY-001", "DL-CFY-002"],
+    "artifact_paths": [
+      "design-lab/adapters/creative-tools/comfyui/evidence/E3-20260814.md"
+    ],
+    "note": "ComfyUI v0.33.1 + torch 2.13.0+cu130 on RTX 5060; loopback E3 verified 2026-08-14"
   },
   "rollback": "git revert of generated artifacts; process isolation prevents host state mutation"
 }
