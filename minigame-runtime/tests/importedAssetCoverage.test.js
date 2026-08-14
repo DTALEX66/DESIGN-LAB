@@ -15,6 +15,10 @@ const uiKitRoot = new URL('../games/find-anomaly/elevator-console/assets/abnorma
 function listFiles(dirUrl) {
   const files = [];
   for (const entry of readdirSync(dirUrl)) {
+    // REUSE .license sidecars are governance metadata, not runtime assets
+    if (entry.endsWith('.license')) {
+      continue;
+    }
     const child = new URL(`${entry}`, dirUrl);
     const stats = statSync(child);
     if (stats.isDirectory()) {
