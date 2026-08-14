@@ -1,5 +1,10 @@
 # ODA4-0303 — Runtime Registration & Version Readback（E3）
 
+> **HISTORICAL SNAPSHOT — NOT CURRENT EVIDENCE.** This dated report is
+> retained for audit traceability. Its E-level/runtime wording describes
+> the recorded tree only and does not qualify the current checkout.
+
+
 - 状态：**PARTIAL E3**（运行时识别 + 版本回读 + 本仓库产物运行时使用 = 已达成；三公开入口 bundle 注册 = 待办）
 - 运行时：Open Design **0.18.1**（stable / packaged / win32 / x64）
 - 证据文件：`.hermes/task-artifacts/open-design-v4/runtime-registration-evidence.json`

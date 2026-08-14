@@ -1,5 +1,10 @@
 # V4.2 问题总结（Problem Summary）— 2026-08-11
 
+> **HISTORICAL SNAPSHOT — NOT CURRENT EVIDENCE.** This dated report is
+> retained for audit traceability. Its E-level/runtime wording describes
+> the recorded tree only and does not qualify the current checkout.
+
+
 > 依据 `DESIGN-LAB-Final-TaskPack-v4.2-2026-08-10`（Phase 2/3/4 执行）
 > 基线：`f160240`（云端 main）
 

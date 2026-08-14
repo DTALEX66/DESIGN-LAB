@@ -1,5 +1,10 @@
 # 项目审计报告（Audit Report）— 2026-08-08
 
+> **HISTORICAL SNAPSHOT — NOT CURRENT EVIDENCE.** This dated report is
+> retained for audit traceability. Its E-level/runtime wording describes
+> the recorded tree only and does not qualify the current checkout.
+
+
 ## 审计范围
 - 仓库：`D:\All projects\DESIGN-LAB` @ `migration/work-lab-minigame-cutover-20260807`
 - 基线 HEAD：`5744b3f`（main = migration = 云端一致）

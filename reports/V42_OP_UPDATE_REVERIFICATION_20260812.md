@@ -1,5 +1,10 @@
 # Open Design 更新复验记录（2026-08-12）
 
+> **HISTORICAL SNAPSHOT — NOT CURRENT EVIDENCE.** This dated report is
+> retained for audit traceability. Its E-level/runtime wording describes
+> the recorded tree only and does not qualify the current checkout.
+
+
 - 任务：OP 更新后本仓库集成的全项复验
 - 证据等级：E3（真实 daemon 运行验证）
 

@@ -1,5 +1,10 @@
 # Open Design Personal Expert Suite 配置与交接摘要 — 2026-08-12
 
+> **HISTORICAL SNAPSHOT — NOT CURRENT EVIDENCE.** This dated report is
+> retained for audit traceability. Its E-level/runtime wording describes
+> the recorded tree only and does not qualify the current checkout.
+
+
 ## 状态与范围
 
 本报告记录 `DESIGN-LAB` 仓库资产配置到 Open Design 0.19+ Personal Workspace 的当前方法、验证结果、错误复盘和发布边界。仓库是唯一 SSOT；Open Design namespace 内的资源是可重建运行镜像，不是第二份源码真相。Skills、Design Systems 和 plugin catalog 注册使用 Open Design API；plugin source mirror 则按 Open Design 的稳定本地 source 约定写入当前 namespace 的 `data/local-plugin-sources/`，两者不是同一个事务平面。

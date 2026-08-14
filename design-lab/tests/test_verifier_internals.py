@@ -140,9 +140,9 @@ class CapabilityEvidenceSurfaceTests(unittest.TestCase):
                 encoding="utf-8",
             )
             for name in (
-                "ODA4_1101_LOCAL_CANONICAL_GATE.md",
-                "ODA4_1104_FINAL_DELIVERY_REPORT.md",
-                "V42_E3_RUNTIME_EVIDENCE_20260811.md",
+                "arbitrary-old-runtime-report.md",
+                "another-e4-snapshot.md",
+                "legacy-e5-handoff.md",
             ):
                 (reports / name).write_text("E3 runtime verified", encoding="utf-8")
             errors = verifier.validate_report_boundary(root / "design-lab" / "config")

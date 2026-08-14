@@ -149,23 +149,20 @@ def validate_report_boundary(repo: Path = REPO) -> list[str]:
         if marker not in boundary_text:
             errors.append(f"reports/README.md missing boundary marker: {marker!r}")
 
-    sensitive_reports = (
-        "ODA4_1101_LOCAL_CANONICAL_GATE.md",
-        "ODA4_1104_FINAL_DELIVERY_REPORT.md",
-        "V42_E3_RUNTIME_EVIDENCE_20260811.md",
-    )
-    for name in sensitive_reports:
-        path = boundary.parent / name
-        if not path.exists():
-            errors.append(f"reports/{name} missing")
+    claim_markers = ("e3", "e4", "e5", "runtime verified", "phase 3 完成", "已布置并验证")
+    for path in sorted(boundary.parent.glob("*.md")):
+        if path.name == "README.md":
             continue
         try:
             text = path.read_text(encoding="utf-8").lower()
         except OSError as exc:
-            errors.append(f"reports/{name} unreadable: {exc}")
+            errors.append(f"{path.relative_to(project_root)} unreadable: {exc}")
             continue
-        if "historical snapshot" not in text or "not current evidence" not in text:
-            errors.append(f"reports/{name} lacks explicit historical/non-current marker")
+        if any(marker in text for marker in claim_markers):
+            if "historical snapshot" not in text or "not current evidence" not in text:
+                errors.append(
+                    f"{path.relative_to(project_root)} lacks explicit historical/non-current marker"
+                )
     return errors
 
 

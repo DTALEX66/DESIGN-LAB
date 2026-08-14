@@ -1,5 +1,10 @@
 # V4.2 交接文档（Handoff Summary）— 2026-08-11
 
+> **HISTORICAL SNAPSHOT — NOT CURRENT EVIDENCE.** This dated report is
+> retained for audit traceability. Its E-level/runtime wording describes
+> the recorded tree only and does not qualify the current checkout.
+
+
 ## 状态：✅ READY_FOR_UPLOAD（本地全量验证通过，待 PR 流程）
 
 - 目标仓库：`DTALEX66/DESIGN-LAB`

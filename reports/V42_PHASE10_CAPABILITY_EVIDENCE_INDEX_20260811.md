@@ -1,5 +1,10 @@
 # V4.2 Phase 10 — Capability Evidence Index 交接文档
 
+> **HISTORICAL SNAPSHOT — NOT CURRENT EVIDENCE.** This dated report is
+> retained for audit traceability. Its E-level/runtime wording describes
+> the recorded tree only and does not qualify the current checkout.
+
+
 > 日期：2026-08-11
 > 目标仓库：`DTALEX66/DESIGN-LAB`
 > 基线：`d4716a4`（V4.2 main 权威，双端一致）

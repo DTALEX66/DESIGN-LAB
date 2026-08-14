@@ -1,5 +1,10 @@
 # V4 交接摘要（Handoff Summary）— 2026-08-07
 
+> **HISTORICAL SNAPSHOT — NOT CURRENT EVIDENCE.** This dated report is
+> retained for audit traceability. Its E-level/runtime wording describes
+> the recorded tree only and does not qualify the current checkout.
+
+
 ## 状态：READY_FOR_USER_APPROVAL（本地推进完成，已推送云端）
 
 ## 已上传云端

@@ -1,5 +1,10 @@
 # V4.2 执行摘要（Execution Summary）— 2026-08-10
 
+> **HISTORICAL SNAPSHOT — NOT CURRENT EVIDENCE.** This dated report is
+> retained for audit traceability. Its E-level/runtime wording describes
+> the recorded tree only and does not qualify the current checkout.
+
+
 > TaskPack `DESIGN-LAB-Final-TaskPack-v4.2-2026-08-10`
 > 目标仓库 `DTALEX66/DESIGN-LAB`，Windows 本地 `D:\All projects\DESIGN-LAB`
 
