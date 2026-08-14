@@ -75,6 +75,8 @@ jobs:
           python design-lab/scripts/verify_source_registry_v2.py
           python design-lab/scripts/verify_v2_protocols.py
           python design-lab/scripts/verify_visual_quality_v21.py
+      - name: Domain Pack V2 contract
+        run: python design-lab/scripts/verify_domain_pack_v2.py design-lab/domain-packs/uiux-design
       - name: Python unit tests
         run: python scripts/run_python_tests.py
       - name: MiniGame fixture boundary test

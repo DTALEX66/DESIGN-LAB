@@ -3,9 +3,11 @@
 from __future__ import annotations
 
 import json
+import sys
 import tempfile
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 
 import importlib.util
 
@@ -67,6 +69,15 @@ def make_pack(base: Path, complete: bool, prompt_only: bool = False) -> Path:
 
 
 class DomainPackV2Test(unittest.TestCase):
+    def test_missing_jsonschema_fails_closed(self):
+        mod = load_mod()
+        with tempfile.TemporaryDirectory() as td:
+            pack = make_pack(Path(td), complete=True)
+            with patch.dict(sys.modules, {"jsonschema": None}):
+                ok, errors = mod.validate(pack)
+            self.assertFalse(ok)
+            self.assertTrue(any("schema validation unavailable" in e for e in errors), errors)
+
     def test_complete_pack_passes(self):
         mod = load_mod()
         with tempfile.TemporaryDirectory() as td:
@@ -90,6 +101,15 @@ class DomainPackV2Test(unittest.TestCase):
             ok, errors = mod.validate(pack)
             self.assertFalse(ok)
             self.assertTrue(any("rubric" in e for e in errors), f"errors: {errors}")
+
+    def test_empty_benchmark_directory_fails(self):
+        mod = load_mod()
+        with tempfile.TemporaryDirectory() as td:
+            pack = make_pack(Path(td), complete=True)
+            (pack / "benchmarks" / "case1.json").unlink()
+            ok, errors = mod.validate(pack)
+            self.assertFalse(ok)
+            self.assertTrue(any("declared directory empty" in e for e in errors), errors)
 
 
 if __name__ == "__main__":

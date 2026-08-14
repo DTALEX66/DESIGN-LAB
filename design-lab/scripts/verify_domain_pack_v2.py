@@ -29,6 +29,7 @@ REQUIRED_FILES = {
     "benchmark_cases": "benchmarks/",
     "evidence_cards": "evidence/",
 }
+DIRECTORY_ELEMENTS = {"benchmark_cases", "evidence_cards"}
 
 DEFAULT_BUDGET = 5_242_880  # 5 MiB
 
@@ -49,8 +50,8 @@ def validate(pack_dir: Path) -> tuple[bool, list[str]]:
         import jsonschema
         schema = json.loads(SCHEMA.read_text(encoding="utf-8"))
         jsonschema.validate(manifest, schema)
-    except ImportError:
-        pass  # structural checks still apply
+    except ImportError as exc:
+        errors.append(f"schema validation unavailable: jsonschema is required ({exc})")
     except Exception as exc:  # noqa: BLE001
         errors.append(f"schema validation failed: {exc}")
 
@@ -62,8 +63,13 @@ def validate(pack_dir: Path) -> tuple[bool, list[str]]:
             errors.append(f"manifest missing files.{key} declaration")
             continue
         resolved = pack_dir / str(declared)
-        if not resolved.exists():
-            errors.append(f"declared path missing: {declared} (for {key})")
+        if key in DIRECTORY_ELEMENTS:
+            if not resolved.is_dir():
+                errors.append(f"declared directory missing: {declared} (for {key})")
+            elif not any(path.is_file() for path in resolved.iterdir()):
+                errors.append(f"declared directory empty: {declared} (for {key})")
+        elif not resolved.is_file():
+            errors.append(f"declared file missing: {declared} (for {key})")
 
     # Size budget
     budget = manifest.get("size_bytes_budget", DEFAULT_BUDGET)

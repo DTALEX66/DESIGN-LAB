@@ -18,6 +18,7 @@ import sys
 from pathlib import Path
 
 REPO = Path(__file__).resolve().parents[1]
+SCHEMA = REPO / "schemas" / "release-evidence.schema.json"
 
 
 def git(args: list[str]) -> str:
@@ -25,6 +26,37 @@ def git(args: list[str]) -> str:
     if r.returncode != 0:
         raise RuntimeError(f"git {' '.join(args)}: {r.stderr.strip()}")
     return r.stdout.strip()
+
+
+def validate_contract(ev: object) -> list[str]:
+    """Validate the machine-readable contract before checking live Git facts."""
+    try:
+        import jsonschema
+        schema = json.loads(SCHEMA.read_text(encoding="utf-8"))
+        errors = sorted(
+            jsonschema.Draft202012Validator(schema).iter_errors(ev),
+            key=lambda error: list(error.path),
+        )
+    except ImportError as exc:
+        return [f"schema validation unavailable: jsonschema is required ({exc})"]
+    except (OSError, UnicodeError, json.JSONDecodeError) as exc:
+        return [f"release-evidence schema unreadable: {exc}"]
+
+    failures = [f"schema: {error.message}" for error in errors]
+    if failures:
+        return failures
+    record = ev if isinstance(ev, dict) else {}
+    if record.get("state") != "PASS":
+        failures.append(f"release evidence state must be PASS, got {record.get('state')!r}")
+    if record.get("worktree") != "clean":
+        failures.append(f"release evidence worktree must be clean, got {record.get('worktree')!r}")
+    ci = record.get("ci") if isinstance(record.get("ci"), dict) else {}
+    if ci.get("conclusion") != "success":
+        failures.append(f"CI conclusion must be success, got {ci.get('conclusion')!r}")
+    read_back = record.get("read_back") if isinstance(record.get("read_back"), dict) else {}
+    if read_back.get("verified") is not True:
+        failures.append("remote readback must be explicitly verified=true")
+    return failures
 
 
 def main() -> int:
@@ -38,7 +70,18 @@ def main() -> int:
         print("RELEASE_EVIDENCE=FAIL")
         return 2
 
-    ev = json.loads(Path(args.evidence).read_text(encoding="utf-8"))
+    try:
+        ev = json.loads(Path(args.evidence).read_text(encoding="utf-8"))
+    except (OSError, UnicodeError, json.JSONDecodeError) as exc:
+        print(f"RELEASE_EVIDENCE=FAIL\n - evidence unreadable: {exc}")
+        return 1
+
+    contract_failures = validate_contract(ev)
+    if contract_failures:
+        print("RELEASE_EVIDENCE=FAIL")
+        for failure in contract_failures:
+            print(" -", failure)
+        return 1
 
     # Local facts
     branch = git(["rev-parse", "--abbrev-ref", "HEAD"])

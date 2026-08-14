@@ -1,12 +1,13 @@
 # Reproducible Dependencies & Test Entrypoints (ODA4-0103)
 
 ## Python
-- Sole third-party dependency: `jsonschema` (used only by `verify_evidence_cards.py`).
+- Sole schema-validation dependency: `jsonschema` (used by evidence-card,
+  Domain Pack, and object-model verifiers).
 - Locked in `requirements.txt` (`jsonschema>=4.18,<5`).
 - Install: `python -m pip install -r requirements.txt`
 - Test entrypoint: `python scripts/run_python_tests.py`
   - Discovers all `design-lab/tests/test_*.py` (unittest).
-  - Current baseline: **175 tests** (includes ODA4-0101 security regression suite).
+  - Current baseline: **178 tests** (includes ODA4-0101 security regression suite).
 
 ## Node (MiniGame runtime)
 - Zero external npm dependencies (pure Node scripts + built-ins).

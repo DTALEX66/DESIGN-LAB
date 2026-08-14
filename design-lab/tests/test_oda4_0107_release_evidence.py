@@ -30,6 +30,13 @@ def git(args):
     return subprocess.run(["git", *args], cwd=REPO, capture_output=True, text=True)
 
 
+def load_verifier():
+    spec = importlib.util.spec_from_file_location("verify_release_evidence_under_test", SCRIPT)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
 class ReleaseEvidenceSchemaTest(unittest.TestCase):
     def test_schema_is_valid_json(self):
         load_schema()
@@ -79,6 +86,29 @@ class ReleaseEvidenceSchemaTest(unittest.TestCase):
 
 
 class SHAReadbackMismatchTest(unittest.TestCase):
+    def test_failed_ci_cannot_be_release_evidence(self):
+        verifier = load_verifier()
+        record = {
+            "schemaVersion": "design-lab/release-evidence/v1",
+            "capability_id": "commercial-design-core",
+            "subject": "uiux-golden-scenario",
+            "version": "1.0",
+            "branch": "main",
+            "head_sha": "a" * 40,
+            "tree_sha": "b" * 40,
+            "worktree": "clean",
+            "evidence_level": "E4",
+            "state": "PASS",
+            "claim": "release verified",
+            "environment": "github-actions",
+            "ci": {"workflow_name": "canonical", "run_id": "123", "head_sha": "a" * 40, "conclusion": "failure"},
+            "reviewer": "codex-reviewer",
+            "timestamp": "2026-08-07T00:00:00Z",
+            "read_back": {"remote_sha": "a" * 40, "remote_branch": "main", "verified": True},
+        }
+        failures = verifier.validate_contract(record)
+        self.assertTrue(any("CI conclusion must be success" in failure for failure in failures), failures)
+
     def test_wrong_head_flagged(self):
         # Build a fake evidence record with an impossible head_sha; the script
         # must FAIL (mismatch with live checkout), not silently pass.
