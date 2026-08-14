@@ -39,7 +39,7 @@
 ### L-005 模型文件必须放入正确目录且验证节点注册
 
 - **问题**：H3 模型下载后需验证 ComfyUI 能识别——仅检查文件存在不够。
-- **修复**：ComfyUI `/object_info` 全量扫描确认节点注册（849 节点中 H3 节点 14 个）；`UNETLoader`/`CLIPLoader`/`VAELoader` 的 input 列表确认模型文件可见。这是 E3 取证的关键读回证据。
+- **当前处置**：ComfyUI/H3 的旧运行候选记录不绑定当前 exact SHA；当前树保持 E0 占位，未将 `/object_info`、节点或模型状态当作本轮证据。任何 E3 晋级都必须重新授权并完成当前树的 runtime/provenance/read-back。
 - **防复发**：运行时布置的 E3 取证 = ① 进程健康（system_stats）② 节点注册（object_info）③ 模型识别（loader input）④ 真实执行（首条出片）。
 
 ---
@@ -55,7 +55,7 @@
 
 ### L-007 验证器状态耦合：gate 必须接受合法状态全集
 
-- **问题**：`verify_comfyui_gate.py` 硬编码要求 evidence README 声明 **E0 占位**（"must declare E0 placeholder"），ComfyUI 升级到 E3 后 gate 报 `FAIL findings=1`。
+- **历史问题**：旧记录曾把 ComfyUI E3 运行状态写入 evidence README，导致 gate 输出 E3；当前 gate 支持 E0 占位或有完整证据的 E3，但本树按冻结范围明确保持 E0，旧候选记录不得复用。
 - **根因**：gate 设计前提是"运行时未就绪"（E0），未考虑 E3 合法路径——**验证器与状态耦合**。
 - **修复**：gate 改为双态：E0（占位+未执行）或 E3（运行时验证+证据文件存在）；输出信息动态反映实际状态。
 - **防复发**：验证器必须接受全部合法状态（fail-closed 不等于单状态）；新增状态转移时同步更新 gate。

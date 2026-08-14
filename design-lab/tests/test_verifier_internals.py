@@ -76,6 +76,35 @@ class ComfyuiGatePatternTests(unittest.TestCase):
         # negative-context line carries the forbidden token but is a declaration
         self.assertIn("0.0.0.0", text)
 
+    def test_e3_requires_current_tree_and_provenance(self):
+        """A stale short-SHA runtime note must not promote to E3."""
+        m = load("verify_comfyui_gate.py")
+        with tempfile.TemporaryDirectory() as raw:
+            evidence_dir = Path(raw)
+            evidence_path = evidence_dir / "README.md"
+            (evidence_dir / "E3-old.md").write_text("historical", encoding="utf-8")
+            stale = (
+                "E3 runtime verified; boundTree=0719205; "
+                "DL-CFY-001; artifact/provenance and read-back"
+            )
+            findings = m.validate_e3_evidence(stale, evidence_path)
+            self.assertTrue(findings, "stale short-SHA evidence must be rejected")
+            self.assertTrue(any("E3" in f for f in findings))
+
+    def test_e3_accepts_full_current_tree_provenance(self):
+        """A complete current-tree record can pass the E3 provenance helper."""
+        m = load("verify_comfyui_gate.py")
+        with tempfile.TemporaryDirectory() as raw:
+            evidence_dir = Path(raw)
+            evidence_path = evidence_dir / "README.md"
+            (evidence_dir / "E3-current.md").write_text("artifact", encoding="utf-8")
+            current = m._current_head()
+            text = (
+                f"E3 runtime verified; tree_sha={current}; DL-CFY-001; "
+                "artifact provenance read-back"
+            )
+            self.assertEqual(m.validate_e3_evidence(text, evidence_path), [])
+
 
 class ProductManifestTests(unittest.TestCase):
     def test_manifest_has_entries(self):

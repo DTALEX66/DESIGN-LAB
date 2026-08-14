@@ -13,6 +13,7 @@ from __future__ import annotations
 
 import json
 import re
+import subprocess
 import sys
 from pathlib import Path
 
@@ -34,6 +35,43 @@ REQUIRED = [
     (r"127\.0\.0\.1", "127.0.0.1"),
     (r"手动启动|manual", "manual launch"),
 ]
+SHA_RE = re.compile(r"\b[0-9a-f]{40}\b")
+
+
+def _current_head() -> str:
+    result = subprocess.run(
+        ["git", "-C", str(ROOT), "rev-parse", "HEAD"],
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    return result.stdout.strip()
+
+
+def validate_e3_evidence(evidence_text: str, evidence_path: Path) -> list[str]:
+    """Validate the provenance required for a current E3 claim."""
+    findings: list[str] = []
+    head = _current_head()
+    if not SHA_RE.search(evidence_text):
+        findings.append("EVIDENCE: E3 requires a full 40-hex tree SHA")
+    elif not head or head not in evidence_text:
+        findings.append("EVIDENCE: E3 tree SHA must match the current checkout HEAD")
+
+    required_markers = {
+        "runtime": ("运行时", "runtime"),
+        "task": ("DL-CFY-",),
+        "artifact/provenance": ("artifact", "provenance", "生成物"),
+        "read-back": ("read-back", "readback", "读回"),
+    }
+    lowered = evidence_text.lower()
+    for label, markers in required_markers.items():
+        if not any(marker.lower() in lowered for marker in markers):
+            findings.append(f"EVIDENCE: E3 missing {label} marker")
+
+    e3_files = sorted(evidence_path.parent.glob("E3-*.md"))
+    if not e3_files:
+        findings.append("EVIDENCE: E3 declared but no E3-*.md evidence file present")
+    return findings
 
 
 def check() -> list[str]:
@@ -76,13 +114,13 @@ def check() -> list[str]:
         findings.append("MISSING: evidence/README.md")
     else:
         ev = evidence_path.read_text(encoding="utf-8")
-        # 双态：E0 占位（未执行）或 E3 运行时已验证（有证据文件 + 运行时版本）
+        # 双态：E0 占位（未执行）或当前 checkout 已完整绑定的 E3 运行证据。
         has_e0 = "E0" in ev and "未执行" in ev
         has_e3 = "E3" in ev and "E3-" in ev and ("运行时" in ev or "runtime" in ev.lower())
         if not has_e0 and not has_e3:
             findings.append("EVIDENCE: must declare E0 placeholder (no execution) or E3 runtime evidence")
-        if has_e3 and not any(evidence_path.parent.glob("E3-*.md")):
-            findings.append("EVIDENCE: E3 declared but no E3-*.md evidence file present")
+        if has_e3:
+            findings.extend(validate_e3_evidence(ev, evidence_path))
 
     return findings
 

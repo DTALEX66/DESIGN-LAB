@@ -2,30 +2,29 @@
   "adapter_id": "adapter-comfyui",
   "tool": "ComfyUI",
   "schemaVersion": "design-lab/adapter-manifest/v1",
-  "status": "active",
+  "status": "declared",
   "mode": "process-isolated",
+  "integration": "external-local-api (loopback-only)",
   "license": "GPL-3.0 (runtime), custom nodes vary",
   "capabilities": [
     {
       "name": "image-generation",
-      "supported": true,
-      "note": "ComfyUI v0.33.1 runtime installed; loopback E3 verified (system_stats + CUDA OK)"
+      "supported": false,
+      "note": "E0 placeholder; current execution keeps ComfyUI frozen and has no accepted runtime evidence"
     },
     {
       "name": "workflow-execution",
-      "supported": true,
-      "note": "Runtime E3 verified; MiniMax H3 models downloading for video-generation chain"
+      "supported": false,
+      "note": "E0 placeholder; no current workflow execution or artifact read-back"
     }
   ],
   "fallback": "none",
   "evidence": {
-    "level": "E3",
-    "runtime_version": "0.33.1 (commit 72865f4)",
-    "task_ids": ["DL-CFY-001", "DL-CFY-002"],
-    "artifact_paths": [
-      "design-lab/adapters/creative-tools/comfyui/evidence/E3-20260814.md"
-    ],
-    "note": "ComfyUI v0.33.1 + torch 2.13.0+cu130 on RTX 5060; loopback E3 verified 2026-08-14"
+    "level": "E0",
+    "runtime_version": null,
+    "task_ids": [],
+    "artifact_paths": [],
+    "note": "DL-CFY-001/002: declared contract only; fresh runtime requalification requires explicit authorization and current exact-tree evidence"
   },
   "rollback": "git revert of generated artifacts; process isolation prevents host state mutation"
 }

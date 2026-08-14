@@ -2,30 +2,28 @@
   "adapter_id": "adapter-minimax-h3",
   "tool": "MiniMax H3",
   "schemaVersion": "design-lab/adapter-manifest/v1",
-  "status": "active",
+  "status": "declared",
   "mode": "process-isolated",
   "license": "proprietary (MiniMax API/weights terms)",
   "capabilities": [
     {
       "name": "video-generation",
-      "supported": true,
-      "note": "ComfyUI H3 nodes registered; int8_convrot DiT + nvfp4 encoder + VAEs loaded (E3 runtime-ready)"
+      "supported": false,
+      "note": "E0 placeholder; MiniMax H3 and T2V remain frozen in the current execution"
     },
     {
       "name": "motion-bridge",
       "supported": false,
-      "note": "H3-Comfy bridge feasibility doc; E3 pending first end-to-end generation"
+      "note": "E0 placeholder; H3-Comfy bridge is frozen and has no accepted end-to-end evidence"
     }
   ],
   "fallback": "none",
   "evidence": {
-    "level": "E3",
-    "runtime_version": "ComfyUI 0.33.1 + minimax-h3 int8_convrot",
-    "task_ids": ["DL-H3-001", "DL-H3-002", "DL-H3-003"],
-    "artifact_paths": [
-      "design-lab/adapters/creative-tools/minimax-h3/evidence/E3-20260814.md"
-    ],
-    "note": "Models (39.5GB) downloaded from ModelScope CN mirror; ComfyUI node recognition verified 2026-08-14"
+    "level": "E0",
+    "runtime_version": null,
+    "task_ids": [],
+    "artifact_paths": [],
+    "note": "DL-H3-001/002/003: declared contract only; fresh runtime requalification requires explicit authorization, current exact-tree evidence and first end-to-end generation"
   },
   "rollback": "git revert of generated video artifacts; process isolation prevents host state mutation"
 }
