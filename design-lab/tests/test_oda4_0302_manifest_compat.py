@@ -125,6 +125,28 @@ class ManifestCompatibilityTest(unittest.TestCase):
                 [(result.label, result.ok) for result in results],
             )
 
+    def test_visual_pack_rejects_path_traversal(self):
+        script = REPO / "design-lab" / "scripts" / "verify_open_design_assistance.py"
+        spec = importlib.util.spec_from_file_location("verify_open_design_assistance_traversal_test", script)
+        verifier = importlib.util.module_from_spec(spec)
+        sys.modules[spec.name] = verifier
+        spec.loader.exec_module(verifier)
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            pack = root / "design-lab" / "assets" / "visual-packs" / "anomaly-monitor-cctv"
+            pack.mkdir(parents=True)
+            (root / "README.md").write_text("outside", encoding="utf-8")
+            manifest = {"assets": [{"id": f"asset-{i}", "path": "../../../../README.md" if i == 0 else f"asset-{i}.png"} for i in range(8)]}
+            (pack / "manifest.json").write_text(json.dumps(manifest), encoding="utf-8")
+            for asset in manifest["assets"][1:]:
+                (pack / asset["path"]).write_bytes(b"asset")
+            results = []
+            verifier.verify_visual_packs(root, results)
+            self.assertTrue(
+                any(result.label == "visual pack path stays inside pack: asset-0" and not result.ok for result in results),
+                [(result.label, result.ok) for result in results],
+            )
+
 
 if __name__ == "__main__":
     unittest.main(verbosity=2)

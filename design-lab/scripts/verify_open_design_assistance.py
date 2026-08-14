@@ -60,6 +60,20 @@ def check(results: list[Result], label: str, ok: bool, detail: str = "") -> None
     results.append(Result(label, ok, detail))
 
 
+def contained_path(base: Path, relative: object, extra_bases: tuple[Path, ...] = ()) -> Path | None:
+    """Resolve a manifest path only inside an explicit set of allowed trees."""
+    if not isinstance(relative, str) or not relative:
+        return None
+    candidate = (base / relative).resolve()
+    for allowed_base in (base, *extra_bases):
+        try:
+            candidate.relative_to(allowed_base.resolve())
+            return candidate
+        except ValueError:
+            continue
+    return None
+
+
 def require_file(results: list[Result], root: Path, rel: str, min_bytes: int = 1) -> Path:
     path = root / rel
     check(results, f"exists: {rel}", path.is_file())
@@ -256,8 +270,18 @@ def verify_visual_packs(root: Path, results: list[Result]) -> None:
             check(results, "visual pack asset shape", False, str(asset))
             continue
         rel_path = asset.get("path")
-        resolved = (manifest_path.parent / rel_path).resolve() if rel_path else manifest_path.parent
-        check(results, f"visual pack path exists: {asset.get('id')}", resolved.is_file(), str(resolved))
+        resolved = contained_path(
+            manifest_path.parent,
+            rel_path,
+            ((root / "minigame-runtime" / "assets" / "generated").resolve(),),
+        )
+        check(results, f"visual pack path stays inside pack: {asset.get('id')}", resolved is not None, str(rel_path))
+        check(
+            results,
+            f"visual pack path exists: {asset.get('id')}",
+            resolved is not None and resolved.is_file(),
+            str(resolved or rel_path),
+        )
 
 
 def png_size(path: Path) -> tuple[int, int] | None:
