@@ -1,8 +1,8 @@
 {
   "schemaVersion": "design-lab/capability-evidence-index/v3",
   "task": "DL-EVD-001 (DESIGN-LAB migration R3)",
-  "generatedAt": "2026-08-14",
-  "boundTree": "496f758fbd450c750d60c596efd17de260bfea1a",
+  "generatedAt": "2026-08-15",
+  "boundTree": "4e6e093e662200e7120dfbf455a9f3b30f34bef4",
   "environment": "Windows 10 (local), reference host Open Design (version-agnostic), platform-neutral host adapter model",
   "rule": "Every capability is bound to an E0-E5 evidence level, the tree/SHA, environment, and (where applicable) run/artifact/reviewer. No static file, test count, or declaration may impersonate runtime evidence. E1 = structural validation passes (files/schema/tests). E2 = isolated runtime. E3 = real runtime use. E4 = frozen + independent review. E5 = external validation. Evidence files live in .hermes/task-runtime/ (gitignored) and reports/.",
   "evidenceLevels": {
@@ -44,7 +44,7 @@
       "minimumRequiredEvidence": "E1",
       "actualEvidence": "E1",
       "evidence": "Declaration + structural: source registry, governance rules, REUSE headers and license coverage structurally present and verified.",
-      "run": "verify_design_lab.py -> VERIFY_DESIGN_LAB=OK total=15 failed=0",
+      "run": "verify_design_lab.py -> VERIFY_DESIGN_LAB=OK total=17 failed=0 (HEAD 4e6e093e662200e7120dfbf455a9f3b30f34bef4)",
       "artifact": "config/capability-status.json, knowledge/governance/CAPABILITY_EVIDENCE_LEVELS.md",
       "reviewer": "HERMES (self-verified)"
     },
@@ -116,7 +116,7 @@
       "title": "Exact-SHA release evidence and CI verification",
       "minimumRequiredEvidence": "E1",
       "actualEvidence": "E1",
-      "evidence": "Structural + recorded: canonical exact-SHA CI was green for 496f758fbd450c750d60c596efd17de260bfea1a (run 31820748499); verify_release_evidence.py enforces live checkout + remote readback. E4 still requires a frozen tree, independent review, human acceptance and authorized release evidence.",
+      "evidence": "Structural + recorded: canonical exact-SHA CI was green for 4e6e093e662200e7120dfbf455a9f3b30f34bef4 (run 31832543013); verify_release_evidence.py enforces live checkout + remote readback. E4 still requires a frozen tree, independent review, human acceptance and authorized release evidence.",
       "run": "verify_release_evidence.py (contract), canonical CI exact-SHA",
       "artifact": "config/RELEASE_EVIDENCE_CONTRACT.md, reports/V42_*_20260811.md",
       "reviewer": "HERMES (self-verified)"
