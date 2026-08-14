@@ -65,6 +65,7 @@ const originalDouyinProjectConfig = existsSync(trackedDouyinProjectConfig)
 let result;
 try {
   result = spawnSync(modern.executable, args, {
+    cwd: join(__dirname, '..'),
     stdio: 'inherit',
     shell: false,
     windowsHide: true,

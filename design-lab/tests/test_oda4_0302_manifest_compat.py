@@ -147,6 +147,72 @@ class ManifestCompatibilityTest(unittest.TestCase):
                 [(result.label, result.ok) for result in results],
             )
 
+    def test_plugin_agent_skill_rejects_path_traversal(self):
+        script = REPO / "design-lab" / "scripts" / "verify_open_design_assistance.py"
+        spec = importlib.util.spec_from_file_location("verify_open_design_assistance_plugin_traversal_test", script)
+        verifier = importlib.util.module_from_spec(spec)
+        sys.modules[spec.name] = verifier
+        spec.loader.exec_module(verifier)
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            plugin = root / "design-lab" / "plugins" / "test-plugin"
+            plugin.mkdir(parents=True)
+            (root / "design-lab" / "config").mkdir(parents=True)
+            (root / "design-lab" / "config" / "product-manifest.json").write_text(
+                json.dumps({"capabilityFamilies": [{"id": "design-intelligence"}]}), encoding="utf-8"
+            )
+            (root / "design-lab" / "outside.md").write_text("outside", encoding="utf-8")
+            (plugin / "SKILL.md").write_text("skill", encoding="utf-8")
+            (plugin / "README.md").write_text("readme", encoding="utf-8")
+            manifest = {
+                "$schema": OFFICIAL_SCHEMA,
+                "specVersion": "1.0.0",
+                "name": "test-plugin",
+                "version": "1.0.0",
+                "entry": "SKILL.md",
+                "od": {
+                    "kind": "skill",
+                    "mode": "compat-plugin",
+                    "capabilities": ["prompt:inject"],
+                    "categories": ["design"],
+                    "suggestedInputs": ["brief"],
+                    "productFamilies": ["design-intelligence"],
+                    "v3": {
+                        "evidence": {"level": "E2", "state": "PASS"},
+                        "runtime": {"status": "pending-e3", "requires": ["artifact and provenance read-back"]},
+                    },
+                },
+                "compat": {"agentSkills": [{"path": "../../outside.md"}]},
+            }
+            (plugin / "open-design.json").write_text(json.dumps(manifest), encoding="utf-8")
+            results = []
+            verifier.verify_plugin_manifests(root, results)
+            self.assertTrue(
+                any("compat agent skill path stays inside plugin" in result.label and not result.ok for result in results),
+                [(result.label, result.ok) for result in results],
+            )
+
+    def test_design_system_manifest_rejects_path_traversal(self):
+        script = REPO / "design-lab" / "scripts" / "verify_open_design_assistance.py"
+        spec = importlib.util.spec_from_file_location("verify_open_design_assistance_system_traversal_test", script)
+        verifier = importlib.util.module_from_spec(spec)
+        sys.modules[spec.name] = verifier
+        spec.loader.exec_module(verifier)
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            base = root / "design-lab" / "design-systems" / "anomaly-monitor-dark"
+            base.mkdir(parents=True)
+            (root / "design-lab" / "outside.md").write_text("outside", encoding="utf-8")
+            (base / "design-tokens.json").write_text("{}", encoding="utf-8")
+            (base / "components.manifest.json").write_text("{}", encoding="utf-8")
+            (base / "manifest.json").write_text(json.dumps({"files": ["../../outside.md"]}), encoding="utf-8")
+            results = []
+            verifier.verify_design_systems(root, results)
+            self.assertTrue(
+                any("design system file stays inside system" in result.label and not result.ok for result in results),
+                [(result.label, result.ok) for result in results],
+            )
+
 
 if __name__ == "__main__":
     unittest.main(verbosity=2)

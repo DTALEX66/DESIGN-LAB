@@ -3,8 +3,8 @@
 """DESIGN-LAB canonical verifier entry (DL-MIG-011).
 
 Aggregates the DESIGN-LAB verification chain under one entrypoint:
-product manifest, runtime contracts, visual scoring, release evidence,
-source registry, v2 protocols and v21 visual quality.
+integration-assistance, product manifest, runtime contracts, visual scoring,
+release evidence, source registry, v2 protocols and v21 visual quality.
 """
 from __future__ import annotations
 
@@ -14,6 +14,7 @@ from pathlib import Path
 
 SCRIPTS = [
     "verify_identity_gate.py",
+    "verify_open_design_assistance.py",
     "verify_product_manifest_v3.py",
     "verify_runtime_contracts_v3.py",
     "verify_visual_scoring_v3.py",

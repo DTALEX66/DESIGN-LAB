@@ -15,8 +15,8 @@
 
 ## 当前基线与本轮审计交付
 
-- 最近一次自动化验证基线：当前工作树新增 Domain Pack 与 Product Manifest 路径 containment fail-closed 及回归；Canonical 16/16、Open Design 474/474、Product Manifest 329 checks、Python 182 passed、MiniGame 319 passed；前一 exact-SHA CI `57d88cc` run `31830697557` 成功
-- 本轮结构证据闭环：`2ea6dcb5302269552f1437316d68a8b0c2732242` 新增 `verify_style_master_method.py` 并接入 Canonical，497 masters / 77 anchor cards / 47 lineages / 47 analysis cards 均通过；style-master-method 从 E0 诚实提升为 E1 structural，Canonical 16/16，exact-SHA CI run `31827742980` 成功；release gate 从 8 项降为 7 项，仍由真实 E2/E3、人工校准和 DL-REL-001 阻塞
+- 最近一次自动化验证基线：当前工作树新增 Domain Pack、Product Manifest 和 Open Design manifest 引用路径 containment fail-closed 及回归；Open Design verifier 已纳入 Canonical；同时修复 MiniGame launcher 从 Git 根目录调用时的 cwd 漂移；Canonical 17/17、Open Design 545/545、Product Manifest 329 checks、Python 184 passed、MiniGame 319 passed；前一 exact-SHA CI `57d88cc` run `31830697557` 成功
+- 本轮结构证据闭环：`2ea6dcb5302269552f1437316d68a8b0c2732242` 新增 `verify_style_master_method.py` 并接入 Canonical，497 masters / 77 anchor cards / 47 lineages / 47 analysis cards 均通过；style-master-method 从 E0 诚实提升为 E1 structural，Canonical 17/17，exact-SHA CI run `31827742980` 成功；release gate 从 8 项降为 7 项，仍由真实 E2/E3、人工校准和 DL-REL-001 阻塞
 - 本轮证据边界修复：`91aa2db` 已通过 exact-SHA CI；`b25c76a` 扩展为全量 `reports/*.md` E3/E4/E5/runtime 声明 fail-closed 门禁；`3f87527` 修复 release gate 只检查人工 marker 的漏洞，`a95f8bb` 补齐新增回归测试 SPDX 头并通过 exact-SHA CI run `31824338318`，现会同时阻断 capability floors（5 项不足）和 Evidence Cards（0/12 accepted）
 - 当前 Git 树未跟踪 `docs/current/TASK_GRAPH_V2.yaml`，也没有活动文件引用该路径；不依据旧交接文本推断或伪造当前任务图，任务 SSOT 以本路线图、产品 manifest 和 capability index 为准
 - 前端入口验证：MiniGame 319 tests、WeChat/Douyin/skins/V5 检查通过；`verify-all --summary` 现在对缺失 portable Android toolchain 返回 exit 2 / `BLOCKED`，不再把 Android debug build 与 APK metadata 的 `SKIP` 误报为 acceptance pass；Douyin 仅保留 release AppID warning
