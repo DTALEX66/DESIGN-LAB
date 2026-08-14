@@ -26,6 +26,7 @@ def load(name: str):
     spec = importlib.util.spec_from_file_location(name.replace(".py", ""), path)
     assert spec and spec.loader
     module = importlib.util.module_from_spec(spec)
+    sys.modules[spec.name] = module
     spec.loader.exec_module(module)
     return module
 
@@ -37,6 +38,7 @@ def load_rel(rel: str):
     spec = importlib.util.spec_from_file_location(mod_name, path)
     assert spec and spec.loader
     module = importlib.util.module_from_spec(spec)
+    sys.modules[spec.name] = module
     spec.loader.exec_module(module)
     return module
 
@@ -109,9 +111,8 @@ class ComfyuiGatePatternTests(unittest.TestCase):
 
 class ProductManifestTests(unittest.TestCase):
     def test_manifest_has_entries(self):
-        # NOTE: verify_product_manifest_v3.py cannot be importlib-loaded
-        # (dataclass + `from __future__ import annotations` fails outside a
-        # registered module name); run it as a subprocess instead.
+        # The loader registers modules before execution so dataclasses and
+        # postponed annotations resolve correctly during direct unit tests.
         r = subprocess.run([sys.executable, str(SCRIPTS / "verify_product_manifest_v3.py")],
                            capture_output=True, text=True, cwd=ROOT)
         self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
@@ -119,6 +120,18 @@ class ProductManifestTests(unittest.TestCase):
         m_match = re.search(r"total=(\d+)", r.stdout)
         self.assertTrue(m_match, "manifest report must include total")
         self.assertGreaterEqual(int(m_match.group(1)), 200)
+
+    def test_manifest_path_traversal_fails_closed(self):
+        m = load("verify_product_manifest_v3.py")
+        with tempfile.TemporaryDirectory() as raw:
+            root = Path(raw)
+            (root.parent / "outside-product-manifest-test.txt").write_text("outside", encoding="utf-8")
+            results = []
+            m.require_path(results, root, "../outside-product-manifest-test.txt")
+            self.assertTrue(
+                any(result.label.startswith("path stays inside repository:") and not result.ok for result in results),
+                [(result.label, result.ok) for result in results],
+            )
 
 
 class CapabilityEvidenceSurfaceTests(unittest.TestCase):

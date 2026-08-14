@@ -112,7 +112,13 @@ def require_object(results: list[Result], label: str, value: Any) -> dict[str, A
 
 
 def require_path(results: list[Result], root: Path, rel: str, *, file: bool | None = None) -> Path:
-    path = root / rel
+    path = (root / rel).resolve()
+    try:
+        path.relative_to(root.resolve())
+    except ValueError:
+        check(results, f"path stays inside repository: {rel}", False, str(path))
+        return path
+    check(results, f"path stays inside repository: {rel}", True)
     exists = path.exists()
     check(results, f"path exists: {rel}", exists)
     if exists and file is True:

@@ -111,6 +111,20 @@ class DomainPackV2Test(unittest.TestCase):
             self.assertFalse(ok)
             self.assertTrue(any("declared directory empty" in e for e in errors), errors)
 
+    def test_declared_path_traversal_fails_closed(self):
+        mod = load_mod()
+        with tempfile.TemporaryDirectory() as td:
+            base = Path(td)
+            pack = make_pack(base, complete=True)
+            (base / "outside.md").write_text("outside", encoding="utf-8")
+            manifest_path = pack / "manifest.json"
+            manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+            manifest["files"]["scenario"] = "../outside.md"
+            manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
+            ok, errors = mod.validate(pack)
+            self.assertFalse(ok)
+            self.assertTrue(any("declared path escapes pack" in e for e in errors), errors)
+
 
 if __name__ == "__main__":
     unittest.main(verbosity=2)

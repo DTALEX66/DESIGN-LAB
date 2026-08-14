@@ -34,6 +34,18 @@ DIRECTORY_ELEMENTS = {"benchmark_cases", "evidence_cards"}
 DEFAULT_BUDGET = 5_242_880  # 5 MiB
 
 
+def contained_path(pack_dir: Path, declared: object) -> Path | None:
+    """Resolve a declared element only when it stays inside the pack tree."""
+    if not isinstance(declared, str) or not declared:
+        return None
+    candidate = (pack_dir / declared).resolve()
+    try:
+        candidate.relative_to(pack_dir.resolve())
+    except ValueError:
+        return None
+    return candidate
+
+
 def validate(pack_dir: Path) -> tuple[bool, list[str]]:
     errors: list[str] = []
     manifest_path = pack_dir / "manifest.json"
@@ -62,7 +74,10 @@ def validate(pack_dir: Path) -> tuple[bool, list[str]]:
         if not declared:
             errors.append(f"manifest missing files.{key} declaration")
             continue
-        resolved = pack_dir / str(declared)
+        resolved = contained_path(pack_dir, declared)
+        if resolved is None:
+            errors.append(f"declared path escapes pack: {declared} (for {key})")
+            continue
         if key in DIRECTORY_ELEMENTS:
             if not resolved.is_dir():
                 errors.append(f"declared directory missing: {declared} (for {key})")

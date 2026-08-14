@@ -7,7 +7,7 @@
 - Install: `python -m pip install -r requirements.txt`
 - Test entrypoint: `python scripts/run_python_tests.py`
   - Discovers all `design-lab/tests/test_*.py` (unittest).
-  - Current baseline: **180 tests** (includes ODA4-0101 security regression suite).
+  - Current baseline: **182 tests** (includes ODA4-0101 security regression suite).
 
 ## Node (MiniGame runtime)
 - Zero external npm dependencies (pure Node scripts + built-ins).
