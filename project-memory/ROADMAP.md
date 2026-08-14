@@ -16,6 +16,7 @@
 ## 当前基线与本轮审计交付
 
 - 最近一次自动化验证基线：`496f758fbd450c750d60c596efd17de260bfea1a` 已推送，Canonical 15/15、Python 168 passed、MiniGame 319 passed；exact-SHA CI run `31820748499` 已成功
+- 本轮证据边界修复已提交为 `91aa2db`（CI 待回读）：新增 `reports/` 历史快照边界、三份敏感历史 E3 报告的 fail-closed 标记，以及 capability evidence verifier 的回归门禁；当前 targeted verifier tests `49 passed`
 - 当前 Git 树未跟踪 `docs/current/TASK_GRAPH_V2.yaml`，也没有活动文件引用该路径；不依据旧交接文本推断或伪造当前任务图，任务 SSOT 以本路线图、产品 manifest 和 capability index 为准
 - 前端入口验证：MiniGame `verify-all --summary` 的 tests/WeChat/Douyin/skins/V5 全部通过；Android debug build 与 APK metadata 因工具链未安装保持 `SKIP`，Douyin 仅保留 release AppID warning
 - 证据索引已按当前树重新绑定；历史 E3 证据不自动继承到新树，visual-quality / creative-toolchain 当前保持 E1
