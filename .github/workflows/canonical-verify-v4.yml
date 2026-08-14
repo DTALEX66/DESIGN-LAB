@@ -155,9 +155,9 @@ jobs:
   open-design-host-gate:
     name: Open Design host adapter gate
     runs-on: ubuntu-latest
-    # Platform-neutral CI: this host-specific verifier runs ONLY when the
-    # Open Design adapter/plugin surface changed in this PR/push. The global
-    # Python gate above runs only neutral verifiers.
+    # Platform-neutral CI: the global Python gate always runs the structural
+    # Open Design verifier. This conditional job remains as an explicit
+    # host-surface audit when plugin/adapter files change.
     outputs:
       run-gate: ${{ steps.changes.outputs.open-design }}
     steps:

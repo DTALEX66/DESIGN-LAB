@@ -11,6 +11,7 @@ const { join } = require('node:path');
 const { spawnSync } = require('node:child_process');
 
 const summaryMode = process.argv.includes('--summary');
+const RUNTIME_ROOT = join(__dirname, '..');
 
 function parseMajor(version) {
   const match = /^v?(\d+)/.exec(version || '');
@@ -47,7 +48,7 @@ function findModernNode() {
 function run(label, command, args, options = {}) {
   if (!summaryMode) console.log(`\n[verify] === ${label} ===`);
   const result = spawnSync(command, args, {
-    cwd: process.cwd(),
+    cwd: RUNTIME_ROOT,
     env: process.env,
     stdio: summaryMode ? 'pipe' : 'inherit',
     shell: false,

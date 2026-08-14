@@ -4,6 +4,7 @@ import test from 'node:test';
 
 const pkg = JSON.parse(readFileSync(new URL('../package.json', import.meta.url), 'utf8'));
 const launcher = readFileSync(new URL('../scripts/run-tests.cjs', import.meta.url), 'utf8');
+const previewScript = readFileSync(new URL('../scripts/preview-server.mjs', import.meta.url), 'utf8');
 
 test('npm test uses a Node16-compatible launcher', () => {
   assert.equal(pkg.scripts.test, 'node scripts/run-tests.cjs');
@@ -22,11 +23,18 @@ test('android inspect script verifies APK launcher metadata', () => {
   assert.match(inspectScript, /launcher icon is branded ic_launcher resource/, 'script should assert launcher icon resource');
 });
 
+test('preview server anchors static files to its runtime root', () => {
+  assert.doesNotMatch(previewScript, /resolve\(process\.cwd\(\)\)/, 'preview should not depend on caller cwd');
+  assert.match(previewScript, /fileURLToPath\(new URL\('\.\.', import\.meta\.url\)\)/, 'preview should derive root from its own entrypoint');
+});
+
 test('verify script runs the full release acceptance gate', () => {
   const verifyScript = readFileSync(new URL('../scripts/verify-all.cjs', import.meta.url), 'utf8');
 
   assert.equal(pkg.scripts.verify, 'node scripts/verify-all.cjs');
   assert.equal(pkg.scripts['verify:summary'], 'node scripts/verify-all.cjs --summary');
+  assert.match(verifyScript, /const RUNTIME_ROOT = join\(__dirname, '\.\.'\)/, 'verify should anchor commands to the runtime root');
+  assert.match(verifyScript, /cwd: RUNTIME_ROOT/, 'verify should not depend on the caller cwd');
   assert.doesNotMatch(verifyScript, /npmCommand/, 'verify should avoid spawning npm.cmd inside Git Bash on Windows');
   assert.match(verifyScript, /modern\.executable, \['scripts\/run-tests\.cjs'\]/, 'verify should run tests through the modern Node launcher');
   assert.match(verifyScript, /--summary/, 'verify should support a compact summary mode');
