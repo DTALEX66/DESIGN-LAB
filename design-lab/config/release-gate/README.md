@@ -25,3 +25,10 @@ Release 必须同时满足：
 2. capability evidence floors 和 Evidence Cards 全部满足
 3. `verify_release_evidence.py` 全绿
 4. 人工批准发布 → 标记启用
+
+## CI 入口
+
+正式发布尝试通过 `.github/workflows/release-gate.yml` 的
+`workflow_dispatch` 触发。该 workflow 先运行 Canonical verifier，再运行
+不带 `--skip-dirty` 的 release gate，最后要求提交并校验
+`design-lab/config/release-evidence.json`；任一前置不满足即失败。
