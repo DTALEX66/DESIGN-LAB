@@ -16,7 +16,7 @@
 ## 当前基线与本轮审计交付
 
 - 最近一次自动化验证基线：`496f758fbd450c750d60c596efd17de260bfea1a` 已推送，Canonical 15/15、Python 168 passed、MiniGame 319 passed；exact-SHA CI run `31820748499` 已成功
-- 本轮证据边界修复：`91aa2db` 已通过 exact-SHA CI；`b25c76a` 扩展为全量 `reports/*.md` E3/E4/E5/runtime 声明 fail-closed 门禁，并新增随机文件名负向回归测试（CI 待回读）
+- 本轮证据边界修复：`91aa2db` 已通过 exact-SHA CI；`b25c76a` 扩展为全量 `reports/*.md` E3/E4/E5/runtime 声明 fail-closed 门禁；`3f87527` 修复 release gate 只检查人工 marker 的漏洞，现会同时阻断 capability floors（6 项不足）和 Evidence Cards（0/12 accepted）（CI 待回读）
 - 当前 Git 树未跟踪 `docs/current/TASK_GRAPH_V2.yaml`，也没有活动文件引用该路径；不依据旧交接文本推断或伪造当前任务图，任务 SSOT 以本路线图、产品 manifest 和 capability index 为准
 - 前端入口验证：MiniGame `verify-all --summary` 的 tests/WeChat/Douyin/skins/V5 全部通过；Android debug build 与 APK metadata 因工具链未安装保持 `SKIP`，Douyin 仅保留 release AppID warning
 - 证据索引已按当前树重新绑定；历史 E3 证据不自动继承到新树，visual-quality / creative-toolchain 当前保持 E1
