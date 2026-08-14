@@ -120,6 +120,15 @@ class ProductManifestTests(unittest.TestCase):
         self.assertGreaterEqual(int(m_match.group(1)), 200)
 
 
+class CapabilityEvidenceSurfaceTests(unittest.TestCase):
+    def test_detailed_evidence_surfaces_match_current_capability_levels(self):
+        """Domain and adapter evidence must not silently overclaim E3."""
+        verifier = SCRIPTS / "verify_capability_evidence_v4.py"
+        r = subprocess.run([sys.executable, str(verifier)], capture_output=True, text=True, cwd=ROOT)
+        self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
+        self.assertIn("CAPABILITY_EVIDENCE_V4=PASS", r.stdout)
+
+
 class VisualScoringTests(unittest.TestCase):
     def test_scoring_has_entries(self):
         r = subprocess.run([sys.executable, str(SCRIPTS / "verify_visual_scoring_v3.py")],

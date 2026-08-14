@@ -4,8 +4,8 @@
   "pack": "uiux-design",
   "task": "V42-0403",
   "status": "PASS",
-  "evidence_level": "E3",
-  "claim": "Mobile task-flow golden case: brief, three directions (locked B), DESIGN.md, DTCG tokens, component inventory, three-viewport HTML implementations (baseline+enhanced), keyboard path, WCAG AA checklist, handoff and preflight structurally complete + live axe scan (0 violations).",
+  "evidence_level": "E1",
+  "claim": "Mobile task-flow golden case is structurally complete; the historical axe record supports E1 only. Current E3 requires an approved Host run, exact-tree binding and artifact/provenance read-back.",
   "verified_by": [
     "design-lab/scripts/verify_domain_pack_v2.py",
     "design-lab/domain-packs/uiux-design/schemas/brief.schema.json"

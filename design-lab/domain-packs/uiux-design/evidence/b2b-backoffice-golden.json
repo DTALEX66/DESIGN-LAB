@@ -4,8 +4,8 @@
   "pack": "uiux-design",
   "task": "V42-0402",
   "status": "PASS",
-  "evidence_level": "E3",
-  "claim": "B2B backoffice case structure (brief/directions/design/tokens/components) complete; full E3 requires Open Design live run (axe + jury + preference in V42-0410).",
+  "evidence_level": "E1",
+  "claim": "B2B backoffice case structure is structurally complete; this historical axe record supports E1 only. Full E3 requires an approved Open Design live run, jury and preference evidence in V42-0410.",
   "verified_by": [
     "design-lab/scripts/verify_domain_pack_v2.py"
   ],

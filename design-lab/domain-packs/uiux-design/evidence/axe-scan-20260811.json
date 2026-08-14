@@ -39,6 +39,6 @@
       "b2b .trend + status badges contrast"
     ]
   },
-  "evidence_level": "E3",
-  "note": "real browser rendering + axe.run; not self-scored"
+  "evidence_level": "E1",
+  "note": "Historical real-browser rendering + axe.run record; it supports structural evidence only. Current E3 requires a fresh approved host run, exact-tree binding and artifact/provenance read-back."
 }

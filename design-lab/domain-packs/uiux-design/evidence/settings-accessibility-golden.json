@@ -4,8 +4,8 @@
   "pack": "uiux-design",
   "task": "V42-0405",
   "status": "PASS",
-  "evidence_level": "E3",
-  "claim": "设置/无障碍黄金案例 — 系统设置与无障碍中心: brief, directions (locked direction-b), DESIGN.md, tokens, components, implementations (baseline+enhanced), keyboard path, WCAG AA checklist, handoff, preflight structurally complete + live axe scan (0 violations).",
+  "evidence_level": "E1",
+  "claim": "设置/无障碍黄金案例的结构、实现、键盘路径、WCAG 清单、交接和预检已完成；历史 axe 记录仅支持 E1。当前 E3 仍需批准的 Host 实时运行、精确树绑定和产物/provenance 读回。",
   "verified_by": [
     "design-lab/scripts/verify_domain_pack_v2.py",
     "design-lab/domain-packs/uiux-design/schemas/brief.schema.json"

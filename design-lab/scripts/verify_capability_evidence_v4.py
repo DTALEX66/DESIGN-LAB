@@ -81,6 +81,59 @@ def validate_record(rec: dict, capability_levels: dict[str, str] | None = None) 
     return errors
 
 
+def validate_evidence_surfaces(
+    capability_levels: dict[str, str],
+    repo: Path = REPO,
+) -> list[str]:
+    """Reject detailed evidence that overclaims the top-level capability state."""
+    errors: list[str] = []
+    visual_level = capability_levels.get("visual-quality")
+    evidence_dir = repo / "domain-packs" / "uiux-design" / "evidence"
+
+    for path in sorted(evidence_dir.glob("*.json")):
+        try:
+            detail = json.loads(path.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError) as exc:
+            errors.append(f"{path.relative_to(repo)}: unreadable evidence detail: {exc}")
+            continue
+        level = detail.get("evidence_level")
+        if level not in LEVEL_ORDER:
+            continue
+        if visual_level in LEVEL_ORDER and LEVEL_ORDER[level] > LEVEL_ORDER[visual_level]:
+            errors.append(
+                f"{path.relative_to(repo)}: evidence_level {level} exceeds "
+                f"visual-quality actualEvidence {visual_level}"
+            )
+        if level in ("E3", "E4", "E5"):
+            tree_sha = detail.get("tree_sha", "")
+            if not SHA_RE.match(str(tree_sha)):
+                errors.append(f"{path.relative_to(repo)}: {level} requires exact tree_sha")
+
+    adapter_root = repo / "adapters" / "creative-tools"
+    historical_markers = (
+        "invalidated",
+        "historical",
+        "not current evidence",
+        "历史候选",
+        "失效",
+        "不得用于 e3",
+    )
+    for path in sorted(adapter_root.glob("*/evidence/E3-*.md")):
+        try:
+            text = path.read_text(encoding="utf-8")
+        except OSError as exc:
+            errors.append(f"{path.relative_to(repo)}: unreadable evidence detail: {exc}")
+            continue
+        lowered = text.lower()
+        if any(marker in lowered for marker in historical_markers):
+            continue
+        errors.append(
+            f"{path.relative_to(repo)}: active E3 file lacks explicit current-tree "
+            "qualification; use full SHA/runtime/provenance/read-back or mark historical"
+        )
+    return errors
+
+
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("records", nargs="?", help="JSON file with {records:[...]} (default: config/capability-evidence-index.json)")
@@ -145,6 +198,8 @@ def main() -> int:
                         )
         except (OSError, json.JSONDecodeError) as exc:
             errors.append(f"capability-status unreadable: {exc}")
+
+        errors.extend(validate_evidence_surfaces(capability_levels))
 
     if not isinstance(records, list):
         errors.append("records must be a list")
