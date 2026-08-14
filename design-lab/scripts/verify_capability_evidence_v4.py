@@ -134,6 +134,41 @@ def validate_evidence_surfaces(
     return errors
 
 
+def validate_report_boundary(repo: Path = REPO) -> list[str]:
+    """Keep dated reports from being mistaken for current capability evidence."""
+    errors: list[str] = []
+    project_root = repo.parent if repo.name == "design-lab" else repo.parent.parent
+    boundary = project_root / "reports" / "README.md"
+    if not boundary.exists():
+        return ["reports/README.md missing: historical report boundary is undefined"]
+    try:
+        boundary_text = boundary.read_text(encoding="utf-8").lower()
+    except OSError as exc:
+        return [f"reports/README.md unreadable: {exc}"]
+    for marker in ("historical", "current capability index", "not current runtime proof"):
+        if marker not in boundary_text:
+            errors.append(f"reports/README.md missing boundary marker: {marker!r}")
+
+    sensitive_reports = (
+        "ODA4_1101_LOCAL_CANONICAL_GATE.md",
+        "ODA4_1104_FINAL_DELIVERY_REPORT.md",
+        "V42_E3_RUNTIME_EVIDENCE_20260811.md",
+    )
+    for name in sensitive_reports:
+        path = boundary.parent / name
+        if not path.exists():
+            errors.append(f"reports/{name} missing")
+            continue
+        try:
+            text = path.read_text(encoding="utf-8").lower()
+        except OSError as exc:
+            errors.append(f"reports/{name} unreadable: {exc}")
+            continue
+        if "historical snapshot" not in text or "not current evidence" not in text:
+            errors.append(f"reports/{name} lacks explicit historical/non-current marker")
+    return errors
+
+
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("records", nargs="?", help="JSON file with {records:[...]} (default: config/capability-evidence-index.json)")
@@ -200,6 +235,7 @@ def main() -> int:
             errors.append(f"capability-status unreadable: {exc}")
 
         errors.extend(validate_evidence_surfaces(capability_levels))
+        errors.extend(validate_report_boundary())
 
     if not isinstance(records, list):
         errors.append("records must be a list")

@@ -1,5 +1,10 @@
 # Local Final Delivery Report（ODA4-1104）
 
+> **HISTORICAL SNAPSHOT — NOT CURRENT EVIDENCE.** This dated report preserves
+> its prior delivery state for audit traceability. Its ComfyUI/MiniMax H3 and
+> E3 wording must not be treated as current runtime proof; current truth is
+> governed by the capability index and release gate.
+
 - **任务**：ODA4-1104（生成本地最终交付报告并停在授权点）
 - **状态**：**READY_FOR_USER_APPROVAL**（本地全绿；E4/E5 需用户授权/人工）
 - **日期**：2026-08-14（boundTree=`7a8f570`）

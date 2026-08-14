@@ -128,6 +128,27 @@ class CapabilityEvidenceSurfaceTests(unittest.TestCase):
         self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
         self.assertIn("CAPABILITY_EVIDENCE_V4=PASS", r.stdout)
 
+    def test_report_boundary_rejects_unmarked_historical_report(self):
+        """Historical E3 reports must not become current evidence by drift."""
+        verifier = load("verify_capability_evidence_v4.py")
+        with tempfile.TemporaryDirectory() as raw:
+            root = Path(raw)
+            reports = root / "reports"
+            reports.mkdir()
+            (reports / "README.md").write_text(
+                "historical reports; current capability index; not current runtime proof",
+                encoding="utf-8",
+            )
+            for name in (
+                "ODA4_1101_LOCAL_CANONICAL_GATE.md",
+                "ODA4_1104_FINAL_DELIVERY_REPORT.md",
+                "V42_E3_RUNTIME_EVIDENCE_20260811.md",
+            ):
+                (reports / name).write_text("E3 runtime verified", encoding="utf-8")
+            errors = verifier.validate_report_boundary(root / "design-lab" / "config")
+            self.assertEqual(len(errors), 3)
+            self.assertTrue(all("historical/non-current marker" in error for error in errors))
+
 
 class VisualScoringTests(unittest.TestCase):
     def test_scoring_has_entries(self):

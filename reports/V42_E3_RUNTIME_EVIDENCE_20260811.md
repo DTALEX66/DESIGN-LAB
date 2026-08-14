@@ -1,5 +1,10 @@
 # V42 E3 Runtime Evidence — Open Design daemon 真实注册与回读（2026-08-11）
 
+> **HISTORICAL SNAPSHOT — NOT CURRENT EVIDENCE.** This is a dated runtime
+> record from 2026-08-11. It does not requalify the current checkout or
+> override the current capability index, which remains authoritative for
+> present E-level assignments.
+
 - 任务：V42-0303（三 Bundle 注册）、V42-0304（任务/Artifact 回读）、V42-0305（失败/恢复）
 - 证据等级：**E3**（真实运行时执行，非静态声明）
 - 本文件是 `.hermes/task-runtime/` 中 E3 证据的 **tracked 镜像**（原证据保留于 gitignored 运行时目录）

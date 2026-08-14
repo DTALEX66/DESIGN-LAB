@@ -1,5 +1,9 @@
 # Local Canonical Gate Run（ODA4-1101）
 
+> **HISTORICAL SNAPSHOT — NOT CURRENT EVIDENCE.** This report records the
+> tree and environment named below. It must not promote current capabilities
+> or override `design-lab/config/capability-evidence-index.json`.
+
 - **任务**：ODA4-1101（运行完整本地 Canonical Gate）
 - **状态**：**PASS**（所有 required gates 实际运行，无 mock/skip/硬编码）
 - **日期**：2026-08-14（boundTree=`9596a37`）
