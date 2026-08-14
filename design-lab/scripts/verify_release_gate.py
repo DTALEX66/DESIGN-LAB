@@ -88,7 +88,9 @@ def check(skip_dirty: bool = False) -> list[str]:
     # 1. clean worktree
     if not skip_dirty:
         code, out = git("status", "--porcelain")
-        if code == 0 and out:
+        if code != 0:
+            findings.append(f"GIT-STATUS-FAILED ({out or 'no diagnostic output'})")
+        elif out:
             findings.append("DIRTY-WORKTREE")
 
     # 2. HEAD == origin/main (best effort; offline ok)
