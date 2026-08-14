@@ -2,7 +2,7 @@
 name: mobile-task-flow-designer
 description: |
   移动端任务流 UI 设计专家（DESIGN-LAB 个人专家套件）。
-  基于 V4.2 五黄金案例，E3 验证（Axe 0 violations）。
+  基于五黄金案例，当前为 E1 结构验证；E3 需真实 Host 浏览器运行与 Axe 读回。
 triggers:
   - "移动端任务流"
   - "预约小程序 UI"

@@ -96,7 +96,7 @@
 ### L-012 验证链全绿 + 双端一致 + CI success 三者缺一不可
 
 - **问题**：曾有 CI 通过但本地验证链 FAIL（gate 单状态）——交付判断不能只看单一信号。
-- **修复**：每次交付确认 ① 本地 `VERIFY_DESIGN_LAB=OK total=14` ② `pytest 163 passed` ③ 云端 CI run success ④ main 双端一致（git rev-parse 对比）。
+- **修复**：每次交付确认 ① 本地 `VERIFY_DESIGN_LAB=OK total=15` ② Python `165 passed` ③ 云端 CI run success ④ main 双端一致（git rev-parse 对比）。
 - **防复发**：交付收尾固定跑四件套；任一失败即停。
 
 ---

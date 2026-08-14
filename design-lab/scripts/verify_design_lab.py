@@ -20,6 +20,7 @@ SCRIPTS = [
     "verify_source_registry_v2.py",
     "verify_v2_protocols.py",
     "verify_visual_quality_v21.py",
+    "verify_capability_evidence_v4.py",
     "verify_comfyui_gate.py",
     "verify_sbom.py",
     "verify_adapter_registry.py",

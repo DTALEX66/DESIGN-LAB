@@ -10,10 +10,10 @@
 
 | 文件 | 路径 |
 |---|---|
-| 唯一产品定义 V4.2（SSOT） | `D:\All projects\DESIGN-LAB\project-memory\PRODUCT_DEFINITION_V42.md` |
-| 职责边界合同 | `D:\All projects\DESIGN-LAB\project-memory\BOUNDARY_CONTRACT_V42.md` |
-| 五类用户与渐进模式 | `D:\All projects\DESIGN-LAB\project-memory\USER_MODES_V42.md` |
-| 四对象模型 | `D:\All projects\DESIGN-LAB\project-memory\OBJECT_MODEL_V42.md` |
+| 唯一产品定义（SSOT） | `D:\All projects\DESIGN-LAB\project-memory\PRODUCT_DEFINITION.md` |
+| 职责边界合同 | `D:\All projects\DESIGN-LAB\project-memory\BOUNDARY_CONTRACT.md` |
+| 用户模式 | `D:\All projects\DESIGN-LAB\project-memory\USER_MODES.md` |
+| 核心对象模型 | `D:\All projects\DESIGN-LAB\project-memory\OBJECT_MODEL.md` |
 | 机器可读产品配置 | `D:\All projects\DESIGN-LAB\design-lab\config\product-manifest.json` |
 
 ## 【L2】设计系统（视觉语言基准）
@@ -39,16 +39,18 @@
 ### MiniGame Design Pack（参考）
 - `D:\All projects\DESIGN-LAB\design-lab\domain-packs\minigame-design\`
 
-## 【L4】可执行能力（Bundles + Atoms，已注册进 OP daemon）
+## 【L4】可执行能力（Bundles + Atoms，仓库侧能力清单）
 
-### 三个公开入口 Bundle（OP 中已 trust=trusted）
+> 仓库中的 Bundle/Atom 定义不等于当前 Host 已注册。实际注册、最小任务执行、artifact/provenance 读回属于 Open Design live requalification，未完成前不得写“已注册”或“已集成”。
+
+### 三个公开入口 Bundle（仓库侧公开入口；Host trust/注册待 live requalification）
 | Bundle | Manifest | 语义 |
 |---|---|---|
 | commercial-design-core | `D:\All projects\DESIGN-LAB\design-lab\bundles\commercial-design-core\open-design.json` | 商业设计核心 |
 | visual-quality-core | `...\bundles\visual-quality-core\open-design.json` | 视觉质量评审（taskKind=tune-collab） |
 | production-handoff | `...\bundles\production-handoff\open-design.json` | 生产交付（taskKind=new-generation） |
 
-### 21 个 Atoms（专业能力原子，已注册）
+### Atoms（专业能力原子；仓库定义，Host 注册待 live requalification）
 目录：`D:\All projects\DESIGN-LAB\design-lab\atoms\`
 （source-intake-gate / brief-normalizer / design-direction-jury / design-quality-jury / commercial-preflight / delivery-packager 等）
 
@@ -73,7 +75,7 @@
 2. 记住 L1 的产品定位与边界合同（所有设计必须遵守）
 3. 使用 L2 指定设计系统的 Token 与组件，不得自创风格
 4. 涉及 L3 案例类型时，遵循对应案例的 design.md 方法与验收标准
-5. 需要执行能力时调用 L4 已注册 Bundle/Atom（od plugin apply <bundle>）
+5. 需要执行能力时调用 L4 Bundle/Atom（实际可用性须以 Host live requalification 证据为准）
 6. 交付前按 L5 合同校验（Axe critical/serious=0、schema 校验、证据记录）
 7. 不请求 API key（走 Codex OAuth 订阅）；不修改套件源文件
 完成后请确认已载入层级数，并等待我的具体任务。

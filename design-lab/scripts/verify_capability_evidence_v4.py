@@ -13,6 +13,7 @@ from __future__ import annotations
 import argparse
 import json
 import re
+import subprocess
 import sys
 from pathlib import Path
 
@@ -27,6 +28,7 @@ PROMOTION = [
 ]
 
 SHA_RE = re.compile(r"^[0-9a-f]{40}$")
+LEVEL_ORDER = {"E0": 0, "E1": 1, "E2": 2, "E3": 3, "E4": 4, "E5": 5}
 
 
 def check_promotion(level: str, artifacts: list[str]) -> list[str]:
@@ -43,7 +45,7 @@ def check_promotion(level: str, artifacts: list[str]) -> list[str]:
     return errors
 
 
-def validate_record(rec: dict) -> list[str]:
+def validate_record(rec: dict, capability_levels: dict[str, str] | None = None) -> list[str]:
     errors = []
     level = rec.get("evidence_level")
     if level not in ["E0", "E1", "E2", "E3", "E4", "E5"]:
@@ -63,6 +65,19 @@ def validate_record(rec: dict) -> list[str]:
         static_only = all(not any(k in str(a) for k in ["runtime", "task_id", "provenance"]) for a in artifacts)
         if static_only:
             errors.append("E3 claimed without runtime/task/provenance evidence (static files only)")
+
+    # A detailed record cannot claim more than the capability's current
+    # top-level actualEvidence. This catches stale E3 records left behind
+    # after a capability is requalified back to E1 on a new tree.
+    if capability_levels is not None:
+        capability_id = rec.get("capability_id", "")
+        declared = capability_levels.get(capability_id)
+        if declared is None:
+            errors.append(f"record capability_id not declared in capabilities: {capability_id!r}")
+        elif level in LEVEL_ORDER and LEVEL_ORDER[level] > LEVEL_ORDER[declared]:
+            errors.append(
+                f"record evidence_level {level} exceeds capability actualEvidence {declared}"
+            )
     return errors
 
 
@@ -75,8 +90,70 @@ def main() -> int:
     data = json.loads(Path(args.records).read_text(encoding="utf-8"))
     records = data.get("records") if isinstance(data, dict) else data
     errors: list[str] = []
+    capability_levels: dict[str, str] = {}
+    if isinstance(data, dict):
+        capabilities = data.get("capabilities", [])
+        if not isinstance(capabilities, list):
+            errors.append("capabilities must be a list")
+        else:
+            for capability in capabilities:
+                if not isinstance(capability, dict):
+                    errors.append("capabilities must contain objects")
+                    continue
+                capability_id = capability.get("id", "")
+                actual = capability.get("actualEvidence")
+                if not capability_id or actual not in LEVEL_ORDER:
+                    errors.append(f"invalid capability actualEvidence: {capability_id!r}={actual!r}")
+                else:
+                    capability_levels[capability_id] = actual
+
+        bound_tree = data.get("boundTree", "")
+        if not SHA_RE.match(bound_tree):
+            errors.append(f"boundTree must be a 40-hex SHA, got: {bound_tree!r}")
+        else:
+            head = subprocess.run(
+                ["git", "-C", str(REPO.parent), "rev-parse", "HEAD"],
+                capture_output=True,
+                text=True,
+            ).stdout.strip()
+            if not head:
+                errors.append("git HEAD unresolvable for boundTree check")
+            else:
+                ancestry = subprocess.run(
+                    ["git", "-C", str(REPO.parent), "merge-base", "--is-ancestor", bound_tree, head],
+                    capture_output=True,
+                    text=True,
+                )
+                if ancestry.returncode != 0:
+                    errors.append(f"boundTree {bound_tree[:12]} is not an ancestor of HEAD {head[:12]}")
+
+        status_path = REPO / "config" / "capability-status.json"
+        try:
+            status_data = json.loads(status_path.read_text(encoding="utf-8"))
+            status_records = status_data.get("capabilityRecords", {})
+            if not isinstance(status_records, dict):
+                errors.append("capability-status capabilityRecords must be an object")
+            else:
+                for capability_id, actual in capability_levels.items():
+                    status = status_records.get(capability_id)
+                    if not isinstance(status, dict):
+                        errors.append(f"capability-status missing capability: {capability_id!r}")
+                    elif status.get("evidenceLevel") != actual:
+                        errors.append(
+                            f"capability-status evidenceLevel mismatch for {capability_id!r}: "
+                            f"{status.get('evidenceLevel')!r} != {actual!r}"
+                        )
+        except (OSError, json.JSONDecodeError) as exc:
+            errors.append(f"capability-status unreadable: {exc}")
+
+    if not isinstance(records, list):
+        errors.append("records must be a list")
+        records = []
     for rec in records:
-        rec_errors = validate_record(rec)
+        if not isinstance(rec, dict):
+            errors.append("record must be an object")
+            continue
+        rec_errors = validate_record(rec, capability_levels or None)
         for e in rec_errors:
             errors.append(f"{rec.get('capability_id','?')}: {e}")
     for e in errors:

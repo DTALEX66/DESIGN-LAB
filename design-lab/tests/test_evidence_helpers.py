@@ -67,6 +67,29 @@ class UpdateEvidenceBindingTests(unittest.TestCase):
             tmp.unlink(missing_ok=True)
 
 
+class CapabilityEvidenceConsistencyTests(unittest.TestCase):
+    def test_record_cannot_exceed_current_capability_evidence(self):
+        m = load("verify_capability_evidence_v4.py")
+        record = {
+            "capability_id": "visual-quality",
+            "evidence_level": "E3",
+            "tree_sha": "0" * 40,
+            "artifacts": ["runtime_id", "task_id", "artifact_provenance"],
+        }
+        errors = m.validate_record(record, {"visual-quality": "E1"})
+        self.assertTrue(any("exceeds capability actualEvidence" in error for error in errors))
+
+    def test_invalid_evidence_level_fails_closed_without_traceback(self):
+        m = load("verify_capability_evidence_v4.py")
+        record = {
+            "capability_id": "visual-quality",
+            "evidence_level": "E9",
+            "artifacts": ["declaration_doc"],
+        }
+        errors = m.validate_record(record, {"visual-quality": "E1"})
+        self.assertTrue(any("invalid evidence_level" in error for error in errors))
+
+
 class ScoreArtifactTests(unittest.TestCase):
     RUBRIC = ROOT / "evals" / "rubrics" / "3d.rubric.json"
 

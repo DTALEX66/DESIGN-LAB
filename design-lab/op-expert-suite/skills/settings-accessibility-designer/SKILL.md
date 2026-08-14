@@ -2,7 +2,7 @@
 name: settings-accessibility-designer
 description: |
   设置与无障碍中心设计专家（DESIGN-LAB 个人专家套件）。
-  基于 V4.2 五黄金案例，E3 验证（Axe 0 violations）。
+  基于五黄金案例，当前为 E1 结构验证；E3 需真实 Host 浏览器运行与 Axe 读回。
 triggers:
   - "设置页"
   - "无障碍中心"

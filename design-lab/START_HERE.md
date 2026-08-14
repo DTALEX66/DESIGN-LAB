@@ -1,13 +1,13 @@
 # START HERE — DESIGN-LAB（唯一入口）
 
-> 本文件是唯一的项目总入口。V4.2 已替代所有旧 V2/V2.1/V3/V4 活动入口（见 `project-memory/V4_INHERITANCE_MATRIX.md`）。
+> 本文件是唯一的项目总入口。旧 V2/V2.1/V3/V4 活动入口已归档；当前 SSOT 以 `project-memory/PRODUCT_DEFINITION.md`、`project-memory/BOUNDARY_CONTRACT.md` 和 `design-lab/config/product-manifest.json` 为准。
 
 ## 定位
-以 **Open Design 为主入口**，模型中立、风格中立、领域中立、工具中立、权利安全的**专业设计智能与视觉质量平台**（唯一权威定义：`project-memory/PRODUCT_DEFINITION_V42.md`，SSOT 与 `design-lab/config/product-manifest.json` 双向一致）。
+以 **平台中立、Host-native first** 为原则，面向职业视觉设计的**设计智能与生产能力实验室**（唯一权威定义：`project-memory/PRODUCT_DEFINITION.md`，边界合同：`project-memory/BOUNDARY_CONTRACT.md`，并与 `design-lab/config/product-manifest.json` 一致）。当前 Open Design 只是参考 Host，不是默认绑定。
 
-配套合同：`project-memory/BOUNDARY_CONTRACT_V42.md`（职责边界）、
-`project-memory/USER_MODES_V42.md`（五类用户与五种渐进模式）、
-`project-memory/OBJECT_MODEL_V42.md`（Project/Knowledge/Evidence/Artifact 四对象模型）。
+配套合同：`project-memory/BOUNDARY_CONTRACT.md`（职责边界）、
+`project-memory/USER_MODES.md`（用户模式）、
+`project-memory/OBJECT_MODEL.md`（核心对象模型）。
 
 Open Design 拥有 Studio/画布、Agent 启动、插件/Scenario/Atom 运行、Artifact、预览与导出；本仓库负责专业设计方法、Domain Pack、视觉质量、来源权利、生产预检、可编辑交付、Benchmark 与证据。本仓库**不拥有第二前端、Agent runtime、模型网关、账号系统或泛用向量库**。
 
@@ -27,9 +27,9 @@ Open Design 拥有 Studio/画布、Agent 启动、插件/Scenario/Atom 运行、
 
 ## 验证链
 ```bash
-python design-lab/scripts/verify_open_design_assistance.py
+python design-lab/scripts/verify_design_lab.py
 python scripts/run_python_tests.py
-cd minigame-runtime && npm test && node scripts/check-android-drift.mjs
+cd minigame-runtime && node scripts/run-tests.cjs
 ```
 
 ## 证据分级
@@ -37,4 +37,4 @@ cd minigame-runtime && npm test && node scripts/check-android-drift.mjs
 
 ## 边界
 - 不访问 E:\；不读凭据；不写项目外目录。
-- 默认不 commit/push/PR/merge/tag/release，停在 `READY_FOR_USER_APPROVAL` 等待授权。
+- 默认不 commit/push/PR/merge/tag/release；只有当前请求明确授权时才执行远端写入。人工验收、Photoshop、真实 Host 运行和商业生产证据不能由静态验证代做。
