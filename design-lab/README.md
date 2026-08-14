@@ -72,3 +72,4 @@ adapters/       host/agent/tool/model 适配器（无默认绑定）
 - 未达 E3 不写"已集成"；静态文件只证明 E1；
 - 旧树 E3 证据不误用于新树（见 capability-evidence-index.json 的 requiresRequalification）；
 - 外置资料库 `D:\All projects\Design assets` 仅登记，不复制、不索引原件。
+- 外置依赖/工具链/缓存配置根：`D:\All projects\Design External Configuration`（依赖清单见其 `EXTERNAL_DEPENDENCIES.md`，不提交 Git）。
