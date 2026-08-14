@@ -42,9 +42,9 @@ def main() -> int:
     if pack_mib > TOTAL_BUDGET_MIB:
         errors.append(f"repo pack {pack_mib:.1f} MiB exceeds budget {TOTAL_BUDGET_MIB} MiB")
 
-    # 2. Per-file cap on tracked files (excluding quarantine/, history/ which are inert,
-    #    and minigame-runtime/assets/generated/ which are regenerable CCTV loops with
-    #    .license sidecars; see KNOWLEDGE_ASSET_POLICY §7 exception list).
+    # 2. Per-file cap on tracked files (excluding quarantine/, history/ which are inert;
+    #    quarantine still counts toward the total budget below so it cannot be a
+    #    volume-governance bypass — see KNOWLEDGE_ASSET_POLICY §4).
     tracked = git(["ls-files"]).splitlines()
     skipped_prefixes = (
         "design-lab/research/quarantine/",
@@ -52,8 +52,14 @@ def main() -> int:
         "reports/history/",
         "minigame-runtime/assets/generated/",
     )
+    quarantine_bytes = 0
     for rel in tracked:
         if rel.startswith(skipped_prefixes):
+            if rel.startswith("design-lab/research/quarantine/"):
+                try:
+                    quarantine_bytes += (REPO / rel).stat().st_size
+                except OSError:
+                    pass
             continue
         p = REPO / rel
         try:
@@ -81,7 +87,7 @@ def main() -> int:
         )
 
     print(f"ASSET_GOVERNANCE={'FAIL' if errors else 'OK'}")
-    print(f"pack_mib={pack_mib:.1f} budget_mib={TOTAL_BUDGET_MIB} files={len(tracked)}")
+    print(f"pack_mib={pack_mib:.1f} budget_mib={TOTAL_BUDGET_MIB} files={len(tracked)} quarantine_bytes={quarantine_bytes/1048576:.1f}MiB")
     for e in errors:
         print("ERROR:", e)
     return 1 if errors else 0

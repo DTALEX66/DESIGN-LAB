@@ -3,7 +3,7 @@
   "$id": "https://design-lab.local/schemas/source-record.schema.json",
   "title": "SourceRecord — 受治理知识来源记录",
   "type": "object",
-  "required": ["sourceId", "origin", "author", "license", "allowedUsage", "acquiredAt", "contentHash", "redistributable", "modelInputAllowed", "commercialUse", "reviewedBy", "reviewedAt"],
+  "required": ["sourceId", "origin", "author", "license", "licenseStatus", "version", "allowedUsage", "acquiredAt", "contentHash", "redistributable", "modelInputAllowed", "commercialUse", "reviewedBy", "reviewedAt"],
   "additionalProperties": false,
   "properties": {
     "sourceId": {"type": "string", "minLength": 1},

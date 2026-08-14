@@ -17,7 +17,10 @@
       "target": "scenarios/, plugins/, adapters/open-design/",
       "absorb": "Current plugin manifest, pipeline stages, atoms, GenUI, provenance and headless delivery contracts.",
       "restrictions": "Do not fork desktop/runtime into this repository; track upstream versions.",
-      "reviewed_at": "2026-08-04"
+      "reviewed_at": "2026-08-04",
+      "licenseStatus": "reviewed",
+      "version": "unpinned",
+      "contentHash": "sha256:0000000000000000000000000000000000000000000000000000000000000000"
     },
     {
       "id": "google-design-md",
@@ -32,7 +35,10 @@
       "target": "schemas/, knowledge/standards/design-contract/",
       "absorb": "DESIGN.md token/prose separation, token references, ordered design rationale, lint/diff/export concepts.",
       "restrictions": "Keep attribution; format is alpha and must be version-pinned.",
-      "reviewed_at": "2026-08-04"
+      "reviewed_at": "2026-08-04",
+      "licenseStatus": "reviewed",
+      "version": "unpinned",
+      "contentHash": "sha256:0000000000000000000000000000000000000000000000000000000000000000"
     },
     {
       "id": "dtcg",
@@ -47,7 +53,10 @@
       "target": "schemas/design-tokens/, adapters/tokens/",
       "absorb": "DTCG 2025.10 token types, aliases, groups and interchange profile.",
       "restrictions": "Do not claim W3C Recommendation status; it is a Community Group report.",
-      "reviewed_at": "2026-08-04"
+      "reviewed_at": "2026-08-04",
+      "licenseStatus": "reviewed",
+      "version": "unpinned",
+      "contentHash": "sha256:0000000000000000000000000000000000000000000000000000000000000000"
     },
     {
       "id": "hallmark",
@@ -62,7 +71,10 @@
       "target": "knowledge/anti-slop/, evals/rubrics/",
       "absorb": "Structural variety, pre-emit critique, locked tokens, study/audit/redesign modes, responsive hard gates.",
       "restrictions": "Do not copy branded theme catalog wholesale; retain attribution for derived gates.",
-      "reviewed_at": "2026-08-04"
+      "reviewed_at": "2026-08-04",
+      "licenseStatus": "reviewed",
+      "version": "unpinned",
+      "contentHash": "sha256:0000000000000000000000000000000000000000000000000000000000000000"
     },
     {
       "id": "styleseed",
@@ -77,7 +89,10 @@
       "target": "knowledge/design-method/, evals/",
       "absorb": "Decision locking, grammar selection, reference-derived style and design review workflow.",
       "restrictions": "Import methods and schemas selectively; avoid duplicate skins.",
-      "reviewed_at": "2026-08-04"
+      "reviewed_at": "2026-08-04",
+      "licenseStatus": "reviewed",
+      "version": "unpinned",
+      "contentHash": "sha256:0000000000000000000000000000000000000000000000000000000000000000"
     },
     {
       "id": "ux-skill",
@@ -92,7 +107,10 @@
       "target": "adapters/ux-skill/, evals/static-lint/",
       "absorb": "Deterministic recommendation engine, structured manifests and anti-pattern linter architecture.",
       "restrictions": "Run security and source-grounding review before enabling third-party MCP tools.",
-      "reviewed_at": "2026-08-04"
+      "reviewed_at": "2026-08-04",
+      "licenseStatus": "reviewed",
+      "version": "unpinned",
+      "contentHash": "sha256:0000000000000000000000000000000000000000000000000000000000000000"
     },
     {
       "id": "typeui",
@@ -107,7 +125,10 @@
       "target": "research/quarantine/typeui/",
       "absorb": "Registry and CLI patterns for SKILL.md/DESIGN.md distribution.",
       "restrictions": "Verify repository license before copying code.",
-      "reviewed_at": "2026-08-04"
+      "reviewed_at": "2026-08-04",
+      "licenseStatus": "reference-only",
+      "version": "unpinned",
+      "contentHash": "sha256:0000000000000000000000000000000000000000000000000000000000000000"
     },
     {
       "id": "awesome-design-skills",
@@ -122,7 +143,10 @@
       "target": "research/candidates/design-skills/",
       "absorb": "Candidate design systems and skill taxonomy.",
       "restrictions": "Each nested skill may have independent brand/trademark/license constraints.",
-      "reviewed_at": "2026-08-04"
+      "reviewed_at": "2026-08-04",
+      "licenseStatus": "reference-only",
+      "version": "unpinned",
+      "contentHash": "sha256:0000000000000000000000000000000000000000000000000000000000000000"
     },
     {
       "id": "open-codesign",
@@ -137,7 +161,10 @@
       "target": "research/platform-comparisons/",
       "absorb": "Multi-model desktop workflow, built-in taste modules and NOTICE practices.",
       "restrictions": "Reference architecture only; do not duplicate an entire competing product.",
-      "reviewed_at": "2026-08-04"
+      "reviewed_at": "2026-08-04",
+      "licenseStatus": "reviewed",
+      "version": "unpinned",
+      "contentHash": "sha256:0000000000000000000000000000000000000000000000000000000000000000"
     },
     {
       "id": "manalkaff-opendesign",
@@ -152,7 +179,10 @@
       "target": "research/candidates/portable-skills/",
       "absorb": "Structured intake, context extraction and verifier patterns.",
       "restrictions": "Verify license and adapted prompt provenance.",
-      "reviewed_at": "2026-08-04"
+      "reviewed_at": "2026-08-04",
+      "licenseStatus": "reference-only",
+      "version": "unpinned",
+      "contentHash": "sha256:0000000000000000000000000000000000000000000000000000000000000000"
     },
     {
       "id": "claude-design-skill",
@@ -167,7 +197,10 @@
       "target": "research/candidates/portable-skills/",
       "absorb": "Lean context-first design workflow and artifact specialisms.",
       "restrictions": "Contains adapted material; complete provenance review before reuse.",
-      "reviewed_at": "2026-08-04"
+      "reviewed_at": "2026-08-04",
+      "licenseStatus": "reviewed",
+      "version": "unpinned",
+      "contentHash": "sha256:0000000000000000000000000000000000000000000000000000000000000000"
     },
     {
       "id": "brandmd",
@@ -182,7 +215,10 @@
       "target": "adapters/reference-extraction/",
       "absorb": "Playwright-based extraction of computed styles, CSS tokens, spacing scales and optional visual identity analysis.",
       "restrictions": "Do not analyze sites without authorization; verify license.",
-      "reviewed_at": "2026-08-04"
+      "reviewed_at": "2026-08-04",
+      "licenseStatus": "reference-only",
+      "version": "unpinned",
+      "contentHash": "sha256:0000000000000000000000000000000000000000000000000000000000000000"
     },
     {
       "id": "openskill-eval",
@@ -197,7 +233,10 @@
       "target": "evals/harness/",
       "absorb": "Skill-vs-baseline evaluation, task-family evaluators, cost/time accounting and sandboxed agent runs.",
       "restrictions": "Dataset is non-commercial; do not bundle it in a commercial distribution.",
-      "reviewed_at": "2026-08-04"
+      "reviewed_at": "2026-08-04",
+      "licenseStatus": "reviewed",
+      "version": "unpinned",
+      "contentHash": "sha256:0000000000000000000000000000000000000000000000000000000000000000"
     },
     {
       "id": "critic-eval",
@@ -212,7 +251,10 @@
       "target": "evals/critic-meta/",
       "absorb": "Feedback, comparison, refinement and meta-feedback dimensions for critic evaluation.",
       "restrictions": "Verify license before importing benchmark data.",
-      "reviewed_at": "2026-08-04"
+      "reviewed_at": "2026-08-04",
+      "licenseStatus": "reference-only",
+      "version": "unpinned",
+      "contentHash": "sha256:0000000000000000000000000000000000000000000000000000000000000000"
     },
     {
       "id": "skillcenter",
@@ -227,7 +269,10 @@
       "target": "knowledge/governance/source-grounding/",
       "absorb": "Source-grounded acquisition, quality gates and offline searchable bundles.",
       "restrictions": "Do not redistribute paper datasets without their explicit licenses.",
-      "reviewed_at": "2026-08-04"
+      "reviewed_at": "2026-08-04",
+      "licenseStatus": "reviewed",
+      "version": "unpinned",
+      "contentHash": "sha256:0000000000000000000000000000000000000000000000000000000000000000"
     },
     {
       "id": "semantic-skill-attacks",
@@ -242,7 +287,10 @@
       "target": "knowledge/governance/skill-security/",
       "absorb": "Threat model for discovery, selection and governance attacks in natural-language skills.",
       "restrictions": "Use as security guidance, not as executable content.",
-      "reviewed_at": "2026-08-04"
+      "reviewed_at": "2026-08-04",
+      "licenseStatus": "reviewed",
+      "version": "unpinned",
+      "contentHash": "sha256:0000000000000000000000000000000000000000000000000000000000000000"
     },
     {
       "id": "wcag22",
@@ -257,7 +305,10 @@
       "target": "knowledge/standards/accessibility/",
       "absorb": "Normative digital accessibility baseline and testable success criteria.",
       "restrictions": "Reference normative IDs; do not rewrite requirements as legally equivalent.",
-      "reviewed_at": "2026-08-04"
+      "reviewed_at": "2026-08-04",
+      "licenseStatus": "reviewed",
+      "version": "unpinned",
+      "contentHash": "sha256:0000000000000000000000000000000000000000000000000000000000000000"
     },
     {
       "id": "aria-apg",
@@ -272,7 +323,10 @@
       "target": "knowledge/standards/accessibility/patterns/",
       "absorb": "Accessible widget semantics, keyboard interactions, landmarks and examples.",
       "restrictions": "APG is informative, not a normative UI design system.",
-      "reviewed_at": "2026-08-04"
+      "reviewed_at": "2026-08-04",
+      "licenseStatus": "reviewed",
+      "version": "unpinned",
+      "contentHash": "sha256:0000000000000000000000000000000000000000000000000000000000000000"
     },
     {
       "id": "wcag-json",
@@ -287,7 +341,10 @@
       "target": "adapters/wcag/",
       "absorb": "Machine-readable success criteria and technique IDs for automated gates.",
       "restrictions": "Pin publication version and preserve W3C attribution.",
-      "reviewed_at": "2026-08-04"
+      "reviewed_at": "2026-08-04",
+      "licenseStatus": "reviewed",
+      "version": "unpinned",
+      "contentHash": "sha256:0000000000000000000000000000000000000000000000000000000000000000"
     },
     {
       "id": "coga-wayfinding",
@@ -302,7 +359,10 @@
       "target": "knowledge/standards/spatial/",
       "absorb": "Cognitive accessibility considerations for indoor navigation and wayfinding.",
       "restrictions": "Draft Group Note; mark recommendations as evolving.",
-      "reviewed_at": "2026-08-04"
+      "reviewed_at": "2026-08-04",
+      "licenseStatus": "reviewed",
+      "version": "unpinned",
+      "contentHash": "sha256:0000000000000000000000000000000000000000000000000000000000000000"
     },
     {
       "id": "govuk-principles",
@@ -317,7 +377,10 @@
       "target": "knowledge/service-design/",
       "absorb": "User needs, data-informed iteration, consistency, openness and sustainability.",
       "restrictions": "Do not use GOV.UK brand identity outside authorized services.",
-      "reviewed_at": "2026-08-04"
+      "reviewed_at": "2026-08-04",
+      "licenseStatus": "reviewed",
+      "version": "unpinned",
+      "contentHash": "sha256:0000000000000000000000000000000000000000000000000000000000000000"
     },
     {
       "id": "govuk-design-system",
@@ -332,7 +395,10 @@
       "target": "adapters/design-systems/govuk/",
       "absorb": "Evidence-backed patterns, accessibility notes and content guidance.",
       "restrictions": "Do not use restricted GOV.UK logos, colors or typeface to imply affiliation.",
-      "reviewed_at": "2026-08-04"
+      "reviewed_at": "2026-08-04",
+      "licenseStatus": "reviewed",
+      "version": "unpinned",
+      "contentHash": "sha256:0000000000000000000000000000000000000000000000000000000000000000"
     },
     {
       "id": "18f-methods",
@@ -347,7 +413,10 @@
       "target": "knowledge/methods/",
       "absorb": "Discover, Decide, Make and Validate method cards.",
       "restrictions": "Remove government-specific legal/process language when not applicable.",
-      "reviewed_at": "2026-08-04"
+      "reviewed_at": "2026-08-04",
+      "licenseStatus": "reviewed",
+      "version": "unpinned",
+      "contentHash": "sha256:0000000000000000000000000000000000000000000000000000000000000000"
     },
     {
       "id": "18f-ux-guide",
@@ -362,7 +431,10 @@
       "target": "knowledge/ux-research/",
       "absorb": "Research planning, analysis, synthesis, prototyping and design-system practice.",
       "restrictions": "Adapt to commercial context; keep source note.",
-      "reviewed_at": "2026-08-04"
+      "reviewed_at": "2026-08-04",
+      "licenseStatus": "reviewed",
+      "version": "unpinned",
+      "contentHash": "sha256:0000000000000000000000000000000000000000000000000000000000000000"
     },
     {
       "id": "plain-language",
@@ -377,7 +449,10 @@
       "target": "knowledge/content-design/",
       "absorb": "Find, understand and act model; active voice, short sentences and user-language testing.",
       "restrictions": "Do not represent derived guidance as official DfE compliance.",
-      "reviewed_at": "2026-08-04"
+      "reviewed_at": "2026-08-04",
+      "licenseStatus": "reviewed",
+      "version": "unpinned",
+      "contentHash": "sha256:0000000000000000000000000000000000000000000000000000000000000000"
     },
     {
       "id": "smithsonian-exhibition",
@@ -392,7 +467,10 @@
       "target": "knowledge/standards/spatial/",
       "absorb": "Accessible exhibitions, multisensory access, physical reach, text, lighting and interactives.",
       "restrictions": "Living institutional standard; confirm local law and project requirements.",
-      "reviewed_at": "2026-08-04"
+      "reviewed_at": "2026-08-04",
+      "licenseStatus": "reference-only",
+      "version": "unpinned",
+      "contentHash": "sha256:0000000000000000000000000000000000000000000000000000000000000000"
     },
     {
       "id": "nps-exhibit-access",
@@ -407,7 +485,10 @@
       "target": "knowledge/standards/spatial/",
       "absorb": "Lighting, audio description, pathways, controls and exhibit media access.",
       "restrictions": "Agency names/logos remain protected; local codes prevail.",
-      "reviewed_at": "2026-08-04"
+      "reviewed_at": "2026-08-04",
+      "licenseStatus": "reviewed",
+      "version": "unpinned",
+      "contentHash": "sha256:0000000000000000000000000000000000000000000000000000000000000000"
     },
     {
       "id": "ada-standards",
@@ -422,7 +503,10 @@
       "target": "knowledge/standards/spatial/legal/",
       "absorb": "US physical accessibility baseline.",
       "restrictions": "Not legal advice; verify jurisdiction and current adopted code.",
-      "reviewed_at": "2026-08-04"
+      "reviewed_at": "2026-08-04",
+      "licenseStatus": "reviewed",
+      "version": "unpinned",
+      "contentHash": "sha256:0000000000000000000000000000000000000000000000000000000000000000"
     },
     {
       "id": "carbon",
@@ -437,7 +521,10 @@
       "target": "adapters/design-systems/carbon/",
       "absorb": "Tokens, type, layout, motion and enterprise component patterns.",
       "restrictions": "Do not copy IBM brand identity or trademarks.",
-      "reviewed_at": "2026-08-04"
+      "reviewed_at": "2026-08-04",
+      "licenseStatus": "reviewed",
+      "version": "unpinned",
+      "contentHash": "sha256:0000000000000000000000000000000000000000000000000000000000000000"
     },
     {
       "id": "material3",
@@ -452,7 +539,10 @@
       "target": "adapters/design-systems/material3/",
       "absorb": "Adaptive components, expressive motion, color and platform patterns.",
       "restrictions": "Use implementation packages under their licenses; reference docs rather than vendoring.",
-      "reviewed_at": "2026-08-04"
+      "reviewed_at": "2026-08-04",
+      "licenseStatus": "reviewed",
+      "version": "unpinned",
+      "contentHash": "sha256:0000000000000000000000000000000000000000000000000000000000000000"
     },
     {
       "id": "primer",
@@ -467,7 +557,10 @@
       "target": "adapters/design-systems/primer/",
       "absorb": "Product/marketing foundations, components and token practices.",
       "restrictions": "Do not reuse GitHub brand marks or imply affiliation.",
-      "reviewed_at": "2026-08-04"
+      "reviewed_at": "2026-08-04",
+      "licenseStatus": "reviewed",
+      "version": "unpinned",
+      "contentHash": "sha256:0000000000000000000000000000000000000000000000000000000000000000"
     },
     {
       "id": "spectrum",
@@ -482,7 +575,10 @@
       "target": "adapters/design-systems/spectrum/",
       "absorb": "Cross-platform component states, scale and accessibility patterns.",
       "restrictions": "Do not reuse Adobe trademarks or proprietary assets.",
-      "reviewed_at": "2026-08-04"
+      "reviewed_at": "2026-08-04",
+      "licenseStatus": "reviewed",
+      "version": "unpinned",
+      "contentHash": "sha256:0000000000000000000000000000000000000000000000000000000000000000"
     },
     {
       "id": "fluent",
@@ -497,7 +593,10 @@
       "target": "adapters/design-systems/fluent/",
       "absorb": "Accessible components, tokens and enterprise interaction patterns.",
       "restrictions": "Do not reuse Microsoft branding.",
-      "reviewed_at": "2026-08-04"
+      "reviewed_at": "2026-08-04",
+      "licenseStatus": "reviewed",
+      "version": "unpinned",
+      "contentHash": "sha256:0000000000000000000000000000000000000000000000000000000000000000"
     },
     {
       "id": "polaris",
@@ -512,7 +611,10 @@
       "target": "adapters/design-systems/polaris/",
       "absorb": "Commerce UX patterns, content and component APIs.",
       "restrictions": "Do not imitate Shopify brand identity.",
-      "reviewed_at": "2026-08-04"
+      "reviewed_at": "2026-08-04",
+      "licenseStatus": "reviewed",
+      "version": "unpinned",
+      "contentHash": "sha256:0000000000000000000000000000000000000000000000000000000000000000"
     },
     {
       "id": "uswds",
@@ -527,7 +629,10 @@
       "target": "adapters/design-systems/uswds/",
       "absorb": "Accessible government patterns, utilities, design tokens and evidence.",
       "restrictions": "Do not use federal identifiers/logos to imply official status.",
-      "reviewed_at": "2026-08-04"
+      "reviewed_at": "2026-08-04",
+      "licenseStatus": "reviewed",
+      "version": "unpinned",
+      "contentHash": "sha256:0000000000000000000000000000000000000000000000000000000000000000"
     },
     {
       "id": "cms-design-system",
@@ -542,7 +647,10 @@
       "target": "knowledge/design-systems/case-studies/",
       "absorb": "Section 508-oriented extensions to USWDS and production accessibility.",
       "restrictions": "Reference patterns; do not copy agency branding.",
-      "reviewed_at": "2026-08-04"
+      "reviewed_at": "2026-08-04",
+      "licenseStatus": "reviewed",
+      "version": "unpinned",
+      "contentHash": "sha256:0000000000000000000000000000000000000000000000000000000000000000"
     },
     {
       "id": "ant-design",
@@ -557,7 +665,10 @@
       "target": "adapters/design-systems/ant/",
       "absorb": "Enterprise component patterns and Chinese-market ecosystem experience.",
       "restrictions": "Keep versioned adapter; avoid importing large bundles.",
-      "reviewed_at": "2026-08-04"
+      "reviewed_at": "2026-08-04",
+      "licenseStatus": "reviewed",
+      "version": "unpinned",
+      "contentHash": "sha256:0000000000000000000000000000000000000000000000000000000000000000"
     },
     {
       "id": "arco-design",
@@ -572,7 +683,10 @@
       "target": "adapters/design-systems/arco/",
       "absorb": "Enterprise components, tokens and design resources.",
       "restrictions": "Do not copy ByteDance branding.",
-      "reviewed_at": "2026-08-04"
+      "reviewed_at": "2026-08-04",
+      "licenseStatus": "reviewed",
+      "version": "unpinned",
+      "contentHash": "sha256:0000000000000000000000000000000000000000000000000000000000000000"
     },
     {
       "id": "tdesign",
@@ -587,7 +701,10 @@
       "target": "adapters/design-systems/tdesign/",
       "absorb": "Multi-framework Chinese enterprise design-system patterns.",
       "restrictions": "Do not copy Tencent brand assets.",
-      "reviewed_at": "2026-08-04"
+      "reviewed_at": "2026-08-04",
+      "licenseStatus": "reviewed",
+      "version": "unpinned",
+      "contentHash": "sha256:0000000000000000000000000000000000000000000000000000000000000000"
     },
     {
       "id": "semi-design",
@@ -602,7 +719,10 @@
       "target": "adapters/design-systems/semi/",
       "absorb": "Accessible enterprise components and design tokens.",
       "restrictions": "Do not copy Douyin/ByteDance brand assets.",
-      "reviewed_at": "2026-08-04"
+      "reviewed_at": "2026-08-04",
+      "licenseStatus": "reviewed",
+      "version": "unpinned",
+      "contentHash": "sha256:0000000000000000000000000000000000000000000000000000000000000000"
     },
     {
       "id": "radix-ui",
@@ -617,7 +737,10 @@
       "target": "adapters/components/radix/",
       "absorb": "Accessible unstyled primitives and interaction state contracts.",
       "restrictions": "Treat as implementation dependency, not a visual style.",
-      "reviewed_at": "2026-08-04"
+      "reviewed_at": "2026-08-04",
+      "licenseStatus": "reviewed",
+      "version": "unpinned",
+      "contentHash": "sha256:0000000000000000000000000000000000000000000000000000000000000000"
     },
     {
       "id": "react-aria",
@@ -632,7 +755,10 @@
       "target": "adapters/components/react-aria/",
       "absorb": "Accessible behavior hooks, internationalization and interaction semantics.",
       "restrictions": "Use packages selectively; do not duplicate Spectrum implementation.",
-      "reviewed_at": "2026-08-04"
+      "reviewed_at": "2026-08-04",
+      "licenseStatus": "reviewed",
+      "version": "unpinned",
+      "contentHash": "sha256:0000000000000000000000000000000000000000000000000000000000000000"
     },
     {
       "id": "ark-ui",
@@ -647,7 +773,10 @@
       "target": "adapters/components/ark/",
       "absorb": "Framework-agnostic accessible components powered by state machines.",
       "restrictions": "Pin framework versions.",
-      "reviewed_at": "2026-08-04"
+      "reviewed_at": "2026-08-04",
+      "licenseStatus": "reviewed",
+      "version": "unpinned",
+      "contentHash": "sha256:0000000000000000000000000000000000000000000000000000000000000000"
     },
     {
       "id": "zag",
@@ -662,7 +791,10 @@
       "target": "adapters/components/zag/",
       "absorb": "Finite-state-machine interaction logic and cross-framework parity.",
       "restrictions": "Security review event/state serialization.",
-      "reviewed_at": "2026-08-04"
+      "reviewed_at": "2026-08-04",
+      "licenseStatus": "reviewed",
+      "version": "unpinned",
+      "contentHash": "sha256:0000000000000000000000000000000000000000000000000000000000000000"
     },
     {
       "id": "shadcn-ui",
@@ -677,7 +809,10 @@
       "target": "knowledge/components/recipes/",
       "absorb": "Copy-owned component recipe model and composable patterns.",
       "restrictions": "Avoid treating one aesthetic as universal design quality.",
-      "reviewed_at": "2026-08-04"
+      "reviewed_at": "2026-08-04",
+      "licenseStatus": "reviewed",
+      "version": "unpinned",
+      "contentHash": "sha256:0000000000000000000000000000000000000000000000000000000000000000"
     },
     {
       "id": "axe-core",
@@ -692,7 +827,10 @@
       "target": "adapters/testing/axe/",
       "absorb": "Automated accessibility rules and violation evidence.",
       "restrictions": "MPL file-level obligations apply to modified source; prefer dependency use.",
-      "reviewed_at": "2026-08-04"
+      "reviewed_at": "2026-08-04",
+      "licenseStatus": "reviewed",
+      "version": "unpinned",
+      "contentHash": "sha256:0000000000000000000000000000000000000000000000000000000000000000"
     },
     {
       "id": "playwright",
@@ -707,7 +845,10 @@
       "target": "adapters/testing/playwright/",
       "absorb": "Cross-browser screenshots, interaction, responsive and reduced-motion testing.",
       "restrictions": "Use pinned browser versions for reproducible visual tests.",
-      "reviewed_at": "2026-08-04"
+      "reviewed_at": "2026-08-04",
+      "licenseStatus": "reviewed",
+      "version": "unpinned",
+      "contentHash": "sha256:0000000000000000000000000000000000000000000000000000000000000000"
     },
     {
       "id": "storybook",
@@ -722,7 +863,10 @@
       "target": "adapters/testing/storybook/",
       "absorb": "Component stories, state matrices and interaction/a11y testing.",
       "restrictions": "Keep optional; not all design artifacts are component code.",
-      "reviewed_at": "2026-08-04"
+      "reviewed_at": "2026-08-04",
+      "licenseStatus": "reviewed",
+      "version": "unpinned",
+      "contentHash": "sha256:0000000000000000000000000000000000000000000000000000000000000000"
     },
     {
       "id": "lighthouse",
@@ -737,7 +881,10 @@
       "target": "adapters/testing/lighthouse/",
       "absorb": "Performance, accessibility and best-practice audit evidence.",
       "restrictions": "Scores are signals, not complete design quality.",
-      "reviewed_at": "2026-08-04"
+      "reviewed_at": "2026-08-04",
+      "licenseStatus": "reviewed",
+      "version": "unpinned",
+      "contentHash": "sha256:0000000000000000000000000000000000000000000000000000000000000000"
     },
     {
       "id": "backstopjs",
@@ -752,7 +899,10 @@
       "target": "adapters/testing/visual-regression/",
       "absorb": "Viewport screenshot regression and approval workflow.",
       "restrictions": "Use deterministic fonts/assets to reduce false positives.",
-      "reviewed_at": "2026-08-04"
+      "reviewed_at": "2026-08-04",
+      "licenseStatus": "reviewed",
+      "version": "unpinned",
+      "contentHash": "sha256:0000000000000000000000000000000000000000000000000000000000000000"
     },
     {
       "id": "chromatic",
@@ -767,7 +917,10 @@
       "target": "knowledge/testing/case-studies/",
       "absorb": "Component-level accessibility and visual review workflow concepts.",
       "restrictions": "Do not introduce paid/cloud dependency as a hard requirement.",
-      "reviewed_at": "2026-08-04"
+      "reviewed_at": "2026-08-04",
+      "licenseStatus": "reference-only",
+      "version": "unpinned",
+      "contentHash": "sha256:0000000000000000000000000000000000000000000000000000000000000000"
     },
     {
       "id": "w3c-clreq",
@@ -782,7 +935,10 @@
       "target": "knowledge/typography/cjk/",
       "absorb": "Chinese punctuation, line breaking, spacing and writing-mode requirements.",
       "restrictions": "Track document status and language-specific differences.",
-      "reviewed_at": "2026-08-04"
+      "reviewed_at": "2026-08-04",
+      "licenseStatus": "reviewed",
+      "version": "unpinned",
+      "contentHash": "sha256:0000000000000000000000000000000000000000000000000000000000000000"
     },
     {
       "id": "w3c-jlreq",
@@ -797,7 +953,10 @@
       "target": "knowledge/typography/cjk/",
       "absorb": "Japanese composition, line breaking, ruby and punctuation rules.",
       "restrictions": "Do not merge Japanese and Chinese rules into one generic CJK rule.",
-      "reviewed_at": "2026-08-04"
+      "reviewed_at": "2026-08-04",
+      "licenseStatus": "reviewed",
+      "version": "unpinned",
+      "contentHash": "sha256:0000000000000000000000000000000000000000000000000000000000000000"
     },
     {
       "id": "unicode-cldr",
@@ -812,7 +971,10 @@
       "target": "adapters/i18n/cldr/",
       "absorb": "Locale data, date/number formats, plural rules and language metadata.",
       "restrictions": "Version and locale fallback behavior must be explicit.",
-      "reviewed_at": "2026-08-04"
+      "reviewed_at": "2026-08-04",
+      "licenseStatus": "reviewed",
+      "version": "unpinned",
+      "contentHash": "sha256:0000000000000000000000000000000000000000000000000000000000000000"
     },
     {
       "id": "fontsource",
@@ -827,7 +989,10 @@
       "target": "adapters/assets/fonts/",
       "absorb": "Self-hostable font packages and metadata.",
       "restrictions": "Every font asset retains its own OFL or other license; do not redistribute blindly.",
-      "reviewed_at": "2026-08-04"
+      "reviewed_at": "2026-08-04",
+      "licenseStatus": "reviewed",
+      "version": "unpinned",
+      "contentHash": "sha256:0000000000000000000000000000000000000000000000000000000000000000"
     },
     {
       "id": "google-fonts",
@@ -842,7 +1007,10 @@
       "target": "adapters/assets/fonts/",
       "absorb": "Open font catalog and license metadata.",
       "restrictions": "Validate each font license and CJK glyph coverage.",
-      "reviewed_at": "2026-08-04"
+      "reviewed_at": "2026-08-04",
+      "licenseStatus": "reviewed",
+      "version": "unpinned",
+      "contentHash": "sha256:0000000000000000000000000000000000000000000000000000000000000000"
     },
     {
       "id": "fonttools",
@@ -857,7 +1025,10 @@
       "target": "adapters/assets/fonts/",
       "absorb": "Font inspection, subsetting and metadata extraction.",
       "restrictions": "Do not subset fonts whose license forbids modification.",
-      "reviewed_at": "2026-08-04"
+      "reviewed_at": "2026-08-04",
+      "licenseStatus": "reviewed",
+      "version": "unpinned",
+      "contentHash": "sha256:0000000000000000000000000000000000000000000000000000000000000000"
     },
     {
       "id": "harfbuzz",
@@ -872,7 +1043,10 @@
       "target": "adapters/typography/shaping/",
       "absorb": "Complex-script shaping and typography validation.",
       "restrictions": "Use as external dependency; preserve license notices.",
-      "reviewed_at": "2026-08-04"
+      "reviewed_at": "2026-08-04",
+      "licenseStatus": "reviewed",
+      "version": "unpinned",
+      "contentHash": "sha256:0000000000000000000000000000000000000000000000000000000000000000"
     },
     {
       "id": "lucide",
@@ -887,7 +1061,10 @@
       "target": "adapters/assets/icons/",
       "absorb": "Consistent open icon set and metadata.",
       "restrictions": "Do not mix multiple icon grammars without normalization.",
-      "reviewed_at": "2026-08-04"
+      "reviewed_at": "2026-08-04",
+      "licenseStatus": "reviewed",
+      "version": "unpinned",
+      "contentHash": "sha256:0000000000000000000000000000000000000000000000000000000000000000"
     },
     {
       "id": "phosphor",
@@ -902,7 +1079,10 @@
       "target": "adapters/assets/icons/",
       "absorb": "Multi-weight icon system.",
       "restrictions": "Preserve consistent weight and optical sizing.",
-      "reviewed_at": "2026-08-04"
+      "reviewed_at": "2026-08-04",
+      "licenseStatus": "reviewed",
+      "version": "unpinned",
+      "contentHash": "sha256:0000000000000000000000000000000000000000000000000000000000000000"
     },
     {
       "id": "tabler-icons",
@@ -917,7 +1097,10 @@
       "target": "adapters/assets/icons/",
       "absorb": "Large SVG icon catalog.",
       "restrictions": "Normalize stroke width and viewBox before use.",
-      "reviewed_at": "2026-08-04"
+      "reviewed_at": "2026-08-04",
+      "licenseStatus": "reviewed",
+      "version": "unpinned",
+      "contentHash": "sha256:0000000000000000000000000000000000000000000000000000000000000000"
     },
     {
       "id": "octicons",
@@ -932,7 +1115,10 @@
       "target": "adapters/assets/icons/",
       "absorb": "Product icon implementation and stable SVG assets.",
       "restrictions": "Do not imply GitHub affiliation.",
-      "reviewed_at": "2026-08-04"
+      "reviewed_at": "2026-08-04",
+      "licenseStatus": "reviewed",
+      "version": "unpinned",
+      "contentHash": "sha256:0000000000000000000000000000000000000000000000000000000000000000"
     },
     {
       "id": "openmoji",
@@ -947,7 +1133,10 @@
       "target": "adapters/assets/icons/openmoji/",
       "absorb": "Inclusive open emoji/icon set.",
       "restrictions": "ShareAlike and attribution obligations; keep separated from permissive bundles.",
-      "reviewed_at": "2026-08-04"
+      "reviewed_at": "2026-08-04",
+      "licenseStatus": "reviewed",
+      "version": "unpinned",
+      "contentHash": "sha256:0000000000000000000000000000000000000000000000000000000000000000"
     },
     {
       "id": "d3",
@@ -962,7 +1151,10 @@
       "target": "adapters/visualization/d3/",
       "absorb": "Composable visualization primitives.",
       "restrictions": "Charts require domain-specific encoding and accessibility, not defaults.",
-      "reviewed_at": "2026-08-04"
+      "reviewed_at": "2026-08-04",
+      "licenseStatus": "reviewed",
+      "version": "unpinned",
+      "contentHash": "sha256:0000000000000000000000000000000000000000000000000000000000000000"
     },
     {
       "id": "vega-lite",
@@ -977,7 +1169,10 @@
       "target": "adapters/visualization/vega-lite/",
       "absorb": "Declarative visualization grammar and schemas.",
       "restrictions": "Validate generated specs and data provenance.",
-      "reviewed_at": "2026-08-04"
+      "reviewed_at": "2026-08-04",
+      "licenseStatus": "reviewed",
+      "version": "unpinned",
+      "contentHash": "sha256:0000000000000000000000000000000000000000000000000000000000000000"
     },
     {
       "id": "echarts",
@@ -992,7 +1187,10 @@
       "target": "adapters/visualization/echarts/",
       "absorb": "Enterprise charts, interaction and large-data support.",
       "restrictions": "Avoid visual overload and inaccessible color-only encoding.",
-      "reviewed_at": "2026-08-04"
+      "reviewed_at": "2026-08-04",
+      "licenseStatus": "reviewed",
+      "version": "unpinned",
+      "contentHash": "sha256:0000000000000000000000000000000000000000000000000000000000000000"
     },
     {
       "id": "observable-plot",
@@ -1007,7 +1205,10 @@
       "target": "adapters/visualization/observable-plot/",
       "absorb": "Concise grammar for exploratory and explanatory graphics.",
       "restrictions": "Use explicit scales, labels and sources.",
-      "reviewed_at": "2026-08-04"
+      "reviewed_at": "2026-08-04",
+      "licenseStatus": "reviewed",
+      "version": "unpinned",
+      "contentHash": "sha256:0000000000000000000000000000000000000000000000000000000000000000"
     },
     {
       "id": "mermaid",
@@ -1022,7 +1223,10 @@
       "target": "adapters/diagrams/mermaid/",
       "absorb": "Text-defined process, sequence, architecture and flow diagrams.",
       "restrictions": "Complex diagrams need layout and accessibility review.",
-      "reviewed_at": "2026-08-04"
+      "reviewed_at": "2026-08-04",
+      "licenseStatus": "reviewed",
+      "version": "unpinned",
+      "contentHash": "sha256:0000000000000000000000000000000000000000000000000000000000000000"
     },
     {
       "id": "graphviz",
@@ -1037,7 +1241,10 @@
       "target": "adapters/diagrams/graphviz/",
       "absorb": "Graph layout engine and export formats.",
       "restrictions": "EPL obligations; prefer executable dependency rather than vendored code.",
-      "reviewed_at": "2026-08-04"
+      "reviewed_at": "2026-08-04",
+      "licenseStatus": "reviewed",
+      "version": "unpinned",
+      "contentHash": "sha256:0000000000000000000000000000000000000000000000000000000000000000"
     },
     {
       "id": "svgo",
@@ -1052,7 +1259,10 @@
       "target": "adapters/preflight/svg/",
       "absorb": "SVG optimization and structural checks.",
       "restrictions": "Keep source/original copy for editable delivery.",
-      "reviewed_at": "2026-08-04"
+      "reviewed_at": "2026-08-04",
+      "licenseStatus": "reviewed",
+      "version": "unpinned",
+      "contentHash": "sha256:0000000000000000000000000000000000000000000000000000000000000000"
     },
     {
       "id": "vtracer",
@@ -1067,7 +1277,10 @@
       "target": "adapters/vectorization/vtracer/",
       "absorb": "Raster-to-vector conversion.",
       "restrictions": "Generated vectors require human cleanup and trademark review.",
-      "reviewed_at": "2026-08-04"
+      "reviewed_at": "2026-08-04",
+      "licenseStatus": "reviewed",
+      "version": "unpinned",
+      "contentHash": "sha256:0000000000000000000000000000000000000000000000000000000000000000"
     },
     {
       "id": "imagemagick",
@@ -1082,7 +1295,10 @@
       "target": "adapters/preflight/raster/",
       "absorb": "Image metadata, conversion, color profile and resolution checks.",
       "restrictions": "Run untrusted inputs in a sandbox and restrict delegates.",
-      "reviewed_at": "2026-08-04"
+      "reviewed_at": "2026-08-04",
+      "licenseStatus": "reviewed",
+      "version": "unpinned",
+      "contentHash": "sha256:0000000000000000000000000000000000000000000000000000000000000000"
     },
     {
       "id": "sharp",
@@ -1097,7 +1313,10 @@
       "target": "adapters/preflight/raster/",
       "absorb": "Fast resize, metadata and web image optimization.",
       "restrictions": "Underlying libvips licensing and native binaries must be tracked.",
-      "reviewed_at": "2026-08-04"
+      "reviewed_at": "2026-08-04",
+      "licenseStatus": "reviewed",
+      "version": "unpinned",
+      "contentHash": "sha256:0000000000000000000000000000000000000000000000000000000000000000"
     },
     {
       "id": "c2pa",
@@ -1112,7 +1331,10 @@
       "target": "adapters/provenance/c2pa/",
       "absorb": "Media provenance manifests and edit history.",
       "restrictions": "Do not treat metadata as proof of truth; stripping and ecosystem limits remain.",
-      "reviewed_at": "2026-08-04"
+      "reviewed_at": "2026-08-04",
+      "licenseStatus": "reviewed",
+      "version": "unpinned",
+      "contentHash": "sha256:0000000000000000000000000000000000000000000000000000000000000000"
     },
     {
       "id": "ghent-workgroup",
@@ -1127,7 +1349,10 @@
       "target": "knowledge/standards/print/",
       "absorb": "PDF/X-Plus, commercial, digital, packaging and sign/display preflight rules.",
       "restrictions": "Use published profiles as reference; confirm redistribution terms.",
-      "reviewed_at": "2026-08-04"
+      "reviewed_at": "2026-08-04",
+      "licenseStatus": "reference-only",
+      "version": "unpinned",
+      "contentHash": "sha256:0000000000000000000000000000000000000000000000000000000000000000"
     },
     {
       "id": "pdf-association",
@@ -1142,7 +1367,10 @@
       "target": "knowledge/standards/pdf/",
       "absorb": "PDF/X, PDF/UA, PDF/A and PDF/VT standards mapping.",
       "restrictions": "ISO normative texts may be copyrighted and separately licensed.",
-      "reviewed_at": "2026-08-04"
+      "reviewed_at": "2026-08-04",
+      "licenseStatus": "reference-only",
+      "version": "unpinned",
+      "contentHash": "sha256:0000000000000000000000000000000000000000000000000000000000000000"
     },
     {
       "id": "adobe-print-ready",
@@ -1157,7 +1385,10 @@
       "target": "knowledge/standards/print/",
       "absorb": "Links, fonts, bleed, margins, color mode and preflight workflow.",
       "restrictions": "Product documentation terms apply; do not reproduce verbatim.",
-      "reviewed_at": "2026-08-04"
+      "reviewed_at": "2026-08-04",
+      "licenseStatus": "reference-only",
+      "version": "unpinned",
+      "contentHash": "sha256:0000000000000000000000000000000000000000000000000000000000000000"
     },
     {
       "id": "dielinelab",
@@ -1172,7 +1403,10 @@
       "target": "research/candidates/packaging/",
       "absorb": "Parametric dielines, fold/cut guides and SVG/DXF/PDF output concepts.",
       "restrictions": "Verify code/output license and dimensional accuracy before integration.",
-      "reviewed_at": "2026-08-04"
+      "reviewed_at": "2026-08-04",
+      "licenseStatus": "reference-only",
+      "version": "unpinned",
+      "contentHash": "sha256:0000000000000000000000000000000000000000000000000000000000000000"
     },
     {
       "id": "diecutstudio",
@@ -1187,7 +1421,10 @@
       "target": "knowledge/packaging/tools/",
       "absorb": "Parametric 1:1 dieline output and 3D preview workflow.",
       "restrictions": "Use as external tool unless code license becomes available.",
-      "reviewed_at": "2026-08-04"
+      "reviewed_at": "2026-08-04",
+      "licenseStatus": "reference-only",
+      "version": "unpinned",
+      "contentHash": "sha256:0000000000000000000000000000000000000000000000000000000000000000"
     },
     {
       "id": "gs1",
@@ -1202,7 +1439,10 @@
       "target": "knowledge/standards/packaging/",
       "absorb": "Barcode dimensions, quiet zones and identification-system references.",
       "restrictions": "GS1 identifiers and trademarks require authorized use; verify current standard.",
-      "reviewed_at": "2026-08-04"
+      "reviewed_at": "2026-08-04",
+      "licenseStatus": "reference-only",
+      "version": "unpinned",
+      "contentHash": "sha256:0000000000000000000000000000000000000000000000000000000000000000"
     },
     {
       "id": "pptxgenjs",
@@ -1217,7 +1457,10 @@
       "target": "adapters/documents/pptx/",
       "absorb": "Editable PPTX generation, masters, placeholders and chart/image output.",
       "restrictions": "Respect font and template asset licenses.",
-      "reviewed_at": "2026-08-04"
+      "reviewed_at": "2026-08-04",
+      "licenseStatus": "reviewed",
+      "version": "unpinned",
+      "contentHash": "sha256:0000000000000000000000000000000000000000000000000000000000000000"
     },
     {
       "id": "python-pptx",
@@ -1232,7 +1475,10 @@
       "target": "adapters/documents/pptx/",
       "absorb": "PowerPoint structure inspection and editing.",
       "restrictions": "Not all PowerPoint features are supported; preserve originals.",
-      "reviewed_at": "2026-08-04"
+      "reviewed_at": "2026-08-04",
+      "licenseStatus": "reviewed",
+      "version": "unpinned",
+      "contentHash": "sha256:0000000000000000000000000000000000000000000000000000000000000000"
     },
     {
       "id": "revealjs",
@@ -1247,7 +1493,10 @@
       "target": "adapters/documents/html-slides/",
       "absorb": "Responsive HTML slide format and speaker notes.",
       "restrictions": "HTML slides are not equivalent to editable PPTX.",
-      "reviewed_at": "2026-08-04"
+      "reviewed_at": "2026-08-04",
+      "licenseStatus": "reviewed",
+      "version": "unpinned",
+      "contentHash": "sha256:0000000000000000000000000000000000000000000000000000000000000000"
     },
     {
       "id": "slidev",
@@ -1262,7 +1511,10 @@
       "target": "adapters/documents/html-slides/",
       "absorb": "Markdown/Vue presentation authoring.",
       "restrictions": "Keep as optional toolchain.",
-      "reviewed_at": "2026-08-04"
+      "reviewed_at": "2026-08-04",
+      "licenseStatus": "reviewed",
+      "version": "unpinned",
+      "contentHash": "sha256:0000000000000000000000000000000000000000000000000000000000000000"
     },
     {
       "id": "typst",
@@ -1277,7 +1529,10 @@
       "target": "adapters/documents/typst/",
       "absorb": "Structured, reproducible typesetting and PDF generation.",
       "restrictions": "Font and embedded asset licensing remains separate.",
-      "reviewed_at": "2026-08-04"
+      "reviewed_at": "2026-08-04",
+      "licenseStatus": "reviewed",
+      "version": "unpinned",
+      "contentHash": "sha256:0000000000000000000000000000000000000000000000000000000000000000"
     },
     {
       "id": "pagedjs",
@@ -1292,7 +1547,10 @@
       "target": "adapters/documents/paged-media/",
       "absorb": "CSS paged-media layout and print preview.",
       "restrictions": "Browser-rendered pagination must be regression tested.",
-      "reviewed_at": "2026-08-04"
+      "reviewed_at": "2026-08-04",
+      "licenseStatus": "reviewed",
+      "version": "unpinned",
+      "contentHash": "sha256:0000000000000000000000000000000000000000000000000000000000000000"
     },
     {
       "id": "pdfbox",
@@ -1307,7 +1565,10 @@
       "target": "adapters/preflight/pdf/",
       "absorb": "PDF parsing, metadata, fonts and structural inspection.",
       "restrictions": "PDF/X and PDF/UA conformance still require explicit profiles.",
-      "reviewed_at": "2026-08-04"
+      "reviewed_at": "2026-08-04",
+      "licenseStatus": "reviewed",
+      "version": "unpinned",
+      "contentHash": "sha256:0000000000000000000000000000000000000000000000000000000000000000"
     },
     {
       "id": "qpdf",
@@ -1322,7 +1583,10 @@
       "target": "adapters/preflight/pdf/",
       "absorb": "PDF structural validation and transformation.",
       "restrictions": "Does not replace design/print preflight.",
-      "reviewed_at": "2026-08-04"
+      "reviewed_at": "2026-08-04",
+      "licenseStatus": "reviewed",
+      "version": "unpinned",
+      "contentHash": "sha256:0000000000000000000000000000000000000000000000000000000000000000"
     },
     {
       "id": "ghostscript",
@@ -1337,7 +1601,10 @@
       "target": "adapters/preflight/pdf-external/",
       "absorb": "PDF rendering, conversion and color workflows.",
       "restrictions": "Keep external/process boundary; AGPL implications require review.",
-      "reviewed_at": "2026-08-04"
+      "reviewed_at": "2026-08-04",
+      "licenseStatus": "reviewed",
+      "version": "unpinned",
+      "contentHash": "sha256:0000000000000000000000000000000000000000000000000000000000000000"
     },
     {
       "id": "verapdf",
@@ -1352,7 +1619,10 @@
       "target": "adapters/preflight/pdf-accessibility/",
       "absorb": "PDF/A and PDF/UA validation ecosystem.",
       "restrictions": "Validate supported profile versions; MPL obligations apply.",
-      "reviewed_at": "2026-08-04"
+      "reviewed_at": "2026-08-04",
+      "licenseStatus": "reviewed",
+      "version": "unpinned",
+      "contentHash": "sha256:0000000000000000000000000000000000000000000000000000000000000000"
     },
     {
       "id": "lottie-spec",
@@ -1367,7 +1637,10 @@
       "target": "schemas/motion/lottie/",
       "absorb": "JSON animation schema, layers, keyframes, easing and interoperability.",
       "restrictions": "Specification is still evolving; pin version and reject expressions by default.",
-      "reviewed_at": "2026-08-04"
+      "reviewed_at": "2026-08-04",
+      "licenseStatus": "reviewed",
+      "version": "unpinned",
+      "contentHash": "sha256:0000000000000000000000000000000000000000000000000000000000000000"
     },
     {
       "id": "lottie-web",
@@ -1382,7 +1655,10 @@
       "target": "adapters/motion/lottie/",
       "absorb": "Web renderer and compatibility testing.",
       "restrictions": "Disable or sandbox expression/code features.",
-      "reviewed_at": "2026-08-04"
+      "reviewed_at": "2026-08-04",
+      "licenseStatus": "reviewed",
+      "version": "unpinned",
+      "contentHash": "sha256:0000000000000000000000000000000000000000000000000000000000000000"
     },
     {
       "id": "motion-one",
@@ -1397,7 +1673,10 @@
       "target": "adapters/motion/web/",
       "absorb": "Web animation primitives and timeline APIs.",
       "restrictions": "Every preset requires reduced-motion fallback.",
-      "reviewed_at": "2026-08-04"
+      "reviewed_at": "2026-08-04",
+      "licenseStatus": "reviewed",
+      "version": "unpinned",
+      "contentHash": "sha256:0000000000000000000000000000000000000000000000000000000000000000"
     },
     {
       "id": "framer-motion",
@@ -1412,7 +1691,10 @@
       "target": "adapters/motion/react/",
       "absorb": "React motion primitives and layout transitions.",
       "restrictions": "Avoid making a framework dependency mandatory.",
-      "reviewed_at": "2026-08-04"
+      "reviewed_at": "2026-08-04",
+      "licenseStatus": "reviewed",
+      "version": "unpinned",
+      "contentHash": "sha256:0000000000000000000000000000000000000000000000000000000000000000"
     },
     {
       "id": "prefers-reduced-motion",
@@ -1427,7 +1709,10 @@
       "target": "knowledge/standards/motion/",
       "absorb": "Suppress or replace non-essential interaction motion based on user preference.",
       "restrictions": "Technique is sufficient guidance, not the only conformance route.",
-      "reviewed_at": "2026-08-04"
+      "reviewed_at": "2026-08-04",
+      "licenseStatus": "reviewed",
+      "version": "unpinned",
+      "contentHash": "sha256:0000000000000000000000000000000000000000000000000000000000000000"
     },
     {
       "id": "gltf",
@@ -1442,7 +1727,10 @@
       "target": "schemas/3d/gltf/",
       "absorb": "Portable scene/model format, cameras, meshes, materials, textures and animation.",
       "restrictions": "Keep official validator as external dependency; pin extensions.",
-      "reviewed_at": "2026-08-04"
+      "reviewed_at": "2026-08-04",
+      "licenseStatus": "reviewed",
+      "version": "unpinned",
+      "contentHash": "sha256:0000000000000000000000000000000000000000000000000000000000000000"
     },
     {
       "id": "openpbr",
@@ -1457,7 +1745,10 @@
       "target": "knowledge/3d/materials/",
       "absorb": "Open PBR material parameter model and MaterialX reference implementation.",
       "restrictions": "Use parameter concepts; do not bundle large viewers unnecessarily.",
-      "reviewed_at": "2026-08-04"
+      "reviewed_at": "2026-08-04",
+      "licenseStatus": "reviewed",
+      "version": "unpinned",
+      "contentHash": "sha256:0000000000000000000000000000000000000000000000000000000000000000"
     },
     {
       "id": "materialx",
@@ -1472,7 +1763,10 @@
       "target": "adapters/3d/materialx/",
       "absorb": "Material interchange and shading graphs.",
       "restrictions": "Version compatibility across DCC tools must be tested.",
-      "reviewed_at": "2026-08-04"
+      "reviewed_at": "2026-08-04",
+      "licenseStatus": "reviewed",
+      "version": "unpinned",
+      "contentHash": "sha256:0000000000000000000000000000000000000000000000000000000000000000"
     },
     {
       "id": "openusd",
@@ -1487,7 +1781,10 @@
       "target": "adapters/3d/usd/",
       "absorb": "Layered scene composition, collaboration and asset interchange.",
       "restrictions": "Keep as optional external toolchain due size/complexity.",
-      "reviewed_at": "2026-08-04"
+      "reviewed_at": "2026-08-04",
+      "licenseStatus": "reviewed",
+      "version": "unpinned",
+      "contentHash": "sha256:0000000000000000000000000000000000000000000000000000000000000000"
     },
     {
       "id": "opencolorio",
@@ -1502,7 +1799,10 @@
       "target": "adapters/color/ocio/",
       "absorb": "Cross-application color management and ACES configurations.",
       "restrictions": "Color pipeline must state display/output transforms.",
-      "reviewed_at": "2026-08-04"
+      "reviewed_at": "2026-08-04",
+      "licenseStatus": "reviewed",
+      "version": "unpinned",
+      "contentHash": "sha256:0000000000000000000000000000000000000000000000000000000000000000"
     },
     {
       "id": "littlecms",
@@ -1517,7 +1817,10 @@
       "target": "adapters/color/icc/",
       "absorb": "ICC color profile transforms and validation.",
       "restrictions": "Use printer-provided profiles when available.",
-      "reviewed_at": "2026-08-04"
+      "reviewed_at": "2026-08-04",
+      "licenseStatus": "reviewed",
+      "version": "unpinned",
+      "contentHash": "sha256:0000000000000000000000000000000000000000000000000000000000000000"
     },
     {
       "id": "threejs",
@@ -1532,7 +1835,10 @@
       "target": "adapters/3d/web/",
       "absorb": "Web 3D preview and glTF integration.",
       "restrictions": "Preview is not authoritative for fabrication dimensions.",
-      "reviewed_at": "2026-08-04"
+      "reviewed_at": "2026-08-04",
+      "licenseStatus": "reviewed",
+      "version": "unpinned",
+      "contentHash": "sha256:0000000000000000000000000000000000000000000000000000000000000000"
     },
     {
       "id": "blender",
@@ -1547,7 +1853,10 @@
       "target": "adapters/3d/external/blender/",
       "absorb": "Open 3D authoring/rendering and Python automation.",
       "restrictions": "External process/plugin boundary; GPL and generated-output rules require review.",
-      "reviewed_at": "2026-08-04"
+      "reviewed_at": "2026-08-04",
+      "licenseStatus": "reviewed",
+      "version": "unpinned",
+      "contentHash": "sha256:0000000000000000000000000000000000000000000000000000000000000000"
     },
     {
       "id": "freecad",
@@ -1562,7 +1871,10 @@
       "target": "adapters/cad/external/freecad/",
       "absorb": "Parametric CAD and dimension-aware models.",
       "restrictions": "Use external integration; verify plugin license compatibility.",
-      "reviewed_at": "2026-08-04"
+      "reviewed_at": "2026-08-04",
+      "licenseStatus": "reviewed",
+      "version": "unpinned",
+      "contentHash": "sha256:0000000000000000000000000000000000000000000000000000000000000000"
     },
     {
       "id": "speckle",
@@ -1577,7 +1889,10 @@
       "target": "adapters/aec/speckle/",
       "absorb": "AEC model data exchange and collaboration.",
       "restrictions": "Requires security/privacy review for project data.",
-      "reviewed_at": "2026-08-04"
+      "reviewed_at": "2026-08-04",
+      "licenseStatus": "reviewed",
+      "version": "unpinned",
+      "contentHash": "sha256:0000000000000000000000000000000000000000000000000000000000000000"
     },
     {
       "id": "spdx",
@@ -1592,7 +1907,10 @@
       "target": "schemas/provenance/spdx/",
       "absorb": "License identifiers, expressions, SBOM and AI/data references.",
       "restrictions": "Use SPDX IDs; do not invent license compatibility conclusions.",
-      "reviewed_at": "2026-08-04"
+      "reviewed_at": "2026-08-04",
+      "licenseStatus": "reviewed",
+      "version": "unpinned",
+      "contentHash": "sha256:0000000000000000000000000000000000000000000000000000000000000000"
     },
     {
       "id": "reuse",
@@ -1607,7 +1925,10 @@
       "target": "knowledge/governance/licensing/",
       "absorb": "Per-file copyright/license declarations and LICENSES directory conventions.",
       "restrictions": "ShareAlike applies to copied spec text; implement rules rather than copying large text.",
-      "reviewed_at": "2026-08-04"
+      "reviewed_at": "2026-08-04",
+      "licenseStatus": "reviewed",
+      "version": "unpinned",
+      "contentHash": "sha256:0000000000000000000000000000000000000000000000000000000000000000"
     },
     {
       "id": "cyclonedx",
@@ -1622,7 +1943,10 @@
       "target": "schemas/provenance/cyclonedx/",
       "absorb": "SBOM/ML-BOM/MBOM and attestations for tools, models, datasets and manufacturing inputs.",
       "restrictions": "Choose one canonical internal manifest and export to CycloneDX.",
-      "reviewed_at": "2026-08-04"
+      "reviewed_at": "2026-08-04",
+      "licenseStatus": "reviewed",
+      "version": "unpinned",
+      "contentHash": "sha256:0000000000000000000000000000000000000000000000000000000000000000"
     },
     {
       "id": "openssf-scorecard",
@@ -1637,7 +1961,10 @@
       "target": "adapters/security/scorecard/",
       "absorb": "Security posture checks for absorbed repositories.",
       "restrictions": "Score is evidence, not automatic approval.",
-      "reviewed_at": "2026-08-04"
+      "reviewed_at": "2026-08-04",
+      "licenseStatus": "reviewed",
+      "version": "unpinned",
+      "contentHash": "sha256:0000000000000000000000000000000000000000000000000000000000000000"
     },
     {
       "id": "osv-scanner",
@@ -1652,7 +1979,10 @@
       "target": "adapters/security/osv/",
       "absorb": "Vulnerability and license scanning, including offline database mode.",
       "restrictions": "Guided remediation can execute package-manager behavior; keep disabled by default.",
-      "reviewed_at": "2026-08-04"
+      "reviewed_at": "2026-08-04",
+      "licenseStatus": "reviewed",
+      "version": "unpinned",
+      "contentHash": "sha256:0000000000000000000000000000000000000000000000000000000000000000"
     },
     {
       "id": "slsa",
@@ -1667,7 +1997,10 @@
       "target": "knowledge/governance/build-provenance/",
       "absorb": "Build provenance and integrity levels.",
       "restrictions": "Apply proportionally; do not overclaim conformance.",
-      "reviewed_at": "2026-08-04"
+      "reviewed_at": "2026-08-04",
+      "licenseStatus": "reviewed",
+      "version": "unpinned",
+      "contentHash": "sha256:0000000000000000000000000000000000000000000000000000000000000000"
     },
     {
       "id": "sigstore",
@@ -1682,7 +2015,10 @@
       "target": "adapters/security/signing/",
       "absorb": "Artifact signing and transparency logs.",
       "restrictions": "Keyless signing requires identity/privacy review.",
-      "reviewed_at": "2026-08-04"
+      "reviewed_at": "2026-08-04",
+      "licenseStatus": "reviewed",
+      "version": "unpinned",
+      "contentHash": "sha256:0000000000000000000000000000000000000000000000000000000000000000"
     },
     {
       "id": "hallmark-skill",
@@ -1697,7 +2033,10 @@
       "target": "knowledge/visual-quality/hallmark/",
       "absorb": "anti-AI-slop 设计原则、结构多样性、主题目录（21 宏结构）、组件配方（60+）、slop-test 评分体系（107 文件）",
       "restrictions": "MIT 版权声明保留；仅设计能力参考",
-      "reviewed_at": "2026-08-13"
+      "reviewed_at": "2026-08-13",
+      "licenseStatus": "reviewed",
+      "version": "unpinned",
+      "contentHash": "sha256:0000000000000000000000000000000000000000000000000000000000000000"
     },
     {
       "id": "taste-skill",
@@ -1712,7 +2051,10 @@
       "target": "knowledge/visual-quality/taste-skill/",
       "absorb": "brief 推断、设计阅读、防默认纪律、风格语言（brutalist/minimalist/soft）、redesign audit-first",
       "restrictions": "MIT 版权声明保留；仅设计能力参考",
-      "reviewed_at": "2026-08-13"
+      "reviewed_at": "2026-08-13",
+      "licenseStatus": "reviewed",
+      "version": "unpinned",
+      "contentHash": "sha256:0000000000000000000000000000000000000000000000000000000000000000"
     },
     {
       "id": "huashu-design-skill",
@@ -1727,7 +2069,10 @@
       "target": "knowledge/production/huashu-design/",
       "absorb": "HTML 高保真原型、幻灯片、动画、评审、品牌协议、摄影语言、分镜（32 references，中文）",
       "restrictions": "MIT 版权声明保留；assets/ 大文件不复制",
-      "reviewed_at": "2026-08-13"
+      "reviewed_at": "2026-08-13",
+      "licenseStatus": "reviewed",
+      "version": "unpinned",
+      "contentHash": "sha256:0000000000000000000000000000000000000000000000000000000000000000"
     },
     {
       "id": "uiux-pro-max-data",
@@ -1742,7 +2087,10 @@
       "target": "intelligence/ui-ux-pro-max/",
       "absorb": "84 UI 风格、192 色板、74 字体配对、98 UX 指南、25 图表、22 技术栈（CSV 中性数据）",
       "restrictions": "MIT 版权声明保留；cli/ 工程不吸收",
-      "reviewed_at": "2026-08-13"
+      "reviewed_at": "2026-08-13",
+      "licenseStatus": "reviewed",
+      "version": "unpinned",
+      "contentHash": "sha256:0000000000000000000000000000000000000000000000000000000000000000"
     },
     {
       "id": "garden-skills",
@@ -1757,7 +2105,10 @@
       "target": "knowledge/visual-quality/",
       "absorb": "web design / knowledge retrieval / image generation skill 集合（候选评估）",
       "restrictions": "待评估后决定吸收范围（review-required）",
-      "reviewed_at": "2026-08-13"
+      "reviewed_at": "2026-08-13",
+      "licenseStatus": "reviewed",
+      "version": "unpinned",
+      "contentHash": "sha256:0000000000000000000000000000000000000000000000000000000000000000"
     },
     {
       "id": "motion-design-skill",
@@ -1772,7 +2123,10 @@
       "target": "knowledge/visual-quality/motion-design-skill/",
       "absorb": "动效设计原则——timing/easing/choreography/motion 系统",
       "restrictions": "MIT 版权保留",
-      "reviewed_at": "2026-08-13"
+      "reviewed_at": "2026-08-13",
+      "licenseStatus": "reviewed",
+      "version": "unpinned",
+      "contentHash": "sha256:0000000000000000000000000000000000000000000000000000000000000000"
     },
     {
       "id": "design-motion-principles",
@@ -1787,7 +2141,10 @@
       "target": "knowledge/visual-quality/design-motion-principles/",
       "absorb": "动效设计双模式——有目的交互构建 + 动效原则",
       "restrictions": "MIT 版权保留",
-      "reviewed_at": "2026-08-13"
+      "reviewed_at": "2026-08-13",
+      "licenseStatus": "reviewed",
+      "version": "unpinned",
+      "contentHash": "sha256:0000000000000000000000000000000000000000000000000000000000000000"
     },
     {
       "id": "shipit-ui-design",
@@ -1802,7 +2159,10 @@
       "target": "intelligence/shipit-ui/",
       "absorb": "color-engineering/design-system-keeper/motion/svg/three-d/data-viz 11 skills + 62 references",
       "restrictions": "MIT 版权保留",
-      "reviewed_at": "2026-08-13"
+      "reviewed_at": "2026-08-13",
+      "licenseStatus": "reviewed",
+      "version": "unpinned",
+      "contentHash": "sha256:0000000000000000000000000000000000000000000000000000000000000000"
     },
     {
       "id": "terrazzo-dtcg",
@@ -1817,7 +2177,10 @@
       "target": "adapters/tools/terrazzo/",
       "absorb": "DTCG 设计令牌 JSON → 多平台代码编译器（工程包，待 adapter 化）",
       "restrictions": "工程包不 vendoring；按 adapter 集成",
-      "reviewed_at": "2026-08-13"
+      "reviewed_at": "2026-08-13",
+      "licenseStatus": "reviewed",
+      "version": "unpinned",
+      "contentHash": "sha256:0000000000000000000000000000000000000000000000000000000000000000"
     },
     {
       "id": "front-end-design-checklist",
@@ -1832,7 +2195,10 @@
       "target": "knowledge/standards/front-end-design-checklist/",
       "absorb": "前端设计检查清单（颜色/字体/表单/无障碍/性能）",
       "restrictions": "CC0 公有领域",
-      "reviewed_at": "2026-08-13"
+      "reviewed_at": "2026-08-13",
+      "licenseStatus": "reviewed",
+      "version": "unpinned",
+      "contentHash": "sha256:0000000000000000000000000000000000000000000000000000000000000000"
     },
     {
       "id": "brand-resources-links",
@@ -1847,7 +2213,10 @@
       "target": "knowledge/standards/brand-resources/",
       "absorb": "品牌身份指南链接清单（TFL/Lloyds/Oxford 等 PDF 外链）",
       "restrictions": "仅链接引用，不复制 PDF",
-      "reviewed_at": "2026-08-13"
+      "reviewed_at": "2026-08-13",
+      "licenseStatus": "reviewed",
+      "version": "unpinned",
+      "contentHash": "sha256:0000000000000000000000000000000000000000000000000000000000000000"
     },
     {
       "id": "style-dictionary-utils",
@@ -1862,7 +2231,10 @@
       "target": "adapters/tools/style-dictionary/",
       "absorb": "Style Dictionary transforms/formats/filters（令牌工程化候选）",
       "restrictions": "工程包待 adapter 化",
-      "reviewed_at": "2026-08-13"
+      "reviewed_at": "2026-08-13",
+      "licenseStatus": "reviewed",
+      "version": "unpinned",
+      "contentHash": "sha256:0000000000000000000000000000000000000000000000000000000000000000"
     },
     {
       "id": "game-ui-mobile-skill",
@@ -1876,7 +2248,12 @@
         "game",
         "ui-ux"
       ],
-      "url": "https://github.com/dungnotnull/game-ui-mobile-friendly-design-agent-skill"
+      "url": "https://github.com/dungnotnull/game-ui-mobile-friendly-design-agent-skill",
+      "licenseStatus": "reviewed",
+      "version": "unpinned",
+      "contentHash": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
+      "reviewedBy": "pending-human-review",
+      "reviewedAt": "2026-08-14"
     },
     {
       "id": "blender-3d-skill",
@@ -1890,7 +2267,12 @@
         "3d",
         "creative-tools"
       ],
-      "url": "https://github.com/jithinolickal/blender"
+      "url": "https://github.com/jithinolickal/blender",
+      "licenseStatus": "reviewed",
+      "version": "unpinned",
+      "contentHash": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
+      "reviewedBy": "pending-human-review",
+      "reviewedAt": "2026-08-14"
     },
     {
       "id": "motion-engine-skill",
@@ -1904,7 +2286,12 @@
         "motion",
         "ui-ux"
       ],
-      "url": "https://github.com/OpaceDigitalAgency/skills"
+      "url": "https://github.com/OpaceDigitalAgency/skills",
+      "licenseStatus": "reviewed",
+      "version": "unpinned",
+      "contentHash": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
+      "reviewedBy": "pending-human-review",
+      "reviewedAt": "2026-08-14"
     },
     {
       "id": "brand-systems-skill",
@@ -1918,7 +2305,12 @@
         "brand",
         "identity"
       ],
-      "url": "https://github.com/arome3/evidence-based-brand-systems"
+      "url": "https://github.com/arome3/evidence-based-brand-systems",
+      "licenseStatus": "reviewed",
+      "version": "unpinned",
+      "contentHash": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
+      "reviewedBy": "pending-human-review",
+      "reviewedAt": "2026-08-14"
     },
     {
       "id": "brand-identity-skill",
@@ -1932,7 +2324,12 @@
         "brand",
         "identity"
       ],
-      "url": "https://github.com/SkillMedev/brand-visual-identity"
+      "url": "https://github.com/SkillMedev/brand-visual-identity",
+      "licenseStatus": "reviewed",
+      "version": "unpinned",
+      "contentHash": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
+      "reviewedBy": "pending-human-review",
+      "reviewedAt": "2026-08-14"
     },
     {
       "id": "ai-graphic-design-skill",
@@ -1946,7 +2343,12 @@
         "brand",
         "graphic"
       ],
-      "url": "https://github.com/designrique/ai-graphic-design-skill"
+      "url": "https://github.com/designrique/ai-graphic-design-skill",
+      "licenseStatus": "reviewed",
+      "version": "unpinned",
+      "contentHash": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
+      "reviewedBy": "pending-human-review",
+      "reviewedAt": "2026-08-14"
     },
     {
       "id": "design-system-prompt",
@@ -1960,7 +2362,12 @@
       "categories": [
         "design-system",
         "ui-ux"
-      ]
+      ],
+      "licenseStatus": "reviewed",
+      "version": "unpinned",
+      "contentHash": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
+      "reviewedBy": "pending-human-review",
+      "reviewedAt": "2026-08-14"
     },
     {
       "id": "claude2figma",
@@ -1974,7 +2381,12 @@
       "categories": [
         "design-system",
         "figma"
-      ]
+      ],
+      "licenseStatus": "reviewed",
+      "version": "unpinned",
+      "contentHash": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
+      "reviewedBy": "pending-human-review",
+      "reviewedAt": "2026-08-14"
     },
     {
       "id": "extract-design-system",
@@ -1988,7 +2400,12 @@
       "categories": [
         "design-system",
         "tokens"
-      ]
+      ],
+      "licenseStatus": "reviewed",
+      "version": "unpinned",
+      "contentHash": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
+      "reviewedBy": "pending-human-review",
+      "reviewedAt": "2026-08-14"
     },
     {
       "id": "anydesign",
@@ -2002,7 +2419,12 @@
       "categories": [
         "analysis",
         "design-system"
-      ]
+      ],
+      "licenseStatus": "reviewed",
+      "version": "unpinned",
+      "contentHash": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
+      "reviewedBy": "pending-human-review",
+      "reviewedAt": "2026-08-14"
     },
     {
       "id": "ppt-agent-skill",
@@ -2015,7 +2437,12 @@
       "use": "演示生成（26 风格 + 18 图表）",
       "categories": [
         "presentation"
-      ]
+      ],
+      "licenseStatus": "reviewed",
+      "version": "unpinned",
+      "contentHash": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
+      "reviewedBy": "pending-human-review",
+      "reviewedAt": "2026-08-14"
     },
     {
       "id": "swiftui-design-skill",
@@ -2029,7 +2456,12 @@
       "categories": [
         "ui-ux",
         "frontend"
-      ]
+      ],
+      "licenseStatus": "reviewed",
+      "version": "unpinned",
+      "contentHash": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
+      "reviewedBy": "pending-human-review",
+      "reviewedAt": "2026-08-14"
     },
     {
       "id": "claude-dolphin",
@@ -2043,7 +2475,12 @@
       "categories": [
         "ui-ux",
         "accessibility"
-      ]
+      ],
+      "licenseStatus": "reviewed",
+      "version": "unpinned",
+      "contentHash": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
+      "reviewedBy": "pending-human-review",
+      "reviewedAt": "2026-08-14"
     },
     {
       "id": "ux-audit-skill",
@@ -2057,7 +2494,12 @@
       "categories": [
         "ui-ux",
         "review"
-      ]
+      ],
+      "licenseStatus": "reviewed",
+      "version": "unpinned",
+      "contentHash": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
+      "reviewedBy": "pending-human-review",
+      "reviewedAt": "2026-08-14"
     },
     {
       "id": "claude-design-skill-jiji",
@@ -2071,7 +2513,12 @@
       "categories": [
         "html",
         "ui-ux"
-      ]
+      ],
+      "licenseStatus": "reviewed",
+      "version": "unpinned",
+      "contentHash": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
+      "reviewedBy": "pending-human-review",
+      "reviewedAt": "2026-08-14"
     },
     {
       "id": "brandbook-skill",
@@ -2084,7 +2531,12 @@
       "use": "URL → 品牌系统（token + 手册）",
       "categories": [
         "brand"
-      ]
+      ],
+      "licenseStatus": "reviewed",
+      "version": "unpinned",
+      "contentHash": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
+      "reviewedBy": "pending-human-review",
+      "reviewedAt": "2026-08-14"
     },
     {
       "id": "logo-designer-skill",
@@ -2098,7 +2550,12 @@
       "categories": [
         "logo",
         "svg"
-      ]
+      ],
+      "licenseStatus": "reviewed",
+      "version": "unpinned",
+      "contentHash": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
+      "reviewedBy": "pending-human-review",
+      "reviewedAt": "2026-08-14"
     },
     {
       "id": "ecommerce-ai-skills",
@@ -2112,7 +2569,12 @@
       "categories": [
         "ecommerce",
         "knowledge-base"
-      ]
+      ],
+      "licenseStatus": "reviewed",
+      "version": "unpinned",
+      "contentHash": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
+      "reviewedBy": "pending-human-review",
+      "reviewedAt": "2026-08-14"
     },
     {
       "id": "screenshot-to-design-system",
@@ -2126,7 +2588,12 @@
       "categories": [
         "tokens",
         "design-system"
-      ]
+      ],
+      "licenseStatus": "reviewed",
+      "version": "unpinned",
+      "contentHash": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
+      "reviewedBy": "pending-human-review",
+      "reviewedAt": "2026-08-14"
     },
     {
       "id": "motion-forensics",
@@ -2140,7 +2607,12 @@
       "categories": [
         "motion",
         "forensics"
-      ]
+      ],
+      "licenseStatus": "reviewed",
+      "version": "unpinned",
+      "contentHash": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
+      "reviewedBy": "pending-human-review",
+      "reviewedAt": "2026-08-14"
     },
     {
       "id": "springy-motion",
@@ -2154,7 +2626,12 @@
       "categories": [
         "motion",
         "css"
-      ]
+      ],
+      "licenseStatus": "reviewed",
+      "version": "unpinned",
+      "contentHash": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
+      "reviewedBy": "pending-human-review",
+      "reviewedAt": "2026-08-14"
     },
     {
       "id": "design-thinking-facilitation",
@@ -2168,7 +2645,12 @@
       "categories": [
         "process",
         "facilitation"
-      ]
+      ],
+      "licenseStatus": "reviewed",
+      "version": "unpinned",
+      "contentHash": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
+      "reviewedBy": "pending-human-review",
+      "reviewedAt": "2026-08-14"
     },
     {
       "id": "web-content-designer",
@@ -2182,7 +2664,12 @@
       "categories": [
         "html",
         "content"
-      ]
+      ],
+      "licenseStatus": "reviewed",
+      "version": "unpinned",
+      "contentHash": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
+      "reviewedBy": "pending-human-review",
+      "reviewedAt": "2026-08-14"
     },
     {
       "id": "genjutsu",
@@ -2197,7 +2684,12 @@
         "creative-coding",
         "motion",
         "3d"
-      ]
+      ],
+      "licenseStatus": "reviewed",
+      "version": "unpinned",
+      "contentHash": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
+      "reviewedBy": "pending-human-review",
+      "reviewedAt": "2026-08-14"
     },
     {
       "id": "game-creative-skills",
@@ -2211,7 +2703,12 @@
       "categories": [
         "game",
         "pipeline"
-      ]
+      ],
+      "licenseStatus": "reviewed",
+      "version": "unpinned",
+      "contentHash": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
+      "reviewedBy": "pending-human-review",
+      "reviewedAt": "2026-08-14"
     },
     {
       "id": "ai-product-os",
@@ -2226,7 +2723,12 @@
         "ui-ux",
         "brand",
         "workflow"
-      ]
+      ],
+      "licenseStatus": "reviewed",
+      "version": "unpinned",
+      "contentHash": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
+      "reviewedBy": "pending-human-review",
+      "reviewedAt": "2026-08-14"
     },
     {
       "id": "baoyu-design",
@@ -2241,7 +2743,12 @@
         "design-system",
         "ui-ux",
         "skill-pack"
-      ]
+      ],
+      "licenseStatus": "reviewed",
+      "version": "unpinned",
+      "contentHash": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
+      "reviewedBy": "pending-human-review",
+      "reviewedAt": "2026-08-14"
     },
     {
       "id": "design-md-skill",
@@ -2255,7 +2762,12 @@
       "categories": [
         "design-system",
         "reference"
-      ]
+      ],
+      "licenseStatus": "reviewed",
+      "version": "unpinned",
+      "contentHash": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
+      "reviewedBy": "pending-human-review",
+      "reviewedAt": "2026-08-14"
     },
     {
       "id": "document-design-system",
@@ -2269,7 +2781,12 @@
       "categories": [
         "document",
         "report"
-      ]
+      ],
+      "licenseStatus": "reviewed",
+      "version": "unpinned",
+      "contentHash": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
+      "reviewedBy": "pending-human-review",
+      "reviewedAt": "2026-08-14"
     },
     {
       "id": "dataviz-critique-skills",
@@ -2283,7 +2800,12 @@
       "categories": [
         "dataviz",
         "review"
-      ]
+      ],
+      "licenseStatus": "reviewed",
+      "version": "unpinned",
+      "contentHash": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
+      "reviewedBy": "pending-human-review",
+      "reviewedAt": "2026-08-14"
     },
     {
       "id": "brand-identity-generator",
@@ -2296,7 +2818,12 @@
       "use": "品牌身份生成",
       "categories": [
         "brand"
-      ]
+      ],
+      "licenseStatus": "reviewed",
+      "version": "unpinned",
+      "contentHash": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
+      "reviewedBy": "pending-human-review",
+      "reviewedAt": "2026-08-14"
     },
     {
       "id": "ultimate-uiux-design-skills",
@@ -2310,7 +2837,12 @@
       "categories": [
         "ui-ux",
         "context-pack"
-      ]
+      ],
+      "licenseStatus": "reviewed",
+      "version": "unpinned",
+      "contentHash": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
+      "reviewedBy": "pending-human-review",
+      "reviewedAt": "2026-08-14"
     },
     {
       "id": "ux-writing-skill",
@@ -2323,7 +2855,12 @@
       "use": "UX 写作系统（147⭐，仓库无 LICENSE 文件 → reference-only）",
       "categories": [
         "ux-writing"
-      ]
+      ],
+      "licenseStatus": "reference-only",
+      "version": "unpinned",
+      "contentHash": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
+      "reviewedBy": "pending-human-review",
+      "reviewedAt": "2026-08-14"
     },
     {
       "name": "design-lab/knowledge/visual-quality/hue",
@@ -2334,7 +2871,12 @@
       "status": "adopt-now",
       "note": "色彩系统设计 skill + 12 模板；排除 examples/ 演示资产",
       "absorbed_at": "2026-08-14",
-      "id": "hue"
+      "id": "hue",
+      "licenseStatus": "reviewed",
+      "version": "unpinned",
+      "contentHash": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
+      "reviewedBy": "pending-human-review",
+      "reviewedAt": "2026-08-14"
     },
     {
       "name": "design-lab/knowledge/visual-quality/qiaomu-design",
@@ -2345,7 +2887,12 @@
       "status": "adopt-now",
       "note": "乔木设计系统 skill + 76 参考（Apple fluid/Carbon/中文排版）；排除 docs/",
       "absorbed_at": "2026-08-14",
-      "id": "qiaomu-design"
+      "id": "qiaomu-design",
+      "licenseStatus": "reviewed",
+      "version": "unpinned",
+      "contentHash": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
+      "reviewedBy": "pending-human-review",
+      "reviewedAt": "2026-08-14"
     },
     {
       "name": "design-lab/knowledge/visual-quality/interface-design",
@@ -2356,7 +2903,12 @@
       "status": "adopt-now",
       "note": "界面设计系统模板（system-template + examples）",
       "absorbed_at": "2026-08-14",
-      "id": "interface-design"
+      "id": "interface-design",
+      "licenseStatus": "reviewed",
+      "version": "unpinned",
+      "contentHash": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
+      "reviewedBy": "pending-human-review",
+      "reviewedAt": "2026-08-14"
     },
     {
       "id": "visual-note-card",
@@ -2367,7 +2919,12 @@
       "integration_mode": "vendor-adapt",
       "status": "adopt-now",
       "note": "中文视觉笔记卡片/信息图（SKILL.md + html2png）",
-      "absorbed_at": "2026-08-14"
+      "absorbed_at": "2026-08-14",
+      "licenseStatus": "reviewed",
+      "version": "unpinned",
+      "contentHash": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
+      "reviewedBy": "pending-human-review",
+      "reviewedAt": "2026-08-14"
     },
     {
       "id": "affiliate-skills",
@@ -2378,7 +2935,12 @@
       "integration_mode": "vendor-adapt",
       "status": "adopt-now",
       "note": "联盟营销 32 skill（landing/内容/分析/自动化）",
-      "absorbed_at": "2026-08-14"
+      "absorbed_at": "2026-08-14",
+      "licenseStatus": "reviewed",
+      "version": "unpinned",
+      "contentHash": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
+      "reviewedBy": "pending-human-review",
+      "reviewedAt": "2026-08-14"
     }
   ]
 }
