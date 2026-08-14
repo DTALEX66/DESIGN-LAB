@@ -203,7 +203,7 @@ def verify_capability_status(status: dict[str, Any], results: list[Result]) -> N
     promotion_rules = status.get("promotionRules") if isinstance(status.get("promotionRules"), list) else []
     check(results, "promotion rules cover full ladder", len(promotion_rules) >= 5, str(len(promotion_rules)))
     rule_text = json.dumps(promotion_rules, ensure_ascii=False)
-    for phrase in ["Open Design runtime registration", "exact-SHA CI", "external acceptance"]:
+    for phrase in ["host/Agent runtime registration", "exact-SHA CI", "external acceptance"]:
         check(results, f"promotion rule mentions {phrase}", phrase.lower() in rule_text.lower(), rule_text[:500])
     hard_rules = "\n".join(str(item) for item in status.get("hardRules", []))
     for phrase in ["Static files", "runtime availability", "Commercially proven"]:

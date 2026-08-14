@@ -310,6 +310,12 @@ function syncAssetDirectory(sourceDir, outputDir) {
       fs.rmSync(path.join(outputDir, name), { recursive: true, force: true, maxRetries: 3, retryDelay: 50 });
     }
   }
+  // REUSE .license sidecars are repository governance metadata, never ship in packages
+  for (const name of fs.readdirSync(outputDir)) {
+    if (name.endsWith('.license')) {
+      fs.rmSync(path.join(outputDir, name), { force: true, maxRetries: 3, retryDelay: 50 });
+    }
+  }
 }
 
 const miniGameAudioSource = path.join(ROOT, 'assets', 'minigame-audio');

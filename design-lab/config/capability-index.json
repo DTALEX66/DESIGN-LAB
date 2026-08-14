@@ -959,7 +959,7 @@
       "sha256": "7aad60e5568df242"
     },
     {
-      "path": "intelligence/ai-product-os/.cursorrules",
+      "path": "research/quarantine/ai-product-os-frontend/.cursorrules",
       "label": "intelligence",
       "bytes": 2798,
       "sha256": "f45266877e0a00c2"
@@ -977,13 +977,13 @@
       "sha256": "82d3f4d16b334e1c"
     },
     {
-      "path": "intelligence/ai-product-os/FIGMA-FILES.md",
+      "path": "research/quarantine/ai-product-os-frontend/FIGMA-FILES.md",
       "label": "intelligence",
       "bytes": 10726,
       "sha256": "9e2bc58005fea86d"
     },
     {
-      "path": "intelligence/ai-product-os/LICENSE",
+      "path": "research/quarantine/ai-product-os-frontend/LICENSE",
       "label": "intelligence",
       "bytes": 1071,
       "sha256": "d883f2bbd49f798a"
@@ -995,103 +995,103 @@
       "sha256": "6d05578bca46c72a"
     },
     {
-      "path": "intelligence/ai-product-os/SOURCE.md",
+      "path": "research/quarantine/ai-product-os-frontend/SOURCE.md",
       "label": "intelligence",
       "bytes": 361,
       "sha256": "f74b741051def010"
     },
     {
-      "path": "intelligence/ai-product-os/WORKFLOW.md",
+      "path": "research/quarantine/ai-product-os-frontend/WORKFLOW.md",
       "label": "intelligence",
       "bytes": 40597,
       "sha256": "bf1fa9a04666b45c"
     },
     {
-      "path": "intelligence/ai-product-os/app.html",
+      "path": "research/quarantine/ai-product-os-frontend/app.html",
       "label": "intelligence",
       "bytes": 1279,
       "sha256": "328d6aeffac1311e"
     },
     {
-      "path": "intelligence/ai-product-os/app.jsx",
+      "path": "research/quarantine/ai-product-os-frontend/app.jsx",
       "label": "intelligence",
       "bytes": 8472,
       "sha256": "edc53e2c49122168"
     },
     {
-      "path": "intelligence/ai-product-os/claude-design-export/README.md",
+      "path": "research/quarantine/ai-product-os-frontend/claude-design-export/README.md",
       "label": "intelligence",
       "bytes": 571,
       "sha256": "c3e4f21b614654ba"
     },
     {
-      "path": "intelligence/ai-product-os/data.jsx",
+      "path": "research/quarantine/ai-product-os-frontend/data.jsx",
       "label": "intelligence",
       "bytes": 579,
       "sha256": "d962232d4190eb40"
     },
     {
-      "path": "intelligence/ai-product-os/docs/brief.md",
+      "path": "research/quarantine/ai-product-os-frontend/docs/brief.md",
       "label": "intelligence",
       "bytes": 738,
       "sha256": "2bbf4b285d09f1d0"
     },
     {
-      "path": "intelligence/ai-product-os/figma.html",
+      "path": "research/quarantine/ai-product-os-frontend/figma.html",
       "label": "intelligence",
       "bytes": 20213,
       "sha256": "63be4ec38c2e14e8"
     },
     {
-      "path": "intelligence/ai-product-os/figma/README.md",
+      "path": "research/quarantine/ai-product-os-frontend/figma/README.md",
       "label": "intelligence",
       "bytes": 479,
       "sha256": "5710929742d213e6"
     },
     {
-      "path": "intelligence/ai-product-os/icons.jsx",
+      "path": "research/quarantine/ai-product-os-frontend/icons.jsx",
       "label": "intelligence",
       "bytes": 236,
       "sha256": "73e47fe08fec3a63"
     },
     {
-      "path": "intelligence/ai-product-os/index.html",
+      "path": "research/quarantine/ai-product-os-frontend/index.html",
       "label": "intelligence",
       "bytes": 6857,
       "sha256": "22e8503bfd390b76"
     },
     {
-      "path": "intelligence/ai-product-os/rules.md",
+      "path": "research/quarantine/ai-product-os-frontend/rules.md",
       "label": "intelligence",
       "bytes": 4670,
       "sha256": "5aea7f0f72f61481"
     },
     {
-      "path": "intelligence/ai-product-os/screens-home.jsx",
+      "path": "research/quarantine/ai-product-os-frontend/screens-home.jsx",
       "label": "intelligence",
       "bytes": 7066,
       "sha256": "ef6a43b77edde641"
     },
     {
-      "path": "intelligence/ai-product-os/screens-onboarding.jsx",
+      "path": "research/quarantine/ai-product-os-frontend/screens-onboarding.jsx",
       "label": "intelligence",
       "bytes": 1302,
       "sha256": "02c970bfd09ce5e0"
     },
     {
-      "path": "intelligence/ai-product-os/shared.jsx",
+      "path": "research/quarantine/ai-product-os-frontend/shared.jsx",
       "label": "intelligence",
       "bytes": 6785,
       "sha256": "6e91a8cd965cd846"
     },
     {
-      "path": "intelligence/ai-product-os/skills-lock.json",
+      "path": "research/quarantine/ai-product-os-frontend/skills-lock.json",
       "label": "intelligence",
       "bytes": 2009,
       "sha256": "1d183b142da3c451"
     },
     {
-      "path": "intelligence/ai-product-os/styles.css",
+      "path": "research/quarantine/ai-product-os-frontend/styles.css",
       "label": "intelligence",
       "bytes": 2654,
       "sha256": "e7d4af4d42e18727"

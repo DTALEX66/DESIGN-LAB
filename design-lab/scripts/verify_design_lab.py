@@ -17,7 +17,6 @@ SCRIPTS = [
     "verify_product_manifest_v3.py",
     "verify_runtime_contracts_v3.py",
     "verify_visual_scoring_v3.py",
-    "verify_release_evidence.py",
     "verify_source_registry_v2.py",
     "verify_v2_protocols.py",
     "verify_visual_quality_v21.py",
@@ -26,7 +25,13 @@ SCRIPTS = [
     "verify_adapter_registry.py",
     "verify_benchmark_registry.py",
     "verify_evidence_cards.py",
+    "verify_asset_governance.py",
 ]
+
+# Release-time gate: invoked separately with a release-evidence file argument.
+# Kept out of the daily chain because it requires evidence input and must fail
+# closed (non-zero) when no exact-SHA evidence is provided.
+RELEASE_VERIFIER = "verify_release_evidence.py"
 
 # E1 确定性检查（DL-QLT-001 / DL-PRD-001），以参数化方式运行
 EXTRA_CHECKS = [
@@ -37,7 +42,7 @@ EXTRA_CHECKS = [
             # scan design-lab/ (resolved absolute below), skipping vendored/template trees
             ".",
             "--skip-prefixes",
-            "knowledge/,intelligence/,templates/,evals/,exports/,domain-packs/uiux-design/benchmarks/,design-systems/",
+            "knowledge/,intelligence/,templates/,evals/,exports/,domain-packs/uiux-design/benchmarks/,design-systems/,research/quarantine/,project-memory/history/,reports/history/",
         ],
     ),
 ]
@@ -48,7 +53,8 @@ def main() -> int:
     for name in SCRIPTS:
         script = root / name
         if not script.exists():
-            print(f"SKIP {name} (missing)")
+            print(f"MISSING {name} (required verifier absent)")
+            results.append((name, 2))
             continue
         print(f"\n===== {name} =====")
         r = subprocess.run([sys.executable, str(script)], capture_output=True, text=True)
@@ -81,7 +87,7 @@ def main() -> int:
 
     failed = [name for name, code in results if code != 0]
     ok = not failed
-    # write verify-chain marker (used by verify_release_gate; exact-SHA binding)
+    # write verify-chain marker ONLY on full pass; on failure remove/leave FAIL.
     # root here = design-lab/scripts/; repo root = root.parent.parent
     try:
         import subprocess as _sp
@@ -89,8 +95,12 @@ def main() -> int:
         head = _sp.run(["git", "-C", str(repo_root), "rev-parse", "HEAD"],
                        capture_output=True, text=True).stdout.strip()
         marker = repo_root / "design-lab" / "config" / ".verify-chain-ok"
-        marker.parent.mkdir(parents=True, exist_ok=True)
-        marker.write_text(f"ok {head}\n", encoding="utf-8")
+        if ok:
+            marker.parent.mkdir(parents=True, exist_ok=True)
+            marker.write_text(f"ok {head}\n", encoding="utf-8")
+        else:
+            if marker.exists():
+                marker.write_text(f"FAIL {head}\n", encoding="utf-8")
     except Exception:
         pass
     print(f"\nVERIFY_DESIGN_LAB={'OK' if ok else 'FAIL'} total={len(results)} failed={len(failed)}")
