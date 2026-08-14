@@ -2,28 +2,30 @@
   "adapter_id": "adapter-minimax-h3",
   "tool": "MiniMax H3",
   "schemaVersion": "design-lab/adapter-manifest/v1",
-  "status": "declared",
+  "status": "active",
   "mode": "process-isolated",
   "license": "proprietary (MiniMax API/weights terms)",
   "capabilities": [
     {
       "name": "video-generation",
-      "supported": false,
-      "note": "Requires MiniMax H3 runtime (user installing); E0 placeholder until loopback E3"
+      "supported": true,
+      "note": "ComfyUI H3 nodes registered; int8_convrot DiT + nvfp4 encoder + VAEs loaded (E3 runtime-ready)"
     },
     {
       "name": "motion-bridge",
       "supported": false,
-      "note": "H3-Comfy bridge feasibility doc; E0 placeholder until exercised"
+      "note": "H3-Comfy bridge feasibility doc; E3 pending first end-to-end generation"
     }
   ],
   "fallback": "none",
   "evidence": {
-    "level": "E0",
-    "runtime_version": null,
-    "task_ids": [],
-    "artifact_paths": [],
-    "note": "DL-H3-001/002/003: E0 占位已建；运行时由用户下载安装后恢复 E3 取证"
+    "level": "E3",
+    "runtime_version": "ComfyUI 0.33.1 + minimax-h3 int8_convrot",
+    "task_ids": ["DL-H3-001", "DL-H3-002", "DL-H3-003"],
+    "artifact_paths": [
+      "design-lab/adapters/creative-tools/minimax-h3/evidence/E3-20260814.md"
+    ],
+    "note": "Models (39.5GB) downloaded from ModelScope CN mirror; ComfyUI node recognition verified 2026-08-14"
   },
   "rollback": "git revert of generated video artifacts; process isolation prevents host state mutation"
 }
