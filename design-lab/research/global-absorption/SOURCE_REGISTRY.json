@@ -3689,9 +3689,9 @@
       "url": "https://github.com/Nihalgraphics/AI-Product-OS-for-UI-UX-Brand-Prototype",
       "license": "MIT",
       "license_verified": true,
-      "integration_mode": "vendor-adapt",
-      "status": "adopt-now",
-      "use": "8 设计师技能 + 15 步 UI/UX/品牌/原型流程",
+      "integration_mode": "quarantine",
+      "status": "review-required",
+      "use": "8 设计师技能 + 15 步 UI/UX/品牌/原型流程；完整前端已隔离（源码外置 Design assets）",
       "categories": [
         "ui-ux",
         "brand",
@@ -3704,10 +3704,10 @@
       "reviewedAt": "2026-08-14",
       "exact_revision": "90e028231d193c334549e4687c6bdd6e1a67294e",
       "sourceHash": "git:90e028231d193c334549e4687c6bdd6e1a67294e",
-      "runtimeEvidence": "none (registry-only)",
+      "runtimeEvidence": "none (quarantined; source externalized to Design assets, not in Git)",
       "licenseHash": "license-pinned",
-      "rollback": "git rm vendored dir; registry status -> review-required",
-      "windows": "vendored source (platform-neutral)",
+      "rollback": "registry status -> reference-only; source stays external",
+      "windows": "quarantine (reference-only observation; not in capability index)",
       "binaryModelLicense": "MIT"
     },
     {
