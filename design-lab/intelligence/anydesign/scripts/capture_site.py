@@ -36,6 +36,8 @@ Requirements:
     playwright install chromium
 
 If Playwright is not installed, the script prints the exact install command.
+Navigation failures abort by default; use --allow-partial only when a partial
+render is explicitly acceptable.
 """
 
 import argparse
@@ -204,6 +206,7 @@ def capture_one(
     user_agent=DEFAULT_USER_AGENT,
     wait_until="networkidle",
     timeout=30000,
+    allow_partial=False,
 ):
     """Capture a single viewport. Returns the output path."""
     from playwright.sync_api import sync_playwright
@@ -226,8 +229,14 @@ def capture_one(
         try:
             page.goto(url, wait_until=wait_until, timeout=timeout)
         except Exception as e:
+            if not allow_partial:
+                browser.close()
+                raise RuntimeError(
+                    f"Page navigation failed for {url!r}: {e}. "
+                    "Use --allow-partial only if incomplete capture is explicitly acceptable."
+                ) from e
             print(f"   Page took longer than expected or partial load: {e}")
-            print("   Continuing with what rendered so far.")
+            print("   Continuing with explicitly requested partial capture.")
 
         # Small extra wait for entry animations
         page.wait_for_timeout(1000)
@@ -367,6 +376,11 @@ def main():
         default=30000,
         help="Timeout in milliseconds (default: 30000)",
     )
+    parser.add_argument(
+        "--allow-partial",
+        action="store_true",
+        help="Continue after navigation failure and mark the capture as partial.",
+    )
 
     args = parser.parse_args()
 
@@ -398,6 +412,7 @@ def main():
                 user_agent=args.user_agent,
                 wait_until=args.wait_until,
                 timeout=args.timeout,
+                allow_partial=args.allow_partial,
             )
     except Exception as e:
         print(f"Error during capture: {e}", file=sys.stderr)

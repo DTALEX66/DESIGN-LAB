@@ -98,7 +98,11 @@ def fetch_live_css_vars(url, timeout=15):
         absolute = urljoin(url, href)
         css_text = http_get(absolute, timeout=timeout)
         if css_text is None:
-            continue
+            print(
+                f"   abort: linked stylesheet could not be fetched: {absolute}",
+                file=sys.stderr,
+            )
+            return None
         for name, raw_value in CSS_VAR_RE.findall(css_text):
             vars_map.setdefault(name, " ".join(raw_value.split()))
     return vars_map

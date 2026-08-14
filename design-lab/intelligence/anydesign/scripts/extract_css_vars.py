@@ -177,6 +177,33 @@ def build_output(seen, overrides, url, sources):
     }
 
 
+def collect_stylesheets(html, base_url, timeout=15):
+    """Collect inline and linked CSS, returning data and failed URLs separately."""
+    all_pairs = []
+    sources = []
+    failed = []
+
+    inline_blocks = find_inline_styles(html)
+    for i, css in enumerate(inline_blocks):
+        pairs = extract_vars_from_css(css)
+        if pairs:
+            sources.append(f"inline-style-{i}")
+            all_pairs.extend(pairs)
+
+    stylesheet_urls = find_stylesheet_urls(html, base_url)
+    for ss_url in stylesheet_urls:
+        css_text = http_get(ss_url, timeout=timeout)
+        if css_text is None:
+            failed.append(ss_url)
+            continue
+        pairs = extract_vars_from_css(css_text)
+        if pairs:
+            sources.append(ss_url)
+            all_pairs.extend(pairs)
+
+    return all_pairs, sources, failed
+
+
 def main():
     parser = argparse.ArgumentParser(
         description=(
@@ -204,6 +231,11 @@ def main():
         default=15,
         help="HTTP timeout per request in seconds (default: 15).",
     )
+    parser.add_argument(
+        "--allow-partial",
+        action="store_true",
+        help="Write partial output when linked stylesheets fail (marked incomplete).",
+    )
 
     args = parser.parse_args()
 
@@ -218,32 +250,30 @@ def main():
         print("Could not fetch the page. Aborting.", file=sys.stderr)
         sys.exit(1)
 
-    all_pairs = []
-    sources = []
-
-    inline_blocks = find_inline_styles(html)
-    if inline_blocks:
-        print(f"Found {len(inline_blocks)} inline <style> block(s).", file=sys.stderr)
-        for i, css in enumerate(inline_blocks):
-            pairs = extract_vars_from_css(css)
-            if pairs:
-                sources.append(f"inline-style-{i}")
-                all_pairs.extend(pairs)
-
     stylesheet_urls = find_stylesheet_urls(html, args.url)
+    print(f"Found {len(find_inline_styles(html))} inline <style> block(s).", file=sys.stderr)
     print(f"Found {len(stylesheet_urls)} linked stylesheet(s).", file=sys.stderr)
-    for ss_url in stylesheet_urls:
-        css_text = http_get(ss_url, timeout=args.timeout)
-        if css_text is None:
-            continue
-        pairs = extract_vars_from_css(css_text)
-        if pairs:
-            sources.append(ss_url)
-            all_pairs.extend(pairs)
-            print(f"   {ss_url} → {len(pairs)} vars", file=sys.stderr)
+    all_pairs, sources, failed = collect_stylesheets(html, args.url, timeout=args.timeout)
+    if failed:
+        print(
+            f"Failed to fetch {len(failed)} linked stylesheet(s):",
+            file=sys.stderr,
+        )
+        for ss_url in failed:
+            print(f"   {ss_url}", file=sys.stderr)
+        if not args.allow_partial:
+            print(
+                "Aborting without output. Re-run with --allow-partial only "
+                "if incomplete CSS is explicitly acceptable.",
+                file=sys.stderr,
+            )
+            sys.exit(1)
+        print("Continuing with explicitly requested partial output.", file=sys.stderr)
 
     seen, overrides = merge_uniq(all_pairs)
     output = build_output(seen, overrides, args.url, sources)
+    output["_meta"]["complete"] = not failed
+    output["_meta"]["failed_stylesheets"] = failed
 
     indent = 2 if args.pretty else None
     serialized = json.dumps(output, indent=indent, ensure_ascii=False)
