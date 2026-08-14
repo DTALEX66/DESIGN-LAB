@@ -15,7 +15,7 @@
 
 ## 当前基线与本轮审计交付
 
-- 最近一次自动化验证基线：`2021a5bc0ed1279cd5d1cdc5ecee0293e782dde6` 已推送，Canonical 16/16、Python 174 passed、MiniGame 319 passed；exact-SHA CI run `31827866614` 已成功
+- 最近一次自动化验证基线：`65b78555d0d0649792f2f32c66090c3154b32127` 已推送，Canonical 16/16、Python 175 passed、MiniGame 319 passed；exact-SHA CI run `31828693033` 已成功
 - 本轮结构证据闭环：`2ea6dcb5302269552f1437316d68a8b0c2732242` 新增 `verify_style_master_method.py` 并接入 Canonical，497 masters / 77 anchor cards / 47 lineages / 47 analysis cards 均通过；style-master-method 从 E0 诚实提升为 E1 structural，Canonical 16/16，exact-SHA CI run `31827742980` 成功；release gate 从 8 项降为 7 项，仍由真实 E2/E3、人工校准和 DL-REL-001 阻塞
 - 本轮证据边界修复：`91aa2db` 已通过 exact-SHA CI；`b25c76a` 扩展为全量 `reports/*.md` E3/E4/E5/runtime 声明 fail-closed 门禁；`3f87527` 修复 release gate 只检查人工 marker 的漏洞，`a95f8bb` 补齐新增回归测试 SPDX 头并通过 exact-SHA CI run `31824338318`，现会同时阻断 capability floors（5 项不足）和 Evidence Cards（0/12 accepted）
 - 当前 Git 树未跟踪 `docs/current/TASK_GRAPH_V2.yaml`，也没有活动文件引用该路径；不依据旧交接文本推断或伪造当前任务图，任务 SSOT 以本路线图、产品 manifest 和 capability index 为准
@@ -25,7 +25,7 @@
 - 九份 SSOT + 13 核心对象 + **9 适配器合同（open-design/figma/penpot/blender/ffmpeg/browser/comfyui/adobe/h3，全部 E0 就绪）** + Visual Quality Jury V1 + Production Preflight V1
 - DL-KNW-001 十三批吸收：35 个 MIT/Apache/CC0 设计 SKILL 源码级 vendoring + 7 reference 登记（hallmark/taste-skill/huashu/uiux-pro-max/motion×2/shipit/design-checklist/game-ui/blender/motion-engine/brand×3/design-system-prompt/claude2figma/extract-ds/anydesign/ppt-agent/swiftui/a11y×2/brandbook/logo/ecommerce/motion-forensics/springy/genjutsu/baoyu/ultimate-uiux/hue/qiaomu/interface-design/visual-note-card/affiliate 等）
 - SOURCE_REGISTRY 162 条（schema 校验通过）；CAPABILITY_INDEX count=2222
-- identity gate / unified verifier（**15 检查**，含 adapter/benchmark/evidence 防漂移）/ MiniGame fixture 边界 / CI 4 gate 全绿
+- identity gate / unified verifier（**16 检查**，含 adapter/benchmark/evidence/style-master 防漂移）/ MiniGame fixture 边界 / CI 4 gate 全绿
 - 评测资产：12 benchmark briefs + 19 rubrics + 12 evidence cards + 评分单模板（DL-REL-001 验收路径就绪）
 
 ## 非 MiniMax H3 / ComfyUI 的剩余问题与后续任务
