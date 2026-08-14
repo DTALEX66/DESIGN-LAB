@@ -104,10 +104,11 @@
       "id": "style-master-method",
       "title": "Style master records and method cards",
       "minimumRequiredEvidence": "E1",
-      "actualEvidence": "E0",
-      "evidence": "Declared scope only: source verification and method-card closure for the retained master-record set are not complete.",
-      "artifact": "research/style-masters/, knowledge/",
-      "reviewer": "HERMES (self-verified; not promoted)",
+      "actualEvidence": "E1",
+      "evidence": "Structural: the 497-entry master registry, 77 anchor method cards, 47 style lineages and 47 analysis cards pass deterministic count, shape, unique-ID, eligibility and direct-generation-marker checks. Source verification and research-to-method-card closure remain incomplete; this promotion is structural only.",
+      "run": "verify_style_master_method.py -> STYLE_MASTER_METHOD=PASS masters=497 cards=77 lineages=47 analysis_cards=47 errors=0",
+      "artifact": "research/master-studies/MASTER_REGISTRY.json, research/master-studies/ANCHOR_METHOD_CARDS.json, research/style-lineages/STYLE_LINEAGES.json, research/style-lineages/STYLE_ANALYSIS_CARDS.json",
+      "reviewer": "HERMES (self-verified structural verifier; source/research closure pending)",
       "requiresRequalification": true
     },
     {
@@ -163,9 +164,10 @@
     },
     {
       "capability_id": "style-master-method",
-      "evidence_level": "E0",
+      "evidence_level": "E1",
       "artifacts": [
-        "declaration_doc"
+        "declaration_doc",
+        "structural_verifier"
       ]
     },
     {

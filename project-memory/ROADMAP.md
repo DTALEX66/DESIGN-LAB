@@ -38,7 +38,7 @@
 | ODA4-0908 | Pareto 的真实延迟/Token/成本数据与回归报告 | 真实运行记录；不得用 manifest 规格字段代替 |
 | DL-EVD-001 / creative-toolchain | Open Design 插件/原子重新注册、最小任务、artifact/provenance read-back | Open Design runtime；不涉及 H3/ComfyUI |
 | DL-CI-004 → ODA4-1105/1106 | E4 exact-SHA 发布证据、独立复审与最终发布收尾 | 上述人工/E3 前置全部完成并获授权 |
-| Phase 7 style-master-method | 497 master records / 77 method cards 的来源核验与方法卡闭环 | 另立范围；当前 E0，不阻塞本轮结构 gate |
+| Phase 7 style-master-method | 497 master records / 77 method cards 的来源核验与方法卡闭环 | 结构层已验证为 E1；来源核验与方法卡闭环仍另立范围，不阻塞本轮结构 gate |
 
 ## 推进规则
 

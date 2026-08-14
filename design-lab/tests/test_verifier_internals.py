@@ -4,6 +4,7 @@
 - verify_product_manifest_v3.py (entry count)
 - verify_visual_scoring_v3.py (entry count)
 - verify_v2_protocols.py (exit contract)
+- verify_style_master_method.py (structural count and safety floor)
 """
 from __future__ import annotations
 
@@ -208,6 +209,21 @@ class VisualQualityV21Tests(unittest.TestCase):
         self.assertTrue(m, "v21 report must include RUBRICS count")
         self.assertGreaterEqual(int(m.group(1)), 19)
         self.assertIn("ERRORS=0", r.stdout)
+
+
+class StyleMasterMethodTests(unittest.TestCase):
+    def test_style_master_structural_floor_is_verified(self):
+        r = subprocess.run(
+            [sys.executable, str(SCRIPTS / "verify_style_master_method.py")],
+            capture_output=True,
+            text=True,
+            cwd=ROOT,
+        )
+        self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
+        self.assertIn(
+            "STYLE_MASTER_METHOD=PASS masters=497 cards=77 lineages=47 analysis_cards=47 errors=0",
+            r.stdout,
+        )
 
 
 class CapabilityIndexTests(unittest.TestCase):

@@ -20,6 +20,7 @@ SCRIPTS = [
     "verify_source_registry_v2.py",
     "verify_v2_protocols.py",
     "verify_visual_quality_v21.py",
+    "verify_style_master_method.py",
     "verify_capability_evidence_v4.py",
     "verify_comfyui_gate.py",
     "verify_sbom.py",
@@ -60,7 +61,7 @@ def main() -> int:
         print(f"\n===== {name} =====")
         r = subprocess.run([sys.executable, str(script)], capture_output=True, text=True)
         tail = r.stdout.strip().splitlines()
-        summary = next((line for line in reversed(tail) if line.startswith(("VERIFY_", "ADAPTER_", "BENCHMARK_", "EVIDENCE_", "PASS", "FAIL"))), "")
+        summary = next((line for line in reversed(tail) if line.startswith(("VERIFY_", "STYLE_MASTER_METHOD=", "ADAPTER_", "BENCHMARK_", "EVIDENCE_", "PASS", "FAIL"))), "")
         print(summary)
         if r.returncode != 0:
             # print the specific failing checks for diagnosis
