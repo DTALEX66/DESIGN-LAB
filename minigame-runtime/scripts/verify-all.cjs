@@ -92,20 +92,25 @@ run('Skin schema validation', modern.executable, ['scripts/validate-skins.mjs'])
 run('V5 content validation', modern.executable, ['scripts/validate-v5-content.mjs']);
 printSummary('[verify] skins + v5 content: pass');
 // Android debug APK build requires the portable Android toolchain (JDK 17 +
-// Android SDK + Gradle). It is an external environment dependency — when the
-// toolchain is absent, skip with a marker instead of hard-failing, so the
-// acceptance gate stays meaningful on machines without Android tooling.
+// Android SDK + Gradle). It is a required acceptance step: an absent toolchain
+// is a blocked gate, not a passing skip.
 const toolchainRoot = join(__dirname, '..', '.tools');
 const androidToolchainReady = ['java/jdk-17', 'android-sdk', 'gradle/gradle-8.10.2/bin'].every(
   (rel) => existsSync(join(toolchainRoot, rel)),
 );
 if (!androidToolchainReady) {
-  console.log('[verify] Android debug APK build: SKIP (portable Android toolchain not installed)');
-  console.log('[verify] Android APK metadata inspection: SKIP (toolchain not installed)');
+  console.error('[verify] Android debug APK build: BLOCKED (portable Android toolchain not installed)');
+  console.error('[verify] Android APK metadata inspection: BLOCKED (toolchain not installed)');
+  console.error('[verify] Install the project-local portable Android toolchain before claiming acceptance.');
+  process.exitCode = 2;
 } else {
   run('Android debug APK build', modern.executable, ['scripts/build-android-debug.mjs']);
   printSummary('[verify] android build: OK');
   run('Android APK metadata inspection', modern.executable, ['scripts/check-apk-metadata.mjs']);
   printSummary('[verify] apk metadata: OK');
+}
+if (process.exitCode) {
+  if (!summaryMode) console.error(`\n[verify] acceptance gate blocked with exit code ${process.exitCode}`);
+  process.exit(process.exitCode);
 }
 if (!summaryMode) console.log('\n[verify] ✅ all checks passed');

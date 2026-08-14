@@ -41,6 +41,8 @@ test('verify script runs the full release acceptance gate', () => {
   assert.match(verifyScript, /check-douyin-compliance\.mjs', '--strict'/, 'verify should run Douyin compliance check');
   assert.match(verifyScript, /build-android-debug\.mjs/, 'verify should build Android APK');
   assert.match(verifyScript, /check-apk-metadata\.mjs/, 'verify should inspect APK metadata');
+  assert.match(verifyScript, /Android debug APK build: BLOCKED/, 'missing Android tooling must block acceptance');
+  assert.match(verifyScript, /process\.exitCode = 2/, 'blocked Android acceptance must return a non-zero exit code');
 });
 
 test('Douyin scripts provide build and strict validation commands', () => {

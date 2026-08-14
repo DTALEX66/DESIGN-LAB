@@ -32,6 +32,12 @@ npm test             # 测试
 npm run verify       # 视觉回归 + 构建检查
 ```
 
+`npm run verify` 是 fail-closed acceptance gate：如果项目内 portable Android
+toolchain（JDK 17 + Android SDK + Gradle）不存在，Android build/metadata 会
+报告 `BLOCKED` 并以非零退出；不能把 `SKIP` 当作验收通过。只需要 H5/小游戏
+fixture 检查时，可单独运行 `npm test`、bundle strict checks、skins 和 V5
+content checks。
+
 ## 多端构建（仅视觉回归读回，非可发行产物）
 
 多端 build 保留为**视觉工作在 H5/Canvas/WebView 的兼容和回归读回**，不是可发行产物：
