@@ -166,6 +166,10 @@
         {
           "id": "one-clear-focal-system",
           "status": "not-run"
+        },
+        {
+          "id": "source-and-license-record",
+          "status": "not-run"
         }
       ],
       "human_calibration": {
@@ -197,6 +201,10 @@
         },
         {
           "id": "one-clear-focal-system",
+          "status": "not-run"
+        },
+        {
+          "id": "source-and-license-record",
           "status": "not-run"
         }
       ],
@@ -230,6 +238,10 @@
         {
           "id": "medium-production-check",
           "status": "not-run"
+        },
+        {
+          "id": "source-and-license-record",
+          "status": "not-run"
         }
       ],
       "human_calibration": {
@@ -261,6 +273,10 @@
         },
         {
           "id": "production-readiness",
+          "status": "not-run"
+        },
+        {
+          "id": "source-and-license-record",
           "status": "not-run"
         }
       ],
@@ -329,6 +345,10 @@
         },
         {
           "id": "medium-production-check",
+          "status": "not-run"
+        },
+        {
+          "id": "source-and-license-record",
           "status": "not-run"
         }
       ],

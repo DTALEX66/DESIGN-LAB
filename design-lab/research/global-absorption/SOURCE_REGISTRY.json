@@ -10,7 +10,6 @@
         "agent-platform"
       ],
       "name": "Open Design",
-      "category": "agent-platform",
       "url": "https://github.com/nexu-io/open-design",
       "license": "Apache-2.0",
       "license_verified": true,
@@ -39,7 +38,6 @@
         "documentation"
       ],
       "name": "Google DESIGN.md",
-      "category": "design-contract",
       "url": "https://github.com/google-labs-code/design.md",
       "license": "Apache-2.0",
       "license_verified": true,
@@ -67,7 +65,6 @@
         "design-tokens"
       ],
       "name": "W3C Design Tokens Community Group",
-      "category": "design-tokens",
       "url": "https://github.com/design-tokens/community-group",
       "license": "W3C Community Final Specification Agreement",
       "license_verified": true,
@@ -95,7 +92,6 @@
         "design-system"
       ],
       "name": "Hallmark",
-      "category": "design-intelligence",
       "url": "https://github.com/nutlope/hallmark",
       "license": "MIT",
       "license_verified": true,
@@ -124,7 +120,6 @@
         "design-system"
       ],
       "name": "StyleSeed",
-      "category": "design-intelligence",
       "url": "https://github.com/bitjaru/styleseed",
       "license": "MIT",
       "license_verified": true,
@@ -153,7 +148,6 @@
         "skill-governance"
       ],
       "name": "ux-skill",
-      "category": "design-intelligence",
       "url": "https://github.com/Laith0003/ux-skill",
       "license": "MIT",
       "license_verified": true,
@@ -182,7 +176,6 @@
         "ui-ux"
       ],
       "name": "TypeUI",
-      "category": "design-contract",
       "url": "https://github.com/bergside/typeui",
       "license": "UNVERIFIED",
       "license_verified": false,
@@ -210,7 +203,6 @@
         "skill-governance"
       ],
       "name": "Awesome Design Skills",
-      "category": "design-catalog",
       "url": "https://github.com/bergside/awesome-design-skills",
       "license": "UNVERIFIED",
       "license_verified": false,
@@ -239,7 +231,6 @@
         "workflow"
       ],
       "name": "Open CoDesign",
-      "category": "agent-platform",
       "url": "https://github.com/OpenCoworkAI/open-codesign",
       "license": "MIT",
       "license_verified": true,
@@ -268,7 +259,6 @@
         "agent-platform"
       ],
       "name": "OpenDesign portable skills",
-      "category": "design-intelligence",
       "url": "https://github.com/manalkaff/opendesign",
       "license": "UNVERIFIED",
       "license_verified": false,
@@ -296,7 +286,6 @@
         "skill-governance"
       ],
       "name": "Claude Design Skill",
-      "category": "design-intelligence",
       "url": "https://github.com/jiji262/claude-design-skill",
       "license": "MIT",
       "license_verified": true,
@@ -324,7 +313,6 @@
         "brand"
       ],
       "name": "brandmd",
-      "category": "design-extraction",
       "url": "https://github.com/yuvrajangadsingh/brandmd",
       "license": "UNVERIFIED",
       "license_verified": false,
@@ -352,7 +340,6 @@
         "skill-governance"
       ],
       "name": "OpenSkillEval",
-      "category": "evaluation",
       "url": "https://github.com/ALEX-nlp/OpenSkillEval",
       "license": "Apache-2.0 code; CC-BY-NC-4.0 data",
       "license_verified": true,
@@ -380,7 +367,6 @@
         "skill-governance"
       ],
       "name": "CriticEval",
-      "category": "evaluation",
       "url": "https://github.com/open-compass/CriticEval",
       "license": "UNVERIFIED",
       "license_verified": false,
@@ -408,7 +394,6 @@
         "skill-governance"
       ],
       "name": "SkillCenter paper",
-      "category": "skill-governance",
       "url": "https://arxiv.org/abs/2607.07676",
       "license": "Research paper terms",
       "license_verified": true,
@@ -434,7 +419,6 @@
         "skill-governance"
       ],
       "name": "Semantic supply-chain attacks on SKILL.md",
-      "category": "skill-security",
       "url": "https://arxiv.org/abs/2605.11418",
       "license": "Research paper terms",
       "license_verified": true,
@@ -460,7 +444,6 @@
         "accessibility"
       ],
       "name": "WCAG 2.2",
-      "category": "accessibility",
       "url": "https://www.w3.org/TR/WCAG22/",
       "license": "W3C Document License",
       "license_verified": true,
@@ -486,7 +469,6 @@
         "accessibility"
       ],
       "name": "ARIA Authoring Practices Guide",
-      "category": "accessibility",
       "url": "https://www.w3.org/WAI/ARIA/apg/",
       "license": "W3C Document License",
       "license_verified": true,
@@ -512,7 +494,6 @@
         "accessibility"
       ],
       "name": "WCAG machine-readable JSON",
-      "category": "accessibility",
       "url": "https://www.w3.org/WAI/standards-guidelines/wcag/",
       "license": "W3C Document License",
       "license_verified": true,
@@ -538,7 +519,6 @@
         "accessibility"
       ],
       "name": "W3C COGA Wayfinding",
-      "category": "spatial-accessibility",
       "url": "https://www.w3.org/TR/coga-wayfinding/",
       "license": "W3C Document License",
       "license_verified": true,
@@ -565,7 +545,6 @@
         "government"
       ],
       "name": "UK Government Design Principles",
-      "category": "service-design",
       "url": "https://www.gov.uk/guidance/government-design-principles",
       "license": "Open Government Licence v3.0",
       "license_verified": true,
@@ -591,7 +570,6 @@
         "design-system"
       ],
       "name": "GOV.UK Design System",
-      "category": "design-system",
       "url": "https://design-system.service.gov.uk/",
       "license": "MIT code; OGL-3.0 content",
       "license_verified": true,
@@ -618,7 +596,6 @@
         "government"
       ],
       "name": "18F Methods",
-      "category": "ux-research",
       "url": "https://guides.18f.org/methods/about/",
       "license": "US-Public-Domain / CC0",
       "license_verified": true,
@@ -645,7 +622,6 @@
         "government"
       ],
       "name": "18F UX Guide",
-      "category": "ux-research",
       "url": "https://guides.18f.org/ux-guide/",
       "license": "CC0-1.0",
       "license_verified": true,
@@ -671,7 +647,6 @@
         "accessibility"
       ],
       "name": "DfE Plain Language Standard",
-      "category": "content-design",
       "url": "https://standards.education.gov.uk/standard/plain-language",
       "license": "Open Government Licence v3.0",
       "license_verified": true,
@@ -698,7 +673,6 @@
         "exhibition"
       ],
       "name": "Smithsonian Accessible Exhibition Design",
-      "category": "spatial-accessibility",
       "url": "https://www.wbdg.org/ffc/smithsonian-guidelines-for-accessible-exhibition-design",
       "license": "REFERENCE-ONLY",
       "license_verified": false,
@@ -725,7 +699,6 @@
         "exhibition"
       ],
       "name": "NPS Exhibit Accessibility Guidelines",
-      "category": "spatial-accessibility",
       "url": "https://www.nps.gov/features/hfc/guidelines/",
       "license": "US-Public-Domain",
       "license_verified": true,
@@ -751,7 +724,6 @@
         "accessibility"
       ],
       "name": "ADA Standards for Accessible Design",
-      "category": "built-environment",
       "url": "https://www.ada.gov/law-and-regs/design-standards/",
       "license": "US-Government-Work",
       "license_verified": true,
@@ -777,7 +749,6 @@
         "design-system"
       ],
       "name": "IBM Carbon Design System",
-      "category": "design-system",
       "url": "https://github.com/carbon-design-system/carbon",
       "license": "Apache-2.0",
       "license_verified": true,
@@ -805,7 +776,6 @@
         "design-system"
       ],
       "name": "Material Design 3",
-      "category": "design-system",
       "url": "https://m3.material.io/",
       "license": "Apache-2.0 code; documentation terms",
       "license_verified": true,
@@ -831,7 +801,6 @@
         "design-system"
       ],
       "name": "GitHub Primer",
-      "category": "design-system",
       "url": "https://github.com/primer/design",
       "license": "MIT",
       "license_verified": true,
@@ -859,7 +828,6 @@
         "design-system"
       ],
       "name": "Adobe Spectrum CSS",
-      "category": "design-system",
       "url": "https://github.com/adobe/spectrum-css",
       "license": "Apache-2.0",
       "license_verified": true,
@@ -887,7 +855,6 @@
         "design-system"
       ],
       "name": "Microsoft Fluent UI",
-      "category": "design-system",
       "url": "https://github.com/microsoft/fluentui",
       "license": "MIT",
       "license_verified": true,
@@ -915,7 +882,6 @@
         "design-system"
       ],
       "name": "Shopify Polaris",
-      "category": "design-system",
       "url": "https://github.com/Shopify/polaris",
       "license": "MIT",
       "license_verified": true,
@@ -943,7 +909,6 @@
         "design-system"
       ],
       "name": "U.S. Web Design System",
-      "category": "design-system",
       "url": "https://github.com/uswds/uswds",
       "license": "US-Public-Domain / CC0 components",
       "license_verified": true,
@@ -972,7 +937,6 @@
         "color-management"
       ],
       "name": "CMS Design System",
-      "category": "design-system",
       "url": "https://design.cms.gov/",
       "license": "MIT",
       "license_verified": true,
@@ -998,7 +962,6 @@
         "design-system"
       ],
       "name": "Ant Design",
-      "category": "design-system",
       "url": "https://github.com/ant-design/ant-design",
       "license": "MIT",
       "license_verified": true,
@@ -1026,7 +989,6 @@
         "design-system"
       ],
       "name": "Arco Design",
-      "category": "design-system",
       "url": "https://github.com/arco-design/arco-design",
       "license": "MIT",
       "license_verified": true,
@@ -1054,7 +1016,6 @@
         "design-system"
       ],
       "name": "TDesign",
-      "category": "design-system",
       "url": "https://github.com/Tencent/tdesign",
       "license": "MIT",
       "license_verified": true,
@@ -1082,7 +1043,6 @@
         "design-system"
       ],
       "name": "Semi Design",
-      "category": "design-system",
       "url": "https://github.com/DouyinFE/semi-design",
       "license": "MIT",
       "license_verified": true,
@@ -1111,7 +1071,6 @@
         "ui-ux"
       ],
       "name": "Radix UI Primitives",
-      "category": "headless-components",
       "url": "https://github.com/radix-ui/primitives",
       "license": "MIT",
       "license_verified": true,
@@ -1141,7 +1100,6 @@
         "accessibility"
       ],
       "name": "React Aria",
-      "category": "headless-components",
       "url": "https://github.com/adobe/react-spectrum",
       "license": "Apache-2.0",
       "license_verified": true,
@@ -1169,7 +1127,6 @@
         "design-system"
       ],
       "name": "Ark UI",
-      "category": "headless-components",
       "url": "https://github.com/chakra-ui/ark",
       "license": "MIT",
       "license_verified": true,
@@ -1197,7 +1154,6 @@
         "design-system"
       ],
       "name": "Zag.js",
-      "category": "headless-components",
       "url": "https://github.com/chakra-ui/zag",
       "license": "MIT",
       "license_verified": true,
@@ -1226,7 +1182,6 @@
         "ui-ux"
       ],
       "name": "shadcn/ui",
-      "category": "component-recipes",
       "url": "https://github.com/shadcn-ui/ui",
       "license": "MIT",
       "license_verified": true,
@@ -1254,7 +1209,6 @@
         "accessibility"
       ],
       "name": "axe-core",
-      "category": "accessibility-testing",
       "url": "https://github.com/dequelabs/axe-core",
       "license": "MPL-2.0",
       "license_verified": true,
@@ -1282,7 +1236,6 @@
         "web"
       ],
       "name": "Playwright",
-      "category": "browser-testing",
       "url": "https://github.com/microsoft/playwright",
       "license": "Apache-2.0",
       "license_verified": true,
@@ -1310,7 +1263,6 @@
         "web"
       ],
       "name": "Storybook",
-      "category": "component-testing",
       "url": "https://github.com/storybookjs/storybook",
       "license": "MIT",
       "license_verified": true,
@@ -1338,7 +1290,6 @@
         "web"
       ],
       "name": "Lighthouse",
-      "category": "quality-testing",
       "url": "https://github.com/GoogleChrome/lighthouse",
       "license": "Apache-2.0",
       "license_verified": true,
@@ -1366,7 +1317,6 @@
         "web"
       ],
       "name": "BackstopJS",
-      "category": "visual-regression",
       "url": "https://github.com/garris/BackstopJS",
       "license": "MIT",
       "license_verified": true,
@@ -1395,7 +1345,6 @@
         "web"
       ],
       "name": "Chromatic accessibility/visual workflow",
-      "category": "visual-regression",
       "url": "https://www.chromatic.com/docs/",
       "license": "PROPRIETARY-SERVICE",
       "license_verified": false,
@@ -1421,7 +1370,6 @@
         "fonts"
       ],
       "name": "Chinese Layout Requirements",
-      "category": "cjk-typography",
       "url": "https://www.w3.org/TR/clreq/",
       "license": "W3C Document License",
       "license_verified": true,
@@ -1447,7 +1395,6 @@
         "fonts"
       ],
       "name": "Requirements for Japanese Text Layout",
-      "category": "cjk-typography",
       "url": "https://www.w3.org/TR/jlreq/",
       "license": "W3C Document License",
       "license_verified": true,
@@ -1473,7 +1420,6 @@
         "fonts"
       ],
       "name": "Unicode CLDR",
-      "category": "internationalization",
       "url": "https://github.com/unicode-org/cldr",
       "license": "Unicode-3.0",
       "license_verified": true,
@@ -1501,7 +1447,6 @@
         "fonts"
       ],
       "name": "Fontsource",
-      "category": "fonts",
       "url": "https://github.com/fontsource/fontsource",
       "license": "MIT code; per-font licenses",
       "license_verified": true,
@@ -1529,7 +1474,6 @@
         "fonts"
       ],
       "name": "Google Fonts repository",
-      "category": "fonts",
       "url": "https://github.com/google/fonts",
       "license": "Per-font OFL/Apache licenses",
       "license_verified": true,
@@ -1557,7 +1501,6 @@
         "fonts"
       ],
       "name": "fontTools",
-      "category": "fonts",
       "url": "https://github.com/fonttools/fonttools",
       "license": "MIT",
       "license_verified": true,
@@ -1585,7 +1528,6 @@
         "fonts"
       ],
       "name": "HarfBuzz",
-      "category": "text-shaping",
       "url": "https://github.com/harfbuzz/harfbuzz",
       "license": "MIT",
       "license_verified": true,
@@ -1613,7 +1555,6 @@
         "icons"
       ],
       "name": "Lucide Icons",
-      "category": "icons",
       "url": "https://github.com/lucide-icons/lucide",
       "license": "ISC",
       "license_verified": true,
@@ -1641,7 +1582,6 @@
         "icons"
       ],
       "name": "Phosphor Icons",
-      "category": "icons",
       "url": "https://github.com/phosphor-icons/core",
       "license": "MIT",
       "license_verified": true,
@@ -1669,7 +1609,6 @@
         "icons"
       ],
       "name": "Tabler Icons",
-      "category": "icons",
       "url": "https://github.com/tabler/tabler-icons",
       "license": "MIT",
       "license_verified": true,
@@ -1698,7 +1637,6 @@
         "icons"
       ],
       "name": "GitHub Octicons",
-      "category": "icons",
       "url": "https://github.com/primer/octicons",
       "license": "MIT",
       "license_verified": true,
@@ -1726,7 +1664,6 @@
         "icons"
       ],
       "name": "OpenMoji",
-      "category": "icons",
       "url": "https://github.com/hfg-gmuend/openmoji",
       "license": "CC-BY-SA-4.0",
       "license_verified": true,
@@ -1754,7 +1691,6 @@
         "data-visualization"
       ],
       "name": "D3",
-      "category": "data-visualization",
       "url": "https://github.com/d3/d3",
       "license": "ISC",
       "license_verified": true,
@@ -1782,7 +1718,6 @@
         "data-visualization"
       ],
       "name": "Vega-Lite",
-      "category": "data-visualization",
       "url": "https://github.com/vega/vega-lite",
       "license": "BSD-3-Clause",
       "license_verified": true,
@@ -1810,7 +1745,6 @@
         "data-visualization"
       ],
       "name": "Apache ECharts",
-      "category": "data-visualization",
       "url": "https://github.com/apache/echarts",
       "license": "Apache-2.0",
       "license_verified": true,
@@ -1838,7 +1772,6 @@
         "data-visualization"
       ],
       "name": "Observable Plot",
-      "category": "data-visualization",
       "url": "https://github.com/observablehq/plot",
       "license": "ISC",
       "license_verified": true,
@@ -1866,7 +1799,6 @@
         "data-visualization"
       ],
       "name": "Mermaid",
-      "category": "diagrams",
       "url": "https://github.com/mermaid-js/mermaid",
       "license": "MIT",
       "license_verified": true,
@@ -1894,7 +1826,6 @@
         "data-visualization"
       ],
       "name": "Graphviz",
-      "category": "diagrams",
       "url": "https://gitlab.com/graphviz/graphviz",
       "license": "EPL-1.0",
       "license_verified": true,
@@ -1920,7 +1851,6 @@
         "vector-tooling"
       ],
       "name": "SVGO",
-      "category": "vector-tooling",
       "url": "https://github.com/svg/svgo",
       "license": "MIT",
       "license_verified": true,
@@ -1949,7 +1879,6 @@
         "image-tooling"
       ],
       "name": "VTracer",
-      "category": "vector-tooling",
       "url": "https://github.com/visioncortex/vtracer",
       "license": "MIT",
       "license_verified": true,
@@ -1978,7 +1907,6 @@
         "raster"
       ],
       "name": "ImageMagick",
-      "category": "image-tooling",
       "url": "https://github.com/ImageMagick/ImageMagick",
       "license": "ImageMagick License",
       "license_verified": true,
@@ -2007,7 +1935,6 @@
         "raster"
       ],
       "name": "sharp",
-      "category": "image-tooling",
       "url": "https://github.com/lovell/sharp",
       "license": "Apache-2.0",
       "license_verified": true,
@@ -2035,7 +1962,6 @@
         "security"
       ],
       "name": "C2PA Content Credentials",
-      "category": "media-provenance",
       "url": "https://spec.c2pa.org/",
       "license": "C2PA Community Specification License",
       "license_verified": true,
@@ -2061,7 +1987,6 @@
         "print"
       ],
       "name": "Ghent Workgroup Specifications",
-      "category": "print-production",
       "url": "https://gwg.org/technical-specifications/",
       "license": "REFERENCE-ONLY",
       "license_verified": false,
@@ -2087,7 +2012,6 @@
         "pdf"
       ],
       "name": "PDF Association standards map",
-      "category": "document-standards",
       "url": "https://pdfa.org/pdf-standards/",
       "license": "REFERENCE-ONLY",
       "license_verified": false,
@@ -2114,7 +2038,6 @@
         "print"
       ],
       "name": "Adobe print-ready PDF guidance",
-      "category": "print-production",
       "url": "https://helpx.adobe.com/indesign/desktop/print/print-production-and-file-creation/produce-print-ready-pdf-files.html",
       "license": "REFERENCE-ONLY",
       "license_verified": false,
@@ -2140,7 +2063,6 @@
         "print"
       ],
       "name": "DielineLab",
-      "category": "packaging",
       "url": "https://dielinelab.com/",
       "license": "UNVERIFIED",
       "license_verified": false,
@@ -2166,7 +2088,6 @@
         "print"
       ],
       "name": "Die Cut Studio",
-      "category": "packaging",
       "url": "https://www.diecutstudio.com/",
       "license": "OUTPUT-COMMERCIAL-USE; CODE-UNVERIFIED",
       "license_verified": false,
@@ -2193,7 +2114,6 @@
         "print"
       ],
       "name": "GS1 General Specifications",
-      "category": "packaging-standards",
       "url": "https://www.gs1.org/standards/barcodes-epcrfid-id-keys/gs1-general-specifications",
       "license": "REFERENCE-ONLY",
       "license_verified": false,
@@ -2219,7 +2139,6 @@
         "presentation"
       ],
       "name": "PptxGenJS",
-      "category": "presentation",
       "url": "https://github.com/gitbrent/PptxGenJS",
       "license": "MIT",
       "license_verified": true,
@@ -2247,7 +2166,6 @@
         "presentation"
       ],
       "name": "python-pptx",
-      "category": "presentation",
       "url": "https://github.com/scanny/python-pptx",
       "license": "MIT",
       "license_verified": true,
@@ -2275,7 +2193,6 @@
         "presentation"
       ],
       "name": "reveal.js",
-      "category": "presentation",
       "url": "https://github.com/hakimel/reveal.js",
       "license": "MIT",
       "license_verified": true,
@@ -2303,7 +2220,6 @@
         "presentation"
       ],
       "name": "Slidev",
-      "category": "presentation",
       "url": "https://github.com/slidevjs/slidev",
       "license": "MIT",
       "license_verified": true,
@@ -2331,7 +2247,6 @@
         "publishing"
       ],
       "name": "Typst",
-      "category": "publishing",
       "url": "https://github.com/typst/typst",
       "license": "Apache-2.0",
       "license_verified": true,
@@ -2360,7 +2275,6 @@
         "publishing"
       ],
       "name": "Paged.js",
-      "category": "publishing",
       "url": "https://github.com/pagedjs/pagedjs",
       "license": "MIT",
       "license_verified": true,
@@ -2388,7 +2302,6 @@
         "pdf"
       ],
       "name": "Apache PDFBox",
-      "category": "pdf-tooling",
       "url": "https://github.com/apache/pdfbox",
       "license": "Apache-2.0",
       "license_verified": true,
@@ -2416,7 +2329,6 @@
         "pdf"
       ],
       "name": "QPDF",
-      "category": "pdf-tooling",
       "url": "https://github.com/qpdf/qpdf",
       "license": "Apache-2.0",
       "license_verified": true,
@@ -2444,7 +2356,6 @@
         "pdf"
       ],
       "name": "Ghostscript",
-      "category": "pdf-tooling",
       "url": "https://git.ghostscript.com/?p=ghostpdl.git",
       "license": "AGPL-3.0-or-later / commercial",
       "license_verified": true,
@@ -2469,7 +2380,6 @@
         "pdf"
       ],
       "name": "veraPDF",
-      "category": "pdf-accessibility",
       "url": "https://github.com/veraPDF/veraPDF-library",
       "license": "MPL-2.0",
       "license_verified": true,
@@ -2497,7 +2407,6 @@
         "motion"
       ],
       "name": "Lottie Animation Format",
-      "category": "motion-format",
       "url": "https://github.com/lottie-animation-community/docs",
       "license": "Community Specification License",
       "license_verified": true,
@@ -2525,7 +2434,6 @@
         "motion"
       ],
       "name": "lottie-web",
-      "category": "motion-runtime",
       "url": "https://github.com/airbnb/lottie-web",
       "license": "MIT",
       "license_verified": true,
@@ -2553,7 +2461,6 @@
         "motion"
       ],
       "name": "Motion",
-      "category": "motion-runtime",
       "url": "https://github.com/motiondivision/motionone",
       "license": "MIT",
       "license_verified": true,
@@ -2581,7 +2488,6 @@
         "motion"
       ],
       "name": "Motion for React",
-      "category": "motion-runtime",
       "url": "https://github.com/motiondivision/motion",
       "license": "MIT",
       "license_verified": true,
@@ -2610,7 +2516,6 @@
         "accessibility"
       ],
       "name": "WCAG reduced motion techniques",
-      "category": "motion-accessibility",
       "url": "https://www.w3.org/WAI/WCAG22/Techniques/css/C39",
       "license": "W3C Document License",
       "license_verified": true,
@@ -2636,7 +2541,6 @@
         "3d"
       ],
       "name": "glTF 2.0",
-      "category": "3d-format",
       "url": "https://github.com/KhronosGroup/glTF",
       "license": "Khronos Specification License",
       "license_verified": true,
@@ -2664,7 +2568,6 @@
         "3d"
       ],
       "name": "OpenPBR Surface",
-      "category": "3d-materials",
       "url": "https://github.com/AcademySoftwareFoundation/OpenPBR",
       "license": "Apache-2.0",
       "license_verified": true,
@@ -2692,7 +2595,6 @@
         "3d"
       ],
       "name": "MaterialX",
-      "category": "3d-materials",
       "url": "https://github.com/AcademySoftwareFoundation/MaterialX",
       "license": "Apache-2.0",
       "license_verified": true,
@@ -2720,7 +2622,6 @@
         "3d"
       ],
       "name": "OpenUSD",
-      "category": "3d-scene",
       "url": "https://github.com/PixarAnimationStudios/OpenUSD",
       "license": "Modified Apache-2.0",
       "license_verified": true,
@@ -2748,7 +2649,6 @@
         "color-management"
       ],
       "name": "OpenColorIO",
-      "category": "color-management",
       "url": "https://github.com/AcademySoftwareFoundation/OpenColorIO",
       "license": "BSD-3-Clause",
       "license_verified": true,
@@ -2776,7 +2676,6 @@
         "color-management"
       ],
       "name": "Little CMS",
-      "category": "color-management",
       "url": "https://github.com/mm2/Little-CMS",
       "license": "MIT",
       "license_verified": true,
@@ -2804,7 +2703,6 @@
         "3d"
       ],
       "name": "three.js",
-      "category": "3d-runtime",
       "url": "https://github.com/mrdoob/three.js",
       "license": "MIT",
       "license_verified": true,
@@ -2832,7 +2730,6 @@
         "3d"
       ],
       "name": "Blender",
-      "category": "3d-authoring",
       "url": "https://projects.blender.org/blender/blender",
       "license": "GPL-3.0-or-later",
       "license_verified": true,
@@ -2857,7 +2754,6 @@
         "3d"
       ],
       "name": "FreeCAD",
-      "category": "cad",
       "url": "https://github.com/FreeCAD/FreeCAD",
       "license": "LGPL-2.1-or-later",
       "license_verified": true,
@@ -2885,7 +2781,6 @@
         "3d"
       ],
       "name": "Speckle",
-      "category": "aec-data",
       "url": "https://github.com/specklesystems/speckle-server",
       "license": "Apache-2.0",
       "license_verified": true,
@@ -2913,7 +2808,6 @@
         "security"
       ],
       "name": "SPDX Specification",
-      "category": "license-governance",
       "url": "https://github.com/spdx/spdx-spec",
       "license": "Community Specification License",
       "license_verified": true,
@@ -2941,7 +2835,6 @@
         "security"
       ],
       "name": "REUSE Specification",
-      "category": "license-governance",
       "url": "https://reuse.software/spec/",
       "license": "CC-BY-SA-4.0",
       "license_verified": true,
@@ -2967,7 +2860,6 @@
         "security"
       ],
       "name": "CycloneDX",
-      "category": "bom",
       "url": "https://github.com/CycloneDX/specification",
       "license": "Apache-2.0",
       "license_verified": true,
@@ -2995,7 +2887,6 @@
         "security"
       ],
       "name": "OpenSSF Scorecard",
-      "category": "supply-chain-security",
       "url": "https://github.com/ossf/scorecard",
       "license": "Apache-2.0",
       "license_verified": true,
@@ -3023,7 +2914,6 @@
         "security"
       ],
       "name": "OSV-Scanner",
-      "category": "dependency-security",
       "url": "https://github.com/google/osv-scanner",
       "license": "Apache-2.0",
       "license_verified": true,
@@ -3051,7 +2941,6 @@
         "security"
       ],
       "name": "SLSA",
-      "category": "supply-chain-provenance",
       "url": "https://slsa.dev/spec/",
       "license": "Community Specification License",
       "license_verified": true,
@@ -3077,7 +2966,6 @@
         "security"
       ],
       "name": "Sigstore",
-      "category": "supply-chain-provenance",
       "url": "https://github.com/sigstore",
       "license": "Apache-2.0",
       "license_verified": true,
@@ -3103,7 +2991,6 @@
         "skill-governance"
       ],
       "name": "Hallmark (anti-AI-slop design skill)",
-      "category": "design-intelligence",
       "url": "https://github.com/Nutlope/hallmark",
       "license": "MIT",
       "license_verified": true,
@@ -3131,7 +3018,6 @@
         "skill-governance"
       ],
       "name": "Taste-Skill (anti-slop frontend)",
-      "category": "design-intelligence",
       "url": "https://github.com/Leonxlnx/taste-skill",
       "license": "MIT",
       "license_verified": true,
@@ -3159,7 +3045,6 @@
         "skill-governance"
       ],
       "name": "Huashu-Design（花叔Design，中文）",
-      "category": "design-intelligence",
       "url": "https://github.com/alchaincyf/huashu-design",
       "license": "MIT",
       "license_verified": true,
@@ -3188,7 +3073,6 @@
         "skill-governance"
       ],
       "name": "UI/UX Pro Max (design intelligence data)",
-      "category": "design-intelligence",
       "url": "https://github.com/nextlevelbuilder/ui-ux-pro-max-skill",
       "license": "MIT",
       "license_verified": true,
@@ -3216,7 +3100,6 @@
         "skill-governance"
       ],
       "name": "Garden Skills (ConardLi)",
-      "category": "skill-governance",
       "url": "https://github.com/ConardLi/garden-skills",
       "license": "MIT",
       "license_verified": true,
@@ -3245,7 +3128,6 @@
         "skill-governance"
       ],
       "name": "Motion Design Skill (LottieFiles)",
-      "category": "motion-format",
       "url": "https://github.com/LottieFiles/motion-design-skill",
       "license": "MIT",
       "license_verified": true,
@@ -3273,7 +3155,6 @@
         "motion"
       ],
       "name": "Design Motion Principles",
-      "category": "motion-format",
       "url": "https://github.com/kylezantos/design-motion-principles",
       "license": "MIT",
       "license_verified": true,
@@ -3301,7 +3182,6 @@
         "skill-governance"
       ],
       "name": "ShipIt UI Design (11 skills)",
-      "category": "design-intelligence",
       "url": "https://github.com/shipiit/shipit-ui-design",
       "license": "MIT",
       "license_verified": true,
@@ -3329,7 +3209,6 @@
         "design-tokens"
       ],
       "name": "Terrazzo (DTCG tokens compiler)",
-      "category": "design-tokens",
       "url": "https://github.com/terrazzoapp/terrazzo",
       "license": "MIT",
       "license_verified": true,
@@ -3357,7 +3236,6 @@
         "web"
       ],
       "name": "Front-End Design Checklist",
-      "category": "design-contract",
       "url": "https://github.com/thedaviddias/Front-End-Design-Checklist",
       "license": "CC0-1.0",
       "license_verified": true,
@@ -3385,7 +3263,6 @@
         "brand"
       ],
       "name": "Brand Resources (links collection)",
-      "category": "brand",
       "url": "https://github.com/sturobson/brand-resources",
       "license": "MIT",
       "license_verified": true,
@@ -3413,7 +3290,6 @@
         "design-tokens"
       ],
       "name": "Style Dictionary Utils",
-      "category": "design-tokens",
       "url": "https://github.com/lukasoppermann/style-dictionary-utils",
       "license": "MIT",
       "license_verified": true,
