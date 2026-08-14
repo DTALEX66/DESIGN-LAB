@@ -35,7 +35,8 @@ def main() -> int:
     if not args.evidence:
         print("USAGE: verify_release_evidence.py <release-evidence.json>")
         print("Recorded head/tree must match the live checkout; remote readback is required.")
-        return 0
+        print("RELEASE_EVIDENCE=FAIL")
+        return 2
 
     ev = json.loads(Path(args.evidence).read_text(encoding="utf-8"))
 

@@ -3,7 +3,7 @@
   "$id": "https://design-lab.local/schemas/source-record.schema.json",
   "title": "SourceRecord — 受治理知识来源记录",
   "type": "object",
-  "required": ["sourceId", "origin", "author", "license", "allowedUsage", "acquiredAt", "contentHash", "redistributable", "modelInputAllowed", "commercialUse", "reviewedBy"],
+  "required": ["sourceId", "origin", "author", "license", "allowedUsage", "acquiredAt", "contentHash", "redistributable", "modelInputAllowed", "commercialUse", "reviewedBy", "reviewedAt"],
   "additionalProperties": false,
   "properties": {
     "sourceId": {"type": "string", "minLength": 1},
@@ -18,11 +18,20 @@
     "licenseStatus": {"enum": ["reviewed", "unknown", "reference-only"]},
     "allowedUsage": {"type": "string", "minLength": 1},
     "acquiredAt": {"type": "string", "format": "date"},
-    "version": {"type": "string"},
-    "contentHash": {"type": "string", "minLength": 8},
+    "version": {
+      "type": "string",
+      "description": "Version or commit pin. Git sources MUST use a 40-char commit SHA.",
+      "pattern": "^(v?[0-9][0-9a-zA-Z._-]*|[0-9a-f]{40})$"
+    },
+    "contentHash": {
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$",
+      "description": "SHA-256 of the original artifact, prefix 'sha256:'."
+    },
     "redistributable": {"type": "boolean"},
     "modelInputAllowed": {"type": "boolean"},
     "commercialUse": {"type": "boolean"},
-    "reviewedBy": {"type": "string", "minLength": 1}
+    "reviewedBy": {"type": "string", "minLength": 1},
+    "reviewedAt": {"type": "string", "format": "date"}
   }
 }
