@@ -15,9 +15,9 @@
 
 ## 当前基线与本轮审计交付
 
-- 上一已发布自动化验证基线：`93f7c9a5b140c9e49f7afc42e879b41f60f5f9aa` 已推送，验证结果为 HEAD == origin/main 且工作树 clean；后续证据面修复必须重新运行 exact-SHA 验证
-- 上一已发布基线的 Canonical verifier：15 项聚合检查 + Python 167 passed + MiniGame Node 319 passed；exact-SHA CI run `31819516447` 已成功；本轮新增证据面回归后本地 Python 为 168 passed
+- 最近一次自动化验证基线：`496f758fbd450c750d60c596efd17de260bfea1a` 已推送，Canonical 15/15、Python 168 passed、MiniGame 319 passed；exact-SHA CI run `31820748499` 已成功
 - 当前 Git 树未跟踪 `docs/current/TASK_GRAPH_V2.yaml`，也没有活动文件引用该路径；不依据旧交接文本推断或伪造当前任务图，任务 SSOT 以本路线图、产品 manifest 和 capability index 为准
+- 前端入口验证：MiniGame `verify-all --summary` 的 tests/WeChat/Douyin/skins/V5 全部通过；Android debug build 与 APK metadata 因工具链未安装保持 `SKIP`，Douyin 仅保留 release AppID warning
 - 证据索引已按当前树重新绑定；历史 E3 证据不自动继承到新树，visual-quality / creative-toolchain 当前保持 E1
 - 身份迁移 R3：旧名 `opendesign-assistance` 已退出活动命名 → `design-lab`（git mv，历史可追踪，见历史归档）
 - 九份 SSOT + 13 核心对象 + **9 适配器合同（open-design/figma/penpot/blender/ffmpeg/browser/comfyui/adobe/h3，全部 E0 就绪）** + Visual Quality Jury V1 + Production Preflight V1
