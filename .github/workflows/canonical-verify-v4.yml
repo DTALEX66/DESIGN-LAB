@@ -70,8 +70,6 @@ jobs:
         run: python design-lab/scripts/verify_runtime_contracts_v3.py
       - name: V3 visual scoring
         run: python design-lab/scripts/verify_visual_scoring_v3.py
-      - name: Unified structural gate
-        run: python design-lab/scripts/verify_open_design_assistance.py
       - name: V2 / V2.1 protocols
         run: |
           python design-lab/scripts/verify_source_registry_v2.py
@@ -151,3 +149,37 @@ jobs:
           if [ "$code" -eq 1 ]; then echo "no secret-like files tracked"; else echo "SECRET-LIKE FILE FOUND"; exit 1; fi
       - name: No CRLF-forbidden diff whitespace
         run: git diff --check
+
+  open-design-host-gate:
+    name: Open Design host adapter gate
+    runs-on: ubuntu-latest
+    # Platform-neutral CI: this host-specific verifier runs ONLY when the
+    # Open Design adapter/plugin surface changed in this PR/push. The global
+    # Python gate above runs only neutral verifiers.
+    outputs:
+      run-gate: ${{ steps.changes.outputs.open-design }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - id: changes
+        name: Detect Open Design surface changes
+        run: |
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            base="${{ github.event.pull_request.base.sha }}"
+            head="${{ github.event.pull_request.head.sha }}"
+          else
+            base="${{ github.event.before }}"
+            head="${{ github.sha }}"
+          fi
+          changed=$(git diff --name-only "$base" "$head" || true)
+          echo "$changed" | grep -qE '^design-lab/(plugins|adapters/hosts/open-design)/' && echo "open-design=true" >> "$GITHUB_OUTPUT" || echo "open-design=false" >> "$GITHUB_OUTPUT"
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install deps
+        if: steps.changes.outputs.open-design == 'true'
+        run: python -m pip install -r requirements.txt
+      - name: Open Design host adapter structural gate
+        if: steps.changes.outputs.open-design == 'true'
+        run: python design-lab/scripts/verify_open_design_assistance.py

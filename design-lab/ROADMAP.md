@@ -15,7 +15,7 @@ DESIGN-LAB = 面向任意设计 AGENT 平台的能力增强层：
 
 - 本仓库不成为第二个设计前端、不成为工作流中心；
 - 能力经 Host Adapter（当前 `design-lab/adapters/hosts/open-design/`）接入宿主平台；
-- 不绑定软件、不绑定版本：模型中立、风格中立、领域中立、平台中立、版本中立、权利中立。
+- 不绑定软件、不绑定版本：模型中立、风格中立、领域中立、平台中立、版本中立、权利受治理（Rights Governed）。
 
 ## Phase 1：Host Adapter 基线（Open Design 参考宿主）
 

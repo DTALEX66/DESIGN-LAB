@@ -1,8 +1,8 @@
 {
   "$schema": "../../schemas/capability-index.schema.json",
   "version": "1.0.0",
-  "generated_at": "2026-08-13",
-  "capability_count": 2222,
+  "generated_at": "2026-08-14",
+  "capability_count": 2239,
   "capabilities": [
     {
       "path": "adapters/NEUTRALITY_POLICY.md",
@@ -13,68 +13,68 @@
     {
       "path": "adapters/adapter-registry.json",
       "label": "adapters",
-      "bytes": 5590,
-      "sha256": "83492ec52c1f4394"
+      "bytes": 8080,
+      "sha256": "a0b8c14916b5850a"
     },
     {
       "path": "adapters/creative-tools/adobe/adapter.manifest.json",
       "label": "adapters",
-      "bytes": 804,
-      "sha256": "9b98e2e7d86fa53c"
+      "bytes": 959,
+      "sha256": "6ffcdaef95ac723e"
     },
     {
       "path": "adapters/creative-tools/adobe/evidence/README.md",
       "label": "adapters",
-      "bytes": 306,
-      "sha256": "a6a3e5ee5b45ca84"
+      "bytes": 303,
+      "sha256": "b46cf949f8a4d3f8"
     },
     {
       "path": "adapters/creative-tools/adobe/rights-and-provider-policy.md",
       "label": "adapters",
-      "bytes": 710,
-      "sha256": "5123a22920d576d1"
+      "bytes": 1238,
+      "sha256": "d03638fb7eb60877"
     },
     {
       "path": "adapters/creative-tools/comfyui/adapter.manifest.json",
       "label": "adapters",
-      "bytes": 932,
-      "sha256": "4f099c0cb347f78e"
+      "bytes": 911,
+      "sha256": "48ae6f085cea2708"
     },
     {
       "path": "adapters/creative-tools/comfyui/evidence/README.md",
       "label": "adapters",
-      "bytes": 389,
-      "sha256": "c7888aea49f023fc"
+      "bytes": 306,
+      "sha256": "65ca13a2c3dcc625"
     },
     {
       "path": "adapters/creative-tools/comfyui/rights-and-provider-policy.md",
       "label": "adapters",
-      "bytes": 834,
-      "sha256": "b188e9b3a82bc1bf"
+      "bytes": 1401,
+      "sha256": "bda6ab46a1c455ed"
     },
     {
       "path": "adapters/creative-tools/h3-comfy-bridge-feasibility.md",
       "label": "adapters",
-      "bytes": 922,
-      "sha256": "7c6e563251b3a979"
+      "bytes": 1311,
+      "sha256": "b0440841084f86b7"
     },
     {
       "path": "adapters/creative-tools/minimax-h3/adapter.manifest.json",
       "label": "adapters",
-      "bytes": 1074,
-      "sha256": "a7b03cbc17c393de"
+      "bytes": 914,
+      "sha256": "2475f80e50cae5a0"
     },
     {
       "path": "adapters/creative-tools/minimax-h3/evidence/README.md",
       "label": "adapters",
-      "bytes": 148,
-      "sha256": "302ef873583adc49"
+      "bytes": 312,
+      "sha256": "1fe26701d49a0f24"
     },
     {
       "path": "adapters/creative-tools/minimax-h3/rights-and-provider-policy.md",
       "label": "adapters",
-      "bytes": 666,
-      "sha256": "5741e768b15aa833"
+      "bytes": 1262,
+      "sha256": "92385921854fc2bc"
     },
     {
       "path": "atoms/anti-ai-slop-diagnostician/README.md",
@@ -457,8 +457,8 @@
     {
       "path": "bundles/commercial-design-core/README.md",
       "label": "bundles",
-      "bytes": 25,
-      "sha256": "c8f3e8982e3731d1"
+      "bytes": 549,
+      "sha256": "744e99d64be8a48e"
     },
     {
       "path": "bundles/commercial-design-core/SKILL.md",
@@ -523,8 +523,8 @@
     {
       "path": "domain-packs/minigame-design/SOURCE_OF_TRUTH.md",
       "label": "domain-packs",
-      "bytes": 1402,
-      "sha256": "892e7685f538f1be"
+      "bytes": 1378,
+      "sha256": "0a9c26e6d08c779c"
     },
     {
       "path": "domain-packs/minigame-design/handoff.md",
@@ -959,12 +959,6 @@
       "sha256": "7aad60e5568df242"
     },
     {
-      "path": "research/quarantine/ai-product-os-frontend/.cursorrules",
-      "label": "intelligence",
-      "bytes": 2798,
-      "sha256": "f45266877e0a00c2"
-    },
-    {
       "path": "intelligence/ai-product-os/.gitignore",
       "label": "intelligence",
       "bytes": 703,
@@ -977,124 +971,10 @@
       "sha256": "82d3f4d16b334e1c"
     },
     {
-      "path": "research/quarantine/ai-product-os-frontend/FIGMA-FILES.md",
-      "label": "intelligence",
-      "bytes": 10726,
-      "sha256": "9e2bc58005fea86d"
-    },
-    {
-      "path": "research/quarantine/ai-product-os-frontend/LICENSE",
-      "label": "intelligence",
-      "bytes": 1071,
-      "sha256": "d883f2bbd49f798a"
-    },
-    {
       "path": "intelligence/ai-product-os/README.md",
       "label": "intelligence",
       "bytes": 8326,
       "sha256": "6d05578bca46c72a"
-    },
-    {
-      "path": "research/quarantine/ai-product-os-frontend/SOURCE.md",
-      "label": "intelligence",
-      "bytes": 361,
-      "sha256": "f74b741051def010"
-    },
-    {
-      "path": "research/quarantine/ai-product-os-frontend/WORKFLOW.md",
-      "label": "intelligence",
-      "bytes": 40597,
-      "sha256": "bf1fa9a04666b45c"
-    },
-    {
-      "path": "research/quarantine/ai-product-os-frontend/app.html",
-      "label": "intelligence",
-      "bytes": 1279,
-      "sha256": "328d6aeffac1311e"
-    },
-    {
-      "path": "research/quarantine/ai-product-os-frontend/app.jsx",
-      "label": "intelligence",
-      "bytes": 8472,
-      "sha256": "edc53e2c49122168"
-    },
-    {
-      "path": "research/quarantine/ai-product-os-frontend/claude-design-export/README.md",
-      "label": "intelligence",
-      "bytes": 571,
-      "sha256": "c3e4f21b614654ba"
-    },
-    {
-      "path": "research/quarantine/ai-product-os-frontend/data.jsx",
-      "label": "intelligence",
-      "bytes": 579,
-      "sha256": "d962232d4190eb40"
-    },
-    {
-      "path": "research/quarantine/ai-product-os-frontend/docs/brief.md",
-      "label": "intelligence",
-      "bytes": 738,
-      "sha256": "2bbf4b285d09f1d0"
-    },
-    {
-      "path": "research/quarantine/ai-product-os-frontend/figma.html",
-      "label": "intelligence",
-      "bytes": 20213,
-      "sha256": "63be4ec38c2e14e8"
-    },
-    {
-      "path": "research/quarantine/ai-product-os-frontend/figma/README.md",
-      "label": "intelligence",
-      "bytes": 479,
-      "sha256": "5710929742d213e6"
-    },
-    {
-      "path": "research/quarantine/ai-product-os-frontend/icons.jsx",
-      "label": "intelligence",
-      "bytes": 236,
-      "sha256": "73e47fe08fec3a63"
-    },
-    {
-      "path": "research/quarantine/ai-product-os-frontend/index.html",
-      "label": "intelligence",
-      "bytes": 6857,
-      "sha256": "22e8503bfd390b76"
-    },
-    {
-      "path": "research/quarantine/ai-product-os-frontend/rules.md",
-      "label": "intelligence",
-      "bytes": 4670,
-      "sha256": "5aea7f0f72f61481"
-    },
-    {
-      "path": "research/quarantine/ai-product-os-frontend/screens-home.jsx",
-      "label": "intelligence",
-      "bytes": 7066,
-      "sha256": "ef6a43b77edde641"
-    },
-    {
-      "path": "research/quarantine/ai-product-os-frontend/screens-onboarding.jsx",
-      "label": "intelligence",
-      "bytes": 1302,
-      "sha256": "02c970bfd09ce5e0"
-    },
-    {
-      "path": "research/quarantine/ai-product-os-frontend/shared.jsx",
-      "label": "intelligence",
-      "bytes": 6785,
-      "sha256": "6e91a8cd965cd846"
-    },
-    {
-      "path": "research/quarantine/ai-product-os-frontend/skills-lock.json",
-      "label": "intelligence",
-      "bytes": 2009,
-      "sha256": "1d183b142da3c451"
-    },
-    {
-      "path": "research/quarantine/ai-product-os-frontend/styles.css",
-      "label": "intelligence",
-      "bytes": 2654,
-      "sha256": "e7d4af4d42e18727"
     },
     {
       "path": "intelligence/anydesign/.gitignore",
@@ -1277,10 +1157,22 @@
       "sha256": "4285ccef76eeae4e"
     },
     {
+      "path": "intelligence/baoyu-design/assets/screenshots/claude-design-reader-mac-app.webp.license",
+      "label": "intelligence",
+      "bytes": 77,
+      "sha256": "8f626e45da89b0d2"
+    },
+    {
       "path": "intelligence/baoyu-design/assets/screenshots/claude-reader-mac-app.webp",
       "label": "intelligence",
       "bytes": 119816,
       "sha256": "a814ed99aafed7af"
+    },
+    {
+      "path": "intelligence/baoyu-design/assets/screenshots/claude-reader-mac-app.webp.license",
+      "label": "intelligence",
+      "bytes": 77,
+      "sha256": "8f626e45da89b0d2"
     },
     {
       "path": "intelligence/baoyu-design/assets/screenshots/codex-reader-mac-app.webp",
@@ -1289,16 +1181,34 @@
       "sha256": "f38482f65d3b33e7"
     },
     {
+      "path": "intelligence/baoyu-design/assets/screenshots/codex-reader-mac-app.webp.license",
+      "label": "intelligence",
+      "bytes": 77,
+      "sha256": "8f626e45da89b0d2"
+    },
+    {
       "path": "intelligence/baoyu-design/assets/screenshots/cursor-reader-mac-app.webp",
       "label": "intelligence",
       "bytes": 143384,
       "sha256": "77579dd858ad1268"
     },
     {
+      "path": "intelligence/baoyu-design/assets/screenshots/cursor-reader-mac-app.webp.license",
+      "label": "intelligence",
+      "bytes": 77,
+      "sha256": "8f626e45da89b0d2"
+    },
+    {
       "path": "intelligence/baoyu-design/assets/screenshots/figma-import-chakra-preview.webp",
       "label": "intelligence",
       "bytes": 74306,
       "sha256": "c0fcd96fb7320d54"
+    },
+    {
+      "path": "intelligence/baoyu-design/assets/screenshots/figma-import-chakra-preview.webp.license",
+      "label": "intelligence",
+      "bytes": 77,
+      "sha256": "8f626e45da89b0d2"
     },
     {
       "path": "intelligence/baoyu-design/package.json",
@@ -1317,6 +1227,12 @@
       "label": "intelligence",
       "bytes": 263,
       "sha256": "5e565a8d6a1479f9"
+    },
+    {
+      "path": "intelligence/baoyu-design/skills/baoyu-design/agents/assets/vision-probe.png.license",
+      "label": "intelligence",
+      "bytes": 77,
+      "sha256": "8f626e45da89b0d2"
     },
     {
       "path": "intelligence/baoyu-design/skills/baoyu-design/agents/build-preview.mjs",
@@ -2543,16 +2459,34 @@
       "sha256": "605b03d44840333c"
     },
     {
+      "path": "intelligence/claude-design-skill/docs/images/demo-1-deck.png.license",
+      "label": "intelligence",
+      "bytes": 85,
+      "sha256": "2cca8253bba37daf"
+    },
+    {
       "path": "intelligence/claude-design-skill/docs/images/demo-2-canvas.png",
       "label": "intelligence",
       "bytes": 182858,
       "sha256": "ca661e218df7dd51"
     },
     {
+      "path": "intelligence/claude-design-skill/docs/images/demo-2-canvas.png.license",
+      "label": "intelligence",
+      "bytes": 85,
+      "sha256": "2cca8253bba37daf"
+    },
+    {
       "path": "intelligence/claude-design-skill/docs/images/demo-3-prototype.png",
       "label": "intelligence",
       "bytes": 203122,
       "sha256": "38395c1268a7e36d"
+    },
+    {
+      "path": "intelligence/claude-design-skill/docs/images/demo-3-prototype.png.license",
+      "label": "intelligence",
+      "bytes": 85,
+      "sha256": "2cca8253bba37daf"
     },
     {
       "path": "intelligence/claude-design-skill/references/brand-context.md",
@@ -3591,12 +3525,6 @@
       "label": "intelligence",
       "bytes": 1118,
       "sha256": "53d1f2bb30a9f3fb"
-    },
-    {
-      "path": "intelligence/motion-forensics/.claude/settings.json",
-      "label": "intelligence",
-      "bytes": 444,
-      "sha256": "c25cc09ca78f2a08"
     },
     {
       "path": "intelligence/motion-forensics/.gitignore",
@@ -5589,6 +5517,12 @@
       "label": "knowledge",
       "bytes": 87940,
       "sha256": "820355c793809edf"
+    },
+    {
+      "path": "knowledge/ecommerce-ai/assets/social-preview.png.license",
+      "label": "knowledge",
+      "bytes": 89,
+      "sha256": "8c4598d1bcce48c5"
     },
     {
       "path": "knowledge/ecommerce-ai/assets/social-preview.svg",
@@ -8321,10 +8255,22 @@
       "sha256": "a5df0c1d6cbf1c0f"
     },
     {
+      "path": "knowledge/visual-quality/brand-identity-generator/docs/assets/bag.jpg.license",
+      "label": "knowledge",
+      "bytes": 88,
+      "sha256": "9d2ece82506af988"
+    },
+    {
       "path": "knowledge/visual-quality/brand-identity-generator/docs/assets/cup.jpg",
       "label": "knowledge",
       "bytes": 45725,
       "sha256": "a4d3b5a16b1001e3"
+    },
+    {
+      "path": "knowledge/visual-quality/brand-identity-generator/docs/assets/cup.jpg.license",
+      "label": "knowledge",
+      "bytes": 88,
+      "sha256": "9d2ece82506af988"
     },
     {
       "path": "knowledge/visual-quality/brand-identity-generator/docs/assets/og-image.jpg",
@@ -8333,10 +8279,22 @@
       "sha256": "a5b501b80789071e"
     },
     {
+      "path": "knowledge/visual-quality/brand-identity-generator/docs/assets/og-image.jpg.license",
+      "label": "knowledge",
+      "bytes": 88,
+      "sha256": "9d2ece82506af988"
+    },
+    {
       "path": "knowledge/visual-quality/brand-identity-generator/docs/assets/pages/p01.jpg",
       "label": "knowledge",
       "bytes": 18706,
       "sha256": "fb3d328b858ecafd"
+    },
+    {
+      "path": "knowledge/visual-quality/brand-identity-generator/docs/assets/pages/p01.jpg.license",
+      "label": "knowledge",
+      "bytes": 88,
+      "sha256": "9d2ece82506af988"
     },
     {
       "path": "knowledge/visual-quality/brand-identity-generator/docs/assets/pages/p02.jpg",
@@ -8345,10 +8303,22 @@
       "sha256": "f49c13ef631b60b0"
     },
     {
+      "path": "knowledge/visual-quality/brand-identity-generator/docs/assets/pages/p02.jpg.license",
+      "label": "knowledge",
+      "bytes": 88,
+      "sha256": "9d2ece82506af988"
+    },
+    {
       "path": "knowledge/visual-quality/brand-identity-generator/docs/assets/pages/p03.jpg",
       "label": "knowledge",
       "bytes": 39825,
       "sha256": "1677893ac493e92f"
+    },
+    {
+      "path": "knowledge/visual-quality/brand-identity-generator/docs/assets/pages/p03.jpg.license",
+      "label": "knowledge",
+      "bytes": 88,
+      "sha256": "9d2ece82506af988"
     },
     {
       "path": "knowledge/visual-quality/brand-identity-generator/docs/assets/pages/p04.jpg",
@@ -8357,10 +8327,22 @@
       "sha256": "22c52faef7e62d73"
     },
     {
+      "path": "knowledge/visual-quality/brand-identity-generator/docs/assets/pages/p04.jpg.license",
+      "label": "knowledge",
+      "bytes": 88,
+      "sha256": "9d2ece82506af988"
+    },
+    {
       "path": "knowledge/visual-quality/brand-identity-generator/docs/assets/pages/p05.jpg",
       "label": "knowledge",
       "bytes": 38453,
       "sha256": "237b93524c59a164"
+    },
+    {
+      "path": "knowledge/visual-quality/brand-identity-generator/docs/assets/pages/p05.jpg.license",
+      "label": "knowledge",
+      "bytes": 88,
+      "sha256": "9d2ece82506af988"
     },
     {
       "path": "knowledge/visual-quality/brand-identity-generator/docs/assets/pages/p06.jpg",
@@ -8369,10 +8351,22 @@
       "sha256": "8084eb1d39af458a"
     },
     {
+      "path": "knowledge/visual-quality/brand-identity-generator/docs/assets/pages/p06.jpg.license",
+      "label": "knowledge",
+      "bytes": 88,
+      "sha256": "9d2ece82506af988"
+    },
+    {
       "path": "knowledge/visual-quality/brand-identity-generator/docs/assets/pages/p07.jpg",
       "label": "knowledge",
       "bytes": 38308,
       "sha256": "7828684840421a3a"
+    },
+    {
+      "path": "knowledge/visual-quality/brand-identity-generator/docs/assets/pages/p07.jpg.license",
+      "label": "knowledge",
+      "bytes": 88,
+      "sha256": "9d2ece82506af988"
     },
     {
       "path": "knowledge/visual-quality/brand-identity-generator/docs/assets/pages/p08.jpg",
@@ -8381,10 +8375,22 @@
       "sha256": "64357ef59252f9c4"
     },
     {
+      "path": "knowledge/visual-quality/brand-identity-generator/docs/assets/pages/p08.jpg.license",
+      "label": "knowledge",
+      "bytes": 88,
+      "sha256": "9d2ece82506af988"
+    },
+    {
       "path": "knowledge/visual-quality/brand-identity-generator/docs/assets/pages/p09.jpg",
       "label": "knowledge",
       "bytes": 70660,
       "sha256": "5df4197d714eda64"
+    },
+    {
+      "path": "knowledge/visual-quality/brand-identity-generator/docs/assets/pages/p09.jpg.license",
+      "label": "knowledge",
+      "bytes": 88,
+      "sha256": "9d2ece82506af988"
     },
     {
       "path": "knowledge/visual-quality/brand-identity-generator/docs/assets/pages/p10.jpg",
@@ -8393,10 +8399,22 @@
       "sha256": "96219b3ef471aa74"
     },
     {
+      "path": "knowledge/visual-quality/brand-identity-generator/docs/assets/pages/p10.jpg.license",
+      "label": "knowledge",
+      "bytes": 88,
+      "sha256": "9d2ece82506af988"
+    },
+    {
       "path": "knowledge/visual-quality/brand-identity-generator/docs/assets/storefront.jpg",
       "label": "knowledge",
       "bytes": 110826,
       "sha256": "cc4ca719e7fc13ba"
+    },
+    {
+      "path": "knowledge/visual-quality/brand-identity-generator/docs/assets/storefront.jpg.license",
+      "label": "knowledge",
+      "bytes": 88,
+      "sha256": "9d2ece82506af988"
     },
     {
       "path": "knowledge/visual-quality/brand-identity-generator/docs/index.html",
@@ -9203,10 +9221,22 @@
       "sha256": "56290ac1d9867e7b"
     },
     {
+      "path": "knowledge/visual-quality/document-design-system/docs/screenshots/analytical-report-detail.png.license",
+      "label": "knowledge",
+      "bytes": 88,
+      "sha256": "dcaad0ec4ca99571"
+    },
+    {
       "path": "knowledge/visual-quality/document-design-system/docs/screenshots/analytical-report.png",
       "label": "knowledge",
       "bytes": 173894,
       "sha256": "4a0a261ac3f769dc"
+    },
+    {
+      "path": "knowledge/visual-quality/document-design-system/docs/screenshots/analytical-report.png.license",
+      "label": "knowledge",
+      "bytes": 88,
+      "sha256": "dcaad0ec4ca99571"
     },
     {
       "path": "knowledge/visual-quality/document-design-system/docs/screenshots/deck-chart.png",
@@ -9215,10 +9245,22 @@
       "sha256": "333e09770e71068b"
     },
     {
+      "path": "knowledge/visual-quality/document-design-system/docs/screenshots/deck-chart.png.license",
+      "label": "knowledge",
+      "bytes": 88,
+      "sha256": "dcaad0ec4ca99571"
+    },
+    {
       "path": "knowledge/visual-quality/document-design-system/docs/screenshots/deck-divider.png",
       "label": "knowledge",
       "bytes": 38557,
       "sha256": "67cd7b324b51423c"
+    },
+    {
+      "path": "knowledge/visual-quality/document-design-system/docs/screenshots/deck-divider.png.license",
+      "label": "knowledge",
+      "bytes": 88,
+      "sha256": "dcaad0ec4ca99571"
     },
     {
       "path": "knowledge/visual-quality/document-design-system/docs/screenshots/deck-metric.png",
@@ -9227,10 +9269,22 @@
       "sha256": "a1db39293d91e30d"
     },
     {
+      "path": "knowledge/visual-quality/document-design-system/docs/screenshots/deck-metric.png.license",
+      "label": "knowledge",
+      "bytes": 88,
+      "sha256": "dcaad0ec4ca99571"
+    },
+    {
       "path": "knowledge/visual-quality/document-design-system/docs/screenshots/gallery-dark.png",
       "label": "knowledge",
       "bytes": 268348,
       "sha256": "aad2620975687af4"
+    },
+    {
+      "path": "knowledge/visual-quality/document-design-system/docs/screenshots/gallery-dark.png.license",
+      "label": "knowledge",
+      "bytes": 88,
+      "sha256": "dcaad0ec4ca99571"
     },
     {
       "path": "knowledge/visual-quality/document-design-system/docs/screenshots/gallery-light.png",
@@ -9239,10 +9293,22 @@
       "sha256": "1763580e2bb4eb27"
     },
     {
+      "path": "knowledge/visual-quality/document-design-system/docs/screenshots/gallery-light.png.license",
+      "label": "knowledge",
+      "bytes": 88,
+      "sha256": "dcaad0ec4ca99571"
+    },
+    {
       "path": "knowledge/visual-quality/document-design-system/docs/screenshots/longform-rfc.png",
       "label": "knowledge",
       "bytes": 214785,
       "sha256": "0508fae5d4dbac17"
+    },
+    {
+      "path": "knowledge/visual-quality/document-design-system/docs/screenshots/longform-rfc.png.license",
+      "label": "knowledge",
+      "bytes": 88,
+      "sha256": "dcaad0ec4ca99571"
     },
     {
       "path": "knowledge/visual-quality/document-design-system/docs/screenshots/themes-dark.png",
@@ -9251,10 +9317,22 @@
       "sha256": "323a5cd418355eb7"
     },
     {
+      "path": "knowledge/visual-quality/document-design-system/docs/screenshots/themes-dark.png.license",
+      "label": "knowledge",
+      "bytes": 88,
+      "sha256": "dcaad0ec4ca99571"
+    },
+    {
       "path": "knowledge/visual-quality/document-design-system/docs/screenshots/themes-light.png",
       "label": "knowledge",
       "bytes": 273216,
       "sha256": "3360e928f390a5c1"
+    },
+    {
+      "path": "knowledge/visual-quality/document-design-system/docs/screenshots/themes-light.png.license",
+      "label": "knowledge",
+      "bytes": 88,
+      "sha256": "dcaad0ec4ca99571"
     },
     {
       "path": "knowledge/visual-quality/document-design-system/examples/README.md",
@@ -12695,10 +12773,22 @@
       "sha256": "b44461862f7dbd21"
     },
     {
+      "path": "knowledge/visual-quality/springy-motion/skills/springy-motion/assets/swiftui-spring-presets.png.license",
+      "label": "knowledge",
+      "bytes": 78,
+      "sha256": "2714153247d32e8b"
+    },
+    {
       "path": "knowledge/visual-quality/springy-motion/skills/springy-motion/assets/web-gallery.png",
       "label": "knowledge",
       "bytes": 143216,
       "sha256": "aaeec97025da07cf"
+    },
+    {
+      "path": "knowledge/visual-quality/springy-motion/skills/springy-motion/assets/web-gallery.png.license",
+      "label": "knowledge",
+      "bytes": 78,
+      "sha256": "2714153247d32e8b"
     },
     {
       "path": "knowledge/visual-quality/springy-motion/skills/springy-motion/assets/web-shared-element-morph.png",
@@ -12707,10 +12797,22 @@
       "sha256": "d964cf30b7a795a9"
     },
     {
+      "path": "knowledge/visual-quality/springy-motion/skills/springy-motion/assets/web-shared-element-morph.png.license",
+      "label": "knowledge",
+      "bytes": 78,
+      "sha256": "2714153247d32e8b"
+    },
+    {
       "path": "knowledge/visual-quality/springy-motion/skills/springy-motion/assets/web-spring-presets.png",
       "label": "knowledge",
       "bytes": 133550,
       "sha256": "eaca06410880bed3"
+    },
+    {
+      "path": "knowledge/visual-quality/springy-motion/skills/springy-motion/assets/web-spring-presets.png.license",
+      "label": "knowledge",
+      "bytes": 78,
+      "sha256": "2714153247d32e8b"
     },
     {
       "path": "knowledge/visual-quality/springy-motion/skills/springy-motion/examples/README.md",
