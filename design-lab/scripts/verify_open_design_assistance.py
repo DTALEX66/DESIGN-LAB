@@ -135,7 +135,7 @@ def verify_plugin_manifests(root: Path, results: list[Result]) -> None:
             rel = item.get("path") if isinstance(item, dict) else None
             check(results, f"plugin {name}: compat agent skill path shape", isinstance(rel, str) and rel.endswith(".md"), str(item))
             if isinstance(rel, str):
-                check(results, f"plugin {name}: compat agent skill path exists", (plugin_dir / rel).exists(), rel)
+                check(results, f"plugin {name}: compat agent skill path exists", (plugin_dir / rel).is_file(), rel)
         check(results, f"plugin {name}: v3 mode", od.get("mode") == "compat-plugin", str(od.get("mode")))
         check(results, f"plugin {name}: v3 product families present", bool(v3_families), str(v3_families))
         unknown_families = sorted(set(str(item) for item in v3_families) - product_families)
@@ -164,7 +164,7 @@ def verify_skill_references(root: Path, results: list[Result]) -> None:
             continue
         rel_skill = skill_path.relative_to(root).as_posix()
         for rel_ref in sorted(referenced_local_paths(read_text(skill_path))):
-            check(results, f"{rel_skill} reference exists: {rel_ref}", (root / rel_ref).exists())
+            check(results, f"{rel_skill} reference exists: {rel_ref}", (root / rel_ref).is_file())
 
 
 def verify_templates(root: Path, results: list[Result]) -> None:
@@ -227,7 +227,7 @@ def verify_design_systems(root: Path, results: list[Result]) -> None:
     else:
         file_refs = files
     for rel in file_refs:
-        check(results, f"design system file exists: {rel}", (base / str(rel)).exists())
+        check(results, f"design system file exists: {rel}", (base / str(rel)).is_file())
 
     for rel in ["design-tokens.json", "components.manifest.json"]:
         try:
@@ -257,7 +257,7 @@ def verify_visual_packs(root: Path, results: list[Result]) -> None:
             continue
         rel_path = asset.get("path")
         resolved = (manifest_path.parent / rel_path).resolve() if rel_path else manifest_path.parent
-        check(results, f"visual pack path exists: {asset.get('id')}", resolved.exists(), str(resolved))
+        check(results, f"visual pack path exists: {asset.get('id')}", resolved.is_file(), str(resolved))
 
 
 def png_size(path: Path) -> tuple[int, int] | None:
