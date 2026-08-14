@@ -21,11 +21,65 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent.parent
 RELEASE_GATE_DIR = ROOT / "design-lab" / "config" / "release-gate"
+LEVEL_ORDER = {f"E{i}": i for i in range(6)}
 
 
 def git(*args: str) -> tuple[int, str]:
     r = subprocess.run(["git", "-C", str(ROOT), *args], capture_output=True, text=True)
     return r.returncode, (r.stdout or r.stderr).strip()
+
+
+def capability_floor_findings(path: Path) -> list[str]:
+    """Require every declared capability floor before release can be enabled."""
+    try:
+        data = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, UnicodeError, json.JSONDecodeError) as exc:
+        return [f"CAPABILITY-EVIDENCE-INDEX-UNREADABLE ({exc})"]
+
+    capabilities = data.get("capabilities") if isinstance(data, dict) else None
+    if not isinstance(capabilities, list):
+        return ["CAPABILITY-EVIDENCE-INDEX-INVALID (capabilities must be a list)"]
+
+    findings: list[str] = []
+    for capability in capabilities:
+        if not isinstance(capability, dict):
+            findings.append("CAPABILITY-EVIDENCE-INDEX-INVALID (capability must be an object)")
+            continue
+        capability_id = capability.get("id", "<unknown>")
+        minimum = capability.get("minimumRequiredEvidence")
+        actual = capability.get("actualEvidence")
+        if minimum not in LEVEL_ORDER or actual not in LEVEL_ORDER:
+            findings.append(
+                f"CAPABILITY-EVIDENCE-INVALID {capability_id} minimum={minimum!r} actual={actual!r}"
+            )
+        elif LEVEL_ORDER[actual] < LEVEL_ORDER[minimum]:
+            findings.append(
+                f"EVIDENCE-BELOW-MINIMUM {capability_id} actual={actual} minimum={minimum}"
+            )
+    return findings
+
+
+def evidence_card_findings(path: Path) -> list[str]:
+    """Prevent a human acceptance marker from bypassing unrun evidence cards."""
+    try:
+        data = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, UnicodeError, json.JSONDecodeError) as exc:
+        return [f"EVIDENCE-CARDS-UNREADABLE ({exc})"]
+
+    cards = data.get("cards") if isinstance(data, dict) else None
+    if not isinstance(cards, list) or not cards:
+        return ["EVIDENCE-CARDS-INVALID (cards must be a non-empty list)"]
+
+    accepted = 0
+    for card in cards:
+        if not isinstance(card, dict):
+            continue
+        calibration = card.get("human_calibration")
+        if card.get("card_status") == "accepted" and isinstance(calibration, dict) and calibration.get("status") == "completed":
+            accepted += 1
+    if accepted != len(cards):
+        return [f"EVIDENCE-CARDS-PENDING accepted={accepted}/{len(cards)}"]
+    return []
 
 
 def check(skip_dirty: bool = False) -> list[str]:
@@ -65,7 +119,14 @@ def check(skip_dirty: bool = False) -> list[str]:
     if not contract.exists():
         findings.append("MISSING-RELEASE-EVIDENCE-CONTRACT")
 
-    # 5. enable state: human acceptance + E3 evidence
+    # 5. enable state: capability floors + evidence cards + human acceptance
+    findings.extend(
+        capability_floor_findings(ROOT / "design-lab" / "config" / "capability-evidence-index.json")
+    )
+    findings.extend(evidence_card_findings(ROOT / "design-lab" / "evals" / "evidence" / "evidence-cards.json"))
+
+    # A human acceptance marker is necessary but not sufficient. It must not
+    # bypass the machine-readable E-level and card checks above.
     #    require an explicit acceptance marker; generic "通过/PASS" words
     #    in evidence-discipline prose must NOT count (false positive guard)
     evals_readme = ROOT / "design-lab" / "evals" / "README.md"

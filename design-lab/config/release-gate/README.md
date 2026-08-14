@@ -10,6 +10,8 @@ Release 必须同时满足：
 2. 人工审批（DL-REL-001 验收通过）
 3. clean worktree
 4. boundTreeSha + exact command + environment + readback 证据齐备
+5. `capability-evidence-index.json` 中每个 capability 的 `actualEvidence` 不低于其 `minimumRequiredEvidence`
+6. 12 张 Evidence Cards 全部完成人工 calibration，并处于 authoritative accepted 状态
 
 ## 前置（未满足 → 保持未启用）
 
@@ -20,5 +22,6 @@ Release 必须同时满足：
 ## 启用流程
 
 1. 全部 E3 取证完成 + DL-REL-001 通过
-2. `verify_release_evidence.py` 全绿
-3. 人工批准发布 → 标记启用
+2. capability evidence floors 和 Evidence Cards 全部满足
+3. `verify_release_evidence.py` 全绿
+4. 人工批准发布 → 标记启用
