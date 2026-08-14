@@ -22,6 +22,8 @@ ALLOWED_MODES = {'vendor-adapt', 'adapter', 'derive', 'reference', 'quarantine'}
 ALLOWED_STATUS = {'adopt-now', 'adapter-next', 'reference-now', 'review-required'}
 RUNTIME_MODES = {'vendor-adapt', 'adapter'}
 SHA256_RE = re.compile(r'^(sha256:)?[0-9a-f]{64}$')
+GIT_SHA_RE = re.compile(r'^git:[0-9a-f]{40}$')
+DOC_PIN_RE = re.compile(r'^doc-pin:[A-Za-z0-9_.-]+$')
 
 
 def main() -> int:
@@ -75,8 +77,8 @@ def main() -> int:
 
         if mode in RUNTIME_MODES and license_status in ('unknown', 'reference-only'):
             errors.append(prefix + f': runtime mode with licenseStatus={license_status}')
-        if content_hash and not SHA256_RE.match(content_hash):
-            errors.append(prefix + ': contentHash must be sha256 hex')
+        if content_hash and not (SHA256_RE.match(content_hash) or GIT_SHA_RE.match(content_hash) or DOC_PIN_RE.match(content_hash)):
+            errors.append(prefix + ': contentHash must be sha256 hex, git:<sha> (git sources), or doc-pin:<id> (document sources)')
 
     print(f'SOURCES={len(data.get("entries", []))}')
     print(f'ERRORS={len(errors)}')
