@@ -15,8 +15,8 @@
 
 ## 当前基线与本轮审计交付
 
-- 本轮最终提交 `82553ca3edff030ae4cba2b6bca8f5d2256b4900` 已推送，当前 `HEAD == origin/main` 且工作树 clean
-- 本轮修复后的 Canonical verifier：15 项聚合检查 + Python 165 passed + MiniGame Node 319 passed；exact-SHA CI run `31817081576` 已成功
+- 本轮最终提交 `3faeef85c0e15cc67f88e26dca19cff75378e5c4` 已推送，当前 `HEAD == origin/main` 且工作树 clean
+- 本轮修复后的 Canonical verifier：15 项聚合检查 + Python 167 passed + MiniGame Node 319 passed；exact-SHA CI run `31819360271` 已成功
 - 证据索引已按当前树重新绑定；历史 E3 证据不自动继承到新树，visual-quality / creative-toolchain 当前保持 E1
 - 身份迁移 R3：旧名 `opendesign-assistance` 已退出活动命名 → `design-lab`（git mv，历史可追踪，见历史归档）
 - 九份 SSOT + 13 核心对象 + **9 适配器合同（open-design/figma/penpot/blender/ffmpeg/browser/comfyui/adobe/h3，全部 E0 就绪）** + Visual Quality Jury V1 + Production Preflight V1
