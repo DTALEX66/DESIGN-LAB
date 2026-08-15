@@ -211,6 +211,46 @@ class RuntimeContractsTests(unittest.TestCase):
         self.assertTrue(m, "contracts report must include total")
         self.assertGreaterEqual(int(m.group(1)), 200)
 
+    def test_unreferenced_malformed_atom_fails_closed(self):
+        m = load("verify_runtime_contracts_v3.py")
+        with tempfile.TemporaryDirectory() as raw:
+            root = Path(raw)
+            atom_dir = root / "design-lab" / "atoms" / "broken-atom"
+            atom_dir.mkdir(parents=True)
+            (atom_dir / "open-design.json").write_text("{", encoding="utf-8")
+            results = []
+            m.local_atom_ids(root, results)
+            self.assertTrue(
+                any(not result.ok and "atom broken-atom: JSON parses" in result.label for result in results),
+                results,
+            )
+
+    def test_bundle_context_scenario_ref_fails_closed(self):
+        m = load("verify_runtime_contracts_v3.py")
+        with tempfile.TemporaryDirectory() as raw:
+            root = Path(raw)
+            bundle_dir = root / "design-lab" / "bundles" / "sample"
+            bundle_dir.mkdir(parents=True)
+            manifest = {
+                "name": "sample",
+                "od": {
+                    "kind": "bundle",
+                    "mode": "bundle",
+                    "context": {
+                        "skills": [{"ref": "missing-scenario"}],
+                        "atoms": ["file-read"],
+                        "assets": ["research/sample.json"],
+                    },
+                },
+            }
+            (bundle_dir / "open-design.json").write_text(json.dumps(manifest), encoding="utf-8")
+            results = []
+            m.verify_bundles(root, results, {"file-read"}, set())
+            self.assertTrue(
+                any(not result.ok and "context scenario refs resolvable" in result.label for result in results),
+                results,
+            )
+
 
 class VisualQualityV21Tests(unittest.TestCase):
     def test_v21_ok_with_rubrics(self):

@@ -27,7 +27,7 @@ class CapabilityEvidenceV4Test(unittest.TestCase):
 
     def test_e2_with_readback_passes(self):
         mod = load_mod()
-        rec = {"capability_id": "c1", "evidence_level": "E2", "artifacts": ["command_output", "readback_artifact"]}
+        rec = {"capability_id": "c1", "evidence_level": "E2", "artifacts": ["declaration_doc", "command_output", "readback_artifact"]}
         self.assertEqual(mod.validate_record(rec), [])
 
     def test_e3_requires_exact_tree(self):
@@ -49,14 +49,21 @@ class CapabilityEvidenceV4Test(unittest.TestCase):
         mod = load_mod()
         rec = {"capability_id": "c4", "evidence_level": "E3",
                "tree_sha": "a" * 40,
-               "artifacts": ["runtime_id", "task_id", "artifact_provenance"]}
+               "artifacts": [
+                   "declaration_doc", "command_output", "readback_artifact",
+                   "runtime_id", "task_id", "artifact_provenance",
+               ]}
         self.assertEqual(mod.validate_record(rec), [])
 
     def test_e4_requires_frozen_tree_and_review(self):
         mod = load_mod()
         rec = {"capability_id": "c5", "evidence_level": "E4",
                "tree_sha": "b" * 40,
-               "artifacts": ["frozen_tree", "exact_sha_ci"]}  # missing independent_review
+               "artifacts": [
+                   "declaration_doc", "command_output", "readback_artifact",
+                   "runtime_id", "task_id", "artifact_provenance",
+                   "frozen_tree", "exact_sha_ci",
+               ]}  # missing independent_review
         errs = mod.validate_record(rec)
         self.assertTrue(any("independent_review" in e for e in errs), f"errs: {errs}")
 
@@ -66,17 +73,23 @@ class CapabilityEvidenceV4Test(unittest.TestCase):
         mod = load_mod()
         rec = {"capability_id": "c6", "evidence_level": "E3",
                "tree_sha": "c" * 40,
-               "artifacts": ["runtime_id", "task_id", "artifact_provenance"]}
-        # E3 promotion requires E1 declaration + E2 readback implicitly via chain;
-        # our validator checks E3's own requirements only, so this passes as valid
-        # unless we also require prior-level artifacts. Here we assert the explicit
-        # requirement that readback_artifact is part of E3's required set via chain.
-        required_for_e3 = [a for f, t, req in mod.PROMOTION if t == "E3" for a in req]
-        # E3 requires frozen_tree per our PROMOTION table; test enforces contiguity
-        # is checked by requiring runtime/task/provenance (done above). Ensure the
-        # PROMOTION table itself is contiguous.
+               "artifacts": ["declaration_doc", "runtime_id", "task_id", "artifact_provenance"]}
+        errs = mod.validate_record(rec)
+        self.assertTrue(any("readback_artifact" in e for e in errs), f"errs: {errs}")
         levels = [f for f, t, _ in mod.PROMOTION]
         self.assertEqual(levels, ["E0", "E1", "E2", "E3", "E4"])
+
+    def test_e5_requires_the_complete_same_capability_chain(self):
+        mod = load_mod()
+        rec = {
+            "capability_id": "c7",
+            "evidence_level": "E5",
+            "tree_sha": "d" * 40,
+            "artifacts": ["external_acceptance"],
+        }
+        errs = mod.validate_record(rec)
+        self.assertTrue(any("declaration_doc" in e for e in errs), f"errs: {errs}")
+        self.assertTrue(any("exact_sha_ci" in e for e in errs), f"errs: {errs}")
 
 
 if __name__ == "__main__":

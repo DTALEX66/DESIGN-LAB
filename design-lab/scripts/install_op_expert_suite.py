@@ -53,6 +53,10 @@ EXPERT_RESOURCE_SOURCES = (
         'production-handoff',
         'visual-quality-core',
     )),
+    *(('scenarios', name) for name in (
+        'commercial-design-router',
+        'brand-campaign-360',
+    )),
 )
 DESIGN_SYSTEM_SOURCES = (
     {
@@ -233,7 +237,12 @@ def read_app_config(app_url: str, headers: dict[str, str]) -> dict[str, Any]:
 def copy_expert_resource_sources(destination: Path) -> None:
     """Copy managed resources and their complete local asset closure."""
     shutil.copytree(ATOMS_ROOT, destination / "atoms")
-    for kind, root in (("plugins", PLUGINS_ROOT), ("bundles", BUNDLES_ROOT)):
+    resource_roots = (
+        ("plugins", PLUGINS_ROOT),
+        ("bundles", BUNDLES_ROOT),
+        ("scenarios", REPO_ROOT / "design-lab" / "scenarios"),
+    )
+    for kind, root in resource_roots:
         for source_kind, name in EXPERT_RESOURCE_SOURCES:
             if source_kind == kind:
                 shutil.copytree(root / name, destination / kind / name)

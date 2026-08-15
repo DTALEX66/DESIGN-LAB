@@ -33,16 +33,16 @@ LEVEL_ORDER = {"E0": 0, "E1": 1, "E2": 2, "E3": 3, "E4": 4, "E5": 5}
 
 def check_promotion(level: str, artifacts: list[str]) -> list[str]:
     """Return errors if the evidence level cannot be supported by artifacts."""
-    errors = []
-    for from_lvl, to_lvl, required in PROMOTION:
-        if level == to_lvl:
-            missing = [a for a in required if a not in artifacts]
-            if missing:
-                errors.append(f"level {level} requires artifacts missing: {missing}")
-        elif level in (from_lvl,):
-            # ensure the chain is contiguous; caller validates exact level
-            pass
-    return errors
+    required_for_level = {
+        artifact
+        for _from_lvl, to_lvl, required in PROMOTION
+        if LEVEL_ORDER[to_lvl] <= LEVEL_ORDER[level]
+        for artifact in required
+    }
+    missing = sorted(required_for_level - set(artifacts))
+    if missing:
+        return [f"level {level} requires cumulative artifacts missing: {missing}"]
+    return []
 
 
 def validate_record(rec: dict, capability_levels: dict[str, str] | None = None) -> list[str]:

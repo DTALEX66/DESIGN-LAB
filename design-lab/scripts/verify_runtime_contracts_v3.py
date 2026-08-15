@@ -91,12 +91,14 @@ def list_at(results: list[Result], label: str, value: Any) -> list[Any]:
     return value if isinstance(value, list) else []
 
 
-def local_atom_ids(root: Path) -> set[str]:
+def local_atom_ids(root: Path, results: list[Result] | None = None) -> set[str]:
     ids: set[str] = set()
     for path in (root / ASSISTANCE_DIR / "atoms").glob("*/open-design.json"):
         try:
             manifest = load_json(path)
-        except Exception:
+        except Exception as exc:  # noqa: BLE001
+            if results is not None:
+                check(results, f"atom {path.parent.name}: JSON parses", False, str(exc))
             continue
         if isinstance(manifest, dict) and manifest.get("name"):
             ids.add(str(manifest["name"]))
@@ -115,7 +117,11 @@ def pipeline_stage_map(manifest: dict[str, Any]) -> dict[str, set[str]]:
     return stage_map
 
 
-def verify_scenarios(root: Path, results: list[Result], atom_ids: set[str]) -> dict[str, dict[str, set[str]]]:
+def verify_scenarios(
+    root: Path,
+    results: list[Result],
+    atom_ids: set[str],
+) -> tuple[set[str], dict[str, dict[str, set[str]]]]:
     scenario_dir = root / ASSISTANCE_DIR / "scenarios"
     scenario_manifests = sorted(scenario_dir.glob("*/open-design.json"))
     scenario_ids: set[str] = set()
@@ -168,10 +174,15 @@ def verify_scenarios(root: Path, results: list[Result], atom_ids: set[str]) -> d
             check(results, f"scenario {name}: GenUI {sid} trigger atom in stage", bool(stage_id in stage_map and atom in stage_map[stage_id]), str(trigger))
             check(results, f"scenario {name}: GenUI {sid} timeout bounded", surface.get("onTimeout") in {"abort", "retry", "default"}, str(surface.get("onTimeout")))
     check(results, "core scenarios present", EXPECTED_CORE_SCENARIOS <= scenario_ids, str(sorted(EXPECTED_CORE_SCENARIOS - scenario_ids)))
-    return stage_maps
+    return scenario_ids, stage_maps
 
 
-def verify_bundles(root: Path, results: list[Result], atom_ids: set[str]) -> None:
+def verify_bundles(
+    root: Path,
+    results: list[Result],
+    atom_ids: set[str],
+    scenario_ids: set[str],
+) -> None:
     bundle_dir = root / ASSISTANCE_DIR / "bundles"
     bundle_ids: set[str] = set()
     for path in sorted(bundle_dir.glob("*/open-design.json")):
@@ -186,6 +197,18 @@ def verify_bundles(root: Path, results: list[Result], atom_ids: set[str]) -> Non
         check(results, f"bundle {name}: kind", od.get("kind") == "bundle", str(od.get("kind")))
         check(results, f"bundle {name}: mode", od.get("mode") == "bundle", str(od.get("mode")))
         context = object_at(results, f"bundle {name}: context", od.get("context"))
+        scenario_refs = {
+            str(skill["ref"])
+            for skill in context.get("skills", [])
+            if isinstance(skill, dict) and isinstance(skill.get("ref"), str)
+        }
+        unresolved_scenarios = sorted(scenario_refs - scenario_ids)
+        check(
+            results,
+            f"bundle {name}: context scenario refs resolvable",
+            not unresolved_scenarios,
+            str(unresolved_scenarios),
+        )
         atoms = {str(atom) for atom in context.get("atoms", []) if isinstance(atom, str)}
         check(results, f"bundle {name}: atom list present", bool(atoms), str(atoms))
         # V42-0303 (live Open Design daemon discovery): doctor raises
@@ -307,10 +330,10 @@ def main() -> int:
     args = parser.parse_args()
     root = repo_root()
     results: list[Result] = []
-    atoms = local_atom_ids(root)
+    atoms = local_atom_ids(root, results)
     check(results, "local atoms present", bool(atoms), str(len(atoms)))
-    stage_maps = verify_scenarios(root, results, atoms)
-    verify_bundles(root, results, atoms)
+    scenario_ids, stage_maps = verify_scenarios(root, results, atoms)
+    verify_bundles(root, results, atoms, scenario_ids)
     verify_project_state_schema(root, results, stage_maps)
     verify_provenance_schema(root, results)
     state, provenance = verify_sample_records(results)

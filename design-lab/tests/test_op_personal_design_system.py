@@ -14,6 +14,8 @@ REPO_ROOT = ROOT.parent
 SKILLS = ROOT / "op-expert-suite" / "skills"
 DESIGN_SYSTEMS = ROOT / "design-systems"
 PLUGINS = ROOT / "plugins"
+BUNDLES = ROOT / "bundles"
+SCENARIOS = ROOT / "scenarios"
 RESEARCH = ROOT / "research"
 INSTALLER = ROOT / "scripts" / "install_op_expert_suite.py"
 
@@ -132,16 +134,36 @@ class PersonalDesignSystemTest(unittest.TestCase):
         self.assertLess(skill_bytes, 30 * 1024)
         self.assertGreater(research_bytes, skill_bytes * 10)
 
-    def test_ten_personal_expert_resources_are_managed_by_installer(self):
+    def test_twelve_personal_expert_resources_are_managed_by_installer(self):
         resources = self.installer.EXPERT_RESOURCE_SOURCES
-        self.assertEqual(len(resources), 10)
+        self.assertEqual(len(resources), 12)
         self.assertEqual(sum(kind == "plugins" for kind, _ in resources), 7)
         self.assertEqual(sum(kind == "bundles" for kind, _ in resources), 3)
+        self.assertEqual(sum(kind == "scenarios" for kind, _ in resources), 2)
         for kind, name in resources:
             manifest = ROOT / kind / name / "open-design.json"
             self.assertTrue(manifest.is_file(), manifest)
             data = json.loads(manifest.read_text(encoding="utf-8"))
             self.assertEqual(data["name"], name)
+
+    def test_bundle_scenario_refs_are_installer_managed(self):
+        managed_scenarios = {
+            name
+            for kind, name in self.installer.EXPERT_RESOURCE_SOURCES
+            if kind == "scenarios"
+        }
+        referenced_scenarios = set()
+        for manifest_path in BUNDLES.glob("*/open-design.json"):
+            manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+            referenced_scenarios.update(
+                skill["ref"]
+                for skill in manifest.get("od", {}).get("context", {}).get("skills", [])
+                if isinstance(skill, dict) and isinstance(skill.get("ref"), str)
+            )
+        self.assertTrue(referenced_scenarios)
+        self.assertTrue(referenced_scenarios <= managed_scenarios)
+        for name in referenced_scenarios:
+            self.assertTrue((SCENARIOS / name / "open-design.json").is_file(), name)
 
     def test_workspace_selection_uses_personal_not_active_team(self):
         directory = {
