@@ -1,0 +1,67 @@
+{
+  "$schema": "../../schemas/external-assets-index.schema.json",
+  "version": "1.0.0",
+  "generated_at": "2026-08-16",
+  "policy": "共用库只放输入/规范/权重；运行产物与设计产物留项目忽略目录（.hermes/task-runtime、80-evidence），不进共用库",
+  "shared_roots": {
+    "model-library": "D:\\All projects\\Model library",
+    "design-assets": "D:\\All projects\\Design assets"
+  },
+  "assets": [
+    {
+      "id": "h3-diffusion-model",
+      "shared_root": "model-library",
+      "relative_path": "ComfyUI/diffusion_models/minimax_h3_fl2va_pruned_int8_convrot.safetensors",
+      "kind": "model-weight",
+      "category": "diffusion_models",
+      "owned_by": "DESIGN-LAB",
+      "status": "active",
+      "note": "MiniMax H3 DiT 权重（视频生成），ComfyUI 经 extra_model_paths.yaml 接入",
+      "size_bytes": 20970379616
+    },
+    {
+      "id": "h3-text-encoder",
+      "shared_root": "model-library",
+      "relative_path": "ComfyUI/text_encoders/qwen3vl_32b_minimax_h3_nvfp4_awq.safetensors",
+      "kind": "model-weight",
+      "category": "text_encoders",
+      "owned_by": "DESIGN-LAB",
+      "status": "active",
+      "note": "Qwen3-VL 文本编码器（H3 配套）",
+      "size_bytes": 15687142551
+    },
+    {
+      "id": "h3-video-vae",
+      "shared_root": "model-library",
+      "relative_path": "ComfyUI/vae/minimax_h3_video_vae_fp16.safetensors",
+      "kind": "model-weight",
+      "category": "vae",
+      "owned_by": "DESIGN-LAB",
+      "status": "active",
+      "note": "MiniMax H3 视频 VAE",
+      "size_bytes": 5207808496
+    },
+    {
+      "id": "h3-audio-vae",
+      "shared_root": "model-library",
+      "relative_path": "ComfyUI/vae/minimax_h3_audio_vae_fp32.safetensors",
+      "kind": "model-weight",
+      "category": "vae",
+      "owned_by": "DESIGN-LAB",
+      "status": "active",
+      "note": "MiniMax H3 音频 VAE",
+      "size_bytes": 605254808
+    },
+    {
+      "id": "ai-product-os-frontend-quarantine",
+      "shared_root": "design-assets",
+      "relative_path": "quarantine/ai-product-os-frontend/",
+      "kind": "quarantine",
+      "category": "frontend-source",
+      "owned_by": "DESIGN-LAB",
+      "status": "review-required",
+      "note": "已隔离的 ai-product-os 前端源码，待审（非正式设计资料）",
+      "size_bytes": 58979
+    }
+  ]
+}

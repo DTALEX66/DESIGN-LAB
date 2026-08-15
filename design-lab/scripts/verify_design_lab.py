@@ -29,6 +29,7 @@ SCRIPTS = [
     "verify_benchmark_registry.py",
     "verify_evidence_cards.py",
     "verify_asset_governance.py",
+    "verify_external_assets_index.py",
 ]
 
 # Release-time gate: invoked separately with a release-evidence file argument.
