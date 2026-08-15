@@ -19,7 +19,7 @@
       "title": "视觉一致性",
       "weight": 20,
       "criteria": [
-        "CCTV/监控面板风格统一（参考 abnormal_elevator_visual_assets）",
+        "CCTV/监控面板风格统一（参考视觉状态清单与组件族）",
         "图标/纹理/字体风格协调",
         "色彩策略一致（异常红 vs 正常绿语义稳定）"
       ]

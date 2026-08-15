@@ -9,10 +9,9 @@ let ctx = null;
 let muted = false;
 let music = null;
 let musicState = null;
-const MUSIC_SOURCES = Object.freeze({
-  calm: 'assets/minigame-audio/bgm-night-shift-loop.wav',
-  pressure: 'assets/minigame-audio/bgm-anomaly-pressure-loop.wav',
-});
+// 背景音乐资产（assets/minigame-audio/*.wav）已随视觉资产一并移除；
+// MUSIC_SOURCES 保持空映射，使背景音乐功能静默降级，程序化音效不受影响。
+const MUSIC_SOURCES = Object.freeze({});
 
 export const AUDIO_LAYERS = Object.freeze({
   button: Object.freeze({ kind: 'beep', freq: 800, duration: 0.06, type: 'square', volume: 0.06 }),

@@ -55,12 +55,6 @@ MINIGAME / games / find-anomaly / elevator-console
 3. 异常档案库图鉴化
 4. 找异常分类下的第二个独立游戏
 
-## 2026-07-09 资源接入状态
+## 资源接入状态（历史）
 
-- `assets/abnormal_elevator_visual_assets/cctv_states/`：24 张桌面 CCTV 状态图已接入 H5 运行时。
-- `assets/abnormal_elevator_visual_assets/mobile_cctv_states/`：24 张移动端裁切图已接入移动端 CSS 覆盖层。
-- `assets/abnormal_elevator_visual_assets/button_sprites/`：8 张按钮贴图已作为控制键外观层接入，按钮文字仍由 DOM 渲染。
-- `assets/abnormal_elevator_visual_assets/overlays/`：6 张 overlay 已接入 CCTV 框、扫描线、故障块、红警框、暗角和扫描光束。
-- `assets/abnormal_elevator_ui_kit/`：作为组件参考和 tokens 归档，不直接覆盖当前可玩 UI。
-
-Android WebView 通过 `scripts/prepare-android-webview.mjs` 复制上述视觉资源，并把 CSS 中的游戏目录路径重写为包内 `assets/abnormal_elevator_visual_assets/`。
+早期制作小游戏所用的实际视觉资产（CCTV 状态图、移动端裁切图、按钮贴图、overlay、背景音乐）已随视觉资产清理移除。当前仅保留视觉状态清单（`platform/canvasAssets.js`）与运行时代码作为游戏视觉设计 fixture 参考。

@@ -46,7 +46,6 @@ test('verify script runs the full release acceptance gate', () => {
   assert.match(verifyScript, /check-wechat-bundle\.mjs', '--strict'/, 'verify should run WeChat strict check');
   assert.match(verifyScript, /\['build\.js', 'douyin'\]/, 'verify should build Douyin bundle');
   assert.match(verifyScript, /check-douyin-bundle\.mjs', '--strict'/, 'verify should run Douyin strict check');
-  assert.match(verifyScript, /check-douyin-compliance\.mjs', '--strict'/, 'verify should run Douyin compliance check');
   assert.match(verifyScript, /build-android-debug\.mjs/, 'verify should build Android APK');
   assert.match(verifyScript, /check-apk-metadata\.mjs/, 'verify should inspect APK metadata');
   assert.match(verifyScript, /Android debug APK build: BLOCKED/, 'missing Android tooling must block acceptance');
@@ -56,7 +55,7 @@ test('verify script runs the full release acceptance gate', () => {
 test('Douyin scripts provide build and strict validation commands', () => {
   assert.equal(pkg.scripts['douyin:build'], 'node build.js douyin');
   assert.equal(pkg.scripts['douyin:check'], 'node scripts/check-douyin-bundle.mjs --strict');
-  assert.equal(pkg.scripts['douyin:compliance'], 'node scripts/check-douyin-compliance.mjs --strict');
+  assert.equal(pkg.scripts['douyin:compliance'], undefined, 'release compliance commands are removed (fixture boundary)');
   assert.equal(pkg.scripts['douyin:release:check'], undefined, 'release commands are removed (fixture boundary)');
   assert.equal(pkg.scripts['douyin:package'], undefined, 'release commands are removed (fixture boundary)');
   assert.equal(pkg.scripts['release:check'], undefined, 'release commands are removed (fixture boundary)');

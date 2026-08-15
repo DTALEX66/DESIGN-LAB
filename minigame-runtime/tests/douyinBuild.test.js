@@ -16,18 +16,6 @@ test('douyin strict checker accepts the generated Canvas project', () => {
   assert.match(output, /packageBytes/);
 });
 
-test('douyin compliance checker validates privacy, age-rating and sensitive API inventory', () => {
-  execFileSync(process.execPath, ['build.js', 'douyin'], { cwd: root, stdio: 'pipe' });
-  const output = execFileSync(process.execPath, ['scripts/check-douyin-compliance.mjs', '--strict'], {
-    cwd: root,
-    encoding: 'utf8',
-  });
-  assert.match(output, /code blocker\(s\): 0/);
-  assert.match(output, /external placeholder\(s\): 2/);
-  assert.match(output, /ageRating16Plus/);
-  assert.match(output, /reviewAdPaths/);
-});
-
 test('Douyin release package script is removed under fixture boundary', () => {
   // Taskpack H2: release/package scripts are removed; only build/check remain.
   assert.throws(

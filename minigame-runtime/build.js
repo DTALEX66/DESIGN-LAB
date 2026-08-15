@@ -302,31 +302,8 @@ const outPath = path.join(outputDir, 'game.js');
 fs.writeFileSync(outPath, bundled, 'utf-8');
 writePrivateProjectConfig(target, outputDir, releaseConfig);
 
-function syncAssetDirectory(sourceDir, outputDir) {
-  fs.mkdirSync(outputDir, { recursive: true });
-  fs.cpSync(sourceDir, outputDir, { recursive: true, force: true });
-  for (const name of fs.readdirSync(outputDir)) {
-    if (!fs.existsSync(path.join(sourceDir, name))) {
-      fs.rmSync(path.join(outputDir, name), { recursive: true, force: true, maxRetries: 3, retryDelay: 50 });
-    }
-  }
-  // REUSE .license sidecars are repository governance metadata, never ship in packages
-  for (const name of fs.readdirSync(outputDir)) {
-    if (name.endsWith('.license')) {
-      fs.rmSync(path.join(outputDir, name), { force: true, maxRetries: 3, retryDelay: 50 });
-    }
-  }
-}
-
-const miniGameAudioSource = path.join(ROOT, 'assets', 'minigame-audio');
-const miniGameAudioOutput = path.join(outputDir, 'audio');
-syncAssetDirectory(miniGameAudioSource, miniGameAudioOutput);
-
-const visualSource = path.join(ROOT, 'games', 'find-anomaly', 'elevator-console', 'assets', 'abnormal_elevator_visual_assets');
-const visualOutput = path.join(outputDir, 'visual');
-syncAssetDirectory(path.join(visualSource, 'mobile_cctv_states'), path.join(visualOutput, 'cctv'));
-syncAssetDirectory(path.join(visualSource, 'button_sprites'), path.join(visualOutput, 'buttons'));
-syncAssetDirectory(path.join(visualSource, 'overlays'), path.join(visualOutput, 'overlays'));
+// 视觉资产与音频资产已随 minigame 视觉资产清理一并移除；
+// 小游戏构建仅输出纯代码 bundle，不再同步 visual/ 或 audio/ 资产目录。
 
 console.log(`[build] ✅ ${target} 构建完成`);
 console.log(`[build]   输出: ${outPath}`);
@@ -375,9 +352,6 @@ const gameConfig = {
   deviceOrientation: 'portrait',
   showStatusBar: false,
   networkTimeout: { request: 5000, connectSocket: 5000 },
-  subPackages: [
-    { root: 'visual', name: 'v5-visual' },
-  ],
 };
 fs.writeFileSync(
   path.join(outputDir, 'game.json'),

@@ -50,26 +50,6 @@ test('browser preview renders a distinct success settlement without revive CTA',
   assert.match(js, /overlay\.dataset\.result\s*=\s*isSuccess \? 'success' : 'failure'/, 'overlay should expose success/failure styling state');
 });
 
-test('browser preview CSS consumes generated realistic UI and CCTV assets', () => {
-  const css = readFileSync(new URL('../styles.css', import.meta.url), 'utf8');
-  for (const asset of [
-    'cctv-elevator-corridor-clear.png',
-    'cctv-elevator-corridor-warp.png',
-    'cctv-elevator-corridor-figure.png',
-    'cctv-hospital-ward-real.png',
-    'cctv-security-room-real.png',
-    'cctv-factory-real.png',
-    'cctv-subway-platform-real.png',
-    'cctv-hotel-lobby-real.png',
-    'texture-control-panel.png',
-    'texture-hud-glass.png',
-    'overlay-cctv-noise.png',
-    'overlay-signal-tear.png',
-  ]) {
-    assert.match(css, new RegExp(asset.replace(/[.]/g, '\\.')), `CSS should reference generated asset ${asset}`);
-  }
-});
-
 test('CCTV anomaly overlays share one target axis instead of drifting apart', () => {
   const css = readFileSync(new URL('../styles.css', import.meta.url), 'utf8');
   assert.match(css, /--cctv-target-x:\s*50%/, 'CCTV target should be anchored to the scene center axis');

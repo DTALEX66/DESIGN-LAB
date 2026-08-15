@@ -13,54 +13,6 @@
   --red: #ff4d6d;
   --cyan: #51d6ff;
   --shadow: rgba(0, 0, 0, 0.58);
-  --cctv-feed: url("games/find-anomaly/elevator-console/assets/abnormal_elevator_visual_assets/cctv_states/00_idle_closed.png");
-  --cctv-feed-anomaly: url("games/find-anomaly/elevator-console/assets/abnormal_elevator_visual_assets/cctv_states/11_camera_glitch.png");
-  --cctv-feed-danger: url("games/find-anomaly/elevator-console/assets/abnormal_elevator_visual_assets/cctv_states/20_threat_high.png");
-  --cctv-state-00-idle-closed: url("games/find-anomaly/elevator-console/assets/abnormal_elevator_visual_assets/cctv_states/00_idle_closed.png");
-  --cctv-state-01-door-open: url("games/find-anomaly/elevator-console/assets/abnormal_elevator_visual_assets/cctv_states/01_door_open.png");
-  --cctv-state-02-door-opening: url("games/find-anomaly/elevator-console/assets/abnormal_elevator_visual_assets/cctv_states/02_door_opening.png");
-  --cctv-state-03-door-closing: url("games/find-anomaly/elevator-console/assets/abnormal_elevator_visual_assets/cctv_states/03_door_closing.png");
-  --cctv-state-04-moving-up: url("games/find-anomaly/elevator-console/assets/abnormal_elevator_visual_assets/cctv_states/04_moving_up.png");
-  --cctv-state-05-moving-down: url("games/find-anomaly/elevator-console/assets/abnormal_elevator_visual_assets/cctv_states/05_moving_down.png");
-  --cctv-state-06-power-low: url("games/find-anomaly/elevator-console/assets/abnormal_elevator_visual_assets/cctv_states/06_power_low.png");
-  --cctv-state-07-power-outage: url("games/find-anomaly/elevator-console/assets/abnormal_elevator_visual_assets/cctv_states/07_power_outage.png");
-  --cctv-state-08-emergency-stop: url("games/find-anomaly/elevator-console/assets/abnormal_elevator_visual_assets/cctv_states/08_emergency_stop.png");
-  --cctv-state-09-door-jammed: url("games/find-anomaly/elevator-console/assets/abnormal_elevator_visual_assets/cctv_states/09_door_jammed.png");
-  --cctv-state-10-signal-lost: url("games/find-anomaly/elevator-console/assets/abnormal_elevator_visual_assets/cctv_states/10_signal_lost.png");
-  --cctv-state-11-camera-glitch: url("games/find-anomaly/elevator-console/assets/abnormal_elevator_visual_assets/cctv_states/11_camera_glitch.png");
-  --cctv-state-12-scan-active: url("games/find-anomaly/elevator-console/assets/abnormal_elevator_visual_assets/cctv_states/12_scan_active.png");
-  --cctv-state-13-entity-near: url("games/find-anomaly/elevator-console/assets/abnormal_elevator_visual_assets/cctv_states/13_entity_near.png");
-  --cctv-state-14-shadow-inside: url("games/find-anomaly/elevator-console/assets/abnormal_elevator_visual_assets/cctv_states/14_shadow_inside.png");
-  --cctv-state-15-anomaly-wandering: url("games/find-anomaly/elevator-console/assets/abnormal_elevator_visual_assets/cctv_states/15_anomaly_wandering.png");
-  --cctv-state-16-wrong-floor: url("games/find-anomaly/elevator-console/assets/abnormal_elevator_visual_assets/cctv_states/16_wrong_floor.png");
-  --cctv-state-17-loop-corridor: url("games/find-anomaly/elevator-console/assets/abnormal_elevator_visual_assets/cctv_states/17_loop_corridor.png");
-  --cctv-state-18-locked: url("games/find-anomaly/elevator-console/assets/abnormal_elevator_visual_assets/cctv_states/18_locked.png");
-  --cctv-state-19-stabilized: url("games/find-anomaly/elevator-console/assets/abnormal_elevator_visual_assets/cctv_states/19_stabilized.png");
-  --cctv-state-20-threat-high: url("games/find-anomaly/elevator-console/assets/abnormal_elevator_visual_assets/cctv_states/20_threat_high.png");
-  --cctv-state-21-maintenance-mode: url("games/find-anomaly/elevator-console/assets/abnormal_elevator_visual_assets/cctv_states/21_maintenance_mode.png");
-  --cctv-state-22-system-reboot: url("games/find-anomaly/elevator-console/assets/abnormal_elevator_visual_assets/cctv_states/22_system_reboot.png");
-  --cctv-state-23-cooldown-safe: url("games/find-anomaly/elevator-console/assets/abnormal_elevator_visual_assets/cctv_states/23_cooldown_safe.png");
-  --legacy-cctv-feed: url("assets/generated/cctv-elevator-corridor-clear.png");
-  --legacy-cctv-feed-anomaly: url("assets/generated/cctv-elevator-corridor-warp.png");
-  --legacy-cctv-feed-danger: url("assets/generated/cctv-elevator-corridor-figure.png");
-  --hud-glass-texture: url("assets/generated/texture-hud-glass.png");
-  --control-panel-texture: url("assets/generated/texture-control-panel.png");
-  --cctv-noise-texture: url("assets/generated/overlay-cctv-noise.png");
-  --signal-tear-texture: url("assets/generated/overlay-signal-tear.png");
-  --visual-kit-cctv-frame: url("games/find-anomaly/elevator-console/assets/abnormal_elevator_visual_assets/overlays/overlay_cctv_frame.png");
-  --visual-kit-glitch-blocks: url("games/find-anomaly/elevator-console/assets/abnormal_elevator_visual_assets/overlays/overlay_glitch_blocks.png");
-  --visual-kit-red-alert-frame: url("games/find-anomaly/elevator-console/assets/abnormal_elevator_visual_assets/overlays/overlay_red_alert_frame.png");
-  --visual-kit-scanlines: url("games/find-anomaly/elevator-console/assets/abnormal_elevator_visual_assets/overlays/overlay_scanlines.png");
-  --visual-kit-scan-sweep: url("games/find-anomaly/elevator-console/assets/abnormal_elevator_visual_assets/overlays/overlay_scan_sweep.png");
-  --visual-kit-vignette: url("games/find-anomaly/elevator-console/assets/abnormal_elevator_visual_assets/overlays/overlay_vignette.png");
-  --btn-close-default: url("games/find-anomaly/elevator-console/assets/abnormal_elevator_visual_assets/button_sprites/btn_close_default.png");
-  --btn-disabled: url("games/find-anomaly/elevator-console/assets/abnormal_elevator_visual_assets/button_sprites/btn_disabled.png");
-  --btn-log-secondary: url("games/find-anomaly/elevator-console/assets/abnormal_elevator_visual_assets/button_sprites/btn_log_secondary.png");
-  --btn-more-secondary: url("games/find-anomaly/elevator-console/assets/abnormal_elevator_visual_assets/button_sprites/btn_more_secondary.png");
-  --btn-pressed: url("games/find-anomaly/elevator-console/assets/abnormal_elevator_visual_assets/button_sprites/btn_pressed.png");
-  --btn-scan-default: url("games/find-anomaly/elevator-console/assets/abnormal_elevator_visual_assets/button_sprites/btn_scan_default.png");
-  --btn-stop-danger: url("games/find-anomaly/elevator-console/assets/abnormal_elevator_visual_assets/button_sprites/btn_stop_danger.png");
-  --btn-up-recommended: url("games/find-anomaly/elevator-console/assets/abnormal_elevator_visual_assets/button_sprites/btn_up_recommended.png");
   --cctv-noise: 0.18;
 }
 
@@ -115,17 +67,6 @@ body::before {
 .console-shell[data-tone="critical"] .panel { border-color: rgba(255, 209, 102, 0.48); }
 .console-shell[data-tone="danger"] .panel,
 .console-shell[data-tone="critical"] .monitor { border-color: rgba(255, 77, 109, 0.68); }
-
-.console-shell[data-skin="elevator"] {
-  --cctv-feed: url("games/find-anomaly/elevator-console/assets/abnormal_elevator_visual_assets/cctv_states/00_idle_closed.png");
-  --cctv-feed-anomaly: url("games/find-anomaly/elevator-console/assets/abnormal_elevator_visual_assets/cctv_states/11_camera_glitch.png");
-  --cctv-feed-danger: url("games/find-anomaly/elevator-console/assets/abnormal_elevator_visual_assets/cctv_states/20_threat_high.png");
-}
-.console-shell[data-skin="hospital"] { --cctv-feed: url("assets/generated/cctv-hospital-ward-real.png"); }
-.console-shell[data-skin="security"] { --cctv-feed: url("assets/generated/cctv-security-room-real.png"); }
-.console-shell[data-skin="factory"] { --cctv-feed: url("assets/generated/cctv-factory-real.png"); }
-.console-shell[data-skin="subway"] { --cctv-feed: url("assets/generated/cctv-subway-platform-real.png"); }
-.console-shell[data-skin="hotel"] { --cctv-feed: url("assets/generated/cctv-hotel-lobby-real.png"); }
 
 .topbar {
   position: relative;
@@ -2435,32 +2376,6 @@ h1.game-title { font-size: clamp(1.8rem, 4.2vw, 3.8rem); }
 }
 
 @media (max-width: 700px) and (orientation: portrait) {
-  :root {
-    --cctv-state-00-idle-closed: url("games/find-anomaly/elevator-console/assets/abnormal_elevator_visual_assets/mobile_cctv_states/00_idle_closed_mobile.png");
-    --cctv-state-01-door-open: url("games/find-anomaly/elevator-console/assets/abnormal_elevator_visual_assets/mobile_cctv_states/01_door_open_mobile.png");
-    --cctv-state-02-door-opening: url("games/find-anomaly/elevator-console/assets/abnormal_elevator_visual_assets/mobile_cctv_states/02_door_opening_mobile.png");
-    --cctv-state-03-door-closing: url("games/find-anomaly/elevator-console/assets/abnormal_elevator_visual_assets/mobile_cctv_states/03_door_closing_mobile.png");
-    --cctv-state-04-moving-up: url("games/find-anomaly/elevator-console/assets/abnormal_elevator_visual_assets/mobile_cctv_states/04_moving_up_mobile.png");
-    --cctv-state-05-moving-down: url("games/find-anomaly/elevator-console/assets/abnormal_elevator_visual_assets/mobile_cctv_states/05_moving_down_mobile.png");
-    --cctv-state-06-power-low: url("games/find-anomaly/elevator-console/assets/abnormal_elevator_visual_assets/mobile_cctv_states/06_power_low_mobile.png");
-    --cctv-state-07-power-outage: url("games/find-anomaly/elevator-console/assets/abnormal_elevator_visual_assets/mobile_cctv_states/07_power_outage_mobile.png");
-    --cctv-state-08-emergency-stop: url("games/find-anomaly/elevator-console/assets/abnormal_elevator_visual_assets/mobile_cctv_states/08_emergency_stop_mobile.png");
-    --cctv-state-09-door-jammed: url("games/find-anomaly/elevator-console/assets/abnormal_elevator_visual_assets/mobile_cctv_states/09_door_jammed_mobile.png");
-    --cctv-state-10-signal-lost: url("games/find-anomaly/elevator-console/assets/abnormal_elevator_visual_assets/mobile_cctv_states/10_signal_lost_mobile.png");
-    --cctv-state-11-camera-glitch: url("games/find-anomaly/elevator-console/assets/abnormal_elevator_visual_assets/mobile_cctv_states/11_camera_glitch_mobile.png");
-    --cctv-state-12-scan-active: url("games/find-anomaly/elevator-console/assets/abnormal_elevator_visual_assets/mobile_cctv_states/12_scan_active_mobile.png");
-    --cctv-state-13-entity-near: url("games/find-anomaly/elevator-console/assets/abnormal_elevator_visual_assets/mobile_cctv_states/13_entity_near_mobile.png");
-    --cctv-state-14-shadow-inside: url("games/find-anomaly/elevator-console/assets/abnormal_elevator_visual_assets/mobile_cctv_states/14_shadow_inside_mobile.png");
-    --cctv-state-15-anomaly-wandering: url("games/find-anomaly/elevator-console/assets/abnormal_elevator_visual_assets/mobile_cctv_states/15_anomaly_wandering_mobile.png");
-    --cctv-state-16-wrong-floor: url("games/find-anomaly/elevator-console/assets/abnormal_elevator_visual_assets/mobile_cctv_states/16_wrong_floor_mobile.png");
-    --cctv-state-17-loop-corridor: url("games/find-anomaly/elevator-console/assets/abnormal_elevator_visual_assets/mobile_cctv_states/17_loop_corridor_mobile.png");
-    --cctv-state-18-locked: url("games/find-anomaly/elevator-console/assets/abnormal_elevator_visual_assets/mobile_cctv_states/18_locked_mobile.png");
-    --cctv-state-19-stabilized: url("games/find-anomaly/elevator-console/assets/abnormal_elevator_visual_assets/mobile_cctv_states/19_stabilized_mobile.png");
-    --cctv-state-20-threat-high: url("games/find-anomaly/elevator-console/assets/abnormal_elevator_visual_assets/mobile_cctv_states/20_threat_high_mobile.png");
-    --cctv-state-21-maintenance-mode: url("games/find-anomaly/elevator-console/assets/abnormal_elevator_visual_assets/mobile_cctv_states/21_maintenance_mode_mobile.png");
-    --cctv-state-22-system-reboot: url("games/find-anomaly/elevator-console/assets/abnormal_elevator_visual_assets/mobile_cctv_states/22_system_reboot_mobile.png");
-    --cctv-state-23-cooldown-safe: url("games/find-anomaly/elevator-console/assets/abnormal_elevator_visual_assets/mobile_cctv_states/23_cooldown_safe_mobile.png");
-  }
 }
 
 /* UI V3 NIGHT RELAY — Monitor primary, Operate secondary. */

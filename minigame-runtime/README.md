@@ -21,7 +21,7 @@ minigame-runtime = Game Visual Design Fixture / Runtime Reference
 
 **找异常：异常电梯控制台**（`games/find-anomaly/elevator-console/`）
 
-该 fixture 的视觉参考属性包括：CCTV/监控面板中的电梯轿厢/乘客热源/异常准星，以及楼层、电梯门、电源、稳定度、异常等级、乘客数量等状态 HUD 元素。用于游戏 UI/HUD 视觉设计参考与多端视觉回归。
+该 fixture 提供游戏 UI/HUD 视觉设计的**规范骨架与运行时参考**：视觉状态清单（CCTV 状态、按钮组件、overlay 组件族）、皮肤文案、内容调度与多端构建/回归测试。早期制作小游戏所用的实际视觉资产（CCTV 状态图、循环 GIF、背景音乐、发行审核素材）已移除，仅保留可再生成的视觉设计规范与运行时代码。
 
 ## 快速开始
 

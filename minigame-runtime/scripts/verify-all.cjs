@@ -87,7 +87,6 @@ run('WeChat strict bundle check', modern.executable, ['scripts/check-wechat-bund
 printSummary('[verify] wechat strict: 0 blocker');
 run('Douyin mini-game build', modern.executable, ['build.js', 'douyin']);
 run('Douyin strict bundle check', modern.executable, ['scripts/check-douyin-bundle.mjs', '--strict']);
-run('Douyin compliance check', modern.executable, ['scripts/check-douyin-compliance.mjs', '--strict']);
 printSummary('[verify] douyin strict: 0 blocker');
 run('Skin schema validation', modern.executable, ['scripts/validate-skins.mjs']);
 run('V5 content validation', modern.executable, ['scripts/validate-v5-content.mjs']);
