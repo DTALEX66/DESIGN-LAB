@@ -219,7 +219,7 @@ def generate_asset_counts(root: Path) -> Path:
         "method_cards": len(methods.get("cards") or []),
         "evidence_cards": len(evidence.get("cards") or []),
     }
-    counts["generated_at"] = __import__("datetime").datetime.now().isoformat(timespec="seconds")
+    counts["generated_at"] = __import__("datetime").datetime.now().strftime("%Y-%m-%d")  # date-only: deterministic
     out.write_text(json.dumps(counts, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     return out
 

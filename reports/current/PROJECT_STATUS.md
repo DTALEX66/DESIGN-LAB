@@ -1,7 +1,7 @@
 # PROJECT_STATUS（生成状态，DL-MIG-005）
 
 - 生成时间：2026-08-16｜生成器：`scripts/generate_project_status.py (DL-MIG-005)`
-- Git：分支 `fix/design-lab-governance-closure-r4`，HEAD `667489b82d08`，origin/main `b9f69acd13f5`，worktree dirty
+- Git：分支 `fix/design-lab-governance-closure-r4`，HEAD `b1a8526f01f8`，origin/main `b9f69acd13f5`，worktree dirty
 - tracked 文件：2940；仓库 pack：198.74 MiB（预算 256 MiB，预警 220 MiB）
 
 ## 来源治理
