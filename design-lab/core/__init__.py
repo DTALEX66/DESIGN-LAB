@@ -6,8 +6,10 @@
 """
 from .project_state import DesignProject, ProjectTransitionError, load_project, STAGES, TRANSITIONS
 from .commands import validate_command, KNOWN_CAPABILITIES, is_tool_name
+from .user_modes import MODE_SEMANTICS, mode_semantics, requires_human_approval, quality_gate_auto, VALID_MODES
 
 __all__ = [
     "DesignProject", "ProjectTransitionError", "load_project", "STAGES", "TRANSITIONS",
     "validate_command", "KNOWN_CAPABILITIES", "is_tool_name",
+    "MODE_SEMANTICS", "mode_semantics", "requires_human_approval", "quality_gate_auto", "VALID_MODES",
 ]

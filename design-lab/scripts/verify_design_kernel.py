@@ -67,7 +67,32 @@ def main() -> int:
     except Exception as exc:
         errors.append(f"core state machine load failed: {exc}")
 
-    # 3) 命令验证器中立性
+    # 3) object-model: 13+ 对象且 schemaRef 指向存在的 schema
+    try:
+        om = load_json(ROOT / "config" / "object-model.json")
+        objs = om.get("objects", [])
+        if len(objs) < 13:
+            errors.append(f"object-model has {len(objs)} objects (<13)")
+        schema_dir = SCHEMAS
+        for o in objs:
+            ref = o.get("schemaRef")
+            if ref:
+                if not (schema_dir / Path(ref).name).exists():
+                    errors.append(f"object-model schemaRef missing: {ref}")
+    except Exception as exc:
+        errors.append(f"object-model check failed: {exc}")
+
+    # 4) user modes 语义
+    um = importlib.util.spec_from_file_location("dl_core_user_modes", str(CORE / "user_modes.py"))
+    umm = importlib.util.module_from_spec(um); sys.modules[um.name] = umm; um.loader.exec_module(umm)
+    for m in ("guided", "copilot", "director", "method", "production"):
+        sem = umm.mode_semantics(m)
+        if not sem:
+            errors.append(f"user mode missing: {m}")
+        elif sem["disclosure"] not in ("low", "medium", "high") or sem["control"] not in ("low", "medium", "high"):
+            errors.append(f"user mode {m}: invalid disclosure/control")
+
+    # 5) 命令验证器中立性
     cs = importlib.util.spec_from_file_location("dl_core_commands", str(CORE / "commands.py"))
     cm = importlib.util.module_from_spec(cs); cs.loader.exec_module(cm)
     validate_command, is_tool_name = cm.validate_command, cm.is_tool_name

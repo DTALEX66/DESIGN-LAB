@@ -73,3 +73,35 @@ class DesignCommandTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class UserModeTests(unittest.TestCase):
+    def test_all_modes_valid(self):
+        import sys
+        p = _CORE / "user_modes.py"
+        spec = importlib.util.spec_from_file_location("dl_core_user_modes_test", p)
+        m = importlib.util.module_from_spec(spec)
+        sys.modules[spec.name] = m
+        spec.loader.exec_module(m)
+        for mode in ("guided", "copilot", "director", "method", "production"):
+            self.assertIsNotNone(m.mode_semantics(mode))
+
+    def test_guided_requires_direction_approval(self):
+        import sys
+        p = _CORE / "user_modes.py"
+        spec = importlib.util.spec_from_file_location("dl_core_user_modes_test2", p)
+        m = importlib.util.module_from_spec(spec)
+        sys.modules[spec.name] = m
+        spec.loader.exec_module(m)
+        self.assertTrue(m.requires_human_approval("guided", "direction"))
+        self.assertFalse(m.requires_human_approval("production", "direction"))
+
+    def test_quality_gate_auto(self):
+        import sys
+        p = _CORE / "user_modes.py"
+        spec = importlib.util.spec_from_file_location("dl_core_user_modes_test3", p)
+        m = importlib.util.module_from_spec(spec)
+        sys.modules[spec.name] = m
+        spec.loader.exec_module(m)
+        self.assertTrue(m.quality_gate_auto("director"))
+        self.assertFalse(m.quality_gate_auto("guided"))
