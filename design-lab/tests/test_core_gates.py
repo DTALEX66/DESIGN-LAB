@@ -111,13 +111,32 @@ class IdentityGateTests(unittest.TestCase):
 
 
 class SourceRegistryTests(unittest.TestCase):
-    def test_registry_entries_have_url(self):
-        """Every vendor-adapt entry must carry a canonical url (v2 schema)."""
-        m = load("verify_source_registry_v2.py")
+    def test_registry_is_v3(self):
+        """SOURCE_REGISTRY must be the v3 SourceRecord-wrapped format (DL-KNW-002)."""
+        load("verify_source_registry.py")
         reg = json.loads((ROOT / "research/global-absorption/SOURCE_REGISTRY.json").read_text(encoding="utf-8"))
-        bad = [e["name"] for e in reg.get("entries", [])
-               if e.get("integration_mode") == "vendor-adapt" and not e.get("url")]
-        self.assertEqual(bad, [], f"vendor-adapt entries missing url: {bad}")
+        self.assertEqual(reg.get("schemaVersion"), "design-lab/source-registry/v3")
+        for e in reg.get("entries", []):
+            self.assertIn("source", e)
+            self.assertIn("integration", e)
+
+    def test_quarantine_entries_record_missing_facts(self):
+        """Every quarantined source records missingFields + reason and preserves the legacy record (DL-KNW-003)."""
+        qreg = json.loads((ROOT / "research/global-absorption/QUARANTINE_REGISTRY.json").read_text(encoding="utf-8"))
+        self.assertEqual(qreg.get("schemaVersion"), "design-lab/quarantine-registry/v1")
+        entries = qreg.get("entries", [])
+        self.assertGreater(len(entries), 0, "quarantine registry must carry the migrated legacy entries")
+        for e in entries:
+            self.assertTrue(e.get("missingFields"), f"{e.get('sourceId')} missing missingFields")
+            self.assertTrue(e.get("reason"), f"{e.get('sourceId')} missing reason")
+            self.assertIn("originalRecord", e, f"{e.get('sourceId')} must preserve original record")
+
+    def test_git_version_must_be_full_40_hex(self):
+        """Short git SHAs must be rejected by the strict verifier contract (DL-KNW-001)."""
+        import re as _re
+        m = load("verify_source_registry.py")
+        self.assertIsNotNone(_re.fullmatch(m.GIT_SHA40.pattern, "a" * 40))
+        self.assertIsNone(_re.fullmatch(m.GIT_SHA40.pattern, "a" * 12))
 
 
 class ReleaseGateTests(unittest.TestCase):

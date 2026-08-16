@@ -18,6 +18,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 SBOM = ROOT / "config" / "sbom-v42.spdx.json"
 REGISTRY = ROOT / "research" / "global-absorption" / "SOURCE_REGISTRY.json"
+QUARANTINE = ROOT / "research" / "global-absorption" / "QUARANTINE_REGISTRY.json"
 
 SHA_RE = re.compile(r"^[0-9a-f]{40}$")
 
@@ -44,13 +45,20 @@ def check() -> list[str]:
     if not m:
         findings.append("documentNamespace missing tree-SHA suffix")
 
-    # vendored coverage
+    # vendored coverage (v3 active entries + quarantined legacy records)
     try:
         reg = json.loads(REGISTRY.read_text(encoding="utf-8"))
         vendored = [
-            e["name"]
+            e["source"].get("sourceId", "?")
             for e in reg.get("entries", [])
-            if e.get("integration_mode") == "vendor-adapt" and e.get("license_verified")
+            if e.get("integration", {}).get("mode") == "vendor-adapt"
+        ]
+        qreg = json.loads(QUARANTINE.read_text(encoding="utf-8"))
+        vendored += [
+            e.get("name")
+            for e in qreg.get("entries", [])
+            if e.get("originalRecord", {}).get("integration_mode") == "vendor-adapt"
+            and e.get("originalRecord", {}).get("license_verified")
         ]
     except (OSError, json.JSONDecodeError) as exc:
         return findings + [f"REGISTRY unreadable: {exc}"]

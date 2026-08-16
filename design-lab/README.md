@@ -35,7 +35,7 @@ python design-lab/scripts/verify_identity_gate.py     # 身份边界 gate
 python design-lab/scripts/verify_product_manifest_v3.py
 python design-lab/scripts/verify_runtime_contracts_v3.py
 python design-lab/scripts/verify_visual_scoring_v3.py
-python design-lab/scripts/verify_source_registry_v2.py
+python design-lab/scripts/verify_source_registry.py
 python -m pytest design-lab/tests/                    # 单元 + fixture 测试
 ```
 

@@ -257,7 +257,7 @@
         "design-lab/knowledge/sources/",
         "design-lab/research/",
         "design-lab/evals/",
-        "design-lab/scripts/verify_source_registry_v2.py"
+        "design-lab/scripts/verify_source_registry.py"
       ],
       "minimumEvidence": "E1",
       "domain": "governance",
@@ -315,7 +315,7 @@
       "design-lab/scripts/verify_runtime_contracts_v3.py",
       "design-lab/scripts/verify_visual_scoring_v3.py",
       "design-lab/scripts/verify_release_evidence.py",
-      "design-lab/scripts/verify_source_registry_v2.py",
+      "design-lab/scripts/verify_source_registry.py",
       "design-lab/scripts/verify_v2_protocols.py",
       "design-lab/scripts/verify_visual_quality_v21.py"
     ]

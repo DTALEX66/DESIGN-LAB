@@ -72,7 +72,7 @@ jobs:
         run: python design-lab/scripts/verify_visual_scoring_v3.py
       - name: V2 / V2.1 protocols
         run: |
-          python design-lab/scripts/verify_source_registry_v2.py
+          python design-lab/scripts/verify_source_registry.py
           python design-lab/scripts/verify_v2_protocols.py
           python design-lab/scripts/verify_visual_quality_v21.py
       - name: Domain Pack V2 contract

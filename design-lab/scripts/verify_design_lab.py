@@ -18,7 +18,7 @@ SCRIPTS = [
     "verify_product_manifest_v3.py",
     "verify_runtime_contracts_v3.py",
     "verify_visual_scoring_v3.py",
-    "verify_source_registry_v2.py",
+    "verify_source_registry.py",
     "verify_v2_protocols.py",
     "verify_visual_quality_v21.py",
     "verify_style_master_method.py",

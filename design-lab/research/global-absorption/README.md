@@ -34,3 +34,10 @@ A source may enter production context only after:
 7. The source has an owner, version pin, review date, and removal path.
 
 Registry snapshot: 2026-08-04. It is intentionally a curated high-recall starting point, not a claim that every website on the internet has been copied.
+
+
+## v3 治理状态（DL-KNW-003，2026-08）
+
+遗留 162 条登记已逐条迁移/隔离至 `QUARANTINE_REGISTRY.json`（fail-closed，不批量制造字段）。
+`SOURCE_REGISTRY.json` 为 v3 活动登记（仅完整人工审核 SourceRecord 可进入）。
+隔离登记不得进入能力加载、模型上下文或 reviewed 状态；提升需人工补齐缺失事实。
