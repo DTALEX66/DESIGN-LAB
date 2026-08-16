@@ -238,15 +238,53 @@ def schema_enum(path: Path, key: str) -> set[str]:
     return {str(item) for item in node.get("enum", [])}
 
 
+# V2 kernel: product stage chain; scenario (Open Design projection) stages map onto it.
+# Scenario (Open Design projection) stages -> product chain stages (DL-ADP-OD boundary).
+STAGE_MAPPING = {
+    "intake": "research",
+    "research": "research",
+    "lineage-research": "research",
+    "rights-and-dna": "research",
+    "strategy": "direction",
+    "directions": "direction",
+    "diagnosis": "direction",
+    "recipe": "direction",
+    "translation": "direction",
+    "style-translation": "direction",
+    "route": "direction",
+    "system": "system",
+    "applications": "variant",
+    "craft": "variant",
+    "execute": "variant",
+    "baseline": "variant",
+    "structure": "variant",
+    "critique": "critique",
+    "jury": "critique",
+    "final-jury": "critique",
+    "coherence": "critique",
+    "refine": "revision",
+    "refinement": "revision",
+    "surface-reality": "revision",
+    "final": "approved",
+    "preflight": "preflight",
+    "handoff": "packaged",
+}
+
+
 def verify_project_state_schema(root: Path, results: list[Result], stage_maps: dict[str, dict[str, set[str]]]) -> None:
     path = root / ASSISTANCE_DIR / "schemas" / "design-project-state.schema.json"
     data = object_at(results, "design-project-state schema", load_json(path))
     required = set(data.get("required", []))
-    check(results, "project-state requires project_id/stage/decisions/artifacts", {"project_id", "stage", "decisions", "artifacts"} <= required, str(required))
+    check(results, "project-state requires v2 kernel fields", {"project_id", "schemaVersion", "stage", "quality_status", "revision", "history", "objects"} <= required, str(required))
     stages = schema_enum(path, "stage")
+    # V2 stage enum must cover the product chain fully
+    core_chain = {"draft", "research", "direction", "system", "variant", "critique", "revision", "approved", "render", "preflight", "packaged", "delivered", "archived"}
+    missing_chain = sorted(core_chain - stages)
+    check(results, "project-state stage enum covers product chain", not missing_chain, str(missing_chain))
+    # scenario projection stages must map onto the product chain (DL-ADP-OD boundary)
     all_pipeline_stages = {stage for stage_map in stage_maps.values() for stage in stage_map}
-    missing = sorted(all_pipeline_stages - stages)
-    check(results, "project-state stage enum covers scenario stages", not missing, str(missing))
+    unmapped = sorted({s for s in all_pipeline_stages if s not in core_chain and s not in STAGE_MAPPING})
+    check(results, "scenario stages map onto project-state chain", not unmapped, str(unmapped))
 
 
 def verify_provenance_schema(root: Path, results: list[Result]) -> dict[str, Any]:
