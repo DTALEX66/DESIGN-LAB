@@ -30,7 +30,7 @@
             <div data-priority="critical"><span class="hud-icon">⚡</span><dt id="powerLabel">电源</dt><dd><meter id="power" min="0" max="100" value="100"></meter><span id="powerText">100</span></dd></div>
             <div data-priority="critical"><span class="hud-icon">◇</span><dt id="stabilityLabel">稳定度</dt><dd><meter id="stability" min="0" max="100" value="100"></meter><span id="stabilityText">100</span></dd></div>
             <div data-priority="danger"><span class="hud-icon danger">!</span><dt id="anomalyLevelLabel">异常等级</dt><dd id="anomalyLevel">0</dd></div>
-            <div data-priority="secondary"><span class="hud-icon">↺</span><dt id="reviveCountLabel">广告复活</dt><dd id="reviveCount">0</dd></div>
+            <div data-priority="secondary"><span class="hud-icon">↺</span><dt id="reviveCountLabel">复活</dt><dd id="reviveCount">0</dd></div>
             <div data-priority="secondary"><span class="hud-icon">◇</span><dt id="adHintsCountLabel">加密解码</dt><dd id="adHintsCount">0</dd></div>
             <div data-priority="secondary"><span class="hud-icon">▤</span><dt id="hiddenLogsCountLabel">待解码</dt><dd id="hiddenLogsCount">0</dd></div>
           </dl>
@@ -126,12 +126,12 @@
         <div class="failure-card">
           <p class="eyebrow">SYSTEM FAILURE</p>
           <h2 id="failureTitle">系统崩溃</h2>
-          <p id="failureReason">异常等级失控。可观看广告复活。</p>
+          <p id="failureReason">异常等级失控。可消耗一次复活。</p>
           <div id="failureMetrics" class="failure-metrics" aria-label="崩溃指标"></div>
           <div id="postRunSummary" class="post-run-summary" aria-label="局后复盘"></div>
           <p id="adHint" class="hint"></p>
           <div class="failure-actions">
-            <button id="reviveButton" type="button">观看广告复活</button>
+            <button id="reviveButton" type="button">复活</button>
             <button id="restartButton" class="secondary" type="button">重新开始</button>
           </div>
         </div>
@@ -170,7 +170,7 @@
           <pre id="fakeEndingText" class="ending-text"></pre>
           <pre id="fakeEndingTruth" class="ending-truth"></pre>
           <div class="failure-actions">
-            <button id="fakeEndingTruthBtn" type="button">观看广告揭示真相</button>
+            <button id="fakeEndingTruthBtn" type="button">揭示真相</button>
             <button id="fakeEndingRestartBtn" class="secondary" type="button">重新开始</button>
           </div>
         </div>

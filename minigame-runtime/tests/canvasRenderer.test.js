@@ -371,7 +371,7 @@ test('canvas static labels use current skin copy', () => {
   assert.notEqual(labels.forceAnomaly, domLabels.forceAnomaly);
   assert.equal(labels.failureTitle, domLabels.failureTitle);
   assert.equal(labels.failureEyebrow, domLabels.failureEyebrow);
-  assert.equal(labels.adRevive, domLabels.revive);
+  assert.equal(labels.revive, domLabels.revive);
   assert.equal(labels.restart, domLabels.restart);
   assert.equal(labels.revealTruth, domLabels.revealTruth);
 
@@ -404,7 +404,7 @@ test('canvas failure overlay copy uses current skin text', () => {
 
 test('canvas renderer distinguishes success settlement from failure', () => {
   assert.match(canvasRendererSource, /state\.result === 'success'/, 'Canvas overlay should branch on explicit success result');
-  assert.match(canvasRendererSource, /if \(!isSuccess\)[\s\S]*labels\.adRevive/, 'Canvas success settlement should omit rewarded-revive CTA');
+  assert.match(canvasRendererSource, /if \(!isSuccess\)[\s\S]*labels\.revive/, 'Canvas success settlement should omit rewarded-revive CTA');
 });
 
 test('canvas CCTV treatment consumes the shared cctvState mapping', () => {

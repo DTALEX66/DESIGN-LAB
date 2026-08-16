@@ -81,8 +81,8 @@ const CONFIG = {
     difficultyInterval: 10,     // 间隔秒数
   },
 
-  /* ── 广告复活 ── */
-  adRevive: {
+  /* ── 复活（回滚快照机制，无广告） ── */
+  revive: {
     rollbackWindow: 30,          // 回滚到多少秒前的快照
     snapshotInterval: 10,        // 每 N 秒存一次快照
     maxSnapshots: 12,            // 最多保留快照数
@@ -94,7 +94,7 @@ const CONFIG = {
     displayLines: 18,
   },
 
-  /* ── 隐藏日志（广告解锁） ── */
+  /* ── 隐藏日志（解码） ── */
   hiddenLogs: {
     maxUnlockedPerRun: 5,
   },
@@ -105,23 +105,8 @@ const CONFIG = {
     cooldownFailures: 3,
   },
 
-  /* ── 发布模式 ──
-     - false: 开发模式，广告失败也给奖励，方便本地测试
-     - true:  发布模式，广告失败提示重试，不无条件发奖励
-  */
-  releaseMode: false,
 
-  /* ── 模拟广告 ── */
-  adContent: {
-    adVideoDuration: 2000,
-  },
 
-  /* ── 广告位 ── */
-  adUnits: {
-    revive: 'adunit-xxxxx_revive',
-    decode: 'adunit-xxxxx_decode',
-    truth: 'adunit-xxxxx_truth',
-  },
 };
 
 export default CONFIG;

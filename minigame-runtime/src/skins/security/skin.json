@@ -32,7 +32,7 @@
     "power": "电力",
     "stability": "安保等级",
     "anomalyLevel": "威胁等级",
-    "reviveCount": "广告支援",
+    "reviveCount": "支援",
     "adHintsCount": "加密解码",
     "hiddenLogsCount": "待解码"
   },
@@ -79,8 +79,8 @@
     "emergencyStop_fail": "急停按钮无响应。威胁等级上升。",
     "restartSystem": "安防系统重启完成：威胁等级下降，但消耗 {cost} 点电力。",
     "inspectLog": "操作员查看安防日志：最近 30 秒存在未授权访问请求。",
-    "inspectLog_hiddenRecords": "发现 {count} 条待解码加密记录。可观看模拟广告解锁完整内容。",
-    "unlockHiddenLog_ok": "模拟广告播放完成。加密记录已解码。"
+    "inspectLog_hiddenRecords": "发现 {count} 条待解码加密记录。可解码完整内容。",
+    "unlockHiddenLog_ok": "解码完成。加密记录已解锁。"
   },
   "anomalies": [
     {
@@ -184,14 +184,14 @@
     "eyebrow": "\u26a0 SYSTEM ANOMALY DETECTED",
     "title": "值班员关联异常",
     "text": "系统检测到值班员第 {count} 次安防崩溃。\n根据《安防控制员守则》第 7 条，您已被标记为\u201c异常关联人员\u201d。\n前 {threshold} 次记录已被永久删除。\n建议您立即离开控制室并联系安保部门。",
-    "truthPlaceholder": "[???] 观看广告揭示真相。",
+    "truthPlaceholder": "[???] 揭示真相。",
     "truthContent": "这不是第一次，也不会是最后一次。\n这座建筑的安防系统从未被修复。\n每一任值班员最后都变成了「安防事件」本身。\n传感器中关于「人员」的记载——都是前任值班员的热源信号。\n你现在坐的位置，就是上一任值班员被发现的地方。"
   },
   "ui": {
     "viewAd": "呼叫支援",
     "unlockAd": "解码加密记录",
     "restart": "重新部署",
-    "revealTruth": "观看广告揭示真相",
+    "revealTruth": "揭示真相",
     "triggerTest": "触发异常测试",
     "decodePrefix": "[解码记录]",
     "initialLog": "异常安防监控系统已接管。等待操作员指令。",
@@ -220,7 +220,7 @@
     "pausedCopy": "返回前台后继续，不计算后台时间",
     "audioOn": "声音开",
     "audioOff": "已静音",
-    "adUnavailable": "广告暂不可用，请稍后重试",
+    "rewardUnavailable": "奖励暂不可用，请稍后重试",
     "reportNormal": "判为正常",
     "reportAnomaly": "报告异常",
     "inspectionLabel": "巡检判定 {seconds}s",

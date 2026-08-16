@@ -178,26 +178,18 @@ test('generated Douyin bundle settles rewarded-ad completion, cancellation, erro
   vm.runInContext(bundle, sandbox, { filename: 'douyin-minigame/game.js' });
   const { createMiniGameRewardedAd, shouldApplyReward } = sandbox.__bundleTest;
 
-  const ads = [];
+  let hostAdCalls = 0;
   const api = {
     createRewardedVideoAd() {
-      const ad = {
-        onClose(handler) { ad.close = handler; },
-        onError(handler) { ad.error = handler; },
-        offClose() {}, offError() {}, destroy() {},
-        show: () => Promise.resolve(),
-        load: () => Promise.resolve(),
-      };
-      ads.push(ad);
-      return ad;
+      hostAdCalls += 1;
+      throw new Error('boundary: host rewarded-video APIs must not be used');
     },
   };
   let rewards = 0;
   let errors = 0;
   let starts = 0;
   let settlements = 0;
-  const show = createMiniGameRewardedAd(api, 'adunit-real', {
-    releaseMode: true,
+  const show = createMiniGameRewardedAd(api, 'revive', {
     onReward: () => { rewards += 1; },
     onError: () => { errors += 1; },
     onStart: () => { starts += 1; },
@@ -205,15 +197,12 @@ test('generated Douyin bundle settles rewarded-ad completion, cancellation, erro
   });
 
   await show({ runToken: 1 });
-  ads[0].close({ isEnded: false });
   await show({ runToken: 2 });
-  ads[1].close({ isEnded: true });
-  ads[1].close({ isEnded: true });
   await show({ runToken: 3 });
-  ads[2].error(new Error('ad failed'));
 
+  assert.equal(hostAdCalls, 0, 'free reward must not touch host ad APIs');
   assert.deepEqual({ rewards, errors, starts, settlements }, {
-    rewards: 1, errors: 1, starts: 3, settlements: 3,
+    rewards: 3, errors: 0, starts: 3, settlements: 3,
   });
   assert.equal(shouldApplyReward(
     { context: { runToken: 7 } }, 7, 'revive', { gameOver: true, result: 'failure' },

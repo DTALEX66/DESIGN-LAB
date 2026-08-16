@@ -734,7 +734,7 @@ button.secondary {
 .logs li::marker { color: rgba(97,255,190,0.55); }
 .logs li.warn { color: var(--amber); }
 .logs li.danger { color: var(--red); }
-.logs li.ad { color: var(--cyan); }
+.logs li.system { color: var(--cyan); }
 .logs li.success { color: var(--green); }
 .logs li.log-priority-high,
 .logs li.log-priority-special,

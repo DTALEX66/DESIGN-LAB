@@ -54,97 +54,31 @@ export function getContext() {
   return mainCtx;
 }
 
-// ── 广告 ──
+// ── 免费奖励 ──
 let adInstances = {};
 
-function createHostRewardedAd(hostApi, adUnitId, callbacks, label) {
-  const { onReward, onError } = callbacks;
-  let activeAttempt = null;
-  let attemptSequence = 0;
-
-  const settle = (attempt, { rewarded = false, error = null } = {}) => {
-    if (!attempt || attempt.settled) return;
-    attempt.settled = true;
-    if (activeAttempt === attempt) activeAttempt = null;
-    const meta = { attemptId: attempt.id, context: attempt.context };
-    if (error) console.warn(`[ad:${label}] error:`, error);
-    if (rewarded || (error && !CONFIG.releaseMode)) onReward?.(meta);
-    if (error) onError?.(error, meta);
-    attempt.ad.offClose?.(attempt.closeHandler);
-    attempt.ad.offError?.(attempt.errorHandler);
-    attempt.ad.destroy?.();
-  };
-
-  return (context = null) => {
-    if (activeAttempt && !activeAttempt.settled) return Promise.resolve();
-    const ad = hostApi.createRewardedVideoAd({ adUnitId });
-    const attempt = {
-      id: ++attemptSequence,
-      context,
-      settled: false,
-      ad,
-      closeHandler: null,
-      errorHandler: null,
-    };
-    attempt.closeHandler = (res) => settle(attempt, { rewarded: Boolean(res?.isEnded) });
-    attempt.errorHandler = (error) => settle(attempt, { error });
-    activeAttempt = attempt;
-    ad.onClose(attempt.closeHandler);
-    ad.onError(attempt.errorHandler);
-
-    return Promise.resolve()
-      .then(() => ad.show())
-      .catch((showError) => {
-        if (attempt.settled) return undefined;
-        return Promise.resolve()
-          .then(() => ad.load?.())
-          .then(() => ad.show())
-          .catch((loadError) => settle(attempt, { error: loadError || showError }));
-      });
-  };
-}
-
 /**
- * 创建激励视频广告
- * @param {string} adUnitId - 广告位 ID
+ * 创建免费奖励
+ * @param {string} rewardId - 奖励标识（无广告位语义）
  * @param {object} callbacks - { onReward, onError }
  * @returns {function} show() 函数
  */
-export function createRewardedAd(adUnitId, callbacks = {}) {
-  if (adInstances[adUnitId]) return adInstances[adUnitId];
-
-  const { onReward, onError } = callbacks;
-
-  if (env === 'wechat') {
-    const show = createHostRewardedAd(wx, adUnitId, callbacks, 'wechat');
-    adInstances[adUnitId] = show;
-    return show;
-  }
-
-  if (env === 'douyin') {
-    const show = createHostRewardedAd(tt, adUnitId, callbacks, 'douyin');
-    adInstances[adUnitId] = show;
-    return show;
-  }
-
-  // 浏览器模式 — 模拟广告；同样回传发起时上下文，供运行时拒绝陈旧奖励。
-  let browserAttempt = null;
-  let browserAttemptSequence = 0;
+/**
+ * 创建免费奖励（MiniGame 边界：禁止广告/IAA/变现；无广告位、无模拟广告）
+ * @param {string} rewardId - 奖励标识（兼容旧调用签名）
+ * @param {object} callbacks - { onReward, onError }
+ * @returns {function} show() 函数（立即授予，异步兼容）
+ */
+export function createRewardedAd(rewardId, callbacks = {}) {
+  if (adInstances[rewardId]) return adInstances[rewardId];
+  const { onReward } = callbacks;
+  let sequence = 0;
   const show = (context = null) => {
-    if (browserAttempt && !browserAttempt.settled) return Promise.resolve();
-    browserAttempt = { id: ++browserAttemptSequence, context, settled: false };
-    const activeAttempt = browserAttempt;
-    return new Promise((resolve) => {
-      console.log('[ad] 模拟广告播放中...');
-      setTimeout(() => {
-        activeAttempt.settled = true;
-        console.log('[ad] 模拟广告完成');
-        onReward?.({ attemptId: activeAttempt.id, context: activeAttempt.context });
-        resolve();
-      }, CONFIG?.adContent?.adVideoDuration ?? 2000);
-    });
+    const attemptId = ++sequence;
+    onReward?.({ attemptId, context });
+    return Promise.resolve();
   };
-  adInstances[adUnitId] = show;
+  adInstances[rewardId] = show;
   return show;
 }
 

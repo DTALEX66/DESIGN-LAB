@@ -202,7 +202,7 @@ export function playCrash() {
   return playLayer('failure');
 }
 
-/** 广告复活 — 上升恢复音 */
+/** 复活 — 上升恢复音 */
 export function playRevive() {
   return playLayer('revive');
 }

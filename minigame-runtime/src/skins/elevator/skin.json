@@ -31,7 +31,7 @@
     "power": "电源",
     "stability": "稳定度",
     "anomalyLevel": "异常等级",
-    "reviveCount": "广告复活",
+    "reviveCount": "复活",
     "adHintsCount": "加密解码",
     "hiddenLogsCount": "待解码"
   },
@@ -76,8 +76,8 @@
     "emergencyStop_fail": "急停按钮无响应。异常等级上升。",
     "restartSystem": "系统重启完成：异常等级下降，但消耗 {cost} 点电源。",
     "inspectLog": "操作员查看系统日志：最近 30 秒存在未授权楼层请求。",
-    "inspectLog_hiddenRecords": "发现 {count} 条待解码加密记录。可观看模拟广告解锁完整内容。",
-    "unlockHiddenLog_ok": "模拟广告播放完成。加密记录已解码。"
+    "inspectLog_hiddenRecords": "发现 {count} 条待解码加密记录。可解码完整内容。",
+    "unlockHiddenLog_ok": "解码完成。加密记录已解锁。"
   },
   "anomalies": [
     {
@@ -171,24 +171,24 @@
     "summaries": { "power": "电源耗尽", "stability": "稳定度归零", "anomalyLevel": "异常等级失控", "passengers": "乘客记录出现负数", "default": "系统拒绝继续响应" },
     "defaultHint": "先关门，再重启系统，避免连续移动。",
     "firstRunAdvice": "下次先核对画面、楼层、人数和门状态；一致放行，矛盾封锁。",
-    "adHintPrefix": "广告提示：{hint}",
-    "adReviveRollback": "广告复活完成：回滚 {seconds} 秒，恢复至可控状态。",
-    "adReviveMonitor": "广告复活完成：回滚到 {seconds} 秒前的系统状态。",
-    "snapshotFallback": "可观看广告复活，回滚到 {seconds} 秒前的系统状态。",
-    "noSnapshotFallback": "可观看广告复活，回滚到初始系统状态。"
+    "hintPrefix": "提示：{hint}",
+    "reviveRollback": "复活完成：回滚 {seconds} 秒，恢复至可控状态。",
+    "reviveMonitor": "复活完成：回滚到 {seconds} 秒前的系统状态。",
+    "snapshotFallback": "可复活，回滚到 {seconds} 秒前的系统状态。",
+    "noSnapshotFallback": "可复活，回滚到初始系统状态。"
   },
   "fakeEnding": {
     "eyebrow": "\u26a0 SYSTEM ANOMALY DETECTED",
     "title": "操作员关联异常",
     "text": "系统检测到操作员第 {count} 次系统崩溃。\n根据《异常控制员守则》第 7 条，您已被标记为\u201c异常关联人员\u201d。\n前 {threshold} 次记录已被永久删除。\n建议您立即离开控制台并联系安保部门。",
-    "truthPlaceholder": "[???] 观看广告揭示真相。",
+    "truthPlaceholder": "[???] 揭示真相。",
     "truthContent": "这不是第一次，也不会是最后一次。\n这座建筑的异常系统从未被修复。\n每一任值班员最后都变成了「异常事件」本身。\n系统日志中关于「乘客」的记载——都是前任值班员的热源信号。\n你现在坐的位置，就是上一任值班员被发现的地方。"
   },
   "ui": {
-    "viewAd": "观看广告复活",
+    "viewAd": "复活",
     "unlockAd": "解码加密记录",
     "restart": "重新开始",
-    "revealTruth": "观看广告揭示真相",
+    "revealTruth": "揭示真相",
     "triggerTest": "触发异常测试",
     "decodePrefix": "[解码记录]",
     "initialLog": "异常电梯控制台已接管。等待操作员指令。",
@@ -217,7 +217,7 @@
     "pausedCopy": "返回前台后继续，不计算后台时间",
     "audioOn": "声音开",
     "audioOff": "已静音",
-    "adUnavailable": "广告暂不可用，请稍后重试",
+    "rewardUnavailable": "奖励暂不可用，请稍后重试",
     "reportNormal": "放行",
     "reportAnomaly": "封锁",
     "inspectionLabel": "请在 {seconds}s 内判断",

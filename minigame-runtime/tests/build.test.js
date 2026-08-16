@@ -87,17 +87,12 @@ test('generated mini-game bundle isolates module lexical scopes and remains exec
   assert.equal(session.state.night.roundType, 'investigation');
 });
 
-test('release config can inject private AppID and ad units into generated files', () => {
+test('release config can inject private AppID into generated files', () => {
   mkdirSync(tempDir, { recursive: true });
   writeFileSync(tempReleaseConfig, JSON.stringify({
     wechat: {
       appid: 'wx_real_release_test_appid',
       projectname: 'MINIGAME_TEST',
-    },
-    adUnits: {
-      revive: 'adunit-real-revive-test',
-      decode: 'adunit-real-decode-test',
-      truth: 'adunit-real-truth-test',
     },
   }, null, 2));
 
@@ -113,12 +108,8 @@ test('release config can inject private AppID and ad units into generated files'
     const sourceConfig = readFileSync(resolve(root, 'src/gameConfig.js'), 'utf8');
     const gitignore = readFileSync(resolve(root, '.gitignore'), 'utf8');
 
-    assert.match(bundle, /adunit-real-revive-test/);
-    assert.match(bundle, /adunit-real-decode-test/);
-    assert.match(bundle, /adunit-real-truth-test/);
     assert.equal(privateConfig.appid, 'wx_real_release_test_appid');
     assert.equal(privateConfig.projectname, 'MINIGAME_TEST');
-    assert.match(sourceConfig, /adunit-xxxxx_revive/, 'source config should keep safe placeholder values');
     assert.match(gitignore, /release\.config\.json/);
     assert.match(gitignore, /wechat-minigame\/project\.private\.config\.json/);
   } finally {
@@ -152,24 +143,14 @@ test('douyin build emits a tracked import-ready project with target-specific met
   assert.match(gitignore, /douyin-minigame\/project\.private\.config\.json/);
 });
 
-test('douyin release build injects douyin-specific ad units and private AppID', () => {
+test('douyin release build injects private AppID', () => {
   mkdirSync(tempDir, { recursive: true });
   writeFileSync(tempReleaseConfig, JSON.stringify({
     douyin: {
       appid: 'tt_real_release_test_appid',
       projectname: 'MINIGAME_DOUYIN_TEST',
-      adUnits: {
-        revive: 'ttad-real-revive-test',
-        decode: 'ttad-real-decode-test',
-        truth: 'ttad-real-truth-test',
-      },
     },
-    adUnits: {
-      revive: 'shared-ad-revive-should-not-win',
-      decode: 'shared-ad-decode-should-not-win',
-      truth: 'shared-ad-truth-should-not-win',
-    },
-    releaseMode: true,
+
   }, null, 2));
 
   try {
@@ -182,11 +163,8 @@ test('douyin release build injects douyin-specific ad units and private AppID', 
     const privateConfig = JSON.parse(readFileSync(douyinPrivateConfigOutput, 'utf8'));
     const projectConfig = JSON.parse(readFileSync(douyinProjectOutput, 'utf8'));
 
-    assert.match(bundle, /ttad-real-revive-test/);
-    assert.match(bundle, /ttad-real-decode-test/);
-    assert.match(bundle, /ttad-real-truth-test/);
-    assert.doesNotMatch(bundle, /shared-ad-revive-should-not-win/);
-    assert.match(bundle, /releaseMode:\s*true/);
+    assert.doesNotMatch(bundle, /adunit-|releaseMode|ttad-/, 'boundary: no ad/release semantics in bundle');
+    assert.doesNotMatch(bundle, /releaseMode|adunit-/, 'boundary: no ad/release semantics in bundle');
     assert.equal(privateConfig.appid, 'tt_real_release_test_appid');
     assert.equal(projectConfig.appid, 'tt_real_release_test_appid');
     assert.equal(privateConfig.projectname, 'MINIGAME_DOUYIN_TEST');

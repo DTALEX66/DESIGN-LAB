@@ -18,7 +18,7 @@ test('createFeedbackLine formats timestamped console feedback', () => {
 
 test('classifyFeedbackPriority separates important log rows for UI highlighting', () => {
   assert.equal(classifyFeedbackPriority('danger'), 'high');
-  assert.equal(classifyFeedbackPriority('ad'), 'special');
+  assert.equal(classifyFeedbackPriority('ad'), 'normal');  // ad 已中性化（DL-MIG 边界）
   assert.equal(classifyFeedbackPriority('success'), 'success');
   assert.equal(classifyFeedbackPriority('warn'), 'medium');
   assert.equal(classifyFeedbackPriority('info'), 'normal');
@@ -33,12 +33,12 @@ test('summarizeFailure explains why the run ended', () => {
   const summary = summarizeFailure(state);
 
   assert.match(summary, /电源耗尽/);
-  assert.match(summary, /观看广告/);
+  assert.match(summary, /复活/);
 });
 
 test('summarizeFailure uses configured rollback window for snapshot hint', () => {
   const elapsed = 58;
-  const target = elapsed - CONFIG.adRevive.rollbackWindow;
+  const target = elapsed - CONFIG.revive.rollbackWindow;
   const state = {
     ...createInitialState(),
     elapsed,
@@ -52,5 +52,5 @@ test('summarizeFailure uses configured rollback window for snapshot hint', () =>
 
   const summary = summarizeFailure(state);
 
-  assert.match(summary, new RegExp(`回滚到 ${CONFIG.adRevive.rollbackWindow} 秒前`));
+  assert.match(summary, new RegExp(`回滚到 ${CONFIG.revive.rollbackWindow} 秒前`));
 });

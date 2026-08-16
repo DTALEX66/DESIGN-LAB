@@ -103,7 +103,7 @@ const ACTIONS = {
     let next = appendLog(state, 'info', t('actionLogMessages.inspectLog'));
     const lockedCount = next.hiddenLogs.filter(h => h.locked).length;
     if (lockedCount > 0) {
-      next = appendLog(next, 'ad', t('actionLogMessages.inspectLog_hiddenRecords', { count: lockedCount }));
+      next = appendLog(next, 'system', t('actionLogMessages.inspectLog_hiddenRecords', { count: lockedCount }));
     }
     return ok(next, t('actionFeedback.inspectLog'));
   },
@@ -124,7 +124,7 @@ const ACTIONS = {
       next.hiddenLogs[idx] = { ...next.hiddenLogs[idx], locked: false };
     }
     next.adHintsUsed += 1;
-    next = appendLog(next, 'ad', t('actionLogMessages.unlockHiddenLog_ok'));
+    next = appendLog(next, 'system', t('actionLogMessages.unlockHiddenLog_ok'));
     next.monitor = t('ui.decodeMonitor', { title: locked.title });
     return ok(next, t('ui.unlockResult', { title: locked.title }));
   },

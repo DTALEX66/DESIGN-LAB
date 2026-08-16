@@ -2,7 +2,7 @@ import CONFIG from './gameConfig.js';
 
 export function findRollbackSnapshot(snapshots, elapsed) {
   if (!snapshots || snapshots.length === 0) return null;
-  const targetElapsed = Math.max(0, elapsed - CONFIG.adRevive.rollbackWindow);
+  const targetElapsed = Math.max(0, elapsed - CONFIG.revive.rollbackWindow);
   let best = snapshots[0];
   let bestDist = Math.abs(best.at - targetElapsed);
   for (const snap of snapshots) {

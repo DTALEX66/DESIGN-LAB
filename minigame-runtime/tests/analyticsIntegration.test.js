@@ -14,9 +14,9 @@ test('browser game runtime wires analytics to key gameplay and ad events', () =>
   for (const eventName of [
     'game_start',
     'game_over',
-    'revive_ad_start',
-    'revive_ad_reward',
-    'hidden_log_ad_start',
+    'revive_start',
+    'revive_reward',
+    'hidden_log_start',
     'hidden_log_unlock',
     'fake_ending_trigger',
     'action_click',

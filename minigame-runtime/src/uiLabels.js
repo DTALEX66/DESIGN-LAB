@@ -45,7 +45,7 @@ export function getDomLabels() {
       power: status.power || '电源',
       stability: status.stability || '稳定度',
       anomalyLevel: status.anomalyLevel || '异常等级',
-      reviveCount: status.reviveCount || '广告复活',
+      reviveCount: status.reviveCount || '复活',
       adHintsCount: status.adHintsCount || '加密解码',
       hiddenLogsCount: status.hiddenLogsCount || '待解码',
     },

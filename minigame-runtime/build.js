@@ -65,17 +65,9 @@ function buildV5ContentInjection() {
 }
 
 function applyReleaseOverrides(code, modPath, target, releaseConfig) {
-  const adUnits = releaseConfig?.[target]?.adUnits ?? releaseConfig?.adUnits;
-  if (modPath !== 'src/gameConfig.js' || !adUnits) return code;
-
-  const hasAllUnits = ['revive', 'decode', 'truth'].every(key => typeof adUnits[key] === 'string' && adUnits[key].trim());
-  if (!hasAllUnits) return code;
-
-  let result = code.replace(/adUnits:\s*\{[\s\S]*?\n\s*\},/, `adUnits: ${stableStringifyObject(adUnits, 4).replace(/\n/g, '\n    ')},`);
-  if (releaseConfig.releaseMode) {
-    result = result.replace(/(releaseMode:\s*)false/, '$1true');
-  }
-  return result;
+  // MiniGame 边界（DL-MIG）：禁止广告/IAA/发布模式语义。
+  // 只保留平台 appid 私有配置注入（writePrivateProjectConfig），不注入 adUnits/releaseMode。
+  return code;
 }
 
 function writePrivateProjectConfig(target, outputDir, releaseConfig) {

@@ -4,120 +4,53 @@ import test from 'node:test';
 
 import { createMiniGameRewardedAd } from '../platform/miniGameRuntime.js';
 
-function createRejectingAdApi() {
-  return {
-    createRewardedVideoAd() {
-      return {
-        onClose() {},
-        onError() {},
-        show: () => Promise.reject(new Error('show failed')),
-        load: () => Promise.reject(new Error('load failed')),
-      };
-    },
-  };
-}
-
-test('mini-game rewarded ads fail closed in release mode', async () => {
+// MiniGame 边界（DL-MIG）：免费奖励，无广告位/发布模式/模拟广告。
+test('mini-game free rewards grant immediately without host ad API', async () => {
   let rewards = 0;
   let errors = 0;
-  const show = createMiniGameRewardedAd(createRejectingAdApi(), 'adunit-real', {
-    releaseMode: true,
+  const show = createMiniGameRewardedAd(null, 'revive', {
     onReward: () => { rewards += 1; },
     onError: () => { errors += 1; },
   });
-
   await show();
-
-  assert.equal(rewards, 0);
-  assert.equal(errors, 1);
+  assert.equal(rewards, 1);
+  assert.equal(errors, 0);
 });
 
-test('mini-game rewarded ads expose start and settlement hooks for active clock pause', async () => {
-  let closeHandler;
+test('mini-game free rewards expose start and settlement hooks', async () => {
   let starts = 0;
   let settlements = 0;
-  const api = {
-    createRewardedVideoAd() {
-      return {
-        onClose(handler) { closeHandler = handler; },
-        onError() {},
-        show: () => Promise.resolve(),
-      };
-    },
-  };
-  const show = createMiniGameRewardedAd(api, 'adunit-real', {
-    releaseMode: true,
+  let rewards = 0;
+  const show = createMiniGameRewardedAd(null, 'decode', {
     onStart: () => { starts += 1; },
     onSettled: () => { settlements += 1; },
+    onReward: () => { rewards += 1; },
   });
   await show();
   assert.equal(starts, 1);
-  assert.equal(settlements, 0);
-  closeHandler({ isEnded: false });
   assert.equal(settlements, 1);
+  assert.equal(rewards, 1);
 });
 
-test('mini-game rewarded ads reward exactly once only after completed close', async () => {
-  let closeHandler;
+test('mini-game free rewards grant exactly once per show attempt', async () => {
   let rewards = 0;
-  const api = {
-    createRewardedVideoAd() {
-      return {
-        onClose(handler) { closeHandler = handler; },
-        onError() {},
-        show: () => Promise.resolve(),
-        load: () => Promise.resolve(),
-      };
-    },
-  };
-  const show = createMiniGameRewardedAd(api, 'adunit-real', {
-    releaseMode: true,
+  const show = createMiniGameRewardedAd(null, 'truth', {
     onReward: () => { rewards += 1; },
   });
-
   await show();
-  closeHandler({ isEnded: false });
-  assert.equal(rewards, 0);
-
   await show();
-  closeHandler({ isEnded: true });
-  closeHandler({ isEnded: true });
-
-  assert.equal(rewards, 1);
+  assert.equal(rewards, 2);
 });
 
-test('mini-game rewarded ads ignore duplicate show attempts until close', async () => {
-  const closeHandlers = [];
-  let showCalls = 0;
+test('mini-game free rewards pass the caller context through', async () => {
   let rewards = 0;
   let rewardMeta;
-  const api = {
-    createRewardedVideoAd() {
-      return {
-        onClose(handler) { closeHandlers.push(handler); },
-        onError() {},
-        show: async () => { showCalls += 1; },
-        load: async () => {},
-      };
-    },
-  };
-  const show = createMiniGameRewardedAd(api, 'adunit-real', {
-    releaseMode: true,
+  const show = createMiniGameRewardedAd(null, 'revive', {
     onReward: (meta) => { rewards += 1; rewardMeta = meta; },
   });
-
-  await Promise.all([show({ runToken: 12 }), show({ runToken: 12 })]);
-  assert.equal(showCalls, 1);
-  closeHandlers[0]({ isEnded: true });
+  await show({ runToken: 12 });
   assert.equal(rewards, 1);
   assert.equal(rewardMeta?.context?.runToken, 12);
-
-  await show({ runToken: 13 });
-  closeHandlers[0]({ isEnded: true });
-  assert.equal(rewards, 1, 'stale close from first attempt must not settle the second attempt');
-  closeHandlers[1]({ isEnded: true });
-  assert.equal(rewards, 2);
-  assert.equal(rewardMeta?.context?.runToken, 13);
 });
 
 test('mini-game runtime drives and pauses the CCTV motion timeline', () => {
