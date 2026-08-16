@@ -85,3 +85,14 @@ de467c1 fix(ci): rebuild canonical and release evidence gates (DL-CI-005/006/008
 > DESIGN-LAB 产品定位稳定，结构治理持续完善；ComfyUI/H3 真实运行能力已达 E3（用户授权）；当前尚未达到 E4 生产发布资格。
 
 > 追加（2026-08-16（H3 生产级生成取证后））：creative-toolchain 记录 actualEvidence=E3（两次 H3 t2va 生成取证：prompt 79013288… / 85896e88…，产物含 768px 124 帧动图 + 同步 FLAC 音频 + mp4 合成）。Open Design daemon、Photoshop、人工 Jury 仍待取证。
+
+
+---
+
+## P0 云端事实勘误（2026-08-16，squash 合入后）
+
+- 本报告原"最终 SHA / 分支"为 R4 分支状态；R4 内容经 PR #92/#94 以 squash 方式合入 main。
+- 当前 main HEAD：`8a5a677ac2f837578e99ddb46b7675d1fef3efb8`；分支状态：main（0 ahead/0 behind，本地==云端）。
+- H3/ComfyUI：已完成真实 E3 取证（用户授权），registry supported 已同步；产物 rights sidecar 已更正（非 MIT、commercialUse=false 待人工审核）。
+- Canonical CI：P0 修复中（生成物漂移/verify_capability_evidence_v4/Douyin checker 已本地修复），push 后以云端 CI 为准。
+- 其余结论（E4 未达成、人工 Jury 待完成）不变。

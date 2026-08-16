@@ -2,8 +2,8 @@
   "report": "DL-R4-FINAL-STATUS",
   "taskpack": "DESIGN-LAB Governance Closure & Anti-Drift R4",
   "baselineSha": "9e7f433ada62f7be42c41ea935a1847a64fb2635",
-  "finalSha": "164067891194d2bab2ede36d6110bb0e76dfbb9a",
-  "originMainSha": "b9f69acd13f589d80edec321bf7e9e8f2eaa3e9d",
+  "finalSha": "8a5a677ac2f837578e99ddb46b7675d1fef3efb8",
+  "originMainSha": "8a5a677ac2f837578e99ddb46b7675d1fef3efb8",
   "worktreeClean": true,
   "sources": {
     "totalMigrated": 162,
@@ -78,5 +78,7 @@
     "Local sandbox blocks node subprocess spawn (13 minigame spawn tests) and tempfile chmod (27 python errors) - CI ubuntu verifies these",
     "162 legacy sources quarantined pending human fact-completion (author/allowedUsage/contentHash-sha256/rights/review)"
   ],
-  "generatedAt": "2026-08-16 (updated)"
+  "generatedAt": "2026-08-16 (updated)",
+  "branch": "main (R4 merged via PR #92/#94, squash)",
+  "updatedAt": "2026-08-16 P0 sync"
 }

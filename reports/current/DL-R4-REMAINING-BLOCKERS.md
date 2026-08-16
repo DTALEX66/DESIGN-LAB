@@ -17,7 +17,7 @@
 ## 授权项（任务包未授权）
 
 7. **DL-CI-007 主分支保护**：Require PR / Canonical Verify / branch up to date / independent approval / block force push / block deletion——需仓库管理员明确授权。
-8. **push/PR/merge**：R4 执行原则 9——未经授权未 push；分支 `fix/design-lab-governance-closure-r4` 已就绪待审核。
+8. **push/PR/merge**：R4 执行原则 9——未经授权未 push；R4 已通过 PR #92/#94 squash 合入 main（`8a5a677ac2f8`）；分支任务已完结。
 
 ## 环境限制（CI ubuntu 可覆盖）
 
@@ -26,5 +26,5 @@
 
 ## 结论
 
-发布就绪度：**BLOCKED**（E3 真实运行、人工 Jury、独立复审、Release Attestation 全部未完成）。
+发布就绪度：**BLOCKED**（人工 Jury、独立复审、Release Attestation 未完成；ComfyUI/H3 真实运行 E3 已完成）。
 产品定位：**稳定**。结构治理：**持续完善，本轮闭环**。
