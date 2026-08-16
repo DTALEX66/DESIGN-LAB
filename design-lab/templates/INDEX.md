@@ -10,7 +10,7 @@ Use this as the quick map for choosing local Open Design capability templates.
 
 ## Config / 配置
 
-- [`Open Design Config Template`](design-lab/templates/open-design-app-config.template.md) — 这个模板说明本仓库期望写入 Open Design `app-config.json` 的关键字段。
+- [`Open Design Config Template`](design-lab/templates/adapters/hosts/open-design/templates/open-design-app-config.template.md (Open Design host adapter)) — 这个模板说明本仓库期望写入 Open Design `app-config.json` 的关键字段。
 
 ## Decks / 演示
 

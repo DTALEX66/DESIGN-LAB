@@ -5,7 +5,7 @@ Generated from `design-lab/plugins/*/open-design.json`.
 Run:
 
 ```bash
-python design-lab/scripts/generate_open_design_indexes.py
+python design-lab/adapters/hosts/open-design/verifier/generate_open_design_adapter_indexes.py
 ```
 
 | Plugin | Title | Categories | Capabilities | Suggested inputs |

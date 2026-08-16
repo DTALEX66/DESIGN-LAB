@@ -1,10 +1,14 @@
 #!/usr/bin/env python3
 # SPDX-License-Identifier: MIT
-"""Verify DESIGN-LAB integration assets.
+"""DL-ADP-OD-003: verify the Open Design Host Adapter layer.
 
-This is a focused repository validator for the Open Design assistance layer:
-plugins, template references, design-system manifests, visual-pack paths, and
-key documentation links. It intentionally uses only the Python standard library.
+Focused repository validator for the Open Design host adapter
+(design-lab/adapters/hosts/open-design/): plugin projections, template
+references, design-system manifests, export fixtures, indexes, script
+compileability (in-memory), asset counts and secondary verifiers.
+Standard library only. The stale minigame visual-pack fixture check was
+removed (minigame assets/generated deleted in 1382e2c; the boundary is
+enforced by test_minigame_visual_fixture_boundary).
 """
 
 from __future__ import annotations
@@ -165,7 +169,7 @@ def verify_plugin_manifests(root: Path, results: list[Result]) -> None:
             check(results, f"legacy plugin {name}: upgraded evidence is E2", evidence.get("level") == "E2", str(evidence))
             check(results, f"legacy plugin {name}: upgraded evidence passed", evidence.get("state") == "PASS", str(evidence))
             verified_by = evidence.get("verifiedBy") if isinstance(evidence.get("verifiedBy"), list) else []
-            check(results, f"legacy plugin {name}: verifier evidence recorded", "design-lab/scripts/verify_open_design_assistance.py" in verified_by, str(verified_by))
+            check(results, f"legacy plugin {name}: verifier evidence recorded", "design-lab/adapters/hosts/open-design/verifier/verify_open_design_host_adapter.py" in verified_by, str(verified_by))
 
 
 def referenced_local_paths(text: str) -> set[str]:
@@ -257,39 +261,6 @@ def verify_design_systems(root: Path, results: list[Result]) -> None:
             check(results, f"design system JSON parses: {rel}", False, str(exc))
 
 
-def verify_visual_packs(root: Path, results: list[Result]) -> None:
-    manifest_path = root / ASSISTANCE_DIR / "assets" / "visual-packs" / "anomaly-monitor-cctv" / "manifest.json"
-    require_file(results, root, str(manifest_path.relative_to(root)))
-    try:
-        manifest = load_json(manifest_path)
-        check(results, "visual pack manifest parses", isinstance(manifest, dict))
-    except Exception as exc:  # noqa: BLE001
-        check(results, "visual pack manifest parses", False, str(exc))
-        return
-
-    assets = manifest.get("assets") or []
-    ids = [asset.get("id") for asset in assets if isinstance(asset, dict)]
-    check(results, "visual pack has eight retained assets", len(assets) == 8, str(len(assets)))
-    check(results, "visual pack asset ids are unique", len(ids) == len(set(ids)), str(ids))
-    for asset in assets:
-        if not isinstance(asset, dict):
-            check(results, "visual pack asset shape", False, str(asset))
-            continue
-        rel_path = asset.get("path")
-        resolved = contained_path(
-            manifest_path.parent,
-            rel_path,
-            ((root / "minigame-runtime" / "assets" / "generated").resolve(),),
-        )
-        check(results, f"visual pack path stays inside pack: {asset.get('id')}", resolved is not None, str(rel_path))
-        check(
-            results,
-            f"visual pack path exists: {asset.get('id')}",
-            resolved is not None and resolved.is_file(),
-            str(resolved or rel_path),
-        )
-
-
 def png_size(path: Path) -> tuple[int, int] | None:
     data = path.read_bytes()[:24]
     if len(data) < 24 or data[:8] != b"\x89PNG\r\n\x1a\n":
@@ -357,25 +328,23 @@ def verify_indexes(root: Path, results: list[Result]) -> None:
 
 def verify_scripts(root: Path, results: list[Result]) -> None:
     scripts = [
-        "design-lab/scripts/verify_open_design_assistance.py",
+        "design-lab/adapters/hosts/open-design/verifier/verify_open_design_host_adapter.py",
         "design-lab/scripts/verify_product_manifest_v3.py",
         "design-lab/scripts/verify_runtime_contracts_v3.py",
         "design-lab/scripts/verify_visual_scoring_v3.py",
-        "design-lab/scripts/verify_source_registry_v2.py",
+        "design-lab/scripts/verify_source_registry.py",
         "design-lab/scripts/verify_v2_protocols.py",
         "design-lab/scripts/verify_visual_quality_v21.py",
-        "design-lab/scripts/generate_open_design_indexes.py",
+        "design-lab/adapters/hosts/open-design/verifier/generate_open_design_adapter_indexes.py",
         "design-lab/scripts/scaffold_open_design_plugin.py",
         "design-lab/scripts/score_visual_quality.py",
         "design-lab/scripts/score_design_critique.py",
         "design-lab/scripts/compare_visual_iterations.py",
     ]
-    import py_compile
-
     for rel in scripts:
         path = require_file(results, root, rel, min_bytes=500)
         try:
-            py_compile.compile(str(path), doraise=True)
+            compile(path.read_text(encoding="utf-8"), str(path), "exec")
             check(results, f"script compiles: {rel}", True)
         except Exception as exc:  # noqa: BLE001
             check(results, f"script compiles: {rel}", False, str(exc))
@@ -389,7 +358,7 @@ def verify_asset_counts(root: Path, results: list[Result]) -> None:
     """
     counts_path = root / ASSISTANCE_DIR / "config" / "asset-counts.json"
     if not counts_path.is_file():
-        check(results, "asset-counts.json exists (run generate_open_design_indexes.py)", False)
+        check(results, "asset-counts.json exists (run generate_open_design_adapter_indexes.py)", False)
         return
     try:
         counts = load_json(counts_path)
@@ -458,7 +427,7 @@ def verify_secondary_verifiers(root: Path, results: list[Result]) -> None:
         "design-lab/scripts/verify_product_manifest_v3.py",
         "design-lab/scripts/verify_runtime_contracts_v3.py",
         "design-lab/scripts/verify_visual_scoring_v3.py",
-        "design-lab/scripts/verify_source_registry_v2.py",
+        "design-lab/scripts/verify_source_registry.py",
         "design-lab/scripts/verify_v2_protocols.py",
         "design-lab/scripts/verify_visual_quality_v21.py",
         "design-lab/scripts/verify_capability_evidence_v4.py",
@@ -499,7 +468,7 @@ def verify_docs(root: Path, results: list[Result]) -> None:
         "design-lab/scripts/verify_product_manifest_v3.py",
         "design-lab/scripts/verify_runtime_contracts_v3.py",
         "design-lab/scripts/verify_visual_scoring_v3.py",
-        "design-lab/scripts/verify_source_registry_v2.py",
+        "design-lab/scripts/verify_source_registry.py",
     ]
     root_readme = root / "README.md"
     assistance_readme = root / ASSISTANCE_DIR / "README.md"
@@ -530,7 +499,6 @@ def main() -> int:
     verify_skill_references(root, results)
     verify_templates(root, results)
     verify_design_systems(root, results)
-    verify_visual_packs(root, results)
     verify_exports(root, results)
     verify_json_files(root, results)
     verify_indexes(root, results)

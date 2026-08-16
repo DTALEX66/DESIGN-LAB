@@ -14,7 +14,7 @@ from pathlib import Path
 
 SCRIPTS = [
     "verify_identity_gate.py",
-    "verify_open_design_assistance.py",
+    "adapters/hosts/open-design/verifier/verify_open_design_host_adapter.py",
     "verify_product_manifest_v3.py",
     "verify_runtime_contracts_v3.py",
     "verify_visual_scoring_v3.py",
@@ -54,8 +54,15 @@ EXTRA_CHECKS = [
 def main() -> int:
     root = Path(__file__).resolve().parent
     results: list[tuple[str, int]] = []
+    repo_root = root.parent.parent
     for name in SCRIPTS:
-        script = root / name
+        # verifiers inside design-lab/scripts/ resolve relative to the scripts
+        # dir; host-adapter verifiers live outside it (DL-ADP-OD-001) and
+        # resolve relative to the repository root.
+        if name.startswith("adapters/"):
+            script = repo_root / "design-lab" / name
+        else:
+            script = root / name
         if not script.exists():
             print(f"MISSING {name} (required verifier absent)")
             results.append((name, 2))

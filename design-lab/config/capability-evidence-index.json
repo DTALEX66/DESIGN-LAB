@@ -84,7 +84,7 @@
       "minimumRequiredEvidence": "E2",
       "actualEvidence": "E1",
       "evidence": "Structural: preflight/handoff schemas and verify_release_evidence.py contract present. Production adapters (figma/penpot/browser) declared; runtime delivery evidence pending (V42-0409/0410 human gate).",
-      "run": "verify_open_design_assistance.py -> structural pass",
+      "run": "verify_open_design_host_adapter.py -> structural pass",
       "artifact": "schemas/release-evidence.schema.json, config/RELEASE_EVIDENCE_CONTRACT.md",
       "reviewer": "HERMES (self-verified)"
     },
@@ -94,7 +94,7 @@
       "minimumRequiredEvidence": "E3",
       "actualEvidence": "E1",
       "evidence": "Structural: adapter/plugin manifests and host contract paths are present. Historical Open Design daemon registration evidence is retained in reports but is bound to an older tree; current main remains E1 until runtime requalification.",
-      "run": "verify_open_design_assistance.py -> structural pass",
+      "run": "verify_open_design_host_adapter.py -> structural pass",
       "artifact": "adapters/adapter-registry.json, plugins/*/open-design.json, reports/V42_E3_RUNTIME_EVIDENCE_20260811.md",
       "reviewer": "HERMES (self-verified; historical runtime evidence explicitly not reused for current E3)",
       "requiresRequalification": true

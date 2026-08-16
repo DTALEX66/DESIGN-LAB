@@ -31,6 +31,15 @@ def load(name: str):
     return module
 
 
+def load_generator():
+    path = ROOT / "adapters/hosts/open-design/verifier/generate_open_design_adapter_indexes.py"
+    spec = importlib.util.spec_from_file_location("generate_open_design_adapter_indexes", path)
+    assert spec and spec.loader
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
 def load_rel(rel: str):
     """Load a module by repo-relative path (quality/, production/, ...)."""
     path = ROOT / rel
@@ -301,7 +310,7 @@ class AggregateChainTests(unittest.TestCase):
                            capture_output=True, text=True, cwd=ROOT)
         self.assertEqual(r.returncode, 0, r.stdout[-2000:] + r.stderr)
         self.assertIn("VERIFY_DESIGN_LAB=OK", r.stdout)
-        self.assertIn("VERIFY_DESIGN_LAB=OK total=17 failed=0", r.stdout)
+        self.assertIn("VERIFY_DESIGN_LAB=OK total=18 failed=0", r.stdout)
 
 
 class VisualQualityScoringTests(unittest.TestCase):
@@ -540,7 +549,7 @@ class IterationCompareTests(unittest.TestCase):
 class OpenDesignAssistanceTests(unittest.TestCase):
     def test_boundary_pass(self):
         """verify_open_design_assistance: config boundary must pass read-only."""
-        r = subprocess.run([sys.executable, str(SCRIPTS / "verify_open_design_assistance.py")],
+        r = subprocess.run([sys.executable, str(ROOT / "adapters/hosts/open-design/verifier/verify_open_design_host_adapter.py")],
                            capture_output=True, text=True, cwd=ROOT)
         self.assertEqual(r.returncode, 0, r.stdout[-600:] + r.stderr)
 
@@ -568,7 +577,7 @@ class OpenDesignIndexHelpersTests(unittest.TestCase):
     """generate_open_design_indexes: heading/paragraph extraction helpers."""
 
     def test_first_heading(self):
-        m = load("generate_open_design_indexes.py")
+        m = load_generator()
         with tempfile.NamedTemporaryFile("w", suffix=".md", delete=False, encoding="utf-8") as f:
             f.write("intro line\n# Real Title\nbody\n")
             tmp = Path(f.name)
@@ -578,7 +587,7 @@ class OpenDesignIndexHelpersTests(unittest.TestCase):
             tmp.unlink(missing_ok=True)
 
     def test_first_paragraph(self):
-        m = load("generate_open_design_indexes.py")
+        m = load_generator()
         with tempfile.NamedTemporaryFile("w", suffix=".md", delete=False, encoding="utf-8") as f:
             f.write("# Title\n\nFirst real paragraph here.\n\nMore text.\n")
             tmp = Path(f.name)

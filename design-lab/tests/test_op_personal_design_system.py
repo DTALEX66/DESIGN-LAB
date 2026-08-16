@@ -11,13 +11,13 @@ from unittest import mock
 
 ROOT = Path(__file__).resolve().parents[1]
 REPO_ROOT = ROOT.parent
-SKILLS = ROOT / "op-expert-suite" / "skills"
+SKILLS = ROOT / "adapters" / "hosts" / "open-design" / "expert-suite" / "skills"
 DESIGN_SYSTEMS = ROOT / "design-systems"
 PLUGINS = ROOT / "plugins"
 BUNDLES = ROOT / "bundles"
 SCENARIOS = ROOT / "scenarios"
 RESEARCH = ROOT / "research"
-INSTALLER = ROOT / "scripts" / "install_op_expert_suite.py"
+INSTALLER = ROOT / "adapters" / "hosts" / "open-design" / "installer" / "install_op_expert_suite.py"
 
 
 class PersonalDesignSystemTest(unittest.TestCase):

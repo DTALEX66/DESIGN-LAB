@@ -32,8 +32,8 @@ from pathlib import Path
 from typing import Any, Callable
 
 
-REPO_ROOT = Path(__file__).resolve().parents[2]
-SUITE_SRC = REPO_ROOT / "design-lab" / "op-expert-suite" / "skills"
+REPO_ROOT = Path(__file__).resolve().parents[5]  # repo root (installer is 4 levels under design-lab/)
+SUITE_SRC = REPO_ROOT / "design-lab" / "adapters" / "hosts" / "open-design" / "expert-suite" / "skills"
 DESIGN_SYSTEMS_ROOT = REPO_ROOT / "design-lab" / "design-systems"
 PLUGINS_ROOT = REPO_ROOT / "design-lab" / "plugins"
 BUNDLES_ROOT = REPO_ROOT / "design-lab" / "bundles"

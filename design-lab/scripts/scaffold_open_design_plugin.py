@@ -177,8 +177,8 @@ README.md
 Run after editing:
 
 ```bash
-python design-lab/scripts/verify_open_design_assistance.py
-python design-lab/scripts/generate_open_design_indexes.py
+python design-lab/adapters/hosts/open-design/verifier/verify_open_design_host_adapter.py
+python design-lab/adapters/hosts/open-design/verifier/generate_open_design_adapter_indexes.py
 ```
 """
 
@@ -216,7 +216,7 @@ def main() -> int:
     (plugin_dir / "README.md").write_text(readme(name, title, args.description), encoding="utf-8")
 
     print(f"created {plugin_dir.relative_to(root).as_posix()}")
-    print("next: edit SKILL.md, then run verify_open_design_assistance.py")
+    print("next: edit SKILL.md, then run verify_open_design_host_adapter.py")
     return 0
 
 

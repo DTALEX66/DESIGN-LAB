@@ -105,8 +105,8 @@ class ManifestCompatibilityTest(unittest.TestCase):
             self.assertNotIn("cli_args", text)
 
     def test_visual_pack_directory_cannot_masquerade_as_asset_file(self):
-        script = REPO / "design-lab" / "scripts" / "verify_open_design_assistance.py"
-        spec = importlib.util.spec_from_file_location("verify_open_design_assistance_under_test", script)
+        script = REPO / "design-lab" / "adapters" / "hosts" / "open-design" / "verifier" / "verify_open_design_host_adapter.py"
+        spec = importlib.util.spec_from_file_location("verify_open_design_host_adapter_under_test", script)
         verifier = importlib.util.module_from_spec(spec)
         sys.modules[spec.name] = verifier
         spec.loader.exec_module(verifier)
@@ -126,8 +126,8 @@ class ManifestCompatibilityTest(unittest.TestCase):
             )
 
     def test_visual_pack_rejects_path_traversal(self):
-        script = REPO / "design-lab" / "scripts" / "verify_open_design_assistance.py"
-        spec = importlib.util.spec_from_file_location("verify_open_design_assistance_traversal_test", script)
+        script = REPO / "design-lab" / "adapters" / "hosts" / "open-design" / "verifier" / "verify_open_design_host_adapter.py"
+        spec = importlib.util.spec_from_file_location("verify_open_design_host_adapter_traversal_test", script)
         verifier = importlib.util.module_from_spec(spec)
         sys.modules[spec.name] = verifier
         spec.loader.exec_module(verifier)
@@ -148,8 +148,8 @@ class ManifestCompatibilityTest(unittest.TestCase):
             )
 
     def test_plugin_agent_skill_rejects_path_traversal(self):
-        script = REPO / "design-lab" / "scripts" / "verify_open_design_assistance.py"
-        spec = importlib.util.spec_from_file_location("verify_open_design_assistance_plugin_traversal_test", script)
+        script = REPO / "design-lab" / "adapters" / "hosts" / "open-design" / "verifier" / "verify_open_design_host_adapter.py"
+        spec = importlib.util.spec_from_file_location("verify_open_design_host_adapter_plugin_traversal_test", script)
         verifier = importlib.util.module_from_spec(spec)
         sys.modules[spec.name] = verifier
         spec.loader.exec_module(verifier)
@@ -193,8 +193,8 @@ class ManifestCompatibilityTest(unittest.TestCase):
             )
 
     def test_design_system_manifest_rejects_path_traversal(self):
-        script = REPO / "design-lab" / "scripts" / "verify_open_design_assistance.py"
-        spec = importlib.util.spec_from_file_location("verify_open_design_assistance_system_traversal_test", script)
+        script = REPO / "design-lab" / "adapters" / "hosts" / "open-design" / "verifier" / "verify_open_design_host_adapter.py"
+        spec = importlib.util.spec_from_file_location("verify_open_design_host_adapter_system_traversal_test", script)
         verifier = importlib.util.module_from_spec(spec)
         sys.modules[spec.name] = verifier
         spec.loader.exec_module(verifier)
