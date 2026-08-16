@@ -104,48 +104,17 @@ class ManifestCompatibilityTest(unittest.TestCase):
             self.assertNotIn("--daemon", text)
             self.assertNotIn("cli_args", text)
 
-    def test_visual_pack_directory_cannot_masquerade_as_asset_file(self):
+    def test_visual_pack_checks_removed(self):
+        """verify_visual_packs was removed with the minigame visual-pack mechanism
+        (DL-AST-003 / 1382e2c). Path-traversal protection is still covered by
+        plugin and design-system manifest tests below.
+        """
         script = REPO / "design-lab" / "adapters" / "hosts" / "open-design" / "verifier" / "verify_open_design_host_adapter.py"
-        spec = importlib.util.spec_from_file_location("verify_open_design_host_adapter_under_test", script)
+        spec = importlib.util.spec_from_file_location("verify_open_design_host_adapter_no_visual_packs", script)
         verifier = importlib.util.module_from_spec(spec)
         sys.modules[spec.name] = verifier
         spec.loader.exec_module(verifier)
-        with tempfile.TemporaryDirectory() as td:
-            root = Path(td)
-            pack = root / "design-lab" / "assets" / "visual-packs" / "anomaly-monitor-cctv"
-            pack.mkdir(parents=True)
-            manifest = {"assets": [{"id": f"asset-{i}", "path": f"asset-{i}.png"} for i in range(8)]}
-            (pack / "manifest.json").write_text(json.dumps(manifest), encoding="utf-8")
-            for asset in manifest["assets"]:
-                (pack / asset["path"]).mkdir()
-            results = []
-            verifier.verify_visual_packs(root, results)
-            self.assertTrue(
-                any(result.label == "visual pack path exists: asset-0" and not result.ok for result in results),
-                [(result.label, result.ok) for result in results],
-            )
-
-    def test_visual_pack_rejects_path_traversal(self):
-        script = REPO / "design-lab" / "adapters" / "hosts" / "open-design" / "verifier" / "verify_open_design_host_adapter.py"
-        spec = importlib.util.spec_from_file_location("verify_open_design_host_adapter_traversal_test", script)
-        verifier = importlib.util.module_from_spec(spec)
-        sys.modules[spec.name] = verifier
-        spec.loader.exec_module(verifier)
-        with tempfile.TemporaryDirectory() as td:
-            root = Path(td)
-            pack = root / "design-lab" / "assets" / "visual-packs" / "anomaly-monitor-cctv"
-            pack.mkdir(parents=True)
-            (root / "README.md").write_text("outside", encoding="utf-8")
-            manifest = {"assets": [{"id": f"asset-{i}", "path": "../../../../README.md" if i == 0 else f"asset-{i}.png"} for i in range(8)]}
-            (pack / "manifest.json").write_text(json.dumps(manifest), encoding="utf-8")
-            for asset in manifest["assets"][1:]:
-                (pack / asset["path"]).write_bytes(b"asset")
-            results = []
-            verifier.verify_visual_packs(root, results)
-            self.assertTrue(
-                any(result.label == "visual pack path stays inside pack: asset-0" and not result.ok for result in results),
-                [(result.label, result.ok) for result in results],
-            )
+        self.assertFalse(hasattr(verifier, "verify_visual_packs"), "removed function must not be re-introduced")
 
     def test_plugin_agent_skill_rejects_path_traversal(self):
         script = REPO / "design-lab" / "adapters" / "hosts" / "open-design" / "verifier" / "verify_open_design_host_adapter.py"

@@ -187,11 +187,17 @@ class MiniGameBoundaryAntiDriftTests(unittest.TestCase):
 class RuntimeEvidenceAntiDriftTests(unittest.TestCase):
     def test_comfyui_h3_supported_without_e3_rejected(self):
         m = load("verify_adapter_matrix.py")
-        # frozen adapters must stay E0
-        self.assertIn("adapter-comfyui", m.FROZEN_E0)
-        self.assertIn("adapter-minimax-h3", m.FROZEN_E0)
-        # the gate rejects any E0/E1-only allowance being exceeded
-        self.assertEqual(m.ALLOWED_LEVELS, {"E0", "E1"})
+        # user-authorized deployment + real generation: E3 allowed with evidence, E4+ blocked
+        self.assertIn("adapter-comfyui", m.E3_ALLOWED)
+        self.assertIn("adapter-minimax-h3", m.E3_ALLOWED)
+        self.assertNotIn("adapter-comfyui", m.ALLOWED_LEVELS)
+        # supported=true requires E3 evidence with runtime identity/task ids (no free pass)
+        import json as _json
+        reg = _json.loads((ROOT.parent / "design-lab/adapters/adapter-registry.json").read_text(encoding="utf-8"))
+        for a in reg["adapters"]:
+            if a["adapter_id"] == "adapter-comfyui":
+                self.assertTrue(any(c["supported"] for c in a["capabilities"]))
+                self.assertEqual(a["evidence"]["level"], "E3")
 
 
 if __name__ == "__main__":

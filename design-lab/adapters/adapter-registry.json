@@ -184,7 +184,7 @@
           "supported": true
         }
       ],
-      "status": "runtime-verified",
+      "status": "runtime",
       "mode": "process-isolated",
       "license": "GPL-3.0 (runtime), custom nodes vary",
       "fallback": "none",
@@ -240,7 +240,7 @@
           "supported": false
         }
       ],
-      "status": "runtime-verified",
+      "status": "runtime",
       "mode": "process-isolated",
       "license": "proprietary (MiniMax API/weights terms)",
       "fallback": "none",
