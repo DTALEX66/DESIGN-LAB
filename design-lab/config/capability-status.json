@@ -96,10 +96,10 @@
       "note": "preflight/handoff schemas and adapter contracts verified; runtime delivery evidence pending"
     },
     "creative-toolchain": {
-      "state": "isolated-runtime",
-      "evidenceLevel": "E2",
+      "state": "runtime-pass",
+      "evidenceLevel": "E3",
       "lastVerified": "2026-08-16",
-      "note": "ComfyUI 0.33.1 用户授权部署：loopback 服务运行（127.0.0.1:8188 HTTP 200）+ H3 模型挂载回读；生成能力未验证（supported=false），E3 待真实生成 artifact"
+      "note": "ComfyUI 0.33.1 用户授权部署 + H3 t2va 真实生成取证（prompt 79013288-…，22 帧 384px，回读通过）；生产级参数与音频导出待后续"
     },
     "release-evidence": {
       "state": "structural-pass",

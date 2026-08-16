@@ -1,0 +1,16 @@
+{
+  "schemaVersion": "design-lab/asset-sidecar/v1",
+  "file": "design-lab/adapters/creative-tools/comfyui/evidence/dl_h3_prod_audio.flac",
+  "sha256": "sha256:c641b38df6575cccee44c8b0f5e1ca395a1cf7ffb40df946b0553d17207c6dd2",
+  "license": "MIT (project-generated artifact)",
+  "author": "DTALEX66 (generated via ComfyUI 0.33.1, MiniMax H3 t2va)",
+  "redistributable": true,
+  "modelInputAllowed": true,
+  "commercialUse": true,
+  "sourceId": null,
+  "exception": {
+    "approvedBy": "DTALEX66 (project-generated)",
+    "expiresAt": "2027-08-16"
+  },
+  "notes": "H3 production-scale audio output (E3 evidence)"
+}

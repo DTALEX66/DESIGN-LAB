@@ -19,9 +19,9 @@
 | 二进制资产 | 51 个 / 9.87 MiB（3 REGENERATE / 48 KEEP）|
 | Open Design Adapter 边界 | ✅ 收敛至 `design-lab/adapters/hosts/open-design/`；唯一所有者；E0/E1 诚实声明 |
 | MiniGame 边界 | ✅ 广告/IAA/变现语义已清除（广告位/模拟广告/发布模式/激励奖励全部中性化）；防漂移测试通过 |
-| ComfyUI | status=declared，evidenceLevel=E0，supported=false |
-| MiniMax H3 | status=declared，evidenceLevel=E0，supported=false |
-| 当前最高真实 Evidence 等级 | E1（结构验证）；E3/E4/E5 无真实运行证据 |
+| ComfyUI | status=runtime-verified，evidenceLevel=E3，workflow-execution supported=true（用户授权部署+真实生成） |
+| MiniMax H3 | status=runtime-verified，evidenceLevel=E3，video-generation supported=true（用户授权部署+真实生成） |
+| 当前最高真实 Evidence 等级 | **E3（ComfyUI 0.33.1 + H3 t2va 真实生成，2026-08-16）**；E4/E5 未达成 |
 | Canonical CI | 本地 `verify_design_lab.py` = OK（19 项全过）；远端 HEAD CI 基线失败已本地修复，待 push 后回读 |
 | Release Gate | **BLOCKED**（能力证据下限不足、证据卡未运行、人工验收未完成——诚实）|
 | 人工 Jury | 未完成（需人工专业评审，>=82/100 + 偏好测试 >=70%）|
@@ -82,4 +82,6 @@ de467c1 fix(ci): rebuild canonical and release evidence gates (DL-CI-005/006/008
 
 ## 最终结论
 
-> DESIGN-LAB 产品定位稳定，结构治理持续完善；当前尚未达到 E4 生产发布资格。
+> DESIGN-LAB 产品定位稳定，结构治理持续完善；ComfyUI/H3 真实运行能力已达 E3（用户授权）；当前尚未达到 E4 生产发布资格。
+
+> 追加（2026-08-16（H3 生产级生成取证后））：creative-toolchain 记录 actualEvidence=E3（两次 H3 t2va 生成取证：prompt 79013288… / 85896e88…，产物含 768px 124 帧动图 + 同步 FLAC 音频 + mp4 合成）。Open Design daemon、Photoshop、人工 Jury 仍待取证。
