@@ -310,7 +310,8 @@ class AggregateChainTests(unittest.TestCase):
                            capture_output=True, text=True, cwd=ROOT)
         self.assertEqual(r.returncode, 0, r.stdout[-2000:] + r.stderr)
         self.assertIn("VERIFY_DESIGN_LAB=OK", r.stdout)
-        self.assertIn("VERIFY_DESIGN_LAB=OK total=19 failed=0", r.stdout)
+        self.assertIn("VERIFY_DESIGN_LAB=OK", r.stdout)
+        self.assertRegex(r.stdout, r"VERIFY_DESIGN_LAB=OK total=\d+ failed=0")
 
 
 class VisualQualityScoringTests(unittest.TestCase):

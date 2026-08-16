@@ -62,12 +62,20 @@ class ObjectModelTest(unittest.TestCase):
     def test_thirteen_objects_complete(self):
         data = _load(OBJECT_MODEL)
         ids = {o["id"] for o in data["objects"]}
-        self.assertEqual(len(ids), 13, f"expected 13 core objects, got {len(ids)}")
+        # V2 kernel: 13 core objects retained + DesignProject/Command/ExecutionResult/QualityReport/DeliveryManifest/MemoryRecord
+        self.assertGreaterEqual(len(ids), 13, f"expected >=13 core objects, got {len(ids)}")
+        required = {"brief", "reference-set", "research-finding", "method-card", "direction", "design-system",
+                    "domain-pack", "artifact", "tool-run", "quality-assessment", "preflight-report",
+                    "handoff-package", "evidence-record", "project", "command", "execution-result",
+                    "quality-report", "delivery-manifest", "memory-record"}
+        self.assertTrue(required <= set(ids), f"missing objects: {sorted(required - set(ids))}")
         expected = {
             "brief", "reference-set", "research-finding", "method-card",
             "direction", "design-system", "domain-pack", "artifact",
             "tool-run", "quality-assessment", "preflight-report",
             "handoff-package", "evidence-record",
+            "project", "command", "execution-result",
+            "quality-report", "delivery-manifest", "memory-record",
         }
         self.assertEqual(ids, expected)
 
