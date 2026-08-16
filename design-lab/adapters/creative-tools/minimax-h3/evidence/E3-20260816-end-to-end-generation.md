@@ -27,3 +27,8 @@
 - 这是**最小端到端验证**（384px / 22 帧 / 20 步）。生产级参数（分辨率 768+、时长 124–362 帧、cfg/采样调优）未做。
 - 音频 latent 已随采样产出（VAEDecodeAudio 成功），但输出仅保存了视频帧动图，音频流未单独导出验证。
 - 该 E3 证据绑定 ComfyUI 0.33.1 运行时与上列 prompt_id；current-tree qualification：提交 7aa0c34aefd5fee4cf4e817754f5fe835ed711ff（分支 fix/design-lab-governance-closure-r4，本地）。本文件为当前树真实运行证据（runtime_id + task_id + artifact 回读），非历史候选。
+
+
+## 当前树限定（P0 云端闭环，75d2596b6063）
+
+- 当前 main HEAD：`75d2596b6063bc15ec47a57520b2dbc585899396`（squash merge 后）。本 E3 证据在 `fix/r4-h3-prod-e3` 分支产生（f8ce6c0 祖先），经 PR #94 squash 合入 main；运行时证据绑定 ComfyUI 0.33.1 + prompt_id，与 git 树 SHA 的绑定为历史限定（squash 后 tree 变化，E3 运行证据本身仍有效，由 evidence-attestation 独立持有）。

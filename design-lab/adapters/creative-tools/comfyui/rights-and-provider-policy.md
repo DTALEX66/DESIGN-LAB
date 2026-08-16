@@ -7,8 +7,9 @@
 ## 权利
 
 - ComfyUI 本体：GPL-3.0（开源）；自定义节点许可各异（使用前逐节点核验）
-- 生成资产：用户拥有（本工具不主张权利）
-- 模型权重：各自许可（SD/FLUX 等 Checkpoint 逐模型核验，遵守 LICENSE）
+- 生成资产：用户拥有（本工具不主张权利），但**商用/分发权利受模型许可与 Provider 条款约束**
+- 模型权重：各自许可（MiniMax H3 为 proprietary；产物 sidecar 已标 redistributable=false / commercialUse=false，待人工按模型条款审核）
+- H3 产物权利：见 minimax-h3 evidence sidecar（内部验证用，未验证分发/商用）
 
 ## Provider 策略
 

@@ -181,7 +181,7 @@
         },
         {
           "name": "workflow-execution",
-          "supported": false
+          "supported": true
         }
       ],
       "status": "runtime-verified",
@@ -233,7 +233,7 @@
       "capabilities": [
         {
           "name": "video-generation",
-          "supported": false
+          "supported": true
         },
         {
           "name": "motion-bridge",
