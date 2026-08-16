@@ -61,6 +61,8 @@ jobs:
         run: python design-lab/scripts/verify_identity_gate.py
       - name: DESIGN-LAB unified verify
         run: python design-lab/scripts/verify_design_lab.py
+      - name: Host adapter matrix (E0/E1 only)
+        run: python design-lab/scripts/verify_adapter_matrix.py
       - name: Evidence boundTree freshness
         if: github.event_name == 'push'
         run: python design-lab/scripts/update_evidence_binding.py --check
@@ -72,7 +74,7 @@ jobs:
         run: python design-lab/scripts/verify_visual_scoring_v3.py
       - name: V2 / V2.1 protocols
         run: |
-          python design-lab/scripts/verify_source_registry_v2.py
+          python design-lab/scripts/verify_source_registry.py
           python design-lab/scripts/verify_v2_protocols.py
           python design-lab/scripts/verify_visual_quality_v21.py
       - name: Domain Pack V2 contract
@@ -184,4 +186,4 @@ jobs:
         run: python -m pip install -r requirements.txt
       - name: Open Design host adapter structural gate
         if: steps.changes.outputs.open-design == 'true'
-        run: python design-lab/scripts/verify_open_design_assistance.py
+        run: python design-lab/adapters/hosts/open-design/verifier/verify_open_design_host_adapter.py

@@ -31,7 +31,7 @@
 
 ## 3. 复核触发条件
 
-1. **周期复核**：每季度（或人工触发 `verify_source_registry_v2.py --renewal`）
+1. **周期复核**：每季度（或人工触发 `verify_source_registry.py --renewal`）
 2. **事件触发**：上游 commit 变化 / 许可文件变更 / 来源 404 / SBOM 更新
 3. **政策变更**：KNOWLEDGE_ASSET_POLICY / 许可政策修订后全量 reverify
 
@@ -43,13 +43,13 @@
   - **URL 404** → 标记 `review-required`（来源下线）
   - **commit SHA 不存在** → 标记 `review-required`（上游改写）
   - **许可页变化** → 标记 `review-required`（需人工比对）
-- 主 CI 只跑**离线**静态校验（现有 `verify_source_registry_v2.py`）——网络失败绝不破坏 CI
+- 主 CI 只跑**离线**静态校验（`verify_source_registry.py`，DL-KNW-004）——网络失败绝不破坏 CI
 
 ## 5. 已落地的离线校验（现有，无需新代码）
 
 | 校验 | 脚本 | 覆盖 |
 |---|---|---|
-| registry schema | `verify_source_registry_v2.py` | 162 条：duplicate id、licenseStatus、contentHash 格式、integration_mode |
+| registry schema | `verify_source_registry.py` | v3 SourceRecord 全量 schema；162 条遗留登记已隔离至 QUARANTINE_REGISTRY（DL-KNW-003） |
 | 许可覆盖 | `verify_license_coverage.py` | 新增文件 SPDX/.license 侧车 |
 | 资产治理 | `verify_asset_governance.py` | 二进制大小/来源/哈希 |
 | SBOM | `verify_sbom.py` | vendored 覆盖 |

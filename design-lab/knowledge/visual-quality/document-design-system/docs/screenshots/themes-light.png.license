@@ -1,2 +1,16 @@
-SPDX-FileCopyrightText: Avinava (document-design-system)
-SPDX-License-Identifier: MIT
+{
+  "schemaVersion": "design-lab/asset-sidecar/v1",
+  "file": "design-lab/knowledge/visual-quality/document-design-system/docs/screenshots/themes-light.png",
+  "sha256": "sha256:3360e928f390a5c143f9330ab3cc8ceb070f7e6701aaf6748ffd761da9f1227f",
+  "license": "MIT",
+  "author": "Avinava (document-design-system)",
+  "redistributable": true,
+  "modelInputAllowed": true,
+  "commercialUse": true,
+  "sourceId": null,
+  "exception": {
+    "approvedBy": "Avinava (document-design-system)",
+    "expiresAt": "2027-08-16"
+  },
+  "notes": "upgraded from legacy SPDX sidecar under DL-AST-001; rights flags derived from declared SPDX license; expiry = annual asset re-verification policy"
+}

@@ -192,9 +192,9 @@ def main() -> int:
                 else:
                     capability_levels[capability_id] = actual
 
-        bound_tree = data.get("boundTree", "")
+        bound_tree = data.get("lastVerifiedTree", "")
         if not SHA_RE.match(bound_tree):
-            errors.append(f"boundTree must be a 40-hex SHA, got: {bound_tree!r}")
+            errors.append(f"lastVerifiedTree must be a 40-hex SHA, got: {bound_tree!r} (DL-EVD-003)")
         else:
             head = subprocess.run(
                 ["git", "-C", str(REPO.parent), "rev-parse", "HEAD"],
@@ -202,15 +202,22 @@ def main() -> int:
                 text=True,
             ).stdout.strip()
             if not head:
-                errors.append("git HEAD unresolvable for boundTree check")
+                errors.append("git HEAD unresolvable for lastVerifiedTree check")
             else:
-                ancestry = subprocess.run(
-                    ["git", "-C", str(REPO.parent), "merge-base", "--is-ancestor", bound_tree, head],
-                    capture_output=True,
-                    text=True,
+                import importlib.util
+                _spec = importlib.util.spec_from_file_location(
+                    "update_evidence_binding", str(REPO / "scripts" / "update_evidence_binding.py")
                 )
-                if ancestry.returncode != 0:
-                    errors.append(f"boundTree {bound_tree[:12]} is not an ancestor of HEAD {head[:12]}")
+                _mod = importlib.util.module_from_spec(_spec)
+                _spec.loader.exec_module(_mod)
+                head_tree = _mod.git_tree(head)
+                state = _mod.compute_state(bound_tree, head, head_tree)
+                if state == "CURRENT_EXACT":
+                    errors.append("lastVerifiedTree claims the current tree (self-reference forbidden, DL-EVD-002); use a CI runtime attestation")
+                elif state == "STALE":
+                    errors.append(f"lastVerifiedTree {bound_tree[:12]} is not on HEAD ancestry (STALE; re-run update_evidence_binding.py)")
+                elif state == "UNRESOLVABLE":
+                    errors.append(f"lastVerifiedTree {bound_tree[:12]} unresolvable")
 
         status_path = REPO / "config" / "capability-status.json"
         try:

@@ -34,7 +34,7 @@ D:\All projects\DESIGN-LAB
 2. Run the repo verifier before installing/copying:
 
 ```bash
-python design-lab/scripts/verify_open_design_assistance.py
+python design-lab/scripts/verify_open_design_host_adapter.py
 ```
 
 Expected:
@@ -130,7 +130,7 @@ Reject or retry if the output:
 Check:
 
 ```bash
-python design-lab/scripts/verify_open_design_assistance.py
+python design-lab/scripts/verify_open_design_host_adapter.py
 ```
 
 Then confirm each plugin has:
@@ -181,7 +181,7 @@ design-lab/templates/INDEX.md
 Run:
 
 ```bash
-python design-lab/scripts/verify_open_design_assistance.py
+python design-lab/scripts/verify_open_design_host_adapter.py
 ```
 
 Commit only after it reports:

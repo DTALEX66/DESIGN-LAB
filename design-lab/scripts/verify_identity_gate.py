@@ -51,10 +51,7 @@ def scan() -> list[str]:
             continue  # self (pattern definitions)
         # Host-adapter projection scripts keep legacy-derived filenames (F1 allowance)
         if rel in (
-            "design-lab/scripts/verify_open_design_assistance.py",
-            "design-lab/scripts/generate_open_design_indexes.py",
             "design-lab/scripts/scaffold_open_design_plugin.py",
-            "design-lab/scripts/install_op_expert_suite.py",
             "design-lab/scripts/doctor_open_design_windows.py",
         ):
             continue

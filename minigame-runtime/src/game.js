@@ -1,7 +1,7 @@
 import { getAvailableActions, performAction } from './actions.js';
 import { applyAnomaly, pickNextAnomaly } from './events.js';
 import { summarizeFailure } from './feedback.js';
-import { recordFailure, recordSuccessfulShift, reviveFromAd, saveSnapshot, tickState } from './state.js';
+import { recordFailure, recordSuccessfulShift, revive, saveSnapshot, tickState } from './state.js';
 import CONFIG from './gameConfig.js';
 import { playClick, playSuccess, playFail, playAnomaly, playWarning, playCrash, playRevive, playRestart, setMusicState, pauseMusic, resumeMusic, stopMusic } from './audio.js';
 import { t, actionLabel, getSkin, getAnomalies } from './skinManager.js';
@@ -135,27 +135,27 @@ function bindPress(element, handler) {
   element.addEventListener('pointerup', run);
 }
 
-const showReviveAd = createRewardedAd(CONFIG.adUnits.revive, {
+const showReviveAd = createRewardedAd('revive', {
   onReward: (meta) => {
     if (!shouldApplyReward(meta, runToken, 'revive', state)) return;
-    trackEvent('revive_ad_reward', analyticsPayload({ adUnitId: CONFIG.adUnits.revive }));
+    trackEvent('revive_reward', analyticsPayload({}));
     playRevive();
-    state = reviveFromAd(state);
+    state = revive(state);
     nextAnomalyAt = scheduleNextAnomalyAfterRevive(state.elapsed);
     render();
   },
 });
-const showDecodeAd = createRewardedAd(CONFIG.adUnits.decode, {
+const showDecodeAd = createRewardedAd('decode', {
   onReward: (meta) => {
     if (!shouldApplyReward(meta, runToken, 'decode', state)) return;
     const before = state.adHintsUsed;
     runAction('unlockHiddenLog');
     if (state.adHintsUsed > before) {
-      trackEvent('hidden_log_unlock', analyticsPayload({ adUnitId: CONFIG.adUnits.decode }));
+      trackEvent('hidden_log_unlock', analyticsPayload({}));
     }
   },
 });
-const showTruthAd = createRewardedAd(CONFIG.adUnits.truth, {
+const showTruthAd = createRewardedAd('truth', {
   onReward: (meta) => {
     if (!shouldApplyReward(meta, runToken, 'truth', state)) return;
     playRevive();
@@ -406,7 +406,7 @@ function dispatchAction(actionId) {
   closeSecondaryActions();
   trackEvent('action_click', analyticsPayload({ actionId }));
   if (actionId === 'unlockHiddenLog') {
-    trackEvent('hidden_log_ad_start', analyticsPayload({ adUnitId: CONFIG.adUnits.decode }));
+    trackEvent('hidden_log_start', analyticsPayload({}));
     showDecodeAd({ runToken });
     return;
   }
@@ -490,8 +490,8 @@ function loop() {
       }));
     }
   }
-  // Save a snapshot on interval for ad-revive rollback
-  const ar = CONFIG.adRevive;
+  // Save a snapshot on interval for revive rollback
+  const ar = CONFIG.revive;
   if (state.elapsed > 0 && state.elapsed % ar.snapshotInterval === 0) {
     state = saveSnapshot(state);
   }
@@ -633,7 +633,7 @@ window.addEventListener('keydown', (event) => {
   if (event.key === 'Escape') closeSecondaryActions();
 });
 bindPress(els.reviveButton, () => {
-  trackEvent('revive_ad_start', analyticsPayload({ adUnitId: CONFIG.adUnits.revive }));
+  trackEvent('revive_start', analyticsPayload({}));
   showReviveAd({ runToken });
 });
 bindPress(els.restartButton, () => {

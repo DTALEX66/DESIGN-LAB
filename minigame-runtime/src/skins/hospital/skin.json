@@ -43,7 +43,7 @@
     "power": "备用电",
     "stability": "生命体征",
     "anomalyLevel": "异常等级",
-    "reviveCount": "广告复活",
+    "reviveCount": "复活",
     "adHintsCount": "病历解码",
     "hiddenLogsCount": "待解码"
   },
@@ -92,8 +92,8 @@
     "emergencyStop_fail": "急停转运无响应。异常等级上升。",
     "restartSystem": "护士站系统重启完成：异常等级下降，但消耗 {cost} 点备用电。",
     "inspectLog": "值班员查看护理日志：最近 30 秒存在未登记呼叫铃。",
-    "inspectLog_hiddenRecords": "发现 {count} 条待解码封存病历。可观看模拟广告解锁完整内容。",
-    "unlockHiddenLog_ok": "模拟广告播放完成。封存病历已解码。"
+    "inspectLog_hiddenRecords": "发现 {count} 条待解码封存病历。可解码完整内容。",
+    "unlockHiddenLog_ok": "解码完成。封存病历已解码。"
   },
   "anomalies": [
     {
@@ -253,24 +253,24 @@
     },
     "defaultHint": "先关隔离门，再重启护士站，避免连续转运。",
     "firstRunAdvice": "下次先核对画面和三项数据；一致放行，矛盾封锁。",
-    "adHintPrefix": "广告提示：{hint}",
-    "adReviveRollback": "广告复活完成：回滚 {seconds} 秒，恢复至可控值班状态。",
-    "adReviveMonitor": "广告复活完成：回滚到 {seconds} 秒前的病区状态。",
-    "snapshotFallback": "可观看广告复活，回滚到 {seconds} 秒前的值班状态。",
-    "noSnapshotFallback": "可观看广告复活，回滚到初始值班状态。"
+    "hintPrefix": "提示：{hint}",
+    "adReviveRollback": "复活完成：回滚 {seconds} 秒，恢复至可控值班状态。",
+    "adReviveMonitor": "复活完成：回滚到 {seconds} 秒前的病区状态。",
+    "snapshotFallback": "可观看复活，回滚到 {seconds} 秒前的值班状态。",
+    "noSnapshotFallback": "可观看复活，回滚到初始值班状态。"
   },
   "fakeEnding": {
     "text": "第 3 次值班失败后，护士站弹出一份未签名病历。\n病历姓名栏不是患者，而是：夜班值守员。\n系统提示：你不是在看监控。你在被监控。",
     "truthContent": "封存真相：03 号病区的夜班系统会把每一任值守员加入观察名单。连续失败意味着系统判定你已经出现异常体征。"
   },
   "ui": {
-    "viewAd": "观看广告复活",
-    "revealTruth": "观看广告揭示真相",
+    "viewAd": "复活",
+    "revealTruth": "揭示真相",
     "decodePrefix": "[病历解码]",
     "anomalyEventLog": "病区异常：{title}。{hint}",
     "startTitle": "等待接管深夜医院值班台",
     "startCopy": "目标：值守 60 秒，观察病区监控、处理异常呼叫、避免生命体征归零。接管后倒计时才会启动。",
-    "startChecklist": "先读病区监控和护理日志\n异常出现时按提示执行操作\n失败后可通过模拟广告复活",
+    "startChecklist": "先读病区监控和护理日志\n异常出现时按提示执行操作\n失败后可通过模拟复活",
     "startFailureRulesTitle": "失败条件",
     "startFailureRules": "备用电归零\n生命体征归零\n异常等级失控",
     "startButton": "开始值守",
@@ -279,7 +279,7 @@
     "pausedCopy": "返回前台后继续，不计算后台时间",
     "audioOn": "声音开",
     "audioOff": "已静音",
-    "adUnavailable": "广告暂不可用，请稍后重试",
+    "rewardUnavailable": "奖励暂不可用，请稍后重试",
     "reportNormal": "判为正常",
     "reportAnomaly": "报告异常",
     "inspectionLabel": "巡检判定 {seconds}s",

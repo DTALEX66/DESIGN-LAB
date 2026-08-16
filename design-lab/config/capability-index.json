@@ -1,8 +1,8 @@
 {
   "$schema": "../../schemas/capability-index.schema.json",
   "version": "1.0.0",
-  "generated_at": "2026-08-14",
-  "capability_count": 2239,
+  "generated_at": "2026-08-16",
+  "capability_count": 2272,
   "capabilities": [
     {
       "path": "adapters/NEUTRALITY_POLICY.md",
@@ -37,14 +37,20 @@
     {
       "path": "adapters/creative-tools/comfyui/adapter.manifest.json",
       "label": "adapters",
-      "bytes": 911,
-      "sha256": "48ae6f085cea2708"
+      "bytes": 1022,
+      "sha256": "861809c06f0aa323"
+    },
+    {
+      "path": "adapters/creative-tools/comfyui/evidence/E3-20260814.md",
+      "label": "adapters",
+      "bytes": 900,
+      "sha256": "1d6c2a12158828b0"
     },
     {
       "path": "adapters/creative-tools/comfyui/evidence/README.md",
       "label": "adapters",
-      "bytes": 306,
-      "sha256": "65ca13a2c3dcc625"
+      "bytes": 969,
+      "sha256": "b22216b8c086e285"
     },
     {
       "path": "adapters/creative-tools/comfyui/rights-and-provider-policy.md",
@@ -61,20 +67,194 @@
     {
       "path": "adapters/creative-tools/minimax-h3/adapter.manifest.json",
       "label": "adapters",
-      "bytes": 914,
-      "sha256": "2475f80e50cae5a0"
+      "bytes": 1005,
+      "sha256": "5e78d3fd8c0d5e9c"
+    },
+    {
+      "path": "adapters/creative-tools/minimax-h3/evidence/E3-20260814.md",
+      "label": "adapters",
+      "bytes": 1254,
+      "sha256": "1bb6c6eb03466002"
     },
     {
       "path": "adapters/creative-tools/minimax-h3/evidence/README.md",
       "label": "adapters",
-      "bytes": 312,
-      "sha256": "1fe26701d49a0f24"
+      "bytes": 699,
+      "sha256": "de760fbc45aa07c2"
     },
     {
       "path": "adapters/creative-tools/minimax-h3/rights-and-provider-policy.md",
       "label": "adapters",
       "bytes": 1262,
       "sha256": "92385921854fc2bc"
+    },
+    {
+      "path": "adapters/hosts/open-design/README.md",
+      "label": "adapters",
+      "bytes": 1651,
+      "sha256": "0e6ec0eab41f9e21"
+    },
+    {
+      "path": "adapters/hosts/open-design/adapter.manifest.json",
+      "label": "adapters",
+      "bytes": 1401,
+      "sha256": "bf451c89641be054"
+    },
+    {
+      "path": "adapters/hosts/open-design/evidence/README.md",
+      "label": "adapters",
+      "bytes": 182,
+      "sha256": "714f887cf08b31c8"
+    },
+    {
+      "path": "adapters/hosts/open-design/expert-suite/skills/b2b-backoffice-designer/SKILL.md",
+      "label": "adapters",
+      "bytes": 1473,
+      "sha256": "cf542e1d16c9f419"
+    },
+    {
+      "path": "adapters/hosts/open-design/expert-suite/skills/brand-identity-director/SKILL.md",
+      "label": "adapters",
+      "bytes": 1015,
+      "sha256": "47d5dea237ad73e7"
+    },
+    {
+      "path": "adapters/hosts/open-design/expert-suite/skills/design-source-curator/SKILL.md",
+      "label": "adapters",
+      "bytes": 1866,
+      "sha256": "2134b4ef5fc65ff2"
+    },
+    {
+      "path": "adapters/hosts/open-design/expert-suite/skills/ecommerce-pdp-designer/SKILL.md",
+      "label": "adapters",
+      "bytes": 1441,
+      "sha256": "9b2d42b80ddf5ea9"
+    },
+    {
+      "path": "adapters/hosts/open-design/expert-suite/skills/master-method-translator/SKILL.md",
+      "label": "adapters",
+      "bytes": 2448,
+      "sha256": "25ac113f15b91b97"
+    },
+    {
+      "path": "adapters/hosts/open-design/expert-suite/skills/minigame-hud-designer/SKILL.md",
+      "label": "adapters",
+      "bytes": 3110,
+      "sha256": "f6f19141d39ac0c3"
+    },
+    {
+      "path": "adapters/hosts/open-design/expert-suite/skills/mobile-task-flow-designer/SKILL.md",
+      "label": "adapters",
+      "bytes": 1831,
+      "sha256": "5c74637a4ad50308"
+    },
+    {
+      "path": "adapters/hosts/open-design/expert-suite/skills/production-handoff-specialist/SKILL.md",
+      "label": "adapters",
+      "bytes": 1115,
+      "sha256": "59d900aa02365577"
+    },
+    {
+      "path": "adapters/hosts/open-design/expert-suite/skills/responsive-content-designer/SKILL.md",
+      "label": "adapters",
+      "bytes": 1404,
+      "sha256": "831480cdcc526c56"
+    },
+    {
+      "path": "adapters/hosts/open-design/expert-suite/skills/settings-accessibility-designer/SKILL.md",
+      "label": "adapters",
+      "bytes": 1453,
+      "sha256": "61f907611b28122b"
+    },
+    {
+      "path": "adapters/hosts/open-design/expert-suite/skills/spatial-exhibition-designer/SKILL.md",
+      "label": "adapters",
+      "bytes": 992,
+      "sha256": "b634a8bbc7645ea9"
+    },
+    {
+      "path": "adapters/hosts/open-design/expert-suite/skills/style-lineage-composer/SKILL.md",
+      "label": "adapters",
+      "bytes": 1828,
+      "sha256": "25a3bf2ea8acdbf0"
+    },
+    {
+      "path": "adapters/hosts/open-design/expert-suite/skills/uiux-commercial-light-system/SKILL.md",
+      "label": "adapters",
+      "bytes": 1655,
+      "sha256": "b68110c54a4d5855"
+    },
+    {
+      "path": "adapters/hosts/open-design/expert-suite/skills/visual-art-direction-director/SKILL.md",
+      "label": "adapters",
+      "bytes": 1081,
+      "sha256": "bbfb367fe3d0e07a"
+    },
+    {
+      "path": "adapters/hosts/open-design/expert-suite/skills/visual-quality-critic/SKILL.md",
+      "label": "adapters",
+      "bytes": 1163,
+      "sha256": "6781e01368859600"
+    },
+    {
+      "path": "adapters/hosts/open-design/installer/install_op_expert_suite.py",
+      "label": "adapters",
+      "bytes": 35613,
+      "sha256": "70a32575b10223fe"
+    },
+    {
+      "path": "adapters/hosts/open-design/projections/atoms/README.md",
+      "label": "adapters",
+      "bytes": 292,
+      "sha256": "348397999e44dfef"
+    },
+    {
+      "path": "adapters/hosts/open-design/projections/bundles/README.md",
+      "label": "adapters",
+      "bytes": 296,
+      "sha256": "4210386512edba07"
+    },
+    {
+      "path": "adapters/hosts/open-design/projections/plugins/README.md",
+      "label": "adapters",
+      "bytes": 296,
+      "sha256": "f7c7eeaf3115f063"
+    },
+    {
+      "path": "adapters/hosts/open-design/projections/scenarios/README.md",
+      "label": "adapters",
+      "bytes": 300,
+      "sha256": "9d15c5630854433c"
+    },
+    {
+      "path": "adapters/hosts/open-design/schemas/README.md",
+      "label": "adapters",
+      "bytes": 173,
+      "sha256": "8fb16d9ce30333a1"
+    },
+    {
+      "path": "adapters/hosts/open-design/templates/open-design-app-config.template.md",
+      "label": "adapters",
+      "bytes": 1784,
+      "sha256": "7889943079b02d48"
+    },
+    {
+      "path": "adapters/hosts/open-design/tests/README.md",
+      "label": "adapters",
+      "bytes": 117,
+      "sha256": "d4620a008630a67f"
+    },
+    {
+      "path": "adapters/hosts/open-design/verifier/generate_open_design_adapter_indexes.py",
+      "label": "adapters",
+      "bytes": 9355,
+      "sha256": "5f839a724191b2f9"
+    },
+    {
+      "path": "adapters/hosts/open-design/verifier/verify_open_design_host_adapter.py",
+      "label": "adapters",
+      "bytes": 24690,
+      "sha256": "ac09a778180fa509"
     },
     {
       "path": "atoms/anti-ai-slop-diagnostician/README.md",
@@ -523,8 +703,8 @@
     {
       "path": "domain-packs/minigame-design/SOURCE_OF_TRUTH.md",
       "label": "domain-packs",
-      "bytes": 1378,
-      "sha256": "0a9c26e6d08c779c"
+      "bytes": 1402,
+      "sha256": "892e7685f538f1be"
     },
     {
       "path": "domain-packs/minigame-design/handoff.md",
@@ -553,8 +733,8 @@
     {
       "path": "domain-packs/minigame-design/rubric.json",
       "label": "domain-packs",
-      "bytes": 1671,
-      "sha256": "ef84df0e3e1c4301"
+      "bytes": 1669,
+      "sha256": "727d62728e8957a1"
     },
     {
       "path": "domain-packs/minigame-design/rules.md",
@@ -817,26 +997,26 @@
     {
       "path": "domain-packs/uiux-design/evidence/axe-scan-20260811.json",
       "label": "domain-packs",
-      "bytes": 942,
-      "sha256": "5b4631bade4a3513"
+      "bytes": 1083,
+      "sha256": "14dd8a44e3fa329e"
     },
     {
       "path": "domain-packs/uiux-design/evidence/b2b-backoffice-golden.json",
       "label": "domain-packs",
-      "bytes": 658,
-      "sha256": "b04c6ec8665cf330"
+      "bytes": 691,
+      "sha256": "e8c2e354ff54f3f8"
     },
     {
       "path": "domain-packs/uiux-design/evidence/ecommerce-pdp-checkout-golden.json",
       "label": "domain-packs",
-      "bytes": 852,
-      "sha256": "127102bb0d9bb8ff"
+      "bytes": 804,
+      "sha256": "634271aaac6caa11"
     },
     {
       "path": "domain-packs/uiux-design/evidence/mobile-task-flow-golden.json",
       "label": "domain-packs",
-      "bytes": 846,
-      "sha256": "d22c3fd1ee04d3b8"
+      "bytes": 763,
+      "sha256": "0944cec4c5c84858"
     },
     {
       "path": "domain-packs/uiux-design/evidence/pack-structure.json",
@@ -847,14 +1027,14 @@
     {
       "path": "domain-packs/uiux-design/evidence/responsive-content-page-golden.json",
       "label": "domain-packs",
-      "bytes": 845,
-      "sha256": "0e0558d7034ee353"
+      "bytes": 809,
+      "sha256": "3ad55ef77ebe68f7"
     },
     {
       "path": "domain-packs/uiux-design/evidence/settings-accessibility-golden.json",
       "label": "domain-packs",
-      "bytes": 854,
-      "sha256": "62ed5c82a887478b"
+      "bytes": 803,
+      "sha256": "3329ddde327c79fe"
     },
     {
       "path": "domain-packs/uiux-design/handoff-contract.json",
@@ -1051,8 +1231,8 @@
     {
       "path": "intelligence/anydesign/scripts/capture_site.py",
       "label": "intelligence",
-      "bytes": 13358,
-      "sha256": "959c3e8ee2935ff6"
+      "bytes": 14017,
+      "sha256": "1e2ef79ce61dc3fe"
     },
     {
       "path": "intelligence/anydesign/scripts/check_contrast.py",
@@ -1075,8 +1255,8 @@
     {
       "path": "intelligence/anydesign/scripts/extract_css_vars.py",
       "label": "intelligence",
-      "bytes": 8811,
-      "sha256": "20cdc9e831d8f35a"
+      "bytes": 9916,
+      "sha256": "074a26cfdfdbdd8a"
     },
     {
       "path": "intelligence/anydesign/scripts/lint_design_md.py",
@@ -1087,8 +1267,8 @@
     {
       "path": "intelligence/anydesign/scripts/verify_design.py",
       "label": "intelligence",
-      "bytes": 12595,
-      "sha256": "631c535f4bedb492"
+      "bytes": 12745,
+      "sha256": "9422a428ca4ef55a"
     },
     {
       "path": "intelligence/baoyu-design/.claude/skills/release-skills/SKILL.md",
@@ -1159,8 +1339,8 @@
     {
       "path": "intelligence/baoyu-design/assets/screenshots/claude-design-reader-mac-app.webp.license",
       "label": "intelligence",
-      "bytes": 77,
-      "sha256": "8f626e45da89b0d2"
+      "bytes": 672,
+      "sha256": "f4f2a75ed5aa94a4"
     },
     {
       "path": "intelligence/baoyu-design/assets/screenshots/claude-reader-mac-app.webp",
@@ -1171,8 +1351,8 @@
     {
       "path": "intelligence/baoyu-design/assets/screenshots/claude-reader-mac-app.webp.license",
       "label": "intelligence",
-      "bytes": 77,
-      "sha256": "8f626e45da89b0d2"
+      "bytes": 665,
+      "sha256": "e38a94fd9ca8729e"
     },
     {
       "path": "intelligence/baoyu-design/assets/screenshots/codex-reader-mac-app.webp",
@@ -1183,8 +1363,8 @@
     {
       "path": "intelligence/baoyu-design/assets/screenshots/codex-reader-mac-app.webp.license",
       "label": "intelligence",
-      "bytes": 77,
-      "sha256": "8f626e45da89b0d2"
+      "bytes": 664,
+      "sha256": "0b684fb711d50982"
     },
     {
       "path": "intelligence/baoyu-design/assets/screenshots/cursor-reader-mac-app.webp",
@@ -1195,8 +1375,8 @@
     {
       "path": "intelligence/baoyu-design/assets/screenshots/cursor-reader-mac-app.webp.license",
       "label": "intelligence",
-      "bytes": 77,
-      "sha256": "8f626e45da89b0d2"
+      "bytes": 665,
+      "sha256": "979a5d88decb276a"
     },
     {
       "path": "intelligence/baoyu-design/assets/screenshots/figma-import-chakra-preview.webp",
@@ -1207,8 +1387,8 @@
     {
       "path": "intelligence/baoyu-design/assets/screenshots/figma-import-chakra-preview.webp.license",
       "label": "intelligence",
-      "bytes": 77,
-      "sha256": "8f626e45da89b0d2"
+      "bytes": 671,
+      "sha256": "578a3ad861464b66"
     },
     {
       "path": "intelligence/baoyu-design/package.json",
@@ -1231,8 +1411,8 @@
     {
       "path": "intelligence/baoyu-design/skills/baoyu-design/agents/assets/vision-probe.png.license",
       "label": "intelligence",
-      "bytes": 77,
-      "sha256": "8f626e45da89b0d2"
+      "bytes": 670,
+      "sha256": "f9c434dc09438a0e"
     },
     {
       "path": "intelligence/baoyu-design/skills/baoyu-design/agents/build-preview.mjs",
@@ -2461,8 +2641,8 @@
     {
       "path": "intelligence/claude-design-skill/docs/images/demo-1-deck.png.license",
       "label": "intelligence",
-      "bytes": 85,
-      "sha256": "2cca8253bba37daf"
+      "bytes": 670,
+      "sha256": "b122b7cceb66b7e6"
     },
     {
       "path": "intelligence/claude-design-skill/docs/images/demo-2-canvas.png",
@@ -2473,8 +2653,8 @@
     {
       "path": "intelligence/claude-design-skill/docs/images/demo-2-canvas.png.license",
       "label": "intelligence",
-      "bytes": 85,
-      "sha256": "2cca8253bba37daf"
+      "bytes": 672,
+      "sha256": "a4e36cb95e420822"
     },
     {
       "path": "intelligence/claude-design-skill/docs/images/demo-3-prototype.png",
@@ -2485,8 +2665,8 @@
     {
       "path": "intelligence/claude-design-skill/docs/images/demo-3-prototype.png.license",
       "label": "intelligence",
-      "bytes": 85,
-      "sha256": "2cca8253bba37daf"
+      "bytes": 675,
+      "sha256": "3283232f8e1e3531"
     },
     {
       "path": "intelligence/claude-design-skill/references/brand-context.md",
@@ -3525,6 +3705,12 @@
       "label": "intelligence",
       "bytes": 1118,
       "sha256": "53d1f2bb30a9f3fb"
+    },
+    {
+      "path": "intelligence/motion-forensics/.claude/settings.json",
+      "label": "intelligence",
+      "bytes": 444,
+      "sha256": "c25cc09ca78f2a08"
     },
     {
       "path": "intelligence/motion-forensics/.gitignore",
@@ -5521,8 +5707,8 @@
     {
       "path": "knowledge/ecommerce-ai/assets/social-preview.png.license",
       "label": "knowledge",
-      "bytes": 89,
-      "sha256": "8c4598d1bcce48c5"
+      "bytes": 662,
+      "sha256": "c790a49bbfc0dc7c"
     },
     {
       "path": "knowledge/ecommerce-ai/assets/social-preview.svg",
@@ -6689,6 +6875,12 @@
       "sha256": "1dc54d8fc9b39821"
     },
     {
+      "path": "knowledge/governance/EXTERNAL_ASSET_INTAKE.md",
+      "label": "knowledge",
+      "bytes": 2758,
+      "sha256": "648ba225f7628e0d"
+    },
+    {
       "path": "knowledge/governance/OPEN_SOURCE_ABSORPTION_POLICY.md",
       "label": "knowledge",
       "bytes": 2075,
@@ -6699,6 +6891,12 @@
       "label": "knowledge",
       "bytes": 1009,
       "sha256": "5f49359658973118"
+    },
+    {
+      "path": "knowledge/governance/SOURCE_RENEWAL_MECHANISM.md",
+      "label": "knowledge",
+      "bytes": 3331,
+      "sha256": "d62ada009199f398"
     },
     {
       "path": "knowledge/production/huashu-design/LICENSE",
@@ -8257,8 +8455,8 @@
     {
       "path": "knowledge/visual-quality/brand-identity-generator/docs/assets/bag.jpg.license",
       "label": "knowledge",
-      "bytes": 88,
-      "sha256": "9d2ece82506af988"
+      "bytes": 685,
+      "sha256": "a7509a47bbe234d9"
     },
     {
       "path": "knowledge/visual-quality/brand-identity-generator/docs/assets/cup.jpg",
@@ -8269,8 +8467,8 @@
     {
       "path": "knowledge/visual-quality/brand-identity-generator/docs/assets/cup.jpg.license",
       "label": "knowledge",
-      "bytes": 88,
-      "sha256": "9d2ece82506af988"
+      "bytes": 685,
+      "sha256": "c8077aecf423b8bb"
     },
     {
       "path": "knowledge/visual-quality/brand-identity-generator/docs/assets/og-image.jpg",
@@ -8281,8 +8479,8 @@
     {
       "path": "knowledge/visual-quality/brand-identity-generator/docs/assets/og-image.jpg.license",
       "label": "knowledge",
-      "bytes": 88,
-      "sha256": "9d2ece82506af988"
+      "bytes": 690,
+      "sha256": "02d6c22ac2a43ac4"
     },
     {
       "path": "knowledge/visual-quality/brand-identity-generator/docs/assets/pages/p01.jpg",
@@ -8293,8 +8491,8 @@
     {
       "path": "knowledge/visual-quality/brand-identity-generator/docs/assets/pages/p01.jpg.license",
       "label": "knowledge",
-      "bytes": 88,
-      "sha256": "9d2ece82506af988"
+      "bytes": 691,
+      "sha256": "8e0e3276ae61582f"
     },
     {
       "path": "knowledge/visual-quality/brand-identity-generator/docs/assets/pages/p02.jpg",
@@ -8305,8 +8503,8 @@
     {
       "path": "knowledge/visual-quality/brand-identity-generator/docs/assets/pages/p02.jpg.license",
       "label": "knowledge",
-      "bytes": 88,
-      "sha256": "9d2ece82506af988"
+      "bytes": 691,
+      "sha256": "3f6f5655787b301c"
     },
     {
       "path": "knowledge/visual-quality/brand-identity-generator/docs/assets/pages/p03.jpg",
@@ -8317,8 +8515,8 @@
     {
       "path": "knowledge/visual-quality/brand-identity-generator/docs/assets/pages/p03.jpg.license",
       "label": "knowledge",
-      "bytes": 88,
-      "sha256": "9d2ece82506af988"
+      "bytes": 691,
+      "sha256": "fe0cc9004daaf05f"
     },
     {
       "path": "knowledge/visual-quality/brand-identity-generator/docs/assets/pages/p04.jpg",
@@ -8329,8 +8527,8 @@
     {
       "path": "knowledge/visual-quality/brand-identity-generator/docs/assets/pages/p04.jpg.license",
       "label": "knowledge",
-      "bytes": 88,
-      "sha256": "9d2ece82506af988"
+      "bytes": 691,
+      "sha256": "b942eb18d9db5410"
     },
     {
       "path": "knowledge/visual-quality/brand-identity-generator/docs/assets/pages/p05.jpg",
@@ -8341,8 +8539,8 @@
     {
       "path": "knowledge/visual-quality/brand-identity-generator/docs/assets/pages/p05.jpg.license",
       "label": "knowledge",
-      "bytes": 88,
-      "sha256": "9d2ece82506af988"
+      "bytes": 691,
+      "sha256": "ebfc54283a4d219a"
     },
     {
       "path": "knowledge/visual-quality/brand-identity-generator/docs/assets/pages/p06.jpg",
@@ -8353,8 +8551,8 @@
     {
       "path": "knowledge/visual-quality/brand-identity-generator/docs/assets/pages/p06.jpg.license",
       "label": "knowledge",
-      "bytes": 88,
-      "sha256": "9d2ece82506af988"
+      "bytes": 691,
+      "sha256": "d0222849594e8c01"
     },
     {
       "path": "knowledge/visual-quality/brand-identity-generator/docs/assets/pages/p07.jpg",
@@ -8365,8 +8563,8 @@
     {
       "path": "knowledge/visual-quality/brand-identity-generator/docs/assets/pages/p07.jpg.license",
       "label": "knowledge",
-      "bytes": 88,
-      "sha256": "9d2ece82506af988"
+      "bytes": 691,
+      "sha256": "741119f744592aae"
     },
     {
       "path": "knowledge/visual-quality/brand-identity-generator/docs/assets/pages/p08.jpg",
@@ -8377,8 +8575,8 @@
     {
       "path": "knowledge/visual-quality/brand-identity-generator/docs/assets/pages/p08.jpg.license",
       "label": "knowledge",
-      "bytes": 88,
-      "sha256": "9d2ece82506af988"
+      "bytes": 691,
+      "sha256": "986de9e04f31b28c"
     },
     {
       "path": "knowledge/visual-quality/brand-identity-generator/docs/assets/pages/p09.jpg",
@@ -8389,8 +8587,8 @@
     {
       "path": "knowledge/visual-quality/brand-identity-generator/docs/assets/pages/p09.jpg.license",
       "label": "knowledge",
-      "bytes": 88,
-      "sha256": "9d2ece82506af988"
+      "bytes": 691,
+      "sha256": "8ee558970eff622c"
     },
     {
       "path": "knowledge/visual-quality/brand-identity-generator/docs/assets/pages/p10.jpg",
@@ -8401,8 +8599,8 @@
     {
       "path": "knowledge/visual-quality/brand-identity-generator/docs/assets/pages/p10.jpg.license",
       "label": "knowledge",
-      "bytes": 88,
-      "sha256": "9d2ece82506af988"
+      "bytes": 691,
+      "sha256": "0e9ccc61b779aae5"
     },
     {
       "path": "knowledge/visual-quality/brand-identity-generator/docs/assets/storefront.jpg",
@@ -8413,8 +8611,8 @@
     {
       "path": "knowledge/visual-quality/brand-identity-generator/docs/assets/storefront.jpg.license",
       "label": "knowledge",
-      "bytes": 88,
-      "sha256": "9d2ece82506af988"
+      "bytes": 692,
+      "sha256": "f39e58b57a5d83c3"
     },
     {
       "path": "knowledge/visual-quality/brand-identity-generator/docs/index.html",
@@ -9223,8 +9421,8 @@
     {
       "path": "knowledge/visual-quality/document-design-system/docs/screenshots/analytical-report-detail.png.license",
       "label": "knowledge",
-      "bytes": 88,
-      "sha256": "dcaad0ec4ca99571"
+      "bytes": 709,
+      "sha256": "7779d7588e2bd80e"
     },
     {
       "path": "knowledge/visual-quality/document-design-system/docs/screenshots/analytical-report.png",
@@ -9235,8 +9433,8 @@
     {
       "path": "knowledge/visual-quality/document-design-system/docs/screenshots/analytical-report.png.license",
       "label": "knowledge",
-      "bytes": 88,
-      "sha256": "dcaad0ec4ca99571"
+      "bytes": 702,
+      "sha256": "3b6fcc9a7c32016c"
     },
     {
       "path": "knowledge/visual-quality/document-design-system/docs/screenshots/deck-chart.png",
@@ -9247,8 +9445,8 @@
     {
       "path": "knowledge/visual-quality/document-design-system/docs/screenshots/deck-chart.png.license",
       "label": "knowledge",
-      "bytes": 88,
-      "sha256": "dcaad0ec4ca99571"
+      "bytes": 695,
+      "sha256": "78ee2bf5d3c2efc7"
     },
     {
       "path": "knowledge/visual-quality/document-design-system/docs/screenshots/deck-divider.png",
@@ -9259,8 +9457,8 @@
     {
       "path": "knowledge/visual-quality/document-design-system/docs/screenshots/deck-divider.png.license",
       "label": "knowledge",
-      "bytes": 88,
-      "sha256": "dcaad0ec4ca99571"
+      "bytes": 697,
+      "sha256": "35756d9dc9cde019"
     },
     {
       "path": "knowledge/visual-quality/document-design-system/docs/screenshots/deck-metric.png",
@@ -9271,8 +9469,8 @@
     {
       "path": "knowledge/visual-quality/document-design-system/docs/screenshots/deck-metric.png.license",
       "label": "knowledge",
-      "bytes": 88,
-      "sha256": "dcaad0ec4ca99571"
+      "bytes": 696,
+      "sha256": "0b6b8e313317099b"
     },
     {
       "path": "knowledge/visual-quality/document-design-system/docs/screenshots/gallery-dark.png",
@@ -9283,8 +9481,8 @@
     {
       "path": "knowledge/visual-quality/document-design-system/docs/screenshots/gallery-dark.png.license",
       "label": "knowledge",
-      "bytes": 88,
-      "sha256": "dcaad0ec4ca99571"
+      "bytes": 697,
+      "sha256": "ec351fd8f9ab1e34"
     },
     {
       "path": "knowledge/visual-quality/document-design-system/docs/screenshots/gallery-light.png",
@@ -9295,8 +9493,8 @@
     {
       "path": "knowledge/visual-quality/document-design-system/docs/screenshots/gallery-light.png.license",
       "label": "knowledge",
-      "bytes": 88,
-      "sha256": "dcaad0ec4ca99571"
+      "bytes": 698,
+      "sha256": "ef18043d421c28f3"
     },
     {
       "path": "knowledge/visual-quality/document-design-system/docs/screenshots/longform-rfc.png",
@@ -9307,8 +9505,8 @@
     {
       "path": "knowledge/visual-quality/document-design-system/docs/screenshots/longform-rfc.png.license",
       "label": "knowledge",
-      "bytes": 88,
-      "sha256": "dcaad0ec4ca99571"
+      "bytes": 697,
+      "sha256": "abcc5e896b811ec1"
     },
     {
       "path": "knowledge/visual-quality/document-design-system/docs/screenshots/themes-dark.png",
@@ -9319,8 +9517,8 @@
     {
       "path": "knowledge/visual-quality/document-design-system/docs/screenshots/themes-dark.png.license",
       "label": "knowledge",
-      "bytes": 88,
-      "sha256": "dcaad0ec4ca99571"
+      "bytes": 696,
+      "sha256": "9285ae0f812fce9a"
     },
     {
       "path": "knowledge/visual-quality/document-design-system/docs/screenshots/themes-light.png",
@@ -9331,8 +9529,8 @@
     {
       "path": "knowledge/visual-quality/document-design-system/docs/screenshots/themes-light.png.license",
       "label": "knowledge",
-      "bytes": 88,
-      "sha256": "dcaad0ec4ca99571"
+      "bytes": 697,
+      "sha256": "a9d48867c67d591f"
     },
     {
       "path": "knowledge/visual-quality/document-design-system/examples/README.md",
@@ -12775,8 +12973,8 @@
     {
       "path": "knowledge/visual-quality/springy-motion/skills/springy-motion/assets/swiftui-spring-presets.png.license",
       "label": "knowledge",
-      "bytes": 78,
-      "sha256": "2714153247d32e8b"
+      "bytes": 691,
+      "sha256": "1a49b40162767bf9"
     },
     {
       "path": "knowledge/visual-quality/springy-motion/skills/springy-motion/assets/web-gallery.png",
@@ -12787,8 +12985,8 @@
     {
       "path": "knowledge/visual-quality/springy-motion/skills/springy-motion/assets/web-gallery.png.license",
       "label": "knowledge",
-      "bytes": 78,
-      "sha256": "2714153247d32e8b"
+      "bytes": 680,
+      "sha256": "2c839ae458026a4d"
     },
     {
       "path": "knowledge/visual-quality/springy-motion/skills/springy-motion/assets/web-shared-element-morph.png",
@@ -12799,8 +12997,8 @@
     {
       "path": "knowledge/visual-quality/springy-motion/skills/springy-motion/assets/web-shared-element-morph.png.license",
       "label": "knowledge",
-      "bytes": 78,
-      "sha256": "2714153247d32e8b"
+      "bytes": 693,
+      "sha256": "6d32522d419d8c64"
     },
     {
       "path": "knowledge/visual-quality/springy-motion/skills/springy-motion/assets/web-spring-presets.png",
@@ -12811,8 +13009,8 @@
     {
       "path": "knowledge/visual-quality/springy-motion/skills/springy-motion/assets/web-spring-presets.png.license",
       "label": "knowledge",
-      "bytes": 78,
-      "sha256": "2714153247d32e8b"
+      "bytes": 687,
+      "sha256": "6d5aaa8d01c4935a"
     },
     {
       "path": "knowledge/visual-quality/springy-motion/skills/springy-motion/examples/README.md",

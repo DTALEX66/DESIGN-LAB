@@ -1,0 +1,35 @@
+{
+  "schemaVersion": "design-lab/project-status/v1",
+  "generatedAt": "2026-08-16",
+  "generator": "scripts/generate_project_status.py (DL-MIG-005)",
+  "git": {
+    "branch": "fix/design-lab-governance-closure-r4",
+    "headSha": "b1a8526f01f815189c86ac91dba5dc1255861686",
+    "originMainSha": "b9f69acd13f589d80edec321bf7e9e8f2eaa3e9d",
+    "worktreeClean": false,
+    "trackedFiles": 2940,
+    "packMiB": 198.74
+  },
+  "sources": {
+    "activeRegistryEntries": 0,
+    "quarantinedSources": 162
+  },
+  "capabilities": {
+    "capabilityIndexCount": 2272
+  },
+  "evidence": {
+    "cards": 12,
+    "recordsByLevel": {
+      "E1": 8
+    },
+    "authoritativeAccepts": 0
+  },
+  "assets": {
+    "binaries": 51,
+    "binaryMiB": 9.87
+  },
+  "tests": {
+    "definedTestMethodCount": 109,
+    "note": "defined test methods (AST count); run `python scripts/run_python_tests.py` for execution results"
+  }
+}

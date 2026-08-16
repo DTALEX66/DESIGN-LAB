@@ -62,7 +62,7 @@ SourceRecord（满足 §2 全部字段，人工批准）
 
 ## 5. 验证链（fail-closed）
 
-- `verify_source_registry_v2.py`：所有 SourceRecord 满足 schema；缺字段 → 失败。
+- `verify_source_registry.py`（DL-KNW-004，替代 `verify_source_registry_v2.py`）：v3 SourceRecord 全量 schema 校验；缺任一字段 → 非零；`GOVERNANCE_GAPS>0` → 失败。
 - `verify_license_coverage.py`：新增文件必须 SPDX 头或 `.license` 侧车；缺失 → 失败。
 - `verify_design_lab.py`：任一必需验证器缺失 → `MISSING` 失败；失败不写 `.verify-chain-ok`。
 - `verify_release_evidence.py`：无证据文件 / 无 exact-SHA 绑定 → 非零退出。

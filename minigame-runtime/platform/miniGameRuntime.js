@@ -12,7 +12,7 @@ import { getAnomalyResolutionAction } from '../src/visualState.js';
 import { applyAnomaly, findAnomaly, pickNextAnomaly } from '../src/events.js';
 import {
   createInitialState,
-  reviveFromAd,
+  revive,
   saveSnapshot,
   tickState,
   recordFailure,
@@ -72,72 +72,16 @@ function getSystemInfo(api) {
   return { windowWidth: 750, windowHeight: 1334, pixelRatio: 1, menuButtonRect: null };
 }
 
-export function createMiniGameRewardedAd(api, adUnitId, options = {}) {
-  const {
-    onReward,
-    onError,
-    onStart,
-    onSettled,
-    releaseMode = CONFIG.releaseMode,
-  } = options;
-
-  if (!api || typeof api.createRewardedVideoAd !== 'function' || !adUnitId) {
-    return (context = null) => {
-      const error = new Error('[MINIGAME] rewarded ad API or adUnitId unavailable');
-      const meta = { attemptId: null, context };
-      if (!releaseMode) onReward?.(meta);
-      onError?.(error, meta);
-      onSettled?.(meta);
-      return Promise.resolve();
-    };
-  }
-
-  let activeAttempt = null;
-  let attemptSequence = 0;
-
-  const settle = (attempt, rewarded, error = null) => {
-    if (!attempt || attempt.settled) return;
-    attempt.settled = true;
-    if (activeAttempt === attempt) activeAttempt = null;
-    const meta = { attemptId: attempt.id, context: attempt.context };
-    try {
-      if (rewarded || (!releaseMode && error)) onReward?.(meta);
-      if (error) onError?.(error, meta);
-    } finally {
-      onSettled?.(meta);
-      attempt.ad.offClose?.(attempt.closeHandler);
-      attempt.ad.offError?.(attempt.errorHandler);
-      attempt.ad.destroy?.();
-    }
-  };
-
+export function createMiniGameRewardedAd(api, rewardId, options = {}) {
+  // MiniGame 边界（DL-MIG）：免费奖励，无广告位/模拟广告/发布模式。
+  const { onReward, onError, onStart, onSettled } = options;
+  let sequence = 0;
   return (context = null) => {
-    if (activeAttempt && !activeAttempt.settled) return Promise.resolve();
-    const ad = api.createRewardedVideoAd({ adUnitId });
-    const attempt = {
-      id: ++attemptSequence,
-      context,
-      settled: false,
-      ad,
-      closeHandler: null,
-      errorHandler: null,
-    };
-    attempt.closeHandler = (res) => settle(attempt, Boolean(res?.isEnded));
-    attempt.errorHandler = (error) => settle(attempt, false, error);
-    activeAttempt = attempt;
-    onStart?.({ attemptId: attempt.id, context: attempt.context });
-    ad.onClose?.(attempt.closeHandler);
-    ad.onError?.(attempt.errorHandler);
-
-    return Promise.resolve()
-      .then(() => ad.show())
-      .catch((showError) => {
-        if (attempt.settled) return undefined;
-        return Promise.resolve()
-          .then(() => ad.load?.())
-          .then(() => ad.show())
-          .catch((loadError) => settle(attempt, false, loadError || showError));
-      });
+    const meta = { attemptId: ++sequence, context };
+    onStart?.(meta);
+    onReward?.(meta);
+    onSettled?.(meta);
+    return Promise.resolve();
   };
 }
 
@@ -203,11 +147,10 @@ export function startMiniGame() {
     api.showToast?.({ title: t('ui.adUnavailable'), icon: 'none' });
   }
 
-  const reviveAd = createMiniGameRewardedAd(api, CONFIG.adUnits?.revive, {
-    releaseMode: CONFIG.releaseMode,
+  const reviveAd = createMiniGameRewardedAd(api, 'revive', {
     onReward: (meta) => {
       if (!shouldApplyReward(meta, runToken, 'revive', state)) return;
-      state = reviveFromAd(state);
+      state = revive(state);
       cctvMotion.reset();
       state = { ...state, inspection: null };
       nextNormalInspectionAt = state.elapsed + 4;
@@ -218,13 +161,12 @@ export function startMiniGame() {
     onStart: pauseForAd,
     onSettled: resumeAfterAd,
     onError: (error) => {
-      console.warn('[MINIGAME] revive ad failed', error);
+      console.warn('[MINIGAME] revive failed', error);
       showAdError();
     },
   });
 
-  const truthAd = createMiniGameRewardedAd(api, CONFIG.adUnits?.truth, {
-    releaseMode: CONFIG.releaseMode,
+  const truthAd = createMiniGameRewardedAd(api, 'truth', {
     onReward: (meta) => {
       if (!shouldApplyReward(meta, runToken, 'truth', state)) return;
       state = { ...state, fakeEndingUnlocked: true, fakeEndingTruth: state.lastAdHint || '' };
@@ -232,13 +174,12 @@ export function startMiniGame() {
     onStart: pauseForAd,
     onSettled: resumeAfterAd,
     onError: (error) => {
-      console.warn('[MINIGAME] truth ad failed', error);
+      console.warn('[MINIGAME] truth failed', error);
       showAdError();
     },
   });
 
-  const decodeAd = createMiniGameRewardedAd(api, CONFIG.adUnits?.decode, {
-    releaseMode: CONFIG.releaseMode,
+  const decodeAd = createMiniGameRewardedAd(api, 'decode', {
     onReward: (meta) => {
       if (!shouldApplyReward(meta, runToken, 'decode', state)) return;
       const result = performAction(state, 'unlockHiddenLog');
@@ -247,7 +188,7 @@ export function startMiniGame() {
     onStart: pauseForAd,
     onSettled: resumeAfterAd,
     onError: (error) => {
-      console.warn('[MINIGAME] decode ad failed', error);
+      console.warn('[MINIGAME] decode failed', error);
       showAdError();
     },
   });
@@ -597,7 +538,7 @@ export function startMiniGame() {
             audio.play('boot');
             nextNormalInspectionAt = Number.POSITIVE_INFINITY;
           }
-          if (!state.gameOver && state.elapsed - lastSnapshotAt >= CONFIG.adRevive.snapshotInterval) {
+          if (!state.gameOver && state.elapsed - lastSnapshotAt >= CONFIG.revive.snapshotInterval) {
             state = saveSnapshot(state);
             lastSnapshotAt = state.elapsed;
           }

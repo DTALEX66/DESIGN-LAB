@@ -43,7 +43,7 @@
     "power": "供电",
     "stability": "信号",
     "anomalyLevel": "异常等级",
-    "reviveCount": "广告复活",
+    "reviveCount": "复活",
     "adHintsCount": "记录解码",
     "hiddenLogsCount": "待解码"
   },
@@ -92,8 +92,8 @@
     "emergencyStop_fail": "紧急制动无响应。异常等级上升。",
     "restartSystem": "信号系统重启完成：异常等级下降，但消耗 {cost} 点供电。",
     "inspectLog": "调度员查看日志：最近 30 秒存在未授权停靠请求。",
-    "inspectLog_hiddenRecords": "发现 {count} 条待解码封存记录。可观看模拟广告解锁完整内容。",
-    "unlockHiddenLog_ok": "模拟广告播放完成。封存记录已解码。"
+    "inspectLog_hiddenRecords": "发现 {count} 条待解码封存记录。可解码完整内容。",
+    "unlockHiddenLog_ok": "解码完成。封存记录已解码。"
   },
   "anomalies": [
     {
@@ -253,24 +253,24 @@
     },
     "defaultHint": "先关屏蔽门，再重启信号，避免连续发车。",
     "firstRunAdvice": "下次先核对画面和三项数据；一致放行，矛盾封锁。",
-    "adHintPrefix": "广告提示：{hint}",
-    "adReviveRollback": "广告复活完成：回滚 {seconds} 秒，恢复至可控调度状态。",
-    "adReviveMonitor": "广告复活完成：回滚到 {seconds} 秒前的站台状态。",
-    "snapshotFallback": "可观看广告复活，回滚到 {seconds} 秒前的调度状态。",
-    "noSnapshotFallback": "可观看广告复活，回滚到初始调度状态。"
+    "hintPrefix": "提示：{hint}",
+    "adReviveRollback": "复活完成：回滚 {seconds} 秒，恢复至可控调度状态。",
+    "adReviveMonitor": "复活完成：回滚到 {seconds} 秒前的站台状态。",
+    "snapshotFallback": "可观看复活，回滚到 {seconds} 秒前的调度状态。",
+    "noSnapshotFallback": "可观看复活，回滚到初始调度状态。"
   },
   "fakeEnding": {
     "eyebrow": "⚠ LAST TRAIN INCIDENT",
     "title": "调度员关联异常",
     "text": "系统检测到调度员第 {count} 次调度失控。\n根据末班调度守则，您已被标记为“站台关联人员”。\n前 {threshold} 次记录已从公开视频墙删除。\n建议您立即离开调度台并联系线路控制中心。",
-    "truthPlaceholder": "[???] 观看广告揭示末班真相。",
+    "truthPlaceholder": "[???] 揭示末班真相。",
     "truthContent": "末班车从未真正入库。\n每晚 02:17，调度系统都会等待一名新的值守员确认发车。\n日志中所谓“乘客热源”，其实是上一任调度员留在 CCTV 里的坐标。"
   },
   "ui": {
-    "viewAd": "观看广告复活",
+    "viewAd": "复活",
     "unlockAd": "解码封存记录",
     "restart": "重新开始",
-    "revealTruth": "观看广告揭示真相",
+    "revealTruth": "揭示真相",
     "triggerTest": "触发异常测试",
     "decodePrefix": "[封存记录]",
     "initialLog": "地铁末班调度台已接管。等待调度员指令。",
@@ -290,7 +290,7 @@
     "anomalyEventLog": "异常事件：{title}。{hint}",
     "startTitle": "等待接管末班调度台",
     "startCopy": "目标：值守 60 秒，观察 CCTV、处理信号异常、避免调度系统失控。接管后倒计时才会启动。",
-    "startChecklist": "先读站台 CCTV 和信号日志\n异常出现时按提示执行调度\n失败后可通过模拟广告复活",
+    "startChecklist": "先读站台 CCTV 和信号日志\n异常出现时按提示执行调度\n失败后可通过模拟复活",
     "startFailureRulesTitle": "失控条件",
     "startFailureRules": "供电归零\n信号归零\n异常事件失控",
     "startButton": "开始接管",
@@ -299,7 +299,7 @@
     "pausedCopy": "返回前台后继续，不计算后台时间",
     "audioOn": "声音开",
     "audioOff": "已静音",
-    "adUnavailable": "广告暂不可用，请稍后重试",
+    "rewardUnavailable": "奖励暂不可用，请稍后重试",
     "reportNormal": "判为正常",
     "reportAnomaly": "报告异常",
     "inspectionLabel": "巡检判定 {seconds}s",

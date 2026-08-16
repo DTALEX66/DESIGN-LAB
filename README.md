@@ -4,6 +4,10 @@
 
 > **Agent-platform-neutral design intelligence and production laboratory for professional visual design. Host-native; current reference host: Open Design (no default binding).**
 
+## GitHub 交付
+
+> 上传/审核云端库请见 [`GITHUB_DELIVERY.md`](GITHUB_DELIVERY.md)（WORK-LAB 交付加速器：上传一键推送 + PR 审核聚合判定）。
+
 ## 一屏说明
 
 **DESIGN-LAB 不是第二个设计软件前端，也不是静态资料库。** 它是一个**产品化的设计能力系统**：
@@ -76,6 +80,15 @@ design-lab/config/product-manifest.json ← 机器可读 SSOT
 - 原 MINIGAME 游戏生产系统 → 收敛为 `minigame-runtime/` 游戏视觉 fixture。
 - 原 Design-system → 收敛为 `design-system/` 中性设计协议资产。
 - 旧 `OPEN-DESIGN-Assistance` 身份 → 历史归档（`project-memory/history/`、`reports/history/`），不再作为活动产品名。
+
+## 生成状态（DL-MIG-005）
+
+```text
+reports/current/PROJECT_STATUS.md   ← 由 scripts/generate_project_status.py 生成
+reports/current/PROJECT_STATUS.json
+```
+
+活动文档不手写测试数/能力数/来源数；一律引用生成状态。
 
 ## 验证入口
 

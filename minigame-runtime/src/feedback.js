@@ -3,7 +3,6 @@ import { t } from './skinManager.js';
 
 export function classifyFeedbackPriority(type) {
   if (type === 'danger') return 'high';
-  if (type === 'ad') return 'special';
   if (type === 'success') return 'success';
   if (type === 'warn') return 'medium';
   return 'normal';

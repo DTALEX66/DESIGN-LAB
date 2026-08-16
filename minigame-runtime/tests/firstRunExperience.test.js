@@ -45,7 +45,7 @@ test('first failure summary teaches revive and the next read target', () => {
 
   const summary = summarizeFailure(state);
 
-  assert.match(summary, /广告复活/);
+  assert.match(summary, /复活/);
   assert.match(summary, /画面.*楼层.*人数.*门状态/);
   assert.doesNotMatch(summary, /日志|推荐按键|黄色描边/);
 });

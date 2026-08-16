@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 
 import { findRollbackSnapshot } from '../src/rollback.js';
-import { createInitialState, cloneState, checkFailure, recordFailure, recordSuccessfulShift, reviveFromAd, saveSnapshot, tickState } from '../src/state.js';
+import { createInitialState, cloneState, checkFailure, recordFailure, recordSuccessfulShift, revive, saveSnapshot, tickState } from '../src/state.js';
 import CONFIG from '../src/gameConfig.js';
 
 test('createInitialState returns the elevator console baseline', () => {
@@ -91,7 +91,7 @@ test('ad revive rolls back V5 night and investigation state as deep copies', () 
   failed.night.currentShift.evidence.cameras.cam01.push({ id: 'late-evidence' });
   failed.investigation.discoveredEvidence.push({ id: 'late-discovery' });
 
-  const revived = reviveFromAd(failed);
+  const revived = revive(failed);
 
   assert.equal(revived.night.roundType, 'investigation');
   assert.equal(revived.night.currentShift.id, 'shift-07');
@@ -130,18 +130,18 @@ test('saveSnapshot keeps existing snapshots', () => {
 
 test('saveSnapshot trims history to configured maxSnapshots', () => {
   let state = { ...createInitialState(), snapshots: [] };
-  for (let i = 1; i <= CONFIG.adRevive.maxSnapshots + 2; i += 1) {
-    state = saveSnapshot({ ...state, elapsed: i * CONFIG.adRevive.snapshotInterval });
+  for (let i = 1; i <= CONFIG.revive.maxSnapshots + 2; i += 1) {
+    state = saveSnapshot({ ...state, elapsed: i * CONFIG.revive.snapshotInterval });
   }
 
-  assert.equal(state.snapshots.length, CONFIG.adRevive.maxSnapshots);
-  assert.equal(state.snapshots[0].at, 3 * CONFIG.adRevive.snapshotInterval);
-  assert.equal(state.snapshots.at(-1).at, (CONFIG.adRevive.maxSnapshots + 2) * CONFIG.adRevive.snapshotInterval);
+  assert.equal(state.snapshots.length, CONFIG.revive.maxSnapshots);
+  assert.equal(state.snapshots[0].at, 3 * CONFIG.revive.snapshotInterval);
+  assert.equal(state.snapshots.at(-1).at, (CONFIG.revive.maxSnapshots + 2) * CONFIG.revive.snapshotInterval);
 });
 
 test('findRollbackSnapshot selects the snapshot closest to rollback window target', () => {
   const elapsed = 58;
-  const target = elapsed - CONFIG.adRevive.rollbackWindow;
+  const target = elapsed - CONFIG.revive.rollbackWindow;
   const snapshots = [
     { at: target - 10, state: { floor: 1 } },
     { at: target, state: { floor: 2 } },
@@ -154,7 +154,7 @@ test('findRollbackSnapshot selects the snapshot closest to rollback window targe
   assert.equal(found.state.floor, 2);
 });
 
-test('reviveFromAd restores from the closest snapshot within 30 seconds of rollback', () => {
+test('revive restores from the closest snapshot within 30 seconds of rollback', () => {
   const snap1 = { at: 10, state: { floor: 2, door: 'closed', moving: false, direction: 'idle', power: 90, stability: 95, anomalyLevel: 1, passengers: 1, elapsed: 10, remaining: 50, adRevivesUsed: 0, monitor: 'snap at 10', logs: [] } };
   const snap2 = { at: 30, state: { floor: 4, door: 'closed', moving: false, direction: 'idle', power: 60, stability: 70, anomalyLevel: 3, passengers: 1, elapsed: 30, remaining: 30, adRevivesUsed: 0, monitor: 'snap at 30', logs: [] } };
   const snap3 = { at: 40, state: { floor: 6, door: 'open', moving: true, direction: 'up', power: 40, stability: 50, anomalyLevel: 4, passengers: 2, elapsed: 40, remaining: 20, adRevivesUsed: 0, monitor: 'snap at 40', logs: [] } };
@@ -165,7 +165,7 @@ test('reviveFromAd restores from the closest snapshot within 30 seconds of rollb
     snapshots: [snap1, snap2, snap3],
   };
 
-  const revived = reviveFromAd(failed);
+  const revived = revive(failed);
 
   // Should roll back to snap at 30 (closest to elapsed - 30 = 28)
   assert.equal(revived.floor, 4, 'floor should be from snap at 30');
@@ -177,17 +177,17 @@ test('reviveFromAd restores from the closest snapshot within 30 seconds of rollb
   assert.equal(revived.door, 'closed');
   assert.equal(revived.adRevivesUsed, 1);
   assert.match(revived.monitor, /回滚/);
-  assert.match(revived.logs.at(-1).text, /广告复活/);
+  assert.match(revived.logs.at(-1).text, /复活/);
 });
 
-test('reviveFromAd falls back to initial state when snapshots array is empty', () => {
+test('revive falls back to initial state when snapshots array is empty', () => {
   const failed = {
     ...createInitialState(),
     gameOver: true, power: 0, stability: 0, anomalyLevel: 6, elapsed: 55,
     snapshots: [],
   };
 
-  const revived = reviveFromAd(failed);
+  const revived = revive(failed);
 
   assert.equal(revived.gameOver, false);
   assert.equal(revived.door, 'closed');
@@ -197,7 +197,7 @@ test('reviveFromAd falls back to initial state when snapshots array is empty', (
   assert.equal(revived.power, 100);
 });
 
-test('reviveFromAd preserves snapshot history after restore', () => {
+test('revive preserves snapshot history after restore', () => {
   const snap = { at: 20, state: { floor: 3, door: 'closed', moving: false, direction: 'idle', power: 75, stability: 85, anomalyLevel: 2, passengers: 1, elapsed: 20, remaining: 40, adRevivesUsed: 0, monitor: 'ok', logs: [] } };
 
   const failed = {
@@ -206,7 +206,7 @@ test('reviveFromAd preserves snapshot history after restore', () => {
     snapshots: [snap],
   };
 
-  const revived = reviveFromAd(failed);
+  const revived = revive(failed);
   assert.equal(revived.snapshots.length, 1, 'snapshot history should be preserved');
   assert.equal(revived.snapshots[0].at, 20);
 });
@@ -261,8 +261,8 @@ test('resource exhaustion produces an explicit failure result', () => {
   assert.equal(failed.result, 'failure');
 });
 
-test('reviveFromAd restores the active playing result', () => {
-  const revived = reviveFromAd({
+test('revive restores the active playing result', () => {
+  const revived = revive({
     ...createInitialState(),
     gameOver: true,
     result: 'failure',

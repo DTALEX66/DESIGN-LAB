@@ -182,7 +182,7 @@ export function getCanvasStaticLabels() {
     logPanel: labels.logPanel,
     failureTitle: labels.failureTitle,
     failureEyebrow: labels.failureEyebrow,
-    adRevive: labels.revive,
+    revive: labels.revive,
     restart: labels.restart,
     revealTruth: labels.revealTruth,
   };
@@ -1101,7 +1101,7 @@ function drawLogs(state) {
   const logs = getCanvasVisibleLogs(state, maxRows);
   logs.forEach((log, i) => {
     const lx = x + 18, ly = y + 38 + i * 22;
-    const colorMap = { warn: COLORS.amber, danger: COLORS.red, ad: COLORS.cyan, success: COLORS.green };
+    const colorMap = { warn: COLORS.amber, danger: COLORS.red, system: COLORS.cyan, success: COLORS.green };
     ctx.fillStyle = colorMap[log.type] || '#aeb4ad';
     ctx.font = '12px Consolas, "Microsoft YaHei", monospace';
     ctx.fillText(`${i + 1}. ${log.text}`, lx, ly + 12, w - 36);
@@ -1248,7 +1248,7 @@ function drawFailureOverlay(state) {
       ? labels.revealTruth
       : state.fakeEndingTriggered
       ? labels.restart
-      : labels.adRevive;
+      : labels.revive;
     ctx.fillText(btnLabel, cx + 20 + btnW2 / 2, btnY + 50);
     ctx.textAlign = 'left';
 

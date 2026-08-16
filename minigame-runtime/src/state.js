@@ -110,12 +110,12 @@ export function saveSnapshot(state) {
   }
   snapshots.push({ at: state.elapsed, state: clean });
   const next = cloneState(state);
-  next.snapshots = snapshots.slice(-CONFIG.adRevive.maxSnapshots);
+  next.snapshots = snapshots.slice(-CONFIG.revive.maxSnapshots);
   return next;
 }
 
 
-export function reviveFromAd(state) {
+export function revive(state) {
   const snapshots = state.snapshots || [];
   const best = findRollbackSnapshot(snapshots, state.elapsed);
 
@@ -141,8 +141,8 @@ export function reviveFromAd(state) {
   next.transition = null;
   next.activeAnomaly = null;
   next.adRevivesUsed += 1;
-  next.monitor = t('failure.adReviveMonitor', { seconds: next.rollbackSeconds });
-  next = appendLog(next, 'ad', t('failure.adReviveRollback', { seconds: next.rollbackSeconds }));
+  next.monitor = t('failure.reviveMonitor', { seconds: next.rollbackSeconds });
+  next = appendLog(next, 'success', t('failure.reviveRollback', { seconds: next.rollbackSeconds }));
   return next;
 }
 

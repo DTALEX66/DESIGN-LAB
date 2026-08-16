@@ -1,2 +1,16 @@
-SPDX-FileCopyrightText: JimLiu (baoyu-design)
-SPDX-License-Identifier: MIT
+{
+  "schemaVersion": "design-lab/asset-sidecar/v1",
+  "file": "design-lab/intelligence/baoyu-design/assets/screenshots/cursor-reader-mac-app.webp",
+  "sha256": "sha256:77579dd858ad12686b119d56d2aba3eda016d8041f8d63c20f61b3c0680ba784",
+  "license": "MIT",
+  "author": "JimLiu (baoyu-design)",
+  "redistributable": true,
+  "modelInputAllowed": true,
+  "commercialUse": true,
+  "sourceId": null,
+  "exception": {
+    "approvedBy": "JimLiu (baoyu-design)",
+    "expiresAt": "2027-08-16"
+  },
+  "notes": "upgraded from legacy SPDX sidecar under DL-AST-001; rights flags derived from declared SPDX license; expiry = annual asset re-verification policy"
+}

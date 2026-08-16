@@ -9,7 +9,7 @@ This inventory maps the design-enhancement SSOT in `DESIGN-LAB` to Open Design 0
 | Layer | Repository source | Count | OP carrier | Runtime policy |
 |---|---|---:|---|---|
 | Personal design systems | `design-lab/design-systems/*/DESIGN.md` | 3 | Editable user design system (`source=user`) | Create/update through `/api/design-systems`; Personal Workspace scope |
-| Personal expert skills | `design-lab/op-expert-suite/skills/*/SKILL.md` | 15 | User skill (`source=user`) | Install through `/api/skills/install` |
+| Personal expert skills | `design-lab/adapters/hosts/open-design/expert-suite/skills/*/SKILL.md` | 15 | User skill (`source=user`) | Install through `/api/skills/install` |
 | Atomic capabilities | `design-lab/atoms/*/SKILL.md` | 21 | Local trusted plugin resource | Official plugin install; dependency-first |
 | Expert directors | `design-lab/plugins/*/open-design.json` | 7 | Local trusted expert plugin | Official plugin install after atoms |
 | Expert bundles | `design-lab/bundles/*/open-design.json` | 3 | Local trusted bundle | Official plugin install after experts |

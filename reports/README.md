@@ -15,3 +15,10 @@ For current project status, use these normative sources in this order:
 A report's E3/E4/E5 wording is historical evidence only unless the current capability index independently binds the same claim to the current checkout with the required runtime, provenance, read-back, human, or exact-SHA evidence. These reports are **not current runtime proof**. In particular, historical reports mentioning ComfyUI or MiniMax H3 do not override the current E0 placeholder state.
 
 Do not edit a dated report to make it appear current. Add a new dated report with an exact tree, runtime identity, and evidence handles when a capability is genuinely requalified.
+
+
+## 目录布局（DL-MIG-004）
+
+- `reports/current/` — 当前基线、治理报告与交付物（DL-* 命名）。
+- `reports/history/` — 历史 V4/V42/ODA4 报告（不可篡改归档，不改写）。
+- `reports/V42_HANDOFF_SUMMARY_20260816.md` — 当前交接摘要（DSH 接手锚点）。

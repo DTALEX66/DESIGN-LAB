@@ -1,82 +1,34 @@
-# Source Registry Summary
+# Source Registry（v3）与 Quarantine 摘要
 
-- Snapshot: 2026-08-04
-- Sources: **112**
-- Categories: **57**
+- 快照：2026-08-16（DL-KNW-003 迁移）
+- 登记格式：`design-lab/source-registry/v3`（每条 = 标准 SourceRecord + integration 元数据）
+- 隔离格式：`design-lab/quarantine-registry/v1`
 
-## Integration modes
+## 当前状态（fail-closed）
 
-- `adapter`: 69
-- `derive`: 19
-- `quarantine`: 4
-- `reference`: 11
-- `vendor-adapt`: 9
-
-## Status
-
-- `adapter-next`: 54
-- `adopt-now`: 33
-- `reference-now`: 12
-- `review-required`: 13
-
-## Categories
-
-| Category | Count |
+| 类别 | 数量 |
 |---|---:|
-| 3d-authoring | 1 |
-| 3d-format | 1 |
-| 3d-materials | 2 |
-| 3d-runtime | 1 |
-| 3d-scene | 1 |
-| accessibility | 3 |
-| accessibility-testing | 1 |
-| aec-data | 1 |
-| agent-platform | 2 |
-| bom | 1 |
-| browser-testing | 1 |
-| built-environment | 1 |
-| cad | 1 |
-| cjk-typography | 2 |
-| color-management | 2 |
-| component-recipes | 1 |
-| component-testing | 1 |
-| content-design | 1 |
-| data-visualization | 4 |
-| dependency-security | 1 |
-| design-catalog | 1 |
-| design-contract | 2 |
-| design-extraction | 1 |
-| design-intelligence | 5 |
-| design-system | 13 |
-| design-tokens | 1 |
-| diagrams | 2 |
-| document-standards | 1 |
-| evaluation | 2 |
-| fonts | 3 |
-| headless-components | 4 |
-| icons | 5 |
-| image-tooling | 2 |
-| internationalization | 1 |
-| license-governance | 2 |
-| media-provenance | 1 |
-| motion-accessibility | 1 |
-| motion-format | 1 |
-| motion-runtime | 3 |
-| packaging | 2 |
-| packaging-standards | 1 |
-| pdf-accessibility | 1 |
-| pdf-tooling | 3 |
-| presentation | 4 |
-| print-production | 2 |
-| publishing | 2 |
-| quality-testing | 1 |
-| service-design | 1 |
-| skill-governance | 1 |
-| skill-security | 1 |
-| spatial-accessibility | 3 |
-| supply-chain-provenance | 2 |
-| supply-chain-security | 1 |
-| text-shaping | 1 |
-| ux-research | 2 |
-| vector-tooling | 2 |
-| visual-regression | 2 |
+| 遗留登记总数（迁移前） | 162 |
+| ACTIVE（可进入能力加载/模型上下文） | 0 |
+| REFERENCE_ONLY | 0 |
+| QUARANTINE（缺少任一必需事实） | 162 |
+
+> 162 条遗留登记逐条迁移至 QUARANTINE_REGISTRY.json：每条保留原始记录（`originalRecord`），记录 `missingFields` 与 `reason`。在人工补齐 author/allowedUsage/acquiredAt/contentHash(sha256)/权利标志/审核人之前，任何来源都**不得**进入能力加载、模型上下文或标记 reviewed。不批量制造字段，不伪造审核人/许可/版本/哈希。
+
+## 主要缺口统计（DL-KNW-003-SOURCE-MIGRATION.json）
+
+- 缺许可证（UNVERIFIED/REFERENCE-ONLY）：12
+- 缺审核人（reviewedBy）：124
+- 缺完整版本（git 来源非 40 位 SHA）：130
+- 缺 SHA-256（contentHash 非 `sha256:<64hex>`）：162
+- 允许模型输入：0（未记录）
+- 允许商用：0（未记录）
+
+## 相关文件
+
+- `SOURCE_REGISTRY.json` — v3 活动登记（当前为空，等待人工审核提升）
+- `QUARANTINE_REGISTRY.json` — 隔离登记（162 条，含原始记录）
+- `design-lab/schemas/source-record.schema.json` — 唯一来源对象
+- `design-lab/schemas/source-registry.schema.json` — v3 登记 schema（$defs.sourceRecord = $ref）
+- `design-lab/schemas/quarantine-registry.schema.json` — 隔离登记 schema
+- `design-lab/scripts/verify_source_registry.py` — 严格验证器（DL-KNW-004）
