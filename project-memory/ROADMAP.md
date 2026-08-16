@@ -46,3 +46,22 @@
 - 未授权不 commit/push/PR/merge；本轮用户已授权代码/文档修复的 commit/push/PR 收尾，但人工验收与真实运行仍不可代做
 - MiniMax H3、ComfyUI 及 H3-Comfy bridge 继续冻结，不纳入本轮推进
 
+
+
+## V2 全量执行（2026-08-17，除 H3/ComfyUI 外全部完成）
+
+| 任务 | 交付 | 验证 |
+|---|---|---|
+| P1-A 设计工作流内核 | DesignProject 状态机（13 阶段 + transitions）+ core 实现 | verify_design_kernel PASS |
+| P1-B 对象模型 | 13→19 对象（+project/command/execution-result/quality-report/delivery-manifest/memory-record）+ 5 用户模式控制语义 | verify_design_kernel PASS |
+| P1-C 领域包 | brand-design / graphic-design / ecommerce-design（十要素契约） | verify_domain_pack_v2 4/4 PASS |
+| P1-D Design Memory | memory 摄入（candidate→dedup→validate→active）+ 3 样例 + verifier | DESIGN_MEMORY PASS |
+| P1-E Quality Gate | 分层评分 + 独立 hard blockers + commercial-visual-v2 profile | QUALITY_GATE PASS |
+| P1-F Reference E2E | ecommerce.hero 契约级全链（brief→deliverable，E1 诚实，CI 可跑） | REFERENCE_E2E PASS |
+| P2-G Review Surface | 轻量项目总览生成器（只读投影，非状态源） | REVIEW_SURFACE PASS |
+| P2-H 受控摄取 | collection manifest 管线（quarantine 未验证权利，禁整库复制） | COLLECTION_PIPELINE PASS |
+| P2-I Provider SPI | provider-capability 声明（provider: 端点引用，禁绝对路径，模型中立） | PROVIDER_SPI PASS |
+
+- 聚合链：VERIFY_DESIGN_LAB=OK total=26；Python 238 全过；MiniGame 300 全过
+- capability 索引 2319（此前 2288）；tracked 3018
+- 全部按 DL-V2 RULE 执行：不伪造证据、未指定不猜测、每项独立提交

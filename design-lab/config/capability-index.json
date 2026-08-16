@@ -2,7 +2,7 @@
   "$schema": "../../schemas/capability-index.schema.json",
   "version": "1.0.0",
   "generated_at": "2026-08-16",
-  "capability_count": 2288,
+  "capability_count": 2319,
   "capabilities": [
     {
       "path": "adapters/NEUTRALITY_POLICY.md",
@@ -13,8 +13,8 @@
     {
       "path": "adapters/adapter-registry.json",
       "label": "adapters",
-      "bytes": 8246,
-      "sha256": "ccb9f6ac07111f83"
+      "bytes": 8228,
+      "sha256": "5e822fadba9f6a08"
     },
     {
       "path": "adapters/creative-tools/adobe/adapter.manifest.json",
@@ -789,6 +789,186 @@
       "label": "domain-packs",
       "bytes": 1623,
       "sha256": "4c2eeff4a5cd78bf"
+    },
+    {
+      "path": "domain-packs/brand-design/benchmarks/brand-design-reference.json",
+      "label": "domain-packs",
+      "bytes": 430,
+      "sha256": "fe1a360e5b2a48b8"
+    },
+    {
+      "path": "domain-packs/brand-design/evidence/pack-structure.json",
+      "label": "domain-packs",
+      "bytes": 397,
+      "sha256": "c488dd1af9fc898f"
+    },
+    {
+      "path": "domain-packs/brand-design/handoff-contract.json",
+      "label": "domain-packs",
+      "bytes": 988,
+      "sha256": "9f9edcb31e98ee7f"
+    },
+    {
+      "path": "domain-packs/brand-design/manifest.json",
+      "label": "domain-packs",
+      "bytes": 629,
+      "sha256": "c93d8d5db703a70e"
+    },
+    {
+      "path": "domain-packs/brand-design/preflight.json",
+      "label": "domain-packs",
+      "bytes": 879,
+      "sha256": "6521a8de27df2f52"
+    },
+    {
+      "path": "domain-packs/brand-design/profile.json",
+      "label": "domain-packs",
+      "bytes": 561,
+      "sha256": "3d733ffe3b57228b"
+    },
+    {
+      "path": "domain-packs/brand-design/rubric.json",
+      "label": "domain-packs",
+      "bytes": 1535,
+      "sha256": "d2aac5945f86416a"
+    },
+    {
+      "path": "domain-packs/brand-design/scenario.md",
+      "label": "domain-packs",
+      "bytes": 374,
+      "sha256": "2deaef8728cc4722"
+    },
+    {
+      "path": "domain-packs/brand-design/schemas/brief.schema.json",
+      "label": "domain-packs",
+      "bytes": 1065,
+      "sha256": "a4b7995054c5f7bb"
+    },
+    {
+      "path": "domain-packs/brand-design/sources.json",
+      "label": "domain-packs",
+      "bytes": 577,
+      "sha256": "498763f419fad861"
+    },
+    {
+      "path": "domain-packs/ecommerce-design/benchmarks/ecommerce-design-reference.json",
+      "label": "domain-packs",
+      "bytes": 439,
+      "sha256": "6a3227e043402c74"
+    },
+    {
+      "path": "domain-packs/ecommerce-design/evidence/pack-structure.json",
+      "label": "domain-packs",
+      "bytes": 401,
+      "sha256": "36126f065f19f8f9"
+    },
+    {
+      "path": "domain-packs/ecommerce-design/handoff-contract.json",
+      "label": "domain-packs",
+      "bytes": 1008,
+      "sha256": "3b6dfb6a7bef6bc1"
+    },
+    {
+      "path": "domain-packs/ecommerce-design/manifest.json",
+      "label": "domain-packs",
+      "bytes": 642,
+      "sha256": "7e5f74d3a8ad771b"
+    },
+    {
+      "path": "domain-packs/ecommerce-design/preflight.json",
+      "label": "domain-packs",
+      "bytes": 827,
+      "sha256": "fbfc99f42d40d1e7"
+    },
+    {
+      "path": "domain-packs/ecommerce-design/profile.json",
+      "label": "domain-packs",
+      "bytes": 550,
+      "sha256": "063381cfabc582f5"
+    },
+    {
+      "path": "domain-packs/ecommerce-design/rubric.json",
+      "label": "domain-packs",
+      "bytes": 1693,
+      "sha256": "0b92f25fe276a2f7"
+    },
+    {
+      "path": "domain-packs/ecommerce-design/scenario.md",
+      "label": "domain-packs",
+      "bytes": 376,
+      "sha256": "b96d700b14e6346c"
+    },
+    {
+      "path": "domain-packs/ecommerce-design/schemas/brief.schema.json",
+      "label": "domain-packs",
+      "bytes": 1074,
+      "sha256": "05e671b69fc19e31"
+    },
+    {
+      "path": "domain-packs/ecommerce-design/sources.json",
+      "label": "domain-packs",
+      "bytes": 586,
+      "sha256": "0e704e5408afcc50"
+    },
+    {
+      "path": "domain-packs/graphic-design/benchmarks/graphic-design-reference.json",
+      "label": "domain-packs",
+      "bytes": 434,
+      "sha256": "14b06eaefef53edc"
+    },
+    {
+      "path": "domain-packs/graphic-design/evidence/pack-structure.json",
+      "label": "domain-packs",
+      "bytes": 399,
+      "sha256": "29e802c8368e9108"
+    },
+    {
+      "path": "domain-packs/graphic-design/handoff-contract.json",
+      "label": "domain-packs",
+      "bytes": 1009,
+      "sha256": "761ae01dc2bc78c6"
+    },
+    {
+      "path": "domain-packs/graphic-design/manifest.json",
+      "label": "domain-packs",
+      "bytes": 635,
+      "sha256": "fdf826025a4814d1"
+    },
+    {
+      "path": "domain-packs/graphic-design/preflight.json",
+      "label": "domain-packs",
+      "bytes": 855,
+      "sha256": "bbe8a6ff4af48843"
+    },
+    {
+      "path": "domain-packs/graphic-design/profile.json",
+      "label": "domain-packs",
+      "bytes": 609,
+      "sha256": "833195d0020e193c"
+    },
+    {
+      "path": "domain-packs/graphic-design/rubric.json",
+      "label": "domain-packs",
+      "bytes": 1606,
+      "sha256": "436b205777aad814"
+    },
+    {
+      "path": "domain-packs/graphic-design/scenario.md",
+      "label": "domain-packs",
+      "bytes": 351,
+      "sha256": "35ca2243b31e065f"
+    },
+    {
+      "path": "domain-packs/graphic-design/schemas/brief.schema.json",
+      "label": "domain-packs",
+      "bytes": 1069,
+      "sha256": "7fbe7d2a2c61d974"
+    },
+    {
+      "path": "domain-packs/graphic-design/sources.json",
+      "label": "domain-packs",
+      "bytes": 581,
+      "sha256": "781d14ee7c2fc2db"
     },
     {
       "path": "domain-packs/minigame-design/README.md",
@@ -13623,6 +13803,12 @@
       "label": "quality",
       "bytes": 2629,
       "sha256": "977a1ba3255844cb"
+    },
+    {
+      "path": "quality/profiles/commercial-visual-v2.json",
+      "label": "quality",
+      "bytes": 1225,
+      "sha256": "d9658f649440c9bd"
     },
     {
       "path": "scenarios/brand-campaign-360/README.md",
