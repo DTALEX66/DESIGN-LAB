@@ -1,7 +1,7 @@
 # PROJECT_STATUS（生成状态，DL-MIG-005）
 
 - 生成时间：2026-08-17｜生成器：`scripts/generate_project_status.py (DL-MIG-005)`
-- Git：分支 `main`，HEAD `8a5a677ac2f8`，origin/main `a60fc925953f`，worktree dirty
+- Git：分支 `main`，HEAD `b0b0eb33baf9`，origin/main `a60fc925953f`，worktree dirty
 - tracked 文件：2958；仓库 pack：199.75 MiB（预算 256 MiB，预警 220 MiB）
 
 ## 来源治理
