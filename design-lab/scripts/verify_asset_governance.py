@@ -63,6 +63,59 @@ def sha256_of(path: Path) -> str:
     return "sha256:" + h.hexdigest()
 
 
+
+def sidecar_findings(rel: str, binary: Path, sidecar: Path) -> list[str]:
+    """DL-AST-001 per-binary gate findings (fail-closed).
+
+    Returns [] when the binary is fully governed.
+    """
+    errs: list[str] = []
+    if not sidecar.exists():
+        return [f"binary without .license sidecar (DL-AST-001): {rel}"]
+    try:
+        sc = json.loads(sidecar.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return [f"binary sidecar not valid JSON (must be asset-sidecar v1): {rel}"]
+    if sc.get("schemaVersion") != SIDECAR_V1:
+        return [f"binary sidecar not structured v1 (legacy SPDX text is a violation): {rel}"]
+    if sc.get("file") != rel:
+        errs.append(f"sidecar file mismatch: {rel} (sidecar says {sc.get('file')!r})")
+    if sc.get("sha256") != sha256_of(binary):
+        errs.append(f"sidecar sha256 mismatch: {rel}")
+    if not sc.get("license"):
+        errs.append(f"sidecar missing license: {rel}")
+    if not sc.get("author"):
+        errs.append(f"sidecar missing author/rights holder: {rel}")
+    for flag in ("redistributable", "modelInputAllowed", "commercialUse"):
+        if not isinstance(sc.get(flag), bool):
+            errs.append(f"sidecar {flag} must be boolean: {rel}")
+    source_id = sc.get("sourceId")
+    if source_id:
+        try:
+            reg = json.loads(REGISTRY.read_text(encoding="utf-8"))
+            known = any(e.get("source", {}).get("sourceId") == source_id for e in reg.get("entries", []))
+            qreg = json.loads(QUARANTINE.read_text(encoding="utf-8"))
+            quarantined = any(e.get("sourceId") == source_id for e in qreg.get("entries", []))
+        except (OSError, json.JSONDecodeError) as exc:
+            errs.append(f"cannot read source registries for {rel}: {exc}")
+            known = quarantined = False
+        if quarantined:
+            errs.append(f"binary references quarantined sourceId {source_id} (not allowed): {rel}")
+        elif not known:
+            errs.append(f"binary sourceId not in SOURCE_REGISTRY: {rel} ({source_id})")
+    else:
+        exc_info = sc.get("exception")
+        if not isinstance(exc_info, dict) or not exc_info.get("approvedBy") or not exc_info.get("expiresAt"):
+            errs.append(f"binary without sourceId needs approved exception with expiry: {rel}")
+        else:
+            try:
+                if date.fromisoformat(exc_info["expiresAt"]) < date.today():
+                    errs.append(f"binary exception expired {exc_info['expiresAt']}: {rel}")
+            except ValueError:
+                errs.append(f"binary exception expiresAt invalid: {rel} ({exc_info.get('expiresAt')!r})")
+    return errs
+
+
 def main() -> int:
     errors: list[str] = []
     warnings: list[str] = []

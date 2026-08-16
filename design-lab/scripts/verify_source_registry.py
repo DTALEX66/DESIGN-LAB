@@ -56,6 +56,37 @@ def is_git_origin(origin: str) -> bool:
     return origin.startswith("git@") or any(h in origin for h in GIT_HOSTS)
 
 
+
+def validate_rights(src: dict, integration: dict) -> list[str]:
+    """DL-KNW-004 rights-consistency checks for one SourceRecord.
+
+    Returns violations:
+    - reviewer must be a human (no auto/agent/generated/bot markers);
+    - licenseStatus unknown/reference-only must not enable model input;
+    - licenseStatus unknown/reference-only must not use runtime modes;
+    - git origins must pin a full 40-char commit SHA;
+    - contentHash must be sha256:<64hex>.
+    """
+    findings: list[str] = []
+    source_id = src.get("sourceId", "?")
+    if not src.get("reviewedBy") or not src.get("reviewedAt"):
+        findings.append(f"{source_id}: reviewedBy/reviewedAt required; legacy reviewed_at cannot substitute (DL-KNW-001)")
+    reviewer = str(src.get("reviewedBy", "") or "")
+    if re.search(r"(auto|generated|automated|bot|agent)", reviewer, re.IGNORECASE):
+        findings.append(f"{source_id}: reviewedBy looks machine-generated: {reviewer!r}")
+    license_status = src.get("licenseStatus")
+    mode = integration.get("mode")
+    if license_status in ("unknown", "reference-only") and src.get("modelInputAllowed") is True:
+        findings.append(f"{source_id}: licenseStatus={license_status} must not enable model input")
+    if license_status in ("unknown", "reference-only") and mode in RUNTIME_MODES:
+        findings.append(f"{source_id}: licenseStatus={license_status} must not use runtime mode {mode}")
+    if is_git_origin(src.get("origin", "")) and not GIT_SHA40.match(src.get("version", "")):
+        findings.append(f"{source_id}: git origin requires full 40-char version SHA")
+    if not SHA256.match(src.get("contentHash", "")):
+        findings.append(f"{source_id}: contentHash must be sha256:<64hex>")
+    return findings
+
+
 def main() -> int:
     errors: list[str] = []
     gaps: list[str] = []
