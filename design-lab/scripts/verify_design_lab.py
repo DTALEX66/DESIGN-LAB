@@ -14,6 +14,7 @@ from pathlib import Path
 
 SCRIPTS = [
     "verify_identity_gate.py",
+    "verify_design_kernel.py",
     "adapters/hosts/open-design/verifier/verify_open_design_host_adapter.py",
     "verify_product_manifest_v3.py",
     "verify_runtime_contracts_v3.py",

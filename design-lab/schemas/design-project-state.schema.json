@@ -1,124 +1,142 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://dtalex66.local/schemas/design-project-state.json",
-  "title": "Commercial Design Project State",
+  "$id": "https://design-lab.local/schemas/design-project-state.schema.json",
+  "title": "DesignProject State (V2 kernel)",
+  "description": "唯一权威设计项目状态（DL-V2 P1-A）。设计过程保存为显式状态而非聊天消息；每次修改产生 State N -> command/decision -> State N+1 -> quality evaluation。",
   "type": "object",
   "required": [
     "project_id",
+    "schemaVersion",
     "stage",
-    "decisions",
-    "artifacts"
+    "quality_status",
+    "revision",
+    "history",
+    "objects"
   ],
+  "additionalProperties": false,
   "properties": {
     "project_id": {
-      "type": "string"
+      "type": "string",
+      "minLength": 1
+    },
+    "schemaVersion": {
+      "const": "design-lab/design-project-state/v2"
     },
     "stage": {
       "enum": [
-        "intake",
-        "route",
+        "draft",
         "research",
-        "strategy",
-        "directions",
+        "direction",
         "system",
-        "execute",
-        "applications",
-        "generation",
+        "variant",
         "critique",
-        "preflight",
-        "handoff",
+        "revision",
         "approved",
-        "baseline",
-        "coherence",
-        "craft",
-        "diagnosis",
-        "final",
-        "final-jury",
-        "jury",
-        "lineage-research",
-        "recipe",
-        "refine",
-        "refinement",
-        "rights-and-dna",
-        "structure",
-        "style-translation",
-        "surface-reality",
-        "translation"
+        "render",
+        "preflight",
+        "packaged",
+        "delivered",
+        "archived"
       ]
     },
-    "decisions": {
-      "type": "array",
-      "items": {
-        "type": "object",
-        "required": [
-          "id",
-          "decision",
-          "status"
-        ],
-        "properties": {
-          "id": {
-            "type": "string"
-          },
-          "decision": {
-            "type": "string"
-          },
-          "status": {
-            "enum": [
-              "proposed",
-              "approved",
-              "rejected",
-              "superseded"
-            ]
-          },
-          "evidence": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          }
-        }
-      }
+    "quality_status": {
+      "enum": [
+        "pending",
+        "passed",
+        "failed",
+        "blocked"
+      ]
     },
-    "artifacts": {
-      "type": "array",
-      "items": {
-        "type": "object",
-        "required": [
-          "path",
-          "type",
-          "status"
-        ],
-        "properties": {
-          "path": {
-            "type": "string"
-          },
-          "type": {
-            "type": "string"
-          },
-          "status": {
-            "enum": [
-              "draft",
-              "review",
-              "approved",
-              "superseded"
-            ]
-          },
-          "hash": {
-            "type": "string"
-          }
-        }
-      }
-    },
-    "active_design_system": {
-      "type": "string"
-    },
-    "active_direction": {
-      "type": "string"
-    },
-    "iteration": {
+    "revision": {
       "type": "integer",
-      "minimum": 0
+      "minimum": 1
+    },
+    "user_mode": {
+      "enum": [
+        "guided",
+        "copilot",
+        "director",
+        "method",
+        "production"
+      ]
+    },
+    "domain": {
+      "type": "string"
+    },
+    "history": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "at",
+          "from_stage",
+          "to_stage",
+          "reason"
+        ],
+        "properties": {
+          "at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "from_stage": {
+            "type": "string"
+          },
+          "to_stage": {
+            "type": "string"
+          },
+          "reason": {
+            "type": "string"
+          },
+          "by": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "objects": {
+      "type": "object",
+      "properties": {
+        "brief": {
+          "type": "string",
+          "description": "brief object id or ref"
+        },
+        "researchSet": {
+          "type": "string"
+        },
+        "referenceDna": {
+          "type": "string"
+        },
+        "directionSet": {
+          "type": "string"
+        },
+        "system": {
+          "type": "string"
+        },
+        "variantSet": {
+          "type": "string"
+        },
+        "critique": {
+          "type": "string"
+        },
+        "selectedVariant": {
+          "type": "string"
+        },
+        "qualityReport": {
+          "type": "string"
+        },
+        "preflightReport": {
+          "type": "string"
+        },
+        "deliveryManifest": {
+          "type": "string"
+        },
+        "memoryRecords": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
     }
-  },
-  "additionalProperties": true
+  }
 }
