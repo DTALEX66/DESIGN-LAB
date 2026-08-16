@@ -62,7 +62,7 @@ add('explicitStart', /createMiniGameClock/.test(bundle) && /getCanvasStartContro
 add('noDebugTrigger', !/forceAnomaly/.test(bundle), 'blocker', 'production bundle excludes forced-anomaly debug controls');
 add('lifecycle', /\.onHide\?\.|\.onHide\(|onHide\?\./.test(bundle) && /\.onShow\?\.|\.onShow\(|onShow\?\./.test(bundle), 'blocker', 'foreground/background lifecycle is handled');
 add('sidebarRevisit', /checkScene\s*\(/.test(bundle) && /navigateToScene\s*\(/.test(bundle) && /scene:\s*['"]sidebar['"]/.test(bundle), 'blocker', 'mandatory sidebar check and revisit calls are present');
-add('rewardedAd', /createRewardedVideoAd/.test(bundle) && /isEnded/.test(bundle) && /function shouldApplyReward\s*\(/.test(bundle), 'blocker', 'rewarded video requires completed close and includes the reward guard implementation');
+add('rewardedAd', /function shouldApplyReward\s*\(/.test(bundle) && !/createRewardedVideoAd/.test(bundle), 'blocker', 'reward guard present and bundle is ad-free (DL-MIG: no rewarded-video API)');
 add('packageBytes', packageBytes <= 20 * 1024 * 1024, 'blocker', `packageBytes=${packageBytes} is within 20MB`);
 add('fileTypes', forbiddenFiles.length === 0, 'blocker', 'all package file types are allowed', forbiddenFiles.join('\n'));
 
