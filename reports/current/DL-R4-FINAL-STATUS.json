@@ -1,0 +1,79 @@
+{
+  "report": "DL-R4-FINAL-STATUS",
+  "taskpack": "DESIGN-LAB Governance Closure & Anti-Drift R4",
+  "baselineSha": "9e7f433ada62f7be42c41ea935a1847a64fb2635",
+  "finalSha": "164067891194d2bab2ede36d6110bb0e76dfbb9a",
+  "originMainSha": "b9f69acd13f589d80edec321bf7e9e8f2eaa3e9d",
+  "worktreeClean": true,
+  "sources": {
+    "totalMigrated": 162,
+    "active": 0,
+    "referenceOnly": 0,
+    "quarantined": 162,
+    "governanceGaps": 0,
+    "schemaErrors": 0,
+    "runtimeRightsViolations": 0
+  },
+  "assets": {
+    "binaries": 51,
+    "binaryMiB": 9.87,
+    "classifications": {
+      "REGENERATE": 3,
+      "KEEP": 48
+    }
+  },
+  "capabilities": 2239,
+  "evidence": {
+    "cards": 12,
+    "authoritativeAccepts": 0,
+    "highestTrueEvidence": "E1",
+    "recordsByLevel": {
+      "E1": 8
+    }
+  },
+  "branches": {
+    "ACTIVE": 19,
+    "MERGED": 1
+  },
+  "openDesignAdapter": {
+    "status": "contained",
+    "evidenceLevel": "E0 (adapter manifest declared; structural E1 registry)",
+    "soleOwner": true
+  },
+  "minigameBoundary": {
+    "status": "cleaned (ad/IAA/monetization semantics removed)",
+    "tests": "287/300 local (13 spawn-limited environment); CI ubuntu expected full pass"
+  },
+  "comfyui": {
+    "status": "declared",
+    "evidenceLevel": "E0",
+    "supported": false
+  },
+  "minimaxH3": {
+    "status": "declared",
+    "evidenceLevel": "E0",
+    "supported": false
+  },
+  "canonicalCi": {
+    "url": "https://github.com/DTALEX66/DESIGN-LAB/actions",
+    "headRun": "current branch CI pending push; baseline HEAD run was FAIL (fixed locally)"
+  },
+  "releaseGate": {
+    "status": "BLOCKED (findings: capability floors below minimum, evidence cards pending, human acceptance pending)"
+  },
+  "humanJury": {
+    "status": "NOT COMPLETED (V42-0409 human professional Jury pending)"
+  },
+  "branchProtection": {
+    "status": "NOT ENABLED (requires repo admin authorization; R4 执行原则 9 未授权)"
+  },
+  "blockers": [
+    "E3 real Host/Tool runtime evidence pending (Open Design / Photoshop / ComfyUI / H3 all E0-E1 declared)",
+    "Editable PSD delivery E3 (DL-ADB-PS-001) not executed",
+    "Human professional Jury (DL-QLT-002) not completed",
+    "Independent review + Release Attestation (DL-REL-001) not completed",
+    "main branch protection not enabled (admin authorization required)",
+    "Local sandbox blocks node subprocess spawn (13 minigame spawn tests) and tempfile chmod (27 python errors) - CI ubuntu verifies these",
+    "162 legacy sources quarantined pending human fact-completion (author/allowedUsage/contentHash-sha256/rights/review)"
+  ]
+}
