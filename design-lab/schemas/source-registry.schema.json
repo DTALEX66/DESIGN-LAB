@@ -1,19 +1,23 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://dtalex66.local/schemas/source-registry.schema.json",
-  "title": "DESIGN-LAB Source Registry",
+  "$id": "https://design-lab.local/schemas/source-registry.schema.json",
+  "title": "DESIGN-LAB Source Registry (v3)",
+  "description": "DL-KNW-002 唯一来源登记。每条登记 = 标准 SourceRecord（$ref）+ 集成元数据。禁止遗留字段对：category/categories、id/sourceId、url/origin、reviewed_at/reviewedBy+reviewedAt。",
   "type": "object",
   "required": [
-    "version",
+    "schemaVersion",
     "generated_at",
+    "policy",
     "entries"
   ],
+  "additionalProperties": false,
   "properties": {
-    "version": {
-      "type": "string"
+    "schemaVersion": {
+      "const": "design-lab/source-registry/v3"
     },
     "generated_at": {
-      "type": "string"
+      "type": "string",
+      "format": "date"
     },
     "policy": {
       "type": "string"
@@ -23,81 +27,56 @@
       "items": {
         "type": "object",
         "required": [
-          "id",
-          "name",
-          "category",
-          "url",
-          "license",
-          "license_verified",
-          "source_tier",
-          "integration_mode",
-          "status",
-          "target",
-          "absorb",
-          "reviewed_at"
+          "source",
+          "integration"
         ],
+        "additionalProperties": false,
         "properties": {
-          "id": {
-            "type": "string",
-            "pattern": "^[a-z0-9][a-z0-9-]*$"
+          "source": {
+            "$ref": "#/$defs/sourceRecord"
           },
-          "name": {
-            "type": "string"
-          },
-          "category": {
-            "type": "string"
-          },
-          "url": {
-            "type": "string",
-            "format": "uri"
-          },
-          "license": {
-            "type": "string"
-          },
-          "license_verified": {
-            "type": "boolean"
-          },
-          "source_tier": {
-            "enum": [
-              "A",
-              "B",
-              "C",
-              "D"
-            ]
-          },
-          "integration_mode": {
-            "enum": [
-              "vendor-adapt",
-              "adapter",
-              "derive",
-              "reference",
-              "quarantine"
-            ]
-          },
-          "status": {
-            "enum": [
-              "adopt-now",
-              "adapter-next",
-              "reference-now",
-              "review-required"
-            ]
-          },
-          "target": {
-            "type": "string"
-          },
-          "absorb": {
-            "type": "string"
-          },
-          "restrictions": {
-            "type": "string"
-          },
-          "reviewed_at": {
-            "type": "string"
+          "integration": {
+            "type": "object",
+            "required": [
+              "mode",
+              "status"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "mode": {
+                "enum": [
+                  "vendor-adapt",
+                  "adapter",
+                  "derive",
+                  "reference",
+                  "quarantine"
+                ]
+              },
+              "status": {
+                "enum": [
+                  "active",
+                  "reference-only",
+                  "review-required"
+                ]
+              },
+              "target": {
+                "type": "string"
+              },
+              "restrictions": {
+                "type": "string"
+              }
+            }
           }
-        },
-        "additionalProperties": false
+        }
       }
+    },
+    "$schema": {
+      "type": "string"
     }
   },
-  "additionalProperties": true
+  "$defs": {
+    "sourceRecord": {
+      "$ref": "./source-record.schema.json"
+    }
+  }
 }
