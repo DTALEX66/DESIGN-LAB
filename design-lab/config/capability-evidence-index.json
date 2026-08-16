@@ -2,9 +2,8 @@
   "schemaVersion": "design-lab/capability-evidence-index/v3",
   "task": "DL-EVD-001 (DESIGN-LAB migration R3)",
   "generatedAt": "2026-08-15",
-  "boundTree": "205314bd01963289f96d1322857bec8e751a29d8",
   "environment": "Windows 10 (local), reference host Open Design (version-agnostic), platform-neutral host adapter model",
-  "rule": "Every capability is bound to an E0-E5 evidence level, the tree/SHA, environment, and (where applicable) run/artifact/reviewer. No static file, test count, or declaration may impersonate runtime evidence. E1 = structural validation passes (files/schema/tests). E2 = isolated runtime. E3 = real runtime use. E4 = frozen + independent review. E5 = external validation. Evidence files live in .hermes/task-runtime/ (gitignored) and reports/.",
+  "rule": "Every capability is bound to an E0-E5 evidence level and a subject tree/commit SHA (Evidence Attestation). No static file, test count, or declaration may impersonate runtime evidence. E1 = structural validation passes (files/schema/tests). E2 = isolated runtime. E3 = real runtime use. E4 = frozen + independent review. E5 = external validation. Runtime evidence lives in .hermes/task-runtime/ (gitignored) and CI artifacts; committed lastVerifiedTree is historical only (DL-EVD-002/003).",
   "evidenceLevels": {
     "E0": {
       "label": "declared",
@@ -204,5 +203,7 @@
         "exact_sha_ci"
       ]
     }
-  ]
+  ],
+  "lastVerifiedTree": "1f75290793365d406504e70bc2e0c830481a5e0a",
+  "bindingPolicy": "DL-EVD-002/003: lastVerifiedTree 是历史绑定（HISTORICAL_VALID，requiresRequalification=true），绝不声称绑定当前 HEAD；当前发布只接受 CI 运行时生成的 Evidence Attestation（CURRENT_EXACT，GitHub Actions Artifact/Attestation）。提交 N+1 可证明提交 N；禁止自引用。"
 }

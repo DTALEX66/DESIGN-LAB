@@ -28,43 +28,41 @@ def load(name: str):
 
 
 class UpdateEvidenceBindingTests(unittest.TestCase):
-    def test_check_accepts_ancestor(self):
-        """boundTree == HEAD or any ancestor must pass (multi-merge safe).
+    """DL-EVD-003: state machine CURRENT_EXACT / HISTORICAL_VALID / STALE / UNRESOLVABLE.
 
-        NOTE: on CI the checkout HEAD is a PR merge ref (refs/pull/N/merge),
-        whose ancestry differs from main; boundTree is an ancestor of the
-        merge's first parent. We therefore only assert the *logic*: a foreign
-        SHA is rejected, and a boundTree on the real HEAD ancestry is accepted
-        (checked when the checkout is a plain branch/main checkout).
-        """
-        m = load("update_evidence_binding.py")
-        head = m.git_head()
-        self.assertTrue(head, "git HEAD must resolve")
-        findings = m.check()
-        # On a plain main checkout the real boundTree must pass; on a PR merge
-        # ref the function may legitimately report STALE — either way the call
-        # must complete without crashing and only ever yield the two known
-        # outcomes.
-        for f in findings:
-            self.assertTrue(f.startswith("STALE"), f"unexpected finding: {f}")
+    Only CURRENT_EXACT supports the current release; a committed index must
+    never self-claim the current tree (DL-EVD-002); ancestor bindings are
+    HISTORICAL_VALID with requiresRequalification=true.
+    """
 
-    def test_check_rejects_foreign_sha(self):
-        """A boundTree that is NOT an ancestor of HEAD must fail closed."""
-        m = load("update_evidence_binding.py")
-        # patch INDEX contents in-memory to a foreign SHA
-        orig = m.INDEX.read_text(encoding="utf-8")
-        data = json.loads(orig)
-        data["boundTree"] = "0" * 40
-        try:
-            with tempfile.NamedTemporaryFile("w", suffix=".json", delete=False, encoding="utf-8") as f:
-                json.dump(data, f)
-                tmp = Path(f.name)
-            m.INDEX = tmp
-            findings = m.check()
-            self.assertTrue(any("STALE" in f for f in findings), f"expected STALE: {findings}")
-        finally:
-            m.INDEX = ROOT / "config" / "capability-evidence-index.json"
-            tmp.unlink(missing_ok=True)
+    def setUp(self):
+        self.m = load("update_evidence_binding.py")
+        self.head = self.m.git_head()
+        self.assertTrue(self.head, "git HEAD must resolve")
+        self.head_tree = self.m.git_tree(self.head)
+        self.assertTrue(self.head_tree, "git HEAD tree must resolve")
+
+    def test_current_exact_is_distinct_from_ancestor(self):
+        self.assertEqual(self.m.compute_state(self.head_tree, self.head, self.head_tree), "CURRENT_EXACT")
+        parent = self.m.git(["rev-parse", self.head + "^"])
+        if parent:
+            parent_tree = self.m.git_tree(parent)
+            self.assertEqual(self.m.compute_state(parent_tree, self.head, self.head_tree), "HISTORICAL_VALID")
+
+    def test_foreign_sha_is_stale(self):
+        self.assertEqual(self.m.compute_state("0" * 40, self.head, self.head_tree), "STALE")
+
+    def test_malformed_is_unresolvable(self):
+        self.assertEqual(self.m.compute_state("abc", self.head, self.head_tree), "UNRESOLVABLE")
+        self.assertEqual(self.m.compute_state("", self.head, self.head_tree), "UNRESOLVABLE")
+
+    def test_committed_index_must_not_self_claim_current_tree(self):
+        state, msg = self.m.check()
+        # the committed lastVerifiedTree must never be CURRENT_EXACT
+        self.assertNotEqual(state, "CURRENT_EXACT", msg)
+
+
+
 
 
 class CapabilityEvidenceConsistencyTests(unittest.TestCase):
