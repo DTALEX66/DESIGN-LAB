@@ -8,10 +8,6 @@ Use this as the quick map for choosing local Open Design capability templates.
 
 - [`Brand identity system template`](design-lab/templates/brand/brand-identity-system.md) — Use for brand design, 品牌设计, visual identity, logo direction, campaign style, product brand systems, and Open Design-native brand packs.
 
-## Config / 配置
-
-- [`Open Design Config Template`](design-lab/templates/adapters/hosts/open-design/templates/open-design-app-config.template.md (Open Design host adapter)) — 这个模板说明本仓库期望写入 Open Design `app-config.json` 的关键字段。
-
 ## Decks / 演示
 
 - [`Pitch deck template`](design-lab/templates/decks/pitch-deck.md) — Use for investor decks, product strategy decks, internal proposals, and presentation artifacts.

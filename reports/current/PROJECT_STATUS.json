@@ -4,18 +4,18 @@
   "generator": "scripts/generate_project_status.py (DL-MIG-005)",
   "git": {
     "branch": "fix/design-lab-governance-closure-r4",
-    "headSha": "078b451e2581d8560ad4d17107a87bb1e220fc99",
+    "headSha": "667489b82d08ba0c21d8aae9945e258c34ea425a",
     "originMainSha": "b9f69acd13f589d80edec321bf7e9e8f2eaa3e9d",
     "worktreeClean": false,
-    "trackedFiles": 2927,
-    "packMiB": 198.36
+    "trackedFiles": 2940,
+    "packMiB": 198.74
   },
   "sources": {
     "activeRegistryEntries": 0,
     "quarantinedSources": 162
   },
   "capabilities": {
-    "capabilityIndexCount": 2239
+    "capabilityIndexCount": 2272
   },
   "evidence": {
     "cards": 12,
@@ -29,7 +29,7 @@
     "binaryMiB": 9.87
   },
   "tests": {
-    "definedTestMethodCount": 95,
+    "definedTestMethodCount": 109,
     "note": "defined test methods (AST count); run `python scripts/run_python_tests.py` for execution results"
   }
 }
