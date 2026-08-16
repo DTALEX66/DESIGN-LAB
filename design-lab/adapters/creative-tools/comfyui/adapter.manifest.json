@@ -2,7 +2,7 @@
   "adapter_id": "adapter-comfyui",
   "tool": "ComfyUI",
   "schemaVersion": "design-lab/adapter-manifest/v1",
-  "status": "runtime-deployed",
+  "status": "runtime-verified",
   "mode": "process-isolated",
   "integration": "external-local-api (loopback-only)",
   "license": "GPL-3.0 (runtime), custom nodes vary",
@@ -10,23 +10,26 @@
     {
       "name": "image-generation",
       "supported": false,
-      "note": "服务已部署并验证（E2：server 200 / GPU / 模型挂载）；图像生成能力待真实 workflow 取证"
+      "note": "Service deployed; H3 t2va generation verified E3; image-generation via H3 path available (see evidence/E3-20260816)"
     },
     {
       "name": "workflow-execution",
-      "supported": false,
-      "note": "服务已部署并验证（E2）；workflow 执行能力待真实任务与 artifact 读回"
+      "supported": true,
+      "note": "E3 verified (2026-08-16): real H3 t2va workflow executed, artifact readback passed (22 frames, 384px)"
     }
   ],
   "fallback": "none",
   "evidence": {
-    "level": "E2",
-    "runtime_version": "0.33.1",
-    "task_ids": [],
-    "artifact_paths": [
-      "evidence/E2-20260816-runtime-deployed.md"
+    "level": "E3",
+    "runtime_version": "ComfyUI 0.33.1 (python 3.13.14, torch 2.13.0+cu130)",
+    "task_ids": [
+      "79013288-adfd-4fad-be6d-77d15e93770d"
     ],
-    "note": "用户授权部署：loopback 服务运行中（127.0.0.1:8188，HTTP 200，RTX 5060 cuda）；H3 模型挂载回读完成。生成能力仍未验证（supported=false）；E3 需真实生成 artifact+readback。"
+    "artifact_paths": [
+      "evidence/E3-20260816-end-to-end-generation.md",
+      "evidence/dl_h3_test_webp_00001_.webp"
+    ],
+    "note": "用户授权：真实 H3 图生视频执行成功（UNET 20GB + Qwen3VL TE 15GB offload）；22 帧 384px 动图 + 帧回读分析通过。SaveVideo API codec 限制已记录（前端 UI 可用）。"
   },
   "rollback": "git revert of generated artifacts; process isolation prevents host state mutation"
 }

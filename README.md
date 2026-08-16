@@ -4,6 +4,10 @@
 
 > **Agent-platform-neutral design intelligence and production laboratory for professional visual design. Host-native; current reference host: Open Design (no default binding).**
 
+## GitHub 交付
+
+> 上传/审核云端库请见 [`GITHUB_DELIVERY.md`](GITHUB_DELIVERY.md)（WORK-LAB 交付加速器：上传一键推送 + PR 审核聚合判定）。
+
 ## 一屏说明
 
 **DESIGN-LAB 不是第二个设计软件前端，也不是静态资料库。** 它是一个**产品化的设计能力系统**：
