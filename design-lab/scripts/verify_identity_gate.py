@@ -71,7 +71,7 @@ def scan() -> list[str]:
         # Binary assets are not text; identity patterns cannot appear in them.
         # Skipping them is not fail-open (patterns are text-only by definition).
         if Path(rel).suffix.lower() in {
-            ".png", ".jpg", ".jpeg", ".gif", ".webp", ".mp4", ".mp3", ".wav",
+            ".png", ".jpg", ".jpeg", ".gif", ".webp", ".mp4", ".mp3", ".wav", ".flac",
             ".pdf", ".zip", ".gz", ".7z", ".ttf", ".otf", ".woff", ".woff2",
             ".exe", ".dll", ".so", ".dylib", ".bin", ".model", ".onnx", ".pb",
             ".fig", ".sketch", ".psd", ".ai", ".ico", ".cur", ".svgz",
