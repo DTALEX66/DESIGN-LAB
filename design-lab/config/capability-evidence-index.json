@@ -92,11 +92,11 @@
       "id": "creative-toolchain",
       "title": "Open Design daemon runtime registration",
       "minimumRequiredEvidence": "E3",
-      "actualEvidence": "E1",
-      "evidence": "Structural: adapter/plugin manifests and host contract paths are present. Historical Open Design daemon registration evidence is retained in reports but is bound to an older tree; current main remains E1 until runtime requalification.",
-      "run": "verify_open_design_host_adapter.py -> structural pass",
-      "artifact": "adapters/adapter-registry.json, plugins/*/open-design.json, reports/V42_E3_RUNTIME_EVIDENCE_20260811.md",
-      "reviewer": "HERMES (self-verified; historical runtime evidence explicitly not reused for current E3)",
+      "actualEvidence": "E2",
+      "evidence": "ComfyUI 0.33.1 用户授权部署（E2，2026-08-16）：loopback 服务 127.0.0.1:8188 HTTP 200、GPU cuda:0 RTX 5060、H3 4 权重经 extra_model_paths.yaml 挂载回读。图像/视频生成能力未验证（supported=false），E3 需真实生成 artifact + provenance 读回。Open Design daemon runtime registration 仍 E1 待取证（历史证据不复用）。",
+      "run": "python_embeded/python.exe -s ComfyUI/main.py --port 8188（手动启动，loopback）；GET /system_stats + /object_info 回读",
+      "artifact": "adapters/creative-tools/comfyui/evidence/E2-20260816-runtime-deployed.md, adapters/creative-tools/minimax-h3/evidence/E2-20260816-models-mounted.md, adapters/adapter-registry.json",
+      "reviewer": "user-authorized deployment; DSH runtime snapshot (E2 deployment-level evidence only)",
       "requiresRequalification": true
     },
     {
@@ -127,7 +127,7 @@
     "note": "All 12 evidence cards in evals/evidence/evidence-cards.json are card_status=not-run, evidence_level=E0. Per verify_evidence_cards.py, human_calibration_policy.required_for_promotion=true and authoritative_accepts=0; a not-run card must remain E0. Promotion requires V42-0409 human professional Jury (E3 human gate). No card was artificially promoted."
   },
   "honesty": {
-    "declaration": "All current E-level assignments above are grounded in artifacts present in this tree. visual-quality and creative-toolchain retain historical runtime artifacts for traceability, but those E3 claims are not reused after tree changes; both capabilities are intentionally recorded as E1 pending fresh runtime requalification. The source .hermes/task-runtime/ evidence is gitignored and is not treated as current release evidence.",
+    "declaration": "creative-toolchain：ComfyUI 服务已部署（E2，用户授权，2026-08-16）——loopback HTTP 200、GPU cuda、H3 4 权重挂载回读；图像/视频生成能力（supported）未验证，E3 需真实生成任务 + artifact/provenance 读回。其余能力仍为 E1 结构证据。",
     "blockers": [
       "V42-0409 human professional Jury (>=82 score) + preference test (>=70%) - requires human review",
       "V42-0410 golden slice freeze - blocked on 0409",
@@ -188,11 +188,14 @@
     },
     {
       "capability_id": "creative-toolchain",
-      "evidence_level": "E1",
+      "evidence_level": "E2",
       "artifacts": [
         "declaration_doc",
-        "adapter_registry",
-        "structural_verifier"
+        "command_output",
+        "readback_artifact",
+        "runtime_service_200",
+        "gpu_cuda",
+        "h3_models_mounted"
       ]
     },
     {

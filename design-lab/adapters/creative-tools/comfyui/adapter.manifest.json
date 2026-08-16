@@ -2,7 +2,7 @@
   "adapter_id": "adapter-comfyui",
   "tool": "ComfyUI",
   "schemaVersion": "design-lab/adapter-manifest/v1",
-  "status": "declared",
+  "status": "runtime-deployed",
   "mode": "process-isolated",
   "integration": "external-local-api (loopback-only)",
   "license": "GPL-3.0 (runtime), custom nodes vary",
@@ -10,21 +10,23 @@
     {
       "name": "image-generation",
       "supported": false,
-      "note": "E0 placeholder; current execution keeps ComfyUI frozen and has no accepted runtime evidence"
+      "note": "服务已部署并验证（E2：server 200 / GPU / 模型挂载）；图像生成能力待真实 workflow 取证"
     },
     {
       "name": "workflow-execution",
       "supported": false,
-      "note": "E0 placeholder; no current workflow execution or artifact read-back"
+      "note": "服务已部署并验证（E2）；workflow 执行能力待真实任务与 artifact 读回"
     }
   ],
   "fallback": "none",
   "evidence": {
-    "level": "E0",
-    "runtime_version": null,
+    "level": "E2",
+    "runtime_version": "0.33.1",
     "task_ids": [],
-    "artifact_paths": [],
-    "note": "DL-CFY-001/002: declared contract only; fresh runtime requalification requires explicit authorization and current exact-tree evidence"
+    "artifact_paths": [
+      "evidence/E2-20260816-runtime-deployed.md"
+    ],
+    "note": "用户授权部署：loopback 服务运行中（127.0.0.1:8188，HTTP 200，RTX 5060 cuda）；H3 模型挂载回读完成。生成能力仍未验证（supported=false）；E3 需真实生成 artifact+readback。"
   },
   "rollback": "git revert of generated artifacts; process isolation prevents host state mutation"
 }

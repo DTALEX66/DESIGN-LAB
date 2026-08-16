@@ -31,7 +31,8 @@ MATRIX = {
     "adapter-ffmpeg": "ffmpeg",
     "adapter-browser": "browser",
 }
-FROZEN_E0 = {"adapter-comfyui", "adapter-minimax-h3"}
+# ComfyUI/MiniMax H3: 用户授权部署后允许 E2（服务运行/模型挂载），仍禁止 E3+（无生成 artifact）
+E2_ALLOWED = {"adapter-comfyui", "adapter-minimax-h3"}
 ALLOWED_LEVELS = {"E0", "E1"}
 LEVEL_ORDER = {"E0": 0, "E1": 1, "E2": 2, "E3": 3, "E4": 4, "E5": 5}
 
@@ -51,10 +52,9 @@ def main() -> int:
             errors.append(f"matrix adapter missing: {adapter_id} ({host})")
             continue
         level = (ad.get("evidence") or {}).get("level")
-        if level not in ALLOWED_LEVELS:
-            errors.append(f"{adapter_id}: evidence.level {level!r} not allowed (E0/E1 only, DL-CI-005)")
-        if adapter_id in FROZEN_E0 and level != "E0":
-            errors.append(f"{adapter_id}: frozen at E0 (declared, supported=false), got {level!r}")
+        max_level = "E2" if adapter_id in E2_ALLOWED else "E1"
+        if LEVEL_ORDER.get(level, -1) > LEVEL_ORDER[max_level]:
+            errors.append(f"{adapter_id}: evidence.level {level!r} exceeds max {max_level} (DL-CI-005); E3+ requires runtime/generation artifact evidence")
 
     # no adapter may claim runtime evidence without a runtime identity
     for adapter_id, ad in adapters.items():

@@ -184,16 +184,18 @@
           "supported": false
         }
       ],
-      "status": "declared",
+      "status": "runtime-deployed",
       "mode": "process-isolated",
       "license": "GPL-3.0 (runtime), custom nodes vary",
       "fallback": "none",
       "evidence": {
-        "level": "E0",
-        "runtime_version": null,
+        "level": "E2",
+        "runtime_version": "0.33.1",
         "task_ids": [],
-        "artifact_paths": [],
-        "note": "DL-CFY-001/002: E0 占位已建；运行时由用户下载安装后恢复 E3 取证（manifest/policy 已补全）"
+        "artifact_paths": [
+          "evidence/E2-20260816-runtime-deployed.md"
+        ],
+        "note": "用户授权部署：loopback 服务运行 + H3 模型挂载回读；生成能力未验证（supported=false）"
       },
       "rollback": "git revert of generated artifacts; process isolation prevents host state mutation"
     },
@@ -236,16 +238,18 @@
           "supported": false
         }
       ],
-      "status": "declared",
+      "status": "models-mounted",
       "mode": "process-isolated",
       "license": "proprietary (MiniMax API/weights terms)",
       "fallback": "none",
       "evidence": {
-        "level": "E0",
-        "runtime_version": null,
+        "level": "E2",
+        "runtime_version": "ComfyUI 0.33.1",
         "task_ids": [],
-        "artifact_paths": [],
-        "note": "DL-H3-001/002/003: E0 占位已建；运行时由用户下载安装后恢复 E3 取证（manifest/policy 已补全）"
+        "artifact_paths": [
+          "evidence/E2-20260816-models-mounted.md"
+        ],
+        "note": "用户授权部署：4 权重挂载回读；生成能力未验证（supported=false）"
       },
       "rollback": "git revert of generated video artifacts; process isolation prevents host state mutation"
     }

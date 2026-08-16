@@ -2,28 +2,30 @@
   "adapter_id": "adapter-minimax-h3",
   "tool": "MiniMax H3",
   "schemaVersion": "design-lab/adapter-manifest/v1",
-  "status": "declared",
+  "status": "models-mounted",
   "mode": "process-isolated",
   "license": "proprietary (MiniMax API/weights terms)",
   "capabilities": [
     {
       "name": "video-generation",
       "supported": false,
-      "note": "E0 placeholder; MiniMax H3 and T2V remain frozen in the current execution"
+      "note": "video-generation（未验证；E2 模型挂载完成，端到端生成待取证）"
     },
     {
       "name": "motion-bridge",
       "supported": false,
-      "note": "E0 placeholder; H3-Comfy bridge is frozen and has no accepted end-to-end evidence"
+      "note": "motion-bridge（未验证；E2 模型挂载完成，端到端生成待取证）"
     }
   ],
   "fallback": "none",
   "evidence": {
-    "level": "E0",
-    "runtime_version": null,
+    "level": "E2",
+    "runtime_version": "ComfyUI 0.33.1 (models via extra_model_paths.yaml)",
     "task_ids": [],
-    "artifact_paths": [],
-    "note": "DL-H3-001/002/003: declared contract only; fresh runtime requalification requires explicit authorization, current exact-tree evidence and first end-to-end generation"
+    "artifact_paths": [
+      "evidence/E2-20260816-models-mounted.md"
+    ],
+    "note": "用户授权部署：4 个 H3 权重挂载至 ComfyUI（UNET/CLIP/VAE 回读可见）。生成能力未验证（supported=false）；E3 需真实 T2V 执行+artifact 读回。"
   },
   "rollback": "git revert of generated video artifacts; process isolation prevents host state mutation"
 }

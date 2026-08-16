@@ -2,14 +2,51 @@
   "$schema": "../schemas/capability-status.schema.json",
   "schemaVersion": "design-lab/capability-status/v1",
   "evidenceLevels": [
-    {"id": "E0", "label": "declared", "claim": "intent or documentation exists", "proof": "document path or task card"},
-    {"id": "E1", "label": "structural", "claim": "files, schema, manifest or static validation passes", "proof": "hash, parser, schema or linter output"},
-    {"id": "E2", "label": "isolated-runtime", "claim": "isolated staging command succeeds", "proof": "command, exit code, output summary and read-back artifact"},
-    {"id": "E3", "label": "live-runtime", "claim": "a host/Agent runtime (current reference: Open Design or another approved host adapter) executes the capability", "proof": "runtime ID/version, task ID, artifact hash, stage/provenance read-back"},
-    {"id": "E4", "label": "release", "claim": "reviewed exact tree is published with exact-SHA CI evidence", "proof": "commit, push/PR/release, workflow run and remote read-back"},
-    {"id": "E5", "label": "commercial", "claim": "external customer/developer/production acceptance exists", "proof": "acceptance record, production feedback or delivery sign-off"}
+    {
+      "id": "E0",
+      "label": "declared",
+      "claim": "intent or documentation exists",
+      "proof": "document path or task card"
+    },
+    {
+      "id": "E1",
+      "label": "structural",
+      "claim": "files, schema, manifest or static validation passes",
+      "proof": "hash, parser, schema or linter output"
+    },
+    {
+      "id": "E2",
+      "label": "isolated-runtime",
+      "claim": "isolated staging command succeeds",
+      "proof": "command, exit code, output summary and read-back artifact"
+    },
+    {
+      "id": "E3",
+      "label": "live-runtime",
+      "claim": "a host/Agent runtime (current reference: Open Design or another approved host adapter) executes the capability",
+      "proof": "runtime ID/version, task ID, artifact hash, stage/provenance read-back"
+    },
+    {
+      "id": "E4",
+      "label": "release",
+      "claim": "reviewed exact tree is published with exact-SHA CI evidence",
+      "proof": "commit, push/PR/release, workflow run and remote read-back"
+    },
+    {
+      "id": "E5",
+      "label": "commercial",
+      "claim": "external customer/developer/production acceptance exists",
+      "proof": "acceptance record, production feedback or delivery sign-off"
+    }
   ],
-  "states": ["NOT_RUN", "PASS", "FAIL", "BLOCKED", "UNVERIFIED", "SKIPPED_OPTIONAL"],
+  "states": [
+    "NOT_RUN",
+    "PASS",
+    "FAIL",
+    "BLOCKED",
+    "UNVERIFIED",
+    "SKIPPED_OPTIONAL"
+  ],
   "capabilityStates": [
     "missing",
     "declared-only",
@@ -22,21 +59,103 @@
     "superseded"
   ],
   "capabilityRecords": {
-    "research-evidence": {"state": "structural-pass", "evidenceLevel": "E1", "lastVerified": "2026-08-14", "note": "source registry + governance rules structurally present; runtime qualification pending"},
-    "design-intelligence": {"state": "structural-pass", "evidenceLevel": "E1", "lastVerified": "2026-08-14", "note": "atoms/scenarios and brief-routing structural checks pass; isolated/live runtime evidence pending"},
-    "visual-quality": {"state": "structural-pass", "evidenceLevel": "E1", "lastVerified": "2026-08-14", "note": "rubrics + scoring scripts verified; historical runtime evidence is not reused after tree changes"},
-    "style-master-method": {"state": "structural-pass", "evidenceLevel": "E1", "lastVerified": "2026-08-15", "note": "497 masters, 77 anchor method cards and 47+47 lineage/analysis records pass the deterministic structural verifier; source verification and research-to-method-card closure remain Phase 7 work"},
-    "professional-visual-domains": {"state": "structural-pass", "evidenceLevel": "E1", "lastVerified": "2026-08-14", "note": "domain packs, scenarios and profiles pass structural verification; live runtime evidence pending"},
-    "production-handoff": {"state": "structural-pass", "evidenceLevel": "E1", "lastVerified": "2026-08-14", "note": "preflight/handoff schemas and adapter contracts verified; runtime delivery evidence pending"},
-    "creative-toolchain": {"state": "structural-pass", "evidenceLevel": "E1", "lastVerified": "2026-08-14", "note": "adapter/plugin contracts pass structural verification; fresh Open Design runtime requalification pending"},
-    "release-evidence": {"state": "structural-pass", "evidenceLevel": "E1", "lastVerified": "2026-08-14", "note": "canonical CI was green on the audited main baseline; this tree still requires human acceptance, independent review and release evidence for E4"}
+    "research-evidence": {
+      "state": "structural-pass",
+      "evidenceLevel": "E1",
+      "lastVerified": "2026-08-14",
+      "note": "source registry + governance rules structurally present; runtime qualification pending"
+    },
+    "design-intelligence": {
+      "state": "structural-pass",
+      "evidenceLevel": "E1",
+      "lastVerified": "2026-08-14",
+      "note": "atoms/scenarios and brief-routing structural checks pass; isolated/live runtime evidence pending"
+    },
+    "visual-quality": {
+      "state": "structural-pass",
+      "evidenceLevel": "E1",
+      "lastVerified": "2026-08-14",
+      "note": "rubrics + scoring scripts verified; historical runtime evidence is not reused after tree changes"
+    },
+    "style-master-method": {
+      "state": "structural-pass",
+      "evidenceLevel": "E1",
+      "lastVerified": "2026-08-15",
+      "note": "497 masters, 77 anchor method cards and 47+47 lineage/analysis records pass the deterministic structural verifier; source verification and research-to-method-card closure remain Phase 7 work"
+    },
+    "professional-visual-domains": {
+      "state": "structural-pass",
+      "evidenceLevel": "E1",
+      "lastVerified": "2026-08-14",
+      "note": "domain packs, scenarios and profiles pass structural verification; live runtime evidence pending"
+    },
+    "production-handoff": {
+      "state": "structural-pass",
+      "evidenceLevel": "E1",
+      "lastVerified": "2026-08-14",
+      "note": "preflight/handoff schemas and adapter contracts verified; runtime delivery evidence pending"
+    },
+    "creative-toolchain": {
+      "state": "isolated-runtime",
+      "evidenceLevel": "E2",
+      "lastVerified": "2026-08-16",
+      "note": "ComfyUI 0.33.1 用户授权部署：loopback 服务运行（127.0.0.1:8188 HTTP 200）+ H3 模型挂载回读；生成能力未验证（supported=false），E3 待真实生成 artifact"
+    },
+    "release-evidence": {
+      "state": "structural-pass",
+      "evidenceLevel": "E1",
+      "lastVerified": "2026-08-14",
+      "note": "canonical CI was green on the audited main baseline; this tree still requires human acceptance, independent review and release evidence for E4"
+    }
   },
   "promotionRules": [
-    {"from": "declared-only", "to": "structural-pass", "requires": ["JSON/Markdown/schema parse", "referenced local paths exist", "status PASS"]},
-    {"from": "structural-pass", "to": "isolated-pass", "requires": ["staging command executed", "exit code 0", "artifact/read-back evidence"]},
-    {"from": "isolated-pass", "to": "runtime-pass", "requires": ["host/Agent runtime registration (approved host adapter)", "minimal scenario/atom task", "artifact/provenance read-back"]},
-    {"from": "runtime-pass", "to": "release-verified", "requires": ["frozen exact tree", "independent review", "commit/push or release authorization", "exact-SHA CI success"]},
-    {"from": "release-verified", "to": "commercially-proven", "requires": ["real project", "human/external review", "production/developer/customer acceptance", "external acceptance record"]}
+    {
+      "from": "declared-only",
+      "to": "structural-pass",
+      "requires": [
+        "JSON/Markdown/schema parse",
+        "referenced local paths exist",
+        "status PASS"
+      ]
+    },
+    {
+      "from": "structural-pass",
+      "to": "isolated-pass",
+      "requires": [
+        "staging command executed",
+        "exit code 0",
+        "artifact/read-back evidence"
+      ]
+    },
+    {
+      "from": "isolated-pass",
+      "to": "runtime-pass",
+      "requires": [
+        "host/Agent runtime registration (approved host adapter)",
+        "minimal scenario/atom task",
+        "artifact/provenance read-back"
+      ]
+    },
+    {
+      "from": "runtime-pass",
+      "to": "release-verified",
+      "requires": [
+        "frozen exact tree",
+        "independent review",
+        "commit/push or release authorization",
+        "exact-SHA CI success"
+      ]
+    },
+    {
+      "from": "release-verified",
+      "to": "commercially-proven",
+      "requires": [
+        "real project",
+        "human/external review",
+        "production/developer/customer acceptance",
+        "external acceptance record"
+      ]
+    }
   ],
   "hardRules": [
     "Static files do not prove host runtime availability.",
