@@ -22,12 +22,18 @@
           "brand",
           "graphic",
           "uiux",
+          "visual",
+          "ecommerce",
+          "product-ui",
           "art-direction",
           "spatial",
           "packaging",
           "editorial",
           "motion",
+          "video",
+          "audio",
           "3d",
+          "game-visual",
           "data-visualization"
         ]
       }
