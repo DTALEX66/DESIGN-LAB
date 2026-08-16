@@ -52,10 +52,21 @@ def validate_e3_evidence(evidence_text: str, evidence_path: Path) -> list[str]:
     """Validate the provenance required for a current E3 claim."""
     findings: list[str] = []
     head = _current_head()
-    if not SHA_RE.search(evidence_text):
+    m = SHA_RE.search(evidence_text)
+    if not m:
         findings.append("EVIDENCE: E3 requires a full 40-hex tree SHA")
-    elif not head or head not in evidence_text:
-        findings.append("EVIDENCE: E3 tree SHA must match the current checkout HEAD")
+    else:
+        # DL-EVD-002/003: committed evidence can only prove an ANCESTOR commit
+        # (HISTORICAL_VALID), never itself. Requiring equality with HEAD would
+        # create a self-reference loop (editing evidence changes HEAD).
+        sha = m.group(0)
+        if head:
+            r = subprocess.run(
+                ["git", "-C", str(ROOT), "merge-base", "--is-ancestor", sha, head],
+                capture_output=True, text=True,
+            )
+            if r.returncode != 0:
+                findings.append(f"EVIDENCE: E3 tree SHA {sha[:12]} is not on HEAD ancestry (HISTORICAL_VALID required)")
 
     required_markers = {
         "runtime": ("运行时", "runtime"),
