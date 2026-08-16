@@ -26,6 +26,7 @@ SCRIPTS = [
     "verify_comfyui_gate.py",
     "verify_sbom.py",
     "verify_adapter_registry.py",
+    "verify_adapter_matrix.py",
     "verify_benchmark_registry.py",
     "verify_evidence_cards.py",
     "verify_asset_governance.py",

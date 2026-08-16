@@ -61,6 +61,8 @@ jobs:
         run: python design-lab/scripts/verify_identity_gate.py
       - name: DESIGN-LAB unified verify
         run: python design-lab/scripts/verify_design_lab.py
+      - name: Host adapter matrix (E0/E1 only)
+        run: python design-lab/scripts/verify_adapter_matrix.py
       - name: Evidence boundTree freshness
         if: github.event_name == 'push'
         run: python design-lab/scripts/update_evidence_binding.py --check
