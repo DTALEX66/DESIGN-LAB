@@ -77,6 +77,15 @@ design-lab/config/product-manifest.json ← 机器可读 SSOT
 - 原 Design-system → 收敛为 `design-system/` 中性设计协议资产。
 - 旧 `OPEN-DESIGN-Assistance` 身份 → 历史归档（`project-memory/history/`、`reports/history/`），不再作为活动产品名。
 
+## 生成状态（DL-MIG-005）
+
+```text
+reports/current/PROJECT_STATUS.md   ← 由 scripts/generate_project_status.py 生成
+reports/current/PROJECT_STATUS.json
+```
+
+活动文档不手写测试数/能力数/来源数；一律引用生成状态。
+
 ## 验证入口
 
 ```bash
