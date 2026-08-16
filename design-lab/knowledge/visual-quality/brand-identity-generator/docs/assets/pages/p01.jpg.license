@@ -1,2 +1,16 @@
-SPDX-FileCopyrightText: brand-identity-generator authors
-SPDX-License-Identifier: MIT
+{
+  "schemaVersion": "design-lab/asset-sidecar/v1",
+  "file": "design-lab/knowledge/visual-quality/brand-identity-generator/docs/assets/pages/p01.jpg",
+  "sha256": "sha256:fb3d328b858ecafd55bfa5f7d963a099e5fe35aa91b64940368b38eb6f06c34f",
+  "license": "MIT",
+  "author": "brand-identity-generator authors",
+  "redistributable": true,
+  "modelInputAllowed": true,
+  "commercialUse": true,
+  "sourceId": null,
+  "exception": {
+    "approvedBy": "brand-identity-generator authors",
+    "expiresAt": "2027-08-16"
+  },
+  "notes": "upgraded from legacy SPDX sidecar under DL-AST-001; rights flags derived from declared SPDX license; expiry = annual asset re-verification policy"
+}

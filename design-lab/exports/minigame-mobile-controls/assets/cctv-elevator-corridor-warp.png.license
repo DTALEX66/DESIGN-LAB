@@ -1,2 +1,16 @@
-SPDX-FileCopyrightText: 2026 DTALEX66 and contributors
-SPDX-License-Identifier: MIT
+{
+  "schemaVersion": "design-lab/asset-sidecar/v1",
+  "file": "design-lab/exports/minigame-mobile-controls/assets/cctv-elevator-corridor-warp.png",
+  "sha256": "sha256:561f297d23a7740de74f6cf9a8379cfbf5adc35eb51ec7d0ea3b95a261c4b1b1",
+  "license": "MIT",
+  "author": "2026 DTALEX66 and contributors",
+  "redistributable": true,
+  "modelInputAllowed": true,
+  "commercialUse": true,
+  "sourceId": null,
+  "exception": {
+    "approvedBy": "2026 DTALEX66 and contributors",
+    "expiresAt": "2027-08-16"
+  },
+  "notes": "upgraded from legacy SPDX sidecar under DL-AST-001; rights flags derived from declared SPDX license; expiry = annual asset re-verification policy"
+}
