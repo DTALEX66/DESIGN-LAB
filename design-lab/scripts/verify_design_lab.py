@@ -23,6 +23,7 @@ SCRIPTS = [
     "verify_aesthetic_rules.py",
     "verify_design_ir.py",
     "verify_production_preflight.py",
+    "verify_experience_corpus.py",
     "verify_review_surface.py",
     "adapters/hosts/open-design/verifier/verify_open_design_host_adapter.py",
     "verify_product_manifest_v3.py",
