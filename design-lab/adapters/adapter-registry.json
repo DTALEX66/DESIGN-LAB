@@ -256,6 +256,24 @@
         "note": "用户授权：H3 t2va 最小端到端生成成功"
       },
       "rollback": "git revert of generated video artifacts; process isolation prevents host state mutation"
+    },
+    {
+      "adapter_id": "adapter-mcp",
+      "name": "MCP protocol",
+      "status": "declared",
+      "evidence": {
+        "level": "E0"
+      },
+      "capabilities": [
+        {
+          "name": "tool.discovery",
+          "supported": false
+        },
+        {
+          "name": "tool.execution",
+          "supported": false
+        }
+      ]
     }
   ],
   "note": "No adapter is labelled 'available' without runtime evidence. Statuses follow the model above; E3 claims require a task ID, artifact path/hash and exit code in the evidence block."

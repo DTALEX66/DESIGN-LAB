@@ -8,7 +8,9 @@
     "provider_id",
     "schemaVersion",
     "capabilities",
-    "endpoint_ref"
+    "endpoint_ref",
+    "license",
+    "source"
   ],
   "additionalProperties": false,
   "properties": {
@@ -42,6 +44,35 @@
       "default": false
     },
     "policy_note": {
+      "type": "string"
+    },
+    "license": {
+      "type": "string",
+      "enum": [
+        "MIT",
+        "Apache-2.0",
+        "BSD-3-Clause",
+        "MPL-2.0",
+        "GPL-2.0",
+        "GPL-3.0",
+        "CC-BY-NC-SA-4.0",
+        "proprietary",
+        "unverified"
+      ]
+    },
+    "source": {
+      "type": "string",
+      "minLength": 1
+    },
+    "evidence_level": {
+      "type": "string",
+      "default": "E0"
+    },
+    "license_risk": {
+      "type": "string",
+      "default": "low"
+    },
+    "license_risk_note": {
       "type": "string"
     }
   }

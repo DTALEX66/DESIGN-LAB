@@ -20,6 +20,7 @@ SCRIPTS = [
     "verify_reference_e2e.py",
     "verify_collection_pipeline.py",
     "verify_provider_spi.py",
+    "verify_aesthetic_rules.py",
     "verify_review_surface.py",
     "adapters/hosts/open-design/verifier/verify_open_design_host_adapter.py",
     "verify_product_manifest_v3.py",

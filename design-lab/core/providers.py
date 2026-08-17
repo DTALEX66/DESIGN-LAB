@@ -11,6 +11,9 @@ KNOWN_CAPABILITIES = {
     "reasoning.long_context", "vision.design_critique", "embedding.multimodal",
     "image.generate", "image.edit", "gen.variation", "analysis.design_critique",
     "classification.fast", "rule_extraction.small",
+    # DL 组件在线核实（2026-08-17）：可并入的能力域
+    "vision.encoding", "image.segment", "image.detect.open_vocab",
+    "document.ocr", "document.layout", "quality.aesthetic_score",
 }
 
 PROVIDER_ID_PATTERN = "provider:"  # 本地/网关端点引用前缀
