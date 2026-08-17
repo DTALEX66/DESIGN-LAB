@@ -259,11 +259,7 @@
     },
     {
       "adapter_id": "adapter-mcp",
-      "name": "MCP protocol",
-      "status": "declared",
-      "evidence": {
-        "level": "E0"
-      },
+      "tool": "MCP (Model Context Protocol)",
       "capabilities": [
         {
           "name": "tool.discovery",
@@ -273,7 +269,19 @@
           "name": "tool.execution",
           "supported": false
         }
-      ]
+      ],
+      "status": "declared",
+      "mode": "external-cli",
+      "license": "MIT (protocol spec)",
+      "fallback": "none yet",
+      "evidence": {
+        "level": "E0",
+        "runtime_version": null,
+        "task_ids": [],
+        "artifact_paths": [],
+        "note": "Protocol standard (Linux Foundation Agentic AI Foundation); no MCP server connected; capabilities stay unsupported."
+      },
+      "rollback": "no host state mutation; adapter is read-only until a server is authorized"
     }
   ],
   "note": "No adapter is labelled 'available' without runtime evidence. Statuses follow the model above; E3 claims require a task ID, artifact path/hash and exit code in the evidence block."
