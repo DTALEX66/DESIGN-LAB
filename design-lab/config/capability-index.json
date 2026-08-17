@@ -1,8 +1,8 @@
 {
   "$schema": "../../schemas/capability-index.schema.json",
   "version": "1.0.0",
-  "generated_at": "2026-08-16",
-  "capability_count": 2319,
+  "generated_at": "2026-08-17",
+  "capability_count": 2326,
   "capabilities": [
     {
       "path": "adapters/NEUTRALITY_POLICY.md",
@@ -13,8 +13,8 @@
     {
       "path": "adapters/adapter-registry.json",
       "label": "adapters",
-      "bytes": 8228,
-      "sha256": "5e822fadba9f6a08"
+      "bytes": 9021,
+      "sha256": "226a43711be8cba8"
     },
     {
       "path": "adapters/creative-tools/adobe/adapter.manifest.json",
@@ -351,6 +351,12 @@
       "label": "adapters",
       "bytes": 24690,
       "sha256": "ac09a778180fa509"
+    },
+    {
+      "path": "adapters/mcp/adapter.manifest.json",
+      "label": "adapters",
+      "bytes": 650,
+      "sha256": "04978f94ffb9360c"
     },
     {
       "path": "atoms/anti-ai-slop-diagnostician/README.md",
@@ -13781,6 +13787,24 @@
       "sha256": "56c9ff0bd4db19c8"
     },
     {
+      "path": "production/profiles/preflight-digital.json",
+      "label": "production",
+      "bytes": 875,
+      "sha256": "2d0968ba8b2b69d7"
+    },
+    {
+      "path": "production/profiles/preflight-print.json",
+      "label": "production",
+      "bytes": 1378,
+      "sha256": "b034b59982ab5342"
+    },
+    {
+      "path": "production/profiles/preflight-video.json",
+      "label": "production",
+      "bytes": 961,
+      "sha256": "9ce402676f094124"
+    },
+    {
       "path": "quality/README.md",
       "label": "quality",
       "bytes": 2037,
@@ -13803,6 +13827,24 @@
       "label": "quality",
       "bytes": 2629,
       "sha256": "977a1ba3255844cb"
+    },
+    {
+      "path": "quality/pipeline-layers.json",
+      "label": "quality",
+      "bytes": 1503,
+      "sha256": "50413f64cb804442"
+    },
+    {
+      "path": "quality/pipeline.md",
+      "label": "quality",
+      "bytes": 1702,
+      "sha256": "eb14fa216d57f0f6"
+    },
+    {
+      "path": "quality/profiles/aesthetic-rules.json",
+      "label": "quality",
+      "bytes": 2096,
+      "sha256": "dea6e6cf5557ec35"
     },
     {
       "path": "quality/profiles/commercial-visual-v2.json",
