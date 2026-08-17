@@ -1,39 +1,39 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://dtalex66.local/schemas/preflight.json",
-  "title": "Commercial Production Preflight",
+  "$id": "https://design-lab.local/schemas/preflight.schema.json",
+  "title": "Preflight Contract V2 (production checks)",
+  "description": "生产预检契约：required_checks 结构（id/severity/tool/standard_ref）+ 机器可读报告。印刷/数字/视频 profiles。",
   "type": "object",
   "required": [
+    "preflight_id",
+    "schemaVersion",
     "profile",
-    "artifact",
-    "checks",
-    "result"
+    "required_checks"
   ],
+  "additionalProperties": false,
   "properties": {
-    "profile": {
-      "enum": [
-        "digital-ui",
-        "print-commercial",
-        "spatial-exhibition",
-        "packaging",
-        "3d-asset",
-        "motion",
-        "presentation",
-        "editorial"
-      ]
-    },
-    "artifact": {
+    "preflight_id": {
       "type": "string"
     },
-    "checks": {
+    "schemaVersion": {
+      "const": "design-lab/preflight/v2"
+    },
+    "profile": {
+      "enum": [
+        "print",
+        "digital",
+        "video",
+        "ui"
+      ]
+    },
+    "required_checks": {
       "type": "array",
       "items": {
         "type": "object",
         "required": [
           "id",
           "severity",
-          "result",
-          "evidence"
+          "tool"
         ],
         "properties": {
           "id": {
@@ -44,38 +44,58 @@
               "blocker",
               "high",
               "medium",
-              "low",
-              "info"
+              "low"
             ]
           },
-          "result": {
-            "enum": [
-              "pass",
-              "fail",
-              "warning",
-              "not-applicable"
-            ]
-          },
-          "evidence": {},
-          "remediation": {
+          "tool": {
             "type": "string"
+          },
+          "standard_ref": {
+            "type": "string",
+            "description": "标准引用（PDF/X、WCAG 等）"
           }
         }
       }
     },
     "result": {
-      "enum": [
-        "pass",
-        "conditional-pass",
-        "fail"
-      ]
-    },
-    "operator": {
-      "type": "string"
-    },
-    "timestamp": {
-      "type": "string"
+      "type": "object",
+      "required": [
+        "status",
+        "checks"
+      ],
+      "properties": {
+        "status": {
+          "enum": [
+            "pass",
+            "fail"
+          ]
+        },
+        "checks": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "id",
+              "status"
+            ],
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "status": {
+                "enum": [
+                  "pass",
+                  "fail",
+                  "warning"
+                ]
+              },
+              "detail": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      }
     }
-  },
-  "additionalProperties": true
+  }
 }
