@@ -544,6 +544,16 @@
       "copyrightText": "NOASSERTION (vendored from https://github.com/Affitor/affiliate-skills)",
       "supplier": "NOASSERTION",
       "downloadLocation": "https://github.com/Affitor/affiliate-skills"
+    },
+    {
+      "SPDXID": "SPDXRef-vendor-59",
+      "name": "ckw-design-skill",
+      "licenseConcluded": "MIT",
+      "licenseDeclared": "MIT",
+      "copyrightText": "NOASSERTION (vendored from https://github.com/connerkward/ckw-design-skill)",
+      "supplier": "NOASSERTION",
+      "downloadLocation": "https://github.com/connerkward/ckw-design-skill",
+      "versionInfo": "c8de7c8e9279648a2cbeb4021508b874e88d41f1"
     }
   ],
   "relationships": [
@@ -836,6 +846,11 @@
       "spdxElementId": "SPDXRef-DOCUMENT",
       "relationshipType": "DESCRIBES",
       "relatedSpdxElement": "SPDXRef-vendor-affiliate-skills"
+    },
+    {
+      "spdxElementId": "SPDXRef-DESIGN-LAB",
+      "relationshipType": "CONTAINS",
+      "relatedSpdxElement": "SPDXRef-vendor-59"
     }
   ]
 }
