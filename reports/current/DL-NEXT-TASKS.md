@@ -1,60 +1,48 @@
-# DESIGN-LAB 完整后续任务清单（2026-08-17 收敛版）
+# DESIGN-LAB 未完成任务清单（v2，2026-08-18 更新）
 
-> 汇总：R4 遗留阻塞 + V2 规划 + 调研报告收敛任务。按依赖与类型分组排序。
-> 纪律：fail-closed、不伪造证据、未指定不猜测；每项独立提交。
+> 更新：C/D 组契约任务全部完成（32 验证器全绿）；H3 视频确认纯测试（A4 关闭）；PS/Open Design 实测可操控（B1/B2 转为可执行）；Jury 硬阻塞=仓库无真实设计作品。
 
-## A. 人工参与类（E4 发布链的硬阻塞，需你执行）
+## 核心阻塞（E4 发布链的真相）
 
-| ID | 任务 | 前置 | 验收 | 状态 |
+**目前仓库没有任何真实设计作品可评**：H3 产物=技术验证（非成果）、12 benchmark 案例=仅 brief 文档（无成品）。人工 Jury 无法执行，直到产出一个真实作品。
+
+## G. 真实作品产出（新增，E4 路径的关键前置）
+
+| ID | 任务 | 方式 | 验收 | 状态 |
 |---|---|---|---|---|
-| A1 | 人工专业 Jury（DL-QLT-002） | 12 证据卡 + 19 rubrics 已就绪 | 五域评分 ≥82/100 且偏好率 ≥70%；12 卡人工校准 | 🔴 阻塞，需你 |
-| A2 | 独立复审 + Release Attestation（DL-REL-001） | A1 完成 | E4 发布链（复审人签署 attestation） | 🔴 阻塞，需你 |
-| A3 | 162 条隔离来源人工补全 | 无 | 每条 author/权利标志/reviewedBy 补全出隔离 | 🔴 阻塞，需你 |
-| A4 | H3 产物人工验收（mp4 视频+音频） | 无 | 你确认画面/声音是否满意 | 待你听看 |
+| G1 | 用 Photoshop 做第一个真实作品（如 1920x1080 电商主图 PSD） | PS 2023 JSX（已实测可操控） | 可编辑 PSD + 回读图层/尺寸/文本 + E3 证据 | ⏳ 待你给设计需求 |
+| G2 | 用 Open Design 做第一个真实设计任务（方案/文档级） | opencode run（已实测）+ export 会话 | 真实产出 + 回读 + E3 证据 | ⏳ 待你给设计需求 |
 
-## B. 真实运行取证类（需环境/授权）
+## A. 人工参与类（G 产出作品后可评）
 
-| ID | 任务 | 前置 | 验收 | 状态 |
-|---|---|---|---|---|
-| B1 | Open Design live E3（DL-ADP-OD-E3） | 启动 Open Design 运行时 | 真实运行 + Artifact 回读 + E3 证据 | 🟡 待授权 |
-| B2 | Photoshop E3（DL-ADB-PS-001） | PS 订阅 + 本机环境 | 可编辑 PSD 交付 + preflight 回读 | 🟡 待授权 |
-| B3 | 主分支保护（DL-CI-007） | 管理员 | require PR/CI/审批 | 🟡 待管理员 |
+| ID | 任务 | 前置 | 状态 |
+|---|---|---|---|
+| A1 | 人工专业 Jury（12 证据卡 + G 作品评分 ≥82 + 偏好 ≥70%） | G1/G2 产出真实作品 | 🔴 阻塞：无作品 |
+| A2 | 独立复审 + Release Attestation（E4） | A1 | 🔴 阻塞 |
+| A3 | 162 条隔离来源补全（辅助清单已就绪） | 无 | 待你逐批审核 |
+| ~~A4~~ | ~~H3 产物验收~~ | — | ✅ 关闭：纯测试视频，非成果 |
 
-## C. 契约级任务（调研收敛，P0，可立即自动执行）
+## B. 真实运行取证（现在可执行）
 
-| ID | 任务 | 交付 | 验收 | 状态 |
-|---|---|---|---|---|
-| C1 | T1 Design IR 契约 | design-ir.schema.json（可编辑文档对象模型：画布+图层 text/image/vector/3d+样式/变换/约束，版本化） | schema 有效 + 正负 fixture + 与 artifact.schema.json 引用关系明确 | ⏳ 未开始 |
-| C2 | T2 生产校验契约增强 | preflight.schema.json 定义 required_checks（id/severity/tool/标准 ref）+ 印刷/数字/视频 profiles | blocker 样本（无出血/缺字体/色域错）100% 标记；机器可读 | ⏳ 未开始 |
-| C3 | T3 经验语料库契约 | experience-record.schema.json（项目级语料：方向+变体+评审+决策日志+源文件 refs） | schema 有效；与 memory-record 引用关系明确 | ⏳ 未开始 |
+| ID | 任务 | 状态 |
+|---|---|---|
+| B1 | Open Design E3（宿主已装 D:/Programs/Open Design，opencode CLI 实测可用） | ⏳ 待你给任务/授权 |
+| B2 | Photoshop E3（PS 2023 已实测：建文档/文本层/保存可编辑 PSD） | ⏳ 待你给任务/授权 |
+| B3 | 主分支保护（GitHub 管理员操作） | 🔵 待你 |
 
-## D. 能力增强（P1，低代码/文档级）
+## C/D. 契约与增强（已全部完成 ✅）
 
-| ID | 任务 | 交付 | 验收 | 状态 |
-|---|---|---|---|---|
-| D1 | T4 Design Action Language 词汇表 | design-action.schema.json（原子动作动词表，作为 DesignCommand.args 规范化层） | 与 command 兼容；动作不绑工具名 | ⏳ 未开始 |
-| D2 | T5 质量分层管道定义 | quality/pipeline.md（deterministic→视觉模型→专家→人类反馈 + evals rubrics 对齐） | 文档 + 分层可追溯 + human calibration 步骤明确 | ⏳ 未开始 |
-| D3 | T6 开源组件候选映射 | research/adapters-roadmap.md（CLIP/SAM/OCR/布局→未来 adapter/provider 候选，E0 标注） | 只归档不实施 | ⏳ 未开始 |
+- C1 Design IR、C2 生产校验契约、C3 经验语料库、D1 Action Language、D2 质量分层管道——全部 PASS，链 32/32
+- 并入项：9 provider 能力（E0）、美学规则、MCP adapter、30 组件核实矩阵
 
-## E. 可选扩展（P2，按需）
+## E. 可选扩展（按需）
 
-| ID | 任务 | 前置 | 验收 | 状态 |
-|---|---|---|---|---|
-| E1 | 剩余领域包（packaging/spatial/3D/motion/video/audio/game-visual） | 逐域按十要素契约 | 每域 DOMAIN_PACK_V2 PASS | 🔵 按需 |
-| E2 | 设计技能源码吸收轮（设计方法/规则类，宽松许可 MIT/Apache/CC0/BSD） | 候选搜索 + 走 external_asset_intake 管线 | SOURCE_REGISTRY 登记 + license 校验 + 隔离/吸收 | 🔵 按需 |
-| E3 | H3 音频导出 UI 流程（SaveAudio→mp4） | 无 | 界面直接存 mp4（API 绕过已生效） | 🔵 待你确认 |
+| ID | 任务 | 状态 |
+|---|---|---|
+| E1 | 剩余领域包（packaging/spatial/3D/motion/video/audio/game-visual） | 🔵 按需 |
+| E2 | 设计技能源码吸收轮 | 🔵 按需 |
+| E3 | H3 音频导出 UI 流程确认 | 🔵 可选 |
 
-## F. 常态维护（每轮自动）
+## 建议下一步
 
-- 提交后重生成 capability/asset-counts/PROJECT_STATUS 索引
-- 云端 CI 监控（Canonical Verify V4 五门）
-- 双端一致性（本地 main == 云端 main）
-
-## 推荐执行顺序
-
-**立即自动**：C1 → C2 → C3（契约三连）→ D1/D2/D3（增强）
-**并行等你**：A1（人工 Jury——E4 唯一硬阻塞）、A3（来源补全）、A4（H3 验收）
-**待授权**：B1/B2（真实运行取证）、B3（分支保护）
-**按需**：E1（领域包）、E2（源码吸收轮）
-
-> 说明：C/D 全为契约/文档级，不新增运行时、不绑工具、不重命名，符合定位；A/B 是发布链真实进展所必需，但需要你参与或授权。
+**先 G1 或 G2（产出一个真实作品）→ 再 A1（Jury）→ A2（E4）**。B1/B2 与 G 重叠（都是真实运行取证）。
