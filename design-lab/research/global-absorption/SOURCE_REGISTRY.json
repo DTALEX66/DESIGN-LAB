@@ -27,6 +27,30 @@
         "target": "design-lab/knowledge/sources/ckw-design-skill",
         "restrictions": "read-only reference and skill activation; MIT"
       }
+    },
+    {
+      "source": {
+        "sourceId": "pixelmatch",
+        "origin": "https://github.com/mapbox/pixelmatch",
+        "author": "Mapbox (Vladimir Agafonkin)",
+        "license": "ISC",
+        "licenseStatus": "reviewed",
+        "allowedUsage": "vendored pixel-diff engine (knowledge/sources/pixelmatch), read-only reference and scoring tool",
+        "version": "c6fee35afac3c52576b2cb424bd1061ab6a4bd06",
+        "acquiredAt": "2026-08-18T00:00:00Z",
+        "contentHash": "sha256:975bf858cbfa6cb7b6c39190132f8d52ec6cae0d2132bfbd7cc0d0d4c1bcef93",
+        "redistributable": true,
+        "modelInputAllowed": true,
+        "commercialUse": true,
+        "reviewedBy": "DTALEX66 (user-authorized absorption 2026-08-18)",
+        "reviewedAt": "2026-08-18T00:00:00Z"
+      },
+      "integration": {
+        "mode": "vendor-adapt",
+        "status": "active",
+        "target": "design-lab/knowledge/sources/pixelmatch",
+        "restrictions": "ISC; pixel diff for review scorecard"
+      }
     }
   ]
 }

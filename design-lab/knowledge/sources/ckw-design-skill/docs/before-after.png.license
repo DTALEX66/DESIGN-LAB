@@ -1,0 +1,16 @@
+{
+  "schemaVersion": "design-lab/asset-sidecar/v1",
+  "file": "design-lab/knowledge/sources/ckw-design-skill/docs/before-after.png",
+  "sha256": "sha256:ac12f8cc94dadf80c32af1a5439f02408a607a8f4eb55f35b9c671ee36c1ce05",
+  "license": "MIT (ckw-design-skill) / ISC (pixelmatch)",
+  "author": "upstream vendor (see SOURCE_REGISTRY)",
+  "redistributable": true,
+  "modelInputAllowed": true,
+  "commercialUse": true,
+  "sourceId": "ckw-design-skill",
+  "exception": {
+    "approvedBy": "DTALEX66 (user-authorized absorption)",
+    "expiresAt": "2027-08-18"
+  },
+  "notes": "vendored asset; covered by SOURCE_REGISTRY entry"
+}

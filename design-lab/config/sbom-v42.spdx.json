@@ -554,6 +554,16 @@
       "supplier": "NOASSERTION",
       "downloadLocation": "https://github.com/connerkward/ckw-design-skill",
       "versionInfo": "c8de7c8e9279648a2cbeb4021508b874e88d41f1"
+    },
+    {
+      "SPDXID": "SPDXRef-vendor-60",
+      "name": "pixelmatch",
+      "licenseConcluded": "ISC",
+      "licenseDeclared": "ISC",
+      "copyrightText": "NOASSERTION (vendored from https://github.com/mapbox/pixelmatch)",
+      "supplier": "NOASSERTION",
+      "downloadLocation": "https://github.com/mapbox/pixelmatch",
+      "versionInfo": "c6fee35afac3c52576b2cb424bd1061ab6a4bd06"
     }
   ],
   "relationships": [
@@ -851,6 +861,11 @@
       "spdxElementId": "SPDXRef-DESIGN-LAB",
       "relationshipType": "CONTAINS",
       "relatedSpdxElement": "SPDXRef-vendor-59"
+    },
+    {
+      "spdxElementId": "SPDXRef-DESIGN-LAB",
+      "relationshipType": "CONTAINS",
+      "relatedSpdxElement": "SPDXRef-vendor-60"
     }
   ]
 }

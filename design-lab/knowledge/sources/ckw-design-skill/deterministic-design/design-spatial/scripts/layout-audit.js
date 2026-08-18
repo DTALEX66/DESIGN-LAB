@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: MIT
+// vendored from https://github.com/connerkward/ckw-design-skill (MIT), see SOURCE_REGISTRY sourceId=ckw-design-skill
 /* ============================================================================
    layout-audit.js — deterministic layout metrics that MEDIATE the eye.
 
