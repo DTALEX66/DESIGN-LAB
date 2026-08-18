@@ -282,6 +282,304 @@
         "note": "Protocol standard (Linux Foundation Agentic AI Foundation); no MCP server connected; capabilities stay unsupported."
       },
       "rollback": "no host state mutation; adapter is read-only until a server is authorized"
+    },
+    {
+      "adapter_id": "adapter-inkscape",
+      "tool": "Inkscape CLI",
+      "capabilities": [
+        {
+          "name": "svg.export",
+          "supported": false
+        }
+      ],
+      "status": "declared",
+      "mode": "external-cli",
+      "license": "GPL-2.0-or-later",
+      "fallback": "none yet",
+      "evidence": {
+        "level": "E0",
+        "runtime_version": null,
+        "task_ids": [],
+        "artifact_paths": [],
+        "note": "headless CLI (GPL, subprocess contract; not vendored)"
+      },
+      "rollback": "output files only; no host state mutation"
+    },
+    {
+      "adapter_id": "adapter-imagemagick",
+      "tool": "ImageMagick",
+      "capabilities": [
+        {
+          "name": "image.process",
+          "supported": false
+        }
+      ],
+      "status": "declared",
+      "mode": "external-cli",
+      "license": "ImageMagick (SPDX)",
+      "fallback": "none yet",
+      "evidence": {
+        "level": "E0",
+        "runtime_version": null,
+        "task_ids": [],
+        "artifact_paths": [],
+        "note": "CLI external process"
+      },
+      "rollback": "output files only"
+    },
+    {
+      "adapter_id": "adapter-sharp",
+      "tool": "sharp (libvips)",
+      "capabilities": [
+        {
+          "name": "image.process",
+          "supported": false
+        }
+      ],
+      "status": "declared",
+      "mode": "external-cli",
+      "license": "Apache-2.0",
+      "fallback": "none yet",
+      "evidence": {
+        "level": "E0",
+        "runtime_version": null,
+        "task_ids": [],
+        "artifact_paths": [],
+        "note": "Node native dep; adapter only"
+      },
+      "rollback": "output files only"
+    },
+    {
+      "adapter_id": "adapter-resvg",
+      "tool": "resvg",
+      "capabilities": [
+        {
+          "name": "svg.render",
+          "supported": false
+        }
+      ],
+      "status": "declared",
+      "mode": "external-cli",
+      "license": "MIT/Apache-2.0",
+      "fallback": "none yet",
+      "evidence": {
+        "level": "E0",
+        "runtime_version": null,
+        "task_ids": [],
+        "artifact_paths": [],
+        "note": "MIT/Apache dual since 0.45.1"
+      },
+      "rollback": "output files only"
+    },
+    {
+      "adapter_id": "adapter-svgo",
+      "tool": "svgo",
+      "capabilities": [
+        {
+          "name": "svg.optimize",
+          "supported": false
+        }
+      ],
+      "status": "declared",
+      "mode": "external-cli",
+      "license": "MPL-2.0",
+      "fallback": "none yet",
+      "evidence": {
+        "level": "E0",
+        "runtime_version": null,
+        "task_ids": [],
+        "artifact_paths": [],
+        "note": "v4.0.0; file-level MPL ok for vendored"
+      },
+      "rollback": "output files only"
+    },
+    {
+      "adapter_id": "adapter-librsvg",
+      "tool": "librsvg (rsvg-convert)",
+      "capabilities": [
+        {
+          "name": "svg.export",
+          "supported": false
+        }
+      ],
+      "status": "declared",
+      "mode": "external-cli",
+      "license": "LGPL-2.1-or-later",
+      "fallback": "none yet",
+      "evidence": {
+        "level": "E0",
+        "runtime_version": null,
+        "task_ids": [],
+        "artifact_paths": [],
+        "note": "multi-size batch export"
+      },
+      "rollback": "output files only"
+    },
+    {
+      "adapter_id": "adapter-playwright-visual",
+      "tool": "Playwright toHaveScreenshot",
+      "capabilities": [
+        {
+          "name": "visual.regression",
+          "supported": false
+        }
+      ],
+      "status": "declared",
+      "mode": "external-cli",
+      "license": "Apache-2.0",
+      "fallback": "none yet",
+      "evidence": {
+        "level": "E0",
+        "runtime_version": null,
+        "task_ids": [],
+        "artifact_paths": [],
+        "note": "multi-size screenshot baseline diff"
+      },
+      "rollback": "screenshots only"
+    },
+    {
+      "adapter_id": "adapter-verapdf",
+      "tool": "veraPDF",
+      "capabilities": [
+        {
+          "name": "pdf.preflight",
+          "supported": false
+        }
+      ],
+      "status": "declared",
+      "mode": "external-cli",
+      "license": "MPL/GPL/LGPL",
+      "fallback": "none yet",
+      "evidence": {
+        "level": "E0",
+        "runtime_version": null,
+        "task_ids": [],
+        "artifact_paths": [],
+        "note": "PDF/X-1a/3, PDF/A gate (v1.26+)"
+      },
+      "rollback": "no host mutation"
+    },
+    {
+      "adapter_id": "adapter-ghostscript",
+      "tool": "Ghostscript",
+      "capabilities": [
+        {
+          "name": "pdf.render",
+          "supported": false
+        },
+        {
+          "name": "pdf.compress",
+          "supported": false
+        }
+      ],
+      "status": "declared",
+      "mode": "external-cli",
+      "license": "AGPL-3.0-or-later",
+      "fallback": "none yet",
+      "evidence": {
+        "level": "E0",
+        "runtime_version": null,
+        "task_ids": [],
+        "artifact_paths": [],
+        "note": "AGPL: adapter only, no vendored code"
+      },
+      "rollback": "output files only"
+    },
+    {
+      "adapter_id": "adapter-style-dictionary",
+      "tool": "Style Dictionary",
+      "capabilities": [
+        {
+          "name": "token.build",
+          "supported": false
+        }
+      ],
+      "status": "declared",
+      "mode": "external-cli",
+      "license": "Apache-2.0",
+      "fallback": "none yet",
+      "evidence": {
+        "level": "E0",
+        "runtime_version": null,
+        "task_ids": [],
+        "artifact_paths": [],
+        "note": "token JSON to CSS/Android resources"
+      },
+      "rollback": "generated files only"
+    },
+    {
+      "adapter_id": "adapter-dtcg",
+      "tool": "W3C Design Tokens (DTCG)",
+      "capabilities": [
+        {
+          "name": "token.standard",
+          "supported": false
+        }
+      ],
+      "status": "declared",
+      "mode": "external-cli",
+      "license": "W3C (no fee)",
+      "fallback": "none yet",
+      "evidence": {
+        "level": "E0",
+        "runtime_version": null,
+        "task_ids": [],
+        "artifact_paths": [],
+        "note": "standard alignment for Tokens Studio/Penpot interop"
+      },
+      "rollback": "n/a"
+    },
+    {
+      "adapter_id": "adapter-figma-rest",
+      "tool": "Figma REST API",
+      "capabilities": [
+        {
+          "name": "figma.read",
+          "supported": false
+        },
+        {
+          "name": "figma.export",
+          "supported": false
+        }
+      ],
+      "status": "declared",
+      "mode": "external-provider-api",
+      "license": "Apache-2.0 (spec)",
+      "fallback": "none yet",
+      "evidence": {
+        "level": "E0",
+        "runtime_version": null,
+        "task_ids": [],
+        "artifact_paths": [],
+        "note": "official OpenAPI spec absorbed as contract source"
+      },
+      "rollback": "no host mutation"
+    },
+    {
+      "adapter_id": "adapter-blender-bpy",
+      "tool": "Blender Python API",
+      "capabilities": [
+        {
+          "name": "three_d.operate",
+          "supported": false
+        },
+        {
+          "name": "three_d.render",
+          "supported": false
+        }
+      ],
+      "status": "declared",
+      "mode": "process-isolated",
+      "license": "GPL-2.0-or-later",
+      "fallback": "none yet",
+      "evidence": {
+        "level": "E0",
+        "runtime_version": null,
+        "task_ids": [],
+        "artifact_paths": [],
+        "note": "bpy in-process only; subprocess contract"
+      },
+      "rollback": "output files only"
     }
   ],
   "note": "No adapter is labelled 'available' without runtime evidence. Statuses follow the model above; E3 claims require a task ID, artifact path/hash and exit code in the evidence block."

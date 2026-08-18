@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: ISC
+// vendored from https://github.com/mapbox/pixelmatch (ISC), see SOURCE_REGISTRY sourceId=pixelmatch
 /**
  * Compare two equally sized images, pixel by pixel.
  *
