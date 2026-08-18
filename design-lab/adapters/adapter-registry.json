@@ -543,7 +543,7 @@
         }
       ],
       "status": "declared",
-      "mode": "external-provider-api",
+      "mode": "external-cli",
       "license": "Apache-2.0 (spec)",
       "fallback": "none yet",
       "evidence": {
@@ -568,7 +568,7 @@
           "supported": false
         }
       ],
-      "status": "declared",
+      "status": "missing",
       "mode": "process-isolated",
       "license": "GPL-2.0-or-later",
       "fallback": "none yet",
