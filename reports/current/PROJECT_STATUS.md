@@ -1,14 +1,14 @@
 # PROJECT_STATUS（生成状态，DL-MIG-005）
 
 - 生成时间：2026-08-18｜生成器：`scripts/generate_project_status.py (DL-MIG-005)`
-- Git：分支 `main`，HEAD `71a6e23bfc60`，origin/main `54652816939a`，worktree dirty
-- tracked 文件：3047；仓库 pack：199.75 MiB（预算 256 MiB，预警 220 MiB）
+- Git：分支 `main`，HEAD `cfe1e62ecab2`，origin/main `61cb7a68acd7`，worktree dirty
+- tracked 文件：3083；仓库 pack：199.75 MiB（预算 256 MiB，预警 220 MiB）
 
 ## 来源治理
 - 活动登记（v3）：0；隔离登记：162（162 条遗留已隔离，DL-KNW-003）
 
 ## 能力与证据
-- 能力索引：2326 项；证据卡：12（authoritative accepts=0）
+- 能力索引：2406 项；证据卡：12（authoritative accepts=0）
 - 各能力证据等级分布：E1=7；E3=1
 
 ## 资产

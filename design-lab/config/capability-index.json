@@ -1,8 +1,8 @@
 {
   "$schema": "../../schemas/capability-index.schema.json",
   "version": "1.0.0",
-  "generated_at": "2026-08-17",
-  "capability_count": 2326,
+  "generated_at": "2026-08-18",
+  "capability_count": 2406,
   "capabilities": [
     {
       "path": "adapters/NEUTRALITY_POLICY.md",
@@ -797,6 +797,66 @@
       "sha256": "4c2eeff4a5cd78bf"
     },
     {
+      "path": "domain-packs/audio-design/benchmarks/audio-design-reference.json",
+      "label": "domain-packs",
+      "bytes": 430,
+      "sha256": "81997357aeaade57"
+    },
+    {
+      "path": "domain-packs/audio-design/evidence/pack-structure.json",
+      "label": "domain-packs",
+      "bytes": 397,
+      "sha256": "f2a871f17ee75ccf"
+    },
+    {
+      "path": "domain-packs/audio-design/handoff-contract.json",
+      "label": "domain-packs",
+      "bytes": 981,
+      "sha256": "95d62def98e8eb71"
+    },
+    {
+      "path": "domain-packs/audio-design/manifest.json",
+      "label": "domain-packs",
+      "bytes": 629,
+      "sha256": "5460b5287c74237c"
+    },
+    {
+      "path": "domain-packs/audio-design/preflight.json",
+      "label": "domain-packs",
+      "bytes": 791,
+      "sha256": "a423b34d800c239c"
+    },
+    {
+      "path": "domain-packs/audio-design/profile.json",
+      "label": "domain-packs",
+      "bytes": 452,
+      "sha256": "2ad7a981f4ca4e17"
+    },
+    {
+      "path": "domain-packs/audio-design/rubric.json",
+      "label": "domain-packs",
+      "bytes": 1208,
+      "sha256": "9f8c35044fadaa91"
+    },
+    {
+      "path": "domain-packs/audio-design/scenario.md",
+      "label": "domain-packs",
+      "bytes": 220,
+      "sha256": "4a5c4c59c6b11f0e"
+    },
+    {
+      "path": "domain-packs/audio-design/schemas/brief.schema.json",
+      "label": "domain-packs",
+      "bytes": 1065,
+      "sha256": "0ef53b47b754a806"
+    },
+    {
+      "path": "domain-packs/audio-design/sources.json",
+      "label": "domain-packs",
+      "bytes": 508,
+      "sha256": "20feea92077dd024"
+    },
+    {
       "path": "domain-packs/brand-design/benchmarks/brand-design-reference.json",
       "label": "domain-packs",
       "bytes": 430,
@@ -1029,6 +1089,306 @@
       "label": "domain-packs",
       "bytes": 712,
       "sha256": "47d82003c02d066b"
+    },
+    {
+      "path": "domain-packs/motion-design/benchmarks/motion-design-reference.json",
+      "label": "domain-packs",
+      "bytes": 432,
+      "sha256": "b9f25ee8567d2a87"
+    },
+    {
+      "path": "domain-packs/motion-design/evidence/pack-structure.json",
+      "label": "domain-packs",
+      "bytes": 398,
+      "sha256": "bdec4de6dd303f11"
+    },
+    {
+      "path": "domain-packs/motion-design/handoff-contract.json",
+      "label": "domain-packs",
+      "bytes": 992,
+      "sha256": "dbdd626abe5aab29"
+    },
+    {
+      "path": "domain-packs/motion-design/manifest.json",
+      "label": "domain-packs",
+      "bytes": 632,
+      "sha256": "8653dba910e6e664"
+    },
+    {
+      "path": "domain-packs/motion-design/preflight.json",
+      "label": "domain-packs",
+      "bytes": 879,
+      "sha256": "f38b9e14ec68ef9f"
+    },
+    {
+      "path": "domain-packs/motion-design/profile.json",
+      "label": "domain-packs",
+      "bytes": 527,
+      "sha256": "6b4ba3f75e8b19c9"
+    },
+    {
+      "path": "domain-packs/motion-design/rubric.json",
+      "label": "domain-packs",
+      "bytes": 1318,
+      "sha256": "08a539e9b9793aa1"
+    },
+    {
+      "path": "domain-packs/motion-design/scenario.md",
+      "label": "domain-packs",
+      "bytes": 303,
+      "sha256": "010c2c0247884c38"
+    },
+    {
+      "path": "domain-packs/motion-design/schemas/brief.schema.json",
+      "label": "domain-packs",
+      "bytes": 1067,
+      "sha256": "5557883585b30c29"
+    },
+    {
+      "path": "domain-packs/motion-design/sources.json",
+      "label": "domain-packs",
+      "bytes": 510,
+      "sha256": "56b7bd47dbbfea62"
+    },
+    {
+      "path": "domain-packs/packaging-design/benchmarks/packaging-design-reference.json",
+      "label": "domain-packs",
+      "bytes": 438,
+      "sha256": "b835d3fb5273a671"
+    },
+    {
+      "path": "domain-packs/packaging-design/evidence/pack-structure.json",
+      "label": "domain-packs",
+      "bytes": 401,
+      "sha256": "41a50f5bd4647fea"
+    },
+    {
+      "path": "domain-packs/packaging-design/handoff-contract.json",
+      "label": "domain-packs",
+      "bytes": 1007,
+      "sha256": "ece00c59fb6547cb"
+    },
+    {
+      "path": "domain-packs/packaging-design/manifest.json",
+      "label": "domain-packs",
+      "bytes": 641,
+      "sha256": "fe07074589e44ab3"
+    },
+    {
+      "path": "domain-packs/packaging-design/preflight.json",
+      "label": "domain-packs",
+      "bytes": 1142,
+      "sha256": "94ccbc48de21b316"
+    },
+    {
+      "path": "domain-packs/packaging-design/profile.json",
+      "label": "domain-packs",
+      "bytes": 566,
+      "sha256": "b842464382b58ae8"
+    },
+    {
+      "path": "domain-packs/packaging-design/rubric.json",
+      "label": "domain-packs",
+      "bytes": 1407,
+      "sha256": "c0be84c79b82b527"
+    },
+    {
+      "path": "domain-packs/packaging-design/scenario.md",
+      "label": "domain-packs",
+      "bytes": 327,
+      "sha256": "8b853ce16944d8e6"
+    },
+    {
+      "path": "domain-packs/packaging-design/schemas/brief.schema.json",
+      "label": "domain-packs",
+      "bytes": 1073,
+      "sha256": "ee69483a839ccf84"
+    },
+    {
+      "path": "domain-packs/packaging-design/sources.json",
+      "label": "domain-packs",
+      "bytes": 516,
+      "sha256": "1cb1a2f85238d720"
+    },
+    {
+      "path": "domain-packs/product-ui-design/benchmarks/product-ui-design-reference.json",
+      "label": "domain-packs",
+      "bytes": 440,
+      "sha256": "4ede05e6228cec11"
+    },
+    {
+      "path": "domain-packs/product-ui-design/evidence/pack-structure.json",
+      "label": "domain-packs",
+      "bytes": 402,
+      "sha256": "bc312578e5516f24"
+    },
+    {
+      "path": "domain-packs/product-ui-design/handoff-contract.json",
+      "label": "domain-packs",
+      "bytes": 1004,
+      "sha256": "22fdd27b04588d2b"
+    },
+    {
+      "path": "domain-packs/product-ui-design/manifest.json",
+      "label": "domain-packs",
+      "bytes": 644,
+      "sha256": "3e02d343e01b0fd9"
+    },
+    {
+      "path": "domain-packs/product-ui-design/preflight.json",
+      "label": "domain-packs",
+      "bytes": 856,
+      "sha256": "23effa615e52a394"
+    },
+    {
+      "path": "domain-packs/product-ui-design/profile.json",
+      "label": "domain-packs",
+      "bytes": 482,
+      "sha256": "f6f14e603e87fca0"
+    },
+    {
+      "path": "domain-packs/product-ui-design/rubric.json",
+      "label": "domain-packs",
+      "bytes": 1263,
+      "sha256": "b4e2e4145765238a"
+    },
+    {
+      "path": "domain-packs/product-ui-design/scenario.md",
+      "label": "domain-packs",
+      "bytes": 269,
+      "sha256": "54ac32e1af675d3f"
+    },
+    {
+      "path": "domain-packs/product-ui-design/schemas/brief.schema.json",
+      "label": "domain-packs",
+      "bytes": 1075,
+      "sha256": "f8d5a698e637e092"
+    },
+    {
+      "path": "domain-packs/product-ui-design/sources.json",
+      "label": "domain-packs",
+      "bytes": 518,
+      "sha256": "86cf53c7191886dd"
+    },
+    {
+      "path": "domain-packs/spatial-design/benchmarks/spatial-design-reference.json",
+      "label": "domain-packs",
+      "bytes": 447,
+      "sha256": "76b5960de0aafb1d"
+    },
+    {
+      "path": "domain-packs/spatial-design/evidence/pack-structure.json",
+      "label": "domain-packs",
+      "bytes": 399,
+      "sha256": "ea87f95a3f83fb47"
+    },
+    {
+      "path": "domain-packs/spatial-design/handoff-contract.json",
+      "label": "domain-packs",
+      "bytes": 1014,
+      "sha256": "84b7d4ce0670311b"
+    },
+    {
+      "path": "domain-packs/spatial-design/manifest.json",
+      "label": "domain-packs",
+      "bytes": 648,
+      "sha256": "44a3c22bfcc204fe"
+    },
+    {
+      "path": "domain-packs/spatial-design/preflight.json",
+      "label": "domain-packs",
+      "bytes": 735,
+      "sha256": "947ed9c945ecbbf2"
+    },
+    {
+      "path": "domain-packs/spatial-design/profile.json",
+      "label": "domain-packs",
+      "bytes": 567,
+      "sha256": "295205311b226ae6"
+    },
+    {
+      "path": "domain-packs/spatial-design/rubric.json",
+      "label": "domain-packs",
+      "bytes": 1374,
+      "sha256": "3a36c223a81940f7"
+    },
+    {
+      "path": "domain-packs/spatial-design/scenario.md",
+      "label": "domain-packs",
+      "bytes": 337,
+      "sha256": "4d27befb0d483a7f"
+    },
+    {
+      "path": "domain-packs/spatial-design/schemas/brief.schema.json",
+      "label": "domain-packs",
+      "bytes": 1082,
+      "sha256": "f96e72c99ffc2c2e"
+    },
+    {
+      "path": "domain-packs/spatial-design/sources.json",
+      "label": "domain-packs",
+      "bytes": 525,
+      "sha256": "9eae34619578a739"
+    },
+    {
+      "path": "domain-packs/three-d-design/benchmarks/three-d-design-reference.json",
+      "label": "domain-packs",
+      "bytes": 429,
+      "sha256": "da2fe6e41fa6ca84"
+    },
+    {
+      "path": "domain-packs/three-d-design/evidence/pack-structure.json",
+      "label": "domain-packs",
+      "bytes": 399,
+      "sha256": "e681222a95a89bd6"
+    },
+    {
+      "path": "domain-packs/three-d-design/handoff-contract.json",
+      "label": "domain-packs",
+      "bytes": 996,
+      "sha256": "6b1aaff65edbc8c0"
+    },
+    {
+      "path": "domain-packs/three-d-design/manifest.json",
+      "label": "domain-packs",
+      "bytes": 625,
+      "sha256": "e5b7cc9ad0d869e9"
+    },
+    {
+      "path": "domain-packs/three-d-design/preflight.json",
+      "label": "domain-packs",
+      "bytes": 788,
+      "sha256": "714feaafe6905eaa"
+    },
+    {
+      "path": "domain-packs/three-d-design/profile.json",
+      "label": "domain-packs",
+      "bytes": 457,
+      "sha256": "4f6685cc53e0f9af"
+    },
+    {
+      "path": "domain-packs/three-d-design/rubric.json",
+      "label": "domain-packs",
+      "bytes": 1185,
+      "sha256": "6bcdb5fbb55d6a37"
+    },
+    {
+      "path": "domain-packs/three-d-design/scenario.md",
+      "label": "domain-packs",
+      "bytes": 220,
+      "sha256": "941e23295e3f0bc4"
+    },
+    {
+      "path": "domain-packs/three-d-design/schemas/brief.schema.json",
+      "label": "domain-packs",
+      "bytes": 1064,
+      "sha256": "2c51ed6072d7421c"
+    },
+    {
+      "path": "domain-packs/three-d-design/sources.json",
+      "label": "domain-packs",
+      "bytes": 507,
+      "sha256": "faf8dc386a3556e8"
     },
     {
       "path": "domain-packs/uiux-design/benchmarks/b2b-backoffice-golden.json",
@@ -1365,6 +1725,126 @@
       "label": "domain-packs",
       "bytes": 1217,
       "sha256": "2b1c68063842b2dc"
+    },
+    {
+      "path": "domain-packs/video-design/benchmarks/video-design-reference.json",
+      "label": "domain-packs",
+      "bytes": 430,
+      "sha256": "d6c4647ad931a5f1"
+    },
+    {
+      "path": "domain-packs/video-design/evidence/pack-structure.json",
+      "label": "domain-packs",
+      "bytes": 397,
+      "sha256": "86ff6ca358974547"
+    },
+    {
+      "path": "domain-packs/video-design/handoff-contract.json",
+      "label": "domain-packs",
+      "bytes": 984,
+      "sha256": "cbe4bb8cd53e75e1"
+    },
+    {
+      "path": "domain-packs/video-design/manifest.json",
+      "label": "domain-packs",
+      "bytes": 629,
+      "sha256": "2b7126dd20877e45"
+    },
+    {
+      "path": "domain-packs/video-design/preflight.json",
+      "label": "domain-packs",
+      "bytes": 876,
+      "sha256": "2603a8401d752f07"
+    },
+    {
+      "path": "domain-packs/video-design/profile.json",
+      "label": "domain-packs",
+      "bytes": 463,
+      "sha256": "3f783f00dea42965"
+    },
+    {
+      "path": "domain-packs/video-design/rubric.json",
+      "label": "domain-packs",
+      "bytes": 1230,
+      "sha256": "3e2bf5208cb69eca"
+    },
+    {
+      "path": "domain-packs/video-design/scenario.md",
+      "label": "domain-packs",
+      "bytes": 238,
+      "sha256": "1ff068858ed8246c"
+    },
+    {
+      "path": "domain-packs/video-design/schemas/brief.schema.json",
+      "label": "domain-packs",
+      "bytes": 1065,
+      "sha256": "e3a81d4fccc30a29"
+    },
+    {
+      "path": "domain-packs/video-design/sources.json",
+      "label": "domain-packs",
+      "bytes": 508,
+      "sha256": "0da8fe5f57f6307c"
+    },
+    {
+      "path": "domain-packs/visual-design/benchmarks/visual-design-reference.json",
+      "label": "domain-packs",
+      "bytes": 432,
+      "sha256": "294844be4f616701"
+    },
+    {
+      "path": "domain-packs/visual-design/evidence/pack-structure.json",
+      "label": "domain-packs",
+      "bytes": 398,
+      "sha256": "f9d8c8690900581b"
+    },
+    {
+      "path": "domain-packs/visual-design/handoff-contract.json",
+      "label": "domain-packs",
+      "bytes": 878,
+      "sha256": "883a1a0783ef882e"
+    },
+    {
+      "path": "domain-packs/visual-design/manifest.json",
+      "label": "domain-packs",
+      "bytes": 632,
+      "sha256": "5abca0e323a8bf6d"
+    },
+    {
+      "path": "domain-packs/visual-design/preflight.json",
+      "label": "domain-packs",
+      "bytes": 716,
+      "sha256": "ac18eb26025e8c73"
+    },
+    {
+      "path": "domain-packs/visual-design/profile.json",
+      "label": "domain-packs",
+      "bytes": 456,
+      "sha256": "c003eb9fd526f8ad"
+    },
+    {
+      "path": "domain-packs/visual-design/rubric.json",
+      "label": "domain-packs",
+      "bytes": 1239,
+      "sha256": "e2911d750bff9682"
+    },
+    {
+      "path": "domain-packs/visual-design/scenario.md",
+      "label": "domain-packs",
+      "bytes": 245,
+      "sha256": "c3d0d5055a150fe9"
+    },
+    {
+      "path": "domain-packs/visual-design/schemas/brief.schema.json",
+      "label": "domain-packs",
+      "bytes": 1067,
+      "sha256": "bb11a77001a0adf6"
+    },
+    {
+      "path": "domain-packs/visual-design/sources.json",
+      "label": "domain-packs",
+      "bytes": 510,
+      "sha256": "c6fdf12d6e67b9e6"
     },
     {
       "path": "intelligence/README.md",
