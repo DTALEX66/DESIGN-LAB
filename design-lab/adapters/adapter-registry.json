@@ -594,16 +594,18 @@
           "supported": false
         }
       ],
-      "status": "declared",
+      "status": "structural",
       "mode": "external-cli",
       "license": "MIT",
       "fallback": "none yet",
       "evidence": {
-        "level": "E0",
-        "runtime_version": null,
-        "task_ids": [],
+        "level": "E1",
+        "runtime_version": "photoshop-mcp-windows-first (MIT, 90+ tools)",
+        "task_ids": [
+          "ps-mcp-connect-20260819"
+        ],
         "artifact_paths": [],
-        "note": "102 tools; Windows-first variant; MCP server manages PS session"
+        "note": "MCP server connected to PS 2023 (24.5), tool enumeration OK, real-tool-smoke executed to history-state step; stable PS control path (replaces unstable direct JSX)"
       },
       "rollback": "no host mutation until server connected"
     },

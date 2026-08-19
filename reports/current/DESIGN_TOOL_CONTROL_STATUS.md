@@ -30,3 +30,11 @@
 - 可用操控：Open Design / ComfyUI-H3 / ffmpeg（真实实证）
 - PS：能力存在但本环境自动化不稳定（非代码问题，环境/会话问题），真实作品由 G2（Open Design）提供
 - 待装：Inkscape/ImageMagick（共用库 OS External Configuration 可装后启用 adapter）
+
+
+## 更新（2026-08-19）：Photoshop MCP 方案验证
+
+- **Photoshop MCP**（alisaitteke/photoshop-mcp Windows-first 变体，MIT，90+ 工具）：clone + npm install + build 成功；**MCP server 已连接 PS 2023（24.5）**，工具枚举成功，real-tool-smoke 执行到 history-state 步骤（场景前置不满足，非连接问题）
+- 运行时：D:/All projects/DESIGN-LAB/.hermes/task-runtime/ps-mcp/ps-mcp-win/（node dist/index.js）
+- **意义**：替代不稳定的直接 JSX 路径——PS 操控走 MCP（structured state、UI fallback、fixture smoke），agent 可经 MCP 协议操作 PS
+- adapter-photoshop-mcp：E1（连接验证）
