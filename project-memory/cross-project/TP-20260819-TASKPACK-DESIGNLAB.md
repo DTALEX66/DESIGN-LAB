@@ -46,3 +46,19 @@ DESIGN-LAB 拥有：DesignBriefV1 / DesignContextV1 / DesignIRV1 / DomainCapabil
 ## 人工批准点（§16）
 
 commit/push/迁移/写真实 Adobe 文件/Secret/保护规则/历史重写——均需人工批准。
+
+---
+
+## 执行状态（DESIGN-LAB 侧，2026-08-19）
+
+- DL-P0-001 身份中立化：PASS（FIGMA_PLATFORM_RULES 中立性勘误 + 核验报告）
+- DL-P0-002 知识角色重分类：PASS（DESIGN_KNOWLEDGE_ROLE_MAP.md）
+- DL-P0-003 证据状态对齐：PASS（CLOUD_BASELINE-EXACT-SHA-VERIFICATION.md，Exact SHA 275702b）
+- DL-P0-004 MiniGame 边界：PASS（fixture 300/300，未恢复产品）
+- DL-P0-005 外置资料转化链：PASS（extraction-job + candidate-knowledge schema + EXTERNAL_ASSET_INDEX_REPORT）
+- DL-P1-001 token/UIUX 底座评估：PASS（OPEN_SOURCE_ADOPTION_REPORT）
+- DL-P1-002 Adapter 分级：PASS（DESIGN_TOOL_POC_MATRIX）
+- DL-P1-003 OpenPencil 试点：评估完成，待用户批准后进 adapter 开发
+- DL-P1-004 Flue 隔离：隔离（不并入）
+- DL-P2 研究项：归档（不并入）
+- 交付文件 9 份：reports/current/ 下全部产出；聚合链 33/33、Python 248/248
