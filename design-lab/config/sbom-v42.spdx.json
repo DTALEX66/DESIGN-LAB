@@ -594,6 +594,16 @@
       "supplier": "NOASSERTION",
       "downloadLocation": "https://github.com/creold/illustrator-scripts",
       "versionInfo": "18aedd849a30f01a38351494c6baaf7c81d69e0c"
+    },
+    {
+      "SPDXID": "SPDXRef-vendor-64",
+      "name": "inkscape-batch-export",
+      "licenseConcluded": "MIT",
+      "licenseDeclared": "MIT",
+      "copyrightText": "NOASSERTION (from StefanTraistaru/batch-export)",
+      "supplier": "NOASSERTION",
+      "downloadLocation": "https://github.com/StefanTraistaru/batch-export",
+      "versionInfo": ""
     }
   ],
   "relationships": [
@@ -911,6 +921,11 @@
       "spdxElementId": "SPDXRef-DESIGN-LAB",
       "relationshipType": "CONTAINS",
       "relatedSpdxElement": "SPDXRef-vendor-63"
+    },
+    {
+      "spdxElementId": "SPDXRef-DESIGN-LAB",
+      "relationshipType": "CONTAINS",
+      "relatedSpdxElement": "SPDXRef-vendor-64"
     }
   ]
 }

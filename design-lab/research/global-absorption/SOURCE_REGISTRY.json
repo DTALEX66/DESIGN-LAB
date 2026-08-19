@@ -132,7 +132,7 @@
         "license": "MIT",
         "licenseStatus": "reviewed",
         "allowedUsage": "tool-control scripts (design-lab/knowledge/tool-control/scripts/inkscape/), layer-based export extension",
-        "version": "master",
+        "version": "",
         "acquiredAt": "2026-08-19T00:00:00Z",
         "contentHash": "sha256:c572a7dbae118864304b1e0bb883b8d0c58629ded5a9691f2baa62620d9b7101",
         "redistributable": true,
