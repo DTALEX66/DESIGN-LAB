@@ -580,6 +580,128 @@
         "note": "bpy in-process only; subprocess contract"
       },
       "rollback": "output files only"
+    },
+    {
+      "adapter_id": "adapter-photoshop-mcp",
+      "tool": "Photoshop MCP (alisaitteke)",
+      "capabilities": [
+        {
+          "name": "photoshop.operate",
+          "supported": false
+        },
+        {
+          "name": "photoshop.export",
+          "supported": false
+        }
+      ],
+      "status": "declared",
+      "mode": "external-cli",
+      "license": "MIT",
+      "fallback": "none yet",
+      "evidence": {
+        "level": "E0",
+        "runtime_version": null,
+        "task_ids": [],
+        "artifact_paths": [],
+        "note": "102 tools; Windows-first variant; MCP server manages PS session"
+      },
+      "rollback": "no host mutation until server connected"
+    },
+    {
+      "adapter_id": "adapter-illustrator-mcp",
+      "tool": "Illustrator MCP (ie3jp)",
+      "capabilities": [
+        {
+          "name": "illustrator.operate",
+          "supported": false
+        }
+      ],
+      "status": "declared",
+      "mode": "external-cli",
+      "license": "MIT",
+      "fallback": "none yet",
+      "evidence": {
+        "level": "E0",
+        "runtime_version": null,
+        "task_ids": [],
+        "artifact_paths": [],
+        "note": "63 tools, agent-driven Illustrator"
+      },
+      "rollback": "no host mutation until server connected"
+    },
+    {
+      "adapter_id": "adapter-figma-mcp",
+      "tool": "Figma Dev Mode MCP (official)",
+      "capabilities": [
+        {
+          "name": "figma.read",
+          "supported": false
+        },
+        {
+          "name": "figma.export",
+          "supported": false
+        }
+      ],
+      "status": "declared",
+      "mode": "external-cli",
+      "license": "MIT",
+      "fallback": "none yet",
+      "evidence": {
+        "level": "E0",
+        "runtime_version": null,
+        "task_ids": [],
+        "artifact_paths": [],
+        "note": "official figma-developer-mcp; needs Dev Mode"
+      },
+      "rollback": "no host mutation until server connected"
+    },
+    {
+      "adapter_id": "adapter-inkscape-mcp",
+      "tool": "Inkscape MCP (grumpydevorg)",
+      "capabilities": [
+        {
+          "name": "svg.export",
+          "supported": false
+        }
+      ],
+      "status": "declared",
+      "mode": "external-cli",
+      "license": "MIT",
+      "fallback": "none yet",
+      "evidence": {
+        "level": "E0",
+        "runtime_version": null,
+        "task_ids": [],
+        "artifact_paths": [],
+        "note": "CLI+DOM dual channel with safety boundary"
+      },
+      "rollback": "no host mutation until server connected"
+    },
+    {
+      "adapter_id": "adapter-generator-mcp",
+      "tool": "Adobe Generator MCP (official)",
+      "capabilities": [
+        {
+          "name": "photoshop.operate",
+          "supported": false
+        },
+        {
+          "name": "acrobat.operate",
+          "supported": false
+        }
+      ],
+      "status": "declared",
+      "mode": "external-cli",
+      "license": "Apache-2.0",
+      "fallback": "none yet",
+      "evidence": {
+        "level": "E0",
+        "runtime_version": null,
+        "task_ids": [],
+        "artifact_paths": [],
+        "note": "Adobe official generator remote MCP"
+      },
+      "rollback": "no host mutation until server connected"
     }
   ],
   "note": "No adapter is labelled 'available' without runtime evidence. Statuses follow the model above; E3 claims require a task ID, artifact path/hash and exit code in the evidence block."
