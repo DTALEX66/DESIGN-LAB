@@ -26,3 +26,10 @@
 
 - adapter-eagle-webapi（E0：asset.query/import/library.switch）
 - adapter-eagle-mcp（E0：asset.query/import，MIT）
+
+
+## 更新（2026-08-19）：本机确认
+
+- Eagle 已安装（D:/Program Files/Eagle/Eagle.exe）并启动（5 进程）——此前漏查 D 盘，已修正
+- **Web API 未开启**（localhost:41595 拒绝连接）：需在 Eagle GUI 设置中启用（设置 → 服务/Web API → 开启，默认端口 41595）
+- 开启后即可验证 asset 查询/导入 + 安装 eagle-mcp-server

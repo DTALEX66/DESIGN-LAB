@@ -724,16 +724,18 @@
           false
         ]
       ],
-      "status": "declared",
+      "status": "structural",
       "mode": "external-local-api",
       "license": "commercial (Eagle app; API free)",
       "fallback": "none yet",
       "evidence": {
-        "level": "E0",
-        "runtime_version": null,
-        "task_ids": [],
+        "level": "E1",
+        "runtime_version": "Eagle installed (D:/Program Files/Eagle), running (5 procs)",
+        "task_ids": [
+          "eagle-install-20260819"
+        ],
         "artifact_paths": [],
-        "note": "Eagle local HTTP API (localhost:41595); requires Eagle installed + Web API enabled"
+        "note": "Installed + running confirmed; Web API (41595) NOT listening - requires GUI enable (Settings -> Web API); then verify localhost:41595"
       },
       "rollback": "no host mutation"
     },
