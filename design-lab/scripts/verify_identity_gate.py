@@ -24,6 +24,7 @@ LEGACY = [
 # Allowlisted roots (history + host adapter projection + source refs)
 ALLOW_ROOT_PREFIXES = (
     "project-memory/history/",
+    "project-memory/cross-project/",  # external federation taskpacks (explanatory legacy-name refs)
     "reports/history/",
     "minigame-runtime/docs/history/",
     "design-lab/adapters/hosts/open-design/",

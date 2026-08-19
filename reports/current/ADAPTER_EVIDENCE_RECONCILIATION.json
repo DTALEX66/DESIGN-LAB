@@ -1,0 +1,162 @@
+{
+  "schemaVersion": "design-lab/adapter-evidence-reconciliation/v1",
+  "generatedAt": "2026-08-19T00:00:00Z",
+  "exactSha": "",
+  "adapters": [
+    {
+      "adapter_id": "adapter-open-design",
+      "evidence": "E1",
+      "status": "structural",
+      "supported": [
+        "studio-canvas",
+        "agent-launch",
+        "artifact-export"
+      ]
+    },
+    {
+      "adapter_id": "adapter-figma",
+      "evidence": "E0",
+      "status": "declared",
+      "supported": [
+        "import",
+        "export"
+      ]
+    },
+    {
+      "adapter_id": "adapter-penpot",
+      "evidence": "E0",
+      "status": "declared",
+      "supported": [
+        "import"
+      ]
+    },
+    {
+      "adapter_id": "adapter-blender",
+      "evidence": "E0",
+      "status": "missing",
+      "supported": []
+    },
+    {
+      "adapter_id": "adapter-ffmpeg",
+      "evidence": "E0",
+      "status": "missing",
+      "supported": []
+    },
+    {
+      "adapter_id": "adapter-browser",
+      "evidence": "E0",
+      "status": "declared",
+      "supported": [
+        "dom-render",
+        "visual-regression",
+        "axe-a11y"
+      ]
+    },
+    {
+      "adapter_id": "adapter-comfyui",
+      "evidence": "E3",
+      "status": "runtime",
+      "supported": [
+        "workflow-execution"
+      ]
+    },
+    {
+      "adapter_id": "adapter-adobe-photoshop",
+      "evidence": "E0",
+      "status": "declared",
+      "supported": []
+    },
+    {
+      "adapter_id": "adapter-minimax-h3",
+      "evidence": "E3",
+      "status": "runtime",
+      "supported": [
+        "video-generation"
+      ]
+    },
+    {
+      "adapter_id": "adapter-mcp",
+      "evidence": "E0",
+      "status": "declared",
+      "supported": []
+    },
+    {
+      "adapter_id": "adapter-inkscape",
+      "evidence": "E0",
+      "status": "declared",
+      "supported": []
+    },
+    {
+      "adapter_id": "adapter-imagemagick",
+      "evidence": "E0",
+      "status": "declared",
+      "supported": []
+    },
+    {
+      "adapter_id": "adapter-sharp",
+      "evidence": "E0",
+      "status": "declared",
+      "supported": []
+    },
+    {
+      "adapter_id": "adapter-resvg",
+      "evidence": "E0",
+      "status": "declared",
+      "supported": []
+    },
+    {
+      "adapter_id": "adapter-svgo",
+      "evidence": "E0",
+      "status": "declared",
+      "supported": []
+    },
+    {
+      "adapter_id": "adapter-librsvg",
+      "evidence": "E0",
+      "status": "declared",
+      "supported": []
+    },
+    {
+      "adapter_id": "adapter-playwright-visual",
+      "evidence": "E0",
+      "status": "declared",
+      "supported": []
+    },
+    {
+      "adapter_id": "adapter-verapdf",
+      "evidence": "E0",
+      "status": "declared",
+      "supported": []
+    },
+    {
+      "adapter_id": "adapter-ghostscript",
+      "evidence": "E0",
+      "status": "declared",
+      "supported": []
+    },
+    {
+      "adapter_id": "adapter-style-dictionary",
+      "evidence": "E0",
+      "status": "declared",
+      "supported": []
+    },
+    {
+      "adapter_id": "adapter-dtcg",
+      "evidence": "E0",
+      "status": "declared",
+      "supported": []
+    },
+    {
+      "adapter_id": "adapter-figma-rest",
+      "evidence": "E0",
+      "status": "declared",
+      "supported": []
+    },
+    {
+      "adapter_id": "adapter-blender-bpy",
+      "evidence": "E0",
+      "status": "missing",
+      "supported": []
+    }
+  ]
+}
