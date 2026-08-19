@@ -65,10 +65,10 @@ class ObjectModelRoundTripTest(unittest.TestCase):
         required = schema.get("required", [])
         for req in required:
             prop = schema.get("properties", {}).get(req, {})
-            instance[req] = self._value_for(prop, depth)
+            instance[req] = self._value_for(prop, depth, key=req)
         return instance
 
-    def _value_for(self, prop: dict, depth: int) -> object:
+    def _value_for(self, prop: dict, depth: int, key: str = "") -> object:
         if "const" in prop:
             return prop["const"]
         if "enum" in prop:
@@ -84,6 +84,9 @@ class ObjectModelRoundTripTest(unittest.TestCase):
             return 1
         if t == "boolean":
             return True
+        # contentHash-style fields require sha256:<64hex>; others use test-value
+        if key in ("contentHash", "content_hash", "content_hash64"):
+            return "sha256:" + "0" * 64
         return "test-value"
 
     def test_minimal_fixture_round_trips(self):

@@ -76,6 +76,7 @@ class ObjectModelTest(unittest.TestCase):
             "handoff-package", "evidence-record",
             "project", "command", "execution-result",
             "quality-report", "delivery-manifest", "memory-record",
+            "extraction-job", "candidate-knowledge",
         }
         self.assertEqual(ids, expected)
 
