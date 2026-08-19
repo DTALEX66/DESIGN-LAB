@@ -706,6 +706,62 @@
         "note": "Adobe official generator remote MCP"
       },
       "rollback": "no host mutation until server connected"
+    },
+    {
+      "adapter_id": "adapter-eagle-webapi",
+      "tool": "Eagle (eagle.cool) Web API",
+      "capabilities": [
+        [
+          "asset.query",
+          false
+        ],
+        [
+          "asset.import",
+          false
+        ],
+        [
+          "library.switch",
+          false
+        ]
+      ],
+      "status": "declared",
+      "mode": "external-local-api",
+      "license": "commercial (Eagle app; API free)",
+      "fallback": "none yet",
+      "evidence": {
+        "level": "E0",
+        "runtime_version": null,
+        "task_ids": [],
+        "artifact_paths": [],
+        "note": "Eagle local HTTP API (localhost:41595); requires Eagle installed + Web API enabled"
+      },
+      "rollback": "no host mutation"
+    },
+    {
+      "adapter_id": "adapter-eagle-mcp",
+      "tool": "eagle-mcp-server (npm)",
+      "capabilities": [
+        [
+          "asset.query",
+          false
+        ],
+        [
+          "asset.import",
+          false
+        ]
+      ],
+      "status": "declared",
+      "mode": "external-cli",
+      "license": "MIT",
+      "fallback": "none yet",
+      "evidence": {
+        "level": "E0",
+        "runtime_version": "npm 1.1.7",
+        "task_ids": [],
+        "artifact_paths": [],
+        "note": "MCP server for Eagle (tuki0918, MIT); manages local media files"
+      },
+      "rollback": "no host mutation"
     }
   ],
   "note": "No adapter is labelled 'available' without runtime evidence. Statuses follow the model above; E3 claims require a task ID, artifact path/hash and exit code in the evidence block."
