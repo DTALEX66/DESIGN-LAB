@@ -6,5 +6,6 @@
 | Illustrator | 99 | creold/illustrator-scripts | MIT | ✅（CS6~CC2026，**AI 2023 可用**，不走 MCP 版本门） |
 | ComfyUI | 1+ | Comfy-Org workflow_templates | MIT | ✅ |
 | Style Dictionary | 1 | style-dictionary examples | Apache-2.0 | ✅ |
+| Inkscape | 2 | StefanTraistaru/batch-export | MIT | ✅（按图层导出 SVG/PNG/PDF） |
 
 > 转化规范：原样归档 + SPDX 头 + 来源 commit SHA；无 LICENSE 脚本未纳入（仅参考）。

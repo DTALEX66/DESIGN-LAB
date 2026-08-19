@@ -123,6 +123,30 @@
         "target": "design-lab/knowledge/tool-control/scripts/illustrator/",
         "restrictions": "MIT; editable scripts"
       }
+    },
+    {
+      "source": {
+        "sourceId": "inkscape-batch-export",
+        "origin": "https://github.com/StefanTraistaru/batch-export",
+        "author": "StefanTraistaru",
+        "license": "MIT",
+        "licenseStatus": "reviewed",
+        "allowedUsage": "tool-control scripts (design-lab/knowledge/tool-control/scripts/inkscape/), layer-based export extension",
+        "version": "master",
+        "acquiredAt": "2026-08-19T00:00:00Z",
+        "contentHash": "sha256:c572a7dbae118864304b1e0bb883b8d0c58629ded5a9691f2baa62620d9b7101",
+        "redistributable": true,
+        "modelInputAllowed": true,
+        "commercialUse": true,
+        "reviewedBy": "DTALEX66 (user-authorized transformation)",
+        "reviewedAt": "2026-08-19T00:00:00Z"
+      },
+      "integration": {
+        "mode": "vendor-adapt",
+        "status": "active",
+        "target": "design-lab/knowledge/tool-control/scripts/inkscape/",
+        "restrictions": "MIT"
+      }
     }
   ]
 }
