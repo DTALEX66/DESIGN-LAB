@@ -51,6 +51,30 @@
         "target": "design-lab/knowledge/sources/pixelmatch",
         "restrictions": "ISC; pixel diff for review scorecard"
       }
+    },
+    {
+      "source": {
+        "sourceId": "adobe-illustrator-scripting",
+        "origin": "https://github.com/github/awesome-copilot",
+        "author": "github/awesome-copilot",
+        "license": "MIT",
+        "licenseStatus": "reviewed",
+        "allowedUsage": "tool-control reference (design-lab/knowledge/tool-control/), read-only skill/object-model reference",
+        "version": "0cdbad4dbebb98926a3fb4985d69a57d0b83313a",
+        "acquiredAt": "2026-08-19T00:00:00Z",
+        "contentHash": "sha256:6a3b601bb3d7ae8a2a527aad788c7266001feadd5aca43db7e9926af1cda3518",
+        "redistributable": true,
+        "modelInputAllowed": true,
+        "commercialUse": true,
+        "reviewedBy": "DTALEX66 (user-authorized archive 2026-08-19)",
+        "reviewedAt": "2026-08-19T00:00:00Z"
+      },
+      "integration": {
+        "mode": "vendor-adapt",
+        "status": "active",
+        "target": "design-lab/knowledge/tool-control/",
+        "restrictions": "MIT; reference only (AI 2023 version-gated)"
+      }
     }
   ]
 }

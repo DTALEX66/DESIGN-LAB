@@ -564,6 +564,16 @@
       "supplier": "NOASSERTION",
       "downloadLocation": "https://github.com/mapbox/pixelmatch",
       "versionInfo": "c6fee35afac3c52576b2cb424bd1061ab6a4bd06"
+    },
+    {
+      "SPDXID": "SPDXRef-vendor-61",
+      "name": "adobe-illustrator-scripting",
+      "licenseConcluded": "MIT",
+      "licenseDeclared": "MIT",
+      "copyrightText": "NOASSERTION (from github/awesome-copilot)",
+      "supplier": "NOASSERTION",
+      "downloadLocation": "https://github.com/github/awesome-copilot",
+      "versionInfo": "0cdbad4dbebb98926a3fb4985d69a57d0b83313a"
     }
   ],
   "relationships": [
@@ -866,6 +876,11 @@
       "spdxElementId": "SPDXRef-DESIGN-LAB",
       "relationshipType": "CONTAINS",
       "relatedSpdxElement": "SPDXRef-vendor-60"
+    },
+    {
+      "spdxElementId": "SPDXRef-DESIGN-LAB",
+      "relationshipType": "CONTAINS",
+      "relatedSpdxElement": "SPDXRef-vendor-61"
     }
   ]
 }
