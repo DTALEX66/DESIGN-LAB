@@ -121,6 +121,20 @@
       "description": "设计记忆记录（semantic/procedural/episodic/visual/failure，可溯源可验证）",
       "schemaRef": "schemas/design-memory.schema.json",
       "adapterMappable": false
+    },
+    {
+      "id": "extraction-job",
+      "name": "ExtractionJob",
+      "description": "外置资料转化链：SourceRecord -> ExtractionJob -> CandidateKnowledge -> compiled",
+      "schemaRef": "schemas/extraction-job.schema.json",
+      "adapterMappable": false
+    },
+    {
+      "id": "candidate-knowledge",
+      "name": "CandidateKnowledge",
+      "description": "提取的知识候选（quarantine/review/compiled 状态机）",
+      "schemaRef": "schemas/candidate-knowledge.schema.json",
+      "adapterMappable": false
     }
   ]
 }

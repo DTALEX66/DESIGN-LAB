@@ -1,8 +1,8 @@
 {
   "$schema": "../../schemas/capability-index.schema.json",
   "version": "1.0.0",
-  "generated_at": "2026-08-18",
-  "capability_count": 2406,
+  "generated_at": "2026-08-19",
+  "capability_count": 2424,
   "capabilities": [
     {
       "path": "adapters/NEUTRALITY_POLICY.md",
@@ -13,8 +13,8 @@
     {
       "path": "adapters/adapter-registry.json",
       "label": "adapters",
-      "bytes": 9021,
-      "sha256": "226a43711be8cba8"
+      "bytes": 16528,
+      "sha256": "0c708b2d9875ea1d"
     },
     {
       "path": "adapters/creative-tools/adobe/adapter.manifest.json",
@@ -195,6 +195,12 @@
       "label": "adapters",
       "bytes": 1401,
       "sha256": "bf451c89641be054"
+    },
+    {
+      "path": "adapters/hosts/open-design/evidence/G2-real-artifact-20260819.md",
+      "label": "adapters",
+      "bytes": 919,
+      "sha256": "171b84ad0979f79f"
     },
     {
       "path": "adapters/hosts/open-design/evidence/README.md",
@@ -7875,6 +7881,108 @@
       "label": "knowledge",
       "bytes": 7090,
       "sha256": "57c032774cb78994"
+    },
+    {
+      "path": "knowledge/sources/ckw-design-skill/LICENSE",
+      "label": "knowledge",
+      "bytes": 1091,
+      "sha256": "9ad3dd93b01374c1"
+    },
+    {
+      "path": "knowledge/sources/ckw-design-skill/README.md",
+      "label": "knowledge",
+      "bytes": 5374,
+      "sha256": "44629d6b3d8b1c6d"
+    },
+    {
+      "path": "knowledge/sources/ckw-design-skill/SKILL.md",
+      "label": "knowledge",
+      "bytes": 8068,
+      "sha256": "4d515249112bf32a"
+    },
+    {
+      "path": "knowledge/sources/ckw-design-skill/design-philosophy/SKILL.md",
+      "label": "knowledge",
+      "bytes": 1935,
+      "sha256": "804a2fd1244759d2"
+    },
+    {
+      "path": "knowledge/sources/ckw-design-skill/design-philosophy/reference.md",
+      "label": "knowledge",
+      "bytes": 1814,
+      "sha256": "15cbb5908fff7529"
+    },
+    {
+      "path": "knowledge/sources/ckw-design-skill/design-system/SKILL.md",
+      "label": "knowledge",
+      "bytes": 14582,
+      "sha256": "b527fe3c6f19ab68"
+    },
+    {
+      "path": "knowledge/sources/ckw-design-skill/design-system/references/motion-choreography.md",
+      "label": "knowledge",
+      "bytes": 6652,
+      "sha256": "f59336cf72d145fa"
+    },
+    {
+      "path": "knowledge/sources/ckw-design-skill/design-thinking/SKILL.md",
+      "label": "knowledge",
+      "bytes": 6478,
+      "sha256": "1ab1fc1aad565cb4"
+    },
+    {
+      "path": "knowledge/sources/ckw-design-skill/deterministic-design/SKILL.md",
+      "label": "knowledge",
+      "bytes": 1779,
+      "sha256": "05116033d2f98e69"
+    },
+    {
+      "path": "knowledge/sources/ckw-design-skill/deterministic-design/design-spatial/SKILL.md",
+      "label": "knowledge",
+      "bytes": 18285,
+      "sha256": "d4dc910068529ec6"
+    },
+    {
+      "path": "knowledge/sources/ckw-design-skill/deterministic-design/design-spatial/scripts/layout-audit.js",
+      "label": "knowledge",
+      "bytes": 10961,
+      "sha256": "a8d7870d38af3c03"
+    },
+    {
+      "path": "knowledge/sources/ckw-design-skill/deterministic-design/design-ux/SKILL.md",
+      "label": "knowledge",
+      "bytes": 6545,
+      "sha256": "0b4be1173fd9811d"
+    },
+    {
+      "path": "knowledge/sources/ckw-design-skill/docs/before-after.png",
+      "label": "knowledge",
+      "bytes": 214831,
+      "sha256": "ac12f8cc94dadf80"
+    },
+    {
+      "path": "knowledge/sources/ckw-design-skill/docs/before-after.png.license",
+      "label": "knowledge",
+      "bytes": 621,
+      "sha256": "f938b4420ccbe6d8"
+    },
+    {
+      "path": "knowledge/sources/ckw-design-skill/llms.txt",
+      "label": "knowledge",
+      "bytes": 586,
+      "sha256": "ce3889aaf4a8d8c4"
+    },
+    {
+      "path": "knowledge/sources/pixelmatch/LICENSE",
+      "label": "knowledge",
+      "bytes": 738,
+      "sha256": "cfec0482fb785fe2"
+    },
+    {
+      "path": "knowledge/sources/pixelmatch/index.js",
+      "label": "knowledge",
+      "bytes": 23833,
+      "sha256": "c5258a951fad638e"
     },
     {
       "path": "knowledge/standards/3D_ASSET_INTEROP.md",
