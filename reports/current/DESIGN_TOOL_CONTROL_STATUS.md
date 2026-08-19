@@ -38,3 +38,11 @@
 - 运行时：D:/All projects/DESIGN-LAB/.hermes/task-runtime/ps-mcp/ps-mcp-win/（node dist/index.js）
 - **意义**：替代不稳定的直接 JSX 路径——PS 操控走 MCP（structured state、UI fallback、fixture smoke），agent 可经 MCP 协议操作 PS
 - adapter-photoshop-mcp：E1（连接验证）
+
+
+## 更新（2026-08-19）：Illustrator MCP 接入
+
+- illustrator-mcp-server（ie3jp，MIT，66 工具）：clone + install + build 成功，MCP 握手成功 + 66 工具枚举 OK
+- **版本门**：工具执行被拒（'requires CC 2024 or later, current 27.5.0'）——本机 AI 2023 需升级 CC 2024+ 才能经此 MCP 操作
+- 运行时：D:/All projects/DESIGN-LAB/.hermes/task-runtime/ai-mcp/ai-mcp/
+- adapter-illustrator-mcp：E1（连接验证，版本受限）

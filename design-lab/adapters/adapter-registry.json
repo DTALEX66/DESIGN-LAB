@@ -618,16 +618,18 @@
           "supported": false
         }
       ],
-      "status": "declared",
+      "status": "structural",
       "mode": "external-cli",
       "license": "MIT",
       "fallback": "none yet",
       "evidence": {
-        "level": "E0",
-        "runtime_version": null,
-        "task_ids": [],
+        "level": "E1",
+        "runtime_version": "illustrator-mcp-server (MIT, 66 tools)",
+        "task_ids": [
+          "ai-mcp-connect-20260819"
+        ],
         "artifact_paths": [],
-        "note": "63 tools, agent-driven Illustrator"
+        "note": "MCP connected (66 tools enumerated) BUT version gate: requires CC 2024+ (local AI 2023 = 27.5.0 rejected); upgrade needed for execution"
       },
       "rollback": "no host mutation until server connected"
     },
