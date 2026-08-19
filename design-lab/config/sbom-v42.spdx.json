@@ -574,6 +574,26 @@
       "supplier": "NOASSERTION",
       "downloadLocation": "https://github.com/github/awesome-copilot",
       "versionInfo": "0cdbad4dbebb98926a3fb4985d69a57d0b83313a"
+    },
+    {
+      "SPDXID": "SPDXRef-vendor-62",
+      "name": "creold-photoshop-scripts",
+      "licenseConcluded": "MIT",
+      "licenseDeclared": "MIT",
+      "copyrightText": "NOASSERTION (vendored from https://github.com/creold/photoshop-scripts)",
+      "supplier": "NOASSERTION",
+      "downloadLocation": "https://github.com/creold/photoshop-scripts",
+      "versionInfo": "9a2a54cab1b4f737f86513fce0329d9e168dddb4"
+    },
+    {
+      "SPDXID": "SPDXRef-vendor-63",
+      "name": "creold-illustrator-scripts",
+      "licenseConcluded": "MIT",
+      "licenseDeclared": "MIT",
+      "copyrightText": "NOASSERTION (vendored from https://github.com/creold/illustrator-scripts)",
+      "supplier": "NOASSERTION",
+      "downloadLocation": "https://github.com/creold/illustrator-scripts",
+      "versionInfo": "18aedd849a30f01a38351494c6baaf7c81d69e0c"
     }
   ],
   "relationships": [
@@ -881,6 +901,16 @@
       "spdxElementId": "SPDXRef-DESIGN-LAB",
       "relationshipType": "CONTAINS",
       "relatedSpdxElement": "SPDXRef-vendor-61"
+    },
+    {
+      "spdxElementId": "SPDXRef-DESIGN-LAB",
+      "relationshipType": "CONTAINS",
+      "relatedSpdxElement": "SPDXRef-vendor-62"
+    },
+    {
+      "spdxElementId": "SPDXRef-DESIGN-LAB",
+      "relationshipType": "CONTAINS",
+      "relatedSpdxElement": "SPDXRef-vendor-63"
     }
   ]
 }

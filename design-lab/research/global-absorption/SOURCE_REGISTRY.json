@@ -75,6 +75,54 @@
         "target": "design-lab/knowledge/tool-control/",
         "restrictions": "MIT; reference only (AI 2023 version-gated)"
       }
+    },
+    {
+      "source": {
+        "sourceId": "creold-photoshop-scripts",
+        "origin": "https://github.com/creold/photoshop-scripts",
+        "author": "creold (Alex Savchenko)",
+        "license": "MIT",
+        "licenseStatus": "reviewed",
+        "allowedUsage": "tool-control scripts (design-lab/knowledge/tool-control/scripts/), editable automation scripts",
+        "version": "9a2a54cab1b4f737f86513fce0329d9e168dddb4",
+        "acquiredAt": "2026-08-19T00:00:00Z",
+        "contentHash": "sha256:b172feadec9f2efce9db4e795dc025ccfdcd9901852c0b828130214eebe2ef42",
+        "redistributable": true,
+        "modelInputAllowed": true,
+        "commercialUse": true,
+        "reviewedBy": "DTALEX66 (user-authorized transformation 2026-08-19)",
+        "reviewedAt": "2026-08-19T00:00:00Z"
+      },
+      "integration": {
+        "mode": "vendor-adapt",
+        "status": "active",
+        "target": "design-lab/knowledge/tool-control/scripts/photoshop/",
+        "restrictions": "MIT; editable scripts"
+      }
+    },
+    {
+      "source": {
+        "sourceId": "creold-illustrator-scripts",
+        "origin": "https://github.com/creold/illustrator-scripts",
+        "author": "creold (Alex Savchenko)",
+        "license": "MIT",
+        "licenseStatus": "reviewed",
+        "allowedUsage": "tool-control scripts (design-lab/knowledge/tool-control/scripts/), editable automation scripts",
+        "version": "18aedd849a30f01a38351494c6baaf7c81d69e0c",
+        "acquiredAt": "2026-08-19T00:00:00Z",
+        "contentHash": "sha256:8b80c38abe2252dafcfcd68c4dcf7be831ef9727272fd6a3209272bf53d77982",
+        "redistributable": true,
+        "modelInputAllowed": true,
+        "commercialUse": true,
+        "reviewedBy": "DTALEX66 (user-authorized transformation 2026-08-19)",
+        "reviewedAt": "2026-08-19T00:00:00Z"
+      },
+      "integration": {
+        "mode": "vendor-adapt",
+        "status": "active",
+        "target": "design-lab/knowledge/tool-control/scripts/illustrator/",
+        "restrictions": "MIT; editable scripts"
+      }
     }
   ]
 }
