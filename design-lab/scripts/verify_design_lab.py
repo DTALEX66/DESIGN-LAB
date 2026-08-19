@@ -28,6 +28,7 @@ SCRIPTS = [
     "verify_dtcg_tokens.py",
     "verify_extraction_chain.py",
     "verify_federation_e2e.py",
+    "verify_federation_review.py",
     "verify_quality_pipeline.py",
     "verify_review_surface.py",
     "adapters/hosts/open-design/verifier/verify_open_design_host_adapter.py",
