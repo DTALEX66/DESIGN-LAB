@@ -53,3 +53,10 @@ GAME_HOME_001、MONITOR_EVENT_001、FAIL_POPUP_001、REVIVE_AD_POPUP_001、XHS_C
 
 ## Figma 交付给 Codex 前必须包含
 页面名称、组件列表、颜色 tokens、字体规则、间距规则、状态变化规则、导出资源列表、UI Schema。
+
+
+---
+
+## 中立性勘误（DL-P0-001，2026-08-19）
+
+本文为历史资料/参考文档。按 DESIGN-LAB 平台中立政策（NEUTRALITY_POLICY）：**Open Design 只能是可选 Adapter/宿主之一，不得作为默认绑定**。宿主选择（Open Design/Figma/Blender/ComfyUI/Adobe…）属于用户本地 profile 或项目级授权配置；产品契约不绑定默认宿主。
