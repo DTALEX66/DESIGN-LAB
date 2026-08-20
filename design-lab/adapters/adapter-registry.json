@@ -605,7 +605,7 @@
           "ps-mcp-connect-20260819"
         ],
         "artifact_paths": [],
-        "note": "MCP server connected to PS 2023 (24.5), tool enumeration OK, real-tool-smoke executed to history-state step; stable PS control path (replaces unstable direct JSX)"
+        "note": "MCP server connected to PS 2023 (24.5); tool enumeration and a history-state smoke step completed. Editable-file execution, reopen/readback, rollback, and repeated fixture evidence remain unverified."
       },
       "rollback": "no host mutation until server connected"
     },
@@ -711,18 +711,9 @@
       "adapter_id": "adapter-eagle-webapi",
       "tool": "Eagle (eagle.cool) Web API",
       "capabilities": [
-        [
-          "asset.query",
-          false
-        ],
-        [
-          "asset.import",
-          false
-        ],
-        [
-          "library.switch",
-          false
-        ]
+        {"name": "asset.query", "supported": false},
+        {"name": "asset.import", "supported": false},
+        {"name": "library.switch", "supported": false}
       ],
       "status": "structural",
       "mode": "external-local-api",
@@ -730,12 +721,13 @@
       "fallback": "none yet",
       "evidence": {
         "level": "E1",
-        "runtime_version": "Eagle installed (D:/Program Files/Eagle), running (5 procs)",
+        "runtime_version": "Eagle 4.0.0 (local Web API loopback)",
         "task_ids": [
-          "eagle-install-20260819"
+          "eagle-install-20260819",
+          "eagle-web-api-readback-20260821"
         ],
         "artifact_paths": [],
-        "note": "Installed + running confirmed; Web API (41595) NOT listening - requires GUI enable (Settings -> Web API); then verify localhost:41595"
+        "note": "Loopback Web API handshake and read-only application/library metadata readback succeeded on 2026-08-21. No import, mutation, test-library operation, or rollback was performed. Controlled import/readback/rollback remains required for E2+."
       },
       "rollback": "no host mutation"
     },
@@ -743,14 +735,8 @@
       "adapter_id": "adapter-eagle-mcp",
       "tool": "eagle-mcp-server (npm)",
       "capabilities": [
-        [
-          "asset.query",
-          false
-        ],
-        [
-          "asset.import",
-          false
-        ]
+        {"name": "asset.query", "supported": false},
+        {"name": "asset.import", "supported": false}
       ],
       "status": "declared",
       "mode": "external-cli",

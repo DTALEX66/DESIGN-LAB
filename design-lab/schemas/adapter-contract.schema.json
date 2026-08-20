@@ -62,6 +62,7 @@
         "process-isolated",
         "in-process",
         "external-cli",
+        "external-local-api",
         "none"
       ]
     },

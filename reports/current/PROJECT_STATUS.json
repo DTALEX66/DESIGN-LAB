@@ -1,17 +1,17 @@
 {
   "schemaVersion": "design-lab/project-status/v1",
-  "generatedAt": "2026-08-19",
+  "generatedAt": "2026-08-21",
   "generator": "scripts/generate_project_status.py (DL-MIG-005)",
   "git": {
     "branch": "main",
-    "headSha": "f7173a2b4730a2cfdc6edb5ea15f837fa714257b",
-    "originMainSha": "70a857f93945a4f3afd1e1584311c309c21250d2",
+    "headSha": "a6fdc5e0ad6821f41d09a1022988d2f9212c64e6",
+    "originMainSha": "a6fdc5e0ad6821f41d09a1022988d2f9212c64e6",
     "worktreeClean": false,
-    "trackedFiles": 3171,
+    "trackedFiles": 3301,
     "packMiB": 199.71
   },
   "sources": {
-    "activeRegistryEntries": 2,
+    "activeRegistryEntries": 6,
     "quarantinedSources": 162
   },
   "capabilities": {
@@ -30,7 +30,7 @@
     "binaryMiB": 0
   },
   "tests": {
-    "definedTestMethodCount": 142,
+    "definedTestMethodCount": 143,
     "note": "defined test methods (AST count); run `python scripts/run_python_tests.py` for execution results"
   }
 }

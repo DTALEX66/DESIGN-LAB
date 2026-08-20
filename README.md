@@ -2,7 +2,7 @@
 
 > **面向职业视觉设计的、AI 原生、平台中立的设计智能与生产能力实验室。它把设计研究、合规知识、设计方法、领域能力、视觉质量、专业工具适配、生产预检（commercial preflight）、可编辑交付和证据体系（evidence & provenance）组织为可组合、可执行、可验证、可回滚的设计能力闭环。**
 
-> **Agent-platform-neutral design intelligence and production laboratory for professional visual design. Host-native; current reference host: Open Design (no default binding).**
+> **Agent-platform-neutral design intelligence and production laboratory for professional visual design. Host-native; no default host, agent, or model binding.**
 
 ## GitHub 交付
 

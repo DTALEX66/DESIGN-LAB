@@ -2,7 +2,7 @@
 
 这里是 **DESIGN-LAB（设计实验室）** 的能力层主目录：面向任意设计 AGENT 平台的中立设计能力与视觉质量增强层。
 
-> **Agent-platform-neutral design intelligence and production laboratory for professional visual design with commercial production preflight and editable delivery. Host-native; current reference host: Open Design (no default binding).**
+> **Agent-platform-neutral design intelligence and production laboratory for professional visual design with commercial production preflight and editable delivery. Host-native; no default host, agent, or model binding.**
 
 ## 权威文档（SSOT）
 

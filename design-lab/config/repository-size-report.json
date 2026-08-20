@@ -1,0 +1,113 @@
+{
+  "schemaVersion": "design-lab/repository-size-report/v1",
+  "subjectSha": "a6fdc5e0ad6821f41d09a1022988d2f9212c64e6",
+  "generatedAt": "2026-08-20T16:31:52Z",
+  "packMiB": 199.71,
+  "warningMiB": 224.0,
+  "limitMiB": 256.0,
+  "status": "OK",
+  "largestTrackedBlobs": [
+    {
+      "path": "design-lab/knowledge/ecommerce-ai/mermaid.min.js",
+      "bytes": 3164970,
+      "objectId": "2e90922b117b27495c07d444947b0a0edc751fd9"
+    },
+    {
+      "path": "design-lab/intelligence/baoyu-design/skills/baoyu-design/agents/vendor/babel.min.js",
+      "bytes": 3137752,
+      "objectId": "8830ea360e6bc7ec272015f86b113cda88f2765d"
+    },
+    {
+      "path": "design-lab/exports/minigame-mobile-controls/assets/cctv-elevator-corridor-figure.png",
+      "bytes": 1722989,
+      "objectId": "9cba9c4843f435bab3b73abcc60003ac2df84c51"
+    },
+    {
+      "path": "design-lab/knowledge/tool-control/scripts/illustrator/jsx-BeautifySwatchNames.jsx",
+      "bytes": 1488761,
+      "objectId": "54f5539e33f2c4c66d41f8c5a664ea3fe3936c49"
+    },
+    {
+      "path": "design-lab/exports/minigame-mobile-controls/assets/cctv-elevator-corridor-warp.png",
+      "bytes": 1438802,
+      "objectId": "8208049910457cef4567f3d49a0c861fb3ad8194"
+    },
+    {
+      "path": "design-lab/exports/minigame-mobile-controls/assets/cctv-elevator-corridor-clear.png",
+      "bytes": 1409309,
+      "objectId": "45584db0b067847d051ebad796b2c0c818c8e835"
+    },
+    {
+      "path": "design-lab/intelligence/genjutsu/skills/_jutsu/ui-ux-pro-max/data/google-fonts.csv",
+      "bytes": 743272,
+      "objectId": "73fd6c507d5b5078a6dbe8f8085ec2feb1837a33"
+    },
+    {
+      "path": "design-lab/intelligence/ui-ux-pro-max/data/google-fonts.csv",
+      "bytes": 743272,
+      "objectId": "73fd6c507d5b5078a6dbe8f8085ec2feb1837a33"
+    },
+    {
+      "path": "design-lab/adapters/creative-tools/comfyui/evidence/dl_h3_prod.mp4",
+      "bytes": 578334,
+      "objectId": "c8aedbcff14fff0b0f9fcbe766a6dd0b6143f3c4"
+    },
+    {
+      "path": "design-lab/adapters/creative-tools/minimax-h3/evidence/dl_h3_prod.mp4",
+      "bytes": 578334,
+      "objectId": "c8aedbcff14fff0b0f9fcbe766a6dd0b6143f3c4"
+    },
+    {
+      "path": "design-lab/research/master-studies/MASTER_REGISTRY.json",
+      "bytes": 473730,
+      "objectId": "58dafde8237a8230f11f6d2ecf19acad19b7a071"
+    },
+    {
+      "path": "design-lab/config/capability-index.json",
+      "bytes": 443636,
+      "objectId": "5248b2bcb39969c2e1303cf758b9ea9a657f71c1"
+    },
+    {
+      "path": "design-lab/research/global-absorption/QUARANTINE_REGISTRY.json",
+      "bytes": 329950,
+      "objectId": "45c7e5ecd26fd36754211ef9994406c0079d13d3"
+    },
+    {
+      "path": "design-lab/adapters/creative-tools/comfyui/evidence/dl_h3_prod_audio.flac",
+      "bytes": 324982,
+      "objectId": "b45e752e07c42390b9a43ca3f5b96f5348bd7568"
+    },
+    {
+      "path": "design-lab/adapters/creative-tools/minimax-h3/evidence/dl_h3_prod_audio.flac",
+      "bytes": 324982,
+      "objectId": "b45e752e07c42390b9a43ca3f5b96f5348bd7568"
+    },
+    {
+      "path": "design-lab/knowledge/ecommerce-ai/skills/ecom-listing/references/playbook.md",
+      "bytes": 322011,
+      "objectId": "4f45924f1356f981868571a1549dd3c35ae3136e"
+    },
+    {
+      "path": "design-lab/intelligence/baoyu-design/skills/baoyu-design/agents/vendor/fig-materialize.mjs",
+      "bytes": 319218,
+      "objectId": "13256b8e7caabb5401df40caa9cc75fb90de1f7b"
+    },
+    {
+      "path": "minigame-runtime/douyin-minigame/game.js",
+      "bytes": 283272,
+      "objectId": "ad7c6f744e028c9aa2962e45c96b0fb76f06cb95"
+    },
+    {
+      "path": "minigame-runtime/wechat-minigame/game.js",
+      "bytes": 283272,
+      "objectId": "8cd253deb071c65f0555ea9ed3bfb94b92282413"
+    },
+    {
+      "path": "design-lab/knowledge/visual-quality/document-design-system/docs/screenshots/themes-light.png",
+      "bytes": 273216,
+      "objectId": "37f0df3363f0f087c2fa1f4ac3ee49a1b1f02896"
+    }
+  ],
+  "historyRewriteAuthorized": false,
+  "note": "This report is observational. It does not delete blobs, rewrite history, or approve new binaries."
+}

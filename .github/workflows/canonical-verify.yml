@@ -1,4 +1,4 @@
-name: Canonical Verify (V4)
+name: Canonical Verify
 
 on:
   push:

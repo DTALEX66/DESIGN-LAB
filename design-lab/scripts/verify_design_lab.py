@@ -14,6 +14,8 @@ from pathlib import Path
 
 SCRIPTS = [
     "verify_identity_gate.py",
+    "verify_project_drift.py",
+    "verify_knowledge_lifecycle.py",
     "verify_design_kernel.py",
     "verify_design_memory.py",
     "verify_quality_gate.py",
@@ -25,6 +27,11 @@ SCRIPTS = [
     "verify_production_preflight.py",
     "verify_experience_corpus.py",
     "verify_design_actions.py",
+    "verify_tool_action_plan.py",
+    "verify_golden_contracts.py",
+    "verify_tool_write_protocols.py",
+    "verify_branch_inventory.py",
+    "verify_repository_size.py",
     "verify_dtcg_tokens.py",
     "verify_extraction_chain.py",
     "verify_federation_e2e.py",

@@ -1,0 +1,25 @@
+# SPDX-License-Identifier: MIT
+schemaVersion: design-lab/task-ledger/v1
+scope: converged-follow-up-taskpack-2026-08-20
+tasks:
+  - id: DL-GOV-100
+    status: active
+    summary: Rebuild cloud facts without inferring unavailable GitHub API fields.
+  - id: DL-GOV-110
+    status: active
+    summary: Remove default-host language from active product contracts.
+  - id: DL-GOV-120
+    status: active
+    summary: Generate bounded current reports and index them by exact SHA.
+  - id: DL-GOV-130
+    status: active
+    summary: Add a fail-closed product-drift verifier.
+  - id: DL-GOV-140
+    status: blocked
+    summary: GitHub branch protection requires repository administrator action.
+  - id: DL-ADP-EAG-100
+    status: partial
+    summary: Eagle Web API loopback readback is E1; controlled test-library import and rollback are not yet authorized or executed.
+  - id: DL-KNW-180
+    status: deferred
+    summary: ArcheAxis knowledge migration waits for its documented trigger gate and user approval.

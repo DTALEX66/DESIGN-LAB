@@ -21,7 +21,7 @@ MANIFEST_REL = f"{ASSISTANCE_DIR}/config/product-manifest.json"
 CAPABILITY_STATUS_REL = f"{ASSISTANCE_DIR}/config/capability-status.json"
 PRODUCT_SCHEMA_REL = f"{ASSISTANCE_DIR}/schemas/product-manifest.schema.json"
 CAPABILITY_STATUS_SCHEMA_REL = f"{ASSISTANCE_DIR}/schemas/capability-status.schema.json"
-PROJECT_DEFINITION_REL = "project-memory/PRODUCT_DEFINITION.md"
+PROJECT_DEFINITION_REL = "project-memory/PROJECT_DEFINITION.md"
 ARCHITECTURE_REL = "project-memory/ARCHITECTURE.md"
 
 EXPECTED_EVIDENCE_LEVELS = ["E0", "E1", "E2", "E3", "E4", "E5"]
@@ -75,7 +75,6 @@ RUNTIME_READY_MARKERS = [
 ]
 V3_DOC_MARKERS = [
     "Agent-platform-neutral",
-    "Open Design",
     "evidence",
     "runtime",
     "commercial",
@@ -134,7 +133,7 @@ def verify_manifest_shape(root: Path, manifest: dict[str, Any], results: list[Re
     check(results, "product id", product.get("id") == "design-lab", str(product.get("id")))
     check(results, "product name", product.get("name") == "DESIGN-LAB", str(product.get("name")))
     positioning = str(product.get("positioning", ""))
-    for marker in ["Open Design", "commercial", "visual quality", "editable delivery"]:
+    for marker in ["commercial", "visual quality", "editable delivery", "no default host"]:
         check(results, f"product positioning includes {marker}", marker.lower() in positioning.lower(), positioning)
     check(results, "no primaryRuntime in product contract", "primaryRuntime" not in product, "present" if "primaryRuntime" in product else "absent")
     check(results, "no fiveNeutralities in product contract", "fiveNeutralities" not in product, "present" if "fiveNeutralities" in product else "absent")
@@ -238,7 +237,10 @@ def verify_v4_extensions(manifest: dict[str, Any], results: list[Result]) -> Non
 
 
 def verify_v3_docs(root: Path, results: list[Result]) -> None:
-    for rel in [PROJECT_DEFINITION_REL, ARCHITECTURE_REL, "README.md", f"{ASSISTANCE_DIR}/README.md"]:
+    project_definition = require_path(results, root, PROJECT_DEFINITION_REL, file=True)
+    project_text = project_definition.read_text(encoding="utf-8") if project_definition.is_file() else ""
+    check(results, "retired project definition points to PRODUCT_DEFINITION", "PRODUCT_DEFINITION.md" in project_text)
+    for rel in [ARCHITECTURE_REL, "README.md", f"{ASSISTANCE_DIR}/README.md"]:
         path = require_path(results, root, rel, file=True)
         text = path.read_text(encoding="utf-8") if path.is_file() else ""
         for marker in V3_DOC_MARKERS:

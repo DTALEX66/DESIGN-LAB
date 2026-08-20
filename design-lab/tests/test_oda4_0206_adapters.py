@@ -26,7 +26,10 @@ class AdapterRegistryTest(unittest.TestCase):
                     "E1",
                     f"{ad['tool']} declared/structural status must not claim above E1",
                 )
-                self.assertEqual(evidence.get("task_ids"), [], f"{ad['tool']} declared but has runtime tasks")
+                if evidence.get("level") == "E0":
+                    self.assertEqual(evidence.get("task_ids"), [], f"{ad['tool']} E0 must not claim a task run")
+                else:
+                    self.assertEqual(evidence.get("level"), "E1", f"{ad['tool']} structural evidence must be E1")
 
     def test_missing_capabilities_not_presented_as_available(self):
         data = json.loads(REGISTRY.read_text(encoding="utf-8"))

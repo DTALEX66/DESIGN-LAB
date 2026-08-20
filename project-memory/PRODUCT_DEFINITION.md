@@ -10,7 +10,7 @@
 
 ## 英文定位（manifest 一致）
 
-> **Agent-platform-neutral design intelligence and production laboratory for professional visual design with commercial production preflight and editable delivery (evidence & provenance). It organizes design research, compliance knowledge, design methods, domain capability, visual quality, professional tool adaptation, production preflight, editable handoff and an evidence system into composable, executable, verifiable, rollback-safe design capability loops. Host-native; current reference host: Open Design (no default binding).**
+> **Agent-platform-neutral design intelligence and production laboratory for professional visual design with commercial production preflight and editable delivery (evidence & provenance). It organizes design research, compliance knowledge, design methods, domain capability, visual quality, professional tool adaptation, production preflight, editable handoff and an evidence system into composable, executable, verifiable, rollback-safe design capability loops. Host-native; no default host, agent, or model binding.**
 
 ## 唯一身份
 
@@ -50,7 +50,7 @@ Host / Agent / Tool Adapters      = 在现有工作界面中执行能力
 Preflight / Handoff / Evidence    = 商业生产闭环
 ```
 
-当前采用 **host-native first**：设计师在已接入的宿主（当前为 Open Design 参考入口，未来可为 Adobe/Figma/Blender/ComfyUI 等）中工作；DESIGN-LAB 提供合同、方法、质量门、可编辑交付和适配器。不得为此重建第二画布、聊天客户端、模型网关或通用 SaaS 后端。
+当前采用 **host-native first**：设计师可在任意已接入宿主中工作；DESIGN-LAB 提供合同、方法、质量门、可编辑交付和适配器。不得为此重建第二画布、聊天客户端、模型网关或通用 SaaS 后端。
 
 若未来需要可视化，只允许建设轻量的 **Lab Review Surface**：展示 Brief、方向、质量评分、预检、证据、适配器可用性和交付状态。它不是设计编辑器，不托管用户帐号/模型/画布，不与宿主竞争。
 

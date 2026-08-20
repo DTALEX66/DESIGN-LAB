@@ -1,0 +1,14 @@
+{
+  "schemaVersion": "design-lab/release-readiness/v1",
+  "subjectSha": "a6fdc5e0ad6821f41d09a1022988d2f9212c64e6",
+  "generatedAt": "2026-08-20T16:28:54Z",
+  "fresh": false,
+  "status": "BLOCKED",
+  "blockers": [
+    "human jury",
+    "independent E4 attestation",
+    "source rights completion",
+    "branch protection",
+    "professional-tool E3 fixture"
+  ]
+}

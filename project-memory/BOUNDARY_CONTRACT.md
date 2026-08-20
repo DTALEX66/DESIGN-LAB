@@ -23,10 +23,10 @@
 - ❌ 不复制任何宿主的画布、项目、模型路由或 Artifact 系统；
 - ❌ 不把静态文件、Schema 通过或 VLM 自评冒充运行可用。
 
-## 宿主职责（当前参考宿主：Open Design）
+## 宿主职责（平台中立）
 
 - 工作区、画布、设计流程执行、AI 调用、插件/Scenario/Atom 运行时、Artifact 创建/预览/导出、配置；
-- Open Design 是可验证的 Host Adapter；任意设计 AGENT 平台均可接入。
+- 任意设计 Agent 平台或创意工具均可通过 Host Adapter 接入；Open Design 仅为其中一个兼容对象。
 
 ## 边界硬规则
 

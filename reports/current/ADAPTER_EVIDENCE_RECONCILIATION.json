@@ -1,162 +1,188 @@
 {
-  "schemaVersion": "design-lab/adapter-evidence-reconciliation/v1",
-  "generatedAt": "2026-08-19T00:00:00Z",
-  "exactSha": "",
+  "schemaVersion": "design-lab/adapter-reconciliation/v1",
+  "subjectSha": "a6fdc5e0ad6821f41d09a1022988d2f9212c64e6",
+  "generatedAt": "2026-08-20T16:28:54Z",
+  "fresh": false,
   "adapters": [
     {
-      "adapter_id": "adapter-open-design",
-      "evidence": "E1",
+      "adapterId": "adapter-open-design",
+      "tool": "Open Design",
       "status": "structural",
-      "supported": [
-        "studio-canvas",
-        "agent-launch",
-        "artifact-export"
-      ]
+      "evidenceLevel": "E1"
     },
     {
-      "adapter_id": "adapter-figma",
-      "evidence": "E0",
+      "adapterId": "adapter-figma",
+      "tool": "Figma",
       "status": "declared",
-      "supported": [
-        "import",
-        "export"
-      ]
+      "evidenceLevel": "E0"
     },
     {
-      "adapter_id": "adapter-penpot",
-      "evidence": "E0",
+      "adapterId": "adapter-penpot",
+      "tool": "Penpot",
       "status": "declared",
-      "supported": [
-        "import"
-      ]
+      "evidenceLevel": "E0"
     },
     {
-      "adapter_id": "adapter-blender",
-      "evidence": "E0",
+      "adapterId": "adapter-blender",
+      "tool": "Blender",
       "status": "missing",
-      "supported": []
+      "evidenceLevel": "E0"
     },
     {
-      "adapter_id": "adapter-ffmpeg",
-      "evidence": "E0",
+      "adapterId": "adapter-ffmpeg",
+      "tool": "FFmpeg",
       "status": "missing",
-      "supported": []
+      "evidenceLevel": "E0"
     },
     {
-      "adapter_id": "adapter-browser",
-      "evidence": "E0",
+      "adapterId": "adapter-browser",
+      "tool": "Chromium/browser",
       "status": "declared",
-      "supported": [
-        "dom-render",
-        "visual-regression",
-        "axe-a11y"
-      ]
+      "evidenceLevel": "E0"
     },
     {
-      "adapter_id": "adapter-comfyui",
-      "evidence": "E3",
+      "adapterId": "adapter-comfyui",
+      "tool": "ComfyUI",
       "status": "runtime",
-      "supported": [
-        "workflow-execution"
-      ]
+      "evidenceLevel": "E3"
     },
     {
-      "adapter_id": "adapter-adobe-photoshop",
-      "evidence": "E0",
+      "adapterId": "adapter-adobe-photoshop",
+      "tool": "Adobe Photoshop",
       "status": "declared",
-      "supported": []
+      "evidenceLevel": "E0"
     },
     {
-      "adapter_id": "adapter-minimax-h3",
-      "evidence": "E3",
+      "adapterId": "adapter-minimax-h3",
+      "tool": "MiniMax H3",
       "status": "runtime",
-      "supported": [
-        "video-generation"
-      ]
+      "evidenceLevel": "E3"
     },
     {
-      "adapter_id": "adapter-mcp",
-      "evidence": "E0",
+      "adapterId": "adapter-mcp",
+      "tool": "MCP (Model Context Protocol)",
       "status": "declared",
-      "supported": []
+      "evidenceLevel": "E0"
     },
     {
-      "adapter_id": "adapter-inkscape",
-      "evidence": "E0",
+      "adapterId": "adapter-inkscape",
+      "tool": "Inkscape CLI",
       "status": "declared",
-      "supported": []
+      "evidenceLevel": "E0"
     },
     {
-      "adapter_id": "adapter-imagemagick",
-      "evidence": "E0",
+      "adapterId": "adapter-imagemagick",
+      "tool": "ImageMagick",
       "status": "declared",
-      "supported": []
+      "evidenceLevel": "E0"
     },
     {
-      "adapter_id": "adapter-sharp",
-      "evidence": "E0",
+      "adapterId": "adapter-sharp",
+      "tool": "sharp (libvips)",
       "status": "declared",
-      "supported": []
+      "evidenceLevel": "E0"
     },
     {
-      "adapter_id": "adapter-resvg",
-      "evidence": "E0",
+      "adapterId": "adapter-resvg",
+      "tool": "resvg",
       "status": "declared",
-      "supported": []
+      "evidenceLevel": "E0"
     },
     {
-      "adapter_id": "adapter-svgo",
-      "evidence": "E0",
+      "adapterId": "adapter-svgo",
+      "tool": "svgo",
       "status": "declared",
-      "supported": []
+      "evidenceLevel": "E0"
     },
     {
-      "adapter_id": "adapter-librsvg",
-      "evidence": "E0",
+      "adapterId": "adapter-librsvg",
+      "tool": "librsvg (rsvg-convert)",
       "status": "declared",
-      "supported": []
+      "evidenceLevel": "E0"
     },
     {
-      "adapter_id": "adapter-playwright-visual",
-      "evidence": "E0",
+      "adapterId": "adapter-playwright-visual",
+      "tool": "Playwright toHaveScreenshot",
       "status": "declared",
-      "supported": []
+      "evidenceLevel": "E0"
     },
     {
-      "adapter_id": "adapter-verapdf",
-      "evidence": "E0",
+      "adapterId": "adapter-verapdf",
+      "tool": "veraPDF",
       "status": "declared",
-      "supported": []
+      "evidenceLevel": "E0"
     },
     {
-      "adapter_id": "adapter-ghostscript",
-      "evidence": "E0",
+      "adapterId": "adapter-ghostscript",
+      "tool": "Ghostscript",
       "status": "declared",
-      "supported": []
+      "evidenceLevel": "E0"
     },
     {
-      "adapter_id": "adapter-style-dictionary",
-      "evidence": "E0",
+      "adapterId": "adapter-style-dictionary",
+      "tool": "Style Dictionary",
       "status": "declared",
-      "supported": []
+      "evidenceLevel": "E0"
     },
     {
-      "adapter_id": "adapter-dtcg",
-      "evidence": "E0",
+      "adapterId": "adapter-dtcg",
+      "tool": "W3C Design Tokens (DTCG)",
       "status": "declared",
-      "supported": []
+      "evidenceLevel": "E0"
     },
     {
-      "adapter_id": "adapter-figma-rest",
-      "evidence": "E0",
+      "adapterId": "adapter-figma-rest",
+      "tool": "Figma REST API",
       "status": "declared",
-      "supported": []
+      "evidenceLevel": "E0"
     },
     {
-      "adapter_id": "adapter-blender-bpy",
-      "evidence": "E0",
+      "adapterId": "adapter-blender-bpy",
+      "tool": "Blender Python API",
       "status": "missing",
-      "supported": []
+      "evidenceLevel": "E0"
+    },
+    {
+      "adapterId": "adapter-photoshop-mcp",
+      "tool": "Photoshop MCP (alisaitteke)",
+      "status": "structural",
+      "evidenceLevel": "E1"
+    },
+    {
+      "adapterId": "adapter-illustrator-mcp",
+      "tool": "Illustrator MCP (ie3jp)",
+      "status": "structural",
+      "evidenceLevel": "E1"
+    },
+    {
+      "adapterId": "adapter-figma-mcp",
+      "tool": "Figma Dev Mode MCP (official)",
+      "status": "declared",
+      "evidenceLevel": "E0"
+    },
+    {
+      "adapterId": "adapter-inkscape-mcp",
+      "tool": "Inkscape MCP (grumpydevorg)",
+      "status": "declared",
+      "evidenceLevel": "E0"
+    },
+    {
+      "adapterId": "adapter-generator-mcp",
+      "tool": "Adobe Generator MCP (official)",
+      "status": "declared",
+      "evidenceLevel": "E0"
+    },
+    {
+      "adapterId": "adapter-eagle-webapi",
+      "tool": "Eagle (eagle.cool) Web API",
+      "status": "structural",
+      "evidenceLevel": "E1"
+    },
+    {
+      "adapterId": "adapter-eagle-mcp",
+      "tool": "eagle-mcp-server (npm)",
+      "status": "declared",
+      "evidenceLevel": "E0"
     }
   ]
 }

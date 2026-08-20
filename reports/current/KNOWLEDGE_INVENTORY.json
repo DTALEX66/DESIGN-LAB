@@ -1,0 +1,9 @@
+{
+  "schemaVersion": "design-lab/knowledge-inventory/v1",
+  "subjectSha": "a6fdc5e0ad6821f41d09a1022988d2f9212c64e6",
+  "generatedAt": "2026-08-20T16:28:54Z",
+  "fresh": false,
+  "activeSourceRecords": 6,
+  "quarantinedRecords": 162,
+  "migrationStatus": "deferred"
+}
