@@ -1,7 +1,7 @@
 {
   "schemaVersion": "design-lab/release-readiness/v1",
-  "subjectSha": "a6fdc5e0ad6821f41d09a1022988d2f9212c64e6",
-  "generatedAt": "2026-08-20T16:28:54Z",
+  "subjectSha": "f6f102938e911831a2a6d11dfd0bf60d23145381",
+  "generatedAt": "2026-08-21T16:54:13Z",
   "fresh": false,
   "status": "BLOCKED",
   "blockers": [
