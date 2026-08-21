@@ -15,8 +15,8 @@ tasks:
     status: completed
     summary: Add a fail-closed product-drift verifier.
   - id: DL-GOV-140
-    status: active
-    summary: Configure main branch protection with required checks and force-push prohibition after the final delivery CI passes.
+    status: completed
+    summary: main branch protection now enforces the five Canonical Verify checks for administrators and prohibits force pushes and deletions.
   - id: DL-ADP-EAG-100
     status: blocked
     summary: Eagle Web API loopback readback is E1; the Eagle runtime and loopback service are currently unavailable for controlled test-library import and rollback.
