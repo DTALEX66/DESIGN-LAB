@@ -340,8 +340,14 @@ class ReconstructionSVGTests(unittest.TestCase):
 
         raster = raster_layer("design-lab/tests/fixtures/reconstruction/flat-64.png")
         raster["raster"]["crop"]["width"] = 63
-        with self.assertRaisesRegex(UnsafeSVGError, "crop"):
+        with (
+            mock.patch(
+                "subprocess.run", side_effect=AssertionError("renderer/host handoff")
+            ) as renderer,
+            self.assertRaisesRegex(UnsafeSVGError, "crop"),
+        ):
             serialize_svg(rir(raster), PROJECT_ROOT)
+        renderer.assert_not_called()
 
     def test_svg_and_rir_nesting_depth_have_explicit_ceilings(self) -> None:
         nested_svg = (
@@ -453,7 +459,30 @@ class ReconstructionSVGTests(unittest.TestCase):
             with self.subTest(large=large, sweep=sweep):
                 self.assert_sanitize_rejected_without_handoff(payload, "arc flags")
 
-    def test_valid_arc_and_complete_defs_topology_remain_supported(self) -> None:
+    def test_all_arcs_fail_closed_before_render_handoff(self) -> None:
+        root = '<svg width="64" height="64" viewBox="0 0 64 64">{}</svg>'
+        paths = (
+            "M20 20 A5 5 0 1 0 30 30",
+            "M5 5 A1 1 0 0 1 60 60",
+            "M20 20 a5 5 45 0 1 10 10",
+        )
+        for path_data in paths:
+            payload = root.format(f'<path d="{path_data}"/>').encode()
+            with self.subTest(path_data=path_data):
+                self.assert_sanitize_rejected_without_handoff(
+                    payload, "arc commands are unsupported"
+                )
+
+        arc_node = path_layer()
+        arc_node["geometry"] = {
+            "pathData": "M20 20 A5 5 0 0 1 30 30",
+            "closed": False,
+        }
+        self.assert_serialize_rejected_without_handoff(
+            rir(arc_node), "arc commands are unsupported"
+        )
+
+    def test_complete_defs_topology_remains_supported_without_arcs(self) -> None:
         payload = b'''<svg width="64" height="64" viewBox="0 0 64 64">
           <defs>
             <linearGradient id="gradient" x1="0" y1="0" x2="64" y2="64" gradientUnits="userSpaceOnUse">
@@ -464,10 +493,79 @@ class ReconstructionSVGTests(unittest.TestCase):
               <rect x="0" y="0" width="64" height="64" fill="#fff"/>
             </mask>
           </defs>
-          <path d="M20 20 A5 5 0 1 0 30 30" fill="url(#gradient)" clip-path="url(#clip)" mask="url(#mask)"/>
+          <path d="M20 20 L30 30" fill="url(#gradient)" clip-path="url(#clip)" mask="url(#mask)"/>
         </svg>'''
         sanitized = sanitize_svg(payload)
-        self.assertIn(b"A5 5 0 1 0 30 30", sanitized)
+        self.assertIn(b"M20 20 L30 30", sanitized)
+
+    def test_closure_is_tracked_for_every_path_subpath(self) -> None:
+        cases = (
+            ("M1 1L2 2 M3 3L4 4Z", False, "closed"),
+            ("M1 1L2 2Z M3 3L4 4", True, "closed"),
+            ("M1 1L2 2Z M3 3L4 4Z", True, None),
+            ("M1 1L2 2 M3 3L4 4", False, None),
+            ("m1 1l1 1 m2 2l1 1", False, None),
+        )
+        for index, (path_data, closed, error) in enumerate(cases):
+            node = path_layer(f"subpaths-{index}")
+            node["geometry"] = {"pathData": path_data, "closed": closed}
+            if error:
+                self.assert_serialize_rejected_without_handoff(rir(node), error)
+            else:
+                self.assertIn(path_data.encode(), serialize_svg(rir(node), PROJECT_ROOT))
+
+    def test_stroke_defaults_are_explicit_and_used_for_visual_bounds(self) -> None:
+        node = path_layer("default-stroke")
+        node["geometry"] = {"pathData": "M4 4L60 60", "closed": False}
+        node["style"] = {"fill": None, "stroke": "#000000"}
+        node["bounds"] = {"x": 4, "y": 4, "width": 56, "height": 56}
+        self.assert_serialize_rejected_without_handoff(
+            rir(node), "declared bounds"
+        )
+
+        node["bounds"] = {"x": 2, "y": 2, "width": 60, "height": 60}
+        svg = serialize_svg(rir(node), PROJECT_ROOT)
+        self.assertIn(b'stroke-width="1"', svg)
+        self.assertIn(b'stroke-linejoin="miter"', svg)
+        self.assertIn(b'stroke-linecap="butt"', svg)
+        self.assertIn(b'stroke-miterlimit="4"', svg)
+
+    def test_clip_and_mask_resource_reference_cycles_fail_closed(self) -> None:
+        root = '<svg width="64" height="64" viewBox="0 0 64 64"><defs>{}</defs></svg>'
+        resources = (
+            '''<mask id="m" maskUnits="userSpaceOnUse" x="0" y="0" width="64" height="64">
+                 <rect x="0" y="0" width="64" height="64" mask="url(#m)"/>
+               </mask>''',
+            '''<clipPath id="c" clipPathUnits="userSpaceOnUse"><path d="M1 1L63 63" mask="url(#m)"/></clipPath>
+               <mask id="m" maskUnits="userSpaceOnUse" x="0" y="0" width="64" height="64">
+                 <rect x="0" y="0" width="64" height="64" clip-path="url(#c)"/>
+               </mask>''',
+            '''<clipPath id="c1" clipPathUnits="userSpaceOnUse"><path d="M1 1L63 63" mask="url(#m1)"/></clipPath>
+               <mask id="m1" maskUnits="userSpaceOnUse" x="0" y="0" width="64" height="64">
+                 <rect x="0" y="0" width="64" height="64" clip-path="url(#c2)"/>
+               </mask>
+               <clipPath id="c2" clipPathUnits="userSpaceOnUse"><path d="M1 1L63 63" clip-path="url(#c1)"/></clipPath>''',
+        )
+        for resource_xml in resources:
+            payload = root.format(resource_xml).encode()
+            with self.subTest(resource_xml=resource_xml):
+                self.assert_sanitize_rejected_without_handoff(
+                    payload, "resource reference cycle"
+                )
+
+    def test_acyclic_clip_mask_resource_chain_is_supported(self) -> None:
+        payload = b'''<svg width="64" height="64" viewBox="0 0 64 64">
+          <defs>
+            <mask id="m" maskUnits="userSpaceOnUse" x="0" y="0" width="64" height="64">
+              <rect x="0" y="0" width="64" height="64" fill="#fff"/>
+            </mask>
+            <clipPath id="c" clipPathUnits="userSpaceOnUse">
+              <path d="M1 1L63 1L63 63Z" mask="url(#m)"/>
+            </clipPath>
+          </defs>
+          <rect x="0" y="0" width="64" height="64" clip-path="url(#c)"/>
+        </svg>'''
+        self.assertIn(b'clip-path="url(#c)"', sanitize_svg(payload))
 
     def test_invalid_model_output_is_rejected_before_asset_read(self) -> None:
         invalid = raster_layer("../outside.png")

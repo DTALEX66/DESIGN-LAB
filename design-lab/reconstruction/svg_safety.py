@@ -17,6 +17,10 @@ from PIL import Image, UnidentifiedImageError
 
 SVG_NAMESPACE = "http://www.w3.org/2000/svg"
 XLINK_NAMESPACE = "http://www.w3.org/1999/xlink"
+SVG_DEFAULT_STROKE_WIDTH = 1.0
+SVG_DEFAULT_STROKE_LINEJOIN = "miter"
+SVG_DEFAULT_STROKE_LINECAP = "butt"
+SVG_DEFAULT_STROKE_MITERLIMIT = 4.0
 StdET.register_namespace("", SVG_NAMESPACE)
 MAX_SVG_BYTES = 16 * 1024 * 1024
 MAX_EMBEDDED_PNG_BYTES = 12 * 1024 * 1024
@@ -43,8 +47,19 @@ class PathInspection:
     min_y: float
     max_x: float
     max_y: float
-    has_close: bool
-    ends_closed: bool
+    subpaths_closed: tuple[bool, ...]
+
+    @property
+    def has_close(self) -> bool:
+        return any(self.subpaths_closed)
+
+    @property
+    def every_subpath_closed(self) -> bool:
+        return bool(self.subpaths_closed) and all(self.subpaths_closed)
+
+    @property
+    def no_subpath_closed(self) -> bool:
+        return not any(self.subpaths_closed)
 
 
 _COMMON_PAINT = frozenset(
@@ -56,6 +71,7 @@ _COMMON_PAINT = frozenset(
         "fill-rule",
         "stroke-linecap",
         "stroke-linejoin",
+        "stroke-miterlimit",
         "opacity",
         "display",
         "clip-path",
@@ -146,6 +162,7 @@ _NUMERIC_ATTRIBUTES = frozenset(
         "width",
         "height",
         "stroke-width",
+        "stroke-miterlimit",
         "opacity",
         "stop-opacity",
         "font-size",
@@ -263,7 +280,9 @@ def validate_path_data(value: str, width: float, height: float) -> PathInspectio
     group_count = 0
     total_groups = 0
     saw_moveto = False
-    has_close = False
+    subpaths_closed: list[bool] = []
+    subpath_started = False
+    current_subpath_closed = False
     min_x = min_y = math.inf
     max_x = max_y = -math.inf
 
@@ -286,11 +305,19 @@ def validate_path_data(value: str, width: float, height: float) -> PathInspectio
             if not saw_moveto and command.upper() != "M":
                 raise UnsafeSVGError("path data must start with moveto")
             if command.upper() == "M":
+                if subpath_started:
+                    subpaths_closed.append(current_subpath_closed)
+                subpath_started = True
+                current_subpath_closed = False
                 saw_moveto = True
+            elif current_subpath_closed and command.upper() != "Z":
+                raise UnsafeSVGError("a closed subpath must be followed by moveto")
             index += 1
             group_count = 0
             if command.upper() == "Z":
-                has_close = True
+                if current_subpath_closed:
+                    raise UnsafeSVGError("a path subpath cannot be closed twice")
+                current_subpath_closed = True
                 current_x, current_y = start_x, start_y
                 record(current_x, current_y)
                 continue
@@ -330,22 +357,9 @@ def validate_path_data(value: str, width: float, height: float) -> PathInspectio
                 raise UnsafeSVGError("arc flags must use the exact lexemes 0 or 1")
             if rx < 0 or ry < 0 or large not in {0.0, 1.0} or sweep not in {0.0, 1.0}:
                 raise UnsafeSVGError("arc radii or flags are invalid")
-            if relative:
-                x += current_x
-                y += current_y
-            if rx > width or ry > height:
-                raise UnsafeSVGError("arc radius exceeds the canvas")
-            # Every point on the same rotated ellipse lies within twice the
-            # largest radius of the arc start. This deliberately conservative
-            # envelope avoids accepting an arc whose hidden extrema escape.
-            reach = 2 * max(rx, ry)
-            for bound_x, bound_y in (
-                (current_x - reach, current_y - reach),
-                (current_x + reach, current_y + reach),
-                (x, y),
-            ):
-                record(bound_x, bound_y)
-            current_x, current_y = x, y
+            raise UnsafeSVGError(
+                "arc commands are unsupported pending exact endpoint-to-center qualification"
+            )
         else:
             pairs = list(zip(values[0::2], values[1::2], strict=True))
             adjusted: list[tuple[float, float]] = []
@@ -362,10 +376,11 @@ def validate_path_data(value: str, width: float, height: float) -> PathInspectio
 
     if math.isinf(min_x):
         raise UnsafeSVGError("path data has no geometry")
-    ends_closed = tokens[-1].upper() == "Z"
-    if has_close and not ends_closed:
+    if subpath_started:
+        subpaths_closed.append(current_subpath_closed)
+    if any(subpaths_closed) and not all(subpaths_closed):
         raise UnsafeSVGError("mixed open and closed path subpaths are unsupported")
-    return PathInspection(min_x, min_y, max_x, max_y, has_close, ends_closed)
+    return PathInspection(min_x, min_y, max_x, max_y, tuple(subpaths_closed))
 
 
 def _validate_points(
@@ -616,6 +631,8 @@ def _validate_tree(root: StdET.Element) -> None:
                     raise UnsafeSVGError(f"{name}: expected a value in [0, 1]")
                 if name in {"width", "height", "r", "rx", "ry", "stroke-width", "font-size"} and number < 0:
                     raise UnsafeSVGError(f"{name}: expected a non-negative value")
+                if name == "stroke-miterlimit" and number < 1:
+                    raise UnsafeSVGError("stroke-miterlimit must be at least 1")
             elif name == "fill-rule" and value not in {"nonzero", "evenodd"}:
                 raise UnsafeSVGError("unsupported fill-rule")
             elif name == "stroke-linecap" and value not in {"butt", "round", "square"}:
@@ -654,6 +671,43 @@ def _validate_tree(root: StdET.Element) -> None:
         }[kind]
         if ids.get(reference) not in expected:
             raise UnsafeSVGError(f"{kind} references a missing or incompatible id")
+    _validate_resource_reference_cycles(root)
+
+
+def _validate_resource_reference_cycles(root: StdET.Element) -> None:
+    resources: dict[str, StdET.Element] = {}
+    for node, local in _iter_elements(root):
+        if local in {"clipPath", "mask"}:
+            resources[node.attrib["id"]] = node
+
+    graph: dict[str, set[str]] = {resource_id: set() for resource_id in resources}
+    for resource_id, resource in resources.items():
+        stack = [resource]
+        while stack:
+            node = stack.pop()
+            for attribute in ("clip-path", "mask"):
+                value = node.attrib.get(attribute)
+                if value and _INTERNAL_REFERENCE_RE.fullmatch(value):
+                    target = value[5:-1]
+                    if target in resources:
+                        graph[resource_id].add(target)
+            stack.extend(list(node))
+
+    indegree = {resource_id: 0 for resource_id in graph}
+    for targets in graph.values():
+        for target in targets:
+            indegree[target] += 1
+    ready = [resource_id for resource_id, degree in indegree.items() if degree == 0]
+    visited = 0
+    while ready:
+        resource_id = ready.pop()
+        visited += 1
+        for target in graph[resource_id]:
+            indegree[target] -= 1
+            if indegree[target] == 0:
+                ready.append(target)
+    if visited != len(graph):
+        raise UnsafeSVGError("clipPath/mask resource reference cycle is forbidden")
 
 
 def sanitize_svg(svg: bytes) -> bytes:

@@ -20,6 +20,10 @@ from .svg_safety import (
     MAX_EMBEDDED_PNG_BYTES,
     MAX_RASTER_PIXELS,
     SVG_NAMESPACE,
+    SVG_DEFAULT_STROKE_LINECAP,
+    SVG_DEFAULT_STROKE_LINEJOIN,
+    SVG_DEFAULT_STROKE_MITERLIMIT,
+    SVG_DEFAULT_STROKE_WIDTH,
     UnsafeSVGError,
     sanitize_svg,
     validate_path_data,
@@ -183,8 +187,16 @@ def _stroke_padding(node: dict[str, Any]) -> float:
     style = node.get("style", {})
     if style.get("stroke") in {None, "none"}:
         return 0
-    width = float(style.get("strokeWidth", 0))
-    return width * 2 if style.get("lineJoin") == "miter" else width / 2
+    width = float(style.get("strokeWidth", SVG_DEFAULT_STROKE_WIDTH))
+    line_join = style.get("lineJoin", SVG_DEFAULT_STROKE_LINEJOIN)
+    line_cap = style.get("lineCap", SVG_DEFAULT_STROKE_LINECAP)
+    join_padding = (
+        width * SVG_DEFAULT_STROKE_MITERLIMIT / 2
+        if line_join == "miter"
+        else width / 2
+    )
+    cap_padding = width / 2 if line_cap in {"round", "square"} else 0
+    return max(join_padding, cap_padding)
 
 
 def _paint_attributes(style: dict[str, Any]) -> dict[str, str]:
@@ -204,6 +216,19 @@ def _paint_attributes(style: dict[str, Any]) -> dict[str, str]:
                 result[target] = "none"
             continue
         result[target] = _format_number(value) if source == "strokeWidth" else str(value)
+    if style.get("stroke") not in {None, "none"}:
+        result["stroke-width"] = _format_number(
+            style.get("strokeWidth", SVG_DEFAULT_STROKE_WIDTH)
+        )
+        result["stroke-linejoin"] = str(
+            style.get("lineJoin", SVG_DEFAULT_STROKE_LINEJOIN)
+        )
+        result["stroke-linecap"] = str(
+            style.get("lineCap", SVG_DEFAULT_STROKE_LINECAP)
+        )
+        result["stroke-miterlimit"] = _format_number(
+            SVG_DEFAULT_STROKE_MITERLIMIT
+        )
     return result
 
 
@@ -335,8 +360,11 @@ def _serialize_node(node: dict[str, Any], asset_root: Path, width: float, height
         _assert_no_masks(node)
         path_data = node["geometry"]["pathData"]
         inspection = validate_path_data(path_data, width, height)
-        if bool(node["geometry"].get("closed", False)) != inspection.ends_closed:
-            raise UnsafeSVGError("path closed metadata does not match pathData")
+        declared_closed = bool(node["geometry"].get("closed", False))
+        if declared_closed and not inspection.every_subpath_closed:
+            raise UnsafeSVGError("path closed metadata requires every subpath closed")
+        if not declared_closed and not inspection.no_subpath_closed:
+            raise UnsafeSVGError("path closed metadata requires every subpath open")
         _assert_geometry_within_declared_bounds(
             node,
             inspection.min_x,
