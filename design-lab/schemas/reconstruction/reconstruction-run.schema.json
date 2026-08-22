@@ -201,7 +201,10 @@
       "properties": {
         "id": {"$ref": "#/$defs/stableId"},
         "kind": {"enum": ["normalized-source", "vector-output", "package", "evidence", "readback", "checkpoint"]},
-        "path": {"$ref": "#/$defs/projectPath"}
+        "path": {"$ref": "#/$defs/projectPath"},
+        "role": {"enum": ["normalized-reference", "sanitized-svg", "render-preview", "diff-evidence"]},
+        "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+        "producer": {"enum": ["intake-normalizer-v1", "rir-svg-serializer-v1", "resvg-v0.47.0", "fidelity-metrics-v1"]}
       }
     }
   }

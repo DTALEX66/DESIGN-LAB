@@ -18,7 +18,7 @@ from copy import deepcopy
 from contextlib import contextmanager
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Iterator
+from typing import Any, BinaryIO, Iterator
 
 from PIL import Image, ImageCms, UnidentifiedImageError
 
@@ -31,9 +31,11 @@ _CANONICAL_RUNTIME_ROOT = _PROJECT_ROOT / ".hermes" / "task-runtime" / "reconstr
 _REPARSE_POINT = getattr(stat, "FILE_ATTRIBUTE_REPARSE_POINT", 0x400)
 _RUN_ID = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$")
 _SHA256 = re.compile(r"^[0-9a-f]{64}$")
-_TRUSTED_REGISTRY_SHA256 = "bbdbc6e25288032bf1b732ae6dd79b796b2f25ab972d929be9f72995ac70dc8e"
+_TRUSTED_REGISTRY_SHA256 = "803790c85b5618da7ec751b16ef60f03925457e080737c8383dcae722cd6fb44"
 _PNG_SIGNATURE = b"\x89PNG\r\n\x1a\n"
-_MAX_PNG_FILE_BYTES = 512 * 1024 * 1024
+_QUALIFIED_METRIC_MAX_PIXELS = 4_194_304
+_QUALIFIED_METRIC_MAX_BYTES = 67_108_864
+_METRIC_BUDGET_VERSION = "c4-metric-memory-v1"
 _MAX_PNG_CHUNK_BYTES = 64 * 1024 * 1024
 _MAX_PNG_METADATA_BYTES = 8 * 1024 * 1024
 
@@ -61,6 +63,9 @@ class RenderProfile:
     anti_alias_detection: bool
     match_minimum: float
     ssim_minimum: float
+    metric_max_pixels: int
+    metric_max_bytes: int
+    metric_budget_version: str
     mae_limit_version: str
     mae_limit: float | None
     edge_metric: str
@@ -85,6 +90,10 @@ class RenderResult:
     renderer_version: str
     renderer_sha256: str
     registry_digest: str
+    metric_max_pixels: int
+    metric_max_bytes: int
+    metric_budget_version: str
+    input_bindings: tuple["ArtifactBindingEvidence", ...]
     lifecycle_status: str = "RENDERED"
 
 
@@ -96,6 +105,7 @@ class _WriteConstraints:
     target: Path
     run_root: Path
     run_id: str
+    target_artifact: dict[str, Any]
 
 
 @dataclass(frozen=True)
@@ -110,6 +120,16 @@ class _FileIdentity:
 class _InputBinding:
     path: Path
     identity: _FileIdentity
+    sha256: str
+    role: str = ""
+    producer: str = ""
+
+
+@dataclass(frozen=True)
+class ArtifactBindingEvidence:
+    path: Path
+    role: str
+    producer: str
     sha256: str
 
 
@@ -136,6 +156,14 @@ def _require_number(value: Any, field: str, *, minimum: float, maximum: float) -
     if not math.isfinite(number) or not minimum <= number <= maximum:
         raise RenderError(f"{field} is outside its finite allowed range")
     return number
+
+
+def _require_integer(value: Any, field: str, *, minimum: int, maximum: int) -> int:
+    if isinstance(value, bool) or not isinstance(value, int):
+        raise RenderError(f"{field} must be an integer")
+    if not minimum <= value <= maximum:
+        raise RenderError(f"{field} is outside its allowed range")
+    return value
 
 
 def load_render_profile(
@@ -187,6 +215,9 @@ def load_render_profile(
         anti_alias_detection=fixed.get("antiAliasDetection"),
         match_minimum=_require_number(fixed.get("matchMinimum"), "matchMinimum", minimum=0, maximum=1),
         ssim_minimum=_require_number(fixed.get("ssimMinimum"), "ssimMinimum", minimum=0, maximum=1),
+        metric_max_pixels=_require_integer(fixed.get("metricMaxPixels"), "metricMaxPixels", minimum=1, maximum=MAX_CANVAS_PIXELS),
+        metric_max_bytes=_require_integer(fixed.get("metricMaxBytes"), "metricMaxBytes", minimum=1, maximum=1 << 30),
+        metric_budget_version=fixed.get("metricBudgetVersion"),
         mae_limit_version=mae.get("version"),
         mae_limit=None if mae.get("value") is None else _require_number(mae.get("value"), "maeLimit.value", minimum=0, maximum=1),
         edge_metric=edge.get("id"),
@@ -215,9 +246,9 @@ def _validate_profile(profile: RenderProfile) -> None:
         raise RenderError("render profile dimensions must be positive")
     if profile.renderer_binary is not None and not isinstance(profile.renderer_binary, Path):
         raise RenderError("renderer_binary must be a pathlib.Path or None")
-    if profile.width * profile.height > MAX_CANVAS_PIXELS:
+    if profile.width * profile.height > _QUALIFIED_METRIC_MAX_PIXELS:
         raise RenderError(
-            f"render profile exceeds the {MAX_CANVAS_PIXELS} pixel ceiling"
+            f"render profile exceeds the C4 qualified operational metric pixel ceiling {_QUALIFIED_METRIC_MAX_PIXELS}"
         )
     registry, registry_sha256 = _load_registry()
     fixed = registry["renderProfile"]
@@ -238,6 +269,9 @@ def _validate_profile(profile: RenderProfile) -> None:
         "anti_alias_detection": fixed["antiAliasDetection"],
         "match_minimum": fixed["matchMinimum"],
         "ssim_minimum": fixed["ssimMinimum"],
+        "metric_max_pixels": fixed["metricMaxPixels"],
+        "metric_max_bytes": fixed["metricMaxBytes"],
+        "metric_budget_version": fixed["metricBudgetVersion"],
         "mae_limit_version": mae["version"],
         "mae_limit": mae["value"],
         "edge_metric": edge["id"],
@@ -251,6 +285,12 @@ def _validate_profile(profile: RenderProfile) -> None:
     for field, value in expected.items():
         if getattr(profile, field) != value:
             raise RenderError(f"render profile mismatch: {field}")
+    if (
+        profile.metric_max_pixels != _QUALIFIED_METRIC_MAX_PIXELS
+        or profile.metric_max_bytes != _QUALIFIED_METRIC_MAX_BYTES
+        or profile.metric_budget_version != _METRIC_BUDGET_VERSION
+    ):
+        raise RenderError("render profile metric resource budget is not qualified")
     if (
         not isinstance(profile.rgba_background, tuple)
         or len(profile.rgba_background) != 4
@@ -303,6 +343,8 @@ def _validated_write_constraints(
     allowed_kinds: frozenset[str],
     operation: str,
     required_suffix: str = ".png",
+    artifact_role: str,
+    artifact_producer: str,
 ) -> _WriteConstraints:
     if run_contract is None:
         raise RenderError("a validated run contract is required before any public write")
@@ -338,7 +380,12 @@ def _validated_write_constraints(
         for artifact in snapshot["artifacts"]
         if artifact["path"] == target_relative
     ]
-    if len(matching) != 1 or matching[0]["kind"] not in allowed_kinds:
+    if (
+        len(matching) != 1
+        or matching[0]["kind"] not in allowed_kinds
+        or matching[0].get("role") != artifact_role
+        or matching[0].get("producer") != artifact_producer
+    ):
         expected_kinds = ",".join(sorted(allowed_kinds))
         raise RenderError(
             "write target is not an exact authorized artifact declaration with kind "
@@ -359,6 +406,7 @@ def _validated_write_constraints(
         target=lexical_target,
         run_root=runtime_root,
         run_id=snapshot["runId"],
+        target_artifact=matching[0],
     )
 
 
@@ -392,8 +440,10 @@ def _png_prefix_dimensions(prefix: bytes) -> tuple[int, int]:
     )
     if width <= 0 or height <= 0:
         raise RenderError("PNG header contains invalid dimensions")
-    if width * height > MAX_CANVAS_PIXELS:
-        raise RenderError(f"PNG exceeds the {MAX_CANVAS_PIXELS} pixel ceiling")
+    if width * height > _QUALIFIED_METRIC_MAX_PIXELS:
+        raise RenderError(
+            f"PNG exceeds the C4 qualified operational metric pixel ceiling {_QUALIFIED_METRIC_MAX_PIXELS}"
+        )
     if bit_depth != 8 or color_type not in {2, 6}:
         raise RenderError("PNG IHDR must encode 8-bit RGB or RGBA")
     if compression != 0 or filtering != 0 or interlace not in {0, 1}:
@@ -401,69 +451,136 @@ def _png_prefix_dimensions(prefix: bytes) -> tuple[int, int]:
     return width, height
 
 
-def _preflight_png_chunks(payload: bytes) -> None:
-    offset = 8
+def _read_exact(stream: BinaryIO, length: int, *, field: str) -> bytes:
+    payload = stream.read(length)
+    if len(payload) != length:
+        raise RenderError(f"PNG {field} is truncated")
+    return payload
+
+
+def _stream_png_preflight(
+    stream: BinaryIO,
+    file_size: int,
+) -> tuple[tuple[int, int], str]:
+    if file_size > _QUALIFIED_METRIC_MAX_BYTES:
+        raise RenderError(
+            f"PNG exceeds the C4 qualified metric file-size limit {_QUALIFIED_METRIC_MAX_BYTES}"
+        )
+    digest = hashlib.sha256()
+    signature = _read_exact(stream, 8, field="signature")
+    digest.update(signature)
+    if signature != _PNG_SIGNATURE:
+        raise RenderError("PNG signature is invalid")
     metadata_bytes = 0
+    chunk_index = 0
+    dimensions: tuple[int, int] | None = None
+    found_idat = False
+    idat_ended = False
     found_iend = False
-    while offset < len(payload):
-        if len(payload) - offset < 12:
-            raise RenderError("PNG chunk stream is truncated")
-        length = struct.unpack(">I", payload[offset : offset + 4])[0]
-        kind = payload[offset + 4 : offset + 8]
+    consumed = 8
+    while consumed < file_size:
+        header = _read_exact(stream, 8, field="chunk header")
+        digest.update(header)
+        consumed += 8
+        length, kind = struct.unpack(">I4s", header)
         if length > _MAX_PNG_CHUNK_BYTES:
             raise RenderError("PNG chunk exceeds the bounded chunk policy")
-        end = offset + 12 + length
-        if end > len(payload):
+        if consumed + length + 4 > file_size:
             raise RenderError("PNG chunk payload is truncated")
+        if chunk_index == 0 and (kind != b"IHDR" or length != 13):
+            raise RenderError("PNG must begin with one exact 13-byte IHDR chunk")
+        if chunk_index > 0 and kind == b"IHDR":
+            raise RenderError("PNG contains a duplicate IHDR chunk")
+        crc = zlib.crc32(kind)
+        captured = bytearray()
+        remaining = length
+        while remaining:
+            block = _read_exact(
+                stream, min(remaining, 1 << 20), field=f"{kind!r} chunk payload"
+            )
+            digest.update(block)
+            crc = zlib.crc32(block, crc)
+            if kind == b"IHDR":
+                captured.extend(block)
+            remaining -= len(block)
+        crc_bytes = _read_exact(stream, 4, field=f"{kind!r} chunk CRC")
+        digest.update(crc_bytes)
+        consumed += length + 4
+        expected_crc = struct.unpack(">I", crc_bytes)[0]
+        if crc & 0xFFFFFFFF != expected_crc:
+            raise RenderError(f"PNG {kind.decode('ascii', errors='replace')} chunk CRC mismatch")
+        if kind == b"IHDR":
+            dimensions = _png_prefix_dimensions(signature + header + captured + crc_bytes)
         if kind not in {b"IDAT", b"IEND"}:
             metadata_bytes += length
             if metadata_bytes > _MAX_PNG_METADATA_BYTES:
                 raise RenderError("PNG metadata exceeds the bounded metadata policy")
+        if kind == b"IDAT":
+            if dimensions is None or found_iend or idat_ended:
+                raise RenderError("PNG IDAT chunk is out of order")
+            found_idat = True
+        elif found_idat and kind != b"IEND":
+            idat_ended = True
         if kind == b"IEND":
-            if length != 0 or end != len(payload):
-                raise RenderError("PNG IEND chunk is malformed or not final")
+            if length != 0 or not found_idat:
+                raise RenderError("PNG IEND chunk is malformed or precedes IDAT")
             found_iend = True
             break
-        offset = end
+        chunk_index += 1
     if not found_iend:
         raise RenderError("PNG is missing its final IEND chunk")
+    if consumed != file_size or stream.read(1):
+        raise RenderError("PNG contains trailing bytes after IEND")
+    if dimensions is None:
+        raise RenderError("PNG is missing IHDR dimensions")
+    return dimensions, digest.hexdigest()
 
 
-def _open_checked_png_header(path: Path) -> tuple[Image.Image, _InputBinding]:
+def _open_checked_png_header(
+    path: Path,
+) -> tuple[Image.Image, _InputBinding, BinaryIO]:
     """Bounded raw PNG preflight before Pillow sees any metadata chunk."""
 
     if not isinstance(path, Path):
         raise RenderError("PNG path must be a pathlib.Path")
     source = Path(os.path.abspath(os.fspath(path)))
     _assert_plain_existing_components(source)
+    stream: BinaryIO | None = None
     try:
-        with source.open("rb") as stream:
-            before = _identity(os.fstat(stream.fileno()))
-            if before.size > _MAX_PNG_FILE_BYTES:
-                raise RenderError("PNG exceeds the bounded file-size policy")
-            prefix = stream.read(33)
-            dimensions = _png_prefix_dimensions(prefix)
-            stream.seek(0)
-            payload = stream.read()
-            after = _identity(os.fstat(stream.fileno()))
+        stream = source.open("rb")
+        before = _identity(os.fstat(stream.fileno()))
+        dimensions, png_sha256 = _stream_png_preflight(stream, before.size)
+        after = _identity(os.fstat(stream.fileno()))
         path_after = _identity(source.stat())
         if before != after or after != path_after:
             raise RenderError("PNG identity changed during bounded snapshot")
-        _preflight_png_chunks(payload)
         binding = _InputBinding(
             path=source,
             identity=after,
-            sha256=hashlib.sha256(payload).hexdigest(),
+            sha256=png_sha256,
         )
+        stream.seek(0)
         with warnings.catch_warnings():
             warnings.simplefilter("ignore", Image.DecompressionBombWarning)
-            image = Image.open(io.BytesIO(payload))
+            image = Image.open(stream)
     except Image.DecompressionBombError:
-        raise RenderError(f"PNG exceeds the {MAX_CANVAS_PIXELS} pixel ceiling") from None
+        if stream is not None:
+            stream.close()
+        raise RenderError(
+            f"PNG exceeds the C4 qualified operational metric pixel ceiling {_QUALIFIED_METRIC_MAX_PIXELS}"
+        ) from None
     except RenderError:
+        if stream is not None:
+            stream.close()
         raise
     except (OSError, UnidentifiedImageError) as exc:
+        if stream is not None:
+            stream.close()
         raise RenderError(f"cannot read PNG header: {source}: {exc}") from None
+    except Exception:
+        if stream is not None:
+            stream.close()
+        raise
     try:
         if image.format != "PNG":
             raise RenderError(f"comparison/render output must be PNG: {source}")
@@ -479,9 +596,12 @@ def _open_checked_png_header(path: Path) -> tuple[Image.Image, _InputBinding]:
                 raise RenderError(f"PNG has invalid color profile: {exc}") from None
             if "srgb" not in name.casefold():
                 raise RenderError("PNG profile mismatch: expected sRGB")
-        return image, binding
+        assert stream is not None
+        return image, binding, stream
     except Exception:
         image.close()
+        if stream is not None:
+            stream.close()
         raise
 
 
@@ -524,6 +644,10 @@ def _snapshot_regular_file(path: Path, *, role: str) -> tuple[_InputBinding, byt
     try:
         with lexical.open("rb") as stream:
             before = _identity(os.fstat(stream.fileno()))
+            if before.size > _QUALIFIED_METRIC_MAX_BYTES:
+                raise RenderError(
+                    f"{role} input exceeds the C4 qualified metric byte limit"
+                )
             payload = stream.read()
             after = _identity(os.fstat(stream.fileno()))
         path_after = _identity(lexical.stat())
@@ -558,6 +682,8 @@ def _bind_contract_input(
     kind: str,
     suffix: str,
     role: str,
+    artifact_role: str,
+    artifact_producer: str,
     normalized_reference: bool = False,
 ) -> tuple[_InputBinding, bytes]:
     lexical = Path(os.path.abspath(os.fspath(path)))
@@ -570,7 +696,13 @@ def _bind_contract_input(
         for artifact in constraints.contract["artifacts"]
         if artifact["path"] == relative
     ]
-    if len(matching) != 1 or matching[0]["kind"] != kind:
+    if (
+        len(matching) != 1
+        or matching[0]["kind"] != kind
+        or matching[0].get("role") != artifact_role
+        or matching[0].get("producer") != artifact_producer
+        or "sha256" not in matching[0]
+    ):
         raise RenderError(f"{role} input must be one exact {kind} input artifact")
     if lexical.suffix.lower() != suffix:
         raise RenderError(f"{role} input must use the exact {suffix} extension")
@@ -580,7 +712,22 @@ def _bind_contract_input(
         raise RenderError(
             "reference input must equal source.normalizedReferenceTarget exactly"
         )
-    return _snapshot_regular_file(lexical, role=role)
+    binding, payload = _snapshot_regular_file(lexical, role=role)
+    expected_sha256 = matching[0]["sha256"]
+    if binding.sha256 != expected_sha256:
+        raise RenderError(
+            f"{role} input does not match the contract expected sha256"
+        )
+    return (
+        _InputBinding(
+            path=binding.path,
+            identity=binding.identity,
+            sha256=binding.sha256,
+            role=artifact_role,
+            producer=artifact_producer,
+        ),
+        payload,
+    )
 
 
 def _validate_renderer_binary_location(profile: RenderProfile) -> Path:
@@ -834,6 +981,8 @@ def render_svg(
         profile,
         allowed_kinds=frozenset({"evidence"}),
         operation="reconstruct",
+        artifact_role="render-preview",
+        artifact_producer="resvg-v0.47.0",
     )
     output, run_root = _bounded_output(output_path)
     if output != constraints.target or run_root != constraints.run_root:
@@ -844,6 +993,8 @@ def render_svg(
         kind="vector-output",
         suffix=".svg",
         role="sanitized SVG",
+        artifact_role="sanitized-svg",
+        artifact_producer="rir-svg-serializer-v1",
     )
     try:
         sanitized = sanitize_svg(source_payload)
@@ -893,7 +1044,7 @@ def render_svg(
             _assert_staged_identity(
                 staged_renderer, staged_identity, profile.renderer_sha256
             )
-        image, rendered_binding = _open_checked_png_header(png_temp)
+        image, rendered_binding, rendered_stream = _open_checked_png_header(png_temp)
         try:
             image.load()
             if image.size != (profile.width, profile.height):
@@ -902,8 +1053,15 @@ def render_svg(
                 )
         finally:
             image.close()
+            rendered_stream.close()
         _assert_plain_existing_components(output.parent)
         _verify_input_binding(rendered_binding)
+        expected_output_sha256 = constraints.target_artifact.get("sha256")
+        if (
+            expected_output_sha256 is not None
+            and expected_output_sha256 != rendered_binding.sha256
+        ):
+            raise RenderError("render output does not match contract expected sha256")
         _revalidate_write_constraints(constraints, (source_binding,))
         os.replace(png_temp, output)
         png_temp = None
@@ -941,4 +1099,15 @@ def render_svg(
         renderer_version=profile.renderer_version,
         renderer_sha256=profile.renderer_sha256,
         registry_digest=profile.registry_sha256,
+        metric_max_pixels=profile.metric_max_pixels,
+        metric_max_bytes=profile.metric_max_bytes,
+        metric_budget_version=profile.metric_budget_version,
+        input_bindings=(
+            ArtifactBindingEvidence(
+                path=source_binding.path,
+                role=source_binding.role,
+                producer=source_binding.producer,
+                sha256=source_binding.sha256,
+            ),
+        ),
     )

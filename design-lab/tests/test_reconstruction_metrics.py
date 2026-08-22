@@ -73,6 +73,7 @@ def _run_contract(
     lifecycle_state: str = "authorized",
     expired: bool = False,
     normalized_reference: Path | None = None,
+    artifact_metadata: dict[Path, dict] | None = None,
 ) -> dict:
     run_id = run_root.name
     runtime_root = f".hermes/task-runtime/reconstruction/{run_id}/"
@@ -99,6 +100,32 @@ def _run_contract(
         if normalized_reference is None
         else normalized_reference.relative_to(REPO_ROOT).as_posix()
     )
+    metadata_overrides = artifact_metadata or {}
+    evidence_paths = [path for path, kind in artifacts.items() if kind == "evidence"]
+
+    def artifact_record(index: int, path: Path, kind: str, target: str) -> dict:
+        if kind == "normalized-source":
+            role, producer = "normalized-reference", "intake-normalizer-v1"
+        elif kind == "vector-output":
+            role, producer = "sanitized-svg", "rir-svg-serializer-v1"
+        elif "diff" in path.name.casefold() or (
+            len(evidence_paths) > 1 and path == evidence_paths[-1]
+        ):
+            role, producer = "diff-evidence", "fidelity-metrics-v1"
+        else:
+            role, producer = "render-preview", "resvg-v0.47.0"
+        record = {
+            "id": f"artifact-{index}",
+            "kind": kind,
+            "path": target,
+            "role": role,
+            "producer": producer,
+        }
+        if path.is_file():
+            record["sha256"] = hashlib.sha256(path.read_bytes()).hexdigest()
+        record.update(metadata_overrides.get(path, {}))
+        return record
+
     return {
         "schemaVersion": "design-lab/reconstruction-run/v1",
         "runId": run_id,
@@ -153,8 +180,8 @@ def _run_contract(
             "checkpointPath": runtime_root + "checkpoints/state.json",
         },
         "artifacts": [
-            {"id": f"artifact-{index}", "kind": kind, "path": target}
-            for index, ((_, kind), target) in enumerate(zip(artifacts.items(), targets))
+            artifact_record(index, path, kind, target)
+            for index, ((path, kind), target) in enumerate(zip(artifacts.items(), targets))
         ],
     }
 
@@ -169,7 +196,12 @@ def _header_only_png(width: int, height: int) -> bytes:
         + height.to_bytes(4, "big")
         + bytes((8, 6, 0, 0, 0))
     )
-    return b"\x89PNG\r\n\x1a\n" + chunk(b"IHDR", ihdr) + chunk(b"IEND", b"")
+    return (
+        b"\x89PNG\r\n\x1a\n"
+        + chunk(b"IHDR", ihdr)
+        + chunk(b"IDAT", b"")
+        + chunk(b"IEND", b"")
+    )
 
 
 class ReconstructionMetricTests(unittest.TestCase):
@@ -284,6 +316,9 @@ class ReconstructionMetricTests(unittest.TestCase):
         self.assertEqual(profile.dense_connectivity, 8)
         self.assertEqual(profile.dense_bbox_exclusive_limit, 32)
         self.assertEqual(profile.dense_density_minimum, 0.25)
+        self.assertEqual(profile.metric_max_pixels, 4_194_304)
+        self.assertEqual(profile.metric_max_bytes, 67_108_864)
+        self.assertEqual(profile.metric_budget_version, "c4-metric-memory-v1")
 
     def test_public_writes_require_valid_exact_run_contract_before_creation(self) -> None:
         source = self.run_root / "source.svg"
@@ -388,7 +423,7 @@ class ReconstructionMetricTests(unittest.TestCase):
                 profile,
                 run_contract=_run_contract(
                     self.run_root,
-                    {svg: "vector-output", wrong_output: "vector-output"},
+                    {svg: "vector-output", wrong_output: "evidence"},
                     width=64,
                     height=64,
                 ),
@@ -405,6 +440,70 @@ class ReconstructionMetricTests(unittest.TestCase):
         with mock.patch.object(render_module, "_REGISTRY_PATH", tampered_path):
             with self.assertRaisesRegex(RenderError, "trusted|digest|anchor"):
                 load_render_profile(64, 64)
+
+    def test_contract_expected_input_hashes_are_authoritative_and_returned(self) -> None:
+        pixels = _rgba(64, 64)
+        reference = self.run_root / "hash-reference.png"
+        actual = self.run_root / "hash-preview.png"
+        diff = self.run_root / "hash-diff.png"
+        _save_rgba(reference, pixels)
+        _save_rgba(actual, pixels)
+        contract = _run_contract(
+            self.run_root,
+            {reference: "normalized-source", actual: "evidence", diff: "evidence"},
+            width=64,
+            height=64,
+            normalized_reference=reference,
+            artifact_metadata={actual: {"sha256": "b" * 64}},
+        )
+        with self.assertRaisesRegex(FidelityError, "expected.*sha256|SHA-256|hash"):
+            compare_images(
+                reference,
+                actual,
+                profile=load_render_profile(64, 64),
+                diff_output_path=diff,
+                run_contract=contract,
+            )
+
+        wrong_diff = _run_contract(
+            self.run_root,
+            {reference: "normalized-source", actual: "evidence", diff: "evidence"},
+            width=64,
+            height=64,
+            normalized_reference=reference,
+            artifact_metadata={diff: {"sha256": "c" * 64}},
+        )
+        with self.assertRaisesRegex(FidelityError, "diff output.*expected sha256"):
+            compare_images(
+                reference,
+                actual,
+                profile=load_render_profile(64, 64),
+                diff_output_path=diff,
+                run_contract=wrong_diff,
+            )
+        self.assertFalse(diff.exists())
+
+        svg = self.run_root / "expected-render.svg"
+        svg.write_text(
+            '<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64"></svg>',
+            encoding="utf-8",
+        )
+        preview = self.run_root / "expected-render.png"
+        wrong_render = _run_contract(
+            self.run_root,
+            {svg: "vector-output", preview: "evidence"},
+            width=64,
+            height=64,
+            artifact_metadata={preview: {"sha256": "d" * 64}},
+        )
+        with self.assertRaisesRegex(RenderError, "render output.*expected sha256"):
+            render_svg(
+                svg,
+                preview,
+                load_render_profile(64, 64, REAL_RESVG),
+                run_contract=wrong_render,
+            )
+        self.assertFalse(preview.exists())
 
     def test_raw_png_ceiling_preflight_runs_before_pillow_metadata_handlers(self) -> None:
         from PIL import PngImagePlugin
@@ -429,6 +528,30 @@ class ReconstructionMetricTests(unittest.TestCase):
             with self.assertRaisesRegex(FidelityError, "pixel ceiling"):
                 compare_images(oversized, oversized)
         metadata.assert_not_called()
+
+    def test_every_png_chunk_crc_is_verified_before_pillow(self) -> None:
+        valid = self.run_root / "valid-crc.png"
+        _save_rgba(valid, _rgba(1, 1))
+        payload = bytearray(valid.read_bytes())
+        offset = 8
+        while offset < len(payload):
+            length = int.from_bytes(payload[offset : offset + 4], "big")
+            kind = bytes(payload[offset + 4 : offset + 8])
+            if kind == b"IDAT":
+                crc_offset = offset + 8 + length
+                payload[crc_offset] ^= 0x01
+                break
+            offset += 12 + length
+        corrupt = self.run_root / "bad-idat-crc.png"
+        corrupt.write_bytes(payload)
+        with mock.patch.object(
+            Image,
+            "open",
+            side_effect=AssertionError("Pillow opened CRC-invalid PNG"),
+        ) as pillow_open:
+            with self.assertRaisesRegex(FidelityError, "CRC"):
+                compare_images(corrupt, corrupt)
+        pillow_open.assert_not_called()
 
     def test_renderer_binary_type_and_post_replace_tampering_fail_without_residue(self) -> None:
         import reconstruction.render as render_module
@@ -681,17 +804,19 @@ class ReconstructionMetricTests(unittest.TestCase):
             self.assertGreaterEqual(diff_metrics.ssim, -1.0)
             self.assertLess(diff_metrics.ssim, 1.0)
 
-    def test_shared_canvas_ceiling_and_png_header_precheck(self) -> None:
+    def test_c4_operational_ceiling_is_below_c3_geometry_and_predecode(self) -> None:
         import reconstruction.metrics as metrics_module
+        from reconstruction.svg_safety import MAX_CANVAS_PIXELS
 
-        boundary = load_render_profile(10_000, 10_000, REAL_RESVG)
-        self.assertEqual(boundary.width * boundary.height, 100_000_000)
-        with self.assertRaisesRegex(RenderError, "pixel ceiling"):
-            load_render_profile(10_001, 10_000)
+        self.assertEqual(MAX_CANVAS_PIXELS, 100_000_000)
+        boundary = load_render_profile(2_048, 2_048, REAL_RESVG)
+        self.assertEqual(boundary.width * boundary.height, 4_194_304)
+        with self.assertRaisesRegex(RenderError, "operational|metric.*pixel|pixel ceiling"):
+            load_render_profile(2_049, 2_048)
 
         source = self.run_root / "canvas-ceiling.svg"
         source.write_text(
-            '<svg xmlns="http://www.w3.org/2000/svg" width="10000" height="10000"></svg>',
+            '<svg xmlns="http://www.w3.org/2000/svg" width="2048" height="2048"></svg>',
             encoding="utf-8",
         )
         with self.assertRaisesRegex(RenderError, "run contract"):
@@ -700,11 +825,11 @@ class ReconstructionMetricTests(unittest.TestCase):
             render_svg(
                 source,
                 self.run_root / "over-ceiling.png",
-                dataclasses.replace(boundary, width=10_001),
+                dataclasses.replace(boundary, width=2_049),
             )
 
         boundary_header = self.run_root / "boundary-header.png"
-        boundary_header.write_bytes(_header_only_png(10_000, 10_000))
+        boundary_header.write_bytes(_header_only_png(2_048, 2_048))
         with mock.patch.object(
             metrics_module,
             "_decode_rgba",
@@ -715,7 +840,7 @@ class ReconstructionMetricTests(unittest.TestCase):
         boundary_decode.assert_called_once()
 
         oversized = self.run_root / "oversized-header.png"
-        oversized.write_bytes(_header_only_png(10_001, 10_000))
+        oversized.write_bytes(_header_only_png(2_049, 2_048))
         with mock.patch.object(
             Image.Image,
             "load",
@@ -724,6 +849,13 @@ class ReconstructionMetricTests(unittest.TestCase):
             with self.assertRaisesRegex(FidelityError, "pixel ceiling"):
                 compare_images(oversized, oversized)
         loaded.assert_not_called()
+
+        oversized_file = self.run_root / "oversized-file.png"
+        oversized_file.write_bytes(_header_only_png(1, 1))
+        with oversized_file.open("r+b") as stream:
+            stream.truncate(67_108_865)
+        with self.assertRaisesRegex(FidelityError, "file-size|metric.*bytes"):
+            compare_images(oversized_file, oversized_file)
 
     def test_identical_images_pass_and_promote_only_to_deterministic_status(self) -> None:
         pixels = _rgba(64, 64, (17, 34, 51, 127))
@@ -1150,16 +1282,44 @@ class ReconstructionMetricTests(unittest.TestCase):
         self.assertEqual(result.renderer_version, "0.47.0")
         self.assertEqual(result.renderer_sha256, EXPECTED_RESVG_SHA256)
         self.assertEqual(result.registry_digest, self.profile.registry_sha256)
+        self.assertEqual(
+            [(item.role, item.producer, item.sha256) for item in result.input_bindings],
+            [
+                (
+                    "sanitized-svg",
+                    "rir-svg-serializer-v1",
+                    hashlib.sha256(svg.read_bytes()).hexdigest(),
+                )
+            ],
+        )
+        self.assertEqual(result.metric_max_pixels, 4_194_304)
+        self.assertEqual(result.metric_max_bytes, 67_108_864)
+        self.assertEqual(result.metric_budget_version, "c4-metric-memory-v1")
         self.assertEqual(result.lifecycle_status, "RENDERED")
+        compare_contract = _run_contract(
+            self.run_root,
+            {svg: "vector-output", normalized_reference: "normalized-source", output: "evidence", diff: "evidence"},
+            width=64,
+            height=64,
+            normalized_reference=normalized_reference,
+        )
         metrics = compare_images(
             normalized_reference,
             output,
             profile=profile,
             diff_output_path=diff,
-            run_contract=contract,
+            run_contract=compare_contract,
         )
         self.assertTrue(metrics.passed, metrics.failure_reasons)
         self.assertEqual(metrics.registry_digest, profile.registry_sha256)
+        self.assertEqual(
+            [(item.role, item.producer) for item in metrics.input_bindings],
+            [
+                ("normalized-reference", "intake-normalizer-v1"),
+                ("render-preview", "resvg-v0.47.0"),
+            ],
+        )
+        self.assertEqual(metrics.metric_max_pixels, 4_194_304)
         self.assertEqual(metrics.match_ratio, 1.0)
         self.assertGreaterEqual(metrics.ssim, profile.ssim_minimum)
 

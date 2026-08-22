@@ -177,6 +177,29 @@ def validate_run_contract(value: dict) -> None:
         ):
             raise ContractError(f"$.artifacts[{index}].path: target is outside declared roots")
 
+    role_contract = {
+        "normalized-reference": ("normalized-source", "intake-normalizer-v1"),
+        "sanitized-svg": ("vector-output", "rir-svg-serializer-v1"),
+        "render-preview": ("evidence", "resvg-v0.47.0"),
+        "diff-evidence": ("evidence", "fidelity-metrics-v1"),
+    }
+    artifact_roles = [artifact.get("role") for artifact in artifacts if artifact.get("role")]
+    if len(artifact_roles) != len(set(artifact_roles)):
+        raise ContractError("$.artifacts: duplicate artifact role")
+    for index, artifact in enumerate(artifacts):
+        role = artifact.get("role")
+        producer = artifact.get("producer")
+        if (role is None) != (producer is None):
+            raise ContractError(
+                f"$.artifacts[{index}]: role and producer must be declared together"
+            )
+        if role is not None:
+            expected_kind, expected_producer = role_contract[role]
+            if artifact["kind"] != expected_kind or producer != expected_producer:
+                raise ContractError(
+                    f"$.artifacts[{index}]: role/kind/producer binding is inconsistent"
+                )
+
     policy = value["providerPolicy"]
     if policy["selectedProvider"] not in policy["providerAllowlist"]:
         raise ContractError("$.providerPolicy.selectedProvider: provider is not allowlisted")

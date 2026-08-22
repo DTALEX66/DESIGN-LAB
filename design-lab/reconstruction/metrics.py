@@ -16,6 +16,7 @@ from skimage.filters import sobel
 from skimage.metrics import structural_similarity
 
 from .render import (
+    ArtifactBindingEvidence,
     RenderError,
     RenderProfile,
     _InputBinding,
@@ -79,6 +80,10 @@ class FidelityMetrics:
     passed: bool
     lifecycle_status: str
     registry_digest: str
+    metric_max_pixels: int
+    metric_max_bytes: int
+    metric_budget_version: str
+    input_bindings: tuple[ArtifactBindingEvidence, ...]
 
 
 def _decode_rgba(image: Image.Image, source: Path) -> np.ndarray:
@@ -387,6 +392,12 @@ def _atomic_write(
         )
         if staged_binding.sha256 != hashlib.sha256(payload).hexdigest() or staged_payload != payload:
             raise FidelityError("diff staging integrity mismatch before commit")
+        expected_output_sha256 = constraints.target_artifact.get("sha256")
+        if (
+            expected_output_sha256 is not None
+            and expected_output_sha256 != staged_binding.sha256
+        ):
+            raise FidelityError("diff output does not match contract expected sha256")
         try:
             _bounded_output(bounded)
         except RenderError as exc:
@@ -461,12 +472,12 @@ def compare_images(
     reference_path = Path(os.path.abspath(os.fspath(reference)))
     actual_path = Path(os.path.abspath(os.fspath(actual)))
     try:
-        reference_image, reference_header_binding = _open_checked_png_header(reference_path)
+        reference_image, reference_header_binding, reference_stream = _open_checked_png_header(reference_path)
     except RenderError as exc:
         raise FidelityError(str(exc)) from None
     try:
         try:
-            actual_image, actual_header_binding = _open_checked_png_header(actual_path)
+            actual_image, actual_header_binding, actual_stream = _open_checked_png_header(actual_path)
         except RenderError as exc:
             raise FidelityError(str(exc)) from None
         try:
@@ -495,6 +506,8 @@ def compare_images(
                         profile,
                         allowed_kinds=frozenset({"evidence"}),
                         operation="verify",
+                        artifact_role="diff-evidence",
+                        artifact_producer="fidelity-metrics-v1",
                     )
                     reference_binding, _ = _bind_contract_input(
                         write_constraints,
@@ -502,6 +515,8 @@ def compare_images(
                         kind="normalized-source",
                         suffix=".png",
                         role="normalized reference",
+                        artifact_role="normalized-reference",
+                        artifact_producer="intake-normalizer-v1",
                         normalized_reference=True,
                     )
                     actual_binding, _ = _bind_contract_input(
@@ -510,14 +525,34 @@ def compare_images(
                         kind="evidence",
                         suffix=".png",
                         role="actual preview",
+                        artifact_role="render-preview",
+                        artifact_producer="resvg-v0.47.0",
                     )
                 except RenderError as exc:
                     raise FidelityError(str(exc)) from None
                 if len({reference_path, actual_path, Path(os.path.abspath(os.fspath(diff_output_path)))}) != 3:
                     raise FidelityError("reference, actual preview and diff target must be distinct")
                 if (
-                    reference_binding != reference_header_binding
-                    or actual_binding != actual_header_binding
+                    (
+                        reference_binding.path,
+                        reference_binding.identity,
+                        reference_binding.sha256,
+                    )
+                    != (
+                        reference_header_binding.path,
+                        reference_header_binding.identity,
+                        reference_header_binding.sha256,
+                    )
+                    or (
+                        actual_binding.path,
+                        actual_binding.identity,
+                        actual_binding.sha256,
+                    )
+                    != (
+                        actual_header_binding.path,
+                        actual_header_binding.identity,
+                        actual_header_binding.sha256,
+                    )
                 ):
                     raise FidelityError("comparison input changed during contract binding")
                 input_bindings = (reference_binding, actual_binding)
@@ -527,8 +562,10 @@ def compare_images(
             actual_rgba = _decode_rgba(actual_image, actual_path)
         finally:
             actual_image.close()
+            actual_stream.close()
     finally:
         reference_image.close()
+        reference_stream.close()
 
     mismatch, excluded_aa = pixelmatch_masks(
         reference_rgba,
@@ -638,4 +675,16 @@ def compare_images(
         passed=passed,
         lifecycle_status="PIXEL_VERIFIED_DETERMINISTIC" if passed else "MEASURED",
         registry_digest=profile.registry_sha256,
+        metric_max_pixels=profile.metric_max_pixels,
+        metric_max_bytes=profile.metric_max_bytes,
+        metric_budget_version=profile.metric_budget_version,
+        input_bindings=tuple(
+            ArtifactBindingEvidence(
+                path=binding.path,
+                role=binding.role,
+                producer=binding.producer,
+                sha256=binding.sha256,
+            )
+            for binding in input_bindings
+        ),
     )

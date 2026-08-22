@@ -8,6 +8,9 @@
     "antiAliasDetection": true,
     "matchMinimum": 0.995,
     "ssimMinimum": 0.995,
+    "metricMaxPixels": 4194304,
+    "metricMaxBytes": 67108864,
+    "metricBudgetVersion": "c4-metric-memory-v1",
     "maeLimit": {
       "version": "uncalibrated-v1",
       "value": null

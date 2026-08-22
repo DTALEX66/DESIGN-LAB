@@ -338,6 +338,44 @@ class ReconstructionContractTests(unittest.TestCase):
         self.assertEqual(RUN_SCHEMA_ID, "design-lab/reconstruction-run/v1")
         validate_run_contract(minimal_run_contract())
 
+    def test_versioned_artifact_roles_hashes_and_producers_are_strict(self):
+        value = minimal_run_contract()
+        value["artifacts"][0].update(
+            {
+                "role": "sanitized-svg",
+                "sha256": "b" * 64,
+                "producer": "rir-svg-serializer-v1",
+            }
+        )
+        value["artifacts"][1].update(
+            {
+                "role": "diff-evidence",
+                "producer": "fidelity-metrics-v1",
+            }
+        )
+        validate_run_contract(value)
+
+        uppercase = copy.deepcopy(value)
+        uppercase["artifacts"][0]["sha256"] = "B" * 64
+        with self.assertRaisesRegex(ContractError, "sha256"):
+            validate_run_contract(uppercase)
+
+        wrong_producer = copy.deepcopy(value)
+        wrong_producer["artifacts"][0]["producer"] = "resvg-v0.47.0"
+        with self.assertRaisesRegex(ContractError, "producer|role"):
+            validate_run_contract(wrong_producer)
+
+        duplicate_role = copy.deepcopy(value)
+        duplicate_role["artifacts"][1].update(
+            {
+                "kind": "vector-output",
+                "role": "sanitized-svg",
+                "producer": "rir-svg-serializer-v1",
+            }
+        )
+        with self.assertRaisesRegex(ContractError, "duplicate artifact role"):
+            validate_run_contract(duplicate_role)
+
     def test_invalid_profile_is_rejected(self):
         value = minimal_run_contract()
         value["profile"] = "illustration"
