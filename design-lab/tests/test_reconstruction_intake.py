@@ -2,6 +2,7 @@
 """Deterministic reconstruction image-intake tests."""
 from __future__ import annotations
 
+import copy
 import hashlib
 import json
 import os
@@ -105,7 +106,14 @@ def _remove_directory_reparse(link: Path) -> None:
         link.rmdir()
 
 
-def _intake_run_contract(source: Path, run_id: str) -> dict:
+def _intake_run_contract(
+    source: Path,
+    run_id: str,
+    *,
+    width: int = 64,
+    height: int = 64,
+    profile: str = "flat",
+) -> dict:
     runtime = f".hermes/task-runtime/reconstruction/{run_id}/"
     normalized = runtime + "reference.normalized.png"
     source_rel = source.resolve().relative_to(PROJECT_ROOT).as_posix()
@@ -121,14 +129,14 @@ def _intake_run_contract(source: Path, run_id: str) -> dict:
             "profileMetadata": {"name": "reference", "version": "1"},
             "normalizedReferenceTarget": normalized,
         },
-        "profile": "flat",
+        "profile": profile,
         "canvasPolicy": {
-            "width": 64,
-            "height": 64,
+            "width": width,
+            "height": height,
             "colorSpace": "srgb",
             "globalCoordinates": "source-pixel",
             "tilePolicy": {
-                "enabled": False,
+                "enabled": width > 4096 or height > 4096,
                 "tileWidth": 4096,
                 "tileHeight": 4096,
                 "overlap": 0,
@@ -201,6 +209,51 @@ class ReconstructionIntakeTests(unittest.TestCase):
         self.run_dirs.append(path)
         return path
 
+    def contract_for(
+        self,
+        source: Path,
+        label: str,
+        *,
+        width: int = 64,
+        height: int = 64,
+        profile: str = "flat",
+    ) -> tuple[dict, Path]:
+        run_dir = self.run_dir(label)
+        return (
+            _intake_run_contract(
+                source,
+                run_dir.name,
+                width=width,
+                height=height,
+                profile=profile,
+            ),
+            run_dir,
+        )
+
+    def normalize(
+        self,
+        source: Path,
+        label: str,
+        *,
+        width: int = 64,
+        height: int = 64,
+        profile: str = "flat",
+        max_axis: int = 4096,
+    ):
+        contract, run_dir = self.contract_for(
+            source,
+            label,
+            width=width,
+            height=height,
+            profile=profile,
+        )
+        return normalize_reference(
+            source,
+            run_dir,
+            max_axis=max_axis,
+            run_contract=contract,
+        )
+
     def _save(self, name: str, mode: str, format_name: str, *, icc: bytes | None = None) -> Path:
         path = self.scratch / name
         color = (12, 34, 56, 78) if mode == "RGBA" else (12, 34, 56)
@@ -244,9 +297,15 @@ class ReconstructionIntakeTests(unittest.TestCase):
         ]
         for index, (source, expected_format, expected_mode) in enumerate(sources):
             with self.subTest(expected_format):
-                run_dir = self.run_dir(f"format-{index}")
+                expected_size = (64, 64) if source == FIXTURE else (7, 5)
+                contract, run_dir = self.contract_for(
+                    source,
+                    f"format-{index}",
+                    width=expected_size[0],
+                    height=expected_size[1],
+                )
                 before = source.read_bytes()
-                result = normalize_reference(source, run_dir)
+                result = normalize_reference(source, run_dir, run_contract=contract)
                 self.assertEqual(source.read_bytes(), before)
                 self.assertEqual(result.source_sha256, hashlib.sha256(before).hexdigest())
                 self.assertEqual(result.source_identity.sha256, result.source_sha256)
@@ -255,7 +314,7 @@ class ReconstructionIntakeTests(unittest.TestCase):
                 self.assertEqual(result.source_format, expected_format)
                 self.assertEqual(result.original_mode, expected_mode)
                 self.assertEqual(result.mode, "RGBA")
-                self.assertEqual((result.width, result.height), (64, 64) if source == FIXTURE else (7, 5))
+                self.assertEqual((result.width, result.height), expected_size)
                 self.assertEqual(result.color_profile.origin, "assumed-srgb")
                 self.assertIsNone(result.color_profile.icc_sha256)
                 self.assertTrue(result.normalized_path.is_relative_to(run_dir))
@@ -271,7 +330,7 @@ class ReconstructionIntakeTests(unittest.TestCase):
     def test_alpha_and_embedded_profile_are_preserved_and_recorded(self) -> None:
         profile = ImageCms.ImageCmsProfile(ImageCms.createProfile("sRGB"))
         source = self._save("profiled.png", "RGBA", "PNG", icc=profile.tobytes())
-        result = normalize_reference(source, self.run_dir("profiled"))
+        result = self.normalize(source, "profiled", width=7, height=5)
         self.assertEqual(result.color_profile.origin, "embedded")
         self.assertEqual(
             result.color_profile.icc_sha256,
@@ -284,9 +343,9 @@ class ReconstructionIntakeTests(unittest.TestCase):
 
     def test_invalid_embedded_profile_fails_before_output(self) -> None:
         source = self._save("bad-profile.png", "RGB", "PNG", icc=b"not-an-icc-profile")
-        run_dir = self.run_dir("bad-profile")
+        contract, run_dir = self.contract_for(source, "bad-profile", width=7, height=5)
         with self.assertRaises(IntakeError):
-            normalize_reference(source, run_dir)
+            normalize_reference(source, run_dir, run_contract=contract)
         self.assertFalse((run_dir / "reference.normalized.png").exists())
 
     def test_corrupt_zero_dimension_mode_and_format_inputs_fail_closed(self) -> None:
@@ -305,31 +364,40 @@ class ReconstructionIntakeTests(unittest.TestCase):
         invalid_sources.append(bitmap)
 
         for index, source in enumerate(invalid_sources):
-            run_dir = self.run_dir(f"invalid-{index}")
+            contract, run_dir = self.contract_for(source, f"invalid-{index}", width=2, height=2)
             with self.subTest(source.name), self.assertRaises(IntakeError):
-                normalize_reference(source, run_dir)
+                normalize_reference(source, run_dir, run_contract=contract)
             self.assertFalse((run_dir / "reference.normalized.png").exists())
 
     def test_normalization_is_byte_deterministic_across_runs(self) -> None:
-        first = normalize_reference(FIXTURE, self.run_dir("deterministic-a"))
-        second = normalize_reference(FIXTURE, self.run_dir("deterministic-b"))
+        first = self.normalize(FIXTURE, "deterministic-a")
+        second = self.normalize(FIXTURE, "deterministic-b")
         self.assertEqual(first.normalized_sha256, second.normalized_sha256)
         self.assertEqual(first.normalized_path.read_bytes(), second.normalized_path.read_bytes())
 
     def test_normalization_is_byte_deterministic_across_processes(self) -> None:
         code = (
-            "from pathlib import Path; import sys; "
+            "from pathlib import Path; import json,sys; "
             "sys.path.insert(0, sys.argv[1]); "
             "from reconstruction.intake import normalize_reference; "
-            "r=normalize_reference(Path(sys.argv[2]), Path(sys.argv[3])); "
+            "r=normalize_reference(Path(sys.argv[2]), Path(sys.argv[3]), "
+            "run_contract=json.loads(sys.argv[4])); "
             "print(r.normalized_sha256)"
         )
         hashes = []
         outputs = []
         for label in ("process-a", "process-b"):
-            run_dir = self.run_dir(label)
+            contract, run_dir = self.contract_for(FIXTURE, label)
             completed = subprocess.run(
-                [sys.executable, "-c", code, str(DESIGN_LAB), str(FIXTURE), str(run_dir)],
+                [
+                    sys.executable,
+                    "-c",
+                    code,
+                    str(DESIGN_LAB),
+                    str(FIXTURE),
+                    str(run_dir),
+                    json.dumps(contract),
+                ],
                 cwd=PROJECT_ROOT,
                 capture_output=True,
                 text=True,
@@ -347,7 +415,7 @@ class ReconstructionIntakeTests(unittest.TestCase):
         image = Image.new("RGB", (4097, 3), (3, 5, 7))
         image.putpixel((4096, 2), (251, 17, 99))
         image.save(source, format="PNG")
-        result = normalize_reference(source, self.run_dir("wide"))
+        result = self.normalize(source, "wide", width=4097, height=3)
         self.assertEqual((result.width, result.height), (4097, 3))
         self.assertEqual(
             [(tile.x, tile.y, tile.width, tile.height) for tile in result.tiles],
@@ -423,8 +491,9 @@ class ReconstructionIntakeTests(unittest.TestCase):
 
     def test_parent_traversal_and_existing_reparse_destinations_are_rejected(self) -> None:
         traversing = self.scratch / "parent" / ".." / "run"
+        traversal_contract, _ = self.contract_for(FIXTURE, "traversal-contract")
         with self.assertRaises(IntakeError):
-            normalize_reference(FIXTURE, traversing)
+            normalize_reference(FIXTURE, traversing, run_contract=traversal_contract)
 
         actual = self.scratch / "actual"
         actual.mkdir()
@@ -434,23 +503,88 @@ class ReconstructionIntakeTests(unittest.TestCase):
         except OSError as exc:
             self.skipTest(f"directory reparse point unavailable: {exc}")
         try:
+            link_contract = _intake_run_contract(FIXTURE, link.name)
             with self.assertRaises(IntakeError):
-                normalize_reference(FIXTURE, link)
+                normalize_reference(FIXTURE, link, run_contract=link_contract)
             self.assertFalse((actual / "reference.normalized.png").exists())
         finally:
             _remove_directory_reparse(link)
 
     def test_arbitrary_absolute_and_nested_runtime_destinations_are_rejected(self) -> None:
         arbitrary = self.scratch / "arbitrary-output"
+        arbitrary_contract, _ = self.contract_for(FIXTURE, "arbitrary-contract")
         with self.assertRaises(IntakeError):
-            normalize_reference(FIXTURE, arbitrary)
+            normalize_reference(FIXTURE, arbitrary, run_contract=arbitrary_contract)
         self.assertFalse(arbitrary.exists())
 
         canonical_parent = self.run_dir("nested-parent")
         nested = canonical_parent / "child"
+        nested_contract = _intake_run_contract(FIXTURE, canonical_parent.name)
         with self.assertRaises(IntakeError):
-            normalize_reference(FIXTURE, nested)
+            normalize_reference(FIXTURE, nested, run_contract=nested_contract)
         self.assertFalse(nested.exists())
+
+    def test_public_writer_requires_a_valid_run_contract(self) -> None:
+        run_dir = self.run_dir("missing-contract")
+        with self.assertRaises(TypeError):
+            normalize_reference(FIXTURE, run_dir)
+        self.assertFalse(run_dir.exists())
+
+        contract, authorized_run = self.contract_for(FIXTURE, "bad-authorization")
+        unauthorized = copy.deepcopy(contract)
+        unauthorized["writeAuthorization"]["targets"] = [
+            unauthorized["roots"]["runtime"] + "other.png"
+        ]
+        with self.assertRaises(IntakeError):
+            normalize_reference(FIXTURE, authorized_run, run_contract=unauthorized)
+        self.assertFalse(authorized_run.exists())
+
+        tile_contract, tile_run = self.contract_for(FIXTURE, "tile-mismatch")
+        with self.assertRaises(IntakeError):
+            normalize_reference(
+                FIXTURE,
+                tile_run,
+                max_axis=2048,
+                run_contract=tile_contract,
+            )
+        self.assertFalse(tile_run.exists())
+
+    def test_source_replacement_after_contract_validation_is_rejected_before_baseline(self) -> None:
+        source = self._save("replace-race.png", "RGBA", "PNG")
+        contract, run_dir = self.contract_for(source, "replace-race", width=7, height=5)
+
+        def replace_after_validation(_source: Path, _constraints: object) -> None:
+            replacement = Image.new("RGBA", (7, 5), (200, 10, 30, 255))
+            replacement.save(source, format="PNG")
+
+        with mock.patch.object(
+            intake_module,
+            "_after_contract_validation",
+            replace_after_validation,
+        ):
+            with self.assertRaises(IntakeError):
+                normalize_reference(source, run_dir, run_contract=contract)
+        self.assertFalse((run_dir / "reference.normalized.png").exists())
+
+    def test_canvas_and_profile_mismatches_never_reach_atomic_replace(self) -> None:
+        cases = ((63, 64, "flat", "canvas"), (64, 64, "ui", "profile"))
+        for width, height, profile, label in cases:
+            contract, run_dir = self.contract_for(
+                FIXTURE,
+                f"precommit-{label}",
+                width=width,
+                height=height,
+                profile=profile,
+            )
+            with self.subTest(label), mock.patch.object(
+                intake_module.os,
+                "replace",
+                wraps=os.replace,
+            ) as replace:
+                with self.assertRaises(IntakeError):
+                    normalize_reference(FIXTURE, run_dir, run_contract=contract)
+                replace.assert_not_called()
+                self.assertFalse((run_dir / "reference.normalized.png").exists())
 
     def test_validated_contract_entrypoint_binds_source_authorization_and_runtime_root(self) -> None:
         run_id = f"test-{self.token}-contract"
@@ -483,18 +617,18 @@ class ReconstructionIntakeTests(unittest.TestCase):
 
     def test_source_identity_is_rechecked_after_output_commit(self) -> None:
         source = self._save("race.png", "RGBA", "PNG")
-        run_dir = self.run_dir("race")
+        contract, run_dir = self.contract_for(source, "race", width=7, height=5)
 
         def mutate_after_commit(path: Path, _destination: Path) -> None:
             path.write_bytes(path.read_bytes() + b"source-changed")
 
         with mock.patch.object(intake_module, "_after_output_commit", mutate_after_commit):
             with self.assertRaises(IntakeError):
-                normalize_reference(source, run_dir)
+                normalize_reference(source, run_dir, run_contract=contract)
         self.assertFalse((run_dir / "reference.normalized.png").exists())
 
     def test_existing_output_symlink_is_rejected_without_touching_target(self) -> None:
-        run_dir = self.run_dir("output-link")
+        contract, run_dir = self.contract_for(FIXTURE, "output-link")
         run_dir.mkdir()
         outside = self.scratch / "outside"
         outside.mkdir()
@@ -507,7 +641,7 @@ class ReconstructionIntakeTests(unittest.TestCase):
             self.skipTest(f"output reparse point unavailable: {exc}")
         try:
             with self.assertRaises(IntakeError):
-                normalize_reference(FIXTURE, run_dir)
+                normalize_reference(FIXTURE, run_dir, run_contract=contract)
             self.assertEqual(sentinel.read_bytes(), b"sentinel")
         finally:
             _remove_directory_reparse(destination)

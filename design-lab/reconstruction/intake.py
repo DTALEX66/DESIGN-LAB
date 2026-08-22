@@ -98,6 +98,20 @@ class IntakeResult:
     tiles: tuple[AnalysisTile, ...]
 
 
+@dataclass(frozen=True)
+class _ContractConstraints:
+    """Validated immutable constraints passed into the single private writer."""
+
+    source_path: Path
+    source_sha256: str
+    run_dir: Path
+    normalized_path: Path
+    width: int
+    height: int
+    profile: ReconstructionProfile
+    max_axis: int
+
+
 def _sha256_bytes(value: bytes) -> str:
     return hashlib.sha256(value).hexdigest()
 
@@ -365,28 +379,95 @@ def _after_output_commit(_source: Path, _destination: Path) -> None:
     """Deterministic no-op seam for exercising a final source-identity race check."""
 
 
+def _after_contract_validation(
+    _source: Path,
+    _constraints: _ContractConstraints,
+) -> None:
+    """No-op seam for proving post-validation source replacement fails closed."""
+
+
 def _remove_invalid_output(destination: Path) -> None:
     try:
         destination.unlink(missing_ok=True)
     except OSError as exc:
-        raise IntakeError(f"source changed and invalid output cleanup failed: {exc}") from None
+        raise IntakeError(f"invalid normalized-output cleanup failed: {exc}") from None
 
 
-def normalize_reference(
+def _validated_contract_constraints(run_contract: dict) -> _ContractConstraints:
+    try:
+        validate_run_contract(run_contract)
+    except (ContractError, TypeError, ValueError) as exc:
+        raise IntakeError(f"invalid reconstruction run contract: {exc}") from None
+
+    run_id = run_contract["runId"]
+    runtime_relative = f".hermes/task-runtime/reconstruction/{run_id}/"
+    normalized_relative = runtime_relative + _NORMALIZED_NAME
+    if run_contract["roots"]["runtime"] != runtime_relative:
+        raise IntakeError("run contract runtime root does not bind the declared run id")
+    if run_contract["source"]["normalizedReferenceTarget"] != normalized_relative:
+        raise IntakeError("run contract normalized target is not the canonical runtime output")
+
+    normalized_artifacts = [
+        artifact
+        for artifact in run_contract["artifacts"]
+        if artifact["kind"] == "normalized-source"
+    ]
+    if len(normalized_artifacts) != 1 or normalized_artifacts[0]["path"] != normalized_relative:
+        raise IntakeError("run contract must authorize exactly one canonical normalized-source artifact")
+    authorized_targets = run_contract["writeAuthorization"]["targets"]
+    if authorized_targets.count(normalized_relative) != 1:
+        raise IntakeError("write authorization does not exactly permit the normalized output")
+
+    canvas_policy = run_contract["canvasPolicy"]
+    tile_policy = canvas_policy["tilePolicy"]
+    if canvas_policy["globalCoordinates"] != "source-pixel":
+        raise IntakeError("intake contract must use source-pixel global coordinates")
+    if tile_policy["tileWidth"] != tile_policy["tileHeight"] or tile_policy["overlap"] != 0:
+        raise IntakeError("intake contract requires equal non-overlapping analysis tiles")
+    contract_max_axis = tile_policy["tileWidth"]
+    expected_tiling = (
+        canvas_policy["width"] > contract_max_axis
+        or canvas_policy["height"] > contract_max_axis
+    )
+    if tile_policy["enabled"] != expected_tiling:
+        raise IntakeError("intake contract tile enablement does not match the canvas")
+
+    run_dir = _PROJECT_ROOT.joinpath(*runtime_relative.rstrip("/").split("/"))
+    normalized_path = run_dir / _NORMALIZED_NAME
+    source_path = _PROJECT_ROOT.joinpath(*run_contract["source"]["path"].split("/"))
+    return _ContractConstraints(
+        source_path=source_path,
+        source_sha256=run_contract["source"]["sha256"].lower(),
+        run_dir=run_dir,
+        normalized_path=normalized_path,
+        width=canvas_policy["width"],
+        height=canvas_policy["height"],
+        profile=ReconstructionProfile(run_contract["profile"]),
+        max_axis=contract_max_axis,
+    )
+
+
+def _normalize_reference_core(
     source: Path,
     run_dir: Path,
-    max_axis: int = 4096,
+    max_axis: int,
+    constraints: _ContractConstraints,
 ) -> IntakeResult:
-    """Decode an immutable PNG/JPEG/WebP and write one deterministic sRGB RGBA PNG."""
+    """Private single writer; every constraint is established before final commit."""
 
     try:
         resolved_source = Path(source).resolve(strict=True)
+        contracted_source = constraints.source_path.resolve(strict=True)
         source_stat = resolved_source.stat()
+        source_hash = _sha256_file(resolved_source)
     except (OSError, RuntimeError) as exc:
         raise IntakeError(f"cannot resolve source: {exc}") from None
     if not resolved_source.is_file():
         raise IntakeError("source must be a regular file")
-    source_hash = _sha256_file(resolved_source)
+    if resolved_source != contracted_source:
+        raise IntakeError("source path does not match the validated run contract")
+    if source_hash.lower() != constraints.source_sha256:
+        raise IntakeError("source hash does not match the validated run contract")
     identity = _source_identity(resolved_source, source_hash, source_stat)
 
     try:
@@ -413,9 +494,22 @@ def normalize_reference(
     profile = classify_reconstruction_profile(pixels)
     encoded = _png_bytes(normalized)
 
+    if (width, height) != (constraints.width, constraints.height):
+        raise IntakeError("normalized canvas does not match the validated run contract")
+    if profile != constraints.profile:
+        raise IntakeError("reconstruction profile does not match the validated run contract")
+    lexical_run_dir = Path(os.path.abspath(os.fspath(run_dir)))
+    if lexical_run_dir != constraints.run_dir:
+        raise IntakeError("run directory does not equal the validated contract runtime root")
+    if max_axis != constraints.max_axis:
+        raise IntakeError("max_axis does not equal the validated contract tile policy")
+    if constraints.normalized_path != constraints.run_dir / _NORMALIZED_NAME:
+        raise IntakeError("normalized target does not equal the validated contract output")
     if not _source_is_unchanged(resolved_source, source_stat, source_hash):
         raise IntakeError("source identity changed during normalization")
     exact_run_dir, destination = _prepare_destination(source=resolved_source, run_dir=run_dir)
+    if exact_run_dir != constraints.run_dir or destination != constraints.normalized_path:
+        raise IntakeError("prepared destination diverges from the validated run contract")
 
     temp_path: Path | None = None
     try:
@@ -433,6 +527,8 @@ def normalize_reference(
         if destination.exists() or destination.is_symlink():
             if _path_is_reparse(destination):
                 raise IntakeError("normalized output became a symlink/reparse point")
+        if not _source_is_unchanged(resolved_source, source_stat, source_hash):
+            raise IntakeError("source identity changed before final output commit")
         os.replace(temp_path, destination)
         temp_path = None
         _after_output_commit(resolved_source, destination)
@@ -466,59 +562,34 @@ def normalize_reference(
     )
 
 
+def normalize_reference(
+    source: Path,
+    run_dir: Path,
+    max_axis: int = 4096,
+    *,
+    run_contract: dict,
+) -> IntakeResult:
+    """Normalize only when a validated run contract authorizes this exact write."""
+
+    constraints = _validated_contract_constraints(run_contract)
+    lexical_run_dir = Path(os.path.abspath(os.fspath(run_dir)))
+    if lexical_run_dir != constraints.run_dir:
+        raise IntakeError("run directory does not equal the validated contract runtime root")
+    if max_axis != constraints.max_axis:
+        raise IntakeError("max_axis does not equal the validated contract tile policy")
+    _after_contract_validation(Path(source), constraints)
+    return _normalize_reference_core(source, run_dir, max_axis, constraints)
+
+
 def normalize_reference_for_contract(
     source: Path,
     run_contract: dict,
     max_axis: int = 4096,
 ) -> IntakeResult:
-    """Validate a Task C1 contract and normalize only its authorized source/target."""
+    """Derive the exact run directory from a required contract and normalize."""
 
-    try:
-        validate_run_contract(run_contract)
-    except (ContractError, TypeError, ValueError) as exc:
-        raise IntakeError(f"invalid reconstruction run contract: {exc}") from None
-
-    run_id = run_contract["runId"]
-    runtime_relative = f".hermes/task-runtime/reconstruction/{run_id}/"
-    normalized_relative = runtime_relative + _NORMALIZED_NAME
-    if run_contract["roots"]["runtime"] != runtime_relative:
-        raise IntakeError("run contract runtime root does not bind the declared run id")
-    if run_contract["source"]["normalizedReferenceTarget"] != normalized_relative:
-        raise IntakeError("run contract normalized target is not the canonical runtime output")
-    normalized_artifacts = [
-        artifact
-        for artifact in run_contract["artifacts"]
-        if artifact["kind"] == "normalized-source"
-    ]
-    if len(normalized_artifacts) != 1 or normalized_artifacts[0]["path"] != normalized_relative:
-        raise IntakeError("run contract must authorize exactly one canonical normalized-source artifact")
-
-    try:
-        resolved_source = Path(source).resolve(strict=True)
-        contracted_source = (
-            _PROJECT_ROOT.joinpath(*run_contract["source"]["path"].split("/"))
-            .resolve(strict=True)
-        )
-        actual_hash = _sha256_file(resolved_source)
-    except (OSError, RuntimeError) as exc:
-        raise IntakeError(f"cannot bind contracted source safely: {exc}") from None
-    if resolved_source != contracted_source:
-        raise IntakeError("source path does not match the validated run contract")
-    if actual_hash.lower() != run_contract["source"]["sha256"].lower():
-        raise IntakeError("source hash does not match the validated run contract")
-
-    run_dir = _PROJECT_ROOT.joinpath(*runtime_relative.rstrip("/").split("/"))
-    result = normalize_reference(resolved_source, run_dir, max_axis=max_axis)
-    if result.normalized_path != run_dir / _NORMALIZED_NAME:
-        _remove_invalid_output(result.normalized_path)
-        raise IntakeError("normalized output does not match the contracted runtime target")
-    if (result.width, result.height) != (
-        run_contract["canvasPolicy"]["width"],
-        run_contract["canvasPolicy"]["height"],
-    ):
-        _remove_invalid_output(result.normalized_path)
-        raise IntakeError("normalized canvas does not match the validated run contract")
-    if result.profile.value != run_contract["profile"]:
-        _remove_invalid_output(result.normalized_path)
-        raise IntakeError("reconstruction profile does not match the validated run contract")
-    return result
+    constraints = _validated_contract_constraints(run_contract)
+    if max_axis != constraints.max_axis:
+        raise IntakeError("max_axis does not equal the validated contract tile policy")
+    _after_contract_validation(Path(source), constraints)
+    return _normalize_reference_core(source, constraints.run_dir, max_axis, constraints)
