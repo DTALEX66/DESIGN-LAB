@@ -187,10 +187,6 @@ def _run_contract(
 
 
 def _header_only_png(width: int, height: int) -> bytes:
-    def chunk(kind: bytes, payload: bytes) -> bytes:
-        crc = zlib.crc32(kind + payload) & 0xFFFFFFFF
-        return len(payload).to_bytes(4, "big") + kind + payload + crc.to_bytes(4, "big")
-
     ihdr = (
         width.to_bytes(4, "big")
         + height.to_bytes(4, "big")
@@ -198,9 +194,35 @@ def _header_only_png(width: int, height: int) -> bytes:
     )
     return (
         b"\x89PNG\r\n\x1a\n"
-        + chunk(b"IHDR", ihdr)
-        + chunk(b"IDAT", b"")
-        + chunk(b"IEND", b"")
+        + _png_chunk(b"IHDR", ihdr)
+        + _png_chunk(b"IDAT", b"")
+        + _png_chunk(b"IEND", b"")
+    )
+
+
+def _png_chunk(kind: bytes, payload: bytes) -> bytes:
+    crc = zlib.crc32(kind + payload) & 0xFFFFFFFF
+    return len(payload).to_bytes(4, "big") + kind + payload + crc.to_bytes(4, "big")
+
+
+def _streamed_zero_png(width: int, height: int, *, color_type: int = 6) -> bytes:
+    channels = 4 if color_type == 6 else 3
+    compressor = zlib.compressobj()
+    compressed = bytearray()
+    row = bytes(1 + width * channels)
+    for _ in range(height):
+        compressed.extend(compressor.compress(row))
+    compressed.extend(compressor.flush())
+    ihdr = (
+        width.to_bytes(4, "big")
+        + height.to_bytes(4, "big")
+        + bytes((8, color_type, 0, 0, 0))
+    )
+    return (
+        b"\x89PNG\r\n\x1a\n"
+        + _png_chunk(b"IHDR", ihdr)
+        + _png_chunk(b"IDAT", bytes(compressed))
+        + _png_chunk(b"IEND", b"")
     )
 
 
@@ -553,6 +575,155 @@ class ReconstructionMetricTests(unittest.TestCase):
                 compare_images(corrupt, corrupt)
         pillow_open.assert_not_called()
 
+    def test_registry_anchor_is_validated_before_any_png_or_pillow_access(self) -> None:
+        import reconstruction.metrics as metrics_module
+        import reconstruction.render as render_module
+
+        tampered = json.loads(REGISTRY.read_text(encoding="utf-8"))
+        tampered["renderProfile"]["metricMaxPixels"] = 1
+        tampered_path = self.run_root / "tampered-registry-order.json"
+        tampered_path.write_text(json.dumps(tampered), encoding="utf-8")
+        with (
+            mock.patch.object(render_module, "_REGISTRY_PATH", tampered_path),
+            mock.patch.object(
+                metrics_module,
+                "_open_checked_png_header",
+                side_effect=AssertionError("PNG opened before registry anchor"),
+            ) as png_open,
+            mock.patch.object(
+                Image,
+                "open",
+                side_effect=AssertionError("Pillow opened before registry anchor"),
+            ) as pillow_open,
+        ):
+            with self.assertRaisesRegex(FidelityError, "trusted|digest|anchor"):
+                compare_images(FLAT_FIXTURE, FLAT_FIXTURE)
+        png_open.assert_not_called()
+        pillow_open.assert_not_called()
+
+    def test_png_strict_subset_and_deflate_are_rejected_before_pillow(self) -> None:
+        ihdr = (
+            (1).to_bytes(4, "big")
+            + (1).to_bytes(4, "big")
+            + bytes((8, 6, 0, 0, 0))
+        )
+        ihdr_rgb = ihdr[:9] + bytes((2, 0, 0, 0))
+        valid_scanline = zlib.compress(b"\x00\x00\x00\x00\x00")
+        valid_rgb_scanline = zlib.compress(b"\x00\x00\x00\x00")
+        signature = b"\x89PNG\r\n\x1a\n"
+        cases = {
+            "non-letter chunk type": (
+                signature
+                + _png_chunk(b"IHDR", ihdr)
+                + _png_chunk(b"12CD", b"")
+                + _png_chunk(b"IDAT", valid_scanline)
+                + _png_chunk(b"IEND", b""),
+                "ASCII letters|chunk type",
+            ),
+            "reserved bit": (
+                signature
+                + _png_chunk(b"IHDR", ihdr)
+                + _png_chunk(b"abca", b"")
+                + _png_chunk(b"IDAT", valid_scanline)
+                + _png_chunk(b"IEND", b""),
+                "reserved",
+            ),
+            "unknown critical": (
+                signature
+                + _png_chunk(b"IHDR", ihdr)
+                + _png_chunk(b"ABCD", b"")
+                + _png_chunk(b"IDAT", valid_scanline)
+                + _png_chunk(b"IEND", b""),
+                "unknown critical",
+            ),
+            "unknown ancillary": (
+                signature
+                + _png_chunk(b"IHDR", ihdr)
+                + _png_chunk(b"abCd", b"")
+                + _png_chunk(b"IDAT", valid_scanline)
+                + _png_chunk(b"IEND", b""),
+                "unknown ancillary",
+            ),
+            "PLTE after IDAT": (
+                signature
+                + _png_chunk(b"IHDR", ihdr)
+                + _png_chunk(b"IDAT", valid_scanline)
+                + _png_chunk(b"PLTE", b"\x00\x00\x00")
+                + _png_chunk(b"IEND", b""),
+                "PLTE.*before IDAT|out of order",
+            ),
+            "duplicate PLTE": (
+                signature
+                + _png_chunk(b"IHDR", ihdr_rgb)
+                + _png_chunk(b"PLTE", b"\x00\x00\x00")
+                + _png_chunk(b"PLTE", b"\xff\xff\xff")
+                + _png_chunk(b"IDAT", valid_rgb_scanline)
+                + _png_chunk(b"IEND", b""),
+                "duplicate PLTE",
+            ),
+            "duplicate ancillary": (
+                signature
+                + _png_chunk(b"IHDR", ihdr)
+                + _png_chunk(b"sRGB", b"\x00")
+                + _png_chunk(b"sRGB", b"\x00")
+                + _png_chunk(b"IDAT", valid_scanline)
+                + _png_chunk(b"IEND", b""),
+                "duplicate sRGB",
+            ),
+            "bad deflate": (
+                signature
+                + _png_chunk(b"IHDR", ihdr)
+                + _png_chunk(b"IDAT", b"not-zlib")
+                + _png_chunk(b"IEND", b""),
+                "deflate|zlib",
+            ),
+            "trailing deflate stream": (
+                signature
+                + _png_chunk(b"IHDR", ihdr)
+                + _png_chunk(b"IDAT", valid_scanline + b"trailing")
+                + _png_chunk(b"IEND", b""),
+                "trailing|deflate",
+            ),
+            "wrong scanline length": (
+                signature
+                + _png_chunk(b"IHDR", ihdr)
+                + _png_chunk(b"IDAT", zlib.compress(b"\x00\x00"))
+                + _png_chunk(b"IEND", b""),
+                "scanline|length",
+            ),
+            "invalid filter": (
+                signature
+                + _png_chunk(b"IHDR", ihdr)
+                + _png_chunk(b"IDAT", zlib.compress(b"\x05\x00\x00\x00\x00"))
+                + _png_chunk(b"IEND", b""),
+                "filter",
+            ),
+        }
+        for name, (payload, reason) in cases.items():
+            path = self.run_root / f"strict-{name.replace(' ', '-')}.png"
+            path.write_bytes(payload)
+            with self.subTest(name=name), mock.patch.object(
+                Image,
+                "open",
+                side_effect=AssertionError("Pillow opened invalid strict-subset PNG"),
+            ) as pillow_open:
+                with self.assertRaisesRegex(FidelityError, reason):
+                    compare_images(path, path)
+                pillow_open.assert_not_called()
+
+        split = max(1, len(valid_scanline) // 2)
+        multi_idat = self.run_root / "valid-multi-idat.png"
+        multi_idat.write_bytes(
+            signature
+            + _png_chunk(b"IHDR", ihdr)
+            + _png_chunk(b"IDAT", valid_scanline[:split])
+            + _png_chunk(b"IDAT", valid_scanline[split:])
+            + _png_chunk(b"IEND", b"")
+        )
+        multi_metrics = compare_images(multi_idat, multi_idat)
+        self.assertTrue(multi_metrics.passed)
+        self.assertEqual(multi_metrics.lifecycle_status, "MEASURED")
+
     def test_renderer_binary_type_and_post_replace_tampering_fail_without_residue(self) -> None:
         import reconstruction.render as render_module
 
@@ -829,7 +1000,7 @@ class ReconstructionMetricTests(unittest.TestCase):
             )
 
         boundary_header = self.run_root / "boundary-header.png"
-        boundary_header.write_bytes(_header_only_png(2_048, 2_048))
+        boundary_header.write_bytes(_streamed_zero_png(2_048, 2_048))
         with mock.patch.object(
             metrics_module,
             "_decode_rgba",
@@ -878,6 +1049,45 @@ class ReconstructionMetricTests(unittest.TestCase):
         self.assertEqual(metrics.profile_id, "design-lab/render-profile/v1")
         self.assertEqual(metrics.match_ratio, 1.0)
         self.assertIsNone(metrics.diff_path)
+        self.assertEqual(metrics.lifecycle_status, "MEASURED")
+        self.assertEqual(metrics.input_authority, "UNBOUND_LOCAL_COMPARISON")
+        self.assertEqual(metrics.input_bindings, ())
+
+        one_pixel = self.run_root / "unbound-one-pixel.png"
+        _save_rgba(one_pixel, _rgba(1, 1, (7, 8, 9, 255)))
+        one_pixel_metrics = compare_images(one_pixel, one_pixel)
+        self.assertTrue(one_pixel_metrics.passed)
+        self.assertEqual(one_pixel_metrics.lifecycle_status, "MEASURED")
+        self.assertEqual(
+            one_pixel_metrics.input_authority, "UNBOUND_LOCAL_COMPARISON"
+        )
+
+    def test_contract_bound_comparison_without_diff_can_promote(self) -> None:
+        pixels = _rgba(1, 1, (7, 8, 9, 255))
+        reference = self.run_root / "bound-reference-no-diff.png"
+        actual = self.run_root / "bound-preview-authoritative.png"
+        _save_rgba(reference, pixels)
+        _save_rgba(actual, pixels)
+        contract = _run_contract(
+            self.run_root,
+            {reference: "normalized-source", actual: "evidence"},
+            width=1,
+            height=1,
+            normalized_reference=reference,
+        )
+        metrics = compare_images(
+            reference,
+            actual,
+            profile=load_render_profile(1, 1),
+            run_contract=contract,
+        )
+        self.assertTrue(metrics.passed)
+        self.assertEqual(metrics.lifecycle_status, "PIXEL_VERIFIED_DETERMINISTIC")
+        self.assertEqual(metrics.input_authority, "CONTRACT_BOUND_AUTHORITATIVE")
+        self.assertEqual(
+            tuple(binding.role for binding in metrics.input_bindings),
+            ("normalized-reference", "render-preview"),
+        )
 
     def test_pixelmatch_v7_2_literal_yiq_threshold_boundary(self) -> None:
         official_limit = 35215 * 0.1 * 0.1

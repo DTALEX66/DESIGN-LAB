@@ -23,7 +23,9 @@ from .render import (
     _WriteConstraints,
     _bind_contract_input,
     _bounded_output,
+    _load_registry,
     _open_checked_png_header,
+    _probe_png_dimensions,
     _revalidate_write_constraints,
     _snapshot_regular_file,
     _validate_profile,
@@ -83,6 +85,7 @@ class FidelityMetrics:
     metric_max_pixels: int
     metric_max_bytes: int
     metric_budget_version: str
+    input_authority: str
     input_bindings: tuple[ArtifactBindingEvidence, ...]
 
 
@@ -472,6 +475,20 @@ def compare_images(
     reference_path = Path(os.path.abspath(os.fspath(reference)))
     actual_path = Path(os.path.abspath(os.fspath(actual)))
     try:
+        if profile is None:
+            _load_registry()
+            reference_dimensions = _probe_png_dimensions(reference_path)
+            actual_dimensions = _probe_png_dimensions(actual_path)
+            if reference_dimensions != actual_dimensions:
+                raise FidelityError(
+                    "reference and actual dimensions do not match; scaling/cropping is forbidden"
+                )
+            profile = load_render_profile(*reference_dimensions)
+        else:
+            _validate_profile(profile)
+    except RenderError as exc:
+        raise FidelityError(str(exc)) from None
+    try:
         reference_image, reference_header_binding, reference_stream = _open_checked_png_header(reference_path)
     except RenderError as exc:
         raise FidelityError(str(exc)) from None
@@ -486,29 +503,31 @@ def compare_images(
                     "reference and actual dimensions do not match; scaling/cropping is forbidden"
                 )
             width, height = reference_image.size
-            if profile is None:
-                try:
-                    profile = load_render_profile(width, height)
-                except RenderError as exc:
-                    raise FidelityError(str(exc)) from None
-            try:
-                _validate_profile(profile)
-            except RenderError as exc:
-                raise FidelityError(str(exc)) from None
             if (width, height) != (profile.width, profile.height):
                 raise FidelityError("image dimensions do not match fixed profile dimensions")
             write_constraints: _WriteConstraints | None = None
-            if diff_output_path is not None:
+            if run_contract is not None or diff_output_path is not None:
                 try:
-                    write_constraints = _validated_write_constraints(
-                        run_contract,
-                        diff_output_path,
-                        profile,
-                        allowed_kinds=frozenset({"evidence"}),
-                        operation="verify",
-                        artifact_role="diff-evidence",
-                        artifact_producer="fidelity-metrics-v1",
-                    )
+                    if diff_output_path is not None:
+                        write_constraints = _validated_write_constraints(
+                            run_contract,
+                            diff_output_path,
+                            profile,
+                            allowed_kinds=frozenset({"evidence"}),
+                            operation="verify",
+                            artifact_role="diff-evidence",
+                            artifact_producer="fidelity-metrics-v1",
+                        )
+                    else:
+                        write_constraints = _validated_write_constraints(
+                            run_contract,
+                            actual_path,
+                            profile,
+                            allowed_kinds=frozenset({"evidence"}),
+                            operation="verify",
+                            artifact_role="render-preview",
+                            artifact_producer="resvg-v0.47.0",
+                        )
                     reference_binding, _ = _bind_contract_input(
                         write_constraints,
                         reference_path,
@@ -530,7 +549,13 @@ def compare_images(
                     )
                 except RenderError as exc:
                     raise FidelityError(str(exc)) from None
-                if len({reference_path, actual_path, Path(os.path.abspath(os.fspath(diff_output_path)))}) != 3:
+                if diff_output_path is not None and len(
+                    {
+                        reference_path,
+                        actual_path,
+                        Path(os.path.abspath(os.fspath(diff_output_path))),
+                    }
+                ) != 3:
                     raise FidelityError("reference, actual preview and diff target must be distinct")
                 if (
                     (
@@ -556,8 +581,10 @@ def compare_images(
                 ):
                     raise FidelityError("comparison input changed during contract binding")
                 input_bindings = (reference_binding, actual_binding)
+                input_authority = "CONTRACT_BOUND_AUTHORITATIVE"
             else:
                 input_bindings = ()
+                input_authority = "UNBOUND_LOCAL_COMPARISON"
             reference_rgba = _decode_rgba(reference_image, reference_path)
             actual_rgba = _decode_rgba(actual_image, actual_path)
         finally:
@@ -643,6 +670,12 @@ def compare_images(
             diff_output_path, diff_payload, write_constraints, input_bindings
         )
     )
+    if input_bindings and diff_output_path is None:
+        try:
+            assert write_constraints is not None
+            _revalidate_write_constraints(write_constraints, input_bindings)
+        except RenderError as exc:
+            raise FidelityError(str(exc)) from None
     passed = not failure_reasons
     return FidelityMetrics(
         width=width,
@@ -673,11 +706,16 @@ def compare_images(
         diff_sha256=diff_sha256,
         failure_reasons=tuple(failure_reasons),
         passed=passed,
-        lifecycle_status="PIXEL_VERIFIED_DETERMINISTIC" if passed else "MEASURED",
+        lifecycle_status=(
+            "PIXEL_VERIFIED_DETERMINISTIC"
+            if passed and input_authority == "CONTRACT_BOUND_AUTHORITATIVE"
+            else "MEASURED"
+        ),
         registry_digest=profile.registry_sha256,
         metric_max_pixels=profile.metric_max_pixels,
         metric_max_bytes=profile.metric_max_bytes,
         metric_budget_version=profile.metric_budget_version,
+        input_authority=input_authority,
         input_bindings=tuple(
             ArtifactBindingEvidence(
                 path=binding.path,

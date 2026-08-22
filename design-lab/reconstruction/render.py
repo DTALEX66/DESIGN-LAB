@@ -38,6 +38,8 @@ _QUALIFIED_METRIC_MAX_BYTES = 67_108_864
 _METRIC_BUDGET_VERSION = "c4-metric-memory-v1"
 _MAX_PNG_CHUNK_BYTES = 64 * 1024 * 1024
 _MAX_PNG_METADATA_BYTES = 8 * 1024 * 1024
+_PNG_CRITICAL_CHUNKS = frozenset({b"IHDR", b"PLTE", b"IDAT", b"IEND"})
+_PNG_ANCILLARY_CHUNKS = frozenset({b"cHRM", b"gAMA", b"sRGB", b"pHYs"})
 
 
 class RenderError(RuntimeError):
@@ -131,6 +133,13 @@ class ArtifactBindingEvidence:
     role: str
     producer: str
     sha256: str
+
+
+@dataclass(frozen=True)
+class _PngHeader:
+    dimensions: tuple[int, int]
+    color_type: int
+    row_bytes: int
 
 
 def _load_registry() -> tuple[dict[str, Any], str]:
@@ -425,7 +434,7 @@ def _revalidate_write_constraints(
         _verify_input_binding(binding)
 
 
-def _png_prefix_dimensions(prefix: bytes) -> tuple[int, int]:
+def _png_prefix_header(prefix: bytes) -> _PngHeader:
     if len(prefix) != 33 or prefix[:8] != _PNG_SIGNATURE:
         raise RenderError("PNG signature/IHDR header is missing or truncated")
     length, kind = struct.unpack(">I4s", prefix[8:16])
@@ -446,9 +455,46 @@ def _png_prefix_dimensions(prefix: bytes) -> tuple[int, int]:
         )
     if bit_depth != 8 or color_type not in {2, 6}:
         raise RenderError("PNG IHDR must encode 8-bit RGB or RGBA")
-    if compression != 0 or filtering != 0 or interlace not in {0, 1}:
+    if compression != 0 or filtering != 0 or interlace != 0:
         raise RenderError("PNG IHDR contains unsupported compression/filter/interlace")
-    return width, height
+    channels = 3 if color_type == 2 else 4
+    return _PngHeader(
+        dimensions=(width, height),
+        color_type=color_type,
+        row_bytes=width * channels,
+    )
+
+
+def _png_prefix_dimensions(prefix: bytes) -> tuple[int, int]:
+    return _png_prefix_header(prefix).dimensions
+
+
+def _probe_png_dimensions(path: Path) -> tuple[int, int]:
+    """Read only signature/IHDR after registry trust is established."""
+
+    if not isinstance(path, Path):
+        raise RenderError("PNG path must be a pathlib.Path")
+    source = Path(os.path.abspath(os.fspath(path)))
+    _assert_plain_existing_components(source)
+    try:
+        with source.open("rb") as stream:
+            before = os.fstat(stream.fileno())
+            if not stat.S_ISREG(before.st_mode):
+                raise RenderError(f"PNG input is not a regular file: {source}")
+            if before.st_size > _QUALIFIED_METRIC_MAX_BYTES:
+                raise RenderError(
+                    f"PNG exceeds the C4 qualified metric file-size limit {_QUALIFIED_METRIC_MAX_BYTES}"
+                )
+            prefix = _read_exact(stream, 33, field="signature/IHDR header")
+            dimensions = _png_prefix_dimensions(prefix)
+            after = os.fstat(stream.fileno())
+        if _identity(before) != _identity(after) or _identity(after) != _identity(source.stat()):
+            raise RenderError("PNG identity changed during raw IHDR probe")
+        return dimensions
+    except RenderError:
+        raise
+    except OSError as exc:
+        raise RenderError(f"cannot read PNG IHDR: {source}: {exc}") from None
 
 
 def _read_exact(stream: BinaryIO, length: int, *, field: str) -> bytes:
@@ -473,16 +519,93 @@ def _stream_png_preflight(
         raise RenderError("PNG signature is invalid")
     metadata_bytes = 0
     chunk_index = 0
-    dimensions: tuple[int, int] | None = None
+    png_header: _PngHeader | None = None
     found_idat = False
     idat_ended = False
     found_iend = False
+    found_plte = False
+    seen_ancillary: set[bytes] = set()
+    decompressor: zlib.Decompress | None = None
+    decoded_bytes = 0
+    scanline_offset = 0
+    expected_decoded_bytes = 0
+    scanline_bytes = 0
     consumed = 8
+
+    def consume_scanlines(payload: bytes) -> None:
+        nonlocal decoded_bytes, scanline_offset
+        if decoded_bytes + len(payload) > expected_decoded_bytes:
+            raise RenderError("PNG deflate output exceeds exact scanline length")
+        cursor = 0
+        while cursor < len(payload):
+            if scanline_offset == 0 and payload[cursor] > 4:
+                raise RenderError("PNG scanline contains an invalid filter byte")
+            take = min(scanline_bytes - scanline_offset, len(payload) - cursor)
+            scanline_offset = (scanline_offset + take) % scanline_bytes
+            cursor += take
+        decoded_bytes += len(payload)
+
+    def feed_idat(payload: bytes) -> None:
+        if decompressor is None:
+            raise RenderError("PNG IDAT appeared before a valid IHDR")
+        pending = payload
+        try:
+            while pending:
+                pending_size = len(pending)
+                output_limit = min(
+                    1 << 20, max(1, expected_decoded_bytes - decoded_bytes + 1)
+                )
+                decoded = decompressor.decompress(pending, output_limit)
+                pending = decompressor.unconsumed_tail
+                consume_scanlines(decoded)
+                if decompressor.unused_data:
+                    raise RenderError("PNG IDAT contains trailing deflate stream data")
+                if len(pending) == pending_size and not decoded:
+                    raise RenderError("PNG IDAT deflate stream made no bounded progress")
+        except zlib.error as exc:
+            raise RenderError(f"PNG IDAT zlib/deflate stream is invalid: {exc}") from None
+
+    def finish_idat() -> None:
+        if decompressor is None:
+            raise RenderError("PNG is missing its IDAT deflate stream")
+        try:
+            while True:
+                output_limit = min(
+                    1 << 20, max(1, expected_decoded_bytes - decoded_bytes + 1)
+                )
+                decoded = decompressor.decompress(b"", output_limit)
+                if not decoded:
+                    break
+                consume_scanlines(decoded)
+        except zlib.error as exc:
+            raise RenderError(f"PNG IDAT zlib/deflate stream is invalid: {exc}") from None
+        if not decompressor.eof:
+            raise RenderError("PNG IDAT deflate stream is truncated")
+        if decompressor.unused_data or decompressor.unconsumed_tail:
+            raise RenderError("PNG IDAT contains trailing deflate stream data")
+        if decoded_bytes != expected_decoded_bytes or scanline_offset != 0:
+            raise RenderError("PNG decompressed scanline length is not exact")
+
     while consumed < file_size:
         header = _read_exact(stream, 8, field="chunk header")
         digest.update(header)
         consumed += 8
         length, kind = struct.unpack(">I4s", header)
+        if not all(
+            ord("A") <= value <= ord("Z") or ord("a") <= value <= ord("z")
+            for value in kind
+        ):
+            raise RenderError("PNG chunk type must contain exactly four ASCII letters")
+        if not ord("A") <= kind[2] <= ord("Z"):
+            raise RenderError("PNG chunk type reserved bit must be uppercase")
+        if kind[0] <= ord("Z") and kind not in _PNG_CRITICAL_CHUNKS:
+            raise RenderError(
+                f"PNG contains unknown critical chunk {kind.decode('ascii')}"
+            )
+        if kind[0] >= ord("a") and kind not in _PNG_ANCILLARY_CHUNKS:
+            raise RenderError(
+                f"PNG contains unknown ancillary chunk {kind.decode('ascii')}"
+            )
         if length > _MAX_PNG_CHUNK_BYTES:
             raise RenderError("PNG chunk exceeds the bounded chunk policy")
         if consumed + length + 4 > file_size:
@@ -491,6 +614,38 @@ def _stream_png_preflight(
             raise RenderError("PNG must begin with one exact 13-byte IHDR chunk")
         if chunk_index > 0 and kind == b"IHDR":
             raise RenderError("PNG contains a duplicate IHDR chunk")
+        if found_iend:
+            raise RenderError("PNG contains a chunk after IEND")
+        if kind == b"PLTE":
+            if found_plte:
+                raise RenderError("PNG contains a duplicate PLTE chunk")
+            if found_idat:
+                raise RenderError("PNG PLTE must appear before IDAT")
+            if length == 0 or length > 768 or length % 3:
+                raise RenderError("PNG PLTE length is invalid")
+        if kind in _PNG_ANCILLARY_CHUNKS:
+            if kind in seen_ancillary:
+                raise RenderError(
+                    f"PNG contains duplicate {kind.decode('ascii')} ancillary chunk"
+                )
+            if found_idat:
+                raise RenderError(
+                    f"PNG {kind.decode('ascii')} ancillary chunk must precede IDAT"
+                )
+            required_length = {
+                b"cHRM": 32,
+                b"gAMA": 4,
+                b"sRGB": 1,
+                b"pHYs": 9,
+            }[kind]
+            if length != required_length:
+                raise RenderError(
+                    f"PNG {kind.decode('ascii')} length is invalid"
+                )
+            seen_ancillary.add(kind)
+        if found_idat and kind != b"IDAT" and not idat_ended:
+            finish_idat()
+            idat_ended = True
         crc = zlib.crc32(kind)
         captured = bytearray()
         remaining = length
@@ -500,8 +655,10 @@ def _stream_png_preflight(
             )
             digest.update(block)
             crc = zlib.crc32(block, crc)
-            if kind == b"IHDR":
+            if kind in {b"IHDR", b"PLTE"} or kind in _PNG_ANCILLARY_CHUNKS:
                 captured.extend(block)
+            if kind == b"IDAT":
+                feed_idat(block)
             remaining -= len(block)
         crc_bytes = _read_exact(stream, 4, field=f"{kind!r} chunk CRC")
         digest.update(crc_bytes)
@@ -510,17 +667,33 @@ def _stream_png_preflight(
         if crc & 0xFFFFFFFF != expected_crc:
             raise RenderError(f"PNG {kind.decode('ascii', errors='replace')} chunk CRC mismatch")
         if kind == b"IHDR":
-            dimensions = _png_prefix_dimensions(signature + header + captured + crc_bytes)
+            png_header = _png_prefix_header(signature + header + captured + crc_bytes)
+            scanline_bytes = png_header.row_bytes + 1
+            expected_decoded_bytes = scanline_bytes * png_header.dimensions[1]
+            decompressor = zlib.decompressobj()
+        elif kind == b"PLTE":
+            if png_header is None:
+                raise RenderError("PNG PLTE appeared before IHDR")
+            if png_header.color_type == 6:
+                raise RenderError("PNG RGBA color type forbids PLTE")
+            found_plte = True
+        elif kind == b"sRGB":
+            if length != 1 or captured[0] > 3:
+                raise RenderError("PNG sRGB rendering intent is invalid")
+        elif kind == b"gAMA" and length != 4:
+            raise RenderError("PNG gAMA length is invalid")
+        elif kind == b"cHRM" and length != 32:
+            raise RenderError("PNG cHRM length is invalid")
+        elif kind == b"pHYs" and (length != 9 or captured[8] not in {0, 1}):
+            raise RenderError("PNG pHYs payload is invalid")
         if kind not in {b"IDAT", b"IEND"}:
             metadata_bytes += length
             if metadata_bytes > _MAX_PNG_METADATA_BYTES:
                 raise RenderError("PNG metadata exceeds the bounded metadata policy")
         if kind == b"IDAT":
-            if dimensions is None or found_iend or idat_ended:
+            if png_header is None or found_iend or idat_ended:
                 raise RenderError("PNG IDAT chunk is out of order")
             found_idat = True
-        elif found_idat and kind != b"IEND":
-            idat_ended = True
         if kind == b"IEND":
             if length != 0 or not found_idat:
                 raise RenderError("PNG IEND chunk is malformed or precedes IDAT")
@@ -531,9 +704,9 @@ def _stream_png_preflight(
         raise RenderError("PNG is missing its final IEND chunk")
     if consumed != file_size or stream.read(1):
         raise RenderError("PNG contains trailing bytes after IEND")
-    if dimensions is None:
+    if png_header is None:
         raise RenderError("PNG is missing IHDR dimensions")
-    return dimensions, digest.hexdigest()
+    return png_header.dimensions, digest.hexdigest()
 
 
 def _open_checked_png_header(
