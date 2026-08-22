@@ -87,8 +87,14 @@ class FidelityMetrics:
     metric_budget_version: str
     reference_icc_profile_id: str
     reference_icc_profile_sha256: str | None
+    reference_raw_icc_sha256: str | None
+    reference_canonical_icc_sha256: str | None
+    reference_icc_canonicalization: str
     actual_icc_profile_id: str
     actual_icc_profile_sha256: str | None
+    actual_raw_icc_sha256: str | None
+    actual_canonical_icc_sha256: str | None
+    actual_icc_canonicalization: str
     input_authority: str
     input_bindings: tuple[ArtifactBindingEvidence, ...]
 
@@ -592,6 +598,9 @@ def compare_images(
                     producer=reference_binding.producer,
                     icc_profile_id=reference_header_binding.icc_profile_id,
                     icc_profile_sha256=reference_header_binding.icc_profile_sha256,
+                    raw_icc_sha256=reference_header_binding.raw_icc_sha256,
+                    canonical_icc_sha256=reference_header_binding.canonical_icc_sha256,
+                    icc_canonicalization=reference_header_binding.icc_canonicalization,
                 )
                 actual_binding = _InputBinding(
                     path=actual_binding.path,
@@ -601,6 +610,9 @@ def compare_images(
                     producer=actual_binding.producer,
                     icc_profile_id=actual_header_binding.icc_profile_id,
                     icc_profile_sha256=actual_header_binding.icc_profile_sha256,
+                    raw_icc_sha256=actual_header_binding.raw_icc_sha256,
+                    canonical_icc_sha256=actual_header_binding.canonical_icc_sha256,
+                    icc_canonicalization=actual_header_binding.icc_canonicalization,
                 )
                 input_bindings = (reference_binding, actual_binding)
                 input_authority = "CONTRACT_BOUND_AUTHORITATIVE"
@@ -739,8 +751,14 @@ def compare_images(
         metric_budget_version=profile.metric_budget_version,
         reference_icc_profile_id=reference_header_binding.icc_profile_id,
         reference_icc_profile_sha256=reference_header_binding.icc_profile_sha256,
+        reference_raw_icc_sha256=reference_header_binding.raw_icc_sha256,
+        reference_canonical_icc_sha256=reference_header_binding.canonical_icc_sha256,
+        reference_icc_canonicalization=reference_header_binding.icc_canonicalization,
         actual_icc_profile_id=actual_header_binding.icc_profile_id,
         actual_icc_profile_sha256=actual_header_binding.icc_profile_sha256,
+        actual_raw_icc_sha256=actual_header_binding.raw_icc_sha256,
+        actual_canonical_icc_sha256=actual_header_binding.canonical_icc_sha256,
+        actual_icc_canonicalization=actual_header_binding.icc_canonicalization,
         input_authority=input_authority,
         input_bindings=tuple(
             ArtifactBindingEvidence(
@@ -750,6 +768,9 @@ def compare_images(
                 sha256=binding.sha256,
                 icc_profile_id=binding.icc_profile_id,
                 icc_profile_sha256=binding.icc_profile_sha256,
+                raw_icc_sha256=binding.raw_icc_sha256,
+                canonical_icc_sha256=binding.canonical_icc_sha256,
+                icc_canonicalization=binding.icc_canonicalization,
             )
             for binding in input_bindings
         ),

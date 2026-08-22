@@ -17,6 +17,7 @@ import zlib
 from copy import deepcopy
 from contextlib import contextmanager
 from dataclasses import dataclass
+from datetime import datetime
 from pathlib import Path
 from typing import Any, BinaryIO, Iterator
 
@@ -31,7 +32,7 @@ _CANONICAL_RUNTIME_ROOT = _PROJECT_ROOT / ".hermes" / "task-runtime" / "reconstr
 _REPARSE_POINT = getattr(stat, "FILE_ATTRIBUTE_REPARSE_POINT", 0x400)
 _RUN_ID = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$")
 _SHA256 = re.compile(r"^[0-9a-f]{64}$")
-_TRUSTED_REGISTRY_SHA256 = "2fa8c695c46858918adafd7f416b86fbc84d16c97239a75d4b87e8cb96d205c7"
+_TRUSTED_REGISTRY_SHA256 = "eb58b86af889f6fb84a3ce6dc770d7380b7c26a1c9fe68c857b4545b07e882a0"
 _PNG_SIGNATURE = b"\x89PNG\r\n\x1a\n"
 _QUALIFIED_METRIC_MAX_PIXELS = 4_194_304
 _QUALIFIED_METRIC_MAX_BYTES = 67_108_864
@@ -100,6 +101,9 @@ class RenderResult:
     metric_budget_version: str
     output_icc_profile_id: str
     output_icc_profile_sha256: str | None
+    output_raw_icc_sha256: str | None
+    output_canonical_icc_sha256: str | None
+    output_icc_canonicalization: str
     input_bindings: tuple["ArtifactBindingEvidence", ...]
     lifecycle_status: str = "RENDERED"
 
@@ -132,6 +136,9 @@ class _InputBinding:
     producer: str = ""
     icc_profile_id: str = "not-applicable"
     icc_profile_sha256: str | None = None
+    raw_icc_sha256: str | None = None
+    canonical_icc_sha256: str | None = None
+    icc_canonicalization: str = "none"
 
 
 @dataclass(frozen=True)
@@ -142,12 +149,17 @@ class ArtifactBindingEvidence:
     sha256: str
     icc_profile_id: str
     icc_profile_sha256: str | None
+    raw_icc_sha256: str | None
+    canonical_icc_sha256: str | None
+    icc_canonicalization: str
 
 
 @dataclass(frozen=True)
 class _IccProfileEvidence:
     profile_id: str
-    sha256: str | None
+    raw_sha256: str | None
+    canonical_sha256: str | None
+    canonicalization: str
 
 
 @dataclass(frozen=True)
@@ -284,12 +296,13 @@ def _approved_icc_profiles(registry: dict[str, Any]) -> dict[tuple[int, str], di
     expected = {
         "id": "canonical-srgb-pillow-12.3.0-lcms-2.19",
         "source": "Pillow ImageCms.createProfile('sRGB')",
-        "generator": "Pillow.ImageCms.ImageCmsProfile.tobytes/v1",
+        "generator": "Pillow.ImageCms.ImageCmsProfile.tobytes/v1 then canonicalize",
         "pillowVersion": "12.3.0",
         "lcmsVersion": "2.19",
         "byteLength": 588,
-        "sha256": "3ee1d51ccd6238a1d5d06b029b69e9374b90f81702af0bb90bd53b7a11897fc2",
+        "sha256": "215d9fadbfc938862a82f2633b51fee128b58767f7d7ac55d32cb7e00031bb0d",
         "colorSpace": "sRGB IEC61966-2.1",
+        "canonicalization": "zero-icc-header-creation-date-v1",
     }
     if not isinstance(profile, dict) or profile != expected:
         raise RenderError("trusted registry approved ICC profile declaration is invalid")
@@ -313,32 +326,52 @@ def _validate_icc_profile(
         raise RenderError("PNG ICC data color space must be RGB")
     if payload[20:24] != b"XYZ ":
         raise RenderError("PNG ICC profile connection space must be XYZ")
+    creation_date = payload[24:36]
+    if creation_date != bytes(12):
+        try:
+            datetime(*struct.unpack(">6H", creation_date))
+        except (ValueError, OverflowError):
+            raise RenderError("PNG ICC header creationDate is invalid") from None
+    raw_digest = hashlib.sha256(payload).hexdigest()
+    canonical = bytearray(payload)
+    canonical[24:36] = bytes(12)
+    canonical_digest = hashlib.sha256(canonical).hexdigest()
+    approved = approved_profiles.get((len(payload), canonical_digest))
+    if approved is None:
+        raise RenderError("PNG ICC canonical digest is not in the approved registry")
     tag_count = struct.unpack(">I", payload[128:132])[0]
+    if tag_count > 128:
+        raise RenderError("PNG ICC approved profile tag count exceeds 128")
     if tag_count > (len(payload) - 132) // 12:
         raise RenderError("PNG ICC tag table exceeds decoded profile bounds")
     table_end = 132 + tag_count * 12
     ranges: list[tuple[int, int]] = []
+    signatures: set[bytes] = set()
     for index in range(tag_count):
         entry = 132 + index * 12
         signature = payload[entry : entry + 4]
         offset, size = struct.unpack(">II", payload[entry + 4 : entry + 12])
         if not all(32 <= value <= 126 for value in signature):
             raise RenderError("PNG ICC tag signature is not four printable bytes")
+        if signature in signatures:
+            raise RenderError("PNG ICC tag signatures must be unique")
+        signatures.add(signature)
         if offset < table_end or offset % 4 or size < 8 or offset + size > len(payload):
             raise RenderError("PNG ICC tag table contains an invalid bounds entry")
-        current = (offset, offset + size)
-        for existing in ranges:
-            if current == existing:
-                break
-            if current[0] < existing[1] and existing[0] < current[1]:
-                raise RenderError("PNG ICC tag payload ranges overlap")
-        else:
-            ranges.append(current)
-    digest = hashlib.sha256(payload).hexdigest()
-    approved = approved_profiles.get((len(payload), digest))
-    if approved is None:
-        raise RenderError("PNG ICC profile digest is not in the approved registry")
-    return _IccProfileEvidence(profile_id=approved["id"], sha256=digest)
+        ranges.append((offset, offset + size))
+    ranges.sort()
+    previous: tuple[int, int] | None = None
+    for current in ranges:
+        if previous is not None and current != previous and current[0] < previous[1]:
+            raise RenderError("PNG ICC tag payload ranges overlap")
+        if previous is None or current != previous:
+            previous = current
+    return _IccProfileEvidence(
+        profile_id=approved["id"],
+        raw_sha256=raw_digest,
+        canonical_sha256=canonical_digest,
+        canonicalization=approved["canonicalization"],
+    )
 
 
 def _require_number(value: Any, field: str, *, minimum: float, maximum: float) -> float:
@@ -724,7 +757,10 @@ def _stream_png_preflight(
     scanline_bytes = 0
     active_iccp: _IccpPreflight | None = None
     icc_evidence = _IccProfileEvidence(
-        profile_id="implicit-sRGB-none", sha256=None
+        profile_id="implicit-sRGB-none",
+        raw_sha256=None,
+        canonical_sha256=None,
+        canonicalization="none",
     )
     consumed = 8
 
@@ -968,7 +1004,10 @@ def _open_checked_png_header(
             identity=after,
             sha256=png_sha256,
             icc_profile_id=icc_evidence.profile_id,
-            icc_profile_sha256=icc_evidence.sha256,
+            icc_profile_sha256=icc_evidence.canonical_sha256,
+            raw_icc_sha256=icc_evidence.raw_sha256,
+            canonical_icc_sha256=icc_evidence.canonical_sha256,
+            icc_canonicalization=icc_evidence.canonicalization,
         )
         stream.seek(0)
         with warnings.catch_warnings():
@@ -1000,7 +1039,7 @@ def _open_checked_png_header(
         if image.size != dimensions:
             raise RenderError("Pillow PNG dimensions diverge from raw IHDR preflight")
         embedded = image.info.get("icc_profile")
-        raw_has_iccp = icc_evidence.sha256 is not None
+        raw_has_iccp = icc_evidence.raw_sha256 is not None
         if raw_has_iccp != bool(embedded):
             raise RenderError("Pillow ICC metadata diverges from raw iCCP declaration")
         if embedded:
@@ -1008,7 +1047,7 @@ def _open_checked_png_header(
                 parsed = ImageCms.ImageCmsProfile(io.BytesIO(embedded))
             except (OSError, TypeError, ValueError, ImageCms.PyCMSError) as exc:
                 raise RenderError(f"PNG has invalid color profile: {exc}") from None
-            if hashlib.sha256(embedded).hexdigest() != icc_evidence.sha256:
+            if hashlib.sha256(embedded).hexdigest() != icc_evidence.raw_sha256:
                 raise RenderError("Pillow ICC bytes diverge from raw approved digest")
             color_space = str(getattr(parsed.profile, "xcolor_space", "")).strip()
             if color_space != "RGB":
@@ -1521,6 +1560,9 @@ def render_svg(
         metric_budget_version=profile.metric_budget_version,
         output_icc_profile_id=rendered_binding.icc_profile_id,
         output_icc_profile_sha256=rendered_binding.icc_profile_sha256,
+        output_raw_icc_sha256=rendered_binding.raw_icc_sha256,
+        output_canonical_icc_sha256=rendered_binding.canonical_icc_sha256,
+        output_icc_canonicalization=rendered_binding.icc_canonicalization,
         input_bindings=(
             ArtifactBindingEvidence(
                 path=source_binding.path,
@@ -1529,6 +1571,9 @@ def render_svg(
                 sha256=source_binding.sha256,
                 icc_profile_id=source_binding.icc_profile_id,
                 icc_profile_sha256=source_binding.icc_profile_sha256,
+                raw_icc_sha256=source_binding.raw_icc_sha256,
+                canonical_icc_sha256=source_binding.canonical_icc_sha256,
+                icc_canonicalization=source_binding.icc_canonicalization,
             ),
         ),
     )

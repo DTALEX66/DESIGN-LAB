@@ -42,7 +42,8 @@ EXPECTED_RESVG_SHA256 = (
     "433a7c744cff561ed64fcf73c7c04e239d7a07ae5f0aadbf1ba8471d63707402"
 )
 APPROVED_ICC_ID = "canonical-srgb-pillow-12.3.0-lcms-2.19"
-APPROVED_ICC_SHA256 = "3ee1d51ccd6238a1d5d06b029b69e9374b90f81702af0bb90bd53b7a11897fc2"
+ICC_CANONICALIZATION = "zero-icc-header-creation-date-v1"
+APPROVED_ICC_SHA256 = "215d9fadbfc938862a82f2633b51fee128b58767f7d7ac55d32cb7e00031bb0d"
 FLAT_FIXTURE = REPO_ROOT / "design-lab" / "tests" / "fixtures" / "reconstruction" / "flat-64.png"
 
 
@@ -228,14 +229,18 @@ def _streamed_zero_png(width: int, height: int, *, color_type: int = 6) -> bytes
     )
 
 
-def _approved_icc_profile_bytes() -> bytes:
+def _approved_icc_profile_bytes(
+    creation_date: bytes = bytes.fromhex("07ea000800160015002f0002"),
+) -> bytes:
     profile = bytearray(
         ImageCms.ImageCmsProfile(ImageCms.createProfile("sRGB")).tobytes()
     )
-    profile[24:36] = bytes.fromhex("07ea000800160015002f0002")
+    profile[24:36] = creation_date
     payload = bytes(profile)
     assert len(payload) == 588
-    assert hashlib.sha256(payload).hexdigest() == APPROVED_ICC_SHA256
+    canonical = bytearray(payload)
+    canonical[24:36] = bytes(12)
+    assert hashlib.sha256(canonical).hexdigest() == APPROVED_ICC_SHA256
     return payload
 
 
@@ -338,12 +343,13 @@ class ReconstructionMetricTests(unittest.TestCase):
                 {
                     "id": APPROVED_ICC_ID,
                     "source": "Pillow ImageCms.createProfile('sRGB')",
-                    "generator": "Pillow.ImageCms.ImageCmsProfile.tobytes/v1",
+                    "generator": "Pillow.ImageCms.ImageCmsProfile.tobytes/v1 then canonicalize",
                     "pillowVersion": "12.3.0",
                     "lcmsVersion": "2.19",
                     "byteLength": 588,
                     "sha256": APPROVED_ICC_SHA256,
                     "colorSpace": "sRGB IEC61966-2.1",
+                    "canonicalization": ICC_CANONICALIZATION,
                 }
             ],
         )
@@ -801,8 +807,39 @@ class ReconstructionMetricTests(unittest.TestCase):
         self.assertEqual(iccp_metrics.lifecycle_status, "MEASURED")
         self.assertEqual(iccp_metrics.reference_icc_profile_id, APPROVED_ICC_ID)
         self.assertEqual(iccp_metrics.reference_icc_profile_sha256, APPROVED_ICC_SHA256)
+        self.assertEqual(
+            iccp_metrics.reference_canonical_icc_sha256, APPROVED_ICC_SHA256
+        )
+        self.assertEqual(
+            iccp_metrics.reference_raw_icc_sha256,
+            hashlib.sha256(icc_profile).hexdigest(),
+        )
+        self.assertEqual(
+            iccp_metrics.reference_icc_canonicalization, ICC_CANONICALIZATION
+        )
         self.assertEqual(iccp_metrics.actual_icc_profile_id, APPROVED_ICC_ID)
         self.assertEqual(iccp_metrics.actual_icc_profile_sha256, APPROVED_ICC_SHA256)
+
+        second_date_profile = _approved_icc_profile_bytes(
+            bytes.fromhex("07ea000800160015002f0003")
+        )
+        second_date = self.run_root / "pillow-srgb-iccp-second-date.png"
+        Image.fromarray(_rgba(1, 1, (1, 2, 3, 255)), mode="RGBA").save(
+            second_date,
+            format="PNG",
+            icc_profile=second_date_profile,
+        )
+        second_metrics = compare_images(second_date, second_date)
+        self.assertNotEqual(
+            iccp_metrics.reference_raw_icc_sha256,
+            second_metrics.reference_raw_icc_sha256,
+        )
+        self.assertEqual(
+            second_metrics.reference_canonical_icc_sha256, APPROVED_ICC_SHA256
+        )
+        self.assertEqual(
+            second_metrics.reference_icc_canonicalization, ICC_CANONICALIZATION
+        )
 
         iccp_actual = self.run_root / "pillow-srgb-iccp-preview.png"
         shutil.copyfile(iccp, iccp_actual)
@@ -828,10 +865,21 @@ class ReconstructionMetricTests(unittest.TestCase):
                 for binding in bound.input_bindings
             )
         )
+        self.assertTrue(
+            all(
+                binding.canonical_icc_sha256 == APPROVED_ICC_SHA256
+                and binding.icc_canonicalization == ICC_CANONICALIZATION
+                and binding.raw_icc_sha256 is not None
+                for binding in bound.input_bindings
+            )
+        )
 
         implicit = compare_images(rgba_plte, rgba_plte)
         self.assertEqual(implicit.reference_icc_profile_id, "implicit-sRGB-none")
         self.assertIsNone(implicit.reference_icc_profile_sha256)
+        self.assertIsNone(implicit.reference_raw_icc_sha256)
+        self.assertIsNone(implicit.reference_canonical_icc_sha256)
+        self.assertEqual(implicit.reference_icc_canonicalization, "none")
 
     def test_png_rejects_color_metadata_conflicts_and_bad_iccp_before_pillow(self) -> None:
         signature = b"\x89PNG\r\n\x1a\n"
@@ -980,12 +1028,21 @@ class ReconstructionMetricTests(unittest.TestCase):
         fake_lab[16:20] = b"LAB "
         mutated = bytearray(canonical)
         mutated[500] ^= 0x01
+        invalid_date = bytearray(canonical)
+        invalid_date[24:36] = bytes.fromhex("07ea000d0001000000000000")
         malformed_tag = bytearray(canonical)
         malformed_tag[136:144] = (130).to_bytes(4, "big") + (200).to_bytes(4, "big")
         cases = {
             "fake LAB description": (bytes(fake_lab), "data color space.*RGB|ICC.*RGB"),
             "one byte digest mutation": (bytes(mutated), "approved|digest|SHA-256"),
-            "tag table overlap": (bytes(malformed_tag), "tag.*table|overlap|bounds"),
+            "invalid creation date": (
+                bytes(invalid_date),
+                "creationDate.*invalid",
+            ),
+            "tag table mutation rejected by allowlist first": (
+                bytes(malformed_tag),
+                "canonical digest|approved registry",
+            ),
         }
         for name, (profile, reason) in cases.items():
             path = self.run_root / f"icc-authority-{name.replace(' ', '-')}.png"
@@ -1790,6 +1847,9 @@ class ReconstructionMetricTests(unittest.TestCase):
         self.assertEqual(result.metric_budget_version, "c4-metric-memory-v1")
         self.assertEqual(result.output_icc_profile_id, "implicit-sRGB-none")
         self.assertIsNone(result.output_icc_profile_sha256)
+        self.assertIsNone(result.output_raw_icc_sha256)
+        self.assertIsNone(result.output_canonical_icc_sha256)
+        self.assertEqual(result.output_icc_canonicalization, "none")
         self.assertEqual(result.lifecycle_status, "RENDERED")
         compare_contract = _run_contract(
             self.run_root,
