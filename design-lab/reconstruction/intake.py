@@ -1,0 +1,416 @@
+# SPDX-License-Identifier: MIT
+"""Immutable, deterministic raster intake for reconstruction runs."""
+from __future__ import annotations
+
+import hashlib
+import os
+import stat
+import struct
+import tempfile
+from dataclasses import dataclass
+from enum import Enum
+from io import BytesIO
+from pathlib import Path
+
+import numpy as np
+from PIL import Image, ImageCms, UnidentifiedImageError
+
+_SUPPORTED_FORMATS = frozenset({"PNG", "JPEG", "WEBP"})
+_SUPPORTED_MODES = frozenset({"RGB", "RGBA"})
+_NORMALIZED_NAME = "reference.normalized.png"
+_REPARSE_POINT = getattr(stat, "FILE_ATTRIBUTE_REPARSE_POINT", 0x400)
+
+
+class IntakeError(ValueError):
+    """An input cannot be normalized without weakening the intake contract."""
+
+
+class ReconstructionProfile(str, Enum):
+    """Deterministic visual-complexity class used by downstream providers."""
+
+    FLAT = "flat"
+    UI = "ui"
+    MIXED = "mixed"
+    PHOTOGRAPHIC = "photographic"
+
+
+@dataclass(frozen=True)
+class SourceIdentity:
+    """Exact immutable identity observed before and after source decoding."""
+
+    resolved_path: Path
+    sha256: str
+    size_bytes: int
+    modified_time_ns: int
+    device: int
+    file_id: int
+
+
+@dataclass(frozen=True)
+class ColorProfileMetadata:
+    """Declared origin and identity of the profile used for conversion."""
+
+    origin: str
+    name: str
+    icc_sha256: str | None
+
+
+@dataclass(frozen=True)
+class AnalysisTile:
+    """One complete analysis tile in the source canvas coordinate system."""
+
+    index: int
+    x: int
+    y: int
+    width: int
+    height: int
+
+    @property
+    def right(self) -> int:
+        return self.x + self.width
+
+    @property
+    def bottom(self) -> int:
+        return self.y + self.height
+
+
+@dataclass(frozen=True)
+class IntakeResult:
+    """Complete immutable result of normalizing one source image."""
+
+    source_sha256: str
+    normalized_sha256: str
+    width: int
+    height: int
+    mode: str
+    normalized_path: Path
+    source_format: str
+    original_mode: str
+    source_identity: SourceIdentity
+    color_profile: ColorProfileMetadata
+    profile: ReconstructionProfile
+    tiles: tuple[AnalysisTile, ...]
+
+
+def _sha256_bytes(value: bytes) -> str:
+    return hashlib.sha256(value).hexdigest()
+
+
+def _sha256_file(path: Path) -> str:
+    digest = hashlib.sha256()
+    with path.open("rb") as stream:
+        for chunk in iter(lambda: stream.read(1 << 20), b""):
+            digest.update(chunk)
+    return digest.hexdigest()
+
+
+def _canonical_srgb_profile_bytes() -> bytes:
+    """Create Pillow's built-in sRGB profile with a fixed ICC creation timestamp."""
+
+    profile = ImageCms.ImageCmsProfile(ImageCms.createProfile("sRGB"))
+    payload = bytearray(profile.tobytes())
+    # ICC header bytes 24..35 are six unsigned 16-bit date/time fields. LittleCMS
+    # otherwise writes wall-clock time, which would make normalized PNGs differ.
+    payload[24:36] = struct.pack(">6H", 2000, 1, 1, 0, 0, 0)
+    return bytes(payload)
+
+
+_SRGB_PROFILE_BYTES = _canonical_srgb_profile_bytes()
+
+
+def _srgb_profile() -> ImageCms.ImageCmsProfile:
+    return ImageCms.ImageCmsProfile(BytesIO(_SRGB_PROFILE_BYTES))
+
+
+def _profile_metadata(image: Image.Image) -> tuple[ImageCms.ImageCmsProfile, ColorProfileMetadata]:
+    embedded = image.info.get("icc_profile")
+    if embedded is None:
+        profile = _srgb_profile()
+        return profile, ColorProfileMetadata(
+            origin="assumed-srgb",
+            name="sRGB",
+            icc_sha256=None,
+        )
+    if not isinstance(embedded, bytes) or not embedded:
+        raise IntakeError("embedded color profile is not valid ICC bytes")
+    try:
+        profile = ImageCms.ImageCmsProfile(BytesIO(embedded))
+        name = ImageCms.getProfileName(profile).strip().rstrip("\x00")
+    except (OSError, TypeError, ValueError, ImageCms.PyCMSError) as exc:
+        raise IntakeError(f"invalid embedded color profile: {exc}") from None
+    if not name:
+        name = "embedded ICC profile"
+    return profile, ColorProfileMetadata(
+        origin="embedded",
+        name=name,
+        icc_sha256=_sha256_bytes(embedded),
+    )
+
+
+def _path_is_reparse(path: Path) -> bool:
+    try:
+        metadata = path.lstat()
+    except OSError as exc:
+        raise IntakeError(f"cannot inspect destination path safely: {path}: {exc}") from None
+    return path.is_symlink() or bool(
+        getattr(metadata, "st_file_attributes", 0) & _REPARSE_POINT
+    )
+
+
+def _assert_existing_components_are_plain(path: Path) -> None:
+    current = Path(path.anchor)
+    parts = path.parts[1:] if path.anchor else path.parts
+    for part in parts:
+        current /= part
+        if not current.exists() and not current.is_symlink():
+            continue
+        if _path_is_reparse(current):
+            raise IntakeError(f"destination crosses a symlink/reparse boundary: {current}")
+
+
+def _prepare_destination(run_dir: Path, source: Path) -> tuple[Path, Path]:
+    run_dir = Path(run_dir)
+    if any(part == ".." for part in run_dir.parts):
+        raise IntakeError("run directory must not contain parent traversal")
+    lexical_run_dir = Path(os.path.abspath(os.fspath(run_dir)))
+    _assert_existing_components_are_plain(lexical_run_dir)
+    try:
+        lexical_run_dir.mkdir(parents=True, exist_ok=True)
+    except OSError as exc:
+        raise IntakeError(f"cannot create run directory: {exc}") from None
+    _assert_existing_components_are_plain(lexical_run_dir)
+    try:
+        exact_run_dir = lexical_run_dir.resolve(strict=True)
+    except OSError as exc:
+        raise IntakeError(f"cannot resolve run directory safely: {exc}") from None
+    if exact_run_dir != lexical_run_dir:
+        raise IntakeError("run directory does not resolve to its exact lexical path")
+
+    destination = exact_run_dir / _NORMALIZED_NAME
+    if destination.exists() or destination.is_symlink():
+        if _path_is_reparse(destination):
+            raise IntakeError("normalized output is an existing symlink/reparse point")
+        try:
+            resolved_destination = destination.resolve(strict=True)
+        except OSError as exc:
+            raise IntakeError(f"cannot resolve existing output safely: {exc}") from None
+        if resolved_destination.parent != exact_run_dir:
+            raise IntakeError("normalized output escapes the exact run directory")
+    if source == destination:
+        raise IntakeError("normalized output would overwrite the immutable source")
+    return exact_run_dir, destination
+
+
+def partition_analysis_tiles(
+    width: int,
+    height: int,
+    max_axis: int = 4096,
+) -> tuple[AnalysisTile, ...]:
+    """Partition a canvas into non-overlapping row-major global-coordinate tiles."""
+
+    for name, value in (("width", width), ("height", height), ("max_axis", max_axis)):
+        if isinstance(value, bool) or not isinstance(value, int) or value <= 0:
+            raise IntakeError(f"{name} must be a positive integer")
+    tiles: list[AnalysisTile] = []
+    for y in range(0, height, max_axis):
+        tile_height = min(max_axis, height - y)
+        for x in range(0, width, max_axis):
+            tiles.append(
+                AnalysisTile(
+                    index=len(tiles),
+                    x=x,
+                    y=y,
+                    width=min(max_axis, width - x),
+                    height=tile_height,
+                )
+            )
+    return tuple(tiles)
+
+
+def classify_reconstruction_profile(pixels: np.ndarray) -> ReconstructionProfile:
+    """Classify an RGBA uint8 pixel array without I/O or mutable global state."""
+
+    if (
+        not isinstance(pixels, np.ndarray)
+        or pixels.dtype != np.uint8
+        or pixels.ndim != 3
+        or pixels.shape[0] <= 0
+        or pixels.shape[1] <= 0
+        or pixels.shape[2] != 4
+    ):
+        raise IntakeError("classifier expects a non-empty HxWx4 uint8 RGBA array")
+
+    visible = pixels[:, :, 3] > 0
+    if not bool(np.any(visible)):
+        return ReconstructionProfile.FLAT
+    rgb = pixels[:, :, :3]
+    visible_rgb = rgb[visible]
+    quantized = visible_rgb >> 3
+    unique_colors = int(np.unique(quantized, axis=0).shape[0])
+
+    luma = (
+        rgb[:, :, 0].astype(np.int32) * 54
+        + rgb[:, :, 1].astype(np.int32) * 183
+        + rgb[:, :, 2].astype(np.int32) * 19
+    ) >> 8
+    horizontal = np.abs(np.diff(luma, axis=1)) >= 16
+    vertical = np.abs(np.diff(luma, axis=0)) >= 16
+    edge_samples = horizontal.size + vertical.size
+    edge_density = (
+        (int(np.count_nonzero(horizontal)) + int(np.count_nonzero(vertical))) / edge_samples
+        if edge_samples
+        else 0.0
+    )
+
+    if unique_colors <= 16:
+        return ReconstructionProfile.UI if edge_density >= 0.08 else ReconstructionProfile.FLAT
+    if unique_colors >= 128 and edge_density >= 0.20:
+        return ReconstructionProfile.PHOTOGRAPHIC
+    return ReconstructionProfile.MIXED
+
+
+def _normalize_pixels(
+    image: Image.Image,
+    source_profile: ImageCms.ImageCmsProfile,
+) -> Image.Image:
+    try:
+        return ImageCms.profileToProfile(
+            image.convert("RGBA"),
+            source_profile,
+            _srgb_profile(),
+            renderingIntent=ImageCms.Intent.RELATIVE_COLORIMETRIC,
+            outputMode="RGBA",
+        )
+    except (OSError, TypeError, ValueError, ImageCms.PyCMSError) as exc:
+        raise IntakeError(f"color conversion failed: {exc}") from None
+
+
+def _png_bytes(image: Image.Image) -> bytes:
+    output = BytesIO()
+    image.save(
+        output,
+        format="PNG",
+        optimize=False,
+        compress_level=9,
+        icc_profile=_SRGB_PROFILE_BYTES,
+    )
+    return output.getvalue()
+
+
+def _source_identity(path: Path, sha256: str, metadata: os.stat_result) -> SourceIdentity:
+    return SourceIdentity(
+        resolved_path=path,
+        sha256=sha256,
+        size_bytes=metadata.st_size,
+        modified_time_ns=metadata.st_mtime_ns,
+        device=metadata.st_dev,
+        file_id=metadata.st_ino,
+    )
+
+
+def _source_is_unchanged(
+    path: Path,
+    before: os.stat_result,
+    before_hash: str,
+) -> bool:
+    try:
+        after = path.stat()
+    except OSError:
+        return False
+    return (
+        after.st_dev == before.st_dev
+        and after.st_ino == before.st_ino
+        and after.st_size == before.st_size
+        and after.st_mtime_ns == before.st_mtime_ns
+        and _sha256_file(path) == before_hash
+    )
+
+
+def normalize_reference(
+    source: Path,
+    run_dir: Path,
+    max_axis: int = 4096,
+) -> IntakeResult:
+    """Decode an immutable PNG/JPEG/WebP and write one deterministic sRGB RGBA PNG."""
+
+    try:
+        resolved_source = Path(source).resolve(strict=True)
+        source_stat = resolved_source.stat()
+    except (OSError, RuntimeError) as exc:
+        raise IntakeError(f"cannot resolve source: {exc}") from None
+    if not resolved_source.is_file():
+        raise IntakeError("source must be a regular file")
+    source_hash = _sha256_file(resolved_source)
+    identity = _source_identity(resolved_source, source_hash, source_stat)
+
+    try:
+        with Image.open(resolved_source) as opened:
+            opened.load()
+            source_format = opened.format
+            original_mode = opened.mode
+            if source_format not in _SUPPORTED_FORMATS:
+                raise IntakeError(f"unsupported decoded image format: {source_format!r}")
+            if original_mode not in _SUPPORTED_MODES:
+                raise IntakeError(f"unsupported decoded image mode: {original_mode!r}")
+            if opened.width <= 0 or opened.height <= 0:
+                raise IntakeError("invalid image dimensions")
+            source_profile, profile_metadata = _profile_metadata(opened)
+            normalized = _normalize_pixels(opened, source_profile)
+            width, height = opened.size
+    except IntakeError:
+        raise
+    except (UnidentifiedImageError, OSError, SyntaxError, ValueError) as exc:
+        raise IntakeError(f"cannot decode supported image safely: {exc}") from None
+
+    tiles = partition_analysis_tiles(width, height, max_axis)
+    pixels = np.asarray(normalized, dtype=np.uint8)
+    profile = classify_reconstruction_profile(pixels)
+    encoded = _png_bytes(normalized)
+
+    if not _source_is_unchanged(resolved_source, source_stat, source_hash):
+        raise IntakeError("source identity changed during normalization")
+    exact_run_dir, destination = _prepare_destination(source=resolved_source, run_dir=run_dir)
+
+    temp_path: Path | None = None
+    try:
+        descriptor, temp_name = tempfile.mkstemp(
+            prefix=".reference.normalized.",
+            suffix=".tmp",
+            dir=exact_run_dir,
+        )
+        temp_path = Path(temp_name)
+        with os.fdopen(descriptor, "wb") as stream:
+            stream.write(encoded)
+            stream.flush()
+            os.fsync(stream.fileno())
+        _assert_existing_components_are_plain(exact_run_dir)
+        if destination.exists() or destination.is_symlink():
+            if _path_is_reparse(destination):
+                raise IntakeError("normalized output became a symlink/reparse point")
+        os.replace(temp_path, destination)
+        temp_path = None
+    except IntakeError:
+        raise
+    except OSError as exc:
+        raise IntakeError(f"cannot write normalized output safely: {exc}") from None
+    finally:
+        if temp_path is not None:
+            try:
+                temp_path.unlink(missing_ok=True)
+            except OSError:
+                pass
+
+    return IntakeResult(
+        source_sha256=source_hash,
+        normalized_sha256=_sha256_bytes(encoded),
+        width=width,
+        height=height,
+        mode="RGBA",
+        normalized_path=destination,
+        source_format=source_format,
+        original_mode=original_mode,
+        source_identity=identity,
+        color_profile=profile_metadata,
+        profile=profile,
+        tiles=tiles,
+    )
