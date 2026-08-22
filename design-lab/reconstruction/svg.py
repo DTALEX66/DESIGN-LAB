@@ -158,6 +158,35 @@ def _assert_bounds(bounds: dict[str, Any], width: float, height: float, field: s
         raise UnsafeSVGError(f"{field}: bounds exceed the canvas")
 
 
+def _assert_geometry_within_declared_bounds(
+    node: dict[str, Any],
+    min_x: float,
+    min_y: float,
+    max_x: float,
+    max_y: float,
+    *,
+    padding: float = 0,
+) -> None:
+    bounds = node["bounds"]
+    if not (
+        bounds["x"] <= min_x - padding
+        and bounds["y"] <= min_y - padding
+        and max_x + padding <= bounds["x"] + bounds["width"]
+        and max_y + padding <= bounds["y"] + bounds["height"]
+    ):
+        raise UnsafeSVGError(
+            f"node {node['id']!r}: vector geometry exceeds declared bounds"
+        )
+
+
+def _stroke_padding(node: dict[str, Any]) -> float:
+    style = node.get("style", {})
+    if style.get("stroke") in {None, "none"}:
+        return 0
+    width = float(style.get("strokeWidth", 0))
+    return width * 2 if style.get("lineJoin") == "miter" else width / 2
+
+
 def _paint_attributes(style: dict[str, Any]) -> dict[str, str]:
     result: dict[str, str] = {}
     mapping = {
@@ -218,6 +247,14 @@ def _serialize_primitive(node: dict[str, Any], width: float, height: float) -> E
                 raise UnsafeSVGError("line primitive geometry is outside the canvas")
         elif not (0 <= x1 <= x2 <= width and 0 <= y1 <= y2 <= height):
             raise UnsafeSVGError("primitive geometry is outside the canvas")
+        _assert_geometry_within_declared_bounds(
+            node,
+            min(x1, x2),
+            min(y1, y2),
+            max(x1, x2),
+            max(y1, y2),
+            padding=_stroke_padding(node),
+        )
         if kind == "rect":
             attrs = common | {
                 "x": _format_number(x1),
@@ -262,6 +299,16 @@ def _serialize_primitive(node: dict[str, Any], width: float, height: float) -> E
             if not (math.isfinite(x) and math.isfinite(y) and 0 <= x <= width and 0 <= y <= height):
                 raise UnsafeSVGError("polygon point is outside the canvas")
             points.append(f"{_format_number(x)},{_format_number(y)}")
+        xs = [float(point["x"]) for point in parameters["points"]]
+        ys = [float(point["y"]) for point in parameters["points"]]
+        _assert_geometry_within_declared_bounds(
+            node,
+            min(xs),
+            min(ys),
+            max(xs),
+            max(ys),
+            padding=_stroke_padding(node),
+        )
         return ET.Element(_tag("polygon"), common | {"points": " ".join(points)})
     raise UnsafeSVGError(f"unsupported primitive kind: {kind}")
 
@@ -271,7 +318,15 @@ def _serialize_node(node: dict[str, Any], asset_root: Path, width: float, height
     node_type = node["type"]
     if node_type == "group":
         element = ET.Element(_tag("g"), _node_attributes(node))
-        for child in sorted(node["children"], key=lambda item: (item["zOrder"], item["id"])):
+        for child in sorted(node["children"], key=lambda item: item["zOrder"]):
+            child_bounds = child["bounds"]
+            _assert_geometry_within_declared_bounds(
+                node,
+                child_bounds["x"],
+                child_bounds["y"],
+                child_bounds["x"] + child_bounds["width"],
+                child_bounds["y"] + child_bounds["height"],
+            )
             element.append(_serialize_node(child, asset_root, width, height))
         return element
     if node_type == "primitive":
@@ -279,7 +334,17 @@ def _serialize_node(node: dict[str, Any], asset_root: Path, width: float, height
     if node_type == "path":
         _assert_no_masks(node)
         path_data = node["geometry"]["pathData"]
-        validate_path_data(path_data, width, height)
+        inspection = validate_path_data(path_data, width, height)
+        if bool(node["geometry"].get("closed", False)) != inspection.ends_closed:
+            raise UnsafeSVGError("path closed metadata does not match pathData")
+        _assert_geometry_within_declared_bounds(
+            node,
+            inspection.min_x,
+            inspection.min_y,
+            inspection.max_x,
+            inspection.max_y,
+            padding=_stroke_padding(node),
+        )
         return ET.Element(
             _tag("path"),
             _node_attributes(node) | _paint_attributes(node["style"]) | {"d": path_data},
@@ -291,7 +356,14 @@ def _serialize_node(node: dict[str, Any], asset_root: Path, width: float, height
         if disposition == "outlined":
             if not fallback["available"] or not fallback["pathData"]:
                 raise UnsafeSVGError("outlined text requires a validated path fallback")
-            validate_path_data(fallback["pathData"], width, height)
+            inspection = validate_path_data(fallback["pathData"], width, height)
+            _assert_geometry_within_declared_bounds(
+                node,
+                inspection.min_x,
+                inspection.min_y,
+                inspection.max_x,
+                inspection.max_y,
+            )
             return ET.Element(
                 _tag("path"),
                 _node_attributes(node) | {"d": fallback["pathData"], "fill": "black"},
@@ -401,7 +473,7 @@ def serialize_svg(rir: dict, asset_root: Path) -> bytes:
                 },
             )
         )
-    for node in sorted(rir["layers"], key=lambda item: (item["zOrder"], item["id"])):
+    for node in sorted(rir["layers"], key=lambda item: item["zOrder"]):
         root.append(_serialize_node(node, asset_root, width, height))
     raw = ET.tostring(root, encoding="utf-8", short_empty_elements=True)
     return sanitize_svg(raw)

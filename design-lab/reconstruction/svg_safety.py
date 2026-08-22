@@ -7,6 +7,7 @@ import binascii
 import math
 import re
 import xml.etree.ElementTree as StdET
+from dataclasses import dataclass
 from io import BytesIO
 from typing import Iterator
 
@@ -32,6 +33,18 @@ MAX_RASTER_PIXELS = 100_000_000
 
 class UnsafeSVGError(ValueError):
     """SVG bytes violate the deterministic renderer safety profile."""
+
+
+@dataclass(frozen=True)
+class PathInspection:
+    """Conservative geometry and closure facts derived from validated path tokens."""
+
+    min_x: float
+    min_y: float
+    max_x: float
+    max_y: float
+    has_close: bool
+    ends_closed: bool
 
 
 _COMMON_PAINT = frozenset(
@@ -237,7 +250,7 @@ def _tokens(value: str) -> list[str]:
     return tokens
 
 
-def validate_path_data(value: str, width: float, height: float) -> None:
+def validate_path_data(value: str, width: float, height: float) -> PathInspection:
     """Validate bounded SVG path grammar without rendering or filesystem access."""
 
     tokens = _tokens(value)
@@ -250,6 +263,17 @@ def validate_path_data(value: str, width: float, height: float) -> None:
     group_count = 0
     total_groups = 0
     saw_moveto = False
+    has_close = False
+    min_x = min_y = math.inf
+    max_x = max_y = -math.inf
+
+    def record(x: float, y: float) -> None:
+        nonlocal min_x, min_y, max_x, max_y
+        bounded(x, y)
+        min_x = min(min_x, x)
+        min_y = min(min_y, y)
+        max_x = max(max_x, x)
+        max_y = max(max_y, y)
 
     def bounded(x: float, y: float) -> None:
         if not (0 <= x <= width and 0 <= y <= height):
@@ -266,8 +290,9 @@ def validate_path_data(value: str, width: float, height: float) -> None:
             index += 1
             group_count = 0
             if command.upper() == "Z":
+                has_close = True
                 current_x, current_y = start_x, start_y
-                bounded(current_x, current_y)
+                record(current_x, current_y)
                 continue
         elif command is None or command.upper() == "Z":
             raise UnsafeSVGError("path data has parameters without a command")
@@ -277,7 +302,8 @@ def validate_path_data(value: str, width: float, height: float) -> None:
         arity = _PATH_ARITY[upper]
         if index + arity > len(tokens) or any(t.isalpha() for t in tokens[index : index + arity]):
             raise UnsafeSVGError(f"path command {command} has incomplete parameters")
-        values = [_number(t, "path") for t in tokens[index : index + arity]]
+        raw_values = tokens[index : index + arity]
+        values = [_number(t, "path") for t in raw_values]
         index += arity
         group_count += 1
         total_groups += 1
@@ -285,16 +311,23 @@ def validate_path_data(value: str, width: float, height: float) -> None:
             raise UnsafeSVGError("path data exceeds the command complexity ceiling")
         relative = command.islower()
 
+        if upper in {"S", "T"}:
+            raise UnsafeSVGError(
+                "shorthand curve commands are unsupported without explicit control bounds"
+            )
+
         if upper == "H":
             x = values[0] + (current_x if relative else 0)
-            bounded(x, current_y)
+            record(x, current_y)
             current_x = x
         elif upper == "V":
             y = values[0] + (current_y if relative else 0)
-            bounded(current_x, y)
+            record(current_x, y)
             current_y = y
         elif upper == "A":
             rx, ry, _rotation, large, sweep, x, y = values
+            if raw_values[3] not in {"0", "1"} or raw_values[4] not in {"0", "1"}:
+                raise UnsafeSVGError("arc flags must use the exact lexemes 0 or 1")
             if rx < 0 or ry < 0 or large not in {0.0, 1.0} or sweep not in {0.0, 1.0}:
                 raise UnsafeSVGError("arc radii or flags are invalid")
             if relative:
@@ -302,7 +335,16 @@ def validate_path_data(value: str, width: float, height: float) -> None:
                 y += current_y
             if rx > width or ry > height:
                 raise UnsafeSVGError("arc radius exceeds the canvas")
-            bounded(x, y)
+            # Every point on the same rotated ellipse lies within twice the
+            # largest radius of the arc start. This deliberately conservative
+            # envelope avoids accepting an arc whose hidden extrema escape.
+            reach = 2 * max(rx, ry)
+            for bound_x, bound_y in (
+                (current_x - reach, current_y - reach),
+                (current_x + reach, current_y + reach),
+                (x, y),
+            ):
+                record(bound_x, bound_y)
             current_x, current_y = x, y
         else:
             pairs = list(zip(values[0::2], values[1::2], strict=True))
@@ -311,18 +353,31 @@ def validate_path_data(value: str, width: float, height: float) -> None:
                 if relative:
                     x += current_x
                     y += current_y
-                bounded(x, y)
+                record(x, y)
                 adjusted.append((x, y))
             current_x, current_y = adjusted[-1]
             if upper == "M" and group_count == 1:
                 start_x, start_y = current_x, current_y
                 command = "l" if relative else "L"
 
+    if math.isinf(min_x):
+        raise UnsafeSVGError("path data has no geometry")
+    ends_closed = tokens[-1].upper() == "Z"
+    if has_close and not ends_closed:
+        raise UnsafeSVGError("mixed open and closed path subpaths are unsupported")
+    return PathInspection(min_x, min_y, max_x, max_y, has_close, ends_closed)
 
-def _validate_points(value: str, width: float, height: float) -> None:
+
+def _validate_points(
+    value: str, width: float, height: float, *, minimum_points: int
+) -> None:
     numbers = re.findall(_NUMBER, value)
     scrubbed = re.sub(_NUMBER, "", value)
-    if not _SEPARATOR_RE.fullmatch(scrubbed) or len(numbers) < 4 or len(numbers) % 2:
+    if not _SEPARATOR_RE.fullmatch(scrubbed) or len(numbers) % 2:
+        raise UnsafeSVGError("points: malformed coordinate list")
+    if len(numbers) < minimum_points * 2:
+        if minimum_points == 3:
+            raise UnsafeSVGError("polygon requires at least 3 points")
         raise UnsafeSVGError("points: malformed coordinate list")
     if len(numbers) // 2 > MAX_POLYGON_POINTS:
         raise UnsafeSVGError("points: complexity ceiling exceeded")
@@ -353,11 +408,15 @@ def _iter_elements(root: StdET.Element) -> Iterator[tuple[StdET.Element, str]]:
         stack.extend((child, depth + 1) for child in reversed(list(node)))
 
 
-def _validate_namespace_declarations(svg: bytes) -> None:
+def _streaming_preflight(svg: bytes) -> None:
+    """Bound hostile XML allocation before constructing the retained tree."""
+
+    count = 0
+    depth = 0
     try:
         events = DefusedET.iterparse(
             BytesIO(svg),
-            events=("start-ns", "comment", "pi"),
+            events=("start", "end", "start-ns", "comment", "pi"),
             forbid_dtd=True,
             forbid_entities=True,
             forbid_external=True,
@@ -365,9 +424,20 @@ def _validate_namespace_declarations(svg: bytes) -> None:
         for event, value in events:
             if event in {"comment", "pi"}:
                 raise UnsafeSVGError("comments and processing instructions are forbidden")
-            _prefix, namespace = value
-            if namespace not in {SVG_NAMESPACE, XLINK_NAMESPACE}:
-                raise UnsafeSVGError(f"unknown namespace declaration: {namespace}")
+            if event == "start-ns":
+                _prefix, namespace = value
+                if namespace not in {SVG_NAMESPACE, XLINK_NAMESPACE}:
+                    raise UnsafeSVGError(f"unknown namespace declaration: {namespace}")
+            elif event == "start":
+                count += 1
+                depth += 1
+                if count > MAX_ELEMENTS:
+                    raise UnsafeSVGError("SVG element complexity ceiling exceeded")
+                if depth - 1 > MAX_NESTING_DEPTH:
+                    raise UnsafeSVGError("SVG nesting depth exceeds the complexity ceiling")
+            elif event == "end":
+                value.clear()
+                depth -= 1
     except UnsafeSVGError:
         raise
     except (DefusedXmlException, StdET.ParseError, ValueError, TypeError) as exc:
@@ -447,8 +517,46 @@ def _validate_geometry(local: str, attributes: dict[str, str], width: float, hei
             raise UnsafeSVGError("text: anchor exceeds the canvas")
 
 
+_GRAPHICAL_CHILDREN = frozenset(
+    {"g", "path", "rect", "circle", "ellipse", "line", "polyline", "polygon", "text", "image"}
+)
+_ALLOWED_CHILDREN: dict[str, frozenset[str]] = {
+    "svg": _GRAPHICAL_CHILDREN | {"defs"},
+    "g": _GRAPHICAL_CHILDREN,
+    "defs": frozenset({"linearGradient", "radialGradient", "clipPath", "mask"}),
+    "linearGradient": frozenset({"stop"}),
+    "radialGradient": frozenset({"stop"}),
+    "clipPath": _GRAPHICAL_CHILDREN - {"image"},
+    "mask": _GRAPHICAL_CHILDREN,
+    "path": frozenset(),
+    "rect": frozenset(),
+    "circle": frozenset(),
+    "ellipse": frozenset(),
+    "line": frozenset(),
+    "polyline": frozenset(),
+    "polygon": frozenset(),
+    "text": frozenset(),
+    "stop": frozenset(),
+    "image": frozenset(),
+}
+
+
+def _validate_topology(root: StdET.Element) -> None:
+    for parent, parent_local in _iter_elements(root):
+        allowed = _ALLOWED_CHILDREN[parent_local]
+        for child in parent:
+            _namespace, child_local = _split_expanded_name(child.tag)
+            if child_local not in ALLOWED_ELEMENTS:
+                raise UnsafeSVGError(f"forbidden element: {child_local}")
+            if child_local not in allowed:
+                raise UnsafeSVGError(
+                    f"SVG subset topology forbids {child_local} below {parent_local}"
+                )
+
+
 def _validate_tree(root: StdET.Element) -> None:
     width, height = _canvas(root)
+    _validate_topology(root)
     ids: dict[str, str] = {}
     references: list[tuple[str, str]] = []
     for node, local in _iter_elements(root):
@@ -496,7 +604,12 @@ def _validate_tree(root: StdET.Element) -> None:
             elif name == "d":
                 validate_path_data(value, width, height)
             elif name == "points":
-                _validate_points(value, width, height)
+                _validate_points(
+                    value,
+                    width,
+                    height,
+                    minimum_points=3 if local == "polygon" else 2,
+                )
             elif name in _NUMERIC_ATTRIBUTES:
                 number = _number(value, f"{local}.{name}")
                 if name in {"opacity", "stop-opacity"} and not 0 <= number <= 1:
@@ -553,7 +666,7 @@ def sanitize_svg(svg: bytes) -> bytes:
     folded = svg.upper()
     if b"<!DOCTYPE" in folded or b"<!ENTITY" in folded:
         raise UnsafeSVGError("DTD and entity declarations are forbidden")
-    _validate_namespace_declarations(svg)
+    _streaming_preflight(svg)
     try:
         root = DefusedET.fromstring(
             svg,
