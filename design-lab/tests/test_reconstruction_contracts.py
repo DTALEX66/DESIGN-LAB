@@ -4,12 +4,15 @@ from __future__ import annotations
 
 import copy
 import json
+import os
+import subprocess
 import sys
 import unittest
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 DESIGN_LAB = Path(__file__).resolve().parents[1]
+PROJECT_ROOT = DESIGN_LAB.parent
 if str(DESIGN_LAB) not in sys.path:
     sys.path.insert(0, str(DESIGN_LAB))
 
@@ -58,8 +61,43 @@ def raster_layer(path: str = "inputs/source.png", *, layer_id: str = "raster-1")
     }
 
 
-def minimal_run_contract() -> dict:
-    run_id = "run-001"
+def path_layer(*, layer_id: str = "path-1") -> dict:
+    return {
+        "id": layer_id,
+        "type": "path",
+        "name": "Vector path",
+        "opacity": 1.0,
+        "bounds": {"x": 0, "y": 0, "width": 64, "height": 64},
+        "inferred": False,
+        "zOrder": 0,
+        "visible": True,
+        "locked": False,
+        "blendMode": "normal",
+        "geometry": {"pathData": "M0 0L64 64", "closed": False},
+        "style": {"stroke": "#000", "strokeWidth": 1},
+        "masks": [
+            {
+                "id": "mask-1",
+                "pathData": "M0 0H64V64H0Z",
+                "operation": "intersect",
+                "opacity": 1.0,
+            }
+        ],
+    }
+
+
+def primitive_layer(*, layer_id: str = "primitive-1") -> dict:
+    layer = path_layer(layer_id=layer_id)
+    layer["type"] = "primitive"
+    layer.pop("geometry")
+    layer["primitive"] = {
+        "kind": "rect",
+        "parameters": {"x1": 0, "y1": 0, "x2": 64, "y2": 64, "rx": 0, "ry": 0},
+    }
+    return layer
+
+
+def minimal_run_contract(run_id: str = "run-001") -> dict:
     runtime_root = f".hermes/task-runtime/reconstruction/{run_id}/"
     evidence_root = f".hermes/task-artifacts/reconstruction/{run_id}/"
     now = datetime.now(timezone.utc)
@@ -132,6 +170,29 @@ def minimal_run_contract() -> dict:
 
 
 class ReconstructionContractTests(unittest.TestCase):
+    def _make_directory_link(self, link: Path, target: Path) -> None:
+        container = link.parent.parent
+        container_created = not container.exists()
+        parent_created = not link.parent.exists()
+        link.parent.mkdir(parents=True, exist_ok=True)
+        if container_created:
+            self.addCleanup(container.rmdir)
+        if parent_created and link.parent != container:
+            self.addCleanup(link.parent.rmdir)
+        if os.name == "nt":
+            result = subprocess.run(
+                ["cmd.exe", "/d", "/c", "mklink", "/J", str(link), str(target)],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                errors="replace",
+            )
+            self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+            self.addCleanup(os.rmdir, link)
+        else:
+            link.symlink_to(target, target_is_directory=True)
+            self.addCleanup(link.unlink)
+
     def test_schema_documents_are_valid_draft_2020_12(self):
         import jsonschema
 
@@ -152,10 +213,19 @@ class ReconstructionContractTests(unittest.TestCase):
 
     def test_external_raster_reference_is_rejected(self):
         value = minimal_rir()
-        value["layers"] = [
-            {"id": "x", "type": "raster", "href": "https://example.test/x.png"}
-        ]
+        value["layers"] = [raster_layer("https://example.test/x.png")]
         with self.assertRaises(ContractError):
+            validate_rir(value)
+
+    def test_raster_reparse_escape_outside_project_is_rejected(self):
+        run_id = f"rir-reparse-{os.getpid()}"
+        link = PROJECT_ROOT / ".hermes" / "task-runtime" / "reconstruction" / run_id / "escape"
+        self._make_directory_link(link, PROJECT_ROOT.parent)
+        value = minimal_rir()
+        value["layers"] = [
+            raster_layer(f".hermes/task-runtime/reconstruction/{run_id}/escape/source.png")
+        ]
+        with self.assertRaisesRegex(ContractError, "reparse|outside"):
             validate_rir(value)
 
     def test_duplicate_ids_are_rejected_across_nested_groups(self):
@@ -197,6 +267,39 @@ class ReconstructionContractTests(unittest.TestCase):
                 layer[field] = invalid
                 value["layers"] = [layer]
                 with self.assertRaises(ContractError):
+                    validate_rir(value)
+
+    def test_non_finite_numbers_are_rejected_anywhere_in_rir(self):
+        cases = (
+            ("raster alpha", raster_layer, lambda layer: layer["raster"].__setitem__("alpha", float("nan"))),
+            ("raster crop", raster_layer, lambda layer: layer["raster"]["crop"].__setitem__("x", float("nan"))),
+            (
+                "source mapping",
+                raster_layer,
+                lambda layer: layer["raster"]["sourceMappings"][0]["targetBounds"].__setitem__(
+                    "width", float("nan")
+                ),
+            ),
+            ("mask opacity", path_layer, lambda layer: layer["masks"][0].__setitem__("opacity", float("nan"))),
+            ("style width", path_layer, lambda layer: layer["style"].__setitem__("strokeWidth", float("inf"))),
+            (
+                "primitive parameter",
+                primitive_layer,
+                lambda layer: layer["primitive"]["parameters"].__setitem__("rx", float("-inf")),
+            ),
+            (
+                "confidence",
+                raster_layer,
+                lambda layer: layer.__setitem__("confidence", {"score": float("nan"), "method": "model"}),
+            ),
+        )
+        for name, factory, mutate in cases:
+            with self.subTest(name=name):
+                value = minimal_rir()
+                layer = factory()
+                mutate(layer)
+                value["layers"] = [layer]
+                with self.assertRaisesRegex(ContractError, "finite|JSON"):
                     validate_rir(value)
 
     def test_parent_traversal_and_absolute_raster_paths_are_rejected(self):
@@ -257,6 +360,40 @@ class ReconstructionContractTests(unittest.TestCase):
         ]
         validate_run_contract(value)
 
+    def test_remote_consent_rejects_wrong_hash_provider_and_extra_file(self):
+        valid = minimal_run_contract()
+        valid["providerPolicy"]["selectedProvider"] = "remote-v1"
+        matching = {
+            "path": valid["source"]["path"],
+            "sha256": valid["source"]["sha256"],
+            "provider": "remote-v1",
+            "consented": True,
+        }
+        cases = {
+            "wrong hash": [{**matching, "sha256": "b" * 64}],
+            "wrong provider": [{**matching, "provider": "remote-v2"}],
+            "extra file": [matching, {**matching, "path": "inputs/other.png"}],
+        }
+        for name, consents in cases.items():
+            with self.subTest(name=name):
+                value = copy.deepcopy(valid)
+                value["providerPolicy"]["remoteConsents"] = consents
+                with self.assertRaisesRegex(ContractError, "consent"):
+                    validate_run_contract(value)
+
+    def test_local_provider_rejects_remote_consent_entries(self):
+        value = minimal_run_contract()
+        value["providerPolicy"]["remoteConsents"] = [
+            {
+                "path": value["source"]["path"],
+                "sha256": value["source"]["sha256"],
+                "provider": "remote-v1",
+                "consented": True,
+            }
+        ]
+        with self.assertRaisesRegex(ContractError, "consent"):
+            validate_run_contract(value)
+
     def test_expired_write_authorization_is_rejected(self):
         value = minimal_run_contract()
         value["writeAuthorization"]["expiresAt"] = (
@@ -284,6 +421,75 @@ class ReconstructionContractTests(unittest.TestCase):
             ],
         }
         with self.assertRaisesRegex(ContractError, "lifecycle"):
+            validate_run_contract(value)
+
+    def test_lifecycle_history_must_start_at_created(self):
+        value = minimal_run_contract()
+        value["lifecycle"] = {
+            "state": "completed",
+            "history": [
+                {
+                    "from": "running",
+                    "to": "completed",
+                    "at": datetime.now(timezone.utc).isoformat(),
+                }
+            ],
+        }
+        with self.assertRaisesRegex(ContractError, "created"):
+            validate_run_contract(value)
+
+    def test_artifact_and_write_targets_reject_unsafe_paths(self):
+        run_id = "run-001"
+        runtime_root = f".hermes/task-runtime/reconstruction/{run_id}/"
+        unsafe_paths = (
+            "https://example.test/output.svg",
+            "/absolute/output.svg",
+            "C:\\absolute\\output.svg",
+            runtime_root + "../escape.svg",
+            "design-lab/output.svg",
+        )
+        for target_field in ("artifact", "authorization"):
+            for unsafe in unsafe_paths:
+                with self.subTest(target_field=target_field, unsafe=unsafe):
+                    value = minimal_run_contract(run_id)
+                    if target_field == "artifact":
+                        value["artifacts"][0]["path"] = unsafe
+                        value["writeAuthorization"]["targets"][0] = unsafe
+                    else:
+                        value["writeAuthorization"]["targets"][0] = unsafe
+                    with self.assertRaises(ContractError):
+                        validate_run_contract(value)
+
+    def test_artifact_and_authorization_reparse_root_escape_is_rejected(self):
+        for target_field in ("artifact", "authorization"):
+            with self.subTest(target_field=target_field):
+                run_id = f"run-reparse-{target_field}-{os.getpid()}"
+                runtime_dir = (
+                    PROJECT_ROOT / ".hermes" / "task-runtime" / "reconstruction" / run_id
+                )
+                link = runtime_dir / "escape"
+                self._make_directory_link(link, DESIGN_LAB)
+                value = minimal_run_contract(run_id)
+                escaped = value["roots"]["runtime"] + "escape/output.svg"
+                if target_field == "artifact":
+                    value["artifacts"][0]["path"] = escaped
+                    value["writeAuthorization"]["targets"][0] = escaped
+                    expected = r"artifacts\[0\].*outside"
+                else:
+                    value["writeAuthorization"]["targets"][0] = escaped
+                    expected = r"writeAuthorization\.targets\[0\].*outside"
+                with self.assertRaisesRegex(ContractError, expected):
+                    validate_run_contract(value)
+
+    def test_declared_runtime_root_cannot_be_a_reparse_point(self):
+        run_id = f"run-root-reparse-{os.getpid()}"
+        runtime_dir = PROJECT_ROOT / ".hermes" / "task-runtime" / "reconstruction" / run_id
+        self._make_directory_link(
+            runtime_dir,
+            PROJECT_ROOT / ".hermes" / "task-runtime" / "reconstruction-dev",
+        )
+        value = minimal_run_contract(run_id)
+        with self.assertRaisesRegex(ContractError, "roots.*reparse|reparse.*roots"):
             validate_run_contract(value)
 
     def test_unknown_operation_and_authorization_state_are_rejected(self):

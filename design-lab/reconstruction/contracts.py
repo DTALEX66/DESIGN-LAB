@@ -16,7 +16,8 @@ from jsonschema.exceptions import best_match
 RIR_SCHEMA_ID = "design-lab/reconstruction-ir/v1"
 RUN_SCHEMA_ID = "design-lab/reconstruction-run/v1"
 
-_SCHEMA_DIR = Path(__file__).resolve().parents[1] / "schemas" / "reconstruction"
+_PROJECT_ROOT = Path(__file__).resolve().parents[2]
+_SCHEMA_DIR = _PROJECT_ROOT / "design-lab" / "schemas" / "reconstruction"
 
 
 class ContractError(ValueError):
@@ -58,7 +59,15 @@ def _walk_nodes(nodes: list[dict[str, Any]]) -> Iterator[dict[str, Any]]:
             yield from _walk_nodes(node["children"])
 
 
-def _require_project_relative(path: str, field: str) -> PurePosixPath:
+def _path_is_within(path: Path, root: Path) -> bool:
+    try:
+        path.relative_to(root)
+    except ValueError:
+        return False
+    return True
+
+
+def _require_project_relative(path: str, field: str) -> Path:
     if not isinstance(path, str) or not path:
         raise ContractError(f"{field}: expected a non-empty project-relative path")
     if "\\" in path or re.match(r"^[A-Za-z][A-Za-z0-9+.-]*:", path):
@@ -68,12 +77,13 @@ def _require_project_relative(path: str, field: str) -> PurePosixPath:
         raise ContractError(f"{field}: absolute paths are forbidden")
     if any(part in {"", ".", ".."} for part in pure.parts):
         raise ContractError(f"{field}: parent traversal and dot segments are forbidden")
-    return pure
-
-
-def _is_within(path: str, root: str) -> bool:
-    normalized_root = root.rstrip("/")
-    return path == normalized_root or path.startswith(normalized_root + "/")
+    try:
+        resolved = _PROJECT_ROOT.joinpath(*pure.parts).resolve(strict=False)
+    except (OSError, RuntimeError) as exc:
+        raise ContractError(f"{field}: cannot resolve path safely: {exc}") from None
+    if not _path_is_within(resolved, _PROJECT_ROOT):
+        raise ContractError(f"{field}: reparse resolution escapes outside the project")
+    return resolved
 
 
 def _parse_timestamp(value: str, field: str) -> datetime:
@@ -86,9 +96,21 @@ def _parse_timestamp(value: str, field: str) -> datetime:
     return parsed.astimezone(timezone.utc)
 
 
+def _reject_non_finite_numbers(value: Any, path: str = "$") -> None:
+    if isinstance(value, float) and not math.isfinite(value):
+        raise ContractError(f"{path}: non-finite numbers are not valid JSON")
+    if isinstance(value, dict):
+        for key, child in value.items():
+            _reject_non_finite_numbers(child, f"{path}.{key}")
+    elif isinstance(value, list):
+        for index, child in enumerate(value):
+            _reject_non_finite_numbers(child, f"{path}[{index}]")
+
+
 def validate_rir(value: dict) -> None:
     """Validate a version-one reconstruction intermediate representation."""
 
+    _reject_non_finite_numbers(value)
     _validate_schema(_RIR_VALIDATOR, value)
     seen: set[str] = set()
     for node in _walk_nodes(value["layers"]):
@@ -98,13 +120,6 @@ def validate_rir(value: dict) -> None:
         seen.add(node_id)
         if node["type"] == "raster":
             _require_project_relative(node["raster"]["path"], f"node {node_id!r} raster.path")
-        for number_name in ("opacity",):
-            number = node[number_name]
-            if not math.isfinite(number):
-                raise ContractError(f"node {node_id!r} {number_name}: must be finite")
-        for key, number in node["bounds"].items():
-            if not math.isfinite(number):
-                raise ContractError(f"node {node_id!r} bounds.{key}: must be finite")
 
 
 def validate_run_contract(value: dict) -> None:
@@ -118,6 +133,15 @@ def validate_run_contract(value: dict) -> None:
     if value["roots"] != {"runtime": runtime_root, "evidence": evidence_root}:
         raise ContractError("$.roots: roots must be the exact declared run runtime/evidence roots")
 
+    resolved_runtime_root = _require_project_relative(runtime_root, "$.roots.runtime")
+    resolved_evidence_root = _require_project_relative(evidence_root, "$.roots.evidence")
+    lexical_runtime_root = _PROJECT_ROOT.joinpath(*PurePosixPath(runtime_root).parts)
+    lexical_evidence_root = _PROJECT_ROOT.joinpath(*PurePosixPath(evidence_root).parts)
+    if resolved_runtime_root != lexical_runtime_root:
+        raise ContractError("$.roots.runtime: declared root must not resolve through a reparse point")
+    if resolved_evidence_root != lexical_evidence_root:
+        raise ContractError("$.roots.evidence: declared root must not resolve through a reparse point")
+
     path_fields = [
         (value["source"]["path"], "$.source.path"),
         (value["source"]["normalizedReferenceTarget"], "$.source.normalizedReferenceTarget"),
@@ -125,11 +149,6 @@ def validate_run_contract(value: dict) -> None:
         (value["registries"]["modelRegistry"], "$.registries.modelRegistry"),
         (value["cancellationPolicy"]["checkpointPath"], "$.cancellationPolicy.checkpointPath"),
     ]
-    path_fields.extend((artifact["path"], f"$.artifacts[{index}].path") for index, artifact in enumerate(value["artifacts"]))
-    path_fields.extend(
-        (target, f"$.writeAuthorization.targets[{index}]")
-        for index, target in enumerate(value["writeAuthorization"]["targets"])
-    )
     path_fields.extend(
         (consent["path"], f"$.providerPolicy.remoteConsents[{index}].path")
         for index, consent in enumerate(value["providerPolicy"]["remoteConsents"])
@@ -137,7 +156,10 @@ def validate_run_contract(value: dict) -> None:
     for path, field in path_fields:
         _require_project_relative(path, field)
 
-    if not _is_within(value["cancellationPolicy"]["checkpointPath"], runtime_root):
+    resolved_checkpoint = _require_project_relative(
+        value["cancellationPolicy"]["checkpointPath"], "$.cancellationPolicy.checkpointPath"
+    )
+    if not _path_is_within(resolved_checkpoint, resolved_runtime_root):
         raise ContractError("$.cancellationPolicy.checkpointPath: must be inside the runtime root")
 
     artifacts = value["artifacts"]
@@ -148,29 +170,53 @@ def validate_run_contract(value: dict) -> None:
     if len(artifact_paths) != len(set(artifact_paths)):
         raise ContractError("$.artifacts: duplicate artifact path")
     for index, path in enumerate(artifact_paths):
-        if not (_is_within(path, runtime_root) or _is_within(path, evidence_root)):
+        resolved = _require_project_relative(path, f"$.artifacts[{index}].path")
+        if not (
+            _path_is_within(resolved, resolved_runtime_root)
+            or _path_is_within(resolved, resolved_evidence_root)
+        ):
             raise ContractError(f"$.artifacts[{index}].path: target is outside declared roots")
 
     policy = value["providerPolicy"]
     if policy["selectedProvider"] not in policy["providerAllowlist"]:
         raise ContractError("$.providerPolicy.selectedProvider: provider is not allowlisted")
-    if policy["selectedProvider"] != "local":
-        required_consent = (
-            value["source"]["path"],
-            value["source"]["sha256"].lower(),
-            policy["selectedProvider"],
-        )
-        consents = {
-            (entry["path"], entry["sha256"].lower(), entry["provider"])
-            for entry in policy["remoteConsents"]
-            if entry["consented"]
+    selected_provider = policy["selectedProvider"]
+    consent_entries = policy["remoteConsents"]
+    if selected_provider == "local":
+        if consent_entries:
+            raise ContractError("$.providerPolicy.remoteConsents: local selection requires no remote consent")
+    else:
+        required_consent = {
+            "path": value["source"]["path"],
+            "sha256": value["source"]["sha256"].lower(),
+            "provider": selected_provider,
+            "consented": True,
         }
-        if required_consent not in consents:
+        normalized_consents = [
+            {
+                "path": entry["path"],
+                "sha256": entry["sha256"].lower(),
+                "provider": entry["provider"],
+                "consented": entry["consented"],
+            }
+            for entry in consent_entries
+        ]
+        if normalized_consents != [required_consent]:
             raise ContractError(
-                "$.providerPolicy.remoteConsents: exact source hash/provider consent is required"
+                "$.providerPolicy.remoteConsents: consent must exactly bind the single source hash/provider"
             )
 
     authorization = value["writeAuthorization"]
+    for index, target in enumerate(authorization["targets"]):
+        resolved = _require_project_relative(target, f"$.writeAuthorization.targets[{index}]")
+        if not (
+            _path_is_within(resolved, resolved_runtime_root)
+            or _path_is_within(resolved, resolved_evidence_root)
+        ):
+            raise ContractError(
+                f"$.writeAuthorization.targets[{index}]: target is outside declared roots"
+            )
+
     if authorization["runId"] != run_id or authorization["jobId"] != job_id:
         raise ContractError("$.writeAuthorization: authorization identity does not match job/run")
     if set(authorization["targets"]) != set(artifact_paths) or len(authorization["targets"]) != len(artifact_paths):
@@ -197,6 +243,8 @@ def validate_run_contract(value: dict) -> None:
         "readback-verified": set(),
     }
     history = lifecycle["history"]
+    if history and history[0]["from"] != "created":
+        raise ContractError("$.lifecycle.history[0]: lifecycle history must start at created")
     prior_to: str | None = None
     prior_at: datetime | None = None
     for index, entry in enumerate(history):
