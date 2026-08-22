@@ -32,7 +32,9 @@ MAX_PATH_BYTES = 1_000_000
 MAX_PATH_COMMANDS = 100_000
 MAX_POLYGON_POINTS = 100_000
 MAX_CANVAS_AXIS = 65_536
+MAX_CANVAS_PIXELS = 100_000_000
 MAX_RASTER_PIXELS = 100_000_000
+MAX_STROKE_MITERLIMIT = 16.0
 
 
 class UnsafeSVGError(ValueError):
@@ -200,6 +202,58 @@ def _number(value: str, field: str) -> float:
     if not math.isfinite(parsed):
         raise UnsafeSVGError(f"{field}: non-finite number")
     return parsed
+
+
+def validate_canvas_dimensions(width: float, height: float) -> None:
+    """Apply the fixed renderer's per-axis and total-pixel canvas limits."""
+
+    if not (
+        math.isfinite(width)
+        and math.isfinite(height)
+        and 0 < width <= MAX_CANVAS_AXIS
+        and 0 < height <= MAX_CANVAS_AXIS
+    ):
+        raise UnsafeSVGError("canvas dimensions exceed the supported axis range")
+    pixels = width * height
+    if not math.isfinite(pixels) or pixels > MAX_CANVAS_PIXELS:
+        raise UnsafeSVGError("canvas dimensions exceed the total pixel ceiling")
+
+
+def stroke_visual_padding(
+    stroke_width: float,
+    line_join: str,
+    line_cap: str,
+    miter_limit: float,
+    canvas_width: float,
+    canvas_height: float,
+) -> float:
+    """Validate finite SVG stroke expansion and return conservative padding."""
+
+    product = stroke_width * miter_limit
+    if not math.isfinite(product):
+        raise UnsafeSVGError("stroke-width/miterlimit product is non-finite")
+    maximum_dimension = max(canvas_width, canvas_height)
+    if not math.isfinite(stroke_width) or not 0 <= stroke_width <= maximum_dimension:
+        raise UnsafeSVGError("stroke-width exceeds the canvas-derived safe limit")
+    if not math.isfinite(miter_limit) or not 1 <= miter_limit <= MAX_STROKE_MITERLIMIT:
+        raise UnsafeSVGError("stroke-miterlimit exceeds the qualified range")
+    if product > 2 * maximum_dimension:
+        raise UnsafeSVGError("stroke visual extent exceeds the canvas-derived safe limit")
+    if line_join not in {"miter", "round", "bevel"}:
+        raise UnsafeSVGError("unsupported stroke-linejoin")
+    if line_cap not in {"butt", "round", "square"}:
+        raise UnsafeSVGError("unsupported stroke-linecap")
+    join_padding = product / 2 if line_join == "miter" else stroke_width / 2
+    cap_padding = stroke_width / 2 if line_cap in {"round", "square"} else 0
+    return max(join_padding, cap_padding)
+
+
+def validate_font_size(font_size: float, width: float, height: float) -> None:
+    if not (
+        math.isfinite(font_size)
+        and 0 < font_size <= max(width, height)
+    ):
+        raise UnsafeSVGError("font-size must be positive and within the canvas profile")
 
 
 def _validate_color(value: str, field: str) -> None:
@@ -469,8 +523,7 @@ def _canvas(root: StdET.Element) -> tuple[float, float]:
         view_box = root.attrib["viewBox"].split()
     except KeyError:
         raise UnsafeSVGError("svg requires width, height, and viewBox") from None
-    if not (0 < width <= MAX_CANVAS_AXIS and 0 < height <= MAX_CANVAS_AXIS):
-        raise UnsafeSVGError("canvas dimensions exceed the supported range")
+    validate_canvas_dimensions(width, height)
     if len(view_box) != 4:
         raise UnsafeSVGError("viewBox must contain four finite numbers")
     values = [_number(part, "viewBox") for part in view_box]
@@ -530,6 +583,56 @@ def _validate_geometry(local: str, attributes: dict[str, str], width: float, hei
         x, y = n("x"), n("y")
         if not (0 <= x <= width and 0 <= y <= height):
             raise UnsafeSVGError("text: anchor exceeds the canvas")
+    elif local == "linearGradient":
+        coordinates = (n("x1"), n("y1"), n("x2"), n("y2"))
+        if not (
+            0 <= coordinates[0] <= width
+            and 0 <= coordinates[2] <= width
+            and 0 <= coordinates[1] <= height
+            and 0 <= coordinates[3] <= height
+        ):
+            raise UnsafeSVGError("linearGradient geometry exceeds the canvas")
+    elif local == "radialGradient":
+        cx, cy, radius = n("cx"), n("cy"), n("r")
+        if not (
+            radius >= 0
+            and cx - radius >= 0
+            and cy - radius >= 0
+            and cx + radius <= width
+            and cy + radius <= height
+        ):
+            raise UnsafeSVGError("radialGradient circle exceeds the canvas")
+        for x_name, y_name in (("fx", "fy"),):
+            if x_name in attributes or y_name in attributes:
+                if x_name not in attributes or y_name not in attributes:
+                    raise UnsafeSVGError("radialGradient focus requires both fx and fy")
+                if not (0 <= n(x_name) <= width and 0 <= n(y_name) <= height):
+                    raise UnsafeSVGError("radialGradient focus exceeds the canvas")
+
+
+def _validate_visual_numbers(
+    local: str, attributes: dict[str, str], width: float, height: float
+) -> None:
+    stroke = attributes.get("stroke")
+    if stroke not in {None, "none"}:
+        stroke_visual_padding(
+            _number(
+                attributes.get("stroke-width", str(SVG_DEFAULT_STROKE_WIDTH)),
+                f"{local}.stroke-width",
+            ),
+            attributes.get("stroke-linejoin", SVG_DEFAULT_STROKE_LINEJOIN),
+            attributes.get("stroke-linecap", SVG_DEFAULT_STROKE_LINECAP),
+            _number(
+                attributes.get(
+                    "stroke-miterlimit", str(SVG_DEFAULT_STROKE_MITERLIMIT)
+                ),
+                f"{local}.stroke-miterlimit",
+            ),
+            width,
+            height,
+        )
+    if "font-size" in attributes:
+        validate_font_size(_number(attributes["font-size"], "font-size"), width, height)
 
 
 _GRAPHICAL_CHILDREN = frozenset(
@@ -662,6 +765,7 @@ def _validate_tree(root: StdET.Element) -> None:
 
         _required_attributes(local, node.attrib)
         _validate_geometry(local, node.attrib, width, height)
+        _validate_visual_numbers(local, node.attrib, width, height)
 
     for kind, reference in references:
         expected = {

@@ -26,6 +26,9 @@ from .svg_safety import (
     SVG_DEFAULT_STROKE_WIDTH,
     UnsafeSVGError,
     sanitize_svg,
+    stroke_visual_padding,
+    validate_canvas_dimensions,
+    validate_font_size,
     validate_path_data,
 )
 
@@ -183,20 +186,23 @@ def _assert_geometry_within_declared_bounds(
         )
 
 
-def _stroke_padding(node: dict[str, Any]) -> float:
+def _stroke_padding(
+    node: dict[str, Any], canvas_width: float, canvas_height: float
+) -> float:
     style = node.get("style", {})
     if style.get("stroke") in {None, "none"}:
         return 0
     width = float(style.get("strokeWidth", SVG_DEFAULT_STROKE_WIDTH))
     line_join = style.get("lineJoin", SVG_DEFAULT_STROKE_LINEJOIN)
     line_cap = style.get("lineCap", SVG_DEFAULT_STROKE_LINECAP)
-    join_padding = (
-        width * SVG_DEFAULT_STROKE_MITERLIMIT / 2
-        if line_join == "miter"
-        else width / 2
+    return stroke_visual_padding(
+        width,
+        line_join,
+        line_cap,
+        SVG_DEFAULT_STROKE_MITERLIMIT,
+        canvas_width,
+        canvas_height,
     )
-    cap_padding = width / 2 if line_cap in {"round", "square"} else 0
-    return max(join_padding, cap_padding)
 
 
 def _paint_attributes(style: dict[str, Any]) -> dict[str, str]:
@@ -278,7 +284,7 @@ def _serialize_primitive(node: dict[str, Any], width: float, height: float) -> E
             min(y1, y2),
             max(x1, x2),
             max(y1, y2),
-            padding=_stroke_padding(node),
+            padding=_stroke_padding(node, width, height),
         )
         if kind == "rect":
             attrs = common | {
@@ -332,7 +338,7 @@ def _serialize_primitive(node: dict[str, Any], width: float, height: float) -> E
             min(ys),
             max(xs),
             max(ys),
-            padding=_stroke_padding(node),
+            padding=_stroke_padding(node, width, height),
         )
         return ET.Element(_tag("polygon"), common | {"points": " ".join(points)})
     raise UnsafeSVGError(f"unsupported primitive kind: {kind}")
@@ -371,7 +377,7 @@ def _serialize_node(node: dict[str, Any], asset_root: Path, width: float, height
             inspection.min_y,
             inspection.max_x,
             inspection.max_y,
-            padding=_stroke_padding(node),
+            padding=_stroke_padding(node, width, height),
         )
         return ET.Element(
             _tag("path"),
@@ -405,6 +411,7 @@ def _serialize_node(node: dict[str, Any], asset_root: Path, width: float, height
             key=lambda item: (-item["confidence"], item["family"], item["weight"], item["style"]),
         )[0]
         bounds = node["bounds"]
+        validate_font_size(float(bounds["height"]), width, height)
         element = ET.Element(
             _tag("text"),
             _node_attributes(node)
@@ -477,8 +484,7 @@ def serialize_svg(rir: dict, asset_root: Path) -> bytes:
         raise
     canvas = rir["canvas"]
     width, height = float(canvas["width"]), float(canvas["height"])
-    if not (0 < width <= MAX_CANVAS_AXIS and 0 < height <= MAX_CANVAS_AXIS):
-        raise UnsafeSVGError("canvas dimensions exceed the supported range")
+    validate_canvas_dimensions(width, height)
     root = ET.Element(
         _tag("svg"),
         {

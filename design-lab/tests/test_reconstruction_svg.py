@@ -20,7 +20,11 @@ if str(DESIGN_LAB) not in sys.path:
 
 from reconstruction.svg import serialize_svg  # noqa: E402
 from reconstruction import svg_safety as svg_safety_module  # noqa: E402
-from reconstruction.svg_safety import UnsafeSVGError, sanitize_svg  # noqa: E402
+from reconstruction.svg_safety import (  # noqa: E402
+    MAX_CANVAS_PIXELS,
+    UnsafeSVGError,
+    sanitize_svg,
+)
 
 
 def base_layer(layer_id: str, node_type: str, z_order: int = 0) -> dict:
@@ -651,6 +655,86 @@ class ReconstructionSVGTests(unittest.TestCase):
             b'<svg width="64" height="64" viewBox="0 0 64 64"><rect fill="#fff" width="3" height="4" x="1" y="2"/></svg>'
         )
         self.assertEqual(first, second)
+
+    def test_canvas_total_pixel_ceiling_has_exact_boundary_and_overflow_guards(self) -> None:
+        self.assertEqual(MAX_CANVAS_PIXELS, 100_000_000)
+        boundary = b'<svg width="10000" height="10000" viewBox="0 0 10000 10000"></svg>'
+        with mock.patch(
+            "subprocess.run", side_effect=AssertionError("renderer/host handoff")
+        ) as renderer:
+            self.assertIn(b'viewBox="0 0 10000 10000"', sanitize_svg(boundary))
+        renderer.assert_not_called()
+
+        over_by_one = b'<svg width="10000" height="10000.0001" viewBox="0 0 10000 10000.0001"></svg>'
+        maximum_axes = b'<svg width="65536" height="65536" viewBox="0 0 65536 65536"></svg>'
+        for payload in (over_by_one, maximum_axes):
+            with self.subTest(payload=payload):
+                self.assert_sanitize_rejected_without_handoff(payload, "pixel ceiling")
+
+        boundary_rir = {
+            "schemaVersion": "design-lab/reconstruction-ir/v1",
+            "canvas": {"width": 10_000, "height": 10_000, "colorSpace": "srgb"},
+            "layers": [],
+        }
+        with mock.patch(
+            "subprocess.run", side_effect=AssertionError("renderer/host handoff")
+        ) as renderer:
+            self.assertIn(b'width="10000"', serialize_svg(boundary_rir, PROJECT_ROOT))
+        renderer.assert_not_called()
+        over_rir = copy.deepcopy(boundary_rir)
+        over_rir["canvas"] = {
+            "width": 10_001,
+            "height": 10_000,
+            "colorSpace": "srgb",
+        }
+        self.assert_serialize_rejected_without_handoff(over_rir, "pixel ceiling")
+
+    def test_extreme_visual_numbers_fail_closed_and_boundaries_remain_valid(self) -> None:
+        root = '<svg width="64" height="64" viewBox="0 0 64 64">{}</svg>'
+        invalid = (
+            ('<path d="M32 32" stroke="#000" stroke-width="1e308" stroke-miterlimit="1e308"/>', "product"),
+            ('<path d="M32 32" stroke="#000" stroke-width="65"/>', "stroke-width"),
+            ('<path d="M32 32" stroke="#000" stroke-miterlimit="17"/>', "miterlimit"),
+            ('<path d="M32 32" stroke="#000" stroke-width="64" stroke-miterlimit="16"/>', "visual extent"),
+            ('<text x="0" y="1" font-size="0">x</text>', "font-size"),
+            ('<text x="0" y="1" font-size="1e308">x</text>', "font-size"),
+            ('<defs><linearGradient id="g" x1="0" y1="0" x2="1e308" y2="64" gradientUnits="userSpaceOnUse"/></defs>', "linearGradient"),
+            ('<defs><linearGradient id="g" x1="0" y1="0" x2="65" y2="64" gradientUnits="userSpaceOnUse"/></defs>', "linearGradient"),
+            ('<defs><radialGradient id="g" cx="32" cy="32" r="33" gradientUnits="userSpaceOnUse"/></defs>', "radialGradient"),
+            ('<defs><radialGradient id="g" cx="1e308" cy="32" r="1" gradientUnits="userSpaceOnUse"/></defs>', "radialGradient"),
+        )
+        for child, reason in invalid:
+            payload = root.format(child).encode()
+            with self.subTest(child=child):
+                self.assert_sanitize_rejected_without_handoff(payload, reason)
+
+        valid = root.format(
+            '''<defs>
+                 <linearGradient id="linear" x1="0" y1="0" x2="64" y2="64" gradientUnits="userSpaceOnUse"/>
+                 <radialGradient id="radial" cx="32" cy="32" r="32" gradientUnits="userSpaceOnUse"/>
+               </defs>
+               <path d="M32 32" stroke="#000" stroke-width="8" stroke-miterlimit="16"/>
+               <text x="0" y="64" font-size="64">x</text>'''
+        ).encode()
+        sanitized = sanitize_svg(valid)
+        self.assertIn(b'stroke-miterlimit="16"', sanitized)
+        self.assertIn(b'font-size="64"', sanitized)
+
+        extreme_stroke = path_layer("extreme-stroke")
+        extreme_stroke["style"] = {
+            "fill": None,
+            "stroke": "#000000",
+            "strokeWidth": 1e308,
+        }
+        self.assert_serialize_rejected_without_handoff(
+            rir(extreme_stroke), "product"
+        )
+
+        zero_font = text_layer("zero-font")
+        zero_font["bounds"]["height"] = 0
+        self.assert_serialize_rejected_without_handoff(
+            rir(zero_font), "font-size"
+        )
 
 
 if __name__ == "__main__":
