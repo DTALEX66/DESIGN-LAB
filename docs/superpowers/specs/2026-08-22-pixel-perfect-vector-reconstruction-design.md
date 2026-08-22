@@ -1,8 +1,8 @@
 # Pixel-Perfect Hybrid Vector Reconstruction — Design Specification
 
-Status: proposed for user review  
-Date: 2026-08-22  
-Project: DESIGN-LAB  
+Status: approved for implementation planning
+Date: 2026-08-22
+Project: DESIGN-LAB
 Target capability: reconstruct a supplied design image as an editable vector document,
 using transparent raster layers only where pure vector reconstruction is unsuitable.
 
