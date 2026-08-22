@@ -44,6 +44,18 @@
     "version": "0.48.1",
     "windowsX86_64OfficialBinary": "WINDOWS_X86_64_OFFICIAL_BINARY_UNAVAILABLE"
   },
+  "approvedIccProfiles": [
+    {
+      "id": "canonical-srgb-pillow-12.3.0-lcms-2.19",
+      "source": "Pillow ImageCms.createProfile('sRGB')",
+      "generator": "Pillow.ImageCms.ImageCmsProfile.tobytes/v1",
+      "pillowVersion": "12.3.0",
+      "lcmsVersion": "2.19",
+      "byteLength": 588,
+      "sha256": "3ee1d51ccd6238a1d5d06b029b69e9374b90f81702af0bb90bd53b7a11897fc2",
+      "colorSpace": "sRGB IEC61966-2.1"
+    }
+  ],
   "metrics": {
     "pixelmatch": {
       "package": "mapbox/pixelmatch",

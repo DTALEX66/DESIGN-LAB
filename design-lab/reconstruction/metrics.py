@@ -85,6 +85,10 @@ class FidelityMetrics:
     metric_max_pixels: int
     metric_max_bytes: int
     metric_budget_version: str
+    reference_icc_profile_id: str
+    reference_icc_profile_sha256: str | None
+    actual_icc_profile_id: str
+    actual_icc_profile_sha256: str | None
     input_authority: str
     input_bindings: tuple[ArtifactBindingEvidence, ...]
 
@@ -580,6 +584,24 @@ def compare_images(
                     )
                 ):
                     raise FidelityError("comparison input changed during contract binding")
+                reference_binding = _InputBinding(
+                    path=reference_binding.path,
+                    identity=reference_binding.identity,
+                    sha256=reference_binding.sha256,
+                    role=reference_binding.role,
+                    producer=reference_binding.producer,
+                    icc_profile_id=reference_header_binding.icc_profile_id,
+                    icc_profile_sha256=reference_header_binding.icc_profile_sha256,
+                )
+                actual_binding = _InputBinding(
+                    path=actual_binding.path,
+                    identity=actual_binding.identity,
+                    sha256=actual_binding.sha256,
+                    role=actual_binding.role,
+                    producer=actual_binding.producer,
+                    icc_profile_id=actual_header_binding.icc_profile_id,
+                    icc_profile_sha256=actual_header_binding.icc_profile_sha256,
+                )
                 input_bindings = (reference_binding, actual_binding)
                 input_authority = "CONTRACT_BOUND_AUTHORITATIVE"
             else:
@@ -715,6 +737,10 @@ def compare_images(
         metric_max_pixels=profile.metric_max_pixels,
         metric_max_bytes=profile.metric_max_bytes,
         metric_budget_version=profile.metric_budget_version,
+        reference_icc_profile_id=reference_header_binding.icc_profile_id,
+        reference_icc_profile_sha256=reference_header_binding.icc_profile_sha256,
+        actual_icc_profile_id=actual_header_binding.icc_profile_id,
+        actual_icc_profile_sha256=actual_header_binding.icc_profile_sha256,
         input_authority=input_authority,
         input_bindings=tuple(
             ArtifactBindingEvidence(
@@ -722,6 +748,8 @@ def compare_images(
                 role=binding.role,
                 producer=binding.producer,
                 sha256=binding.sha256,
+                icc_profile_id=binding.icc_profile_id,
+                icc_profile_sha256=binding.icc_profile_sha256,
             )
             for binding in input_bindings
         ),

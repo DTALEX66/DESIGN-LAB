@@ -41,6 +41,8 @@ REAL_RESVG = Path(
 EXPECTED_RESVG_SHA256 = (
     "433a7c744cff561ed64fcf73c7c04e239d7a07ae5f0aadbf1ba8471d63707402"
 )
+APPROVED_ICC_ID = "canonical-srgb-pillow-12.3.0-lcms-2.19"
+APPROVED_ICC_SHA256 = "3ee1d51ccd6238a1d5d06b029b69e9374b90f81702af0bb90bd53b7a11897fc2"
 FLAT_FIXTURE = REPO_ROOT / "design-lab" / "tests" / "fixtures" / "reconstruction" / "flat-64.png"
 
 
@@ -226,6 +228,17 @@ def _streamed_zero_png(width: int, height: int, *, color_type: int = 6) -> bytes
     )
 
 
+def _approved_icc_profile_bytes() -> bytes:
+    profile = bytearray(
+        ImageCms.ImageCmsProfile(ImageCms.createProfile("sRGB")).tobytes()
+    )
+    profile[24:36] = bytes.fromhex("07ea000800160015002f0002")
+    payload = bytes(profile)
+    assert len(payload) == 588
+    assert hashlib.sha256(payload).hexdigest() == APPROVED_ICC_SHA256
+    return payload
+
+
 class ReconstructionMetricTests(unittest.TestCase):
     def setUp(self) -> None:
         safe_name = "".join(c if c.isalnum() else "-" for c in self._testMethodName)
@@ -318,6 +331,22 @@ class ReconstructionMetricTests(unittest.TestCase):
         self.assertNotIn("OKLab", json.dumps(pixelmatch))
         self.assertNotIn("HyAB", json.dumps(pixelmatch))
         self.assertEqual(pixelmatch["attribution"], "Copyright (c) 2025, Mapbox")
+
+        self.assertEqual(
+            registry["approvedIccProfiles"],
+            [
+                {
+                    "id": APPROVED_ICC_ID,
+                    "source": "Pillow ImageCms.createProfile('sRGB')",
+                    "generator": "Pillow.ImageCms.ImageCmsProfile.tobytes/v1",
+                    "pillowVersion": "12.3.0",
+                    "lcmsVersion": "2.19",
+                    "byteLength": 588,
+                    "sha256": APPROVED_ICC_SHA256,
+                    "colorSpace": "sRGB IEC61966-2.1",
+                }
+            ],
+        )
 
         profile = load_render_profile(64, 96, REAL_RESVG)
         self.assertEqual(profile.profile_id, "design-lab/render-profile/v1")
@@ -760,9 +789,7 @@ class ReconstructionMetricTests(unittest.TestCase):
         calibrated_metrics = compare_images(calibrated, calibrated)
         self.assertTrue(calibrated_metrics.passed)
 
-        icc_profile = ImageCms.ImageCmsProfile(
-            ImageCms.createProfile("sRGB")
-        ).tobytes()
+        icc_profile = _approved_icc_profile_bytes()
         iccp = self.run_root / "pillow-srgb-iccp.png"
         Image.fromarray(_rgba(1, 1, (1, 2, 3, 255)), mode="RGBA").save(
             iccp,
@@ -772,6 +799,39 @@ class ReconstructionMetricTests(unittest.TestCase):
         iccp_metrics = compare_images(iccp, iccp)
         self.assertTrue(iccp_metrics.passed)
         self.assertEqual(iccp_metrics.lifecycle_status, "MEASURED")
+        self.assertEqual(iccp_metrics.reference_icc_profile_id, APPROVED_ICC_ID)
+        self.assertEqual(iccp_metrics.reference_icc_profile_sha256, APPROVED_ICC_SHA256)
+        self.assertEqual(iccp_metrics.actual_icc_profile_id, APPROVED_ICC_ID)
+        self.assertEqual(iccp_metrics.actual_icc_profile_sha256, APPROVED_ICC_SHA256)
+
+        iccp_actual = self.run_root / "pillow-srgb-iccp-preview.png"
+        shutil.copyfile(iccp, iccp_actual)
+        bound = compare_images(
+            iccp,
+            iccp_actual,
+            profile=load_render_profile(1, 1),
+            run_contract=_run_contract(
+                self.run_root,
+                {iccp: "normalized-source", iccp_actual: "evidence"},
+                width=1,
+                height=1,
+                normalized_reference=iccp,
+            ),
+        )
+        self.assertEqual(
+            tuple(binding.icc_profile_id for binding in bound.input_bindings),
+            (APPROVED_ICC_ID, APPROVED_ICC_ID),
+        )
+        self.assertTrue(
+            all(
+                binding.icc_profile_sha256 == APPROVED_ICC_SHA256
+                for binding in bound.input_bindings
+            )
+        )
+
+        implicit = compare_images(rgba_plte, rgba_plte)
+        self.assertEqual(implicit.reference_icc_profile_id, "implicit-sRGB-none")
+        self.assertIsNone(implicit.reference_icc_profile_sha256)
 
     def test_png_rejects_color_metadata_conflicts_and_bad_iccp_before_pillow(self) -> None:
         signature = b"\x89PNG\r\n\x1a\n"
@@ -782,7 +842,9 @@ class ReconstructionMetricTests(unittest.TestCase):
         )
         idat = _png_chunk(b"IDAT", zlib.compress(b"\x00\x00\x00\x00\xff"))
         iend = _png_chunk(b"IEND", b"")
-        valid_iccp = b"ICC Profile\x00\x00" + zlib.compress(b"small-profile")
+        valid_iccp = (
+            b"ICC Profile\x00\x00" + zlib.compress(_approved_icc_profile_bytes())
+        )
         cases = {
             "color chunk after PLTE": (
                 _png_chunk(b"PLTE", b"\x00\x00\x00")
@@ -898,6 +960,48 @@ class ReconstructionMetricTests(unittest.TestCase):
                 Image,
                 "open",
                 side_effect=AssertionError("Pillow opened invalid PLTE/ICC boundary"),
+            ) as pillow_open:
+                with self.assertRaisesRegex(FidelityError, reason):
+                    compare_images(path, path)
+                pillow_open.assert_not_called()
+
+    def test_icc_structure_and_exact_registry_digest_are_authoritative_before_pillow(self) -> None:
+        signature = b"\x89PNG\r\n\x1a\n"
+        ihdr = _png_chunk(
+            b"IHDR",
+            (1).to_bytes(4, "big")
+            + (1).to_bytes(4, "big")
+            + bytes((8, 6, 0, 0, 0)),
+        )
+        idat = _png_chunk(b"IDAT", zlib.compress(b"\x00\x01\x02\x03\xff"))
+        iend = _png_chunk(b"IEND", b"")
+        canonical = _approved_icc_profile_bytes()
+        fake_lab = bytearray(canonical)
+        fake_lab[16:20] = b"LAB "
+        mutated = bytearray(canonical)
+        mutated[500] ^= 0x01
+        malformed_tag = bytearray(canonical)
+        malformed_tag[136:144] = (130).to_bytes(4, "big") + (200).to_bytes(4, "big")
+        cases = {
+            "fake LAB description": (bytes(fake_lab), "data color space.*RGB|ICC.*RGB"),
+            "one byte digest mutation": (bytes(mutated), "approved|digest|SHA-256"),
+            "tag table overlap": (bytes(malformed_tag), "tag.*table|overlap|bounds"),
+        }
+        for name, (profile, reason) in cases.items():
+            path = self.run_root / f"icc-authority-{name.replace(' ', '-')}.png"
+            path.write_bytes(
+                signature
+                + ihdr
+                + _png_chunk(
+                    b"iCCP", b"ICC Profile\x00\x00" + zlib.compress(profile)
+                )
+                + idat
+                + iend
+            )
+            with self.subTest(name=name), mock.patch.object(
+                Image,
+                "open",
+                side_effect=AssertionError("Pillow opened unauthorized ICC profile"),
             ) as pillow_open:
                 with self.assertRaisesRegex(FidelityError, reason):
                     compare_images(path, path)
@@ -1684,6 +1788,8 @@ class ReconstructionMetricTests(unittest.TestCase):
         self.assertEqual(result.metric_max_pixels, 4_194_304)
         self.assertEqual(result.metric_max_bytes, 67_108_864)
         self.assertEqual(result.metric_budget_version, "c4-metric-memory-v1")
+        self.assertEqual(result.output_icc_profile_id, "implicit-sRGB-none")
+        self.assertIsNone(result.output_icc_profile_sha256)
         self.assertEqual(result.lifecycle_status, "RENDERED")
         compare_contract = _run_contract(
             self.run_root,
@@ -1701,6 +1807,8 @@ class ReconstructionMetricTests(unittest.TestCase):
         )
         self.assertTrue(metrics.passed, metrics.failure_reasons)
         self.assertEqual(metrics.registry_digest, profile.registry_sha256)
+        self.assertEqual(metrics.reference_icc_profile_id, "implicit-sRGB-none")
+        self.assertEqual(metrics.actual_icc_profile_id, "implicit-sRGB-none")
         self.assertEqual(
             [(item.role, item.producer) for item in metrics.input_bindings],
             [

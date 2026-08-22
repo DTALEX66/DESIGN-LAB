@@ -31,7 +31,7 @@ _CANONICAL_RUNTIME_ROOT = _PROJECT_ROOT / ".hermes" / "task-runtime" / "reconstr
 _REPARSE_POINT = getattr(stat, "FILE_ATTRIBUTE_REPARSE_POINT", 0x400)
 _RUN_ID = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$")
 _SHA256 = re.compile(r"^[0-9a-f]{64}$")
-_TRUSTED_REGISTRY_SHA256 = "803790c85b5618da7ec751b16ef60f03925457e080737c8383dcae722cd6fb44"
+_TRUSTED_REGISTRY_SHA256 = "2fa8c695c46858918adafd7f416b86fbc84d16c97239a75d4b87e8cb96d205c7"
 _PNG_SIGNATURE = b"\x89PNG\r\n\x1a\n"
 _QUALIFIED_METRIC_MAX_PIXELS = 4_194_304
 _QUALIFIED_METRIC_MAX_BYTES = 67_108_864
@@ -98,6 +98,8 @@ class RenderResult:
     metric_max_pixels: int
     metric_max_bytes: int
     metric_budget_version: str
+    output_icc_profile_id: str
+    output_icc_profile_sha256: str | None
     input_bindings: tuple["ArtifactBindingEvidence", ...]
     lifecycle_status: str = "RENDERED"
 
@@ -128,6 +130,8 @@ class _InputBinding:
     sha256: str
     role: str = ""
     producer: str = ""
+    icc_profile_id: str = "not-applicable"
+    icc_profile_sha256: str | None = None
 
 
 @dataclass(frozen=True)
@@ -136,6 +140,14 @@ class ArtifactBindingEvidence:
     role: str
     producer: str
     sha256: str
+    icc_profile_id: str
+    icc_profile_sha256: str | None
+
+
+@dataclass(frozen=True)
+class _IccProfileEvidence:
+    profile_id: str
+    sha256: str | None
 
 
 @dataclass(frozen=True)
@@ -165,6 +177,7 @@ class _IccpPreflight:
         self.phase = "keyword"
         self.decompressor = zlib.decompressobj()
         self.decoded_bytes = 0
+        self.profile_bytes = bytearray()
 
     def _feed_compressed(self, payload: bytes) -> None:
         pending = payload
@@ -182,6 +195,7 @@ class _IccpPreflight:
                     raise RenderError(
                         f"PNG iCCP profile exceeds {_MAX_ICC_PROFILE_BYTES} decoded bytes"
                     )
+                self.profile_bytes.extend(decoded)
                 if self.decompressor.unused_data:
                     raise RenderError(
                         "PNG iCCP contains trailing or concatenated zlib stream data"
@@ -214,7 +228,7 @@ class _IccpPreflight:
         if cursor < len(payload):
             self._feed_compressed(payload[cursor:])
 
-    def finish(self) -> None:
+    def finish(self) -> bytes:
         if self.phase != "compressed":
             raise RenderError("PNG iCCP keyword/compression method is truncated")
         try:
@@ -231,6 +245,7 @@ class _IccpPreflight:
                     raise RenderError(
                         f"PNG iCCP profile exceeds {_MAX_ICC_PROFILE_BYTES} decoded bytes"
                     )
+                self.profile_bytes.extend(decoded)
         except zlib.error as exc:
             raise RenderError(f"PNG iCCP zlib stream is invalid: {exc}") from None
         if not self.decompressor.eof:
@@ -241,6 +256,7 @@ class _IccpPreflight:
             )
         if self.decoded_bytes == 0:
             raise RenderError("PNG iCCP profile decompresses to an empty payload")
+        return bytes(self.profile_bytes)
 
 
 def _load_registry() -> tuple[dict[str, Any], str]:
@@ -256,7 +272,73 @@ def _load_registry() -> tuple[dict[str, Any], str]:
         )
     if registry.get("schemaVersion") != "design-lab/reconstruction-tools/v1":
         raise RenderError("unsupported reconstruction tool registry schema")
+    _approved_icc_profiles(registry)
     return registry, digest
+
+
+def _approved_icc_profiles(registry: dict[str, Any]) -> dict[tuple[int, str], dict[str, Any]]:
+    profiles = registry.get("approvedIccProfiles")
+    if not isinstance(profiles, list) or len(profiles) != 1:
+        raise RenderError("trusted registry must declare one approved ICC profile")
+    profile = profiles[0]
+    expected = {
+        "id": "canonical-srgb-pillow-12.3.0-lcms-2.19",
+        "source": "Pillow ImageCms.createProfile('sRGB')",
+        "generator": "Pillow.ImageCms.ImageCmsProfile.tobytes/v1",
+        "pillowVersion": "12.3.0",
+        "lcmsVersion": "2.19",
+        "byteLength": 588,
+        "sha256": "3ee1d51ccd6238a1d5d06b029b69e9374b90f81702af0bb90bd53b7a11897fc2",
+        "colorSpace": "sRGB IEC61966-2.1",
+    }
+    if not isinstance(profile, dict) or profile != expected:
+        raise RenderError("trusted registry approved ICC profile declaration is invalid")
+    return {(expected["byteLength"], expected["sha256"]): profile}
+
+
+def _validate_icc_profile(
+    payload: bytes,
+    approved_profiles: dict[tuple[int, str], dict[str, Any]],
+) -> _IccProfileEvidence:
+    if len(payload) < 132:
+        raise RenderError("PNG ICC profile is shorter than its header/tag table")
+    declared_size = struct.unpack(">I", payload[:4])[0]
+    if declared_size != len(payload):
+        raise RenderError("PNG ICC declared size does not equal decoded byte length")
+    if payload[36:40] != b"acsp":
+        raise RenderError("PNG ICC profile is missing the acsp signature")
+    if payload[12:16] != b"mntr":
+        raise RenderError("PNG ICC device class is not the approved display profile class")
+    if payload[16:20] != b"RGB ":
+        raise RenderError("PNG ICC data color space must be RGB")
+    if payload[20:24] != b"XYZ ":
+        raise RenderError("PNG ICC profile connection space must be XYZ")
+    tag_count = struct.unpack(">I", payload[128:132])[0]
+    if tag_count > (len(payload) - 132) // 12:
+        raise RenderError("PNG ICC tag table exceeds decoded profile bounds")
+    table_end = 132 + tag_count * 12
+    ranges: list[tuple[int, int]] = []
+    for index in range(tag_count):
+        entry = 132 + index * 12
+        signature = payload[entry : entry + 4]
+        offset, size = struct.unpack(">II", payload[entry + 4 : entry + 12])
+        if not all(32 <= value <= 126 for value in signature):
+            raise RenderError("PNG ICC tag signature is not four printable bytes")
+        if offset < table_end or offset % 4 or size < 8 or offset + size > len(payload):
+            raise RenderError("PNG ICC tag table contains an invalid bounds entry")
+        current = (offset, offset + size)
+        for existing in ranges:
+            if current == existing:
+                break
+            if current[0] < existing[1] and existing[0] < current[1]:
+                raise RenderError("PNG ICC tag payload ranges overlap")
+        else:
+            ranges.append(current)
+    digest = hashlib.sha256(payload).hexdigest()
+    approved = approved_profiles.get((len(payload), digest))
+    if approved is None:
+        raise RenderError("PNG ICC profile digest is not in the approved registry")
+    return _IccProfileEvidence(profile_id=approved["id"], sha256=digest)
 
 
 def _require_number(value: Any, field: str, *, minimum: float, maximum: float) -> float:
@@ -616,7 +698,8 @@ def _read_exact(stream: BinaryIO, length: int, *, field: str) -> bytes:
 def _stream_png_preflight(
     stream: BinaryIO,
     file_size: int,
-) -> tuple[_PngHeader, str, bool]:
+    approved_icc_profiles: dict[tuple[int, str], dict[str, Any]],
+) -> tuple[_PngHeader, str, _IccProfileEvidence]:
     if file_size > _QUALIFIED_METRIC_MAX_BYTES:
         raise RenderError(
             f"PNG exceeds the C4 qualified metric file-size limit {_QUALIFIED_METRIC_MAX_BYTES}"
@@ -640,6 +723,9 @@ def _stream_png_preflight(
     expected_decoded_bytes = 0
     scanline_bytes = 0
     active_iccp: _IccpPreflight | None = None
+    icc_evidence = _IccProfileEvidence(
+        profile_id="implicit-sRGB-none", sha256=None
+    )
     consumed = 8
 
     def consume_scanlines(payload: bytes) -> None:
@@ -791,7 +877,9 @@ def _stream_png_preflight(
         if crc & 0xFFFFFFFF != expected_crc:
             raise RenderError(f"PNG {kind.decode('ascii', errors='replace')} chunk CRC mismatch")
         if active_iccp is not None:
-            active_iccp.finish()
+            icc_evidence = _validate_icc_profile(
+                active_iccp.finish(), approved_icc_profiles
+            )
         if kind == b"IHDR":
             png_header = _png_prefix_header(signature + header + captured + crc_bytes)
             scanline_bytes = png_header.row_bytes + 1
@@ -847,7 +935,7 @@ def _stream_png_preflight(
         raise RenderError("PNG is missing IHDR dimensions")
     if png_header.color_type == 3 and not found_plte:
         raise RenderError("PNG indexed color type 3 requires PLTE")
-    return png_header, digest.hexdigest(), b"iCCP" in seen_ancillary
+    return png_header, digest.hexdigest(), icc_evidence
 
 
 def _open_checked_png_header(
@@ -858,13 +946,15 @@ def _open_checked_png_header(
     if not isinstance(path, Path):
         raise RenderError("PNG path must be a pathlib.Path")
     source = Path(os.path.abspath(os.fspath(path)))
+    registry, _ = _load_registry()
+    approved_icc_profiles = _approved_icc_profiles(registry)
     _assert_plain_existing_components(source)
     stream: BinaryIO | None = None
     try:
         stream = source.open("rb")
         before = _identity(os.fstat(stream.fileno()))
-        png_header, png_sha256, raw_has_iccp = _stream_png_preflight(
-            stream, before.size
+        png_header, png_sha256, icc_evidence = _stream_png_preflight(
+            stream, before.size, approved_icc_profiles
         )
         dimensions = png_header.dimensions
         if png_header.bit_depth != 8 or png_header.color_type not in {2, 6}:
@@ -877,6 +967,8 @@ def _open_checked_png_header(
             path=source,
             identity=after,
             sha256=png_sha256,
+            icc_profile_id=icc_evidence.profile_id,
+            icc_profile_sha256=icc_evidence.sha256,
         )
         stream.seek(0)
         with warnings.catch_warnings():
@@ -908,15 +1000,19 @@ def _open_checked_png_header(
         if image.size != dimensions:
             raise RenderError("Pillow PNG dimensions diverge from raw IHDR preflight")
         embedded = image.info.get("icc_profile")
+        raw_has_iccp = icc_evidence.sha256 is not None
         if raw_has_iccp != bool(embedded):
             raise RenderError("Pillow ICC metadata diverges from raw iCCP declaration")
         if embedded:
             try:
-                name = ImageCms.getProfileName(ImageCms.ImageCmsProfile(io.BytesIO(embedded)))
+                parsed = ImageCms.ImageCmsProfile(io.BytesIO(embedded))
             except (OSError, TypeError, ValueError, ImageCms.PyCMSError) as exc:
                 raise RenderError(f"PNG has invalid color profile: {exc}") from None
-            if "srgb" not in name.casefold():
-                raise RenderError("PNG profile mismatch: expected sRGB")
+            if hashlib.sha256(embedded).hexdigest() != icc_evidence.sha256:
+                raise RenderError("Pillow ICC bytes diverge from raw approved digest")
+            color_space = str(getattr(parsed.profile, "xcolor_space", "")).strip()
+            if color_space != "RGB":
+                raise RenderError("Pillow ICC defense check did not report RGB")
         assert stream is not None
         return image, binding, stream
     except Exception:
@@ -1423,12 +1519,16 @@ def render_svg(
         metric_max_pixels=profile.metric_max_pixels,
         metric_max_bytes=profile.metric_max_bytes,
         metric_budget_version=profile.metric_budget_version,
+        output_icc_profile_id=rendered_binding.icc_profile_id,
+        output_icc_profile_sha256=rendered_binding.icc_profile_sha256,
         input_bindings=(
             ArtifactBindingEvidence(
                 path=source_binding.path,
                 role=source_binding.role,
                 producer=source_binding.producer,
                 sha256=source_binding.sha256,
+                icc_profile_id=source_binding.icc_profile_id,
+                icc_profile_sha256=source_binding.icc_profile_sha256,
             ),
         ),
     )
