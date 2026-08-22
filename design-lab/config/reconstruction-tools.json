@@ -1,0 +1,55 @@
+{
+  "schemaVersion": "design-lab/reconstruction-tools/v1",
+  "renderProfile": {
+    "id": "design-lab/render-profile/v1",
+    "colorSpace": "sRGB IEC61966-2.1",
+    "rgbaBackground": [255, 255, 255, 255],
+    "pixelThreshold": 0.1,
+    "antiAliasDetection": true,
+    "matchMinimum": 0.995,
+    "ssimMinimum": 0.995,
+    "maeLimit": {
+      "version": "uncalibrated-v1",
+      "value": null
+    },
+    "edgeMetric": {
+      "id": "sobel-rgb-l1/v1",
+      "normalization": 255
+    },
+    "denseRegion": {
+      "connectivity": 8,
+      "bboxExclusiveLimit": 32,
+      "densityMinimum": 0.25,
+      "windowSize": 32
+    }
+  },
+  "renderers": {
+    "resvgWindows": {
+      "repository": "linebender/resvg",
+      "version": "0.47.0",
+      "asset": "resvg-win64.zip",
+      "url": "https://github.com/linebender/resvg/releases/download/v0.47.0/resvg-win64.zip",
+      "archiveSha256": "5684e59ceaa53ce720b49efb441b0918ae99d04e8ce3f6f753664524592d67f1",
+      "executableSha256": "433a7c744cff561ed64fcf73c7c04e239d7a07ae5f0aadbf1ba8471d63707402",
+      "license": "Apache-2.0 OR MIT",
+      "storageClass": "Design External Configuration/toolchain",
+      "pathPolicy": "explicit-authorized-path-only"
+    }
+  },
+  "upstreamStable": {
+    "repository": "linebender/resvg",
+    "version": "0.48.1",
+    "windowsX86_64OfficialBinary": "WINDOWS_X86_64_OFFICIAL_BINARY_UNAVAILABLE"
+  },
+  "metrics": {
+    "pixelmatch": {
+      "package": "mapbox/pixelmatch",
+      "version": "7.2.0",
+      "algorithm": "YIQ-v7.2.0",
+      "source": "https://raw.githubusercontent.com/mapbox/pixelmatch/v7.2.0/index.js",
+      "repository": "https://github.com/mapbox/pixelmatch",
+      "license": "ISC",
+      "attribution": "Copyright (c) 2019 Mapbox"
+    }
+  }
+}

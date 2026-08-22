@@ -1,0 +1,494 @@
+# SPDX-License-Identifier: MIT
+"""Pixelmatch v7.2.0/YIQ and fixed-profile deterministic fidelity gates."""
+from __future__ import annotations
+
+import hashlib
+import io
+import math
+import os
+from dataclasses import dataclass
+from pathlib import Path
+
+import numpy as np
+from PIL import Image, ImageCms, UnidentifiedImageError
+from skimage.filters import sobel
+from skimage.metrics import structural_similarity
+
+from .render import (
+    RenderError,
+    RenderProfile,
+    _bounded_output,
+    _validate_profile,
+    load_render_profile,
+)
+
+
+class FidelityError(ValueError):
+    """Images or metrics violate the deterministic fidelity contract."""
+
+
+@dataclass(frozen=True)
+class DiffComponent:
+    """One deterministic 8-connected mismatch component."""
+
+    bounds: tuple[int, int, int, int]
+    pixel_count: int
+    density: float
+
+
+@dataclass(frozen=True)
+class FidelityMetrics:
+    """Complete deterministic-renderer comparison evidence."""
+
+    width: int
+    height: int
+    profile_id: str
+    pixelmatch_version: str
+    pixel_threshold: float
+    anti_alias_detection: bool
+    match_minimum: float
+    ssim_minimum: float
+    mae_limit_version: str
+    mae_limit: float | None
+    edge_metric: str
+    match_ratio: float
+    mismatch_count: int
+    excluded_aa_count: int
+    ssim: float
+    mean_rgba_error: float
+    alpha_mean_error: float
+    edge_error: float
+    max_diff_window: int
+    components: tuple[DiffComponent, ...]
+    dense_regions: tuple[DiffComponent, ...]
+    mismatch_mask: bytes
+    mismatch_mask_sha256: str
+    excluded_aa_mask: bytes
+    diff_path: Path | None
+    diff_sha256: str
+    failure_reasons: tuple[str, ...]
+    passed: bool
+    lifecycle_status: str
+
+
+def _load_rgba(path: Path) -> np.ndarray:
+    source = Path(os.path.abspath(os.fspath(path)))
+    try:
+        with Image.open(source) as image:
+            image.load()
+            if image.format != "PNG":
+                raise FidelityError(f"comparison image must be PNG: {source}")
+            if image.mode not in {"RGB", "RGBA"}:
+                raise FidelityError(f"comparison image must be RGB or RGBA: {source}")
+            embedded = image.info.get("icc_profile")
+            if embedded:
+                try:
+                    name = ImageCms.getProfileName(ImageCms.ImageCmsProfile(io.BytesIO(embedded)))
+                except (OSError, TypeError, ValueError, ImageCms.PyCMSError) as exc:
+                    raise FidelityError(f"comparison image has invalid color profile: {exc}") from None
+                if "srgb" not in name.casefold():
+                    raise FidelityError("comparison image profile mismatch: expected sRGB")
+            return np.asarray(image.convert("RGBA"), dtype=np.uint8).copy()
+    except FidelityError:
+        raise
+    except (OSError, UnidentifiedImageError) as exc:
+        raise FidelityError(f"cannot read comparison image: {source}: {exc}") from None
+
+
+def _color_delta(
+    image1: np.ndarray,
+    image2: np.ndarray,
+    y: int,
+    x: int,
+    background: tuple[int, int, int, int],
+) -> float:
+    """Literal mapbox/pixelmatch v7.2.0 YIQ delta on a white background."""
+
+    r1, g1, b1, a1 = (float(value) for value in image1[y, x])
+    r2, g2, b2, a2 = (float(value) for value in image2[y, x])
+    dr = r1 - r2
+    dg = g1 - g2
+    db = b1 - b2
+    da = a1 - a2
+    if a1 < 255 or a2 < 255:
+        dr = (r1 * a1 - r2 * a2 - background[0] * da) / 255
+        dg = (g1 * a1 - g2 * a2 - background[1] * da) / 255
+        db = (b1 * a1 - b2 * a2 - background[2] * da) / 255
+    yiq_y = dr * 0.29889531 + dg * 0.58662247 + db * 0.11448223
+    yiq_i = dr * 0.59597799 - dg * 0.27417610 - db * 0.32180189
+    yiq_q = dr * 0.21147017 - dg * 0.52261711 + db * 0.31114694
+    delta = 0.5053 * yiq_y * yiq_y + 0.299 * yiq_i * yiq_i + 0.1957 * yiq_q * yiq_q
+    return -delta if yiq_y > 0 else delta
+
+
+def _brightness_delta(
+    image: np.ndarray,
+    center_y: int,
+    center_x: int,
+    neighbor_y: int,
+    neighbor_x: int,
+    background: tuple[int, int, int, int],
+) -> float:
+    r1, g1, b1, a1 = (float(value) for value in image[center_y, center_x])
+    r2, g2, b2, a2 = (float(value) for value in image[neighbor_y, neighbor_x])
+    dr = r1 - r2
+    dg = g1 - g2
+    db = b1 - b2
+    da = a1 - a2
+    if not dr and not dg and not db and not da:
+        return 0.0
+    if a1 < 255 or a2 < 255:
+        dr = (r1 * a1 - r2 * a2 - background[0] * da) / 255
+        dg = (g1 * a1 - g2 * a2 - background[1] * da) / 255
+        db = (b1 * a1 - b2 * a2 - background[2] * da) / 255
+    return dr * 0.29889531 + dg * 0.58662247 + db * 0.11448223
+
+
+def _has_many_siblings(image: np.ndarray, x: int, y: int) -> bool:
+    height, width, _ = image.shape
+    x0 = max(x - 1, 0)
+    y0 = max(y - 1, 0)
+    x2 = min(x + 1, width - 1)
+    y2 = min(y + 1, height - 1)
+    zeroes = 1 if x == x0 or x == x2 or y == y0 or y == y2 else 0
+    value = image[y, x]
+    for nx in range(x0, x2 + 1):
+        for ny in range(y0, y2 + 1):
+            if nx == x and ny == y:
+                continue
+            if np.array_equal(value, image[ny, nx]):
+                zeroes += 1
+                if zeroes > 2:
+                    return True
+    return False
+
+
+def _antialiased(
+    image: np.ndarray,
+    x: int,
+    y: int,
+    other: np.ndarray,
+    background: tuple[int, int, int, int],
+) -> bool:
+    height, width, _ = image.shape
+    x0 = max(x - 1, 0)
+    y0 = max(y - 1, 0)
+    x2 = min(x + 1, width - 1)
+    y2 = min(y + 1, height - 1)
+    zeroes = 1 if x == x0 or x == x2 or y == y0 or y == y2 else 0
+    minimum = 0.0
+    maximum = 0.0
+    min_xy = (0, 0)
+    max_xy = (0, 0)
+    for nx in range(x0, x2 + 1):
+        for ny in range(y0, y2 + 1):
+            if nx == x and ny == y:
+                continue
+            delta = _brightness_delta(image, y, x, ny, nx, background)
+            if delta == 0:
+                zeroes += 1
+                if zeroes > 2:
+                    return False
+            elif delta < minimum:
+                minimum = delta
+                min_xy = (nx, ny)
+            elif delta > maximum:
+                maximum = delta
+                max_xy = (nx, ny)
+    if minimum == 0 or maximum == 0:
+        return False
+    min_x, min_y = min_xy
+    max_x, max_y = max_xy
+    return (
+        _has_many_siblings(image, min_x, min_y)
+        and _has_many_siblings(other, min_x, min_y)
+    ) or (
+        _has_many_siblings(image, max_x, max_y)
+        and _has_many_siblings(other, max_x, max_y)
+    )
+
+
+def pixelmatch_masks(
+    image1: np.ndarray,
+    image2: np.ndarray,
+    *,
+    threshold: float = 0.1,
+    include_aa: bool = False,
+    background: tuple[int, int, int, int] = (255, 255, 255, 255),
+) -> tuple[np.ndarray, np.ndarray]:
+    """Return counted and excluded-AA masks with pixelmatch v7.2.0 semantics."""
+
+    if (
+        not isinstance(image1, np.ndarray)
+        or not isinstance(image2, np.ndarray)
+        or image1.dtype != np.uint8
+        or image2.dtype != np.uint8
+        or image1.ndim != 3
+        or image1.shape[-1] != 4
+        or image1.shape != image2.shape
+    ):
+        raise FidelityError("pixelmatch inputs must be equal-size uint8 RGBA arrays")
+    if isinstance(threshold, bool) or not isinstance(threshold, (int, float)) or not math.isfinite(float(threshold)) or not 0 <= threshold <= 1:
+        raise FidelityError("pixelmatch threshold must be finite and between zero and one")
+    if (
+        not isinstance(background, tuple)
+        or len(background) != 4
+        or not all(isinstance(channel, int) and not isinstance(channel, bool) and 0 <= channel <= 255 for channel in background)
+        or background[3] != 255
+    ):
+        raise FidelityError("pixelmatch comparison background must be opaque RGBA")
+    height, width, _ = image1.shape
+    mismatch = np.zeros((height, width), dtype=np.uint8)
+    excluded_aa = np.zeros((height, width), dtype=np.uint8)
+    max_delta = 35215 * float(threshold) * float(threshold)
+    differing = np.argwhere(np.any(image1 != image2, axis=2))
+    for y_value, x_value in differing:
+        y = int(y_value)
+        x = int(x_value)
+        delta = _color_delta(image1, image2, y, x, background)
+        if abs(delta) <= max_delta:
+            continue
+        excluded = not include_aa and (
+            _antialiased(image1, x, y, image2, background)
+            or _antialiased(image2, x, y, image1, background)
+        )
+        if excluded:
+            excluded_aa[y, x] = 1
+        else:
+            mismatch[y, x] = 1
+    return mismatch, excluded_aa
+
+
+def _composite_rgba(image: np.ndarray, background: tuple[int, int, int, int]) -> np.ndarray:
+    if background[3] != 255:
+        raise FidelityError("fixed comparison background must be opaque")
+    alpha = image[..., 3:4].astype(np.float64) / 255.0
+    rgb = image[..., :3].astype(np.float64)
+    base = np.asarray(background[:3], dtype=np.float64)
+    return rgb * alpha + base * (1.0 - alpha)
+
+
+def _components(mask: np.ndarray) -> tuple[DiffComponent, ...]:
+    height, width = mask.shape
+    visited = np.zeros_like(mask, dtype=bool)
+    result: list[DiffComponent] = []
+    for y in range(height):
+        for x in range(width):
+            if not mask[y, x] or visited[y, x]:
+                continue
+            stack = [(x, y)]
+            visited[y, x] = True
+            min_x = max_x = x
+            min_y = max_y = y
+            count = 0
+            while stack:
+                current_x, current_y = stack.pop()
+                count += 1
+                min_x = min(min_x, current_x)
+                max_x = max(max_x, current_x)
+                min_y = min(min_y, current_y)
+                max_y = max(max_y, current_y)
+                for dy in (-1, 0, 1):
+                    for dx in (-1, 0, 1):
+                        if dx == 0 and dy == 0:
+                            continue
+                        nx = current_x + dx
+                        ny = current_y + dy
+                        if 0 <= nx < width and 0 <= ny < height and mask[ny, nx] and not visited[ny, nx]:
+                            visited[ny, nx] = True
+                            stack.append((nx, ny))
+            component_width = max_x - min_x + 1
+            component_height = max_y - min_y + 1
+            density = count / (component_width * component_height)
+            result.append(
+                DiffComponent(
+                    bounds=(min_x, min_y, component_width, component_height),
+                    pixel_count=count,
+                    density=float(density),
+                )
+            )
+    return tuple(result)
+
+
+def _max_window_count(mask: np.ndarray, size: int) -> int:
+    height, width = mask.shape
+    window_height = min(size, height)
+    window_width = min(size, width)
+    integral = np.pad(mask.astype(np.int64), ((1, 0), (1, 0))).cumsum(0).cumsum(1)
+    totals = (
+        integral[window_height:, window_width:]
+        - integral[:-window_height, window_width:]
+        - integral[window_height:, :-window_width]
+        + integral[:-window_height, :-window_width]
+    )
+    return int(totals.max(initial=0))
+
+
+def _diff_png(mask: np.ndarray, excluded_aa: np.ndarray) -> bytes:
+    height, width = mask.shape
+    heatmap = np.zeros((height, width, 4), dtype=np.uint8)
+    heatmap[excluded_aa.astype(bool)] = (255, 255, 0, 255)
+    heatmap[mask.astype(bool)] = (255, 0, 0, 255)
+    stream = io.BytesIO()
+    Image.fromarray(heatmap, mode="RGBA").save(stream, format="PNG", optimize=False)
+    return stream.getvalue()
+
+
+def _atomic_write(path: Path, payload: bytes) -> Path:
+    try:
+        bounded, _ = _bounded_output(path)
+    except RenderError as exc:
+        raise FidelityError(str(exc)) from None
+    temporary = bounded.parent / f".{bounded.name}.{hashlib.sha256(payload).hexdigest()}.tmp"
+    if temporary.exists() or temporary.is_symlink():
+        raise FidelityError("deterministic diff staging path already exists")
+    try:
+        with temporary.open("xb") as stream:
+            stream.write(payload)
+            stream.flush()
+            os.fsync(stream.fileno())
+        try:
+            _bounded_output(bounded)
+        except RenderError as exc:
+            raise FidelityError(str(exc)) from None
+        os.replace(temporary, bounded)
+    except FidelityError:
+        raise
+    except OSError as exc:
+        raise FidelityError(f"cannot write deterministic diff atomically: {exc}") from None
+    finally:
+        if temporary.exists():
+            try:
+                temporary.unlink()
+            except OSError:
+                pass
+    return bounded
+
+
+def compare_images(
+    reference: Path,
+    actual: Path,
+    *,
+    profile: RenderProfile | None = None,
+    diff_output_path: Path | None = None,
+) -> FidelityMetrics:
+    """Compare exact-size PNGs under the sole fixed deterministic profile."""
+
+    reference_rgba = _load_rgba(reference)
+    actual_rgba = _load_rgba(actual)
+    if reference_rgba.shape != actual_rgba.shape:
+        raise FidelityError("reference and actual dimensions do not match; scaling/cropping is forbidden")
+    height, width, _ = reference_rgba.shape
+    if profile is None:
+        try:
+            profile = load_render_profile(width, height)
+        except RenderError as exc:
+            raise FidelityError(str(exc)) from None
+    try:
+        _validate_profile(profile)
+    except RenderError as exc:
+        raise FidelityError(str(exc)) from None
+    if (width, height) != (profile.width, profile.height):
+        raise FidelityError("image dimensions do not match fixed profile dimensions")
+
+    mismatch, excluded_aa = pixelmatch_masks(
+        reference_rgba,
+        actual_rgba,
+        threshold=profile.pixel_threshold,
+        include_aa=not profile.anti_alias_detection,
+        background=profile.rgba_background,
+    )
+    mismatch_count = int(mismatch.sum())
+    excluded_count = int(excluded_aa.sum())
+    match_ratio = 1.0 - mismatch_count / (width * height)
+
+    reference_rgb = _composite_rgba(reference_rgba, profile.rgba_background)
+    actual_rgb = _composite_rgba(actual_rgba, profile.rgba_background)
+    minimum_axis = min(width, height)
+    if minimum_axis < 3:
+        raise FidelityError("SSIM requires image dimensions of at least 3 pixels")
+    window_size = min(7, minimum_axis)
+    if window_size % 2 == 0:
+        window_size -= 1
+    ssim_score = float(
+        structural_similarity(
+            reference_rgb,
+            actual_rgb,
+            channel_axis=2,
+            data_range=255.0,
+            win_size=window_size,
+        )
+    )
+    rgba_delta = np.abs(reference_rgba.astype(np.float64) - actual_rgba.astype(np.float64)) / 255.0
+    mean_rgba_error = float(np.mean(rgba_delta))
+    alpha_mean_error = float(np.mean(rgba_delta[..., 3]))
+    reference_edges = np.stack(
+        [sobel(reference_rgb[..., channel] / profile.edge_normalization) for channel in range(3)],
+        axis=2,
+    )
+    actual_edges = np.stack(
+        [sobel(actual_rgb[..., channel] / profile.edge_normalization) for channel in range(3)],
+        axis=2,
+    )
+    edge_error = float(np.mean(np.abs(reference_edges - actual_edges)))
+    components = _components(mismatch)
+    dense_regions = tuple(
+        component
+        for component in components
+        if component.bounds[2] > profile.dense_bbox_exclusive_limit
+        and component.bounds[3] > profile.dense_bbox_exclusive_limit
+        and component.density >= profile.dense_density_minimum
+    )
+    max_diff_window = _max_window_count(mismatch, profile.dense_window_size)
+
+    finite_metrics = (match_ratio, ssim_score, mean_rgba_error, alpha_mean_error, edge_error)
+    if not all(math.isfinite(value) for value in finite_metrics):
+        raise FidelityError("comparison produced a non-finite metric")
+
+    failure_reasons: list[str] = []
+    if match_ratio < profile.match_minimum:
+        failure_reasons.append("MATCH_RATIO_BELOW_MINIMUM")
+    if ssim_score < profile.ssim_minimum:
+        failure_reasons.append("SSIM_BELOW_MINIMUM")
+    if dense_regions:
+        failure_reasons.append("DENSE_DIFF_REGION")
+    if profile.mae_limit is not None and mean_rgba_error > profile.mae_limit:
+        failure_reasons.append("MAE_LIMIT_EXCEEDED")
+
+    mask_bytes = mismatch.tobytes(order="C")
+    aa_bytes = excluded_aa.tobytes(order="C")
+    diff_payload = _diff_png(mismatch, excluded_aa)
+    diff_sha256 = hashlib.sha256(diff_payload).hexdigest()
+    diff_path = None if diff_output_path is None else _atomic_write(diff_output_path, diff_payload)
+    passed = not failure_reasons
+    return FidelityMetrics(
+        width=width,
+        height=height,
+        profile_id=profile.profile_id,
+        pixelmatch_version=profile.pixelmatch_version,
+        pixel_threshold=profile.pixel_threshold,
+        anti_alias_detection=profile.anti_alias_detection,
+        match_minimum=profile.match_minimum,
+        ssim_minimum=profile.ssim_minimum,
+        mae_limit_version=profile.mae_limit_version,
+        mae_limit=profile.mae_limit,
+        edge_metric=profile.edge_metric,
+        match_ratio=match_ratio,
+        mismatch_count=mismatch_count,
+        excluded_aa_count=excluded_count,
+        ssim=ssim_score,
+        mean_rgba_error=mean_rgba_error,
+        alpha_mean_error=alpha_mean_error,
+        edge_error=edge_error,
+        max_diff_window=max_diff_window,
+        components=components,
+        dense_regions=dense_regions,
+        mismatch_mask=mask_bytes,
+        mismatch_mask_sha256=hashlib.sha256(mask_bytes).hexdigest(),
+        excluded_aa_mask=aa_bytes,
+        diff_path=diff_path,
+        diff_sha256=diff_sha256,
+        failure_reasons=tuple(failure_reasons),
+        passed=passed,
+        lifecycle_status="PIXEL_VERIFIED_DETERMINISTIC" if passed else "MEASURED",
+    )
