@@ -72,6 +72,7 @@ def _run_contract(
     height: int,
     lifecycle_state: str = "authorized",
     expired: bool = False,
+    normalized_reference: Path | None = None,
 ) -> dict:
     run_id = run_root.name
     runtime_root = f".hermes/task-runtime/reconstruction/{run_id}/"
@@ -93,6 +94,11 @@ def _run_contract(
                 "at": (now - timedelta(minutes=1)).isoformat(),
             }
         )
+    normalized_target = (
+        runtime_root + "reference.normalized.png"
+        if normalized_reference is None
+        else normalized_reference.relative_to(REPO_ROOT).as_posix()
+    )
     return {
         "schemaVersion": "design-lab/reconstruction-run/v1",
         "runId": run_id,
@@ -102,7 +108,7 @@ def _run_contract(
             "path": "design-lab/tests/fixtures/reconstruction/flat-64.png",
             "sha256": "a" * 64,
             "profileMetadata": {"name": "reference", "version": "1"},
-            "normalizedReferenceTarget": runtime_root + "reference.normalized.png",
+            "normalizedReferenceTarget": normalized_target,
         },
         "profile": "flat",
         "canvasPolicy": {
@@ -202,9 +208,14 @@ class ReconstructionMetricTests(unittest.TestCase):
         diff_path = self.run_root / diff_name
         contract = _run_contract(
             self.run_root,
-            {diff_path: "evidence"},
+            {
+                reference_path: "normalized-source",
+                actual_path: "evidence",
+                diff_path: "evidence",
+            },
             width=reference.shape[1],
             height=reference.shape[0],
+            normalized_reference=reference_path,
         )
         return compare_images(
             reference_path,
@@ -311,6 +322,266 @@ class ReconstructionMetricTests(unittest.TestCase):
             )
         self.assertFalse(diff.exists())
 
+    def test_authorized_writes_reject_undeclared_or_wrong_role_inputs_and_outputs(self) -> None:
+        pixels = _rgba(64, 64)
+        reference = self.run_root / "normalized.png"
+        actual = self.run_root / "preview.png"
+        diff = self.run_root / "diff.png"
+        _save_rgba(reference, pixels)
+        _save_rgba(actual, pixels)
+        profile = dataclasses.replace(self.profile, width=64, height=64)
+        compare_contract = _run_contract(
+            self.run_root,
+            {actual: "evidence", diff: "evidence"},
+            width=64,
+            height=64,
+            normalized_reference=reference,
+        )
+        with self.assertRaisesRegex(FidelityError, "normalized-source|input artifact"):
+            compare_images(
+                reference,
+                actual,
+                profile=profile,
+                diff_output_path=diff,
+                run_contract=compare_contract,
+            )
+        wrong_actual_role = _run_contract(
+            self.run_root,
+            {reference: "normalized-source", actual: "vector-output", diff: "evidence"},
+            width=64,
+            height=64,
+            normalized_reference=reference,
+        )
+        with self.assertRaisesRegex(FidelityError, "actual preview.*evidence"):
+            compare_images(
+                reference,
+                actual,
+                profile=profile,
+                diff_output_path=diff,
+                run_contract=wrong_actual_role,
+            )
+
+        svg = self.run_root / "undeclared.svg"
+        svg.write_text(
+            '<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64"></svg>',
+            encoding="utf-8",
+        )
+        output = self.run_root / "authorized.png"
+        with self.assertRaisesRegex(RenderError, "vector-output|input artifact"):
+            render_svg(
+                svg,
+                output,
+                profile,
+                run_contract=_run_contract(
+                    self.run_root,
+                    {output: "evidence"},
+                    width=64,
+                    height=64,
+                ),
+            )
+
+        wrong_output = self.run_root / "authorized-output.svg"
+        with self.assertRaisesRegex(RenderError, r"evidence|\.png"):
+            render_svg(
+                svg,
+                wrong_output,
+                profile,
+                run_contract=_run_contract(
+                    self.run_root,
+                    {svg: "vector-output", wrong_output: "vector-output"},
+                    width=64,
+                    height=64,
+                ),
+            )
+
+    def test_registry_trust_anchor_rejects_self_consistent_threshold_tampering(self) -> None:
+        import reconstruction.render as render_module
+
+        tampered = json.loads(REGISTRY.read_text(encoding="utf-8"))
+        tampered["renderProfile"]["matchMinimum"] = 0.0
+        tampered["renderProfile"]["ssimMinimum"] = 0.0
+        tampered_path = self.run_root / "tampered-registry.json"
+        tampered_path.write_text(json.dumps(tampered), encoding="utf-8")
+        with mock.patch.object(render_module, "_REGISTRY_PATH", tampered_path):
+            with self.assertRaisesRegex(RenderError, "trusted|digest|anchor"):
+                load_render_profile(64, 64)
+
+    def test_raw_png_ceiling_preflight_runs_before_pillow_metadata_handlers(self) -> None:
+        from PIL import PngImagePlugin
+
+        oversized = self.run_root / "oversized-with-icc.png"
+        base = _header_only_png(10_001, 10_000)
+        iend_offset = len(base) - 12
+        payload = b"ICC\x00\x00" + zlib.compress(b"profile")
+        kind = b"iCCP"
+        chunk = (
+            len(payload).to_bytes(4, "big")
+            + kind
+            + payload
+            + (zlib.crc32(kind + payload) & 0xFFFFFFFF).to_bytes(4, "big")
+        )
+        oversized.write_bytes(base[:iend_offset] + chunk + base[iend_offset:])
+        with mock.patch.object(
+            PngImagePlugin.PngStream,
+            "chunk_iCCP",
+            side_effect=AssertionError("Pillow metadata parsed before C4 ceiling"),
+        ) as metadata:
+            with self.assertRaisesRegex(FidelityError, "pixel ceiling"):
+                compare_images(oversized, oversized)
+        metadata.assert_not_called()
+
+    def test_renderer_binary_type_and_post_replace_tampering_fail_without_residue(self) -> None:
+        import reconstruction.render as render_module
+
+        svg = self.run_root / "bound.svg"
+        svg.write_text(
+            '<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64"></svg>',
+            encoding="utf-8",
+        )
+        output = self.run_root / "bound.png"
+        contract = _run_contract(
+            self.run_root,
+            {svg: "vector-output", output: "evidence"},
+            width=64,
+            height=64,
+        )
+        invalid = dataclasses.replace(
+            load_render_profile(64, 64, REAL_RESVG),
+            renderer_binary=os.fspath(REAL_RESVG),
+        )
+        with self.assertRaisesRegex(RenderError, "renderer_binary|Path"):
+            load_render_profile(64, 64, os.fspath(REAL_RESVG))  # type: ignore[arg-type]
+        with self.assertRaisesRegex(RenderError, "renderer_binary|Path"):
+            render_svg(svg, output, invalid, run_contract=contract)
+        self.assertFalse(any(path.name.startswith(".bound.png.") for path in self.run_root.iterdir()))
+
+        profile = load_render_profile(64, 64, REAL_RESVG)
+        real_replace = render_module.os.replace
+
+        def replace_then_tamper(source: Path, target: Path) -> None:
+            real_replace(source, target)
+            Path(target).write_bytes(b"post-replace attacker bytes")
+
+        with mock.patch.object(render_module.os, "replace", new=replace_then_tamper):
+            with self.assertRaisesRegex(RenderError, "commit|readback|integrity"):
+                render_svg(svg, output, profile, run_contract=contract)
+        self.assertFalse(output.exists())
+
+    def test_diff_post_replace_tampering_fails_and_removes_invalid_target(self) -> None:
+        import reconstruction.metrics as metrics_module
+
+        real_replace = metrics_module.os.replace
+
+        def replace_then_tamper(source: Path, target: Path) -> None:
+            real_replace(source, target)
+            Path(target).write_bytes(b"post-replace attacker bytes")
+
+        with mock.patch.object(metrics_module.os, "replace", new=replace_then_tamper):
+            with self.assertRaisesRegex(FidelityError, "commit|readback|integrity"):
+                self.compare(_rgba(64, 64), _rgba(64, 64), diff_name="tampered-diff.png")
+        self.assertFalse((self.run_root / "tampered-diff.png").exists())
+
+    def test_bound_inputs_and_registry_are_revalidated_immediately_before_commit(self) -> None:
+        import reconstruction.metrics as metrics_module
+        import reconstruction.render as render_module
+
+        pixels = _rgba(64, 64)
+        reference = self.run_root / "bound-reference.png"
+        actual = self.run_root / "bound-actual.png"
+        diff = self.run_root / "bound-diff.png"
+        _save_rgba(reference, pixels)
+        _save_rgba(actual, pixels)
+        contract = _run_contract(
+            self.run_root,
+            {reference: "normalized-source", actual: "evidence", diff: "evidence"},
+            width=64,
+            height=64,
+            normalized_reference=reference,
+        )
+        original_diff_png = metrics_module._diff_png
+
+        def mutate_actual_then_encode(mask, excluded):
+            actual.write_bytes(reference.read_bytes() + b"attacker mutation")
+            return original_diff_png(mask, excluded)
+
+        with mock.patch.object(metrics_module, "_diff_png", new=mutate_actual_then_encode):
+            with self.assertRaisesRegex(FidelityError, "bound input changed"):
+                compare_images(
+                    reference,
+                    actual,
+                    profile=load_render_profile(64, 64),
+                    diff_output_path=diff,
+                    run_contract=contract,
+                )
+        self.assertFalse(diff.exists())
+
+        svg = self.run_root / "registry-bound.svg"
+        svg.write_text(
+            '<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64"></svg>',
+            encoding="utf-8",
+        )
+        preview = self.run_root / "registry-bound.png"
+        render_contract = _run_contract(
+            self.run_root,
+            {svg: "vector-output", preview: "evidence"},
+            width=64,
+            height=64,
+        )
+        registry_copy = self.run_root / "trusted-registry-copy.json"
+        registry_copy.write_bytes(REGISTRY.read_bytes())
+        original_run = render_module._run_renderer
+        mutated = False
+
+        def mutate_registry_then_run(command: list[str], *, cwd: Path):
+            nonlocal mutated
+            completed = original_run(command, cwd=cwd)
+            if not mutated and len(command) > 1 and command[1] != "--version":
+                registry_copy.write_bytes(registry_copy.read_bytes() + b" ")
+                mutated = True
+            return completed
+
+        with (
+            mock.patch.object(render_module, "_REGISTRY_PATH", registry_copy),
+            mock.patch.object(render_module, "_run_renderer", new=mutate_registry_then_run),
+            self.assertRaisesRegex(RenderError, "trusted|digest|anchor"),
+        ):
+            render_svg(
+                svg,
+                preview,
+                load_render_profile(64, 64, REAL_RESVG),
+                run_contract=render_contract,
+            )
+        self.assertFalse(preview.exists())
+
+    def test_invalid_post_replace_target_cleanup_failure_reports_exact_residue(self) -> None:
+        import reconstruction.metrics as metrics_module
+
+        target = self.run_root / "locked-invalid-diff.png"
+        real_replace = metrics_module.os.replace
+        real_unlink = Path.unlink
+
+        def replace_then_tamper(source: Path, output: Path) -> None:
+            real_replace(source, output)
+            Path(output).write_bytes(b"invalid committed bytes")
+
+        def reject_invalid_target_cleanup(path: Path, *args, **kwargs):
+            if path == target:
+                raise OSError("locked invalid target residue")
+            return real_unlink(path, *args, **kwargs)
+
+        with (
+            mock.patch.object(metrics_module.os, "replace", new=replace_then_tamper),
+            mock.patch.object(Path, "unlink", new=reject_invalid_target_cleanup),
+            self.assertRaisesRegex(
+                FidelityError,
+                r"integrity mismatch.*invalid diff output target residue.*locked-invalid-diff\.png",
+            ) as captured,
+        ):
+            self.compare(_rgba(64, 64), _rgba(64, 64), diff_name=target.name)
+        self.assertIsInstance(captured.exception.__cause__, RenderError)
+        self.assertIsInstance(captured.exception.__cause__.__cause__, ExceptionGroup)
+        self.assertTrue(target.exists())
+
     def test_write_contract_binds_artifact_target_expiry_lifecycle_and_canvas(self) -> None:
         pixels = _rgba(64, 64)
         reference = self.run_root / "reference-contract.png"
@@ -321,9 +592,10 @@ class ReconstructionMetricTests(unittest.TestCase):
         other = self.run_root / "other-diff.png"
         contract = _run_contract(
             self.run_root,
-            {authorized: "evidence"},
+            {reference: "normalized-source", actual: "evidence", authorized: "evidence"},
             width=64,
             height=64,
+            normalized_reference=reference,
         )
         profile = dataclasses.replace(self.profile, width=64, height=64)
         with self.assertRaisesRegex(FidelityError, "artifact|target|authorized"):
@@ -340,9 +612,10 @@ class ReconstructionMetricTests(unittest.TestCase):
         ):
             invalid = _run_contract(
                 self.run_root,
-                {authorized: "evidence"},
+                {reference: "normalized-source", actual: "evidence", authorized: "evidence"},
                 width=64,
                 height=64,
+                normalized_reference=reference,
                 **mutation,
             )
             with self.subTest(reason=reason), self.assertRaisesRegex(FidelityError, reason):
@@ -355,9 +628,10 @@ class ReconstructionMetricTests(unittest.TestCase):
                 )
         wrong_canvas = _run_contract(
             self.run_root,
-            {authorized: "evidence"},
+            {reference: "normalized-source", actual: "evidence", authorized: "evidence"},
             width=63,
             height=64,
+            normalized_reference=reference,
         )
         with self.assertRaisesRegex(FidelityError, "canvas|dimensions"):
             compare_images(
@@ -410,7 +684,7 @@ class ReconstructionMetricTests(unittest.TestCase):
     def test_shared_canvas_ceiling_and_png_header_precheck(self) -> None:
         import reconstruction.metrics as metrics_module
 
-        boundary = load_render_profile(10_000, 10_000)
+        boundary = load_render_profile(10_000, 10_000, REAL_RESVG)
         self.assertEqual(boundary.width * boundary.height, 100_000_000)
         with self.assertRaisesRegex(RenderError, "pixel ceiling"):
             load_render_profile(10_001, 10_000)
@@ -636,9 +910,10 @@ class ReconstructionMetricTests(unittest.TestCase):
         authorized = self.run_root / "authorized-diff.png"
         contract = _run_contract(
             self.run_root,
-            {authorized: "evidence"},
+            {reference_path: "normalized-source", actual_path: "evidence", authorized: "evidence"},
             width=64,
             height=64,
+            normalized_reference=reference_path,
         )
         with self.assertRaisesRegex(FidelityError, "artifact|target|authorized"):
             compare_images(
@@ -673,9 +948,10 @@ class ReconstructionMetricTests(unittest.TestCase):
                     diff_output_path=link / "diff.png",
                     run_contract=_run_contract(
                         self.run_root,
-                        {link / "diff.png": "evidence"},
+                        {reference_path: "normalized-source", actual_path: "evidence", link / "diff.png": "evidence"},
                         width=64,
                         height=64,
+                        normalized_reference=reference_path,
                     ),
                 )
         finally:
@@ -702,7 +978,7 @@ class ReconstructionMetricTests(unittest.TestCase):
                 profile,
                 run_contract=_run_contract(
                     self.run_root,
-                    {output: "vector-output"},
+                    {svg: "vector-output", output: "evidence"},
                     width=64,
                     height=64,
                 ),
@@ -723,7 +999,7 @@ class ReconstructionMetricTests(unittest.TestCase):
         output = self.run_root / "swap-preview.png"
         contract = _run_contract(
             self.run_root,
-            {output: "vector-output"},
+            {svg: "vector-output", output: "evidence"},
             width=64,
             height=64,
         )
@@ -762,7 +1038,7 @@ class ReconstructionMetricTests(unittest.TestCase):
         output = self.run_root / "cleanup-preview.png"
         contract = _run_contract(
             self.run_root,
-            {output: "vector-output"},
+            {svg: "vector-output", output: "evidence"},
             width=64,
             height=64,
         )
@@ -858,11 +1134,14 @@ class ReconstructionMetricTests(unittest.TestCase):
         output = self.run_root / "preview.png"
         profile = load_render_profile(64, 64, REAL_RESVG)
         diff = self.run_root / "diff.png"
+        normalized_reference = self.run_root / "normalized-reference.png"
+        shutil.copyfile(FLAT_FIXTURE, normalized_reference)
         contract = _run_contract(
             self.run_root,
-            {output: "vector-output", diff: "evidence"},
+            {svg: "vector-output", normalized_reference: "normalized-source", output: "evidence", diff: "evidence"},
             width=64,
             height=64,
+            normalized_reference=normalized_reference,
         )
         result = render_svg(svg, output, profile, run_contract=contract)
         self.assertEqual(result.output_path, output)
@@ -870,15 +1149,17 @@ class ReconstructionMetricTests(unittest.TestCase):
         self.assertEqual((result.width, result.height), (64, 64))
         self.assertEqual(result.renderer_version, "0.47.0")
         self.assertEqual(result.renderer_sha256, EXPECTED_RESVG_SHA256)
+        self.assertEqual(result.registry_digest, self.profile.registry_sha256)
         self.assertEqual(result.lifecycle_status, "RENDERED")
         metrics = compare_images(
-            FLAT_FIXTURE,
+            normalized_reference,
             output,
             profile=profile,
             diff_output_path=diff,
             run_contract=contract,
         )
         self.assertTrue(metrics.passed, metrics.failure_reasons)
+        self.assertEqual(metrics.registry_digest, profile.registry_sha256)
         self.assertEqual(metrics.match_ratio, 1.0)
         self.assertGreaterEqual(metrics.ssim, profile.ssim_minimum)
 

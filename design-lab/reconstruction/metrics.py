@@ -18,12 +18,16 @@ from skimage.metrics import structural_similarity
 from .render import (
     RenderError,
     RenderProfile,
+    _InputBinding,
     _WriteConstraints,
+    _bind_contract_input,
     _bounded_output,
     _open_checked_png_header,
     _revalidate_write_constraints,
+    _snapshot_regular_file,
     _validate_profile,
     _validated_write_constraints,
+    _verify_committed_target,
     load_render_profile,
 )
 
@@ -74,6 +78,7 @@ class FidelityMetrics:
     failure_reasons: tuple[str, ...]
     passed: bool
     lifecycle_status: str
+    registry_digest: str
 
 
 def _decode_rgba(image: Image.Image, source: Path) -> np.ndarray:
@@ -355,6 +360,7 @@ def _atomic_write(
     path: Path,
     payload: bytes,
     constraints: _WriteConstraints,
+    input_bindings: tuple[_InputBinding, ...],
 ) -> Path:
     try:
         bounded, run_root = _bounded_output(path)
@@ -376,17 +382,37 @@ def _atomic_write(
             stream.write(payload)
             stream.flush()
             os.fsync(stream.fileno())
+        staged_binding, staged_payload = _snapshot_regular_file(
+            temporary, role="diff staging"
+        )
+        if staged_binding.sha256 != hashlib.sha256(payload).hexdigest() or staged_payload != payload:
+            raise FidelityError("diff staging integrity mismatch before commit")
         try:
             _bounded_output(bounded)
         except RenderError as exc:
             raise FidelityError(str(exc)) from None
-        _revalidate_write_constraints(constraints)
+        _revalidate_write_constraints(constraints, input_bindings)
         os.replace(temporary, bounded)
         temporary = None
+        try:
+            _verify_committed_target(
+                bounded,
+                expected_sha256=staged_binding.sha256,
+                expected_identity=staged_binding.identity,
+                role="diff output",
+            )
+        except RenderError as exc:
+            raise FidelityError(str(exc)) from exc
     except FidelityError as exc:
         primary = exc
+    except RenderError as exc:
+        primary = FidelityError(str(exc))
+        primary.__cause__ = exc
     except OSError as exc:
         primary = FidelityError(f"cannot write deterministic diff atomically: {exc}")
+        primary.__cause__ = exc
+    except Exception as exc:
+        primary = FidelityError(f"unexpected diff commit failure: {exc}")
         primary.__cause__ = exc
 
     cleanup_failures: list[OSError] = []
@@ -435,12 +461,12 @@ def compare_images(
     reference_path = Path(os.path.abspath(os.fspath(reference)))
     actual_path = Path(os.path.abspath(os.fspath(actual)))
     try:
-        reference_image = _open_checked_png_header(reference_path)
+        reference_image, reference_header_binding = _open_checked_png_header(reference_path)
     except RenderError as exc:
         raise FidelityError(str(exc)) from None
     try:
         try:
-            actual_image = _open_checked_png_header(actual_path)
+            actual_image, actual_header_binding = _open_checked_png_header(actual_path)
         except RenderError as exc:
             raise FidelityError(str(exc)) from None
         try:
@@ -470,8 +496,33 @@ def compare_images(
                         allowed_kinds=frozenset({"evidence"}),
                         operation="verify",
                     )
+                    reference_binding, _ = _bind_contract_input(
+                        write_constraints,
+                        reference_path,
+                        kind="normalized-source",
+                        suffix=".png",
+                        role="normalized reference",
+                        normalized_reference=True,
+                    )
+                    actual_binding, _ = _bind_contract_input(
+                        write_constraints,
+                        actual_path,
+                        kind="evidence",
+                        suffix=".png",
+                        role="actual preview",
+                    )
                 except RenderError as exc:
                     raise FidelityError(str(exc)) from None
+                if len({reference_path, actual_path, Path(os.path.abspath(os.fspath(diff_output_path)))}) != 3:
+                    raise FidelityError("reference, actual preview and diff target must be distinct")
+                if (
+                    reference_binding != reference_header_binding
+                    or actual_binding != actual_header_binding
+                ):
+                    raise FidelityError("comparison input changed during contract binding")
+                input_bindings = (reference_binding, actual_binding)
+            else:
+                input_bindings = ()
             reference_rgba = _decode_rgba(reference_image, reference_path)
             actual_rgba = _decode_rgba(actual_image, actual_path)
         finally:
@@ -551,7 +602,9 @@ def compare_images(
     diff_path = (
         None
         if diff_output_path is None
-        else _atomic_write(diff_output_path, diff_payload, write_constraints)
+        else _atomic_write(
+            diff_output_path, diff_payload, write_constraints, input_bindings
+        )
     )
     passed = not failure_reasons
     return FidelityMetrics(
@@ -584,4 +637,5 @@ def compare_images(
         failure_reasons=tuple(failure_reasons),
         passed=passed,
         lifecycle_status="PIXEL_VERIFIED_DETERMINISTIC" if passed else "MEASURED",
+        registry_digest=profile.registry_sha256,
     )
