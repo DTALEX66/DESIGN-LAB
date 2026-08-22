@@ -512,41 +512,56 @@ def _normalize_reference_core(
         raise IntakeError("prepared destination diverges from the validated run contract")
 
     temp_path: Path | None = None
+    primary_error: IntakeError | None = None
     try:
-        descriptor, temp_name = tempfile.mkstemp(
-            prefix=".reference.normalized.",
-            suffix=".tmp",
-            dir=exact_run_dir,
+        try:
+            descriptor, temp_name = tempfile.mkstemp(
+                prefix=".reference.normalized.",
+                suffix=".tmp",
+                dir=exact_run_dir,
+            )
+            temp_path = Path(temp_name)
+            with os.fdopen(descriptor, "wb") as stream:
+                stream.write(encoded)
+                stream.flush()
+                os.fsync(stream.fileno())
+            _assert_existing_components_are_plain(exact_run_dir)
+            if destination.exists() or destination.is_symlink():
+                if _path_is_reparse(destination):
+                    raise IntakeError("normalized output became a symlink/reparse point")
+            if not _source_is_unchanged(resolved_source, source_stat, source_hash):
+                raise IntakeError("source identity changed before final output commit")
+            os.replace(temp_path, destination)
+            temp_path = None
+            _after_output_commit(resolved_source, destination)
+            if not _source_is_unchanged(resolved_source, source_stat, source_hash):
+                _remove_invalid_output(destination)
+                raise IntakeError("source identity changed during final output commit")
+        except OSError as exc:
+            raise IntakeError(f"cannot write normalized output safely: {exc}") from exc
+    except IntakeError as exc:
+        primary_error = exc
+
+    cleanup_error: OSError | None = None
+    if temp_path is not None:
+        try:
+            temp_path.unlink(missing_ok=True)
+        except OSError as exc:
+            cleanup_error = exc
+    if cleanup_error is not None:
+        cleanup_context = (
+            f"temporary normalized-output residue cleanup failed: {cleanup_error}"
         )
-        temp_path = Path(temp_name)
-        with os.fdopen(descriptor, "wb") as stream:
-            stream.write(encoded)
-            stream.flush()
-            os.fsync(stream.fileno())
-        _assert_existing_components_are_plain(exact_run_dir)
-        if destination.exists() or destination.is_symlink():
-            if _path_is_reparse(destination):
-                raise IntakeError("normalized output became a symlink/reparse point")
-        if not _source_is_unchanged(resolved_source, source_stat, source_hash):
-            raise IntakeError("source identity changed before final output commit")
-        os.replace(temp_path, destination)
-        temp_path = None
-        _after_output_commit(resolved_source, destination)
-        if not _source_is_unchanged(resolved_source, source_stat, source_hash):
-            _remove_invalid_output(destination)
-            raise IntakeError("source identity changed during final output commit")
-    except IntakeError:
-        raise
-    except OSError as exc:
-        raise IntakeError(f"cannot write normalized output safely: {exc}") from None
-    finally:
-        if temp_path is not None:
-            try:
-                temp_path.unlink(missing_ok=True)
-            except OSError as exc:
-                raise IntakeError(
-                    f"temporary normalized-output residue cleanup failed: {exc}"
-                ) from None
+        if primary_error is not None:
+            combined = IntakeError(f"{primary_error}; additionally, {cleanup_context}")
+            failures = ExceptionGroup(
+                "normalized output write and temporary cleanup both failed",
+                [primary_error, cleanup_error],
+            )
+            raise combined from failures
+        raise IntakeError(cleanup_context) from cleanup_error
+    if primary_error is not None:
+        raise primary_error
 
     return IntakeResult(
         source_sha256=source_hash,

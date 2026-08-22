@@ -627,7 +627,7 @@ class ReconstructionIntakeTests(unittest.TestCase):
                 normalize_reference(source, run_dir, run_contract=contract)
         self.assertFalse((run_dir / "reference.normalized.png").exists())
 
-    def test_temporary_output_cleanup_failure_is_explicit(self) -> None:
+    def test_write_and_temporary_cleanup_failures_preserve_both_causes(self) -> None:
         contract, run_dir = self.contract_for(FIXTURE, "temp-cleanup")
         real_unlink = Path.unlink
 
@@ -639,12 +639,45 @@ class ReconstructionIntakeTests(unittest.TestCase):
         with (
             mock.patch.object(intake_module.os, "replace", side_effect=OSError("replace failed")),
             mock.patch.object(Path, "unlink", new=reject_temp_unlink),
+        ):
+            with self.assertRaises(IntakeError) as caught:
+                normalize_reference(FIXTURE, run_dir, run_contract=contract)
+
+        message = str(caught.exception)
+        self.assertIn("cannot write normalized output safely: replace failed", message)
+        self.assertIn(
+            "temporary normalized-output residue cleanup failed: locked temporary residue",
+            message,
+        )
+        chain = caught.exception.__cause__
+        self.assertIsInstance(chain, ExceptionGroup)
+        self.assertEqual(len(chain.exceptions), 2)
+        primary, cleanup = chain.exceptions
+        self.assertIsInstance(primary, IntakeError)
+        self.assertIn("replace failed", str(primary))
+        self.assertIsInstance(primary.__cause__, OSError)
+        self.assertIsInstance(cleanup, OSError)
+        self.assertIn("locked temporary residue", str(cleanup))
+        self.assertFalse((run_dir / "reference.normalized.png").exists())
+
+    def test_write_failure_alone_preserves_primary_cause_and_cleans_temp(self) -> None:
+        contract, run_dir = self.contract_for(FIXTURE, "write-only-failure")
+        with (
+            mock.patch.object(
+                intake_module.os,
+                "replace",
+                side_effect=OSError("replace-only failure"),
+            ),
             self.assertRaisesRegex(
                 IntakeError,
-                "temporary normalized-output residue cleanup failed: locked temporary residue",
-            ),
+                "cannot write normalized output safely: replace-only failure",
+            ) as caught,
         ):
             normalize_reference(FIXTURE, run_dir, run_contract=contract)
+
+        self.assertIsInstance(caught.exception.__cause__, OSError)
+        self.assertIn("replace-only failure", str(caught.exception.__cause__))
+        self.assertEqual(list(run_dir.glob(".reference.normalized.*.tmp")), [])
         self.assertFalse((run_dir / "reference.normalized.png").exists())
 
     def test_existing_output_symlink_is_rejected_without_touching_target(self) -> None:
