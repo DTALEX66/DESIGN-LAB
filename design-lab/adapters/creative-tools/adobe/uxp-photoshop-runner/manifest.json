@@ -1,0 +1,23 @@
+{
+  "manifestVersion": 5,
+  "id": "com.dtalex.designlab.photoshop-runner",
+  "name": "DESIGN-LAB Photoshop Runner",
+  "version": "0.1.0",
+  "main": "runner.html",
+  "host": [
+    {
+      "app": "PS",
+      "minVersion": "24.0.0"
+    }
+  ],
+  "entrypoints": [
+    {
+      "type": "command",
+      "id": "validateFixtureJob",
+      "label": "Validate DESIGN-LAB Fixture Job"
+    }
+  ],
+  "requiredPermissions": {
+    "localFileSystem": "request"
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "schemaVersion": "design-lab/adobe-fixture-job/v1",
+  "taskId": "DL-ADB-PS-E3-FIXTURE",
+  "canvas": {
+    "width": 1920,
+    "height": 1080
+  },
+  "repetitions": 3,
+  "requiredStages": [
+    "create",
+    "save",
+    "reopen-readback",
+    "export-preview",
+    "restore-readback"
+  ]
+}

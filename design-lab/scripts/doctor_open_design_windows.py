@@ -97,7 +97,16 @@ def run_version(exe: str, codex_home: Path) -> tuple[bool, str]:
     env = os.environ.copy()
     env["CODEX_HOME"] = str(codex_home)
     try:
-        proc = subprocess.run([exe, "--version"], text=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, env=env, timeout=30)
+        proc = subprocess.run(
+            [exe, "--version"],
+            text=True,
+            encoding="utf-8",
+            errors="replace",
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            env=env,
+            timeout=30,
+        )
     except Exception as exc:  # noqa: BLE001
         return False, str(exc)
     return proc.returncode == 0, proc.stdout.strip()
