@@ -9,6 +9,7 @@ mentions in docstrings):
 - the CLI blocks wide roots, drive roots, E:, and the user home as project targets
 - allows an exact deep project path under D:\\All projects
 """
+import importlib.util
 import subprocess
 import sys
 import unittest
@@ -20,6 +21,15 @@ DOCTOR = REPO / "design-lab" / "scripts" / "doctor_open_design_windows.py"
 # The user-home block must use the SAME home the script resolves at runtime, so the
 # test is self-consistent on any machine/CI runner (not hard-coded to one user).
 USER_HOME = str(Path.home())
+
+
+def load_configure_module():
+    spec = importlib.util.spec_from_file_location("configure_open_design_windows", CONFIGURE)
+    assert spec is not None and spec.loader is not None
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
 
 # Code paths that would constitute the dangerous behaviors. Docstrings may
 # mention these words; real code must not call them.
@@ -105,6 +115,16 @@ class ConfigureCLIBehaviorTest(unittest.TestCase):
     def test_user_home_blocked(self):
         result = self.run_cli(USER_HOME)
         self.assertIn("SECURITY_BLOCK", result.stdout + result.stderr)
+
+
+class ConfigureSubprocessEncodingTest(unittest.TestCase):
+    def test_subprocess_run_decodes_utf8_output_without_locale_dependency(self):
+        configure = load_configure_module()
+        output = configure.subprocess_run(
+            [sys.executable, "-c", "import sys; sys.stdout.buffer.write(b'codex \\xe2\\x82\\xac')"],
+            env={},
+        )
+        self.assertEqual("codex €", output)
 
 
 if __name__ == "__main__":
