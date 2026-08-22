@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import hashlib
 import os
+import re
 import stat
 import struct
 import tempfile
@@ -15,10 +16,15 @@ from pathlib import Path
 import numpy as np
 from PIL import Image, ImageCms, UnidentifiedImageError
 
+from .contracts import ContractError, validate_run_contract
+
 _SUPPORTED_FORMATS = frozenset({"PNG", "JPEG", "WEBP"})
 _SUPPORTED_MODES = frozenset({"RGB", "RGBA"})
 _NORMALIZED_NAME = "reference.normalized.png"
 _REPARSE_POINT = getattr(stat, "FILE_ATTRIBUTE_REPARSE_POINT", 0x400)
+_PROJECT_ROOT = Path(__file__).resolve().parents[2]
+_CANONICAL_RUNTIME_ROOT = _PROJECT_ROOT / ".hermes" / "task-runtime" / "reconstruction"
+_STABLE_RUN_ID = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$")
 
 
 class IntakeError(ValueError):
@@ -168,11 +174,35 @@ def _assert_existing_components_are_plain(path: Path) -> None:
             raise IntakeError(f"destination crosses a symlink/reparse boundary: {current}")
 
 
-def _prepare_destination(run_dir: Path, source: Path) -> tuple[Path, Path]:
+def _canonical_run_directory(run_dir: Path) -> Path:
     run_dir = Path(run_dir)
     if any(part == ".." for part in run_dir.parts):
         raise IntakeError("run directory must not contain parent traversal")
     lexical_run_dir = Path(os.path.abspath(os.fspath(run_dir)))
+    if lexical_run_dir.parent != _CANONICAL_RUNTIME_ROOT:
+        raise IntakeError(
+            "run directory must be one direct run-id child of the canonical reconstruction root"
+        )
+    if not _STABLE_RUN_ID.fullmatch(lexical_run_dir.name):
+        raise IntakeError("run directory name must be a stable run id")
+
+    _assert_existing_components_are_plain(_CANONICAL_RUNTIME_ROOT)
+    try:
+        _CANONICAL_RUNTIME_ROOT.mkdir(parents=True, exist_ok=True)
+    except OSError as exc:
+        raise IntakeError(f"cannot create canonical runtime root: {exc}") from None
+    _assert_existing_components_are_plain(_CANONICAL_RUNTIME_ROOT)
+    try:
+        exact_runtime_root = _CANONICAL_RUNTIME_ROOT.resolve(strict=True)
+    except OSError as exc:
+        raise IntakeError(f"cannot resolve canonical runtime root safely: {exc}") from None
+    if exact_runtime_root != _CANONICAL_RUNTIME_ROOT:
+        raise IntakeError("canonical runtime root resolves through a reparse boundary")
+    return lexical_run_dir
+
+
+def _prepare_destination(run_dir: Path, source: Path) -> tuple[Path, Path]:
+    lexical_run_dir = _canonical_run_directory(run_dir)
     _assert_existing_components_are_plain(lexical_run_dir)
     try:
         lexical_run_dir.mkdir(parents=True, exist_ok=True)
@@ -253,9 +283,13 @@ def classify_reconstruction_profile(pixels: np.ndarray) -> ReconstructionProfile
         + rgb[:, :, 1].astype(np.int32) * 183
         + rgb[:, :, 2].astype(np.int32) * 19
     ) >> 8
-    horizontal = np.abs(np.diff(luma, axis=1)) >= 16
-    vertical = np.abs(np.diff(luma, axis=0)) >= 16
-    edge_samples = horizontal.size + vertical.size
+    horizontal_visible = visible[:, :-1] & visible[:, 1:]
+    vertical_visible = visible[:-1, :] & visible[1:, :]
+    horizontal = (np.abs(np.diff(luma, axis=1)) >= 16) & horizontal_visible
+    vertical = (np.abs(np.diff(luma, axis=0)) >= 16) & vertical_visible
+    edge_samples = int(np.count_nonzero(horizontal_visible)) + int(
+        np.count_nonzero(vertical_visible)
+    )
     edge_density = (
         (int(np.count_nonzero(horizontal)) + int(np.count_nonzero(vertical))) / edge_samples
         if edge_samples
@@ -315,6 +349,7 @@ def _source_is_unchanged(
 ) -> bool:
     try:
         after = path.stat()
+        after_hash = _sha256_file(path)
     except OSError:
         return False
     return (
@@ -322,8 +357,19 @@ def _source_is_unchanged(
         and after.st_ino == before.st_ino
         and after.st_size == before.st_size
         and after.st_mtime_ns == before.st_mtime_ns
-        and _sha256_file(path) == before_hash
+        and after_hash == before_hash
     )
+
+
+def _after_output_commit(_source: Path, _destination: Path) -> None:
+    """Deterministic no-op seam for exercising a final source-identity race check."""
+
+
+def _remove_invalid_output(destination: Path) -> None:
+    try:
+        destination.unlink(missing_ok=True)
+    except OSError as exc:
+        raise IntakeError(f"source changed and invalid output cleanup failed: {exc}") from None
 
 
 def normalize_reference(
@@ -389,6 +435,10 @@ def normalize_reference(
                 raise IntakeError("normalized output became a symlink/reparse point")
         os.replace(temp_path, destination)
         temp_path = None
+        _after_output_commit(resolved_source, destination)
+        if not _source_is_unchanged(resolved_source, source_stat, source_hash):
+            _remove_invalid_output(destination)
+            raise IntakeError("source identity changed during final output commit")
     except IntakeError:
         raise
     except OSError as exc:
@@ -414,3 +464,61 @@ def normalize_reference(
         profile=profile,
         tiles=tiles,
     )
+
+
+def normalize_reference_for_contract(
+    source: Path,
+    run_contract: dict,
+    max_axis: int = 4096,
+) -> IntakeResult:
+    """Validate a Task C1 contract and normalize only its authorized source/target."""
+
+    try:
+        validate_run_contract(run_contract)
+    except (ContractError, TypeError, ValueError) as exc:
+        raise IntakeError(f"invalid reconstruction run contract: {exc}") from None
+
+    run_id = run_contract["runId"]
+    runtime_relative = f".hermes/task-runtime/reconstruction/{run_id}/"
+    normalized_relative = runtime_relative + _NORMALIZED_NAME
+    if run_contract["roots"]["runtime"] != runtime_relative:
+        raise IntakeError("run contract runtime root does not bind the declared run id")
+    if run_contract["source"]["normalizedReferenceTarget"] != normalized_relative:
+        raise IntakeError("run contract normalized target is not the canonical runtime output")
+    normalized_artifacts = [
+        artifact
+        for artifact in run_contract["artifacts"]
+        if artifact["kind"] == "normalized-source"
+    ]
+    if len(normalized_artifacts) != 1 or normalized_artifacts[0]["path"] != normalized_relative:
+        raise IntakeError("run contract must authorize exactly one canonical normalized-source artifact")
+
+    try:
+        resolved_source = Path(source).resolve(strict=True)
+        contracted_source = (
+            _PROJECT_ROOT.joinpath(*run_contract["source"]["path"].split("/"))
+            .resolve(strict=True)
+        )
+        actual_hash = _sha256_file(resolved_source)
+    except (OSError, RuntimeError) as exc:
+        raise IntakeError(f"cannot bind contracted source safely: {exc}") from None
+    if resolved_source != contracted_source:
+        raise IntakeError("source path does not match the validated run contract")
+    if actual_hash.lower() != run_contract["source"]["sha256"].lower():
+        raise IntakeError("source hash does not match the validated run contract")
+
+    run_dir = _PROJECT_ROOT.joinpath(*runtime_relative.rstrip("/").split("/"))
+    result = normalize_reference(resolved_source, run_dir, max_axis=max_axis)
+    if result.normalized_path != run_dir / _NORMALIZED_NAME:
+        _remove_invalid_output(result.normalized_path)
+        raise IntakeError("normalized output does not match the contracted runtime target")
+    if (result.width, result.height) != (
+        run_contract["canvasPolicy"]["width"],
+        run_contract["canvasPolicy"]["height"],
+    ):
+        _remove_invalid_output(result.normalized_path)
+        raise IntakeError("normalized canvas does not match the validated run contract")
+    if result.profile.value != run_contract["profile"]:
+        _remove_invalid_output(result.normalized_path)
+        raise IntakeError("reconstruction profile does not match the validated run contract")
+    return result
