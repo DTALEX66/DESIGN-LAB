@@ -17,7 +17,7 @@ from pathlib import Path
 from unittest import mock
 
 import numpy as np
-from PIL import Image
+from PIL import Image, ImageCms
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(REPO_ROOT / "design-lab"))
@@ -723,6 +723,185 @@ class ReconstructionMetricTests(unittest.TestCase):
         multi_metrics = compare_images(multi_idat, multi_idat)
         self.assertTrue(multi_metrics.passed)
         self.assertEqual(multi_metrics.lifecycle_status, "MEASURED")
+
+    def test_png_accepts_legal_rgba_plte_and_streamed_srgb_iccp(self) -> None:
+        signature = b"\x89PNG\r\n\x1a\n"
+        ihdr = (
+            (1).to_bytes(4, "big")
+            + (1).to_bytes(4, "big")
+            + bytes((8, 6, 0, 0, 0))
+        )
+        rgba_plte = self.run_root / "rgba-suggested-plte.png"
+        rgba_plte.write_bytes(
+            signature
+            + _png_chunk(b"IHDR", ihdr)
+            + _png_chunk(b"PLTE", b"\x00\x00\x00\xff\xff\xff")
+            + _png_chunk(b"IDAT", zlib.compress(b"\x00\x01\x02\x03\xff"))
+            + _png_chunk(b"IEND", b"")
+        )
+        plte_metrics = compare_images(rgba_plte, rgba_plte)
+        self.assertTrue(plte_metrics.passed)
+        self.assertEqual(plte_metrics.lifecycle_status, "MEASURED")
+
+        srgb_chrm = (31270, 32900, 64000, 33000, 30000, 60000, 15000, 6000)
+        calibrated = self.run_root / "rgba-explicit-srgb-metadata.png"
+        calibrated.write_bytes(
+            signature
+            + _png_chunk(b"IHDR", ihdr)
+            + _png_chunk(b"gAMA", (45455).to_bytes(4, "big"))
+            + _png_chunk(
+                b"cHRM", b"".join(value.to_bytes(4, "big") for value in srgb_chrm)
+            )
+            + _png_chunk(b"sRGB", b"\x00")
+            + _png_chunk(b"PLTE", b"\x00\x00\x00")
+            + _png_chunk(b"IDAT", zlib.compress(b"\x00\x01\x02\x03\xff"))
+            + _png_chunk(b"IEND", b"")
+        )
+        calibrated_metrics = compare_images(calibrated, calibrated)
+        self.assertTrue(calibrated_metrics.passed)
+
+        icc_profile = ImageCms.ImageCmsProfile(
+            ImageCms.createProfile("sRGB")
+        ).tobytes()
+        iccp = self.run_root / "pillow-srgb-iccp.png"
+        Image.fromarray(_rgba(1, 1, (1, 2, 3, 255)), mode="RGBA").save(
+            iccp,
+            format="PNG",
+            icc_profile=icc_profile,
+        )
+        iccp_metrics = compare_images(iccp, iccp)
+        self.assertTrue(iccp_metrics.passed)
+        self.assertEqual(iccp_metrics.lifecycle_status, "MEASURED")
+
+    def test_png_rejects_color_metadata_conflicts_and_bad_iccp_before_pillow(self) -> None:
+        signature = b"\x89PNG\r\n\x1a\n"
+        ihdr = (
+            (1).to_bytes(4, "big")
+            + (1).to_bytes(4, "big")
+            + bytes((8, 6, 0, 0, 0))
+        )
+        idat = _png_chunk(b"IDAT", zlib.compress(b"\x00\x00\x00\x00\xff"))
+        iend = _png_chunk(b"IEND", b"")
+        valid_iccp = b"ICC Profile\x00\x00" + zlib.compress(b"small-profile")
+        cases = {
+            "color chunk after PLTE": (
+                _png_chunk(b"PLTE", b"\x00\x00\x00")
+                + _png_chunk(b"sRGB", b"\x00"),
+                "sRGB.*before PLTE",
+            ),
+            "zero gamma": (_png_chunk(b"gAMA", b"\x00\x00\x00\x00"), "gAMA.*positive|gamma"),
+            "nonsrgb gamma": (
+                _png_chunk(b"gAMA", (100_000).to_bytes(4, "big")),
+                "gAMA.*sRGB|gamma",
+            ),
+            "iccp srgb conflict": (
+                _png_chunk(b"iCCP", valid_iccp) + _png_chunk(b"sRGB", b"\x00"),
+                "iCCP.*sRGB|mutually exclusive|conflict",
+            ),
+            "duplicate iccp": (
+                _png_chunk(b"iCCP", valid_iccp) + _png_chunk(b"iCCP", valid_iccp),
+                "duplicate iCCP",
+            ),
+            "bad keyword spacing": (
+                _png_chunk(
+                    b"iCCP", b"ICC  Profile\x00\x00" + zlib.compress(b"profile")
+                ),
+                "keyword|space",
+            ),
+            "bad compression method": (
+                _png_chunk(b"iCCP", b"ICC Profile\x00\x01" + zlib.compress(b"profile")),
+                "compression method",
+            ),
+            "truncated iccp zlib": (
+                _png_chunk(b"iCCP", b"ICC Profile\x00\x00x"),
+                "iCCP.*zlib|deflate|truncated",
+            ),
+            "trailing iccp stream": (
+                _png_chunk(
+                    b"iCCP",
+                    b"ICC Profile\x00\x00" + zlib.compress(b"profile") + b"trailing",
+                ),
+                "iCCP.*trailing|concatenated",
+            ),
+        }
+        for name, (metadata, reason) in cases.items():
+            path = self.run_root / f"color-{name.replace(' ', '-')}.png"
+            path.write_bytes(
+                signature + _png_chunk(b"IHDR", ihdr) + metadata + idat + iend
+            )
+            with self.subTest(name=name), mock.patch.object(
+                Image,
+                "open",
+                side_effect=AssertionError("Pillow opened invalid color metadata"),
+            ) as pillow_open:
+                with self.assertRaisesRegex(FidelityError, reason):
+                    compare_images(path, path)
+                pillow_open.assert_not_called()
+
+    def test_png_plte_color_type_and_iccp_resource_boundaries_precede_pillow(self) -> None:
+        signature = b"\x89PNG\r\n\x1a\n"
+
+        def ihdr(bit_depth: int, color_type: int) -> bytes:
+            payload = (
+                (1).to_bytes(4, "big")
+                + (1).to_bytes(4, "big")
+                + bytes((bit_depth, color_type, 0, 0, 0))
+            )
+            return _png_chunk(b"IHDR", payload)
+
+        cases = {
+            "indexed missing PLTE": (
+                ihdr(1, 3)
+                + _png_chunk(b"IDAT", zlib.compress(b"\x00\x00")),
+                "type 3 requires PLTE",
+            ),
+            "indexed PLTE entry overflow": (
+                ihdr(1, 3)
+                + _png_chunk(b"PLTE", b"\x00\x00\x00" * 3)
+                + _png_chunk(b"IDAT", zlib.compress(b"\x00\x00")),
+                "PLTE.*bit-depth|entry limit",
+            ),
+            "grayscale forbids PLTE": (
+                ihdr(8, 0)
+                + _png_chunk(b"PLTE", b"\x00\x00\x00")
+                + _png_chunk(b"IDAT", zlib.compress(b"\x00\x00")),
+                "color type 0 forbids PLTE",
+            ),
+            "gray alpha forbids PLTE": (
+                ihdr(8, 4)
+                + _png_chunk(b"PLTE", b"\x00\x00\x00")
+                + _png_chunk(b"IDAT", zlib.compress(b"\x00\x00\xff")),
+                "color type 4 forbids PLTE",
+            ),
+            "cHRM drift": (
+                ihdr(8, 6)
+                + _png_chunk(b"cHRM", b"\x00" * 32)
+                + _png_chunk(b"IDAT", zlib.compress(b"\x00\x00\x00\x00\xff")),
+                "cHRM.*sRGB",
+            ),
+            "iCCP decoded over limit": (
+                ihdr(8, 6)
+                + _png_chunk(
+                    b"iCCP",
+                    b"ICC Profile\x00\x00"
+                    + zlib.compress(b"x" * (4 * 1024 * 1024 + 1)),
+                )
+                + _png_chunk(b"IDAT", zlib.compress(b"\x00\x00\x00\x00\xff")),
+                "iCCP profile exceeds",
+            ),
+        }
+        iend = _png_chunk(b"IEND", b"")
+        for name, (chunks, reason) in cases.items():
+            path = self.run_root / f"plte-boundary-{name.replace(' ', '-')}.png"
+            path.write_bytes(signature + chunks + iend)
+            with self.subTest(name=name), mock.patch.object(
+                Image,
+                "open",
+                side_effect=AssertionError("Pillow opened invalid PLTE/ICC boundary"),
+            ) as pillow_open:
+                with self.assertRaisesRegex(FidelityError, reason):
+                    compare_images(path, path)
+                pillow_open.assert_not_called()
 
     def test_renderer_binary_type_and_post_replace_tampering_fail_without_residue(self) -> None:
         import reconstruction.render as render_module

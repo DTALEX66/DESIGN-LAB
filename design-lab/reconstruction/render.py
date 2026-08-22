@@ -38,8 +38,11 @@ _QUALIFIED_METRIC_MAX_BYTES = 67_108_864
 _METRIC_BUDGET_VERSION = "c4-metric-memory-v1"
 _MAX_PNG_CHUNK_BYTES = 64 * 1024 * 1024
 _MAX_PNG_METADATA_BYTES = 8 * 1024 * 1024
+_MAX_ICC_PROFILE_BYTES = 4 * 1024 * 1024
 _PNG_CRITICAL_CHUNKS = frozenset({b"IHDR", b"PLTE", b"IDAT", b"IEND"})
-_PNG_ANCILLARY_CHUNKS = frozenset({b"cHRM", b"gAMA", b"sRGB", b"pHYs"})
+_PNG_ANCILLARY_CHUNKS = frozenset({b"cHRM", b"gAMA", b"iCCP", b"sRGB", b"pHYs"})
+_PNG_COLOR_SPACE_CHUNKS = frozenset({b"cHRM", b"gAMA", b"iCCP", b"sRGB"})
+_SRGB_CHROMATICITIES = (31270, 32900, 64000, 33000, 30000, 60000, 15000, 6000)
 
 
 class RenderError(RuntimeError):
@@ -138,8 +141,106 @@ class ArtifactBindingEvidence:
 @dataclass(frozen=True)
 class _PngHeader:
     dimensions: tuple[int, int]
+    bit_depth: int
     color_type: int
     row_bytes: int
+
+
+def _validate_png_keyword(keyword: bytes) -> None:
+    if not 1 <= len(keyword) <= 79:
+        raise RenderError("PNG iCCP keyword must contain 1..79 Latin-1 bytes")
+    if not all(32 <= value <= 126 or 161 <= value <= 255 for value in keyword):
+        raise RenderError("PNG iCCP keyword contains an invalid Latin-1 character")
+    if keyword[0] == 32 or keyword[-1] == 32 or b"  " in keyword:
+        raise RenderError(
+            "PNG iCCP keyword cannot have leading, trailing or consecutive spaces"
+        )
+
+
+class _IccpPreflight:
+    """Streaming validation for one bounded PNG iCCP payload."""
+
+    def __init__(self) -> None:
+        self.keyword = bytearray()
+        self.phase = "keyword"
+        self.decompressor = zlib.decompressobj()
+        self.decoded_bytes = 0
+
+    def _feed_compressed(self, payload: bytes) -> None:
+        pending = payload
+        try:
+            while pending:
+                pending_size = len(pending)
+                output_limit = min(
+                    1 << 20,
+                    max(1, _MAX_ICC_PROFILE_BYTES - self.decoded_bytes + 1),
+                )
+                decoded = self.decompressor.decompress(pending, output_limit)
+                pending = self.decompressor.unconsumed_tail
+                self.decoded_bytes += len(decoded)
+                if self.decoded_bytes > _MAX_ICC_PROFILE_BYTES:
+                    raise RenderError(
+                        f"PNG iCCP profile exceeds {_MAX_ICC_PROFILE_BYTES} decoded bytes"
+                    )
+                if self.decompressor.unused_data:
+                    raise RenderError(
+                        "PNG iCCP contains trailing or concatenated zlib stream data"
+                    )
+                if len(pending) == pending_size and not decoded:
+                    raise RenderError("PNG iCCP zlib stream made no bounded progress")
+        except zlib.error as exc:
+            raise RenderError(f"PNG iCCP zlib stream is invalid: {exc}") from None
+
+    def feed(self, payload: bytes) -> None:
+        cursor = 0
+        if self.phase == "keyword":
+            separator = payload.find(b"\x00")
+            if separator < 0:
+                self.keyword.extend(payload)
+                if len(self.keyword) > 79:
+                    raise RenderError("PNG iCCP keyword exceeds 79 bytes")
+                return
+            self.keyword.extend(payload[:separator])
+            _validate_png_keyword(bytes(self.keyword))
+            self.phase = "method"
+            cursor = separator + 1
+        if self.phase == "method":
+            if cursor >= len(payload):
+                return
+            if payload[cursor] != 0:
+                raise RenderError("PNG iCCP compression method must be zero")
+            self.phase = "compressed"
+            cursor += 1
+        if cursor < len(payload):
+            self._feed_compressed(payload[cursor:])
+
+    def finish(self) -> None:
+        if self.phase != "compressed":
+            raise RenderError("PNG iCCP keyword/compression method is truncated")
+        try:
+            while True:
+                output_limit = min(
+                    1 << 20,
+                    max(1, _MAX_ICC_PROFILE_BYTES - self.decoded_bytes + 1),
+                )
+                decoded = self.decompressor.decompress(b"", output_limit)
+                if not decoded:
+                    break
+                self.decoded_bytes += len(decoded)
+                if self.decoded_bytes > _MAX_ICC_PROFILE_BYTES:
+                    raise RenderError(
+                        f"PNG iCCP profile exceeds {_MAX_ICC_PROFILE_BYTES} decoded bytes"
+                    )
+        except zlib.error as exc:
+            raise RenderError(f"PNG iCCP zlib stream is invalid: {exc}") from None
+        if not self.decompressor.eof:
+            raise RenderError("PNG iCCP zlib stream is truncated")
+        if self.decompressor.unused_data or self.decompressor.unconsumed_tail:
+            raise RenderError(
+                "PNG iCCP contains trailing or concatenated zlib stream data"
+            )
+        if self.decoded_bytes == 0:
+            raise RenderError("PNG iCCP profile decompresses to an empty payload")
 
 
 def _load_registry() -> tuple[dict[str, Any], str]:
@@ -453,15 +554,23 @@ def _png_prefix_header(prefix: bytes) -> _PngHeader:
         raise RenderError(
             f"PNG exceeds the C4 qualified operational metric pixel ceiling {_QUALIFIED_METRIC_MAX_PIXELS}"
         )
-    if bit_depth != 8 or color_type not in {2, 6}:
-        raise RenderError("PNG IHDR must encode 8-bit RGB or RGBA")
+    legal_depths = {
+        0: {1, 2, 4, 8, 16},
+        2: {8, 16},
+        3: {1, 2, 4, 8},
+        4: {8, 16},
+        6: {8, 16},
+    }
+    if color_type not in legal_depths or bit_depth not in legal_depths[color_type]:
+        raise RenderError("PNG IHDR bit depth/color type combination is invalid")
     if compression != 0 or filtering != 0 or interlace != 0:
         raise RenderError("PNG IHDR contains unsupported compression/filter/interlace")
-    channels = 3 if color_type == 2 else 4
+    samples = {0: 1, 2: 3, 3: 1, 4: 2, 6: 4}[color_type]
     return _PngHeader(
         dimensions=(width, height),
+        bit_depth=bit_depth,
         color_type=color_type,
-        row_bytes=width * channels,
+        row_bytes=(width * samples * bit_depth + 7) // 8,
     )
 
 
@@ -507,7 +616,7 @@ def _read_exact(stream: BinaryIO, length: int, *, field: str) -> bytes:
 def _stream_png_preflight(
     stream: BinaryIO,
     file_size: int,
-) -> tuple[tuple[int, int], str]:
+) -> tuple[_PngHeader, str, bool]:
     if file_size > _QUALIFIED_METRIC_MAX_BYTES:
         raise RenderError(
             f"PNG exceeds the C4 qualified metric file-size limit {_QUALIFIED_METRIC_MAX_BYTES}"
@@ -530,6 +639,7 @@ def _stream_png_preflight(
     scanline_offset = 0
     expected_decoded_bytes = 0
     scanline_bytes = 0
+    active_iccp: _IccpPreflight | None = None
     consumed = 8
 
     def consume_scanlines(payload: bytes) -> None:
@@ -632,17 +742,27 @@ def _stream_png_preflight(
                 raise RenderError(
                     f"PNG {kind.decode('ascii')} ancillary chunk must precede IDAT"
                 )
-            required_length = {
-                b"cHRM": 32,
-                b"gAMA": 4,
-                b"sRGB": 1,
-                b"pHYs": 9,
-            }[kind]
-            if length != required_length:
+            if kind in _PNG_COLOR_SPACE_CHUNKS and found_plte:
                 raise RenderError(
-                    f"PNG {kind.decode('ascii')} length is invalid"
+                    f"PNG {kind.decode('ascii')} color-space chunk must appear before PLTE"
                 )
+            if kind == b"iCCP" and b"sRGB" in seen_ancillary:
+                raise RenderError("PNG iCCP and sRGB chunks are mutually exclusive")
+            if kind == b"sRGB" and b"iCCP" in seen_ancillary:
+                raise RenderError("PNG iCCP and sRGB chunks are mutually exclusive")
+            if kind != b"iCCP":
+                required_length = {
+                    b"cHRM": 32,
+                    b"gAMA": 4,
+                    b"sRGB": 1,
+                    b"pHYs": 9,
+                }[kind]
+                if length != required_length:
+                    raise RenderError(
+                        f"PNG {kind.decode('ascii')} length is invalid"
+                    )
             seen_ancillary.add(kind)
+        active_iccp = _IccpPreflight() if kind == b"iCCP" else None
         if found_idat and kind != b"IDAT" and not idat_ended:
             finish_idat()
             idat_ended = True
@@ -655,10 +775,14 @@ def _stream_png_preflight(
             )
             digest.update(block)
             crc = zlib.crc32(block, crc)
-            if kind in {b"IHDR", b"PLTE"} or kind in _PNG_ANCILLARY_CHUNKS:
+            if kind in {b"IHDR", b"PLTE"} or (
+                kind in _PNG_ANCILLARY_CHUNKS and kind != b"iCCP"
+            ):
                 captured.extend(block)
             if kind == b"IDAT":
                 feed_idat(block)
+            if active_iccp is not None:
+                active_iccp.feed(block)
             remaining -= len(block)
         crc_bytes = _read_exact(stream, 4, field=f"{kind!r} chunk CRC")
         digest.update(crc_bytes)
@@ -666,6 +790,8 @@ def _stream_png_preflight(
         expected_crc = struct.unpack(">I", crc_bytes)[0]
         if crc & 0xFFFFFFFF != expected_crc:
             raise RenderError(f"PNG {kind.decode('ascii', errors='replace')} chunk CRC mismatch")
+        if active_iccp is not None:
+            active_iccp.finish()
         if kind == b"IHDR":
             png_header = _png_prefix_header(signature + header + captured + crc_bytes)
             scanline_bytes = png_header.row_bytes + 1
@@ -674,16 +800,29 @@ def _stream_png_preflight(
         elif kind == b"PLTE":
             if png_header is None:
                 raise RenderError("PNG PLTE appeared before IHDR")
-            if png_header.color_type == 6:
-                raise RenderError("PNG RGBA color type forbids PLTE")
+            entries = length // 3
+            if png_header.color_type in {0, 4}:
+                raise RenderError(
+                    f"PNG color type {png_header.color_type} forbids PLTE"
+                )
+            if png_header.color_type == 3 and entries > 1 << png_header.bit_depth:
+                raise RenderError("PNG indexed PLTE exceeds the bit-depth entry limit")
+            if png_header.color_type in {2, 6} and entries > 256:
+                raise RenderError("PNG suggested PLTE exceeds 256 entries")
             found_plte = True
         elif kind == b"sRGB":
             if length != 1 or captured[0] > 3:
                 raise RenderError("PNG sRGB rendering intent is invalid")
-        elif kind == b"gAMA" and length != 4:
-            raise RenderError("PNG gAMA length is invalid")
-        elif kind == b"cHRM" and length != 32:
-            raise RenderError("PNG cHRM length is invalid")
+        elif kind == b"gAMA":
+            gamma = struct.unpack(">I", captured)[0]
+            if gamma == 0:
+                raise RenderError("PNG gAMA value must be positive")
+            if gamma != 45455:
+                raise RenderError("PNG gAMA value is inconsistent with fixed sRGB")
+        elif kind == b"cHRM":
+            chromaticities = struct.unpack(">8I", captured)
+            if chromaticities != _SRGB_CHROMATICITIES:
+                raise RenderError("PNG cHRM values are inconsistent with fixed sRGB")
         elif kind == b"pHYs" and (length != 9 or captured[8] not in {0, 1}):
             raise RenderError("PNG pHYs payload is invalid")
         if kind not in {b"IDAT", b"IEND"}:
@@ -706,7 +845,9 @@ def _stream_png_preflight(
         raise RenderError("PNG contains trailing bytes after IEND")
     if png_header is None:
         raise RenderError("PNG is missing IHDR dimensions")
-    return png_header.dimensions, digest.hexdigest()
+    if png_header.color_type == 3 and not found_plte:
+        raise RenderError("PNG indexed color type 3 requires PLTE")
+    return png_header, digest.hexdigest(), b"iCCP" in seen_ancillary
 
 
 def _open_checked_png_header(
@@ -722,7 +863,12 @@ def _open_checked_png_header(
     try:
         stream = source.open("rb")
         before = _identity(os.fstat(stream.fileno()))
-        dimensions, png_sha256 = _stream_png_preflight(stream, before.size)
+        png_header, png_sha256, raw_has_iccp = _stream_png_preflight(
+            stream, before.size
+        )
+        dimensions = png_header.dimensions
+        if png_header.bit_depth != 8 or png_header.color_type not in {2, 6}:
+            raise RenderError("PNG comparison subset requires 8-bit RGB or RGBA")
         after = _identity(os.fstat(stream.fileno()))
         path_after = _identity(source.stat())
         if before != after or after != path_after:
@@ -762,6 +908,8 @@ def _open_checked_png_header(
         if image.size != dimensions:
             raise RenderError("Pillow PNG dimensions diverge from raw IHDR preflight")
         embedded = image.info.get("icc_profile")
+        if raw_has_iccp != bool(embedded):
+            raise RenderError("Pillow ICC metadata diverges from raw iCCP declaration")
         if embedded:
             try:
                 name = ImageCms.getProfileName(ImageCms.ImageCmsProfile(io.BytesIO(embedded)))
