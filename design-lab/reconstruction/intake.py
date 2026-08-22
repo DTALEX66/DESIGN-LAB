@@ -543,8 +543,10 @@ def _normalize_reference_core(
         if temp_path is not None:
             try:
                 temp_path.unlink(missing_ok=True)
-            except OSError:
-                pass
+            except OSError as exc:
+                raise IntakeError(
+                    f"temporary normalized-output residue cleanup failed: {exc}"
+                ) from None
 
     return IntakeResult(
         source_sha256=source_hash,

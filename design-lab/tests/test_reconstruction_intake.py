@@ -627,6 +627,26 @@ class ReconstructionIntakeTests(unittest.TestCase):
                 normalize_reference(source, run_dir, run_contract=contract)
         self.assertFalse((run_dir / "reference.normalized.png").exists())
 
+    def test_temporary_output_cleanup_failure_is_explicit(self) -> None:
+        contract, run_dir = self.contract_for(FIXTURE, "temp-cleanup")
+        real_unlink = Path.unlink
+
+        def reject_temp_unlink(path: Path, *args, **kwargs) -> None:
+            if path.name.startswith(".reference.normalized.") and path.suffix == ".tmp":
+                raise OSError("locked temporary residue")
+            real_unlink(path, *args, **kwargs)
+
+        with (
+            mock.patch.object(intake_module.os, "replace", side_effect=OSError("replace failed")),
+            mock.patch.object(Path, "unlink", new=reject_temp_unlink),
+            self.assertRaisesRegex(
+                IntakeError,
+                "temporary normalized-output residue cleanup failed: locked temporary residue",
+            ),
+        ):
+            normalize_reference(FIXTURE, run_dir, run_contract=contract)
+        self.assertFalse((run_dir / "reference.normalized.png").exists())
+
     def test_existing_output_symlink_is_rejected_without_touching_target(self) -> None:
         contract, run_dir = self.contract_for(FIXTURE, "output-link")
         run_dir.mkdir()
