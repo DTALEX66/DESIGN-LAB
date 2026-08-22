@@ -6,19 +6,24 @@ import hashlib
 import io
 import math
 import os
+import tempfile
 from dataclasses import dataclass
 from pathlib import Path
 
 import numpy as np
-from PIL import Image, ImageCms, UnidentifiedImageError
+from PIL import Image
 from skimage.filters import sobel
 from skimage.metrics import structural_similarity
 
 from .render import (
     RenderError,
     RenderProfile,
+    _WriteConstraints,
     _bounded_output,
+    _open_checked_png_header,
+    _revalidate_write_constraints,
     _validate_profile,
+    _validated_write_constraints,
     load_render_profile,
 )
 
@@ -71,27 +76,11 @@ class FidelityMetrics:
     lifecycle_status: str
 
 
-def _load_rgba(path: Path) -> np.ndarray:
-    source = Path(os.path.abspath(os.fspath(path)))
+def _decode_rgba(image: Image.Image, source: Path) -> np.ndarray:
     try:
-        with Image.open(source) as image:
-            image.load()
-            if image.format != "PNG":
-                raise FidelityError(f"comparison image must be PNG: {source}")
-            if image.mode not in {"RGB", "RGBA"}:
-                raise FidelityError(f"comparison image must be RGB or RGBA: {source}")
-            embedded = image.info.get("icc_profile")
-            if embedded:
-                try:
-                    name = ImageCms.getProfileName(ImageCms.ImageCmsProfile(io.BytesIO(embedded)))
-                except (OSError, TypeError, ValueError, ImageCms.PyCMSError) as exc:
-                    raise FidelityError(f"comparison image has invalid color profile: {exc}") from None
-                if "srgb" not in name.casefold():
-                    raise FidelityError("comparison image profile mismatch: expected sRGB")
-            return np.asarray(image.convert("RGBA"), dtype=np.uint8).copy()
-    except FidelityError:
-        raise
-    except (OSError, UnidentifiedImageError) as exc:
+        image.load()
+        return np.asarray(image.convert("RGBA"), dtype=np.uint8).copy()
+    except (OSError, ValueError) as exc:
         raise FidelityError(f"cannot read comparison image: {source}: {exc}") from None
 
 
@@ -334,16 +323,56 @@ def _diff_png(mask: np.ndarray, excluded_aa: np.ndarray) -> bytes:
     return stream.getvalue()
 
 
-def _atomic_write(path: Path, payload: bytes) -> Path:
+def _small_canvas_ssim(reference_rgb: np.ndarray, actual_rgb: np.ndarray) -> float:
+    """Deterministic global SSIM fallback where a 3x3 local window cannot fit."""
+
+    if np.array_equal(reference_rgb, actual_rgb):
+        return 1.0
+    c1 = (0.01 * 255.0) ** 2
+    c2 = (0.03 * 255.0) ** 2
+    channel_scores: list[float] = []
+    for channel in range(3):
+        left = reference_rgb[..., channel].astype(np.float64).ravel()
+        right = actual_rgb[..., channel].astype(np.float64).ravel()
+        left_mean = float(left.mean())
+        right_mean = float(right.mean())
+        left_centered = left - left_mean
+        right_centered = right - right_mean
+        left_variance = float(np.mean(left_centered * left_centered))
+        right_variance = float(np.mean(right_centered * right_centered))
+        covariance = float(np.mean(left_centered * right_centered))
+        luminance = (2 * left_mean * right_mean + c1) / (
+            left_mean * left_mean + right_mean * right_mean + c1
+        )
+        contrast_structure = (2 * covariance + c2) / (
+            left_variance + right_variance + c2
+        )
+        channel_scores.append(luminance * contrast_structure)
+    return max(-1.0, min(1.0, float(np.mean(channel_scores))))
+
+
+def _atomic_write(
+    path: Path,
+    payload: bytes,
+    constraints: _WriteConstraints,
+) -> Path:
     try:
-        bounded, _ = _bounded_output(path)
+        bounded, run_root = _bounded_output(path)
     except RenderError as exc:
         raise FidelityError(str(exc)) from None
-    temporary = bounded.parent / f".{bounded.name}.{hashlib.sha256(payload).hexdigest()}.tmp"
-    if temporary.exists() or temporary.is_symlink():
-        raise FidelityError("deterministic diff staging path already exists")
+    if bounded != constraints.target or run_root != constraints.run_root:
+        raise FidelityError("prepared diff output diverges from the validated run contract")
+    temporary: Path | None = None
+    descriptor = -1
+    primary: FidelityError | None = None
     try:
-        with temporary.open("xb") as stream:
+        descriptor, name = tempfile.mkstemp(
+            prefix=f".{bounded.name}.", suffix=".tmp", dir=bounded.parent
+        )
+        temporary = Path(name)
+        stream = os.fdopen(descriptor, "wb")
+        descriptor = -1
+        with stream:
             stream.write(payload)
             stream.flush()
             os.fsync(stream.fileno())
@@ -351,17 +380,45 @@ def _atomic_write(path: Path, payload: bytes) -> Path:
             _bounded_output(bounded)
         except RenderError as exc:
             raise FidelityError(str(exc)) from None
+        _revalidate_write_constraints(constraints)
         os.replace(temporary, bounded)
-    except FidelityError:
-        raise
+        temporary = None
+    except FidelityError as exc:
+        primary = exc
     except OSError as exc:
-        raise FidelityError(f"cannot write deterministic diff atomically: {exc}") from None
-    finally:
-        if temporary.exists():
-            try:
-                temporary.unlink()
-            except OSError:
-                pass
+        primary = FidelityError(f"cannot write deterministic diff atomically: {exc}")
+        primary.__cause__ = exc
+
+    cleanup_failures: list[OSError] = []
+    if descriptor >= 0:
+        try:
+            os.close(descriptor)
+        except OSError as exc:
+            cleanup_failures.append(exc)
+    if temporary is not None and (temporary.exists() or temporary.is_symlink()):
+        try:
+            temporary.unlink()
+        except OSError as exc:
+            cleanup_failures.append(exc)
+    if cleanup_failures:
+        residue = temporary if temporary is not None else bounded.parent
+        message = (
+            f"diff cleanup left explicit residue/descriptor at {residue}: "
+            f"{cleanup_failures}"
+        )
+        if primary is not None:
+            combined = FidelityError(f"{primary}; additionally, {message}")
+            raise combined from ExceptionGroup(
+                "diff primary failure and temporary cleanup failure",
+                [primary, *cleanup_failures],
+            )
+        if len(cleanup_failures) == 1:
+            raise FidelityError(message) from cleanup_failures[0]
+        raise FidelityError(message) from ExceptionGroup(
+            "multiple diff temporary cleanup failures", cleanup_failures
+        )
+    if primary is not None:
+        raise primary
     return bounded
 
 
@@ -371,25 +428,56 @@ def compare_images(
     *,
     profile: RenderProfile | None = None,
     diff_output_path: Path | None = None,
+    run_contract: dict | None = None,
 ) -> FidelityMetrics:
     """Compare exact-size PNGs under the sole fixed deterministic profile."""
 
-    reference_rgba = _load_rgba(reference)
-    actual_rgba = _load_rgba(actual)
-    if reference_rgba.shape != actual_rgba.shape:
-        raise FidelityError("reference and actual dimensions do not match; scaling/cropping is forbidden")
-    height, width, _ = reference_rgba.shape
-    if profile is None:
-        try:
-            profile = load_render_profile(width, height)
-        except RenderError as exc:
-            raise FidelityError(str(exc)) from None
+    reference_path = Path(os.path.abspath(os.fspath(reference)))
+    actual_path = Path(os.path.abspath(os.fspath(actual)))
     try:
-        _validate_profile(profile)
+        reference_image = _open_checked_png_header(reference_path)
     except RenderError as exc:
         raise FidelityError(str(exc)) from None
-    if (width, height) != (profile.width, profile.height):
-        raise FidelityError("image dimensions do not match fixed profile dimensions")
+    try:
+        try:
+            actual_image = _open_checked_png_header(actual_path)
+        except RenderError as exc:
+            raise FidelityError(str(exc)) from None
+        try:
+            if reference_image.size != actual_image.size:
+                raise FidelityError(
+                    "reference and actual dimensions do not match; scaling/cropping is forbidden"
+                )
+            width, height = reference_image.size
+            if profile is None:
+                try:
+                    profile = load_render_profile(width, height)
+                except RenderError as exc:
+                    raise FidelityError(str(exc)) from None
+            try:
+                _validate_profile(profile)
+            except RenderError as exc:
+                raise FidelityError(str(exc)) from None
+            if (width, height) != (profile.width, profile.height):
+                raise FidelityError("image dimensions do not match fixed profile dimensions")
+            write_constraints: _WriteConstraints | None = None
+            if diff_output_path is not None:
+                try:
+                    write_constraints = _validated_write_constraints(
+                        run_contract,
+                        diff_output_path,
+                        profile,
+                        allowed_kinds=frozenset({"evidence"}),
+                        operation="verify",
+                    )
+                except RenderError as exc:
+                    raise FidelityError(str(exc)) from None
+            reference_rgba = _decode_rgba(reference_image, reference_path)
+            actual_rgba = _decode_rgba(actual_image, actual_path)
+        finally:
+            actual_image.close()
+    finally:
+        reference_image.close()
 
     mismatch, excluded_aa = pixelmatch_masks(
         reference_rgba,
@@ -406,19 +494,20 @@ def compare_images(
     actual_rgb = _composite_rgba(actual_rgba, profile.rgba_background)
     minimum_axis = min(width, height)
     if minimum_axis < 3:
-        raise FidelityError("SSIM requires image dimensions of at least 3 pixels")
-    window_size = min(7, minimum_axis)
-    if window_size % 2 == 0:
-        window_size -= 1
-    ssim_score = float(
-        structural_similarity(
-            reference_rgb,
-            actual_rgb,
-            channel_axis=2,
-            data_range=255.0,
-            win_size=window_size,
+        ssim_score = _small_canvas_ssim(reference_rgb, actual_rgb)
+    else:
+        window_size = min(7, minimum_axis)
+        if window_size % 2 == 0:
+            window_size -= 1
+        ssim_score = float(
+            structural_similarity(
+                reference_rgb,
+                actual_rgb,
+                channel_axis=2,
+                data_range=255.0,
+                win_size=window_size,
+            )
         )
-    )
     rgba_delta = np.abs(reference_rgba.astype(np.float64) - actual_rgba.astype(np.float64)) / 255.0
     mean_rgba_error = float(np.mean(rgba_delta))
     alpha_mean_error = float(np.mean(rgba_delta[..., 3]))
@@ -459,7 +548,11 @@ def compare_images(
     aa_bytes = excluded_aa.tobytes(order="C")
     diff_payload = _diff_png(mismatch, excluded_aa)
     diff_sha256 = hashlib.sha256(diff_payload).hexdigest()
-    diff_path = None if diff_output_path is None else _atomic_write(diff_output_path, diff_payload)
+    diff_path = (
+        None
+        if diff_output_path is None
+        else _atomic_write(diff_output_path, diff_payload, write_constraints)
+    )
     passed = not failure_reasons
     return FidelityMetrics(
         width=width,
