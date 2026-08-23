@@ -56,6 +56,7 @@ SCRIPTS = [
     "verify_asset_governance.py",
     "verify_external_assets_index.py",
     "verify_reconstruction_pipeline.py",
+    "verify_reconstruction_bundle.py",
 ]
 
 # Release-time gate: invoked separately with a release-evidence file argument.
