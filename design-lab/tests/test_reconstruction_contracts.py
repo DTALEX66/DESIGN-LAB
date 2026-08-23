@@ -376,6 +376,64 @@ class ReconstructionContractTests(unittest.TestCase):
         with self.assertRaisesRegex(ContractError, "duplicate artifact role"):
             validate_run_contract(duplicate_role)
 
+    def test_pipeline_artifact_roles_are_typed_and_checkpoint_role_can_repeat(self):
+        value = minimal_run_contract("pipeline-contract")
+        runtime_root = value["roots"]["runtime"]
+        additions = [
+            {
+                "id": "rir-input",
+                "kind": "rir-input",
+                "path": runtime_root + "input.rir.json",
+                "role": "reconstruction-rir",
+                "producer": "explicit-rir-v1",
+                "sha256": "1" * 64,
+            },
+            {
+                "id": "pipeline-journal",
+                "kind": "journal",
+                "path": runtime_root + "journal.json",
+                "role": "pipeline-journal",
+                "producer": "reconstruction-pipeline-v1",
+            },
+            {
+                "id": "pipeline-metrics",
+                "kind": "metrics",
+                "path": runtime_root + "metrics.json",
+                "role": "pipeline-metrics",
+                "producer": "fidelity-metrics-v1",
+            },
+            {
+                "id": "checkpoint-created",
+                "kind": "checkpoint",
+                "path": runtime_root + "checkpoints/0001.json",
+                "role": "pipeline-checkpoint",
+                "producer": "reconstruction-pipeline-v1",
+            },
+            {
+                "id": "checkpoint-analyzed",
+                "kind": "checkpoint",
+                "path": runtime_root + "checkpoints/0002.json",
+                "role": "pipeline-checkpoint",
+                "producer": "reconstruction-pipeline-v1",
+            },
+        ]
+        value["artifacts"].extend(additions)
+        value["writeAuthorization"]["targets"].extend(
+            artifact["path"] for artifact in additions
+        )
+        validate_run_contract(value)
+
+        wrong = copy.deepcopy(value)
+        wrong["artifacts"][2]["producer"] = "reconstruction-pipeline-v1"
+        with self.assertRaisesRegex(ContractError, "producer|role"):
+            validate_run_contract(wrong)
+
+        duplicate_singleton = copy.deepcopy(value)
+        duplicate_singleton["artifacts"][4]["role"] = "pipeline-journal"
+        duplicate_singleton["artifacts"][4]["kind"] = "journal"
+        with self.assertRaisesRegex(ContractError, "duplicate artifact role"):
+            validate_run_contract(duplicate_singleton)
+
     def test_invalid_profile_is_rejected(self):
         value = minimal_run_contract()
         value["profile"] = "illustration"

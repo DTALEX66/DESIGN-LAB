@@ -182,9 +182,16 @@ def validate_run_contract(value: dict) -> None:
         "sanitized-svg": ("vector-output", "rir-svg-serializer-v1"),
         "render-preview": ("evidence", "resvg-v0.47.0"),
         "diff-evidence": ("evidence", "fidelity-metrics-v1"),
+        "reconstruction-rir": ("rir-input", "explicit-rir-v1"),
+        "pipeline-journal": ("journal", "reconstruction-pipeline-v1"),
+        "pipeline-checkpoint": ("checkpoint", "reconstruction-pipeline-v1"),
+        "pipeline-metrics": ("metrics", "fidelity-metrics-v1"),
     }
     artifact_roles = [artifact.get("role") for artifact in artifacts if artifact.get("role")]
-    if len(artifact_roles) != len(set(artifact_roles)):
+    singleton_roles = [
+        role for role in artifact_roles if role != "pipeline-checkpoint"
+    ]
+    if len(singleton_roles) != len(set(singleton_roles)):
         raise ContractError("$.artifacts: duplicate artifact role")
     for index, artifact in enumerate(artifacts):
         role = artifact.get("role")

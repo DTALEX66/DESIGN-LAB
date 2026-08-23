@@ -200,11 +200,11 @@
       "additionalProperties": false,
       "properties": {
         "id": {"$ref": "#/$defs/stableId"},
-        "kind": {"enum": ["normalized-source", "vector-output", "package", "evidence", "readback", "checkpoint"]},
+        "kind": {"enum": ["normalized-source", "vector-output", "package", "evidence", "readback", "checkpoint", "rir-input", "journal", "metrics"]},
         "path": {"$ref": "#/$defs/projectPath"},
-        "role": {"enum": ["normalized-reference", "sanitized-svg", "render-preview", "diff-evidence"]},
+        "role": {"enum": ["normalized-reference", "sanitized-svg", "render-preview", "diff-evidence", "reconstruction-rir", "pipeline-journal", "pipeline-checkpoint", "pipeline-metrics"]},
         "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
-        "producer": {"enum": ["intake-normalizer-v1", "rir-svg-serializer-v1", "resvg-v0.47.0", "fidelity-metrics-v1"]}
+        "producer": {"enum": ["intake-normalizer-v1", "rir-svg-serializer-v1", "resvg-v0.47.0", "fidelity-metrics-v1", "explicit-rir-v1", "reconstruction-pipeline-v1"]}
       }
     }
   }
