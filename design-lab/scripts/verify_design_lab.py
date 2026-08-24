@@ -56,6 +56,10 @@ SCRIPTS = [
     "verify_asset_governance.py",
     "verify_external_assets_index.py",
     "verify_reconstruction_pipeline.py",
+    "verify_reconstruction_security.py",
+    "verify_reconstruction_golden_corpus.py",
+    "verify_illustrator_reconstruction_adapter.py",
+    "verify_photoshop_reconstruction_adapter.py",
     "verify_reconstruction_bundle.py",
 ]
 
@@ -63,6 +67,7 @@ SCRIPTS = [
 # Kept out of the daily chain because it requires evidence input and must fail
 # closed (non-zero) when no exact-SHA evidence is provided.
 RELEASE_VERIFIER = "verify_release_evidence.py"
+RECONSTRUCTION_RELEASE_VERIFIER = "verify_reconstruction_release.py"
 
 # E1 确定性检查（DL-QLT-001 / DL-PRD-001），以参数化方式运行
 EXTRA_CHECKS = [

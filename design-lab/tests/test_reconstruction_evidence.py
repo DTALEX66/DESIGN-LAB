@@ -853,18 +853,25 @@ class ReconstructionEvidenceTests(unittest.TestCase):
                     validate_bundle(bundle)
 
     def test_dirty_execution_tree_is_recorded_truthfully_and_blocks_delivery_claims(self) -> None:
-        from reconstruction.evidence import validate_bundle
+        from reconstruction import evidence as module
 
-        bundle = self.make_bundle()
+        dirty = copy.deepcopy(module._execution_source_evidence())
+        dirty["files"][0]["currentSha256"] = "0" * 64
+        dirty["files"][0]["currentBlobSha"] = "0" * 40
+        dirty["files"][0]["trackState"] = "TRACKED_MODIFIED"
+        dirty["state"] = "DIRTY_UNPUBLISHED"
+        dirty["digest"] = _execution_digest(dirty)
+        with mock.patch.object(module, "_execution_source_evidence", return_value=dirty):
+            bundle = self.make_bundle()
+            self.assertEqual(module.validate_bundle(bundle).state, "PIXEL_VERIFIED_DETERMINISTIC")
         manifest = json.loads((bundle / "manifest.json").read_text(encoding="utf-8"))
         provenance = json.loads((bundle / "provenance.json").read_text(encoding="utf-8"))
         self.assertEqual(manifest["sourceTreeState"], "DIRTY_UNPUBLISHED")
         self.assertEqual(provenance["sourceTreeState"], "DIRTY_UNPUBLISHED")
         self.assertEqual(manifest["executionSourceDigest"], provenance["executionSource"]["digest"])
         self.assertTrue(
-            any(item["trackState"] == "UNTRACKED" for item in provenance["executionSource"]["files"])
+            any(item["trackState"] == "TRACKED_MODIFIED" for item in provenance["executionSource"]["files"])
         )
-        self.assertEqual(validate_bundle(bundle).state, "PIXEL_VERIFIED_DETERMINISTIC")
 
     def test_clean_execution_source_fixture_is_structural_only_and_makes_no_ci_claim(self) -> None:
         from reconstruction import evidence as module
@@ -976,8 +983,27 @@ class ReconstructionEvidenceTests(unittest.TestCase):
             item for item in observed["files"]
             if item["path"] == "design-lab/scripts/verify_reconstruction_bundle.py"
         )
-        self.assertEqual(verifier_record["trackState"], "UNTRACKED")
-        self.assertEqual(observed["state"], "DIRTY_UNPUBLISHED")
+        if verifier_record["headBlobSha"] is None:
+            tracked = set(module._git_lines(
+                ["ls-files", "--", verifier_record["path"]],
+                label="test execution-source tracking",
+            ))
+            expected_track_state = (
+                "TRACKED_NEW" if verifier_record["path"] in tracked else "UNTRACKED"
+            )
+        elif verifier_record["currentSha256"] is None:
+            expected_track_state = "TRACKED_DELETED"
+        elif verifier_record["currentBlobSha"] == verifier_record["headBlobSha"]:
+            expected_track_state = "TRACKED_HEAD_MATCH"
+        else:
+            expected_track_state = "TRACKED_MODIFIED"
+        self.assertEqual(verifier_record["trackState"], expected_track_state)
+        expected_state = (
+            "CLEAN_EXACT_HEAD"
+            if all(item["trackState"] == "TRACKED_HEAD_MATCH" for item in observed["files"])
+            else "DIRTY_UNPUBLISHED"
+        )
+        self.assertEqual(observed["state"], expected_state)
 
         bundle = self.make_bundle()
         provenance_path = bundle / "provenance.json"
