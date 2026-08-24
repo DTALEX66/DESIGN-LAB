@@ -105,13 +105,11 @@ def main() -> int:
         summary = next((line for line in reversed(tail) if line.startswith(("VERIFY_", "STYLE_MASTER_METHOD=", "ADAPTER_", "BENCHMARK_", "EVIDENCE_", "PASS", "FAIL"))), "")
         print(summary)
         if r.returncode != 0:
-            # print the specific failing checks for diagnosis
-            for line in tail:
-                if line.startswith("FAIL"):
-                    print(f"  {line}")
+            # print the full failing verifier output for diagnosis (incl. tracebacks)
+            print(r.stdout.strip())
         results.append((name, r.returncode))
         if r.returncode != 0 and r.stderr.strip():
-            print(r.stderr.strip()[-500:])
+            print(r.stderr.strip())
 
     for name, args in EXTRA_CHECKS:
         print(f"\n===== {name} =====\n")
