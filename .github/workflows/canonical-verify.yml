@@ -57,6 +57,13 @@ jobs:
           python-version: '3.12'
       - name: Install deps
         run: python -m pip install -r requirements.txt
+      - name: Install resvg renderer (Linux)
+        if: runner.os == 'Linux'
+        run: |
+          mkdir -p /opt/resvg/v0.47.0
+          curl -sL -o /tmp/resvg-linux.tar.gz https://github.com/linebender/resvg/releases/download/v0.47.0/resvg-linux-x86_64.tar.gz
+          tar -xzf /tmp/resvg-linux.tar.gz -C /opt/resvg/v0.47.0
+          chmod +x /opt/resvg/v0.47.0/resvg
       - name: Identity boundary gate
         run: python design-lab/scripts/verify_identity_gate.py
       - name: DESIGN-LAB unified verify

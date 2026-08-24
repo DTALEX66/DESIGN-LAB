@@ -55,12 +55,19 @@ SCRIPTS = [
     "verify_evidence_cards.py",
     "verify_asset_governance.py",
     "verify_external_assets_index.py",
+    "verify_reconstruction_pipeline.py",
+    "verify_reconstruction_security.py",
+    "verify_reconstruction_golden_corpus.py",
+    "verify_illustrator_reconstruction_adapter.py",
+    "verify_photoshop_reconstruction_adapter.py",
+    "verify_reconstruction_bundle.py",
 ]
 
 # Release-time gate: invoked separately with a release-evidence file argument.
 # Kept out of the daily chain because it requires evidence input and must fail
 # closed (non-zero) when no exact-SHA evidence is provided.
 RELEASE_VERIFIER = "verify_release_evidence.py"
+RECONSTRUCTION_RELEASE_VERIFIER = "verify_reconstruction_release.py"
 
 # E1 确定性检查（DL-QLT-001 / DL-PRD-001），以参数化方式运行
 EXTRA_CHECKS = [
@@ -98,13 +105,11 @@ def main() -> int:
         summary = next((line for line in reversed(tail) if line.startswith(("VERIFY_", "STYLE_MASTER_METHOD=", "ADAPTER_", "BENCHMARK_", "EVIDENCE_", "PASS", "FAIL"))), "")
         print(summary)
         if r.returncode != 0:
-            # print the specific failing checks for diagnosis
-            for line in tail:
-                if line.startswith("FAIL"):
-                    print(f"  {line}")
+            # print the full failing verifier output for diagnosis (incl. tracebacks)
+            print(r.stdout.strip())
         results.append((name, r.returncode))
         if r.returncode != 0 and r.stderr.strip():
-            print(r.stderr.strip()[-500:])
+            print(r.stderr.strip())
 
     for name, args in EXTRA_CHECKS:
         print(f"\n===== {name} =====\n")

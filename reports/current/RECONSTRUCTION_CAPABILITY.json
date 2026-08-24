@@ -1,0 +1,14 @@
+{
+  "schemaVersion": "design-lab/reconstruction-capability-projection/v1",
+  "boundSha": null,
+  "current": false,
+  "status": "NONCURRENT",
+  "lifecycle": {
+    "implementedLocal": false,
+    "testedLocal": false,
+    "ciVerifiedExactSha": false,
+    "mergedMain": false,
+    "installedRuntimeVerified": false
+  },
+  "reason": "No validated reconstruction-evidence/v1 record is bound to this projection."
+}

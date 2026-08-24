@@ -94,6 +94,8 @@ def subprocess_run(argv: list[str], env: dict[str, str]) -> str:
     proc = subprocess.run(
         argv,
         text=True,
+        encoding="utf-8",
+        errors="strict",
         stdout=subprocess.PIPE,
         stderr=subprocess.STDOUT,
         env=env,

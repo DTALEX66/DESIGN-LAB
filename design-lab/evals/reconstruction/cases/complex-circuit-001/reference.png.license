@@ -1,0 +1,16 @@
+{
+  "schemaVersion": "design-lab/asset-sidecar/v1",
+  "file": "design-lab/evals/reconstruction/cases/complex-circuit-001/reference.png",
+  "sha256": "sha256:59c3b9bd8054e2eb7679eb1800622626a4931808d6e31d259f4aa28b91cee00b",
+  "license": "MIT",
+  "author": "2026 DTALEX66 and contributors",
+  "redistributable": true,
+  "modelInputAllowed": true,
+  "commercialUse": true,
+  "sourceId": null,
+  "exception": {
+    "approvedBy": "2026 DTALEX66 and contributors",
+    "expiresAt": "2027-08-23"
+  },
+  "notes": "First-party deterministic reference raster for golden case complex-circuit-001, generated from design-lab/evals/reconstruction/sources.json programmatic fixture."
+}

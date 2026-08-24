@@ -1,0 +1,16 @@
+{
+  "schemaVersion": "design-lab/asset-sidecar/v1",
+  "file": "design-lab/evals/reconstruction/cases/logo-orbit-001/reference.png",
+  "sha256": "sha256:e522ec406d4ea98975ee3c4fc0b8f66c102a6b87a8472cb23d99327d27645fdc",
+  "license": "MIT",
+  "author": "2026 DTALEX66 and contributors",
+  "redistributable": true,
+  "modelInputAllowed": true,
+  "commercialUse": true,
+  "sourceId": null,
+  "exception": {
+    "approvedBy": "2026 DTALEX66 and contributors",
+    "expiresAt": "2027-08-23"
+  },
+  "notes": "First-party deterministic reference raster for golden case logo-orbit-001, generated from design-lab/evals/reconstruction/sources.json programmatic fixture."
+}
