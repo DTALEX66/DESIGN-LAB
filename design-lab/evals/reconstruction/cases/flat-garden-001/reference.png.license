@@ -1,0 +1,16 @@
+{
+  "schemaVersion": "design-lab/asset-sidecar/v1",
+  "file": "design-lab/evals/reconstruction/cases/flat-garden-001/reference.png",
+  "sha256": "sha256:155ccfd13ab3179a27c10e09ae3d3dd32a9afa10a5c5143b1040b9dc6db1ba2d",
+  "license": "MIT",
+  "author": "2026 DTALEX66 and contributors",
+  "redistributable": true,
+  "modelInputAllowed": true,
+  "commercialUse": true,
+  "sourceId": null,
+  "exception": {
+    "approvedBy": "2026 DTALEX66 and contributors",
+    "expiresAt": "2027-08-23"
+  },
+  "notes": "First-party deterministic reference raster for golden case flat-garden-001, generated from design-lab/evals/reconstruction/sources.json programmatic fixture."
+}

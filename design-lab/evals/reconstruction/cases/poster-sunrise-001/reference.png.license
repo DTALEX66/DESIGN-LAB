@@ -1,0 +1,16 @@
+{
+  "schemaVersion": "design-lab/asset-sidecar/v1",
+  "file": "design-lab/evals/reconstruction/cases/poster-sunrise-001/reference.png",
+  "sha256": "sha256:f14cbada1279e4e8e410d62265db1c1b5db430e79efa64c7f6e80465a511b4cc",
+  "license": "MIT",
+  "author": "2026 DTALEX66 and contributors",
+  "redistributable": true,
+  "modelInputAllowed": true,
+  "commercialUse": true,
+  "sourceId": null,
+  "exception": {
+    "approvedBy": "2026 DTALEX66 and contributors",
+    "expiresAt": "2027-08-23"
+  },
+  "notes": "First-party deterministic reference raster for golden case poster-sunrise-001, generated from design-lab/evals/reconstruction/sources.json programmatic fixture."
+}
