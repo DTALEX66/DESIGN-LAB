@@ -238,9 +238,9 @@ def _streamed_zero_png(width: int, height: int, *, color_type: int = 6) -> bytes
 def _approved_icc_profile_bytes(
     creation_date: bytes = bytes.fromhex("07ea000800160015002f0002"),
 ) -> bytes:
-    profile = bytearray(
-        ImageCms.ImageCmsProfile(ImageCms.createProfile("sRGB")).tobytes()
-    )
+    from reconstruction.intake import _canonical_srgb_profile_bytes
+
+    profile = bytearray(_canonical_srgb_profile_bytes())
     profile[24:36] = creation_date
     payload = bytes(profile)
     assert len(payload) == 588

@@ -187,6 +187,22 @@ def _is_sha256(value: Any) -> bool:
     )
 
 
+_WINDOWS_ABSOLUTE_RE = re.compile(r"^[A-Za-z]:[\\/]")
+
+
+def _is_absolute_path(value: str) -> bool:
+    """Accept both POSIX and Windows absolute paths.
+
+    Model/toolchain ``localPath`` entries are pinned to Windows absolute paths
+    (e.g. ``D:\\All projects\\Model library\\...``). On Linux these are not
+    ``Path.is_absolute()``, but they are still explicit (non-relative) locations,
+    so the registry must accept them cross-platform.
+    """
+    if Path(value).is_absolute():
+        return True
+    return bool(_WINDOWS_ABSOLUTE_RE.match(value))
+
+
 def _validate_entry(value: Any, index: int) -> ProviderDescriptor:
     entry = _strict_object(value, _ENTRY_KEYS, f"entries[{index}]")
     for key in (
@@ -220,7 +236,7 @@ def _validate_entry(value: Any, index: int) -> ProviderDescriptor:
     if entry["remote"]:
         if local_path is not None or entry["device"] != "remote":
             raise ProviderRegistryError(f"entries[{index}] remote provider has local execution state")
-    elif not isinstance(local_path, str) or not Path(local_path).is_absolute():
+    elif not isinstance(local_path, str) or not _is_absolute_path(local_path):
         raise ProviderRegistryError(f"entries[{index}].localPath must be an explicit absolute path")
     minimum_vram = entry["minimumVramMiB"]
     priority = entry["priority"]
