@@ -6,7 +6,6 @@ import hashlib
 import os
 import re
 import stat
-import struct
 import tempfile
 from dataclasses import dataclass
 from enum import Enum
@@ -124,15 +123,39 @@ def _sha256_file(path: Path) -> str:
     return digest.hexdigest()
 
 
-def _canonical_srgb_profile_bytes() -> bytes:
-    """Create Pillow's built-in sRGB profile with a fixed ICC creation timestamp."""
+_SRGB_PROFILE_HEX = (
+    "0000024c6c636d73044000006d6e74725247422058595a2007d0000100010000"
+    "00000000616373704d5346540000000000000000000000000000000000000000"
+    "000000000000f6d6000100000000d32d6c636d73000000000000000000000000"
+    "0000000000000000000000000000000000000000000000000000000000000000"
+    "0000000b64657363000001080000003663707274000001400000004c77747074"
+    "0000018c0000001463686164000001a00000002c7258595a000001cc00000014"
+    "6258595a000001e0000000146758595a000001f4000000147254524300000208"
+    "000000206754524300000208000000206254524300000208000000206368726d"
+    "00000228000000246d6c756300000000000000010000000c656e55530000001a"
+    "0000001c00730052004700420020006200750069006c0074002d0069006e0000"
+    "6d6c756300000000000000010000000c656e5553000000300000001c004e006f"
+    "00200063006f0070007900720069006700680074002c00200075007300650020"
+    "0066007200650065006c007958595a20000000000000f6d6000100000000d32d"
+    "736633320000000000010c42000005defffff325000007930000fd90fffffba1"
+    "fffffda2000003dc0000c06e58595a200000000000006fa0000038f500000390"
+    "58595a20000000000000249f00000f840000b6c358595a200000000000006297"
+    "0000b787000018d9706172610000000000030000000266660000f2a700000d59"
+    "000013d000000a5b6368726d00000000000300000000a3d70000547b00004ccd"
+    "0000999a0000266600000f5c"
+)
 
-    profile = ImageCms.ImageCmsProfile(ImageCms.createProfile("sRGB"))
-    payload = bytearray(profile.tobytes())
-    # ICC header bytes 24..35 are six unsigned 16-bit date/time fields. LittleCMS
-    # otherwise writes wall-clock time, which would make normalized PNGs differ.
-    payload[24:36] = struct.pack(">6H", 2000, 1, 1, 0, 0, 0)
-    return bytes(payload)
+
+def _canonical_srgb_profile_bytes() -> bytes:
+    """Return the pinned canonical sRGB ICC profile (lcms 2.19 bytes, creation date fixed).
+
+    Hard-coded instead of generated at runtime so the normalized PNG ICC digest is
+    identical on every platform regardless of the Pillow wheel's bundled lcms
+    version (Windows and manylinux wheels ship different lcms builds, which would
+    otherwise produce different sRGB profiles and break cross-platform ICC
+    digest verification against the approved registry).
+    """
+    return bytes.fromhex(_SRGB_PROFILE_HEX)
 
 
 _SRGB_PROFILE_BYTES = _canonical_srgb_profile_bytes()
