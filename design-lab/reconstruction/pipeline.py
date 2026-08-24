@@ -47,9 +47,12 @@ from .svg import serialize_svg
 from .svg_safety import UnsafeSVGError
 
 CAPABILITY_CLAIM = "ORCHESTRATION_ONLY_NO_SEMANTIC_DECOMPOSITION"
-PINNED_RESVG_BINARY = Path(
-    r"D:\All projects\Design External Configuration\toolchains\resvg\v0.47.0\resvg.exe"
-)
+if os.name == "nt":
+    PINNED_RESVG_BINARY = Path(
+        r"D:\All projects\Design External Configuration\toolchains\resvg\v0.47.0\resvg.exe"
+    )
+else:
+    PINNED_RESVG_BINARY = Path("/opt/resvg/v0.47.0/resvg")
 TERMINAL_STATES = {
     "PIXEL_VERIFIED_DETERMINISTIC",
     "PARTIAL",

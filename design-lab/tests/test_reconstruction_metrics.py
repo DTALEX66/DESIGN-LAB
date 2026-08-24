@@ -35,9 +35,15 @@ from reconstruction.render import (  # noqa: E402
 from reconstruction.svg import serialize_svg  # noqa: E402
 
 REGISTRY = REPO_ROOT / "design-lab" / "config" / "reconstruction-tools.json"
-REAL_RESVG = Path(
-    r"D:\All projects\Design External Configuration\toolchains\resvg\v0.47.0\resvg.exe"
-)
+if os.name == "nt":
+    REAL_RESVG = Path(
+        r"D:\All projects\Design External Configuration\toolchains\resvg\v0.47.0\resvg.exe"
+    )
+    REAL_RESVG_SHA256 = "433a7c744cff561ed64fcf73c7c04e239d7a07ae5f0aadbf1ba8471d63707402"
+else:
+    REAL_RESVG = Path("/opt/resvg/v0.47.0/resvg")
+    REAL_RESVG_SHA256 = "a53a45eafcaf3c04ceefc0c150c3d10fdf582d143d1ca5e4a7a64e661c55f02e"
+# Fixed Windows resvg executable SHA used to assert the resvgWindows registry entry.
 EXPECTED_RESVG_SHA256 = (
     "433a7c744cff561ed64fcf73c7c04e239d7a07ae5f0aadbf1ba8471d63707402"
 )
@@ -361,7 +367,7 @@ class ReconstructionMetricTests(unittest.TestCase):
         self.assertEqual(profile.rgba_background, (255, 255, 255, 255))
         self.assertEqual(profile.renderer_id, "linebender/resvg")
         self.assertEqual(profile.renderer_version, "0.47.0")
-        self.assertEqual(profile.renderer_sha256, EXPECTED_RESVG_SHA256)
+        self.assertEqual(profile.renderer_sha256, REAL_RESVG_SHA256)
         self.assertEqual(profile.pixelmatch_version, "7.2.0")
         self.assertEqual(profile.pixel_threshold, 0.1)
         self.assertTrue(profile.anti_alias_detection)
@@ -1769,7 +1775,7 @@ class ReconstructionMetricTests(unittest.TestCase):
 
     @unittest.skipUnless(REAL_RESVG.is_file(), "pinned external resvg is not installed")
     def test_real_resvg_64_roundtrip_uses_explicit_authorized_binary(self) -> None:
-        self.assertEqual(hashlib.sha256(REAL_RESVG.read_bytes()).hexdigest(), EXPECTED_RESVG_SHA256)
+        self.assertEqual(hashlib.sha256(REAL_RESVG.read_bytes()).hexdigest(), REAL_RESVG_SHA256)
         svg = self.run_root / "source.svg"
         layers = []
         for index, (x, y, fill) in enumerate(
@@ -1830,7 +1836,7 @@ class ReconstructionMetricTests(unittest.TestCase):
         self.assertEqual(result.output_sha256, hashlib.sha256(output.read_bytes()).hexdigest())
         self.assertEqual((result.width, result.height), (64, 64))
         self.assertEqual(result.renderer_version, "0.47.0")
-        self.assertEqual(result.renderer_sha256, EXPECTED_RESVG_SHA256)
+        self.assertEqual(result.renderer_sha256, REAL_RESVG_SHA256)
         self.assertEqual(result.registry_digest, self.profile.registry_sha256)
         self.assertEqual(
             [(item.role, item.producer, item.sha256) for item in result.input_bindings],

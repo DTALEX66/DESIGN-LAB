@@ -32,7 +32,7 @@ _CANONICAL_RUNTIME_ROOT = _PROJECT_ROOT / ".hermes" / "task-runtime" / "reconstr
 _REPARSE_POINT = getattr(stat, "FILE_ATTRIBUTE_REPARSE_POINT", 0x400)
 _RUN_ID = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$")
 _SHA256 = re.compile(r"^[0-9a-f]{64}$")
-_TRUSTED_REGISTRY_SHA256 = "eb58b86af889f6fb84a3ce6dc770d7380b7c26a1c9fe68c857b4545b07e882a0"
+_TRUSTED_REGISTRY_SHA256 = "99c00e1d0be93ed28184f05aed2f11fa66c775a01532d99264a91f07a5705142"
 _PNG_SIGNATURE = b"\x89PNG\r\n\x1a\n"
 _QUALIFIED_METRIC_MAX_PIXELS = 4_194_304
 _QUALIFIED_METRIC_MAX_BYTES = 67_108_864
@@ -271,6 +271,11 @@ class _IccpPreflight:
         return bytes(self.profile_bytes)
 
 
+def _renderer_key() -> str:
+    """Select the pinned resvg renderer registry entry for this platform."""
+    return "resvgWindows" if os.name == "nt" else "resvgLinux"
+
+
 def _load_registry() -> tuple[dict[str, Any], str]:
     try:
         payload = _REGISTRY_PATH.read_bytes()
@@ -409,7 +414,7 @@ def load_render_profile(
     binary = None if renderer_binary is None else Path(os.path.abspath(renderer_binary))
     registry, registry_sha256 = _load_registry()
     fixed = registry.get("renderProfile", {})
-    renderer = registry.get("renderers", {}).get("resvgWindows", {})
+    renderer = registry.get("renderers", {}).get(_renderer_key(), {})
     pixelmatch = registry.get("metrics", {}).get("pixelmatch", {})
     mae = fixed.get("maeLimit", {})
     edge = fixed.get("edgeMetric", {})
@@ -477,7 +482,7 @@ def _validate_profile(profile: RenderProfile) -> None:
         )
     registry, registry_sha256 = _load_registry()
     fixed = registry["renderProfile"]
-    renderer = registry["renderers"]["resvgWindows"]
+    renderer = registry["renderers"][_renderer_key()]
     pixelmatch = registry["metrics"]["pixelmatch"]
     mae = fixed["maeLimit"]
     edge = fixed["edgeMetric"]
