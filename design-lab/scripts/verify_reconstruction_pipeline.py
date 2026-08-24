@@ -34,7 +34,7 @@ def main() -> int:
     match = re.search(r"Ran (\d+) tests?", combined)
     cases = int(match.group(1)) if match else 0
     if completed.returncode != 0 or cases <= 0:
-        print(combined[-4000:])
+        print(combined)
         print(f"RECONSTRUCTION_PIPELINE=FAIL cases={cases}")
         return 1
     print(f"RECONSTRUCTION_PIPELINE=PASS cases={cases}")
