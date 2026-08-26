@@ -22,7 +22,7 @@
       "device": "cuda",
       "minimumVramMiB": 8000,
       "tasks": ["layer-decomposition"],
-      "defaultEnabled": true,
+      "defaultEnabled": false,
       "priority": 10,
       "limitations": ["checksum-required-before-runtime-qualification"],
       "qualification": "UNQUALIFIED_CHECKSUM"
@@ -43,7 +43,7 @@
       "device": "cuda",
       "minimumVramMiB": 5500,
       "tasks": ["layer-decomposition", "foreground-matting"],
-      "defaultEnabled": true,
+      "defaultEnabled": false,
       "priority": 20,
       "limitations": ["checksum-required-before-runtime-qualification"],
       "qualification": "UNQUALIFIED_CHECKSUM"
@@ -64,7 +64,7 @@
       "device": "cuda",
       "minimumVramMiB": 4500,
       "tasks": ["foreground-matting"],
-      "defaultEnabled": true,
+      "defaultEnabled": false,
       "priority": 30,
       "limitations": ["checksum-required-before-runtime-qualification"],
       "qualification": "UNQUALIFIED_CHECKSUM"
@@ -85,7 +85,7 @@
       "device": "cuda",
       "minimumVramMiB": 2048,
       "tasks": ["ocr", "semantic-analysis"],
-      "defaultEnabled": true,
+      "defaultEnabled": false,
       "priority": 10,
       "limitations": ["checksum-required-before-runtime-qualification"],
       "qualification": "UNQUALIFIED_CHECKSUM"
@@ -106,7 +106,7 @@
       "device": "cuda",
       "minimumVramMiB": 6000,
       "tasks": ["open-vocabulary-boxes", "semantic-analysis"],
-      "defaultEnabled": true,
+      "defaultEnabled": false,
       "priority": 40,
       "limitations": ["optional-runtime", "checksum-required-before-runtime-qualification"],
       "qualification": "UNQUALIFIED_CHECKSUM"
