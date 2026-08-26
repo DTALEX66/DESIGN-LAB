@@ -293,8 +293,10 @@ class CapabilityIndexTests(unittest.TestCase):
         """DL-MIG-011: capability-index must be deterministically sorted."""
         idx = json.loads((ROOT / "config/capability-index.json").read_text(encoding="utf-8"))
         items = idx.get("capabilities", idx.get("items", []))
-        self.assertGreater(len(items), 1000, "capability index must be substantial")
-        keys = [i.get("id", i.get("name", "")) for i in items]
+        # DLR-040: capability index now only contains explicit capability manifests
+        # (reduced from 2424 files to 5 adapter manifests)
+        self.assertGreater(len(items), 0, "capability index must have at least one entry")
+        keys = [i.get("capabilityId", i.get("id", i.get("name", ""))) for i in items]
         self.assertEqual(keys, sorted(keys), "capability index must be sorted")
 
     def test_generated_at_fixed_format(self):

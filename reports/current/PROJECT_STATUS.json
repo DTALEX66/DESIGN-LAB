@@ -4,10 +4,10 @@
   "generator": "scripts/generate_project_status.py (DL-MIG-005)",
   "git": {
     "branch": "main",
-    "headSha": "38d322affaec163e7c7ca0e3610042285aab1f0f",
-    "originMainSha": "38d322affaec163e7c7ca0e3610042285aab1f0f",
-    "worktreeClean": true,
-    "trackedFiles": 3451,
+    "headSha": "2dd019c1464f49048b575e27abf31f27e6ae5cc1",
+    "originMainSha": "2dd019c1464f49048b575e27abf31f27e6ae5cc1",
+    "worktreeClean": false,
+    "trackedFiles": 3456,
     "packMiB": 200.01
   },
   "sources": {
@@ -15,7 +15,7 @@
     "quarantinedSources": 162
   },
   "capabilities": {
-    "capabilityIndexCount": 2424
+    "capabilityIndexCount": 5
   },
   "evidence": {
     "cards": 12,
