@@ -7,11 +7,11 @@
   "capability_count": 5,
   "capabilities": [
     {
-      "capabilityId": "open-design",
-      "owner": "design-lab/adapters/hosts/open-design",
+      "capabilityId": "adapter-adobe-photoshop",
+      "owner": "design-lab/adapters/creative-tools/adobe",
       "consumer": "design-lab",
-      "source": "https://github.com/DTALEX66/DESIGN-LAB/design-lab/adapters/hosts/open-design/adapter.manifest.json",
-      "license": "MIT",
+      "source": "https://github.com/DTALEX66/DESIGN-LAB/design-lab/adapters/creative-tools/adobe/adapter.manifest.json",
+      "license": "proprietary (Adobe subscription), used via scripting contract",
       "hash": "pending",
       "evidenceLevel": "E0",
       "status": "declared",
@@ -31,11 +31,11 @@
       "limitations": []
     },
     {
-      "capabilityId": "adapter-adobe-photoshop",
-      "owner": "design-lab/adapters/creative-tools/adobe",
+      "capabilityId": "adapter-mcp",
+      "owner": "design-lab/adapters/mcp",
       "consumer": "design-lab",
-      "source": "https://github.com/DTALEX66/DESIGN-LAB/design-lab/adapters/creative-tools/adobe/adapter.manifest.json",
-      "license": "proprietary (Adobe subscription), used via scripting contract",
+      "source": "https://github.com/DTALEX66/DESIGN-LAB/design-lab/adapters/mcp/adapter.manifest.json",
+      "license": "MIT (protocol spec)",
       "hash": "pending",
       "evidenceLevel": "E0",
       "status": "declared",
@@ -55,11 +55,11 @@
       "limitations": []
     },
     {
-      "capabilityId": "adapter-mcp",
-      "owner": "design-lab/adapters/mcp",
+      "capabilityId": "open-design",
+      "owner": "design-lab/adapters/hosts/open-design",
       "consumer": "design-lab",
-      "source": "https://github.com/DTALEX66/DESIGN-LAB/design-lab/adapters/mcp/adapter.manifest.json",
-      "license": "MIT (protocol spec)",
+      "source": "https://github.com/DTALEX66/DESIGN-LAB/design-lab/adapters/hosts/open-design/adapter.manifest.json",
+      "license": "MIT",
       "hash": "pending",
       "evidenceLevel": "E0",
       "status": "declared",
