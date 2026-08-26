@@ -48,18 +48,20 @@ def render(state: dict) -> str:
         lines.append('_无阶段变更_')
 
     lines += ['', '## 待用户判断节点（按模式）']
+    # Human Gate fail closed: production 模式不能绕过关键门
+    # Direction/Quality/Rights/Production/Release gate 按风险和生命周期决定
     approval = {
-        'guided': ['direction', 'critique', 'preflight'],
-        'copilot': ['critique', 'preflight'],
-        'director': ['preflight'],
-        'method': ['preflight'],
-        'production': [],
+        'guided': ['direction', 'quality', 'rights', 'production', 'release'],
+        'copilot': ['quality', 'rights', 'production'],
+        'director': ['rights', 'production'],
+        'method': ['rights', 'production'],
+        'production': ['rights', 'production'],  # 最低风险：仍需 rights 和 production gate
     }
     for n in approval.get(mode, []):
         mark = 'WARN' if n == stage else '.'
         lines.append(f'- {mark} {n}')
     if not approval.get(mode):
-        lines.append('_生产模式：无人工判断节点_')
+        lines.append('_错误：所有模式必须至少有一个 gate_')
 
     lines += ['', '## 交付与证据']
     lines.append(f'- 质量报告: {objects.get("qualityReport", "未生成")}')
