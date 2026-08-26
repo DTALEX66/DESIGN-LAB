@@ -1,27 +1,29 @@
 {
-  "schemaVersion": "open-design/plugin/v1",
-  "id": "design-lab-core",
-  "name": "DESIGN-LAB Core",
+  "$schema": "https://open-design.ai/schemas/plugin.v1.json",
+  "specVersion": "1.0.0",
+  "name": "design-lab-core",
   "version": "0.1.0",
   "description": "DESIGN-LAB 核心插件：Brief、Direction、Design IR、Human Gate、Jury、Rights、Preflight、Delivery Receipt",
   "author": "DTALEX66",
   "license": "MIT",
-  "entry": "src/index.js",
-  "capabilities": [
-    "brief-input",
-    "direction-lock",
-    "design-ir-readwrite",
-    "human-gate",
-    "jury-review",
-    "rights-check",
-    "preflight-validation",
-    "delivery-receipt"
-  ],
+  "entry": "SKILL.md",
   "od": {
+    "kind": "skill",
+    "capabilities": [
+      "prompt:inject",
+      "artifact:design-brief",
+      "design-system:reference"
+    ],
     "context": {
       "skills": [],
       "atoms": [],
       "assets": []
     }
-  }
+  },
+  "categories": [
+    "design-workflow",
+    "human-gate",
+    "quality-assurance",
+    "production"
+  ]
 }
