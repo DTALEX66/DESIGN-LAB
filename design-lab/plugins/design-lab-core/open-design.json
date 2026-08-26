@@ -69,17 +69,21 @@
     "inputs": [
       {
         "name": "brief",
-        "type": "object",
-        "default": {}
+        "label": "Brief",
+        "type": "text",
+        "placeholder": "Describe the design brief"
       },
       {
         "name": "direction",
-        "type": "object",
-        "default": {}
+        "label": "Direction",
+        "type": "text",
+        "placeholder": "Design direction"
       },
       {
         "name": "domain",
-        "type": "string",
+        "label": "Domain",
+        "type": "select",
+        "options": ["brand-identity", "ui-ux", "ecommerce", "print", "motion-3d"],
         "default": "brand-identity"
       }
     ],
