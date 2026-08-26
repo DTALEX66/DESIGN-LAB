@@ -2,6 +2,9 @@
  * DESIGN-LAB Core Plugin
  * 
  * 核心功能：Brief、Direction、Design IR、Human Gate、Jury、Rights、Preflight、Delivery Receipt
+ * 
+ * SPDX-License-Identifier: MIT
+ * Copyright (c) 2026 DTALEX66
  */
 
 class DesignLabCore {
