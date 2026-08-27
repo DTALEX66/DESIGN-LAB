@@ -1,8 +1,8 @@
 # PROJECT_STATUS（生成状态，DL-MIG-005）
 
-- 生成时间：2026-08-26｜生成器：`scripts/generate_project_status.py (DL-MIG-005)`
-- Git：分支 `main`，HEAD `2dd019c1464f`，origin/main `2dd019c1464f`，worktree dirty
-- tracked 文件：3456；仓库 pack：200.01 MiB（预算 256 MiB，预警 220 MiB）
+- 生成时间：2026-08-27｜生成器：`scripts/generate_project_status.py (DL-MIG-005)`
+- Git：分支 `main`，HEAD `cde6c2e0adf3`，origin/main `cde6c2e0adf3`，worktree clean
+- tracked 文件：3475；仓库 pack：200.01 MiB（预算 256 MiB，预警 220 MiB）
 
 ## 来源治理
 - 活动登记（v3）：6；隔离登记：162（162 条遗留已隔离，DL-KNW-003）
