@@ -108,12 +108,12 @@ jobs:
           node-version: 22
       - name: Run MiniGame unit tests
         run: node scripts/run-tests.cjs
-        working-directory: minigame-runtime
+        working-directory: fixtures/domains/game-visual
       - name: Rebuild android + webview and assert no drift
         run: node scripts/check-android-drift.mjs
-        working-directory: minigame-runtime
+        working-directory: fixtures/domains/game-visual
       - name: Confirm worktree clean after build
-        run: git diff --exit-code -- minigame-runtime
+        run: git diff --exit-code -- fixtures/domains/game-visual
 
   generated-artifact-gate:
     name: Generated-artifact clean-tree gate
@@ -125,7 +125,7 @@ jobs:
           node-version: 22
       - name: Rebuild and assert committed bundles unchanged
         run: |
-          cd minigame-runtime
+          cd fixtures/domains/game-visual
           node build.js android
           node scripts/prepare-android-webview.mjs
           git diff --exit-code -- android-minigame android-webview/app/src/main/assets
@@ -185,7 +185,7 @@ jobs:
             head="${{ github.sha }}"
           fi
           changed=$(git diff --name-only "$base" "$head" || true)
-          echo "$changed" | grep -qE '^design-lab/(plugins|adapters/hosts/open-design)/' && echo "open-design=true" >> "$GITHUB_OUTPUT" || echo "open-design=false" >> "$GITHUB_OUTPUT"
+          echo "$changed" | grep -qE '^(design-lab/(plugins|skills)|packages/capabilities/(plugins|skills)|integrations/hosts/open-design)/' && echo "open-design=true" >> "$GITHUB_OUTPUT" || echo "open-design=false" >> "$GITHUB_OUTPUT"
       - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5.6.0
         with:
           python-version: '3.12'
