@@ -36,7 +36,7 @@ describe("package metadata", () => {
       "https://github.com/arvindrk/extract-design-system#readme"
     );
     expect(pkg.bugs).toEqual({
-      url: "https://github.com/arvindrk/extract-design-system/issues"
+      url: "https://github.com/arvindrk/extract-packages/design-system/issues"
     });
     expect(pkg.funding).toEqual({
       type: "github",

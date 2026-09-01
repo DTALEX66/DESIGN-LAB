@@ -57,7 +57,7 @@ def _layer(layer_id: str, x1: int, y1: int, x2: int, y2: int, fill: str) -> dict
 
 def _explicit_rir(*, mismatch: bool = False) -> dict:
     return {
-        "schemaVersion": "design-lab/reconstruction-ir/v1",
+        "schemaVersion": "packages/capabilities/reconstruction-ir/v1",
         "canvas": {"width": 64, "height": 64, "colorSpace": "srgb"},
         "layers": [
             _layer("quadrant-0", 0, 0, 32, 32, "#142850"),
@@ -113,7 +113,7 @@ def _create_contract(token: str, *, mismatch: bool = False) -> tuple[Path, Path,
         )
     now = datetime.now(timezone.utc)
     contract = {
-        "schemaVersion": "design-lab/reconstruction-run/v1",
+        "schemaVersion": "packages/capabilities/reconstruction-run/v1",
         "runId": run_id,
         "jobId": f"job-{run_id}",
         "source": {

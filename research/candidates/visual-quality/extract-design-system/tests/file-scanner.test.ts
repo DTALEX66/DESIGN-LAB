@@ -51,7 +51,7 @@ describe("walkFiles", () => {
   });
 
   it("skips .extract-design-system", async () => {
-    await touch(".extract-design-system/raw.css");
+    await touch(".extract-packages/design-system/raw.css");
     const files: string[] = [];
     for await (const f of walkFiles(tmpDir, DEFAULT_EXTENSIONS, DEFAULT_SKIP_DIRS)) {
       files.push(f);

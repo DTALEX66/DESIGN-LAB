@@ -1,12 +1,12 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "design-lab/reconstruction-ir/v1",
+  "$id": "packages/capabilities/reconstruction-ir/v1",
   "title": "Deterministic Reconstruction Intermediate Representation",
   "type": "object",
   "required": ["schemaVersion", "canvas", "layers"],
   "additionalProperties": false,
   "properties": {
-    "schemaVersion": {"const": "design-lab/reconstruction-ir/v1"},
+    "schemaVersion": {"const": "packages/capabilities/reconstruction-ir/v1"},
     "canvas": {"$ref": "#/$defs/canvas"},
     "layers": {"type": "array", "items": {"$ref": "#/$defs/node"}},
     "repairHistory": {"$ref": "#/$defs/repairHistory"},

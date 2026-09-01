@@ -32,7 +32,7 @@ export function summarizeNormalized(normalized: ReturnType<typeof normalizeExtra
     .join(", ");
 
   return [
-    `Saved ${paletteCount} palette color${paletteCount === 1 ? "" : "s"} to .extract-design-system/.`,
+    `Saved ${paletteCount} palette color${paletteCount === 1 ? "" : "s"} to .extract-packages/design-system/.`,
     fonts ? `Fonts detected: ${fonts}.` : "Fonts detected: none."
   ].join(" ");
 }

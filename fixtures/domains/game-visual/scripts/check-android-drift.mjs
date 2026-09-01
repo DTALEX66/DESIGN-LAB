@@ -44,7 +44,7 @@ for (const rel of TRACKED_DRIFT_SENSITIVE) {
   }
   // Byte-compare against Git HEAD blob via git cat-file
   try {
-    const headBlob = execFileSync('git', ['show', `HEAD:minigame-runtime/${rel}`], { cwd: root, encoding: 'utf8' });
+    const headBlob = execFileSync('git', ['show', `HEAD:fixtures/domains/game-visual/${rel}`], { cwd: root, encoding: 'utf8' });
     const working = readFileSync(abs, 'utf8');
     const same = headBlob === working;
     console.log(`[drift] ${same ? 'OK  ' : 'DIFF'} ${rel}`);

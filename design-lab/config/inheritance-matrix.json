@@ -47,8 +47,8 @@
     {"asset": "V3 497 master records + 77 anchor method cards + 47 style lineages", "disposition": "INHERITED_NEEDS_REVERIFY", "note": "V4 verifies, anonymizes, promotes <=20 runtime-eligible cards (ODA4-0804/0805)"},
     {"asset": "V3 12 evidence cards", "disposition": "INHERITED_NEEDS_REVERIFY", "note": "Currently not-run; V4 replaces with real capability evidence (ODA4-0907)"},
     {"asset": "V3 verification scripts (verify_*.py)", "disposition": "INHERITED_VERIFIED", "note": "Keep; V4 root Canonical CI runs all of them (ODA4-0104)"},
-    {"asset": "MiniGame runtime (minigame-runtime/)", "disposition": "INHERITED_NEEDS_REVERIFY", "note": "Kept as reference-product + cross-media benchmark; isolated, no Core dependency (ODA4-1001..1004)"},
-    {"asset": "design-system/ absorbed assets", "disposition": "INHERITED_VERIFIED", "note": "Reference material for Open Design"},
+    {"asset": "MiniGame runtime (fixtures/domains/game-visual/)", "disposition": "INHERITED_NEEDS_REVERIFY", "note": "Kept as reference-product + cross-media benchmark; isolated, no Core dependency (ODA4-1001..1004)"},
+    {"asset": "packages/design-system/ absorbed assets", "disposition": "INHERITED_VERIFIED", "note": "Reference material for Open Design"},
     {"asset": "V2/V2.1 source registries & research", "disposition": "INHERITED_VERIFIED", "note": "Preserved as reference; migrate to SOURCE_REGISTRY_V3"}
   ],
   "net_gap_groups_for_v4": [

@@ -2,7 +2,7 @@
 
 ## 云端事实（2026-08-10 回读，迁移后复核）
 
-- `minigame-runtime/` 已存在于云端 `main`（当前 HEAD `5c4fe55`，DESIGN-LAB R3 迁移后）。
+- `fixtures/domains/game-visual/` 已存在于云端 `main`（当前 HEAD `5c4fe55`，DESIGN-LAB R3 迁移后）。
 - 它在本仓库中的角色是 **游戏视觉设计 fixture / runtime reference**
   （`fixtureRole: game-visual-design-reference`，任务包 H2），
   不是独立游戏产品仓库，也不是本仓库的产品主线。
@@ -28,7 +28,7 @@
 
 ## 判定口径
 
-- `minigame-runtime/README.md` 顶部定位必须以 fixture/runtime reference 为准；
+- `fixtures/domains/game-visual/README.md` 顶部定位必须以 fixture/runtime reference 为准；
   任何"合集平台 / IAA 变现 / 独立产品"表述必须指向本文件或回归冻结口径。
 - 涉及 minigame-runtime 的改动在 PR/review 时执行 MiniGame 边界检查
   （对应 `06_PROJECT_DRIFT_CONTROL.md` 的 `minigame_boundary_check`）。
@@ -36,6 +36,6 @@
 
 ## 相关记录
 
-- `project-memory/MINIGAME_RUNTIME_CLEANUP.md`：吸收与精简记录。
-- `project-memory/MIGRATION_STATUS.md`：迁移状态。
-- `minigame-runtime/AGENTS.md`：模块内执行规则。
+- `docs/MINIGAME_RUNTIME_CLEANUP.md`：吸收与精简记录。
+- `docs/MIGRATION_STATUS.md`：迁移状态。
+- `fixtures/domains/game-visual/AGENTS.md`：模块内执行规则。

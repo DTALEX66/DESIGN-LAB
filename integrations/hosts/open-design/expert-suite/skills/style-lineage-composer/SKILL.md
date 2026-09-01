@@ -50,5 +50,5 @@ od:
 - `design-lab/research/style-lineages/STYLE_LINEAGES.json`
 - `design-lab/research/style-lineages/STYLE_ANALYSIS_CARDS.json`
 - `design-lab/schemas/visual-quality/style-lineage.schema.json`
-- `design-lab/atoms/style-lineage-mapper/SKILL.md`
-- `design-lab/atoms/style-vector-builder/SKILL.md`
+- `packages/capabilities/atoms/style-lineage-mapper/SKILL.md`
+- `packages/capabilities/atoms/style-vector-builder/SKILL.md`

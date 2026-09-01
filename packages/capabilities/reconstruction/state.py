@@ -17,8 +17,8 @@ from typing import Any
 from .contracts import ContractError, validate_run_contract
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
-JOURNAL_SCHEMA = "design-lab/reconstruction-journal/v1"
-CHECKPOINT_SCHEMA = "design-lab/reconstruction-checkpoint/v1"
+JOURNAL_SCHEMA = "packages/capabilities/reconstruction-journal/v1"
+CHECKPOINT_SCHEMA = "packages/capabilities/reconstruction-checkpoint/v1"
 MAX_JSON_BYTES = 8 * 1024 * 1024
 MAX_JOURNAL_BYTES = 1024 * 1024
 MAX_JSON_DEPTH = 64
@@ -718,7 +718,7 @@ def _validate_metrics_payload_claims(
     if not isinstance(profile, dict) or not isinstance(pixelmatch, dict):
         raise PipelineStateError("reconstruction tool registry profile is malformed")
     exact_values = {
-        "schemaVersion": "design-lab/reconstruction-metrics/v1",
+        "schemaVersion": "packages/capabilities/reconstruction-metrics/v1",
         "profileId": profile.get("id"),
         "pixelmatchVersion": pixelmatch.get("version"),
         "pixelThreshold": profile.get("pixelThreshold"),
@@ -907,7 +907,7 @@ def _validate_metrics_semantics(
     except Exception as exc:
         raise PipelineStateError(f"cannot independently recompute C4 metrics: {exc}") from None
     expected_payload = {
-        "schemaVersion": "design-lab/reconstruction-metrics/v1",
+        "schemaVersion": "packages/capabilities/reconstruction-metrics/v1",
         "profileId": recomputed.profile_id,
         "pixelmatchVersion": recomputed.pixelmatch_version,
         "pixelThreshold": recomputed.pixel_threshold,

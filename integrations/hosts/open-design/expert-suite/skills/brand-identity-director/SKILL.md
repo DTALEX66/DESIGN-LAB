@@ -25,4 +25,4 @@ od:
 
 - `design-lab/templates/brand/brand-identity-system.md`
 - `design-lab/templates/graphic/`
-- `design-lab/plugins/brand-visual-director/SKILL.md`
+- `packages/capabilities/plugins/brand-visual-director/SKILL.md`

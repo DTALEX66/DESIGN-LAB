@@ -15,7 +15,7 @@
 - Pixelmatch-equivalent match ratio gate: `>= 0.995` at color threshold `0.1` with anti-alias classification.
 - SSIM gate: `>= 0.995` on normalized sRGB RGB output.
 - Default maximum input axis: `4096` pixels; larger images retain a global coordinate system and use tiles.
-- Canonical schema ID: `design-lab/reconstruction-ir/v1`.
+- Canonical schema ID: `packages/capabilities/reconstruction-ir/v1`.
 - Runtime files: `.hermes/task-runtime/reconstruction/<run-id>/`; accepted local evidence: `.hermes/task-artifacts/reconstruction/<run-id>/`.
 - No full-canvas reference overlay, executable SVG, external SVG URL, silent resolution reduction, remote inference, or Adobe write.
 - Tests use the exact project interpreter and the repository's `unittest` conventions.
@@ -27,8 +27,8 @@
 **Files:**
 - Create: `design-lab/schemas/reconstruction/reconstruction-ir.schema.json`
 - Create: `design-lab/schemas/reconstruction/reconstruction-run.schema.json`
-- Create: `design-lab/reconstruction/__init__.py`
-- Create: `design-lab/reconstruction/contracts.py`
+- Create: `packages/capabilities/reconstruction/__init__.py`
+- Create: `packages/capabilities/reconstruction/contracts.py`
 - Test: `design-lab/tests/test_reconstruction_contracts.py`
 
 **Interfaces:**
@@ -41,7 +41,7 @@
 class ReconstructionContractTests(unittest.TestCase):
     def test_minimal_rir_validates(self):
         validate_rir({
-            "schemaVersion": "design-lab/reconstruction-ir/v1",
+            "schemaVersion": "packages/capabilities/reconstruction-ir/v1",
             "canvas": {"width": 64, "height": 64, "colorSpace": "srgb"},
             "layers": [],
         })
@@ -61,7 +61,7 @@ Expected: FAIL because `reconstruction.contracts` and the schemas do not exist.
 - [ ] **Step 3: Implement closed schemas and validator wrappers**
 
 ```python
-RIR_SCHEMA_ID = "design-lab/reconstruction-ir/v1"
+RIR_SCHEMA_ID = "packages/capabilities/reconstruction-ir/v1"
 
 class ContractError(ValueError):
     pass
@@ -87,15 +87,15 @@ Expected: PASS with no existing regression.
 - [ ] **Step 5: Commit the independently reviewable contract**
 
 ```bash
-git add -- design-lab/schemas/reconstruction design-lab/reconstruction/__init__.py design-lab/reconstruction/contracts.py design-lab/tests/test_reconstruction_contracts.py
+git add -- design-lab/schemas/reconstruction packages/capabilities/reconstruction/__init__.py packages/capabilities/reconstruction/contracts.py design-lab/tests/test_reconstruction_contracts.py
 git commit -m "feat(reconstruction): define closed RIR contracts"
 ```
 
 ### Task 2: Immutable intake and sRGB normalization
 
 **Files:**
-- Create: `design-lab/reconstruction/requirements-core.in`
-- Create: `design-lab/reconstruction/intake.py`
+- Create: `packages/capabilities/reconstruction/requirements-core.in`
+- Create: `packages/capabilities/reconstruction/intake.py`
 - Test: `design-lab/tests/test_reconstruction_intake.py`
 - Create: `design-lab/tests/fixtures/reconstruction/flat-64.png`
 
@@ -153,15 +153,15 @@ Expected: PASS both times and identical `normalized_sha256` values.
 - [ ] **Step 5: Commit intake as a separate capability**
 
 ```bash
-git add -- design-lab/reconstruction/requirements-core.in design-lab/reconstruction/intake.py design-lab/tests/test_reconstruction_intake.py design-lab/tests/fixtures/reconstruction/flat-64.png
+git add -- packages/capabilities/reconstruction/requirements-core.in packages/capabilities/reconstruction/intake.py design-lab/tests/test_reconstruction_intake.py design-lab/tests/fixtures/reconstruction/flat-64.png
 git commit -m "feat(reconstruction): add immutable image intake"
 ```
 
 ### Task 3: Safe RIR-to-SVG serialization
 
 **Files:**
-- Create: `design-lab/reconstruction/svg.py`
-- Create: `design-lab/reconstruction/svg_safety.py`
+- Create: `packages/capabilities/reconstruction/svg.py`
+- Create: `packages/capabilities/reconstruction/svg_safety.py`
 - Test: `design-lab/tests/test_reconstruction_svg.py`
 
 **Interfaces:**
@@ -214,7 +214,7 @@ Expected: PASS and byte-identical output for the same RIR.
 - [ ] **Step 5: Commit SVG safety and serialization**
 
 ```bash
-git add -- design-lab/reconstruction/svg.py design-lab/reconstruction/svg_safety.py design-lab/tests/test_reconstruction_svg.py
+git add -- packages/capabilities/reconstruction/svg.py packages/capabilities/reconstruction/svg_safety.py design-lab/tests/test_reconstruction_svg.py
 git commit -m "feat(reconstruction): emit sanitized deterministic SVG"
 ```
 
@@ -222,8 +222,8 @@ git commit -m "feat(reconstruction): emit sanitized deterministic SVG"
 
 **Files:**
 - Create: `design-lab/config/reconstruction-tools.json`
-- Create: `design-lab/reconstruction/render.py`
-- Create: `design-lab/reconstruction/metrics.py`
+- Create: `packages/capabilities/reconstruction/render.py`
+- Create: `packages/capabilities/reconstruction/metrics.py`
 - Test: `design-lab/tests/test_reconstruction_metrics.py`
 
 **Interfaces:**
@@ -275,15 +275,15 @@ Expected: PASS; a 64×64 rectangle RIR renders to 64×64 PNG and passes against 
 - [ ] **Step 5: Commit rendering and metric gates**
 
 ```bash
-git add -- design-lab/config/reconstruction-tools.json design-lab/reconstruction/render.py design-lab/reconstruction/metrics.py design-lab/tests/test_reconstruction_metrics.py
+git add -- design-lab/config/reconstruction-tools.json packages/capabilities/reconstruction/render.py packages/capabilities/reconstruction/metrics.py design-lab/tests/test_reconstruction_metrics.py
 git commit -m "feat(reconstruction): add deterministic fidelity gates"
 ```
 
 ### Task 5: Resumable pipeline, CLI, and canonical verifier
 
 **Files:**
-- Create: `design-lab/reconstruction/state.py`
-- Create: `design-lab/reconstruction/pipeline.py`
+- Create: `packages/capabilities/reconstruction/state.py`
+- Create: `packages/capabilities/reconstruction/pipeline.py`
 - Create: `design-lab/scripts/reconstruct_design.py`
 - Create: `design-lab/scripts/verify_reconstruction_pipeline.py`
 - Modify: `design-lab/scripts/verify_design_lab.py`
@@ -341,7 +341,7 @@ Expected: all PASS and the canonical total increases by one verifier.
 - [ ] **Step 5: Commit the deterministic vertical slice**
 
 ```bash
-git add -- design-lab/reconstruction/state.py design-lab/reconstruction/pipeline.py design-lab/scripts/reconstruct_design.py design-lab/scripts/verify_reconstruction_pipeline.py design-lab/scripts/verify_design_lab.py design-lab/tests/test_reconstruction_pipeline.py
+git add -- packages/capabilities/reconstruction/state.py packages/capabilities/reconstruction/pipeline.py design-lab/scripts/reconstruct_design.py design-lab/scripts/verify_reconstruction_pipeline.py design-lab/scripts/verify_design_lab.py design-lab/tests/test_reconstruction_pipeline.py
 git commit -m "feat(reconstruction): add resumable deterministic pipeline"
 ```
 
@@ -349,7 +349,7 @@ git commit -m "feat(reconstruction): add resumable deterministic pipeline"
 
 **Files:**
 - Create: `design-lab/schemas/reconstruction/reconstruction-bundle.schema.json`
-- Create: `design-lab/reconstruction/evidence.py`
+- Create: `packages/capabilities/reconstruction/evidence.py`
 - Create: `design-lab/scripts/verify_reconstruction_bundle.py`
 - Modify: `design-lab/scripts/verify_design_lab.py`
 - Test: `design-lab/tests/test_reconstruction_evidence.py`
@@ -403,6 +403,6 @@ Expected: PASS with no runtime artifact entering Git.
 - [ ] **Step 5: Commit the deterministic evidence boundary**
 
 ```bash
-git add -- design-lab/schemas/reconstruction/reconstruction-bundle.schema.json design-lab/reconstruction/evidence.py design-lab/scripts/verify_reconstruction_bundle.py design-lab/scripts/verify_design_lab.py design-lab/tests/test_reconstruction_evidence.py
+git add -- design-lab/schemas/reconstruction/reconstruction-bundle.schema.json packages/capabilities/reconstruction/evidence.py design-lab/scripts/verify_reconstruction_bundle.py design-lab/scripts/verify_design_lab.py design-lab/tests/test_reconstruction_evidence.py
 git commit -m "feat(reconstruction): package verified reconstruction evidence"
 ```

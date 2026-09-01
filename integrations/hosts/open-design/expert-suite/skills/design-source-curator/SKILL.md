@@ -44,5 +44,5 @@ od:
 - `design-lab/research/visual-quality/SOURCE_REGISTRY_VISUAL_V21.json`
 - `design-lab/research/global-absorption/SOURCE_REGISTRY.json`
 - `design-lab/schemas/source-registry.schema.json`
-- `design-lab/atoms/source-intake-gate/SKILL.md`
-- `design-lab/atoms/master-evidence-auditor/SKILL.md`
+- `packages/capabilities/atoms/source-intake-gate/SKILL.md`
+- `packages/capabilities/atoms/master-evidence-auditor/SKILL.md`

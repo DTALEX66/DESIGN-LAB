@@ -2,7 +2,7 @@ schemaVersion: design-lab/active-capability-allowlist/v1
 description: Only DESIGN-owned, qualified capabilities may appear in tool discovery
 allowlist:
   - id: reconstruction
-    path: design-lab/reconstruction
+    path: packages/capabilities/reconstruction
     status: qualified
     evidence_level: E2
   - id: design-ir-v2
@@ -14,11 +14,11 @@ allowlist:
     status: qualified
     evidence_level: E1
   - id: open-design-adapter
-    path: design-lab/adapters/hosts/open-design
+    path: integrations/hosts/open-design
     status: qualified
     evidence_level: E2
   - id: comfyui-adapter
-    path: design-lab/adapters/creative-tools/comfyui
+    path: integrations/generators/comfyui
     status: declared
     evidence_level: E0
   - id: adobe-adapter
@@ -26,10 +26,10 @@ allowlist:
     status: declared
     evidence_level: E0
   - id: minimax-h3-adapter
-    path: design-lab/adapters/creative-tools/minimax-h3
+    path: integrations/generators/minimax-h3
     status: declared
     evidence_level: E0
   - id: mcp-adapter
-    path: design-lab/adapters/mcp
+    path: integrations/mcp
     status: declared
     evidence_level: E0

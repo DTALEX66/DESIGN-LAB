@@ -32,7 +32,7 @@ def validate_release(evidence: Mapping[str, Any], expected_sha: str) -> None:
 
     if not _SHA.fullmatch(expected_sha):
         raise EvidenceError("expected release SHA must be a lowercase 40-hex SHA")
-    if evidence.get("schemaVersion") != "design-lab/reconstruction-evidence/v1":
+    if evidence.get("schemaVersion") != "packages/capabilities/reconstruction-evidence/v1":
         raise EvidenceError("unsupported reconstruction evidence schema")
     release_sha = evidence.get("releaseSha")
     if release_sha != expected_sha:
@@ -70,7 +70,7 @@ def current_projection(evidence: Mapping[str, Any], checked_out_sha: str) -> dic
     bound_sha = evidence.get("releaseSha")
     current = bool(valid and bound_sha == checked_out_sha)
     return {
-        "schemaVersion": "design-lab/reconstruction-capability-projection/v1",
+        "schemaVersion": "packages/capabilities/reconstruction-capability-projection/v1",
         "boundSha": bound_sha,
         "current": current,
         "status": "PASS" if current else "NONCURRENT",

@@ -17,7 +17,7 @@
 | QUARANTINE | 162 |
 | 治理缺口（GOVERNANCE_GAPS） | 0 |
 | 二进制资产 | 51 个 / 9.87 MiB（3 REGENERATE / 48 KEEP）|
-| Open Design Adapter 边界 | ✅ 收敛至 `design-lab/adapters/hosts/open-design/`；唯一所有者；E0/E1 诚实声明 |
+| Open Design Adapter 边界 | ✅ 收敛至 `integrations/hosts/open-design/`；唯一所有者；E0/E1 诚实声明 |
 | MiniGame 边界 | ✅ 广告/IAA/变现语义已清除（广告位/模拟广告/发布模式/激励奖励全部中性化）；防漂移测试通过 |
 | ComfyUI | status=runtime-verified，evidenceLevel=E3，workflow-execution supported=true（用户授权部署+真实生成） |
 | MiniMax H3 | status=runtime-verified，evidenceLevel=E3，video-generation supported=true（用户授权部署+真实生成） |

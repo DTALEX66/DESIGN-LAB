@@ -48,7 +48,7 @@ Use these as optional implementation evidence, not as universal product memory:
 
 ```text
 design-lab/domain-packs/minigame-design/
-minigame-runtime/
+fixtures/domains/game-visual/
 design-lab/design-systems/anomaly-monitor-dark/DESIGN.md  # optional CCTV case
 ```
 

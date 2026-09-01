@@ -5,7 +5,7 @@
 - 研究日期：2026-07-10
 - 站点索引：`https://carbondesignsystem.com/sitemap-0.xml`
 - sitemap URL 数：319
-- 官方源仓库：[carbon-design-system/carbon-website](https://github.com/carbon-design-system/carbon-website)
+- 官方源仓库：[carbon-packages/design-system/carbon-website](https://github.com/carbon-packages/design-system/carbon-website)
 - 源仓库快照：`17033640cf7680ee803690f2bd21c2a4bb307743`
 - 源 MDX 页：321
 - 许可证：Carbon website 为 Apache-2.0；本 skill 以重写、摘要和场景化规则引用，不复制官方图片、组件代码或大段原文。
@@ -113,7 +113,7 @@
 
 ```bash
 curl -fsSL https://carbondesignsystem.com/sitemap-0.xml -o /tmp/carbon-sitemap.xml
-git clone --depth=1 https://github.com/carbon-design-system/carbon-website.git /tmp/carbon-website
+git clone --depth=1 https://github.com/carbon-packages/design-system/carbon-website.git /tmp/carbon-website
 find /tmp/carbon-website/src/pages -type f -name '*.mdx' | wc -l
 git -C /tmp/carbon-website rev-parse HEAD
 ```

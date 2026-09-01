@@ -11,7 +11,7 @@
 
 ## Node (MiniGame runtime)
 - Zero external npm dependencies (pure Node scripts + built-ins).
-- Test: `npm test` (in `minigame-runtime/`) → `node scripts/run-tests.cjs` — **320 tests**.
+- Test: `npm test` (in `fixtures/domains/game-visual/`) → `node scripts/run-tests.cjs` — **320 tests**.
 - Verify: `npm run verify` → `node scripts/verify-all.cjs`.
 - Drift gate: `node scripts/check-android-drift.mjs` — ensures committed bundles
   match rebuilt output (deterministic). Verified: `npm test` does NOT dirty the

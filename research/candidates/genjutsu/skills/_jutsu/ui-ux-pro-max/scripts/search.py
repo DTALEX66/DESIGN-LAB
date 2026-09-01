@@ -17,10 +17,10 @@ Design dials (1-10, only with --design-system):
   --density    VISUAL_DENSITY: 1=spacious, 10=dense/dashboard; overrides the spacing scale
 
 Persistence (Master + Overrides pattern):
-  --persist      Save design system to design-system/<project-slug>/MASTER.md
-  --output-dir   Directory the design-system/ folder is created under (defaults to cwd --
+  --persist      Save design system to packages/design-system/<project-slug>/MASTER.md
+  --output-dir   Directory the packages/design-system/ folder is created under (defaults to cwd --
                  always pass this explicitly, pointed at the project root)
-  --page         Also create a page-specific override file in design-system/<project-slug>/pages/
+  --page         Also create a page-specific override file in packages/design-system/<project-slug>/pages/
   --force        Overwrite an existing MASTER.md (without this, persistence is skipped
                  if MASTER.md already exists, so prior design decisions aren't lost)
 """
@@ -98,8 +98,8 @@ if __name__ == "__main__":
     parser.add_argument("--project-name", "-p", type=str, default=None, help="Project name for design system output")
     parser.add_argument("--format", "-f", choices=["ascii", "markdown"], default="ascii", help="Output format for design system (ignored if --json)")
     # Persistence (Master + Overrides pattern)
-    parser.add_argument("--persist", action="store_true", help="Save design system to design-system/<project-slug>/MASTER.md (creates hierarchical structure)")
-    parser.add_argument("--page", type=str, default=None, help="Create page-specific override file in design-system/<project-slug>/pages/")
+    parser.add_argument("--persist", action="store_true", help="Save design system to packages/design-system/<project-slug>/MASTER.md (creates hierarchical structure)")
+    parser.add_argument("--page", type=str, default=None, help="Create page-specific override file in packages/design-system/<project-slug>/pages/")
     parser.add_argument("--output-dir", "-o", type=str, default=None, help="Output directory for persisted files (default: current directory -- pass this explicitly, pointed at the project root)")
     parser.add_argument("--force", action="store_true", help="Overwrite an existing MASTER.md when persisting (default: skip if it already exists)")
     # Design dials (1-10), only applied with --design-system
@@ -138,7 +138,7 @@ if __name__ == "__main__":
                 if persistence.get("status") == "skipped_exists":
                     print(f"⚠️  {persistence.get('message', 'MASTER.md already exists; not overwritten.')}")
                 else:
-                    ds_dir = persistence.get("design_system_dir", "design-system/<project>")
+                    ds_dir = persistence.get("design_system_dir", "packages/design-system/<project>")
                     print(f"✅ Design system persisted to {ds_dir}/")
                     for f in persistence.get("created_files", []):
                         print(f"   📄 {f}")

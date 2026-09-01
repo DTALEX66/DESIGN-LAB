@@ -21,7 +21,7 @@ def _load(name):
 
 _qg = _load("quality_gate")
 GATE = {
-    "schemaVersion": "design-lab/quality-gate/v1", "gate_id": "test",
+    "schemaVersion": "packages/capabilities/quality-gate/v1", "gate_id": "test",
     "minimum_total": 82,
     "minimum_dimensions": {"production_readiness": 95},
     "blocking_rules": ["insufficient_bleed"],

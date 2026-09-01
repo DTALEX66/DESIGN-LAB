@@ -1,6 +1,6 @@
 # Open Design plugin index
 
-Generated from `design-lab/plugins/*/open-design.json`.
+Generated from `packages/capabilities/plugins/*/open-design.json`.
 
 Run:
 

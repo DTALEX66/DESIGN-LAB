@@ -3,7 +3,7 @@
 """DL-ADP-OD-003: verify the Open Design Host Adapter layer.
 
 Focused repository validator for the Open Design host adapter
-(design-lab/adapters/hosts/open-design/): plugin projections, template
+(integrations/hosts/open-design/): plugin projections, template
 references, design-system manifests, export fixtures, indexes, script
 compileability (in-memory), asset counts and secondary verifiers.
 Standard library only. The stale minigame visual-pack fixture check was
@@ -169,7 +169,7 @@ def verify_plugin_manifests(root: Path, results: list[Result]) -> None:
             check(results, f"legacy plugin {name}: upgraded evidence is E2", evidence.get("level") == "E2", str(evidence))
             check(results, f"legacy plugin {name}: upgraded evidence passed", evidence.get("state") == "PASS", str(evidence))
             verified_by = evidence.get("verifiedBy") if isinstance(evidence.get("verifiedBy"), list) else []
-            check(results, f"legacy plugin {name}: verifier evidence recorded", "design-lab/adapters/hosts/open-design/verifier/verify_open_design_host_adapter.py" in verified_by, str(verified_by))
+            check(results, f"legacy plugin {name}: verifier evidence recorded", "integrations/hosts/open-design/verifier/verify_open_design_host_adapter.py" in verified_by, str(verified_by))
 
 
 def referenced_local_paths(text: str) -> set[str]:
@@ -328,14 +328,14 @@ def verify_indexes(root: Path, results: list[Result]) -> None:
 
 def verify_scripts(root: Path, results: list[Result]) -> None:
     scripts = [
-        "design-lab/adapters/hosts/open-design/verifier/verify_open_design_host_adapter.py",
+        "integrations/hosts/open-design/verifier/verify_open_design_host_adapter.py",
         "design-lab/scripts/verify_product_manifest_v3.py",
         "design-lab/scripts/verify_runtime_contracts_v3.py",
         "design-lab/scripts/verify_visual_scoring_v3.py",
         "design-lab/scripts/verify_source_registry.py",
         "design-lab/scripts/verify_v2_protocols.py",
         "design-lab/scripts/verify_visual_quality_v21.py",
-        "design-lab/adapters/hosts/open-design/verifier/generate_open_design_adapter_indexes.py",
+        "integrations/hosts/open-design/verifier/generate_open_design_adapter_indexes.py",
         "design-lab/scripts/scaffold_open_design_plugin.py",
         "design-lab/scripts/score_visual_quality.py",
         "design-lab/scripts/score_design_critique.py",
@@ -452,15 +452,15 @@ def verify_secondary_verifiers(root: Path, results: list[Result]) -> None:
 
 def verify_docs(root: Path, results: list[Result]) -> None:
     required_refs = [
-        "project-memory/PRODUCT_DEFINITION.md",
-        "project-memory/ARCHITECTURE.md",
-        "project-memory/BOUNDARY_CONTRACT.md",
-        "project-memory/NEUTRALITY_POLICY.md",
-        "project-memory/EVIDENCE_POLICY.md",
-        "project-memory/ADAPTER_POLICY.md",
-        "project-memory/OBJECT_MODEL.md",
-        "project-memory/USER_MODES.md",
-        "project-memory/ROADMAP.md",
+        "docs/PRODUCT_DEFINITION.md",
+        "docs/ARCHITECTURE.md",
+        "docs/BOUNDARY_CONTRACT.md",
+        "docs/NEUTRALITY_POLICY.md",
+        "docs/EVIDENCE_POLICY.md",
+        "docs/ADAPTER_POLICY.md",
+        "docs/OBJECT_MODEL.md",
+        "docs/USER_MODES.md",
+        "docs/ROADMAP.md",
         "design-lab/config/product-manifest.json",
         "design-lab/config/capability-status.json",
         "design-lab/scripts/verify_design_lab.py",

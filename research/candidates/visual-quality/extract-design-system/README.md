@@ -2,11 +2,11 @@
   <a href="https://www.npmjs.com/package/extract-design-system">
     <img src="https://img.shields.io/npm/dw/extract-design-system?logo=npm&logoColor=white" alt="npm downloads" />
   </a>
-  <a href="https://skills.sh/arvindrk/extract-design-system/extract-design-system">
+  <a href="https://skills.sh/arvindrk/extract-packages/design-system/extract-design-system">
     <img src="https://img.shields.io/badge/skills.sh-discovery-111111" alt="skills.sh" />
   </a>
-  <a href="https://github.com/arvindrk/extract-design-system/actions/workflows/ci.yml">
-    <img src="https://github.com/arvindrk/extract-design-system/actions/workflows/ci.yml/badge.svg" alt="ci" />
+  <a href="https://github.com/arvindrk/extract-packages/design-system/actions/workflows/ci.yml">
+    <img src="https://github.com/arvindrk/extract-packages/design-system/actions/workflows/ci.yml/badge.svg" alt="ci" />
   </a>
 </p>
 
@@ -14,7 +14,7 @@
 
 Reverse-engineer design tokens (colors, typography, spacing, border radius, shadows) from any public website and generate starter JSON and CSS custom properties for your local project. Available as an AI agent skill (Claude, Cursor, Codex) and standalone CLI.
 
-Skills follow Anthropic's [Agent Skills overview](https://platform.claude.com/docs/en/agents-and-tools/agent-skills/overview) and are installable through the [skills.sh](https://skills.sh/arvindrk/extract-design-system/extract-design-system) ecosystem.
+Skills follow Anthropic's [Agent Skills overview](https://platform.claude.com/docs/en/agents-and-tools/agent-skills/overview) and are installable through the [skills.sh](https://skills.sh/arvindrk/extract-packages/design-system/extract-design-system) ecosystem.
 
 This repository is skills-first. It publishes an installable `extract-design-system` skill, and the bundled CLI is the executable workflow the agent runs under the hood.
 
@@ -46,10 +46,10 @@ Extract the design system from https://stripe.com and generate starter token fil
 
 Expected starter outputs:
 
-- `.extract-design-system/raw.json`
-- `.extract-design-system/normalized.json`
-- `design-system/tokens.json`
-- `design-system/tokens.css`
+- `.extract-packages/design-system/raw.json`
+- `.extract-packages/design-system/normalized.json`
+- `packages/design-system/tokens.json`
+- `packages/design-system/tokens.css`
 
 ## About This Repository
 
@@ -77,10 +77,10 @@ Extract a starter design system from a public website and turn it into local tok
 
 **What it produces:**
 
-- `.extract-design-system/raw.json`
-- `.extract-design-system/normalized.json`
-- `design-system/tokens.json`
-- `design-system/tokens.css`
+- `.extract-packages/design-system/raw.json`
+- `.extract-packages/design-system/normalized.json`
+- `packages/design-system/tokens.json`
+- `packages/design-system/tokens.css`
 
 ## Installation
 
@@ -90,7 +90,7 @@ Install the skill from GitHub with the `skills` CLI:
 npx skills add arvindrk/extract-design-system
 ```
 
-You can also browse the skill on [skills.sh](https://skills.sh/arvindrk/extract-design-system/extract-design-system).
+You can also browse the skill on [skills.sh](https://skills.sh/arvindrk/extract-packages/design-system/extract-design-system).
 
 ## Usage
 
@@ -146,8 +146,8 @@ The skill is designed to:
 
 This repository currently exposes:
 
-- `skills/extract-design-system/SKILL.md` - Main skill instructions
-- `skills/extract-design-system/references/` - Supporting workflow and output references
+- `skills/extract-packages/design-system/SKILL.md` - Main skill instructions
+- `skills/extract-packages/design-system/references/` - Supporting workflow and output references
 - `src/` - Bundled CLI implementation used by the skill
 - `tests/` - CLI and normalization test coverage
 
@@ -159,9 +159,9 @@ The package also ships an MCP server (`extract-design-system-mcp`) that exposes 
 
 | Tool | Description |
 |---|---|
-| `extract_design_system` | Run a full extraction from a URL and write `design-system/tokens.json` + `tokens.css` |
-| `init_design_system` | Re-emit token files from the cached `.extract-design-system/normalized.json` without re-fetching |
-| `get_tokens` | Read and return the current `design-system/tokens.json` without re-extracting |
+| `extract_design_system` | Run a full extraction from a URL and write `packages/design-system/tokens.json` + `tokens.css` |
+| `init_design_system` | Re-emit token files from the cached `.extract-packages/design-system/normalized.json` without re-fetching |
+| `get_tokens` | Read and return the current `packages/design-system/tokens.json` without re-extracting |
 
 ### Cursor (project-local)
 
@@ -196,7 +196,7 @@ Add to `~/Library/Application Support/Claude/claude_desktop_config.json`:
 }
 ```
 
-Claude Desktop does not infer a working directory from context, so `cwd` is required. It controls where `design-system/tokens.json` and `.extract-design-system/` are written.
+Claude Desktop does not infer a working directory from context, so `cwd` is required. It controls where `packages/design-system/tokens.json` and `.extract-packages/design-system/` are written.
 
 ---
 

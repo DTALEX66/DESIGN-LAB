@@ -10,12 +10,12 @@
 - 设计结果必须能回写为 DESIGN.md、UI Schema、Design Tokens、Component Rules 或 Scorecard。
 
 请读取：
-- design-system/DESIGN.md
-- design-system/OPEN_DESIGN_START_HERE.md
-- design-system/05_DESIGN_COMMAND_CENTER/ui-schema/monitor_main.schema.json
-- design-system/05_DESIGN_COMMAND_CENTER/design-tokens/anomaly_monitor_dark.tokens.json
-- design-system/05_DESIGN_COMMAND_CENTER/component-rules/monitor_console.components.json
-- minigame-runtime/docs/PROJECT_CONTEXT.md
+- packages/design-system/DESIGN.md
+- packages/design-system/OPEN_DESIGN_START_HERE.md
+- packages/design-system/05_DESIGN_COMMAND_CENTER/ui-schema/monitor_main.schema.json
+- packages/design-system/05_DESIGN_COMMAND_CENTER/design-tokens/anomaly_monitor_dark.tokens.json
+- packages/design-system/05_DESIGN_COMMAND_CENTER/component-rules/monitor_console.components.json
+- fixtures/domains/game-visual/docs/PROJECT_CONTEXT.md
 
 任务：
 基于原 MINIGAME 异常监控游戏系统，为 Open Design 生成一个主窗口/移动端 frame 设计方案。

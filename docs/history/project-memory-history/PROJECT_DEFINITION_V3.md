@@ -13,7 +13,7 @@ It helps Open Design and compatible agents move from “can generate a design-lo
 | Open Design runtime | Open Design app/daemon | Project UI, Studio/canvas, Agent launch, plugin/scenario registration, preview, artifact export, stage events, provenance hooks. |
 | Agent execution | Hermes / Codex / compatible agents | Reasoning, file operations, bounded implementation, review, runtime smoke, evidence capture. |
 | Assistance repository | This repo | Design protocols, prompts, schemas, rubrics, knowledge, source registry, scenarios/atoms/bundles, preflight, delivery contracts, benchmark cases, verification scripts. |
-| Example runtimes | `minigame-runtime/`, `design-system/`, exports | Reference and regression material only; not the primary product surface. |
+| Example runtimes | `fixtures/domains/game-visual/`, `packages/design-system/`, exports | Reference and regression material only; not the primary product surface. |
 
 ## Core product loop
 

@@ -48,7 +48,7 @@ def load_corpus(path: Path) -> GoldenCorpus:
     """Load only complete, hash-bound, rights-cleared golden inputs."""
 
     raw = json.loads(path.read_text(encoding="utf-8"))
-    if raw.get("schemaVersion") != "design-lab/reconstruction-golden-corpus/v1":
+    if raw.get("schemaVersion") != "packages/capabilities/reconstruction-golden-corpus/v1":
         raise ValueError("unsupported golden corpus schema")
     cases: list[GoldenCase] = []
     seen: set[str] = set()

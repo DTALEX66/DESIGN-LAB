@@ -197,7 +197,7 @@ B2B AI company. Trustworthy, professional, humanistic.
 
 ## 六、推荐行动
 
-1. **立即**：为星云科技创建 `design-system/nebula-tech/DESIGN.md`
+1. **立即**：为星云科技创建 `packages/design-system/nebula-tech/DESIGN.md`
 2. **立即**：安装 Penpot → 推进 DLR-080
 3. **可选**：安装 Blender + Krita → 推进 DLR-090
 4. **可选**：安装 OpenColorIO + MaterialX → 推进 DLR-120

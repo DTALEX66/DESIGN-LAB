@@ -32,5 +32,5 @@
 - **历史**: `0.13.0`（2026-08-07 就地升级前观测，见 upgrade_history）
 
 ## 记录位置
-- 本文件：`project-memory/OPEN_DESIGN_VERSION_BASELINE.md`
+- 本文件：`docs/OPEN_DESIGN_VERSION_BASELINE.md`
 - 机器可读：`design-lab/config/compatibility-baseline.json`

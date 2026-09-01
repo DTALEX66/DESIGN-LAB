@@ -26,7 +26,7 @@
     },
     "owner": {
       "type": "string",
-      "description": "负责模块路径（如 design-lab/adapters/creative-tools/comfyui）"
+      "description": "负责模块路径（如 integrations/generators/comfyui）"
     },
     "consumer": {
       "type": "string",

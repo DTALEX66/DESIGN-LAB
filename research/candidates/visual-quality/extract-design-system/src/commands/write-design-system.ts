@@ -16,5 +16,5 @@ export async function writeDesignSystemFiles(
 
   logInfo(`Wrote ${outputPaths.tokensJson}`);
   logInfo(`Wrote ${outputPaths.tokensCss}`);
-  logInfo("Import design-system/tokens.css into your app entrypoint when you are ready to apply the starter tokens.");
+  logInfo("Import packages/design-system/tokens.css into your app entrypoint when you are ready to apply the starter tokens.");
 }

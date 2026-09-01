@@ -22,7 +22,7 @@
 
 ## 权威来源
 
-- 对象定义：`project-memory/OBJECT_MODEL.md`
+- 对象定义：`docs/OBJECT_MODEL.md`
 - 对象 schema：`design-lab/schemas/`（13 份，round-trip 测试存在）
 - 适配器映射：`design-lab/adapters/adapter-registry.json`
 

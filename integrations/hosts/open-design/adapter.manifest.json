@@ -3,7 +3,7 @@
   "adapterId": "open-design",
   "host": "Open Design",
   "role": "reference-host-adapter",
-  "owner": "design-lab/adapters/hosts/open-design",
+  "owner": "integrations/hosts/open-design",
   "status": "declared",
   "evidenceLevel": "E0",
   "supported": false,
@@ -23,7 +23,7 @@
     "evidence": "evidence/"
   },
   "boundary": {
-    "soleOwner": "design-lab/adapters/hosts/open-design/",
+    "soleOwner": "integrations/hosts/open-design/",
     "neutralCore": "Public capability dirs (plugins/, scenarios/, atoms/, bundles/) keep neutral source definitions; open-design.json files are Open Design projections generated from the neutral contract (DL-ADP-OD-002).",
     "noDefaultHost": "product-manifest has no default host; primaryRuntime is forbidden.",
     "installerProfileGate": "installer only starts through a user-approved Host Profile (local-profile)."

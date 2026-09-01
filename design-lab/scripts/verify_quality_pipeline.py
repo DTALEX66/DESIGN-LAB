@@ -19,7 +19,7 @@ LAYERS = ROOT / "quality" / "pipeline-layers.json"
 def main() -> int:
     errors: list[str] = []
     reg = json.loads(LAYERS.read_text(encoding="utf-8"))
-    if reg.get("schemaVersion") != "design-lab/quality-pipeline/v1":
+    if reg.get("schemaVersion") != "packages/capabilities/quality-pipeline/v1":
         errors.append("schemaVersion mismatch")
     ls = reg.get("layers", [])
     ids = [l.get("id") for l in ls]

@@ -4,9 +4,9 @@ on:
   push:
     paths:
       - 'design-lab/**'
-      - 'minigame-runtime/**'
-      - 'design-system/**'
-      - 'project-memory/**'
+      - 'fixtures/domains/game-visual/**'
+      - 'packages/design-system/**'
+      - 'docs/**'
       - 'docs/**'
       - '.github/workflows/**'
       - 'scripts/**'
@@ -24,9 +24,9 @@ on:
   pull_request:
     paths:
       - 'design-lab/**'
-      - 'minigame-runtime/**'
-      - 'design-system/**'
-      - 'project-memory/**'
+      - 'fixtures/domains/game-visual/**'
+      - 'packages/design-system/**'
+      - 'docs/**'
       - '.github/workflows/**'
       - 'scripts/**'
       - 'requirements.txt'
@@ -92,7 +92,7 @@ jobs:
       - name: MiniGame fixture boundary test
         run: python -m unittest design-lab.tests.test_minigame_visual_fixture_boundary -v
       - name: Visual Quality Jury deterministic check
-        run: python design-lab/quality/jury/check_anti_slop.py design-lab/ --skip-prefixes knowledge/,intelligence/,templates/,evals/,exports/,domain-packs/uiux-design/benchmarks/,design-systems/,research/quarantine/,project-memory/history/,reports/history/
+        run: python packages/capabilities/quality/jury/check_anti_slop.py design-lab/ --skip-prefixes knowledge/,intelligence/,templates/,evals/,exports/,domain-packs/uiux-design/benchmarks/,design-systems/,research/quarantine/,docs/history/,reports/history/
       - name: JSON/Schema parse check
         run: python -m compileall -q design-lab/scripts
 
@@ -194,4 +194,4 @@ jobs:
         run: python -m pip install -r requirements.txt
       - name: Open Design host adapter structural gate
         if: steps.changes.outputs.open-design == 'true'
-        run: python design-lab/adapters/hosts/open-design/verifier/verify_open_design_host_adapter.py
+        run: python integrations/hosts/open-design/verifier/verify_open_design_host_adapter.py

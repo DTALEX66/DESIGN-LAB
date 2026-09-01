@@ -11,11 +11,11 @@ from pathlib import Path
 REPO = Path(__file__).resolve().parents[2]
 ACTIVE_DOCS = (
     "README.md",
-    "project-memory/PRODUCT_DEFINITION.md",
-    "project-memory/PROJECT_DEFINITION.md",
-    "project-memory/ARCHITECTURE.md",
-    "project-memory/BOUNDARY_CONTRACT.md",
-    "project-memory/ROADMAP.md",
+    "docs/PRODUCT_DEFINITION.md",
+    "docs/PROJECT_DEFINITION.md",
+    "docs/ARCHITECTURE.md",
+    "docs/BOUNDARY_CONTRACT.md",
+    "docs/ROADMAP.md",
     "design-lab/README.md",
     "design-lab/ARCHITECTURE_V3.md",
     "design-lab/adapters/NEUTRALITY_POLICY.md",

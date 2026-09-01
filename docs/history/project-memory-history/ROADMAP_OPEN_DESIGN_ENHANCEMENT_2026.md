@@ -1,6 +1,6 @@
 # Open Design Enhancement Roadmap
 
-本路线图基于 `project-memory/OPEN_DESIGN_ENHANCEMENT_RESEARCH.md`。
+本路线图基于 `docs/OPEN_DESIGN_ENHANCEMENT_RESEARCH.md`。
 
 ## 项目原则
 
@@ -45,13 +45,13 @@ design-lab/templates/open-design-app-config.template.md
 创建：
 
 ```text
-design-lab/plugins/minigame-ui-director/
-design-lab/plugins/anomaly-monitor-hud/
-design-lab/plugins/uiux-layout-director/
-design-lab/plugins/graphic-design-director/
-design-lab/plugins/brand-visual-director/
-design-lab/plugins/spatial-exhibition-director/
-design-lab/plugins/design-qa-critic/
+packages/capabilities/plugins/minigame-ui-director/
+packages/capabilities/plugins/anomaly-monitor-hud/
+packages/capabilities/plugins/uiux-layout-director/
+packages/capabilities/plugins/graphic-design-director/
+packages/capabilities/plugins/brand-visual-director/
+packages/capabilities/plugins/spatial-exhibition-director/
+packages/capabilities/plugins/design-qa-critic/
 ```
 
 每个插件遵循 Open Design 官方结构：
@@ -149,9 +149,9 @@ preview/index.html
 来源：
 
 ```text
-design-system/DESIGN.md
-design-system/05_DESIGN_COMMAND_CENTER/design-tokens/anomaly_monitor_dark.tokens.json
-design-system/05_DESIGN_COMMAND_CENTER/component-rules/monitor_console.components.json
+packages/design-system/DESIGN.md
+packages/design-system/05_DESIGN_COMMAND_CENTER/design-tokens/anomaly_monitor_dark.tokens.json
+packages/design-system/05_DESIGN_COMMAND_CENTER/component-rules/monitor_console.components.json
 ```
 
 ## Phase 4：视觉资产包
@@ -165,7 +165,7 @@ design-lab/assets/visual-packs/anomaly-monitor-cctv/
 先不复制大图，使用 manifest 指向仍保留的运行必需资产：
 
 ```text
-minigame-runtime/assets/generated/*
+fixtures/domains/game-visual/assets/generated/*
 ```
 
 输出：
@@ -227,7 +227,7 @@ design-lab/templates/design-systems/style-reference-index.md
 
 ```text
 design-lab/usage-notes/OPEN_DESIGN_PLUGIN_INSTALL.md
-design-lab/plugins/INDEX.md
+packages/capabilities/plugins/INDEX.md
 design-lab/templates/INDEX.md
 design-lab/scripts/generate_open_design_indexes.py
 design-lab/scripts/scaffold_open_design_plugin.py

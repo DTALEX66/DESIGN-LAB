@@ -18,13 +18,13 @@ const server = new McpServer({
 
 server.tool(
   "extract_design_system",
-  "Extract design primitives (colors, typography, spacing, border-radius, shadows) from a public website URL. Runs a headless browser extraction, normalizes the output, and writes design-system/tokens.json and design-system/tokens.css into the current working directory. Returns the full normalized token set on success.",
+  "Extract design primitives (colors, typography, spacing, border-radius, shadows) from a public website URL. Runs a headless browser extraction, normalizes the output, and writes packages/design-system/tokens.json and packages/design-system/tokens.css into the current working directory. Returns the full normalized token set on success.",
   {
     url: z.string().url().describe("Public website URL to extract design tokens from"),
     darkMode: z.boolean().optional().describe("Extract dark mode variant when available"),
     mobile: z.boolean().optional().describe("Use mobile viewport during extraction"),
     slow: z.boolean().optional().describe("Use slower timeouts for JavaScript-heavy sites"),
-    extractOnly: z.boolean().optional().describe("Only save raw and normalized JSON to .extract-design-system/; skip writing design-system/ token files"),
+    extractOnly: z.boolean().optional().describe("Only save raw and normalized JSON to .extract-packages/design-system/; skip writing packages/design-system/ token files"),
   },
   async ({ url, darkMode, mobile, slow, extractOnly }) => {
     try {
@@ -45,7 +45,7 @@ server.tool(
 
 server.tool(
   "init_design_system",
-  "Regenerate design-system/tokens.json and design-system/tokens.css from the last successful extraction (.extract-design-system/normalized.json) without re-fetching the website. Use this when the normalizer or CSS generator has changed and you want to re-emit token files.",
+  "Regenerate packages/design-system/tokens.json and packages/design-system/tokens.css from the last successful extraction (.extract-packages/design-system/normalized.json) without re-fetching the website. Use this when the normalizer or CSS generator has changed and you want to re-emit token files.",
   {},
   async () => {
     try {
@@ -66,7 +66,7 @@ server.tool(
 
 server.tool(
   "get_tokens",
-  "Read the current design-system/tokens.json from the project without re-extracting. Returns the full normalized token set including colors palette, typography fonts, spacing scale, border-radius scale, and shadows scale. Useful for inspecting what tokens are already available before deciding whether to re-extract.",
+  "Read the current packages/design-system/tokens.json from the project without re-extracting. Returns the full normalized token set including colors palette, typography fonts, spacing scale, border-radius scale, and shadows scale. Useful for inspecting what tokens are already available before deciding whether to re-extract.",
   {},
   async () => {
     try {
@@ -86,7 +86,7 @@ server.tool(
 
 server.tool(
   "audit_design_system",
-  "Scan source files in a directory for hardcoded design values (hex colors, pixel spacing, border-radius, box-shadow, font-family) and suggest the matching CSS variable from design-system/tokens.json. Returns an array of findings with file paths, line numbers, raw values, and suggested token names, plus a coverage summary.",
+  "Scan source files in a directory for hardcoded design values (hex colors, pixel spacing, border-radius, box-shadow, font-family) and suggest the matching CSS variable from packages/design-system/tokens.json. Returns an array of findings with file paths, line numbers, raw values, and suggested token names, plus a coverage summary.",
   {
     dir: z.string().optional().describe("Directory to scan (defaults to current working directory)"),
     threshold: z

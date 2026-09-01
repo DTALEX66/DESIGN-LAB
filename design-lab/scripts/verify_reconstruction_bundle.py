@@ -73,7 +73,7 @@ def _fixture() -> tuple[Path, Path, Path]:
     model_registry = run_dir / "models.json"
     model_registry.write_bytes(
         canonical_json_bytes(
-            {"schemaVersion": "design-lab/reconstruction-models/v1", "models": []}
+            {"schemaVersion": "packages/capabilities/reconstruction-models/v1", "models": []}
         )
     )
     model_rel = model_registry.relative_to(PROJECT_ROOT).as_posix()

@@ -153,7 +153,7 @@ od:
 
 - `design-lab/templates/spatial/`
 - `design-lab/templates/visual/3d-design.md`
-- `design-lab/plugins/spatial-exhibition-director/SKILL.md`
+- `packages/capabilities/plugins/spatial-exhibition-director/SKILL.md`
 - `docs/research/exhibition-design-enhancement-report.md`
 - GB 50034-2024 建筑照明设计标准
 - CIE 157:2004 博物馆照明

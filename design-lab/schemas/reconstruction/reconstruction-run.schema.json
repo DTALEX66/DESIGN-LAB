@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "design-lab/reconstruction-run/v1",
+  "$id": "packages/capabilities/reconstruction-run/v1",
   "title": "Deterministic Reconstruction Run Contract",
   "type": "object",
   "required": [
@@ -10,7 +10,7 @@
   ],
   "additionalProperties": false,
   "properties": {
-    "schemaVersion": {"const": "design-lab/reconstruction-run/v1"},
+    "schemaVersion": {"const": "packages/capabilities/reconstruction-run/v1"},
     "runId": {"$ref": "#/$defs/stableId"},
     "jobId": {"$ref": "#/$defs/stableId"},
     "source": {"$ref": "#/$defs/source"},

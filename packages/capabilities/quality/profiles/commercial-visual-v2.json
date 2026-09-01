@@ -1,5 +1,5 @@
 {
-  "schemaVersion": "design-lab/quality-gate/v1",
+  "schemaVersion": "packages/capabilities/quality-gate/v1",
   "gate_id": "commercial-visual-v2",
   "minimum_total": 82,
   "minimum_dimensions": {

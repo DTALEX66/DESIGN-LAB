@@ -21,7 +21,7 @@ def main() -> int:
     args = parser.parse_args()
     try:
         payload = json.loads(args.record.read_text(encoding="utf-8"))
-        if payload.get("schemaVersion") != "design-lab/reconstruction-qualification-runs/v1":
+        if payload.get("schemaVersion") != "packages/capabilities/reconstruction-qualification-runs/v1":
             raise ValueError("unsupported qualification record schema")
         case_id = payload.get("caseId")
         if not isinstance(case_id, str) or not case_id:

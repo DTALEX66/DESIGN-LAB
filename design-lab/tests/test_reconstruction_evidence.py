@@ -103,7 +103,7 @@ class ReconstructionEvidenceTests(unittest.TestCase):
         model_registry.write_bytes(
             canonical_json_bytes(
                 {
-                    "schemaVersion": "design-lab/reconstruction-models/v1",
+                    "schemaVersion": "packages/capabilities/reconstruction-models/v1",
                     "models": [],
                 }
             )
@@ -258,7 +258,7 @@ class ReconstructionEvidenceTests(unittest.TestCase):
                 "saveState": "saved",
             },
             "golden-corpus.json": {
-                "schemaVersion": "design-lab/reconstruction-golden-corpus/v1",
+                "schemaVersion": "packages/capabilities/reconstruction-golden-corpus/v1",
                 "passed": True,
                 "passedCases": [
                     "logo-icon", "ui-screen", "poster", "flat-illustration",
@@ -272,7 +272,7 @@ class ReconstructionEvidenceTests(unittest.TestCase):
                 "sha256": manifest["checkedOutSourceSha256"],
             },
             "rights.json": {
-                "schemaVersion": "design-lab/reconstruction-rights/v1",
+                "schemaVersion": "packages/capabilities/reconstruction-rights/v1",
                 "status": "VERIFIED",
                 "sourceRights": "VERIFIED",
             },
@@ -959,7 +959,7 @@ class ReconstructionEvidenceTests(unittest.TestCase):
         nested_module.write_text("# nested execution fixture\n", encoding="utf-8")
         nested_schema.write_text("{}\n", encoding="utf-8")
         head_only = [
-            "design-lab/reconstruction/providers/head_only.py",
+            "packages/capabilities/reconstruction/providers/head_only.py",
             "design-lab/schemas/reconstruction/nested/head_only.json",
             "design-lab/scripts/verify_design_lab.py",
             "design-lab/config/reconstruction-models.json",
@@ -970,8 +970,8 @@ class ReconstructionEvidenceTests(unittest.TestCase):
         ):
             fixture_discovered = set(module._discover_execution_source_paths())
         for expected in (
-            "design-lab/reconstruction/providers/local.py",
-            "design-lab/reconstruction/providers/head_only.py",
+            "packages/capabilities/reconstruction/providers/local.py",
+            "packages/capabilities/reconstruction/providers/head_only.py",
             "design-lab/schemas/reconstruction/nested/local.json",
             "design-lab/schemas/reconstruction/nested/head_only.json",
             "design-lab/scripts/verify_design_lab.py",

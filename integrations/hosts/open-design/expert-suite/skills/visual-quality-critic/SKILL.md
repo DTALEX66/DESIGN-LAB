@@ -25,5 +25,5 @@ od:
 
 - `design-lab/templates/qa/anti-ai-slop-checklist.md`
 - `design-lab/evals/rubrics/`
-- `design-lab/plugins/design-qa-critic/SKILL.md`
-- `design-lab/bundles/visual-quality-core/SKILL.md`
+- `packages/capabilities/plugins/design-qa-critic/SKILL.md`
+- `packages/capabilities/bundles/visual-quality-core/SKILL.md`

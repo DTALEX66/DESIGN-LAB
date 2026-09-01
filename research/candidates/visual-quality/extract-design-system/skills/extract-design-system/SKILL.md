@@ -30,7 +30,7 @@ npx playwright install chromium
 npx extract-design-system <url>
 ```
 
-3. Review `.extract-design-system/normalized.json` and summarize:
+3. Review `.extract-packages/design-system/normalized.json` and summarize:
 
 - likely primary/secondary/accent colors
 - detected fonts
@@ -42,7 +42,7 @@ npx extract-design-system <url>
 npx extract-design-system <url> --extract-only
 ```
 
-5. If the user already has `.extract-design-system/normalized.json` and only wants to regenerate starter token files, run:
+5. If the user already has `.extract-packages/design-system/normalized.json` and only wants to regenerate starter token files, run:
 
 ```bash
 npx extract-design-system init
@@ -50,10 +50,10 @@ npx extract-design-system init
 
 6. Explain the generated outputs:
 
-- `.extract-design-system/raw.json`
-- `.extract-design-system/normalized.json`
-- `design-system/tokens.json`
-- `design-system/tokens.css`
+- `.extract-packages/design-system/raw.json`
+- `.extract-packages/design-system/normalized.json`
+- `packages/design-system/tokens.json`
+- `packages/design-system/tokens.css`
 
 7. Ask before modifying any existing app code, styles, or config files.
 

@@ -8,10 +8,10 @@ V4 铁律：**本地迁移、分支交付、main 合并**是三个不同的事�
 
 ### 1. 本地迁移（完成）
 - MiniGame 与 Design 内容已迁移至 `DESIGN-LAB/`：
-  - `design-system/`（吸收的设计协议资产）
-  - `minigame-runtime/`（参考产品 + 跨媒体 Benchmark）
+  - `packages/design-system/`（吸收的设计协议资产）
+  - `fixtures/domains/game-visual/`（参考产品 + 跨媒体 Benchmark）
   - `design-lab/`（Open Design 增强层）
-  - `project-memory/`（迁移/决策记录）
+  - `docs/`（迁移/决策记录）
 - 已通过 422 tracked files source/target SHA readback（M-150）。
 - 新目录为唯一主仓库；`D:\All projects\Design-system`、`D:\All projects\MINIGAME` 仅作历史备份。
 
@@ -40,7 +40,7 @@ V4 铁律：**本地迁移、分支交付、main 合并**是三个不同的事�
 |---|---|---|
 | `WORK-LAB-DESIGN-MODULE-FINAL-HANDOFF-2026-08-07.md` | 正确区分本地/分支/main，标注 E1/E2 不宣称 E3/E4 | ✅ 准确（历史记录，保留） |
 | 该文档"root 无 LICENSE" | 形成于迁移时 | ⚠️ 已过时：ODA4-0102 已建 MIT `LICENSE` + `NOTICE` |
-| `project-memory/MIGRATION_STATUS.md` | 本地迁移完成、新目录为主仓库 | ✅ 准确 |
+| `docs/MIGRATION_STATUS.md` | 本地迁移完成、新目录为主仓库 | ✅ 准确 |
 
 ## 许可事实更新
 

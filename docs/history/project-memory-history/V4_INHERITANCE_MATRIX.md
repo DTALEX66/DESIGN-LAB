@@ -66,7 +66,7 @@
 | V3 12 evidence cards | INHERITED_NEEDS_REVERIFY | 当前 not-run，V4 换真实能力证据 |
 | V3 验证脚本 | INHERITED_VERIFIED | V4 根 Canonical CI 全跑 |
 | MiniGame runtime | INHERITED_NEEDS_REVERIFY | 独立参考产品 + 跨媒体 Benchmark，隔离 |
-| design-system/ 吸收资产 | INHERITED_VERIFIED | Open Design 参考材料 |
+| packages/design-system/ 吸收资产 | INHERITED_VERIFIED | Open Design 参考材料 |
 
 ## V4 净缺口分组
 

@@ -1,5 +1,5 @@
 {
-  "schemaVersion": "design-lab/reconstruction-models/v1",
+  "schemaVersion": "packages/capabilities/reconstruction-models/v1",
   "hardwarePolicy": {
     "defaultDevice": "cuda",
     "availableVramMiB": 8151,

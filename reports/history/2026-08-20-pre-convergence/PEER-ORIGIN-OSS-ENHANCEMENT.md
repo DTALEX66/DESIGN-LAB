@@ -5,7 +5,7 @@
 ## 一、同源链（确认）
 
 - 前身（OPEN-DESIGN 身份，WORK-LAB 20-design → 迁移 2026-08-07 → DL-MIG-000 git mv，已并入）→ DESIGN-LAB（MIT）
-- 旧云端名 301 → DESIGN-LAB；归档 reports/history/ + project-memory/history/
+- 旧云端名 301 → DESIGN-LAB；归档 reports/history/ + docs/history/
 
 ## 二、同行/同类（对标）
 

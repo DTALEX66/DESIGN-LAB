@@ -28,9 +28,9 @@ DESIGN-LAB/
 │     ├─ agents/{hermes,codex}/
 │     ├─ hosts/open-design/
 │     └─ creative-tools/{adobe,figma,blender,penpot,ffmpeg,comfyui,minimax-h3}/
-├─ design-system/              # neutral reusable design protocol assets only
-├─ minigame-runtime/           # frozen game-visual fixture; not product
-├─ project-memory/
+├─ packages/design-system/              # neutral reusable design protocol assets only
+├─ fixtures/domains/game-visual/           # frozen game-visual fixture; not product
+├─ docs/
 ├─ reports/
 └─ README.md
 ```
@@ -47,4 +47,4 @@ DESIGN-LAB/
 
 ## Host compatibility without product pollution
 
-`open-design.json` 文件名与上游 `$schema` 仅在其是字面 Open Design payload 时保留，且必须标记 `hostAdapter: open-design`。Open Design 特定安装/doctor/scaffold/runtime 代码位于 `design-lab/adapters/hosts/open-design/`。不得因字符串含"Open Design"而全局改名上游契约；也不得以旧名作为活动 core 文档的默认产品身份。
+`open-design.json` 文件名与上游 `$schema` 仅在其是字面 Open Design payload 时保留，且必须标记 `hostAdapter: open-design`。Open Design 特定安装/doctor/scaffold/runtime 代码位于 `integrations/hosts/open-design/`。不得因字符串含"Open Design"而全局改名上游契约；也不得以旧名作为活动 core 文档的默认产品身份。

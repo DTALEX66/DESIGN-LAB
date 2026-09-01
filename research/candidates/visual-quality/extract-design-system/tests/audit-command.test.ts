@@ -21,7 +21,7 @@ beforeEach(async () => {
   projectRoot = await mkdtemp(path.join(os.tmpdir(), "audit-cmd-root-"));
   await mkdir(path.join(projectRoot, "design-system"), { recursive: true });
   await writeFile(
-    path.join(projectRoot, "design-system/tokens.json"),
+    path.join(projectRoot, "packages/design-system/tokens.json"),
     JSON.stringify(minimalTokens, null, 2)
   );
 });

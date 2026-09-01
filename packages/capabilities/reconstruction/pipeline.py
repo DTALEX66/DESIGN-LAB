@@ -444,7 +444,7 @@ def _hash_bound_handoff_contract(
 
 def _metrics_payload(metrics: FidelityMetrics, render_hash: str) -> bytes:
     value = {
-        "schemaVersion": "design-lab/reconstruction-metrics/v1",
+        "schemaVersion": "packages/capabilities/reconstruction-metrics/v1",
         "profileId": metrics.profile_id,
         "pixelmatchVersion": metrics.pixelmatch_version,
         "pixelThreshold": metrics.pixel_threshold,

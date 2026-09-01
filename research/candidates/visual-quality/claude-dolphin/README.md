@@ -227,7 +227,7 @@ claude-dolphin/
 │   ├── design-system-review.md
 │   └── refactor-ui.md
 └── skills/
-    └── ux-ui-design-system/
+    └── ux-ui-packages/design-system/
         ├── SKILL.md            # Main skill file
         └── references/         # Reference materials
             ├── wcag-checklist.md

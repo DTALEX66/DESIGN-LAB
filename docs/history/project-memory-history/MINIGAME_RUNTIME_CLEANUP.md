@@ -2,7 +2,7 @@
 
 ## 目标
 
-原 `MINIGAME` 已被吸收到 `DESIGN-LAB/minigame-runtime/`。本目录现在不是主游戏开发仓库，而是 **Open Design 软件的游戏 UI / 运行落地参考样板**。
+原 `MINIGAME` 已被吸收到 `DESIGN-LAB/fixtures/domains/game-visual/`。本目录现在不是主游戏开发仓库，而是 **Open Design 软件的游戏 UI / 运行落地参考样板**。
 
 因此保留能辅助 Open Design 的内容，移除旧游戏系统里对当前定位无用或可再生成的内容。
 

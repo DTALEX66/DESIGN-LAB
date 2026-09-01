@@ -1,7 +1,7 @@
 {
   "$schema": "../schemas/user-modes.schema.json",
   "schemaVersion": "design-lab/user-modes/v1",
-  "source": "project-memory/USER_MODES.md",
+  "source": "docs/USER_MODES.md",
   "modes": [
     {
       "id": "guided",

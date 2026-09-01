@@ -98,7 +98,7 @@ DESIGN-LAB/
 ├─ packages/
 │  ├─ contracts/
 │  ├─ capabilities/                   # 仅已资格化、已吸收的最小能力
-│  ├─ design-system/
+│  ├─ packages/design-system/
 │  ├─ asset-model/
 │  └─ ui/
 ├─ integrations/
@@ -139,7 +139,7 @@ DESIGN-LAB/
 └─ LICENSES/
 ```
 
-最终不得存在：根 `design-lab/`混合容器、`design-lab/intelligence/`、`design-lab/knowledge/`、`project-memory/`、`minigame-runtime/`、工具可递归发现的第三方 `.agents/.claude/AGENTS/CLAUDE/SKILL`完整树、被跟踪真实导出物和旧 `.hermes`新写入。
+最终不得存在：根 `design-lab/`混合容器、`design-lab/intelligence/`、`design-lab/knowledge/`、`docs/`、`fixtures/domains/game-visual/`、工具可递归发现的第三方 `.agents/.claude/AGENTS/CLAUDE/SKILL`完整树、被跟踪真实导出物和旧 `.hermes`新写入。
 
 ## 5. 迁移裁决模型
 
@@ -159,17 +159,17 @@ DESIGN-LAB/
 
 | 旧路径 | 新路径 | 方法 | 旧路径最终状态 |
 |---|---|---|---|
-| `design-lab/atoms`、自有skills/bundles/plugins/scenarios | `packages/capabilities` | 去重、统一能力manifest和测试 | 删除旧容器 |
+| `packages/capabilities/atoms`、自有skills/bundles/plugins/scenarios | `packages/capabilities` | 去重、统一能力manifest和测试 | 删除旧容器 |
 | `design-lab/adapters/hosts` | `integrations/hosts` | 保持Host合同 | 删除旧路径 |
-| `design-lab/adapters/agents` | `integrations/executors` | 仅薄适配 | 删除旧路径 |
-| `design-lab/reconstruction` | `packages/capabilities/reconstruction` | 保持schema、security、golden corpus | 删除旧路径 |
-| `design-lab/quality` | `services/quality` + `services/review` | 人工Jury和自动检查拆分 | 删除旧路径 |
+| `integrations/executors` | `integrations/executors` | 仅薄适配 | 删除旧路径 |
+| `packages/capabilities/reconstruction` | `packages/capabilities/reconstruction` | 保持schema、security、golden corpus | 删除旧路径 |
+| `packages/capabilities/quality` | `services/quality` + `services/review` | 人工Jury和自动检查拆分 | 删除旧路径 |
 | `design-lab/exports` | `.project-local/artifacts/exports`或Release | 小型黄金fixture另存fixtures | 删除tracked生成物目录 |
 | `design-lab/intelligence/*` | capabilities/adapters/vendor lock/research | 逐项目资格化 | 删除整个intelligence |
 | `design-lab/knowledge/*` | capabilities/vendor lock/research | 逐项目资格化 | 删除整个knowledge |
-| `design-system/` | `packages/design-system/` | 保持DTCG/主题/组件合同 | 删除根旧目录 |
-| `project-memory/*` | `docs/{architecture,decisions,current,history}` | 按语义拆分 | 删除 |
-| `minigame-runtime/` | `fixtures/domains/game-visual/` | 保持测试fixture身份 | 删除 |
+| `packages/design-system/` | `packages/packages/design-system/` | 保持DTCG/主题/组件合同 | 删除根旧目录 |
+| `docs/*` | `docs/{architecture,decisions,current,history}` | 按语义拆分 | 删除 |
+| `fixtures/domains/game-visual/` | `fixtures/domains/game-visual/` | 保持测试fixture身份 | 删除 |
 | `.hermes/*` | `.project-local/*` | 复制/哈希/宿主读回 | 清理旧本地目录 |
 
 ## 7. 执行任务 DAG

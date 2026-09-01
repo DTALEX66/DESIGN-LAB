@@ -79,5 +79,5 @@ node build.js wechat     # 构建微信小游戏视觉 bundle
 ## 开发原则
 
 - 每次只做一个功能；所有修改必须可回滚
-- 不偏离"游戏视觉设计 fixture / runtime reference"的冻结边界（见 `project-memory/MINIGAME_FROZEN_BOUNDARY.md`）
+- 不偏离"游戏视觉设计 fixture / runtime reference"的冻结边界（见 `docs/MINIGAME_FROZEN_BOUNDARY.md`）
 - 禁止把 fixture 重新推成活动游戏产品；防漂移测试必须通过

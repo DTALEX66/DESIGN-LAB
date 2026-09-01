@@ -34,7 +34,7 @@ class ReconstructionQualificationTests(unittest.TestCase):
     def test_qualification_cli_accepts_only_three_clean_identical_host_records(self) -> None:
         script = PROJECT_ROOT / "design-lab" / "scripts" / "qualify_reconstruction_runtime.py"
         record = {
-            "schemaVersion": "design-lab/reconstruction-qualification-runs/v1",
+            "schemaVersion": "packages/capabilities/reconstruction-qualification-runs/v1",
             "caseId": "logo-orbit-001",
             "runs": [
                 {"status": "PASS", "deterministicPreviewSha256": "a" * 64, "readbackSha256": "b" * 64, "residue": []}

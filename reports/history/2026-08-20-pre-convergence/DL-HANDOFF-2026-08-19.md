@@ -36,5 +36,5 @@
 ## 五、归档
 
 - R4 时代报告 → reports/history/2026-08-16-r4/（12 个）
-- G2 证据 → design-lab/adapters/hosts/open-design/evidence/
+- G2 证据 → integrations/hosts/open-design/evidence/
 - 当日主档：本文件；任务清单：DL-NEXT-TASKS.md

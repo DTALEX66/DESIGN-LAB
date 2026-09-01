@@ -24,10 +24,10 @@ Open Design 软件本体 = 实际设计流程、主窗口画布与 AI 调用入�
 ## 迁移状态
 
 ```text
-已完成：Design-system → design-system/
-已完成：MINIGAME → minigame-runtime/
+已完成：Design-system → packages/design-system/
+已完成：MINIGAME → fixtures/domains/game-visual/
 已完成：Open Design 增强层骨架 → design-lab/
-已完成：吸收与迁移记录 → project-memory/
+已完成：吸收与迁移记录 → docs/
 已完成：Open Design 默认项目位置 → DESIGN-LAB
 ```
 
@@ -50,9 +50,9 @@ D:\All projects\MINIGAME
 
 ```text
 design-lab/     Open Design 软件增强层：prompts / adapters / templates / usage notes
-design-system/             被吸收的设计资产：DESIGN.md / Schema / Tokens / component rules
-minigame-runtime/          被吸收并精简的游戏运行样板：源码 / 平台样板 / tests / 精选 assets
-project-memory/            项目定义、吸收、迁移、清理、决策、边界记录
+packages/design-system/             被吸收的设计资产：DESIGN.md / Schema / Tokens / component rules
+fixtures/domains/game-visual/          被吸收并精简的游戏运行样板：源码 / 平台样板 / tests / 精选 assets
+docs/            项目定义、吸收、迁移、清理、决策、边界记录
 ```
 
 ## 注意

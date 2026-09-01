@@ -71,13 +71,13 @@ Same `SKILL.md`, different discovery paths — install once per tool (or use the
 **All agents — one command (Cursor + Claude Code + Codex):**
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/WCF900905/screenshot-to-design-system/main/scripts/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/WCF900905/screenshot-to-packages/design-system/main/scripts/install.sh | bash
 ```
 
 **Project-level (commit `.cursor/skills/`, `.claude/skills/`, or `.agents/skills/` to share with team):**
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/WCF900905/screenshot-to-design-system/main/scripts/install.sh | bash -s -- --project
+curl -fsSL https://raw.githubusercontent.com/WCF900905/screenshot-to-packages/design-system/main/scripts/install.sh | bash -s -- --project
 ```
 
 **Single agent:**
@@ -151,7 +151,7 @@ git clone https://github.com/WCF900905/screenshot-to-design-system.git \
 This repository **is** the skill folder. Directory name must stay `screenshot-to-design-system` (matches `name` in `SKILL.md`).
 
 ```
-screenshot-to-design-system/
+screenshot-to-packages/design-system/
 ├── SKILL.md                 # Agent playbook (required)
 ├── references/              # Input detection, token schema, component checklist, UI review
 ├── scripts/
@@ -240,13 +240,13 @@ This skill helps AI agents extract publicly visible UI styling from screenshots 
 **全部工具（Cursor + Claude Code + Codex）：**
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/WCF900905/screenshot-to-design-system/main/scripts/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/WCF900905/screenshot-to-packages/design-system/main/scripts/install.sh | bash
 ```
 
 **项目级（随仓库共享）：**
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/WCF900905/screenshot-to-design-system/main/scripts/install.sh | bash -s -- --project
+curl -fsSL https://raw.githubusercontent.com/WCF900905/screenshot-to-packages/design-system/main/scripts/install.sh | bash -s -- --project
 ```
 
 **仅安装某一工具：**

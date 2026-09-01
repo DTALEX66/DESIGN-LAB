@@ -55,7 +55,7 @@ brief 归一化 → 类型与受众定位 → 核心循环 → 规则/状态模�
 
 ## 参考
 
-- `design-lab/plugins/minigame-ui-director/SKILL.md`
+- `packages/capabilities/plugins/minigame-ui-director/SKILL.md`
 - `design-lab/domain-packs/minigame-design/`（案例/边界夹具）
-- `minigame-runtime/`（实现与测试参考，不作为默认产品定义）
-- `design-lab/plugins/anomaly-monitor-hud/SKILL.md`（按需加载的视觉专精）
+- `fixtures/domains/game-visual/`（实现与测试参考，不作为默认产品定义）
+- `packages/capabilities/plugins/anomaly-monitor-hud/SKILL.md`（按需加载的视觉专精）

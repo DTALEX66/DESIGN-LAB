@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "design-lab/reconstruction-bundle/v1",
+  "$id": "packages/capabilities/reconstruction-bundle/v1",
   "title": "DESIGN-LAB reconstruction evidence bundle manifest",
   "description": "Complete bundle topology is the manifest.json control file plus every non-manifest file declared by artifacts[].",
   "type": "object",
@@ -16,7 +16,7 @@
   ],
   "additionalProperties": false,
   "properties": {
-    "schemaVersion": {"const": "design-lab/reconstruction-bundle/v1"},
+    "schemaVersion": {"const": "packages/capabilities/reconstruction-bundle/v1"},
     "runId": {"$ref": "#/$defs/stableId"},
     "state": {
       "enum": [

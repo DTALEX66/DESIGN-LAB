@@ -177,8 +177,8 @@ README.md
 Run after editing:
 
 ```bash
-python design-lab/adapters/hosts/open-design/verifier/verify_open_design_host_adapter.py
-python design-lab/adapters/hosts/open-design/verifier/generate_open_design_adapter_indexes.py
+python integrations/hosts/open-design/verifier/verify_open_design_host_adapter.py
+python integrations/hosts/open-design/verifier/generate_open_design_adapter_indexes.py
 ```
 """
 

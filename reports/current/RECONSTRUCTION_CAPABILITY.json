@@ -1,5 +1,5 @@
 {
-  "schemaVersion": "design-lab/reconstruction-capability-projection/v1",
+  "schemaVersion": "packages/capabilities/reconstruction-capability-projection/v1",
   "boundSha": null,
   "current": false,
   "status": "NONCURRENT",

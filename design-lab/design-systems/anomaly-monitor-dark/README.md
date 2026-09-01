@@ -1,6 +1,6 @@
 # Anomaly Monitor Dark Design System
 
-Open Design-native package extracted from the absorbed `design-system/` source.
+Open Design-native package extracted from the absorbed `packages/design-system/` source.
 
 Use it for dark CCTV, HUD, monitoring, console, anomaly, and mobile horror-control interfaces.
 

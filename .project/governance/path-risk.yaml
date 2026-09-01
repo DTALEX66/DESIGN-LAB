@@ -12,9 +12,9 @@ rules:
   - path: design-lab/knowledge/
     risk: high
     reason: Contains full third-party repos, must qualify or remove
-  - path: minigame-runtime/
+  - path: fixtures/domains/game-visual/
     risk: medium
     reason: Should be fixture, not product line
-  - path: project-memory/
+  - path: docs/
     risk: medium
     reason: Should be docs, not memory

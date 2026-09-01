@@ -69,7 +69,7 @@ Expected: all PASS and canonical verifier total increases by one.
 - [ ] **Step 5: Commit the adversarial gate**
 
 ```bash
-git add -- design-lab/tests/fixtures/reconstruction/adversarial design-lab/tests/test_reconstruction_security.py design-lab/scripts/verify_reconstruction_security.py design-lab/scripts/verify_design_lab.py design-lab/reconstruction
+git add -- design-lab/tests/fixtures/reconstruction/adversarial design-lab/tests/test_reconstruction_security.py design-lab/scripts/verify_reconstruction_security.py design-lab/scripts/verify_design_lab.py packages/capabilities/reconstruction
 git commit -m "test(reconstruction): enforce adversarial safety gates"
 ```
 
@@ -134,7 +134,7 @@ git commit -m "test(reconstruction): add rights-cleared golden corpus"
 ### Task 3: Reproducibility, forced interruption, and residue qualification
 
 **Files:**
-- Create: `design-lab/reconstruction/qualification.py`
+- Create: `packages/capabilities/reconstruction/qualification.py`
 - Create: `design-lab/scripts/qualify_reconstruction_runtime.py`
 - Test: `design-lab/tests/test_reconstruction_qualification.py`
 
@@ -180,7 +180,7 @@ targets are absent after cleanup; permission or lock failures report `BLOCKED`.
 - [ ] **Step 5: Commit qualification logic**
 
 ```bash
-git add -- design-lab/reconstruction/qualification.py design-lab/scripts/qualify_reconstruction_runtime.py design-lab/tests/test_reconstruction_qualification.py
+git add -- packages/capabilities/reconstruction/qualification.py design-lab/scripts/qualify_reconstruction_runtime.py design-lab/tests/test_reconstruction_qualification.py
 git commit -m "test(reconstruction): qualify repeatability and recovery"
 ```
 
@@ -188,7 +188,7 @@ git commit -m "test(reconstruction): qualify repeatability and recovery"
 
 **Files:**
 - Create: `design-lab/config/reconstruction-performance.json`
-- Create: `design-lab/reconstruction/performance.py`
+- Create: `packages/capabilities/reconstruction/performance.py`
 - Create: `design-lab/scripts/benchmark_reconstruction.py`
 - Test: `design-lab/tests/test_reconstruction_performance.py`
 
@@ -232,7 +232,7 @@ quality metrics remain unchanged across runtime fallbacks.
 - [ ] **Step 5: Commit performance routing and benchmark schema**
 
 ```bash
-git add -- design-lab/config/reconstruction-performance.json design-lab/reconstruction/performance.py design-lab/scripts/benchmark_reconstruction.py design-lab/tests/test_reconstruction_performance.py
+git add -- design-lab/config/reconstruction-performance.json packages/capabilities/reconstruction/performance.py design-lab/scripts/benchmark_reconstruction.py design-lab/tests/test_reconstruction_performance.py
 git commit -m "perf(reconstruction): add measured capability routing"
 ```
 

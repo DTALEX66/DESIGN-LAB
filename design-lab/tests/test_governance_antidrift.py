@@ -168,10 +168,10 @@ class MiniGameBoundaryAntiDriftTests(unittest.TestCase):
         # only scan active source files (not docs/history which may describe removed features)
         # scan only ACTIVE runtime paths; tests/ and docs/ may legitimately reference
         # event names and historical terms and are out of scope for the field gate
-        RUNTIME_PREFIXES = ("minigame-runtime/src/", "minigame-runtime/platform/", "minigame-runtime/games/",
-                            "minigame-runtime/index.html", "minigame-runtime/styles.css",
-                            "minigame-runtime/wechat-minigame/", "minigame-runtime/douyin-minigame/",
-                            "minigame-runtime/android-minigame/", "minigame-runtime/android-webview/")
+        RUNTIME_PREFIXES = ("fixtures/domains/game-visual/src/", "fixtures/domains/game-visual/platform/", "fixtures/domains/game-visual/games/",
+                            "fixtures/domains/game-visual/index.html", "fixtures/domains/game-visual/styles.css",
+                            "fixtures/domains/game-visual/wechat-minigame/", "fixtures/domains/game-visual/douyin-minigame/",
+                            "fixtures/domains/game-visual/android-minigame/", "fixtures/domains/game-visual/android-webview/")
         for rel in r.stdout.splitlines():
             if not rel.startswith(RUNTIME_PREFIXES):
                 continue

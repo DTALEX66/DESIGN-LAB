@@ -21,8 +21,8 @@ MANIFEST_REL = f"{ASSISTANCE_DIR}/config/product-manifest.json"
 CAPABILITY_STATUS_REL = f"{ASSISTANCE_DIR}/config/capability-status.json"
 PRODUCT_SCHEMA_REL = f"{ASSISTANCE_DIR}/schemas/product-manifest.schema.json"
 CAPABILITY_STATUS_SCHEMA_REL = f"{ASSISTANCE_DIR}/schemas/capability-status.schema.json"
-PROJECT_DEFINITION_REL = "project-memory/PROJECT_DEFINITION.md"
-ARCHITECTURE_REL = "project-memory/ARCHITECTURE.md"
+PROJECT_DEFINITION_REL = "docs/PROJECT_DEFINITION.md"
+ARCHITECTURE_REL = "docs/ARCHITECTURE.md"
 
 EXPECTED_EVIDENCE_LEVELS = ["E0", "E1", "E2", "E3", "E4", "E5"]
 EXPECTED_STATES = ["NOT_RUN", "PASS", "FAIL", "BLOCKED", "UNVERIFIED", "SKIPPED_OPTIONAL"]
@@ -52,20 +52,20 @@ EXPECTED_DIRS = {
     "design-lab/config/",
     "design-lab/schemas/",
     "design-lab/adapters/",
-    "design-lab/atoms/",
-    "design-lab/scenarios/",
-    "design-lab/bundles/",
+    "packages/capabilities/atoms/",
+    "packages/capabilities/scenarios/",
+    "packages/capabilities/bundles/",
     "design-lab/knowledge/",
     "design-lab/evals/",
     "design-lab/profiles/",
     "design-lab/research/",
-    "design-lab/quality/",
+    "packages/capabilities/quality/",
     "design-lab/production/",
     "design-lab/templates/",
     "design-lab/assets/",
-    "design-system/",
-    "minigame-runtime/",
-    "project-memory/",
+    "packages/design-system/",
+    "fixtures/domains/game-visual/",
+    "docs/",
 }
 RUNTIME_READY_MARKERS = [
     "host runtime registration via AdapterRecord",
@@ -233,7 +233,7 @@ def verify_v4_extensions(manifest: dict[str, Any], results: list[Result]) -> Non
         check(results, f"family {fid}: V4 license present", bool(item.get("license")), str(item.get("license")))
     entrypoints = manifest.get("entrypoints") or {}
     human = entrypoints.get("human") or []
-    check(results, "V4 human entrypoint includes PRODUCT_DEFINITION", "project-memory/PRODUCT_DEFINITION.md" in human, str(human))
+    check(results, "V4 human entrypoint includes PRODUCT_DEFINITION", "docs/PRODUCT_DEFINITION.md" in human, str(human))
 
 
 def verify_v3_docs(root: Path, results: list[Result]) -> None:

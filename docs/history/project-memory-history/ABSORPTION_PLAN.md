@@ -27,8 +27,8 @@ D:\All projects\DESIGN-LAB
 1. **Open Design 软件本体是主入口**：用户去 Open Design 里做设计流程和 AI 调用。
 2. **本仓库只做辅助增强**：不再定义自己为工作流中心、独立设计系统产品或替代设计界面。
 3. **不覆盖原仓库**：`D:\All projects\MINIGAME` 和 `D:\All projects\Design-system` 原目录不删除、不重写。
-4. **保留可运行样板**：原 MINIGAME 源码、测试、H5/Android/微信样板、skins、schemas、docs、generated assets 进入 `minigame-runtime/`。
-5. **保留设计资产**：原 Design-system 整体进入 `design-system/`，作为 Open Design 的设计上下文和 Schema/Tokens 参考。
+4. **保留可运行样板**：原 MINIGAME 源码、测试、H5/Android/微信样板、skins、schemas、docs、generated assets 进入 `fixtures/domains/game-visual/`。
+5. **保留设计资产**：原 Design-system 整体进入 `packages/design-system/`，作为 Open Design 的设计上下文和 Schema/Tokens 参考。
 6. **排除本地缓存/工具链**：`.git`、`.gradle`、`.tools`、`.tmp`、`.hermes`、`node_modules` 等不进入 Git。
 
 ## 当前结构
@@ -39,11 +39,11 @@ DESIGN-LAB/
 ├─ design-lab/
 │  ├─ README.md
 │  └─ prompts/
-├─ design-system/
+├─ packages/design-system/
 │  ├─ DESIGN.md
 │  ├─ OPEN_DESIGN_START_HERE.md
 │  └─ 05_DESIGN_COMMAND_CENTER/
-├─ minigame-runtime/
+├─ fixtures/domains/game-visual/
 │  ├─ src/
 │  ├─ assets/
 │  ├─ docs/
@@ -51,7 +51,7 @@ DESIGN-LAB/
 │  ├─ android-webview/
 │  ├─ wechat-minigame/
 │  └─ package.json
-└─ project-memory/
+└─ docs/
    ├─ PROJECT_DEFINITION.md
    ├─ MIGRATION_STATUS.md
    └─ ABSORPTION_PLAN.md
@@ -70,11 +70,11 @@ DESIGN-LAB/
 - agent/Codex 集成说明
 - Open Design 输出落地到运行样板的说明
 
-### design-system/
+### packages/design-system/
 
 已吸收资产。现在是 Open Design 的设计上下文、Schema/Tokens 参考和视觉合同样板。
 
-### minigame-runtime/
+### fixtures/domains/game-visual/
 
 已吸收样板。现在是 Open Design 生成游戏 UI、验证落地、检查平台适配时的运行参考。
 

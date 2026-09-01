@@ -6,7 +6,7 @@
   <a href="LICENSE"><img alt="MIT" src="https://img.shields.io/badge/license-MIT-2d3142"></a>
   <img alt="6 skills" src="https://img.shields.io/badge/skills-6-eb6c36">
   <img alt="no runtime dependencies" src="https://img.shields.io/badge/runtime%20deps-none-2d3142">
-  <a href="https://github.com/Avinava/document-design-system/actions/workflows/validate.yml"><img alt="validate" src="https://github.com/Avinava/document-design-system/actions/workflows/validate.yml/badge.svg"></a>
+  <a href="https://github.com/Avinava/document-packages/design-system/actions/workflows/validate.yml"><img alt="validate" src="https://github.com/Avinava/document-packages/design-system/actions/workflows/validate.yml/badge.svg"></a>
 </p>
 
 ---

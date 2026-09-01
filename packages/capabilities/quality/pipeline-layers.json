@@ -1,5 +1,5 @@
 {
-  "schemaVersion": "design-lab/quality-pipeline/v1",
+  "schemaVersion": "packages/capabilities/quality-pipeline/v1",
   "note": "质量分层管道：deterministic -> visual-model -> expert-agent -> human-feedback。层间证据等级递进；human calibration 不可由模型自评替代。",
   "layers": [
     {

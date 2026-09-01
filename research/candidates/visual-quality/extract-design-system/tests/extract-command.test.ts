@@ -74,7 +74,7 @@ describe("extract command", () => {
         radius: { scale: [] },
         shadows: { scale: [] }
       })
-    ).toBe("Saved 2 palette colors to .extract-design-system/. Fonts detected: Inter, JetBrains Mono.");
+    ).toBe("Saved 2 palette colors to .extract-packages/design-system/. Fonts detected: Inter, JetBrains Mono.");
   });
 
   it("reports when no fonts were detected", () => {
@@ -94,7 +94,7 @@ describe("extract command", () => {
         radius: { scale: [] },
         shadows: { scale: [] }
       })
-    ).toBe("Saved 0 palette colors to .extract-design-system/. Fonts detected: none.");
+    ).toBe("Saved 0 palette colors to .extract-packages/design-system/. Fonts detected: none.");
   });
 
   it("writes raw, normalized, and token outputs by default", async () => {
@@ -141,7 +141,7 @@ describe("extract command", () => {
       "Running dembrandt with args: https://example.com --json-only --mobile"
     );
     expect(logInfoMock).toHaveBeenCalledWith(
-      "Saved 2 palette colors to .extract-design-system/. Fonts detected: Inter."
+      "Saved 2 palette colors to .extract-packages/design-system/. Fonts detected: Inter."
     );
     expect(logInfoMock).toHaveBeenCalledWith(`Wrote ${outputPaths.tokensJson}`);
     expect(logInfoMock).toHaveBeenCalledWith(`Wrote ${outputPaths.tokensCss}`);

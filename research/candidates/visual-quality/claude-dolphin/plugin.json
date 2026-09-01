@@ -19,7 +19,7 @@
     "tailwind"
   ],
   "skills": [
-    "skills/ux-ui-design-system/SKILL.md"
+    "skills/ux-ui-packages/design-system/SKILL.md"
   ],
   "commands": [
     "commands/ui-audit.md",

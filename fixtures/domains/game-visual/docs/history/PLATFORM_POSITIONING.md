@@ -1,5 +1,5 @@
 > [!DEPRECATED] 本文件记录迁移前/冻结前的旧定位口径（合集平台、IAA 变现）。
-> 当前权威边界见 `project-memory/MINIGAME_FROZEN_BOUNDARY.md`；
+> 当前权威边界见 `docs/MINIGAME_FROZEN_BOUNDARY.md`；
 > 本文件仅作历史参考，不用于指导新改动。
 
 # MINIGAME 平台定位

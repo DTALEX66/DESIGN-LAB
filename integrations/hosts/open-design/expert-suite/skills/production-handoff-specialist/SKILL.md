@@ -23,7 +23,7 @@ preflight；editable source；preview；asset/font/license manifest；BOM；跨�
 
 ## 参考
 
-- `design-lab/bundles/production-handoff/SKILL.md`
-- `design-lab/atoms/commercial-preflight/SKILL.md`
-- `design-lab/atoms/delivery-packager/SKILL.md`
-- `design-lab/atoms/cross-format-coherence-critic/SKILL.md`
+- `packages/capabilities/bundles/production-handoff/SKILL.md`
+- `packages/capabilities/atoms/commercial-preflight/SKILL.md`
+- `packages/capabilities/atoms/delivery-packager/SKILL.md`
+- `packages/capabilities/atoms/cross-format-coherence-critic/SKILL.md`

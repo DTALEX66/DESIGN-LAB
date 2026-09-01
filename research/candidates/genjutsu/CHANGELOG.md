@@ -90,7 +90,7 @@ Correctness + reach release: the design dataset is refreshed, the technical guid
 
 ### Security
 
-- `ui-ux-pro-max`: the `--persist` flow no longer lets `--project-name` or `--page` escape the output directory. Both values were turned into filesystem paths with only lowercase + space-to-dash, so a `../` or an absolute value could write outside `design-system/` (an arbitrary-write primitive when the script is agent-driven). They now pass through a shared `safe_path_component()` that collapses each value to a single safe path segment. Thanks to @reevesc88 (#4).
+- `ui-ux-pro-max`: the `--persist` flow no longer lets `--project-name` or `--page` escape the output directory. Both values were turned into filesystem paths with only lowercase + space-to-dash, so a `../` or an absolute value could write outside `packages/design-system/` (an arbitrary-write primitive when the script is agent-driven). They now pass through a shared `safe_path_component()` that collapses each value to a single safe path segment. Thanks to @reevesc88 (#4).
 
 ### Fixed
 

@@ -1382,7 +1382,7 @@
     {
       "sourceId": "carbon",
       "name": "IBM Carbon Design System",
-      "origin": "https://github.com/carbon-design-system/carbon",
+      "origin": "https://github.com/carbon-packages/design-system/carbon",
       "license": "Apache-2.0",
       "licenseStatus": "reviewed",
       "version": "v11.114.0",
@@ -1407,7 +1407,7 @@
           "design-system"
         ],
         "name": "IBM Carbon Design System",
-        "url": "https://github.com/carbon-design-system/carbon",
+        "url": "https://github.com/carbon-packages/design-system/carbon",
         "license": "Apache-2.0",
         "license_verified": true,
         "source_tier": "A",

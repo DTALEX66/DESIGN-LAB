@@ -27,4 +27,4 @@ od:
 - `design-lab/templates/graphic/`
 - `design-lab/templates/typography/cjk-ui-typography.md`
 - `design-lab/templates/motion/motion-system.md`
-- `design-lab/plugins/graphic-design-director/SKILL.md`
+- `packages/capabilities/plugins/graphic-design-director/SKILL.md`

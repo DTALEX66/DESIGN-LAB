@@ -2,7 +2,7 @@
 
 ## Diagnosis (2026-08-07)
 
-- Tracked media files: 363 (PNG/WAV/GIF/JPG under minigame-runtime/)
+- Tracked media files: 363 (PNG/WAV/GIF/JPG under fixtures/domains/game-visual/)
 - Unique content hashes: 111
 - Duplicate groups: 90
 - **Total duplicate waste: 106.55 MB** (matches V3 audit exactly)

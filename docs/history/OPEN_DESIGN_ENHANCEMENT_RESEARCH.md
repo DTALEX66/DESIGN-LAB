@@ -90,7 +90,7 @@ local-first desktop design workspace
 因此本仓库最应优先做的是：
 
 ```text
-design-lab/plugins/
+packages/capabilities/plugins/
   minigame-ui-director/
   anomaly-monitor-hud/
   design-qa-critic/
@@ -113,9 +113,9 @@ apps/daemon/src/design-systems/*
 本仓库已有：
 
 ```text
-design-system/DESIGN.md
-design-system/05_DESIGN_COMMAND_CENTER/design-tokens/*.json
-design-system/05_DESIGN_COMMAND_CENTER/component-rules/*.json
+packages/design-system/DESIGN.md
+packages/design-system/05_DESIGN_COMMAND_CENTER/design-tokens/*.json
+packages/design-system/05_DESIGN_COMMAND_CENTER/component-rules/*.json
 ```
 
 后续应把 `Anomaly Monitor Dark` 进一步整理成 Open Design 原生 design system 包，而不是只当项目文档：
@@ -166,7 +166,7 @@ docs/external-media-orchestration.md
 当前我们已有精选 CCTV / HUD 视觉资产：
 
 ```text
-minigame-runtime/assets/generated/
+fixtures/domains/game-visual/assets/generated/
 ```
 
 后续可以增强成：
@@ -234,7 +234,7 @@ design-lab/scripts/doctor_open_design_windows.py
 1. `minigame-ui-director`
    - 用途：在 Open Design 中生成小游戏 UI / HUD / 监控终端原型。
    - 输入：theme、platform、screen、monetization mode。
-   - 上下文：引用 `minigame-runtime/` 和 `design-system/`。
+   - 上下文：引用 `fixtures/domains/game-visual/` 和 `packages/design-system/`。
 
 2. `anomaly-monitor-hud`
    - 用途：专门生成 Anomaly Monitor Dark 风格 UI。
@@ -256,9 +256,9 @@ design-lab/design-systems/anomaly-monitor-dark/
 从现有内容吸收：
 
 ```text
-design-system/DESIGN.md
-design-system/05_DESIGN_COMMAND_CENTER/design-tokens/anomaly_monitor_dark.tokens.json
-design-system/05_DESIGN_COMMAND_CENTER/component-rules/monitor_console.components.json
+packages/design-system/DESIGN.md
+packages/design-system/05_DESIGN_COMMAND_CENTER/design-tokens/anomaly_monitor_dark.tokens.json
+packages/design-system/05_DESIGN_COMMAND_CENTER/component-rules/monitor_console.components.json
 ```
 
 输出：
@@ -273,7 +273,7 @@ preview/index.html
 
 ### P3：资产包化精选视觉素材
 
-把 `minigame-runtime/assets/generated/` 中仍保留的 8 个运行必需资产转成 Open Design 可读资产包：
+把 `fixtures/domains/game-visual/assets/generated/` 中仍保留的 8 个运行必需资产转成 Open Design 可读资产包：
 
 ```text
 design-lab/assets/visual-packs/anomaly-monitor-cctv/
@@ -308,7 +308,7 @@ design-lab/assets/visual-packs/anomaly-monitor-cctv/
 最优第一刀：
 
 ```text
-创建 design-lab/plugins/minigame-ui-director/
+创建 packages/capabilities/plugins/minigame-ui-director/
 ```
 
 因为它能最快把原 MINIGAME / Design-system 的价值变成 Open Design 软件里可直接调用的增强能力。

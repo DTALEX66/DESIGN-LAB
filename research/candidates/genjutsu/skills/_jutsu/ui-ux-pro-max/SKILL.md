@@ -148,8 +148,8 @@ python3 scripts/search.py "<query>" --design-system --persist -p "Project Name" 
 ```
 
 This creates:
-- `design-system/<project-slug>/MASTER.md` — Global Source of Truth with all design rules
-- `design-system/<project-slug>/pages/` — Folder for page-specific overrides
+- `packages/design-system/<project-slug>/MASTER.md` — Global Source of Truth with all design rules
+- `packages/design-system/<project-slug>/pages/` — Folder for page-specific overrides
 
 `--persist` skips writing if `MASTER.md` already exists; add `--force` to overwrite.
 
@@ -159,17 +159,17 @@ python3 scripts/search.py "<query>" --design-system --persist -p "Project Name" 
 ```
 
 This also creates:
-- `design-system/<project-slug>/pages/dashboard.md` — Page-specific deviations from Master
+- `packages/design-system/<project-slug>/pages/dashboard.md` — Page-specific deviations from Master
 
 **How hierarchical retrieval works:**
-1. When building a specific page (e.g., "Checkout"), first check `design-system/<project-slug>/pages/checkout.md`
+1. When building a specific page (e.g., "Checkout"), first check `packages/design-system/<project-slug>/pages/checkout.md`
 2. If the page file exists, its rules **override** the Master file
-3. If not, use `design-system/<project-slug>/MASTER.md` exclusively
+3. If not, use `packages/design-system/<project-slug>/MASTER.md` exclusively
 
 **Context-aware retrieval prompt:**
 ```
-I am building the [Page Name] page. Please read design-system/MASTER.md.
-Also check if design-system/pages/[page-name].md exists.
+I am building the [Page Name] page. Please read packages/design-system/MASTER.md.
+Also check if packages/design-system/pages/[page-name].md exists.
 If the page file exists, prioritize its rules.
 If not, use the Master rules exclusively.
 Now, generate the code...

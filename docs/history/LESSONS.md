@@ -103,7 +103,7 @@
 
 ## 关联文档
 
-- 运行时布置细则：`design-lab/adapters/creative-tools/comfyui/evidence/E3-20260814.md`、`minimax-h3/evidence/E3-20260814.md`
-- 证据分级：`project-memory/EVIDENCE_POLICY.md`
+- 运行时布置细则：`integrations/generators/comfyui/evidence/E3-20260814.md`、`minimax-h3/evidence/E3-20260814.md`
+- 证据分级：`docs/EVIDENCE_POLICY.md`
 - 治理政策：`KNOWLEDGE_ASSET_POLICY.md`（外置资料库 + 体积门禁）
-- 项目边界：`project-memory/BOUNDARY_CONTRACT.md`
+- 项目边界：`docs/BOUNDARY_CONTRACT.md`

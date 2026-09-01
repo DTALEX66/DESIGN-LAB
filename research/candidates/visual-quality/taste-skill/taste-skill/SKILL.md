@@ -1045,7 +1045,7 @@ npm install bootstrap
 
 ### Carbon
 - https://carbondesignsystem.com/
-- https://github.com/carbon-design-system/carbon
+- https://github.com/carbon-packages/design-system/carbon
 - https://carbondesignsystem.com/developing/react-tutorial/overview/
 - https://carbondesignsystem.com/developing/web-components-tutorial/overview/
 
@@ -1057,7 +1057,7 @@ npm install bootstrap
 ### Atlassian
 - https://atlassian.design/get-started/develop
 - https://atlassian.design/components/button/examples
-- https://atlaskit.atlassian.com/packages/design-system/button/example/disabled
+- https://atlaskit.atlassian.com/packages/packages/design-system/button/example/disabled
 - https://atlassian.design/tokens/design-tokens
 
 ### Primer

@@ -24,7 +24,7 @@
 | 产品 manifest | `design-lab/config/product-manifest.json`（namespace `design-lab/product-manifest/v1`）|
 
 旧名（`OPEN-DESIGN-Assistance` / `Open Design Assistance` / `opendesign-assistance` / `Design Intelligence Layer` / `Design Intelligence Capability Kit`）退出活动产品命名，仅允许出现在：
-1. `project-memory/history/` 与 `reports/history/` 的不可篡改历史；
+1. `docs/history/` 与 `reports/history/` 的不可篡改历史；
 2. 明确标注的第三方 Host Adapter（如 Open Design）；
 3. 外部来源、兼容性或 Git 历史引用。
 

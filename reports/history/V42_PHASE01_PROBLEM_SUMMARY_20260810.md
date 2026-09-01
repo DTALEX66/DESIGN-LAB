@@ -14,7 +14,7 @@
 
 | # | 问题 | 证据位置 | 影响 |
 |---|---|---|---|
-| 1 | 兼容矩阵仍含 Open Design 0.13.0，而 canonical 文档使用 0.18.1 | `config/compatibility-baseline.json`、`config/OPEN_DESIGN_COMPATIBILITY_MATRIX.md`、`project-memory/OPEN_DESIGN_VERSION_BASELINE.md` | 版本口径分裂，E3 对齐目标不明 |
+| 1 | 兼容矩阵仍含 Open Design 0.13.0，而 canonical 文档使用 0.18.1 | `config/compatibility-baseline.json`、`config/OPEN_DESIGN_COMPATIBILITY_MATRIX.md`、`docs/OPEN_DESIGN_VERSION_BASELINE.md` | 版本口径分裂，E3 对齐目标不明 |
 | 2 | README 使用不存在的 `--permission-root` 参数 | `README.md:203` | 文档命令不可执行 |
 | 3 | 配置脚本 `--apply` 仍会写 Open Design 私有 app-config.json 与 launcher | `scripts/configure_open_design_windows.py` | 违反"plan-only"集成边界 |
 | 4 | clean-tree workflow 只打印 `wc -l` 数量，脏树不失败 | `.github/workflows/canonical-verify-v4.yml` `generated-artifact-gate` | clean-tree 门禁形同虚设 |

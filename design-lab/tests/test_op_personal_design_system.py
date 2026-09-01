@@ -521,7 +521,7 @@ class PersonalDesignSystemTest(unittest.TestCase):
         self.assertEqual(counts["personal_skills"], 15)
         self.assertEqual(counts["design_systems"], 3)
         index = (ROOT / "plugins" / "INDEX.md").read_text(encoding="utf-8")
-        self.assertNotIn("(design-lab/plugins/", index)
+        self.assertNotIn("(packages/capabilities/plugins/", index)
 
     def test_gitignore_uses_portable_root_uuid_pattern(self):
         ignore = (REPO_ROOT / ".gitignore").read_text(encoding="utf-8")

@@ -87,7 +87,7 @@ def _entry(
 
 def _registry(*entries: dict) -> dict:
     return {
-        "schemaVersion": "design-lab/reconstruction-models/v1",
+        "schemaVersion": "packages/capabilities/reconstruction-models/v1",
         "hardwarePolicy": {
             "defaultDevice": "cuda",
             "availableVramMiB": 8151,
@@ -108,7 +108,7 @@ def _contract(source: Path, run_dir: Path, artifacts: list[dict], *, selected: s
         allowlist.append(selected)
         remote = [{"path": source_rel, "sha256": _sha256(source), "provider": selected, "consented": True}]
     return {
-        "schemaVersion": "design-lab/reconstruction-run/v1",
+        "schemaVersion": "packages/capabilities/reconstruction-run/v1",
         "runId": run_id,
         "jobId": "job-provider-test",
         "source": {
@@ -279,8 +279,8 @@ class ReconstructionProviderTests(unittest.TestCase):
         from reconstruction.providers.registry import load_registry
 
         cases = {
-            "duplicate key": b'{"schemaVersion":"design-lab/reconstruction-models/v1","schemaVersion":"x","hardwarePolicy":{},"entries":[]}',
-            "nonfinite": b'{"schemaVersion":"design-lab/reconstruction-models/v1","hardwarePolicy":{"defaultDevice":"cuda","availableVramMiB":NaN,"gpu":"x"},"entries":[]}',
+            "duplicate key": b'{"schemaVersion":"packages/capabilities/reconstruction-models/v1","schemaVersion":"x","hardwarePolicy":{},"entries":[]}',
+            "nonfinite": b'{"schemaVersion":"packages/capabilities/reconstruction-models/v1","hardwarePolicy":{"defaultDevice":"cuda","availableVramMiB":NaN,"gpu":"x"},"entries":[]}',
             "too deep": json.dumps({"a": [[[[[[[[[[[[[[[[[[[[0]]]]]]]]]]]]]]]]]]]]}).encode(),
             "too large": b" " * (1024 * 1024 + 1),
         }
