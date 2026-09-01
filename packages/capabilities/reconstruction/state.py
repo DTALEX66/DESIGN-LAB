@@ -16,7 +16,7 @@ from typing import Any
 
 from .contracts import ContractError, validate_run_contract
 
-PROJECT_ROOT = Path(__file__).resolve().parents[2]
+PROJECT_ROOT = Path(__file__).resolve().parents[3]
 JOURNAL_SCHEMA = "packages/capabilities/reconstruction-journal/v1"
 CHECKPOINT_SCHEMA = "packages/capabilities/reconstruction-checkpoint/v1"
 MAX_JSON_BYTES = 8 * 1024 * 1024

@@ -26,7 +26,7 @@ from PIL import Image, ImageCms, UnidentifiedImageError
 from .contracts import ContractError, validate_run_contract
 from .svg_safety import MAX_CANVAS_PIXELS, UnsafeSVGError, sanitize_svg
 
-_PROJECT_ROOT = Path(__file__).resolve().parents[2]
+_PROJECT_ROOT = Path(__file__).resolve().parents[3]
 _REGISTRY_PATH = _PROJECT_ROOT / "design-lab" / "config" / "reconstruction-tools.json"
 _CANONICAL_RUNTIME_ROOT = _PROJECT_ROOT / ".hermes" / "task-runtime" / "reconstruction"
 _REPARSE_POINT = getattr(stat, "FILE_ATTRIBUTE_REPARSE_POINT", 0x400)

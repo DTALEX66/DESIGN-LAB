@@ -379,6 +379,7 @@ class ReconstructionIntakeTests(unittest.TestCase):
         code = (
             "from pathlib import Path; import json,sys; "
             "sys.path.insert(0, sys.argv[1]); "
+            sys.path.insert(0, str(PROJECT_ROOT / "packages" / "capabilities"))
             "from reconstruction.intake import normalize_reference; "
             "r=normalize_reference(Path(sys.argv[2]), Path(sys.argv[3]), "
             "run_contract=json.loads(sys.argv[4])); "

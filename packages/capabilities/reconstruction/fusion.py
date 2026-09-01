@@ -13,7 +13,7 @@ from .svg_safety import sanitize_svg
 from .vector_candidates import VectorCandidate, select_candidates_by_object
 
 
-PROJECT_ROOT = Path(__file__).resolve().parents[2]
+PROJECT_ROOT = Path(__file__).resolve().parents[3]
 _RASTER_BUDGET_PROFILES = frozenset({"flat", "ui"})
 
 

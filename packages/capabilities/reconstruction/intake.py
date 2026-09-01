@@ -21,7 +21,7 @@ _SUPPORTED_FORMATS = frozenset({"PNG", "JPEG", "WEBP"})
 _SUPPORTED_MODES = frozenset({"RGB", "RGBA"})
 _NORMALIZED_NAME = "reference.normalized.png"
 _REPARSE_POINT = getattr(stat, "FILE_ATTRIBUTE_REPARSE_POINT", 0x400)
-_PROJECT_ROOT = Path(__file__).resolve().parents[2]
+_PROJECT_ROOT = Path(__file__).resolve().parents[3]
 _CANONICAL_RUNTIME_ROOT = _PROJECT_ROOT / ".hermes" / "task-runtime" / "reconstruction"
 _STABLE_RUN_ID = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$")
 

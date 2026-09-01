@@ -1,6 +1,6 @@
 {
   "schemaVersion": "design-lab/asset-sidecar/v1",
-  "file": "design-lab/intelligence/baoyu-design/assets/screenshots/cursor-reader-mac-app.webp",
+  "file": "research/candidates/baoyu-design/assets/screenshots/cursor-reader-mac-app.webp",
   "sha256": "sha256:77579dd858ad12686b119d56d2aba3eda016d8041f8d63c20f61b3c0680ba784",
   "license": "MIT",
   "author": "JimLiu (baoyu-design)",

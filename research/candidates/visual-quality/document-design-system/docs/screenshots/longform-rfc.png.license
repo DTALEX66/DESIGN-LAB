@@ -1,6 +1,6 @@
 {
   "schemaVersion": "design-lab/asset-sidecar/v1",
-  "file": "design-lab/knowledge/visual-quality/document-design-system/docs/screenshots/longform-rfc.png",
+  "file": "research/candidates/visual-quality/document-design-system/docs/screenshots/longform-rfc.png",
   "sha256": "sha256:0508fae5d4dbac17926848c4330b42fa3ec71e116a3f3ed00f60ae3d1a9eaca1",
   "license": "MIT",
   "author": "Avinava (document-design-system)",

@@ -1,6 +1,6 @@
 {
   "schemaVersion": "design-lab/asset-sidecar/v1",
-  "file": "design-lab/knowledge/visual-quality/brand-identity-generator/docs/assets/og-image.jpg",
+  "file": "research/candidates/visual-quality/brand-identity-generator/docs/assets/og-image.jpg",
   "sha256": "sha256:a5b501b80789071e73aebb60ace39f886d2f59f5a983531cb272392c15fcf261",
   "license": "MIT",
   "author": "brand-identity-generator authors",

@@ -1,6 +1,6 @@
 {
   "schemaVersion": "design-lab/asset-sidecar/v1",
-  "file": "minigame-runtime/docs/screenshots/v5-runtime-protocol-query-360x640.png",
+  "file": "fixtures/domains/game-visual/docs/screenshots/v5-runtime-protocol-query-360x640.png",
   "sha256": "sha256:1e00f9f3c7a78a56136a7999c1fae53a05307e7da308daa527d238bb506007b3",
   "license": "MIT",
   "author": "2026 DTALEX66 and contributors",

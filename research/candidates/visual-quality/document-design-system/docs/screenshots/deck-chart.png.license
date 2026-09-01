@@ -1,6 +1,6 @@
 {
   "schemaVersion": "design-lab/asset-sidecar/v1",
-  "file": "design-lab/knowledge/visual-quality/document-design-system/docs/screenshots/deck-chart.png",
+  "file": "research/candidates/visual-quality/document-design-system/docs/screenshots/deck-chart.png",
   "sha256": "sha256:333e09770e71068b96bbe62fb7d934a3a61d3ce5d9d1bb648809fbbe7612bf41",
   "license": "MIT",
   "author": "Avinava (document-design-system)",

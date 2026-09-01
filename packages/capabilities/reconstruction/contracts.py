@@ -16,7 +16,7 @@ from jsonschema.exceptions import best_match
 RIR_SCHEMA_ID = "packages/capabilities/reconstruction-ir/v1"
 RUN_SCHEMA_ID = "packages/capabilities/reconstruction-run/v1"
 
-_PROJECT_ROOT = Path(__file__).resolve().parents[2]
+_PROJECT_ROOT = Path(__file__).resolve().parents[3]
 _SCHEMA_DIR = _PROJECT_ROOT / "design-lab" / "schemas" / "reconstruction"
 
 

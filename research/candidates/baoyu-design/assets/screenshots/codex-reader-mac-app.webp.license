@@ -1,6 +1,6 @@
 {
   "schemaVersion": "design-lab/asset-sidecar/v1",
-  "file": "design-lab/intelligence/baoyu-design/assets/screenshots/codex-reader-mac-app.webp",
+  "file": "research/candidates/baoyu-design/assets/screenshots/codex-reader-mac-app.webp",
   "sha256": "sha256:f38482f65d3b33e796534c58b702967f8158a1532896797a31781a7e4362a122",
   "license": "MIT",
   "author": "JimLiu (baoyu-design)",

@@ -19,6 +19,7 @@ from PIL import Image
 REPO_ROOT = Path(__file__).resolve().parents[2]
 DESIGN_LAB = REPO_ROOT / "design-lab"
 sys.path.insert(0, str(DESIGN_LAB))
+sys.path.insert(0, str(REPO_ROOT / "packages" / "capabilities"))
 
 from reconstruction.pipeline import run_reconstruction  # noqa: E402
 from reconstruction.state import canonical_json_bytes  # noqa: E402

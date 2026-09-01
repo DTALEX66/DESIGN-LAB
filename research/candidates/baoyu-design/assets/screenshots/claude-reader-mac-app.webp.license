@@ -1,6 +1,6 @@
 {
   "schemaVersion": "design-lab/asset-sidecar/v1",
-  "file": "design-lab/intelligence/baoyu-design/assets/screenshots/claude-reader-mac-app.webp",
+  "file": "research/candidates/baoyu-design/assets/screenshots/claude-reader-mac-app.webp",
   "sha256": "sha256:a814ed99aafed7af63102f546d72058d0b3b8f42797b32f9f6105e7f066464a2",
   "license": "MIT",
   "author": "JimLiu (baoyu-design)",

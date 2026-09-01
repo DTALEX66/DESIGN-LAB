@@ -20,6 +20,7 @@ PROJECT_ROOT = DESIGN_LAB.parent
 REGISTRY_PATH = DESIGN_LAB / "config" / "reconstruction-models.json"
 if str(DESIGN_LAB) not in sys.path:
     sys.path.insert(0, str(DESIGN_LAB))
+    sys.path.insert(0, str(PROJECT_ROOT / "packages" / "capabilities"))
 
 
 def _sha256(path: Path) -> str:

@@ -1,6 +1,6 @@
 {
   "schemaVersion": "design-lab/asset-sidecar/v1",
-  "file": "design-lab/intelligence/baoyu-design/skills/baoyu-design/agents/assets/vision-probe.png",
+  "file": "research/candidates/baoyu-design/skills/baoyu-design/agents/assets/vision-probe.png",
   "sha256": "sha256:5e565a8d6a1479f98c190fd3c56ec06470ae43b614287dd449c1077624c3cf1e",
   "license": "MIT",
   "author": "JimLiu (baoyu-design)",

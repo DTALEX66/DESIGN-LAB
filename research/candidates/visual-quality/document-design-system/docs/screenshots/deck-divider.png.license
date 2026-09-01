@@ -1,6 +1,6 @@
 {
   "schemaVersion": "design-lab/asset-sidecar/v1",
-  "file": "design-lab/knowledge/visual-quality/document-design-system/docs/screenshots/deck-divider.png",
+  "file": "research/candidates/visual-quality/document-design-system/docs/screenshots/deck-divider.png",
   "sha256": "sha256:67cd7b324b51423c7a0d1a1496d3c9fb2325873588def58e0da1d154aef253c7",
   "license": "MIT",
   "author": "Avinava (document-design-system)",

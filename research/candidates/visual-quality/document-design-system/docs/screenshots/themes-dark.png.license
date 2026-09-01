@@ -1,6 +1,6 @@
 {
   "schemaVersion": "design-lab/asset-sidecar/v1",
-  "file": "design-lab/knowledge/visual-quality/document-design-system/docs/screenshots/themes-dark.png",
+  "file": "research/candidates/visual-quality/document-design-system/docs/screenshots/themes-dark.png",
   "sha256": "sha256:323a5cd418355eb7039d7cf5d3d10a4dff60e1b53bf6cde5348dd92ea162f4b1",
   "license": "MIT",
   "author": "Avinava (document-design-system)",

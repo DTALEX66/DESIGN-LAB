@@ -9,6 +9,7 @@ from pathlib import Path
 
 DESIGN_LAB = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(DESIGN_LAB))
+sys.path.insert(0, str(DESIGN_LAB.parent / "packages" / "capabilities"))
 
 from reconstruction.golden_corpus import load_corpus  # noqa: E402
 

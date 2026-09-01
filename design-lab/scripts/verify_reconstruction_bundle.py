@@ -16,6 +16,7 @@ PROJECT_ROOT = DESIGN_LAB.parent
 TESTS = DESIGN_LAB / "tests"
 sys.path.insert(0, str(DESIGN_LAB))
 sys.path.insert(0, str(TESTS))
+sys.path.insert(0, str(PROJECT_ROOT / "packages" / "capabilities"))
 
 from reconstruction.evidence import package_evidence, validate_bundle  # noqa: E402
 from reconstruction.pipeline import run_reconstruction  # noqa: E402

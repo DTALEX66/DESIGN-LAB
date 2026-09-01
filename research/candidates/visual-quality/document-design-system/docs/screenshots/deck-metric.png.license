@@ -1,6 +1,6 @@
 {
   "schemaVersion": "design-lab/asset-sidecar/v1",
-  "file": "design-lab/knowledge/visual-quality/document-design-system/docs/screenshots/deck-metric.png",
+  "file": "research/candidates/visual-quality/document-design-system/docs/screenshots/deck-metric.png",
   "sha256": "sha256:a1db39293d91e30d288734a6e49e312dd6280d11efe2cfd622588a31e68fd91a",
   "license": "MIT",
   "author": "Avinava (document-design-system)",

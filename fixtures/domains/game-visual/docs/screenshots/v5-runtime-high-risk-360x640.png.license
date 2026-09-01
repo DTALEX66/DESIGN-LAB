@@ -1,6 +1,6 @@
 {
   "schemaVersion": "design-lab/asset-sidecar/v1",
-  "file": "minigame-runtime/docs/screenshots/v5-runtime-high-risk-360x640.png",
+  "file": "fixtures/domains/game-visual/docs/screenshots/v5-runtime-high-risk-360x640.png",
   "sha256": "sha256:86aff45dd08e94ea2a4672742d749a827c6ac834ae918eebd58fe0f9e1e6d038",
   "license": "MIT",
   "author": "2026 DTALEX66 and contributors",
