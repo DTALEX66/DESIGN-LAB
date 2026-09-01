@@ -1,0 +1,54 @@
+{
+  "schemaVersion": "design-lab/vendor-sources-lock/v1",
+  "generated": "2026-09-01",
+  "sources": [
+    {
+      "id": "anydesign",
+      "path": "design-lab/intelligence/anydesign",
+      "disposition": "LOCK_REFERENCE",
+      "license": "MIT",
+      "files": 19,
+      "notes": "Design method reference"
+    },
+    {
+      "id": "claude-design-skill",
+      "path": "design-lab/intelligence/claude-design-skill",
+      "disposition": "LOCK_REFERENCE",
+      "license": "MIT",
+      "files": 24,
+      "notes": "Claude design skill reference"
+    },
+    {
+      "id": "design-system-prompt",
+      "path": "design-lab/intelligence/design-system-prompt",
+      "disposition": "LOCK_REFERENCE",
+      "license": "MIT",
+      "files": 34,
+      "notes": "Design system prompt reference"
+    },
+    {
+      "id": "motion-engine",
+      "path": "design-lab/intelligence/motion-engine",
+      "disposition": "LOCK_REFERENCE",
+      "license": "MIT",
+      "files": 28,
+      "notes": "Motion engine reference"
+    },
+    {
+      "id": "shipit-ui",
+      "path": "design-lab/intelligence/shipit-ui",
+      "disposition": "LOCK_REFERENCE",
+      "license": "MIT",
+      "files": 76,
+      "notes": "ShipIt UI reference"
+    },
+    {
+      "id": "web-content-designer",
+      "path": "design-lab/intelligence/web-content-designer",
+      "disposition": "LOCK_REFERENCE",
+      "license": "MIT",
+      "files": 11,
+      "notes": "Web content designer reference"
+    }
+  ]
+}
