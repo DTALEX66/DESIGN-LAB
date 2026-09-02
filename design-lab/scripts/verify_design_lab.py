@@ -38,7 +38,7 @@ SCRIPTS = [
     "verify_federation_review.py",
     "verify_quality_pipeline.py",
     "verify_review_surface.py",
-    "adapters/hosts/open-design/verifier/verify_open_design_host_adapter.py",
+    "integrations/hosts/open-design/verifier/verify_open_design_host_adapter.py",
     "verify_product_manifest_v3.py",
     "verify_runtime_contracts_v3.py",
     "verify_visual_scoring_v3.py",

@@ -12,7 +12,7 @@ import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
-REG = ROOT / "quality" / "profiles" / "aesthetic-rules.json"
+REG = ROOT.parent / "packages" / "capabilities" / "quality" / "profiles" / "aesthetic-rules.json"
 PROVIDERS = ROOT / "config" / "provider-capabilities.json"
 
 

@@ -62,7 +62,7 @@ def main() -> int:
             errors.append(f"command {cmd.get('command_id')}: tool name in capability")
 
     # 4) quality gate pass（无 blocker + 全维度达标）
-    gate = json.loads((ROOT / "quality" / "profiles" / "commercial-visual-v2.json").read_text(encoding="utf-8"))
+    gate = json.loads((ROOT.parent / "packages" / "capabilities" / "quality" / "profiles" / "commercial-visual-v2.json").read_text(encoding="utf-8"))
     res = qg.evaluate(data["quality_scores"], gate, data.get("quality_blockers", []))
     if res["decision"] != "pass":
         errors.append(f"quality gate failed: {res['decision']} {res['blocking_issues']}")
