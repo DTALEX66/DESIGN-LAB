@@ -11,14 +11,14 @@ from pathlib import Path
 REPO = Path(__file__).resolve().parents[2]
 ACTIVE_DOCS = (
     "README.md",
-    "docs/PRODUCT_DEFINITION.md",
-    "docs/PROJECT_DEFINITION.md",
-    "docs/ARCHITECTURE.md",
-    "docs/BOUNDARY_CONTRACT.md",
-    "docs/ROADMAP.md",
+    "docs/current/PRODUCT_DEFINITION.md",
+    "docs/current/PROJECT_DEFINITION.md",
+    "docs/architecture/ARCHITECTURE.md",
+    "docs/architecture/BOUNDARY_CONTRACT.md",
+    "docs/current/ROADMAP.md",
     "design-lab/README.md",
     "design-lab/ARCHITECTURE_V3.md",
-    "integrations/NEUTRALITY_POLICY.md",
+    "docs/decisions/NEUTRALITY_POLICY.md",
 )
 FORBIDDEN_DEFAULT_HOST = re.compile(
     r"(?:current reference host|当前参考宿主|默认宿主|Open Design 是主入口|宿主 Open Design 是主角)",

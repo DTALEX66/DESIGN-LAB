@@ -1,6 +1,6 @@
 {
   "schemaVersion": "design-lab/asset-sidecar/v1",
-  "file": "design-lab/exports/minigame-mobile-controls/assets/cctv-elevator-corridor-clear.png",
+  "file": "fixtures/domains/game-visual/exports/minigame-mobile-controls/assets/cctv-elevator-corridor-clear.png",
   "sha256": "sha256:e8ccfe595f472149afbd112cb59a8fb0b74e6b0046ba9d8e96d69ef0a0ae0441",
   "license": "MIT",
   "author": "2026 DTALEX66 and contributors",
