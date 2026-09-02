@@ -30,7 +30,7 @@ from .base import (
     RemoteProviderDenied,
 )
 
-PROJECT_ROOT = Path(__file__).resolve().parents[3]
+PROJECT_ROOT = Path(__file__).resolve().parents[4]
 DEFAULT_REGISTRY_PATH = PROJECT_ROOT / "design-lab" / "config" / "reconstruction-models.json"
 MAX_REGISTRY_BYTES = 1024 * 1024
 MAX_REGISTRY_DEPTH = 16

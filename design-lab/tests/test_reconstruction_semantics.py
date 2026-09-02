@@ -1,5 +1,4 @@
 # SPDX-License-Identifier: MIT
-sys.path.insert(0, str(REPO_ROOT / "packages" / "capabilities"))
 """Behavioral contracts for bounded reconstruction semantic proposals."""
 from __future__ import annotations
 
