@@ -18,7 +18,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 REQUIRED = (
-    "config/knowledge-role-classification.json",
+    "design-lab/config/knowledge-role-classification.json",
 )
 
 
@@ -28,7 +28,7 @@ def main() -> int:
         path = ROOT / relative
         if not path.is_file():
             errors.append(f"missing {relative}")
-    classification = ROOT / "config/knowledge-role-classification.json"
+    classification = ROOT / "design-lab/config/knowledge-role-classification.json"
     if classification.is_file():
         try:
             data = json.loads(classification.read_text(encoding="utf-8"))

@@ -369,8 +369,18 @@ def verify_asset_counts(root: Path, results: list[Result]) -> None:
         check(results, "asset-counts.json is an object", False)
         return
 
+    # After DL-DIR-MIG-R1 the capability catalogs (plugins/bundles/atoms/scenarios)
+    # live under packages/capabilities/, while domain-packs and evals stay under
+    # design-lab/ (ASSISTANCE_DIR).  Capability catalogs carry open-design.json
+    # manifests; domain-packs carry manifest.json.
+    CATALOG_KINDS = {"plugins", "bundles", "atoms", "scenarios"}
+
     def dir_count(rel_dir: str, manifest_name: str = "open-design.json") -> int:
-        target = root / ASSISTANCE_DIR / rel_dir
+        target = (
+            root / "packages" / "capabilities" / rel_dir
+            if rel_dir in CATALOG_KINDS
+            else root / ASSISTANCE_DIR / rel_dir
+        )
         if not target.is_dir():
             return 0
         return sum(1 for p in target.iterdir() if p.is_dir() and (p / manifest_name).is_file())

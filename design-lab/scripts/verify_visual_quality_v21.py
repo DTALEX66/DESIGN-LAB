@@ -9,11 +9,11 @@ def load(rel):
  p=ROOT/rel
  try:return json.loads(p.read_text(encoding='utf-8'))
  except Exception as e:errors.append(f'{rel}: {e}');return None
-lin=load('research/style-lineages/STYLE_LINEAGES.json')
-styles=load('research/style-lineages/STYLE_ANALYSIS_CARDS.json')
-masters=load('research/master-studies/MASTER_REGISTRY.json')
-cards=load('research/master-studies/ANCHOR_METHOD_CARDS.json')
-sources=load('research/visual-quality/SOURCE_REGISTRY_VISUAL_V21.json')
+lin=load('design-lab/research/style-lineages/STYLE_LINEAGES.json')
+styles=load('design-lab/research/style-lineages/STYLE_ANALYSIS_CARDS.json')
+masters=load('design-lab/research/master-studies/MASTER_REGISTRY.json')
+cards=load('design-lab/research/master-studies/ANCHOR_METHOD_CARDS.json')
+sources=load('design-lab/research/visual-quality/SOURCE_REGISTRY_VISUAL_V21.json')
 if lin:
  ids=[x['id'] for x in lin.get('lineages',[])]
  if len(ids)!=len(set(ids)):errors.append('duplicate lineage id')
@@ -41,11 +41,11 @@ if sources:
  for e in sources.get('entries',[]):
   if e['integration_mode']=='quarantine' and e['status']=='adopt-now':errors.append(f"quarantine source marked adopt-now: {e['id']}")
 atom_ids=set()
-for p in (ROOT/'atoms').glob('*/open-design.json'):
+for p in (ROOT/'packages'/'capabilities'/'atoms').glob('*/open-design.json'):
  d=load(str(p.relative_to(ROOT)))
  if d and d.get('od',{}).get('kind')=='atom':atom_ids.add(d['name'])
 first_party={'research-search','discovery-question-form','direction-picker','todo-write','file-read','file-write','media-image','media-video','media-audio','live-artifact','critique-theater'}
-for p in (ROOT/'scenarios').glob('*/open-design.json'):
+for p in (ROOT/'packages'/'capabilities'/'scenarios').glob('*/open-design.json'):
  d=load(str(p.relative_to(ROOT)))
  if not d:continue
  for stage in d.get('od',{}).get('pipeline',{}).get('stages',[]):
@@ -60,9 +60,9 @@ print(f'CURATED_METHOD_CARDS={len(cards.get("cards",[])) if cards else 0}')
 print(f'STYLE_LINEAGES={len(lin.get("lineages",[])) if lin else 0}')
 print(f'STYLE_ANALYSIS_CARDS={len(styles.get("cards",[])) if styles else 0}')
 print(f'ATOMS={len(atom_ids)}')
-print(f'SCENARIOS={len(list((ROOT/"scenarios").glob("*/open-design.json")))}')
-print(f'SCHEMAS={len(list((ROOT/"schemas/visual-quality").glob("*.json")))}')
-print(f'RUBRICS={len(list((ROOT/"evals/rubrics").glob("*.json")))}')
+print(f"SCENARIOS={len(list((ROOT/'packages'/'capabilities'/'scenarios').glob('*/open-design.json')))}")
+print(f"SCHEMAS={len(list((ROOT/'design-lab'/'schemas'/'visual-quality').glob('*.json')))}")
+print(f"RUBRICS={len(list((ROOT/'design-lab'/'evals'/'rubrics').glob('*.json')))}")
 print(f'ERRORS={len(errors)}')
 for e in errors:print('ERROR',e)
 print('VERIFY_VISUAL_QUALITY_V21=' + ('OK' if not errors else 'FAIL'))
