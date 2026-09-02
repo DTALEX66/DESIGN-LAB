@@ -93,7 +93,7 @@ def list_at(results: list[Result], label: str, value: Any) -> list[Any]:
 
 def local_atom_ids(root: Path, results: list[Result] | None = None) -> set[str]:
     ids: set[str] = set()
-    for path in (root / ASSISTANCE_DIR / "atoms").glob("*/open-design.json"):
+    for path in (root / "packages" / "capabilities" / "atoms").glob("*/open-design.json"):
         try:
             manifest = load_json(path)
         except Exception as exc:  # noqa: BLE001
@@ -122,7 +122,7 @@ def verify_scenarios(
     results: list[Result],
     atom_ids: set[str],
 ) -> tuple[set[str], dict[str, dict[str, set[str]]]]:
-    scenario_dir = root / ASSISTANCE_DIR / "scenarios"
+    scenario_dir = root / "packages" / "capabilities" / "scenarios"
     scenario_manifests = sorted(scenario_dir.glob("*/open-design.json"))
     scenario_ids: set[str] = set()
     stage_maps: dict[str, dict[str, set[str]]] = {}
@@ -183,7 +183,7 @@ def verify_bundles(
     atom_ids: set[str],
     scenario_ids: set[str],
 ) -> None:
-    bundle_dir = root / ASSISTANCE_DIR / "bundles"
+    bundle_dir = root / "packages" / "capabilities" / "bundles"
     bundle_ids: set[str] = set()
     for path in sorted(bundle_dir.glob("*/open-design.json")):
         try:
