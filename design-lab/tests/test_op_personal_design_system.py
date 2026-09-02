@@ -11,13 +11,16 @@ from unittest import mock
 
 ROOT = Path(__file__).resolve().parents[1]
 REPO_ROOT = ROOT.parent
-SKILLS = ROOT / "adapters" / "hosts" / "open-design" / "expert-suite" / "skills"
+# DL-DIR-MIG-R1: open-design host tree moved to repo-root integrations/,
+# capability catalogs to packages/capabilities/, research stays under design-lab/.
+OPEN_DESIGN = REPO_ROOT / "integrations" / "hosts" / "open-design"
+SKILLS = OPEN_DESIGN / "expert-suite" / "skills"
 DESIGN_SYSTEMS = ROOT / "design-systems"
-PLUGINS = ROOT / "plugins"
-BUNDLES = ROOT / "bundles"
-SCENARIOS = ROOT / "scenarios"
+PLUGINS = REPO_ROOT / "packages" / "capabilities" / "plugins"
+BUNDLES = REPO_ROOT / "packages" / "capabilities" / "bundles"
+SCENARIOS = REPO_ROOT / "packages" / "capabilities" / "scenarios"
 RESEARCH = ROOT / "research"
-INSTALLER = ROOT / "adapters" / "hosts" / "open-design" / "installer" / "install_op_expert_suite.py"
+INSTALLER = OPEN_DESIGN / "installer" / "install_op_expert_suite.py"
 
 
 class PersonalDesignSystemTest(unittest.TestCase):
@@ -136,7 +139,13 @@ class PersonalDesignSystemTest(unittest.TestCase):
         self.assertEqual(sum(kind == "bundles" for kind, _ in resources), 3)
         self.assertEqual(sum(kind == "scenarios" for kind, _ in resources), 2)
         for kind, name in resources:
-            manifest = ROOT / kind / name / "open-design.json"
+            base_dir = {
+                "plugins": PLUGINS,
+                "bundles": BUNDLES,
+                "scenarios": SCENARIOS,
+                "design-systems": DESIGN_SYSTEMS,
+            }.get(kind, ROOT)
+            manifest = base_dir / name / "open-design.json"
             self.assertTrue(manifest.is_file(), manifest)
             data = json.loads(manifest.read_text(encoding="utf-8"))
             self.assertEqual(data["name"], name)
@@ -520,7 +529,7 @@ class PersonalDesignSystemTest(unittest.TestCase):
         )
         self.assertEqual(counts["personal_skills"], 15)
         self.assertEqual(counts["design_systems"], 3)
-        index = (ROOT / "plugins" / "INDEX.md").read_text(encoding="utf-8")
+        index = (PLUGINS / "INDEX.md").read_text(encoding="utf-8")
         self.assertNotIn("(packages/capabilities/plugins/", index)
 
     def test_gitignore_uses_portable_root_uuid_pattern(self):

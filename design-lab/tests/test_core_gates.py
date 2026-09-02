@@ -30,7 +30,7 @@ class LicenseCoverageTests(unittest.TestCase):
         m = load("verify_license_coverage.py")
         self.assertTrue(m.is_excluded("research/candidates/visual-quality/hallmark/a.py"))
         self.assertTrue(m.is_excluded("research/candidates/baoyu-design/x.mjs"))
-        self.assertTrue(m.is_excluded("design-lab/exports/out.png"))
+        self.assertTrue(m.is_excluded("reports/current/out.png"))
         self.assertTrue(m.is_excluded("fixtures/domains/game-visual/bundle.js"))
         self.assertTrue(m.is_excluded("foo/node_modules/bar/b.py"))
 

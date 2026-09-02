@@ -32,12 +32,16 @@ from pathlib import Path
 from typing import Any, Callable
 
 
-REPO_ROOT = Path(__file__).resolve().parents[5]  # repo root (installer is 4 levels under design-lab/)
-SUITE_SRC = REPO_ROOT / "design-lab" / "adapters" / "hosts" / "open-design" / "expert-suite" / "skills"
+# DL-DIR-MIG-R1: open-design host tree now lives at repo-root integrations/
+# (installer is 4 levels deep: installer -> open-design -> hosts -> integrations -> repo).
+REPO_ROOT = Path(__file__).resolve().parents[4]
+HOST_ROOT = REPO_ROOT / "integrations" / "hosts" / "open-design"
+SUITE_SRC = HOST_ROOT / "expert-suite" / "skills"
 DESIGN_SYSTEMS_ROOT = REPO_ROOT / "design-lab" / "design-systems"
-PLUGINS_ROOT = REPO_ROOT / "design-lab" / "plugins"
-BUNDLES_ROOT = REPO_ROOT / "design-lab" / "bundles"
-ATOMS_ROOT = REPO_ROOT / "design-lab" / "atoms"
+PLUGINS_ROOT = REPO_ROOT / "packages" / "capabilities" / "plugins"
+BUNDLES_ROOT = REPO_ROOT / "packages" / "capabilities" / "bundles"
+ATOMS_ROOT = REPO_ROOT / "packages" / "capabilities" / "atoms"
+SCENARIOS_ROOT = REPO_ROOT / "packages" / "capabilities" / "scenarios"
 EXPERT_RESOURCE_SOURCES = (
     *(('plugins', name) for name in (
         'anomaly-monitor-hud',
@@ -240,25 +244,48 @@ def copy_expert_resource_sources(destination: Path) -> None:
     resource_roots = (
         ("plugins", PLUGINS_ROOT),
         ("bundles", BUNDLES_ROOT),
-        ("scenarios", REPO_ROOT / "design-lab" / "scenarios"),
+        ("scenarios", SCENARIOS_ROOT),
     )
     for kind, root in resource_roots:
         for source_kind, name in EXPERT_RESOURCE_SOURCES:
             if source_kind == kind:
                 shutil.copytree(root / name, destination / kind / name)
-    assistance_root = REPO_ROOT / "design-lab"
+    # Manifest assets are paths relative to the resource directory (e.g.
+    # ../../atoms/<id>/SKILL.md).  After DL-DIR-MIG-R1 the catalogs live under
+    # packages/capabilities/<kind> (plugins/bundles/scenarios/atoms share the
+    # packages/capabilities parent), while research/ stays under design-lab/.
+    # Sources are resolved from the real anchors; the mirror keeps the resource
+    # directories so each manifest asset reference resolves inside the mirror.
+    # DL-DIR-MIG-R1 layout: catalogs moved from design-lab/<kind> to
+    # packages/capabilities/<kind>, so the ../../<shared> asset references in
+    # manifests resolve against the new anchor; research/ assets that shared the
+    # design-lab/ root with the old bundles are resolved from the legacy anchor.
+    resource_anchors = {
+        "plugins": PLUGINS_ROOT,
+        "bundles": BUNDLES_ROOT,
+        "scenarios": SCENARIOS_ROOT,
+    }
+    mirror_root = destination.resolve()
     for kind, name in EXPERT_RESOURCE_SOURCES:
         manifest_path = destination / kind / name / "open-design.json"
         manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
         for relative in manifest.get("od", {}).get("context", {}).get("assets", []):
-            source = (assistance_root / kind / name / relative).resolve()
-            try:
-                source_relative = source.relative_to(assistance_root.resolve())
-            except ValueError as exc:
-                raise ApiError(f"asset escapes assistance root: {relative}") from exc
+            anchor = resource_anchors.get(kind)
+            if anchor is None:
+                raise ApiError(f"unknown resource kind: {kind}")
+            source = (anchor / name / relative).resolve()
             if not source.is_file():
-                raise ApiError(f"missing expert resource asset: {source_relative.as_posix()}")
-            target = destination / source_relative
+                legacy = REPO_ROOT / "design-lab" / kind / name / relative
+                source = legacy.resolve()
+            if not source.is_file():
+                raise ApiError(f"missing expert resource asset: {relative}")
+            # mirror target mirrors the manifest's own relative reference so the
+            # copied tree stays self-consistent (manifest_path.parent / relative)
+            target = (manifest_path.parent / relative).resolve()
+            try:
+                target.relative_to(mirror_root)
+            except ValueError as exc:
+                raise ApiError(f"asset escapes mirror root: {relative}") from exc
             target.parent.mkdir(parents=True, exist_ok=True)
             if not target.exists():
                 shutil.copy2(source, target)

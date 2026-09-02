@@ -10,7 +10,7 @@ from pathlib import Path
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(PROJECT_ROOT / "design-lab" / "scripts"))
-ROOT = PROJECT_ROOT / "design-lab" / "adapters" / "creative-tools" / "adobe" / "photoshop-reconstruction"
+ROOT = PROJECT_ROOT / "integrations" / "hosts" / "adobe" / "photoshop-reconstruction"
 MANIFEST = ROOT / "manifest.json"
 INDEX = ROOT / "index.js"
 

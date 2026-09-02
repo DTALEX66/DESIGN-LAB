@@ -38,8 +38,8 @@ BUILTIN_ATOMS = {
 class ManifestCompatibilityTest(unittest.TestCase):
     def setUp(self):
         self.manifests = (
-            list((REPO / "design-lab" / "plugins").glob("*/open-design.json"))
-            + list((REPO / "design-lab" / "bundles").glob("*/open-design.json"))
+            list((REPO / "packages" / "capabilities" / "plugins").glob("*/open-design.json"))
+            + list((REPO / "packages" / "capabilities" / "bundles").glob("*/open-design.json"))
         )
 
     def test_all_manifests_valid_json_and_official_schema(self):
@@ -69,14 +69,14 @@ class ManifestCompatibilityTest(unittest.TestCase):
     def test_task_kind_present_for_bundles(self):
         # Bundles declare an upstream-style taskKind; skills declare
         # new-generation. Aligns with upstream taskKind (402/414).
-        for m in (REPO / "design-lab" / "bundles").glob("*/open-design.json"):
+        for m in (REPO / "packages" / "capabilities" / "bundles").glob("*/open-design.json"):
             d = json.loads(m.read_text(encoding="utf-8"))
             self.assertTrue(d.get("od", {}).get("taskKind"), f"{m} od.taskKind missing")
 
     def test_task_kind_in_upstream_enum(self):
         # V42-0303 (live discovery): daemon manifest validation rejects any
         # taskKind outside the four-value upstream enum.
-        for m in (REPO / "design-lab" / "bundles").glob("*/open-design.json"):
+        for m in (REPO / "packages" / "capabilities" / "bundles").glob("*/open-design.json"):
             d = json.loads(m.read_text(encoding="utf-8"))
             self.assertIn(d["od"]["taskKind"], UPSTREAM_TASK_KINDS, f"{m} invalid taskKind")
 
@@ -84,14 +84,14 @@ class ManifestCompatibilityTest(unittest.TestCase):
         # V42-0303 (live discovery): daemon doctor raises atom.unknown errors
         # for any context.atoms id outside the built-in FIRST_PARTY_ATOMS set.
         # Bundles may reference local custom atoms only via context.assets.
-        for m in (REPO / "design-lab" / "bundles").glob("*/open-design.json"):
+        for m in (REPO / "packages" / "capabilities" / "bundles").glob("*/open-design.json"):
             d = json.loads(m.read_text(encoding="utf-8"))
             atoms = d.get("od", {}).get("context", {}).get("atoms", [])
             for atom in atoms:
                 self.assertIn(atom, BUILTIN_ATOMS, f"{m} references non-builtin atom {atom!r}")
 
     def test_three_public_bundles_present(self):
-        bundle_names = {m.parent.name for m in (REPO / "design-lab" / "bundles").glob("*/open-design.json")}
+        bundle_names = {m.parent.name for m in (REPO / "packages" / "capabilities" / "bundles").glob("*/open-design.json")}
         self.assertIn("commercial-design-core", bundle_names)
         self.assertIn("visual-quality-core", bundle_names)
         self.assertIn("production-handoff", bundle_names)
@@ -109,7 +109,7 @@ class ManifestCompatibilityTest(unittest.TestCase):
         (DL-AST-003 / 1382e2c). Path-traversal protection is still covered by
         plugin and design-system manifest tests below.
         """
-        script = REPO / "design-lab" / "adapters" / "hosts" / "open-design" / "verifier" / "verify_open_design_host_adapter.py"
+        script = REPO / "integrations" / "hosts" / "open-design" / "verifier" / "verify_open_design_host_adapter.py"
         spec = importlib.util.spec_from_file_location("verify_open_design_host_adapter_no_visual_packs", script)
         verifier = importlib.util.module_from_spec(spec)
         sys.modules[spec.name] = verifier
@@ -117,14 +117,14 @@ class ManifestCompatibilityTest(unittest.TestCase):
         self.assertFalse(hasattr(verifier, "verify_visual_packs"), "removed function must not be re-introduced")
 
     def test_plugin_agent_skill_rejects_path_traversal(self):
-        script = REPO / "design-lab" / "adapters" / "hosts" / "open-design" / "verifier" / "verify_open_design_host_adapter.py"
+        script = REPO / "integrations" / "hosts" / "open-design" / "verifier" / "verify_open_design_host_adapter.py"
         spec = importlib.util.spec_from_file_location("verify_open_design_host_adapter_plugin_traversal_test", script)
         verifier = importlib.util.module_from_spec(spec)
         sys.modules[spec.name] = verifier
         spec.loader.exec_module(verifier)
         with tempfile.TemporaryDirectory() as td:
             root = Path(td)
-            plugin = root / "design-lab" / "plugins" / "test-plugin"
+            plugin = root / "packages" / "capabilities" / "plugins" / "test-plugin"
             plugin.mkdir(parents=True)
             (root / "design-lab" / "config").mkdir(parents=True)
             (root / "design-lab" / "config" / "product-manifest.json").write_text(
@@ -162,7 +162,7 @@ class ManifestCompatibilityTest(unittest.TestCase):
             )
 
     def test_design_system_manifest_rejects_path_traversal(self):
-        script = REPO / "design-lab" / "adapters" / "hosts" / "open-design" / "verifier" / "verify_open_design_host_adapter.py"
+        script = REPO / "integrations" / "hosts" / "open-design" / "verifier" / "verify_open_design_host_adapter.py"
         spec = importlib.util.spec_from_file_location("verify_open_design_host_adapter_system_traversal_test", script)
         verifier = importlib.util.module_from_spec(spec)
         sys.modules[spec.name] = verifier

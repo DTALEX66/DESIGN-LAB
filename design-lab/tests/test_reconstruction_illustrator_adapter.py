@@ -10,7 +10,7 @@ from pathlib import Path
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(PROJECT_ROOT / "design-lab"))
 sys.path.insert(0, str(PROJECT_ROOT / "design-lab" / "scripts"))
-JSX = PROJECT_ROOT / "design-lab" / "adapters" / "creative-tools" / "adobe" / "illustrator" / "reconstruction-assemble.jsx"
+JSX = PROJECT_ROOT / "integrations" / "hosts" / "adobe" / "illustrator" / "reconstruction-assemble.jsx"
 
 
 class IllustratorAdapterTests(unittest.TestCase):
