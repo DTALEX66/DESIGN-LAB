@@ -67,7 +67,7 @@
       "role": "neutral objects, contracts and policy"
     },
     {
-      "path": "design-lab/intelligence/",
+      "path": "research/candidates/",
       "role": "intake, direction, design system, critique"
     },
     {
@@ -79,7 +79,7 @@
       "role": "neutral contracts for brief, direction, state, scoring, preflight, delivery, provenance, release-evidence and manifest validation"
     },
     {
-      "path": "design-lab/adapters/",
+      "path": "integrations/",
       "role": "host/agent/tool/model adapters with AdapterRecord contracts; no default binding"
     },
     {
@@ -95,7 +95,7 @@
       "role": "public composites: commercial-design-core, visual-quality-core, production-handoff"
     },
     {
-      "path": "design-lab/knowledge/",
+      "path": "packages/capabilities/",
       "role": "governed sources, methods, standards and registries"
     },
     {
@@ -148,7 +148,7 @@
       "id": "design-intelligence",
       "title": "Brief, direction, design system and critique intelligence",
       "paths": [
-        "design-lab/intelligence/",
+        "research/candidates/",
         "packages/capabilities/atoms/brief-normalizer/",
         "packages/capabilities/atoms/source-intake-gate/"
       ],
@@ -190,7 +190,7 @@
         "packages/capabilities/quality/",
         "packages/capabilities/bundles/visual-quality-core/",
         "design-lab/evals/rubrics/visual-quality-core.rubric.json",
-        "design-lab/knowledge/visual-quality/",
+        "research/candidates/visual-quality/",
         "design-lab/scripts/score_visual_quality.py",
         "design-lab/scripts/score_design_critique.py",
         "design-lab/scripts/compare_visual_iterations.py",
@@ -212,7 +212,7 @@
       "id": "creative-toolchain",
       "title": "Host / agent / creative-tool adapters",
       "paths": [
-        "design-lab/adapters/"
+        "integrations/"
       ],
       "minimumEvidence": "E1",
       "domain": "all",
@@ -254,7 +254,7 @@
       "id": "research-evidence",
       "title": "Research, evidence and benchmarks",
       "paths": [
-        "design-lab/knowledge/sources/",
+        "vendor/",
         "design-lab/research/",
         "design-lab/evals/",
         "design-lab/scripts/verify_source_registry.py"
@@ -298,10 +298,10 @@
   "entrypoints": {
     "human": [
       "README.md",
-      "docs/PRODUCT_DEFINITION.md",
-      "docs/ARCHITECTURE.md",
-      "docs/BOUNDARY_CONTRACT.md",
-      "docs/ROADMAP.md"
+      "docs/current/PRODUCT_DEFINITION.md",
+      "docs/architecture/ARCHITECTURE.md",
+      "docs/architecture/BOUNDARY_CONTRACT.md",
+      "docs/current/ROADMAP.md"
     ],
     "machine": [
       "design-lab/config/product-manifest.json",

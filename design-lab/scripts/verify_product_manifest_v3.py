@@ -21,8 +21,8 @@ MANIFEST_REL = f"{ASSISTANCE_DIR}/config/product-manifest.json"
 CAPABILITY_STATUS_REL = f"{ASSISTANCE_DIR}/config/capability-status.json"
 PRODUCT_SCHEMA_REL = f"{ASSISTANCE_DIR}/schemas/product-manifest.schema.json"
 CAPABILITY_STATUS_SCHEMA_REL = f"{ASSISTANCE_DIR}/schemas/capability-status.schema.json"
-PROJECT_DEFINITION_REL = "docs/PROJECT_DEFINITION.md"
-ARCHITECTURE_REL = "docs/ARCHITECTURE.md"
+PROJECT_DEFINITION_REL = "docs/current/PROJECT_DEFINITION.md"
+ARCHITECTURE_REL = "docs/architecture/ARCHITECTURE.md"
 
 EXPECTED_EVIDENCE_LEVELS = ["E0", "E1", "E2", "E3", "E4", "E5"]
 EXPECTED_STATES = ["NOT_RUN", "PASS", "FAIL", "BLOCKED", "UNVERIFIED", "SKIPPED_OPTIONAL"]
@@ -179,7 +179,7 @@ def verify_manifest_shape(root: Path, manifest: dict[str, Any], results: list[Re
         check(results, f"family {family_id}: paths present", bool(paths), str(paths))
         for rel in paths:
             rel_text = str(rel)
-            root_relative_prefixes = (ASSISTANCE_DIR, ".github", ".hermes", "LICENSING", "THIRD_PARTY")
+            root_relative_prefixes = (ASSISTANCE_DIR, ".github", ".hermes", "LICENSING", "THIRD_PARTY", "research/", "packages/", "integrations/", "vendor/", "docs/", "fixtures/")
             resolved_rel = rel_text if rel_text.startswith(root_relative_prefixes) else f"{ASSISTANCE_DIR}/{rel_text}"
             require_path(results, root, resolved_rel)
 
@@ -233,7 +233,7 @@ def verify_v4_extensions(manifest: dict[str, Any], results: list[Result]) -> Non
         check(results, f"family {fid}: V4 license present", bool(item.get("license")), str(item.get("license")))
     entrypoints = manifest.get("entrypoints") or {}
     human = entrypoints.get("human") or []
-    check(results, "V4 human entrypoint includes PRODUCT_DEFINITION", "docs/PRODUCT_DEFINITION.md" in human, str(human))
+    check(results, "V4 human entrypoint includes PRODUCT_DEFINITION", "docs/current/PRODUCT_DEFINITION.md" in human, str(human))
 
 
 def verify_v3_docs(root: Path, results: list[Result]) -> None:
