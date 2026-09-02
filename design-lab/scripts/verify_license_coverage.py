@@ -33,7 +33,7 @@ EXCLUDE_PREFIX = (
     "fixtures/domains/game-visual/wechat-",
     "fixtures/domains/game-visual/douyin-",
     "fixtures/domains/game-visual/webview-",
-    "design-lab/exports/",
+    "reports/",
     "design-lab/templates/",
     "design-lab/domain-packs/",
     "design-lab/design-systems/",

@@ -48,14 +48,14 @@ EXPECTED_FAMILIES = {
 }
 EXPECTED_DIRS = {
     "design-lab/core/",
-    "design-lab/intelligence/",
+    "research/candidates/",
     "design-lab/config/",
     "design-lab/schemas/",
-    "design-lab/adapters/",
+    "integrations/",
     "packages/capabilities/atoms/",
     "packages/capabilities/scenarios/",
     "packages/capabilities/bundles/",
-    "design-lab/knowledge/",
+    "research/candidates/",
     "design-lab/evals/",
     "design-lab/profiles/",
     "design-lab/research/",

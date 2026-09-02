@@ -18,7 +18,7 @@ import sys
 from pathlib import Path
 
 REPO = Path(__file__).resolve().parents[1]
-REGISTRY = REPO / "adapters" / "adapter-registry.json"
+REGISTRY = REPO.parent / "integrations" / "adapter-registry.json"
 
 MATRIX = {
     "adapter-open-design": "open-design",

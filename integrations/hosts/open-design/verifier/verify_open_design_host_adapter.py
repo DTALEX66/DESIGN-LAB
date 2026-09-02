@@ -87,7 +87,7 @@ def require_file(results: list[Result], root: Path, rel: str, min_bytes: int = 1
 
 
 def iter_plugin_dirs(root: Path) -> Iterable[Path]:
-    plugins_dir = root / ASSISTANCE_DIR / "plugins"
+    plugins_dir = root / ASSISTANCE_DIR / ".." / "packages" / "capabilities" / "plugins"
     return sorted(path for path in plugins_dir.iterdir() if path.is_dir())
 
 
@@ -303,7 +303,7 @@ def verify_json_files(root: Path, results: list[Result]) -> None:
 
 
 def verify_indexes(root: Path, results: list[Result]) -> None:
-    plugins_index = root / ASSISTANCE_DIR / "plugins" / "INDEX.md"
+    plugins_index = root / ASSISTANCE_DIR / ".." / "packages" / "capabilities" / "plugins" / "INDEX.md"
     templates_index = root / ASSISTANCE_DIR / "templates" / "INDEX.md"
     require_file(results, root, str(plugins_index.relative_to(root)), min_bytes=500)
     require_file(results, root, str(templates_index.relative_to(root)), min_bytes=500)
