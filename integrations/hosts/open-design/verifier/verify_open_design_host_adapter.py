@@ -269,7 +269,7 @@ def png_size(path: Path) -> tuple[int, int] | None:
 
 
 def verify_exports(root: Path, results: list[Result]) -> None:
-    export = root / ASSISTANCE_DIR / "exports" / "minigame-mobile-controls"
+    export = root / "fixtures" / "domains" / "game-visual" / "exports" / "minigame-mobile-controls"
     require_file(results, root, str((export / "README.md").relative_to(root)), min_bytes=500)
     html = require_file(results, root, str((export / "index.html").relative_to(root)), min_bytes=20_000)
     require_file(results, root, str((export / "implementation-handoff.md").relative_to(root)), min_bytes=300)
@@ -285,7 +285,7 @@ def verify_exports(root: Path, results: list[Result]) -> None:
         "cctv-elevator-corridor-figure.png",
     ]
     for name in expected_assets:
-        rel = f"design-lab/exports/minigame-mobile-controls/assets/{name}"
+        rel = f"fixtures/domains/game-visual/exports/minigame-mobile-controls/assets/{name}"
         asset = require_file(results, root, rel, min_bytes=500_000)
         check(results, f"minigame export html references {name}", f"assets/{name}" in html_text)
         size = png_size(asset) if asset.is_file() else None
