@@ -108,7 +108,7 @@ def raster_layer(path: str, layer_id: str = "raster", z_order: int = 0) -> dict:
 
 def rir(*layers: dict) -> dict:
     return {
-        "schemaVersion": "packages/capabilities/reconstruction-ir/v1",
+        "schemaVersion": "design-lab/reconstruction-ir/v1",
         "canvas": {"width": 64, "height": 64, "colorSpace": "srgb"},
         "layers": list(layers),
     }
@@ -248,7 +248,7 @@ class ReconstructionSVGTests(unittest.TestCase):
                 }
             ],
             "canvas": {"colorSpace": "srgb", "height": 64, "width": 64},
-            "schemaVersion": "packages/capabilities/reconstruction-ir/v1",
+            "schemaVersion": "design-lab/reconstruction-ir/v1",
         }
         self.assertEqual(
             serialize_svg(first, PROJECT_ROOT),
@@ -673,7 +673,7 @@ class ReconstructionSVGTests(unittest.TestCase):
                 self.assert_sanitize_rejected_without_handoff(payload, "pixel ceiling")
 
         boundary_rir = {
-            "schemaVersion": "packages/capabilities/reconstruction-ir/v1",
+            "schemaVersion": "design-lab/reconstruction-ir/v1",
             "canvas": {"width": 10_000, "height": 10_000, "colorSpace": "srgb"},
             "layers": [],
         }

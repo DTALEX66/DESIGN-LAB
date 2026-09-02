@@ -202,7 +202,7 @@ def _write_payload(request: ProposalRequest, descriptor: ProviderDescriptor, sta
     target = _proposal_target(request)
     target.parent.mkdir(parents=True, exist_ok=True)
     target = _assert_plain_run_path(target, request.run_root, may_be_missing=True)
-    document = {"schema": "packages/capabilities/reconstruction-proposal/v1", "provider": descriptor.provider_id, "version": descriptor.provider_version, "task": request.task, "status": status, "trust": "untrusted-proposal", "runId": request.run_id, "jobId": request.job_id, "contractSha256": request.contract_sha256, "events": [{"code": event.code, "recoverable": event.recoverable} for event in events], **payload}
+    document = {"schema": "design-lab/reconstruction-proposal/v1", "provider": descriptor.provider_id, "version": descriptor.provider_version, "task": request.task, "status": status, "trust": "untrusted-proposal", "runId": request.run_id, "jobId": request.job_id, "contractSha256": request.contract_sha256, "events": [{"code": event.code, "recoverable": event.recoverable} for event in events], **payload}
     encoded = json.dumps(document, allow_nan=False, sort_keys=True, separators=(",", ":")).encode("utf-8")
     if len(encoded) > MAX_PROPOSAL_BYTES:
         raise _ProposalRejected("proposal serialization exceeds its byte limit")

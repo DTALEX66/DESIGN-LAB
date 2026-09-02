@@ -1,5 +1,5 @@
 {
-  "schemaVersion": "packages/capabilities/reconstruction-adversarial/v1",
+  "schemaVersion": "design-lab/reconstruction-adversarial/v1",
   "attacks": [
     "script-element.svg",
     "external-href.svg",

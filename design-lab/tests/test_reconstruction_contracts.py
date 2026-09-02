@@ -30,7 +30,7 @@ from reconstruction.contracts import (  # noqa: E402
 
 def minimal_rir() -> dict:
     return {
-        "schemaVersion": "packages/capabilities/reconstruction-ir/v1",
+        "schemaVersion": "design-lab/reconstruction-ir/v1",
         "canvas": {"width": 64, "height": 64, "colorSpace": "srgb"},
         "layers": [],
     }
@@ -104,7 +104,7 @@ def minimal_run_contract(run_id: str = "run-001") -> dict:
     now = datetime.now(timezone.utc)
     artifact_paths = [runtime_root + "output.svg", evidence_root + "report.json"]
     return {
-        "schemaVersion": "packages/capabilities/reconstruction-run/v1",
+        "schemaVersion": "design-lab/reconstruction-run/v1",
         "runId": run_id,
         "jobId": "job-001",
         "source": {
@@ -206,7 +206,7 @@ class ReconstructionContractTests(unittest.TestCase):
     def test_minimal_rir_validates(self):
         validate_rir(
             {
-                "schemaVersion": "packages/capabilities/reconstruction-ir/v1",
+                "schemaVersion": "design-lab/reconstruction-ir/v1",
                 "canvas": {"width": 64, "height": 64, "colorSpace": "srgb"},
                 "layers": [],
             }
@@ -324,7 +324,7 @@ class ReconstructionContractTests(unittest.TestCase):
             "canvas": {"colorSpace": "srgb", "height": 64, "width": 64},
             "schemaVersion": RIR_SCHEMA_ID,
         }
-        expected = b'{"canvas":{"colorSpace":"srgb","height":64,"width":64},"layers":[],"schemaVersion":"packages/capabilities/reconstruction-ir/v1"}'
+        expected = b'{"canvas":{"colorSpace":"srgb","height":64,"width":64},"layers":[],"schemaVersion":"design-lab/reconstruction-ir/v1"}'
         self.assertEqual(canonical_rir_bytes(first), expected)
         self.assertEqual(canonical_rir_bytes(first), canonical_rir_bytes(second))
         self.assertEqual(canonical_rir_hash(first), canonical_rir_hash(second))
@@ -336,7 +336,7 @@ class ReconstructionContractTests(unittest.TestCase):
             canonical_rir_hash(value)
 
     def test_minimal_run_contract_validates(self):
-        self.assertEqual(RUN_SCHEMA_ID, "packages/capabilities/reconstruction-run/v1")
+        self.assertEqual(RUN_SCHEMA_ID, "design-lab/reconstruction-run/v1")
         validate_run_contract(minimal_run_contract())
 
     def test_versioned_artifact_roles_hashes_and_producers_are_strict(self):

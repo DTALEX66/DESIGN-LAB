@@ -13,8 +13,8 @@ from typing import Any, Iterator
 from jsonschema import Draft202012Validator, FormatChecker, ValidationError
 from jsonschema.exceptions import best_match
 
-RIR_SCHEMA_ID = "packages/capabilities/reconstruction-ir/v1"
-RUN_SCHEMA_ID = "packages/capabilities/reconstruction-run/v1"
+RIR_SCHEMA_ID = "design-lab/reconstruction-ir/v1"
+RUN_SCHEMA_ID = "design-lab/reconstruction-run/v1"
 
 _PROJECT_ROOT = Path(__file__).resolve().parents[3]
 _SCHEMA_DIR = _PROJECT_ROOT / "design-lab" / "schemas" / "reconstruction"

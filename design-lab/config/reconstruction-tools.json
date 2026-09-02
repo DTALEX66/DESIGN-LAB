@@ -1,5 +1,5 @@
 {
-  "schemaVersion": "packages/capabilities/reconstruction-tools/v1",
+  "schemaVersion": "design-lab/reconstruction-tools/v1",
   "renderProfile": {
     "id": "design-lab/render-profile/v1",
     "colorSpace": "sRGB IEC61966-2.1",

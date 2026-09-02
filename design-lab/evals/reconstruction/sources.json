@@ -1,5 +1,5 @@
 {
-  "schemaVersion": "packages/capabilities/reconstruction-golden-source/v1",
+  "schemaVersion": "design-lab/reconstruction-golden-source/v1",
   "license": "MIT",
   "rights": {"status": "cleared", "source": "DESIGN-LAB original programmatic fixture"},
   "canvas": {"width": 192, "height": 128},

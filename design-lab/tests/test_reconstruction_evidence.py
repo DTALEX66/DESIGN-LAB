@@ -104,7 +104,7 @@ class ReconstructionEvidenceTests(unittest.TestCase):
         model_registry.write_bytes(
             canonical_json_bytes(
                 {
-                    "schemaVersion": "packages/capabilities/reconstruction-models/v1",
+                    "schemaVersion": "design-lab/reconstruction-models/v1",
                     "models": [],
                 }
             )
@@ -259,7 +259,7 @@ class ReconstructionEvidenceTests(unittest.TestCase):
                 "saveState": "saved",
             },
             "golden-corpus.json": {
-                "schemaVersion": "packages/capabilities/reconstruction-golden-corpus/v1",
+                "schemaVersion": "design-lab/reconstruction-golden-corpus/v1",
                 "passed": True,
                 "passedCases": [
                     "logo-icon", "ui-screen", "poster", "flat-illustration",
@@ -273,7 +273,7 @@ class ReconstructionEvidenceTests(unittest.TestCase):
                 "sha256": manifest["checkedOutSourceSha256"],
             },
             "rights.json": {
-                "schemaVersion": "packages/capabilities/reconstruction-rights/v1",
+                "schemaVersion": "design-lab/reconstruction-rights/v1",
                 "status": "VERIFIED",
                 "sourceRights": "VERIFIED",
             },

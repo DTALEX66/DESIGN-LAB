@@ -137,7 +137,7 @@ def _run_contract(
         return record
 
     return {
-        "schemaVersion": "packages/capabilities/reconstruction-run/v1",
+        "schemaVersion": "design-lab/reconstruction-run/v1",
         "runId": run_id,
         "jobId": f"job-{run_id}",
         "source": {
@@ -306,7 +306,7 @@ class ReconstructionMetricTests(unittest.TestCase):
 
     def test_registry_and_profile_pin_every_fixed_gate_owner(self) -> None:
         registry = json.loads(REGISTRY.read_text(encoding="utf-8"))
-        self.assertEqual(registry["schemaVersion"], "packages/capabilities/reconstruction-tools/v1")
+        self.assertEqual(registry["schemaVersion"], "design-lab/reconstruction-tools/v1")
 
         resvg = registry["renderers"]["resvgWindows"]
         self.assertEqual(resvg["repository"], "linebender/resvg")
@@ -1815,7 +1815,7 @@ class ReconstructionMetricTests(unittest.TestCase):
                 }
             )
         rir = {
-            "schemaVersion": "packages/capabilities/reconstruction-ir/v1",
+            "schemaVersion": "design-lab/reconstruction-ir/v1",
             "canvas": {"width": 64, "height": 64, "colorSpace": "srgb"},
             "layers": layers,
         }

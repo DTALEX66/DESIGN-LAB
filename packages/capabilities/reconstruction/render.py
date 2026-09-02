@@ -287,7 +287,7 @@ def _load_registry() -> tuple[dict[str, Any], str]:
         raise RenderError(
             "reconstruction tool registry digest does not match the trusted build anchor"
         )
-    if registry.get("schemaVersion") != "packages/capabilities/reconstruction-tools/v1":
+    if registry.get("schemaVersion") != "design-lab/reconstruction-tools/v1":
         raise RenderError("unsupported reconstruction tool registry schema")
     _approved_icc_profiles(registry)
     return registry, digest

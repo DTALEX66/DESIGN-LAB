@@ -208,7 +208,7 @@ the normalized reference.
 
 ### 5.4 Reconstruction Intermediate Representation
 
-RIR is a JSON document with schema ID `packages/capabilities/reconstruction-ir/v1`. It contains:
+RIR is a JSON document with schema ID `design-lab/reconstruction-ir/v1`. It contains:
 
 - canvas and color-profile metadata;
 - ordered layers and nested groups;

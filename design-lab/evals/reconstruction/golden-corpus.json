@@ -1,5 +1,5 @@
 {
-  "schemaVersion": "packages/capabilities/reconstruction-golden-corpus/v1",
+  "schemaVersion": "design-lab/reconstruction-golden-corpus/v1",
   "sourceDefinitions": "sources.json",
   "cases": [
     {"caseId": "logo-orbit-001", "kind": "logo", "referenceSha256": "e522ec406d4ea98975ee3c4fc0b8f66c102a6b87a8472cb23d99327d27645fdc"},

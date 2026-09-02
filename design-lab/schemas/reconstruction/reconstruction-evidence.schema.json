@@ -1,10 +1,10 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "packages/capabilities/reconstruction-evidence/v1",
+  "$id": "design-lab/reconstruction-evidence/v1",
   "type": "object",
   "required": ["schemaVersion", "releaseSha", "lifecycle", "ci", "goldenCases", "illustrator", "liveRuns"],
   "properties": {
-    "schemaVersion": {"const": "packages/capabilities/reconstruction-evidence/v1"},
+    "schemaVersion": {"const": "design-lab/reconstruction-evidence/v1"},
     "releaseSha": {"type": "string", "pattern": "^[0-9a-f]{40}$"},
     "lifecycle": {"type": "object", "required": ["implementedLocal", "testedLocal", "ciVerifiedExactSha", "mergedMain", "installedRuntimeVerified"]},
     "ci": {"type": "object", "required": ["headSha", "conclusion"]},

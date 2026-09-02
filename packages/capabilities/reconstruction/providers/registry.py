@@ -277,7 +277,7 @@ class ProviderRegistry:
     @classmethod
     def from_mapping(cls, value: Mapping[str, Any]) -> "ProviderRegistry":
         top = _strict_object(value, _TOP_LEVEL_KEYS, "registry")
-        if top["schemaVersion"] != "packages/capabilities/reconstruction-models/v1":
+        if top["schemaVersion"] != "design-lab/reconstruction-models/v1":
             raise ProviderRegistryError("registry schemaVersion is unsupported")
         hardware = _strict_object(top["hardwarePolicy"], _HARDWARE_KEYS, "hardwarePolicy")
         if hardware["defaultDevice"] not in {"cpu", "cuda"}:

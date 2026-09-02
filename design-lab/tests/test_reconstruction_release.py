@@ -20,7 +20,7 @@ SHA = "a" * 40
 
 def evidence() -> dict[str, object]:
     return {
-        "schemaVersion": "packages/capabilities/reconstruction-evidence/v1",
+        "schemaVersion": "design-lab/reconstruction-evidence/v1",
         "releaseSha": SHA,
         "lifecycle": {
             "implementedLocal": True,

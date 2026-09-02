@@ -19,7 +19,7 @@ class AdobeHostJobTests(unittest.TestCase):
         shutil.rmtree(RUNTIME_ROOT, ignore_errors=True)
         RUNTIME_ROOT.mkdir(parents=True)
         self.rir = {
-            "schemaVersion": "packages/capabilities/reconstruction-ir/v1",
+            "schemaVersion": "design-lab/reconstruction-ir/v1",
             "canvas": {"width": 64, "height": 48, "colorSpace": "srgb"},
             "layers": [],
         }

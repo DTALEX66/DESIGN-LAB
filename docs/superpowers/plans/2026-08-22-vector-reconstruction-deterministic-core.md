@@ -15,7 +15,7 @@
 - Pixelmatch-equivalent match ratio gate: `>= 0.995` at color threshold `0.1` with anti-alias classification.
 - SSIM gate: `>= 0.995` on normalized sRGB RGB output.
 - Default maximum input axis: `4096` pixels; larger images retain a global coordinate system and use tiles.
-- Canonical schema ID: `packages/capabilities/reconstruction-ir/v1`.
+- Canonical schema ID: `design-lab/reconstruction-ir/v1`.
 - Runtime files: `.hermes/task-runtime/reconstruction/<run-id>/`; accepted local evidence: `.hermes/task-artifacts/reconstruction/<run-id>/`.
 - No full-canvas reference overlay, executable SVG, external SVG URL, silent resolution reduction, remote inference, or Adobe write.
 - Tests use the exact project interpreter and the repository's `unittest` conventions.
@@ -41,7 +41,7 @@
 class ReconstructionContractTests(unittest.TestCase):
     def test_minimal_rir_validates(self):
         validate_rir({
-            "schemaVersion": "packages/capabilities/reconstruction-ir/v1",
+            "schemaVersion": "design-lab/reconstruction-ir/v1",
             "canvas": {"width": 64, "height": 64, "colorSpace": "srgb"},
             "layers": [],
         })
@@ -61,7 +61,7 @@ Expected: FAIL because `reconstruction.contracts` and the schemas do not exist.
 - [ ] **Step 3: Implement closed schemas and validator wrappers**
 
 ```python
-RIR_SCHEMA_ID = "packages/capabilities/reconstruction-ir/v1"
+RIR_SCHEMA_ID = "design-lab/reconstruction-ir/v1"
 
 class ContractError(ValueError):
     pass

@@ -91,8 +91,12 @@ def main() -> int:
         # verifiers inside design-lab/scripts/ resolve relative to the scripts
         # dir; host-adapter verifiers live outside it (DL-ADP-OD-001) and
         # resolve relative to the repository root.
-        if name.startswith("adapters/"):
+        if name.startswith(("adapters/", "integrations/")):
             script = repo_root / "design-lab" / name
+            if not script.exists():
+                # integrations/ host verifiers moved to the repo-root-level
+                # integrations/ tree after DL-DIR-MIG-R1.
+                script = repo_root / name
         else:
             script = root / name
         if not script.exists():
@@ -115,8 +119,14 @@ def main() -> int:
         print(f"\n===== {name} =====\n")
         # first arg is the script path (resolve under root.parent);
         # "." target resolves to design-lab/ absolute (scan scope), rest are literal args
-        script_arg = str(root.parent / args[0])
-        resolved_args = [str(root.parent) if a == "." else a for a in args[1:]]
+        repo_root_dir = root.parent.parent
+        # quality/jury migrated to packages/capabilities/quality/jury (DL-DIR-MIG-R1)
+        script_arg = str(
+            (repo_root_dir / "packages" / "capabilities" / args[0])
+            if args[0].startswith("quality/")
+            else (root.parent / args[0])
+        )
+        resolved_args = [str(repo_root_dir / "design-lab") if a == "." else a for a in args[1:]]
         r = subprocess.run([sys.executable, script_arg, *resolved_args], capture_output=True, text=True)
         tail = r.stdout.strip().splitlines()
         summary = tail[-1] if tail else "(no output)"

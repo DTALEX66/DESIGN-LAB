@@ -54,7 +54,7 @@ class TimingEvent:
     def as_json(self) -> dict[str, object]:
         validated = validate_event(self)
         return {
-            "schemaVersion": "packages/capabilities/reconstruction-timing-event/v1",
+            "schemaVersion": "design-lab/reconstruction-timing-event/v1",
             "stage": validated.stage,
             "durationMs": validated.duration_ms,
             "temperature": validated.temperature,

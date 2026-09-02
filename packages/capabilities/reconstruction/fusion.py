@@ -183,7 +183,7 @@ def fuse_scene(
     for selected in select_candidates_by_object(tuple(candidates)):
         vector_nodes.extend(_candidate_nodes(selected, len(layers) + len(vector_nodes)))
     rir = {
-        "schemaVersion": "packages/capabilities/reconstruction-ir/v1",
+        "schemaVersion": "design-lab/reconstruction-ir/v1",
         "canvas": {"width": analysis.width, "height": analysis.height, "colorSpace": "srgb"},
         "layers": [
             *[_raster_node(layer) for layer in sorted(layers, key=lambda item: (item.z_index, item.id))],

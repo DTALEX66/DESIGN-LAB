@@ -63,7 +63,7 @@ def scan() -> list[str]:
             continue
         if "/.git/" in rel or rel.startswith(".git") or ".hermes" in rel:
             continue
-        if "node_modules" in rel or "__pycache__" in rel or ".pytest_cache" in rel:
+        if "node_modules" in rel or "__pycache__" in rel or ".pytest_cache" in rel or ".venv" in rel:
             continue
         # Test files asserting the gate's detection logic legitimately embed
         # the legacy patterns as fixtures (semantic requirement, not violation).

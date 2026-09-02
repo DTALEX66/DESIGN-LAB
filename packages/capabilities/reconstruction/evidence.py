@@ -54,9 +54,9 @@ from .svg_safety import (
     validate_path_data,
 )
 
-BUNDLE_SCHEMA_ID = "packages/capabilities/reconstruction-bundle/v1"
-STRUCTURE_SCHEMA_ID = "packages/capabilities/reconstruction-structure/v1"
-PROVENANCE_SCHEMA_ID = "packages/capabilities/reconstruction-provenance/v1"
+BUNDLE_SCHEMA_ID = "design-lab/reconstruction-bundle/v1"
+STRUCTURE_SCHEMA_ID = "design-lab/reconstruction-structure/v1"
+PROVENANCE_SCHEMA_ID = "design-lab/reconstruction-provenance/v1"
 MAX_JSON_BYTES = 8 * 1024 * 1024
 MAX_ARTIFACT_BYTES = 256 * 1024 * 1024
 MAX_BUNDLE_BYTES = 512 * 1024 * 1024
@@ -464,7 +464,7 @@ def _contract_semantics(
     records: dict[str, dict[str, Any]], declared_root: Path,
 ) -> tuple[str, dict[str, dict[str, Any]]]:
     _historical_contract_schema(contract)
-    if contract.get("schemaVersion") != "packages/capabilities/reconstruction-run/v1":
+    if contract.get("schemaVersion") != "design-lab/reconstruction-run/v1":
         raise EvidenceError("run contract schema version mismatch")
     run_id = manifest["runId"]
     if contract.get("runId") != run_id or journal.get("runId") != run_id:
@@ -515,7 +515,7 @@ def _journal_semantics(
         {"schemaVersion", "runId", "contractSha256", "entries", "createdArtifacts"},
         label="pipeline journal",
     )
-    if journal["schemaVersion"] != "packages/capabilities/reconstruction-journal/v1":
+    if journal["schemaVersion"] != "design-lab/reconstruction-journal/v1":
         raise EvidenceError("pipeline journal schema version mismatch")
     created = journal["createdArtifacts"]
     if not isinstance(created, list) or len(created) != len(set(created)) or len(created) > 64:
@@ -639,7 +639,7 @@ def _metrics_semantics(
             raise EvidenceError(f"metrics.{field} is malformed")
         _required_keys(metrics[field], icc_keys, label=f"metrics.{field}")
     fixed = {
-        "schemaVersion": "packages/capabilities/reconstruction-metrics/v1",
+        "schemaVersion": "design-lab/reconstruction-metrics/v1",
         "profileId": "design-lab/render-profile/v1",
         "pixelmatchVersion": "7.2.0",
         "pixelThreshold": 0.1,
@@ -1255,9 +1255,9 @@ def _provenance_semantics(
         ):
             raise EvidenceError(f"provenance {name} registry is not exact-byte bound")
         registry_value, _ = _strict_json(files[expected_bundle], label=f"copied {name} registry")
-        expected_schema = f"packages/capabilities/reconstruction-{name}s/v1"
+        expected_schema = f"design-lab/reconstruction-{name}s/v1"
         if name == "tool":
-            expected_schema = "packages/capabilities/reconstruction-tools/v1"
+            expected_schema = "design-lab/reconstruction-tools/v1"
         if registry["schemaVersion"] != expected_schema or registry_value.get("schemaVersion") != expected_schema:
             raise EvidenceError(f"provenance {name} registry schema identity is invalid")
         if name == "model":
@@ -1387,7 +1387,7 @@ def _release_semantics(
             raise EvidenceError("Illustrator preview dimensions do not match the canonical canvas")
     required_cases = {"logo-icon", "ui-screen", "poster", "flat-illustration", "complex-illustration", "mixed-media"}
     if (
-        golden.get("schemaVersion") != "packages/capabilities/reconstruction-golden-corpus/v1"
+        golden.get("schemaVersion") != "design-lab/reconstruction-golden-corpus/v1"
         or golden.get("passed") is not True
         or set(golden.get("passedCases", [])) != required_cases
         or golden.get("cleanRuns") != 3
@@ -1395,7 +1395,7 @@ def _release_semantics(
         raise EvidenceError("local delivery candidate requires all six golden cases")
     if ci.get("schemaVersion") != "design-lab/exact-sha-ci/v1" or ci.get("passed") is not True or ci.get("sha256") != manifest["checkedOutSourceSha256"]:
         raise EvidenceError("local delivery candidate exact-SHA CI evidence is absent or stale")
-    if rights.get("schemaVersion") != "packages/capabilities/reconstruction-rights/v1" or rights.get("status") != "VERIFIED" or rights.get("sourceRights") != "VERIFIED":
+    if rights.get("schemaVersion") != "design-lab/reconstruction-rights/v1" or rights.get("status") != "VERIFIED" or rights.get("sourceRights") != "VERIFIED":
         raise EvidenceError("local delivery candidate rights evidence is not VERIFIED")
     if runtime.get("schemaVersion") != "design-lab/installed-runtime/v1" or runtime.get("status") != "VERIFIED" or runtime.get("product") != "Adobe Illustrator" or not isinstance(runtime.get("version"), str) or not runtime["version"]:
         raise EvidenceError("local delivery candidate installed Illustrator runtime is not VERIFIED")
@@ -1519,7 +1519,7 @@ def _deterministic_replay(
             },
         ]
         replay_contract = {
-            "schemaVersion": "packages/capabilities/reconstruction-run/v1",
+            "schemaVersion": "design-lab/reconstruction-run/v1",
             "runId": replay_id,
             "jobId": f"job-{replay_id}",
             "source": {
@@ -2226,9 +2226,9 @@ def package_evidence(run_dir: Path, evidence_dir: Path) -> BundleSummary:
     model_observation = _snapshot(model_path, PROJECT_ROOT)
     tool_registry, _ = _strict_json(tool_path, label="tool registry")
     model_registry, _ = _strict_json(model_path, label="model registry")
-    if tool_registry.get("schemaVersion") != "packages/capabilities/reconstruction-tools/v1":
+    if tool_registry.get("schemaVersion") != "design-lab/reconstruction-tools/v1":
         raise EvidenceError("tool registry schema identity is invalid")
-    if set(model_registry) != {"schemaVersion", "models"} or model_registry.get("schemaVersion") != "packages/capabilities/reconstruction-models/v1" or model_registry.get("models") != []:
+    if set(model_registry) != {"schemaVersion", "models"} or model_registry.get("schemaVersion") != "design-lab/reconstruction-models/v1" or model_registry.get("models") != []:
         raise EvidenceError("model registry schema identity is invalid")
     execution_source = _execution_source_evidence()
     checked_out_sha = execution_source["headSha256"]

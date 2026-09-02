@@ -15,7 +15,7 @@ sys.path.insert(0, str(PROJECT_ROOT / "packages" / "capabilities"))
 class ReconstructionRepairTests(unittest.TestCase):
     def setUp(self) -> None:
         self.rir = {
-            "schemaVersion": "packages/capabilities/reconstruction-ir/v1",
+            "schemaVersion": "design-lab/reconstruction-ir/v1",
             "canvas": {"width": 10, "height": 10, "colorSpace": "srgb"},
             "layers": [],
         }

@@ -1,5 +1,5 @@
 {
-  "schemaVersion": "packages/capabilities/reconstruction-performance/v1",
+  "schemaVersion": "design-lab/reconstruction-performance/v1",
   "measurementStatus": "UNMEASURED",
   "measurementPolicy": {
     "corpus": "six-rights-cleared-golden-cases",

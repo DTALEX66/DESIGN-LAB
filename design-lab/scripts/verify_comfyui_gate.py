@@ -18,7 +18,7 @@ import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent.parent
-COMFY_DIR = ROOT / "design-lab" / "adapters" / "creative-tools" / "comfyui"
+COMFY_DIR = ROOT / "integrations" / "generators" / "comfyui"
 
 FORBIDDEN = [
     (r"auto[- ]?install", "auto-install"),

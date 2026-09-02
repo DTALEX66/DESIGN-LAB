@@ -119,7 +119,7 @@ def _intake_run_contract(
     source_rel = source.resolve().relative_to(PROJECT_ROOT).as_posix()
     now = datetime.now(timezone.utc)
     return {
-        "schemaVersion": "packages/capabilities/reconstruction-run/v1",
+        "schemaVersion": "design-lab/reconstruction-run/v1",
         "runId": run_id,
         "jobId": "job-intake",
         "source": {
