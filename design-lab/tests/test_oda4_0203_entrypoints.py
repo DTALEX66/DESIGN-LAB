@@ -7,8 +7,8 @@ import unittest
 from pathlib import Path
 
 REPO = Path(__file__).resolve().parents[2]
-BUNDLES = REPO / "design-lab" / "bundles"
-PLUGINS = REPO / "design-lab" / "plugins"
+BUNDLES = REPO / "packages" / "capabilities" / "bundles"
+PLUGINS = REPO / "packages" / "capabilities" / "plugins"
 CONFIG = REPO / "design-lab" / "config" / "entrypoint-convergence.json"
 
 EXPECTED_BUNDLES = ["commercial-design-core", "visual-quality-core", "production-handoff"]

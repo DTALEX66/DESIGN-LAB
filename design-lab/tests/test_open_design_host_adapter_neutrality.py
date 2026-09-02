@@ -4,7 +4,7 @@
 Asserts:
 1. Product manifest has no default host and forbids primaryRuntime.
 2. Open Design does not appear in public product identity fields.
-3. adapters/hosts/open-design/ is the sole owner of Open Design implementation.
+3. integrations/hosts/open-design/ is the sole owner of Open Design implementation.
 4. Public object schemas stay valid without the adapter (no Open Design API deps).
 5. Public Core scripts do not depend on Open Design APIs.
 6. The installer is never auto-invoked by CI (user-approved Host Profile only).

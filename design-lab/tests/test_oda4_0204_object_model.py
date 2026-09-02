@@ -45,12 +45,12 @@ class UserModesTest(unittest.TestCase):
         self.assertEqual(ids, EXPECTED_MODES)
 
     def test_modes_against_doc(self):
-        doc = (REPO / "project-memory" / "USER_MODES.md").read_text(encoding="utf-8")
+        doc = (REPO / "docs" / "current" / "USER_MODES.md").read_text(encoding="utf-8")
         for mid in EXPECTED_MODES:
             self.assertIn(mid, doc, f"USER_MODES.md must mention mode {mid}")
 
     def test_no_second_product_shell(self):
-        doc = (REPO / "project-memory" / "USER_MODES.md").read_text(encoding="utf-8")
+        doc = (REPO / "docs" / "current" / "USER_MODES.md").read_text(encoding="utf-8")
         self.assertIn("不做五套产品", doc)
 
     def test_schema_validates(self):

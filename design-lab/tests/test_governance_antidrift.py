@@ -162,7 +162,7 @@ class AssetGovernanceAntiDriftTests(unittest.TestCase):
 class MiniGameBoundaryAntiDriftTests(unittest.TestCase):
     def test_minigame_monetization_fields_rejected(self):
         import subprocess
-        r = subprocess.run(["git", "-C", str(ROOT.parent), "ls-files", "minigame-runtime"],
+        r = subprocess.run(["git", "-C", str(ROOT.parent), "ls-files", "fixtures/domains/game-visual"],
                            capture_output=True, text=True)
         patterns = re.compile(r"\bads?\b|\badvertisement\b|\biap\b|\bmonetization\b|in-app\s*purchase|广告变现|买量|growth\s*hack", re.IGNORECASE)
         # only scan active source files (not docs/history which may describe removed features)
@@ -193,7 +193,7 @@ class RuntimeEvidenceAntiDriftTests(unittest.TestCase):
         self.assertNotIn("adapter-comfyui", m.ALLOWED_LEVELS)
         # supported=true requires E3 evidence with runtime identity/task ids (no free pass)
         import json as _json
-        reg = _json.loads((ROOT.parent / "design-lab/adapters/adapter-registry.json").read_text(encoding="utf-8"))
+        reg = _json.loads((ROOT.parent / "integrations/adapter-registry.json").read_text(encoding="utf-8"))
         for a in reg["adapters"]:
             if a["adapter_id"] == "adapter-comfyui":
                 self.assertTrue(any(c["supported"] for c in a["capabilities"]))
