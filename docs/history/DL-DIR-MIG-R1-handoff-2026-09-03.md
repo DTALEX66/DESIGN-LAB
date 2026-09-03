@@ -52,9 +52,16 @@ verify_license_coverage（排除前缀 → research/candidates/）、verify_proj
 
 1. CI Python gate 全绿后：`gh pr merge 112 --squash --delete-branch`
 2. 合并后同步 main 至本机（push 双端一致）
-3. 本地剩余 `test_reconstruction_evidence` 超时项在 CI 确认（Linux 环境快）
+3. 本地 `test_reconstruction_evidence` 慢速项已确认：CI Linux 上 507 tests 299s 跑完、仅剩 2 个失败
+   （evidence closure 遍历根 + intake 子进程 sys.path），已随 add26a5 修复并本地验证 OK
 
-## 四、恢复源 commit 备忘
+## 四、追加修复（add26a5，CI 干净环境暴露的最后 2 个失败）
+| 失败 | 根因 | 修复 |
+|---|---|---|
+| evidence closure 测试（CI） | evidence.py `_discover_execution_source_paths` 仍扫已空的 `design-lab/reconstruction/`（本体漏改，本地因旧缓存掩盖） | rglob 根 → `packages/capabilities/reconstruction`；测试 fixture 布局 + expected_modules 同步 |
+| intake 跨进程测试（CI） | 子进程 sys.path 仅含 design-lab/，reconstruction 包已迁 packages/capabilities | 头部 + 子进程参数均补 `packages/capabilities` |
+
+## 五、恢复源 commit 备忘
 - d44d3d8：治理基线（adapter-registry.json、E3_FIXTURE_PROTOCOL.md）
 - fabd4bc^：minigame-mobile-controls exports
 - origin/main：adobe/comfyui 适配器文件
