@@ -11,14 +11,14 @@ from pathlib import Path
 REPO = Path(__file__).resolve().parents[2]
 ACTIVE_DOCS = (
     "README.md",
-    "project-memory/PRODUCT_DEFINITION.md",
-    "project-memory/PROJECT_DEFINITION.md",
-    "project-memory/ARCHITECTURE.md",
-    "project-memory/BOUNDARY_CONTRACT.md",
-    "project-memory/ROADMAP.md",
+    "docs/current/PRODUCT_DEFINITION.md",
+    "docs/current/PROJECT_DEFINITION.md",
+    "docs/architecture/ARCHITECTURE.md",
+    "docs/architecture/BOUNDARY_CONTRACT.md",
+    "docs/current/ROADMAP.md",
     "design-lab/README.md",
     "design-lab/ARCHITECTURE_V3.md",
-    "design-lab/adapters/NEUTRALITY_POLICY.md",
+    "docs/decisions/NEUTRALITY_POLICY.md",
 )
 FORBIDDEN_DEFAULT_HOST = re.compile(
     r"(?:current reference host|当前参考宿主|默认宿主|Open Design 是主入口|宿主 Open Design 是主角)",
@@ -48,7 +48,7 @@ def findings() -> list[str]:
         if FORBIDDEN_DEFAULT_HOST.search(value):
             errors.append(f"default-host language in product manifest: {field}")
 
-    registry = json.loads((REPO / "design-lab/adapters/adapter-registry.json").read_text(encoding="utf-8"))
+    registry = json.loads((REPO / "integrations/adapter-registry.json").read_text(encoding="utf-8"))
     for adapter in registry.get("adapters", []):
         level = str(adapter.get("evidence", {}).get("level", "E0"))
         note = str(adapter.get("evidence", {}).get("note", ""))

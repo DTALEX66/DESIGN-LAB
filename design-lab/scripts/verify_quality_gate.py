@@ -17,7 +17,7 @@ import jsonschema
 
 ROOT = Path(__file__).resolve().parent.parent
 SCHEMA = ROOT / "schemas" / "quality-gate.schema.json"
-PROFILE = ROOT / "quality" / "profiles" / "commercial-visual-v2.json"
+PROFILE = ROOT.parent / "packages" / "capabilities" / "quality" / "profiles" / "commercial-visual-v2.json"
 CORE = ROOT / "core"
 
 

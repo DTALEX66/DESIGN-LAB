@@ -34,9 +34,9 @@ The source candidate contained 493 files in the declared design scope. Generated
 ## Directory mapping
 
 - `20-design/open-design/design-lab/` → `design-lab/`
-- `20-design/open-design/design-system/` → `design-system/`
-- `20-design/open-design/minigame-runtime/` plus `30-products/minigame/` → `minigame-runtime/` (the MiniGame product tree is the canonical payload; target-only generated GIFs are preserved)
-- `20-design/open-design/project-memory/` → `project-memory/`
+- `20-design/open-design/packages/design-system/` → `packages/design-system/`
+- `20-design/open-design/fixtures/domains/game-visual/` plus `30-products/minigame/` → `fixtures/domains/game-visual/` (the MiniGame product tree is the canonical payload; target-only generated GIFs are preserved)
+- `20-design/open-design/docs/` → `docs/`
 - design-specific domain packs, schemas, benchmark fixtures and tests → corresponding `design-lab/` subdirectories
 - WORK-LAB root `AGENTS.md`, `.gitignore`, `.gitattributes`, and README were not imported as target rules
 - `30-products/minigame` was subsequently migrated in the M-150 scope correction; the WORK-LAB source tree was removed only after 422 tracked files passed source/target SHA readback
@@ -46,7 +46,7 @@ The source candidate contained 493 files in the declared design scope. Generated
 - Open Design desktop/runtime remains the actual design, canvas, agent-call and artifact surface.
 - This repository remains an assistance/enhancement layer: prompts, plugins, scenarios, design systems, templates, schemas, visual-quality protocols, source/provenance records and editable-delivery guidance.
 - Master studies and style references are method/protocol material; protected signature copying is not a capability.
-- MINIGAME product/runtime content is now owned by this target under `minigame-runtime/`. Platform release, advertising, paid provider smoke and commercial acceptance are not claimed.
+- MINIGAME product/runtime content is now owned by this target under `fixtures/domains/game-visual/`. Platform release, advertising, paid provider smoke and commercial acceptance are not claimed.
 - The target main root has no detected `LICENSE` or `NOTICE`; the three license-like source files remain `LICENSE_BLOCKED`. No license decision was invented and no license content was copied.
 - Credentials, auth state, cookies, private runtime state and provider state were not migrated.
 

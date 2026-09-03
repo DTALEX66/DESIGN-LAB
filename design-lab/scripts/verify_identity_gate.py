@@ -23,11 +23,11 @@ LEGACY = [
 
 # Allowlisted roots (history + host adapter projection + source refs)
 ALLOW_ROOT_PREFIXES = (
-    "project-memory/history/",
-    "project-memory/cross-project/",  # external federation taskpacks (explanatory legacy-name refs)
+    "docs/history/",
+    "docs/cross-project/",  # external federation taskpacks (explanatory legacy-name refs)
     "reports/history/",
-    "minigame-runtime/docs/history/",
-    "design-lab/adapters/hosts/open-design/",
+    "fixtures/domains/game-visual/docs/history/",
+    "integrations/hosts/open-design/",
 )
 
 # Files that may legitimately reference the legacy name
@@ -58,12 +58,12 @@ def scan() -> list[str]:
             continue
         # Terminology policy documents declare legacy names as denylist entries (DL-MIG-002)
         if rel in (
-            "project-memory/DL-MIG-002-terminology.md",
+            "docs/DL-MIG-002-terminology.md",
         ):
             continue
         if "/.git/" in rel or rel.startswith(".git") or ".hermes" in rel:
             continue
-        if "node_modules" in rel or "__pycache__" in rel or ".pytest_cache" in rel:
+        if "node_modules" in rel or "__pycache__" in rel or ".pytest_cache" in rel or ".venv" in rel:
             continue
         # Test files asserting the gate's detection logic legitimately embed
         # the legacy patterns as fixtures (semantic requirement, not violation).

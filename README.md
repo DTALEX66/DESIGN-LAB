@@ -45,24 +45,24 @@ Preflight / Handoff / Evidence    = 商业生产闭环
 design-lab/     能力层：core / intelligence / atoms / bundles / scenarios /
                domain-packs / quality / production / knowledge / research /
                evals / schemas / config / scripts / templates / assets / adapters
-design-system/  中性设计协议资产（DESIGN.md / Schema / Tokens / component rules）
-minigame-runtime/  游戏视觉设计 fixture / runtime reference（冻结边界，非产品）
-project-memory/  九份活动 SSOT + history/
+packages/design-system/  中性设计协议资产（DESIGN.md / Schema / Tokens / component rules）
+fixtures/domains/game-visual/  游戏视觉设计 fixture / runtime reference（冻结边界，非产品）
+docs/  九份活动 SSOT + history/
 reports/        阶段验收、证据与交接报告
 ```
 
 ## 关键文档
 
 ```text
-project-memory/PRODUCT_DEFINITION.md    ← 唯一产品定义（SSOT）
-project-memory/ARCHITECTURE.md          ← 技术架构
-project-memory/BOUNDARY_CONTRACT.md     ← 职责边界
-project-memory/NEUTRALITY_POLICY.md     ← 平台中立
-project-memory/EVIDENCE_POLICY.md       ← 证据政策
-project-memory/ADAPTER_POLICY.md        ← 适配器政策
-project-memory/OBJECT_MODEL.md          ← 核心对象模型
-project-memory/USER_MODES.md            ← 五类用户
-project-memory/ROADMAP.md               ← 路线图
+docs/PRODUCT_DEFINITION.md    ← 唯一产品定义（SSOT）
+docs/ARCHITECTURE.md          ← 技术架构
+docs/BOUNDARY_CONTRACT.md     ← 职责边界
+docs/NEUTRALITY_POLICY.md     ← 平台中立
+docs/EVIDENCE_POLICY.md       ← 证据政策
+docs/ADAPTER_POLICY.md        ← 适配器政策
+docs/OBJECT_MODEL.md          ← 核心对象模型
+docs/USER_MODES.md            ← 五类用户
+docs/ROADMAP.md               ← 路线图
 design-lab/config/product-manifest.json ← 机器可读 SSOT
 ```
 
@@ -77,9 +77,9 @@ design-lab/config/product-manifest.json ← 机器可读 SSOT
 
 ## 已吸收内容（历史）
 
-- 原 MINIGAME 游戏生产系统 → 收敛为 `minigame-runtime/` 游戏视觉 fixture。
-- 原 Design-system → 收敛为 `design-system/` 中性设计协议资产。
-- 旧 `OPEN-DESIGN-Assistance` 身份 → 历史归档（`project-memory/history/`、`reports/history/`），不再作为活动产品名。
+- 原 MINIGAME 游戏生产系统 → 收敛为 `fixtures/domains/game-visual/` 游戏视觉 fixture。
+- 原 Design-system → 收敛为 `packages/design-system/` 中性设计协议资产。
+- 旧 `OPEN-DESIGN-Assistance` 身份 → 历史归档（`docs/history/`、`reports/history/`），不再作为活动产品名。
 
 ## 生成状态（DL-MIG-005）
 

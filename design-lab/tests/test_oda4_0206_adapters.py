@@ -7,7 +7,7 @@ import unittest
 from pathlib import Path
 
 REPO = Path(__file__).resolve().parents[2]
-REGISTRY = REPO / "design-lab" / "adapters" / "adapter-registry.json"
+REGISTRY = REPO / "integrations" / "adapter-registry.json"
 SCHEMA = REPO / "design-lab" / "schemas" / "adapter-contract.schema.json"
 
 VALID_STATUSES = {"declared", "structural", "runtime", "missing", "unsupported"}

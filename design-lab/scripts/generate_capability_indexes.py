@@ -18,17 +18,19 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 OUT = ROOT / "config" / "capability-index.json"
 
-# (relative dir, label) — capability containers that publish SKILL.md / manifest
+# (scan root, relative dir, label) — capability containers that publish
+# SKILL.md / manifest.  DL-DIR-MIG-R1: atoms/scenarios/bundles/plugins/quality
+# moved to packages/capabilities; intelligence/knowledge/adapters were absorbed
+# (research/candidates) and no longer publish capabilities from design-lab/.
+REPO = ROOT.parent
 CAPABILITY_DIRS = [
-    ("intelligence", "intelligence"),
-    ("atoms", "atoms"),
-    ("scenarios", "scenarios"),
-    ("bundles", "bundles"),
-    ("domain-packs", "domain-packs"),
-    ("knowledge", "knowledge"),
-    ("quality", "quality"),
-    ("production", "production"),
-    ("adapters", "adapters"),
+    (ROOT, "domain-packs", "domain-packs"),
+    (ROOT, "production", "production"),
+    (REPO / "packages" / "capabilities", "atoms", "atoms"),
+    (REPO / "packages" / "capabilities", "scenarios", "scenarios"),
+    (REPO / "packages" / "capabilities", "bundles", "bundles"),
+    (REPO / "packages" / "capabilities", "plugins", "plugins"),
+    (REPO / "packages" / "capabilities", "quality", "quality"),
 ]
 
 ALLOW_FILES_SUFFIX = (".gitkeep",)
@@ -36,14 +38,14 @@ ALLOW_FILES_SUFFIX = (".gitkeep",)
 
 def collect_capabilities() -> list[dict]:
     caps: list[dict] = []
-    for rel_dir, label in CAPABILITY_DIRS:
-        base = ROOT / rel_dir
+    for scan_root, rel_dir, label in CAPABILITY_DIRS:
+        base = scan_root / rel_dir
         if not base.exists():
             continue
         for entry in sorted(base.rglob("*")):
             if not entry.is_file() or entry.name.endswith(ALLOW_FILES_SUFFIX):
                 continue
-            rel = entry.relative_to(ROOT).as_posix()
+            rel = entry.relative_to(REPO).as_posix()
             if any(part in rel.split("/") for part in (".git", "__pycache__", "node_modules")):
                 continue
             try:

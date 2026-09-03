@@ -23,9 +23,9 @@
 ### Task 1: Provider SPI, registry, and preflight
 
 **Files:**
-- Create: `design-lab/reconstruction/providers/__init__.py`
-- Create: `design-lab/reconstruction/providers/base.py`
-- Create: `design-lab/reconstruction/providers/registry.py`
+- Create: `packages/capabilities/reconstruction/providers/__init__.py`
+- Create: `packages/capabilities/reconstruction/providers/base.py`
+- Create: `packages/capabilities/reconstruction/providers/registry.py`
 - Create: `design-lab/config/reconstruction-models.json`
 - Test: `design-lab/tests/test_reconstruction_providers.py`
 
@@ -77,17 +77,17 @@ Expected: PASS; each fallback is represented as a structured event.
 - [ ] **Step 5: Commit the provider boundary**
 
 ```bash
-git add -- design-lab/reconstruction/providers design-lab/config/reconstruction-models.json design-lab/tests/test_reconstruction_providers.py
+git add -- packages/capabilities/reconstruction/providers design-lab/config/reconstruction-models.json design-lab/tests/test_reconstruction_providers.py
 git commit -m "feat(reconstruction): define bounded model provider SPI"
 ```
 
 ### Task 2: OCR, UI parsing, and deterministic primitive analysis
 
 **Files:**
-- Create: `design-lab/reconstruction/providers/paddleocr_provider.py`
-- Create: `design-lab/reconstruction/providers/omniparser_provider.py`
-- Create: `design-lab/reconstruction/geometry.py`
-- Create: `design-lab/reconstruction/font_match.py`
+- Create: `packages/capabilities/reconstruction/providers/paddleocr_provider.py`
+- Create: `packages/capabilities/reconstruction/providers/omniparser_provider.py`
+- Create: `packages/capabilities/reconstruction/geometry.py`
+- Create: `packages/capabilities/reconstruction/font_match.py`
 - Test: `design-lab/tests/test_reconstruction_semantics.py`
 
 **Interfaces:**
@@ -135,16 +135,16 @@ Expected: PASS with stable normalized coordinates and deterministic proposal JSO
 - [ ] **Step 5: Commit semantic analysis**
 
 ```bash
-git add -- design-lab/reconstruction/providers/paddleocr_provider.py design-lab/reconstruction/providers/omniparser_provider.py design-lab/reconstruction/geometry.py design-lab/reconstruction/font_match.py design-lab/tests/test_reconstruction_semantics.py
+git add -- packages/capabilities/reconstruction/providers/paddleocr_provider.py packages/capabilities/reconstruction/providers/omniparser_provider.py packages/capabilities/reconstruction/geometry.py packages/capabilities/reconstruction/font_match.py design-lab/tests/test_reconstruction_semantics.py
 git commit -m "feat(reconstruction): analyze text and design primitives"
 ```
 
 ### Task 3: Semantic RGBA layer decomposition
 
 **Files:**
-- Create: `design-lab/reconstruction/providers/layerd_provider.py`
-- Create: `design-lab/reconstruction/providers/sam_birefnet_provider.py`
-- Create: `design-lab/reconstruction/matting.py`
+- Create: `packages/capabilities/reconstruction/providers/layerd_provider.py`
+- Create: `packages/capabilities/reconstruction/providers/sam_birefnet_provider.py`
+- Create: `packages/capabilities/reconstruction/matting.py`
 - Test: `design-lab/tests/test_reconstruction_layers.py`
 
 **Interfaces:**
@@ -190,17 +190,17 @@ Expected: PASS; no output escapes the run root and no fallback changes canvas di
 - [ ] **Step 5: Commit layer decomposition**
 
 ```bash
-git add -- design-lab/reconstruction/providers/layerd_provider.py design-lab/reconstruction/providers/sam_birefnet_provider.py design-lab/reconstruction/matting.py design-lab/tests/test_reconstruction_layers.py
+git add -- packages/capabilities/reconstruction/providers/layerd_provider.py packages/capabilities/reconstruction/providers/sam_birefnet_provider.py packages/capabilities/reconstruction/matting.py design-lab/tests/test_reconstruction_layers.py
 git commit -m "feat(reconstruction): decompose semantic RGBA layers"
 ```
 
 ### Task 4: Vector candidates and hybrid fusion
 
 **Files:**
-- Create: `design-lab/reconstruction/providers/vtracer_provider.py`
-- Create: `design-lab/reconstruction/providers/starvector_provider.py`
-- Create: `design-lab/reconstruction/vector_candidates.py`
-- Create: `design-lab/reconstruction/fusion.py`
+- Create: `packages/capabilities/reconstruction/providers/vtracer_provider.py`
+- Create: `packages/capabilities/reconstruction/providers/starvector_provider.py`
+- Create: `packages/capabilities/reconstruction/vector_candidates.py`
+- Create: `packages/capabilities/reconstruction/fusion.py`
 - Test: `design-lab/tests/test_reconstruction_fusion.py`
 
 **Interfaces:**
@@ -245,15 +245,15 @@ Expected: PASS and a valid RIR for every fixture.
 - [ ] **Step 5: Commit vector fusion**
 
 ```bash
-git add -- design-lab/reconstruction/providers/vtracer_provider.py design-lab/reconstruction/providers/starvector_provider.py design-lab/reconstruction/vector_candidates.py design-lab/reconstruction/fusion.py design-lab/tests/test_reconstruction_fusion.py
+git add -- packages/capabilities/reconstruction/providers/vtracer_provider.py packages/capabilities/reconstruction/providers/starvector_provider.py packages/capabilities/reconstruction/vector_candidates.py packages/capabilities/reconstruction/fusion.py design-lab/tests/test_reconstruction_fusion.py
 git commit -m "feat(reconstruction): fuse vector and transparent layer proposals"
 ```
 
 ### Task 5: Diff-guided repair loop and AI vertical slice
 
 **Files:**
-- Create: `design-lab/reconstruction/repair.py`
-- Modify: `design-lab/reconstruction/pipeline.py`
+- Create: `packages/capabilities/reconstruction/repair.py`
+- Modify: `packages/capabilities/reconstruction/pipeline.py`
 - Modify: `design-lab/scripts/verify_reconstruction_pipeline.py`
 - Test: `design-lab/tests/test_reconstruction_repair.py`
 
@@ -300,6 +300,6 @@ Expected: PASS; AI providers remain structural unless real runtime evidence is s
 - [ ] **Step 5: Commit the AI-assisted local pipeline**
 
 ```bash
-git add -- design-lab/reconstruction/repair.py design-lab/reconstruction/pipeline.py design-lab/scripts/verify_reconstruction_pipeline.py design-lab/tests/test_reconstruction_repair.py
+git add -- packages/capabilities/reconstruction/repair.py packages/capabilities/reconstruction/pipeline.py design-lab/scripts/verify_reconstruction_pipeline.py design-lab/tests/test_reconstruction_repair.py
 git commit -m "feat(reconstruction): add diff-guided repair loop"
 ```

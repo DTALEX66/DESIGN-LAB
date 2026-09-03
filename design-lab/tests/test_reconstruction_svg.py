@@ -17,6 +17,7 @@ PROJECT_ROOT = DESIGN_LAB.parent
 FIXTURE = DESIGN_LAB / "tests" / "fixtures" / "reconstruction" / "flat-64.png"
 if str(DESIGN_LAB) not in sys.path:
     sys.path.insert(0, str(DESIGN_LAB))
+    sys.path.insert(0, str(PROJECT_ROOT / "packages" / "capabilities"))
 
 from reconstruction.svg import serialize_svg  # noqa: E402
 from reconstruction import svg_safety as svg_safety_module  # noqa: E402

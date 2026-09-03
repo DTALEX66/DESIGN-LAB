@@ -55,8 +55,8 @@ DESIGN-LAB 是面向职业视觉设计的、AI 原生、平台中立、宿主原
 ## 模块
 
 - `design-lab/`：设计核心（reconstruction、providers、config、tests、evals）
-- `design-system/`：设计系统
-- `minigame-runtime/`：游戏视觉 Domain fixture（不是独立产品线）
+- `packages/design-system/`：设计系统
+- `fixtures/domains/game-visual/`：游戏视觉 Domain fixture（不是独立产品线）
 - `evals/`：评估与黄金语料
 - `docs/`：文档与任务包
 - `reports/`：交接文档与当前状态投影

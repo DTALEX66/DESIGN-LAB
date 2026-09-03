@@ -19,6 +19,7 @@ from PIL import Image
 REPO_ROOT = Path(__file__).resolve().parents[2]
 DESIGN_LAB = REPO_ROOT / "design-lab"
 sys.path.insert(0, str(DESIGN_LAB))
+sys.path.insert(0, str(REPO_ROOT / "packages" / "capabilities"))
 
 from reconstruction.pipeline import run_reconstruction  # noqa: E402
 from reconstruction.state import canonical_json_bytes  # noqa: E402
@@ -933,7 +934,7 @@ class ReconstructionEvidenceTests(unittest.TestCase):
         discovered = set(module._discover_execution_source_paths())
         expected_modules = {
             path.relative_to(REPO_ROOT).as_posix()
-            for path in (DESIGN_LAB / "reconstruction").rglob("*.py")
+            for path in (REPO_ROOT / "packages" / "capabilities" / "reconstruction").rglob("*.py")
         }
         expected_schemas = {
             path.relative_to(REPO_ROOT).as_posix()
@@ -952,14 +953,14 @@ class ReconstructionEvidenceTests(unittest.TestCase):
             / ("closure-fixture-" + uuid.uuid4().hex)
         )
         self.cleanup.append(fixture_root)
-        nested_module = fixture_root / "design-lab" / "reconstruction" / "providers" / "local.py"
+        nested_module = fixture_root / "packages" / "capabilities" / "reconstruction" / "providers" / "local.py"
         nested_schema = fixture_root / "design-lab" / "schemas" / "reconstruction" / "nested" / "local.json"
         nested_module.parent.mkdir(parents=True)
         nested_schema.parent.mkdir(parents=True)
         nested_module.write_text("# nested execution fixture\n", encoding="utf-8")
         nested_schema.write_text("{}\n", encoding="utf-8")
         head_only = [
-            "design-lab/reconstruction/providers/head_only.py",
+            "packages/capabilities/reconstruction/providers/head_only.py",
             "design-lab/schemas/reconstruction/nested/head_only.json",
             "design-lab/scripts/verify_design_lab.py",
             "design-lab/config/reconstruction-models.json",
@@ -970,8 +971,8 @@ class ReconstructionEvidenceTests(unittest.TestCase):
         ):
             fixture_discovered = set(module._discover_execution_source_paths())
         for expected in (
-            "design-lab/reconstruction/providers/local.py",
-            "design-lab/reconstruction/providers/head_only.py",
+            "packages/capabilities/reconstruction/providers/local.py",
+            "packages/capabilities/reconstruction/providers/head_only.py",
             "design-lab/schemas/reconstruction/nested/local.json",
             "design-lab/schemas/reconstruction/nested/head_only.json",
             "design-lab/scripts/verify_design_lab.py",

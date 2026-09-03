@@ -42,9 +42,9 @@ BINARY_SUFFIXES = {
 }
 SKIPPED_PREFIXES = (
     "design-lab/research/quarantine/",
-    "project-memory/history/",
+    "docs/history/",
     "reports/history/",
-    "minigame-runtime/assets/generated/",
+    "fixtures/domains/game-visual/assets/generated/",
 )
 
 

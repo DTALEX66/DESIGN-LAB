@@ -18,7 +18,7 @@
 | `design-lab/intelligence/ultimate-uiux/AGENTS.md` | Design Pro (第三方设计技能) | `INERT_BLOB` | 64行，React/Tailwind/shadcn 设计方法论 |
 | `design-lab/intelligence/claude-design-skill/AGENTS.md` | jiji262 | `QUARANTINE` | 3行，外部身份规则（`jiji262 <jiguofei@msn.com>`） |
 | `design-lab/intelligence/design-system-prompt/codex/AGENTS.md` | 第三方 Codex 技能 | `INERT_BLOB` | 6行，设计系统 prompt 加载指令 |
-| `minigame-runtime/AGENTS.md` | 本项目 | `ACTIVE` | 23行，MiniGame fixture 定义（已正确） |
+| `fixtures/domains/game-visual/AGENTS.md` | 本项目 | `ACTIVE` | 23行，MiniGame fixture 定义（已正确） |
 
 ## 第三方 CLAUDE.md 文件
 

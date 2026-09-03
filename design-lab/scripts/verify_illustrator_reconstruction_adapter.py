@@ -9,7 +9,7 @@ from pathlib import Path
 
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
-DEFAULT_JSX = PROJECT_ROOT / "design-lab" / "adapters" / "creative-tools" / "adobe" / "illustrator" / "reconstruction-assemble.jsx"
+DEFAULT_JSX = PROJECT_ROOT / "integrations" / "hosts" / "adobe" / "illustrator" / "reconstruction-assemble.jsx"
 REQUIRED_OPERATIONS = (
     "createDocument", "createLayer", "placePath", "placeText", "placeRaster", "applyMask",
     "saveAI", "exportSVG", "reopen", "readback", "exportPNG",

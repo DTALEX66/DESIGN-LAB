@@ -5,7 +5,7 @@
 | Role | Canonical path | Meaning |
 |---|---|---|
 | Domain contract | `20-design/open-design/domain-packs/minigame-design/manifest.json` | Capabilities, excluded capabilities, evidence minimum and safety boundary. |
-| Runtime fixture | `20-design/open-design/minigame-runtime/` | The only in-repository runtime sample used for deterministic smoke and handoff checks. |
+| Runtime fixture | `20-design/open-design/fixtures/domains/game-visual/` | The only in-repository runtime sample used for deterministic smoke and handoff checks. |
 | Design rules | `20-design/open-design/domain-packs/minigame-design/rules.md` | Human-readable visual and interaction constraints. |
 | Handoff contract | `20-design/open-design/domain-packs/minigame-design/handoff.md` | Required evidence and non-mutating delivery boundary. |
 

@@ -48,12 +48,12 @@
       "objectId": "73fd6c507d5b5078a6dbe8f8085ec2feb1837a33"
     },
     {
-      "path": "design-lab/adapters/creative-tools/comfyui/evidence/dl_h3_prod.mp4",
+      "path": "integrations/generators/comfyui/evidence/dl_h3_prod.mp4",
       "bytes": 578334,
       "objectId": "c8aedbcff14fff0b0f9fcbe766a6dd0b6143f3c4"
     },
     {
-      "path": "design-lab/adapters/creative-tools/minimax-h3/evidence/dl_h3_prod.mp4",
+      "path": "integrations/generators/minimax-h3/evidence/dl_h3_prod.mp4",
       "bytes": 578334,
       "objectId": "c8aedbcff14fff0b0f9fcbe766a6dd0b6143f3c4"
     },
@@ -73,12 +73,12 @@
       "objectId": "45c7e5ecd26fd36754211ef9994406c0079d13d3"
     },
     {
-      "path": "design-lab/adapters/creative-tools/comfyui/evidence/dl_h3_prod_audio.flac",
+      "path": "integrations/generators/comfyui/evidence/dl_h3_prod_audio.flac",
       "bytes": 324982,
       "objectId": "b45e752e07c42390b9a43ca3f5b96f5348bd7568"
     },
     {
-      "path": "design-lab/adapters/creative-tools/minimax-h3/evidence/dl_h3_prod_audio.flac",
+      "path": "integrations/generators/minimax-h3/evidence/dl_h3_prod_audio.flac",
       "bytes": 324982,
       "objectId": "b45e752e07c42390b9a43ca3f5b96f5348bd7568"
     },
@@ -93,17 +93,17 @@
       "objectId": "13256b8e7caabb5401df40caa9cc75fb90de1f7b"
     },
     {
-      "path": "minigame-runtime/douyin-minigame/game.js",
+      "path": "fixtures/domains/game-visual/douyin-minigame/game.js",
       "bytes": 283272,
       "objectId": "ad7c6f744e028c9aa2962e45c96b0fb76f06cb95"
     },
     {
-      "path": "minigame-runtime/wechat-minigame/game.js",
+      "path": "fixtures/domains/game-visual/wechat-minigame/game.js",
       "bytes": 283272,
       "objectId": "8cd253deb071c65f0555ea9ed3bfb94b92282413"
     },
     {
-      "path": "design-lab/knowledge/visual-quality/document-design-system/docs/screenshots/themes-light.png",
+      "path": "design-lab/knowledge/visual-quality/document-packages/design-system/docs/screenshots/themes-light.png",
       "bytes": 273216,
       "objectId": "37f0df3363f0f087c2fa1f4ac3ee49a1b1f02896"
     }

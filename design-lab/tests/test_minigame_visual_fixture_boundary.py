@@ -1,7 +1,7 @@
 # SPDX-License-Identifier: MIT
 """DL-GV-003: MiniGame game-visual fixture boundary gate.
 
-Fail-closed: active paths in minigame-runtime must NOT re-introduce
+Fail-closed: active paths in fixtures/domains/game-visual must NOT re-introduce
 launch-game / IAA / adSlots / release / monetization / nextContentPack /
 platform-operations semantics. History docs under docs/history/ are exempt.
 """
@@ -12,7 +12,7 @@ import unittest
 from pathlib import Path
 
 REPO = Path(__file__).resolve().parents[2]
-MINIGAME = REPO / "minigame-runtime"
+MINIGAME = REPO / "fixtures/domains/game-visual"
 
 # Active paths (exclude docs/history/ which is immutable history)
 ACTIVE_ROOTS = [

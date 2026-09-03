@@ -18,7 +18,7 @@ def main():
             except Exception as exc: errors.append(f'invalid schema {p}: {exc}')
     for kind,names in [('atoms',REQ_ATOMS),('scenarios',REQ_SCENARIOS)]:
         for name in names:
-            base=root/f'design-lab/{kind}/{name}'
+            base=root/f'packages/capabilities/{kind}/{name}'
             for file in ['SKILL.md','open-design.json','README.md']:
                 p=base/file
                 if not p.is_file(): errors.append(f'missing {p}')

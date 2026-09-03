@@ -9,8 +9,10 @@ import sys
 from pathlib import Path
 
 DESIGN_LAB = Path(__file__).resolve().parents[1]
+PROJECT_ROOT = Path(__file__).resolve().parents[2]
 if str(DESIGN_LAB) not in sys.path:
     sys.path.insert(0, str(DESIGN_LAB))
+sys.path.insert(0, str(PROJECT_ROOT / "packages" / "capabilities"))
 
 from reconstruction.pipeline import (  # noqa: E402
     PipelineError,

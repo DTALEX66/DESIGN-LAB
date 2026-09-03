@@ -13,6 +13,7 @@ from pathlib import Path
 DESIGN_LAB = Path(__file__).resolve().parents[1]
 PROJECT_ROOT = DESIGN_LAB.parent
 sys.path.insert(0, str(DESIGN_LAB))
+sys.path.insert(0, str(PROJECT_ROOT / "packages" / "capabilities"))
 
 from reconstruction.release import EvidenceError, current_projection, validate_release  # noqa: E402
 

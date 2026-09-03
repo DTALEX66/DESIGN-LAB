@@ -14,7 +14,7 @@
 - `requirements.txt` 已固定：`jsonschema>=4.18,<5`。
 
 ### Node / JavaScript（0 项）
-- `minigame-runtime/package.json`：`dependencies: {}`、`devDependencies: {}`——**无第三方 Node 依赖**。
+- `fixtures/domains/game-visual/package.json`：`dependencies: {}`、`devDependencies: {}`——**无第三方 Node 依赖**。
 - 浏览器无障碍扫描使用 `axe-core 4.9.1`，但**未 vendored**（仅作为外部工具运行，证据已存 `domain-packs/uiux-design/evidence/axe-scan-20260811.json`）。
 
 ### 资产

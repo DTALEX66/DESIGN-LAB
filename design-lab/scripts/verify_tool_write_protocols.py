@@ -7,11 +7,11 @@ import json
 import sys
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parents[1]
+ROOT = Path(__file__).resolve().parents[2]
 REQUIRED = (
-    "adapters/creative-tools/adobe/E3_FIXTURE_PROTOCOL.md",
-    "adapters/creative-tools/eagle/E2_TEST_LIBRARY_PROTOCOL.md",
-    "config/tool-write-authorization.schema.json",
+    "integrations/hosts/adobe/E3_FIXTURE_PROTOCOL.md",
+    "integrations/hosts/eagle/E2_TEST_LIBRARY_PROTOCOL.md",
+    "design-lab/config/tool-write-authorization.schema.json",
 )
 
 

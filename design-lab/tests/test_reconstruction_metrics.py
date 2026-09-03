@@ -21,6 +21,7 @@ from PIL import Image, ImageCms
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(REPO_ROOT / "design-lab"))
+sys.path.insert(0, str(REPO_ROOT / "packages" / "capabilities"))
 
 from reconstruction.metrics import (  # noqa: E402
     FidelityError,

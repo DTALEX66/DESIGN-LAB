@@ -17,7 +17,7 @@ class QualityPipelineTests(unittest.TestCase):
 
     def test_human_feedback_is_last_and_e4(self):
         import json
-        reg = json.loads((SCRIPTS.parent / "quality/pipeline-layers.json").read_text(encoding="utf-8"))
+        reg = json.loads((SCRIPTS.parent.parent / "packages/capabilities/quality/pipeline-layers.json").read_text(encoding="utf-8"))
         last = reg["layers"][-1]
         self.assertEqual(last["id"], "human-feedback")
         self.assertEqual(last["evidence_level"], "E4")

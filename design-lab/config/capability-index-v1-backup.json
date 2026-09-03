@@ -7913,13 +7913,13 @@
       "sha256": "15cbb5908fff7529"
     },
     {
-      "path": "knowledge/sources/ckw-design-skill/design-system/SKILL.md",
+      "path": "knowledge/sources/ckw-design-skill/packages/design-system/SKILL.md",
       "label": "knowledge",
       "bytes": 14582,
       "sha256": "b527fe3c6f19ab68"
     },
     {
-      "path": "knowledge/sources/ckw-design-skill/design-system/references/motion-choreography.md",
+      "path": "knowledge/sources/ckw-design-skill/packages/design-system/references/motion-choreography.md",
       "label": "knowledge",
       "bytes": 6652,
       "sha256": "f59336cf72d145fa"
@@ -9797,31 +9797,31 @@
       "sha256": "a1849196237b2e83"
     },
     {
-      "path": "knowledge/visual-quality/claude-dolphin/skills/ux-ui-design-system/SKILL.md",
+      "path": "knowledge/visual-quality/claude-dolphin/skills/ux-ui-packages/design-system/SKILL.md",
       "label": "knowledge",
       "bytes": 6884,
       "sha256": "0cb3d288d04405f1"
     },
     {
-      "path": "knowledge/visual-quality/claude-dolphin/skills/ux-ui-design-system/references/audit-framework.md",
+      "path": "knowledge/visual-quality/claude-dolphin/skills/ux-ui-packages/design-system/references/audit-framework.md",
       "label": "knowledge",
       "bytes": 9543,
       "sha256": "1bccbf46b9694d0f"
     },
     {
-      "path": "knowledge/visual-quality/claude-dolphin/skills/ux-ui-design-system/references/refactoring-ui.md",
+      "path": "knowledge/visual-quality/claude-dolphin/skills/ux-ui-packages/design-system/references/refactoring-ui.md",
       "label": "knowledge",
       "bytes": 8114,
       "sha256": "4606b5661bd9310d"
     },
     {
-      "path": "knowledge/visual-quality/claude-dolphin/skills/ux-ui-design-system/references/shadcn-patterns.md",
+      "path": "knowledge/visual-quality/claude-dolphin/skills/ux-ui-packages/design-system/references/shadcn-patterns.md",
       "label": "knowledge",
       "bytes": 9417,
       "sha256": "508693971057b18e"
     },
     {
-      "path": "knowledge/visual-quality/claude-dolphin/skills/ux-ui-design-system/references/wcag-checklist.md",
+      "path": "knowledge/visual-quality/claude-dolphin/skills/ux-ui-packages/design-system/references/wcag-checklist.md",
       "label": "knowledge",
       "bytes": 8581,
       "sha256": "280469b5cf306239"
@@ -10175,919 +10175,919 @@
       "sha256": "360024e3a4b80bae"
     },
     {
-      "path": "knowledge/visual-quality/document-design-system/.claude-plugin/marketplace.json",
+      "path": "knowledge/visual-quality/document-packages/design-system/.claude-plugin/marketplace.json",
       "label": "knowledge",
       "bytes": 1205,
       "sha256": "3f131df87b53ef70"
     },
     {
-      "path": "knowledge/visual-quality/document-design-system/.claude-plugin/plugin.json",
+      "path": "knowledge/visual-quality/document-packages/design-system/.claude-plugin/plugin.json",
       "label": "knowledge",
       "bytes": 820,
       "sha256": "1069b18501373d3a"
     },
     {
-      "path": "knowledge/visual-quality/document-design-system/.gitignore",
+      "path": "knowledge/visual-quality/document-packages/design-system/.gitignore",
       "label": "knowledge",
       "bytes": 93,
       "sha256": "01728115a670ff76"
     },
     {
-      "path": "knowledge/visual-quality/document-design-system/CHANGELOG.md",
+      "path": "knowledge/visual-quality/document-packages/design-system/CHANGELOG.md",
       "label": "knowledge",
       "bytes": 5863,
       "sha256": "5e6d7a849db11303"
     },
     {
-      "path": "knowledge/visual-quality/document-design-system/LICENSE",
+      "path": "knowledge/visual-quality/document-packages/design-system/LICENSE",
       "label": "knowledge",
       "bytes": 1060,
       "sha256": "aec955f7c2d9edb7"
     },
     {
-      "path": "knowledge/visual-quality/document-design-system/README.md",
+      "path": "knowledge/visual-quality/document-packages/design-system/README.md",
       "label": "knowledge",
       "bytes": 16794,
       "sha256": "ca52731abf3de50b"
     },
     {
-      "path": "knowledge/visual-quality/document-design-system/SOURCE.md",
+      "path": "knowledge/visual-quality/document-packages/design-system/SOURCE.md",
       "label": "knowledge",
       "bytes": 302,
       "sha256": "c0b65ff9c9e43b5e"
     },
     {
-      "path": "knowledge/visual-quality/document-design-system/THIRD_PARTY_LICENSES.md",
+      "path": "knowledge/visual-quality/document-packages/design-system/THIRD_PARTY_LICENSES.md",
       "label": "knowledge",
       "bytes": 2737,
       "sha256": "a53725136f10ea99"
     },
     {
-      "path": "knowledge/visual-quality/document-design-system/core/README.md",
+      "path": "knowledge/visual-quality/document-packages/design-system/core/README.md",
       "label": "knowledge",
       "bytes": 2562,
       "sha256": "77ba70500358b8e6"
     },
     {
-      "path": "knowledge/visual-quality/document-design-system/core/a11y.md",
+      "path": "knowledge/visual-quality/document-packages/design-system/core/a11y.md",
       "label": "knowledge",
       "bytes": 2972,
       "sha256": "381ed54175e19937"
     },
     {
-      "path": "knowledge/visual-quality/document-design-system/core/base.css",
+      "path": "knowledge/visual-quality/document-packages/design-system/core/base.css",
       "label": "knowledge",
       "bytes": 7294,
       "sha256": "2e0fcd01a2aa4aa0"
     },
     {
-      "path": "knowledge/visual-quality/document-design-system/core/print.css",
+      "path": "knowledge/visual-quality/document-packages/design-system/core/print.css",
       "label": "knowledge",
       "bytes": 4425,
       "sha256": "356c709debfd0602"
     },
     {
-      "path": "knowledge/visual-quality/document-design-system/core/themes/brand-template.css",
+      "path": "knowledge/visual-quality/document-packages/design-system/core/themes/brand-template.css",
       "label": "knowledge",
       "bytes": 4180,
       "sha256": "1284723fb7f9a1a4"
     },
     {
-      "path": "knowledge/visual-quality/document-design-system/core/themes/console-violet.css",
+      "path": "knowledge/visual-quality/document-packages/design-system/core/themes/console-violet.css",
       "label": "knowledge",
       "bytes": 3584,
       "sha256": "cdbf64a9427744da"
     },
     {
-      "path": "knowledge/visual-quality/document-design-system/core/themes/editorial-coral.css",
+      "path": "knowledge/visual-quality/document-packages/design-system/core/themes/editorial-coral.css",
       "label": "knowledge",
       "bytes": 1335,
       "sha256": "fbf83e44543820ee"
     },
     {
-      "path": "knowledge/visual-quality/document-design-system/core/themes/executive-navy.css",
+      "path": "knowledge/visual-quality/document-packages/design-system/core/themes/executive-navy.css",
       "label": "knowledge",
       "bytes": 1030,
       "sha256": "f30c64012355f8cf"
     },
     {
-      "path": "knowledge/visual-quality/document-design-system/core/themes/field-notes.css",
+      "path": "knowledge/visual-quality/document-packages/design-system/core/themes/field-notes.css",
       "label": "knowledge",
       "bytes": 1072,
       "sha256": "1dbc12a9f410ccb8"
     },
     {
-      "path": "knowledge/visual-quality/document-design-system/core/tokens.md",
+      "path": "knowledge/visual-quality/document-packages/design-system/core/tokens.md",
       "label": "knowledge",
       "bytes": 8594,
       "sha256": "d43ff54583f8374a"
     },
     {
-      "path": "knowledge/visual-quality/document-design-system/docs/screenshots/analytical-report-detail.png",
+      "path": "knowledge/visual-quality/document-packages/design-system/docs/screenshots/analytical-report-detail.png",
       "label": "knowledge",
       "bytes": 182031,
       "sha256": "56290ac1d9867e7b"
     },
     {
-      "path": "knowledge/visual-quality/document-design-system/docs/screenshots/analytical-report-detail.png.license",
+      "path": "knowledge/visual-quality/document-packages/design-system/docs/screenshots/analytical-report-detail.png.license",
       "label": "knowledge",
       "bytes": 693,
       "sha256": "8449c24f6d12e511"
     },
     {
-      "path": "knowledge/visual-quality/document-design-system/docs/screenshots/analytical-report.png",
+      "path": "knowledge/visual-quality/document-packages/design-system/docs/screenshots/analytical-report.png",
       "label": "knowledge",
       "bytes": 173894,
       "sha256": "4a0a261ac3f769dc"
     },
     {
-      "path": "knowledge/visual-quality/document-design-system/docs/screenshots/analytical-report.png.license",
+      "path": "knowledge/visual-quality/document-packages/design-system/docs/screenshots/analytical-report.png.license",
       "label": "knowledge",
       "bytes": 686,
       "sha256": "d9839af8246f81cb"
     },
     {
-      "path": "knowledge/visual-quality/document-design-system/docs/screenshots/deck-chart.png",
+      "path": "knowledge/visual-quality/document-packages/design-system/docs/screenshots/deck-chart.png",
       "label": "knowledge",
       "bytes": 69489,
       "sha256": "333e09770e71068b"
     },
     {
-      "path": "knowledge/visual-quality/document-design-system/docs/screenshots/deck-chart.png.license",
+      "path": "knowledge/visual-quality/document-packages/design-system/docs/screenshots/deck-chart.png.license",
       "label": "knowledge",
       "bytes": 679,
       "sha256": "29c77601200870a4"
     },
     {
-      "path": "knowledge/visual-quality/document-design-system/docs/screenshots/deck-divider.png",
+      "path": "knowledge/visual-quality/document-packages/design-system/docs/screenshots/deck-divider.png",
       "label": "knowledge",
       "bytes": 38557,
       "sha256": "67cd7b324b51423c"
     },
     {
-      "path": "knowledge/visual-quality/document-design-system/docs/screenshots/deck-divider.png.license",
+      "path": "knowledge/visual-quality/document-packages/design-system/docs/screenshots/deck-divider.png.license",
       "label": "knowledge",
       "bytes": 681,
       "sha256": "b3d18c446a05e435"
     },
     {
-      "path": "knowledge/visual-quality/document-design-system/docs/screenshots/deck-metric.png",
+      "path": "knowledge/visual-quality/document-packages/design-system/docs/screenshots/deck-metric.png",
       "label": "knowledge",
       "bytes": 116803,
       "sha256": "a1db39293d91e30d"
     },
     {
-      "path": "knowledge/visual-quality/document-design-system/docs/screenshots/deck-metric.png.license",
+      "path": "knowledge/visual-quality/document-packages/design-system/docs/screenshots/deck-metric.png.license",
       "label": "knowledge",
       "bytes": 680,
       "sha256": "dad848bea8731c5a"
     },
     {
-      "path": "knowledge/visual-quality/document-design-system/docs/screenshots/gallery-dark.png",
+      "path": "knowledge/visual-quality/document-packages/design-system/docs/screenshots/gallery-dark.png",
       "label": "knowledge",
       "bytes": 268348,
       "sha256": "aad2620975687af4"
     },
     {
-      "path": "knowledge/visual-quality/document-design-system/docs/screenshots/gallery-dark.png.license",
+      "path": "knowledge/visual-quality/document-packages/design-system/docs/screenshots/gallery-dark.png.license",
       "label": "knowledge",
       "bytes": 681,
       "sha256": "ed92ca82b2f0c3ff"
     },
     {
-      "path": "knowledge/visual-quality/document-design-system/docs/screenshots/gallery-light.png",
+      "path": "knowledge/visual-quality/document-packages/design-system/docs/screenshots/gallery-light.png",
       "label": "knowledge",
       "bytes": 258066,
       "sha256": "1763580e2bb4eb27"
     },
     {
-      "path": "knowledge/visual-quality/document-design-system/docs/screenshots/gallery-light.png.license",
+      "path": "knowledge/visual-quality/document-packages/design-system/docs/screenshots/gallery-light.png.license",
       "label": "knowledge",
       "bytes": 682,
       "sha256": "e3ce72bd3765b4e8"
     },
     {
-      "path": "knowledge/visual-quality/document-design-system/docs/screenshots/longform-rfc.png",
+      "path": "knowledge/visual-quality/document-packages/design-system/docs/screenshots/longform-rfc.png",
       "label": "knowledge",
       "bytes": 214785,
       "sha256": "0508fae5d4dbac17"
     },
     {
-      "path": "knowledge/visual-quality/document-design-system/docs/screenshots/longform-rfc.png.license",
+      "path": "knowledge/visual-quality/document-packages/design-system/docs/screenshots/longform-rfc.png.license",
       "label": "knowledge",
       "bytes": 681,
       "sha256": "4f335d0a8c7d918b"
     },
     {
-      "path": "knowledge/visual-quality/document-design-system/docs/screenshots/themes-dark.png",
+      "path": "knowledge/visual-quality/document-packages/design-system/docs/screenshots/themes-dark.png",
       "label": "knowledge",
       "bytes": 270875,
       "sha256": "323a5cd418355eb7"
     },
     {
-      "path": "knowledge/visual-quality/document-design-system/docs/screenshots/themes-dark.png.license",
+      "path": "knowledge/visual-quality/document-packages/design-system/docs/screenshots/themes-dark.png.license",
       "label": "knowledge",
       "bytes": 680,
       "sha256": "2334c48bd5acbfbb"
     },
     {
-      "path": "knowledge/visual-quality/document-design-system/docs/screenshots/themes-light.png",
+      "path": "knowledge/visual-quality/document-packages/design-system/docs/screenshots/themes-light.png",
       "label": "knowledge",
       "bytes": 273216,
       "sha256": "3360e928f390a5c1"
     },
     {
-      "path": "knowledge/visual-quality/document-design-system/docs/screenshots/themes-light.png.license",
+      "path": "knowledge/visual-quality/document-packages/design-system/docs/screenshots/themes-light.png.license",
       "label": "knowledge",
       "bytes": 681,
       "sha256": "1feaaa01c507c7fd"
     },
     {
-      "path": "knowledge/visual-quality/document-design-system/examples/README.md",
+      "path": "knowledge/visual-quality/document-packages/design-system/examples/README.md",
       "label": "knowledge",
       "bytes": 2956,
       "sha256": "18a0919fc77e5c9f"
     },
     {
-      "path": "knowledge/visual-quality/document-design-system/examples/capacity-deck.html",
+      "path": "knowledge/visual-quality/document-packages/design-system/examples/capacity-deck.html",
       "label": "knowledge",
       "bytes": 20369,
       "sha256": "11e644a8ea183f5d"
     },
     {
-      "path": "knowledge/visual-quality/document-design-system/examples/cohorts-by-year.svg",
+      "path": "knowledge/visual-quality/document-packages/design-system/examples/cohorts-by-year.svg",
       "label": "knowledge",
       "bytes": 4877,
       "sha256": "a85f2bfa9392392b"
     },
     {
-      "path": "knowledge/visual-quality/document-design-system/examples/footprint-by-function-wide.svg",
+      "path": "knowledge/visual-quality/document-packages/design-system/examples/footprint-by-function-wide.svg",
       "label": "knowledge",
       "bytes": 3843,
       "sha256": "694c8c839c4a07cd"
     },
     {
-      "path": "knowledge/visual-quality/document-design-system/examples/footprint-by-function.svg",
+      "path": "knowledge/visual-quality/document-packages/design-system/examples/footprint-by-function.svg",
       "label": "knowledge",
       "bytes": 3819,
       "sha256": "fb2120cca58f51c2"
     },
     {
-      "path": "knowledge/visual-quality/document-design-system/examples/gallery-dark.html",
+      "path": "knowledge/visual-quality/document-packages/design-system/examples/gallery-dark.html",
       "label": "knowledge",
       "bytes": 43990,
       "sha256": "50b947044d5451ed"
     },
     {
-      "path": "knowledge/visual-quality/document-design-system/examples/gallery-light.html",
+      "path": "knowledge/visual-quality/document-packages/design-system/examples/gallery-light.html",
       "label": "knowledge",
       "bytes": 41743,
       "sha256": "a7cf4fe98c5d6a7c"
     },
     {
-      "path": "knowledge/visual-quality/document-design-system/examples/ingestion-path.svg",
+      "path": "knowledge/visual-quality/document-packages/design-system/examples/ingestion-path.svg",
       "label": "knowledge",
       "bytes": 4705,
       "sha256": "a519e0529586c7b1"
     },
     {
-      "path": "knowledge/visual-quality/document-design-system/examples/inventory-report.html",
+      "path": "knowledge/visual-quality/document-packages/design-system/examples/inventory-report.html",
       "label": "knowledge",
       "bytes": 33726,
       "sha256": "75888f838f8f9ae1"
     },
     {
-      "path": "knowledge/visual-quality/document-design-system/examples/latency-p99.svg",
+      "path": "knowledge/visual-quality/document-packages/design-system/examples/latency-p99.svg",
       "label": "knowledge",
       "bytes": 6433,
       "sha256": "ab410e5d62444a01"
     },
     {
-      "path": "knowledge/visual-quality/document-design-system/examples/platform-architecture.svg",
+      "path": "knowledge/visual-quality/document-packages/design-system/examples/platform-architecture.svg",
       "label": "knowledge",
       "bytes": 4540,
       "sha256": "9c3377e186bf28f6"
     },
     {
-      "path": "knowledge/visual-quality/document-design-system/examples/platform-rfc.html",
+      "path": "knowledge/visual-quality/document-packages/design-system/examples/platform-rfc.html",
       "label": "knowledge",
       "bytes": 20896,
       "sha256": "80c0920469da4068"
     },
     {
-      "path": "knowledge/visual-quality/document-design-system/examples/specs/cohorts.json",
+      "path": "knowledge/visual-quality/document-packages/design-system/examples/specs/cohorts.json",
       "label": "knowledge",
       "bytes": 606,
       "sha256": "d6953e54f404bd52"
     },
     {
-      "path": "knowledge/visual-quality/document-design-system/examples/specs/footprint-wide.json",
+      "path": "knowledge/visual-quality/document-packages/design-system/examples/specs/footprint-wide.json",
       "label": "knowledge",
       "bytes": 622,
       "sha256": "102d08daf02dfc7f"
     },
     {
-      "path": "knowledge/visual-quality/document-design-system/examples/specs/footprint.json",
+      "path": "knowledge/visual-quality/document-packages/design-system/examples/specs/footprint.json",
       "label": "knowledge",
       "bytes": 494,
       "sha256": "53fff4c607424c57"
     },
     {
-      "path": "knowledge/visual-quality/document-design-system/examples/specs/ingestion.mmd",
+      "path": "knowledge/visual-quality/document-packages/design-system/examples/specs/ingestion.mmd",
       "label": "knowledge",
       "bytes": 100,
       "sha256": "dd52b8c1fee19f00"
     },
     {
-      "path": "knowledge/visual-quality/document-design-system/examples/specs/latency.json",
+      "path": "knowledge/visual-quality/document-packages/design-system/examples/specs/latency.json",
       "label": "knowledge",
       "bytes": 637,
       "sha256": "46819069a2cad6e2"
     },
     {
-      "path": "knowledge/visual-quality/document-design-system/examples/themes-dark.html",
+      "path": "knowledge/visual-quality/document-packages/design-system/examples/themes-dark.html",
       "label": "knowledge",
       "bytes": 26821,
       "sha256": "2c5984c9cb3cf228"
     },
     {
-      "path": "knowledge/visual-quality/document-design-system/examples/themes-light.html",
+      "path": "knowledge/visual-quality/document-packages/design-system/examples/themes-light.html",
       "label": "knowledge",
       "bytes": 26822,
       "sha256": "dda1459cdeab4a00"
     },
     {
-      "path": "knowledge/visual-quality/document-design-system/scripts/audit_theme.py",
+      "path": "knowledge/visual-quality/document-packages/design-system/scripts/audit_theme.py",
       "label": "knowledge",
       "bytes": 9541,
       "sha256": "1987c5b76fca0dfc"
     },
     {
-      "path": "knowledge/visual-quality/document-design-system/scripts/build_document.py",
+      "path": "knowledge/visual-quality/document-packages/design-system/scripts/build_document.py",
       "label": "knowledge",
       "bytes": 2775,
       "sha256": "02e0ec3f15f5c84f"
     },
     {
-      "path": "knowledge/visual-quality/document-design-system/scripts/build_examples.py",
+      "path": "knowledge/visual-quality/document-packages/design-system/scripts/build_examples.py",
       "label": "knowledge",
       "bytes": 5033,
       "sha256": "5f8e2ad34cef2f77"
     },
     {
-      "path": "knowledge/visual-quality/document-design-system/scripts/export_pdf.mjs",
+      "path": "knowledge/visual-quality/document-packages/design-system/scripts/export_pdf.mjs",
       "label": "knowledge",
       "bytes": 4128,
       "sha256": "7676f0686ad578b2"
     },
     {
-      "path": "knowledge/visual-quality/document-design-system/scripts/extract_site_theme.py",
+      "path": "knowledge/visual-quality/document-packages/design-system/scripts/extract_site_theme.py",
       "label": "knowledge",
       "bytes": 6419,
       "sha256": "a9c3370928933169"
     },
     {
-      "path": "knowledge/visual-quality/document-design-system/scripts/inline_fonts.py",
+      "path": "knowledge/visual-quality/document-packages/design-system/scripts/inline_fonts.py",
       "label": "knowledge",
       "bytes": 4439,
       "sha256": "96d536de3ea6be7b"
     },
     {
-      "path": "knowledge/visual-quality/document-design-system/scripts/render_chart.mjs",
+      "path": "knowledge/visual-quality/document-packages/design-system/scripts/render_chart.mjs",
       "label": "knowledge",
       "bytes": 9228,
       "sha256": "88c67df1e99cfc89"
     },
     {
-      "path": "knowledge/visual-quality/document-design-system/scripts/render_diagram.mjs",
+      "path": "knowledge/visual-quality/document-packages/design-system/scripts/render_diagram.mjs",
       "label": "knowledge",
       "bytes": 7430,
       "sha256": "bf699f52a1e16299"
     },
     {
-      "path": "knowledge/visual-quality/document-design-system/scripts/shoot_examples.py",
+      "path": "knowledge/visual-quality/document-packages/design-system/scripts/shoot_examples.py",
       "label": "knowledge",
       "bytes": 5061,
       "sha256": "058428cadb4ca0bc"
     },
     {
-      "path": "knowledge/visual-quality/document-design-system/scripts/validate_repository.py",
+      "path": "knowledge/visual-quality/document-packages/design-system/scripts/validate_repository.py",
       "label": "knowledge",
       "bytes": 17289,
       "sha256": "c8830c2d5b26391f"
     },
     {
-      "path": "knowledge/visual-quality/document-design-system/skills/analytical-document-design/SKILL.md",
+      "path": "knowledge/visual-quality/document-packages/design-system/skills/analytical-document-design/SKILL.md",
       "label": "knowledge",
       "bytes": 10636,
       "sha256": "683b92771493ef25"
     },
     {
-      "path": "knowledge/visual-quality/document-design-system/skills/analytical-document-design/references/evidence-semantics.md",
+      "path": "knowledge/visual-quality/document-packages/design-system/skills/analytical-document-design/references/evidence-semantics.md",
       "label": "knowledge",
       "bytes": 6637,
       "sha256": "bea9f6339b48a5db"
     },
     {
-      "path": "knowledge/visual-quality/document-design-system/skills/analytical-document-design/references/implementation.md",
+      "path": "knowledge/visual-quality/document-packages/design-system/skills/analytical-document-design/references/implementation.md",
       "label": "knowledge",
       "bytes": 3437,
       "sha256": "f48d467e9ae1a6da"
     },
     {
-      "path": "knowledge/visual-quality/document-design-system/skills/analytical-document-design/references/print-production.md",
+      "path": "knowledge/visual-quality/document-packages/design-system/skills/analytical-document-design/references/print-production.md",
       "label": "knowledge",
       "bytes": 10390,
       "sha256": "9afb0d9338e5799b"
     },
     {
-      "path": "knowledge/visual-quality/document-design-system/skills/analytical-document-design/references/quality-gate.md",
+      "path": "knowledge/visual-quality/document-packages/design-system/skills/analytical-document-design/references/quality-gate.md",
       "label": "knowledge",
       "bytes": 3211,
       "sha256": "efc1eb2120fdd9bc"
     },
     {
-      "path": "knowledge/visual-quality/document-design-system/skills/analytical-document-design/references/visual-system.md",
+      "path": "knowledge/visual-quality/document-packages/design-system/skills/analytical-document-design/references/visual-system.md",
       "label": "knowledge",
       "bytes": 4755,
       "sha256": "62f8e31595365ee4"
     },
     {
-      "path": "knowledge/visual-quality/document-design-system/skills/brand-theme-design/SKILL.md",
+      "path": "knowledge/visual-quality/document-packages/design-system/skills/brand-theme-design/SKILL.md",
       "label": "knowledge",
       "bytes": 7841,
       "sha256": "2eed4bfedfa26851"
     },
     {
-      "path": "knowledge/visual-quality/document-design-system/skills/brand-theme-design/references/extraction.md",
+      "path": "knowledge/visual-quality/document-packages/design-system/skills/brand-theme-design/references/extraction.md",
       "label": "knowledge",
       "bytes": 4963,
       "sha256": "d2ad2fa27b985743"
     },
     {
-      "path": "knowledge/visual-quality/document-design-system/skills/brand-theme-design/references/mapping.md",
+      "path": "knowledge/visual-quality/document-packages/design-system/skills/brand-theme-design/references/mapping.md",
       "label": "knowledge",
       "bytes": 8198,
       "sha256": "a5d12eaaefe8d378"
     },
     {
-      "path": "knowledge/visual-quality/document-design-system/skills/brand-theme-design/references/verification.md",
+      "path": "knowledge/visual-quality/document-packages/design-system/skills/brand-theme-design/references/verification.md",
       "label": "knowledge",
       "bytes": 4105,
       "sha256": "29d9689c560df509"
     },
     {
-      "path": "knowledge/visual-quality/document-design-system/skills/chart-design/SKILL.md",
+      "path": "knowledge/visual-quality/document-packages/design-system/skills/chart-design/SKILL.md",
       "label": "knowledge",
       "bytes": 8224,
       "sha256": "fe0e3e5e55936ca1"
     },
     {
-      "path": "knowledge/visual-quality/document-design-system/skills/chart-design/references/chart-forms.md",
+      "path": "knowledge/visual-quality/document-packages/design-system/skills/chart-design/references/chart-forms.md",
       "label": "knowledge",
       "bytes": 6868,
       "sha256": "a70eded5a1c1a232"
     },
     {
-      "path": "knowledge/visual-quality/document-design-system/skills/chart-design/references/palette.md",
+      "path": "knowledge/visual-quality/document-packages/design-system/skills/chart-design/references/palette.md",
       "label": "knowledge",
       "bytes": 4963,
       "sha256": "bfd65c2f8992354e"
     },
     {
-      "path": "knowledge/visual-quality/document-design-system/skills/chart-design/references/rendering.md",
+      "path": "knowledge/visual-quality/document-packages/design-system/skills/chart-design/references/rendering.md",
       "label": "knowledge",
       "bytes": 5793,
       "sha256": "784a89f8a7f5e52c"
     },
     {
-      "path": "knowledge/visual-quality/document-design-system/skills/diagram-design/SKILL.md",
+      "path": "knowledge/visual-quality/document-packages/design-system/skills/diagram-design/SKILL.md",
       "label": "knowledge",
       "bytes": 9498,
       "sha256": "8ce1a2daf570bfcc"
     },
     {
-      "path": "knowledge/visual-quality/document-design-system/skills/diagram-design/references/diagram-families.md",
+      "path": "knowledge/visual-quality/document-packages/design-system/skills/diagram-design/references/diagram-families.md",
       "label": "knowledge",
       "bytes": 8517,
       "sha256": "3b08216cfd796fb6"
     },
     {
-      "path": "knowledge/visual-quality/document-design-system/skills/diagram-design/references/mermaid-bridge.md",
+      "path": "knowledge/visual-quality/document-packages/design-system/skills/diagram-design/references/mermaid-bridge.md",
       "label": "knowledge",
       "bytes": 7843,
       "sha256": "f64574ff724a31fe"
     },
     {
-      "path": "knowledge/visual-quality/document-design-system/skills/diagram-design/references/primitives.md",
+      "path": "knowledge/visual-quality/document-packages/design-system/skills/diagram-design/references/primitives.md",
       "label": "knowledge",
       "bytes": 8178,
       "sha256": "ac6d6da4c474bdd9"
     },
     {
-      "path": "knowledge/visual-quality/document-design-system/skills/longform-document-design/SKILL.md",
+      "path": "knowledge/visual-quality/document-packages/design-system/skills/longform-document-design/SKILL.md",
       "label": "knowledge",
       "bytes": 8770,
       "sha256": "f7e9f88579b73974"
     },
     {
-      "path": "knowledge/visual-quality/document-design-system/skills/longform-document-design/references/document-types.md",
+      "path": "knowledge/visual-quality/document-packages/design-system/skills/longform-document-design/references/document-types.md",
       "label": "knowledge",
       "bytes": 7311,
       "sha256": "4cf3e7791a4611c5"
     },
     {
-      "path": "knowledge/visual-quality/document-design-system/skills/longform-document-design/references/prose-and-structure.md",
+      "path": "knowledge/visual-quality/document-packages/design-system/skills/longform-document-design/references/prose-and-structure.md",
       "label": "knowledge",
       "bytes": 4736,
       "sha256": "bafcd615da59eb31"
     },
     {
-      "path": "knowledge/visual-quality/document-design-system/skills/presentation-design/SKILL.md",
+      "path": "knowledge/visual-quality/document-packages/design-system/skills/presentation-design/SKILL.md",
       "label": "knowledge",
       "bytes": 7573,
       "sha256": "75752f6ae3c62bdf"
     },
     {
-      "path": "knowledge/visual-quality/document-design-system/skills/presentation-design/references/deck-structure.md",
+      "path": "knowledge/visual-quality/document-packages/design-system/skills/presentation-design/references/deck-structure.md",
       "label": "knowledge",
       "bytes": 3407,
       "sha256": "1b0185a979ff42e2"
     },
     {
-      "path": "knowledge/visual-quality/document-design-system/skills/presentation-design/references/slide-types.md",
+      "path": "knowledge/visual-quality/document-packages/design-system/skills/presentation-design/references/slide-types.md",
       "label": "knowledge",
       "bytes": 5493,
       "sha256": "4847ae25c4c35711"
     },
     {
-      "path": "knowledge/visual-quality/document-design-system/templates/deck.html",
+      "path": "knowledge/visual-quality/document-packages/design-system/templates/deck.html",
       "label": "knowledge",
       "bytes": 8244,
       "sha256": "6b93642dcee16e8b"
     },
     {
-      "path": "knowledge/visual-quality/document-design-system/templates/diagram.svg",
+      "path": "knowledge/visual-quality/document-packages/design-system/templates/diagram.svg",
       "label": "knowledge",
       "bytes": 4603,
       "sha256": "e49331df05f9041a"
     },
     {
-      "path": "knowledge/visual-quality/document-design-system/templates/document.html",
+      "path": "knowledge/visual-quality/document-packages/design-system/templates/document.html",
       "label": "knowledge",
       "bytes": 12019,
       "sha256": "d3df6b5f034dfd36"
     },
     {
-      "path": "knowledge/visual-quality/document-design-system/templates/gallery.html",
+      "path": "knowledge/visual-quality/document-packages/design-system/templates/gallery.html",
       "label": "knowledge",
       "bytes": 4432,
       "sha256": "8701c9970b2ab397"
     },
     {
-      "path": "knowledge/visual-quality/document-design-system/templates/longform.html",
+      "path": "knowledge/visual-quality/document-packages/design-system/templates/longform.html",
       "label": "knowledge",
       "bytes": 8092,
       "sha256": "1b6ac75a46ab6c8d"
     },
     {
-      "path": "knowledge/visual-quality/document-design-system/templates/themes.html",
+      "path": "knowledge/visual-quality/document-packages/design-system/templates/themes.html",
       "label": "knowledge",
       "bytes": 8016,
       "sha256": "898b42ffab3bcc62"
     },
     {
-      "path": "knowledge/visual-quality/document-design-system/tests/test_repository.py",
+      "path": "knowledge/visual-quality/document-packages/design-system/tests/test_repository.py",
       "label": "knowledge",
       "bytes": 21660,
       "sha256": "dfbb8ff71b61e414"
     },
     {
-      "path": "knowledge/visual-quality/extract-design-system/.gitignore",
+      "path": "knowledge/visual-quality/extract-packages/design-system/.gitignore",
       "label": "knowledge",
       "bytes": 98,
       "sha256": "feaa640ebabca7ff"
     },
     {
-      "path": "knowledge/visual-quality/extract-design-system/CODE_OF_CONDUCT.md",
+      "path": "knowledge/visual-quality/extract-packages/design-system/CODE_OF_CONDUCT.md",
       "label": "knowledge",
       "bytes": 1190,
       "sha256": "5fbd246aba8a5ce6"
     },
     {
-      "path": "knowledge/visual-quality/extract-design-system/CONTRIBUTING.md",
+      "path": "knowledge/visual-quality/extract-packages/design-system/CONTRIBUTING.md",
       "label": "knowledge",
       "bytes": 1402,
       "sha256": "c1aac799749d5853"
     },
     {
-      "path": "knowledge/visual-quality/extract-design-system/LICENSE",
+      "path": "knowledge/visual-quality/extract-packages/design-system/LICENSE",
       "label": "knowledge",
       "bytes": 1063,
       "sha256": "5b26a89b87e63e37"
     },
     {
-      "path": "knowledge/visual-quality/extract-design-system/README.md",
+      "path": "knowledge/visual-quality/extract-packages/design-system/README.md",
       "label": "knowledge",
       "bytes": 8133,
       "sha256": "775817e5595fe70e"
     },
     {
-      "path": "knowledge/visual-quality/extract-design-system/SECURITY.md",
+      "path": "knowledge/visual-quality/extract-packages/design-system/SECURITY.md",
       "label": "knowledge",
       "bytes": 1005,
       "sha256": "97c7e0447987e36b"
     },
     {
-      "path": "knowledge/visual-quality/extract-design-system/SOURCE.md",
+      "path": "knowledge/visual-quality/extract-packages/design-system/SOURCE.md",
       "label": "knowledge",
       "bytes": 335,
       "sha256": "d2ccbcc4fa25cb97"
     },
     {
-      "path": "knowledge/visual-quality/extract-design-system/package-lock.json",
+      "path": "knowledge/visual-quality/extract-packages/design-system/package-lock.json",
       "label": "knowledge",
       "bytes": 117825,
       "sha256": "8f63147c6ce3f43b"
     },
     {
-      "path": "knowledge/visual-quality/extract-design-system/package.json",
+      "path": "knowledge/visual-quality/extract-packages/design-system/package.json",
       "label": "knowledge",
       "bytes": 2145,
       "sha256": "1953adca94a921cb"
     },
     {
-      "path": "knowledge/visual-quality/extract-design-system/scripts/generate-pr-description.ts",
+      "path": "knowledge/visual-quality/extract-packages/design-system/scripts/generate-pr-description.ts",
       "label": "knowledge",
       "bytes": 8843,
       "sha256": "64f43085215b984e"
     },
     {
-      "path": "knowledge/visual-quality/extract-design-system/skills-lock.json",
+      "path": "knowledge/visual-quality/extract-packages/design-system/skills-lock.json",
       "label": "knowledge",
       "bytes": 244,
       "sha256": "f4964987f844367a"
     },
     {
-      "path": "knowledge/visual-quality/extract-design-system/skills/extract-design-system/SKILL.md",
+      "path": "knowledge/visual-quality/extract-packages/design-system/skills/extract-packages/design-system/SKILL.md",
       "label": "knowledge",
       "bytes": 2056,
       "sha256": "e1a08d959b6f6d8d"
     },
     {
-      "path": "knowledge/visual-quality/extract-design-system/skills/extract-design-system/references/outputs.md",
+      "path": "knowledge/visual-quality/extract-packages/design-system/skills/extract-packages/design-system/references/outputs.md",
       "label": "knowledge",
       "bytes": 502,
       "sha256": "5fad6484561857be"
     },
     {
-      "path": "knowledge/visual-quality/extract-design-system/skills/extract-design-system/references/workflow.md",
+      "path": "knowledge/visual-quality/extract-packages/design-system/skills/extract-packages/design-system/references/workflow.md",
       "label": "knowledge",
       "bytes": 629,
       "sha256": "2361195ede7301b1"
     },
     {
-      "path": "knowledge/visual-quality/extract-design-system/src/adapters/dembrandt.ts",
+      "path": "knowledge/visual-quality/extract-packages/design-system/src/adapters/dembrandt.ts",
       "label": "knowledge",
       "bytes": 2333,
       "sha256": "36d7596c497f5374"
     },
     {
-      "path": "knowledge/visual-quality/extract-design-system/src/cli.ts",
+      "path": "knowledge/visual-quality/extract-packages/design-system/src/cli.ts",
       "label": "knowledge",
       "bytes": 3339,
       "sha256": "cc9c08a179da14d7"
     },
     {
-      "path": "knowledge/visual-quality/extract-design-system/src/commands/audit.ts",
+      "path": "knowledge/visual-quality/extract-packages/design-system/src/commands/audit.ts",
       "label": "knowledge",
       "bytes": 2893,
       "sha256": "21790c0103195508"
     },
     {
-      "path": "knowledge/visual-quality/extract-design-system/src/commands/extract.ts",
+      "path": "knowledge/visual-quality/extract-packages/design-system/src/commands/extract.ts",
       "label": "knowledge",
       "bytes": 2101,
       "sha256": "d460d80fafe2d84d"
     },
     {
-      "path": "knowledge/visual-quality/extract-design-system/src/commands/init.ts",
+      "path": "knowledge/visual-quality/extract-packages/design-system/src/commands/init.ts",
       "label": "knowledge",
       "bytes": 539,
       "sha256": "c5a8bc2dd82fb8d2"
     },
     {
-      "path": "knowledge/visual-quality/extract-design-system/src/commands/write-design-system.ts",
+      "path": "knowledge/visual-quality/extract-packages/design-system/src/commands/write-design-system.ts",
       "label": "knowledge",
       "bytes": 881,
       "sha256": "471325702102543d"
     },
     {
-      "path": "knowledge/visual-quality/extract-design-system/src/formatters/audit-report.ts",
+      "path": "knowledge/visual-quality/extract-packages/design-system/src/formatters/audit-report.ts",
       "label": "knowledge",
       "bytes": 1765,
       "sha256": "a7f40a8cd2f8e84a"
     },
     {
-      "path": "knowledge/visual-quality/extract-design-system/src/generators/css-vars.ts",
+      "path": "knowledge/visual-quality/extract-packages/design-system/src/generators/css-vars.ts",
       "label": "knowledge",
       "bytes": 1423,
       "sha256": "b658c471c4d4d1d0"
     },
     {
-      "path": "knowledge/visual-quality/extract-design-system/src/matchers/color-matcher.ts",
+      "path": "knowledge/visual-quality/extract-packages/design-system/src/matchers/color-matcher.ts",
       "label": "knowledge",
       "bytes": 2720,
       "sha256": "02e0cc21d63d6ec3"
     },
     {
-      "path": "knowledge/visual-quality/extract-design-system/src/matchers/token-matcher.ts",
+      "path": "knowledge/visual-quality/extract-packages/design-system/src/matchers/token-matcher.ts",
       "label": "knowledge",
       "bytes": 1045,
       "sha256": "f335b9b08f1cddb9"
     },
     {
-      "path": "knowledge/visual-quality/extract-design-system/src/mcp.ts",
+      "path": "knowledge/visual-quality/extract-packages/design-system/src/mcp.ts",
       "label": "knowledge",
       "bytes": 5479,
       "sha256": "1efe821b5e97813e"
     },
     {
-      "path": "knowledge/visual-quality/extract-design-system/src/normalize/normalize.ts",
+      "path": "knowledge/visual-quality/extract-packages/design-system/src/normalize/normalize.ts",
       "label": "knowledge",
       "bytes": 4690,
       "sha256": "63cb07c601a702a7"
     },
     {
-      "path": "knowledge/visual-quality/extract-design-system/src/scanners/file-scanner.ts",
+      "path": "knowledge/visual-quality/extract-packages/design-system/src/scanners/file-scanner.ts",
       "label": "knowledge",
       "bytes": 1051,
       "sha256": "69d0a8e392d02a81"
     },
     {
-      "path": "knowledge/visual-quality/extract-design-system/src/scanners/pattern-scanner.ts",
+      "path": "knowledge/visual-quality/extract-packages/design-system/src/scanners/pattern-scanner.ts",
       "label": "knowledge",
       "bytes": 3786,
       "sha256": "7486e0dde8ad67d2"
     },
     {
-      "path": "knowledge/visual-quality/extract-design-system/src/schemas/audit.ts",
+      "path": "knowledge/visual-quality/extract-packages/design-system/src/schemas/audit.ts",
       "label": "knowledge",
       "bytes": 625,
       "sha256": "618f0a94bdb31cbe"
     },
     {
-      "path": "knowledge/visual-quality/extract-design-system/src/schemas/normalized.ts",
+      "path": "knowledge/visual-quality/extract-packages/design-system/src/schemas/normalized.ts",
       "label": "knowledge",
       "bytes": 910,
       "sha256": "c07625296067fc06"
     },
     {
-      "path": "knowledge/visual-quality/extract-design-system/src/utils/files.ts",
+      "path": "knowledge/visual-quality/extract-packages/design-system/src/utils/files.ts",
       "label": "knowledge",
       "bytes": 596,
       "sha256": "d92ab58c4281c469"
     },
     {
-      "path": "knowledge/visual-quality/extract-design-system/src/utils/logger.ts",
+      "path": "knowledge/visual-quality/extract-packages/design-system/src/utils/logger.ts",
       "label": "knowledge",
       "bytes": 231,
       "sha256": "8d6e2006ad7a10d3"
     },
     {
-      "path": "knowledge/visual-quality/extract-design-system/src/utils/paths.ts",
+      "path": "knowledge/visual-quality/extract-packages/design-system/src/utils/paths.ts",
       "label": "knowledge",
       "bytes": 532,
       "sha256": "dc077cd7e96d9e40"
     },
     {
-      "path": "knowledge/visual-quality/extract-design-system/tests/audit-command.test.ts",
+      "path": "knowledge/visual-quality/extract-packages/design-system/tests/audit-command.test.ts",
       "label": "knowledge",
       "bytes": 3687,
       "sha256": "752e9e22cb8bde2b"
     },
     {
-      "path": "knowledge/visual-quality/extract-design-system/tests/audit-report.test.ts",
+      "path": "knowledge/visual-quality/extract-packages/design-system/tests/audit-report.test.ts",
       "label": "knowledge",
       "bytes": 2747,
       "sha256": "4914acb269f2789c"
     },
     {
-      "path": "knowledge/visual-quality/extract-design-system/tests/cli-audit-integration.test.ts",
+      "path": "knowledge/visual-quality/extract-packages/design-system/tests/cli-audit-integration.test.ts",
       "label": "knowledge",
       "bytes": 1352,
       "sha256": "d141b42df14559be"
     },
     {
-      "path": "knowledge/visual-quality/extract-design-system/tests/cli-entrypoint.test.ts",
+      "path": "knowledge/visual-quality/extract-packages/design-system/tests/cli-entrypoint.test.ts",
       "label": "knowledge",
       "bytes": 3247,
       "sha256": "0a166d5b329b1b65"
     },
     {
-      "path": "knowledge/visual-quality/extract-design-system/tests/cli-integration.test.ts",
+      "path": "knowledge/visual-quality/extract-packages/design-system/tests/cli-integration.test.ts",
       "label": "knowledge",
       "bytes": 6495,
       "sha256": "1607b1df64d4fab4"
     },
     {
-      "path": "knowledge/visual-quality/extract-design-system/tests/cli-smoke.test.ts",
+      "path": "knowledge/visual-quality/extract-packages/design-system/tests/cli-smoke.test.ts",
       "label": "knowledge",
       "bytes": 2067,
       "sha256": "4b0bbc5ab1fbeb7d"
     },
     {
-      "path": "knowledge/visual-quality/extract-design-system/tests/color-matcher.test.ts",
+      "path": "knowledge/visual-quality/extract-packages/design-system/tests/color-matcher.test.ts",
       "label": "knowledge",
       "bytes": 3683,
       "sha256": "e475b6fb8fdfd835"
     },
     {
-      "path": "knowledge/visual-quality/extract-design-system/tests/css-vars.test.ts",
+      "path": "knowledge/visual-quality/extract-packages/design-system/tests/css-vars.test.ts",
       "label": "knowledge",
       "bytes": 2039,
       "sha256": "083a77408655500b"
     },
     {
-      "path": "knowledge/visual-quality/extract-design-system/tests/dembrandt.test.ts",
+      "path": "knowledge/visual-quality/extract-packages/design-system/tests/dembrandt.test.ts",
       "label": "knowledge",
       "bytes": 2962,
       "sha256": "bc5ec41c1e80f5eb"
     },
     {
-      "path": "knowledge/visual-quality/extract-design-system/tests/extract-command.test.ts",
+      "path": "knowledge/visual-quality/extract-packages/design-system/tests/extract-command.test.ts",
       "label": "knowledge",
       "bytes": 6123,
       "sha256": "e0535278b03f88d7"
     },
     {
-      "path": "knowledge/visual-quality/extract-design-system/tests/file-scanner.test.ts",
+      "path": "knowledge/visual-quality/extract-packages/design-system/tests/file-scanner.test.ts",
       "label": "knowledge",
       "bytes": 2968,
       "sha256": "f779d1f1c9973a98"
     },
     {
-      "path": "knowledge/visual-quality/extract-design-system/tests/files.test.ts",
+      "path": "knowledge/visual-quality/extract-packages/design-system/tests/files.test.ts",
       "label": "knowledge",
       "bytes": 1764,
       "sha256": "0095247a52c32478"
     },
     {
-      "path": "knowledge/visual-quality/extract-design-system/tests/init-command.test.ts",
+      "path": "knowledge/visual-quality/extract-packages/design-system/tests/init-command.test.ts",
       "label": "knowledge",
       "bytes": 3709,
       "sha256": "6f90ed1df8cb7c4a"
     },
     {
-      "path": "knowledge/visual-quality/extract-design-system/tests/logger.test.ts",
+      "path": "knowledge/visual-quality/extract-packages/design-system/tests/logger.test.ts",
       "label": "knowledge",
       "bytes": 839,
       "sha256": "2b59806b94bf3a4f"
     },
     {
-      "path": "knowledge/visual-quality/extract-design-system/tests/normalize.test.ts",
+      "path": "knowledge/visual-quality/extract-packages/design-system/tests/normalize.test.ts",
       "label": "knowledge",
       "bytes": 6732,
       "sha256": "e7d004412ffdb9fd"
     },
     {
-      "path": "knowledge/visual-quality/extract-design-system/tests/package-metadata.test.ts",
+      "path": "knowledge/visual-quality/extract-packages/design-system/tests/package-metadata.test.ts",
       "label": "knowledge",
       "bytes": 2011,
       "sha256": "0762e2764103b92d"
     },
     {
-      "path": "knowledge/visual-quality/extract-design-system/tests/paths.test.ts",
+      "path": "knowledge/visual-quality/extract-packages/design-system/tests/paths.test.ts",
       "label": "knowledge",
       "bytes": 600,
       "sha256": "ae74955feef88fb3"
     },
     {
-      "path": "knowledge/visual-quality/extract-design-system/tests/pattern-scanner.test.ts",
+      "path": "knowledge/visual-quality/extract-packages/design-system/tests/pattern-scanner.test.ts",
       "label": "knowledge",
       "bytes": 3723,
       "sha256": "e8ed00e42a6276ae"
     },
     {
-      "path": "knowledge/visual-quality/extract-design-system/tests/token-matcher.test.ts",
+      "path": "knowledge/visual-quality/extract-packages/design-system/tests/token-matcher.test.ts",
       "label": "knowledge",
       "bytes": 2692,
       "sha256": "95c87d78e52e71b6"
     },
     {
-      "path": "knowledge/visual-quality/extract-design-system/tsconfig.build.json",
+      "path": "knowledge/visual-quality/extract-packages/design-system/tsconfig.build.json",
       "label": "knowledge",
       "bytes": 168,
       "sha256": "fd1fe3a31ea1c2ac"
     },
     {
-      "path": "knowledge/visual-quality/extract-design-system/tsconfig.json",
+      "path": "knowledge/visual-quality/extract-packages/design-system/tsconfig.json",
       "label": "knowledge",
       "bytes": 481,
       "sha256": "ebb82ef46ff05bb7"
     },
     {
-      "path": "knowledge/visual-quality/extract-design-system/vitest.config.ts",
+      "path": "knowledge/visual-quality/extract-packages/design-system/vitest.config.ts",
       "label": "knowledge",
       "bytes": 413,
       "sha256": "c61beddb6bfe6958"

@@ -10,7 +10,7 @@ For current project status, use these normative sources in this order:
 2. `design-lab/config/capability-status.json`
 3. `design-lab/scripts/verify_design_lab.py`
 4. `design-lab/scripts/verify_release_gate.py`
-5. `project-memory/ROADMAP.md`
+5. `docs/ROADMAP.md`
 
 A report's E3/E4/E5 wording is historical evidence only unless the current capability index independently binds the same claim to the current checkout with the required runtime, provenance, read-back, human, or exact-SHA evidence. These reports are **not current runtime proof**. In particular, historical reports mentioning ComfyUI or MiniMax H3 do not override the current E0 placeholder state.
 

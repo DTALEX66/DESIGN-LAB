@@ -28,10 +28,10 @@ def load(name: str):
 class LicenseCoverageTests(unittest.TestCase):
     def test_is_excluded_vendored(self):
         m = load("verify_license_coverage.py")
-        self.assertTrue(m.is_excluded("knowledge/visual-quality/hallmark/a.py"))
-        self.assertTrue(m.is_excluded("intelligence/baoyu-design/x.mjs"))
-        self.assertTrue(m.is_excluded("design-lab/exports/out.png"))
-        self.assertTrue(m.is_excluded("minigame-runtime/bundle.js"))
+        self.assertTrue(m.is_excluded("research/candidates/visual-quality/hallmark/a.py"))
+        self.assertTrue(m.is_excluded("research/candidates/baoyu-design/x.mjs"))
+        self.assertTrue(m.is_excluded("reports/current/out.png"))
+        self.assertTrue(m.is_excluded("fixtures/domains/game-visual/bundle.js"))
         self.assertTrue(m.is_excluded("foo/node_modules/bar/b.py"))
 
     def test_is_excluded_false_for_active(self):
@@ -106,7 +106,7 @@ class IdentityGateTests(unittest.TestCase):
 
     def test_allow_prefixes(self):
         m = load("verify_identity_gate.py")
-        self.assertTrue(any("project-memory/history/" == p or "project-memory/history/".startswith(p)
+        self.assertTrue(any("docs/history/" == p or "docs/history/".startswith(p)
                             for p in m.ALLOW_ROOT_PREFIXES))
 
 

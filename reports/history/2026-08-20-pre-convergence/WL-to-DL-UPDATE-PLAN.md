@@ -25,7 +25,7 @@
 
 ## 4. Execution suggestion
 
-1. Record boundary #1 into project-memory/ADAPTER_POLICY.md or BOUNDARY_CONTRACT (one small commit)
+1. Record boundary #1 into docs/ADAPTER_POLICY.md or BOUNDARY_CONTRACT (one small commit)
 2. Use #4/#5 for G1/G2 (real artifact) then A1 (Jury) then E4 path
 3. No other receive items from WORK-LAB
 

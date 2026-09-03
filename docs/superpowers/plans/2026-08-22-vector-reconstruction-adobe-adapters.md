@@ -25,7 +25,7 @@
 
 **Files:**
 - Create: `design-lab/schemas/reconstruction/adobe-host-job.schema.json`
-- Create: `design-lab/reconstruction/adobe_job.py`
+- Create: `packages/capabilities/reconstruction/adobe_job.py`
 - Test: `design-lab/tests/test_reconstruction_adobe_job.py`
 
 **Interfaces:**
@@ -69,7 +69,7 @@ Expected: PASS with all four cases failing closed.
 - [ ] **Step 5: Commit the host boundary**
 
 ```bash
-git add -- design-lab/schemas/reconstruction/adobe-host-job.schema.json design-lab/reconstruction/adobe_job.py design-lab/tests/test_reconstruction_adobe_job.py
+git add -- design-lab/schemas/reconstruction/adobe-host-job.schema.json packages/capabilities/reconstruction/adobe_job.py design-lab/tests/test_reconstruction_adobe_job.py
 git commit -m "feat(reconstruction): define closed Adobe host jobs"
 ```
 
@@ -141,7 +141,7 @@ git commit -m "feat(reconstruction): assemble native Illustrator documents"
 
 **Files:**
 - Create: `design-lab/scripts/run_illustrator_reconstruction.ps1`
-- Create: `design-lab/reconstruction/adobe_readback.py`
+- Create: `packages/capabilities/reconstruction/adobe_readback.py`
 - Modify: `design-lab/adapters/creative-tools/adobe/E3_FIXTURE_PROTOCOL.md`
 - Test: `design-lab/tests/test_reconstruction_adobe_readback.py`
 
@@ -188,7 +188,7 @@ comparison PASS, backup restore PASS, zero unowned residue. Any failure leaves q
 - [ ] **Step 5: Commit launcher and qualification logic**
 
 ```bash
-git add -- design-lab/scripts/run_illustrator_reconstruction.ps1 design-lab/reconstruction/adobe_readback.py design-lab/adapters/creative-tools/adobe/E3_FIXTURE_PROTOCOL.md design-lab/tests/test_reconstruction_adobe_readback.py
+git add -- design-lab/scripts/run_illustrator_reconstruction.ps1 packages/capabilities/reconstruction/adobe_readback.py design-lab/adapters/creative-tools/adobe/E3_FIXTURE_PROTOCOL.md design-lab/tests/test_reconstruction_adobe_readback.py
 git commit -m "feat(reconstruction): verify Illustrator host readback"
 ```
 

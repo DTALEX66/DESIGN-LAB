@@ -35,6 +35,9 @@ release.config.json
 # Python
 __pycache__/
 *.py[cod]
+.venv/
+.pytest_cache/
+.mypy_cache/
 
 # Logs
 *.log
@@ -56,3 +59,6 @@ design-lab/config/local-profile.json
 design-lab/config/*.local.json
 # verify-chain marker（动态产物，release gate 运行时生成）
 design-lab/config/.verify-chain-ok
+
+# Project-local runtime data (DL-DIR-MIG-R1)
+.project-local/

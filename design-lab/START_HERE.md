@@ -1,18 +1,18 @@
 # START HERE — DESIGN-LAB（唯一入口）
 
-> 本文件是唯一的项目总入口。旧 V2/V2.1/V3/V4 活动入口已归档；当前 SSOT 以 `project-memory/PRODUCT_DEFINITION.md`、`project-memory/BOUNDARY_CONTRACT.md` 和 `design-lab/config/product-manifest.json` 为准。
+> 本文件是唯一的项目总入口。旧 V2/V2.1/V3/V4 活动入口已归档；当前 SSOT 以 `docs/PRODUCT_DEFINITION.md`、`docs/BOUNDARY_CONTRACT.md` 和 `design-lab/config/product-manifest.json` 为准。
 
 ## 定位
-以 **平台中立、Host-native first** 为原则，面向职业视觉设计的**设计智能与生产能力实验室**（唯一权威定义：`project-memory/PRODUCT_DEFINITION.md`，边界合同：`project-memory/BOUNDARY_CONTRACT.md`，并与 `design-lab/config/product-manifest.json` 一致）。当前 Open Design 只是参考 Host，不是默认绑定。
+以 **平台中立、Host-native first** 为原则，面向职业视觉设计的**设计智能与生产能力实验室**（唯一权威定义：`docs/PRODUCT_DEFINITION.md`，边界合同：`docs/BOUNDARY_CONTRACT.md`，并与 `design-lab/config/product-manifest.json` 一致）。当前 Open Design 只是参考 Host，不是默认绑定。
 
-配套合同：`project-memory/BOUNDARY_CONTRACT.md`（职责边界）、
-`project-memory/USER_MODES.md`（用户模式）、
-`project-memory/OBJECT_MODEL.md`（核心对象模型）。
+配套合同：`docs/BOUNDARY_CONTRACT.md`（职责边界）、
+`docs/USER_MODES.md`（用户模式）、
+`docs/OBJECT_MODEL.md`（核心对象模型）。
 
 Open Design 拥有 Studio/画布、Agent 启动、插件/Scenario/Atom 运行、Artifact、预览与导出；本仓库负责专业设计方法、Domain Pack、视觉质量、来源权利、生产预检、可编辑交付、Benchmark 与证据。本仓库**不拥有第二前端、Agent runtime、模型网关、账号系统或泛用向量库**。
 
 ## 唯一权威任务包
-当前唯一活动执行入口是 **R4 Governance Closure & Anti-Drift（命名空间 `DL-*`）**。旧 V2/V2.1/V3/V4/ODA4 任务卡均为历史参考（`reports/history/`、`project-memory/history/`），禁止机械重跑或新增旧命名任务（DL-MIG-004）。
+当前唯一活动执行入口是 **R4 Governance Closure & Anti-Drift（命名空间 `DL-*`）**。旧 V2/V2.1/V3/V4/ODA4 任务卡均为历史参考（`reports/history/`、`docs/history/`），禁止机械重跑或新增旧命名任务（DL-MIG-004）。
 
 ## 三个公开入口
 1. `commercial-design-core` — 商业设计路由与核心

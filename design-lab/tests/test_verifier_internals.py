@@ -32,7 +32,7 @@ def load(name: str):
 
 
 def load_generator():
-    path = ROOT / "adapters/hosts/open-design/verifier/generate_open_design_adapter_indexes.py"
+    path = ROOT.parent / "integrations" / "hosts" / "open-design" / "verifier" / "generate_open_design_adapter_indexes.py"
     spec = importlib.util.spec_from_file_location("generate_open_design_adapter_indexes", path)
     assert spec and spec.loader
     module = importlib.util.module_from_spec(spec)
@@ -42,7 +42,11 @@ def load_generator():
 
 def load_rel(rel: str):
     """Load a module by repo-relative path (quality/, production/, ...)."""
-    path = ROOT / rel
+    # quality/ moved from design-lab/quality to packages/capabilities/quality (DL-DIR-MIG-R1)
+    if rel.startswith("quality/"):
+        path = ROOT.parent / "packages" / "capabilities" / rel
+    else:
+        path = ROOT / rel
     mod_name = Path(rel).stem
     spec = importlib.util.spec_from_file_location(mod_name, path)
     assert spec and spec.loader
@@ -72,7 +76,7 @@ class ComfyuiGatePatternTests(unittest.TestCase):
     def test_required_patterns(self):
         """Loopback / manual-launch semantics must be present in the contract."""
         m = load("verify_comfyui_gate.py")
-        policy = (ROOT / "adapters/creative-tools/comfyui/rights-and-provider-policy.md").read_text(encoding="utf-8")
+        policy = (ROOT.parent / "integrations" / "generators" / "comfyui" / "rights-and-provider-policy.md").read_text(encoding="utf-8")
         for pat, label in m.REQUIRED:
             self.assertRegex(policy, pat, f"policy must declare {label}")
 
@@ -203,7 +207,7 @@ class AdapterRegistryTests(unittest.TestCase):
         self.assertGreaterEqual(int(m.group(1)), 6)
 
     def test_registry_json_has_rollback(self):
-        reg = json.loads((ROOT / "adapters/adapter-registry.json").read_text(encoding="utf-8"))
+        reg = json.loads((ROOT.parent / "integrations" / "adapter-registry.json").read_text(encoding="utf-8"))
         adapters = reg if isinstance(reg, list) else reg.get("adapters", [])
         self.assertGreaterEqual(len(adapters), 6)
         for a in adapters:
@@ -224,7 +228,7 @@ class RuntimeContractsTests(unittest.TestCase):
         m = load("verify_runtime_contracts_v3.py")
         with tempfile.TemporaryDirectory() as raw:
             root = Path(raw)
-            atom_dir = root / "design-lab" / "atoms" / "broken-atom"
+            atom_dir = root / "packages" / "capabilities" / "atoms" / "broken-atom"
             atom_dir.mkdir(parents=True)
             (atom_dir / "open-design.json").write_text("{", encoding="utf-8")
             results = []
@@ -238,7 +242,7 @@ class RuntimeContractsTests(unittest.TestCase):
         m = load("verify_runtime_contracts_v3.py")
         with tempfile.TemporaryDirectory() as raw:
             root = Path(raw)
-            bundle_dir = root / "design-lab" / "bundles" / "sample"
+            bundle_dir = root / "packages" / "capabilities" / "bundles" / "sample"
             bundle_dir.mkdir(parents=True)
             manifest = {
                 "name": "sample",
@@ -552,7 +556,7 @@ class IterationCompareTests(unittest.TestCase):
 class OpenDesignAssistanceTests(unittest.TestCase):
     def test_boundary_pass(self):
         """verify_open_design_assistance: config boundary must pass read-only."""
-        r = subprocess.run([sys.executable, str(ROOT / "adapters/hosts/open-design/verifier/verify_open_design_host_adapter.py")],
+        r = subprocess.run([sys.executable, str(ROOT.parent / "integrations" / "hosts" / "open-design" / "verifier" / "verify_open_design_host_adapter.py")],
                            capture_output=True, text=True, cwd=ROOT)
         self.assertEqual(r.returncode, 0, r.stdout[-600:] + r.stderr)
 

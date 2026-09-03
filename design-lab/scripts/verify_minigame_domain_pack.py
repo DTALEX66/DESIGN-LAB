@@ -46,7 +46,7 @@ def main() -> int:
     for name in ("README.md", "rules.md", "qa.md", "handoff.md", "SOURCE_OF_TRUTH.md"):
         if not (pack / name).is_file():
             errors.append(f"missing boundary document: {name}")
-    if not (root / "minigame-runtime").is_dir():
+    if not (root / "fixtures" / "domains" / "game-visual").is_dir():
         errors.append("repository runtime fixture is missing")
     source_doc = (pack / "SOURCE_OF_TRUTH.md").read_text(encoding="utf-8")
     if "treated as a second live source" not in source_doc:
@@ -56,7 +56,7 @@ def main() -> int:
         for error in errors:
             print(f"MINIGAME_DOMAIN_PACK_ERROR={error}")
         return 1
-    print("MINIGAME_DOMAIN_PACK_BOUNDARY_PASS contract=manifest fixture=minigame-runtime evidence=E2")
+    print("MINIGAME_DOMAIN_PACK_BOUNDARY_PASS contract=manifest fixture=game-visual evidence=E2")
     return 0
 
 

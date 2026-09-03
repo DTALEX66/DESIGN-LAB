@@ -3,7 +3,7 @@
 This repo stores local Open Design enhancement plugins under:
 
 ```text
-design-lab/plugins/<plugin-name>/
+packages/capabilities/plugins/<plugin-name>/
   SKILL.md
   open-design.json
   README.md
@@ -52,13 +52,13 @@ D:\All projects\DESIGN-LAB\design-lab\plugins
 4. If Open Design only supports per-plugin folders, add these directories individually:
 
 ```text
-design-lab/plugins/uiux-layout-director
-design-lab/plugins/graphic-design-director
-design-lab/plugins/minigame-ui-director
-design-lab/plugins/anomaly-monitor-hud
-design-lab/plugins/design-qa-critic
-design-lab/plugins/brand-visual-director
-design-lab/plugins/spatial-exhibition-director
+packages/capabilities/plugins/uiux-layout-director
+packages/capabilities/plugins/graphic-design-director
+packages/capabilities/plugins/minigame-ui-director
+packages/capabilities/plugins/anomaly-monitor-hud
+packages/capabilities/plugins/design-qa-critic
+packages/capabilities/plugins/brand-visual-director
+packages/capabilities/plugins/spatial-exhibition-director
 ```
 
 5. If Open Design requires copy-based installation, copy the whole plugin directory, not individual files. Keep these three files together:

@@ -162,16 +162,16 @@ class AssetGovernanceAntiDriftTests(unittest.TestCase):
 class MiniGameBoundaryAntiDriftTests(unittest.TestCase):
     def test_minigame_monetization_fields_rejected(self):
         import subprocess
-        r = subprocess.run(["git", "-C", str(ROOT.parent), "ls-files", "minigame-runtime"],
+        r = subprocess.run(["git", "-C", str(ROOT.parent), "ls-files", "fixtures/domains/game-visual"],
                            capture_output=True, text=True)
         patterns = re.compile(r"\bads?\b|\badvertisement\b|\biap\b|\bmonetization\b|in-app\s*purchase|广告变现|买量|growth\s*hack", re.IGNORECASE)
         # only scan active source files (not docs/history which may describe removed features)
         # scan only ACTIVE runtime paths; tests/ and docs/ may legitimately reference
         # event names and historical terms and are out of scope for the field gate
-        RUNTIME_PREFIXES = ("minigame-runtime/src/", "minigame-runtime/platform/", "minigame-runtime/games/",
-                            "minigame-runtime/index.html", "minigame-runtime/styles.css",
-                            "minigame-runtime/wechat-minigame/", "minigame-runtime/douyin-minigame/",
-                            "minigame-runtime/android-minigame/", "minigame-runtime/android-webview/")
+        RUNTIME_PREFIXES = ("fixtures/domains/game-visual/src/", "fixtures/domains/game-visual/platform/", "fixtures/domains/game-visual/games/",
+                            "fixtures/domains/game-visual/index.html", "fixtures/domains/game-visual/styles.css",
+                            "fixtures/domains/game-visual/wechat-minigame/", "fixtures/domains/game-visual/douyin-minigame/",
+                            "fixtures/domains/game-visual/android-minigame/", "fixtures/domains/game-visual/android-webview/")
         for rel in r.stdout.splitlines():
             if not rel.startswith(RUNTIME_PREFIXES):
                 continue
@@ -193,7 +193,7 @@ class RuntimeEvidenceAntiDriftTests(unittest.TestCase):
         self.assertNotIn("adapter-comfyui", m.ALLOWED_LEVELS)
         # supported=true requires E3 evidence with runtime identity/task ids (no free pass)
         import json as _json
-        reg = _json.loads((ROOT.parent / "design-lab/adapters/adapter-registry.json").read_text(encoding="utf-8"))
+        reg = _json.loads((ROOT.parent / "integrations/adapter-registry.json").read_text(encoding="utf-8"))
         for a in reg["adapters"]:
             if a["adapter_id"] == "adapter-comfyui":
                 self.assertTrue(any(c["supported"] for c in a["capabilities"]))

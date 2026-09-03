@@ -6,8 +6,8 @@
     "name": "DESIGN-LAB",
     "version": "1.0.0",
     "positioning": "Agent-platform-neutral design intelligence and production laboratory for professional visual design with commercial production preflight and editable delivery: research, compliance knowledge, design methods, domain capability, visual quality, tool adaptation, production preflight, editable handoff, and an evidence system organized as composable, executable, verifiable, rollback-safe design capability loops. Host-native; no default host, agent, or model binding.",
-    "productDefinition": "project-memory/PRODUCT_DEFINITION.md",
-    "boundaryContract": "project-memory/BOUNDARY_CONTRACT.md",
+    "productDefinition": "docs/PRODUCT_DEFINITION.md",
+    "boundaryContract": "docs/BOUNDARY_CONTRACT.md",
     "userModes": "design-lab/profiles/user-modes.json",
     "objectModel": "design-lab/config/object-model.json",
     "neutralityPolicy": {
@@ -67,7 +67,7 @@
       "role": "neutral objects, contracts and policy"
     },
     {
-      "path": "design-lab/intelligence/",
+      "path": "research/candidates/",
       "role": "intake, direction, design system, critique"
     },
     {
@@ -79,23 +79,23 @@
       "role": "neutral contracts for brief, direction, state, scoring, preflight, delivery, provenance, release-evidence and manifest validation"
     },
     {
-      "path": "design-lab/adapters/",
+      "path": "integrations/",
       "role": "host/agent/tool/model adapters with AdapterRecord contracts; no default binding"
     },
     {
-      "path": "design-lab/atoms/",
+      "path": "packages/capabilities/atoms/",
       "role": "bounded testable internal capabilities"
     },
     {
-      "path": "design-lab/scenarios/",
+      "path": "packages/capabilities/scenarios/",
       "role": "ordered visual design pipelines"
     },
     {
-      "path": "design-lab/bundles/",
+      "path": "packages/capabilities/bundles/",
       "role": "public composites: commercial-design-core, visual-quality-core, production-handoff"
     },
     {
-      "path": "design-lab/knowledge/",
+      "path": "packages/capabilities/",
       "role": "governed sources, methods, standards and registries"
     },
     {
@@ -111,7 +111,7 @@
       "role": "professional domain packs per Domain Pack Spec"
     },
     {
-      "path": "design-lab/quality/",
+      "path": "packages/capabilities/quality/",
       "role": "visual quality rubrics, juries and regression"
     },
     {
@@ -131,15 +131,15 @@
       "role": "asset-pack manifests and reviewed local reference assets"
     },
     {
-      "path": "design-system/",
+      "path": "packages/design-system/",
       "role": "absorbed DESIGN.md and token reference material (neutral protocol assets)"
     },
     {
-      "path": "minigame-runtime/",
+      "path": "fixtures/domains/game-visual/",
       "role": "game-visual design fixture / runtime reference; not product"
     },
     {
-      "path": "project-memory/",
+      "path": "docs/",
       "role": "product definition, architecture, boundary contract, roadmap, object model, user modes, neutrality policy, evidence policy, adapter policy and history"
     }
   ],
@@ -148,9 +148,9 @@
       "id": "design-intelligence",
       "title": "Brief, direction, design system and critique intelligence",
       "paths": [
-        "design-lab/intelligence/",
-        "design-lab/atoms/brief-normalizer/",
-        "design-lab/atoms/source-intake-gate/"
+        "research/candidates/",
+        "packages/capabilities/atoms/brief-normalizer/",
+        "packages/capabilities/atoms/source-intake-gate/"
       ],
       "minimumEvidence": "E2",
       "domain": "all",
@@ -169,7 +169,7 @@
       "title": "Brand, graphic, UIUX, ecommerce, editorial, packaging, spatial, exhibition, 3D, motion, video, game visual",
       "paths": [
         "design-lab/domain-packs/",
-        "design-lab/scenarios/",
+        "packages/capabilities/scenarios/",
         "design-lab/profiles/"
       ],
       "minimumEvidence": "E2",
@@ -187,10 +187,10 @@
       "id": "visual-quality",
       "title": "Visual quality, design feeling and anti-AI-slop engine",
       "paths": [
-        "design-lab/quality/",
-        "design-lab/bundles/visual-quality-core/",
+        "packages/capabilities/quality/",
+        "packages/capabilities/bundles/visual-quality-core/",
         "design-lab/evals/rubrics/visual-quality-core.rubric.json",
-        "design-lab/knowledge/visual-quality/",
+        "research/candidates/visual-quality/",
         "design-lab/scripts/score_visual_quality.py",
         "design-lab/scripts/score_design_critique.py",
         "design-lab/scripts/compare_visual_iterations.py",
@@ -212,7 +212,7 @@
       "id": "creative-toolchain",
       "title": "Host / agent / creative-tool adapters",
       "paths": [
-        "design-lab/adapters/"
+        "integrations/"
       ],
       "minimumEvidence": "E1",
       "domain": "all",
@@ -231,8 +231,8 @@
       "title": "Production preflight and editable delivery",
       "paths": [
         "design-lab/production/",
-        "design-lab/atoms/commercial-preflight/",
-        "design-lab/atoms/delivery-packager/",
+        "packages/capabilities/atoms/commercial-preflight/",
+        "packages/capabilities/atoms/delivery-packager/",
         "design-lab/schemas/preflight.schema.json",
         "design-lab/schemas/design-handoff.schema.json",
         "design-lab/schemas/provenance.schema.json"
@@ -254,7 +254,7 @@
       "id": "research-evidence",
       "title": "Research, evidence and benchmarks",
       "paths": [
-        "design-lab/knowledge/sources/",
+        "vendor/",
         "design-lab/research/",
         "design-lab/evals/",
         "design-lab/scripts/verify_source_registry.py"
@@ -298,10 +298,10 @@
   "entrypoints": {
     "human": [
       "README.md",
-      "project-memory/PRODUCT_DEFINITION.md",
-      "project-memory/ARCHITECTURE.md",
-      "project-memory/BOUNDARY_CONTRACT.md",
-      "project-memory/ROADMAP.md"
+      "docs/current/PRODUCT_DEFINITION.md",
+      "docs/architecture/ARCHITECTURE.md",
+      "docs/architecture/BOUNDARY_CONTRACT.md",
+      "docs/current/ROADMAP.md"
     ],
     "machine": [
       "design-lab/config/product-manifest.json",

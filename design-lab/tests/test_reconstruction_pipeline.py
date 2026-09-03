@@ -21,6 +21,7 @@ FIXTURE = DESIGN_LAB / "tests" / "fixtures" / "reconstruction" / "flat-64.png"
 PYTHON = Path(sys.executable)
 CLI = DESIGN_LAB / "scripts" / "reconstruct_design.py"
 sys.path.insert(0, str(DESIGN_LAB))
+sys.path.insert(0, str(REPO_ROOT / "packages" / "capabilities"))
 
 
 def _sha256(path: Path) -> str:

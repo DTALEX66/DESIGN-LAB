@@ -9,7 +9,7 @@
 
 | 维度 | 值 |
 |---|---|
-| `minigame-runtime/` 规模 | 686 文件 / 228 MiB（含 cctv gif 资产 ~90 MiB） |
+| `fixtures/domains/game-visual/` 规模 | 686 文件 / 228 MiB（含 cctv gif 资产 ~90 MiB） |
 | 仓库总规模 | 工作树 629 MiB / .git 202 MiB |
 | MiniGame 占仓库比例 | 文件 686/总 ~5000；体积 228/629 = **36%** |
 | 仓库 `product-manifest.json` | 明确声明 `make MiniGame operational/advertising/monetization the platform mainline` 为**禁止项**（J0 冻结边界） |

@@ -15,6 +15,7 @@ DESIGN_LAB = Path(__file__).resolve().parents[1]
 PROJECT_ROOT = DESIGN_LAB.parent
 if str(DESIGN_LAB) not in sys.path:
     sys.path.insert(0, str(DESIGN_LAB))
+    sys.path.insert(0, str(PROJECT_ROOT / "packages" / "capabilities"))
 
 from reconstruction.contracts import (  # noqa: E402
     ContractError,

@@ -4,9 +4,9 @@ on:
   push:
     paths:
       - 'design-lab/**'
-      - 'minigame-runtime/**'
-      - 'design-system/**'
-      - 'project-memory/**'
+      - 'fixtures/domains/game-visual/**'
+      - 'packages/design-system/**'
+      - 'docs/**'
       - 'docs/**'
       - '.github/workflows/**'
       - 'scripts/**'
@@ -24,9 +24,9 @@ on:
   pull_request:
     paths:
       - 'design-lab/**'
-      - 'minigame-runtime/**'
-      - 'design-system/**'
-      - 'project-memory/**'
+      - 'fixtures/domains/game-visual/**'
+      - 'packages/design-system/**'
+      - 'docs/**'
       - '.github/workflows/**'
       - 'scripts/**'
       - 'requirements.txt'
@@ -92,7 +92,7 @@ jobs:
       - name: MiniGame fixture boundary test
         run: python -m unittest design-lab.tests.test_minigame_visual_fixture_boundary -v
       - name: Visual Quality Jury deterministic check
-        run: python design-lab/quality/jury/check_anti_slop.py design-lab/ --skip-prefixes knowledge/,intelligence/,templates/,evals/,exports/,domain-packs/uiux-design/benchmarks/,design-systems/,research/quarantine/,project-memory/history/,reports/history/
+        run: python packages/capabilities/quality/jury/check_anti_slop.py design-lab/ --skip-prefixes knowledge/,intelligence/,templates/,evals/,exports/,domain-packs/uiux-design/benchmarks/,design-systems/,research/quarantine/,docs/history/,reports/history/
       - name: JSON/Schema parse check
         run: python -m compileall -q design-lab/scripts
 
@@ -108,12 +108,12 @@ jobs:
           node-version: 22
       - name: Run MiniGame unit tests
         run: node scripts/run-tests.cjs
-        working-directory: minigame-runtime
+        working-directory: fixtures/domains/game-visual
       - name: Rebuild android + webview and assert no drift
         run: node scripts/check-android-drift.mjs
-        working-directory: minigame-runtime
+        working-directory: fixtures/domains/game-visual
       - name: Confirm worktree clean after build
-        run: git diff --exit-code -- minigame-runtime
+        run: git diff --exit-code -- fixtures/domains/game-visual
 
   generated-artifact-gate:
     name: Generated-artifact clean-tree gate
@@ -125,7 +125,7 @@ jobs:
           node-version: 22
       - name: Rebuild and assert committed bundles unchanged
         run: |
-          cd minigame-runtime
+          cd fixtures/domains/game-visual
           node build.js android
           node scripts/prepare-android-webview.mjs
           git diff --exit-code -- android-minigame android-webview/app/src/main/assets
@@ -185,7 +185,7 @@ jobs:
             head="${{ github.sha }}"
           fi
           changed=$(git diff --name-only "$base" "$head" || true)
-          echo "$changed" | grep -qE '^design-lab/(plugins|adapters/hosts/open-design)/' && echo "open-design=true" >> "$GITHUB_OUTPUT" || echo "open-design=false" >> "$GITHUB_OUTPUT"
+          echo "$changed" | grep -qE '^(design-lab/(plugins|skills)|packages/capabilities/(plugins|skills)|integrations/hosts/open-design)/' && echo "open-design=true" >> "$GITHUB_OUTPUT" || echo "open-design=false" >> "$GITHUB_OUTPUT"
       - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5.6.0
         with:
           python-version: '3.12'
@@ -194,4 +194,4 @@ jobs:
         run: python -m pip install -r requirements.txt
       - name: Open Design host adapter structural gate
         if: steps.changes.outputs.open-design == 'true'
-        run: python design-lab/adapters/hosts/open-design/verifier/verify_open_design_host_adapter.py
+        run: python integrations/hosts/open-design/verifier/verify_open_design_host_adapter.py

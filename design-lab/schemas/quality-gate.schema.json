@@ -15,7 +15,7 @@
   "additionalProperties": false,
   "properties": {
     "schemaVersion": {
-      "const": "design-lab/quality-gate/v1"
+      "const": "packages/capabilities/quality-gate/v1"
     },
     "gate_id": {
       "type": "string"

@@ -38,7 +38,7 @@ Purpose: track open-source plugins, skills, DESIGN.md systems, and templates tha
 | `VaqueroGroup/reusable-workflow-author` | useful scaffold idea but needs local validation | `scripts/scaffold_open_design_plugin.py` |
 | `lefarcen/pitch-deck-bootstrap` | deck-focused; lower priority than UI/UX now | `templates/decks/pitch-deck.md` |
 | `lefarcen/brief-to-slide-outline` | content structuring; can follow deck work | brief-to-outline template |
-| `dominikmartn/hue` | brand extraction may need website/screenshot tooling | `plugins/brand-to-design-system/` |
+| `dominikmartn/hue` | brand extraction may need website/screenshot tooling | `plugins/brand-to-packages/design-system/` |
 
 ## First absorption batch landed locally
 

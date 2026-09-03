@@ -7,15 +7,15 @@
 ## 权威文档（SSOT）
 
 ```text
-project-memory/PRODUCT_DEFINITION.md    ← 唯一产品定义
-project-memory/ARCHITECTURE.md          ← 技术架构
-project-memory/BOUNDARY_CONTRACT.md     ← 职责边界
-project-memory/NEUTRALITY_POLICY.md     ← 平台中立
-project-memory/EVIDENCE_POLICY.md       ← 证据政策
-project-memory/ADAPTER_POLICY.md        ← 适配器政策
-project-memory/OBJECT_MODEL.md          ← 核心对象模型
-project-memory/USER_MODES.md            ← 五类用户/五种模式
-project-memory/ROADMAP.md               ← 路线图
+docs/PRODUCT_DEFINITION.md    ← 唯一产品定义
+docs/ARCHITECTURE.md          ← 技术架构
+docs/BOUNDARY_CONTRACT.md     ← 职责边界
+docs/NEUTRALITY_POLICY.md     ← 平台中立
+docs/EVIDENCE_POLICY.md       ← 证据政策
+docs/ADAPTER_POLICY.md        ← 适配器政策
+docs/OBJECT_MODEL.md          ← 核心对象模型
+docs/USER_MODES.md            ← 五类用户/五种模式
+docs/ROADMAP.md               ← 路线图
 ```
 
 ## 机器可读 SSOT

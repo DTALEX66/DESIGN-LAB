@@ -14,8 +14,8 @@
 ## 已交付：13 张卡 + 1 项 E3 附加证据
 
 ### Phase 2 — 产品宪章与数据模型（4 卡）
-- **V42-0201** 唯一产品定义 V4.2：`project-memory/PRODUCT_DEFINITION_V42.md`（SSOT，与 manifest 双向一致）
-- **V42-0202** 职责边界合同：`project-memory/BOUNDARY_CONTRACT_V42.md`（无第二前端/Agent runtime/模型网关）
+- **V42-0201** 唯一产品定义 V4.2：`docs/PRODUCT_DEFINITION_V42.md`（SSOT，与 manifest 双向一致）
+- **V42-0202** 职责边界合同：`docs/BOUNDARY_CONTRACT_V42.md`（无第二前端/Agent runtime/模型网关）
 - **V42-0203** 五类用户与五种渐进模式：`USER_MODES_V42.md` + `profiles/user-modes.json` + schema
 - **V42-0204** 四对象模型：`OBJECT_MODEL_V42.md` + `schemas/object-model.schema.json` + `config/object-model.json`；**修复 P0#10**（capability-status.json 增加 capabilityRecords）
 

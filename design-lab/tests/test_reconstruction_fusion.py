@@ -15,6 +15,7 @@ from PIL import Image
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(PROJECT_ROOT / "design-lab"))
+sys.path.insert(0, str(PROJECT_ROOT / "packages" / "capabilities"))
 RUNTIME_ROOT = PROJECT_ROOT / ".hermes" / "task-runtime" / "a4-fusion-tests"
 
 

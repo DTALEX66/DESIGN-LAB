@@ -19,7 +19,7 @@ import subprocess
 import sys
 from pathlib import Path
 
-REPO = Path(__file__).resolve().parents[1]
+REPO = Path(__file__).resolve().parents[2]
 SOURCE_EXT = (".py", ".mjs", ".js")
 BINARY_EXT = (
     ".png", ".jpg", ".jpeg", ".gif", ".webp", ".ico",
@@ -28,62 +28,20 @@ BINARY_EXT = (
 )
 # Generated / vendored / split-out trees excluded from source-header coverage.
 EXCLUDE_PREFIX = (
-    "minigame-runtime/",
-    "minigame-runtime/android-",
-    "minigame-runtime/wechat-",
-    "minigame-runtime/douyin-",
-    "minigame-runtime/webview-",
-    "design-lab/exports/",
+    "fixtures/domains/game-visual/",
+    "fixtures/domains/game-visual/android-",
+    "fixtures/domains/game-visual/wechat-",
+    "fixtures/domains/game-visual/douyin-",
+    "fixtures/domains/game-visual/webview-",
+    "reports/",
     "design-lab/templates/",
     "design-lab/domain-packs/",
     "design-lab/design-systems/",
     "design-lab/evals/",
-    # vendored third-party skill trees: each carries its own LICENSE + SOURCE.md
-    # (REUSE: vendored trees are excluded from project header coverage;
-    #  NOTE: rel paths are relative to design-lab/ because git_ls runs with cwd=REPO)
-    "knowledge/visual-quality/hallmark/",
-    "knowledge/visual-quality/taste-skill/",
-    "knowledge/visual-quality/motion-design-skill/",
-    "knowledge/visual-quality/design-motion-principles/",
-    "knowledge/visual-quality/game-ui-mobile/",
-    "knowledge/visual-quality/blender-3d/",
-    "knowledge/visual-quality/brand-systems/",
-    "knowledge/visual-quality/brand-identity/",
-    "knowledge/visual-quality/ai-graphic-design/",
-    "knowledge/visual-quality/claude2figma/",
-    "knowledge/visual-quality/extract-design-system/",
-    "knowledge/visual-quality/ppt-agent/",
-    "knowledge/visual-quality/swiftui-design/",
-    "knowledge/visual-quality/claude-dolphin/",
-    "knowledge/visual-quality/ux-audit-skill/",
-    "knowledge/visual-quality/brandbook-skill/",
-    "knowledge/visual-quality/logo-designer/",
-    "knowledge/visual-quality/screenshot-to-ds/",
-    "knowledge/ecommerce-ai/",
-    "knowledge/visual-quality/springy-motion/",
-    "knowledge/visual-quality/design-thinking/",
-    "knowledge/visual-quality/game-creative/",
-    "knowledge/visual-quality/design-md-skill/",
-    "knowledge/visual-quality/hue/",
-    "knowledge/visual-quality/qiaomu-design/",
-    "knowledge/visual-quality/interface-design/",
-    "knowledge/visual-quality/visual-note-card/",
-    "knowledge/visual-quality/affiliate-skills/",
-    "knowledge/visual-quality/document-design-system/",
-    "knowledge/visual-quality/dataviz-critique/",
-    "knowledge/visual-quality/brand-identity-generator/",
-    "intelligence/ui-ux-pro-max/",
-    "intelligence/shipit-ui/",
-    "intelligence/motion-engine/",
-    "intelligence/design-system-prompt/",
-    "intelligence/anydesign/",
-    "intelligence/claude-design-skill/",
-    "intelligence/motion-forensics/",
-    "intelligence/web-content-designer/",
-    "intelligence/genjutsu/",
-    "intelligence/ai-product-os/",
-    "intelligence/baoyu-design/",
-    "intelligence/ultimate-uiux/",
+    # vendored third-party skill trees / external candidate POCs migrated to
+    # research/candidates/: each carries its own LICENSE + SOURCE.md (REUSE: vendored
+    # trees are excluded from project header coverage)
+    "research/candidates/",
 )
 
 

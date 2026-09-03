@@ -1,6 +1,6 @@
 # Anomaly Monitor CCTV Visual Pack
 
-This pack lists the retained runtime-critical CCTV/HUD assets. It intentionally does not duplicate large files; paths point back to `minigame-runtime/assets/generated/`.
+This pack lists the retained runtime-critical CCTV/HUD assets. It intentionally does not duplicate large files; paths point back to `fixtures/domains/game-visual/assets/generated/`.
 
 ## Rule
 

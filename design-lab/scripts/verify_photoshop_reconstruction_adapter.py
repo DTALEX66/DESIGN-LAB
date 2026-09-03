@@ -9,7 +9,7 @@ from pathlib import Path
 
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
-DEFAULT_ROOT = PROJECT_ROOT / "design-lab" / "adapters" / "creative-tools" / "adobe" / "photoshop-reconstruction"
+DEFAULT_ROOT = PROJECT_ROOT / "integrations" / "hosts" / "adobe" / "photoshop-reconstruction"
 
 
 @dataclass(frozen=True)

@@ -4,7 +4,7 @@
 Asserts:
 1. Product manifest has no default host and forbids primaryRuntime.
 2. Open Design does not appear in public product identity fields.
-3. adapters/hosts/open-design/ is the sole owner of Open Design implementation.
+3. integrations/hosts/open-design/ is the sole owner of Open Design implementation.
 4. Public object schemas stay valid without the adapter (no Open Design API deps).
 5. Public Core scripts do not depend on Open Design APIs.
 6. The installer is never auto-invoked by CI (user-approved Host Profile only).
@@ -60,7 +60,7 @@ class OpenDesignHostAdapterNeutralityTests(unittest.TestCase):
         for rel in r.stdout.splitlines():
             if "open-design" not in rel:
                 continue
-            if rel.startswith("design-lab/adapters/hosts/open-design/"):
+            if rel.startswith("integrations/hosts/open-design/"):
                 continue
             if rel.endswith("open-design.json"):
                 continue  # projection data next to the neutral contract is allowed
@@ -78,7 +78,7 @@ class OpenDesignHostAdapterNeutralityTests(unittest.TestCase):
     def test_public_core_does_not_depend_on_open_design_api(self):
         import subprocess
         r = subprocess.run(
-            ["git", "-C", str(ROOT.parent), "ls-files", "design-lab/scripts", "design-lab/core", "design-lab/atoms", "design-lab/bundles", "design-lab/scenarios"],
+            ["git", "-C", str(ROOT.parent), "ls-files", "design-lab/scripts", "design-lab/core", "packages/capabilities/atoms", "packages/capabilities/bundles", "packages/capabilities/scenarios"],
             capture_output=True, text=True,
         )
         for rel in r.stdout.splitlines():

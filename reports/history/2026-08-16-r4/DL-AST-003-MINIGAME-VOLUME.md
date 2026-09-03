@@ -1,6 +1,6 @@
 # DL-AST-003 — MiniGame 体积治理审计（R4）
 
-> 边界：`minigame-runtime/` = Game Visual Design Fixture / Runtime Reference。保持同仓与冻结边界，
+> 边界：`fixtures/domains/game-visual/` = Game Visual Design Fixture / Runtime Reference。保持同仓与冻结边界，
 > 本轮只审计体积，不改变边界、不破坏视觉回归测试。
 
 ## 审计结果（2026-08-16）

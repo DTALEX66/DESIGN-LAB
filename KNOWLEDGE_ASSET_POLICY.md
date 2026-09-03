@@ -83,4 +83,4 @@ SourceRecord（满足 §2 全部字段，人工批准）
 
 | 资产 | 豁免 | 原因 | 条件 |
 |---|---|---|---|
-| `minigame-runtime/assets/generated/*.gif`（6 个 CCTV lite-loop，8.4~11.8 MiB） | 单文件 5 MiB 上限 | minigame-runtime 生成资产，运行时依赖，可再生成 | 必须有 `.license` 侧车（已补）；计入总预算 256 MiB 门禁；若 minigame-runtime 改造为运行时生成则移出 Git |
+| `fixtures/domains/game-visual/assets/generated/*.gif`（6 个 CCTV lite-loop，8.4~11.8 MiB） | 单文件 5 MiB 上限 | minigame-runtime 生成资产，运行时依赖，可再生成 | 必须有 `.license` 侧车（已补）；计入总预算 256 MiB 门禁；若 minigame-runtime 改造为运行时生成则移出 Git |

@@ -22,7 +22,7 @@
 ## 项目与产品定位
 
 - 项目 SSOT：`D:\All projects\DESIGN-LAB`。
-- 产品定义：`project-memory/PRODUCT_DEFINITION_V42.md`。
+- 产品定义：`docs/PRODUCT_DEFINITION_V42.md`。
 - 机器 SSOT：`design-lab/config/product-manifest.json`。
 - Open Design 是唯一设计主入口，拥有 Studio/画布、Agent 启动、插件运行、Artifact、预览与导出。
 - 本仓库只拥有专业方法、Domain Pack、视觉质量、来源权利、生产预检、可编辑交付、Benchmark 和证据合同。
@@ -101,7 +101,7 @@ CCTV、控制台、暗色 HUD、异常电梯和 IAA 布局仍可用，但只在 
 
 ### 2. 根级项目规则缺失
 
-错误：仓库根没有 `AGENTS.md`、`.hermes.md` 或 `HERMES.md`；仅 `minigame-runtime/AGENTS.md` 约束子树，不能自动覆盖全仓。
+错误：仓库根没有 `AGENTS.md`、`.hermes.md` 或 `HERMES.md`；仅 `fixtures/domains/game-visual/AGENTS.md` 约束子树，不能自动覆盖全仓。
 
 防复发：每次会话主动读取 `START_HERE.md`、V4.2 产品定义、边界合同与项目数据边界 Skill；后续若新增根规则，应保持简洁并指向这些 SSOT，避免复制完整产品文档。
 

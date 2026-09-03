@@ -1,0 +1,16 @@
+{
+  "schemaVersion": "design-lab/asset-sidecar/v1",
+  "file": "research/candidates/visual-quality/springy-motion/skills/springy-motion/assets/web-shared-element-morph.png",
+  "sha256": "sha256:d964cf30b7a795a98b8ef5f4d02603ec846bb5893ad528fff8c2b954c2f0855b",
+  "license": "MIT",
+  "author": "springy-motion authors",
+  "redistributable": true,
+  "modelInputAllowed": true,
+  "commercialUse": true,
+  "sourceId": null,
+  "exception": {
+    "approvedBy": "springy-motion authors",
+    "expiresAt": "2027-08-16"
+  },
+  "notes": "upgraded from legacy SPDX sidecar under DL-AST-001; rights flags derived from declared SPDX license; expiry = annual asset re-verification policy"
+}

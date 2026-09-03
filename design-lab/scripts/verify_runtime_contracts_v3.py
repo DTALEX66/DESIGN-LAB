@@ -93,7 +93,7 @@ def list_at(results: list[Result], label: str, value: Any) -> list[Any]:
 
 def local_atom_ids(root: Path, results: list[Result] | None = None) -> set[str]:
     ids: set[str] = set()
-    for path in (root / ASSISTANCE_DIR / "atoms").glob("*/open-design.json"):
+    for path in (root / "packages" / "capabilities" / "atoms").glob("*/open-design.json"):
         try:
             manifest = load_json(path)
         except Exception as exc:  # noqa: BLE001
@@ -122,7 +122,7 @@ def verify_scenarios(
     results: list[Result],
     atom_ids: set[str],
 ) -> tuple[set[str], dict[str, dict[str, set[str]]]]:
-    scenario_dir = root / ASSISTANCE_DIR / "scenarios"
+    scenario_dir = root / "packages" / "capabilities" / "scenarios"
     scenario_manifests = sorted(scenario_dir.glob("*/open-design.json"))
     scenario_ids: set[str] = set()
     stage_maps: dict[str, dict[str, set[str]]] = {}
@@ -183,7 +183,7 @@ def verify_bundles(
     atom_ids: set[str],
     scenario_ids: set[str],
 ) -> None:
-    bundle_dir = root / ASSISTANCE_DIR / "bundles"
+    bundle_dir = root / "packages" / "capabilities" / "bundles"
     bundle_ids: set[str] = set()
     for path in sorted(bundle_dir.glob("*/open-design.json")):
         try:
@@ -319,7 +319,7 @@ def sample_records() -> tuple[dict[str, Any], dict[str, Any]]:
         "artifact": {"id": "v3-isolated-smoke", "path": "artifacts/v3-isolated-smoke.txt", "type": "text/plain", "sha256": digest, "created_at": "2026-08-04T00:00:00Z"},
         "runtime": {"name": "verify_runtime_contracts_v3.py", "status": "isolated", "version": "0.1.0"},
         "agent": {"name": "Hermes", "mode": "hermes"},
-        "source_refs": [{"type": "local-project", "location": "design-lab/scenarios/commercial-design-router/open-design.json", "license_status": "owned"}],
+        "source_refs": [{"type": "local-project", "location": "packages/capabilities/scenarios/commercial-design-router/open-design.json", "license_status": "owned"}],
         "steps": [
             {"id": "intake", "stage": "intake", "atom": "brief-normalizer", "status": "PASS", "evidence": "scenario manifest and project-state schema read-back"},
             {"id": "handoff", "stage": "handoff", "atom": "delivery-packager", "status": "SKIPPED_OPTIONAL", "evidence": "isolated verifier does not generate production artifacts"},
