@@ -78,7 +78,7 @@ EXTRA_CHECKS = [
             # scan design-lab/ (resolved absolute below), skipping vendored/template trees
             ".",
             "--skip-prefixes",
-            "knowledge/,intelligence/,templates/,evals/,exports/,domain-packs/uiux-design/benchmarks/,design-systems/,research/quarantine/,docs/history/,reports/history/",
+            "templates/,evals/,exports/,domain-packs/uiux-design/benchmarks/,design-systems/,docs/history/,reports/history/",
         ],
     ),
 ]

@@ -22,7 +22,7 @@ allowlist:
     status: declared
     evidence_level: E0
   - id: adobe-adapter
-    path: design-lab/adapters/creative-tools/adobe
+    path: integrations/hosts/adobe
     status: declared
     evidence_level: E0
   - id: minimax-h3-adapter

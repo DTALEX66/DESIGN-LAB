@@ -92,7 +92,7 @@ jobs:
       - name: MiniGame fixture boundary test
         run: python -m unittest design-lab.tests.test_minigame_visual_fixture_boundary -v
       - name: Visual Quality Jury deterministic check
-        run: python packages/capabilities/quality/jury/check_anti_slop.py design-lab/ --skip-prefixes knowledge/,intelligence/,templates/,evals/,exports/,domain-packs/uiux-design/benchmarks/,design-systems/,research/quarantine/,docs/history/,reports/history/
+        run: python packages/capabilities/quality/jury/check_anti_slop.py design-lab/ --skip-prefixes templates/,evals/,exports/,domain-packs/uiux-design/benchmarks/,design-systems/,docs/history/,reports/history/
       - name: JSON/Schema parse check
         run: python -m compileall -q design-lab/scripts
 

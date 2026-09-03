@@ -52,8 +52,7 @@ yarn-error.log*
 /Design assets/
 /design-assets/
 # 本地知识缓存（DL-KNW-001 转换缓存，不入库）
-design-lab/knowledge/.cache/
-design-lab/knowledge/derived/local-cache/
+# （design-lab/knowledge/ 已随 DL-DIR-MIG-R1 迁移删除，2026-09）
 # 本地 profile / 项目级宿主选择（DL-ARC-002）
 design-lab/config/local-profile.json
 design-lab/config/*.local.json

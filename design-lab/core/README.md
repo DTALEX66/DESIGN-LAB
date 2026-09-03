@@ -24,7 +24,7 @@
 
 - 对象定义：`docs/OBJECT_MODEL.md`
 - 对象 schema：`design-lab/schemas/`（13 份，round-trip 测试存在）
-- 适配器映射：`design-lab/adapters/adapter-registry.json`
+- 适配器映射：`integrations/adapter-registry.json`（DL-DIR-MIG-R1 迁出 design-lab/adapters/）
 
 ## 规则
 

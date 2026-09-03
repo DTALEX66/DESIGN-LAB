@@ -8,9 +8,9 @@
   "capabilities": [
     {
       "capabilityId": "adapter-adobe-photoshop",
-      "owner": "design-lab/adapters/creative-tools/adobe",
+      "owner": "integrations/hosts/adobe",
       "consumer": "design-lab",
-      "source": "https://github.com/DTALEX66/DESIGN-LAB/design-lab/adapters/creative-tools/adobe/adapter.manifest.json",
+      "source": "https://github.com/DTALEX66/DESIGN-LAB/integrations/hosts/adobe/adapter.manifest.json",
       "license": "proprietary (Adobe subscription), used via scripting contract",
       "hash": "pending",
       "evidenceLevel": "E0",

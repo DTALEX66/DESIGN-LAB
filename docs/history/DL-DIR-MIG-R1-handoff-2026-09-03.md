@@ -61,13 +61,41 @@ verify_license_coverage（排除前缀 → research/candidates/）、verify_proj
      CONDITIONAL_POC 保真收录区（均带 SOURCE.md/LICENSE）——逐个裁决后按 ABSORB/LOCK/REJECT
      分流，源码移至 ignored vendor cache；vendor/sources.lock.json 目前仅 6 项 LOCK_REFERENCE
 
-## 四、追加修复（add26a5，CI 干净环境暴露的最后 2 个失败）
+## 四、规范化终版（9e8cb1b，2026-09-04）——第三条款关闭
+
+对照 -3 权威任务包 §10 完成定义，**第 3 条（第三方完整副本退出 Git）本次执行完毕**：
+
+1. **37 个第三方候选根（1913 文件，39MB）退出 Git** → 保真移至 ignored
+   `.project-local/cache/vendor/<id>`；`research/candidates/` 转为纯索引区（README 登记
+   每仓 URL/许可/裁决/cache 键）；`vendor/sources.lock.json` 6 → 43 项（37 CONDITIONAL_POC）
+2. **18 个 DESIGN 自有视觉质量方法论文档**（AI_SLOP_FAILURE_MODES 等，原混在 candidates 根下）
+   经核实为自有协议族 → 移入 `design-lab/research/visual-quality/`（自有知识区）
+3. **过期治理引用修复**（指向已删路径）：
+   - `.project/governance/path-risk.yaml`：删 intelligence/knowledge 规则，补 candidates/vendor 语义
+   - `.project/governance/active-capability-allowlist.yaml`：adobe → `integrations/hosts/adobe`
+   - `design-lab/config/capability-index.json`：adobe owner/source 路径修正
+   - `design-lab/README.md`、`core/README.md`：adapters 章节迁出说明
+   - `product-manifest.json`：visual-quality family paths → `design-lab/research/visual-quality/`
+   - `design-assets-example-001.json`：outputTargets → `research/master-studies/`
+4. **生成器迁移残留 bug 修复**：`generate_open_design_adapter_indexes.py` 仍扫已删
+   `design-lab/plugins`/`bundles`/expert-suite 旧路径（asset-counts.json 旧数据长期掩盖）；
+   修复为 packages/capabilities + integrations/hosts 新结构、受管 design-system 计数=3，
+   重新生成 CAPABILITY_INDEX.md / asset-counts.json / plugins INDEX.md
+5. **验证结果**：verify_design_lab 49/49 + 549 项全绿；tracked 文件 3280 → 1371；
+   pack 207.5MiB（预算 256）；单测 66 核心断言 + test_op_personal_design_system 33 全过
+6. 文档：`docs/THIRD_PARTY_ISOLATION.md` 重写为仓库外隔离模型
+
+### 5.1 遗留（未裁决，待 DL-DIR-030）
+- 37 仓仍在 CONDITIONAL_POC：需真实用例验证后 ABSORB_MINIMAL / LOCK_REFERENCE / REJECT
+- 源码在 `.project-local/cache/vendor/`（本机保真 39MB）；fresh clone 不含第三方源码
+
+## 五、追加修复（add26a5，CI 干净环境暴露的最后 2 个失败）
 | 失败 | 根因 | 修复 |
 |---|---|---|
 | evidence closure 测试（CI） | evidence.py `_discover_execution_source_paths` 仍扫已空的 `design-lab/reconstruction/`（本体漏改，本地因旧缓存掩盖） | rglob 根 → `packages/capabilities/reconstruction`；测试 fixture 布局 + expected_modules 同步 |
 | intake 跨进程测试（CI） | 子进程 sys.path 仅含 design-lab/，reconstruction 包已迁 packages/capabilities | 头部 + 子进程参数均补 `packages/capabilities` |
 
-## 五、恢复源 commit 备忘
+## 六、恢复源 commit 备忘
 - d44d3d8：治理基线（adapter-registry.json、E3_FIXTURE_PROTOCOL.md）
 - fabd4bc^：minigame-mobile-controls exports
 - origin/main：adobe/comfyui 适配器文件

@@ -95,7 +95,7 @@
       "actualEvidence": "E3",
       "evidence": "ComfyUI 0.33.1 用户授权部署并真实运行（E3，2026-08-16）：H3 t2va 端到端生成成功（prompt 79013288-…，22 帧 384px 动图，帧回读分析通过）。生产级参数与音频导出未做；Open Design daemon registration 仍 E1 待取证。",
       "run": "python_embeded/python.exe -s ComfyUI/main.py --port 8188（手动启动，loopback）；GET /system_stats + /object_info 回读",
-      "artifact": "adapters/creative-tools/comfyui/evidence/E3-20260816-end-to-end-generation.md, adapters/creative-tools/minimax-h3/evidence/E3-20260816-end-to-end-generation.md, adapters/adapter-registry.json",
+      "artifact": "integrations/generators/comfyui/evidence/E3-20260816-end-to-end-generation.md, integrations/generators/minimax-h3/evidence/E3-20260816-end-to-end-generation.md, integrations/adapter-registry.json",
       "reviewer": "user-authorized deployment; DSH runtime snapshot (E2 deployment-level evidence only)",
       "requiresRequalification": true
     },
