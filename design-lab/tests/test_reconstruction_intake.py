@@ -27,6 +27,10 @@ PROJECT_ROOT = DESIGN_LAB.parent
 FIXTURE = DESIGN_LAB / "tests" / "fixtures" / "reconstruction" / "flat-64.png"
 if str(DESIGN_LAB) not in sys.path:
     sys.path.insert(0, str(DESIGN_LAB))
+# DL-DIR-MIG-R1: reconstruction package moved to packages/capabilities/reconstruction
+_PKG_ROOT = PROJECT_ROOT / "packages" / "capabilities"
+if str(_PKG_ROOT) not in sys.path:
+    sys.path.insert(0, str(_PKG_ROOT))
 
 import reconstruction.intake as intake_module  # noqa: E402
 from reconstruction.intake import (  # noqa: E402
@@ -379,6 +383,7 @@ class ReconstructionIntakeTests(unittest.TestCase):
         code = (
             "from pathlib import Path; import json,sys; "
             "sys.path.insert(0, sys.argv[1]); "
+            "sys.path.insert(0, sys.argv[5]); "
             "from reconstruction.intake import normalize_reference; "
             "r=normalize_reference(Path(sys.argv[2]), Path(sys.argv[3]), "
             "run_contract=json.loads(sys.argv[4])); "
@@ -397,6 +402,7 @@ class ReconstructionIntakeTests(unittest.TestCase):
                     str(FIXTURE),
                     str(run_dir),
                     json.dumps(contract),
+                    str(_PKG_ROOT),
                 ],
                 cwd=PROJECT_ROOT,
                 capture_output=True,

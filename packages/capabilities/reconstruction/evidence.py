@@ -1869,7 +1869,7 @@ def _is_execution_source_path(relative: str) -> bool:
 def _discover_execution_source_paths() -> tuple[str, ...]:
     paths = set(_EXECUTION_FIXED_PATHS)
     for directory, pattern in (
-        (PROJECT_ROOT / "design-lab" / "reconstruction", "*.py"),
+        (PROJECT_ROOT / "packages" / "capabilities" / "reconstruction", "*.py"),
         (PROJECT_ROOT / "design-lab" / "schemas" / "reconstruction", "*.json"),
         (PROJECT_ROOT / "design-lab" / "scripts", "*.py"),
         (PROJECT_ROOT / "design-lab" / "config", "*.json"),

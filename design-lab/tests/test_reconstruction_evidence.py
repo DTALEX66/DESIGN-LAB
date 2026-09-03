@@ -934,7 +934,7 @@ class ReconstructionEvidenceTests(unittest.TestCase):
         discovered = set(module._discover_execution_source_paths())
         expected_modules = {
             path.relative_to(REPO_ROOT).as_posix()
-            for path in (DESIGN_LAB / "reconstruction").rglob("*.py")
+            for path in (REPO_ROOT / "packages" / "capabilities" / "reconstruction").rglob("*.py")
         }
         expected_schemas = {
             path.relative_to(REPO_ROOT).as_posix()
@@ -953,7 +953,7 @@ class ReconstructionEvidenceTests(unittest.TestCase):
             / ("closure-fixture-" + uuid.uuid4().hex)
         )
         self.cleanup.append(fixture_root)
-        nested_module = fixture_root / "design-lab" / "reconstruction" / "providers" / "local.py"
+        nested_module = fixture_root / "packages" / "capabilities" / "reconstruction" / "providers" / "local.py"
         nested_schema = fixture_root / "design-lab" / "schemas" / "reconstruction" / "nested" / "local.json"
         nested_module.parent.mkdir(parents=True)
         nested_schema.parent.mkdir(parents=True)
