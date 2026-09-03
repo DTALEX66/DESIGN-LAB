@@ -6,12 +6,12 @@ rules:
   - path: .hermes/
     risk: quarantine
     reason: Legacy runtime, migrating to .project-local
-  - path: design-lab/intelligence/
-    risk: high
-    reason: Contains full third-party repos, must qualify or remove
-  - path: design-lab/knowledge/
-    risk: high
-    reason: Contains full third-party repos, must qualify or remove
+  - path: .venv/
+    risk: ignored
+    reason: Local virtualenv, not tracked (regenerable)
+  - path: research/candidates/
+    risk: low
+    reason: CONDITIONAL_POC index only (README + source registry); full third-party source lives in ignored .project-local/cache/vendor
   - path: fixtures/domains/game-visual/
     risk: medium
     reason: Should be fixture, not product line

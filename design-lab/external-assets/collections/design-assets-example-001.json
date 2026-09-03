@@ -9,7 +9,7 @@
   "intendedUse": "design knowledge card intake",
   "rightsReviewRequired": true,
   "outputTargets": [
-    "design-lab/knowledge/cards"
+   "design-lab/research/master-studies/"
   ],
   "notes": "禁止整库直接复制进 GitHub；所有资料经受控摄取并登记 SOURCE_REGISTRY；未验证权利项 quarantine",
   "createdBy": "kernel",

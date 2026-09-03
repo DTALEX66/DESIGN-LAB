@@ -73,7 +73,7 @@ def plugin_row(plugin_dir: Path, root: Path) -> str:
 
 
 def generate_plugins_index(root: Path) -> None:
-    plugins_dir = root / ASSISTANCE_DIR / "plugins"
+    plugins_dir = root / "packages" / "capabilities" / "plugins"
     rows = [plugin_row(path, root) for path in sorted(plugins_dir.iterdir()) if (path / "open-design.json").is_file()]
     content = "\n".join([
         "# Open Design plugin index",
@@ -154,7 +154,18 @@ def generate_capability_index(root: Path) -> Path:
 
 
 def _dir_count(root: Path, rel_dir: str, manifest_name: str = "open-design.json") -> int:
-    target = root / ASSISTANCE_DIR / rel_dir
+    # After DL-DIR-MIG-R1 capability catalogs (plugins/bundles/atoms/scenarios)
+    # live under packages/capabilities/; host/expert-suite trees under
+    # integrations/hosts/; domain-packs/evals stay under design-lab.
+    catalog_kinds = {"plugins", "bundles", "atoms", "scenarios"}
+    if rel_dir.startswith("adapters/") or rel_dir.startswith("hosts/"):
+        target = root / "integrations" / rel_dir
+    else:
+        target = (
+            root / "packages" / "capabilities" / rel_dir
+            if rel_dir in catalog_kinds
+            else root / ASSISTANCE_DIR / rel_dir
+        )
     if not target.is_dir():
         return 0
     return sum(1 for p in target.iterdir() if p.is_dir() and (p / manifest_name).is_file())
@@ -165,6 +176,29 @@ def _json_file_count(root: Path, rel_dir: str) -> int:
     if not target.is_dir():
         return 0
     return len([p for p in target.iterdir() if p.is_file() and p.suffix == ".json"])
+
+
+def _managed_design_system_count(root: Path) -> int:
+    """Count Open-Design-managed design systems (those whose manifest declares
+    a DESIGN-LAB source lineage).  Local project-only systems (e.g. nebula-tech)
+    are not part of the Open Design expert-suite surface."""
+    base = root / ASSISTANCE_DIR / "design-systems"
+    if not base.is_dir():
+        return 0
+    count = 0
+    for p in base.iterdir():
+        if not p.is_dir():
+            continue
+        manifest = p / "manifest.json"
+        if not manifest.is_file():
+            continue
+        try:
+            data = json.loads(manifest.read_text(encoding="utf-8"))
+        except Exception:
+            continue
+        if data.get("source", "").startswith("DESIGN-LAB/"):
+            count += 1
+    return count
 
 
 def generate_asset_counts(root: Path) -> Path:
@@ -200,11 +234,9 @@ def generate_asset_counts(root: Path) -> Path:
         "plugins": _dir_count(root, "plugins"),
         "bundles": _dir_count(root, "bundles"),
         "personal_skills": _dir_count(
-            root, "adapters/hosts/open-design/expert-suite/skills", manifest_name="SKILL.md"
+            root, "hosts/open-design/expert-suite/skills", manifest_name="SKILL.md"
         ),
-        "design_systems": _dir_count(
-            root, "design-systems", manifest_name="DESIGN.md"
-        ),
+        "design_systems": _managed_design_system_count(root),
         "domain_packs": _dir_count(root, "domain-packs", manifest_name="manifest.json"),
         "atoms": _dir_count(root, "atoms"),
         "scenarios": _dir_count(root, "scenarios"),

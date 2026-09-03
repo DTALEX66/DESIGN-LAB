@@ -1,6 +1,0 @@
-node_modules/
-package-lock.json
-.DS_Store
-口播脚本*
-examples/aster/
-examples/gsap/

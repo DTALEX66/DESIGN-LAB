@@ -24,7 +24,7 @@ docs/ROADMAP.md               ← 路线图
 design-lab/config/product-manifest.json   ← 产品 manifest（design-lab/product-manifest/v1）
 design-lab/config/capability-status.json  ← 能力状态
 design-lab/config/object-model.json       ← 13 核心对象
-design-lab/adapters/adapter-registry.json ← 适配器注册（defaultBinding=none）
+integrations/adapter-registry.json        ← 适配器注册（defaultBinding=none）
 ```
 
 ## 验证入口
@@ -58,14 +58,18 @@ config/         checked-in 中性注册表
 scripts/        确定性生成器/验证器
 templates/      模板
 assets/         资产
-adapters/       host/agent/tool/model 适配器（无默认绑定）
+adapters/       host/agent/tool/model 适配器（无默认绑定）→ 见 ../integrations/（DL-DIR-MIG-R1 迁出）
 ```
 
 ## 适配器
 
-- `adapters/hosts/open-design/`：Open Design host projection（F1 兼容层）
-- `adapters/creative-tools/`：ComfyUI / MiniMax H3 / Adobe PS 等 E0 合同
-- `adapters/agents/`：Hermes / Codex agent 协调
+适配器目录已随 DL-DIR-MIG-R1 迁出 `design-lab/`，现位于仓库根 `integrations/`（host/agent/tool/model 适配器，无默认绑定）：
+
+- `integrations/hosts/open-design/`：Open Design host projection（F1 兼容层）
+- `integrations/hosts/adobe/`：Adobe PS / Illustrator E0 合同 + reconstruction
+- `integrations/generators/`：ComfyUI / MiniMax H3 等生成器适配
+- `integrations/mcp/`：MCP 适配
+- `integrations/adapter-registry.json`：注册表（defaultBinding=none）
 
 ## 证据纪律
 

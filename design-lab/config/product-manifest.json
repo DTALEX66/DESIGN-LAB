@@ -190,7 +190,7 @@
         "packages/capabilities/quality/",
         "packages/capabilities/bundles/visual-quality-core/",
         "design-lab/evals/rubrics/visual-quality-core.rubric.json",
-        "research/candidates/visual-quality/",
+        "design-lab/research/visual-quality/",
         "design-lab/scripts/score_visual_quality.py",
         "design-lab/scripts/score_design_critique.py",
         "design-lab/scripts/compare_visual_iterations.py",

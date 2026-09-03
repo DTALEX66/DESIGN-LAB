@@ -1,9 +1,0 @@
-node_modules/
-dist/
-coverage/
-docs/
-.agents/
-.extract-design-system/
-design-system/
-*.tgz
-.claude/
