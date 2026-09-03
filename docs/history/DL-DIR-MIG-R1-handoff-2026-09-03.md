@@ -48,12 +48,18 @@ verify_license_coverage（排除前缀 → research/candidates/）、verify_proj
 - 5 gate：Open Design host adapter gate / License / MiniGame / Generated-artifact 稳定 PASS；Python gate 为唯一失守项，已随本轮修复推送等待 CI
 - 预存环境 FAIL（非迁移引起）：ComfyUI 未运行、resvg/vtracer 缺失、Illustrator 未安装 → CI 侧不必然复现
 
-## 三、后续动作
+## 三、后续动作（已执行完结）
 
-1. CI Python gate 全绿后：`gh pr merge 112 --squash --delete-branch`
-2. 合并后同步 main 至本机（push 双端一致）
-3. 本地 `test_reconstruction_evidence` 慢速项已确认：CI Linux 上 507 tests 299s 跑完、仅剩 2 个失败
-   （evidence closure 遍历根 + intake 子进程 sys.path），已随 add26a5 修复并本地验证 OK
+1. ✅ **2026-09-03 PR #112 已 squash 合并**（c9cde8a），5 gate（含 Python gate）全绿；分支已删
+2. ✅ main 已同步本机（本地 = origin/main，双端一致）
+3. 规范化（对照 -3 权威任务包）核对结果：
+   - ✅ 硬门目录全删：intelligence/knowledge/project-memory/minigame-runtime/design-system/adapters
+   - ✅ .project 治理（manifest/gates/path-risk/data-ownership/allowlist）+ .project-local 结构齐全
+   - ✅ canonical 门（verify_design_lab 49/49、identity、adapter matrix、compileall、diff-check）全绿
+   - ✅ -3 任务包入库、-2 标 SUPERSEDED（修正 design-system/docs/fixtures 删除范围笔误）
+   - ⚠ 待后续（DL-DIR-030 资格化裁决）：research/candidates 8 仓 1931 文件（33.6MB）为
+     CONDITIONAL_POC 保真收录区（均带 SOURCE.md/LICENSE）——逐个裁决后按 ABSORB/LOCK/REJECT
+     分流，源码移至 ignored vendor cache；vendor/sources.lock.json 目前仅 6 项 LOCK_REFERENCE
 
 ## 四、追加修复（add26a5，CI 干净环境暴露的最后 2 个失败）
 | 失败 | 根因 | 修复 |
