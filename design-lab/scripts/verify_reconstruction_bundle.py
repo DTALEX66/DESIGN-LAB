@@ -160,3 +160,11 @@ def main() -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
+
+
+# DL-TP-R0-004: promotion accepts only sealed bundles (atomic rollback discipline)
+SEAL_REQUIRED_KEYS = ("bundle_sha256", "sealed_at", "sealed_by")
+
+
+def check_sealed(bundle: dict) -> list[str]:
+    return [f"R0-004: sealed bundle missing {k}" for k in SEAL_REQUIRED_KEYS if k not in bundle]
