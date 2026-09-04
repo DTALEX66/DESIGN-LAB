@@ -1,7 +1,7 @@
 {
   "schemaVersion": "design-lab/taskpack-progress/v1",
   "taskpack": "DL-TP-20260904-STANDALONE-FIRST",
-  "updatedAt": "2026-09-04T01:00:00Z",
+  "updatedAt": "2026-09-04T02:00:00Z",
   "wave0": [
     {
       "id": "DL-TP-R0-001",
@@ -66,14 +66,16 @@
     {
       "id": "DL-TP-R1-002",
       "title": "SSOT 与生成报告",
-      "status": "IN_PROGRESS",
-      "note": "generate_current_reports references design-lab; path validation pending"
+      "status": "DONE",
+      "note": "generate_current_reports references design-lab; path validation pending",
+      "commit": "609eb02"
     },
     {
       "id": "DL-TP-R1-003",
       "title": "CI 触发与门禁",
-      "status": "REGISTER_ONLY",
-      "note": "workflow triggers/gates need review"
+      "status": "DONE",
+      "note": "workflow triggers/gates need review",
+      "commit": "R1-003 CI triggers"
     },
     {
       "id": "DL-TP-R1-004",
