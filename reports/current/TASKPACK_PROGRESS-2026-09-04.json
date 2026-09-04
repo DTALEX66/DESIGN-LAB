@@ -1,7 +1,7 @@
 {
   "schemaVersion": "design-lab/taskpack-progress/v1",
   "taskpack": "DL-TP-20260904-STANDALONE-FIRST",
-  "updatedAt": "2026-09-04T00:00:00Z",
+  "updatedAt": "2026-09-04T01:00:00Z",
   "wave0": [
     {
       "id": "DL-TP-R0-001",
@@ -30,8 +30,8 @@
     {
       "id": "DL-TP-R0-005",
       "title": "测试隔离",
-      "status": "IN_PROGRESS",
-      "note": "python suite baseline running; temp-root isolation partial"
+      "status": "DONE",
+      "note": "python suite baseline verified green (49-chain)"
     },
     {
       "id": "DL-TP-R0-006",
@@ -55,5 +55,55 @@
   "waves1_4": {
     "status": "REGISTER_ONLY",
     "note": "50 tasks registered; Wave 0 first per taskpack discipline"
-  }
+  },
+  "wave1": [
+    {
+      "id": "DL-TP-R1-001",
+      "title": "Python 项目与锁文件",
+      "status": "DONE",
+      "commit": "7e9a660"
+    },
+    {
+      "id": "DL-TP-R1-002",
+      "title": "SSOT 与生成报告",
+      "status": "IN_PROGRESS",
+      "note": "generate_current_reports references design-lab; path validation pending"
+    },
+    {
+      "id": "DL-TP-R1-003",
+      "title": "CI 触发与门禁",
+      "status": "REGISTER_ONLY",
+      "note": "workflow triggers/gates need review"
+    },
+    {
+      "id": "DL-TP-R1-004",
+      "title": "仓库治理",
+      "status": "DONE",
+      "commit": "7e9a660"
+    },
+    {
+      "id": "DL-TP-R1-005",
+      "title": "版本语义",
+      "status": "DONE",
+      "commit": "7e9a660"
+    },
+    {
+      "id": "DL-TP-R1-006",
+      "title": "多 Agent 工作区协议",
+      "status": "DONE",
+      "commit": "eecedd0"
+    },
+    {
+      "id": "DL-TP-R1-007",
+      "title": "依赖更新策略",
+      "status": "DONE",
+      "commit": "eecedd0"
+    },
+    {
+      "id": "DL-TP-R1-008",
+      "title": "MiniGame fixture 冻结",
+      "status": "DONE",
+      "note": "boundary in AGENTS.md + fixtures/domains/game-visual"
+    }
+  ]
 }
