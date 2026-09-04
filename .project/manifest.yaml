@@ -8,3 +8,6 @@ created: 2026-09-01
 supersedes: DL-DIR-MIG-R1
 
 taskpack: DL-TP-20260904-STANDALONE-FIRST
+schema_version: design-lab/project-manifest/v1
+product_version: 0.1.0-alpha.0
+release_status: NOT_RELEASED
