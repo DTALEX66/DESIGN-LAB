@@ -8,7 +8,8 @@
     "session_id",
     "schemaVersion",
     "host_id",
-    "document_id"
+    "session_kind",
+    "session_mode"
   ],
   "properties": {
     "session_id": {
@@ -22,6 +23,26 @@
     },
     "document_id": {
       "type": "string"
+    },
+    "session_kind": {
+      "enum": [
+        "LOCAL_GUI",
+        "LOCAL_HEADLESS",
+        "REMOTE_SERVICE"
+      ]
+    },
+    "session_mode": {
+      "enum": [
+        "ATTACH_EXISTING",
+        "LAUNCH_OWNED"
+      ]
+    },
+    "ownership": {
+      "enum": [
+        "DESIGN_OWNED",
+        "USER_OWNED",
+        "UNKNOWN"
+      ]
     }
   }
 }

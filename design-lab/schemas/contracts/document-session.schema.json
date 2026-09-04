@@ -18,6 +18,23 @@
     },
     "session_id": {
       "type": "string"
+    },
+    "dirty": {
+      "type": [
+        "boolean",
+        "string"
+      ],
+      "description": "true/false or NOT_APPLICABLE/UNKNOWN"
+    },
+    "checkpoint": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "lease_state": {
+      "type": "string",
+      "description": "ACTIVE/RECONCILING/HUMAN_OWNED/RELEASED/BLOCKED"
     }
   }
 }
