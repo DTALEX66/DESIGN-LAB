@@ -1,357 +1,216 @@
 {
-  "schemaVersion": "design-lab/capability-evidence-index/v2",
-  "task": "DL-TP-R2-014",
-  "generatedAt": "2026-09-04T00:00:00Z",
+  "schemaVersion": "design-lab/capability-evidence-index/v3",
+  "task": "DL-EVD-001 (DESIGN-LAB migration R3)",
+  "generatedAt": "2026-08-15",
+  "environment": "Windows 10 (local), platform-neutral host adapter model",
+  "rule": "Every capability is bound to an E0-E5 evidence level and a subject tree/commit SHA (Evidence Attestation). No static file, test count, or declaration may impersonate runtime evidence. E1 = structural validation passes (files/schema/tests). E2 = isolated runtime. E3 = real runtime use. E4 = frozen + independent review. E5 = external validation. Runtime evidence lives in .hermes/task-runtime/ (gitignored) and CI artifacts; committed lastVerifiedTree is historical only (DL-EVD-002/003).",
+  "evidenceLevels": {
+    "E0": {
+      "label": "declared",
+      "state": "declared-only",
+      "proof": "document path or task card"
+    },
+    "E1": {
+      "label": "structural",
+      "state": "structural-pass",
+      "proof": "hash, parser, schema or linter output"
+    },
+    "E2": {
+      "label": "isolated-runtime",
+      "state": "isolated-pass",
+      "proof": "command output in isolated env"
+    },
+    "E3": {
+      "label": "runtime",
+      "state": "runtime-pass",
+      "proof": "runtime id + task id + artifact provenance"
+    },
+    "E4": {
+      "label": "frozen",
+      "state": "release-verified",
+      "proof": "frozen tree + independent review + exact-SHA CI"
+    },
+    "E5": {
+      "label": "external",
+      "state": "commercially-proven",
+      "proof": "external acceptance"
+    }
+  },
   "capabilities": [
     {
-      "capability_id": "adapter-open-design/studio-canvas",
-      "evidence_level": "E1",
-      "declared_level": "E1",
-      "bound_sha": null,
-      "supported_current": false
+      "id": "research-evidence",
+      "title": "Source, rights and security governance",
+      "minimumRequiredEvidence": "E1",
+      "actualEvidence": "E1",
+      "evidence": "Declaration + structural: source registry, governance rules, REUSE headers and license coverage structurally present and verified.",
+      "run": "verify_design_lab.py -> VERIFY_DESIGN_LAB=OK total=17 failed=0 (audited revision 205314bd01963289f96d1322857bec8e751a29d8)",
+      "artifact": "config/capability-status.json, knowledge/governance/CAPABILITY_EVIDENCE_LEVELS.md",
+      "reviewer": "HERMES (self-verified)"
     },
     {
-      "capability_id": "adapter-open-design/agent-launch",
-      "evidence_level": "E1",
-      "declared_level": "E1",
-      "bound_sha": null,
-      "supported_current": false
+      "id": "design-intelligence",
+      "title": "Brief normalization and commercial design routing",
+      "minimumRequiredEvidence": "E2",
+      "actualEvidence": "E1",
+      "evidence": "Structural: atoms/brief-normalizer (SKILL.md + open-design.json), 6 scenarios incl. commercial-design-router present; brief-related tests pass. No live Open Design runtime brief run evidenced in this tree.",
+      "run": "pytest -k 'brief or rout' -> 2 passed",
+      "artifact": "atoms/brief-normalizer/, scenarios/commercial-design-router/",
+      "reviewer": "HERMES (self-verified)"
     },
     {
-      "capability_id": "adapter-open-design/artifact-export",
-      "evidence_level": "E1",
-      "declared_level": "E1",
-      "bound_sha": null,
-      "supported_current": false
+      "id": "visual-quality",
+      "title": "Visual quality, design feeling and anti-AI-slop engine",
+      "minimumRequiredEvidence": "E2",
+      "actualEvidence": "E1",
+      "evidence": "Structural: historical real-browser axe-core 4.9.1 evidence exists for five UIUX golden-slice enhanced implementations, and structural visual scoring passes (10/0). The historical E3 evidence is bound to an older tree; current main remains E1 until runtime requalification.",
+      "run": "browser_console + axe.run (real rendering) -> 5/5 cases 0 violations; verify_visual_scoring_v3.py 10/0",
+      "artifact": "domain-packs/uiux-design/evidence/axe-scan-20260811.json, domain-packs/uiux-design/evidence/*.json, evals/rubrics/, design-systems/uiux-commercial-light/",
+      "reviewer": "HERMES (self-verified; automated scan, human jury pending V42-0409)",
+      "requiresRequalification": true
     },
     {
-      "capability_id": "adapter-figma/import",
-      "evidence_level": "E0",
-      "declared_level": "E0",
-      "bound_sha": null,
-      "supported_current": false
+      "id": "professional-visual-domains",
+      "title": "Domain pack scenarios and golden benchmarks",
+      "minimumRequiredEvidence": "E2",
+      "actualEvidence": "E1",
+      "evidence": "Structural: uiux-design Domain Pack with 5 golden cases (b2b-backoffice, ecommerce-pdp-checkout, mobile-task-flow, settings-account, content-page), each with brief/case/design/handoff/implementations(baseline+enhanced)/tokens/preflight; verify_domain_pack_v2.py PASS.",
+      "run": "verify_domain_pack_v2.py design-lab/domain-packs/uiux-design -> DOMAIN_PACK_V2=PASS",
+      "artifact": "domain-packs/uiux-design/",
+      "reviewer": "HERMES (self-verified)"
     },
     {
-      "capability_id": "adapter-figma/export",
-      "evidence_level": "E0",
-      "declared_level": "E0",
-      "bound_sha": null,
-      "supported_current": false
+      "id": "production-handoff",
+      "title": "Production-ready handoff and delivery",
+      "minimumRequiredEvidence": "E2",
+      "actualEvidence": "E1",
+      "evidence": "Structural: preflight/handoff schemas and verify_release_evidence.py contract present. Production adapters (figma/penpot/browser) declared; runtime delivery evidence pending (V42-0409/0410 human gate).",
+      "run": "verify_open_design_host_adapter.py -> structural pass",
+      "artifact": "schemas/release-evidence.schema.json, config/RELEASE_EVIDENCE_CONTRACT.md",
+      "reviewer": "HERMES (self-verified)"
     },
     {
-      "capability_id": "adapter-penpot/import",
-      "evidence_level": "E0",
-      "declared_level": "E0",
-      "bound_sha": null,
-      "supported_current": false
+      "id": "creative-toolchain",
+      "title": "Open Design daemon runtime registration",
+      "minimumRequiredEvidence": "E3",
+      "actualEvidence": "E3",
+      "evidence": "ComfyUI 0.33.1 用户授权部署并真实运行（E3，2026-08-16）：H3 t2va 端到端生成成功（prompt 79013288-…，22 帧 384px 动图，帧回读分析通过）。生产级参数与音频导出未做；Open Design daemon registration 仍 E1 待取证。",
+      "run": "python_embeded/python.exe -s ComfyUI/main.py --port 8188（手动启动，loopback）；GET /system_stats + /object_info 回读",
+      "artifact": "integrations/generators/comfyui/evidence/E3-20260816-end-to-end-generation.md, integrations/generators/minimax-h3/evidence/E3-20260816-end-to-end-generation.md, integrations/adapter-registry.json",
+      "reviewer": "user-authorized deployment; DSH runtime snapshot (E2 deployment-level evidence only)",
+      "requiresRequalification": true
     },
     {
-      "capability_id": "adapter-blender/3d-render",
-      "evidence_level": "E0",
-      "declared_level": "E0",
-      "bound_sha": null,
-      "supported_current": false
+      "id": "style-master-method",
+      "title": "Style master records and method cards",
+      "minimumRequiredEvidence": "E1",
+      "actualEvidence": "E1",
+      "evidence": "Structural: the 497-entry master registry, 77 anchor method cards, 47 style lineages and 47 analysis cards pass deterministic count, shape, unique-ID, eligibility and direct-generation-marker checks. Source verification and research-to-method-card closure remain incomplete; this promotion is structural only.",
+      "run": "verify_style_master_method.py -> STYLE_MASTER_METHOD=PASS masters=497 cards=77 lineages=47 analysis_cards=47 errors=0",
+      "artifact": "research/master-studies/MASTER_REGISTRY.json, research/master-studies/ANCHOR_METHOD_CARDS.json, research/style-lineages/STYLE_LINEAGES.json, research/style-lineages/STYLE_ANALYSIS_CARDS.json",
+      "reviewer": "HERMES (self-verified structural verifier; source/research closure pending)",
+      "requiresRequalification": true
     },
     {
-      "capability_id": "adapter-blender/gltf-export",
-      "evidence_level": "E0",
-      "declared_level": "E0",
-      "bound_sha": null,
-      "supported_current": false
-    },
-    {
-      "capability_id": "adapter-ffmpeg/video-transcode",
-      "evidence_level": "E0",
-      "declared_level": "E0",
-      "bound_sha": null,
-      "supported_current": false
-    },
-    {
-      "capability_id": "adapter-ffmpeg/audio-encode",
-      "evidence_level": "E0",
-      "declared_level": "E0",
-      "bound_sha": null,
-      "supported_current": false
-    },
-    {
-      "capability_id": "adapter-browser/dom-render",
-      "evidence_level": "E0",
-      "declared_level": "E0",
-      "bound_sha": null,
-      "supported_current": false
-    },
-    {
-      "capability_id": "adapter-browser/visual-regression",
-      "evidence_level": "E0",
-      "declared_level": "E0",
-      "bound_sha": null,
-      "supported_current": false
-    },
-    {
-      "capability_id": "adapter-browser/axe-a11y",
-      "evidence_level": "E0",
-      "declared_level": "E0",
-      "bound_sha": null,
-      "supported_current": false
-    },
-    {
-      "capability_id": "adapter-comfyui/image-generation",
-      "evidence_level": "E1",
-      "declared_level": "E3",
-      "bound_sha": null,
-      "supported_current": false
-    },
-    {
-      "capability_id": "adapter-comfyui/workflow-execution",
-      "evidence_level": "E1",
-      "declared_level": "E3",
-      "bound_sha": null,
-      "supported_current": false
-    },
-    {
-      "capability_id": "adapter-adobe-photoshop/editable-delivery",
-      "evidence_level": "E0",
-      "declared_level": "E0",
-      "bound_sha": null,
-      "supported_current": false
-    },
-    {
-      "capability_id": "adapter-adobe-photoshop/psd-export",
-      "evidence_level": "E0",
-      "declared_level": "E0",
-      "bound_sha": null,
-      "supported_current": false
-    },
-    {
-      "capability_id": "adapter-minimax-h3/video-generation",
-      "evidence_level": "E1",
-      "declared_level": "E3",
-      "bound_sha": null,
-      "supported_current": false
-    },
-    {
-      "capability_id": "adapter-minimax-h3/motion-bridge",
-      "evidence_level": "E1",
-      "declared_level": "E3",
-      "bound_sha": null,
-      "supported_current": false
-    },
-    {
-      "capability_id": "adapter-mcp/tool.discovery",
-      "evidence_level": "E0",
-      "declared_level": "E0",
-      "bound_sha": null,
-      "supported_current": false
-    },
-    {
-      "capability_id": "adapter-mcp/tool.execution",
-      "evidence_level": "E0",
-      "declared_level": "E0",
-      "bound_sha": null,
-      "supported_current": false
-    },
-    {
-      "capability_id": "adapter-inkscape/svg.export",
-      "evidence_level": "E0",
-      "declared_level": "E0",
-      "bound_sha": null,
-      "supported_current": false
-    },
-    {
-      "capability_id": "adapter-imagemagick/image.process",
-      "evidence_level": "E0",
-      "declared_level": "E0",
-      "bound_sha": null,
-      "supported_current": false
-    },
-    {
-      "capability_id": "adapter-sharp/image.process",
-      "evidence_level": "E0",
-      "declared_level": "E0",
-      "bound_sha": null,
-      "supported_current": false
-    },
-    {
-      "capability_id": "adapter-resvg/svg.render",
-      "evidence_level": "E0",
-      "declared_level": "E0",
-      "bound_sha": null,
-      "supported_current": false
-    },
-    {
-      "capability_id": "adapter-svgo/svg.optimize",
-      "evidence_level": "E0",
-      "declared_level": "E0",
-      "bound_sha": null,
-      "supported_current": false
-    },
-    {
-      "capability_id": "adapter-librsvg/svg.export",
-      "evidence_level": "E0",
-      "declared_level": "E0",
-      "bound_sha": null,
-      "supported_current": false
-    },
-    {
-      "capability_id": "adapter-playwright-visual/visual.regression",
-      "evidence_level": "E0",
-      "declared_level": "E0",
-      "bound_sha": null,
-      "supported_current": false
-    },
-    {
-      "capability_id": "adapter-verapdf/pdf.preflight",
-      "evidence_level": "E0",
-      "declared_level": "E0",
-      "bound_sha": null,
-      "supported_current": false
-    },
-    {
-      "capability_id": "adapter-ghostscript/pdf.render",
-      "evidence_level": "E0",
-      "declared_level": "E0",
-      "bound_sha": null,
-      "supported_current": false
-    },
-    {
-      "capability_id": "adapter-ghostscript/pdf.compress",
-      "evidence_level": "E0",
-      "declared_level": "E0",
-      "bound_sha": null,
-      "supported_current": false
-    },
-    {
-      "capability_id": "adapter-style-dictionary/token.build",
-      "evidence_level": "E0",
-      "declared_level": "E0",
-      "bound_sha": null,
-      "supported_current": false
-    },
-    {
-      "capability_id": "adapter-dtcg/token.standard",
-      "evidence_level": "E0",
-      "declared_level": "E0",
-      "bound_sha": null,
-      "supported_current": false
-    },
-    {
-      "capability_id": "adapter-figma-rest/figma.read",
-      "evidence_level": "E0",
-      "declared_level": "E0",
-      "bound_sha": null,
-      "supported_current": false
-    },
-    {
-      "capability_id": "adapter-figma-rest/figma.export",
-      "evidence_level": "E0",
-      "declared_level": "E0",
-      "bound_sha": null,
-      "supported_current": false
-    },
-    {
-      "capability_id": "adapter-blender-bpy/three_d.operate",
-      "evidence_level": "E0",
-      "declared_level": "E0",
-      "bound_sha": null,
-      "supported_current": false
-    },
-    {
-      "capability_id": "adapter-blender-bpy/three_d.render",
-      "evidence_level": "E0",
-      "declared_level": "E0",
-      "bound_sha": null,
-      "supported_current": false
-    },
-    {
-      "capability_id": "adapter-photoshop-mcp/photoshop.operate",
-      "evidence_level": "E1",
-      "declared_level": "E1",
-      "bound_sha": null,
-      "supported_current": false
-    },
-    {
-      "capability_id": "adapter-photoshop-mcp/photoshop.export",
-      "evidence_level": "E1",
-      "declared_level": "E1",
-      "bound_sha": null,
-      "supported_current": false
-    },
-    {
-      "capability_id": "adapter-illustrator-mcp/illustrator.operate",
-      "evidence_level": "E1",
-      "declared_level": "E1",
-      "bound_sha": null,
-      "supported_current": false
-    },
-    {
-      "capability_id": "adapter-figma-mcp/figma.read",
-      "evidence_level": "E0",
-      "declared_level": "E0",
-      "bound_sha": null,
-      "supported_current": false
-    },
-    {
-      "capability_id": "adapter-figma-mcp/figma.export",
-      "evidence_level": "E0",
-      "declared_level": "E0",
-      "bound_sha": null,
-      "supported_current": false
-    },
-    {
-      "capability_id": "adapter-inkscape-mcp/svg.export",
-      "evidence_level": "E0",
-      "declared_level": "E0",
-      "bound_sha": null,
-      "supported_current": false
-    },
-    {
-      "capability_id": "adapter-generator-mcp/photoshop.operate",
-      "evidence_level": "E0",
-      "declared_level": "E0",
-      "bound_sha": null,
-      "supported_current": false
-    },
-    {
-      "capability_id": "adapter-generator-mcp/acrobat.operate",
-      "evidence_level": "E0",
-      "declared_level": "E0",
-      "bound_sha": null,
-      "supported_current": false
-    },
-    {
-      "capability_id": "adapter-eagle-webapi/asset.query",
-      "evidence_level": "E1",
-      "declared_level": "E1",
-      "bound_sha": null,
-      "supported_current": false
-    },
-    {
-      "capability_id": "adapter-eagle-webapi/asset.import",
-      "evidence_level": "E1",
-      "declared_level": "E1",
-      "bound_sha": null,
-      "supported_current": false
-    },
-    {
-      "capability_id": "adapter-eagle-webapi/library.switch",
-      "evidence_level": "E1",
-      "declared_level": "E1",
-      "bound_sha": null,
-      "supported_current": false
-    },
-    {
-      "capability_id": "adapter-eagle-mcp/asset.query",
-      "evidence_level": "E0",
-      "declared_level": "E0",
-      "bound_sha": null,
-      "supported_current": false
-    },
-    {
-      "capability_id": "adapter-eagle-mcp/asset.import",
-      "evidence_level": "E0",
-      "declared_level": "E0",
-      "bound_sha": null,
-      "supported_current": false
+      "id": "release-evidence",
+      "title": "Exact-SHA release evidence and CI verification",
+      "minimumRequiredEvidence": "E1",
+      "actualEvidence": "E1",
+      "evidence": "Structural + recorded: canonical exact-SHA CI was green for 205314bd01963289f96d1322857bec8e751a29d8 (run 31833112443); verify_release_evidence.py enforces live checkout + remote readback. E4 still requires a frozen tree, independent review, human acceptance and authorized release evidence.",
+      "run": "verify_release_evidence.py (contract), canonical CI exact-SHA",
+      "artifact": "config/RELEASE_EVIDENCE_CONTRACT.md, reports/V42_*_20260811.md",
+      "reviewer": "HERMES (self-verified)"
     }
-  ]
+  ],
+  "evidenceCards": {
+    "count": 12,
+    "status": "all-not-run-E0",
+    "note": "All 12 evidence cards in evals/evidence/evidence-cards.json are card_status=not-run, evidence_level=E0. Per verify_evidence_cards.py, human_calibration_policy.required_for_promotion=true and authoritative_accepts=0; a not-run card must remain E0. Promotion requires V42-0409 human professional Jury (E3 human gate). No card was artificially promoted."
+  },
+  "honesty": {
+    "declaration": "creative-toolchain：ComfyUI 0.33.1 用户授权部署 + H3 图生视频真实生成（E3，2026-08-16）——prompt 79013288…，22 帧 384px 动图 + 帧回读分析通过。生成能力已获 E3 证据；生产级参数/音频导出/Open Design daemon 待后续。其余能力保持 E1 结构证据。",
+    "blockers": [
+      "V42-0409 human professional Jury (>=82 score) + preference test (>=70%) - requires human review",
+      "V42-0410 golden slice freeze - blocked on 0409",
+      "style-master-method - Phase 7 scope (497 master records, 77 method cards)"
+    ]
+  },
+  "records": [
+    {
+      "capability_id": "research-evidence",
+      "evidence_level": "E1",
+      "artifacts": [
+        "declaration_doc",
+        "schema",
+        "linter"
+      ]
+    },
+    {
+      "capability_id": "design-intelligence",
+      "evidence_level": "E1",
+      "artifacts": [
+        "declaration_doc",
+        "tests"
+      ]
+    },
+    {
+      "capability_id": "visual-quality",
+      "evidence_level": "E1",
+      "artifacts": [
+        "declaration_doc",
+        "linter",
+        "visual_scoring"
+      ]
+    },
+    {
+      "capability_id": "style-master-method",
+      "evidence_level": "E1",
+      "artifacts": [
+        "declaration_doc",
+        "structural_verifier"
+      ]
+    },
+    {
+      "capability_id": "professional-visual-domains",
+      "evidence_level": "E1",
+      "artifacts": [
+        "declaration_doc",
+        "linter",
+        "domain_pack"
+      ]
+    },
+    {
+      "capability_id": "production-handoff",
+      "evidence_level": "E1",
+      "artifacts": [
+        "declaration_doc",
+        "schema"
+      ]
+    },
+    {
+      "capability_id": "creative-toolchain",
+      "evidence_level": "E3",
+      "artifacts": [
+        "declaration_doc",
+        "command_output",
+        "readback_artifact",
+        "runtime_id",
+        "task_id",
+        "artifact_provenance",
+        "h3_t2va_22frames"
+      ],
+      "tree_sha": "7aa0c34aefd5fee4cf4e817754f5fe835ed711ff",
+      "runtime_id": "ComfyUI 0.33.1 (127.0.0.1:8188)",
+      "task_id": "79013288-adfd-4fad-be6d-77d15e93770d"
+    },
+    {
+      "capability_id": "release-evidence",
+      "evidence_level": "E1",
+      "artifacts": [
+        "declaration_doc",
+        "exact_sha_ci"
+      ]
+    }
+  ],
+  "lastVerifiedTree": "70dfc35cdb23a025e82a3ea891a1a595599aea3f",
+  "bindingPolicy": "DL-EVD-002/003: lastVerifiedTree 是历史绑定（HISTORICAL_VALID，requiresRequalification=true），绝不声称绑定当前 HEAD；当前发布只接受 CI 运行时生成的 Evidence Attestation（CURRENT_EXACT，GitHub Actions Artifact/Attestation）。提交 N+1 可证明提交 N；禁止自引用。"
 }
