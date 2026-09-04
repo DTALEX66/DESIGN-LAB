@@ -9,6 +9,12 @@ on:
       - 'docs/**'
       - 'docs/**'
       - '.github/workflows/**'
+      - '.project/**'
+      - 'integrations/**'
+      - 'pyproject.toml'
+      - 'uv.lock'
+      - 'packages/capabilities/**'
+
       - 'scripts/**'
       - 'requirements.txt'
       - 'LICENSE'
