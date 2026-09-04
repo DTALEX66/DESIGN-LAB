@@ -23,6 +23,7 @@ LEGACY = [
 
 # Allowlisted roots (history + host adapter projection + source refs)
 ALLOW_ROOT_PREFIXES = (
+    "docs/taskpacks/",  # external taskpacks with explanatory legacy-name refs
     "docs/history/",
     "docs/cross-project/",  # external federation taskpacks (explanatory legacy-name refs)
     "reports/history/",
