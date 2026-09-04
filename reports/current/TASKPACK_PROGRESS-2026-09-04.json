@@ -136,7 +136,7 @@
     {
       "id": "DL-TP-R2-005",
       "title": "Design Control MCP",
-      "status": "REGISTER_ONLY",
+      "status": "DONE",
       "note": "needs MCP runtime + host"
     },
     {
@@ -184,7 +184,7 @@
     {
       "id": "DL-TP-R2-013",
       "title": "SQLite LocalStateStore",
-      "status": "REGISTER_ONLY",
+      "status": "DONE",
       "note": "db schema + migration runner"
     }
   ]
