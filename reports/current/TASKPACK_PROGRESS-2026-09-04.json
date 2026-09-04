@@ -1,0 +1,59 @@
+{
+  "schemaVersion": "design-lab/taskpack-progress/v1",
+  "taskpack": "DL-TP-20260904-STANDALONE-FIRST",
+  "updatedAt": "2026-09-04T00:00:00Z",
+  "wave0": [
+    {
+      "id": "DL-TP-R0-001",
+      "title": "冻结唯一前向基线",
+      "status": "DONE",
+      "commit": "57f2d0b"
+    },
+    {
+      "id": "DL-TP-R0-002",
+      "title": "修复 manifest 引用门",
+      "status": "DONE",
+      "commit": "d47dc7c"
+    },
+    {
+      "id": "DL-TP-R0-003",
+      "title": "统一 .project-local",
+      "status": "DONE",
+      "commit": "e2c9363"
+    },
+    {
+      "id": "DL-TP-R0-004",
+      "title": "重建证据原子回滚",
+      "status": "TODO",
+      "note": "needs reconstruction bundle failure-injection tests"
+    },
+    {
+      "id": "DL-TP-R0-005",
+      "title": "测试隔离",
+      "status": "TODO",
+      "note": "needs temp-root + order-randomized suite runs"
+    },
+    {
+      "id": "DL-TP-R0-006",
+      "title": "项目级 Rights Decision",
+      "status": "DONE",
+      "commit": "ad7bcee"
+    },
+    {
+      "id": "DL-TP-R0-007",
+      "title": "修正 Adapter Registry 事实",
+      "status": "DONE",
+      "commit": "e371ff6"
+    },
+    {
+      "id": "DL-TP-R0-008",
+      "title": "Standalone-first ADR",
+      "status": "DONE",
+      "commit": "ad7bcee"
+    }
+  ],
+  "waves1_4": {
+    "status": "REGISTER_ONLY",
+    "note": "50 tasks registered; Wave 0 first per taskpack discipline"
+  }
+}
