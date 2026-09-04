@@ -41,7 +41,7 @@ def main() -> int:
         'capabilities': caps,
     }
     OUT.write_text(json.dumps(doc, indent=2) + '\n', encoding='utf-8')
-    n_e3 = sum(1 for c in caps if c['current_level_check'] if False else c['evidence_level'] == 'E3')
+    n_e3 = sum(1 for x in caps if c['evidence_level'] == 'E3')
     print(f'CAPABILITY_INDEX=OK capabilities={len(caps)} current_E3={n_e3}')
     return 0
 
