@@ -282,9 +282,30 @@ def print_results(results: list[Result]) -> int:
     return 0 if not failed else 1
 
 
+
+def check_ref_safety(root: Path, results: list, manifest: dict) -> None:
+    """DL-TP-R0-002: manifest path references must stay inside the repository
+    (no traversal, no symlink escape, no pointing at historical-only trees)."""
+    root_resolved = root.resolve()
+    refs = []
+    for fam in manifest.get("capabilityFamilies", []):
+        for c in fam.get("capabilities", []):
+            p = c.get("contract") or c.get("path") or c.get("schema")
+            if p:
+                refs.append((f"{fam.get('id')}/{c.get('id')}", p))
+    for name, ref in refs:
+        rp = (root / ref).resolve() if not Path(ref).is_absolute() else Path(ref).resolve()
+        if root_resolved not in rp.parents and rp != root_resolved:
+            results.append(f"R0-002 FAIL: {name} ref escapes repo: {ref}")
+        if ".." in Path(ref).parts:
+            results.append(f"R0-002 FAIL: {name} contains traversal: {ref}")
+        if "history" in Path(ref).parts or "historical" in Path(ref).parts:
+            results.append(f"R0-002 FAIL: {name} points at historical tree: {ref}")
+
 def main() -> int:
     root = repo_root()
     results: list[Result] = []
+    check_ref_safety(root, results, json.loads((root / MANIFEST_REL).read_text(encoding='utf-8')))
     manifest, capability_status = verify_json_contracts(root, results)
     verify_manifest_shape(root, manifest, results)
     verify_capability_status(capability_status, results)
