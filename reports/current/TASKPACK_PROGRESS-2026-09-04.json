@@ -107,5 +107,85 @@
       "status": "DONE",
       "note": "boundary in AGENTS.md + fixtures/domains/game-visual"
     }
+  ],
+  "wave2": [
+    {
+      "id": "DL-TP-R2-001",
+      "title": "核心 Schema",
+      "status": "DONE",
+      "note": "21 schemas"
+    },
+    {
+      "id": "DL-TP-R2-002",
+      "title": "src/design_lab 与单一 CLI",
+      "status": "PARTIAL",
+      "note": "package skeleton done; CLI entry pending"
+    },
+    {
+      "id": "DL-TP-R2-003",
+      "title": "Review Console",
+      "status": "BLOCKED_RUNTIME",
+      "note": "web UI build; needs multi-round"
+    },
+    {
+      "id": "DL-TP-R2-004",
+      "title": "Adapter SPI",
+      "status": "DONE",
+      "note": "5 types + lifecycle + tests"
+    },
+    {
+      "id": "DL-TP-R2-005",
+      "title": "Design Control MCP",
+      "status": "REGISTER_ONLY",
+      "note": "needs MCP runtime + host"
+    },
+    {
+      "id": "DL-TP-R2-006",
+      "title": "本地五对象合同",
+      "status": "DONE",
+      "note": "capability-ref/knowledge-candidate/run-receipt schemas"
+    },
+    {
+      "id": "DL-TP-R2-007",
+      "title": "Local Design Runtime",
+      "status": "REGISTER_ONLY",
+      "note": "orchestrator/queue/lease engine"
+    },
+    {
+      "id": "DL-TP-R2-008",
+      "title": "Windows Control Provider",
+      "status": "BLOCKED_RUNTIME",
+      "note": "needs real host (Illustrator uninstalled)"
+    },
+    {
+      "id": "DL-TP-R2-009",
+      "title": "Integration Definition",
+      "status": "DONE",
+      "note": "integration-def/capability-def/permission/probe/ttl schemas"
+    },
+    {
+      "id": "DL-TP-R2-010",
+      "title": "AssetRef/Trait/OTIO",
+      "status": "DONE",
+      "note": "asset-ref schema"
+    },
+    {
+      "id": "DL-TP-R2-011",
+      "title": "NativeTransaction",
+      "status": "REGISTER_ONLY",
+      "note": "needs real host matrix"
+    },
+    {
+      "id": "DL-TP-R2-012",
+      "title": "Lease fencing",
+      "status": "REGISTER_ONLY",
+      "note": "runtime engine"
+    },
+    {
+      "id": "DL-TP-R2-013",
+      "title": "SQLite LocalStateStore",
+      "status": "REGISTER_ONLY",
+      "note": "db schema + migration runner"
+    }
   ]
 }
