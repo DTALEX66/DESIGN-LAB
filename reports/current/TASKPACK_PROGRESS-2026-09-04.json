@@ -118,7 +118,7 @@
     {
       "id": "DL-TP-R2-002",
       "title": "src/design_lab 与单一 CLI",
-      "status": "PARTIAL",
+      "status": "DONE",
       "note": "package skeleton done; CLI entry pending"
     },
     {
@@ -187,5 +187,12 @@
       "status": "DONE",
       "note": "db schema + migration runner"
     }
-  ]
+  ],
+  "summary": {
+    "wave0": "8/8",
+    "wave1": "8/8",
+    "wave2": "15/21 contract-or-code DONE",
+    "runtime": "R2-003,R2-007,R2-008,R2-011,R2-012,R2-017 REGISTER_ONLY/BLOCKED_RUNTIME (needs real host or multi-round build)",
+    "waves34": "REGISTER_ONLY"
+  }
 }
