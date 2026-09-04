@@ -1,0 +1,24 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://design-lab.local/schemas/job-attempt.schema.json",
+  "title": "job-attempt",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "job_id",
+    "schemaVersion",
+    "attempt_no"
+  ],
+  "properties": {
+    "job_id": {
+      "type": "string"
+    },
+    "schemaVersion": {
+      "const": "design-lab/job-attempt/v1"
+    },
+    "attempt_no": {
+      "type": "integer",
+      "minimum": 1
+    }
+  }
+}

@@ -1,0 +1,32 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://design-lab.local/schemas/audit-event.schema.json",
+  "title": "audit-event",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "audit_id",
+    "schemaVersion",
+    "actor",
+    "action",
+    "at"
+  ],
+  "properties": {
+    "audit_id": {
+      "type": "string"
+    },
+    "schemaVersion": {
+      "const": "design-lab/audit-event/v1"
+    },
+    "actor": {
+      "type": "string"
+    },
+    "action": {
+      "type": "string"
+    },
+    "at": {
+      "type": "string",
+      "format": "date-time"
+    }
+  }
+}

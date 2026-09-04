@@ -1,0 +1,27 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://design-lab.local/schemas/delivery-receipt.schema.json",
+  "title": "delivery-receipt",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "receipt_id",
+    "schemaVersion",
+    "delivery_id",
+    "status"
+  ],
+  "properties": {
+    "receipt_id": {
+      "type": "string"
+    },
+    "schemaVersion": {
+      "const": "design-lab/delivery-receipt/v1"
+    },
+    "delivery_id": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string"
+    }
+  }
+}

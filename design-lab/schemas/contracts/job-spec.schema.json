@@ -1,0 +1,28 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://design-lab.local/schemas/job-spec.schema.json",
+  "title": "job-spec",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "job_id",
+    "schemaVersion",
+    "operation_intent",
+    "attempt_no"
+  ],
+  "properties": {
+    "job_id": {
+      "type": "string"
+    },
+    "schemaVersion": {
+      "const": "design-lab/job-spec/v1"
+    },
+    "operation_intent": {
+      "$ref": "#/$defs/operationIntentRef"
+    },
+    "attempt_no": {
+      "type": "integer",
+      "minimum": 1
+    }
+  }
+}

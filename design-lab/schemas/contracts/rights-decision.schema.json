@@ -1,0 +1,27 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://design-lab.local/schemas/rights-decision.schema.json",
+  "title": "rights-decision",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "decision_id",
+    "schemaVersion",
+    "use_scope",
+    "decision"
+  ],
+  "properties": {
+    "decision_id": {
+      "type": "string"
+    },
+    "schemaVersion": {
+      "const": "design-lab/rights-decision/v1"
+    },
+    "use_scope": {
+      "type": "string"
+    },
+    "decision": {
+      "type": "string"
+    }
+  }
+}

@@ -1,0 +1,35 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://design-lab.local/schemas/asset-ref.schema.json",
+  "title": "asset-ref",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "asset_id",
+    "schemaVersion",
+    "version",
+    "content_hash",
+    "trait_set"
+  ],
+  "properties": {
+    "asset_id": {
+      "type": "string"
+    },
+    "schemaVersion": {
+      "const": "design-lab/asset-ref/v1"
+    },
+    "version": {
+      "type": "string"
+    },
+    "content_hash": {
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$"
+    },
+    "trait_set": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    }
+  }
+}

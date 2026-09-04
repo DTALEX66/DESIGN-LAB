@@ -1,0 +1,39 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://design-lab.local/schemas/capability-evidence.schema.json",
+  "title": "capability-evidence",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "evidence_id",
+    "schemaVersion",
+    "capability_id",
+    "evidence_level",
+    "bound_sha"
+  ],
+  "properties": {
+    "evidence_id": {
+      "type": "string"
+    },
+    "schemaVersion": {
+      "const": "design-lab/capability-evidence/v1"
+    },
+    "capability_id": {
+      "type": "string"
+    },
+    "evidence_level": {
+      "enum": [
+        "E0",
+        "E1",
+        "E2",
+        "E3",
+        "E4",
+        "E5"
+      ]
+    },
+    "bound_sha": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{40}$"
+    }
+  }
+}
