@@ -5,7 +5,7 @@ import unittest
 import sys
 from pathlib import Path
 
-SRC = Path(__file__).resolve().parents[3] / 'src'
+SRC = Path(__file__).resolve().parents[2] / 'src'
 sys.path.insert(0, str(SRC))
 
 class AdapterSPITests(unittest.TestCase):
