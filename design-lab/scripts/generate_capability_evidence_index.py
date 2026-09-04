@@ -11,7 +11,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent.parent
 REGISTRY = ROOT / 'integrations' / 'adapter-registry.json'
-OUT = ROOT / 'design-lab' / 'config' / 'capability-evidence-index.json'
+OUT = ROOT / 'design-lab' / 'config' / 'capability-evidence-current.json'
 
 
 def main() -> int:
@@ -35,7 +35,7 @@ def main() -> int:
                 'supported_current': bool(c.get('supported')) and current_level in ('E3', 'E4'),
             })
     doc = {
-        'schemaVersion': 'design-lab/capability-evidence-index/v2',
+        'schemaVersion': 'design-lab/capability-evidence-current/v1',
         'task': 'DL-TP-R2-014',
         'generatedAt': '2026-09-04T00:00:00Z',
         'capabilities': caps,
