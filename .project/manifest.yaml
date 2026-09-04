@@ -3,6 +3,8 @@ name: DESIGN-LAB
 description: AI-native professional design intelligence and production layer
 owner: DTALEX66
 repository: https://github.com/DTALEX66/DESIGN-LAB
-baseline_sha: 33488c882d267d683250ae684caf28d0916d9099
+baseline_sha: 2aca27f69b1909251640382ed3b4195cf9accd9b
 created: 2026-09-01
-taskpack: DL-DIR-MIG-R1
+supersedes: DL-DIR-MIG-R1
+
+taskpack: DL-TP-20260904-STANDALONE-FIRST
