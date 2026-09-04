@@ -179,7 +179,7 @@ def verify_manifest_shape(root: Path, manifest: dict[str, Any], results: list[Re
         check(results, f"family {family_id}: paths present", bool(paths), str(paths))
         for rel in paths:
             rel_text = str(rel)
-            root_relative_prefixes = (ASSISTANCE_DIR, ".github", ".hermes", "LICENSING", "THIRD_PARTY", "research/", "packages/", "integrations/", "vendor/", "docs/", "fixtures/")
+            root_relative_prefixes = (ASSISTANCE_DIR, ".github", ".hermes", ".project-local", "LICENSING", "THIRD_PARTY", "research/", "packages/", "integrations/", "vendor/", "docs/", "fixtures/")
             resolved_rel = rel_text if rel_text.startswith(root_relative_prefixes) else f"{ASSISTANCE_DIR}/{rel_text}"
             require_path(results, root, resolved_rel)
 
