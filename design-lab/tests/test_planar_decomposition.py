@@ -87,6 +87,52 @@ class PlanarDecompositionTests(unittest.TestCase):
         schema = json.loads(SCHEMA_PATH.read_text(encoding="utf-8"))
         jsonschema.validate(instance=payload, schema=schema)
 
+    # --- schema invalid-input negative fixtures (T18) ---------------------
+
+    def _schema(self):
+        import jsonschema
+        return jsonschema.Draft202012Validator(json.loads(SCHEMA_PATH.read_text(encoding="utf-8")))
+
+    def _payload(self, **overrides):
+        plan = self._plan()
+        payload = json.loads(plan.to_json())
+        for key, value in overrides.items():
+            if key == "object":
+                payload["objects"][0].update(value)
+            else:
+                payload[key] = value
+        return payload
+
+    def test_schema_rejects_missing_required_fields(self):
+        validator = self._schema()
+        for drop in ("decomposition_id", "source_ref", "canvas", "objects"):
+            payload = self._payload()
+            payload.pop(drop)
+            self.assertTrue(
+                list(validator.iter_errors(payload)),
+                f"missing {drop} must be rejected",
+            )
+
+    def test_schema_rejects_empty_object_id(self):
+        validator = self._schema()
+        payload = self._payload(object={"object_id": ""})
+        self.assertTrue(list(validator.iter_errors(payload)))
+
+    def test_schema_rejects_unknown_object_kind(self):
+        validator = self._schema()
+        payload = self._payload(object={"kind": "polygon"})
+        self.assertTrue(list(validator.iter_errors(payload)))
+
+    def test_schema_rejects_bad_region(self):
+        validator = self._schema()
+        payload = self._payload(object={"region": {"x": 0, "y": 0, "width": -1, "height": 5}})
+        self.assertTrue(list(validator.iter_errors(payload)))
+
+    def test_schema_rejects_bad_mapping_state(self):
+        validator = self._schema()
+        payload = self._payload(object={"mapping_state": "verified"})
+        self.assertTrue(list(validator.iter_errors(payload)))
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -89,6 +89,18 @@ class JobStoreTests(unittest.TestCase):
             transition(conn, att["attempt_id"], "RECEIPTED")  # PENDING -> RECEIPTED not allowed
         conn.close()
 
+    def test_sql_check_rejects_invalid_state_enum(self):
+        """attempt_state CHECK constraint rejects a fabricated state (T18 negative)."""
+        from design_lab.runtime.job_store import connect
+
+        conn = connect(self._db())
+        self._begin(conn)
+        with self.assertRaises(Exception):
+            conn.execute(
+                "UPDATE attempt_state SET state='COMPLETED' WHERE job_id='job-1'"
+            )
+        conn.close()
+
 
 if __name__ == "__main__":
     unittest.main()
