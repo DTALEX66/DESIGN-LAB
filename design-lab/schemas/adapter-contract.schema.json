@@ -49,12 +49,14 @@
       }
     },
     "status": {
+      "description": "Execution/readiness state. 'BLOCKED_BY_LICENSE' is a legal gate (R0-006): the adapter is registered and structurally known but must not be executed; such entries must declare no supported capability.",
       "enum": [
         "declared",
         "structural",
         "runtime",
         "missing",
-        "unsupported"
+        "unsupported",
+        "BLOCKED_BY_LICENSE"
       ]
     },
     "mode": {
@@ -122,5 +124,42 @@
       "type": "string",
       "description": "如何回滚此 adapter（DL-ADP-001）"
     }
-  }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "status": {
+            "const": "BLOCKED_BY_LICENSE"
+          }
+        },
+        "required": [
+          "status"
+        ]
+      },
+      "then": {
+        "properties": {
+          "capabilities": {
+            "items": {
+              "properties": {
+                "supported": {
+                  "const": false
+                }
+              },
+              "required": [
+                "supported"
+              ]
+            }
+          },
+          "license": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "required": [
+          "license"
+        ]
+      }
+    }
+  ]
 }
