@@ -23,8 +23,11 @@ jobs:
         with:
           python-version: '3.12'
 
-      - name: Install verifier dependencies
-        run: python -m pip install -r requirements.txt
+      - name: Install verifier dependencies (uv.lock; PR115 audit F04)
+        run: |
+          python -m pip install uv
+          uv sync --locked
+          echo "$GITHUB_WORKSPACE/.venv/bin" >> "$GITHUB_PATH"
 
       - name: Run canonical structural verification (exact checkout SHA)
         run: python design-lab/scripts/verify_design_lab.py
