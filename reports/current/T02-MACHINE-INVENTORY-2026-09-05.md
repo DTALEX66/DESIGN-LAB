@@ -44,6 +44,16 @@
 - `C:\Users\ALEX\.cache\modelscope\models`：`iic--SenseVoiceSmall` —— 音频候选。
 - 未见图像生成 checkpoint（SD/Comfy 模型目录未发现）。
 
+### 模型就绪实测（2026-09-05，src/design_lab/analysis/model_cache.py 只读探测）
+
+| 后端 | 判定 | 依据 |
+|---|---|---|
+| ASR（faster-whisper base/tiny） | **READY** | snapshots 含真实字节（base model.bin ~145 MB） |
+| OCR（PaddleOCR PP-OCRv6 det/rec 等） | **NOT_READY（INCOMPLETE）** | 仅 refs 指针，无 snapshots 字节（未实际下载） |
+| SenseVoiceSmall（modelscope） | 未在本报告判定（单独探测） | — |
+
+结论：音频 ASR 模型本地已就绪；OCR 模型**未就绪**（不能宣称可用，fail-closed）。图像生成模型未发现。
+
 ## CLI / Agent（存在性）
 
 - `codex.cmd`：C:\Users\ALEX\AppData\Local\hermes\bin\codex.cmd（存在；**codex-cli 0.153.1**）
