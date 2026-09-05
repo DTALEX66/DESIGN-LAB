@@ -23,8 +23,11 @@ jobs:
         with:
           python-version: '3.12'
 
-      - name: Install verifier dependencies
-        run: python -m pip install -r requirements.txt
+      - name: Install verifier dependencies (uv.lock; PR115 audit F04)
+        run: |
+          python -m pip install uv
+          uv sync --locked
+          echo "$GITHUB_WORKSPACE/.venv/bin" >> "$GITHUB_PATH"
 
       - name: Run canonical structural verification (exact checkout SHA)
         run: python design-lab/scripts/verify_design_lab.py
@@ -42,8 +45,8 @@ jobs:
       - name: Generate runtime Evidence Attestation (exact SHA)
         run: |
           python design-lab/scripts/update_evidence_binding.py --attestation
-          test -f .hermes/task-runtime/evidence/attestation-*.json
-          ATTR=$(ls .hermes/task-runtime/evidence/attestation-*.json | head -1)
+          test -f .project-local/task-runtime/evidence/attestation-*.json
+          ATTR=$(ls .project-local/task-runtime/evidence/attestation-*.json | head -1)
           SUBJECT=$(python -c "import json,sys;print(json.load(open(sys.argv[1]))['subjectCommitSha'])" "$ATTR")
           echo "attestation subject=$SUBJECT"
           test "$SUBJECT" = "${{ github.sha }}"
@@ -55,7 +58,7 @@ jobs:
         with:
           name: dl-release-evidence-${{ github.sha }}
           path: |
-            .hermes/task-runtime/evidence/attestation-*.json
+            .project-local/task-runtime/evidence/attestation-*.json
             artifacts.sha256
           if-no-files-found: error
 
@@ -63,7 +66,7 @@ jobs:
       # (github context is the API-backed checkout identity).
       - name: API readback consistency check
         run: |
-          ATTR=$(ls .hermes/task-runtime/evidence/attestation-*.json | head -1)
+          ATTR=$(ls .project-local/task-runtime/evidence/attestation-*.json | head -1)
           SUBJECT=$(python -c "import json,sys;print(json.load(open(sys.argv[1]))['subjectCommitSha'])" "$ATTR")
           echo "github.sha=${{ github.sha }}"
           echo "subject=$SUBJECT"

@@ -76,7 +76,7 @@ class ReleaseGateHelpersTest(unittest.TestCase):
 
     @staticmethod
     def _tmp_file(name: str) -> str:
-        directory = Path(__file__).resolve().parents[1] / ".hermes" / "task-runtime"
+        directory = Path(__file__).resolve().parents[1] / ".project-local" / "task-runtime"
         directory.mkdir(parents=True, exist_ok=True)
         return str(directory / name)
 

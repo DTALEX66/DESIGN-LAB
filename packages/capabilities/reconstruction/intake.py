@@ -16,13 +16,14 @@ import numpy as np
 from PIL import Image, ImageCms, UnidentifiedImageError
 
 from .contracts import ContractError, validate_run_contract
+from .runtime_roots import RUNTIME_PARENT as _CANONICAL_RUNTIME_ROOT
+from .runtime_roots import runtime_root as _canonical_runtime_root
 
 _SUPPORTED_FORMATS = frozenset({"PNG", "JPEG", "WEBP"})
 _SUPPORTED_MODES = frozenset({"RGB", "RGBA"})
 _NORMALIZED_NAME = "reference.normalized.png"
 _REPARSE_POINT = getattr(stat, "FILE_ATTRIBUTE_REPARSE_POINT", 0x400)
 _PROJECT_ROOT = Path(__file__).resolve().parents[3]
-_CANONICAL_RUNTIME_ROOT = _PROJECT_ROOT / ".hermes" / "task-runtime" / "reconstruction"
 _STABLE_RUN_ID = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$")
 
 
@@ -423,7 +424,7 @@ def _validated_contract_constraints(run_contract: dict) -> _ContractConstraints:
         raise IntakeError(f"invalid reconstruction run contract: {exc}") from None
 
     run_id = run_contract["runId"]
-    runtime_relative = f".hermes/task-runtime/reconstruction/{run_id}/"
+    runtime_relative = _canonical_runtime_root(run_id)
     normalized_relative = runtime_relative + _NORMALIZED_NAME
     if run_contract["roots"]["runtime"] != runtime_relative:
         raise IntakeError("run contract runtime root does not bind the declared run id")

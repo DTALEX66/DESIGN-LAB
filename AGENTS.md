@@ -19,11 +19,14 @@ DESIGN-LAB 是面向职业视觉设计的、AI 原生、平台中立、宿主原
 - ArcheAxis 的长期知识与学习状态
 - Adobe/Figma/Penpot/Blender 等宿主的私有数据库或用户个人素材库
 
-## 宿主与入口
+## 宿主与入口（Standalone-first，ADR-001）
 
-- **Open Design** 是 DESIGN-LAB 当前正式主宿主、主界面和通用运行入口
+- DESIGN-LAB 可独立完成完整设计生产闭环；启动/测试/恢复/Golden Workflow **不探测也不要求** WORK-LAB 或 ArcheAxis（二者默认关闭）
+- **Open Design** 是宿主/工具 Adapter 之一（Open Design host adapter），不是运行依赖或默认宿主
 - DESIGN 以官方插件/CLI/MCP 扩展形成下游发行层
+- 外部项目只能通过版本化公共合同（Schema/API/Manifest）连接，不读私有 DB 或目录
 - **MiniGame** 是游戏视觉 Domain/回归 fixture，不是项目运行时产品线
+- 运行/证据/缓存根统一为 `.project-local/`（`PROJECT_LOCAL_ROOT`）；`.hermes` 不是活跃写入路径（旧引用见历史文档标记）
 
 ## Owner 与 SSOT
 
@@ -87,8 +90,12 @@ DESIGN-LAB 是面向职业视觉设计的、AI 原生、平台中立、宿主原
 
 ## 当前任务包
 
-- 当前有效任务包：`docs/taskpacks/DLR-FINAL-20260826-R2-OSS-FAST-TRACK.md`
-- 三项目总规划：`docs/taskpacks/TRI-OSS-FAST-TRACK-20260826-R1.md`
-- 执行波次：Truth/Safety → Subtraction → Core IR → Real Host → Quality → Domain → Federation/Release
+- 当前有效任务包：`docs/taskpacks/DESIGN-LAB-TODAY-EXECUTION-TASKPACK-2026-09-04.md`（DL-TP-20260904-STANDALONE-FIRST）
+- 下一阶段产品方案（已登记，未冻结）：`docs/taskpacks/DESIGN-LAB-MULTIMODAL-TASK-PLAN-2026-09-05.md`（T01–T18；执行按 DEEPSEEK/CODEX 交接分工：`D:\All projects\DESIGN-LAB-MULTIMODAL-CODEX-HANDOFF-2026-09-05.md` 与 `reports/current/` 下 T01/T02 报告）
+- 历史任务包（superseded，保留为历史证据，不作为 current 派工入口）：
+  - `docs/taskpacks/DLR-FINAL-20260826-R2-OSS-FAST-TRACK.md`（2026-08-26）
+  - `docs/taskpacks/TRI-OSS-FAST-TRACK-20260826-R1.md`（三项目总规划，superseded by standalone-first ADR-001）
+- 执行波次：Truth/Safety（P0 真值）→ Reproducibility（Wave 1）→ Core contracts/runtime（Wave 2）→ Real Host → Quality → Domain → Federation/Release；Wave-0-first，其余 REGISTER_ONLY 直至前序绿色
+- 进度账本：`reports/current/TASKPACK_PROGRESS-2026-09-04.json`（evidence 口径，PR115 复核版）；基线冻结：`reports/history-baseline.json`
 
 （项目特有规则在此基础上补充）

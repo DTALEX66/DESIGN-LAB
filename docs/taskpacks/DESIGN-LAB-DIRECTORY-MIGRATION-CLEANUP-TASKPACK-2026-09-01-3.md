@@ -1,3 +1,5 @@
+> SUPERSEDED by DL-TP-20260904-STANDALONE-FIRST (2026-09-04). Historical record, not current.
+
 # DESIGN-LAB 项目内目录迁移、第三方隔离与彻底清理任务包
 
 ```yaml

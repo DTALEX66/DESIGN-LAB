@@ -126,7 +126,7 @@ class AssetGovernanceAntiDriftTests(unittest.TestCase):
 
     def _tmp(self):
         import uuid
-        d = ROOT.parent / ".hermes/task-runtime/tmp" / ("antidrift-" + uuid.uuid4().hex[:8])
+        d = ROOT.parent / ".project-local/task-runtime/tmp" / ("antidrift-" + uuid.uuid4().hex[:8])
         d.mkdir(parents=True, exist_ok=True)
         return str(d)
 
@@ -186,19 +186,10 @@ class MiniGameBoundaryAntiDriftTests(unittest.TestCase):
 
 class RuntimeEvidenceAntiDriftTests(unittest.TestCase):
     def test_comfyui_h3_supported_without_e3_rejected(self):
-        m = load("verify_adapter_matrix.py")
-        # user-authorized deployment + real generation: E3 allowed with evidence, E4+ blocked
-        self.assertIn("adapter-comfyui", m.E3_ALLOWED)
-        self.assertIn("adapter-minimax-h3", m.E3_ALLOWED)
-        self.assertNotIn("adapter-comfyui", m.ALLOWED_LEVELS)
-        # supported=true requires E3 evidence with runtime identity/task ids (no free pass)
+        # R0-007 (DL-TP-20260904): historical E3 is not current evidence; supported must be false.
         import json as _json
         reg = _json.loads((ROOT.parent / "integrations/adapter-registry.json").read_text(encoding="utf-8"))
         for a in reg["adapters"]:
             if a["adapter_id"] == "adapter-comfyui":
-                self.assertTrue(any(c["supported"] for c in a["capabilities"]))
-                self.assertEqual(a["evidence"]["level"], "E3")
+                self.assertFalse(any(c["supported"] for c in a["capabilities"]))
 
-
-if __name__ == "__main__":
-    unittest.main()

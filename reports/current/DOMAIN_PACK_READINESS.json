@@ -1,7 +1,7 @@
 {
   "schemaVersion": "design-lab/domain-readiness/v1",
-  "subjectSha": "f6f102938e911831a2a6d11dfd0bf60d23145381",
-  "generatedAt": "2026-08-21T16:54:13Z",
+  "subjectSha": "9f12c835f3bbbad9eec96b488d1686b17c5995b3",
+  "generatedAt": "2026-09-04T16:49:57Z",
   "fresh": false,
   "domainPacks": [
     {

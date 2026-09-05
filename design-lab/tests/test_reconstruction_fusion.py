@@ -16,7 +16,7 @@ from PIL import Image
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(PROJECT_ROOT / "design-lab"))
 sys.path.insert(0, str(PROJECT_ROOT / "packages" / "capabilities"))
-RUNTIME_ROOT = PROJECT_ROOT / ".hermes" / "task-runtime" / "a4-fusion-tests"
+RUNTIME_ROOT = PROJECT_ROOT / ".project-local" / "task-runtime" / "a4-fusion-tests"
 
 
 _SAFE_SVG = b'<svg width="10" height="10" viewBox="0 0 10 10"><rect x="0" y="0" width="10" height="10" fill="#123456" /></svg>'
@@ -43,7 +43,7 @@ class ReconstructionFusionTests(unittest.TestCase):
 
         reference = LayerProposal(
             "reference", "reference-overlay", 0, (0, 0, 100, 100), (0, 0, 100, 100),
-            PROJECT_ROOT / ".hermes" / "task-runtime" / "fusion" / "reference.png", False, 1.0,
+            PROJECT_ROOT / ".project-local" / "task-runtime" / "fusion" / "reference.png", False, 1.0,
         )
 
         with self.assertRaises(ReferenceOverlayError):
@@ -56,7 +56,7 @@ class ReconstructionFusionTests(unittest.TestCase):
 
         background = LayerProposal(
             "background", "semantic-background", 0, (0, 0, 100, 100), (0, 0, 100, 100),
-            PROJECT_ROOT / ".hermes" / "task-runtime" / "fusion" / "background.png", False, 1.0,
+            PROJECT_ROOT / ".project-local" / "task-runtime" / "fusion" / "background.png", False, 1.0,
         )
         mixed = fuse_scene(SceneAnalysis(100, 100, "mixed"), (background,), ())
 
