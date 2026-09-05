@@ -134,3 +134,49 @@ def classify_result(state: str) -> str:
     if state == "CANCELLED":
         return "cancelled before completion"
     return f"in progress ({state})"
+
+
+# --- task lifecycle state machine --------------------------------------------
+
+# state -> allowed next states. Terminal states have no outgoing edges.
+_TRANSITIONS: dict[str, frozenset[str]] = {
+    "QUEUED": frozenset({"RUNNING", "CANCELLED"}),
+    "RUNNING": frozenset({"SUCCEEDED", "FAILED", "CANCELLED"}),
+    "SUCCEEDED": frozenset(),
+    "FAILED": frozenset(),
+    "CANCELLED": frozenset(),
+    "CACHE_HIT": frozenset(),
+}
+_TERMINAL_STATES = frozenset({"SUCCEEDED", "FAILED", "CANCELLED", "CACHE_HIT"})
+
+
+class TaskStateMachine:
+    """Durable-agnostic transition guard for one generation task.
+
+    - a terminal state can never transition again (no silent reset);
+    - cancellation is explicit (QUEUED/RUNNING -> CANCELLED) and is terminal;
+    - CACHE_HIT is reachable only by an external classifier, never as a
+      'success' transition (so it cannot masquerade as new generation).
+    """
+
+    def __init__(self, initial: str = "QUEUED") -> None:
+        if initial not in _TRANSITIONS:
+            raise ComfyTaskError(f"invalid initial state: {initial!r}")
+        self.state = initial
+
+    def transition(self, new_state: str) -> str:
+        if new_state not in _TRANSITIONS:
+            raise ComfyTaskError(f"invalid task state: {new_state!r}")
+        if self.state in _TERMINAL_STATES:
+            raise ComfyTaskError(f"task already terminal ({self.state}); cannot move to {new_state}")
+        if new_state not in _TRANSITIONS[self.state]:
+            raise ComfyTaskError(f"task {self.state} -> {new_state} not allowed")
+        self.state = new_state
+        return self.state
+
+    def cancel(self) -> str:
+        return self.transition("CANCELLED")
+
+    @property
+    def is_terminal(self) -> bool:
+        return self.state in _TERMINAL_STATES

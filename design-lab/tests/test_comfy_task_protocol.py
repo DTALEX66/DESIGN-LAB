@@ -87,5 +87,48 @@ class ComfyTaskProtocolTests(unittest.TestCase):
             ComfyTask("t1", self._pin(), "not-a-hash").validate()
 
 
+class TaskStateMachineTests(unittest.TestCase):
+    def test_happy_path_queue_to_success(self):
+        from design_lab.generators.comfy_task import TaskStateMachine
+
+        m = TaskStateMachine()
+        self.assertEqual(m.transition("RUNNING"), "RUNNING")
+        self.assertEqual(m.transition("SUCCEEDED"), "SUCCEEDED")
+        self.assertTrue(m.is_terminal)
+
+    def test_terminal_cannot_transition_again(self):
+        from design_lab.generators.comfy_task import ComfyTaskError, TaskStateMachine
+
+        m = TaskStateMachine()
+        m.transition("RUNNING")
+        m.transition("FAILED")
+        with self.assertRaises(ComfyTaskError):
+            m.transition("SUCCEEDED")  # no silent reset from FAILED
+
+    def test_cancel_is_explicit_and_terminal(self):
+        from design_lab.generators.comfy_task import ComfyTaskError, TaskStateMachine
+
+        m = TaskStateMachine()
+        m.transition("RUNNING")
+        self.assertEqual(m.cancel(), "CANCELLED")
+        with self.assertRaises(ComfyTaskError):
+            m.transition("RUNNING")
+
+    def test_skip_queue_to_success_rejected(self):
+        from design_lab.generators.comfy_task import ComfyTaskError, TaskStateMachine
+
+        m = TaskStateMachine()
+        with self.assertRaises(ComfyTaskError):
+            m.transition("SUCCEEDED")  # QUEUED -> SUCCEEDED without RUNNING
+
+    def test_cache_hit_is_not_a_success_transition(self):
+        from design_lab.generators.comfy_task import ComfyTaskError, TaskStateMachine
+
+        m = TaskStateMachine()
+        m.transition("RUNNING")
+        with self.assertRaises(ComfyTaskError):
+            m.transition("CACHE_HIT")  # must be assigned by classifier, never a success edge
+
+
 if __name__ == "__main__":
     unittest.main()
