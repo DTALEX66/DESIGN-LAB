@@ -91,10 +91,11 @@ DESIGN-LAB 是面向职业视觉设计的、AI 原生、平台中立、宿主原
 ## 当前任务包
 
 - 当前有效任务包：`docs/taskpacks/DESIGN-LAB-TODAY-EXECUTION-TASKPACK-2026-09-04.md`（DL-TP-20260904-STANDALONE-FIRST）
+- 下一阶段产品方案（已登记，未冻结）：`docs/taskpacks/DESIGN-LAB-MULTIMODAL-TASK-PLAN-2026-09-05.md`（T01–T18；执行按 DEEPSEEK/CODEX 交接分工：`D:\All projects\DESIGN-LAB-MULTIMODAL-CODEX-HANDOFF-2026-09-05.md` 与 `reports/current/` 下 T01/T02 报告）
 - 历史任务包（superseded，保留为历史证据，不作为 current 派工入口）：
   - `docs/taskpacks/DLR-FINAL-20260826-R2-OSS-FAST-TRACK.md`（2026-08-26）
   - `docs/taskpacks/TRI-OSS-FAST-TRACK-20260826-R1.md`（三项目总规划，superseded by standalone-first ADR-001）
 - 执行波次：Truth/Safety（P0 真值）→ Reproducibility（Wave 1）→ Core contracts/runtime（Wave 2）→ Real Host → Quality → Domain → Federation/Release；Wave-0-first，其余 REGISTER_ONLY 直至前序绿色
-- 进度账本：`reports/current/TASKPACK_PROGRESS-2026-09-04.json`；基线冻结：`reports/history-baseline.json`
+- 进度账本：`reports/current/TASKPACK_PROGRESS-2026-09-04.json`（evidence 口径，PR115 复核版）；基线冻结：`reports/history-baseline.json`
 
 （项目特有规则在此基础上补充）
