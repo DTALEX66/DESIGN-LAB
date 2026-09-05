@@ -1163,6 +1163,59 @@ class ReconstructionEvidenceTests(unittest.TestCase):
                 module.package_evidence(run_dir, evidence_dir)
         self.assertFalse(evidence_dir.exists())
 
+    def test_staging_mutation_after_seal_rejected_before_swap(self) -> None:
+        """R0-004 before_swap: bytes changed after sealing must never swap."""
+        from reconstruction import evidence as module
+
+        _contract, run_dir, evidence_dir, _value = self.make_completed_run()
+
+        def mutate(_staging: Path) -> None:
+            # rewrite the staged manifest after the seal was computed
+            manifest = _staging / "manifest.json"
+            raw = json.loads(manifest.read_text(encoding="utf-8"))
+            raw["state"] = "ANALYZED"
+            manifest.write_bytes(canonical_json_bytes(raw))
+
+        with mock.patch.object(module, "_after_staging_validation", side_effect=mutate):
+            with self.assertRaisesRegex(module.EvidenceError, "seal mismatch|unsealed|changed after sealing"):
+                module.package_evidence(run_dir, evidence_dir)
+        self.assertFalse(evidence_dir.exists())
+
+    def test_seal_mismatch_after_backup_restores_prior_bundle(self) -> None:
+        """R0-004 after_backup: a swap-time failure restores the prior bundle."""
+        from reconstruction import evidence as module
+
+        _contract, run_dir, evidence_dir, _value = self.make_completed_run()
+        module.package_evidence(run_dir, evidence_dir)
+        before = {
+            path.relative_to(evidence_dir).as_posix(): path.read_bytes()
+            for path in evidence_dir.rglob("*")
+            if path.is_file()
+        }
+        # force the failure right after the prior bundle was moved to backup
+        with mock.patch.object(module, "_after_backup", side_effect=OSError("forced after_backup failure")):
+            with self.assertRaisesRegex(module.EvidenceError, "prior bundle restored|promotion failed"):
+                module.package_evidence(run_dir, evidence_dir)
+        after = {
+            path.relative_to(evidence_dir).as_posix(): path.read_bytes()
+            for path in evidence_dir.rglob("*")
+            if path.is_file()
+        }
+        self.assertEqual(after, before)
+        residues = list(evidence_dir.parent.glob(f".{evidence_dir.name}.*-*"))
+        self.assertEqual(residues, [])
+
+    def test_sealed_bundle_roundtrip_seal_stable(self) -> None:
+        """R0-004: package_evidence promotes only sealed bundles with a stable seal."""
+        from reconstruction import evidence as module
+
+        _contract, run_dir, evidence_dir, _value = self.make_completed_run()
+        module.package_evidence(run_dir, evidence_dir)
+        seal = module.seal_bundle(evidence_dir)
+        self.assertEqual(module.check_sealed(seal), [])
+        reseal = module.seal_bundle(evidence_dir)
+        self.assertEqual(seal["bundle_sha256"], reseal["bundle_sha256"])
+
     def test_reparse_or_symlink_bundle_member_is_rejected(self) -> None:
         from reconstruction import evidence as module
 

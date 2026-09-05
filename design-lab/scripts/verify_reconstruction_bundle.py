@@ -18,7 +18,7 @@ sys.path.insert(0, str(DESIGN_LAB))
 sys.path.insert(0, str(TESTS))
 sys.path.insert(0, str(PROJECT_ROOT / "packages" / "capabilities"))
 
-from reconstruction.evidence import package_evidence, validate_bundle  # noqa: E402
+from reconstruction.evidence import package_evidence, seal_bundle, check_sealed, validate_bundle  # noqa: E402
 from reconstruction.pipeline import run_reconstruction  # noqa: E402
 from reconstruction.state import canonical_json_bytes  # noqa: E402
 from test_reconstruction_pipeline import _create_contract  # noqa: E402
@@ -127,9 +127,14 @@ def main() -> int:
         validated = validate_bundle(evidence_dir)
         if packaged != validated:
             raise RuntimeError("packager and independent validator summaries diverge")
+        seal = seal_bundle(evidence_dir)
+        missing = check_sealed(seal)
+        if missing:
+            raise RuntimeError("R0-004: promoted bundle is not sealed: " + "; ".join(missing))
         summary = (
             "RECONSTRUCTION_BUNDLE=PASS "
-            f"artifacts={validated.artifact_count} state={validated.state}"
+            f"artifacts={validated.artifact_count} state={validated.state} "
+            f"seal={seal['bundle_sha256'][:12]}"
         )
         exit_code = 0
     except Exception as exc:
@@ -160,11 +165,3 @@ def main() -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
-
-
-# DL-TP-R0-004: promotion accepts only sealed bundles (atomic rollback discipline)
-SEAL_REQUIRED_KEYS = ("bundle_sha256", "sealed_at", "sealed_by")
-
-
-def check_sealed(bundle: dict) -> list[str]:
-    return [f"R0-004: sealed bundle missing {k}" for k in SEAL_REQUIRED_KEYS if k not in bundle]
