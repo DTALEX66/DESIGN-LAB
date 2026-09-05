@@ -11,3 +11,6 @@
 *.gif binary
 *.webp binary
 *.zip binary
+# History baseline artifacts are byte-frozen (append-only hashes sealed in reports/history-baseline.json)
+docs/history/DESIGN-LAB-HISTORY-EVIDENCE-MANIFEST-2026-09-04.csv binary
+docs/history/DESIGN-LAB-HISTORY-TASK-ID-CROSSWALK-2026-09-04.csv binary
