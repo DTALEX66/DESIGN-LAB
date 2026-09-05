@@ -24,6 +24,7 @@ from jsonschema import Draft202012Validator, FormatChecker
 from jsonschema.exceptions import best_match
 from PIL import Image
 
+from . import runtime_roots
 from .contracts import validate_rir
 from .metrics import FidelityMetrics, compare_images
 from .pipeline import PINNED_RESVG_BINARY
@@ -469,8 +470,8 @@ def _contract_semantics(
     run_id = manifest["runId"]
     if contract.get("runId") != run_id or journal.get("runId") != run_id:
         raise EvidenceError("bundle run identity does not bind contract and journal")
-    expected_runtime = f".hermes/task-runtime/reconstruction/{run_id}/"
-    expected_evidence = f".hermes/task-artifacts/reconstruction/{run_id}/"
+    expected_runtime = runtime_roots.runtime_root(run_id)
+    expected_evidence = runtime_roots.evidence_root(run_id)
     if contract.get("roots") != {"runtime": expected_runtime, "evidence": expected_evidence}:
         raise EvidenceError("copied contract does not declare canonical runtime/evidence roots")
     expected_root_path = PROJECT_ROOT.joinpath(*PurePosixPath(expected_evidence.rstrip("/")).parts)
@@ -1298,7 +1299,7 @@ def _provenance_semantics(
     if provenance["checkpointChain"] != expected_chain or not expected_chain:
         raise EvidenceError("provenance checkpoint chain is required")
     for index, item in enumerate(expected_chain, 1):
-        expected_path = f".hermes/task-runtime/reconstruction/{manifest['runId']}/checkpoints/{index:04d}.json"
+        expected_path = runtime_roots.runtime_root(manifest["runId"]) + f"checkpoints/{index:04d}.json"
         if item["sequence"] != index or item["path"] != expected_path or not isinstance(item["sha256"], str) or not _SHA256.fullmatch(item["sha256"]):
             raise EvidenceError("provenance checkpoint chain is malformed or non-canonical")
 
@@ -1478,10 +1479,10 @@ def _deterministic_replay(
     contract: dict[str, Any], provenance: dict[str, Any], bundle_root: Path,
 ) -> None:
     replay_id = f"c6v-{os.getpid()}-{uuid.uuid4().hex}"
-    runtime_rel = f".hermes/task-runtime/reconstruction/{replay_id}/"
-    evidence_rel = f".hermes/task-artifacts/reconstruction/{replay_id}/"
-    runtime_parent = PROJECT_ROOT / ".hermes" / "task-runtime" / "reconstruction"
-    evidence_parent = PROJECT_ROOT / ".hermes" / "task-artifacts" / "reconstruction"
+    runtime_rel = runtime_roots.runtime_root(replay_id)
+    evidence_rel = runtime_roots.evidence_root(replay_id)
+    runtime_parent = runtime_roots.RUNTIME_PARENT
+    evidence_parent = runtime_roots.EVIDENCE_PARENT
     runtime = runtime_parent / replay_id
     replay_evidence = evidence_parent / replay_id
     runtime_parent.mkdir(parents=True, exist_ok=True)

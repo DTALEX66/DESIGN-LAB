@@ -126,7 +126,7 @@ class AssetGovernanceAntiDriftTests(unittest.TestCase):
 
     def _tmp(self):
         import uuid
-        d = ROOT.parent / ".hermes/task-runtime/tmp" / ("antidrift-" + uuid.uuid4().hex[:8])
+        d = ROOT.parent / ".project-local/task-runtime/tmp" / ("antidrift-" + uuid.uuid4().hex[:8])
         d.mkdir(parents=True, exist_ok=True)
         return str(d)
 

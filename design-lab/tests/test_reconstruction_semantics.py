@@ -14,7 +14,7 @@ from PIL import Image, ImageDraw, ImageFont
 
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
-RUNTIME_ROOT = PROJECT_ROOT / ".hermes" / "task-runtime" / "a2-semantics-tests"
+RUNTIME_ROOT = PROJECT_ROOT / ".project-local" / "task-runtime" / "a2-semantics-tests"
 
 
 class ReconstructionSemanticTests(unittest.TestCase):

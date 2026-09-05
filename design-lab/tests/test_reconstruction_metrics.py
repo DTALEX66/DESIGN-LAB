@@ -86,8 +86,8 @@ def _run_contract(
     artifact_metadata: dict[Path, dict] | None = None,
 ) -> dict:
     run_id = run_root.name
-    runtime_root = f".hermes/task-runtime/reconstruction/{run_id}/"
-    evidence_root = f".hermes/task-artifacts/reconstruction/{run_id}/"
+    runtime_root = f".project-local/task-runtime/reconstruction/{run_id}/"
+    evidence_root = f".project-local/task-artifacts/reconstruction/{run_id}/"
     now = datetime.now(timezone.utc)
     targets = [path.relative_to(REPO_ROOT).as_posix() for path in artifacts]
     history = [
@@ -256,7 +256,7 @@ class ReconstructionMetricTests(unittest.TestCase):
         safe_name = "".join(c if c.isalnum() else "-" for c in self._testMethodName)
         self.run_root = (
             REPO_ROOT
-            / ".hermes"
+            / ".project-local"
             / "task-runtime"
             / "reconstruction"
             / f"c4-{os.getpid()}-{safe_name}"
@@ -392,7 +392,7 @@ class ReconstructionMetricTests(unittest.TestCase):
         )
         unauthorized_root = (
             REPO_ROOT
-            / ".hermes"
+            / ".project-local"
             / "task-runtime"
             / "reconstruction"
             / f"c4-no-contract-{os.getpid()}"
@@ -1609,7 +1609,7 @@ class ReconstructionMetricTests(unittest.TestCase):
                 reference_path,
                 actual_path,
                 profile=profile,
-                diff_output_path=REPO_ROOT / ".hermes" / "outside-diff.png",
+                diff_output_path=REPO_ROOT / ".project-local" / "outside-diff.png",
                 run_contract=contract,
             )
 

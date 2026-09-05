@@ -797,10 +797,10 @@ def refresh_skill_safely(
         return install_skill(app_url, headers, skill_id, source_dir)
     except ApiError as install_error:
         try:
-            rollback_root = REPO_ROOT / ".hermes" / "task-runtime" / "tmp"
+            rollback_root = REPO_ROOT / ".project-local" / "task-runtime" / "tmp"
             rollback_root.mkdir(parents=True, exist_ok=True)
             with tempfile.TemporaryDirectory(
-                prefix="hermes-skill-rollback-", dir=rollback_root
+                prefix="skill-rollback-", dir=rollback_root
             ) as temp:
                 restore_dir = Path(temp) / skill_id
                 write_skill_snapshot(current, restore_dir)

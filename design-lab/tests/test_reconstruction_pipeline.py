@@ -84,8 +84,8 @@ def _artifact(artifact_id: str, kind: str, path: str, role: str, producer: str, 
 
 def _create_contract(token: str, *, mismatch: bool = False) -> tuple[Path, Path, dict]:
     run_id = f"c5-{os.getpid()}-{token}"
-    runtime = f".hermes/task-runtime/reconstruction/{run_id}/"
-    evidence = f".hermes/task-artifacts/reconstruction/{run_id}/"
+    runtime = f".project-local/task-runtime/reconstruction/{run_id}/"
+    evidence = f".project-local/task-artifacts/reconstruction/{run_id}/"
     run_dir = REPO_ROOT / runtime
     run_dir.mkdir(parents=True)
     rir_path = run_dir / "input.rir.json"

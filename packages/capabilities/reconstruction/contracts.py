@@ -13,6 +13,9 @@ from typing import Any, Iterator
 from jsonschema import Draft202012Validator, FormatChecker, ValidationError
 from jsonschema.exceptions import best_match
 
+from .runtime_roots import runtime_root as _canonical_runtime_root
+from .runtime_roots import evidence_root as _canonical_evidence_root
+
 RIR_SCHEMA_ID = "design-lab/reconstruction-ir/v1"
 RUN_SCHEMA_ID = "design-lab/reconstruction-run/v1"
 
@@ -128,8 +131,8 @@ def validate_run_contract(value: dict) -> None:
     _validate_schema(_RUN_VALIDATOR, value)
     run_id = value["runId"]
     job_id = value["jobId"]
-    runtime_root = f".hermes/task-runtime/reconstruction/{run_id}/"
-    evidence_root = f".hermes/task-artifacts/reconstruction/{run_id}/"
+    runtime_root = _canonical_runtime_root(run_id)
+    evidence_root = _canonical_evidence_root(run_id)
     if value["roots"] != {"runtime": runtime_root, "evidence": evidence_root}:
         raise ContractError("$.roots: roots must be the exact declared run runtime/evidence roots")
 

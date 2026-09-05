@@ -143,9 +143,9 @@ def main() -> int:
     finally:
         cleanup_errors: list[BaseException] = []
         for path, parent in (
-            (evidence_dir, PROJECT_ROOT / ".hermes" / "task-artifacts" / "reconstruction"),
-            (run_dir, PROJECT_ROOT / ".hermes" / "task-runtime" / "reconstruction"),
-            (contract_path, PROJECT_ROOT / ".hermes" / "task-runtime" / "reconstruction"),
+            (evidence_dir, PROJECT_ROOT / ".project-local" / "task-artifacts" / "reconstruction"),
+            (run_dir, PROJECT_ROOT / ".project-local" / "task-runtime" / "reconstruction"),
+            (contract_path, PROJECT_ROOT / ".project-local" / "task-runtime" / "reconstruction"),
         ):
             if path is None:
                 continue

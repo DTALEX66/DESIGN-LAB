@@ -121,7 +121,7 @@ class SHAReadbackMismatchTest(unittest.TestCase):
             "ci": {"workflow_name": "x", "run_id": "1", "head_sha": "f" * 40, "conclusion": "success"},
             "read_back": {"remote_sha": "f" * 40, "remote_branch": "main"},
         }
-        with tempfile.NamedTemporaryFile("w", suffix=".json", delete=False, dir=REPO / ".hermes" / "task-runtime" if (REPO / ".hermes").exists() else None) as f:
+        with tempfile.NamedTemporaryFile("w", suffix=".json", delete=False, dir=REPO / ".project-local" / "task-runtime" if (REPO / ".project-local").exists() else None) as f:
             json.dump(bad, f)
             path = f.name
         try:

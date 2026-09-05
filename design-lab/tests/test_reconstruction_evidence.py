@@ -896,8 +896,8 @@ class ReconstructionEvidenceTests(unittest.TestCase):
         from reconstruction import evidence as module
 
         bundle = self.make_bundle()
-        runtime_parent = REPO_ROOT / ".hermes" / "task-runtime" / "reconstruction"
-        evidence_parent = REPO_ROOT / ".hermes" / "task-artifacts" / "reconstruction"
+        runtime_parent = REPO_ROOT / ".project-local" / "task-runtime" / "reconstruction"
+        evidence_parent = REPO_ROOT / ".project-local" / "task-artifacts" / "reconstruction"
 
         def residues(parent: Path) -> set[str]:
             return {
@@ -949,7 +949,7 @@ class ReconstructionEvidenceTests(unittest.TestCase):
         self.assertIn("design-lab/tests/test_reconstruction_evidence.py", discovered)
 
         fixture_root = (
-            REPO_ROOT / ".hermes" / "task-runtime" / "reconstruction-dev"
+            REPO_ROOT / ".project-local" / "task-runtime" / "reconstruction-dev"
             / ("closure-fixture-" + uuid.uuid4().hex)
         )
         self.cleanup.append(fixture_root)
