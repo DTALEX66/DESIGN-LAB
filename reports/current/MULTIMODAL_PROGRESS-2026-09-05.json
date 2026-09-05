@@ -16,7 +16,7 @@
     {"id": "T03", "title": "AI/PS 控制组件对比", "owner": "CODEX", "status": "待实机", "evidence": ""},
     {"id": "T04", "title": "前端与 Agent 最小复用切片", "owner": "CODEX", "status": "待实机", "evidence": ""},
     {"id": "T05", "title": "项目资产与任务服务", "owner": "DEEPSEEK", "status": "DONE(结构层)",
-     "evidence": "design-lab/schemas/state/design-lab-state-assets-v1.sql + src/design_lab/runtime/asset_store.py + test_asset_store 5 OK (idempotent retry/restart recovery/cancel-not-completed/audited takeover)"},
+     "evidence": "design-lab/schemas/state/design-lab-state-assets-v1.sql + src/design_lab/runtime/asset_store.py + test_asset_store 5 OK (idempotent retry/restart recovery/cancel-not-completed/audited takeover); Job/Attempt 持久化: design-lab-state-attempt-v1.sql + src/design_lab/runtime/job_store.py + test_job_store 5 OK (restart recovery/idempotent begin/terminal immutable/disallowed transition)"},
     {"id": "T06", "title": "平面拆解与对象映射", "owner": "DEEPSEEK(结构)/CODEX(宿主)", "status": "DONE(结构层)",
      "evidence": "design-lab/schemas/contracts/planar-decomposition.schema.json + src/design_lab/analysis/decomposition.py + test_planar_decomposition 5 OK"},
     {"id": "T07", "title": "AI/PS 真实工程制作", "owner": "CODEX", "status": "待实机", "evidence": ""},
