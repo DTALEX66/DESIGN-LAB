@@ -171,16 +171,27 @@
 
 **你说:**
 - [1] 载入项目定位，查看交接摘要等内容，交接文档已完成
+
 文件：reports/V42_HANDOFF_SUMMARY_20260816.md（4.2KB，精炼自包含）
+
+
 
 commit：b9f69ac，已 push，本地 == 云端 == b9f69acd13f5...，工作树干净。
 
+
+
 文档结构（专为 DSH 接手设计）
+
 段	内容
+
 状态	✅ DUAL-END SYNC（HEAD/云端 SHA + 工作树干净）
+
 本轮 4 项工作	H3 迁移（39.55GB）、外部资产索引+verifier、目录边界固化、MINIGAME 清理
+
 验证链	300/300、索引 PASS、零模型权重、diff-check 干净
+
 Release Gate	诚实 BLOCKED findings=7（本轮不改就绪度）
+
 给 HARNESS 速查	外置库路径 + 指向关系（extra_model_paths
 - [2] 先查看SKILL里面的内容规划 和 配置是不是HARNESS 需要的，如果不需要就不用了
 - [3] background job pwsh-6 (pwsh: python 'D:/All projects/DESIGN-LAB/design-lab/scripts/verify_design_lab.py') finished [status: completed, exit code: 1]. Read its output with job_output.
