@@ -35,7 +35,7 @@ def run_attack(name: str) -> AttackResult:
         elif name == "full-canvas-overlay.json":
             layer = LayerProposal(
                 "reference", "reference-overlay", 0, (0, 0, 10, 10), (0, 0, 10, 10),
-                PROJECT_ROOT / ".hermes" / "task-runtime" / "security" / "reference.png", False, 1.0,
+                PROJECT_ROOT / ".project-local" / "task-runtime" / "security" / "reference.png", False, 1.0,
             )
             fuse_scene(SceneAnalysis(10, 10, "flat"), (layer,), ())
         elif name == "stale-authorization.json":

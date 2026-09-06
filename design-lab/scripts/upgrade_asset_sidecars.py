@@ -76,7 +76,7 @@ def upgrade(binary: Path, sidecar: Path) -> dict | None:
 
 def main() -> int:
     tracked = ROOT.parent / ".git"
-    out = ROOT.parent / ".hermes" / "task-runtime" / "asset-sidecar-upgrade.json"
+    out = ROOT.parent / ".project-local" / "task-runtime" / "asset-sidecar-upgrade.json"
     result = {"upgraded": [], "skipped": [], "errors": []}
     # walk all tracked binaries under the repo via git ls-files
     import subprocess

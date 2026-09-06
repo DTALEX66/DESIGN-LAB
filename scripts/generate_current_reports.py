@@ -58,7 +58,7 @@ def main() -> int:
         encoding="utf-8",
     )
 
-    adapters = load("design-lab/adapters/adapter-registry.json").get("adapters", [])
+    adapters = load("integrations/adapter-registry.json").get("adapters", [])
     adapter_payload = {"schemaVersion": "design-lab/adapter-reconciliation/v1", "subjectSha": sha,
                        "generatedAt": generated, "fresh": fresh,
                        "adapters": [{"adapterId": a.get("adapter_id"), "tool": a.get("tool"),

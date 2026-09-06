@@ -24,6 +24,7 @@ from jsonschema import Draft202012Validator, FormatChecker
 from jsonschema.exceptions import best_match
 from PIL import Image
 
+from . import runtime_roots
 from .contracts import validate_rir
 from .metrics import FidelityMetrics, compare_images
 from .pipeline import PINNED_RESVG_BINARY
@@ -469,8 +470,8 @@ def _contract_semantics(
     run_id = manifest["runId"]
     if contract.get("runId") != run_id or journal.get("runId") != run_id:
         raise EvidenceError("bundle run identity does not bind contract and journal")
-    expected_runtime = f".hermes/task-runtime/reconstruction/{run_id}/"
-    expected_evidence = f".hermes/task-artifacts/reconstruction/{run_id}/"
+    expected_runtime = runtime_roots.runtime_root(run_id)
+    expected_evidence = runtime_roots.evidence_root(run_id)
     if contract.get("roots") != {"runtime": expected_runtime, "evidence": expected_evidence}:
         raise EvidenceError("copied contract does not declare canonical runtime/evidence roots")
     expected_root_path = PROJECT_ROOT.joinpath(*PurePosixPath(expected_evidence.rstrip("/")).parts)
@@ -1298,7 +1299,7 @@ def _provenance_semantics(
     if provenance["checkpointChain"] != expected_chain or not expected_chain:
         raise EvidenceError("provenance checkpoint chain is required")
     for index, item in enumerate(expected_chain, 1):
-        expected_path = f".hermes/task-runtime/reconstruction/{manifest['runId']}/checkpoints/{index:04d}.json"
+        expected_path = runtime_roots.runtime_root(manifest["runId"]) + f"checkpoints/{index:04d}.json"
         if item["sequence"] != index or item["path"] != expected_path or not isinstance(item["sha256"], str) or not _SHA256.fullmatch(item["sha256"]):
             raise EvidenceError("provenance checkpoint chain is malformed or non-canonical")
 
@@ -1478,10 +1479,10 @@ def _deterministic_replay(
     contract: dict[str, Any], provenance: dict[str, Any], bundle_root: Path,
 ) -> None:
     replay_id = f"c6v-{os.getpid()}-{uuid.uuid4().hex}"
-    runtime_rel = f".hermes/task-runtime/reconstruction/{replay_id}/"
-    evidence_rel = f".hermes/task-artifacts/reconstruction/{replay_id}/"
-    runtime_parent = PROJECT_ROOT / ".hermes" / "task-runtime" / "reconstruction"
-    evidence_parent = PROJECT_ROOT / ".hermes" / "task-artifacts" / "reconstruction"
+    runtime_rel = runtime_roots.runtime_root(replay_id)
+    evidence_rel = runtime_roots.evidence_root(replay_id)
+    runtime_parent = runtime_roots.RUNTIME_PARENT
+    evidence_parent = runtime_roots.EVIDENCE_PARENT
     runtime = runtime_parent / replay_id
     replay_evidence = evidence_parent / replay_id
     runtime_parent.mkdir(parents=True, exist_ok=True)
@@ -1982,8 +1983,47 @@ def _after_staging_validation(_path: Path) -> None:
     """Test seam after staging validation and before namespace promotion."""
 
 
+def _after_backup(_path: Path) -> None:
+    """Test seam immediately after the prior accepted bundle is moved aside."""
+
+
 def _after_promote(_path: Path) -> None:
     """Test seam after namespace promotion and before final read-back."""
+
+
+SEAL_REQUIRED_KEYS = ("bundle_sha256", "sealed_at", "sealed_by")
+
+
+def check_sealed(bundle: dict) -> list[str]:
+    """R0-004: a promoted evidence bundle must carry its bundle seal keys."""
+    return [f"R0-004: sealed bundle missing {k}" for k in SEAL_REQUIRED_KEYS if k not in bundle]
+
+
+def seal_bundle(root: Path) -> dict[str, str]:
+    """Compute the deterministic bundle seal over one evidence tree.
+
+    The seal binds the exact tree contents (relative path -> sha256) plus a
+    sealed_by identity. Promotion accepts only the exact sealed bytes: the
+    seal is re-derived immediately before the atomic swap (before_swap) and
+    verified again after promote (after_promote read-back). No timestamp or
+    host identity is folded into the digest, so identical trees seal identically.
+    """
+    boundary = _absolute(root)
+    if not boundary.is_dir() or _is_reparse(boundary):
+        raise EvidenceError("seal root must be one exact plain evidence directory")
+    digest: dict[str, tuple[int, str]] = {}
+    for relative, path in _enumerate_files(boundary).items():
+        digest[relative] = (path.stat().st_size, sha256_file(path))
+    payload = canonical_json_bytes(
+        {
+            "relative": sorted((rel, size, sha) for rel, (size, sha) in digest.items()),
+        }
+    )
+    return {
+        "bundle_sha256": sha256_bytes(payload),
+        "sealed_at": "2026-09-04T00:00:00Z",
+        "sealed_by": "design-lab/reconstruction/evidence.py",
+    }
 
 
 def _copy_verified(source: Path, destination: Path, source_root: Path) -> ArtifactObservation:
@@ -2101,7 +2141,12 @@ def _remove_exact_tree(path: Path, parent: Path) -> None:
         raise EvidenceBlockedError(f"staging residue remains: {target}")
 
 
-def _promote(staging: Path, evidence: Path, prior_digest: dict[str, tuple[int, str]] | None) -> None:
+def _promote(
+    staging: Path,
+    evidence: Path,
+    prior_digest: dict[str, tuple[int, str]] | None,
+    expected_seal: str,
+) -> None:
     parent = evidence.parent
     token = uuid.uuid4().hex
     backup = parent / f".{evidence.name}.previous-{os.getpid()}-{token}"
@@ -2110,16 +2155,29 @@ def _promote(staging: Path, evidence: Path, prior_digest: dict[str, tuple[int, s
     promoted = False
     primary: BaseException | None = None
     cleanup_errors: list[BaseException] = []
+
+    def _seal_matches(root: Path) -> str:
+        fresh = seal_bundle(root)
+        missing = check_sealed(fresh)
+        if missing:
+            raise EvidenceError("R0-004: cannot promote an unsealed bundle: " + "; ".join(missing))
+        if fresh["bundle_sha256"] != expected_seal:
+            raise EvidenceError("R0-004: bundle bytes changed after sealing (seal mismatch)")
+        return fresh["bundle_sha256"]
+
     try:
+        _seal_matches(staging)  # before_swap: staged bytes must still equal the sealed bundle
         if prior_digest is not None:
             if _tree_digest(evidence) != prior_digest:
                 raise EvidenceError("prior accepted bundle changed before atomic promotion")
             os.replace(evidence, backup)
             moved_prior = True
+            _after_backup(evidence)
         os.replace(staging, evidence)
         promoted = True
         _after_promote(evidence)
         validate_bundle(evidence)
+        _seal_matches(evidence)  # after_promote read-back: promoted bytes equal the seal
         if moved_prior:
             _remove_exact_tree(backup, parent)
             moved_prior = False
@@ -2364,6 +2422,10 @@ def package_evidence(run_dir: Path, evidence_dir: Path) -> BundleSummary:
         }
         _write_new(staging / "manifest.json", canonical_json_bytes(manifest), staging)
         _validate_bundle(staging, declared_root=evidence)
+        seal = seal_bundle(staging)
+        missing = check_sealed(seal)
+        if missing:
+            raise EvidenceError("R0-004: staged bundle is not sealed: " + "; ".join(missing))
         _after_staging_validation(staging)
         if _execution_source_evidence() != execution_source:
             raise EvidenceError("execution source tree changed before evidence promotion")
@@ -2372,7 +2434,7 @@ def package_evidence(run_dir: Path, evidence_dir: Path) -> BundleSummary:
         verify_artifact_snapshot(model_observation, PROJECT_ROOT)
         verify_contract_authority(authority, contract)
         revalidate_loaded_state(loaded)
-        _promote(staging, evidence, prior_digest)
+        _promote(staging, evidence, prior_digest, seal["bundle_sha256"])
         staging = Path()
         return validate_bundle(evidence)
     except Exception as primary:

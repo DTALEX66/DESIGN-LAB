@@ -19,7 +19,7 @@ Host / Agent / Tool Adapters      = 在现有工作界面中执行能力
 Preflight / Handoff / Evidence    = 商业生产闭环
 ```
 
-设计师在已接入的宿主（当前为 Open Design 参考入口，未来可为 Adobe/Figma/Blender/ComfyUI 等）中工作；DESIGN-LAB 提供合同、方法、质量门、可编辑交付和适配器。**host-native first，不重建第二画布、聊天客户端、模型网关或通用 SaaS 后端。**
+设计师在已接入的宿主/工具 Adapter（Open Design、Adobe/Figma/Blender/ComfyUI 等，按需接入）中工作；DESIGN-LAB 自身可独立完成设计生产闭环（Standalone-first，ADR-001），提供合同、方法、质量门、可编辑交付和适配器。**host-native first，不重建第二画布、聊天客户端、模型网关或通用 SaaS 后端，不依赖未安装的外部项目。**
 
 ## 视觉设计是第一主线
 

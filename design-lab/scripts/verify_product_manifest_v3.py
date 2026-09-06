@@ -179,7 +179,7 @@ def verify_manifest_shape(root: Path, manifest: dict[str, Any], results: list[Re
         check(results, f"family {family_id}: paths present", bool(paths), str(paths))
         for rel in paths:
             rel_text = str(rel)
-            root_relative_prefixes = (ASSISTANCE_DIR, ".github", ".hermes", "LICENSING", "THIRD_PARTY", "research/", "packages/", "integrations/", "vendor/", "docs/", "fixtures/")
+            root_relative_prefixes = (ASSISTANCE_DIR, ".github", ".hermes", ".project-local", "LICENSING", "THIRD_PARTY", "research/", "packages/", "integrations/", "vendor/", "docs/", "fixtures/")
             resolved_rel = rel_text if rel_text.startswith(root_relative_prefixes) else f"{ASSISTANCE_DIR}/{rel_text}"
             require_path(results, root, resolved_rel)
 
@@ -282,9 +282,76 @@ def print_results(results: list[Result]) -> int:
     return 0 if not failed else 1
 
 
+
+ROOT_REL_PREFIXES = (
+    ASSISTANCE_DIR,
+    ".github",
+    ".hermes",
+    ".project-local",
+    "LICENSING",
+    "THIRD_PARTY",
+    "research/",
+    "packages/",
+    "integrations/",
+    "vendor/",
+    "docs/",
+    "fixtures/",
+)
+HISTORICAL_MARKERS = ("history", "historical", "reports/history", "docs/history")
+
+
+def check_ref_safety(root: Path, results: list[Result], manifest: dict) -> None:
+    """R0-002 / PR115-F07: manifest path references must be scanned against the
+    REAL manifest structure (capabilityFamilies[].paths[]), must exist on disk,
+    stay inside the repository, and never point at a historical-only tree.
+    Uses the same Result/require_path machinery as the rest of the verifier so
+    failures print and exit non-zero instead of crashing on str results."""
+    scanned = 0
+    families = manifest.get("capabilityFamilies") if isinstance(manifest.get("capabilityFamilies"), list) else []
+    if not families:
+        check(results, "R0-002: capabilityFamilies present", False, "no families to scan")
+    for fam in families:
+        if not isinstance(fam, dict):
+            check(results, "R0-002: family is object", False, str(fam))
+            continue
+        family_id = str(fam.get("id", "?"))
+        paths = fam.get("paths") if isinstance(fam.get("paths"), list) else []
+        if not paths:
+            check(results, f"R0-002 family {family_id}: paths present", False, "no referenced paths")
+        for rel in paths:
+            rel_text = str(rel)
+            if not rel_text:
+                check(results, f"R0-002 family {family_id}: non-empty ref", False, repr(rel))
+                continue
+            resolved_rel = rel_text if rel_text.startswith(ROOT_REL_PREFIXES) else f"{ASSISTANCE_DIR}/{rel_text}"
+            # existence + containment + reparse hygiene via the shared gate
+            require_path(results, root, resolved_rel)
+            scanned += 1
+            # traversal guard
+            if any(part == ".." for part in Path(rel_text).parts):
+                check(results, f"R0-002 family {family_id}: no traversal in {rel_text}", False, rel_text)
+            else:
+                check(results, f"R0-002 family {family_id}: no traversal in {rel_text}", True)
+            # historical-only tree guard
+            if any(marker in rel_text for marker in HISTORICAL_MARKERS):
+                check(results, f"R0-002 family {family_id}: not historical {rel_text}", False, rel_text)
+            else:
+                check(results, f"R0-002 family {family_id}: not historical {rel_text}", True)
+    entrypoints = manifest.get("entrypoints") if isinstance(manifest.get("entrypoints"), dict) else {}
+    for group in ("human", "machine", "verification"):
+        entries = entrypoints.get(group) if isinstance(entrypoints.get(group), list) else []
+        for rel in entries:
+            rel_text = str(rel)
+            if not rel_text:
+                continue
+            require_path(results, root, rel_text, file=True)
+            scanned += 1
+    check(results, f"R0-002: refs scanned = {scanned}", scanned > 0, str(scanned))
+
 def main() -> int:
     root = repo_root()
     results: list[Result] = []
+    check_ref_safety(root, results, json.loads((root / MANIFEST_REL).read_text(encoding='utf-8')))
     manifest, capability_status = verify_json_contracts(root, results)
     verify_manifest_shape(root, manifest, results)
     verify_capability_status(capability_status, results)

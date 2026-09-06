@@ -10,7 +10,7 @@ REPO = Path(__file__).resolve().parents[2]
 REGISTRY = REPO / "integrations" / "adapter-registry.json"
 SCHEMA = REPO / "design-lab" / "schemas" / "adapter-contract.schema.json"
 
-VALID_STATUSES = {"declared", "structural", "runtime", "missing", "unsupported"}
+VALID_STATUSES = {"declared", "structural", "runtime", "missing", "unsupported", "BLOCKED_BY_LICENSE"}
 
 
 class AdapterRegistryTest(unittest.TestCase):
@@ -83,6 +83,45 @@ class AdapterRegistryTest(unittest.TestCase):
         data = json.loads(REGISTRY.read_text(encoding="utf-8"))
         for ad in data["adapters"]:
             jsonschema.validate(instance=ad, schema=schema)
+
+    def test_blocked_license_status_is_legal_but_not_executable(self):
+        """R0-006: BLOCKED_BY_LICENSE is a legal gate, not an execution claim.
+
+        Schema-accepted, but every capability must be supported=false and the
+        entry must carry a license string (rights decision ref). A blocked
+        adapter must never advertise an executable capability.
+        """
+        import jsonschema
+        schema = json.loads(SCHEMA.read_text(encoding="utf-8"))
+        data = json.loads(REGISTRY.read_text(encoding="utf-8"))
+        blocked = [ad for ad in data["adapters"] if ad.get("status") == "BLOCKED_BY_LICENSE"]
+        self.assertTrue(blocked, "expected at least one BLOCKED_BY_LICENSE adapter (R0-006 H3 gate)")
+        for ad in blocked:
+            # legal: schema validates
+            jsonschema.validate(instance=ad, schema=schema)
+            # but not executable: no capability may be advertised as supported
+            for cap in ad["capabilities"]:
+                self.assertFalse(
+                    cap.get("supported"),
+                    f"{ad['adapter_id']} blocked by license but {cap['name']} is supported",
+                )
+            self.assertTrue(ad.get("license"), f"{ad['adapter_id']} blocked but no license field")
+
+    def test_schema_rejects_supported_capability_when_blocked(self):
+        """Schema-level negative fixture: BLOCKED_BY_LICENSE + supported=true must fail."""
+        import jsonschema
+        schema = json.loads(SCHEMA.read_text(encoding="utf-8"))
+        bad = {
+            "adapter_id": "adapter-x",
+            "tool": "X",
+            "status": "BLOCKED_BY_LICENSE",
+            "mode": "none",
+            "license": "proprietary",
+            "capabilities": [{"name": "c1", "supported": True}],
+            "evidence": {"level": "E0", "runtime_version": None, "task_ids": [], "artifact_paths": [], "note": ""},
+        }
+        errors = list(jsonschema.Draft202012Validator(schema).iter_errors(bad))
+        self.assertTrue(errors, "blocked adapter with supported capability must be rejected")
 
 
 if __name__ == "__main__":

@@ -15,6 +15,8 @@ from pathlib import Path, PurePath, PurePosixPath
 from typing import Any
 
 from .contracts import ContractError, validate_run_contract
+from .runtime_roots import RUNTIME_PARENT as _RUNTIME_PARENT
+from .runtime_roots import runtime_root as _canonical_runtime_root
 
 PROJECT_ROOT = Path(__file__).resolve().parents[3]
 JOURNAL_SCHEMA = "design-lab/reconstruction-journal/v1"
@@ -1499,12 +1501,10 @@ def record_transition(
 
 def rollback_run(run_dir: Path, target: Path | None = None) -> RollbackSummary:
     lexical_run = Path(os.path.abspath(os.fspath(run_dir)))
-    expected_parent = PROJECT_ROOT / ".hermes" / "task-runtime" / "reconstruction"
+    expected_parent = _RUNTIME_PARENT
     if lexical_run.parent != expected_parent:
         raise RollbackBoundaryError("rollback run directory is not one canonical reconstruction run root")
-    runtime_relative = (
-        f".hermes/task-runtime/reconstruction/{lexical_run.name}/"
-    )
+    runtime_relative = _canonical_runtime_root(lexical_run.name)
     known_output_paths = set(_pipeline_output_paths(runtime_relative).values())
     known_checkpoint_paths = {
         runtime_relative + f"checkpoints/{sequence:04d}.json"

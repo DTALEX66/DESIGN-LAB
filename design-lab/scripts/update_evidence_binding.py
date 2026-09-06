@@ -18,7 +18,7 @@ Usage:
   python update_evidence_binding.py --attestation
                                               emit a runtime Evidence Attestation
                                               (subjectCommitSha/subjectTreeSha) to
-                                              .hermes/task-runtime/ (not committed);
+                                              .project-local/task-runtime/ (not committed);
                                               this is the CURRENT_EXACT artifact
                                               the release gate consumes
 """
@@ -33,7 +33,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent.parent
 INDEX = ROOT / "design-lab" / "config" / "capability-evidence-index.json"
 BINDING_KEY = "lastVerifiedTree"
-ATTR_OUT = ROOT / ".hermes" / "task-runtime" / "evidence"
+ATTR_OUT = ROOT / ".project-local" / "task-runtime" / "evidence"
 
 SHA40 = "0123456789abcdef"
 

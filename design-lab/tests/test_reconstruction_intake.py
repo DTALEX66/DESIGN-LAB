@@ -118,7 +118,7 @@ def _intake_run_contract(
     height: int = 64,
     profile: str = "flat",
 ) -> dict:
-    runtime = f".hermes/task-runtime/reconstruction/{run_id}/"
+    runtime = f".project-local/task-runtime/reconstruction/{run_id}/"
     normalized = runtime + "reference.normalized.png"
     source_rel = source.resolve().relative_to(PROJECT_ROOT).as_posix()
     now = datetime.now(timezone.utc)
@@ -148,7 +148,7 @@ def _intake_run_contract(
         },
         "roots": {
             "runtime": runtime,
-            "evidence": f".hermes/task-artifacts/reconstruction/{run_id}/",
+            "evidence": f".project-local/task-artifacts/reconstruction/{run_id}/",
         },
         "providerPolicy": {
             "defaultProvider": "local",
@@ -193,12 +193,12 @@ def _intake_run_contract(
 
 class ReconstructionIntakeTests(unittest.TestCase):
     def setUp(self) -> None:
-        root = PROJECT_ROOT / ".hermes" / "task-runtime" / "reconstruction-tests"
+        root = PROJECT_ROOT / ".project-local" / "task-runtime" / "reconstruction-tests"
         self.token = uuid.uuid4().hex
         self.scratch = root / self.token
         self.scratch.mkdir(parents=True)
         self.canonical_runtime_root = (
-            PROJECT_ROOT / ".hermes" / "task-runtime" / "reconstruction"
+            PROJECT_ROOT / ".project-local" / "task-runtime" / "reconstruction"
         )
         self.run_dirs: list[Path] = []
 

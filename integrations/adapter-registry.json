@@ -17,15 +17,15 @@
       "capabilities": [
         {
           "name": "studio-canvas",
-          "supported": true
+          "supported": false
         },
         {
           "name": "agent-launch",
-          "supported": true
+          "supported": false
         },
         {
           "name": "artifact-export",
-          "supported": true
+          "supported": false
         }
       ],
       "status": "structural",
@@ -37,7 +37,7 @@
         "runtime_version": "0.18.1 (compatibility-baseline.json)",
         "task_ids": [],
         "artifact_paths": [],
-        "note": "Plugin/Bundle manifests exist and pass structural verification; live Open Design runtime registration (E3) is pending Phase 3."
+        "note": "historical structural only (E1); no current execute/readback/rollback on tree 2aca27f | Plugin/Bundle manifests exist and pass structural verification; live Open Design runtime registration (E3) is pending Phase 3."
       },
       "rollback": "git history revert + plugin manifest version pin; host updates are user-managed (第三方应用更新缓存不迁移)"
     },
@@ -47,11 +47,11 @@
       "capabilities": [
         {
           "name": "import",
-          "supported": true
+          "supported": false
         },
         {
           "name": "export",
-          "supported": true
+          "supported": false
         }
       ],
       "status": "declared",
@@ -63,7 +63,7 @@
         "runtime_version": null,
         "task_ids": [],
         "artifact_paths": [],
-        "note": "No versioned CLI integration or runtime task recorded; capability is reference-only until exercised."
+        "note": "no current execute evidence | No versioned CLI integration or runtime task recorded; capability is reference-only until exercised."
       },
       "rollback": "switch to fallback (Penpot) or git revert of exported tokens/manifest"
     },
@@ -73,7 +73,7 @@
       "capabilities": [
         {
           "name": "import",
-          "supported": true
+          "supported": false
         }
       ],
       "status": "declared",
@@ -85,7 +85,7 @@
         "runtime_version": null,
         "task_ids": [],
         "artifact_paths": [],
-        "note": "No versioned CLI integration or runtime task recorded; capability is reference-only until exercised."
+        "note": "no current execute evidence | No versioned CLI integration or runtime task recorded; capability is reference-only until exercised."
       },
       "rollback": "switch to fallback (Figma) or git revert of exported tokens/manifest"
     },
@@ -147,15 +147,15 @@
       "capabilities": [
         {
           "name": "dom-render",
-          "supported": true
+          "supported": false
         },
         {
           "name": "visual-regression",
-          "supported": true
+          "supported": false
         },
         {
           "name": "axe-a11y",
-          "supported": true
+          "supported": false
         }
       ],
       "status": "declared",
@@ -167,7 +167,7 @@
         "runtime_version": null,
         "task_ids": [],
         "artifact_paths": [],
-        "note": "Browser/Playwright harness not yet exercised against a pinned version; declared only until a runtime task records artifact + exit code."
+        "note": "no current execute evidence | Browser/Playwright harness not yet exercised against a pinned version; declared only until a runtime task records artifact + exit code."
       },
       "rollback": "switch to fallback (Playwright) or git revert of captured evidence"
     },
@@ -181,7 +181,7 @@
         },
         {
           "name": "workflow-execution",
-          "supported": true
+          "supported": false
         }
       ],
       "status": "runtime",
@@ -197,7 +197,7 @@
         "artifact_paths": [
           "evidence/E3-20260816-end-to-end-generation.md"
         ],
-        "note": "用户授权：H3 t2va 真实生成 + artifact 回读通过"
+        "note": "historical E3 (pre-convergence); no current-tree requalification | 用户授权：H3 t2va 真实生成 + artifact 回读通过"
       },
       "rollback": "git revert of generated artifacts; process isolation prevents host state mutation"
     },
@@ -223,7 +223,7 @@
         "runtime_version": null,
         "task_ids": [],
         "artifact_paths": [],
-        "note": "DL-ADB-PS-001: E0 占位已建；需真实 Photoshop 运行时（manifest/policy 已补全）"
+        "note": "Adobe uninstalled 2026-08-22; historical only | DL-ADB-PS-001: E0 占位已建；需真实 Photoshop 运行时（manifest/policy 已补全）"
       },
       "rollback": "git revert of exported PSD/artifacts; process isolation prevents host state mutation"
     },
@@ -233,14 +233,14 @@
       "capabilities": [
         {
           "name": "video-generation",
-          "supported": true
+          "supported": false
         },
         {
           "name": "motion-bridge",
           "supported": false
         }
       ],
-      "status": "runtime",
+      "status": "BLOCKED_BY_LICENSE",
       "mode": "process-isolated",
       "license": "proprietary (MiniMax API/weights terms)",
       "fallback": "none",
@@ -253,7 +253,7 @@
         "artifact_paths": [
           "evidence/E3-20260816-end-to-end-generation.md"
         ],
-        "note": "用户授权：H3 t2va 最小端到端生成成功"
+        "note": "BLOCKED_BY_LICENSE per Rights Decision R0-006 (personal-research noncommercial; H3 works third-party distribution forbidden; territory gate) | 用户授权：H3 t2va 最小端到端生成成功"
       },
       "rollback": "git revert of generated video artifacts; process isolation prevents host state mutation"
     },
@@ -605,7 +605,7 @@
           "ps-mcp-connect-20260819"
         ],
         "artifact_paths": [],
-        "note": "MCP server connected to PS 2023 (24.5); tool enumeration and a history-state smoke step completed. Editable-file execution, reopen/readback, rollback, and repeated fixture evidence remain unverified."
+        "note": "Adobe uninstalled; historical connection smoke only | MCP server connected to PS 2023 (24.5); tool enumeration and a history-state smoke step completed. Editable-file execution, reopen/readback, rollback, and repeated fixture evidence remain unverified."
       },
       "rollback": "no host mutation until server connected"
     },
@@ -629,7 +629,7 @@
           "ai-mcp-connect-20260819"
         ],
         "artifact_paths": [],
-        "note": "MCP connected (66 tools enumerated) BUT version gate: requires CC 2024+ (local AI 2023 = 27.5.0 rejected); upgrade needed for execution"
+        "note": "Adobe uninstalled; historical connection smoke only | MCP connected (66 tools enumerated) BUT version gate: requires CC 2024+ (local AI 2023 = 27.5.0 rejected); upgrade needed for execution"
       },
       "rollback": "no host mutation until server connected"
     },
@@ -711,9 +711,18 @@
       "adapter_id": "adapter-eagle-webapi",
       "tool": "Eagle (eagle.cool) Web API",
       "capabilities": [
-        {"name": "asset.query", "supported": false},
-        {"name": "asset.import", "supported": false},
-        {"name": "library.switch", "supported": false}
+        {
+          "name": "asset.query",
+          "supported": false
+        },
+        {
+          "name": "asset.import",
+          "supported": false
+        },
+        {
+          "name": "library.switch",
+          "supported": false
+        }
       ],
       "status": "structural",
       "mode": "external-local-api",
@@ -735,8 +744,14 @@
       "adapter_id": "adapter-eagle-mcp",
       "tool": "eagle-mcp-server (npm)",
       "capabilities": [
-        {"name": "asset.query", "supported": false},
-        {"name": "asset.import", "supported": false}
+        {
+          "name": "asset.query",
+          "supported": false
+        },
+        {
+          "name": "asset.import",
+          "supported": false
+        }
       ],
       "status": "declared",
       "mode": "external-cli",

@@ -146,6 +146,51 @@ class ProductManifestTests(unittest.TestCase):
                 [(result.label, result.ok) for result in results],
             )
 
+    def test_ref_gate_scans_real_manifest_paths(self):
+        """PR115-F07: check_ref_safety must scan capabilityFamilies[].paths[]
+        against the real manifest, not the imaginary capabilities[].contract."""
+        m = load("verify_product_manifest_v3.py")
+        manifest = m.load_json(ROOT / "config/product-manifest.json")
+        results: list = []
+        m.check_ref_safety(m.repo_root(), results, manifest)
+        labels = [result.label for result in results]
+        # scanned against real structure
+        scan_line = next((label for label in labels if "refs scanned =" in label), None)
+        self.assertIsNotNone(scan_line, labels)
+        self.assertGreaterEqual(int(scan_line.split("= ")[1]), len(manifest["capabilityFamilies"]))
+        # every scanned family path exists and is inside the repo
+        self.assertFalse(
+            any(("path exists:" in r.label and not r.ok) for r in results),
+            [r.label for r in results if not r.ok],
+        )
+        self.assertFalse(
+            any(("path stays inside repository:" in r.label and not r.ok) for r in results),
+            [r.label for r in results if not r.ok],
+        )
+
+    def test_ref_gate_rejects_missing_traversal_historical_and_empty(self):
+        """PR115-F07: the gate must fail closed (Result objects, no str crash)
+        on missing paths, traversal, historical-only trees, and empty families."""
+        m = load("verify_product_manifest_v3.py")
+        with tempfile.TemporaryDirectory() as raw:
+            root = Path(raw)
+            (root / "design-lab").mkdir()
+            manifest = {
+                "capabilityFamilies": [
+                    {"id": "f1", "paths": ["packages/capabilities/atoms/missing-dir/", "../escape.txt"]},
+                    {"id": "f2", "paths": ["docs/history/old.md"]},
+                    {"id": "f3", "paths": []},
+                ],
+                "entrypoints": {"human": [], "machine": [], "verification": []},
+            }
+            results: list = []
+            m.check_ref_safety(root, results, manifest)  # must not raise on mixed failures
+            failed = [r.label for r in results if not r.ok]
+            self.assertTrue(any("missing-dir" in label for label in failed), failed)
+            self.assertTrue(any("traversal" in label for label in failed), failed)
+            self.assertTrue(any("historical" in label for label in failed), failed)
+            self.assertTrue(any("f3" in label and "paths present" in label for label in failed), failed)
+
 
 class CapabilityEvidenceSurfaceTests(unittest.TestCase):
     def test_detailed_evidence_surfaces_match_current_capability_levels(self):

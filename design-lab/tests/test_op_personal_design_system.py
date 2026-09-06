@@ -32,7 +32,7 @@ class PersonalDesignSystemTest(unittest.TestCase):
         spec.loader.exec_module(cls.installer)
 
     def project_temporary_directory(self):
-        runtime_tmp = REPO_ROOT / ".hermes" / "task-runtime" / "tmp"
+        runtime_tmp = REPO_ROOT / ".project-local" / "task-runtime" / "tmp"
         runtime_tmp.mkdir(parents=True, exist_ok=True)
         return tempfile.TemporaryDirectory(dir=runtime_tmp)
 
@@ -436,7 +436,7 @@ class PersonalDesignSystemTest(unittest.TestCase):
         self.assertEqual(len(observed), 2)
         self.assertTrue(
             observed[1].is_relative_to(
-                ROOT.parent / ".hermes" / "task-runtime" / "tmp"
+                ROOT.parent / ".project-local" / "task-runtime" / "tmp"
             ),
             observed[1],
         )
@@ -459,7 +459,7 @@ class PersonalDesignSystemTest(unittest.TestCase):
             self.assertEqual((target / "marker.txt").read_text(encoding="utf-8"), "old")
 
     def test_stable_mirror_contains_atoms_and_resolves_every_asset_reference(self):
-        runtime_tmp = REPO_ROOT / ".hermes" / "task-runtime" / "tmp"
+        runtime_tmp = REPO_ROOT / ".project-local" / "task-runtime" / "tmp"
         runtime_tmp.mkdir(parents=True, exist_ok=True)
         with tempfile.TemporaryDirectory(dir=runtime_tmp) as tmp:
             mirror = Path(tmp)

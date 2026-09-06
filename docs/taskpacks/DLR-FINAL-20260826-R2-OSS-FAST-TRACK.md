@@ -1,5 +1,7 @@
 # DESIGN-LAB 最终执行任务包
 
+> **SUPERSEDED（历史证据）**：本包由 `docs/taskpacks/DESIGN-LAB-TODAY-EXECUTION-TASKPACK-2026-09-04.md`（DL-TP-20260904-STANDALONE-FIRST）取代。仅作历史证据保留，不作为 current 派工入口；其中与 standalone-first（ADR-001）冲突的表述以 ADR-001 为准。
+
 - TaskPack ID：`DLR-FINAL-20260825-R1`
 - 目标仓库：[DTALEX66/DESIGN-LAB](https://github.com/DTALEX66/DESIGN-LAB)
 - 审计基线：`main@38d322affaec163e7c7ca0e3610042285aab1f0f`

@@ -117,7 +117,7 @@ def _contract(source: Path, run_dir: Path, artifacts: list[dict], *, selected: s
             "path": source_rel,
             "sha256": _sha256(source),
             "profileMetadata": {"name": "test", "version": "1"},
-            "normalizedReferenceTarget": f".hermes/task-runtime/reconstruction/{run_id}/reference.normalized.png",
+            "normalizedReferenceTarget": f".project-local/task-runtime/reconstruction/{run_id}/reference.normalized.png",
         },
         "profile": "flat",
         "canvasPolicy": {
@@ -128,8 +128,8 @@ def _contract(source: Path, run_dir: Path, artifacts: list[dict], *, selected: s
             "tilePolicy": {"enabled": False, "tileWidth": 4096, "tileHeight": 4096, "overlap": 0},
         },
         "roots": {
-            "runtime": f".hermes/task-runtime/reconstruction/{run_id}/",
-            "evidence": f".hermes/task-artifacts/reconstruction/{run_id}/",
+            "runtime": f".project-local/task-runtime/reconstruction/{run_id}/",
+            "evidence": f".project-local/task-artifacts/reconstruction/{run_id}/",
         },
         "providerPolicy": {
             "defaultProvider": "local",
@@ -158,7 +158,7 @@ def _contract(source: Path, run_dir: Path, artifacts: list[dict], *, selected: s
         "cancellationPolicy": {
             "cancelable": True,
             "resume": "checkpoint",
-            "checkpointPath": f".hermes/task-runtime/reconstruction/{run_id}/checkpoint.json",
+            "checkpointPath": f".project-local/task-runtime/reconstruction/{run_id}/checkpoint.json",
         },
         "artifacts": artifacts,
     }
@@ -166,13 +166,13 @@ def _contract(source: Path, run_dir: Path, artifacts: list[dict], *, selected: s
 
 class ReconstructionProviderTests(unittest.TestCase):
     def setUp(self) -> None:
-        self.scratch = PROJECT_ROOT / ".hermes" / "task-runtime" / "provider-tests" / uuid.uuid4().hex
+        self.scratch = PROJECT_ROOT / ".project-local" / "task-runtime" / "provider-tests" / uuid.uuid4().hex
         self.scratch.mkdir(parents=True)
         self.external = self.scratch / "external"
         self.external.mkdir()
         self.source = self.scratch / "source.png"
         self.source.write_bytes(b"source")
-        self.run_dir = PROJECT_ROOT / ".hermes" / "task-runtime" / "reconstruction" / f"provider-{uuid.uuid4().hex}"
+        self.run_dir = PROJECT_ROOT / ".project-local" / "task-runtime" / "reconstruction" / f"provider-{uuid.uuid4().hex}"
         self.run_dir.mkdir(parents=True)
 
     def tearDown(self) -> None:

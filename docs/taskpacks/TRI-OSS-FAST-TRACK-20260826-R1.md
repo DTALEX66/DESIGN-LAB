@@ -1,5 +1,7 @@
 # 三项目开源复用、复刻与融合快速成品化总图
 
+> **SUPERSEDED（历史证据）**：跨项目总规划。DESIGN-LAB 侧由 standalone-first（ADR-001）取代“依赖 WORK-LAB/ArcheAxis 运行”的表述；本图仅作历史证据保留，不作为 current 派工入口。
+
 - 决策 ID：`TRI-OSS-FAST-TRACK-20260826-R1`
 - 调研时间：`2026-08-26 UTC`
 - 输入证据：三项目完整 ChatGPT 对话导出、三份最终任务包、R4 全量审计、三仓云端 `main`、上游官方仓库/文档

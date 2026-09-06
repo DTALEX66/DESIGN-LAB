@@ -99,8 +99,8 @@ def primitive_layer(*, layer_id: str = "primitive-1") -> dict:
 
 
 def minimal_run_contract(run_id: str = "run-001") -> dict:
-    runtime_root = f".hermes/task-runtime/reconstruction/{run_id}/"
-    evidence_root = f".hermes/task-artifacts/reconstruction/{run_id}/"
+    runtime_root = f".project-local/task-runtime/reconstruction/{run_id}/"
+    evidence_root = f".project-local/task-artifacts/reconstruction/{run_id}/"
     now = datetime.now(timezone.utc)
     artifact_paths = [runtime_root + "output.svg", evidence_root + "report.json"]
     return {
@@ -220,11 +220,11 @@ class ReconstructionContractTests(unittest.TestCase):
 
     def test_raster_reparse_escape_outside_project_is_rejected(self):
         run_id = f"rir-reparse-{os.getpid()}"
-        link = PROJECT_ROOT / ".hermes" / "task-runtime" / "reconstruction" / run_id / "escape"
+        link = PROJECT_ROOT / ".project-local" / "task-runtime" / "reconstruction" / run_id / "escape"
         self._make_directory_link(link, PROJECT_ROOT.parent)
         value = minimal_rir()
         value["layers"] = [
-            raster_layer(f".hermes/task-runtime/reconstruction/{run_id}/escape/source.png")
+            raster_layer(f".project-local/task-runtime/reconstruction/{run_id}/escape/source.png")
         ]
         with self.assertRaisesRegex(ContractError, "reparse|outside"):
             validate_rir(value)
@@ -537,7 +537,7 @@ class ReconstructionContractTests(unittest.TestCase):
 
     def test_artifact_and_write_targets_reject_unsafe_paths(self):
         run_id = "run-001"
-        runtime_root = f".hermes/task-runtime/reconstruction/{run_id}/"
+        runtime_root = f".project-local/task-runtime/reconstruction/{run_id}/"
         unsafe_paths = (
             "https://example.test/output.svg",
             "/absolute/output.svg",
@@ -562,7 +562,7 @@ class ReconstructionContractTests(unittest.TestCase):
             with self.subTest(target_field=target_field):
                 run_id = f"run-reparse-{target_field}-{os.getpid()}"
                 runtime_dir = (
-                    PROJECT_ROOT / ".hermes" / "task-runtime" / "reconstruction" / run_id
+                    PROJECT_ROOT / ".project-local" / "task-runtime" / "reconstruction" / run_id
                 )
                 link = runtime_dir / "escape"
                 self._make_directory_link(link, DESIGN_LAB)
@@ -580,10 +580,10 @@ class ReconstructionContractTests(unittest.TestCase):
 
     def test_declared_runtime_root_cannot_be_a_reparse_point(self):
         run_id = f"run-root-reparse-{os.getpid()}"
-        runtime_dir = PROJECT_ROOT / ".hermes" / "task-runtime" / "reconstruction" / run_id
+        runtime_dir = PROJECT_ROOT / ".project-local" / "task-runtime" / "reconstruction" / run_id
         self._make_directory_link(
             runtime_dir,
-            PROJECT_ROOT / ".hermes" / "task-runtime" / "reconstruction-dev",
+            PROJECT_ROOT / ".project-local" / "task-runtime" / "reconstruction-dev",
         )
         value = minimal_run_contract(run_id)
         with self.assertRaisesRegex(ContractError, "roots.*reparse|reparse.*roots"):
@@ -602,6 +602,46 @@ class ReconstructionContractTests(unittest.TestCase):
                     value["writeAuthorization"]["state"] = invalid
                 with self.assertRaises(ContractError):
                     validate_run_contract(value)
+
+
+class RuntimeRootMigrationTests(unittest.TestCase):
+    """PR115-F06 / DL-TP-R0-003: active reconstruction mainline must resolve
+    run/evidence roots through .project-local; legacy .hermes roots are rejected."""
+
+    def test_legacy_hermes_runtime_root_is_rejected(self):
+        """A run contract declaring .hermes roots must not validate."""
+        value = minimal_run_contract("run-legacy")
+        value["roots"] = {
+            "runtime": f".hermes/task-runtime/reconstruction/run-legacy/",
+            "evidence": f".hermes/task-artifacts/reconstruction/run-legacy/",
+        }
+        with self.assertRaisesRegex(ContractError, "roots"):
+            validate_run_contract(value)
+
+    def test_resolver_points_at_project_local(self):
+        from reconstruction import runtime_roots
+
+        self.assertTrue(runtime_roots.RUNTIME_REL.startswith(".project-local/"))
+        self.assertTrue(runtime_roots.EVIDENCE_REL.startswith(".project-local/"))
+        self.assertTrue(runtime_roots.LEGACY_RUNTIME_REL.startswith(".hermes/"))
+
+    def test_mainline_modules_have_no_active_hermes_write(self):
+        """R0-003 DoD: rg finds no .hermes write in active reconstruction mainline."""
+        import re
+
+        module_files = sorted(
+            (PROJECT_ROOT / "packages" / "capabilities" / "reconstruction").glob("*.py")
+        )
+        for path in module_files:
+            if path.name == "runtime_roots.py":
+                continue  # resolver intentionally names the legacy root for rejection
+            text = path.read_text(encoding="utf-8")
+            self.assertNotIn(
+                ".hermes/task-runtime", text, f"{path.name} still writes legacy runtime root"
+            )
+            self.assertNotIn(
+                ".hermes/task-artifacts", text, f"{path.name} still writes legacy evidence root"
+            )
 
 
 if __name__ == "__main__":

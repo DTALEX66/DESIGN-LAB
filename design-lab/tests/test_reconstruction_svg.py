@@ -118,7 +118,7 @@ class ReconstructionSVGTests(unittest.TestCase):
     def setUp(self) -> None:
         self.scratch = (
             PROJECT_ROOT
-            / ".hermes"
+            / ".project-local"
             / "task-runtime"
             / "reconstruction-svg-tests"
             / f"{os.getpid()}-{uuid.uuid4().hex}"

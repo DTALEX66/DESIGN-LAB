@@ -13,7 +13,7 @@ from PIL import Image, ImageDraw
 
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
-RUNTIME_ROOT = PROJECT_ROOT / ".hermes" / "task-runtime" / "a3-layer-tests"
+RUNTIME_ROOT = PROJECT_ROOT / ".project-local" / "task-runtime" / "a3-layer-tests"
 sys.path.insert(0, str(PROJECT_ROOT / "design-lab"))
 sys.path.insert(0, str(PROJECT_ROOT / "packages" / "capabilities"))
 

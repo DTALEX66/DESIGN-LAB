@@ -106,6 +106,24 @@
       "evidenceLevel": "E1",
       "lastVerified": "2026-08-14",
       "note": "canonical CI was green on the audited main baseline; this tree still requires human acceptance, independent review and release evidence for E4"
+    },
+    "asset-task-service": {
+      "state": "structural-pass",
+      "evidenceLevel": "E1",
+      "lastVerified": "2026-09-05",
+      "note": "MULTIMODAL T05 structural layer: asset_store + job_store + single-writer lock; unit tests green; no host/runtime execution claimed"
+    },
+    "planar-decomposition": {
+      "state": "structural-pass",
+      "evidenceLevel": "E1",
+      "lastVerified": "2026-09-05",
+      "note": "MULTIMODAL T06 structural layer: decomposition contract + replaceable module seams + model-cache probe (fail-closed); real OCR/trace and AI/PS mapping remain 待实机"
+    },
+    "generation-task-protocol": {
+      "state": "structural-pass",
+      "evidenceLevel": "E1",
+      "lastVerified": "2026-09-05",
+      "note": "MULTIMODAL T09 structural layer: ComfyUI task protocol + state machine; cache-hit never reported as new generation; live ComfyUI execution remains 待实机"
     }
   },
   "promotionRules": [

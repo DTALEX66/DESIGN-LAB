@@ -1,0 +1,4 @@
+* @DTALEX66
+/design-lab/schemas/ @DTALEX66  # schema changes need owner
+/docs/governance/ @DTALEX66  # rights decisions need owner
+/integrations/ @DTALEX66  # adapter/integration changes need owner

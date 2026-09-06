@@ -13,7 +13,7 @@ Pipeline stage implemented here:
     -> dedup keys (content sha256, sourceId, derivedArtifactId)
 
 Nothing is written into the Git tree by this tool: runtime intake state goes to
-`.hermes/task-runtime/intake/` (gitignored). A dry run validates without
+`.project-local/task-runtime/intake/` (gitignored). A dry run validates without
 touching disk state.
 
 Usage:
@@ -34,7 +34,7 @@ import jsonschema
 
 ROOT = Path(__file__).resolve().parent.parent
 MANIFEST_SCHEMA = ROOT / "schemas" / "collection-manifest.schema.json"
-RUNTIME_OUT = ROOT.parent / ".hermes" / "task-runtime" / "intake"
+RUNTIME_OUT = ROOT.parent / ".project-local" / "task-runtime" / "intake"
 
 # DL-KNW-007: copying these artifact types into Git is forbidden.
 # (reference-only citation is allowed; full copies are not)
