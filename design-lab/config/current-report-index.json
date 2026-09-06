@@ -1,7 +1,7 @@
 {
   "schemaVersion": "design-lab/current-report-index/v1",
-  "subjectSha": "9f12c835f3bbbad9eec96b488d1686b17c5995b3",
-  "generatedAt": "2026-09-04T16:49:57Z",
+  "subjectSha": "343a645dcae9bd75e9fedc0c8460289a40fba8c4",
+  "generatedAt": "2026-09-06T03:20:18Z",
   "reports": [
     "CLOUD_BASELINE.json",
     "CLOUD_BASELINE.md",
