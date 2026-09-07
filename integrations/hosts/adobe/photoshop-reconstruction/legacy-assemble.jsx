@@ -68,10 +68,18 @@ function psApplyMask(doc,layer,bounds){
 function psFind(parent,id){var found=null,count=0;function walk(p){for(var i=0;i<p.layers.length;i++){var l=p.layers[i];if(l.name===id){found=l;count++;}if(l.typename==='LayerSet')walk(l);}}walk(parent);if(count!==1)throw Error('absent/ambiguous layer');return found;}
 function psReadback(doc,job){
  if(doc.width.as('px')!==job.width||doc.height.as('px')!==job.height||psPath(doc.fullName.fsName)!==psPath(job.runRoot+'/'+job.outputName))throw Error('document readback mismatch');
+ var seen={};
  function check(parent,list){
   if(parent.layers.length!==list.length)throw Error('layer count mismatch');
+  var indexed={},j,actual,key;
+  for(j=0;j<parent.layers.length;j++){
+   actual=parent.layers[j];key='$'+actual.name;
+   if(seen[key])throw Error('absent/ambiguous layer');
+   seen[key]=true;indexed[key]=actual;
+  }
   for(var i=0;i<list.length;i++){
-   var n=list[i],l=psFind(parent,n.id);
+   var n=list[i],l=indexed['$'+n.id];
+   if(!l)throw Error('absent/ambiguous layer');
    if(n.kind==='group'){if(l.typename!=='LayerSet'||psHasMask(l)!==(n.mask!==null))throw Error('group/mask mismatch');check(l,n.children);}
    else if(n.kind==='text'){if(l.kind!==LayerKind.TEXT||l.textItem.contents!==n.text||l.textItem.font!==n.font||Math.abs(l.textItem.size.as('pt')-n.size)>.01)throw Error('editable text mismatch');}
    else if(l.kind!==LayerKind.NORMAL)throw Error('independent pixel layer missing');
