@@ -19,7 +19,7 @@
 | 对象 | 位置或定位依据 | 已有证据与剩余边界 |
 |---|---|---|
 | ComfyUI portable | `design-toolchain` 下 `toolchains/comfyui/ComfyUI_windows_portable/` | [两轮真实服务及无模型夹具](decisions/R3-COMFY-ENTRY-LIVE-2026-09-07.md)已执行；专用进程已结束。真实模型生成、运行取消和生产协议接入未完成 |
-| Adobe Photoshop（PS） | 公开安装元数据：2025 / 26.7.0.15；`C:/Program Files/Adobe/Adobe Photoshop 2025` | [控制器启动失败记录](decisions/R3-READBACK-AND-H3-PREFLIGHT-2026-09-07.md)保留；未完成真实 PSD 闭环。不得将控制器错误归为软件未安装；不读取用户私有DB |
+| Adobe Photoshop（PS） | 公开安装元数据：2025 / 26.7.0.15；`C:/Program Files/Adobe/Adobe Photoshop 2025`；COM 实测 26.7.0 | [原生 PSD 两次修改/重开/恢复](decisions/R3-PHOTOSHOP-NATIVE-ROUNDTRIP-2026-09-08.md)受控合成案例通过；工作台/复杂参考/UXP 实机仍未完成。[旧控制器失败](decisions/R3-READBACK-AND-H3-PREFLIGHT-2026-09-07.md)保留，不能误判未安装 |
 | Adobe Illustrator（AI） | 公开安装元数据：2025 / 29.5.1；`C:/Program Files/Adobe/Adobe Illustrator 2025` | [批操作实测](decisions/R3-ILLUSTRATOR-BATCH-AUDIT-2026-09-07.md)和[恢复补测](decisions/R3-ILLUSTRATOR-RECOVERY-AUDIT-2026-09-07.md)已有原生工程；生产桥仍未完成，合法路径误拒绝及 SVG 字节差异保留 |
 | MiniMax Design 软件 | 公开安装元数据：3.0.10；`C:/Users/ALEX/AppData/Local/com.minimax.hub`；exe 尚未固定 | 仅安装登记，不读取该目录私有数据；界面/API控制单独验证，不等同 ComfyUI 或 H3 |
 | MiniMax H3 本地模型 | `model-library` 下 `ComfyUI/diffusion_models/minimax_h3_fl2va_pruned_int8_convrot.safetensors` | [四组件固定来源全量校验](decisions/R3-READBACK-AND-H3-PREFLIGHT-2026-09-07.md)已完成；仍未加载或推理，许可适用条件未确认，不开启 profile |

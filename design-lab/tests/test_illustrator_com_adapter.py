@@ -2,6 +2,7 @@
 """Adapter decisions with COM boundary doubled; native qualification is separate."""
 import hashlib
 import json
+import os
 from pathlib import Path
 import sys
 import tempfile
@@ -18,6 +19,9 @@ class IllustratorComAdapterTests(unittest.TestCase):
         parent=ROOT/'.project-local/task-runtime/illustrator-com-tests';parent.mkdir(parents=True,exist_ok=True)
         self.temp=tempfile.TemporaryDirectory(dir=parent);self.addCleanup(self.temp.cleanup)
         self.root=Path(self.temp.name);(self.root/'AGENTS.md').write_text('# synthetic owner',encoding='utf-8')
+        # Each synthetic checkout owns its runtime root, even under CI's outer override.
+        environment=patch.dict(os.environ,{'PROJECT_LOCAL_ROOT':str(self.root/'.project-local')})
+        environment.start();self.addCleanup(environment.stop)
         self.run=self.root/'.project-local/task-artifacts/run';self.run.mkdir(parents=True)
         self.job=dict(schemaVersion='design-lab/adobe-host-job/v1',jobId='com-test',rirHash='a'*64,
             runRoot=str(self.run),artboard=dict(width=8,height=6),layers=[dict(id='layer',items=[dict(id='box',kind='path',
