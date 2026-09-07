@@ -103,6 +103,18 @@ function validateJob(job, approvedRoot) {
                     jobVector(item.points[k].left, 2, -16383, 16383);
                     jobVector(item.points[k].right, 2, -16383, 16383);
                 }
+            } else if (item.kind === "compound") {
+                jobObject(item, ["id", "kind", "contours", "color"]);
+                jobVector(item.color, 3, 0, 255); jobArray(item.contours, 2, 256);
+                var pointCount = 0;
+                for (k = 0; k < item.contours.length; k++) {
+                    var contour = item.contours[k];
+                    if (!contour || contour.kind !== "path" || contour.closed !== true) throw new Error("invalid compound contour");
+                    validateItem(contour, depth + 1); jobArray(contour.points, 3, 10000);
+                    for (var channel = 0; channel < 3; channel++) if (contour.color[channel] !== item.color[channel]) throw new Error("compound color mismatch");
+                    pointCount += contour.points.length;
+                }
+                if (pointCount > 10000) throw new Error("compound point limit");
             } else if (item.kind === "raster") {
                 jobObject(item, ["id", "kind", "assetId", "position", "width", "height"]);
                 if (typeof item.assetId !== "string" || !assets["$" + item.assetId]) throw new Error("unknown asset reference");
@@ -148,6 +160,12 @@ function runApprovedJob(job, approvedRoot) {
                     item.pathPoints[k].rightDirection = spec.points[k].right;
                 }
                 item.stroked = false; item.filled = true; item.fillColor = jobRGB(spec.color);
+            } else if (spec.kind === "compound") {
+                item = parent.compoundPathItems.add(); item.name = spec.id;
+                for (k = 0; k < spec.contours.length; k++) {
+                    var child = buildItem(item, spec.contours[k]);
+                    child.evenodd = false;
+                }
             } else if (spec.kind === "raster") {
                 item = parent.placedItems.add(); item.file = File(assets["$" + spec.assetId]);
                 item.name = spec.id; item.width = spec.width; item.height = spec.height;
@@ -291,6 +309,13 @@ function readbackJob(doc, job) {
                     vector(actual.pathPoints[k].anchor, spec.points[k].anchor);
                     vector(actual.pathPoints[k].leftDirection, spec.points[k].left);
                     vector(actual.pathPoints[k].rightDirection, spec.points[k].right);
+                }
+            } else if (spec.kind === "compound") {
+                actual = parent.compoundPathItems.getByName(spec.id);
+                if (actual.pathItems.length !== spec.contours.length) throw new Error("compound contour count mismatch");
+                for (k = 0; k < spec.contours.length; k++) {
+                    if (actual.pathItems.getByName(spec.contours[k].id).evenodd !== false) throw new Error("compound fill rule mismatch");
+                    readItem(actual, spec.contours[k], false);
                 }
             } else if (spec.kind === "raster") rasterCount++;
             else {

@@ -65,6 +65,15 @@ vm.runInContext('var j=JSON.parse(payload);psValidate(j,j.runRoot)',c);console.l
         self.assertEqual(job['layers'][1]['position'],[4,5])
         self.assertEqual(job['assets'],[dict(id='asset-image',path=str(source))])
 
+    def test_compound_is_explicitly_rejected_without_writes(self):
+        from reconstruction.adobe_job import AdobeJobError
+        rir=self.scene();rir['layers']=rir['layers'][1:]
+        item=rir['layers'][0];del item['primitive']
+        item.update(type='path',geometry=dict(
+            pathData='M4 5 L24 5 L24 15 L4 15Z M8 8 L8 12 L20 12 L20 8Z',closed=True))
+        with self.assertRaises(AdobeJobError):self.builder()(rir,self.run)
+        self.assertEqual(list(self.run.iterdir()),[])
+
     def test_curve_and_existing_output_are_rejected_without_writes(self):
         from reconstruction.adobe_job import AdobeJobError
         build=self.builder();rir=self.scene();rir['layers']=rir['layers'][1:]

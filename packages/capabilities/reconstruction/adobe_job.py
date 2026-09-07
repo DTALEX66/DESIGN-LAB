@@ -211,6 +211,7 @@ def build_photoshop_job(rir: dict[str, Any], run_dir: Path, *, text_styles=None,
         if kind == 'group':
             return dict(id=item['id'], kind='group', children=[convert(n) for n in item['items']],
                         mask=rectangle(item['mask']) if item['mask'] is not None else None)
+        require(kind in ('text', 'raster'), 'Photoshop compound paths unsupported')
         result = copy.deepcopy(item)
         result['position'] = [item['position'][0], height-item['position'][1]]
         require(all(0 <= v <= 16383 for v in result['position']), 'Photoshop position out of range')
