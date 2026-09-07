@@ -87,3 +87,17 @@ Publication was rechecked after `git fetch origin`: local
 again rejected before execution with `approval required by policy, but
 AskForApproval is set to Never`. No alternate transport or approval bypass
 was attempted. This checkpoint is not cloud-synchronized.
+
+## Prepared independent inspection
+
+`design-lab/tests/host_fixtures/inspect_late_psd.py` is a fixed-run, no-argument
+inspection entry. It reads the original request from the service database in
+read-only mode, matches the job file and input hashes, rejects an already-open
+target, then opens only the generated PSD, runs the current linear reader and
+closes its own document. It checks output hashes remain unchanged and retains
+all unrelated document IDs. Its success status explicitly says the artifact
+is unpublished and the original guard is retained.
+
+Preparation validation: Python AST parse PASS. Host execution NOT EXECUTED;
+wait for original query `20260` to return before using it. Do not infer the
+old native task's success from this future independent inspection.
