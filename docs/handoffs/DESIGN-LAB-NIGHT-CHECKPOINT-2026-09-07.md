@@ -22,6 +22,12 @@
 
 ## 接续顺序
 
+### 追加终态（检查点上传后读回）
+
+会话 **14679 已结束，exit 0**：`Ran 762 tests in 1062.010s`，`OK (skipped=2)`，即 **760 PASS / 2 SKIP**，没有失败。终态原始输出（非完整逐点日志）保留 `.project-local/task-artifacts/report-observation-20260907/python-14679-terminal.log`。不再轮询该已完成会话，不再重复全量启动。上文“仍在运行”是交接写入时的历史状态，以本追加终态为准。
+
+已上传代码检查点为 `38b89ff3050e5511ed3981a9019b846fff29f324`，当次本地/跟踪 ref/直接远端读回一致，提交后报告完整性检查通过。该 SHA 的 CI run `34136982157` 在读回时为 in_progress；需后继按 exact SHA 查询终态。这不是 main 合并或正式发布。
+
 1. 读回 14679 终态；若失败，保存实际失败和耗时，不重复全量盲跑。
 2. 将本轮新验证按 source/artifact hash 追加到正式 ledger，保留旧 FAIL 和 STALE；不得将 JS 替身测试提升为 Adobe 实机证据。
 3. 处理可安装包的 SQL 资源和项目根，安装到本项目 ignored 环境，从非仓库 CWD 验证；再实现持久项目/任务 API。

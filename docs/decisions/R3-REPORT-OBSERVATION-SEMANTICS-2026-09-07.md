@@ -22,7 +22,7 @@
 - 其余既有报告测试（证据缺失、源码 hash 变化、错误 SHA、四轴防冒充、输出篡改）均通过；共 25 项。
 - 真仓 generate 与只读 check 均成功。
 - 聚合树统一门会话 81500 终态 exit 0，49 PASS / 0 FAIL；原始终态输出保留 `.project-local/task-artifacts/report-observation-20260907/unified-81500.log`。这是仓库门，不是宿主或模型推理。
-- 完整 Python 测试由 `.venv/Scripts/python.exe -B scripts/run_python_tests.py` 启动，会话 14679；本条记录时仍在运行，后继先读回同一会话，不重复启动。尚无通过结论。
+- 完整 Python 测试由 `.venv/Scripts/python.exe -B scripts/run_python_tests.py` 启动，会话 14679 现已终态 exit 0：762 项、1062.010 秒，760 PASS / 2 SKIP。终态输出保存 `.project-local/task-artifacts/report-observation-20260907/python-14679-terminal.log`。这不是宿主实测；运行期间只新增文档/生成观察和提交，不改被测实现。
 
 ## 迁移、限制与回退
 
