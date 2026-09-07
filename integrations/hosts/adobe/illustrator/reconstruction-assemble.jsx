@@ -20,16 +20,199 @@ function createDocument(job) {
     return doc;
 }
 
-function validateJob(job) {
-    if (!job || job.schemaVersion !== "design-lab/adobe-host-job/v1") throw new Error("invalid host job");
-    if (!job.authorization || job.authorization.required !== true || job.authorization.scope !== "single-session") throw new Error("authorization missing");
-    for (var key in job.targets) assertInside(job.targets[key], job.runRoot);
+function jobObject(value, fields) {
+    if (!value || typeof value !== "object" || value instanceof Array) throw new Error("object required");
+    var allowed = "|" + fields.join("|") + "|", k, i;
+    for (k in value) if (!value.hasOwnProperty(k) || allowed.indexOf("|" + k + "|") < 0) throw new Error("unknown field: " + k);
+    for (i = 0; i < fields.length; i++) if (!value.hasOwnProperty(fields[i])) throw new Error("missing field: " + fields[i]);
 }
 
-function runApprovedJob(job) {
-    validateJob(job);
+function jobArray(value, min, max) {
+    if (!(value instanceof Array) || value.length < min || value.length > max) throw new Error("invalid array size");
+}
+
+function jobNumber(value, min, max) {
+    if (typeof value !== "number" || !isFinite(value) || value < min || value > max) throw new Error("invalid number");
+}
+
+function jobVector(value, count, min, max) {
+    jobArray(value, count, count);
+    for (var i = 0; i < count; i++) jobNumber(value[i], min, max);
+}
+
+function jobId(value, seen) {
+    if (typeof value !== "string" || !/^[A-Za-z][A-Za-z0-9_-]{0,79}$/.test(value)) throw new Error("invalid ID");
+    if (seen["$" + value]) throw new Error("duplicate ID: " + value);
+    seen["$" + value] = true;
+}
+
+function jobPath(value, root) {
+    if (typeof value !== "string" || !/^[A-Za-z]:\//.test(value.replace(/\\/g, "/")) || /[\x00-\x1f<>"|?*]/.test(value) || value.slice(2).indexOf(":") >= 0) throw new Error("absolute local path required");
+    assertInside(value, root);
+}
+
+// approvedRoot comes from the trusted caller's session, never from payload.runRoot.
+// The caller also owns reparse/race checks, asset hashes, rights and writer lease.
+function validateJob(job, approvedRoot) {
+    jobObject(job, ["schemaVersion", "jobId", "rirHash", "runRoot", "artboard", "layers", "assets", "targets", "operations", "authorization"]);
+    if (!job || job.schemaVersion !== "design-lab/adobe-host-job/v1") throw new Error("invalid host job");
+    var ids = {}, assets = {}, i, j, k, item;
+    jobId(job.jobId, {});
+    if (typeof job.rirHash !== "string" || !/^[0-9a-f]{64}$/.test(job.rirHash) || /^0+$/.test(job.rirHash)) throw new Error("invalid RIR hash");
+    if (typeof approvedRoot !== "string" || !/^[A-Za-z]:\//.test(approvedRoot.replace(/\\/g, "/")) || typeof job.runRoot !== "string") throw new Error("trusted root required");
+    if (Folder(job.runRoot).fsName.toLowerCase() !== Folder(approvedRoot).fsName.toLowerCase() || !Folder(approvedRoot).exists) throw new Error("unapproved run root");
+    jobObject(job.authorization, ["required", "scope"]);
+    if (!job.authorization || job.authorization.required !== true || job.authorization.scope !== "single-session") throw new Error("authorization missing");
+    jobObject(job.artboard, ["width", "height"]);
+    jobNumber(job.artboard.width, 1, 16383); jobNumber(job.artboard.height, 1, 16383);
+    jobArray(job.operations, REQUIRED_OPERATIONS.length, REQUIRED_OPERATIONS.length);
+    for (i = 0; i < REQUIRED_OPERATIONS.length; i++) if (job.operations[i] !== REQUIRED_OPERATIONS[i]) throw new Error("invalid operation sequence");
+    jobObject(job.targets, ["ai", "svg", "png"]);
+    for (k in job.targets) {
+        jobPath(job.targets[k], approvedRoot);
+        if (job.targets[k].slice(-(k.length + 1)).toLowerCase() !== "." + k) throw new Error("wrong output extension");
+        if (File(job.targets[k]).exists) throw new Error("refusing existing output");
+    }
+    jobArray(job.assets, 0, 500);
+    for (i = 0; i < job.assets.length; i++) {
+        jobObject(job.assets[i], ["id", "path"]); jobId(job.assets[i].id, ids);
+        jobPath(job.assets[i].path, approvedRoot);
+        if (!/\.(png|jpe?g)$/i.test(job.assets[i].path) || !File(job.assets[i].path).exists) throw new Error("missing or unsupported raster");
+        assets["$" + job.assets[i].id] = job.assets[i].path;
+    }
+    jobArray(job.layers, 1, 100);
+    for (i = 0; i < job.layers.length; i++) {
+        jobObject(job.layers[i], ["id", "items"]); jobId(job.layers[i].id, ids);
+        jobArray(job.layers[i].items, 1, 1000);
+        for (j = 0; j < job.layers[i].items.length; j++) {
+            item = job.layers[i].items[j];
+            if (!item || typeof item !== "object") throw new Error("object required");
+            if (item.kind === "text") {
+                jobObject(item, ["id", "kind", "text", "position", "font", "size", "color"]);
+                if (typeof item.text !== "string" || !item.text.length || item.text.length > 10000) throw new Error("invalid text");
+                if (typeof item.font !== "string" || !item.font.length) throw new Error("font required");
+                app.textFonts.getByName(item.font);
+                jobVector(item.position, 2, -16383, 16383); jobNumber(item.size, 1, 1296);
+                jobVector(item.color, 3, 0, 255);
+            } else if (item.kind === "path") {
+                jobObject(item, ["id", "kind", "points", "closed", "color"]);
+                if (typeof item.closed !== "boolean") throw new Error("closed must be boolean");
+                jobVector(item.color, 3, 0, 255); jobArray(item.points, 2, 10000);
+                for (k = 0; k < item.points.length; k++) {
+                    jobObject(item.points[k], ["anchor", "left", "right"]);
+                    jobVector(item.points[k].anchor, 2, -16383, 16383);
+                    jobVector(item.points[k].left, 2, -16383, 16383);
+                    jobVector(item.points[k].right, 2, -16383, 16383);
+                }
+            } else if (item.kind === "raster") {
+                jobObject(item, ["id", "kind", "assetId", "position", "width", "height"]);
+                if (typeof item.assetId !== "string" || !assets["$" + item.assetId]) throw new Error("unknown asset reference");
+                jobVector(item.position, 2, -16383, 16383);
+                jobNumber(item.width, 0.01, 16383); jobNumber(item.height, 0.01, 16383);
+            } else throw new Error("unsupported object kind");
+            jobId(item.id, ids);
+        }
+    }
+}
+
+function runApprovedJob(job, approvedRoot) {
+    validateJob(job, approvedRoot);
     var doc = createDocument(job);
-    // Layer construction and exports are intentionally driven only by the closed host-job allowlist.
-    // This adapter never invokes arbitrary host menu commands or shell processes.
+    var assets = {}, i, j, k, layer, spec, item, anchors;
+    for (i = 0; i < job.assets.length; i++) assets["$" + job.assets[i].id] = job.assets[i].path;
+    // Layer and item order is back-to-front: each add creates a frontmost object.
+    for (i = 0; i < job.layers.length; i++) {
+        layer = i === 0 ? doc.layers[0] : doc.layers.add();
+        layer.name = job.layers[i].id;
+        for (j = 0; j < job.layers[i].items.length; j++) {
+            spec = job.layers[i].items[j];
+            if (spec.kind === "text") {
+                item = layer.textFrames.add(); item.name = spec.id; item.contents = spec.text;
+                item.position = spec.position;
+                item.textRange.characterAttributes.textFont = app.textFonts.getByName(spec.font);
+                item.textRange.characterAttributes.size = spec.size;
+                item.textRange.characterAttributes.fillColor = jobRGB(spec.color);
+            } else if (spec.kind === "path") {
+                item = layer.pathItems.add(); item.name = spec.id; anchors = [];
+                for (k = 0; k < spec.points.length; k++) anchors.push(spec.points[k].anchor);
+                item.setEntirePath(anchors); item.closed = spec.closed;
+                for (k = 0; k < spec.points.length; k++) {
+                    item.pathPoints[k].leftDirection = spec.points[k].left;
+                    item.pathPoints[k].rightDirection = spec.points[k].right;
+                }
+                item.stroked = false; item.filled = true; item.fillColor = jobRGB(spec.color);
+            } else {
+                item = layer.placedItems.add(); item.file = File(assets["$" + spec.assetId]);
+                item.name = spec.id; item.width = spec.width; item.height = spec.height;
+                item.position = spec.position;
+            }
+        }
+    }
+    var nativeFile = jobNewOutput(job.targets.ai, approvedRoot);
+    var options = new IllustratorSaveOptions();
+    options.pdfCompatible = true; options.compressed = true; options.embedLinkedFiles = true;
+    doc.saveAs(nativeFile, options);
+    if (!nativeFile.exists || nativeFile.length === 0) throw new Error("native output absent");
+    if (doc.fullName.fsName.toLowerCase() !== nativeFile.fsName.toLowerCase()) throw new Error("saved document identity mismatch");
+    doc.close(SaveOptions.DONOTSAVECHANGES);
+    doc = app.open(nativeFile);
+    if (doc.fullName.fsName.toLowerCase() !== nativeFile.fsName.toLowerCase()) throw new Error("reopened document identity mismatch");
+    readbackJob(doc, job);
+    var png = jobNewOutput(job.targets.png, approvedRoot), po = new ExportOptionsPNG24();
+    po.artBoardClipping = true; po.transparency = true; po.antiAliasing = true;
+    po.horizontalScale = 100; po.verticalScale = 100;
+    doc.exportFile(png, ExportType.PNG24, po);
+    var svg = jobNewOutput(job.targets.svg, approvedRoot), so = new ExportOptionsSVG();
+    so.embedRasterImages = true; so.coordinatePrecision = 4;
+    doc.exportFile(svg, ExportType.SVG, so);
+    if (!png.exists || !png.length || !svg.exists || !svg.length) throw new Error("preview output absent");
+    // SVG export can change the in-memory document's file association in this host.
+    // Never return that export-associated document as the native editing session.
+    doc.close(SaveOptions.DONOTSAVECHANGES);
+    doc = app.open(nativeFile);
+    if (doc.fullName.fsName.toLowerCase() !== nativeFile.fsName.toLowerCase()) throw new Error("final native identity mismatch");
+    readbackJob(doc, job);
+    // Keep the reopened task document available for caller-owned local patches.
+    // Errors deliberately propagate; the coordinator must reconcile partial effects.
     return doc;
+}
+
+function jobRGB(values) {
+    var c = new RGBColor(); c.red = values[0]; c.green = values[1]; c.blue = values[2]; return c;
+}
+
+function jobNewOutput(path, root) {
+    jobPath(path, root);
+    var f = File(path);
+    if (f.exists || !f.parent.exists) throw new Error("output exists or parent missing");
+    return f;
+}
+
+function readbackJob(doc, job) {
+    var textCount = 0, pathCount = 0, rasterCount = 0, i, j, k, spec, actual;
+    function near(a, b) { if (Math.abs(a - b) > 0.02) throw new Error("numeric readback mismatch"); }
+    function vector(a, b) { for (var n = 0; n < b.length; n++) near(a[n], b[n]); }
+    if (doc.layers.length !== job.layers.length) throw new Error("layer count mismatch");
+    vector(doc.artboards[0].artboardRect, [0, job.artboard.height, job.artboard.width, 0]);
+    for (i = 0; i < job.layers.length; i++) {
+        var layer = doc.layers.getByName(job.layers[i].id);
+        for (j = 0; j < job.layers[i].items.length; j++) {
+            spec = job.layers[i].items[j];
+            if (spec.kind === "text") {
+                textCount++; actual = layer.textFrames.getByName(spec.id);
+                if (actual.contents !== spec.text || actual.textRange.characterAttributes.textFont.name !== spec.font) throw new Error("text/font readback mismatch");
+                near(actual.textRange.characterAttributes.size, spec.size);
+            } else if (spec.kind === "path") {
+                pathCount++; actual = layer.pathItems.getByName(spec.id);
+                if (actual.pathPoints.length !== spec.points.length || actual.closed !== spec.closed) throw new Error("path readback mismatch");
+                for (k = 0; k < spec.points.length; k++) {
+                    vector(actual.pathPoints[k].anchor, spec.points[k].anchor);
+                    vector(actual.pathPoints[k].leftDirection, spec.points[k].left);
+                    vector(actual.pathPoints[k].rightDirection, spec.points[k].right);
+                }
+            } else rasterCount++;
+        }
+    }
+    if (doc.textFrames.length !== textCount || doc.pathItems.length !== pathCount || doc.rasterItems.length !== rasterCount || doc.placedItems.length !== 0) throw new Error("editable object counts mismatch");
+    return {textCount:textCount,pathCount:pathCount,rasterCount:rasterCount};
 }

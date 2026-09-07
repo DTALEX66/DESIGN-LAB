@@ -1,12 +1,12 @@
 {
   "checkScope": "bound-input-and-output-integrity; not current Git or cloud freshness",
-  "generatedAt": "2026-09-07T15:48:43+00:00",
+  "generatedAt": "2026-09-07T16:22:49+00:00",
   "gitObservation": {
     "branch": "codex/r3-runtime-correctness",
     "origin_main": "c4dccd58331bc4561eb89265283d924b7630d113",
-    "sha": "d59a472cc32129dfe9f1df7a22766d3064a83600",
+    "sha": "5bac7f6c3ce4b4568c9b2fb2f9a03ca392445829",
     "source_worktree_clean": false,
-    "tracked_files": 1589
+    "tracked_files": 1594
   },
   "inputHashes": {
     ".github/workflows/canonical-verify.yml": "ca9d33b5d244307c908c60fdd39cfc5288016dd69916d634ed3d5f5b654ef08a",
@@ -385,6 +385,7 @@
     "design-lab/tests/test_history_baseline_retrieval.py": "c941fbed5e8295ed170e7bc3a31dcf1582d4441ca2eb2b3b7d762f6cba0e95a9",
     "design-lab/tests/test_identity_scan_boundary.py": "038633b27aac3540c68dd36c4f82e26ff831d42a27fb1f71b54f821ef427bfff",
     "design-lab/tests/test_illustrator_bridge_paths.py": "9608d2f795c62de96b21513de5140f65628025a80b31c9dffa60ca38f7adff4d",
+    "design-lab/tests/test_illustrator_job_validation.py": "3bc69fdbf6563d7f569beec9527065fbac536dd92d4b042781e81d9c880f61ca",
     "design-lab/tests/test_image_import_recovery.py": "9335f453433f67ff483f12573cfe62db384ebe427e2bf0a0302b81eeda8436ed",
     "design-lab/tests/test_installed_state_resources.py": "e178091e882ef695ecbfb9ea5ba870efcbb6230be46ce0ef3fc138c413f36798",
     "design-lab/tests/test_job_store.py": "aac86a8610a914a67e0cff28ea932b24d2d8dd0540f1b8e937bebc1e7247a6e2",
@@ -472,7 +473,7 @@
     "integrations/generators/comfyui/rights-and-provider-policy.md": "98bd1227ac4ba6f12789ae1ff27eaebc4c936710443c6932e47cea03cd8b93de",
     "integrations/generators/minimax-h3/rights-and-provider-policy.md": "fbdff9adb4b00f571653d0cd583a86d8ba0325a52f0e9ff0cc5a5c9a42920553",
     "integrations/hosts/adobe/evidence/README.md": "70baf026a88d4aa91bc82b398897cece1ae53f815ab7077c1491f8da552522fb",
-    "integrations/hosts/adobe/illustrator/reconstruction-assemble.jsx": "e3f02ba390343ee2237215f4511ee81ddc2cae1f098f8fd86a512dee35907d99",
+    "integrations/hosts/adobe/illustrator/reconstruction-assemble.jsx": "7e5b795a69609b5b7886205a91f94c32a280ff65288347f822e7ce0c4187e525",
     "integrations/hosts/adobe/rights-and-provider-policy.md": "2ec09f019f98f32b4c87fecfa03d12e905edb1498397d069d3838080bdbf5ab9",
     "integrations/hosts/open-design/verifier/verify_open_design_host_adapter.py": "4edb8cdbf11bb09e3fac4755a2ae6f06fb593d6ee71d7ac8f9aef0c1d539450c",
     "packages/capabilities/reconstruction/__init__.py": "fe4e39ba1cebec6e8cad455bbc86cbefb549a84785d430624a126238e13dceac",
@@ -538,15 +539,15 @@
   },
   "ledger": "design-lab/config/task-ledger-r3.json",
   "outputHashes": {
-    "ADAPTER_EVIDENCE_RECONCILIATION.json": "29722c8e96b5f156c9d172a8441cb2a8aed483e960a4dfa33a38cf82a275d3bc",
-    "CLOUD_BASELINE.json": "18bebe05752c4884bd49c7ee3cc93e14a5b6abeaabc69b137e3d5003d4b159b2",
-    "CLOUD_BASELINE.md": "f21596bec4c88fdd814d74b3ad6b6c587723d475a14ecffd7fc732bae812ea73",
-    "DOMAIN_PACK_READINESS.json": "1258ebdb32ad62a8a3967492ca3fca10f2bcfcdbdefe969a5c061b5d34ad2b81",
-    "KNOWLEDGE_INVENTORY.json": "1763cda4e42f0ef1564f42965a9ac637c908b2f1f32d9436a27a2f0484f739ab",
-    "PROJECT_STATUS.json": "354ef6507fc1f9cd48fdcfb2936a7e12da99afe4d84092e4c67a030e15ed2534",
-    "PROJECT_STATUS.md": "9b0144b72b893a8442de532bd7e946db2f04a1bc22c0989b7418376adab64764",
-    "RELEASE_READINESS.json": "0b57b36d47136153712d1568385279da0dfdcf0d99ed177bc6a58832a38e4a98",
-    "TASK_PROGRESS.json": "71d66e7df5c65e89c5d32c58dbcdcf51c7a9fcbf1cfb3351dbef0cbaa66a45e6"
+    "ADAPTER_EVIDENCE_RECONCILIATION.json": "e3b0f0c41389ffff3448dce81c3e7381d353b1ad4e0c83f7c416d9b9083f5694",
+    "CLOUD_BASELINE.json": "d19b4ac5153d42ae96852434d250c831fd7614317945f74627cb53ef867dd5c3",
+    "CLOUD_BASELINE.md": "56152bd1b45a3b3bea971abb7b3a865ed993957faf47564a5d0a2d2fd16af678",
+    "DOMAIN_PACK_READINESS.json": "fe73d38a202f8b4bbabfd6c9b8abe4ad15f395507be10bcda08e37a0cbaf68d2",
+    "KNOWLEDGE_INVENTORY.json": "0174fb026704dfc860130ed98dbee1bb166ce9f6164db0ff1f6341b36686ec5f",
+    "PROJECT_STATUS.json": "5012a2be98585d8d8c7bfcc86ae15731d246c13cbb37f95bdbb7c9a0838894ad",
+    "PROJECT_STATUS.md": "e1991ea7fe765b25c27bb2dd5d8075bc33e572439d248875ea25356e331e37ea",
+    "RELEASE_READINESS.json": "b8a87cc1fd80ff17cee06c5b03e27db248adfcdce681724f893e3a23a8055273",
+    "TASK_PROGRESS.json": "51544358b816891c6b6ec8a5b08e19b0ba7d9d11d81fab3b610aecb4c4b6e9ab"
   },
   "reportRoot": "../../reports/current/",
   "reports": [
@@ -561,5 +562,5 @@
     "RELEASE_READINESS.json"
   ],
   "schemaVersion": "design-lab/current-report-index/v3",
-  "subjectSha": "d59a472cc32129dfe9f1df7a22766d3064a83600"
+  "subjectSha": "5bac7f6c3ce4b4568c9b2fb2f9a03ca392445829"
 }
