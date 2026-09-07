@@ -25,13 +25,19 @@ build-backend = "hatchling.build"
 packages = ["src/design_lab"]
 
 [tool.hatch.build.targets.wheel.force-include]
+"packages/capabilities/reconstruction/__init__.py" = "design_lab/reconstruction/__init__.py"
+"packages/capabilities/reconstruction/contracts.py" = "design_lab/reconstruction/contracts.py"
+"packages/capabilities/reconstruction/adobe_job.py" = "design_lab/reconstruction/adobe_job.py"
+"packages/capabilities/reconstruction/adobe_lowering.py" = "design_lab/reconstruction/adobe_lowering.py"
+"design-lab/schemas/reconstruction/reconstruction-ir.schema.json" = "design_lab/resources/reconstruction/reconstruction-ir.schema.json"
+"design-lab/schemas/reconstruction/reconstruction-run.schema.json" = "design_lab/resources/reconstruction/reconstruction-run.schema.json"
 "design-lab/schemas/state" = "design_lab/resources/state"
 "apps/workbench" = "design_lab/resources/workbench"
 "integrations/hosts/adobe/illustrator/reconstruction-assemble.jsx" = "design_lab/resources/adobe/reconstruction-assemble.jsx"
 "integrations/hosts/adobe/photoshop-reconstruction/legacy-assemble.jsx" = "design_lab/resources/adobe/photoshop-native-assemble.jsx"
 
 [tool.hatch.build.targets.sdist]
-only-include = ["src/design_lab", "design-lab/schemas/state", "apps/workbench", "integrations/hosts/adobe/illustrator/reconstruction-assemble.jsx", "integrations/hosts/adobe/photoshop-reconstruction/legacy-assemble.jsx", "pyproject.toml"]
+only-include = ["src/design_lab", "design-lab/schemas/state", "apps/workbench", "integrations/hosts/adobe/illustrator/reconstruction-assemble.jsx", "integrations/hosts/adobe/photoshop-reconstruction/legacy-assemble.jsx", "packages/capabilities/reconstruction/__init__.py", "packages/capabilities/reconstruction/contracts.py", "packages/capabilities/reconstruction/adobe_job.py", "packages/capabilities/reconstruction/adobe_lowering.py", "design-lab/schemas/reconstruction/reconstruction-ir.schema.json", "design-lab/schemas/reconstruction/reconstruction-run.schema.json", "pyproject.toml"]
 
 [tool.pytest.ini_options]
 testpaths = ["design-lab/tests"]

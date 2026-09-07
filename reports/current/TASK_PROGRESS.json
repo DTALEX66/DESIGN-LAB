@@ -1029,6 +1029,7 @@
       "reasons": [
         "STALE_SUBJECT_SHA",
         "SOURCE_CHANGED_OR_MISSING:packages/capabilities/reconstruction/adobe_job.py",
+        "SOURCE_CHANGED_OR_MISSING:packages/capabilities/reconstruction/contracts.py",
         "SOURCE_CHANGED_OR_MISSING:src/design_lab/runtime/asset_store.py",
         "SOURCE_CHANGED_OR_MISSING:src/design_lab/runtime/job_store.py",
         "SOURCE_CHANGED_OR_MISSING:src/design_lab/runtime/state_store.py"
@@ -1658,6 +1659,7 @@
         "SOURCE_CHANGED_OR_MISSING:.project/paths.json",
         "SOURCE_CHANGED_OR_MISSING:design-lab/tests/test_current_reporting.py",
         "SOURCE_CHANGED_OR_MISSING:design-lab/tests/test_project_paths.py",
+        "SOURCE_CHANGED_OR_MISSING:packages/capabilities/reconstruction/contracts.py",
         "SOURCE_CHANGED_OR_MISSING:src/design_lab/governance/reporting.py",
         "SOURCE_CHANGED_OR_MISSING:src/design_lab/runtime/asset_store.py",
         "SOURCE_CHANGED_OR_MISSING:src/design_lab/runtime/job_store.py",
@@ -2024,6 +2026,7 @@
         "SOURCE_CHANGED_OR_MISSING:.project/paths.json",
         "SOURCE_CHANGED_OR_MISSING:design-lab/tests/test_current_reporting.py",
         "SOURCE_CHANGED_OR_MISSING:design-lab/tests/test_project_paths.py",
+        "SOURCE_CHANGED_OR_MISSING:packages/capabilities/reconstruction/contracts.py",
         "SOURCE_CHANGED_OR_MISSING:src/design_lab/governance/reporting.py",
         "SOURCE_CHANGED_OR_MISSING:src/design_lab/runtime/asset_store.py",
         "SOURCE_CHANGED_OR_MISSING:src/design_lab/runtime/doctor.py",
@@ -2204,6 +2207,7 @@
         "SOURCE_CHANGED_OR_MISSING:.project/paths.json",
         "SOURCE_CHANGED_OR_MISSING:src/design_lab/runtime/paths.py",
         "SOURCE_CHANGED_OR_MISSING:src/design_lab/runtime/doctor.py",
+        "SOURCE_CHANGED_OR_MISSING:packages/capabilities/reconstruction/contracts.py",
         "SOURCE_CHANGED_OR_MISSING:design-lab/tests/test_project_paths.py",
         "SOURCE_CHANGED_OR_MISSING:docs/decisions/R3-PROJECT-PATHS-2026-09-06.md"
       ],
@@ -2362,12 +2366,12 @@
   ],
   "fresh": false,
   "freshnessMeaning": "at generation only; check verifies bound-input integrity, not current Git or cloud state",
-  "generatedAt": "2026-09-07T19:14:32+00:00",
+  "generatedAt": "2026-09-07T19:22:46+00:00",
   "gitStateMeaning": "generation-time observation, not current HEAD",
   "ledgerUpdatedAt": "2026-09-06T20:58:17Z",
   "note": "DONE_LOCAL concerns the declared task axes and dependencies, not a product release or hosted CI.",
   "schemaVersion": "design-lab/task-progress/r3-v1",
-  "subjectSha": "f3aea7080db46e926d451fe892a964dba9c0a0ee",
+  "subjectSha": "ed8d45ab2857b312f6056c43f7bb5e19dd9b65eb",
   "taskpack": "DL-TP-20260906-R3",
   "tasks": [
     {

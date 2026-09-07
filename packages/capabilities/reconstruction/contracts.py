@@ -13,9 +13,6 @@ from typing import Any, Iterator
 from jsonschema import Draft202012Validator, FormatChecker, ValidationError
 from jsonschema.exceptions import best_match
 
-from .runtime_roots import runtime_root as _canonical_runtime_root
-from .runtime_roots import evidence_root as _canonical_evidence_root
-
 RIR_SCHEMA_ID = "design-lab/reconstruction-ir/v1"
 RUN_SCHEMA_ID = "design-lab/reconstruction-run/v1"
 
@@ -28,7 +25,12 @@ class ContractError(ValueError):
 
 
 def _load_schema(name: str) -> dict[str, Any]:
-    with (_SCHEMA_DIR / name).open("r", encoding="utf-8") as stream:
+    if __package__.startswith('design_lab.'):
+        from importlib.resources import files
+        source = files('design_lab').joinpath('resources', 'reconstruction', name)
+    else:
+        source = _SCHEMA_DIR / name
+    with source.open("r", encoding="utf-8") as stream:
         schema = json.load(stream)
     Draft202012Validator.check_schema(schema)
     return schema
@@ -70,7 +72,8 @@ def _path_is_within(path: Path, root: Path) -> bool:
     return True
 
 
-def _require_project_relative(path: str, field: str) -> Path:
+def _require_project_relative(path: str, field: str, project_root=None) -> Path:
+    root = Path(project_root) if project_root is not None else _PROJECT_ROOT
     if not isinstance(path, str) or not path:
         raise ContractError(f"{field}: expected a non-empty project-relative path")
     if "\\" in path or re.match(r"^[A-Za-z][A-Za-z0-9+.-]*:", path):
@@ -81,10 +84,10 @@ def _require_project_relative(path: str, field: str) -> Path:
     if any(part in {"", ".", ".."} for part in pure.parts):
         raise ContractError(f"{field}: parent traversal and dot segments are forbidden")
     try:
-        resolved = _PROJECT_ROOT.joinpath(*pure.parts).resolve(strict=False)
+        resolved = root.joinpath(*pure.parts).resolve(strict=False)
     except (OSError, RuntimeError) as exc:
         raise ContractError(f"{field}: cannot resolve path safely: {exc}") from None
-    if not _path_is_within(resolved, _PROJECT_ROOT):
+    if not _path_is_within(resolved, root):
         raise ContractError(f"{field}: reparse resolution escapes outside the project")
     return resolved
 
@@ -110,9 +113,11 @@ def _reject_non_finite_numbers(value: Any, path: str = "$") -> None:
             _reject_non_finite_numbers(child, f"{path}[{index}]")
 
 
-def validate_rir(value: dict) -> None:
+def validate_rir(value: dict, *, project_root=None) -> None:
     """Validate a version-one reconstruction intermediate representation."""
 
+    if __package__.startswith('design_lab.') and project_root is None:
+        raise ContractError('installed RIR validation requires an explicit project root')
     _reject_non_finite_numbers(value)
     _validate_schema(_RIR_VALIDATOR, value)
     seen: set[str] = set()
@@ -122,11 +127,16 @@ def validate_rir(value: dict) -> None:
             raise ContractError(f"$.layers: duplicate node id {node_id!r}")
         seen.add(node_id)
         if node["type"] == "raster":
-            _require_project_relative(node["raster"]["path"], f"node {node_id!r} raster.path")
+            _require_project_relative(node["raster"]["path"], f"node {node_id!r} raster.path", project_root)
 
 
 def validate_run_contract(value: dict) -> None:
     """Validate a run contract, including identity and authorization bindings."""
+
+    if __package__.startswith('design_lab.'):
+        raise ContractError('legacy run-contract validation is source-checkout only; use the installed service task contract')
+    from .runtime_roots import runtime_root as _canonical_runtime_root
+    from .runtime_roots import evidence_root as _canonical_evidence_root
 
     _validate_schema(_RUN_VALIDATOR, value)
     run_id = value["runId"]
@@ -297,10 +307,10 @@ def validate_run_contract(value: dict) -> None:
         raise ContractError("$.lifecycle.state: state does not match lifecycle history")
 
 
-def canonical_rir_bytes(value: dict) -> bytes:
+def canonical_rir_bytes(value: dict, *, project_root=None) -> bytes:
     """Return the validated RIR as canonical compact UTF-8 JSON."""
 
-    validate_rir(value)
+    validate_rir(value, project_root=project_root)
     try:
         text = json.dumps(
             value,
@@ -314,7 +324,7 @@ def canonical_rir_bytes(value: dict) -> bytes:
     return text.encode("utf-8")
 
 
-def canonical_rir_hash(value: dict) -> str:
+def canonical_rir_hash(value: dict, *, project_root=None) -> str:
     """Return SHA-256 of the exact canonical RIR byte sequence."""
 
-    return hashlib.sha256(canonical_rir_bytes(value)).hexdigest()
+    return hashlib.sha256(canonical_rir_bytes(value, project_root=project_root)).hexdigest()

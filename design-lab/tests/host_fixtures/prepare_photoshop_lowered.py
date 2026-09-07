@@ -12,10 +12,15 @@ import sys
 import uuid
 
 ROOT=Path(__file__).resolve().parents[3]
-sys.path.insert(0,str(ROOT/'src'))
-sys.path.insert(0,str(ROOT/'packages/capabilities'))
+INSTALLED='--installed' in sys.argv[1:]
+if not INSTALLED:
+    sys.path.insert(0,str(ROOT/'src'))
+    sys.path.insert(0,str(ROOT/'packages/capabilities'))
 from design_lab.runtime.paths import resolve_paths
-from reconstruction.adobe_job import build_photoshop_job,canonical_rir_hash
+if INSTALLED:
+    import design_lab.reconstruction.adobe_job as producer
+else:
+    import reconstruction.adobe_job as producer
 
 
 def prepare():
@@ -36,12 +41,13 @@ def prepare():
              masks=[dict(id='panel-mask',pathData='M 45 130 L 755 130 L 755 495 L 45 495 Z',operation='intersect',opacity=1)]),
         node('image','raster',300,175,210,210,3,raster=dict(path=(run/'input.png').relative_to(ROOT).as_posix(),crop=dict(x=0,y=0,width=iw,height=ih),alpha=1,sourceMappings=[]))])
     styles={'title':dict(font='ArialMT',size=32,color=[23,45,60])}
-    job=build_photoshop_job(rir,run,text_styles=styles)
+    job=producer.build_photoshop_job(rir,run,text_styles=styles,project_root=ROOT)
     for name,data in [('rir.json',rir),('text-styles.json',styles),('job.json',job)]:
         (run/name).write_text(json.dumps(data,indent=2),encoding='utf-8')
-    proof=dict(rir_sha256=canonical_rir_hash(rir),job_sha256=hashlib.sha256((run/'job.json').read_bytes()).hexdigest(),
+    proof=dict(rir_sha256=producer.canonical_rir_hash(rir,project_root=ROOT),job_sha256=hashlib.sha256((run/'job.json').read_bytes()).hexdigest(),
                input_sha256=hashlib.sha256((run/'input.png').read_bytes()).hexdigest(),
-               producer_sha256=hashlib.sha256((ROOT/'packages/capabilities/reconstruction/adobe_job.py').read_bytes()).hexdigest(),
+               producer_sha256=hashlib.sha256(Path(producer.__file__).read_bytes()).hexdigest(),
+               producer_module=producer.__file__,installed=INSTALLED,
                qualification='synthetic RIR; no inferred source-layer or Human Jury claim')
     (run/'producer-binding.json').write_text(json.dumps(proof,indent=2),encoding='utf-8')
     print(json.dumps(dict(run=str(run),job=str(run/'job.json'))))

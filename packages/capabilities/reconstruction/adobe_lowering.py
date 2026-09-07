@@ -77,7 +77,7 @@ def path_points(data,height):
     return points,closed
 
 
-def lower_layers(rir,root,text_styles):
+def lower_layers(rir,root,text_styles,*,project_root=None):
     height=rir['canvas']['height'];assets=[];used_styles=set()
     require(isinstance(text_styles,dict),'text styles must be explicit map')
     def contour(identity,data,fill,declared=None):
@@ -105,7 +105,8 @@ def lower_layers(rir,root,text_styles):
             return dict(id=identity,kind='text',text=n['text']['content'],position=[b['x'],height-b['y']],**copy.deepcopy(style))
         if kind=='raster':
             r=n['raster'];require(r['alpha']==1 and not r['sourceMappings'],'raster remapping/alpha requires explicit preprocessed asset')
-            source=_inside(Path(__file__).resolve().parents[3]/r['path'],root)
+            owner=Path(project_root) if project_root is not None else Path(__file__).resolve().parents[3]
+            source=_inside(owner/r['path'],root)
             require(source.is_file() and source.suffix.lower() in ('.png','.jpg','.jpeg'),'raster must be staged inside run root')
             require(source.stat().st_size<=32*1024*1024 and source.stat().st_nlink==1,'invalid raster size/link')
             with Image.open(source) as image:

@@ -27,8 +27,8 @@ class AdobeJobError(ContractError):
     """A host-job is malformed, outside its run root, or requests a forbidden operation."""
 
 
-def canonical_rir_hash(rir: dict[str, Any]) -> str:
-    validate_rir(rir)
+def canonical_rir_hash(rir: dict[str, Any], *, project_root=None) -> str:
+    validate_rir(rir, project_root=project_root)
     return hashlib.sha256(json.dumps(rir, allow_nan=False, sort_keys=True, separators=(",", ":")).encode("utf-8")).hexdigest()
 
 
@@ -138,14 +138,26 @@ def validate_adobe_job(value: dict[str, Any]) -> None:
     validate_objects(value,root)
 
 
-def build_adobe_job(rir: dict[str, Any], run_dir: Path, *, text_styles=None) -> AdobeHostJob:
+def _project_owner(project_root, run_dir):
+    if project_root is None:
+        if __package__.startswith('design_lab.'):
+            raise AdobeJobError('installed reconstruction requires an explicit project root')
+        return Path(__file__).resolve().parents[3]
+    from design_lab.runtime.paths import resolve_paths
+    paths = resolve_paths(project_root=project_root)
+    paths.checked_path(run_dir)
+    return paths.project_root
+
+
+def build_adobe_job(rir: dict[str, Any], run_dir: Path, *, text_styles=None, project_root=None) -> AdobeHostJob:
     """Project a validated RIR into one host-owned job without opening a creative application."""
 
-    rir_hash = canonical_rir_hash(rir)
+    owner = _project_owner(project_root, run_dir)
+    rir_hash = canonical_rir_hash(rir, project_root=owner)
     root = _run_root(Path(run_dir))
     targets = _target_map(root)
     from .adobe_lowering import lower_layers
-    layers, assets = lower_layers(rir, root, text_styles or {})
+    layers, assets = lower_layers(rir, root, text_styles or {}, project_root=owner)
     job = AdobeHostJob(
         f"adobe-{rir_hash[:24]}",
         rir_hash,
@@ -161,21 +173,22 @@ def build_adobe_job(rir: dict[str, Any], run_dir: Path, *, text_styles=None) -> 
     return job
 
 
-def build_photoshop_job(rir: dict[str, Any], run_dir: Path, *, text_styles=None) -> dict[str, Any]:
+def build_photoshop_job(rir: dict[str, Any], run_dir: Path, *, text_styles=None, project_root=None) -> dict[str, Any]:
     """Lower the same validated RIR to editable text and independent PSD layers.
 
     General vector paths remain Illustrator-only until a qualified Photoshop
     path consumer exists. This function never silently rasterizes a reference.
     """
     from .adobe_lowering import lower_layers, validate_objects, require
-    rir_hash = canonical_rir_hash(rir)
+    owner = _project_owner(project_root, run_dir)
+    rir_hash = canonical_rir_hash(rir, project_root=owner)
     root = _run_root(Path(run_dir))
     width, height = rir['canvas']['width'], rir['canvas']['height']
     require(type(width) is int and type(height) is int and 1 <= width <= 16383
             and 1 <= height <= 16383 and width * height <= 25_000_000, 'unsupported Photoshop canvas')
     for name in ('master.psd', 'photoshop-preview.png'):
         require(not _inside(root / name, root).exists(), 'Photoshop output already exists')
-    layers, assets = lower_layers(rir, root, text_styles or {})
+    layers, assets = lower_layers(rir, root, text_styles or {}, project_root=owner)
     validate_objects(dict(layers=layers, assets=assets), root)
 
     def rectangle(item):
