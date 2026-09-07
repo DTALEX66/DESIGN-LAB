@@ -61,3 +61,29 @@ Next: poll the same query, observe the exact output root, and independently
 read back late outputs once the host has finished. Preserve the failed
 attempt; neither late file existence nor a new-reader unit test authorizes
 publishing its asset or silently converting its state to success.
+
+## Later preview observation (original attempt still unknown)
+
+`photoshop-preview.png` subsequently appeared (19,413,204 bytes), SHA256
+`53fe760caf72d6b0012cc7dfd27598311d225adaa3f440967d678c0c7202e7fd`.
+Visual inspection shows the complete six-row poster, separate icon layout,
+captions and paragraphs. This is a candidate preview, not proof of editable
+layer structure or the final second reopen/readback.
+
+Direct RGB comparison against the original 2155 x 3000 raster, without any
+resampling or registration, measured MAE 11.0424629544/255 and foreground IoU
+0.7670673130 (mean-channel threshold 128). These are diagnostics, not an
+acceptance percentage or a pixel-exact match. The scripted accepted-receipt
+measurement entry was deliberately not used: its required native receipt
+does not exist. This observation does not fabricate or replace that receipt.
+
+The original read-only COM query remains session `20260`; Photoshop PID
+14148 continued accumulating CPU, so no second job was dispatched.
+
+Publication was rechecked after `git fetch origin`: local
+`e0e548c842db4c4aa997c7396bc6527cbc3ad6f4`, remote development branch
+`ed8d45ab2857b312f6056c43f7bb5e19dd9b65eb`, main
+`c4dccd58331bc4561eb89265283d924b7630d113`. The normal authorized push was
+again rejected before execution with `approval required by policy, but
+AskForApproval is set to Never`. No alternate transport or approval bypass
+was attempted. This checkpoint is not cloud-synchronized.
