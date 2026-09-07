@@ -85,8 +85,14 @@ function psSaveNew(doc,path,root){
  doc.close(SaveOptions.DONOTSAVECHANGES);doc=app.open(f);if(psPath(doc.fullName.fsName)!==psPath(path))throw Error('reopen mismatch');return doc;
 }
 function psExportPNG(doc,path,root){var f=psNew(path,root,'png');doc.saveAs(f,new PNGSaveOptions(),true,Extension.LOWERCASE);if(!f.exists||!f.length)throw Error('PNG absent');}
+function psRejectOpenInputs(job){
+ for(var i=0;i<app.documents.length;i++){
+  var path=null;try{path=app.documents[i].fullName.fsName;}catch(e){} // New unsaved docs have no file identity.
+  if(path!==null)for(var j=0;j<job.assets.length;j++)if(psPath(path)===psPath(job.assets[j].path))throw Error('input already open');
+ }
+}
 function psRunJob(job,root){
- psValidate(job,root);
+ psValidate(job,root);psRejectOpenInputs(job);
  var doc=app.documents.add(UnitValue(job.width,'px'),UnitValue(job.height,'px'),72,job.jobId,NewDocumentMode.RGB,DocumentFill.TRANSPARENT),blank=doc.activeLayer,assets={};
  for(var i=0;i<job.assets.length;i++)assets['$'+job.assets[i].id]=job.assets[i].path;
  function build(parent,n){

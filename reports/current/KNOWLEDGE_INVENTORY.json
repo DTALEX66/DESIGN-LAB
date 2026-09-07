@@ -2,10 +2,10 @@
   "activeRegistryEntries": 6,
   "fresh": false,
   "freshnessMeaning": "at generation only; check verifies bound-input integrity, not current Git or cloud state",
-  "generatedAt": "2026-09-07T18:18:28+00:00",
+  "generatedAt": "2026-09-07T18:29:37+00:00",
   "gitStateMeaning": "generation-time observation, not current HEAD",
   "migrationStatus": "deferred",
   "quarantinedSources": 162,
   "schemaVersion": "design-lab/knowledge-inventory/v1",
-  "subjectSha": "02867f1f1dd06a223171c5a7a5afb700423f59a5"
+  "subjectSha": "1b1da34bad1b58d02d41925266b7d20614569846"
 }

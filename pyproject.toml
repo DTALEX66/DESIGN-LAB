@@ -28,9 +28,10 @@ packages = ["src/design_lab"]
 "design-lab/schemas/state" = "design_lab/resources/state"
 "apps/workbench" = "design_lab/resources/workbench"
 "integrations/hosts/adobe/illustrator/reconstruction-assemble.jsx" = "design_lab/resources/adobe/reconstruction-assemble.jsx"
+"integrations/hosts/adobe/photoshop-reconstruction/legacy-assemble.jsx" = "design_lab/resources/adobe/photoshop-native-assemble.jsx"
 
 [tool.hatch.build.targets.sdist]
-only-include = ["src/design_lab", "design-lab/schemas/state", "apps/workbench", "integrations/hosts/adobe/illustrator/reconstruction-assemble.jsx", "pyproject.toml"]
+only-include = ["src/design_lab", "design-lab/schemas/state", "apps/workbench", "integrations/hosts/adobe/illustrator/reconstruction-assemble.jsx", "integrations/hosts/adobe/photoshop-reconstruction/legacy-assemble.jsx", "pyproject.toml"]
 
 [tool.pytest.ini_options]
 testpaths = ["design-lab/tests"]

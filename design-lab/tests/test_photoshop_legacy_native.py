@@ -11,6 +11,22 @@ JSX=ROOT/'integrations/hosts/adobe/photoshop-reconstruction/legacy-assemble.jsx'
 
 
 class PhotoshopLegacyNativeTests(unittest.TestCase):
+    def test_dirty_open_input_is_rejected_without_closing_user_document(self):
+        node=shutil.which('node')
+        if not node:self.skipTest('Node required')
+        script=r'''
+const fs=require('fs'),vm=require('vm'),path=require('path').win32;let closes=0;
+const c={File:p=>({fsName:path.resolve(p)}),app:{documents:[
+ {saved:false,fullName:{fsName:'D:/run/input.png'},close:()=>{closes++}}
+]}};vm.createContext(c);
+vm.runInContext(fs.readFileSync(process.argv[1],'utf8').replace(/^#target.*$/m,''),c);
+let rejection=null;try{c.psRejectOpenInputs({assets:[{path:'D:/run/input.png'}]})}catch(e){rejection=e.message}
+console.log(JSON.stringify({rejection,closes}));
+'''
+        result=subprocess.run([node,'-e',script,str(JSX)],capture_output=True,text=True,timeout=30)
+        self.assertEqual(result.returncode,0,result.stderr)
+        self.assertEqual(json.loads(result.stdout),{'rejection':'input already open','closes':0})
+
     def test_selection_coordinates_are_explicit_pixels_not_user_ruler_units(self):
         node=shutil.which('node')
         if not node:self.skipTest('Node required')

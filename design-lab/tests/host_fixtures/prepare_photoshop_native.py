@@ -114,9 +114,36 @@ $result=$photoshop.DoJavaScript($source);
     print(json.dumps(dict(status=proof['status'],pixel_change_boxes=boxes)),flush=True)
 
 
+def execute_adapter(run, installed_python):
+    """Qualify the installed product adapter, not this fixture's own COM helper."""
+    executable=resolve_paths(project_root=ROOT).checked_path(installed_python)
+    code="""import json,sys;from pathlib import Path
+import design_lab.adapters.photoshop_com as adapter
+job=json.loads(Path(sys.argv[1]).read_text(encoding='utf-8'))
+result=adapter.execute(job,project_root=sys.argv[2],approved_root=sys.argv[3])
+print(json.dumps(dict(readback=result,interpreter=sys.executable,module=adapter.__file__)))
+"""
+    result=subprocess.run([str(executable),'-I','-B','-c',code,str(run/'job.json'),str(ROOT),str(run)],
+        cwd=run,capture_output=True,text=True,encoding='utf-8',timeout=150)
+    if result.returncode:
+        (run/'adapter-failure.json').write_text(json.dumps(dict(status='OUTCOME_UNKNOWN',exit_code=result.returncode,
+            stdout=result.stdout,stderr=result.stderr),indent=2),encoding='utf-8')
+        raise RuntimeError('installed adapter failed; retain partial effects')
+    proof=json.loads(result.stdout)
+    if proof['readback']['status']!='NATIVE_READBACK':raise AssertionError('native readback missing')
+    proof.update(repo_sha=subprocess.check_output(['git','rev-parse','HEAD'],cwd=ROOT,text=True).strip(),
+        observed_at=datetime.now(timezone.utc).isoformat(),os=platform.platform(),
+        adapter_source_sha256=digest(ROOT/'src/design_lab/adapters/photoshop_com.py'))
+    (run/'installed-readback.json').write_text(json.dumps(proof,indent=2),encoding='utf-8')
+    print(json.dumps(proof),flush=True)
+
+
 if __name__=='__main__':
     parser=argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('--execute-com',action='store_true')
+    mode=parser.add_mutually_exclusive_group()
+    mode.add_argument('--execute-com',action='store_true')
+    mode.add_argument('--installed-python',help='Execute the product adapter with an isolated installed interpreter')
     args=parser.parse_args()
     run,script,bridge=prepare()
     if args.execute_com:execute(run,script,bridge)
+    elif args.installed_python:execute_adapter(run,args.installed_python)
