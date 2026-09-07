@@ -3,6 +3,7 @@
 const $ = id => document.getElementById(id);
 let token = '', project = '', epoch = 0, taskCursor = null, eventCursor = null, eventJob = '';
 let pendingImport = null, busy = false;
+let nativeCursor = null;
 const status = (text, error = false) => { $('status').textContent = text; $('status').classList.toggle('error', error); };
 async function api(path, body) {
   const response = await fetch('/api' + path, {method: body ? 'POST' : 'GET',
@@ -20,8 +21,9 @@ function button(list, label, action) {
 }
 function resetProject() {
   epoch++; taskCursor = eventCursor = null; eventJob = ''; pendingImport = null;
-  for (const id of ['assets','tasks','events']) $(id).replaceChildren();
-  for (const id of ['preview','retry-import','more-tasks','more-events']) $(id).hidden = true;
+  nativeCursor = null; $('native-info').textContent = '';
+  for (const id of ['assets','tasks','events','native-assets']) $(id).replaceChildren();
+  for (const id of ['preview','retry-import','more-tasks','more-events','more-native']) $(id).hidden = true;
   $('preview').removeAttribute('src'); $('preview-empty').hidden = false; $('asset-info').textContent = '';
 }
 async function projects() {
@@ -65,11 +67,27 @@ async function refresh() {
   if (!project) return;
   const current = epoch;
   status('正在读取项目资产与任务…');
-  const [data] = await Promise.all([api(`/projects/${project}/assets`),tasks()]);
+  const [data] = await Promise.all([api(`/projects/${project}/assets`),tasks(),nativeAssets()]);
   if (current !== epoch) return;
   $('assets').replaceChildren();
   for (const asset of data.assets) button('assets', `${asset.width} × ${asset.height} · ${asset.media_type} · ${asset.id.slice(-10)}`, () => preview(asset));
   status('已读取持久化状态。参考素材权利仍需审查。');
+}
+async function verifyNative(asset) {
+  const current = epoch, owner = project;
+  $('native-info').textContent = '正在读取原生文件并校验 hash…';
+  const data = await api(`/projects/${owner}/native-assets/${asset.id}/verify`);
+  if (current !== epoch) return;
+  $('native-info').textContent = `${data.asset.kind.toUpperCase()} · ${data.asset.version_id} · ${data.asset.verification} · ${data.asset.byte_size} bytes · ${data.asset.sha256} · rights: ${data.asset.rights}。此校验不代替宿主重开或人工质量验收。`;
+}
+async function nativeAssets(append = false) {
+  const current = epoch, owner = project;
+  const data = await api(`/projects/${owner}/native-assets` + (append && nativeCursor ? `?after=${nativeCursor}` : ''));
+  if (current !== epoch) return;
+  if (!append) $('native-assets').replaceChildren();
+  for (const asset of data.assets) button('native-assets', `校验 ${asset.kind.toUpperCase()} · v${asset.version_no} · ${asset.version_id} · 数据库记录`, () => verifyNative(asset));
+  if (!append && !data.assets.length) $('native-assets').textContent = '暂无已登记的 AI/PSD。';
+  nativeCursor = data.next_cursor; $('more-native').hidden = nativeCursor === null;
 }
 async function sendImport() {
   if (!pendingImport || busy) return;
@@ -117,3 +135,4 @@ $('import-form').onsubmit = async event => {
 $('retry-import').onclick = sendImport;
 $('more-tasks').onclick = () => tasks(true).catch(e => status(e.message,true));
 $('more-events').onclick = () => loadEvents(eventJob,true).catch(e => status(e.message,true));
+$('more-native').onclick = () => nativeAssets(true).catch(e => status(e.message,true));

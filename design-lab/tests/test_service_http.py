@@ -19,6 +19,62 @@ ROOT = Path(__file__).resolve().parents[2]
 
 
 class ServiceHttpTests(unittest.TestCase):
+    def seed_native(self):
+        from contextlib import closing
+        from unittest.mock import patch
+        sys.path.insert(0,str(ROOT/'src'));self.addCleanup(lambda:sys.path.remove(str(ROOT/'src')))
+        from design_lab.service import ProjectService
+        from design_lab.runtime import job_store as jobs,asset_store as assets
+        with patch.dict(os.environ):
+            os.environ.pop('PROJECT_LOCAL_ROOT',None)
+            service=ProjectService(self.root);project=service.create_project('Native query fixture')['id']
+            other=service.create_project('Other project')['id']
+            job='native-job-'+'a'*64;asset='native-'+'b'*64
+            data=b'8BPS synthetic query fixture; not native-host evidence'
+            path=service.paths.category_dir('projects',project,'assets')/'native.psd';path.parent.mkdir(parents=True);path.write_bytes(data)
+            sha=hashlib.sha256(data).hexdigest()
+            with closing(assets.connect(service.database,project_root=self.root)) as conn:
+                assets.register_asset(conn,project,asset,'psd')
+                version=assets.record_version(conn,asset,sha,artifacts=[(str(path),sha,len(data),'deliverable')])
+            with closing(jobs.connect(service.database,project_root=self.root)) as conn:
+                attempt=jobs.begin_attempt(conn,job,operation_id='native-op-'+'a'*64,idempotency_scope='native:'+project+':photoshop',
+                    idempotency_key='PRIVATE_NATIVE_KEY',request_hash='a'*64)
+                jobs.transition(conn,attempt['attempt_id'],'RUNNING',note='PRIVATE_NATIVE_NOTE')
+                jobs.transition(conn,attempt['attempt_id'],'RECEIPTED',evidence=dict(operation_id='native-op-'+'a'*64,
+                    attempt_id=attempt['attempt_id'],artifact_sha256=sha,readback_sha256=sha,private='PRIVATE_NATIVE_RECEIPT'))
+        return project,other,job,asset,version,path,sha
+
+    def test_native_tasks_and_asset_readback_are_scoped_and_survive_restart(self):
+        project,other,job,asset,version,path,sha=self.seed_native();self.start()
+        prefix='/api/projects/'+project
+        status,data=self.request(path=prefix+'/tasks');self.assertEqual(status,200)
+        self.assertEqual(len(data['tasks']),1,'native task absent from project query')
+        self.assertEqual(data['tasks'][0]['kind'],'photoshop-native')
+        self.assertEqual(data['tasks'][0]['state'],'SUCCEEDED')
+        self.assertEqual(self.request(path=prefix+'/tasks/'+job)[0],200)
+        events=self.request(path=prefix+'/tasks/'+job+'/events')[1]['events']
+        self.assertEqual([e['to_state'] for e in events],['PENDING','RUNNING','RECEIPTED'])
+        status,listing=self.request(path=prefix+'/native-assets');self.assertEqual(status,200)
+        record=listing['assets'][0];self.assertEqual(record['id'],asset);self.assertEqual(record['version_id'],version)
+        self.assertEqual(record['verification'],'METADATA_ONLY');self.assertNotIn('path',record)
+        self.stop();self.start()
+        status,checked=self.request(path=prefix+'/native-assets/'+asset+'/verify');self.assertEqual(status,200)
+        self.assertEqual(checked['asset']['verification'],'HASH_VERIFIED');self.assertEqual(checked['asset']['sha256'],'sha256:'+sha)
+        public=json.dumps([data,listing,checked,events]);self.assertNotIn('PRIVATE_NATIVE',public)
+        for suffix in ('/tasks/'+job,'/tasks/'+job+'/events','/native-assets/'+asset+'/verify'):
+            self.assertEqual(self.request(path='/api/projects/'+other+suffix)[0],404)
+        self.assertEqual(self.request(path=prefix+'/native-assets?after='+asset)[1]['assets'],[])
+        self.assertEqual(self.request(path=prefix+'/tasks?after='+job)[1]['tasks'],[])
+
+    def test_native_file_tamper_and_unauthorized_readback_fail_closed(self):
+        project,other,job,asset,version,path,sha=self.seed_native();self.start()
+        route='/api/projects/'+project+'/native-assets/'+asset+'/verify'
+        self.assertEqual(self.request(path=route,headers={'Authorization':''})[0],401)
+        path.write_bytes(b'tampered')
+        self.assertEqual(self.request(path=route)[0],409)
+        self.assertEqual(self.request('POST',path=route,body='{}')[0],404)
+        self.assertEqual(self.request(path='/api/projects/'+project+'/native-assets?after=../escape')[0],404)
+
     def setUp(self):
         parent = ROOT / '.project-local/task-runtime/service-http-tests'
         parent.mkdir(parents=True, exist_ok=True)

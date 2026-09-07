@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: MIT
-"""Read-only, project-scoped projections of service-owned import attempts.
+"""Read-only, project-scoped projections of service-owned import/native attempts.
 
 No receipts, request bodies, notes, keys or arbitrary adapter details are exposed.
 These are stored observations, not fresh artifact validation or host acceptance.
@@ -35,20 +35,23 @@ class TaskQueries:
     @staticmethod
     def _rows(conn, project_id, job_id=None, after=''):
         return conn.execute(
-            'SELECT j.job_id,j.operation_id,o.state,o.updated_at,'
+            'SELECT j.job_id,j.operation_id,o.state,o.updated_at,i.idempotency_scope,'
             'a.attempt_id,a.attempt_no,a.state AS attempt_state,a.started_at,a.ended_at '
             'FROM job j JOIN operation_intent i ON i.operation_id=j.operation_id '
             'JOIN operation_state o ON o.operation_id=j.operation_id '
             'JOIN attempt_state a ON a.job_id=j.job_id '
-            'WHERE i.idempotency_scope=? AND (? IS NULL OR j.job_id=?) AND j.job_id>? '
+            'WHERE i.idempotency_scope IN (?,?,?) AND (? IS NULL OR j.job_id=?) AND j.job_id>? '
             'AND a.attempt_no=(SELECT MAX(b.attempt_no) FROM attempt_state b WHERE b.job_id=j.job_id) '
             'ORDER BY j.job_id LIMIT 101',
-            ('image-import:' + project_id, job_id, job_id, after)).fetchall()
+            ('image-import:' + project_id, 'native:'+project_id+':photoshop',
+             'native:'+project_id+':illustrator', job_id, job_id, after)).fetchall()
 
     @staticmethod
     def _task(row):
         return {'job_id': row['job_id'], 'operation_id': row['operation_id'],
-                'kind': 'image-import', 'state': row['state'], 'updated_at': row['updated_at'],
+                'kind': ('image-import' if row['idempotency_scope'].startswith('image-import:')
+                         else row['idempotency_scope'].rsplit(':',1)[1]+'-native'),
+                'state': row['state'], 'updated_at': row['updated_at'],
                 'attempt': {'attempt_id': row['attempt_id'], 'attempt_no': row['attempt_no'],
                             'state': row['attempt_state'], 'started_at': row['started_at'],
                             'ended_at': row['ended_at']}}

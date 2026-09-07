@@ -11,6 +11,7 @@ from .runtime.asset_store import AssetError
 from .runtime.paths import PathPolicyError
 from .image_assets import ImageAssets, ImageAssetError
 from .task_queries import TaskQueries
+from .native_assets import NativeAssets
 from . import workbench
 
 
@@ -118,10 +119,16 @@ def make_server(service, token, port=0):
                     return
                 self.guard()
                 if self.command == 'GET':
-                    match = re.fullmatch(r'/api/projects/([0-9a-f]{32})/tasks(?:\?after=(job-[0-9a-f]{64}))?', self.path)
+                    match = re.fullmatch(r'/api/projects/([0-9a-f]{32})/native-assets(?:\?after=(native-[0-9a-f]{64}))?',self.path)
+                    if match:
+                        return self.send_json(200,NativeAssets(service).list(match[1],match[2] or ''))
+                    match = re.fullmatch(r'/api/projects/([0-9a-f]{32})/native-assets/(native-[0-9a-f]{64})/verify',self.path)
+                    if match:
+                        return self.send_json(200,NativeAssets(service).verify(*match.groups()))
+                    match = re.fullmatch(r'/api/projects/([0-9a-f]{32})/tasks(?:\?after=((?:native-)?job-[0-9a-f]{64}))?', self.path)
                     if match:
                         return self.send_json(200, TaskQueries(service).list(match[1], match[2] or ''))
-                    match = re.fullmatch(r'/api/projects/([0-9a-f]{32})/tasks/(job-[0-9a-f]{64})(/events)?(?:\?after=([0-9]{1,16}))?', self.path)
+                    match = re.fullmatch(r'/api/projects/([0-9a-f]{32})/tasks/((?:native-)?job-[0-9a-f]{64})(/events)?(?:\?after=([0-9]{1,16}))?', self.path)
                     if match and (match[3] or match[4] is None):
                         query = TaskQueries(service)
                         return self.send_json(200, query.events(match[1], match[2], int(match[4] or 0))
