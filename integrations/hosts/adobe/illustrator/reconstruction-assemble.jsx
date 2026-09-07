@@ -8,9 +8,9 @@ var REQUIRED_OPERATIONS = [
 ];
 
 function assertInside(child, root) {
-    var c = File(child).fsName.toLowerCase();
-    var r = Folder(root).fsName.toLowerCase();
-    if (r.charAt(r.length - 1) !== "/" && r.charAt(r.length - 1) !== "\\") r += "/";
+    var c = File(child).fsName.replace(/\\/g, "/").toLowerCase();
+    var r = Folder(root).fsName.replace(/\\/g, "/").toLowerCase();
+    if (r.charAt(r.length - 1) !== "/") r += "/";
     if (c.indexOf(r) !== 0) throw new Error("target outside run root");
 }
 

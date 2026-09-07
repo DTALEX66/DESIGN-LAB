@@ -242,6 +242,31 @@ class CurrentReportingTests(unittest.TestCase):
         with patch.object(self.reporting.subprocess, 'run', return_value=result):
             self.assertTrue(self.reporting._git(self.root, 'status').startswith(' M '))
 
+    def test_report_commit_does_not_invalidate_bound_observation(self):
+        self.write('design-lab/config/task-ledger-r3.json', json.dumps(self.ledger))
+        self.write('.gitignore', '.project-local/\n')
+        def git(*args):
+            result = subprocess.run(
+                ['git', '-c', 'user.name=Report Fixture', '-c',
+                 'user.email=fixture@example.invalid', '-c', 'core.autocrlf=false',
+                 *args], cwd=self.root, capture_output=True, text=True)
+            self.assertEqual(result.returncode, 0, result.stderr)
+            return result.stdout.strip()
+        git('init')
+        git('add', '--', '.')
+        git('commit', '-m', 'isolated source')
+        observation_sha = git('rev-parse', 'HEAD')
+        self.reporting.generate(self.root)
+        git('add', '--', 'reports/current', self.reporting.INDEX)
+        git('commit', '-m', 'publish observed reports')
+        self.assertNotEqual(git('rev-parse', 'HEAD'), observation_sha)
+        self.assertEqual(self.reporting.generate(self.root, check=True), [])
+        report = json.loads((self.root/'reports/current/PROJECT_STATUS.json').read_text())
+        self.assertEqual(report['subjectSha'], observation_sha)
+        self.assertEqual(report['gitStateMeaning'], 'generation-time observation, not current HEAD')
+        self.write(self.ledger['plan_path'], '# changed acceptance input')
+        self.assertTrue(self.reporting.generate(self.root, check=True))
+
 
 if __name__ == '__main__':
     unittest.main()

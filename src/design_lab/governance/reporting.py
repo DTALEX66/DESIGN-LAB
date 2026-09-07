@@ -242,7 +242,8 @@ def _build(reader, snapshot, generated_at):
     progress = project_ledger(reader.root, ledger, snapshot['sha'], reader=reader)
     common = {'subjectSha': snapshot['sha'], 'generatedAt': generated_at,
               'fresh': bool(snapshot.get('source_worktree_clean') and snapshot.get('origin_main') == snapshot['sha']),
-              'freshnessMeaning': 'local source/ref snapshot only; generation time is not a test or cloud observation'}
+              'freshnessMeaning': 'at generation only; check verifies bound-input integrity, not current Git or cloud state',
+              'gitStateMeaning': 'generation-time observation, not current HEAD'}
     adapters = reader.json('integrations/adapter-registry.json', optional=True)
     evidence_index = reader.json('design-lab/config/capability-evidence-current.json', optional=True)
     sources = reader.json('design-lab/research/global-absorption/SOURCE_REGISTRY.json', optional=True)
@@ -265,7 +266,7 @@ def _build(reader, snapshot, generated_at):
     for task in progress['tasks']:
         table.append('| ' + ' | '.join([task['id'], task['status'], *(task['axes'][axis]['state'] for axis in KINDS)]) + ' |')
     markdown = '# PROJECT_STATUS（生成投影）\n\n'
-    markdown += f"任务包：{ledger['taskpack']}；基线/HEAD：`{snapshot['sha']}`。\n\n"
+    markdown += f"任务包：{ledger['taskpack']}；生成时观察 SHA（不是当前 HEAD）：`{snapshot['sha']}`。\n\n"
     markdown += f"唯一编辑源：`{LEDGER}`。生成时间 {generated_at} 不代表重新测试或实机验收。\n\n"
     markdown += '\n'.join(table) + '\n\n发布状态：NOT_RELEASED。原始观察时间与哈希见 TASK_PROGRESS.json。\n'
     cloud = {**common, 'schemaVersion': 'design-lab/cloud-baseline/v2', 'local': snapshot,
@@ -290,7 +291,7 @@ def _build(reader, snapshot, generated_at):
         'PROJECT_STATUS.json': _dump(status), 'PROJECT_STATUS.md': markdown.encode('utf-8'),
         'TASK_PROGRESS.json': _dump({**common, **progress}),
         'CLOUD_BASELINE.json': _dump(cloud),
-        'CLOUD_BASELINE.md': (f"# CLOUD_BASELINE\n\nLocal HEAD: `{snapshot['sha']}`\n\nLocal origin/main: `{snapshot.get('origin_main')}`\n\nGitHub live readback / exact-SHA CI: NOT EXECUTED.\n").encode(),
+        'CLOUD_BASELINE.md': (f"# CLOUD_BASELINE\n\nGeneration-time local HEAD (not current): `{snapshot['sha']}`\n\nGeneration-time local origin/main: `{snapshot.get('origin_main')}`\n\nGitHub live readback / exact-SHA CI: NOT EXECUTED.\n").encode(),
         'ADAPTER_EVIDENCE_RECONCILIATION.json': _dump({**common, 'schemaVersion':'design-lab/adapter-reconciliation/v2',
                                                      'adapters':reconciled, 'capabilityIndexEntries':count(evidence_index,'capabilities')}),
         'KNOWLEDGE_INVENTORY.json': _dump({**common, 'schemaVersion':'design-lab/knowledge-inventory/v1',
@@ -308,6 +309,7 @@ def generate(root, *, check=False, snapshot=None, generated_at=None):
     reader = Reader(root)
     supplied_snapshot = snapshot is not None
     snapshot = snapshot or git_snapshot(root)
+    live_snapshot = snapshot
     if check:
         if not (root/INDEX).is_file():
             return [INDEX]
@@ -316,12 +318,24 @@ def generate(root, *, check=False, snapshot=None, generated_at=None):
         generated_at = old.get('generatedAt')
         if not isinstance(generated_at, str):
             return [INDEX]
+        if not supplied_snapshot:
+            observation = old.get('gitObservation')
+            if not isinstance(observation, dict) or not re.fullmatch(r'[0-9a-f]{40}', str(observation.get('sha', ''))):
+                return [INDEX]
+            # The stored observation must be in this checkout's actual history.
+            # Missing shallow history cannot be promoted to a valid observation.
+            try:
+                _git(root, 'merge-base', '--is-ancestor', observation['sha'], live_snapshot['sha'])
+            except ValueError:
+                return [INDEX]
+            snapshot = observation
     generated_at = generated_at or datetime.now(timezone.utc).isoformat(timespec='seconds')
     reports = _build(reader, snapshot, generated_at)
     reader.stable()
-    if not supplied_snapshot and git_snapshot(root) != snapshot:
+    if not supplied_snapshot and git_snapshot(root) != live_snapshot:
         raise ValueError('Git state changed during report generation')
-    index = {'schemaVersion':'design-lab/current-report-index/v2', 'subjectSha':snapshot['sha'], 'generatedAt':generated_at,
+    index = {'schemaVersion':'design-lab/current-report-index/v3', 'subjectSha':snapshot['sha'], 'generatedAt':generated_at,
+             'gitObservation': snapshot, 'checkScope': 'bound-input-and-output-integrity; not current Git or cloud freshness',
              'ledger':LEDGER, 'reports':list(REPORTS), 'reportRoot':'../../reports/current/',
              'inputHashes':reader.hashes, 'outputHashes':{name:hashlib.sha256(raw).hexdigest() for name,raw in reports.items()}}
     outputs = {CURRENT+name:raw for name,raw in reports.items()}

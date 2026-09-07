@@ -1,7 +1,6 @@
 {
   "counts": {
-    "DONE_LOCAL": 3,
-    "PARTIAL": 8,
+    "PARTIAL": 11,
     "TODO": 13
   },
   "evidence": [
@@ -38,7 +37,13 @@
       "note": "Scoped current-entry/path regression: 16 path and 24 reporting tests PASS; license and doctor paths PASS. Corrected stale ASR/H3/Comfy/Adobe handoff claims with existing receipts, 25 relative links and 6 receipt hash readbacks. Sources unchanged during checks; DP originals preserved. Unified gate separately FAILED 2 of 49 due to runtime JSON scanning, recorded under r3-visual-quality-runtime-scan-failure-20260907. No new host/model/full-Python/CI execution. Old receipts not rehashed. See docs/decisions/R3-CURRENT-ENTRY-REFRESH-2026-09-07.md.",
       "observed_at": "2026-09-06T20:54:44.2920300Z",
       "outcome": "PASS",
-      "reasons": [],
+      "reasons": [
+        "STALE_SUBJECT_SHA",
+        "SOURCE_CHANGED_OR_MISSING:design-lab/tests/test_current_reporting.py",
+        "SOURCE_CHANGED_OR_MISSING:README.md",
+        "SOURCE_CHANGED_OR_MISSING:scripts/generate_current_reports.py",
+        "SOURCE_CHANGED_OR_MISSING:src/design_lab/governance/reporting.py"
+      ],
       "software": {
         "os": "Windows",
         "python": "3.13.14"
@@ -71,7 +76,7 @@
         "R3-01",
         "R3-02"
       ],
-      "verified": true
+      "verified": false
     },
     {
       "artifacts": [
@@ -91,7 +96,9 @@
       "observed_at": "2026-09-06T20:54:44.2920300Z",
       "outcome": "FAIL",
       "reasons": [
-        "OUTCOME_NOT_PASS"
+        "OUTCOME_NOT_PASS",
+        "STALE_SUBJECT_SHA",
+        "SOURCE_CHANGED_OR_MISSING:design-lab/scripts/verify_visual_quality_v21.py"
       ],
       "software": {
         "os": "Windows",
@@ -211,7 +218,9 @@
       "observed_at": "2026-09-06T20:46:50Z",
       "outcome": "PARTIAL",
       "reasons": [
-        "OUTCOME_NOT_PASS"
+        "OUTCOME_NOT_PASS",
+        "STALE_SUBJECT_SHA",
+        "SOURCE_CHANGED_OR_MISSING:integrations/hosts/adobe/illustrator/reconstruction-assemble.jsx"
       ],
       "software": {
         "control": "bundled @oai/sky menu dispatch to local ExtendScript",
@@ -453,7 +462,8 @@
       "observed_at": "2026-09-07T04:29:06.1214070+08:00",
       "outcome": "PARTIAL",
       "reasons": [
-        "OUTCOME_NOT_PASS"
+        "OUTCOME_NOT_PASS",
+        "STALE_SUBJECT_SHA"
       ],
       "software": {
         "os": "Microsoft Windows NT 10.0.26100.0",
@@ -667,7 +677,8 @@
       "observed_at": "2026-09-07T04:09:00.2729790+08:00",
       "outcome": "PARTIAL",
       "reasons": [
-        "OUTCOME_NOT_PASS"
+        "OUTCOME_NOT_PASS",
+        "STALE_SUBJECT_SHA"
       ],
       "software": {
         "ctranslate2": "4.8.2",
@@ -786,7 +797,9 @@
       "note": "Scoped model-free E2 host diagnostic: two actual installed ComfyUI processes with repo/foreign CWD, loopback REST+WS submission, prompt/client IDs, exact PNG pixels, explicit cache reuse, reconnect and invalid node rejection. 44 runtime checks and independent 129 readback checks PASS; 41 Python mutation events confined to dedicated run/evidence roots. This is guarded runpy, not raw CLI or OS-wide/native tracing. Both owned processes stopped via terminate after queue drained; not graceful recovery proof. Prior task history ABSENT after restart; persistent project receipt integration remains required. No H3/model inference, running cancellation, production adapter or all-entry qualification. R3-02/16 host_live remain PARTIAL.",
       "observed_at": "2026-09-07T03:41:48.160882+08:00",
       "outcome": "PASS",
-      "reasons": [],
+      "reasons": [
+        "STALE_SUBJECT_SHA"
+      ],
       "software": {
         "comfyui": "0.33.1",
         "os": "Microsoft Windows NT 10.0.26100.0",
@@ -806,7 +819,7 @@
         "R3-02",
         "R3-16"
       ],
-      "verified": true
+      "verified": false
     },
     {
       "artifacts": [
@@ -837,7 +850,9 @@
       "note": "Four existing H3 components fully hashed: 42470585471 bytes match Comfy-Org fixed revision 4cc1d817b6184899b41293954329f576cb5ae86b. Existing embedded Python imports Torch and queries CUDA successfully. Scope is source integrity and basic runtime preflight only; not complete node/operator qualification, model load, inference, peak resources or media output. No profile/trust enablement or license approval. R3-19 implementation preparation PARTIAL; unit and host_live NOT_EXECUTED. Photoshop GUI launch errors separately documented, not a product test failure.",
       "observed_at": "2026-09-07T03:30:55.022942+08:00",
       "outcome": "PASS",
-      "reasons": [],
+      "reasons": [
+        "STALE_SUBJECT_SHA"
+      ],
       "software": {
         "cuda": "13.0",
         "gpu": "RTX 5060 compute 12.0",
@@ -856,7 +871,7 @@
       "task_ids": [
         "R3-19"
       ],
-      "verified": true
+      "verified": false
     },
     {
       "artifacts": [
@@ -907,7 +922,9 @@
       "note": "Fresh post-document verification: 85 targeted tests, zero skipped, Comfy policy and license gates PASS; current source hashes match previous terminal full 756 tests (755 PASS, 1 skipped), unified 49 PASS and startup/exception probes. Earlier full tests were not rerun or re-timestamped. Comfy gate examines historical evidence, not new inference. Only project test-entry environment and documentation slice; no all-entry/native scratch, host, Python 3.12, Linux, CI or delivery qualification. R3-02/04 remain PARTIAL.",
       "observed_at": "2026-09-07T03:24:44.216565+08:00",
       "outcome": "PASS",
-      "reasons": [],
+      "reasons": [
+        "STALE_SUBJECT_SHA"
+      ],
       "software": {
         "os": "Microsoft Windows NT 10.0.26100.0",
         "python": "3.13.14"
@@ -938,7 +955,7 @@
         "R3-02",
         "R3-04"
       ],
-      "verified": true
+      "verified": false
     },
     {
       "artifacts": [
@@ -953,7 +970,9 @@
       "note": "Append-only public Git locator addendum adds 17 recoverable records. Independent fresh readback: 884 checks PASS, 145 actual blobs, 3 exact commit trees; effective 289 RETRIEVABLE, 4 TRANSPORT_PLACEHOLDER, 243 UNRESOLVED. Original 536/1450 and history baseline bytes unchanged. No private source bodies recovered/copied. history_complete remains false, R3-03 remains PARTIAL. This receipt supersedes the current-axis reference to the older 272-record observation; old receipt and base manifest retained.",
       "observed_at": "2026-09-07T03:24:04.160136+08:00",
       "outcome": "PASS",
-      "reasons": [],
+      "reasons": [
+        "STALE_SUBJECT_SHA"
+      ],
       "software": {
         "os": "Microsoft Windows NT 10.0.26100.0",
         "python": "3.13.14"
@@ -971,7 +990,7 @@
       "task_ids": [
         "R3-03"
       ],
-      "verified": true
+      "verified": false
     },
     {
       "artifacts": [
@@ -1006,7 +1025,9 @@
       "note": "36 real doctor/reconstruction CLI invocations across two CWDs and configured/override roots; 212 checks plus 111 independent readback checks PASS. 760 Python path events bounded; four retained PNG/SVG pairs identical. Actual cancel/resume, intentional output-hash failure and exact rollback absence verified. Fresh 16 path tests, 49 unified gates and license check PASS. Initial trace tool failed on Windows executable=None; only observer fixed, failed evidence retained. Python audit events are not OS-wide or native child/Adobe scratch tracing. No UI/Agent-private configuration, data migration, semantic decomposition, host-live or delivery qualification; R3-02 stays PARTIAL.",
       "observed_at": "2026-09-07T02:46:13.664584+08:00",
       "outcome": "PASS",
-      "reasons": [],
+      "reasons": [
+        "STALE_SUBJECT_SHA"
+      ],
       "software": {
         "os": "Windows-11-10.0.26100-SP0",
         "python": "3.13.14"
@@ -1061,7 +1082,7 @@
       "task_ids": [
         "R3-02"
       ],
-      "verified": true
+      "verified": false
     },
     {
       "artifacts": [
@@ -1097,6 +1118,7 @@
       "observed_at": "2026-09-07T02:31:04.03646+08:00",
       "outcome": "PASS",
       "reasons": [
+        "STALE_SUBJECT_SHA",
         "SOURCE_CHANGED_OR_MISSING:docs/history/r3-audit-inputs-2026-09-06/README.md"
       ],
       "software": {
@@ -1147,7 +1169,8 @@
       "observed_at": "2026-09-06T18:13:55Z",
       "outcome": "PARTIAL",
       "reasons": [
-        "OUTCOME_NOT_PASS"
+        "OUTCOME_NOT_PASS",
+        "STALE_SUBJECT_SHA"
       ],
       "software": {
         "control": "bundled @oai/sky menu dispatch to local ExtendScript",
@@ -1185,7 +1208,8 @@
       "observed_at": "2026-09-06T17:52:32Z",
       "outcome": "PARTIAL",
       "reasons": [
-        "OUTCOME_NOT_PASS"
+        "OUTCOME_NOT_PASS",
+        "STALE_SUBJECT_SHA"
       ],
       "software": {
         "control": "bundled @oai/sky window2 UI API",
@@ -1218,7 +1242,9 @@
       "note": "Fresh 62 runtime tests passed without skips after four-root configuration update; before/after hashes match. Prior receipts preserved. Local synthetic runtime/contracts only; no live host, model inference, cloud CI or publication. R3-06 remains dependent on unfinished R3-02.",
       "observed_at": "2026-09-07T01:42:43.903669+08:00",
       "outcome": "PASS",
-      "reasons": [],
+      "reasons": [
+        "STALE_SUBJECT_SHA"
+      ],
       "software": {
         "os": "Windows-11-10.0.26100-SP0",
         "python": "3.13.14"
@@ -1249,7 +1275,7 @@
         "R3-05",
         "R3-06"
       ],
-      "verified": true
+      "verified": false
     },
     {
       "artifacts": [
@@ -1268,7 +1294,9 @@
       "note": "Fresh 29 profile tests passed without skips after four-root configuration update; before/after hashes match. Prior receipts preserved. Local synthetic runtime/contracts only; no live host, model inference, cloud CI or publication. R3-06 remains dependent on unfinished R3-02.",
       "observed_at": "2026-09-07T01:42:43.903669+08:00",
       "outcome": "PASS",
-      "reasons": [],
+      "reasons": [
+        "STALE_SUBJECT_SHA"
+      ],
       "software": {
         "os": "Windows-11-10.0.26100-SP0",
         "python": "3.13.14"
@@ -1287,7 +1315,7 @@
       "task_ids": [
         "R3-07"
       ],
-      "verified": true
+      "verified": false
     },
     {
       "artifacts": [
@@ -1323,6 +1351,11 @@
       "observed_at": "2026-09-07T01:36:49.031953+08:00",
       "outcome": "PASS",
       "reasons": [
+        "STALE_SUBJECT_SHA",
+        "SOURCE_CHANGED_OR_MISSING:README.md",
+        "SOURCE_CHANGED_OR_MISSING:design-lab/tests/test_current_reporting.py",
+        "SOURCE_CHANGED_OR_MISSING:scripts/generate_current_reports.py",
+        "SOURCE_CHANGED_OR_MISSING:src/design_lab/governance/reporting.py",
         "SOURCE_CHANGED_OR_MISSING:docs/LOCAL_ENVIRONMENT.md"
       ],
       "software": {
@@ -1386,6 +1419,7 @@
       "observed_at": "2026-09-07T01:36:49.031953+08:00",
       "outcome": "PASS",
       "reasons": [
+        "STALE_SUBJECT_SHA",
         "SOURCE_CHANGED_OR_MISSING:docs/LOCAL_ENVIRONMENT.md"
       ],
       "software": {
@@ -1443,7 +1477,11 @@
       "note": "Local Bash syntax/checksum command accepts official archive downloaded by PowerShell and rejects corrupted bytes; actual SHA matches upstream. Initial Git Bash curl connection reset preserved separately. 24 reporting tests and 49 local unified gates PASS. No Linux binary execution, clean Linux checkout or exact-SHA CI. R3-04 remains PARTIAL.",
       "observed_at": "2026-09-07T01:36:49.031953+08:00",
       "outcome": "PASS",
-      "reasons": [],
+      "reasons": [
+        "STALE_SUBJECT_SHA",
+        "SOURCE_CHANGED_OR_MISSING:src/design_lab/governance/reporting.py",
+        "SOURCE_CHANGED_OR_MISSING:design-lab/tests/test_current_reporting.py"
+      ],
       "software": {
         "os": "Windows-11-10.0.26100-SP0",
         "python": "3.13.14"
@@ -1457,7 +1495,7 @@
       "task_ids": [
         "R3-04"
       ],
-      "verified": true
+      "verified": false
     },
     {
       "artifacts": [
@@ -1485,10 +1523,12 @@
       "observed_at": "2026-09-06T11:10:05+00:00",
       "outcome": "PASS",
       "reasons": [
+        "STALE_SUBJECT_SHA",
         "SOURCE_CHANGED_OR_MISSING:.project/paths.json",
         "SOURCE_CHANGED_OR_MISSING:AGENTS.md",
         "SOURCE_CHANGED_OR_MISSING:README.md",
         "SOURCE_CHANGED_OR_MISSING:design-lab/tests/test_current_reporting.py",
+        "SOURCE_CHANGED_OR_MISSING:scripts/generate_current_reports.py",
         "SOURCE_CHANGED_OR_MISSING:src/design_lab/governance/reporting.py"
       ],
       "software": {
@@ -1542,6 +1582,7 @@
       "observed_at": "2026-09-06T11:10:05+00:00",
       "outcome": "PASS",
       "reasons": [
+        "STALE_SUBJECT_SHA",
         "SOURCE_CHANGED_OR_MISSING:.project/paths.json"
       ],
       "software": {
@@ -1602,6 +1643,7 @@
       "observed_at": "2026-09-06T11:10:05+00:00",
       "outcome": "PASS",
       "reasons": [
+        "STALE_SUBJECT_SHA",
         "SOURCE_CHANGED_OR_MISSING:.project/paths.json",
         "SOURCE_CHANGED_OR_MISSING:design-lab/tests/test_current_reporting.py",
         "SOURCE_CHANGED_OR_MISSING:design-lab/tests/test_project_paths.py",
@@ -1689,6 +1731,7 @@
       "observed_at": "2026-09-06T11:10:05+00:00",
       "outcome": "PASS",
       "reasons": [
+        "STALE_SUBJECT_SHA",
         "SOURCE_CHANGED_OR_MISSING:.project/paths.json"
       ],
       "software": {
@@ -1746,6 +1789,7 @@
       "outcome": "PARTIAL",
       "reasons": [
         "OUTCOME_NOT_PASS",
+        "STALE_SUBJECT_SHA",
         "SOURCE_CHANGED_OR_MISSING:.project/paths.json"
       ],
       "software": {
@@ -1799,6 +1843,7 @@
       "observed_at": "2026-09-06T10:46:39+00:00",
       "outcome": "PASS",
       "reasons": [
+        "STALE_SUBJECT_SHA",
         "SOURCE_CHANGED_OR_MISSING:src/design_lab/runtime/paths.py",
         "SOURCE_CHANGED_OR_MISSING:.project/paths.json"
       ],
@@ -1844,10 +1889,12 @@
       "observed_at": "2026-09-06T17:54:52+08:00",
       "outcome": "PASS",
       "reasons": [
+        "STALE_SUBJECT_SHA",
         "SOURCE_CHANGED_OR_MISSING:.project/paths.json",
         "SOURCE_CHANGED_OR_MISSING:AGENTS.md",
         "SOURCE_CHANGED_OR_MISSING:README.md",
         "SOURCE_CHANGED_OR_MISSING:design-lab/tests/test_current_reporting.py",
+        "SOURCE_CHANGED_OR_MISSING:scripts/generate_current_reports.py",
         "SOURCE_CHANGED_OR_MISSING:src/design_lab/governance/reporting.py",
         "SOURCE_CHANGED_OR_MISSING:src/design_lab/runtime/paths.py"
       ],
@@ -1898,6 +1945,7 @@
       "observed_at": "2026-09-06T17:54:52+08:00",
       "outcome": "PASS",
       "reasons": [
+        "STALE_SUBJECT_SHA",
         "SOURCE_CHANGED_OR_MISSING:.project/paths.json",
         "SOURCE_CHANGED_OR_MISSING:src/design_lab/runtime/paths.py"
       ],
@@ -1955,6 +2003,7 @@
       "observed_at": "2026-09-06T17:54:52+08:00",
       "outcome": "PASS",
       "reasons": [
+        "STALE_SUBJECT_SHA",
         "SOURCE_CHANGED_OR_MISSING:.project/paths.json",
         "SOURCE_CHANGED_OR_MISSING:design-lab/tests/test_current_reporting.py",
         "SOURCE_CHANGED_OR_MISSING:design-lab/tests/test_project_paths.py",
@@ -2037,7 +2086,9 @@
       "note": "210 combined focused tests, no skips; 49 unified gates and license PASS. Bound sources unchanged. Identity scan prunes ignored/private trees before enumeration; active source and workflows still checked. CI triggers, exact-SHA cloud CI, renderer and Python 3.12 qualification remain pending. No host/release qualification.",
       "observed_at": "2026-09-06T17:54:52+08:00",
       "outcome": "PASS",
-      "reasons": [],
+      "reasons": [
+        "STALE_SUBJECT_SHA"
+      ],
       "software": {
         "os": "Windows-11-10.0.26100-SP0",
         "python": "3.13.14"
@@ -2051,7 +2102,7 @@
       "task_ids": [
         "R3-04"
       ],
-      "verified": true
+      "verified": false
     },
     {
       "artifacts": [
@@ -2071,6 +2122,7 @@
       "observed_at": "2026-09-06T17:30:06+08:00",
       "outcome": "PASS",
       "reasons": [
+        "STALE_SUBJECT_SHA",
         "SOURCE_CHANGED_OR_MISSING:src/design_lab/runtime/job_store.py",
         "SOURCE_CHANGED_OR_MISSING:src/design_lab/runtime/asset_store.py",
         "SOURCE_CHANGED_OR_MISSING:src/design_lab/runtime/state_store.py",
@@ -2128,6 +2180,7 @@
       "observed_at": "2026-09-06T17:28:22+08:00",
       "outcome": "PASS",
       "reasons": [
+        "STALE_SUBJECT_SHA",
         "SOURCE_CHANGED_OR_MISSING:.project/paths.json",
         "SOURCE_CHANGED_OR_MISSING:src/design_lab/runtime/paths.py",
         "SOURCE_CHANGED_OR_MISSING:src/design_lab/runtime/doctor.py",
@@ -2181,8 +2234,10 @@
       "observed_at": "2026-09-06T17:16:09+08:00",
       "outcome": "PASS",
       "reasons": [
+        "STALE_SUBJECT_SHA",
         "SOURCE_CHANGED_OR_MISSING:src/design_lab/governance/reporting.py",
         "SOURCE_CHANGED_OR_MISSING:design-lab/tests/test_current_reporting.py",
+        "SOURCE_CHANGED_OR_MISSING:scripts/generate_current_reports.py",
         "SOURCE_CHANGED_OR_MISSING:AGENTS.md",
         "SOURCE_CHANGED_OR_MISSING:README.md"
       ],
@@ -2242,6 +2297,7 @@
       "observed_at": "2026-09-06T08:37:17.8947931Z",
       "outcome": "PASS",
       "reasons": [
+        "STALE_SUBJECT_SHA",
         "SOURCE_CHANGED_OR_MISSING:src/design_lab/runtime/asset_store.py",
         "SOURCE_CHANGED_OR_MISSING:src/design_lab/runtime/doctor.py",
         "SOURCE_CHANGED_OR_MISSING:src/design_lab/runtime/job_store.py",
@@ -2285,12 +2341,13 @@
     }
   ],
   "fresh": false,
-  "freshnessMeaning": "local source/ref snapshot only; generation time is not a test or cloud observation",
-  "generatedAt": "2026-09-07T00:04:47+00:00",
+  "freshnessMeaning": "at generation only; check verifies bound-input integrity, not current Git or cloud state",
+  "generatedAt": "2026-09-07T15:10:36+00:00",
+  "gitStateMeaning": "generation-time observation, not current HEAD",
   "ledgerUpdatedAt": "2026-09-06T20:58:17Z",
   "note": "DONE_LOCAL concerns the declared task axes and dependencies, not a product release or hosted CI.",
   "schemaVersion": "design-lab/task-progress/r3-v1",
-  "subjectSha": "c4dccd58331bc4561eb89265283d924b7630d113",
+  "subjectSha": "a97e951b01d575b774d0ca81939cc365bcfec96a",
   "taskpack": "DL-TP-20260906-R3",
   "tasks": [
     {
@@ -2313,8 +2370,10 @@
             "r3-normalization-reporting-20260907",
             "r3-current-entry-refresh-20260907"
           ],
-          "reasons": [],
-          "state": "IMPLEMENTED_LOCAL"
+          "reasons": [
+            "no current evidence of the required kind"
+          ],
+          "state": "UNVERIFIED"
         },
         "unit": {
           "declared_state": "PASS",
@@ -2322,8 +2381,10 @@
             "r3-normalization-reporting-20260907",
             "r3-current-entry-refresh-20260907"
           ],
-          "reasons": [],
-          "state": "PASS"
+          "reasons": [
+            "no current evidence of the required kind"
+          ],
+          "state": "UNVERIFIED"
         }
       },
       "depends_on": [],
@@ -2332,7 +2393,7 @@
         "implementation",
         "unit"
       ],
-      "status": "DONE_LOCAL",
+      "status": "PARTIAL",
       "title": "统一当前入口和证据状态",
       "unmet_dependencies": []
     },
@@ -2371,8 +2432,10 @@
             "r3-test-entry-handoff-20260907",
             "r3-current-entry-refresh-20260907"
           ],
-          "reasons": [],
-          "state": "PASS"
+          "reasons": [
+            "no current evidence of the required kind"
+          ],
+          "state": "UNVERIFIED"
         }
       },
       "depends_on": [
@@ -2386,7 +2449,9 @@
       ],
       "status": "PARTIAL",
       "title": "运行目录、作品库与 .hermes 实际写入治理",
-      "unmet_dependencies": []
+      "unmet_dependencies": [
+        "R3-01"
+      ]
     },
     {
       "axes": {
@@ -2415,8 +2480,10 @@
           "evidence": [
             "r3-history-public-overlay-20260907"
           ],
-          "reasons": [],
-          "state": "PASS"
+          "reasons": [
+            "no current evidence of the required kind"
+          ],
+          "state": "UNVERIFIED"
         }
       },
       "depends_on": [
@@ -2429,7 +2496,9 @@
       ],
       "status": "PARTIAL",
       "title": "逐条闭合历史原文恢复和旧任务映射",
-      "unmet_dependencies": []
+      "unmet_dependencies": [
+        "R3-01"
+      ]
     },
     {
       "axes": {
@@ -2478,7 +2547,9 @@
       ],
       "status": "PARTIAL",
       "title": "补 CI 触发、契约负例与环境一致性",
-      "unmet_dependencies": []
+      "unmet_dependencies": [
+        "R3-01"
+      ]
     },
     {
       "axes": {
@@ -2499,16 +2570,20 @@
           "evidence": [
             "r3-normalization-runtime-20260907"
           ],
-          "reasons": [],
-          "state": "IMPLEMENTED_LOCAL"
+          "reasons": [
+            "no current evidence of the required kind"
+          ],
+          "state": "UNVERIFIED"
         },
         "unit": {
           "declared_state": "PASS",
           "evidence": [
             "r3-normalization-runtime-20260907"
           ],
-          "reasons": [],
-          "state": "PASS"
+          "reasons": [
+            "no current evidence of the required kind"
+          ],
+          "state": "UNVERIFIED"
         }
       },
       "depends_on": [
@@ -2519,9 +2594,11 @@
         "implementation",
         "unit"
       ],
-      "status": "DONE_LOCAL",
+      "status": "PARTIAL",
       "title": "修复 Operation、Attempt 与幂等重试",
-      "unmet_dependencies": []
+      "unmet_dependencies": [
+        "R3-01"
+      ]
     },
     {
       "axes": {
@@ -2542,16 +2619,20 @@
           "evidence": [
             "r3-normalization-runtime-20260907"
           ],
-          "reasons": [],
-          "state": "IMPLEMENTED_LOCAL"
+          "reasons": [
+            "no current evidence of the required kind"
+          ],
+          "state": "UNVERIFIED"
         },
         "unit": {
           "declared_state": "PASS",
           "evidence": [
             "r3-normalization-runtime-20260907"
           ],
-          "reasons": [],
-          "state": "PASS"
+          "reasons": [
+            "no current evidence of the required kind"
+          ],
+          "state": "UNVERIFIED"
         }
       },
       "depends_on": [
@@ -2566,7 +2647,8 @@
       "status": "PARTIAL",
       "title": "修复资产版本事务与单写锁",
       "unmet_dependencies": [
-        "R3-02"
+        "R3-02",
+        "R3-05"
       ]
     },
     {
@@ -2588,16 +2670,20 @@
           "evidence": [
             "r3-normalization-profiles-20260907"
           ],
-          "reasons": [],
-          "state": "IMPLEMENTED_LOCAL"
+          "reasons": [
+            "no current evidence of the required kind"
+          ],
+          "state": "UNVERIFIED"
         },
         "unit": {
           "declared_state": "PASS",
           "evidence": [
             "r3-normalization-profiles-20260907"
           ],
-          "reasons": [],
-          "state": "PASS"
+          "reasons": [
+            "no current evidence of the required kind"
+          ],
+          "state": "UNVERIFIED"
         }
       },
       "depends_on": [
@@ -2609,9 +2695,12 @@
         "implementation",
         "unit"
       ],
-      "status": "DONE_LOCAL",
+      "status": "PARTIAL",
       "title": "用真实证据选择软件／模型／用途 profile",
-      "unmet_dependencies": []
+      "unmet_dependencies": [
+        "R3-01",
+        "R3-05"
+      ]
     },
     {
       "axes": {
@@ -2703,6 +2792,7 @@
       "title": "建立可安装 Python 服务与渐进迁移门面",
       "unmet_dependencies": [
         "R3-02",
+        "R3-05",
         "R3-06"
       ]
     },
@@ -2746,6 +2836,7 @@
       "status": "TODO",
       "title": "交付独立工作台与 Codex 适配",
       "unmet_dependencies": [
+        "R3-07",
         "R3-09"
       ]
     },
@@ -2795,6 +2886,7 @@
       "title": "Illustrator 稳定版真实控制闭环",
       "unmet_dependencies": [
         "R3-02",
+        "R3-05",
         "R3-08"
       ]
     },
@@ -2840,6 +2932,7 @@
       "title": "Photoshop 分层工程真实控制闭环",
       "unmet_dependencies": [
         "R3-02",
+        "R3-05",
         "R3-08"
       ]
     },
@@ -2884,6 +2977,7 @@
       "status": "TODO",
       "title": "把现有拆解算法接进真实参考图流程",
       "unmet_dependencies": [
+        "R3-07",
         "R3-08",
         "R3-09"
       ]
@@ -2989,7 +3083,9 @@
       "unmet_dependencies": [
         "R3-02",
         "R3-04",
+        "R3-05",
         "R3-06",
+        "R3-07",
         "R3-08",
         "R3-09",
         "R3-10",
@@ -3044,7 +3140,9 @@
       "status": "PARTIAL",
       "title": "ComfyUI真实任务协议与统一生成入口",
       "unmet_dependencies": [
+        "R3-05",
         "R3-06",
+        "R3-07",
         "R3-08",
         "R3-09"
       ]
@@ -3180,6 +3278,7 @@
       "status": "PARTIAL",
       "title": "H3本地部署专项可行性与实测",
       "unmet_dependencies": [
+        "R3-07",
         "R3-08",
         "R3-16"
       ]
@@ -3273,6 +3372,7 @@
       "title": "OpenDesign与MiniMax Design可选软件协作",
       "unmet_dependencies": [
         "R3-06",
+        "R3-07",
         "R3-10",
         "R3-16"
       ]
@@ -3412,6 +3512,7 @@
       "status": "TODO",
       "title": "持续发布、仓库体积与长期可维护性",
       "unmet_dependencies": [
+        "R3-01",
         "R3-04",
         "R3-15"
       ]

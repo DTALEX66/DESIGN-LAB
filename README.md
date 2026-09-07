@@ -100,6 +100,7 @@ reports/current/TASK_PROGRESS.json ← 由 design-lab/config/task-ledger-r3.json
 
 生成全部当前报告：`python scripts/generate_current_reports.py`；
 只读核对输入/产物哈希和内容漂移：`python scripts/generate_current_reports.py --check`。
+报告中的 Git 信息是生成时观察，不是此刻 HEAD；`--check` 验证绑定输入与输出的完整性，不替代当前 Git 状态或 GitHub exact-SHA 读回。提交报告不会仅因提交自身改变 HEAD 而造成自引用漂移；更新源码/证据后仍需重新生成和验证。
 旧 `generate_project_status.py` 入口转发到同一生成器。
 
 ## 验证入口

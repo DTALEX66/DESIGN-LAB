@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # SPDX-License-Identifier: MIT
 from __future__ import annotations
-import json, sys
+import json, sys, os, stat
 from pathlib import Path
 ROOT=Path(__file__).resolve().parents[2]
 errors=[]
@@ -51,8 +51,50 @@ for p in (ROOT/'packages'/'capabilities'/'scenarios').glob('*/open-design.json')
  for stage in d.get('od',{}).get('pipeline',{}).get('stages',[]):
   for a in stage.get('atoms',[]):
    if a not in first_party and a not in atom_ids:errors.append(f"{p.parent.name}: missing atom {a}")
-# parse all JSON and validate schema count presence
-for p in ROOT.rglob('*.json'):
+# Runtime/dependency/private data is not a source JSON contract. Prune before
+# enumeration, rather than filtering paths after recursively entering them.
+EXCLUDED_NAMES = {
+ '.git', '.project-local', '.hermes', '.venv', 'venv', 'node_modules',
+ '__pycache__', '.pytest_cache', '.mypy_cache', '.ruff_cache',
+ '.codex', '.claude', '.openhuman', 'auth.json', 'credentials.json',
+ 'tokens.json', 'id_rsa', 'id_ed25519', 'sessions.db', 'session.db',
+ 'cookies', 'keychain',
+}
+def excluded(name):
+ return name.casefold() in EXCLUDED_NAMES or name.casefold().startswith(('.env', '.hermes'))
+def reparse(path):
+ info=path.lstat()
+ return stat.S_ISLNK(info.st_mode) or bool(getattr(info, 'st_file_attributes', 0) & getattr(stat, 'FILE_ATTRIBUTE_REPARSE_POINT', 0x400))
+def source_json_files():
+ def walk_error(exc):
+  errors.append(f'active directory unreadable: {exc}')
+ for directory, names, files in os.walk(ROOT, topdown=True, followlinks=False, onerror=walk_error):
+  parent=Path(directory)
+  keep=[]
+  for name in sorted(names):
+   if excluded(name):continue
+   path=parent/name
+   try:
+    if reparse(path):
+     errors.append(f'{path.relative_to(ROOT)}: active reparse point not scanned')
+     continue
+   except OSError as exc:
+    errors.append(f'{path.relative_to(ROOT)}: unreadable: {exc}')
+    continue
+   keep.append(name)
+  names[:]=keep
+  for name in sorted(files):
+   if excluded(name) or not name.lower().endswith('.json'):continue
+   path=parent/name
+   try:
+    if reparse(path):
+     errors.append(f'{path.relative_to(ROOT)}: active reparse point not scanned')
+     continue
+   except OSError as exc:
+    errors.append(f'{path.relative_to(ROOT)}: unreadable: {exc}')
+    continue
+   yield path
+for p in source_json_files():
  try:json.loads(p.read_text(encoding='utf-8'))
  except Exception as e:errors.append(f'{p.relative_to(ROOT)}: invalid JSON: {e}')
 print(f'MASTER_DISCOVERY_ENTRIES={len(masters.get("masters",[])) if masters else 0}')

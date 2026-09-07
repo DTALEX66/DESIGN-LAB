@@ -24,7 +24,8 @@ def main(argv=None):
     if failures:
         print("CURRENT_REPORTS=DRIFT " + ", ".join(failures))
         return 1
-    print("CURRENT_REPORTS=PASS mode=" + ("check" if args.check else "generate"))
+    print("CURRENT_REPORTS=PASS mode=" + ("check" if args.check else "generate")
+          + (" scope=bound-input-integrity current-git-and-cloud=NOT_VERIFIED" if args.check else ""))
     return 0
 
 
