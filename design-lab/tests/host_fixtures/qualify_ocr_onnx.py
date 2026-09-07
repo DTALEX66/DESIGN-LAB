@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT
 """Offline PP-OCRv6 medium ONNX qualification on predeclared image fixtures."""
 from datetime import datetime,timezone
 import hashlib
