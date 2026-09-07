@@ -147,10 +147,12 @@ function runApprovedJob(job, approvedRoot) {
             var item, anchors, k;
             if (spec.kind === "text") {
                 item = parent.textFrames.add(); item.name = spec.id; item.contents = spec.text;
-                item.position = spec.position;
                 item.textRange.characterAttributes.textFont = app.textFonts.getByName(spec.font);
                 item.textRange.characterAttributes.size = spec.size;
                 item.textRange.characterAttributes.fillColor = jobRGB(spec.color);
+                // Font metrics move point-text bounds around a fixed baseline.
+                // Set the requested top-left only after the final font and size.
+                item.position = spec.position;
             } else if (spec.kind === "path") {
                 item = parent.pathItems.add(); item.name = spec.id; anchors = [];
                 for (k = 0; k < spec.points.length; k++) anchors.push(spec.points[k].anchor);
@@ -291,7 +293,7 @@ function patchVectorMatch(actual, expected) {
 
 function readbackJob(doc, job) {
     var textCount = 0, pathCount = 0, rasterCount = 0, i, j, k, spec, actual;
-    function near(a, b) { if (Math.abs(a - b) > 0.02) throw new Error("numeric readback mismatch"); }
+    function near(a, b) { if (typeof a !== "number" || !isFinite(a) || typeof b !== "number" || !isFinite(b) || Math.abs(a - b) > 0.02) throw new Error("numeric readback mismatch"); }
     function vector(a, b) { for (var n = 0; n < b.length; n++) near(a[n], b[n]); }
     if (doc.layers.length !== job.layers.length) throw new Error("layer count mismatch");
     vector(doc.artboards[0].artboardRect, [0, job.artboard.height, job.artboard.width, 0]);
@@ -301,6 +303,7 @@ function readbackJob(doc, job) {
                 textCount++; actual = parent.textFrames.getByName(spec.id);
                 if (actual.contents !== spec.text || actual.textRange.characterAttributes.textFont.name !== spec.font) throw new Error("text/font readback mismatch");
                 near(actual.textRange.characterAttributes.size, spec.size);
+                vector(actual.position, spec.position);
             } else if (spec.kind === "path") {
                 pathCount++; actual = parent.pathItems.getByName(spec.id);
                 if (actual.pathPoints.length !== spec.points.length || actual.closed !== spec.closed) throw new Error("path readback mismatch");

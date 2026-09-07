@@ -58,6 +58,10 @@ CREATE TABLE IF NOT EXISTS native_host_guard_v1 (
  host TEXT PRIMARY KEY CHECK(host IN ('illustrator','photoshop')),
  attempt_id TEXT NOT NULL UNIQUE REFERENCES attempt_state(attempt_id), acquired_at TEXT NOT NULL
 );
+CREATE TABLE IF NOT EXISTS native_quiescence_v1 (
+ attempt_id TEXT PRIMARY KEY REFERENCES attempt_state(attempt_id),
+ authorization_json TEXT NOT NULL, started_at TEXT NOT NULL, receipt_json TEXT
+);
 ''')
             return conn
         except BaseException:conn.close();raise
@@ -174,6 +178,46 @@ CREATE TABLE IF NOT EXISTS native_host_guard_v1 (
                     jobs._change(conn,current,'OUTCOME_UNKNOWN','native effects/publication require reconciliation')
                     jobs._op(conn,op,'OUTCOME_UNKNOWN')
             return jobs._record(conn,aid)
+
+    def quiesce_illustrator(self,attempt_id,*,authorization):
+        """Pause an unknown attempt after fixed host cleanup, never accept it.
+
+        Internal recovery entry, not an HTTP action. A failed recovery keeps
+        both the original guard and a non-expiring recovery claim; no retries.
+        """
+        if (not isinstance(authorization,dict) or set(authorization)!={'actor','scope','receipt'}
+            or authorization['scope']!='project-native-test'
+            or any(not isinstance(v,str) or not v.strip() or len(v)>2000 for v in authorization.values())):
+            raise NativeTaskError('QUIESCENCE_AUTHORIZATION_REQUIRED')
+        with closing(self._connect()) as conn:
+            with jobs._transaction(conn):
+                current,op=jobs._current(conn,attempt_id)
+                row=conn.execute('SELECT host,request_json FROM native_execution_v1 WHERE attempt_id=?',(attempt_id,)).fetchone()
+                guard=conn.execute('SELECT attempt_id FROM native_host_guard_v1 WHERE host=?',('illustrator',)).fetchone()
+                if (not row or row[0]!='illustrator' or guard!=(attempt_id,) or current['state']!='OUTCOME_UNKNOWN'
+                    or conn.execute('SELECT 1 FROM native_quiescence_v1 WHERE attempt_id=?',(attempt_id,)).fetchone()):
+                    raise NativeTaskError('QUIESCENCE_NOT_ELIGIBLE')
+                request=json.loads(row[1]);job=request['job']
+                conn.execute('INSERT INTO native_quiescence_v1 VALUES (?,?,?,NULL)',(attempt_id,_json(authorization),jobs._now()))
+            try:
+                receipt=illustrator_com.quiesce(job,project_root=self.owner,approved_root=job['runRoot'])
+                if (receipt.get('status')!='HOST_QUIESCENT_ARTIFACTS_UNACCEPTED'
+                    or receipt.get('job_id')!=job['jobId'] or type(receipt.get('closed_documents')) is not int
+                    or receipt['closed_documents'] not in (0,1)
+                    or type(receipt.get('documents_before')) is not int or type(receipt.get('documents_after')) is not int
+                    or receipt['documents_before']<0 or receipt['documents_after']<0
+                    or receipt['documents_before']-receipt['documents_after']!=receipt['closed_documents']):
+                    raise ValueError('invalid quiescence receipt')
+                with jobs._transaction(conn):
+                    current,op=jobs._current(conn,attempt_id)
+                    guard=conn.execute('SELECT attempt_id FROM native_host_guard_v1 WHERE host=?',('illustrator',)).fetchone()
+                    if current['state']!='OUTCOME_UNKNOWN' or guard!=(attempt_id,):raise ValueError('recovery state changed')
+                    jobs._change(conn,current,'RECONCILING','host quiescent; outputs preserved, not accepted')
+                    jobs._resolution(conn,attempt_id,'needs_user');jobs._op(conn,op,'PAUSED_NEEDS_USER')
+                    conn.execute('UPDATE native_quiescence_v1 SET receipt_json=? WHERE attempt_id=?',(_json(receipt),attempt_id))
+                    conn.execute('DELETE FROM native_host_guard_v1 WHERE host=? AND attempt_id=?',('illustrator',attempt_id))
+                    return dict(attempt=jobs._record(conn,attempt_id),quiescence=receipt)
+            except Exception as exc:raise NativeTaskError('QUIESCENCE_OUTCOME_UNKNOWN_GUARD_RETAINED') from exc
 
     def execute(self,project_id,host,job,*,idempotency_key,approved_root,authorization):
         try:job,root,outputs,primary,identity,request=self._prepare(project_id,host,job,idempotency_key,approved_root,authorization)

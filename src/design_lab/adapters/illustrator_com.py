@@ -65,6 +65,49 @@ def _digest(path,limit):
     return dict(sha256=h.hexdigest(),byte_size=after.st_size)
 
 
+def quiesce(job,*,project_root,approved_root,timeout=60):
+    """Close only the saved task-native document; preserve all output bytes.
+
+    Caller holds the original non-expiring host guard and owns reconciliation.
+    A synchronous host acknowledgement releases no guard by itself and does
+    not prove output correctness. Never close unsaved or unrelated documents.
+    """
+    paths=resolve_paths(project_root=project_root)
+    root=paths.checked_path(approved_root)
+    if paths.checked_path(job['runRoot'])!=root or not root.is_dir():raise ValueError('unapproved root')
+    if not re.fullmatch(r'[A-Za-z][A-Za-z0-9_-]{0,79}',job['jobId']):raise ValueError('invalid identity')
+    if set(job['targets'])!={'ai','png','svg'}:raise ValueError('invalid targets')
+    targets={kind:paths.checked_path(value) for kind,value in job['targets'].items()}
+    for kind,path in targets.items():
+        if not path.is_relative_to(root) or path==root or path.suffix.lower()!='.'+kind:raise ValueError('target outside root')
+    def snapshot():
+        return {kind:_digest(path,256*1024*1024) for kind,path in targets.items() if path.exists()}
+    before_files=snapshot()
+    script=r'''(function(){
+var target=File(__TARGET__),before=app.documents.length,match=null,count=0;
+for(var i=0;i<app.documents.length;i++){
+ var d=app.documents[i],name=null;
+ try{name=d.fullName.fsName;}catch(e){continue;}
+ if(name.toLowerCase()===target.fsName.toLowerCase()){
+  if(d.saved!==true)throw Error('task has unsaved changes; preserve');
+  match=d;count++;
+ }
+}
+if(count>1)throw Error('ambiguous task document');
+if(match)match.close(SaveOptions.DONOTSAVECHANGES);
+if(app.documents.length!==before-count)throw Error('document count changed');
+return ['DL_QUIESCENT_V1',__JOB__,before,app.documents.length,count].join('|');
+})();'''.replace('__TARGET__',json.dumps(str(targets['ai']))).replace('__JOB__',json.dumps(job['jobId']))
+    reply=_invoke_com(script,timeout).split('|')
+    if len(reply)!=5 or reply[:2]!=['DL_QUIESCENT_V1',job['jobId']] or not all(v.isdigit() for v in reply[2:]):
+        raise ValueError('quiescence acknowledgement invalid')
+    before,after,closed=map(int,reply[2:])
+    if closed not in (0,1) or before-after!=closed or snapshot()!=before_files:raise ValueError('quiescence mismatch')
+    return dict(status='HOST_QUIESCENT_ARTIFACTS_UNACCEPTED',job_id=job['jobId'],
+        documents_before=before,documents_after=after,closed_documents=closed,artifacts=before_files,
+        recovery_script_sha256=hashlib.sha256(script.encode('utf-8')).hexdigest())
+
+
 def execute(job,*,project_root,approved_root,timeout=120):
     """Execute one already qualified closed job; return actual bound readback.
 
