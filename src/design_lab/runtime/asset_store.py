@@ -20,11 +20,11 @@ from pathlib import Path
 
 from .attempt_contract import canonical_hash
 from .paths import PathPolicyError, resolve_paths
+from .state_resources import state_schema
 
-_ROOT = Path(__file__).resolve().parents[3]
-_SCHEMA = _ROOT / "design-lab/schemas/state/design-lab-state-assets-v1.sql"
-_BASE_SCHEMA = _ROOT / "design-lab/schemas/state/design-lab-state-v1.sql"
-_V2_SCHEMA = _ROOT / "design-lab/schemas/state/design-lab-state-assets-v2.sql"
+_SCHEMA = state_schema("design-lab-state-assets-v1.sql")
+_BASE_SCHEMA = state_schema("design-lab-state-v1.sql")
+_V2_SCHEMA = state_schema("design-lab-state-assets-v2.sql")
 
 
 class AssetError(RuntimeError):
@@ -52,9 +52,9 @@ def _transaction(conn):
         raise
 
 
-def connect(db_path):
+def connect(db_path, *, project_root=None):
     try:
-        db_path = resolve_paths().database_path(db_path)
+        db_path = resolve_paths(project_root=project_root).database_path(db_path)
     except PathPolicyError as exc:
         raise AssetError(str(exc)) from exc
     db_path.parent.mkdir(parents=True, exist_ok=True)

@@ -40,3 +40,22 @@
 本轮只上传源码、测试和文档的同名开发分支；不创建 PR、不合并 main、不发布版本。原生文件、模型、环境、测试原始日志保持 `.project-local/` 本地，不强制加入 Git。完整上传 SHA 以 Git 记录及最终远端读回为准；本文件不写自身提交 SHA，避免自引用。
 
 本机外置目录继续以 `.project/paths.json` 和 `docs/LOCAL_ENVIRONMENT.md` 为准；不扫描 E 盘，不写共享库，不读取凭据。用户授权自动操作不等于人审质量、rights 或 release 签署。
+
+## 接续检查点：可安装包、CLI 与本地项目 HTTP
+
+本节覆盖上文已完成的待办：Python 会话 14679 已结束，不再轮询；SQL wheel 资源与显式 CLI 项目根已推进，下一步不再从 package=false 开始。
+
+- 发布前基准 `709bf3e72ce21c29b9f391de35aa34d523c49355`；本次已实时读回该 SHA 的 CI run `34137158705` completed/success。`38b89ff` 的 run `34136982157` 也 completed/success。两者不覆盖本次新增源码。
+- 五份 SQL 构建入 wheel，源码/安装资源校验通过；保留原 SQL SSOT。包开启安装、增加 CLI、ProjectService 和 loopback 元数据 API。
+- 源码定向验证：CLI 4、HTTP 8、SQL 资源 3、资产事务 18、Attempt 23，共 56 项 PASS。安装 wheel 后另跑 HTTP 8 项 PASS，实际独立进程重启读回。
+- 最新 HTTP wheel hash `43a7026829183087f2fb66248b678845a5e67280e69a84fe55b9f2c10fd725f5`；wheel 的 38 个成员仅 package/dist-info，无运行缓存污染。各轮 wheel 分目录保留，不覆盖旧证据。
+- 发现并修复非法 Unicode 名称返回 400 却创建数据库的副作用；回归现要求在创建数据库前拒绝。
+- 环境差异：全局指引中的 execution_preflight.py 与根 package.json 在本仓库不存在；使用实际 Python 3.13.14 导入/版本校验、根 Python 入口和仓库 canonical workflow。缺失路径不是产品失败。
+- 原报告 bound-input 检查因源码变更报告 DRIFT，已运行唯一生成器再校验 PASS；没有手改旧证据 SHA、没有把旧证据抬升为当前实机通过。
+- 本切片提交前统一校验 `verify_design_lab.py` 49 PASS / 0 FAIL；evidence binding 仅 HISTORICAL_VALID、requiresRequalification=true。旧 Comfy 校验器输出中的 E3 标签不等于本切片实机结果。最新完整 Python suite 未在本机重跑，交给本次 exact-SHA CI，不能复用旧 762 项结果。
+
+验收正文：[安装后 CLI](../decisions/R3-INSTALLED-CLI-QUALIFICATION-2026-09-07.md)、[HTTP 元数据](../decisions/R3-LOCAL-HTTP-METADATA-2026-09-07.md)、[SQL 资源](../decisions/R3-INSTALLED-STATE-RESOURCES-2026-09-07.md)。原始运行脚本、wheel、环境保持 ignored 本地；换机器需要真实重建重跑，不能补造日志。
+
+继续顺序：显式 project root 传入任务存储及资产发布 → 复用 operation/attempt 接入任务、事件、取消和真实导入导出 → 工作台与 Adobe 产品桥联通。当前 HTTP 仅项目元数据，使用启动器 stdin 内存密钥、Host/Origin 边界，不是公开网络服务；无模型/宿主调用，未验证全依赖安装、长任务负载或完整服务升级恢复。
+
+完整范围未缩减：5–10 张复杂不同类型参考、AI/PSD 两次局部修改、15 秒内容分镜视频、Comfy 生产适配、H3 条件资格、媒体与人工门仍分别待验收。R3-09 / R4-009 仍 PARTIAL，不据本切片宣称 M1 或全部完成。

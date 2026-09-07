@@ -11,8 +11,24 @@ dependencies = [
   "defusedxml>=0.7,<1",
 ]
 
+[project.scripts]
+design-lab = "design_lab.cli:main"
+
 [tool.uv]
-package = false
+package = true
+
+[build-system]
+requires = ["hatchling==1.27.0"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/design_lab"]
+
+[tool.hatch.build.targets.wheel.force-include]
+"design-lab/schemas/state" = "design_lab/resources/state"
+
+[tool.hatch.build.targets.sdist]
+only-include = ["src/design_lab", "design-lab/schemas/state", "pyproject.toml"]
 
 [tool.pytest.ini_options]
 testpaths = ["design-lab/tests"]

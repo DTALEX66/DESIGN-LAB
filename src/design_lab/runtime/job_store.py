@@ -17,11 +17,11 @@ from pathlib import Path
 
 from .attempt_contract import canonical_hash, request_hash, validate_evidence
 from .paths import PathPolicyError, resolve_paths
+from .state_resources import state_schema
 
-_SCHEMA_ROOT = Path(__file__).resolve().parents[3] / "design-lab/schemas/state"
-_SCHEMA = _SCHEMA_ROOT / "design-lab-state-attempt-v1.sql"
-_BASE_SCHEMA = _SCHEMA_ROOT / "design-lab-state-v1.sql"
-_V2_SCHEMA = _SCHEMA_ROOT / "design-lab-state-attempt-v2.sql"
+_SCHEMA = state_schema("design-lab-state-attempt-v1.sql")
+_BASE_SCHEMA = state_schema("design-lab-state-v1.sql")
+_V2_SCHEMA = state_schema("design-lab-state-attempt-v2.sql")
 TERMINAL = {"RECEIPTED", "FAILED", "TIMED_OUT", "CANCELLED"}
 ALLOWED = {
     "PENDING": {"RUNNING", "CANCELLED", "FAILED"},

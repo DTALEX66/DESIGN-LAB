@@ -4,8 +4,9 @@ from __future__ import annotations
 import sqlite3
 from pathlib import Path
 from .paths import resolve_paths
+from .state_resources import state_schema
 
-DDL = Path(__file__).resolve().parents[3] / 'design-lab' / 'schemas' / 'state' / 'design-lab-state-v1.sql'
+DDL = state_schema('design-lab-state-v1.sql')
 
 
 def init_db(db_path: Path) -> sqlite3.Connection:
