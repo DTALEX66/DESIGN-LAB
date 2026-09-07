@@ -26,9 +26,10 @@ packages = ["src/design_lab"]
 
 [tool.hatch.build.targets.wheel.force-include]
 "design-lab/schemas/state" = "design_lab/resources/state"
+"apps/workbench" = "design_lab/resources/workbench"
 
 [tool.hatch.build.targets.sdist]
-only-include = ["src/design_lab", "design-lab/schemas/state", "pyproject.toml"]
+only-include = ["src/design_lab", "design-lab/schemas/state", "apps/workbench", "pyproject.toml"]
 
 [tool.pytest.ini_options]
 testpaths = ["design-lab/tests"]

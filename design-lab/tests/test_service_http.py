@@ -101,6 +101,27 @@ class ServiceHttpTests(unittest.TestCase):
         self.assertEqual(self.request(), (200, {'projects': []}))
         self.assertFalse((self.root / '.project-local').exists())
 
+    def test_workbench_assets_are_fixed_local_and_do_not_open_api_auth(self):
+        self.start()
+        for path, mime in (('/workbench', 'text/html'), ('/workbench/main.js', 'text/javascript'),
+                           ('/workbench/style.css', 'text/css')):
+            conn = http.client.HTTPConnection('127.0.0.1', self.port, timeout=5)
+            try:
+                conn.request('GET', path)
+                response = conn.getresponse()
+                payload = response.read()
+                self.assertEqual(response.status, 200)
+                self.assertTrue(response.getheader('Content-Type').startswith(mime))
+                self.assertIn("default-src 'none'", response.getheader('Content-Security-Policy'))
+                self.assertGreater(len(payload), 100)
+            finally:
+                conn.close()
+        self.assertEqual(self.request(headers={'Authorization': ''})[0], 401)
+        for path in ('/workbench/../../AGENTS.md', '/workbench/main.ts', '/workbench?file=AGENTS.md'):
+            self.assertEqual(self.request(path=path)[0], 404)
+        self.assertEqual(self.request(path='/workbench', headers={'Host': 'evil.example'})[0], 403)
+        self.assertFalse((self.root / '.project-local').exists())
+
     def test_untrusted_host_origin_and_missing_auth_cannot_write(self):
         self.start()
         for headers in ({'Host': 'evil.example'}, {'Origin': 'https://evil.example'},

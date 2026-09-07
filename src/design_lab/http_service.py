@@ -11,6 +11,7 @@ from .runtime.asset_store import AssetError
 from .runtime.paths import PathPolicyError
 from .image_assets import ImageAssets, ImageAssetError
 from .task_queries import TaskQueries
+from . import workbench
 
 
 class RequestError(ValueError):
@@ -58,7 +59,7 @@ def make_server(service, token, port=0):
             self.close_connection = True
             self.wfile.write(payload)
 
-        def guard(self):
+        def guard(self, require_auth=True):
             authority = f'127.0.0.1:{self.server.server_port}'
             if self.headers.get_all('Host', []) != [authority]:
                 raise RequestError(403, 'HOST_DENIED')
@@ -68,6 +69,8 @@ def make_server(service, token, port=0):
             sites = self.headers.get_all('Sec-Fetch-Site', [])
             if sites and sites not in (['same-origin'], ['none']):
                 raise RequestError(403, 'CROSS_SITE_DENIED')
+            if not require_auth:
+                return
             auth = self.headers.get_all('Authorization', [])
             if (len(auth) != 1 or not hmac.compare_digest(
                     auth[0].encode('utf-8'), ('Bearer ' + token).encode('ascii'))):
@@ -98,6 +101,21 @@ def make_server(service, token, port=0):
 
         def dispatch(self):
             try:
+                if self.command == 'GET' and self.path in workbench.ROUTES:
+                    self.guard(require_auth=False)
+                    payload, mime = workbench.resource(self.path)
+                    self.send_response(200)
+                    self.send_header('Content-Type', mime + '; charset=utf-8')
+                    self.send_header('Content-Length', str(len(payload)))
+                    self.send_header('Content-Security-Policy', workbench.CSP)
+                    self.send_header('X-Content-Type-Options', 'nosniff')
+                    self.send_header('Referrer-Policy', 'no-referrer')
+                    self.send_header('Cache-Control', 'no-store')
+                    self.send_header('Connection', 'close')
+                    self.end_headers()
+                    self.close_connection = True
+                    self.wfile.write(payload)
+                    return
                 self.guard()
                 if self.command == 'GET':
                     match = re.fullmatch(r'/api/projects/([0-9a-f]{32})/tasks(?:\?after=(job-[0-9a-f]{64}))?', self.path)
