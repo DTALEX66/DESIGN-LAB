@@ -80,16 +80,42 @@ const result=cases.map(([name,change])=>{
  return {name,rejected,creates:creates-before,error};
 });
 context.payload=JSON.stringify(base);
+const grouped=vm.runInContext('JSON.parse(payload)',context);
+const mask=vm.runInContext('JSON.parse(payload)',context).layers[0].items[1];
+mask.id='clip';mask.closed=true;
+const picture=grouped.layers[0].items.pop();
+grouped.layers[0].items.push({id:'media-group',kind:'group',items:[picture],mask});
+// Build in the VM realm, as the real native job parser does.
+context.payload=JSON.stringify(grouped);
+let groupError=null;
+try{context.validateJob(vm.runInContext('JSON.parse(payload)',context),'D:/run');}
+catch(e){groupError=String(e);}
+const groupCases=[
+ ['mask-open',j=>j.layers[0].items[2].mask.closed=false],
+ ['mask-not-path',j=>j.layers[0].items[2].mask.kind='text'],
+ ['group-empty',j=>j.layers[0].items[2].items=[]],
+ ['nested-id-conflict',j=>j.layers[0].items[2].items[0].id='title'],
+ ['mask-id-conflict',j=>j.layers[0].items[2].mask.id='title'],
+ ['nested-unknown-field',j=>j.layers[0].items[2].items[0].command='anything']
+];
+for(const [name,change] of groupCases){
+ context.payload=JSON.stringify(grouped);const job=vm.runInContext('JSON.parse(payload)',context);change(job);
+ const before=creates;let rejected=false;
+ try{context.runApprovedJob(job,'D:/run');}catch(e){rejected=true;}
+ result.push({name,rejected,creates:creates-before});
+}
+context.payload=JSON.stringify(base);
 let validError=null;
 try{context.validateJob(vm.runInContext('JSON.parse(payload)',context),'D:/run');}
 catch(e){validError=String(e);}
-console.log(JSON.stringify({result,validError}));
+console.log(JSON.stringify({result,validError,groupError}));
 '''
         result = subprocess.run([node, '-e', script, str(JSX)], capture_output=True,
                                 text=True, encoding='utf-8', timeout=30)
         self.assertEqual(result.returncode, 0, result.stderr)
         report = json.loads(result.stdout)
         self.assertIsNone(report['validError'], report['validError'])
+        self.assertIsNone(report['groupError'], report['groupError'])
         for case in report['result']:
             with self.subTest(case=case['name']):
                 self.assertTrue(case['rejected'], case)

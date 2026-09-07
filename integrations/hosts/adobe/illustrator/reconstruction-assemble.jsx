@@ -81,11 +81,10 @@ function validateJob(job, approvedRoot) {
         assets["$" + job.assets[i].id] = job.assets[i].path;
     }
     jobArray(job.layers, 1, 100);
-    for (i = 0; i < job.layers.length; i++) {
-        jobObject(job.layers[i], ["id", "items"]); jobId(job.layers[i].id, ids);
-        jobArray(job.layers[i].items, 1, 1000);
-        for (j = 0; j < job.layers[i].items.length; j++) {
-            item = job.layers[i].items[j];
+    var objectCount = 0;
+    function validateItem(item, depth) {
+            var k;
+            if (depth > 8 || ++objectCount > 10000) throw new Error("object complexity limit");
             if (!item || typeof item !== "object") throw new Error("object required");
             if (item.kind === "text") {
                 jobObject(item, ["id", "kind", "text", "position", "font", "size", "color"]);
@@ -109,31 +108,39 @@ function validateJob(job, approvedRoot) {
                 if (typeof item.assetId !== "string" || !assets["$" + item.assetId]) throw new Error("unknown asset reference");
                 jobVector(item.position, 2, -16383, 16383);
                 jobNumber(item.width, 0.01, 16383); jobNumber(item.height, 0.01, 16383);
+            } else if (item.kind === "group") {
+                jobObject(item, ["id", "kind", "items", "mask"]);
+                jobArray(item.items, 1, 1000);
+                for (k = 0; k < item.items.length; k++) validateItem(item.items[k], depth + 1);
+                if (item.mask !== null) {
+                    if (!item.mask || item.mask.kind !== "path" || item.mask.closed !== true) throw new Error("closed path mask required");
+                    validateItem(item.mask, depth + 1);
+                }
             } else throw new Error("unsupported object kind");
             jobId(item.id, ids);
-        }
+    }
+    for (i = 0; i < job.layers.length; i++) {
+        jobObject(job.layers[i], ["id", "items"]); jobId(job.layers[i].id, ids);
+        jobArray(job.layers[i].items, 1, 1000);
+        for (j = 0; j < job.layers[i].items.length; j++) validateItem(job.layers[i].items[j], 0);
     }
 }
 
 function runApprovedJob(job, approvedRoot) {
     validateJob(job, approvedRoot);
     var doc = createDocument(job);
-    var assets = {}, i, j, k, layer, spec, item, anchors;
+    var assets = {}, i, j, layer;
     for (i = 0; i < job.assets.length; i++) assets["$" + job.assets[i].id] = job.assets[i].path;
-    // Layer and item order is back-to-front: each add creates a frontmost object.
-    for (i = 0; i < job.layers.length; i++) {
-        layer = i === 0 ? doc.layers[0] : doc.layers.add();
-        layer.name = job.layers[i].id;
-        for (j = 0; j < job.layers[i].items.length; j++) {
-            spec = job.layers[i].items[j];
+    function buildItem(parent, spec) {
+            var item, anchors, k;
             if (spec.kind === "text") {
-                item = layer.textFrames.add(); item.name = spec.id; item.contents = spec.text;
+                item = parent.textFrames.add(); item.name = spec.id; item.contents = spec.text;
                 item.position = spec.position;
                 item.textRange.characterAttributes.textFont = app.textFonts.getByName(spec.font);
                 item.textRange.characterAttributes.size = spec.size;
                 item.textRange.characterAttributes.fillColor = jobRGB(spec.color);
             } else if (spec.kind === "path") {
-                item = layer.pathItems.add(); item.name = spec.id; anchors = [];
+                item = parent.pathItems.add(); item.name = spec.id; anchors = [];
                 for (k = 0; k < spec.points.length; k++) anchors.push(spec.points[k].anchor);
                 item.setEntirePath(anchors); item.closed = spec.closed;
                 for (k = 0; k < spec.points.length; k++) {
@@ -141,12 +148,26 @@ function runApprovedJob(job, approvedRoot) {
                     item.pathPoints[k].rightDirection = spec.points[k].right;
                 }
                 item.stroked = false; item.filled = true; item.fillColor = jobRGB(spec.color);
-            } else {
-                item = layer.placedItems.add(); item.file = File(assets["$" + spec.assetId]);
+            } else if (spec.kind === "raster") {
+                item = parent.placedItems.add(); item.file = File(assets["$" + spec.assetId]);
                 item.name = spec.id; item.width = spec.width; item.height = spec.height;
                 item.position = spec.position;
+            } else {
+                item = parent.groupItems.add(); item.name = spec.id;
+                for (k = 0; k < spec.items.length; k++) buildItem(item, spec.items[k]);
+                if (spec.mask !== null) {
+                    var mask = buildItem(item, spec.mask);
+                    mask.clipping = true; mask.filled = false; mask.stroked = false;
+                    item.clipped = true;
+                }
             }
-        }
+            return item;
+    }
+    // Layer and item order is back-to-front: each add creates a frontmost object.
+    for (i = 0; i < job.layers.length; i++) {
+        layer = i === 0 ? doc.layers[0] : doc.layers.add();
+        layer.name = job.layers[i].id;
+        for (j = 0; j < job.layers[i].items.length; j++) buildItem(layer, job.layers[i].items[j]);
     }
     var nativeFile = jobNewOutput(job.targets.ai, approvedRoot);
     var options = new IllustratorSaveOptions();
@@ -188,30 +209,100 @@ function jobNewOutput(path, root) {
     return f;
 }
 
+function patchObject(doc, kind, id) {
+    var collection = kind === "text" ? doc.textFrames : doc.pathItems;
+    var found = null, count = 0;
+    for (var i = 0; i < collection.length; i++) if (collection[i].name === id) { found = collection[i]; count++; }
+    if (count !== 1) throw new Error("patch target absent or ambiguous");
+    return found;
+}
+
+// Each call changes one existing object and saves to a new AI version.
+// The caller's attempt/lease must cover this synchronous call and any recovery.
+function applyApprovedPatch(doc, expectedNativePath, patch, outputNativePath, approvedRoot) {
+    jobPath(expectedNativePath, approvedRoot);
+    var output = jobNewOutput(outputNativePath, approvedRoot);
+    if (!/\.ai$/i.test(expectedNativePath) || !/\.ai$/i.test(outputNativePath)) throw new Error("native AI paths required");
+    if (!File(expectedNativePath).exists || doc.fullName.fsName.toLowerCase() !== File(expectedNativePath).fsName.toLowerCase() || doc.saved !== true) throw new Error("document identity or unsaved state mismatch");
+    if (!patch || (patch.kind !== "text" && patch.kind !== "path")) throw new Error("unsupported patch kind");
+    jobObject(patch, patch.kind === "text" ? ["kind", "id", "text"] : ["kind", "id", "points"]);
+    jobId(patch.id, {});
+    var item = patchObject(doc, patch.kind, patch.id), i;
+    if (patch.kind === "text") {
+        if (typeof patch.text !== "string" || !patch.text.length || patch.text.length > 10000) throw new Error("invalid patch text");
+    } else {
+        jobArray(patch.points, 2, 10000);
+        if (patch.points.length !== item.pathPoints.length) throw new Error("path topology change requires a new object plan");
+        for (i = 0; i < patch.points.length; i++) {
+            jobObject(patch.points[i], ["anchor", "left", "right"]);
+            jobVector(patch.points[i].anchor, 2, -16383, 16383);
+            jobVector(patch.points[i].left, 2, -16383, 16383);
+            jobVector(patch.points[i].right, 2, -16383, 16383);
+        }
+    }
+    // No side effects above this point. Do not reconstruct the document or layer.
+    if (patch.kind === "text") item.contents = patch.text;
+    else for (i = 0; i < patch.points.length; i++) {
+        item.pathPoints[i].anchor = patch.points[i].anchor;
+        item.pathPoints[i].leftDirection = patch.points[i].left;
+        item.pathPoints[i].rightDirection = patch.points[i].right;
+    }
+    var options = new IllustratorSaveOptions();
+    options.pdfCompatible = true; options.compressed = true; options.embedLinkedFiles = true;
+    // Recheck at write time; atomic lease/race handling belongs to coordinator.
+    if (output.exists) throw new Error("output appeared before save; reconcile mutation");
+    doc.saveAs(output, options);
+    if (!output.exists || !output.length) throw new Error("patch save missing");
+    doc.close(SaveOptions.DONOTSAVECHANGES);
+    var reopened = app.open(output);
+    if (reopened.fullName.fsName.toLowerCase() !== output.fsName.toLowerCase()) throw new Error("patch reopen identity mismatch");
+    var actual = patchObject(reopened, patch.kind, patch.id);
+    if (patch.kind === "text") {
+        if (actual.contents !== patch.text) throw new Error("patch text readback mismatch");
+    } else for (i = 0; i < patch.points.length; i++) {
+        patchVectorMatch(actual.pathPoints[i].anchor, patch.points[i].anchor);
+        patchVectorMatch(actual.pathPoints[i].leftDirection, patch.points[i].left);
+        patchVectorMatch(actual.pathPoints[i].rightDirection, patch.points[i].right);
+    }
+    return reopened;
+}
+
+function patchVectorMatch(actual, expected) {
+    for (var i = 0; i < 2; i++) if (typeof actual[i] !== "number" || !isFinite(actual[i]) || Math.abs(actual[i] - expected[i]) > 0.02) throw new Error("patch geometry readback mismatch");
+}
+
 function readbackJob(doc, job) {
     var textCount = 0, pathCount = 0, rasterCount = 0, i, j, k, spec, actual;
     function near(a, b) { if (Math.abs(a - b) > 0.02) throw new Error("numeric readback mismatch"); }
     function vector(a, b) { for (var n = 0; n < b.length; n++) near(a[n], b[n]); }
     if (doc.layers.length !== job.layers.length) throw new Error("layer count mismatch");
     vector(doc.artboards[0].artboardRect, [0, job.artboard.height, job.artboard.width, 0]);
-    for (i = 0; i < job.layers.length; i++) {
-        var layer = doc.layers.getByName(job.layers[i].id);
-        for (j = 0; j < job.layers[i].items.length; j++) {
-            spec = job.layers[i].items[j];
+    function readItem(parent, spec, isMask) {
+            var actual, k;
             if (spec.kind === "text") {
-                textCount++; actual = layer.textFrames.getByName(spec.id);
+                textCount++; actual = parent.textFrames.getByName(spec.id);
                 if (actual.contents !== spec.text || actual.textRange.characterAttributes.textFont.name !== spec.font) throw new Error("text/font readback mismatch");
                 near(actual.textRange.characterAttributes.size, spec.size);
             } else if (spec.kind === "path") {
-                pathCount++; actual = layer.pathItems.getByName(spec.id);
+                pathCount++; actual = parent.pathItems.getByName(spec.id);
                 if (actual.pathPoints.length !== spec.points.length || actual.closed !== spec.closed) throw new Error("path readback mismatch");
+                if (actual.clipping !== (isMask === true)) throw new Error("mask flag mismatch");
                 for (k = 0; k < spec.points.length; k++) {
                     vector(actual.pathPoints[k].anchor, spec.points[k].anchor);
                     vector(actual.pathPoints[k].leftDirection, spec.points[k].left);
                     vector(actual.pathPoints[k].rightDirection, spec.points[k].right);
                 }
-            } else rasterCount++;
-        }
+            } else if (spec.kind === "raster") rasterCount++;
+            else {
+                actual = parent.groupItems.getByName(spec.id);
+                if (actual.clipped !== (spec.mask !== null)) throw new Error("clipping group mismatch");
+                for (k = 0; k < spec.items.length; k++) readItem(actual, spec.items[k], false);
+                if (spec.mask !== null) readItem(actual, spec.mask, true);
+            }
+    }
+    for (i = 0; i < job.layers.length; i++) {
+        var layer = doc.layers.getByName(job.layers[i].id);
+        for (j = 0; j < job.layers[i].items.length; j++) readItem(layer, job.layers[i].items[j], false);
     }
     if (doc.textFrames.length !== textCount || doc.pathItems.length !== pathCount || doc.rasterItems.length !== rasterCount || doc.placedItems.length !== 0) throw new Error("editable object counts mismatch");
     return {textCount:textCount,pathCount:pathCount,rasterCount:rasterCount};
