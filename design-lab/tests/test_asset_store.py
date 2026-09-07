@@ -18,7 +18,9 @@ sys.path.insert(0, str(SRC))
 
 class AssetStoreTests(unittest.TestCase):
     def _db(self):
-        tmp = tempfile.TemporaryDirectory()
+        parent = SRC.parent / '.project-local/task-runtime/asset-store-tests'
+        parent.mkdir(parents=True, exist_ok=True)
+        tmp = tempfile.TemporaryDirectory(dir=parent)
         self.addCleanup(tmp.cleanup)
         return Path(tmp.name) / "assets.db"
 
@@ -92,7 +94,7 @@ class AssetStoreTests(unittest.TestCase):
         self.assertTrue(acquire_writer(conn, "doc:poster", "attempt-1"))
         self.assertFalse(acquire_writer(conn, "doc:poster", "attempt-2"))
         takeover_writer(conn, "doc:poster", "attempt-2")
-        self.assertTrue(release_writer(conn, "doc:poster", "attempt-2"))
+        self.assertTrue(release_writer(conn, "doc:poster", "attempt-2", generation=2))
         self.assertTrue(acquire_writer(conn, "doc:poster", "attempt-3"))
         audits = conn.execute("SELECT COUNT(*) FROM audit_event WHERE action LIKE 'writer_takeover:%'").fetchone()[0]
         self.assertEqual(audits, 1)

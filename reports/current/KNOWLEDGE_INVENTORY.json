@@ -1,9 +1,10 @@
 {
-  "schemaVersion": "design-lab/knowledge-inventory/v1",
-  "subjectSha": "343a645dcae9bd75e9fedc0c8460289a40fba8c4",
-  "generatedAt": "2026-09-06T03:20:18Z",
+  "activeRegistryEntries": 6,
   "fresh": false,
-  "activeSourceRecords": 6,
-  "quarantinedRecords": 162,
-  "migrationStatus": "deferred"
+  "freshnessMeaning": "local source/ref snapshot only; generation time is not a test or cloud observation",
+  "generatedAt": "2026-09-07T00:04:47+00:00",
+  "migrationStatus": "deferred",
+  "quarantinedSources": 162,
+  "schemaVersion": "design-lab/knowledge-inventory/v1",
+  "subjectSha": "c4dccd58331bc4561eb89265283d924b7630d113"
 }

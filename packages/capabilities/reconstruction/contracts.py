@@ -131,8 +131,11 @@ def validate_run_contract(value: dict) -> None:
     _validate_schema(_RUN_VALIDATOR, value)
     run_id = value["runId"]
     job_id = value["jobId"]
-    runtime_root = _canonical_runtime_root(run_id)
-    evidence_root = _canonical_evidence_root(run_id)
+    try:
+        runtime_root = _canonical_runtime_root(run_id)
+        evidence_root = _canonical_evidence_root(run_id)
+    except ValueError as exc:
+        raise ContractError(f'$.roots: unsafe path or reparse point: {exc}') from exc
     if value["roots"] != {"runtime": runtime_root, "evidence": evidence_root}:
         raise ContractError("$.roots: roots must be the exact declared run runtime/evidence roots")
 

@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import re
 import sys
+import os
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -29,6 +30,7 @@ ALLOW_ROOT_PREFIXES = (
     "reports/history/",
     "fixtures/domains/game-visual/docs/history/",
     "integrations/hosts/open-design/",
+    ".github/workflows-archive/",  # archived workflows, not active CI identity
 )
 
 # Files that may legitimately reference the legacy name
@@ -38,10 +40,48 @@ ALLOW_FILES_SUFFIX = (
     "MIGRATION",
 )
 
+EXCLUDED_NAMES = {
+    '.git', '.project-local', '.hermes', '.venv', 'node_modules', '__pycache__',
+    '.pytest_cache', '.mypy_cache', '.ruff_cache', '.codex', '.claude', '.openhuman',
+    'auth.json', 'credentials.json', 'tokens.json', 'id_rsa', 'id_ed25519',
+    'sessions.db', 'session.db', 'cookies', 'keychain',
+}
+
+
+def _excluded(name):
+    return name.casefold() in EXCLUDED_NAMES or name.casefold().startswith(('.env', '.hermes'))
+
+
+def _active_files(hits):
+    """Prune runtime/private trees before scandir; don't follow reparse points."""
+    def walk_error(exc):
+        hits.append(f'active directory unreadable: {exc}')
+    for directory, names, files in os.walk(ROOT, topdown=True, followlinks=False, onerror=walk_error):
+        parent = Path(directory)
+        keep = []
+        for name in sorted(names):
+            path = parent/name
+            relative = path.relative_to(ROOT).as_posix() + '/'
+            if _excluded(name) or any(relative.startswith(p) for p in ALLOW_ROOT_PREFIXES):
+                continue
+            if path.is_symlink() or (hasattr(path, 'is_junction') and path.is_junction()):
+                hits.append(f'{relative}: active reparse point not scanned')
+                continue
+            keep.append(name)
+        names[:] = keep
+        for name in sorted(files):
+            if _excluded(name):
+                continue
+            path = parent/name
+            if path.is_symlink():
+                hits.append(f'{path.relative_to(ROOT).as_posix()}: active link not scanned')
+                continue
+            yield path
+
 
 def scan() -> list[str]:
     hits: list[str] = []
-    for p in sorted(ROOT.rglob("*")):
+    for p in _active_files(hits):
         if not p.is_file():
             continue
         rel = p.relative_to(ROOT).as_posix()
@@ -51,6 +91,8 @@ def scan() -> list[str]:
             continue
         if rel == "design-lab/scripts/verify_identity_gate.py":
             continue  # self (pattern definitions)
+        if rel == '.gitignore':
+            continue  # exclusion patterns may name legacy directories; not product branding
         # Host-adapter projection scripts keep legacy-derived filenames (F1 allowance)
         if rel in (
             "design-lab/scripts/scaffold_open_design_plugin.py",
@@ -61,10 +103,6 @@ def scan() -> list[str]:
         if rel in (
             "docs/DL-MIG-002-terminology.md",
         ):
-            continue
-        if "/.git/" in rel or rel.startswith(".git") or ".hermes" in rel:
-            continue
-        if "node_modules" in rel or "__pycache__" in rel or ".pytest_cache" in rel or ".venv" in rel:
             continue
         # Test files asserting the gate's detection logic legitimately embed
         # the legacy patterns as fixtures (semantic requirement, not violation).

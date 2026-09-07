@@ -18,7 +18,9 @@ sys.path.insert(0, str(SRC))
 
 class JobStoreTests(unittest.TestCase):
     def _db(self):
-        tmp = tempfile.TemporaryDirectory()
+        parent = SRC.parent / '.project-local/task-runtime/job-store-tests'
+        parent.mkdir(parents=True, exist_ok=True)
+        tmp = tempfile.TemporaryDirectory(dir=parent)
         self.addCleanup(tmp.cleanup)
         return Path(tmp.name) / "jobs.db"
 
@@ -37,7 +39,10 @@ class JobStoreTests(unittest.TestCase):
         conn = connect(db)
         att = self._begin(conn)
         transition(conn, att["attempt_id"], "RUNNING")
-        transition(conn, att["attempt_id"], "RECEIPTED")
+        transition(conn, att["attempt_id"], "RECEIPTED", evidence={
+            "operation_id": "op-1", "attempt_id": att["attempt_id"],
+            "artifact_sha256": "b" * 64, "readback_sha256": "c" * 64,
+        })
         conn.close()
 
         conn2 = connect(db)  # restart

@@ -31,9 +31,10 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent.parent
+sys.path.insert(0, str(ROOT / 'src'))
+from design_lab.runtime.paths import resolve_paths
 INDEX = ROOT / "design-lab" / "config" / "capability-evidence-index.json"
 BINDING_KEY = "lastVerifiedTree"
-ATTR_OUT = ROOT / ".project-local" / "task-runtime" / "evidence"
 
 SHA40 = "0123456789abcdef"
 
@@ -91,6 +92,7 @@ def check() -> tuple[str, str]:
 
 def main() -> int:
     if "--attestation" in sys.argv:
+        attestation_root = resolve_paths(project_root=ROOT).category_dir('runtime', 'evidence')
         head = git_head()
         head_tree = git_tree(head) if head else ""
         if not head or not head_tree:
@@ -112,8 +114,8 @@ def main() -> int:
             "requiresRequalification": False,
             "notes": "runtime attestation generated outside Git; commit N+1 proves N only; not self-referential",
         }
-        ATTR_OUT.mkdir(parents=True, exist_ok=True)
-        out = ATTR_OUT / f"attestation-{stamp}.json"
+        attestation_root.mkdir(parents=True, exist_ok=True)
+        out = attestation_root / f"attestation-{stamp}.json"
         out.write_text(json.dumps(attestation, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
         print(f"EVIDENCE_ATTESTATION=OK subject={head[:12]} tree={head_tree[:12]} file={out}")
         print("EVIDENCE_ATTESTATION=CURRENT_EXACT (runtime; not committed)")

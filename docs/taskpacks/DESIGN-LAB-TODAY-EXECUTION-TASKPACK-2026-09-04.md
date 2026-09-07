@@ -1,5 +1,8 @@
 # DESIGN-LAB｜2026-09-04 完整执行任务包
 
+> **SUPERSEDED / HISTORICAL**：当前派工见 [R3 后继执行包](DESIGN-LAB-CLOUD-REAUDIT-TASKPACK-2026-09-06.md)。
+> 以下保留历史正文，不再接受当前状态更新；改注前逐字节副本见 [冻结原文](../history/taskpacks/pre-r3-20260904-taskpack.md)。
+
 > Taskpack ID：`DL-TP-20260904-STANDALONE-FIRST`  
 > 版本：`v1.4-operational-closure`  
 > 状态：`READY_FOR_COORDINATOR_PREFLIGHT`  

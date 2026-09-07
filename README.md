@@ -41,6 +41,8 @@ Preflight / Handoff / Evidence    = 商业生产闭环
 
 ## 目录职责
 
+本机资料、模型与工具链的固定入口：[本机环境与外置目录](docs/LOCAL_ENVIRONMENT.md)；机器路径配置：[paths.json](.project/paths.json)。诊断先复用这些记录，不重复假设软件未安装。
+
 ```text
 design-lab/     能力层：core / intelligence / atoms / bundles / scenarios /
                domain-packs / quality / production / knowledge / research /
@@ -52,6 +54,11 @@ reports/        阶段验收、证据与交接报告
 ```
 
 ## 关键文档
+
+当前执行入口：[R3 云端复审后继任务包](docs/taskpacks/DESIGN-LAB-CLOUD-REAUDIT-TASKPACK-2026-09-06.md)。
+任务状态唯一编辑源：[R3 任务账本](design-lab/config/task-ledger-r3.json)；
+[生成状态](reports/current/PROJECT_STATUS.md)分代码、测试、宿主实机和交付四轴。
+09-04/09-05 任务包保留为历史需求与映射来源；知识迁移继续延后。
 
 ```text
 docs/PRODUCT_DEFINITION.md    ← 唯一产品定义（SSOT）
@@ -68,7 +75,7 @@ design-lab/config/product-manifest.json ← 机器可读 SSOT
 
 ## 主规则
 
-1. **宿主是主角**：设计流程、画布、AI 调用、生成都在所接入宿主（当前 Open Design）里完成。
+1. **宿主原生交付**：按已验证的 Adapter/profile 选择宿主，Open Design 是可选适配器；工作台可用于任务与产物检查。
 2. **本仓库增强专业判断与交付能力**：协议、知识、Domain Pack、质量门禁、预检、可编辑交付、证据。
 3. **不做宿主替代品**：不重建画布/编辑器/模型网关/SaaS 后端。
 4. **不把文件存在冒充运行可用**：静态文件/Manifest 只证明 E1；真实执行与读回才是 E3。
@@ -84,11 +91,16 @@ design-lab/config/product-manifest.json ← 机器可读 SSOT
 ## 生成状态（DL-MIG-005）
 
 ```text
-reports/current/PROJECT_STATUS.md   ← 由 scripts/generate_project_status.py 生成
+reports/current/PROJECT_STATUS.md   ← 由 scripts/generate_current_reports.py 生成
 reports/current/PROJECT_STATUS.json
+reports/current/TASK_PROGRESS.json ← 由 design-lab/config/task-ledger-r3.json 投影
 ```
 
 活动文档不手写测试数/能力数/来源数；一律引用生成状态。
+
+生成全部当前报告：`python scripts/generate_current_reports.py`；
+只读核对输入/产物哈希和内容漂移：`python scripts/generate_current_reports.py --check`。
+旧 `generate_project_status.py` 入口转发到同一生成器。
 
 ## 验证入口
 

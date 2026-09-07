@@ -9,16 +9,20 @@ sys.path.insert(0, str(SRC))
 
 
 class StateStoreTests(unittest.TestCase):
+    def setUp(self):
+        self.parent = SRC.parent / '.project-local/task-runtime/state-store-tests'
+        self.parent.mkdir(parents=True, exist_ok=True)
+
     def test_init_creates_tables(self):
         from design_lab.runtime.state_store import init_db, schema_version
-        with tempfile.TemporaryDirectory() as td:
+        with tempfile.TemporaryDirectory(dir=self.parent) as td:
             conn = init_db(Path(td) / 'test.db')
             self.assertEqual(schema_version(conn), 'v1')
             conn.close()
 
     def test_unique_idempotency(self):
         from design_lab.runtime.state_store import init_db
-        with tempfile.TemporaryDirectory() as td:
+        with tempfile.TemporaryDirectory(dir=self.parent) as td:
             conn = init_db(Path(td) / 'test.db')
             conn.execute('INSERT INTO operation_intent VALUES (?,?,?,?,?)', ('op1', 'scope', 'key', 'hash1', '2026-09-04'))
             with self.assertRaises(Exception):

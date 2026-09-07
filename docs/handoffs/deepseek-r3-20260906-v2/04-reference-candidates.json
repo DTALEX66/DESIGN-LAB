@@ -1,0 +1,202 @@
+{
+  "summary": {
+    "schemaVersion": "design-lab/deepseek/r3/dp-v2/ds04/v1",
+    "task_id": "DP-V2-04",
+    "r3_ids": [
+      "R3-13",
+      "R3-14",
+      "R3-22"
+    ],
+    "observed_at": "2026-09-06T16:31:03+00:00",
+    "candidate_count": 6,
+    "exclusion_count": 5,
+    "v1_total_tracked": 11,
+    "coverage": {
+      "A typographic/geometric": [
+        "REF-01",
+        "REF-05"
+      ],
+      "B photo+mask": [
+        "REF-04",
+        "REF-07"
+      ],
+      "C complex texture": [
+        "REF-08"
+      ],
+      "3D/space": [
+        "REF-11"
+      ],
+      "ecommerce/2D": []
+    },
+    "author_confirmed_count": 6,
+    "gap": {
+      "ecommerce/2D": "PARTIAL - no author-confirmed ecommerce/2D reference this run; REF-03/REF-06 excluded (author unconfirmed), replacement pending GPT/browser check"
+    },
+    "license_note": "all license_scope=UNKNOWN; approved_for_reconstruction=false; rights gate = GPT/user",
+    "verification_method": "live web search 2026-09-06; final_url/in-page license need GPT browser check"
+  },
+  "records": [
+    {
+      "record_id": "DP-V2-04-REF-01",
+      "task_id": "DP-V2-04",
+      "r3_ids": [
+        "R3-13",
+        "R3-14",
+        "R3-22"
+      ],
+      "source_locator": "https://www.behance.net/gallery/232216467/Modern-Optical-Typography-Editable-Poster-Collection",
+      "observed_at": "2026-09-06T16:31:03+00:00",
+      "status": "VERIFIED",
+      "evidence_locator": "docs/handoffs/deepseek-r3-20260906-v2/04-reference-candidates.json",
+      "notes": {
+        "candidate_id": "REF-01",
+        "title": "Modern Optical Typography Editable Poster Collection",
+        "named_author": "NJ Himel",
+        "author_verification": "confirmed-by-search (2026-09-06)",
+        "requested_url": "https://www.behance.net/gallery/232216467/Modern-Optical-Typography-Editable-Poster-Collection",
+        "final_url": null,
+        "category": "typographic-geometric-poster",
+        "r3_13_class": "A",
+        "license_source_url": null,
+        "license_scope": "UNKNOWN",
+        "approved_for_reconstruction": false,
+        "note": "page accessible + author confirmed != right to copy/download/rebuild"
+      }
+    },
+    {
+      "record_id": "DP-V2-04-REF-04",
+      "task_id": "DP-V2-04",
+      "r3_ids": [
+        "R3-13",
+        "R3-14",
+        "R3-22"
+      ],
+      "source_locator": "https://www.behance.net/gallery/214728107/Art-of-Fusion-Double-Exposure-Blending-Design",
+      "observed_at": "2026-09-06T16:31:03+00:00",
+      "status": "VERIFIED",
+      "evidence_locator": "docs/handoffs/deepseek-r3-20260906-v2/04-reference-candidates.json",
+      "notes": {
+        "candidate_id": "REF-04",
+        "title": "Art of Fusion: Double Exposure & Blending Design",
+        "named_author": "Tanveer Bavishi",
+        "author_verification": "confirmed-by-search (2026-09-06)",
+        "requested_url": "https://www.behance.net/gallery/214728107/Art-of-Fusion-Double-Exposure-Blending-Design",
+        "final_url": null,
+        "category": "photo-mask-composite",
+        "r3_13_class": "B",
+        "license_source_url": null,
+        "license_scope": "UNKNOWN",
+        "approved_for_reconstruction": false,
+        "note": "page accessible + author confirmed != right to copy/download/rebuild"
+      }
+    },
+    {
+      "record_id": "DP-V2-04-REF-05",
+      "task_id": "DP-V2-04",
+      "r3_ids": [
+        "R3-13",
+        "R3-14",
+        "R3-22"
+      ],
+      "source_locator": "https://www.behance.net/gallery/246098085/Optical-Geometry-Typography-Modern-Poster-Series",
+      "observed_at": "2026-09-06T16:31:03+00:00",
+      "status": "VERIFIED",
+      "evidence_locator": "docs/handoffs/deepseek-r3-20260906-v2/04-reference-candidates.json",
+      "notes": {
+        "candidate_id": "REF-05",
+        "title": "Optical Geometry Typography Modern Poster Series",
+        "named_author": "NJ Himel",
+        "author_verification": "confirmed-by-search (2026-09-06)",
+        "requested_url": "https://www.behance.net/gallery/246098085/Optical-Geometry-Typography-Modern-Poster-Series",
+        "final_url": null,
+        "category": "typographic-geometric-poster",
+        "r3_13_class": "A",
+        "license_source_url": null,
+        "license_scope": "UNKNOWN",
+        "approved_for_reconstruction": false,
+        "note": "page accessible + author confirmed != right to copy/download/rebuild"
+      }
+    },
+    {
+      "record_id": "DP-V2-04-REF-07",
+      "task_id": "DP-V2-04",
+      "r3_ids": [
+        "R3-13",
+        "R3-14",
+        "R3-22"
+      ],
+      "source_locator": "https://www.behance.net/live/videos/12449/designing-a-surreal-collage-in-photoshop-with-david-alabo-2-of-2/",
+      "observed_at": "2026-09-06T16:31:03+00:00",
+      "status": "VERIFIED",
+      "evidence_locator": "docs/handoffs/deepseek-r3-20260906-v2/04-reference-candidates.json",
+      "notes": {
+        "candidate_id": "REF-07",
+        "title": "Designing a Surreal Collage in Photoshop with David Alabo - 2 of 2",
+        "named_author": "David Alabo / Adobe Creative Cloud",
+        "author_verification": "confirmed-by-search (2026-09-06)",
+        "requested_url": "https://www.behance.net/live/videos/12449/designing-a-surreal-collage-in-photoshop-with-david-alabo-2-of-2/",
+        "final_url": null,
+        "category": "photo-mask-composite",
+        "r3_13_class": "B",
+        "license_source_url": null,
+        "license_scope": "UNKNOWN",
+        "approved_for_reconstruction": false,
+        "note": "page accessible + author confirmed != right to copy/download/rebuild"
+      }
+    },
+    {
+      "record_id": "DP-V2-04-REF-08",
+      "task_id": "DP-V2-04",
+      "r3_ids": [
+        "R3-13",
+        "R3-14",
+        "R3-22"
+      ],
+      "source_locator": "https://theinspirationgrid.com/digital-collages-poster-designs-by-anya-evdokimova/",
+      "observed_at": "2026-09-06T16:31:03+00:00",
+      "status": "VERIFIED",
+      "evidence_locator": "docs/handoffs/deepseek-r3-20260906-v2/04-reference-candidates.json",
+      "notes": {
+        "candidate_id": "REF-08",
+        "title": "Digital Collages & Poster Designs by Anya Evdokimova",
+        "named_author": "Anya Evdokimova",
+        "author_verification": "confirmed-by-search (2026-09-06)",
+        "requested_url": "https://theinspirationgrid.com/digital-collages-poster-designs-by-anya-evdokimova/",
+        "final_url": null,
+        "category": "complex-texture-mixed",
+        "r3_13_class": "C",
+        "license_source_url": null,
+        "license_scope": "UNKNOWN",
+        "approved_for_reconstruction": false,
+        "note": "page accessible + author confirmed != right to copy/download/rebuild"
+      }
+    },
+    {
+      "record_id": "DP-V2-04-REF-11",
+      "task_id": "DP-V2-04",
+      "r3_ids": [
+        "R3-13",
+        "R3-14",
+        "R3-22"
+      ],
+      "source_locator": "https://www.behance.net/gallery/207705687/Light-Color-Glass-Space",
+      "observed_at": "2026-09-06T16:31:03+00:00",
+      "status": "VERIFIED",
+      "evidence_locator": "docs/handoffs/deepseek-r3-20260906-v2/04-reference-candidates.json",
+      "notes": {
+        "candidate_id": "REF-11",
+        "title": "Light, Color, Glass & Space",
+        "named_author": "Ana Gomez Bernaus",
+        "author_verification": "confirmed-by-search (2026-09-06)",
+        "requested_url": "https://www.behance.net/gallery/207705687/Light-Color-Glass-Space",
+        "final_url": null,
+        "category": "3d-space-reference",
+        "r3_13_class": "3D/space",
+        "license_source_url": null,
+        "license_scope": "UNKNOWN",
+        "approved_for_reconstruction": false,
+        "note": "page accessible + author confirmed != right to copy/download/rebuild"
+      }
+    }
+  ]
+}

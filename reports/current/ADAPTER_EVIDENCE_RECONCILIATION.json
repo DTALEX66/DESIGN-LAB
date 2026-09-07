@@ -1,188 +1,250 @@
 {
-  "schemaVersion": "design-lab/adapter-reconciliation/v1",
-  "subjectSha": "343a645dcae9bd75e9fedc0c8460289a40fba8c4",
-  "generatedAt": "2026-09-06T03:20:18Z",
-  "fresh": false,
   "adapters": [
     {
       "adapterId": "adapter-open-design",
-      "tool": "Open Design",
-      "status": "structural",
-      "evidenceLevel": "E1"
+      "currentHostQualification": "NOT_EXECUTED",
+      "declaredStatus": "structural",
+      "historicalDeclaredLevel": "E1",
+      "reason": "registry declarations are not current host receipts",
+      "tool": "Open Design"
     },
     {
       "adapterId": "adapter-figma",
-      "tool": "Figma",
-      "status": "declared",
-      "evidenceLevel": "E0"
+      "currentHostQualification": "NOT_EXECUTED",
+      "declaredStatus": "declared",
+      "historicalDeclaredLevel": "E0",
+      "reason": "registry declarations are not current host receipts",
+      "tool": "Figma"
     },
     {
       "adapterId": "adapter-penpot",
-      "tool": "Penpot",
-      "status": "declared",
-      "evidenceLevel": "E0"
+      "currentHostQualification": "NOT_EXECUTED",
+      "declaredStatus": "declared",
+      "historicalDeclaredLevel": "E0",
+      "reason": "registry declarations are not current host receipts",
+      "tool": "Penpot"
     },
     {
       "adapterId": "adapter-blender",
-      "tool": "Blender",
-      "status": "missing",
-      "evidenceLevel": "E0"
+      "currentHostQualification": "NOT_EXECUTED",
+      "declaredStatus": "missing",
+      "historicalDeclaredLevel": "E0",
+      "reason": "registry declarations are not current host receipts",
+      "tool": "Blender"
     },
     {
       "adapterId": "adapter-ffmpeg",
-      "tool": "FFmpeg",
-      "status": "missing",
-      "evidenceLevel": "E0"
+      "currentHostQualification": "NOT_EXECUTED",
+      "declaredStatus": "missing",
+      "historicalDeclaredLevel": "E0",
+      "reason": "registry declarations are not current host receipts",
+      "tool": "FFmpeg"
     },
     {
       "adapterId": "adapter-browser",
-      "tool": "Chromium/browser",
-      "status": "declared",
-      "evidenceLevel": "E0"
+      "currentHostQualification": "NOT_EXECUTED",
+      "declaredStatus": "declared",
+      "historicalDeclaredLevel": "E0",
+      "reason": "registry declarations are not current host receipts",
+      "tool": "Chromium/browser"
     },
     {
       "adapterId": "adapter-comfyui",
-      "tool": "ComfyUI",
-      "status": "runtime",
-      "evidenceLevel": "E3"
+      "currentHostQualification": "NOT_EXECUTED",
+      "declaredStatus": "runtime",
+      "historicalDeclaredLevel": "E3",
+      "reason": "registry declarations are not current host receipts",
+      "tool": "ComfyUI"
     },
     {
       "adapterId": "adapter-adobe-photoshop",
-      "tool": "Adobe Photoshop",
-      "status": "declared",
-      "evidenceLevel": "E0"
+      "currentHostQualification": "NOT_EXECUTED",
+      "declaredStatus": "declared",
+      "historicalDeclaredLevel": "E0",
+      "reason": "registry declarations are not current host receipts",
+      "tool": "Adobe Photoshop"
     },
     {
       "adapterId": "adapter-minimax-h3",
-      "tool": "MiniMax H3",
-      "status": "BLOCKED_BY_LICENSE",
-      "evidenceLevel": "E3"
+      "currentHostQualification": "NOT_EXECUTED",
+      "declaredStatus": "BLOCKED_BY_LICENSE",
+      "historicalDeclaredLevel": "E3",
+      "reason": "registry declarations are not current host receipts",
+      "tool": "MiniMax H3"
     },
     {
       "adapterId": "adapter-mcp",
-      "tool": "MCP (Model Context Protocol)",
-      "status": "declared",
-      "evidenceLevel": "E0"
+      "currentHostQualification": "NOT_EXECUTED",
+      "declaredStatus": "declared",
+      "historicalDeclaredLevel": "E0",
+      "reason": "registry declarations are not current host receipts",
+      "tool": "MCP (Model Context Protocol)"
     },
     {
       "adapterId": "adapter-inkscape",
-      "tool": "Inkscape CLI",
-      "status": "declared",
-      "evidenceLevel": "E0"
+      "currentHostQualification": "NOT_EXECUTED",
+      "declaredStatus": "declared",
+      "historicalDeclaredLevel": "E0",
+      "reason": "registry declarations are not current host receipts",
+      "tool": "Inkscape CLI"
     },
     {
       "adapterId": "adapter-imagemagick",
-      "tool": "ImageMagick",
-      "status": "declared",
-      "evidenceLevel": "E0"
+      "currentHostQualification": "NOT_EXECUTED",
+      "declaredStatus": "declared",
+      "historicalDeclaredLevel": "E0",
+      "reason": "registry declarations are not current host receipts",
+      "tool": "ImageMagick"
     },
     {
       "adapterId": "adapter-sharp",
-      "tool": "sharp (libvips)",
-      "status": "declared",
-      "evidenceLevel": "E0"
+      "currentHostQualification": "NOT_EXECUTED",
+      "declaredStatus": "declared",
+      "historicalDeclaredLevel": "E0",
+      "reason": "registry declarations are not current host receipts",
+      "tool": "sharp (libvips)"
     },
     {
       "adapterId": "adapter-resvg",
-      "tool": "resvg",
-      "status": "declared",
-      "evidenceLevel": "E0"
+      "currentHostQualification": "NOT_EXECUTED",
+      "declaredStatus": "declared",
+      "historicalDeclaredLevel": "E0",
+      "reason": "registry declarations are not current host receipts",
+      "tool": "resvg"
     },
     {
       "adapterId": "adapter-svgo",
-      "tool": "svgo",
-      "status": "declared",
-      "evidenceLevel": "E0"
+      "currentHostQualification": "NOT_EXECUTED",
+      "declaredStatus": "declared",
+      "historicalDeclaredLevel": "E0",
+      "reason": "registry declarations are not current host receipts",
+      "tool": "svgo"
     },
     {
       "adapterId": "adapter-librsvg",
-      "tool": "librsvg (rsvg-convert)",
-      "status": "declared",
-      "evidenceLevel": "E0"
+      "currentHostQualification": "NOT_EXECUTED",
+      "declaredStatus": "declared",
+      "historicalDeclaredLevel": "E0",
+      "reason": "registry declarations are not current host receipts",
+      "tool": "librsvg (rsvg-convert)"
     },
     {
       "adapterId": "adapter-playwright-visual",
-      "tool": "Playwright toHaveScreenshot",
-      "status": "declared",
-      "evidenceLevel": "E0"
+      "currentHostQualification": "NOT_EXECUTED",
+      "declaredStatus": "declared",
+      "historicalDeclaredLevel": "E0",
+      "reason": "registry declarations are not current host receipts",
+      "tool": "Playwright toHaveScreenshot"
     },
     {
       "adapterId": "adapter-verapdf",
-      "tool": "veraPDF",
-      "status": "declared",
-      "evidenceLevel": "E0"
+      "currentHostQualification": "NOT_EXECUTED",
+      "declaredStatus": "declared",
+      "historicalDeclaredLevel": "E0",
+      "reason": "registry declarations are not current host receipts",
+      "tool": "veraPDF"
     },
     {
       "adapterId": "adapter-ghostscript",
-      "tool": "Ghostscript",
-      "status": "declared",
-      "evidenceLevel": "E0"
+      "currentHostQualification": "NOT_EXECUTED",
+      "declaredStatus": "declared",
+      "historicalDeclaredLevel": "E0",
+      "reason": "registry declarations are not current host receipts",
+      "tool": "Ghostscript"
     },
     {
       "adapterId": "adapter-style-dictionary",
-      "tool": "Style Dictionary",
-      "status": "declared",
-      "evidenceLevel": "E0"
+      "currentHostQualification": "NOT_EXECUTED",
+      "declaredStatus": "declared",
+      "historicalDeclaredLevel": "E0",
+      "reason": "registry declarations are not current host receipts",
+      "tool": "Style Dictionary"
     },
     {
       "adapterId": "adapter-dtcg",
-      "tool": "W3C Design Tokens (DTCG)",
-      "status": "declared",
-      "evidenceLevel": "E0"
+      "currentHostQualification": "NOT_EXECUTED",
+      "declaredStatus": "declared",
+      "historicalDeclaredLevel": "E0",
+      "reason": "registry declarations are not current host receipts",
+      "tool": "W3C Design Tokens (DTCG)"
     },
     {
       "adapterId": "adapter-figma-rest",
-      "tool": "Figma REST API",
-      "status": "declared",
-      "evidenceLevel": "E0"
+      "currentHostQualification": "NOT_EXECUTED",
+      "declaredStatus": "declared",
+      "historicalDeclaredLevel": "E0",
+      "reason": "registry declarations are not current host receipts",
+      "tool": "Figma REST API"
     },
     {
       "adapterId": "adapter-blender-bpy",
-      "tool": "Blender Python API",
-      "status": "missing",
-      "evidenceLevel": "E0"
+      "currentHostQualification": "NOT_EXECUTED",
+      "declaredStatus": "missing",
+      "historicalDeclaredLevel": "E0",
+      "reason": "registry declarations are not current host receipts",
+      "tool": "Blender Python API"
     },
     {
       "adapterId": "adapter-photoshop-mcp",
-      "tool": "Photoshop MCP (alisaitteke)",
-      "status": "structural",
-      "evidenceLevel": "E1"
+      "currentHostQualification": "NOT_EXECUTED",
+      "declaredStatus": "structural",
+      "historicalDeclaredLevel": "E1",
+      "reason": "registry declarations are not current host receipts",
+      "tool": "Photoshop MCP (alisaitteke)"
     },
     {
       "adapterId": "adapter-illustrator-mcp",
-      "tool": "Illustrator MCP (ie3jp)",
-      "status": "structural",
-      "evidenceLevel": "E1"
+      "currentHostQualification": "NOT_EXECUTED",
+      "declaredStatus": "structural",
+      "historicalDeclaredLevel": "E1",
+      "reason": "registry declarations are not current host receipts",
+      "tool": "Illustrator MCP (ie3jp)"
     },
     {
       "adapterId": "adapter-figma-mcp",
-      "tool": "Figma Dev Mode MCP (official)",
-      "status": "declared",
-      "evidenceLevel": "E0"
+      "currentHostQualification": "NOT_EXECUTED",
+      "declaredStatus": "declared",
+      "historicalDeclaredLevel": "E0",
+      "reason": "registry declarations are not current host receipts",
+      "tool": "Figma Dev Mode MCP (official)"
     },
     {
       "adapterId": "adapter-inkscape-mcp",
-      "tool": "Inkscape MCP (grumpydevorg)",
-      "status": "declared",
-      "evidenceLevel": "E0"
+      "currentHostQualification": "NOT_EXECUTED",
+      "declaredStatus": "declared",
+      "historicalDeclaredLevel": "E0",
+      "reason": "registry declarations are not current host receipts",
+      "tool": "Inkscape MCP (grumpydevorg)"
     },
     {
       "adapterId": "adapter-generator-mcp",
-      "tool": "Adobe Generator MCP (official)",
-      "status": "declared",
-      "evidenceLevel": "E0"
+      "currentHostQualification": "NOT_EXECUTED",
+      "declaredStatus": "declared",
+      "historicalDeclaredLevel": "E0",
+      "reason": "registry declarations are not current host receipts",
+      "tool": "Adobe Generator MCP (official)"
     },
     {
       "adapterId": "adapter-eagle-webapi",
-      "tool": "Eagle (eagle.cool) Web API",
-      "status": "structural",
-      "evidenceLevel": "E1"
+      "currentHostQualification": "NOT_EXECUTED",
+      "declaredStatus": "structural",
+      "historicalDeclaredLevel": "E1",
+      "reason": "registry declarations are not current host receipts",
+      "tool": "Eagle (eagle.cool) Web API"
     },
     {
       "adapterId": "adapter-eagle-mcp",
-      "tool": "eagle-mcp-server (npm)",
-      "status": "declared",
-      "evidenceLevel": "E0"
+      "currentHostQualification": "NOT_EXECUTED",
+      "declaredStatus": "declared",
+      "historicalDeclaredLevel": "E0",
+      "reason": "registry declarations are not current host receipts",
+      "tool": "eagle-mcp-server (npm)"
     }
-  ]
+  ],
+  "capabilityIndexEntries": 50,
+  "fresh": false,
+  "freshnessMeaning": "local source/ref snapshot only; generation time is not a test or cloud observation",
+  "generatedAt": "2026-09-07T00:04:47+00:00",
+  "schemaVersion": "design-lab/adapter-reconciliation/v2",
+  "subjectSha": "c4dccd58331bc4561eb89265283d924b7630d113"
 }

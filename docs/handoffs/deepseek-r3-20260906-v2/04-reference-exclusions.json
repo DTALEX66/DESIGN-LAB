@@ -1,0 +1,99 @@
+{
+  "summary": {
+    "schemaVersion": "design-lab/deepseek/r3/dp-v2/ds04-ex/v1",
+    "task_id": "DP-V2-04",
+    "r3_ids": [
+      "R3-13",
+      "R3-14"
+    ],
+    "observed_at": "2026-09-06T16:31:03+00:00",
+    "exclusion_count": 5
+  },
+  "records": [
+    {
+      "record_id": "DP-V2-04-EX-REF-02",
+      "task_id": "DP-V2-04",
+      "r3_ids": [
+        "R3-13",
+        "R3-14"
+      ],
+      "source_locator": "V1 08-reference-candidates.json (REF-02)",
+      "observed_at": "2026-09-06T16:31:03+00:00",
+      "status": "VERIFIED",
+      "evidence_locator": "docs/handoffs/deepseek-r3-20260906-v2/04-reference-exclusions.json",
+      "notes": {
+        "candidate_id": "REF-02",
+        "original_v1_id": "REF-02",
+        "exclusion_reason": "poster.sh single-poster page; author name not confirmable from search; A-class already covered by REF-01/REF-05 (authors confirmed)"
+      }
+    },
+    {
+      "record_id": "DP-V2-04-EX-REF-03",
+      "task_id": "DP-V2-04",
+      "r3_ids": [
+        "R3-13",
+        "R3-14"
+      ],
+      "source_locator": "V1 08-reference-candidates.json (REF-03)",
+      "observed_at": "2026-09-06T16:31:03+00:00",
+      "status": "VERIFIED",
+      "evidence_locator": "docs/handoffs/deepseek-r3-20260906-v2/04-reference-exclusions.json",
+      "notes": {
+        "candidate_id": "REF-03",
+        "original_v1_id": "REF-03",
+        "exclusion_reason": "Dribbble commerce hero page reachable but named author not confirmable from search; no author-confirmed ecommerce candidate this run -> PARTIAL gap recorded"
+      }
+    },
+    {
+      "record_id": "DP-V2-04-EX-REF-06",
+      "task_id": "DP-V2-04",
+      "r3_ids": [
+        "R3-13",
+        "R3-14"
+      ],
+      "source_locator": "V1 08-reference-candidates.json (REF-06)",
+      "observed_at": "2026-09-06T16:31:03+00:00",
+      "status": "VERIFIED",
+      "evidence_locator": "docs/handoffs/deepseek-r3-20260906-v2/04-reference-exclusions.json",
+      "notes": {
+        "candidate_id": "REF-06",
+        "original_v1_id": "REF-06",
+        "exclusion_reason": "Dribbble camera-product page reachable but named author not confirmable from search; ecommerce/2D gap PARTIAL"
+      }
+    },
+    {
+      "record_id": "DP-V2-04-EX-REF-09",
+      "task_id": "DP-V2-04",
+      "r3_ids": [
+        "R3-13",
+        "R3-14"
+      ],
+      "source_locator": "V1 08-reference-candidates.json (REF-09)",
+      "observed_at": "2026-09-06T16:31:03+00:00",
+      "status": "VERIFIED",
+      "evidence_locator": "docs/handoffs/deepseek-r3-20260906-v2/04-reference-exclusions.json",
+      "notes": {
+        "candidate_id": "REF-09",
+        "original_v1_id": "REF-09",
+        "exclusion_reason": "Dribbble abstract typography; author not confirmable; A-class duplicate coverage"
+      }
+    },
+    {
+      "record_id": "DP-V2-04-EX-REF-10",
+      "task_id": "DP-V2-04",
+      "r3_ids": [
+        "R3-13",
+        "R3-14"
+      ],
+      "source_locator": "V1 08-reference-candidates.json (REF-10)",
+      "observed_at": "2026-09-06T16:31:03+00:00",
+      "status": "VERIFIED",
+      "evidence_locator": "docs/handoffs/deepseek-r3-20260906-v2/04-reference-exclusions.json",
+      "notes": {
+        "candidate_id": "REF-10",
+        "original_v1_id": "REF-10",
+        "exclusion_reason": "Dribbble editorial typography; author not confirmable; A-class duplicate coverage"
+      }
+    }
+  ]
+}

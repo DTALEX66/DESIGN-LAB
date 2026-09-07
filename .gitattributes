@@ -14,3 +14,12 @@
 # History baseline artifacts are byte-frozen (append-only hashes sealed in reports/history-baseline.json)
 docs/history/DESIGN-LAB-HISTORY-EVIDENCE-MANIFEST-2026-09-04.csv binary
 docs/history/DESIGN-LAB-HISTORY-TASK-ID-CROSSWALK-2026-09-04.csv binary
+# R3 preserves the pre-edit checkout bytes, including existing CRLF files.
+reports/history/r3-predecessors-2026-09-06/** binary
+docs/history/taskpacks/pre-r3-* binary
+# User-supplied R3 audit metadata: preserve original archive bytes.
+docs/history/r3-audit-inputs-2026-09-06/history-current-tree-coverage.json binary
+docs/history/r3-audit-inputs-2026-09-06/old-new-crosswalk.csv binary
+# DP handoff hashes seal original bytes; disable line-ending conversion only.
+docs/handoffs/deepseek-r3-20260906/** -text whitespace=cr-at-eol
+docs/handoffs/deepseek-r3-20260906-v2/** -text whitespace=cr-at-eol

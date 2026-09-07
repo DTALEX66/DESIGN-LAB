@@ -3,11 +3,14 @@
 from __future__ import annotations
 import sqlite3
 from pathlib import Path
+from .paths import resolve_paths
 
 DDL = Path(__file__).resolve().parents[3] / 'design-lab' / 'schemas' / 'state' / 'design-lab-state-v1.sql'
 
 
 def init_db(db_path: Path) -> sqlite3.Connection:
+    db_path = resolve_paths().database_path(db_path)
+    db_path.parent.mkdir(parents=True, exist_ok=True)
     conn = sqlite3.connect(str(db_path))
     conn.execute('PRAGMA foreign_keys = ON')
     conn.executescript(DDL.read_text(encoding='utf-8'))

@@ -1,53 +1,8 @@
 name: Canonical Verify
 
-on:
-  push:
-    paths:
-      - 'design-lab/**'
-      - 'fixtures/domains/game-visual/**'
-      - 'packages/design-system/**'
-      - 'docs/**'
-      - 'docs/**'
-      - '.github/workflows/**'
-      - '.project/**'
-      - 'integrations/**'
-      - 'pyproject.toml'
-      - 'uv.lock'
-      - 'packages/capabilities/**'
-
-      - 'scripts/**'
-      - 'src/**'
-      - 'requirements.txt'
-      - 'LICENSE'
-      - 'LICENSES/**'
-      - 'NOTICE'
-      - 'README.md'
-      - 'THIRD_PARTY_SOURCES*.md'
-      - 'LICENSING_DECISION_REQUIRED.md'
-      - 'WORK-LAB-DESIGN-MODULE-FINAL-HANDOFF-*.md'
-      - 'reports/**'
-      - '.gitignore'
-      - '.gitattributes'
-  pull_request:
-    paths:
-      - 'design-lab/**'
-      - 'fixtures/domains/game-visual/**'
-      - 'packages/design-system/**'
-      - 'docs/**'
-      - '.github/workflows/**'
-      - 'scripts/**'
-      - 'src/**'
-      - 'requirements.txt'
-      - 'LICENSE'
-      - 'LICENSES/**'
-      - 'NOTICE'
-      - 'README.md'
-      - 'THIRD_PARTY_SOURCES*.md'
-      - 'LICENSING_DECISION_REQUIRED.md'
-      - 'WORK-LAB-DESIGN-MODULE-FINAL-HANDOFF-*.md'
-      - 'reports/**'
-      - '.gitignore'
-      - '.gitattributes'
+# Required gates apply to all changes, including new directories and root policy.
+# Per-job optional adapter checks remain below; never skip the whole workflow.
+on: [push, pull_request]
 
 permissions:
   contents: read
@@ -72,9 +27,15 @@ jobs:
       - name: Install resvg renderer (Linux)
         if: runner.os == 'Linux'
         run: |
+          set -euo pipefail
+          archive_dir="$GITHUB_WORKSPACE/.project-local/task-runtime/ci-resvg"
+          mkdir -p "$archive_dir"
+          archive="$archive_dir/resvg-linux-x86_64.tar.gz"
+          curl --fail --show-error --silent --location --retry 3 --connect-timeout 20 --max-time 180 \
+            --output "$archive" https://github.com/linebender/resvg/releases/download/v0.47.0/resvg-linux-x86_64.tar.gz
+          printf '%s  %s\n' '5c84dcbcd032fe7e8d96e616fd6807a2f9df6561d2e6582b37e91e63c6cb4fe7' "$archive" | sha256sum --check --strict -
           mkdir -p /opt/resvg/v0.47.0
-          curl -sL -o /tmp/resvg-linux.tar.gz https://github.com/linebender/resvg/releases/download/v0.47.0/resvg-linux-x86_64.tar.gz
-          tar -xzf /tmp/resvg-linux.tar.gz -C /opt/resvg/v0.47.0
+          tar -xzf "$archive" -C /opt/resvg/v0.47.0
           chmod +x /opt/resvg/v0.47.0/resvg
       - name: Identity boundary gate
         run: python design-lab/scripts/verify_identity_gate.py
