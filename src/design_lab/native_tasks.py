@@ -85,6 +85,9 @@ CREATE TABLE IF NOT EXISTS native_quiescence_v1 (
         inputs={}
         for asset in job['assets']:
             path=self._inside(asset['path'],root);inputs[str(path)]=_digest(path)
+        if host=='illustrator' and job.get('schemaVersion')=='design-lab/adobe-patch-job/v1':
+            path=self._inside(job['checkpoint'],root);inputs[str(path)]=_digest(path)
+            if inputs[str(path)]['sha256']!=job['checkpointSha256']:raise ValueError('checkpoint hash mismatch')
         if host=='photoshop':
             outputs={'psd':root/job['outputName'],'png':root/job['previewName']}
         else:outputs=job['targets']

@@ -53,6 +53,29 @@ class IllustratorComAdapterTests(unittest.TestCase):
         self.assertEqual(result['artifacts']['ai']['sha256'],hashlib.sha256((self.run/'output.ai').read_bytes()).hexdigest())
         self.assertEqual(result['job_sha256'],hashlib.sha256(json.dumps(self.job,ensure_ascii=True,sort_keys=True,separators=(',',':'),allow_nan=False).encode()).hexdigest())
 
+    def patch_job(self):
+        checkpoint=self.run/'checkpoint.ai';checkpoint.write_bytes(b'%PDF-1.5\ncontrolled checkpoint')
+        self.job.update(schemaVersion='design-lab/adobe-patch-job/v1',checkpoint=str(checkpoint),
+            checkpointSha256=hashlib.sha256(checkpoint.read_bytes()).hexdigest(),
+            patch=dict(kind='path',id='box',points=[dict(anchor=[1,0],left=[1,0],right=[1,0]),
+                dict(anchor=[8,6],left=[8,6],right=[8,6])]),
+            operations=['openAI','readback','patchObject','saveAI','reopen','readback','exportPNG','exportSVG'])
+        return checkpoint
+
+    def test_patch_checkpoint_is_hash_bound_and_not_overwritten(self):
+        checkpoint=self.patch_job();before=checkpoint.read_bytes();module=self.adapter()
+        with patch.object(module,'_invoke_com',side_effect=self.outputs):
+            result=module.execute(self.job,project_root=self.root,approved_root=self.run)
+        self.assertEqual(checkpoint.read_bytes(),before)
+        self.assertEqual(result['inputs'][str(checkpoint)]['sha256'],self.job['checkpointSha256'])
+
+    def test_changed_patch_checkpoint_fails_before_dispatch(self):
+        checkpoint=self.patch_job();checkpoint.write_bytes(b'changed');module=self.adapter()
+        with patch.object(module,'_invoke_com') as call:
+            with self.assertRaises(module.IllustratorDispatchError) as caught:
+                module.execute(self.job,project_root=self.root,approved_root=self.run)
+            self.assertFalse(caught.exception.outcome_unknown);call.assert_not_called()
+
     def test_escape_or_existing_output_never_dispatches(self):
         module=self.adapter()
         for target in (self.root/'outside.ai',self.run/'..'/'escape.ai'):

@@ -237,6 +237,64 @@ function patchObject(doc, kind, id) {
     return found;
 }
 
+// Closed checkpoint -> one existing-object edit -> new native version.
+// Original rirHash identifies the checkpoint design; patch and checkpoint
+// bytes are independently bound in the coordinator request/receipt.
+function runApprovedPatchJob(job, approvedRoot) {
+    jobObject(job, ["schemaVersion","jobId","rirHash","runRoot","artboard","layers","assets","targets","operations","authorization","checkpoint","checkpointSha256","patch"]);
+    if(job.schemaVersion!=="design-lab/adobe-patch-job/v1")throw Error("invalid patch schema");
+    var sequence=["openAI","readback","patchObject","saveAI","reopen","readback","exportPNG","exportSVG"],i,k;
+    jobArray(job.operations,sequence.length,sequence.length);
+    for(i=0;i<sequence.length;i++)if(job.operations[i]!==sequence[i])throw Error("invalid patch sequence");
+    var base={};for(k in job)if(k!=="checkpoint" && k!=="checkpointSha256" && k!=="patch")base[k]=job[k];
+    base.schemaVersion="design-lab/adobe-host-job/v1";base.operations=REQUIRED_OPERATIONS.slice(0);
+    validateJob(base,approvedRoot);jobPath(job.checkpoint,approvedRoot);
+    if(!/\.ai$/i.test(job.checkpoint) || !File(job.checkpoint).exists || !/^[0-9a-f]{64}$/.test(job.checkpointSha256))throw Error("invalid checkpoint");
+    var patch=job.patch,target=null,count=0;
+    if(!patch || (patch.kind!=="text" && patch.kind!=="path"))throw Error("invalid patch kind");
+    jobObject(patch,patch.kind==="text"?["kind","id","text"]:["kind","id","points"]);jobId(patch.id,{});
+    function visit(n){
+        if(n.id===patch.id){target=n;count++;}
+        var children=[];
+        if(n.kind==="group")children=n.items;
+        else if(n.kind==="compound")children=n.contours;
+        for(var j=0;j<children.length;j++)visit(children[j]);
+        if(n.kind==="group" && n.mask)visit(n.mask);
+    }
+    for(i=0;i<base.layers.length;i++)for(k=0;k<base.layers[i].items.length;k++)visit(base.layers[i].items[k]);
+    if(count!==1 || target.kind!==patch.kind)throw Error("patch plan target ambiguous or absent");
+    if(patch.kind==="text"){
+        if(typeof patch.text!=="string" || !patch.text.length || patch.text.length>10000)throw Error("invalid patch text");
+    }else{
+        jobArray(patch.points,target.points.length,target.points.length);
+        for(i=0;i<patch.points.length;i++){
+            jobObject(patch.points[i],["anchor","left","right"]);
+            jobVector(patch.points[i].anchor,2,-16383,16383);jobVector(patch.points[i].left,2,-16383,16383);jobVector(patch.points[i].right,2,-16383,16383);
+        }
+    }
+    var input=File(job.checkpoint);
+    // Never attach to an already open document, including an unsaved user edit.
+    for(i=0;i<app.documents.length;i++){
+        var openName=null;try{openName=app.documents[i].fullName.fsName;}catch(e){}
+        if(openName && openName.toLowerCase()===input.fsName.toLowerCase())throw Error("checkpoint already open");
+    }
+    var doc=app.open(input);
+    if(doc.fullName.fsName.toLowerCase()!==input.fsName.toLowerCase())throw Error("checkpoint identity mismatch");
+    readbackJob(doc,base);
+    doc=applyApprovedPatch(doc,job.checkpoint,patch,job.targets.ai,approvedRoot);
+    if(patch.kind==="text")target.text=patch.text;else target.points=patch.points;
+    readbackJob(doc,base);
+    var png=jobNewOutput(job.targets.png,approvedRoot),po=new ExportOptionsPNG24();
+    po.artBoardClipping=true;po.transparency=true;po.antiAliasing=true;po.horizontalScale=100;po.verticalScale=100;
+    doc.exportFile(png,ExportType.PNG24,po);
+    var svg=jobNewOutput(job.targets.svg,approvedRoot),so=new ExportOptionsSVG();so.embedRasterImages=true;so.coordinatePrecision=4;
+    doc.exportFile(svg,ExportType.SVG,so);
+    if(!png.exists || !png.length || !svg.exists || !svg.length)throw Error("patch previews missing");
+    doc.close(SaveOptions.DONOTSAVECHANGES);doc=app.open(File(job.targets.ai));
+    if(doc.fullName.fsName.toLowerCase()!==File(job.targets.ai).fsName.toLowerCase())throw Error("patch final identity mismatch");
+    readbackJob(doc,base);return doc;
+}
+
 // Each call changes one existing object and saves to a new AI version.
 // The caller's attempt/lease must cover this synchronous call and any recovery.
 function applyApprovedPatch(doc, expectedNativePath, patch, outputNativePath, approvedRoot) {

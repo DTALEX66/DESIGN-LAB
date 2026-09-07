@@ -120,11 +120,13 @@ def execute(job,*,project_root,approved_root,timeout=120):
         root=paths.checked_path(approved_root)
         if not root.is_dir():raise ValueError('run root absent')
         required={'schemaVersion','jobId','rirHash','runRoot','artboard','layers','assets','targets','operations','authorization'}
+        is_patch=isinstance(job,dict) and job.get('schemaVersion')=='design-lab/adobe-patch-job/v1'
+        if is_patch:required|={'checkpoint','checkpointSha256','patch'}
         if not isinstance(job,dict) or set(job)!=required:raise ValueError('invalid job fields')
         payload=json.dumps(job,ensure_ascii=True,sort_keys=True,separators=(',',':'),allow_nan=False)
         if len(payload)>4_000_000:raise ValueError('job too large')
         job=json.loads(payload)  # Seal caller-owned mutable structures before dispatch.
-        if (job['schemaVersion']!='design-lab/adobe-host-job/v1'
+        if (job['schemaVersion'] not in ('design-lab/adobe-host-job/v1','design-lab/adobe-patch-job/v1')
             or not isinstance(job['jobId'],str) or not re.fullmatch(r'[A-Za-z][A-Za-z0-9_-]{0,79}',job['jobId'])
             or not isinstance(job['rirHash'],str) or not re.fullmatch(r'[0-9a-f]{64}',job['rirHash'])
             or job['rirHash']=='0'*64):raise ValueError('job binding invalid')
@@ -138,6 +140,18 @@ def execute(job,*,project_root,approved_root,timeout=120):
         for kind,path in targets.items():
             if path.exists() or path.suffix.lower()!='.'+kind or not path.parent.is_dir():raise ValueError('output unavailable')
         inputs={}
+        if is_patch:
+            checkpoint=inside(job['checkpoint'])
+            if checkpoint.suffix.lower()!='.ai':raise ValueError('native AI checkpoint required')
+            inputs[str(checkpoint)]=_digest(checkpoint,256*1024*1024)
+            if inputs[str(checkpoint)]['sha256']!=job['checkpointSha256']:raise ValueError('checkpoint changed')
+            with checkpoint.open('rb') as stream:
+                if stream.read(5)!=b'%PDF-':raise ValueError('PDF-compatible native checkpoint required')
+            patch=job['patch']
+            if not isinstance(patch,dict) or patch.get('kind') not in ('text','path'):raise ValueError('unsupported patch')
+            if set(patch)!=({'kind','id','text'} if patch['kind']=='text' else {'kind','id','points'}):raise ValueError('patch fields invalid')
+            if not isinstance(patch['id'],str) or not re.fullmatch(r'[A-Za-z][A-Za-z0-9_-]{0,79}',patch['id']):raise ValueError('patch identity invalid')
+            if job['operations']!=['openAI','readback','patchObject','saveAI','reopen','readback','exportPNG','exportSVG']:raise ValueError('patch operations invalid')
         if not isinstance(job['assets'],list) or len(job['assets'])>500:raise ValueError('assets invalid')
         for asset in job['assets']:
             if not isinstance(asset,dict) or set(asset)!={'id','path'}:raise ValueError('asset fields invalid')
@@ -147,9 +161,10 @@ def execute(job,*,project_root,approved_root,timeout=120):
                     raise ValueError('input image invalid')
                 image.verify()
         bridge=_bridge();source=re.sub(r'^#target.*$','',bridge.decode('utf-8'),flags=re.M)
+        entry='runApprovedPatchJob' if is_patch else 'runApprovedJob'
         source+='\n(function(){var job='+payload+',root='+json.dumps(str(root))+''';
 var before=app.documents.length;
-var doc=runApprovedJob(job,root);
+var doc='''+entry+'''(job,root);
 var version=app.version;
 doc.close(SaveOptions.DONOTSAVECHANGES);
 return ['DL_NATIVE_V1',version,job.jobId,job.rirHash,before,app.documents.length].join('\\t');
