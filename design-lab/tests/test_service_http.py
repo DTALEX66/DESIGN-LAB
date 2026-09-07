@@ -240,6 +240,100 @@ class ServiceHttpTests(unittest.TestCase):
         _, readback = self.request(path=endpoint + '/' + imported['asset']['id'] + '/content')
         self.assertEqual(base64.b64decode(readback['content_base64']), data)
 
+    def test_task_history_survives_restart_and_is_project_scoped(self):
+        self.start()
+        _, first = self.request('POST', body='{"name":"Task owner"}')
+        _, second = self.request('POST', body='{"name":"Other owner"}')
+        root = '/api/projects/' + first['project']['id']
+        other = '/api/projects/' + second['project']['id']
+        self.assertEqual(self.request(path=root + '/tasks'), (200, {'tasks': [], 'next_cursor': None}))
+        _, payload = self.image_body()
+        _, imported = self.request('POST', root + '/assets', payload)
+        job_id = imported['attempt']['job_id']
+        self.stop()
+        self.start()
+        status, listing = self.request(path=root + '/tasks')
+        self.assertEqual(status, 200)
+        self.assertEqual(len(listing['tasks']), 1)
+        task = listing['tasks'][0]
+        self.assertEqual(task['job_id'], job_id)
+        self.assertEqual(task['state'], 'SUCCEEDED')
+        self.assertEqual(task['attempt']['state'], 'RECEIPTED')
+        self.assertEqual(task['kind'], 'image-import')
+        self.assertNotIn('note', task['attempt'])
+        self.assertEqual(self.request(path=root + '/tasks/' + job_id), (200, {'task': task}))
+        status, events = self.request(path=root + '/tasks/' + job_id + '/events')
+        self.assertEqual(status, 200)
+        self.assertEqual([e['to_state'] for e in events['events']], ['PENDING', 'RUNNING', 'RECEIPTED'])
+        self.assertTrue(all('detail' not in e and 'evidence_json' not in e for e in events['events']))
+        cursor = events['events'][-1]['event_no']
+        self.assertEqual(self.request(path=root + '/tasks/' + job_id + '/events?after=' + str(cursor)),
+                         (200, {'events': [], 'next_cursor': None}))
+        self.assertEqual(self.request(path=other + '/tasks'), (200, {'tasks': [], 'next_cursor': None}))
+        for tail in ('', '/events'):
+            self.assertEqual(self.request(path=other + '/tasks/' + job_id + tail)[0], 404)
+        self.assertEqual(self.request(path=root + '/tasks?after=' + job_id),
+                         (200, {'tasks': [], 'next_cursor': None}))
+
+    def test_task_reads_cannot_create_state_or_accept_ambiguous_cursors(self):
+        self.start()
+        root = '/api/projects/' + 'a' * 32 + '/tasks'
+        for tail in ('', '/job-' + 'a' * 64, '/job-' + 'a' * 64 + '/events'):
+            self.assertEqual(self.request(path=root + tail)[0], 404)
+        for query in ('?after=../escape', '?after=x&after=y', '?limit=999999', '?after=%00'):
+            self.assertEqual(self.request(path=root + query)[0], 404)
+        self.assertFalse((self.root / '.project-local').exists())
+
+    def test_task_pagination_latest_attempt_and_cancellation_are_not_flattened(self):
+        from contextlib import closing
+        from unittest.mock import patch
+        sys.path.insert(0, str(ROOT / 'src'))
+        self.addCleanup(lambda: sys.path.remove(str(ROOT / 'src')))
+        from design_lab.service import ProjectService
+        from design_lab.runtime import job_store as jobs
+        with patch.dict(os.environ):
+            os.environ.pop('PROJECT_LOCAL_ROOT', None)
+            service = ProjectService(self.root)
+            project = service.create_project('Paginated tasks')['id']
+            scope = 'image-import:' + project
+            with closing(jobs.connect(service.database, project_root=self.root)) as conn:
+                for number in range(102):
+                    job_id = 'job-' + f'{number:064x}'
+                    jobs.begin_attempt(conn, job_id, operation_id='import-' + f'{number:064x}',
+                                       idempotency_scope=scope, idempotency_key=str(number), request_hash='a' * 64)
+                first = 'job-' + '0' * 64
+                for _ in range(51):
+                    attempt = jobs.latest_attempt(conn, first)
+                    jobs.transition(conn, attempt['attempt_id'], 'FAILED', note='PRIVATE_TEST_SENTINEL')
+                    jobs.retry_attempt(conn, first, previous_attempt_id=attempt['attempt_id'])
+                attempt = jobs.latest_attempt(conn, first)
+                jobs.transition(conn, attempt['attempt_id'], 'RUNNING')
+                jobs.request_cancel(conn, attempt['attempt_id'])
+            before = hashlib.sha256(service.database.read_bytes()).hexdigest()
+        self.start()
+        root = '/api/projects/' + project + '/tasks'
+        status, page = self.request(path=root)
+        self.assertEqual(status, 200)
+        self.assertEqual(len(page['tasks']), 100)
+        self.assertEqual(page['next_cursor'], 'job-' + f'{99:064x}')
+        self.assertEqual(page['tasks'][0]['state'], 'CANCEL_REQUESTED')
+        self.assertEqual(page['tasks'][0]['attempt']['state'], 'CANCEL_REQUESTED')
+        self.assertEqual(page['tasks'][0]['attempt']['attempt_no'], 52)
+        _, last = self.request(path=root + '?after=' + page['next_cursor'])
+        self.assertEqual([t['job_id'] for t in last['tasks']], ['job-' + f'{n:064x}' for n in (100, 101)])
+        self.assertIsNone(last['next_cursor'])
+        _, events = self.request(path=root + '/' + first + '/events')
+        self.assertEqual(len(events['events']), 100)
+        self.assertIsNotNone(events['next_cursor'])
+        _, tail = self.request(path=root + '/' + first + '/events?after=' + str(events['next_cursor']))
+        combined = events['events'] + tail['events']
+        self.assertEqual(len(combined), 105)
+        self.assertEqual(len({e['event_no'] for e in combined}), 105)
+        self.assertEqual(combined[-1]['to_state'], 'CANCEL_REQUESTED')
+        self.assertNotIn('PRIVATE_TEST_SENTINEL', json.dumps(combined))
+        self.stop()
+        self.assertEqual(hashlib.sha256(service.database.read_bytes()).hexdigest(), before)
+
 
 if __name__ == '__main__':
     unittest.main()

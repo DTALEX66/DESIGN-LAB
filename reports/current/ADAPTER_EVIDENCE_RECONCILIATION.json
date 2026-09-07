@@ -244,8 +244,8 @@
   "capabilityIndexEntries": 50,
   "fresh": false,
   "freshnessMeaning": "at generation only; check verifies bound-input integrity, not current Git or cloud state",
-  "generatedAt": "2026-09-07T16:51:51+00:00",
+  "generatedAt": "2026-09-07T17:08:31+00:00",
   "gitStateMeaning": "generation-time observation, not current HEAD",
   "schemaVersion": "design-lab/adapter-reconciliation/v2",
-  "subjectSha": "a39726be2ebe34245a3397a717649b61bb800c1d"
+  "subjectSha": "40f34740e4b57db62d048c0655d5a45868c2066f"
 }

@@ -10,6 +10,7 @@ from . import __version__
 from .runtime.asset_store import AssetError
 from .runtime.paths import PathPolicyError
 from .image_assets import ImageAssets, ImageAssetError
+from .task_queries import TaskQueries
 
 
 class RequestError(ValueError):
@@ -99,6 +100,14 @@ def make_server(service, token, port=0):
             try:
                 self.guard()
                 if self.command == 'GET':
+                    match = re.fullmatch(r'/api/projects/([0-9a-f]{32})/tasks(?:\?after=(job-[0-9a-f]{64}))?', self.path)
+                    if match:
+                        return self.send_json(200, TaskQueries(service).list(match[1], match[2] or ''))
+                    match = re.fullmatch(r'/api/projects/([0-9a-f]{32})/tasks/(job-[0-9a-f]{64})(/events)?(?:\?after=([0-9]{1,16}))?', self.path)
+                    if match and (match[3] or match[4] is None):
+                        query = TaskQueries(service)
+                        return self.send_json(200, query.events(match[1], match[2], int(match[4] or 0))
+                                              if match[3] else query.get(match[1], match[2]))
                     match = re.fullmatch(r'/api/projects/([0-9a-f]{32})/assets(?:/(img-[0-9a-f]{64})/content)?', self.path)
                     if match:
                         images = ImageAssets(service)
