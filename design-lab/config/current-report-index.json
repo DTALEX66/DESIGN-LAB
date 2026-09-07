@@ -1,10 +1,10 @@
 {
   "checkScope": "bound-input-and-output-integrity; not current Git or cloud freshness",
-  "generatedAt": "2026-09-07T17:44:09+00:00",
+  "generatedAt": "2026-09-07T18:00:03+00:00",
   "gitObservation": {
     "branch": "codex/r3-runtime-correctness",
     "origin_main": "c4dccd58331bc4561eb89265283d924b7630d113",
-    "sha": "6d4e9c794f5ce9c03ca233ab2ba933915c019581",
+    "sha": "1d468722b246ba8a453ec1d791589fd3846a6da0",
     "source_worktree_clean": false,
     "tracked_files": 1614
   },
@@ -385,6 +385,7 @@
     "design-lab/tests/test_history_baseline_retrieval.py": "c941fbed5e8295ed170e7bc3a31dcf1582d4441ca2eb2b3b7d762f6cba0e95a9",
     "design-lab/tests/test_identity_scan_boundary.py": "038633b27aac3540c68dd36c4f82e26ff831d42a27fb1f71b54f821ef427bfff",
     "design-lab/tests/test_illustrator_bridge_paths.py": "9608d2f795c62de96b21513de5140f65628025a80b31c9dffa60ca38f7adff4d",
+    "design-lab/tests/test_illustrator_com_adapter.py": "cb4cefa874d3795971f6251cff3fd7f6d5f04c844a3018d128c603bca63e81c4",
     "design-lab/tests/test_illustrator_job_validation.py": "7724ad679d8d329ffead5845df0b93c817f1206686eb2fde4408ffed21be4379",
     "design-lab/tests/test_illustrator_local_patch.py": "e808945c2df1605710955a832c020d6075f039c0b28e5f16e365cc049ba27992",
     "design-lab/tests/test_image_import_recovery.py": "9335f453433f67ff483f12573cfe62db384ebe427e2bf0a0302b81eeda8436ed",
@@ -541,15 +542,15 @@
   },
   "ledger": "design-lab/config/task-ledger-r3.json",
   "outputHashes": {
-    "ADAPTER_EVIDENCE_RECONCILIATION.json": "9c2939cd8b64f01823c9b276da4df3d7866ac49dac4ab1fdbd03d7eafff21b55",
-    "CLOUD_BASELINE.json": "7e1abad9ab6054a4904f74d15e3184a68b69822895004ce6f185d8ef99691be3",
-    "CLOUD_BASELINE.md": "f63eb0523641f598666feb1e9002d23968092b072977aacadef4b1eb7db4d8f5",
-    "DOMAIN_PACK_READINESS.json": "9eb014e0f6845a9b3b7b77dbf46fa6631a88d37979dddf66466b52f7fd8d6d7f",
-    "KNOWLEDGE_INVENTORY.json": "2d4ba50aafc960362d996c9ab2a56b71ea68ef9c5dd7003dbae9c172e1780bef",
-    "PROJECT_STATUS.json": "376da0aa46bb6cd9c53e15eb01cae6a2172084dcf935b3f47713359491700be3",
-    "PROJECT_STATUS.md": "bedf2cce12e885422be00d1eee1b58579d1d67c72e0086bacfbf39f83acf3403",
-    "RELEASE_READINESS.json": "76b638c0c5667ee804d0a4223d31d4d083a5f3aee704ab865c76e01ac3dd7ae2",
-    "TASK_PROGRESS.json": "ccd5a29e28145846015ff335ad8e1b32e3949d647806b0bf7432be403b502837"
+    "ADAPTER_EVIDENCE_RECONCILIATION.json": "b7c0fe9ef5911d3106da4c34b2e48b4203ad38e1e862d4a33ec0a8717a14f1d2",
+    "CLOUD_BASELINE.json": "79969382bddd8707fc84c31ec6cbe053ad28f9298a88d081d319c73b258dc94e",
+    "CLOUD_BASELINE.md": "de5f43f524012f8e53a91fe04801ec3eafe9b11270396c533eef41e7639dbba1",
+    "DOMAIN_PACK_READINESS.json": "1e41cff87149596808ceecffbbc001bdaa926d3155cd034b5de2e8a547f52ff7",
+    "KNOWLEDGE_INVENTORY.json": "e8746071da23dbe58569a9342730d04140232a3577735e0c5990ec9bd35b67ae",
+    "PROJECT_STATUS.json": "079344ba8b97beb2a335a440c0a425c35112a763d72651b47f25adea08b44c84",
+    "PROJECT_STATUS.md": "ca9e57c1aae3a13f417411cf8ea13307f77e95ffbfe7274c08c0add74ffd983d",
+    "RELEASE_READINESS.json": "26a278e75f4c7ae9a568b3dab16f4726bae0742293641964d5860f157744ab4d",
+    "TASK_PROGRESS.json": "c7c41d9038d479dc65f4a7dcdd2dbd85f18610b0b2f2c2805c2d1f49a77b5f49"
   },
   "reportRoot": "../../reports/current/",
   "reports": [
@@ -564,5 +565,5 @@
     "RELEASE_READINESS.json"
   ],
   "schemaVersion": "design-lab/current-report-index/v3",
-  "subjectSha": "6d4e9c794f5ce9c03ca233ab2ba933915c019581"
+  "subjectSha": "1d468722b246ba8a453ec1d791589fd3846a6da0"
 }

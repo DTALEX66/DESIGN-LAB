@@ -1,8 +1,9 @@
 # SPDX-License-Identifier: MIT
 """Prepare a synthetic cross-language native qualification, not a user design.
 
-Does not launch a host. The generated JSX is run only through a separately
-authorized Illustrator script entry. All output stays project-local ignored.
+Default preparation does not launch a host. Explicit --execute-com runs the
+product adapter; otherwise generated JSX needs an authorized script entry.
+All output stays project-local ignored.
 """
 import hashlib
 import json
@@ -10,6 +11,8 @@ from pathlib import Path
 import shutil
 import sys
 import uuid
+import argparse
+import subprocess
 
 ROOT=Path(__file__).resolve().parents[3]
 sys.path.insert(0,str(ROOT/'packages/capabilities'))
@@ -68,6 +71,31 @@ def prepare():
     (run/'run.jsx').write_text(script,encoding='utf-8')
     print(json.dumps(dict(run=str(run),script=str(run/'run.jsx'),rir_hash=job['rirHash'],
         jsx_sha256=hashlib.sha256((run/'run.jsx').read_bytes()).hexdigest())))
+    return run,job
 
 
-if __name__=='__main__':prepare()
+if __name__=='__main__':
+    parser=argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--execute-com',action='store_true',help='Explicitly execute the fixed product COM adapter in Illustrator')
+    parser.add_argument('--installed-python',help='Project-local installed interpreter; child runs isolated without source paths')
+    args=parser.parse_args()
+    run,job=prepare()
+    if args.execute_com:
+        if args.installed_python:
+            executable=resolve_paths(project_root=ROOT).checked_path(args.installed_python)
+            code="""import json,sys;from pathlib import Path
+import design_lab.adapters.illustrator_com as adapter
+job=json.loads(Path(sys.argv[1]).read_text(encoding='utf-8'))
+result=adapter.execute(job,project_root=sys.argv[2],approved_root=sys.argv[3])
+print(json.dumps(dict(readback=result,qualification=dict(interpreter=sys.executable,module=adapter.__file__))))
+"""
+            completed=subprocess.run([str(executable),'-I','-B','-c',code,str(run/'adobe-host-job.json'),str(ROOT),str(run)],
+                cwd=run,capture_output=True,text=True,encoding='utf-8',timeout=150,check=True)
+            proof=json.loads(completed.stdout);result=proof['readback']
+            (run/'installed-qualification.json').write_text(json.dumps(proof,sort_keys=True,indent=2),encoding='utf-8')
+            print(json.dumps(proof['qualification']))
+        else:
+            from design_lab.adapters.illustrator_com import execute
+            result=execute(job,project_root=ROOT,approved_root=run)
+        (run/'com-readback.json').write_text(json.dumps(result,sort_keys=True,indent=2),encoding='utf-8')
+        print(json.dumps(result,sort_keys=True))

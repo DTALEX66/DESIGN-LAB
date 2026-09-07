@@ -6,6 +6,13 @@ from untrusted input. The generic Adobe JSON Schema remains an envelope; this
 Illustrator-specific preflight is stricter. There is not yet a network/API
 dispatcher for this entrypoint.
 
+The installed internal adapter `design_lab.adapters.illustrator_com.execute`
+now calls this fixed bridge through native Illustrator COM, seals inputs and
+outputs, and returns bound readback. Source and isolated-wheel native runs are
+recorded in `docs/decisions/R3-ILLUSTRATOR-COM-DISPATCH-2026-09-08.md`.
+It is not yet a persistent service dispatcher: caller-owned task/attempt,
+rights, lease and unknown-outcome reconciliation are still required.
+
 ## Current supported input
 
 All objects below are closed: missing and extra fields are rejected.
@@ -65,8 +72,9 @@ atomic writer lease, reparse-point defense or crash recovery implementation.
 - Raster readback currently checks embedding/counts, not per-object pixel hash;
   color, z-order and text-position round-trip checks need broader coverage.
 - The RIR hash is syntax-checked only; the upstream owner must bind it to actual
-  RIR bytes and the evidence manifest. Synthetic host fixture uses a nonzero
-  test marker, not a production provenance claim.
+  RIR bytes and the evidence manifest. Older manually assembled fixtures use a
+  nonzero test marker; `prepare_illustrator_lowered.py` now uses the actual RIR
+  builder and records its canonical hash. Neither grants production rights.
 - Host scripts must never accept arbitrary shell/menu commands. Do not execute
   user-supplied script text to implement object plans.
 - Existing native tests do not prove complex reference fidelity, font
