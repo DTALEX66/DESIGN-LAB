@@ -55,13 +55,13 @@ def _transaction(conn):
         raise
 
 
-def connect(db_path: Path) -> sqlite3.Connection:
+def connect(db_path: Path, *, project_root=None) -> sqlite3.Connection:
     """Migrate once with a backup of existing attempts; stop workers first.
 
     Legacy receipts are preserved, but need new readback to qualify success.
     """
     try:
-        db_path = resolve_paths().database_path(db_path)
+        db_path = resolve_paths(project_root=project_root).database_path(db_path)
     except PathPolicyError as exc:
         raise AttemptError(str(exc)) from exc
     db_path.parent.mkdir(parents=True, exist_ok=True)

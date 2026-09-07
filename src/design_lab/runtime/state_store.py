@@ -9,8 +9,8 @@ from .state_resources import state_schema
 DDL = state_schema('design-lab-state-v1.sql')
 
 
-def init_db(db_path: Path) -> sqlite3.Connection:
-    db_path = resolve_paths().database_path(db_path)
+def init_db(db_path: Path, *, project_root=None) -> sqlite3.Connection:
+    db_path = resolve_paths(project_root=project_root).database_path(db_path)
     db_path.parent.mkdir(parents=True, exist_ok=True)
     conn = sqlite3.connect(str(db_path))
     conn.execute('PRAGMA foreign_keys = ON')

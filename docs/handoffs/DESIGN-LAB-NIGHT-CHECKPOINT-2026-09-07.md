@@ -59,3 +59,13 @@
 继续顺序：显式 project root 传入任务存储及资产发布 → 复用 operation/attempt 接入任务、事件、取消和真实导入导出 → 工作台与 Adobe 产品桥联通。当前 HTTP 仅项目元数据，使用启动器 stdin 内存密钥、Host/Origin 边界，不是公开网络服务；无模型/宿主调用，未验证全依赖安装、长任务负载或完整服务升级恢复。
 
 完整范围未缩减：5–10 张复杂不同类型参考、AI/PSD 两次局部修改、15 秒内容分镜视频、Comfy 生产适配、H3 条件资格、媒体与人工门仍分别待验收。R3-09 / R4-009 仍 PARTIAL，不据本切片宣称 M1 或全部完成。
+
+## 接续检查点：显式存储拥有者与真实图片导入
+
+- 前一发布 SHA `d59a472cc32129dfe9f1df7a22766d3064a83600` 的 CI run `34139232538` 已实时读回 completed/success。
+- state_store、job_store、资产发布和恢复均新增显式 `project_root`；源码与安装后各 3 项通过，既有资产 18、Attempt 23 项通过。参见 [拥有项目记录](../decisions/R3-EXPLICIT-STORE-OWNER-2026-09-07.md)。
+- 新增真实 PNG/JPEG HTTP 导入、项目隔离列表与原字节读回；使用已有 Operation/Attempt/asset publication/fencing，不新建平行账本。发布并重新 hash 读回才 RECEIPTED；相同请求幂等，改请求、越项目、已损坏字节拒绝。rights 始终 NOT_REVIEWED。
+- 锁定完整依赖安装后的真实子进程 HTTP 13 PASS；故障注入 1 PASS（真实 rename 后错误，任务 OUTCOME_UNKNOWN、无 ACTIVE 版本、不自动重试、可隔离回收）。见 [图片导入记录](../decisions/R3-IMAGE-IMPORT-HTTP-2026-09-07.md)。
+- 生成报告时尝试更新 R3-09 的 baseline_existing 被 frozen-source 校验拒绝，已撤回这一修改；不绕过校验，不把历史基线改成当前进度。新证据尚需按正式 receipt 格式绑定到账本，报告中的 NOT_EXECUTED 不代表这批源码不存在。
+- 剩余明确工作：导入中断对账入口、任务/事件/取消/修改/导出 API、OpenAPI/TS 合同、工作台和真实宿主联通。当前导入同步执行，不是异步设计 worker，不证明成熟复刻效果。
+- 本轮最终源码定向：服务 17、故障导入 1、显式根 3、资产 18、Attempt 23，共 62 PASS；统一校验 49 PASS。最新整仓 Python suite 仍须由本次发布 exact-SHA CI 证明，未沿用前次结果。

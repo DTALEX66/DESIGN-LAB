@@ -1,6 +1,9 @@
 # SPDX-License-Identifier: MIT
 """Real CLI processes, loopback requests and persistent project metadata."""
 import http.client
+import base64
+import hashlib
+import io
 import json
 import os
 from pathlib import Path
@@ -36,7 +39,7 @@ class ServiceHttpTests(unittest.TestCase):
                     [sys.executable, '-B', '-c', code, str(ROOT / 'src')])
         self.process = subprocess.Popen(
             [*launcher, '--project', str(self.root),
-             'serve', '--port', '0'], cwd=self.root, env=env,
+             'serve', '--port', '0'], cwd=self.root.parent, env=env,
             stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
             text=True, encoding='utf-8')
         self.process.stdin.write(self.token + '\n')
@@ -156,6 +159,86 @@ class ServiceHttpTests(unittest.TestCase):
             self.assertEqual(self.request(path=path)[0], 404)
         self.assertEqual(self.request('DELETE')[0], 405)
         self.assertFalse((self.root / '.project-local').exists())
+
+    def image_body(self, color='red', key='import-one'):
+        from PIL import Image
+        stream = io.BytesIO()
+        Image.new('RGB', (16, 12), color).save(stream, format='PNG')
+        data = stream.getvalue()
+        return data, json.dumps({'content_base64': base64.b64encode(data).decode('ascii'),
+                                 'idempotency_key': key})
+
+    def test_real_image_import_receipt_content_and_restart(self):
+        self.start()
+        _, project = self.request('POST', body='{"name":"Image project"}')
+        endpoint = '/api/projects/' + project['project']['id'] + '/assets'
+        data, body = self.image_body()
+        status, imported = self.request('POST', endpoint, body)
+        self.assertEqual(status, 201)
+        asset = imported['asset']
+        self.assertEqual(asset['sha256'], 'sha256:' + hashlib.sha256(data).hexdigest())
+        self.assertEqual(asset['rights'], 'NOT_REVIEWED')
+        self.assertEqual(imported['attempt']['state'], 'RECEIPTED')
+        self.assertEqual((asset['width'], asset['height']), (16, 12))
+        self.stop()
+        self.start()
+        self.assertEqual(self.request(path=endpoint), (200, {'assets': [asset]}))
+        self.assertEqual(self.request('POST', endpoint, body), (201, imported))
+        status, content = self.request(path=endpoint + '/' + asset['id'] + '/content')
+        self.assertEqual(status, 200)
+        self.assertEqual(base64.b64decode(content['content_base64']), data)
+
+    def test_import_key_conflict_does_not_publish_second_asset(self):
+        self.start()
+        _, project = self.request('POST', body='{"name":"Conflict project"}')
+        endpoint = '/api/projects/' + project['project']['id'] + '/assets'
+        _, body = self.image_body('red')
+        self.assertEqual(self.request('POST', endpoint, body)[0], 201)
+        _, changed = self.image_body('blue')
+        self.assertEqual(self.request('POST', endpoint, changed)[0], 409)
+        self.assertEqual(len(self.request(path=endpoint)[1]['assets']), 1)
+
+    def test_invalid_image_and_cross_project_read_are_rejected(self):
+        self.start()
+        _, first = self.request('POST', body='{"name":"First"}')
+        _, second = self.request('POST', body='{"name":"Second"}')
+        endpoint = '/api/projects/' + first['project']['id'] + '/assets'
+        for payload in ({'content_base64': 'not base64', 'idempotency_key': 'a'},
+                        {'content_base64': base64.b64encode(b'<svg/>').decode(), 'idempotency_key': 'a'},
+                        {'content_base64': '', 'idempotency_key': '../escape'}):
+            self.assertEqual(self.request('POST', endpoint, json.dumps(payload))[0], 400)
+        self.assertEqual(self.request(path=endpoint), (200, {'assets': []}))
+        _, body = self.image_body()
+        _, imported = self.request('POST', endpoint, body)
+        foreign = '/api/projects/' + second['project']['id'] + '/assets/' + imported['asset']['id'] + '/content'
+        self.assertEqual(self.request(path=foreign)[0], 404)
+
+    def test_modified_published_image_cannot_reuse_success_receipt(self):
+        self.start()
+        _, project = self.request('POST', body='{"name":"Integrity"}')
+        endpoint = '/api/projects/' + project['project']['id'] + '/assets'
+        _, body = self.image_body()
+        _, imported = self.request('POST', endpoint, body)
+        files = list((self.root / '.project-local/projects' / project['project']['id']).glob('assets/versions/*/reference.png'))
+        self.assertEqual(len(files), 1)
+        files[0].write_bytes(b'corrupted synthetic fixture')
+        self.assertEqual(self.request('POST', endpoint, body)[0], 409)
+        self.assertEqual(self.request(path=endpoint + '/' + imported['asset']['id'] + '/content')[0], 409)
+
+    def test_jpeg_import_preserves_original_encoded_bytes(self):
+        from PIL import Image
+        self.start()
+        _, project = self.request('POST', body='{"name":"JPEG"}')
+        endpoint = '/api/projects/' + project['project']['id'] + '/assets'
+        stream = io.BytesIO()
+        Image.new('RGB', (21, 15), 'blue').save(stream, format='JPEG')
+        data = stream.getvalue()
+        body = json.dumps({'content_base64': base64.b64encode(data).decode(), 'idempotency_key': 'jpeg'})
+        status, imported = self.request('POST', endpoint, body)
+        self.assertEqual(status, 201)
+        self.assertEqual(imported['asset']['media_type'], 'image/jpeg')
+        _, readback = self.request(path=endpoint + '/' + imported['asset']['id'] + '/content')
+        self.assertEqual(base64.b64decode(readback['content_base64']), data)
 
 
 if __name__ == '__main__':

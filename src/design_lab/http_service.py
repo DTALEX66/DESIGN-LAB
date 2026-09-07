@@ -9,6 +9,7 @@ import sqlite3
 from . import __version__
 from .runtime.asset_store import AssetError
 from .runtime.paths import PathPolicyError
+from .image_assets import ImageAssets, ImageAssetError
 
 
 class RequestError(ValueError):
@@ -71,14 +72,14 @@ def make_server(service, token, port=0):
                     auth[0].encode('utf-8'), ('Bearer ' + token).encode('ascii'))):
                 raise RequestError(401, 'UNAUTHORIZED')
 
-        def body(self):
+        def body(self, *, fields=frozenset({'name'}), limit=16384):
             if self.headers.get_all('Transfer-Encoding', []):
                 raise RequestError(400, 'TRANSFER_ENCODING_DENIED')
             lengths = self.headers.get_all('Content-Length', [])
             if len(lengths) != 1 or not re.fullmatch(r'[0-9]{1,8}', lengths[0]):
                 raise RequestError(400, 'INVALID_CONTENT_LENGTH')
             size = int(lengths[0])
-            if size > 16384:
+            if size > limit:
                 raise RequestError(413, 'BODY_TOO_LARGE')
             types = self.headers.get_all('Content-Type', [])
             if types not in (['application/json'], ['application/json; charset=utf-8']):
@@ -90,7 +91,7 @@ def make_server(service, token, port=0):
                 value = json.loads(data.decode('utf-8'), object_pairs_hook=_unique_object)
             except (ValueError, UnicodeError, RecursionError):
                 raise RequestError(400, 'INVALID_JSON') from None
-            if not isinstance(value, dict) or set(value) != {'name'}:
+            if not isinstance(value, dict) or set(value) != fields:
                 raise RequestError(400, 'INVALID_PROJECT_FIELDS')
             return value
 
@@ -98,6 +99,11 @@ def make_server(service, token, port=0):
             try:
                 self.guard()
                 if self.command == 'GET':
+                    match = re.fullmatch(r'/api/projects/([0-9a-f]{32})/assets(?:/(img-[0-9a-f]{64})/content)?', self.path)
+                    if match:
+                        images = ImageAssets(service)
+                        return self.send_json(200, images.content(*match.groups()) if match[2] else
+                                              {'assets': images.list(match[1])})
                     if self.path == '/api/health':
                         return self.send_json(200, {'status': 'OK', 'version': __version__, 'scope': 'project-metadata'})
                     if self.path == '/api/environment':
@@ -111,6 +117,10 @@ def make_server(service, token, port=0):
                             return self.send_json(200, {'project': project})
                     raise RequestError(404, 'NOT_FOUND')
                 if self.command == 'POST':
+                    match = re.fullmatch(r'/api/projects/([0-9a-f]{32})/assets', self.path)
+                    if match:
+                        value = self.body(fields={'content_base64', 'idempotency_key'}, limit=45_000_256)
+                        return self.send_json(201, ImageAssets(service).import_image(match[1], **value))
                     if self.path != '/api/projects':
                         raise RequestError(404, 'NOT_FOUND')
                     value = self.body()
@@ -118,6 +128,10 @@ def make_server(service, token, port=0):
                 raise RequestError(405, 'METHOD_NOT_ALLOWED')
             except RequestError as exc:
                 self.send_json(exc.status, {'error': exc.code})
+            except ImageAssetError as exc:
+                self.send_json(exc.status, {'error': exc.code})
+            except ImportError:
+                self.send_json(503, {'error': 'IMAGE_DEPENDENCY_UNAVAILABLE'})
             except (ValueError, PathPolicyError):
                 self.send_json(400, {'error': 'INVALID_REQUEST'})
             except (sqlite3.Error, AssetError, OSError):

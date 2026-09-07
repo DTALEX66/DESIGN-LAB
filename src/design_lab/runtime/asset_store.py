@@ -249,9 +249,9 @@ def release_writer(conn, resource_key, holder_attempt_id, *, generation=None):
         return True
 
 
-def _safe_root(store_root):
+def _safe_root(store_root, *, project_root=None):
     try:
-        layout = resolve_paths()
+        layout = resolve_paths(project_root=project_root)
         raw = layout.checked_path(store_root)
     except PathPolicyError as exc:
         raise AssetError(str(exc)) from exc
@@ -298,9 +298,9 @@ def _portable_name(name):
 
 
 def publish_version(conn, asset_id, source, *, store_root, artifact_name,
-                    expected_sha256, holder_attempt_id, generation):
+                    expected_sha256, holder_attempt_id, generation, project_root=None):
     """Copy to immutable per-publication location; keep recovery journal on failure."""
-    root = _safe_root(store_root)
+    root = _safe_root(store_root, project_root=project_root)
     if not _portable_name(artifact_name):
         raise AssetError("artifact_name must be a single portable filename")
     source = Path(source)
@@ -366,13 +366,13 @@ def publish_version(conn, asset_id, source, *, store_root, artifact_name,
         return version
 
 
-def recover_publications(conn, *, store_root):
+def recover_publications(conn, *, store_root, project_root=None):
     """Run with project writers stopped. Preserve uncommitted bytes in quarantine.
 
     Each journal operation holds the same DB write lock as publish/takeover.
     Recovery can be repeated after a crash during its own rename.
     """
-    root = _safe_root(store_root)
+    root = _safe_root(store_root, project_root=project_root)
     recovered = []
     with _transaction(conn):
         rows = conn.execute("SELECT publication_id,stage_path,final_path,quarantine_path "
