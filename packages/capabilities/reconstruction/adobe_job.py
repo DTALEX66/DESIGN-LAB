@@ -159,3 +159,51 @@ def build_adobe_job(rir: dict[str, Any], run_dir: Path, *, text_styles=None) -> 
     )
     validate_adobe_job(job.to_dict())
     return job
+
+
+def build_photoshop_job(rir: dict[str, Any], run_dir: Path, *, text_styles=None) -> dict[str, Any]:
+    """Lower the same validated RIR to editable text and independent PSD layers.
+
+    General vector paths remain Illustrator-only until a qualified Photoshop
+    path consumer exists. This function never silently rasterizes a reference.
+    """
+    from .adobe_lowering import lower_layers, validate_objects, require
+    rir_hash = canonical_rir_hash(rir)
+    root = _run_root(Path(run_dir))
+    width, height = rir['canvas']['width'], rir['canvas']['height']
+    require(type(width) is int and type(height) is int and 1 <= width <= 16383
+            and 1 <= height <= 16383 and width * height <= 25_000_000, 'unsupported Photoshop canvas')
+    for name in ('master.psd', 'photoshop-preview.png'):
+        require(not _inside(root / name, root).exists(), 'Photoshop output already exists')
+    layers, assets = lower_layers(rir, root, text_styles or {})
+    validate_objects(dict(layers=layers, assets=assets), root)
+
+    def rectangle(item):
+        points = item['points']
+        require(item['closed'] and len(points) == 4, 'Photoshop requires an explicit rectangular fill/mask')
+        anchors = [p['anchor'] for p in points]
+        require(all(p['left'] == p['anchor'] == p['right'] for p in points), 'Photoshop curved paths unsupported')
+        xs, ys = sorted(set(p[0] for p in anchors)), sorted(set(p[1] for p in anchors))
+        require(len(xs) == len(ys) == 2 and len(set(map(tuple, anchors))) == 4, 'nonrectangular path unsupported')
+        require(all((anchors[i][0] == anchors[(i+1)%4][0]) != (anchors[i][1] == anchors[(i+1)%4][1])
+                    for i in range(4)), 'crossed rectangle unsupported')
+        x, y, w, h = xs[0], height-ys[1], xs[1]-xs[0], ys[1]-ys[0]
+        require(x >= 0 and y >= 0 and x+w <= width and y+h <= height, 'rectangle outside Photoshop canvas')
+        return [x, y, w, h]
+
+    def convert(item):
+        kind = item['kind']
+        if kind == 'path':
+            return dict(id=item['id'], kind='fill', bounds=rectangle(item), color=item['color'])
+        if kind == 'group':
+            return dict(id=item['id'], kind='group', children=[convert(n) for n in item['items']],
+                        mask=rectangle(item['mask']) if item['mask'] is not None else None)
+        result = copy.deepcopy(item)
+        result['position'] = [item['position'][0], height-item['position'][1]]
+        require(all(0 <= v <= 16383 for v in result['position']), 'Photoshop position out of range')
+        return result
+
+    return dict(schemaVersion='design-lab/photoshop-native-job/v1', jobId='ps-'+rir_hash[:24],
+                runRoot=str(root), width=width, height=height, outputName='master.psd',
+                previewName='photoshop-preview.png', assets=assets,
+                layers=[convert(n) for layer in layers for n in layer['items']])
