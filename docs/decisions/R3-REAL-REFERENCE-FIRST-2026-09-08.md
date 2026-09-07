@@ -51,3 +51,17 @@
 4. 补充复杂电商、照片合成、2D/3D 等独立作品；上述候选数量不是完成数量。
 
 本轮仅新增长文档及 ignored 本地研究产物，没有改核心实现。前一综合 49 项通过不作为本张参考的质量证据。开发分支上传仍受既有环境审批策略阻断，不绕过，不宣称双端一致。
+
+## 高清出版稿续测与原生路径缺口
+
+从上列出版站实际 A2 链接取得 [PDF](https://creativecommons.pl/wp-content/uploads/sites/3/2012/06/CC_licencje_plakat_A21.pdf)，1055464 bytes，SHA256 `8af60accd8026fe687abb8c34f437124e607ec922f450329c0f3dc6d5e7856ef`。PDF 单页、未加密、无 JavaScript。只使用 pdfinfo 的文档元数据和 pdftoppm 栅格渲染，没有提取其文字、路径或源对象来重建。
+
+渲染命令：`pdftoppm -f 1 -singlefile -scale-to 3000 -png <publisher-a2.pdf> <publisher-3000>`。本地两文件均位于同一 `behance-5783221` 目录。PNG 2155×3000，SHA256 `5e53676d6c62826d374e81b23958444250c3c7bd57015ff913e98c93b4307e43`。目视确认同一图解内容，但出版稿含裁切标记和页边，不能与旧 600×849 JPG 不配准直接计算像素相似度。高清页脚明确写 CC BY 3.0 Polska；此证据收窄具体出版文件的许可版本，不回写其他网站历史声明或代签人工 gate。
+
+本地 `ocr_reference_highres.py` 会话 38568 退出 0，实际检测+识别 139.162 秒，109 个候选，无空文字。结果 `highres-20260907T200935782054Z/results.json` SHA256 `421521afb83a3dc1e2aecd65a7d5b76b7c268d733d1c1502e3092f2e2aa88cb3`，对象计划 SHA256 `6bd079bb7bc172faa76e5812406190437c25a8aa2ce1c2c444d1088e8adf123c`。模型版本/权重与上一轮相同，输入和实际脚本 hash 单独记录；仍无人工真值准确率。目视抽查部分波兰语细字改善，但图标仍被识别为汉字，质量仍未接受。
+
+另外按 `design-lab/config/reconstruction-models.json` 找到既有 VTracer 1.0.0-alpha.3，并实测二进制 SHA256 为登记值 `83d9df564119f1d21719f358c02b77372dd40e34373cc7a47b9dcc3014e7c587`。对页面图标候选区域做纯栅格裁切，再以 `--preset bw --mode spline --filter-speckle 2 --path-precision 3` 产生 `copy-icon-traced.svg`，SHA256 `c23ed50452d78f74cabe971d55945b689c6e8e80e92399fe51543fae8b9aa4e8`。首个裁切存在边缘截断，v2 裁切又包含边框；均保留为诊断，不作为已分离的完整图标或合格复刻。
+
+该 SVG 有 2 个 path。直接将实际 path d 送入现有 `reconstruction.adobe_lowering.path_points`，2 个均报 `unsupported path syntax`。原因是输出包含相对指令/复合轮廓，而现有转换器明确只支持单轮廓绝对 M/L/C/Z。没有删除子轮廓、把孔洞填实或整页转曲来求通过。
+
+接续实现应优先解决：有界、可审计的相对路径与复合路径规范化；保留孔洞填充语义并验证 Illustrator 原生 compound path 保存重开。先使用这个真实输出做 RED/负例，再做安全单元测试与实际宿主读回；字体与文字对象仍单独处理。当前没有新增宿主运行、没有更改原生 adapter，完整复刻数量保持 0。
