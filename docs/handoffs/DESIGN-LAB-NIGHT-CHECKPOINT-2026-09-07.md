@@ -69,3 +69,13 @@
 - 生成报告时尝试更新 R3-09 的 baseline_existing 被 frozen-source 校验拒绝，已撤回这一修改；不绕过校验，不把历史基线改成当前进度。新证据尚需按正式 receipt 格式绑定到账本，报告中的 NOT_EXECUTED 不代表这批源码不存在。
 - 剩余明确工作：导入中断对账入口、任务/事件/取消/修改/导出 API、OpenAPI/TS 合同、工作台和真实宿主联通。当前导入同步执行，不是异步设计 worker，不证明成熟复刻效果。
 - 本轮最终源码定向：服务 17、故障导入 1、显式根 3、资产 18、Attempt 23，共 62 PASS；统一校验 49 PASS。最新整仓 Python suite 仍须由本次发布 exact-SHA CI 证明，未沿用前次结果。
+
+## 原生入口恢复（23:56）
+
+Illustrator 脚本文件选择器已经实际输入并执行本项目 run.jsx。路径校验原生 6 PASS，host 29.5.1，文档数 0→0；终态位于 `adobe-live-20260907/path-fix-qualification/run-1788796615014/`。详见 [路径审计追加](../decisions/R3-ILLUSTRATOR-PATH-FIX-2026-09-07.md)。不要继续把该入口写成当前阻断。
+
+入口要点：辅助功能 focused_element 错报 SearchEditBox，截图却可见文件名框插入光标。Alt+N 后以截图确认实际焦点，再 type_text 完整项目脚本路径、截图核对文字确实进入文件名框，Return 执行。不能只依据旧 element index 或错误的焦点文本；每个动作后重新观察。
+
+因此下一步优先推进已解阻的 Illustrator 产品对象/保存桥，任务查询与事件接口仍保留，不用纯元数据工作替代原生设计目标。先使用已实测诊断代码的宿主操作，再以当前闭合任务合同约束；不得直接将诊断脚本宣称产品完成。
+
+本次已实时读回 `83b4fc628f706668ec4f31b7856fbd8d214c42e5` 的 CI run `34140369754` completed/success。原生新验证只针对该提交中的路径函数，不提升全 R3/R4 或主分支发布。
