@@ -51,6 +51,32 @@ class AssetSafetyTests(unittest.TestCase):
         self.assertEqual({row[1] for row in rows}, set(versions))
         self.assertEqual({row[2] for row in rows}, {"poster.psd"})
 
+    def test_scoped_recovery_preserves_other_attempt_staging(self):
+        assets.register_asset(self.conn,'project','other','psd')
+        token=self.acquire('owner')
+        self.assertTrue(assets.acquire_writer(self.conn,'asset:other','other-owner'))
+        other_token=assets.writer_token(self.conn,'asset:other','other-owner')
+        source=self.root/'source.psd';source.write_bytes(b'controlled')
+        for identity,holder,generation in [('poster','owner',token),('other','other-owner',other_token)]:
+            with patch.object(assets,'_after_stage',side_effect=OSError('stopped at stage')):
+                with self.assertRaises(OSError):
+                    assets.publish_version(self.conn,identity,source,store_root=self.root/'store',artifact_name='native.psd',
+                        expected_sha256=hashlib.sha256(b'controlled').hexdigest(),holder_attempt_id=holder,generation=generation)
+        recovered=assets.recover_publications(self.conn,store_root=self.root/'store',asset_id='poster',
+                                             holder_attempt_id='owner',generation=token)
+        self.assertEqual(len(recovered),1)
+        other=self.conn.execute("SELECT state,stage_path FROM asset_publication WHERE asset_id='other'").fetchone()
+        self.assertEqual(other[0],'PREPARED')
+        self.assertEqual(Path(other[1]).read_bytes(),b'controlled')
+        with self.assertRaises(assets.AssetError):
+            assets.recover_publications(self.conn,store_root=self.root/'store',asset_id='other')
+
+    def test_expected_owner_takeover_cannot_fence_an_unrelated_writer(self):
+        token=self.acquire('other-worker')
+        with self.assertRaises(assets.AssetError):
+            assets.takeover_writer(self.conn,'asset:poster','recovery',expected_holder='recovery')
+        self.assertEqual(assets.writer_token(self.conn,'asset:poster','other-worker'),token)
+
     def test_failed_artifact_insert_cannot_leak_empty_active_version(self):
         self.record("a")
         self.conn.execute("CREATE TRIGGER reject_artifact BEFORE INSERT ON artifact "

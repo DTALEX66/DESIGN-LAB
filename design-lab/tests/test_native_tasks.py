@@ -247,6 +247,34 @@ class NativeTaskTests(unittest.TestCase):
         with closing(tasks._connect()) as conn:
             self.assertEqual(conn.execute('SELECT COUNT(*) FROM asset_version').fetchone()[0],1)
 
+    def test_recovery_crash_during_stage_or_rename_preserves_uncommitted_bytes(self):
+        module=self.module()
+        for seam in ('_after_stage','_after_rename'):
+            with self.subTest(window=seam):
+                with patch.object(module,'_dispatch',side_effect=self.native),patch.object(module.assets,'publish_version',side_effect=OSError('disk failure')):
+                    with self.assertRaises(module.NativeTaskError) as caught:self.execute(key=seam)
+                aid=caught.exception.attempt['attempt_id']
+                code=(
+                    'import sys,os; sys.path.insert(0,sys.argv[1]); '
+                    'from design_lab.service import ProjectService; '
+                    'from design_lab.native_tasks import NativeTasks; '
+                    'from design_lab.runtime import asset_store; '
+                    'setattr(asset_store,sys.argv[4],lambda *a: os._exit(43)); '
+                    'NativeTasks(ProjectService(sys.argv[2])).reconcile_receipted(sys.argv[3],'
+                    'authorization=dict(actor="test",scope="project-native-test",receipt="crash fixture"))'
+                )
+                child=subprocess.run([sys.executable,'-B','-X','utf8','-c',code,str(ROOT/'src'),str(self.root),aid,seam],
+                                     capture_output=True,text=True,timeout=20)
+                self.assertEqual(child.returncode,43,child.stderr)
+                tasks=module.NativeTasks(ProjectService(self.root))
+                result=tasks.reconcile_receipted(aid,authorization=self.authorization)
+                self.assertEqual(result['attempt']['state'],'RECEIPTED')
+                with closing(tasks._connect()) as conn:
+                    rows=conn.execute('SELECT state,quarantine_path FROM asset_publication WHERE holder_attempt_id=?',(aid,)).fetchall()
+                    self.assertEqual(sorted(r[0] for r in rows),['COMMITTED','QUARANTINED'])
+                    quarantine=Path(next(r[1] for r in rows if r[0]=='QUARANTINED'))
+                    self.assertEqual(quarantine.read_bytes(),(self.run/'output.psd').read_bytes())
+
     def test_pre_dispatch_cancel_is_not_sent_to_host(self):
         module=self.module()
         # First unresolved job occupies host; second remains PENDING.

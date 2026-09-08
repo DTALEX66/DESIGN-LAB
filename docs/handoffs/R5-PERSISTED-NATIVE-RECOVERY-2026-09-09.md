@@ -80,3 +80,22 @@ covers a recovery-process crash, not merely a caught Python exception.
 Remaining: actual process-kill trials inside the other publication crash windows,
 late native completion without an original receipt, cancellation acknowledgement,
 multi-file manifests and product UI. The OS lock alone does not prove these.
+
+## Stage/rename crash-window continuation
+
+Real recovery subprocesses now exit after staging and after rename (before
+metadata commit). Each leaves a live-looking asset lease and PREPARED journal.
+The initial RED reproduced ASSET_WRITER_BUSY. Recovery now fences only a lease
+still owned by the exact same attempt, while holding its OS recovery lock.
+An atomic expected-holder check rejects a different owner; no blind takeover.
+
+Scoped asset recovery requires asset ID, attempt ID and a valid fencing token.
+It quarantines only that attempt's PREPARED files, retaining their bytes, before
+publishing the verified source. Each crash trial ends with exactly one COMMITTED
+and one QUARANTINED journal for that attempt, with quarantined bytes equal to the
+original output. An independent asset's PREPARED journal/file remains untouched.
+
+Native tests: 20 PASS. Asset-safety tests: 20 PASS, including scoped isolation,
+partial-scope rejection and changed-owner rejection. These controlled process
+crashes supplement (not replace) native host-live interruption testing. Missing
+original native receipts, host cancellation, bundle publication and UI remain.

@@ -143,13 +143,20 @@ CREATE TABLE IF NOT EXISTS native_recovery_protocol_v2 (
         for kind,path in outputs.items():
             if _digest(self.paths.checked_path(path))!=receipt['artifacts'][kind]:raise ValueError('output mismatch')
 
-    def _publish(self,project_id,asset_id,primary,source,receipt,aid):
+    def _publish(self,project_id,asset_id,primary,source,receipt,aid,*,recovering=False):
         with closing(assets.connect(self.service.database,project_root=self.owner)) as conn:
             assets.register_asset(conn,project_id,asset_id,primary)
             resource='asset:'+asset_id
-            if not assets.acquire_writer(conn,resource,aid):raise NativeTaskError('ASSET_WRITER_BUSY')
+            if not assets.acquire_writer(conn,resource,aid):
+                if not recovering:raise NativeTaskError('ASSET_WRITER_BUSY')
+                # Caller owns the OS recovery lock; only this same attempt's
+                # prior lease may be fenced out, never a different writer.
+                assets.takeover_writer(conn,resource,aid,expected_holder=aid)
             generation=assets.writer_token(conn,resource,aid)
             try:
+                if recovering:
+                    assets.recover_publications(conn,store_root=self.paths.category_dir('projects',project_id,'assets'),
+                        project_root=self.owner,asset_id=asset_id,holder_attempt_id=aid,generation=generation)
                 version=assets.publish_version(conn,asset_id,source,
                     store_root=self.paths.category_dir('projects',project_id,'assets'),artifact_name='native.'+primary,
                     expected_sha256=receipt['artifacts'][primary]['sha256'],holder_attempt_id=aid,
@@ -243,7 +250,7 @@ CREATE TABLE IF NOT EXISTS native_recovery_protocol_v2 (
                 # reconstructed using a new idempotency key or caller input.
                 if not op.startswith('native-op-'):raise ValueError('invalid operation identity')
                 asset_id='native-'+op.removeprefix('native-op-')
-                asset=self._publish(project_id,asset_id,primary,outputs[primary],receipt,attempt_id)
+                asset=self._publish(project_id,asset_id,primary,outputs[primary],receipt,attempt_id,recovering=True)
                 return self._finish(conn,attempt_id,host,dict(asset=asset,native=receipt))
             except Exception as exc:
                 raise NativeTaskError('RECONCILIATION_UNRESOLVED_GUARD_RETAINED') from exc

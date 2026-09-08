@@ -216,11 +216,13 @@ def _fence(conn, resource_key, holder_attempt_id, generation):
         raise AssetError("expired or stale writer fencing token")
 
 
-def takeover_writer(conn, resource_key, holder_attempt_id, *, lease_seconds=60):
+def takeover_writer(conn, resource_key, holder_attempt_id, *, lease_seconds=60, expected_holder=None):
     """Explicit handover; always increments generation and records the change."""
     expires = _expiry(lease_seconds)
     with _transaction(conn):
         old = _lease(conn, resource_key)
+        if expected_holder is not None and (not old or old[0] != expected_holder):
+            raise AssetError('writer ownership changed before recovery takeover')
         generation = old[1] + 1 if old else 1
         conn.execute("INSERT INTO asset_writer_lock VALUES (?,?,?,'HELD',?,?) "
                      "ON CONFLICT(resource_key) DO UPDATE SET holder_attempt_id=excluded.holder_attempt_id,"
@@ -366,17 +368,30 @@ def publish_version(conn, asset_id, source, *, store_root, artifact_name,
         return version
 
 
-def recover_publications(conn, *, store_root, project_root=None):
+def recover_publications(conn, *, store_root, project_root=None, asset_id=None,
+                         holder_attempt_id=None, generation=None):
     """Run with project writers stopped. Preserve uncommitted bytes in quarantine.
 
     Each journal operation holds the same DB write lock as publish/takeover.
     Recovery can be repeated after a crash during its own rename.
+    Alternatively scope to one asset/attempt with a current fencing token;
+    caller must independently prove that attempt's old worker has stopped.
+    Other assets/attempts are untouched by scoped recovery.
     """
     root = _safe_root(store_root, project_root=project_root)
     recovered = []
     with _transaction(conn):
-        rows = conn.execute("SELECT publication_id,stage_path,final_path,quarantine_path "
-                            "FROM asset_publication WHERE store_root=? AND state='PREPARED'", (str(root),)).fetchall()
+        scoped = (asset_id, holder_attempt_id, generation)
+        if any(value is not None for value in scoped) and any(value is None for value in scoped):
+            raise AssetError('scoped recovery requires asset, attempt and fencing generation')
+        query = ("SELECT publication_id,stage_path,final_path,quarantine_path "
+                 "FROM asset_publication WHERE store_root=? AND state='PREPARED'")
+        parameters = [str(root)]
+        if asset_id is not None:
+            _fence(conn, 'asset:' + asset_id, holder_attempt_id, generation)
+            query += ' AND asset_id=? AND holder_attempt_id=?'
+            parameters.extend((asset_id, holder_attempt_id))
+        rows = conn.execute(query, parameters).fetchall()
         for pid, stage, final, quarantine in rows:
             stage, final, quarantine = map(Path, (stage, final, quarantine))
             for path in (stage, final, quarantine):
