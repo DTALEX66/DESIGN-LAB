@@ -27,7 +27,7 @@ class CurrentReportingTests(unittest.TestCase):
         env_patch = patch.dict(self.reporting.os.environ, {'PROJECT_LOCAL_ROOT':str(self.root/'.project-local')})
         env_patch.start()
         self.addCleanup(env_patch.stop)
-        self.ledger = json.loads((ROOT / 'design-lab/config/task-ledger-r3.json').read_text(encoding='utf-8'))
+        self.ledger = json.loads((ROOT / 'docs/history/taskpacks/r3-ledger-pre-r5-20260909.json').read_text(encoding='utf-8'))
         self.ledger['evidence'] = []
         for task in self.ledger['tasks']:
             for axis in task['axes'].values():

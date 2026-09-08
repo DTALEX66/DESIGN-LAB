@@ -55,8 +55,8 @@ reports/        阶段验收、证据与交接报告
 
 ## 关键文档
 
-当前执行入口：[R3 云端复审后继任务包](docs/taskpacks/DESIGN-LAB-CLOUD-REAUDIT-TASKPACK-2026-09-06.md)。
-任务状态唯一编辑源：[R3 任务账本](design-lab/config/task-ledger-r3.json)；
+当前执行入口：[R5 增量任务包](docs/history/taskpacks/r5-20260908/02-TASKS.md)。
+任务状态唯一编辑源：[版本化任务账本（保留原路径）](design-lab/config/task-ledger-r3.json)；
 [生成状态](reports/current/PROJECT_STATUS.md)分代码、测试、宿主实机和交付四轴。
 09-04/09-05 任务包保留为历史需求与映射来源；知识迁移继续延后。
 

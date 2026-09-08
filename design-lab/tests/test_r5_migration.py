@@ -13,7 +13,8 @@ import prepare_r5_ledger as migration
 
 class R5MigrationTests(unittest.TestCase):
     def setUp(self):
-        self.previous = (ROOT / 'design-lab/config/task-ledger-r3.json').read_bytes()
+        self.previous = (ROOT / 'docs/history/taskpacks/r3-ledger-pre-r5-20260909.json').read_bytes()
+        self.active_before = (ROOT / 'design-lab/config/task-ledger-r3.json').read_bytes()
         self.source = (ROOT / 'docs/history/taskpacks/r5-20260908/tasks.json').read_bytes()
 
     def build(self, previous=None, source=None):
@@ -25,7 +26,7 @@ class R5MigrationTests(unittest.TestCase):
         candidate = self.build()
         self.assertEqual(candidate['predecessor']['ledger'], json.loads(self.previous))
         self.assertEqual(candidate['predecessor']['sha256'], hashlib.sha256(self.previous).hexdigest())
-        self.assertEqual((ROOT / 'design-lab/config/task-ledger-r3.json').read_bytes(), self.previous)
+        self.assertEqual((ROOT / 'design-lab/config/task-ledger-r3.json').read_bytes(), self.active_before)
         self.assertEqual(self.build(), candidate)
 
     def test_all_definitions_and_conditions_survive_without_pass_transfer(self):
@@ -111,6 +112,24 @@ class R5MigrationTests(unittest.TestCase):
             change(candidate)
             with self.assertRaises(ValueError):
                 project_ledger(ROOT, candidate, 'a' * 40)
+
+    def test_conditional_audio_is_explicit_and_required_audio_blocks(self):
+        from design_lab.governance.reporting import project_ledger
+        candidate = self.build()
+        def row():
+            return next(t for t in project_ledger(ROOT, candidate, 'a' * 40)['tasks'] if t['id'] == 'DL-R5-019')
+        self.assertEqual(row()['unresolved_conditions'], ['TTS_required', 'generated_music_required'])
+        task = next(t for t in candidate['tasks'] if t['id'] == 'DL-R5-019')
+        task['condition_decisions'] = {
+            'TTS_required': {'required': True, 'reason': 'Case uses generated narration'},
+            'generated_music_required': {'required': False, 'reason': 'Case uses licensed existing music'},
+        }
+        self.assertEqual(row()['unresolved_conditions'], [])
+        self.assertIn('DL-R5-016', row()['unmet_dependencies'])
+        self.assertNotIn('DL-R5-017', row()['unmet_dependencies'])
+        task['condition_decisions']['generated_music_required']['reason'] = ''
+        with self.assertRaises(ValueError):
+            row()
 
     def test_duplicate_predecessor_keys_and_bad_timestamp_are_rejected(self):
         with self.assertRaises(ValueError):

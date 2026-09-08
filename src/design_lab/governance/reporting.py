@@ -200,11 +200,23 @@ def project_ledger(root, ledger, subject_sha, *, reader=None):
                     reasons.append('no current evidence of the required kind')
             axes[axis] = {**declaration, 'state': state, 'declared_state': declaration['state'], 'reasons': reasons}
         unmet = [dep for dep in task['depends_on'] if projected[dep]['status'] != 'DONE_LOCAL']
+        conditions = task.get('definition', {}).get('conditional_dependencies', {})
+        decisions = task.get('condition_decisions', {})
+        unresolved = [name for name in conditions if name not in decisions]
+        for name, dependency in conditions.items():
+            if decisions.get(name, {}).get('required') and projected[dependency]['status'] != 'DONE_LOCAL':
+                if dependency not in unmet:
+                    unmet.append(dependency)
         satisfied = all(axes[axis]['state'] in {'IMPLEMENTED_LOCAL', 'PASS'} for axis in task['required_axes'])
         started = any(a['state'] not in {'NOT_EXECUTED', 'NOT_REQUIRED'} for a in axes.values())
-        status = 'DONE_LOCAL' if satisfied and not unmet else 'PARTIAL' if started else 'TODO'
+        status = 'DONE_LOCAL' if satisfied and not unmet and not unresolved else 'PARTIAL' if started else 'TODO'
         projected[tid] = {'id': tid, 'title': task['title'], 'status': status, 'depends_on': task['depends_on'],
                           'unmet_dependencies': unmet, 'required_axes': task['required_axes'], 'axes': axes}
+        if 'definition' in task:
+            projected[tid].update(definition=task['definition'],
+                                  predecessor_task_ids=task['predecessor_task_ids'],
+                                  reassessment=task['reassessment'], condition_decisions=decisions,
+                                  unresolved_conditions=unresolved)
     return {'schemaVersion': ledger['schemaVersion'].replace('task-ledger/', 'task-progress/'), 'taskpack': ledger['taskpack'],
             'subjectSha': subject_sha, 'ledgerUpdatedAt': ledger['updated_at'],
             'tasks': [projected[t['id']] for t in ledger['tasks']], 'evidence': list(evaluated.values()),
@@ -272,6 +284,18 @@ def _build(reader, snapshot, generated_at):
     markdown += f"任务包：{ledger['taskpack']}；生成时观察 SHA（不是当前 HEAD）：`{snapshot['sha']}`。\n\n"
     markdown += f"唯一编辑源：`{LEDGER}`。生成时间 {generated_at} 不代表重新测试或实机验收。\n\n"
     markdown += '\n'.join(table) + '\n\n发布状态：NOT_RELEASED。原始观察时间与哈希见 TASK_PROGRESS.json。\n'
+    for task in progress['tasks']:
+        if 'definition' not in task:
+            continue
+        definition = task['definition']
+        markdown += f"\n## {task['id']} — {task['title']}\n\n"
+        markdown += '依赖：' + ', '.join(task['depends_on']) + '\n\n'
+        markdown += '历史映射（不代表验收）：' + ', '.join(task['predecessor_task_ids']) + '\n\n'
+        markdown += '增量实施：' + definition['implementation'] + '\n\n验收：\n\n'
+        markdown += '\n'.join('- ' + item for item in definition['acceptance']) + '\n\n'
+        markdown += '回退：' + definition['rollback'] + '\n\n'
+        if task['unresolved_conditions']:
+            markdown += '未决案例条件：' + ', '.join(task['unresolved_conditions']) + '\n\n'
     cloud = {**common, 'schemaVersion': 'design-lab/cloud-baseline/v2', 'local': snapshot,
              'remoteRef': 'origin/main (local tracking ref)', 'cloudReadback': 'NOT_EXECUTED',
              'unavailable': ['currentRemoteSha', 'exactShaCI', 'openPullRequests', 'branchProtection'],
@@ -291,7 +315,7 @@ def _build(reader, snapshot, generated_at):
                     reader.read(path.relative_to(reader.root).as_posix())
                 packs.append({'domain': pack.name, 'contractJsonFiles': len(manifests), 'status': 'STRUCTURAL_ONLY', 'hostLive': 'NOT_EXECUTED'})
     reports = {
-        'PROJECT_STATUS.json': _dump(status), 'PROJECT_STATUS.md': markdown.encode('utf-8'),
+        'PROJECT_STATUS.json': _dump(status), 'PROJECT_STATUS.md': (markdown.rstrip() + '\n').encode('utf-8'),
         'TASK_PROGRESS.json': _dump({**common, **progress}),
         'CLOUD_BASELINE.json': _dump(cloud),
         'CLOUD_BASELINE.md': (f"# CLOUD_BASELINE\n\nGeneration-time local HEAD (not current): `{snapshot['sha']}`\n\nGeneration-time local origin/main: `{snapshot.get('origin_main')}`\n\nGitHub live readback / exact-SHA CI: NOT EXECUTED.\n").encode(),
@@ -301,7 +325,7 @@ def _build(reader, snapshot, generated_at):
                                          **status['sources'], 'migrationStatus':'deferred'}),
         'DOMAIN_PACK_READINESS.json': _dump({**common, 'schemaVersion':'design-lab/domain-readiness/v2', 'domainPacks':packs}),
         'RELEASE_READINESS.json': _dump({**common, 'schemaVersion':'design-lab/release-readiness/v2', 'status':'NOT_RELEASED',
-                                       'blockers':['R3-15 acceptance', 'host evidence', 'rights/quality/release gates', 'exact-SHA delivery']})}
+                                       'blockers':[('DL-R5-015' if ledger['taskpack'] == 'DL-TP-20260908-R5' else 'R3-15') + ' acceptance', 'host evidence', 'rights/quality/release gates', 'exact-SHA delivery']})}
     if set(reports) != set(REPORTS):
         raise ValueError('report inventory does not match generated outputs')
     return reports

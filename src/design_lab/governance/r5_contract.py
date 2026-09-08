@@ -61,6 +61,9 @@ def validate(reader, ledger, validate_r3):
         'definition': {'type': 'object'},
         'predecessor_task_ids': {'type': 'array', 'uniqueItems': True, 'items': {'type': 'string'}},
         'reassessment': {'enum': ['PENDING_EVIDENCE_REVIEW', 'REVIEWED']},
+        'condition_decisions': {'type': 'object', 'additionalProperties': {
+            'type': 'object', 'additionalProperties': False, 'required': ['required', 'reason'],
+            'properties': {'required': {'type': 'boolean'}, 'reason': {'type': 'string', 'pattern': '\\S'}}}},
     })
     props['evidence']['items']['properties']['task_ids']['items']['pattern'] = '^DL-R5-(00[1-9]|01[0-9]|02[0-8])$'
     errors = list(Draft202012Validator(schema, format_checker=FormatChecker()).iter_errors(ledger))
@@ -79,6 +82,9 @@ def validate(reader, ledger, validate_r3):
     for identity, task in tasks.items():
         number = int(identity.rsplit('-', 1)[1])
         old_ids = [old for old, successors in SUCCESSORS.items() if number in successors]
+        conditions = task['definition'].get('conditional_dependencies', {})
+        if not set(task.get('condition_decisions', {})) <= set(conditions):
+            raise ValueError('unknown R5 case condition')
         if (task['definition'] != originals[identity] or task['title'] != originals[identity]['title']
                 or task['depends_on'] != originals[identity]['depends_on']
                 or task['predecessor_task_ids'] != old_ids
@@ -103,6 +109,9 @@ def validate(reader, ledger, validate_r3):
         visiting.add(identity)
         for dependency in tasks[identity]['depends_on']:
             visit(dependency)
+        for condition, dependency in tasks[identity]['definition'].get('conditional_dependencies', {}).items():
+            if tasks[identity].get('condition_decisions', {}).get(condition, {}).get('required'):
+                visit(dependency)
         visiting.remove(identity)
         order.append(identity)
     for identity in tasks:

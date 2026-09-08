@@ -65,7 +65,7 @@ def prepare(root, predecessor_raw, source_raw, *, updated_at):
 
 
 def main():
-    previous = (ROOT / 'design-lab/config/task-ledger-r3.json').read_bytes()
+    previous = (ROOT / 'docs/history/taskpacks/r3-ledger-pre-r5-20260909.json').read_bytes()
     result = prepare(ROOT, previous, (ROOT / SOURCE_PATH).read_bytes(),
                      updated_at=_json(previous)['updated_at'])
     print(json.dumps({'status': 'CANDIDATE_PREPARED_NOT_ADOPTED',

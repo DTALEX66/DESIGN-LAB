@@ -1,32 +1,31 @@
 {
   "fresh": false,
   "freshnessMeaning": "at generation only; check verifies bound-input integrity, not current Git or cloud state",
-  "generatedAt": "2026-09-08T16:48:20+00:00",
+  "generatedAt": "2026-09-08T16:52:47+00:00",
   "git": {
     "branch": "codex/r3-runtime-correctness",
     "origin_main": "c4dccd58331bc4561eb89265283d924b7630d113",
-    "sha": "276326f69ad3e0bbda37e2ce97cda84db92fadee",
+    "sha": "ae465c4971eaefe90197c42f8c1bc5d4fabd506c",
     "source_worktree_clean": false,
-    "tracked_files": 1688
+    "tracked_files": 1690
   },
   "gitStateMeaning": "generation-time observation, not current HEAD",
   "hostLive": "derived from host_live axis only",
   "ledger": "design-lab/config/task-ledger-r3.json",
-  "plan": "docs/taskpacks/DESIGN-LAB-CLOUD-REAUDIT-TASKPACK-2026-09-06.md",
+  "plan": "docs/history/taskpacks/r5-20260908/02-TASKS.md",
   "releaseStatus": "NOT_RELEASED",
   "schemaVersion": "design-lab/project-status/v2",
   "sources": {
     "activeRegistryEntries": 6,
     "quarantinedSources": 162
   },
-  "subjectSha": "276326f69ad3e0bbda37e2ce97cda84db92fadee",
+  "subjectSha": "ae465c4971eaefe90197c42f8c1bc5d4fabd506c",
   "taskCounts": {
-    "PARTIAL": 11,
-    "TODO": 13
+    "PARTIAL": 28
   },
-  "taskpack": "DL-TP-20260906-R3",
+  "taskpack": "DL-TP-20260908-R5",
   "tests": {
-    "definedTestMethodCount": 868,
+    "definedTestMethodCount": 869,
     "executed": "see individual verified ledger receipts"
   }
 }

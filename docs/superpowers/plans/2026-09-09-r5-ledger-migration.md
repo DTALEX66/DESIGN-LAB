@@ -26,15 +26,15 @@ Build and test a candidate before changing the active ledger or its entry points
   invalid predecessor and duplicate JSON keys; checks lossless predecessor,
   complete mappings, immutable inputs and no transferred completion.
   Run `.venv/Scripts/python.exe -B -X utf8 -m unittest discover -s design-lab/tests -p test_r5_migration.py -v`.
-- [ ] Versioned contract/reporting: add R5 schema and validation branch in
+- [x] Versioned contract/reporting: derive the R5 schema in `r5_contract.py` and add a validation branch in
   `src/design_lab/governance/reporting.py`. Validate pinned source, predecessor,
   mappings, required axes and conditional acceptance without weakening R3.
   Preserve old reporting tests against a frozen R3 fixture and add R5 negative
   controls for source tampering, unknown dependencies and wrong-kind evidence.
-- [ ] Activation: preserve predecessor bytes in history, write the validated
+- [x] Activation: preserve predecessor bytes in history, write the validated
   candidate to the sole existing ledger path, regenerate current reports, then
   update AGENTS/README and adoption status. No second active state file.
-- [ ] Run focused migration/intake/report tests, canonical gate and report
+- [x] Run focused migration/intake/report tests, canonical gate and report
   `--check`; inspect final diff before committing explicit owned paths.
 
 Rollback: restore the prior ledger, schema, reporting implementation and entry

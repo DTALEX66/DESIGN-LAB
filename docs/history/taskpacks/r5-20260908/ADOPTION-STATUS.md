@@ -1,4 +1,9 @@
-# R5 source intake — not an active second ledger
+# R5 adoption history and current status
+
+Current status (2026-09-09 local): R5 activated in the existing single ledger
+path `design-lab/config/task-ledger-r3.json`. The source files in this directory
+remain frozen definitions, not a second editable status source. Earlier sections
+below are chronological checkpoints, not the current activation state.
 
 Imported from the user-authorized R5 package on 2026-09-09.
 Archive SHA256: `a4e6b10806cd71a51f1f1e2ccbb9e6fe87f65cb87848d4c246517ac34524a40f`.
@@ -86,3 +91,24 @@ unable to qualify host/delivery or bypass unmet dependencies. The R5 positive
 projection contains 28 PARTIAL tasks and no inherited current receipts.
 Outstanding before activation: conditional-case acceptance handling, frozen R3
 test fixture selection, task-card projection, active-entry switch and full gate.
+
+## Activation checkpoint
+
+Conditional Premiere audio decisions now require a boolean and a nonblank case
+reason; missing decisions block completion, required audio adds the corresponding
+dependency, and existing licensed audio need not force model generation. The
+projection exposes unresolved conditions and decisions explicitly. Ten migration
+tests and 25 R3 reporting tests PASS after activation; the latter now use the
+frozen R3 predecessor rather than assuming that the active ledger is always R3.
+
+The sole original ledger path now carries R5. AGENTS and README point to R5;
+generated PROJECT_STATUS includes all 28 task cards and TASK_PROGRESS retains
+their complete definitions and history links. Release readiness names R5 M1.
+Generate and read-only report checks PASS. All 28 execution states are PARTIAL
+pending evidence reassessment, not a claim of missing historical implementations
+or current completion. Knowledge migration remains deferred.
+
+Post-activation canonical gate: `VERIFY_DESIGN_LAB=OK total=49 failed=0`,
+process exit 0. Focused intake/migration/reporting tests total 41 PASS. These
+checks establish local ledger/report compatibility, not acceptance of all R5
+tasks, a new host session, current-SHA cloud CI, or publication.

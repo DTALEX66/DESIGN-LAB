@@ -93,8 +93,9 @@ DESIGN-LAB 是面向职业视觉设计的、AI 原生、平台中立、宿主原
 
 ## 当前任务包
 
-- 当前有效任务包：`docs/taskpacks/DESIGN-LAB-CLOUD-REAUDIT-TASKPACK-2026-09-06.md`（DL-TP-20260906-R3，用户已授权推进 Codex 适用任务）。
+- 当前有效任务包：`docs/history/taskpacks/r5-20260908/tasks.json`（DL-TP-20260908-R5，用户已授权推进全部任务；原件冻结，禁止用它编辑执行状态）。中文任务卡见同目录 `02-TASKS.md`。
 - 唯一任务状态编辑源：`design-lab/config/task-ledger-r3.json`；按 `depends_on` 派工。
+- 该路径已版本化为 `design-lab/task-ledger/r5-v1`。R3 原账本逐字节冻结于 `docs/history/taskpacks/r3-ledger-pre-r5-20260909.json`，并在活动账本中保留完整前继记录。旧证据不自动提升新任务；条件依赖须记录案例选择和理由，未决条件阻止验收完成。
 - 当前投影：`reports/current/TASK_PROGRESS.json`、`reports/current/PROJECT_STATUS.md`；生成器 `scripts/generate_current_reports.py`，`--check` 只读验证漂移。
 - 代码、unit、host_live、delivery 四轴分别记录。历史/缺失/源文件变化的证据不能提升当前能力；生成时间不是测试时间。
 - 09-05 多模态方案与交接（SUPERSEDED，历史分工来源）：`docs/taskpacks/DESIGN-LAB-MULTIMODAL-TASK-PLAN-2026-09-05.md`、`docs/taskpacks/DESIGN-LAB-MULTIMODAL-CODEX-HANDOFF-2026-09-05.md`。
@@ -102,7 +103,7 @@ DESIGN-LAB 是面向职业视觉设计的、AI 原生、平台中立、宿主原
   - `docs/taskpacks/DESIGN-LAB-TODAY-EXECUTION-TASKPACK-2026-09-04.md`（后继：DL-TP-20260906-R3）
   - `docs/taskpacks/DLR-FINAL-20260826-R2-OSS-FAST-TRACK.md`（2026-08-26）
   - `docs/taskpacks/TRI-OSS-FAST-TRACK-20260826-R1.md`（三项目总规划，superseded by standalone-first ADR-001）
-- 执行顺序以 R3 `depends_on` 为准；前置验收未满足时，只记录实现进展，不宣称整项闭环。宿主、质量与发布各自验收。
+- 执行顺序以 R5 `depends_on` 及案例条件依赖为准；前置验收未满足时，只记录实现进展，不宣称整项闭环。宿主、质量与发布各自验收。Comfy、H3、UIA 不作为 Adobe M1 的硬前置。
 - 旧进度账本由原路径转为历史指针；冻结原文在 `reports/history/r3-predecessors-2026-09-06/`。原 `reports/history-baseline.json` 不修改。
 
 （项目特有规则在此基础上补充）
