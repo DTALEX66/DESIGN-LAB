@@ -310,6 +310,46 @@ class NativeTaskTests(unittest.TestCase):
             with self.assertRaisesRegex(module.NativeTaskError,'REQUEST_REJECTED'):self.execute()
             invoke.assert_not_called()
 
+    def test_native_bundle_export_preserves_outputs_inputs_and_primary_contract(self):
+        import zipfile
+        module=self.module()
+        with patch.object(module,'_dispatch',side_effect=self.native):result=self.execute()
+        tasks=module.NativeTasks(self.service)
+        self.assertTrue(hasattr(tasks,'export_bundle'),'native bundle export missing')
+        aid=result['attempt']['attempt_id']
+        with patch.object(module,'_dispatch',side_effect=AssertionError('export must not dispatch')):
+            bundle=tasks.export_bundle(aid,authorization=self.authorization)
+            again=tasks.export_bundle(aid,authorization=self.authorization)
+        self.assertEqual(bundle,again)
+        with zipfile.ZipFile(bundle['path']) as archive:
+            self.assertEqual(set(archive.namelist()),{'bundle-manifest.json','native.psd','preview.png','inputs/0000.png'})
+            self.assertEqual(archive.read('native.psd'),Path(result['asset']['path']).read_bytes())
+            self.assertEqual(archive.read('inputs/0000.png'),(self.run/'input.png').read_bytes())
+            manifest=json.loads(archive.read('bundle-manifest.json'))
+            self.assertEqual(manifest['metadata']['rights'],'NOT_REVIEWED')
+            self.assertEqual(manifest['metadata']['link_relocation'],'NOT_VERIFIED')
+        self.assertEqual(self.execute()['asset'],result['asset'])
+
+    def test_native_bundle_export_rejects_changed_preview(self):
+        module=self.module()
+        with patch.object(module,'_dispatch',side_effect=self.native):result=self.execute()
+        (self.run/'output.png').write_bytes(b'changed preview')
+        tasks=module.NativeTasks(self.service)
+        self.assertTrue(hasattr(tasks,'export_bundle'),'native bundle export missing')
+        with self.assertRaises(module.NativeTaskError):
+            tasks.export_bundle(result['attempt']['attempt_id'],authorization=self.authorization)
+        with closing(tasks._connect()) as conn:
+            self.assertEqual(conn.execute('SELECT COUNT(*) FROM asset_version').fetchone()[0],1)
+
+    def test_unknown_native_attempt_cannot_export_a_completed_bundle(self):
+        module=self.module()
+        with patch.object(module,'_dispatch',side_effect=PhotoshopDispatchError('timeout',outcome_unknown=True)):
+            with self.assertRaises(module.NativeTaskError) as caught:self.execute()
+        tasks=module.NativeTasks(self.service)
+        self.assertTrue(hasattr(tasks,'export_bundle'),'native bundle export missing')
+        with self.assertRaises(module.NativeTaskError):
+            tasks.export_bundle(caught.exception.attempt['attempt_id'],authorization=self.authorization)
+
     def test_published_bytes_tampered_replay_does_not_return_success(self):
         module=self.module()
         with patch.object(module,'_dispatch',side_effect=self.native):result=self.execute()

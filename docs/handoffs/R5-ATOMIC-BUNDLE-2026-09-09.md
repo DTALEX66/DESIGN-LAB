@@ -37,3 +37,33 @@ native links, editability, human acceptance or a releasable product.
 
 Rollback: reviewed inverse code change; retain published archives, candidates,
 publication journals and evidence. No bulk deletion or global configuration.
+
+## Native export integration and real artifact readback
+
+`NativeTasks.export_bundle` now exports only RECEIPTED native attempts after
+rechecking persisted job/receipt, published primary bytes, all original output
+hashes and input assets. The original primary-result contract stays unchanged.
+The bundle uses a separate derived asset ID in the same existing database.
+OS locking and scoped publication recovery serialize/recover exports; other
+writers cannot be taken over. This internal method is not yet an HTTP/UI route.
+
+Native tests: 23 PASS, including complete output/input archive contents,
+idempotent export, preservation of primary asset replay, changed-preview refusal
+and refusal to export an unknown native attempt as completed work.
+
+Real local export (no new Adobe call):
+
+- Source attempt: `att-e240d819ddd44b76a1a6899feb786690`, Illustrator 29.5.1.
+- Version: `v-25bad7a473a74d15848ceeba8261578b`.
+- Archive: `.project-local/projects/e90a75cf81cf4f99bef3965d46d49cbf/assets/versions/a9e3f014601b4d38958a4133154c30ae/delivery.zip`.
+- Size: 4,733,596 bytes; SHA256 `c0d3cf5323274efe72ab72c733c77420fbbd8b1f2ef049040ffbbf586952ffb4`.
+- `native.ai`: `4bd448b71b026118ab19bab3e249b97d2d37c7d9fc73328a7a6302bf600e89a2`.
+- `preview.png`: `94f7dec69c87f5959b27b10e649b1c44a6fe98079582536be66d5a0a7bf2765e`.
+- `preview.svg`: `c1593c60103b4347b87331d9302e79b0669175c843536106596634af9651242e`.
+
+All member hashes match the original receipt; repeat export returned the exact
+same asset/version. This particular native job declared no input assets; its
+source reference image/RIR/Brief are not silently invented as bundled inputs.
+Font inventory remains NOT_COLLECTED, link relocation NOT_VERIFIED, rights and
+quality NOT_REVIEWED. No source asset was uploaded or modified. The earlier PSD
+unknown attempt remains unresolved and was not exported by this integration.

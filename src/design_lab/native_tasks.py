@@ -131,6 +131,10 @@ CREATE TABLE IF NOT EXISTS native_recovery_protocol_v2 (
             return self._verify_result(json.loads(row[0]),project_id)
         return {'attempt':attempt}
 
+    def export_bundle(self,attempt_id,*,authorization):
+        from .native_bundles import export_bundle
+        return export_bundle(self,attempt_id,authorization)
+
     def _verify_receipt(self,receipt,job,request,outputs):
         if (receipt.get('status')!='NATIVE_READBACK' or receipt.get('job_id')!=job['jobId']
             or receipt.get('job_sha256')!=hashlib.sha256(_json(job).encode()).hexdigest()
