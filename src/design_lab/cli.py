@@ -19,6 +19,8 @@ def main(argv=None):
     commands.add_parser('paths', help='read-only project path diagnosis')
     server = commands.add_parser('serve', help='loopback metadata API; launcher supplies temporary token on stdin')
     server.add_argument('--port', type=int, default=0)
+    worker = commands.add_parser('native-worker', help='execute one persisted approved native attempt')
+    worker.add_argument('--attempt', required=True)
     projects = commands.add_parser('projects').add_subparsers(dest='action', required=True)
     projects.add_parser('list')
     projects.add_parser('create').add_argument('--name', required=True)
@@ -39,6 +41,15 @@ def main(argv=None):
                 except KeyboardInterrupt:
                     pass
             return 0
+        elif args.command == 'native-worker':
+            from .native_tasks import NativeTasks, NativeTaskError
+            try:
+                task = NativeTasks(service).execute_queued(args.attempt)
+            except NativeTaskError as exc:
+                # Never serialize stored jobs, authorization receipts or paths.
+                print(json.dumps({'status':'ERROR','error':str(exc)}))
+                return 2
+            result = {'attempt_id':task['attempt']['attempt_id'],'state':task['attempt']['state']}
         elif args.command == 'paths':
             result = service.paths.describe()
         elif args.action == 'list':

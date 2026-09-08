@@ -81,8 +81,8 @@
   ],
   "fresh": false,
   "freshnessMeaning": "at generation only; check verifies bound-input integrity, not current Git or cloud state",
-  "generatedAt": "2026-09-08T17:58:52+00:00",
+  "generatedAt": "2026-09-08T18:01:36+00:00",
   "gitStateMeaning": "generation-time observation, not current HEAD",
   "schemaVersion": "design-lab/domain-readiness/v2",
-  "subjectSha": "ddda996c26a1a3bec7fc29a0c52518a4c4074be6"
+  "subjectSha": "8d4d2ac5dd6e31aa5489c697609722a0ad788539"
 }

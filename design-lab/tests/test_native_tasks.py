@@ -112,6 +112,25 @@ class NativeTaskTests(unittest.TestCase):
             module.NativeTasks(self.service).execute_queued(aid)
         self.assertFalse((self.run/'output.psd').exists())
 
+    def test_cli_worker_reads_cancelled_attempt_without_host_dispatch(self):
+        queued=self.module().NativeTasks(self.service).enqueue(self.project,'photoshop',self.job,
+            idempotency_key='key',approved_root=self.run,authorization=self.authorization)
+        aid=queued['attempt']['attempt_id']
+        with closing(job_store.connect(self.service.database,project_root=self.root)) as conn:
+            job_store.request_cancel(conn,aid)
+        env=dict(os.environ,PYTHONPATH=str(ROOT/'src'),PYTHONDONTWRITEBYTECODE='1')
+        child=subprocess.run([sys.executable,'-B','-X','utf8','-m','design_lab','--project',str(self.root),
+            'native-worker','--attempt',aid],cwd=self.root,env=env,capture_output=True,text=True,encoding='utf-8',timeout=30)
+        self.assertEqual(child.returncode,0,child.stderr)
+        data=json.loads(child.stdout)
+        self.assertEqual(data,{'attempt_id':aid,'state':'CANCELLED'})
+        self.assertFalse((self.run/'output.psd').exists())
+        missing=subprocess.run([sys.executable,'-B','-X','utf8','-m','design_lab','--project',str(self.root),
+            'native-worker','--attempt','att-'+'0'*32],cwd=self.root,env=env,capture_output=True,text=True,encoding='utf-8',timeout=30)
+        self.assertEqual(missing.returncode,2)
+        self.assertEqual(json.loads(missing.stdout),{'status':'ERROR','error':'NATIVE_REQUEST_MISSING'})
+        self.assertEqual(missing.stderr,'')
+
     def test_different_request_same_key_rejected_without_dispatch(self):
         module=self.module()
         with patch.object(module,'_dispatch',side_effect=self.native) as invoke:
