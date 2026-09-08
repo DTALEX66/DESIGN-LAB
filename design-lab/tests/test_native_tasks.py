@@ -74,7 +74,7 @@ class NativeTaskTests(unittest.TestCase):
             self.assertEqual(conn.execute('SELECT COUNT(*) FROM native_host_guard_v1').fetchone()[0],0)
         self.service=ProjectService(self.root)
         with patch.object(module,'_dispatch',side_effect=self.native):
-            result=self.execute()
+            result=module.NativeTasks(self.service).execute_queued(queued['attempt']['attempt_id'])
         self.assertEqual(result['attempt']['attempt_id'],queued['attempt']['attempt_id'])
         self.assertEqual(result['attempt']['state'],'RECEIPTED')
 
@@ -84,19 +84,32 @@ class NativeTaskTests(unittest.TestCase):
             idempotency_key='key',approved_root=self.run,authorization=self.authorization)
         with closing(job_store.connect(self.service.database,project_root=self.root)) as conn:
             job_store.request_cancel(conn,queued['attempt']['attempt_id'])
-        result=self.execute()
+        result=module.NativeTasks(self.service).execute_queued(queued['attempt']['attempt_id'])
         self.assertEqual(result['attempt']['state'],'CANCELLED')
         self.assertFalse((self.run/'output.psd').exists())
 
     def test_queued_input_change_is_rejected_before_host_claim(self):
         module=self.module()
-        module.NativeTasks(self.service).enqueue(self.project,'photoshop',self.job,
+        queued=module.NativeTasks(self.service).enqueue(self.project,'photoshop',self.job,
             idempotency_key='key',approved_root=self.run,authorization=self.authorization)
         Image.new('RGB',(8,6),'green').save(self.run/'input.png')
         with self.assertRaisesRegex(module.NativeTaskError,'NATIVE_IDEMPOTENCY_CONFLICT'):
-            self.execute()
+            module.NativeTasks(self.service).execute_queued(queued['attempt']['attempt_id'])
         with closing(job_store.connect(self.service.database,project_root=self.root)) as conn:
             self.assertEqual(conn.execute('SELECT COUNT(*) FROM native_host_guard_v1').fetchone()[0],0)
+        self.assertFalse((self.run/'output.psd').exists())
+
+    def test_queue_worker_rejects_modified_persisted_request(self):
+        module=self.module()
+        queued=module.NativeTasks(self.service).enqueue(self.project,'photoshop',self.job,
+            idempotency_key='key',approved_root=self.run,authorization=self.authorization)
+        aid=queued['attempt']['attempt_id']
+        with closing(job_store.connect(self.service.database,project_root=self.root)) as conn:
+            raw=json.loads(conn.execute('SELECT request_json FROM native_execution_v1 WHERE attempt_id=?',(aid,)).fetchone()[0])
+            raw['job']['width']=99
+            conn.execute('UPDATE native_execution_v1 SET request_json=? WHERE attempt_id=?',(json.dumps(raw),aid));conn.commit()
+        with self.assertRaisesRegex(module.NativeTaskError,'NATIVE_QUEUE_BINDING_INVALID'):
+            module.NativeTasks(self.service).execute_queued(aid)
         self.assertFalse((self.run/'output.psd').exists())
 
     def test_different_request_same_key_rejected_without_dispatch(self):

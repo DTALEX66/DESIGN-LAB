@@ -322,12 +322,36 @@ CREATE TABLE IF NOT EXISTS native_recovery_protocol_v2 (
             attempt=self._enqueue_prepared(conn,project_id,host,identity,request,idempotency_key)
             return self._existing(conn,attempt,project_id)
 
-    def execute(self,project_id,host,job,*,idempotency_key,approved_root,authorization):
+    def execute_queued(self,attempt_id):
+        """Internal worker entry; load only the exact persisted approved request."""
+        if not isinstance(attempt_id,str) or not re.fullmatch(r'att-[0-9a-f]{32}',attempt_id):
+            raise NativeTaskError('INVALID_NATIVE_ATTEMPT')
+        with closing(self._connect()) as conn:
+            row=conn.execute('SELECT n.project_id,n.host,n.request_json,i.idempotency_key,i.request_hash '
+                'FROM native_execution_v1 n JOIN attempt_state a ON a.attempt_id=n.attempt_id '
+                'JOIN job j ON j.job_id=a.job_id JOIN operation_intent i ON i.operation_id=j.operation_id '
+                'WHERE n.attempt_id=?',(attempt_id,)).fetchone()
+            if not row:raise NativeTaskError('NATIVE_REQUEST_MISSING')
+            try:
+                request=json.loads(row[2])
+                if (request_hash(request)!=row[4] or request['project_id']!=row[0] or request['host']!=row[1]):
+                    raise ValueError('request binding mismatch')
+                current,_=jobs._current(conn,attempt_id)
+            except (ValueError,KeyError,TypeError,jobs.AttemptError) as exc:
+                raise NativeTaskError('NATIVE_QUEUE_BINDING_INVALID') from exc
+            if current['state']!='PENDING':return self._existing(conn,current,row[0])
+        return self.execute(row[0],row[1],request['job'],idempotency_key=row[3],
+            approved_root=request['job']['runRoot'],authorization=request['authorization'],
+            _expected_attempt_id=attempt_id)
+
+    def execute(self,project_id,host,job,*,idempotency_key,approved_root,authorization,_expected_attempt_id=None):
         try:job,root,outputs,primary,identity,request=self._prepare(project_id,host,job,idempotency_key,approved_root,authorization)
         except Exception as exc:raise NativeTaskError('NATIVE_REQUEST_REJECTED') from exc
         with closing(self._connect()) as conn:
             attempt=self._enqueue_prepared(conn,project_id,host,identity,request,idempotency_key)
             aid=attempt['attempt_id']
+            if _expected_attempt_id is not None and aid!=_expected_attempt_id:
+                raise NativeTaskError('NATIVE_QUEUE_ATTEMPT_CHANGED')
             if not self._claim(conn,attempt,host):return self._existing(conn,jobs.latest_attempt(conn,attempt['job_id']),project_id)
             adapter_returned=False
             try:
