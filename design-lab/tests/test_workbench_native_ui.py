@@ -10,6 +10,54 @@ ROOT=Path(__file__).resolve().parents[2]
 
 
 class WorkbenchNativeUiTests(unittest.TestCase):
+    def test_late_asset_preview_and_verification_cannot_replace_latest_selection(self):
+        node=shutil.which('node')
+        if not node:self.skipTest('Node required')
+        script=r'''
+const fs=require('fs'),vm=require('vm');
+class E {constructor(){this.classList={toggle(){}};}removeAttribute(){}replaceChildren(){}append(){}}
+const elements={},pending=[];
+const c={document:{getElementById:id=>elements[id]??=new E(),createElement:()=>new E()},
+fetch:path=>new Promise(resolve=>pending.push(resolve))};
+vm.createContext(c);vm.runInContext(fs.readFileSync(process.argv[1],'utf8'),c);
+(async()=>{const fn=process.argv[2];vm.runInContext("project='"+'c'.repeat(32)+"'",c);
+const old=vm.runInContext(fn+"({id:'old'})",c),recent=vm.runInContext(fn+"({id:'recent'})",c);
+const response=label=>({ok:true,json:async()=>({content_base64:label,asset:{kind:'psd',media_type:'image/png',version_id:label,verification:label,width:1,height:1,sha256:label}})});
+pending[1](response('recent'));await recent;pending[0](response('old'));await old;
+console.log(JSON.stringify({result:elements[fn==='preview'?'asset-info':'native-info'].textContent}));
+})().catch(e=>{console.error(e);process.exitCode=1});
+'''
+        for function in ('preview','verifyNative'):
+            with self.subTest(function=function):
+                result=subprocess.run([node,'-e',script,str(ROOT/'apps/workbench/main.ts'),function],capture_output=True,text=True,encoding='utf-8',timeout=30)
+                self.assertEqual(result.returncode,0,result.stderr)
+                text=json.loads(result.stdout)['result']
+                self.assertIn('recent',text)
+                self.assertNotIn('old',text)
+
+    def test_late_task_events_cannot_replace_new_selection(self):
+        node=shutil.which('node')
+        if not node:self.skipTest('Node required')
+        script=r'''
+const fs=require('fs'),vm=require('vm');
+class E {constructor(){this.children=[];this.classList={toggle(){}};}append(x){this.children.push(x)}replaceChildren(){this.children=[];}removeAttribute(){}}
+const elements={},pending=[];
+const c={document:{getElementById:id=>elements[id]??=new E(),createElement:()=>new E()},
+fetch:path=>new Promise(resolve=>pending.push({path,resolve}))};
+vm.createContext(c);vm.runInContext(fs.readFileSync(process.argv[1],'utf8'),c);
+(async()=>{vm.runInContext("project='"+'c'.repeat(32)+"'",c);
+const old=vm.runInContext("loadEvents('old')",c),recent=vm.runInContext("loadEvents('recent')",c);
+const response=label=>({ok:true,json:async()=>({events:[{at:label,attempt_no:1,to_state:'RECEIPTED'}],next_cursor:null})});
+pending[1].resolve(response('recent'));await recent;pending[0].resolve(response('old'));await old;
+console.log(JSON.stringify({job:vm.runInContext('eventJob',c),text:elements.events.children.map(e=>e.textContent)}));
+})().catch(e=>{console.error(e);process.exitCode=1});
+'''
+        result=subprocess.run([node,'-e',script,str(ROOT/'apps/workbench/main.ts')],capture_output=True,text=True,encoding='utf-8',timeout=30)
+        self.assertEqual(result.returncode,0,result.stderr)
+        data=json.loads(result.stdout)
+        self.assertEqual(data['job'],'recent')
+        self.assertEqual(data['text'],['recent · attempt 1 · NEW → RECEIPTED'])
+
     def test_bundle_download_checks_hash_before_saving(self):
         node=shutil.which('node')
         if not node:self.skipTest('Node required')
