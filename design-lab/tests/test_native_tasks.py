@@ -64,6 +64,41 @@ class NativeTaskTests(unittest.TestCase):
         published=Path(second['asset']['path']);self.assertTrue(published.is_relative_to(self.service.paths.projects_root))
         self.assertEqual(published.read_bytes(),(self.run/'output.psd').read_bytes())
 
+    def test_enqueue_survives_restart_and_execute_uses_same_attempt(self):
+        module=self.module()
+        queued=module.NativeTasks(self.service).enqueue(self.project,'photoshop',self.job,
+            idempotency_key='key',approved_root=self.run,authorization=self.authorization)
+        self.assertEqual(queued['attempt']['state'],'PENDING')
+        self.assertFalse((self.run/'output.psd').exists())
+        with closing(job_store.connect(self.service.database,project_root=self.root)) as conn:
+            self.assertEqual(conn.execute('SELECT COUNT(*) FROM native_host_guard_v1').fetchone()[0],0)
+        self.service=ProjectService(self.root)
+        with patch.object(module,'_dispatch',side_effect=self.native):
+            result=self.execute()
+        self.assertEqual(result['attempt']['attempt_id'],queued['attempt']['attempt_id'])
+        self.assertEqual(result['attempt']['state'],'RECEIPTED')
+
+    def test_cancel_queued_native_task_never_dispatches(self):
+        module=self.module()
+        queued=module.NativeTasks(self.service).enqueue(self.project,'photoshop',self.job,
+            idempotency_key='key',approved_root=self.run,authorization=self.authorization)
+        with closing(job_store.connect(self.service.database,project_root=self.root)) as conn:
+            job_store.request_cancel(conn,queued['attempt']['attempt_id'])
+        result=self.execute()
+        self.assertEqual(result['attempt']['state'],'CANCELLED')
+        self.assertFalse((self.run/'output.psd').exists())
+
+    def test_queued_input_change_is_rejected_before_host_claim(self):
+        module=self.module()
+        module.NativeTasks(self.service).enqueue(self.project,'photoshop',self.job,
+            idempotency_key='key',approved_root=self.run,authorization=self.authorization)
+        Image.new('RGB',(8,6),'green').save(self.run/'input.png')
+        with self.assertRaisesRegex(module.NativeTaskError,'NATIVE_IDEMPOTENCY_CONFLICT'):
+            self.execute()
+        with closing(job_store.connect(self.service.database,project_root=self.root)) as conn:
+            self.assertEqual(conn.execute('SELECT COUNT(*) FROM native_host_guard_v1').fetchone()[0],0)
+        self.assertFalse((self.run/'output.psd').exists())
+
     def test_different_request_same_key_rejected_without_dispatch(self):
         module=self.module()
         with patch.object(module,'_dispatch',side_effect=self.native) as invoke:

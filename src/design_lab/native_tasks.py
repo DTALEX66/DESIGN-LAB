@@ -299,18 +299,35 @@ CREATE TABLE IF NOT EXISTS native_recovery_protocol_v2 (
                     return dict(attempt=jobs._record(conn,attempt_id),quiescence=receipt)
             except Exception as exc:raise NativeTaskError('QUIESCENCE_OUTCOME_UNKNOWN_GUARD_RETAINED') from exc
 
+    def _enqueue_prepared(self,conn,project_id,host,identity,request,idempotency_key):
+        try:
+            attempt=jobs.begin_attempt(conn,'native-job-'+identity,operation_id='native-op-'+identity,
+                idempotency_scope='native:'+project_id+':'+host,idempotency_key=idempotency_key,request_hash=request_hash(request))
+        except jobs.AttemptError as exc:raise NativeTaskError('NATIVE_IDEMPOTENCY_CONFLICT') from exc
+        with jobs._transaction(conn):
+            conn.execute('INSERT OR IGNORE INTO native_execution_v1(attempt_id,project_id,host,request_json) VALUES (?,?,?,?)',
+                         (attempt['attempt_id'],project_id,host,_json(request)))
+        return attempt
+
+    def enqueue(self,project_id,host,job,*,idempotency_key,approved_root,authorization):
+        """Persist an internal approved request without claiming or dispatching.
+
+        This is not a public arbitrary-job API. Execution revalidates the same
+        request and input hashes before acquiring the native host guard.
+        """
+        try:
+            _,_,_,_,identity,request=self._prepare(project_id,host,job,idempotency_key,approved_root,authorization)
+        except Exception as exc:raise NativeTaskError('NATIVE_REQUEST_REJECTED') from exc
+        with closing(self._connect()) as conn:
+            attempt=self._enqueue_prepared(conn,project_id,host,identity,request,idempotency_key)
+            return self._existing(conn,attempt,project_id)
+
     def execute(self,project_id,host,job,*,idempotency_key,approved_root,authorization):
         try:job,root,outputs,primary,identity,request=self._prepare(project_id,host,job,idempotency_key,approved_root,authorization)
         except Exception as exc:raise NativeTaskError('NATIVE_REQUEST_REJECTED') from exc
         with closing(self._connect()) as conn:
-            try:
-                attempt=jobs.begin_attempt(conn,'native-job-'+identity,operation_id='native-op-'+identity,
-                    idempotency_scope='native:'+project_id+':'+host,idempotency_key=idempotency_key,request_hash=request_hash(request))
-            except jobs.AttemptError as exc:raise NativeTaskError('NATIVE_IDEMPOTENCY_CONFLICT') from exc
+            attempt=self._enqueue_prepared(conn,project_id,host,identity,request,idempotency_key)
             aid=attempt['attempt_id']
-            with jobs._transaction(conn):
-                conn.execute('INSERT OR IGNORE INTO native_execution_v1(attempt_id,project_id,host,request_json) VALUES (?,?,?,?)',
-                             (aid,project_id,host,_json(request)))
             if not self._claim(conn,attempt,host):return self._existing(conn,jobs.latest_attempt(conn,attempt['job_id']),project_id)
             adapter_returned=False
             try:
