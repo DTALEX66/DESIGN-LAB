@@ -2366,12 +2366,12 @@
   ],
   "fresh": false,
   "freshnessMeaning": "at generation only; check verifies bound-input integrity, not current Git or cloud state",
-  "generatedAt": "2026-09-08T16:30:30+00:00",
+  "generatedAt": "2026-09-08T16:41:04+00:00",
   "gitStateMeaning": "generation-time observation, not current HEAD",
   "ledgerUpdatedAt": "2026-09-06T20:58:17Z",
   "note": "DONE_LOCAL concerns the declared task axes and dependencies, not a product release or hosted CI.",
   "schemaVersion": "design-lab/task-progress/r3-v1",
-  "subjectSha": "af3fda015ec410b45fbb0ad58bfdf898a44fc21d",
+  "subjectSha": "eee1c6057c96994b6cf6fd61d5ac2c0416554ca4",
   "taskpack": "DL-TP-20260906-R3",
   "tasks": [
     {

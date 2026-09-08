@@ -44,3 +44,27 @@ supported rather than discarded. Current reports were regenerated for test-count
 metadata and passed `--check`. This is not R5 migration completion or native/CI
 qualification. Next implementation remains the versioned single-ledger migration
 and source-to-R3 evidence mapping described above.
+
+## Lossless migration candidate (2026-09-09)
+
+`scripts/prepare_r5_ledger.py` now builds a deterministic in-memory R5 candidate.
+It validates the predecessor using the existing R3 contract, pins the R5 source,
+preserves the complete 24-task / 32-receipt predecessor and its original-byte
+SHA256 `2df7e722b96443dbfa451060f6747cfff135fa48847eb6eb212fae5fe46d65fb`,
+and retains all 28 R5 definitions, including conditional media dependencies.
+The reviewed R3/R4 scope mapping covers all 24 predecessor tasks, including
+split successors. It is not evidence acceptance: new execution axes are PARTIAL
+pending review, no old PASS is promoted and no new receipt is invented.
+
+Five migration tests and six intake tests PASS; 25 existing reporting tests also
+PASS. RED initially exposed the missing module. A negative timestamp test then
+exposed optional date-format validation being unavailable in this environment;
+explicit syntax/calendar checks now reject invalid, timezone-free and impossible
+dates. The read-only command returns `CANDIDATE_PREPARED_NOT_ADOPTED` and leaves
+the active ledger unchanged. Versioned schema/report integration and activation
+remain uncompleted; see the 2026-09-09 R5 ledger migration implementation plan.
+
+The canonical `design-lab/scripts/verify_design_lab.py` subsequently exited 0:
+49 gates, 0 failures (UTF-8 / no-bytecode process environment). This is the
+repository verification suite, not a new Adobe, Comfy inference, Human Jury,
+installation-upgrade or exact-SHA cloud CI acceptance run.
