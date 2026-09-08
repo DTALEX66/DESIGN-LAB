@@ -7,9 +7,9 @@
   ],
   "fresh": false,
   "freshnessMeaning": "at generation only; check verifies bound-input integrity, not current Git or cloud state",
-  "generatedAt": "2026-09-08T19:09:42+00:00",
+  "generatedAt": "2026-09-08T19:28:03+00:00",
   "gitStateMeaning": "generation-time observation, not current HEAD",
   "schemaVersion": "design-lab/release-readiness/v2",
   "status": "NOT_RELEASED",
-  "subjectSha": "bbb8e532898acf91ad231ad51f425604dce2662a"
+  "subjectSha": "8568343ef0671b9de65404d0d07b801e08758cde"
 }

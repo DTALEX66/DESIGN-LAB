@@ -199,6 +199,12 @@ class ServiceHttpTests(unittest.TestCase):
         self.addCleanup(temporary.cleanup)
         self.root = Path(temporary.name)
         (self.root / 'AGENTS.md').write_text('# synthetic HTTP test project', encoding='utf-8')
+        # The root runner deliberately sets PROJECT_LOCAL_ROOT. Each isolated
+        # project owns its own root, including in-process seed/readback calls.
+        from unittest.mock import patch
+        local_env = patch.dict(os.environ, {'PROJECT_LOCAL_ROOT': str(self.root / '.project-local')})
+        local_env.start()
+        self.addCleanup(local_env.stop)
         self.token = secrets.token_hex(32)
         self.process = None
         self.addCleanup(self.stop)

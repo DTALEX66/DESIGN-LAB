@@ -106,7 +106,15 @@ class HistoryBaselineRetrievalTests(unittest.TestCase):
         self.assertTrue(path.is_file(), "Legacy-to-R3 bridge missing")
         with path.open(encoding="utf-8-sig", newline="") as stream:
             rows = list(csv.DictReader(stream))
-        task_ids = {row["id"] for row in json.loads((ROOT / "design-lab/config/task-ledger-r3.json").read_text(encoding="utf-8"))["tasks"]}
+        active = json.loads((ROOT / "design-lab/config/task-ledger-r3.json").read_text(encoding="utf-8"))
+        # R5 preserves this R3 bridge as history; its targets must resolve in
+        # the sealed predecessor, not in the differently named R5 task set.
+        frozen = (ROOT / 'docs/history/taskpacks/r3-ledger-pre-r5-20260909.json').read_bytes()
+        predecessor = active['predecessor']
+        self.assertEqual(predecessor['taskpack'], 'DL-TP-20260906-R3')
+        self.assertEqual(hashlib.sha256(frozen).hexdigest(), predecessor['sha256'])
+        self.assertEqual(predecessor['ledger'], json.loads(frozen))
+        task_ids = {row['id'] for row in predecessor['ledger']['tasks']}
         self.assertEqual(len(rows), 28)
         self.assertEqual(len({(row["legacy_source"], row["legacy_id"]) for row in rows}), 28)
         for row in rows:
