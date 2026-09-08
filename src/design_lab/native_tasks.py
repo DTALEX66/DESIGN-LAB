@@ -62,6 +62,10 @@ CREATE TABLE IF NOT EXISTS native_quiescence_v1 (
  attempt_id TEXT PRIMARY KEY REFERENCES attempt_state(attempt_id),
  authorization_json TEXT NOT NULL, started_at TEXT NOT NULL, receipt_json TEXT
 );
+CREATE TABLE IF NOT EXISTS native_reconciliation_v1 (
+ attempt_id TEXT PRIMARY KEY REFERENCES attempt_state(attempt_id),
+ authorization_json TEXT NOT NULL, started_at TEXT NOT NULL
+);
 ''')
             return conn
         except BaseException:conn.close();raise
@@ -156,7 +160,7 @@ CREATE TABLE IF NOT EXISTS native_quiescence_v1 (
         with jobs._transaction(conn):
             current,op=jobs._current(conn,aid)
             guard=conn.execute('SELECT attempt_id FROM native_host_guard_v1 WHERE host=?',(host,)).fetchone()
-            if current['state'] not in ('RUNNING','CANCEL_REQUESTED') or guard!=(aid,):raise NativeTaskError('NATIVE_FINISH_CONFLICT')
+            if current['state'] not in ('RUNNING','CANCEL_REQUESTED','RECONCILING') or guard!=(aid,):raise NativeTaskError('NATIVE_FINISH_CONFLICT')
             digest=result['asset']['sha256']
             evidence=jobs._evidence(dict(operation_id=op,attempt_id=aid,artifact_sha256=digest,readback_sha256=digest,
                 kind='native-host-published',native=result['native'],version_id=result['asset']['version_id'],rights='NOT_REVIEWED'),op,aid)
@@ -181,6 +185,49 @@ CREATE TABLE IF NOT EXISTS native_quiescence_v1 (
                     jobs._change(conn,current,'OUTCOME_UNKNOWN','native effects/publication require reconciliation')
                     jobs._op(conn,op,'OUTCOME_UNKNOWN')
             return jobs._record(conn,aid)
+
+    def reconcile_receipted(self,attempt_id,*,authorization):
+        """Resume publication from a persisted verified host receipt, never dispatch.
+
+        Missing receipts cannot prove host completion. An interrupted recovery
+        keeps its non-expiring claim and guard for explicit further recovery;
+        no lease expiry can steal a live publisher's work.
+        """
+        if (not isinstance(authorization,dict) or set(authorization)!={'actor','scope','receipt'}
+            or authorization['scope']!='project-native-test'
+            or any(not isinstance(v,str) or not v.strip() or len(v)>2000 for v in authorization.values())):
+            raise NativeTaskError('RECONCILIATION_AUTHORIZATION_REQUIRED')
+        with closing(self._connect()) as conn:
+            with jobs._transaction(conn):
+                current,op=jobs._current(conn,attempt_id)
+                row=conn.execute('SELECT host,project_id,request_json,receipt_json FROM native_execution_v1 WHERE attempt_id=?',(attempt_id,)).fetchone()
+                if not row:raise NativeTaskError('RECONCILIATION_NOT_ELIGIBLE')
+                host,project_id,raw_request,raw_receipt=row
+                if current['state']=='RECEIPTED':return self._existing(conn,current,project_id)
+                guard=conn.execute('SELECT attempt_id FROM native_host_guard_v1 WHERE host=?',(host,)).fetchone()
+                if (current['state']!='OUTCOME_UNKNOWN' or guard!=(attempt_id,) or not raw_receipt
+                    or conn.execute('SELECT 1 FROM native_quiescence_v1 WHERE attempt_id=?',(attempt_id,)).fetchone()
+                    or conn.execute('SELECT 1 FROM native_reconciliation_v1 WHERE attempt_id=?',(attempt_id,)).fetchone()):
+                    raise NativeTaskError('RECONCILIATION_NOT_ELIGIBLE')
+                conn.execute('INSERT INTO native_reconciliation_v1 VALUES (?,?,?)',(attempt_id,_json(authorization),jobs._now()))
+                jobs._change(conn,current,'RECONCILING','persisted native receipt; publication-only recovery')
+                jobs._op(conn,op,'RECONCILING')
+            try:
+                request=json.loads(raw_request);job=request['job'];receipt=json.loads(raw_receipt)
+                root=self.paths.checked_path(job['runRoot'])
+                raw_outputs=({'psd':root/job['outputName'],'png':root/job['previewName']}
+                             if host=='photoshop' else job['targets'])
+                outputs={kind:self._inside(path,root) for kind,path in raw_outputs.items()}
+                primary='psd' if host=='photoshop' else 'ai'
+                self._verify_receipt(receipt,job,request,outputs)
+                # Asset identity is already bound to the persisted operation, not
+                # reconstructed using a new idempotency key or caller input.
+                if not op.startswith('native-op-'):raise ValueError('invalid operation identity')
+                asset_id='native-'+op.removeprefix('native-op-')
+                asset=self._publish(project_id,asset_id,primary,outputs[primary],receipt,attempt_id)
+                return self._finish(conn,attempt_id,host,dict(asset=asset,native=receipt))
+            except Exception as exc:
+                raise NativeTaskError('RECONCILIATION_UNRESOLVED_GUARD_RETAINED') from exc
 
     def quiesce_illustrator(self,attempt_id,*,authorization):
         """Pause an unknown attempt after fixed host cleanup, never accept it.

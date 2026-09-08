@@ -131,6 +131,74 @@ class NativeTaskTests(unittest.TestCase):
             with self.assertRaisesRegex(module.NativeTaskError,'HOST_BUSY'):self.execute('other')
             invoke.assert_not_called()
 
+    def test_reconcile_persisted_receipt_publishes_without_host_redispatch(self):
+        module=self.module()
+        with patch.object(module,'_dispatch',side_effect=self.native),patch.object(module.assets,'publish_version',side_effect=OSError('disk failure')):
+            with self.assertRaises(module.NativeTaskError) as caught:self.execute()
+        self.service=ProjectService(self.root)
+        tasks=module.NativeTasks(self.service)
+        self.assertTrue(hasattr(tasks,'reconcile_receipted'),'persisted receipt recovery missing')
+        with patch.object(module,'_dispatch',side_effect=AssertionError('must not redispatch')):
+            result=tasks.reconcile_receipted(caught.exception.attempt['attempt_id'],authorization=self.authorization)
+            replay=tasks.reconcile_receipted(caught.exception.attempt['attempt_id'],authorization=self.authorization)
+        self.assertEqual(result['asset'],replay['asset'])
+        self.assertEqual(result['attempt']['state'],'RECEIPTED')
+        with closing(tasks._connect()) as conn:
+            self.assertEqual(conn.execute('SELECT COUNT(*) FROM asset_version').fetchone()[0],1)
+            self.assertEqual(conn.execute('SELECT COUNT(*) FROM native_host_guard_v1').fetchone()[0],0)
+
+    def test_reconcile_after_publication_reuses_committed_version(self):
+        module=self.module()
+        with patch.object(module,'_dispatch',side_effect=self.native),patch.object(module.NativeTasks,'_finish',side_effect=OSError('finish interrupted')):
+            with self.assertRaises(module.NativeTaskError) as caught:self.execute()
+        tasks=module.NativeTasks(self.service)
+        self.assertTrue(hasattr(tasks,'reconcile_receipted'),'persisted receipt recovery missing')
+        with closing(tasks._connect()) as conn:
+            version=conn.execute('SELECT version_id FROM asset_version').fetchone()[0]
+        result=tasks.reconcile_receipted(caught.exception.attempt['attempt_id'],authorization=self.authorization)
+        self.assertEqual(result['asset']['version_id'],version)
+
+    def test_reconcile_unknown_host_without_receipt_keeps_guard(self):
+        module=self.module()
+        with patch.object(module,'_dispatch',side_effect=PhotoshopDispatchError('timeout',outcome_unknown=True)):
+            with self.assertRaises(module.NativeTaskError) as caught:self.execute()
+        tasks=module.NativeTasks(self.service)
+        self.assertTrue(hasattr(tasks,'reconcile_receipted'),'persisted receipt recovery missing')
+        with self.assertRaises(module.NativeTaskError):
+            tasks.reconcile_receipted(caught.exception.attempt['attempt_id'],authorization=self.authorization)
+        with closing(tasks._connect()) as conn:
+            self.assertEqual(conn.execute('SELECT COUNT(*) FROM native_host_guard_v1').fetchone()[0],1)
+
+    def test_reconcile_changed_input_cannot_publish_or_release_guard(self):
+        module=self.module()
+        with patch.object(module,'_dispatch',side_effect=self.native),patch.object(module.assets,'publish_version',side_effect=OSError('disk failure')):
+            with self.assertRaises(module.NativeTaskError) as caught:self.execute()
+        (self.run/'input.png').write_bytes(b'changed')
+        tasks=module.NativeTasks(self.service)
+        self.assertTrue(hasattr(tasks,'reconcile_receipted'),'persisted receipt recovery missing')
+        with self.assertRaises(module.NativeTaskError):
+            tasks.reconcile_receipted(caught.exception.attempt['attempt_id'],authorization=self.authorization)
+        with closing(tasks._connect()) as conn:
+            self.assertEqual(conn.execute('SELECT COUNT(*) FROM native_host_guard_v1').fetchone()[0],1)
+            self.assertEqual(conn.execute('SELECT COUNT(*) FROM asset_version').fetchone()[0],0)
+
+    def test_reconciliation_failure_claim_cannot_be_stolen_on_retry(self):
+        module=self.module()
+        with patch.object(module,'_dispatch',side_effect=self.native),patch.object(module.assets,'publish_version',side_effect=OSError('disk failure')):
+            with self.assertRaises(module.NativeTaskError) as caught:self.execute()
+        aid=caught.exception.attempt['attempt_id'];tasks=module.NativeTasks(self.service)
+        with self.assertRaisesRegex(module.NativeTaskError,'AUTHORIZATION'):
+            tasks.reconcile_receipted(aid,authorization={})
+        with patch.object(module.assets,'publish_version',side_effect=OSError('still unavailable')):
+            with self.assertRaises(module.NativeTaskError):tasks.reconcile_receipted(aid,authorization=self.authorization)
+        with patch.object(module.assets,'publish_version',side_effect=AssertionError('must not steal')) as publish:
+            with self.assertRaisesRegex(module.NativeTaskError,'NOT_ELIGIBLE'):
+                module.NativeTasks(ProjectService(self.root)).reconcile_receipted(aid,authorization=self.authorization)
+            publish.assert_not_called()
+        with closing(tasks._connect()) as conn:
+            self.assertEqual(conn.execute('SELECT COUNT(*) FROM native_host_guard_v1').fetchone()[0],1)
+            self.assertEqual(conn.execute('SELECT COUNT(*) FROM native_reconciliation_v1').fetchone()[0],1)
+
     def test_pre_dispatch_cancel_is_not_sent_to_host(self):
         module=self.module()
         # First unresolved job occupies host; second remains PENDING.
