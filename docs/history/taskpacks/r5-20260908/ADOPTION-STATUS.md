@@ -28,3 +28,19 @@ definition/source hash tampering, invalid evidence-axis promotion, and
 deterministic regenerated reports. Switch README/AGENTS only after these
 checks pass. Concrete rollback is the prior ledger/schema/generator commit,
 not deleting this source archive or any native user/test artifacts.
+
+## Intake validator implemented
+
+`scripts/verify_r5_intake.py` pins the frozen task-definition hash and checks
+the 28-task inventory, fields, nonempty acceptance/rollback/evidence, unchanged
+unverified intake axes, dependency ordering/cycles, conditional Premiere audio
+dependencies and the absence of Comfy/H3/UIA from M1's transitive prerequisites.
+It returns `R5_INTAKE_VERIFIED_NOT_ADOPTED`, never an active-ledger transition.
+
+Validation: 6 intake tests and 25 existing current-report tests PASS. The first
+RED was the missing validator; an initial implementation then correctly exposed
+that three source tasks have additional conditional fields, which were explicitly
+supported rather than discarded. Current reports were regenerated for test-count
+metadata and passed `--check`. This is not R5 migration completion or native/CI
+qualification. Next implementation remains the versioned single-ledger migration
+and source-to-R3 evidence mapping described above.

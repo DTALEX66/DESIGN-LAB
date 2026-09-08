@@ -1,12 +1,12 @@
 {
   "checkScope": "bound-input-and-output-integrity; not current Git or cloud freshness",
-  "generatedAt": "2026-09-07T19:58:10+00:00",
+  "generatedAt": "2026-09-08T16:30:30+00:00",
   "gitObservation": {
     "branch": "codex/r3-runtime-correctness",
     "origin_main": "c4dccd58331bc4561eb89265283d924b7630d113",
-    "sha": "8074b341b850f7c54578f15ec1e888e995188288",
+    "sha": "af3fda015ec410b45fbb0ad58bfdf898a44fc21d",
     "source_worktree_clean": false,
-    "tracked_files": 1639
+    "tracked_files": 1683
   },
   "inputHashes": {
     ".github/workflows/canonical-verify.yml": "ca9d33b5d244307c908c60fdd39cfc5288016dd69916d634ed3d5f5b654ef08a",
@@ -385,9 +385,11 @@
     "design-lab/tests/test_history_baseline_retrieval.py": "c941fbed5e8295ed170e7bc3a31dcf1582d4441ca2eb2b3b7d762f6cba0e95a9",
     "design-lab/tests/test_identity_scan_boundary.py": "038633b27aac3540c68dd36c4f82e26ff831d42a27fb1f71b54f821ef427bfff",
     "design-lab/tests/test_illustrator_bridge_paths.py": "9608d2f795c62de96b21513de5140f65628025a80b31c9dffa60ca38f7adff4d",
-    "design-lab/tests/test_illustrator_com_adapter.py": "ba450fb3dd51289644ac59d10462b9cec4914dbeaa84e68522882e1f6de5e380",
+    "design-lab/tests/test_illustrator_com_adapter.py": "475bac97278b070c762513b8d5184a1148c511b7bfd05a4506e0fbc3a11634e6",
     "design-lab/tests/test_illustrator_job_validation.py": "7724ad679d8d329ffead5845df0b93c817f1206686eb2fde4408ffed21be4379",
     "design-lab/tests/test_illustrator_local_patch.py": "e808945c2df1605710955a832c020d6075f039c0b28e5f16e365cc049ba27992",
+    "design-lab/tests/test_illustrator_patch_preflight.py": "c08986d1613b3ff4ae0fcf536975235d0aba0794b97663c00f151d747207267d",
+    "design-lab/tests/test_illustrator_text_readback.py": "5a71cf7033aaa1324c30159538c7bf224eeebfac3752cd66854f318cbb4a63be",
     "design-lab/tests/test_image_import_recovery.py": "9335f453433f67ff483f12573cfe62db384ebe427e2bf0a0302b81eeda8436ed",
     "design-lab/tests/test_installed_state_resources.py": "e178091e882ef695ecbfb9ea5ba870efcbb6230be46ce0ef3fc138c413f36798",
     "design-lab/tests/test_job_store.py": "aac86a8610a914a67e0cff28ea932b24d2d8dd0540f1b8e937bebc1e7247a6e2",
@@ -395,6 +397,7 @@
     "design-lab/tests/test_minigame_visual_fixture_boundary.py": "fffb2aeb6b23e8ebf7e6e66d797fbdd59d670ea4df9704c1433d62e5e22034ce",
     "design-lab/tests/test_model_cache.py": "785a8e8b81356080260e620fce9dcf7d9c0319eec71bde1b21a8bc82ba43d58d",
     "design-lab/tests/test_model_manifest.py": "4ffb5e90b10b376fe1ca367a711d7d18a236cd210e1ccff5c5a5a9d3e6fd9646",
+    "design-lab/tests/test_native_quiescence.py": "c07feab40932de71ac08368a08d0a51a3c955cd9135c91985c28c5712ebd3b10",
     "design-lab/tests/test_native_tasks.py": "202d2f77a3d4eb1964415a9aa81801f0f32405e58f828bebafddbd51802b7e90",
     "design-lab/tests/test_ocr_object_plan.py": "48482c155fdf1609ec91fb33a3ec7b927a3266e6256b721eabe80e485b9a75f1",
     "design-lab/tests/test_oda4_0101_security.py": "43d2eb6c0c8f1d6e2532bc301e4edce7bd2f29a77bdee1ac056fdce0f335ffff",
@@ -412,6 +415,7 @@
     "design-lab/tests/test_path_clients.py": "95b4a00e6605b06fc711ab3274f8f9e197b95f59cc17d7a83ce14f6ec0742ead",
     "design-lab/tests/test_photoshop_com_adapter.py": "f49e5205f1309d224ad8d843c55f6888caef44484e39fc6158b30183533d7b67",
     "design-lab/tests/test_photoshop_legacy_native.py": "3b538d7ce25b7e2c59c87403f94945c67ac692bff2cabffbcca024017ebbfb7a",
+    "design-lab/tests/test_photoshop_readback_scaling.py": "e212f0bf901c4b4d6692fd94ceae4d57d9885a76c0040246182a04ef784539ad",
     "design-lab/tests/test_photoshop_runtime_entry.py": "b9e7844ba3edd539c066addd5a7a0e04265a043155979687a4475db934d4a9db",
     "design-lab/tests/test_planar_decomposition.py": "3fdcb16db80bd4634f48dc7d445c0676bf203a8a4e34bcbdf443730b79bb59d8",
     "design-lab/tests/test_production_preflight.py": "0b2220dc465c000e07813c981ef3c2720d8b32214fe12c6c55e474762f447d17",
@@ -420,8 +424,10 @@
     "design-lab/tests/test_project_paths.py": "3a51537d560e46a20e3f9ab983da73ab81d92764a286f1661c6d274d83bbc8d5",
     "design-lab/tests/test_quality_gate.py": "3c8823bde28994591e7f661f752907b36fce9d5079271d07a8c7a5103263d5ef",
     "design-lab/tests/test_quality_pipeline.py": "39a19792dbdee9aad25a55684341d3462c88f1df7ac82dbc7cbf411410dc26c4",
+    "design-lab/tests/test_r5_intake.py": "b166d3383557bbc8afdb9de5e52cb9bbaafa426250e50426e44d8c9cb67f19fc",
     "design-lab/tests/test_reconstruction_adobe_job.py": "e03e15bc119621794edc668702ca8088cf4ab1c0a50501907e41439f9adbc341",
     "design-lab/tests/test_reconstruction_adobe_readback.py": "3509b63ecadb1647468df96a62fea0659fc7080ab79f458a969c06ca680599f6",
+    "design-lab/tests/test_reconstruction_compound_paths.py": "e6e547d976424a95cdeed5fb898c4cb1589e4aaa214d0a4c370aac10b64552b8",
     "design-lab/tests/test_reconstruction_contracts.py": "03ba8cfab0f8c114c7a1de2bdfe3c3fd92bdf3f826d480ae0e5d7fe2c4e314ff",
     "design-lab/tests/test_reconstruction_evidence.py": "19c2b29bc3d75f92cf608448d15025d2ba87f662a3179dcbe48cbb13ebd780cc",
     "design-lab/tests/test_reconstruction_explicit_owner.py": "d319967676f84550898f54d32f0f0562e3e6ec10ce85ce73569463d0645deca9",
@@ -433,7 +439,7 @@
     "design-lab/tests/test_reconstruction_metrics.py": "f1d3d322a786bec8221056605c10c65e57224e74551d957e6178fd70d35656bb",
     "design-lab/tests/test_reconstruction_performance.py": "c31472e6ecaed3b7b5d2527efc4b376aecadd7c3a0f570fa6815d8a458668a23",
     "design-lab/tests/test_reconstruction_photoshop_adapter.py": "408ae894fb4193119369ca8a2927fa42ebdd6f6f7844908cbc7da9a8c5afad4c",
-    "design-lab/tests/test_reconstruction_photoshop_job.py": "59b1d6907c8e3b6f174d9a67939f06d3f189843b4b826de826c8872a82fc2518",
+    "design-lab/tests/test_reconstruction_photoshop_job.py": "cd35e51424b63c53269ba59fd9d8a6c2b113ac5e128e0988674760849f4665f7",
     "design-lab/tests/test_reconstruction_pipeline.py": "897dcafc4aa6cbfd5c083808970b6dcc9d9f062a8ae0a0b36400678969112a09",
     "design-lab/tests/test_reconstruction_providers.py": "d6d8b4d54f75bc01f2a8777ae15c9c606a1c88094253e99e5557a9eb20b00353",
     "design-lab/tests/test_reconstruction_qualification.py": "eaa693ba1e724e6a12497c231154b40d9d0cc537a24983bac4f6bb51234c161b",
@@ -483,11 +489,11 @@
     "integrations/generators/comfyui/rights-and-provider-policy.md": "98bd1227ac4ba6f12789ae1ff27eaebc4c936710443c6932e47cea03cd8b93de",
     "integrations/generators/minimax-h3/rights-and-provider-policy.md": "fbdff9adb4b00f571653d0cd583a86d8ba0325a52f0e9ff0cc5a5c9a42920553",
     "integrations/hosts/adobe/evidence/README.md": "70baf026a88d4aa91bc82b398897cece1ae53f815ab7077c1491f8da552522fb",
-    "integrations/hosts/adobe/illustrator/reconstruction-assemble.jsx": "b1a7542d47fdcb0af2acb922654dc48f5904dde7f69fee2e7d7aa14916d1c48c",
+    "integrations/hosts/adobe/illustrator/reconstruction-assemble.jsx": "4a6369fa5a5bb2d631d1a996ecdceac73eb2ba30653a8bb34d837a7a50cf2fc2",
     "integrations/hosts/adobe/rights-and-provider-policy.md": "2ec09f019f98f32b4c87fecfa03d12e905edb1498397d069d3838080bdbf5ab9",
     "integrations/hosts/open-design/verifier/verify_open_design_host_adapter.py": "4edb8cdbf11bb09e3fac4755a2ae6f06fb593d6ee71d7ac8f9aef0c1d539450c",
     "packages/capabilities/reconstruction/__init__.py": "fe4e39ba1cebec6e8cad455bbc86cbefb549a84785d430624a126238e13dceac",
-    "packages/capabilities/reconstruction/adobe_job.py": "2af310917ac4cfcb3eb79967178a0b1b061a7f8f9f5a65484b9a02b5a24d0384",
+    "packages/capabilities/reconstruction/adobe_job.py": "c58809651fb69bef944e4af24aa5782e206dc3a525564faa493d9db94e740848",
     "packages/capabilities/reconstruction/adobe_readback.py": "1198c022781bd0f4f18304091be5149a41a5f8dc09abdc576a8158a683de5c0c",
     "packages/capabilities/reconstruction/contracts.py": "f8e4f688dd777823d9f3791fc36bed6af6a4926baec2e98243b32958517e07d7",
     "packages/capabilities/reconstruction/evidence.py": "f55e1c816d916b274f784dcdc6fa07fb1541bdb039ed67678f7bbab4d8ee349d",
@@ -549,15 +555,15 @@
   },
   "ledger": "design-lab/config/task-ledger-r3.json",
   "outputHashes": {
-    "ADAPTER_EVIDENCE_RECONCILIATION.json": "76b5bd7c876244e7e3f43c8dbfbdabe8cb4938d3aef425d681bd8cc738e58229",
-    "CLOUD_BASELINE.json": "4d7bd6c74bfee923b2b2e50a8d8fa6c2b521a1610525ee773ab149d1d9d99db7",
-    "CLOUD_BASELINE.md": "bd92428673025f58c22edb1ad1d2a1912f7eefd77f208c48e8de2d1f04b59906",
-    "DOMAIN_PACK_READINESS.json": "fd12d87b1bd1d5c2e3745dfda60dbbb0147486031bd7ebad19041894f9d2019c",
-    "KNOWLEDGE_INVENTORY.json": "bcb33c23bfb7bb3944fcdb77cf0cbb9e0c27c58e81be7c762cf600fc82c3e92c",
-    "PROJECT_STATUS.json": "1068512a23ebefbb354803dd494b0fdb86e4cb01c9747af0eb734e486b7a9ccb",
-    "PROJECT_STATUS.md": "d6c0305b387d14e4c5b0aa4626cb1c6464cb91d897551ac6843a1941b3d2944e",
-    "RELEASE_READINESS.json": "9bd2dba80b3cf9828bd62c790144e904bcabdd0671c41d7a9086b1294868b058",
-    "TASK_PROGRESS.json": "889ba23ac94180d383054cd3061010fcd0b82f116a84afff31694005adecdc6c"
+    "ADAPTER_EVIDENCE_RECONCILIATION.json": "dd1e8a19c49d4f42d32aeaf638c51a18b22fbaa708f23aa27cf60d17b0b539f9",
+    "CLOUD_BASELINE.json": "64badda19ed7eb1c660f2d4874bb62b3925c280cb39c386dc11ae978a2fe42bc",
+    "CLOUD_BASELINE.md": "d02baa217bfdeb096971ca17e704c924bd21daec0b6b7add9044fd9e2b0923f5",
+    "DOMAIN_PACK_READINESS.json": "0debe86f9ffcb7194c724fe9c78db8edb52cdbb91b2d250c50694f9fda4e50c3",
+    "KNOWLEDGE_INVENTORY.json": "8736ff88fa1d7d435e5f19b8c7da403f0cf3c06ed6c0af34bb450a73c74489a4",
+    "PROJECT_STATUS.json": "589b6fd047279eee9cc612ff0df033ed0220220ceffa9b3d53fc55f87f1cb07a",
+    "PROJECT_STATUS.md": "a5b6b899cc4a907e4c35d463e50aeec9fdab75ebe9e927e4322e5e006745bf95",
+    "RELEASE_READINESS.json": "66490204ab7595641a5d402126230f501851ae3da432cbf504063bafc0c8b867",
+    "TASK_PROGRESS.json": "398a3a9dbd4db7f15c30716f826d893944d94f8c32c081f63692214142db10c1"
   },
   "reportRoot": "../../reports/current/",
   "reports": [
@@ -572,5 +578,5 @@
     "RELEASE_READINESS.json"
   ],
   "schemaVersion": "design-lab/current-report-index/v3",
-  "subjectSha": "8074b341b850f7c54578f15ec1e888e995188288"
+  "subjectSha": "af3fda015ec410b45fbb0ad58bfdf898a44fc21d"
 }
