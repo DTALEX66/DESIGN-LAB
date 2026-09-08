@@ -23,6 +23,7 @@ build-backend = "hatchling.build"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/design_lab"]
+exclude = ["src/design_lab/reconstruction/__init__.py"]
 
 [tool.hatch.build.targets.wheel.force-include]
 "packages/capabilities/reconstruction/__init__.py" = "design_lab/reconstruction/__init__.py"

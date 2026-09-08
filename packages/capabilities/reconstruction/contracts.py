@@ -25,7 +25,8 @@ class ContractError(ValueError):
 
 
 def _load_schema(name: str) -> dict[str, Any]:
-    if __package__.startswith('design_lab.'):
+    source_checkout = Path(__file__).resolve().parent == _PROJECT_ROOT / 'packages' / 'capabilities' / 'reconstruction'
+    if __package__.startswith('design_lab.') and not source_checkout:
         from importlib.resources import files
         source = files('design_lab').joinpath('resources', 'reconstruction', name)
     else:
