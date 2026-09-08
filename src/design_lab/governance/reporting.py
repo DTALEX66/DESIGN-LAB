@@ -103,6 +103,9 @@ class Reader:
 
 
 def _validate(reader, ledger):
+    if ledger.get('schemaVersion') == 'design-lab/task-ledger/r5-v1':
+        from design_lab.governance.r5_contract import validate
+        return validate(reader, ledger, _validate)
     errors = sorted(Draft202012Validator(reader.json(SCHEMA), format_checker=FormatChecker()).iter_errors(ledger),
                     key=lambda e: str(list(e.path)))
     if errors:
@@ -202,7 +205,7 @@ def project_ledger(root, ledger, subject_sha, *, reader=None):
         status = 'DONE_LOCAL' if satisfied and not unmet else 'PARTIAL' if started else 'TODO'
         projected[tid] = {'id': tid, 'title': task['title'], 'status': status, 'depends_on': task['depends_on'],
                           'unmet_dependencies': unmet, 'required_axes': task['required_axes'], 'axes': axes}
-    return {'schemaVersion': 'design-lab/task-progress/r3-v1', 'taskpack': ledger['taskpack'],
+    return {'schemaVersion': ledger['schemaVersion'].replace('task-ledger/', 'task-progress/'), 'taskpack': ledger['taskpack'],
             'subjectSha': subject_sha, 'ledgerUpdatedAt': ledger['updated_at'],
             'tasks': [projected[t['id']] for t in ledger['tasks']], 'evidence': list(evaluated.values()),
             'counts': dict(Counter(t['status'] for t in projected.values())),

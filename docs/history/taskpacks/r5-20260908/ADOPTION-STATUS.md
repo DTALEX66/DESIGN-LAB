@@ -68,3 +68,21 @@ The canonical `design-lab/scripts/verify_design_lab.py` subsequently exited 0:
 49 gates, 0 failures (UTF-8 / no-bytecode process environment). This is the
 repository verification suite, not a new Adobe, Comfy inference, Human Jury,
 installation-upgrade or exact-SHA cloud CI acceptance run.
+
+## Versioned projection checkpoint
+
+The complete predecessor is now frozen byte-for-byte at
+`docs/history/taskpacks/r3-ledger-pre-r5-20260909.json` (same hash above).
+`src/design_lab/governance/r5_contract.py` adds a versioned R5 contract derived
+from the existing four-axis/evidence schema. Both original inputs are hash-pinned;
+task definitions, scope mappings and required evidence axes are checked against
+them. The reporting entry accepts either R3 or R5, but the sole active ledger
+remains R3 pending activation review. No new task is declared completed.
+
+Nine migration/projection tests and 25 unchanged R3 reporting tests PASS.
+Negative controls cover history/definition/mapping tampering, required-axis
+waivers, missing reassessment, invalid timestamps, and local-test evidence being
+unable to qualify host/delivery or bypass unmet dependencies. The R5 positive
+projection contains 28 PARTIAL tasks and no inherited current receipts.
+Outstanding before activation: conditional-case acceptance handling, frozen R3
+test fixture selection, task-card projection, active-entry switch and full gate.
