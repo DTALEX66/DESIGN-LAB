@@ -42,7 +42,7 @@ def prepare_plan(service,project_id,host,rir,text_styles,run_root):
                 total+=len(data)
                 if total>256*1024*1024:raise ValueError('plan inputs too large')
                 suffix='.png' if item['asset']['media_type']=='image/png' else '.jpg'
-                path=service.paths.checked_path(root/(identity+suffix))
+                path=service.paths.checked_path(root/(f'input-{len(staged):04d}'+suffix))
                 staged[identity]=(path,data)
             node['raster']['path']=staged[identity][0].relative_to(owner).as_posix()
     walk(plan['layers'])

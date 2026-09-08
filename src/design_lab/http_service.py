@@ -12,6 +12,8 @@ from .runtime.paths import PathPolicyError
 from .image_assets import ImageAssets, ImageAssetError
 from .task_queries import TaskQueries
 from .task_commands import TaskCommands
+from .native_submissions import NativeSubmissions
+from .native_tasks import NativeTaskError
 from .native_assets import NativeAssets
 from .native_delivery import NativeDelivery
 from . import workbench
@@ -173,6 +175,10 @@ def make_server(service, token, port=0):
                             return self.send_json(200, {'project': project})
                     raise RequestError(404, 'NOT_FOUND')
                 if self.command == 'POST':
+                    match = re.fullmatch(r'/api/projects/([0-9a-f]{32})/native-plans',self.path)
+                    if match:
+                        value=self.body(fields={'host','rir','text_styles','idempotency_key'},limit=4_000_000)
+                        return self.send_json(202,NativeSubmissions(service).submit(match[1],**value))
                     match = re.fullmatch(r'/api/projects/([0-9a-f]{32})/tasks/(native-job-[0-9a-f]{64})/cancel',self.path)
                     if match:
                         value = self.body(fields={'attempt_id'})
@@ -194,6 +200,8 @@ def make_server(service, token, port=0):
                 self.send_json(exc.status, {'error': exc.code})
             except ImageAssetError as exc:
                 self.send_json(exc.status, {'error': exc.code})
+            except NativeTaskError:
+                self.send_json(409, {'error':'NATIVE_TASK_REQUIRES_RECONCILIATION'})
             except ImportError:
                 self.send_json(503, {'error': 'IMAGE_DEPENDENCY_UNAVAILABLE'})
             except (ValueError, PathPolicyError):

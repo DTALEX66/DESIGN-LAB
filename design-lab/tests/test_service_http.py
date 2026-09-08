@@ -19,6 +19,22 @@ ROOT = Path(__file__).resolve().parents[2]
 
 
 class ServiceHttpTests(unittest.TestCase):
+    def test_native_plan_submission_returns_one_persisted_pending_task(self):
+        self.start()
+        project=self.request('POST','/api/projects',json.dumps({'name':'Native plan'}))[1]['project']['id']
+        route=f'/api/projects/{project}/native-plans'
+        value=dict(host='photoshop',rir=dict(schemaVersion='design-lab/reconstruction-ir/v1',
+            canvas=dict(width=8,height=6,colorSpace='srgb',background=dict(color='#ffffff',recorded=True)),layers=[]),text_styles={},idempotency_key='plan')
+        body=json.dumps(value)
+        self.assertEqual(self.request('POST',route,body,{'Authorization':''})[0],401)
+        first=self.request('POST',route,body)
+        self.assertEqual(first[0],202)
+        self.assertEqual(first[1]['task']['attempt']['state'],'PENDING')
+        self.assertEqual(self.request('POST',route,body),first)
+        value['rir']['canvas']['width']=9
+        self.assertEqual(self.request('POST',route,json.dumps(value))[0],409)
+        self.assertFalse(list(self.root.rglob('master.psd')))
+
     def test_native_cancel_request_persists_without_releasing_running_host_guard(self):
         from contextlib import closing
         project,other,_=self.seed_exportable_native()
