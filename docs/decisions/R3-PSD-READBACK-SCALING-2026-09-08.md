@@ -101,3 +101,32 @@ is unpublished and the original guard is retained.
 Preparation validation: Python AST parse PASS. Host execution NOT EXECUTED;
 wait for original query `20260` to return before using it. Do not infer the
 old native task's success from this future independent inspection.
+
+## Independent host readback completed — 2026-09-09 local time
+
+After interruption, the original observation handle was missing. A fresh
+process check returned no Photoshop process and COM GetActiveObject returned
+MK_E_UNAVAILABLE. This establishes that the old application instance was no
+longer available; it does not establish whether it exited normally or crashed.
+No application was killed by this recovery operation.
+
+Executed `.venv/Scripts/python.exe -B -X utf8
+design-lab/tests/host_fixtures/inspect_late_psd.py`. It launched the existing
+installed Photoshop through the fixed COM entry, opened only the existing
+generated PSD, checked native structure and editable text using the current
+linear reader, and closed its own document. Exit code 0, host 26.7.0,
+elapsed 9.9581 seconds, documents 0 → 0.
+
+Receipt: original run directory `late-readonly-readback.json`, observation UTC
+`2026-09-08T16:20:18.479050+00:00`. Status remains
+`LATE_READBACK_ARTIFACT_UNPUBLISHED_GUARD_RETAINED`.
+Reader hash `9833b5cd855b5d0aa3245f5cd52330481ff4ba090b8e009b5749d49708eddc18`.
+Both PSD and preview hashes are unchanged from the late-output checkpoint.
+Original input hashes also matched the stored request before inspection.
+
+This proves an independent native reopen/readback of this candidate, despite
+the earlier Pillow layer-decoder failure. It does not reconstruct the lost
+original completion receipt, establish an old/new timing benchmark, clear the
+guard, publish an asset, validate pixel geometry or authorize Human Jury.
+Two PSD local edits and restoration remain required. R5-004 must provide
+explicit durable reconciliation without inventing a successful original run.
