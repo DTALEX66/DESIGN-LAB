@@ -67,3 +67,34 @@ source reference image/RIR/Brief are not silently invented as bundled inputs.
 Font inventory remains NOT_COLLECTED, link relocation NOT_VERIFIED, rights and
 quality NOT_REVIEWED. No source asset was uploaded or modified. The earlier PSD
 unknown attempt remains unresolved and was not exported by this integration.
+
+## Local HTTP and workbench integration
+
+Authenticated POST `/api/projects/{project}/tasks/{native-job}/bundle` accepts
+only an empty JSON object. Task query ownership and native execution ownership
+must both match. Response exposes no disk path, job payload, approval or token.
+It supplies a project/asset/version-scoped download route. GET streams only an
+existing ACTIVE registered ZIP from that project's asset root after bounded
+size/link checks and whole-file hash verification on the same open handle.
+No arbitrary path, script or caller-provided manifest enters either route.
+
+The workbench offers export for RECEIPTED native tasks. It checks the returned
+same-project route, downloads with in-memory authorization, verifies byte size
+and SHA256 before creating a download, and abandons stale project-epoch results.
+The primary native asset API remains unchanged. Native execution itself is not
+newly exposed by these endpoints. Export currently runs synchronously; very
+large archives still need durable asynchronous UI progress qualification.
+
+Validation: 20 real HTTP/server-process tests PASS, including export/download
+archive bytes, no-auth, wrong project, forbidden body fields, hostile Origin and
+tampered ZIP refusal. Two actual-script DOM boundary tests PASS, including
+browser-side hash mismatch preventing save. These are not an actual browser
+session, screenshot review, installed-wheel qualification or user acceptance.
+
+Real local transport readback: `host_fixtures/verify_real_bundle_http.py` started
+an ephemeral loopback service with in-memory test authorization, fetched the
+existing 4,733,596-byte real Illustrator bundle, verified the exact SHA above,
+and closed its own client/server/thread. No credential was persisted or printed;
+no Adobe call or external upload occurred. An initial inline shell command failed
+at Python parsing before execution; the fixed fixture avoids nested shell quoting.
+Canonical gate also returned `VERIFY_DESIGN_LAB=OK total=49 failed=0` (exit 0).

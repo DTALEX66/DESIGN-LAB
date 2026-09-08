@@ -12,6 +12,7 @@ from .runtime.paths import PathPolicyError
 from .image_assets import ImageAssets, ImageAssetError
 from .task_queries import TaskQueries
 from .native_assets import NativeAssets
+from .native_delivery import NativeDelivery
 from . import workbench
 
 
@@ -119,6 +120,26 @@ def make_server(service, token, port=0):
                     return
                 self.guard()
                 if self.command == 'GET':
+                    match = re.fullmatch(r'/api/projects/([0-9a-f]{32})/bundles/(bundle-native-[0-9a-f]{64})/versions/(v-[0-9a-f]{32})/content',self.path)
+                    if match:
+                        with NativeDelivery(service).content(*match.groups()) as (stream,size,digest):
+                            self.send_response(200)
+                            self.send_header('Content-Type','application/zip')
+                            self.send_header('Content-Disposition','attachment; filename="design-lab-delivery.zip"')
+                            self.send_header('Content-Length',str(size))
+                            self.send_header('X-Content-SHA256',digest)
+                            self.send_header('X-Content-Type-Options','nosniff')
+                            self.send_header('Cache-Control','no-store')
+                            self.send_header('Connection','close')
+                            self.end_headers();self.close_connection=True
+                            try:
+                                for block in iter(lambda:stream.read(1024*1024),b''):
+                                    self.wfile.write(block)
+                            except OSError:
+                                # Headers are already sent; never append JSON to
+                                # a truncated ZIP stream. Client verifies length/hash.
+                                return
+                        return
                     match = re.fullmatch(r'/api/projects/([0-9a-f]{32})/native-assets(?:\?after=(native-[0-9a-f]{64}))?',self.path)
                     if match:
                         return self.send_json(200,NativeAssets(service).list(match[1],match[2] or ''))
@@ -151,6 +172,10 @@ def make_server(service, token, port=0):
                             return self.send_json(200, {'project': project})
                     raise RequestError(404, 'NOT_FOUND')
                 if self.command == 'POST':
+                    match = re.fullmatch(r'/api/projects/([0-9a-f]{32})/tasks/(native-job-[0-9a-f]{64})/bundle',self.path)
+                    if match:
+                        self.body(fields=set())
+                        return self.send_json(201,NativeDelivery(service).create(*match.groups()))
                     match = re.fullmatch(r'/api/projects/([0-9a-f]{32})/assets', self.path)
                     if match:
                         value = self.body(fields={'content_base64', 'idempotency_key'}, limit=45_000_256)

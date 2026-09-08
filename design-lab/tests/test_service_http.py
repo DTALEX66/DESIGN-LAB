@@ -19,6 +19,58 @@ ROOT = Path(__file__).resolve().parents[2]
 
 
 class ServiceHttpTests(unittest.TestCase):
+    def seed_exportable_native(self):
+        from unittest.mock import patch
+        sys.path.insert(0,str(ROOT/'src'));self.addCleanup(lambda:sys.path.remove(str(ROOT/'src')))
+        from design_lab.service import ProjectService
+        from design_lab.native_tasks import NativeTasks
+        with patch.dict(os.environ):
+            os.environ.pop('PROJECT_LOCAL_ROOT',None)
+            service=ProjectService(self.root);project=service.create_project('Export fixture')['id']
+            other=service.create_project('Other')['id']
+            run=service.paths.category_dir('runtime','export-fixture');run.mkdir(parents=True)
+            job=dict(jobId='export-fixture',runRoot=str(run),assets=[],outputName='native.psd',previewName='preview.png')
+            def native(host,job,**kwargs):
+                output={}
+                for kind,name in [('psd','native.psd'),('png','preview.png')]:
+                    data=('controlled '+kind).encode();(run/name).write_bytes(data)
+                    output[kind]=dict(sha256=hashlib.sha256(data).hexdigest(),byte_size=len(data))
+                raw=json.dumps(job,sort_keys=True,ensure_ascii=True,separators=(',',':')).encode()
+                return dict(status='NATIVE_READBACK',job_id=job['jobId'],job_sha256=hashlib.sha256(raw).hexdigest(),
+                            host_version='fixture',inputs={},artifacts=output,documents_before=0,documents_after=0)
+            with patch('design_lab.native_tasks._dispatch',side_effect=native):
+                result=NativeTasks(service).execute(project,'photoshop',job,idempotency_key='export',approved_root=run,
+                    authorization=dict(actor='fixture',scope='project-native-test',receipt='controlled boundary'))
+        return project,other,result['attempt']['job_id']
+
+    def test_native_bundle_http_export_and_download_are_owner_scoped(self):
+        import zipfile
+        project,other,job=self.seed_exportable_native();self.start()
+        route='/api/projects/'+project+'/tasks/'+job+'/bundle'
+        self.assertEqual(self.request('POST',route,'{}',{'Authorization':''})[0],401)
+        self.assertEqual(self.request('POST','/api/projects/'+other+'/tasks/'+job+'/bundle','{}')[0],404)
+        self.assertEqual(self.request('POST',route,'{"path":"C:/private"}')[0],400)
+        status,data=self.request('POST',route,'{}');self.assertEqual(status,201)
+        self.assertNotIn('path',data['bundle'])
+        download=data['download_path']
+        conn=http.client.HTTPConnection('127.0.0.1',self.port,timeout=5)
+        try:
+            conn.request('GET',download,headers={'Authorization':'Bearer '+self.token})
+            response=conn.getresponse();raw=response.read()
+            self.assertEqual(response.status,200)
+            self.assertEqual(response.getheader('Content-Type'),'application/zip')
+            self.assertEqual(hashlib.sha256(raw).hexdigest(),data['bundle']['sha256'])
+            with zipfile.ZipFile(io.BytesIO(raw)) as archive:
+                self.assertEqual(archive.read('native.psd'),b'controlled psd')
+        finally:conn.close()
+        self.assertEqual(self.request(path=download.replace(project,other))[0],404)
+        self.assertEqual(self.request(path=download,headers={'Authorization':''})[0],401)
+        self.assertEqual(self.request('POST',route,'{}',{'Origin':'https://untrusted.example'})[0],403)
+        archives=list(self.root.rglob('delivery.zip'))
+        self.assertEqual(len(archives),1)
+        archives[0].write_bytes(b'tampered archive')
+        self.assertEqual(self.request(path=download)[0],409)
+
     def seed_native(self):
         from contextlib import closing
         from unittest.mock import patch

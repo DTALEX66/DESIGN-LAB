@@ -10,6 +10,28 @@ ROOT=Path(__file__).resolve().parents[2]
 
 
 class WorkbenchNativeUiTests(unittest.TestCase):
+    def test_bundle_download_checks_hash_before_saving(self):
+        node=shutil.which('node')
+        if not node:self.skipTest('Node required')
+        script=r'''
+const fs=require('fs'),vm=require('vm'),crypto=require('crypto');
+let saved=0,tamper=false;const bytes=Buffer.from('controlled archive');
+const hash=crypto.createHash('sha256').update(bytes).digest('hex');
+class E {constructor(){this.classList={toggle(){}};}click(){saved++;}removeAttribute(){}replaceChildren(){}append(){}}
+const elements={},owner='c'.repeat(32),route='/api/projects/'+owner+'/bundles/bundle-native-'+'b'.repeat(64)+'/versions/v-'+'d'.repeat(32)+'/content';
+const c={document:{getElementById:id=>elements[id]??=new E(),createElement:()=>new E()},
+crypto:crypto.webcrypto,Blob,Uint8Array,URL:{createObjectURL:()=> 'blob:fixture',revokeObjectURL(){}},setTimeout:fn=>fn(),
+fetch:async path=>path.endsWith('/bundle')?{ok:true,json:async()=>({bundle:{sha256:hash,byte_size:bytes.length},download_path:route})}:
+{ok:true,arrayBuffer:async()=>Uint8Array.from(tamper?Buffer.from('bad'):bytes).buffer}};
+vm.createContext(c);vm.runInContext(fs.readFileSync(process.argv[1],'utf8'),c);
+(async()=>{await vm.runInContext("project='"+owner+"';exportBundle({job_id:'native-job-"+'a'.repeat(64)+"'})",c);
+tamper=true;let rejected=false;try{await vm.runInContext("exportBundle({job_id:'native-job-"+'a'.repeat(64)+"'})",c)}catch(e){rejected=true;}
+console.log(JSON.stringify({saved,rejected}));})().catch(e=>{console.error(e);process.exitCode=1});
+'''
+        result=subprocess.run([node,'-e',script,str(ROOT/'apps/workbench/main.ts')],capture_output=True,text=True,encoding='utf-8',timeout=30)
+        self.assertEqual(result.returncode,0,result.stderr)
+        self.assertEqual(json.loads(result.stdout),{'saved':1,'rejected':True})
+
     def test_native_listing_and_explicit_verification_use_scoped_api(self):
         node=shutil.which('node')
         if not node:self.skipTest('Node required')

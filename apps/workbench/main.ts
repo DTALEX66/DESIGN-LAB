@@ -50,9 +50,31 @@ async function tasks(append = false) {
   const data = await api(`/projects/${owner}/tasks` + (append && taskCursor ? `?after=${taskCursor}` : ''));
   if (current !== epoch) return;
   if (!append) $('tasks').replaceChildren();
-  for (const task of data.tasks) button('tasks', `${task.kind} · ${task.state} · attempt ${task.attempt.attempt_no} · ${task.job_id.slice(-12)}`, () => loadEvents(task.job_id));
+  for (const task of data.tasks) {
+    button('tasks', `${task.kind} · ${task.state} · attempt ${task.attempt.attempt_no} · ${task.job_id.slice(-12)}`, () => loadEvents(task.job_id));
+    if (task.kind.endsWith('-native') && task.attempt.state === 'RECEIPTED')
+      button('tasks', `导出交付包 · ${task.job_id.slice(-12)} · rights/质量待审`, () => exportBundle(task));
+  }
   if (!append && !data.tasks.length) $('tasks').textContent = '尚无任务。导入图片后可查看真实记录。';
   taskCursor = data.next_cursor; $('more-tasks').hidden = taskCursor === null;
+}
+async function exportBundle(task) {
+  const current = epoch, owner = project, access = token;
+  status('正在核对原生文件并打包；此操作不代表设计验收。');
+  const data = await api(`/projects/${owner}/tasks/${task.job_id}/bundle`, {});
+  if (current !== epoch) return;
+  const expected = new RegExp(`^/api/projects/${owner}/bundles/bundle-native-[0-9a-f]{64}/versions/v-[0-9a-f]{32}/content$`);
+  if (!expected.test(data.download_path)) throw Error('INVALID_BUNDLE_ROUTE');
+  const response = await fetch(data.download_path, {headers:{Authorization:'Bearer ' + access},cache:'no-store'});
+  if (!response.ok) throw Error('BUNDLE_DOWNLOAD_UNVERIFIED');
+  const bytes = await response.arrayBuffer();
+  const digest = Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256', bytes)), b => b.toString(16).padStart(2,'0')).join('');
+  if (digest !== data.bundle.sha256 || bytes.byteLength !== data.bundle.byte_size) throw Error('BUNDLE_HASH_MISMATCH');
+  if (current !== epoch) return;
+  const url = URL.createObjectURL(new Blob([bytes],{type:'application/zip'}));
+  const link = document.createElement('a'); link.href = url; link.download = `design-lab-${task.job_id.slice(-12)}.zip`;
+  link.click(); setTimeout(() => URL.revokeObjectURL(url),30000);
+  status('交付包下载 hash 已核对；字体、链接、rights 与质量仍需验收。');
 }
 async function preview(asset) {
   const current = epoch;
