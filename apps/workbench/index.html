@@ -16,6 +16,10 @@
 <section class="panel"><div class="section-head"><div><p class="eyebrow">03 / EXECUTION HISTORY</p><h2>任务与事件</h2></div><span class="badge">导入与原生任务记录</span></div>
 <p>此处展示持久化状态，不是虚构进度。需要时点击刷新；请求取消不等于已取消。</p><ul id="tasks" class="items"></ul><button id="more-tasks" class="secondary" hidden>更多任务</button><ol id="events" class="events"></ol><button id="more-events" class="secondary" hidden>更多事件</button></section>
 <section class="panel"><p class="eyebrow">04 / NATIVE ASSETS</p><h2>已登记的 AI / PSD</h2><p>列表为持久化版本记录。点击校验会重新读取原生文件并核对 hash，不代表人工接受或本次宿主重开。</p><ul id="native-assets" class="items"></ul><button id="more-native" class="secondary" hidden>更多原生产物</button><p id="native-info" class="mono" role="status"></p></section>
-<section class="panel future"><div><p class="eyebrow">PRODUCTION / QUALIFICATION REQUIRED</p><h2>原生可编辑交付</h2><p>已可查询宿主任务与校验原生产物；从参考提交生成、局部修改与导出尚未接入本页面。复杂参考复刻、人工质量/权利验收与发布仍待完成。</p></div><button disabled>生成 AI / PSD · 未接通</button></section></div>
+<section class="panel"><p class="eyebrow">ADVANCED / OBJECT PLAN</p><h2>检查与提交对象计划</h2><p>高级 RIR 合同输入，不是参考图自动拆解。可编辑 JSON 后提交；raster.path 必须使用当前项目已导入的完整 img-ID，不接受本地路径。文字节点样式按对象 ID 提供 font、size、color。提交只排队，需在任务列表显式启动。</p>
+<form id="plan-form"><label>目标宿主<select id="plan-host"><option value="illustrator">Illustrator / AI</option><option value="photoshop">Photoshop / PSD</option></select></label>
+<label>RIR JSON<textarea id="plan-rir" rows="12" maxlength="3800000" required spellcheck="false" aria-label="可修正的 RIR 对象计划"></textarea></label>
+<label>文字样式 JSON<textarea id="plan-styles" rows="5" maxlength="100000" required spellcheck="false">{}</textarea></label><button id="plan-submit">校验并排队</button></form>
+<p>自动参考拆解、对象级局部修改、复杂参考复刻与人工验收仍待完成；不能以整图贴底冒充分层。</p></section></div>
 <p id="status" role="status" aria-live="polite">本地优先 · 不连接云端 · 不上传到第三方</p></main>
 <footer>DESIGN-LAB / 设计智能与生产能力层 <span>实验入口 · 非完整产品验收</span></footer></body></html>

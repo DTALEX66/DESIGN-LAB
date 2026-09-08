@@ -131,6 +131,21 @@ class NativeTaskTests(unittest.TestCase):
         self.assertEqual(json.loads(missing.stdout),{'status':'ERROR','error':'NATIVE_REQUEST_MISSING'})
         self.assertEqual(missing.stderr,'')
 
+    def test_background_worker_records_real_predispatch_rejection(self):
+        from design_lab.native_workers import NativeWorkers
+        invalid=dict(self.job,width=0)
+        queued=self.module().NativeTasks(self.service).enqueue(self.project,'photoshop',invalid,
+            idempotency_key='invalid-worker',approved_root=self.run,authorization=self.authorization)
+        task=queued['attempt'];workers=NativeWorkers(self.service)
+        result=workers.start(self.project,task['job_id'],task['attempt_id'])
+        self.assertEqual(result['worker'],'STARTED')
+        process=workers._processes[task['attempt_id']]
+        self.assertEqual(process.wait(timeout=30),2)
+        from design_lab.task_queries import TaskQueries
+        current=TaskQueries(self.service).get(self.project,task['job_id'])
+        self.assertEqual(current['task']['attempt']['state'],'FAILED')
+        self.assertFalse((self.run/'output.psd').exists())
+
     def test_different_request_same_key_rejected_without_dispatch(self):
         module=self.module()
         with patch.object(module,'_dispatch',side_effect=self.native) as invoke:

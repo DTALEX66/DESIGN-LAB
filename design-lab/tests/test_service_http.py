@@ -74,6 +74,16 @@ class ServiceHttpTests(unittest.TestCase):
         current=self.request(path=f'/api/projects/{project}/tasks/{job}')[1]['task']
         self.assertEqual(current['attempt']['state'],'RECEIPTED')
 
+    def test_native_worker_route_rejects_cross_project_and_terminal_attempt(self):
+        project,other,job=self.seed_exportable_native();self.start()
+        task=self.request(path=f'/api/projects/{project}/tasks/{job}')[1]['task']
+        body=json.dumps({'attempt_id':task['attempt']['attempt_id']})
+        route=f'/api/projects/{project}/tasks/{job}/run'
+        self.assertEqual(self.request('POST',route,body,{'Authorization':''})[0],401)
+        self.assertEqual(self.request('POST',route.replace(project,other),body)[0],404)
+        self.assertEqual(self.request('POST',route,body)[0],409)
+        self.assertEqual(self.request('POST',route,'{}')[0],400)
+
     def seed_exportable_native(self):
         from unittest.mock import patch
         sys.path.insert(0,str(ROOT/'src'));self.addCleanup(lambda:sys.path.remove(str(ROOT/'src')))

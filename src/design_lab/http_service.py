@@ -14,6 +14,7 @@ from .task_queries import TaskQueries
 from .task_commands import TaskCommands
 from .native_submissions import NativeSubmissions
 from .native_tasks import NativeTaskError
+from .native_workers import NativeWorkers
 from .native_assets import NativeAssets
 from .native_delivery import NativeDelivery
 from . import workbench
@@ -39,6 +40,7 @@ def make_server(service, token, port=0):
         raise ValueError('INVALID_SERVICE_TOKEN')
     if type(port) is not int or not 0 <= port <= 65535:
         raise ValueError('INVALID_SERVICE_PORT')
+    workers = NativeWorkers(service)
 
     class Handler(BaseHTTPRequestHandler):
         server_version = 'DESIGN-LAB'
@@ -175,6 +177,10 @@ def make_server(service, token, port=0):
                             return self.send_json(200, {'project': project})
                     raise RequestError(404, 'NOT_FOUND')
                 if self.command == 'POST':
+                    match = re.fullmatch(r'/api/projects/([0-9a-f]{32})/tasks/(native-job-[0-9a-f]{64})/run',self.path)
+                    if match:
+                        value=self.body(fields={'attempt_id'})
+                        return self.send_json(202,workers.start(*match.groups(),value['attempt_id']))
                     match = re.fullmatch(r'/api/projects/([0-9a-f]{32})/native-plans',self.path)
                     if match:
                         value=self.body(fields={'host','rir','text_styles','idempotency_key'},limit=4_000_000)

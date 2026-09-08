@@ -5,6 +5,7 @@ let token = '', project = '', epoch = 0, taskCursor = null, eventCursor = null, 
 let pendingImport = null, busy = false;
 let nativeCursor = null;
 let eventRequest = 0, previewRequest = 0, verificationRequest = 0;
+let submittedPlan = null, planBusy = false;
 const status = (text, error = false) => { $('status').textContent = text; $('status').classList.toggle('error', error); };
 async function api(path, body) {
   const response = await fetch('/api' + path, {method: body ? 'POST' : 'GET',
@@ -21,6 +22,7 @@ function button(list, label, action) {
   li.append(b); $(list).append(li);
 }
 function resetProject() {
+  submittedPlan = null;
   epoch++; taskCursor = eventCursor = null; eventJob = ''; pendingImport = null;
   nativeCursor = null; $('native-info').textContent = '';
   for (const id of ['assets','tasks','events','native-assets']) $(id).replaceChildren();
@@ -60,9 +62,22 @@ async function tasks(append = false) {
       button('tasks', `导出交付包 · ${task.job_id.slice(-12)} · rights/质量待审`, () => exportBundle(task));
     if (task.kind.endsWith('-native') && ['PENDING','RUNNING','OUTCOME_UNKNOWN'].includes(task.attempt.state))
       button('tasks', `请求取消 · ${task.job_id.slice(-12)}`, () => cancelTask(task));
+    if (task.kind.endsWith('-native') && task.attempt.state === 'PENDING')
+      button('tasks', `启动任务 · ${task.job_id.slice(-12)}`, () => startTask(task));
   }
   if (!append && !data.tasks.length) $('tasks').textContent = '尚无任务。导入图片后可查看真实记录。';
   taskCursor = data.next_cursor; $('more-tasks').hidden = taskCursor === null;
+}
+async function startTask(task) {
+  const current = epoch, owner = project;
+  const data = await api(`/projects/${owner}/tasks/${task.job_id}/run`, {attempt_id:task.attempt.attempt_id}).catch(error => {
+    if (current !== epoch) return null;
+    throw error;
+  });
+  if (!data || current !== epoch) return;
+  await tasks();
+  if (current !== epoch) return;
+  status(`工作进程：${data.worker}；不代表制作成功，请刷新查看宿主读回状态。`);
 }
 async function cancelTask(task) {
   const current = epoch, owner = project;
@@ -178,6 +193,29 @@ $('import-form').onsubmit = async event => {
   } catch(error) { status(error.message,true); }
 };
 $('retry-import').onclick = sendImport;
+$('plan-form').onsubmit = async event => {
+  event.preventDefault();
+  if (planBusy) return;
+  const current = epoch, owner = project;
+  try {
+    if (!owner) throw Error('请先选择项目');
+    const raw = $('plan-rir').value, styles = $('plan-styles').value;
+    if (raw.length + styles.length > 3900000) throw Error('对象计划过大');
+    const body = {host:$('plan-host').value,rir:JSON.parse(raw),text_styles:JSON.parse(styles)};
+    const identity = JSON.stringify(body);
+    if (!submittedPlan || submittedPlan.owner !== owner || submittedPlan.identity !== identity)
+      submittedPlan = {owner,identity,key:crypto.randomUUID()};
+    body.idempotency_key = submittedPlan.key;
+    planBusy = true; $('plan-submit').disabled = true;
+    const data = await api(`/projects/${owner}/native-plans`,body);
+    if (current !== epoch) return;
+    await tasks();
+    if (current !== epoch) return;
+    status(`对象计划已持久化：${data.task.attempt.state}。请从任务列表显式启动；未执行质量或权利验收。`);
+  } catch (error) {
+    if (current === epoch) status(`计划提交未确认：${error.message}。内容不变时重试复用幂等键。`,true);
+  } finally { planBusy = false; $('plan-submit').disabled = false; }
+};
 $('more-tasks').onclick = () => tasks(true).catch(e => status(e.message,true));
 $('more-events').onclick = () => loadEvents(eventJob,true).catch(e => status(e.message,true));
 $('more-native').onclick = () => nativeAssets(true).catch(e => status(e.message,true));

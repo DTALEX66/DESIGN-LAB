@@ -10,6 +10,54 @@ ROOT=Path(__file__).resolve().parents[2]
 
 
 class WorkbenchNativeUiTests(unittest.TestCase):
+    def test_plan_submission_reuses_key_without_starting_host(self):
+        node=shutil.which('node')
+        if not node:self.skipTest('Node required')
+        script=r'''
+const fs=require('fs'),vm=require('vm');
+class E {constructor(){this.children=[];this.classList={toggle(){}};}append(x){this.children.push(x)}replaceChildren(){this.children=[];}removeAttribute(){}}
+const elements={},calls=[];let keys=0;
+const c={document:{getElementById:id=>elements[id]??=new E(),createElement:()=>new E()},crypto:{randomUUID:()=>String(++keys)},
+fetch:async(path,options)=>{calls.push({path,body:options.body});return {ok:true,json:async()=>path.endsWith('/native-plans')?{task:{attempt:{state:'PENDING'}}}:{tasks:[],next_cursor:null}};}};
+vm.createContext(c);vm.runInContext(fs.readFileSync(process.argv[1],'utf8'),c);
+(async()=>{vm.runInContext("project='"+'c'.repeat(32)+"'",c);
+c.document.getElementById('plan-host').value='photoshop';c.document.getElementById('plan-rir').value='{"layers":[]}';c.document.getElementById('plan-styles').value='{}';
+if(elements['plan-form']?.onsubmit){await elements['plan-form'].onsubmit({preventDefault(){}});await elements['plan-form'].onsubmit({preventDefault(){}});}
+console.log(JSON.stringify({calls,status:elements.status?.textContent}));
+})().catch(e=>{console.error(e);process.exitCode=1});
+'''
+        result=subprocess.run([node,'-e',script,str(ROOT/'apps/workbench/main.ts')],capture_output=True,text=True,encoding='utf-8',timeout=30)
+        self.assertEqual(result.returncode,0,result.stderr)
+        data=json.loads(result.stdout);calls=[c for c in data['calls'] if c['path'].endswith('/native-plans')]
+        self.assertEqual(len(calls),2)
+        self.assertEqual(json.loads(calls[0]['body']),json.loads(calls[1]['body']))
+        self.assertFalse(any(c['path'].endswith('/run') for c in data['calls']))
+        self.assertIn('PENDING',data['status'])
+
+    def test_start_queued_task_sends_bound_attempt(self):
+        node=shutil.which('node')
+        if not node:self.skipTest('Node required')
+        script=r'''
+const fs=require('fs'),vm=require('vm');
+class E {constructor(){this.children=[];this.classList={toggle(){}};}append(x){this.children.push(x)}replaceChildren(){this.children=[];}removeAttribute(){}}
+const elements={},calls=[],owner='c'.repeat(32);
+const task={kind:'photoshop-native',job_id:'native-job-'+'a'.repeat(64),state:'PENDING',attempt:{attempt_id:'att-'+'b'.repeat(32),attempt_no:1,state:'PENDING'}};
+const c={document:{getElementById:id=>elements[id]??=new E(),createElement:()=>new E()},
+fetch:async(path,options)=>{calls.push({path,body:options.body});return {ok:true,json:async()=>path.endsWith('/run')?{task,worker:'STARTED'}:{tasks:[task],next_cursor:null}};}};
+vm.createContext(c);vm.runInContext(fs.readFileSync(process.argv[1],'utf8'),c);
+(async()=>{await vm.runInContext("project='"+owner+"';tasks()",c);
+const b=elements.tasks.children.map(li=>li.children[0]).find(b=>b.textContent.startsWith('启动任务'));
+if(b)await b.onclick();console.log(JSON.stringify({found:!!b,calls,status:elements.status?.textContent}));
+})().catch(e=>{console.error(e);process.exitCode=1});
+'''
+        result=subprocess.run([node,'-e',script,str(ROOT/'apps/workbench/main.ts')],capture_output=True,text=True,encoding='utf-8',timeout=30)
+        self.assertEqual(result.returncode,0,result.stderr)
+        data=json.loads(result.stdout);self.assertTrue(data['found'])
+        calls=[c for c in data['calls'] if c['path'].endswith('/run')]
+        self.assertEqual(len(calls),1)
+        self.assertEqual(json.loads(calls[0]['body']),{'attempt_id':'att-'+'b'*32})
+        self.assertIn('不代表制作成功',data['status'])
+
     def test_cancel_button_binds_attempt_and_reads_back_requested_state(self):
         node=shutil.which('node')
         if not node:self.skipTest('Node required')
