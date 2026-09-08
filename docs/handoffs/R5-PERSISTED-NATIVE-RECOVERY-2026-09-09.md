@@ -47,3 +47,36 @@ runtime-asset-safety 18 and operation-coordinator 8 tests PASS (57 total).
 Canonical suite `VERIFY_DESIGN_LAB=OK total=49 failed=0`, exit 0. Current reports
 regenerated and `--check` passed. No actual host was dispatched by these tests;
 no remote push/CI or installed-wheel refresh is included in this checkpoint.
+
+## OS-lock recovery continuation
+
+The subsequent change adds `runtime/native_recovery_lock.py`: a nonblocking
+Windows byte-range lock (POSIX flock fallback is implemented but not tested here)
+under the selected project runtime root. Lock files are hashed by attempt ID,
+path-checked, retained rather than unlinked, and reject hardlinks. There is no
+time-based ownership expiry. Closing the handle or process exit releases the OS
+lock; a live holder prevents a second recovery, including from the same process.
+
+New recovery claims atomically carry `native_recovery_protocol_v2=os-lock-v1`.
+Only these claims can resume from RECONCILING after acquiring the same OS lock.
+Old untagged claims remain ineligible because their workers never promised this
+locking protocol. A failed resumed recovery still retains the host guard and
+must recheck all inputs/outputs next time. No host redispatch is introduced.
+
+Validation: 18 native tests, 3 quiescence tests, and one actual two-process lock
+test PASS. The lock test starts and terminates only its own synthetic Python
+helper, proving live exclusion and OS release after a crash; no Adobe or shared
+process is terminated. Native recovery continuation is exercised with real
+SQLite/files and a doubled COM boundary. An initial legacy-claim test fixture
+failed because its DELETE was uncommitted; explicit fixture commit corrected
+that setup, and the untagged-claim rejection then passed.
+
+Additional real process-exit trial: a recovery child exits via `os._exit(43)`
+after asset publication and before `_finish`. Parent confirms terminal exit,
+original guard retained and one existing version; a fresh service resumes the
+same attempt and version successfully. Native tests now total 19 PASS. This
+covers a recovery-process crash, not merely a caught Python exception.
+
+Remaining: actual process-kill trials inside the other publication crash windows,
+late native completion without an original receipt, cancellation acknowledgement,
+multi-file manifests and product UI. The OS lock alone does not prove these.

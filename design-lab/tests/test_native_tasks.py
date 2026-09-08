@@ -8,6 +8,7 @@ import json
 import os
 from pathlib import Path
 import sys
+import subprocess
 import tempfile
 import threading
 import unittest
@@ -182,7 +183,7 @@ class NativeTaskTests(unittest.TestCase):
             self.assertEqual(conn.execute('SELECT COUNT(*) FROM native_host_guard_v1').fetchone()[0],1)
             self.assertEqual(conn.execute('SELECT COUNT(*) FROM asset_version').fetchone()[0],0)
 
-    def test_reconciliation_failure_claim_cannot_be_stolen_on_retry(self):
+    def test_legacy_reconciliation_claim_cannot_be_inferred_stopped(self):
         module=self.module()
         with patch.object(module,'_dispatch',side_effect=self.native),patch.object(module.assets,'publish_version',side_effect=OSError('disk failure')):
             with self.assertRaises(module.NativeTaskError) as caught:self.execute()
@@ -191,6 +192,10 @@ class NativeTaskTests(unittest.TestCase):
             tasks.reconcile_receipted(aid,authorization={})
         with patch.object(module.assets,'publish_version',side_effect=OSError('still unavailable')):
             with self.assertRaises(module.NativeTaskError):tasks.reconcile_receipted(aid,authorization=self.authorization)
+        # Model the previous implementation: a claim with no OS-lock protocol.
+        with closing(tasks._connect()) as conn:
+            conn.execute('DELETE FROM native_recovery_protocol_v2 WHERE attempt_id=?',(aid,))
+            conn.commit()
         with patch.object(module.assets,'publish_version',side_effect=AssertionError('must not steal')) as publish:
             with self.assertRaisesRegex(module.NativeTaskError,'NOT_ELIGIBLE'):
                 module.NativeTasks(ProjectService(self.root)).reconcile_receipted(aid,authorization=self.authorization)
@@ -198,6 +203,49 @@ class NativeTaskTests(unittest.TestCase):
         with closing(tasks._connect()) as conn:
             self.assertEqual(conn.execute('SELECT COUNT(*) FROM native_host_guard_v1').fetchone()[0],1)
             self.assertEqual(conn.execute('SELECT COUNT(*) FROM native_reconciliation_v1').fetchone()[0],1)
+
+    def test_recovery_can_resume_after_os_locked_worker_returns(self):
+        module=self.module()
+        with patch.object(module,'_dispatch',side_effect=self.native),patch.object(module.assets,'publish_version',side_effect=OSError('disk failure')):
+            with self.assertRaises(module.NativeTaskError) as caught:self.execute()
+        aid=caught.exception.attempt['attempt_id'];tasks=module.NativeTasks(self.service)
+        with patch.object(module.assets,'publish_version',side_effect=OSError('recovery failure')):
+            with self.assertRaises(module.NativeTaskError):tasks.reconcile_receipted(aid,authorization=self.authorization)
+        from design_lab.runtime.native_recovery_lock import recovery_lock
+        with recovery_lock(tasks.paths,aid):
+            with self.assertRaisesRegex(module.NativeTaskError,'WORKER_ACTIVE'):
+                tasks.reconcile_receipted(aid,authorization=self.authorization)
+        with patch.object(module,'_dispatch',side_effect=AssertionError('no host dispatch')):
+            result=module.NativeTasks(ProjectService(self.root)).reconcile_receipted(aid,authorization=self.authorization)
+        self.assertEqual(result['attempt']['state'],'RECEIPTED')
+        with closing(tasks._connect()) as conn:
+            self.assertEqual(conn.execute('SELECT COUNT(*) FROM asset_version').fetchone()[0],1)
+
+    def test_recovery_process_crash_after_publish_resumes_same_version(self):
+        module=self.module()
+        with patch.object(module,'_dispatch',side_effect=self.native),patch.object(module.assets,'publish_version',side_effect=OSError('disk failure')):
+            with self.assertRaises(module.NativeTaskError) as caught:self.execute()
+        aid=caught.exception.attempt['attempt_id']
+        code=(
+            'import sys,os; sys.path.insert(0,sys.argv[1]); '
+            'from design_lab.service import ProjectService; '
+            'from design_lab.native_tasks import NativeTasks; '
+            't=NativeTasks(ProjectService(sys.argv[2])); '
+            't._finish=lambda *a,**k: os._exit(43); '
+            't.reconcile_receipted(sys.argv[3],authorization=dict(actor="test",scope="project-native-test",receipt="crash fixture"))'
+        )
+        child=subprocess.run([sys.executable,'-B','-X','utf8','-c',code,str(ROOT/'src'),str(self.root),aid],
+                             capture_output=True,text=True,timeout=20)
+        self.assertEqual(child.returncode,43,child.stderr)
+        tasks=module.NativeTasks(ProjectService(self.root))
+        with closing(tasks._connect()) as conn:
+            version=conn.execute('SELECT version_id FROM asset_version').fetchone()[0]
+            self.assertEqual(conn.execute('SELECT COUNT(*) FROM native_host_guard_v1').fetchone()[0],1)
+        result=tasks.reconcile_receipted(aid,authorization=self.authorization)
+        self.assertEqual(result['attempt']['state'],'RECEIPTED')
+        self.assertEqual(result['asset']['version_id'],version)
+        with closing(tasks._connect()) as conn:
+            self.assertEqual(conn.execute('SELECT COUNT(*) FROM asset_version').fetchone()[0],1)
 
     def test_pre_dispatch_cancel_is_not_sent_to_host(self):
         module=self.module()

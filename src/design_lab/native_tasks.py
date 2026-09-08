@@ -15,6 +15,7 @@ import sqlite3
 from .adapters import illustrator_com, photoshop_com
 from .runtime import asset_store as assets, job_store as jobs
 from .runtime.attempt_contract import request_hash
+from .runtime.native_recovery_lock import recovery_lock, RecoveryBusy
 
 
 class NativeTaskError(RuntimeError):
@@ -65,6 +66,10 @@ CREATE TABLE IF NOT EXISTS native_quiescence_v1 (
 CREATE TABLE IF NOT EXISTS native_reconciliation_v1 (
  attempt_id TEXT PRIMARY KEY REFERENCES attempt_state(attempt_id),
  authorization_json TEXT NOT NULL, started_at TEXT NOT NULL
+);
+CREATE TABLE IF NOT EXISTS native_recovery_protocol_v2 (
+ attempt_id TEXT PRIMARY KEY REFERENCES native_reconciliation_v1(attempt_id),
+ protocol TEXT NOT NULL CHECK(protocol='os-lock-v1')
 );
 ''')
             return conn
@@ -189,14 +194,21 @@ CREATE TABLE IF NOT EXISTS native_reconciliation_v1 (
     def reconcile_receipted(self,attempt_id,*,authorization):
         """Resume publication from a persisted verified host receipt, never dispatch.
 
-        Missing receipts cannot prove host completion. An interrupted recovery
-        keeps its non-expiring claim and guard for explicit further recovery;
-        no lease expiry can steal a live publisher's work.
+        Missing receipts cannot prove host completion. Explicit recovery holds
+        an OS-owned lock throughout; only a subsequent holder may resume a
+        protocol-tagged claim. Legacy claims are never inferred stopped.
         """
         if (not isinstance(authorization,dict) or set(authorization)!={'actor','scope','receipt'}
             or authorization['scope']!='project-native-test'
             or any(not isinstance(v,str) or not v.strip() or len(v)>2000 for v in authorization.values())):
             raise NativeTaskError('RECONCILIATION_AUTHORIZATION_REQUIRED')
+        try:
+            with recovery_lock(self.paths,attempt_id):
+                return self._reconcile_receipted_locked(attempt_id,authorization)
+        except RecoveryBusy as exc:
+            raise NativeTaskError('RECONCILIATION_WORKER_ACTIVE') from exc
+
+    def _reconcile_receipted_locked(self,attempt_id,authorization):
         with closing(self._connect()) as conn:
             with jobs._transaction(conn):
                 current,op=jobs._current(conn,attempt_id)
@@ -205,12 +217,19 @@ CREATE TABLE IF NOT EXISTS native_reconciliation_v1 (
                 host,project_id,raw_request,raw_receipt=row
                 if current['state']=='RECEIPTED':return self._existing(conn,current,project_id)
                 guard=conn.execute('SELECT attempt_id FROM native_host_guard_v1 WHERE host=?',(host,)).fetchone()
-                if (current['state']!='OUTCOME_UNKNOWN' or guard!=(attempt_id,) or not raw_receipt
-                    or conn.execute('SELECT 1 FROM native_quiescence_v1 WHERE attempt_id=?',(attempt_id,)).fetchone()
-                    or conn.execute('SELECT 1 FROM native_reconciliation_v1 WHERE attempt_id=?',(attempt_id,)).fetchone()):
+                claim=conn.execute('SELECT 1 FROM native_reconciliation_v1 WHERE attempt_id=?',(attempt_id,)).fetchone()
+                protocol=conn.execute('SELECT protocol FROM native_recovery_protocol_v2 WHERE attempt_id=?',(attempt_id,)).fetchone()
+                eligible=(current['state']=='OUTCOME_UNKNOWN' and not claim) or (
+                    current['state']=='RECONCILING' and claim and protocol==('os-lock-v1',))
+                if (not eligible or guard!=(attempt_id,) or not raw_receipt
+                    or conn.execute('SELECT 1 FROM native_quiescence_v1 WHERE attempt_id=?',(attempt_id,)).fetchone()):
                     raise NativeTaskError('RECONCILIATION_NOT_ELIGIBLE')
-                conn.execute('INSERT INTO native_reconciliation_v1 VALUES (?,?,?)',(attempt_id,_json(authorization),jobs._now()))
-                jobs._change(conn,current,'RECONCILING','persisted native receipt; publication-only recovery')
+                if not claim:
+                    conn.execute('INSERT INTO native_reconciliation_v1 VALUES (?,?,?)',(attempt_id,_json(authorization),jobs._now()))
+                    conn.execute("INSERT INTO native_recovery_protocol_v2 VALUES (?,'os-lock-v1')",(attempt_id,))
+                    jobs._change(conn,current,'RECONCILING','persisted native receipt; publication-only recovery')
+                else:
+                    jobs._event(conn,attempt_id,'RECONCILING','RECONCILING','OS lock reacquired; explicit publication recovery')
                 jobs._op(conn,op,'RECONCILING')
             try:
                 request=json.loads(raw_request);job=request['job'];receipt=json.loads(raw_receipt)
