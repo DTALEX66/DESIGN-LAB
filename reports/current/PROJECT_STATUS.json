@@ -1,13 +1,13 @@
 {
   "fresh": false,
   "freshnessMeaning": "at generation only; check verifies bound-input integrity, not current Git or cloud state",
-  "generatedAt": "2026-09-08T19:00:10+00:00",
+  "generatedAt": "2026-09-08T19:09:42+00:00",
   "git": {
     "branch": "codex/r3-runtime-correctness",
     "origin_main": "c4dccd58331bc4561eb89265283d924b7630d113",
-    "sha": "4dea99d6d90de1ced1f945e93ff36bc52b8ba06f",
+    "sha": "bbb8e532898acf91ad231ad51f425604dce2662a",
     "source_worktree_clean": false,
-    "tracked_files": 1716
+    "tracked_files": 1719
   },
   "gitStateMeaning": "generation-time observation, not current HEAD",
   "hostLive": "derived from host_live axis only",
@@ -19,13 +19,13 @@
     "activeRegistryEntries": 6,
     "quarantinedSources": 162
   },
-  "subjectSha": "4dea99d6d90de1ced1f945e93ff36bc52b8ba06f",
+  "subjectSha": "bbb8e532898acf91ad231ad51f425604dce2662a",
   "taskCounts": {
     "PARTIAL": 28
   },
   "taskpack": "DL-TP-20260908-R5",
   "tests": {
-    "definedTestMethodCount": 920,
+    "definedTestMethodCount": 926,
     "executed": "see individual verified ledger receipts"
   }
 }

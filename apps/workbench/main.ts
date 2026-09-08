@@ -6,6 +6,7 @@ let pendingImport = null, busy = false;
 let nativeCursor = null;
 let eventRequest = 0, previewRequest = 0, verificationRequest = 0;
 let submittedPlan = null, planBusy = false;
+let patchSource = null, submittedPatch = null, patchBusy = false;
 const status = (text, error = false) => { $('status').textContent = text; $('status').classList.toggle('error', error); };
 async function api(path, body) {
   const response = await fetch('/api' + path, {method: body ? 'POST' : 'GET',
@@ -23,6 +24,7 @@ function button(list, label, action) {
 }
 function resetProject() {
   submittedPlan = null;
+  patchSource = submittedPatch = null; $('patch-source').textContent = '请从已完成的 Illustrator 任务选择修改来源。';
   epoch++; taskCursor = eventCursor = null; eventJob = ''; pendingImport = null;
   nativeCursor = null; $('native-info').textContent = '';
   for (const id of ['assets','tasks','events','native-assets']) $(id).replaceChildren();
@@ -60,6 +62,12 @@ async function tasks(append = false) {
     button('tasks', `${task.kind} · ${task.state} · attempt ${task.attempt.attempt_no} · ${task.job_id.slice(-12)}`, () => loadEvents(task.job_id));
     if (task.kind.endsWith('-native') && task.attempt.state === 'RECEIPTED')
       button('tasks', `导出交付包 · ${task.job_id.slice(-12)} · rights/质量待审`, () => exportBundle(task));
+    if (task.kind === 'illustrator-native' && task.attempt.state === 'RECEIPTED')
+      button('tasks', `修改对象 · ${task.job_id.slice(-12)}`, async () => {
+        if (current !== epoch) return;
+        patchSource = {owner,job:task.job_id,attempt:task.attempt.attempt_id};
+        $('patch-source').textContent = `来源 ${task.job_id} · ${task.attempt.attempt_id}。将在新副本修改，不覆盖原件。`;
+      });
     if (task.kind.endsWith('-native') && ['PENDING','RUNNING','OUTCOME_UNKNOWN'].includes(task.attempt.state))
       button('tasks', `请求取消 · ${task.job_id.slice(-12)}`, () => cancelTask(task));
     if (task.kind.endsWith('-native') && task.attempt.state === 'PENDING')
@@ -217,5 +225,28 @@ $('plan-form').onsubmit = async event => {
   } finally { planBusy = false; $('plan-submit').disabled = false; }
 };
 $('more-tasks').onclick = () => tasks(true).catch(e => status(e.message,true));
+$('patch-form').onsubmit = async event => {
+  event.preventDefault();
+  if (patchBusy) return;
+  const current = epoch, owner = project, source = patchSource;
+  try {
+    if (!source || source.owner !== owner) throw Error('请先选择当前项目的 Illustrator 来源任务');
+    const raw = $('patch-json').value;
+    if (raw.length > 900000) throw Error('局部修改过大');
+    const body = {source_attempt_id:source.attempt,patch:JSON.parse(raw)};
+    const identity = JSON.stringify({source,body});
+    if (!submittedPatch || submittedPatch.identity !== identity)
+      submittedPatch = {identity,key:crypto.randomUUID()};
+    body.idempotency_key = submittedPatch.key;
+    patchBusy = true; $('patch-submit').disabled = true;
+    const data = await api(`/projects/${owner}/tasks/${source.job}/patch`,body);
+    if (current !== epoch) return;
+    await tasks();
+    if (current !== epoch) return;
+    status(`局部修改已排队：${data.task.attempt.state} · 父版本 ${data.parent.version_id}。需显式启动，尚未执行或通过质量验收。`);
+  } catch (error) {
+    if (current === epoch) status(`局部修改提交未确认：${error.message}。相同内容重试复用幂等键。`,true);
+  } finally { patchBusy = false; $('patch-submit').disabled = false; }
+};
 $('more-events').onclick = () => loadEvents(eventJob,true).catch(e => status(e.message,true));
 $('more-native').onclick = () => nativeAssets(true).catch(e => status(e.message,true));

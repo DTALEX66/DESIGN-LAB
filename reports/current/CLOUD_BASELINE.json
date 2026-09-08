@@ -2,19 +2,19 @@
   "cloudReadback": "NOT_EXECUTED",
   "fresh": false,
   "freshnessMeaning": "at generation only; check verifies bound-input integrity, not current Git or cloud state",
-  "generatedAt": "2026-09-08T19:00:10+00:00",
+  "generatedAt": "2026-09-08T19:09:42+00:00",
   "gitStateMeaning": "generation-time observation, not current HEAD",
   "local": {
     "branch": "codex/r3-runtime-correctness",
     "origin_main": "c4dccd58331bc4561eb89265283d924b7630d113",
-    "sha": "4dea99d6d90de1ced1f945e93ff36bc52b8ba06f",
+    "sha": "bbb8e532898acf91ad231ad51f425604dce2662a",
     "source_worktree_clean": false,
-    "tracked_files": 1716
+    "tracked_files": 1719
   },
   "note": "No GitHub API query was run by this generator; tool installation is not inferred.",
   "remoteRef": "origin/main (local tracking ref)",
   "schemaVersion": "design-lab/cloud-baseline/v2",
-  "subjectSha": "4dea99d6d90de1ced1f945e93ff36bc52b8ba06f",
+  "subjectSha": "bbb8e532898acf91ad231ad51f425604dce2662a",
   "unavailable": [
     "currentRemoteSha",
     "exactShaCI",

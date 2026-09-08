@@ -20,6 +20,10 @@
 <form id="plan-form"><label>目标宿主<select id="plan-host"><option value="illustrator">Illustrator / AI</option><option value="photoshop">Photoshop / PSD</option></select></label>
 <label>RIR JSON<textarea id="plan-rir" rows="12" maxlength="3800000" required spellcheck="false" aria-label="可修正的 RIR 对象计划"></textarea></label>
 <label>文字样式 JSON<textarea id="plan-styles" rows="5" maxlength="100000" required spellcheck="false">{}</textarea></label><button id="plan-submit">校验并排队</button></form>
-<p>自动参考拆解、对象级局部修改、复杂参考复刻与人工验收仍待完成；不能以整图贴底冒充分层。</p></section></div>
+<p>自动参考拆解、复杂参考复刻与人工验收仍待完成；不能以整图贴底冒充分层。</p></section>
+<section class="panel"><p class="eyebrow">ADVANCED / LOCAL PATCH</p><h2>Illustrator 对象局部修改</h2>
+<p id="patch-source" class="mono">请从已完成的 Illustrator 任务选择修改来源。</p>
+<p>仅文字或保持拓扑的路径修改。对象 ID 来自对象计划；不接受脚本或文件路径。每次保存新副本，第二次修改请选择第一次修改完成后的任务。Photoshop 修改尚未接入此入口。</p>
+<form id="patch-form"><label>修改 JSON<textarea id="patch-json" rows="6" maxlength="900000" required spellcheck="false" aria-label="局部对象修改 JSON">{"kind":"text","id":"title","text":"修改后的文字"}</textarea></label><button id="patch-submit">校验并排队局部修改</button></form></section></div>
 <p id="status" role="status" aria-live="polite">本地优先 · 不连接云端 · 不上传到第三方</p></main>
 <footer>DESIGN-LAB / 设计智能与生产能力层 <span>实验入口 · 非完整产品验收</span></footer></body></html>

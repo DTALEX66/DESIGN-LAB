@@ -10,6 +10,35 @@ ROOT=Path(__file__).resolve().parents[2]
 
 
 class WorkbenchNativeUiTests(unittest.TestCase):
+    def test_patch_form_binds_source_and_reuses_key_without_dispatch(self):
+        node=shutil.which('node')
+        if not node:self.skipTest('Node required')
+        script=r'''
+const fs=require('fs'),vm=require('vm');
+class E {constructor(){this.children=[];this.classList={toggle(){}};}append(x){this.children.push(x)}replaceChildren(){this.children=[];}removeAttribute(){}}
+const elements={},calls=[],owner='c'.repeat(32);let keys=0;
+const task={kind:'illustrator-native',job_id:'native-job-'+'a'.repeat(64),state:'SUCCEEDED',attempt:{attempt_id:'att-'+'b'.repeat(32),attempt_no:1,state:'RECEIPTED'}};
+const c={document:{getElementById:id=>elements[id]??=new E(),createElement:()=>new E()},crypto:{randomUUID:()=>String(++keys)},
+fetch:async(path,options)=>{calls.push({path,body:options.body});return {ok:true,json:async()=>path.endsWith('/patch')?{task:{attempt:{state:'PENDING'}},parent:{version_id:'v-test'}}:{tasks:[task],next_cursor:null}};}};
+vm.createContext(c);vm.runInContext(fs.readFileSync(process.argv[1],'utf8'),c);
+(async()=>{await vm.runInContext("project='"+owner+"';tasks()",c);
+const b=elements.tasks.children.map(li=>li.children[0]).find(b=>b.textContent.startsWith('修改对象'));
+if(b)await b.onclick();c.document.getElementById('patch-json').value=JSON.stringify({kind:'text',id:'title',text:'After'});
+if(elements['patch-form']?.onsubmit){await elements['patch-form'].onsubmit({preventDefault(){}});await elements['patch-form'].onsubmit({preventDefault(){}});}
+console.log(JSON.stringify({found:!!b,calls,status:elements.status?.textContent}));
+})().catch(e=>{console.error(e);process.exitCode=1});
+'''
+        result=subprocess.run([node,'-e',script,str(ROOT/'apps/workbench/main.ts')],capture_output=True,text=True,encoding='utf-8',timeout=30)
+        self.assertEqual(result.returncode,0,result.stderr)
+        data=json.loads(result.stdout);self.assertTrue(data['found'])
+        calls=[c for c in data['calls'] if c['path'].endswith('/patch')]
+        self.assertEqual(len(calls),2)
+        body=json.loads(calls[0]['body']);self.assertEqual(body,json.loads(calls[1]['body']))
+        self.assertEqual(body['source_attempt_id'],'att-'+'b'*32)
+        self.assertEqual(body['patch'],{'kind':'text','id':'title','text':'After'})
+        self.assertFalse(any(c['path'].endswith('/run') for c in data['calls']))
+        self.assertIn('PENDING',data['status'])
+
     def test_plan_submission_reuses_key_without_starting_host(self):
         node=shutil.which('node')
         if not node:self.skipTest('Node required')

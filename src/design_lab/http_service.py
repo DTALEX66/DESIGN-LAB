@@ -13,6 +13,7 @@ from .image_assets import ImageAssets, ImageAssetError
 from .task_queries import TaskQueries
 from .task_commands import TaskCommands
 from .native_submissions import NativeSubmissions
+from .native_patch_submissions import NativePatchSubmissions
 from .native_tasks import NativeTaskError
 from .native_workers import NativeWorkers
 from .native_assets import NativeAssets
@@ -177,6 +178,10 @@ def make_server(service, token, port=0):
                             return self.send_json(200, {'project': project})
                     raise RequestError(404, 'NOT_FOUND')
                 if self.command == 'POST':
+                    match = re.fullmatch(r'/api/projects/([0-9a-f]{32})/tasks/(native-job-[0-9a-f]{64})/patch',self.path)
+                    if match:
+                        value=self.body(fields={'source_attempt_id','patch','idempotency_key'},limit=1_000_000)
+                        return self.send_json(202,NativePatchSubmissions(service).submit(*match.groups(),**value))
                     match = re.fullmatch(r'/api/projects/([0-9a-f]{32})/tasks/(native-job-[0-9a-f]{64})/run',self.path)
                     if match:
                         value=self.body(fields={'attempt_id'})
