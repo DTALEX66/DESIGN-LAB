@@ -58,9 +58,22 @@ async function tasks(append = false) {
     button('tasks', `${task.kind} · ${task.state} · attempt ${task.attempt.attempt_no} · ${task.job_id.slice(-12)}`, () => loadEvents(task.job_id));
     if (task.kind.endsWith('-native') && task.attempt.state === 'RECEIPTED')
       button('tasks', `导出交付包 · ${task.job_id.slice(-12)} · rights/质量待审`, () => exportBundle(task));
+    if (task.kind.endsWith('-native') && ['PENDING','RUNNING','OUTCOME_UNKNOWN'].includes(task.attempt.state))
+      button('tasks', `请求取消 · ${task.job_id.slice(-12)}`, () => cancelTask(task));
   }
   if (!append && !data.tasks.length) $('tasks').textContent = '尚无任务。导入图片后可查看真实记录。';
   taskCursor = data.next_cursor; $('more-tasks').hidden = taskCursor === null;
+}
+async function cancelTask(task) {
+  const current = epoch, owner = project;
+  const data = await api(`/projects/${owner}/tasks/${task.job_id}/cancel`, {attempt_id:task.attempt.attempt_id}).catch(error => {
+    if (current !== epoch) return null;
+    throw error;
+  });
+  if (!data || current !== epoch) return;
+  await tasks();
+  if (current !== epoch) return;
+  status(`取消请求读回：${data.task.attempt.state}；请求受理不代表宿主已停止。`);
 }
 async function exportBundle(task) {
   const current = epoch, owner = project, access = token;

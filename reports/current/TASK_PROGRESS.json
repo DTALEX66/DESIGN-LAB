@@ -5,12 +5,12 @@
   "evidence": [],
   "fresh": false,
   "freshnessMeaning": "at generation only; check verifies bound-input integrity, not current Git or cloud state",
-  "generatedAt": "2026-09-08T17:46:43+00:00",
+  "generatedAt": "2026-09-08T17:52:34+00:00",
   "gitStateMeaning": "generation-time observation, not current HEAD",
   "ledgerUpdatedAt": "2026-09-08T16:52:08Z",
   "note": "DONE_LOCAL concerns the declared task axes and dependencies, not a product release or hosted CI.",
   "schemaVersion": "design-lab/task-progress/r5-v1",
-  "subjectSha": "12d4eec9b511ab26ffce1e1257ba0006c15988aa",
+  "subjectSha": "6e9a362a2d2e479c0df49399fbd06a7c67a4e59c",
   "taskpack": "DL-TP-20260908-R5",
   "tasks": [
     {

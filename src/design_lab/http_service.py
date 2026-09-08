@@ -11,6 +11,7 @@ from .runtime.asset_store import AssetError
 from .runtime.paths import PathPolicyError
 from .image_assets import ImageAssets, ImageAssetError
 from .task_queries import TaskQueries
+from .task_commands import TaskCommands
 from .native_assets import NativeAssets
 from .native_delivery import NativeDelivery
 from . import workbench
@@ -172,6 +173,10 @@ def make_server(service, token, port=0):
                             return self.send_json(200, {'project': project})
                     raise RequestError(404, 'NOT_FOUND')
                 if self.command == 'POST':
+                    match = re.fullmatch(r'/api/projects/([0-9a-f]{32})/tasks/(native-job-[0-9a-f]{64})/cancel',self.path)
+                    if match:
+                        value = self.body(fields={'attempt_id'})
+                        return self.send_json(202,TaskCommands(service).cancel(*match.groups(),value['attempt_id']))
                     match = re.fullmatch(r'/api/projects/([0-9a-f]{32})/tasks/(native-job-[0-9a-f]{64})/bundle',self.path)
                     if match:
                         self.body(fields=set())

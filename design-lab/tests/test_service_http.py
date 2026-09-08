@@ -19,6 +19,45 @@ ROOT = Path(__file__).resolve().parents[2]
 
 
 class ServiceHttpTests(unittest.TestCase):
+    def test_native_cancel_request_persists_without_releasing_running_host_guard(self):
+        from contextlib import closing
+        project,other,_=self.seed_exportable_native()
+        from design_lab.service import ProjectService
+        from design_lab.native_tasks import NativeTasks
+        from design_lab.runtime import job_store as jobs
+        service=ProjectService(self.root)
+        job='native-job-'+'d'*64
+        with closing(NativeTasks(service)._connect()) as conn:
+            attempt=jobs.begin_attempt(conn,job,operation_id='native-op-'+'d'*64,
+                idempotency_scope='native:'+project+':photoshop',idempotency_key='cancel-fixture',request_hash='d'*64)
+            aid=attempt['attempt_id']
+            jobs.transition(conn,aid,'RUNNING')
+            conn.execute('INSERT INTO native_host_guard_v1 VALUES (?,?,?)',('photoshop',aid,jobs._now()))
+            conn.commit()
+        self.start()
+        route=f'/api/projects/{project}/tasks/{job}/cancel'
+        body=json.dumps({'attempt_id':aid})
+        for _ in range(2):
+            code,data=self.request('POST',route,body)
+            self.assertEqual(code,202)
+            self.assertEqual(data['task']['attempt']['state'],'CANCEL_REQUESTED')
+        with closing(NativeTasks(service)._connect()) as conn:
+            self.assertEqual(conn.execute('SELECT attempt_id FROM native_host_guard_v1 WHERE host=?',('photoshop',)).fetchone(),(aid,))
+            self.assertEqual(conn.execute('SELECT cancel_acked FROM attempt_resolution WHERE attempt_id=?',(aid,)).fetchone(),(0,))
+
+    def test_native_cancel_is_scoped_and_terminal_tasks_are_not_rewritten(self):
+        project,other,job=self.seed_exportable_native();self.start()
+        task=self.request(path=f'/api/projects/{project}/tasks/{job}')[1]['task']
+        body=json.dumps({'attempt_id':task['attempt']['attempt_id']})
+        route=f'/api/projects/{project}/tasks/{job}/cancel'
+        self.assertEqual(self.request('POST',route,body,{'Authorization':''})[0],401)
+        self.assertEqual(self.request('POST',route.replace(project,other),body)[0],404)
+        self.assertEqual(self.request('POST',route,'{}')[0],400)
+        self.assertEqual(self.request('POST',route,json.dumps({'attempt_id':'att-'+'0'*32}))[0],409)
+        self.assertEqual(self.request('POST',route,body)[0],409)
+        current=self.request(path=f'/api/projects/{project}/tasks/{job}')[1]['task']
+        self.assertEqual(current['attempt']['state'],'RECEIPTED')
+
     def seed_exportable_native(self):
         from unittest.mock import patch
         sys.path.insert(0,str(ROOT/'src'));self.addCleanup(lambda:sys.path.remove(str(ROOT/'src')))

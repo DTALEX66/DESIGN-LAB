@@ -10,6 +10,37 @@ ROOT=Path(__file__).resolve().parents[2]
 
 
 class WorkbenchNativeUiTests(unittest.TestCase):
+    def test_cancel_button_binds_attempt_and_reads_back_requested_state(self):
+        node=shutil.which('node')
+        if not node:self.skipTest('Node required')
+        script=r'''
+const fs=require('fs'),vm=require('vm');
+class E {constructor(){this.children=[];this.classList={toggle(){}};}append(x){this.children.push(x)}replaceChildren(){this.children=[];}removeAttribute(){}}
+const elements={},calls=[],owner='c'.repeat(32);
+const task={kind:'photoshop-native',job_id:'native-job-'+'a'.repeat(64),state:'DISPATCHING',attempt:{attempt_id:'att-'+'b'.repeat(32),attempt_no:1,state:'RUNNING'}};
+const c={document:{getElementById:id=>elements[id]??=new E(),createElement:()=>new E()},
+fetch:async(path,options)=>{calls.push({path,body:options.body});let data;
+if(path.endsWith('/cancel')){task.attempt.state='CANCEL_REQUESTED';task.state='CANCEL_REQUESTED';data={task};}
+else if(path.endsWith('/tasks'))data={tasks:[task],next_cursor:null};
+else throw Error('unexpected request');return {ok:true,json:async()=>data};}};
+vm.createContext(c);vm.runInContext(fs.readFileSync(process.argv[1],'utf8'),c);
+(async()=>{await vm.runInContext("project='"+owner+"';tasks()",c);
+const b=elements.tasks.children.map(li=>li.children[0]).find(b=>b.textContent.startsWith('请求取消'));
+if(b)await b.onclick();
+console.log(JSON.stringify({found:!!b,calls,status:elements.status?.textContent,labels:elements.tasks.children.map(li=>li.children[0].textContent)}));
+})().catch(e=>{console.error(e);process.exitCode=1});
+'''
+        result=subprocess.run([node,'-e',script,str(ROOT/'apps/workbench/main.ts')],capture_output=True,text=True,encoding='utf-8',timeout=30)
+        self.assertEqual(result.returncode,0,result.stderr)
+        data=json.loads(result.stdout)
+        self.assertTrue(data['found'])
+        requests=[c for c in data['calls'] if c['path'].endswith('/cancel')]
+        self.assertEqual(len(requests),1)
+        self.assertEqual(json.loads(requests[0]['body']),{'attempt_id':'att-'+'b'*32})
+        self.assertIn('CANCEL_REQUESTED',data['status'])
+        self.assertIn('不代表宿主已停止',data['status'])
+        self.assertFalse(any(s.startswith('请求取消') for s in data['labels']))
+
     def test_late_asset_preview_and_verification_cannot_replace_latest_selection(self):
         node=shutil.which('node')
         if not node:self.skipTest('Node required')
