@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import importlib.util
 import json
+import os
 import re
 import subprocess
 import sys
@@ -602,7 +603,8 @@ class OpenDesignAssistanceTests(unittest.TestCase):
     def test_boundary_pass(self):
         """verify_open_design_assistance: config boundary must pass read-only."""
         r = subprocess.run([sys.executable, str(ROOT.parent / "integrations" / "hosts" / "open-design" / "verifier" / "verify_open_design_host_adapter.py")],
-                           capture_output=True, text=True, cwd=ROOT)
+                           capture_output=True, text=True, encoding='utf-8', cwd=ROOT,
+                           env=dict(os.environ,PYTHONUTF8='1',PYTHONIOENCODING='utf-8'))
         self.assertEqual(r.returncode, 0, r.stdout[-600:] + r.stderr)
 
 

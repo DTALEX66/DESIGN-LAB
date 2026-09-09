@@ -94,7 +94,9 @@ class ServiceHttpTests(unittest.TestCase):
             service=ProjectService(self.root);project=service.create_project('Export fixture')['id']
             other=service.create_project('Other')['id']
             run=service.paths.category_dir('runtime','export-fixture');run.mkdir(parents=True)
-            job=dict(jobId='export-fixture',runRoot=str(run),assets=[],outputName='native.psd',previewName='preview.png')
+            job=dict(schemaVersion='design-lab/photoshop-native-job/v1',jobId='export-fixture',runRoot=str(run),
+                     width=8,height=6,assets=[],outputName='native.psd',previewName='preview.png',
+                     layers=[dict(id='background',kind='fill',bounds=[0,0,8,6],color=[0,0,0])])
             def native(host,job,**kwargs):
                 output={}
                 for kind,name in [('psd','native.psd'),('png','preview.png')]:
@@ -102,7 +104,7 @@ class ServiceHttpTests(unittest.TestCase):
                     output[kind]=dict(sha256=hashlib.sha256(data).hexdigest(),byte_size=len(data))
                 raw=json.dumps(job,sort_keys=True,ensure_ascii=True,separators=(',',':')).encode()
                 return dict(status='NATIVE_READBACK',job_id=job['jobId'],job_sha256=hashlib.sha256(raw).hexdigest(),
-                            host_version='fixture',inputs={},artifacts=output,documents_before=0,documents_after=0)
+                            host_version='fixture',bridge_sha256='b'*64,inputs={},artifacts=output,documents_before=0,documents_after=0)
             with patch('design_lab.native_tasks._dispatch',side_effect=native):
                 result=NativeTasks(service).execute(project,'photoshop',job,idempotency_key='export',approved_root=run,
                     authorization=dict(actor='fixture',scope='project-native-test',receipt='controlled boundary'))

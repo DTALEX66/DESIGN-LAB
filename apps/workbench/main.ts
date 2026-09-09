@@ -5,6 +5,7 @@ let token = '', project = '', epoch = 0, taskCursor = null, eventCursor = null, 
 let pendingImport = null, busy = false;
 let nativeCursor = null;
 let eventRequest = 0, previewRequest = 0, verificationRequest = 0;
+let taskRequest = 0, nativeRequest = 0, refreshRequest = 0;
 let submittedPlan = null, planBusy = false;
 let patchSource = null, submittedPatch = null, patchBusy = false;
 const status = (text, error = false) => { $('status').textContent = text; $('status').classList.toggle('error', error); };
@@ -24,7 +25,7 @@ function button(list, label, action) {
 }
 function resetProject() {
   submittedPlan = null;
-  patchSource = submittedPatch = null; $('patch-source').textContent = '请从已完成的 Illustrator 任务选择修改来源。';
+  patchSource = submittedPatch = null; $('patch-source').textContent = '请从已完成的 Illustrator 或 Photoshop 任务选择修改来源。';
   epoch++; taskCursor = eventCursor = null; eventJob = ''; pendingImport = null;
   nativeCursor = null; $('native-info').textContent = '';
   for (const id of ['assets','tasks','events','native-assets']) $(id).replaceChildren();
@@ -54,15 +55,20 @@ async function loadEvents(job, append = false) {
   eventCursor = data.next_cursor; $('more-events').hidden = eventCursor === null;
 }
 async function tasks(append = false) {
-  const current = epoch, owner = project;
-  const data = await api(`/projects/${owner}/tasks` + (append && taskCursor ? `?after=${taskCursor}` : ''));
-  if (current !== epoch) return;
+  if (append && taskCursor === null) return;
+  if (!append) { taskCursor = null; $('more-tasks').hidden = true; }
+  const current = epoch, owner = project, request = ++taskRequest;
+  const data = await api(`/projects/${owner}/tasks` + (append && taskCursor ? `?after=${taskCursor}` : '')).catch(error => {
+    if (current !== epoch || request !== taskRequest) return null;
+    throw error;
+  });
+  if (!data || current !== epoch || request !== taskRequest) return;
   if (!append) $('tasks').replaceChildren();
   for (const task of data.tasks) {
     button('tasks', `${task.kind} · ${task.state} · attempt ${task.attempt.attempt_no} · ${task.job_id.slice(-12)}`, () => loadEvents(task.job_id));
     if (task.kind.endsWith('-native') && task.attempt.state === 'RECEIPTED')
       button('tasks', `导出交付包 · ${task.job_id.slice(-12)} · rights/质量待审`, () => exportBundle(task));
-    if (task.kind === 'illustrator-native' && task.attempt.state === 'RECEIPTED')
+    if (['illustrator-native','photoshop-native'].includes(task.kind) && task.attempt.state === 'RECEIPTED')
       button('tasks', `修改对象 · ${task.job_id.slice(-12)}`, async () => {
         if (current !== epoch) return;
         patchSource = {owner,job:task.job_id,attempt:task.attempt.attempt_id};
@@ -130,10 +136,14 @@ async function preview(asset) {
 }
 async function refresh() {
   if (!project) return;
-  const current = epoch;
+  const current = epoch, request = ++refreshRequest;
   status('正在读取项目资产与任务…');
-  const [data] = await Promise.all([api(`/projects/${project}/assets`),tasks(),nativeAssets()]);
-  if (current !== epoch) return;
+  const result = await Promise.all([api(`/projects/${project}/assets`),tasks(),nativeAssets()]).catch(error => {
+    if (current !== epoch || request !== refreshRequest) return null;
+    throw error;
+  });
+  if (!result || current !== epoch || request !== refreshRequest) return;
+  const [data] = result;
   $('assets').replaceChildren();
   for (const asset of data.assets) button('assets', `${asset.width} × ${asset.height} · ${asset.media_type} · ${asset.id.slice(-10)}`, () => preview(asset));
   status('已读取持久化状态。参考素材权利仍需审查。');
@@ -149,9 +159,14 @@ async function verifyNative(asset) {
   $('native-info').textContent = `${data.asset.kind.toUpperCase()} · ${data.asset.version_id} · ${data.asset.verification} · ${data.asset.byte_size} bytes · ${data.asset.sha256} · rights: ${data.asset.rights}。此校验不代替宿主重开或人工质量验收。`;
 }
 async function nativeAssets(append = false) {
-  const current = epoch, owner = project;
-  const data = await api(`/projects/${owner}/native-assets` + (append && nativeCursor ? `?after=${nativeCursor}` : ''));
-  if (current !== epoch) return;
+  if (append && nativeCursor === null) return;
+  if (!append) { nativeCursor = null; $('more-native').hidden = true; }
+  const current = epoch, owner = project, request = ++nativeRequest;
+  const data = await api(`/projects/${owner}/native-assets` + (append && nativeCursor ? `?after=${nativeCursor}` : '')).catch(error => {
+    if (current !== epoch || request !== nativeRequest) return null;
+    throw error;
+  });
+  if (!data || current !== epoch || request !== nativeRequest) return;
   if (!append) $('native-assets').replaceChildren();
   for (const asset of data.assets) button('native-assets', `校验 ${asset.kind.toUpperCase()} · v${asset.version_no} · ${asset.version_id} · 数据库记录`, () => verifyNative(asset));
   if (!append && !data.assets.length) $('native-assets').textContent = '暂无已登记的 AI/PSD。';

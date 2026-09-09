@@ -10,14 +10,104 @@ ROOT=Path(__file__).resolve().parents[2]
 
 
 class WorkbenchNativeUiTests(unittest.TestCase):
-    def test_patch_form_binds_source_and_reuses_key_without_dispatch(self):
+    def test_pagination_keeps_both_pages_and_stops_at_end(self):
+        node=shutil.which('node')
+        if not node:self.skipTest('Node required')
+        script=r'''
+const fs=require('fs'),vm=require('vm');
+class E {constructor(){this.children=[];this.classList={toggle(){}};}append(x){this.children.push(x)}replaceChildren(){this.children=[];}removeAttribute(){}}
+const elements={},calls=[];
+const c={document:{getElementById:id=>elements[id]??=new E(),createElement:()=>new E()},fetch:async path=>{
+calls.push(path);const label=path.includes('?after=next')?'second':'first';
+return {ok:true,json:async()=>({tasks:[{kind:label,job_id:label,state:'PENDING',attempt:{attempt_no:1,state:'PENDING'}}],
+assets:[{id:label,kind:'psd',version_no:1,version_id:label}],next_cursor:label==='first'?'next':null})};}};
+vm.createContext(c);vm.runInContext(fs.readFileSync(process.argv[1],'utf8'),c);
+(async()=>{const fn=process.argv[2];vm.runInContext("project='p'",c);
+await vm.runInContext(fn+'()',c);await vm.runInContext(fn+'(true)',c);await vm.runInContext(fn+'(true)',c);
+const id=fn==='tasks'?'tasks':'native-assets';
+console.log(JSON.stringify({calls,labels:elements[id].children.map(li=>li.children[0].textContent)}));
+})().catch(e=>{console.error(e);process.exitCode=1});
+'''
+        for function,route in (('tasks','tasks'),('nativeAssets','native-assets')):
+            with self.subTest(function=function):
+                result=subprocess.run([node,'-e',script,str(ROOT/'apps/workbench/main.ts'),function],capture_output=True,text=True,encoding='utf-8',timeout=30)
+                self.assertEqual(result.returncode,0,result.stderr)
+                data=json.loads(result.stdout)
+                self.assertEqual(data['calls'],['/api/projects/p/'+route,'/api/projects/p/'+route+'?after=next'])
+                self.assertEqual(len(data['labels']),2)
+                self.assertIn('first',data['labels'][0]);self.assertIn('second',data['labels'][1])
+
+    def test_refresh_invalidates_pagination_and_current_errors_remain_visible(self):
+        node=shutil.which('node')
+        if not node:self.skipTest('Node required')
+        script=r'''
+const fs=require('fs'),vm=require('vm');
+class E {constructor(){this.children=[];this.classList={toggle(){}};}append(x){this.children.push(x)}replaceChildren(){this.children=[];}removeAttribute(){}}
+const elements={},pending=[];
+const c={document:{getElementById:id=>elements[id]??=new E(),createElement:()=>new E()},fetch:path=>new Promise(resolve=>pending.push({path,resolve}))};
+vm.createContext(c);vm.runInContext(fs.readFileSync(process.argv[1],'utf8'),c);
+(async()=>{const fn=process.argv[2];vm.runInContext("project='p';taskCursor=nativeCursor='old-page'",c);
+const base=vm.runInContext(fn+'()',c).catch(e=>e.message);
+const append=vm.runInContext(fn+'(true)',c).catch(e=>e.message);
+const count=pending.length;
+for(const p of pending)p.resolve({ok:false,json:async()=>({error:'CURRENT_ERROR'})});
+const error=await base;await append;
+console.log(JSON.stringify({count,error}));
+})().catch(e=>{console.error(e);process.exitCode=1});
+'''
+        for function in ('tasks','nativeAssets'):
+            with self.subTest(function=function):
+                result=subprocess.run([node,'-e',script,str(ROOT/'apps/workbench/main.ts'),function],capture_output=True,text=True,encoding='utf-8',timeout=30)
+                self.assertEqual(result.returncode,0,result.stderr)
+                self.assertEqual(json.loads(result.stdout),{'count':1,'error':'CURRENT_ERROR'})
+
+    def test_list_responses_and_errors_cannot_overwrite_newer_refresh(self):
+        node=shutil.which('node')
+        if not node:self.skipTest('Node required')
+        script=r'''
+const fs=require('fs'),vm=require('vm');
+class E {constructor(){this.children=[];this.classList={toggle(){}};}append(x){this.children.push(x)}replaceChildren(){this.children=[];}removeAttribute(){}}
+const elements={},pending=[];
+const c={document:{getElementById:id=>elements[id]??=new E(),createElement:()=>new E()},
+fetch:path=>new Promise(resolve=>pending.push({path,resolve}))};
+vm.createContext(c);vm.runInContext(fs.readFileSync(process.argv[1],'utf8'),c);
+(async()=>{const fn=process.argv[2],mode=process.argv[3];vm.runInContext("project='"+'c'.repeat(32)+"';taskCursor=nativeCursor='page1'",c);
+const first=vm.runInContext(fn+'('+(mode==='append'?'true':'')+')',c).catch(e=>e.message);
+const offset=pending.length;const second=vm.runInContext(fn+'()',c);
+const response=(path,label)=>({ok:true,json:async()=>path.endsWith('/tasks')||path.includes('/tasks?')?
+{tasks:[{kind:label,job_id:label,state:'PENDING',attempt:{attempt_no:1,state:'PENDING'}}],next_cursor:label}:
+{assets:[{id:label,kind:'psd',version_no:1,version_id:label,width:1,height:1,media_type:'image/png'}],next_cursor:label}});
+for(const p of pending.slice(offset))p.resolve(response(p.path,'recent'));await second;
+for(const p of pending.slice(0,offset))p.resolve(mode==='error'?{ok:false,json:async()=>({error:'STALE_ERROR'})}:response(p.path,'old'));
+const error=await first;
+const id=fn==='tasks'?'tasks':fn==='nativeAssets'?'native-assets':'assets';
+console.log(JSON.stringify({error:error||null,labels:elements[id].children.map(li=>li.children[0].textContent),cursor:vm.runInContext(fn==='nativeAssets'?'nativeCursor':'taskCursor',c)}));
+})().catch(e=>{console.error(e);process.exitCode=1});
+'''
+        for function in ('tasks','nativeAssets','refresh'):
+            for mode in ('success','error','append'):
+                if function=='refresh' and mode=='append':continue
+                with self.subTest(function=function,mode=mode):
+                    result=subprocess.run([node,'-e',script,str(ROOT/'apps/workbench/main.ts'),function,mode],capture_output=True,text=True,encoding='utf-8',timeout=30)
+                    self.assertEqual(result.returncode,0,result.stderr)
+                    data=json.loads(result.stdout)
+                    self.assertIsNone(data['error'])
+                    self.assertEqual(len(data['labels']),1)
+                    self.assertIn('recent',data['labels'][0])
+                    self.assertNotIn('old',data['labels'][0])
+                    self.assertEqual(data['cursor'],'recent')
+
+    def test_photoshop_patch_form_binds_source_and_reuses_key_without_dispatch(self):
+        self.test_patch_form_binds_source_and_reuses_key_without_dispatch('photoshop-native')
+
+    def test_patch_form_binds_source_and_reuses_key_without_dispatch(self,host='illustrator-native'):
         node=shutil.which('node')
         if not node:self.skipTest('Node required')
         script=r'''
 const fs=require('fs'),vm=require('vm');
 class E {constructor(){this.children=[];this.classList={toggle(){}};}append(x){this.children.push(x)}replaceChildren(){this.children=[];}removeAttribute(){}}
 const elements={},calls=[],owner='c'.repeat(32);let keys=0;
-const task={kind:'illustrator-native',job_id:'native-job-'+'a'.repeat(64),state:'SUCCEEDED',attempt:{attempt_id:'att-'+'b'.repeat(32),attempt_no:1,state:'RECEIPTED'}};
+const task={kind:process.argv[2],job_id:'native-job-'+'a'.repeat(64),state:'SUCCEEDED',attempt:{attempt_id:'att-'+'b'.repeat(32),attempt_no:1,state:'RECEIPTED'}};
 const c={document:{getElementById:id=>elements[id]??=new E(),createElement:()=>new E()},crypto:{randomUUID:()=>String(++keys)},
 fetch:async(path,options)=>{calls.push({path,body:options.body});return {ok:true,json:async()=>path.endsWith('/patch')?{task:{attempt:{state:'PENDING'}},parent:{version_id:'v-test'}}:{tasks:[task],next_cursor:null}};}};
 vm.createContext(c);vm.runInContext(fs.readFileSync(process.argv[1],'utf8'),c);
@@ -28,7 +118,7 @@ if(elements['patch-form']?.onsubmit){await elements['patch-form'].onsubmit({prev
 console.log(JSON.stringify({found:!!b,calls,status:elements.status?.textContent}));
 })().catch(e=>{console.error(e);process.exitCode=1});
 '''
-        result=subprocess.run([node,'-e',script,str(ROOT/'apps/workbench/main.ts')],capture_output=True,text=True,encoding='utf-8',timeout=30)
+        result=subprocess.run([node,'-e',script,str(ROOT/'apps/workbench/main.ts'),host],capture_output=True,text=True,encoding='utf-8',timeout=30)
         self.assertEqual(result.returncode,0,result.stderr)
         data=json.loads(result.stdout);self.assertTrue(data['found'])
         calls=[c for c in data['calls'] if c['path'].endswith('/patch')]

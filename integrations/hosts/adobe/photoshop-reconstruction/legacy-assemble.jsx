@@ -99,8 +99,10 @@ function psRejectOpenInputs(job){
   if(path!==null)for(var j=0;j<job.assets.length;j++)if(psPath(path)===psPath(job.assets[j].path))throw Error('input already open');
  }
 }
-function psRunJob(job,root){
+function psRunJob(job,root,observe){
+ function stage(name){if(observe)observe(name);}
  psValidate(job,root);psRejectOpenInputs(job);
+ stage('validated');stage('build-start');
  var doc=app.documents.add(UnitValue(job.width,'px'),UnitValue(job.height,'px'),72,job.jobId,NewDocumentMode.RGB,DocumentFill.TRANSPARENT),blank=doc.activeLayer,assets={};
  for(var i=0;i<job.assets.length;i++)assets['$'+job.assets[i].id]=job.assets[i].path;
  function build(parent,n){
@@ -120,8 +122,31 @@ function psRunJob(job,root){
   return l;
  }
  for(i=0;i<job.layers.length;i++)build(doc,job.layers[i]);blank.remove();
- doc=psSaveNew(doc,root+'/'+job.outputName,root);psReadback(doc,job);psExportPNG(doc,root+'/'+job.previewName,root);
- doc.close(SaveOptions.DONOTSAVECHANGES);doc=app.open(File(root+'/'+job.outputName));psReadback(doc,job);return doc;
+ stage('build-end');stage('save-reopen-start');
+ doc=psSaveNew(doc,root+'/'+job.outputName,root);stage('save-reopen-end');
+ psReadback(doc,job);stage('readback-end');stage('export-start');
+ psExportPNG(doc,root+'/'+job.previewName,root);stage('export-end');stage('final-reopen-start');
+ doc.close(SaveOptions.DONOTSAVECHANGES);doc=app.open(File(root+'/'+job.outputName));psReadback(doc,job);stage('final-readback-end');return doc;
+}
+function psRunPatchJob(job,baseline,expected,root,observe){
+ function stage(name){if(observe)observe(name);}
+ psValidate(baseline,root);psValidate(expected,root);psRejectOpenInputs(baseline);
+ var checkpoint=psInside(job.checkpoint,root),i;
+ if(!checkpoint.exists||!/\.psd$/i.test(job.checkpoint))throw Error('missing PSD checkpoint');
+ for(i=0;i<app.documents.length;i++){
+  var openPath=null;try{openPath=app.documents[i].fullName.fsName;}catch(e){}
+  if(openPath!==null&&psPath(openPath)===psPath(job.checkpoint))throw Error('checkpoint already open');
+ }
+ stage('validated');
+ var readJob={},key;for(key in baseline)if(baseline.hasOwnProperty(key))readJob[key]=baseline[key];
+ readJob.outputName=job.checkpoint.replace(/\\/g,'/').split('/').pop();
+ var doc=app.open(checkpoint);psReadback(doc,readJob);
+ stage('save-reopen-start');
+ doc=psPatch(doc,job.checkpoint,job.patch,root+'/'+expected.outputName,root);stage('save-reopen-end');
+ psReadback(doc,expected);stage('readback-end');stage('export-start');
+ psExportPNG(doc,root+'/'+expected.previewName,root);stage('export-end');stage('final-reopen-start');
+ doc.close(SaveOptions.DONOTSAVECHANGES);doc=app.open(File(root+'/'+expected.outputName));
+ psReadback(doc,expected);stage('final-readback-end');return doc;
 }
 function psPatch(doc,expected,patch,output,root){
  if(!doc.saved||psPath(doc.fullName.fsName)!==psPath(expected))throw Error('wrong/dirty document');

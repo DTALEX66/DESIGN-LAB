@@ -10,6 +10,22 @@ from .runtime.bundle_store import publish_bundle, verify_bundle
 from .runtime.native_recovery_lock import recovery_lock
 
 
+def _requested_fonts(job):
+    """Describe sealed job intent, never infer host font or redistribution rights."""
+    fonts={}
+    pending=list(job['layers'])
+    while pending:
+        item=pending.pop()
+        if item.get('kind')=='text':
+            name=item['font'];identity=item['id']
+            if not isinstance(name,str) or not name.strip() or not isinstance(identity,str):
+                raise ValueError('invalid requested font binding')
+            fonts.setdefault(name,set()).add(identity)
+        for child_key in ('items','contours','children'):
+            pending.extend(item.get(child_key,[]))
+    return [dict(postscript_name=name,object_ids=sorted(ids)) for name,ids in sorted(fonts.items())]
+
+
 def export_bundle(tasks, attempt_id, authorization):
     from .native_tasks import NativeTaskError
     if (not isinstance(authorization,dict) or set(authorization)!={'actor','scope','receipt'}
@@ -45,7 +61,10 @@ def export_bundle(tasks, attempt_id, authorization):
             metadata=dict(native_attempt_id=attempt_id,source_asset_id=result['asset']['id'],host=host,
                           host_version=receipt.get('host_version','UNKNOWN'),job_sha256=receipt['job_sha256'],
                           rights='NOT_REVIEWED',quality='NOT_REVIEWED',link_relocation='NOT_VERIFIED',
-                          font_inventory='NOT_COLLECTED',
+                          font_inventory='REQUESTED_ONLY',requested_fonts=_requested_fonts(job),
+                          font_observation='NOT_COLLECTED',font_rights='NOT_REVIEWED',
+                          native_receipt_binding=dict(attempt_id=attempt_id,
+                              bridge_sha256=receipt['bridge_sha256'],job_sha256=receipt['job_sha256']),
                           input_assets=[dict(id=item['id'],member=input_names[str(tasks.paths.checked_path(item['path']))])
                                         for item in job['assets']])
             asset_id='bundle-'+result['asset']['id']

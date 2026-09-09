@@ -10,6 +10,45 @@ ROOT=Path(__file__).resolve().parents[2]
 
 
 class PhotoshopReadbackScalingTests(unittest.TestCase):
+    def test_patch_entry_reads_baseline_then_expected_without_rebuilding(self):
+        node=shutil.which('node')
+        if not node:self.skipTest('Node required')
+        script=r'''
+const fs=require('fs'),vm=require('vm'),events=[];
+const doc={close(){events.push('close')}};
+const c={File:p=>({fsName:p,exists:true}),app:{documents:[],open:f=>{events.push('open:'+f.fsName);return doc}},SaveOptions:{DONOTSAVECHANGES:1}};
+vm.createContext(c);vm.runInContext(fs.readFileSync(process.argv[1],'utf8').replace(/^#target.*$/m,''),c);
+c.psValidate=()=>{};c.psRejectOpenInputs=()=>{};c.psInside=p=>c.File(p);c.psPath=p=>p.toLowerCase();
+c.psReadback=(d,j)=>events.push('read:'+j.outputName+':'+j.layers[0].text);
+c.psPatch=(d,checkpoint,patch,output)=>{events.push('patch:'+patch.text);return doc};
+c.psExportPNG=()=>events.push('png');
+vm.runInContext(`var baseline={outputName:'master.psd',previewName:'master.png',layers:[{text:'Before'}]};
+var expected={outputName:'master.psd',previewName:'master.png',layers:[{text:'After'}]};
+psRunPatchJob({checkpoint:'D:/run/checkpoint.psd',patch:{kind:'text',id:'title',text:'After'}},baseline,expected,'D:/run');`,c);
+console.log(JSON.stringify(events));
+'''
+        result=subprocess.run([node,'-e',script,str(ROOT/'integrations/hosts/adobe/photoshop-reconstruction/legacy-assemble.jsx')],capture_output=True,text=True,timeout=10)
+        self.assertEqual(result.returncode,0,result.stderr)
+        self.assertEqual(json.loads(result.stdout),['open:D:/run/checkpoint.psd','read:checkpoint.psd:Before','patch:After',
+            'read:master.psd:After','png','close','open:D:/run/master.psd','read:master.psd:After'])
+
+    def test_job_observer_reports_stages_in_execution_order(self):
+        node=shutil.which('node')
+        if not node:self.skipTest('Node required')
+        script=r'''
+const fs=require('fs'),vm=require('vm');
+const events=[],doc={activeLayer:{remove(){}},close(){}};
+const c={File:p=>({fsName:p}),UnitValue:function(v){return v},
+app:{documents:{add:()=>doc},open:()=>doc},NewDocumentMode:{RGB:1},DocumentFill:{TRANSPARENT:1},SaveOptions:{DONOTSAVECHANGES:1}};
+vm.createContext(c);vm.runInContext(fs.readFileSync(process.argv[1],'utf8').replace(/^#target.*$/m,''),c);
+c.psValidate=()=>{};c.psRejectOpenInputs=()=>{};c.psSaveNew=()=>doc;c.psReadback=()=>{};c.psExportPNG=()=>{};
+c.psRunJob({width:8,height:6,jobId:'fixture',assets:[],layers:[],outputName:'x.psd',previewName:'x.png'},'D:/run',stage=>events.push(stage));
+console.log(JSON.stringify(events));
+'''
+        result=subprocess.run([node,'-e',script,str(ROOT/'integrations/hosts/adobe/photoshop-reconstruction/legacy-assemble.jsx')],capture_output=True,text=True,timeout=10)
+        self.assertEqual(result.returncode,0,result.stderr)
+        self.assertEqual(json.loads(result.stdout),['validated','build-start','build-end','save-reopen-start','save-reopen-end','readback-end','export-start','export-end','final-reopen-start','final-readback-end'])
+
     def test_nested_parent_membership_and_mask_are_still_required(self):
         node=shutil.which('node')
         if not node:self.skipTest('Node required')

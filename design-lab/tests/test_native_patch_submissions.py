@@ -50,6 +50,35 @@ class NativePatchSubmissionTests(unittest.TestCase):
         from design_lab.image_assets import ImageAssetError
         with self.assertRaises(ImageAssetError):self.submit(change=dict(kind='text',id='title',text='Different'))
 
+    def test_photoshop_submission_queues_same_host_and_preserves_parent(self):
+        from design_lab.native_tasks import NativeTasks
+        root=self.run/'photoshop';root.mkdir()
+        job=dict(schemaVersion='design-lab/photoshop-native-job/v1',jobId='ps-base',runRoot=str(root),
+            width=8,height=6,assets=[],outputName='master.psd',previewName='master.png',
+            layers=[dict(id='title',kind='text',text='Before',font='ArialMT',size=2,position=[1,2],color=[0,0,0])])
+        def native(host,current,**kwargs):
+            outputs={'psd':root/'master.psd','png':root/'master.png'}
+            outputs['psd'].write_bytes(b'8BPS\x00\x01'+b'\0'*6+b'\x00\x03'+(6).to_bytes(4,'big')+(8).to_bytes(4,'big')+b'\x00\x08\x00\x03')
+            outputs['png'].write_bytes(b'controlled preview')
+            return dict(status='NATIVE_READBACK',job_id=current['jobId'],host_version='26.7.0',
+                job_sha256=hashlib.sha256(json.dumps(current,sort_keys=True,ensure_ascii=True,separators=(',',':')).encode()).hexdigest(),
+                inputs={},artifacts={kind:dict(sha256=hashlib.sha256(p.read_bytes()).hexdigest(),byte_size=p.stat().st_size) for kind,p in outputs.items()},
+                documents_before=0,documents_after=0)
+        with patch('design_lab.native_tasks._dispatch',side_effect=native):
+            self.base=NativeTasks(self.service).execute(self.project,'photoshop',job,idempotency_key='ps-base',approved_root=root,
+                authorization=dict(actor='test',scope='project-native-test',receipt='controlled test'))
+        result=self.submit();self.assertEqual(self.submit(),result)
+        self.assertEqual(result['task']['kind'],'photoshop-native')
+        self.assertEqual(result['parent']['version_id'],self.base['asset']['version_id'])
+        with closing(NativeTasks(self.service)._connect()) as conn:
+            stored=json.loads(conn.execute('SELECT request_json FROM native_execution_v1 WHERE attempt_id=?',
+                (result['task']['attempt']['attempt_id'],)).fetchone()[0])
+        self.assertEqual(stored['job']['schemaVersion'],'design-lab/photoshop-patch-job/v1')
+        self.assertIn(stored['job']['checkpoint'],stored['inputs'])
+        from design_lab.image_assets import ImageAssetError
+        (root/'master.psd').write_bytes(b'changed')
+        with self.assertRaises(ImageAssetError):self.submit()
+
     def test_cross_project_and_changed_original_are_rejected(self):
         from design_lab.image_assets import ImageAssetError
         other=self.service.create_project('Other')['id']

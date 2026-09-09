@@ -3,7 +3,7 @@
 
 The caller must bind baseline/checkpoint/input hashes to a project-owned RECEIPTED
 attempt. This helper rechecks bytes and stages copies; it does not authorize or
-dispatch a host. Illustrator's existing bridge remains the native validator.
+dispatch a host. Each host's closed bridge remains the native validator.
 """
 import hashlib
 import json
@@ -40,6 +40,36 @@ def _target(layers, patch):
     return found[0],field
 
 
+def _photoshop_patch(job,patch,*,apply=False):
+    if not isinstance(patch,dict) or patch.get('kind') not in ('text','move'):
+        raise ValueError('unsupported Photoshop patch')
+    field='text' if patch['kind']=='text' else 'delta'
+    if set(patch)!={'kind','id',field} or not isinstance(patch['id'],str) or not re.fullmatch(r'[A-Za-z][A-Za-z0-9_-]{0,79}',patch['id']):
+        raise ValueError('invalid Photoshop patch fields')
+    pending=list(job['layers']);found=[]
+    while pending:
+        item=pending.pop()
+        if item['id']==patch['id']:found.append(item)
+        pending.extend(item.get('children',[]))
+    if len(found)!=1:raise ValueError('Photoshop target absent or ambiguous')
+    target=found[0]
+    if field=='text':
+        if target['kind']!='text' or not isinstance(patch[field],str) or not 1<=len(patch[field])<=10000:
+            raise ValueError('invalid Photoshop text patch')
+        if apply:target['text']=patch['text']
+    else:
+        delta=patch['delta']
+        if target['kind'] not in ('text','raster','fill') or not isinstance(delta,list) or len(delta)!=2 or any(
+            type(v) not in (int,float) or not math.isfinite(v) or not -16383<=v<=16383 for v in delta):
+            raise ValueError('invalid Photoshop leaf movement')
+        key='bounds' if target['kind']=='fill' else 'position'
+        moved=list(target[key]);moved[:2]=[moved[i]+delta[i] for i in range(2)]
+        if any(not 0<=v<=16383 for v in moved[:2]):raise ValueError('movement outside supported coordinates')
+        if target['kind']=='fill' and (moved[0]+moved[2]>job['width'] or moved[1]+moved[3]>job['height']):
+            raise ValueError('fill outside canvas')
+        if apply:target[key]=moved
+
+
 def prepare_patch(service,project_id,baseline,checkpoint,checkpoint_sha256,input_hashes,patch,run_root):
     if service.get_project(project_id) is None:raise ValueError('unknown project')
     paths=service.paths;root=paths.checked_path(run_root)
@@ -49,11 +79,16 @@ def prepare_patch(service,project_id,baseline,checkpoint,checkpoint_sha256,input
     payload=json.dumps(dict(job=baseline,patch=patch),allow_nan=False)
     if len(payload)>4_000_000:raise ValueError('oversized patch plan')
     sealed=json.loads(payload);job=sealed['job'];patch=sealed['patch']
-    if job['schemaVersion'] not in ('design-lab/adobe-host-job/v1','design-lab/adobe-patch-job/v1'):
-        raise ValueError('Illustrator baseline required')
-    if job['schemaVersion']=='design-lab/adobe-patch-job/v1':
-        prior,field=_target(job['layers'],job['patch']);prior[field]=job['patch'][field]
-    _target(job['layers'],patch)
+    photoshop=job['schemaVersion'] in ('design-lab/photoshop-native-job/v1','design-lab/photoshop-patch-job/v1')
+    if photoshop:
+        if job['schemaVersion']=='design-lab/photoshop-patch-job/v1':_photoshop_patch(job,job['patch'],apply=True)
+        _photoshop_patch(job,patch)
+    else:
+        if job['schemaVersion'] not in ('design-lab/adobe-host-job/v1','design-lab/adobe-patch-job/v1'):
+            raise ValueError('supported native baseline required')
+        if job['schemaVersion']=='design-lab/adobe-patch-job/v1':
+            prior,field=_target(job['layers'],job['patch']);prior[field]=job['patch'][field]
+        _target(job['layers'],patch)
     source_root=paths.checked_path(job['runRoot'])
     def read_verified(raw,expected,limit):
         source=paths.checked_path(raw)
@@ -65,8 +100,12 @@ def prepare_patch(service,project_id,baseline,checkpoint,checkpoint_sha256,input
             raise ValueError('source hash changed')
         return data
     native=read_verified(checkpoint,checkpoint_sha256,256*1024*1024)
-    if not native.startswith(b'%PDF-'):raise ValueError('PDF-compatible AI required')
-    staged=[(root/'checkpoint.ai',native)];total=len(native)
+    if photoshop:
+        if (len(native)<26 or native[:6]!=b'8BPS\x00\x01' or int.from_bytes(native[14:18],'big')!=job['height']
+            or int.from_bytes(native[18:22],'big')!=job['width']):raise ValueError('matching PSD required')
+    elif not native.startswith(b'%PDF-'):raise ValueError('PDF-compatible AI required')
+    checkpoint_name='checkpoint.psd' if photoshop else 'checkpoint.ai'
+    staged=[(root/checkpoint_name,native)];total=len(native)
     for index,asset in enumerate(job['assets']):
         source=paths.checked_path(asset['path']);digest=input_hashes.get(str(source))
         if not isinstance(digest,dict):raise ValueError('asset receipt missing')
@@ -77,7 +116,11 @@ def prepare_patch(service,project_id,baseline,checkpoint,checkpoint_sha256,input
         suffix=source.suffix.lower()
         if suffix not in ('.png','.jpg','.jpeg'):raise ValueError('unsupported linked image')
         target=root/(f'input-{index:04d}'+suffix);staged.append((target,data));asset['path']=str(target)
-    job.update(schemaVersion='design-lab/adobe-patch-job/v1',jobId='patch-'+uuid.uuid4().hex,
+    if photoshop:
+        job.update(schemaVersion='design-lab/photoshop-patch-job/v1',jobId='patch-'+uuid.uuid4().hex,
+                   runRoot=str(root),checkpoint=str(root/checkpoint_name),checkpointSha256=checkpoint_sha256,
+                   patch=patch,outputName='master.psd',previewName='master.png')
+    else:job.update(schemaVersion='design-lab/adobe-patch-job/v1',jobId='patch-'+uuid.uuid4().hex,
                runRoot=str(root),checkpoint=str(root/'checkpoint.ai'),checkpointSha256=checkpoint_sha256,
                patch=patch,targets={kind:str(root/('master.'+kind)) for kind in ('ai','png','svg')},
                operations=['openAI','readback','patchObject','saveAI','reopen','readback','exportPNG','exportSVG'])

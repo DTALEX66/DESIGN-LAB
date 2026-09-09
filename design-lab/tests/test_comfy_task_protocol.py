@@ -16,6 +16,42 @@ sys.path.insert(0, str(SRC))
 
 
 class ComfyTaskProtocolTests(unittest.TestCase):
+    def test_fingerprint_cannot_bypass_pin_validation(self):
+        from design_lab.generators.comfy_task import WorkflowPin, PinnedNode, ComfyTaskError
+        invalid = (
+            WorkflowPin('../invalid'),
+            WorkflowPin('w1', schema_version='unknown'),
+            WorkflowPin('w1', nodes=(PinnedNode('n1', 'Model', '1', 'sha256:'+'0'*64),)),
+            WorkflowPin('w1', nodes=(PinnedNode('n1', 'Model', '1', 'sha256:'+'a'*64),
+                                     PinnedNode('n1', 'Model', '2', 'sha256:'+'b'*64))),
+        )
+        for pin in invalid:
+            with self.subTest(pin=pin), self.assertRaises(ComfyTaskError):
+                pin.fingerprint()
+
+    def test_result_rejects_unsafe_artifact_paths(self):
+        from design_lab.generators.comfy_task import TaskResult, ComfyTaskError
+        for path in ('../escape.png', '/absolute.png', 'C:/out.png', 'C:out.png',
+                     'a/../b.png', 'a\\b.png', '', 'a//b.png', 'a/./b.png'):
+            with self.subTest(path=path), self.assertRaises(ComfyTaskError):
+                TaskResult('t1', 'SUCCEEDED', (path,), 'sha256:'+'a'*64).validate()
+        TaskResult('t1', 'SUCCEEDED', ('.project-local/output/a.png',), 'sha256:'+'a'*64).validate()
+
+    def test_result_rejects_fake_or_zero_fingerprint(self):
+        from design_lab.generators.comfy_task import TaskResult, ComfyTaskError
+        for state in ('SUCCEEDED', 'CACHE_HIT'):
+            for value in ('fake', '', 'sha256:'+'0'*64):
+                with self.subTest(state=state, value=value), self.assertRaises(ComfyTaskError):
+                    TaskResult('t1', state, ('out.png',), value).validate()
+
+    def test_pin_rejects_zero_checksum_and_duplicate_identity(self):
+        from design_lab.generators.comfy_task import WorkflowPin, PinnedNode, ComfyTaskError
+        for nodes in ((PinnedNode('n1', 'Model', '1', 'sha256:'+'0'*64),),
+                      (PinnedNode('n1', 'Model', '1', 'sha256:'+'a'*64),
+                       PinnedNode('n1', 'Model', '2', 'sha256:'+'b'*64))):
+            with self.subTest(nodes=nodes), self.assertRaises(ComfyTaskError):
+                WorkflowPin('w1', nodes=nodes).validate()
+
     def _pin(self, model_hash: str = "sha256:" + "1" * 64) -> dict:
         from design_lab.generators.comfy_task import PinnedNode, WorkflowPin
 

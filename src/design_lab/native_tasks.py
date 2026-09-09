@@ -94,7 +94,8 @@ CREATE TABLE IF NOT EXISTS native_recovery_protocol_v2 (
         inputs={}
         for asset in job['assets']:
             path=self._inside(asset['path'],root);inputs[str(path)]=_digest(path)
-        if host=='illustrator' and job.get('schemaVersion')=='design-lab/adobe-patch-job/v1':
+        if ((host=='illustrator' and job.get('schemaVersion')=='design-lab/adobe-patch-job/v1') or
+            (host=='photoshop' and job.get('schemaVersion')=='design-lab/photoshop-patch-job/v1')):
             path=self._inside(job['checkpoint'],root);inputs[str(path)]=_digest(path)
             if inputs[str(path)]['sha256']!=job['checkpointSha256']:raise ValueError('checkpoint hash mismatch')
         if host=='photoshop':
@@ -260,6 +261,12 @@ CREATE TABLE IF NOT EXISTS native_recovery_protocol_v2 (
                 raise NativeTaskError('RECONCILIATION_UNRESOLVED_GUARD_RETAINED') from exc
 
     def quiesce_illustrator(self,attempt_id,*,authorization):
+        return self._quiesce_host(attempt_id,'illustrator',authorization)
+
+    def quiesce_photoshop(self,attempt_id,*,authorization):
+        return self._quiesce_host(attempt_id,'photoshop',authorization)
+
+    def _quiesce_host(self,attempt_id,host,authorization):
         """Pause an unknown attempt after fixed host cleanup, never accept it.
 
         Internal recovery entry, not an HTTP action. A failed recovery keeps
@@ -272,15 +279,24 @@ CREATE TABLE IF NOT EXISTS native_recovery_protocol_v2 (
         with closing(self._connect()) as conn:
             with jobs._transaction(conn):
                 current,op=jobs._current(conn,attempt_id)
-                row=conn.execute('SELECT host,request_json FROM native_execution_v1 WHERE attempt_id=?',(attempt_id,)).fetchone()
-                guard=conn.execute('SELECT attempt_id FROM native_host_guard_v1 WHERE host=?',('illustrator',)).fetchone()
-                if (not row or row[0]!='illustrator' or guard!=(attempt_id,) or current['state']!='OUTCOME_UNKNOWN'
+                row=conn.execute('SELECT n.host,n.request_json,i.request_hash,n.project_id '
+                    'FROM native_execution_v1 n JOIN attempt_state a ON a.attempt_id=n.attempt_id '
+                    'JOIN job j ON j.job_id=a.job_id JOIN operation_intent i ON i.operation_id=j.operation_id '
+                    'WHERE n.attempt_id=?',(attempt_id,)).fetchone()
+                guard=conn.execute('SELECT attempt_id FROM native_host_guard_v1 WHERE host=?',(host,)).fetchone()
+                if (not row or row[0]!=host or guard!=(attempt_id,) or current['state']!='OUTCOME_UNKNOWN'
                     or conn.execute('SELECT 1 FROM native_quiescence_v1 WHERE attempt_id=?',(attempt_id,)).fetchone()):
                     raise NativeTaskError('QUIESCENCE_NOT_ELIGIBLE')
-                request=json.loads(row[1]);job=request['job']
+                try:
+                    request=json.loads(row[1]);job=request['job']
+                    if request_hash(request)!=row[2] or request['host']!=host or request['project_id']!=row[3]:
+                        raise ValueError('recovery request changed')
+                except (ValueError,KeyError,TypeError) as exc:
+                    raise NativeTaskError('QUIESCENCE_REQUEST_UNVERIFIED') from exc
                 conn.execute('INSERT INTO native_quiescence_v1 VALUES (?,?,?,NULL)',(attempt_id,_json(authorization),jobs._now()))
             try:
-                receipt=illustrator_com.quiesce(job,project_root=self.owner,approved_root=job['runRoot'])
+                adapter={'illustrator':illustrator_com,'photoshop':photoshop_com}[host]
+                receipt=adapter.quiesce(job,project_root=self.owner,approved_root=job['runRoot'])
                 if (receipt.get('status')!='HOST_QUIESCENT_ARTIFACTS_UNACCEPTED'
                     or receipt.get('job_id')!=job['jobId'] or type(receipt.get('closed_documents')) is not int
                     or receipt['closed_documents'] not in (0,1)
@@ -290,12 +306,12 @@ CREATE TABLE IF NOT EXISTS native_recovery_protocol_v2 (
                     raise ValueError('invalid quiescence receipt')
                 with jobs._transaction(conn):
                     current,op=jobs._current(conn,attempt_id)
-                    guard=conn.execute('SELECT attempt_id FROM native_host_guard_v1 WHERE host=?',('illustrator',)).fetchone()
+                    guard=conn.execute('SELECT attempt_id FROM native_host_guard_v1 WHERE host=?',(host,)).fetchone()
                     if current['state']!='OUTCOME_UNKNOWN' or guard!=(attempt_id,):raise ValueError('recovery state changed')
                     jobs._change(conn,current,'RECONCILING','host quiescent; outputs preserved, not accepted')
                     jobs._resolution(conn,attempt_id,'needs_user');jobs._op(conn,op,'PAUSED_NEEDS_USER')
                     conn.execute('UPDATE native_quiescence_v1 SET receipt_json=? WHERE attempt_id=?',(_json(receipt),attempt_id))
-                    conn.execute('DELETE FROM native_host_guard_v1 WHERE host=? AND attempt_id=?',('illustrator',attempt_id))
+                    conn.execute('DELETE FROM native_host_guard_v1 WHERE host=? AND attempt_id=?',(host,attempt_id))
                     return dict(attempt=jobs._record(conn,attempt_id),quiescence=receipt)
             except Exception as exc:raise NativeTaskError('QUIESCENCE_OUTCOME_UNKNOWN_GUARD_RETAINED') from exc
 

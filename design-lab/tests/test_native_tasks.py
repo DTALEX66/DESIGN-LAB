@@ -64,6 +64,67 @@ class NativeTaskTests(unittest.TestCase):
         published=Path(second['asset']['path']);self.assertTrue(published.is_relative_to(self.service.paths.projects_root))
         self.assertEqual(published.read_bytes(),(self.run/'output.psd').read_bytes())
 
+    def test_photoshop_patch_enqueue_binds_checkpoint_and_rejects_changed_bytes(self):
+        module=self.module();tasks=module.NativeTasks(self.service)
+        checkpoint=self.run/'checkpoint.psd';checkpoint.write_bytes(b'controlled checkpoint')
+        checksum=hashlib.sha256(checkpoint.read_bytes()).hexdigest()
+        job=dict(self.job,schemaVersion='design-lab/photoshop-patch-job/v1',checkpoint=str(checkpoint),
+                 checkpointSha256=checksum,patch=dict(kind='move',id='image',delta=[1,0]))
+        result=tasks.enqueue(self.project,'photoshop',job,idempotency_key='patch',approved_root=self.run,authorization=self.authorization)
+        with closing(tasks._connect()) as conn:
+            raw=json.loads(conn.execute('SELECT request_json FROM native_execution_v1 WHERE attempt_id=?',
+                (result['attempt']['attempt_id'],)).fetchone()[0])
+        self.assertEqual(raw['inputs'].get(str(checkpoint)),dict(sha256=checksum,byte_size=21))
+        checkpoint.write_bytes(b'changed')
+        with self.assertRaises(module.NativeTaskError):
+            tasks.enqueue(self.project,'photoshop',job,idempotency_key='different',approved_root=self.run,authorization=self.authorization)
+
+    def test_photoshop_quiescence_pauses_unknown_without_publishing(self):
+        module=self.module();tasks=module.NativeTasks(self.service)
+        self.assertTrue(hasattr(tasks,'quiesce_photoshop'))
+        with patch.object(module,'_dispatch',side_effect=PhotoshopDispatchError('unknown',outcome_unknown=True)):
+            with self.assertRaises(module.NativeTaskError) as caught:self.execute()
+        aid=caught.exception.attempt['attempt_id']
+        with patch.object(module.photoshop_com,'quiesce',return_value=dict(
+            status='HOST_QUIESCENT_ARTIFACTS_UNACCEPTED',job_id='native-test',
+            documents_before=0,documents_after=0,closed_documents=0,artifacts={})):
+            result=tasks.quiesce_photoshop(aid,authorization=self.authorization)
+        self.assertEqual(result['attempt']['state'],'RECONCILING')
+        with closing(tasks._connect()) as conn:
+            self.assertEqual(conn.execute('SELECT COUNT(*) FROM native_host_guard_v1').fetchone()[0],0)
+            self.assertEqual(conn.execute('SELECT COUNT(*) FROM artifact').fetchone()[0],0)
+            _,op=job_store._current(conn,aid)
+            self.assertEqual(job_store.operation_status(conn,op)['state'],'PAUSED_NEEDS_USER')
+
+    def test_photoshop_quiescence_rejects_changed_request_before_dispatch(self):
+        module=self.module();tasks=module.NativeTasks(self.service)
+        with patch.object(module,'_dispatch',side_effect=PhotoshopDispatchError('unknown',outcome_unknown=True)):
+            with self.assertRaises(module.NativeTaskError) as caught:self.execute()
+        aid=caught.exception.attempt['attempt_id']
+        with closing(tasks._connect()) as conn:
+            raw=json.loads(conn.execute('SELECT request_json FROM native_execution_v1 WHERE attempt_id=?',(aid,)).fetchone()[0])
+            raw['job']['outputName']='different.psd'
+            conn.execute('UPDATE native_execution_v1 SET request_json=? WHERE attempt_id=?',(json.dumps(raw),aid));conn.commit()
+        with patch.object(module.photoshop_com,'quiesce') as invoke:
+            with self.assertRaises(module.NativeTaskError):tasks.quiesce_photoshop(aid,authorization=self.authorization)
+            invoke.assert_not_called()
+        with closing(tasks._connect()) as conn:
+            self.assertEqual(conn.execute('SELECT COUNT(*) FROM native_host_guard_v1').fetchone()[0],1)
+            self.assertEqual(conn.execute('SELECT COUNT(*) FROM native_quiescence_v1').fetchone()[0],0)
+
+    def test_failed_photoshop_quiescence_keeps_guard_and_never_retries(self):
+        module=self.module();tasks=module.NativeTasks(self.service)
+        with patch.object(module,'_dispatch',side_effect=PhotoshopDispatchError('unknown',outcome_unknown=True)):
+            with self.assertRaises(module.NativeTaskError) as caught:self.execute()
+        aid=caught.exception.attempt['attempt_id']
+        with patch.object(module.photoshop_com,'quiesce',side_effect=TimeoutError('still unknown')) as invoke:
+            for _ in range(2):
+                with self.assertRaises(module.NativeTaskError):tasks.quiesce_photoshop(aid,authorization=self.authorization)
+            self.assertEqual(invoke.call_count,1)
+        with closing(tasks._connect()) as conn:
+            self.assertEqual(conn.execute('SELECT COUNT(*) FROM native_host_guard_v1').fetchone()[0],1)
+            self.assertEqual(conn.execute('SELECT COUNT(*) FROM artifact').fetchone()[0],0)
+
     def test_enqueue_survives_restart_and_execute_uses_same_attempt(self):
         module=self.module()
         queued=module.NativeTasks(self.service).enqueue(self.project,'photoshop',self.job,
@@ -411,6 +472,44 @@ class NativeTaskTests(unittest.TestCase):
             self.assertEqual(manifest['metadata']['rights'],'NOT_REVIEWED')
             self.assertEqual(manifest['metadata']['link_relocation'],'NOT_VERIFIED')
         self.assertEqual(self.execute()['asset'],result['asset'])
+
+    def test_bundle_records_requested_fonts_without_claiming_license_or_observation(self):
+        import zipfile
+        module=self.module()
+        self.job['layers'].extend([
+            dict(id='title',kind='text',font='ArialMT',text='Title',size=12,position=[0,0],color=[0,0,0]),
+            dict(id='subtitle',kind='text',font='ArialMT',text='Subtitle',size=10,position=[0,2],color=[0,0,0])])
+        with patch.object(module,'_dispatch',side_effect=self.native):result=self.execute()
+        bundle=module.NativeTasks(self.service).export_bundle(result['attempt']['attempt_id'],authorization=self.authorization)
+        with zipfile.ZipFile(bundle['path']) as archive:
+            metadata=json.loads(archive.read('bundle-manifest.json'))['metadata']
+        self.assertEqual(metadata.get('requested_fonts'),[{'postscript_name':'ArialMT','object_ids':['subtitle','title']}])
+        self.assertEqual(metadata.get('font_inventory'),'REQUESTED_ONLY')
+        self.assertEqual(metadata.get('font_rights'),'NOT_REVIEWED')
+        self.assertEqual(metadata.get('font_observation'),'NOT_COLLECTED')
+        self.assertEqual(metadata.get('native_receipt_binding'),{
+            'attempt_id':result['attempt']['attempt_id'],
+            'bridge_sha256':result['native']['bridge_sha256'],
+            'job_sha256':result['native']['job_sha256']})
+
+    def test_requested_font_inventory_traverses_nested_items_and_ignores_shapes(self):
+        from design_lab.native_bundles import _requested_fonts
+        job={'layers':[{'items':[{'id':'group','kind':'group','items':[
+            {'id':'a','kind':'text','font':'Font-B'},
+            {'id':'inner','kind':'group','items':[{'id':'b','kind':'text','font':'Font-A'}]},
+            {'id':'shape','kind':'path','font':'not-a-text-font'}]}]}]}
+        self.assertEqual(_requested_fonts(job),[
+            {'postscript_name':'Font-A','object_ids':['b']},
+            {'postscript_name':'Font-B','object_ids':['a']}])
+        self.assertEqual(_requested_fonts({'layers':[{'kind':'raster','id':'image'}]}),[])
+        with self.assertRaises(ValueError):
+            _requested_fonts({'layers':[{'kind':'text','id':'bad','font':''}]})
+
+    def test_requested_font_inventory_includes_photoshop_nested_group_children(self):
+        from design_lab.native_bundles import _requested_fonts
+        job={'layers':[{'id':'outer','kind':'group','children':[
+            {'id':'inner','kind':'group','children':[{'id':'title','kind':'text','font':'ArialMT'}]}]}]}
+        self.assertEqual(_requested_fonts(job),[{'postscript_name':'ArialMT','object_ids':['title']}])
 
     def test_native_bundle_export_rejects_changed_preview(self):
         module=self.module()

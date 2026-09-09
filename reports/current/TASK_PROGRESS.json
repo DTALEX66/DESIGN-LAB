@@ -2,15 +2,115 @@
   "counts": {
     "PARTIAL": 28
   },
-  "evidence": [],
+  "evidence": [
+    {
+      "artifacts": [
+        {
+          "path": ".project-local/task-artifacts/comfy-http-live-bb63046b6f444fe9a7a96d0bf66f949b/result.json",
+          "sha256": "0c7a831cf5fd68a863666d127812f6e9c5d7636b2ed104cc34c648ee6bcaa309"
+        },
+        {
+          "path": "docs/handoffs/R5-COMFY-HTTP-LIVE-2026-09-09.md",
+          "sha256": "63467d9d70d17e6b6ba23c03f178ec174bd2151994590ca08b342dec79701480"
+        }
+      ],
+      "binding": "WORKTREE_FILES",
+      "id": "r5-comfy-http-model-free-live-20260909",
+      "kind": "host_live",
+      "note": "真实专用实例EmptyImage/SaveImage，经新客户端提交和history读回，64x64像素与PNG hash核对通过；不是模型生成。专用PID11964已terminate并确认端口57815关闭，不计优雅恢复。WS、持久任务、取消ACK、10次模型基准及H3未完成。observed_at为本次证据重读绑定时间，实际执行时间见原始history；ignored原件换机缺失应MISSING。",
+      "observed_at": "2026-09-08T22:51:42Z",
+      "outcome": "PARTIAL",
+      "reasons": [
+        "OUTCOME_NOT_PASS"
+      ],
+      "software": {
+        "host": "ComfyUI 0.33.1",
+        "os": "Windows",
+        "python": "embedded 3.13.14",
+        "torch": "2.13.0+cu130"
+      },
+      "subject_files": {
+        "src/design_lab/generators/comfy_http.py": "d8bb2404197bf9014aa550ac100a07ede014c9e6721ff3483c12c54e1d96fdcc"
+      },
+      "subject_sha": "a06c1db01944faca6c8dd41b8fe22f651138a400",
+      "task_ids": [
+        "DL-R5-008"
+      ],
+      "verified": false
+    },
+    {
+      "artifacts": [
+        {
+          "path": "docs/handoffs/R5-COMFY-STRUCTURAL-REJECTION-2026-09-09.md",
+          "sha256": "16a80b2823d81166061b6b7c4d5c900f62cc6c1cc8174081ac22733fdfe47c10"
+        }
+      ],
+      "binding": "WORKTREE_FILES",
+      "id": "r5-comfy-structural-rejection-20260909",
+      "kind": "local_test",
+      "note": "14项真实协议单元测试通过，新增拒绝测试先出现16个subtest失败再修复。仅词法路径/指纹、零checksum和重复node ID，不能证明产物实际hash或Comfy传输；REST/WS、取消ACK、恢复和10次模型基准仍未完成。修改晚于953项全量，因此不继承其结果。",
+      "observed_at": "2026-09-08T22:36:19Z",
+      "outcome": "PARTIAL",
+      "reasons": [
+        "OUTCOME_NOT_PASS",
+        "SOURCE_CHANGED_OR_MISSING:src/design_lab/generators/comfy_task.py",
+        "SOURCE_CHANGED_OR_MISSING:design-lab/tests/test_comfy_task_protocol.py"
+      ],
+      "software": {
+        "python": "project .venv Python 3.13.14",
+        "runner": "unittest discover -s design-lab/tests -p test_comfy_task_protocol.py"
+      },
+      "subject_files": {
+        "design-lab/tests/test_comfy_task_protocol.py": "c0106a009c8b63117b8c5d51d2e58b229468b4040724cab2a33c8195b9d8d920",
+        "src/design_lab/generators/comfy_task.py": "d25591f94c95bc06d81e6274bb0d190173e89c90785b29fa8edf5c8343587dd9"
+      },
+      "subject_sha": "a06c1db01944faca6c8dd41b8fe22f651138a400",
+      "task_ids": [
+        "DL-R5-008"
+      ],
+      "verified": false
+    },
+    {
+      "artifacts": [
+        {
+          "path": "docs/handoffs/R5-PHOTOSHOP-PATCH-PRODUCT-2026-09-09.md",
+          "sha256": "23eafcea6284aa44107ed3d9ede02974689f1c6aecbe0e6b85b549a42ee50059"
+        },
+        {
+          "path": "docs/handoffs/R5-PHOTOSHOP-FULL-REGRESSION-2026-09-09.md",
+          "sha256": "12c7142d8c75c477dc4e0695e614feb76340cf1d16d78197769d7b72fe165d4a"
+        }
+      ],
+      "binding": "WORKTREE_FILES",
+      "id": "r5-ps-handoff-review-20260909",
+      "kind": "structural",
+      "note": "交接证据定位，不是新宿主验收：报告记载真实PSD两次patch，但本记录仅绑定文档与工作区源码。第二轮953项全量回归仍有1个WinError10053错误、2 skipped；独立重复30次通过不能抵扣全量失败。原生原件、页面整链、对象独立性、人工质量与发布仍需分别核验。不得提升host_live或delivery。",
+      "observed_at": "2026-09-08T22:04:01Z",
+      "outcome": "PARTIAL",
+      "reasons": [
+        "OUTCOME_NOT_PASS"
+      ],
+      "software": {
+        "review": "PowerShell read-only document and SHA256 inspection"
+      },
+      "subject_files": {
+        "src/design_lab/native_patch_submissions.py": "0432e52f7f1efbb351d37015d5fb64a6fb6dce3a0c4a5b6e991d1b2c2351ecc5"
+      },
+      "subject_sha": "a06c1db01944faca6c8dd41b8fe22f651138a400",
+      "task_ids": [
+        "DL-R5-012"
+      ],
+      "verified": false
+    }
+  ],
   "fresh": false,
   "freshnessMeaning": "at generation only; check verifies bound-input integrity, not current Git or cloud state",
-  "generatedAt": "2026-09-08T19:28:03+00:00",
+  "generatedAt": "2026-09-08T22:52:58+00:00",
   "gitStateMeaning": "generation-time observation, not current HEAD",
-  "ledgerUpdatedAt": "2026-09-08T16:52:08Z",
+  "ledgerUpdatedAt": "2026-09-08T22:51:42Z",
   "note": "DONE_LOCAL concerns the declared task axes and dependencies, not a product release or hosted CI.",
   "schemaVersion": "design-lab/task-progress/r5-v1",
-  "subjectSha": "8568343ef0671b9de65404d0d07b801e08758cde",
+  "subjectSha": "a06c1db01944faca6c8dd41b8fe22f651138a400",
   "taskpack": "DL-TP-20260908-R5",
   "tasks": [
     {
@@ -585,7 +685,9 @@
         },
         "host_live": {
           "declared_state": "PARTIAL",
-          "evidence": [],
+          "evidence": [
+            "r5-comfy-http-model-free-live-20260909"
+          ],
           "reasons": [],
           "state": "PARTIAL"
         },
@@ -597,7 +699,9 @@
         },
         "unit": {
           "declared_state": "PARTIAL",
-          "evidence": [],
+          "evidence": [
+            "r5-comfy-structural-rejection-20260909"
+          ],
           "reasons": [],
           "state": "PARTIAL"
         }
@@ -937,7 +1041,9 @@
         },
         "implementation": {
           "declared_state": "PARTIAL",
-          "evidence": [],
+          "evidence": [
+            "r5-ps-handoff-review-20260909"
+          ],
           "reasons": [],
           "state": "PARTIAL"
         },
