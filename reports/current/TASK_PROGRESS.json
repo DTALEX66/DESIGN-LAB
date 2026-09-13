@@ -21,7 +21,8 @@
       "observed_at": "2026-09-08T22:51:42Z",
       "outcome": "PARTIAL",
       "reasons": [
-        "OUTCOME_NOT_PASS"
+        "OUTCOME_NOT_PASS",
+        "STALE_SUBJECT_SHA"
       ],
       "software": {
         "host": "ComfyUI 0.33.1",
@@ -53,6 +54,7 @@
       "outcome": "PARTIAL",
       "reasons": [
         "OUTCOME_NOT_PASS",
+        "STALE_SUBJECT_SHA",
         "SOURCE_CHANGED_OR_MISSING:src/design_lab/generators/comfy_task.py",
         "SOURCE_CHANGED_OR_MISSING:design-lab/tests/test_comfy_task_protocol.py"
       ],
@@ -88,7 +90,8 @@
       "observed_at": "2026-09-08T22:04:01Z",
       "outcome": "PARTIAL",
       "reasons": [
-        "OUTCOME_NOT_PASS"
+        "OUTCOME_NOT_PASS",
+        "STALE_SUBJECT_SHA"
       ],
       "software": {
         "review": "PowerShell read-only document and SHA256 inspection"
@@ -105,12 +108,12 @@
   ],
   "fresh": false,
   "freshnessMeaning": "at generation only; check verifies bound-input integrity, not current Git or cloud state",
-  "generatedAt": "2026-09-08T22:52:58+00:00",
+  "generatedAt": "2026-09-13T15:48:07+00:00",
   "gitStateMeaning": "generation-time observation, not current HEAD",
   "ledgerUpdatedAt": "2026-09-08T22:51:42Z",
   "note": "DONE_LOCAL concerns the declared task axes and dependencies, not a product release or hosted CI.",
   "schemaVersion": "design-lab/task-progress/r5-v1",
-  "subjectSha": "a06c1db01944faca6c8dd41b8fe22f651138a400",
+  "subjectSha": "9f34b53e7eff5707e087c35bced57bb17b856ab8",
   "taskpack": "DL-TP-20260908-R5",
   "tasks": [
     {
