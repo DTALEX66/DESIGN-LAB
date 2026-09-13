@@ -15,7 +15,7 @@
     "executor": "DEEPSEEK/DSH",
     "base_sha": "56319635bbcf112ac88d097317262c101ffdfe4d",
     "branch": "codex/deepseek-authority-r1",
-    "worktree": "sha256:4b8c54a583433cdadd274088af3cbaa7213d916defc5c1ccc4923c92f35da065",
+    "worktree": "sha256:d5c1de5cc492efaf830e08878d5baebeb0cbe3edab83bcd801c628c1f1ea3573",
     "worktree_clean": false
   },
   "authority": {
@@ -524,27 +524,48 @@
       "full_id": "DL-TP-20260914-DEEPSEEK-AUTHORITY-R1::DLDS-F000",
       "wave": "F",
       "wave_title": "Wave 5 - Contract / State Closeout",
-      "status": "NOT_STARTED",
-      "evidence": [],
-      "notes": []
+      "status": "DONE",
+      "evidence": [
+        "reports/current/CONTRACT-GRAPH.json"
+      ],
+      "notes": [
+        {
+          "at": "2026-09-13T16:36:37+00:00",
+          "note": "gate added: 11 concepts (Job/Attempt/Operation/Asset/AssetVersion/Requirement/Decision/Rights/Evidence/QA/Delivery) traced Schema -> model -> DB -> producer -> consumer -> receipt -> projection; NO_BROKEN_LINK, 11/11 complete, 0 breaks; also detects a table declared by more than one schema (duplicate SSOT). First run found a real break in my own table (a consumer path I had invented) which was corrected"
+        }
+      ]
     },
     {
       "task_key": "DLDS-F010",
       "full_id": "DL-TP-20260914-DEEPSEEK-AUTHORITY-R1::DLDS-F010",
       "wave": "F",
       "wave_title": "Wave 5 - Contract / State Closeout",
-      "status": "NOT_STARTED",
-      "evidence": [],
-      "notes": []
+      "status": "DONE",
+      "evidence": [
+        "reports/current/CREATIVE-MIGRATION-REHEARSAL.json"
+      ],
+      "notes": [
+        {
+          "at": "2026-09-13T16:36:37+00:00",
+          "note": "rehearsed on a database copy, never the live database: 15/15 steps pass (backup, migrate, migration backup, legacy readback, artifact readback, new write, rejection write, restart, restart readback, rerun migration, job/requirement/decision writes, append-only triggers, rollback, rollback-then-migrate). DDL now carries MIGRATION_CANDIDATE_PENDING_AUDIT; status REHEARSED_PASS_PENDING_ACCEPTANCE and accepted_as_production=false because granting production is owner/Codex work. Two defects in my own harness were fixed: empty tables cannot prove per-row triggers, and the temp database was locked on Windows"
+        }
+      ]
     },
     {
       "task_key": "DLDS-F020",
       "full_id": "DL-TP-20260914-DEEPSEEK-AUTHORITY-R1::DLDS-F020",
       "wave": "F",
       "wave_title": "Wave 5 - Contract / State Closeout",
-      "status": "NOT_STARTED",
-      "evidence": [],
-      "notes": []
+      "status": "DONE",
+      "evidence": [
+        "reports/current/FOUNDATION-AUDIT.json"
+      ],
+      "notes": [
+        {
+          "at": "2026-09-13T16:36:37+00:00",
+          "note": "independent audit PASS: 0 positional INSERTs across the four state modules, state ownership verified (every schema resource is read by a declared applier), append-only guards present for attempt_state/attempt_event/version_rejection/requirement_event/decision_event/operation_lineage, frozen v1 schemas carry no creative markers, and each migration maps to a test that names its artefact. Two of my own heuristics were false positives and were corrected: generation is also a lease column, and the assets-v2/attempt-v2 tests live in test_runtime_asset_safety.py and test_runtime_attempt_safety.py"
+        }
+      ]
     },
     {
       "task_key": "DLDS-F030",
@@ -781,5 +802,5 @@
       "notes": []
     }
   ],
-  "updated_at": "2026-09-13T16:33:15+00:00"
+  "updated_at": "2026-09-13T16:36:37+00:00"
 }
