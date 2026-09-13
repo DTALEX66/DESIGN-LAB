@@ -1,16 +1,16 @@
 {
   "schemaVersion": "design-lab/deepseek-final-language-audit/v1",
   "task_key": "DL-TP-20260914-DEEPSEEK-AUTHORITY-R1::DLDS-K020",
-  "audited_at": "2026-09-13T18:50:07+00:00",
-  "subject_sha": "73c861b0986c6c81e29c08ac1ffd3c6326d00c2f",
-  "tracked_files": 1904,
+  "audited_at": "2026-09-13T18:54:00+00:00",
+  "subject_sha": "ea5d963f2e6dccfc80505106ded3a812730a13b1",
+  "tracked_files": 1905,
   "languages": [
     {
       "language": "Markdown",
       "file_count": 655,
-      "loc_total": 69188,
-      "loc_nonblank": 52553,
-      "bytes": 3084633,
+      "loc_total": 69713,
+      "loc_nonblank": 52991,
+      "bytes": 3085687,
       "owner_directories": [
         "docs",
         "packages",
@@ -104,7 +104,7 @@
         },
         "reports": {
           "files": 84,
-          "lines": 19318
+          "lines": 19843
         },
         "research": {
           "files": 2,
@@ -123,10 +123,10 @@
     },
     {
       "language": "JSON",
-      "file_count": 566,
-      "loc_total": 181688,
-      "loc_nonblank": 181688,
-      "bytes": 7313262,
+      "file_count": 567,
+      "loc_total": 181713,
+      "loc_nonblank": 181713,
+      "bytes": 7321081,
       "owner_directories": [
         "design-lab",
         "reports",
@@ -143,8 +143,8 @@
           "lines": 10
         },
         "design-lab": {
-          "files": 381,
-          "lines": 73339
+          "files": 382,
+          "lines": 73359
         },
         "docs": {
           "files": 26,
@@ -164,7 +164,7 @@
         },
         "reports": {
           "files": 68,
-          "lines": 24181
+          "lines": 24186
         },
         "vendor": {
           "files": 1,
@@ -180,9 +180,9 @@
     {
       "language": "Python",
       "file_count": 391,
-      "loc_total": 75375,
-      "loc_nonblank": 66844,
-      "bytes": 3499174,
+      "loc_total": 75383,
+      "loc_nonblank": 66852,
+      "bytes": 3499830,
       "owner_directories": [
         "design-lab",
         "src",
@@ -205,7 +205,7 @@
         },
         "scripts": {
           "files": 38,
-          "lines": 7648
+          "lines": 7656
         },
         "src": {
           "files": 80,
@@ -522,7 +522,7 @@
     }
   ],
   "code_nonblank_lines": {
-    "Python": 66844,
+    "Python": 66852,
     "JavaScript": 27678,
     "HTML": 3731,
     "JavaScript (ESM)": 989,

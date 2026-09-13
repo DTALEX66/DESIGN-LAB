@@ -604,15 +604,52 @@ def k040() -> dict:
     }
 
 
-def _section(title: str, lines: list) -> str:
-    return "\n".join([f"## {title}", ""] + lines + [""])
+def _section(title: str, lines: list) -> list:
+    """A section as a LIST of lines.
+
+    This returns lines rather than one string on purpose. It used to return a string and
+    callers did `body += _section(...)` on a list, which Python performs by extending the
+    list with the string's characters one at a time: no exception, and the packet file
+    came out as 14315 single-character lines. Returning a list makes the same call
+    correct, and validate_markdown now fails the run if that ever regresses.
+    """
+    return [f"## {title}", ""] + list(lines) + [""]
 
 
 def _table(rows: list) -> list:
     return ["| Item | Value |", "|---|---|"] + [f"| {k} | {v} |" for k, v in rows]
 
 
-def write_markdown(k010_doc: dict, k020_doc: dict, k030_doc: dict, state: dict) -> list:
+def validate_markdown(name: str, text: str, *, headings: int, rows: int = 0) -> list:
+    """Structural checks on a generated report.
+
+    The packet file once shipped as 14315 single-character lines because a string was
+    appended to a list, and nothing caught it: the file existed and was readable. A
+    report is only evidence if its shape is checked too.
+    """
+    problems = []
+    lines = text.splitlines()
+    if not lines:
+        return [f"{name}: empty"]
+    if lines[0] != f"# {lines[0][2:]}" or not lines[0].startswith("# "):
+        problems.append(f"{name}: does not start with a title heading")
+    stray = [line for line in lines if len(line) == 1 and line.strip()]
+    if stray:
+        problems.append(f"{name}: {len(stray)} single-character lines, which is the signature "
+                        "of a string being appended to a list of lines")
+    found_headings = sum(1 for line in lines if line.startswith("## "))
+    if headings and found_headings != headings:
+        problems.append(f"{name}: expected {headings} sections, found {found_headings}")
+    if rows:
+        found_rows = sum(1 for line in lines if line.startswith("| ") and line[2:3].isdigit())
+        if found_rows != rows:
+            problems.append(f"{name}: expected {rows} numbered rows, found {found_rows}")
+    if len(lines) < 8:
+        problems.append(f"{name}: only {len(lines)} lines, which is too short to be a report")
+    return problems
+
+
+def write_markdown(k010_doc: dict, k020_doc: dict, k030_doc: dict, state: dict) -> tuple:
     m = k030_doc["measured"]
     written = []
     files = m["files_before_after"]
@@ -730,8 +767,7 @@ def write_markdown(k010_doc: dict, k020_doc: dict, k030_doc: dict, state: dict) 
     for name, (title, lines) in reports.items():
         path = OUTDIR / name
         path.write_text("\n".join([f"# {title}", "", f"Subject: `{state.get('subject_sha')}`", ""]
-                                  + _section(title, lines).splitlines()), encoding="utf-8",
-                        newline="\n")
+                                  + _section(title, lines)), encoding="utf-8", newline="\n")
         written.append(name)
         body += _section(title, lines)
     body += _section("Measured repository state", _table([
@@ -760,7 +796,20 @@ def write_markdown(k010_doc: dict, k020_doc: dict, k030_doc: dict, state: dict) 
     ])
     (OUTDIR / "DEEPSEEK-FINAL-AUDIT.md").write_text("\n".join(body), encoding="utf-8", newline="\n")
     written.append("DEEPSEEK-FINAL-AUDIT.md")
-    return written
+
+    # Validate what was written, not merely that it exists. The final audit has one
+    # section per sub-report plus measured state, exceptions, Done-When, what is not
+    # claimed, and the Codex starting point.
+    AUDIT_SECTIONS = 10
+    problems = []
+    for name in written:
+        text = (OUTDIR / name).read_text(encoding="utf-8")
+        if name == "DEEPSEEK-FINAL-AUDIT.md":
+            problems += validate_markdown(name, text, headings=AUDIT_SECTIONS,
+                                          rows=len(DONE_WHEN))
+        else:
+            problems += validate_markdown(name, text, headings=1)
+    return written, problems
 
 
 def main(argv=None) -> int:
@@ -779,6 +828,25 @@ def main(argv=None) -> int:
         if not (OUTDIR / "DEEPSEEK-TASK-STATE.json").is_file():
             print("FINAL_CLOSEOUT=DRIFT DEEPSEEK-TASK-STATE.json missing")
             ok = False
+        # Validate the packet's shape too: an existing file is not a correct file.
+        problems = []
+        for name, headings in (("DEEPSEEK-FINAL-AUDIT.md", 10),
+                               ("REPOSITORY-NORMALIZATION-REPORT.md", 1),
+                               ("LANGUAGE-GOVERNANCE-REPORT.md", 1),
+                               ("REPOSITORY-SLIMMING-REPORT.md", 1),
+                               ("DATA-SPILL-MIGRATION-REPORT.md", 1),
+                               ("CONTRACT-GRAPH-REPORT.md", 1)):
+            path = OUTDIR / name
+            if not path.is_file():
+                problems.append(f"{name}: missing")
+                continue
+            problems += validate_markdown(name, path.read_text(encoding="utf-8"),
+                                          headings=headings,
+                                          rows=len(DONE_WHEN)
+                                          if name == "DEEPSEEK-FINAL-AUDIT.md" else 0)
+        for problem in problems:
+            print(f"FINAL_CLOSEOUT=DRIFT {problem}")
+        ok = ok and not problems
         print("FINAL_CLOSEOUT=" + ("PASS" if ok else "FAIL"))
         return 0 if ok else 1
     state = k040()
@@ -789,12 +857,18 @@ def main(argv=None) -> int:
                       ("DEEPSEEK-TASK-STATE.json", state)):
         (OUTDIR / name).write_text(json.dumps(doc, indent=2, ensure_ascii=False) + "\n",
                                    encoding="utf-8", newline="\n")
-    written = write_markdown(k010_doc, k020_doc, k030_doc, state)
+    written, problems = write_markdown(k010_doc, k020_doc, k030_doc, state)
     print(f"FINAL_CLOSEOUT=WRITTEN k010={k010_doc['verdict']} k020={k020_doc['verdict']} "
           f"tasks={state.get('task_count')} done={state.get('status_counts', {}).get('DONE')}")
     print(f"  packet files written: {len(written)}")
     for name in written:
         print(f"    {name}")
+    if problems:
+        print(f"FINAL_CLOSEOUT=PACKET_INVALID {len(problems)} structural problems")
+        for problem in problems:
+            print(f"  INVALID {problem}")
+        return 1
+    print("  packet structure: valid (headings, numbered rows and no stray single characters)")
     if k010_doc["counts"]["failed"]:
         print(f"  K010 failed conditions: {k010_doc['counts']['failed']}")
     if k020_doc["counts"]["failed"]:

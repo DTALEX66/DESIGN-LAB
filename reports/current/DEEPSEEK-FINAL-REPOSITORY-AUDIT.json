@@ -1,8 +1,8 @@
 {
   "schemaVersion": "design-lab/deepseek-final-repository-audit/v1",
   "task_key": "DL-TP-20260914-DEEPSEEK-AUTHORITY-R1::DLDS-K030",
-  "audited_at": "2026-09-13T18:50:09+00:00",
-  "subject_sha": "73c861b0986c6c81e29c08ac1ffd3c6326d00c2f",
+  "audited_at": "2026-09-13T18:54:01+00:00",
+  "subject_sha": "ea5d963f2e6dccfc80505106ded3a812730a13b1",
   "measured": {
     "files_before_after": {
       "before": {
@@ -12,16 +12,16 @@
         "mib": 30.15
       },
       "after": {
-        "files": 1905,
-        "bytes": 32646232,
-        "mib": 31.13
+        "files": 1907,
+        "bytes": 32652185,
+        "mib": 31.14
       },
       "source": "git ls-tree -r -l 56319635bbcf112ac88d097317262c101ffdfe4d vs git ls-files",
       "like_for_like": true,
       "revision_before": "56319635bbcf112ac88d097317262c101ffdfe4d",
-      "revision_after": "73c861b0986c6c81e29c08ac1ffd3c6326d00c2f",
-      "delta_files": 73,
-      "delta_mib": 0.98
+      "revision_after": "ea5d963f2e6dccfc80505106ded3a812730a13b1",
+      "delta_files": 75,
+      "delta_mib": 0.99
     },
     "git_pack_before_after": {
       "after_pack_mib": 210.85,

@@ -1,10 +1,10 @@
 # Language Governance Report
 
-Subject: `73c861b0986c6c81e29c08ac1ffd3c6326d00c2f`
+Subject: `ea5d963f2e6dccfc80505106ded3a812730a13b1`
 
 ## Language Governance Report
 
-Language inventory: 1904 tracked files, 15 languages, unmapped extension files: 131.
+Language inventory: 1905 tracked files, 15 languages, unmapped extension files: 131.
 Language boundary gate verdict: PASS; forbidden language files: 0.
 Python owns the runtime; the fixture owns the only Node manifest; Java is scoped to an inert fixture blob; Rust is conditional and absent.
 JSON Schema remains the cross-language contract truth: canonical vocabularies are read from the owning schemas and every detected hand-written copy must agree with them.
