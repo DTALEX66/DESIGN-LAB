@@ -238,14 +238,44 @@ def git_snapshot(root):
     generated = {CURRENT + name for name in REPORTS} | {INDEX}
     # -z prevents shell quoting/Unicode escapes in filenames.
     changes = _git(root, 'status', '--porcelain', '--untracked-files=all', '-z').split('\0')
-    dirty = any(record and record[3:] not in generated for record in changes)
+    # The reports and the index are excluded: writing them must not change the
+    # subject they describe, otherwise the digest could never settle.
+    subject_changes = sorted(record for record in changes
+                             if record and record[3:] not in generated)
+    dirty = bool(subject_changes)
     try:
         origin = _git(root, 'rev-parse', 'origin/main')
     except ValueError:
         origin = None
-    return {'sha': _git(root, 'rev-parse', 'HEAD'), 'branch': _git(root, 'branch', '--show-current'),
+    sha = _git(root, 'rev-parse', 'HEAD')
+    digest = hashlib.sha256(('\n'.join([sha, *subject_changes])).encode('utf-8')).hexdigest()
+    return {'sha': sha, 'branch': _git(root, 'branch', '--show-current'),
             'origin_main': origin, 'source_worktree_clean': not dirty,
+            'worktree_digest': 'sha256:' + digest,
             'tracked_files': len([p for p in _git(root, 'ls-files', '-z').split('\0') if p])}
+
+
+def environment_fingerprint():
+    """What produced this projection: interpreter and platform, not a test result."""
+    import platform
+    return {'python': platform.python_version(), 'platform': platform.platform(),
+            'machine': platform.machine()}
+
+
+def test_run_binding(reader):
+    """A bound test run, or an explicit statement that none is bound.
+
+    The projection must not imply that a test ran. Until a test wrapper writes
+    the record, the field stays null with a stated meaning.
+    """
+    record = reader.json('.project-local/task-artifacts/test-run/last-run.json', optional=True)
+    if not isinstance(record, dict):
+        return {'testRunId': None,
+                'testRunMeaning': 'no bound test run; this projection does not claim a test result'}
+    return {'testRunId': record.get('run_id'),
+            'testRunMeaning': f"bound run: {record.get('command', 'unknown command')}",
+            'testRunAt': record.get('finished_at'),
+            'testRunResult': record.get('result')}
 
 
 def _dump(value):
@@ -255,7 +285,21 @@ def _dump(value):
 def _build(reader, snapshot, generated_at):
     ledger = reader.json(LEDGER)
     progress = project_ledger(reader.root, ledger, snapshot['sha'], reader=reader)
-    common = {'subjectSha': snapshot['sha'], 'generatedAt': generated_at,
+    # DLDS-B050: every projection must name its exact subject. A dirty tree is a
+    # WORKTREE subject and may never be presented as a commit.
+    authority = reader.json('reports/current/DEEPSEEK-AUTHORITY-LEDGER-2026-09-14.json', optional=True)
+    common = {'subjectType': 'COMMIT' if snapshot.get('source_worktree_clean') else 'WORKTREE',
+              'subjectSha': snapshot['sha'], 'generatedAt': generated_at,
+              'worktreeDigest': snapshot.get('worktree_digest'),
+              'worktreeClean': bool(snapshot.get('source_worktree_clean')),
+              'taskpackId': ledger['taskpack'],
+              'taskpackHash': (ledger.get('source') or {}).get('sha256'),
+              'authorityTaskpackId': (authority or {}).get('taskpack', {}).get('taskpack_id'),
+              'authorityTaskpackHash': (authority or {}).get('taskpack', {}).get('taskpack_sha256'),
+              'environmentFingerprint': environment_fingerprint(),
+              **test_run_binding(reader),
+              'subjectMeaning': 'subjectType=WORKTREE means the tree was dirty at generation; '
+                                'worktreeDigest covers HEAD plus the non-generated changes',
               'fresh': bool(snapshot.get('source_worktree_clean') and snapshot.get('origin_main') == snapshot['sha']),
               'freshnessMeaning': 'at generation only; check verifies bound-input integrity, not current Git or cloud state',
               'gitStateMeaning': 'generation-time observation, not current HEAD'}
@@ -282,6 +326,9 @@ def _build(reader, snapshot, generated_at):
         table.append('| ' + ' | '.join([task['id'], task['status'], *(task['axes'][axis]['state'] for axis in KINDS)]) + ' |')
     markdown = '# PROJECT_STATUS（生成投影）\n\n'
     markdown += f"任务包：{ledger['taskpack']}；生成时观察 SHA（不是当前 HEAD）：`{snapshot['sha']}`。\n\n"
+    markdown += (f"subject_type：`{common['subjectType']}`；worktree_clean：`{common['worktreeClean']}`；"
+                 f"worktree_digest：`{str(common['worktreeDigest'])[:23]}…`；"
+                 f"test_run_id：`{common['testRunId']}`。\n\n")
     markdown += f"唯一编辑源：`{LEDGER}`。生成时间 {generated_at} 不代表重新测试或实机验收。\n\n"
     markdown += '\n'.join(table) + '\n\n发布状态：NOT_RELEASED。原始观察时间与哈希见 TASK_PROGRESS.json。\n'
     for task in progress['tasks']:

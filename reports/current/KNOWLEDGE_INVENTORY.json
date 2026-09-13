@@ -1,11 +1,26 @@
 {
   "activeRegistryEntries": 6,
+  "authorityTaskpackHash": "sha256:d9fdaa3ad7ad0055a3f451c853756be41036b32112cacc4d1c17b314c005a2f9",
+  "authorityTaskpackId": "DL-TP-20260914-DEEPSEEK-AUTHORITY-R1",
+  "environmentFingerprint": {
+    "machine": "AMD64",
+    "platform": "Windows-11-10.0.26100-SP0",
+    "python": "3.13.14"
+  },
   "fresh": false,
   "freshnessMeaning": "at generation only; check verifies bound-input integrity, not current Git or cloud state",
-  "generatedAt": "2026-09-13T15:48:07+00:00",
+  "generatedAt": "2026-09-13T16:22:06+00:00",
   "gitStateMeaning": "generation-time observation, not current HEAD",
   "migrationStatus": "deferred",
   "quarantinedSources": 162,
   "schemaVersion": "design-lab/knowledge-inventory/v1",
-  "subjectSha": "9f34b53e7eff5707e087c35bced57bb17b856ab8"
+  "subjectMeaning": "subjectType=WORKTREE means the tree was dirty at generation; worktreeDigest covers HEAD plus the non-generated changes",
+  "subjectSha": "e3ae5f805e8ed35891f1d6ce5eda1af1a71cd866",
+  "subjectType": "WORKTREE",
+  "taskpackHash": "31dde89eb4ede81fe88c0a5c5144adfb86af8db4c4d8c263bde2199180369b69",
+  "taskpackId": "DL-TP-20260908-R5",
+  "testRunId": null,
+  "testRunMeaning": "no bound test run; this projection does not claim a test result",
+  "worktreeClean": false,
+  "worktreeDigest": "sha256:114a8c5fa04eb43ad0eec11d290db10eb6db02e74cababe08fbf805d747e9b35"
 }

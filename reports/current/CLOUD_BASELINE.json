@@ -1,24 +1,40 @@
 {
+  "authorityTaskpackHash": "sha256:d9fdaa3ad7ad0055a3f451c853756be41036b32112cacc4d1c17b314c005a2f9",
+  "authorityTaskpackId": "DL-TP-20260914-DEEPSEEK-AUTHORITY-R1",
   "cloudReadback": "NOT_EXECUTED",
+  "environmentFingerprint": {
+    "machine": "AMD64",
+    "platform": "Windows-11-10.0.26100-SP0",
+    "python": "3.13.14"
+  },
   "fresh": false,
   "freshnessMeaning": "at generation only; check verifies bound-input integrity, not current Git or cloud state",
-  "generatedAt": "2026-09-13T15:48:07+00:00",
+  "generatedAt": "2026-09-13T16:22:06+00:00",
   "gitStateMeaning": "generation-time observation, not current HEAD",
   "local": {
-    "branch": "codex/r3-runtime-correctness",
+    "branch": "codex/deepseek-authority-r1",
     "origin_main": "c4dccd58331bc4561eb89265283d924b7630d113",
-    "sha": "9f34b53e7eff5707e087c35bced57bb17b856ab8",
+    "sha": "e3ae5f805e8ed35891f1d6ce5eda1af1a71cd866",
     "source_worktree_clean": false,
-    "tracked_files": 1747
+    "tracked_files": 1843,
+    "worktree_digest": "sha256:114a8c5fa04eb43ad0eec11d290db10eb6db02e74cababe08fbf805d747e9b35"
   },
   "note": "No GitHub API query was run by this generator; tool installation is not inferred.",
   "remoteRef": "origin/main (local tracking ref)",
   "schemaVersion": "design-lab/cloud-baseline/v2",
-  "subjectSha": "9f34b53e7eff5707e087c35bced57bb17b856ab8",
+  "subjectMeaning": "subjectType=WORKTREE means the tree was dirty at generation; worktreeDigest covers HEAD plus the non-generated changes",
+  "subjectSha": "e3ae5f805e8ed35891f1d6ce5eda1af1a71cd866",
+  "subjectType": "WORKTREE",
+  "taskpackHash": "31dde89eb4ede81fe88c0a5c5144adfb86af8db4c4d8c263bde2199180369b69",
+  "taskpackId": "DL-TP-20260908-R5",
+  "testRunId": null,
+  "testRunMeaning": "no bound test run; this projection does not claim a test result",
   "unavailable": [
     "currentRemoteSha",
     "exactShaCI",
     "openPullRequests",
     "branchProtection"
-  ]
+  ],
+  "worktreeClean": false,
+  "worktreeDigest": "sha256:114a8c5fa04eb43ad0eec11d290db10eb6db02e74cababe08fbf805d747e9b35"
 }
