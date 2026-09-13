@@ -15,7 +15,7 @@
     "executor": "DEEPSEEK/DSH",
     "base_sha": "56319635bbcf112ac88d097317262c101ffdfe4d",
     "branch": "codex/deepseek-authority-r1",
-    "worktree": "sha256:e6dfa5c3d01f9fc4dcd3d56fe397df515b8115fc0ebefff8929fdccbbe1234ac",
+    "worktree": "sha256:51dc8c74759daaf70576ec37d6642a5a4b88e062962b170ef85c3730659e92b9",
     "worktree_clean": false
   },
   "authority": {
@@ -606,9 +606,17 @@
       "full_id": "DL-TP-20260914-DEEPSEEK-AUTHORITY-R1::DLDS-F050",
       "wave": "F",
       "wave_title": "Wave 5 - Contract / State Closeout",
-      "status": "NOT_STARTED",
-      "evidence": [],
-      "notes": []
+      "status": "DONE",
+      "evidence": [
+        "src/design_lab/interop/dtcg.py",
+        "src/design_lab/interop/penpot.py"
+      ],
+      "notes": [
+        {
+          "at": "2026-09-13T16:41:47+00:00",
+          "note": "worker delivery re-verified by the lead (134 interop tests OK). DTCG canonical typography requires all five members and the legacy types moved behind an explicit adapter (both in-repo .dtcg.json files are legacy and are now read through it); OTIO overlaps derives from the official in_offset/out_offset covered range instead of a locally invented truth; C2PA carries c2pa.claim.v2 and c2pa.signature with the Asset Graph as source of truth; Penpot gained validate_penpot_archive which checks references inside the ZIP. Known consequence the worker flagged: the report index binds interop test hashes, so --check will drift until DLDS-H030 regenerates"
+        }
+      ]
     },
     {
       "task_key": "DLDS-F060",
@@ -664,45 +672,80 @@
       "full_id": "DL-TP-20260914-DEEPSEEK-AUTHORITY-R1::DLDS-G000",
       "wave": "G",
       "wave_title": "Wave 6 - Third-party Governance",
-      "status": "NOT_STARTED",
-      "evidence": [],
-      "notes": []
+      "status": "DONE",
+      "evidence": [
+        "reports/current/SUPPLY-CHAIN-REPORT.json"
+      ],
+      "notes": [
+        {
+          "at": "2026-09-13T16:41:48+00:00",
+          "note": "sources lock gate: 46 entries all carrying id/path/disposition/licence, no latest alias is used as a production identity, canonical URL coverage 39/46 and revision coverage 0/46 reported as the honest migration debt (a revision cannot be invented for a copy whose own metadata does not carry one)"
+        }
+      ]
     },
     {
       "task_key": "DLDS-G010",
       "full_id": "DL-TP-20260914-DEEPSEEK-AUTHORITY-R1::DLDS-G010",
       "wave": "G",
       "wave_title": "Wave 6 - Third-party Governance",
-      "status": "NOT_STARTED",
-      "evidence": [],
-      "notes": []
+      "status": "DONE",
+      "evidence": [
+        "reports/current/SUPPLY-CHAIN-REPORT.json"
+      ],
+      "notes": [
+        {
+          "at": "2026-09-13T16:41:48+00:00",
+          "note": "adapter registry gate: the frozen eight-value vocabulary is declared with an explicit legacy mapping, coherence is enforced (a declared/structural adapter may not claim above E1; an E3-class claim requires runtime identity and artifact paths), and the 30 entries still on the legacy vocabulary are reported as migration debt rather than silently rewritten without migrating their schema and test"
+        }
+      ]
     },
     {
       "task_key": "DLDS-G020",
       "full_id": "DL-TP-20260914-DEEPSEEK-AUTHORITY-R1::DLDS-G020",
       "wave": "G",
       "wave_title": "Wave 6 - Third-party Governance",
-      "status": "NOT_STARTED",
-      "evidence": [],
-      "notes": []
+      "status": "DONE",
+      "evidence": [
+        "design-lab/config/rights-registry.json"
+      ],
+      "notes": [
+        {
+          "at": "2026-09-13T16:41:48+00:00",
+          "note": "rights registry generated from recorded facts: 74 subjects (providers, code donors, models, licence texts) each with licence, territory, use restriction, output restriction, redistribution, evidence source, observed_at and refresh policy. 4 adjudicated (MiniMax H3, carrying rights decision R0-006), 70 explicitly NOT_ADJUDICATED with the decision owner named, because the registry must not invent a legal position"
+        }
+      ]
     },
     {
       "task_key": "DLDS-G030",
       "full_id": "DL-TP-20260914-DEEPSEEK-AUTHORITY-R1::DLDS-G030",
       "wave": "G",
       "wave_title": "Wave 6 - Third-party Governance",
-      "status": "NOT_STARTED",
-      "evidence": [],
-      "notes": []
+      "status": "DONE",
+      "evidence": [
+        "integrations/generators/minimax-h3/adapter.manifest.json"
+      ],
+      "notes": [
+        {
+          "at": "2026-09-13T16:41:48+00:00",
+          "note": "H3 stays BLOCKED_BY_LICENSE in the adapter manifest, the registry and the model radar; no download, run or benchmark path exists. Fixed a real over-claim the new gate caught: the manifest advertised video-generation as supported true with only the historical E3 run behind it, so it now records status BLOCKED_BY_LICENSE with statusHistory runtime-verified, supported false, and historicalSupported true with the E3 evidence preserved"
+        }
+      ]
     },
     {
       "task_key": "DLDS-G040",
       "full_id": "DL-TP-20260914-DEEPSEEK-AUTHORITY-R1::DLDS-G040",
       "wave": "G",
       "wave_title": "Wave 6 - Third-party Governance",
-      "status": "NOT_STARTED",
-      "evidence": [],
-      "notes": []
+      "status": "DONE",
+      "evidence": [
+        "reports/current/SUPPLY-CHAIN-REPORT.json"
+      ],
+      "notes": [
+        {
+          "at": "2026-09-13T16:41:48+00:00",
+          "note": "supply chain gate PASS over six audits: licence audit, secret scan (one synthetic fixture token exempted by an explicit rule, then zero hits), third-party source audit, lockfile audit, generated-artifact audit and binary inventory. My own gate produced two false positives that are now fixed in the gate rather than in the repository"
+        }
+      ]
     },
     {
       "task_key": "DLDS-H000",
@@ -840,5 +883,5 @@
       "notes": []
     }
   ],
-  "updated_at": "2026-09-13T16:40:37+00:00"
+  "updated_at": "2026-09-13T16:41:48+00:00"
 }
