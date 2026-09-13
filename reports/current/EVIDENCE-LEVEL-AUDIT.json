@@ -1,7 +1,7 @@
 {
   "schemaVersion": "design-lab/evidence-level-audit/v1",
   "task_key": "DL-TP-20260914-DEEPSEEK-AUTHORITY-R1::DLDS-H040",
-  "audited_at": "2026-09-13T16:44:23+00:00",
+  "audited_at": "2026-09-13T16:51:09+00:00",
   "subject_sha": "",
   "claim_surface": [
     "integrations/adapter-registry.json",
@@ -115,5 +115,6 @@
   ],
   "references": [],
   "verdict": "PASS",
+  "self_output_excluded": "reports/current/EVIDENCE-LEVEL-AUDIT.json",
   "gate_is_not_vacuous": "run --self-test: the classifier must return OVERCLAIM for a DeepSeek-authored Photoshop E3, an E4 jury claim and an unbacked Blender E3, and HISTORICAL for a dated E3 with runtime identity and artifacts"
 }

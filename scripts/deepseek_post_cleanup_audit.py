@@ -76,6 +76,61 @@ def main(argv=None) -> int:
     pack_values = dict(line.split(":", 1) for line in pack.splitlines() if ":" in line)
     size_pack = float(pack_values.get("size-pack", "0 MiB").strip().split()[0])
 
+    # The before/after pair has to be honest about what it actually compares. An
+    # INDEPENDENT AUDIT showed the earlier version labelled UNTRACKED-RUNTIME.json as
+    # "measured before the cleanup" when its measured_at (16:26:39) is ten seconds
+    # AFTER the cleanup manifest's deleted_at (16:26:29), and when it totals four
+    # roots against an after-figure that covers two. Both facts are computed here
+    # instead of asserted.
+    def parse_instant(value):
+        try:
+            return datetime.fromisoformat(str(value).replace("Z", "+00:00"))
+        except (TypeError, ValueError):
+            return None
+
+    before_measured_at = size_before.get("measured_at")
+    deleted_at = cleanup.get("deleted_at")
+    before_instant, deleted_instant = parse_instant(before_measured_at), parse_instant(deleted_at)
+    before_roots = sorted((size_before.get("roots") or {}).keys()) if isinstance(
+        size_before.get("roots"), dict) else []
+    before_bytes = sum(r.get("bytes", 0) for r in (size_before.get("roots") or {}).values()) \
+        if isinstance(size_before.get("roots"), dict) else 0
+    after_bytes = sum(r["bytes"] for r in after_roots.values())
+    reclaimed_bytes = cleanup.get("bytes_reclaimed") or 0
+    predates = bool(before_instant and deleted_instant and before_instant < deleted_instant)
+    same_roots = bool(before_roots) and before_roots == sorted(after_roots)
+    like_for_like = predates and same_roots
+    residual_mib = (round((before_bytes - reclaimed_bytes - after_bytes) / 1048576, 2)
+                    if before_bytes and like_for_like else None)
+    before_after = {
+        "before_source": "reports/current/UNTRACKED-RUNTIME.json (DLDS-D000)",
+        "before_measured_at": before_measured_at,
+        "cleanup_deleted_at": deleted_at,
+        "before_predates_deletion": predates,
+        "roots_compared": {"before": before_roots, "after": sorted(after_roots)},
+        "same_root_set": same_roots,
+        "like_for_like": like_for_like,
+        "before_mib": round(before_bytes / 1048576, 2) if before_bytes else size_before.get("total_mib"),
+        "after_mib": round(after_bytes / 1048576, 2),
+        "reclaimed_mib": round(reclaimed_bytes / 1048576, 2),
+        "arithmetic_residual_mib": residual_mib,
+    }
+    if like_for_like:
+        before_after["claim"] = "before/after is like-for-like"
+    else:
+        before_after["claim"] = "WITHDRAWN"
+        before_after["reason"] = (
+            "no like-for-like pair exists: " + "; ".join(filter(None, [
+                "no artifact measured these roots before the deletion "
+                "(the earliest reading is %s, %s the deletion at %s)" % (
+                    before_measured_at, "AFTER" if not predates else "before", deleted_at)
+                if not predates else "",
+                "the two sides cover different root sets (%s vs %s)" % (
+                    ", ".join(before_roots) or "unknown", ", ".join(sorted(after_roots)))
+                if not same_roots else "",
+            ])) + ". The reclaimed bytes above are the measured, digest-backed quantity; "
+                 "no before/after reduction is claimed.")
+
     report: dict = {
         "schemaVersion": "design-lab/post-cleanup-audit/v1",
         "task_key": TASK_KEY,
@@ -93,9 +148,10 @@ def main(argv=None) -> int:
             "meaning": "deleted cache/temp is reclaimed; migrated legacy runtime is relocated inside the "
                        "same volume, so it is moved rather than reclaimed",
         },
-        "before_measurement_source": "reports/current/UNTRACKED-RUNTIME.json (DLDS-D000, measured before "
-                                     "the cleanup)",
+        "before_measurement_source": "reports/current/UNTRACKED-RUNTIME.json (DLDS-D000)",
         "before_measured_mib": size_before.get("total_mib"),
+        "before_measurement_is_precleanup": predates,
+        "before_after": before_after,
     }
     stages = []
     stages.append(("report_generator_generate", *run([str(PYTHON), str(REPO / "scripts/generate_current_reports.py")])))

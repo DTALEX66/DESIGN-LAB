@@ -3,7 +3,7 @@
   "task_keys": [
     "DL-TP-20260914-DEEPSEEK-AUTHORITY-R1::DLDS-B020"
   ],
-  "generated_at": "2026-09-13T16:32:57+00:00",
+  "generated_at": "2026-09-13T17:06:36+00:00",
   "patterns": [
     {
       "name": "design-lab/adapters",
@@ -38,7 +38,7 @@
       "regex": "from\\s+design-lab\\.|import\\s+design-lab\\."
     }
   ],
-  "hit_total": 972,
+  "hit_total": 1015,
   "active_reference_total": 0,
   "blocked_active_hits": [],
   "by_pattern": {
@@ -47,11 +47,11 @@
       "active": 0
     },
     "hermes-path": {
-      "total": 255,
+      "total": 287,
       "active": 0
     },
     "hermes-task-artifacts": {
-      "total": 116,
+      "total": 124,
       "active": 0
     },
     "project-memory": {
@@ -63,7 +63,7 @@
       "active": 0
     },
     "design-lab/adapters": {
-      "total": 52,
+      "total": 55,
       "active": 0
     },
     "intelligence-dir": {
@@ -72,8 +72,8 @@
     }
   },
   "classification_counts": {
-    "MIGRATED": 19,
-    "HISTORICAL_ONLY": 953,
+    "MIGRATED": 27,
+    "HISTORICAL_ONLY": 988,
     "POLICY_RECORD": 0,
     "DELETE": 0,
     "BLOCKED": 0

@@ -1,0 +1,98 @@
+{
+  "schemaVersion": "design-lab/deepseek-task-state/v1",
+  "taskpack": {
+    "taskpack_id": "DL-TP-20260914-DEEPSEEK-AUTHORITY-R1",
+    "taskpack_version": "R1",
+    "taskpack_path": "docs/taskpacks/DESIGN-LAB-DEEPSEEK-AUTHORITY-TASKPACK-2026-09-14.md",
+    "taskpack_sha256": "sha256:d9fdaa3ad7ad0055a3f451c853756be41036b32112cacc4d1c17b314c005a2f9",
+    "created_at": "2026-09-13T16:12:59+00:00",
+    "authoritative": true,
+    "landed_by": "DEEPSEEK/DSH",
+    "provenance": "transcribed from the owner's message in the authority session; the landed file's sha256 is the authority for every later reference"
+  },
+  "task_key": "DL-TP-20260914-DEEPSEEK-AUTHORITY-R1::DLDS-K040",
+  "written_at": "2026-09-13T17:08:21+00:00",
+  "subject_sha": "0e53d30f10ef1b5790d45f477d741f512a6663a1",
+  "branch": "codex/deepseek-authority-r1",
+  "task_count": 58,
+  "status_counts": {
+    "DONE": 51,
+    "NOT_STARTED": 7
+  },
+  "not_done": [
+    {
+      "task_key": "DLDS-H010",
+      "status": "NOT_STARTED",
+      "wave": "Wave 7 - Tests / CI / Evidence"
+    },
+    {
+      "task_key": "DLDS-H030",
+      "status": "NOT_STARTED",
+      "wave": "Wave 7 - Tests / CI / Evidence"
+    },
+    {
+      "task_key": "DLDS-H050",
+      "status": "NOT_STARTED",
+      "wave": "Wave 7 - Tests / CI / Evidence"
+    },
+    {
+      "task_key": "DLDS-K010",
+      "status": "NOT_STARTED",
+      "wave": "Wave 10 - Final DeepSeek Closeout"
+    },
+    {
+      "task_key": "DLDS-K020",
+      "status": "NOT_STARTED",
+      "wave": "Wave 10 - Final DeepSeek Closeout"
+    },
+    {
+      "task_key": "DLDS-K030",
+      "status": "NOT_STARTED",
+      "wave": "Wave 10 - Final DeepSeek Closeout"
+    },
+    {
+      "task_key": "DLDS-K040",
+      "status": "NOT_STARTED",
+      "wave": "Wave 10 - Final DeepSeek Closeout"
+    }
+  ],
+  "executor": "DeepSeek (this run)",
+  "deferred_to_codex": [
+    "Real Host",
+    "Design validation",
+    "GPU inference",
+    "Human Gate"
+  ],
+  "never_claimed": [
+    "DESIGN-LAB product complete",
+    "Photoshop integrated E3",
+    "Illustrator integrated E3",
+    "OpenDesign integrated E3",
+    "ComfyUI production ready",
+    "Blender integrated",
+    "MiniMax validated",
+    "professional design quality passed",
+    "Human Jury passed",
+    "release ready"
+  ],
+  "packet": [
+    "DEEPSEEK-FINAL-AUDIT.md",
+    "DEEPSEEK-TASK-STATE.json",
+    "REPOSITORY-NORMALIZATION-REPORT.md",
+    "LANGUAGE-GOVERNANCE-REPORT.md",
+    "REPOSITORY-SLIMMING-REPORT.md",
+    "DATA-SPILL-MIGRATION-REPORT.md",
+    "CONTRACT-GRAPH-REPORT.md",
+    "docs/taskpacks/DESIGN-LAB-CODEX-REAL-HOST-HANDOFF.md"
+  ],
+  "packet_present": [
+    "DEEPSEEK-FINAL-AUDIT.md",
+    "DEEPSEEK-TASK-STATE.json",
+    "REPOSITORY-NORMALIZATION-REPORT.md",
+    "LANGUAGE-GOVERNANCE-REPORT.md",
+    "REPOSITORY-SLIMMING-REPORT.md",
+    "DATA-SPILL-MIGRATION-REPORT.md",
+    "CONTRACT-GRAPH-REPORT.md",
+    "docs/taskpacks/DESIGN-LAB-CODEX-REAL-HOST-HANDOFF.md"
+  ]
+}

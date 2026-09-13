@@ -4,9 +4,9 @@
     "DL-TP-20260914-DEEPSEEK-AUTHORITY-R1::DLDS-B000",
     "DL-TP-20260914-DEEPSEEK-AUTHORITY-R1::DLDS-B010"
   ],
-  "generated_at": "2026-09-13T16:32:56+00:00",
-  "tracked_file_total": 1860,
-  "tracked_bytes_total": 32061814,
+  "generated_at": "2026-09-13T17:06:35+00:00",
+  "tracked_file_total": 1891,
+  "tracked_bytes_total": 32467751,
   "scheme": {
     "apps": {
       "responsibility": "runnable front ends",
@@ -309,7 +309,7 @@
       "git_ignored": true,
       "tracked_files": 0,
       "tracked_bytes": 0,
-      "ignored_files": 63635,
+      "ignored_files": 63705,
       "responsibility": "all ignored runtime data",
       "owner": "runs, state, cache, artifacts, exports, logs, temp",
       "conformance": "CONFORM",
@@ -559,9 +559,9 @@
       "name": "design-lab",
       "kind": "dir",
       "git_ignored": false,
-      "tracked_files": 766,
-      "tracked_bytes": 4585503,
-      "ignored_files": 310,
+      "tracked_files": 768,
+      "tracked_bytes": 4726040,
+      "ignored_files": 350,
       "responsibility": "LEGACY dual scheme: design-domain content root retained while runtime code lives in src/design_lab",
       "owner": "config, schemas, tests, scripts, domain-packs, evals",
       "conformance": "DEVIATION",
@@ -572,7 +572,7 @@
           "role": "unassigned"
         },
         "design-lab/tests": {
-          "tracked_files": 156,
+          "tracked_files": 157,
           "role": "unassigned"
         },
         "design-lab/schemas": {
@@ -592,7 +592,7 @@
           "role": "unassigned"
         },
         "design-lab/config": {
-          "tracked_files": 33,
+          "tracked_files": 34,
           "role": "unassigned"
         },
         "design-lab/templates": {
@@ -621,8 +621,8 @@
       "name": "docs",
       "kind": "dir",
       "git_ignored": false,
-      "tracked_files": 250,
-      "tracked_bytes": 12976755,
+      "tracked_files": 251,
+      "tracked_bytes": 12990380,
       "ignored_files": 0,
       "responsibility": "documentation",
       "owner": "current / architecture / decisions / taskpacks / history",
@@ -646,7 +646,7 @@
           "role": "unassigned"
         },
         "docs/taskpacks": {
-          "tracked_files": 15,
+          "tracked_files": 16,
           "role": "unassigned"
         },
         "docs/golden-cases": {
@@ -702,7 +702,7 @@
       "kind": "dir",
       "git_ignored": false,
       "tracked_files": 76,
-      "tracked_bytes": 2334341,
+      "tracked_bytes": 2335381,
       "ignored_files": 6,
       "responsibility": "third-party boundary",
       "owner": "hosts, generators, executors, mcp, canvases",
@@ -766,8 +766,8 @@
       "name": "reports",
       "kind": "dir",
       "git_ignored": false,
-      "tracked_files": 129,
-      "tracked_bytes": 1176938,
+      "tracked_files": 140,
+      "tracked_bytes": 1175077,
       "ignored_files": 0,
       "responsibility": "generated projections and history",
       "owner": "current projections",
@@ -779,7 +779,7 @@
           "role": "unassigned"
         },
         "reports/current": {
-          "tracked_files": 31,
+          "tracked_files": 42,
           "role": "unassigned"
         },
         "reports/migration": {
@@ -827,9 +827,9 @@
       "name": "scripts",
       "kind": "dir",
       "git_ignored": false,
-      "tracked_files": 23,
-      "tracked_bytes": 166666,
-      "ignored_files": 6,
+      "tracked_files": 38,
+      "tracked_bytes": 327847,
+      "ignored_files": 12,
       "responsibility": "thin repository entry points",
       "owner": "generators and verifiers",
       "conformance": "CONFORM",
@@ -853,16 +853,16 @@
       "name": "src",
       "kind": "dir",
       "git_ignored": false,
-      "tracked_files": 78,
-      "tracked_bytes": 681625,
-      "ignored_files": 68,
+      "tracked_files": 80,
+      "tracked_bytes": 773040,
+      "ignored_files": 80,
       "responsibility": "DESIGN-LAB owned runtime logic",
       "owner": "runtime, analysis, state, orchestration, domain logic",
       "conformance": "CONFORM",
       "note": "runtime core",
       "second_level": {
         "src/design_lab": {
-          "tracked_files": 78,
+          "tracked_files": 80,
           "role": "unassigned"
         }
       }

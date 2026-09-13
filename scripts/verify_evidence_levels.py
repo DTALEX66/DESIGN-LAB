@@ -169,6 +169,7 @@ CLAIM_SURFACE = (
     "docs/handoffs/DEEPSEEK-",
 )
 OUT_OF_SCOPE_PREFIXES = ("docs/history/", "reports/history/", "docs/taskpacks/")
+SELF_OUTPUT = "reports/current/EVIDENCE-LEVEL-AUDIT.json"
 AGENT_AUTHORED = ("docs/handoffs/DEEPSEEK-", "reports/current/DEEPSEEK-")
 PROFESSIONAL_HOSTS = ("photoshop", "illustrator", "premiere", "after effects", "media encoder",
                       "indesign", "blender", "opendesign", "open design", "minimax design")
@@ -177,6 +178,11 @@ DATED = re.compile(r"20\d\d-\d\d-\d\d")
 
 def in_claim_surface(rel: str) -> bool:
     if rel.startswith(OUT_OF_SCOPE_PREFIXES):
+        return False
+    if rel == SELF_OUTPUT:
+        # Self-reference: the gate's own report lists the claims it found, so scanning
+        # it re-counts them as new claims and the artefact doubles on every run
+        # (4 -> 8). An INDEPENDENT AUDIT caught the non-idempotence.
         return False
     return any(rel == prefix or rel.startswith(prefix) for prefix in CLAIM_SURFACE)
 
@@ -287,16 +293,29 @@ def main(argv=None) -> int:
         "historical": historical,
         "references": references,
         "verdict": "PASS" if not overclaims else "FAIL",
+        "self_output_excluded": SELF_OUTPUT,
         "gate_is_not_vacuous": "run --self-test: the classifier must return OVERCLAIM for a "
                                "DeepSeek-authored Photoshop E3, an E4 jury claim and an "
                                "unbacked Blender E3, and HISTORICAL for a dated E3 with runtime "
                                "identity and artifacts",
     }
     if args.check:
-        if not OUT.is_file() or json.loads(OUT.read_text(encoding="utf-8"))["counts"] != document["counts"]:
-            print("EVIDENCE_LEVELS=DRIFT")
+        # Compare the classification itself, not only the counts: the earlier check
+        # could not see a claim move between two verdicts.
+        if not OUT.is_file():
+            print("EVIDENCE_LEVELS=DRIFT missing " + OUT.name)
             return 1
-        print("EVIDENCE_LEVELS=PASS")
+        stored = json.loads(OUT.read_text(encoding="utf-8"))
+        keys = ("overclaims", "review", "historical", "references")
+
+        def classified(document):
+            return sorted((c["path"], c["level"], c["verdict"])
+                          for key in keys for c in document.get(key, []))
+
+        if stored.get("counts") != document["counts"] or classified(stored) != classified(document):
+            print("EVIDENCE_LEVELS=DRIFT classification changed since generation")
+            return 1
+        print("EVIDENCE_LEVELS=PASS (counts and every classified claim match)")
         return 0
     OUT.parent.mkdir(parents=True, exist_ok=True)
     OUT.write_text(json.dumps(document, indent=2, ensure_ascii=False) + "\n",

@@ -1,0 +1,168 @@
+{
+  "schemaVersion": "design-lab/deepseek-final-repository-audit/v1",
+  "task_key": "DL-TP-20260914-DEEPSEEK-AUTHORITY-R1::DLDS-K030",
+  "audited_at": "2026-09-13T17:08:20+00:00",
+  "subject_sha": "0e53d30f10ef1b5790d45f477d741f512a6663a1",
+  "measured": {
+    "files_before_after": {
+      "before": {
+        "revision": "56319635bbcf112ac88d097317262c101ffdfe4d",
+        "files": 1832,
+        "bytes": 31610590,
+        "mib": 30.15
+      },
+      "after": {
+        "files": 1891,
+        "bytes": 32469409,
+        "mib": 30.97
+      },
+      "source": "git ls-tree -r -l 56319635bbcf112ac88d097317262c101ffdfe4d vs git ls-files",
+      "like_for_like": true,
+      "revision_before": "56319635bbcf112ac88d097317262c101ffdfe4d",
+      "revision_after": "0e53d30f10ef1b5790d45f477d741f512a6663a1",
+      "delta_files": 59,
+      "delta_mib": 0.82
+    },
+    "git_pack_before_after": {
+      "after_pack_mib": 210.4,
+      "before_pack_mib": null,
+      "like_for_like": false,
+      "reason": "the object store is cumulative and its earlier state is not recoverable from this clone after the fact; only the current pack size is measured, and no reduction is claimed"
+    },
+    "runtime_data_before_after": {
+      "measured_now": {
+        ".project-local": {
+          "files": 65832,
+          "bytes": 4719580132,
+          "mib": 4500.94
+        },
+        ".hermes": {
+          "files": 1,
+          "bytes": 13638,
+          "mib": 0.01
+        }
+      },
+      "recorded_earlier": {
+        "UNTRACKED-RUNTIME.json": {
+          "at": "2026-09-13T16:26:39+00:00",
+          "total_mib": 4448.46,
+          "roots": [
+            ".hermes",
+            ".project-local",
+            ".pytest_cache",
+            ".venv"
+          ]
+        },
+        "POST-CLEANUP-AUDIT.json": {
+          "at": "2026-09-13T17:06:31+00:00",
+          "roots": {
+            ".project-local": {
+              "files": 65832,
+              "bytes": 4719582316,
+              "mib": 4500.94
+            },
+            ".hermes": {
+              "files": 1,
+              "bytes": 13638,
+              "mib": 0.01
+            }
+          }
+        }
+      },
+      "like_for_like": false,
+      "reason": "the recorded readings disagree with each other about the root set and the earliest of them post-dates the deletion it is used as a 'before' for; see POST-CLEANUP-AUDIT.json#before_after for the computation"
+    },
+    "bytes_reclaimed": {
+      "temp_cache_deleted_bytes": 332173158,
+      "temp_cache_deleted_mib": 316.79,
+      "entries": 167,
+      "source": ".project-local/quarantine/deepseek-round1/RUNTIME-CLEANUP-MANIFEST.json"
+    },
+    "third_party_copies_removed": {
+      "tracked_full_copies_now": 3,
+      "in_ignored_cache": 37,
+      "lock_references": 6,
+      "verdict": "NO_FULL_THIRD_PARTY_SOURCE_TREES_TRACKED"
+    },
+    "spill_migrated": {
+      "objects": 10,
+      "bytes": 11565138,
+      "manifest": ".project-local/archive/hermes-legacy/MIGRATION-MANIFEST.json",
+      "verified_digests": 10,
+      "restore": "python scripts/deepseek_hermes_migration.py --restore",
+      "meaning": "relocated inside the same volume, so moved rather than reclaimed"
+    },
+    "spill_deleted": {
+      "empty_legacy_directories_removed": 3,
+      "bytes": 0,
+      "refused": [
+        ".hermes/skill-call-index.json"
+      ],
+      "note": "the legacy runtime namespace held only empty directories and one refused agent-native file; nothing with content was deleted"
+    },
+    "remaining_exceptions": [
+      {
+        "area": "third-party lock",
+        "exception": "7 of 46 sources.lock entries carry no canonical URL and 0 carry a pinned revision; the lock records what is absorbed, not where to fetch it",
+        "state": "REPORTED_NOT_FIXED",
+        "owner": "Codex or owner"
+      },
+      {
+        "area": "runtime volume",
+        "exception": ".project-local holds evidence-bearing run directories left in place at OWNER_DELETE_APPROVAL_REQUIRED; reclaiming them needs owner approval",
+        "state": "OWNER_DELETE_APPROVAL_REQUIRED",
+        "owner": "DTALEX66"
+      },
+      {
+        "area": "python tooling",
+        "exception": "ruff is declared but not installed, so lint is not enforced; pytest is not installed and the suite runs under unittest; uv is not installed, so no uv.lock exists",
+        "state": "REPORTED_NOT_FIXED",
+        "owner": "owner decision"
+      },
+      {
+        "area": "node tooling",
+        "exception": "no product Node package exists: the only manifest belongs to the game-visual fixture, and there is no lockfile",
+        "state": "BY_DESIGN",
+        "owner": "n/a"
+      },
+      {
+        "area": "tracked backups",
+        "exception": "design-lab/config/capability-index-v1-backup.json (445 KB) is still tracked",
+        "state": "REPORTED_NOT_FIXED",
+        "owner": "owner decision"
+      },
+      {
+        "area": "legacy package",
+        "exception": "design-lab/core is an unused legacy package outside the declared layout",
+        "state": "REPORTED_NOT_FIXED",
+        "owner": "owner decision"
+      },
+      {
+        "area": "empty directory",
+        "exception": "services/ is an empty tracked-adjacent directory (EMPTY_DIR deviation in the directory audit)",
+        "state": "REPORTED_NOT_FIXED",
+        "owner": "owner decision"
+      },
+      {
+        "area": "live database",
+        "exception": ".project-local/state/ does not exist, so a claim that 'the live database is unmodified' is not verifiable as stated; the proxy used is that no *.db under .project-local changed",
+        "state": "NOT_VERIFIABLE_AS_STATED",
+        "owner": "n/a"
+      },
+      {
+        "area": "agent-native artifact",
+        "exception": ".hermes/skill-call-index.json is not provably DESIGN-LAB-owned and is left untouched (DO_NOT_TOUCH)",
+        "state": "REFUSED_BY_POLICY",
+        "owner": "n/a"
+      },
+      {
+        "area": "measurement",
+        "exception": "no like-for-like before/after exists for the runtime roots or the git pack, so the only reduction claimed is the digest-backed reclaimed byte count",
+        "state": "WITHDRAWN_CLAIM",
+        "owner": "n/a"
+      }
+    ]
+  },
+  "supply_chain_verdict": "PASS",
+  "verdict": "PASS"
+}

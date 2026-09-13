@@ -135,6 +135,9 @@ def build() -> dict:
         authority_class, basis = classify(rel, head_text(path))
         entry = {"path": rel, "bytes": path.stat().st_size, "sha256": sha256_file(path),
                  "authority_class": authority_class, "basis": basis}
+        if rel == AUTHORITY_LEDGER:
+            entry["mutable_state"] = ("the ledger is rewritten at the close of every task, so "
+                                      "its bytes and digest are generation-time")
         summary = ledger_summary(rel)
         if summary:
             entry["ledger"] = summary
@@ -218,11 +221,29 @@ def main(argv=None) -> int:
         if not path.is_file():
             print(f"AUTHORITY_CHAIN=FAIL missing {OUTPUT}")
             return 1
-        current = path.read_text(encoding="utf-8")
-        if json.loads(current)["entries"] != document["entries"]:
-            print("AUTHORITY_CHAIN=DRIFT entries changed since generation")
+        stored = json.loads(path.read_text(encoding="utf-8"))
+        # The classification is the claim this artifact makes; the bytes/digest of the
+        # authority ledger are not, because that file is rewritten every time a task
+        # closes. Comparing entries verbatim (the earlier behaviour) made the artifact
+        # fail its own check the moment any task completed, which is noise, not a gate.
+        def projection(entries):
+            return {e["path"]: {k: v for k, v in e.items()
+                                if not (e.get("mutable_state") and k in {"bytes", "sha256"})}
+                    for e in entries}
+
+        stored_entries, fresh_entries = projection(stored["entries"]), projection(document["entries"])
+        changed = sorted(p for p in set(stored_entries) | set(fresh_entries)
+                         if stored_entries.get(p) != fresh_entries.get(p))
+        if changed:
+            print(f"AUTHORITY_CHAIN=DRIFT entries changed since generation: {changed[:10]}")
             return 1
-        print("AUTHORITY_CHAIN=PASS (entries match; hashes are generation-time)")
+        ledger = next((e for e in stored["entries"] if e.get("mutable_state")), None)
+        if ledger:
+            print(f"AUTHORITY_CHAIN=PASS (classification matches for {len(stored_entries)} "
+                  f"entries; mutable ledger digest recorded at generation was "
+                  f"{ledger['sha256'][:19]}… and is not a stability claim)")
+            return 0
+        print(f"AUTHORITY_CHAIN=PASS (classification matches for {len(stored_entries)} entries)")
         return 0
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(text, encoding="utf-8", newline="\n")

@@ -157,7 +157,15 @@ def diff(snapshot_id: str) -> int:
 
 
 def self_test() -> int:
-    """Run a real read-only DESIGN-LAB command between two snapshots."""
+    """Run a real read-only DESIGN-LAB command between two snapshots.
+
+    The command's exit code is part of the evidence. A command that failed may have
+    aborted before it did any work, so it proves nothing about spill; an INDEPENDENT
+    AUDIT caught this self-test wrapping a ``--check`` that exited 1 and returning the
+    spill verdict anyway. The task under test is therefore also required to succeed,
+    which couples this self-test to the projection freshness gate: run
+    ``scripts/generate_current_reports.py`` before it.
+    """
     before_id = "self-test-before"
     if snapshot(before_id) != 0:
         return 1
@@ -167,7 +175,13 @@ def self_test() -> int:
                             cwd=str(REPO), timeout=300)
     print(f"  task under test: {' '.join(Path(part).name for part in command)} "
           f"exit={result.returncode}")
-    return diff(before_id)
+    spill = diff(before_id)
+    if result.returncode != 0:
+        print(f"ZERO_SPILL_SELF_TEST=FAIL the task under test exited {result.returncode} "
+              f"({result.stdout.strip().splitlines()[-1] if result.stdout.strip() else 'no output'}); "
+              "a failing command cannot prove that a working command does not spill")
+        return 1
+    return spill
 
 
 def main(argv=None) -> int:

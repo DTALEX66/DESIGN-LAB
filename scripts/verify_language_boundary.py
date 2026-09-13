@@ -41,6 +41,20 @@ VOCABULARIES = {
     "provider_license": "design-lab/schemas/provider-capability.schema.json",
 }
 MIN_TOKENS = 3
+# What this detector does and does not see. The token pattern needs three or more
+# characters, so a two-character token such as "E0" can never match, and a copy is
+# only counted when one line carries enough canonical tokens. The count is therefore
+# a LOWER BOUND on hand-written copies, not a completeness audit; the property the
+# gate enforces is that every copy it does find agrees with its owning schema.
+DETECTOR_SCOPE = {
+    "unit": "one source line",
+    "token_pattern": r"[A-Z][A-Z0-9_]{2,} (three or more characters)",
+    "min_tokens_per_line": MIN_TOKENS,
+    "count_is": "a lower bound on hand-written copies; short tokens such as E0 are "
+                "invisible to this detector and are not counted",
+    "enforced_property": "every detected copy agrees with the owning schema "
+                         "(disagreement is a failure, agreement is informational)",
+}
 
 
 def git(*args: str) -> str:
@@ -223,6 +237,7 @@ def main(argv=None) -> int:
         "tracked_files_scanned": len(files),
         "language_boundary": boundary,
         "vocabularies": {"canonical": {k: len(v["tokens"]) for k, v in canonical.items()},
+                         "detector_scope": DETECTOR_SCOPE,
                          **vocabularies},
         "failures": failures,
         "verdict": "PASS" if not failures else "FAIL",
@@ -231,6 +246,9 @@ def main(argv=None) -> int:
                                      "and an ADR, so it is reported, not forbidden",
             "agreeing_copies": "a copy that agrees with the schema is informational; the gate fails "
                                "only on disagreement",
+            "copy_count": "copy_count is a lower bound measured by DETECTOR_SCOPE, not a "
+                          "completeness audit: it is not evidence that a vocabulary copy was "
+                          "lost when the number falls",
         },
     }
     OUT.parent.mkdir(parents=True, exist_ok=True)

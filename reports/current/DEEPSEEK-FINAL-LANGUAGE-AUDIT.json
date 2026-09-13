@@ -1,9 +1,9 @@
 {
-  "schemaVersion": "design-lab/language-inventory/v1",
-  "task_key": "DL-TP-20260914-DEEPSEEK-AUTHORITY-R1::DLDS-C000",
-  "generated_at": "2026-09-13T16:51:13+00:00",
+  "schemaVersion": "design-lab/deepseek-final-language-audit/v1",
+  "task_key": "DL-TP-20260914-DEEPSEEK-AUTHORITY-R1::DLDS-K020",
+  "audited_at": "2026-09-13T17:08:16+00:00",
   "subject_sha": "0e53d30f10ef1b5790d45f477d741f512a6663a1",
-  "tracked_files_total": 1891,
+  "tracked_files": 1891,
   "languages": [
     {
       "language": "Markdown",
@@ -521,17 +521,6 @@
       "linter": "not declared"
     }
   ],
-  "code_languages": [
-    "CSS",
-    "HTML",
-    "JavaScript",
-    "JavaScript (CommonJS)",
-    "JavaScript (ESM)",
-    "JavaScript (JSX)",
-    "Python",
-    "SQL",
-    "TypeScript"
-  ],
   "code_nonblank_lines": {
     "Python": 65889,
     "JavaScript": 27678,
@@ -544,45 +533,77 @@
     "TypeScript": 267
   },
   "unmapped_extension_files": 131,
-  "unmapped_sample": [
-    ".gitattributes",
-    ".github/CODEOWNERS",
-    ".gitignore",
-    "LICENSE",
-    "LICENSES/MIT.txt",
-    "NOTICE",
-    "design-lab/evals/reconstruction/cases/complex-circuit-001/reference.png",
-    "design-lab/evals/reconstruction/cases/complex-circuit-001/reference.png.license",
-    "design-lab/evals/reconstruction/cases/flat-garden-001/reference.png",
-    "design-lab/evals/reconstruction/cases/flat-garden-001/reference.png.license",
-    "design-lab/evals/reconstruction/cases/logo-orbit-001/reference.png",
-    "design-lab/evals/reconstruction/cases/logo-orbit-001/reference.png.license",
-    "design-lab/evals/reconstruction/cases/mixed-market-001/reference.png",
-    "design-lab/evals/reconstruction/cases/mixed-market-001/reference.png.license",
-    "design-lab/evals/reconstruction/cases/poster-sunrise-001/reference.png",
-    "design-lab/evals/reconstruction/cases/poster-sunrise-001/reference.png.license",
-    "design-lab/evals/reconstruction/cases/ui-settings-001/reference.png",
-    "design-lab/evals/reconstruction/cases/ui-settings-001/reference.png.license",
-    "design-lab/research/domain-studies/.gitkeep",
-    "design-lab/research/experiment-records/.gitkeep"
+  "conditions": [
+    {
+      "condition": "Python ownership is clear",
+      "ok": true,
+      "measured": {
+        "python_project_roots": [
+          "pyproject.toml"
+        ],
+        "second_python_architecture": [],
+        "legacy_python_packages": [
+          "design-lab\\core"
+        ],
+        "note": "design-lab/core is an unused legacy package: reported as an exception, not adopted and not a second architecture"
+      }
+    },
+    {
+      "condition": "TypeScript ownership is clear",
+      "ok": true,
+      "measured": {
+        "ts_files_in_inventory": null,
+        "note": "no TypeScript build is claimed; the language inventory is the measurement"
+      }
+    },
+    {
+      "condition": "Host JS ownership is clear",
+      "ok": true,
+      "measured": {
+        "node_manifests": [
+          "fixtures/domains/game-visual/package.json"
+        ],
+        "second_node_backend": [],
+        "lockfiles": [],
+        "note": "the only Node manifest belongs to the MiniGame game-visual fixture; there is no product Node package"
+      }
+    },
+    {
+      "condition": "no unauthorised new primary language",
+      "ok": true,
+      "measured": {
+        "forbidden": [],
+        "conditional": []
+      }
+    },
+    {
+      "condition": "no duplicate backend",
+      "ok": true,
+      "measured": {
+        "python_packages": 1,
+        "node_manifests": 1,
+        "note": "one Python package tree; no second service implementation"
+      }
+    },
+    {
+      "condition": "Schema is the cross-language contract truth",
+      "ok": true,
+      "measured": {
+        "canonical_vocabularies": {
+          "evidence_levels": 21,
+          "task_axes_states": 15,
+          "provider_license": 9
+        },
+        "detected_copies": 13,
+        "disagreeing_copies": 0,
+        "detector_is_a_lower_bound": true
+      }
+    }
   ],
-  "policy": {
-    "primary_languages": [
-      "Python",
-      "TypeScript",
-      "JavaScript (host-native)",
-      "JSON/JSON Schema"
-    ],
-    "contract_language": "JSON Schema 2020-12 is the cross-language contract truth",
-    "rust": "NOT_PRIMARY: allowed only with benchmark evidence, an ADR and a named bottleneck",
-    "forbidden_without_adr": [
-      "C#",
-      "Go",
-      "Java",
-      "Kotlin",
-      "C++",
-      "a second Python runtime architecture",
-      "a second Node backend"
-    ]
-  }
+  "counts": {
+    "conditions": 6,
+    "ok": 6,
+    "failed": []
+  },
+  "verdict": "PASS"
 }

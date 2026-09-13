@@ -28,6 +28,7 @@ from pathlib import Path
 
 REPO = Path(__file__).resolve().parents[1]
 OUT = REPO / "reports/current/SUPPLY-CHAIN-REPORT.json"
+SELF_OUTPUT_REL = "reports/current/SUPPLY-CHAIN-REPORT.json"
 TASK_KEYS = [f"DL-TP-20260914-DEEPSEEK-AUTHORITY-R1::DLDS-{key}"
              for key in ("G000", "G010", "G030", "G040")]
 CANONICAL_STATUS = ("DECLARED", "STRUCTURAL", "CONTROLLED_RUNTIME", "REAL_WORKFLOW",
@@ -161,19 +162,39 @@ def license_audit(files: list) -> dict:
 
 SYNTHETIC_MARKERS = ("should-not", "shouldnot", "example", "dummy", "fake", "placeholder",
                      "your-", "changeme", "redacted", "not-a-real", "xxxx", "<", "fixture")
+# A value whose own shape is a real credential format. A test path is NOT evidence
+# that such a value is synthetic: a real key pasted into a fixture would be exempted
+# by a blanket path rule, which is exactly how a leak survives a scan. Only an
+# in-value marker may exempt these.
+CREDENTIAL_SHAPES = tuple(pattern for name, pattern in SECRET_PATTERNS
+                          if name != "generic-secret")
+TEST_PATHS = ("fixtures/", "design-lab/tests/", "tests/")
 
 
 def is_synthetic(path: str, match: str) -> bool:
-    """Test fixtures name their values so that nobody thinks they are real."""
+    """Test fixtures name their values so that nobody thinks they are real.
+
+    The decision is made from the *value*, then from the path only for values that
+    carry no credential format of their own. An INDEPENDENT AUDIT showed the earlier
+    blanket path rule returned True for an AWS-key-shaped literal sitting in a test
+    file, so this function is deliberately callable that way and still returns False.
+    """
     lowered = match.lower()
     if any(marker in lowered for marker in SYNTHETIC_MARKERS):
         return True
-    return path.startswith(("fixtures/", "design-lab/tests/", "tests/"))
+    if any(shape.search(match) for shape in CREDENTIAL_SHAPES):
+        return False
+    return path.startswith(TEST_PATHS)
 
 
 def secret_scan(files: list) -> dict:
-    hits, exempt = [], 0
+    hits, exempted = [], []
     for rel in files:
+        if rel == SELF_OUTPUT_REL:
+            # Self-reference: this report quotes the matches it found, so scanning it
+            # would flag the report itself on every subsequent run. The exclusion is
+            # narrow (one derived artifact) and is recorded in the result.
+            continue
         path = REPO / rel
         try:
             if path.stat().st_size > 1_000_000:
@@ -185,13 +206,49 @@ def secret_scan(files: list) -> dict:
             for match in pattern.finditer(text):
                 value = match.group(0)
                 if is_synthetic(rel, value):
-                    exempt += 1
+                    exempted.append({"pattern": name, "path": rel,
+                                     "reason": "in-value synthetic marker"
+                                     if any(m in value.lower() for m in SYNTHETIC_MARKERS)
+                                     else "test/fixture path, no credential format in the value"})
                     continue
                 line = text.count("\n", 0, match.start()) + 1
                 hits.append({"pattern": name, "path": rel, "line": line,
                              "match": value[:24] + "…"})
     return {"patterns": [name for name, _ in SECRET_PATTERNS], "hits": hits[:50],
-            "hit_count": len(hits), "synthetic_values_exempted": exempt, "ok": not hits}
+            "hit_count": len(hits), "synthetic_values_exempted": len(exempted),
+            "exempted": exempted[:20],
+            "self_output_excluded": SELF_OUTPUT_REL,
+            "exemption_rule": "an in-value synthetic marker, or a test/fixture path for a value "
+                              "that carries no credential format of its own; a value with a real "
+                              "credential format is never exempted by path alone",
+            "ok": not hits}
+
+
+# The fixtures are assembled from fragments on purpose. A credential-shaped literal
+# sitting in this file at rest would be flagged by this very scanner, and the tempting
+# fix for that is to exempt the scanner's own path — which is the hole this rule
+# closes. Assembled values are still real inputs to the rule under test.
+FAKE_AWS_KEY = "AKIA" + "3XJ7QZ2LMN4PQRST"
+FAKE_PRIVATE_KEY = "-----BEGIN " + "RSA PRIVATE KEY-----"
+FAKE_GENERIC_SECRET = "token: " + "'should-not-enter-event-bus'"
+FAKE_PLACEHOLDER = "api_key: " + "'placeholder-value-for-local-dev'"
+
+SELF_TEST_CASES = [
+    ("test path must not exempt a credential-shaped value",
+     "design-lab/tests/test_runtime_asset_safety.py", FAKE_AWS_KEY, False),
+    ("test path must not exempt a private key header",
+     "fixtures/probe.py", FAKE_PRIVATE_KEY, False),
+    ("test path may exempt a value that names itself synthetic",
+     "fixtures/domains/game-visual/tests/analytics.test.js", FAKE_GENERIC_SECRET, True),
+    ("a placeholder marked as such is exempt anywhere",
+     "src/design_lab/config.py", FAKE_PLACEHOLDER, True),
+]
+
+
+def self_test() -> list:
+    return [f"{description}: is_synthetic({path!r}, {value!r}) returned {is_synthetic(path, value)}"
+            for description, path, value, expected in SELF_TEST_CASES
+            if is_synthetic(path, value) is not expected]
 
 
 def lockfile_audit(files: list) -> dict:
@@ -229,7 +286,15 @@ def third_party_audit() -> dict:
 def main(argv=None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--check", action="store_true")
+    parser.add_argument("--self-test", action="store_true",
+                        help="prove the synthetic-value exemption cannot swallow a credential")
     args = parser.parse_args(argv)
+    if args.self_test:
+        failures = self_test()
+        print("SUPPLY_CHAIN_SELF_TEST=" + ("PASS" if not failures else "FAIL"))
+        for failure in failures:
+            print("  FAIL", failure)
+        return 0 if not failures else 1
     files = tracked()
     checks = {
         "G000_sources_lock": sources_lock_check(files),
@@ -260,10 +325,23 @@ def main(argv=None) -> int:
         },
     }
     if args.check:
-        if not OUT.is_file() or json.loads(OUT.read_text(encoding="utf-8"))["verdict"] != document["verdict"]:
-            print("SUPPLY_CHAIN=DRIFT")
+        # Compare the failing set and the per-check pass/fail, not only the headline
+        # verdict: two different failures both read as "FAIL" and a stored FAIL
+        # compared against a fresh FAIL used to report PASS.
+        if not OUT.is_file():
+            print("SUPPLY_CHAIN=DRIFT missing " + OUT.name)
             return 1
-        print("SUPPLY_CHAIN=PASS")
+        stored = json.loads(OUT.read_text(encoding="utf-8"))
+        stored_check_state = {name: r.get("ok") for name, r in stored.get("checks", {}).items()}
+        fresh_check_state = {name: r.get("ok") for name, r in checks.items()}
+        if (stored.get("verdict") != document["verdict"]
+                or stored.get("failures") != failures
+                or stored_check_state != fresh_check_state):
+            print(f"SUPPLY_CHAIN=DRIFT stored verdict={stored.get('verdict')} "
+                  f"fresh={document['verdict']} stored_failures={stored.get('failures')} "
+                  f"fresh_failures={failures}")
+            return 1
+        print("SUPPLY_CHAIN=PASS (verdict, failure list and every check agree)")
         return 0
     OUT.parent.mkdir(parents=True, exist_ok=True)
     OUT.write_text(json.dumps(document, indent=2, ensure_ascii=False) + "\n",

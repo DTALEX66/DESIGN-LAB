@@ -40,8 +40,7 @@ ROOTS = (".project-local", ".hermes")
 MANIFEST = REPO / ".project-local/quarantine/deepseek-round1/RUNTIME-CLEANUP-MANIFEST.json"
 OUT = REPO / "reports/current/RUNTIME-CLEANUP-PLAN.json"
 TASK_KEY = "DL-TP-20260914-DEEPSEEK-AUTHORITY-R1::DLDS-D030"
-TEMP_MARKERS = ("/tmp/", "/__pycache__/", "/pip-cache/", "/.cache/")
-TEMP_PREFIXES = (".pytest_cache/",)
+TEMP_NAMES = {"__pycache__", "tmp", ".pytest_cache", "pip-cache", ".cache"}
 RECREATION = {
     "__pycache__": "python regenerates it on the next import",
     "tmp": "the producing command recreates its temp directory",
@@ -52,12 +51,18 @@ RECREATION = {
 
 
 def classify(rel: str) -> tuple:
-    posix = rel.replace("\\", "/") + ("" if rel.endswith("/") else "")
-    if any(prefix in posix for prefix in TEMP_PREFIXES) or any(marker in "/" + posix for marker in TEMP_MARKERS):
-        for marker in ("__pycache__", "pip-cache", ".pytest_cache", "tmp", ".cache"):
-            if marker in posix:
-                return "TEMP_CACHE", RECREATION.get(marker, "recreated by the producing command")
-        return "TEMP_CACHE", "recreated by the producing command"
+    """Classify by path *component*, never by substring.
+
+    The earlier rule searched for ``/__pycache__/`` with a trailing slash, so a path
+    whose last component was the temp name (which is every path this tool deletes)
+    never matched and fell through to EVIDENCE_BEARING. An INDEPENDENT AUDIT caught
+    the result: all 167 deleted records were labelled "evidence-bearing, owner
+    approval required" while 166 of them were gone. Classification is by component
+    equality now, so the label and the action cannot disagree again.
+    """
+    for part in Path(rel.replace("\\", "/")).parts:
+        if part in TEMP_NAMES:
+            return "TEMP_CACHE", RECREATION.get(part, "recreated by the producing command")
     return "EVIDENCE_BEARING", "referenced as run output or evidence; owner approval required"
 
 
@@ -79,7 +84,21 @@ def measure(path: Path) -> tuple:
     return files, total, "sha256:" + digest.hexdigest()
 
 
+def entry_for(rel: str) -> dict:
+    kind, reason = classify(rel)
+    files, size, digest = measure(REPO / rel)
+    return {"path": rel.replace("\\", "/"), "classification": kind, "files": files,
+            "bytes": size, "digest": digest, "reason": reason}
+
+
 def collect() -> tuple:
+    """Membership is decided by the same classification that gates deletion.
+
+    Fail closed: an entry is deletable only when it classifies as recreatable
+    cache/temp. The earlier version added any directory whose *name* looked like a
+    temp directory and then recorded whatever classification it happened to compute,
+    which is how an "owner approval required" label ended up on a deleted path.
+    """
     deletable, protected = [], []
     for root_name in ROOTS:
         root = REPO / root_name
@@ -88,33 +107,22 @@ def collect() -> tuple:
         for path in sorted(root.iterdir()):
             if not path.is_dir():
                 continue
-            if path.name in {"__pycache__", "tmp", ".pytest_cache", "pip-cache", ".cache"}:
-                files, size, digest = measure(path)
-                kind, reason = classify(f"{root_name}/{path.name}")
-                deletable.append({"path": str(path.relative_to(REPO)).replace("\\", "/"),
-                                  "classification": kind, "files": files, "bytes": size,
-                                  "digest": digest, "reason": reason})
+            candidates = [path] if path.name in TEMP_NAMES else \
+                [c for c in sorted(path.rglob("*")) if c.is_dir() and c.name in TEMP_NAMES]
+            for candidate in candidates:
+                rel = str(candidate.relative_to(REPO))
+                entry = entry_for(rel)
+                if entry["classification"] != "TEMP_CACHE":
+                    protected.append(entry)
+                elif entry["files"] > 0:
+                    deletable.append(entry)
+            if path.name in TEMP_NAMES:
                 continue
-            for child in sorted(path.rglob("*")):
-                if not child.is_dir():
-                    continue
-                name = child.name
-                if name not in {"__pycache__", "tmp", ".pytest_cache", "pip-cache", ".cache"}:
-                    continue
-                files, size, digest = measure(child)
-                kind, reason = classify(str(child.relative_to(REPO)))
-                deletable.append({"path": str(child.relative_to(REPO)).replace("\\", "/"),
-                                  "classification": kind, "files": files, "bytes": size,
-                                  "digest": digest, "reason": reason})
-            files, size, digest = measure(path)
-            protected.append({"path": str(path.relative_to(REPO)).replace("\\", "/"),
-                              "classification": "EVIDENCE_BEARING", "files": files, "bytes": size,
-                              "digest": digest,
-                              "reason": "tracked documents, the task ledger or qualification "
-                                        "fixtures reference this run directory"})
-    # A deletable nested inside a protected run directory is still deletable; a
-    # protected entry that fully contains a deletable is reported as-is.
-    deletable = [d for d in deletable if d["files"] > 0]
+            entry = entry_for(str(path.relative_to(REPO)))
+            entry["classification"] = "EVIDENCE_BEARING"
+            entry["reason"] = ("tracked documents, the task ledger or qualification fixtures "
+                               "reference this run directory")
+            protected.append(entry)
     return deletable, protected
 
 
@@ -124,7 +132,48 @@ def main(argv=None) -> int:
     group.add_argument("--plan", action="store_true")
     group.add_argument("--apply", action="store_true")
     group.add_argument("--restore", action="store_true")
+    group.add_argument("--repair-manifest", action="store_true",
+                       help="re-label an already-written manifest with the corrected "
+                            "classification; never deletes anything")
     args = parser.parse_args(argv)
+    if args.repair_manifest:
+        # The deletion this manifest records was correct (every path was a temp/cache
+        # bucket); the *label* on it was not. The correction is applied to the recorded
+        # classification only, and the original bytes/digests/deleted_at are untouched.
+        if not MANIFEST.is_file():
+            print("MANIFEST_REPAIR=FAIL no manifest")
+            return 1
+        manifest = json.loads(MANIFEST.read_text(encoding="utf-8"))
+        corrected, changes = [], []
+        for record in manifest["deleted"]:
+            kind, reason = classify(record["path"])
+            if kind != record.get("classification") or reason != record.get("reason"):
+                changes.append({"path": record["path"],
+                                "was": {"classification": record.get("classification"),
+                                        "reason": record.get("reason")},
+                                "now": {"classification": kind, "reason": reason}})
+            corrected.append({**record, "classification": kind, "reason": reason})
+        manifest["deleted"] = corrected
+        manifest["policy"] = ("only recreatable cache/temp; evidence-bearing runs are untouched, "
+                             "and the classification recorded here is the same one that gated "
+                             "the deletion")
+        manifest.setdefault("corrections", []).append({
+            "corrected_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
+            "corrected_by": "scripts/deepseek_runtime_cleanup.py --repair-manifest",
+            "found_by": "reports/current/DEEPSEEK-INDEPENDENT-AUDIT.json (contradiction 2)",
+            "defect": "classify() matched on '/__pycache__/' with a trailing slash, so a path "
+                      "whose last component was the temp name never matched and was labelled "
+                      "EVIDENCE_BEARING / owner approval required while being deleted",
+            "scope": "classification and reason only; bytes, digests and deleted_at are the "
+                     "values measured at deletion time",
+            "entries_corrected": len(changes),
+            "changes": changes[:20],
+        })
+        MANIFEST.write_text(json.dumps(manifest, indent=2, ensure_ascii=False) + "\n",
+                            encoding="utf-8", newline="\n")
+        print(f"MANIFEST_REPAIR=OK entries={len(corrected)} corrected={len(changes)}")
+        return 0
+
     deletable, protected = collect()
     deletable_bytes = sum(d["bytes"] for d in deletable)
     protected_bytes = sum(p["bytes"] for p in protected)

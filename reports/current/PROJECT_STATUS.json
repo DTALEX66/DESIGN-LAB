@@ -8,14 +8,14 @@
   },
   "fresh": false,
   "freshnessMeaning": "at generation only; check verifies bound-input integrity, not current Git or cloud state",
-  "generatedAt": "2026-09-13T16:32:53+00:00",
+  "generatedAt": "2026-09-13T17:06:31+00:00",
   "git": {
     "branch": "codex/deepseek-authority-r1",
     "origin_main": "c4dccd58331bc4561eb89265283d924b7630d113",
-    "sha": "020290124ccb4c7858d19cf6a63ab14de155aba5",
+    "sha": "0e53d30f10ef1b5790d45f477d741f512a6663a1",
     "source_worktree_clean": false,
-    "tracked_files": 1860,
-    "worktree_digest": "sha256:0058c985c18d5c88c2b75dd1bfffff0cadfaa978ce8b45d04784e8f17eb67ea0"
+    "tracked_files": 1891,
+    "worktree_digest": "sha256:6783d3d9460cb535f178ff921da6606c008747a4b980cfd72a1116fa9bb231ee"
   },
   "gitStateMeaning": "generation-time observation, not current HEAD",
   "hostLive": "derived from host_live axis only",
@@ -28,7 +28,7 @@
     "quarantinedSources": 162
   },
   "subjectMeaning": "subjectType=WORKTREE means the tree was dirty at generation; worktreeDigest covers HEAD plus the non-generated changes",
-  "subjectSha": "020290124ccb4c7858d19cf6a63ab14de155aba5",
+  "subjectSha": "0e53d30f10ef1b5790d45f477d741f512a6663a1",
   "subjectType": "WORKTREE",
   "taskCounts": {
     "PARTIAL": 28
@@ -36,12 +36,14 @@
   "taskpack": "DL-TP-20260908-R5",
   "taskpackHash": "31dde89eb4ede81fe88c0a5c5144adfb86af8db4c4d8c263bde2199180369b69",
   "taskpackId": "DL-TP-20260908-R5",
-  "testRunId": null,
-  "testRunMeaning": "no bound test run; this projection does not claim a test result",
+  "testRunAt": "2026-09-13T16:55:16+00:00",
+  "testRunId": "testrun-20260913T165506Z-forward-32a1b2a634c3",
+  "testRunMeaning": "bound run: python scripts/run_bound_test_suite.py --pattern test_service_http.py --label probe-http --order forward",
+  "testRunResult": "OK",
   "tests": {
-    "definedTestMethodCount": 1306,
+    "definedTestMethodCount": 1392,
     "executed": "see individual verified ledger receipts"
   },
   "worktreeClean": false,
-  "worktreeDigest": "sha256:0058c985c18d5c88c2b75dd1bfffff0cadfaa978ce8b45d04784e8f17eb67ea0"
+  "worktreeDigest": "sha256:6783d3d9460cb535f178ff921da6606c008747a4b980cfd72a1116fa9bb231ee"
 }

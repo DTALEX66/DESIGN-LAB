@@ -15,7 +15,7 @@
     "executor": "DEEPSEEK/DSH",
     "base_sha": "56319635bbcf112ac88d097317262c101ffdfe4d",
     "branch": "codex/deepseek-authority-r1",
-    "worktree": "sha256:7ca6f1ae1e0172f380c88ccf1f6e50d7480e8941797068f802ed43d91a4f49b7",
+    "worktree": "sha256:32a1b2a634c373e4b281ec0d6d83e238f8fa7c05cbfeeb74051564efff0c55bd",
     "worktree_clean": false
   },
   "authority": {
@@ -315,12 +315,17 @@
       "wave_title": "Wave 2 - Language Governance",
       "status": "DONE",
       "evidence": [
-        "reports/current/LANGUAGE-BOUNDARY-SCAN.json"
+        "reports/current/LANGUAGE-BOUNDARY-SCAN.json",
+        "reports/current/LANGUAGE-INVENTORY.json"
       ],
       "notes": [
         {
           "at": "2026-09-13T16:24:23+00:00",
           "note": "gate added: 14 hand-written vocabulary copies found across Python/TS/JS, all 14 agree with their owning JSON Schema, 0 disagreements; disagreement is a failure, agreement is informational; vocabularies covered are evidence levels, task axis states and provider licence ids"
+        },
+        {
+          "at": "2026-09-13T16:54:46+00:00",
+          "note": "C050 count corrected against a fresh measurement. The gate now reports vocab_copies=13 disagreeing=0 (reports/current/LANGUAGE-BOUNDARY-SCAN.json, regenerated on the current tree); this note previously recorded 14 copies, which was true when C050 ran and is no longer the measured value. The delta was isolated by diffing the committed artifact against a fresh run: exactly one entry dropped out, evidence_levels at src/design_lab/assurance/qa_plane.py, and no entry was gained. The file itself did NOT lose its vocabulary: qa_plane.py still declares EVIDENCE_LEVELS = (E0..E5) at line 126 and E1/E2, E2/E3, E4 ceilings, verified by reading the current file and by test_assurance_qa_plane.py passing. The cause is detector granularity, now recorded in the artifact as detector_scope: a copy is one source line carrying at least three canonical tokens matching [A-Z][A-Z0-9_]{2,}, so a two-character token such as E0 can never match and copy_count is a LOWER BOUND, not a completeness audit. Indices this note on the enforced invariant instead: 0 copies disagree with their owning schema. Reported by an independent audit as a partial (13 vs 14)."
         }
       ]
     },
@@ -388,6 +393,10 @@
         {
           "at": "2026-09-13T16:28:54+00:00",
           "note": "classified the ignored runtime: 167 TEMP_CACHE entries (316.8 MiB) deleted with a manifest and recreation notes; 15 EVIDENCE_BEARING run directories (4568.8 MiB) left untouched as OWNER_DELETE_APPROVAL_REQUIRED because tracked documents, the task ledger and qualification fixtures reference them. Measured .project-local 4557.7 -> 4241.0 MiB"
+        },
+        {
+          "at": "2026-09-13T16:52:47+00:00",
+          "note": "CORRECTION (independent audit contradiction 7 and partial 3). Withdrawn: the earlier note's 'Measured .project-local 4557.7 -> 4241.0 MiB'; 4557.7 appears in no artifact and is not reproducible. Artifact-backed facts, each quoted from the artifact that measured it: the cleanup manifest records 167 deleted entries classified TEMP_CACHE summing 316.79 MiB with per-entry digests and recreation notes; RUNTIME-CLEANUP-PLAN.json measured, in one pass at 2026-09-13T16:50:55+00:00, temp_cache=4 entries 0.1 MiB and evidence_bearing=15 entries 4500.8 MiB, the latter left as OWNER_DELETE_APPROVAL_REQUIRED. LIKE_FOR_LIKE_BEFORE_AFTER=NOT_AVAILABLE: no artifact measured .project-local before deleted_at=2026-09-13T16:26:29; the earliest reading (UNTRACKED-RUNTIME.json, 16:26:39) is 10 s AFTER the deletion and is a four-root total (4448.46 MiB = .project-local 4241.03 + .hermes 11.04 + .venv 196.33 + .pytest_cache 0.06), while the next (POST-CLEANUP-AUDIT.json, 16:32:52) is .project-local 4257.23 MiB, i.e. 16.20 MiB LARGER than the post-deletion reading because concurrent tasks kept writing runtime output, so 4448.46 - 316.79 does not reconcile to 4257.23 (125.56 MiB unexplained by that arithmetic). No like-for-like before/after pair is claimed for this cleanup; the reclaimed bytes above are the measured, digest-backed quantity. The manifest's own deleted entries were also re-labelled from EVIDENCE_BEARING to TEMP_CACHE by --repair-manifest, because classify() matched '/__pycache__/' with a trailing slash and therefore never matched a path whose last component was the temp name; the correction and its cause are recorded inside the manifest."
         }
       ]
     },
@@ -940,5 +949,5 @@
       "notes": []
     }
   ],
-  "updated_at": "2026-09-13T16:47:42+00:00"
+  "updated_at": "2026-09-13T16:54:46+00:00"
 }

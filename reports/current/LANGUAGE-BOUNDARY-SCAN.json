@@ -4,9 +4,9 @@
     "DL-TP-20260914-DEEPSEEK-AUTHORITY-R1::DLDS-C020",
     "DL-TP-20260914-DEEPSEEK-AUTHORITY-R1::DLDS-C050"
   ],
-  "generated_at": "2026-09-13T16:24:22+00:00",
+  "generated_at": "2026-09-13T16:54:46+00:00",
   "subject_sha": "",
-  "tracked_files_scanned": 1843,
+  "tracked_files_scanned": 1891,
   "language_boundary": {
     "forbidden_language_files": [],
     "fixture_scoped_language_files": [
@@ -56,6 +56,13 @@
       "evidence_levels": 21,
       "task_axes_states": 15,
       "provider_license": 9
+    },
+    "detector_scope": {
+      "unit": "one source line",
+      "token_pattern": "[A-Z][A-Z0-9_]{2,} (three or more characters)",
+      "min_tokens_per_line": 3,
+      "count_is": "a lower bound on hand-written copies; short tokens such as E0 are invisible to this detector and are not counted",
+      "enforced_property": "every detected copy agrees with the owning schema (disagreement is a failure, agreement is informational)"
     },
     "copies": [
       {
@@ -122,20 +129,6 @@
         "agrees_with_schema": true,
         "extra_tokens": [],
         "text": "EVIDENCE_STATES = {\"NOT_RUN\", \"PASS\", \"FAIL\", \"BLOCKED\", \"UNVERIFIED\", \"SKIPPED_OPTIONAL\"}"
-      },
-      {
-        "vocabulary": "evidence_levels",
-        "schema": "design-lab/schemas/capability-status.schema.json",
-        "path": "src/design_lab/assurance/qa_plane.py",
-        "line": 46,
-        "tokens_present": [
-          "FAIL",
-          "NOT_RUN",
-          "PASS"
-        ],
-        "agrees_with_schema": true,
-        "extra_tokens": [],
-        "text": "OUTCOMES = (\"PASS\", \"FAIL\", \"INCONCLUSIVE\", \"NOT_RUN\")"
       },
       {
         "vocabulary": "evidence_levels",
@@ -270,14 +263,15 @@
         "text": "and no requirement is ``FAIL``/``BLOCKED``; otherwise ``PARTIAL``."
       }
     ],
-    "copy_count": 14,
-    "agreeing_copies": 14,
+    "copy_count": 13,
+    "agreeing_copies": 13,
     "disagreeing_copies": []
   },
   "failures": [],
   "verdict": "PASS",
   "notes": {
     "conditional_languages": "Rust is NOT_PRIMARY; a .rs file requires benchmark evidence and an ADR, so it is reported, not forbidden",
-    "agreeing_copies": "a copy that agrees with the schema is informational; the gate fails only on disagreement"
+    "agreeing_copies": "a copy that agrees with the schema is informational; the gate fails only on disagreement",
+    "copy_count": "copy_count is a lower bound measured by DETECTOR_SCOPE, not a completeness audit: it is not evidence that a vocabulary copy was lost when the number falls"
   }
 }

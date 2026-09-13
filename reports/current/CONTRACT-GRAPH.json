@@ -1,7 +1,7 @@
 {
   "schemaVersion": "design-lab/contract-graph/v1",
   "task_key": "DL-TP-20260914-DEEPSEEK-AUTHORITY-R1::DLDS-F000",
-  "generated_at": "2026-09-13T16:35:51+00:00",
+  "generated_at": "2026-09-13T16:50:24+00:00",
   "subject_sha": "",
   "chain": "Schema -> Python model -> DB -> producer -> consumer -> receipt -> projection",
   "concepts": {
@@ -21,16 +21,22 @@
         "src/design_lab/creative/creative_job.py"
       ],
       "consumers": [
-        "src/design_lab/creative/lineage.py",
-        "src/design_lab/creative/requirement_ledger.py"
+        "design-lab/tests/test_creative_job.py",
+        "design-lab/tests/test_creative_lineage.py"
       ],
       "projections": [],
       "missing_paths": [],
       "tables_not_declared_in_state_sql": [],
+      "consumer_edges_verified": [
+        "design-lab/tests/test_creative_job.py",
+        "design-lab/tests/test_creative_lineage.py"
+      ],
+      "consumer_edges_unverified": [],
       "has_schema": true,
       "has_model": true,
       "has_writer": true,
-      "complete": true
+      "complete": true,
+      "notes": "no production module imports creative_job; Job is read through the state DB, and the in-tree readers are the bound tests"
     },
     "Attempt": {
       "schema": [],
@@ -46,11 +52,17 @@
         "src/design_lab/runtime/job_store.py"
       ],
       "consumers": [
-        "src/design_lab/creative/lineage.py"
+        "design-lab/tests/test_job_store.py",
+        "scripts/verify_recovery_safety.py"
       ],
       "projections": [],
       "missing_paths": [],
       "tables_not_declared_in_state_sql": [],
+      "consumer_edges_verified": [
+        "design-lab/tests/test_job_store.py",
+        "scripts/verify_recovery_safety.py"
+      ],
+      "consumer_edges_unverified": [],
       "has_schema": false,
       "has_model": true,
       "has_writer": true,
@@ -70,11 +82,15 @@
         "src/design_lab/creative/lineage.py"
       ],
       "consumers": [
-        "src/design_lab/creative/generative/partial_execution.py"
+        "design-lab/tests/test_creative_lineage.py"
       ],
       "projections": [],
       "missing_paths": [],
       "tables_not_declared_in_state_sql": [],
+      "consumer_edges_verified": [
+        "design-lab/tests/test_creative_lineage.py"
+      ],
+      "consumer_edges_unverified": [],
       "has_schema": false,
       "has_model": true,
       "has_writer": true,
@@ -94,11 +110,15 @@
         "src/design_lab/runtime/asset_store.py"
       ],
       "consumers": [
-        "src/design_lab/creative/asset_versions.py"
+        "design-lab/tests/test_asset_store.py"
       ],
       "projections": [],
       "missing_paths": [],
       "tables_not_declared_in_state_sql": [],
+      "consumer_edges_verified": [
+        "design-lab/tests/test_asset_store.py"
+      ],
+      "consumer_edges_unverified": [],
       "has_schema": true,
       "has_model": true,
       "has_writer": true,
@@ -127,6 +147,11 @@
       "projections": [],
       "missing_paths": [],
       "tables_not_declared_in_state_sql": [],
+      "consumer_edges_verified": [
+        "src/design_lab/creative/version_guard.py",
+        "src/design_lab/interop/delivery_receipt.py"
+      ],
+      "consumer_edges_unverified": [],
       "has_schema": true,
       "has_model": true,
       "has_writer": true,
@@ -144,16 +169,22 @@
         "src/design_lab/creative/requirement_ledger.py"
       ],
       "consumers": [
-        "src/design_lab/creative/decision_ledger.py",
-        "src/design_lab/interop/delivery_receipt.py"
+        "design-lab/tests/test_creative_ledgers.py",
+        "scripts/deepseek_migration_rehearsal.py"
       ],
       "projections": [],
       "missing_paths": [],
       "tables_not_declared_in_state_sql": [],
+      "consumer_edges_verified": [
+        "design-lab/tests/test_creative_ledgers.py",
+        "scripts/deepseek_migration_rehearsal.py"
+      ],
+      "consumer_edges_unverified": [],
       "has_schema": false,
       "has_model": true,
       "has_writer": true,
-      "complete": true
+      "complete": true,
+      "notes": "decision_ledger.py reads requirements through the state DB; the in-tree readers that reference the module are the bound test and the rehearsal script"
     },
     "Decision": {
       "schema": [],
@@ -167,15 +198,20 @@
         "src/design_lab/creative/decision_ledger.py"
       ],
       "consumers": [
-        "src/design_lab/creative/requirement_ledger.py"
+        "design-lab/tests/test_creative_ledgers.py"
       ],
       "projections": [],
       "missing_paths": [],
       "tables_not_declared_in_state_sql": [],
+      "consumer_edges_verified": [
+        "design-lab/tests/test_creative_ledgers.py"
+      ],
+      "consumer_edges_unverified": [],
       "has_schema": false,
       "has_model": true,
       "has_writer": true,
-      "complete": true
+      "complete": true,
+      "notes": "requirement_ledger.py does not import decision_ledger; the two are joined through the state DB, so the verified reader is the bound test"
     },
     "Rights": {
       "schema": [
@@ -191,17 +227,24 @@
         "vendor/sources.lock.json"
       ],
       "consumers": [
-        "src/design_lab/creative/generative/model_assets.py"
+        "design-lab/scripts/verify_provider_spi.py",
+        "design-lab/tests/test_creative_generative.py"
       ],
       "projections": [
         "reports/current/THIRD-PARTY-SOURCE-AUDIT.json"
       ],
       "missing_paths": [],
       "tables_not_declared_in_state_sql": [],
+      "consumer_edges_verified": [
+        "design-lab/scripts/verify_provider_spi.py",
+        "design-lab/tests/test_creative_generative.py"
+      ],
+      "consumer_edges_unverified": [],
       "has_schema": true,
       "has_model": true,
       "has_writer": true,
-      "complete": true
+      "complete": true,
+      "notes": "model_assets.py and model_radar.py were declared as their own consumers; a producer is not a consumer of itself, so the verified readers of the capability declaration are the SPI gate and the generative bound test"
     },
     "Evidence": {
       "schema": [
@@ -225,6 +268,10 @@
       ],
       "missing_paths": [],
       "tables_not_declared_in_state_sql": [],
+      "consumer_edges_verified": [
+        "design-lab/scripts/verify_capability_evidence_v4.py"
+      ],
+      "consumer_edges_unverified": [],
       "has_schema": true,
       "has_model": true,
       "has_writer": true,
@@ -244,15 +291,20 @@
         "src/design_lab/assurance/qa_plane.py"
       ],
       "consumers": [
-        "src/design_lab/assurance/human_jury.py"
+        "design-lab/tests/test_assurance_qa_plane.py"
       ],
       "projections": [],
       "missing_paths": [],
       "tables_not_declared_in_state_sql": [],
+      "consumer_edges_verified": [
+        "design-lab/tests/test_assurance_qa_plane.py"
+      ],
+      "consumer_edges_unverified": [],
       "has_schema": true,
       "has_model": true,
       "has_writer": true,
-      "complete": true
+      "complete": true,
+      "notes": "the production consumer of the QA plane is a real host run, which is Codex work; no in-tree production consumer exists and none is invented here"
     },
     "Delivery": {
       "schema": [
@@ -268,15 +320,22 @@
         "src/design_lab/interop/delivery_receipt.py"
       ],
       "consumers": [
-        "design-lab/scripts/verify_release_evidence.py"
+        "design-lab/tests/test_interop_provenance.py",
+        "design-lab/tests/test_creative_ledgers.py"
       ],
       "projections": [],
       "missing_paths": [],
       "tables_not_declared_in_state_sql": [],
+      "consumer_edges_verified": [
+        "design-lab/tests/test_interop_provenance.py",
+        "design-lab/tests/test_creative_ledgers.py"
+      ],
+      "consumer_edges_unverified": [],
       "has_schema": true,
       "has_model": true,
       "has_writer": true,
-      "complete": true
+      "complete": true,
+      "notes": "verify_release_evidence.py was declared as consumer but does not read the DeliveryReceipt contract; the verified readers are the bound tests"
     }
   },
   "declared_tables": {
