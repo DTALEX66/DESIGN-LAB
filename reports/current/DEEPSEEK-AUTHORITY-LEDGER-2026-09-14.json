@@ -15,7 +15,7 @@
     "executor": "DEEPSEEK/DSH",
     "base_sha": "56319635bbcf112ac88d097317262c101ffdfe4d",
     "branch": "codex/deepseek-authority-r1",
-    "worktree": "sha256:a448e9ae39eb90df9d47dcba78dfaaf5609acde360e13fe795e0dd4a037f8747",
+    "worktree": "sha256:fd429dc52b49f6956129f3ae56eee73935c0e31a82275c042bebae59816754bd",
     "worktree_clean": false
   },
   "authority": {
@@ -68,18 +68,33 @@
       "full_id": "DL-TP-20260914-DEEPSEEK-AUTHORITY-R1::DLDS-A010",
       "wave": "A",
       "wave_title": "Authority Activation Gate",
-      "status": "NOT_STARTED",
-      "evidence": [],
-      "notes": []
+      "status": "DONE",
+      "evidence": [
+        "reports/current/DEEPSEEK-AUTHORITY-CHAIN.json",
+        "AGENTS.md"
+      ],
+      "notes": [
+        {
+          "at": "2026-09-13T16:14:20+00:00",
+          "note": "37 entries classified: 2 current-deepseek-authority, 12 active-product-pack, 2 governance-truth, 14 historical, 7 reference; 1 drift finding (.project/manifest.yaml still names DL-TP-20260906-R3) deferred to DLDS-B040/B010; AGENTS.md now names the single current DeepSeek taskpack"
+        }
+      ]
     },
     {
       "task_key": "DLDS-A020",
       "full_id": "DL-TP-20260914-DEEPSEEK-AUTHORITY-R1::DLDS-A020",
       "wave": "A",
       "wave_title": "Authority Activation Gate",
-      "status": "NOT_STARTED",
-      "evidence": [],
-      "notes": []
+      "status": "DONE",
+      "evidence": [
+        "docs/handoffs/DEEPSEEK-AUTHORITY-ACTIVATION-2026-09-14.md"
+      ],
+      "notes": [
+        {
+          "at": "2026-09-13T16:14:20+00:00",
+          "note": "SESSION-RESTART-2026-09-12.md retained unchanged; scoped supersession recorded; Real Host/Design validation/GPU/Human Gate remain frozen"
+        }
+      ]
     },
     {
       "task_key": "DLDS-A030",
@@ -577,5 +592,5 @@
       "notes": []
     }
   ],
-  "updated_at": "2026-09-13T16:13:08+00:00"
+  "updated_at": "2026-09-13T16:14:20+00:00"
 }
