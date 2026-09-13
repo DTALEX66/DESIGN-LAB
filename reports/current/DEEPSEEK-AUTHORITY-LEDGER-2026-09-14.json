@@ -15,7 +15,7 @@
     "executor": "DEEPSEEK/DSH",
     "base_sha": "56319635bbcf112ac88d097317262c101ffdfe4d",
     "branch": "codex/deepseek-authority-r1",
-    "worktree": "sha256:61e3ae3413cad5e1ea6e064912326e5e6c38901c25981190bd57d65a0f3a14b5",
+    "worktree": "sha256:852c1541316f4de26fd1211f36d196bc736a1d8e4833c0ab9832082e5bb931b5",
     "worktree_clean": true
   },
   "authority": {
@@ -784,6 +784,10 @@
         {
           "at": "2026-09-13T18:34:55+00:00",
           "note": "NOT_STARTED, with the reason recorded rather than the task quietly dropped. The isolation gate was launched as a background job (forward / reverse / random seed 42 / repeat 20 on test_asset_store) but the host suffered a kernel bugcheck 0x0000004E (PFN_LIST_CORRUPT) at 2026-09-14T02:29 and rebooted, which destroyed the job and its history. The gate is NOT blocked by anything in this repository: a single earlier full-pattern run (test_*.py, 1392 tests discovered) was observed progressing normally test by test before it was stopped, and the four bound patterns covering the Wave 5-8 work pass (test_creative_* 118, test_interop_* 134, test_media_* 79, test_assurance_* 63, test_readiness_* 31). An earlier conclusion of mine that the suite was hung is withdrawn: it is simply slow, at roughly 25 minutes or more per full pass. Re-running it is deferred until the kernel fault is diagnosed, because the load is a plausible trigger for the same bugcheck. Diagnosis in progress: kernel dump C:\\\\Windows\\\\MEMORY.DMP (6.96 GB) with kd.exe !analyze -v run by the owner at administrator level."
+        },
+        {
+          "at": "2026-09-13T18:37:07+00:00",
+          "note": "KERNEL FAULT DIAGNOSED, and two of my own earlier statements are corrected by it. The owner ran kd.exe !analyze -v on C:\\\\Windows\\\\MEMORY.DMP at administrator level. Verdict from the dump: BUGCHECK_CODE 4e, Arg1 98, Arg2 c1c905, Arg3 5420000, Arg4 c1c905; SYMBOL_NAME nt!MiReplenishPageSlist+54a; MODULE_NAME nt; IMAGE_NAME ntkrnlmp.exe; FAILURE_BUCKET_ID 0x4E_98_nt!MiReplenishPageSlist; PROCESS_NAME python.exe. The stack is entirely nt frames: IopReadFile -> NtReadFile -> KiPageFault -> MmAccessFault -> MiUserFault -> MiZeroFault -> MiResolvePrivateZeroFault -> MiGetPageChain -> MiGetPage -> MiGetPerfectFreeOrZeroPage -> MiGetPerfectColorHeadPage -> MiReplenishPageSlist -> KeBugCheckEx. CORRECTION 1: the crash time is 2026-09-14T01:14:34+08:00 as recorded in the dump, not 02:29, which is the reboot and dump-write time; the previous shutdown marker at 00:41:05 in the event log is a different event. Cross-check: the dump reports System Uptime 2 days 3:53:59, which back-dates the boot to 2026-09-11 21:20, matching event 6005 at 21:20:43. CORRECTION 2: my earlier statement that the 360 kernel drivers were the prime suspect is WITHDRAWN as unproven. The stack contains no third-party module at all, and MODULE_NAME is nt, so the dump does not implicate any specific driver; Microsoft's own note for 0x4E says the cause is typically a driver passing a bad memory descriptor list, and such a driver is normally absent from the stack because it corrupted the list earlier. Arg2 equal to Arg4 is consistent with that double-handling signature. python.exe is the process that detected the corruption while servicing a demand-zero page fault during a file read, not the process that caused it; the load this run placed on the host is a plausible trigger for surfacing a pre-existing fault, and saying so is not the same as the load being the cause. Two candidate classes remain and neither is yet excluded: a driver with faulty MDL handling, or faulty RAM. Evidence bearing on the hardware side: one WHEA-Logger corrected error in 30 days, and the dump shows VBS/Hyper-V active (AnyHypervisorPresent 1, VsmAvailable 1, SecureKernel.HalpHvciEnabled 1). Next diagnostic step prepared for the owner: reports/current is not the home for host diagnostics, so the script lives on the owner desktop as analyze-bugcheck-deep.ps1 and runs the blackbox records the dump already carries (!blackboxntfs, !blackboxbsd, !blackboxpnp, !blackboxwinlogon) because the fault entered through nt!IopReadFile, plus !vm, !pfn c1c905 and a non-Microsoft module listing. Driver Verifier is described in that script only as a targeted, reversible follow-up with its undo commands, and was NOT enabled. None of this affects the repository: git fsck passes, the worktree is clean, and 57 of 58 tasks are done."
         }
       ]
     },
@@ -1005,5 +1009,5 @@
       ]
     }
   ],
-  "updated_at": "2026-09-13T18:34:55+00:00"
+  "updated_at": "2026-09-13T18:37:07+00:00"
 }
