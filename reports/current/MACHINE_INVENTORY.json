@@ -5,15 +5,15 @@
     "DL-TP-20260914-DEEPSEEK-AUTHORITY-R1::DLDS-H030"
   ],
   "origin": "promoted from .project-local/task-runtime/r5-host-inventory-v2-20260913/build_machine_inventory.py",
-  "observed_at": "2026-09-13T16:19:59+00:00",
-  "subject_sha": "0ab9ec8ef1a51784fb7aa731e8ebcf17f7d4c6c0",
+  "observed_at": "2026-09-13T14:54:08+00:00",
+  "subject_sha": "020290124ccb4c7858d19cf6a63ab14de155aba5",
   "read_only": true,
   "host": {
     "os": "Windows 11 (10.0.26100)",
     "cpu": "Intel Core i5-14600KF (14 cores)",
     "ram_bytes": 68487733248,
-    "gpu": "NVIDIA GeForce RTX 5060, 595.97, 8151, 2005, 5891",
-    "gpu_note": "nvidia-smi read-only query"
+    "gpu": "NVIDIA GeForce RTX 5060, 595.97, 8151, 1953, 5943",
+    "gpu_note": "nvidia-smi read-only query; total 8151 MiB VRAM"
   },
   "cli": {
     "ffmpeg": {
@@ -166,5 +166,7 @@
     "not_found_means": "no match within the recorded search scope; never asserted as universal absence",
     "no_private_data_read": true,
     "install_registry_does_not_prove": "process running / workflow verified / license applicability"
-  }
+  },
+  "reobserved_at": null,
+  "observation_note": "observed_at is the date the host matrix and model radar cite; a new observation must update those consumers in the same change"
 }

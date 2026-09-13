@@ -43,7 +43,17 @@ def run(cmd: list, timeout: int = 30) -> tuple:
         return -1, f"probe-error: {exc}"
 
 
-def build() -> dict:
+def build(reobserve: bool = False) -> dict:
+    """Produce the inventory document.
+
+    An inventory is a *dated observation*, not a live reading. Regenerating
+    without ``--reobserve`` reproduces the recorded observation so that every
+    consumer which cites its timestamp (the Adobe host matrix, the model radar and
+    their tests) stays consistent. A new observation is deliberate, and whoever
+    asks for it must update those consumers in the same change.
+    """
+    if not reobserve and OUT.is_file():
+        return json.loads(OUT.read_text(encoding="utf-8"))
     _, ffmpeg_out = run([r"D:/All projects/OS External Configuration/10-toolchains/scoop/apps/"
                          r"ffmpeg/current/bin/ffmpeg.exe", "-version"])
     ffmpeg_version = ffmpeg_out.splitlines()[0] if ffmpeg_out else None
@@ -140,7 +150,7 @@ def build() -> dict:
             "cpu": "Intel Core i5-14600KF (14 cores)",
             "ram_bytes": 68487733248,
             "gpu": gpu_out or None,
-            "gpu_note": "nvidia-smi read-only query",
+            "gpu_note": "nvidia-smi read-only query; total 8151 MiB VRAM",
         },
         "cli": {
             "ffmpeg": {"path": "D:/All projects/OS External Configuration/10-toolchains/scoop/apps/"
@@ -168,8 +178,11 @@ def build() -> dict:
 def main(argv=None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--check", action="store_true")
+    parser.add_argument("--reobserve", action="store_true",
+                        help="take a NEW observation (changes observed_at); update every consumer "
+                             "that cites the previous observation in the same change")
     args = parser.parse_args(argv)
-    payload = build()
+    payload = build(reobserve=args.reobserve)
     if args.check:
         if not OUT.is_file():
             print("MACHINE_INVENTORY=FAIL missing")

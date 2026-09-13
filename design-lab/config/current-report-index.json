@@ -1,13 +1,13 @@
 {
   "checkScope": "bound-input-and-output-integrity; not current Git or cloud freshness",
-  "generatedAt": "2026-09-13T16:22:06+00:00",
+  "generatedAt": "2026-09-13T16:32:53+00:00",
   "gitObservation": {
     "branch": "codex/deepseek-authority-r1",
     "origin_main": "c4dccd58331bc4561eb89265283d924b7630d113",
-    "sha": "e3ae5f805e8ed35891f1d6ce5eda1af1a71cd866",
+    "sha": "020290124ccb4c7858d19cf6a63ab14de155aba5",
     "source_worktree_clean": false,
-    "tracked_files": 1843,
-    "worktree_digest": "sha256:114a8c5fa04eb43ad0eec11d290db10eb6db02e74cababe08fbf805d747e9b35"
+    "tracked_files": 1860,
+    "worktree_digest": "sha256:0058c985c18d5c88c2b75dd1bfffff0cadfaa978ce8b45d04784e8f17eb67ea0"
   },
   "inputHashes": {
     ".project-local/task-artifacts/comfy-http-live-bb63046b6f444fe9a7a96d0bf66f949b/result.json": "0c7a831cf5fd68a863666d127812f6e9c5d7636b2ed104cc34c648ee6bcaa309",
@@ -229,22 +229,22 @@
     "docs/history/taskpacks/r5-20260908/tasks.json": "31dde89eb4ede81fe88c0a5c5144adfb86af8db4c4d8c263bde2199180369b69",
     "docs/taskpacks/DESIGN-LAB-CLOUD-REAUDIT-TASKPACK-2026-09-06.md": "3d6edf1a00f4f4f7eb19005a2acba2c73bd0dc71a6d2ec5ba9ed5ae689c6454c",
     "integrations/adapter-registry.json": "5b8720562941e912c3b52ef3ff261b882079f70e7bbc55d50f67d44556b35257",
-    "reports/current/DEEPSEEK-AUTHORITY-LEDGER-2026-09-14.json": "ef80a90d105aeab5898a486088fa4f88f1243c0e2222341529936c5563165773",
+    "reports/current/DEEPSEEK-AUTHORITY-LEDGER-2026-09-14.json": "08f932357375fa7b8a84e4e4cb58fe0beb28b8945e303d67df1e28992ce94551",
     "src/design_lab/generators/comfy_http.py": "d8bb2404197bf9014aa550ac100a07ede014c9e6721ff3483c12c54e1d96fdcc",
     "src/design_lab/generators/comfy_task.py": "21420196f738d32b7de03cac463f9fc1b042e662b51de9b78cef78cea6560d8d",
     "src/design_lab/native_patch_submissions.py": "0432e52f7f1efbb351d37015d5fb64a6fb6dce3a0c4a5b6e991d1b2c2351ecc5"
   },
   "ledger": "design-lab/config/task-ledger-r3.json",
   "outputHashes": {
-    "ADAPTER_EVIDENCE_RECONCILIATION.json": "117241d0d7dff326544549ce5cc30cebdb138c2527b9dd93c34829bf34968837",
-    "CLOUD_BASELINE.json": "943c8f43156d86382f595f14f8ab22cfc7ac4ad7f86c8fb149fd05c9493cc329",
-    "CLOUD_BASELINE.md": "4953177693931eb6652ff323d90c2a6b48abed6f89e38f48590465fc74e48c0c",
-    "DOMAIN_PACK_READINESS.json": "83fdd90912d988051f2f4c4fe80b02d4686df136cd6666c6f6188c60c61e1dae",
-    "KNOWLEDGE_INVENTORY.json": "6e56657dfeb3c88fd778a9bebbfeded1327652f0d1f5b9a2f8f6e0a9c69cbb26",
-    "PROJECT_STATUS.json": "dc3e03e3c5b90f63b39b517e69902e18030a7453253949f430de3eda2a7dbdbd",
-    "PROJECT_STATUS.md": "1bd40629ad9cc750c2afb5ee92e0f89adc058ab7f4a6398ddbb96857e5a00cfc",
-    "RELEASE_READINESS.json": "3e0e23b5a0ae537c17f428be86ce811768f32047376a96a4c8889fb18104544a",
-    "TASK_PROGRESS.json": "ca50635433d518da54acc6d69ec4334ec80ceb55a1001e8ba3b06da3853d1650"
+    "ADAPTER_EVIDENCE_RECONCILIATION.json": "4ab3f1b1fd2704bf39cc5e0d5ad7b9f5133caf5eec7ad5c1770b327ea4093e11",
+    "CLOUD_BASELINE.json": "df90c0baed4606891abe8ed3de7c166045ae7e72585e77607595ba1d759046eb",
+    "CLOUD_BASELINE.md": "8fb9b8354226d4410432932859765e38ff5518e9f303fb12792822a8f6edc729",
+    "DOMAIN_PACK_READINESS.json": "caa1f3fe7bac2b046657785d3dd4e20857c68caf93637014ef4f4df83f982fa1",
+    "KNOWLEDGE_INVENTORY.json": "60824bb975eda9cea3af7a9fe1be02fe6d46f2fb625f9cc93a1688cb37be3ece",
+    "PROJECT_STATUS.json": "b02e14981c39495e76fd9bff2de510977b26b5fbe686a35e9fe4d226170b1c03",
+    "PROJECT_STATUS.md": "7774e05b22715d1e59cc09f6d9c64cbf1be327f133f777d7ad993b7ead2bce94",
+    "RELEASE_READINESS.json": "ba6e4769ac71ab3ebb2d8968e4907b3ec5f06c61ccc8e9620bf28e3f00862ee0",
+    "TASK_PROGRESS.json": "5f7f29dd52a223dde1eb10b9c78d16325e0018b6b2e8778c72ecfe617e457727"
   },
   "reportRoot": "../../reports/current/",
   "reports": [
@@ -259,5 +259,5 @@
     "RELEASE_READINESS.json"
   ],
   "schemaVersion": "design-lab/current-report-index/v3",
-  "subjectSha": "e3ae5f805e8ed35891f1d6ce5eda1af1a71cd866"
+  "subjectSha": "020290124ccb4c7858d19cf6a63ab14de155aba5"
 }

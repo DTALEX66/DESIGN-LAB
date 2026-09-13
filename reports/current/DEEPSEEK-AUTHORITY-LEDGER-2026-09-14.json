@@ -15,7 +15,7 @@
     "executor": "DEEPSEEK/DSH",
     "base_sha": "56319635bbcf112ac88d097317262c101ffdfe4d",
     "branch": "codex/deepseek-authority-r1",
-    "worktree": "sha256:2f5a098a72a81dec9f69dd838b9db9f7ec0da106e999729da0999f319c922a29",
+    "worktree": "sha256:4b8c54a583433cdadd274088af3cbaa7213d916defc5c1ccc4923c92f35da065",
     "worktree_clean": false
   },
   "authority": {
@@ -428,54 +428,96 @@
       "full_id": "DL-TP-20260914-DEEPSEEK-AUTHORITY-R1::DLDS-E000",
       "wave": "E",
       "wave_title": "Wave 4 - Spill Data Tracking",
-      "status": "NOT_STARTED",
-      "evidence": [],
-      "notes": []
+      "status": "DONE",
+      "evidence": [
+        "reports/current/SPILL-CENSUS.json"
+      ],
+      "notes": [
+        {
+          "at": "2026-09-13T16:33:13+00:00",
+          "note": "metadata/path-level census only: no file outside the repository was opened; agent homes were inspected by entry NAME and nothing native was read. Result: 7 repository-side legacy objects (6 DESIGN-LAB-owned 10.83 MiB + skill-call-index.json which is agent-native and refused); 0 DESIGN-LAB-owned entries in ~/.hermes, ~/.codex, ~/.dsh; shared_inputs declared in .project/paths.json are not DESIGN-LAB-versioned and are out of scope; E: never touched"
+        }
+      ]
     },
     {
       "task_key": "DLDS-E010",
       "full_id": "DL-TP-20260914-DEEPSEEK-AUTHORITY-R1::DLDS-E010",
       "wave": "E",
       "wave_title": "Wave 4 - Spill Data Tracking",
-      "status": "NOT_STARTED",
-      "evidence": [],
-      "notes": []
+      "status": "DONE",
+      "evidence": [
+        "scripts/verify_zero_spill.py"
+      ],
+      "notes": [
+        {
+          "at": "2026-09-13T16:33:14+00:00",
+          "note": "gate added: --snapshot/--diff over the repository (path level) and the three agent homes (path level, content never read); a new path outside the repository, .project-local and the declared caches is SPILL_DETECTED, with agent-native bookkeeping names excluded. --self-test wraps a real DESIGN-LAB command: NO_SPILL_DETECTED, spill=0"
+        }
+      ]
     },
     {
       "task_key": "DLDS-E020",
       "full_id": "DL-TP-20260914-DEEPSEEK-AUTHORITY-R1::DLDS-E020",
       "wave": "E",
       "wave_title": "Wave 4 - Spill Data Tracking",
-      "status": "NOT_STARTED",
-      "evidence": [],
-      "notes": []
+      "status": "DONE",
+      "evidence": [
+        ".project-local/archive/hermes-legacy/MIGRATION-MANIFEST.json"
+      ],
+      "notes": [
+        {
+          "at": "2026-09-13T16:33:14+00:00",
+          "note": "10 DESIGN-LAB-owned legacy objects (11,565,138 bytes) migrated into .project-local/archive/hermes-legacy/{runtime,artifacts} with copy -> digest compare -> delete; MIGRATION_VERIFY=PASS; each record carries a restore path. Pointer update: none required (DLDS-B020 found no active reference). Restart/reopen: not applicable, recorded with that evidence"
+        }
+      ]
     },
     {
       "task_key": "DLDS-E030",
       "full_id": "DL-TP-20260914-DEEPSEEK-AUTHORITY-R1::DLDS-E030",
       "wave": "E",
       "wave_title": "Wave 4 - Spill Data Tracking",
-      "status": "NOT_STARTED",
-      "evidence": [],
-      "notes": []
+      "status": "DONE",
+      "evidence": [
+        ".project-local/archive/hermes-legacy/MIGRATION-MANIFEST.json"
+      ],
+      "notes": [
+        {
+          "at": "2026-09-13T16:33:14+00:00",
+          "note": ".hermes never blanket-deleted: only objects provably DESIGN-LAB own were moved. skill-call-index.json is refused as agent-native (DO_NOT_TOUCH); the native homes ~/.hermes (desktop-plugins, .env, config.yaml), ~/.codex and ~/.dsh (sessions, memory, credentials) were never read or modified. Three empty legacy *-tests directories from 2026-09-02/03 were removed and recorded"
+        }
+      ]
     },
     {
       "task_key": "DLDS-E040",
       "full_id": "DL-TP-20260914-DEEPSEEK-AUTHORITY-R1::DLDS-E040",
       "wave": "E",
       "wave_title": "Wave 4 - Spill Data Tracking",
-      "status": "NOT_STARTED",
-      "evidence": [],
-      "notes": []
+      "status": "DONE",
+      "evidence": [
+        ".project-local/quarantine/deepseek-round1/RUNTIME-CLEANUP-MANIFEST.json"
+      ],
+      "notes": [
+        {
+          "at": "2026-09-13T16:33:14+00:00",
+          "note": "deletion policy enforced by tooling: only recreatable cache/temp and empty legacy directories are auto-removed, each with digest, recreation note and restore command; evidence-bearing runs (4568.8 MiB) stay OWNER_DELETE_APPROVAL_REQUIRED. Two defects in my own tooling were fixed during this wave: the migration manifest was clobbered by a second run (now merged, plus a --reconcile rebuild) and verify did not handle empty-directory records"
+        }
+      ]
     },
     {
       "task_key": "DLDS-E050",
       "full_id": "DL-TP-20260914-DEEPSEEK-AUTHORITY-R1::DLDS-E050",
       "wave": "E",
       "wave_title": "Wave 4 - Spill Data Tracking",
-      "status": "NOT_STARTED",
-      "evidence": [],
-      "notes": []
+      "status": "DONE",
+      "evidence": [
+        "reports/current/POST-CLEANUP-AUDIT.json"
+      ],
+      "notes": [
+        {
+          "at": "2026-09-13T16:33:14+00:00",
+          "note": "post-cleanup audit PASS: report generator generate+check PASS, legacy path scan PASS, zero-spill probe NO_SPILL_DETECTED, focused suites 100/104/57/47/31 OK. Measured before 4448.46 MiB (source: DLDS-D000 UNTRACKED-RUNTIME.json) -> after 4257.24 MiB; temp/cache reclaimed 316.79 MiB; 11.57 MiB relocated inside the volume (moved, not reclaimed). Regression caught and fixed here: promoting the machine-inventory generator had rewritten the observation timestamp and dropped the GPU figure, breaking 2 readiness tests; regeneration is now idempotent and a new observation is explicit (--reobserve)"
+        }
+      ]
     },
     {
       "task_key": "DLDS-F000",
@@ -739,5 +781,5 @@
       "notes": []
     }
   ],
-  "updated_at": "2026-09-13T16:28:54+00:00"
+  "updated_at": "2026-09-13T16:33:15+00:00"
 }
