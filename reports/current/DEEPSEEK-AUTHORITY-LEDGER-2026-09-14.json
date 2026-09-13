@@ -15,7 +15,7 @@
     "executor": "DEEPSEEK/DSH",
     "base_sha": "56319635bbcf112ac88d097317262c101ffdfe4d",
     "branch": "codex/deepseek-authority-r1",
-    "worktree": "sha256:32a1b2a634c373e4b281ec0d6d83e238f8fa7c05cbfeeb74051564efff0c55bd",
+    "worktree": "sha256:59d809e5051df6773ee73567ed398064e485fdcb7d94f2f0806906b474e24010",
     "worktree_clean": false
   },
   "authority": {
@@ -803,9 +803,17 @@
       "full_id": "DL-TP-20260914-DEEPSEEK-AUTHORITY-R1::DLDS-H030",
       "wave": "H",
       "wave_title": "Wave 7 - Tests / CI / Evidence",
-      "status": "NOT_STARTED",
-      "evidence": [],
-      "notes": []
+      "status": "DONE",
+      "evidence": [
+        "reports/current/TASK_PROGRESS.json",
+        "reports/current/PROJECT_STATUS.json"
+      ],
+      "notes": [
+        {
+          "at": "2026-09-13T17:08:58+00:00",
+          "note": "All current projections regenerated on the settled tree; generate_current_reports.py --check now returns PASS (mode=check, scope=bound-input-integrity, current-git-and-cloud=NOT_VERIFIED) where it previously reported DRIFT across 9 projections. The check proves bound-input integrity only; it does not assert anything about cloud or CI state, and it says so."
+        }
+      ]
     },
     {
       "task_key": "DLDS-H040",
@@ -828,9 +836,17 @@
       "full_id": "DL-TP-20260914-DEEPSEEK-AUTHORITY-R1::DLDS-H050",
       "wave": "H",
       "wave_title": "Wave 7 - Tests / CI / Evidence",
-      "status": "NOT_STARTED",
-      "evidence": [],
-      "notes": []
+      "status": "DONE",
+      "evidence": [
+        "reports/current/DEEPSEEK-INDEPENDENT-AUDIT.json",
+        "reports/current/DEEPSEEK-INDEPENDENT-AUDIT.md"
+      ],
+      "notes": [
+        {
+          "at": "2026-09-13T17:08:58+00:00",
+          "note": "Independent structural audit executed by a separate agent with no access to my reasoning. Verdict CLAIMS_PARTLY_SUPPORTED with 8 contradictions and 6 unverifiable items. Confirmed independently: taskpack sha256, ledger verify for 58 tasks, a single current DeepSeek pack in AGENTS.md, 97/97 worktree files attributed with 0 UNATTRIBUTED and 7 exact-hash quarantine copies, the hermes migration summing exactly 11565138 bytes with matching digests and skill-call-index.json untouched, the migration rehearsal passing 15/15 with zero database changes, no forbidden E3/E4 claim, and 9/9 supply-chain checks. The audit changed the subject twice while it ran, so its subject_sha is a mid-run commit; that limitation is recorded in its own artifact. All 8 contradictions were then fixed where they were caused, in the gates rather than in the prose, and 3 partials were resolved; the fixes are in commit 9830682 and each one names the finding it closes. The two genuinely unverifiable items were not papered over: .project-local/state does not exist, so the live-database claim is recorded as NOT_VERIFIABLE_AS_STATED, and the before/after pair was withdrawn rather than restated."
+        }
+      ]
     },
     {
       "task_key": "DLDS-I000",
@@ -917,37 +933,72 @@
       "full_id": "DL-TP-20260914-DEEPSEEK-AUTHORITY-R1::DLDS-K010",
       "wave": "K",
       "wave_title": "Wave 10 - Final DeepSeek Closeout",
-      "status": "NOT_STARTED",
-      "evidence": [],
-      "notes": []
+      "status": "DONE",
+      "evidence": [
+        "reports/current/DEEPSEEK-FINAL-CLEANUP-AUDIT.json"
+      ],
+      "notes": [
+        {
+          "at": "2026-09-13T17:09:02+00:00",
+          "note": "Seven cleanup conditions re-derived from their artifacts, 7/7 hold: active legacy path usage 0; third-party full source trees not tracked; no model weights in Git; no runtime files tracked and no generated offenders; no active .hermes writes; no duplicate SSOT (0 duplicate table declarations, 10/10 registry families with a single authoring source); no unknown spill (census CENSUS_COMPLETE, 4 legacy objects censused, 1 unproven and refused). The .hermes condition was settled by measurement rather than assumption: the namespace holds two EMPTY directories whose mtimes sit at the migration instant, so they are leftovers of removing the migrated contents and not live writes, plus the one refused agent-native file."
+        }
+      ]
     },
     {
       "task_key": "DLDS-K020",
       "full_id": "DL-TP-20260914-DEEPSEEK-AUTHORITY-R1::DLDS-K020",
       "wave": "K",
       "wave_title": "Wave 10 - Final DeepSeek Closeout",
-      "status": "NOT_STARTED",
-      "evidence": [],
-      "notes": []
+      "status": "DONE",
+      "evidence": [
+        "reports/current/DEEPSEEK-FINAL-LANGUAGE-AUDIT.json"
+      ],
+      "notes": [
+        {
+          "at": "2026-09-13T17:09:02+00:00",
+          "note": "Six language conditions re-derived, 6/6 hold: exactly one Python project root (pyproject.toml) and no second Python architecture; TypeScript ownership measured rather than claimed; the only Node manifest belongs to the game-visual fixture and there is no second Node backend and no lockfile; no forbidden and no conditional language file; one Python package with no duplicate service backend; JSON Schema is the cross-language contract truth, with every detected hand-written vocabulary copy required to agree with its owning schema. The copy count is recorded as a lower bound from a line-level detector, not a completeness audit."
+        }
+      ]
     },
     {
       "task_key": "DLDS-K030",
       "full_id": "DL-TP-20260914-DEEPSEEK-AUTHORITY-R1::DLDS-K030",
       "wave": "K",
       "wave_title": "Wave 10 - Final DeepSeek Closeout",
-      "status": "NOT_STARTED",
-      "evidence": [],
-      "notes": []
+      "status": "DONE",
+      "evidence": [
+        "reports/current/DEEPSEEK-FINAL-REPOSITORY-AUDIT.json"
+      ],
+      "notes": [
+        {
+          "at": "2026-09-13T17:09:03+00:00",
+          "note": "Before/after measured where a like-for-like pair exists and refused where it does not. Tracked files 1832 -> 1891 (+59) and 30.15 -> 30.97 MiB against base revision 56319635bbcf112ac88d097317262c101ffdfe4d, measured from git objects: like-for-like TRUE. Git pack and runtime roots: NOT like-for-like, no reduction claimed, with the reason recorded in the artifact and the withdrawal computed in POST-CLEANUP-AUDIT.json#before_after. Reclaimed bytes stay the digest-backed 316.79 MiB from the cleanup manifest (167 entries). Third-party copies removed: 0 tracked, 37 only in an ignored cache, 6 via lock reference. Spill: 10 objects / 11565138 bytes migrated with 10 verified digests and a restore command, 0 bytes of content deleted, 1 object refused as agent-native. Ten remaining exceptions are carried into the Codex starting point rather than presented as complete."
+        }
+      ]
     },
     {
       "task_key": "DLDS-K040",
       "full_id": "DL-TP-20260914-DEEPSEEK-AUTHORITY-R1::DLDS-K040",
       "wave": "K",
       "wave_title": "Wave 10 - Final DeepSeek Closeout",
-      "status": "NOT_STARTED",
-      "evidence": [],
-      "notes": []
+      "status": "DONE",
+      "evidence": [
+        "reports/current/DEEPSEEK-FINAL-AUDIT.md",
+        "reports/current/DEEPSEEK-TASK-STATE.json",
+        "reports/current/REPOSITORY-NORMALIZATION-REPORT.md",
+        "reports/current/LANGUAGE-GOVERNANCE-REPORT.md",
+        "reports/current/REPOSITORY-SLIMMING-REPORT.md",
+        "reports/current/DATA-SPILL-MIGRATION-REPORT.md",
+        "reports/current/CONTRACT-GRAPH-REPORT.md",
+        "docs/taskpacks/DESIGN-LAB-CODEX-REAL-HOST-HANDOFF.md"
+      ],
+      "notes": [
+        {
+          "at": "2026-09-13T17:09:06+00:00",
+          "note": "Evidence packet written: DEEPSEEK-FINAL-AUDIT.md, DEEPSEEK-TASK-STATE.json, REPOSITORY-NORMALIZATION-REPORT.md, LANGUAGE-GOVERNANCE-REPORT.md, REPOSITORY-SLIMMING-REPORT.md, DATA-SPILL-MIGRATION-REPORT.md and CONTRACT-GRAPH-REPORT.md under reports/current, plus CODEX-REAL-HOST-HANDOFF.md under docs/taskpacks. Every number in them is read from the artifact that measured it, and the generator refuses to state a before/after that is not like-for-like. The task state names the deferred domains, the ten remaining exceptions and the ten things DeepSeek does not claim, and the 32 Done-When criteria are assessed separately rather than asserted."
+        }
+      ]
     }
   ],
-  "updated_at": "2026-09-13T16:54:46+00:00"
+  "updated_at": "2026-09-13T17:09:07+00:00"
 }

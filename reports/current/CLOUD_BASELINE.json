@@ -9,21 +9,21 @@
   },
   "fresh": false,
   "freshnessMeaning": "at generation only; check verifies bound-input integrity, not current Git or cloud state",
-  "generatedAt": "2026-09-13T17:06:31+00:00",
+  "generatedAt": "2026-09-13T17:09:07+00:00",
   "gitStateMeaning": "generation-time observation, not current HEAD",
   "local": {
     "branch": "codex/deepseek-authority-r1",
     "origin_main": "c4dccd58331bc4561eb89265283d924b7630d113",
-    "sha": "0e53d30f10ef1b5790d45f477d741f512a6663a1",
+    "sha": "c86802fb2500414bd193c5a898f6a53813cf1d77",
     "source_worktree_clean": false,
-    "tracked_files": 1891,
-    "worktree_digest": "sha256:6783d3d9460cb535f178ff921da6606c008747a4b980cfd72a1116fa9bb231ee"
+    "tracked_files": 1904,
+    "worktree_digest": "sha256:42ff1540fa3301e0911a77dd803b8ccae5d23b28dec684f72a517dade2a1eaa0"
   },
   "note": "No GitHub API query was run by this generator; tool installation is not inferred.",
   "remoteRef": "origin/main (local tracking ref)",
   "schemaVersion": "design-lab/cloud-baseline/v2",
   "subjectMeaning": "subjectType=WORKTREE means the tree was dirty at generation; worktreeDigest covers HEAD plus the non-generated changes",
-  "subjectSha": "0e53d30f10ef1b5790d45f477d741f512a6663a1",
+  "subjectSha": "c86802fb2500414bd193c5a898f6a53813cf1d77",
   "subjectType": "WORKTREE",
   "taskpackHash": "31dde89eb4ede81fe88c0a5c5144adfb86af8db4c4d8c263bde2199180369b69",
   "taskpackId": "DL-TP-20260908-R5",
@@ -38,5 +38,5 @@
     "branchProtection"
   ],
   "worktreeClean": false,
-  "worktreeDigest": "sha256:6783d3d9460cb535f178ff921da6606c008747a4b980cfd72a1116fa9bb231ee"
+  "worktreeDigest": "sha256:42ff1540fa3301e0911a77dd803b8ccae5d23b28dec684f72a517dade2a1eaa0"
 }

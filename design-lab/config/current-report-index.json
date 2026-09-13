@@ -1,13 +1,13 @@
 {
   "checkScope": "bound-input-and-output-integrity; not current Git or cloud freshness",
-  "generatedAt": "2026-09-13T17:06:31+00:00",
+  "generatedAt": "2026-09-13T17:09:07+00:00",
   "gitObservation": {
     "branch": "codex/deepseek-authority-r1",
     "origin_main": "c4dccd58331bc4561eb89265283d924b7630d113",
-    "sha": "0e53d30f10ef1b5790d45f477d741f512a6663a1",
+    "sha": "c86802fb2500414bd193c5a898f6a53813cf1d77",
     "source_worktree_clean": false,
-    "tracked_files": 1891,
-    "worktree_digest": "sha256:6783d3d9460cb535f178ff921da6606c008747a4b980cfd72a1116fa9bb231ee"
+    "tracked_files": 1904,
+    "worktree_digest": "sha256:42ff1540fa3301e0911a77dd803b8ccae5d23b28dec684f72a517dade2a1eaa0"
   },
   "inputHashes": {
     ".project-local/task-artifacts/comfy-http-live-bb63046b6f444fe9a7a96d0bf66f949b/result.json": "0c7a831cf5fd68a863666d127812f6e9c5d7636b2ed104cc34c648ee6bcaa309",
@@ -230,22 +230,22 @@
     "docs/history/taskpacks/r5-20260908/tasks.json": "31dde89eb4ede81fe88c0a5c5144adfb86af8db4c4d8c263bde2199180369b69",
     "docs/taskpacks/DESIGN-LAB-CLOUD-REAUDIT-TASKPACK-2026-09-06.md": "3d6edf1a00f4f4f7eb19005a2acba2c73bd0dc71a6d2ec5ba9ed5ae689c6454c",
     "integrations/adapter-registry.json": "f2b2b579ea2c060589c01795eb6e45c4ff2b51af5a0b982278ba762142babb56",
-    "reports/current/DEEPSEEK-AUTHORITY-LEDGER-2026-09-14.json": "12e1a546d21d5ebb5ee9cbe164cef70e7d9573fd8673873cf4294f5d93dad8d8",
+    "reports/current/DEEPSEEK-AUTHORITY-LEDGER-2026-09-14.json": "2ada0e4392a50d8a16d41fb59898a958abe178e07e700fee5b4304344cc1cb87",
     "src/design_lab/generators/comfy_http.py": "d8bb2404197bf9014aa550ac100a07ede014c9e6721ff3483c12c54e1d96fdcc",
     "src/design_lab/generators/comfy_task.py": "21420196f738d32b7de03cac463f9fc1b042e662b51de9b78cef78cea6560d8d",
     "src/design_lab/native_patch_submissions.py": "0432e52f7f1efbb351d37015d5fb64a6fb6dce3a0c4a5b6e991d1b2c2351ecc5"
   },
   "ledger": "design-lab/config/task-ledger-r3.json",
   "outputHashes": {
-    "ADAPTER_EVIDENCE_RECONCILIATION.json": "ac4d2e79a2cc097d018f95a7f0dcca2654f87371ecb3cc216172d1948a0b0599",
-    "CLOUD_BASELINE.json": "bf915a50557cc6b0c31a52864c9c1a00b785141eb377f55bf614783d84b2894c",
-    "CLOUD_BASELINE.md": "d0c89caf57add5f79f4b96eb56228facab1c6058ad977699eb7779c0ba261e5a",
-    "DOMAIN_PACK_READINESS.json": "864552023c20d82c6bcef155a09aaa543513318c1f80b3eea798686a0e98e4df",
-    "KNOWLEDGE_INVENTORY.json": "ba7aeeeee85e2729c75b009efca11f8956050ec055d9a6783ffe481bb5d95896",
-    "PROJECT_STATUS.json": "351bfe9f0ebf561374ac23e3f8521ecf14e034c88cd6784dc6e08150155fef48",
-    "PROJECT_STATUS.md": "bad2ff5412f6b349ec4b1de6dca48f8825d8c317c82dccade78742ac64ac9fc3",
-    "RELEASE_READINESS.json": "e42a2ed290a6a981e74489b3ba823227bf14af23d780c074d3ddd1b6e6aacb2a",
-    "TASK_PROGRESS.json": "602a5a89c6b294bca9f3617839c6e1ce2dd933534f606c085769841519d48eed"
+    "ADAPTER_EVIDENCE_RECONCILIATION.json": "40cf0e30c5149f93bf3e293bc7155fbf750f95a4a0ca2aafdd1a48fb16dcedc4",
+    "CLOUD_BASELINE.json": "b9630c819d808eaf7055856c1c1156ce25128001192a021b9c1a9aa295904055",
+    "CLOUD_BASELINE.md": "83e964d43a38a592f0c8cfc99d65c4d360f65db197682957108695eedcaf1f94",
+    "DOMAIN_PACK_READINESS.json": "3e8b35470b887c78017fff3b8d261d08f2f00c030ec05fd90a765db585bb90c8",
+    "KNOWLEDGE_INVENTORY.json": "df4f31100c85b8939e8dba9b12c7ac0215cf66664211f9fd59336802b335eb55",
+    "PROJECT_STATUS.json": "2a727aca6b501f2fd6a2ca6bb911aa3fac092511069f1d6af0b748056eafdfdf",
+    "PROJECT_STATUS.md": "1bb1e82a7907b312a409e10c9dd26f3746dd65f404faec0bc71e2c3d10567f30",
+    "RELEASE_READINESS.json": "20c3ec1f5ebd779a8c9962e9cdbe93e0efb0ebe9d51b6d036269c80739a237f5",
+    "TASK_PROGRESS.json": "2b005c97ff025592ef1051becb885aa2f5bac0ca87dd54ddb78c769cb971aedb"
   },
   "reportRoot": "../../reports/current/",
   "reports": [
@@ -260,5 +260,5 @@
     "RELEASE_READINESS.json"
   ],
   "schemaVersion": "design-lab/current-report-index/v3",
-  "subjectSha": "0e53d30f10ef1b5790d45f477d741f512a6663a1"
+  "subjectSha": "c86802fb2500414bd193c5a898f6a53813cf1d77"
 }
