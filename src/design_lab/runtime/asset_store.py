@@ -123,7 +123,11 @@ def _record_version(conn, asset_id, content_sha256, *, state="ACTIVE", artifacts
         raise AssetError("ACTIVE version requires at least one verified artifact")
     version_no = conn.execute("SELECT COALESCE(MAX(version_no),0)+1 FROM asset_version WHERE asset_id=?", (asset_id,)).fetchone()[0]
     version_id = "v-" + uuid.uuid4().hex
-    conn.execute("INSERT INTO asset_version VALUES (?,?,?,?,?,?)",
+    # Named columns: later additive migrations append columns, and a positional
+    # insert would silently break the v1 writer when they do.
+    conn.execute("INSERT INTO asset_version "
+                 "(version_id, asset_id, version_no, content_sha256, state, created_at) "
+                 "VALUES (?,?,?,?,?,?)",
                  (version_id, asset_id, version_no, digest, state, _now()))
     seen = set()
     for path, sha, size, role in artifacts:

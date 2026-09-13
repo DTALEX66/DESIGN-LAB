@@ -1,0 +1,140 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://dtalex66.local/schemas/media-video-boundary.json",
+  "title": "DESIGN-LAB video ownership boundary (DL-P1-131)",
+  "description": "Machine-readable ownership boundary between DESIGN-LAB and a video host such as Premiere Pro, Media Encoder or After Effects. Every entry names one operation, one owner and the rule that enforces the split. A design-lab owner over rendered or encoded work is legal only with a measured host-live evidence reference.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "boundary_id",
+    "task_ids",
+    "evidence_level",
+    "host_execution",
+    "owners",
+    "operations",
+    "host_classes",
+    "entries",
+    "notes"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "const": "design-lab/media-video-boundary/v1"
+    },
+    "boundary_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "task_ids": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "string",
+        "pattern": "^DL-[A-Z0-9-]+$"
+      }
+    },
+    "evidence_level": {
+      "enum": ["E0", "E1", "E2", "E3", "E4", "E5"]
+    },
+    "host_execution": {
+      "const": "NOT_EXECUTED"
+    },
+    "owners": {
+      "type": "array",
+      "minItems": 3,
+      "maxItems": 3,
+      "uniqueItems": true,
+      "items": {
+        "enum": ["design-lab", "host", "shared"]
+      }
+    },
+    "operations": {
+      "description": "The closed operation vocabulary. Each one must be declared exactly once by an entry.",
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "enum": [
+          "visual-design",
+          "design-ir",
+          "timeline-contract",
+          "handoff-bundle",
+          "delivery-receipt",
+          "render",
+          "encode",
+          "colour-managed-export",
+          "audio-mixdown",
+          "hardware-acceleration",
+          "colour-space-declaration",
+          "frame-accuracy-contract",
+          "media-asset-packaging"
+        ]
+      }
+    },
+    "host_classes": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "entries": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "subject", "operation", "owner", "rule", "evidence"],
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[a-z0-9][a-z0-9-]{2,95}$"
+          },
+          "subject": {
+            "type": "string",
+            "minLength": 1
+          },
+          "operation": {
+            "enum": [
+              "visual-design",
+              "design-ir",
+              "timeline-contract",
+              "handoff-bundle",
+              "delivery-receipt",
+              "render",
+              "encode",
+              "colour-managed-export",
+              "audio-mixdown",
+              "hardware-acceleration",
+              "colour-space-declaration",
+              "frame-accuracy-contract",
+              "media-asset-packaging"
+            ]
+          },
+          "owner": {
+            "enum": ["design-lab", "host", "shared"]
+          },
+          "rule": {
+            "type": "string",
+            "minLength": 8
+          },
+          "evidence": {
+            "enum": ["E0", "E1", "E2", "E3", "E4", "E5"]
+          },
+          "host_live_evidence_ref": {
+            "description": "Required when design-lab claims ownership of rendered or encoded work. A measured receipt identifier, not a path and not a URL.",
+            "type": "string",
+            "pattern": "^host-live:[^\\s]+$"
+          }
+        }
+      }
+    },
+    "notes": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    }
+  }
+}
