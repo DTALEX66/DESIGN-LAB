@@ -15,7 +15,7 @@
     "executor": "DEEPSEEK/DSH",
     "base_sha": "56319635bbcf112ac88d097317262c101ffdfe4d",
     "branch": "codex/deepseek-authority-r1",
-    "worktree": "sha256:b201d773913c33469ce58c0ff6565bf7ca71ac92040c580208d6efcf696da144",
+    "worktree": "sha256:4b91847c6e33e4f060f5b6fbe3e8c4f607179ec17e15e4fdbe7a62f634fe3aaa",
     "worktree_clean": false
   },
   "authority": {
@@ -199,9 +199,17 @@
       "full_id": "DL-TP-20260914-DEEPSEEK-AUTHORITY-R1::DLDS-B040",
       "wave": "B",
       "wave_title": "Wave 1 - Repository Normalization",
-      "status": "NOT_STARTED",
-      "evidence": [],
-      "notes": []
+      "status": "DONE",
+      "evidence": [
+        "reports/current/DEEPSEEK-REGISTRY-SSOT.json",
+        ".project/manifest.yaml"
+      ],
+      "notes": [
+        {
+          "at": "2026-09-13T16:21:25+00:00",
+          "note": "10 registry families audited, each now with exactly one declared authoring source and a generator present in the tree: product-manifest, adapter-registry, capability-index, evidence-index, rights-registry, model-registry, source-lock + capability/machine-inventory/authority projections. Fixed: .project/manifest.yaml named the superseded R3 pack as current - now names R5 (product) and the DeepSeek authority pack, with its ledger path; verify_product_manifest_v3 OK 493/0 and verify_project_drift PASS after the change. Fixed: CAPABILITY_INDEX/EVIDENCE_INDEX/MACHINE_INVENTORY had no tracked generator (produced by throwaway scripts under .project-local) - promoted to scripts/generate_ssot_projections.py and scripts/generate_machine_inventory.py with --check modes. Recorded for DLDS-D040: design-lab/config/capability-index-v1-backup.json (445 KB) is referenced only by two historical documents."
+        }
+      ]
     },
     {
       "task_key": "DLDS-B050",
@@ -636,5 +644,5 @@
       "notes": []
     }
   ],
-  "updated_at": "2026-09-13T16:18:39+00:00"
+  "updated_at": "2026-09-13T16:21:25+00:00"
 }
