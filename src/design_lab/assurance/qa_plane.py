@@ -1,19 +1,38 @@
 # SPDX-License-Identifier: MIT
-"""DL-P1-170 QA plane split: deterministic, model-assisted and human assurance.
+"""DLDS-F070 frozen QA policy: which plane may produce which outcome.
 
 This module is the QA plane of DESIGN-LAB. It does **not** replace the existing
 quality gate (``verify_quality_gate``, ``verify_production_preflight``,
 ``packages/capabilities/quality/**``, ``design-lab/schemas/quality-gate.schema.json``);
 it separates that work into three explicitly non-interchangeable planes and
-fixes the evidence ceiling of each one, so a deterministic check, a model
-recommendation and a human verdict can never be confused:
+fixes the outcome vocabulary and the evidence ceiling of each one, so a
+deterministic check, a model recommendation and a human verdict can never be
+confused:
 
-* ``DETERMINISTIC`` -- reproducible rules, evidence ceiling E1/E2, ``can_block``.
-* ``MODEL_ASSISTED`` -- providers and expert-agent critique, ceiling E2/E3.
-  It may only produce a ``recommendation``: it can never carry a ``verdict`` and
-  it may not block, because nothing automated may veto as if it were a person.
-* ``HUMAN`` -- the Human Gate (professional jury, DL-QLT-002), ceiling E4,
-  ``can_block``, and the only plane allowed to carry a ``verdict``.
+* ``DETERMINISTIC`` -- reproducible rules (preflight, structural and anti-slop
+  checks, rights/security checks). Allowed outcomes ``PASS`` / ``WARN`` /
+  ``HARD_BLOCK``. Ceiling E1/E2, ``can_block``.
+* ``MODEL_ASSISTED`` -- providers and expert-agent critique. Allowed outcomes
+  ``PASS`` / ``WARN`` / ``REVIEW_REQUIRED``. Ceiling E2/E3, ``can_block`` false:
+  it may recommend and escalate, never veto and never sign, and it may never
+  produce a final ``REJECT``/``REJECTED``.
+* ``HUMAN`` -- the Human Gate (professional jury, DL-QLT-002). Its only outcomes
+  are the final verdicts ``APPROVE`` / ``REJECT``. Ceiling E4, ``can_block``, and
+  the only plane allowed to carry a ``verdict``.
+
+The policy is declared once, as :data:`POLICY_ROWS` (the four frozen rows:
+deterministic QA, rights/security, model-assisted QA, human jury), and is
+projected onto the three planes by :data:`OUTCOMES_BY_KIND`.
+:func:`check_policy` refuses any drift between the two, and
+:func:`validate_finding` refuses an outcome a plane may not produce.
+
+The rights/security row is a *check family*, not a fourth plane: rights and
+security preflight are deterministic, repeatable rules in this repository, so
+they share the ``qa-deterministic`` plane and are bound to its allowed set
+(``HARD_BLOCK`` plus the non-blocking outcomes, never ``REVIEW_REQUIRED`` and
+never a final rejection). A fourth plane kind would either leave a declared
+pipeline layer unclaimed or claim one twice, which
+:func:`check_plane_inventory` refuses.
 
 ``QA_PLANES`` maps the layer ids declared in
 ``packages/capabilities/quality/pipeline-layers.json`` onto those three planes,
@@ -23,7 +42,8 @@ the two documents cannot drift silently.
 
 Boundary: this module is structural validation and aggregation only. It never
 runs a check, calls a provider, reads an artifact, writes a record or records a
-human decision; :func:`aggregate` only reports which plane still owes one.
+human decision; :func:`aggregate` only reports which plane still owes one, and
+``PASS`` remains unreachable without a human verdict.
 """
 from __future__ import annotations
 
@@ -43,10 +63,71 @@ KIND_MODEL_ASSISTED = "MODEL_ASSISTED"
 KIND_HUMAN = "HUMAN"
 
 PLANE_KINDS = (KIND_DETERMINISTIC, KIND_MODEL_ASSISTED, KIND_HUMAN)
-OUTCOMES = ("PASS", "FAIL", "INCONCLUSIVE", "NOT_RUN")
+
+# --- the frozen outcome vocabulary (DLDS-F070) -----------------------------
+PASS = "PASS"
+WARN = "WARN"
+REVIEW_REQUIRED = "REVIEW_REQUIRED"
+HARD_BLOCK = "HARD_BLOCK"
+APPROVE = "APPROVE"
+REJECT = "REJECT"
+
+#: Outcomes an automated plane may produce, anywhere in the policy.
+AUTOMATED_OUTCOMES = (PASS, WARN, REVIEW_REQUIRED, HARD_BLOCK)
+#: The human jury's final verdicts. No automated plane may produce these.
+HUMAN_OUTCOMES = (APPROVE, REJECT)
+FINAL_OUTCOMES = HUMAN_OUTCOMES
+#: Spellings a final rejection is refused under when an automated plane uses them.
+REJECTION_SPELLINGS = (REJECT, "REJECTED")
+
+#: The per-plane projection of the frozen policy; the only source of truth for
+#: what a finding in a given plane may report.
+OUTCOMES_BY_KIND = {
+    KIND_DETERMINISTIC: (PASS, WARN, HARD_BLOCK),
+    KIND_MODEL_ASSISTED: (PASS, WARN, REVIEW_REQUIRED),
+    KIND_HUMAN: HUMAN_OUTCOMES,
+}
+#: The closed vocabulary the schema admits; the per-plane subset is enforced here.
+OUTCOMES = tuple(dict.fromkeys(AUTOMATED_OUTCOMES + HUMAN_OUTCOMES))
+
+#: The four rows of the frozen policy, verbatim, with the plane each one lands on.
+POLICY_ROWS = (
+    {
+        "policy_row": "DETERMINISTIC_QA",
+        "plane_id": "qa-deterministic",
+        "allowed_outcomes": (PASS, WARN, HARD_BLOCK),
+        "may_block": True,
+        "may_be_final": False,
+    },
+    {
+        "policy_row": "RIGHTS_SECURITY",
+        "plane_id": "qa-deterministic",
+        "allowed_outcomes": (HARD_BLOCK,),
+        "may_block": True,
+        "may_be_final": False,
+    },
+    {
+        "policy_row": "MODEL_ASSISTED_QA",
+        "plane_id": "qa-model-assisted",
+        "allowed_outcomes": (PASS, WARN, REVIEW_REQUIRED),
+        "may_block": False,
+        "may_be_final": False,
+    },
+    {
+        "policy_row": "HUMAN_JURY",
+        "plane_id": "qa-human",
+        "allowed_outcomes": HUMAN_OUTCOMES,
+        "may_block": True,
+        "may_be_final": True,
+    },
+)
+
 SEVERITIES = ("BLOCKER", "MAJOR", "MINOR", "INFO")
 EVIDENCE_LEVELS = ("E0", "E1", "E2", "E3", "E4", "E5")
-FINDING_VERDICTS = ("ACCEPT", "REVISE", "REJECT")
+#: A ``verdict`` on a finding uses the human jury's final vocabulary only. The
+#: non-final ``REVISE`` was dropped by DLDS-F070: a human who wants a revision
+#: rejects with evidence, which keeps exactly one final vocabulary.
+FINDING_VERDICTS = HUMAN_OUTCOMES
 GATES = ("BLOCKED", "NEEDS_HUMAN_VERDICT", "PASS")
 
 SUMMARY_VERSION = "design-lab/assurance-qa-summary/v1"
@@ -84,8 +165,9 @@ QA_PLANES = (
         evidence_ceiling=("E1", "E2"),
         owner="design-lab deterministic gates",
         description=(
-            "Reproducible rules (preflight, structural and anti-slop checks) whose result "
-            "another run must be able to repeat from the same artifact digest. Fail closed."
+            "Reproducible rules (preflight, structural, anti-slop, rights and security checks) "
+            "whose result another run must be able to repeat from the same artifact digest. "
+            "Allowed outcomes: PASS, WARN, HARD_BLOCK. Fail closed."
         ),
         can_block=True,
         pipeline_layers=("deterministic",),
@@ -96,8 +178,9 @@ QA_PLANES = (
         evidence_ceiling=("E2", "E3"),
         owner="design-lab providers and expert-agent critique",
         description=(
-            "Provider scoring (aesthetic/vision) and expert-agent critique. Advisory only: "
-            "an automated plane may recommend and escalate, never veto and never sign."
+            "Provider scoring (aesthetic/vision) and expert-agent critique. Allowed outcomes: "
+            "PASS, WARN, REVIEW_REQUIRED. Advisory only: an automated plane may recommend and "
+            "escalate, never veto, never sign and never produce a final REJECT."
         ),
         can_block=False,
         pipeline_layers=("visual-model", "expert-agent"),
@@ -108,8 +191,9 @@ QA_PLANES = (
         evidence_ceiling=("E4",),
         owner="Human Gate (professional jury, DL-QLT-002)",
         description=(
-            "Independent human judgement on the exact artifact digest. The only plane that "
-            "may carry a verdict; a human rejection fails the whole artifact."
+            "Independent human judgement on the exact artifact digest. Its only outcomes are "
+            "the final verdicts APPROVE and REJECT; a human REJECT fails the whole artifact and "
+            "no automated plane may supply either one."
         ),
         can_block=True,
         pipeline_layers=("human-feedback",),
@@ -176,12 +260,101 @@ def plane_for(layer_id: str) -> QaLayer:
     )
 
 
+def policy_outcomes(kind: str) -> tuple:
+    """The outcomes the frozen policy allows on a plane of ``kind``."""
+    try:
+        return OUTCOMES_BY_KIND[kind]
+    except KeyError as exc:
+        raise AssuranceError(
+            f"unknown QA plane kind {kind!r}; the frozen QA policy declares "
+            f"{', '.join(PLANE_KINDS)}"
+        ) from exc
+
+
+def check_policy() -> dict:
+    """Assert that this module's vocabulary *is* the frozen DLDS-F070 policy.
+
+    Refuses a policy table that lets an automated plane block when its plane
+    cannot, lets a non-human plane be final, lets an automated plane produce a
+    final rejection, or disagrees with :data:`OUTCOMES_BY_KIND`.
+    """
+    per_kind: dict = {}
+    for row in POLICY_ROWS:
+        plane = plane_for(row["plane_id"])
+        allowed = tuple(row["allowed_outcomes"])
+        if bool(row["may_block"]) != bool(plane.can_block):
+            raise AssuranceError(
+                f"policy row {row['policy_row']!r} declares may_block="
+                f"{row['may_block']} but plane {plane.layer_id!r} declares can_block="
+                f"{plane.can_block}; the frozen policy and the plane inventory must agree"
+            )
+        if bool(row["may_be_final"]) != (plane.kind == KIND_HUMAN):
+            raise AssuranceError(
+                f"policy row {row['policy_row']!r} declares may_be_final="
+                f"{row['may_be_final']} on plane kind {plane.kind}; only the HUMAN jury "
+                "produces a final outcome"
+            )
+        if not allowed:
+            raise AssuranceError(f"policy row {row['policy_row']!r} allows no outcome")
+        if plane.kind == KIND_HUMAN:
+            if tuple(allowed) != HUMAN_OUTCOMES:
+                raise AssuranceError(
+                    f"policy row {row['policy_row']!r} must allow exactly "
+                    f"{'/'.join(HUMAN_OUTCOMES)}"
+                )
+            per_kind[plane.kind] = allowed
+            continue
+        for outcome in allowed:
+            if outcome in REJECTION_SPELLINGS:
+                raise AssuranceError(
+                    f"policy row {row['policy_row']!r} allows {outcome!r} on an automated "
+                    "plane; a final rejection belongs to the HUMAN jury alone"
+                )
+            if outcome not in AUTOMATED_OUTCOMES:
+                raise AssuranceError(
+                    f"policy row {row['policy_row']!r} allows {outcome!r}, which is not part "
+                    f"of the automated vocabulary {'/'.join(AUTOMATED_OUTCOMES)}"
+                )
+        # Rows that share a plane (deterministic QA and rights/security) must agree
+        # on the plane's full allowed set; a narrower row is a check-family subset.
+        if row["policy_row"] == "RIGHTS_SECURITY":
+            continue
+        existing = per_kind.get(plane.kind)
+        if existing is not None and existing != allowed:
+            raise AssuranceError(
+                f"plane kind {plane.kind} is allowed {existing} by one policy row and "
+                f"{allowed} by another; the frozen policy must project once"
+            )
+        per_kind[plane.kind] = allowed
+    if per_kind != OUTCOMES_BY_KIND:
+        raise AssuranceError(
+            f"the frozen policy projects onto {per_kind} but OUTCOMES_BY_KIND declares "
+            f"{OUTCOMES_BY_KIND}"
+        )
+    return {
+        "outcomes_by_kind": {kind: list(values) for kind, values in OUTCOMES_BY_KIND.items()},
+        "final_outcomes": list(FINAL_OUTCOMES),
+        "never_final_outcomes": list(AUTOMATED_OUTCOMES),
+        "rows": [
+            {
+                "policy_row": row["policy_row"],
+                "plane_id": row["plane_id"],
+                "allowed_outcomes": list(row["allowed_outcomes"]),
+                "may_block": row["may_block"],
+                "may_be_final": row["may_be_final"],
+            }
+            for row in POLICY_ROWS
+        ],
+    }
+
+
 def check_plane_inventory(planes: tuple = QA_PLANES) -> tuple:
-    """Drift guard between ``QA_PLANES`` and ``pipeline-layers.json``.
+    """Drift guard between ``QA_PLANES``, the frozen policy and ``pipeline-layers.json``.
 
     Returns the declared pipeline layer ids and refuses an inventory that is not
     an exact, duplicate-free cover of them.
     """
+    check_policy()
     declared = set(pipeline_layer_ids())
     claimed: dict = {}
     for layer in planes:
@@ -256,10 +429,32 @@ def validate_finding(finding) -> QaFinding:
     require_text(finding.finding_id, "finding_id")
     require_text(finding.check_id, "check_id")
     require_text(finding.subject_ref, "subject_ref")
-    if finding.outcome not in OUTCOMES:
+    allowed = policy_outcomes(layer.kind)
+
+    # The frozen policy first: a final outcome is the HUMAN jury's alone, and an
+    # automated plane reporting one is refused by name rather than by enum.
+    if layer.kind != KIND_HUMAN and (
+        finding.outcome in HUMAN_OUTCOMES or finding.outcome in REJECTION_SPELLINGS
+    ):
         raise AssuranceError(
-            f"finding {finding.finding_id!r} has unknown outcome {finding.outcome!r}; "
-            f"expected one of {', '.join(OUTCOMES)}"
+            f"finding {finding.finding_id!r} reports outcome {finding.outcome!r} in plane "
+            f"{layer.layer_id!r} of kind {layer.kind}; the frozen QA policy declares "
+            f"{'/'.join(HUMAN_OUTCOMES)} as the final outcomes of the HUMAN jury alone, and "
+            f"this plane may only produce {'/'.join(allowed)}. An automated plane never "
+            "produces a final rejection: it states a result or escalates with "
+            f"{REVIEW_REQUIRED}"
+        )
+    if finding.outcome == HARD_BLOCK and not layer.can_block:
+        raise AssuranceError(
+            f"finding {finding.finding_id!r} reports {HARD_BLOCK} in plane "
+            f"{layer.layer_id!r}, which may not block; only a plane with can_block may "
+            "declare a hard block"
+        )
+    if finding.outcome not in allowed:
+        raise AssuranceError(
+            f"finding {finding.finding_id!r} has outcome {finding.outcome!r}, which plane "
+            f"kind {layer.kind} may not produce; the frozen QA policy allows "
+            f"{'/'.join(allowed)} here (closed vocabulary: {'/'.join(OUTCOMES)})"
         )
     if finding.severity not in SEVERITIES:
         raise AssuranceError(
@@ -273,20 +468,15 @@ def validate_finding(finding) -> QaFinding:
         )
     evidence = dict(finding.evidence or {})
 
-    # A claimed result is only a result when it is bound to an artifact digest.
-    if finding.outcome in ("PASS", "FAIL"):
-        digest = evidence.get("artifact_sha256")
-        if digest is None:
-            raise AssuranceError(
-                f"finding {finding.finding_id!r} reports {finding.outcome} without an "
-                "artifact_sha256 in evidence; a result not bound to an artifact is not evidence"
-            )
-        require_digest(digest, f"finding {finding.finding_id!r} evidence.artifact_sha256")
-    elif "artifact_sha256" in evidence:
-        require_digest(
-            evidence["artifact_sha256"],
-            f"finding {finding.finding_id!r} evidence.artifact_sha256",
+    # A reported outcome is a claim about an artifact; without the digest of that
+    # artifact it is not evidence, whatever the outcome says.
+    digest = evidence.get("artifact_sha256")
+    if digest is None:
+        raise AssuranceError(
+            f"finding {finding.finding_id!r} reports {finding.outcome} without an "
+            "artifact_sha256 in evidence; a result not bound to an artifact is not evidence"
         )
+    require_digest(digest, f"finding {finding.finding_id!r} evidence.artifact_sha256")
 
     level = evidence.get("evidence_level")
     if level is not None:
@@ -305,26 +495,40 @@ def validate_finding(finding) -> QaFinding:
             f"finding {finding.finding_id!r} is severity BLOCKER in plane {layer.layer_id!r}, "
             "which may not block; only a plane with can_block may raise a blocker"
         )
+    if layer.kind == KIND_HUMAN and finding.severity == "BLOCKER" and finding.outcome != REJECT:
+        raise AssuranceError(
+            f"finding {finding.finding_id!r} is a human {finding.outcome} carrying severity "
+            f"BLOCKER; the human plane blocks with its {REJECT} verdict and an approval is "
+            "never a blocker"
+        )
 
     # Plane separation: only a human plane may express a verdict, only an
     # automated plane may express a recommendation, and neither may borrow the
     # other's authority.
-    if finding.verdict is not None:
-        if layer.kind != KIND_HUMAN:
+    if layer.kind == KIND_HUMAN:
+        if finding.verdict is None:
             raise AssuranceError(
-                f"finding {finding.finding_id!r} carries a verdict in plane {layer.layer_id!r} "
-                f"of kind {layer.kind}; a verdict is only permitted in a HUMAN plane"
+                f"finding {finding.finding_id!r} is a human finding without a verdict; the "
+                f"human plane produces the final {'/'.join(FINAL_OUTCOMES)}, so an unsigned "
+                "outcome is not a human decision and cannot settle the gate"
             )
         if finding.verdict not in FINDING_VERDICTS:
             raise AssuranceError(
                 f"finding {finding.finding_id!r} has unknown verdict {finding.verdict!r}; "
                 f"expected one of {', '.join(FINDING_VERDICTS)}"
             )
-        if finding.outcome not in ("PASS", "FAIL"):
+        if finding.verdict != finding.outcome:
             raise AssuranceError(
-                f"finding {finding.finding_id!r} carries a verdict with outcome "
-                f"{finding.outcome}; a verdict settles a PASS or FAIL, not an open check"
+                f"finding {finding.finding_id!r} reports outcome {finding.outcome} with "
+                f"verdict {finding.verdict}; a human finding states one decision, and the "
+                "signed verdict must state the same one"
             )
+    elif finding.verdict is not None:
+        raise AssuranceError(
+            f"finding {finding.finding_id!r} carries a verdict in plane {layer.layer_id!r} "
+            f"of kind {layer.kind}; a verdict is only permitted in a HUMAN plane"
+        )
+
     if finding.recommendation is not None:
         require_text(finding.recommendation, f"finding {finding.finding_id!r} recommendation")
         if layer.kind == KIND_DETERMINISTIC:
@@ -387,12 +591,24 @@ def _counts(values, universe) -> dict:
     return {name: sum(1 for value in values if value == name) for name in universe}
 
 
+def blocks(finding) -> bool:
+    """Whether a validated finding blocks the gate.
+
+    A ``HARD_BLOCK`` blocks; so does a human ``REJECT``, which is the jury's own
+    blocking act. A ``BLOCKER``-severity finding that did not pass also blocks,
+    because an unresolved blocker is not a pass.
+    """
+    if finding.outcome in (HARD_BLOCK, REJECT):
+        return True
+    return finding.severity == "BLOCKER" and finding.outcome != PASS
+
+
 def aggregate(findings) -> dict:
     """Plane-aware summary of validated findings.
 
-    ``BLOCKED`` outranks everything: a hard blocker cannot be averaged or
-    waived away by a human ACCEPT. ``PASS`` is impossible while any HUMAN plane
-    has not produced a verdict on this subject.
+    ``BLOCKED`` outranks everything: a hard block and a human rejection cannot
+    be averaged or waived away. ``PASS`` is impossible while any HUMAN plane has
+    not produced a verdict on this subject.
     """
     validated = _validated_sequence(findings)
     by_layer = {layer.layer_id: [] for layer in QA_PLANES}
@@ -425,12 +641,10 @@ def aggregate(findings) -> dict:
             "outcomes": _counts([item.outcome for item in items], OUTCOMES),
             "severities": _counts([item.severity for item in items], SEVERITIES),
             "human_verdict": verdicts[0] if verdicts else None,
-            "blocking": [item.finding_id for item in items
-                         if item.severity == "BLOCKER" and item.outcome != "PASS"],
+            "blocking": [item.finding_id for item in items if blocks(item)],
         }
 
-    blocking = [item for item in validated
-                if item.severity == "BLOCKER" and item.outcome != "PASS"]
+    blocking = [item for item in validated if blocks(item)]
     human_layers = [layer.layer_id for layer in QA_PLANES if layer.kind == KIND_HUMAN]
     human_verdicts = {layer_id: layer_summaries[layer_id]["human_verdict"]
                       for layer_id in human_layers
@@ -480,8 +694,9 @@ def explain_aggregate(summary) -> str:
         )
         count = len(summary.get("blocking", ()))
         return (
-            f"gate BLOCKED: {count} blocking finding(s) {detail}; a hard blocker is not "
-            "waivable here, so no human verdict and no model score can clear it"
+            f"gate BLOCKED: {count} blocking finding(s) {detail}; a hard block or a human "
+            f"{REJECT} is not waivable here, so no later human verdict and no model score "
+            "can clear it"
         )
     if gate == "NEEDS_HUMAN_VERDICT":
         missing = list(summary.get("missing_human_verdicts", ()))

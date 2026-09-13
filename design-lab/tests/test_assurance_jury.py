@@ -1,5 +1,15 @@
 # SPDX-License-Identifier: MIT
-"""DL-P0-171 human jury structure: verdicts, proposals and subject binding."""
+"""DLDS-F070 / DL-P0-171 human jury structure: APPROVE/REJECT verdicts, proposals, binding.
+
+Every guarantee the module had before the policy was frozen is re-proved here
+under the frozen vocabulary, plus the two new structural refusals: a record
+carrying proposal markers cannot be re-tagged into a verdict, and the retired
+non-final REVISE is not part of the jury vocabulary at all.
+
+``test_reject_needs_evidence_and_verdict_enum_is_closed`` became
+:meth:`VerdictVocabularyTests.test_reject_needs_evidence` plus
+:meth:`VerdictVocabularyTests.test_the_vocabulary_is_the_frozen_one`.
+"""
 from __future__ import annotations
 
 import copy
@@ -44,7 +54,7 @@ def verdict(**overrides):
             attestation="reviewed the exported poster at 100% on a calibrated display",
         ),
         "criteria": criteria(),
-        "verdict": "ACCEPT",
+        "verdict": "APPROVE",
         "decided_at": "2026-09-12T10:00:00Z",
     }
     base.update(overrides)
@@ -67,10 +77,48 @@ def proposal():
         artifact_sha256=SHA,
         proposer="design-lab/agent/critique",
         criteria=criteria(),
-        suggested_verdict="REVISE",
+        suggested_verdict="REJECT",
         rationale="the material axis looks inconsistent; a human should confirm",
         created_at="2026-09-12T09:00:00Z",
     )
+
+
+class VerdictVocabularyTests(unittest.TestCase):
+    """DLDS-F070: the jury's final vocabulary is APPROVE / REJECT and nothing else."""
+
+    def test_the_vocabulary_is_the_frozen_one(self):
+        self.assertEqual(("APPROVE", "REJECT"), human_jury.VERDICTS)
+        self.assertEqual(("APPROVE", "REJECT"), human_jury.FINAL_OUTCOMES)
+        enum = human_jury.schema()["properties"]["verdict"]["enum"]
+        self.assertEqual(["APPROVE", "REJECT"], enum)
+        for retired in ("ACCEPT", "REVISE", "PASS", "REJECTED"):
+            with self.subTest(retired=retired):
+                self.assertNotIn(retired, human_jury.VERDICTS)
+                self.assertNotIn(retired, enum)
+                with self.assertRaises(AssuranceError) as caught:
+                    human_jury.record_verdict(verdict(verdict=retired))
+                self.assertIn(retired, str(caught.exception))
+
+    def test_revise_was_dropped_rather_than_hidden(self):
+        # A non-final REVISE would need somewhere outside the final-verdict field
+        # to live; DLDS-F070 keeps one vocabulary per plane instead, so a wanted
+        # revision is a REJECT with evidence.
+        self.assertNotIn("REVISE", human_jury.VERDICTS)
+        self.assertNotIn("REVISE", human_jury.schema()["$defs"]["proposal"]
+                         ["properties"]["suggested_verdict"]["enum"])
+        rejected = human_jury.record_verdict(verdict(
+            verdict="REJECT", evidence_refs=("reports/current/qa-summary.json",)))
+        self.assertEqual("REJECT", rejected["verdict"])
+        with self.assertRaises(AssuranceError):
+            human_jury.record_verdict(verdict(verdict="REVISE"))
+
+    def test_reject_needs_evidence(self):
+        with self.assertRaises(AssuranceError) as caught:
+            human_jury.record_verdict(verdict(verdict="REJECT"))
+        self.assertIn("evidence_ref", str(caught.exception))
+        approved = human_jury.record_verdict(verdict())
+        self.assertEqual("APPROVE", approved["verdict"])
+        self.assertEqual([], approved["evidence_refs"])
 
 
 class JuryVerdictTests(unittest.TestCase):
@@ -94,13 +142,13 @@ class JuryVerdictTests(unittest.TestCase):
         path.write_text(json.dumps(document, indent=2), encoding="utf-8")
         self.assertEqual(document, json.loads(path.read_text(encoding="utf-8")))
         # The frozen input is never mutated.
-        self.assertEqual("ACCEPT", original.verdict)
+        self.assertEqual("APPROVE", original.verdict)
 
     def test_recording_never_mutates_a_document_input(self):
         source = verdict().as_dict()
         document = human_jury.record_verdict(source)
         document["verdict"] = "REJECT"
-        self.assertEqual("ACCEPT", source["verdict"])
+        self.assertEqual("APPROVE", source["verdict"])
 
     def test_weights_must_sum_to_one(self):
         uneven = verdict(criteria=(
@@ -114,7 +162,7 @@ class JuryVerdictTests(unittest.TestCase):
             human_jury.Criterion(criterion_id="a", weight=0.5, score=4.0),
             human_jury.Criterion(criterion_id="b", weight=0.5 + 1e-9, score=4.0),
         ))
-        self.assertEqual("ACCEPT", human_jury.record_verdict(floating)["verdict"])
+        self.assertEqual("APPROVE", human_jury.record_verdict(floating)["verdict"])
 
     def test_duplicate_or_out_of_range_criteria_are_refused(self):
         with self.assertRaises(AssuranceError) as caught:
@@ -141,7 +189,7 @@ class JuryVerdictTests(unittest.TestCase):
             human_jury.Criterion(criterion_id="anti-slop", weight=1.0, score=5.0,
                                  note="every token is locked and no AI default pattern remains"),
         ))
-        self.assertEqual("ACCEPT", human_jury.record_verdict(explained)["verdict"])
+        self.assertEqual("APPROVE", human_jury.record_verdict(explained)["verdict"])
 
     def test_an_agent_signed_verdict_is_refused_by_name(self):
         for kind in ("AGENT", "MODEL", "ASSISTANT", "SYSTEM"):
@@ -170,7 +218,7 @@ class JuryVerdictTests(unittest.TestCase):
         with self.assertRaises(AssuranceError) as caught:
             human_jury.record_verdict(verdict(juror=panel(members=())))
         self.assertIn("members", str(caught.exception))
-        self.assertEqual("ACCEPT", human_jury.record_verdict(verdict(juror=panel()))["verdict"])
+        self.assertEqual("APPROVE", human_jury.record_verdict(verdict(juror=panel()))["verdict"])
 
     def test_decided_at_must_be_an_rfc3339_instant(self):
         for value in ("2026-09-12", "2026-09-12T10:00:00", "12/09/2026", ""):
@@ -189,16 +237,6 @@ class JuryVerdictTests(unittest.TestCase):
         with self.assertRaises(AssuranceError) as caught:
             human_jury.record_verdict(verdict(decided_at="2026-13-45T99:99:99+00:00"))
         self.assertIn("not a parseable RFC3339", str(caught.exception))
-
-    def test_reject_needs_evidence_and_verdict_enum_is_closed(self):
-        with self.assertRaises(AssuranceError):
-            human_jury.record_verdict(verdict(verdict="REJECT"))
-        rejected = human_jury.record_verdict(verdict(
-            verdict="REJECT", evidence_refs=("reports/current/qa-summary.json",)))
-        self.assertEqual("REJECT", rejected["verdict"])
-        with self.assertRaises(AssuranceError) as caught:
-            human_jury.record_verdict(verdict(verdict="PASS"))
-        self.assertIn("PASS", str(caught.exception))
 
     def test_supersedes_is_append_only(self):
         self.assertEqual("jury-0", human_jury.record_verdict(
@@ -233,20 +271,50 @@ class JuryProposalTests(unittest.TestCase):
 
     def test_every_verdict_function_refuses_a_proposal(self):
         item = proposal()
-        for function, args in (
-            (human_jury.record_verdict, (item,)),
-            (human_jury.score_summary, (item,)),
-            (human_jury.validate_against_subject, (item, {"artifact_sha256": SHA})),
+        for function, args, expected in (
+            (human_jury.record_verdict, (item,), "JURY_PROPOSAL"),
+            (human_jury.score_summary, (item,), "JURY_PROPOSAL"),
+            (human_jury.validate_against_subject, (item, {"artifact_sha256": SHA}),
+             "JURY_PROPOSAL"),
+            (human_jury.resign_kind, (item, "JURY_VERDICT"), "JuryVerdict"),
         ):
-            with self.assertRaises(AssuranceError) as caught:
-                function(*args)
-            self.assertIn("JURY_PROPOSAL", str(caught.exception))
+            with self.subTest(function=function.__name__):
+                with self.assertRaises(AssuranceError) as caught:
+                    function(*args)
+                self.assertIn(expected, str(caught.exception))
         with self.assertRaises(AssuranceError) as caught:
             human_jury.assert_not_agent_signed(item)
         self.assertIn("proposal is not a signed record", str(caught.exception))
         with self.assertRaises(AssuranceError) as caught:
             human_jury.record_verdict(item.as_dict())
         self.assertIn("proposal is a recommendation, not a verdict", str(caught.exception))
+
+    def test_a_proposal_cannot_be_relabelled_into_a_verdict(self):
+        """An agent-produced document must stay unrepresentable, not merely discouraged."""
+        forged = copy.deepcopy(proposal().as_dict())
+        forged["kind"] = "JURY_VERDICT"
+        for function, args in (
+            (human_jury.record_verdict, (forged,)),
+            (human_jury.score_summary, (forged,)),
+            (human_jury.validate_against_subject, (forged, {"artifact_sha256": SHA})),
+            (human_jury.assert_not_agent_signed, (forged,)),
+        ):
+            with self.subTest(function=function.__name__):
+                with self.assertRaises(AssuranceError) as caught:
+                    function(*args)
+                message = str(caught.exception)
+                self.assertIn("proposal marker", message)
+        # The schema refuses it independently of the module.
+        errors = list(
+            jsonschema.Draft202012Validator(human_jury.schema()).iter_errors(forged)
+        )
+        self.assertTrue(errors, "a relabelled proposal must not validate as a verdict")
+        # A jury record that merely declares is_verdict false is refused too.
+        marked = verdict().as_dict()
+        marked["is_verdict"] = False
+        with self.assertRaises(AssuranceError) as caught:
+            human_jury.record_verdict(marked)
+        self.assertIn("proposal marker", str(caught.exception))
 
     def test_the_kind_marker_is_load_bearing(self):
         reshaped = human_jury.resign_kind(verdict(), "JURY_PROPOSAL")
@@ -262,17 +330,21 @@ class JuryProposalTests(unittest.TestCase):
         with self.assertRaises(AssuranceError):
             human_jury.agent_may_propose(
                 proposal_id="p", subject_ref=SUBJECT, artifact_sha256="sha256:" + "0" * 64,
-                proposer="agent", criteria=criteria(), suggested_verdict="REVISE",
+                proposer="agent", criteria=criteria(), suggested_verdict="REJECT",
                 rationale="r", created_at="2026-09-12T09:00:00Z")
+        for retired in ("REVISE", "ACCEPT", "APPROVED"):
+            with self.subTest(retired=retired):
+                with self.assertRaises(AssuranceError) as caught:
+                    human_jury.agent_may_propose(
+                        proposal_id="p", subject_ref=SUBJECT, artifact_sha256=SHA,
+                        proposer="agent", criteria=criteria(), suggested_verdict=retired,
+                        rationale="r", created_at="2026-09-12T09:00:00Z")
+                self.assertIn("suggested_verdict must be one of APPROVE, REJECT",
+                              str(caught.exception))
         with self.assertRaises(AssuranceError):
             human_jury.agent_may_propose(
                 proposal_id="p", subject_ref=SUBJECT, artifact_sha256=SHA,
-                proposer="agent", criteria=criteria(), suggested_verdict="APPROVED",
-                rationale="r", created_at="2026-09-12T09:00:00Z")
-        with self.assertRaises(AssuranceError):
-            human_jury.agent_may_propose(
-                proposal_id="p", subject_ref=SUBJECT, artifact_sha256=SHA,
-                proposer="agent", criteria=criteria(), suggested_verdict="REVISE",
+                proposer="agent", criteria=criteria(), suggested_verdict="REJECT",
                 rationale="r", created_at="yesterday")
 
     def test_a_tampered_proposal_cannot_become_a_verdict(self):
@@ -280,7 +352,7 @@ class JuryProposalTests(unittest.TestCase):
         document["kind"] = "JURY_VERDICT"
         with self.assertRaises(AssuranceError) as caught:
             human_jury.record_verdict(document)
-        self.assertIn("juror", str(caught.exception))
+        self.assertIn("proposal marker", str(caught.exception))
         document["juror"] = dataclasses.asdict(verdict().juror)
         with self.assertRaises(AssuranceError):
             human_jury.record_verdict(document)
@@ -294,6 +366,7 @@ class JuryScoreAndBindingTests(unittest.TestCase):
         self.assertEqual(2.0, summary["criteria"][0]["weighted"])
         self.assertIsNone(summary["confidence"])
         self.assertEqual("SINGLE_JUROR", summary["confidence_basis"])
+        self.assertEqual("APPROVE", summary["verdict"])
 
     def test_panel_confidence_needs_more_than_one_juror(self):
         single = human_jury.score_summary(verdict(juror=panel(members=("dtalex66",))))

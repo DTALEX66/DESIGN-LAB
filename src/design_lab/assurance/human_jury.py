@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: MIT
-"""DL-P0-171 human jury structure: a human verdict and an agent proposal are different types.
+"""DL-P0-171 / DLDS-F070 human jury structure: a human verdict and an agent proposal are different types.
 
 This module owns the jury record of DESIGN-LAB's Human Gate and extends the
 existing ``jury-record.schema.json`` (V1) into
@@ -8,12 +8,26 @@ criterion breakdown, a bound artifact digest and an append-only ``supersedes``
 edge. It does not replace the V1 contract or the ``JuryRecord`` template in
 ``packages/capabilities/quality/jury/``.
 
+The verdict vocabulary is the frozen QA policy of DLDS-F070: the human jury's
+final outcomes are ``APPROVE`` and ``REJECT``, and nothing else. The non-final
+``REVISE`` this module previously carried was dropped with that policy: a human
+who wants a revision states ``REJECT`` with evidence, which keeps exactly one
+final vocabulary per plane and leaves no third state that a summary or a
+downstream reader could mistake for acceptance. The values a proposal may
+suggest are drawn from the same two outcomes, and a proposal is still never a
+verdict.
+
 The one structural guarantee: an AI agent can never sign a jury verdict. A
 verdict is signed by a ``HUMAN`` or ``PANEL`` juror with an attestation, and an
 agent may only produce a :class:`JuryProposal`, which is a different type with a
-different ``kind`` marker and is rejected by every function that accepts a
-verdict. There is no code path in this module that converts a proposal into a
-verdict, and no function here invents a juror, an attestation or a timestamp.
+different ``kind`` marker; the schema roots differ in ``kind`` and in their
+closed property sets, so a proposal document is *unrepresentable* as a verdict,
+and it is additionally rejected by name by every function that accepts a
+verdict. A record that carries proposal markers is refused even when it is
+re-tagged ``JURY_VERDICT``, so an agent-produced document cannot be laundered
+into a verdict by relabelling. There is no code path in this module that
+converts a proposal into a verdict, and no function here invents a juror, an
+attestation or a timestamp.
 
 Boundary: structural validation only. No host access, no model call, no network,
 no persistence; a record that cannot be validated fails closed with
@@ -46,7 +60,17 @@ AGENT_ACTOR_KINDS = (
     "AGENT", "AI", "ASSISTANT", "AUTOMATED", "BOT", "LLM", "MACHINE", "MODEL",
     "PIPELINE", "SCRIPT", "SERVICE", "SYSTEM", "TOOL",
 )
-VERDICTS = ("ACCEPT", "REVISE", "REJECT")
+#: The frozen final vocabulary (DLDS-F070). There is no third verdict: a wanted
+#: revision is expressed as REJECT plus evidence, not as a non-final REVISE.
+APPROVE = "APPROVE"
+REJECT = "REJECT"
+VERDICTS = (APPROVE, REJECT)
+#: Alias used by the QA plane, which declares the same two values as the final
+#: outcomes: one vocabulary, two modules.
+FINAL_OUTCOMES = VERDICTS
+#: Fields that mark a document as agent-produced. A verdict may never carry one,
+#: whatever its ``kind`` says, so a proposal cannot be re-tagged into a verdict.
+PROPOSAL_MARKERS = ("proposal_id", "proposer", "suggested_verdict", "is_verdict")
 SCORE_FLOOR = 0.0
 SCORE_CEILING = 5.0
 WEIGHT_TOLERANCE = 1e-6
@@ -182,7 +206,10 @@ def _require_verdict(record, *, function: str):
     """Refuse anything that is not a human/panel signed verdict.
 
     The explicit ``kind`` check comes first so a proposal, a model suggestion or
-    a bare document is rejected by name rather than silently coerced.
+    a bare document is rejected by name rather than silently coerced. A record
+    that carries proposal markers is refused next, even when its ``kind`` claims
+    to be a verdict: relabelling an agent-produced document must not launder it
+    into a human signature.
     """
     kind = _kind_of(record)
     if isinstance(record, JuryProposal) or kind == KIND_PROPOSAL:
@@ -200,6 +227,14 @@ def _require_verdict(record, *, function: str):
             f"{function} requires a JuryVerdict or a jury record document; "
             f"got {type(record).__name__}"
         )
+    if isinstance(record, Mapping):
+        markers = [name for name in PROPOSAL_MARKERS if name in record]
+        if markers:
+            raise AssuranceError(
+                f"{function} refuses a record carrying the proposal marker(s) "
+                f"{', '.join(markers)}: a {KIND_PROPOSAL} re-tagged as {KIND_VERDICT} is "
+                "still an agent suggestion, and no agent may sign a human gate"
+            )
     return record
 
 
@@ -225,6 +260,14 @@ def assert_not_agent_signed(record) -> dict:
             "a jury proposal is not a signed record: an agent may propose, never subscribe "
             "a human gate"
         )
+    if isinstance(record, Mapping):
+        markers = [name for name in PROPOSAL_MARKERS if name in record]
+        if markers:
+            raise AssuranceError(
+                "the record carries the proposal marker(s) "
+                f"{', '.join(markers)}: an agent-produced document is not a signed human "
+                "record, whatever its kind marker says"
+            )
     if isinstance(record, JuryVerdict):
         document = record.as_dict()
     elif isinstance(record, Mapping):
@@ -394,7 +437,7 @@ def record_verdict(verdict) -> dict:
         raise AssuranceError(
             f"verdict must be one of {', '.join(VERDICTS)}; got {verdict_value!r}"
         )
-    if verdict_value == "REJECT":
+    if verdict_value == REJECT:
         refs = document.get("evidence_refs") or []
         if not refs:
             raise AssuranceError(
