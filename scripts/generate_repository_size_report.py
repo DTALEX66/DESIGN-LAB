@@ -54,7 +54,7 @@ def main() -> int:
             return 1
         print(f"REPOSITORY_SIZE=CHECK_PASS pack_mib={size_pack:.2f} status={status}")
         return 0
-    OUT.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
+    OUT.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8", newline="\n")
     print(f"REPOSITORY_SIZE=PASS status={status} pack_mib={size_pack:.2f} blobs={len(blobs)}")
     return 0
 
