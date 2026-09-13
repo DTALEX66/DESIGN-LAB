@@ -21,13 +21,34 @@ documents have no container, so their offset is ``0`` (document start). Range
 violations that overrun a BIN chunk carry the byte offset at which the overrun
 would begin.
 
-Deliberately NOT implemented: accessor element-size arithmetic against
-``bufferView.byteLength`` (interleaving, matrix padding and sparse accessors
-make a structural-only guess unsafe), and any semantic/geometry validation
-(normals, manifoldness, units, materials).
+Where the raw bytes live: :func:`parse_glb` is the only public function of this
+module that returns raw chunk payloads. :func:`validate_glb`,
+:func:`summarize_glb`, :func:`diagnose_glb` and :func:`validate_gltf_json`
+return JSON-serializable records only - a raw payload is replaced by its
+``sha256:<64 hex>`` digest and its byte length - so a validation record can be
+stored as evidence inside a JSON record.
+
+Accessor arithmetic (implemented). Scalars and vectors are densely packed, so
+their element size is ``columns * rows * component_size``. glTF 2.0 pads **each
+matrix column** to a 4-byte boundary, so a matrix element size is
+``columns * ceil(rows * component_size / 4) * 4`` - e.g. ``MAT3`` of
+``UNSIGNED_BYTE`` is 3 columns x 4 bytes = 12 bytes, not 9. Enforced here:
+componentType alignment of ``accessor.byteOffset`` and of the accessed
+``bufferView.byteOffset``; ``byteStride`` bounds (an integer, a multiple of 4,
+never above 252, never below the element size); the range
+``byteOffset + byteStride * (count - 1) + element_size`` against
+``bufferView.byteLength`` (the glTF 2.0 last-element bound, which equals the
+``byteOffset + count * byteStride`` bound whenever ``byteStride`` equals the
+element size); and sparse ``indices``/``values`` componentType, alignment and
+range rules. A sparse accessor may legitimately declare no ``bufferView``.
+
+Deliberately NOT implemented: semantic/geometry validation (normals,
+manifoldness, units, materials, animation samplers) and resolution or fetching
+of external ``uri`` buffers.
 """
 from __future__ import annotations
 
+import hashlib
 import json
 from typing import Any, Mapping
 
@@ -35,6 +56,7 @@ from . import (
     MediaError,
     NOT_EXECUTED,
     STRUCTURAL_EVIDENCE,
+    request_hash,
     require_mapping,
     require_text,
     validate_against,
@@ -54,6 +76,9 @@ __all__ = [
     "build_glb",
     "diagnose_glb",
     "glb_report_summary",
+    "gltf_element_size",
+    "parse_glb",
+    "summarize_glb",
     "validate_glb",
     "validate_gltf_json",
 ]
@@ -82,11 +107,54 @@ _SCHEMA_ARTIFACTS = [
     "design-lab/schemas/media-three-d-adapter.schema.json",
 ]
 
-_GLTF_COMPONENT_COUNT = {"SCALAR": 1, "VEC2": 2, "VEC3": 3, "VEC4": 4}
+#: glTF 2.0 componentType -> size of one component in bytes.
+_GLTF_COMPONENT_SIZE = {5120: 1, 5121: 1, 5122: 2, 5123: 2, 5125: 4, 5126: 4}
+#: glTF 2.0 accessor type -> (columns, rows).
+_GLTF_ACCESSOR_SHAPE = {
+    "SCALAR": (1, 1),
+    "VEC2": (2, 1),
+    "VEC3": (3, 1),
+    "VEC4": (4, 1),
+    "MAT2": (2, 2),
+    "MAT3": (3, 3),
+    "MAT4": (4, 4),
+}
+#: Accessor types whose columns are padded to a 4-byte boundary.
+_GLTF_MATRIX_TYPES = frozenset({"MAT2", "MAT3", "MAT4"})
+#: The only componentTypes glTF 2.0 allows for ``sparse.indices``.
+_GLTF_SPARSE_INDEX_COMPONENT_TYPES = (5121, 5123, 5125)
+#: Largest ``byteStride`` glTF 2.0 allows.
+_GLTF_MAX_BYTE_STRIDE = 252
 
 
 def _error(code: str, offset: int, detail: str) -> MediaError:
     return MediaError(code, f"offset={offset}: {detail}")
+
+
+def _sha256_of(payload: bytes) -> str:
+    """Digest of a raw payload: the JSON-safe stand-in for the payload itself."""
+    return "sha256:" + hashlib.sha256(payload).hexdigest()
+
+
+def gltf_element_size(component_type: Any, accessor_type: Any) -> int | None:
+    """Element size in bytes, or ``None`` when either enum value is unknown.
+
+    Scalars and vectors are densely packed: ``columns * rows * component_size``.
+    A matrix pads **each column** to a 4-byte boundary, so its element size is
+    ``columns * ceil(rows * component_size / 4) * 4``; ``MAT3`` of
+    ``UNSIGNED_BYTE`` is therefore 3 * 4 = 12 bytes, not 9.
+    """
+    if type(component_type) is not int or not isinstance(accessor_type, str):
+        return None
+    component_size = _GLTF_COMPONENT_SIZE.get(component_type)
+    shape = _GLTF_ACCESSOR_SHAPE.get(accessor_type)
+    if component_size is None or shape is None:
+        return None
+    columns, rows = shape
+    if accessor_type in _GLTF_MATRIX_TYPES:
+        column_size = -(-(rows * component_size) // 4) * 4
+        return columns * column_size
+    return columns * rows * component_size
 
 
 def blender_capabilities() -> list:
@@ -178,9 +246,233 @@ def _check_uri(uri: Any, index: int, offset: int) -> str:
     return uri
 
 
+def _require_alignment(*, offset: int, code: str, what: str, byte_offset: int,
+                       view_offset: int, component_size: int) -> None:
+    """glTF 2.0 data alignment: both offsets are multiples of the component size.
+
+    The normative rule is that ``byteOffset`` and ``byteOffset +
+    bufferView.byteOffset`` are multiples of the component size; checking each
+    offset separately is the same rule expressed twice, and it names the exact
+    offset that broke it.
+    """
+    for field, value in (("byteOffset", byte_offset),
+                         ("bufferView.byteOffset", view_offset)):
+        if value % component_size:
+            raise _error(
+                code,
+                offset,
+                f"{what} {field} {value} is not a multiple of the componentType "
+                f"size {component_size}",
+            )
+
+
+def _sparse_view(block: Mapping, label: str, owner: str, offset: int,
+                 buffer_views: list, view_lengths: list) -> tuple[int, int, int]:
+    """Resolve ``sparse.<label>.bufferView`` to (index, byteOffset, byteLength)."""
+    target = block.get("bufferView")
+    if type(target) is not int or not 0 <= target < len(buffer_views):
+        raise _error(
+            "GLTF_SPARSE_BUFFERVIEW_INDEX",
+            offset,
+            f"{owner}.{label}.bufferView {target!r} does not reference a declared "
+            f"bufferView (declared: {len(buffer_views)})",
+        )
+    view = buffer_views[target]
+    view_offset = view.get("byteOffset", 0)
+    if type(view_offset) is not int or view_offset < 0:
+        view_offset = 0  # already refused by the bufferViews pass
+    return target, view_offset, view_lengths[target]
+
+
+def _check_sparse_accessor(sparse: Mapping, *, index: int, offset: int,
+                           component_size: int | None, element: int | None,
+                           count: Any, buffer_views: list,
+                           view_lengths: list) -> None:
+    """Validate a ``sparse`` block: counts, index componentType, ranges, alignment."""
+    owner = f"accessors[{index}].sparse"
+    sparse_count = sparse.get("count")
+    if type(sparse_count) is not int or sparse_count <= 0:
+        raise _error(
+            "GLTF_SPARSE_COUNT",
+            offset,
+            f"{owner}.count must be a positive integer, got {sparse_count!r}",
+        )
+    if type(count) is int and 0 <= count < sparse_count:
+        raise _error(
+            "GLTF_SPARSE_COUNT",
+            offset,
+            f"{owner}.count {sparse_count} exceeds accessors[{index}].count {count}",
+        )
+    indices = sparse.get("indices")
+    if not isinstance(indices, Mapping):
+        raise _error("GLTF_SPARSE_INDICES", offset, f"{owner}.indices is missing")
+    values = sparse.get("values")
+    if not isinstance(values, Mapping):
+        raise _error("GLTF_SPARSE_VALUES", offset, f"{owner}.values is missing")
+
+    index_component_type = indices.get("componentType")
+    if index_component_type not in _GLTF_SPARSE_INDEX_COMPONENT_TYPES:
+        raise _error(
+            "GLTF_SPARSE_INDICES_COMPONENT_TYPE",
+            offset,
+            f"{owner}.indices.componentType {index_component_type!r} is not one of "
+            f"{list(_GLTF_SPARSE_INDEX_COMPONENT_TYPES)}",
+        )
+    index_size = _GLTF_COMPONENT_SIZE[index_component_type]
+    indices_offset = indices.get("byteOffset", 0)
+    if type(indices_offset) is not int or indices_offset < 0:
+        raise _error(
+            "GLTF_SPARSE_BYTEOFFSET",
+            offset,
+            f"{owner}.indices.byteOffset must be a non-negative integer",
+        )
+    _, indices_view_offset, indices_view_length = _sparse_view(
+        indices, "indices", owner, offset, buffer_views, view_lengths
+    )
+    _require_alignment(
+        offset=offset,
+        code="GLTF_SPARSE_ALIGNMENT",
+        what=f"{owner}.indices",
+        byte_offset=indices_offset,
+        view_offset=indices_view_offset,
+        component_size=index_size,
+    )
+    indices_end = indices_offset + sparse_count * index_size
+    if indices_end > indices_view_length:
+        raise _error(
+            "GLTF_SPARSE_RANGE",
+            offset,
+            f"{owner}.indices needs {indices_end} bytes but its bufferView "
+            f"declares {indices_view_length}",
+        )
+
+    values_offset = values.get("byteOffset", 0)
+    if type(values_offset) is not int or values_offset < 0:
+        raise _error(
+            "GLTF_SPARSE_BYTEOFFSET",
+            offset,
+            f"{owner}.values.byteOffset must be a non-negative integer",
+        )
+    _, values_view_offset, values_view_length = _sparse_view(
+        values, "values", owner, offset, buffer_views, view_lengths
+    )
+    if component_size is None or element is None:
+        return  # unknown accessor enums: the index half was still fully checked
+    _require_alignment(
+        offset=offset,
+        code="GLTF_SPARSE_ALIGNMENT",
+        what=f"{owner}.values",
+        byte_offset=values_offset,
+        view_offset=values_view_offset,
+        component_size=component_size,
+    )
+    values_end = values_offset + sparse_count * element
+    if values_end > values_view_length:
+        raise _error(
+            "GLTF_SPARSE_RANGE",
+            offset,
+            f"{owner}.values needs {values_end} bytes but its bufferView "
+            f"declares {values_view_length}",
+        )
+
+
+def _check_accessor(accessor: Mapping, *, index: int, offset: int,
+                    buffer_views: list, view_lengths: list) -> None:
+    """Reference, alignment, stride and range rules for one accessor."""
+    owner = f"accessors[{index}]"
+    target = accessor.get("bufferView")
+    if "bufferView" in accessor:
+        if type(target) is not int or not 0 <= target < len(buffer_views):
+            raise _error(
+                "GLTF_ACCESSOR_BUFFERVIEW_INDEX",
+                offset,
+                f"{owner}.bufferView {target!r} does not reference a declared "
+                f"bufferView (declared: {len(buffer_views)})",
+            )
+    else:
+        target = None
+        if not isinstance(accessor.get("sparse"), Mapping):
+            raise _error(
+                "GLTF_ACCESSOR_BUFFERVIEW_MISSING",
+                offset,
+                f"{owner} has no bufferView and no sparse block",
+            )
+
+    component_type = accessor.get("componentType")
+    component_size = (
+        _GLTF_COMPONENT_SIZE.get(component_type) if type(component_type) is int else None
+    )
+    element = gltf_element_size(component_type, accessor.get("type"))
+    count = accessor.get("count")
+
+    element_offset = accessor.get("byteOffset", 0)
+    if type(element_offset) is not int or element_offset < 0:
+        raise _error(
+            "GLTF_ACCESSOR_BYTEOFFSET",
+            offset,
+            f"{owner}.byteOffset must be a non-negative integer",
+        )
+
+    sparse = accessor.get("sparse")
+    if isinstance(sparse, Mapping):
+        _check_sparse_accessor(
+            sparse,
+            index=index,
+            offset=offset,
+            component_size=component_size,
+            element=element,
+            count=count,
+            buffer_views=buffer_views,
+            view_lengths=view_lengths,
+        )
+    elif sparse is not None:
+        raise _error("GLTF_SPARSE_NOT_OBJECT", offset, f"{owner}.sparse is not an object")
+
+    if (target is None or component_size is None or element is None
+            or type(count) is not int or count < 0):
+        return  # unknown enum values stay tolerated by this structural validator
+    view = buffer_views[target]
+    view_length = view_lengths[target]
+    view_offset = view.get("byteOffset", 0)
+    if type(view_offset) is not int or view_offset < 0:
+        view_offset = 0  # already refused by the bufferViews pass
+    _require_alignment(
+        offset=offset,
+        code="GLTF_ACCESSOR_ALIGNMENT",
+        what=owner,
+        byte_offset=element_offset,
+        view_offset=view_offset,
+        component_size=component_size,
+    )
+    stride = view.get("byteStride")
+    if stride is not None and stride < element:
+        raise _error(
+            "GLTF_ACCESSOR_BYTESTRIDE",
+            offset,
+            f"{owner} needs an element of {element} bytes but bufferViews[{target}] "
+            f"declares byteStride {stride}",
+        )
+    if stride is not None:
+        required = element_offset + max(count - 1, 0) * stride + element
+    else:
+        required = element_offset + count * element
+    if required > view_length:
+        raise _error(
+            "GLTF_ACCESSOR_RANGE",
+            offset,
+            f"{owner} needs {required} bytes but bufferViews[{target}] "
+            f"declares {view_length}",
+        )
+
+
 def _check_document(document: Any, *, container: str, offset: int,
                     bin_chunk_lengths: list | None) -> dict:
-    """glTF 2.0 reference integrity shared by the GLB and .gltf containers."""
+    """glTF 2.0 reference integrity shared by the GLB and .gltf containers.
+
+    Covers buffers, bufferViews (including ``byteStride`` bounds) and the full
+    accessor matrix: componentType x accessor-type element size, alignment,
+    stride and range, plus sparse ``indices``/``values``.
+    """
     if not isinstance(document, Mapping):
         raise _error(
             "GLTF_DOCUMENT_NOT_OBJECT", offset, f"top level is {type(document).__name__}"
@@ -253,6 +545,7 @@ def _check_document(document: Any, *, container: str, offset: int,
     buffer_views = document.get("bufferViews", [])
     if not isinstance(buffer_views, list):
         raise _error("GLTF_BUFFERVIEWS_NOT_ARRAY", offset, "'bufferViews' must be an array")
+    view_lengths: list = []
     for index, view in enumerate(buffer_views):
         if not isinstance(view, Mapping):
             raise _error(
@@ -287,6 +580,28 @@ def _check_document(document: Any, *, container: str, offset: int,
                 f"bufferViews[{index}] spans {view_offset}+{view_length} bytes but "
                 f"buffers[{target}].byteLength is {buffer_lengths[target]}",
             )
+        stride = view.get("byteStride")
+        if stride is not None:
+            if type(stride) is not int or stride < 0:
+                raise _error(
+                    "GLTF_BUFFERVIEW_BYTESTRIDE",
+                    offset,
+                    f"bufferViews[{index}].byteStride must be a non-negative integer",
+                )
+            if stride % 4:
+                raise _error(
+                    "GLTF_BUFFERVIEW_BYTESTRIDE",
+                    offset,
+                    f"bufferViews[{index}].byteStride {stride} is not a multiple of 4",
+                )
+            if stride > _GLTF_MAX_BYTE_STRIDE:
+                raise _error(
+                    "GLTF_BUFFERVIEW_BYTESTRIDE",
+                    offset,
+                    f"bufferViews[{index}].byteStride {stride} exceeds the glTF "
+                    f"maximum of {_GLTF_MAX_BYTE_STRIDE}",
+                )
+        view_lengths.append(view_length)
 
     accessors = document.get("accessors", [])
     if not isinstance(accessors, list):
@@ -296,54 +611,13 @@ def _check_document(document: Any, *, container: str, offset: int,
             raise _error(
                 "GLTF_ACCESSOR_NOT_OBJECT", offset, f"accessors[{index}] is not an object"
             )
-        if "bufferView" not in accessor:
-            sparse = accessor.get("sparse")
-            if isinstance(sparse, Mapping):
-                continue
-            raise _error(
-                "GLTF_ACCESSOR_BUFFERVIEW_MISSING",
-                offset,
-                f"accessors[{index}] has no bufferView and no sparse block",
-            )
-        target = accessor["bufferView"]
-        if type(target) is not int or not 0 <= target < len(buffer_views):
-            raise _error(
-                "GLTF_ACCESSOR_BUFFERVIEW_INDEX",
-                offset,
-                f"accessors[{index}].bufferView {target!r} does not reference a "
-                f"declared bufferView (declared: {len(buffer_views)})",
-            )
-        counts = _GLTF_COMPONENT_COUNT.get(accessor.get("type"))
-        component_size = {5120: 1, 5121: 1, 5122: 2, 5123: 2, 5125: 4, 5126: 4}.get(
-            accessor.get("componentType")
+        _check_accessor(
+            accessor,
+            index=index,
+            offset=offset,
+            buffer_views=buffer_views,
+            view_lengths=view_lengths,
         )
-        count = accessor.get("count")
-        if counts is None or component_size is None or type(count) is not int or count < 0:
-            continue
-        view = buffer_views[target]
-        if not isinstance(view, Mapping):
-            continue
-        element = component_size * counts
-        stride = view.get("byteStride")
-        element_offset = accessor.get("byteOffset", 0)
-        if type(element_offset) is not int or element_offset < 0:
-            raise _error(
-                "GLTF_ACCESSOR_BYTEOFFSET",
-                offset,
-                f"accessors[{index}].byteOffset must be a non-negative integer",
-            )
-        if type(stride) is int and stride > 0:
-            required = element_offset + max(count - 1, 0) * stride + element
-        else:
-            required = element_offset + count * element
-        view_length = view.get("byteLength")
-        if type(view_length) is int and required > view_length:
-            raise _error(
-                "GLTF_ACCESSOR_RANGE",
-                offset,
-                f"accessors[{index}] needs {required} bytes but bufferViews[{target}] "
-                f"declares {view_length}",
-            )
 
     return {
         "asset_version": version,
@@ -374,18 +648,27 @@ def validate_gltf_json(document: Mapping) -> dict:
         "evidence_level": STRUCTURAL_EVIDENCE,
         "container": "gltf",
         "byte_length": None,
+        "header": None,
+        "chunk_table": [],
         "asset_version": checks["asset_version"],
         "counts": checks["counts"],
         "external_assets": checks["external_assets"],
         "json_chunk": None,
         "bin_chunks": [],
-        "binary_chunks": [],
         "document": dict(document),
     }
 
 
-def validate_glb(data: bytes) -> dict:
-    """Structurally validate a GLB container. Reads bytes only; opens no file."""
+def parse_glb(data: bytes) -> dict:
+    """Low-level GLB container walk. Reads bytes only; opens no file.
+
+    This is the **only** function in this module that returns raw chunk
+    payloads: ``json_chunk["body"]``, each ``bin_chunks[i]["body"]`` (the payload
+    truncated to the declared ``buffers[i].byteLength``), each
+    ``bin_chunks[i]["data"]`` (the full 4-byte padded payload) and the
+    ``binary_chunks`` list are ``bytes``. Use :func:`validate_glb` when the
+    record must be JSON-serializable.
+    """
     if not isinstance(data, (bytes, bytearray, memoryview)):
         raise MediaError(
             "GLB_INPUT_NOT_BYTES", f"expected bytes, got {type(data).__name__}"
@@ -453,8 +736,18 @@ def validate_glb(data: bytes) -> dict:
                 "header_offset": offset,
                 "data_offset": data_offset,
                 "length": chunk_length,
+                "body": body,
             }
-            chunks.append({"type": "JSON", "header_offset": offset})
+            chunks.append(
+                {
+                    "index": len(chunks),
+                    "type": "JSON",
+                    "chunk_type": chunk_type,
+                    "header_offset": offset,
+                    "data_offset": data_offset,
+                    "length": chunk_length,
+                }
+            )
         elif chunk_type == BIN_CHUNK_TYPE:
             if json_chunk is None:
                 raise _error(
@@ -469,7 +762,16 @@ def validate_glb(data: bytes) -> dict:
                     "body": body,
                 }
             )
-            chunks.append({"type": "BIN", "header_offset": offset})
+            chunks.append(
+                {
+                    "index": len(chunks),
+                    "type": "BIN",
+                    "chunk_type": chunk_type,
+                    "header_offset": offset,
+                    "data_offset": data_offset,
+                    "length": chunk_length,
+                }
+            )
         else:
             raise _error(
                 "GLB_CHUNK_TYPE_UNKNOWN",
@@ -507,45 +809,97 @@ def validate_glb(data: bytes) -> dict:
             f"JSON chunk decoded to {type(document).__name__}, expected an object",
         )
 
-    checks = _check_document(
-        document,
-        container="glb",
-        offset=json_chunk["data_offset"],
-        bin_chunk_lengths=bin_chunks,
-    )
-    buffers = document.get("buffers", []) or []
-    public_chunks = []
+    buffers = document.get("buffers", [])
+    if not isinstance(buffers, list):
+        buffers = []
+    parsed_chunks = []
     for chunk in bin_chunks:
         buffer = buffers[chunk["index"]] if chunk["index"] < len(buffers) else {}
         declared = buffer.get("byteLength") if isinstance(buffer, Mapping) else None
         body = chunk["body"]
         if type(declared) is int:
-            body_view = body[:declared]
             padding_nonzero = any(byte != 0 for byte in body[declared:])
         else:
-            body_view = body
             padding_nonzero = False
-        public_chunks.append(
+        parsed_chunks.append(
             {
                 "index": chunk["index"],
                 "header_offset": chunk["header_offset"],
                 "data_offset": chunk["data_offset"],
                 "length": chunk["length"],
                 "declared_byte_length": declared,
-                "body": body_view,
+                "body": body[:declared] if type(declared) is int else body,
                 "data": body,
                 "padding_nonzero": padding_nonzero,
+            }
+        )
+    return {
+        "container": "glb",
+        "byte_length": len(data),
+        "header": {"magic": "glTF", "version": GLB_VERSION, "length": declared_length},
+        "chunk_table": [dict(entry) for entry in chunks],
+        "json_chunk": json_chunk,
+        "bin_chunks": parsed_chunks,
+        "binary_chunks": [chunk["data"] for chunk in parsed_chunks],
+        "document": dict(document),
+    }
+
+
+def validate_glb(data: bytes) -> dict:
+    """Structurally validate a GLB container and return a JSON-safe record.
+
+    The return value contains no ``bytes`` object anywhere: every raw chunk
+    payload is replaced by its ``sha256:<64 hex>`` digest and its byte length, so
+    ``json.dumps(validate_glb(data))`` always succeeds and the record can be
+    stored as evidence. Use :func:`parse_glb` when the raw payloads are needed.
+    """
+    parsed = parse_glb(data)
+    json_chunk = parsed["json_chunk"]
+    document = parsed["document"]
+    bin_chunks = parsed["bin_chunks"]
+
+    checks = _check_document(
+        document,
+        container="glb",
+        offset=json_chunk["data_offset"],
+        bin_chunk_lengths=bin_chunks,
+    )
+    buffers = document.get("buffers", [])
+    if not isinstance(buffers, list):
+        buffers = []
+    public_chunks = []
+    for chunk in bin_chunks:
+        buffer = buffers[chunk["index"]] if chunk["index"] < len(buffers) else {}
+        declared = buffer.get("byteLength") if isinstance(buffer, Mapping) else None
+        public_chunks.append(
+            {
+                "index": chunk["index"],
+                "header_offset": chunk["header_offset"],
+                "data_offset": chunk["data_offset"],
+                "length": chunk["length"],
+                "byte_length": chunk["length"],
+                "declared_byte_length": declared,
+                "sha256": _sha256_of(chunk["data"]),
+                "padding_nonzero": bool(chunk["padding_nonzero"]),
             }
         )
     return {
         "status": "VALID",
         "evidence_level": STRUCTURAL_EVIDENCE,
         "container": "glb",
-        "byte_length": len(data),
-        "header": {"magic": "glTF", "version": GLB_VERSION, "length": declared_length},
-        "json_chunk": json_chunk,
+        "byte_length": parsed["byte_length"],
+        "header": dict(parsed["header"]),
+        "chunk_table": [dict(entry) for entry in parsed["chunk_table"]],
+        "json_chunk": {
+            "index": json_chunk["index"],
+            "header_offset": json_chunk["header_offset"],
+            "data_offset": json_chunk["data_offset"],
+            "length": json_chunk["length"],
+            "byte_length": json_chunk["length"],
+            "padding": json_chunk.get("padding", 0),
+            "sha256": _sha256_of(json_chunk["body"]),
+        },
         "bin_chunks": public_chunks,
-        "binary_chunks": [chunk["body"] for chunk in public_chunks],
         "asset_version": checks["asset_version"],
         "counts": checks["counts"],
         "external_assets": checks["external_assets"],
@@ -553,8 +907,41 @@ def validate_glb(data: bytes) -> dict:
     }
 
 
+def summarize_glb(data: bytes) -> dict:
+    """Compact JSON-safe GLB summary for an evidence record.
+
+    Holds the container kind, the byte length, the 12-byte header, a digest of
+    the whole chunk table, the document counts, the asset version, the verdict
+    and the declared external assets - no chunk payload, no document body and no
+    ``bytes`` value anywhere, so it is safe to embed in a JSON evidence record
+    even though the full validation record stays available beside it.
+    """
+    record = validate_glb(data)
+    chunk_table = [dict(entry) for entry in record["chunk_table"]]
+    return {
+        "status": record["status"],
+        "verdict": record["status"],
+        "evidence_level": STRUCTURAL_EVIDENCE,
+        "container": record["container"],
+        "byte_length": record["byte_length"],
+        "header": dict(record["header"]),
+        "chunk_table": {
+            "count": len(chunk_table),
+            "types": [entry["type"] for entry in chunk_table],
+            "sha256": request_hash({"chunk_table": chunk_table}),
+        },
+        "counts": dict(record["counts"]),
+        "asset_version": record["asset_version"],
+        "external_assets": [dict(asset) for asset in record["external_assets"]],
+    }
+
+
 def diagnose_glb(data: bytes) -> dict:
-    """Non-raising wrapper around :func:`validate_glb` for triage and reporting."""
+    """Non-raising wrapper around :func:`validate_glb` for triage and reporting.
+
+    The embedded record is the JSON-safe one returned by :func:`validate_glb`,
+    so a diagnosis can be serialized as-is.
+    """
     try:
         return {"valid": True, "record": validate_glb(data), "error": None}
     except MediaError as exc:
@@ -562,7 +949,12 @@ def diagnose_glb(data: bytes) -> dict:
 
 
 def glb_report_summary(record: Mapping) -> dict:
-    """JSON-safe summary of a validation record (drops bytes and the document)."""
+    """The schema-shaped subset of a :func:`validate_glb` record.
+
+    ``media-three-d-adapter.schema.json`` pins this exact shape, so the digest
+    and byte_length fields of the full record are deliberately not re-exported
+    here.
+    """
     require_mapping(record, "record")
     json_chunk = record.get("json_chunk")
     return {
@@ -600,8 +992,9 @@ def build_glb(json_document: Mapping, binary_chunk: bytes | None = None) -> byte
     """Build a GLB container from a JSON document and an optional BIN chunk.
 
     JSON padding is spaces and BIN padding is zeros, as glTF 2.0 requires, so
-    ``validate_glb(build_glb(document, chunk))`` returns the document unchanged
-    and the chunk body byte for byte.
+    ``parse_glb(build_glb(document, chunk))`` returns the document unchanged and
+    the chunk body byte for byte, and ``validate_glb`` reports the same container
+    with the payload replaced by its digest.
     """
     if not isinstance(json_document, Mapping):
         raise MediaError(

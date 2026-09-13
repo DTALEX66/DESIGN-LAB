@@ -7,6 +7,7 @@ process is started, no .blend or .glb file is opened and no render is executed.
 """
 from __future__ import annotations
 
+import hashlib
 import json
 from pathlib import Path
 import struct
@@ -54,6 +55,31 @@ def simple_document(byte_length: int = 12) -> dict:
             {"bufferView": 0, "componentType": 5126, "count": 1, "type": "VEC3"}
         ],
     }
+
+
+def sparse_document(sparse: dict, byte_length: int = 12, accessor: dict | None = None) -> dict:
+    """A document whose single accessor carries ``sparse`` and no bufferView."""
+    document = simple_document(byte_length)
+    body = {"componentType": 5126, "count": 1, "type": "VEC3"}
+    if accessor:
+        body.update(accessor)
+    body["sparse"] = sparse
+    document["accessors"] = [body]
+    return document
+
+
+def bytes_anywhere(value, path: str = "$") -> list:
+    """Every path inside ``value`` that holds a raw byte payload."""
+    found = []
+    if isinstance(value, (bytes, bytearray, memoryview)):
+        found.append(path)
+    elif isinstance(value, dict):
+        for key, item in value.items():
+            found += bytes_anywhere(item, f"{path}.{key}")
+    elif isinstance(value, (list, tuple)):
+        for index, item in enumerate(value):
+            found += bytes_anywhere(item, f"{path}[{index}]")
+    return found
 
 
 class BlenderAdapterContractTests(unittest.TestCase):
@@ -170,31 +196,37 @@ class GlbStructureTests(unittest.TestCase):
         binary = bytes(range(12))
         data = td.build_glb(document, binary)
         record = td.validate_glb(data)
+        parsed = td.parse_glb(data)
         self.assertEqual(record["status"], "VALID")
         self.assertEqual(record["document"], document)
         self.assertEqual(record["byte_length"], len(data))
         self.assertEqual(record["header"], {"magic": "glTF", "version": 2, "length": len(data)})
         self.assertEqual(record["json_chunk"]["header_offset"], 12)
         self.assertEqual(record["json_chunk"]["data_offset"], 20)
-        chunk_record = record["bin_chunks"][0]
+        # the raw payloads belong to parse_glb, not to the validation record
+        chunk_record = parsed["bin_chunks"][0]
         self.assertEqual(chunk_record["body"], binary)
+        self.assertEqual(chunk_record["data"], binary)
         self.assertEqual(chunk_record["declared_byte_length"], 12)
         self.assertFalse(chunk_record["padding_nonzero"])
+        self.assertEqual(parsed["binary_chunks"], [binary])
+        self.assertEqual(record["bin_chunks"][0]["declared_byte_length"], 12)
         self.assertEqual(record["asset_version"], "2.0")
         self.assertEqual(record["counts"]["accessors"], 1)
-        rebuilt = td.build_glb(record["document"], record["bin_chunks"][0]["body"])
+        rebuilt = td.build_glb(record["document"], parsed["bin_chunks"][0]["body"])
         self.assertEqual(rebuilt, data)
 
     def test_padding_is_applied_and_reported(self) -> None:
         document = {"asset": {"version": "2.0"}}
         data = td.build_glb(document, b"\x01\x02\x03")
         record = td.validate_glb(data)
+        parsed = td.parse_glb(data)
         payload = json.dumps(document, separators=(",", ":"))
         self.assertEqual(record["json_chunk"]["padding"], (-len(payload)) % 4)
         self.assertEqual(record["bin_chunks"][0]["length"], 4)
         self.assertIsNone(record["bin_chunks"][0]["declared_byte_length"])
-        self.assertEqual(record["bin_chunks"][0]["body"], b"\x01\x02\x03\x00")
-        self.assertEqual(record["bin_chunks"][0]["data"][:3], b"\x01\x02\x03")
+        self.assertEqual(parsed["bin_chunks"][0]["body"], b"\x01\x02\x03\x00")
+        self.assertEqual(parsed["bin_chunks"][0]["data"][:3], b"\x01\x02\x03")
         self.assertFalse(record["bin_chunks"][0]["padding_nonzero"])
 
     def test_header_violations_carry_the_exact_offset(self) -> None:
@@ -355,6 +387,329 @@ class GlbStructureTests(unittest.TestCase):
         bad = td.diagnose_glb(b"nope")
         self.assertFalse(bad["valid"])
         self.assertIn("GLB_HEADER_TRUNCATED", bad["error"])
+
+
+class GlbAccessorMatrixTests(unittest.TestCase):
+    """The componentType x accessor-type matrix: sizes, alignment, stride, sparse.
+
+    Element sizes are hard-coded from the glTF 2.0 specification (not recomputed
+    from the module under test) so the table is an independent statement of the
+    rule: a matrix pads every column to 4 bytes, a vector and a scalar do not.
+    """
+
+    ELEMENT_SIZES = {
+        (5120, "SCALAR"): 1, (5120, "VEC2"): 2, (5120, "VEC3"): 3, (5120, "VEC4"): 4,
+        (5120, "MAT2"): 8, (5120, "MAT3"): 12, (5120, "MAT4"): 16,
+        (5121, "VEC3"): 3, (5121, "MAT3"): 12, (5121, "MAT4"): 16,
+        (5122, "SCALAR"): 2, (5122, "VEC2"): 4, (5122, "VEC3"): 6, (5122, "VEC4"): 8,
+        (5122, "MAT2"): 8, (5122, "MAT3"): 24, (5122, "MAT4"): 32,
+        (5123, "SCALAR"): 2, (5123, "VEC4"): 8, (5123, "MAT3"): 24,
+        (5125, "SCALAR"): 4, (5125, "VEC2"): 8, (5125, "VEC3"): 12, (5125, "VEC4"): 16,
+        (5125, "MAT2"): 16, (5125, "MAT3"): 36, (5125, "MAT4"): 64,
+        (5126, "SCALAR"): 4, (5126, "VEC2"): 8, (5126, "VEC3"): 12, (5126, "VEC4"): 16,
+        (5126, "MAT2"): 16, (5126, "MAT3"): 36, (5126, "MAT4"): 64,
+    }
+
+    def test_element_size_matrix_covers_sets_and_matrices(self) -> None:
+        for (component_type, accessor_type), expected in self.ELEMENT_SIZES.items():
+            with self.subTest(component=component_type, type=accessor_type):
+                self.assertEqual(
+                    td.gltf_element_size(component_type, accessor_type), expected
+                )
+        # the column padding is the whole point: MAT3 of UNSIGNED_BYTE is 3 * 4
+        self.assertEqual(td.gltf_element_size(5121, "MAT3"), 12)
+        self.assertNotEqual(td.gltf_element_size(5121, "MAT3"), 9)
+        # a vector is densely packed: VEC3 of UNSIGNED_BYTE stays 3 bytes
+        self.assertEqual(td.gltf_element_size(5121, "VEC3"), 3)
+        # unknown enum values stay tolerated by this structural validator
+        for unknown in ((5124, "VEC3"), (5126, "VEC5"), ("5126", "VEC3"), (5126, None)):
+            with self.subTest(unknown=unknown):
+                self.assertIsNone(td.gltf_element_size(*unknown))
+
+    def test_matrix_accessor_is_accepted_and_one_byte_short_is_rejected(self) -> None:
+        document = simple_document(12)
+        document["accessors"] = [
+            {"bufferView": 0, "componentType": 5121, "count": 1, "type": "MAT3"}
+        ]
+        record = td.validate_glb(td.build_glb(document, b"\x00" * 12))
+        self.assertEqual(record["status"], "VALID")
+        self.assertEqual(record["counts"]["accessors"], 1)
+
+        short = json.loads(json.dumps(document))
+        short["buffers"][0]["byteLength"] = 11
+        short["bufferViews"][0]["byteLength"] = 11
+        data = td.build_glb(short, b"\x00" * 11)
+        with self.assertRaises(MediaError) as caught:
+            td.validate_glb(data)
+        self.assertEqual(caught.exception.code, "GLTF_ACCESSOR_RANGE")
+        self.assertIn("offset=", str(caught.exception))
+        self.assertIn("needs 12 bytes", str(caught.exception))
+        self.assertIn("declares 11", str(caught.exception))
+        self.assertEqual(
+            td.parse_glb(data)["json_chunk"]["data_offset"],
+            int(str(caught.exception).split("offset=")[1].split(":")[0]),
+        )
+
+    def test_misaligned_byte_offsets_are_rejected(self) -> None:
+        accessor_case = simple_document(16)
+        accessor_case["accessors"][0] = {
+            "bufferView": 0, "componentType": 5126, "count": 1, "type": "VEC3",
+            "byteOffset": 2,
+        }
+        with self.assertRaises(MediaError) as caught:
+            td.validate_glb(td.build_glb(accessor_case, b"\x00" * 16))
+        self.assertEqual(caught.exception.code, "GLTF_ACCESSOR_ALIGNMENT")
+        self.assertIn("offset=", str(caught.exception))
+        self.assertIn("byteOffset 2", str(caught.exception))
+
+        view_case = simple_document(16)
+        view_case["bufferViews"][0] = {"buffer": 0, "byteOffset": 1, "byteLength": 8}
+        view_case["accessors"][0] = {
+            "bufferView": 0, "componentType": 5123, "count": 2, "type": "VEC2",
+        }
+        with self.assertRaises(MediaError) as caught:
+            td.validate_glb(td.build_glb(view_case, b"\x00" * 16))
+        self.assertEqual(caught.exception.code, "GLTF_ACCESSOR_ALIGNMENT")
+        self.assertIn("bufferView.byteOffset 1", str(caught.exception))
+
+    def test_byte_stride_bounds_are_enforced(self) -> None:
+        # VEC3/FLOAT has a 12-byte element: 4 is a multiple of 4 but far too small
+        too_small = simple_document(24)
+        too_small["bufferViews"][0]["byteStride"] = 4
+        with self.assertRaises(MediaError) as caught:
+            td.validate_glb(td.build_glb(too_small, b"\x00" * 24))
+        self.assertEqual(caught.exception.code, "GLTF_ACCESSOR_BYTESTRIDE")
+        self.assertIn("offset=", str(caught.exception))
+        self.assertIn("byteStride 4", str(caught.exception))
+
+        not_a_multiple_of_four = simple_document(24)
+        not_a_multiple_of_four["bufferViews"][0]["byteStride"] = 6
+        with self.assertRaises(MediaError) as caught:
+            td.validate_glb(td.build_glb(not_a_multiple_of_four, b"\x00" * 24))
+        self.assertEqual(caught.exception.code, "GLTF_BUFFERVIEW_BYTESTRIDE")
+        self.assertIn("not a multiple of 4", str(caught.exception))
+
+        above_the_maximum = simple_document(512)
+        above_the_maximum["bufferViews"][0]["byteStride"] = 256
+        with self.assertRaises(MediaError) as caught:
+            td.validate_glb(td.build_glb(above_the_maximum, b"\x00" * 512))
+        self.assertEqual(caught.exception.code, "GLTF_BUFFERVIEW_BYTESTRIDE")
+        self.assertIn("exceeds the glTF maximum of 252", str(caught.exception))
+
+        # a legal interleaved stride is still accepted: 16 >= 12, multiple of 4
+        interleaved = simple_document(32)
+        interleaved["bufferViews"][0]["byteStride"] = 16
+        interleaved["accessors"][0] = {
+            "bufferView": 0, "componentType": 5126, "count": 2, "type": "VEC3",
+        }
+        record = td.validate_glb(td.build_glb(interleaved, b"\x00" * 32))
+        self.assertEqual(record["status"], "VALID")
+
+        # one byte short of 16 * (2 - 1) + 12 = 28
+        short = json.loads(json.dumps(interleaved))
+        short["buffers"][0]["byteLength"] = 27
+        short["bufferViews"][0]["byteLength"] = 27
+        with self.assertRaises(MediaError) as caught:
+            td.validate_glb(td.build_glb(short, b"\x00" * 27))
+        self.assertEqual(caught.exception.code, "GLTF_ACCESSOR_RANGE")
+        self.assertIn("needs 28 bytes", str(caught.exception))
+
+    def test_sparse_indices_component_type_is_restricted(self) -> None:
+        for component_type in (5120, 5122, 5126, None):
+            with self.subTest(componentType=component_type):
+                document = sparse_document(
+                    {
+                        "count": 1,
+                        "indices": {"bufferView": 0, "componentType": component_type},
+                        "values": {"bufferView": 0},
+                    }
+                )
+                with self.assertRaises(MediaError) as caught:
+                    td.validate_glb(td.build_glb(document, b"\x00" * 12))
+                self.assertEqual(caught.exception.code, "GLTF_SPARSE_INDICES_COMPONENT_TYPE")
+                self.assertIn("offset=", str(caught.exception))
+
+    def test_sparse_count_indices_and_values_are_validated(self) -> None:
+        zero = sparse_document(
+            {
+                "count": 0,
+                "indices": {"bufferView": 0, "componentType": 5125},
+                "values": {"bufferView": 0},
+            }
+        )
+        with self.assertRaises(MediaError) as caught:
+            td.validate_glb(td.build_glb(zero, b"\x00" * 12))
+        self.assertEqual(caught.exception.code, "GLTF_SPARSE_COUNT")
+
+        beyond_the_accessor = sparse_document(
+            {
+                "count": 2,
+                "indices": {"bufferView": 0, "componentType": 5125},
+                "values": {"bufferView": 0},
+            }
+        )
+        with self.assertRaises(MediaError) as caught:
+            td.validate_glb(td.build_glb(beyond_the_accessor, b"\x00" * 12))
+        self.assertEqual(caught.exception.code, "GLTF_SPARSE_COUNT")
+        self.assertIn("exceeds accessors[0].count 1", str(caught.exception))
+
+        indices_overrun = sparse_document(
+            {
+                "count": 1,
+                "indices": {"bufferView": 0, "componentType": 5125, "byteOffset": 9},
+                "values": {"bufferView": 0},
+            }
+        )
+        with self.assertRaises(MediaError) as caught:
+            td.validate_glb(td.build_glb(indices_overrun, b"\x00" * 12))
+        self.assertEqual(caught.exception.code, "GLTF_SPARSE_ALIGNMENT")
+
+        values_overrun = sparse_document(
+            {
+                "count": 1,
+                "indices": {"bufferView": 0, "componentType": 5121},
+                "values": {"bufferView": 0, "byteOffset": 4},
+            }
+        )
+        with self.assertRaises(MediaError) as caught:
+            td.validate_glb(td.build_glb(values_overrun, b"\x00" * 12))
+        self.assertEqual(caught.exception.code, "GLTF_SPARSE_RANGE")
+        self.assertIn("needs 16 bytes", str(caught.exception))
+
+        missing_indices = sparse_document(
+            {"count": 1, "values": {"bufferView": 0}}
+        )
+        with self.assertRaises(MediaError) as caught:
+            td.validate_glb(td.build_glb(missing_indices, b"\x00" * 12))
+        self.assertEqual(caught.exception.code, "GLTF_SPARSE_INDICES")
+
+        bad_view = sparse_document(
+            {
+                "count": 1,
+                "indices": {"bufferView": 4, "componentType": 5121},
+                "values": {"bufferView": 0},
+            }
+        )
+        with self.assertRaises(MediaError) as caught:
+            td.validate_glb(td.build_glb(bad_view, b"\x00" * 12))
+        self.assertEqual(caught.exception.code, "GLTF_SPARSE_BUFFERVIEW_INDEX")
+
+    def test_valid_sparse_accessor_is_accepted_with_and_without_a_buffer_view(self) -> None:
+        without_view = sparse_document(
+            {
+                "count": 1,
+                "indices": {"bufferView": 0, "componentType": 5125},
+                "values": {"bufferView": 0},
+            }
+        )
+        record = td.validate_glb(td.build_glb(without_view, b"\x00" * 12))
+        self.assertEqual(record["status"], "VALID")
+
+        with_view = sparse_document(
+            {
+                "count": 1,
+                "indices": {"bufferView": 0, "componentType": 5125},
+                "values": {"bufferView": 0},
+            },
+            byte_length=16,
+            accessor={"bufferView": 0},
+        )
+        record = td.validate_glb(td.build_glb(with_view, b"\x00" * 16))
+        self.assertEqual(record["status"], "VALID")
+
+
+class GlbJsonSafetyTests(unittest.TestCase):
+    """A validation record is evidence: it must survive json.dumps unchanged."""
+
+    def test_validate_glb_is_json_serializable_and_parse_glb_owns_the_bytes(self) -> None:
+        document = simple_document(12)
+        binary = bytes(range(12))
+        data = td.build_glb(document, binary)
+        record = td.validate_glb(data)
+        self.assertEqual(bytes_anywhere(record), [])
+        self.assertEqual(json.loads(json.dumps(record)), record)
+
+        # the digest is a real sha256 of the stored payload, plus its byte length
+        self.assertEqual(
+            record["bin_chunks"][0]["sha256"],
+            "sha256:" + hashlib.sha256(binary).hexdigest(),
+        )
+        self.assertRegex(record["bin_chunks"][0]["sha256"], r"^sha256:[0-9a-f]{64}$")
+        self.assertEqual(record["bin_chunks"][0]["byte_length"], 12)
+        self.assertEqual(record["json_chunk"]["byte_length"], record["json_chunk"]["length"])
+        json_payload = td.parse_glb(data)["json_chunk"]["body"]
+        self.assertEqual(
+            record["json_chunk"]["sha256"],
+            "sha256:" + hashlib.sha256(json_payload).hexdigest(),
+        )
+
+        # parse_glb is the only function that hands raw payloads back
+        parsed = td.parse_glb(data)
+        self.assertTrue(bytes_anywhere(parsed))
+        self.assertEqual(parsed["bin_chunks"][0]["data"], binary)
+        self.assertEqual(parsed["binary_chunks"], [binary])
+        self.assertEqual(
+            json.loads(parsed["json_chunk"]["body"].decode("utf-8").rstrip(" ")), document
+        )
+
+        # diagnose_glb keeps working, on the JSON-safe record
+        diagnosis = td.diagnose_glb(data)
+        self.assertTrue(diagnosis["valid"])
+        self.assertEqual(bytes_anywhere(diagnosis), [])
+        self.assertEqual(json.loads(json.dumps(diagnosis))["record"], record)
+        failure = td.diagnose_glb(b"nope")
+        self.assertFalse(failure["valid"])
+        self.assertIn("GLB_HEADER_TRUNCATED", failure["error"])
+        json.dumps(failure)
+
+        gltf_document = simple_document(12)
+        gltf_document["buffers"] = [{"byteLength": 12, "uri": "scene.bin"}]
+        gltf_record = td.validate_gltf_json(gltf_document)
+        self.assertEqual(bytes_anywhere(gltf_record), [])
+        json.dumps(gltf_record)
+
+    def test_summarize_glb_is_a_compact_evidence_summary(self) -> None:
+        document = simple_document(12)
+        binary = bytes(range(12))
+        data = td.build_glb(document, binary)
+        summary = td.summarize_glb(data)
+        self.assertEqual(bytes_anywhere(summary), [])
+        self.assertEqual(json.loads(json.dumps(summary)), summary)
+        self.assertEqual(summary["status"], "VALID")
+        self.assertEqual(summary["verdict"], "VALID")
+        self.assertEqual(summary["container"], "glb")
+        self.assertEqual(summary["byte_length"], len(data))
+        self.assertEqual(summary["header"]["magic"], "glTF")
+        self.assertEqual(summary["asset_version"], "2.0")
+        self.assertEqual(summary["counts"]["accessors"], 1)
+        self.assertEqual(summary["external_assets"], [])
+        self.assertEqual(summary["chunk_table"]["count"], 2)
+        self.assertEqual(summary["chunk_table"]["types"], ["JSON", "BIN"])
+        self.assertRegex(summary["chunk_table"]["sha256"], r"^sha256:[0-9a-f]{64}$")
+        # the summary is smaller than the full record and holds no payload
+        self.assertLess(len(json.dumps(summary)), len(json.dumps(td.validate_glb(data))))
+        # the chunk-table digest is stable and follows the container layout
+        self.assertEqual(summary["chunk_table"]["sha256"],
+                         td.summarize_glb(data)["chunk_table"]["sha256"])
+        same_layout = td.summarize_glb(td.build_glb(document, b"\xff" * 12))
+        self.assertEqual(same_layout["chunk_table"]["sha256"],
+                         summary["chunk_table"]["sha256"])
+        longer_chunk = td.summarize_glb(td.build_glb(document, b"\x00" * 16))
+        self.assertNotEqual(longer_chunk["chunk_table"]["sha256"],
+                            summary["chunk_table"]["sha256"])
+        # ... and the payload itself is covered by the chunk digest, not by the table
+        self.assertNotEqual(
+            td.validate_glb(td.build_glb(document, b"\xff" * 12))["bin_chunks"][0]["sha256"],
+            td.validate_glb(data)["bin_chunks"][0]["sha256"],
+        )
+
+        external = simple_document(12)
+        external["buffers"] = [{"byteLength": 12, "uri": "scene.bin"}]
+        external_summary = td.summarize_glb(td.build_glb(external))
+        self.assertEqual(
+            [asset["uri"] for asset in external_summary["external_assets"]], ["scene.bin"]
+        )
+        self.assertEqual(bytes_anywhere(external_summary), [])
 
 
 class GltfJsonTests(unittest.TestCase):
