@@ -1,0 +1,581 @@
+{
+  "schemaVersion": "design-lab/deepseek-authority-ledger/v1",
+  "taskpack": {
+    "taskpack_id": "DL-TP-20260914-DEEPSEEK-AUTHORITY-R1",
+    "taskpack_version": "R1",
+    "taskpack_path": "docs/taskpacks/DESIGN-LAB-DEEPSEEK-AUTHORITY-TASKPACK-2026-09-14.md",
+    "taskpack_sha256": "sha256:d9fdaa3ad7ad0055a3f451c853756be41036b32112cacc4d1c17b314c005a2f9",
+    "created_at": "2026-09-13T16:12:59+00:00",
+    "authoritative": true,
+    "landed_by": "DEEPSEEK/DSH",
+    "provenance": "transcribed from the owner's message in the authority session; the landed file's sha256 is the authority for every later reference"
+  },
+  "run": {
+    "run_id": "dsh-20260913T161259Z",
+    "executor": "DEEPSEEK/DSH",
+    "base_sha": "56319635bbcf112ac88d097317262c101ffdfe4d",
+    "branch": "codex/deepseek-authority-r1",
+    "worktree": "sha256:a448e9ae39eb90df9d47dcba78dfaaf5609acde360e13fe795e0dd4a037f8747",
+    "worktree_clean": false
+  },
+  "authority": {
+    "current_deepseek_taskpack": "DL-TP-20260914-DEEPSEEK-AUTHORITY-R1",
+    "non_authoritative_sources": [
+      "CHAT SUMMARY",
+      "MEMORY SUMMARY",
+      "COMPRESSED CONTEXT",
+      "HANDOFF SUMMARY"
+    ],
+    "stop_line": {
+      "handoff": "docs/handoffs/SESSION-RESTART-2026-09-12.md",
+      "state": "EXPLICIT_SCOPE_SUPERSESSION",
+      "scope": "only the DeepSeek tasks listed in this taskpack",
+      "still_frozen": [
+        "Real Host",
+        "Design validation",
+        "GPU inference",
+        "Human Gate"
+      ]
+    }
+  },
+  "environment_fingerprint": {
+    "python": "3.13.14",
+    "platform": "Windows-11-10.0.26100-SP0",
+    "machine": "AMD64",
+    "executor": "DEEPSEEK/DSH"
+  },
+  "task_count": 58,
+  "tasks": [
+    {
+      "task_key": "DLDS-A000",
+      "full_id": "DL-TP-20260914-DEEPSEEK-AUTHORITY-R1::DLDS-A000",
+      "wave": "A",
+      "wave_title": "Authority Activation Gate",
+      "status": "DONE",
+      "evidence": [
+        "docs/taskpacks/DESIGN-LAB-DEEPSEEK-AUTHORITY-TASKPACK-2026-09-14.md",
+        "reports/current/DEEPSEEK-AUTHORITY-LEDGER-2026-09-14.json"
+      ],
+      "notes": [
+        {
+          "at": "2026-09-13T16:13:08+00:00",
+          "note": "taskpack landed sha256:d9fdaa3ad7ad0055a3f451c853756be41036b32112cacc4d1c17b314c005a2f9; ledger initialised with 58 tasks; verify PASS"
+        }
+      ]
+    },
+    {
+      "task_key": "DLDS-A010",
+      "full_id": "DL-TP-20260914-DEEPSEEK-AUTHORITY-R1::DLDS-A010",
+      "wave": "A",
+      "wave_title": "Authority Activation Gate",
+      "status": "NOT_STARTED",
+      "evidence": [],
+      "notes": []
+    },
+    {
+      "task_key": "DLDS-A020",
+      "full_id": "DL-TP-20260914-DEEPSEEK-AUTHORITY-R1::DLDS-A020",
+      "wave": "A",
+      "wave_title": "Authority Activation Gate",
+      "status": "NOT_STARTED",
+      "evidence": [],
+      "notes": []
+    },
+    {
+      "task_key": "DLDS-A030",
+      "full_id": "DL-TP-20260914-DEEPSEEK-AUTHORITY-R1::DLDS-A030",
+      "wave": "A",
+      "wave_title": "Authority Activation Gate",
+      "status": "NOT_STARTED",
+      "evidence": [],
+      "notes": []
+    },
+    {
+      "task_key": "DLDS-A040",
+      "full_id": "DL-TP-20260914-DEEPSEEK-AUTHORITY-R1::DLDS-A040",
+      "wave": "A",
+      "wave_title": "Authority Activation Gate",
+      "status": "NOT_STARTED",
+      "evidence": [],
+      "notes": []
+    },
+    {
+      "task_key": "DLDS-B000",
+      "full_id": "DL-TP-20260914-DEEPSEEK-AUTHORITY-R1::DLDS-B000",
+      "wave": "B",
+      "wave_title": "Wave 1 - Repository Normalization",
+      "status": "NOT_STARTED",
+      "evidence": [],
+      "notes": []
+    },
+    {
+      "task_key": "DLDS-B010",
+      "full_id": "DL-TP-20260914-DEEPSEEK-AUTHORITY-R1::DLDS-B010",
+      "wave": "B",
+      "wave_title": "Wave 1 - Repository Normalization",
+      "status": "NOT_STARTED",
+      "evidence": [],
+      "notes": []
+    },
+    {
+      "task_key": "DLDS-B020",
+      "full_id": "DL-TP-20260914-DEEPSEEK-AUTHORITY-R1::DLDS-B020",
+      "wave": "B",
+      "wave_title": "Wave 1 - Repository Normalization",
+      "status": "NOT_STARTED",
+      "evidence": [],
+      "notes": []
+    },
+    {
+      "task_key": "DLDS-B030",
+      "full_id": "DL-TP-20260914-DEEPSEEK-AUTHORITY-R1::DLDS-B030",
+      "wave": "B",
+      "wave_title": "Wave 1 - Repository Normalization",
+      "status": "NOT_STARTED",
+      "evidence": [],
+      "notes": []
+    },
+    {
+      "task_key": "DLDS-B040",
+      "full_id": "DL-TP-20260914-DEEPSEEK-AUTHORITY-R1::DLDS-B040",
+      "wave": "B",
+      "wave_title": "Wave 1 - Repository Normalization",
+      "status": "NOT_STARTED",
+      "evidence": [],
+      "notes": []
+    },
+    {
+      "task_key": "DLDS-B050",
+      "full_id": "DL-TP-20260914-DEEPSEEK-AUTHORITY-R1::DLDS-B050",
+      "wave": "B",
+      "wave_title": "Wave 1 - Repository Normalization",
+      "status": "NOT_STARTED",
+      "evidence": [],
+      "notes": []
+    },
+    {
+      "task_key": "DLDS-C000",
+      "full_id": "DL-TP-20260914-DEEPSEEK-AUTHORITY-R1::DLDS-C000",
+      "wave": "C",
+      "wave_title": "Wave 2 - Language Governance",
+      "status": "NOT_STARTED",
+      "evidence": [],
+      "notes": []
+    },
+    {
+      "task_key": "DLDS-C010",
+      "full_id": "DL-TP-20260914-DEEPSEEK-AUTHORITY-R1::DLDS-C010",
+      "wave": "C",
+      "wave_title": "Wave 2 - Language Governance",
+      "status": "NOT_STARTED",
+      "evidence": [],
+      "notes": []
+    },
+    {
+      "task_key": "DLDS-C020",
+      "full_id": "DL-TP-20260914-DEEPSEEK-AUTHORITY-R1::DLDS-C020",
+      "wave": "C",
+      "wave_title": "Wave 2 - Language Governance",
+      "status": "NOT_STARTED",
+      "evidence": [],
+      "notes": []
+    },
+    {
+      "task_key": "DLDS-C030",
+      "full_id": "DL-TP-20260914-DEEPSEEK-AUTHORITY-R1::DLDS-C030",
+      "wave": "C",
+      "wave_title": "Wave 2 - Language Governance",
+      "status": "NOT_STARTED",
+      "evidence": [],
+      "notes": []
+    },
+    {
+      "task_key": "DLDS-C040",
+      "full_id": "DL-TP-20260914-DEEPSEEK-AUTHORITY-R1::DLDS-C040",
+      "wave": "C",
+      "wave_title": "Wave 2 - Language Governance",
+      "status": "NOT_STARTED",
+      "evidence": [],
+      "notes": []
+    },
+    {
+      "task_key": "DLDS-C050",
+      "full_id": "DL-TP-20260914-DEEPSEEK-AUTHORITY-R1::DLDS-C050",
+      "wave": "C",
+      "wave_title": "Wave 2 - Language Governance",
+      "status": "NOT_STARTED",
+      "evidence": [],
+      "notes": []
+    },
+    {
+      "task_key": "DLDS-D000",
+      "full_id": "DL-TP-20260914-DEEPSEEK-AUTHORITY-R1::DLDS-D000",
+      "wave": "D",
+      "wave_title": "Wave 3 - Repository Slimming",
+      "status": "NOT_STARTED",
+      "evidence": [],
+      "notes": []
+    },
+    {
+      "task_key": "DLDS-D010",
+      "full_id": "DL-TP-20260914-DEEPSEEK-AUTHORITY-R1::DLDS-D010",
+      "wave": "D",
+      "wave_title": "Wave 3 - Repository Slimming",
+      "status": "NOT_STARTED",
+      "evidence": [],
+      "notes": []
+    },
+    {
+      "task_key": "DLDS-D020",
+      "full_id": "DL-TP-20260914-DEEPSEEK-AUTHORITY-R1::DLDS-D020",
+      "wave": "D",
+      "wave_title": "Wave 3 - Repository Slimming",
+      "status": "NOT_STARTED",
+      "evidence": [],
+      "notes": []
+    },
+    {
+      "task_key": "DLDS-D030",
+      "full_id": "DL-TP-20260914-DEEPSEEK-AUTHORITY-R1::DLDS-D030",
+      "wave": "D",
+      "wave_title": "Wave 3 - Repository Slimming",
+      "status": "NOT_STARTED",
+      "evidence": [],
+      "notes": []
+    },
+    {
+      "task_key": "DLDS-D040",
+      "full_id": "DL-TP-20260914-DEEPSEEK-AUTHORITY-R1::DLDS-D040",
+      "wave": "D",
+      "wave_title": "Wave 3 - Repository Slimming",
+      "status": "NOT_STARTED",
+      "evidence": [],
+      "notes": []
+    },
+    {
+      "task_key": "DLDS-D050",
+      "full_id": "DL-TP-20260914-DEEPSEEK-AUTHORITY-R1::DLDS-D050",
+      "wave": "D",
+      "wave_title": "Wave 3 - Repository Slimming",
+      "status": "NOT_STARTED",
+      "evidence": [],
+      "notes": []
+    },
+    {
+      "task_key": "DLDS-E000",
+      "full_id": "DL-TP-20260914-DEEPSEEK-AUTHORITY-R1::DLDS-E000",
+      "wave": "E",
+      "wave_title": "Wave 4 - Spill Data Tracking",
+      "status": "NOT_STARTED",
+      "evidence": [],
+      "notes": []
+    },
+    {
+      "task_key": "DLDS-E010",
+      "full_id": "DL-TP-20260914-DEEPSEEK-AUTHORITY-R1::DLDS-E010",
+      "wave": "E",
+      "wave_title": "Wave 4 - Spill Data Tracking",
+      "status": "NOT_STARTED",
+      "evidence": [],
+      "notes": []
+    },
+    {
+      "task_key": "DLDS-E020",
+      "full_id": "DL-TP-20260914-DEEPSEEK-AUTHORITY-R1::DLDS-E020",
+      "wave": "E",
+      "wave_title": "Wave 4 - Spill Data Tracking",
+      "status": "NOT_STARTED",
+      "evidence": [],
+      "notes": []
+    },
+    {
+      "task_key": "DLDS-E030",
+      "full_id": "DL-TP-20260914-DEEPSEEK-AUTHORITY-R1::DLDS-E030",
+      "wave": "E",
+      "wave_title": "Wave 4 - Spill Data Tracking",
+      "status": "NOT_STARTED",
+      "evidence": [],
+      "notes": []
+    },
+    {
+      "task_key": "DLDS-E040",
+      "full_id": "DL-TP-20260914-DEEPSEEK-AUTHORITY-R1::DLDS-E040",
+      "wave": "E",
+      "wave_title": "Wave 4 - Spill Data Tracking",
+      "status": "NOT_STARTED",
+      "evidence": [],
+      "notes": []
+    },
+    {
+      "task_key": "DLDS-E050",
+      "full_id": "DL-TP-20260914-DEEPSEEK-AUTHORITY-R1::DLDS-E050",
+      "wave": "E",
+      "wave_title": "Wave 4 - Spill Data Tracking",
+      "status": "NOT_STARTED",
+      "evidence": [],
+      "notes": []
+    },
+    {
+      "task_key": "DLDS-F000",
+      "full_id": "DL-TP-20260914-DEEPSEEK-AUTHORITY-R1::DLDS-F000",
+      "wave": "F",
+      "wave_title": "Wave 5 - Contract / State Closeout",
+      "status": "NOT_STARTED",
+      "evidence": [],
+      "notes": []
+    },
+    {
+      "task_key": "DLDS-F010",
+      "full_id": "DL-TP-20260914-DEEPSEEK-AUTHORITY-R1::DLDS-F010",
+      "wave": "F",
+      "wave_title": "Wave 5 - Contract / State Closeout",
+      "status": "NOT_STARTED",
+      "evidence": [],
+      "notes": []
+    },
+    {
+      "task_key": "DLDS-F020",
+      "full_id": "DL-TP-20260914-DEEPSEEK-AUTHORITY-R1::DLDS-F020",
+      "wave": "F",
+      "wave_title": "Wave 5 - Contract / State Closeout",
+      "status": "NOT_STARTED",
+      "evidence": [],
+      "notes": []
+    },
+    {
+      "task_key": "DLDS-F030",
+      "full_id": "DL-TP-20260914-DEEPSEEK-AUTHORITY-R1::DLDS-F030",
+      "wave": "F",
+      "wave_title": "Wave 5 - Contract / State Closeout",
+      "status": "NOT_STARTED",
+      "evidence": [],
+      "notes": []
+    },
+    {
+      "task_key": "DLDS-F040",
+      "full_id": "DL-TP-20260914-DEEPSEEK-AUTHORITY-R1::DLDS-F040",
+      "wave": "F",
+      "wave_title": "Wave 5 - Contract / State Closeout",
+      "status": "NOT_STARTED",
+      "evidence": [],
+      "notes": []
+    },
+    {
+      "task_key": "DLDS-F050",
+      "full_id": "DL-TP-20260914-DEEPSEEK-AUTHORITY-R1::DLDS-F050",
+      "wave": "F",
+      "wave_title": "Wave 5 - Contract / State Closeout",
+      "status": "NOT_STARTED",
+      "evidence": [],
+      "notes": []
+    },
+    {
+      "task_key": "DLDS-F060",
+      "full_id": "DL-TP-20260914-DEEPSEEK-AUTHORITY-R1::DLDS-F060",
+      "wave": "F",
+      "wave_title": "Wave 5 - Contract / State Closeout",
+      "status": "NOT_STARTED",
+      "evidence": [],
+      "notes": []
+    },
+    {
+      "task_key": "DLDS-F070",
+      "full_id": "DL-TP-20260914-DEEPSEEK-AUTHORITY-R1::DLDS-F070",
+      "wave": "F",
+      "wave_title": "Wave 5 - Contract / State Closeout",
+      "status": "NOT_STARTED",
+      "evidence": [],
+      "notes": []
+    },
+    {
+      "task_key": "DLDS-F080",
+      "full_id": "DL-TP-20260914-DEEPSEEK-AUTHORITY-R1::DLDS-F080",
+      "wave": "F",
+      "wave_title": "Wave 5 - Contract / State Closeout",
+      "status": "NOT_STARTED",
+      "evidence": [],
+      "notes": []
+    },
+    {
+      "task_key": "DLDS-G000",
+      "full_id": "DL-TP-20260914-DEEPSEEK-AUTHORITY-R1::DLDS-G000",
+      "wave": "G",
+      "wave_title": "Wave 6 - Third-party Governance",
+      "status": "NOT_STARTED",
+      "evidence": [],
+      "notes": []
+    },
+    {
+      "task_key": "DLDS-G010",
+      "full_id": "DL-TP-20260914-DEEPSEEK-AUTHORITY-R1::DLDS-G010",
+      "wave": "G",
+      "wave_title": "Wave 6 - Third-party Governance",
+      "status": "NOT_STARTED",
+      "evidence": [],
+      "notes": []
+    },
+    {
+      "task_key": "DLDS-G020",
+      "full_id": "DL-TP-20260914-DEEPSEEK-AUTHORITY-R1::DLDS-G020",
+      "wave": "G",
+      "wave_title": "Wave 6 - Third-party Governance",
+      "status": "NOT_STARTED",
+      "evidence": [],
+      "notes": []
+    },
+    {
+      "task_key": "DLDS-G030",
+      "full_id": "DL-TP-20260914-DEEPSEEK-AUTHORITY-R1::DLDS-G030",
+      "wave": "G",
+      "wave_title": "Wave 6 - Third-party Governance",
+      "status": "NOT_STARTED",
+      "evidence": [],
+      "notes": []
+    },
+    {
+      "task_key": "DLDS-G040",
+      "full_id": "DL-TP-20260914-DEEPSEEK-AUTHORITY-R1::DLDS-G040",
+      "wave": "G",
+      "wave_title": "Wave 6 - Third-party Governance",
+      "status": "NOT_STARTED",
+      "evidence": [],
+      "notes": []
+    },
+    {
+      "task_key": "DLDS-H000",
+      "full_id": "DL-TP-20260914-DEEPSEEK-AUTHORITY-R1::DLDS-H000",
+      "wave": "H",
+      "wave_title": "Wave 7 - Tests / CI / Evidence",
+      "status": "NOT_STARTED",
+      "evidence": [],
+      "notes": []
+    },
+    {
+      "task_key": "DLDS-H010",
+      "full_id": "DL-TP-20260914-DEEPSEEK-AUTHORITY-R1::DLDS-H010",
+      "wave": "H",
+      "wave_title": "Wave 7 - Tests / CI / Evidence",
+      "status": "NOT_STARTED",
+      "evidence": [],
+      "notes": []
+    },
+    {
+      "task_key": "DLDS-H020",
+      "full_id": "DL-TP-20260914-DEEPSEEK-AUTHORITY-R1::DLDS-H020",
+      "wave": "H",
+      "wave_title": "Wave 7 - Tests / CI / Evidence",
+      "status": "NOT_STARTED",
+      "evidence": [],
+      "notes": []
+    },
+    {
+      "task_key": "DLDS-H030",
+      "full_id": "DL-TP-20260914-DEEPSEEK-AUTHORITY-R1::DLDS-H030",
+      "wave": "H",
+      "wave_title": "Wave 7 - Tests / CI / Evidence",
+      "status": "NOT_STARTED",
+      "evidence": [],
+      "notes": []
+    },
+    {
+      "task_key": "DLDS-H040",
+      "full_id": "DL-TP-20260914-DEEPSEEK-AUTHORITY-R1::DLDS-H040",
+      "wave": "H",
+      "wave_title": "Wave 7 - Tests / CI / Evidence",
+      "status": "NOT_STARTED",
+      "evidence": [],
+      "notes": []
+    },
+    {
+      "task_key": "DLDS-H050",
+      "full_id": "DL-TP-20260914-DEEPSEEK-AUTHORITY-R1::DLDS-H050",
+      "wave": "H",
+      "wave_title": "Wave 7 - Tests / CI / Evidence",
+      "status": "NOT_STARTED",
+      "evidence": [],
+      "notes": []
+    },
+    {
+      "task_key": "DLDS-I000",
+      "full_id": "DL-TP-20260914-DEEPSEEK-AUTHORITY-R1::DLDS-I000",
+      "wave": "I",
+      "wave_title": "Wave 8 - Security / Failure Recovery",
+      "status": "NOT_STARTED",
+      "evidence": [],
+      "notes": []
+    },
+    {
+      "task_key": "DLDS-I010",
+      "full_id": "DL-TP-20260914-DEEPSEEK-AUTHORITY-R1::DLDS-I010",
+      "wave": "I",
+      "wave_title": "Wave 8 - Security / Failure Recovery",
+      "status": "NOT_STARTED",
+      "evidence": [],
+      "notes": []
+    },
+    {
+      "task_key": "DLDS-I020",
+      "full_id": "DL-TP-20260914-DEEPSEEK-AUTHORITY-R1::DLDS-I020",
+      "wave": "I",
+      "wave_title": "Wave 8 - Security / Failure Recovery",
+      "status": "NOT_STARTED",
+      "evidence": [],
+      "notes": []
+    },
+    {
+      "task_key": "DLDS-J000",
+      "full_id": "DL-TP-20260914-DEEPSEEK-AUTHORITY-R1::DLDS-J000",
+      "wave": "J",
+      "wave_title": "Wave 9 - Codex Preparation",
+      "status": "NOT_STARTED",
+      "evidence": [],
+      "notes": []
+    },
+    {
+      "task_key": "DLDS-K000",
+      "full_id": "DL-TP-20260914-DEEPSEEK-AUTHORITY-R1::DLDS-K000",
+      "wave": "K",
+      "wave_title": "Wave 10 - Final DeepSeek Closeout",
+      "status": "NOT_STARTED",
+      "evidence": [],
+      "notes": []
+    },
+    {
+      "task_key": "DLDS-K010",
+      "full_id": "DL-TP-20260914-DEEPSEEK-AUTHORITY-R1::DLDS-K010",
+      "wave": "K",
+      "wave_title": "Wave 10 - Final DeepSeek Closeout",
+      "status": "NOT_STARTED",
+      "evidence": [],
+      "notes": []
+    },
+    {
+      "task_key": "DLDS-K020",
+      "full_id": "DL-TP-20260914-DEEPSEEK-AUTHORITY-R1::DLDS-K020",
+      "wave": "K",
+      "wave_title": "Wave 10 - Final DeepSeek Closeout",
+      "status": "NOT_STARTED",
+      "evidence": [],
+      "notes": []
+    },
+    {
+      "task_key": "DLDS-K030",
+      "full_id": "DL-TP-20260914-DEEPSEEK-AUTHORITY-R1::DLDS-K030",
+      "wave": "K",
+      "wave_title": "Wave 10 - Final DeepSeek Closeout",
+      "status": "NOT_STARTED",
+      "evidence": [],
+      "notes": []
+    },
+    {
+      "task_key": "DLDS-K040",
+      "full_id": "DL-TP-20260914-DEEPSEEK-AUTHORITY-R1::DLDS-K040",
+      "wave": "K",
+      "wave_title": "Wave 10 - Final DeepSeek Closeout",
+      "status": "NOT_STARTED",
+      "evidence": [],
+      "notes": []
+    }
+  ],
+  "updated_at": "2026-09-13T16:13:08+00:00"
+}
