@@ -554,6 +554,14 @@ REMEDIATION_EXCEPTIONS = [
         "are reported rather than rewritten: sweeping them without running the full test suite "
         "would be an unverified mass edit",
      "state": "PARTIALLY_FIXED_AND_REPORTED", "owner": "Codex or owner"},
+    {"area": "test gate scope", "exception":
+        "H010 executed all four required runs over a declared critical set of 16 stateful and "
+        "contract-holding modules (220 tests: forward, reverse, randomized seed 42, and 20x "
+        "repetition = 4400 tests, all zero failures). The same three orders over the entire "
+        "discovered suite (1392 tests) are DEFERRED, not passed: one pass costs roughly 25 "
+        "minutes against 7.6 seconds for the critical set, and that exact load coincided with "
+        "the host kernel bugcheck 0x4E that this run is still diagnosing",
+     "state": "DEFERRED_DECLARED", "owner": "Codex or owner"},
 ]
 
 
