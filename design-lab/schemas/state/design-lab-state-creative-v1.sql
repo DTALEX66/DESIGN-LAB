@@ -3,6 +3,13 @@
 -- Execution OS additive migration. v1 tables, existing IDs and existing bytes
 -- stay frozen; this file only adds columns, tables and append-only guards.
 -- No second database is introduced: it extends .project-local/state/design-lab.db.
+--
+-- MIGRATION STATUS: MIGRATION_CANDIDATE_PENDING_AUDIT
+-- (DL-TP-20260914-DEEPSEEK-AUTHORITY-R1::DLDS-F010). Rehearsed on a database
+-- copy: backup -> migrate -> legacy readback -> new writes -> restart -> rerun
+-- migration -> trigger behaviour -> rollback, all 15 steps passing
+-- (reports/current/CREATIVE-MIGRATION-REHEARSAL.json). A passing rehearsal
+-- permits the production label; only the owner or Codex may grant it.
 PRAGMA foreign_keys = ON;
 
 -- DL-P0-022: AssetVersion V2 lineage fields. NULL parent = root of a branch.

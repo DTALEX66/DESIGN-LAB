@@ -1,0 +1,319 @@
+{
+  "schemaVersion": "design-lab/contract-graph/v1",
+  "task_key": "DL-TP-20260914-DEEPSEEK-AUTHORITY-R1::DLDS-F000",
+  "generated_at": "2026-09-13T16:35:51+00:00",
+  "subject_sha": "",
+  "chain": "Schema -> Python model -> DB -> producer -> consumer -> receipt -> projection",
+  "concepts": {
+    "Job": {
+      "schema": [
+        "design-lab/schemas/creative-job.schema.json"
+      ],
+      "models": [
+        "src/design_lab/creative/creative_job.py"
+      ],
+      "tables": [
+        "creative_job",
+        "creative_job_deliverable",
+        "job"
+      ],
+      "producers": [
+        "src/design_lab/creative/creative_job.py"
+      ],
+      "consumers": [
+        "src/design_lab/creative/lineage.py",
+        "src/design_lab/creative/requirement_ledger.py"
+      ],
+      "projections": [],
+      "missing_paths": [],
+      "tables_not_declared_in_state_sql": [],
+      "has_schema": true,
+      "has_model": true,
+      "has_writer": true,
+      "complete": true
+    },
+    "Attempt": {
+      "schema": [],
+      "models": [
+        "src/design_lab/runtime/job_store.py"
+      ],
+      "tables": [
+        "attempt_state",
+        "attempt_event",
+        "attempt_resolution"
+      ],
+      "producers": [
+        "src/design_lab/runtime/job_store.py"
+      ],
+      "consumers": [
+        "src/design_lab/creative/lineage.py"
+      ],
+      "projections": [],
+      "missing_paths": [],
+      "tables_not_declared_in_state_sql": [],
+      "has_schema": false,
+      "has_model": true,
+      "has_writer": true,
+      "complete": true
+    },
+    "Operation": {
+      "schema": [],
+      "models": [
+        "src/design_lab/creative/lineage.py"
+      ],
+      "tables": [
+        "operation_intent",
+        "operation_state",
+        "operation_lineage"
+      ],
+      "producers": [
+        "src/design_lab/creative/lineage.py"
+      ],
+      "consumers": [
+        "src/design_lab/creative/generative/partial_execution.py"
+      ],
+      "projections": [],
+      "missing_paths": [],
+      "tables_not_declared_in_state_sql": [],
+      "has_schema": false,
+      "has_model": true,
+      "has_writer": true,
+      "complete": true
+    },
+    "Asset": {
+      "schema": [
+        "design-lab/schemas/asset-manifest.schema.json"
+      ],
+      "models": [
+        "src/design_lab/runtime/asset_store.py"
+      ],
+      "tables": [
+        "asset"
+      ],
+      "producers": [
+        "src/design_lab/runtime/asset_store.py"
+      ],
+      "consumers": [
+        "src/design_lab/creative/asset_versions.py"
+      ],
+      "projections": [],
+      "missing_paths": [],
+      "tables_not_declared_in_state_sql": [],
+      "has_schema": true,
+      "has_model": true,
+      "has_writer": true,
+      "complete": true
+    },
+    "AssetVersion": {
+      "schema": [
+        "design-lab/schemas/artifact.schema.json"
+      ],
+      "models": [
+        "src/design_lab/creative/asset_versions.py"
+      ],
+      "tables": [
+        "asset_version",
+        "artifact",
+        "asset_publication"
+      ],
+      "producers": [
+        "src/design_lab/runtime/asset_store.py",
+        "src/design_lab/creative/asset_versions.py"
+      ],
+      "consumers": [
+        "src/design_lab/creative/version_guard.py",
+        "src/design_lab/interop/delivery_receipt.py"
+      ],
+      "projections": [],
+      "missing_paths": [],
+      "tables_not_declared_in_state_sql": [],
+      "has_schema": true,
+      "has_model": true,
+      "has_writer": true,
+      "complete": true
+    },
+    "Requirement": {
+      "schema": [],
+      "models": [
+        "src/design_lab/creative/requirement_ledger.py"
+      ],
+      "tables": [
+        "requirement_event"
+      ],
+      "producers": [
+        "src/design_lab/creative/requirement_ledger.py"
+      ],
+      "consumers": [
+        "src/design_lab/creative/decision_ledger.py",
+        "src/design_lab/interop/delivery_receipt.py"
+      ],
+      "projections": [],
+      "missing_paths": [],
+      "tables_not_declared_in_state_sql": [],
+      "has_schema": false,
+      "has_model": true,
+      "has_writer": true,
+      "complete": true
+    },
+    "Decision": {
+      "schema": [],
+      "models": [
+        "src/design_lab/creative/decision_ledger.py"
+      ],
+      "tables": [
+        "decision_event"
+      ],
+      "producers": [
+        "src/design_lab/creative/decision_ledger.py"
+      ],
+      "consumers": [
+        "src/design_lab/creative/requirement_ledger.py"
+      ],
+      "projections": [],
+      "missing_paths": [],
+      "tables_not_declared_in_state_sql": [],
+      "has_schema": false,
+      "has_model": true,
+      "has_writer": true,
+      "complete": true
+    },
+    "Rights": {
+      "schema": [
+        "design-lab/schemas/provider-capability.schema.json"
+      ],
+      "models": [
+        "src/design_lab/creative/generative/model_assets.py",
+        "src/design_lab/readiness/model_radar.py"
+      ],
+      "tables": [],
+      "producers": [
+        "design-lab/config/provider-capabilities.json",
+        "vendor/sources.lock.json"
+      ],
+      "consumers": [
+        "src/design_lab/creative/generative/model_assets.py"
+      ],
+      "projections": [
+        "reports/current/THIRD-PARTY-SOURCE-AUDIT.json"
+      ],
+      "missing_paths": [],
+      "tables_not_declared_in_state_sql": [],
+      "has_schema": true,
+      "has_model": true,
+      "has_writer": true,
+      "complete": true
+    },
+    "Evidence": {
+      "schema": [
+        "design-lab/schemas/evidence-record.schema.json"
+      ],
+      "models": [
+        "src/design_lab/governance/reporting.py"
+      ],
+      "tables": [
+        "audit_event"
+      ],
+      "producers": [
+        "design-lab/scripts/update_evidence_binding.py",
+        "scripts/generate_ssot_projections.py"
+      ],
+      "consumers": [
+        "design-lab/scripts/verify_capability_evidence_v4.py"
+      ],
+      "projections": [
+        "reports/current/EVIDENCE_INDEX.json"
+      ],
+      "missing_paths": [],
+      "tables_not_declared_in_state_sql": [],
+      "has_schema": true,
+      "has_model": true,
+      "has_writer": true,
+      "complete": true
+    },
+    "QA": {
+      "schema": [
+        "design-lab/schemas/assurance-qa-layer.schema.json",
+        "design-lab/schemas/assurance-jury-record-v2.schema.json"
+      ],
+      "models": [
+        "src/design_lab/assurance/qa_plane.py",
+        "src/design_lab/assurance/human_jury.py"
+      ],
+      "tables": [],
+      "producers": [
+        "src/design_lab/assurance/qa_plane.py"
+      ],
+      "consumers": [
+        "src/design_lab/assurance/human_jury.py"
+      ],
+      "projections": [],
+      "missing_paths": [],
+      "tables_not_declared_in_state_sql": [],
+      "has_schema": true,
+      "has_model": true,
+      "has_writer": true,
+      "complete": true
+    },
+    "Delivery": {
+      "schema": [
+        "design-lab/schemas/interop-delivery-receipt-v2.schema.json",
+        "design-lab/schemas/interop-c2pa-manifest.schema.json"
+      ],
+      "models": [
+        "src/design_lab/interop/delivery_receipt.py",
+        "src/design_lab/interop/provenance.py"
+      ],
+      "tables": [],
+      "producers": [
+        "src/design_lab/interop/delivery_receipt.py"
+      ],
+      "consumers": [
+        "design-lab/scripts/verify_release_evidence.py"
+      ],
+      "projections": [],
+      "missing_paths": [],
+      "tables_not_declared_in_state_sql": [],
+      "has_schema": true,
+      "has_model": true,
+      "has_writer": true,
+      "complete": true
+    }
+  },
+  "declared_tables": {
+    "project": "design-lab/schemas/state/design-lab-state-assets-v1.sql",
+    "asset": "design-lab/schemas/state/design-lab-state-assets-v1.sql",
+    "asset_version": "design-lab/schemas/state/design-lab-state-assets-v1.sql",
+    "artifact": "design-lab/schemas/state/design-lab-state-assets-v1.sql",
+    "asset_dependency": "design-lab/schemas/state/design-lab-state-assets-v1.sql",
+    "asset_writer_lock": "design-lab/schemas/state/design-lab-state-assets-v1.sql",
+    "asset_publication": "design-lab/schemas/state/design-lab-state-assets-v2.sql",
+    "attempt_state": "design-lab/schemas/state/design-lab-state-attempt-v2.sql",
+    "operation_state": "design-lab/schemas/state/design-lab-state-attempt-v2.sql",
+    "attempt_resolution": "design-lab/schemas/state/design-lab-state-attempt-v2.sql",
+    "attempt_event": "design-lab/schemas/state/design-lab-state-attempt-v2.sql",
+    "creative_job": "design-lab/schemas/state/design-lab-state-creative-v1.sql",
+    "creative_job_deliverable": "design-lab/schemas/state/design-lab-state-creative-v1.sql",
+    "operation_lineage": "design-lab/schemas/state/design-lab-state-creative-v1.sql",
+    "lineage_input": "design-lab/schemas/state/design-lab-state-creative-v1.sql",
+    "lineage_output": "design-lab/schemas/state/design-lab-state-creative-v1.sql",
+    "version_rejection": "design-lab/schemas/state/design-lab-state-creative-v1.sql",
+    "requirement_event": "design-lab/schemas/state/design-lab-state-creative-v1.sql",
+    "decision_event": "design-lab/schemas/state/design-lab-state-creative-v1.sql",
+    "worklab_session_link": "design-lab/schemas/state/design-lab-state-creative-v1.sql",
+    "operation_intent": "design-lab/schemas/state/design-lab-state-v1.sql",
+    "job": "design-lab/schemas/state/design-lab-state-v1.sql",
+    "job_attempt": "design-lab/schemas/state/design-lab-state-v1.sql",
+    "operation_receipt": "design-lab/schemas/state/design-lab-state-v1.sql",
+    "lease": "design-lab/schemas/state/design-lab-state-v1.sql",
+    "audit_event": "design-lab/schemas/state/design-lab-state-v1.sql",
+    "outbox": "design-lab/schemas/state/design-lab-state-v1.sql",
+    "approval": "design-lab/schemas/state/design-lab-state-v1.sql"
+  },
+  "breaks": [],
+  "counts": {
+    "concepts": 11,
+    "complete": 11,
+    "breaks": 0
+  },
+  "verdict": "NO_BROKEN_LINK"
+}
