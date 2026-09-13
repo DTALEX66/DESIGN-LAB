@@ -1,7 +1,7 @@
 {
   "schemaVersion": "design-lab/foundation-audit/v1",
   "task_key": "DL-TP-20260914-DEEPSEEK-AUTHORITY-R1::DLDS-F020",
-  "audited_at": "2026-09-13T16:36:29+00:00",
+  "audited_at": "2026-09-13T16:39:14+00:00",
   "subject_sha": "",
   "files": [
     "src/design_lab/runtime/asset_store.py",
@@ -71,30 +71,36 @@
       {
         "schema": "design-lab-state-assets-v2.sql",
         "expected_appliers": [
-          "src/design_lab/runtime/asset_store.py"
+          "src/design_lab/runtime/asset_store.py",
+          "src/design_lab/creative/store.py"
         ],
         "appliers_that_read_it": [
-          "src/design_lab/runtime/asset_store.py"
+          "src/design_lab/runtime/asset_store.py",
+          "src/design_lab/creative/store.py"
         ],
         "ok": true
       },
       {
         "schema": "design-lab-state-attempt-v1.sql",
         "expected_appliers": [
-          "src/design_lab/runtime/job_store.py"
+          "src/design_lab/runtime/job_store.py",
+          "src/design_lab/creative/store.py"
         ],
         "appliers_that_read_it": [
-          "src/design_lab/runtime/job_store.py"
+          "src/design_lab/runtime/job_store.py",
+          "src/design_lab/creative/store.py"
         ],
         "ok": true
       },
       {
         "schema": "design-lab-state-attempt-v2.sql",
         "expected_appliers": [
-          "src/design_lab/runtime/job_store.py"
+          "src/design_lab/runtime/job_store.py",
+          "src/design_lab/creative/store.py"
         ],
         "appliers_that_read_it": [
-          "src/design_lab/runtime/job_store.py"
+          "src/design_lab/runtime/job_store.py",
+          "src/design_lab/creative/store.py"
         ],
         "ok": true
       },

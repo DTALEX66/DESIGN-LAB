@@ -1,7 +1,7 @@
 {
   "schemaVersion": "design-lab/creative-migration-rehearsal/v1",
   "task_key": "DL-TP-20260914-DEEPSEEK-AUTHORITY-R1::DLDS-F010",
-  "rehearsed_at": "2026-09-13T16:35:22+00:00",
+  "rehearsed_at": "2026-09-13T16:39:05+00:00",
   "migration": "design-lab/schemas/state/design-lab-state-creative-v1.sql",
   "status_before": "MIGRATION_CANDIDATE_PENDING_AUDIT",
   "status_after": "REHEARSED_PASS_PENDING_ACCEPTANCE",
@@ -12,12 +12,12 @@
     {
       "step": "legacy_database_built",
       "ok": true,
-      "detail": "pre-migration asset_version columns=['version_id', 'asset_id', 'version_no', 'content_sha256', 'state', 'created_at']"
+      "detail": "pre-migration columns=['version_id', 'asset_id', 'version_no', 'content_sha256', 'state', 'created_at'] migrations=['assets-v2', 'attempt-v2']"
     },
     {
       "step": "backup",
       "ok": true,
-      "detail": "backup written (188416 bytes); this file is the rollback source"
+      "detail": "backup written (196608 bytes); this file is the rollback source"
     },
     {
       "step": "migration",
@@ -27,7 +27,7 @@
     {
       "step": "migration_backup",
       "ok": true,
-      "detail": "the store took its own pre-migration backup: ['legacy.db.pre-creative-v1-2d4a1aee590142c2a638e5550c69100c.bak']"
+      "detail": "the store took its own pre-migration backup: ['legacy.db.pre-creative-v1-e920a13c1a3b4c659a750b44ab326a82.bak']"
     },
     {
       "step": "legacy_readback",

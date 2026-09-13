@@ -34,14 +34,21 @@ REQUIRED_TRIGGERS = {"version_rejection_no_update", "version_rejection_no_delete
 
 
 def build_legacy_database(path: Path) -> dict:
-    """A pre-creative database: state v1 + assets v1/v2 + attempt v1/v2, with rows."""
-    from design_lab.runtime import asset_store, job_store, state_store
+    """A pre-creative database, built the way the product builds one.
+
+    It is created through the real stores rather than by replaying their DDL, so
+    the fixture carries the same ``runtime_migration`` rows a real legacy database
+    would. Replaying the DDL by hand would produce a database that only *looks*
+    legacy and would hide the migration-ordering bugs this rehearsal exists to
+    catch.
+    """
+    from design_lab.runtime import asset_store, job_store
+    assets = asset_store.connect(path)
+    assets.close()
+    jobs = job_store.connect(path)
+    jobs.close()
     conn = sqlite3.connect(path)
-    conn.executescript(state_store.DDL.read_text(encoding="utf-8"))
-    conn.executescript(asset_store._SCHEMA.read_text(encoding="utf-8"))
-    conn.executescript(asset_store._V2_SCHEMA.read_text(encoding="utf-8"))
-    conn.executescript(job_store._SCHEMA.read_text(encoding="utf-8"))
-    conn.executescript(job_store._V2_SCHEMA.read_text(encoding="utf-8"))
+    conn.execute("PRAGMA foreign_keys = ON")
     conn.execute("INSERT INTO project VALUES ('p-legacy','Legacy project','2026-09-01T00:00:00+00:00')")
     conn.execute("INSERT INTO asset VALUES ('poster','p-legacy','psd','2026-09-01T00:00:00+00:00')")
     conn.execute("INSERT INTO asset_version (version_id, asset_id, version_no, content_sha256, state, "
@@ -55,6 +62,8 @@ def build_legacy_database(path: Path) -> dict:
         "versions": conn.execute("SELECT version_id, asset_id, version_no, content_sha256, state "
                                  "FROM asset_version").fetchall(),
         "artifacts": conn.execute("SELECT * FROM artifact").fetchall(),
+        "migrations": [row[0] for row in conn.execute("SELECT name FROM runtime_migration "
+                                                      "ORDER BY name")],
     }
     conn.close()
     return snapshot
@@ -81,7 +90,7 @@ def _rehearse(workdir: Path, steps: list) -> bool:
     original = workdir / "legacy.db"
     legacy = build_legacy_database(original)
     step("legacy_database_built", len(legacy["columns"]) == 6,
-         f"pre-migration asset_version columns={legacy['columns']}")
+         f"pre-migration columns={legacy['columns']} migrations={legacy['migrations']}")
 
     backup = workdir / "legacy.db.pre-migration.bak"
     shutil.copyfile(original, backup)

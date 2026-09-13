@@ -23,7 +23,19 @@ from ..runtime.state_resources import state_schema
 _SCHEMA = state_schema("design-lab-state-creative-v1.sql")
 _BASE_SCHEMA = state_schema("design-lab-state-v1.sql")
 _ASSETS_SCHEMA = state_schema("design-lab-state-assets-v1.sql")
+_ASSETS_V2_SCHEMA = state_schema("design-lab-state-assets-v2.sql")
+_ATTEMPT_SCHEMA = state_schema("design-lab-state-attempt-v1.sql")
+_ATTEMPT_V2_SCHEMA = state_schema("design-lab-state-attempt-v2.sql")
 MIGRATION = "creative-v1"
+# The creative model reads operation_state and attempt_state, so this store
+# applies every schema family it depends on and records each migration under the
+# same name the owning store uses. Whichever store opens the database first
+# applies them; the other then sees the migration already recorded.
+GUARDED_MIGRATIONS = (
+    ("assets-v2", _ASSETS_V2_SCHEMA, "asset_version"),
+    ("attempt-v2", _ATTEMPT_V2_SCHEMA, "attempt_state"),
+    (MIGRATION, _SCHEMA, "asset_version"),
+)
 
 ASSET_KINDS = ("raster", "vector", "text", "audio", "video", "blend",
                "psd", "ai", "doc", "other")
@@ -106,24 +118,36 @@ def connect(db_path, *, project_root=None) -> sqlite3.Connection:
         conn.execute("PRAGMA foreign_keys = ON")
         conn.executescript(_BASE_SCHEMA.read_text(encoding="utf-8"))
         conn.executescript(_ASSETS_SCHEMA.read_text(encoding="utf-8"))
+        conn.executescript(_ATTEMPT_SCHEMA.read_text(encoding="utf-8"))
         conn.execute("CREATE TABLE IF NOT EXISTS runtime_migration (name TEXT PRIMARY KEY, applied_at TEXT NOT NULL)")
         conn.commit()
-        if not _applied(conn):
-            if conn.execute("SELECT 1 FROM asset_version LIMIT 1").fetchone():
-                backup_path = db_path.with_name(f"{db_path.name}.pre-{MIGRATION}-{uuid.uuid4().hex}.bak")
-                backup = sqlite3.connect(str(backup_path))
-                try:
-                    conn.backup(backup)
-                finally:
-                    backup.close()
-            with transaction(conn):
-                if not _applied(conn):
-                    _apply_script(conn, _SCHEMA.read_text(encoding="utf-8"))
-                    conn.execute("INSERT INTO runtime_migration VALUES (?, ?)", (MIGRATION, now()))
+        for name, schema, probe in GUARDED_MIGRATIONS:
+            _migrate_once(conn, db_path, name, schema, probe)
         return conn
     except BaseException:
         conn.close()
         raise
+
+
+def _migrate_once(conn: sqlite3.Connection, db_path: Path, name: str, schema, probe: str) -> None:
+    """Apply one guarded migration, backing up a populated database first."""
+    if conn.execute("SELECT 1 FROM runtime_migration WHERE name=?", (name,)).fetchone():
+        return
+    try:
+        populated = bool(conn.execute(f"SELECT 1 FROM {probe} LIMIT 1").fetchone())
+    except sqlite3.OperationalError:
+        populated = False
+    if populated:
+        backup_path = db_path.with_name(f"{db_path.name}.pre-{name}-{uuid.uuid4().hex}.bak")
+        backup = sqlite3.connect(str(backup_path))
+        try:
+            conn.backup(backup)
+        finally:
+            backup.close()
+    with transaction(conn):
+        if not conn.execute("SELECT 1 FROM runtime_migration WHERE name=?", (name,)).fetchone():
+            _apply_script(conn, schema.read_text(encoding="utf-8"))
+            conn.execute("INSERT INTO runtime_migration VALUES (?, ?)", (name, now()))
 
 
 def _applied(conn: sqlite3.Connection) -> bool:

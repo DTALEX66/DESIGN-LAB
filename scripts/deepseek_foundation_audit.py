@@ -38,9 +38,12 @@ STATE_APPLIERS = {
                                 "src/design_lab/creative/store.py"],
     "design-lab-state-assets-v1.sql": ["src/design_lab/runtime/asset_store.py",
                                        "src/design_lab/creative/store.py"],
-    "design-lab-state-assets-v2.sql": ["src/design_lab/runtime/asset_store.py"],
-    "design-lab-state-attempt-v1.sql": ["src/design_lab/runtime/job_store.py"],
-    "design-lab-state-attempt-v2.sql": ["src/design_lab/runtime/job_store.py"],
+    "design-lab-state-assets-v2.sql": ["src/design_lab/runtime/asset_store.py",
+                                       "src/design_lab/creative/store.py"],
+    "design-lab-state-attempt-v1.sql": ["src/design_lab/runtime/job_store.py",
+                                        "src/design_lab/creative/store.py"],
+    "design-lab-state-attempt-v2.sql": ["src/design_lab/runtime/job_store.py",
+                                        "src/design_lab/creative/store.py"],
     "design-lab-state-creative-v1.sql": ["src/design_lab/creative/store.py"],
 }
 TERMINAL_GUARDS = {
