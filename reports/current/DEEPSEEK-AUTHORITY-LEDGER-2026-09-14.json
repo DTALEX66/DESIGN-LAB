@@ -15,7 +15,7 @@
     "executor": "DEEPSEEK/DSH",
     "base_sha": "56319635bbcf112ac88d097317262c101ffdfe4d",
     "branch": "codex/deepseek-authority-r1",
-    "worktree": "sha256:fe265834a9f31a5b5ed7d75b97dbb952ba564c7d882a729d9e6d09d0e2b21ba4",
+    "worktree": "sha256:6e5f16c0c1e0ab141d7823302f87057d52d2c3cfe24bedcc342578065f0d6c01",
     "worktree_clean": false
   },
   "authority": {
@@ -233,54 +233,96 @@
       "full_id": "DL-TP-20260914-DEEPSEEK-AUTHORITY-R1::DLDS-C000",
       "wave": "C",
       "wave_title": "Wave 2 - Language Governance",
-      "status": "NOT_STARTED",
-      "evidence": [],
-      "notes": []
+      "status": "DONE",
+      "evidence": [
+        "reports/current/LANGUAGE-INVENTORY.json"
+      ],
+      "notes": [
+        {
+          "at": "2026-09-13T16:24:22+00:00",
+          "note": "15 languages over 1843 tracked files; Python 367 files/58835 non-blank lines, Markdown 646, JSON 538; 131 files have no mapped extension; per-language owner directories, runtime role, build system, dependency manager, test runner and linter recorded"
+        }
+      ]
     },
     {
       "task_key": "DLDS-C010",
       "full_id": "DL-TP-20260914-DEEPSEEK-AUTHORITY-R1::DLDS-C010",
       "wave": "C",
       "wave_title": "Wave 2 - Language Governance",
-      "status": "NOT_STARTED",
-      "evidence": [],
-      "notes": []
+      "status": "DONE",
+      "evidence": [
+        "docs/architecture/LANGUAGE-POLICY.md"
+      ],
+      "notes": [
+        {
+          "at": "2026-09-13T16:24:22+00:00",
+          "note": "authority table frozen per taskpack section 16; Python/TS/host-JS/JSON-Schema/Rust/SQL/PowerShell roles bounded; each language states what it may NOT be used for"
+        }
+      ]
     },
     {
       "task_key": "DLDS-C020",
       "full_id": "DL-TP-20260914-DEEPSEEK-AUTHORITY-R1::DLDS-C020",
       "wave": "C",
       "wave_title": "Wave 2 - Language Governance",
-      "status": "NOT_STARTED",
-      "evidence": [],
-      "notes": []
+      "status": "DONE",
+      "evidence": [
+        "reports/current/LANGUAGE-BOUNDARY-SCAN.json"
+      ],
+      "notes": [
+        {
+          "at": "2026-09-13T16:24:22+00:00",
+          "note": "gate added: forbidden languages in product scope fail; the one Java file is fixture-scoped (game-visual Android shell) and is reported as a note, not a violation; no .rs present; a legacy python package (design-lab/core) is reported only because no active code imports it; no second Node backend (0 lockfiles, 1 fixture-scoped package.json)"
+        }
+      ]
     },
     {
       "task_key": "DLDS-C030",
       "full_id": "DL-TP-20260914-DEEPSEEK-AUTHORITY-R1::DLDS-C030",
       "wave": "C",
       "wave_title": "Wave 2 - Language Governance",
-      "status": "NOT_STARTED",
-      "evidence": [],
-      "notes": []
+      "status": "DONE",
+      "evidence": [
+        "docs/architecture/LANGUAGE-POLICY.md"
+      ],
+      "notes": [
+        {
+          "at": "2026-09-13T16:24:22+00:00",
+          "note": "unified: one pyproject.toml (hatchling, src layout, requires-python >=3.11), one uv.lock (CI runs uv sync --locked), zero sys.path manipulation inside src/, unittest discovery via scripts/run_python_tests.py; requirements.txt kept and correctly described as the tested reconstruction-core install manifest, not a second product dependency truth. RECORDED GAP: ruff is declared but NOT configured or installed and no lock change was made, because uv is not installed locally and an unverifiable lock change must not be made; the exact owner action is written in the policy."
+        }
+      ]
     },
     {
       "task_key": "DLDS-C040",
       "full_id": "DL-TP-20260914-DEEPSEEK-AUTHORITY-R1::DLDS-C040",
       "wave": "C",
       "wave_title": "Wave 2 - Language Governance",
-      "status": "NOT_STARTED",
-      "evidence": [],
-      "notes": []
+      "status": "DONE",
+      "evidence": [
+        "docs/architecture/LANGUAGE-POLICY.md"
+      ],
+      "notes": [
+        {
+          "at": "2026-09-13T16:24:22+00:00",
+          "note": "measured: no product Node build, no root package.json, no lockfile, apps/workbench/main.ts is served as source; the single fixture package.json is private and fixture-scoped; the rule for any future product Node dependency (one pnpm workspace root + committed lock + engines range, never npm/yarn/pnpm as three truths) is written and gated"
+        }
+      ]
     },
     {
       "task_key": "DLDS-C050",
       "full_id": "DL-TP-20260914-DEEPSEEK-AUTHORITY-R1::DLDS-C050",
       "wave": "C",
       "wave_title": "Wave 2 - Language Governance",
-      "status": "NOT_STARTED",
-      "evidence": [],
-      "notes": []
+      "status": "DONE",
+      "evidence": [
+        "reports/current/LANGUAGE-BOUNDARY-SCAN.json"
+      ],
+      "notes": [
+        {
+          "at": "2026-09-13T16:24:23+00:00",
+          "note": "gate added: 14 hand-written vocabulary copies found across Python/TS/JS, all 14 agree with their owning JSON Schema, 0 disagreements; disagreement is a failure, agreement is informational; vocabularies covered are evidence levels, task axis states and provider licence ids"
+        }
+      ]
     },
     {
       "task_key": "DLDS-D000",
@@ -652,5 +694,5 @@
       "notes": []
     }
   ],
-  "updated_at": "2026-09-13T16:22:15+00:00"
+  "updated_at": "2026-09-13T16:24:23+00:00"
 }
