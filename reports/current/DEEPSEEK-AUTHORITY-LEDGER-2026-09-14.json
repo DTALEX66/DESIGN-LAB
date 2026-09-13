@@ -15,7 +15,7 @@
     "executor": "DEEPSEEK/DSH",
     "base_sha": "56319635bbcf112ac88d097317262c101ffdfe4d",
     "branch": "codex/deepseek-authority-r1",
-    "worktree": "sha256:2990f5f035ac53ae3605260ffb077d7416676b40e87605d96a921ae204f2c460",
+    "worktree": "sha256:7ca6f1ae1e0172f380c88ccf1f6e50d7480e8941797068f802ed43d91a4f49b7",
     "worktree_clean": false
   },
   "authority": {
@@ -892,9 +892,16 @@
       "full_id": "DL-TP-20260914-DEEPSEEK-AUTHORITY-R1::DLDS-K000",
       "wave": "K",
       "wave_title": "Wave 10 - Final DeepSeek Closeout",
-      "status": "NOT_STARTED",
-      "evidence": [],
-      "notes": []
+      "status": "DONE",
+      "evidence": [
+        "reports/current/NO-OVERCLAIM-AUDIT.json"
+      ],
+      "notes": [
+        {
+          "at": "2026-09-13T16:47:42+00:00",
+          "note": "gate PASS: four current-surface claims, all QUALIFIED, zero unsupported. A claim of supported/verified/ready/complete/integrated must carry an evidence reference in the same object or an explicit limitation; E3/E4 are delegated to the evidence-level gate. The gate caught a real over-claim the H3 fix had not covered: the ComfyUI manifest advertised workflow-execution as supported true on the strength of the historical 2026-08-16 run, so it now records supported false with historicalSupported true and status structural pending requalification. One false positive of my own was fixed in the gate: the E0-E5 ladder definition (label/state/proof) is a definition, not a claim"
+        }
+      ]
     },
     {
       "task_key": "DLDS-K010",
@@ -933,5 +940,5 @@
       "notes": []
     }
   ],
-  "updated_at": "2026-09-13T16:46:47+00:00"
+  "updated_at": "2026-09-13T16:47:42+00:00"
 }
