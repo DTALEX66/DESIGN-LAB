@@ -1,350 +1,493 @@
 {
- "schemaVersion": "design-lab/vendor-sources-lock/v1",
- "generated": "2026-09-04",
- "sources": [
-  {
-   "id": "anydesign",
-   "path": "design-lab/intelligence/anydesign",
-   "disposition": "LOCK_REFERENCE",
-   "license": "MIT",
-   "files": 19,
-   "notes": "Design method reference"
-  },
-  {
-   "id": "claude-design-skill",
-   "path": "design-lab/intelligence/claude-design-skill",
-   "disposition": "LOCK_REFERENCE",
-   "license": "MIT",
-   "files": 24,
-   "notes": "Claude design skill reference"
-  },
-  {
-   "id": "design-system-prompt",
-   "path": "design-lab/intelligence/design-system-prompt",
-   "disposition": "LOCK_REFERENCE",
-   "license": "MIT",
-   "files": 34,
-   "notes": "Design system prompt reference"
-  },
-  {
-   "id": "motion-engine",
-   "path": "design-lab/intelligence/motion-engine",
-   "disposition": "LOCK_REFERENCE",
-   "license": "MIT",
-   "files": 28,
-   "notes": "Motion engine reference"
-  },
-  {
-   "id": "shipit-ui",
-   "path": "design-lab/intelligence/shipit-ui",
-   "disposition": "LOCK_REFERENCE",
-   "license": "MIT",
-   "files": 76,
-   "notes": "ShipIt UI reference"
-  },
-  {
-   "id": "web-content-designer",
-   "path": "design-lab/intelligence/web-content-designer",
-   "disposition": "LOCK_REFERENCE",
-   "license": "MIT",
-   "files": 11,
-   "notes": "Web content designer reference"
-  },
-  {
-   "id": "baoyu-design",
-   "path": ".project-local/cache/vendor/baoyu-design",
-   "disposition": "CONDITIONAL_POC",
-   "license": "MIT",
-   "files": 219,
-   "notes": "origin: https://github.com/JimLiu/baoyu-design; source moved out of Git to ignored vendor cache (DL-DIR-MIG-R1 normalize)"
-  },
-  {
-   "id": "ecommerce-ai",
-   "path": ".project-local/cache/vendor/ecommerce-ai",
-   "disposition": "CONDITIONAL_POC",
-   "license": "CC0-1.0",
-   "files": 223,
-   "notes": "origin: https://github.com/kangise/ecommerce-ai-skills; source moved out of Git to ignored vendor cache (DL-DIR-MIG-R1 normalize)"
-  },
-  {
-   "id": "genjutsu",
-   "path": ".project-local/cache/vendor/genjutsu",
-   "disposition": "CONDITIONAL_POC",
-   "license": "MIT",
-   "files": 101,
-   "notes": "origin: https://github.com/AThevon/genjutsu; source moved out of Git to ignored vendor cache (DL-DIR-MIG-R1 normalize)"
-  },
-  {
-   "id": "motion-forensics",
-   "path": ".project-local/cache/vendor/motion-forensics",
-   "disposition": "CONDITIONAL_POC",
-   "license": "Apache-2.0",
-   "files": 122,
-   "notes": "origin: https://github.com/voidmatcha/ui-clone-skills; source moved out of Git to ignored vendor cache (DL-DIR-MIG-R1 normalize)"
-  },
-  {
-   "id": "ui-ux-pro-max",
-   "path": ".project-local/cache/vendor/ui-ux-pro-max",
-   "disposition": "CONDITIONAL_POC",
-   "license": "MIT License",
-   "files": 41,
-   "notes": "origin: https://github.com/nextlevelbuilder/ui-ux-pro-max-skill; source moved out of Git to ignored vendor cache (DL-DIR-MIG-R1 normalize)"
-  },
-  {
-   "id": "ultimate-uiux",
-   "path": ".project-local/cache/vendor/ultimate-uiux",
-   "disposition": "CONDITIONAL_POC",
-   "license": "MIT",
-   "files": 54,
-   "notes": "origin: https://github.com/ca-who-codes/ultimate.UIUX.design.skills; source moved out of Git to ignored vendor cache (DL-DIR-MIG-R1 normalize)"
-  },
-  {
-   "id": "vq-affiliate-skills",
-   "path": ".project-local/cache/vendor/visual-quality__affiliate-skills",
-   "disposition": "CONDITIONAL_POC",
-   "license": "MIT",
-   "files": 171,
-   "notes": "origin: https://github.com/Affitor/affiliate-skills; source moved out of Git to ignored vendor cache (DL-DIR-MIG-R1 normalize)"
-  },
-  {
-   "id": "vq-ai-graphic-design",
-   "path": ".project-local/cache/vendor/visual-quality__ai-graphic-design",
-   "disposition": "CONDITIONAL_POC",
-   "license": "MIT",
-   "files": 7,
-   "notes": "origin: https://github.com/designrique/ai-graphic-design-skill; source moved out of Git to ignored vendor cache (DL-DIR-MIG-R1 normalize)"
-  },
-  {
-   "id": "vq-blender-3d",
-   "path": ".project-local/cache/vendor/visual-quality__blender-3d",
-   "disposition": "CONDITIONAL_POC",
-   "license": "Apache-2.0",
-   "files": 11,
-   "notes": "origin: https://github.com/jithinolickal/blender; source moved out of Git to ignored vendor cache (DL-DIR-MIG-R1 normalize)"
-  },
-  {
-   "id": "vq-brand-identity",
-   "path": ".project-local/cache/vendor/visual-quality__brand-identity",
-   "disposition": "CONDITIONAL_POC",
-   "license": "MIT",
-   "files": 10,
-   "notes": "origin: https://github.com/SkillMedev/brand-visual-identity; source moved out of Git to ignored vendor cache (DL-DIR-MIG-R1 normalize)"
-  },
-  {
-   "id": "vq-brand-identity-generator",
-   "path": ".project-local/cache/vendor/visual-quality__brand-identity-generator",
-   "disposition": "CONDITIONAL_POC",
-   "license": "MIT",
-   "files": 41,
-   "notes": "origin: https://github.com/AbdulkareemKR/brand-identity-generator; source moved out of Git to ignored vendor cache (DL-DIR-MIG-R1 normalize)"
-  },
-  {
-   "id": "vq-brand-systems",
-   "path": ".project-local/cache/vendor/visual-quality__brand-systems",
-   "disposition": "CONDITIONAL_POC",
-   "license": "MIT",
-   "files": 14,
-   "notes": "origin: https://github.com/arome3/evidence-based-brand-systems; source moved out of Git to ignored vendor cache (DL-DIR-MIG-R1 normalize)"
-  },
-  {
-   "id": "vq-brandbook-skill",
-   "path": ".project-local/cache/vendor/visual-quality__brandbook-skill",
-   "disposition": "CONDITIONAL_POC",
-   "license": "MIT",
-   "files": 11,
-   "notes": "origin: https://github.com/echowang97/brandbook-skill; source moved out of Git to ignored vendor cache (DL-DIR-MIG-R1 normalize)"
-  },
-  {
-   "id": "vq-claude-dolphin",
-   "path": ".project-local/cache/vendor/visual-quality__claude-dolphin",
-   "disposition": "CONDITIONAL_POC",
-   "license": "MIT",
-   "files": 14,
-   "notes": "origin: https://github.com/nyldn/claude-dolphin; source moved out of Git to ignored vendor cache (DL-DIR-MIG-R1 normalize)"
-  },
-  {
-   "id": "vq-claude2figma",
-   "path": ".project-local/cache/vendor/visual-quality__claude2figma",
-   "disposition": "CONDITIONAL_POC",
-   "license": "MIT",
-   "files": 13,
-   "notes": "origin: https://github.com/senlindesign/claude2figma; source moved out of Git to ignored vendor cache (DL-DIR-MIG-R1 normalize)"
-  },
-  {
-   "id": "vq-dataviz-critique",
-   "path": ".project-local/cache/vendor/visual-quality__dataviz-critique",
-   "disposition": "CONDITIONAL_POC",
-   "license": "MIT",
-   "files": 7,
-   "notes": "origin: https://github.com/zhanyi789/dataviz-critique-skills; source moved out of Git to ignored vendor cache (DL-DIR-MIG-R1 normalize)"
-  },
-  {
-   "id": "vq-design-md-skill",
-   "path": ".project-local/cache/vendor/visual-quality__design-md-skill",
-   "disposition": "CONDITIONAL_POC",
-   "license": "MIT",
-   "files": 5,
-   "notes": "origin: https://github.com/arumwu/design-md-skill; source moved out of Git to ignored vendor cache (DL-DIR-MIG-R1 normalize)"
-  },
-  {
-   "id": "vq-design-motion-principles",
-   "path": ".project-local/cache/vendor/visual-quality__design-motion-principles",
-   "disposition": "CONDITIONAL_POC",
-   "license": "MIT",
-   "files": 19,
-   "notes": "origin: https://github.com/kylezantos/design-motion-principles; source moved out of Git to ignored vendor cache (DL-DIR-MIG-R1 normalize)"
-  },
-  {
-   "id": "vq-design-thinking",
-   "path": ".project-local/cache/vendor/visual-quality__design-thinking",
-   "disposition": "CONDITIONAL_POC",
-   "license": "MIT",
-   "files": 14,
-   "notes": "origin: https://github.com/kopfwelt/skills; source moved out of Git to ignored vendor cache (DL-DIR-MIG-R1 normalize)"
-  },
-  {
-   "id": "vq-document-design-system",
-   "path": ".project-local/cache/vendor/visual-quality__document-design-system",
-   "disposition": "CONDITIONAL_POC",
-   "license": "MIT",
-   "files": 98,
-   "notes": "origin: https://github.com/Avinava/document-design-system; source moved out of Git to ignored vendor cache (DL-DIR-MIG-R1 normalize)"
-  },
-  {
-   "id": "vq-extract-design-system",
-   "path": ".project-local/cache/vendor/visual-quality__extract-design-system",
-   "disposition": "CONDITIONAL_POC",
-   "license": "MIT",
-   "files": 55,
-   "notes": "origin: https://github.com/arvindrk/extract-design-system; source moved out of Git to ignored vendor cache (DL-DIR-MIG-R1 normalize)"
-  },
-  {
-   "id": "vq-game-creative",
-   "path": ".project-local/cache/vendor/visual-quality__game-creative",
-   "disposition": "CONDITIONAL_POC",
-   "license": "MIT",
-   "files": 7,
-   "notes": "origin: https://github.com/wotonger/GameCreative-skills; source moved out of Git to ignored vendor cache (DL-DIR-MIG-R1 normalize)"
-  },
-  {
-   "id": "vq-game-ui-mobile",
-   "path": ".project-local/cache/vendor/visual-quality__game-ui-mobile",
-   "disposition": "CONDITIONAL_POC",
-   "license": "MIT",
-   "files": 55,
-   "notes": "origin: https://github.com/dungnotnull/game-ui-mobile-friendly-design-agent-skill; source moved out of Git to ignored vendor cache (DL-DIR-MIG-R1 normalize)"
-  },
-  {
-   "id": "vq-hallmark",
-   "path": ".project-local/cache/vendor/visual-quality__hallmark",
-   "disposition": "CONDITIONAL_POC",
-   "license": "MIT",
-   "files": 109,
-   "notes": "origin: https://github.com/nutlope/hallmark; source moved out of Git to ignored vendor cache (DL-DIR-MIG-R1 normalize)"
-  },
-  {
-   "id": "vq-hue",
-   "path": ".project-local/cache/vendor/visual-quality__hue",
-   "disposition": "CONDITIONAL_POC",
-   "license": "MIT",
-   "files": 18,
-   "notes": "origin: https://github.com/dominikmartn/hue; source moved out of Git to ignored vendor cache (DL-DIR-MIG-R1 normalize)"
-  },
-  {
-   "id": "vq-interface-design",
-   "path": ".project-local/cache/vendor/visual-quality__interface-design",
-   "disposition": "CONDITIONAL_POC",
-   "license": "MIT",
-   "files": 6,
-   "notes": "origin: https://github.com/Dammyjay93/interface-design; source moved out of Git to ignored vendor cache (DL-DIR-MIG-R1 normalize)"
-  },
-  {
-   "id": "vq-logo-designer",
-   "path": ".project-local/cache/vendor/visual-quality__logo-designer",
-   "disposition": "CONDITIONAL_POC",
-   "license": "MIT",
-   "files": 16,
-   "notes": "origin: https://github.com/neonwatty/logo-designer-skill; source moved out of Git to ignored vendor cache (DL-DIR-MIG-R1 normalize)"
-  },
-  {
-   "id": "vq-motion-design-skill",
-   "path": ".project-local/cache/vendor/visual-quality__motion-design-skill",
-   "disposition": "CONDITIONAL_POC",
-   "license": "MIT",
-   "files": 21,
-   "notes": "origin: https://github.com/LottieFiles/motion-design-skill; source moved out of Git to ignored vendor cache (DL-DIR-MIG-R1 normalize)"
-  },
-  {
-   "id": "vq-ppt-agent",
-   "path": ".project-local/cache/vendor/visual-quality__ppt-agent",
-   "disposition": "CONDITIONAL_POC",
-   "license": "MIT",
-   "files": 121,
-   "notes": "origin: https://github.com/Akxan/ppt-agent-skill; source moved out of Git to ignored vendor cache (DL-DIR-MIG-R1 normalize)"
-  },
-  {
-   "id": "vq-qiaomu-design",
-   "path": ".project-local/cache/vendor/visual-quality__qiaomu-design",
-   "disposition": "CONDITIONAL_POC",
-   "license": "MIT",
-   "files": 83,
-   "notes": "origin: https://github.com/joeseesun/qiaomu-design; source moved out of Git to ignored vendor cache (DL-DIR-MIG-R1 normalize)"
-  },
-  {
-   "id": "vq-screenshot-to-ds",
-   "path": ".project-local/cache/vendor/visual-quality__screenshot-to-ds",
-   "disposition": "CONDITIONAL_POC",
-   "license": "MIT",
-   "files": 15,
-   "notes": "origin: https://github.com/WCF900905/screenshot-to-design-system; source moved out of Git to ignored vendor cache (DL-DIR-MIG-R1 normalize)"
-  },
-  {
-   "id": "vq-springy-motion",
-   "path": ".project-local/cache/vendor/visual-quality__springy-motion",
-   "disposition": "CONDITIONAL_POC",
-   "license": "MIT",
-   "files": 58,
-   "notes": "origin: https://github.com/OtherdaysStudio/springy-motion; source moved out of Git to ignored vendor cache (DL-DIR-MIG-R1 normalize)"
-  },
-  {
-   "id": "vq-swiftui-design",
-   "path": ".project-local/cache/vendor/visual-quality__swiftui-design",
-   "disposition": "CONDITIONAL_POC",
-   "license": "MIT",
-   "files": 14,
-   "notes": "origin: https://github.com/Wholiver/swiftui-design-skill; source moved out of Git to ignored vendor cache (DL-DIR-MIG-R1 normalize)"
-  },
-  {
-   "id": "vq-taste-skill",
-   "path": ".project-local/cache/vendor/visual-quality__taste-skill",
-   "disposition": "CONDITIONAL_POC",
-   "license": "MIT",
-   "files": 8,
-   "notes": "origin: https://github.com/Leonxlnx/taste-skill; source moved out of Git to ignored vendor cache (DL-DIR-MIG-R1 normalize)"
-  },
-  {
-   "id": "vq-ux-audit-skill",
-   "path": ".project-local/cache/vendor/visual-quality__ux-audit-skill",
-   "disposition": "CONDITIONAL_POC",
-   "license": "MIT",
-   "files": 7,
-   "notes": "origin: https://github.com/EliaAlberti/ux-audit-skill; source moved out of Git to ignored vendor cache (DL-DIR-MIG-R1 normalize)"
-  },
-  {
-   "id": "vq-visual-note-card",
-   "path": ".project-local/cache/vendor/visual-quality__visual-note-card",
-   "disposition": "CONDITIONAL_POC",
-   "license": "MIT",
-   "files": 6,
-   "notes": "origin: https://github.com/beilunyang/visual-note-card-skills; source moved out of Git to ignored vendor cache (DL-DIR-MIG-R1 normalize)"
-  },
-  {
-   "id": "tool-control",
-   "path": ".project-local/cache/vendor/tool-control",
-   "disposition": "CONDITIONAL_POC",
-   "license": "MIT / Apache-2.0 per-subtree",
-   "files": 120,
-   "notes": "origin: multiple (creold/photoshop-scripts, creold/illustrator-scripts, Comfy-Org, style; source moved out of Git to ignored vendor cache (DL-DIR-MIG-R1 normalize)"
-  }
- ]
+  "schemaVersion": "design-lab/vendor-sources-lock/v1",
+  "generated": "2026-09-04",
+  "sources": [
+    {
+      "id": "anydesign",
+      "path": "design-lab/intelligence/anydesign",
+      "disposition": "LOCK_REFERENCE",
+      "license": "MIT",
+      "files": 19,
+      "notes": "Design method reference"
+    },
+    {
+      "id": "claude-design-skill",
+      "path": "design-lab/intelligence/claude-design-skill",
+      "disposition": "LOCK_REFERENCE",
+      "license": "MIT",
+      "files": 24,
+      "notes": "Claude design skill reference"
+    },
+    {
+      "id": "design-system-prompt",
+      "path": "design-lab/intelligence/design-system-prompt",
+      "disposition": "LOCK_REFERENCE",
+      "license": "MIT",
+      "files": 34,
+      "notes": "Design system prompt reference"
+    },
+    {
+      "id": "motion-engine",
+      "path": "design-lab/intelligence/motion-engine",
+      "disposition": "LOCK_REFERENCE",
+      "license": "MIT",
+      "files": 28,
+      "notes": "Motion engine reference"
+    },
+    {
+      "id": "shipit-ui",
+      "path": "design-lab/intelligence/shipit-ui",
+      "disposition": "LOCK_REFERENCE",
+      "license": "MIT",
+      "files": 76,
+      "notes": "ShipIt UI reference"
+    },
+    {
+      "id": "web-content-designer",
+      "path": "design-lab/intelligence/web-content-designer",
+      "disposition": "LOCK_REFERENCE",
+      "license": "MIT",
+      "files": 11,
+      "notes": "Web content designer reference"
+    },
+    {
+      "id": "baoyu-design",
+      "path": ".project-local/cache/vendor/baoyu-design",
+      "disposition": "CONDITIONAL_POC",
+      "license": "MIT",
+      "files": 219,
+      "notes": "origin: https://github.com/JimLiu/baoyu-design; source moved out of Git to ignored vendor cache (DL-DIR-MIG-R1 normalize)",
+      "canonicalUrl": "https://github.com/JimLiu/baoyu-design",
+      "provenanceSource": "discovered in SOURCE.md of the locked copy",
+      "observedAt": "2026-09-13"
+    },
+    {
+      "id": "ecommerce-ai",
+      "path": ".project-local/cache/vendor/ecommerce-ai",
+      "disposition": "CONDITIONAL_POC",
+      "license": "CC0-1.0",
+      "files": 223,
+      "notes": "origin: https://github.com/kangise/ecommerce-ai-skills; source moved out of Git to ignored vendor cache (DL-DIR-MIG-R1 normalize)",
+      "canonicalUrl": "https://github.com/kangise/ecommerce-ai-skills",
+      "provenanceSource": "discovered in SOURCE.md of the locked copy",
+      "observedAt": "2026-09-13"
+    },
+    {
+      "id": "genjutsu",
+      "path": ".project-local/cache/vendor/genjutsu",
+      "disposition": "CONDITIONAL_POC",
+      "license": "MIT",
+      "files": 101,
+      "notes": "origin: https://github.com/AThevon/genjutsu; source moved out of Git to ignored vendor cache (DL-DIR-MIG-R1 normalize)",
+      "canonicalUrl": "https://github.com/AThevon/genjutsu",
+      "provenanceSource": "discovered in SOURCE.md of the locked copy",
+      "observedAt": "2026-09-13"
+    },
+    {
+      "id": "motion-forensics",
+      "path": ".project-local/cache/vendor/motion-forensics",
+      "disposition": "CONDITIONAL_POC",
+      "license": "Apache-2.0",
+      "files": 122,
+      "notes": "origin: https://github.com/voidmatcha/ui-clone-skills; source moved out of Git to ignored vendor cache (DL-DIR-MIG-R1 normalize)",
+      "canonicalUrl": "https://github.com/voidmatcha/ui-clone-skills",
+      "provenanceSource": "discovered in SOURCE.md of the locked copy",
+      "observedAt": "2026-09-13"
+    },
+    {
+      "id": "ui-ux-pro-max",
+      "path": ".project-local/cache/vendor/ui-ux-pro-max",
+      "disposition": "CONDITIONAL_POC",
+      "license": "MIT License",
+      "files": 41,
+      "notes": "origin: https://github.com/nextlevelbuilder/ui-ux-pro-max-skill; source moved out of Git to ignored vendor cache (DL-DIR-MIG-R1 normalize)",
+      "canonicalUrl": "https://github.com/nextlevelbuilder/ui-ux-pro-max-skill",
+      "provenanceSource": "discovered in SOURCE.md of the locked copy",
+      "observedAt": "2026-09-13"
+    },
+    {
+      "id": "ultimate-uiux",
+      "path": ".project-local/cache/vendor/ultimate-uiux",
+      "disposition": "CONDITIONAL_POC",
+      "license": "MIT",
+      "files": 54,
+      "notes": "origin: https://github.com/ca-who-codes/ultimate.UIUX.design.skills; source moved out of Git to ignored vendor cache (DL-DIR-MIG-R1 normalize)",
+      "canonicalUrl": "https://github.com/ca-who-codes/ultimate.UIUX.design.skills",
+      "provenanceSource": "discovered in SOURCE.md of the locked copy",
+      "observedAt": "2026-09-13"
+    },
+    {
+      "id": "vq-affiliate-skills",
+      "path": ".project-local/cache/vendor/visual-quality__affiliate-skills",
+      "disposition": "CONDITIONAL_POC",
+      "license": "MIT",
+      "files": 171,
+      "notes": "origin: https://github.com/Affitor/affiliate-skills; source moved out of Git to ignored vendor cache (DL-DIR-MIG-R1 normalize)",
+      "canonicalUrl": "https://github.com/Affitor/affiliate-skills",
+      "provenanceSource": "discovered in SOURCE.md of the locked copy",
+      "observedAt": "2026-09-13"
+    },
+    {
+      "id": "vq-ai-graphic-design",
+      "path": ".project-local/cache/vendor/visual-quality__ai-graphic-design",
+      "disposition": "CONDITIONAL_POC",
+      "license": "MIT",
+      "files": 7,
+      "notes": "origin: https://github.com/designrique/ai-graphic-design-skill; source moved out of Git to ignored vendor cache (DL-DIR-MIG-R1 normalize)",
+      "canonicalUrl": "https://github.com/designrique/ai-graphic-design-skill",
+      "provenanceSource": "discovered in SOURCE.md of the locked copy",
+      "observedAt": "2026-09-13"
+    },
+    {
+      "id": "vq-blender-3d",
+      "path": ".project-local/cache/vendor/visual-quality__blender-3d",
+      "disposition": "CONDITIONAL_POC",
+      "license": "Apache-2.0",
+      "files": 11,
+      "notes": "origin: https://github.com/jithinolickal/blender; source moved out of Git to ignored vendor cache (DL-DIR-MIG-R1 normalize)",
+      "canonicalUrl": "https://github.com/jithinolickal/blender",
+      "provenanceSource": "discovered in SOURCE.md of the locked copy",
+      "observedAt": "2026-09-13"
+    },
+    {
+      "id": "vq-brand-identity",
+      "path": ".project-local/cache/vendor/visual-quality__brand-identity",
+      "disposition": "CONDITIONAL_POC",
+      "license": "MIT",
+      "files": 10,
+      "notes": "origin: https://github.com/SkillMedev/brand-visual-identity; source moved out of Git to ignored vendor cache (DL-DIR-MIG-R1 normalize)",
+      "canonicalUrl": "https://github.com/SkillMedev/brand-visual-identity",
+      "provenanceSource": "discovered in SOURCE.md of the locked copy",
+      "observedAt": "2026-09-13"
+    },
+    {
+      "id": "vq-brand-identity-generator",
+      "path": ".project-local/cache/vendor/visual-quality__brand-identity-generator",
+      "disposition": "CONDITIONAL_POC",
+      "license": "MIT",
+      "files": 41,
+      "notes": "origin: https://github.com/AbdulkareemKR/brand-identity-generator; source moved out of Git to ignored vendor cache (DL-DIR-MIG-R1 normalize)",
+      "canonicalUrl": "https://github.com/AbdulkareemKR/brand-identity-generator",
+      "provenanceSource": "discovered in SOURCE.md of the locked copy",
+      "observedAt": "2026-09-13"
+    },
+    {
+      "id": "vq-brand-systems",
+      "path": ".project-local/cache/vendor/visual-quality__brand-systems",
+      "disposition": "CONDITIONAL_POC",
+      "license": "MIT",
+      "files": 14,
+      "notes": "origin: https://github.com/arome3/evidence-based-brand-systems; source moved out of Git to ignored vendor cache (DL-DIR-MIG-R1 normalize)",
+      "canonicalUrl": "https://github.com/arome3/evidence-based-brand-systems",
+      "provenanceSource": "discovered in SOURCE.md of the locked copy",
+      "observedAt": "2026-09-13"
+    },
+    {
+      "id": "vq-brandbook-skill",
+      "path": ".project-local/cache/vendor/visual-quality__brandbook-skill",
+      "disposition": "CONDITIONAL_POC",
+      "license": "MIT",
+      "files": 11,
+      "notes": "origin: https://github.com/echowang97/brandbook-skill; source moved out of Git to ignored vendor cache (DL-DIR-MIG-R1 normalize)",
+      "canonicalUrl": "https://github.com/echowang97/brandbook-skill",
+      "provenanceSource": "discovered in SOURCE.md of the locked copy",
+      "observedAt": "2026-09-13"
+    },
+    {
+      "id": "vq-claude-dolphin",
+      "path": ".project-local/cache/vendor/visual-quality__claude-dolphin",
+      "disposition": "CONDITIONAL_POC",
+      "license": "MIT",
+      "files": 14,
+      "notes": "origin: https://github.com/nyldn/claude-dolphin; source moved out of Git to ignored vendor cache (DL-DIR-MIG-R1 normalize)",
+      "canonicalUrl": "https://github.com/nyldn/claude-dolphin",
+      "provenanceSource": "discovered in SOURCE.md of the locked copy",
+      "observedAt": "2026-09-13"
+    },
+    {
+      "id": "vq-claude2figma",
+      "path": ".project-local/cache/vendor/visual-quality__claude2figma",
+      "disposition": "CONDITIONAL_POC",
+      "license": "MIT",
+      "files": 13,
+      "notes": "origin: https://github.com/senlindesign/claude2figma; source moved out of Git to ignored vendor cache (DL-DIR-MIG-R1 normalize)",
+      "canonicalUrl": "https://github.com/senlindesign/claude2figma",
+      "provenanceSource": "discovered in SOURCE.md of the locked copy",
+      "observedAt": "2026-09-13"
+    },
+    {
+      "id": "vq-dataviz-critique",
+      "path": ".project-local/cache/vendor/visual-quality__dataviz-critique",
+      "disposition": "CONDITIONAL_POC",
+      "license": "MIT",
+      "files": 7,
+      "notes": "origin: https://github.com/zhanyi789/dataviz-critique-skills; source moved out of Git to ignored vendor cache (DL-DIR-MIG-R1 normalize)",
+      "canonicalUrl": "https://github.com/zhanyi789/dataviz-critique-skills",
+      "provenanceSource": "discovered in SOURCE.md of the locked copy",
+      "observedAt": "2026-09-13"
+    },
+    {
+      "id": "vq-design-md-skill",
+      "path": ".project-local/cache/vendor/visual-quality__design-md-skill",
+      "disposition": "CONDITIONAL_POC",
+      "license": "MIT",
+      "files": 5,
+      "notes": "origin: https://github.com/arumwu/design-md-skill; source moved out of Git to ignored vendor cache (DL-DIR-MIG-R1 normalize)",
+      "canonicalUrl": "https://github.com/arumwu/design-md-skill",
+      "provenanceSource": "discovered in SOURCE.md of the locked copy",
+      "observedAt": "2026-09-13"
+    },
+    {
+      "id": "vq-design-motion-principles",
+      "path": ".project-local/cache/vendor/visual-quality__design-motion-principles",
+      "disposition": "CONDITIONAL_POC",
+      "license": "MIT",
+      "files": 19,
+      "notes": "origin: https://github.com/kylezantos/design-motion-principles; source moved out of Git to ignored vendor cache (DL-DIR-MIG-R1 normalize)",
+      "canonicalUrl": "https://github.com/kylezantos/design-motion-principles",
+      "provenanceSource": "discovered in SOURCE.md of the locked copy",
+      "observedAt": "2026-09-13"
+    },
+    {
+      "id": "vq-design-thinking",
+      "path": ".project-local/cache/vendor/visual-quality__design-thinking",
+      "disposition": "CONDITIONAL_POC",
+      "license": "MIT",
+      "files": 14,
+      "notes": "origin: https://github.com/kopfwelt/skills; source moved out of Git to ignored vendor cache (DL-DIR-MIG-R1 normalize)",
+      "canonicalUrl": "https://github.com/kopfwelt/skills",
+      "provenanceSource": "discovered in SOURCE.md of the locked copy",
+      "observedAt": "2026-09-13"
+    },
+    {
+      "id": "vq-document-design-system",
+      "path": ".project-local/cache/vendor/visual-quality__document-design-system",
+      "disposition": "CONDITIONAL_POC",
+      "license": "MIT",
+      "files": 98,
+      "notes": "origin: https://github.com/Avinava/document-design-system; source moved out of Git to ignored vendor cache (DL-DIR-MIG-R1 normalize)",
+      "canonicalUrl": "https://github.com/Avinava/document-design-system",
+      "provenanceSource": "discovered in SOURCE.md of the locked copy",
+      "observedAt": "2026-09-13"
+    },
+    {
+      "id": "vq-extract-design-system",
+      "path": ".project-local/cache/vendor/visual-quality__extract-design-system",
+      "disposition": "CONDITIONAL_POC",
+      "license": "MIT",
+      "files": 55,
+      "notes": "origin: https://github.com/arvindrk/extract-design-system; source moved out of Git to ignored vendor cache (DL-DIR-MIG-R1 normalize)",
+      "canonicalUrl": "https://github.com/arvindrk/extract-design-system",
+      "provenanceSource": "discovered in SOURCE.md of the locked copy",
+      "observedAt": "2026-09-13"
+    },
+    {
+      "id": "vq-game-creative",
+      "path": ".project-local/cache/vendor/visual-quality__game-creative",
+      "disposition": "CONDITIONAL_POC",
+      "license": "MIT",
+      "files": 7,
+      "notes": "origin: https://github.com/wotonger/GameCreative-skills; source moved out of Git to ignored vendor cache (DL-DIR-MIG-R1 normalize)",
+      "canonicalUrl": "https://github.com/wotonger/GameCreative-skills",
+      "provenanceSource": "discovered in SOURCE.md of the locked copy",
+      "observedAt": "2026-09-13"
+    },
+    {
+      "id": "vq-game-ui-mobile",
+      "path": ".project-local/cache/vendor/visual-quality__game-ui-mobile",
+      "disposition": "CONDITIONAL_POC",
+      "license": "MIT",
+      "files": 55,
+      "notes": "origin: https://github.com/dungnotnull/game-ui-mobile-friendly-design-agent-skill; source moved out of Git to ignored vendor cache (DL-DIR-MIG-R1 normalize)",
+      "canonicalUrl": "https://github.com/dungnotnull/game-ui-mobile-friendly-design-agent-skill",
+      "provenanceSource": "discovered in SOURCE.md of the locked copy",
+      "observedAt": "2026-09-13"
+    },
+    {
+      "id": "vq-hallmark",
+      "path": ".project-local/cache/vendor/visual-quality__hallmark",
+      "disposition": "CONDITIONAL_POC",
+      "license": "MIT",
+      "files": 109,
+      "notes": "origin: https://github.com/nutlope/hallmark; source moved out of Git to ignored vendor cache (DL-DIR-MIG-R1 normalize)",
+      "canonicalUrl": "https://github.com/Nutlope/hallmark",
+      "provenanceSource": "discovered in SOURCE.md of the locked copy",
+      "observedAt": "2026-09-13"
+    },
+    {
+      "id": "vq-hue",
+      "path": ".project-local/cache/vendor/visual-quality__hue",
+      "disposition": "CONDITIONAL_POC",
+      "license": "MIT",
+      "files": 18,
+      "notes": "origin: https://github.com/dominikmartn/hue; source moved out of Git to ignored vendor cache (DL-DIR-MIG-R1 normalize)",
+      "canonicalUrl": "https://github.com/dominikmartn/hue",
+      "provenanceSource": "discovered in SOURCE.md of the locked copy",
+      "observedAt": "2026-09-13"
+    },
+    {
+      "id": "vq-interface-design",
+      "path": ".project-local/cache/vendor/visual-quality__interface-design",
+      "disposition": "CONDITIONAL_POC",
+      "license": "MIT",
+      "files": 6,
+      "notes": "origin: https://github.com/Dammyjay93/interface-design; source moved out of Git to ignored vendor cache (DL-DIR-MIG-R1 normalize)",
+      "canonicalUrl": "https://github.com/Dammyjay93/interface-design",
+      "provenanceSource": "discovered in SOURCE.md of the locked copy",
+      "observedAt": "2026-09-13"
+    },
+    {
+      "id": "vq-logo-designer",
+      "path": ".project-local/cache/vendor/visual-quality__logo-designer",
+      "disposition": "CONDITIONAL_POC",
+      "license": "MIT",
+      "files": 16,
+      "notes": "origin: https://github.com/neonwatty/logo-designer-skill; source moved out of Git to ignored vendor cache (DL-DIR-MIG-R1 normalize)",
+      "canonicalUrl": "https://github.com/neonwatty/logo-designer-skill",
+      "provenanceSource": "discovered in SOURCE.md of the locked copy",
+      "observedAt": "2026-09-13"
+    },
+    {
+      "id": "vq-motion-design-skill",
+      "path": ".project-local/cache/vendor/visual-quality__motion-design-skill",
+      "disposition": "CONDITIONAL_POC",
+      "license": "MIT",
+      "files": 21,
+      "notes": "origin: https://github.com/LottieFiles/motion-design-skill; source moved out of Git to ignored vendor cache (DL-DIR-MIG-R1 normalize)",
+      "canonicalUrl": "https://github.com/LottieFiles/motion-design-skill",
+      "provenanceSource": "discovered in SOURCE.md of the locked copy",
+      "observedAt": "2026-09-13"
+    },
+    {
+      "id": "vq-ppt-agent",
+      "path": ".project-local/cache/vendor/visual-quality__ppt-agent",
+      "disposition": "CONDITIONAL_POC",
+      "license": "MIT",
+      "files": 121,
+      "notes": "origin: https://github.com/Akxan/ppt-agent-skill; source moved out of Git to ignored vendor cache (DL-DIR-MIG-R1 normalize)",
+      "canonicalUrl": "https://github.com/Akxan/ppt-agent-skill",
+      "provenanceSource": "discovered in SOURCE.md of the locked copy",
+      "observedAt": "2026-09-13"
+    },
+    {
+      "id": "vq-qiaomu-design",
+      "path": ".project-local/cache/vendor/visual-quality__qiaomu-design",
+      "disposition": "CONDITIONAL_POC",
+      "license": "MIT",
+      "files": 83,
+      "notes": "origin: https://github.com/joeseesun/qiaomu-design; source moved out of Git to ignored vendor cache (DL-DIR-MIG-R1 normalize)",
+      "canonicalUrl": "https://github.com/joeseesun/qiaomu-design",
+      "provenanceSource": "discovered in SOURCE.md of the locked copy",
+      "observedAt": "2026-09-13"
+    },
+    {
+      "id": "vq-screenshot-to-ds",
+      "path": ".project-local/cache/vendor/visual-quality__screenshot-to-ds",
+      "disposition": "CONDITIONAL_POC",
+      "license": "MIT",
+      "files": 15,
+      "notes": "origin: https://github.com/WCF900905/screenshot-to-design-system; source moved out of Git to ignored vendor cache (DL-DIR-MIG-R1 normalize)",
+      "canonicalUrl": "https://github.com/WCF900905/screenshot-to-design-system",
+      "provenanceSource": "discovered in SOURCE.md of the locked copy",
+      "observedAt": "2026-09-13"
+    },
+    {
+      "id": "vq-springy-motion",
+      "path": ".project-local/cache/vendor/visual-quality__springy-motion",
+      "disposition": "CONDITIONAL_POC",
+      "license": "MIT",
+      "files": 58,
+      "notes": "origin: https://github.com/OtherdaysStudio/springy-motion; source moved out of Git to ignored vendor cache (DL-DIR-MIG-R1 normalize)",
+      "canonicalUrl": "https://github.com/OtherdaysStudio/springy-motion",
+      "provenanceSource": "discovered in SOURCE.md of the locked copy",
+      "observedAt": "2026-09-13"
+    },
+    {
+      "id": "vq-swiftui-design",
+      "path": ".project-local/cache/vendor/visual-quality__swiftui-design",
+      "disposition": "CONDITIONAL_POC",
+      "license": "MIT",
+      "files": 14,
+      "notes": "origin: https://github.com/Wholiver/swiftui-design-skill; source moved out of Git to ignored vendor cache (DL-DIR-MIG-R1 normalize)",
+      "canonicalUrl": "https://github.com/Wholiver/swiftui-design-skill",
+      "provenanceSource": "discovered in SOURCE.md of the locked copy",
+      "observedAt": "2026-09-13"
+    },
+    {
+      "id": "vq-taste-skill",
+      "path": ".project-local/cache/vendor/visual-quality__taste-skill",
+      "disposition": "CONDITIONAL_POC",
+      "license": "MIT",
+      "files": 8,
+      "notes": "origin: https://github.com/Leonxlnx/taste-skill; source moved out of Git to ignored vendor cache (DL-DIR-MIG-R1 normalize)",
+      "canonicalUrl": "https://github.com/Leonxlnx/taste-skill",
+      "provenanceSource": "discovered in SOURCE.md of the locked copy",
+      "observedAt": "2026-09-13"
+    },
+    {
+      "id": "vq-ux-audit-skill",
+      "path": ".project-local/cache/vendor/visual-quality__ux-audit-skill",
+      "disposition": "CONDITIONAL_POC",
+      "license": "MIT",
+      "files": 7,
+      "notes": "origin: https://github.com/EliaAlberti/ux-audit-skill; source moved out of Git to ignored vendor cache (DL-DIR-MIG-R1 normalize)",
+      "canonicalUrl": "https://github.com/EliaAlberti/ux-audit-skill",
+      "provenanceSource": "discovered in SOURCE.md of the locked copy",
+      "observedAt": "2026-09-13"
+    },
+    {
+      "id": "vq-visual-note-card",
+      "path": ".project-local/cache/vendor/visual-quality__visual-note-card",
+      "disposition": "CONDITIONAL_POC",
+      "license": "MIT",
+      "files": 6,
+      "notes": "origin: https://github.com/beilunyang/visual-note-card-skills; source moved out of Git to ignored vendor cache (DL-DIR-MIG-R1 normalize)",
+      "canonicalUrl": "https://github.com/beilunyang/visual-note-card-skills",
+      "provenanceSource": "discovered in SOURCE.md of the locked copy",
+      "observedAt": "2026-09-13"
+    },
+    {
+      "id": "tool-control",
+      "path": ".project-local/cache/vendor/tool-control",
+      "disposition": "CONDITIONAL_POC",
+      "license": "MIT / Apache-2.0 per-subtree",
+      "files": 120,
+      "notes": "origin: multiple (creold/photoshop-scripts, creold/illustrator-scripts, Comfy-Org, style; source moved out of Git to ignored vendor cache (DL-DIR-MIG-R1 normalize)"
+    },
+    {
+      "id": "huashu-design",
+      "path": "packages/capabilities/production/huashu-design",
+      "disposition": "ABSORB_MINIMAL",
+      "license": "MIT",
+      "notes": "absorbed 2026-08-13; source https://github.com/alchaincyf/huashu-design (alchaincyf); source-level vendoring of SKILL.md + references/ only, assets/scripts/demos excluded; provenance recorded in packages/capabilities/production/huashu-design/SOURCE.md",
+      "files": 36,
+      "canonicalUrl": "https://github.com/alchaincyf/huashu-design",
+      "provenanceSource": "discovered in SOURCE.md of the locked copy",
+      "observedAt": "2026-09-13"
+    },
+    {
+      "id": "front-end-design-checklist",
+      "path": "packages/capabilities/standards/front-end-design-checklist",
+      "disposition": "ABSORB_MINIMAL",
+      "license": "CC0-1.0",
+      "notes": "absorbed 2026-08-13; source https://github.com/thedaviddias/Front-End-Design-Checklist (thedaviddias and contributors); README checklist body only, images/ excluded; provenance recorded in packages/capabilities/standards/front-end-design-checklist/SOURCE.md",
+      "files": 3,
+      "canonicalUrl": "https://github.com/thedaviddias/Front-End-Design-Checklist",
+      "provenanceSource": "discovered in SOURCE.md of the locked copy",
+      "observedAt": "2026-09-13"
+    },
+    {
+      "id": "ai-product-os-frontend",
+      "path": "design-lab/research/quarantine/ai-product-os-frontend",
+      "disposition": "ABSORB_MINIMAL",
+      "license": "MIT",
+      "notes": "quarantined 2026-08-14; source https://github.com/Nihalgraphics/AI-Product-OS-for-UI-UX-Brand-Prototype (Nihal Graphics); full third-party front-end source moved to the external design-assets quarantine and no longer tracked here; only the governance record, LICENSE, workflow summary and extracted method cards remain; provenance recorded in its SOURCE.md",
+      "files": 8,
+      "canonicalUrl": "https://github.com/Nihalgraphics/AI-Product-OS-for-UI-UX-Brand-Prototype",
+      "provenanceSource": "discovered in SOURCE.md of the locked copy",
+      "observedAt": "2026-09-13"
+    }
+  ],
+  "amended": "2026-09-14",
+  "amendNote": "DLDS-D010: three ABSORB_MINIMAL entries added from their own SOURCE.md, and canonicalUrl/observedAt recorded for every entry whose own copy documents it. No URL was invented; entries whose provenance was deleted stay without one."
 }

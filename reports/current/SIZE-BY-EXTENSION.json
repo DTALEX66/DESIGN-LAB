@@ -1,0 +1,175 @@
+{
+  "schemaVersion": "design-lab/size-by-extension/v1",
+  "task_key": "DL-TP-20260914-DEEPSEEK-AUTHORITY-R1::DLDS-D000",
+  "measured_at": "2026-09-13T16:26:39+00:00",
+  "tracked": [
+    {
+      "extension": ".png",
+      "files": 28,
+      "bytes": 13121261,
+      "mib": 12.513
+    },
+    {
+      "extension": ".json",
+      "files": 540,
+      "bytes": 7017749,
+      "mib": 6.693
+    },
+    {
+      "extension": ".py",
+      "files": 369,
+      "bytes": 3079241,
+      "mib": 2.937
+    },
+    {
+      "extension": ".md",
+      "files": 647,
+      "bytes": 3026223,
+      "mib": 2.886
+    },
+    {
+      "extension": ".js",
+      "files": 94,
+      "bytes": 1492941,
+      "mib": 1.424
+    },
+    {
+      "extension": ".csv",
+      "files": 4,
+      "bytes": 1238295,
+      "mib": 1.181
+    },
+    {
+      "extension": ".mp4",
+      "files": 2,
+      "bytes": 1156668,
+      "mib": 1.103
+    },
+    {
+      "extension": ".flac",
+      "files": 2,
+      "bytes": 649964,
+      "mib": 0.62
+    },
+    {
+      "extension": ".webp",
+      "files": 2,
+      "bytes": 303076,
+      "mib": 0.289
+    },
+    {
+      "extension": ".css",
+      "files": 4,
+      "bytes": 221370,
+      "mib": 0.211
+    },
+    {
+      "extension": ".lock",
+      "files": 1,
+      "bytes": 172920,
+      "mib": 0.165
+    },
+    {
+      "extension": ".html",
+      "files": 19,
+      "bytes": 162478,
+      "mib": 0.155
+    },
+    {
+      "extension": ".jsx",
+      "files": 4,
+      "bytes": 48285,
+      "mib": 0.046
+    },
+    {
+      "extension": ".mjs",
+      "files": 13,
+      "bytes": 43932,
+      "mib": 0.042
+    },
+    {
+      "extension": ".yaml",
+      "files": 8,
+      "bytes": 28458,
+      "mib": 0.027
+    },
+    {
+      "extension": ".license",
+      "files": 34,
+      "bytes": 23751,
+      "mib": 0.023
+    },
+    {
+      "extension": ".ts",
+      "files": 1,
+      "bytes": 16307,
+      "mib": 0.016
+    },
+    {
+      "extension": "(none)",
+      "files": 44,
+      "bytes": 15523,
+      "mib": 0.015
+    },
+    {
+      "extension": ".sql",
+      "files": 6,
+      "bytes": 13100,
+      "mib": 0.012
+    },
+    {
+      "extension": ".yml",
+      "files": 4,
+      "bytes": 11927,
+      "mib": 0.011
+    },
+    {
+      "extension": ".cjs",
+      "files": 2,
+      "bytes": 7441,
+      "mib": 0.007
+    },
+    {
+      "extension": ".xml",
+      "files": 9,
+      "bytes": 6258,
+      "mib": 0.006
+    },
+    {
+      "extension": ".txt",
+      "files": 4,
+      "bytes": 3443,
+      "mib": 0.003
+    },
+    {
+      "extension": ".java",
+      "files": 1,
+      "bytes": 3078,
+      "mib": 0.003
+    },
+    {
+      "extension": ".toml",
+      "files": 1,
+      "bytes": 2348,
+      "mib": 0.002
+    },
+    {
+      "extension": ".gradle",
+      "files": 3,
+      "bytes": 647,
+      "mib": 0.001
+    },
+    {
+      "extension": ".ps1",
+      "files": 1,
+      "bytes": 509,
+      "mib": 0.0
+    },
+    {
+      "extension": ".in",
+      "files": 1,
+      "bytes": 125,
+      "mib": 0.0
+    }
+  ]
+}
