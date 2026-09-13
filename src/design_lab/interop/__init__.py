@@ -3,13 +3,20 @@
 
 This package adopts external interchange formats instead of inventing local ones:
 
-* ``dtcg`` -- DTCG design tokens (Design Tokens Community Group, ``2025.10``).
+* ``dtcg`` -- DTCG design tokens (Design Tokens Community Group, ``2025.10`` stable).
+  The canonical contract is strict (``typography`` requires all five members, and
+  the pre-2025.10 ``string``/``boolean`` types are rejected); legacy documents go
+  through the explicitly named adapter ``from_legacy_document`` /
+  ``validate_legacy_document``, which never widens the canonical schema.
 * ``timeline`` -- OpenTimelineIO ``Timeline.1`` documents as the handoff contract
-  to a video host (DESIGN-LAB does not render video).
-* ``provenance`` -- delivery provenance mapped onto a C2PA 2.4 *shaped* manifest.
+  to a video host (DESIGN-LAB does not render video). ``overlaps()`` is derived
+  from the official ``Transition.1`` covered-range formula.
+* ``provenance`` -- delivery provenance projected onto a C2PA 2.4 claim structure
+  (``c2pa.claim.v2`` / ``c2pa.signature``), unsigned and never signed. The
+  DESIGN-LAB Asset Graph stays the source of truth for that projection.
 * ``delivery_receipt`` -- the deterministic DeliveryReceipt V2 for a delivery.
-* ``penpot`` -- the Penpot adapter declaration, its file boundary and a
-  read-only import plan.
+* ``penpot`` -- the Penpot adapter declaration, its file boundary, a structural
+  ``.penpot`` archive validator and a read-only import plan.
 
 Boundary of the whole package: every module here is a contract layer. It reads
 and writes JSON documents that belong to an external standard, validates them
