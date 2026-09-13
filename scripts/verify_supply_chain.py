@@ -20,6 +20,7 @@ Usage:
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import re
 import subprocess
@@ -187,8 +188,32 @@ def is_synthetic(path: str, match: str) -> bool:
     return path.startswith(TEST_PATHS)
 
 
+def load_adjudications() -> tuple:
+    """(by_digest, malformed) for hash-pinned adjudicated exemptions.
+
+    A path rule cannot prove a value is synthetic: an INDEPENDENT AUDIT demonstrated
+    that it returned True for a credential-shaped value sitting in a test file. An
+    adjudication therefore pins the SHA-256 of one exact value, so exempting one
+    adjudicated test vector never exempts a different value in the same file or
+    anywhere else. An entry missing a reason or an adjudicating task is reported as
+    malformed instead of being honoured.
+    """
+    document = read_json("design-lab/config/secret-scan-adjudications.json") or {}
+    by_digest, malformed = {}, []
+    for entry in document.get("adjudications", []):
+        missing = [field for field in ("value_sha256", "reason", "adjudicated_by")
+                   if not entry.get(field)]
+        if missing:
+            malformed.append({"entry": entry.get("value_sha256") or "(no digest)",
+                              "missing": missing})
+            continue
+        by_digest[entry["value_sha256"]] = entry
+    return by_digest, malformed
+
+
 def secret_scan(files: list) -> dict:
-    hits, exempted = [], []
+    adjudications, malformed = load_adjudications()
+    hits, exempted, adjudicated = [], [], []
     for rel in files:
         if rel == SELF_OUTPUT_REL:
             # Self-reference: this report quotes the matches it found, so scanning it
@@ -205,6 +230,11 @@ def secret_scan(files: list) -> dict:
         for name, pattern in SECRET_PATTERNS:
             for match in pattern.finditer(text):
                 value = match.group(0)
+                digest = "sha256:" + hashlib.sha256(value.encode()).hexdigest()
+                if digest in adjudications:
+                    adjudicated.append({"pattern": name, "path": rel, "value_sha256": digest,
+                                        "reason": adjudications[digest]["reason"]})
+                    continue
                 if is_synthetic(rel, value):
                     exempted.append({"pattern": name, "path": rel,
                                      "reason": "in-value synthetic marker"
@@ -217,11 +247,16 @@ def secret_scan(files: list) -> dict:
     return {"patterns": [name for name, _ in SECRET_PATTERNS], "hits": hits[:50],
             "hit_count": len(hits), "synthetic_values_exempted": len(exempted),
             "exempted": exempted[:20],
+            "adjudicated_values_exempted": len(adjudicated),
+            "adjudicated": adjudicated[:20],
+            "malformed_adjudications": malformed,
             "self_output_excluded": SELF_OUTPUT_REL,
             "exemption_rule": "an in-value synthetic marker, or a test/fixture path for a value "
-                              "that carries no credential format of its own; a value with a real "
-                              "credential format is never exempted by path alone",
-            "ok": not hits}
+                              "that carries no credential format of its own, or a hash-pinned "
+                              "adjudication; a value with a real credential format is never "
+                              "exempted by path alone, and an adjudication exempts exactly one "
+                              "value",
+            "ok": not hits and not malformed}
 
 
 # The fixtures are assembled from fragments on purpose. A credential-shaped literal
@@ -246,9 +281,30 @@ SELF_TEST_CASES = [
 
 
 def self_test() -> list:
-    return [f"{description}: is_synthetic({path!r}, {value!r}) returned {is_synthetic(path, value)}"
-            for description, path, value, expected in SELF_TEST_CASES
-            if is_synthetic(path, value) is not expected]
+    """The exemption rules must not be usable to hide a credential."""
+    failures = [f"{description}: is_synthetic({path!r}, {value!r}) returned "
+                f"{is_synthetic(path, value)}"
+                for description, path, value, expected in SELF_TEST_CASES
+                if is_synthetic(path, value) is not expected]
+    # An adjudication exempts exactly one value. The same file, with a different
+    # credential-shaped value, must still be a hit — otherwise the adjudication file
+    # would be a path exemption wearing a digest.
+    by_digest, malformed = load_adjudications()
+    if not by_digest:
+        failures.append("no adjudication is loaded, so the adjudication path is untested")
+    if malformed:
+        failures.append(f"the adjudication file has malformed entries: {malformed}")
+    adjudicated_value = next(iter(by_digest.values()), {}).get("value_sha256")
+    if adjudicated_value:
+        other = "AKIA" + "ZZZZ1111YYYY2222"
+        if "sha256:" + hashlib.sha256(other.encode()).hexdigest() in by_digest:
+            failures.append("a different value is covered by an adjudication; the exemption "
+                            "is broader than the value that was adjudicated")
+        for entry in by_digest.values():
+            if not entry.get("review_condition"):
+                failures.append(f"adjudication {entry['value_sha256'][:19]}... has no review "
+                                "condition, so it would never be revisited")
+    return failures
 
 
 def lockfile_audit(files: list) -> dict:
