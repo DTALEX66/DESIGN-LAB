@@ -15,7 +15,7 @@
     "executor": "DEEPSEEK/DSH",
     "base_sha": "56319635bbcf112ac88d097317262c101ffdfe4d",
     "branch": "codex/deepseek-authority-r1",
-    "worktree": "sha256:9684a7ae2228dad35f5ff0248fe197b4a0bcf2eae1a730004b03d68798459c43",
+    "worktree": "sha256:098ec7aca1e54bcddb4751bf0fb3763fccfc227033f2738094000aed64e58934",
     "worktree_clean": true
   },
   "authority": {
@@ -1011,9 +1011,13 @@
         {
           "at": "2026-09-13T17:09:06+00:00",
           "note": "Evidence packet written: DEEPSEEK-FINAL-AUDIT.md, DEEPSEEK-TASK-STATE.json, REPOSITORY-NORMALIZATION-REPORT.md, LANGUAGE-GOVERNANCE-REPORT.md, REPOSITORY-SLIMMING-REPORT.md, DATA-SPILL-MIGRATION-REPORT.md and CONTRACT-GRAPH-REPORT.md under reports/current, plus CODEX-REAL-HOST-HANDOFF.md under docs/taskpacks. Every number in them is read from the artifact that measured it, and the generator refuses to state a before/after that is not like-for-like. The task state names the deferred domains, the ten remaining exceptions and the ten things DeepSeek does not claim, and the 32 Done-When criteria are assessed separately rather than asserted."
+        },
+        {
+          "at": "2026-09-13T18:54:08+00:00",
+          "note": "Packet regenerated after a defect in my own generator was found and fixed. The first version of DEEPSEEK-FINAL-AUDIT.md was silently corrupted: body += _section(...) appended a string to a list of lines, which Python performs by extending the list with the string characters one at a time, producing 28581 bytes over 14315 lines of one character each. No exception was raised and nothing caught it, because the only check performed was that the file existed. The generator now returns lines from _section, and validate_markdown fails the run on stray single-character lines, a wrong section count or a wrong numbered-row count, and --check validates the packet shape so an existing file is no longer mistaken for a correct one. The regenerated packet is 14396 bytes over 130 lines with 10 sections and 32 Done-When rows. This note exists because the artifact this task cites was corrupt at the moment the task was recorded as done, and the record should say so rather than pretend the first attempt was correct."
         }
       ]
     }
   ],
-  "updated_at": "2026-09-13T18:49:46+00:00"
+  "updated_at": "2026-09-13T18:54:08+00:00"
 }

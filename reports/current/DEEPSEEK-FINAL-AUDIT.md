@@ -1,6 +1,6 @@
 # DeepSeek Final Audit - DL-TP-20260914-DEEPSEEK-AUTHORITY-R1
 
-Subject: `ea5d963f2e6dccfc80505106ded3a812730a13b1` on branch `codex/deepseek-authority-r1`. Written 2026-09-13T18:54:01+00:00.
+Subject: `3e7968a1d4e2065de8d0659db0990f3854cbf05f` on branch `codex/deepseek-authority-r1`. Written 2026-09-13T18:54:10+00:00.
 
 ## Repository Normalization Report
 
