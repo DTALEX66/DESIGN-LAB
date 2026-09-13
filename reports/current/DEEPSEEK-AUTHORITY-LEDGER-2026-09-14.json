@@ -15,7 +15,7 @@
     "executor": "DEEPSEEK/DSH",
     "base_sha": "56319635bbcf112ac88d097317262c101ffdfe4d",
     "branch": "codex/deepseek-authority-r1",
-    "worktree": "sha256:fd429dc52b49f6956129f3ae56eee73935c0e31a82275c042bebae59816754bd",
+    "worktree": "sha256:90b4e0c8cd9ce19b13bfeb5ceca241366c71d3badadcd5f3abca4f355e1e4ff7",
     "worktree_clean": false
   },
   "authority": {
@@ -101,18 +101,34 @@
       "full_id": "DL-TP-20260914-DEEPSEEK-AUTHORITY-R1::DLDS-A030",
       "wave": "A",
       "wave_title": "Authority Activation Gate",
-      "status": "NOT_STARTED",
-      "evidence": [],
-      "notes": []
+      "status": "DONE",
+      "evidence": [
+        "reports/current/DEEPSEEK-WORKTREE-INVENTORY.json",
+        "reports/current/DEEPSEEK-WORKTREE-DIFF-SUMMARY.md"
+      ],
+      "notes": [
+        {
+          "at": "2026-09-13T16:16:24+00:00",
+          "note": "frozen delta 9f34b53..5631963 (4 commits, 97 files): KEEP=3 KEEP_WITH_FIX=87 OUT_OF_PACK=7 UNPROVEN=0"
+        }
+      ]
     },
     {
       "task_key": "DLDS-A040",
       "full_id": "DL-TP-20260914-DEEPSEEK-AUTHORITY-R1::DLDS-A040",
       "wave": "A",
       "wave_title": "Authority Activation Gate",
-      "status": "NOT_STARTED",
-      "evidence": [],
-      "notes": []
+      "status": "DONE",
+      "evidence": [
+        ".project-local/quarantine/deepseek-round1/DELETE-MANIFEST.json",
+        "reports/current/DEEPSEEK-WORKTREE-INVENTORY.json"
+      ],
+      "notes": [
+        {
+          "at": "2026-09-13T16:16:25+00:00",
+          "note": "97/97 attributed to real R5 tasks or authority tasks; 7 out-of-pack files parked with hash manifest and restore command; affected suites re-run green (assurance 47, readiness 31, creative 100, interop 104, media 57)"
+        }
+      ]
     },
     {
       "task_key": "DLDS-B000",
@@ -592,5 +608,5 @@
       "notes": []
     }
   ],
-  "updated_at": "2026-09-13T16:14:20+00:00"
+  "updated_at": "2026-09-13T16:16:25+00:00"
 }

@@ -1,13 +1,16 @@
 # SPDX-License-Identifier: MIT
-"""DL-P1-170 / DL-P0-171 / DL-P1-180 assurance package boundary and primitives.
+"""DLDS-F070 assurance package boundary and primitives.
 
-This package owns the three separated assurance planes of DESIGN-LAB:
+This package owns the separated assurance planes of DESIGN-LAB:
 
 * :mod:`~design_lab.assurance.qa_plane` -- the QA plane split (deterministic /
   model-assisted / human) and its evidence ceilings;
-* :mod:`~design_lab.assurance.human_jury` -- the human jury record structure;
-* :mod:`~design_lab.assurance.knowledge_feedback` -- the knowledge feedback
-  candidate that may only leave this project after a human approval.
+* :mod:`~design_lab.assurance.human_jury` -- the human jury record structure.
+
+A knowledge-feedback candidate module was parked out of the tree by
+DL-TP-20260914-DEEPSEEK-AUTHORITY-R1::DLDS-A040: no current task requires it and
+knowledge migration is explicitly deferred. See
+``reports/current/DEEPSEEK-WORKTREE-INVENTORY.json``.
 
 Boundary: structural contracts and validators only. Nothing in this package
 runs a check, calls a provider, opens a host, reads an artifact, writes a file,
