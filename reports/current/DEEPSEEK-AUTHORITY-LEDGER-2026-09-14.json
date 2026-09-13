@@ -15,7 +15,7 @@
     "executor": "DEEPSEEK/DSH",
     "base_sha": "56319635bbcf112ac88d097317262c101ffdfe4d",
     "branch": "codex/deepseek-authority-r1",
-    "worktree": "sha256:e7d088f4683a584bfba1147259206633a1e78a27c57010349cf158196f52f5d4",
+    "worktree": "sha256:1fc19f82dfc6367b25af016ccc393879066fe78a0026f419220d775217011070",
     "worktree_clean": false
   },
   "authority": {
@@ -778,9 +778,16 @@
       "full_id": "DL-TP-20260914-DEEPSEEK-AUTHORITY-R1::DLDS-H020",
       "wave": "H",
       "wave_title": "Wave 7 - Tests / CI / Evidence",
-      "status": "NOT_STARTED",
-      "evidence": [],
-      "notes": []
+      "status": "DONE",
+      "evidence": [
+        "reports/current/FRESH-CLONE-VERIFICATION.json"
+      ],
+      "notes": [
+        {
+          "at": "2026-09-13T16:45:11+00:00",
+          "note": "a clean clone of HEAD was made into an ignored directory and verified there: HEAD matches, 1882 tracked files present with none missing, 118 schemas parse, the contract graph gate reports NO_BROKEN_LINK, the report generator runs and its own --check passes inside the clone, and the clone resolves .project-local inside itself. The install stage is NOT_VERIFIABLE: CI runs uv sync --locked and uv is absent here, so no install was attempted rather than claimed"
+        }
+      ]
     },
     {
       "task_key": "DLDS-H030",
@@ -898,5 +905,5 @@
       "notes": []
     }
   ],
-  "updated_at": "2026-09-13T16:44:33+00:00"
+  "updated_at": "2026-09-13T16:45:11+00:00"
 }
