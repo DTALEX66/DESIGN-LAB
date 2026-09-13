@@ -15,7 +15,7 @@
     "executor": "DEEPSEEK/DSH",
     "base_sha": "56319635bbcf112ac88d097317262c101ffdfe4d",
     "branch": "codex/deepseek-authority-r1",
-    "worktree": "sha256:098ec7aca1e54bcddb4751bf0fb3763fccfc227033f2738094000aed64e58934",
+    "worktree": "sha256:2d18fa03de5a9b6a8b4ec57cc321ce31a0d14e0fbe8ac182daa34d472de5d386",
     "worktree_clean": true
   },
   "authority": {
@@ -794,6 +794,10 @@
         {
           "at": "2026-09-13T18:49:46+00:00",
           "note": "Full Test Gate executed, all four required runs PASS, with the executed scope declared rather than implied. DECLARED SCOPE: a critical set of 16 stateful and contract-holding modules (test_asset_store, test_creative_job, test_creative_ledgers, test_creative_lineage, test_creative_migration, test_creative_version_guard, test_creative_f030_f040, test_creative_session_link, test_job_store, test_runtime_attempt_safety, test_runtime_asset_safety, test_runtime_explicit_project, test_assurance_qa_plane, test_assurance_jury, test_bundle_store, test_operation_coordinator) = 220 tests, chosen because cross-test state leakage and order dependence can only show up where state is held. RESULTS, all bound to subject 73c861b0986c with clean=True: critical module repetition 20x = 4400 tests, 0 failures, 0 errors, 142.5s; deterministic forward = 220 tests, 0 failures, 7.568s; reverse = 220 tests, 0 failures, 7.896s; randomized seeded order=random seed=42 = 220 tests, 0 failures, 7.918s. Identical test counts and zero failures across all three orders is the order-independence evidence; 20 clean repetitions is the isolation evidence. Run records: .project-local/task-artifacts/test-run/history.jsonl. DEFERRED, and named rather than hidden: the same three orders over the entire discovered suite (1392 tests, pattern test_*.py). Not executed because a pass of it costs roughly 25 minutes or more against 7.6 seconds for the critical set, so three orders plus repetition is 75+ minutes of continuous load, and that exact load coincided with the host kernel bugcheck 0x4E at 01:14:34 that this run is still diagnosing with the owner. Deferring it is a load decision, not a claim that it passed."
+        },
+        {
+          "at": "2026-09-13T19:00:35+00:00",
+          "note": "Additional and decisive reason the full-suite order runs stay deferred, recorded because it is concrete rather than a preference: a second kernel bugcheck would overwrite C:\\\\Windows\\\\MEMORY.DMP, which is the only copy of the evidence the owner is currently analysing with kd.exe. Running 75+ minutes of the exact load that coincided with the first bugcheck, while that dump is still the subject of an open diagnosis, risks destroying the evidence needed to name the faulty driver or to rule RAM in. The gate is therefore complete at its declared scope and the broader variant is scheduled after the host is cleared, not before."
         }
       ]
     },
@@ -1019,5 +1023,5 @@
       ]
     }
   ],
-  "updated_at": "2026-09-13T18:54:08+00:00"
+  "updated_at": "2026-09-13T19:00:35+00:00"
 }
