@@ -38,6 +38,12 @@ FORBIDDEN_BY_DEEPSEEK = ("E3", "E4", "E5")
 HISTORICAL_MARKERS = ("historical", "superseded", "pre-convergence", "no current-tree requalification",
                       "not a current capability")
 LEVEL_PATTERN = re.compile(r'"level"\s*:\s*"(E[0-5])"')
+# A section that exists to forbid a claim is not making one. The taskpack itself has
+# such a section ("what DeepSeek may never claim"), and the evidence packet repeats it,
+# so a denial list read as a claim is a false positive that would fail the gate on the
+# very document that states the prohibition.
+DENIAL_HEADINGS = re.compile(r"(not claimed|do not claim|must not claim|never claim|"
+                             r"forbidden|do-not-claim|禁止宣称|不得宣称|不可宣称)", re.I)
 
 
 def git(*args: str) -> str:
@@ -123,13 +129,17 @@ def scan_json_claims(rel: str, text: str) -> list:
     return claims
 
 
-def scan_markdown_claims(rel: str, text: str) -> list:
-    """A document that describes the ladder, or plans a level, is not claiming it."""
+def scan_markdown_claims(rel: str, text: str, declared_non_claims: list | None = None) -> list:
+    """A document that describes the ladder, plans a level, or forbids a claim is not
+    making one."""
     claims = []
     in_fence = False
+    heading = ""
     lines = text.splitlines()
     range_pattern = re.compile(r"E[0-5]\s*[-–—]\s*E[0-5]")
     for number, line in enumerate(lines, 1):
+        if line.lstrip().startswith("#"):
+            heading = line.strip()
         if line.strip().startswith("```"):
             in_fence = not in_fence
             continue
@@ -138,6 +148,13 @@ def scan_markdown_claims(rel: str, text: str) -> list:
         bare = range_pattern.sub("LADDER", line)
         for level in FORBIDDEN_BY_DEEPSEEK:
             if not re.search(rf"\b{level}\b", bare):
+                continue
+            if DENIAL_HEADINGS.search(heading):
+                # Recorded, not silently dropped: the gate reports how many lines it
+                # read as prohibitions so the exemption is auditable.
+                if declared_non_claims is not None:
+                    declared_non_claims.append({"path": rel, "heading": heading,
+                                                "line": number, "text": line.strip()[:140]})
                 continue
             window = " ".join(lines[max(0, number - 3):number + 3]).lower()
             if any(marker in window for marker in NON_CLAIM_MARKERS):
@@ -187,7 +204,7 @@ def in_claim_surface(rel: str) -> bool:
     return any(rel == prefix or rel.startswith(prefix) for prefix in CLAIM_SURFACE)
 
 
-def scan_claims() -> list:
+def scan_claims(declared_non_claims: list | None = None) -> list:
     claims = []
     for rel in tracked():
         if not in_claim_surface(rel):
@@ -204,7 +221,7 @@ def scan_claims() -> list:
         if not any(level in text for level in FORBIDDEN_BY_DEEPSEEK):
             continue
         found = (scan_json_claims(rel, text) if path.suffix == ".json"
-                 else scan_markdown_claims(rel, text))
+                 else scan_markdown_claims(rel, text, declared_non_claims))
         for claim in found:
             claim["agent_authored"] = rel.startswith(AGENT_AUTHORED)
             claim["dated"] = bool(DATED.search(claim.get("context", "") or claim.get("text", "")
@@ -259,11 +276,27 @@ def main(argv=None) -> int:
             got = classify(dict(fixture))["verdict"]
             if got != expected:
                 failures.append(f"{description}: expected {expected}, got {got}")
+        # A do-not-claim section must not be read as a claim, or the gate fails on the
+        # very document that states the prohibition.
+        denial = ("## What is NOT claimed\n\n"
+                  "* Photoshop integrated E3\n"
+                  "* Release ready\n")
+        if scan_markdown_claims("reports/current/FAKE.md", denial, []):
+            failures.append("a line under a do-not-claim heading was classified as a claim")
+        recorded = []
+        scan_markdown_claims("reports/current/FAKE.md", denial, recorded)
+        if not recorded:
+            failures.append("a do-not-claim line must still be counted and listed, not dropped")
+        # The same line under an ordinary heading is a claim and must still be caught.
+        affirmative = "## Status\n\n* Photoshop integrated E3\n"
+        if not scan_markdown_claims("reports/current/FAKE.md", affirmative, []):
+            failures.append("an unmarked E3 claim outside a denial section is no longer caught")
         print("EVIDENCE_LEVEL_SELF_TEST=" + ("PASS" if not failures else "FAIL"))
         for failure in failures:
             print("  FAIL", failure)
         return 0 if not failures else 1
-    claims = [classify(claim) for claim in scan_claims()]
+    declared_non_claims: list = []
+    claims = [classify(claim) for claim in scan_claims(declared_non_claims)]
     overclaims = [claim for claim in claims if claim["verdict"] == "OVERCLAIM"]
     reviews = [claim for claim in claims if claim["verdict"].startswith("REVIEW")]
     allowed = [claim for claim in claims if claim["verdict"] == "ALLOWED"]
@@ -287,11 +320,16 @@ def main(argv=None) -> int:
         "counts": {"claims_examined": len(claims), "allowed": len(allowed),
                    "historical_evidence_kept": len(historical),
                    "references_recorded_evidence": len(references), "review": len(reviews),
-                   "overclaims": len(overclaims)},
+                   "overclaims": len(overclaims),
+                   "declared_non_claims_examined": len(declared_non_claims)},
         "overclaims": overclaims,
         "review": reviews,
         "historical": historical,
         "references": references,
+        "declared_non_claims": declared_non_claims[:20],
+        "declared_non_claims_rule": "a line under a heading that forbids a claim (for example "
+                                    "'What is NOT claimed') is a prohibition, not a claim; those "
+                                    "lines are counted and listed here rather than classified",
         "verdict": "PASS" if not overclaims else "FAIL",
         "self_output_excluded": SELF_OUTPUT,
         "gate_is_not_vacuous": "run --self-test: the classifier must return OVERCLAIM for a "
