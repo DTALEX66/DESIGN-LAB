@@ -1,0 +1,184 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://dtalex66.local/schemas/assurance-qa-layer.json",
+  "title": "Assurance QA plane inventory, findings and aggregate gate (DL-P1-170)",
+  "description": "QA plane split of DESIGN-LAB: three separated planes (DETERMINISTIC / MODEL_ASSISTED / HUMAN) with per-plane evidence ceilings, one finding contract, and the plane-aware aggregate gate. This contract does not replace the existing quality gate (design-lab/schemas/quality-gate.schema.json, packages/capabilities/quality/**); it separates the planes and their evidence ceilings. The schema cannot resolve layer_id to its declaring plane, so the module (src/design_lab/assurance/qa_plane.py) additionally refuses a verdict from a non-HUMAN plane, a BLOCKER from a plane with can_block false, and a recommendation from a DETERMINISTIC plane.",
+  "type": "object",
+  "required": ["schemaVersion", "planes"],
+  "additionalProperties": false,
+  "properties": {
+    "schemaVersion": {"const": "design-lab/assurance-qa-layer/v1"},
+    "planes": {
+      "type": "array",
+      "minItems": 3,
+      "items": {"$ref": "#/$defs/plane"}
+    },
+    "findings": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/finding"}
+    },
+    "summary": {"$ref": "#/$defs/summary"}
+  },
+  "$defs": {
+    "sha256": {
+      "type": "string",
+      "description": "Lowercase nonzero artifact digest; an all-zero digest is not evidence.",
+      "pattern": "^(?!sha256:0{64}$)sha256:[0-9a-f]{64}$"
+    },
+    "plane": {
+      "type": "object",
+      "required": ["layer_id", "kind", "evidence_ceiling", "owner", "description", "can_block", "pipeline_layers"],
+      "additionalProperties": false,
+      "properties": {
+        "layer_id": {"type": "string", "minLength": 1},
+        "kind": {"enum": ["DETERMINISTIC", "MODEL_ASSISTED", "HUMAN"]},
+        "evidence_ceiling": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {"enum": ["E0", "E1", "E2", "E3", "E4", "E5"]}
+        },
+        "owner": {"type": "string", "minLength": 1},
+        "description": {"type": "string", "minLength": 1},
+        "can_block": {"type": "boolean"},
+        "pipeline_layers": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "description": "Layer ids copied from packages/capabilities/quality/pipeline-layers.json.",
+          "items": {"type": "string", "minLength": 1}
+        }
+      },
+      "allOf": [
+        {
+          "if": {"required": ["kind"], "properties": {"kind": {"const": "DETERMINISTIC"}}},
+          "then": {
+            "properties": {
+              "evidence_ceiling": {"items": {"enum": ["E1", "E2"]}},
+              "can_block": {"const": true}
+            }
+          }
+        },
+        {
+          "if": {"required": ["kind"], "properties": {"kind": {"const": "MODEL_ASSISTED"}}},
+          "then": {
+            "properties": {
+              "evidence_ceiling": {"items": {"enum": ["E2", "E3"]}},
+              "can_block": {"const": false}
+            },
+            "description": "A model-assisted plane may only recommend: it never vetoes and never signs."
+          }
+        },
+        {
+          "if": {"required": ["kind"], "properties": {"kind": {"const": "HUMAN"}}},
+          "then": {
+            "properties": {
+              "evidence_ceiling": {"items": {"enum": ["E4"]}},
+              "can_block": {"const": true}
+            }
+          }
+        }
+      ]
+    },
+    "evidence": {
+      "type": "object",
+      "description": "Free-form evidence detail; the module requires artifact_sha256 for any PASS/FAIL and bounds any claimed evidence_level by the plane ceiling.",
+      "properties": {
+        "artifact_sha256": {"$ref": "#/$defs/sha256"},
+        "evidence_level": {"enum": ["E0", "E1", "E2", "E3", "E4", "E5"]}
+      },
+      "additionalProperties": true
+    },
+    "finding": {
+      "type": "object",
+      "required": ["finding_id", "layer_id", "check_id", "subject_ref", "outcome", "severity", "evidence"],
+      "additionalProperties": false,
+      "properties": {
+        "finding_id": {"type": "string", "minLength": 1},
+        "layer_id": {"type": "string", "minLength": 1},
+        "check_id": {"type": "string", "minLength": 1},
+        "subject_ref": {"type": "string", "minLength": 1},
+        "outcome": {"enum": ["PASS", "FAIL", "INCONCLUSIVE", "NOT_RUN"]},
+        "severity": {"enum": ["BLOCKER", "MAJOR", "MINOR", "INFO"]},
+        "evidence": {"$ref": "#/$defs/evidence"},
+        "recommendation": {
+          "type": ["string", "null"],
+          "minLength": 1,
+          "description": "Required for MODEL_ASSISTED, refused for DETERMINISTIC."
+        },
+        "verdict": {
+          "enum": [null, "ACCEPT", "REVISE", "REJECT"],
+          "description": "Permitted only in a HUMAN plane, and only settling a PASS or FAIL."
+        }
+      },
+      "allOf": [
+        {
+          "if": {"required": ["outcome"], "properties": {"outcome": {"enum": ["PASS", "FAIL"]}}},
+          "then": {
+            "properties": {"evidence": {"required": ["artifact_sha256"]}}
+          }
+        },
+        {
+          "if": {"required": ["verdict"], "properties": {"verdict": {"type": "string"}}},
+          "then": {
+            "required": ["outcome"],
+            "properties": {"outcome": {"enum": ["PASS", "FAIL"]}}
+          }
+        }
+      ]
+    },
+    "counts": {
+      "type": "object",
+      "additionalProperties": {"type": "integer", "minimum": 0}
+    },
+    "plane_summary": {
+      "type": "object",
+      "required": ["layer_ids", "finding_count", "outcomes", "severities", "human_verdict", "blocking"],
+      "additionalProperties": false,
+      "properties": {
+        "layer_ids": {"type": "array", "items": {"type": "string", "minLength": 1}},
+        "finding_count": {"type": "integer", "minimum": 0},
+        "outcomes": {"$ref": "#/$defs/counts"},
+        "severities": {"$ref": "#/$defs/counts"},
+        "human_verdict": {"enum": [null, "ACCEPT", "REVISE", "REJECT"]},
+        "blocking": {"type": "array", "items": {"type": "string", "minLength": 1}}
+      }
+    },
+    "layer_summary": {
+      "type": "object",
+      "required": ["layer_id", "kind", "can_block", "evidence_ceiling", "finding_count", "outcomes", "severities", "human_verdict"],
+      "additionalProperties": false,
+      "properties": {
+        "layer_id": {"type": "string", "minLength": 1},
+        "kind": {"enum": ["DETERMINISTIC", "MODEL_ASSISTED", "HUMAN"]},
+        "can_block": {"type": "boolean"},
+        "evidence_ceiling": {"type": "array", "items": {"type": "string", "minLength": 1}},
+        "finding_count": {"type": "integer", "minimum": 0},
+        "outcomes": {"$ref": "#/$defs/counts"},
+        "severities": {"$ref": "#/$defs/counts"},
+        "human_verdict": {"enum": [null, "ACCEPT", "REVISE", "REJECT"]}
+      }
+    },
+    "summary": {
+      "type": "object",
+      "description": "Plane-aware aggregate. PASS is impossible while a HUMAN plane owes a verdict; BLOCKED outranks any human verdict.",
+      "required": ["schemaVersion", "gate", "planes", "layers", "blocking", "blocking_findings", "human_verdicts", "missing_human_verdicts", "finding_count", "explanation"],
+      "additionalProperties": false,
+      "properties": {
+        "schemaVersion": {"const": "design-lab/assurance-qa-summary/v1"},
+        "gate": {"enum": ["BLOCKED", "NEEDS_HUMAN_VERDICT", "PASS"]},
+        "planes": {"type": "object", "additionalProperties": {"$ref": "#/$defs/plane_summary"}},
+        "layers": {"type": "object", "additionalProperties": {"$ref": "#/$defs/layer_summary"}},
+        "blocking": {"type": "array", "items": {"type": "string", "minLength": 1}},
+        "blocking_findings": {"type": "array", "items": {"$ref": "#/$defs/finding"}},
+        "human_verdicts": {
+          "type": "object",
+          "additionalProperties": {"enum": ["ACCEPT", "REVISE", "REJECT"]}
+        },
+        "missing_human_verdicts": {"type": "array", "items": {"type": "string", "minLength": 1}},
+        "finding_count": {"type": "integer", "minimum": 0},
+        "explanation": {"type": "string", "minLength": 1}
+      }
+    }
+  }
+}
