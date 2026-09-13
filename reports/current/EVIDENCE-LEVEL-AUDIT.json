@@ -1,7 +1,7 @@
 {
   "schemaVersion": "design-lab/evidence-level-audit/v1",
   "task_key": "DL-TP-20260914-DEEPSEEK-AUTHORITY-R1::DLDS-H040",
-  "audited_at": "2026-09-13T16:51:09+00:00",
+  "audited_at": "2026-09-13T18:57:37+00:00",
   "subject_sha": "",
   "claim_surface": [
     "integrations/adapter-registry.json",
@@ -51,7 +51,8 @@
     "historical_evidence_kept": 4,
     "references_recorded_evidence": 0,
     "review": 0,
-    "overclaims": 0
+    "overclaims": 0,
+    "declared_non_claims_examined": 3
   },
   "overclaims": [],
   "review": [],
@@ -114,6 +115,27 @@
     }
   ],
   "references": [],
+  "declared_non_claims": [
+    {
+      "path": "reports/current/DEEPSEEK-FINAL-AUDIT.md",
+      "heading": "## What is NOT claimed",
+      "line": 117,
+      "text": "* Photoshop integrated E3"
+    },
+    {
+      "path": "reports/current/DEEPSEEK-FINAL-AUDIT.md",
+      "heading": "## What is NOT claimed",
+      "line": 118,
+      "text": "* Illustrator integrated E3"
+    },
+    {
+      "path": "reports/current/DEEPSEEK-FINAL-AUDIT.md",
+      "heading": "## What is NOT claimed",
+      "line": 119,
+      "text": "* OpenDesign integrated E3"
+    }
+  ],
+  "declared_non_claims_rule": "a line under a heading that forbids a claim (for example 'What is NOT claimed') is a prohibition, not a claim; those lines are counted and listed here rather than classified",
   "verdict": "PASS",
   "self_output_excluded": "reports/current/EVIDENCE-LEVEL-AUDIT.json",
   "gate_is_not_vacuous": "run --self-test: the classifier must return OVERCLAIM for a DeepSeek-authored Photoshop E3, an E4 jury claim and an unbacked Blender E3, and HISTORICAL for a dated E3 with runtime identity and artifacts"

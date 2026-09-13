@@ -1,13 +1,13 @@
 {
   "checkScope": "bound-input-and-output-integrity; not current Git or cloud freshness",
-  "generatedAt": "2026-09-13T18:50:09+00:00",
+  "generatedAt": "2026-09-13T18:57:37+00:00",
   "gitObservation": {
     "branch": "codex/deepseek-authority-r1",
     "origin_main": "c4dccd58331bc4561eb89265283d924b7630d113",
-    "sha": "73c861b0986c6c81e29c08ac1ffd3c6326d00c2f",
+    "sha": "a6d65d636ffe1b7fb2d8c5a023cbe5c338f9d220",
     "source_worktree_clean": false,
-    "tracked_files": 1905,
-    "worktree_digest": "sha256:e65341507ee950dd081f7e715f19b838e0e8fc753c61f55bbab895b2c14c59e8"
+    "tracked_files": 1907,
+    "worktree_digest": "sha256:fb2fc053863bd776041b12521cdd403bde0ea4b48b5f00d818dd9ce36c84b8c3"
   },
   "inputHashes": {
     ".project-local/task-artifacts/comfy-http-live-bb63046b6f444fe9a7a96d0bf66f949b/result.json": "0c7a831cf5fd68a863666d127812f6e9c5d7636b2ed104cc34c648ee6bcaa309",
@@ -230,22 +230,22 @@
     "docs/history/taskpacks/r5-20260908/tasks.json": "31dde89eb4ede81fe88c0a5c5144adfb86af8db4c4d8c263bde2199180369b69",
     "docs/taskpacks/DESIGN-LAB-CLOUD-REAUDIT-TASKPACK-2026-09-06.md": "3d6edf1a00f4f4f7eb19005a2acba2c73bd0dc71a6d2ec5ba9ed5ae689c6454c",
     "integrations/adapter-registry.json": "f2b2b579ea2c060589c01795eb6e45c4ff2b51af5a0b982278ba762142babb56",
-    "reports/current/DEEPSEEK-AUTHORITY-LEDGER-2026-09-14.json": "1f911a941d33548d342ac8775398dcf8a6efdbf1799d749681b9fd170dd222f8",
+    "reports/current/DEEPSEEK-AUTHORITY-LEDGER-2026-09-14.json": "077a171d1593efbc0219f85827caf695d0236de95b72c42af964e858a479b22a",
     "src/design_lab/generators/comfy_http.py": "d8bb2404197bf9014aa550ac100a07ede014c9e6721ff3483c12c54e1d96fdcc",
     "src/design_lab/generators/comfy_task.py": "21420196f738d32b7de03cac463f9fc1b042e662b51de9b78cef78cea6560d8d",
     "src/design_lab/native_patch_submissions.py": "0432e52f7f1efbb351d37015d5fb64a6fb6dce3a0c4a5b6e991d1b2c2351ecc5"
   },
   "ledger": "design-lab/config/task-ledger-r3.json",
   "outputHashes": {
-    "ADAPTER_EVIDENCE_RECONCILIATION.json": "68eb804e7b9f01ebae4cf9cc7c28eee150f1684a5fd16faee67ed7d45daa01ec",
-    "CLOUD_BASELINE.json": "a7604ebd06ab3c004ee81a6587b553a6b865210a87a2fc12fde336fd16b99d31",
-    "CLOUD_BASELINE.md": "c1d845f4ebf2d6d106b9bdacd8095116ea73b6c66299ba39c41a245b1ba187db",
-    "DOMAIN_PACK_READINESS.json": "3d9b5cd444656d0d505316dc69b8b7fa5eb1da0151e461fa4c68baf64106e6db",
-    "KNOWLEDGE_INVENTORY.json": "8b8cb3a1c71641738318ec9ea1cff541bc47ff0fad0a486322747d6f13c51b58",
-    "PROJECT_STATUS.json": "0261cb99065d810b3d4d9145b3192fe9dda86897530fff5cc9fef1c11399f047",
-    "PROJECT_STATUS.md": "e9e18e8d954bae6c205042c0d3c3c807cb364d8bae352d5b742b8db21460abd4",
-    "RELEASE_READINESS.json": "472855c0c3c543093aba78b9114184f9c26026a6965db10f56b0188b12eed852",
-    "TASK_PROGRESS.json": "f3da149f3e94baea075e073cf96f1a4553b30c556ee31d69bef560a229d802ed"
+    "ADAPTER_EVIDENCE_RECONCILIATION.json": "28cefe72a358f788898ebb2ccfbeaaa7e6ebdcbdc31e78073dd6bb58bed50a87",
+    "CLOUD_BASELINE.json": "e4c59b2abfafdbbc8ba06666a312e65b8b9d6f6c3e243b6c76d047a0670c971c",
+    "CLOUD_BASELINE.md": "0d20fb78c882d3fd40f892fddc6382e9173fa13ba896e22556d2988df3625bba",
+    "DOMAIN_PACK_READINESS.json": "ee12e4b005569a468c7274469f8147ecd1ca138239902d06bc161930b726cba0",
+    "KNOWLEDGE_INVENTORY.json": "b80b83a491b0c20c81d0f5cf51a12571176ce411fd03418c5456329a5da0504c",
+    "PROJECT_STATUS.json": "290c24db5fc8ac4709d9666c7ef29ac57054ebee77fc7c6aa00c2f550cbb2ece",
+    "PROJECT_STATUS.md": "77abc29c17d6efb0ab8fd937257a22f40e019f53875dec9ac993e3167ed3738a",
+    "RELEASE_READINESS.json": "76955fede479431414cc2dd9be9dbcff2fd79e027354526bdfed7d4b71f163f2",
+    "TASK_PROGRESS.json": "09b8a5bd65da880859e9eccda35bf0aac18c086335c1a757da4bf6c74729d528"
   },
   "reportRoot": "../../reports/current/",
   "reports": [
@@ -260,5 +260,5 @@
     "RELEASE_READINESS.json"
   ],
   "schemaVersion": "design-lab/current-report-index/v3",
-  "subjectSha": "73c861b0986c6c81e29c08ac1ffd3c6326d00c2f"
+  "subjectSha": "a6d65d636ffe1b7fb2d8c5a023cbe5c338f9d220"
 }
