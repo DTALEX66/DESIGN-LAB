@@ -197,7 +197,7 @@
         "artifact_paths": [
           "evidence/E3-20260816-end-to-end-generation.md"
         ],
-        "note": "historical E3 (pre-convergence); no current-tree requalification | 用户授权：H3 t2va 真实生成 + artifact 回读通过"
+        "note": "historical E3 (2026-08-16) (pre-convergence); no current-tree requalification | 用户授权：H3 t2va 真实生成 + artifact 回读通过"
       },
       "rollback": "git revert of generated artifacts; process isolation prevents host state mutation"
     },
@@ -253,7 +253,7 @@
         "artifact_paths": [
           "evidence/E3-20260816-end-to-end-generation.md"
         ],
-        "note": "BLOCKED_BY_LICENSE per Rights Decision R0-006 (personal-research noncommercial; H3 works third-party distribution forbidden; territory gate) | 用户授权：H3 t2va 最小端到端生成成功"
+        "note": "historical E3 (2026-08-16, pre-convergence); no current-tree requalification; BLOCKED_BY_LICENSE per Rights Decision R0-006 (personal-research noncommercial; H3 works third-party distribution forbidden; territory gate) | 用户授权：H3 t2va 最小端到端生成成功"
       },
       "rollback": "git revert of generated video artifacts; process isolation prevents host state mutation"
     },

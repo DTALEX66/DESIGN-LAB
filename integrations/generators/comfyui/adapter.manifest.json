@@ -32,7 +32,8 @@
       "evidence/dl_h3_prod.mp4",
       "evidence/dl_h3_prod_audio.flac"
     ],
-    "note": "用户授权：H3 t2va 两次真实生成取证——最小验证（22帧 384px）＋生产级（124帧 768px，视频+音频同步，mp4 合成）；回读验证全部通过。"
+    "note": "historical E3 (2026-08-16, pre-convergence); no current-tree requalification | 用户授权：H3 t2va 两次真实生成取证——最小验证（22帧 384px）＋生产级（124帧 768px，视频+音频同步，mp4 合成）；回读验证全部通过。",
+    "claim": "HISTORICAL_EVIDENCE_ONLY"
   },
   "rollback": "git revert of generated artifacts; process isolation prevents host state mutation"
 }
