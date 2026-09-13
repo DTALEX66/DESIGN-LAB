@@ -8,9 +8,30 @@ release evidence, source registry, v2 protocols and v21 visual quality.
 """
 from __future__ import annotations
 
+import os
 import subprocess
 import sys
 from pathlib import Path
+
+
+def run_child(command: list) -> subprocess.CompletedProcess:
+    """Run a verifier under a deterministic text contract.
+
+    The parent decodes child output as UTF-8 and tells the child to emit UTF-8, so the
+    chain no longer depends on the machine locale. Before this, a child that printed
+    Chinese under a cp936 parent produced UnicodeDecodeError inside the parent's own
+    subprocess call: the chain then died with `NoneType has no attribute strip` and
+    reported nothing about the other sixty steps. Reproduced by running this script
+    with PYTHONIOENCODING=utf-8 (exit 1) versus without it (exit 0). A gate that dies
+    while verifying hides every result behind it, so this is fail-closed by reporting
+    the step rather than by crashing.
+    """
+    env = {**os.environ, "PYTHONIOENCODING": "utf-8"}
+    try:
+        return subprocess.run(command, capture_output=True, text=True, encoding="utf-8",
+                              errors="replace", env=env)
+    except OSError as exc:
+        return subprocess.CompletedProcess(command, 3, "", f"could not start: {exc}")
 
 SCRIPTS = [
     "verify_identity_gate.py",
@@ -104,16 +125,16 @@ def main() -> int:
             results.append((name, 2))
             continue
         print(f"\n===== {name} =====")
-        r = subprocess.run([sys.executable, str(script)], capture_output=True, text=True)
-        tail = r.stdout.strip().splitlines()
+        r = run_child([sys.executable, str(script)])
+        tail = (r.stdout or "").strip().splitlines()
         summary = next((line for line in reversed(tail) if line.startswith(("VERIFY_", "STYLE_MASTER_METHOD=", "ADAPTER_", "BENCHMARK_", "EVIDENCE_", "PASS", "FAIL"))), "")
         print(summary)
         if r.returncode != 0:
             # print the full failing verifier output for diagnosis (incl. tracebacks)
-            print(r.stdout.strip())
+            print((r.stdout or "").strip())
         results.append((name, r.returncode))
-        if r.returncode != 0 and r.stderr.strip():
-            print(r.stderr.strip())
+        if r.returncode != 0 and (r.stderr or "").strip():
+            print((r.stderr or "").strip())
 
     for name, args in EXTRA_CHECKS:
         print(f"\n===== {name} =====\n")
@@ -127,8 +148,8 @@ def main() -> int:
             else (root.parent / args[0])
         )
         resolved_args = [str(repo_root_dir / "design-lab") if a == "." else a for a in args[1:]]
-        r = subprocess.run([sys.executable, script_arg, *resolved_args], capture_output=True, text=True)
-        tail = r.stdout.strip().splitlines()
+        r = run_child([sys.executable, script_arg, *resolved_args])
+        tail = (r.stdout or "").strip().splitlines()
         summary = tail[-1] if tail else "(no output)"
         print(summary)
         if r.returncode != 0:
@@ -143,10 +164,8 @@ def main() -> int:
     # Fail-closed: marker write / HEAD resolution failures must not silently
     # turn a pass into OK without the marker (Codex review finding 6).
     try:
-        import subprocess as _sp
         repo_root = root.parent.parent
-        head = _sp.run(["git", "-C", str(repo_root), "rev-parse", "HEAD"],
-                       capture_output=True, text=True).stdout.strip()
+        head = run_child(["git", "-C", str(repo_root), "rev-parse", "HEAD"]).stdout.strip()
         if not head:
             raise RuntimeError("git rev-parse HEAD returned empty")
         marker = repo_root / "design-lab" / "config" / ".verify-chain-ok"
