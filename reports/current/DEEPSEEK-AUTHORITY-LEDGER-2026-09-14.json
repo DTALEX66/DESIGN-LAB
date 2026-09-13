@@ -15,8 +15,8 @@
     "executor": "DEEPSEEK/DSH",
     "base_sha": "56319635bbcf112ac88d097317262c101ffdfe4d",
     "branch": "codex/deepseek-authority-r1",
-    "worktree": "sha256:59d809e5051df6773ee73567ed398064e485fdcb7d94f2f0806906b474e24010",
-    "worktree_clean": false
+    "worktree": "sha256:61e3ae3413cad5e1ea6e064912326e5e6c38901c25981190bd57d65a0f3a14b5",
+    "worktree_clean": true
   },
   "authority": {
     "current_deepseek_taskpack": "DL-TP-20260914-DEEPSEEK-AUTHORITY-R1",
@@ -780,7 +780,12 @@
       "wave_title": "Wave 7 - Tests / CI / Evidence",
       "status": "NOT_STARTED",
       "evidence": [],
-      "notes": []
+      "notes": [
+        {
+          "at": "2026-09-13T18:34:55+00:00",
+          "note": "NOT_STARTED, with the reason recorded rather than the task quietly dropped. The isolation gate was launched as a background job (forward / reverse / random seed 42 / repeat 20 on test_asset_store) but the host suffered a kernel bugcheck 0x0000004E (PFN_LIST_CORRUPT) at 2026-09-14T02:29 and rebooted, which destroyed the job and its history. The gate is NOT blocked by anything in this repository: a single earlier full-pattern run (test_*.py, 1392 tests discovered) was observed progressing normally test by test before it was stopped, and the four bound patterns covering the Wave 5-8 work pass (test_creative_* 118, test_interop_* 134, test_media_* 79, test_assurance_* 63, test_readiness_* 31). An earlier conclusion of mine that the suite was hung is withdrawn: it is simply slow, at roughly 25 minutes or more per full pass. Re-running it is deferred until the kernel fault is diagnosed, because the load is a plausible trigger for the same bugcheck. Diagnosis in progress: kernel dump C:\\\\Windows\\\\MEMORY.DMP (6.96 GB) with kd.exe !analyze -v run by the owner at administrator level."
+        }
+      ]
     },
     {
       "task_key": "DLDS-H020",
@@ -1000,5 +1005,5 @@
       ]
     }
   ],
-  "updated_at": "2026-09-13T17:09:07+00:00"
+  "updated_at": "2026-09-13T18:34:55+00:00"
 }
