@@ -15,7 +15,7 @@
     "executor": "DEEPSEEK/DSH",
     "base_sha": "56319635bbcf112ac88d097317262c101ffdfe4d",
     "branch": "codex/deepseek-authority-r1",
-    "worktree": "sha256:0f2d455eab2e11db3720a2e3f5f1b65976dbedfcb6874fb3beab74419b1ac1eb",
+    "worktree": "sha256:e6dfa5c3d01f9fc4dcd3d56fe397df515b8115fc0ebefff8929fdccbbe1234ac",
     "worktree_clean": false
   },
   "authority": {
@@ -631,18 +631,33 @@
       "full_id": "DL-TP-20260914-DEEPSEEK-AUTHORITY-R1::DLDS-F070",
       "wave": "F",
       "wave_title": "Wave 5 - Contract / State Closeout",
-      "status": "NOT_STARTED",
-      "evidence": [],
-      "notes": []
+      "status": "DONE",
+      "evidence": [
+        "src/design_lab/assurance/qa_plane.py",
+        "src/design_lab/assurance/human_jury.py"
+      ],
+      "notes": [
+        {
+          "at": "2026-09-13T16:40:37+00:00",
+          "note": "worker delivery re-verified by the lead: vocabulary matches the frozen policy exactly (verified by my own probe showing OUTCOMES_BY_KIND and a refused model-assisted REJECT); human REJECT now blocks the gate instead of reaching PASS; REVISE dropped with the reasoning recorded; evidence ceilings and the requirement that no PASS is reachable without a human verdict are kept; 63 assurance tests OK"
+        }
+      ]
     },
     {
       "task_key": "DLDS-F080",
       "full_id": "DL-TP-20260914-DEEPSEEK-AUTHORITY-R1::DLDS-F080",
       "wave": "F",
       "wave_title": "Wave 5 - Contract / State Closeout",
-      "status": "NOT_STARTED",
-      "evidence": [],
-      "notes": []
+      "status": "DONE",
+      "evidence": [
+        "src/design_lab/creative/media/video_boundary.py"
+      ],
+      "notes": [
+        {
+          "at": "2026-09-13T16:40:37+00:00",
+          "note": "worker delivery re-verified: capability ids are capability:<domain>/<name>@<int version>, host_capability_refs replace the free-text host_classes in logic and document, display_label is display-only (AST + poison test), an undeclared reference fails closed, schema bumped to v2; 29 boundary tests OK. A naive substring check of mine first flagged host_classes as still present; inspecting the lines showed only the docstring, the schema description and tests asserting its absence"
+        }
+      ]
     },
     {
       "task_key": "DLDS-G000",
@@ -825,5 +840,5 @@
       "notes": []
     }
   ],
-  "updated_at": "2026-09-13T16:39:34+00:00"
+  "updated_at": "2026-09-13T16:40:37+00:00"
 }
