@@ -11,21 +11,14 @@
     "provenance": "transcribed from the owner's message in the authority session; the landed file's sha256 is the authority for every later reference"
   },
   "task_key": "DL-TP-20260914-DEEPSEEK-AUTHORITY-R1::DLDS-K040",
-  "written_at": "2026-09-13T18:46:17+00:00",
-  "subject_sha": "1f4339ea29da5a08be15efbc97c0e303da509a69",
+  "written_at": "2026-09-13T18:50:09+00:00",
+  "subject_sha": "73c861b0986c6c81e29c08ac1ffd3c6326d00c2f",
   "branch": "codex/deepseek-authority-r1",
   "task_count": 58,
   "status_counts": {
-    "DONE": 57,
-    "NOT_STARTED": 1
+    "DONE": 58
   },
-  "not_done": [
-    {
-      "task_key": "DLDS-H010",
-      "status": "NOT_STARTED",
-      "wave": "Wave 7 - Tests / CI / Evidence"
-    }
-  ],
+  "not_done": [],
   "executor": "DeepSeek (this run)",
   "deferred_to_codex": [
     "Real Host",

@@ -8,14 +8,14 @@
   },
   "fresh": false,
   "freshnessMeaning": "at generation only; check verifies bound-input integrity, not current Git or cloud state",
-  "generatedAt": "2026-09-13T18:46:15+00:00",
+  "generatedAt": "2026-09-13T18:50:09+00:00",
   "git": {
     "branch": "codex/deepseek-authority-r1",
     "origin_main": "c4dccd58331bc4561eb89265283d924b7630d113",
-    "sha": "1f4339ea29da5a08be15efbc97c0e303da509a69",
+    "sha": "73c861b0986c6c81e29c08ac1ffd3c6326d00c2f",
     "source_worktree_clean": false,
-    "tracked_files": 1904,
-    "worktree_digest": "sha256:2ddc72f35155e04c28a227d41a411d39dbf64d9fb27950bec53a2f67a00b0819"
+    "tracked_files": 1905,
+    "worktree_digest": "sha256:e65341507ee950dd081f7e715f19b838e0e8fc753c61f55bbab895b2c14c59e8"
   },
   "gitStateMeaning": "generation-time observation, not current HEAD",
   "hostLive": "derived from host_live axis only",
@@ -28,7 +28,7 @@
     "quarantinedSources": 162
   },
   "subjectMeaning": "subjectType=WORKTREE means the tree was dirty at generation; worktreeDigest covers HEAD plus the non-generated changes",
-  "subjectSha": "1f4339ea29da5a08be15efbc97c0e303da509a69",
+  "subjectSha": "73c861b0986c6c81e29c08ac1ffd3c6326d00c2f",
   "subjectType": "WORKTREE",
   "taskCounts": {
     "PARTIAL": 28
@@ -36,14 +36,14 @@
   "taskpack": "DL-TP-20260908-R5",
   "taskpackHash": "31dde89eb4ede81fe88c0a5c5144adfb86af8db4c4d8c263bde2199180369b69",
   "taskpackId": "DL-TP-20260908-R5",
-  "testRunAt": "2026-09-13T16:55:16+00:00",
-  "testRunId": "testrun-20260913T165506Z-forward-32a1b2a634c3",
-  "testRunMeaning": "bound run: python scripts/run_bound_test_suite.py --pattern test_service_http.py --label probe-http --order forward",
+  "testRunAt": "2026-09-13T18:49:34+00:00",
+  "testRunId": "testrun-20260913T184926Z-random-repeat-9684a7ae2228",
+  "testRunMeaning": "bound run: python scripts/run_bound_test_suite.py --modules test_asset_store --modules test_creative_job --modules test_creative_ledgers --modules test_creative_lineage --modules test_creative_migration --modules test_creative_version_guard --modules test_creative_f030_f040 --modules test_creative_session_link --modules test_job_store --modules test_runtime_attempt_safety --modules test_runtime_asset_safety --modules test_runtime_explicit_project --modules test_assurance_qa_plane --modules test_assurance_jury --modules test_bundle_store --modules test_operation_coordinator --order random --seed 42 --label h010-critical-random",
   "testRunResult": "OK",
   "tests": {
     "definedTestMethodCount": 1392,
     "executed": "see individual verified ledger receipts"
   },
   "worktreeClean": false,
-  "worktreeDigest": "sha256:2ddc72f35155e04c28a227d41a411d39dbf64d9fb27950bec53a2f67a00b0819"
+  "worktreeDigest": "sha256:e65341507ee950dd081f7e715f19b838e0e8fc753c61f55bbab895b2c14c59e8"
 }

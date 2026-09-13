@@ -1,8 +1,8 @@
 {
   "schemaVersion": "design-lab/deepseek-final-repository-audit/v1",
   "task_key": "DL-TP-20260914-DEEPSEEK-AUTHORITY-R1::DLDS-K030",
-  "audited_at": "2026-09-13T18:46:17+00:00",
-  "subject_sha": "1f4339ea29da5a08be15efbc97c0e303da509a69",
+  "audited_at": "2026-09-13T18:50:09+00:00",
+  "subject_sha": "73c861b0986c6c81e29c08ac1ffd3c6326d00c2f",
   "measured": {
     "files_before_after": {
       "before": {
@@ -12,15 +12,15 @@
         "mib": 30.15
       },
       "after": {
-        "files": 1904,
-        "bytes": 32641910,
+        "files": 1905,
+        "bytes": 32646232,
         "mib": 31.13
       },
       "source": "git ls-tree -r -l 56319635bbcf112ac88d097317262c101ffdfe4d vs git ls-files",
       "like_for_like": true,
       "revision_before": "56319635bbcf112ac88d097317262c101ffdfe4d",
-      "revision_after": "1f4339ea29da5a08be15efbc97c0e303da509a69",
-      "delta_files": 72,
+      "revision_after": "73c861b0986c6c81e29c08ac1ffd3c6326d00c2f",
+      "delta_files": 73,
       "delta_mib": 0.98
     },
     "git_pack_before_after": {
@@ -33,7 +33,7 @@
       "measured_now": {
         ".project-local": {
           "files": 65860,
-          "bytes": 4719660174,
+          "bytes": 4719664030,
           "mib": 4501.02
         },
         ".hermes": {
@@ -165,6 +165,12 @@
         "area": "text encoding in subprocess calls",
         "exception": "119 tracked call sites pass text=True to subprocess without an explicit encoding, so child output is decoded with the machine locale codec (cp936 on this host). Two are fixed because they broke the verification chain itself: verify_design_lab.py now decodes UTF-8 and tells its children to emit UTF-8, making the chain locale-independent, and verify_review_surface.py, whose child prints Chinese section headings. The remaining 117 are reported rather than rewritten: sweeping them without running the full test suite would be an unverified mass edit",
         "state": "PARTIALLY_FIXED_AND_REPORTED",
+        "owner": "Codex or owner"
+      },
+      {
+        "area": "test gate scope",
+        "exception": "H010 executed all four required runs over a declared critical set of 16 stateful and contract-holding modules (220 tests: forward, reverse, randomized seed 42, and 20x repetition = 4400 tests, all zero failures). The same three orders over the entire discovered suite (1392 tests) are DEFERRED, not passed: one pass costs roughly 25 minutes against 7.6 seconds for the critical set, and that exact load coincided with the host kernel bugcheck 0x4E that this run is still diagnosing",
+        "state": "DEFERRED_DECLARED",
         "owner": "Codex or owner"
       }
     ]
