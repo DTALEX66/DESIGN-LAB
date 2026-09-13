@@ -15,7 +15,7 @@
     "executor": "DEEPSEEK/DSH",
     "base_sha": "56319635bbcf112ac88d097317262c101ffdfe4d",
     "branch": "codex/deepseek-authority-r1",
-    "worktree": "sha256:14fa3635b4c4ea1c8a10fe7df83be9e27006fc0c4fe4dfedf3c70853acd21277",
+    "worktree": "sha256:2990f5f035ac53ae3605260ffb077d7416676b40e87605d96a921ae204f2c460",
     "worktree_clean": false
   },
   "authority": {
@@ -876,9 +876,16 @@
       "full_id": "DL-TP-20260914-DEEPSEEK-AUTHORITY-R1::DLDS-J000",
       "wave": "J",
       "wave_title": "Wave 9 - Codex Preparation",
-      "status": "NOT_STARTED",
-      "evidence": [],
-      "notes": []
+      "status": "DONE",
+      "evidence": [
+        "docs/taskpacks/DESIGN-LAB-CODEX-REAL-HOST-HANDOFF.md"
+      ],
+      "notes": [
+        {
+          "at": "2026-09-13T16:46:47+00:00",
+          "note": "Codex handoff written for eight domains (Adobe, Open Design, MiniMax Design, ComfyUI, Penpot, Blender/3D, design quality and the human jury, audio/video): for each one the contract and its repository paths, the fixture, a discovery-first command outline that forbids inventing CLI flags, an evidence template, explicit do-not-claim rules and the rollback. It also carries universal preconditions, the boundary discipline, the zero-spill and clean-tree probes Codex must run, and what Codex must leave behind. It states up front that nothing in it has been executed and that every level above E1 is currently unclaimed"
+        }
+      ]
     },
     {
       "task_key": "DLDS-K000",
@@ -926,5 +933,5 @@
       "notes": []
     }
   ],
-  "updated_at": "2026-09-13T16:46:06+00:00"
+  "updated_at": "2026-09-13T16:46:47+00:00"
 }
