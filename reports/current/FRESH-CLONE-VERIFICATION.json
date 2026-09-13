@@ -1,0 +1,60 @@
+{
+  "schemaVersion": "design-lab/fresh-clone-verification/v1",
+  "task_key": "DL-TP-20260914-DEEPSEEK-AUTHORITY-R1::DLDS-H020",
+  "verified_at": "2026-09-13T16:45:04+00:00",
+  "subject_sha": "0e109ab49792345268aa7287e193a2fee1072949",
+  "clone_path": ".project-local/task-runtime/fresh-clone",
+  "stages": [
+    {
+      "stage": "clone",
+      "state": "PASS",
+      "evidence": "cloned HEAD 0e109ab49792 into an ignored directory"
+    },
+    {
+      "stage": "clone_head_matches",
+      "state": "PASS",
+      "evidence": "clone HEAD 0e109ab49792 vs source 0e109ab49792"
+    },
+    {
+      "stage": "tracked_content_present",
+      "state": "PASS",
+      "evidence": "1882 tracked files; missing: none"
+    },
+    {
+      "stage": "contracts_parse",
+      "state": "PASS",
+      "evidence": "118 schemas parse"
+    },
+    {
+      "stage": "contract_graph",
+      "state": "PASS",
+      "evidence": "CONTRACT_GRAPH=NO_BROKEN_LINK concepts=11 complete=11 breaks=0"
+    },
+    {
+      "stage": "reports_generate",
+      "state": "PASS",
+      "evidence": "CURRENT_REPORTS=PASS mode=generate"
+    },
+    {
+      "stage": "reports_check",
+      "state": "PASS",
+      "evidence": "CURRENT_REPORTS=PASS mode=check scope=bound-input-integrity current-git-and-cloud=NOT_VERIFIED"
+    },
+    {
+      "stage": "path_boundaries",
+      "state": "PASS",
+      "evidence": "local_root D:\\All projects\\DESIGN-LAB\\.project-local\\task-runtime\\fresh-clone\\.project-local (resolves inside the clone: True)"
+    },
+    {
+      "stage": "install",
+      "state": "NOT_VERIFIABLE",
+      "evidence": "CI runs 'uv sync --locked'; uv: None. No install was attempted: uv is absent and no network is used, so a clean-clone install cannot be proven here."
+    }
+  ],
+  "failures": [],
+  "unverifiable": [
+    "install"
+  ],
+  "verdict": "PASS",
+  "note": "a clone proves the committed tree; it cannot prove an install without uv and a network, and that stage is recorded as NOT_VERIFIABLE rather than passed"
+}
