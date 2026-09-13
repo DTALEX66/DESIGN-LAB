@@ -6,11 +6,14 @@ declaration *cannot* claim one.
 """
 from __future__ import annotations
 
+import io
 import json
 import re
 import sys
 import tempfile
 import unittest
+import warnings
+import zipfile
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -208,6 +211,234 @@ class PenpotImportPlanTest(PenpotFixture):
     def test_plan_target_must_match_the_container_extension(self):
         plan = penpot.import_plan("fixtures/Design.PENPOT")
         self.assertEqual(plan["target"]["extension"], ".penpot")
+
+
+class PenpotArchiveTest(PenpotFixture):
+    """Structural validation of a synthetic .penpot archive (E1; no Penpot is run).
+
+    The archives below are built here with the standard library. They are *not* a
+    Penpot export: no Penpot installation, no network and no host call is involved,
+    and the validator never claims more than the container's internal consistency.
+    """
+
+    def build(self, manifest, files, *, extra=None, duplicate=None, manifest_text=None):
+        buffer = io.BytesIO()
+        with zipfile.ZipFile(buffer, "w", zipfile.ZIP_DEFLATED) as archive:
+            archive.writestr("manifest.json",
+                             manifest_text if manifest_text is not None
+                             else json.dumps(manifest))
+            for name, payload in files.items():
+                self.writestr(archive, name, payload)
+            if extra is not None:
+                for name, payload in extra:
+                    self.writestr(archive, name, payload)
+            if duplicate is not None:
+                name, payload = duplicate
+                with warnings.catch_warnings():
+                    warnings.simplefilter("ignore", UserWarning)  # duplicate-name warning
+                    self.writestr(archive, name, payload)
+        return buffer.getvalue()
+
+    @staticmethod
+    def writestr(archive, name, payload):
+        """Write an entry under *name*."""
+        if isinstance(payload, str):
+            payload = payload.encode("utf-8")
+        info = zipfile.ZipInfo(name)
+        info.compress_type = zipfile.ZIP_DEFLATED
+        archive.writestr(info, payload)
+
+    def valid_manifest(self):
+        return {
+            "version": 3,
+            "files": [
+                "objects/page-1.json",
+                {"name": "assets/logo.png", "size": 3},
+            ],
+        }
+
+    def valid_archive(self) -> bytes:
+        return self.build(self.valid_manifest(),
+                          {"objects/page-1.json": "{\"page\": 1}",
+                           "assets/logo.png": "PNG",
+                           "preview.png": "PNG",
+                           "meta.json": "{}"})
+
+    def test_a_valid_archive_is_validated_structurally(self):
+        report = penpot.validate_penpot_archive(self.valid_archive())
+        self.assertEqual(report["manifest_entry"], "manifest.json")
+        self.assertEqual(report["manifest_declared_key"], "files")
+        self.assertEqual(report["manifest_version"], 3)
+        self.assertEqual(report["declared_files"], ["assets/logo.png", "objects/page-1.json"])
+        self.assertEqual(report["declared_file_count"], 2)
+        self.assertEqual(report["undeclared_allowlisted"], ["meta.json", "preview.png"])
+        self.assertEqual(report["file_count"], 5)
+        self.assertGreater(report["total_file_bytes"], 0)
+        self.assertFalse(report["extraction_performed"])
+        self.assertFalse(report["write_performed"])
+        self.assertEqual(report["live_run"], "NOT_EXECUTED")
+        self.assertEqual(report["evidence_level"], "E1")
+
+    def test_the_validator_never_claims_a_penpot_run(self):
+        report = penpot.validate_penpot_archive(self.valid_archive())
+        docstring = (penpot.validate_penpot_archive.__doc__ or "").lower()
+        self.assertIn("not** a penpot import", docstring)
+        self.assertIn("live_run", docstring)
+        self.assertEqual(report["live_run"], "NOT_EXECUTED")
+
+    def test_missing_manifest_fails_closed(self):
+        buffer = io.BytesIO()
+        with zipfile.ZipFile(buffer, "w") as archive:
+            archive.writestr("objects/page-1.json", "{}")
+        with self.assertRaises(InteropError) as caught:
+            penpot.validate_penpot_archive(buffer.getvalue())
+        self.assertIn("manifest.json", str(caught.exception))
+
+    def test_a_declared_file_that_is_absent_fails_closed(self):
+        manifest = {"version": 3, "files": ["objects/page-1.json", "objects/missing.json"]}
+        data = self.build(manifest, {"objects/page-1.json": "{}"})
+        with self.assertRaises(InteropError) as caught:
+            penpot.validate_penpot_archive(data)
+        message = str(caught.exception)
+        self.assertIn("objects/missing.json", message)
+        self.assertIn("no such entry", message)
+
+    def test_path_traversal_entries_fail_closed(self):
+        cases = {
+            "../escape.json": "escapes the archive root",
+            "objects/../../escape.json": "escapes the archive root",
+            "/absolute.json": "absolute path",
+            "C:/drive/logo.png": "names a drive",
+            "./manifest.json": "path segment",
+        }
+        for name, rule in cases.items():
+            with self.subTest(name):
+                data = self.build({"version": 3, "files": ["objects/page-1.json"]},
+                                  {"objects/page-1.json": "{}"},
+                                  extra=[(name, "{}")])
+                with self.assertRaises(InteropError) as caught:
+                    penpot.validate_penpot_archive(data)
+                message = str(caught.exception)
+                self.assertIn(rule, message)
+                self.assertIn(name.rsplit("/", 1)[-1], message)
+
+    def test_a_declared_traversal_or_absolute_name_fails_closed(self):
+        # A declared name comes straight from manifest.json, so it is checked before
+        # it is ever matched against the archive -- including a backslash name, which
+        # zipfile itself normalises on Windows and therefore cannot be reached
+        # through the central directory on this platform.
+        cases = {
+            "../escape.json": "escapes the archive root",
+            "/absolute.json": "absolute path",
+            "C:/drive/logo.png": "names a drive",
+            "assets" + chr(92) + "logo.png": "backslash",
+            "./a.json": "path segment",
+            "": "nonempty entry name",
+        }
+        for name, rule in cases.items():
+            with self.subTest(name):
+                data = self.build({"version": 3, "files": [name]},
+                                  {"objects/page-1.json": "{}"})
+                with self.assertRaises(InteropError) as caught:
+                    penpot.validate_penpot_archive(data)
+                self.assertIn(rule, str(caught.exception))
+
+    def test_duplicate_entries_fail_closed(self):
+        data = self.build({"version": 3, "files": ["objects/page-1.json"]},
+                          {"objects/page-1.json": "{}"},
+                          duplicate=("objects/page-1.json", "{}"))
+        with self.assertRaises(InteropError) as caught:
+            penpot.validate_penpot_archive(data)
+        message = str(caught.exception)
+        self.assertIn("objects/page-1.json", message)
+        self.assertIn("more than once", message)
+
+    def test_a_declared_size_that_disagrees_with_the_zip_fails_closed(self):
+        manifest = {"version": 3, "files": [{"name": "objects/page-1.json", "size": 999}]}
+        data = self.build(manifest, {"objects/page-1.json": "{}"})
+        with self.assertRaises(InteropError) as caught:
+            penpot.validate_penpot_archive(data)
+        message = str(caught.exception)
+        self.assertIn("objects/page-1.json", message)
+        self.assertIn("999", message)
+        self.assertIn("2 byte(s)", message)
+
+    def test_a_declared_file_may_be_declared_twice_only_once(self):
+        manifest = {"version": 3, "files": ["objects/page-1.json", "objects/page-1.json"]}
+        data = self.build(manifest, {"objects/page-1.json": "{}"})
+        with self.assertRaises(InteropError) as caught:
+            penpot.validate_penpot_archive(data)
+        self.assertIn("a second time", str(caught.exception))
+
+    def test_an_undeclared_payload_entry_fails_closed(self):
+        data = self.build({"version": 3, "files": ["objects/page-1.json"]},
+                          {"objects/page-1.json": "{}"},
+                          extra=[("assets/secret.bin", b"\x00\x01")])
+        with self.assertRaises(InteropError) as caught:
+            penpot.validate_penpot_archive(data)
+        message = str(caught.exception)
+        self.assertIn("assets/secret.bin", message)
+        self.assertIn("allow-list", message)
+
+    def test_undeclared_json_metadata_and_thumbnails_are_allowlisted(self):
+        data = self.build({"version": 3, "files": ["objects/page-1.json"]},
+                          {"objects/page-1.json": "{}"},
+                          extra=[("meta/page-meta.json", "{}"),
+                                 ("thumbnails/thumb.webp", "RIFF"),
+                                 ("page-2.json", "{}")])
+        report = penpot.validate_penpot_archive(data)
+        self.assertEqual(report["undeclared_allowlisted"],
+                         ["meta/page-meta.json", "page-2.json", "thumbnails/thumb.webp"])
+
+    def test_manifest_shape_and_size_fail_closed(self):
+        cases = {
+            "not json": {"version": 3, "files": ["a.json"]},
+            "not an object": [1, 2, 3],
+            "no file list": {"version": 3},
+            "empty file list": {"version": 3, "files": []},
+            "record without a name": {"version": 3, "files": [{"size": 12}]},
+            "negative size": {"version": 3, "files": [{"name": "a.json", "size": -1}]},
+        }
+        for label, manifest in cases.items():
+            with self.subTest(label):
+                if label == "not json":
+                    data = self.build(None, {"a.json": "{}"}, manifest_text="{not json")
+                else:
+                    data = self.build(manifest, {"a.json": "{}"})
+                with self.assertRaises(InteropError):
+                    penpot.validate_penpot_archive(data)
+
+    def test_non_zip_and_empty_input_fail_closed(self):
+        for label, data in (("not a zip", b"not a zip at all"), ("empty", b""),
+                            ("truncated", b"PK\x03\x04")):
+            with self.subTest(label):
+                with self.assertRaises(InteropError):
+                    penpot.validate_penpot_archive(data)
+        for label, value in (("none", None), ("string", "not bytes"), ("dict", {})):
+            with self.subTest(label):
+                with self.assertRaises(InteropError):
+                    penpot.validate_penpot_archive(value)
+
+    def test_a_directory_entry_is_not_a_payload_file(self):
+        buffer = io.BytesIO()
+        with zipfile.ZipFile(buffer, "w") as archive:
+            archive.writestr("manifest.json", json.dumps({"version": 3, "files": ["a.json"]}))
+            self.writestr(archive, "a.json", "{}")
+            archive.writestr("objects/", "")
+        report = penpot.validate_penpot_archive(buffer.getvalue())
+        self.assertEqual(report["directory_count"], 1)
+        self.assertEqual(report["file_count"], 2)
+
+    def test_boundary_documents_the_validator(self):
+        boundary = penpot.file_boundary()
+        validation = boundary["validation"]
+        self.assertEqual(validation["entry_point"], "validate_penpot_archive")
+        self.assertEqual(validation["extraction"], "NEVER")
+        self.assertEqual(validation["live_run"], "NOT_EXECUTED")
+        self.assertEqual(validation["evidence_level"], "E1")
+        self.assertEqual(validation["declared_file_list_keys"], ["files", "entries"])
+        self.assertTrue(validation["rejects"])
+        self.assertEqual(penpot.validate_declaration(penpot.declaration())["status"], "structural")
 
 
 class InteropBoundaryTest(PenpotFixture):

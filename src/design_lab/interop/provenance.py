@@ -1,13 +1,28 @@
 # SPDX-License-Identifier: MIT
-"""DL-P0-160: delivery provenance mapped onto a C2PA 2.4 *shaped* manifest.
+"""DL-P0-160: delivery provenance projected onto a C2PA 2.4 claim structure.
 
 What this module is, and what it is not
 ---------------------------------------
-It maps a DESIGN-LAB delivery record onto the structure of a C2PA manifest
-(``C2PA_SPEC_VERSION = "2.4"``): ``claim_generator``, ``assertions`` carrying
-``c2pa.actions``, one ``c2pa.ingredient`` per declared input, and
+It maps a DESIGN-LAB delivery record onto the structure of a C2PA 2.4 manifest
+(``C2PA_SPEC_VERSION = "2.4"``): the 2.x claim structure
+``CLAIM_VERSION = "c2pa.claim.v2"``, the reserved signature assertion label
+``SIGNATURE_ASSERTION = "c2pa.signature"``, ``claim_generator``, ``assertions``
+carrying ``c2pa.actions``, one ``c2pa.ingredient`` per declared input, and
 ``c2pa.creative-work`` / ``c2pa.training-mining`` where the rights profile
-requires them.
+requires them. The manifest names ``c2pa.claim.v2`` and ``c2pa.signature`` so a
+later signing pipeline has the exact labels to work with; it carries no signature
+*material* and no ``c2pa.signature`` assertion.
+
+The DESIGN-LAB Asset Graph stays the source of truth
+----------------------------------------------------
+The delivery record -- deliverable identity, artifact digest, producer, lineage
+inputs and rights profile -- is DESIGN-LAB's internal Asset Graph, and it is the
+**source**. The C2PA document is a *projection* of it: a read-only rendering for
+interchange. C2PA never replaces the Asset Graph here -- nothing in this module
+writes back into the delivery record, no field of the manifest is authoritative
+over it, and :func:`build_manifest` is a pure function from the delivery record to
+the projection (``design_lab.projection_of`` records that direction in every
+manifest).
 
 **It never signs, never embeds and never claims that a signed asset exists.**
 ``SIGNING_STATUS = "UNSIGNED_STRUCTURAL_ONLY"`` is written into every manifest and
@@ -39,7 +54,15 @@ from ..runtime.paths import PROJECT_ROOT
 from . import InteropError, load_schema, schema_errors
 
 C2PA_SPEC_VERSION = "2.4"
+#: C2PA 2.x claim structure label this module builds (the v1 ``c2pa.claim`` is not used).
+CLAIM_VERSION = "c2pa.claim.v2"
+#: The reserved C2PA signature assertion label. The manifest *names* it so a signing
+#: pipeline knows where the signature goes; it never carries the assertion itself.
+SIGNATURE_ASSERTION = "c2pa.signature"
 SIGNING_STATUS = "UNSIGNED_STRUCTURAL_ONLY"
+#: DESIGN-LAB's internal lineage structure. The C2PA document is a projection of it,
+#: never a replacement for it.
+SOURCE_OF_TRUTH = "design-lab-asset-graph"
 TASK_ID = "DL-P0-160"
 
 SCHEMA_PATH = PROJECT_ROOT / "design-lab/schemas/interop-c2pa-manifest.schema.json"
@@ -72,11 +95,12 @@ CLAIM_GENERATOR = (
 )
 
 #: Fields that would only exist on a signed manifest. Their presence fails closed.
-SIGNATURE_FIELDS = (
-    "signature",
+#: ``signature`` is deliberately *not* listed here: in this projection that key names
+#: the reserved assertion label (:data:`SIGNATURE_ASSERTION`) and carries no material,
+#: and :func:`assert_not_a_signed_asset` checks its value instead.
+SIGNATURE_MATERIAL_FIELDS = (
     "signature_info",
     "claim_signature",
-    "c2pa.signature",
     "signing_credential",
     "certificate",
     "x5chain",
@@ -282,12 +306,18 @@ def _normalize_delivery(delivery) -> dict:
 
 
 def build_manifest(delivery) -> dict:
-    """Map a DESIGN-LAB delivery record onto a C2PA 2.4-shaped manifest structure.
+    """Project a DESIGN-LAB delivery record onto a C2PA 2.4 claim structure.
+
+    The delivery record is the source: this is a pure function of it onto the C2PA
+    shape (``claim_version = c2pa.claim.v2``, the reserved signature assertion label
+    ``c2pa.signature``), and nothing is written back into the delivery record. C2PA
+    does not replace the internal Asset Graph.
 
     Returns an **unsigned** structure: ``signing_status`` is
-    ``UNSIGNED_STRUCTURAL_ONLY``, there is no signature block, and nothing is
-    embedded into the artifact. The result is deterministic -- the same delivery
-    always produces the same manifest and therefore the same
+    ``UNSIGNED_STRUCTURAL_ONLY``, ``signature`` only *names* the assertion a signing
+    pipeline would produce, there is no signature material, no ``c2pa.signature``
+    assertion and nothing is embedded into the artifact. The result is deterministic
+    -- the same delivery always produces the same manifest and therefore the same
     :func:`manifest_digest`.
     """
     record = _normalize_delivery(delivery)
@@ -336,7 +366,9 @@ def build_manifest(delivery) -> dict:
     return {
         "claim_generator": CLAIM_GENERATOR,
         "c2pa_spec_version": C2PA_SPEC_VERSION,
+        "claim_version": CLAIM_VERSION,
         "signing_status": SIGNING_STATUS,
+        "signature": SIGNATURE_ASSERTION,
         "title": record["deliverable_id"],
         "format": record["asset_kind"],
         "instance_id": "xmp:iid:" + instance_seed.removeprefix("sha256:")[:32],
@@ -348,6 +380,7 @@ def build_manifest(delivery) -> dict:
             "rights_profile": rights["label"],
             "producer": dict(record["producer"]),
             "input_count": len(inputs),
+            "projection_of": SOURCE_OF_TRUTH,
         },
     }
 
@@ -359,8 +392,18 @@ def build_manifest(delivery) -> dict:
 def assert_not_a_signed_asset(manifest) -> dict:
     """Guard: refuse to treat anything as a signed asset.
 
-    Raises :class:`InteropError` when the manifest claims a signing state other
-    than ``UNSIGNED_STRUCTURAL_ONLY`` or carries a signature/credential field.
+    Raises :class:`InteropError` when the manifest
+
+    * claims a signing state other than ``UNSIGNED_STRUCTURAL_ONLY``;
+    * carries a ``signature`` value other than the reserved label
+      :data:`SIGNATURE_ASSERTION` (``c2pa.signature``) -- naming the label is a
+      declaration of where a signature would go, any other value is signature
+      material;
+    * carries a signature-material field (``signature_info``, ``claim_signature``,
+      ``signing_credential``, ``certificate``, ``x5chain``, ``private_key``); or
+    * carries an assertion labelled ``c2pa.signature``, which would be the signature
+      block of a signed manifest.
+
     Returns the manifest unchanged when it is clean. Docstring of every public
     function in this module carries the same promise: nothing here signs.
     """
@@ -372,12 +415,28 @@ def assert_not_a_signed_asset(manifest) -> dict:
             f"manifest signing_status must be {SIGNING_STATUS!r}; found {status!r}. DESIGN-LAB has "
             "no C2PA signing run and must not present a manifest as a signed asset"
         )
-    present = sorted(field for field in SIGNATURE_FIELDS if field in manifest)
+    declared = manifest.get("signature")
+    if declared is not None and declared != SIGNATURE_ASSERTION:
+        raise _fail(
+            f"manifest.signature must name the reserved signature assertion "
+            f"{SIGNATURE_ASSERTION!r} and carry no signature material; found {declared!r}. This "
+            "module builds unsigned provenance structure only and never signs or embeds"
+        )
+    present = sorted(field for field in SIGNATURE_MATERIAL_FIELDS if field in manifest)
     if present:
         raise _fail(
             "manifest carries signature material (" + ", ".join(present) + "); this module builds "
             "unsigned provenance structure only and never signs or embeds"
         )
+    assertions = manifest.get("assertions")
+    if isinstance(assertions, list):
+        for index, assertion in enumerate(assertions):
+            if isinstance(assertion, dict) and assertion.get("label") == SIGNATURE_ASSERTION:
+                raise _fail(
+                    f"assertions[{index}] carries a {SIGNATURE_ASSERTION!r} assertion; a manifest "
+                    "with a signature block is a signed manifest and DESIGN-LAB has not run a "
+                    "signing pipeline"
+                )
     return manifest
 
 
@@ -394,7 +453,9 @@ def sign(*_args, **_kwargs):
         "C2PA signing is not implemented in DESIGN-LAB and no signed asset exists: missing a C2PA "
         "signing library (c2pa / c2patool), a signing certificate chain and a private key, plus an "
         "approved release-pipeline mandate. provenance.py builds the unsigned structure only "
-        f"(SIGNING_STATUS={SIGNING_STATUS}); embedding into the asset file is out of scope."
+        f"(SIGNING_STATUS={SIGNING_STATUS}, CLAIM_VERSION={CLAIM_VERSION}); the "
+        f"{SIGNATURE_ASSERTION!r} assertion a signing pipeline would produce is only named here, and "
+        "embedding into the asset file is out of scope."
     )
 
 
@@ -403,7 +464,10 @@ def validate_manifest(manifest, *, expected_inputs=None) -> dict:
 
     Checks the structural schema, the action enum, ingredient relationships,
     ``sha256:<64 hex>`` nonzero ingredient digests, one ingredient assertion per
-    input version (exactly one, no extras) and that nothing claims to be signed.
+    input version (exactly one, no extras), the 2.x baseline labels
+    (``claim_version = c2pa.claim.v2`` and the reserved ``c2pa.signature``
+    assertion label, enforced by the schema and by
+    :func:`assert_not_a_signed_asset`) and that nothing claims to be signed.
     ``expected_inputs`` is the delivery's input list (version ids or input
     mappings); when supplied, ingredient coverage is checked exhaustively.
     """
@@ -480,6 +544,9 @@ def validate_manifest(manifest, *, expected_inputs=None) -> dict:
     return {
         "schemaVersion": manifest["c2pa_spec_version"],
         "schema_path": SCHEMA_PATH.relative_to(PROJECT_ROOT).as_posix(),
+        "claim_version": manifest["claim_version"],
+        "signature_assertion": manifest["signature"],
+        "projection_of": manifest["design_lab"]["projection_of"],
         "signing_status": SIGNING_STATUS,
         "signed": False,
         "action_count": actions,

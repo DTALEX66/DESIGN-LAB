@@ -3,10 +3,10 @@
 
 What this module is
 -------------------
-A *declaration* and a *plan*, nothing more. It states how DESIGN-LAB would talk
-to a locally running Penpot, what a ``.penpot`` file is and how a future importer
-would treat it, and then stops. It performs no import, no export, no live API
-call, no file read, no process launch and no network access:
+A *declaration*, a *structural validator* and a *plan*, nothing more. It states how
+DESIGN-LAB would talk to a locally running Penpot, what a ``.penpot`` file is and
+how a future importer would treat it, and then stops. It performs no import, no
+export, no live API call, no host read, no process launch and no network access:
 
 * ``ADAPTER`` conforms to the repository's existing
   ``design-lab/schemas/adapter-contract.schema.json`` with ``status: "structural"``
@@ -14,18 +14,31 @@ call, no file read, no process launch and no network access:
   Penpot being installed on this machine is user-provided existence information,
   not a verified host run.
 * ``file_boundary()`` describes the ``.penpot`` container and the read policy.
+* ``validate_penpot_archive(data)`` checks the *structure* of a ``.penpot`` archive
+  the caller already has the bytes of -- it does not merely ask "is this a ZIP".
+  A Penpot v3 export is a ZIP holding ``manifest.json`` at its root, JSON metadata
+  and binary assets, so the validator reads the central directory (names and sizes)
+  and ``manifest.json``, and then checks the archive's internal references: path
+  traversal, duplicate entries, declared files that are absent or declared twice,
+  declared sizes that disagree with the ZIP metadata, and undeclared payload
+  entries outside a documented allow-list. It extracts nothing, writes nothing and
+  never opens Penpot. Passing it is **not** evidence that Penpot can open the file:
+  no live Penpot run happened (``live_run: NOT_EXECUTED``).
 * ``validate_adapter(adapter)`` applies that schema plus the extra rule that a
   ``structural`` adapter may not claim a capability that needs a live host run.
 * ``import_plan(path)`` returns a read-only step plan that ends with the exact
   terminator ``requires a live Penpot run: NOT_EXECUTED``.
 
-Evidence is E1 (STRUCTURAL) only: a schema-valid declaration, an offline
-structural check and unit tests. No live Penpot import or export ran, and this
-module never reads a user's personal libraries.
+Evidence is E1 (STRUCTURAL) only: a schema-valid declaration, offline structural
+checks over caller-supplied bytes and unit tests against a synthetic archive.
+No live Penpot import or export ran, and this module never reads a user's
+personal libraries.
 """
 from __future__ import annotations
 
+import io
 import json
+import zipfile
 from pathlib import Path, PureWindowsPath
 
 from ..runtime.paths import PROJECT_ROOT
@@ -37,6 +50,24 @@ ADAPTER_SCHEMA_PATH = PROJECT_ROOT / "design-lab/schemas/adapter-contract.schema
 SCHEMA_PATH = PROJECT_ROOT / "design-lab/schemas/interop-penpot-adapter.schema.json"
 
 PENPOT_EXTENSION = ".penpot"
+
+#: The ``.penpot`` index entry; a Penpot v3 export keeps it at the archive root.
+MANIFEST_ENTRY = "manifest.json"
+#: Keys ``manifest.json`` may carry the declared file list under (first present wins).
+DECLARED_FILE_KEYS = ("files", "entries")
+#: Name keys inside one declared file record.
+DECLARED_FILE_NAME_KEYS = ("name", "path")
+#: Size keys inside one declared file record.
+DECLARED_FILE_SIZE_KEYS = ("size", "bytes")
+#: Undeclared entries that are allowed: JSON metadata, ...
+ALLOWLISTED_UNDECLARED_SUFFIXES = (".json",)
+#: ... and preview/thumbnail images.
+ALLOWLISTED_UNDECLARED_IMAGE_NAMES = ("preview", "thumbnail", "thumb")
+ALLOWLISTED_UNDECLARED_IMAGE_SUFFIXES = (".png", ".jpg", ".jpeg", ".webp", ".gif", ".svg")
+#: Cap on the manifest this validator will read, so a hostile archive cannot
+#: exhaust memory through ``manifest.json`` alone.
+MAX_MANIFEST_BYTES = 8 * 1024 * 1024
+
 
 #: Marker a structural adapter must carry in ``evidence.note``.
 LIVE_RUN_MARKER = "live_run=NOT_EXECUTED"
@@ -61,7 +92,9 @@ ADAPTER = {
         {
             "name": "penpot.file.read",
             "supported": False,
-            "note": "no importer exists; a .penpot file is an opaque read-only external asset",
+            "note": "no importer exists and no Penpot read ran; the archive can only be checked "
+                    "structurally (validate_penpot_archive) on bytes the caller already has, which "
+                    "is not a Penpot read",
         },
         {
             "name": "penpot.import",
@@ -146,6 +179,35 @@ def file_boundary() -> dict:
             "live_run": "NOT_EXECUTED",
             "evidence_level": "E1",
         },
+        "validation": {
+            "entry_point": "validate_penpot_archive",
+            "scope": "structure of the container and the references inside it, never its meaning",
+            "reads": [
+                "the ZIP central directory (entry names and recorded sizes)",
+                "manifest.json inside the archive",
+            ],
+            "extraction": "NEVER",
+            "declared_file_list_keys": list(DECLARED_FILE_KEYS),
+            "undeclared_allow_list": [
+                MANIFEST_ENTRY,
+                "*.json (JSON metadata)",
+                "preview/thumbnail images named preview/thumbnail/thumb with an image suffix "
+                "(" + ", ".join(ALLOWLISTED_UNDECLARED_IMAGE_SUFFIXES) + ")",
+            ],
+            "rejects": [
+                "path traversal: a '..' or '.' segment, an absolute or drive path, a backslash",
+                "duplicate entry names in the central directory",
+                "a declared file that is absent, declared twice, or whose declared size disagrees "
+                "with the ZIP metadata",
+                "an undeclared payload entry outside the allow-list",
+                "a missing, non-JSON or file-list-less manifest.json",
+            ],
+            "live_run": "NOT_EXECUTED",
+            "evidence_level": "E1",
+            "note": "a valid archive is structural evidence about the container only; it is not a "
+                    "Penpot import, not a Penpot readback and not proof that a Penpot version can "
+                    "open the file",
+        },
         "prohibited": [
             "writing into a .penpot file or rewriting it in place",
             "reading a user's personal libraries, profile or account data",
@@ -156,6 +218,242 @@ def file_boundary() -> dict:
             "DESIGN-LAB never owns Penpot's private database or a user's asset library (AGENTS.md).",
             "Token interchange with Penpot goes through DTCG (DL-P0-110), not through this adapter.",
         ],
+    }
+
+
+# --------------------------------------------------------------------------- #
+# .penpot archive structure
+# --------------------------------------------------------------------------- #
+
+def _check_entry_name(name, where: str) -> str:
+    """Lexically validate one archive entry name. Never touches the filesystem."""
+    if not isinstance(name, str) or not name.strip():
+        raise _fail(f"{where} must be a nonempty entry name")
+    if "\x00" in name:
+        raise _fail(f"{where} {name!r} contains a NUL character")
+    if "\\" in name:
+        raise _fail(
+            f"{where} {name!r} uses a backslash; .penpot entries are named with forward slashes"
+        )
+    if name.startswith("/"):
+        raise _fail(
+            f"{where} {name!r} is an absolute path; every .penpot entry must be relative to the "
+            "archive root"
+        )
+    if PureWindowsPath(name).drive:
+        raise _fail(
+            f"{where} {name!r} names a drive; every .penpot entry must be relative to the archive root"
+        )
+    stripped = name[:-1] if name.endswith("/") else name
+    if not stripped:
+        raise _fail(f"{where} {name!r} has no file name")
+    for segment in stripped.split("/"):
+        if segment == "..":
+            raise _fail(f"{where} {name!r} escapes the archive root: it contains a '..' segment")
+        if segment in ("", "."):
+            raise _fail(f"{where} {name!r} contains an empty or '.' path segment")
+    return name
+
+
+def _allowlisted_undeclared(name: str) -> bool:
+    """Documented allow-list: entries that may exist without being declared."""
+    if name == MANIFEST_ENTRY:
+        return True
+    lowered = name.lower()
+    if lowered.endswith(ALLOWLISTED_UNDECLARED_SUFFIXES):
+        return True
+    stem, dot, suffix = lowered.rpartition(".")
+    if not dot:
+        return False
+    basename = stem.rsplit("/", 1)[-1]
+    return (f".{suffix}" in ALLOWLISTED_UNDECLARED_IMAGE_SUFFIXES
+            and basename in ALLOWLISTED_UNDECLARED_IMAGE_NAMES)
+
+
+def _declared_files(manifest):
+    """Read the declared file list out of a parsed ``manifest.json``."""
+    if not isinstance(manifest, dict):
+        raise _fail(f"{MANIFEST_ENTRY} must be a JSON object; found {type(manifest).__name__}")
+    key = next((candidate for candidate in DECLARED_FILE_KEYS if candidate in manifest), None)
+    if key is None:
+        raise _fail(
+            f"{MANIFEST_ENTRY} declares no file list under "
+            + " or ".join(repr(candidate) for candidate in DECLARED_FILE_KEYS)
+            + "; a Penpot v3 export lists the JSON metadata and binary assets it indexes"
+        )
+    entries = manifest[key]
+    if not isinstance(entries, list) or not entries:
+        raise _fail(f"{MANIFEST_ENTRY} {key!r} must be a nonempty array of file records")
+    declared: dict[str, int | None] = {}
+    for index, entry in enumerate(entries):
+        where = f"{MANIFEST_ENTRY} {key}[{index}]"
+        size = None
+        if isinstance(entry, str):
+            name = entry
+        elif isinstance(entry, dict):
+            name = next((entry[item] for item in DECLARED_FILE_NAME_KEYS if item in entry), None)
+            if name is None:
+                raise _fail(
+                    f"{where} must name a file with "
+                    + " or ".join(repr(item) for item in DECLARED_FILE_NAME_KEYS)
+                )
+            size = next((entry[item] for item in DECLARED_FILE_SIZE_KEYS if item in entry), None)
+        else:
+            raise _fail(f"{where} must be a file name or an object naming one")
+        _check_entry_name(name, where)
+        if name in declared:
+            raise _fail(
+                f"{where} declares {name!r} a second time; every archive entry must be declared once"
+            )
+        if size is not None and (isinstance(size, bool) or not isinstance(size, int) or size < 0):
+            raise _fail(
+                f"{where} size for {name!r} must be a non-negative integer number of bytes; "
+                f"found {size!r}"
+            )
+        declared[name] = size
+    return declared, key
+
+
+def validate_penpot_archive(data: bytes) -> dict:
+    """Validate the structure of a ``.penpot`` archive given as bytes.
+
+    A Penpot v3 export is a ZIP container with ``manifest.json`` at its root, JSON
+    metadata and binary assets. This function checks the container and the
+    references *inside* it -- not merely "it is a ZIP" -- by reading the central
+    directory (entry names and recorded sizes) through :mod:`zipfile` on an
+    in-memory :class:`io.BytesIO`, plus ``manifest.json``. Nothing is extracted,
+    nothing is written and Penpot is never opened.
+
+    Fails closed (naming the offending entry) when:
+
+    * the bytes are not a well-formed ZIP, or the central directory is empty;
+    * an entry name is empty, NUL-bearing, backslash-separated, absolute or a drive
+      path, or contains ``..`` / ``.`` / empty segments (path traversal);
+    * the same entry name appears twice;
+    * ``manifest.json`` is missing from the root, is not UTF-8 JSON, is not an
+      object, or declares no file list under ``files``/``entries``;
+    * a declared file is absent, is declared twice, or declares a size that
+      disagrees with the byte size in the ZIP metadata;
+    * an entry that is not declared is outside the documented allow-list
+      (:data:`MANIFEST_ENTRY`, other ``*.json`` metadata, ``preview``/``thumbnail``
+      images) -- an undeclared payload file is rejected rather than ignored.
+
+    The returned report is structural (E1). It states that the container is
+    internally consistent; it is **not** a Penpot import, not a readback and not
+    evidence that a Penpot version can open the file: ``live_run`` is
+    ``NOT_EXECUTED`` here and no live Penpot run happened anywhere in this module.
+    """
+    if isinstance(data, memoryview):
+        data = data.tobytes()
+    if isinstance(data, bytearray):
+        data = bytes(data)
+    if not isinstance(data, bytes):
+        raise _fail(
+            "a .penpot archive must be passed as bytes; this validator reads no file from disk"
+        )
+    if not data:
+        raise _fail("the .penpot archive is empty; a Penpot export is a ZIP container")
+
+    try:
+        with zipfile.ZipFile(io.BytesIO(data)) as archive:
+            infos = archive.infolist()
+            names = archive.namelist()
+            if not infos:
+                raise _fail(
+                    "the .penpot central directory is empty; the archive declares no entries"
+                )
+            seen: set[str] = set()
+            for name in names:
+                _check_entry_name(name, "archive entry")
+                if name in seen:
+                    raise _fail(
+                        f"the .penpot archive lists the entry {name!r} more than once; duplicate "
+                        "entries make the archive ambiguous"
+                    )
+                seen.add(name)
+            if MANIFEST_ENTRY not in seen:
+                raise _fail(
+                    f"the .penpot archive has no {MANIFEST_ENTRY} at its root; a Penpot v3 export "
+                    "indexes its JSON metadata and binary assets from that manifest"
+                )
+            manifest_info = archive.getinfo(MANIFEST_ENTRY)
+            if manifest_info.file_size > MAX_MANIFEST_BYTES:
+                raise _fail(
+                    f"{MANIFEST_ENTRY} records {manifest_info.file_size} bytes, above the "
+                    f"{MAX_MANIFEST_BYTES}-byte limit this validator reads"
+                )
+            try:
+                raw = archive.read(MANIFEST_ENTRY)
+            except RuntimeError as exc:  # encrypted or otherwise unreadable entry
+                raise InteropError(f"{MANIFEST_ENTRY} cannot be read: {exc}") from exc
+            try:
+                manifest = json.loads(raw.decode("utf-8"))
+            except UnicodeDecodeError as exc:
+                raise InteropError(f"{MANIFEST_ENTRY} is not UTF-8 text: {exc}") from exc
+            except json.JSONDecodeError as exc:
+                raise InteropError(f"{MANIFEST_ENTRY} is not valid JSON: {exc}") from exc
+    except zipfile.BadZipFile as exc:
+        raise InteropError(
+            f"the .penpot container is not a well-formed ZIP archive: {exc}"
+        ) from exc
+    except NotImplementedError as exc:
+        raise InteropError(
+            f"the .penpot ZIP uses a feature this validator cannot read: {exc}"
+        ) from exc
+
+    info_by_name = {info.filename: info for info in infos}
+    file_names = [name for name in names if not name.endswith("/")]
+    directory_names = [name for name in names if name.endswith("/")]
+
+    declared, declared_key = _declared_files(manifest)
+    for name, size in declared.items():
+        info = info_by_name.get(name)
+        if info is None:
+            raise _fail(
+                f"{MANIFEST_ENTRY} declares {name!r} but the archive contains no such entry"
+            )
+        if info.is_dir():
+            raise _fail(
+                f"{MANIFEST_ENTRY} declares {name!r} as a file but the archive records it as a "
+                "directory entry"
+            )
+        if size is not None and size != info.file_size:
+            raise _fail(
+                f"{MANIFEST_ENTRY} declares {size} byte(s) for entry {name!r} but the ZIP central "
+                f"directory records {info.file_size} byte(s)"
+            )
+
+    allowlisted: list[str] = []
+    for name in file_names:
+        if name in declared or name == MANIFEST_ENTRY:
+            # The index entry itself is required, not an undeclared payload file.
+            continue
+        if _allowlisted_undeclared(name):
+            allowlisted.append(name)
+            continue
+        raise _fail(
+            f"archive entry {name!r} is not declared by {MANIFEST_ENTRY} and is not on the "
+            "documented allow-list of undeclared entries (JSON metadata, preview/thumbnail "
+            "images); an undeclared payload file is rejected rather than ignored"
+        )
+
+    return {
+        "task_id": TASK_ID,
+        "boundary": "penpot-archive-structural",
+        "manifest_entry": MANIFEST_ENTRY,
+        "manifest_declared_key": declared_key,
+        "manifest_version": manifest.get("version"),
+        "entry_count": len(names),
+        "file_count": len(file_names),
+        "directory_count": len(directory_names),
+        "declared_file_count": len(declared),
+        "declared_files": sorted(declared),
+        "undeclared_allowlisted": sorted(allowlisted),
+        "total_file_bytes": sum(info_by_name[name].file_size for name in file_names),
+        "extraction_performed": False,
+        "write_performed": False,
+        "live_run": "NOT_EXECUTED",
+        "evidence_level": "E1",
     }
 
 

@@ -85,6 +85,42 @@ class C2PaManifestTest(ProvenanceFixture):
                          "https://dtalex66.local/schemas/interop-c2pa-manifest.schema.json")
         self.assertEqual(provenance.C2PA_SPEC_VERSION, "2.4")
         self.assertEqual(provenance.SIGNING_STATUS, "UNSIGNED_STRUCTURAL_ONLY")
+        self.assertEqual(provenance.CLAIM_VERSION, "c2pa.claim.v2")
+        self.assertEqual(provenance.SIGNATURE_ASSERTION, "c2pa.signature")
+        self.assertEqual(schema["properties"]["c2pa_spec_version"]["const"], "2.4")
+        self.assertEqual(schema["properties"]["claim_version"]["const"], "c2pa.claim.v2")
+        self.assertEqual(schema["properties"]["signature"]["const"], "c2pa.signature")
+        self.assertIn("claim_version", schema["required"])
+        self.assertIn("signature", schema["required"])
+
+    def test_manifest_carries_the_c2pa_2x_baseline_labels(self):
+        manifest = provenance.build_manifest(delivery_record())
+        self.assertEqual(manifest["claim_version"], "c2pa.claim.v2")
+        self.assertEqual(manifest["signature"], "c2pa.signature")
+        self.assertEqual(manifest["c2pa_spec_version"], "2.4")
+        # The label is a declaration only: no signature material, no assertion.
+        self.assertNotIn("c2pa.signature",
+                         [assertion["label"] for assertion in manifest["assertions"]])
+        report = provenance.validate_manifest(manifest)
+        self.assertEqual(report["claim_version"], "c2pa.claim.v2")
+        self.assertEqual(report["signature_assertion"], "c2pa.signature")
+        self.assertFalse(report["signed"])
+
+    def test_asset_graph_stays_the_source_of_truth_for_the_projection(self):
+        manifest = provenance.build_manifest(delivery_record())
+        self.assertEqual(manifest["design_lab"]["projection_of"], provenance.SOURCE_OF_TRUTH)
+        self.assertEqual(provenance.SOURCE_OF_TRUTH, "design-lab-asset-graph")
+        self.assertEqual(provenance.validate_manifest(manifest)["projection_of"],
+                         provenance.SOURCE_OF_TRUTH)
+        docstring = provenance.__doc__ or ""
+        self.assertIn("source of truth", docstring)
+        self.assertIn("projection", docstring)
+        self.assertIn("Asset Graph", docstring)
+        # The delivery record is an input, never an output: the module only reads it.
+        delivery = delivery_record()
+        snapshot = json.dumps(delivery, sort_keys=True)
+        provenance.build_manifest(delivery)
+        self.assertEqual(json.dumps(delivery, sort_keys=True), snapshot)
 
     def test_manifest_maps_inputs_to_one_ingredient_each(self):
         manifest = provenance.build_manifest(delivery_record())
@@ -239,12 +275,25 @@ class C2PaManifestTest(ProvenanceFixture):
         for broken in ({"signing_status": "SIGNED"},
                        {"signing_status": None},
                        {"signature": {"alg": "ES256"}},
+                       {"signature": "signed-by-release-pipeline"},
                        {"signature_info": {"issuer": "x"}},
+                       {"claim_signature": "..."},
                        {"x5chain": ["..."]}):
             with self.subTest(broken):
                 tampered = {**json.loads(json.dumps(manifest)), **broken}
                 with self.assertRaises(InteropError):
                     provenance.assert_not_a_signed_asset(tampered)
+
+        # A real c2pa.signature assertion would be the signature block of a signed
+        # manifest, so it fails closed too.
+        signed = json.loads(json.dumps(manifest))
+        signed["assertions"].append({"label": "c2pa.signature",
+                                     "data": {"alg": "ES256", "x5chain": ["..."]}})
+        with self.assertRaises(InteropError) as caught:
+            provenance.assert_not_a_signed_asset(signed)
+        self.assertIn("c2pa.signature", str(caught.exception))
+        with self.assertRaises(InteropError):
+            provenance.validate_manifest(signed)
 
 
 class ReceiptTest(ProvenanceFixture):

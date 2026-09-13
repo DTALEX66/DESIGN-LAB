@@ -36,6 +36,37 @@ Semantic rules enforced in Python (a JSON Schema cannot express them)
 * ``validate_against_assets`` fails closed when a clip references an asset that is
   not declared, or carries no resolvable external media reference at all.
 
+Official ``Transition.1`` semantics, and the overlap formula this module reports
+------------------------------------------------------------------------------
+A ``Transition.1`` is not laid out sequentially: it consumes no track time and is
+applied to the two items on either side. Its ``in_offset`` and ``out_offset`` are
+``RationalTime`` values relative to the transition, and the range the transition
+covers is::
+
+    covered_range(transition) = [ transition_start - in_offset,
+                                  transition_start + out_offset ]
+
+where ``transition_start`` is the point in track time at which the two
+neighbouring items meet -- the sequential end of the item before the transition,
+because the transition itself takes no track time. The transition therefore covers
+part of *both* neighbours: up to the last ``in_offset`` of the outgoing item and up
+to the first ``out_offset`` of the incoming item, each clamped by that item's own
+extent. :func:`overlaps` reports exactly that intersection; it keeps no second,
+conflicting notion of overlap truth (in particular it does not report "the two
+clips overlap by ``in_offset + out_offset``"), and it fails closed when a
+transition sits at a track boundary or directly next to another transition, where
+the covered range would be undefined.
+
+:func:`overlaps` reports two kinds of record:
+
+* ``"transition"`` -- one record per side, carrying the covered range and the
+  length of its intersection with that neighbouring item;
+* ``"parallel-stack"`` -- children of a ``Stack.1`` (including the tracks of
+  ``Timeline.tracks``, which OTIO lays out in parallel) whose ranges genuinely
+  intersect.
+
+A sequential ``Track.1`` has no overlap other than the ones a transition creates.
+
 Evidence: everything reachable from this module is E1 (STRUCTURAL). No OTIO
 library run, no host import and no render is claimed.
 """
@@ -68,6 +99,14 @@ ITEM_SCHEMAS = (CLIP_SCHEMA, GAP_SCHEMA, STACK_SCHEMA, TRANSITION_SCHEMA)
 #: Seconds are read back at nanosecond resolution (see the module docstring).
 TO_SECONDS_DECIMALS = 9
 SECONDS_EPSILON = 10 ** (-TO_SECONDS_DECIMALS)
+
+#: Official OTIO ``Transition.1`` semantics, written as the formula ``overlaps()``
+#: implements. ``transition_start`` is the point at which the two neighbouring
+#: items meet; ``in_offset``/``out_offset`` are rational times relative to it.
+TRANSITION_COVERED_RANGE = (
+    "covered_range(Transition.1) = [transition_start - in_offset, "
+    "transition_start + out_offset]"
+)
 
 SCHEMA_PATH = PROJECT_ROOT / "design-lab/schemas/interop-timeline-otio.schema.json"
 
@@ -374,93 +413,190 @@ def duration_seconds(node) -> float:
     raise _fail(f"duration_seconds expects a Timeline.1, Stack.1 or Track.1; found {label!r}")
 
 
-def _stack_ranges(stack) -> list[dict]:
-    """Timeline ranges of a stack's children, which OTIO lays out in parallel."""
+def _stack_ranges(stack, where: str = "stack") -> list[dict]:
+    """Timeline ranges of a stack's children, which OTIO lays out in parallel.
+
+    Every child starts at the stack origin, so two children with a positive extent
+    genuinely overlap. A ``Transition.1`` is not a child range of its own: it
+    covers parts of the two items it sits between (see :func:`overlaps`).
+    """
     ranges = []
-    for index, child in enumerate(_children(stack, "stack")):
-        where = f"stack[{index}]"
-        if _label(child, where) == TRANSITION_SCHEMA:
+    for index, child in enumerate(_children(stack, where)):
+        child_where = f"{where}[{index}]"
+        if _label(child, child_where) == TRANSITION_SCHEMA:
             continue
-        duration = _item_duration(child, where)
+        duration = _item_duration(child, child_where)
         ranges.append({
-            "id": _label_of(child, where),
+            "id": _label_of(child, child_where),
             "start_seconds": 0.0,
             "end_seconds": duration,
             "duration_seconds": duration,
-            "where": where,
+            "where": child_where,
         })
     return ranges
 
 
+def _sequential_ranges(track, where: str = "track") -> list[dict]:
+    """Timeline ranges of a track's items in track time.
+
+    A ``Track.1`` sequences its children, so an item starts where the previous one
+    ends. A ``Transition.1`` is skipped: OTIO applies it to the items on either
+    side instead of laying it out, so it consumes no track time and has no range of
+    its own. The ``index`` of each entry is the child's index among *all* the
+    track's children, so it can be matched back to a transition's neighbours.
+    """
+    ranges = []
+    cursor = 0.0
+    for index, child in enumerate(_children(track, where)):
+        item_where = f"{where}[{index}]"
+        if _label(child, item_where) == TRANSITION_SCHEMA:
+            continue
+        duration = _item_duration(child, item_where)
+        start = round(cursor, TO_SECONDS_DECIMALS)
+        cursor = round(cursor + duration, TO_SECONDS_DECIMALS)
+        ranges.append({
+            "index": index,
+            "id": _label_of(child, item_where),
+            "start_seconds": start,
+            "end_seconds": cursor,
+            "duration_seconds": duration,
+            "where": item_where,
+        })
+    return ranges
+
+
+def _ordered(records: list[dict]) -> list[dict]:
+    return sorted(records, key=lambda record: (record["reason"], record["a"], record["b"]))
+
+
+def _transition_records(track, where: str = "track") -> list[dict]:
+    """Overlaps a ``Transition.1`` creates, from the official covered-range formula.
+
+    ``covered_range = [transition_start - in_offset, transition_start + out_offset]``
+    (see :data:`TRANSITION_COVERED_RANGE` and the module docstring), intersected with
+    each neighbouring item's own range. The intersection can be shorter than the
+    offset when the offset reaches past that item.
+    """
+    children = _children(track, where)
+    sequential = {entry["index"]: entry for entry in _sequential_ranges(track, where)}
+    records: list[dict] = []
+    for index, child in enumerate(children):
+        item_where = f"{where}[{index}]"
+        if _label(child, item_where) != TRANSITION_SCHEMA:
+            continue
+        if index == 0 or index + 1 >= len(children):
+            raise _fail(
+                f"{item_where} is a Transition.1 at a track boundary; a transition needs an item "
+                "on both sides"
+            )
+        for neighbour_index in (index - 1, index + 1):
+            neighbour_where = f"{where}[{neighbour_index}]"
+            if _label(children[neighbour_index], neighbour_where) == TRANSITION_SCHEMA:
+                raise _fail(
+                    f"{item_where} is a Transition.1 directly next to another Transition.1 at "
+                    f"{neighbour_where}; OTIO applies a transition to the two items on either side, "
+                    "so the covered range of two adjacent transitions is undefined"
+                )
+        offsets = {"in_offset": seconds_from(child["in_offset"]),
+                   "out_offset": seconds_from(child["out_offset"])}
+        for key, value in offsets.items():
+            if value < 0:
+                raise _fail(f"{item_where} {key} must not be negative; got {value}")
+        transition_start = sequential[index - 1]["end_seconds"]
+        covered_start = round(transition_start - offsets["in_offset"], TO_SECONDS_DECIMALS)
+        covered_end = round(transition_start + offsets["out_offset"], TO_SECONDS_DECIMALS)
+        for neighbour_index, side in ((index - 1, "in_offset"), (index + 1, "out_offset")):
+            entry = sequential[neighbour_index]
+            span = min(covered_end, entry["end_seconds"]) - max(covered_start,
+                                                                entry["start_seconds"])
+            if span <= SECONDS_EPSILON:
+                continue
+            records.append({
+                "reason": "transition",
+                "a": entry["id"],
+                "b": _label_of(child, item_where),
+                "covered_side": side,
+                "in_offset_seconds": offsets["in_offset"],
+                "out_offset_seconds": offsets["out_offset"],
+                "transition_start_seconds": transition_start,
+                "covered_start_seconds": covered_start,
+                "covered_end_seconds": covered_end,
+                "overlap_seconds": round(span, TO_SECONDS_DECIMALS),
+                "where": item_where,
+            })
+    return _ordered(records)
+
+
+def _stack_records(stack, where: str) -> list[dict]:
+    """Parallel-overlap records of a stack's children, plus transitions inside its tracks."""
+    ranges = _stack_ranges(stack, where)
+    records: list[dict] = []
+    for first in range(len(ranges)):
+        for second in range(first + 1, len(ranges)):
+            left, right = ranges[first], ranges[second]
+            span = min(left["end_seconds"], right["end_seconds"]) - max(
+                left["start_seconds"], right["start_seconds"]
+            )
+            if span <= SECONDS_EPSILON:
+                continue
+            records.append({
+                "reason": "parallel-stack",
+                "a": left["id"],
+                "b": right["id"],
+                "overlap_seconds": round(span, TO_SECONDS_DECIMALS),
+                "where": f"{left['where']} + {right['where']}",
+            })
+    for index, child in enumerate(_children(stack, where)):
+        child_where = f"{where}[{index}]"
+        if _label(child, child_where) == TRACK_SCHEMA:
+            # A stacked Track.1 runs in parallel with its siblings, and its own
+            # transitions still cover parts of its neighbouring clips.
+            records.extend(_transition_records(child, child_where))
+    return records
+
+
 def overlaps(node) -> list[dict]:
-    """Report items whose time ranges overlap, in a deterministic order.
+    """Report the time ranges that genuinely overlap, in a deterministic order.
+
+    The definition is derived from official OTIO transition semantics; there is no
+    locally invented second notion of overlap truth. Documented formula::
+
+        covered_range(transition) = [ transition_start - in_offset,
+                                      transition_start + out_offset ]
+
+    with ``transition_start`` the point at which the two neighbouring items meet
+    (the sequential end of the item before the transition, since a ``Transition.1``
+    consumes no track time). Each covered range is intersected with the two
+    neighbouring clips; a record is emitted per non-empty intersection.
 
     Each record names its ``reason``:
 
-    * ``"transition"`` -- a ``Transition.1`` between two adjacent items pulls them
-      together; the reported overlap is ``in_offset + out_offset``, the region the
-      transition consumes from both sides. A sequential ``Track.1`` without
-      transitions has no overlaps by construction.
+    * ``"transition"`` -- one record per side of a ``Transition.1``. ``a`` is the
+      neighbouring item the transition covers, ``b`` is the transition, and
+      ``overlap_seconds`` is the length of ``[covered_start_seconds,
+      covered_end_seconds]`` inside that item's range -- never ``in_offset +
+      out_offset``. A sequential ``Track.1`` without transitions has no overlaps by
+      construction.
     * ``"parallel-stack"`` -- the children of a ``Stack.1`` start at the same point,
-      so any two children with a positive duration overlap.
+      so any two children with intersecting extents overlap. This includes the
+      tracks of ``Timeline.tracks``: OTIO lays stacked tracks out in parallel, so
+      genuinely parallel tracks in a ``Stack`` are reported. Overlaps *inside* those
+      tracks (their transitions) are reported as well; separate tracks are not
+      otherwise treated as sequential.
 
-    For a ``Timeline.1`` the per-track reports are merged: separate tracks are
-    parallel layers by design, so only overlaps *inside* a track are reported.
+    A transition at a track boundary, or directly next to another transition, fails
+    closed: its covered range would be undefined.
     """
     if not isinstance(node, dict):
         raise _fail("overlaps expects an OTIO object")
     label = _label(node, "node")
     if label == TIMELINE_SCHEMA:
         stack = _require_schema(node["tracks"], "timeline.tracks", STACK_SCHEMA)
-        records: list[dict] = []
-        for index, track in enumerate(_children(stack, "timeline.tracks")):
-            where = f"timeline.tracks[{index}]"
-            if _label(track, where) != TRACK_SCHEMA:
-                continue
-            records.extend(overlaps(track))
-        return sorted(records, key=lambda record: (record["reason"], record["a"], record["b"]))
+        return _ordered(_stack_records(stack, "timeline.tracks"))
     if label == TRACK_SCHEMA:
-        children = _children(node, "track")
-        records = []
-        for index, child in enumerate(children):
-            where = f"track[{index}]"
-            if _label(child, where) != TRANSITION_SCHEMA:
-                continue
-            if index == 0 or index + 1 >= len(children):
-                raise _fail(
-                    f"{where} is a Transition.1 at a track boundary; a transition needs an item "
-                    "on both sides"
-                )
-            span = seconds_from(child["in_offset"]) + seconds_from(child["out_offset"])
-            if span <= SECONDS_EPSILON:
-                continue
-            records.append({
-                "reason": "transition",
-                "a": _label_of(children[index - 1], f"track[{index - 1}]"),
-                "b": _label_of(children[index + 1], f"track[{index + 1}]"),
-                "overlap_seconds": round(span, TO_SECONDS_DECIMALS),
-                "where": where,
-            })
-        return sorted(records, key=lambda record: (record["reason"], record["a"], record["b"]))
+        return _transition_records(node, "track")
     if label == STACK_SCHEMA:
-        ranges = _stack_ranges(node)
-        records = []
-        for first in range(len(ranges)):
-            for second in range(first + 1, len(ranges)):
-                left, right = ranges[first], ranges[second]
-                span = min(left["end_seconds"], right["end_seconds"]) - max(
-                    left["start_seconds"], right["start_seconds"]
-                )
-                if span <= SECONDS_EPSILON:
-                    continue
-                records.append({
-                    "reason": "parallel-stack",
-                    "a": left["id"],
-                    "b": right["id"],
-                    "overlap_seconds": round(span, TO_SECONDS_DECIMALS),
-                    "where": f"{left['where']} + {right['where']}",
-                })
-        return sorted(records, key=lambda record: (record["reason"], record["a"], record["b"]))
+        return _ordered(_stack_records(node, "stack"))
     raise _fail(f"overlaps expects a Timeline.1, Stack.1 or Track.1; found {label!r}")
 
 

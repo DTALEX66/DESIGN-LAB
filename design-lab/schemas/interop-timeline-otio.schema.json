@@ -283,6 +283,7 @@
     },
     "transition": {
       "type": "object",
+      "description": "A Transition.1 is not laid out sequentially: it consumes no track time and is applied to the two items on either side. in_offset and out_offset are RationalTime values relative to the transition, and the range it covers is covered_range = [transition_start - in_offset, transition_start + out_offset], where transition_start is the point at which the two neighbouring items meet. design_lab.interop.timeline.overlaps reports the intersection of that covered range with each neighbour.",
       "required": ["OTIO_SCHEMA", "transition_type", "in_offset", "out_offset"],
       "properties": {
         "OTIO_SCHEMA": {

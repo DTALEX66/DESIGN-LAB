@@ -66,7 +66,8 @@ def rich_document() -> dict:
         "text": {
             "$type": "typography",
             "body": {"$value": {"fontFamily": "{font.ui}", "fontSize": "{scale.space.2}",
-                                "fontWeight": "{weight.book}", "lineHeight": 1.5}},
+                                "fontWeight": "{weight.book}", "letterSpacing": "0px",
+                                "lineHeight": 1.5}},
         },
         "elevation": {
             "$type": "shadow",
@@ -116,8 +117,12 @@ class DtcgValidateTest(DtcgFixture):
                           "cubicBezier", "strokeStyle", "typography", "shadow", "border",
                           "transition", "gradient"):
             self.assertIn(type_name, report["types"], type_name)
-        self.assertEqual(report["legacy_types"], [])
-        self.assertEqual(report["typography_letterSpacing"], "optional")
+        # The canonical path is strict: no legacy tolerance is reported or accepted.
+        self.assertNotIn("legacy_types", report)
+        self.assertTrue(report["canonical"])
+        self.assertEqual(report["typography_letterSpacing"], "required")
+        self.assertEqual(report["typography_members"],
+                         ["fontFamily", "fontSize", "fontWeight", "letterSpacing", "lineHeight"])
 
     def test_document_can_be_written_and_reloaded_unchanged(self):
         target = self.workdir / "design-tokens.dtcg.json"
@@ -176,19 +181,27 @@ class DtcgValidateTest(DtcgFixture):
             dtcg.validate_document({"a": {"$type": "colour", "$value": "#fff"}})
         self.assertIn("unknown $type", str(caught.exception))
 
-    def test_legacy_types_need_explicit_opt_in(self):
+    def test_legacy_types_are_rejected_by_the_canonical_path(self):
         document = {"theme": {"$type": "string", "$value": "dark"},
                     "flag": {"$type": "boolean", "$value": True}}
         with self.assertRaises(InteropError) as caught:
             dtcg.validate_document(document)
-        self.assertIn("non-DTCG type", str(caught.exception))
-        report = dtcg.validate_document(document, allow_legacy_types=True)
-        self.assertEqual(report["legacy_types"], ["boolean", "string"])
+        self.assertIn("pre-2025.10 type", str(caught.exception))
+        self.assertIn("from_legacy_document", str(caught.exception))
+        # The canonical entry points take no permissive flag any more.
+        for entry_point in (dtcg.validate_document, dtcg.flatten, dtcg.roundtrip):
+            with self.subTest(entry_point=entry_point.__name__):
+                with self.assertRaises(TypeError):
+                    entry_point(document, allow_legacy_types=True)
 
     def test_composite_member_rules_fail_closed(self):
         cases = {
             "typography missing fontWeight": {"t": {"$type": "typography", "$value": {
-                "fontFamily": "Inter", "fontSize": "16px", "lineHeight": 1.2}}},
+                "fontFamily": "Inter", "fontSize": "16px", "letterSpacing": "0px",
+                "lineHeight": 1.2}}},
+            "typography missing letterSpacing": {"t": {"$type": "typography", "$value": {
+                "fontFamily": "Inter", "fontSize": "16px", "fontWeight": 400,
+                "lineHeight": 1.2}}},
             "shadow missing blur": {"s": {"$type": "shadow", "$value": {
                 "color": "#000", "offsetX": "0px", "offsetY": "1px", "spread": "0px"}}},
             "gradient single stop": {"g": {"$type": "gradient", "$value": [
@@ -218,6 +231,21 @@ class DtcgValidateTest(DtcgFixture):
         with self.assertRaises(InteropError) as caught:
             dtcg.validate_document({"a": {"b": {"$type": "color"}}})
         self.assertIn("declares no tokens", str(caught.exception))
+
+    def test_canonical_typography_requires_letter_spacing(self):
+        document = {"t": {"$type": "typography", "$value": {
+            "fontFamily": "Inter", "fontSize": "16px", "fontWeight": 400, "lineHeight": 1.2}}}
+        with self.assertRaises(InteropError) as caught:
+            dtcg.validate_document(document)
+        self.assertIn("letterSpacing", str(caught.exception))
+
+    def test_canonical_schema_names_the_required_members_and_the_adapter(self):
+        schema = json.dumps(json.loads(SCHEMA_PATH.read_text(encoding="utf-8")))
+        for member in dtcg.TYPOGRAPHY_MEMBERS:
+            self.assertIn(member, schema)
+        self.assertIn("from_legacy_document", schema)
+        self.assertEqual(tuple(dtcg.TYPOGRAPHY_MEMBERS),
+                         ("fontFamily", "fontSize", "fontWeight", "letterSpacing", "lineHeight"))
 
 
 class DtcgRoundTripTest(DtcgFixture):
@@ -254,7 +282,7 @@ class DtcgRoundTripTest(DtcgFixture):
         self.assertIn("$meta", flat)
         self.assertTrue(all(not key.startswith("$") for key in flat if key != "$meta"))
         self.assertEqual(sorted(flat["$meta"]),
-                         ["document", "groups", "legacy_types", "order", "report", "schemaVersion"])
+                         ["document", "groups", "order", "report", "schemaVersion"])
 
     def test_roundtrip_of_the_repository_dtcg_artifacts(self):
         systems = ROOT / "design-lab/design-systems"
@@ -266,13 +294,91 @@ class DtcgRoundTripTest(DtcgFixture):
                 continue
             document = json.loads(source.read_text(encoding="utf-8"))
             with self.subTest(name):
-                with self.assertRaises(InteropError):
+                # Both in-repo artifacts are legacy documents; the canonical path
+                # rejects them and the adapter is the only way in.
+                with self.assertRaises(InteropError) as caught:
                     dtcg.validate_document(document)
-                report = dtcg.validate_document(document, allow_legacy_types=True)
+                self.assertIn("pre-2025.10 type", str(caught.exception))
+                report = dtcg.validate_legacy_document(document)
+                self.assertEqual(report["canonical_source"], "legacy-adapter")
                 self.assertIn("string", report["legacy_types"])
-                self.assertEqual(dtcg.roundtrip(document, allow_legacy_types=True), document)
+                self.assertIn("theme", report["unmapped_legacy_tokens"])
+                adapted = dtcg.from_legacy_document(document)
+                self.assertEqual(dtcg.roundtrip(adapted), adapted)
             checked += 1
         self.assertGreater(checked, 0, "expected the in-repo DTCG artifacts to exist")
+
+
+class DtcgLegacyAdapterTest(DtcgFixture):
+    """The legacy adapter is a separate, explicitly named entry point (DLDS-F050)."""
+
+    def legacy_document(self) -> dict:
+        return {
+            "$schema": "https://design-tokens.bit.dev/schema.json",
+            "theme": {"$type": "string", "$value": "dark"},
+            "color": {"$type": "color", "bg": {"$value": "#080B0F"}},
+            "text": {"$type": "typography",
+                     "body": {"$value": {"fontFamily": "system-ui", "fontSize": "15px",
+                                         "fontWeight": 400, "lineHeight": 1.5}}},
+            "motion": {"$type": "duration",
+                       "fast": {"$value": "120ms"},
+                       "reduce-enabled": {"$type": "boolean", "$value": True}},
+        }
+
+    def test_adapter_converts_a_legacy_document_into_canonical_form(self):
+        adapted = dtcg.from_legacy_document(self.legacy_document())
+        report = dtcg.validate_document(adapted)
+        self.assertTrue(report["canonical"])
+        self.assertEqual(report["types"], {"color": 1, "duration": 1, "typography": 1})
+
+    def test_adapter_preserves_legacy_tokens_verbatim_instead_of_coercing_them(self):
+        adapted = dtcg.from_legacy_document(self.legacy_document())
+        summary = adapted["$extensions"][dtcg.LEGACY_ADAPTER_NAMESPACE]
+        self.assertEqual(summary["legacy_types"], ["boolean", "string"])
+        self.assertEqual(sorted(summary["unmapped_tokens"]), ["motion.reduce-enabled", "theme"])
+        self.assertEqual(summary["unmapped_tokens"]["theme"]["$value"], "dark")
+        self.assertEqual(summary["unmapped_tokens"]["theme"]["$type"], "string")
+        # ... and they are gone from the canonical token tree.
+        self.assertNotIn("theme", adapted)
+        self.assertNotIn("reduce-enabled", adapted["motion"])
+
+    def test_adapter_records_the_synthesized_letter_spacing(self):
+        adapted = dtcg.from_legacy_document(self.legacy_document())
+        value = adapted["text"]["body"]["$value"]
+        self.assertEqual(value["letterSpacing"], dtcg.LEGACY_LETTER_SPACING)
+        marker = adapted["text"]["body"]["$extensions"][dtcg.LEGACY_ADAPTER_NAMESPACE]
+        self.assertEqual(marker["synthesized_members"], ["letterSpacing"])
+        report = dtcg.validate_legacy_document(self.legacy_document())
+        self.assertEqual(report["synthesized_members"], {"text.body": ["letterSpacing"]})
+        self.assertEqual(report["legacy_types"], ["boolean", "string"])
+
+    def test_adapter_is_identity_on_a_canonical_document_and_never_mutates_input(self):
+        canonical = rich_document()
+        self.assertEqual(dtcg.from_legacy_document(canonical), canonical)
+        legacy = self.legacy_document()
+        snapshot = json.dumps(legacy, sort_keys=True)
+        dtcg.from_legacy_document(legacy)
+        self.assertEqual(json.dumps(legacy, sort_keys=True), snapshot)
+
+    def test_adapter_round_trip_is_lossless_for_the_adapted_document(self):
+        adapted = dtcg.from_legacy_document(self.legacy_document())
+        self.assertEqual(dtcg.roundtrip(adapted), adapted)
+
+    def test_adapter_is_idempotent_and_revalidates_its_own_output(self):
+        adapted = dtcg.from_legacy_document(self.legacy_document())
+        self.assertEqual(dtcg.from_legacy_document(adapted), adapted)
+        self.assertTrue(dtcg.validate_document(adapted)["canonical"])
+
+    def test_malformed_legacy_values_fail_closed(self):
+        broken = {"flag": {"$type": "boolean", "$value": "yes"}}
+        with self.assertRaises(InteropError) as caught:
+            dtcg.from_legacy_document(broken)
+        self.assertIn("must be a boolean", str(caught.exception))
+
+    def test_canonical_flags_do_not_accept_legacy_types(self):
+        self.assertNotIn("allow_legacy_types", dtcg.validate_document.__code__.co_varnames)
+        self.assertNotIn("allow_legacy_types", dtcg.flatten.__code__.co_varnames)
+        self.assertNotIn("allow_legacy_types", dtcg.roundtrip.__code__.co_varnames)
 
 
 class DtcgCssProjectionTest(DtcgFixture):

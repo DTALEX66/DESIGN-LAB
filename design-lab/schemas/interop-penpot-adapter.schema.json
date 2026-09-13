@@ -53,6 +53,7 @@
         "container",
         "access",
         "state",
+        "validation",
         "prohibited",
         "notes"
       ],
@@ -145,11 +146,65 @@
             }
           }
         },
+        "validation": {
+          "$ref": "#/$defs/structuralValidation"
+        },
         "prohibited": {
           "$ref": "#/$defs/stringList"
         },
         "notes": {
           "$ref": "#/$defs/stringList"
+        }
+      }
+    },
+    "structuralValidation": {
+      "type": "object",
+      "description": "The offline structural validator for a .penpot archive (design_lab.interop.penpot.validate_penpot_archive): what it reads, what it allows without a declaration, what it rejects, and the fact that it is not a Penpot run.",
+      "required": [
+        "entry_point",
+        "scope",
+        "reads",
+        "extraction",
+        "declared_file_list_keys",
+        "undeclared_allow_list",
+        "rejects",
+        "live_run",
+        "evidence_level",
+        "note"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "entry_point": {
+          "const": "validate_penpot_archive"
+        },
+        "scope": {
+          "type": "string",
+          "minLength": 1
+        },
+        "reads": {
+          "$ref": "#/$defs/stringList"
+        },
+        "extraction": {
+          "const": "NEVER"
+        },
+        "declared_file_list_keys": {
+          "$ref": "#/$defs/stringList"
+        },
+        "undeclared_allow_list": {
+          "$ref": "#/$defs/stringList"
+        },
+        "rejects": {
+          "$ref": "#/$defs/stringList"
+        },
+        "live_run": {
+          "const": "NOT_EXECUTED"
+        },
+        "evidence_level": {
+          "const": "E1"
+        },
+        "note": {
+          "type": "string",
+          "minLength": 1
         }
       }
     },

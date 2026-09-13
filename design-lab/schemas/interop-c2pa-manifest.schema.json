@@ -1,13 +1,15 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://dtalex66.local/schemas/interop-c2pa-manifest.schema.json",
-  "title": "DESIGN-LAB interop: C2PA 2.4 shaped provenance manifest (DL-P0-160)",
-  "description": "Structural contract for the provenance structure DESIGN-LAB builds from a delivery record. It is C2PA-shaped, not a C2PA manifest: it is always UNSIGNED_STRUCTURAL_ONLY, carries no signature block and is never embedded into an asset. Semantic rules that this schema cannot express -- the action enum, ingredient relationship coverage (exactly one ingredient per input version) and nonzero sha256 digests -- are enforced by design_lab.interop.provenance.validate_manifest.",
+  "title": "DESIGN-LAB interop: C2PA 2.4 claim structure projection (DL-P0-160)",
+  "description": "Structural contract for the provenance structure DESIGN-LAB projects from a delivery record. It carries the C2PA 2.4 baseline labels -- claim_version 'c2pa.claim.v2' (the v1 'c2pa.claim' is not used) and the reserved signature assertion label 'c2pa.signature' -- and it is always UNSIGNED_STRUCTURAL_ONLY: the 'signature' member only names the assertion a signing pipeline would produce, it carries no signature material, no 'c2pa.signature' assertion may appear in 'assertions', and nothing is ever embedded into an asset. The internal DESIGN-LAB Asset Graph (the delivery/lineage record) stays the source of truth; this document is a projection of it, recorded in design_lab.projection_of. Semantic rules that this schema cannot express -- the action enum, ingredient relationship coverage (exactly one ingredient per input version), nonzero sha256 digests and the unsigned guard -- are enforced by design_lab.interop.provenance.validate_manifest.",
   "type": "object",
   "required": [
     "claim_generator",
     "c2pa_spec_version",
+    "claim_version",
     "signing_status",
+    "signature",
     "title",
     "format",
     "instance_id",
@@ -23,8 +25,16 @@
     "c2pa_spec_version": {
       "const": "2.4"
     },
+    "claim_version": {
+      "const": "c2pa.claim.v2",
+      "description": "The C2PA 2.x claim structure label. It is a label, not a claim: this projection does not produce a claim CBOR/box structure."
+    },
     "signing_status": {
       "const": "UNSIGNED_STRUCTURAL_ONLY"
+    },
+    "signature": {
+      "const": "c2pa.signature",
+      "description": "Names the reserved C2PA signature assertion a signing pipeline would produce. The value is the assertion label only; signature material, credentials and any 'c2pa.signature' assertion fail closed in design_lab.interop.provenance.assert_not_a_signed_asset."
     },
     "title": {
       "type": "string",
@@ -54,7 +64,8 @@
         "artifact_sha256",
         "rights_profile",
         "producer",
-        "input_count"
+        "input_count",
+        "projection_of"
       ],
       "additionalProperties": false,
       "properties": {
@@ -101,6 +112,10 @@
         "input_count": {
           "type": "integer",
           "minimum": 0
+        },
+        "projection_of": {
+          "const": "design-lab-asset-graph",
+          "description": "Records the direction of authority: the DESIGN-LAB Asset Graph (the delivery record) is the source of truth and this C2PA document is a projection of it. C2PA does not replace the Asset Graph."
         }
       }
     }

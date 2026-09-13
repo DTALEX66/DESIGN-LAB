@@ -118,7 +118,13 @@ class TimelineContractTest(TimelineFixture):
         self.assertEqual(report["transition_count"], 0)
         self.assertEqual(report["declared_ids"], ["aud-1", "clip-a", "clip-b", "clip-c"])
         self.assertEqual(report["duration_seconds"], 14.0)
-        self.assertEqual(report["overlaps"], [])
+        # V1 and A1 are stacked tracks: OTIO lays them out in parallel, so they
+        # genuinely overlap up to the shorter track's end. There are no transitions.
+        self.assertEqual(report["overlaps"], [{
+            "reason": "parallel-stack", "a": "V1", "b": "A1",
+            "overlap_seconds": 13.5956789,
+            "where": "timeline.tracks[0] + timeline.tracks[1]",
+        }])
 
     def test_document_survives_a_disk_round_trip(self):
         target = self.workdir / "timeline.otio"
@@ -279,14 +285,61 @@ class TimelineLayoutTest(TimelineFixture):
         ]}
         self.assertEqual(timeline.duration_seconds(stack), 13.5956789)
 
-    def test_transition_overlap_is_reported(self):
+    def test_transition_overlap_follows_the_official_covered_range(self):
         document = transition_timeline()
         report = timeline.validate_timeline(document)
-        self.assertEqual(report["overlaps"], [{
-            "reason": "transition", "a": "A", "b": "B",
-            "overlap_seconds": 0.75, "where": "track[1]",
-        }])
         self.assertEqual(report["transition_count"], 1)
+        # A is 2.0s and B is 3.0s; in_offset=0.25, out_offset=0.5, so the transition
+        # starts at the 2.0s cut and covers [1.75, 2.5]: 0.25s inside A, 0.5s inside B.
+        self.assertEqual(report["overlaps"], [
+            {
+                "reason": "transition", "a": "A", "b": "dissolve", "covered_side": "in_offset",
+                "in_offset_seconds": 0.25, "out_offset_seconds": 0.5,
+                "transition_start_seconds": 2.0,
+                "covered_start_seconds": 1.75, "covered_end_seconds": 2.5,
+                "overlap_seconds": 0.25, "where": "timeline.tracks[0][1]",
+            },
+            {
+                "reason": "transition", "a": "B", "b": "dissolve", "covered_side": "out_offset",
+                "in_offset_seconds": 0.25, "out_offset_seconds": 0.5,
+                "transition_start_seconds": 2.0,
+                "covered_start_seconds": 1.75, "covered_end_seconds": 2.5,
+                "overlap_seconds": 0.5, "where": "timeline.tracks[0][1]",
+            },
+        ])
+
+    def test_covered_range_is_clamped_to_the_neighbouring_item(self):
+        # in_offset reaches past the whole 1.0s clip A: the covered range still
+        # starts at A's own start, so the overlap cannot exceed A's duration.
+        document = transition_timeline()
+        track = document["tracks"]["children"][0]
+        track["children"][0]["source_range"] = timeline.time_range(0.0, 1.0, 24)
+        track["children"][1]["in_offset"] = timeline.rational_time(4.0, 24)
+        records = timeline.overlaps(document)
+        self.assertEqual([record["overlap_seconds"] for record in records], [1.0, 0.5])
+        self.assertEqual(records[0]["covered_start_seconds"], -3.0)
+
+    def test_the_formula_is_documented_in_the_module(self):
+        self.assertIn("transition_start - in_offset", timeline.TRANSITION_COVERED_RANGE)
+        docstring = timeline.__doc__ or ""
+        self.assertIn("transition_start - in_offset", docstring)
+        self.assertIn("transition_start + out_offset", docstring)
+        self.assertIn("covered_range", timeline.overlaps.__doc__ or "")
+
+    def test_negative_transition_offsets_and_adjacent_transitions_fail_closed(self):
+        document = transition_timeline()
+        document["tracks"]["children"][0]["children"][1]["in_offset"] = (
+            timeline.rational_time(-0.25, 24))
+        with self.assertRaises(InteropError) as caught:
+            timeline.validate_timeline(document)
+        self.assertIn("must not be negative", str(caught.exception))
+
+        doubled = transition_timeline()
+        children = doubled["tracks"]["children"][0]["children"]
+        children.insert(2, json.loads(json.dumps(children[1])))
+        with self.assertRaises(InteropError) as caught:
+            timeline.overlaps(doubled)
+        self.assertIn("next to another Transition.1", str(caught.exception))
 
     def test_parallel_stack_children_overlap(self):
         stack = {"OTIO_SCHEMA": "Stack.1", "name": "layers", "metadata": {}, "children": [

@@ -32,20 +32,45 @@ JSON in, JSON out. It never opens a design application, never starts a process,
 never touches the network and never writes a file. All evidence it can produce is
 E1 (STRUCTURAL); no live token-tool run and no third-party round trip is claimed.
 
-Documented relaxations (deliberate, and reported by ``validate_document``):
+Canonical strictness (DTCG 2025.10 stable)
+-----------------------------------------
+``validate_document``, ``flatten`` and ``roundtrip`` accept **canonical** DTCG
+documents only, and none of them takes a permissive flag:
 
-* ``typography.letterSpacing`` is treated as optional. DTCG 2025.10 marks it
-  required, but the in-repo ``design-tokens.dtcg.json`` files (produced by
-  ``convert_tokens_dtcg.py``) omit it. Accepting it keeps those artifacts valid
-  without rewriting frozen fixtures.
-* ``string`` and ``boolean`` are accepted as non-DTCG legacy types only when the
-  caller passes ``allow_legacy_types=True``; they are the types the existing
-  converter emits for ``theme``/``reduce-enabled``. Strict validation (the
-  default) rejects them.
+* the ``typography`` composite requires all five members -- ``fontFamily``,
+  ``fontSize``, ``fontWeight``, ``letterSpacing`` and ``lineHeight``. A missing
+  ``letterSpacing`` is a validation error, not a tolerated deviation.
+* ``string`` and ``boolean`` are pre-2025.10 types emitted by the in-repo
+  converter (``theme``, ``reduce-enabled``). They are not DTCG 2025.10 types, so
+  the canonical path rejects them outright; the canonical schema file is not
+  relaxed for them either.
+
+Legacy tolerance lives in a separate, explicitly named adapter
+-------------------------------------------------------------
+:func:`from_legacy_document` converts a pre-2025.10 document into canonical form
+and :func:`validate_legacy_document` is the adapter's validation entry point.
+Neither widens the canonical contract, and neither is reachable by accident: the
+canonical entry points no longer have an ``allow_legacy_types`` option.
+
+What the adapter does, and what it refuses to guess:
+
+* a legacy ``string``/``boolean`` token has no canonical DTCG 2025.10 type. The
+  adapter does not coerce it into a canonical type it is not; it moves the token
+  *verbatim* into the document ``$extensions`` map under
+  ``com.design-lab.legacy-adapter``, keyed by its flattened path, and reports it
+  as unmapped.
+* a legacy ``typography`` token whose ``$value`` omits ``letterSpacing`` gets CSS
+  ``normal`` tracking written as ``"0px"``, and the token records the synthesized
+  member under ``$extensions`` so the addition is never silent.
+
+Both in-repo ``design-tokens.dtcg.json`` files are **legacy** documents: they
+carry ``$type: "string"``/``"boolean"`` and their ``typography`` tokens omit
+``letterSpacing``. They are read through the adapter.
 """
 from __future__ import annotations
 
 import functools
+import json
 import re
 
 from ..runtime.paths import PROJECT_ROOT
@@ -74,8 +99,19 @@ TOKEN_TYPES = (
 #: Types whose value is a structured object rather than a scalar.
 COMPOSITE_TYPES = ("typography", "shadow", "border", "transition", "gradient")
 
-#: Non-DTCG types emitted by the existing in-repo converter; opt-in only.
+#: Members DTCG 2025.10 requires on a ``typography`` value. All five are required;
+#: the canonical path has no relaxation (see the module docstring).
+TYPOGRAPHY_MEMBERS = ("fontFamily", "fontSize", "fontWeight", "letterSpacing", "lineHeight")
+
+#: Pre-2025.10 types emitted by the existing in-repo converter. Not DTCG 2025.10
+#: types: the canonical path rejects them and only the legacy adapter sees them.
 LEGACY_TYPES = ("string", "boolean")
+
+#: Vendor extension namespace the legacy adapter writes into ``$extensions``.
+LEGACY_ADAPTER_NAMESPACE = "com.design-lab.legacy-adapter"
+#: Value the adapter writes for a ``typography`` value that omits ``letterSpacing``
+#: (CSS ``normal`` tracking).
+LEGACY_LETTER_SPACING = "0px"
 
 _COLOR_SPACES = (
     "srgb", "srgb-linear", "display-p3", "a98-rgb", "prophoto-rgb", "rec2020",
@@ -276,10 +312,11 @@ def _check_stroke_style(value, where):
 
 
 def _check_typography(value, where):
-    # letterSpacing is optional here on purpose (see the module docstring).
+    # DTCG 2025.10 requires all five members of the typography composite. There is
+    # no canonical relaxation: a legacy document that omits letterSpacing goes
+    # through from_legacy_document first.
     _check_members(
-        value, where, ("fontFamily", "fontSize", "fontWeight", "lineHeight"),
-        ("letterSpacing",),
+        value, where, TYPOGRAPHY_MEMBERS, (),
         {"fontFamily": _check_font_family,
          "fontSize": _check_dimension,
          "fontWeight": _check_font_weight,
@@ -360,6 +397,7 @@ _VALUE_CHECKERS = {
 
 
 def _check_legacy(value, type_name, where):
+    """Only the legacy adapter calls this: canonical documents never carry these types."""
     if type_name == "string":
         # The legacy converter emits plain strings, including the empty theme id.
         if not isinstance(value, str):
@@ -377,15 +415,14 @@ def _join(path, name):
     return f"{path}.{name}" if path else name
 
 
-def _collect(document, *, allow_legacy_types: bool):
-    """Walk a DTCG document into token records, group metadata and document order."""
+def _collect(document):
+    """Walk a canonical DTCG document into token records, group metadata and order."""
     if not isinstance(document, dict) or not document:
         raise InteropError("DTCG document must be a nonempty JSON object")
 
     tokens: dict[str, dict] = {}
     groups: dict[str, dict] = {}
     order: list[str] = []
-    legacy_types: set[str] = set()
 
     def add_token(key_path, node, inherited_type, *, is_root, group_path):
         if key_path in tokens:
@@ -476,18 +513,18 @@ def _collect(document, *, allow_legacy_types: bool):
                 "resolvable $type"
             )
         if name in LEGACY_TYPES:
-            if not allow_legacy_types:
-                raise _fail(
-                    f"{where} uses the non-DTCG type {name!r}; it comes from the legacy "
-                    "design-tokens.dtcg.json converter. Pass allow_legacy_types=True to accept it"
-                )
-            legacy_types.add(name)
-        elif name not in TOKEN_TYPES:
             raise _fail(
-                f"{where} uses unknown $type {name!r}; DTCG 2025.10 types are: "
+                f"{where} uses the pre-2025.10 type {name!r}, which is not a DTCG {SCHEMA_VERSION} "
+                "type and is not accepted by the canonical contract. Convert the document first "
+                "with dtcg.from_legacy_document (the legacy adapter), or use "
+                "dtcg.validate_legacy_document, which adapts and then validates strictly"
+            )
+        if name not in TOKEN_TYPES:
+            raise _fail(
+                f"{where} uses unknown $type {name!r}; DTCG {SCHEMA_VERSION} types are: "
                 f"{', '.join(TOKEN_TYPES)}"
             )
-    return tokens, groups, order, root_meta, sorted(legacy_types)
+    return tokens, groups, order, root_meta
 
 
 def _resolve_deep(value, tokens, stack, chain, owner):
@@ -520,47 +557,49 @@ def _resolve(tokens):
     return values, chains
 
 
-def _check_resolved(tokens, values, *, allow_legacy_types):
+def _check_resolved(tokens, values):
     for path, record in tokens.items():
         where = f"DTCG token {path!r} (type {record['type']!r})"
-        if record["type"] in LEGACY_TYPES and allow_legacy_types:
-            _check_legacy(values[path], record["type"], where)
-            continue
         _VALUE_CHECKERS[record["type"]](values[path], where)
 
 
-def validate_document(document, *, allow_legacy_types: bool = False) -> dict:
-    """Validate a DTCG token document; return a structural report.
+def validate_document(document) -> dict:
+    """Validate a **canonical** DTCG 2025.10 token document; return a structural report.
 
     Structural rules come from ``interop-dtcg-document.schema.json``; semantic
     rules ($type inheritance, alias resolution, cycle rejection, composite member
-    completeness, per-type value shape) are enforced here. Raises
-    :class:`InteropError` on the first class of failure and never repairs input.
+    completeness -- all five ``typography`` members included -- and per-type value
+    shape) are enforced here. Raises :class:`InteropError` on the first class of
+    failure and never repairs input.
+
+    There is no permissive flag: a pre-2025.10 document (``string``/``boolean``
+    types, ``typography`` without ``letterSpacing``) is rejected. Convert it with
+    :func:`from_legacy_document` first, or call :func:`validate_legacy_document`.
     """
     problems = _schema_errors(document)
     if problems:
         raise InteropError(
             f"DTCG document violates {SCHEMA_PATH.name}: " + "; ".join(problems[:10])
         )
-    tokens, _groups, _order, root_meta, legacy_types = _collect(
-        document, allow_legacy_types=allow_legacy_types
-    )
+    tokens, _groups, _order, root_meta = _collect(document)
     values, chains = _resolve(tokens)
-    _check_resolved(tokens, values, allow_legacy_types=allow_legacy_types)
+    _check_resolved(tokens, values)
     type_counts: dict[str, int] = {}
     for record in tokens.values():
         type_counts[record["type"]] = type_counts.get(record["type"], 0) + 1
     return {
         "schemaVersion": SCHEMA_VERSION,
         "schema_path": SCHEMA_PATH.relative_to(PROJECT_ROOT).as_posix(),
+        "canonical": True,
         "token_count": len(tokens),
         "group_count": len(_groups),
         "types": {name: type_counts[name] for name in sorted(type_counts)},
         "alias_tokens": sum(1 for chain in chains.values() if chain),
         "root_tokens": sorted(path for path, record in tokens.items() if record["is_root"]),
-        "legacy_types": legacy_types,
         "document_keys": sorted(root_meta),
-        "typography_letterSpacing": "optional",
+        "typography_letterSpacing": "required",
+        "typography_members": list(TYPOGRAPHY_MEMBERS),
+        "legacy_adapter": "from_legacy_document",
     }
 
 
@@ -568,8 +607,8 @@ def validate_document(document, *, allow_legacy_types: bool = False) -> dict:
 # flatten / to_document / roundtrip
 # --------------------------------------------------------------------------- #
 
-def flatten(document, *, allow_legacy_types: bool = False) -> dict:
-    """Flatten a DTCG document into ``{"path.to.token": record}``.
+def flatten(document) -> dict:
+    """Flatten a canonical DTCG document into ``{"path.to.token": record}``.
 
     Each record carries ``$type`` (effective, after inheritance), ``$value``
     (aliases resolved), ``alias_chain`` (alias targets traversed, in encounter
@@ -582,10 +621,8 @@ def flatten(document, *, allow_legacy_types: bool = False) -> dict:
     reserved ``$meta`` key. Every key whose name starts with ``$`` is reserved by
     the DTCG format, so ``$meta`` cannot collide with a token path.
     """
-    report = validate_document(document, allow_legacy_types=allow_legacy_types)
-    tokens, groups, order, root_meta, legacy_types = _collect(
-        document, allow_legacy_types=allow_legacy_types
-    )
+    report = validate_document(document)
+    tokens, groups, order, root_meta = _collect(document)
     values, chains = _resolve(tokens)
 
     flat: dict[str, dict] = {}
@@ -607,7 +644,6 @@ def flatten(document, *, allow_legacy_types: bool = False) -> dict:
         "document": root_meta,
         "groups": {path: dict(meta) for path, meta in groups.items()},
         "order": list(order),
-        "legacy_types": list(legacy_types),
         "report": report,
     }
     return flat
@@ -715,18 +751,193 @@ def to_document(flat) -> dict:
     return document
 
 
-def roundtrip(document, *, allow_legacy_types: bool = False) -> dict:
-    """``to_document(flatten(document))`` -- lossless for the supported subset.
+def roundtrip(document) -> dict:
+    """``to_document(flatten(document))`` -- lossless for canonical documents.
 
     Lossless means deep equality against the input for: nested groups, ``$type``
     inheritance (including a group ``$type`` that every descendant overrides),
     ``$root`` tokens, alias references, ``$description``/``$extensions``/
-    ``$deprecated`` and every DTCG 2025.10 token type plus the opt-in legacy types.
-    Comments, key order inside JSON objects and duplicate keys are outside the
-    guarantee.
+    ``$deprecated`` and every DTCG 2025.10 token type. Comments, key order inside
+    JSON objects and duplicate keys are outside the guarantee.
+
+    The input must be canonical; a legacy document goes through
+    :func:`from_legacy_document` first (the round trip then guarantees losslessness
+    for the *adapted* document).
     """
-    validate_document(document, allow_legacy_types=allow_legacy_types)
-    return to_document(flatten(document, allow_legacy_types=allow_legacy_types))
+    validate_document(document)
+    return to_document(flatten(document))
+
+
+# --------------------------------------------------------------------------- #
+# legacy adapter: pre-2025.10 documents -> canonical documents
+# --------------------------------------------------------------------------- #
+
+def _scan_unvalidated(document):
+    """Walk a document without validating token types.
+
+    Returns ``(tokens, groups)``. ``tokens`` maps a flattened path to
+    ``{"node", "parent", "name", "group", "type", "explicit"}``, where ``type`` is
+    the effective type after ``$type`` inheritance. Unlike :func:`_collect` this
+    never rejects a type, so the legacy adapter can see ``string``/``boolean``
+    tokens. Nothing is copied: ``node`` and ``parent`` are the live objects of
+    *document*, which lets the adapter rewrite the tree in place.
+    """
+    if not isinstance(document, dict) or not document:
+        raise InteropError("legacy DTCG document must be a nonempty JSON object")
+    tokens: dict[str, dict] = {}
+    groups: dict[str, dict] = {}
+
+    def add(path, node, parent, name, inherited, group):
+        explicit = "$type" in node
+        tokens[path] = {
+            "node": node,
+            "parent": parent,
+            "name": name,
+            "group": group,
+            "type": node["$type"] if explicit else inherited,
+            "explicit": explicit,
+        }
+
+    def visit_group(node, path, inherited_type):
+        inherited = node.get("$type", inherited_type)
+        if path:
+            groups[path] = node
+        for key, child in node.items():
+            if key == "$root":
+                if not path:
+                    continue
+                if not isinstance(child, dict):
+                    raise InteropError(f"legacy DTCG group member {path!r} $root must be an object")
+                add(path, child, node, "$root", inherited, path)
+                continue
+            if key.startswith("$"):
+                continue
+            child_path = _join(path, key)
+            if not isinstance(child, dict):
+                raise InteropError(
+                    f"legacy DTCG group member {child_path!r} must be an object (a token needs "
+                    "$value, a nested group is an object)"
+                )
+            if "$value" in child:
+                add(child_path, child, node, key, inherited, path)
+            else:
+                visit_group(child, child_path, inherited)
+
+    visit_group(document, "", document.get("$type"))
+    return tokens, groups
+
+
+def _adapt_legacy_document(document, *, letter_spacing=LEGACY_LETTER_SPACING):
+    """Adapt a pre-2025.10 document in place on a deep copy; return it with a record."""
+    if not isinstance(letter_spacing, str) or not letter_spacing.strip():
+        raise _fail("the adapter's synthesized letterSpacing must be a nonempty dimension string")
+    try:
+        adapted = json.loads(json.dumps(document))
+    except (TypeError, ValueError) as exc:
+        raise InteropError(f"legacy DTCG document must be JSON-serializable: {exc}") from exc
+    tokens, _groups = _scan_unvalidated(adapted)
+
+    unmapped: dict[str, dict] = {}
+    legacy_types: set[str] = set()
+    for path in list(tokens):
+        entry = tokens[path]
+        type_name = entry["type"]
+        if type_name not in LEGACY_TYPES:
+            continue
+        node = entry["node"]
+        _check_legacy(node["$value"], type_name, f"legacy DTCG token {path!r}")
+        record = {"$type": type_name, "$value": node["$value"]}
+        for extra in ("$description", "$extensions", "$deprecated"):
+            if extra in node:
+                record[extra] = node[extra]
+        record["reason"] = (
+            f"pre-2025.10 type {type_name!r} has no canonical DTCG {SCHEMA_VERSION} equivalent; "
+            "the adapter preserves the token verbatim instead of coercing it into a type it is not"
+        )
+        unmapped[path] = record
+        legacy_types.add(type_name)
+        del entry["parent"][entry["name"]]
+
+    tokens, _groups = _scan_unvalidated(adapted)
+    synthesized: dict[str, list[str]] = {}
+    for path, entry in tokens.items():
+        if entry["type"] != "typography":
+            continue
+        node = entry["node"]
+        value = node["$value"]
+        if not isinstance(value, dict) or "letterSpacing" in value:
+            continue
+        if _alias_target(value) is not None:
+            # An aliased typography value is adapted at the token it points to.
+            continue
+        value["letterSpacing"] = letter_spacing
+        extensions = node.setdefault("$extensions", {})
+        if not isinstance(extensions, dict):
+            raise _fail(f"legacy DTCG token {path!r} $extensions must be an object")
+        extensions[LEGACY_ADAPTER_NAMESPACE] = {
+            "synthesized_members": ["letterSpacing"],
+            "value": letter_spacing,
+            "reason": (
+                f"DTCG {SCHEMA_VERSION} requires letterSpacing on typography; the legacy document "
+                "omitted it and the adapter wrote CSS 'normal' tracking as an explicit dimension"
+            ),
+        }
+        synthesized[path] = ["letterSpacing"]
+
+    summary = {
+        "legacy_types": sorted(legacy_types),
+        "unmapped_tokens": unmapped,
+        "synthesized_members": synthesized,
+    }
+    if unmapped or synthesized:
+        extensions = adapted.setdefault("$extensions", {})
+        if not isinstance(extensions, dict):
+            raise _fail("legacy DTCG document $extensions must be an object")
+        extensions[LEGACY_ADAPTER_NAMESPACE] = summary
+    return adapted, summary
+
+
+def from_legacy_document(document, *, letter_spacing=LEGACY_LETTER_SPACING) -> dict:
+    """The legacy adapter: convert a pre-2025.10 document into canonical form.
+
+    Adapter, not a relaxation -- the canonical contract is unchanged and the
+    canonical schema file is untouched. Two conversions happen, both recorded in
+    the result's ``$extensions`` under :data:`LEGACY_ADAPTER_NAMESPACE`:
+
+    * every ``string``/``boolean`` token (effective type, so inherited types count)
+      is removed from the token tree and preserved verbatim in the document
+      ``$extensions`` summary under ``unmapped_tokens``. A pre-2025.10 scalar has no
+      canonical DTCG 2025.10 type, and inventing one would be a false claim.
+    * a ``typography`` value that omits ``letterSpacing`` gets an explicit
+      ``"0px"`` (CSS ``normal`` tracking, the value the omission means) and the
+      token carries a ``$extensions`` marker naming the synthesized member.
+
+    A canonical document is returned unchanged (deep copy), so this is safe to call
+    unconditionally. The input is never mutated. The result is canonical: it is
+    accepted by :func:`validate_document`.
+    """
+    adapted, _summary = _adapt_legacy_document(document, letter_spacing=letter_spacing)
+    return adapted
+
+
+def validate_legacy_document(document, *, letter_spacing=LEGACY_LETTER_SPACING) -> dict:
+    """Adapter entry point: adapt a legacy document, then validate it strictly.
+
+    Returns the canonical report from :func:`validate_document` extended with the
+    adapter's record: ``canonical_source``, ``legacy_types``,
+    ``unmapped_legacy_tokens`` and ``synthesized_members``. The strictness of
+    :func:`validate_document` is not weakened -- this function adapts first and then
+    applies exactly the same canonical validation.
+    """
+    adapted, summary = _adapt_legacy_document(document, letter_spacing=letter_spacing)
+    report = validate_document(adapted)
+    report["canonical_source"] = "legacy-adapter"
+    report["legacy_types"] = summary["legacy_types"]
+    report["unmapped_legacy_tokens"] = sorted(summary["unmapped_tokens"])
+    report["synthesized_members"] = {
+        path: list(members) for path, members in sorted(summary["synthesized_members"].items())
+    }
+    return report
 
 
 # --------------------------------------------------------------------------- #
@@ -798,10 +1009,6 @@ def _css_projection(record):
         return "cubic-bezier(%s)" % ", ".join(_number_text(item) for item in value), None
     if type_name == "strokeStyle" and isinstance(value, str):
         return value, None
-    if type_name in LEGACY_TYPES:
-        if type_name == "boolean":
-            return ("true" if value else "false"), None
-        return value, None
     return None, (
         f"type {type_name!r} has no single CSS custom-property representation; "
         "read the DTCG document instead"
@@ -818,7 +1025,7 @@ def to_css_variables(document, *, prefix: str = "--dl") -> dict:
     and the object form of ``strokeStyle``) are listed in ``omitted`` rather than
     being flattened into a made-up string. The result is deterministic: tokens are
     visited in sorted path order and a name collision after sanitising fails
-    closed.
+    closed. The input must be a canonical document (see :func:`from_legacy_document`).
     """
     flat = flatten(document)
     variables: dict[str, str] = {}
