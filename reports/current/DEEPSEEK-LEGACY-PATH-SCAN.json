@@ -1,0 +1,81 @@
+{
+  "schemaVersion": "design-lab/deepseek-legacy-path-scan/v1",
+  "task_keys": [
+    "DL-TP-20260914-DEEPSEEK-AUTHORITY-R1::DLDS-B020"
+  ],
+  "generated_at": "2026-09-13T16:18:14+00:00",
+  "patterns": [
+    {
+      "name": "design-lab/adapters",
+      "regex": "design[-_]lab/adapters|design_lab\\.adapters\\.(?!photoshop_com|illustrator_com|spi)"
+    },
+    {
+      "name": "project-memory",
+      "regex": "project[-_]memory"
+    },
+    {
+      "name": "knowledge-dir",
+      "regex": "design-lab/knowledge/"
+    },
+    {
+      "name": "intelligence-dir",
+      "regex": "design-lab/intelligence/"
+    },
+    {
+      "name": "exports-dir",
+      "regex": "design-lab/exports/"
+    },
+    {
+      "name": "hermes-path",
+      "regex": "\\.hermes"
+    },
+    {
+      "name": "hermes-task-artifacts",
+      "regex": "\\.hermes/task-artifacts|\\.hermes/task-runtime"
+    },
+    {
+      "name": "legacy-import-design_lab-core",
+      "regex": "from\\s+design-lab\\.|import\\s+design-lab\\."
+    }
+  ],
+  "hit_total": 887,
+  "active_reference_total": 0,
+  "blocked_active_hits": [],
+  "by_pattern": {
+    "knowledge-dir": {
+      "total": 304,
+      "active": 0
+    },
+    "hermes-path": {
+      "total": 209,
+      "active": 0
+    },
+    "hermes-task-artifacts": {
+      "total": 84,
+      "active": 0
+    },
+    "project-memory": {
+      "total": 89,
+      "active": 0
+    },
+    "intelligence-dir": {
+      "total": 120,
+      "active": 0
+    },
+    "exports-dir": {
+      "total": 32,
+      "active": 0
+    },
+    "design-lab/adapters": {
+      "total": 49,
+      "active": 0
+    }
+  },
+  "classification_counts": {
+    "MIGRATED": 17,
+    "HISTORICAL_ONLY": 870,
+    "POLICY_RECORD": 0,
+    "DELETE": 0,
+    "BLOCKED": 0
+  }
+}

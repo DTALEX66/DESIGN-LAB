@@ -15,7 +15,7 @@
     "executor": "DEEPSEEK/DSH",
     "base_sha": "56319635bbcf112ac88d097317262c101ffdfe4d",
     "branch": "codex/deepseek-authority-r1",
-    "worktree": "sha256:90b4e0c8cd9ce19b13bfeb5ceca241366c71d3badadcd5f3abca4f355e1e4ff7",
+    "worktree": "sha256:b201d773913c33469ce58c0ff6565bf7ca71ac92040c580208d6efcf696da144",
     "worktree_clean": false
   },
   "authority": {
@@ -135,36 +135,64 @@
       "full_id": "DL-TP-20260914-DEEPSEEK-AUTHORITY-R1::DLDS-B000",
       "wave": "B",
       "wave_title": "Wave 1 - Repository Normalization",
-      "status": "NOT_STARTED",
-      "evidence": [],
-      "notes": []
+      "status": "DONE",
+      "evidence": [
+        "reports/current/DEEPSEEK-DIRECTORY-AUDIT.json"
+      ],
+      "notes": [
+        {
+          "at": "2026-09-13T16:18:38+00:00",
+          "note": "18 directories audited; CONFORM=14 DEVIATION=1 (design-lab dual scheme) EMPTY_DIR=1 (services) EXTRA=3 (git-ignored local dirs); 19 root files listed separately; tracked=1835 files / 30.2 MiB"
+        }
+      ]
     },
     {
       "task_key": "DLDS-B010",
       "full_id": "DL-TP-20260914-DEEPSEEK-AUTHORITY-R1::DLDS-B010",
       "wave": "B",
       "wave_title": "Wave 1 - Repository Normalization",
-      "status": "NOT_STARTED",
-      "evidence": [],
-      "notes": []
+      "status": "DONE",
+      "evidence": [
+        "docs/architecture/DIRECTORY-AUTHORITY.md"
+      ],
+      "notes": [
+        {
+          "at": "2026-09-13T16:18:38+00:00",
+          "note": "responsibility table frozen; design-lab declared a content/config root with no new runtime modules; duplication rule and services/ empty-dir rule recorded; no relocation performed (bound by pyproject testpaths, verifier expected roles, CI paths)"
+        }
+      ]
     },
     {
       "task_key": "DLDS-B020",
       "full_id": "DL-TP-20260914-DEEPSEEK-AUTHORITY-R1::DLDS-B020",
       "wave": "B",
       "wave_title": "Wave 1 - Repository Normalization",
-      "status": "NOT_STARTED",
-      "evidence": [],
-      "notes": []
+      "status": "DONE",
+      "evidence": [
+        "reports/current/DEEPSEEK-LEGACY-PATH-SCAN.json"
+      ],
+      "notes": [
+        {
+          "at": "2026-09-13T16:18:38+00:00",
+          "note": "887 hits: active legacy path usage = 0; MIGRATED guard markers = 17 (LEGACY_* constants in runtime_roots.py keep .hermes refusal vocabulary); HISTORICAL_ONLY records = 870. Refined classifier separates code use from data records and governance policy after the first pass mislabelled 90 records as active."
+        }
+      ]
     },
     {
       "task_key": "DLDS-B030",
       "full_id": "DL-TP-20260914-DEEPSEEK-AUTHORITY-R1::DLDS-B030",
       "wave": "B",
       "wave_title": "Wave 1 - Repository Normalization",
-      "status": "NOT_STARTED",
-      "evidence": [],
-      "notes": []
+      "status": "DONE",
+      "evidence": [
+        "reports/history/B030-superseded-current/"
+      ],
+      "notes": [
+        {
+          "at": "2026-09-13T16:18:38+00:00",
+          "note": "9 dated historical documents (09-04/05/06) moved out of reports/current via git mv into reports/history/B030-superseded-current/; no active reference to the moved paths remains; reports/current now holds only current projections and the DEEPSEEK-* authority artifacts"
+        }
+      ]
     },
     {
       "task_key": "DLDS-B040",
@@ -608,5 +636,5 @@
       "notes": []
     }
   ],
-  "updated_at": "2026-09-13T16:16:25+00:00"
+  "updated_at": "2026-09-13T16:18:39+00:00"
 }
