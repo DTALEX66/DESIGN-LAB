@@ -1,6 +1,6 @@
 # Contract Graph Report
 
-Subject: `0e53d30f10ef1b5790d45f477d741f512a6663a1`
+Subject: `a279b24e4499536edb49cebd9d855377fc94ce50`
 
 ## Contract Graph Report
 

@@ -132,6 +132,111 @@ def runtime_total(root: str) -> dict:
     return {"files": files, "bytes": total, "mib": round(total / 1048576, 2)}
 
 
+# The taskpack's own 32 Done-When criteria, assessed one by one against the artifact
+# that proves each. A criterion is never marked MET because work happened near it.
+DONE_WHEN = [
+    (1, "the taskpack is landed with a SHA-256", "MET",
+     "docs/taskpacks/DESIGN-LAB-DEEPSEEK-AUTHORITY-TASKPACK-2026-09-14.md, sha256 "
+     "d9fdaa3ad7ad0055a3f451c853756be41036b32112cacc4d1c17b314c005a2f9; ledger verify passes "
+     "for all 58 tasks", ""),
+    (2, "AGENTS.md points at the single current DeepSeek taskpack", "MET",
+     "AGENTS.md names one current DeepSeek pack; the authority chain classifies 38 entries",
+     ""),
+    (3, "old taskpack authority relations are explicit", "MET",
+     "reports/current/DEEPSEEK-AUTHORITY-CHAIN.json: 2 CURRENT_DEEPSEEK_AUTHORITY, 12 "
+     "ACTIVE_PRODUCT_PACK, 2 GOVERNANCE_TRUTH, 14 HISTORICAL, 8 REFERENCE", ""),
+    (4, "the dirty worktree is attributed and frozen", "MET",
+     "reports/current/DEEPSEEK-WORKTREE-INVENTORY.json: 97/97 files classified, 0 UNPROVEN",
+     ""),
+    (5, "every active code path maps to a task", "MET_WITH_EXCEPTION",
+     "the frozen delta is fully attributed against the pack; the exception is "
+     "design-lab/core, an unused legacy package outside the declared layout",
+     "design-lab/core is retained and reported, not adopted or deleted"),
+    (6, "the repository has exactly one current directory scheme", "MET_WITH_EXCEPTION",
+     "reports/current/DEEPSEEK-DIRECTORY-AUDIT.json: CONFORM 14, DEVIATION 1 (design-lab dual "
+     "scheme), EMPTY_DIR 1 (services), EXTRA 3 (git-ignored local directories)",
+     "the design-lab dual scheme and the empty services/ directory are reported, not resolved"),
+    (7, ".project-local is the single runtime root", "MET",
+     "runtime roots measured: .project-local 4500.94 MiB / 65832 files; .hermes holds no content",
+     ""),
+    (8, "no active .hermes project writes", "MET",
+     "no tracked .hermes files; the namespace holds two EMPTY directories whose mtimes sit at "
+     "the migration instant and one refused agent-native file", ""),
+    (9, "repository size has a measured before/after", "MET_WITH_EXCEPTION",
+     "tracked files 1832 -> 1891 and 30.15 -> 30.97 MiB from base revision 56319635, "
+     "like-for-like TRUE; the git pack and runtime roots are NOT like-for-like",
+     "no pack or runtime-root reduction is claimed; the withdrawal is computed in the artifact"),
+    (10, "safely deletable cache/temp is really cleaned", "MET",
+     "167 entries, 316.79 MiB, per-entry digest and recreation note in the cleanup manifest", ""),
+    (11, "the spill census is complete", "MET",
+     "reports/current/SPILL-CENSUS.json verdict CENSUS_COMPLETE at metadata and path level", ""),
+    (12, "DESIGN-LAB-owned spill is migrated or is an explicit exception", "MET",
+     "10 objects / 11565138 bytes migrated with 10 verified digests and restore paths; 1 object "
+     "refused as agent-native with DO_NOT_TOUCH", ""),
+    (13, "every deletion has a manifest, a hash and a rollback", "MET",
+     "cleanup manifest with digests and recreation notes; migration manifest with restore "
+     "commands; the quarantine manifest is restorable", ""),
+    (14, "the Python/TS/Host JS/Rust language boundary is landed", "MET",
+     "docs/architecture/LANGUAGE-POLICY.md, LANGUAGE-INVENTORY.json and "
+     "LANGUAGE-BOUNDARY-SCAN.json: 0 forbidden, 1 fixture-scoped (Java in an inert blob), "
+     "0 conditional", ""),
+    (15, "the dependency lock is unique", "MET",
+     "uv.lock and requirements.txt are tracked; one Python project root and one lockfile "
+     "manager; no Node lockfile exists because there is no product Node package", ""),
+    (16, "the contract graph has no unexplained broken link", "MET",
+     "reports/current/CONTRACT-GRAPH.json: 11 concepts, 0 breaks, every consumer edge verified "
+     "against executable code", ""),
+    (17, "the creative DB migration is fully rehearsed on a copy", "MET",
+     "15/15 steps pass on a copy with zero writes to any pre-existing database; still marked "
+     "MIGRATION_CANDIDATE_PENDING_AUDIT and accepted_as_production false", ""),
+    (18, "the foundation state files are independently reviewed", "MET",
+     "FOUNDATION-AUDIT.json passes, and the independent audit re-read the state layer without "
+     "access to this run's reasoning", ""),
+    (19, "DTCG canonical is 2025.10", "MET",
+     "src/design_lab/interop/dtcg.py: strict canonical schema, legacy behind a named adapter", ""),
+    (20, "OTIO has no invented conflicting semantics", "MET",
+     "src/design_lab/interop/timeline.py derives overlaps from the official Transition.1 "
+     "covered-range formula", ""),
+    (21, "the C2PA contract aligns to 2.4", "MET",
+     "src/design_lab/interop/provenance.py projects onto c2pa.claim.v2 / c2pa.signature, "
+     "unsigned and never signed here", ""),
+    (22, "the Penpot validator aligns to v3", "MET",
+     "src/design_lab/interop/penpot.py validates the v3 archive structure read-only", ""),
+    (23, "the GLB validator is JSON-safe and covers the accessor matrix", "MET",
+     "src/design_lab/media/three_d.py splits parse/validate/summarize and covers MAT2/MAT3/MAT4 "
+     "accessors; 29 tests pass", ""),
+    (24, "the QA automatic/model/human boundary is explicit", "MET",
+     "qa_plane.py policy is frozen: automation may not be final, a human verdict is required, "
+     "model-assisted findings escalate instead of rejecting", ""),
+    (25, "the Rights Registry is current", "MET_WITH_EXCEPTION",
+     "design-lab/config/rights-registry.json covers 74 subjects, 4 adjudicated",
+     "70 subjects remain NOT_ADJUDICATED and are carried as an exception"),
+    (26, "H3 has not bypassed the Rights Gate", "MET",
+     "adapter status BLOCKED_BY_LICENSE everywhere; the manifest claims no supported capability; "
+     "nothing was downloaded or run", ""),
+    (27, "third-party sources are minimally absorbed or locked", "MET_WITH_EXCEPTION",
+     "verdict NO_FULL_THIRD_PARTY_SOURCE_TREES_TRACKED: 0 tracked full copies, 37 only in an "
+     "ignored cache, 6 via lock reference",
+     "7 of 46 lock entries carry no canonical URL and 0 carry a pinned revision"),
+    (28, "current reports bind the exact subject", "MET",
+     "subject_sha, taskpack id and hash, worktree digest and taskpack binding are recorded; "
+     "--check reports scope=bound-input-integrity with git-and-cloud explicitly NOT_VERIFIED",
+     ""),
+    (29, "a clean clone reproduces the static and test layers", "MET",
+     "verify_fresh_clone.py passes 9 stages on a fresh clone; install is NOT_VERIFIABLE and is "
+     "reported as such", ""),
+    (30, "DeepSeek impersonated no real design host E3/E4", "MET",
+     "EVIDENCE-LEVEL-AUDIT.json: 4 claims examined, 0 overclaims, all historical and qualified",
+     ""),
+    (31, "the Codex handoff is fully generated", "MET",
+     "docs/taskpacks/DESIGN-LAB-CODEX-REAL-HOST-HANDOFF.md: 8 domains with contract, fixture, "
+     "commands, evidence template, do-not-claim list and rollback", ""),
+    (32, "the worktree is clean or every change is attributed", "MET",
+     "the tree is clean at the recorded subject; every committed change names an owner task",
+     ""),
+]
+
+
 def k010() -> dict:
     """The seven conditions the taskpack lists, each re-derived from its artifact."""
     legacy = artifact("DEEPSEEK-LEGACY-PATH-SCAN.json")
@@ -260,9 +365,17 @@ def k020() -> dict:
          "ok": len(manifests) <= 1 and not lb.get("second_node_backend"),
          "measured": {"node_manifests": manifests,
                       "second_node_backend": lb.get("second_node_backend"),
-                      "lockfiles": lb.get("lockfiles"),
+                      "node_lockfiles": lb.get("node_lockfiles"),
+                      "python_lockfiles": lb.get("python_lockfiles"),
                       "note": "the only Node manifest belongs to the MiniGame game-visual fixture; "
                               "there is no product Node package"}},
+        {"condition": "dependency lock is unique per ecosystem",
+         "ok": bool(lb.get("python_lockfiles"))
+               and not lb.get("multiple_lockfile_managers"),
+         "measured": {"python_lockfiles": lb.get("python_lockfiles"),
+                      "node_lockfiles": lb.get("node_lockfiles"),
+                      "multiple_lockfile_managers": lb.get("multiple_lockfile_managers"),
+                      "note": "uv.lock is the Python lock; no second manager is present"}},
         {"condition": "no unauthorised new primary language",
          "ok": not lb.get("forbidden_language_files") and not lb.get("conditional_language_files"),
          "measured": {"forbidden": lb.get("forbidden_language_files"),
@@ -403,8 +516,9 @@ REMEDIATION_EXCEPTIONS = [
         "OWNER_DELETE_APPROVAL_REQUIRED; reclaiming them needs owner approval",
      "state": "OWNER_DELETE_APPROVAL_REQUIRED", "owner": "DTALEX66"},
     {"area": "python tooling", "exception":
-        "ruff is declared but not installed, so lint is not enforced; pytest is not installed "
-        "and the suite runs under unittest; uv is not installed, so no uv.lock exists",
+        "ruff is declared in pyproject but is not installed, so lint is not enforced by any "
+        "gate; pytest is not installed and the suite runs under unittest. The dependency lock "
+        "itself is present: uv.lock and requirements.txt are both tracked",
      "state": "REPORTED_NOT_FIXED", "owner": "owner decision"},
     {"area": "node tooling", "exception":
         "no product Node package exists: the only manifest belongs to the game-visual fixture, "
@@ -461,6 +575,15 @@ def k040() -> dict:
         "packet": PACKET_FILES,
         "packet_present": [name for name in PACKET_FILES if (REPO / name).is_file()
                            or (OUTDIR / name).is_file()],
+        "done_when": [{"number": n, "requirement": r, "verdict": v, "evidence": e, "gap": g}
+                      for n, r, v, e, g in DONE_WHEN],
+        "done_when_counts": {
+            "total": len(DONE_WHEN),
+            "met": sum(1 for item in DONE_WHEN if item[2] == "MET"),
+            "met_with_exception": sum(1 for item in DONE_WHEN if item[2] == "MET_WITH_EXCEPTION"),
+            "not_met": sum(1 for item in DONE_WHEN if item[2] == "NOT_MET"),
+            "with_a_gap": sum(1 for item in DONE_WHEN if item[4]),
+        },
     }
 
 
@@ -607,6 +730,10 @@ def write_markdown(k010_doc: dict, k020_doc: dict, k030_doc: dict, state: dict) 
         ("empty legacy directories cleared", m["spill_deleted"]["empty_legacy_directories_removed"]),
     ]))
     body += _section("Remaining exceptions", exceptions)
+    body += _section("Done-When criteria", _table([
+        (f"{number}. {requirement} [{verdict}]",
+         (evidence if not gap else evidence + " -- GAP: " + gap))
+        for number, requirement, verdict, evidence, gap in DONE_WHEN]))
     body += _section("What is NOT claimed", ["* " + item for item in state.get("never_claimed", [])])
     body += _section("Codex starting point", [
         f"Contract, fixtures, command outlines, evidence templates, do-not-claim lists and "

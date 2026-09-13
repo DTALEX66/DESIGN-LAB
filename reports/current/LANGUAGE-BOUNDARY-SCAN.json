@@ -4,9 +4,9 @@
     "DL-TP-20260914-DEEPSEEK-AUTHORITY-R1::DLDS-C020",
     "DL-TP-20260914-DEEPSEEK-AUTHORITY-R1::DLDS-C050"
   ],
-  "generated_at": "2026-09-13T16:54:46+00:00",
+  "generated_at": "2026-09-13T17:09:49+00:00",
   "subject_sha": "",
-  "tracked_files_scanned": 1891,
+  "tracked_files_scanned": 1904,
   "language_boundary": {
     "forbidden_language_files": [],
     "fixture_scoped_language_files": [
@@ -48,7 +48,15 @@
       }
     ],
     "second_node_backend": [],
-    "lockfiles": [],
+    "lockfiles": [
+      "requirements.txt",
+      "uv.lock"
+    ],
+    "node_lockfiles": [],
+    "python_lockfiles": [
+      "requirements.txt",
+      "uv.lock"
+    ],
     "multiple_lockfile_managers": false
   },
   "vocabularies": {

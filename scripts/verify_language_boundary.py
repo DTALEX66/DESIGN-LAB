@@ -105,7 +105,8 @@ def scan_language_boundary(files: list) -> dict:
     the gate.
     """
     forbidden, fixture_scoped, conditional = [], [], []
-    python_roots, node_manifests, lockfiles = [], [], []
+    python_roots, node_manifests = [], []
+    node_lockfiles, python_lockfiles = [], []
     for rel in files:
         suffix = Path(rel).suffix.lower()
         fixture = rel.startswith(("fixtures/", "vendor/")) or rel.endswith((".min.js", ".min.css"))
@@ -119,8 +120,15 @@ def scan_language_boundary(files: list) -> dict:
             python_roots.append(rel)
         if Path(rel).name == "package.json":
             node_manifests.append(rel)
+        # Node and Python locks are counted separately. The earlier single list held
+        # only Node locks while the CLI printed it as `lockfiles=0`, which reads as
+        # "this repository has no dependency lock" when uv.lock and requirements.txt
+        # are both tracked. The name now says which ecosystem it measures.
         if Path(rel).name in {"pnpm-lock.yaml", "package-lock.json", "yarn.lock"}:
-            lockfiles.append(Path(rel).name)
+            node_lockfiles.append(Path(rel).name)
+        if Path(rel).name in {"uv.lock", "poetry.lock", "Pipfile.lock", "requirements.txt"}:
+            python_lockfiles.append(Path(rel).name)
+    lockfiles = sorted(set(node_lockfiles) | set(python_lockfiles))
 
     # A second Python package architecture is a defect only when active code
     # imports it; otherwise it is an unused legacy package (see DLDS-B010).
@@ -162,9 +170,12 @@ def scan_language_boundary(files: list) -> dict:
         "second_python_architecture": imported,
         "node_manifests": node_manifests,
         "node_server_manifests": server_manifests,
-        "second_node_backend": server_manifests if lockfiles else [],
-        "lockfiles": sorted(set(lockfiles)),
-        "multiple_lockfile_managers": len({name.split("-")[0].split(".")[0] for name in lockfiles}) > 1,
+        "second_node_backend": server_manifests if node_lockfiles else [],
+        "lockfiles": lockfiles,
+        "node_lockfiles": sorted(set(node_lockfiles)),
+        "python_lockfiles": sorted(set(python_lockfiles)),
+        "multiple_lockfile_managers": len({name.split("-")[0].split(".")[0]
+                                           for name in node_lockfiles}) > 1,
     }
 
 
@@ -263,7 +274,8 @@ def main(argv=None) -> int:
               f"conditional={len(boundary['conditional_language_files'])} "
               f"python_roots={len(boundary['python_project_roots'])} "
               f"node_manifests={len(boundary['node_manifests'])} "
-              f"lockfiles={len(boundary['lockfiles'])} "
+              f"lockfiles={len(boundary['lockfiles'])}"
+              f"(python={len(boundary['python_lockfiles'])},node={len(boundary['node_lockfiles'])}) "
               f"vocab_copies={vocabularies['copy_count']} "
               f"disagreeing={len(vocabularies['disagreeing_copies'])}")
         for failure in failures:
