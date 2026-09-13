@@ -1,16 +1,16 @@
 {
   "schemaVersion": "design-lab/deepseek-final-language-audit/v1",
   "task_key": "DL-TP-20260914-DEEPSEEK-AUTHORITY-R1::DLDS-K020",
-  "audited_at": "2026-09-13T17:10:10+00:00",
-  "subject_sha": "a279b24e4499536edb49cebd9d855377fc94ce50",
-  "tracked_files": 1891,
+  "audited_at": "2026-09-13T18:46:16+00:00",
+  "subject_sha": "1f4339ea29da5a08be15efbc97c0e303da509a69",
+  "tracked_files": 1904,
   "languages": [
     {
       "language": "Markdown",
-      "file_count": 648,
-      "loc_total": 55244,
-      "loc_nonblank": 40773,
-      "bytes": 3040386,
+      "file_count": 655,
+      "loc_total": 69188,
+      "loc_nonblank": 52553,
+      "bytes": 3084633,
       "owner_directories": [
         "docs",
         "packages",
@@ -103,8 +103,8 @@
           "lines": 13943
         },
         "reports": {
-          "files": 77,
-          "lines": 5374
+          "files": 84,
+          "lines": 19318
         },
         "research": {
           "files": 2,
@@ -123,10 +123,10 @@
     },
     {
       "language": "JSON",
-      "file_count": 561,
-      "loc_total": 180168,
-      "loc_nonblank": 180168,
-      "bytes": 7229315,
+      "file_count": 566,
+      "loc_total": 181688,
+      "loc_nonblank": 181688,
+      "bytes": 7313262,
       "owner_directories": [
         "design-lab",
         "reports",
@@ -144,7 +144,7 @@
         },
         "design-lab": {
           "files": 381,
-          "lines": 73338
+          "lines": 73339
         },
         "docs": {
           "files": 26,
@@ -163,8 +163,8 @@
           "lines": 3858
         },
         "reports": {
-          "files": 63,
-          "lines": 22662
+          "files": 68,
+          "lines": 24181
         },
         "vendor": {
           "files": 1,
@@ -179,10 +179,10 @@
     },
     {
       "language": "Python",
-      "file_count": 390,
-      "loc_total": 74367,
-      "loc_nonblank": 65889,
-      "bytes": 3441204,
+      "file_count": 391,
+      "loc_total": 75375,
+      "loc_nonblank": 66844,
+      "bytes": 3499174,
       "owner_directories": [
         "design-lab",
         "src",
@@ -193,7 +193,7 @@
       "by_area": {
         "design-lab": {
           "files": 236,
-          "lines": 35820
+          "lines": 35846
         },
         "integrations": {
           "files": 3,
@@ -204,8 +204,8 @@
           "lines": 13568
         },
         "scripts": {
-          "files": 37,
-          "lines": 6666
+          "files": 38,
+          "lines": 7648
         },
         "src": {
           "files": 80,
@@ -522,7 +522,7 @@
     }
   ],
   "code_nonblank_lines": {
-    "Python": 65889,
+    "Python": 66844,
     "JavaScript": 27678,
     "HTML": 3731,
     "JavaScript (ESM)": 989,

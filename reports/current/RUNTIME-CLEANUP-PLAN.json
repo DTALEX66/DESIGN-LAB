@@ -1,10 +1,10 @@
 {
   "schemaVersion": "design-lab/runtime-cleanup-plan/v1",
   "task_key": "DL-TP-20260914-DEEPSEEK-AUTHORITY-R1::DLDS-D030",
-  "generated_at": "2026-09-13T16:52:38+00:00",
+  "generated_at": "2026-09-13T18:38:01+00:00",
   "temp_cache": {
     "entries": 4,
-    "bytes": 61240,
+    "bytes": 61603,
     "mib": 0.06,
     "members": [
       {
@@ -34,17 +34,17 @@
       {
         "path": ".project-local/task-runtime/tmp",
         "classification": "TEMP_CACHE",
-        "files": 2,
-        "bytes": 121,
-        "digest": "sha256:e9020e21f22658100babcb4797516fa426b058eb4a9133b4dc3c98acdc5d669b",
+        "files": 8,
+        "bytes": 484,
+        "digest": "sha256:5ac3fab605eadb1d17d64b2aaf8efceb9867ad703a314fe96ff817244e333f66",
         "reason": "the producing command recreates its temp directory"
       }
     ]
   },
   "evidence_bearing": {
     "entries": 15,
-    "bytes": 4719424651,
-    "mib": 4500.79,
+    "bytes": 4719655348,
+    "mib": 4501.01,
     "members": [
       {
         "path": ".project-local/archive",
@@ -113,17 +113,17 @@
       {
         "path": ".project-local/task-artifacts",
         "classification": "EVIDENCE_BEARING",
-        "files": 1664,
-        "bytes": 594708060,
-        "digest": "sha256:10527c35ee2b55c75afaa3276215ecc541518a833a8646b6f7047cb3ab169eac",
+        "files": 1701,
+        "bytes": 594865972,
+        "digest": "sha256:7407d5387781db4c364fe0e0d010d41cb5fca66059f1362167eb9b173e548f63",
         "reason": "tracked documents, the task ledger or qualification fixtures reference this run directory"
       },
       {
         "path": ".project-local/task-runtime",
         "classification": "EVIDENCE_BEARING",
-        "files": 58264,
-        "bytes": 3449417863,
-        "digest": "sha256:085b6f69c8d2549d173fe85083b0d836248b803719e1bdead3a43e8744982ef9",
+        "files": 58303,
+        "bytes": 3449490648,
+        "digest": "sha256:16c03a859dbc9327aafb47270b31d62d97a7530b3f660b41c992905dbcdbfeb5",
         "reason": "tracked documents, the task ledger or qualification fixtures reference this run directory"
       },
       {

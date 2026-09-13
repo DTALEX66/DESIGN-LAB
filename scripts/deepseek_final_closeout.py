@@ -545,6 +545,15 @@ REMEDIATION_EXCEPTIONS = [
         "no like-for-like before/after exists for the runtime roots or the git pack, so the only "
         "reduction claimed is the digest-backed reclaimed byte count",
      "state": "WITHDRAWN_CLAIM", "owner": "n/a"},
+    {"area": "text encoding in subprocess calls", "exception":
+        "119 tracked call sites pass text=True to subprocess without an explicit encoding, so "
+        "child output is decoded with the machine locale codec (cp936 on this host). Two are "
+        "fixed because they broke the verification chain itself: verify_design_lab.py now decodes "
+        "UTF-8 and tells its children to emit UTF-8, making the chain locale-independent, and "
+        "verify_review_surface.py, whose child prints Chinese section headings. The remaining 117 "
+        "are reported rather than rewritten: sweeping them without running the full test suite "
+        "would be an unverified mass edit",
+     "state": "PARTIALLY_FIXED_AND_REPORTED", "owner": "Codex or owner"},
 ]
 
 

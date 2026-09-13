@@ -11,8 +11,8 @@
     "provenance": "transcribed from the owner's message in the authority session; the landed file's sha256 is the authority for every later reference"
   },
   "task_key": "DL-TP-20260914-DEEPSEEK-AUTHORITY-R1::DLDS-K040",
-  "written_at": "2026-09-13T17:10:14+00:00",
-  "subject_sha": "a279b24e4499536edb49cebd9d855377fc94ce50",
+  "written_at": "2026-09-13T18:46:17+00:00",
+  "subject_sha": "1f4339ea29da5a08be15efbc97c0e303da509a69",
   "branch": "codex/deepseek-authority-r1",
   "task_count": 58,
   "status_counts": {

@@ -5,8 +5,8 @@
     "DL-TP-20260914-DEEPSEEK-AUTHORITY-R1::DLDS-H030"
   ],
   "origin": "promoted from .project-local/task-runtime/r5-ssot-indexes-20260913/build_indexes.py",
-  "observed_at": "2026-09-13T16:53:39+00:00",
-  "subject_sha": "0e53d30f10ef1b5790d45f477d741f512a6663a1",
+  "observed_at": "2026-09-13T18:46:15+00:00",
+  "subject_sha": "1f4339ea29da5a08be15efbc97c0e303da509a69",
   "source_of_truth": [
     "design-lab/config/capability-evidence-index.json",
     "design-lab/config/capability-evidence-current.json"

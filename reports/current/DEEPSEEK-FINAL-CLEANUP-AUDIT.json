@@ -1,8 +1,8 @@
 {
   "schemaVersion": "design-lab/deepseek-final-cleanup-audit/v1",
   "task_key": "DL-TP-20260914-DEEPSEEK-AUTHORITY-R1::DLDS-K010",
-  "audited_at": "2026-09-13T17:10:10+00:00",
-  "subject_sha": "a279b24e4499536edb49cebd9d855377fc94ce50",
+  "audited_at": "2026-09-13T18:46:16+00:00",
+  "subject_sha": "1f4339ea29da5a08be15efbc97c0e303da509a69",
   "conditions": [
     {
       "condition": "no stale active paths",

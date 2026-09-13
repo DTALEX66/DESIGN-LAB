@@ -1,8 +1,8 @@
 {
   "schemaVersion": "design-lab/deepseek-final-repository-audit/v1",
   "task_key": "DL-TP-20260914-DEEPSEEK-AUTHORITY-R1::DLDS-K030",
-  "audited_at": "2026-09-13T17:10:14+00:00",
-  "subject_sha": "a279b24e4499536edb49cebd9d855377fc94ce50",
+  "audited_at": "2026-09-13T18:46:17+00:00",
+  "subject_sha": "1f4339ea29da5a08be15efbc97c0e303da509a69",
   "measured": {
     "files_before_after": {
       "before": {
@@ -13,18 +13,18 @@
       },
       "after": {
         "files": 1904,
-        "bytes": 32604833,
-        "mib": 31.09
+        "bytes": 32641910,
+        "mib": 31.13
       },
       "source": "git ls-tree -r -l 56319635bbcf112ac88d097317262c101ffdfe4d vs git ls-files",
       "like_for_like": true,
       "revision_before": "56319635bbcf112ac88d097317262c101ffdfe4d",
-      "revision_after": "a279b24e4499536edb49cebd9d855377fc94ce50",
+      "revision_after": "1f4339ea29da5a08be15efbc97c0e303da509a69",
       "delta_files": 72,
-      "delta_mib": 0.94
+      "delta_mib": 0.98
     },
     "git_pack_before_after": {
-      "after_pack_mib": 210.4,
+      "after_pack_mib": 210.85,
       "before_pack_mib": null,
       "like_for_like": false,
       "reason": "the object store is cumulative and its earlier state is not recoverable from this clone after the fact; only the current pack size is measured, and no reduction is claimed"
@@ -32,9 +32,9 @@
     "runtime_data_before_after": {
       "measured_now": {
         ".project-local": {
-          "files": 65909,
-          "bytes": 4719805589,
-          "mib": 4501.16
+          "files": 65860,
+          "bytes": 4719660174,
+          "mib": 4501.02
         },
         ".hermes": {
           "files": 1,
@@ -160,6 +160,12 @@
         "exception": "no like-for-like before/after exists for the runtime roots or the git pack, so the only reduction claimed is the digest-backed reclaimed byte count",
         "state": "WITHDRAWN_CLAIM",
         "owner": "n/a"
+      },
+      {
+        "area": "text encoding in subprocess calls",
+        "exception": "119 tracked call sites pass text=True to subprocess without an explicit encoding, so child output is decoded with the machine locale codec (cp936 on this host). Two are fixed because they broke the verification chain itself: verify_design_lab.py now decodes UTF-8 and tells its children to emit UTF-8, making the chain locale-independent, and verify_review_surface.py, whose child prints Chinese section headings. The remaining 117 are reported rather than rewritten: sweeping them without running the full test suite would be an unverified mass edit",
+        "state": "PARTIALLY_FIXED_AND_REPORTED",
+        "owner": "Codex or owner"
       }
     ]
   },
