@@ -14,7 +14,6 @@ carry NO runtime evidence claim above what is actually proven:
 from __future__ import annotations
 
 import json
-import sys
 from pathlib import Path
 
 REPO = Path(__file__).resolve().parents[1]

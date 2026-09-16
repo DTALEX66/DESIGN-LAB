@@ -1,7 +1,6 @@
 # SPDX-License-Identifier: MIT
 """Quiescence frees the host, never declares unknown outputs accepted."""
 from contextlib import closing
-import json
 import os
 from pathlib import Path
 import sys

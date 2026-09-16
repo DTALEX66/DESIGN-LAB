@@ -19,7 +19,7 @@ from reconstruction.release import EvidenceError, current_projection, validate_r
 
 
 def _head() -> str:
-    result = subprocess.run(["git", "-C", str(PROJECT_ROOT), "rev-parse", "HEAD"], check=True, capture_output=True, text=True)
+    result = subprocess.run(["git", "-C", str(PROJECT_ROOT), "rev-parse", "HEAD"], check=True, capture_output=True, text=True, encoding="utf-8", errors="replace")
     return result.stdout.strip()
 
 

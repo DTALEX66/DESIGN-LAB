@@ -17,8 +17,7 @@ from __future__ import annotations
 
 import json
 import subprocess
-import sys
-from datetime import date, datetime, timezone
+from datetime import date, datetime
 from pathlib import Path
 
 REPO = Path(__file__).resolve().parents[1]
@@ -28,7 +27,7 @@ GIT = ["git", "-C", str(REPO), "-c", "http.sslBackend=openssl"]
 
 
 def git(args: list[str]) -> str:
-    r = subprocess.run(GIT + args, capture_output=True, text=True)
+    r = subprocess.run(GIT + args, capture_output=True, text=True, encoding="utf-8", errors="replace")
     if r.returncode != 0:
         raise RuntimeError(f"git {' '.join(args)}: {r.stderr.strip()[:300]}")
     return r.stdout.strip()
@@ -56,7 +55,7 @@ def main() -> int:
         try:
             r = subprocess.run(
                 ["git", "-C", str(REPO), "merge-base", "--is-ancestor", sha, main_sha],
-                capture_output=True, text=True,
+                capture_output=True, text=True, encoding="utf-8", errors="replace",
             )
             is_ancestor = r.returncode == 0
         except OSError:

@@ -78,7 +78,7 @@ class MiniGameVisualFixtureBoundaryTest(unittest.TestCase):
                     if any(w in text for w in ["禁止", "不是", "历史", "不可执行", "Forbidden", "FORBIDDEN", "re-introduces"]):
                         continue
                     hits.append(f"{rel}: {label}")
-        self.assertEqual([], hits, f"forbidden product semantics found:\n" + "\n".join(hits[:20]))
+        self.assertEqual([], hits, "forbidden product semantics found:\n" + "\n".join(hits[:20]))
 
     def test_readme_declares_fixture_contract(self) -> None:
         readme = MINIGAME / "README.md"

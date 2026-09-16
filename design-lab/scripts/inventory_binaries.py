@@ -16,7 +16,6 @@ from __future__ import annotations
 import hashlib
 import json
 import subprocess
-import sys
 from datetime import date
 from pathlib import Path
 
@@ -53,7 +52,7 @@ def classify(rel: str, size: int, sidecar_ok: bool) -> tuple[str, str]:
 
 
 def main() -> int:
-    r = subprocess.run(["git", "-C", str(REPO), "ls-files"], capture_output=True, text=True)
+    r = subprocess.run(["git", "-C", str(REPO), "ls-files"], capture_output=True, text=True, encoding="utf-8", errors="replace")
     items = []
     total_bytes = 0
     for rel in r.stdout.splitlines():

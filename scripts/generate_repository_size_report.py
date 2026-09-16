@@ -16,7 +16,7 @@ LIMIT_MIB = 256.0
 
 
 def git(*args: str) -> str:
-    result = subprocess.run(["git", "-C", str(REPO), *args], capture_output=True, text=True)
+    result = subprocess.run(["git", "-C", str(REPO), *args], capture_output=True, text=True, encoding="utf-8", errors="replace")
     if result.returncode:
         raise RuntimeError(result.stderr.strip() or "git command failed")
     return result.stdout.strip()

@@ -172,8 +172,7 @@ def gate_inventory(conn, job_id: str) -> dict:
 
 def history(conn, *, job_id: str, gate: str) -> list:
     """The decisions behind an approval, oldest first."""
-    gate = _gate(gate)
-    dec_id = f"DEC-{gate.lower()}-{job_id}"
+    _gate(gate)
     try:
         return decisions(conn, job_id)
     except CreativeError:

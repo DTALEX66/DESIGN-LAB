@@ -30,7 +30,7 @@ for(const pos of [[40,330],[41,330],[40,329],[NaN,330],[40,undefined]]){
 console.log(JSON.stringify(results));
 '''
         result=subprocess.run([node,'-e',script,str(ROOT/'integrations/hosts/adobe/illustrator/reconstruction-assemble.jsx')],
-            capture_output=True,text=True,timeout=30)
+            capture_output=True,text=True, encoding="utf-8", errors="replace",timeout=30)
         self.assertEqual(result.returncode,0,result.stderr)
         self.assertEqual(json.loads(result.stdout),[False,True,True,True,True])
 

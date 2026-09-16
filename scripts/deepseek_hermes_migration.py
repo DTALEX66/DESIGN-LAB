@@ -234,9 +234,9 @@ def verify() -> int:
             failures.append(f"missing target {record['target']}")
             continue
         if target.is_dir():
-            files, size, digest = digest_tree(target)
+            _, _, digest = digest_tree(target)
         else:
-            files, size = 1, target.stat().st_size
+            _, _ = 1, target.stat().st_size
             digest = hashlib.sha256(target.read_bytes()).hexdigest()
         if digest != record["verified_digest"]:
             failures.append(f"digest changed {record['target']}")

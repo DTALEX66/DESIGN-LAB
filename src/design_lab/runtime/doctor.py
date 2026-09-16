@@ -105,7 +105,7 @@ def check_uv_lock() -> list[str]:
         return ["NOT_EXECUTED: uv not found in current search scope"]
     try:
         result = subprocess.run([uv, "lock", "--check", "--offline"], cwd=PROJECT_ROOT,
-                                capture_output=True, text=True, timeout=30)
+                                capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=30)
         return [] if result.returncode == 0 else ["Lock check failed with exit code " + str(result.returncode)]
     except (OSError, subprocess.TimeoutExpired) as exc:
         return ["Lock check could not complete: " + type(exc).__name__]
@@ -117,11 +117,23 @@ def main(argv=None):
     action.add_argument('--paths', action='store_true', help='resolve project-owned paths without probing shared/private roots')
     action.add_argument('--migration-preview', metavar='MANIFEST', help='inventory explicit project files without moving data')
     action.add_argument('--model-manifest', metavar='RELATIVE_JSON', help='check an explicit model file inventory without loading models')
+    action.add_argument('--task', metavar='FULL_ID',
+                       help='task resource preflight for <TASKPACK>::<TASK_KEY>; probes resources, never installs')
     parser.add_argument('--model-root', metavar='DIRECTORY', help='explicit project-local or declared model-library directory')
     parser.add_argument('--json', action='store_true', help='emit machine-readable diagnostics')
     args = parser.parse_args(argv)
     if bool(args.model_manifest) != bool(args.model_root):
         parser.error('--model-manifest and --model-root must be supplied together')
+    if args.task:
+        from ..runtime.task_resources import TaskResourceError, preflight
+        try:
+            result = preflight(PROJECT_ROOT, args.task)
+        except TaskResourceError as exc:
+            result = {'status': 'TASK_PREFLIGHT_FAIL', 'task_full_id': args.task, 'reason': str(exc)}
+        print(json.dumps(result, ensure_ascii=False, indent=2))
+        # READY: every declared resource resolved (0). BLOCKED or a malformed
+        # declaration (2): the task must not proceed on this machine.
+        return 0 if result.get("verdict") == "READY" else 2
     if args.model_manifest:
         from ..analysis.model_manifest import verify_manifest_file
         try:

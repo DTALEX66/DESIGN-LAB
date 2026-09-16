@@ -145,7 +145,6 @@ def build() -> dict:
 
     manifest = (REPO / ".project/manifest.yaml").read_text(encoding="utf-8")
     pack_line = re.search(r"^taskpack:\s*(\S+)", manifest, re.M)
-    path_line = re.search(r"^taskpack_path:\s*(\S+)", manifest, re.M)
     drift = []
     if pack_line and pack_line.group(1) != "DL-TP-20260908-R5":
         drift.append({

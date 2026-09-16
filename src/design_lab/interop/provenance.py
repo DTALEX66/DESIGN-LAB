@@ -499,7 +499,7 @@ def validate_manifest(manifest, *, expected_inputs=None) -> dict:
                     f"{where}.data.relationship must be one of "
                     + ", ".join(INGREDIENT_RELATIONSHIPS) + f"; got {relationship!r}"
                 )
-            digest = _digest(data["sha256"], f"{where}.data.sha256")
+            _digest(data["sha256"], f"{where}.data.sha256")
             version = _text(data.get("instanceID", data.get("dc:title")),
                             f"{where}.data.instanceID")
             if version in ingredients:

@@ -1,8 +1,8 @@
 {
   "schemaVersion": "design-lab/final-test-gate/v1",
   "task_key": "DL-TP-20260914-DEEPSEEK-AUTHORITY-R1::DLDS-H010",
-  "generated_at": "2026-09-13T18:50:10+00:00",
-  "subject_sha": "73c861b0986c6c81e29c08ac1ffd3c6326d00c2f",
+  "generated_at": "2026-09-15T18:36:36+00:00",
+  "subject_sha": "f82f17ee5ec1d0e2973414ad673b00191324c68b",
   "source": ".project-local/task-artifacts/test-run/history.jsonl (written by scripts/run_bound_test_suite.py, not retyped here)",
   "executed_scope": {
     "kind": "declared critical module set",
@@ -30,37 +30,37 @@
   },
   "requirements": {
     "deterministic_forward": {
-      "run_id": "testrun-20260913T184910Z-forward-repeat-9684a7ae2228",
+      "run_id": "testrun-20260915T175750Z-forward-repeat-400ec91222e0",
       "tests": 220,
       "failures": 0,
       "errors": 0,
       "skipped": 0,
-      "duration_seconds": 7.568,
+      "duration_seconds": 8.863,
       "seed": null,
       "result": "OK",
-      "finished_at": "2026-09-13T18:49:18+00:00"
+      "finished_at": "2026-09-15T17:57:59+00:00"
     },
     "reverse": {
-      "run_id": "testrun-20260913T184918Z-reverse-repeat-9684a7ae2228",
+      "run_id": "testrun-20260915T175800Z-reverse-repeat-400ec91222e0",
       "tests": 220,
       "failures": 0,
       "errors": 0,
       "skipped": 0,
-      "duration_seconds": 7.896,
+      "duration_seconds": 8.897,
       "seed": null,
       "result": "OK",
-      "finished_at": "2026-09-13T18:49:26+00:00"
+      "finished_at": "2026-09-15T17:58:09+00:00"
     },
     "randomized_seeded": {
-      "run_id": "testrun-20260913T184926Z-random-repeat-9684a7ae2228",
+      "run_id": "testrun-20260915T175809Z-random-repeat-400ec91222e0",
       "tests": 220,
       "failures": 0,
       "errors": 0,
       "skipped": 0,
-      "duration_seconds": 7.918,
+      "duration_seconds": 8.942,
       "seed": 42,
       "result": "OK",
-      "finished_at": "2026-09-13T18:49:34+00:00"
+      "finished_at": "2026-09-15T17:58:18+00:00"
     },
     "critical_module_repetition": {
       "run_id": "testrun-20260913T184647Z-forward-repeat-9684a7ae2228",

@@ -47,7 +47,7 @@ EXCLUDE_PREFIX = (
 
 def git_ls() -> list[str]:
     out = subprocess.run(
-        ["git", "ls-files"], cwd=REPO, capture_output=True, text=True, check=True,
+        ["git", "ls-files"], cwd=REPO, capture_output=True, text=True, encoding="utf-8", errors="replace", check=True,
     ).stdout
     return [l for l in out.splitlines() if l]
 

@@ -13,7 +13,7 @@ OUT = REPO / "design-lab" / "config" / "branch-cleanup-candidates.json"
 
 
 def git(*args: str) -> tuple[int, str]:
-    result = subprocess.run(["git", "-C", str(REPO), *args], capture_output=True, text=True)
+    result = subprocess.run(["git", "-C", str(REPO), *args], capture_output=True, text=True, encoding="utf-8", errors="replace")
     return result.returncode, result.stdout.strip()
 
 

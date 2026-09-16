@@ -612,8 +612,8 @@ class RuntimeRootMigrationTests(unittest.TestCase):
         """A run contract declaring .hermes roots must not validate."""
         value = minimal_run_contract("run-legacy")
         value["roots"] = {
-            "runtime": f".hermes/task-runtime/reconstruction/run-legacy/",
-            "evidence": f".hermes/task-artifacts/reconstruction/run-legacy/",
+            "runtime": ".hermes/task-runtime/reconstruction/run-legacy/",
+            "evidence": ".hermes/task-artifacts/reconstruction/run-legacy/",
         }
         with self.assertRaisesRegex(ContractError, "roots"):
             validate_run_contract(value)
@@ -627,7 +627,6 @@ class RuntimeRootMigrationTests(unittest.TestCase):
 
     def test_mainline_modules_have_no_active_hermes_write(self):
         """R0-003 DoD: rg finds no .hermes write in active reconstruction mainline."""
-        import re
 
         module_files = sorted(
             (PROJECT_ROOT / "packages" / "capabilities" / "reconstruction").glob("*.py")

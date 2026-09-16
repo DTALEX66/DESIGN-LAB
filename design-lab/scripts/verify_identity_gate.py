@@ -9,7 +9,6 @@ unless in an explicit allowlist (history, host adapters, source references).
 from __future__ import annotations
 
 import re
-import sys
 import os
 from pathlib import Path
 

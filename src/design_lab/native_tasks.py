@@ -8,9 +8,7 @@ This is not a public arbitrary-job endpoint or a rights/quality approval engine.
 from contextlib import closing
 import hashlib
 import json
-from pathlib import Path
 import re
-import sqlite3
 
 from .adapters import illustrator_com, photoshop_com
 from .runtime import asset_store as assets, job_store as jobs

@@ -12,7 +12,7 @@ SCRIPTS = Path(__file__).resolve().parents[1] / "scripts"
 
 class ProductionPreflightTests(unittest.TestCase):
     def test_preflight_verifier_passes(self):
-        r = subprocess.run([sys.executable, str(SCRIPTS / "verify_production_preflight.py")], capture_output=True, text=True)
+        r = subprocess.run([sys.executable, str(SCRIPTS / "verify_production_preflight.py")], capture_output=True, text=True, encoding="utf-8", errors="replace")
         self.assertIn("PRODUCTION_PREFLIGHT=PASS", r.stdout, r.stdout + r.stderr)
 
     def test_three_profiles_exist(self):

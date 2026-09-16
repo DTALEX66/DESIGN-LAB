@@ -18,8 +18,24 @@ entries the agent owns (sessions, memory, credentials) are excluded from the
 comparison by name so that the harness's own bookkeeping is not reported as a
 DESIGN-LAB spill.
 
+DL-AUDIT-20260914-03 hardens the gate:
+
+* path-level inventories are normalized and link/junction-boundary aware: a
+  directory that is a reparse point is never traversed, so a link cannot pull
+  the observation out of its declared root;
+* agent-state roots inside the repository (``.hermes``, ``.openhuman``) are
+  denied write scope: a new file under the repository ``.hermes`` is spill even
+  though it sits under the repository root;
+* forbidden project run directories (old runtime roots outside the repository)
+  may be declared with ``--external DIR`` on BOTH snapshot and diff; for those,
+  any new, modified or removed file is a spill, while the repository and
+  ``.project-local`` remain the allowed roots;
+* a depth cut or the entry cap makes the observation INCOMPLETE: the diff then
+  reports ``ZERO_SPILL=INCOMPLETE`` instead of claiming zero spill, because a
+  truncated observation cannot bound what it did not see.
+
 Usage:
-    python scripts/verify_zero_spill.py --snapshot ID
+    python scripts/verify_zero_spill.py --snapshot ID [--external DIR]...
     python scripts/verify_zero_spill.py --diff ID
     python scripts/verify_zero_spill.py --self-test
 """
@@ -47,50 +63,107 @@ AGENT_NATIVE_NAMES = {"sessions", "archived_sessions", "memories", "memory", "lo
                       "sandbox", ".sandbox", ".sandbox-bin", ".sandbox-secrets", "agent-presets",
                       ".agent-presets"}
 SKIP_DIRS = {".git", ".venv", "node_modules", "__pycache__", ".pytest_cache", ".mypy_cache"}
+# Agent-state roots inside the repository: DESIGN-LAB work may never write here.
+# They are observed at path level only (never read), like the external agent
+# homes, and any change under them inside the repository is a spill.
+DENIED_REPO_ROOTS = {".hermes", ".openhuman", ".codex", ".dsh"}
 MAX_ENTRIES = 200_000
 
 
-def scan(root: Path, *, depth: int = 3) -> dict:
-    """Path-level inventory: relative path -> (size, mtime). Never reads content."""
+def _is_reparse(path: Path) -> bool:
+    """True when the path is a Windows junction / reparse point (symlinks are
+    already handled by Path semantics on POSIX). A link directory must never be
+    traversed: following it would pull the observation outside its declared
+    root and silently widen the observed surface."""
+    if not path.is_symlink():
+        try:
+            import ctypes
+            attrs = ctypes.windll.kernel32.GetFileAttributesW(str(path))
+            if attrs == 0xFFFFFFFF:  # INVALID_FILE_ATTRIBUTES
+                return False
+            return bool(attrs & 0x800)  # FILE_ATTRIBUTE_REPARSE_POINT
+        except (AttributeError, OSError):
+            return False
+    return True
+
+
+def scan(root: Path, *, depth: int = 3) -> tuple[dict, bool, list]:
+    """Path-level inventory: relative path -> (size, mtime). Never reads content.
+
+    Returns (entries, complete, link_boundaries). ``complete`` is False when the
+    depth cut, the entry cap, or an untraversed reparse point truncated the
+    walk; ``link_boundaries`` lists the link/junction paths that were observed
+    but deliberately not followed, so an INCOMPLETE verdict can be located.
+    """
     entries = {}
+    complete = True
+    links: list[str] = []
     if not root.is_dir():
-        return entries
+        return entries, True, links
     base_depth = len(root.parts)
     for current, dirs, files in os.walk(root):
         current_path = Path(current)
-        if len(current_path.parts) - base_depth >= depth:
-            dirs[:] = []
-        dirs[:] = [d for d in dirs if d not in SKIP_DIRS]
-        for name in files + dirs:
+        over_depth = len(current_path.parts) - base_depth >= depth
+        # A reparse-point directory must not be followed (junction/link boundary).
+        kept_dirs = []
+        for name in dirs:
+            if name in SKIP_DIRS:
+                continue
+            if _is_reparse(current_path / name):
+                complete = False  # unseen territory; flag INCOMPLETE, do not traverse
+                links.append(str(current_path / name))
+                continue
+            kept_dirs.append(name)
+        if over_depth:
+            complete = False  # truncated by depth: remainder unobserved
+        dirs[:] = kept_dirs
+        for name in files + kept_dirs:
             path = current_path / name
             try:
-                stat = path.stat()
+                stat = path.stat(follow_symlinks=False)
             except OSError:
                 continue
             entries[str(path)] = [stat.st_size, int(stat.st_mtime)]
             if len(entries) > MAX_ENTRIES:
-                return entries
-    return entries
+                return entries, False, links
+    return entries, complete, links
 
 
-def snapshot(snapshot_id: str) -> int:
+def snapshot(snapshot_id: str, externals: tuple | None = None) -> int:
     SNAPSHOT_DIR.mkdir(parents=True, exist_ok=True)
+    externals = [Path(x) for x in (externals or ())]
+    repo_entries, repo_complete, repo_links = scan(REPO, depth=8)
     document = {
-        "schemaVersion": "design-lab/zero-spill-snapshot/v1",
+        "schemaVersion": "design-lab/zero-spill-snapshot/v2",
         "task_key": TASK_KEY,
         "snapshot_id": snapshot_id,
         "taken_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
         "subject_sha": subprocess.run(["git", "-C", str(REPO), "rev-parse", "HEAD"],
                                       capture_output=True, text=True,
                                       encoding="utf-8").stdout.strip(),
-        "repo": scan(REPO, depth=8),
-        "agent_homes": {name: scan(HOME / name, depth=2) for name in WATCHED_AGENT_HOMES},
+        "repo": repo_entries,
+        "repo_complete": repo_complete,
+        "repo_link_boundaries": repo_links,
+        "denied_repo_roots": sorted(DENIED_REPO_ROOTS),
+        "agent_homes": {},
+        "agent_homes_complete": {},
+        "external_forbidden": {},
+        "external_forbidden_complete": {},
     }
+    for name in WATCHED_AGENT_HOMES:
+        entries, complete, _links = scan(HOME / name, depth=2)
+        document["agent_homes"][name] = entries
+        document["agent_homes_complete"][name] = complete
+    for external in externals:
+        entries, complete, _links = scan(external.resolve(), depth=8)
+        document["external_forbidden"][str(external)] = entries
+        document["external_forbidden_complete"][str(external)] = complete
     path = SNAPSHOT_DIR / f"{snapshot_id}.json"
     path.write_text(json.dumps(document, ensure_ascii=False) + "\n", encoding="utf-8", newline="\n")
     print(f"ZERO_SPILL_SNAPSHOT={snapshot_id} repo_entries={len(document['repo'])} "
+          f"repo_complete={repo_complete} "
           f"agent_entries={sum(len(v) for v in document['agent_homes'].values())} "
-          f"file={path.relative_to(REPO)}")
+          f"external_roots={len(externals)} file={path.relative_to(REPO)}")
     return 0
 
 
@@ -105,7 +178,19 @@ def allowed(path: str) -> bool:
     return False
 
 
-def diff(snapshot_id: str) -> int:
+def _denied_repo_root(path: str) -> str | None:
+    """A path that lies under a denied in-repo agent-state root (e.g. .hermes)."""
+    try:
+        relative = Path(path).relative_to(REPO)
+    except ValueError:
+        return None
+    top = relative.parts[0]
+    if top in DENIED_REPO_ROOTS:
+        return top
+    return None
+
+
+def diff(snapshot_id: str, externals: tuple | None = None) -> int:
     path = SNAPSHOT_DIR / f"{snapshot_id}.json"
     if not path.is_file():
         print(f"ZERO_SPILL=FAIL missing snapshot {snapshot_id}")
@@ -113,50 +198,122 @@ def diff(snapshot_id: str) -> int:
     before = json.loads(path.read_text(encoding="utf-8"))
     subject_sha = subprocess.run(["git", "-C", str(REPO), "rev-parse", "HEAD"], capture_output=True,
                                  text=True, encoding="utf-8").stdout.strip()
-    report = {"schemaVersion": "design-lab/zero-spill-diff/v1", "task_key": TASK_KEY,
+    incomplete = []
+    if not before.get("repo_complete", True):
+        incomplete.append("repo")
+    for name, complete in before.get("agent_homes_complete", {}).items():
+        if not complete:
+            incomplete.append(f"agent:{name}")
+    for external, complete in before.get("external_forbidden_complete", {}).items():
+        if not complete:
+            incomplete.append(f"external:{external}")
+
+    report = {"schemaVersion": "design-lab/zero-spill-diff/v2", "task_key": TASK_KEY,
               "snapshot_id": snapshot_id, "compared_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
               "snapshot_sha": before["subject_sha"], "current_sha": subject_sha,
               "same_subject": before["subject_sha"] == subject_sha,
               "roots": {}}
     spill = []
-    for label, root in (("repo", REPO), *((f"agent:{name}", HOME / name)
-                                          for name in WATCHED_AGENT_HOMES)):
-        if label == "repo":
-            current = scan(root, depth=8)
-            previous = before["repo"]
-            exempt = False
-        else:
-            name = label.split(":", 1)[1]
-            current = scan(root, depth=2)
-            previous = before["agent_homes"].get(name, {})
-            exempt = True
+
+    # Repository root: allowed to change inside .project-local, denied inside
+    # agent-state roots, spill anywhere else.
+    current_repo, repo_complete, _repo_links = scan(REPO, depth=8)
+    previous = before["repo"]
+    if not repo_complete:
+        incomplete.append("repo-current")
+    new = sorted(set(current_repo) - set(previous))
+    removed = sorted(set(previous) - set(current_repo))
+    changed = sorted(p for p in set(current_repo) & set(previous) if current_repo[p] != previous[p])
+    repo_spill = []
+    for candidate in new:
+        if allowed(candidate):
+            continue
+        repo_spill.append(candidate)  # denied in-repo root, or outside the repo
+    # Modifying a pre-existing file inside a denied in-repo root is also spill.
+    for candidate in changed:
+        if _denied_repo_root(candidate) is not None:
+            repo_spill.append(f"MODIFIED:{candidate}")
+    # A removed file is reported, not a spill: the task did not create it.
+    report["roots"]["repo"] = {"new": len(new), "removed": len(removed), "changed": len(changed),
+                               "spill": repo_spill[:50], "exempt": False}
+    spill.extend(repo_spill)
+
+    # Agent homes: observed at path level; native bookkeeping names are exempt.
+    for name in WATCHED_AGENT_HOMES:
+        current = scan(HOME / name, depth=2)[0]
+        previous = before["agent_homes"].get(name, {})
         new = sorted(set(current) - set(previous))
         removed = sorted(set(previous) - set(current))
         changed = sorted(p for p in set(current) & set(previous) if current[p] != previous[p])
-        root_spill = []
-        for candidate in new:
-            if label == "repo" and allowed(candidate):
-                continue
-            if exempt and Path(candidate).name in AGENT_NATIVE_NAMES:
-                continue
-            root_spill.append(candidate)
-        report["roots"][label] = {"new": len(new), "removed": len(removed), "changed": len(changed),
-                                  "spill": root_spill[:50], "exempt": exempt}
+        root_spill = [c for c in new if Path(c).name not in AGENT_NATIVE_NAMES]
+        report["roots"][f"agent:{name}"] = {"new": len(new), "removed": len(removed),
+                                             "changed": len(changed), "spill": root_spill[:50], "exempt": True}
         spill.extend(root_spill)
+
+    # Forbidden external run directories: any new, modified or removed entry is
+    # a spill. These are the "old project run directories" that must not move.
+    declared = list(before.get("external_forbidden", {}).keys())
+    for external in (externals or declared):
+        key = str(Path(external).resolve())
+        current = scan(Path(key), depth=8)[0] if Path(key).is_dir() else {}
+        previous = before.get("external_forbidden", {}).get(
+            key, before.get("external_forbidden", {}).get(str(external), {}))
+        new = sorted(set(current) - set(previous))
+        removed = sorted(set(previous) - set(current))
+        changed = sorted(p for p in set(current) & set(previous) if current[p] != previous[p])
+        root_spill = new + [f"MODIFIED:{p}" for p in changed] + [f"REMOVED:{p}" for p in removed]
+        report["roots"][f"external:{key}"] = {"new": len(new), "removed": len(removed),
+                                               "changed": len(changed), "spill": root_spill[:50], "exempt": False}
+        spill.extend(root_spill)
+
+    report["incomplete_roots"] = sorted(set(incomplete))
+    report["observation_complete"] = not incomplete
     report["spill_total"] = len(spill)
-    report["verdict"] = "NO_SPILL_DETECTED" if not spill else "SPILL_DETECTED"
-    report["meaning"] = ("paths outside the repository, .project-local and the declared external "
-                         "caches; agent-native bookkeeping names are excluded")
+    if incomplete:
+        report["verdict"] = "ZERO_SPILL=INCOMPLETE"
+        report["meaning"] = ("a truncated or link-boundary observation cannot claim zero spill; "
+                             "the unobserved remainder is listed in incomplete_roots")
+    else:
+        report["verdict"] = "NO_SPILL_DETECTED" if not spill else "SPILL_DETECTED"
+        report["meaning"] = ("paths outside the repository, .project-local and the declared external "
+                             "caches; agent-native bookkeeping names are excluded; in-repo agent-state "
+                             "roots are denied write scope")
     (SNAPSHOT_DIR / f"{snapshot_id}-diff.json").write_text(
         json.dumps(report, indent=2, ensure_ascii=False) + "\n", encoding="utf-8", newline="\n")
     print(f"ZERO_SPILL={report['verdict']} spill={len(spill)} "
-          f"repo_new={report['roots']['repo']['new']} repo_changed={report['roots']['repo']['changed']}")
+          f"repo_new={report['roots']['repo']['new']} repo_changed={report['roots']['repo']['changed']} "
+          f"incomplete_roots={report['incomplete_roots'] or 'none'}")
     for item in spill[:10]:
         print("  SPILL:", item)
+    if incomplete:
+        return 2
     return 0 if not spill else 1
 
 
-def self_test() -> int:
+def resolve_interpreter() -> tuple[str, bool]:
+    """Pick the project interpreter without assuming a Windows layout.
+
+    (DL-AUDIT-20260914-06) The gate no longer hard-codes
+    ``.venv/Scripts/python.exe``: it resolves the running interpreter first,
+    then the platform-appropriate virtualenv, and only falls back to ``python3``.
+    Returns (command, resolved).
+    """
+    import sys
+    candidates = [sys.executable]
+    for name in (".venv/Scripts/python.exe", ".venv/bin/python"):
+        candidate = REPO / name
+        if candidate.exists():
+            candidates.append(str(candidate))
+    candidates.append("python3")
+    for candidate in candidates:
+        if candidate == "python3":
+            return candidate, True
+        if Path(candidate).exists():
+            return candidate, True
+    return "python3", True
+
+
+def self_test(externals: tuple | None = None) -> int:
     """Run a real read-only DESIGN-LAB command between two snapshots.
 
     The command's exit code is part of the evidence. A command that failed may have
@@ -167,15 +324,16 @@ def self_test() -> int:
     ``scripts/generate_current_reports.py`` before it.
     """
     before_id = "self-test-before"
-    if snapshot(before_id) != 0:
+    if snapshot(before_id, externals) != 0:
         return 1
-    command = [str(REPO / ".venv/Scripts/python.exe"),
+    interpreter, _ = resolve_interpreter()
+    command = [interpreter,
                str(REPO / "scripts/generate_current_reports.py"), "--check"]
     result = subprocess.run(command, capture_output=True, text=True, encoding="utf-8",
-                            cwd=str(REPO), timeout=300)
+                           cwd=str(REPO), timeout=300)
     print(f"  task under test: {' '.join(Path(part).name for part in command)} "
           f"exit={result.returncode}")
-    spill = diff(before_id)
+    spill = diff(before_id, externals)
     if result.returncode != 0:
         print(f"ZERO_SPILL_SELF_TEST=FAIL the task under test exited {result.returncode} "
               f"({result.stdout.strip().splitlines()[-1] if result.stdout.strip() else 'no output'}); "
@@ -190,10 +348,14 @@ def main(argv=None) -> int:
     group.add_argument("--snapshot")
     group.add_argument("--diff")
     group.add_argument("--self-test", action="store_true")
+    parser.add_argument("--external", action="append", default=None,
+                        metavar="DIR",
+                        help="forbidden project run directory; declare on snapshot AND diff")
     args = parser.parse_args(argv)
+    externals = tuple(args.external or ())
     if args.self_test:
-        return self_test()
-    return snapshot(args.snapshot) if args.snapshot else diff(args.diff)
+        return self_test(externals)
+    return snapshot(args.snapshot, externals) if args.snapshot else diff(args.diff, externals)
 
 
 if __name__ == "__main__":

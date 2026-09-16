@@ -6,7 +6,7 @@ are separate from the archive's byte integrity and atomic publication.
 """
 import hashlib
 import json
-from pathlib import Path, PurePosixPath
+from pathlib import PurePosixPath
 import re
 import uuid
 import zipfile

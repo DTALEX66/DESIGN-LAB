@@ -128,7 +128,7 @@ class ProductManifestTests(unittest.TestCase):
         # The loader registers modules before execution so dataclasses and
         # postponed annotations resolve correctly during direct unit tests.
         r = subprocess.run([sys.executable, str(SCRIPTS / "verify_product_manifest_v3.py")],
-                           capture_output=True, text=True, cwd=ROOT)
+                           capture_output=True, text=True, encoding="utf-8", errors="replace", cwd=ROOT)
         self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
         self.assertIn("VERIFY_PRODUCT_MANIFEST_V3=OK", r.stdout)
         m_match = re.search(r"total=(\d+)", r.stdout)
@@ -197,7 +197,7 @@ class CapabilityEvidenceSurfaceTests(unittest.TestCase):
     def test_detailed_evidence_surfaces_match_current_capability_levels(self):
         """Domain and adapter evidence must not silently overclaim E3."""
         verifier = SCRIPTS / "verify_capability_evidence_v4.py"
-        r = subprocess.run([sys.executable, str(verifier)], capture_output=True, text=True, cwd=ROOT)
+        r = subprocess.run([sys.executable, str(verifier)], capture_output=True, text=True, encoding="utf-8", errors="replace", cwd=ROOT)
         self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
         self.assertIn("CAPABILITY_EVIDENCE_V4=PASS", r.stdout)
 
@@ -226,7 +226,7 @@ class CapabilityEvidenceSurfaceTests(unittest.TestCase):
 class VisualScoringTests(unittest.TestCase):
     def test_scoring_has_entries(self):
         r = subprocess.run([sys.executable, str(SCRIPTS / "verify_visual_scoring_v3.py")],
-                           capture_output=True, text=True, cwd=ROOT)
+                           capture_output=True, text=True, encoding="utf-8", errors="replace", cwd=ROOT)
         self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
         self.assertIn("VERIFY_VISUAL_SCORING_V3=OK", r.stdout)
         m = re.search(r"total=(\d+)", r.stdout)
@@ -237,7 +237,7 @@ class VisualScoringTests(unittest.TestCase):
 class V2ProtocolsTests(unittest.TestCase):
     def test_v2_protocols_ok(self):
         r = subprocess.run([sys.executable, str(SCRIPTS / "verify_v2_protocols.py")],
-                           capture_output=True, text=True, cwd=ROOT)
+                           capture_output=True, text=True, encoding="utf-8", errors="replace", cwd=ROOT)
         self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
         self.assertIn("VERIFY_V2_PROTOCOLS=OK", r.stdout)
 
@@ -246,7 +246,7 @@ class AdapterRegistryTests(unittest.TestCase):
     def test_six_adapters_all_rollback(self):
         """DL-ADP-001: every adapter must declare rollback semantics."""
         r = subprocess.run([sys.executable, str(SCRIPTS / "verify_adapter_registry.py")],
-                           capture_output=True, text=True, cwd=ROOT)
+                           capture_output=True, text=True, encoding="utf-8", errors="replace", cwd=ROOT)
         self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
         m = re.search(r"adapters=(\d+)", r.stdout)
         self.assertTrue(m, "adapter report must include count")
@@ -263,7 +263,7 @@ class AdapterRegistryTests(unittest.TestCase):
 class RuntimeContractsTests(unittest.TestCase):
     def test_contracts_ok(self):
         r = subprocess.run([sys.executable, str(SCRIPTS / "verify_runtime_contracts_v3.py")],
-                           capture_output=True, text=True, cwd=ROOT)
+                           capture_output=True, text=True, encoding="utf-8", errors="replace", cwd=ROOT)
         self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
         self.assertIn("VERIFY_RUNTIME_CONTRACTS_V3=OK", r.stdout)
         m = re.search(r"total=(\d+)", r.stdout)
@@ -314,7 +314,7 @@ class RuntimeContractsTests(unittest.TestCase):
 class VisualQualityV21Tests(unittest.TestCase):
     def test_v21_ok_with_rubrics(self):
         r = subprocess.run([sys.executable, str(SCRIPTS / "verify_visual_quality_v21.py")],
-                           capture_output=True, text=True, cwd=ROOT)
+                           capture_output=True, text=True, encoding="utf-8", errors="replace", cwd=ROOT)
         self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
         self.assertIn("VERIFY_VISUAL_QUALITY_V21=OK", r.stdout)
         m = re.search(r"RUBRICS=(\d+)", r.stdout)
@@ -328,7 +328,7 @@ class StyleMasterMethodTests(unittest.TestCase):
         r = subprocess.run(
             [sys.executable, str(SCRIPTS / "verify_style_master_method.py")],
             capture_output=True,
-            text=True,
+            text=True, encoding="utf-8", errors="replace",
             cwd=ROOT,
         )
         self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
@@ -359,7 +359,7 @@ class AggregateChainTests(unittest.TestCase):
     def test_aggregate_verify_runs(self):
         """verify_design_lab.py must exit 0 with the aggregate OK line."""
         r = subprocess.run([sys.executable, str(SCRIPTS / "verify_design_lab.py")],
-                           capture_output=True, text=True, cwd=ROOT)
+                           capture_output=True, text=True, encoding="utf-8", errors="replace", cwd=ROOT)
         self.assertEqual(r.returncode, 0, r.stdout[-2000:] + r.stderr)
         self.assertIn("VERIFY_DESIGN_LAB=OK", r.stdout)
         self.assertIn("VERIFY_DESIGN_LAB=OK", r.stdout)
@@ -487,7 +487,7 @@ class MinigameDomainPackTests(unittest.TestCase):
     def test_boundary_pass(self):
         """verify_minigame_domain_pack: E2 fixture boundary must pass."""
         r = subprocess.run([sys.executable, str(SCRIPTS / "verify_minigame_domain_pack.py")],
-                           capture_output=True, text=True, cwd=ROOT)
+                           capture_output=True, text=True, encoding="utf-8", errors="replace", cwd=ROOT)
         self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
         self.assertIn("MINIGAME_DOMAIN_PACK_BOUNDARY_PASS", r.stdout)
 
@@ -495,7 +495,7 @@ class MinigameDomainPackTests(unittest.TestCase):
 class StyleRecipeTests(unittest.TestCase):
     def test_valid_recipe(self):
         """A well-formed recipe passes weight constraints."""
-        m = load("validate_style_recipe.py")
+        load("validate_style_recipe.py")
         recipe = {
             "project_dna": {"weight": 0.6},
             "lineage_weights": [{"weight": 0.2}],
@@ -507,7 +507,7 @@ class StyleRecipeTests(unittest.TestCase):
             tmp = Path(f.name)
         try:
             r = subprocess.run([sys.executable, str(SCRIPTS / "validate_style_recipe.py"), str(tmp)],
-                               capture_output=True, text=True, cwd=ROOT)
+                               capture_output=True, text=True, encoding="utf-8", errors="replace", cwd=ROOT)
             self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
             out = json.loads(r.stdout)
             self.assertTrue(out["valid"])
@@ -516,7 +516,7 @@ class StyleRecipeTests(unittest.TestCase):
 
     def test_lineage_overweight(self):
         """Combined lineage weight > 0.45 must fail."""
-        m = load("validate_style_recipe.py")
+        load("validate_style_recipe.py")
         recipe = {
             "project_dna": {"weight": 0.6},
             "lineage_weights": [{"weight": 0.3}, {"weight": 0.3}],
@@ -528,7 +528,7 @@ class StyleRecipeTests(unittest.TestCase):
             tmp = Path(f.name)
         try:
             r = subprocess.run([sys.executable, str(SCRIPTS / "validate_style_recipe.py"), str(tmp)],
-                               capture_output=True, text=True, cwd=ROOT)
+                               capture_output=True, text=True, encoding="utf-8", errors="replace", cwd=ROOT)
             self.assertEqual(r.returncode, 1, "overweight lineage must fail")
             out = json.loads(r.stdout)
             self.assertFalse(out["valid"])
@@ -538,7 +538,7 @@ class StyleRecipeTests(unittest.TestCase):
 
     def test_master_name_in_prompt(self):
         """Generation prompt containing a master name must fail."""
-        m = load("validate_style_recipe.py")
+        load("validate_style_recipe.py")
         recipe = {
             "project_dna": {"weight": 0.6},
             "lineage_weights": [{"weight": 0.2}],
@@ -550,7 +550,7 @@ class StyleRecipeTests(unittest.TestCase):
             tmp = Path(f.name)
         try:
             r = subprocess.run([sys.executable, str(SCRIPTS / "validate_style_recipe.py"), str(tmp)],
-                               capture_output=True, text=True, cwd=ROOT)
+                               capture_output=True, text=True, encoding="utf-8", errors="replace", cwd=ROOT)
             self.assertEqual(r.returncode, 1, "master name in prompt must fail")
             out = json.loads(r.stdout)
             self.assertIn("master name", out["errors"][0])
@@ -720,7 +720,7 @@ class AntiSlopTests(unittest.TestCase):
 
     def test_skip_prefixes(self):
         """skip-prefixes must exclude vendored/template subtrees."""
-        m = load_rel("quality/jury/check_anti_slop.py")
+        load_rel("quality/jury/check_anti_slop.py")
         with tempfile.TemporaryDirectory() as td:
             root = Path(td)
             (root / "knowledge").mkdir()

@@ -91,7 +91,7 @@ class ConfigureCLIBehaviorTest(unittest.TestCase):
     def run_cli(self, project_root):
         return subprocess.run(
             [sys.executable, str(CONFIGURE), "--project-root", project_root],
-            capture_output=True, text=True,
+            capture_output=True, text=True, encoding="utf-8", errors="replace",
         )
 
     @unittest.skipUnless(sys.platform == "win32", "Windows-only path semantics")

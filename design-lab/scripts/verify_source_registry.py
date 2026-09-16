@@ -26,7 +26,6 @@ from __future__ import annotations
 
 import json
 import re
-import sys
 from pathlib import Path
 
 import jsonschema
@@ -98,7 +97,7 @@ def main() -> int:
     try:
         jsonschema.Draft202012Validator.check_schema(source_record_schema)
     except Exception as exc:
-        print(f"SCHEMA_ERRORS=1")
+        print("SCHEMA_ERRORS=1")
         print(f"  invalid source-record.schema.json: {exc}")
         return 1
 

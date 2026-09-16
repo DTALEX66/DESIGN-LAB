@@ -41,7 +41,7 @@ class LicenseCoverageTests(unittest.TestCase):
 
     def test_source_header_detection(self):
         """A file with SPDX header passes; without it is flagged."""
-        m = load("verify_license_coverage.py")
+        load("verify_license_coverage.py")
         with tempfile.TemporaryDirectory() as raw:
             d = Path(raw)
             ok = d / "ok.py"
@@ -74,7 +74,7 @@ class IdentityGateTests(unittest.TestCase):
         After removing the exemption lines, a REMAINING non-exempt legacy
         reference must still be detected (fail-closed correctness).
         """
-        m = load("verify_identity_gate.py")
+        load("verify_identity_gate.py")
         text = "旧名 OPEN-DESIGN-Assistance 已退出活动命名，不再使用\n其余 OPEN-DESIGN-Assistance 引用\n"
         exempt = [ln for ln in text.splitlines()
                   if any(w in ln for w in ["退出活动", "历史归档", "不再作为活动", "仅允许出现在", "retired", "denylist", "Denylist", "allowlist"])]
@@ -86,7 +86,7 @@ class IdentityGateTests(unittest.TestCase):
 
     def test_exempt_line_full_removal(self):
         """When ALL matching lines are exempted, detection must pass clean."""
-        m = load("verify_identity_gate.py")
+        load("verify_identity_gate.py")
         text = "历史归档：OPEN-DESIGN-Assistance 已退出活动命名\n"
         exempt = [ln for ln in text.splitlines()
                   if any(w in ln for w in ["退出活动", "历史归档", "不再作为活动", "仅允许出现在", "retired", "denylist", "Denylist", "allowlist"])]
@@ -96,7 +96,7 @@ class IdentityGateTests(unittest.TestCase):
 
     def test_exempt_line_removal_reference(self):
         """denylist/allowlist declaration lines are policy, not violations."""
-        m = load("verify_identity_gate.py")
+        load("verify_identity_gate.py")
         text = "denylist: OPEN-DESIGN-Assistance 禁止出现在活动路径"
         exempt = [ln for ln in text.splitlines()
                   if any(w in ln for w in ["退出活动", "历史归档", "不再作为活动", "仅允许出现在", "retired", "denylist", "Denylist", "allowlist"])]
@@ -146,7 +146,7 @@ class ReleaseGateTests(unittest.TestCase):
         Generic words like 通过/PASS in evidence-discipline prose must NOT
         count (this was the #42 false-positive regression).
         """
-        m = load("verify_release_gate.py")
+        load("verify_release_gate.py")
         marker_re = re.compile(r"DL-REL-001\s*[:：]\s*(ACCEPTED|验收通过|DONE)", re.IGNORECASE)
 
         self.assertTrue(marker_re.search("DL-REL-001: ACCEPTED"))
@@ -159,7 +159,7 @@ class ReleaseGateTests(unittest.TestCase):
 
     def test_marker_stale_detection(self):
         """A verify-chain marker bound to a stale SHA must be flagged."""
-        m = load("verify_release_gate.py")
+        load("verify_release_gate.py")
         with tempfile.TemporaryDirectory() as raw:
             d = Path(raw)
             marker = d / ".verify-chain-ok"

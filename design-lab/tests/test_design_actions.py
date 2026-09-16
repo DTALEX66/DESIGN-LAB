@@ -12,7 +12,7 @@ SCRIPTS = Path(__file__).resolve().parents[1] / "scripts"
 
 class DesignActionTests(unittest.TestCase):
     def test_actions_verifier_passes(self):
-        r = subprocess.run([sys.executable, str(SCRIPTS / "verify_design_actions.py")], capture_output=True, text=True)
+        r = subprocess.run([sys.executable, str(SCRIPTS / "verify_design_actions.py")], capture_output=True, text=True, encoding="utf-8", errors="replace")
         self.assertIn("DESIGN_ACTIONS=PASS", r.stdout, r.stdout + r.stderr)
 
     def test_vocabulary_is_tool_neutral(self):

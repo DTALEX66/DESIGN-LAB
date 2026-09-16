@@ -6,7 +6,6 @@
 """
 from __future__ import annotations
 
-from typing import Any
 
 # 已声明 capabilities（与 adapter-registry capability 语义对齐的领域能力）
 KNOWN_CAPABILITIES: set[str] = {

@@ -248,7 +248,6 @@ class TimelineRoundTripTest(TimelineFixture):
 
     def test_transitions_and_stacks_cannot_be_silently_dropped(self):
         document = json.loads(json.dumps(self.document))
-        clip = document["tracks"]["children"][0]["children"][1]
         transition = {"OTIO_SCHEMA": "Transition.1", "name": "dissolve",
                       "transition_type": "SMPTE_Dissolve",
                       "in_offset": timeline.rational_time(0.25, 24),

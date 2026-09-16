@@ -453,7 +453,7 @@ def verify_secondary_verifiers(root: Path, results: list[Result]) -> None:
             cwd=root,
             stdout=subprocess.PIPE,
             stderr=subprocess.STDOUT,
-            text=True,
+            text=True, encoding="utf-8", errors="replace",
             check=False,
         )
         summary = "\n".join(completed.stdout.strip().splitlines()[-8:])

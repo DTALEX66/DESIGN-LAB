@@ -235,23 +235,23 @@ def _git(root, *args):
 def git_snapshot(root):
     if Path(_git(root, 'rev-parse', '--show-toplevel')).resolve() != Path(root).resolve():
         raise ValueError('report root must be the owning Git root')
-    generated = {CURRENT + name for name in REPORTS} | {INDEX}
-    # -z prevents shell quoting/Unicode escapes in filenames.
-    changes = _git(root, 'status', '--porcelain', '--untracked-files=all', '-z').split('\0')
-    # The reports and the index are excluded: writing them must not change the
-    # subject they describe, otherwise the digest could never settle.
-    subject_changes = sorted(record for record in changes
-                             if record and record[3:] not in generated)
-    dirty = bool(subject_changes)
+    # Unified content-bound digest (DL-AUDIT-20260914-01). Generated reports and
+    # private/runtime roots are excluded by the module's declared scope, so
+    # writing a projection never changes the digest of the subject it describes.
+    # The digest now binds HEAD + every normalized change to its SHA-256 content,
+    # replacing the old "porcelain status string only" digest.
+    from design_lab.governance.worktree_digest import analyze
+    description = analyze(root)
+    dirty = not description['clean']
     try:
         origin = _git(root, 'rev-parse', 'origin/main')
     except ValueError:
         origin = None
-    sha = _git(root, 'rev-parse', 'HEAD')
-    digest = hashlib.sha256(('\n'.join([sha, *subject_changes])).encode('utf-8')).hexdigest()
-    return {'sha': sha, 'branch': _git(root, 'branch', '--show-current'),
+    sha = description['head_sha']
+    return {'sha': sha, 'branch': description['branch'],
             'origin_main': origin, 'source_worktree_clean': not dirty,
-            'worktree_digest': 'sha256:' + digest,
+            'worktree_digest': description['digest'],
+            'worktree_changes': description['changes'],
             'tracked_files': len([p for p in _git(root, 'ls-files', '-z').split('\0') if p])}
 
 

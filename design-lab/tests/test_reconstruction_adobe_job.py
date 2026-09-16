@@ -87,7 +87,7 @@ vm.runInContext('validateJob(JSON.parse(payload),root)',context);
 console.log('PYTHON_TO_JSX=PASS');
 '''
         result = subprocess.run([node,'-e',script,str(PROJECT_ROOT/'integrations/hosts/adobe/illustrator/reconstruction-assemble.jsx')],
-                                input=json.dumps(job),capture_output=True,text=True,timeout=30)
+                                input=json.dumps(job),capture_output=True,text=True, encoding="utf-8", errors="replace",timeout=30)
         self.assertEqual(result.returncode,0,result.stderr)
         points=job['layers'][0]['items'][0]['points']
         self.assertEqual(points[0],dict(anchor=[4,43],left=[4,43],right=[8,47]))

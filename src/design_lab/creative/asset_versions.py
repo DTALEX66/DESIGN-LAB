@@ -15,7 +15,7 @@ from __future__ import annotations
 import sqlite3
 
 from ..runtime import asset_store
-from .store import CreativeError, new_id, now, require_job, transaction
+from .store import CreativeError, require_job, transaction
 
 _STATES = {"PENDING", "ACTIVE", "SUPERSEDED", "FAILED", "CANCELLED"}
 

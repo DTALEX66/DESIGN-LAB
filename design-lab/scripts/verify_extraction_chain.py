@@ -3,7 +3,6 @@
 """DL P0-005: verify external-asset conversion chain contracts (fail-closed)."""
 from __future__ import annotations
 import json
-import sys
 from pathlib import Path
 import jsonschema
 

@@ -22,7 +22,7 @@ SCHEMA = REPO / "schemas" / "release-evidence.schema.json"
 
 
 def git(args: list[str]) -> str:
-    r = subprocess.run(["git", *args], cwd=REPO, capture_output=True, text=True)
+    r = subprocess.run(["git", *args], cwd=REPO, capture_output=True, text=True, encoding="utf-8", errors="replace")
     if r.returncode != 0:
         raise RuntimeError(f"git {' '.join(args)}: {r.stderr.strip()}")
     return r.stdout.strip()

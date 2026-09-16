@@ -30,6 +30,21 @@ ORIGIN = "promoted from .project-local/task-runtime/r5-host-inventory-v2-2026091
 REGISTRY_SCOPE = "HKLM/HKCU Uninstall (DisplayName/DisplayVersion/InstallLocation)"
 
 
+def project_python() -> str:
+    """The project virtualenv's interpreter, without assuming a Windows layout.
+
+    (DL-AUDIT-20260914-06) A fresh checkout on another platform has a different
+    virtualenv layout; probing only ``.venv/Scripts/python.exe`` would report the
+    project interpreter as NOT_FOUND there. Resolve the platform-appropriate
+    virtualenv path and fall back to the running interpreter.
+    """
+    for candidate in (".venv/bin/python", ".venv/Scripts/python.exe"):
+        path = REPO / candidate
+        if path.exists():
+            return str(path)
+    return sys.executable or "python3"
+
+
 def exists(path: str) -> bool:
     return Path(path).exists()
 
@@ -58,7 +73,7 @@ def build(reobserve: bool = False) -> dict:
                          r"ffmpeg/current/bin/ffmpeg.exe", "-version"])
     ffmpeg_version = ffmpeg_out.splitlines()[0] if ffmpeg_out else None
     _, node_out = run([r"C:/Users/ALEX/AppData/Local/hermes/node/node.EXE", "--version"])
-    _, python_out = run([str(REPO / ".venv/Scripts/python.exe"), "-V"])
+    _, python_out = run([project_python(), "-V"])
     _, gpu_out = run([r"C:/Windows/System32/nvidia-smi.exe",
                       "--query-gpu=name,driver_version,memory.total,memory.used,memory.free",
                       "--format=csv,noheader,nounits"])
@@ -157,7 +172,7 @@ def build(reobserve: bool = False) -> dict:
                                "ffmpeg/current/bin/ffmpeg.exe", "version": ffmpeg_version,
                        "exists": exists("D:/All projects/OS External Configuration/10-toolchains/"
                                         "scoop/apps/ffmpeg/current/bin/ffmpeg.exe")},
-            "python": {"path": str(REPO / ".venv/Scripts/python.exe"), "version": python_out},
+            "python": {"path": project_python(), "version": python_out},
             "node": {"path": "C:/Users/ALEX/AppData/Local/hermes/node/node.EXE", "version": node_out},
         },
         "software": software,

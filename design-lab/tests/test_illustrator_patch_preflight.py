@@ -35,7 +35,7 @@ for(const [name,change] of cases){c.payload=JSON.stringify(base);const j=vm.runI
 console.log(JSON.stringify(results));
 '''
         result=subprocess.run([node,'-e',script,str(ROOT/'integrations/hosts/adobe/illustrator/reconstruction-assemble.jsx')],
-            capture_output=True,text=True,timeout=30)
+            capture_output=True,text=True, encoding="utf-8", errors="replace",timeout=30)
         self.assertEqual(result.returncode,0,result.stderr)
         results=json.loads(result.stdout)
         self.assertEqual(results[0]['opens'],1,results[0])

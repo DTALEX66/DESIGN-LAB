@@ -378,7 +378,7 @@ class NativeTaskTests(unittest.TestCase):
             't.reconcile_receipted(sys.argv[3],authorization=dict(actor="test",scope="project-native-test",receipt="crash fixture"))'
         )
         child=subprocess.run([sys.executable,'-B','-X','utf8','-c',code,str(ROOT/'src'),str(self.root),aid],
-                             capture_output=True,text=True,timeout=20)
+                             capture_output=True,text=True, encoding="utf-8", errors="replace",timeout=20)
         self.assertEqual(child.returncode,43,child.stderr)
         tasks=module.NativeTasks(ProjectService(self.root))
         with closing(tasks._connect()) as conn:
@@ -407,7 +407,7 @@ class NativeTaskTests(unittest.TestCase):
                     'authorization=dict(actor="test",scope="project-native-test",receipt="crash fixture"))'
                 )
                 child=subprocess.run([sys.executable,'-B','-X','utf8','-c',code,str(ROOT/'src'),str(self.root),aid,seam],
-                                     capture_output=True,text=True,timeout=20)
+                                     capture_output=True,text=True, encoding="utf-8", errors="replace",timeout=20)
                 self.assertEqual(child.returncode,43,child.stderr)
                 tasks=module.NativeTasks(ProjectService(self.root))
                 result=tasks.reconcile_receipted(aid,authorization=self.authorization)

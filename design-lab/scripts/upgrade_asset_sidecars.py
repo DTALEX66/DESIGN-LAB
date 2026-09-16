@@ -77,13 +77,12 @@ def upgrade(binary: Path, sidecar: Path) -> dict | None:
 
 
 def main() -> int:
-    tracked = ROOT.parent / ".git"
     layout = resolve_paths(project_root=ROOT.parent)
     out = layout.checked_path(layout.category_dir('runtime') / 'asset-sidecar-upgrade.json')
     result = {"upgraded": [], "skipped": [], "errors": []}
     # walk all tracked binaries under the repo via git ls-files
     import subprocess
-    r = subprocess.run(["git", "-C", str(ROOT.parent), "ls-files"], capture_output=True, text=True)
+    r = subprocess.run(["git", "-C", str(ROOT.parent), "ls-files"], capture_output=True, text=True, encoding="utf-8", errors="replace")
     binaries = []
     for rel in r.stdout.splitlines():
         p = ROOT.parent / rel

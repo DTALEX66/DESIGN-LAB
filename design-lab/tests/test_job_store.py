@@ -74,7 +74,7 @@ class JobStoreTests(unittest.TestCase):
         conn.close()
 
     def test_cancelled_terminal_stays_cancelled_on_retry(self):
-        from design_lab.runtime.job_store import begin_attempt, connect, transition
+        from design_lab.runtime.job_store import connect, transition
 
         conn = connect(self._db())
         att = self._begin(conn)

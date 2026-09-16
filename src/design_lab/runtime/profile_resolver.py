@@ -10,7 +10,7 @@ from __future__ import annotations
 from datetime import datetime, timezone
 import hashlib
 import json
-from pathlib import Path, PurePosixPath
+from pathlib import PurePosixPath
 import re
 
 from jsonschema import Draft202012Validator, FormatChecker

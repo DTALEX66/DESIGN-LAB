@@ -12,7 +12,7 @@ SCRIPTS = Path(__file__).resolve().parents[1] / "scripts"
 
 class ReferenceE2ETests(unittest.TestCase):
     def test_reference_e2e_passes(self):
-        r = subprocess.run([sys.executable, str(SCRIPTS / "verify_reference_e2e.py")], capture_output=True, text=True)
+        r = subprocess.run([sys.executable, str(SCRIPTS / "verify_reference_e2e.py")], capture_output=True, text=True, encoding="utf-8", errors="replace")
         self.assertIn("REFERENCE_E2E=PASS", r.stdout, r.stdout + r.stderr)
 
     def test_sample_is_honest_e1(self):

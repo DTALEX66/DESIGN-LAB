@@ -249,7 +249,7 @@ class CurrentReportingTests(unittest.TestCase):
             result = subprocess.run(
                 ['git', '-c', 'user.name=Report Fixture', '-c',
                  'user.email=fixture@example.invalid', '-c', 'core.autocrlf=false',
-                 *args], cwd=self.root, capture_output=True, text=True)
+                 *args], cwd=self.root, capture_output=True, text=True, encoding="utf-8", errors="replace")
             self.assertEqual(result.returncode, 0, result.stderr)
             return result.stdout.strip()
         git('init')

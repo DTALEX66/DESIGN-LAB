@@ -71,7 +71,7 @@ def main():
         image.crop((x,y,right,bottom)).save(crop)
         result=subprocess.run([str(tracer),'--input',str(crop),'--output',str(svg),
             '--preset','bw','--mode','spline','--filter-speckle','2','--path-precision','3'],
-            capture_output=True,text=True,timeout=60)
+            capture_output=True,text=True, encoding="utf-8", errors="replace",timeout=60)
         if result.returncode:raise RuntimeError('tracer failed: '+identity)
         elements=ET.fromstring(svg.read_bytes())
         count=0

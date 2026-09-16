@@ -42,3 +42,17 @@ only-include = ["src/design_lab", "design-lab/schemas/state", "apps/workbench", 
 
 [tool.pytest.ini_options]
 testpaths = ["design-lab/tests"]
+
+# DLDS-C030 / DL-AUDIT-20260914-08: ruff is now *executed* (CI lint step +
+# project-local lint-tools runner), not merely declared. CI gates on real
+# defects only (F, E9); the recorded style baseline (E4/E7, ~219 findings) is
+# reported, not silently mass-rewritten.
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+# F = pyflakes real defects (unused imports, undefined names, dead variables);
+# E9 = runtime error class. E4/E7 style findings are tracked as a baseline in
+# .project-local/task-artifacts/audit-20260915/lint-baseline.json, not gated.
+select = ["F", "E9"]

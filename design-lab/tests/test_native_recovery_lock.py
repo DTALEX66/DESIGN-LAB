@@ -1,5 +1,4 @@
 # SPDX-License-Identifier: MIT
-import os
 from pathlib import Path
 import subprocess
 import queue
@@ -31,7 +30,7 @@ class NativeRecoveryLockTests(unittest.TestCase):
                 'print("READY",flush=True); sys.stdin.readline()'
             )
             child = subprocess.Popen([sys.executable, '-B', '-X', 'utf8', '-c', code, str(ROOT/'src'), str(root)],
-                                     stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+                                     stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, encoding="utf-8", errors="replace")
             try:
                 ready = queue.Queue()
                 thread = threading.Thread(target=lambda: ready.put(child.stdout.readline()), daemon=True)

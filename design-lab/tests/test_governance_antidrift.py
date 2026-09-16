@@ -112,7 +112,7 @@ class EvidenceAntiDriftTests(unittest.TestCase):
     def test_open_design_back_dependency_rejected(self):
         import subprocess
         r = subprocess.run(["git", "-C", str(ROOT.parent), "ls-files", "design-lab/scripts"],
-                           capture_output=True, text=True)
+                           capture_output=True, text=True, encoding="utf-8", errors="replace")
         for rel in r.stdout.splitlines():
             if not rel.endswith(".py"):
                 continue
@@ -131,7 +131,7 @@ class AssetGovernanceAntiDriftTests(unittest.TestCase):
         return str(d)
 
     def test_binary_without_source_record_rejected(self):
-        import hashlib, os, json
+        import hashlib, json
         d = Path(self._tmp())
         binary = d / "asset.bin"
         binary.write_bytes(b"\x00" * 64)
@@ -163,7 +163,7 @@ class MiniGameBoundaryAntiDriftTests(unittest.TestCase):
     def test_minigame_monetization_fields_rejected(self):
         import subprocess
         r = subprocess.run(["git", "-C", str(ROOT.parent), "ls-files", "fixtures/domains/game-visual"],
-                           capture_output=True, text=True)
+                           capture_output=True, text=True, encoding="utf-8", errors="replace")
         patterns = re.compile(r"\bads?\b|\badvertisement\b|\biap\b|\bmonetization\b|in-app\s*purchase|广告变现|买量|growth\s*hack", re.IGNORECASE)
         # only scan active source files (not docs/history which may describe removed features)
         # scan only ACTIVE runtime paths; tests/ and docs/ may legitimately reference

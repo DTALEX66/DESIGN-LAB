@@ -169,6 +169,18 @@ def make_server(service, token, port=0):
                         return self.send_json(200, {'status': 'OK', 'version': __version__, 'scope': 'project-metadata'})
                     if self.path == '/api/environment':
                         return self.send_json(200, service.paths.describe())
+                    if self.path == '/api/task-preflight':
+                        # DL-AUDIT-20260914-04: the same preflight the CLI doctor
+                        # uses, so workbench and CLI can never disagree. Read-only.
+                        from ..runtime.task_resources import TaskResourceError, preflight
+                        try:
+                            task = self.path.split('?', 1)[1].removeprefix('task=') if '?' in self.path else ''
+                            if not task:
+                                raise RequestError(400, 'TASK_REQUIRED')
+                            value = preflight(service.paths.project_root, task)
+                            return self.send_json(200, value)
+                        except TaskResourceError:
+                            return self.send_json(400, {'error': 'TASK_PREFLIGHT_REJECTED'})
                     if self.path == '/api/projects':
                         return self.send_json(200, {'projects': service.list_projects()})
                     match = re.fullmatch(r'/api/projects/([0-9a-f]{32})', self.path)

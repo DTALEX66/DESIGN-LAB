@@ -23,7 +23,7 @@ vm.runInContext(fs.readFileSync(process.argv[1],'utf8').replace(/^#target.*$/m,'
 let rejection=null;try{c.psRejectOpenInputs({assets:[{path:'D:/run/input.png'}]})}catch(e){rejection=e.message}
 console.log(JSON.stringify({rejection,closes}));
 '''
-        result=subprocess.run([node,'-e',script,str(JSX)],capture_output=True,text=True,timeout=30)
+        result=subprocess.run([node,'-e',script,str(JSX)],capture_output=True,text=True, encoding="utf-8", errors="replace",timeout=30)
         self.assertEqual(result.returncode,0,result.stderr)
         self.assertEqual(json.loads(result.stdout),{'rejection':'input already open','closes':0})
 
@@ -36,7 +36,7 @@ const c={UnitValue:(value,unit)=>({value,unit})};vm.createContext(c);
 vm.runInContext(fs.readFileSync(process.argv[1],'utf8').replace(/^#target.*$/m,''),c);
 console.log(JSON.stringify(c.psRect([10,20,30,40])));
 '''
-        result=subprocess.run([node,'-e',script,str(JSX)],capture_output=True,text=True,timeout=30)
+        result=subprocess.run([node,'-e',script,str(JSX)],capture_output=True,text=True, encoding="utf-8", errors="replace",timeout=30)
         self.assertEqual(result.returncode,0,result.stderr)
         self.assertEqual(json.loads(result.stdout),[
             [{'value':10,'unit':'px'},{'value':20,'unit':'px'}],
@@ -67,7 +67,7 @@ const cases=[j=>j.command='execute',j=>j.width=0,j=>j.width=NaN,j=>j.runRoot='D:
 const rejected=cases.map(change=>{const j=clone();change(j);try{c.psRunJob(j,'D:/run');return false}catch(e){return true}});
 console.log(JSON.stringify({valid,rejected,creates}));
 '''
-        result=subprocess.run([node,'-e',script,str(JSX)],capture_output=True,text=True,timeout=30)
+        result=subprocess.run([node,'-e',script,str(JSX)],capture_output=True,text=True, encoding="utf-8", errors="replace",timeout=30)
         self.assertEqual(result.returncode,0,result.stderr)
         report=json.loads(result.stdout)
         self.assertIsNone(report['valid'],report['valid'])

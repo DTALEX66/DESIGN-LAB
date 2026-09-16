@@ -95,7 +95,7 @@ def main() -> int:
     # 5) 命令验证器中立性
     cs = importlib.util.spec_from_file_location("dl_core_commands", str(CORE / "commands.py"))
     cm = importlib.util.module_from_spec(cs); cs.loader.exec_module(cm)
-    validate_command, is_tool_name = cm.validate_command, cm.is_tool_name
+    is_tool_name = cm.is_tool_name
     if not is_tool_name("photoshop.text"):
         errors.append("photoshop.text should be detected as a tool name (neutrality)")
     if not is_tool_name("deepseek.reason"):

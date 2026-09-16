@@ -152,7 +152,7 @@ class ModelManifestTests(unittest.TestCase):
         (self.root / 'manifest.json').write_text(json.dumps(self.manifest), encoding='utf-8')
         result = subprocess.run([sys.executable, '-B', str(ROOT / 'scripts/design_lab_doctor.py'),
                                  '--model-root', str(self.root), '--model-manifest', 'manifest.json', '--json'],
-                                cwd=self.root, capture_output=True, text=True,
+                                cwd=self.root, capture_output=True, text=True, encoding="utf-8", errors="replace",
                                 env={**os.environ, 'PYTHONDONTWRITEBYTECODE': '1', 'PYTHONUTF8': '1'})
         self.assertEqual(result.returncode, 2)
         report = json.loads(result.stdout)

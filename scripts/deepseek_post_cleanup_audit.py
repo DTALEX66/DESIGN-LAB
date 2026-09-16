@@ -24,11 +24,26 @@ from pathlib import Path
 REPO = Path(__file__).resolve().parents[1]
 OUT = REPO / "reports/current/POST-CLEANUP-AUDIT.json"
 TASK_KEY = "DL-TP-20260914-DEEPSEEK-AUTHORITY-R1::DLDS-E050"
-PYTHON = REPO / ".venv/Scripts/python.exe"
 CLEANUP_MANIFEST = REPO / ".project-local/quarantine/deepseek-round1/RUNTIME-CLEANUP-MANIFEST.json"
 MIGRATION_MANIFEST = REPO / ".project-local/archive/hermes-legacy/MIGRATION-MANIFEST.json"
 TEST_PATTERNS = ("test_creative_*.py", "test_interop_*.py", "test_media_*.py",
                  "test_assurance_*.py", "test_readiness_*.py")
+
+
+def resolve_interpreter() -> str:
+    """Platform-neutral interpreter (DL-AUDIT-20260914-06): no hard-coded
+    ``.venv/Scripts/python.exe``. Prefer the running interpreter, then the
+    platform's virtualenv layout, then ``python3`` on PATH."""
+    import sys
+    if sys.executable:
+        return sys.executable
+    for candidate in (REPO / ".venv/bin/python", REPO / ".venv/Scripts/python.exe"):
+        if candidate.exists():
+            return str(candidate)
+    return "python3"
+
+
+PYTHON = resolve_interpreter()
 
 
 def run(command: list, timeout: int = 900) -> tuple:

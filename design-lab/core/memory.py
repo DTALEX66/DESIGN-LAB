@@ -8,7 +8,6 @@
 from __future__ import annotations
 
 from datetime import datetime, timezone
-from typing import Any
 
 VALID_TYPES = {"semantic", "procedural", "episodic", "visual", "failure_pattern"}
 VALID_STATUS = {"candidate", "validated", "active", "rejected", "expired"}

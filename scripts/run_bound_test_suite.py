@@ -53,8 +53,10 @@ def git(*args: str) -> str:
 
 
 def worktree_digest() -> str:
-    porcelain = git("status", "--porcelain=v1")
-    return "sha256:" + hashlib.sha256((git("rev-parse", "HEAD") + "\n" + porcelain).encode()).hexdigest()
+    # Unified content-bound digest (DL-AUDIT-20260914-01): bind every change to
+    # its SHA-256 content rather than the porcelain status string alone.
+    from design_lab.governance.worktree_digest import worktree_digest as unified
+    return unified(REPO)
 
 
 def discover(pattern: str):
@@ -107,6 +109,19 @@ def main(argv=None) -> int:
         selected.extend(order_tests(tests, args.order, args.seed))
 
     suite = unittest.TestSuite(selected)
+    # DL-AUDIT-20260914-07: bind the exact test *list* the run covers. The
+    # manifest hash is the SHA-256 of the ordered test IDs (module::class::name),
+    # so a run proves exactly which cases, in which order, on which platform and
+    # seed — reordering, adding or removing a case changes the hash, and a Linux
+    # result can never be read as a Windows host result because the platform is
+    # recorded alongside it.
+    manifest = []
+    for index, item in enumerate(selected):
+        identifier = item.id()
+        if args.repeat > 1:
+            identifier = f"{index % len(tests)}::{identifier}"
+        manifest.append(identifier)
+    manifest_hash = "sha256:" + hashlib.sha256("\n".join(manifest).encode("utf-8")).hexdigest()
     result = unittest.TextTestRunner(verbosity=1).run(suite)
     duration = round(time.monotonic() - clock, 3)
     run_id = (f"testrun-{started.strftime('%Y%m%dT%H%M%SZ')}-{args.order}"
@@ -131,6 +146,13 @@ def main(argv=None) -> int:
         "modules": args.modules,
         "repeat": args.repeat,
         "selected_cases": len(selected),
+        "test_manifest_sha256": manifest_hash,
+        "test_manifest_scope": "ordered test IDs (module::class::name), one hash covers the exact "
+                               "cases and their order; a different list, order or repeat count "
+                               "produces a different hash",
+        "platform_binding": "the environment_fingerprint records the platform that produced this "
+                            "run; a result recorded on another platform is a different record and "
+                            "never substitutes for this one",
         "subject": {"commit_sha": git("rev-parse", "HEAD"),
                     "worktree_digest": worktree_digest(),
                     "worktree_clean": git("status", "--porcelain=v1") == "",
@@ -138,8 +160,10 @@ def main(argv=None) -> int:
         "environment_fingerprint": {"python": platform.python_version(),
                                     "platform": platform.platform(),
                                     "machine": platform.machine()},
-        "what_this_proves": "the named tests passed in this order on this exact subject; it proves "
-                            "nothing about a different commit or a dirty tree that has moved on",
+        "what_this_proves": "the named cases, in this exact order, passed on this platform "
+                            "(see platform_binding) on this exact subject; it proves nothing about "
+                            "a different commit, a dirty tree that has moved on, or a different "
+                            "platform — a Linux record never stands in for a Windows host result",
         "failures_detail": [str(test) for test, _ in result.failures][:20],
         "errors_detail": [str(test) for test, _ in result.errors][:20],
     }

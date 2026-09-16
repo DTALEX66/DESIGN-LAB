@@ -10,7 +10,7 @@ SCRIPTS = Path(__file__).resolve().parents[1] / 'scripts'
 
 class FederationReviewTests(unittest.TestCase):
     def test_federation_review_passes(self):
-        r = subprocess.run([sys.executable, str(SCRIPTS / 'verify_federation_review.py')], capture_output=True, text=True)
+        r = subprocess.run([sys.executable, str(SCRIPTS / 'verify_federation_review.py')], capture_output=True, text=True, encoding="utf-8", errors="replace")
         self.assertIn('FEDERATION_REVIEW=PASS', r.stdout, r.stdout + r.stderr)
 
 if __name__ == '__main__':

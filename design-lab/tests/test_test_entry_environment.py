@@ -39,7 +39,7 @@ class DedicatedProbe(unittest.TestCase):
         handle.close()
         child = subprocess.run([sys.executable,'-B','-c',
             'import json,tempfile; f=tempfile.NamedTemporaryFile(delete=False); f.write(b"child fixture"); f.close(); print(json.dumps({"path":f.name}))'],
-            capture_output=True, text=True, check=True)
+            capture_output=True, text=True, encoding="utf-8", errors="replace", check=True)
         observed = {'file':handle.name,'child_file':json.loads(child.stdout)['path'],
                     'tempfile':tempfile.gettempdir(),
                     'environment':{key:os.environ[key] for key in ('TEMP','TMP','TMPDIR','XDG_CACHE_HOME','HF_HOME','TORCH_HOME')},

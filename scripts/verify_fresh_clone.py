@@ -32,8 +32,29 @@ REPO = Path(__file__).resolve().parents[1]
 CLONE = REPO / ".project-local/task-runtime/fresh-clone"
 OUT = REPO / "reports/current/FRESH-CLONE-VERIFICATION.json"
 TASK_KEY = "DL-TP-20260914-DEEPSEEK-AUTHORITY-R1::DLDS-H020"
-PYTHON = str(REPO / ".venv/Scripts/python.exe")
 TEST_PATTERNS = ("test_creative_job.py", "test_interop_dtcg.py", "test_assurance_qa_plane.py")
+
+
+def resolve_interpreter() -> tuple[str, str]:
+    """Platform-neutral interpreter selection (DL-AUDIT-20260914-06).
+
+    No longer hard-codes ``.venv/Scripts/python.exe``: the interpreter that
+    launched this gate is preferred (it already has the project dependencies),
+    then the virtualenv layout of the running platform, then ``python3``. The
+    stage that needs dependencies (the clone) runs the *same* interpreter, so
+    a clean-clone claim is not smuggled through an invisible dependency.
+    Returns (command, source).
+    """
+    import sys
+    if sys.executable:
+        return sys.executable, "python:the interpreter running this gate"
+    for candidate in (REPO / ".venv/bin/python", REPO / ".venv/Scripts/python.exe"):
+        if candidate.exists():
+            return str(candidate), f"virtualenv:{candidate.relative_to(REPO)}"
+    return "python3", "PATH:python3 (no project virtualenv found)"
+
+
+PYTHON, PYTHON_SOURCE = resolve_interpreter()
 
 
 def run(command: list, cwd: Path, timeout: int = 900) -> tuple:
@@ -119,6 +140,10 @@ def main(argv=None) -> int:
         "verified_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
         "subject_sha": git("rev-parse", "HEAD"),
         "clone_path": str(CLONE.relative_to(REPO)).replace("\\", "/"),
+        "interpreter": {"command": PYTHON, "source": PYTHON_SOURCE,
+                         "note": "selected at gate start without a hard-coded Windows path; "
+                                 "a missing virtualenv makes the dependency stage NOT_VERIFIED, "
+                                 "never a silent pass"},
         "stages": stages,
         "failures": failures,
         "unverifiable": [s["stage"] for s in stages if s["state"] == "NOT_VERIFIABLE"],

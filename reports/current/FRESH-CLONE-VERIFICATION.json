@@ -1,24 +1,29 @@
 {
   "schemaVersion": "design-lab/fresh-clone-verification/v1",
   "task_key": "DL-TP-20260914-DEEPSEEK-AUTHORITY-R1::DLDS-H020",
-  "verified_at": "2026-09-13T16:45:04+00:00",
-  "subject_sha": "0e109ab49792345268aa7287e193a2fee1072949",
+  "verified_at": "2026-09-15T19:11:12+00:00",
+  "subject_sha": "f82f17ee5ec1d0e2973414ad673b00191324c68b",
   "clone_path": ".project-local/task-runtime/fresh-clone",
+  "interpreter": {
+    "command": "D:\\All projects\\DESIGN-LAB\\.venv\\Scripts\\python.exe",
+    "source": "python:the interpreter running this gate",
+    "note": "selected at gate start without a hard-coded Windows path; a missing virtualenv makes the dependency stage NOT_VERIFIED, never a silent pass"
+  },
   "stages": [
     {
       "stage": "clone",
       "state": "PASS",
-      "evidence": "cloned HEAD 0e109ab49792 into an ignored directory"
+      "evidence": "cloned HEAD f82f17ee5ec1 into an ignored directory"
     },
     {
       "stage": "clone_head_matches",
       "state": "PASS",
-      "evidence": "clone HEAD 0e109ab49792 vs source 0e109ab49792"
+      "evidence": "clone HEAD f82f17ee5ec1 vs source f82f17ee5ec1"
     },
     {
       "stage": "tracked_content_present",
       "state": "PASS",
-      "evidence": "1882 tracked files; missing: none"
+      "evidence": "1907 tracked files; missing: none"
     },
     {
       "stage": "contracts_parse",

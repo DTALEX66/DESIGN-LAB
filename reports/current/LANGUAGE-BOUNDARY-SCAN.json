@@ -4,7 +4,7 @@
     "DL-TP-20260914-DEEPSEEK-AUTHORITY-R1::DLDS-C020",
     "DL-TP-20260914-DEEPSEEK-AUTHORITY-R1::DLDS-C050"
   ],
-  "generated_at": "2026-09-13T18:54:34+00:00",
+  "generated_at": "2026-09-15T19:11:43+00:00",
   "subject_sha": "",
   "tracked_files_scanned": 1907,
   "language_boundary": {
@@ -77,7 +77,7 @@
         "vocabulary": "evidence_levels",
         "schema": "design-lab/schemas/capability-status.schema.json",
         "path": "design-lab/scripts/verify_product_manifest_v3.py",
-        "line": 28,
+        "line": 27,
         "tokens_present": [
           "BLOCKED",
           "FAIL",
@@ -94,7 +94,7 @@
         "vocabulary": "evidence_levels",
         "schema": "design-lab/schemas/capability-status.schema.json",
         "path": "design-lab/scripts/verify_runtime_contracts_v3.py",
-        "line": 23,
+        "line": 22,
         "tokens_present": [
           "BLOCKED",
           "FAIL",
@@ -190,7 +190,7 @@
         "vocabulary": "task_axes_states",
         "schema": "design-lab/schemas/task-ledger-r3.schema.json",
         "path": "design-lab/scripts/verify_product_manifest_v3.py",
-        "line": 28,
+        "line": 27,
         "tokens_present": [
           "BLOCKED",
           "FAIL",
@@ -204,7 +204,7 @@
         "vocabulary": "task_axes_states",
         "schema": "design-lab/schemas/task-ledger-r3.schema.json",
         "path": "design-lab/scripts/verify_runtime_contracts_v3.py",
-        "line": 23,
+        "line": 22,
         "tokens_present": [
           "BLOCKED",
           "FAIL",

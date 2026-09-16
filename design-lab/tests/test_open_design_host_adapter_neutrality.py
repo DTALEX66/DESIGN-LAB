@@ -12,7 +12,6 @@ Asserts:
 from __future__ import annotations
 
 import json
-import re
 import unittest
 from pathlib import Path
 
@@ -55,7 +54,7 @@ class OpenDesignHostAdapterNeutralityTests(unittest.TestCase):
         import subprocess
         r = subprocess.run(
             ["git", "-C", str(ROOT.parent), "ls-files", "design-lab"],
-            capture_output=True, text=True,
+            capture_output=True, text=True, encoding="utf-8", errors="replace",
         )
         for rel in r.stdout.splitlines():
             if "open-design" not in rel:
@@ -79,7 +78,7 @@ class OpenDesignHostAdapterNeutralityTests(unittest.TestCase):
         import subprocess
         r = subprocess.run(
             ["git", "-C", str(ROOT.parent), "ls-files", "design-lab/scripts", "design-lab/core", "packages/capabilities/atoms", "packages/capabilities/bundles", "packages/capabilities/scenarios"],
-            capture_output=True, text=True,
+            capture_output=True, text=True, encoding="utf-8", errors="replace",
         )
         for rel in r.stdout.splitlines():
             if not rel.endswith(".py") and not rel.endswith(".json") and not rel.endswith(".md"):
@@ -99,7 +98,7 @@ class OpenDesignHostAdapterNeutralityTests(unittest.TestCase):
         import subprocess
         r = subprocess.run(
             ["git", "-C", str(ROOT.parent), "ls-files", ".github/workflows"],
-            capture_output=True, text=True,
+            capture_output=True, text=True, encoding="utf-8", errors="replace",
         )
         for rel in r.stdout.splitlines():
             p = ROOT.parent / rel

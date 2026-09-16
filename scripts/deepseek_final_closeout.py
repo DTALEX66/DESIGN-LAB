@@ -732,24 +732,6 @@ def write_markdown(k010_doc: dict, k020_doc: dict, k030_doc: dict, state: dict) 
     ]
     exceptions = ["| Area | State | Exception |", "|---|---|---|"] + [
         f"| {e['area']} | {e['state']} | {e['exception']} |" for e in REMEDIATION_EXCEPTIONS]
-    final = [
-        "Taskpack: " + str(state.get("taskpack")) + ".",
-        "Tasks recorded: " + str(state.get("task_count")) + "; status counts: " +
-        json.dumps(state.get("status_counts"), ensure_ascii=False) + ".",
-        "Branch: " + str(state.get("branch")) + "; nothing was pushed, main is untouched, and no "
-        "merge, tag or release was performed.",
-        "Cleanup conditions: " + str(k010_doc["counts"]["ok"]) + "/" +
-        str(k010_doc["counts"]["conditions"]) + " hold; failed: " +
-        json.dumps(k010_doc["counts"]["failed"]) + ".",
-        "Language conditions: " + str(k020_doc["counts"]["ok"]) + "/" +
-        str(k020_doc["counts"]["conditions"]) + " hold; failed: " +
-        json.dumps(k020_doc["counts"]["failed"]) + ".",
-        "DeepSeek claims at most E0/E1, plus E2 only for a non-professional host it actually ran; "
-        "every level above E1 in this repository is currently unclaimed.",
-        "Not claimed: " + "; ".join(state.get("never_claimed", [])) + ".",
-        "Remaining exceptions are listed below and are carried into the Codex starting point "
-        "rather than being presented as complete.",
-    ]
     reports = {
         "REPOSITORY-NORMALIZATION-REPORT.md": ("Repository Normalization Report", normalized),
         "LANGUAGE-GOVERNANCE-REPORT.md": ("Language Governance Report", language),

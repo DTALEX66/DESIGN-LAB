@@ -1,12 +1,10 @@
 # SPDX-License-Identifier: MIT
 """The identity gate inspects active source, never ignored runtime/private data."""
 import importlib.util
-import os
 import json
 from pathlib import Path
 import tempfile
 import unittest
-from unittest.mock import patch
 import subprocess
 import sys
 

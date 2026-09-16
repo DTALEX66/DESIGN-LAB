@@ -189,7 +189,6 @@ class ReconstructionSemanticTests(unittest.TestCase):
 
     def test_paddle_preflight_and_proposal_are_structured_fallbacks_without_a_local_runtime(self) -> None:
         # A provider that reports READY or writes outside its proposal target breaks the SPI boundary.
-        from reconstruction.providers.base import ProviderDescriptor, ProposalRequest, AuthorizedOutput
         from reconstruction.providers.paddleocr_provider import PaddleOCRProvider
 
         descriptor = self._descriptor("paddleocr-local", "ocr", qualification="QUALIFIED")

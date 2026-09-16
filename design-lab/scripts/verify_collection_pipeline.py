@@ -7,7 +7,6 @@ Collection Manifests 必须：受控摄取、权利未验证项 quarantine、禁
 from __future__ import annotations
 
 import json
-import sys
 from pathlib import Path
 
 import jsonschema

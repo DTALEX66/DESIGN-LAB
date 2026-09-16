@@ -25,6 +25,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 REPO = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(REPO / "src"))
 TASKPACK_PATH = "docs/taskpacks/DESIGN-LAB-DEEPSEEK-AUTHORITY-TASKPACK-2026-09-14.md"
 LEDGER_PATH = "reports/current/DEEPSEEK-AUTHORITY-LEDGER-2026-09-14.json"
 TASKPACK_ID = "DL-TP-20260914-DEEPSEEK-AUTHORITY-R1"
@@ -80,10 +81,16 @@ def branch() -> str:
 
 
 def worktree_digest() -> str:
-    """Digest of the dirty state: HEAD plus the exact porcelain listing."""
-    porcelain = git("status", "--porcelain=v1")
-    payload = head_sha() + "\n" + porcelain
-    return "sha256:" + hashlib.sha256(payload.encode("utf-8")).hexdigest()
+    """Content-bound worktree digest (DL-AUDIT-20260914-01).
+
+    Unifies the ledger with the governance/reporting digest: the value now
+    binds HEAD plus every normalized change to its SHA-256 content, so a
+    same-path content change changes the digest and a recompute over the same
+    bytes is stable. Generated / private / runtime roots are excluded by the
+    module's declared scope.
+    """
+    from design_lab.governance.worktree_digest import worktree_digest as unified
+    return unified(REPO)
 
 
 def worktree_clean() -> bool:

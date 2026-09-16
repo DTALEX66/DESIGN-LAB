@@ -27,7 +27,7 @@ var expected={outputName:'master.psd',previewName:'master.png',layers:[{text:'Af
 psRunPatchJob({checkpoint:'D:/run/checkpoint.psd',patch:{kind:'text',id:'title',text:'After'}},baseline,expected,'D:/run');`,c);
 console.log(JSON.stringify(events));
 '''
-        result=subprocess.run([node,'-e',script,str(ROOT/'integrations/hosts/adobe/photoshop-reconstruction/legacy-assemble.jsx')],capture_output=True,text=True,timeout=10)
+        result=subprocess.run([node,'-e',script,str(ROOT/'integrations/hosts/adobe/photoshop-reconstruction/legacy-assemble.jsx')],capture_output=True,text=True, encoding="utf-8", errors="replace",timeout=10)
         self.assertEqual(result.returncode,0,result.stderr)
         self.assertEqual(json.loads(result.stdout),['open:D:/run/checkpoint.psd','read:checkpoint.psd:Before','patch:After',
             'read:master.psd:After','png','close','open:D:/run/master.psd','read:master.psd:After'])
@@ -45,7 +45,7 @@ c.psValidate=()=>{};c.psRejectOpenInputs=()=>{};c.psSaveNew=()=>doc;c.psReadback
 c.psRunJob({width:8,height:6,jobId:'fixture',assets:[],layers:[],outputName:'x.psd',previewName:'x.png'},'D:/run',stage=>events.push(stage));
 console.log(JSON.stringify(events));
 '''
-        result=subprocess.run([node,'-e',script,str(ROOT/'integrations/hosts/adobe/photoshop-reconstruction/legacy-assemble.jsx')],capture_output=True,text=True,timeout=10)
+        result=subprocess.run([node,'-e',script,str(ROOT/'integrations/hosts/adobe/photoshop-reconstruction/legacy-assemble.jsx')],capture_output=True,text=True, encoding="utf-8", errors="replace",timeout=10)
         self.assertEqual(result.returncode,0,result.stderr)
         self.assertEqual(json.loads(result.stdout),['validated','build-start','build-end','save-reopen-start','save-reopen-end','readback-end','export-start','export-end','final-reopen-start','final-readback-end'])
 
@@ -70,7 +70,7 @@ doc.layers[0].mask=true;results.push(rejects());doc.layers[0].mask=false;
 doc.layers[1].layers[0].name='a';results.push(rejects());
 console.log(JSON.stringify(results));
 '''
-        result=subprocess.run([node,'-e',script,str(ROOT/'integrations/hosts/adobe/photoshop-reconstruction/legacy-assemble.jsx')],capture_output=True,text=True,timeout=30)
+        result=subprocess.run([node,'-e',script,str(ROOT/'integrations/hosts/adobe/photoshop-reconstruction/legacy-assemble.jsx')],capture_output=True,text=True, encoding="utf-8", errors="replace",timeout=30)
         self.assertEqual(result.returncode,0,result.stderr)
         self.assertEqual(json.loads(result.stdout),[False,True,True,True])
 
@@ -94,7 +94,7 @@ layers[99].textItem.contents='Text 99';layers[99].identity='t0';let duplicateRej
 try{c.psReadback(doc,job)}catch(e){duplicateRejected=true}
 console.log(JSON.stringify({validReads,contentRejected,duplicateRejected}));
 '''
-        result=subprocess.run([node,'-e',script,str(ROOT/'integrations/hosts/adobe/photoshop-reconstruction/legacy-assemble.jsx')],capture_output=True,text=True,timeout=30)
+        result=subprocess.run([node,'-e',script,str(ROOT/'integrations/hosts/adobe/photoshop-reconstruction/legacy-assemble.jsx')],capture_output=True,text=True, encoding="utf-8", errors="replace",timeout=30)
         self.assertEqual(result.returncode,0,result.stderr)
         data=json.loads(result.stdout)
         self.assertTrue(data['contentRejected'])

@@ -11,7 +11,6 @@ from datetime import datetime, timezone
 import json
 import os
 from pathlib import Path, PurePosixPath, PureWindowsPath
-import re
 import stat
 
 from jsonschema import Draft202012Validator
