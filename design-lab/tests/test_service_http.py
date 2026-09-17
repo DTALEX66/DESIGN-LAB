@@ -14,6 +14,7 @@ import sys
 import tempfile
 import threading
 import unittest
+from urllib.parse import quote, urlsplit, parse_qsl
 
 ROOT = Path(__file__).resolve().parents[2]
 
@@ -193,6 +194,50 @@ class ServiceHttpTests(unittest.TestCase):
         self.assertEqual(self.request(path=route)[0],409)
         self.assertEqual(self.request('POST',path=route,body='{}')[0],404)
         self.assertEqual(self.request(path='/api/projects/'+project+'/native-assets?after=../escape')[0],404)
+
+    def test_task_preflight_http_parses_query_and_maps_errors(self):
+        # FA-11 (DL-TP-20260918-UCR-014): real HTTP, not a helper unit test.
+        # A fresh root has no task-resources.json -> preflight falls back to the
+        # standalone paths.json and reports READY with no declared resources, so a
+        # well-formed <TASKPACK>::<TASK_KEY> is deterministic.
+        self.start()
+        base = '/api/task-preflight'
+
+        # 1) valid task, single param -> 200 READY.
+        status, ok = self.request(path=base + '?task=' + quote('TP::T-001'))
+        self.assertEqual(status, 200)
+        self.assertEqual(ok['task_full_id'], 'TP::T-001')
+        self.assertEqual(ok['verdict'], 'READY')
+        self.assertEqual(ok['registry_state'], 'NOT_AVAILABLE')
+
+        # 2) the `task` param must be recognised even among other params / after
+        #    the correct key (real URL parsing, not string surgery).
+        _, other = self.request(path=base + '?x=1&task=' + quote('TP::T-002') + '&y=2')
+        self.assertEqual(other['task_full_id'], 'TP::T-002')
+
+        # 3) a literally percent-encoded `::` (TP%3A%3AT-003) must URL-decode back
+        #    to the task id.
+        _, enc = self.request(path=base + '?task=TP%3A%3AT-003')
+        self.assertEqual(enc['task_full_id'], 'TP::T-003')
+
+        # 4) a present query must not 404 (the old bug matched on the raw path
+        #    which contained the query string).
+        self.assertNotEqual(self.request(path=base + '?task=' + quote('TP::T-001'))[0], 404)
+
+        # 5) missing / empty task -> TASK_REQUIRED, never TASK_PREFLIGHT_REJECTED.
+        for path in (base, base + '?', base + '?task=', base + '?x=only'):
+            with self.subTest(path=path):
+                status, body = self.request(path=path)
+                self.assertEqual(status, 400)
+                self.assertEqual(body['error'], 'TASK_REQUIRED')
+
+        # 6) malformed task (no `::` separator) -> TASK_PREFLIGHT_REJECTED.
+        status, body = self.request(path=base + '?task=' + quote('not-a-valid-task'))
+        self.assertEqual(status, 400)
+        self.assertEqual(body['error'], 'TASK_PREFLIGHT_REJECTED')
+
+        # 7) the endpoint is read-only: it never writes project state.
+        self.assertFalse((self.root / '.project-local').exists())
 
     def setUp(self):
         parent = ROOT / '.project-local/task-runtime/service-http-tests'

@@ -5,6 +5,7 @@ from http.server import BaseHTTPRequestHandler, HTTPServer
 import json
 import re
 import sqlite3
+from urllib.parse import parse_qsl, urlsplit
 
 from . import __version__
 from .runtime.asset_store import AssetError
@@ -169,18 +170,24 @@ def make_server(service, token, port=0):
                         return self.send_json(200, {'status': 'OK', 'version': __version__, 'scope': 'project-metadata'})
                     if self.path == '/api/environment':
                         return self.send_json(200, service.paths.describe())
-                    if self.path == '/api/task-preflight':
+                    if urlsplit(self.path).path == '/api/task-preflight':
                         # DL-AUDIT-20260914-04: the same preflight the CLI doctor
                         # uses, so workbench and CLI can never disagree. Read-only.
-                        from ..runtime.task_resources import TaskResourceError, preflight
+                        # FA-11 (DL-TP-20260918-UCR-014): parse the query with a real
+                        # URL parser (urlsplit + parse_qsl), not string surgery. Match
+                        # on the path component so a present query no longer 404s; a
+                        # missing/empty `task` maps to TASK_REQUIRED and a malformed
+                        # task to TASK_PREFLIGHT_REJECTED (never the other way round).
+                        from .runtime.task_resources import TaskResourceError, preflight
+                        params = dict(parse_qsl(urlsplit(self.path).query, keep_blank_values=True))
+                        task = params.get('task', '')
+                        if not task:
+                            raise RequestError(400, 'TASK_REQUIRED')
                         try:
-                            task = self.path.split('?', 1)[1].removeprefix('task=') if '?' in self.path else ''
-                            if not task:
-                                raise RequestError(400, 'TASK_REQUIRED')
                             value = preflight(service.paths.project_root, task)
-                            return self.send_json(200, value)
                         except TaskResourceError:
                             return self.send_json(400, {'error': 'TASK_PREFLIGHT_REJECTED'})
+                        return self.send_json(200, value)
                     if self.path == '/api/projects':
                         return self.send_json(200, {'projects': service.list_projects()})
                     match = re.fullmatch(r'/api/projects/([0-9a-f]{32})', self.path)

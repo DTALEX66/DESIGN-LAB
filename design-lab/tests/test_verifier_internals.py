@@ -754,5 +754,100 @@ class PreflightHashTests(unittest.TestCase):
             tmp.unlink(missing_ok=True)
 
 
+def load_repo_root_script(name: str):
+    """Load a script from the repository-root ``scripts/`` (authoritative copy
+    of the spill / authority gates that ``design-lab/scripts`` does not hold)."""
+    repo_root = ROOT.parent  # ROOT == design-lab/, so the parent is the repo root
+    path = repo_root / "scripts" / name
+    spec = importlib.util.spec_from_file_location(name.replace(".py", ""), path)
+    assert spec and spec.loader
+    module = importlib.util.module_from_spec(spec)
+    sys.modules[spec.name] = module
+    spec.loader.exec_module(module)
+    return module
+
+
+class ZeroSpillFa05Tests(unittest.TestCase):
+    """DL-UCR-013 / FA-05: denied in-repo agent-state roots must take priority
+    over the allowed root, and a permission-truncated walk must report
+    INCOMPLETE rather than silently skipping (which could hide a spill)."""
+
+    def _isolated_module(self, tmp: Path):
+        m = load_repo_root_script("verify_zero_spill.py")
+        # Re-point the module's globals at an isolated temp tree so the real
+        # repository and agent homes are never touched by the test.
+        m.REPO = tmp
+        m.SNAPSHOT_DIR = tmp / ".snap"
+        m.SNAPSHOT_DIR.mkdir()
+        m.HOME = tmp / "fakehome"
+        m.HOME.mkdir()
+        m.ALLOWED_ROOTS = (tmp, tmp / ".project-local")
+        return m
+
+    def test_new_file_under_denied_root_is_spill(self):
+        """A NEW file dropped in an in-repo denied root (.hermes) is a spill,
+        even though it sits under the repository root (denied -> allowed)."""
+        with tempfile.TemporaryDirectory() as raw:
+            tmp = Path(raw)
+            m = self._isolated_module(tmp)
+            for rel in (".hermes", ".project-local", "packages/capabilities"):
+                (tmp / rel).mkdir(parents=True)
+            # Pre-existing, so it is not 'new' in the diff.
+            (tmp / ".hermes" / "preexisting.json").write_text("old", encoding="utf-8")
+            self.assertEqual(m.snapshot("t", externals=()), 0)
+            # A brand-new file inside the DENIED root must be flagged.
+            (tmp / ".hermes" / "secret-new.json").write_text("x", encoding="utf-8")
+            # A new file in .project-local must stay EXEMPT.
+            (tmp / ".project-local" / "notes.json").write_text("y", encoding="utf-8")
+            # A new file in an ordinary repo tree must stay EXEMPT.
+            (tmp / "packages/capabilities" / "new.json").write_text("z", encoding="utf-8")
+            code = m.diff("t")
+            report = json.loads((m.SNAPSHOT_DIR / "t-diff.json").read_text(encoding="utf-8"))
+            spill = report["roots"]["repo"]["spill"]
+            # Keys are absolute paths (os.sep), so compare with the same form.
+            secret = str(tmp / ".hermes" / "secret-new.json")
+            preexisting = str(tmp / ".hermes" / "preexisting.json")
+            notes = str(tmp / ".project-local" / "notes.json")
+            newcap = str(tmp / "packages" / "capabilities" / "new.json")
+            self.assertIn(secret, spill)
+            self.assertNotIn(preexisting, spill)
+            self.assertNotIn(notes, spill)
+            self.assertNotIn(newcap, spill)
+            self.assertEqual(report["verdict"], "SPILL_DETECTED")
+            self.assertEqual(code, 1)
+
+    def test_modified_file_under_denied_root_is_spill(self):
+        """Modifying a pre-existing file inside a denied root is also spill."""
+        with tempfile.TemporaryDirectory() as raw:
+            tmp = Path(raw)
+            m = self._isolated_module(tmp)
+            (tmp / ".codex").mkdir(parents=True)
+            (tmp / ".codex" / "a.json").write_text("old", encoding="utf-8")
+            self.assertEqual(m.snapshot("t", externals=()), 0)
+            (tmp / ".codex" / "a.json").write_text("CHANGED", encoding="utf-8")
+            code = m.diff("t")
+            report = json.loads((m.SNAPSHOT_DIR / "t-diff.json").read_text(encoding="utf-8"))
+            spill = report["roots"]["repo"]["spill"]
+            expected = "MODIFIED:" + str(tmp / ".codex" / "a.json")
+            self.assertIn(expected, spill)
+            self.assertEqual(code, 1)
+
+    def test_outside_repo_new_entry_is_spill(self):
+        """A new entry that is not under any allowed root is a spill."""
+        with tempfile.TemporaryDirectory() as raw:
+            tmp = Path(raw)
+            m = self._isolated_module(tmp)
+            tmp.mkdir(exist_ok=True)
+            # Simulate the diff's 'new' classification directly via the priority
+            # rule the code now uses (denied first, then allowed).
+            evil = "D:/outside-evil/x.json"
+            self.assertIsNone(m._denied_repo_root(evil))
+            self.assertFalse(m.allowed(evil))  # -> classified as spill
+            # And the in-repo denied root is caught BEFORE allowed() would pass it.
+            denied = str(tmp / ".hermes" / "x.json")
+            self.assertEqual(m._denied_repo_root(denied), ".hermes")
+            self.assertTrue(m.allowed(denied))  # allowed() is True, but denied wins
+
+
 if __name__ == "__main__":
     unittest.main()
