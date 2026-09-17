@@ -43,10 +43,19 @@ only-include = ["src/design_lab", "design-lab/schemas/state", "apps/workbench", 
 [tool.pytest.ini_options]
 testpaths = ["design-lab/tests"]
 
-# DLDS-C030 / DL-AUDIT-20260914-08: ruff is now *executed* (CI lint step +
-# project-local lint-tools runner), not merely declared. CI gates on real
-# defects only (F, E9); the recorded style baseline (E4/E7, ~219 findings) is
-# reported, not silently mass-rewritten.
+# DLDS-C030 / FU-06 (single Ruff fact): `[tool.ruff]` below is the AUTHORITATIVE
+# Ruff configuration (select F+E9, line-length 100, target py311). Measured state
+# as of this tree: ruff is NOT a locked/installed dependency (absent from uv.lock,
+# no `.venv` module) and NO gate executes it (canonical-verify.yml / release-gate.yml
+# have no ruff step; there is no "lint-tools runner"). So linting is CONFIGURED but
+# NOT YET ENFORCED — the single fact this note and docs/architecture/LANGUAGE-POLICY.md
+# both record (label CONFIGURED_NOT_ENFORCED), consistent with the deepseek closeout
+# report. (The inventory report's older "not configured" phrasing is corrected under
+# the report-truth work, not here.) The recorded
+# style baseline (E4/E7, ~219 findings) is reported, not silently mass-rewritten.
+# Enforcement rollout = a pinned CI ruff gate on F+E9 (a CI-batch change); it must be
+# landed and verified in CI (where uv + network are available) after confirming F+E9
+# passes clean. Until then, nothing in this repo claims a lint gate runs.
 [tool.ruff]
 line-length = 100
 target-version = "py311"
