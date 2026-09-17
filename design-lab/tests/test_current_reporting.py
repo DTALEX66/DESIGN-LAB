@@ -212,6 +212,48 @@ class CurrentReportingTests(unittest.TestCase):
         self.assertTrue(self.reporting.generate(self.root, check=True, snapshot={'sha':self.sha}))
         self.assertFalse((self.root/'reports/current').exists())
 
+    def test_index_input_digest_is_deterministic_primary_binding(self):
+        self.write('design-lab/config/task-ledger-r3.json', json.dumps(self.ledger))
+        snapshot = {'sha':self.sha, 'branch':'fixture', 'origin_main':self.sha,
+                    'source_worktree_clean':True, 'tracked_files':0}
+        self.reporting.generate(self.root, snapshot=snapshot, generated_at='2026-09-06T02:00:00Z')
+        index = json.loads((self.root/'design-lab/config/current-report-index.json').read_text())
+        self.assertTrue(index['inputDigest'].startswith('sha256:'))
+        self.assertEqual(len(index['inputDigest']), len('sha256:') + 64)
+        first = index['inputDigest']
+        self.reporting.generate(self.root, snapshot=snapshot, generated_at='2026-09-06T02:00:00Z')
+        index2 = json.loads((self.root/'design-lab/config/current-report-index.json').read_text())
+        self.assertEqual(index2['inputDigest'], first)
+
+    def test_index_input_digest_tracks_inputs_not_git_observation(self):
+        self.write('design-lab/config/task-ledger-r3.json', json.dumps(self.ledger))
+        snapshot = {'sha':self.sha, 'branch':'fixture', 'origin_main':self.sha,
+                    'source_worktree_clean':True, 'tracked_files':0}
+        self.reporting.generate(self.root, snapshot=snapshot, generated_at='2026-09-06T02:00:00Z')
+        base = json.loads((self.root/'design-lab/config/current-report-index.json').read_text())['inputDigest']
+        # A changed generation-time observation (commit SHA) with unchanged inputs
+        # must NOT move the primary binding: the SHA is an observation, not a binding.
+        snapshot2 = dict(snapshot, sha='b'*40, origin_main='b'*40)
+        self.reporting.generate(self.root, snapshot=snapshot2, generated_at='2026-09-06T02:00:00Z')
+        after_sha = json.loads((self.root/'design-lab/config/current-report-index.json').read_text())['inputDigest']
+        self.assertEqual(after_sha, base)
+        # A changed input file MUST move the primary binding.
+        self.write(self.ledger['plan_path'], '# changed acceptance input')
+        self.reporting.generate(self.root, snapshot=snapshot2, generated_at='2026-09-06T02:00:00Z')
+        after_input = json.loads((self.root/'design-lab/config/current-report-index.json').read_text())['inputDigest']
+        self.assertNotEqual(after_input, base)
+
+    def test_index_declares_sha_observation_and_digest_primary(self):
+        self.write('design-lab/config/task-ledger-r3.json', json.dumps(self.ledger))
+        snapshot = {'sha':self.sha, 'branch':'fixture', 'origin_main':self.sha,
+                    'source_worktree_clean':True, 'tracked_files':0}
+        self.reporting.generate(self.root, snapshot=snapshot, generated_at='2026-09-06T02:00:00Z')
+        index = json.loads((self.root/'design-lab/config/current-report-index.json').read_text())
+        self.assertIn('observation', index['subjectMeaning'])
+        self.assertIn('not a freshness claim', index['subjectMeaning'])  # explicitly NOT a freshness claim
+        self.assertIn('CI artifact', index['subjectMeaning'])
+        self.assertIn('primary', index['inputDigestMeaning'])
+
     def test_report_staging_uses_selected_root(self):
         self.write('design-lab/config/task-ledger-r3.json', json.dumps(self.ledger))
         selected = self.root/'.project-local/selected'

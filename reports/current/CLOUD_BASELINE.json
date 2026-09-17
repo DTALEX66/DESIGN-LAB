@@ -9,23 +9,34 @@
   },
   "fresh": false,
   "freshnessMeaning": "at generation only; check verifies bound-input integrity, not current Git or cloud state",
-  "generatedAt": "2026-09-17T18:15:07+00:00",
+  "generatedAt": "2026-09-17T20:57:21+00:00",
   "gitStateMeaning": "generation-time observation, not current HEAD",
   "local": {
-    "branch": "feat/ucr-convergence",
-    "origin_main": "643469828cd6d45d904b08fbb292cc3293cb29d6",
-    "sha": "505299cb45796d5ce8ef5f6285e542b21bfa71bb",
-    "source_worktree_clean": true,
+    "branch": "feat/ucr-report-truth",
+    "origin_main": "619cd2231d186bf937eeec0980de775444ce8c95",
+    "sha": "619cd2231d186bf937eeec0980de775444ce8c95",
+    "source_worktree_clean": false,
     "tracked_files": 1925,
-    "worktree_changes": [],
-    "worktree_digest": "sha256:788c24cc761de1ea29163711b25a3495400047324fa42f65a2c383c916087559"
+    "worktree_changes": [
+      {
+        "content": "sha256:3e1f8898fbf91059496db3fd97043149ce9e08377adf0a1eb63b14f21f387b7a",
+        "kind": "M",
+        "path": "design-lab/tests/test_current_reporting.py"
+      },
+      {
+        "content": "sha256:89d905dc1e552373550b8846940c257206f959af256e8d4562ed0c9975cc42bf",
+        "kind": "M",
+        "path": "src/design_lab/governance/reporting.py"
+      }
+    ],
+    "worktree_digest": "sha256:f2ad92c98a0129ff329cd76eaebdce72a271c3ce5fad91d7f2c74d294dcae1cf"
   },
   "note": "No GitHub API query was run by this generator; tool installation is not inferred.",
   "remoteRef": "origin/main (local tracking ref)",
   "schemaVersion": "design-lab/cloud-baseline/v2",
   "subjectMeaning": "subjectType=WORKTREE means the tree was dirty at generation; worktreeDigest covers HEAD plus the non-generated changes",
-  "subjectSha": "505299cb45796d5ce8ef5f6285e542b21bfa71bb",
-  "subjectType": "COMMIT",
+  "subjectSha": "619cd2231d186bf937eeec0980de775444ce8c95",
+  "subjectType": "WORKTREE",
   "taskpackHash": "31dde89eb4ede81fe88c0a5c5144adfb86af8db4c4d8c263bde2199180369b69",
   "taskpackId": "DL-TP-20260908-R5",
   "testRunAt": "2026-09-17T14:28:08+00:00",
@@ -38,6 +49,6 @@
     "openPullRequests",
     "branchProtection"
   ],
-  "worktreeClean": true,
-  "worktreeDigest": "sha256:788c24cc761de1ea29163711b25a3495400047324fa42f65a2c383c916087559"
+  "worktreeClean": false,
+  "worktreeDigest": "sha256:f2ad92c98a0129ff329cd76eaebdce72a271c3ce5fad91d7f2c74d294dcae1cf"
 }

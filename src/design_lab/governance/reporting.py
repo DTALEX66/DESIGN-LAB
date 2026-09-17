@@ -378,6 +378,26 @@ def _build(reader, snapshot, generated_at):
     return reports
 
 
+def _index_input_digest(reader, snapshot, report_names):
+    """FU-10: the tracked report's PRIMARY freshness binding is an input digest,
+    not a commit SHA. Canonical SHA-256 over (the exact input files the
+    projections read, the git tree scope, and the report set), so it is
+    recomputable at check time and independent of any self-referential SHA. The
+    commit SHA remains only as generation-time observation (exact-SHA evidence
+    belongs to the CI artifact, not the tracked record)."""
+    import json as _json
+    scope = {
+        'worktree_digest': snapshot.get('worktree_digest'),
+        'tracked_files': snapshot.get('tracked_files'),
+        'clean': snapshot.get('source_worktree_clean'),
+        'worktree_changes': snapshot.get('worktree_changes'),
+    }
+    payload = _json.dumps({'inputFiles': reader.hashes, 'treeScope': scope,
+                           'reports': sorted(report_names)}, sort_keys=True,
+                          separators=(',', ':')).encode('utf-8')
+    return 'sha256:' + hashlib.sha256(payload).hexdigest()
+
+
 def generate(root, *, check=False, snapshot=None, generated_at=None):
     root = Path(root).resolve()
     reader = Reader(root)
@@ -408,7 +428,13 @@ def generate(root, *, check=False, snapshot=None, generated_at=None):
     reader.stable()
     if not supplied_snapshot and git_snapshot(root) != live_snapshot:
         raise ValueError('Git state changed during report generation')
-    index = {'schemaVersion':'design-lab/current-report-index/v3', 'subjectSha':snapshot['sha'], 'generatedAt':generated_at,
+    index = {'schemaVersion':'design-lab/current-report-index/v3',
+             'subjectSha':snapshot['sha'],
+             'subjectMeaning': 'generation-time git observation, not a freshness claim; exact-SHA evidence is the CI artifact',
+             'inputDigest':_index_input_digest(reader, snapshot, REPORTS),
+             'inputDigestMeaning': 'primary freshness binding: canonical SHA-256 over the exact input files the '
+                                   'projections read plus the git tree scope; recomputed at check time (FU-10)',
+             'generatedAt':generated_at,
              'gitObservation': snapshot, 'checkScope': 'bound-input-and-output-integrity; not current Git or cloud freshness',
              'ledger':LEDGER, 'reports':list(REPORTS), 'reportRoot':'../../reports/current/',
              'inputHashes':reader.hashes, 'outputHashes':{name:hashlib.sha256(raw).hexdigest() for name,raw in reports.items()}}
