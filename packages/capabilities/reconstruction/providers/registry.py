@@ -486,7 +486,7 @@ class RegisteredProvider:
             before = path.stat()
             observed = _sha256_file(path)
             after = path.stat()
-        except OSError as exc:
+        except OSError:
             return self._failure(
                 "MISSING", "local artifact cannot be read", task=requested_task
             )

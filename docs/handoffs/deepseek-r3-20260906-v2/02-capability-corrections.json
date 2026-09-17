@@ -1,0 +1,107 @@
+{
+  "summary": {
+    "schemaVersion": "design-lab/deepseek/r3/dp-v2/ds02/v1",
+    "task_id": "DP-V2-02",
+    "r3_ids": [
+      "R3-08",
+      "R3-16",
+      "R3-19"
+    ],
+    "observed_at": "2026-09-06T16:29:09+00:00",
+    "comfy_paths_observed": {
+      "python_embedded": {
+        "exists": true,
+        "is_file": true,
+        "size": 105696,
+        "observed_at": "2026-09-06T16:29:09+00:00"
+      },
+      "comfy_main": {
+        "exists": true,
+        "is_file": true,
+        "size": 25301,
+        "observed_at": "2026-09-06T16:29:09+00:00"
+      }
+    },
+    "notes": {
+      "no_launch_no_process_check": true,
+      "no_reverse_upgrade": true,
+      "no_shared_library_scan": true,
+      "historical_e3_preserved": true
+    }
+  },
+  "records": [
+    {
+      "record_id": "DP-V2-02-COMFY-PYTHON",
+      "task_id": "DP-V2-02",
+      "r3_ids": [
+        "R3-08",
+        "R3-16",
+        "R3-19"
+      ],
+      "source_locator": "D:\\All projects\\Design External Configuration\\toolchains\\comfyui\\ComfyUI_windows_portable\\python_embeded\\python.exe",
+      "observed_at": "2026-09-06T16:29:09+00:00",
+      "status": "VERIFIED",
+      "evidence_locator": "docs/handoffs/deepseek-r3-20260906-v2/02-capability-corrections.json",
+      "notes": {
+        "observation": {
+          "exists": true,
+          "is_file": true,
+          "size": 105696,
+          "observed_at": "2026-09-06T16:29:09+00:00"
+        },
+        "scope": "file existence/type/size only; program not started",
+        "claim": "portable ComfyUI bundled python exists on disk (file observation)"
+      }
+    },
+    {
+      "record_id": "DP-V2-02-COMFY-MAIN",
+      "task_id": "DP-V2-02",
+      "r3_ids": [
+        "R3-08",
+        "R3-16",
+        "R3-19"
+      ],
+      "source_locator": "D:\\All projects\\Design External Configuration\\toolchains\\comfyui\\ComfyUI_windows_portable\\ComfyUI\\main.py",
+      "observed_at": "2026-09-06T16:29:09+00:00",
+      "status": "VERIFIED",
+      "evidence_locator": "docs/handoffs/deepseek-r3-20260906-v2/02-capability-corrections.json",
+      "notes": {
+        "observation": {
+          "exists": true,
+          "is_file": true,
+          "size": 25301,
+          "observed_at": "2026-09-06T16:29:09+00:00"
+        },
+        "scope": "file existence/type/size only; main.py not executed",
+        "claim": "ComfyUI main.py exists on disk (file observation)"
+      }
+    },
+    {
+      "record_id": "DP-V2-02-RETRACTION",
+      "task_id": "DP-V2-02",
+      "r3_ids": [
+        "R3-08",
+        "R3-16",
+        "R3-19"
+      ],
+      "source_locator": "docs/handoffs/deepseek-r3-20260906/07-capability-evidence-gaps.json (V1)",
+      "observed_at": "2026-09-06T16:29:09+00:00",
+      "status": "VERIFIED",
+      "evidence_locator": "docs/handoffs/deepseek-r3-20260906-v2/02-capability-corrections.json",
+      "notes": {
+        "v1_file_corrected": "07-capability-evidence-gaps.json",
+        "v1_claim_retracted": "'ComfyUI not installed / current machine ComfyUI absent' (in DS-07 capability row and 12-DEEPSEEK-RETURN.md blockers)",
+        "basis": "external portable ComfyUI install observed on disk at toolchains/comfyui/ComfyUI_windows_portable",
+        "derived_conflict_withdrawn": "the CONFLICT between creative-toolchain E3 record and 'no ComfyUI' is withdrawn; remaining question is only current-workflow verification",
+        "separation": {
+          "files_observed": "YES (python.exe + main.py present)",
+          "process_service_available": "NOT_EXECUTED",
+          "current_generation_workflow_verified": "NOT_EXECUTED",
+          "historical_e3": "kept as historical evidence; requires requalification on current tree"
+        },
+        "not_upgraded_to": "installed-and-runnable (no launch performed; GPT responsible)",
+        "model_qualification": "GPT/user scope"
+      }
+    }
+  ]
+}

@@ -12,7 +12,7 @@ SCRIPTS = Path(__file__).resolve().parents[1] / "scripts"
 
 class QualityPipelineTests(unittest.TestCase):
     def test_pipeline_verifier_passes(self):
-        r = subprocess.run([sys.executable, str(SCRIPTS / "verify_quality_pipeline.py")], capture_output=True, text=True)
+        r = subprocess.run([sys.executable, str(SCRIPTS / "verify_quality_pipeline.py")], capture_output=True, text=True, encoding="utf-8", errors="replace")
         self.assertIn("QUALITY_PIPELINE=PASS", r.stdout, r.stdout + r.stderr)
 
     def test_human_feedback_is_last_and_e4(self):

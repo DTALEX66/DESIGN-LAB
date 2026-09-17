@@ -12,7 +12,7 @@ SCRIPTS = Path(__file__).resolve().parents[1] / "scripts"
 
 class DesignIRTests(unittest.TestCase):
     def test_ir_verifier_passes(self):
-        r = subprocess.run([sys.executable, str(SCRIPTS / "verify_design_ir.py")], capture_output=True, text=True)
+        r = subprocess.run([sys.executable, str(SCRIPTS / "verify_design_ir.py")], capture_output=True, text=True, encoding="utf-8", errors="replace")
         self.assertIn("DESIGN_IR=PASS", r.stdout, r.stdout + r.stderr)
 
     def test_ir_sample_has_artifact_refs(self):

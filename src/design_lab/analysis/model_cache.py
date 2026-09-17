@@ -1,84 +1,67 @@
 # SPDX-License-Identifier: MIT
-"""DL-TP-T06 (MULTIMODAL-2026-09-05): read-only model-cache probe (fail-closed).
-
-Detects locally cached model directories (HuggingFace hub + ModelScope) and
-reports a per-model readiness state WITHOUT importing or running any model
-runtime. Readiness is derived from on-disk structure only:
-
-- READY       : has snapshots/<commit> AND blobs (actual bytes present);
-- INCOMPLETE  : has refs only (pointer present, blobs absent);
-- ABSENT      : no cache directory.
-
-This lets OCR/ASR/trace backends fail-closed: never advertise a model as
-available when its bytes are not actually on disk. No new package install, no
-inference claim.
-"""
+"""Scoped cache inventory. Structural bytes never imply model inference."""
 from __future__ import annotations
 
-import os
 from dataclasses import dataclass
 from pathlib import Path
+import re
 from typing import Iterable
+
+from ..runtime.paths import resolve_paths
+from .model_manifest import checked_cache_root, verify_model_files
+
+
+def _repo_ids(values):
+    ids = list(values)
+    if any(not isinstance(value, str) or not re.fullmatch(
+            r"[A-Za-z0-9][A-Za-z0-9_.-]*/[A-Za-z0-9][A-Za-z0-9_.-]*", value)
+            or any(part in (".", "..") for part in value.split("/")) for value in ids):
+        raise ValueError("invalid model repository ID")
+    return ids
 
 
 class ModelCacheProbe:
-    """Read-only probe over local model caches."""
+    """Read-only explicit caches, with optional reviewed per-model manifests.
 
-    def __init__(self, hf_home: Path | None = None, modelscope_home: Path | None = None) -> None:
-        self.hf_home = Path(hf_home) if hf_home else Path(
-            os.environ.get("HF_HOME", str(Path.home() / ".cache" / "huggingface"))
-        )
+    Ambient HF_HOME/MODELSCOPE_CACHE and user profile caches are not searched.
+    Supplying a manifest cannot cause downloads or model execution.
+    """
+    def __init__(self, hf_home: Path | None = None, modelscope_home: Path | None = None,
+                 *, manifests=None, project_root=None):
+        self.project_root = project_root
+        layout = resolve_paths(project_root=project_root)
+        self.hf_home = checked_cache_root(hf_home if hf_home is not None else
+                                         layout.model_cache / "huggingface", project_root=project_root)
         self.hf_hub = self.hf_home / "hub"
-        self.modelscope_home = Path(modelscope_home) if modelscope_home else Path(
-            os.environ.get("MODELSCOPE_CACHE", str(Path.home() / ".cache" / "modelscope" / "models"))
-        )
+        self.modelscope_home = checked_cache_root(modelscope_home if modelscope_home is not None else
+                                                  layout.model_cache / "modelscope", project_root=project_root)
+        self.manifests = {} if manifests is None else manifests
+
+    def hf_report(self, repo_dir: Path, manifest=None):
+        repo_dir = Path(repo_dir)
+        if not repo_dir.is_relative_to(self.hf_hub):
+            raise ValueError("model directory is outside the selected HuggingFace cache")
+        return verify_model_files(repo_dir, manifest, project_root=self.project_root)
 
     def hf_readiness(self, repo_dir: Path) -> str:
-        """READY / INCOMPLETE / ABSENT based on downloaded bytes, not dir names.
+        return self.hf_report(repo_dir)["state"]
 
-        HuggingFace hub layouts vary: newer caches keep real bytes inside
-        snapshots/<commit>/ (blobs/ may be empty or absent). Readiness requires
-        at least one non-empty file under snapshots/ (actual bytes), plus a ref
-        (so the commit is pinned). A refs-only directory (no snapshots) is a
-        pointer with no bytes -> INCOMPLETE.
-        """
-        if not repo_dir.is_dir():
-            return "ABSENT"
-        snapshots = repo_dir / "snapshots"
-        has_bytes = False
-        if snapshots.is_dir():
-            for p in snapshots.rglob("*"):
-                if p.is_file() and p.stat().st_size > 0:
-                    has_bytes = True
-                    break
-        if has_bytes:
-            return "READY"
-        if (repo_dir / "refs").is_dir():
-            return "INCOMPLETE"  # pointer present, bytes absent
-        return "ABSENT"
+    def _report(self, repo_id, root):
+        manifest = self.manifests.get(repo_id)
+        if manifest is not None and (not isinstance(manifest, dict) or manifest.get("model_id") != repo_id):
+            raise ValueError("model manifest identity mismatch")
+        return verify_model_files(root, manifest, project_root=self.project_root)
 
     def probe_hf(self, repo_ids: Iterable[str]) -> dict[str, str]:
-        result: dict[str, str] = {}
-        for repo_id in repo_ids:
-            dir_name = "models--" + repo_id.replace("/", "--")
-            result[repo_id] = self.hf_readiness(self.hf_hub / dir_name)
-        return result
+        return {repo_id: self._report(repo_id, self.hf_hub / ("models--" + repo_id.replace("/", "--")))["state"]
+                for repo_id in _repo_ids(repo_ids)}
 
     def probe_modelscope(self, model_ids: Iterable[str]) -> dict[str, str]:
-        result: dict[str, str] = {}
-        for model_id in model_ids:
-            dir_name = model_id.replace("/", "--")
-            snapshots = self.modelscope_home / dir_name / "snapshots"
-            if snapshots.is_dir() and any(snapshots.iterdir()):
-                result[model_id] = "READY"
-            elif (self.modelscope_home / dir_name).is_dir():
-                result[model_id] = "INCOMPLETE"
-            else:
-                result[model_id] = "ABSENT"
-        return result
+        return {model_id: self._report(model_id, self.modelscope_home / model_id.replace("/", "--"))["state"]
+                for model_id in _repo_ids(model_ids)}
 
 
-# Canonical candidate sets for the MULTIMODAL OCR/ASR backends (plan §6).
+# Historical candidate IDs only; not verified presence, license or availability.
 OCR_CANDIDATES = (
     "PaddlePaddle/PP-OCRv6_medium_det",
     "PaddlePaddle/PP-OCRv6_medium_rec",
@@ -97,28 +80,23 @@ MODELSCOPE_CANDIDATES = (
 
 @dataclass(frozen=True)
 class BackendReadiness:
-    """Aggregate readiness verdict for one backend capability."""
-
     capability: str
     ready: bool
     detail: dict[str, str]
 
     @property
     def status(self) -> str:
-        return "READY" if self.ready else "NOT_READY"
+        return "INFERENCE_VERIFIED" if self.ready else "NOT_INFERENCE_VERIFIED"
 
 
 def ocr_backend_ready(probe: ModelCacheProbe | None = None) -> BackendReadiness:
-    """OCR is READY only when BOTH det and rec model bytes are on disk."""
-    p = probe or ModelCacheProbe()
-    states = p.probe_hf(OCR_CANDIDATES)
-    det = states.get("PaddlePaddle/PP-OCRv6_medium_det", "ABSENT")
-    rec = states.get("PaddlePaddle/PP-OCRv6_medium_rec", "ABSENT")
-    return BackendReadiness("ocr", det == "READY" and rec == "READY", states)
+    """Both detection and recognition need real inference, not cached bytes."""
+    states = (probe or ModelCacheProbe()).probe_hf(OCR_CANDIDATES)
+    return BackendReadiness("ocr", all(states.get(model) == "INFERENCE_VERIFIED"
+                                      for model in OCR_CANDIDATES[:2]), states)
 
 
 def asr_backend_ready(probe: ModelCacheProbe | None = None) -> BackendReadiness:
-    """ASR is READY when any faster-whisper variant has bytes on disk."""
-    p = probe or ModelCacheProbe()
-    states = p.probe_hf(ASR_CANDIDATES)
-    return BackendReadiness("asr", any(s == "READY" for s in states.values()), states)
+    """ASR is transcription only, never speech generation."""
+    states = (probe or ModelCacheProbe()).probe_hf(ASR_CANDIDATES)
+    return BackendReadiness("asr", any(s == "INFERENCE_VERIFIED" for s in states.values()), states)

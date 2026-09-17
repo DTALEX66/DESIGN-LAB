@@ -24,6 +24,8 @@ from datetime import date
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
+sys.path.insert(0, str(ROOT.parent / 'src'))
+from design_lab.runtime.paths import resolve_paths
 SIDECAR_V1 = "design-lab/asset-sidecar/v1"
 REVIEW_EXPIRY_YEARS = 1
 PERMISSIVE_LICENSES = {"MIT", "Apache-2.0", "BSD-3-Clause", "BSD-2-Clause", "ISC", "CC0-1.0", "Unlicense"}
@@ -75,12 +77,12 @@ def upgrade(binary: Path, sidecar: Path) -> dict | None:
 
 
 def main() -> int:
-    tracked = ROOT.parent / ".git"
-    out = ROOT.parent / ".project-local" / "task-runtime" / "asset-sidecar-upgrade.json"
+    layout = resolve_paths(project_root=ROOT.parent)
+    out = layout.checked_path(layout.category_dir('runtime') / 'asset-sidecar-upgrade.json')
     result = {"upgraded": [], "skipped": [], "errors": []}
     # walk all tracked binaries under the repo via git ls-files
     import subprocess
-    r = subprocess.run(["git", "-C", str(ROOT.parent), "ls-files"], capture_output=True, text=True)
+    r = subprocess.run(["git", "-C", str(ROOT.parent), "ls-files"], capture_output=True, text=True, encoding="utf-8", errors="replace")
     binaries = []
     for rel in r.stdout.splitlines():
         p = ROOT.parent / rel

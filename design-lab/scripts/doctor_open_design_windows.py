@@ -97,7 +97,7 @@ def run_version(exe: str, codex_home: Path) -> tuple[bool, str]:
     env = os.environ.copy()
     env["CODEX_HOME"] = str(codex_home)
     try:
-        proc = subprocess.run([exe, "--version"], text=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, env=env, timeout=30)
+        proc = subprocess.run([exe, "--version"], text=True, encoding="utf-8", errors="replace", stdout=subprocess.PIPE, stderr=subprocess.STDOUT, env=env, timeout=30)
     except Exception as exc:  # noqa: BLE001
         return False, str(exc)
     return proc.returncode == 0, proc.stdout.strip()
@@ -114,7 +114,7 @@ def port_open(port: int, timeout: float = 0.35) -> bool:
 def git_clean(project_root: Path) -> tuple[bool, str]:
     if not (project_root / ".git").exists():
         return False, "not a git repository"
-    proc = subprocess.run(["git", "status", "--short", "--branch"], cwd=project_root, text=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, timeout=30)
+    proc = subprocess.run(["git", "status", "--short", "--branch"], cwd=project_root, text=True, encoding="utf-8", errors="replace", stdout=subprocess.PIPE, stderr=subprocess.STDOUT, timeout=30)
     lines = [line for line in proc.stdout.splitlines() if line.strip()]
     clean = proc.returncode == 0 and len(lines) == 1 and "origin/" in lines[0]
     return clean, proc.stdout.strip()
@@ -131,7 +131,6 @@ def diagnose(args: argparse.Namespace) -> list[Check]:
     codex_bin = find_codex_bin(config, args.codex_bin)
     project_locations = (config or {}).get("projectLocations") or []
     location_paths = {str(loc.get("path")) for loc in project_locations if isinstance(loc, dict)}
-    location_ids = {str(loc.get("id")) for loc in project_locations if isinstance(loc, dict)}
     default_location = (config or {}).get("defaultProjectLocationId")
     model = (((config or {}).get("agentModels") or {}).get("codex") or {}).get("model")
 

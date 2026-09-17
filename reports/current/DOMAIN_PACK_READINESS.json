@@ -1,204 +1,105 @@
 {
-  "schemaVersion": "design-lab/domain-readiness/v1",
-  "subjectSha": "343a645dcae9bd75e9fedc0c8460289a40fba8c4",
-  "generatedAt": "2026-09-06T03:20:18Z",
-  "fresh": false,
+  "authorityTaskpackHash": "sha256:d9fdaa3ad7ad0055a3f451c853756be41036b32112cacc4d1c17b314c005a2f9",
+  "authorityTaskpackId": "DL-TP-20260914-DEEPSEEK-AUTHORITY-R1",
   "domainPacks": [
     {
+      "contractJsonFiles": 6,
       "domain": "audio-design",
-      "requiredContractFiles": {
-        "handoff-contract.json": true,
-        "manifest.json": true,
-        "preflight.json": true,
-        "profile.json": true,
-        "rubric.json": true,
-        "scenario.md": true,
-        "sources.json": true
-      },
-      "benchmarkBriefs": 0,
-      "failureArtifacts": 0,
-      "status": "MISSING_BENCHMARK"
+      "hostLive": "NOT_EXECUTED",
+      "status": "STRUCTURAL_ONLY"
     },
     {
+      "contractJsonFiles": 6,
       "domain": "brand-design",
-      "requiredContractFiles": {
-        "handoff-contract.json": true,
-        "manifest.json": true,
-        "preflight.json": true,
-        "profile.json": true,
-        "rubric.json": true,
-        "scenario.md": true,
-        "sources.json": true
-      },
-      "benchmarkBriefs": 1,
-      "failureArtifacts": 1,
-      "status": "STRUCTURAL"
+      "hostLive": "NOT_EXECUTED",
+      "status": "STRUCTURAL_ONLY"
     },
     {
+      "contractJsonFiles": 6,
       "domain": "ecommerce-design",
-      "requiredContractFiles": {
-        "handoff-contract.json": true,
-        "manifest.json": true,
-        "preflight.json": true,
-        "profile.json": true,
-        "rubric.json": true,
-        "scenario.md": true,
-        "sources.json": true
-      },
-      "benchmarkBriefs": 1,
-      "failureArtifacts": 1,
-      "status": "STRUCTURAL"
+      "hostLive": "NOT_EXECUTED",
+      "status": "STRUCTURAL_ONLY"
     },
     {
+      "contractJsonFiles": 6,
       "domain": "graphic-design",
-      "requiredContractFiles": {
-        "handoff-contract.json": true,
-        "manifest.json": true,
-        "preflight.json": true,
-        "profile.json": true,
-        "rubric.json": true,
-        "scenario.md": true,
-        "sources.json": true
-      },
-      "benchmarkBriefs": 0,
-      "failureArtifacts": 0,
-      "status": "MISSING_BENCHMARK"
+      "hostLive": "NOT_EXECUTED",
+      "status": "STRUCTURAL_ONLY"
     },
     {
+      "contractJsonFiles": 3,
       "domain": "minigame-design",
-      "requiredContractFiles": {
-        "handoff-contract.json": false,
-        "manifest.json": true,
-        "preflight.json": true,
-        "profile.json": false,
-        "rubric.json": true,
-        "scenario.md": false,
-        "sources.json": false
-      },
-      "benchmarkBriefs": 0,
-      "failureArtifacts": 0,
-      "status": "MISSING_BENCHMARK"
+      "hostLive": "NOT_EXECUTED",
+      "status": "STRUCTURAL_ONLY"
     },
     {
+      "contractJsonFiles": 6,
       "domain": "motion-design",
-      "requiredContractFiles": {
-        "handoff-contract.json": true,
-        "manifest.json": true,
-        "preflight.json": true,
-        "profile.json": true,
-        "rubric.json": true,
-        "scenario.md": true,
-        "sources.json": true
-      },
-      "benchmarkBriefs": 0,
-      "failureArtifacts": 0,
-      "status": "MISSING_BENCHMARK"
+      "hostLive": "NOT_EXECUTED",
+      "status": "STRUCTURAL_ONLY"
     },
     {
+      "contractJsonFiles": 6,
       "domain": "packaging-design",
-      "requiredContractFiles": {
-        "handoff-contract.json": true,
-        "manifest.json": true,
-        "preflight.json": true,
-        "profile.json": true,
-        "rubric.json": true,
-        "scenario.md": true,
-        "sources.json": true
-      },
-      "benchmarkBriefs": 0,
-      "failureArtifacts": 0,
-      "status": "MISSING_BENCHMARK"
+      "hostLive": "NOT_EXECUTED",
+      "status": "STRUCTURAL_ONLY"
     },
     {
+      "contractJsonFiles": 6,
       "domain": "product-ui-design",
-      "requiredContractFiles": {
-        "handoff-contract.json": true,
-        "manifest.json": true,
-        "preflight.json": true,
-        "profile.json": true,
-        "rubric.json": true,
-        "scenario.md": true,
-        "sources.json": true
-      },
-      "benchmarkBriefs": 0,
-      "failureArtifacts": 0,
-      "status": "MISSING_BENCHMARK"
+      "hostLive": "NOT_EXECUTED",
+      "status": "STRUCTURAL_ONLY"
     },
     {
+      "contractJsonFiles": 6,
       "domain": "spatial-design",
-      "requiredContractFiles": {
-        "handoff-contract.json": true,
-        "manifest.json": true,
-        "preflight.json": true,
-        "profile.json": true,
-        "rubric.json": true,
-        "scenario.md": true,
-        "sources.json": true
-      },
-      "benchmarkBriefs": 0,
-      "failureArtifacts": 0,
-      "status": "MISSING_BENCHMARK"
+      "hostLive": "NOT_EXECUTED",
+      "status": "STRUCTURAL_ONLY"
     },
     {
+      "contractJsonFiles": 6,
       "domain": "three-d-design",
-      "requiredContractFiles": {
-        "handoff-contract.json": true,
-        "manifest.json": true,
-        "preflight.json": true,
-        "profile.json": true,
-        "rubric.json": true,
-        "scenario.md": true,
-        "sources.json": true
-      },
-      "benchmarkBriefs": 0,
-      "failureArtifacts": 0,
-      "status": "MISSING_BENCHMARK"
+      "hostLive": "NOT_EXECUTED",
+      "status": "STRUCTURAL_ONLY"
     },
     {
+      "contractJsonFiles": 6,
       "domain": "uiux-design",
-      "requiredContractFiles": {
-        "handoff-contract.json": true,
-        "manifest.json": true,
-        "preflight.json": true,
-        "profile.json": true,
-        "rubric.json": true,
-        "scenario.md": true,
-        "sources.json": true
-      },
-      "benchmarkBriefs": 5,
-      "failureArtifacts": 1,
-      "status": "STRUCTURAL"
+      "hostLive": "NOT_EXECUTED",
+      "status": "STRUCTURAL_ONLY"
     },
     {
+      "contractJsonFiles": 6,
       "domain": "video-design",
-      "requiredContractFiles": {
-        "handoff-contract.json": true,
-        "manifest.json": true,
-        "preflight.json": true,
-        "profile.json": true,
-        "rubric.json": true,
-        "scenario.md": true,
-        "sources.json": true
-      },
-      "benchmarkBriefs": 0,
-      "failureArtifacts": 0,
-      "status": "MISSING_BENCHMARK"
+      "hostLive": "NOT_EXECUTED",
+      "status": "STRUCTURAL_ONLY"
     },
     {
+      "contractJsonFiles": 6,
       "domain": "visual-design",
-      "requiredContractFiles": {
-        "handoff-contract.json": true,
-        "manifest.json": true,
-        "preflight.json": true,
-        "profile.json": true,
-        "rubric.json": true,
-        "scenario.md": true,
-        "sources.json": true
-      },
-      "benchmarkBriefs": 0,
-      "failureArtifacts": 0,
-      "status": "MISSING_BENCHMARK"
+      "hostLive": "NOT_EXECUTED",
+      "status": "STRUCTURAL_ONLY"
     }
   ],
-  "note": "Structural files and benchmark counts are not production-readiness evidence."
+  "environmentFingerprint": {
+    "machine": "AMD64",
+    "platform": "Windows-11-10.0.26100-SP0",
+    "python": "3.13.14"
+  },
+  "fresh": false,
+  "freshnessMeaning": "at generation only; check verifies bound-input integrity, not current Git or cloud state",
+  "generatedAt": "2026-09-13T18:57:37+00:00",
+  "gitStateMeaning": "generation-time observation, not current HEAD",
+  "schemaVersion": "design-lab/domain-readiness/v2",
+  "subjectMeaning": "subjectType=WORKTREE means the tree was dirty at generation; worktreeDigest covers HEAD plus the non-generated changes",
+  "subjectSha": "a6d65d636ffe1b7fb2d8c5a023cbe5c338f9d220",
+  "subjectType": "WORKTREE",
+  "taskpackHash": "31dde89eb4ede81fe88c0a5c5144adfb86af8db4c4d8c263bde2199180369b69",
+  "taskpackId": "DL-TP-20260908-R5",
+  "testRunAt": "2026-09-13T18:49:34+00:00",
+  "testRunId": "testrun-20260913T184926Z-random-repeat-9684a7ae2228",
+  "testRunMeaning": "bound run: python scripts/run_bound_test_suite.py --modules test_asset_store --modules test_creative_job --modules test_creative_ledgers --modules test_creative_lineage --modules test_creative_migration --modules test_creative_version_guard --modules test_creative_f030_f040 --modules test_creative_session_link --modules test_job_store --modules test_runtime_attempt_safety --modules test_runtime_asset_safety --modules test_runtime_explicit_project --modules test_assurance_qa_plane --modules test_assurance_jury --modules test_bundle_store --modules test_operation_coordinator --order random --seed 42 --label h010-critical-random",
+  "testRunResult": "OK",
+  "worktreeClean": false,
+  "worktreeDigest": "sha256:fb2fc053863bd776041b12521cdd403bde0ea4b48b5f00d818dd9ce36c84b8c3"
 }

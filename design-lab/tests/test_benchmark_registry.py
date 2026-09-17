@@ -24,7 +24,7 @@ def load_module():
 
 class BenchmarkRegistryTests(unittest.TestCase):
     def test_registry_has_twelve_repeatable_benchmarks(self):
-        result = subprocess.run([sys.executable, str(SCRIPT)], cwd=ROOT, capture_output=True, text=True, check=False)
+        result = subprocess.run([sys.executable, str(SCRIPT)], cwd=ROOT, capture_output=True, text=True, encoding="utf-8", errors="replace", check=False)
         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
         self.assertIn("BENCHMARK_REGISTRY_PASS benchmarks=12", result.stdout)
 

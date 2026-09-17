@@ -1,0 +1,93 @@
+{
+  "schemaVersion": "design-lab/recovery-safety/v1",
+  "task_keys": [
+    "DL-TP-20260914-DEEPSEEK-AUTHORITY-R1::DLDS-I000",
+    "DL-TP-20260914-DEEPSEEK-AUTHORITY-R1::DLDS-I010"
+  ],
+  "checked_at": "2026-09-13T16:46:00+00:00",
+  "subject_sha": "",
+  "I000_destructive_operations": {
+    "doctrine": "plan -> candidate list -> backup/digest -> verification -> rollback -> receipt",
+    "manifests": [
+      {
+        "manifest": ".project-local/quarantine/deepseek-round1/RUNTIME-CLEANUP-MANIFEST.json",
+        "tool": "scripts/deepseek_runtime_cleanup.py",
+        "exists": true,
+        "entries": 167,
+        "elements": {
+          "plan": true,
+          "candidate_list": true,
+          "backup_or_digest": true,
+          "verification": true,
+          "rollback": true,
+          "receipt": true
+        },
+        "tool_modes": {
+          "plan_mode": true,
+          "restore_mode": true
+        },
+        "ok": true
+      },
+      {
+        "manifest": ".project-local/quarantine/deepseek-round1/DELETE-MANIFEST.json",
+        "tool": "scripts/deepseek_quarantine_out_of_pack.py",
+        "exists": true,
+        "entries": 7,
+        "elements": {
+          "plan": true,
+          "candidate_list": true,
+          "backup_or_digest": true,
+          "verification": true,
+          "rollback": true,
+          "receipt": true
+        },
+        "tool_modes": {
+          "plan_mode": true,
+          "restore_mode": true
+        },
+        "ok": true
+      },
+      {
+        "manifest": ".project-local/archive/hermes-legacy/MIGRATION-MANIFEST.json",
+        "tool": "scripts/deepseek_hermes_migration.py",
+        "exists": true,
+        "entries": 10,
+        "elements": {
+          "plan": true,
+          "candidate_list": true,
+          "backup_or_digest": true,
+          "verification": true,
+          "rollback": true,
+          "receipt": true
+        },
+        "tool_modes": {
+          "plan_mode": true,
+          "restore_mode": true
+        },
+        "ok": true
+      }
+    ],
+    "failures": []
+  },
+  "I010_unknown_outcome": {
+    "rule": "an attempt with an unknown outcome is reconciled, never re-run; a failed or cancelled attempt is never reported as completed",
+    "outcome_unknown_successors": [
+      "CANCEL_REQUESTED",
+      "RECONCILING"
+    ],
+    "terminal_states": [
+      "CANCELLED",
+      "FAILED",
+      "RECEIPTED",
+      "TIMED_OUT"
+    ],
+    "reconcile_requires_proof": true,
+    "recovery_entry_point": true,
+    "tests": [
+      "design-lab/tests/test_runtime_attempt_safety.py"
+    ],
+    "findings": [],
+    "ok": true
+  },
+  "verdict": "PASS"
+}

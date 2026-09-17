@@ -1,5 +1,8 @@
 # DESIGN-LAB MULTIMODAL 任务交接：DEEPSEEK 侧已完成 / CODEX 侧待执行（2026-09-05 最终版）
 
+> **SUPERSEDED / HISTORICAL**：当前派工见 [R3 后继执行包](DESIGN-LAB-CLOUD-REAUDIT-TASKPACK-2026-09-06.md)。
+> 以下保留历史正文，不再接受当前状态更新；改注前逐字节副本见 [冻结原文](../history/taskpacks/pre-r3-20260905-handoff.md)。
+
 > 依据：`docs/taskpacks/DESIGN-LAB-MULTIMODAL-TASK-PLAN-2026-09-05.md`（已归档入仓，T01–T18）。
 > 分工：DEEPSEEK 侧（可离线/可复核的仓库、盘点、契约/后端、单测、文档台账）**已全部完成**；CODEX 侧（真实宿主/模型/GPU/前端实机）**待用户调用 CODEX 执行**。
 > 状态纪律：仅"目标环境实测并附结果"标"已验证"；CI 绿但未实机 → "待实机"；H3 权利门未清 → `BLOCKED_BY_LICENSE`。

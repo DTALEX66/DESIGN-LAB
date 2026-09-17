@@ -1,0 +1,125 @@
+{
+  "schemaVersion": "design-lab/untracked-runtime-census/v1",
+  "task_key": "DL-TP-20260914-DEEPSEEK-AUTHORITY-R1::DLDS-D000",
+  "measured_at": "2026-09-13T16:26:39+00:00",
+  "roots": {
+    ".project-local": {
+      "files": 63138,
+      "bytes": 4447037198,
+      "mib": 4241.03,
+      "oldest_mtime": 1778424900.0,
+      "newest_mtime": 1789316789.5480947,
+      "by_subdir": {
+        "task-runtime": {
+          "files": 56121,
+          "bytes": 3194364414,
+          "mib": 3046.38
+        },
+        "task-artifacts": {
+          "files": 1660,
+          "bytes": 588949818,
+          "mib": 561.67
+        },
+        "projects": {
+          "files": 346,
+          "bytes": 357703756,
+          "mib": 341.13
+        },
+        "cache": {
+          "files": 4994,
+          "bytes": 305397323,
+          "mib": 291.25
+        },
+        "archive": {
+          "files": 1,
+          "bytes": 343288,
+          "mib": 0.33
+        },
+        "quarantine": {
+          "files": 9,
+          "bytes": 172054,
+          "mib": 0.16
+        },
+        "runs": {
+          "files": 3,
+          "bytes": 101727,
+          "mib": 0.1
+        },
+        "tmp-commit-msgs": {
+          "files": 4,
+          "bytes": 4818,
+          "mib": 0.0
+        }
+      }
+    },
+    ".hermes": {
+      "files": 498,
+      "bytes": 11578776,
+      "mib": 11.04,
+      "oldest_mtime": 1770734472.0,
+      "newest_mtime": 1788621474.3405313,
+      "by_subdir": {
+        "task-runtime": {
+          "files": 305,
+          "bytes": 10822131,
+          "mib": 10.32
+        },
+        "task-artifacts": {
+          "files": 192,
+          "bytes": 743007,
+          "mib": 0.71
+        },
+        "(root)": {
+          "files": 1,
+          "bytes": 13638,
+          "mib": 0.01
+        }
+      }
+    },
+    ".venv": {
+      "files": 4291,
+      "bytes": 205870563,
+      "mib": 196.33,
+      "oldest_mtime": 1782567526.2790878,
+      "newest_mtime": 1788540590.1282694,
+      "by_subdir": {
+        "Lib": {
+          "files": 4266,
+          "bytes": 205333875,
+          "mib": 195.82
+        },
+        "Scripts": {
+          "files": 21,
+          "bytes": 536470,
+          "mib": 0.51
+        },
+        "(root)": {
+          "files": 4,
+          "bytes": 218,
+          "mib": 0.0
+        }
+      }
+    },
+    ".pytest_cache": {
+      "files": 5,
+      "bytes": 61298,
+      "mib": 0.06,
+      "oldest_mtime": 1788457528.3489578,
+      "newest_mtime": 1788458063.8120096,
+      "by_subdir": {
+        "v": {
+          "files": 2,
+          "bytes": 60768,
+          "mib": 0.06
+        },
+        "(root)": {
+          "files": 3,
+          "bytes": 530,
+          "mib": 0.0
+        }
+      }
+    }
+  },
+  "total_mib": 4448.46,
+  "classification_pending": "DLDS-D030/D040 and Wave 4 classify and act; nothing is deleted here"
+}

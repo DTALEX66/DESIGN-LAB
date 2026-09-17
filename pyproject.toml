@@ -11,8 +11,48 @@ dependencies = [
   "defusedxml>=0.7,<1",
 ]
 
+[project.scripts]
+design-lab = "design_lab.cli:main"
+
 [tool.uv]
-package = false
+package = true
+
+[build-system]
+requires = ["hatchling==1.27.0"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/design_lab"]
+exclude = ["src/design_lab/reconstruction/__init__.py"]
+
+[tool.hatch.build.targets.wheel.force-include]
+"packages/capabilities/reconstruction/__init__.py" = "design_lab/reconstruction/__init__.py"
+"packages/capabilities/reconstruction/contracts.py" = "design_lab/reconstruction/contracts.py"
+"packages/capabilities/reconstruction/adobe_job.py" = "design_lab/reconstruction/adobe_job.py"
+"packages/capabilities/reconstruction/adobe_lowering.py" = "design_lab/reconstruction/adobe_lowering.py"
+"design-lab/schemas/reconstruction/reconstruction-ir.schema.json" = "design_lab/resources/reconstruction/reconstruction-ir.schema.json"
+"design-lab/schemas/reconstruction/reconstruction-run.schema.json" = "design_lab/resources/reconstruction/reconstruction-run.schema.json"
+"design-lab/schemas/state" = "design_lab/resources/state"
+"apps/workbench" = "design_lab/resources/workbench"
+"integrations/hosts/adobe/illustrator/reconstruction-assemble.jsx" = "design_lab/resources/adobe/reconstruction-assemble.jsx"
+"integrations/hosts/adobe/photoshop-reconstruction/legacy-assemble.jsx" = "design_lab/resources/adobe/photoshop-native-assemble.jsx"
+
+[tool.hatch.build.targets.sdist]
+only-include = ["src/design_lab", "design-lab/schemas/state", "apps/workbench", "integrations/hosts/adobe/illustrator/reconstruction-assemble.jsx", "integrations/hosts/adobe/photoshop-reconstruction/legacy-assemble.jsx", "packages/capabilities/reconstruction/__init__.py", "packages/capabilities/reconstruction/contracts.py", "packages/capabilities/reconstruction/adobe_job.py", "packages/capabilities/reconstruction/adobe_lowering.py", "design-lab/schemas/reconstruction/reconstruction-ir.schema.json", "design-lab/schemas/reconstruction/reconstruction-run.schema.json", "pyproject.toml"]
 
 [tool.pytest.ini_options]
 testpaths = ["design-lab/tests"]
+
+# DLDS-C030 / DL-AUDIT-20260914-08: ruff is now *executed* (CI lint step +
+# project-local lint-tools runner), not merely declared. CI gates on real
+# defects only (F, E9); the recorded style baseline (E4/E7, ~219 findings) is
+# reported, not silently mass-rewritten.
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+# F = pyflakes real defects (unused imports, undefined names, dead variables);
+# E9 = runtime error class. E4/E7 style findings are tracked as a baseline in
+# .project-local/task-artifacts/audit-20260915/lint-baseline.json, not gated.
+select = ["F", "E9"]

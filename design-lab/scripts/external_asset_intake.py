@@ -33,8 +33,10 @@ from pathlib import Path
 import jsonschema
 
 ROOT = Path(__file__).resolve().parent.parent
+sys.path.insert(0, str(ROOT.parent / 'src'))
+from design_lab.runtime.paths import resolve_paths
 MANIFEST_SCHEMA = ROOT / "schemas" / "collection-manifest.schema.json"
-RUNTIME_OUT = ROOT.parent / ".project-local" / "task-runtime" / "intake"
+RUNTIME_OUT = resolve_paths().category_dir('runtime', 'intake')
 
 # DL-KNW-007: copying these artifact types into Git is forbidden.
 # (reference-only citation is allowed; full copies are not)

@@ -4,6 +4,6 @@
   "name": "DESIGN-LAB Reconstruction Layer Preparation",
   "version": "0.1.0",
   "main": "index.js",
-  "host": [{"app": "PS", "minVersion": "23.5.0"}],
+  "host": [{"app": "PS", "minVersion": "24.2.0"}],
   "requiredPermissions": {"localFileSystem": "request"}
 }

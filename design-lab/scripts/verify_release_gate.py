@@ -25,7 +25,7 @@ LEVEL_ORDER = {f"E{i}": i for i in range(6)}
 
 
 def git(*args: str) -> tuple[int, str]:
-    r = subprocess.run(["git", "-C", str(ROOT), *args], capture_output=True, text=True)
+    r = subprocess.run(["git", "-C", str(ROOT), *args], capture_output=True, text=True, encoding="utf-8", errors="replace")
     return r.returncode, (r.stdout or r.stderr).strip()
 
 

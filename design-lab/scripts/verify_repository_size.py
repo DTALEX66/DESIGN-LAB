@@ -4,7 +4,6 @@
 from __future__ import annotations
 
 import json
-import sys
 from pathlib import Path
 
 PATH = Path(__file__).resolve().parents[1] / "config" / "repository-size-report.json"
@@ -23,9 +22,17 @@ def main() -> int:
         errors.append("budget thresholds changed")
     if report.get("status") not in {"OK", "WARNING", "OVER_LIMIT"}:
         errors.append("invalid budget status")
+    # DLDS-D050: the number must come from a measurement, not from a stale copy.
+    if not report.get("measuredAt") or report.get("measuredPackMiB") is None:
+        errors.append("report does not record when and what it measured")
+    # The hard budget blocks: exceeding it is a failure, not a warning.
+    if report.get("status") == "OVER_LIMIT":
+        errors.append(f"pack size {report.get('measuredPackMiB')} MiB exceeds the hard budget "
+                      f"{report.get('limitMiB')} MiB; reduce size before adding large files")
     for error in errors:
         print(f"FAIL {error}")
-    print(f"REPOSITORY_SIZE={'PASS' if not errors else 'FAIL'} status={report.get('status')}")
+    print(f"REPOSITORY_SIZE={'PASS' if not errors else 'FAIL'} status={report.get('status')} "
+          f"measured_mib={report.get('measuredPackMiB')}")
     return 0 if not errors else 1
 
 

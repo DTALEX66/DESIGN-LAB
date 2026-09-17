@@ -6,7 +6,6 @@ Historical / beta-expired / no-bound evidence cannot produce current E3/E4.
 """
 from __future__ import annotations
 import json
-import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent.parent

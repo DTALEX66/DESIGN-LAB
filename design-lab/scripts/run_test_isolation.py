@@ -15,15 +15,20 @@ Usage:
 """
 from __future__ import annotations
 
+import sys
+if __name__ == '__main__':
+    sys.dont_write_bytecode = True
 import argparse
 import json
 import random
-import sys
 import unittest
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]  # design-lab/
 TEST_DIR = ROOT / "tests"
+sys.path.insert(0, str(ROOT.parent / 'src'))
+from design_lab.runtime.paths import PathPolicyError
+from design_lab.runtime.test_environment import project_test_environment
 
 
 def discover() -> unittest.TestSuite:
@@ -62,6 +67,10 @@ def run(order: str, seed: int, repeat: int, modules: list[str] | None) -> int:
     if modules:
         wanted = set(modules)
         base = [t for t in base if file_key(t) in wanted or module_key(t) in wanted]
+    if not base:
+        print('R0-005 ' + json.dumps({'ok': False, 'ran': 0,
+                                     'reason': 'TEST_SELECTION_EMPTY'}, sort_keys=True))
+        return 2
     if order == "reverse":
         base = list(reversed(base))
     elif order == "random":
@@ -95,7 +104,13 @@ def main() -> int:
     parser.add_argument("--repeat", type=int, default=1)
     parser.add_argument("--modules", nargs="*", default=None, help="filter to module names")
     args = parser.parse_args()
-    return run(args.order, args.seed, args.repeat, args.modules)
+    try:
+        with project_test_environment('test-isolation'):
+            return run(args.order, args.seed, args.repeat, args.modules)
+    except (PathPolicyError, OSError) as exc:
+        print('R0-005 ' + json.dumps({'ok': False, 'ran': 0,
+                                     'reason': 'TEST_ENVIRONMENT_FAIL', 'detail': str(exc)}, sort_keys=True))
+        return 2
 
 
 if __name__ == "__main__":

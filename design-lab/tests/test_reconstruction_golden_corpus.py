@@ -40,7 +40,7 @@ class ReconstructionGoldenCorpusTests(unittest.TestCase):
 
     def test_standalone_verifier_reports_six_cases(self) -> None:
         script = PROJECT_ROOT / "design-lab" / "scripts" / "verify_reconstruction_golden_corpus.py"
-        result = subprocess.run([sys.executable, str(script)], check=False, capture_output=True, text=True)
+        result = subprocess.run([sys.executable, str(script)], check=False, capture_output=True, text=True, encoding="utf-8", errors="replace")
 
         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
         self.assertIn("RECONSTRUCTION_GOLDEN=PASS cases=6", result.stdout)

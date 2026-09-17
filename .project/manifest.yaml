@@ -7,7 +7,12 @@ baseline_sha: 2aca27f69b1909251640382ed3b4195cf9accd9b
 created: 2026-09-01
 supersedes: DL-DIR-MIG-R1
 
-taskpack: DL-TP-20260904-STANDALONE-FIRST
+taskpack: DL-TP-20260908-R5
+taskpack_path: docs/history/taskpacks/r5-20260908/tasks.json
+deepseek_authority_taskpack: DL-TP-20260914-DEEPSEEK-AUTHORITY-R1
+deepseek_authority_taskpack_path: docs/taskpacks/DESIGN-LAB-DEEPSEEK-AUTHORITY-TASKPACK-2026-09-14.md
+deepseek_authority_ledger: reports/current/DEEPSEEK-AUTHORITY-LEDGER-2026-09-14.json
+task_ledger: design-lab/config/task-ledger-r3.json
 schema_version: design-lab/project-manifest/v1
 product_version: 0.1.0-alpha.0
 release_status: NOT_RELEASED

@@ -1,0 +1,85 @@
+{
+  "schemaVersion": "design-lab/deepseek/r3/dp-v2/results/v1",
+  "task_id": "DP-V2-05",
+  "r3_ids": [],
+  "observed_at": "2026-09-06T16:31:25+00:00",
+  "acceptance_by_gpt": "PENDING",
+  "v1_untouched": true,
+  "note": "V2 results manage only this revision round; NOT the project ledger truth table (that is design-lab/config/task-ledger-r3.json)",
+  "items": [
+    {
+      "task_id": "DP-V2-01",
+      "title": "四轴需求矩阵修正",
+      "status": "PASS",
+      "evidence": [
+        "docs/handoffs/deepseek-r3-20260906-v2/01-requirements-matrix.json"
+      ],
+      "unmet": [],
+      "r3_ids": [
+        "R3-01",
+        "R3-03"
+      ]
+    },
+    {
+      "task_id": "DP-V2-02",
+      "title": "ComfyUI 与历史证据措辞修正",
+      "status": "PASS",
+      "evidence": [
+        "docs/handoffs/deepseek-r3-20260906-v2/02-capability-corrections.json"
+      ],
+      "unmet": [
+        "进程/服务可用性与当前工作流验证未执行（GPT 范围）"
+      ],
+      "r3_ids": [
+        "R3-08",
+        "R3-16",
+        "R3-19"
+      ]
+    },
+    {
+      "task_id": "DP-V2-03",
+      "title": "ZIP locator 与缺失语义修正",
+      "status": "PASS",
+      "evidence": [
+        "docs/handoffs/deepseek-r3-20260906-v2/03-history-locator-corrections.json"
+      ],
+      "unmet": [
+        "两索引是否落盘/恢复由 GPT 决定"
+      ],
+      "r3_ids": [
+        "R3-03"
+      ]
+    },
+    {
+      "task_id": "DP-V2-04",
+      "title": "参考集收敛与公开来源核对",
+      "status": "PARTIAL",
+      "evidence": [
+        "docs/handoffs/deepseek-r3-20260906-v2/04-reference-candidates.json",
+        "docs/handoffs/deepseek-r3-20260906-v2/04-reference-exclusions.json"
+      ],
+      "unmet": [
+        "电商/2D 类缺作者已核实候选（REF-03/06 排除）；许可与最终 URL 需 GPT 浏览器级确认"
+      ],
+      "r3_ids": [
+        "R3-13",
+        "R3-14",
+        "R3-22"
+      ]
+    },
+    {
+      "task_id": "DP-V2-05",
+      "title": "回交与 hash 链",
+      "status": "PASS",
+      "evidence": [
+        "docs/handoffs/deepseek-r3-20260906-v2/05-DP-RETURN.md",
+        "docs/handoffs/deepseek-r3-20260906-v2/05-results.json",
+        "docs/handoffs/deepseek-r3-20260906-v2/SHA256SUMS.txt"
+      ],
+      "unmet": [
+        "acceptance_by_gpt=PENDING"
+      ],
+      "r3_ids": []
+    }
+  ]
+}

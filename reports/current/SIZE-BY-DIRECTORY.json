@@ -1,0 +1,262 @@
+{
+  "schemaVersion": "design-lab/size-by-directory/v1",
+  "task_key": "DL-TP-20260914-DEEPSEEK-AUTHORITY-R1::DLDS-D000",
+  "measured_at": "2026-09-13T16:26:39+00:00",
+  "tracked_by_area": {
+    "docs": {
+      "files": 250,
+      "bytes": 12975991,
+      "mib": 12.37
+    },
+    "fixtures": {
+      "files": 226,
+      "bytes": 8452041,
+      "mib": 8.06
+    },
+    "design-lab": {
+      "files": 766,
+      "bytes": 4582422,
+      "mib": 4.37
+    },
+    "integrations": {
+      "files": 76,
+      "bytes": 2334341,
+      "mib": 2.23
+    },
+    "packages": {
+      "files": 275,
+      "bytes": 1390747,
+      "mib": 1.33
+    },
+    "reports": {
+      "files": 120,
+      "bytes": 1027518,
+      "mib": 0.98
+    },
+    "src": {
+      "files": 78,
+      "bytes": 681625,
+      "mib": 0.65
+    },
+    "uv.lock": {
+      "files": 1,
+      "bytes": 172920,
+      "mib": 0.16
+    },
+    "scripts": {
+      "files": 20,
+      "bytes": 135217,
+      "mib": 0.13
+    },
+    "apps": {
+      "files": 3,
+      "bytes": 25407,
+      "mib": 0.02
+    },
+    "research": {
+      "files": 2,
+      "bytes": 16320,
+      "mib": 0.02
+    },
+    "vendor": {
+      "files": 1,
+      "bytes": 13544,
+      "mib": 0.01
+    },
+    ".github": {
+      "files": 5,
+      "bytes": 12125,
+      "mib": 0.01
+    },
+    "AGENTS.md": {
+      "files": 1,
+      "bytes": 8267,
+      "mib": 0.01
+    },
+    "WORK-LAB-DESIGN-MODULE-FINAL-HANDOFF-2026-08-07.md": {
+      "files": 1,
+      "bytes": 6398,
+      "mib": 0.01
+    },
+    "README.md": {
+      "files": 1,
+      "bytes": 5956,
+      "mib": 0.01
+    },
+    "KNOWLEDGE_ASSET_POLICY.md": {
+      "files": 1,
+      "bytes": 4542,
+      "mib": 0.0
+    },
+    ".project": {
+      "files": 6,
+      "bytes": 3919,
+      "mib": 0.0
+    },
+    "LESSONS_LEARNED.md": {
+      "files": 1,
+      "bytes": 3370,
+      "mib": 0.0
+    },
+    "NOTICE": {
+      "files": 1,
+      "bytes": 2391,
+      "mib": 0.0
+    },
+    "pyproject.toml": {
+      "files": 1,
+      "bytes": 2348,
+      "mib": 0.0
+    },
+    "GITHUB_DELIVERY.md": {
+      "files": 1,
+      "bytes": 1588,
+      "mib": 0.0
+    },
+    ".gitignore": {
+      "files": 1,
+      "bytes": 1479,
+      "mib": 0.0
+    },
+    "LICENSING_DECISION_REQUIRED.md": {
+      "files": 1,
+      "bytes": 1312,
+      "mib": 0.0
+    },
+    "LICENSE": {
+      "files": 1,
+      "bytes": 1082,
+      "mib": 0.0
+    },
+    "LICENSES": {
+      "files": 1,
+      "bytes": 1082,
+      "mib": 0.0
+    },
+    ".gitattributes": {
+      "files": 1,
+      "bytes": 1054,
+      "mib": 0.0
+    },
+    "THIRD_PARTY_SOURCES_V2.md": {
+      "files": 1,
+      "bytes": 682,
+      "mib": 0.0
+    },
+    "requirements.txt": {
+      "files": 1,
+      "bytes": 574,
+      "mib": 0.0
+    },
+    "CONTRIBUTING.md": {
+      "files": 1,
+      "bytes": 344,
+      "mib": 0.0
+    },
+    "THIRD_PARTY_SOURCES_VISUAL_V21.md": {
+      "files": 1,
+      "bytes": 279,
+      "mib": 0.0
+    },
+    "SECURITY.md": {
+      "files": 1,
+      "bytes": 221,
+      "mib": 0.0
+    },
+    "RELEASE.md": {
+      "files": 1,
+      "bytes": 212,
+      "mib": 0.0
+    }
+  },
+  "ignored_by_subdir": {
+    ".project-local": {
+      "task-runtime": {
+        "files": 56121,
+        "bytes": 3194364414,
+        "mib": 3046.38
+      },
+      "task-artifacts": {
+        "files": 1660,
+        "bytes": 588949818,
+        "mib": 561.67
+      },
+      "projects": {
+        "files": 346,
+        "bytes": 357703756,
+        "mib": 341.13
+      },
+      "cache": {
+        "files": 4994,
+        "bytes": 305397323,
+        "mib": 291.25
+      },
+      "archive": {
+        "files": 1,
+        "bytes": 343288,
+        "mib": 0.33
+      },
+      "quarantine": {
+        "files": 9,
+        "bytes": 172054,
+        "mib": 0.16
+      },
+      "runs": {
+        "files": 3,
+        "bytes": 101727,
+        "mib": 0.1
+      },
+      "tmp-commit-msgs": {
+        "files": 4,
+        "bytes": 4818,
+        "mib": 0.0
+      }
+    },
+    ".hermes": {
+      "task-runtime": {
+        "files": 305,
+        "bytes": 10822131,
+        "mib": 10.32
+      },
+      "task-artifacts": {
+        "files": 192,
+        "bytes": 743007,
+        "mib": 0.71
+      },
+      "(root)": {
+        "files": 1,
+        "bytes": 13638,
+        "mib": 0.01
+      }
+    },
+    ".venv": {
+      "Lib": {
+        "files": 4266,
+        "bytes": 205333875,
+        "mib": 195.82
+      },
+      "Scripts": {
+        "files": 21,
+        "bytes": 536470,
+        "mib": 0.51
+      },
+      "(root)": {
+        "files": 4,
+        "bytes": 218,
+        "mib": 0.0
+      }
+    },
+    ".pytest_cache": {
+      "v": {
+        "files": 2,
+        "bytes": 60768,
+        "mib": 0.06
+      },
+      "(root)": {
+        "files": 3,
+        "bytes": 530,
+        "mib": 0.0
+      }
+    }
+  }
+}

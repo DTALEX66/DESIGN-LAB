@@ -51,7 +51,7 @@ class PlanarDecompositionTests(unittest.TestCase):
         self.assertNotIn("host_object_id", raw[0])
 
     def test_unmapped_cannot_carry_host_object_id(self):
-        from design_lab.analysis.decomposition import CanvasRegion, DecompositionError, Plan, PlanObject
+        from design_lab.analysis.decomposition import DecompositionError
 
         plan = self._plan()
         plan.objects[0].host_object_id = "AI:1"

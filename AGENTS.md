@@ -84,18 +84,27 @@ DESIGN-LAB 是面向职业视觉设计的、AI 原生、平台中立、宿主原
 
 ## 模型与工具
 
+- 本机外置根以 `.project/paths.json` 为准；用途、已知软件与模型位置见 `docs/LOCAL_ENVIRONMENT.md`。开始排查前先读这两处，不因默认安装目录无匹配而重新判断未安装。
+- 用户已确认本机有 ComfyUI、Photoshop、Illustrator、MiniMax H3 本地模型和 MiniMax Design 软件；这是用户提供的存在性信息，不替代当前版本、启动、推理、读回和回滚测试。MiniMax Design 软件与 H3 模型分开验收。
+
 - 未校验模型（`UNQUALIFIED_*`）默认 `defaultEnabled: false`
 - 零 checksum、许可冲突、模型不存在或硬件不足时，runtime resolver 必须 fail closed
 - 第三方 `AGENTS/CLAUDE/cursorrules/SKILL/install/affiliate` 作为 inert source blobs 保存，不进入根指令、prompt、tool discovery 或能力计数
 
 ## 当前任务包
 
-- 当前有效任务包：`docs/taskpacks/DESIGN-LAB-TODAY-EXECUTION-TASKPACK-2026-09-04.md`（DL-TP-20260904-STANDALONE-FIRST）
-- 下一阶段产品方案（已登记，未冻结）：`docs/taskpacks/DESIGN-LAB-MULTIMODAL-TASK-PLAN-2026-09-05.md`（T01–T18；执行按 DEEPSEEK/CODEX 交接分工：`D:\All projects\DESIGN-LAB-MULTIMODAL-CODEX-HANDOFF-2026-09-05.md` 与 `reports/current/` 下 T01/T02 报告）
+- **DeepSeek 执行权威（唯一 current DeepSeek TaskPack）**：`docs/taskpacks/DESIGN-LAB-DEEPSEEK-AUTHORITY-TASKPACK-2026-09-14.md`（DL-TP-20260914-DEEPSEEK-AUTHORITY-R1）。机器账本 `reports/current/DEEPSEEK-AUTHORITY-LEDGER-2026-09-14.json`，唯一写入者 `scripts/deepseek_authority_ledger.py`；权威关系对账 `reports/current/DEEPSEEK-AUTHORITY-CHAIN.json`。同一时间只允许一个 DeepSeek current taskpack。该包只做仓库收敛、清理、外溢数据处理、语言治理、结构收口与 Codex 准备；真实宿主、设计能力验收与 Human Gate 仍归 Codex。会话摘要/记忆摘要/交接摘要一律 `NON_AUTHORITATIVE`，只有落仓文件可授权改动。
+- 当前有效任务包：`docs/history/taskpacks/r5-20260908/tasks.json`（DL-TP-20260908-R5，用户已授权推进全部任务；原件冻结，禁止用它编辑执行状态）。中文任务卡见同目录 `02-TASKS.md`。
+- 唯一任务状态编辑源：`design-lab/config/task-ledger-r3.json`；按 `depends_on` 派工。
+- 该路径已版本化为 `design-lab/task-ledger/r5-v1`。R3 原账本逐字节冻结于 `docs/history/taskpacks/r3-ledger-pre-r5-20260909.json`，并在活动账本中保留完整前继记录。旧证据不自动提升新任务；条件依赖须记录案例选择和理由，未决条件阻止验收完成。
+- 当前投影：`reports/current/TASK_PROGRESS.json`、`reports/current/PROJECT_STATUS.md`；生成器 `scripts/generate_current_reports.py`，`--check` 只读验证漂移。
+- 代码、unit、host_live、delivery 四轴分别记录。历史/缺失/源文件变化的证据不能提升当前能力；生成时间不是测试时间。
+- 09-05 多模态方案与交接（SUPERSEDED，历史分工来源）：`docs/taskpacks/DESIGN-LAB-MULTIMODAL-TASK-PLAN-2026-09-05.md`、`docs/taskpacks/DESIGN-LAB-MULTIMODAL-CODEX-HANDOFF-2026-09-05.md`。
 - 历史任务包（superseded，保留为历史证据，不作为 current 派工入口）：
+  - `docs/taskpacks/DESIGN-LAB-TODAY-EXECUTION-TASKPACK-2026-09-04.md`（后继：DL-TP-20260906-R3）
   - `docs/taskpacks/DLR-FINAL-20260826-R2-OSS-FAST-TRACK.md`（2026-08-26）
   - `docs/taskpacks/TRI-OSS-FAST-TRACK-20260826-R1.md`（三项目总规划，superseded by standalone-first ADR-001）
-- 执行波次：Truth/Safety（P0 真值）→ Reproducibility（Wave 1）→ Core contracts/runtime（Wave 2）→ Real Host → Quality → Domain → Federation/Release；Wave-0-first，其余 REGISTER_ONLY 直至前序绿色
-- 进度账本：`reports/current/TASKPACK_PROGRESS-2026-09-04.json`（evidence 口径，PR115 复核版）；基线冻结：`reports/history-baseline.json`
+- 执行顺序以 R5 `depends_on` 及案例条件依赖为准；前置验收未满足时，只记录实现进展，不宣称整项闭环。宿主、质量与发布各自验收。Comfy、H3、UIA 不作为 Adobe M1 的硬前置。
+- 旧进度账本由原路径转为历史指针；冻结原文在 `reports/history/r3-predecessors-2026-09-06/`。原 `reports/history-baseline.json` 不修改。
 
 （项目特有规则在此基础上补充）

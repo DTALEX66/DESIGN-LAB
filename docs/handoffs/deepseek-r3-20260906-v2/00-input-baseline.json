@@ -1,0 +1,306 @@
+{
+  "schemaVersion": "design-lab/deepseek-r3/dp-v2/baseline/v1",
+  "task_id": "DP-V2-baseline",
+  "r3_ids": [],
+  "observed_at": "2026-09-06T16:28:06+00:00",
+  "repo": {
+    "root": "D:\\All projects\\DESIGN-LAB",
+    "branch": "codex/r3-runtime-correctness",
+    "head_sha": "c4dccd58331bc4561eb89265283d924b7630d113"
+  },
+  "v1_files": {
+    "01-requirements-matrix.json": {
+      "size": 109896,
+      "sha256": "5b1d9f558e67a7cd619cd26694529176af6a5a077973a288fe450cc875101ae0"
+    },
+    "02-history-locators.json": {
+      "size": 4416,
+      "sha256": "fb582cb402d096c1c6a5f7b31fbfb45a926cacc48be47f851a57f97b54b480d2"
+    },
+    "03-history-crosswalk.json": {
+      "size": 1483165,
+      "sha256": "17adf222513760e255484208add86aa829e79ae3da098a5aa4f8db91fce7d64b"
+    },
+    "04-path-link-findings.json": {
+      "size": 29134,
+      "sha256": "9977e98860c80d578c10f462a57c124ff5e972f284fc64f6d95b8f3a4dfab1d2"
+    },
+    "05-ci-proposal.md": {
+      "size": 2193,
+      "sha256": "5d2cc9ee1bb9b8527d57882d84c44a8fd404502540fab632e600a15476349ad6"
+    },
+    "05-ci-trigger-matrix.json": {
+      "size": 7492,
+      "sha256": "418038a9f7e9ca6aeca1f383c3e9998bf774109b0f5f225da9f5be97db270a08"
+    },
+    "06-test-evidence-catalog.json": {
+      "size": 5068,
+      "sha256": "e83193f57672847c5acb0c9da7b7ced0d07cb6b6d7ecc22806c4576d210c370c"
+    },
+    "07-capability-evidence-gaps.json": {
+      "size": 18929,
+      "sha256": "78b620adbbafe22801ba00cc3b140c8a1fd809fde30f78e4c60831781d918a72"
+    },
+    "08-reconstruction-acceptance.md": {
+      "size": 1843,
+      "sha256": "6e2ca848fefb8479215b66840c033f268e854b829c2c02a97ee18aa3edfb167b"
+    },
+    "08-reference-candidates.json": {
+      "size": 12729,
+      "sha256": "dfd1153d4c7849b94c5ddea588e2a71ef8265a378816f9f1ee3a5c983ab2903d"
+    },
+    "09-existing-interfaces.json": {
+      "size": 8280,
+      "sha256": "c0d72ffd8925179555bae740fa12d97d39846420c96ef5335b0981639cba935a"
+    },
+    "09-operator-runbook.md": {
+      "size": 2780,
+      "sha256": "857425319637cdd0c42559cd0b02d45373d45e6d9a966226c07d27b4a1bd3578"
+    },
+    "10-report-consistency.json": {
+      "size": 11998,
+      "sha256": "32c30011b9593fc11e976e3837549faee274c70ff1df0eae0e4c7d6f057352f8"
+    },
+    "11-delivery-checklist.md": {
+      "size": 1762,
+      "sha256": "d5db6fc8ed5cb13c9a631d808f54a531cb94bc5813d0f044e285e08798472b0b"
+    },
+    "11-repository-maintenance.json": {
+      "size": 5908,
+      "sha256": "0ce5d7e289dc4490acafdecc00157df9ee4f6f1db56cfab9ddb7e00337153c4a"
+    },
+    "12-DEEPSEEK-RETURN.md": {
+      "size": 5078,
+      "sha256": "cca1fe6b62a05969748fc283bc986f08fb8cc494cd175a6312cecace6a1fc03b"
+    },
+    "12-results.json": {
+      "size": 6983,
+      "sha256": "02746f731f5e6e4797874e911f5b512727f645fd3ebdbee31acafee0692a687e"
+    }
+  },
+  "input_files": {
+    "docs/handoffs/deepseek-r3-20260906/01-requirements-matrix.json": {
+      "size": 109896,
+      "sha256": "5b1d9f558e67a7cd619cd26694529176af6a5a077973a288fe450cc875101ae0"
+    },
+    "docs/handoffs/deepseek-r3-20260906/02-history-locators.json": {
+      "size": 4416,
+      "sha256": "fb582cb402d096c1c6a5f7b31fbfb45a926cacc48be47f851a57f97b54b480d2"
+    },
+    "docs/handoffs/deepseek-r3-20260906/07-capability-evidence-gaps.json": {
+      "size": 18929,
+      "sha256": "78b620adbbafe22801ba00cc3b140c8a1fd809fde30f78e4c60831781d918a72"
+    },
+    "docs/handoffs/deepseek-r3-20260906/08-reference-candidates.json": {
+      "size": 12729,
+      "sha256": "dfd1153d4c7849b94c5ddea588e2a71ef8265a378816f9f1ee3a5c983ab2903d"
+    },
+    "docs/handoffs/deepseek-r3-20260906/08-reconstruction-acceptance.md": {
+      "size": 1843,
+      "sha256": "6e2ca848fefb8479215b66840c033f268e854b829c2c02a97ee18aa3edfb167b"
+    },
+    "docs/handoffs/deepseek-r3-20260906/12-DEEPSEEK-RETURN.md": {
+      "size": 5078,
+      "sha256": "cca1fe6b62a05969748fc283bc986f08fb8cc494cd175a6312cecace6a1fc03b"
+    },
+    "docs/handoffs/deepseek-r3-20260906/12-results.json": {
+      "size": 6983,
+      "sha256": "02746f731f5e6e4797874e911f5b512727f645fd3ebdbee31acafee0692a687e"
+    },
+    "design-lab/config/task-ledger-r3.json": {
+      "size": 96696,
+      "sha256": "2d5c7ed619d43a587c6e4e04a094bd7120d102bdbdd873b785e39a111bba5c8c"
+    },
+    "reports/current/TASK_PROGRESS.json": {
+      "size": 79896,
+      "sha256": "ad3d4ff9032d254b29b283363978b17d596e5b5be930f7c8959017ad0496c681"
+    },
+    "docs/history/taskpacks/r3-tasks-2026-09-06.json": {
+      "size": 33267,
+      "sha256": "fd042fb4259c2fd06edbf9eea715ba03c0c869aeedbc0767270bac25e6e7a272"
+    },
+    "docs/taskpacks/DESIGN-LAB-CLOUD-REAUDIT-TASKPACK-2026-09-06.md": {
+      "size": 28612,
+      "sha256": "3d6edf1a00f4f4f7eb19005a2acba2c73bd0dc71a6d2ec5ba9ed5ae689c6454c"
+    }
+  },
+  "git_change_snapshot": {
+    "modified": [
+      ".gitattributes",
+      ".project/manifest.yaml",
+      "AGENTS.md",
+      "README.md",
+      "design-lab/config/capability-evidence-index.json",
+      "design-lab/config/current-report-index.json",
+      "design-lab/config/external-assets-index.json",
+      "design-lab/config/task-ledger.yaml",
+      "design-lab/scripts/external_asset_intake.py",
+      "design-lab/scripts/update_evidence_binding.py",
+      "design-lab/scripts/upgrade_asset_sidecars.py",
+      "design-lab/scripts/verify_identity_gate.py",
+      "design-lab/tests/test_asset_store.py",
+      "design-lab/tests/test_job_store.py",
+      "design-lab/tests/test_model_cache.py",
+      "design-lab/tests/test_operation_coordinator.py",
+      "design-lab/tests/test_profile_resolver.py",
+      "design-lab/tests/test_state_store.py",
+      "docs/taskpacks/DESIGN-LAB-MULTIMODAL-CODEX-HANDOFF-2026-09-05.md",
+      "docs/taskpacks/DESIGN-LAB-MULTIMODAL-TASK-PLAN-2026-09-05.md",
+      "docs/taskpacks/DESIGN-LAB-TODAY-EXECUTION-TASKPACK-2026-09-04.md",
+      "packages/capabilities/reconstruction/contracts.py",
+      "packages/capabilities/reconstruction/runtime_roots.py",
+      "reports/current/ADAPTER_EVIDENCE_RECONCILIATION.json",
+      "reports/current/CLOUD_BASELINE.json",
+      "reports/current/CLOUD_BASELINE.md",
+      "reports/current/DL-TP-20260904-EXECUTION-HANDOFF.md",
+      "reports/current/DOMAIN_PACK_READINESS.json",
+      "reports/current/KNOWLEDGE_INVENTORY.json",
+      "reports/current/MULTIMODAL_PROGRESS-2026-09-05.json",
+      "reports/current/PR115-AUDIT-FIX-STATUS-2026-09-05.md",
+      "reports/current/PROJECT_STATUS.json",
+      "reports/current/PROJECT_STATUS.md",
+      "reports/current/RELEASE_READINESS.json",
+      "reports/current/T01-REPO-BASELINE-2026-09-05.md",
+      "reports/current/T02-MACHINE-INVENTORY-2026-09-05.md",
+      "reports/current/TASKPACK_PROGRESS-2026-09-04.json",
+      "scripts/generate_current_reports.py",
+      "scripts/generate_project_status.py",
+      "src/design_lab/analysis/model_cache.py",
+      "src/design_lab/runtime/asset_store.py",
+      "src/design_lab/runtime/doctor.py",
+      "src/design_lab/runtime/job_store.py",
+      "src/design_lab/runtime/operation_coordinator.py",
+      "src/design_lab/runtime/profile_resolver.py",
+      "src/design_lab/runtime/state_store.py"
+    ],
+    "cached": [],
+    "untracked": [
+      " M .gitattributes",
+      " M .project/manifest.yaml",
+      " M AGENTS.md",
+      " M README.md",
+      " M design-lab/config/capability-evidence-index.json",
+      " M design-lab/config/current-report-index.json",
+      " M design-lab/config/external-assets-index.json",
+      " M design-lab/config/task-ledger.yaml",
+      " M design-lab/scripts/external_asset_intake.py",
+      " M design-lab/scripts/update_evidence_binding.py",
+      " M design-lab/scripts/upgrade_asset_sidecars.py",
+      " M design-lab/scripts/verify_identity_gate.py",
+      " M design-lab/tests/test_asset_store.py",
+      " M design-lab/tests/test_job_store.py",
+      " M design-lab/tests/test_model_cache.py",
+      " M design-lab/tests/test_operation_coordinator.py",
+      " M design-lab/tests/test_profile_resolver.py",
+      " M design-lab/tests/test_state_store.py",
+      " M docs/taskpacks/DESIGN-LAB-MULTIMODAL-CODEX-HANDOFF-2026-09-05.md",
+      " M docs/taskpacks/DESIGN-LAB-MULTIMODAL-TASK-PLAN-2026-09-05.md",
+      " M docs/taskpacks/DESIGN-LAB-TODAY-EXECUTION-TASKPACK-2026-09-04.md",
+      " M packages/capabilities/reconstruction/contracts.py",
+      " M packages/capabilities/reconstruction/runtime_roots.py",
+      " M reports/current/ADAPTER_EVIDENCE_RECONCILIATION.json",
+      " M reports/current/CLOUD_BASELINE.json",
+      " M reports/current/CLOUD_BASELINE.md",
+      " M reports/current/DL-TP-20260904-EXECUTION-HANDOFF.md",
+      " M reports/current/DOMAIN_PACK_READINESS.json",
+      " M reports/current/KNOWLEDGE_INVENTORY.json",
+      " M reports/current/MULTIMODAL_PROGRESS-2026-09-05.json",
+      " M reports/current/PR115-AUDIT-FIX-STATUS-2026-09-05.md",
+      " M reports/current/PROJECT_STATUS.json",
+      " M reports/current/PROJECT_STATUS.md",
+      " M reports/current/RELEASE_READINESS.json",
+      " M reports/current/T01-REPO-BASELINE-2026-09-05.md",
+      " M reports/current/T02-MACHINE-INVENTORY-2026-09-05.md",
+      " M reports/current/TASKPACK_PROGRESS-2026-09-04.json",
+      " M scripts/generate_current_reports.py",
+      " M scripts/generate_project_status.py",
+      " M src/design_lab/analysis/model_cache.py",
+      " M src/design_lab/runtime/asset_store.py",
+      " M src/design_lab/runtime/doctor.py",
+      " M src/design_lab/runtime/job_store.py",
+      " M src/design_lab/runtime/operation_coordinator.py",
+      " M src/design_lab/runtime/profile_resolver.py",
+      " M src/design_lab/runtime/state_store.py",
+      "?? .project/paths.json",
+      "?? design-lab/config/model-manifest-trust.json",
+      "?? design-lab/config/profiles.json",
+      "?? design-lab/config/task-ledger-r3.json",
+      "?? design-lab/schemas/model-manifest.schema.json",
+      "?? design-lab/schemas/profile-evidence.schema.json",
+      "?? design-lab/schemas/state/design-lab-state-assets-v2.sql",
+      "?? design-lab/schemas/state/design-lab-state-attempt-v2.sql",
+      "?? design-lab/schemas/task-ledger-r3.schema.json",
+      "?? design-lab/tests/test_current_reporting.py",
+      "?? design-lab/tests/test_doctor_evidence.py",
+      "?? design-lab/tests/test_identity_scan_boundary.py",
+      "?? design-lab/tests/test_migration_preview.py",
+      "?? design-lab/tests/test_model_manifest.py",
+      "?? design-lab/tests/test_path_clients.py",
+      "?? design-lab/tests/test_profile_evidence.py",
+      "?? design-lab/tests/test_project_paths.py",
+      "?? design-lab/tests/test_runtime_asset_safety.py",
+      "?? design-lab/tests/test_runtime_attempt_safety.py",
+      "?? docs/decisions/R3-GATE-SCAN-BOUNDARY-2026-09-06.md",
+      "?? docs/decisions/R3-MODEL-READINESS-2026-09-06.md",
+      "?? docs/decisions/R3-PROFILE-EVIDENCE-2026-09-06.md",
+      "?? docs/decisions/R3-PROJECT-PATHS-2026-09-06.md",
+      "?? docs/decisions/R3-RUNTIME-RECOVERY-2026-09-06.md",
+      "?? docs/handoffs/deepseek-r3-20260906/01-requirements-matrix.json",
+      "?? docs/handoffs/deepseek-r3-20260906/02-history-locators.json",
+      "?? docs/handoffs/deepseek-r3-20260906/03-history-crosswalk.json",
+      "?? docs/handoffs/deepseek-r3-20260906/04-path-link-findings.json",
+      "?? docs/handoffs/deepseek-r3-20260906/05-ci-proposal.md",
+      "?? docs/handoffs/deepseek-r3-20260906/05-ci-trigger-matrix.json",
+      "?? docs/handoffs/deepseek-r3-20260906/06-test-evidence-catalog.json",
+      "?? docs/handoffs/deepseek-r3-20260906/07-capability-evidence-gaps.json",
+      "?? docs/handoffs/deepseek-r3-20260906/08-reconstruction-acceptance.md",
+      "?? docs/handoffs/deepseek-r3-20260906/08-reference-candidates.json",
+      "?? docs/handoffs/deepseek-r3-20260906/09-existing-interfaces.json",
+      "?? docs/handoffs/deepseek-r3-20260906/09-operator-runbook.md",
+      "?? docs/handoffs/deepseek-r3-20260906/10-report-consistency.json",
+      "?? docs/handoffs/deepseek-r3-20260906/11-delivery-checklist.md",
+      "?? docs/handoffs/deepseek-r3-20260906/11-repository-maintenance.json",
+      "?? docs/handoffs/deepseek-r3-20260906/12-DEEPSEEK-RETURN.md",
+      "?? docs/handoffs/deepseek-r3-20260906/12-results.json",
+      "?? docs/history/taskpacks/pre-r3-20260904-taskpack.md",
+      "?? docs/history/taskpacks/pre-r3-20260905-handoff.md",
+      "?? docs/history/taskpacks/pre-r3-20260905-multimodal-plan.md",
+      "?? docs/history/taskpacks/pre-r3-task-ledger.yaml",
+      "?? docs/history/taskpacks/r3-tasks-2026-09-06.json",
+      "?? docs/taskpacks/DESIGN-LAB-CLOUD-REAUDIT-TASKPACK-2026-09-06.md",
+      "?? docs/taskpacks/DESIGN-LAB-DEEPSEEK-EXECUTION-2026-09-06.md",
+      "?? docs/taskpacks/DESIGN-LAB-DP-CORRECTION-TASKPACK-V2-2026-09-06.md",
+      "?? docs/taskpacks/DESIGN-LAB-GPT-REMAINING-2026-09-06.md",
+      "?? docs/taskpacks/DESIGN-LAB-SPLIT-HANDOFF-2026-09-06.md",
+      "?? reports/current/R3-CODEX-RUNTIME-PROGRESS-2026-09-06.md",
+      "?? reports/current/TASK_PROGRESS.json",
+      "?? reports/history/r3-predecessors-2026-09-06/ADAPTER_EVIDENCE_RECONCILIATION.json",
+      "?? reports/history/r3-predecessors-2026-09-06/CLOUD_BASELINE.json",
+      "?? reports/history/r3-predecessors-2026-09-06/CLOUD_BASELINE.md",
+      "?? reports/history/r3-predecessors-2026-09-06/DL-TP-20260904-EXECUTION-HANDOFF.md",
+      "?? reports/history/r3-predecessors-2026-09-06/DOMAIN_PACK_READINESS.json",
+      "?? reports/history/r3-predecessors-2026-09-06/KNOWLEDGE_INVENTORY.json",
+      "?? reports/history/r3-predecessors-2026-09-06/MULTIMODAL_PROGRESS-2026-09-05.json",
+      "?? reports/history/r3-predecessors-2026-09-06/PR115-AUDIT-FIX-STATUS-2026-09-05.md",
+      "?? reports/history/r3-predecessors-2026-09-06/PROJECT_STATUS.json",
+      "?? reports/history/r3-predecessors-2026-09-06/PROJECT_STATUS.md",
+      "?? reports/history/r3-predecessors-2026-09-06/RELEASE_READINESS.json",
+      "?? reports/history/r3-predecessors-2026-09-06/T01-REPO-BASELINE-2026-09-05.md",
+      "?? reports/history/r3-predecessors-2026-09-06/T02-MACHINE-INVENTORY-2026-09-05.md",
+      "?? reports/history/r3-predecessors-2026-09-06/TASKPACK_PROGRESS-2026-09-04.json",
+      "?? reports/history/r3-predecessors-2026-09-06/current-report-index.json",
+      "?? scripts/design_lab_doctor.py",
+      "?? src/design_lab/analysis/model_manifest.py",
+      "?? src/design_lab/governance/__init__.py",
+      "?? src/design_lab/governance/reporting.py",
+      "?? src/design_lab/runtime/attempt_contract.py",
+      "?? src/design_lab/runtime/migration_preview.py",
+      "?? src/design_lab/runtime/paths.py"
+    ]
+  },
+  "notes": {
+    "v1_preserved_read_only": true,
+    "no_source_diff_copied": true,
+    "no_credentials_private_text": true
+  }
+}

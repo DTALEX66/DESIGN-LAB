@@ -256,7 +256,7 @@ def main() -> None:
     print(f"codex_home={codex_home}")
     print(f"codex_version={version}")
     print(f"codex_auth_present={auth_ok}")
-    print(f"mode=plan-only")
+    print("mode=plan-only")
 
 
 if __name__ == "__main__":

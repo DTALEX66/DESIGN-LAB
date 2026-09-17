@@ -2,7 +2,7 @@
   "$schema": "../../schemas/external-assets-index.schema.json",
   "version": "1.0.0",
   "generated_at": "2026-08-16",
-  "policy": "共用库只放输入/规范/权重；运行产物与设计产物留项目忽略目录（.hermes/task-runtime、80-evidence），不进共用库",
+  "policy": "共用库只放输入/规范/权重；运行产物在 .project-local/task-runtime，证据在 .project-local/task-artifacts，持久作品在 .project-local/projects；统一路径源为 .project/paths.json，不向共用库写入。旧 .hermes/80-evidence 仅为历史来源，不自动迁移。",
   "shared_roots": {
     "model-library": "D:\\All projects\\Model library",
     "design-assets": "D:\\All projects\\Design assets"

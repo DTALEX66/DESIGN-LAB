@@ -37,7 +37,6 @@ class ContractSchemaIntegrityTests(unittest.TestCase):
 
     def test_no_local_ref_points_to_nowhere(self):
         """Every '#/...' $ref must resolve inside the same document."""
-        import jsonschema
         for path in sorted(CONTRACTS.glob("*.json")):
             doc = json.loads(path.read_text(encoding="utf-8"))
 
@@ -148,7 +147,6 @@ class JobAttemptContractTests(unittest.TestCase):
     """F03: job-attempt must carry an attempt_id and reject free-string statuses."""
 
     def test_job_attempt_requires_attempt_id(self):
-        import jsonschema
         schema = _load("job-attempt.schema.json")
         required = schema.get("required", [])
         self.assertIn("attempt_id", required, "job-attempt schema must require attempt_id (F03)")

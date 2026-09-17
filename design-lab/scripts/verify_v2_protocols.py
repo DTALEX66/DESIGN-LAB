@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # SPDX-License-Identifier: MIT
 from __future__ import annotations
-import json, sys
+import json
 from pathlib import Path
 
 REQ_SCHEMAS=['design-brief','reference-dna','design-direction','design-critique','preflight','design-handoff','capability-status','case-record','design-project-state','provenance','source-registry']

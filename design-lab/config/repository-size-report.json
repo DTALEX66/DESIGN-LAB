@@ -1,51 +1,78 @@
 {
   "schemaVersion": "design-lab/repository-size-report/v1",
-  "subjectSha": "a6fdc5e0ad6821f41d09a1022988d2f9212c64e6",
-  "generatedAt": "2026-08-20T16:31:52Z",
-  "packMiB": 199.71,
+  "subjectSha": "0b5cb849bfb49f6a63c5cfd017fac017066af55a",
+  "generatedAt": "2026-09-13T16:29:11Z",
+  "measuredAt": "2026-09-13T16:29:11Z",
+  "measuredPackMiB": 210.4,
+  "packMiB": 210.4,
   "warningMiB": 224.0,
   "limitMiB": 256.0,
   "status": "OK",
   "largestTrackedBlobs": [
     {
-      "path": "design-lab/knowledge/ecommerce-ai/mermaid.min.js",
-      "bytes": 3164970,
-      "objectId": "2e90922b117b27495c07d444947b0a0edc751fd9"
-    },
-    {
-      "path": "design-lab/intelligence/baoyu-design/skills/baoyu-design/agents/vendor/babel.min.js",
-      "bytes": 3137752,
-      "objectId": "8830ea360e6bc7ec272015f86b113cda88f2765d"
-    },
-    {
-      "path": "design-lab/exports/minigame-mobile-controls/assets/cctv-elevator-corridor-figure.png",
+      "path": "fixtures/domains/game-visual/exports/minigame-mobile-controls/assets/cctv-elevator-corridor-figure.png",
       "bytes": 1722989,
       "objectId": "9cba9c4843f435bab3b73abcc60003ac2df84c51"
     },
     {
-      "path": "design-lab/knowledge/tool-control/scripts/illustrator/jsx-BeautifySwatchNames.jsx",
-      "bytes": 1488761,
-      "objectId": "54f5539e33f2c4c66d41f8c5a664ea3fe3936c49"
+      "path": "docs/handoffs/deepseek-r3-20260906/03-history-crosswalk.json",
+      "bytes": 1483165,
+      "objectId": "bd968c6c15ef9352e71a2fd0aefe1773a1f7d58e"
     },
     {
-      "path": "design-lab/exports/minigame-mobile-controls/assets/cctv-elevator-corridor-warp.png",
+      "path": "fixtures/domains/game-visual/exports/minigame-mobile-controls/assets/cctv-elevator-corridor-warp.png",
       "bytes": 1438802,
       "objectId": "8208049910457cef4567f3d49a0c861fb3ad8194"
     },
     {
-      "path": "design-lab/exports/minigame-mobile-controls/assets/cctv-elevator-corridor-clear.png",
+      "path": "fixtures/domains/game-visual/exports/minigame-mobile-controls/assets/cctv-elevator-corridor-clear.png",
       "bytes": 1409309,
       "objectId": "45584db0b067847d051ebad796b2c0c818c8e835"
     },
     {
-      "path": "design-lab/intelligence/genjutsu/skills/_jutsu/ui-ux-pro-max/data/google-fonts.csv",
-      "bytes": 743272,
-      "objectId": "73fd6c507d5b5078a6dbe8f8085ec2feb1837a33"
+      "path": "docs/projects/nebula-tech-culture-wall/assets/nebula_construction_detail.png",
+      "bytes": 1106124,
+      "objectId": "fb76de233225fa147bd5d1d13f028da9ab67a2f7"
     },
     {
-      "path": "design-lab/intelligence/ui-ux-pro-max/data/google-fonts.csv",
-      "bytes": 743272,
-      "objectId": "73fd6c507d5b5078a6dbe8f8085ec2feb1837a33"
+      "path": "docs/history/DESIGN-LAB-HISTORY-TASK-ID-CROSSWALK-2026-09-04.csv",
+      "bytes": 1051134,
+      "objectId": "44eb745b9fd7b0272f9e5314c4d73ced5c51ab5e"
+    },
+    {
+      "path": "docs/projects/nebula-tech-culture-wall/assets/nebula_material_board.png",
+      "bytes": 994148,
+      "objectId": "045fc3936ae9550a8daad9c667cf4f270daf9a2a"
+    },
+    {
+      "path": "docs/projects/nebula-tech-culture-wall/assets/nebula_wayfinding_system.png",
+      "bytes": 931981,
+      "objectId": "eed37dc477fe68aee3aa7a0110695a3c35b9e7b2"
+    },
+    {
+      "path": "docs/projects/nebula-tech-culture-wall/assets/nebula_culture_wall_detail.png",
+      "bytes": 854676,
+      "objectId": "c523c7f5274dba5164312b345b656fdbddac8005"
+    },
+    {
+      "path": "docs/projects/nebula-tech-culture-wall/assets/nebula_culture_wall_main.png",
+      "bytes": 834293,
+      "objectId": "a53ee10c90de05b6c1042ce94a49ff3ede3dd647"
+    },
+    {
+      "path": "docs/projects/nebula-tech-culture-wall/assets/nebula_brand_identity_board.png",
+      "bytes": 745837,
+      "objectId": "add692ba1784a548eafeb72e6bd48abc7974c07b"
+    },
+    {
+      "path": "docs/projects/nebula-tech-culture-wall/assets/nebula_brand_application.png",
+      "bytes": 737062,
+      "objectId": "eb218b4887c5a0b7f5f1042cc017f5ad66985184"
+    },
+    {
+      "path": "docs/projects/nebula-tech-culture-wall/assets/nebula_culture_wall_night.png",
+      "bytes": 720846,
+      "objectId": "17c9e26cc1e9a58ac05e2eb02b6d4b20e3babfb8"
     },
     {
       "path": "integrations/generators/comfyui/evidence/dl_h3_prod.mp4",
@@ -58,56 +85,33 @@
       "objectId": "c8aedbcff14fff0b0f9fcbe766a6dd0b6143f3c4"
     },
     {
+      "path": "docs/history/r3-recovery-2026-09-07-public-complete.json",
+      "bytes": 483929,
+      "objectId": "2fb3836bacd779116a5fddc71217c1fa50f7fa65"
+    },
+    {
       "path": "design-lab/research/master-studies/MASTER_REGISTRY.json",
       "bytes": 473730,
       "objectId": "58dafde8237a8230f11f6d2ecf19acad19b7a071"
     },
     {
-      "path": "design-lab/config/capability-index.json",
-      "bytes": 443636,
-      "objectId": "5248b2bcb39969c2e1303cf758b9ea9a657f71c1"
+      "path": "design-lab/config/capability-index-v1-backup.json",
+      "bytes": 445103,
+      "objectId": "6836865b90a25f5cad34c593813d1a31b442e47c"
+    },
+    {
+      "path": "docs/history/r3-recovery-2026-09-07.json",
+      "bytes": 443705,
+      "objectId": "6b9d96405b8e972b83abb635b9242e372059f4ae"
     },
     {
       "path": "design-lab/research/global-absorption/QUARANTINE_REGISTRY.json",
-      "bytes": 329950,
-      "objectId": "45c7e5ecd26fd36754211ef9994406c0079d13d3"
-    },
-    {
-      "path": "integrations/generators/comfyui/evidence/dl_h3_prod_audio.flac",
-      "bytes": 324982,
-      "objectId": "b45e752e07c42390b9a43ca3f5b96f5348bd7568"
-    },
-    {
-      "path": "integrations/generators/minimax-h3/evidence/dl_h3_prod_audio.flac",
-      "bytes": 324982,
-      "objectId": "b45e752e07c42390b9a43ca3f5b96f5348bd7568"
-    },
-    {
-      "path": "design-lab/knowledge/ecommerce-ai/skills/ecom-listing/references/playbook.md",
-      "bytes": 322011,
-      "objectId": "4f45924f1356f981868571a1549dd3c35ae3136e"
-    },
-    {
-      "path": "design-lab/intelligence/baoyu-design/skills/baoyu-design/agents/vendor/fig-materialize.mjs",
-      "bytes": 319218,
-      "objectId": "13256b8e7caabb5401df40caa9cc75fb90de1f7b"
-    },
-    {
-      "path": "fixtures/domains/game-visual/douyin-minigame/game.js",
-      "bytes": 283272,
-      "objectId": "ad7c6f744e028c9aa2962e45c96b0fb76f06cb95"
-    },
-    {
-      "path": "fixtures/domains/game-visual/wechat-minigame/game.js",
-      "bytes": 283272,
-      "objectId": "8cd253deb071c65f0555ea9ed3bfb94b92282413"
-    },
-    {
-      "path": "design-lab/knowledge/visual-quality/document-packages/design-system/docs/screenshots/themes-light.png",
-      "bytes": 273216,
-      "objectId": "37f0df3363f0f087c2fa1f4ac3ee49a1b1f02896"
+      "bytes": 329968,
+      "objectId": "2c6e61c1e35c69009ce3bb75ad6d7d08313c88c9"
     }
   ],
   "historyRewriteAuthorized": false,
+  "thresholdBasis": "thresholds re-validated against this measurement (DLDS-D050); the pack size is dominated by history, not by the current tree",
+  "liveCheck": "python scripts/generate_repository_size_report.py --check",
   "note": "This report is observational. It does not delete blobs, rewrite history, or approve new binaries."
 }

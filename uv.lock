@@ -27,7 +27,7 @@ wheels = [
 [[package]]
 name = "design-lab"
 version = "0.1.0a0"
-source = { virtual = "." }
+source = { editable = "." }
 dependencies = [
     { name = "defusedxml" },
     { name = "jsonschema" },

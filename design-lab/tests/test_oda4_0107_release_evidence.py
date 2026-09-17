@@ -27,7 +27,7 @@ def load_schema() -> dict:
 
 
 def git(args):
-    return subprocess.run(["git", *args], cwd=REPO, capture_output=True, text=True)
+    return subprocess.run(["git", *args], cwd=REPO, capture_output=True, text=True, encoding="utf-8", errors="replace")
 
 
 def load_verifier():
@@ -112,7 +112,6 @@ class SHAReadbackMismatchTest(unittest.TestCase):
     def test_wrong_head_flagged(self):
         # Build a fake evidence record with an impossible head_sha; the script
         # must FAIL (mismatch with live checkout), not silently pass.
-        live_head = git(["rev-parse", "HEAD"]).stdout.strip()
         bad = {
             "branch": "nope",
             "head_sha": "f" * 40,
@@ -125,7 +124,7 @@ class SHAReadbackMismatchTest(unittest.TestCase):
             json.dump(bad, f)
             path = f.name
         try:
-            r = subprocess.run([sys.executable, str(SCRIPT), path], capture_output=True, text=True)
+            r = subprocess.run([sys.executable, str(SCRIPT), path], capture_output=True, text=True, encoding="utf-8", errors="replace")
             self.assertNotEqual(r.returncode, 0, "must fail on head mismatch")
             self.assertIn("RELEASE_EVIDENCE=FAIL", r.stdout)
         finally:

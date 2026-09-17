@@ -1,0 +1,2512 @@
+{
+  "authorityTaskpackHash": "sha256:d9fdaa3ad7ad0055a3f451c853756be41036b32112cacc4d1c17b314c005a2f9",
+  "authorityTaskpackId": "DL-TP-20260914-DEEPSEEK-AUTHORITY-R1",
+  "counts": {
+    "PARTIAL": 28
+  },
+  "environmentFingerprint": {
+    "machine": "AMD64",
+    "platform": "Windows-11-10.0.26100-SP0",
+    "python": "3.13.14"
+  },
+  "evidence": [
+    {
+      "artifacts": [
+        {
+          "path": ".project-local/task-artifacts/comfy-http-live-bb63046b6f444fe9a7a96d0bf66f949b/result.json",
+          "sha256": "0c7a831cf5fd68a863666d127812f6e9c5d7636b2ed104cc34c648ee6bcaa309"
+        },
+        {
+          "path": "docs/handoffs/R5-COMFY-HTTP-LIVE-2026-09-09.md",
+          "sha256": "63467d9d70d17e6b6ba23c03f178ec174bd2151994590ca08b342dec79701480"
+        }
+      ],
+      "binding": "WORKTREE_FILES",
+      "id": "r5-comfy-http-model-free-live-20260909",
+      "kind": "host_live",
+      "note": "真实专用实例EmptyImage/SaveImage，经新客户端提交和history读回，64x64像素与PNG hash核对通过；不是模型生成。专用PID11964已terminate并确认端口57815关闭，不计优雅恢复。WS、持久任务、取消ACK、10次模型基准及H3未完成。observed_at为本次证据重读绑定时间，实际执行时间见原始history；ignored原件换机缺失应MISSING。",
+      "observed_at": "2026-09-08T22:51:42Z",
+      "outcome": "PARTIAL",
+      "reasons": [
+        "OUTCOME_NOT_PASS",
+        "STALE_SUBJECT_SHA"
+      ],
+      "software": {
+        "host": "ComfyUI 0.33.1",
+        "os": "Windows",
+        "python": "embedded 3.13.14",
+        "torch": "2.13.0+cu130"
+      },
+      "subject_files": {
+        "src/design_lab/generators/comfy_http.py": "d8bb2404197bf9014aa550ac100a07ede014c9e6721ff3483c12c54e1d96fdcc"
+      },
+      "subject_sha": "a06c1db01944faca6c8dd41b8fe22f651138a400",
+      "task_ids": [
+        "DL-R5-008"
+      ],
+      "verified": false
+    },
+    {
+      "artifacts": [
+        {
+          "path": "docs/handoffs/R5-COMFY-STRUCTURAL-REJECTION-2026-09-09.md",
+          "sha256": "16a80b2823d81166061b6b7c4d5c900f62cc6c1cc8174081ac22733fdfe47c10"
+        }
+      ],
+      "binding": "WORKTREE_FILES",
+      "id": "r5-comfy-structural-rejection-20260909",
+      "kind": "local_test",
+      "note": "14项真实协议单元测试通过，新增拒绝测试先出现16个subtest失败再修复。仅词法路径/指纹、零checksum和重复node ID，不能证明产物实际hash或Comfy传输；REST/WS、取消ACK、恢复和10次模型基准仍未完成。修改晚于953项全量，因此不继承其结果。",
+      "observed_at": "2026-09-08T22:36:19Z",
+      "outcome": "PARTIAL",
+      "reasons": [
+        "OUTCOME_NOT_PASS",
+        "STALE_SUBJECT_SHA",
+        "SOURCE_CHANGED_OR_MISSING:src/design_lab/generators/comfy_task.py",
+        "SOURCE_CHANGED_OR_MISSING:design-lab/tests/test_comfy_task_protocol.py"
+      ],
+      "software": {
+        "python": "project .venv Python 3.13.14",
+        "runner": "unittest discover -s design-lab/tests -p test_comfy_task_protocol.py"
+      },
+      "subject_files": {
+        "design-lab/tests/test_comfy_task_protocol.py": "c0106a009c8b63117b8c5d51d2e58b229468b4040724cab2a33c8195b9d8d920",
+        "src/design_lab/generators/comfy_task.py": "d25591f94c95bc06d81e6274bb0d190173e89c90785b29fa8edf5c8343587dd9"
+      },
+      "subject_sha": "a06c1db01944faca6c8dd41b8fe22f651138a400",
+      "task_ids": [
+        "DL-R5-008"
+      ],
+      "verified": false
+    },
+    {
+      "artifacts": [
+        {
+          "path": "docs/handoffs/R5-PHOTOSHOP-PATCH-PRODUCT-2026-09-09.md",
+          "sha256": "23eafcea6284aa44107ed3d9ede02974689f1c6aecbe0e6b85b549a42ee50059"
+        },
+        {
+          "path": "docs/handoffs/R5-PHOTOSHOP-FULL-REGRESSION-2026-09-09.md",
+          "sha256": "12c7142d8c75c477dc4e0695e614feb76340cf1d16d78197769d7b72fe165d4a"
+        }
+      ],
+      "binding": "WORKTREE_FILES",
+      "id": "r5-ps-handoff-review-20260909",
+      "kind": "structural",
+      "note": "交接证据定位，不是新宿主验收：报告记载真实PSD两次patch，但本记录仅绑定文档与工作区源码。第二轮953项全量回归仍有1个WinError10053错误、2 skipped；独立重复30次通过不能抵扣全量失败。原生原件、页面整链、对象独立性、人工质量与发布仍需分别核验。不得提升host_live或delivery。",
+      "observed_at": "2026-09-08T22:04:01Z",
+      "outcome": "PARTIAL",
+      "reasons": [
+        "OUTCOME_NOT_PASS",
+        "STALE_SUBJECT_SHA"
+      ],
+      "software": {
+        "review": "PowerShell read-only document and SHA256 inspection"
+      },
+      "subject_files": {
+        "src/design_lab/native_patch_submissions.py": "0432e52f7f1efbb351d37015d5fb64a6fb6dce3a0c4a5b6e991d1b2c2351ecc5"
+      },
+      "subject_sha": "a06c1db01944faca6c8dd41b8fe22f651138a400",
+      "task_ids": [
+        "DL-R5-012"
+      ],
+      "verified": false
+    }
+  ],
+  "fresh": false,
+  "freshnessMeaning": "at generation only; check verifies bound-input integrity, not current Git or cloud state",
+  "generatedAt": "2026-09-13T18:57:37+00:00",
+  "gitStateMeaning": "generation-time observation, not current HEAD",
+  "ledgerUpdatedAt": "2026-09-08T22:51:42Z",
+  "note": "DONE_LOCAL concerns the declared task axes and dependencies, not a product release or hosted CI.",
+  "schemaVersion": "design-lab/task-progress/r5-v1",
+  "subjectMeaning": "subjectType=WORKTREE means the tree was dirty at generation; worktreeDigest covers HEAD plus the non-generated changes",
+  "subjectSha": "a6d65d636ffe1b7fb2d8c5a023cbe5c338f9d220",
+  "subjectType": "WORKTREE",
+  "taskpack": "DL-TP-20260908-R5",
+  "taskpackHash": "31dde89eb4ede81fe88c0a5c5144adfb86af8db4c4d8c263bde2199180369b69",
+  "taskpackId": "DL-TP-20260908-R5",
+  "tasks": [
+    {
+      "axes": {
+        "delivery": {
+          "declared_state": "PARTIAL",
+          "evidence": [],
+          "reasons": [],
+          "state": "PARTIAL"
+        },
+        "host_live": {
+          "declared_state": "PARTIAL",
+          "evidence": [],
+          "reasons": [],
+          "state": "PARTIAL"
+        },
+        "implementation": {
+          "declared_state": "PARTIAL",
+          "evidence": [],
+          "reasons": [],
+          "state": "PARTIAL"
+        },
+        "unit": {
+          "declared_state": "PARTIAL",
+          "evidence": [],
+          "reasons": [],
+          "state": "PARTIAL"
+        }
+      },
+      "condition_decisions": {},
+      "definition": {
+        "acceptance": [
+          "每个旧 R4 ID 可追踪",
+          "所有任务具有验收/回退/证据字段",
+          "报告 check 在锁定环境通过",
+          "明确合并状态"
+        ],
+        "axes": {
+          "delivery": "NOT_ACCEPTED",
+          "host_live": "NOT_VERIFIED_BY_THIS_AUDIT",
+          "implementation": "REASSESS_FROM_R3",
+          "unit": "REASSESS_FROM_R3"
+        },
+        "baseline_observation": "开发分支领先 main 18 提交；已有 R3 四轴账本及 R4.1 映射",
+        "depends_on": [],
+        "evidence_required": [
+          "source_sha",
+          "environment_versions",
+          "commands_and_exit_codes",
+          "artifact_hashes",
+          "limitations",
+          "rollback_record"
+        ],
+        "execution_owner": "单一执行Agent；Windows宿主项交本机执行；用户负责人工接受",
+        "execution_state": "PLANNED_DELTA",
+        "id": "DL-R5-001",
+        "implementation": "冻结 main/develop SHA，核查提交与当前 CI；把本包差量映射入现有账本，保留 R3 历史状态；生成报告，不再新建平行活动账本",
+        "priority": "P0",
+        "rollback": "回退本项独立提交与版本化迁移；保留旧工程、输入、失败证据；禁止删除用户作品或关闭共享宿主来恢复。",
+        "title": "分支收敛、账本与增量接入"
+      },
+      "depends_on": [],
+      "id": "DL-R5-001",
+      "predecessor_task_ids": [
+        "R3-01",
+        "R3-03"
+      ],
+      "reassessment": "PENDING_EVIDENCE_REVIEW",
+      "required_axes": [
+        "implementation",
+        "unit"
+      ],
+      "status": "PARTIAL",
+      "title": "分支收敛、账本与增量接入",
+      "unmet_dependencies": [],
+      "unresolved_conditions": []
+    },
+    {
+      "axes": {
+        "delivery": {
+          "declared_state": "PARTIAL",
+          "evidence": [],
+          "reasons": [],
+          "state": "PARTIAL"
+        },
+        "host_live": {
+          "declared_state": "PARTIAL",
+          "evidence": [],
+          "reasons": [],
+          "state": "PARTIAL"
+        },
+        "implementation": {
+          "declared_state": "PARTIAL",
+          "evidence": [],
+          "reasons": [],
+          "state": "PARTIAL"
+        },
+        "unit": {
+          "declared_state": "PARTIAL",
+          "evidence": [],
+          "reasons": [],
+          "state": "PARTIAL"
+        }
+      },
+      "condition_decisions": {},
+      "definition": {
+        "acceptance": [
+          "已安装 Agent、CLI、UI、Adobe 入口无新增项目数据写入 .hermes",
+          "旧数据 hash 对应",
+          "历史引用保留且不作为执行指令"
+        ],
+        "axes": {
+          "delivery": "NOT_ACCEPTED",
+          "host_live": "NOT_VERIFIED_BY_THIS_AUDIT",
+          "implementation": "REASSESS_FROM_R3",
+          "unit": "REASSESS_FROM_R3"
+        },
+        "baseline_observation": "项目路径解析器和外置根已登记；仍有 EXTERNAL_ASSET_INTAKE 活跃旧路径",
+        "depends_on": [
+          "DL-R5-001"
+        ],
+        "evidence_required": [
+          "source_sha",
+          "environment_versions",
+          "commands_and_exit_codes",
+          "artifact_hashes",
+          "limitations",
+          "rollback_record"
+        ],
+        "execution_owner": "单一执行Agent；Windows宿主项交本机执行；用户负责人工接受",
+        "execution_state": "PLANNED_DELTA",
+        "id": "DL-R5-002",
+        "implementation": "修复 packages/capabilities/governance/EXTERNAL_ASSET_INTAKE.md；分类扫描代码、配置、技能、启动器；追踪实际写入；按清单备份和迁移，验证后停用旧入口",
+        "priority": "P0",
+        "rollback": "回退本项独立提交与版本化迁移；保留旧工程、输入、失败证据；禁止删除用户作品或关闭共享宿主来恢复。",
+        "title": "仓库路径规范与旧运行根治理"
+      },
+      "depends_on": [
+        "DL-R5-001"
+      ],
+      "id": "DL-R5-002",
+      "predecessor_task_ids": [
+        "R3-02"
+      ],
+      "reassessment": "PENDING_EVIDENCE_REVIEW",
+      "required_axes": [
+        "implementation",
+        "unit",
+        "host_live"
+      ],
+      "status": "PARTIAL",
+      "title": "仓库路径规范与旧运行根治理",
+      "unmet_dependencies": [
+        "DL-R5-001"
+      ],
+      "unresolved_conditions": []
+    },
+    {
+      "axes": {
+        "delivery": {
+          "declared_state": "PARTIAL",
+          "evidence": [],
+          "reasons": [],
+          "state": "PARTIAL"
+        },
+        "host_live": {
+          "declared_state": "PARTIAL",
+          "evidence": [],
+          "reasons": [],
+          "state": "PARTIAL"
+        },
+        "implementation": {
+          "declared_state": "PARTIAL",
+          "evidence": [],
+          "reasons": [],
+          "state": "PARTIAL"
+        },
+        "unit": {
+          "declared_state": "PARTIAL",
+          "evidence": [],
+          "reasons": [],
+          "state": "PARTIAL"
+        }
+      },
+      "condition_decisions": {},
+      "definition": {
+        "acceptance": [
+          "干净锁定环境可运行报告 check",
+          "wheel 非仓库目录运行",
+          "不因缺依赖误报代码故障",
+          "每项结果绑定 SHA"
+        ],
+        "axes": {
+          "delivery": "NOT_ACCEPTED",
+          "host_live": "NOT_VERIFIED_BY_THIS_AUDIT",
+          "implementation": "REASSESS_FROM_R3",
+          "unit": "REASSESS_FROM_R3"
+        },
+        "baseline_observation": "开发分支 CI 34155003375 成功；本轮 80 项针对测试通过",
+        "depends_on": [
+          "DL-R5-001"
+        ],
+        "evidence_required": [
+          "source_sha",
+          "environment_versions",
+          "commands_and_exit_codes",
+          "artifact_hashes",
+          "limitations",
+          "rollback_record"
+        ],
+        "execution_owner": "单一执行Agent；Windows宿主项交本机执行；用户负责人工接受",
+        "execution_state": "PLANNED_DELTA",
+        "id": "DL-R5-003",
+        "implementation": "复用 uv.lock；补报告生成 check、安装包 smoke、前端类型检查门；核查全路径触发；解决本轮 jsonschema 缺失环境后重验",
+        "priority": "P0",
+        "rollback": "回退本项独立提交与版本化迁移；保留旧工程、输入、失败证据；禁止删除用户作品或关闭共享宿主来恢复。",
+        "title": "CI 与验证环境补齐"
+      },
+      "depends_on": [
+        "DL-R5-001"
+      ],
+      "id": "DL-R5-003",
+      "predecessor_task_ids": [
+        "R3-04"
+      ],
+      "reassessment": "PENDING_EVIDENCE_REVIEW",
+      "required_axes": [
+        "implementation",
+        "unit",
+        "delivery"
+      ],
+      "status": "PARTIAL",
+      "title": "CI 与验证环境补齐",
+      "unmet_dependencies": [
+        "DL-R5-001"
+      ],
+      "unresolved_conditions": []
+    },
+    {
+      "axes": {
+        "delivery": {
+          "declared_state": "PARTIAL",
+          "evidence": [],
+          "reasons": [],
+          "state": "PARTIAL"
+        },
+        "host_live": {
+          "declared_state": "PARTIAL",
+          "evidence": [],
+          "reasons": [],
+          "state": "PARTIAL"
+        },
+        "implementation": {
+          "declared_state": "PARTIAL",
+          "evidence": [],
+          "reasons": [],
+          "state": "PARTIAL"
+        },
+        "unit": {
+          "declared_state": "PARTIAL",
+          "evidence": [],
+          "reasons": [],
+          "state": "PARTIAL"
+        }
+      },
+      "condition_decisions": {},
+      "definition": {
+        "acceptance": [
+          "在 dispatch 后、receipt 后、publish 后注入中断",
+          "重启可对账且不重复建对象",
+          "未证明停止不解锁"
+        ],
+        "axes": {
+          "delivery": "NOT_ACCEPTED",
+          "host_live": "NOT_VERIFIED_BY_THIS_AUDIT",
+          "implementation": "REASSESS_FROM_R3",
+          "unit": "REASSESS_FROM_R3"
+        },
+        "baseline_observation": "Operation/Attempt 已修复部分旧缺陷；相关回归通过；NativeTasks 未知结果保留 guard",
+        "depends_on": [
+          "DL-R5-001"
+        ],
+        "evidence_required": [
+          "source_sha",
+          "environment_versions",
+          "commands_and_exit_codes",
+          "artifact_hashes",
+          "limitations",
+          "rollback_record"
+        ],
+        "execution_owner": "单一执行Agent；Windows宿主项交本机执行；用户负责人工接受",
+        "execution_state": "PLANNED_DELTA",
+        "id": "DL-R5-004",
+        "implementation": "补持久化 reconciliation：已验证产物接续提交、无副作用重试、未知状态暂停；取消等真实 ack；禁止靠过期或关闭共享宿主清锁",
+        "priority": "P0",
+        "rollback": "回退本项独立提交与版本化迁移；保留旧工程、输入、失败证据；禁止删除用户作品或关闭共享宿主来恢复。",
+        "title": "运行状态与宿主异常恢复"
+      },
+      "depends_on": [
+        "DL-R5-001"
+      ],
+      "id": "DL-R5-004",
+      "predecessor_task_ids": [
+        "R3-05"
+      ],
+      "reassessment": "PENDING_EVIDENCE_REVIEW",
+      "required_axes": [
+        "implementation",
+        "unit",
+        "host_live"
+      ],
+      "status": "PARTIAL",
+      "title": "运行状态与宿主异常恢复",
+      "unmet_dependencies": [
+        "DL-R5-001"
+      ],
+      "unresolved_conditions": []
+    },
+    {
+      "axes": {
+        "delivery": {
+          "declared_state": "PARTIAL",
+          "evidence": [],
+          "reasons": [],
+          "state": "PARTIAL"
+        },
+        "host_live": {
+          "declared_state": "PARTIAL",
+          "evidence": [],
+          "reasons": [],
+          "state": "PARTIAL"
+        },
+        "implementation": {
+          "declared_state": "PARTIAL",
+          "evidence": [],
+          "reasons": [],
+          "state": "PARTIAL"
+        },
+        "unit": {
+          "declared_state": "PARTIAL",
+          "evidence": [],
+          "reasons": [],
+          "state": "PARTIAL"
+        }
+      },
+      "condition_decisions": {},
+      "definition": {
+        "acceptance": [
+          "同名三版本可回退",
+          "任一副文件失败无假成功",
+          "重开与打包读回可核对",
+          "不得遗失链接素材"
+        ],
+        "axes": {
+          "delivery": "NOT_ACCEPTED",
+          "host_live": "NOT_VERIFIED_BY_THIS_AUDIT",
+          "implementation": "REASSESS_FROM_R3",
+          "unit": "REASSESS_FROM_R3"
+        },
+        "baseline_observation": "资产事务有回归；NativeTasks 当前主要发布 AI/PSD 主文件",
+        "depends_on": [
+          "DL-R5-002",
+          "DL-R5-004"
+        ],
+        "evidence_required": [
+          "source_sha",
+          "environment_versions",
+          "commands_and_exit_codes",
+          "artifact_hashes",
+          "limitations",
+          "rollback_record"
+        ],
+        "execution_owner": "单一执行Agent；Windows宿主项交本机执行；用户负责人工接受",
+        "execution_state": "PLANNED_DELTA",
+        "id": "DL-R5-005",
+        "implementation": "将原生工程、预览、链接素材、字体信息、Brief/rights/节点模型/seed/hash/Jury 引用组成版本清单；输出原子发布，多文件一致",
+        "priority": "P0",
+        "rollback": "回退本项独立提交与版本化迁移；保留旧工程、输入、失败证据；禁止删除用户作品或关闭共享宿主来恢复。",
+        "title": "资产原子版本与完整交付清单"
+      },
+      "depends_on": [
+        "DL-R5-002",
+        "DL-R5-004"
+      ],
+      "id": "DL-R5-005",
+      "predecessor_task_ids": [
+        "R3-06"
+      ],
+      "reassessment": "PENDING_EVIDENCE_REVIEW",
+      "required_axes": [
+        "implementation",
+        "unit",
+        "host_live"
+      ],
+      "status": "PARTIAL",
+      "title": "资产原子版本与完整交付清单",
+      "unmet_dependencies": [
+        "DL-R5-002",
+        "DL-R5-004"
+      ],
+      "unresolved_conditions": []
+    },
+    {
+      "axes": {
+        "delivery": {
+          "declared_state": "PARTIAL",
+          "evidence": [],
+          "reasons": [],
+          "state": "PARTIAL"
+        },
+        "host_live": {
+          "declared_state": "PARTIAL",
+          "evidence": [],
+          "reasons": [],
+          "state": "PARTIAL"
+        },
+        "implementation": {
+          "declared_state": "PARTIAL",
+          "evidence": [],
+          "reasons": [],
+          "state": "PARTIAL"
+        },
+        "unit": {
+          "declared_state": "PARTIAL",
+          "evidence": [],
+          "reasons": [],
+          "state": "PARTIAL"
+        }
+      },
+      "condition_decisions": {},
+      "definition": {
+        "acceptance": [
+          "拒绝不合格 candidate",
+          "未知给出具体阻塞",
+          "不从时区推定地域",
+          "不把个人非商业自动当全部第三方许可"
+        ],
+        "axes": {
+          "delivery": "NOT_ACCEPTED",
+          "host_live": "NOT_VERIFIED_BY_THIS_AUDIT",
+          "implementation": "REASSESS_FROM_R3",
+          "unit": "REASSESS_FROM_R3"
+        },
+        "baseline_observation": "已有基于证据的 fail-closed Profile",
+        "depends_on": [
+          "DL-R5-001"
+        ],
+        "evidence_required": [
+          "source_sha",
+          "environment_versions",
+          "commands_and_exit_codes",
+          "artifact_hashes",
+          "limitations",
+          "rollback_record"
+        ],
+        "execution_owner": "单一执行Agent；Windows宿主项交本机执行；用户负责人工接受",
+        "execution_state": "PLANNED_DELTA",
+        "id": "DL-R5-006",
+        "implementation": "保留当前实现，补用户用途、真实安装、版本、资源与证据绑定；软件 MiniMax Design、H3 本地模型、云 API 分开",
+        "priority": "P0",
+        "rollback": "回退本项独立提交与版本化迁移；保留旧工程、输入、失败证据；禁止删除用户作品或关闭共享宿主来恢复。",
+        "title": "软件与模型资格选择"
+      },
+      "depends_on": [
+        "DL-R5-001"
+      ],
+      "id": "DL-R5-006",
+      "predecessor_task_ids": [
+        "R3-07"
+      ],
+      "reassessment": "PENDING_EVIDENCE_REVIEW",
+      "required_axes": [
+        "implementation",
+        "unit",
+        "host_live"
+      ],
+      "status": "PARTIAL",
+      "title": "软件与模型资格选择",
+      "unmet_dependencies": [
+        "DL-R5-001"
+      ],
+      "unresolved_conditions": []
+    },
+    {
+      "axes": {
+        "delivery": {
+          "declared_state": "PARTIAL",
+          "evidence": [],
+          "reasons": [],
+          "state": "PARTIAL"
+        },
+        "host_live": {
+          "declared_state": "PARTIAL",
+          "evidence": [],
+          "reasons": [],
+          "state": "PARTIAL"
+        },
+        "implementation": {
+          "declared_state": "PARTIAL",
+          "evidence": [],
+          "reasons": [],
+          "state": "PARTIAL"
+        },
+        "unit": {
+          "declared_state": "PARTIAL",
+          "evidence": [],
+          "reasons": [],
+          "state": "PARTIAL"
+        }
+      },
+      "condition_decisions": {},
+      "definition": {
+        "acceptance": [
+          "不重复报已登记软件未安装",
+          "config-only 不就绪",
+          "ASR 不计 TTS",
+          "仅本机实测可提升推理状态"
+        ],
+        "axes": {
+          "delivery": "NOT_ACCEPTED",
+          "host_live": "NOT_VERIFIED_BY_THIS_AUDIT",
+          "implementation": "REASSESS_FROM_R3",
+          "unit": "REASSESS_FROM_R3"
+        },
+        "baseline_observation": "已有软件定位、ASR 记录、H3 组件校验；OCR 未实测",
+        "depends_on": [
+          "DL-R5-002"
+        ],
+        "evidence_required": [
+          "source_sha",
+          "environment_versions",
+          "commands_and_exit_codes",
+          "artifact_hashes",
+          "limitations",
+          "rollback_record"
+        ],
+        "execution_owner": "单一执行Agent；Windows宿主项交本机执行；用户负责人工接受",
+        "execution_state": "PLANNED_DELTA",
+        "id": "DL-R5-007",
+        "implementation": "沿 docs/LOCAL_ENVIRONMENT.md 和 .project/paths.json 读取明确路径；完成 OCR 加载/识别；模型状态区分字节/加载/推理",
+        "priority": "P0",
+        "rollback": "回退本项独立提交与版本化迁移；保留旧工程、输入、失败证据；禁止删除用户作品或关闭共享宿主来恢复。",
+        "title": "Doctor 与本机证据接续"
+      },
+      "depends_on": [
+        "DL-R5-002"
+      ],
+      "id": "DL-R5-007",
+      "predecessor_task_ids": [
+        "R3-08"
+      ],
+      "reassessment": "PENDING_EVIDENCE_REVIEW",
+      "required_axes": [
+        "implementation",
+        "unit",
+        "host_live"
+      ],
+      "status": "PARTIAL",
+      "title": "Doctor 与本机证据接续",
+      "unmet_dependencies": [
+        "DL-R5-002"
+      ],
+      "unresolved_conditions": []
+    },
+    {
+      "axes": {
+        "delivery": {
+          "declared_state": "PARTIAL",
+          "evidence": [],
+          "reasons": [],
+          "state": "PARTIAL"
+        },
+        "host_live": {
+          "declared_state": "PARTIAL",
+          "evidence": [
+            "r5-comfy-http-model-free-live-20260909"
+          ],
+          "reasons": [],
+          "state": "PARTIAL"
+        },
+        "implementation": {
+          "declared_state": "PARTIAL",
+          "evidence": [],
+          "reasons": [],
+          "state": "PARTIAL"
+        },
+        "unit": {
+          "declared_state": "PARTIAL",
+          "evidence": [
+            "r5-comfy-structural-rejection-20260909"
+          ],
+          "reasons": [],
+          "state": "PARTIAL"
+        }
+      },
+      "condition_decisions": {},
+      "definition": {
+        "acceptance": [
+          "路径穿越、假 hash 拒绝",
+          "图像 golden 连续10次记录完整",
+          "另测取消/失败/重连",
+          "正常失败也须记录，不把完整记录当10次全成功"
+        ],
+        "axes": {
+          "delivery": "NOT_ACCEPTED",
+          "host_live": "NOT_VERIFIED_BY_THIS_AUDIT",
+          "implementation": "REASSESS_FROM_R3",
+          "unit": "REASSESS_FROM_R3"
+        },
+        "baseline_observation": "已有真实服务与无模型夹具记录；comfy_task.py 缺陷仍在",
+        "conditional_gate": "只阻塞使用本能力的任务，不阻塞原生Adobe M1",
+        "depends_on": [
+          "DL-R5-004",
+          "DL-R5-005",
+          "DL-R5-006",
+          "DL-R5-007"
+        ],
+        "evidence_required": [
+          "source_sha",
+          "environment_versions",
+          "commands_and_exit_codes",
+          "artifact_hashes",
+          "limitations",
+          "rollback_record"
+        ],
+        "execution_owner": "单一执行Agent；Windows宿主项交本机执行；用户负责人工接受",
+        "execution_state": "PLANNED_DELTA",
+        "id": "DL-R5-008",
+        "implementation": "补图参数/输入/节点模型指纹、产物根校验、实例发现、REST/WS 提交进度、取消确认、断线恢复；MCP 复用同一适配与权限边界",
+        "priority": "P1",
+        "rollback": "回退本项独立提交与版本化迁移；保留旧工程、输入、失败证据；禁止删除用户作品或关闭共享宿主来恢复。",
+        "title": "ComfyUI 生产适配与可选本地 MCP"
+      },
+      "depends_on": [
+        "DL-R5-004",
+        "DL-R5-005",
+        "DL-R5-006",
+        "DL-R5-007"
+      ],
+      "id": "DL-R5-008",
+      "predecessor_task_ids": [
+        "R3-16"
+      ],
+      "reassessment": "PENDING_EVIDENCE_REVIEW",
+      "required_axes": [
+        "implementation",
+        "unit",
+        "host_live"
+      ],
+      "status": "PARTIAL",
+      "title": "ComfyUI 生产适配与可选本地 MCP",
+      "unmet_dependencies": [
+        "DL-R5-004",
+        "DL-R5-005",
+        "DL-R5-006",
+        "DL-R5-007"
+      ],
+      "unresolved_conditions": []
+    },
+    {
+      "axes": {
+        "delivery": {
+          "declared_state": "PARTIAL",
+          "evidence": [],
+          "reasons": [],
+          "state": "PARTIAL"
+        },
+        "host_live": {
+          "declared_state": "PARTIAL",
+          "evidence": [],
+          "reasons": [],
+          "state": "PARTIAL"
+        },
+        "implementation": {
+          "declared_state": "PARTIAL",
+          "evidence": [],
+          "reasons": [],
+          "state": "PARTIAL"
+        },
+        "unit": {
+          "declared_state": "PARTIAL",
+          "evidence": [],
+          "reasons": [],
+          "state": "PARTIAL"
+        }
+      },
+      "condition_decisions": {},
+      "definition": {
+        "acceptance": [
+          "空目录安装后完成 RIR→受控 native job",
+          "无需 repo sys.path、绝对开发路径",
+          "升级可回退"
+        ],
+        "axes": {
+          "delivery": "NOT_ACCEPTED",
+          "host_live": "NOT_VERIFIED_BY_THIS_AUDIT",
+          "implementation": "REASSESS_FROM_R3",
+          "unit": "REASSESS_FROM_R3"
+        },
+        "baseline_observation": "已有 CLI、wheel 和本地服务；RIR 转换仍依赖仓库模块",
+        "depends_on": [
+          "DL-R5-001"
+        ],
+        "evidence_required": [
+          "source_sha",
+          "environment_versions",
+          "commands_and_exit_codes",
+          "artifact_hashes",
+          "limitations",
+          "rollback_record"
+        ],
+        "execution_owner": "单一执行Agent；Windows宿主项交本机执行；用户负责人工接受",
+        "execution_state": "PLANNED_DELTA",
+        "id": "DL-R5-009",
+        "implementation": "把必要 reconstruction/RIR schema/转换封装成安装包资源；不搬入整个历史目录；统一配置和资源读取",
+        "priority": "P0",
+        "rollback": "回退本项独立提交与版本化迁移；保留旧工程、输入、失败证据；禁止删除用户作品或关闭共享宿主来恢复。",
+        "title": "Python 安装包与 RIR 门面"
+      },
+      "depends_on": [
+        "DL-R5-001"
+      ],
+      "id": "DL-R5-009",
+      "predecessor_task_ids": [
+        "R3-09"
+      ],
+      "reassessment": "PENDING_EVIDENCE_REVIEW",
+      "required_axes": [
+        "implementation",
+        "unit",
+        "delivery"
+      ],
+      "status": "PARTIAL",
+      "title": "Python 安装包与 RIR 门面",
+      "unmet_dependencies": [
+        "DL-R5-001"
+      ],
+      "unresolved_conditions": []
+    },
+    {
+      "axes": {
+        "delivery": {
+          "declared_state": "PARTIAL",
+          "evidence": [],
+          "reasons": [],
+          "state": "PARTIAL"
+        },
+        "host_live": {
+          "declared_state": "PARTIAL",
+          "evidence": [],
+          "reasons": [],
+          "state": "PARTIAL"
+        },
+        "implementation": {
+          "declared_state": "PARTIAL",
+          "evidence": [],
+          "reasons": [],
+          "state": "PARTIAL"
+        },
+        "unit": {
+          "declared_state": "PARTIAL",
+          "evidence": [],
+          "reasons": [],
+          "state": "PARTIAL"
+        }
+      },
+      "condition_decisions": {},
+      "definition": {
+        "acceptance": [
+          "从页面提交并看真实状态",
+          "快速切换不显示旧结果",
+          "刷新后恢复",
+          "无任意脚本/任意路径执行接口"
+        ],
+        "axes": {
+          "delivery": "NOT_ACCEPTED",
+          "host_live": "NOT_VERIFIED_BY_THIS_AUDIT",
+          "implementation": "REASSESS_FROM_R3",
+          "unit": "REASSESS_FROM_R3"
+        },
+        "baseline_observation": "有项目/导入/任务查询/AI PSD hash 校验界面",
+        "depends_on": [
+          "DL-R5-004",
+          "DL-R5-005",
+          "DL-R5-009"
+        ],
+        "evidence_required": [
+          "source_sha",
+          "environment_versions",
+          "commands_and_exit_codes",
+          "artifact_hashes",
+          "limitations",
+          "rollback_record"
+        ],
+        "execution_owner": "单一执行Agent；Windows宿主项交本机执行；用户负责人工接受",
+        "execution_state": "PLANNED_DELTA",
+        "id": "DL-R5-010",
+        "implementation": "增加受控原生提交、对象 patch、任务取消与恢复、版本选择、导出；修复同项目异步返回竞态；权限与路径校验复用服务",
+        "priority": "P0",
+        "rollback": "回退本项独立提交与版本化迁移；保留旧工程、输入、失败证据；禁止删除用户作品或关闭共享宿主来恢复。",
+        "title": "工作台执行、修改、取消与导出"
+      },
+      "depends_on": [
+        "DL-R5-004",
+        "DL-R5-005",
+        "DL-R5-009"
+      ],
+      "id": "DL-R5-010",
+      "predecessor_task_ids": [
+        "R3-10"
+      ],
+      "reassessment": "PENDING_EVIDENCE_REVIEW",
+      "required_axes": [
+        "implementation",
+        "unit",
+        "host_live"
+      ],
+      "status": "PARTIAL",
+      "title": "工作台执行、修改、取消与导出",
+      "unmet_dependencies": [
+        "DL-R5-004",
+        "DL-R5-005",
+        "DL-R5-009"
+      ],
+      "unresolved_conditions": []
+    },
+    {
+      "axes": {
+        "delivery": {
+          "declared_state": "PARTIAL",
+          "evidence": [],
+          "reasons": [],
+          "state": "PARTIAL"
+        },
+        "host_live": {
+          "declared_state": "PARTIAL",
+          "evidence": [],
+          "reasons": [],
+          "state": "PARTIAL"
+        },
+        "implementation": {
+          "declared_state": "PARTIAL",
+          "evidence": [],
+          "reasons": [],
+          "state": "PARTIAL"
+        },
+        "unit": {
+          "declared_state": "PARTIAL",
+          "evidence": [],
+          "reasons": [],
+          "state": "PARTIAL"
+        }
+      },
+      "condition_decisions": {},
+      "definition": {
+        "acceptance": [
+          "真实参考制作 AI",
+          "两次局部修改不重建无关对象",
+          "文本路径可编辑",
+          "保存关闭重开读回",
+          "用户文档不受影响"
+        ],
+        "axes": {
+          "delivery": "NOT_ACCEPTED",
+          "host_live": "NOT_VERIFIED_BY_THIS_AUDIT",
+          "implementation": "REASSESS_FROM_R3",
+          "unit": "REASSESS_FROM_R3"
+        },
+        "baseline_observation": "已新增 COM、生产桥及受控原生案例记录",
+        "depends_on": [
+          "DL-R5-004",
+          "DL-R5-005",
+          "DL-R5-009"
+        ],
+        "evidence_required": [
+          "source_sha",
+          "environment_versions",
+          "commands_and_exit_codes",
+          "artifact_hashes",
+          "limitations",
+          "rollback_record"
+        ],
+        "execution_owner": "单一执行Agent；Windows宿主项交本机执行；用户负责人工接受",
+        "execution_state": "PLANNED_DELTA",
+        "id": "DL-R5-011",
+        "implementation": "复用现有桥连接真实对象计划，补文本路径蒙版局部 patch、幂等与保存重开，固定已装宿主版本",
+        "priority": "P0",
+        "rollback": "回退本项独立提交与版本化迁移；保留旧工程、输入、失败证据；禁止删除用户作品或关闭共享宿主来恢复。",
+        "title": "Illustrator 产品链路"
+      },
+      "depends_on": [
+        "DL-R5-004",
+        "DL-R5-005",
+        "DL-R5-009"
+      ],
+      "id": "DL-R5-011",
+      "predecessor_task_ids": [
+        "R3-11"
+      ],
+      "reassessment": "PENDING_EVIDENCE_REVIEW",
+      "required_axes": [
+        "implementation",
+        "unit",
+        "host_live"
+      ],
+      "status": "PARTIAL",
+      "title": "Illustrator 产品链路",
+      "unmet_dependencies": [
+        "DL-R5-004",
+        "DL-R5-005",
+        "DL-R5-009"
+      ],
+      "unresolved_conditions": []
+    },
+    {
+      "axes": {
+        "delivery": {
+          "declared_state": "PARTIAL",
+          "evidence": [],
+          "reasons": [],
+          "state": "PARTIAL"
+        },
+        "host_live": {
+          "declared_state": "PARTIAL",
+          "evidence": [],
+          "reasons": [],
+          "state": "PARTIAL"
+        },
+        "implementation": {
+          "declared_state": "PARTIAL",
+          "evidence": [
+            "r5-ps-handoff-review-20260909"
+          ],
+          "reasons": [],
+          "state": "PARTIAL"
+        },
+        "unit": {
+          "declared_state": "PARTIAL",
+          "evidence": [],
+          "reasons": [],
+          "state": "PARTIAL"
+        }
+      },
+      "condition_decisions": {},
+      "definition": {
+        "acceptance": [
+          "真实参考制作 PSD",
+          "两次局部修改与重开",
+          "像素层不能冒充矢量形状",
+          "不支持外观显式拒绝"
+        ],
+        "axes": {
+          "delivery": "NOT_ACCEPTED",
+          "host_live": "NOT_VERIFIED_BY_THIS_AUDIT",
+          "implementation": "REASSESS_FROM_R3",
+          "unit": "REASSESS_FROM_R3"
+        },
+        "baseline_observation": "已有 COM PSD 受控重开记录与 RIR 转换；UXP 另有边界",
+        "depends_on": [
+          "DL-R5-004",
+          "DL-R5-005",
+          "DL-R5-009"
+        ],
+        "evidence_required": [
+          "source_sha",
+          "environment_versions",
+          "commands_and_exit_codes",
+          "artifact_hashes",
+          "limitations",
+          "rollback_record"
+        ],
+        "execution_owner": "单一执行Agent；Windows宿主项交本机执行；用户负责人工接受",
+        "execution_state": "PLANNED_DELTA",
+        "id": "DL-R5-012",
+        "implementation": "优先复用已验证 COM/JSX 路径闭环；UXP 作为独立资格项，不为换桥重写；补字体蒙版图像对象和 patch",
+        "priority": "P0",
+        "rollback": "回退本项独立提交与版本化迁移；保留旧工程、输入、失败证据；禁止删除用户作品或关闭共享宿主来恢复。",
+        "title": "Photoshop 产品链路"
+      },
+      "depends_on": [
+        "DL-R5-004",
+        "DL-R5-005",
+        "DL-R5-009"
+      ],
+      "id": "DL-R5-012",
+      "predecessor_task_ids": [
+        "R3-12"
+      ],
+      "reassessment": "PENDING_EVIDENCE_REVIEW",
+      "required_axes": [
+        "implementation",
+        "unit",
+        "host_live"
+      ],
+      "status": "PARTIAL",
+      "title": "Photoshop 产品链路",
+      "unmet_dependencies": [
+        "DL-R5-004",
+        "DL-R5-005",
+        "DL-R5-009"
+      ],
+      "unresolved_conditions": []
+    },
+    {
+      "axes": {
+        "delivery": {
+          "declared_state": "PARTIAL",
+          "evidence": [],
+          "reasons": [],
+          "state": "PARTIAL"
+        },
+        "host_live": {
+          "declared_state": "PARTIAL",
+          "evidence": [],
+          "reasons": [],
+          "state": "PARTIAL"
+        },
+        "implementation": {
+          "declared_state": "PARTIAL",
+          "evidence": [],
+          "reasons": [],
+          "state": "PARTIAL"
+        },
+        "unit": {
+          "declared_state": "PARTIAL",
+          "evidence": [],
+          "reasons": [],
+          "state": "PARTIAL"
+        }
+      },
+      "condition_decisions": {},
+      "definition": {
+        "acceptance": [
+          "5—10 张多类型参考集有对象标注、错误清单与修正记录",
+          "不能用整图贴底冒充分层",
+          "单图3D标记不可观测背面"
+        ],
+        "axes": {
+          "delivery": "NOT_ACCEPTED",
+          "host_live": "NOT_VERIFIED_BY_THIS_AUDIT",
+          "implementation": "REASSESS_FROM_R3",
+          "unit": "REASSESS_FROM_R3"
+        },
+        "baseline_observation": "已有 RIR 与转换；手工合成 RIR 不等于自动拆解",
+        "depends_on": [
+          "DL-R5-006",
+          "DL-R5-007",
+          "DL-R5-009"
+        ],
+        "evidence_required": [
+          "source_sha",
+          "environment_versions",
+          "commands_and_exit_codes",
+          "artifact_hashes",
+          "limitations",
+          "rollback_record"
+        ],
+        "execution_owner": "单一执行Agent；Windows宿主项交本机执行；用户负责人工接受",
+        "execution_state": "PLANNED_DELTA",
+        "id": "DL-R5-013",
+        "implementation": "接 OCR、区域、遮挡、字体、几何和层级；用户能修正不确定项；记录推断与支持范围",
+        "priority": "P0",
+        "rollback": "回退本项独立提交与版本化迁移；保留旧工程、输入、失败证据；禁止删除用户作品或关闭共享宿主来恢复。",
+        "title": "真实参考到可修正对象计划"
+      },
+      "depends_on": [
+        "DL-R5-006",
+        "DL-R5-007",
+        "DL-R5-009"
+      ],
+      "id": "DL-R5-013",
+      "predecessor_task_ids": [
+        "R3-13"
+      ],
+      "reassessment": "PENDING_EVIDENCE_REVIEW",
+      "required_axes": [
+        "implementation",
+        "unit",
+        "host_live"
+      ],
+      "status": "PARTIAL",
+      "title": "真实参考到可修正对象计划",
+      "unmet_dependencies": [
+        "DL-R5-006",
+        "DL-R5-007",
+        "DL-R5-009"
+      ],
+      "unresolved_conditions": []
+    },
+    {
+      "axes": {
+        "delivery": {
+          "declared_state": "PARTIAL",
+          "evidence": [],
+          "reasons": [],
+          "state": "PARTIAL"
+        },
+        "host_live": {
+          "declared_state": "PARTIAL",
+          "evidence": [],
+          "reasons": [],
+          "state": "PARTIAL"
+        },
+        "implementation": {
+          "declared_state": "PARTIAL",
+          "evidence": [],
+          "reasons": [],
+          "state": "PARTIAL"
+        },
+        "unit": {
+          "declared_state": "PARTIAL",
+          "evidence": [],
+          "reasons": [],
+          "state": "PARTIAL"
+        }
+      },
+      "condition_decisions": {},
+      "definition": {
+        "acceptance": [
+          "每个接受版本有人审凭据",
+          "两次 patch 前后差异可查",
+          "字体链接尺寸色彩alpha等适用项通过或明确豁免理由"
+        ],
+        "axes": {
+          "delivery": "NOT_ACCEPTED",
+          "host_live": "NOT_VERIFIED_BY_THIS_AUDIT",
+          "implementation": "REASSESS_FROM_R3",
+          "unit": "REASSESS_FROM_R3"
+        },
+        "baseline_observation": "有相关质量能力，完整产品接受链未完成",
+        "depends_on": [
+          "DL-R5-010",
+          "DL-R5-011",
+          "DL-R5-012",
+          "DL-R5-013"
+        ],
+        "evidence_required": [
+          "source_sha",
+          "environment_versions",
+          "commands_and_exit_codes",
+          "artifact_hashes",
+          "limitations",
+          "rollback_record"
+        ],
+        "execution_owner": "单一执行Agent；Windows宿主项交本机执行；用户负责人工接受",
+        "execution_state": "PLANNED_DELTA",
+        "id": "DL-R5-014",
+        "implementation": "接叠加差异、对象级问题、Brief/构图/品牌/可落地性/rights 人审；M1 就执行平面交付预检",
+        "priority": "P0",
+        "rollback": "回退本项独立提交与版本化迁移；保留旧工程、输入、失败证据；禁止删除用户作品或关闭共享宿主来恢复。",
+        "title": "局部对比、Human Jury 与生产预检"
+      },
+      "depends_on": [
+        "DL-R5-010",
+        "DL-R5-011",
+        "DL-R5-012",
+        "DL-R5-013"
+      ],
+      "id": "DL-R5-014",
+      "predecessor_task_ids": [
+        "R3-14"
+      ],
+      "reassessment": "PENDING_EVIDENCE_REVIEW",
+      "required_axes": [
+        "implementation",
+        "unit",
+        "host_live"
+      ],
+      "status": "PARTIAL",
+      "title": "局部对比、Human Jury 与生产预检",
+      "unmet_dependencies": [
+        "DL-R5-010",
+        "DL-R5-011",
+        "DL-R5-012",
+        "DL-R5-013"
+      ],
+      "unresolved_conditions": []
+    },
+    {
+      "axes": {
+        "delivery": {
+          "declared_state": "PARTIAL",
+          "evidence": [],
+          "reasons": [],
+          "state": "PARTIAL"
+        },
+        "host_live": {
+          "declared_state": "PARTIAL",
+          "evidence": [],
+          "reasons": [],
+          "state": "PARTIAL"
+        },
+        "implementation": {
+          "declared_state": "PARTIAL",
+          "evidence": [],
+          "reasons": [],
+          "state": "PARTIAL"
+        },
+        "unit": {
+          "declared_state": "PARTIAL",
+          "evidence": [],
+          "reasons": [],
+          "state": "PARTIAL"
+        }
+      },
+      "condition_decisions": {},
+      "definition": {
+        "acceptance": [
+          "两条格式链都通过，安装升级备份可用",
+          "记录耗时和限制",
+          "M1不依赖Comfy、H3、UIA、WORK-LAB或ArcheAxis"
+        ],
+        "axes": {
+          "delivery": "NOT_ACCEPTED",
+          "host_live": "NOT_VERIFIED_BY_THIS_AUDIT",
+          "implementation": "REASSESS_FROM_R3",
+          "unit": "REASSESS_FROM_R3"
+        },
+        "baseline_observation": "未发布",
+        "depends_on": [
+          "DL-R5-003",
+          "DL-R5-014"
+        ],
+        "evidence_required": [
+          "source_sha",
+          "environment_versions",
+          "commands_and_exit_codes",
+          "artifact_hashes",
+          "limitations",
+          "rollback_record"
+        ],
+        "execution_owner": "单一执行Agent；Windows宿主项交本机执行；用户负责人工接受",
+        "execution_state": "PLANNED_DELTA",
+        "id": "DL-R5-015",
+        "implementation": "一入口启动→导入→对象计划确认→AI或PSD制作→局部改两次→保存重开→人审→完整导出；分别验证AI和PSD",
+        "priority": "P0",
+        "rollback": "回退本项独立提交与版本化迁移；保留旧工程、输入、失败证据；禁止删除用户作品或关闭共享宿主来恢复。",
+        "title": "M1 首个可用研究版"
+      },
+      "depends_on": [
+        "DL-R5-003",
+        "DL-R5-014"
+      ],
+      "id": "DL-R5-015",
+      "predecessor_task_ids": [
+        "R3-15"
+      ],
+      "reassessment": "PENDING_EVIDENCE_REVIEW",
+      "required_axes": [
+        "implementation",
+        "unit",
+        "host_live",
+        "delivery"
+      ],
+      "status": "PARTIAL",
+      "title": "M1 首个可用研究版",
+      "unmet_dependencies": [
+        "DL-R5-003",
+        "DL-R5-014"
+      ],
+      "unresolved_conditions": []
+    },
+    {
+      "axes": {
+        "delivery": {
+          "declared_state": "PARTIAL",
+          "evidence": [],
+          "reasons": [],
+          "state": "PARTIAL"
+        },
+        "host_live": {
+          "declared_state": "PARTIAL",
+          "evidence": [],
+          "reasons": [],
+          "state": "PARTIAL"
+        },
+        "implementation": {
+          "declared_state": "PARTIAL",
+          "evidence": [],
+          "reasons": [],
+          "state": "PARTIAL"
+        },
+        "unit": {
+          "declared_state": "PARTIAL",
+          "evidence": [],
+          "reasons": [],
+          "state": "PARTIAL"
+        }
+      },
+      "condition_decisions": {},
+      "definition": {
+        "acceptance": [
+          "中文短句→WAV→试听→改一句重生",
+          "保存文本/模型版本",
+          "不以转写抵扣"
+        ],
+        "axes": {
+          "delivery": "NOT_ACCEPTED",
+          "host_live": "NOT_VERIFIED_BY_THIS_AUDIT",
+          "implementation": "REASSESS_FROM_R3",
+          "unit": "REASSESS_FROM_R3"
+        },
+        "baseline_observation": "ASR 已有记录，TTS 未证明",
+        "depends_on": [
+          "DL-R5-006",
+          "DL-R5-007",
+          "DL-R5-010",
+          "DL-R5-015"
+        ],
+        "evidence_required": [
+          "source_sha",
+          "environment_versions",
+          "commands_and_exit_codes",
+          "artifact_hashes",
+          "limitations",
+          "rollback_record"
+        ],
+        "execution_owner": "单一执行Agent；Windows宿主项交本机执行；用户负责人工接受",
+        "execution_state": "PLANNED_DELTA",
+        "id": "DL-R5-016",
+        "implementation": "择一个设备可行TTS，接资产版本和试听，按句修改",
+        "priority": "P1",
+        "rollback": "回退本项独立提交与版本化迁移；保留旧工程、输入、失败证据；禁止删除用户作品或关闭共享宿主来恢复。",
+        "title": "本地语音生成"
+      },
+      "depends_on": [
+        "DL-R5-006",
+        "DL-R5-007",
+        "DL-R5-010",
+        "DL-R5-015"
+      ],
+      "id": "DL-R5-016",
+      "predecessor_task_ids": [
+        "R3-17"
+      ],
+      "reassessment": "PENDING_EVIDENCE_REVIEW",
+      "required_axes": [
+        "implementation",
+        "unit",
+        "host_live"
+      ],
+      "status": "PARTIAL",
+      "title": "本地语音生成",
+      "unmet_dependencies": [
+        "DL-R5-006",
+        "DL-R5-007",
+        "DL-R5-010",
+        "DL-R5-015"
+      ],
+      "unresolved_conditions": []
+    },
+    {
+      "axes": {
+        "delivery": {
+          "declared_state": "PARTIAL",
+          "evidence": [],
+          "reasons": [],
+          "state": "PARTIAL"
+        },
+        "host_live": {
+          "declared_state": "PARTIAL",
+          "evidence": [],
+          "reasons": [],
+          "state": "PARTIAL"
+        },
+        "implementation": {
+          "declared_state": "PARTIAL",
+          "evidence": [],
+          "reasons": [],
+          "state": "PARTIAL"
+        },
+        "unit": {
+          "declared_state": "PARTIAL",
+          "evidence": [],
+          "reasons": [],
+          "state": "PARTIAL"
+        }
+      },
+      "condition_decisions": {},
+      "definition": {
+        "acceptance": [
+          "20—30秒生成可试听",
+          "真实多轨有各轨文件",
+          "资源不足仅阻塞本项"
+        ],
+        "axes": {
+          "delivery": "NOT_ACCEPTED",
+          "host_live": "NOT_VERIFIED_BY_THIS_AUDIT",
+          "implementation": "REASSESS_FROM_R3",
+          "unit": "REASSESS_FROM_R3"
+        },
+        "baseline_observation": "未证明实际生成",
+        "depends_on": [
+          "DL-R5-006",
+          "DL-R5-007",
+          "DL-R5-010",
+          "DL-R5-015"
+        ],
+        "evidence_required": [
+          "source_sha",
+          "environment_versions",
+          "commands_and_exit_codes",
+          "artifact_hashes",
+          "limitations",
+          "rollback_record"
+        ],
+        "execution_owner": "单一执行Agent；Windows宿主项交本机执行；用户负责人工接受",
+        "execution_state": "PLANNED_DELTA",
+        "id": "DL-R5-017",
+        "implementation": "择一可行模型或适配；参数和输出进版本；区分混音和真实分轨",
+        "priority": "P1",
+        "rollback": "回退本项独立提交与版本化迁移；保留旧工程、输入、失败证据；禁止删除用户作品或关闭共享宿主来恢复。",
+        "title": "音乐与音轨"
+      },
+      "depends_on": [
+        "DL-R5-006",
+        "DL-R5-007",
+        "DL-R5-010",
+        "DL-R5-015"
+      ],
+      "id": "DL-R5-017",
+      "predecessor_task_ids": [
+        "R3-18"
+      ],
+      "reassessment": "PENDING_EVIDENCE_REVIEW",
+      "required_axes": [
+        "implementation",
+        "unit",
+        "host_live"
+      ],
+      "status": "PARTIAL",
+      "title": "音乐与音轨",
+      "unmet_dependencies": [
+        "DL-R5-006",
+        "DL-R5-007",
+        "DL-R5-010",
+        "DL-R5-015"
+      ],
+      "unresolved_conditions": []
+    },
+    {
+      "axes": {
+        "delivery": {
+          "declared_state": "PARTIAL",
+          "evidence": [],
+          "reasons": [],
+          "state": "PARTIAL"
+        },
+        "host_live": {
+          "declared_state": "PARTIAL",
+          "evidence": [],
+          "reasons": [],
+          "state": "PARTIAL"
+        },
+        "implementation": {
+          "declared_state": "PARTIAL",
+          "evidence": [],
+          "reasons": [],
+          "state": "PARTIAL"
+        },
+        "unit": {
+          "declared_state": "PARTIAL",
+          "evidence": [],
+          "reasons": [],
+          "state": "PARTIAL"
+        }
+      },
+      "condition_decisions": {},
+      "definition": {
+        "acceptance": [
+          "本地运行证据、组件revision、输出与可重跑工作流齐全",
+          "未通过保持阻塞但不阻塞M1"
+        ],
+        "axes": {
+          "delivery": "NOT_ACCEPTED",
+          "host_live": "NOT_VERIFIED_BY_THIS_AUDIT",
+          "implementation": "REASSESS_FROM_R3",
+          "unit": "REASSESS_FROM_R3"
+        },
+        "baseline_observation": "已有四组件 hash 记录；加载/推理未通过",
+        "depends_on": [
+          "DL-R5-006",
+          "DL-R5-007",
+          "DL-R5-008"
+        ],
+        "evidence_required": [
+          "source_sha",
+          "environment_versions",
+          "commands_and_exit_codes",
+          "artifact_hashes",
+          "limitations",
+          "rollback_record"
+        ],
+        "execution_owner": "单一执行Agent；Windows宿主项交本机执行；用户负责人工接受",
+        "execution_state": "PLANNED_DELTA",
+        "id": "DL-R5-018",
+        "implementation": "核实适用条件后本机加载，记录资源峰值，生成15秒有内容与分镜视频；不静默切云",
+        "priority": "P1",
+        "rollback": "回退本项独立提交与版本化迁移；保留旧工程、输入、失败证据；禁止删除用户作品或关闭共享宿主来恢复。",
+        "title": "H3 本地专项"
+      },
+      "depends_on": [
+        "DL-R5-006",
+        "DL-R5-007",
+        "DL-R5-008"
+      ],
+      "id": "DL-R5-018",
+      "predecessor_task_ids": [
+        "R3-19"
+      ],
+      "reassessment": "PENDING_EVIDENCE_REVIEW",
+      "required_axes": [
+        "implementation",
+        "unit",
+        "host_live"
+      ],
+      "status": "PARTIAL",
+      "title": "H3 本地专项",
+      "unmet_dependencies": [
+        "DL-R5-006",
+        "DL-R5-007",
+        "DL-R5-008"
+      ],
+      "unresolved_conditions": []
+    },
+    {
+      "axes": {
+        "delivery": {
+          "declared_state": "PARTIAL",
+          "evidence": [],
+          "reasons": [],
+          "state": "PARTIAL"
+        },
+        "host_live": {
+          "declared_state": "PARTIAL",
+          "evidence": [],
+          "reasons": [],
+          "state": "PARTIAL"
+        },
+        "implementation": {
+          "declared_state": "PARTIAL",
+          "evidence": [],
+          "reasons": [],
+          "state": "PARTIAL"
+        },
+        "unit": {
+          "declared_state": "PARTIAL",
+          "evidence": [],
+          "reasons": [],
+          "state": "PARTIAL"
+        }
+      },
+      "condition_decisions": {},
+      "definition": {
+        "acceptance": [
+          "20—30秒项目含可改剪辑/音轨/字幕",
+          "保存重开媒体重连",
+          "MP4不替代工程"
+        ],
+        "axes": {
+          "delivery": "NOT_ACCEPTED",
+          "host_live": "NOT_VERIFIED_BY_THIS_AUDIT",
+          "implementation": "REASSESS_FROM_R3",
+          "unit": "REASSESS_FROM_R3"
+        },
+        "baseline_observation": "未证明原生项目",
+        "conditional_dependencies": {
+          "TTS_required": "DL-R5-016",
+          "generated_music_required": "DL-R5-017"
+        },
+        "depends_on": [
+          "DL-R5-010",
+          "DL-R5-015"
+        ],
+        "evidence_required": [
+          "source_sha",
+          "environment_versions",
+          "commands_and_exit_codes",
+          "artifact_hashes",
+          "limitations",
+          "rollback_record"
+        ],
+        "execution_owner": "单一执行Agent；Windows宿主项交本机执行；用户负责人工接受",
+        "execution_state": "PLANNED_DELTA",
+        "id": "DL-R5-019",
+        "implementation": "用可用合法素材先剪辑；语音音乐生成按案例条件依赖，不强制从模型产出；纳入字幕媒体重连",
+        "priority": "P1",
+        "rollback": "回退本项独立提交与版本化迁移；保留旧工程、输入、失败证据；禁止删除用户作品或关闭共享宿主来恢复。",
+        "title": "Premiere 可编辑视频"
+      },
+      "depends_on": [
+        "DL-R5-010",
+        "DL-R5-015"
+      ],
+      "id": "DL-R5-019",
+      "predecessor_task_ids": [
+        "R3-20"
+      ],
+      "reassessment": "PENDING_EVIDENCE_REVIEW",
+      "required_axes": [
+        "implementation",
+        "unit",
+        "host_live"
+      ],
+      "status": "PARTIAL",
+      "title": "Premiere 可编辑视频",
+      "unmet_dependencies": [
+        "DL-R5-010",
+        "DL-R5-015"
+      ],
+      "unresolved_conditions": [
+        "TTS_required",
+        "generated_music_required"
+      ]
+    },
+    {
+      "axes": {
+        "delivery": {
+          "declared_state": "PARTIAL",
+          "evidence": [],
+          "reasons": [],
+          "state": "PARTIAL"
+        },
+        "host_live": {
+          "declared_state": "PARTIAL",
+          "evidence": [],
+          "reasons": [],
+          "state": "PARTIAL"
+        },
+        "implementation": {
+          "declared_state": "PARTIAL",
+          "evidence": [],
+          "reasons": [],
+          "state": "PARTIAL"
+        },
+        "unit": {
+          "declared_state": "PARTIAL",
+          "evidence": [],
+          "reasons": [],
+          "state": "PARTIAL"
+        }
+      },
+      "condition_decisions": {},
+      "definition": {
+        "acceptance": [
+          "blend 重开可改对象",
+          "正侧视验证",
+          "不可见几何明确推断",
+          "非单面贴图"
+        ],
+        "axes": {
+          "delivery": "NOT_ACCEPTED",
+          "host_live": "NOT_VERIFIED_BY_THIS_AUDIT",
+          "implementation": "REASSESS_FROM_R3",
+          "unit": "REASSESS_FROM_R3"
+        },
+        "baseline_observation": "未证明完整真实参考重建",
+        "depends_on": [
+          "DL-R5-007",
+          "DL-R5-009",
+          "DL-R5-013",
+          "DL-R5-015"
+        ],
+        "evidence_required": [
+          "source_sha",
+          "environment_versions",
+          "commands_and_exit_codes",
+          "artifact_hashes",
+          "limitations",
+          "rollback_record"
+        ],
+        "execution_owner": "单一执行Agent；Windows宿主项交本机执行；用户负责人工接受",
+        "execution_state": "PLANNED_DELTA",
+        "id": "DL-R5-020",
+        "implementation": "复用 bpy/后台接口；分离几何材质灯光相机；采用可修正场景参数",
+        "priority": "P1",
+        "rollback": "回退本项独立提交与版本化迁移；保留旧工程、输入、失败证据；禁止删除用户作品或关闭共享宿主来恢复。",
+        "title": "Blender 可编辑场景"
+      },
+      "depends_on": [
+        "DL-R5-007",
+        "DL-R5-009",
+        "DL-R5-013",
+        "DL-R5-015"
+      ],
+      "id": "DL-R5-020",
+      "predecessor_task_ids": [
+        "R3-22"
+      ],
+      "reassessment": "PENDING_EVIDENCE_REVIEW",
+      "required_axes": [
+        "implementation",
+        "unit",
+        "host_live"
+      ],
+      "status": "PARTIAL",
+      "title": "Blender 可编辑场景",
+      "unmet_dependencies": [
+        "DL-R5-007",
+        "DL-R5-009",
+        "DL-R5-013",
+        "DL-R5-015"
+      ],
+      "unresolved_conditions": []
+    },
+    {
+      "axes": {
+        "delivery": {
+          "declared_state": "PARTIAL",
+          "evidence": [],
+          "reasons": [],
+          "state": "PARTIAL"
+        },
+        "host_live": {
+          "declared_state": "PARTIAL",
+          "evidence": [],
+          "reasons": [],
+          "state": "PARTIAL"
+        },
+        "implementation": {
+          "declared_state": "PARTIAL",
+          "evidence": [],
+          "reasons": [],
+          "state": "PARTIAL"
+        },
+        "unit": {
+          "declared_state": "PARTIAL",
+          "evidence": [],
+          "reasons": [],
+          "state": "PARTIAL"
+        }
+      },
+      "condition_decisions": {},
+      "definition": {
+        "acceptance": [
+          "每项有版本接口许可证最小案例与回流结论",
+          "无WORK-LAB硬依赖",
+          "不支持时人工接力且不冒充自动"
+        ],
+        "axes": {
+          "delivery": "NOT_ACCEPTED",
+          "host_live": "NOT_VERIFIED_BY_THIS_AUDIT",
+          "implementation": "REASSESS_FROM_R3",
+          "unit": "REASSESS_FROM_R3"
+        },
+        "baseline_observation": "OpenDesign/MiniMax Design 入口未全验",
+        "depends_on": [
+          "DL-R5-006",
+          "DL-R5-010",
+          "DL-R5-015"
+        ],
+        "evidence_required": [
+          "source_sha",
+          "environment_versions",
+          "commands_and_exit_codes",
+          "artifact_hashes",
+          "limitations",
+          "rollback_record"
+        ],
+        "execution_owner": "单一执行Agent；Windows宿主项交本机执行；用户负责人工接受",
+        "execution_state": "PLANNED_DELTA",
+        "id": "DL-R5-021",
+        "implementation": "默认一个已用Agent；Codex/Hermes/DSH共用合同；MiniMax Design/Open Design/CorelDRAW/InDesign/AE/Houdini/C4D/3ds Max逐项候选登记，不同时铺开",
+        "priority": "P1",
+        "rollback": "回退本项独立提交与版本化迁移；保留旧工程、输入、失败证据；禁止删除用户作品或关闭共享宿主来恢复。",
+        "title": "可选宿主与 Agent 收敛"
+      },
+      "depends_on": [
+        "DL-R5-006",
+        "DL-R5-010",
+        "DL-R5-015"
+      ],
+      "id": "DL-R5-021",
+      "predecessor_task_ids": [
+        "R3-21"
+      ],
+      "reassessment": "PENDING_EVIDENCE_REVIEW",
+      "required_axes": [
+        "implementation",
+        "unit",
+        "host_live"
+      ],
+      "status": "PARTIAL",
+      "title": "可选宿主与 Agent 收敛",
+      "unmet_dependencies": [
+        "DL-R5-006",
+        "DL-R5-010",
+        "DL-R5-015"
+      ],
+      "unresolved_conditions": []
+    },
+    {
+      "axes": {
+        "delivery": {
+          "declared_state": "PARTIAL",
+          "evidence": [],
+          "reasons": [],
+          "state": "PARTIAL"
+        },
+        "host_live": {
+          "declared_state": "PARTIAL",
+          "evidence": [],
+          "reasons": [],
+          "state": "PARTIAL"
+        },
+        "implementation": {
+          "declared_state": "PARTIAL",
+          "evidence": [],
+          "reasons": [],
+          "state": "PARTIAL"
+        },
+        "unit": {
+          "declared_state": "PARTIAL",
+          "evidence": [],
+          "reasons": [],
+          "state": "PARTIAL"
+        }
+      },
+      "condition_decisions": {},
+      "definition": {
+        "acceptance": [
+          "修改一个源对象后准确列出受影响资产",
+          "无关资产不重生",
+          "可回滚"
+        ],
+        "axes": {
+          "delivery": "NOT_ACCEPTED",
+          "host_live": "NOT_VERIFIED_BY_THIS_AUDIT",
+          "implementation": "REASSESS_FROM_R3",
+          "unit": "REASSESS_FROM_R3"
+        },
+        "baseline_observation": "未形成完整依赖传播",
+        "depends_on": [
+          "DL-R5-005",
+          "DL-R5-014",
+          "DL-R5-019",
+          "DL-R5-020"
+        ],
+        "evidence_required": [
+          "source_sha",
+          "environment_versions",
+          "commands_and_exit_codes",
+          "artifact_hashes",
+          "limitations",
+          "rollback_record"
+        ],
+        "execution_owner": "单一执行Agent；Windows宿主项交本机执行；用户负责人工接受",
+        "execution_state": "PLANNED_DELTA",
+        "id": "DL-R5-022",
+        "implementation": "版本依赖图连接图像/布局/视频/3D；patch只更新受影响下游",
+        "priority": "P1",
+        "rollback": "回退本项独立提交与版本化迁移；保留旧工程、输入、失败证据；禁止删除用户作品或关闭共享宿主来恢复。",
+        "title": "跨媒体依赖更新"
+      },
+      "depends_on": [
+        "DL-R5-005",
+        "DL-R5-014",
+        "DL-R5-019",
+        "DL-R5-020"
+      ],
+      "id": "DL-R5-022",
+      "predecessor_task_ids": [
+        "R3-23"
+      ],
+      "reassessment": "PENDING_EVIDENCE_REVIEW",
+      "required_axes": [
+        "implementation",
+        "unit",
+        "host_live"
+      ],
+      "status": "PARTIAL",
+      "title": "跨媒体依赖更新",
+      "unmet_dependencies": [
+        "DL-R5-005",
+        "DL-R5-014",
+        "DL-R5-019",
+        "DL-R5-020"
+      ],
+      "unresolved_conditions": []
+    },
+    {
+      "axes": {
+        "delivery": {
+          "declared_state": "PARTIAL",
+          "evidence": [],
+          "reasons": [],
+          "state": "PARTIAL"
+        },
+        "host_live": {
+          "declared_state": "PARTIAL",
+          "evidence": [],
+          "reasons": [],
+          "state": "PARTIAL"
+        },
+        "implementation": {
+          "declared_state": "PARTIAL",
+          "evidence": [],
+          "reasons": [],
+          "state": "PARTIAL"
+        },
+        "unit": {
+          "declared_state": "PARTIAL",
+          "evidence": [],
+          "reasons": [],
+          "state": "PARTIAL"
+        }
+      },
+      "condition_decisions": {},
+      "definition": {
+        "acceptance": [
+          "每个已知原始任务可追踪",
+          "缺失明确列出不伪造",
+          "维护升级恢复与媒体清单可验证"
+        ],
+        "axes": {
+          "delivery": "NOT_ACCEPTED",
+          "host_live": "NOT_VERIFIED_BY_THIS_AUDIT",
+          "implementation": "REASSESS_FROM_R3",
+          "unit": "REASSESS_FROM_R3"
+        },
+        "baseline_observation": "已有历史定位和冻结材料，不能承诺全部原文已找齐",
+        "depends_on": [
+          "DL-R5-001"
+        ],
+        "evidence_required": [
+          "source_sha",
+          "environment_versions",
+          "commands_and_exit_codes",
+          "artifact_hashes",
+          "limitations",
+          "rollback_record"
+        ],
+        "execution_owner": "单一执行Agent；Windows宿主项交本机执行；用户负责人工接受",
+        "execution_state": "PLANNED_DELTA",
+        "id": "DL-R5-023",
+        "implementation": "建立 expected/found/hash/locator/unresolved/recovery ledger；保留早期归档、R3/R4及本轮决策；按音频/视频/3D扩充preflight",
+        "priority": "P1",
+        "rollback": "回退本项独立提交与版本化迁移；保留旧工程、输入、失败证据；禁止删除用户作品或关闭共享宿主来恢复。",
+        "title": "历史完整性、维护与扩展交付预检"
+      },
+      "depends_on": [
+        "DL-R5-001"
+      ],
+      "id": "DL-R5-023",
+      "predecessor_task_ids": [
+        "R3-03",
+        "R3-24"
+      ],
+      "reassessment": "PENDING_EVIDENCE_REVIEW",
+      "required_axes": [
+        "implementation",
+        "unit",
+        "delivery"
+      ],
+      "status": "PARTIAL",
+      "title": "历史完整性、维护与扩展交付预检",
+      "unmet_dependencies": [
+        "DL-R5-001"
+      ],
+      "unresolved_conditions": []
+    },
+    {
+      "axes": {
+        "delivery": {
+          "declared_state": "PARTIAL",
+          "evidence": [],
+          "reasons": [],
+          "state": "PARTIAL"
+        },
+        "host_live": {
+          "declared_state": "PARTIAL",
+          "evidence": [],
+          "reasons": [],
+          "state": "PARTIAL"
+        },
+        "implementation": {
+          "declared_state": "PARTIAL",
+          "evidence": [],
+          "reasons": [],
+          "state": "PARTIAL"
+        },
+        "unit": {
+          "declared_state": "PARTIAL",
+          "evidence": [],
+          "reasons": [],
+          "state": "PARTIAL"
+        }
+      },
+      "condition_decisions": {},
+      "definition": {
+        "acceptance": [
+          "不得覆盖源/发布/购买/上传",
+          "进程窗口定位与超时可查",
+          "禁用后备不影响原生脚本路径"
+        ],
+        "axes": {
+          "delivery": "NOT_ACCEPTED",
+          "host_live": "NOT_VERIFIED_BY_THIS_AUDIT",
+          "implementation": "REASSESS_FROM_R3",
+          "unit": "REASSESS_FROM_R3"
+        },
+        "baseline_observation": "后备策略已映射但非默认必需",
+        "conditional_gate": "只阻塞使用本能力的任务，不阻塞原生Adobe M1",
+        "depends_on": [
+          "DL-R5-002",
+          "DL-R5-004"
+        ],
+        "evidence_required": [
+          "source_sha",
+          "environment_versions",
+          "commands_and_exit_codes",
+          "artifact_hashes",
+          "limitations",
+          "rollback_record"
+        ],
+        "execution_owner": "单一执行Agent；Windows宿主项交本机执行；用户负责人工接受",
+        "execution_state": "PLANNED_DELTA",
+        "id": "DL-R5-024",
+        "implementation": "原生接口不足时才资格验证；首试点只读/开副本/导入/导出新文件；视觉步骤按已授权范围人工确认",
+        "priority": "P1",
+        "rollback": "回退本项独立提交与版本化迁移；保留旧工程、输入、失败证据；禁止删除用户作品或关闭共享宿主来恢复。",
+        "title": "UIA 与视觉控制后备"
+      },
+      "depends_on": [
+        "DL-R5-002",
+        "DL-R5-004"
+      ],
+      "id": "DL-R5-024",
+      "predecessor_task_ids": [
+        "R3-11",
+        "R3-12"
+      ],
+      "reassessment": "PENDING_EVIDENCE_REVIEW",
+      "required_axes": [
+        "implementation",
+        "unit",
+        "host_live"
+      ],
+      "status": "PARTIAL",
+      "title": "UIA 与视觉控制后备",
+      "unmet_dependencies": [
+        "DL-R5-002",
+        "DL-R5-004"
+      ],
+      "unresolved_conditions": []
+    },
+    {
+      "axes": {
+        "delivery": {
+          "declared_state": "PARTIAL",
+          "evidence": [],
+          "reasons": [],
+          "state": "PARTIAL"
+        },
+        "host_live": {
+          "declared_state": "PARTIAL",
+          "evidence": [],
+          "reasons": [],
+          "state": "PARTIAL"
+        },
+        "implementation": {
+          "declared_state": "PARTIAL",
+          "evidence": [],
+          "reasons": [],
+          "state": "PARTIAL"
+        },
+        "unit": {
+          "declared_state": "PARTIAL",
+          "evidence": [],
+          "reasons": [],
+          "state": "PARTIAL"
+        }
+      },
+      "condition_decisions": {},
+      "definition": {
+        "acceptance": [
+          "时间帧率尺寸及输入输出hash可查",
+          "生成失败和恢复真实记录"
+        ],
+        "axes": {
+          "delivery": "NOT_ACCEPTED",
+          "host_live": "NOT_VERIFIED_BY_THIS_AUDIT",
+          "implementation": "REASSESS_FROM_R3",
+          "unit": "REASSESS_FROM_R3"
+        },
+        "baseline_observation": "未完成模型工作流",
+        "depends_on": [
+          "DL-R5-008",
+          "DL-R5-015"
+        ],
+        "evidence_required": [
+          "source_sha",
+          "environment_versions",
+          "commands_and_exit_codes",
+          "artifact_hashes",
+          "limitations",
+          "rollback_record"
+        ],
+        "execution_owner": "单一执行Agent；Windows宿主项交本机执行；用户负责人工接受",
+        "execution_state": "PLANNED_DELTA",
+        "id": "DL-R5-025",
+        "implementation": "固定一个设备可行工作流和失败恢复样例，复用资产清单",
+        "priority": "P1",
+        "rollback": "回退本项独立提交与版本化迁移；保留旧工程、输入、失败证据；禁止删除用户作品或关闭共享宿主来恢复。",
+        "title": "Comfy 短视频动效"
+      },
+      "depends_on": [
+        "DL-R5-008",
+        "DL-R5-015"
+      ],
+      "id": "DL-R5-025",
+      "predecessor_task_ids": [
+        "R3-16",
+        "R3-20"
+      ],
+      "reassessment": "PENDING_EVIDENCE_REVIEW",
+      "required_axes": [
+        "implementation",
+        "unit",
+        "host_live"
+      ],
+      "status": "PARTIAL",
+      "title": "Comfy 短视频动效",
+      "unmet_dependencies": [
+        "DL-R5-008",
+        "DL-R5-015"
+      ],
+      "unresolved_conditions": []
+    },
+    {
+      "axes": {
+        "delivery": {
+          "declared_state": "PARTIAL",
+          "evidence": [],
+          "reasons": [],
+          "state": "PARTIAL"
+        },
+        "host_live": {
+          "declared_state": "PARTIAL",
+          "evidence": [],
+          "reasons": [],
+          "state": "PARTIAL"
+        },
+        "implementation": {
+          "declared_state": "PARTIAL",
+          "evidence": [],
+          "reasons": [],
+          "state": "PARTIAL"
+        },
+        "unit": {
+          "declared_state": "PARTIAL",
+          "evidence": [],
+          "reasons": [],
+          "state": "PARTIAL"
+        }
+      },
+      "condition_decisions": {},
+      "definition": {
+        "acceptance": [
+          "alpha实际存在",
+          "前景不缺损",
+          "白边和误镂空有检查与反例"
+        ],
+        "axes": {
+          "delivery": "NOT_ACCEPTED",
+          "host_live": "NOT_VERIFIED_BY_THIS_AUDIT",
+          "implementation": "REASSESS_FROM_R3",
+          "unit": "REASSESS_FROM_R3"
+        },
+        "baseline_observation": "未完成完整资格",
+        "depends_on": [
+          "DL-R5-008",
+          "DL-R5-015"
+        ],
+        "evidence_required": [
+          "source_sha",
+          "environment_versions",
+          "commands_and_exit_codes",
+          "artifact_hashes",
+          "limitations",
+          "rollback_record"
+        ],
+        "execution_owner": "单一执行Agent；Windows宿主项交本机执行；用户负责人工接受",
+        "execution_state": "PLANNED_DELTA",
+        "id": "DL-R5-026",
+        "implementation": "透明背景/分割/边缘保真与下游PSD导入",
+        "priority": "P1",
+        "rollback": "回退本项独立提交与版本化迁移；保留旧工程、输入、失败证据；禁止删除用户作品或关闭共享宿主来恢复。",
+        "title": "Comfy 提取与透明资产"
+      },
+      "depends_on": [
+        "DL-R5-008",
+        "DL-R5-015"
+      ],
+      "id": "DL-R5-026",
+      "predecessor_task_ids": [
+        "R3-16"
+      ],
+      "reassessment": "PENDING_EVIDENCE_REVIEW",
+      "required_axes": [
+        "implementation",
+        "unit",
+        "host_live"
+      ],
+      "status": "PARTIAL",
+      "title": "Comfy 提取与透明资产",
+      "unmet_dependencies": [
+        "DL-R5-008",
+        "DL-R5-015"
+      ],
+      "unresolved_conditions": []
+    },
+    {
+      "axes": {
+        "delivery": {
+          "declared_state": "PARTIAL",
+          "evidence": [],
+          "reasons": [],
+          "state": "PARTIAL"
+        },
+        "host_live": {
+          "declared_state": "PARTIAL",
+          "evidence": [],
+          "reasons": [],
+          "state": "PARTIAL"
+        },
+        "implementation": {
+          "declared_state": "PARTIAL",
+          "evidence": [],
+          "reasons": [],
+          "state": "PARTIAL"
+        },
+        "unit": {
+          "declared_state": "PARTIAL",
+          "evidence": [],
+          "reasons": [],
+          "state": "PARTIAL"
+        }
+      },
+      "condition_decisions": {},
+      "definition": {
+        "acceptance": [
+          "交互资产可改可回读",
+          "不开发通用游戏引擎"
+        ],
+        "axes": {
+          "delivery": "NOT_ACCEPTED",
+          "host_live": "NOT_VERIFIED_BY_THIS_AUDIT",
+          "implementation": "REASSESS_FROM_R3",
+          "unit": "REASSESS_FROM_R3"
+        },
+        "baseline_observation": "仅现有领域夹具，非游戏引擎产品",
+        "depends_on": [
+          "DL-R5-005",
+          "DL-R5-010",
+          "DL-R5-015"
+        ],
+        "evidence_required": [
+          "source_sha",
+          "environment_versions",
+          "commands_and_exit_codes",
+          "artifact_hashes",
+          "limitations",
+          "rollback_record"
+        ],
+        "execution_owner": "单一执行Agent；Windows宿主项交本机执行；用户负责人工接受",
+        "execution_state": "PLANNED_DELTA",
+        "id": "DL-R5-027",
+        "implementation": "定义编辑源、资产导出和目标导入回读合同",
+        "priority": "P1",
+        "rollback": "回退本项独立提交与版本化迁移；保留旧工程、输入、失败证据；禁止删除用户作品或关闭共享宿主来恢复。",
+        "title": "游戏交互资产交付"
+      },
+      "depends_on": [
+        "DL-R5-005",
+        "DL-R5-010",
+        "DL-R5-015"
+      ],
+      "id": "DL-R5-027",
+      "predecessor_task_ids": [
+        "R3-23"
+      ],
+      "reassessment": "PENDING_EVIDENCE_REVIEW",
+      "required_axes": [
+        "implementation",
+        "unit",
+        "host_live"
+      ],
+      "status": "PARTIAL",
+      "title": "游戏交互资产交付",
+      "unmet_dependencies": [
+        "DL-R5-005",
+        "DL-R5-010",
+        "DL-R5-015"
+      ],
+      "unresolved_conditions": []
+    },
+    {
+      "axes": {
+        "delivery": {
+          "declared_state": "PARTIAL",
+          "evidence": [],
+          "reasons": [],
+          "state": "PARTIAL"
+        },
+        "host_live": {
+          "declared_state": "PARTIAL",
+          "evidence": [],
+          "reasons": [],
+          "state": "PARTIAL"
+        },
+        "implementation": {
+          "declared_state": "PARTIAL",
+          "evidence": [],
+          "reasons": [],
+          "state": "PARTIAL"
+        },
+        "unit": {
+          "declared_state": "PARTIAL",
+          "evidence": [],
+          "reasons": [],
+          "state": "PARTIAL"
+        }
+      },
+      "condition_decisions": {},
+      "definition": {
+        "acceptance": [
+          "类型检查通过",
+          "wheel含正确前端与RIR资源",
+          "同一算法无双份实现",
+          "迁移对照/回退/旧入口退役有证据",
+          "不为M1全仓换Rust或C#"
+        ],
+        "axes": {
+          "delivery": "NOT_ACCEPTED",
+          "host_live": "NOT_VERIFIED_BY_THIS_AUDIT",
+          "implementation": "REASSESS_FROM_R3",
+          "unit": "REASSESS_FROM_R3"
+        },
+        "baseline_observation": "Python可安装已推进；main.ts为浏览器可执行子集，未证明TS类型治理",
+        "depends_on": [
+          "DL-R5-001"
+        ],
+        "evidence_required": [
+          "source_sha",
+          "environment_versions",
+          "commands_and_exit_codes",
+          "artifact_hashes",
+          "limitations",
+          "rollback_record"
+        ],
+        "execution_owner": "单一执行Agent；Windows宿主项交本机执行；用户负责人工接受",
+        "execution_state": "PLANNED_DELTA",
+        "id": "DL-R5-028",
+        "implementation": "记录ADR：Python服务/算法，TS工作台，AdobeJS/JSX宿主；给前端加strict类型检查、明确构建/资源策略；搬迁必要RIR模块后保留兼容门面，逐个删除旧入口",
+        "priority": "P1",
+        "rollback": "回退本项独立提交与版本化迁移；保留旧工程、输入、失败证据；禁止删除用户作品或关闭共享宿主来恢复。",
+        "title": "语言治理与渐进迁移"
+      },
+      "depends_on": [
+        "DL-R5-001"
+      ],
+      "id": "DL-R5-028",
+      "predecessor_task_ids": [],
+      "reassessment": "PENDING_EVIDENCE_REVIEW",
+      "required_axes": [
+        "implementation",
+        "unit",
+        "delivery"
+      ],
+      "status": "PARTIAL",
+      "title": "语言治理与渐进迁移",
+      "unmet_dependencies": [
+        "DL-R5-001"
+      ],
+      "unresolved_conditions": []
+    }
+  ],
+  "testRunAt": "2026-09-13T18:49:34+00:00",
+  "testRunId": "testrun-20260913T184926Z-random-repeat-9684a7ae2228",
+  "testRunMeaning": "bound run: python scripts/run_bound_test_suite.py --modules test_asset_store --modules test_creative_job --modules test_creative_ledgers --modules test_creative_lineage --modules test_creative_migration --modules test_creative_version_guard --modules test_creative_f030_f040 --modules test_creative_session_link --modules test_job_store --modules test_runtime_attempt_safety --modules test_runtime_asset_safety --modules test_runtime_explicit_project --modules test_assurance_qa_plane --modules test_assurance_jury --modules test_bundle_store --modules test_operation_coordinator --order random --seed 42 --label h010-critical-random",
+  "testRunResult": "OK",
+  "worktreeClean": false,
+  "worktreeDigest": "sha256:fb2fc053863bd776041b12521cdd403bde0ea4b48b5f00d818dd9ce36c84b8c3"
+}

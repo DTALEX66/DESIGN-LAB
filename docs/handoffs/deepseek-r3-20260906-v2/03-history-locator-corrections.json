@@ -1,0 +1,99 @@
+{
+  "summary": {
+    "schemaVersion": "design-lab/deepseek/r3/dp-v2/ds03/v1",
+    "task_id": "DP-V2-03",
+    "r3_ids": [
+      "R3-03"
+    ],
+    "observed_at": "2026-09-06T16:29:24+00:00",
+    "zip": "C:\\Users\\ALEX\\Desktop\\DESIGN-LAB-CLOUD-REAUDIT-TASKPACK-2026-09-06.zip",
+    "zip_exists": true,
+    "member_observations": {
+      "old-new-crosswalk.csv": {
+        "name": "old-new-crosswalk.csv",
+        "size": 3152,
+        "is_dir": false,
+        "sha256": "a52e0a01e3cd3c89ea6dcc7d818e221676bdea5619a9acfe353dd2df7a942eea"
+      },
+      "evidence/history-current-tree-coverage.json": {
+        "name": "evidence/history-current-tree-coverage.json",
+        "size": 262249,
+        "is_dir": false,
+        "sha256": "46e2504f51caa61e7287b201da2977946f28324a38f7bc40cf9ebd386489ff96"
+      }
+    },
+    "semantics": {
+      "zip_present": true,
+      "repo_not_materialized": "members exist only in ZIP; not written to repo",
+      "not_recovered_yet": true,
+      "source_not_lost": "availability = ZIP member; recovery pending GPT decision"
+    },
+    "notes": {
+      "streaming_only": true,
+      "no_extract_no_run": true,
+      "536_original_not_claimed_restored": true
+    }
+  },
+  "records": [
+    {
+      "record_id": "DP-V2-03-old-new-crosswalk-csv",
+      "task_id": "DP-V2-03",
+      "r3_ids": [
+        "R3-03"
+      ],
+      "source_locator": "ZIP member: old-new-crosswalk.csv",
+      "observed_at": "2026-09-06T16:29:24+00:00",
+      "status": "VERIFIED",
+      "evidence_locator": "docs/handoffs/deepseek-r3-20260906-v2/03-history-locator-corrections.json",
+      "notes": {
+        "member": "old-new-crosswalk.csv",
+        "expected_location": "root-level member (NOT under history/)",
+        "observation": {
+          "name": "old-new-crosswalk.csv",
+          "size": 3152,
+          "is_dir": false,
+          "sha256": "a52e0a01e3cd3c89ea6dcc7d818e221676bdea5619a9acfe353dd2df7a942eea"
+        },
+        "correction_vs_v1": "V1 locator 'history/old-new-crosswalk.csv' is wrong; actual member is root-level 'old-new-crosswalk.csv'"
+      }
+    },
+    {
+      "record_id": "DP-V2-03-evidence-history-current-tree-coverage-json",
+      "task_id": "DP-V2-03",
+      "r3_ids": [
+        "R3-03"
+      ],
+      "source_locator": "ZIP member: evidence/history-current-tree-coverage.json",
+      "observed_at": "2026-09-06T16:29:24+00:00",
+      "status": "VERIFIED",
+      "evidence_locator": "docs/handoffs/deepseek-r3-20260906-v2/03-history-locator-corrections.json",
+      "notes": {
+        "member": "evidence/history-current-tree-coverage.json",
+        "expected_location": "evidence/ member",
+        "observation": {
+          "name": "evidence/history-current-tree-coverage.json",
+          "size": 262249,
+          "is_dir": false,
+          "sha256": "46e2504f51caa61e7287b201da2977946f28324a38f7bc40cf9ebd386489ff96"
+        },
+        "correction_vs_v1": null
+      }
+    },
+    {
+      "record_id": "DP-V2-03-LOCATOR-CHECK",
+      "task_id": "DP-V2-03",
+      "r3_ids": [
+        "R3-03"
+      ],
+      "source_locator": "ZIP central directory",
+      "observed_at": "2026-09-06T16:29:24+00:00",
+      "status": "VERIFIED",
+      "evidence_locator": "docs/handoffs/deepseek-r3-20260906-v2/03-history-locator-corrections.json",
+      "notes": {
+        "root_member_present": true,
+        "history_prefixed_member_present": false,
+        "conclusion": "V1 used a nonexistent history/ prefix locator; correct locator is root-level member"
+      }
+    }
+  ]
+}

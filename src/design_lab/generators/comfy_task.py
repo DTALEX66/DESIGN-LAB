@@ -13,7 +13,6 @@ import json
 import re
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
-from typing import Any, Mapping
 
 _WORKFLOW_ID = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$")
 _SHA256 = re.compile(r"^sha256:[0-9a-f]{64}$")
@@ -42,6 +41,7 @@ class WorkflowPin:
     nodes: tuple[PinnedNode, ...] = ()
 
     def fingerprint(self) -> str:
+        self.validate()
         payload = json.dumps(
             {
                 "workflow_id": self.workflow_id,
@@ -56,10 +56,14 @@ class WorkflowPin:
     def validate(self) -> None:
         if not _WORKFLOW_ID.fullmatch(self.workflow_id):
             raise ComfyTaskError(f"invalid workflow_id: {self.workflow_id!r}")
+        seen = set()
         for node in self.nodes:
+            if node.node_id in seen:
+                raise ComfyTaskError("duplicate node identity")
+            seen.add(node.node_id)
             if not node.node_id or not node.type or not node.version:
                 raise ComfyTaskError(f"node pin incomplete: {node}")
-            if not _SHA256.fullmatch(node.source_hash):
+            if not _SHA256.fullmatch(node.source_hash) or node.source_hash == 'sha256:' + '0' * 64:
                 raise ComfyTaskError(f"node {node.node_id} source_hash must be sha256:...")
         if self.schema_version != "design-lab/comfy-task/v1":
             raise ComfyTaskError(f"unsupported schema_version: {self.schema_version!r}")
@@ -108,6 +112,18 @@ class TaskResult:
     def validate(self) -> None:
         if self.state not in TASK_STATES:
             raise ComfyTaskError(f"invalid state: {self.state!r}")
+        # Lexical contract only: the runtime must independently resolve the
+        # approved output root, reject links and verify actual artifact bytes.
+        for path in self.artifacts:
+            if (not isinstance(path, str) or '\\' in path or ':' in path
+                    or any(ord(char) < 32 for char in path)
+                    or any(part in ('', '.', '..') for part in path.split('/'))):
+                raise ComfyTaskError("artifact path must be canonical repo-relative")
+        if self.workflow_fingerprint is not None:
+            if (not isinstance(self.workflow_fingerprint, str)
+                    or not _SHA256.fullmatch(self.workflow_fingerprint)
+                    or self.workflow_fingerprint == 'sha256:' + '0' * 64):
+                raise ComfyTaskError("workflow fingerprint must be nonzero sha256")
         if self.state == "SUCCEEDED":
             if not self.artifacts:
                 raise ComfyTaskError("SUCCEEDED without reclaimable artifacts is forbidden")

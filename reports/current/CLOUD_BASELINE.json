@@ -1,58 +1,42 @@
 {
-  "schemaVersion": "design-lab/cloud-baseline/v1",
-  "subjectSha": "343a645dcae9bd75e9fedc0c8460289a40fba8c4",
-  "generatedAt": "2026-09-06T03:20:18Z",
+  "authorityTaskpackHash": "sha256:d9fdaa3ad7ad0055a3f451c853756be41036b32112cacc4d1c17b314c005a2f9",
+  "authorityTaskpackId": "DL-TP-20260914-DEEPSEEK-AUTHORITY-R1",
+  "cloudReadback": "NOT_EXECUTED",
+  "environmentFingerprint": {
+    "machine": "AMD64",
+    "platform": "Windows-11-10.0.26100-SP0",
+    "python": "3.13.14"
+  },
   "fresh": false,
-  "worktreeClean": false,
-  "remote": {
-    "name": "origin",
-    "url": "git@github.com:DTALEX66/DESIGN-LAB.git",
-    "mainSha": "2aca27f69b1909251640382ed3b4195cf9accd9b",
-    "remoteBranchesObserved": [
-      "origin",
-      "origin/adobe-handoff-20260822",
-      "origin/chore/dl-dir-r1-normalize-final",
-      "origin/codex/close-gov140",
-      "origin/codex/handoff-20260822",
-      "origin/codex/uxp-validation-handoff-20260822",
-      "origin/docs/bundle-readme",
-      "origin/docs/core-readme",
-      "origin/docs/lessons-ledger",
-      "origin/docs/oda4-0803-audit",
-      "origin/docs/oda4-1101-gate",
-      "origin/docs/oda4-1104-report",
-      "origin/docs/roadmap-sync",
-      "origin/feat/adapter-contracts-e0",
-      "origin/feat/minimax-h3-e3",
-      "origin/feat/oda4-0118-1005-0807",
-      "origin/feat/score-sheet-template",
-      "origin/fix/aggregate-14",
-      "origin/fix/codex-review-r1",
-      "origin/fix/design-lab-governance-closure-r4",
-      "origin/fix/quarantine-evidence",
-      "origin/fix/r4-h3-prod-e3",
-      "origin/fix/registry-categories",
-      "origin/fix/verify-all-skins",
-      "origin/fix/verify-all-toolchain",
-      "origin/main",
-      "origin/migration/dl-directory-convergence-r1",
-      "origin/migration/work-lab-minigame-cutover-20260807",
-      "origin/test/evidence-helpers",
-      "origin/test/jury-preflight"
-    ]
+  "freshnessMeaning": "at generation only; check verifies bound-input integrity, not current Git or cloud state",
+  "generatedAt": "2026-09-13T18:57:37+00:00",
+  "gitStateMeaning": "generation-time observation, not current HEAD",
+  "local": {
+    "branch": "codex/deepseek-authority-r1",
+    "origin_main": "c4dccd58331bc4561eb89265283d924b7630d113",
+    "sha": "a6d65d636ffe1b7fb2d8c5a023cbe5c338f9d220",
+    "source_worktree_clean": false,
+    "tracked_files": 1907,
+    "worktree_digest": "sha256:fb2fc053863bd776041b12521cdd403bde0ea4b48b5f00d818dd9ce36c84b8c3"
   },
-  "repository": {
-    "trackedFilesAtLocalHead": 1461,
-    "workflowsAtLocalHead": [
-      "canonical-verify.yml",
-      "release-gate.yml"
-    ]
-  },
+  "note": "No GitHub API query was run by this generator; tool installation is not inferred.",
+  "remoteRef": "origin/main (local tracking ref)",
+  "schemaVersion": "design-lab/cloud-baseline/v2",
+  "subjectMeaning": "subjectType=WORKTREE means the tree was dirty at generation; worktreeDigest covers HEAD plus the non-generated changes",
+  "subjectSha": "a6d65d636ffe1b7fb2d8c5a023cbe5c338f9d220",
+  "subjectType": "WORKTREE",
+  "taskpackHash": "31dde89eb4ede81fe88c0a5c5144adfb86af8db4c4d8c263bde2199180369b69",
+  "taskpackId": "DL-TP-20260908-R5",
+  "testRunAt": "2026-09-13T18:49:34+00:00",
+  "testRunId": "testrun-20260913T184926Z-random-repeat-9684a7ae2228",
+  "testRunMeaning": "bound run: python scripts/run_bound_test_suite.py --modules test_asset_store --modules test_creative_job --modules test_creative_ledgers --modules test_creative_lineage --modules test_creative_migration --modules test_creative_version_guard --modules test_creative_f030_f040 --modules test_creative_session_link --modules test_job_store --modules test_runtime_attempt_safety --modules test_runtime_asset_safety --modules test_runtime_explicit_project --modules test_assurance_qa_plane --modules test_assurance_jury --modules test_bundle_store --modules test_operation_coordinator --order random --seed 42 --label h010-critical-random",
+  "testRunResult": "OK",
   "unavailable": [
-    "branchProtection",
+    "currentRemoteSha",
+    "exactShaCI",
     "openPullRequests",
-    "openIssues",
-    "githubRepositorySize"
+    "branchProtection"
   ],
-  "note": "GitHub CLI/API was unavailable in this environment; unavailable fields are deliberately not inferred from local Git data."
+  "worktreeClean": false,
+  "worktreeDigest": "sha256:fb2fc053863bd776041b12521cdd403bde0ea4b48b5f00d818dd9ce36c84b8c3"
 }

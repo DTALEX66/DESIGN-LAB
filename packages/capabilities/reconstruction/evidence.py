@@ -37,7 +37,6 @@ from .state import (
     canonical_json_bytes,
     capture_contract_authority,
     contract_path,
-    decode_json,
     load_contract,
     load_state,
     read_bounded,
@@ -800,7 +799,7 @@ def _structure_semantics(
         h = _finite_number(bounds["height"], label="object.bounds.height", minimum=0)
         if x < 0 or y < 0 or x + w > width or y + h > height:
             raise EvidenceError("structure object bounds leave the canonical canvas")
-        opacity = _finite_number(item["opacity"], label="object.opacity", minimum=0, maximum=1)
+        _finite_number(item["opacity"], label="object.opacity", minimum=0, maximum=1)
         if not isinstance(item["sourceMapping"], list):
             raise EvidenceError("structure source mapping must be a list")
         raster = item["raster"]
@@ -2464,6 +2463,7 @@ __all__ = [
     "EvidenceBlockedError",
     "EvidenceError",
     "MAX_JSON_BYTES",
+    "RenderError",
     "package_evidence",
     "validate_bundle",
 ]

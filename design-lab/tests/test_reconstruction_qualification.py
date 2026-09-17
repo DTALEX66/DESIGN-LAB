@@ -45,7 +45,7 @@ class ReconstructionQualificationTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as raw_dir:
             input_path = Path(raw_dir) / "runs.json"
             input_path.write_text(json.dumps(record), encoding="utf-8")
-            result = subprocess.run([sys.executable, str(script), str(input_path)], check=False, capture_output=True, text=True)
+            result = subprocess.run([sys.executable, str(script), str(input_path)], check=False, capture_output=True, text=True, encoding="utf-8", errors="replace")
 
         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
         self.assertIn("RECONSTRUCTION_QUALIFICATION=PASS case=logo-orbit-001", result.stdout)

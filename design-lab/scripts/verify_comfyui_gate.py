@@ -42,7 +42,7 @@ def _current_head() -> str:
     result = subprocess.run(
         ["git", "-C", str(ROOT), "rev-parse", "HEAD"],
         capture_output=True,
-        text=True,
+        text=True, encoding="utf-8", errors="replace",
         check=False,
     )
     return result.stdout.strip()
@@ -63,7 +63,7 @@ def validate_e3_evidence(evidence_text: str, evidence_path: Path) -> list[str]:
         if head:
             r = subprocess.run(
                 ["git", "-C", str(ROOT), "merge-base", "--is-ancestor", sha, head],
-                capture_output=True, text=True,
+                capture_output=True, text=True, encoding="utf-8", errors="replace",
             )
             if r.returncode != 0:
                 findings.append(f"EVIDENCE: E3 tree SHA {sha[:12]} is not on HEAD ancestry (HISTORICAL_VALID required)")
@@ -96,7 +96,6 @@ def check() -> list[str]:
     else:
         try:
             manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
-            kind = manifest.get("kind", "")
             if "local" not in str(manifest.get("integration", "")).lower() and "loopback" not in json.dumps(manifest).lower():
                 findings.append("MANIFEST: integration must be local/loopback")
         except json.JSONDecodeError as exc:

@@ -14,6 +14,9 @@ Invariants:
 from __future__ import annotations
 
 import json
+import hashlib
+import math
+import re
 from dataclasses import dataclass, field
 from typing import Any, Protocol
 
@@ -50,6 +53,8 @@ class PlanObject:
     mapping_state: str = "unmapped"  # unmapped/auto/corrected/locked/unrecovered
     host_object_id: str | None = None
     note: str | None = None
+    confidence: float | None = None
+    source_polygon: tuple[tuple[float, float], ...] | None = None
 
     def validate(self) -> None:
         if not self.object_id or not self.kind:
@@ -87,6 +92,72 @@ class Plan:
     canvas: CanvasRegion
     objects: list[PlanObject] = field(default_factory=list)
 
+    @classmethod
+    def from_ocr(cls, *, decomposition_id: str, source_ref: str,
+                 source_sha256: str, canvas: tuple[int, int], module: str,
+                 detections: list[dict[str, Any]]) -> Plan:
+        """Map pixel-space OCR observations; no inference, file I/O or host proof.
+
+        Callers bind source bytes and backend provenance separately. This seam
+        accepts only bounded convex quadrilaterals, preserving text confidence
+        independently from unknown fonts and unrecovered non-text content.
+        """
+        if (not all(isinstance(v, str) and 0 < len(v) <= 4096
+                    for v in (decomposition_id, source_ref, module))
+                or not isinstance(source_sha256, str)
+                or not re.fullmatch(r'sha256:[0-9a-f]{64}', source_sha256)
+                or not isinstance(canvas, (tuple, list)) or len(canvas) != 2
+                or any(type(v) is not int or not 1 <= v <= 16383 for v in canvas)
+                or canvas[0] * canvas[1] > 25_000_000):
+            raise DecompositionError('invalid OCR source identity or canvas')
+        if not isinstance(detections, list) or len(detections) > 256:
+            raise DecompositionError('OCR detections must be a bounded list')
+        plan = cls(decomposition_id, source_ref, source_sha256, CanvasRegion(0, 0, *canvas))
+        total = 0
+        for raw in detections:
+            if not isinstance(raw, dict) or set(raw) != {'text', 'confidence', 'polygon'}:
+                raise DecompositionError('invalid OCR fields; host claims are forbidden')
+            text, confidence, polygon = raw['text'], raw['confidence'], raw['polygon']
+            if (not isinstance(text, str) or not text.strip() or len(text) > 4096
+                    or type(confidence) not in (int, float) or not math.isfinite(confidence)
+                    or not 0 <= confidence <= 1):
+                raise DecompositionError('invalid OCR text or confidence')
+            total += len(text)
+            if total > 16384:
+                raise DecompositionError('OCR text exceeds aggregate limit')
+            if not isinstance(polygon, (list, tuple)) or len(polygon) != 4:
+                raise DecompositionError('OCR requires a convex quadrilateral')
+            points = []
+            for point in polygon:
+                if (not isinstance(point, (list, tuple)) or len(point) != 2
+                        or any(type(v) not in (int, float) or not math.isfinite(v) for v in point)
+                        or not 0 <= point[0] <= canvas[0] or not 0 <= point[1] <= canvas[1]):
+                    raise DecompositionError('OCR polygon escapes canvas or is malformed')
+                points.append(tuple(float(v) for v in point))
+            turns = []
+            for i in range(4):
+                a, b, c = points[i], points[(i+1)%4], points[(i+2)%4]
+                turns.append((b[0]-a[0])*(c[1]-b[1])-(b[1]-a[1])*(c[0]-b[0]))
+            if not (all(t > 0 for t in turns) or all(t < 0 for t in turns)):
+                raise DecompositionError('OCR polygon is degenerate or non-convex')
+            # Canonicalize winding/start vertex, not detector list order or score.
+            variants = [points[i:]+points[:i] for i in range(4)]
+            reverse = list(reversed(points))
+            variants += [reverse[i:]+reverse[:i] for i in range(4)]
+            identity = json.dumps([source_sha256, text, min(variants)], ensure_ascii=False,
+                                  allow_nan=False, separators=(',', ':'))
+            object_id = 'ocr-' + hashlib.sha256(identity.encode('utf-8')).hexdigest()[:24]
+            xs, ys = [p[0] for p in points], [p[1] for p in points]
+            plan.objects.append(PlanObject(object_id, 'text',
+                CanvasRegion(min(xs), min(ys), max(xs)-min(xs), max(ys)-min(ys)),
+                module=module, text_content=text, confidence=float(confidence),
+                source_polygon=tuple(points), note='OCR hypothesis; font, style and host mapping unverified'))
+        plan.objects.append(PlanObject('unrecovered-content', 'unknown', CanvasRegion(0, 0, *canvas),
+            module=module, mapping_state='unrecovered',
+            note='Non-text content and occlusion remain unanalyzed; not a recovered background layer'))
+        plan.validate()
+        return plan
+
     def to_contract(self) -> dict[str, Any]:
         return {
             "decomposition_id": self.decomposition_id,
@@ -112,6 +183,9 @@ class Plan:
                     "host_object_id": o.host_object_id,
                     "module": o.module,
                     "note": o.note or "",
+                    **({"confidence": o.confidence} if o.confidence is not None else {}),
+                    **({"source_polygon": [list(p) for p in o.source_polygon]}
+                       if o.source_polygon is not None else {}),
                 }
                 for o in self.objects
             ],

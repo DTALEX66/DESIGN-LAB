@@ -199,7 +199,7 @@ def main() -> int:
             head = subprocess.run(
                 ["git", "-C", str(REPO.parent), "rev-parse", "HEAD"],
                 capture_output=True,
-                text=True,
+                text=True, encoding="utf-8", errors="replace",
             ).stdout.strip()
             if not head:
                 errors.append("git HEAD unresolvable for lastVerifiedTree check")

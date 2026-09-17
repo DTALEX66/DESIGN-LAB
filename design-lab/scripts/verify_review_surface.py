@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import json
+import os
 import subprocess
 import sys
 from pathlib import Path
@@ -18,10 +19,16 @@ def main() -> int:
     if not GEN.exists():
         errors.append("missing generate_review_surface.py")
         return 1
-    r = subprocess.run([sys.executable, str(GEN), str(SAMPLE)], capture_output=True, text=True)
+    # The generator prints Chinese section headings, so the parent must decode its
+    # output as UTF-8 explicitly. With the locale codec (cp936 here) and a child that
+    # emits UTF-8, this call raised UnicodeDecodeError and the aggregate chain died
+    # instead of reporting the step.
+    env = {**os.environ, "PYTHONIOENCODING": "utf-8"}
+    r = subprocess.run([sys.executable, str(GEN), str(SAMPLE)], capture_output=True,
+                       text=True, encoding="utf-8", errors="replace", env=env)
     if r.returncode != 0:
         errors.append(f"generator failed: {r.stderr}")
-    md = r.stdout
+    md = r.stdout or ""
     for needle in ("当前阶段", "项目对象", "阶段历史", "待用户判断节点", "交付与证据", "只读投影"):
         if needle not in md:
             errors.append(f"review surface missing section: {needle}")
