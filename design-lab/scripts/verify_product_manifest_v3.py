@@ -214,14 +214,50 @@ def verify_capability_status(status: dict[str, Any], results: list[Result]) -> N
         check(results, f"hard rule guards {phrase}", phrase.lower() in hard_rules.lower(), hard_rules)
 
 
-def verify_v4_extensions(manifest: dict[str, Any], results: list[Result]) -> None:
+def _pyproject_project_version(root: Path) -> str | None:
+    """The authoritative package version from the repo-root pyproject.toml.
+
+    Version truth (taskpack 19 / FU-07): the manifest's product version is
+    decided by the real package fact, i.e. the [project].version in
+    pyproject.toml. The manifest must agree with it; a manifest that over-claims
+    (e.g. 1.0.0 while the package is still 0.1.0-alpha.0) is exactly the drift
+    this gate now catches, instead of hard-coding a 1.x assumption. Returns None
+    when the authoritative source is missing, so the caller fails closed.
+    """
+    pyproject = root / "pyproject.toml"
+    if not pyproject.is_file():
+        return None
+    text = pyproject.read_text(encoding="utf-8")
+    try:
+        import tomllib
+        data = tomllib.loads(text)
+        version = data.get("project", {}).get("version")
+        return str(version) if version else None
+    except Exception:
+        import re
+        match = re.search(r'(?ms)^\[project\].*?^version\s*=\s*"([^"]+)"', text)
+        return match.group(1) if match else None
+
+
+def verify_v4_extensions(manifest: dict[str, Any], results: list[Result], root: Path) -> None:
     product = manifest.get("product") or {}
     neutrality = product.get("neutralityPolicy") or {}
     for key in ["modelNeutral", "styleNeutral", "domainNeutral", "platformNeutral", "versionNeutral"]:
         check(results, f"neutrality policy includes {key}", bool(neutrality.get(key)), str(neutrality.get(key)))
     rights = product.get("rightsPolicy") or {}
     check(results, "rights policy present", bool(rights.get("mode")), str(rights.get("mode")))
-    check(results, "product version is 1.x", str(product.get("version", "")).startswith("1."), str(product.get("version")))
+    # Version truth (taskpack 19 / FU-07): the manifest product version must
+    # agree with the authoritative package version (pyproject.toml [project]).
+    # A missing source or a mismatch is a FAIL — no hard-coded 1.x assumption.
+    manifest_version = str(product.get("version", ""))
+    authoritative = _pyproject_project_version(root)
+    if authoritative is None:
+        check(results, "authoritative package version resolvable", False,
+              "pyproject.toml [project].version missing or unreadable")
+    else:
+        check(results, "manifest product.version equals pyproject [project].version",
+              manifest_version == authoritative,
+              f"manifest={manifest_version!r} pyproject={authoritative!r}")
     families = manifest.get("capabilityFamilies") if isinstance(manifest.get("capabilityFamilies"), list) else []
     for item in families:
         if not isinstance(item, dict):
@@ -354,7 +390,7 @@ def main() -> int:
     manifest, capability_status = verify_json_contracts(root, results)
     verify_manifest_shape(root, manifest, results)
     verify_capability_status(capability_status, results)
-    verify_v4_extensions(manifest, results)
+    verify_v4_extensions(manifest, results, root)
     verify_v3_docs(root, results)
     return print_results(results)
 
