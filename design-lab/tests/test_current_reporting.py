@@ -268,5 +268,75 @@ class CurrentReportingTests(unittest.TestCase):
         self.assertTrue(self.reporting.generate(self.root, check=True))
 
 
+def _load_repo_root_generate():
+    """Load scripts/generate_current_reports.py (the FA-03 CLI wrapper)."""
+    import importlib.util
+    path = ROOT / 'scripts' / 'generate_current_reports.py'
+    spec = importlib.util.spec_from_file_location('generate_current_reports', path)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+class Fa03CheckVerdictTests(unittest.TestCase):
+    """DL-UCR-012 / FA-03: a byte-stable record whose subject HEAD has advanced
+    past is STALE, never laundered into a bare CURRENT_REPORTS=PASS; the record
+    identity (subject / manifest / run) is preserved. The exit code stays 0 so the
+    zero-spill self-test coupling (which requires the wrapped --check to succeed)
+    is not broken; the verdict WORD carries the staleness."""
+
+    def setUp(self):
+        self.mod = _load_repo_root_generate()
+
+    def _run_main(self, failures, stored_subject, current_subject, check=True,
+                  scope='bound-input-integrity', run='2026-09-13T18:57:37+00:00'):
+        import io, contextlib
+        # generate() returns the byte-drift list; _index_identity/_current_head
+        # supply the record identity; capture stdout for the verdict.
+        with patch.object(self.mod, 'generate', return_value=failures), \
+             patch.object(self.mod, '_index_identity',
+                         return_value=(stored_subject, scope, run)), \
+             patch.object(self.mod, '_current_head', return_value=current_subject):
+            buf = io.StringIO()
+            with contextlib.redirect_stdout(buf):
+                code = self.mod.main(['--check'] if check else [])
+            return code, buf.getvalue().splitlines()
+
+    def test_same_subject_byte_stable_is_pass(self):
+        code, lines = self._run_main([], 'f' * 40, 'f' * 40)
+        self.assertEqual(code, 0)
+        self.assertIn('CURRENT_REPORTS=PASS mode=check', lines[0])
+
+    def test_stale_subject_byte_stable_is_not_a_pass(self):
+        code, lines = self._run_main([], 'a' * 40, 'b' * 40)  # HEAD advanced
+        self.assertEqual(code, 0)  # byte-stable inputs; do not break the coupling
+        self.assertIn('CURRENT_REPORTS=STALE', lines[0])
+        self.assertNotIn('CURRENT_REPORTS=PASS', lines[0])
+        # The record identity must be preserved, not laundered away.
+        self.assertIn('stored_subject=a' + 'a' * 11, lines[0])
+        self.assertIn('current_head=b' + 'b' * 11, lines[0])
+        self.assertIn('run_identity=2026-09-13T18:57:37+00:00', lines[0])
+        self.assertIn('not a product-pass claim', lines[0])
+
+    def test_drift_still_fails_and_names_the_files(self):
+        code, lines = self._run_main(
+            ['reports/current/PROJECT_STATUS.json', 'reports/current/PROJECT_STATUS.md'],
+            'a' * 40, 'b' * 40)
+        self.assertEqual(code, 1)
+        self.assertIn('CURRENT_REPORTS=DRIFT', lines[0])
+        self.assertIn('reports/current/PROJECT_STATUS.json', lines[0])
+
+    def test_generate_mode_is_unchanged_pass(self):
+        code, lines = self._run_main([], 'a' * 40, 'b' * 40, check=False)
+        self.assertEqual(code, 0)
+        self.assertIn('CURRENT_REPORTS=PASS mode=generate', lines[0])
+
+    def test_qualify_helper_is_pure(self):
+        self.assertEqual(self.mod.qualify_check_verdict('x' * 40, 'x' * 40), ('PASS', 0))
+        self.assertEqual(self.mod.qualify_check_verdict('a' * 40, 'b' * 40), ('STALE', 0))
+        # A missing stored subject cannot claim staleness it did not record.
+        self.assertEqual(self.mod.qualify_check_verdict(None, 'b' * 40), ('PASS', 0))
+
+
 if __name__ == '__main__':
     unittest.main()
