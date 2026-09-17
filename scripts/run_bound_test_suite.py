@@ -89,10 +89,25 @@ def main(argv=None) -> int:
     parser.add_argument("--order", choices=("forward", "reverse", "random"), default="forward")
     parser.add_argument("--seed", type=int, default=42)
     parser.add_argument("--pattern", default="test_*.py")
-    parser.add_argument("--modules", action="append", default=None)
+    parser.add_argument("--modules", action="append", nargs="+", default=None,
+                        metavar="MODULE",
+                        help="critical test module(s); repeat the flag or list several names "
+                             "after one flag; both forms are equivalent")
     parser.add_argument("--repeat", type=int, default=1)
     parser.add_argument("--label")
     args = parser.parse_args(argv)
+    # --modules is append + nargs="+": the parsed value is a list of lists.
+    # Flatten to a single list of module names so downstream consumers (the
+    # "modules" history field and the critical-set comparison in the gate
+    # report) always see a flat list.
+    if args.modules is not None:
+        flat: list = []
+        for group in args.modules:
+            if isinstance(group, list):
+                flat.extend(group)
+            else:  # defensive: a bare string if the flag form changes
+                flat.append(group)
+        args.modules = flat
 
     started = datetime.now(timezone.utc)
     clock = time.monotonic()

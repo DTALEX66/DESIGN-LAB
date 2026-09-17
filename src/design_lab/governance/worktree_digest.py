@@ -51,6 +51,16 @@ def _git(repo: Path, *args: str) -> str:
     return result.stdout.rstrip("\r\n")
 
 
+def _git_bytes(repo: Path, *args: str) -> bytes:
+    """Raw-bytes git helper for NUL-delimited porcelain output (v2 -z)."""
+    env = {**os.environ, "GIT_OPTIONAL_LOCKS": "0"}
+    result = subprocess.run(["git", "-c", "color.ui=false", "-C", str(repo), *args],
+                            capture_output=True, env=env)
+    if result.returncode != 0:
+        raise ValueError(f"git inspection failed: {args[0]}")
+    return result.stdout
+
+
 def _normalize(path: str) -> str:
     """Repository-relative POSIX path; rejects anything that escapes the root."""
     clean = path.replace("\\", "/")
@@ -81,24 +91,89 @@ def _file_sha256(repo: Path, posix: str):
         return None
 
 
-def _parse_status(lines: list) -> list:
-    """Normalize a `git status --porcelain=v1 --untracked-files=all` listing."""
+import re as _re
+
+_BLOB40 = _re.compile(r"[0-9a-f]{40}")
+_RENAME_SIM = _re.compile(r"R\d+ ")
+
+
+def _core_kind(xy: str) -> str:
+    """Normalize a two-char v2 status code to its change class.
+
+    ``.M`` -> ``M`` (unstaged modify), `` D`` -> ``D`` (staged delete), ``MM`` -> ``M``,
+    ``A `` -> ``A``.  Duplicate / ``.`` / space characters are dropped, so the result is
+    one of ``M``/``D``/``A``/``C`` (or ``R`` handled by the caller).
+    """
+    out, seen = [], set()
+    for c in xy:
+        if c not in ". " and c not in seen:
+            out.append(c)
+            seen.add(c)
+    return "".join(out) if out else "M"
+
+
+def _tail_path(body: str) -> str:
+    """Extract the path tail from a v2 record body.
+
+    A non-merge record body looks like
+    ``N... <mode> <mode> <mode> <blob> <blob> [<R<sim> ]<path>``.  The path is everything
+    *after the last 40-hex blob*, minus an optional ``R<sim>`` rename marker.  Under
+    ``-z`` git emits paths as **raw UTF-8 bytes** (NUL-delimited), so the tail is taken
+    verbatim — no C-escape / unicode_escape round-trip, which previously corrupted
+    non-ASCII paths.
+    """
+    matches = list(_BLOB40.finditer(body))
+    if not matches:
+        # Standalone old-path field (no blob): the whole body is the path.
+        tail = body.strip()
+    else:
+        tail = body[matches[-1].end():].lstrip(" ")
+    sim = _RENAME_SIM.match(tail)
+    if sim:
+        tail = tail[sim.end():]
+    return tail
+
+
+def _parse_v2z(data: bytes) -> list:
+    """Normalize `git status --porcelain=v2 -z --untracked-files=all` bytes.
+
+    NUL-delimited records, first byte = class:
+    * ``1`` / ``2``  non-merge / merge record: ``<XY> N... <mode>^3 <sha>^2 [<R<sim> ]<path>``;
+      a rename record carries the *new* path in the record and the *old* path in the
+      following NUL field.
+    * ``?``          untracked: ``? <path>``.
+    * ``u``          unmerged (conflict): bound by path, marked ``C``.
+    * ``h`` / ``#``  header line: skipped.
+    """
+    fields = [f for f in data.split(b"\x00") if f]
     entries = []
-    for line in lines:
-        if not line:
+    i = 0
+    while i < len(fields):
+        text = fields[i].decode("utf-8", "replace")
+        head = text[:1]
+        i += 1
+        if head in ("h", "#"):
             continue
-        if len(line) < 4:
+        if head == "?":
+            path = text[2:] if len(text) > 2 and text[1] == " " else text[1:].lstrip()
+            entries.append({"kind": "U", "path": _normalize(path)})
             continue
-        xy, rest = line[:2], line[3:]
-        if rest.startswith('"'):  # quoted path; unquote the escaped form
-            body = rest.rstrip('"')
-            rest = body.encode("utf-8").decode("unicode_escape")
-        if xy[0] in ("R", "C") and " -> " in rest:
-            old, new = rest.split(" -> ", 1)
-            entries.append({"kind": xy[0], "path": _normalize(new), "moved_from": _normalize(old)})
-        else:
-            kind = "U" if xy == "??" else xy.strip()
-            entries.append({"kind": kind, "path": _normalize(rest)})
+        if head in ("1", "2"):
+            xy = text[2:4]
+            if "R" in xy:
+                new_path = _tail_path(text)
+                old_path = ""
+                if i < len(fields):
+                    old_path = _tail_path(fields[i].decode("utf-8", "replace"))
+                    i += 1
+                entries.append({"kind": "R", "path": _normalize(new_path), "moved_from": _normalize(old_path)})
+            else:
+                entries.append({"kind": _core_kind(xy), "path": _normalize(_tail_path(text))})
+            continue
+        if head == "u":
+            entries.append({"kind": "C", "path": _normalize(_tail_path(text))})
+            continue
+        # Unknown record class: skip defensively (never fabricate an entry).
     return entries
 
 
@@ -112,8 +187,8 @@ def analyze(repo: Path, *, base: str = "HEAD", exclude_generated: bool = True) -
     repo = Path(repo)
     head = _git(repo, "rev-parse", base)
     branch = _git(repo, "rev-parse", "--abbrev-ref", "HEAD")
-    status = _git(repo, "status", "--porcelain=v1", "--untracked-files=all").splitlines()
-    all_entries = _parse_status(status)
+    status_bytes = _git_bytes(repo, "status", "--porcelain=v2", "-z", "--untracked-files=all")
+    all_entries = _parse_v2z(status_bytes)
     kept, excluded = [], []
     for entry in all_entries:
         if exclude_generated and _excluded(entry["path"]):

@@ -83,13 +83,31 @@ def critical_module_set() -> list[str]:
     return list(CRITICAL_MODULES)
 
 
+def last_nonempty_line(text: str) -> str:
+    lines = [line for line in (text or "").strip().splitlines() if line.strip()]
+    return lines[-1] if lines else ""
+
+
 def bound_run(extra: list[str]) -> int:
     command = [sys.executable, "-B", str(REPO / "scripts/run_bound_test_suite.py"), *extra]
-    result = subprocess.run(command, capture_output=True, text=True, encoding="utf-8",
-                            errors="replace", cwd=str(REPO), timeout=1800)
-    print((result.stdout or "").strip().splitlines()[-1])
+    try:
+        result = subprocess.run(command, capture_output=True, text=True, encoding="utf-8",
+                                errors="replace", cwd=str(REPO), timeout=1800)
+    except subprocess.TimeoutExpired as exc:
+        # A hung child must surface as a recorded FAIL, not an uncaught exception
+        # that swallows the gate result downstream.
+        tail = (exc.output or b"").decode("utf-8", "replace")[-400:] if exc.output else ""
+        print(f"test-gate RUN_TIMEOUT child={ ' '.join(extra) } {tail}")
+        return 124
+    print(last_nonempty_line(result.stdout))
     if result.returncode != 0:
-        print((result.stderr or "").strip()[-400:])
+        # stderr is preserved verbatim (tail); the child returncode is what is returned
+        # so a partial gate failure still records the full result instead of throwing.
+        err_tail = (result.stderr or "").strip()
+        if err_tail:
+            print(err_tail[-800:])
+        else:
+            print(last_nonempty_line(result.stdout) or "child failed with no output")
     return result.returncode
 
 

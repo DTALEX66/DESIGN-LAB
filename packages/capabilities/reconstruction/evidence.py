@@ -28,7 +28,7 @@ from . import runtime_roots
 from .contracts import validate_rir
 from .metrics import FidelityMetrics, compare_images
 from .pipeline import PINNED_RESVG_BINARY
-from .render import load_render_profile, render_svg
+from .render import RenderError, load_render_profile, render_svg
 from .state import (
     PROJECT_ROOT,
     ArtifactObservation,
@@ -2463,6 +2463,7 @@ __all__ = [
     "EvidenceBlockedError",
     "EvidenceError",
     "MAX_JSON_BYTES",
+    "RenderError",
     "package_evidence",
     "validate_bundle",
 ]

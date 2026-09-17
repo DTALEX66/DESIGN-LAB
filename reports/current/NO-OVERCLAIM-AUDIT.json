@@ -1,7 +1,7 @@
 {
   "schemaVersion": "design-lab/no-overclaim-audit/v1",
   "task_key": "DL-TP-20260914-DEEPSEEK-AUTHORITY-R1::DLDS-K000",
-  "audited_at": "2026-09-13T18:57:40+00:00",
+  "audited_at": "2026-09-17T15:30:13+00:00",
   "subject_sha": "",
   "surface": [
     "reports/current/",

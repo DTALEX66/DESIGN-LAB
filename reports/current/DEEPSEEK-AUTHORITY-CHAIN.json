@@ -1,9 +1,9 @@
 {
   "schemaVersion": "design-lab/deepseek-authority-chain/v1",
   "task_key": "DL-TP-20260914-DEEPSEEK-AUTHORITY-R1::DLDS-A010",
-  "generated_at": "2026-09-13T16:51:09+00:00",
+  "generated_at": "2026-09-17T14:30:58+00:00",
   "subject": {
-    "base_sha": "0e53d30f10ef1b5790d45f477d741f512a6663a1",
+    "base_sha": "cbc0463e9e6a0faa2bcd61b9a4aee3aa4808dea8",
     "branch": "codex/deepseek-authority-r1",
     "worktree_clean": false
   },
@@ -108,7 +108,7 @@
     "CURRENT_DEEPSEEK_AUTHORITY": 2,
     "GOVERNANCE_TRUTH": 2,
     "HISTORICAL": 14,
-    "REFERENCE": 8
+    "REFERENCE": 11
   },
   "entries": [
     {
@@ -329,9 +329,30 @@
       "basis": "the file itself carries a SUPERSEDED/HISTORICAL marker"
     },
     {
+      "path": "docs/taskpacks/DESIGN-LAB-DIRECTORY-MIGRATION-CLEANUP-TASKPACK-2026-09-01.md",
+      "bytes": 17504,
+      "sha256": "sha256:15660e0806f65b30b6256a6617149813ab77873148e3456a75f86ce0bce976f0",
+      "authority_class": "REFERENCE",
+      "basis": "older taskpack retained for reference; not a current dispatch entry"
+    },
+    {
       "path": "docs/taskpacks/DESIGN-LAB-DP-CORRECTION-TASKPACK-V2-2026-09-06.md",
       "bytes": 14019,
       "sha256": "sha256:841c9f48d4cd4ef739f988daaa2a7fd69b1501d2c0578543dd0b8d1e30b3b2d3",
+      "authority_class": "REFERENCE",
+      "basis": "older taskpack retained for reference; not a current dispatch entry"
+    },
+    {
+      "path": "docs/taskpacks/DESIGN-LAB-FINAL-TASKPACK-2026-08-25-2.md",
+      "bytes": 26916,
+      "sha256": "sha256:9dc46b7106459c9561cf987e0bb74ab7e04f65b498f57371d4aa2f1db279b307",
+      "authority_class": "REFERENCE",
+      "basis": "older taskpack retained for reference; not a current dispatch entry"
+    },
+    {
+      "path": "docs/taskpacks/DESIGN-LAB-FINAL-TASKPACK-2026-08-25.md",
+      "bytes": 30290,
+      "sha256": "sha256:052eae492b4d7ef79c769c7db84f1cb8cdd37a9bcca8225ebbc920e7bc44e9f1",
       "authority_class": "REFERENCE",
       "basis": "older taskpack retained for reference; not a current dispatch entry"
     },
@@ -400,8 +421,8 @@
     },
     {
       "path": "reports/current/DEEPSEEK-AUTHORITY-LEDGER-2026-09-14.json",
-      "bytes": 44826,
-      "sha256": "sha256:d7565d9b393dfdd967cf5ae209a024e97d3348bfa8aed928fc81acd0d079f71e",
+      "bytes": 61361,
+      "sha256": "sha256:974cdf3860dca4a2ad58280ee0f88804184d4d3f6e369abde3f6bbb2ddac2e81",
       "authority_class": "CURRENT_DEEPSEEK_AUTHORITY",
       "basis": "machine ledger for the authority taskpack (58 tasks)",
       "mutable_state": "the ledger is rewritten at the close of every task, so its bytes and digest are generation-time",

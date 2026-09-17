@@ -15,7 +15,7 @@ import uuid
 from datetime import datetime, timezone
 from pathlib import Path
 
-from .attempt_contract import canonical_hash, validate_evidence
+from .attempt_contract import canonical_hash, request_hash, validate_evidence
 from .paths import PathPolicyError, resolve_paths
 from .state_resources import state_schema
 
