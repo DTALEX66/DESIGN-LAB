@@ -1,5 +1,9 @@
 # Architecture V2
 
+> **HISTORICAL · SUPERSEDED** — 本文件为历史架构，不再是活动 SSOT。
+> **CURRENT →** `docs/architecture/ARCHITECTURE.md`（活动架构契约）。
+> 仅供追溯，勿作为 current target 引用。
+
 ```text
 External brief/assets/references
         ↓
