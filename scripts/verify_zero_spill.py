@@ -91,9 +91,10 @@ def scan(root: Path, *, depth: int = 3) -> tuple[dict, bool, list]:
     """Path-level inventory: relative path -> (size, mtime). Never reads content.
 
     Returns (entries, complete, link_boundaries). ``complete`` is False when the
-    depth cut, the entry cap, or an untraversed reparse point truncated the
-    walk; ``link_boundaries`` lists the link/junction paths that were observed
-    but deliberately not followed, so an INCOMPLETE verdict can be located.
+    depth cut, the entry cap, an untraversed reparse point, or a directory/file
+    we could not stat due to permissions truncated the walk; ``link_boundaries``
+    lists the boundary paths (unfollowed links/junctions, BLOCKED entries) that
+    explain an INCOMPLETE verdict so it can be located.
     """
     entries = {}
     complete = True
@@ -101,7 +102,17 @@ def scan(root: Path, *, depth: int = 3) -> tuple[dict, bool, list]:
     if not root.is_dir():
         return entries, True, links
     base_depth = len(root.parts)
-    for current, dirs, files in os.walk(root):
+
+    def _walk_error(err: OSError) -> None:
+        # A directory whose contents we cannot list is unobserved territory: the
+        # walk is truncated. Record it so an INCOMPLETE verdict can be located
+        # (DL-UCR-013 / FA-05: a permission failure -> incomplete, never a
+        # silent skip, because a silently skipped directory could hide a spill).
+        nonlocal complete
+        complete = False
+        links.append(f"BLOCKED:{getattr(err, 'filename', None) or err}")
+
+    for current, dirs, files in os.walk(root, onerror=_walk_error):
         current_path = Path(current)
         over_depth = len(current_path.parts) - base_depth >= depth
         # A reparse-point directory must not be followed (junction/link boundary).
@@ -121,9 +132,16 @@ def scan(root: Path, *, depth: int = 3) -> tuple[dict, bool, list]:
             path = current_path / name
             try:
                 stat = path.stat(follow_symlinks=False)
+            except PermissionError:
+                # Access to a real entry was denied: the observation is truncated.
+                # Do not treat it as "no file" (that would let it hide a spill).
+                complete = False
+                links.append(f"BLOCKED:{path}")
             except OSError:
+                # A broken/replaced entry (ENOENT): nothing to observe.
                 continue
-            entries[str(path)] = [stat.st_size, int(stat.st_mtime)]
+            else:
+                entries[str(path)] = [stat.st_size, int(stat.st_mtime)]
             if len(entries) > MAX_ENTRIES:
                 return entries, False, links
     return entries, complete, links
@@ -224,11 +242,19 @@ def diff(snapshot_id: str, externals: tuple | None = None) -> int:
     new = sorted(set(current_repo) - set(previous))
     removed = sorted(set(previous) - set(current_repo))
     changed = sorted(p for p in set(current_repo) & set(previous) if current_repo[p] != previous[p])
+    # Denied in-repo agent-state roots take priority over the allowed root
+    # (DL-UCR-013 / FA-05: denied -> allowed -> unknown). A NEW file under
+    # .hermes/.codex/... is spill even though it sits under the repository
+    # root; only a path that is neither denied nor outside the allowed roots
+    # is exempt.
     repo_spill = []
     for candidate in new:
+        if _denied_repo_root(candidate) is not None:
+            repo_spill.append(candidate)
+            continue
         if allowed(candidate):
             continue
-        repo_spill.append(candidate)  # denied in-repo root, or outside the repo
+        repo_spill.append(candidate)  # outside the allowed roots
     # Modifying a pre-existing file inside a denied in-repo root is also spill.
     for candidate in changed:
         if _denied_repo_root(candidate) is not None:
