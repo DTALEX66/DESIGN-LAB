@@ -1,5 +1,9 @@
 # DESIGN-LAB Architecture V3
 
+> **HISTORICAL · SUPERSEDED** — 本文件为历史架构（Agent-platform-neutral 早期版），不再是活动 SSOT。
+> **CURRENT →** `docs/architecture/ARCHITECTURE.md`（活动架构契约）。
+> 仅供追溯，勿作为 current target 引用。
+
 This is the Agent-platform-neutral architecture for connecting to any design host while still adding professional design intelligence, capability, and visual quality.
 
 ```text

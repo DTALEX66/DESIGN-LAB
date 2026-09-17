@@ -42,9 +42,16 @@ provider or adapter boundary, not adopted as a language.
 | Test runner | `unittest`, discovered and run by `scripts/run_python_tests.py` |
 | `[tool.pytest.ini_options]` | present (`testpaths = design-lab/tests`) but **pytest is not installed**; the suite is unittest-based |
 | `requirements.txt` | the **root install manifest for the reconstruction core**: it pins `jsonschema`, `rpds-py` and includes `packages/capabilities/reconstruction/requirements-core.in`. It is a tested contract — `design-lab/tests/test_reconstruction_intake.py::test_root_requirements_install_manifest_resolves_core_dependencies` parses it — and it is **not** the product dependency truth. Product dependencies live in `pyproject.toml`; the two lists are different on purpose and must not be merged by hand |
-| linter/formatter | **ruff is the declared target and is not configured or installed** |
+| linter/formatter | **ruff is CONFIGURED (`[tool.ruff]`: select F+E9, line-length 100, target py311) but NOT installed or enforced by any gate** (see the single-fact note below) |
 
 ### Honest gap: ruff
+
+> **Single fact (FU-06, measured against this tree):** `[tool.ruff]` in `pyproject.toml`
+> is the authoritative Ruff *configuration* (select F+E9, line-length 100, target py311),
+> but Ruff is **not installed** (absent from `uv.lock`, no `.venv` module) and **not
+> enforced by any gate** (`canonical-verify.yml` / `release-gate.yml` have no Ruff step;
+> no "lint-tools runner" exists). Status label: `ruff: CONFIGURED_NOT_ENFORCED`.
+> `pyproject.toml`, this policy and the inventory/closeout reports state this same fact.
 
 `DLDS-C030` asks for `ruff` as part of the unified Python toolchain. It is *not*
 added here, deliberately:
