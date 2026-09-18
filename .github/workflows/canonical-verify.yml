@@ -103,6 +103,18 @@ jobs:
           assert deferred.get("state") in {"DEFERRED", "NOT_RECORDED"}, "full-suite state lost"
           PY
 
+  top-authority-gate:
+    name: Top-level Authority consistency gate (DL-AUTHORITY-2026-09-18-R2)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - name: Run the R2 top-level Authority consistency gate
+        # Deterministic, stdlib-only: verifies AUTHORITY.md / authority-index.json /
+        # AGENTS.md / current taskpack / demoted handoff / single Ruff fact / R2
+        # release hashes are all mutually consistent. No network, no untrusted
+        # input; reads only the working tree.
+        run: python scripts/verify_top_level_authority.py
+
   node-gate:
     name: MiniGame node gate (+ drift check)
     runs-on: ubuntu-latest

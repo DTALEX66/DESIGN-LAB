@@ -2,6 +2,23 @@
 
 > 本文件是 DESIGN-LAB 的根执行规则，单仓自包含。不依赖外部项目即可正确执行。
 
+## TOP-LEVEL AUTHORITY — MUST READ FIRST
+
+`/AUTHORITY.md` (`DL-AUTHORITY-2026-09-18-R2`) is the single top-level authority for
+DESIGN-LAB. Before any audit / planning / implementation / drift check:
+
+1. fetch the LIVE remote `main` / open PR / exact SHA / branch protection
+2. read `/AUTHORITY.md`
+3. read `/.project/governance/authority-index.json`
+4. read this `AGENTS.md`, then the current integrated TaskPack + machine ledger
+5. read live CI / artifacts
+6. history only through the authority-index / crosswalk
+
+Memory, chat summaries, handoffs, old TaskPacks, old reports, branch names and commit
+counts never override Authority. Every cloud GPT audit must state the exact observed SHA.
+`Handoff` is never top-level authority; `DL-TP-20260914-DEEPSEEK-AUTHORITY-R1` is a
+structural predecessor / execution lineage, and `DL-TP-20260908-R5` is product lineage.
+
 ## 项目定位
 
 DESIGN-LAB 是面向职业视觉设计的、AI 原生、平台中立、宿主原生的专业设计智能与生产能力层。
@@ -93,7 +110,21 @@ DESIGN-LAB 是面向职业视觉设计的、AI 原生、平台中立、宿主原
 
 ## 当前任务包
 
-- **DeepSeek 执行权威（唯一 current DeepSeek TaskPack）**：`docs/taskpacks/DESIGN-LAB-DEEPSEEK-AUTHORITY-TASKPACK-2026-09-14.md`（DL-TP-20260914-DEEPSEEK-AUTHORITY-R1）。机器账本 `reports/current/DEEPSEEK-AUTHORITY-LEDGER-2026-09-14.json`，唯一写入者 `scripts/deepseek_authority_ledger.py`；权威关系对账 `reports/current/DEEPSEEK-AUTHORITY-CHAIN.json`。同一时间只允许一个 DeepSeek current taskpack。该包只做仓库收敛、清理、外溢数据处理、语言治理、结构收口与 Codex 准备；真实宿主、设计能力验收与 Human Gate 仍归 Codex。会话摘要/记忆摘要/交接摘要一律 `NON_AUTHORITATIVE`，只有落仓文件可授权改动。
+> 顶层权威 = `/AUTHORITY.md` (`DL-AUTHORITY-2026-09-18-R2`)。以下“当前/前序”条目
+> 均从属于顶层权威；handoff / memory / chat / 旧 taskpack 不作当前入口。
+
+- **当前统一剩余任务入口（唯一 current integrated TaskPack）**：
+  `docs/taskpacks/DESIGN-LAB-FINAL-AUTHORITY-CONVERGENCE-TASKPACK-2026-09-18.md`
+  （`DL-TP-20260918-FINAL-AUTHORITY-CONVERGENCE-R2`）。整合 R5、DeepSeek Authority、
+  Branch Convergence、UCR、前后端审计与语言/仓库/Host/Quality/Evidence 历史范围；
+  不建第二 mutable task ledger。旧任务 ID 必须经 authority-index/crosswalk 映射后才可执行。
+- **结构/治理前序（subordinate execution lineage，不再高于顶层 Authority）**：
+  `docs/taskpacks/DESIGN-LAB-DEEPSEEK-AUTHORITY-TASKPACK-2026-09-14.md`
+  （`DL-TP-20260914-DEEPSEEK-AUTHORITY-R1`，`STRUCTURAL_PREDECESSOR`）。机器账本
+  `reports/current/DEEPSEEK-AUTHORITY-LEDGER-2026-09-14.json`，唯一写入者
+  `scripts/deepseek_authority_ledger.py`；权威关系对账 `reports/current/DEEPSEEK-AUTHORITY-CHAIN.json`。
+  该包只做仓库收敛/清理/语言治理/结构收口/Codex 准备；真实宿主、设计能力验收与
+  Human Gate 仍归 Codex。会话/记忆/交接摘要一律 `NON_AUTHORITATIVE`，只有落仓文件可授权改动。
 - 当前有效任务包：`docs/history/taskpacks/r5-20260908/tasks.json`（DL-TP-20260908-R5，用户已授权推进全部任务；原件冻结，禁止用它编辑执行状态）。中文任务卡见同目录 `02-TASKS.md`。
 - 唯一任务状态编辑源：`design-lab/config/task-ledger-r3.json`；按 `depends_on` 派工。
 - 该路径已版本化为 `design-lab/task-ledger/r5-v1`。R3 原账本逐字节冻结于 `docs/history/taskpacks/r3-ledger-pre-r5-20260909.json`，并在活动账本中保留完整前继记录。旧证据不自动提升新任务；条件依赖须记录案例选择和理由，未决条件阻止验收完成。

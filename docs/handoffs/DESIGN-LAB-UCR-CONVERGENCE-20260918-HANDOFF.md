@@ -1,7 +1,13 @@
 # UCR 统一收口 2026-09-18｜P0 / P0-A / 报告真值 — 交接（HANDOFF）
 
+> ⚠️ **HISTORICAL_EXECUTION_RECORD / NON_AUTHORITATIVE**
+> 自 `DL-AUTHORITY-2026-09-18-R2` 起，本 handoff 不再是顶层权威入口。
+> 所有 branch count / main SHA / open PR / CI 状态均为 point-in-time snapshot，
+> 后续 merge/branch/CI 可立即使它过时。当前权威 → `/AUTHORITY.md`。
+> 保留正文仅作历史执行证据与 rollback 参考，不得作为未来审计入口。
+
 任务包：`DL-TP-20260918-UNIFIED-CONVERGENCE-R1`。主线：`main`。
-执行者：Hermes Agent。本文为 **tracked 权威交接**，与
+执行者：Hermes Agent。本文为 **tracked 历史执行记录**，与
 `.project-local/task-artifacts/ucr-r1/`（运行数据，不入库）配套。
 
 ## 1. 执行摘要
