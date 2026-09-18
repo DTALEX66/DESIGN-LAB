@@ -16,6 +16,24 @@
 <section class="panel"><div class="section-head"><div><p class="eyebrow">03 / EXECUTION HISTORY</p><h2>任务与事件</h2></div><span class="badge">导入与原生任务记录</span></div>
 <p>此处展示持久化状态，不是虚构进度。需要时点击刷新；请求取消不等于已取消。</p><ul id="tasks" class="items"></ul><button id="more-tasks" class="secondary" hidden>更多任务</button><ol id="events" class="events"></ol><button id="more-events" class="secondary" hidden>更多事件</button></section>
 <section class="panel"><p class="eyebrow">04 / NATIVE ASSETS</p><h2>已登记的 AI / PSD</h2><p>列表为持久化版本记录。点击校验会重新读取原生文件并核对 hash，不代表人工接受或本次宿主重开。</p><ul id="native-assets" class="items"></ul><button id="more-native" class="secondary" hidden>更多原生产物</button><p id="native-info" class="mono" role="status"></p></section>
+<section class="panel"><div class="section-head"><div><p class="eyebrow">05 / DESIGN LAYER</p><h2>Brief → Direction → DesignSystem</h2></div><span class="badge">垂直切片 · 每条都读回</span></div>
+<p>把设计意图落成可追踪的记录：简报固定“为什么设计”，方向给出具体视觉立场（选择即人工判定），绑定固定后续制作的设计契约。每一步都持久化并读回，不代表制作完成或质量验收。</p>
+<form id="design-brief-form" class="design-form"><label>简报标题<input id="brief-title" maxlength="160" required placeholder="例如：秋季品牌视觉"></label>
+<label>目标（逗号分隔）<input id="brief-goals" maxlength="400" required placeholder="现代, 温暖, 克制"></label>
+<label>约束（可选）<input id="brief-constraints" maxlength="400" placeholder="例如：不改变 logo 拓扑"></label><button id="brief-submit">持久化简报</button></form>
+<ul id="design-briefs" class="items"></ul>
+<div class="design-grid"><div>
+<p class="eyebrow">方向（立在此简报下）</p>
+<form id="design-direction-form" class="design-form"><label>所属简报<select id="direction-brief"></select></label>
+<label>方向标题<input id="direction-title" maxlength="120" required placeholder="例如：暖色渐变"></label>
+<label>色彩倾向（可选）<input id="direction-color" maxlength="120" placeholder="warm"></label>
+<label>字体倾向（可选）<input id="direction-type" maxlength="120" placeholder="sans"></label><button id="direction-submit">立方向</button></form>
+<ul id="design-directions" class="items"></ul></div><div>
+<p class="eyebrow">设计系统契约</p>
+<ul id="design-systems" class="items"></ul>
+<label>绑定到当前所选方向<select id="design-system"></select></label>
+<button id="design-system-bind">绑定设计系统</button>
+<ul id="design-bindings" class="items"></ul><p id="design-binding-active" class="mono"></p></div></div></section>
 <section class="panel"><p class="eyebrow">ADVANCED / OBJECT PLAN</p><h2>检查与提交对象计划</h2><p>高级 RIR 合同输入，不是参考图自动拆解。可编辑 JSON 后提交；raster.path 必须使用当前项目已导入的完整 img-ID，不接受本地路径。文字节点样式按对象 ID 提供 font、size、color。提交只排队，需在任务列表显式启动。</p>
 <form id="plan-form"><label>目标宿主<select id="plan-host"><option value="illustrator">Illustrator / AI</option><option value="photoshop">Photoshop / PSD</option></select></label>
 <label>RIR JSON<textarea id="plan-rir" rows="12" maxlength="3800000" required spellcheck="false" aria-label="可修正的 RIR 对象计划"></textarea></label>

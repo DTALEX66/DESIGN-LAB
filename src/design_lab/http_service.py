@@ -19,6 +19,7 @@ from .native_tasks import NativeTaskError
 from .native_workers import NativeWorkers
 from .native_assets import NativeAssets
 from .native_delivery import NativeDelivery
+from .design_layer import DesignLayer, DesignLayerError
 from . import workbench
 
 
@@ -57,6 +58,7 @@ def make_server(service, token, port=0):
             pass
 
         def send_json(self, status, value):
+            self.drain_body()
             payload = json.dumps(value, ensure_ascii=True).encode('utf-8')
             self.send_response(status)
             self.send_header('Content-Type', 'application/json; charset=utf-8')
@@ -67,6 +69,28 @@ def make_server(service, token, port=0):
             self.end_headers()
             self.close_connection = True
             self.wfile.write(payload)
+
+        def drain_body(self):
+            """Discard an unconsumed request body so the socket closes with FIN.
+
+            ``guard()`` / ``body()`` can fail before the client's body bytes are
+            read. Closing a socket that still has unread data in its receive
+            buffer makes the kernel reset the connection, so a client awaiting
+            the error response sees connection-aborted (WinError 10053) instead
+            of the deterministic 4xx. Best-effort: any failure here is ignored;
+            repeated calls are no-ops.
+            """
+            if self.command not in ('POST', 'PUT', 'PATCH'):
+                return
+            lengths = self.headers.get_all('Content-Length', [])
+            if len(lengths) != 1 or not re.fullmatch(r'[0-9]{1,8}', lengths[0]):
+                return
+            remaining = int(lengths[0]) - getattr(self, '_body_read', 0)
+            while remaining > 0:
+                chunk = self.rfile.read(min(remaining, 65536))
+                if not chunk:
+                    break
+                remaining -= len(chunk)
 
         def guard(self, require_auth=True):
             authority = f'127.0.0.1:{self.server.server_port}'
@@ -98,6 +122,7 @@ def make_server(service, token, port=0):
             if types not in (['application/json'], ['application/json; charset=utf-8']):
                 raise RequestError(415, 'JSON_REQUIRED')
             data = self.rfile.read(size)
+            self._body_read = len(data)
             if len(data) != size:
                 raise RequestError(400, 'INCOMPLETE_BODY')
             try:
@@ -190,6 +215,24 @@ def make_server(service, token, port=0):
                         return self.send_json(200, value)
                     if self.path == '/api/projects':
                         return self.send_json(200, {'projects': service.list_projects()})
+                    layer = DesignLayer(service)
+                    if self.path == '/api/design-systems':
+                        return self.send_json(200, layer.design_systems())
+                    match = re.fullmatch(r'/api/projects/([0-9a-f]{32})/design-layer', self.path)
+                    if match:
+                        return self.send_json(200, layer.get_design_layer(match[1]))
+                    match = re.fullmatch(r'/api/projects/([0-9a-f]{32})/briefs(?:\?after=(brief-[0-9a-f]{32}))?', self.path)
+                    if match:
+                        return self.send_json(200, layer.list_briefs(match[1], match[2] or ''))
+                    match = re.fullmatch(r'/api/projects/([0-9a-f]{32})/briefs/(brief-[0-9a-f]{32})', self.path)
+                    if match:
+                        return self.send_json(200, layer.get_brief(*match.groups()))
+                    match = re.fullmatch(r'/api/projects/([0-9a-f]{32})/directions(?:\?after=(direction-[0-9a-f]{32}))?', self.path)
+                    if match:
+                        return self.send_json(200, layer.list_directions(match[1], after=match[2] or ''))
+                    match = re.fullmatch(r'/api/projects/([0-9a-f]{32})/directions/(direction-[0-9a-f]{32})', self.path)
+                    if match:
+                        return self.send_json(200, layer.get_direction(*match.groups()))
                     match = re.fullmatch(r'/api/projects/([0-9a-f]{32})', self.path)
                     if match:
                         project = service.get_project(match[1])
@@ -221,6 +264,23 @@ def make_server(service, token, port=0):
                     if match:
                         value = self.body(fields={'content_base64', 'idempotency_key'}, limit=45_000_256)
                         return self.send_json(201, ImageAssets(service).import_image(match[1], **value))
+                    layer = DesignLayer(service)
+                    match = re.fullmatch(r'/api/projects/([0-9a-f]{32})/briefs', self.path)
+                    if match:
+                        value = self.body(fields={'title', 'goals', 'constraints', 'reference_asset_ids', 'idempotency_key'})
+                        return self.send_json(201, layer.create_brief(match[1], **value))
+                    match = re.fullmatch(r'/api/projects/([0-9a-f]{32})/directions', self.path)
+                    if match:
+                        value = self.body(fields={'brief_id', 'title', 'style_notes', 'color_mood', 'typography_mood', 'idempotency_key'})
+                        return self.send_json(201, layer.create_direction(match[1], **value))
+                    match = re.fullmatch(r'/api/projects/([0-9a-f]{32})/directions/(direction-[0-9a-f]{32})/choose', self.path)
+                    if match:
+                        value = self.body(fields={'actor', 'actor_kind', 'idempotency_key'})
+                        return self.send_json(200, layer.choose_direction(match[1], match[2], **value))
+                    match = re.fullmatch(r'/api/projects/([0-9a-f]{32})/directions/(direction-[0-9a-f]{32})/bind', self.path)
+                    if match:
+                        value = self.body(fields={'design_system_name', 'idempotency_key'})
+                        return self.send_json(201, layer.bind_design_system(match[1], match[2], **value))
                     if self.path != '/api/projects':
                         raise RequestError(404, 'NOT_FOUND')
                     value = self.body()
@@ -232,6 +292,8 @@ def make_server(service, token, port=0):
                 self.send_json(exc.status, {'error': exc.code})
             except NativeTaskError:
                 self.send_json(409, {'error':'NATIVE_TASK_REQUIRES_RECONCILIATION'})
+            except DesignLayerError as exc:
+                self.send_json(exc.status, {'error': exc.code})
             except ImportError:
                 self.send_json(503, {'error': 'IMAGE_DEPENDENCY_UNAVAILABLE'})
             except (ValueError, PathPolicyError):

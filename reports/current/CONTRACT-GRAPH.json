@@ -1,7 +1,7 @@
 {
   "schemaVersion": "design-lab/contract-graph/v1",
   "task_key": "DL-TP-20260914-DEEPSEEK-AUTHORITY-R1::DLDS-F000",
-  "generated_at": "2026-09-13T16:50:24+00:00",
+  "generated_at": "2026-09-18T19:13:41+00:00",
   "subject_sha": "",
   "chain": "Schema -> Python model -> DB -> producer -> consumer -> receipt -> projection",
   "concepts": {
@@ -359,6 +359,9 @@
     "requirement_event": "design-lab/schemas/state/design-lab-state-creative-v1.sql",
     "decision_event": "design-lab/schemas/state/design-lab-state-creative-v1.sql",
     "worklab_session_link": "design-lab/schemas/state/design-lab-state-creative-v1.sql",
+    "design_brief": "design-lab/schemas/state/design-lab-state-design-layer-v1.sql",
+    "design_direction": "design-lab/schemas/state/design-lab-state-design-layer-v1.sql",
+    "design_system_binding": "design-lab/schemas/state/design-lab-state-design-layer-v1.sql",
     "operation_intent": "design-lab/schemas/state/design-lab-state-v1.sql",
     "job": "design-lab/schemas/state/design-lab-state-v1.sql",
     "job_attempt": "design-lab/schemas/state/design-lab-state-v1.sql",
