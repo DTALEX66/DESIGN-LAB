@@ -14,6 +14,7 @@ _NAMES = frozenset({
     'design-lab-state-attempt-v1.sql',
     'design-lab-state-attempt-v2.sql',
     'design-lab-state-creative-v1.sql',
+    'design-lab-state-design-layer-v1.sql',
 })
 
 

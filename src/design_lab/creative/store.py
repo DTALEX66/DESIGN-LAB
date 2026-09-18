@@ -26,6 +26,7 @@ _ASSETS_SCHEMA = state_schema("design-lab-state-assets-v1.sql")
 _ASSETS_V2_SCHEMA = state_schema("design-lab-state-assets-v2.sql")
 _ATTEMPT_SCHEMA = state_schema("design-lab-state-attempt-v1.sql")
 _ATTEMPT_V2_SCHEMA = state_schema("design-lab-state-attempt-v2.sql")
+_DESIGN_LAYER_SCHEMA = state_schema("design-lab-state-design-layer-v1.sql")
 MIGRATION = "creative-v1"
 # The creative model reads operation_state and attempt_state, so this store
 # applies every schema family it depends on and records each migration under the
@@ -35,6 +36,9 @@ GUARDED_MIGRATIONS = (
     ("assets-v2", _ASSETS_V2_SCHEMA, "asset_version"),
     ("attempt-v2", _ATTEMPT_V2_SCHEMA, "attempt_state"),
     (MIGRATION, _SCHEMA, "asset_version"),
+    # E-SLICE-01 design layer: brief / direction / design-system-binding tables.
+    # Applied AFTER the creative family so operation_intent + project FKs exist.
+    ("design-layer-v1", _DESIGN_LAYER_SCHEMA, "design_brief"),
 )
 
 ASSET_KINDS = ("raster", "vector", "text", "audio", "video", "blend",

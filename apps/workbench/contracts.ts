@@ -111,3 +111,84 @@ export interface PatchResponse {
   task: TaskRecord;
   parent: { version_id: string };
 }
+
+// --- E-SLICE-01 design layer: Brief -> Reference -> Direction -> DesignSystem ---
+export interface DesignBrief {
+  brief_id: string;
+  title: string;
+  goals: string[];
+  constraints: string | null;
+  reference_asset_ids: string[];
+  spec_sha256: string;
+  version: number;
+  superseded_by: string | null;
+  created_at: string;
+}
+
+export interface DesignDirection {
+  direction_id: string;
+  brief_id: string;
+  title: string;
+  style_notes: string[] | null;
+  color_mood: string | null;
+  typography_mood: string | null;
+  chosen: boolean;
+  actor: string | null;
+  actor_kind: string | null;
+  spec_sha256: string;
+  version: number;
+  superseded_by: string | null;
+  created_at: string;
+}
+
+export interface DesignSystemBinding {
+  binding_id: string;
+  direction_id: string;
+  design_system_name: string;
+  spec_sha256: string;
+  version: number;
+  superseded_by: string | null;
+  created_at: string;
+}
+
+export interface DesignSystemRecord {
+  name: string;
+  title: string;
+  version: string;
+  evidence_level: string;
+}
+
+export interface BriefListResponse {
+  briefs: DesignBrief[];
+  next_cursor: string | null;
+}
+
+export interface DirectionListResponse {
+  directions: DesignDirection[];
+  next_cursor: string | null;
+}
+
+export interface BriefGetResponse {
+  brief: DesignBrief;
+}
+
+export interface DirectionGetResponse {
+  direction: DesignDirection;
+}
+
+export interface DesignSystemListResponse {
+  design_systems: DesignSystemRecord[];
+}
+
+export interface DesignLayerReadback {
+  briefs: DesignBrief[];
+  directions: DesignDirection[];
+  chosen_direction: DesignDirection | null;
+  bindings: DesignSystemBinding[];
+  active_binding: DesignSystemBinding | null;
+  design_systems: DesignSystemRecord[];
+}
+
+export interface DesignLayerResponse {
+  design_layer: DesignLayerReadback;
+}

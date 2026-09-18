@@ -13,6 +13,10 @@ import type {
   AssetContentResponse,
   AssetListResponse,
   BundleDownloadResponse,
+  DesignBrief,
+  DesignDirection,
+  DesignLayerResponse,
+  DesignSystemRecord,
   EventListResponse,
   NativeAssetListResponse,
   NativeAssetRecord,
@@ -362,10 +366,14 @@ byId<HTMLSelectElement>('project').onchange = () => {
   project = byId<HTMLSelectElement>('project').value;
   resetProject();
   refresh().catch((e) => setStatus(errMsg(e), true));
+  loadDesignSystems().catch((e) => setStatus(errMsg(e), true));
+  refreshDesign().catch((e) => setStatus(errMsg(e), true));
 };
 
 byId<HTMLButtonElement>('refresh').onclick = () => {
   void refresh().catch((e) => setStatus(errMsg(e), true));
+  void loadDesignSystems().catch((e) => setStatus(errMsg(e), true));
+  void refreshDesign().catch((e) => setStatus(errMsg(e), true));
 };
 
 byId<HTMLFormElement>('create-form').onsubmit = async (event) => {
@@ -486,4 +494,218 @@ byId<HTMLButtonElement>('more-events').onclick = () => {
 
 byId<HTMLButtonElement>('more-native').onclick = () => {
   void nativeAssets(true).catch((e) => setStatus(errMsg(e), true));
+};
+
+// ============================================================================
+// E-SLICE-01 design layer: the first full-stack vertical slice
+//   Project -> Brief -> Reference -> Direction (Human Choice) -> DesignSystem
+// Present as first-class user interactions (forms + buttons), not raw JSON.
+// Each step persists server-side and is read back from the API (evidence = the
+// readback, the recorded spec digests, the chosen-actor fact, the binding).
+// ============================================================================
+let chosenDirection: DesignDirection | null = null;
+let designRequest = 0;
+let boundSystems: DesignSystemRecord[] = [];
+let submittedBrief: { owner: string; identity: string; key: string } | null = null;
+let submittedDirection: { owner: string; identity: string; key: string } | null = null;
+let briefBusy = false;
+let directionBusy = false;
+let bindBusy = false;
+
+const uuid = (): string => crypto.randomUUID();
+
+async function loadDesignSystems() {
+  const current = epoch;
+  const data = await api<{ design_systems: DesignSystemRecord[] }>('/design-systems');
+  if (current !== epoch) return;
+  boundSystems = data.design_systems;
+  const select = byId<HTMLSelectElement>('design-system');
+  select.replaceChildren(new Option('选择设计系统', ''));
+  for (const system of boundSystems) select.append(new Option(`${system.title} · ${system.version} (${system.evidence_level})`, system.name));
+  byId<HTMLUListElement>('design-systems').replaceChildren(
+    ...boundSystems.map((system) => {
+      const li = document.createElement('li');
+      li.textContent = `${system.name} · ${system.title} · v${system.version} · ${system.evidence_level}`;
+      return li;
+    }),
+  );
+}
+
+function renderDesignLayer(data: DesignLayerResponse) {
+  const layer = data.design_layer;
+  byId<HTMLUListElement>('design-briefs').replaceChildren(
+    ...layer.briefs.map((brief: DesignBrief) => {
+      const li = document.createElement('li');
+      li.textContent = `BRIEF · ${brief.title} · ${brief.goals.join(' / ')}${brief.constraints ? ` · ${brief.constraints}` : ''} · ${brief.spec_sha256}`;
+      return li;
+    }),
+  );
+  byId<HTMLUListElement>('design-directions').replaceChildren(
+    ...layer.directions.map((direction: DesignDirection) => {
+      const li = document.createElement('li');
+      li.textContent = `DIRECTION · ${direction.title} · ${direction.chosen ? `CHOSEN by ${direction.actor}` : 'open'} · ${direction.spec_sha256}`;
+      if (direction.chosen) chosenDirection = direction;
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.textContent = `选为方向 · ${direction.direction_id.slice(-8)}`;
+      button.onclick = () => chooseDirection(direction).catch((error) => setStatus(errMsg(error), true));
+      li.append(document.createTextNode(' '), button);
+      return li;
+    }),
+  );
+  byId<HTMLUListElement>('design-bindings').replaceChildren(
+    ...(layer.bindings.length ? layer.bindings.map((binding) => {
+      const li = document.createElement('li');
+      li.textContent = `BINDING · ${binding.design_system_name} · ${binding.spec_sha256}`;
+      return li;
+    }) : [info('design-bindings-empty')]),
+  );
+  const active = layer.active_binding;
+  byId<HTMLParagraphElement>('design-binding-active').textContent = active
+    ? `当前方向已绑定设计系统：${active.design_system_name}（设计契约已固定）。`
+    : '选择方向并绑定设计系统后，后续 Build/Review 才有固定设计契约。';
+}
+
+function info(id: string): HTMLElement {
+  const p = document.createElement('p');
+  p.id = id;
+  p.className = 'empty';
+  p.textContent = id === 'design-bindings-empty' ? '尚未绑定设计系统。' : '';
+  return p;
+}
+
+async function refreshDesign() {
+  if (!project) return;
+  const current = epoch;
+  const request = ++designRequest;
+  setStatus('正在读取设计层：Brief / Direction / DesignSystem…');
+  const data = await api<DesignLayerResponse>(`/projects/${project}/design-layer`).catch((error) => {
+    if (current !== epoch || request !== designRequest) return null;
+    throw error;
+  });
+  if (!data || current !== epoch || request !== designRequest) return;
+  chosenDirection = null;
+  const briefSelect = byId<HTMLSelectElement>('direction-brief');
+  briefSelect.replaceChildren(new Option('选择简报', ''));
+  for (const brief of data.design_layer.briefs)
+    briefSelect.append(new Option(`${brief.title} · ${brief.brief_id.slice(-8)}`, brief.brief_id));
+  renderDesignLayer(data);
+  setStatus('设计层已读取。方向选择与绑定不代表制作完成或质量验收。');
+}
+
+async function submitBrief() {
+  const current = epoch;
+  const owner = project;
+  if (!owner) return;
+  const title = byId<HTMLInputElement>('brief-title').value;
+  if (briefBusy) return;
+  const goalsRaw = byId<HTMLInputElement>('brief-goals').value.trim();
+  const goals = goalsRaw ? goalsRaw.split(',').map((s) => s.trim()).filter(Boolean) : [];
+  const constraints = byId<HTMLInputElement>('brief-constraints').value.trim() || null;
+  if (!title || !goals.length) { setStatus('请填写简报标题与至少一条目标。', true); return; }
+  const body: Record<string, unknown> = { title, goals, constraints, reference_asset_ids: [], idempotency_key: '' };
+  const identity = JSON.stringify({ owner, title, goals, constraints });
+  if (!submittedBrief || submittedBrief.owner !== owner || submittedBrief.identity !== identity)
+    submittedBrief = { owner, identity, key: uuid() };
+  body.idempotency_key = submittedBrief.key;
+  briefBusy = true;
+  byId<HTMLButtonElement>('brief-submit').disabled = true;
+  try {
+    await api(`/projects/${owner}/briefs`, body);
+    if (current !== epoch) return;
+    byId<HTMLInputElement>('brief-title').value = '';
+    byId<HTMLInputElement>('brief-goals').value = '';
+    byId<HTMLInputElement>('brief-constraints').value = '';
+    await refreshDesign();
+    setStatus('简报已持久化；下一步在简报下立方向。');
+  } catch (error) {
+    if (current === epoch) setStatus(`简报未确认：${errMsg(error)}。相同内容重试复用幂等键。`, true);
+  } finally {
+    briefBusy = false;
+    byId<HTMLButtonElement>('brief-submit').disabled = false;
+  }
+}
+
+async function submitDirection() {
+  const current = epoch;
+  const owner = project;
+  if (!owner) return;
+  if (directionBusy) return;
+  const brief = byId<HTMLSelectElement>('direction-brief').value;
+  const title = byId<HTMLInputElement>('direction-title').value.trim();
+  const colorMood = byId<HTMLInputElement>('direction-color').value.trim() || null;
+  const typeMood = byId<HTMLInputElement>('direction-type').value.trim() || null;
+  if (!brief || !title) { setStatus('请选择简报并填写方向标题。', true); return; }
+  const body: Record<string, unknown> = { brief_id: brief, title, style_notes: null, color_mood: colorMood, typography_mood: typeMood, idempotency_key: '' };
+  const identity = JSON.stringify({ owner, brief, title, colorMood, typeMood });
+  if (!submittedDirection || submittedDirection.owner !== owner || submittedDirection.identity !== identity)
+    submittedDirection = { owner, identity, key: uuid() };
+  body.idempotency_key = submittedDirection.key;
+  directionBusy = true;
+  byId<HTMLButtonElement>('direction-submit').disabled = true;
+  try {
+    const data = await api<{ direction: DesignDirection }>(`/projects/${owner}/directions`, body);
+    if (current !== epoch) return;
+    byId<HTMLInputElement>('direction-title').value = '';
+    await refreshDesign();
+    setStatus(`方向已排队：${data.direction.direction_id.slice(-8)}。请选择该方向并绑定设计系统。`);
+  } catch (error) {
+    if (current === epoch) setStatus(`方向未确认：${errMsg(error)}。相同内容重试复用幂等键。`, true);
+  } finally {
+    directionBusy = false;
+    byId<HTMLButtonElement>('direction-submit').disabled = false;
+  }
+}
+
+async function chooseDirection(direction: DesignDirection) {
+  const current = epoch;
+  const owner = project;
+  if (!owner) return;
+  const actor = 'workbench-user';
+  const actorKind = 'human';
+  const body = { actor, actor_kind: actorKind, idempotency_key: uuid() };
+  try {
+    const data = await api<{ direction: DesignDirection }>(`/projects/${owner}/directions/${direction.direction_id}/choose`, body);
+    if (current !== epoch) return;
+    await refreshDesign();
+    setStatus(`方向已选定：${data.direction.direction_id.slice(-8)}（${data.direction.actor}）。下一步绑定设计系统。`);
+  } catch (error) {
+    if (current === epoch) setStatus(`方向选择未确认：${errMsg(error)}`, true);
+  }
+}
+
+async function bindDesignSystem() {
+  const current = epoch;
+  const owner = project;
+  if (!owner) return;
+  if (bindBusy) return;
+  const name = byId<HTMLSelectElement>('design-system').value;
+  const direction = chosenDirection;
+  if (!name || !direction) { setStatus('请先选定方向，再选择要绑定的设计系统。', true); return; }
+  const body = { design_system_name: name, idempotency_key: uuid() };
+  bindBusy = true;
+  byId<HTMLButtonElement>('design-system-bind').disabled = true;
+  try {
+    const data = await api<{ binding: { design_system_name: string } }>(`/projects/${owner}/directions/${direction.direction_id}/bind`, body);
+    if (current !== epoch) return;
+    await refreshDesign();
+    setStatus(`设计系统已绑定：${data.binding.design_system_name}。设计契约已固定；制作与质量验收仍未执行。`);
+  } catch (error) {
+    if (current === epoch) setStatus(`设计系统绑定未确认：${errMsg(error)}`, true);
+  } finally {
+    bindBusy = false;
+    byId<HTMLButtonElement>('design-system-bind').disabled = false;
+  }
+}
+
+byId<HTMLFormElement>('design-brief-form').onsubmit = (event) => {
+  event.preventDefault();
+  void submitBrief().catch((e) => setStatus(errMsg(e), true));
+};
+byId<HTMLFormElement>('design-direction-form').onsubmit = (event) => {
+  event.preventDefault();
+  void submitDirection().catch((e) => setStatus(errMsg(e), true));
+};
+byId<HTMLButtonElement>('design-system-bind').onclick = () => {
+  void bindDesignSystem().catch((e) => setStatus(errMsg(e), true));
 };
