@@ -10,6 +10,6 @@
   "scripts": {
     "typecheck": "pnpm --filter @design-lab/workbench typecheck",
     "build": "pnpm --filter @design-lab/workbench build",
-    "test:workbench-native": "pnpm --filter @design-lab/workbench test:native"
+    "test:workbench-unit": "pnpm --filter @design-lab/workbench test:unit"
   }
 }

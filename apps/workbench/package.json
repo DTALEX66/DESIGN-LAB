@@ -7,7 +7,7 @@
   "scripts": {
     "typecheck": "tsc --noEmit",
     "build": "vite build",
-    "test:native": "node tests/native-ui.mjs"
+    "test:unit": "node tests/unit.mjs"
   },
   "devDependencies": {
     "typescript": "~5.6.3",

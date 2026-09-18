@@ -4,3 +4,8 @@
 # workspace dependency"). No npm/yarn truth coexists here.
 packages:
   - "apps/workbench"
+# esbuild is a required Vite dependency that postinstalls a native binary.
+# Approving its build script is a supply-chain decision recorded here (pinned in
+# the lockfile, MIT). No other dependency in this workspace runs build scripts.
+allowBuilds:
+  esbuild: true

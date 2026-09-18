@@ -30,7 +30,7 @@ console.log(JSON.stringify({calls,labels:elements[id].children.map(li=>li.childr
 '''
         for function,route in (('tasks','tasks'),('nativeAssets','native-assets')):
             with self.subTest(function=function):
-                result=subprocess.run([node,'-e',script,str(ROOT/'apps/workbench/main.ts'),function],capture_output=True,text=True,encoding='utf-8',timeout=30)
+                result=subprocess.run([node,'-e',script,str(ROOT/'apps/workbench/build/main.js'),function],capture_output=True,text=True,encoding='utf-8',timeout=30)
                 self.assertEqual(result.returncode,0,result.stderr)
                 data=json.loads(result.stdout)
                 self.assertEqual(data['calls'],['/api/projects/p/'+route,'/api/projects/p/'+route+'?after=next'])
@@ -57,7 +57,7 @@ console.log(JSON.stringify({count,error}));
 '''
         for function in ('tasks','nativeAssets'):
             with self.subTest(function=function):
-                result=subprocess.run([node,'-e',script,str(ROOT/'apps/workbench/main.ts'),function],capture_output=True,text=True,encoding='utf-8',timeout=30)
+                result=subprocess.run([node,'-e',script,str(ROOT/'apps/workbench/build/main.js'),function],capture_output=True,text=True,encoding='utf-8',timeout=30)
                 self.assertEqual(result.returncode,0,result.stderr)
                 self.assertEqual(json.loads(result.stdout),{'count':1,'error':'CURRENT_ERROR'})
 
@@ -88,7 +88,7 @@ console.log(JSON.stringify({error:error||null,labels:elements[id].children.map(l
             for mode in ('success','error','append'):
                 if function=='refresh' and mode=='append':continue
                 with self.subTest(function=function,mode=mode):
-                    result=subprocess.run([node,'-e',script,str(ROOT/'apps/workbench/main.ts'),function,mode],capture_output=True,text=True,encoding='utf-8',timeout=30)
+                    result=subprocess.run([node,'-e',script,str(ROOT/'apps/workbench/build/main.js'),function,mode],capture_output=True,text=True,encoding='utf-8',timeout=30)
                     self.assertEqual(result.returncode,0,result.stderr)
                     data=json.loads(result.stdout)
                     self.assertIsNone(data['error'])
@@ -118,7 +118,7 @@ if(elements['patch-form']?.onsubmit){await elements['patch-form'].onsubmit({prev
 console.log(JSON.stringify({found:!!b,calls,status:elements.status?.textContent}));
 })().catch(e=>{console.error(e);process.exitCode=1});
 '''
-        result=subprocess.run([node,'-e',script,str(ROOT/'apps/workbench/main.ts'),host],capture_output=True,text=True,encoding='utf-8',timeout=30)
+        result=subprocess.run([node,'-e',script,str(ROOT/'apps/workbench/build/main.js'),host],capture_output=True,text=True,encoding='utf-8',timeout=30)
         self.assertEqual(result.returncode,0,result.stderr)
         data=json.loads(result.stdout);self.assertTrue(data['found'])
         calls=[c for c in data['calls'] if c['path'].endswith('/patch')]
@@ -145,7 +145,7 @@ if(elements['plan-form']?.onsubmit){await elements['plan-form'].onsubmit({preven
 console.log(JSON.stringify({calls,status:elements.status?.textContent}));
 })().catch(e=>{console.error(e);process.exitCode=1});
 '''
-        result=subprocess.run([node,'-e',script,str(ROOT/'apps/workbench/main.ts')],capture_output=True,text=True,encoding='utf-8',timeout=30)
+        result=subprocess.run([node,'-e',script,str(ROOT/'apps/workbench/build/main.js')],capture_output=True,text=True,encoding='utf-8',timeout=30)
         self.assertEqual(result.returncode,0,result.stderr)
         data=json.loads(result.stdout);calls=[c for c in data['calls'] if c['path'].endswith('/native-plans')]
         self.assertEqual(len(calls),2)
@@ -169,7 +169,7 @@ const b=elements.tasks.children.map(li=>li.children[0]).find(b=>b.textContent.st
 if(b)await b.onclick();console.log(JSON.stringify({found:!!b,calls,status:elements.status?.textContent}));
 })().catch(e=>{console.error(e);process.exitCode=1});
 '''
-        result=subprocess.run([node,'-e',script,str(ROOT/'apps/workbench/main.ts')],capture_output=True,text=True,encoding='utf-8',timeout=30)
+        result=subprocess.run([node,'-e',script,str(ROOT/'apps/workbench/build/main.js')],capture_output=True,text=True,encoding='utf-8',timeout=30)
         self.assertEqual(result.returncode,0,result.stderr)
         data=json.loads(result.stdout);self.assertTrue(data['found'])
         calls=[c for c in data['calls'] if c['path'].endswith('/run')]
@@ -197,7 +197,7 @@ if(b)await b.onclick();
 console.log(JSON.stringify({found:!!b,calls,status:elements.status?.textContent,labels:elements.tasks.children.map(li=>li.children[0].textContent)}));
 })().catch(e=>{console.error(e);process.exitCode=1});
 '''
-        result=subprocess.run([node,'-e',script,str(ROOT/'apps/workbench/main.ts')],capture_output=True,text=True,encoding='utf-8',timeout=30)
+        result=subprocess.run([node,'-e',script,str(ROOT/'apps/workbench/build/main.js')],capture_output=True,text=True,encoding='utf-8',timeout=30)
         self.assertEqual(result.returncode,0,result.stderr)
         data=json.loads(result.stdout)
         self.assertTrue(data['found'])
@@ -227,7 +227,7 @@ console.log(JSON.stringify({result:elements[fn==='preview'?'asset-info':'native-
 '''
         for function in ('preview','verifyNative'):
             with self.subTest(function=function):
-                result=subprocess.run([node,'-e',script,str(ROOT/'apps/workbench/main.ts'),function],capture_output=True,text=True,encoding='utf-8',timeout=30)
+                result=subprocess.run([node,'-e',script,str(ROOT/'apps/workbench/build/main.js'),function],capture_output=True,text=True,encoding='utf-8',timeout=30)
                 self.assertEqual(result.returncode,0,result.stderr)
                 text=json.loads(result.stdout)['result']
                 self.assertIn('recent',text)
@@ -250,7 +250,7 @@ pending[1].resolve(response('recent'));await recent;pending[0].resolve(response(
 console.log(JSON.stringify({job:vm.runInContext('eventJob',c),text:elements.events.children.map(e=>e.textContent)}));
 })().catch(e=>{console.error(e);process.exitCode=1});
 '''
-        result=subprocess.run([node,'-e',script,str(ROOT/'apps/workbench/main.ts')],capture_output=True,text=True,encoding='utf-8',timeout=30)
+        result=subprocess.run([node,'-e',script,str(ROOT/'apps/workbench/build/main.js')],capture_output=True,text=True,encoding='utf-8',timeout=30)
         self.assertEqual(result.returncode,0,result.stderr)
         data=json.loads(result.stdout)
         self.assertEqual(data['job'],'recent')
@@ -274,7 +274,7 @@ vm.createContext(c);vm.runInContext(fs.readFileSync(process.argv[1],'utf8'),c);
 tamper=true;let rejected=false;try{await vm.runInContext("exportBundle({job_id:'native-job-"+'a'.repeat(64)+"'})",c)}catch(e){rejected=true;}
 console.log(JSON.stringify({saved,rejected}));})().catch(e=>{console.error(e);process.exitCode=1});
 '''
-        result=subprocess.run([node,'-e',script,str(ROOT/'apps/workbench/main.ts')],capture_output=True,text=True,encoding='utf-8',timeout=30)
+        result=subprocess.run([node,'-e',script,str(ROOT/'apps/workbench/build/main.js')],capture_output=True,text=True,encoding='utf-8',timeout=30)
         self.assertEqual(result.returncode,0,result.stderr)
         self.assertEqual(json.loads(result.stdout),{'saved':1,'rejected':True})
 
@@ -299,7 +299,7 @@ vm.createContext(c);vm.runInContext(fs.readFileSync(process.argv[1],'utf8'),c);
  if(list?.children[0])await list.children[0].children[0].onclick();
  console.log(JSON.stringify({labels,calls,info:elements['native-info']?.textContent||''}));})().catch(e=>{console.error(e);process.exitCode=1});
 '''
-        result=subprocess.run([node,'-e',script,str(ROOT/'apps/workbench/main.ts')],capture_output=True,text=True,encoding='utf-8',timeout=30)
+        result=subprocess.run([node,'-e',script,str(ROOT/'apps/workbench/build/main.js')],capture_output=True,text=True,encoding='utf-8',timeout=30)
         self.assertEqual(result.returncode,0,result.stderr)
         data=json.loads(result.stdout)
         self.assertEqual(len(data['labels']),1,'native assets are not rendered')
