@@ -5,6 +5,10 @@ node_modules/
 # Build outputs and caches
 dist/
 build/
+# DESIGN-LAB Workbench D003 Build Output Truth: apps/workbench/build is the single
+# committed Vite outDir (no-drift CI-checked), unlike the generic build/ ignore above.
+!apps/workbench/build/
+!apps/workbench/build/**
 coverage/
 .gradle/
 .tmp/

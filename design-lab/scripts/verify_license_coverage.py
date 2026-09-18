@@ -42,6 +42,11 @@ EXCLUDE_PREFIX = (
     # research/candidates/: each carries its own LICENSE + SOURCE.md (REUSE: vendored
     # trees are excluded from project header coverage)
     "research/candidates/",
+    # D003 Build Output Truth: apps/workbench/build is the committed Vite outDir
+    # (generated bundle, no-drift-checked like the MiniGame committed bundles),
+    # not hand-edited source — excluded from source-header coverage. The
+    # TypeScript source it is built from (apps/workbench/*.ts) IS covered.
+    "apps/workbench/build/",
 )
 
 

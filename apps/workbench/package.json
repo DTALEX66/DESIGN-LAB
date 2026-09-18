@@ -1,0 +1,16 @@
+{
+  "name": "@design-lab/workbench",
+  "version": "0.1.0-alpha.0",
+  "private": true,
+  "description": "DESIGN-LAB Workbench — the product front end. Single product Node workspace package (taskpack 24). Vanilla TypeScript + Vite; no React/Vue (taskpack 25, first stage). API response types are strict (no any); cross-language enum vocabularies are not hand-copied — taskpack 26.",
+  "type": "module",
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "build": "vite build",
+    "test:unit": "node tests/unit.mjs"
+  },
+  "devDependencies": {
+    "typescript": "~5.6.3",
+    "vite": "^6.0.0"
+  }
+}

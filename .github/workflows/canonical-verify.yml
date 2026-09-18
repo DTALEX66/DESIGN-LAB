@@ -134,6 +134,38 @@ jobs:
       - name: Confirm worktree clean after build
         run: git diff --exit-code -- fixtures/domains/game-visual
 
+  workbench-gate:
+    name: Workbench strict-TS product gate (taskpack 12.2/12.3/12.4/12.5)
+    runs-on: ubuntu-latest
+    # Independent of the Python gate: verifies the Workbench front end as a
+    # strict-TypeScript product (D002), the D003 Build Output Truth
+    # (apps/workbench/build is the single committed Vite outDir), and the
+    # D004 "no .ts-treated-as-.js production path" contract.
+    # Browser-level E2E (real Chromium driving the full Product->Brief->
+    # ...->DesignSystem vertical slice, served by the Python backend) is owned
+    # by the E-slice gate, not this static node gate; it is NOT silently dropped.
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: 22
+      - name: "Install pinned pnpm (matches root package.json packageManager)"
+        run: npm install -g pnpm@11.22.0
+      - name: "pnpm frozen-lockfile install"
+        run: pnpm install --frozen-lockfile
+      - name: "strict typecheck (tsc --noEmit)"
+        run: pnpm --filter @design-lab/workbench typecheck
+      - name: "Vite build (Build Output Truth -> apps/workbench/build)"
+        run: pnpm --filter @design-lab/workbench build
+      - name: "node unit smoke (deterministic, no browser)"
+        run: pnpm --filter @design-lab/workbench test:unit
+      - name: "Workbench Build-Output-Truth / packaging static verifier"
+        run: python3 design-lab/scripts/verify_workbench_packaging.py
+      - name: "No-drift: rebuilt bundle is byte-identical to committed"
+        run: git diff --exit-code -- apps/workbench/build
+
   generated-artifact-gate:
     name: Generated-artifact clean-tree gate
     runs-on: ubuntu-latest
