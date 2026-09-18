@@ -4,7 +4,7 @@ from importlib.resources import files
 from pathlib import Path
 
 ROUTES = {'/workbench': ('index.html', 'text/html'),
-          '/workbench/main.js': ('main.ts', 'text/javascript'),
+          '/workbench/main.js': ('dist/main.js', 'text/javascript'),
           '/workbench/style.css': ('style.css', 'text/css')}
 CSP = ("default-src 'none'; script-src 'self'; style-src 'self'; "
        "img-src data:; connect-src 'self'; base-uri 'none'; form-action 'none'; "
