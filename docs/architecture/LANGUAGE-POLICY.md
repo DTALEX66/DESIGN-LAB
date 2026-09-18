@@ -68,8 +68,8 @@ added here, deliberately:
 **Required action for the owner or Codex**: add a dev dependency group with a
 pinned `ruff==<version>`, run `uv lock`, verify `uv sync --locked`, and record the
 licence (MIT) and rollback (remove the group). Until then the policy records
-`ruff: DECLARED_NOT_ENFORCED`, and nothing in this repository claims that linting
-runs.
+`ruff: CONFIGURED_NOT_ENFORCED` (the single Ruff fact, FU-06), and nothing in this
+repository claims that linting runs.
 
 What *is* unified today, measured: one `pyproject.toml`, one `uv.lock`, `src/`
 layout with `packages/capabilities` force-included, zero `sys.path` manipulation

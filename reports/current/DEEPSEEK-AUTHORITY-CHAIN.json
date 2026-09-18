@@ -1,10 +1,10 @@
 {
   "schemaVersion": "design-lab/deepseek-authority-chain/v1",
   "task_key": "DL-TP-20260914-DEEPSEEK-AUTHORITY-R1::DLDS-A010",
-  "generated_at": "2026-09-17T14:30:58+00:00",
+  "generated_at": "2026-09-18T14:29:55+00:00",
   "subject": {
-    "base_sha": "cbc0463e9e6a0faa2bcd61b9a4aee3aa4808dea8",
-    "branch": "codex/deepseek-authority-r1",
+    "base_sha": "0e9f687ca306226f984f9ac49d222c0d8ff8a1e5",
+    "branch": "feat/dl-authority-convergence-r2",
     "worktree_clean": false
   },
   "current_authority": {
@@ -108,7 +108,7 @@
     "CURRENT_DEEPSEEK_AUTHORITY": 2,
     "GOVERNANCE_TRUTH": 2,
     "HISTORICAL": 14,
-    "REFERENCE": 11
+    "REFERENCE": 12
   },
   "entries": [
     {
@@ -120,8 +120,8 @@
     },
     {
       "path": "AGENTS.md",
-      "bytes": 8267,
-      "sha256": "sha256:26b80f4f79642f2b290d8f853663ff7787b592b944635670655c2b4057cc1086",
+      "bytes": 9757,
+      "sha256": "sha256:653e938e4f8edc57abcb19084390a228c4ec291fae42a47afc188e26bc1d230c",
       "authority_class": "GOVERNANCE_TRUTH",
       "basis": "root execution rules"
     },
@@ -339,6 +339,13 @@
       "path": "docs/taskpacks/DESIGN-LAB-DP-CORRECTION-TASKPACK-V2-2026-09-06.md",
       "bytes": 14019,
       "sha256": "sha256:841c9f48d4cd4ef739f988daaa2a7fd69b1501d2c0578543dd0b8d1e30b3b2d3",
+      "authority_class": "REFERENCE",
+      "basis": "older taskpack retained for reference; not a current dispatch entry"
+    },
+    {
+      "path": "docs/taskpacks/DESIGN-LAB-FINAL-AUTHORITY-CONVERGENCE-TASKPACK-2026-09-18.md",
+      "bytes": 8111,
+      "sha256": "sha256:62f43ef295d4e90462d1e49e657e490400c4b5568f4e4ad1db3e268e12bb10c7",
       "authority_class": "REFERENCE",
       "basis": "older taskpack retained for reference; not a current dispatch entry"
     },
