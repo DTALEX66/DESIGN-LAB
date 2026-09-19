@@ -22,6 +22,7 @@ the chosen-actor fact and the binding spec digest. Nothing here claims E3/E4.
 from __future__ import annotations
 
 import json
+import re
 import sqlite3
 from contextlib import closing
 from pathlib import Path
@@ -30,10 +31,33 @@ from .creative import store as cstore
 from .creative.store import CreativeError
 from .runtime.paths import PROJECT_ROOT, PathPolicyError
 
-# Packaged design-system catalog directory (source of the design contracts a
-# direction may bind to). Resolved through PROJECT_ROOT so it works in both the
-# source tree and the installed wheel.
-_CATALOG_ROOT = PROJECT_ROOT / 'design-lab' / 'design-systems'
+# P0-07: the design-system catalog (source of the design contracts a direction
+# may bind to) is packaged into the wheel under design_lab/resources/
+# design-systems, and also lives in the source checkout. _catalog_root()
+# resolves it packaged-first (installed wheel via importlib.resources) with a
+# source-checkout fallback, mirroring workbench.resource(): in an installed
+# environment PROJECT_ROOT does not point at the design-systems tree, so the
+# catalog must come from the package.
+_CATALOG_PKG = ('design_lab', 'resources', 'design-systems')
+_CATALOG_SOURCE = ('design-lab', 'design-systems')
+
+
+def _catalog_root():
+    """Return the first design-system catalog root that actually has manifests."""
+    from importlib.resources import files
+    candidates = []
+    try:
+        candidates.append(files(_CATALOG_PKG[0]).joinpath(*_CATALOG_PKG[1:]))
+    except (FileNotFoundError, ModuleNotFoundError, AttributeError):
+        pass
+    candidates.append(Path(PROJECT_ROOT).joinpath(*_CATALOG_SOURCE))
+    for candidate in candidates:
+        try:
+            if candidate.is_dir() and list(candidate.glob('*/manifest.json')):
+                return candidate
+        except (OSError, RuntimeError):
+            continue
+    return candidates[0] if candidates else None
 
 
 class DesignLayerError(ValueError):
@@ -81,11 +105,17 @@ def _record_intent(conn, *, scope, key, document):
         raise DesignLayerError(409, 'IDEMPOTENCY_CONFLICT')
 
 
+# P0-05: a reference asset id is the shape the image import layer mints
+# (``img-`` + 64 hex). Anything else is rejected before it can reach the DB.
+_ASSET_ID_SHAPE = re.compile(r'img-[0-9a-f]{64}')
+
+
 def catalog():
     """The read-only design-system catalog (packaged manifests, no writes)."""
     systems = []
-    if _CATALOG_ROOT.is_dir():
-        for manifest in sorted(_CATALOG_ROOT.glob('*/manifest.json')):
+    catalog_root = _catalog_root()
+    if catalog_root is not None:
+        for manifest in sorted(catalog_root.glob('*/manifest.json')):
             data = json.loads(manifest.read_text(encoding='utf-8'))
             name = data.get('name')
             if not isinstance(name, str) or not name:
@@ -170,6 +200,30 @@ class DesignLayer:
             'created_at': row['created_at'],
         }
 
+    @staticmethod
+    def _verify_references(conn, project_id, refs):
+        """P0-05: every reference_asset_id must be a real asset of THIS project.
+
+        Deduped in order; a malformed id, an unknown id and an id owned by a
+        different project all fail closed (no arbitrary ``img-…`` string may be
+        persisted into a brief). The ``asset`` table is visible on this same
+        guarded connection, so no second store or cross-database read is needed.
+        """
+        seen = []
+        for ref in refs:
+            if ref not in seen:
+                seen.append(ref)
+        for ref in seen:
+            if not _ASSET_ID_SHAPE.fullmatch(ref):
+                raise DesignLayerError(400, 'INVALID_REFERENCE_ASSET_ID')
+            row = conn.execute(
+                "SELECT project_id FROM asset WHERE asset_id=?", (ref,)).fetchone()
+            if row is None:
+                raise DesignLayerError(404, 'REFERENCE_ASSET_NOT_FOUND')
+            if row['project_id'] != project_id:
+                raise DesignLayerError(409, 'REFERENCE_ASSET_PROJECT_MISMATCH')
+        return seen
+
     # -- briefs -------------------------------------------------------------
     def create_brief(self, project_id, *, title, goals, constraints,
                      reference_asset_ids, idempotency_key):
@@ -180,6 +234,10 @@ class DesignLayer:
             raise DesignLayerError(400, 'GOALS_REQUIRED')
         constraints = _text(constraints, 'constraints', max_len=2000) if constraints else None
         refs = _string_list(reference_asset_ids, 'reference_asset_ids', limit=32, item_max=72)
+        # P0-05: dedupe now (in order) so the persisted + hashed reference list is the
+        # canonical one; the per-id asset existence / project-ownership checks happen on
+        # the write connection below.
+        refs = list(dict.fromkeys(refs))
 
         document = {'title': title, 'goals': goals, 'constraints': constraints,
                     'reference_asset_ids': refs}
@@ -193,13 +251,20 @@ class DesignLayer:
                     "SELECT * FROM design_brief WHERE operation_id=?", (operation_id,)).fetchone()
                 if existing is not None:
                     return {'brief': self._brief(dict(existing))}
+                # P0-05: fail closed before persisting — every reference must be a
+                # real asset of this project (malformed / unknown / cross-project).
+                refs = self._verify_references(conn, project_id, refs)
                 brief_id = cstore.new_id('brief')
                 conn.execute(
                     "INSERT INTO design_brief (brief_id, operation_id, project_id, title, goals_json,"
                     " constraints_json, reference_asset_ids, spec_sha256, version, created_at)"
                     " VALUES (?,?,?,?,?,?,?,?,1,?)",
                     (brief_id, operation_id, project_id, title, _json_field(goals),
-                     _json_field({'constraints': constraints}) if constraints else None,
+                     # P0-04: store constraints as a JSON-encoded string (""text""), not as
+                     # {"constraints":"text"}; readback below json.loads it back to the same
+                     # string|null so the frontend and backend share ONE contract (no
+                     # [object Object] double truth).
+                     _json_field(constraints) if constraints else None,
                      _json_field(refs) if refs else None,
                      spec.removeprefix('sha256:'), cstore.now()))
                 created = conn.execute(
@@ -303,6 +368,16 @@ class DesignLayer:
                     raise DesignLayerError(404, 'DIRECTION_NOT_FOUND')
                 operation_id, _ = _record_intent(
                     conn, scope='choose:' + direction_id, key=idempotency_key, document=document)
+                # P0-01 single-choice invariant: within this ONE transaction, de-select
+                # every other chosen direction under the SAME brief, then select this
+                # direction. Both updates share the single transaction, so the database
+                # can never end up in a "all cleared but the new choice not set"
+                # intermediate state. (Choosing across different briefs is unaffected:
+                # each brief keeps at most one chosen direction.)
+                conn.execute(
+                    "UPDATE design_direction SET chosen=0, actor=NULL, actor_kind=NULL "
+                    "WHERE brief_id=? AND chosen=1 AND direction_id<>?",
+                    (row['brief_id'], direction_id))
                 conn.execute(
                     "UPDATE design_direction SET chosen=1, actor=?, actor_kind=? WHERE direction_id=?",
                     (actor, actor_kind, direction_id))
@@ -324,10 +399,16 @@ class DesignLayer:
         with closing(cstore.connect(self._db_path(), project_root=self.paths.project_root)) as conn:
             with cstore.transaction(conn):
                 conn.row_factory = sqlite3.Row
-                if not conn.execute(
-                        "SELECT 1 FROM design_direction WHERE project_id=? AND direction_id=?",
-                        (project_id, direction_id)).fetchone():
+                # P0-03: a binding is the design contract OF THE CHOSEN direction.
+                # Fail closed when the target direction exists but is not chosen
+                # (a specific 4xx, never the generic INVALID_REQUEST).
+                dr = conn.execute(
+                    "SELECT chosen FROM design_direction WHERE project_id=? AND direction_id=?",
+                    (project_id, direction_id)).fetchone()
+                if dr is None:
                     raise DesignLayerError(404, 'DIRECTION_NOT_FOUND')
+                if not int(dr['chosen']):
+                    raise DesignLayerError(409, 'DIRECTION_NOT_CHOSEN')
                 operation_id, _ = _record_intent(
                     conn, scope='bind:' + direction_id, key=idempotency_key, document=document)
                 existing = conn.execute(
@@ -364,13 +445,15 @@ class DesignLayer:
             "SELECT * FROM design_system_binding WHERE project_id=? ORDER BY binding_id",
             (project_id,))
         chosen = [d for d in directions if d['chosen']]
+        # P0-02: chosen_direction reflects ONLY a real chosen direction. There is
+        # no fallback to the most-recently-created direction, which would fabricate
+        # a Human Choice that never happened. No chosen -> null.
         active_binding = bindings[-1] if bindings else None
         return {
             'design_layer': {
                 'briefs': briefs,
                 'directions': directions,
-                'chosen_direction': next((d for d in chosen), None) or (
-                    directions[-1] if directions else None),
+                'chosen_direction': chosen[0] if chosen else None,
                 'bindings': [self._binding(b) for b in bindings],
                 'active_binding': self._binding(dict(active_binding)) if active_binding else None,
                 'design_systems': catalog(),
