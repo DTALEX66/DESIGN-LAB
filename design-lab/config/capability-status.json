@@ -16,27 +16,27 @@
     },
     {
       "id": "E2",
-      "label": "isolated-runtime",
-      "claim": "isolated staging command succeeds",
+      "label": "controlled-runtime",
+      "claim": "a controlled isolated runtime command succeeds and reads back its own state",
       "proof": "command, exit code, output summary and read-back artifact"
     },
     {
       "id": "E3",
-      "label": "live-runtime",
-      "claim": "a host/Agent runtime (current reference: Open Design or another approved host adapter) executes the capability",
+      "label": "real-workflow",
+      "claim": "a real host/Agent runtime (an approved host adapter, e.g. Open Design) executes the capability end-to-end",
       "proof": "runtime ID/version, task ID, artifact hash, stage/provenance read-back"
     },
     {
       "id": "E4",
-      "label": "release",
-      "claim": "reviewed exact tree is published with exact-SHA CI evidence",
-      "proof": "commit, push/PR/release, workflow run and remote read-back"
+      "label": "independent-acceptance",
+      "claim": "an independent reviewer / human acceptance of the capability is recorded",
+      "proof": "independent acceptance record, reviewer identity, review read-back"
     },
     {
       "id": "E5",
-      "label": "commercial",
-      "claim": "external customer/developer/production acceptance exists",
-      "proof": "acceptance record, production feedback or delivery sign-off"
+      "label": "released",
+      "claim": "the capability is released and repeatably provable at an exact SHA",
+      "proof": "release, exact-SHA CI evidence, repeatable read-back and artifact hash"
     }
   ],
   "states": [

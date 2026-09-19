@@ -16,24 +16,24 @@
       "proof": "hash, parser, schema or linter output"
     },
     "E2": {
-      "label": "isolated-runtime",
+      "label": "controlled-runtime",
       "state": "isolated-pass",
-      "proof": "command output in isolated env"
+      "proof": "command, exit code, output summary and read-back artifact"
     },
     "E3": {
-      "label": "runtime",
+      "label": "real-workflow",
       "state": "runtime-pass",
       "proof": "runtime id + task id + artifact provenance"
     },
     "E4": {
-      "label": "frozen",
+      "label": "independent-acceptance",
       "state": "release-verified",
-      "proof": "frozen tree + independent review + exact-SHA CI"
+      "proof": "independent acceptance record + reviewer identity + review read-back"
     },
     "E5": {
-      "label": "external",
+      "label": "released",
       "state": "commercially-proven",
-      "proof": "external acceptance"
+      "proof": "release + exact-SHA CI evidence + repeatable read-back + artifact hash"
     }
   },
   "capabilities": [
