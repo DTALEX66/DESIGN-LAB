@@ -79,18 +79,39 @@ try {
     await page.locator('#project').selectOption({ label: name });
   });
 
+  // P0-05 B04: import a real reference asset and let the picker carry it into the brief.
+  // The PNG is a PIL-verified valid 1x1 RGBA image (not a broken placeholder).
+  await step('import reference', async () => {
+    const png = Buffer.from(
+      '89504e470d0a1a0a0000000d49484452000000010000000108060000001f15c489' +
+      '0000000b49444154789c6360000200000500017a5eab3f0000000049454e44ae426082', 'hex');
+    await page.locator('#file').setInputFiles({ name: 'ref.png', mimeType: 'image/png', buffer: png });
+    await page.locator('#import-button').click();
+    // sendImport() -> refresh() -> populateReferencePicker: one checkbox per imported asset.
+    await page.locator('#reference-picker input[type=checkbox]').first()
+      .waitFor({ state: 'visible', timeout: 20000 });
+  });
+
   // Refresh loads the design-system catalog + design-layer readback into 05.
   await step('refresh design systems', async () => {
     await page.locator('#refresh').click();
     await page.locator('#design-systems li').first().waitFor({ state: 'visible', timeout: 15000 });
   });
 
-  await step('persist brief', async () => {
+  await step('persist brief with reference', async () => {
+    // P0-05 B04: the imported asset is a real reference; check it so the brief
+    // carries a genuine asset id (not an empty list), then prove the readback.
+    await page.locator('#reference-picker input[type=checkbox]').first().check();
     await page.locator('#brief-title').fill('E2E Autumn');
     await page.locator('#brief-goals').fill('modern, warm, restrained');
     await page.locator('#brief-submit').click();
     await page.locator('#design-briefs li', { hasText: 'BRIEF · E2E Autumn' })
       .first().waitFor({ state: 'visible', timeout: 15000 });
+    const briefLine = await page.locator('#design-briefs li').first().innerText();
+    if (!/参考 1/.test(briefLine)) {
+      console.error('E2E_REFERENCE_NOT_CARRIED: ' + briefLine);
+      process.exit(6);
+    }
   });
 
   await step('raise direction', async () => {
