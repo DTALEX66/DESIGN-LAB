@@ -201,7 +201,29 @@ jobs:
         # cache) keeps the browser version bound to the committed lockfile.
         run: pnpm --filter @design-lab/workbench exec npx playwright install chromium
       - name: "Browser E2E must RUN and PASS (no-skip policy)"
+        # E2E_REQUIRED makes the shell test fail-closed on missing evidence;
+        # E2E_SUBJECT_SHA / E2E_WORKFLOW_RUN_ID stamp the exact-SHA and run
+        # identity into browser-e2e-summary.json for the artifact below.
+        # NOTE: github.sha / github.run_id are trusted identity fields
+        # computed by GitHub (not attacker-controlled event inputs), so
+        # they are safe in env: / with: contexts.
+        env:
+          E2E_REQUIRED: "1"
+          E2E_SUBJECT_SHA: ${{ github.sha }}
+          E2E_WORKFLOW_RUN_ID: ${{ github.run_id }}
         run: python design-lab/scripts/verify_browser_e2e_ran.py
+      - name: "Upload E2 evidence artifact (summary + fail screenshot)"
+        # P0-G: the no-skip job must leave download-proof. The mjs driver
+        # writes browser-e2e-summary.json (and fail.png on a mid-chain
+        # failure) into the gitignored .project-local/ tree; on a clean
+        # runner nothing exists yet, so if-no-files-found=error keeps a
+        # "green-but-empty" upload from being silently possible.
+        if: always()
+        uses: actions/upload-artifact@65c4c4a1ddee5b7f698f8297e8f3f4f7e4b8c1a2
+        with:
+          name: workbench-e2-${{ github.sha }}
+          path: .project-local/task-artifacts/browser-e2e/
+          if-no-files-found: error
 
   generated-artifact-gate:
     name: Generated-artifact clean-tree gate
