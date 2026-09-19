@@ -27,11 +27,39 @@ _ASSETS_V2_SCHEMA = state_schema("design-lab-state-assets-v2.sql")
 _ATTEMPT_SCHEMA = state_schema("design-lab-state-attempt-v1.sql")
 _ATTEMPT_V2_SCHEMA = state_schema("design-lab-state-attempt-v2.sql")
 _DESIGN_LAYER_SCHEMA = state_schema("design-lab-state-design-layer-v1.sql")
+_DESIGN_LAYER_V2_SCHEMA = state_schema("design-lab-state-design-layer-v2.sql")
 MIGRATION = "creative-v1"
+def _design_layer_v2_precheck(conn: sqlite3.Connection) -> None:
+    """P0-A+ fail-closed precheck for the single-choice invariant index.
+
+    If a live database already holds two or more active (chosen=1, not
+    superseded) directions for one brief, creating the partial UNIQUE index
+    would abort. Rather than pick a winner with MAX(direction_id) -- which
+    would make a Human design decision on the user's behalf -- the migration
+    stops and lists the offending briefs so an operator can remediate. Fresh
+    and empty databases have no duplicates and pass.
+    """
+    offenders = [row[0] for row in conn.execute(
+        "SELECT brief_id FROM design_direction "
+        "WHERE chosen = 1 AND superseded_by IS NULL "
+        "GROUP BY brief_id HAVING COUNT(*) > 1").fetchall()]
+    if offenders:
+        raise CreativeError(
+            "design-layer-v2 invariant precheck failed: briefs holding more "
+            f"than one active chosen direction: {sorted(offenders)}; "
+            "remediate the duplicates before the unique partial index can be "
+            "created (the application's single-transaction choose never "
+            "produces this state, so it indicates manual or legacy data)")
+
+
 # The creative model reads operation_state and attempt_state, so this store
 # applies every schema family it depends on and records each migration under the
 # same name the owning store uses. Whichever store opens the database first
 # applies them; the other then sees the migration already recorded.
+#
+# Each entry is (name, schema, probe, precheck); a 3-tuple is padded with a
+# None precheck. The optional precheck runs on the live connection BEFORE the
+# index DDL and may fail closed.
 GUARDED_MIGRATIONS = (
     ("assets-v2", _ASSETS_V2_SCHEMA, "asset_version"),
     ("attempt-v2", _ATTEMPT_V2_SCHEMA, "attempt_state"),
@@ -39,6 +67,11 @@ GUARDED_MIGRATIONS = (
     # E-SLICE-01 design layer: brief / direction / design-system-binding tables.
     # Applied AFTER the creative family so operation_intent + project FKs exist.
     ("design-layer-v1", _DESIGN_LAYER_SCHEMA, "design_brief"),
+    # P0-A+ DB-level single-choice invariant: a partial UNIQUE index capping one
+    # active chosen direction per brief. The optional 4th element is a precheck
+    # that fails closed (listing offending briefs) if duplicates already exist.
+    ("design-layer-v2", _DESIGN_LAYER_V2_SCHEMA, "design_brief",
+     _design_layer_v2_precheck),
 )
 
 ASSET_KINDS = ("raster", "vector", "text", "audio", "video", "blend",
@@ -125,16 +158,23 @@ def connect(db_path, *, project_root=None) -> sqlite3.Connection:
         conn.executescript(_ATTEMPT_SCHEMA.read_text(encoding="utf-8"))
         conn.execute("CREATE TABLE IF NOT EXISTS runtime_migration (name TEXT PRIMARY KEY, applied_at TEXT NOT NULL)")
         conn.commit()
-        for name, schema, probe in GUARDED_MIGRATIONS:
-            _migrate_once(conn, db_path, name, schema, probe)
+        for entry in GUARDED_MIGRATIONS:
+            _migrate_once(conn, db_path, entry[0], entry[1], entry[2],
+                          entry[3] if len(entry) > 3 else None)
         return conn
     except BaseException:
         conn.close()
         raise
 
 
-def _migrate_once(conn: sqlite3.Connection, db_path: Path, name: str, schema, probe: str) -> None:
-    """Apply one guarded migration, backing up a populated database first."""
+def _migrate_once(conn: sqlite3.Connection, db_path: Path, name: str, schema, probe: str,
+                  precheck=None) -> None:
+    """Apply one guarded migration, backing up a populated database first.
+
+    An optional ``precheck(conn)`` runs on the live connection inside the write
+    transaction, BEFORE the DDL, and may fail closed (e.g. the P0-A+
+    single-choice invariant refuses to build the index over duplicate data).
+    """
     if conn.execute("SELECT 1 FROM runtime_migration WHERE name=?", (name,)).fetchone():
         return
     try:
@@ -150,6 +190,8 @@ def _migrate_once(conn: sqlite3.Connection, db_path: Path, name: str, schema, pr
             backup.close()
     with transaction(conn):
         if not conn.execute("SELECT 1 FROM runtime_migration WHERE name=?", (name,)).fetchone():
+            if precheck is not None:
+                precheck(conn)
             _apply_script(conn, schema.read_text(encoding="utf-8"))
             conn.execute("INSERT INTO runtime_migration VALUES (?, ?)", (name, now()))
 

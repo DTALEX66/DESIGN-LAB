@@ -350,6 +350,73 @@ class DesignLayerHttpTests(unittest.TestCase):
         self.assertEqual(self.request(path='/api/design-systems',
                                       headers={'Authorization': ''})[0], 401)
 
+    # -- P0-D active_binding follows the CHOSEN direction -----------------
+    def test_switching_choice_nulls_stray_binding(self):
+        # Choosing A then binding A, then switching the choice to B (unbound)
+        # must make active_binding NULL -- it must not keep pointing at A's
+        # binding. A's binding still persists in the bindings list.
+        pid = self._project()
+        brief = self._brief(pid)
+        dir_a = self._direction(pid, brief['brief_id'], title='A', key='da')
+        dir_b = self._direction(pid, brief['brief_id'], title='B', key='db')
+
+        self.request('POST', f"/api/projects/{pid}/directions/{dir_a['direction_id']}/choose",
+                     {'actor': 'A', 'actor_kind': 'human', 'idempotency_key': self.key('ca')})
+        self.request('POST', f"/api/projects/{pid}/directions/{dir_a['direction_id']}/bind",
+                     {'design_system_name': 'uiux-commercial-light',
+                      'idempotency_key': self.key('sa')})
+        layer = self.request(path=f'/api/projects/{pid}/design-layer')[1]['design_layer']
+        self.assertEqual(layer['chosen_direction']['direction_id'], dir_a['direction_id'])
+        self.assertEqual(layer['active_binding']['direction_id'], dir_a['direction_id'])
+
+        # Switch the human choice to B. B has no binding of its own.
+        self.request('POST', f"/api/projects/{pid}/directions/{dir_b['direction_id']}/choose",
+                     {'actor': 'B', 'actor_kind': 'human', 'idempotency_key': self.key('cb')})
+        layer = self.request(path=f'/api/projects/{pid}/design-layer')[1]['design_layer']
+        self.assertEqual(layer['chosen_direction']['direction_id'], dir_b['direction_id'])
+        # A's binding still exists (history is append-only) ...
+        self.assertEqual([b['direction_id'] for b in layer['bindings']], [dir_a['direction_id']])
+        # ... but it is no longer ACTIVE, because B is the chosen direction.
+        self.assertIsNone(layer['active_binding'])
+
+    # -- P0-A+ database-level single-choice invariant --------------------
+    def test_single_choice_partial_unique_index_exists(self):
+        # The design-layer-v2 migration installed a partial UNIQUE index that
+        # caps one active chosen direction per brief, at the database level.
+        import sqlite3
+        pid = self._project()
+        brief = self._brief(pid)  # force the design-layer migration chain to run
+        conn = sqlite3.connect(str(self.service.database))
+        try:
+            row = conn.execute(
+                "SELECT name FROM sqlite_master WHERE type='index' "
+                "AND name='ux_design_direction_one_chosen_per_brief'").fetchone()
+        finally:
+            conn.close()
+        self.assertIsNotNone(row, 'P0-A+ partial unique index was not created')
+
+    def test_v2_precheck_fails_closed_on_duplicate_choices(self):
+        # The migration precheck refuses to build the index over legacy
+        # duplicate chosen rows, listing the offending briefs (it never picks
+        # a winner with MAX(direction_id)).
+        import sqlite3
+        from design_lab.creative import store as cstore
+        conn = sqlite3.connect(':memory:')
+        conn.executescript(
+            "CREATE TABLE design_direction ("
+            "direction_id TEXT PRIMARY KEY, brief_id TEXT, chosen INTEGER, "
+            "superseded_by TEXT, actor TEXT, actor_kind TEXT, "
+            "spec_sha256 TEXT, version INTEGER, created_at TEXT)")
+        conn.execute("INSERT INTO design_direction VALUES ('d1','b1',1,NULL,NULL,NULL,'x',1,'t')")
+        conn.execute("INSERT INTO design_direction VALUES ('d2','b1',1,NULL,NULL,NULL,'y',1,'t')")
+        with self.assertRaises(cstore.CreativeError) as ctx:
+            cstore._design_layer_v2_precheck(conn)
+        self.assertIn('b1', str(ctx.exception))
+        # A brief with a single chosen direction passes the precheck.
+        conn.execute("DELETE FROM design_direction WHERE direction_id='d2'")
+        cstore._design_layer_v2_precheck(conn)  # must not raise
+        conn.close()
+
 
 if __name__ == '__main__':
     unittest.main()

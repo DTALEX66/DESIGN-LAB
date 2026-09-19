@@ -448,12 +448,25 @@ class DesignLayer:
         # P0-02: chosen_direction reflects ONLY a real chosen direction. There is
         # no fallback to the most-recently-created direction, which would fabricate
         # a Human Choice that never happened. No chosen -> null.
-        active_binding = bindings[-1] if bindings else None
+        chosen_dir = chosen[0] if chosen else None
+        # P0-D: active_binding is the binding attached to THE CHOSEN direction --
+        # never a stray binding left on some now-unchosen direction. Switching
+        # the choice (A -> B) leaves B unbound, so active_binding must go null,
+        # not point at A's binding. Among a chosen direction's own bindings we
+        # take the latest revision (version, then created_at, then id).
+        active_binding = None
+        if chosen_dir is not None:
+            owned = [b for b in bindings
+                     if b['direction_id'] == chosen_dir['direction_id']]
+            if owned:
+                active_binding = max(
+                    owned,
+                    key=lambda b: (int(b['version']), b['created_at'], b['binding_id']))
         return {
             'design_layer': {
                 'briefs': briefs,
                 'directions': directions,
-                'chosen_direction': chosen[0] if chosen else None,
+                'chosen_direction': chosen_dir,
                 'bindings': [self._binding(b) for b in bindings],
                 'active_binding': self._binding(dict(active_binding)) if active_binding else None,
                 'design_systems': catalog(),
