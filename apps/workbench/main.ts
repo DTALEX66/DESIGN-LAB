@@ -12,11 +12,16 @@
 import type {
   AssetContentResponse,
   AssetListResponse,
+  BriefLineageResponse,
+  BriefRevisionResponse,
   BundleDownloadResponse,
   DesignBrief,
   DesignDirection,
   DesignLayerResponse,
+  DesignSystemBinding,
   DesignSystemRecord,
+  DirectionLineageResponse,
+  DirectionRevisionResponse,
   EventListResponse,
   NativeAssetListResponse,
   NativeAssetRecord,
@@ -104,7 +109,21 @@ function resetProject() {
   pendingImport = null;
   nativeCursor = null;
   byId<HTMLParagraphElement>('native-info').textContent = '';
-  for (const id of ['assets', 'tasks', 'events', 'native-assets', 'reference-picker']) byId<HTMLUListElement>(id).replaceChildren();
+  for (const id of ['assets', 'tasks', 'events', 'native-assets', 'reference-picker',
+                    'design-briefs', 'design-directions', 'design-bindings',
+                    'brief-lineage', 'direction-lineage'])
+    byId<HTMLUListElement>(id).replaceChildren();
+  // F-2b: a project switch drops the in-flight revision target, the version
+  // highlight and both chains — nothing from the previous project stays
+  // visible as if it were the current project's state.
+  revisionBriefTarget = revisionDirectionTarget = null;
+  revisionBriefCarried = [];
+  highlightBrief = highlightDirection = null;
+  byId<HTMLParagraphElement>('revision-brief-target').textContent = REVISION_BRIEF_IDLE;
+  byId<HTMLParagraphElement>('revision-direction-target').textContent = REVISION_DIRECTION_IDLE;
+  byId<HTMLParagraphElement>('brief-lineage-title').textContent = '';
+  byId<HTMLParagraphElement>('direction-lineage-title').textContent = '';
+  byId<HTMLParagraphElement>('design-binding-active').textContent = '';
   for (const id of ['preview', 'retry-import', 'more-tasks', 'more-events', 'more-native']) byId(id).hidden = true;
   byId<HTMLImageElement>('preview').removeAttribute('src');
   byId<HTMLParagraphElement>('preview-empty').hidden = false;
@@ -543,6 +562,23 @@ let briefBusy = false;
 let directionBusy = false;
 let bindBusy = false;
 
+// F-2b revision state. The revision forms are ONE form per record kind, loaded
+// from a row: the target row supplies the parent version whose content is
+// re-sent (a revision appends a new immutable version; it never edits the old
+// row). `revisionBriefCarried` holds references that the checked picker cannot
+// represent, so a revision never silently drops a reference.
+let revisionBriefTarget: DesignBrief | null = null;
+let revisionDirectionTarget: DesignDirection | null = null;
+let revisionBriefCarried: string[] = [];
+let highlightBrief: string | null = null;
+let highlightDirection: string | null = null;
+let briefRevisionBusy = false;
+let directionRevisionBusy = false;
+let briefLineageRequest = 0;
+let directionLineageRequest = 0;
+const REVISION_BRIEF_IDLE = '在某一简报行点击「新版本」以载入该版本内容；保存会新增一个版本，不会改写旧版本。';
+const REVISION_DIRECTION_IDLE = '在某一方向行点击「新版本」以载入该版本内容；保存会新增一个版本，不会改写旧版本。';
+
 const uuid = (): string => crypto.randomUUID();
 
 async function loadDesignSystems() {
@@ -562,40 +598,120 @@ async function loadDesignSystems() {
   );
 }
 
+// F-2b helpers — plain user language only (no command/package/artifact terms).
+const shortId = (id: string): string => id.slice(-8);
+
+function versionOf(id: string, versions: Map<string, number>): string {
+  const known = versions.get(id);
+  return known === undefined ? `未知版本（${shortId(id)}）` : `版本 ${known}（${shortId(id)}）`;
+}
+
+// A row is either the live version (nothing supersedes it) or a superseded
+// version whose `superseded_by` pointer names the version that continued it.
+function versionState(supersededBy: string | null, versions: Map<string, number>): string {
+  return supersededBy === null ? '当前' : `已取代 → ${versionOf(supersededBy, versions)}`;
+}
+
+function rowButton(label: string, action: () => void | Promise<void>): HTMLButtonElement {
+  const element = document.createElement('button');
+  element.type = 'button';
+  element.textContent = label;
+  // Same contract as button(): the handled promise is returned so a caller can
+  // await the whole action chain (the .catch already resolves it).
+  element.onclick = () => Promise.resolve(action()).catch((error) => setStatus(errMsg(error), true));
+  return element;
+}
+
 function renderDesignLayer(data: DesignLayerResponse) {
   const layer = data.design_layer;
+  const briefVersions = new Map<string, number>();
+  for (const row of layer.briefs) briefVersions.set(row.brief_id, row.version);
+  const directionVersions = new Map<string, number>();
+  const directionsById = new Map<string, DesignDirection>();
+  for (const row of layer.directions) {
+    directionVersions.set(row.direction_id, row.version);
+    directionsById.set(row.direction_id, row);
+  }
+  const activeBindingId = layer.active_binding ? layer.active_binding.binding_id : null;
+  const focusRows: HTMLElement[] = [];
+
   byId<HTMLUListElement>('design-briefs').replaceChildren(
     ...layer.briefs.map((brief: DesignBrief) => {
       const li = document.createElement('li');
+      li.tabIndex = -1;
       const refs = brief.reference_asset_ids.length;
-      li.textContent = `BRIEF · ${brief.title} · ${brief.goals.join(' / ')}${brief.constraints ? ` · ${brief.constraints}` : ''} · 参考 ${refs} · ${brief.spec_sha256}`;
+      li.textContent = `BRIEF · ${brief.title} · ${brief.goals.join(' / ')}${brief.constraints ? ` · ${brief.constraints}` : ''} · 参考 ${refs} · v${brief.version} · ${versionState(brief.superseded_by, briefVersions)} · ${brief.spec_sha256}`;
+      li.append(
+        rowButton('新版本', () => loadBriefRevision(brief)),
+        rowButton('版本链', () => loadBriefLineage(brief.brief_id)),
+      );
+      if (brief.brief_id === highlightBrief) {
+        li.classList.add('highlight');
+        focusRows.push(li);
+      }
       return li;
     }),
   );
   byId<HTMLUListElement>('design-directions').replaceChildren(
     ...layer.directions.map((direction: DesignDirection) => {
       const li = document.createElement('li');
-      li.textContent = `DIRECTION · ${direction.title} · ${direction.chosen ? `CHOSEN by ${direction.actor}` : 'open'} · ${direction.spec_sha256}`;
-      if (direction.chosen) chosenDirection = direction;
-      const button = document.createElement('button');
-      button.type = 'button';
-      button.textContent = `选为方向 · ${direction.direction_id.slice(-8)}`;
-      button.onclick = () => chooseDirection(direction).catch((error) => setStatus(errMsg(error), true));
-      li.append(document.createTextNode(' '), button);
+      li.tabIndex = -1;
+      const live = direction.superseded_by === null;
+      li.textContent = `DIRECTION · ${direction.title} · ${direction.chosen ? `CHOSEN by ${direction.actor}` : 'open'} · v${direction.version} · ${versionState(direction.superseded_by, directionVersions)} · 简报 ${shortId(direction.brief_id)} · ${direction.spec_sha256}`;
+      if (direction.chosen && live) chosenDirection = direction;
+      // Naming a superseded version "the choice" would be untrue, so the
+      // choose entry is offered only on the live version of a direction.
+      if (live) {
+        const choose = document.createElement('button');
+        choose.type = 'button';
+        choose.textContent = `选为方向 · ${shortId(direction.direction_id)}`;
+        choose.onclick = () => chooseDirection(direction).catch((error) => setStatus(errMsg(error), true));
+        li.append(choose);
+      }
+      li.append(
+        rowButton('新版本', () => loadDirectionRevision(direction)),
+        rowButton('版本链', () => loadDirectionLineage(direction.direction_id)),
+      );
+      if (direction.direction_id === highlightDirection) {
+        li.classList.add('highlight');
+        focusRows.push(li);
+      }
       return li;
     }),
   );
   byId<HTMLUListElement>('design-bindings').replaceChildren(
-    ...(layer.bindings.length ? layer.bindings.map((binding) => {
+    ...(layer.bindings.length ? layer.bindings.map((binding: DesignSystemBinding) => {
       const li = document.createElement('li');
-      li.textContent = `BINDING · ${binding.design_system_name} · ${binding.spec_sha256}`;
+      const owner = directionsById.get(binding.direction_id);
+      // A binding row is append-only: it stays attached to the direction VERSION
+      // it was bound to and never follows a revised direction. Only the read
+      // model's active_binding is current — every other row must say so.
+      const state = binding.binding_id === activeBindingId
+        ? '生效中'
+        : owner && owner.superseded_by !== null
+          ? '未生效 · 绑定留在已被取代的方向版本上，需重新建立'
+          : '未生效 · 当前选定方向不是它';
+      li.textContent = `BINDING · ${binding.design_system_name} · 绑定记录 v${binding.version} · 方向 ${shortId(binding.direction_id)} · ${state} · ${binding.spec_sha256}`;
       return li;
     }) : [info('design-bindings-empty')]),
   );
+  const notice = byId<HTMLParagraphElement>('design-binding-active');
   const active = layer.active_binding;
-  byId<HTMLParagraphElement>('design-binding-active').textContent = active
-    ? `当前方向已绑定设计系统：${active.design_system_name}（设计契约已固定）。`
-    : '选择方向并绑定设计系统后，后续 Build/Review 才有固定设计契约。';
+  const chosen = chosenDirection;
+  if (active) {
+    notice.classList.remove('warn');
+    notice.textContent = `当前方向已绑定设计系统：${active.design_system_name}（设计契约已固定）。`;
+  } else if (chosen && layer.bindings.length) {
+    // F-2b: revising a chosen direction carries the choice forward but NOT the
+    // design-system binding (append-only row). Say so instead of showing the
+    // retired binding as if it were current.
+    notice.classList.add('warn');
+    notice.textContent = `当前选定方向「${chosen.title} · 版本 ${chosen.version}」没有生效的设计契约：已有的绑定记录仍留在旧的方向版本上，不会随新版本自动跟随——绑定需重新建立（选定设计系统后点「绑定设计系统」）。`;
+  } else {
+    notice.classList.remove('warn');
+    notice.textContent = '选择方向并绑定设计系统后，后续 Build/Review 才有固定设计契约。';
+  }
+  if (focusRows.length) focusRows[0].focus();
 }
 
 function info(id: string): HTMLElement {
@@ -733,9 +849,192 @@ async function bindDesignSystem() {
   }
 }
 
+// ============================================================================
+// F-2b revision flow: every brief / direction row can append a NEW version.
+// The row's content prefills the form, the POST goes to the revision route,
+// and the result is READ BACK from the server (design layer + version chain),
+// so the DOM only ever shows persisted state. Stale / foreign / unauthorized
+// revisions fail closed through the shared error line — never silently.
+// ============================================================================
+function revisionHint(error: unknown): string {
+  const code = errMsg(error);
+  if (code === 'STALE_REVISION') return '该版本已被取代，服务端拒绝了这次修订（STALE_REVISION）。请从版本链里的最新版本继续。';
+  if (code === 'BRIEF_NOT_FOUND' || code === 'DIRECTION_NOT_FOUND') return `该版本已不在当前项目中（${code}）；请刷新后重试。`;
+  if (code === 'UNAUTHORIZED') return '访问令牌无效或已过期（UNAUTHORIZED）；请断开后重新连接本机服务。';
+  return `${code}；本次修订未被接受，服务端未写入任何内容。`;
+}
+
+// Long items are rejected by the service (fail closed); catch it here so the
+// user sees which field is at fault instead of a bare INVALID_LIST_ITEM.
+function splitList(raw: string, maxLen: number, label: string): string[] {
+  const items = raw ? raw.split(',').map((value) => value.trim()).filter(Boolean) : [];
+  if (items.some((item) => item.length > maxLen)) throw new Error(`${label}每项不能超过 ${maxLen} 个字符`);
+  return items;
+}
+
+function loadBriefRevision(brief: DesignBrief, focusForm = true) {
+  revisionBriefTarget = brief;
+  const boxes = Array.from(document.querySelectorAll<HTMLInputElement>('input[name="reference-asset"]'));
+  const known = new Set(boxes.map((box) => box.value));
+  for (const box of boxes) box.checked = brief.reference_asset_ids.includes(box.value);
+  revisionBriefCarried = brief.reference_asset_ids.filter((id) => !known.has(id));
+  byId<HTMLInputElement>('revision-brief-title').value = brief.title;
+  byId<HTMLInputElement>('revision-brief-goals').value = brief.goals.join(', ');
+  byId<HTMLInputElement>('revision-brief-constraints').value = brief.constraints ?? '';
+  byId<HTMLParagraphElement>('revision-brief-target').textContent =
+    `正在修订简报「${brief.title}」版本 ${brief.version}（${shortId(brief.brief_id)}）：内容已按该版本预填，勾选区对应它的参考素材。保存会新增一个版本，旧版本只保留为历史。`
+    + (revisionBriefCarried.length ? `另有 ${revisionBriefCarried.length} 个参考素材不在当前勾选列表里，会原样保留。` : '')
+    + (brief.superseded_by === null ? '' : ' 注意：该版本已被取代，服务端会拒绝这次修订（STALE_REVISION），请改从版本链中的最新版本继续。');
+  // After a successful revision the highlight/focus must stay on the NEW row,
+  // so the post-revision prefill does not steal focus back into the form.
+  if (focusForm) byId<HTMLInputElement>('revision-brief-title').focus();
+}
+
+async function submitBriefRevision() {
+  const current = epoch;
+  const owner = project;
+  const source = revisionBriefTarget;
+  if (!owner || briefRevisionBusy) return;
+  if (!source) { setStatus('请先在某一简报行点击「新版本」以载入要修订的内容。', true); return; }
+  briefRevisionBusy = true;
+  byId<HTMLButtonElement>('brief-revision-submit').disabled = true;
+  try {
+    const title = byId<HTMLInputElement>('revision-brief-title').value.trim();
+    const goals = splitList(byId<HTMLInputElement>('revision-brief-goals').value, 300, '目标');
+    const constraints = byId<HTMLInputElement>('revision-brief-constraints').value.trim() || null;
+    if (!title || !goals.length) throw new Error('修订需要标题与至少一条目标');
+    const references = Array.from(new Set([...selectedReferences(), ...revisionBriefCarried]));
+    const data = await api<BriefRevisionResponse>(`/projects/${owner}/briefs/${source.brief_id}/revisions`,
+      { title, goals, constraints, reference_asset_ids: references, idempotency_key: uuid() });
+    if (current !== epoch) return;
+    highlightBrief = data.brief.brief_id;
+    await refreshDesign();
+    if (current !== epoch) return;
+    await loadBriefLineage(data.brief.brief_id);
+    if (current !== epoch) return;
+    loadBriefRevision(data.brief, false);
+    setStatus(`简报已保存为版本 ${data.brief.version}（${shortId(data.brief.brief_id)}）；版本 ${source.version} 只保留为历史，旧内容未被改写。`);
+  } catch (error) {
+    if (current === epoch) setStatus(`简报修订未确认：${revisionHint(error)}`, true);
+  } finally {
+    briefRevisionBusy = false;
+    byId<HTMLButtonElement>('brief-revision-submit').disabled = false;
+  }
+}
+
+function loadDirectionRevision(direction: DesignDirection, focusForm = true) {
+  revisionDirectionTarget = direction;
+  byId<HTMLInputElement>('revision-direction-title').value = direction.title;
+  byId<HTMLInputElement>('revision-direction-notes').value = (direction.style_notes ?? []).join(', ');
+  byId<HTMLInputElement>('revision-direction-color').value = direction.color_mood ?? '';
+  byId<HTMLInputElement>('revision-direction-type').value = direction.typography_mood ?? '';
+  byId<HTMLParagraphElement>('revision-direction-target').textContent =
+    `正在修订方向「${direction.title}」版本 ${direction.version}（${shortId(direction.direction_id)}）：内容已按该版本预填。保存会新增一个版本，旧版本只保留为历史。`
+    + (direction.chosen ? ' 该版本是当前已选定方向：选定结论会随新版本带走，但设计系统绑定不会自动跟随，需重新建立。' : '')
+    + (direction.superseded_by === null ? '' : ' 注意：该版本已被取代，服务端会拒绝这次修订（STALE_REVISION），请改从版本链中的最新版本继续。');
+  if (focusForm) byId<HTMLInputElement>('revision-direction-title').focus();
+}
+
+async function submitDirectionRevision() {
+  const current = epoch;
+  const owner = project;
+  const source = revisionDirectionTarget;
+  if (!owner || directionRevisionBusy) return;
+  if (!source) { setStatus('请先在某一方向行点击「新版本」以载入要修订的内容。', true); return; }
+  directionRevisionBusy = true;
+  byId<HTMLButtonElement>('direction-revision-submit').disabled = true;
+  try {
+    const title = byId<HTMLInputElement>('revision-direction-title').value.trim();
+    const notes = splitList(byId<HTMLInputElement>('revision-direction-notes').value, 300, '表现备注');
+    const colorMood = byId<HTMLInputElement>('revision-direction-color').value.trim() || null;
+    const typeMood = byId<HTMLInputElement>('revision-direction-type').value.trim() || null;
+    if (!title) throw new Error('修订需要方向标题');
+    const data = await api<DirectionRevisionResponse>(`/projects/${owner}/directions/${source.direction_id}/revisions`,
+      { title, style_notes: notes.length ? notes : null, color_mood: colorMood, typography_mood: typeMood, idempotency_key: uuid() });
+    if (current !== epoch) return;
+    highlightDirection = data.direction.direction_id;
+    await refreshDesign();
+    if (current !== epoch) return;
+    await loadDirectionLineage(data.direction.direction_id);
+    if (current !== epoch) return;
+    loadDirectionRevision(data.direction, false);
+    setStatus(`方向已保存为版本 ${data.direction.version}（${shortId(data.direction.direction_id)}）；版本 ${source.version} 只保留为历史。`
+      + (data.direction.chosen ? ` 选定结论已随新版本带走（${data.direction.actor}）；设计系统绑定未跟随，绑定需重新建立。` : ''));
+  } catch (error) {
+    if (current === epoch) setStatus(`方向修订未确认：${revisionHint(error)}`, true);
+  } finally {
+    directionRevisionBusy = false;
+    byId<HTMLButtonElement>('direction-revision-submit').disabled = false;
+  }
+}
+
+async function loadBriefLineage(briefId: string) {
+  const current = epoch;
+  const owner = project;
+  if (!owner) return;
+  const request = ++briefLineageRequest;
+  setStatus('正在读取简报版本链…');
+  const data = await api<BriefLineageResponse>(`/projects/${owner}/briefs/${briefId}/lineage`).catch((error) => {
+    if (current !== epoch || request !== briefLineageRequest) return null;
+    throw error;
+  });
+  if (!data || current !== epoch || request !== briefLineageRequest) return;
+  const versions = new Map<string, number>();
+  for (const row of data.lineage.versions) versions.set(row.brief_id, row.version);
+  const liveId = data.lineage.live_id;
+  const live = liveId === null ? '—' : versionOf(liveId, versions);
+  const first = data.lineage.versions.length ? data.lineage.versions[0] : null;
+  byId<HTMLParagraphElement>('brief-lineage-title').textContent =
+    `简报版本链 · 共 ${data.lineage.versions.length} 个版本 · 当前 ${live} · 起点 ${first ? `版本 ${first.version}` : '—'}`;
+  byId<HTMLUListElement>('brief-lineage').replaceChildren(
+    ...data.lineage.versions.map((row) => {
+      const li = document.createElement('li');
+      li.textContent = `版本 ${row.version} · ${versionState(row.superseded_by, versions)} · ${row.title} · ${row.goals.join(' / ')}${row.constraints ? ` · ${row.constraints}` : ''} · 参考 ${row.reference_asset_ids.length} · 记录于 ${row.created_at} · ${row.spec_sha256}`;
+      return li;
+    }),
+  );
+  setStatus(`简报版本链已读回：共 ${data.lineage.versions.length} 个版本，当前 ${live}。`);
+}
+
+async function loadDirectionLineage(directionId: string) {
+  const current = epoch;
+  const owner = project;
+  if (!owner) return;
+  const request = ++directionLineageRequest;
+  setStatus('正在读取方向版本链…');
+  const data = await api<DirectionLineageResponse>(`/projects/${owner}/directions/${directionId}/lineage`).catch((error) => {
+    if (current !== epoch || request !== directionLineageRequest) return null;
+    throw error;
+  });
+  if (!data || current !== epoch || request !== directionLineageRequest) return;
+  const versions = new Map<string, number>();
+  for (const row of data.lineage.versions) versions.set(row.direction_id, row.version);
+  const liveId = data.lineage.live_id;
+  const live = liveId === null ? '—' : versionOf(liveId, versions);
+  const first = data.lineage.versions.length ? data.lineage.versions[0] : null;
+  byId<HTMLParagraphElement>('direction-lineage-title').textContent =
+    `方向版本链 · 共 ${data.lineage.versions.length} 个版本 · 当前 ${live} · 起点 ${first ? `版本 ${first.version}` : '—'}`;
+  byId<HTMLUListElement>('direction-lineage').replaceChildren(
+    ...data.lineage.versions.map((row) => {
+      const li = document.createElement('li');
+      li.textContent = `版本 ${row.version} · ${versionState(row.superseded_by, versions)} · ${row.title} · ${row.chosen ? `已选定（${row.actor}）` : '未选定'} · 色彩 ${row.color_mood ?? '未指定'} · 字体 ${row.typography_mood ?? '未指定'} · 记录于 ${row.created_at} · ${row.spec_sha256}`;
+      return li;
+    }),
+  );
+  setStatus(`方向版本链已读回：共 ${data.lineage.versions.length} 个版本，当前 ${live}。`);
+}
+
 byId<HTMLFormElement>('design-brief-form').onsubmit = (event) => {
   event.preventDefault();
   void submitBrief().catch((e) => setStatus(errMsg(e), true));
+};
+byId<HTMLFormElement>('brief-revision-form').onsubmit = (event) => {
+  event.preventDefault();
+  void submitBriefRevision().catch((e) => setStatus(errMsg(e), true));
+};
+byId<HTMLFormElement>('direction-revision-form').onsubmit = (event) => {
+  event.preventDefault();
+  void submitDirectionRevision().catch((e) => setStatus(errMsg(e), true));
 };
 byId<HTMLFormElement>('design-direction-form').onsubmit = (event) => {
   event.preventDefault();

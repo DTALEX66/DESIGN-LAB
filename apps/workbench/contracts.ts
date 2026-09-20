@@ -192,3 +192,36 @@ export interface DesignLayerReadback {
 export interface DesignLayerResponse {
   design_layer: DesignLayerReadback;
 }
+
+// --- F-2b revision flow: append a new version, read the chain back ---------
+export interface BriefRevisionResponse {
+  brief: DesignBrief;
+}
+
+export interface DirectionRevisionResponse {
+  direction: DesignDirection;
+}
+
+export interface BriefLineage {
+  brief_id: string;
+  root_id: string;
+  requested_id: string;
+  live_id: string | null;
+  versions: DesignBrief[];
+}
+
+export interface DirectionLineage {
+  direction_id: string;
+  root_id: string;
+  requested_id: string;
+  live_id: string | null;
+  versions: DesignDirection[];
+}
+
+export interface BriefLineageResponse {
+  lineage: BriefLineage;
+}
+
+export interface DirectionLineageResponse {
+  lineage: DirectionLineage;
+}

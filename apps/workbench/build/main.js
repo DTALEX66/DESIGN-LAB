@@ -55,7 +55,27 @@ function resetProject() {
   pendingImport = null;
   nativeCursor = null;
   byId("native-info").textContent = "";
-  for (const id of ["assets", "tasks", "events", "native-assets", "reference-picker"]) byId(id).replaceChildren();
+  for (const id of [
+    "assets",
+    "tasks",
+    "events",
+    "native-assets",
+    "reference-picker",
+    "design-briefs",
+    "design-directions",
+    "design-bindings",
+    "brief-lineage",
+    "direction-lineage"
+  ])
+    byId(id).replaceChildren();
+  revisionBriefTarget = revisionDirectionTarget = null;
+  revisionBriefCarried = [];
+  highlightBrief = highlightDirection = null;
+  byId("revision-brief-target").textContent = REVISION_BRIEF_IDLE;
+  byId("revision-direction-target").textContent = REVISION_DIRECTION_IDLE;
+  byId("brief-lineage-title").textContent = "";
+  byId("direction-lineage-title").textContent = "";
+  byId("design-binding-active").textContent = "";
   for (const id of ["preview", "retry-import", "more-tasks", "more-events", "more-native"]) byId(id).hidden = true;
   byId("preview").removeAttribute("src");
   byId("preview-empty").hidden = false;
@@ -453,6 +473,17 @@ let submittedDirection = null;
 let briefBusy = false;
 let directionBusy = false;
 let bindBusy = false;
+let revisionBriefTarget = null;
+let revisionDirectionTarget = null;
+let revisionBriefCarried = [];
+let highlightBrief = null;
+let highlightDirection = null;
+let briefRevisionBusy = false;
+let directionRevisionBusy = false;
+let briefLineageRequest = 0;
+let directionLineageRequest = 0;
+const REVISION_BRIEF_IDLE = "在某一简报行点击「新版本」以载入该版本内容；保存会新增一个版本，不会改写旧版本。";
+const REVISION_DIRECTION_IDLE = "在某一方向行点击「新版本」以载入该版本内容；保存会新增一个版本，不会改写旧版本。";
 const uuid = () => crypto.randomUUID();
 async function loadDesignSystems() {
   const current = epoch;
@@ -470,38 +501,98 @@ async function loadDesignSystems() {
     })
   );
 }
+const shortId = (id) => id.slice(-8);
+function versionOf(id, versions) {
+  const known = versions.get(id);
+  return known === void 0 ? `未知版本（${shortId(id)}）` : `版本 ${known}（${shortId(id)}）`;
+}
+function versionState(supersededBy, versions) {
+  return supersededBy === null ? "当前" : `已取代 → ${versionOf(supersededBy, versions)}`;
+}
+function rowButton(label, action) {
+  const element = document.createElement("button");
+  element.type = "button";
+  element.textContent = label;
+  element.onclick = () => Promise.resolve(action()).catch((error) => setStatus(errMsg(error), true));
+  return element;
+}
 function renderDesignLayer(data) {
   const layer = data.design_layer;
+  const briefVersions = /* @__PURE__ */ new Map();
+  for (const row of layer.briefs) briefVersions.set(row.brief_id, row.version);
+  const directionVersions = /* @__PURE__ */ new Map();
+  const directionsById = /* @__PURE__ */ new Map();
+  for (const row of layer.directions) {
+    directionVersions.set(row.direction_id, row.version);
+    directionsById.set(row.direction_id, row);
+  }
+  const activeBindingId = layer.active_binding ? layer.active_binding.binding_id : null;
+  const focusRows = [];
   byId("design-briefs").replaceChildren(
     ...layer.briefs.map((brief) => {
       const li = document.createElement("li");
+      li.tabIndex = -1;
       const refs = brief.reference_asset_ids.length;
-      li.textContent = `BRIEF · ${brief.title} · ${brief.goals.join(" / ")}${brief.constraints ? ` · ${brief.constraints}` : ""} · 参考 ${refs} · ${brief.spec_sha256}`;
+      li.textContent = `BRIEF · ${brief.title} · ${brief.goals.join(" / ")}${brief.constraints ? ` · ${brief.constraints}` : ""} · 参考 ${refs} · v${brief.version} · ${versionState(brief.superseded_by, briefVersions)} · ${brief.spec_sha256}`;
+      li.append(
+        rowButton("新版本", () => loadBriefRevision(brief)),
+        rowButton("版本链", () => loadBriefLineage(brief.brief_id))
+      );
+      if (brief.brief_id === highlightBrief) {
+        li.classList.add("highlight");
+        focusRows.push(li);
+      }
       return li;
     })
   );
   byId("design-directions").replaceChildren(
     ...layer.directions.map((direction) => {
       const li = document.createElement("li");
-      li.textContent = `DIRECTION · ${direction.title} · ${direction.chosen ? `CHOSEN by ${direction.actor}` : "open"} · ${direction.spec_sha256}`;
-      if (direction.chosen) chosenDirection = direction;
-      const button2 = document.createElement("button");
-      button2.type = "button";
-      button2.textContent = `选为方向 · ${direction.direction_id.slice(-8)}`;
-      button2.onclick = () => chooseDirection(direction).catch((error) => setStatus(errMsg(error), true));
-      li.append(document.createTextNode(" "), button2);
+      li.tabIndex = -1;
+      const live = direction.superseded_by === null;
+      li.textContent = `DIRECTION · ${direction.title} · ${direction.chosen ? `CHOSEN by ${direction.actor}` : "open"} · v${direction.version} · ${versionState(direction.superseded_by, directionVersions)} · 简报 ${shortId(direction.brief_id)} · ${direction.spec_sha256}`;
+      if (direction.chosen && live) chosenDirection = direction;
+      if (live) {
+        const choose = document.createElement("button");
+        choose.type = "button";
+        choose.textContent = `选为方向 · ${shortId(direction.direction_id)}`;
+        choose.onclick = () => chooseDirection(direction).catch((error) => setStatus(errMsg(error), true));
+        li.append(choose);
+      }
+      li.append(
+        rowButton("新版本", () => loadDirectionRevision(direction)),
+        rowButton("版本链", () => loadDirectionLineage(direction.direction_id))
+      );
+      if (direction.direction_id === highlightDirection) {
+        li.classList.add("highlight");
+        focusRows.push(li);
+      }
       return li;
     })
   );
   byId("design-bindings").replaceChildren(
     ...layer.bindings.length ? layer.bindings.map((binding) => {
       const li = document.createElement("li");
-      li.textContent = `BINDING · ${binding.design_system_name} · ${binding.spec_sha256}`;
+      const owner = directionsById.get(binding.direction_id);
+      const state = binding.binding_id === activeBindingId ? "生效中" : owner && owner.superseded_by !== null ? "未生效 · 绑定留在已被取代的方向版本上，需重新建立" : "未生效 · 当前选定方向不是它";
+      li.textContent = `BINDING · ${binding.design_system_name} · 绑定记录 v${binding.version} · 方向 ${shortId(binding.direction_id)} · ${state} · ${binding.spec_sha256}`;
       return li;
     }) : [info("design-bindings-empty")]
   );
+  const notice = byId("design-binding-active");
   const active = layer.active_binding;
-  byId("design-binding-active").textContent = active ? `当前方向已绑定设计系统：${active.design_system_name}（设计契约已固定）。` : "选择方向并绑定设计系统后，后续 Build/Review 才有固定设计契约。";
+  const chosen = chosenDirection;
+  if (active) {
+    notice.classList.remove("warn");
+    notice.textContent = `当前方向已绑定设计系统：${active.design_system_name}（设计契约已固定）。`;
+  } else if (chosen && layer.bindings.length) {
+    notice.classList.add("warn");
+    notice.textContent = `当前选定方向「${chosen.title} · 版本 ${chosen.version}」没有生效的设计契约：已有的绑定记录仍留在旧的方向版本上，不会随新版本自动跟随——绑定需重新建立（选定设计系统后点「绑定设计系统」）。`;
+  } else {
+    notice.classList.remove("warn");
+    notice.textContent = "选择方向并绑定设计系统后，后续 Build/Review 才有固定设计契约。";
+  }
+  if (focusRows.length) focusRows[0].focus();
 }
 function info(id) {
   const p = document.createElement("p");
@@ -641,9 +732,174 @@ async function bindDesignSystem() {
     byId("design-system-bind").disabled = false;
   }
 }
+function revisionHint(error) {
+  const code = errMsg(error);
+  if (code === "STALE_REVISION") return "该版本已被取代，服务端拒绝了这次修订（STALE_REVISION）。请从版本链里的最新版本继续。";
+  if (code === "BRIEF_NOT_FOUND" || code === "DIRECTION_NOT_FOUND") return `该版本已不在当前项目中（${code}）；请刷新后重试。`;
+  if (code === "UNAUTHORIZED") return "访问令牌无效或已过期（UNAUTHORIZED）；请断开后重新连接本机服务。";
+  return `${code}；本次修订未被接受，服务端未写入任何内容。`;
+}
+function splitList(raw, maxLen, label) {
+  const items = raw ? raw.split(",").map((value) => value.trim()).filter(Boolean) : [];
+  if (items.some((item) => item.length > maxLen)) throw new Error(`${label}每项不能超过 ${maxLen} 个字符`);
+  return items;
+}
+function loadBriefRevision(brief, focusForm = true) {
+  revisionBriefTarget = brief;
+  const boxes = Array.from(document.querySelectorAll('input[name="reference-asset"]'));
+  const known = new Set(boxes.map((box) => box.value));
+  for (const box of boxes) box.checked = brief.reference_asset_ids.includes(box.value);
+  revisionBriefCarried = brief.reference_asset_ids.filter((id) => !known.has(id));
+  byId("revision-brief-title").value = brief.title;
+  byId("revision-brief-goals").value = brief.goals.join(", ");
+  byId("revision-brief-constraints").value = brief.constraints ?? "";
+  byId("revision-brief-target").textContent = `正在修订简报「${brief.title}」版本 ${brief.version}（${shortId(brief.brief_id)}）：内容已按该版本预填，勾选区对应它的参考素材。保存会新增一个版本，旧版本只保留为历史。` + (revisionBriefCarried.length ? `另有 ${revisionBriefCarried.length} 个参考素材不在当前勾选列表里，会原样保留。` : "") + (brief.superseded_by === null ? "" : " 注意：该版本已被取代，服务端会拒绝这次修订（STALE_REVISION），请改从版本链中的最新版本继续。");
+  if (focusForm) byId("revision-brief-title").focus();
+}
+async function submitBriefRevision() {
+  const current = epoch;
+  const owner = project;
+  const source = revisionBriefTarget;
+  if (!owner || briefRevisionBusy) return;
+  if (!source) {
+    setStatus("请先在某一简报行点击「新版本」以载入要修订的内容。", true);
+    return;
+  }
+  briefRevisionBusy = true;
+  byId("brief-revision-submit").disabled = true;
+  try {
+    const title = byId("revision-brief-title").value.trim();
+    const goals = splitList(byId("revision-brief-goals").value, 300, "目标");
+    const constraints = byId("revision-brief-constraints").value.trim() || null;
+    if (!title || !goals.length) throw new Error("修订需要标题与至少一条目标");
+    const references = Array.from(/* @__PURE__ */ new Set([...selectedReferences(), ...revisionBriefCarried]));
+    const data = await api(
+      `/projects/${owner}/briefs/${source.brief_id}/revisions`,
+      { title, goals, constraints, reference_asset_ids: references, idempotency_key: uuid() }
+    );
+    if (current !== epoch) return;
+    highlightBrief = data.brief.brief_id;
+    await refreshDesign();
+    if (current !== epoch) return;
+    await loadBriefLineage(data.brief.brief_id);
+    if (current !== epoch) return;
+    loadBriefRevision(data.brief, false);
+    setStatus(`简报已保存为版本 ${data.brief.version}（${shortId(data.brief.brief_id)}）；版本 ${source.version} 只保留为历史，旧内容未被改写。`);
+  } catch (error) {
+    if (current === epoch) setStatus(`简报修订未确认：${revisionHint(error)}`, true);
+  } finally {
+    briefRevisionBusy = false;
+    byId("brief-revision-submit").disabled = false;
+  }
+}
+function loadDirectionRevision(direction, focusForm = true) {
+  revisionDirectionTarget = direction;
+  byId("revision-direction-title").value = direction.title;
+  byId("revision-direction-notes").value = (direction.style_notes ?? []).join(", ");
+  byId("revision-direction-color").value = direction.color_mood ?? "";
+  byId("revision-direction-type").value = direction.typography_mood ?? "";
+  byId("revision-direction-target").textContent = `正在修订方向「${direction.title}」版本 ${direction.version}（${shortId(direction.direction_id)}）：内容已按该版本预填。保存会新增一个版本，旧版本只保留为历史。` + (direction.chosen ? " 该版本是当前已选定方向：选定结论会随新版本带走，但设计系统绑定不会自动跟随，需重新建立。" : "") + (direction.superseded_by === null ? "" : " 注意：该版本已被取代，服务端会拒绝这次修订（STALE_REVISION），请改从版本链中的最新版本继续。");
+  if (focusForm) byId("revision-direction-title").focus();
+}
+async function submitDirectionRevision() {
+  const current = epoch;
+  const owner = project;
+  const source = revisionDirectionTarget;
+  if (!owner || directionRevisionBusy) return;
+  if (!source) {
+    setStatus("请先在某一方向行点击「新版本」以载入要修订的内容。", true);
+    return;
+  }
+  directionRevisionBusy = true;
+  byId("direction-revision-submit").disabled = true;
+  try {
+    const title = byId("revision-direction-title").value.trim();
+    const notes = splitList(byId("revision-direction-notes").value, 300, "表现备注");
+    const colorMood = byId("revision-direction-color").value.trim() || null;
+    const typeMood = byId("revision-direction-type").value.trim() || null;
+    if (!title) throw new Error("修订需要方向标题");
+    const data = await api(
+      `/projects/${owner}/directions/${source.direction_id}/revisions`,
+      { title, style_notes: notes.length ? notes : null, color_mood: colorMood, typography_mood: typeMood, idempotency_key: uuid() }
+    );
+    if (current !== epoch) return;
+    highlightDirection = data.direction.direction_id;
+    await refreshDesign();
+    if (current !== epoch) return;
+    await loadDirectionLineage(data.direction.direction_id);
+    if (current !== epoch) return;
+    loadDirectionRevision(data.direction, false);
+    setStatus(`方向已保存为版本 ${data.direction.version}（${shortId(data.direction.direction_id)}）；版本 ${source.version} 只保留为历史。` + (data.direction.chosen ? ` 选定结论已随新版本带走（${data.direction.actor}）；设计系统绑定未跟随，绑定需重新建立。` : ""));
+  } catch (error) {
+    if (current === epoch) setStatus(`方向修订未确认：${revisionHint(error)}`, true);
+  } finally {
+    directionRevisionBusy = false;
+    byId("direction-revision-submit").disabled = false;
+  }
+}
+async function loadBriefLineage(briefId) {
+  const current = epoch;
+  const owner = project;
+  if (!owner) return;
+  const request = ++briefLineageRequest;
+  setStatus("正在读取简报版本链…");
+  const data = await api(`/projects/${owner}/briefs/${briefId}/lineage`).catch((error) => {
+    if (current !== epoch || request !== briefLineageRequest) return null;
+    throw error;
+  });
+  if (!data || current !== epoch || request !== briefLineageRequest) return;
+  const versions = /* @__PURE__ */ new Map();
+  for (const row of data.lineage.versions) versions.set(row.brief_id, row.version);
+  const liveId = data.lineage.live_id;
+  const live = liveId === null ? "—" : versionOf(liveId, versions);
+  const first = data.lineage.versions.length ? data.lineage.versions[0] : null;
+  byId("brief-lineage-title").textContent = `简报版本链 · 共 ${data.lineage.versions.length} 个版本 · 当前 ${live} · 起点 ${first ? `版本 ${first.version}` : "—"}`;
+  byId("brief-lineage").replaceChildren(
+    ...data.lineage.versions.map((row) => {
+      const li = document.createElement("li");
+      li.textContent = `版本 ${row.version} · ${versionState(row.superseded_by, versions)} · ${row.title} · ${row.goals.join(" / ")}${row.constraints ? ` · ${row.constraints}` : ""} · 参考 ${row.reference_asset_ids.length} · 记录于 ${row.created_at} · ${row.spec_sha256}`;
+      return li;
+    })
+  );
+  setStatus(`简报版本链已读回：共 ${data.lineage.versions.length} 个版本，当前 ${live}。`);
+}
+async function loadDirectionLineage(directionId) {
+  const current = epoch;
+  const owner = project;
+  if (!owner) return;
+  const request = ++directionLineageRequest;
+  setStatus("正在读取方向版本链…");
+  const data = await api(`/projects/${owner}/directions/${directionId}/lineage`).catch((error) => {
+    if (current !== epoch || request !== directionLineageRequest) return null;
+    throw error;
+  });
+  if (!data || current !== epoch || request !== directionLineageRequest) return;
+  const versions = /* @__PURE__ */ new Map();
+  for (const row of data.lineage.versions) versions.set(row.direction_id, row.version);
+  const liveId = data.lineage.live_id;
+  const live = liveId === null ? "—" : versionOf(liveId, versions);
+  const first = data.lineage.versions.length ? data.lineage.versions[0] : null;
+  byId("direction-lineage-title").textContent = `方向版本链 · 共 ${data.lineage.versions.length} 个版本 · 当前 ${live} · 起点 ${first ? `版本 ${first.version}` : "—"}`;
+  byId("direction-lineage").replaceChildren(
+    ...data.lineage.versions.map((row) => {
+      const li = document.createElement("li");
+      li.textContent = `版本 ${row.version} · ${versionState(row.superseded_by, versions)} · ${row.title} · ${row.chosen ? `已选定（${row.actor}）` : "未选定"} · 色彩 ${row.color_mood ?? "未指定"} · 字体 ${row.typography_mood ?? "未指定"} · 记录于 ${row.created_at} · ${row.spec_sha256}`;
+      return li;
+    })
+  );
+  setStatus(`方向版本链已读回：共 ${data.lineage.versions.length} 个版本，当前 ${live}。`);
+}
 byId("design-brief-form").onsubmit = (event) => {
   event.preventDefault();
   void submitBrief().catch((e) => setStatus(errMsg(e), true));
+};
+byId("brief-revision-form").onsubmit = (event) => {
+  event.preventDefault();
+  void submitBriefRevision().catch((e) => setStatus(errMsg(e), true));
+};
+byId("direction-revision-form").onsubmit = (event) => {
+  event.preventDefault();
+  void submitDirectionRevision().catch((e) => setStatus(errMsg(e), true));
 };
 byId("design-direction-form").onsubmit = (event) => {
   event.preventDefault();

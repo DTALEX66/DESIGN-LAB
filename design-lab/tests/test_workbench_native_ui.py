@@ -307,3 +307,123 @@ vm.createContext(c);vm.runInContext(fs.readFileSync(process.argv[1],'utf8'),c);
         prefix='/api/projects/'+'c'*32
         self.assertIn(prefix+'/native-assets',data['calls'])
         self.assertIn(prefix+'/native-assets/native-'+'a'*64+'/verify',data['calls'])
+
+    def test_revision_entry_prefills_from_row_and_revision_errors_fail_closed(self):
+        # F-2b: the row's「新版本」entry must prefill the revision form from the
+        # persisted version it was opened on, the POST must go to the revision
+        # route with that content, and a rejected revision (409 STALE_REVISION /
+        # 401 UNAUTHORIZED) must surface on the shared error line instead of
+        # silently doing nothing.
+        node=shutil.which('node')
+        if not node:self.skipTest('Node required')
+        script=r'''
+const fs=require('fs'),vm=require('vm');
+class El{constructor(){this.children=[];this.textContent='';this.value='';this.hidden=false;this.disabled=false;const s=new Set();
+this.classList={add:c=>s.add(c),remove:c=>s.delete(c),toggle:(c,on)=>{const want=on===undefined?!s.has(c):on;want?s.add(c):s.delete(c)},contains:c=>s.has(c)};}
+append(...xs){for(const x of xs)this.children.push(x)}replaceChildren(...xs){this.children=xs}removeAttribute(){}focus(){}}
+class Option{constructor(text,value){this.text=text;this.value=value}}
+const elements={},calls=[],owner='c'.repeat(32),briefId='brief-'+'a'.repeat(32);
+let keys=0,mode='stale';
+const brief={brief_id:briefId,title:'E2E Autumn',goals:['modern','warm'],constraints:null,
+reference_asset_ids:['asset-'+'d'.repeat(64)],spec_sha256:'sha256:'+'b'.repeat(64),version:1,superseded_by:null,created_at:'2026-01-01T00:00:00+00:00'};
+const layer={design_layer:{briefs:[brief],directions:[],chosen_direction:null,bindings:[],active_binding:null,design_systems:[]}};
+const c={document:{getElementById:id=>elements[id]??=new El(),createElement:()=>new El(),createTextNode:()=>({nodeType:3}),querySelectorAll:()=>[]},
+crypto:{randomUUID:()=>String(++keys)},Option,
+fetch:async(path,options)=>{calls.push({path,body:options&&options.body});
+if(path.endsWith('/design-layer'))return{ok:true,json:async()=>layer};
+if(path.endsWith('/revisions'))return mode==='stale'?{ok:false,json:async()=>({error:'STALE_REVISION'})}:{ok:false,json:async()=>({error:'UNAUTHORIZED'})};
+throw Error('unexpected request '+path)}};
+vm.createContext(c);vm.runInContext(fs.readFileSync(process.argv[1],'utf8'),c);
+(async()=>{vm.runInContext("project='"+owner+"'",c);
+await vm.runInContext('refreshDesign()',c);
+const row=elements['design-briefs'].children[0];
+const entry=row.children.find(b=>b.textContent==='新版本');
+if(entry)await entry.onclick();
+// The submit handler returns void (the action is fire-and-forget by design), so
+// flush the microtask queue until the handled chain has settled before reading.
+const flush=async()=>{for(let i=0;i<200;i++)await null;};
+const prefilled={title:elements['revision-brief-title'].value,goals:elements['revision-brief-goals'].value,target:elements['revision-brief-target'].textContent};
+if(elements['brief-revision-form'].onsubmit)await elements['brief-revision-form'].onsubmit({preventDefault(){}});
+await flush();
+const stale={status:elements.status.textContent,error:elements.status.classList.contains('error'),rows:elements['design-briefs'].children.length};
+mode='unauthorized';
+if(elements['brief-revision-form'].onsubmit)await elements['brief-revision-form'].onsubmit({preventDefault(){}});
+await flush();
+const unauthorized={status:elements.status.textContent,error:elements.status.classList.contains('error')};
+console.log(JSON.stringify({rowText:row.textContent,buttons:row.children.map(b=>b.textContent),prefilled,stale,unauthorized,
+posts:calls.filter(x=>x.path.endsWith('/revisions'))}));
+})().catch(e=>{console.error(e);process.exitCode=1});
+'''
+        result=subprocess.run([node,'-e',script,str(ROOT/'apps/workbench/build/main.js')],capture_output=True,text=True,encoding='utf-8',timeout=30)
+        self.assertEqual(result.returncode,0,result.stderr)
+        data=json.loads(result.stdout)
+        self.assertEqual(data['buttons'],['新版本','版本链'],'row revision entries missing')
+        self.assertIn('v1 · 当前',data['rowText'])
+        self.assertEqual(data['prefilled']['title'],'E2E Autumn')
+        self.assertEqual(data['prefilled']['goals'],'modern, warm')
+        self.assertIn('版本 1',data['prefilled']['target'])
+        self.assertIn('另有 1 个参考素材',data['prefilled']['target'])
+        self.assertEqual(len(data['posts']),2)
+        route='/api/projects/'+'c'*32+'/briefs/brief-'+'a'*32+'/revisions'
+        for post in data['posts']:
+            self.assertEqual(post['path'],route)
+            body=json.loads(post['body'])
+            self.assertEqual(body['title'],'E2E Autumn')
+            self.assertEqual(body['goals'],['modern','warm'])
+            self.assertEqual(body['reference_asset_ids'],['asset-'+'d'*64])
+            self.assertTrue(body['idempotency_key'])
+        self.assertIn('STALE_REVISION',data['stale']['status'])
+        self.assertIn('已被取代',data['stale']['status'])
+        self.assertTrue(data['stale']['error'],'rejected revision must render as an error')
+        self.assertEqual(data['stale']['rows'],1,'a rejected revision must not append a row')
+        self.assertIn('UNAUTHORIZED',data['unauthorized']['status'])
+        self.assertTrue(data['unauthorized']['error'])
+
+    def test_revised_chosen_direction_reports_binding_needs_rebuild(self):
+        # F-2b: after the CHOSEN direction is revised the append-only binding is
+        # left on the retired version, so active_binding is null. The UI must say
+        # 「绑定需重新建立」and must never render that retired binding as current.
+        node=shutil.which('node')
+        if not node:self.skipTest('Node required')
+        script=r'''
+const fs=require('fs'),vm=require('vm');
+class El{constructor(){this.children=[];this.textContent='';this.value='';this.hidden=false;this.disabled=false;const s=new Set();
+this.classList={add:c=>s.add(c),remove:c=>s.delete(c),toggle:(c,on)=>{const want=on===undefined?!s.has(c):on;want?s.add(c):s.delete(c)},contains:c=>s.has(c)};}
+append(...xs){for(const x of xs)this.children.push(x)}replaceChildren(...xs){this.children=xs}removeAttribute(){}focus(){}}
+class Option{constructor(text,value){this.text=text;this.value=value}}
+const elements={},calls=[],owner='c'.repeat(32),retired='direction-'+'a'.repeat(32),live='direction-'+'b'.repeat(32);
+const base={brief_id:'brief-'+'c'.repeat(32),style_notes:null,color_mood:'warm',typography_mood:null,created_at:'2026-01-01T00:00:00+00:00'};
+const v1={...base,direction_id:retired,title:'Warm Gradient',chosen:false,actor:null,actor_kind:null,spec_sha256:'sha256:'+'1'.repeat(64),version:1,superseded_by:live};
+const v2={...base,direction_id:live,title:'Warm Gradient II',chosen:true,actor:'workbench-user',actor_kind:'human',spec_sha256:'sha256:'+'2'.repeat(64),version:2,superseded_by:null};
+const binding={binding_id:'binding-'+'e'.repeat(32),direction_id:retired,design_system_name:'anomaly-monitor-dark',spec_sha256:'sha256:'+'f'.repeat(64),version:1,superseded_by:null,created_at:'2026-01-01T00:00:00+00:00'};
+const layer={design_layer:{briefs:[],directions:[v1,v2],chosen_direction:v2,bindings:[binding],active_binding:null,design_systems:[]}};
+const c={document:{getElementById:id=>elements[id]??=new El(),createElement:()=>new El(),createTextNode:()=>({nodeType:3}),querySelectorAll:()=>[]},
+crypto:{randomUUID:()=>'k'},Option,
+fetch:async path=>{calls.push(path);if(path.endsWith('/design-layer'))return{ok:true,json:async()=>layer};throw Error('unexpected request '+path)}};
+vm.createContext(c);vm.runInContext(fs.readFileSync(process.argv[1],'utf8'),c);
+(async()=>{vm.runInContext("project='"+owner+"'",c);
+await vm.runInContext('refreshDesign()',c);
+console.log(JSON.stringify({active:elements['design-binding-active'].textContent,
+warn:elements['design-binding-active'].classList.contains('warn'),
+binding:elements['design-bindings'].children[0].textContent,
+rows:elements['design-directions'].children.map(r=>({text:r.textContent,buttons:r.children.map(b=>b.textContent)}))}));
+})().catch(e=>{console.error(e);process.exitCode=1});
+'''
+        result=subprocess.run([node,'-e',script,str(ROOT/'apps/workbench/build/main.js')],capture_output=True,text=True,encoding='utf-8',timeout=30)
+        self.assertEqual(result.returncode,0,result.stderr)
+        data=json.loads(result.stdout)
+        self.assertIn('绑定需重新建立',data['active'])
+        self.assertNotIn('已绑定设计系统',data['active'])
+        self.assertTrue(data['warn'],'the rebuild notice must be visually marked')
+        self.assertIn('未生效',data['binding'])
+        self.assertNotIn('生效中',data['binding'])
+        self.assertIn('绑定留在已被取代的方向版本上',data['binding'])
+        self.assertEqual(len(data['rows']),2)
+        retired_row,live_row=min(data['rows'],key=lambda r:'CHOSEN by' in r['text']),max(data['rows'],key=lambda r:'CHOSEN by' in r['text'])
+        self.assertIn('已取代 → 版本 2',retired_row['text'])
+        self.assertNotIn('CHOSEN by',retired_row['text'])
+        self.assertFalse([b for b in retired_row['buttons'] if b.startswith('选为方向')],
+                         'a superseded version must not offer the choose entry')
+        self.assertIn('CHOSEN by workbench-user',live_row['text'])
+        self.assertIn('当前',live_row['text'])
+        self.assertTrue([b for b in live_row['buttons'] if b.startswith('选为方向')])
