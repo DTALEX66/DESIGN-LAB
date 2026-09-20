@@ -97,7 +97,9 @@
       "run": "python_embeded/python.exe -s ComfyUI/main.py --port 8188（手动启动，loopback）；GET /system_stats + /object_info 回读",
       "artifact": "integrations/generators/comfyui/evidence/E3-20260816-end-to-end-generation.md, integrations/generators/minimax-h3/evidence/E3-20260816-end-to-end-generation.md, integrations/adapter-registry.json",
       "reviewer": "user-authorized deployment; DSH runtime snapshot (E2 deployment-level evidence only)",
-      "requiresRequalification": true
+      "requiresRequalification": true,
+      "effectiveEvidence": "E1",
+      "effectiveNote": "recorded E3 is STALE historical evidence bound to lastVerifiedTree=70dfc35cdb23a025e82a3ea891a1a595599aea3f (not the current tree); on the current tree the effective level is E1 (structural only) until a runtime requalification re-binds a fresh subject SHA. Release gates compare the effective level, never the recording."
     },
     {
       "id": "style-master-method",

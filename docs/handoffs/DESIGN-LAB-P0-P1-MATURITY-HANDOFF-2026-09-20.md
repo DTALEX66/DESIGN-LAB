@@ -114,13 +114,23 @@ release-preflight 强化、`effectiveEvidence` 接入 Release Gate、Host E3 预
 - Ruff 是否真正 enforce：单独决策（当前 `CONFIGURED_NOT_ENFORCED`）
 - 远端分支清理：需 owner 授权
 
-## 6. 下一步（按顺序）
+## 6. 交付结果与下一步（2026-09-20 更新）
 
-1. 本地跑完 `scripts/run_python_tests.py` 全量套件（CI 第 4 个门禁），确认绿。
-2. push 分支 `feat/maturity-p0-p1-convergence` → 开 PR → 等 4 门禁 + required checks → 回读 exact-SHA 结果。
-3. 处理早前开着的 PR **#125**（会话总结，docs-only）。
-4. 执行 §5 的 P1-B，再进 P1-A/Batch F。
-5. 注意：`reports/current` 只在**输入变化**时重生成（`generate_current_reports.py --check` 报 DRIFT 时）；不要手改生成物。
+### 已交付并落 main
+
+- 分支 `feat/maturity-p0-p1-convergence`（12 commit）→ **PR #126** → **已合并**
+- merge commit：`2d9c958eba0ffcbb29575339c73eb693a06c48c2`（mergedAt 2026-09-20T13:50:21Z）
+- 合并前 exact-SHA 回读：`01321e8038b835e206573c163e5b9afaded1e213`，`MERGEABLE` / `mergeStateStatus=CLEAN`
+- **合并前 CI 9/9 全绿**（两轮 run 一致）：`DeepSeek authority gate chain` pass、`Python gate (V3 verifiers + unit tests)` **pass（7m38s，全量套件在新 clone 上实跑）**、`Workbench browser E2E` pass（40s/32s）、`Generated-artifact clean-tree`、`License & secret hygiene`、`MiniGame node gate`、`Open Design host adapter`、`Top-level Authority consistency`、`Workbench strict-TS product gate` 全 pass
+- 上传过程中查出并修掉的**两个真缺陷**见 §8
+
+### 下一步
+
+1. **P1-B**（§5 规格）——本分支 `feat/p1b-effective-evidence` 执行中。
+2. **PR #125**（旧 docs-only 会话总结；7 项检查全绿、MERGEABLE）待 owner 决定是否合并。
+3. P1-A（版本沿革/取代血缘，需先 ADR）与 Batch F 其余。
+4. 重录纪律：`reports/current` 由 `generate_current_reports.py` 在**输入变化**时 rebind；门禁自有产物（`CONTRACT-GRAPH.json` / `DEEPSEEK-FINAL-TEST-GATE.json` / `LANGUAGE-BOUNDARY-SCAN.json`）由**各自生成器**重录（去掉 `--check` 即重录），**不要手改**。
+5. 本地全量套件属可选（CI 的 `Python gate` 已在精确 SHA 的新 clone 上通过，证据强于本地）；本地复跑 `scripts/run_python_tests.py` 约 8-15 分钟，注意后台子进程可能被终止（曾出现 exit `1073807364` = DBG_TERMINATE_PROCESS，非测试失败）。
 
 ## 7. 关键锚点
 
@@ -131,3 +141,47 @@ release-preflight 强化、`effectiveEvidence` 接入 Release Gate、Host E3 预
 - 前端/CI：`apps/workbench/{main.ts,index.html,style.css,build/main.js}`、`.github/workflows/canonical-verify.yml`
 - 验证器：`design-lab/scripts/verify_design_lab.py`、`scripts/verify_top_level_authority.py`、`design-lab/tests/e2e/browser_design_layer_e2e.mjs`
 - scratch（gitignored）：`.hermes/task-runtime/{wheel_packaging_smoke.py,p1b_spec.md,p1cef_spec.md}`
+
+## 8. 交付回读与 CI 缺陷记录（2026-09-20）
+
+### 8.1 假 action SHA（子代理幻觉的实证）
+
+PR #126 首轮 CI 中 `Workbench browser E2E` job **2 秒失败**（其余 job 正常），日志原文：
+
+```
+##[error]Unable to resolve action `actions/upload-artifact@65c4c4a1ddee5b7f698f8297e8f3f4f7e4b8c1a2`, unable to find version `65c4c4a1ddee5b7f698f8297e8f3f4f7e4b8c1a2`
+```
+
+真实 v4.6.0 SHA 是 `65c4c4a1ddee5b72f698fdd19549f0f0fb45cf08`——子代理把中段改写成**形似而不存在**的串，并在总结里声称"已固定 SHA"。同一假 SHA 还存在于 `release-gate.yml:57`（预存在同源缺陷）。GitHub 在 "Set up job" 阶段解析 action，故整个 job 直接失败、任何步骤都没跑。
+
+修复：两处改为经 API 验证可解析的 `actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2`；并复查 `.github/workflows` 全部 action pin（`checkout` v4.2.2 / `setup-node` v4.4.0 由绿色门禁证明可解析，`setup-python` v5.6.0 经 API 验证）。修复后该 job 真实通过（40s/32s）。
+
+### 8.2 contract-graph DRIFT（P1-C 改动的真实后果）
+
+CI 日志原文（该 run 的 subject = `74ef85d73bec`，精确匹配当时 HEAD）：
+
+```
+PASS  authority-ledger / authority-chain / source-lock / language-boundary
+FAIL  contract-graph  CONTRACT_GRAPH=DRIFT fields changed since generation:
+                      ['fresh','generatedBy','projection','subjectSha']
+PASS  test-gate       (no local bound history in this checkout; the critical 220-test
+                       set was executed here → 220 tests ×3 orders + repeat，全 OK)
+AUTHORITY_GATES=FAIL gates=7 failed=['contract-graph']
+```
+
+根因两条：
+1. P1-C 给 `reports/current/**` 加的 provenance 信封（`projection/subjectSha/fresh/generatedBy`）与**生成期契约图**记录的字段集不再一致；
+2. `LANGUAGE-BOUNDARY-SCAN.json` 的提交副本生成于 **2026-09-18（pnpm workspace 落地之前）**，且其拥有者 `verify_language_boundary.py` **不产出**该信封——P1-C 改它属于改错文件。
+
+修复（**重录**而非掩盖）：
+- `scripts/verify_contract_graph.py`（去 `--check`）→ `CONTRACT_GRAPH=NO_BROKEN_LINK concepts=11 complete=11 breaks=0`
+- `scripts/deepseek_test_gate_report.py`（去 `--check`）→ `TEST_GATE=PASS orders=['forward','random','reverse'] tests_per_order=[220] repetition=4400`
+- language 扫描重录 → `tracked_files_scanned=1951`、`node_manifests` 含 root 与 `apps/workbench`、`node_lockfiles=[pnpm-lock.yaml]`、`second_node_backend` 检出 game-visual fixture manifest（`fixture_scoped=1` → 仍允许，PASS）
+- `scripts/generate_current_reports.py` rebind 9 个绑定产物 + index
+- 本地整链复跑：`AUTHORITY_GATES=PASS gates=7 failed=none`；`CURRENT_REPORTS=PASS mode=check scope=bound-input-integrity`
+
+### 8.3 合并与合并后回读
+
+- PR #126：`state=MERGED`、`mergeCommit=2d9c958eba0ffcbb29575339c73eb693a06c48c2`、`mergedAt=2026-09-20T13:50:21Z`
+- 远程 main HEAD 回读（`gh api .../git/ref/heads/main`）：`2d9c958eba0ffcbb29575339c73eb693a06c48c2`
+- 合并后 `Canonical Verify`（push 事件，run `35514673618`，headSha `2d9c958e`）: 见该 run 的最终结论
