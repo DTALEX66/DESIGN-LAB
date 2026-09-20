@@ -209,3 +209,59 @@ main CI 全绿，本地 main 已快进到 `4e85229`。
 - PR #126：`state=MERGED`、`mergeCommit=2d9c958eba0ffcbb29575339c73eb693a06c48c2`、`mergedAt=2026-09-20T13:50:21Z`
 - 远程 main HEAD 回读（`gh api .../git/ref/heads/main`）：`2d9c958eba0ffcbb29575339c73eb693a06c48c2`
 - 合并后 `Canonical Verify`（push 事件，run `35514673618`，headSha `2d9c958e`）: 见该 run 的最终结论
+
+## 10. P1-CONTROL-SPIKE + P1-RECOVERY 收敛（PR #134，2026-09-21 更新）
+
+### VERIFY-THEN-PATCH 对账结论
+
+任务书（E2 成熟化方案）要求 P0 全项 VERIFY→REGRESSION→PATCH ONLY IF NEEDED。
+对账结果：**P0 全项（STATE/REFERENCE/WHEEL/BROWSER/EVIDENCE/GOVSYS）+ P1-REVISION
+均已在 main 实现**（回归测试 18/18 HTTP 契约 + P0-G 浏览器 E2E no-skip + P0-H wheel
+smoke + P1-A revision 事件账）。本批不重造任何 P0/P1-REVISION，只补缺口：
+**P1-CONTROL-SPIKE**（控制能力路由契约矩阵）+ **P1-RECOVERY**（commit-then-disconnect
+幂等重放）。
+
+### 交付内容
+
+| 交付物 | 文件 | 说明 |
+|---|---|---|
+| 控制能力路由矩阵 | `design-lab/config/control-capability-matrix.json` | 4 host × 8 capability；分层原则：Computer-Use 管 reachability，Host-native readback/artifact rehash 管 truth，DESIGN-LAB State/Evidence 管 provenance。诚实值：Adobe/MiniMax 全 `supported=false/E0`；browser 仅 launch/create/reopen-verify/readback = E2（`qualified_sha=9f89452`）。 |
+| 矩阵 schema | `design-lab/schemas/control-capability-matrix.schema.json` | draft 2020-12 |
+| 矩阵验证器 | `design-lab/scripts/verify_control_capability_matrix.py` | 纯 stdlib fail-closed；4 条红线：supported=true 必须 E2+SHA；no_bypass_license 必须 true；computer-use 必须配 truth 层；矩阵必须覆盖 browser+minimax-design |
+| 矩阵回归 | `design-lab/tests/test_control_capability_matrix.py` | 12 用例（PASS + 参数化 FAIL 负控） |
+| 幂等重放回归 | `design-lab/tests/test_design_layer_idempotency_recovery.py` | 5 场景：choose 重放同一身份；A→B 切换 SUM(chosen)=1；同 key 不同 actor→409；bind 重放同一 binding；service restart 读回一致 |
+| 聚合接入 | `design-lab/scripts/verify_design_lab.py` | 50→51，接入 `verify_control_capability_matrix.py` + 注释 |
+
+### 门禁实跑（基线 `9f89452`）
+
+```
+CONTROL_CAPABILITY_MATRIX=PASS hosts=4 capabilities=32 findings=[]
+unittest test_control_capability_matrix.py: 12/12 OK
+unittest test_design_layer_idempotency_recovery.py: 23/23 OK
+verify_design_lab.py: VERIFY_DESIGN_LAB=OK total=51 failed=0
+verify_authority_gates.py --zero-spill: AUTHORITY_GATES=PASS gates=7
+generate_current_reports.py: CURRENT_REPORTS=PASS
+```
+
+### PR #134 状态
+
+- 分支：`feat/p1-control-spike`（基线 `9f89452`）
+- commit：`82556dc`（代码+测试，6 files +754）、`a63ec2d`（reports rebind，11 files）
+- 已推送，PR #134 已开（base main），等 CI 全绿后回读
+- **不自动合并**：合并按既定流程由 owner 决策
+
+### 未证明项（如实记录，不宣称完成）
+
+- **真实 Adobe Host E3**：矩阵中 photoshop/illustrator 全 `supported=false/E0`
+  （宿主未安装、无真实运行证据）；真实操控不在 Hermes 内执行，交给外部模型/软件。
+- **MiniMax Design 真实运行**：矩阵中 minimax-design 仅结构声明 E0，无 live 证据；
+  本批交付的是「能力路由契约 + 防伪造验证器」，不是「MiniMax 能操控 Adobe」。
+- **真实 tag 发布路径 E5**：无 token 实跑 `INCOMPLETE`/exit 3 是诚实 SKIP。
+
+### 仓库卫生（本批收尾）
+
+- 工作树干净（`git status` 无未跟踪/未暂存）
+- `.hermes/task-runtime` 与 `.project-local` 均 gitignored（`.gitignore` 第 24/25/67 行），无仓库外溢
+- Agent 临时脚本（commit-msg / pr-body / spec）已清理
+- 新增文件全部在 `design-lab/` 跟踪树内，无泄漏到 `.project-local` 或项目外
+
