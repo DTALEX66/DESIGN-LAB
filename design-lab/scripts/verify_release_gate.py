@@ -7,12 +7,14 @@ Verifies release-readiness preconditions that can be checked locally:
 2. HEAD == origin/main (when origin resolvable)
 3. verify chain green (verify_design_lab.py)
 4. release evidence contract present
+5. capability floors met by *effective* evidence (P1-B, DL-EVD-002/003)
 
 The gate is NOT "enabled" until DL-REL-001 human acceptance + E3 evidence
 exist; this script validates the preconditions and reports enable state.
 """
 from __future__ import annotations
 
+import importlib.util
 import json
 import re
 import subprocess
@@ -22,6 +24,18 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent.parent
 RELEASE_GATE_DIR = ROOT / "design-lab" / "config" / "release-gate"
 LEVEL_ORDER = {f"E{i}": i for i in range(6)}
+CAPABILITY_EVIDENCE_INDEX = ROOT / "design-lab" / "config" / "capability-evidence-index.json"
+
+
+def load_effective_evidence_module():
+    """Load the sibling effective_evidence.py (scripts/ is not a package)."""
+    path = Path(__file__).resolve().parent / "effective_evidence.py"
+    spec = importlib.util.spec_from_file_location("effective_evidence", path)
+    if spec is None or spec.loader is None:
+        raise ImportError(f"cannot load effective_evidence from {path}")
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
 
 
 def git(*args: str) -> tuple[int, str]:
@@ -29,8 +43,20 @@ def git(*args: str) -> tuple[int, str]:
     return r.returncode, (r.stdout or r.stderr).strip()
 
 
-def capability_floor_findings(path: Path) -> list[str]:
-    """Require every declared capability floor before release can be enabled."""
+def capability_floor_findings(path: Path, current_sha: str, module) -> list[str]:
+    """Require every declared capability floor to be met by *effective* evidence.
+
+    P1-B (DL-EVD-002/003) separates the recorded evidence level -- a historical
+    observation bound to the tree that produced it -- from the effective level a
+    capability may claim on the *current* tree. Only the effective level may be
+    compared against ``minimumRequiredEvidence``: a capability flagged
+    requiresRequalification, or bound to a subject SHA other than the current
+    one, keeps no more than its structural ceiling (E1 while its structural
+    checks still pass, else E0). ``recorded`` is reported next to ``effective``
+    so a reader can tell "never reached the floor" from "needs fresh runtime
+    evidence" (DL-EVD-003: a green run on another SHA is not evidence for this
+    checkout).
+    """
     try:
         data = json.loads(path.read_text(encoding="utf-8"))
     except (OSError, UnicodeError, json.JSONDecodeError) as exc:
@@ -47,14 +73,31 @@ def capability_floor_findings(path: Path) -> list[str]:
             continue
         capability_id = capability.get("id", "<unknown>")
         minimum = capability.get("minimumRequiredEvidence")
-        actual = capability.get("actualEvidence")
-        if minimum not in LEVEL_ORDER or actual not in LEVEL_ORDER:
+        # The index records the achieved level as actualEvidence; the shared
+        # effective_evidence module speaks in terms of evidenceLevel.
+        recorded = capability.get("actualEvidence")
+        if minimum not in LEVEL_ORDER or recorded not in LEVEL_ORDER:
             findings.append(
-                f"CAPABILITY-EVIDENCE-INVALID {capability_id} minimum={minimum!r} actual={actual!r}"
+                f"CAPABILITY-EVIDENCE-INVALID {capability_id} minimum={minimum!r} actual={recorded!r}"
             )
-        elif LEVEL_ORDER[actual] < LEVEL_ORDER[minimum]:
+            continue
+        record = dict(capability)
+        record["evidenceLevel"] = recorded
+        effective = module.effective_evidence(
+            record, current_sha, module.structural_pass_from_recorded(recorded)
+        )
+        if effective != recorded:
+            # Distinguishable from "below the floor": the recording is real
+            # history, it just no longer binds this tree, so the remedy is a
+            # runtime requalification rather than a fresh declaration.
             findings.append(
-                f"EVIDENCE-BELOW-MINIMUM {capability_id} actual={actual} minimum={minimum}"
+                f"EVIDENCE-REQUALIFICATION-REQUIRED {capability_id} "
+                f"recorded={recorded} effective={effective}"
+            )
+        if not module.meets_floor(effective, minimum):
+            findings.append(
+                f"EVIDENCE-BELOW-MINIMUM {capability_id} actual={effective} minimum={minimum} "
+                f"recorded={recorded} effective={effective}"
             )
     return findings
 
@@ -94,7 +137,10 @@ def check(skip_dirty: bool = False) -> list[str]:
             findings.append("DIRTY-WORKTREE")
 
     # 2. HEAD == origin/main (best effort; offline ok)
-    code, head = git("rev-parse", "HEAD")
+    code, head_out = git("rev-parse", "HEAD")
+    # An unresolvable HEAD must not promote recorded evidence: with an empty SHA
+    # every SHA-bound record is downgraded by effective_evidence (fail-closed).
+    head = head_out if code == 0 else ""
     code2, origin = git("rev-parse", "origin/main")
     if code == 0 and code2 == 0 and head and origin:
         if head != origin:
@@ -122,9 +168,14 @@ def check(skip_dirty: bool = False) -> list[str]:
         findings.append("MISSING-RELEASE-EVIDENCE-CONTRACT")
 
     # 5. enable state: capability floors + evidence cards + human acceptance
-    findings.extend(
-        capability_floor_findings(ROOT / "design-lab" / "config" / "capability-evidence-index.json")
-    )
+    #    Floors are compared against the *effective* level for this HEAD (P1-B):
+    #    a stale runtime recording must not satisfy the current tree's floor.
+    try:
+        effective_module = load_effective_evidence_module()
+    except Exception as exc:  # fail-closed: never fall back to recorded-only
+        findings.append(f"EFFECTIVE-EVIDENCE-MODULE-UNAVAILABLE ({exc})")
+    else:
+        findings.extend(capability_floor_findings(CAPABILITY_EVIDENCE_INDEX, head, effective_module))
     findings.extend(evidence_card_findings(ROOT / "design-lab" / "evals" / "evidence" / "evidence-cards.json"))
 
     # A human acceptance marker is necessary but not sufficient. It must not
