@@ -123,14 +123,14 @@ release-preflight 强化、`effectiveEvidence` 接入 Release Gate、Host E3 预
 - 合并前 exact-SHA 回读：`01321e8038b835e206573c163e5b9afaded1e213`，`MERGEABLE` / `mergeStateStatus=CLEAN`
 - **合并前 CI 9/9 全绿**（两轮 run 一致）：`DeepSeek authority gate chain` pass、`Python gate (V3 verifiers + unit tests)` **pass（7m38s，全量套件在新 clone 上实跑）**、`Workbench browser E2E` pass（40s/32s）、`Generated-artifact clean-tree`、`License & secret hygiene`、`MiniGame node gate`、`Open Design host adapter`、`Top-level Authority consistency`、`Workbench strict-TS product gate` 全 pass
 - 上传过程中查出并修掉的**两个真缺陷**见 §8
+- 后续增量（第二台机器对齐用）：**PR #125** 合并（merge `a3005be59c2d3011736961e21a4110ef695fb898`，E-SLICE 会话收敛记录）、**PR #127** 合并（merge `eea67015743de217c017fae137ef80c201a7963a`，P1-B recorded/effective 证据分离）、**Batch F-1**（Release Gate 改用 effective 级别比较 floor）随 `feat/f1-release-gate-effective` 提交
 
 ### 下一步
 
-1. **P1-B**（§5 规格）——本分支 `feat/p1b-effective-evidence` 执行中。
-2. **PR #125**（旧 docs-only 会话总结；7 项检查全绿、MERGEABLE）待 owner 决定是否合并。
-3. P1-A（版本沿革/取代血缘，需先 ADR）与 Batch F 其余。
-4. 重录纪律：`reports/current` 由 `generate_current_reports.py` 在**输入变化**时 rebind；门禁自有产物（`CONTRACT-GRAPH.json` / `DEEPSEEK-FINAL-TEST-GATE.json` / `LANGUAGE-BOUNDARY-SCAN.json`）由**各自生成器**重录（去掉 `--check` 即重录），**不要手改**。
-5. 本地全量套件属可选（CI 的 `Python gate` 已在精确 SHA 的新 clone 上通过，证据强于本地）；本地复跑 `scripts/run_python_tests.py` 约 8-15 分钟，注意后台子进程可能被终止（曾出现 exit `1073807364` = DBG_TERMINATE_PROCESS，非测试失败）。
+1. **P1-A**（版本沿革/取代血缘，需先 ADR）。
+2. **Batch F 其余**：release-preflight 强化、Host E3 预置脚手架（不含实操）。
+3. 重录纪律：`reports/current` 由 `generate_current_reports.py` 在**输入变化**时 rebind；门禁自有产物（`CONTRACT-GRAPH.json` / `DEEPSEEK-FINAL-TEST-GATE.json` / `LANGUAGE-BOUNDARY-SCAN.json`）由**各自生成器**重录（去掉 `--check` 即重录），**不要手改**；索引里记录的 git 观测 SHA 必须仍是 HEAD 的祖先，故 rebase/amend 后须重绑并以**新 commit**提交。
+4. 本地全量套件属可选（CI 的 `Python gate` 已在精确 SHA 的新 clone 上通过，证据强于本地）；本地复跑 `scripts/run_python_tests.py` 约 8-15 分钟，注意后台子进程可能被终止（曾出现 exit `1073807364` = DBG_TERMINATE_PROCESS，非测试失败）。
 
 ## 7. 关键锚点
 

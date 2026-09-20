@@ -9,22 +9,22 @@
   },
   "fresh": false,
   "freshnessMeaning": "at generation only; check verifies bound-input integrity, not current Git or cloud state",
-  "generatedAt": "2026-09-20T14:04:45+00:00",
+  "generatedAt": "2026-09-20T14:21:30+00:00",
   "gitStateMeaning": "generation-time observation, not current HEAD",
   "local": {
-    "branch": "feat/p1b-effective-evidence",
-    "origin_main": "a3005be59c2d3011736961e21a4110ef695fb898",
-    "sha": "56deb5078776f5f7c63906e9fe07202ef4a2f47f",
+    "branch": "feat/f1-release-gate-effective",
+    "origin_main": "eea67015743de217c017fae137ef80c201a7963a",
+    "sha": "3e765dc49b10ced69e1151cbed82f569b7bddd50",
     "source_worktree_clean": true,
-    "tracked_files": 1954,
+    "tracked_files": 1955,
     "worktree_changes": [],
-    "worktree_digest": "sha256:ab81ed25634be1a7b5169831c71efe5e9cdad34d3751d86b1e3e41f6a3f6c0aa"
+    "worktree_digest": "sha256:146d69d850f721cfe9470f423a93aab909e6339ae801875d84357918aef7339a"
   },
   "note": "No GitHub API query was run by this generator; tool installation is not inferred.",
   "remoteRef": "origin/main (local tracking ref)",
   "schemaVersion": "design-lab/cloud-baseline/v2",
   "subjectMeaning": "subjectType=WORKTREE means the tree was dirty at generation; worktreeDigest covers HEAD plus the non-generated changes",
-  "subjectSha": "56deb5078776f5f7c63906e9fe07202ef4a2f47f",
+  "subjectSha": "3e765dc49b10ced69e1151cbed82f569b7bddd50",
   "subjectType": "COMMIT",
   "taskpackHash": "31dde89eb4ede81fe88c0a5c5144adfb86af8db4c4d8c263bde2199180369b69",
   "taskpackId": "DL-TP-20260908-R5",
@@ -39,5 +39,5 @@
     "branchProtection"
   ],
   "worktreeClean": true,
-  "worktreeDigest": "sha256:ab81ed25634be1a7b5169831c71efe5e9cdad34d3751d86b1e3e41f6a3f6c0aa"
+  "worktreeDigest": "sha256:146d69d850f721cfe9470f423a93aab909e6339ae801875d84357918aef7339a"
 }

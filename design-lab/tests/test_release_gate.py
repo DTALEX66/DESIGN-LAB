@@ -9,7 +9,15 @@ from unittest.mock import patch
 SCRIPTS = Path(__file__).resolve().parents[1] / "scripts"
 sys.path.insert(0, str(SCRIPTS))
 
-from verify_release_gate import capability_floor_findings, evidence_card_findings  # noqa: E402
+# Deterministic stand-in for "the current tree SHA": no capability in the
+# committed index binds it, so it only exercises the comparison logic.
+CURRENT_SHA = "1" * 40
+
+from verify_release_gate import (  # noqa: E402
+    capability_floor_findings,
+    evidence_card_findings,
+    load_effective_evidence_module,
+)
 
 
 class ReleaseGateHelpersTest(unittest.TestCase):
@@ -35,10 +43,19 @@ class ReleaseGateHelpersTest(unittest.TestCase):
         path = Path(self._tmp_file("capabilities.json"))
         path.write_text(json.dumps(data), encoding="utf-8")
         try:
-            findings = capability_floor_findings(path)
+            findings = capability_floor_findings(path, CURRENT_SHA, load_effective_evidence_module())
         finally:
             path.unlink()
-        self.assertEqual(findings, ["EVIDENCE-BELOW-MINIMUM creative-toolchain actual=E1 minimum=E3"])
+        # Batch F-1: the line now reports the level the floor was measured
+        # against (effective) next to the recording, so a stale runtime claim
+        # stays distinguishable from a never-reached floor.
+        self.assertEqual(
+            findings,
+            [
+                "EVIDENCE-BELOW-MINIMUM creative-toolchain actual=E1 minimum=E3 "
+                "recorded=E1 effective=E1"
+            ],
+        )
 
     def test_capability_floor_rejects_invalid_levels_without_traceback(self):
         path = Path(self._tmp_file("invalid-capabilities.json"))
@@ -47,7 +64,7 @@ class ReleaseGateHelpersTest(unittest.TestCase):
             encoding="utf-8",
         )
         try:
-            findings = capability_floor_findings(path)
+            findings = capability_floor_findings(path, CURRENT_SHA, load_effective_evidence_module())
         finally:
             path.unlink()
         self.assertIn("CAPABILITY-EVIDENCE-INVALID", findings[0])

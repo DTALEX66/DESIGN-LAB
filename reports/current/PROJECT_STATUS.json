@@ -8,15 +8,15 @@
   },
   "fresh": false,
   "freshnessMeaning": "at generation only; check verifies bound-input integrity, not current Git or cloud state",
-  "generatedAt": "2026-09-20T14:04:45+00:00",
+  "generatedAt": "2026-09-20T14:21:30+00:00",
   "git": {
-    "branch": "feat/p1b-effective-evidence",
-    "origin_main": "a3005be59c2d3011736961e21a4110ef695fb898",
-    "sha": "56deb5078776f5f7c63906e9fe07202ef4a2f47f",
+    "branch": "feat/f1-release-gate-effective",
+    "origin_main": "eea67015743de217c017fae137ef80c201a7963a",
+    "sha": "3e765dc49b10ced69e1151cbed82f569b7bddd50",
     "source_worktree_clean": true,
-    "tracked_files": 1954,
+    "tracked_files": 1955,
     "worktree_changes": [],
-    "worktree_digest": "sha256:ab81ed25634be1a7b5169831c71efe5e9cdad34d3751d86b1e3e41f6a3f6c0aa"
+    "worktree_digest": "sha256:146d69d850f721cfe9470f423a93aab909e6339ae801875d84357918aef7339a"
   },
   "gitStateMeaning": "generation-time observation, not current HEAD",
   "hostLive": "derived from host_live axis only",
@@ -29,7 +29,7 @@
     "quarantinedSources": 162
   },
   "subjectMeaning": "subjectType=WORKTREE means the tree was dirty at generation; worktreeDigest covers HEAD plus the non-generated changes",
-  "subjectSha": "56deb5078776f5f7c63906e9fe07202ef4a2f47f",
+  "subjectSha": "3e765dc49b10ced69e1151cbed82f569b7bddd50",
   "subjectType": "COMMIT",
   "taskCounts": {
     "PARTIAL": 28
@@ -42,9 +42,9 @@
   "testRunMeaning": "bound run: python scripts/run_bound_test_suite.py --order forward --modules test_asset_store test_creative_job test_creative_ledgers test_creative_lineage test_creative_migration test_creative_version_guard test_creative_f030_f040 test_creative_session_link test_job_store test_runtime_attempt_safety test_runtime_asset_safety test_runtime_explicit_project test_assurance_qa_plane test_assurance_jury test_bundle_store test_operation_coordinator",
   "testRunResult": "OK",
   "tests": {
-    "definedTestMethodCount": 1451,
+    "definedTestMethodCount": 1466,
     "executed": "see individual verified ledger receipts"
   },
   "worktreeClean": true,
-  "worktreeDigest": "sha256:ab81ed25634be1a7b5169831c71efe5e9cdad34d3751d86b1e3e41f6a3f6c0aa"
+  "worktreeDigest": "sha256:146d69d850f721cfe9470f423a93aab909e6339ae801875d84357918aef7339a"
 }
