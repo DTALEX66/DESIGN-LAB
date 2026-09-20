@@ -56,9 +56,19 @@ AUTHORITY_ID = "DL-AUTHORITY-2026-09-18-R2"
 # Static release integrity facts: the four R2 landing files and the byte
 # hashes published in the R2 package MANIFEST. These pin the release
 # content; they do not pin any dynamic repository state.
+#
+# 2026-09-20 re-pin (AUTHORITY §17: owner intent = "全部授权"; reason = P1-D/P1-E
+# close-out below; superseded = the R2 values; impact = the gate re-pins to the
+# post-R2 content, so a stale drift entry can no longer be enforced as truth):
+#   AUTHORITY.md                   49e21069… -> f7c1e6ad…  (§15 P0 close-out)
+#   authority-index.json           465f8eba… -> 38c01eb0…  (P1-E: cleared the two
+#     drift entries that no longer exist — AGENTS already mandates Authority
+#     first-read; the LANGUAGE-POLICY Node-build wording was corrected)
+# CI readback: `scripts/verify_top_level_authority.py` (canonical-verify.yml
+# line 116) must return TOP_AUTHORITY_GATE=PASS checks=10 failed=[].
 R2_RELEASE_HASHES = {
-    "AUTHORITY.md": "49e2106969af6416081ed37172b821073cf6d6ffc802e6245c5077d1d7d46e58",
-    ".project/governance/authority-index.json": "465f8eba301816a2183e0964945812d168309e27251af66e7639483ac35b86f2",
+    "AUTHORITY.md": "f7c1e6adfa569f83cf44997451c50f56617411581db9ee6819621bd9c6b6cdc2",
+    ".project/governance/authority-index.json": "38c01eb0c2bc87e4131d2e8a74a8a026098d636cf58db7cf139c7fcece75d096",
     "docs/current/HISTORY-FREEZE-RULES.md": "b970562dbdc8b4ccfff71ba2354a5b718d2a54efde7db7972c4a2ee2b60e6e40",
     "docs/taskpacks/DESIGN-LAB-FINAL-AUTHORITY-CONVERGENCE-TASKPACK-2026-09-18.md": "62f43ef295d4e90462d1e49e657e490400c4b5568f4e4ad1db3e268e12bb10c7",
 }

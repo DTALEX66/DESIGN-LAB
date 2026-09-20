@@ -68,7 +68,7 @@ console.log(JSON.stringify({count,error}));
 const fs=require('fs'),vm=require('vm');
 class E {constructor(){this.children=[];this.classList={toggle(){}};}append(x){this.children.push(x)}replaceChildren(){this.children=[];}removeAttribute(){}}
 const elements={},pending=[];
-const c={document:{getElementById:id=>elements[id]??=new E(),createElement:()=>new E()},
+const c={document:{getElementById:id=>elements[id]??=new E(),createElement:()=>new E(),createTextNode:()=>({nodeType:3})},
 fetch:path=>new Promise(resolve=>pending.push({path,resolve}))};
 vm.createContext(c);vm.runInContext(fs.readFileSync(process.argv[1],'utf8'),c);
 (async()=>{const fn=process.argv[2],mode=process.argv[3];vm.runInContext("project='"+'c'.repeat(32)+"';taskCursor=nativeCursor='page1'",c);

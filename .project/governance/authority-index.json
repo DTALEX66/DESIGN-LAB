@@ -39,16 +39,7 @@
     "docs/taskpacks/DESIGN-LAB-DEEPSEEK-AUTHORITY-TASKPACK-2026-09-14.md",
     "docs/taskpacks/DESIGN-LAB-FINAL-AUTHORITY-CONVERGENCE-TASKPACK-2026-09-18.md"
   ],
-  "currentButDrifted": [
-    {
-      "path": "AGENTS.md",
-      "reason": "AUTHORITY.md must become mandatory first read; DeepSeek 2026-09-14 becomes subordinate lineage"
-    },
-    {
-      "path": "docs/architecture/LANGUAGE-POLICY.md",
-      "reason": "one stale sentence says DECLARED_NOT_ENFORCED; current truth is CONFIGURED_NOT_ENFORCED"
-    }
-  ],
+  "currentButDrifted": [],
   "historicalSpecific": [
     {
       "path": "docs/handoffs/DESIGN-LAB-UCR-CONVERGENCE-20260918-HANDOFF.md",

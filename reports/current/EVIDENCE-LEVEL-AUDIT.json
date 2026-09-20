@@ -138,5 +138,9 @@
   "declared_non_claims_rule": "a line under a heading that forbids a claim (for example 'What is NOT claimed') is a prohibition, not a claim; those lines are counted and listed here rather than classified",
   "verdict": "PASS",
   "self_output_excluded": "reports/current/EVIDENCE-LEVEL-AUDIT.json",
-  "gate_is_not_vacuous": "run --self-test: the classifier must return OVERCLAIM for a DeepSeek-authored Photoshop E3, an E4 jury claim and an unbacked Blender E3, and HISTORICAL for a dated E3 with runtime identity and artifacts"
+  "gate_is_not_vacuous": "run --self-test: the classifier must return OVERCLAIM for a DeepSeek-authored Photoshop E3, an E4 jury claim and an unbacked Blender E3, and HISTORICAL for a dated E3 with runtime identity and artifacts",
+  "projection": true,
+  "subjectSha": "042ac635ae7a6042db366f7fb19508fc5db7bc65",
+  "fresh": false,
+  "generatedBy": "scripts/verify_evidence_levels.py"
 }

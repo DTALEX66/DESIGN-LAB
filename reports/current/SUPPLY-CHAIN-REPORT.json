@@ -180,5 +180,9 @@
   "migration_debt": {
     "adapter_status_entries_still_legacy": 30,
     "note": "the frozen eight-value vocabulary is the target; the registry still uses the legacy names, and the gate maps them explicitly so the debt is a number"
-  }
+  },
+  "projection": true,
+  "subjectSha": "042ac635ae7a6042db366f7fb19508fc5db7bc65",
+  "fresh": false,
+  "generatedBy": "scripts/verify_supply_chain.py"
 }

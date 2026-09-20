@@ -408,5 +408,9 @@
     "DELETE-B-pending": 2,
     "KEEP": 2
   },
-  "note": "DELETE-B-pending (R4, directory) are not delete-eligible until their domain/intent residuals are resolved or explicitly REJECTED and same-SHA re-verified; C-03 stays BLOCKED."
+  "note": "DELETE-B-pending (R4, directory) are not delete-eligible until their domain/intent residuals are resolved or explicitly REJECTED and same-SHA re-verified; C-03 stays BLOCKED.",
+  "projection": true,
+  "subjectSha": "042ac635ae7a6042db366f7fb19508fc5db7bc65",
+  "fresh": false,
+  "generatedBy": "unattributed"
 }

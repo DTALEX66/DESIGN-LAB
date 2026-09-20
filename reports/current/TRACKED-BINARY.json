@@ -247,5 +247,9 @@
       "extension": ".png"
     }
   ],
-  "verdict": "NO_MODEL_WEIGHTS_TRACKED"
+  "verdict": "NO_MODEL_WEIGHTS_TRACKED",
+  "projection": true,
+  "subjectSha": "042ac635ae7a6042db366f7fb19508fc5db7bc65",
+  "fresh": false,
+  "generatedBy": "scripts/deepseek_size_audit.py"
 }

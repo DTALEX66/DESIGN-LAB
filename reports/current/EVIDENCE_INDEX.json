@@ -479,5 +479,9 @@
   "notes": {
     "generation_time_is_not_test_time": true,
     "historical_e3_not_current": "creative-toolchain E3 remains bound to a prior tree; requalification required"
-  }
+  },
+  "projection": true,
+  "subjectSha": "042ac635ae7a6042db366f7fb19508fc5db7bc65",
+  "fresh": false,
+  "generatedBy": "scripts/generate_ssot_projections.py"
 }

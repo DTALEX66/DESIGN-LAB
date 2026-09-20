@@ -79,17 +79,20 @@ inside `src/`, and `unittest` discovery through `scripts/run_python_tests.py`.
 
 | Fact | State |
 |---|---|
-| Product Node build | **none**: `apps/workbench/main.ts` is served as source, exactly as `04-REPOSITORY-LANGUAGE.md` warns ("浏览器可执行语法子集，不等于 strict TypeScript 已验收") |
-| Root `package.json` | absent |
-| Lockfile | absent |
-| `package.json` in tree | one, at `fixtures/domains/game-visual/package.json`, scoped to a Domain fixture (`"private": true`, node scripts only) — it is **not** a product workspace |
-| Node compatibility range | undeclared |
+| Product Node build | `apps/workbench` is the single product Node workspace package (Vite build); its output `apps/workbench/build/main.js` is committed/tracked and is the D003 Build Output Truth, gated by `design-lab/scripts/verify_workbench_packaging.py` (`/workbench/main.js` must route to `build/main.js`, the bundle must exist, git must track it). Build is driven by the pnpm workspace (root `pnpm-workspace.yaml` + root `package.json`, `packageManager: pnpm@11.22.0`); the committed bundle is what the Python runtime serves |
+| Root `package.json` | present (product workspace root; `design-lab`, private, `packageManager` field; scripts delegate to `pnpm --filter @design-lab/workbench`) |
+| Lockfile | present (`pnpm-lock.yaml`, the workspace lockfile; single Node lockfile in the tree) |
+| `package.json` in tree | root `package.json` (workspace root), `apps/workbench/package.json` (the `@design-lab/workbench` package), and one at `fixtures/domains/game-visual/package.json`, scoped to a Domain fixture (`"private": true`, node scripts only) and deliberately NOT a workspace dependency (its own `node_modules`) — the fixture is **not** the product workspace |
+| Node compatibility range | declared: root `package.json` `engines.node >= 22.18` (with `packageManager: pnpm@11.22.0`; the single toolchain boundary) |
 
 ### The rule this fixes
 
 There is one package manager, one lockfile and one workspace boundary **or there
-is no Node product build at all**. Today the second is true, and that is now
-stated instead of being inferred. If Any product-consumed npm dependency appears:
+is no Node product build at all**. That is the single source of truth this tree
+holds: pnpm is the one package manager, `pnpm-lock.yaml` the one lockfile, and
+the root workspace (`pnpm-workspace.yaml` → `apps/workbench`) the one boundary.
+It is stated here, not inferred. If a second product-consumed npm dependency
+ever appears:
 
 1. it is added at a single workspace root with `pnpm` and a committed
    `pnpm-lock.yaml`;

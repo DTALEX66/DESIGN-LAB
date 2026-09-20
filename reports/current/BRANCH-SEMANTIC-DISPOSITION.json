@@ -699,5 +699,9 @@
     "fix/design-lab-governance-closure-r4 (PARTIAL_ABSORBED, 22 commits classified by domain)",
     "migration/dl-directory-convergence-r1 (SUPERSEDED, 31 commits classified by intent)"
   ],
-  "note": "read-only disposition; delete_safe=true means the branch carries no unrecoverable capability residual once an archival record is written. None of this authorizes a destructive delete - that is gated at B14 behind explicit user authorization."
+  "note": "read-only disposition; delete_safe=true means the branch carries no unrecoverable capability residual once an archival record is written. None of this authorizes a destructive delete - that is gated at B14 behind explicit user authorization.",
+  "projection": true,
+  "subjectSha": "042ac635ae7a6042db366f7fb19508fc5db7bc65",
+  "fresh": false,
+  "generatedBy": "unattributed"
 }

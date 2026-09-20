@@ -166,6 +166,65 @@ jobs:
       - name: "No-drift: rebuilt bundle is byte-identical to committed"
         run: git diff --exit-code -- apps/workbench/build
 
+  workbench-browser-e2e:
+    name: Workbench browser E2E (exact-SHA controlled-runtime, no-skip)
+    runs-on: ubuntu-latest
+    # P0-08: make the browser-level vertical slice a REAL CI job. The shell test
+    # (test_workbench_design_layer_e2e.py) is probe-driven and HONESTLY skips on
+    # a clean checkout that lacks the toolchain. This job installs the pinned
+    # `playwright` workspace dependency + its matching Chromium (recorded in the
+    # lockfile, not the user's local cache) and then REQUIRES the browser test
+    # to actually RUN and PASS — a skip is a fail-closed red, never a silent
+    # green. It claims E2 controlled-runtime evidence only (not E3/E4/E5).
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5.6.0
+        with:
+          python-version: '3.12'
+      - name: Install deps (uv.lock; PR115 audit F04)
+        run: |
+          python -m pip install uv
+          uv sync --locked
+          echo "$GITHUB_WORKSPACE/.venv/bin" >> "$GITHUB_PATH"
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: 22
+      - name: "Install pinned pnpm (matches root package.json packageManager)"
+        run: npm install -g pnpm@11.22.0
+      - name: "pnpm frozen-lockfile install (registers the pinned playwright)"
+        run: pnpm install --frozen-lockfile
+      - name: "Install the lockfile-pinned Chromium (supply-chain recorded)"
+        # `playwright` is a workspace devDependency; installing its matching
+        # browser via the pinned package (not the user's local ms-playwright
+        # cache) keeps the browser version bound to the committed lockfile.
+        run: pnpm --filter @design-lab/workbench exec npx playwright install chromium
+      - name: "Browser E2E must RUN and PASS (no-skip policy)"
+        # E2E_REQUIRED makes the shell test fail-closed on missing evidence;
+        # E2E_SUBJECT_SHA / E2E_WORKFLOW_RUN_ID stamp the exact-SHA and run
+        # identity into browser-e2e-summary.json for the artifact below.
+        # NOTE: github.sha / github.run_id are trusted identity fields
+        # computed by GitHub (not attacker-controlled event inputs), so
+        # they are safe in env: / with: contexts.
+        env:
+          E2E_REQUIRED: "1"
+          E2E_SUBJECT_SHA: ${{ github.sha }}
+          E2E_WORKFLOW_RUN_ID: ${{ github.run_id }}
+        run: python design-lab/scripts/verify_browser_e2e_ran.py
+      - name: "Upload E2 evidence artifact (summary + fail screenshot)"
+        # P0-G: the no-skip job must leave download-proof. The mjs driver
+        # writes browser-e2e-summary.json (and fail.png on a mid-chain
+        # failure) into the gitignored .project-local/ tree; on a clean
+        # runner nothing exists yet, so if-no-files-found=error keeps a
+        # "green-but-empty" upload from being silently possible.
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: workbench-e2-${{ github.sha }}
+          path: .project-local/task-artifacts/browser-e2e/
+          if-no-files-found: error
+
   generated-artifact-gate:
     name: Generated-artifact clean-tree gate
     runs-on: ubuntu-latest

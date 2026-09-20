@@ -104,7 +104,7 @@ function resetProject() {
   pendingImport = null;
   nativeCursor = null;
   byId<HTMLParagraphElement>('native-info').textContent = '';
-  for (const id of ['assets', 'tasks', 'events', 'native-assets']) byId<HTMLUListElement>(id).replaceChildren();
+  for (const id of ['assets', 'tasks', 'events', 'native-assets', 'reference-picker']) byId<HTMLUListElement>(id).replaceChildren();
   for (const id of ['preview', 'retry-import', 'more-tasks', 'more-events', 'more-native']) byId(id).hidden = true;
   byId<HTMLImageElement>('preview').removeAttribute('src');
   byId<HTMLParagraphElement>('preview-empty').hidden = false;
@@ -269,7 +269,38 @@ async function refresh() {
   byId<HTMLUListElement>('assets').replaceChildren();
   for (const asset of data.assets)
     button('assets', `${asset.width} × ${asset.height} · ${asset.media_type} · ${asset.id.slice(-10)}`, () => preview(asset.id));
+  // P0-05: expose the imported assets in the 05 design layer as a lightweight
+  // reference picker (checkboxes). A brief may only reference assets that were
+  // actually imported into THIS project — the backend fails closed otherwise.
+  populateReferencePicker(data.assets.map((asset) => asset.id));
   setStatus('已读取持久化状态。参考素材权利仍需审查。');
+}
+
+// P0-05: one checkbox per imported asset; checked ids are what submitBrief sends.
+function populateReferencePicker(assetIds: string[]) {
+  const picker = byId<HTMLUListElement>('reference-picker');
+  picker.replaceChildren();
+  if (!assetIds.length) {
+    const li = document.createElement('li');
+    li.textContent = '尚未导入参考素材。先导入 PNG/JPEG，再回来为简报勾选。';
+    picker.append(li);
+    return;
+  }
+  for (const id of assetIds) {
+    const li = document.createElement('li');
+    const label = document.createElement('label');
+    const box = document.createElement('input');
+    box.type = 'checkbox';
+    box.name = 'reference-asset';
+    box.value = id;
+    label.append(box, document.createTextNode(' ' + id));
+    li.append(label);
+    picker.append(li);
+  }
+}
+
+function selectedReferences(): string[] {
+  return Array.from(document.querySelectorAll<HTMLInputElement>('input[name="reference-asset"]:checked')).map((el) => el.value);
 }
 
 async function verifyNative(asset: NativeAssetRecord) {
@@ -536,7 +567,8 @@ function renderDesignLayer(data: DesignLayerResponse) {
   byId<HTMLUListElement>('design-briefs').replaceChildren(
     ...layer.briefs.map((brief: DesignBrief) => {
       const li = document.createElement('li');
-      li.textContent = `BRIEF · ${brief.title} · ${brief.goals.join(' / ')}${brief.constraints ? ` · ${brief.constraints}` : ''} · ${brief.spec_sha256}`;
+      const refs = brief.reference_asset_ids.length;
+      li.textContent = `BRIEF · ${brief.title} · ${brief.goals.join(' / ')}${brief.constraints ? ` · ${brief.constraints}` : ''} · 参考 ${refs} · ${brief.spec_sha256}`;
       return li;
     }),
   );
@@ -603,8 +635,9 @@ async function submitBrief() {
   const goals = goalsRaw ? goalsRaw.split(',').map((s) => s.trim()).filter(Boolean) : [];
   const constraints = byId<HTMLInputElement>('brief-constraints').value.trim() || null;
   if (!title || !goals.length) { setStatus('请填写简报标题与至少一条目标。', true); return; }
-  const body: Record<string, unknown> = { title, goals, constraints, reference_asset_ids: [], idempotency_key: '' };
-  const identity = JSON.stringify({ owner, title, goals, constraints });
+  const references = selectedReferences();
+  const body: Record<string, unknown> = { title, goals, constraints, reference_asset_ids: references, idempotency_key: '' };
+  const identity = JSON.stringify({ owner, title, goals, constraints, references });
   if (!submittedBrief || submittedBrief.owner !== owner || submittedBrief.identity !== identity)
     submittedBrief = { owner, identity, key: uuid() };
   body.idempotency_key = submittedBrief.key;
@@ -616,8 +649,10 @@ async function submitBrief() {
     byId<HTMLInputElement>('brief-title').value = '';
     byId<HTMLInputElement>('brief-goals').value = '';
     byId<HTMLInputElement>('brief-constraints').value = '';
+    for (const box of Array.from(document.querySelectorAll('input[name="reference-asset"]')))
+      (box as HTMLInputElement).checked = false;
     await refreshDesign();
-    setStatus('简报已持久化；下一步在简报下立方向。');
+    setStatus(`简报已持久化（引用 ${references.length} 个参考素材）；下一步在简报下立方向。`);
   } catch (error) {
     if (current === epoch) setStatus(`简报未确认：${errMsg(error)}。相同内容重试复用幂等键。`, true);
   } finally {

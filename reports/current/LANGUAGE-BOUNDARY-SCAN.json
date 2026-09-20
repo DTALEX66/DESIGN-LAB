@@ -4,9 +4,9 @@
     "DL-TP-20260914-DEEPSEEK-AUTHORITY-R1::DLDS-C020",
     "DL-TP-20260914-DEEPSEEK-AUTHORITY-R1::DLDS-C050"
   ],
-  "generated_at": "2026-09-18T14:30:07+00:00",
+  "generated_at": "2026-09-20T00:12:46+00:00",
   "subject_sha": "",
-  "tracked_files_scanned": 1926,
+  "tracked_files_scanned": 1951,
   "language_boundary": {
     "forbidden_language_files": [],
     "fixture_scoped_language_files": [
@@ -25,7 +25,9 @@
     ],
     "second_python_architecture": [],
     "node_manifests": [
-      "fixtures/domains/game-visual/package.json"
+      "apps/workbench/package.json",
+      "fixtures/domains/game-visual/package.json",
+      "package.json"
     ],
     "node_server_manifests": [
       {
@@ -47,12 +49,34 @@
         ]
       }
     ],
-    "second_node_backend": [],
+    "second_node_backend": [
+      {
+        "path": "fixtures/domains/game-visual/package.json",
+        "scripts": [
+          "android:build",
+          "android:inspect",
+          "android:install",
+          "android:prepare",
+          "content:v5:check",
+          "douyin:build",
+          "douyin:check",
+          "serve",
+          "skin:new",
+          "skins:check",
+          "test",
+          "verify",
+          "verify:summary"
+        ]
+      }
+    ],
     "lockfiles": [
+      "pnpm-lock.yaml",
       "requirements.txt",
       "uv.lock"
     ],
-    "node_lockfiles": [],
+    "node_lockfiles": [
+      "pnpm-lock.yaml"
+    ],
     "python_lockfiles": [
       "requirements.txt",
       "uv.lock"
