@@ -83,6 +83,7 @@ SCRIPTS = [
     "verify_photoshop_reconstruction_adapter.py",
     "verify_reconstruction_bundle.py",
     "verify_host_e3_evidence.py",
+    "verify_control_capability_matrix.py",
 ]
 
 # Release-time gate: invoked separately with a release-evidence file argument.
@@ -104,6 +105,16 @@ RECONSTRUCTION_RELEASE_VERIFIER = "verify_reconstruction_release.py"
 # commits a fake/host-E3 record that fails its checks (schema contract,
 # approver, boundTreeSha ancestry, artifact sha256) — exactly the
 # fabricated-E3 case that should fail the gate daily.
+# P1-CONTROL-SPIKE adds verify_control_capability_matrix.py — also in SCRIPTS:
+# its default run validates the tracked capability routing declaration
+# (design-lab/config/control-capability-matrix.json) against its schema and
+# the fail-closed rules (supported=true requires evidence_level>=E2 +
+# qualified_sha; no_bypass_license must be true; computer-use reachability
+# requires a truth layer; matrix must cover browser + minimax-design). The
+# matrix itself is honest (Adobe/MiniMax all supported=false/E0), so a clean
+# checkout reports PASS and exits 0. It only turns red if someone commits a
+# matrix that declares a capability outrunning its evidence or bypasses
+# licensing — the "能点软件≠集成" trap this batch closes.
 
 # E1 确定性检查（DL-QLT-001 / DL-PRD-001），以参数化方式运行
 EXTRA_CHECKS = [
