@@ -8,31 +8,15 @@
   },
   "fresh": false,
   "freshnessMeaning": "at generation only; check verifies bound-input integrity, not current Git or cloud state",
-  "generatedAt": "2026-09-19T23:59:15+00:00",
+  "generatedAt": "2026-09-20T00:12:41+00:00",
   "git": {
-    "branch": "main",
+    "branch": "feat/maturity-p0-p1-convergence",
     "origin_main": "cb2163a2ad6db7bd12ee1ca07c1d3eb2badc328e",
-    "sha": "042ac635ae7a6042db366f7fb19508fc5db7bc65",
-    "source_worktree_clean": false,
-    "tracked_files": 1950,
-    "worktree_changes": [
-      {
-        "content": "sha256:38c01eb0c2bc87e4131d2e8a74a8a026098d636cf58db7cf139c7fcece75d096",
-        "kind": "M",
-        "path": ".project/governance/authority-index.json"
-      },
-      {
-        "content": "sha256:ecca8c621eb8f1765a9a7f1353eeeaaa1ae6ed4e9e80de59a0c9acf40275538a",
-        "kind": "M",
-        "path": "docs/architecture/LANGUAGE-POLICY.md"
-      },
-      {
-        "content": "sha256:7ce1a1177af029164015d527db91cfa40b1d7079d7a380a20c3ed4896cd92e7c",
-        "kind": "M",
-        "path": "reports/README.md"
-      }
-    ],
-    "worktree_digest": "sha256:2b8a92c1a5552905b850017b8f91d908b61888c809146c7caeb75567332fac32"
+    "sha": "74ef85d73bec22adaef832185fcb79618843bfc1",
+    "source_worktree_clean": true,
+    "tracked_files": 1951,
+    "worktree_changes": [],
+    "worktree_digest": "sha256:77de1a4fabbbc535c6de6834adf863c4e4ee5d98c7f4c126b86c82f5d41835a1"
   },
   "gitStateMeaning": "generation-time observation, not current HEAD",
   "hostLive": "derived from host_live axis only",
@@ -45,22 +29,22 @@
     "quarantinedSources": 162
   },
   "subjectMeaning": "subjectType=WORKTREE means the tree was dirty at generation; worktreeDigest covers HEAD plus the non-generated changes",
-  "subjectSha": "042ac635ae7a6042db366f7fb19508fc5db7bc65",
-  "subjectType": "WORKTREE",
+  "subjectSha": "74ef85d73bec22adaef832185fcb79618843bfc1",
+  "subjectType": "COMMIT",
   "taskCounts": {
     "PARTIAL": 28
   },
   "taskpack": "DL-TP-20260908-R5",
   "taskpackHash": "31dde89eb4ede81fe88c0a5c5144adfb86af8db4c4d8c263bde2199180369b69",
   "taskpackId": "DL-TP-20260908-R5",
-  "testRunAt": "2026-09-17T14:28:08+00:00",
-  "testRunId": "testrun-20260917T142806Z-forward-repeat-08a91a030805",
-  "testRunMeaning": "bound run: python scripts/run_bound_test_suite.py --order forward --modules test_job_store test_runtime_attempt_safety",
+  "testRunAt": "2026-09-20T00:11:55+00:00",
+  "testRunId": "testrun-20260920T001141Z-forward-repeat-77de1a4fabbb",
+  "testRunMeaning": "bound run: python scripts/run_bound_test_suite.py --order forward --modules test_asset_store test_creative_job test_creative_ledgers test_creative_lineage test_creative_migration test_creative_version_guard test_creative_f030_f040 test_creative_session_link test_job_store test_runtime_attempt_safety test_runtime_asset_safety test_runtime_explicit_project test_assurance_qa_plane test_assurance_jury test_bundle_store test_operation_coordinator",
   "testRunResult": "OK",
   "tests": {
     "definedTestMethodCount": 1424,
     "executed": "see individual verified ledger receipts"
   },
-  "worktreeClean": false,
-  "worktreeDigest": "sha256:2b8a92c1a5552905b850017b8f91d908b61888c809146c7caeb75567332fac32"
+  "worktreeClean": true,
+  "worktreeDigest": "sha256:77de1a4fabbbc535c6de6834adf863c4e4ee5d98c7f4c126b86c82f5d41835a1"
 }

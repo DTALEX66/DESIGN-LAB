@@ -1,7 +1,7 @@
 {
   "schemaVersion": "design-lab/contract-graph/v1",
   "task_key": "DL-TP-20260914-DEEPSEEK-AUTHORITY-R1::DLDS-F000",
-  "generated_at": "2026-09-18T19:13:41+00:00",
+  "generated_at": "2026-09-20T00:11:24+00:00",
   "subject_sha": "",
   "chain": "Schema -> Python model -> DB -> producer -> consumer -> receipt -> projection",
   "concepts": {
@@ -377,9 +377,5 @@
     "complete": 11,
     "breaks": 0
   },
-  "verdict": "NO_BROKEN_LINK",
-  "projection": true,
-  "subjectSha": "042ac635ae7a6042db366f7fb19508fc5db7bc65",
-  "fresh": false,
-  "generatedBy": "scripts/verify_contract_graph.py"
+  "verdict": "NO_BROKEN_LINK"
 }
