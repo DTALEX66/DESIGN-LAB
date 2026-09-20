@@ -8,15 +8,15 @@
   },
   "fresh": false,
   "freshnessMeaning": "at generation only; check verifies bound-input integrity, not current Git or cloud state",
-  "generatedAt": "2026-09-20T14:21:30+00:00",
+  "generatedAt": "2026-09-20T14:35:23+00:00",
   "git": {
-    "branch": "feat/f1-release-gate-effective",
-    "origin_main": "eea67015743de217c017fae137ef80c201a7963a",
-    "sha": "3e765dc49b10ced69e1151cbed82f569b7bddd50",
+    "branch": "feat/f2a-revision",
+    "origin_main": "d89e93fafc25649dbfb2be90153f0072c500fc34",
+    "sha": "48a2c60f643cc68d5880970c362b2a0b17d109f4",
     "source_worktree_clean": true,
-    "tracked_files": 1955,
+    "tracked_files": 1957,
     "worktree_changes": [],
-    "worktree_digest": "sha256:146d69d850f721cfe9470f423a93aab909e6339ae801875d84357918aef7339a"
+    "worktree_digest": "sha256:ac0c70112168a360b57c3d52b6ce9d0e3573bac15b69a17ed30d53d0e4accd5c"
   },
   "gitStateMeaning": "generation-time observation, not current HEAD",
   "hostLive": "derived from host_live axis only",
@@ -29,7 +29,7 @@
     "quarantinedSources": 162
   },
   "subjectMeaning": "subjectType=WORKTREE means the tree was dirty at generation; worktreeDigest covers HEAD plus the non-generated changes",
-  "subjectSha": "3e765dc49b10ced69e1151cbed82f569b7bddd50",
+  "subjectSha": "48a2c60f643cc68d5880970c362b2a0b17d109f4",
   "subjectType": "COMMIT",
   "taskCounts": {
     "PARTIAL": 28
@@ -42,9 +42,9 @@
   "testRunMeaning": "bound run: python scripts/run_bound_test_suite.py --order forward --modules test_asset_store test_creative_job test_creative_ledgers test_creative_lineage test_creative_migration test_creative_version_guard test_creative_f030_f040 test_creative_session_link test_job_store test_runtime_attempt_safety test_runtime_asset_safety test_runtime_explicit_project test_assurance_qa_plane test_assurance_jury test_bundle_store test_operation_coordinator",
   "testRunResult": "OK",
   "tests": {
-    "definedTestMethodCount": 1466,
+    "definedTestMethodCount": 1480,
     "executed": "see individual verified ledger receipts"
   },
   "worktreeClean": true,
-  "worktreeDigest": "sha256:146d69d850f721cfe9470f423a93aab909e6339ae801875d84357918aef7339a"
+  "worktreeDigest": "sha256:ac0c70112168a360b57c3d52b6ce9d0e3573bac15b69a17ed30d53d0e4accd5c"
 }
