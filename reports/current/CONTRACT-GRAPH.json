@@ -377,5 +377,9 @@
     "complete": 11,
     "breaks": 0
   },
-  "verdict": "NO_BROKEN_LINK"
+  "verdict": "NO_BROKEN_LINK",
+  "projection": true,
+  "subjectSha": "042ac635ae7a6042db366f7fb19508fc5db7bc65",
+  "fresh": false,
+  "generatedBy": "scripts/verify_contract_graph.py"
 }

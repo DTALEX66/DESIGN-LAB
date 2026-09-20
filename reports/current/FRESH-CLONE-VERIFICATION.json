@@ -61,5 +61,9 @@
     "install"
   ],
   "verdict": "PASS",
-  "note": "a clone proves the committed tree; it cannot prove an install without uv and a network, and that stage is recorded as NOT_VERIFIABLE rather than passed"
+  "note": "a clone proves the committed tree; it cannot prove an install without uv and a network, and that stage is recorded as NOT_VERIFIABLE rather than passed",
+  "projection": true,
+  "subjectSha": "042ac635ae7a6042db366f7fb19508fc5db7bc65",
+  "fresh": false,
+  "generatedBy": "scripts/verify_fresh_clone.py"
 }

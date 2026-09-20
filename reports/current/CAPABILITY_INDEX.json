@@ -208,5 +208,9 @@
   "notes": {
     "adapter_level_capabilities": "50 adapter capabilities tracked separately in capability-evidence-current.json",
     "no_status_edited": true
-  }
+  },
+  "projection": true,
+  "subjectSha": "042ac635ae7a6042db366f7fb19508fc5db7bc65",
+  "fresh": false,
+  "generatedBy": "scripts/generate_ssot_projections.py"
 }

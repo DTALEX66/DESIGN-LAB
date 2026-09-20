@@ -533,5 +533,9 @@
       "merge_base": "848e51bf8986a19a1cff3cab67b84fc7f0395b4a",
       "diffstat": "design-lab/tests/test_verifier_internals.py | 94 +++++++++++++++++++++++++++++\n 1 file changed, 94 insertions(+)"
     }
-  ]
+  ],
+  "projection": true,
+  "subjectSha": "042ac635ae7a6042db366f7fb19508fc5db7bc65",
+  "fresh": false,
+  "generatedBy": "unattributed"
 }

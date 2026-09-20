@@ -281,5 +281,9 @@
     "conditional_languages": "Rust is NOT_PRIMARY; a .rs file requires benchmark evidence and an ADR, so it is reported, not forbidden",
     "agreeing_copies": "a copy that agrees with the schema is informational; the gate fails only on disagreement",
     "copy_count": "copy_count is a lower bound measured by DETECTOR_SCOPE, not a completeness audit: it is not evidence that a vocabulary copy was lost when the number falls"
-  }
+  },
+  "projection": true,
+  "subjectSha": "042ac635ae7a6042db366f7fb19508fc5db7bc65",
+  "fresh": false,
+  "generatedBy": "scripts/verify_language_boundary.py"
 }

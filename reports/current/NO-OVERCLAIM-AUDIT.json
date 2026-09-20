@@ -20,5 +20,9 @@
   "delegated": {
     "E3_E4": "scripts/verify_evidence_levels.py owns who may claim which level"
   },
-  "verdict": "PASS"
+  "verdict": "PASS",
+  "projection": true,
+  "subjectSha": "042ac635ae7a6042db366f7fb19508fc5db7bc65",
+  "fresh": false,
+  "generatedBy": "scripts/verify_no_overclaim.py"
 }

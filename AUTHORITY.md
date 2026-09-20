@@ -189,28 +189,35 @@ Merge/delete/release/force-push 仍属于 owner-authorized destructive actions�
 
 ## 15. 当前剩余工作
 
-### P0 — Authority/防漂移
-1. 落仓 `/AUTHORITY.md`
-2. 落仓 authority-index
-3. 修改 `AGENTS.md`，Authority 强制第一读
-4. 落仓统一最终 TaskPack
-5. 分类/冻结所有 active-looking 历史文档/TaskPack/Handoff
-6. 将 PR #120 Handoff 首屏明确标为 HISTORICAL/NON_AUTHORITATIVE
-7. 接入现有 authority-chain，不建第二 ledger
-8. 新增 Authority/index consistency verifier
-9. main required checks 加入 Authority gate
+### P0 — Authority/防漂移 [CLOSED_WITH_REGRESSION_GUARD 2026-09-20]
+> 全部 9 项已在 main 落地（逐项证据见下），不得再作为待实现 P0 重做。
+> 守卫：`scripts/verify_top_level_authority.py`（CI `canonical-verify.yml` 第 116 行）+ main required check
+> `Top-level Authority consistency gate (DL-AUTHORITY-2026-09-18-R2)`。
+1. 落仓 `/AUTHORITY.md` — CLOSED（本文件；R2 byte-pin `49e21069…`）
+2. 落仓 authority-index — CLOSED（`.project/governance/authority-index.json`）
+3. 修改 `AGENTS.md`，Authority 强制第一读 — CLOSED（`AGENTS.md` MUST READ FIRST；verifier check `agents-authority-first` PASS）
+4. 落仓统一最终 TaskPack — CLOSED（`docs/taskpacks/DESIGN-LAB-FINAL-AUTHORITY-CONVERGENCE-TASKPACK-2026-09-18.md`）
+5. 分类/冻结所有 active-looking 历史文档/TaskPack/Handoff — CLOSED（index `historicalGlobs` + `historicalSpecific` + `taskpackClassificationRule`）
+6. 将 PR #120 Handoff 首屏明确标为 HISTORICAL/NON_AUTHORITATIVE — CLOSED（`docs/handoffs/DESIGN-LAB-UCR-CONVERGENCE-20260918-HANDOFF.md` 首屏 banner）
+7. 接入现有 authority-chain，不建第二 ledger — CLOSED（`scripts/deepseek_authority_chain.py` + `reports/current/DEEPSEEK-AUTHORITY-CHAIN.json`）
+8. 新增 Authority/index consistency verifier — CLOSED（`scripts/verify_top_level_authority.py`，10 checks）
+9. main required checks 加入 Authority gate — CLOSED（gh 读回 main protection：7 项 required checks 含 `Top-level Authority consistency gate (DL-AUTHORITY-2026-09-18-R2)`）
 
-### P0 — Frontend
-- strict TypeScript product workspace
-- pnpm 单一产品依赖真值
-- Vite build
-- browser E2E
-- 独立 Workbench CI gate
-- built resources 正确 package
-- 默认 UI 不再 JSON-centric
+### P0 — Frontend [CLOSED_WITH_REGRESSION_GUARD 2026-09-20]
+> 守卫：main required check `Workbench strict-TS product gate (taskpack 12.2/12.3/12.4/12.5)` + `git diff --exit-code -- apps/workbench/build` + `design-lab/scripts/verify_workbench_packaging.py`。
+- strict TypeScript product workspace — CLOSED（D003：`apps/workbench/main.ts` strict TS）
+- pnpm 单一产品依赖真值 — CLOSED（`pnpm-workspace.yaml` + `pnpm-lock.yaml`）
+- Vite build — CLOSED（`apps/workbench/build/main.js`，构建产物受 `git diff --exit-code` 守卫）
+- browser E2E — CLOSED（`workbench-browser-e2e` job + `design-lab/tests/e2e/browser_design_layer_e2e.mjs`；P0-G 已加入证据 JSON 与 artifact 上传）
+- 独立 Workbench CI gate — CLOSED（main protection 7 项 required checks 含 Workbench strict-TS gate）
+- built resources 正确 package — CLOSED（pyproject force-include + P0-H wheel 隔离安装态完整纵切验证）
+- 默认 UI 不再 JSON-centric — CLOSED_WITH_REGRESSION_GUARD（Workbench 面板/选择器交互；**残留**：无人工视觉验收记录，属 E4）
 
-### P0 — 第一条全栈设计 Vertical Slice
-`Project -> Brief -> Reference -> Direction -> DesignSystem`，必须贯通 Workbench/API/Python backend/state/readback/evidence。
+### P0 — 第一条全栈设计 Vertical Slice [CLOSED_WITH_REGRESSION_GUARD 2026-09-20]
+`Project -> Brief -> Reference -> Direction -> DesignSystem` 已贯通 Workbench/API/Python backend/state/readback/evidence：
+E-SLICE-01（PR #123/#124）+ 不变量修复（Reference 资产校验、DB 级单选择不变量、`constraints` 对称序列化、`active_binding` 跟随当前 chosen、方向级 partial unique index）。
+守卫：`design-lab/tests/test_design_layer_http.py`（18 用例）、浏览器 E2E、`verify_workbench_packaging.py`。
+**残留**：Reference → DesignIR → 可编辑产物链路未接入；真实 Host E3 / 人工 E4 未做（见下 P1）。
 
 ### P1 — Native production / quality / delivery
 - DesignSystem -> DesignIR -> Photoshop/Illustrator
@@ -221,11 +228,11 @@ Merge/delete/release/force-push 仍属于 owner-authorized destructive actions�
 - independent/human E4
 
 ### P1 — CI/Evidence
-- 如需要 artifact proof，必须真实 upload/query/download/hash
-- run #182 无 artifact，不能冒充 artifact readback
-- 修 LANGUAGE-POLICY 中残留 `DECLARED_NOT_ENFORCED` 单句
-- Ruff 是否真正 enforce 单独决策，不重开全语言迁移
-- Workbench gate 建成后加入 required checks
+- 如需要 artifact proof，必须真实 upload/query/download/hash — 部分 CLOSED（`workbench-browser-e2e` 已真实上传浏览器 E2 证据 JSON + 失败截图：固定 SHA 的 `upload-artifact` + `if-no-files-found: error`）；其余 release claim 仍须逐项证明
+- run #182 无 artifact，不能冒充 artifact readback — 保留（记录性事实，非待办项）
+- 修 LANGUAGE-POLICY 中残留 `DECLARED_NOT_ENFORCED` 单句 — CLOSED（tracked `docs/architecture/LANGUAGE-POLICY.md` 已无该串；`verify_top_level_authority.py` stale-wording check 守卫）
+- Ruff 是否真正 enforce 单独决策，不重开全语言迁移 — OPEN（决策未做）
+- Workbench gate 建成后加入 required checks — CLOSED（main protection 7 项 required checks 已含 Workbench strict-TS gate）
 
 ### P1 — Branch cleanup
 实时重读 branch。合并后的 UCR 短分支与旧 candidate 进入 cleanup candidate；旧 S2/S3 继续 semantic residual/equivalence 检查。远端删除仍需 owner 授权。

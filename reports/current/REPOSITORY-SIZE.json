@@ -40,5 +40,9 @@
   },
   "tracked_binary_objects": 34,
   "tracked_model_weight_objects": 0,
-  "note": "pack size is dominated by history, not by the current tree; the audit is observational and authorises no history rewrite"
+  "note": "pack size is dominated by history, not by the current tree; the audit is observational and authorises no history rewrite",
+  "projection": true,
+  "subjectSha": "042ac635ae7a6042db366f7fb19508fc5db7bc65",
+  "fresh": false,
+  "generatedBy": "scripts/deepseek_size_audit.py"
 }

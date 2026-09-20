@@ -8,26 +8,31 @@
   },
   "fresh": false,
   "freshnessMeaning": "at generation only; check verifies bound-input integrity, not current Git or cloud state",
-  "generatedAt": "2026-09-17T20:57:21+00:00",
+  "generatedAt": "2026-09-19T23:59:15+00:00",
   "git": {
-    "branch": "feat/ucr-report-truth",
-    "origin_main": "619cd2231d186bf937eeec0980de775444ce8c95",
-    "sha": "619cd2231d186bf937eeec0980de775444ce8c95",
+    "branch": "main",
+    "origin_main": "cb2163a2ad6db7bd12ee1ca07c1d3eb2badc328e",
+    "sha": "042ac635ae7a6042db366f7fb19508fc5db7bc65",
     "source_worktree_clean": false,
-    "tracked_files": 1925,
+    "tracked_files": 1950,
     "worktree_changes": [
       {
-        "content": "sha256:3e1f8898fbf91059496db3fd97043149ce9e08377adf0a1eb63b14f21f387b7a",
+        "content": "sha256:38c01eb0c2bc87e4131d2e8a74a8a026098d636cf58db7cf139c7fcece75d096",
         "kind": "M",
-        "path": "design-lab/tests/test_current_reporting.py"
+        "path": ".project/governance/authority-index.json"
       },
       {
-        "content": "sha256:89d905dc1e552373550b8846940c257206f959af256e8d4562ed0c9975cc42bf",
+        "content": "sha256:ecca8c621eb8f1765a9a7f1353eeeaaa1ae6ed4e9e80de59a0c9acf40275538a",
         "kind": "M",
-        "path": "src/design_lab/governance/reporting.py"
+        "path": "docs/architecture/LANGUAGE-POLICY.md"
+      },
+      {
+        "content": "sha256:7ce1a1177af029164015d527db91cfa40b1d7079d7a380a20c3ed4896cd92e7c",
+        "kind": "M",
+        "path": "reports/README.md"
       }
     ],
-    "worktree_digest": "sha256:f2ad92c98a0129ff329cd76eaebdce72a271c3ce5fad91d7f2c74d294dcae1cf"
+    "worktree_digest": "sha256:2b8a92c1a5552905b850017b8f91d908b61888c809146c7caeb75567332fac32"
   },
   "gitStateMeaning": "generation-time observation, not current HEAD",
   "hostLive": "derived from host_live axis only",
@@ -40,7 +45,7 @@
     "quarantinedSources": 162
   },
   "subjectMeaning": "subjectType=WORKTREE means the tree was dirty at generation; worktreeDigest covers HEAD plus the non-generated changes",
-  "subjectSha": "619cd2231d186bf937eeec0980de775444ce8c95",
+  "subjectSha": "042ac635ae7a6042db366f7fb19508fc5db7bc65",
   "subjectType": "WORKTREE",
   "taskCounts": {
     "PARTIAL": 28
@@ -53,9 +58,9 @@
   "testRunMeaning": "bound run: python scripts/run_bound_test_suite.py --order forward --modules test_job_store test_runtime_attempt_safety",
   "testRunResult": "OK",
   "tests": {
-    "definedTestMethodCount": 1404,
+    "definedTestMethodCount": 1424,
     "executed": "see individual verified ledger receipts"
   },
   "worktreeClean": false,
-  "worktreeDigest": "sha256:f2ad92c98a0129ff329cd76eaebdce72a271c3ce5fad91d7f2c74d294dcae1cf"
+  "worktreeDigest": "sha256:2b8a92c1a5552905b850017b8f91d908b61888c809146c7caeb75567332fac32"
 }

@@ -87,5 +87,9 @@
     "commit B10 fixes to a new candidate SHA (manifest requiresExplicitAuthorization: commit)",
     "C-03 rights re-adjudication by Codex/Human"
   ],
-  "note": "same-SHA full validation is NOT yet closed: V5 FAIL + V6 BLOCKED. B12 full suite at the committed SHA stays DEFERRED pending B10 commit authorization. No destructive PR/merge/delete/release is authorized by this report."
+  "note": "same-SHA full validation is NOT yet closed: V5 FAIL + V6 BLOCKED. B12 full suite at the committed SHA stays DEFERRED pending B10 commit authorization. No destructive PR/merge/delete/release is authorized by this report.",
+  "projection": true,
+  "subjectSha": "042ac635ae7a6042db366f7fb19508fc5db7bc65",
+  "fresh": false,
+  "generatedBy": "unattributed"
 }
