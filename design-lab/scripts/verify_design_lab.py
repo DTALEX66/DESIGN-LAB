@@ -89,6 +89,13 @@ SCRIPTS = [
 # closed (non-zero) when no exact-SHA evidence is provided.
 RELEASE_VERIFIER = "verify_release_evidence.py"
 RECONSTRUCTION_RELEASE_VERIFIER = "verify_reconstruction_release.py"
+# Batch F-3 (audit P1-CI) adds design-lab/scripts/verify_release_preflight.py:
+# the real GitHub API readback gate (tag->SHA identity, CI conclusion, artifact
+# download+sha256, release assets, checksums). It is deliberately NOT appended to
+# SCRIPTS: it needs a tag, a token and the network, and it reports INCOMPLETE
+# (non-zero) when any of those is missing, so running it inside this daily chain
+# would turn an unprovable release into a red structural gate. release-gate.yml
+# invokes it as its own step for tag refs, like RELEASE_VERIFIER above.
 
 # E1 确定性检查（DL-QLT-001 / DL-PRD-001），以参数化方式运行
 EXTRA_CHECKS = [
