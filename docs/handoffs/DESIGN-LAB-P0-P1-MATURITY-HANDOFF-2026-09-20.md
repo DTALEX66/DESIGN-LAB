@@ -107,7 +107,7 @@ CI 只跑 4 个门禁（`canonical-verify.yml` 第 43/50/63/116 行）：`verify
 
 - **F-1** Release Gate 改用 effective 级别比较 floor → PR #128，merge `d89e93f`
 - **F-3** release-preflight 真实 API 回读（stdlib-only 注入式 fetch，tag-only 接入 release-gate.yml）→ **PR #131 已合并（merge `ed8fcec`）**
-- **F-4** Host E3 预置脚手架（伪造 E3 在契约层即 INVALID；探针只探测不启动宿主软件，不含实操）→ **PR #132 在途**
+- **F-4** Host E3 预置脚手架（伪造 E3 在契约层即 INVALID；探针只探测不启动宿主软件，不含实操）+ 并入每日链（49→50）→ **PR #132 已合并（merge `4e85229`）**
 
 ### P1 残差（保持 OPEN，勿当已完成）
 
@@ -126,12 +126,12 @@ CI 只跑 4 个门禁（`canonical-verify.yml` 第 43/50/63/116 行）：`verify
 - 合并前 exact-SHA 回读：`01321e8038b835e206573c163e5b9afaded1e213`，`MERGEABLE` / `mergeStateStatus=CLEAN`
 - **合并前 CI 9/9 全绿**（两轮 run 一致）：`DeepSeek authority gate chain` pass、`Python gate (V3 verifiers + unit tests)` **pass（7m38s，全量套件在新 clone 上实跑）**、`Workbench browser E2E` pass（40s/32s）、`Generated-artifact clean-tree`、`License & secret hygiene`、`MiniGame node gate`、`Open Design host adapter`、`Top-level Authority consistency`、`Workbench strict-TS product gate` 全 pass
 - 上传过程中查出并修掉的**两个真缺陷**见 §8
-- 后续增量（第二台机器对齐用）：**PR #125** 合并（merge `a3005be59c2d3011736961e21a4110ef695fb898`，E-SLICE 会话收敛记录）、**PR #127** 合并（merge `eea67015743de217c017fae137ef80c201a7963a`，P1-B recorded/effective 证据分离）、**PR #128** 合并（merge `d89e93f`，F-1 Release Gate effective 比较）、**PR #129** 合并（merge `8b2f49f`，F-2a 版本沿革 append-only 事件账 + revise 路由）、**PR #130** 合并（merge `11727b8`，F-2b Workbench revision UI + 绑定如实呈现）、**PR #131** 合并（merge `ed8fcec`，F-3 release-preflight 真实 API 回读）
+- 后续增量（第二台机器对齐用）：**PR #125** 合并（merge `a3005be59c2d3011736961e21a4110ef695fb898`，E-SLICE 会话收敛记录）、**PR #127** 合并（merge `eea67015743de217c017fae137ef80c201a7963a`，P1-B recorded/effective 证据分离）、**PR #128** 合并（merge `d89e93f`，F-1 Release Gate effective 比较）、**PR #129** 合并（merge `8b2f49f`，F-2a 版本沿革 append-only 事件账 + revise 路由）、**PR #130** 合并（merge `11727b8`，F-2b Workbench revision UI + 绑定如实呈现）、**PR #131** 合并（merge `ed8fcec`，F-3 release-preflight 真实 API 回读）、**PR #132** 合并（merge `4e85229`，F-4 Host E3 harness + 49→50 聚合并入每日链）
 
 ### 下一步
 
 1. ~~**P1-A**（版本沿革/取代血缘，需先 ADR）。~~ 已完成（F-2a/F-2b，见 §5）。
-2. ~~**Batch F 其余**：release-preflight 强化、Host E3 预置脚手架（不含实操）。~~ F-1/F-3 已落 main（PR #128 / #131）；**F-4 在途（PR #132）**；显式后续：host-E3 验证器并入 `verify_design_lab.py` 聚合（49→50，已取证无契约钉住 49，安全）。
+2. ~~**Batch F 其余**：release-preflight 强化、Host E3 预置脚手架（不含实操）。~~ F-1/F-3/F-4 全部已落 main（PR #128 / #131 / #132）。host-E3 验证器已并入 `verify_design_lab.py` 聚合（49→50，`VERIFY_DESIGN_LAB=OK total=50 failed=0`）。
 3. 重录纪律：`reports/current` 由 `generate_current_reports.py` 在**输入变化**时 rebind；门禁自有产物（`CONTRACT-GRAPH.json` / `DEEPSEEK-FINAL-TEST-GATE.json` / `LANGUAGE-BOUNDARY-SCAN.json`）由**各自生成器**重录（去掉 `--check` 即重录），**不要手改**；索引里记录的 git 观测 SHA 必须仍是 HEAD 的祖先，故 rebase/amend 后须重绑并以**新 commit**提交。
 4. 本地全量套件属可选（CI 的 `Python gate` 已在精确 SHA 的新 clone 上通过，证据强于本地）；本地复跑 `scripts/run_python_tests.py` 约 8-15 分钟，注意后台子进程可能被终止（曾出现 exit `1073807364` = DBG_TERMINATE_PROCESS，非测试失败）。
 
@@ -182,6 +182,27 @@ AUTHORITY_GATES=FAIL gates=7 failed=['contract-graph']
 - language 扫描重录 → `tracked_files_scanned=1951`、`node_manifests` 含 root 与 `apps/workbench`、`node_lockfiles=[pnpm-lock.yaml]`、`second_node_backend` 检出 game-visual fixture manifest（`fixture_scoped=1` → 仍允许，PASS）
 - `scripts/generate_current_reports.py` rebind 9 个绑定产物 + index
 - 本地整链复跑：`AUTHORITY_GATES=PASS gates=7 failed=none`；`CURRENT_REPORTS=PASS mode=check scope=bound-input-integrity`
+
+## 9. Batch F 全部完成 + 49→50 收尾（2026-09-20 15:50 UTC 更新）
+
+### 全部 5 批已合并 main
+
+| 批次 | 内容 | PR | merge commit |
+|---|---|---|---|
+| F-1 | Release Gate effective 级别比较 floor | #128 | `d89e93f` |
+| F-2a | 版本沿革 append-only 事件账（v3 迁移 + revise 路由 + 血缘） | #129 | `8b2f49f` |
+| F-2b | Workbench revision UI + 绑定如实呈现（真实浏览器 E2E + bundle 确定性） | #130 | `11727b8` |
+| F-3 | release-preflight 真实 GitHub API 回读（tag→SHA/CI/artifacts/assets/checksums） | #131 | `ed8fcec` |
+| F-4 | Host E3 harness（伪造 E3 契约层即 INVALID）+ 并入每日链（49→50） | #132 | `4e85229` |
+
+main CI 全绿，本地 main 已快进到 `4e85229`。
+`VERIFY_DESIGN_LAB=OK total=50 failed=0`（main 上实跑，`verify_host_e3_evidence.py` 为第 50 项；干净检出报 `HOST_E3=NO_RECORD`/exit 0；伪造 E3 记录 → `INVALID`/exit 1，负控 `.project-local/task-artifacts/f4-host-e3/fake-e3-no-host.json` 在 main 上复验通过）。
+`AUTHORITY_GATES=PASS gates=7 failed=none`（main 上实跑，files=1962）。
+
+### 未证明项（如实记录，不宣称完成）
+- **真实 Adobe Host E3**：需 owner 授权的真实宿主运行（Photoshop/Illustrator）+ 人工 E4 验收，不在本批范围；本批只交付「伪造 E3 过不去」的契约 + 验证器 + 探针（只探测、不启动宿主软件）。
+- **真实 tag 发布路径**：F-3 的 preflight 验证器需 tag + token + 网络，本批只交付代码 + 无 token 实跑 `INCOMPLETE`/exit 3 的诚实 SKIP，未跑真实 tag 发布。
+- **Playwright 浏览器 E2E 属 E 切片**（workbench 浏览器 E2E 已在 CI 实跑 `ran=2 skipped=0`，但 E 切片的其他浏览器场景未做）。
 
 ### 8.3 合并与合并后回读
 
