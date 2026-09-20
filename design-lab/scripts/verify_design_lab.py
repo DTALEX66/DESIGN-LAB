@@ -82,6 +82,7 @@ SCRIPTS = [
     "verify_illustrator_reconstruction_adapter.py",
     "verify_photoshop_reconstruction_adapter.py",
     "verify_reconstruction_bundle.py",
+    "verify_host_e3_evidence.py",
 ]
 
 # Release-time gate: invoked separately with a release-evidence file argument.
@@ -96,6 +97,13 @@ RECONSTRUCTION_RELEASE_VERIFIER = "verify_reconstruction_release.py"
 # (non-zero) when any of those is missing, so running it inside this daily chain
 # would turn an unprovable release into a red structural gate. release-gate.yml
 # invokes it as its own step for tag refs, like RELEASE_VERIFIER above.
+# Batch F-4 adds verify_host_e3_evidence.py — and it IS in SCRIPTS, unlike the
+# two release-time verifiers: its default run reads the convention directory
+# .project-local/task-artifacts/host-e3/, which is absent in a clean checkout,
+# so it reports HOST_E3=NO_RECORD and exits 0. It only turns red when someone
+# commits a fake/host-E3 record that fails its checks (schema contract,
+# approver, boundTreeSha ancestry, artifact sha256) — exactly the
+# fabricated-E3 case that should fail the gate daily.
 
 # E1 确定性检查（DL-QLT-001 / DL-PRD-001），以参数化方式运行
 EXTRA_CHECKS = [
