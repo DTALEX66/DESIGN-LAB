@@ -98,13 +98,16 @@ CI 只跑 4 个门禁（`canonical-verify.yml` 第 43/50/63/116 行）：`verify
 5) 验收：verify_capability_evidence_v4.py、verify_release_evidence.py、verify_design_lab.py 全绿
 ```
 
-### P1-A：版本沿革 / 取代血缘（Batch F，需先 ADR）
+### P1-A：版本沿革 / 取代血缘（Batch F —— **已交付**）
 
-现状：`design_direction`/`design_system_binding` 有 `version`/`superseded_by` 字段但**没有真正的版本链**（binding 恒定 version=1，append-only 事件账缺失）。报告要求：append-only 版本沿革 + 与 decision/binding 的血缘 + 取代语义，先出 ADR 再实现。
+~~现状：…（binding 恒定 version=1，append-only 事件账缺失）。~~
+**F-2a 已落地（PR #129，merge `8b2f49f`）**：迁移 `design-lab-state-design-layer-v3.sql`（append-only 事件表 + BEFORE UPDATE/DELETE 触发器 RAISE(ABORT)）+ `design_layer.py` 的 `revise_brief`/`revise_direction`/`lineage_*` + 4 条 http_service 路由 + 14 用例测试。F-2b 已落地（PR #130，merge `11727b8`）：Workbench 行内「新版本」「版本链」+ 绑定如实呈现（不把旧绑定冒充当前）+ 真实浏览器 E2E 扩展 + 构建确定性 sha256。
 
-### Batch F 其余
+### Batch F 其余（**已交付**）
 
-release-preflight 强化、`effectiveEvidence` 接入 Release Gate、Host E3 预置脚手架（不含实操）。
+- **F-1** Release Gate 改用 effective 级别比较 floor → PR #128，merge `d89e93f`
+- **F-3** release-preflight 真实 API 回读（stdlib-only 注入式 fetch，tag-only 接入 release-gate.yml）→ **PR #131 已合并（merge `ed8fcec`）**
+- **F-4** Host E3 预置脚手架（伪造 E3 在契约层即 INVALID；探针只探测不启动宿主软件，不含实操）→ **PR #132 在途**
 
 ### P1 残差（保持 OPEN，勿当已完成）
 
@@ -123,12 +126,12 @@ release-preflight 强化、`effectiveEvidence` 接入 Release Gate、Host E3 预
 - 合并前 exact-SHA 回读：`01321e8038b835e206573c163e5b9afaded1e213`，`MERGEABLE` / `mergeStateStatus=CLEAN`
 - **合并前 CI 9/9 全绿**（两轮 run 一致）：`DeepSeek authority gate chain` pass、`Python gate (V3 verifiers + unit tests)` **pass（7m38s，全量套件在新 clone 上实跑）**、`Workbench browser E2E` pass（40s/32s）、`Generated-artifact clean-tree`、`License & secret hygiene`、`MiniGame node gate`、`Open Design host adapter`、`Top-level Authority consistency`、`Workbench strict-TS product gate` 全 pass
 - 上传过程中查出并修掉的**两个真缺陷**见 §8
-- 后续增量（第二台机器对齐用）：**PR #125** 合并（merge `a3005be59c2d3011736961e21a4110ef695fb898`，E-SLICE 会话收敛记录）、**PR #127** 合并（merge `eea67015743de217c017fae137ef80c201a7963a`，P1-B recorded/effective 证据分离）、**Batch F-1**（Release Gate 改用 effective 级别比较 floor）随 `feat/f1-release-gate-effective` 提交
+- 后续增量（第二台机器对齐用）：**PR #125** 合并（merge `a3005be59c2d3011736961e21a4110ef695fb898`，E-SLICE 会话收敛记录）、**PR #127** 合并（merge `eea67015743de217c017fae137ef80c201a7963a`，P1-B recorded/effective 证据分离）、**PR #128** 合并（merge `d89e93f`，F-1 Release Gate effective 比较）、**PR #129** 合并（merge `8b2f49f`，F-2a 版本沿革 append-only 事件账 + revise 路由）、**PR #130** 合并（merge `11727b8`，F-2b Workbench revision UI + 绑定如实呈现）、**PR #131** 合并（merge `ed8fcec`，F-3 release-preflight 真实 API 回读）
 
 ### 下一步
 
-1. **P1-A**（版本沿革/取代血缘，需先 ADR）。
-2. **Batch F 其余**：release-preflight 强化、Host E3 预置脚手架（不含实操）。
+1. ~~**P1-A**（版本沿革/取代血缘，需先 ADR）。~~ 已完成（F-2a/F-2b，见 §5）。
+2. ~~**Batch F 其余**：release-preflight 强化、Host E3 预置脚手架（不含实操）。~~ F-1/F-3 已落 main（PR #128 / #131）；**F-4 在途（PR #132）**；显式后续：host-E3 验证器并入 `verify_design_lab.py` 聚合（49→50，已取证无契约钉住 49，安全）。
 3. 重录纪律：`reports/current` 由 `generate_current_reports.py` 在**输入变化**时 rebind；门禁自有产物（`CONTRACT-GRAPH.json` / `DEEPSEEK-FINAL-TEST-GATE.json` / `LANGUAGE-BOUNDARY-SCAN.json`）由**各自生成器**重录（去掉 `--check` 即重录），**不要手改**；索引里记录的 git 观测 SHA 必须仍是 HEAD 的祖先，故 rebase/amend 后须重绑并以**新 commit**提交。
 4. 本地全量套件属可选（CI 的 `Python gate` 已在精确 SHA 的新 clone 上通过，证据强于本地）；本地复跑 `scripts/run_python_tests.py` 约 8-15 分钟，注意后台子进程可能被终止（曾出现 exit `1073807364` = DBG_TERMINATE_PROCESS，非测试失败）。
 
