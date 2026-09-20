@@ -72,3 +72,35 @@ jobs:
           echo "subject=$SUBJECT"
           test "$SUBJECT" = "${{ github.sha }}"
           echo "RELEASE_EVIDENCE_READBACK=OK"
+
+      # Batch F-3 (audit P1-CI): the step above compares two values produced by
+      # this same run, so on its own it cannot prove artifact identity. This step
+      # performs the REAL readback through the GitHub API:
+      #   tag -> commit SHA (annotated tags dereferenced)
+      #   Canonical Verify run for the exact SHA concluded success
+      #   the uploaded artifact is DOWNLOADED and its sha256 re-computed
+      #   the published release assets match the expected set
+      #   every asset's sha256 matches the local artifacts.sha256
+      # Fail-closed: no token / no network / an artifact that cannot be downloaded
+      # reports INCOMPLETE (exit 3), a contradiction reports BLOCKED (exit 2) --
+      # neither is ever PASS. The uploaded artifact is queried from THIS run
+      # (--run-id). If Actions has not indexed the upload yet the step reports
+      # ARTIFACT-MISSING and stays red; re-run the job instead of weakening the
+      # gate. Tag refs only: release qualification is a tag operation.
+      # Injection safety: no expression is interpolated into the script body; the
+      # values come from GitHub's trusted default environment variables
+      # (GITHUB_REF_NAME / GITHUB_SHA / GITHUB_REPOSITORY / GITHUB_RUN_ID).
+      - name: "Release preflight (real API readback: tag/SHA, CI, artifact download+sha256, assets, checksums)"
+        if: startsWith(github.ref, 'refs/tags/')
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          python design-lab/scripts/verify_release_preflight.py \
+            --tag "$GITHUB_REF_NAME" \
+            --sha "$GITHUB_SHA" \
+            --repo "$GITHUB_REPOSITORY" \
+            --run-id "$GITHUB_RUN_ID" \
+            --artifact-name "dl-release-evidence-$GITHUB_SHA" \
+            --expect-assets "artifacts.sha256,attestation-*.json" \
+            --local-checksums artifacts.sha256 \
+            --download-dir .project-local/task-artifacts/release-preflight

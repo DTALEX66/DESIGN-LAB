@@ -9,23 +9,44 @@
   },
   "fresh": false,
   "freshnessMeaning": "at generation only; check verifies bound-input integrity, not current Git or cloud state",
-  "generatedAt": "2026-09-20T14:35:23+00:00",
+  "generatedAt": "2026-09-20T15:04:59+00:00",
   "gitStateMeaning": "generation-time observation, not current HEAD",
   "local": {
-    "branch": "feat/f2a-revision",
-    "origin_main": "d89e93fafc25649dbfb2be90153f0072c500fc34",
-    "sha": "48a2c60f643cc68d5880970c362b2a0b17d109f4",
-    "source_worktree_clean": true,
-    "tracked_files": 1957,
-    "worktree_changes": [],
-    "worktree_digest": "sha256:ac0c70112168a360b57c3d52b6ce9d0e3573bac15b69a17ed30d53d0e4accd5c"
+    "branch": "feat/f3-release-preflight",
+    "origin_main": "11727b80ca80ba9c62e6540b45b3a93434c2772a",
+    "sha": "6d0810f88a342c8eed5c0cecb891c57074f8b1ce",
+    "source_worktree_clean": false,
+    "tracked_files": 1959,
+    "worktree_changes": [
+      {
+        "content": "sha256:8f6c984d8c1dc74b8173e10c5e0db1b7d04901d681e2a991aaeb2ae281d67865",
+        "kind": "M",
+        "path": "design-lab/schemas/evidence-record.schema.json"
+      },
+      {
+        "content": "sha256:e1eff420c7faa44abb689727408eb3b84a411c82f4008176cb9ca1b097ec9348",
+        "kind": "U",
+        "path": "design-lab/scripts/host_e3_probe.py"
+      },
+      {
+        "content": "sha256:4722ce80604cf847d7c4697ed5e77ee5cbf14c641296351be271f7ba30381452",
+        "kind": "U",
+        "path": "design-lab/scripts/verify_host_e3_evidence.py"
+      },
+      {
+        "content": "sha256:ec3df2ee69858933b3f71f070f0eb86419560104489363d266bd6073030d6f28",
+        "kind": "U",
+        "path": "design-lab/tests/test_host_e3_harness.py"
+      }
+    ],
+    "worktree_digest": "sha256:cc1008fb43e84ea32c8f8576c2fc105840288b6ba62506a0e16fb89b9d6d9822"
   },
   "note": "No GitHub API query was run by this generator; tool installation is not inferred.",
   "remoteRef": "origin/main (local tracking ref)",
   "schemaVersion": "design-lab/cloud-baseline/v2",
   "subjectMeaning": "subjectType=WORKTREE means the tree was dirty at generation; worktreeDigest covers HEAD plus the non-generated changes",
-  "subjectSha": "48a2c60f643cc68d5880970c362b2a0b17d109f4",
-  "subjectType": "COMMIT",
+  "subjectSha": "6d0810f88a342c8eed5c0cecb891c57074f8b1ce",
+  "subjectType": "WORKTREE",
   "taskpackHash": "31dde89eb4ede81fe88c0a5c5144adfb86af8db4c4d8c263bde2199180369b69",
   "taskpackId": "DL-TP-20260908-R5",
   "testRunAt": "2026-09-20T00:11:55+00:00",
@@ -38,6 +59,6 @@
     "openPullRequests",
     "branchProtection"
   ],
-  "worktreeClean": true,
-  "worktreeDigest": "sha256:ac0c70112168a360b57c3d52b6ce9d0e3573bac15b69a17ed30d53d0e4accd5c"
+  "worktreeClean": false,
+  "worktreeDigest": "sha256:cc1008fb43e84ea32c8f8576c2fc105840288b6ba62506a0e16fb89b9d6d9822"
 }
