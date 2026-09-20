@@ -28,6 +28,7 @@ _ATTEMPT_SCHEMA = state_schema("design-lab-state-attempt-v1.sql")
 _ATTEMPT_V2_SCHEMA = state_schema("design-lab-state-attempt-v2.sql")
 _DESIGN_LAYER_SCHEMA = state_schema("design-lab-state-design-layer-v1.sql")
 _DESIGN_LAYER_V2_SCHEMA = state_schema("design-lab-state-design-layer-v2.sql")
+_DESIGN_LAYER_V3_SCHEMA = state_schema("design-lab-state-design-layer-v3.sql")
 MIGRATION = "creative-v1"
 def _design_layer_v2_precheck(conn: sqlite3.Connection) -> None:
     """P0-A+ fail-closed precheck for the single-choice invariant index.
@@ -72,6 +73,11 @@ GUARDED_MIGRATIONS = (
     # that fails closed (listing offending briefs) if duplicates already exist.
     ("design-layer-v2", _DESIGN_LAYER_V2_SCHEMA, "design_brief",
      _design_layer_v2_precheck),
+    # E-SLICE-01 F-2a: the append-only design-layer event log. Applied after the
+    # three versioned tables it records history for; no precheck (CREATE TABLE of
+    # a table nothing has written yet), and the DDL carries the append-only
+    # triggers, so a repeated event_id fails closed instead of overwriting.
+    ("design-layer-v3", _DESIGN_LAYER_V3_SCHEMA, "design_brief"),
 )
 
 ASSET_KINDS = ("raster", "vector", "text", "audio", "video", "blend",

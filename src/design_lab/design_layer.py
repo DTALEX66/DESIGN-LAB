@@ -2,9 +2,11 @@
 """E-SLICE-01 design layer: Brief / Direction / DesignSystem vertical slice.
 
 This is the single writer for the three design-layer tables added by
-``design-lab-state-design-layer-v1.sql``. It is NOT a second runtime, backend or
-ledger: it reuses the one local state database, opens it through the existing
-creative store connection (which applies the additive design-layer migration),
+``design-lab-state-design-layer-v1.sql`` (schema v2 adds the DB-level
+single-choice index, v3 the append-only event log). It is NOT a second runtime,
+backend or ledger: it reuses the one local state database, opens it through the
+existing creative store connection (which applies the additive design-layer
+migration),
 and reuses the shared ``operation_intent`` idempotency table for crash-safe,
 retried-but-not-duplicated writes.
 
@@ -18,6 +20,15 @@ The slice is structural, not a Host run and not a Human-Jury acceptance:
 
 Readback is the persisted record itself; evidence is the recorded spec digests,
 the chosen-actor fact and the binding spec digest. Nothing here claims E3/E4.
+
+F-2a revision model (``design-lab-state-design-layer-v3.sql``): the content rows
+are immutable, the history is ONE append-only ``design_layer_event`` log, and
+``chosen`` stays the materialized record of the human choice. Every write path
+appends its event inside the SAME transaction as the state change it describes;
+``revise_brief`` / ``revise_direction`` append a NEW content row
+(version = old + 1) and only move the superseded row's ``superseded_by``
+pointer (no content column is ever rewritten); ``lineage_brief`` /
+``lineage_direction`` read the chain back, oldest version first.
 """
 from __future__ import annotations
 
@@ -103,6 +114,38 @@ def _record_intent(conn, *, scope, key, document):
         return cstore.record_intent(conn, scope=scope, key=key, document=document)
     except CreativeError:
         raise DesignLayerError(409, 'IDEMPOTENCY_CONFLICT')
+
+
+# F-2a: the event kinds the v3 schema's CHECK accepts. Appending anything else
+# would be a schema violation, so the module fails closed first.
+EVENT_KINDS = (
+    'brief-created', 'brief-revised',
+    'direction-created', 'direction-revised',
+    'direction-chosen', 'direction-unchosen',
+    'binding-created', 'binding-rebound',
+)
+
+
+def _append_event(conn, *, project_id, kind, payload, brief_id=None, direction_id=None,
+                  binding_id=None, actor=None, actor_kind=None, event_id=None):
+    """Append ONE design-layer event inside the CALLER's open transaction.
+
+    Append-only is a property of this write, not a convention: it is a plain
+    INSERT (no ``OR REPLACE`` / ``OR IGNORE``), so a repeated ``event_id`` fails
+    closed with a PRIMARY KEY violation instead of silently overwriting history,
+    and the v3 schema adds BEFORE UPDATE/DELETE triggers that abort any other
+    mutation of the log. The caller's transaction is the same one that performs
+    the state change the event describes, so the change and its event commit (or
+    roll back) together -- there is no window in which one exists without the
+    other.
+    """
+    if kind not in EVENT_KINDS:
+        raise DesignLayerError(400, 'UNKNOWN_EVENT_KIND')
+    conn.execute(
+        "INSERT INTO design_layer_event (event_id, project_id, kind, brief_id, direction_id,"
+        " binding_id, payload_json, actor, actor_kind, created_at) VALUES (?,?,?,?,?,?,?,?,?,?)",
+        (event_id or cstore.new_id('event'), project_id, kind, brief_id, direction_id,
+         binding_id, _json_field(payload), actor, actor_kind, cstore.now()))
 
 
 # P0-05: a reference asset id is the shape the image import layer mints
@@ -267,6 +310,9 @@ class DesignLayer:
                      _json_field(constraints) if constraints else None,
                      _json_field(refs) if refs else None,
                      spec.removeprefix('sha256:'), cstore.now()))
+                _append_event(
+                    conn, project_id=project_id, kind='brief-created', brief_id=brief_id,
+                    payload={'brief_id': brief_id, 'version': 1, 'spec_sha256': spec})
                 created = conn.execute(
                     'SELECT * FROM design_brief WHERE brief_id=?', (brief_id,)).fetchone()
         return {'brief': self._brief(dict(created))}
@@ -286,6 +332,81 @@ class DesignLayer:
         if not rows:
             raise DesignLayerError(404, 'BRIEF_NOT_FOUND')
         return {'brief': self._brief(rows[0])}
+
+    def revise_brief(self, project_id, brief_id, *, title, goals, constraints,
+                     reference_asset_ids, idempotency_key):
+        """Append the NEXT version of an existing brief (F-2a, content revision).
+
+        The parent row is never rewritten: this INSERTs a new brief row with
+        ``version = parent.version + 1`` and moves ONLY the parent's
+        ``superseded_by`` pointer at it, in the same transaction as the
+        ``brief-revised`` event. Every content column of the parent (title,
+        goals, constraints, references, spec_sha256, created_at) keeps its
+        original bytes -- a revision is an append, not an edit.
+
+        Idempotency reuses the shared intent table, so a replayed key returns the
+        SAME new brief identity and a key reused with different content fails
+        closed (409 IDEMPOTENCY_CONFLICT). Revising an already-superseded version
+        would fork the chain, so it fails closed too (409 STALE_REVISION): revise
+        the live tip returned by the previous revision.
+        """
+        self._check_project(project_id)
+        title = _text(title, 'title')
+        goals = _string_list(goals, 'goals')
+        if not goals:
+            raise DesignLayerError(400, 'GOALS_REQUIRED')
+        constraints = _text(constraints, 'constraints', max_len=2000) if constraints else None
+        refs = list(dict.fromkeys(_string_list(reference_asset_ids, 'reference_asset_ids',
+                                               limit=32, item_max=72)))
+        # spec_sha256 is the digest of the CONTENT document (identity-free), so
+        # the same content has the same digest across versions. The intent
+        # document adds the parent id, so reusing a key against a different
+        # parent is a genuine conflict, not a replay.
+        content = {'title': title, 'goals': goals, 'constraints': constraints,
+                   'reference_asset_ids': refs}
+        spec = cstore.hash_document(content)
+        document = {'parent_brief_id': brief_id, **content}
+        with closing(cstore.connect(self._db_path(), project_root=self.paths.project_root)) as conn:
+            with cstore.transaction(conn):
+                conn.row_factory = sqlite3.Row
+                parent = conn.execute(
+                    "SELECT * FROM design_brief WHERE project_id=? AND brief_id=?",
+                    (project_id, brief_id)).fetchone()
+                if parent is None:
+                    raise DesignLayerError(404, 'BRIEF_NOT_FOUND')
+                operation_id, _ = _record_intent(
+                    conn, scope='brief-revision:' + project_id, key=idempotency_key,
+                    document=document)
+                existing = conn.execute(
+                    "SELECT * FROM design_brief WHERE operation_id=?", (operation_id,)).fetchone()
+                if existing is not None:
+                    # Idempotent replay: the same key returns the same new
+                    # version, and appends nothing new.
+                    return {'brief': self._brief(dict(existing))}
+                if parent['superseded_by'] is not None:
+                    raise DesignLayerError(409, 'STALE_REVISION')
+                refs = self._verify_references(conn, project_id, refs)
+                version = int(parent['version']) + 1
+                revised_id = cstore.new_id('brief')
+                conn.execute(
+                    "INSERT INTO design_brief (brief_id, operation_id, project_id, title,"
+                    " goals_json, constraints_json, reference_asset_ids, spec_sha256, version,"
+                    " created_at) VALUES (?,?,?,?,?,?,?,?,?,?)",
+                    (revised_id, operation_id, project_id, title, _json_field(goals),
+                     _json_field(constraints) if constraints else None,
+                     _json_field(refs) if refs else None,
+                     spec.removeprefix('sha256:'), version, cstore.now()))
+                # The ONLY column a revision may touch on the parent row.
+                conn.execute(
+                    "UPDATE design_brief SET superseded_by=? WHERE brief_id=?",
+                    (revised_id, brief_id))
+                _append_event(
+                    conn, project_id=project_id, kind='brief-revised', brief_id=revised_id,
+                    payload={'old_id': brief_id, 'new_id': revised_id, 'version': version,
+                             'previous_version': int(parent['version']), 'spec_sha256': spec})
+                created = conn.execute(
+                    "SELECT * FROM design_brief WHERE brief_id=?", (revised_id,)).fetchone()
+        return {'brief': self._brief(dict(created))}
 
     # -- directions ---------------------------------------------------------
     def create_direction(self, project_id, *, brief_id, title, style_notes,
@@ -322,6 +443,11 @@ class DesignLayer:
                     (direction_id, operation_id, project_id, brief_id, title,
                      _json_field(style_notes) if style_notes else None, color_mood,
                      typography_mood, spec.removeprefix('sha256:'), cstore.now()))
+                _append_event(
+                    conn, project_id=project_id, kind='direction-created', brief_id=brief_id,
+                    direction_id=direction_id,
+                    payload={'direction_id': direction_id, 'brief_id': brief_id, 'version': 1,
+                             'spec_sha256': spec})
                 created = conn.execute(
                     'SELECT * FROM design_direction WHERE direction_id=?', (direction_id,)).fetchone()
         return {'direction': self._direction(dict(created))}
@@ -347,6 +473,87 @@ class DesignLayer:
             raise DesignLayerError(404, 'DIRECTION_NOT_FOUND')
         return {'direction': self._direction(rows[0])}
 
+    def revise_direction(self, project_id, direction_id, *, title, style_notes, color_mood,
+                         typography_mood, idempotency_key):
+        """Append the NEXT version of a direction (F-2a, content revision).
+
+        Same contract as :meth:`revise_brief`: a new row with
+        ``version = parent.version + 1`` plus a ``direction-revised`` event in one
+        transaction, and only the parent's ``superseded_by`` pointer moves -- the
+        parent's content columns keep their original bytes.
+
+        The human Choice follows the lineage: when the revised version was the
+        chosen one, the parent releases ``chosen``/``actor`` (materialized state,
+        not content) and the new version carries the same choice, recorded in the
+        event payload as ``chosen_moved``. A design-system binding, however, stays
+        attached to the version it was bound to (its row is append-only and may
+        not be repointed), so after revising a bound chosen direction the read
+        model's ``active_binding`` is null until the contract is bound again.
+        """
+        self._check_project(project_id)
+        title = _text(title, 'title')
+        style_notes = _string_list(style_notes, 'style_notes') or None
+        color_mood = _text(color_mood, 'color_mood') if color_mood else None
+        typography_mood = _text(typography_mood, 'typography_mood') if typography_mood else None
+        with closing(cstore.connect(self._db_path(), project_root=self.paths.project_root)) as conn:
+            with cstore.transaction(conn):
+                conn.row_factory = sqlite3.Row
+                parent = conn.execute(
+                    "SELECT * FROM design_direction WHERE project_id=? AND direction_id=?",
+                    (project_id, direction_id)).fetchone()
+                if parent is None:
+                    raise DesignLayerError(404, 'DIRECTION_NOT_FOUND')
+                content = {'brief_id': parent['brief_id'], 'title': title,
+                           'style_notes': style_notes, 'color_mood': color_mood,
+                           'typography_mood': typography_mood}
+                spec = cstore.hash_document(content)
+                document = {'parent_direction_id': direction_id, **content}
+                operation_id, _ = _record_intent(
+                    conn, scope='direction-revision:' + project_id, key=idempotency_key,
+                    document=document)
+                existing = conn.execute(
+                    "SELECT * FROM design_direction WHERE operation_id=?",
+                    (operation_id,)).fetchone()
+                if existing is not None:
+                    return {'direction': self._direction(dict(existing))}
+                if parent['superseded_by'] is not None:
+                    raise DesignLayerError(409, 'STALE_REVISION')
+                version = int(parent['version']) + 1
+                carried = bool(int(parent['chosen']))
+                revised_id = cstore.new_id('direction')
+                # Retire the parent FIRST when the choice moves, so the brief never
+                # holds two LIVE chosen rows: the v2 partial UNIQUE index keys on
+                # (brief_id) WHERE chosen=1 AND superseded_by IS NULL.
+                conn.execute(
+                    "UPDATE design_direction SET superseded_by=?, chosen=?, actor=?, actor_kind=?"
+                    " WHERE direction_id=?",
+                    (revised_id, 0 if carried else parent['chosen'],
+                     None if carried else parent['actor'],
+                     None if carried else parent['actor_kind'], direction_id))
+                conn.execute(
+                    "INSERT INTO design_direction (direction_id, operation_id, project_id, brief_id,"
+                    " title, style_notes_json, color_mood, typography_mood, chosen, actor, actor_kind,"
+                    " spec_sha256, version, created_at) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
+                    (revised_id, operation_id, project_id, parent['brief_id'], title,
+                     _json_field(style_notes) if style_notes else None, color_mood,
+                     typography_mood, 1 if carried else 0,
+                     parent['actor'] if carried else None,
+                     parent['actor_kind'] if carried else None,
+                     spec.removeprefix('sha256:'), version, cstore.now()))
+                _append_event(
+                    conn, project_id=project_id, kind='direction-revised',
+                    brief_id=parent['brief_id'], direction_id=revised_id,
+                    actor=parent['actor'] if carried else None,
+                    actor_kind=parent['actor_kind'] if carried else None,
+                    payload={'old_id': direction_id, 'new_id': revised_id, 'version': version,
+                             'previous_version': int(parent['version']),
+                             'brief_id': parent['brief_id'], 'spec_sha256': spec,
+                             'chosen_moved': carried,
+                             'previous_chosen_direction_id': direction_id if carried else None})
+                created = conn.execute(
+                    "SELECT * FROM design_direction WHERE direction_id=?", (revised_id,)).fetchone()
+        return {'direction': self._direction(dict(created))}
+
     def choose_direction(self, project_id, direction_id, *, actor, actor_kind, idempotency_key):
         """Record which direction is chosen (the Golden Workflow 1 "Human Choice").
 
@@ -368,6 +575,18 @@ class DesignLayer:
                     raise DesignLayerError(404, 'DIRECTION_NOT_FOUND')
                 operation_id, _ = _record_intent(
                     conn, scope='choose:' + direction_id, key=idempotency_key, document=document)
+                # F-2a: the previous choice is read BEFORE the de-select below,
+                # because the direction-chosen event must record which direction
+                # (if any) this choice replaced. The append set is decided from
+                # the state transition, so an idempotent replay of the same
+                # choice appends nothing and the log stays one entry per
+                # transition instead of one entry per HTTP retry.
+                previous = conn.execute(
+                    "SELECT direction_id FROM design_direction WHERE brief_id=? AND chosen=1"
+                    " AND direction_id<>?", (row['brief_id'], direction_id)).fetchone()
+                previous_chosen_id = previous['direction_id'] if previous else None
+                transitioned = (not int(row['chosen']) or previous_chosen_id is not None
+                                or row['actor'] != actor or row['actor_kind'] != actor_kind)
                 # P0-01 single-choice invariant: within this ONE transaction, de-select
                 # every other chosen direction under the SAME brief, then select this
                 # direction. Both updates share the single transaction, so the database
@@ -381,6 +600,22 @@ class DesignLayer:
                 conn.execute(
                     "UPDATE design_direction SET chosen=1, actor=?, actor_kind=? WHERE direction_id=?",
                     (actor, actor_kind, direction_id))
+                if transitioned:
+                    if previous_chosen_id is not None:
+                        _append_event(
+                            conn, project_id=project_id, kind='direction-unchosen',
+                            brief_id=row['brief_id'], direction_id=previous_chosen_id,
+                            actor=actor, actor_kind=actor_kind,
+                            payload={'direction_id': previous_chosen_id,
+                                     'brief_id': row['brief_id'],
+                                     'unchosen_by_direction_id': direction_id})
+                    _append_event(
+                        conn, project_id=project_id, kind='direction-chosen',
+                        brief_id=row['brief_id'], direction_id=direction_id,
+                        actor=actor, actor_kind=actor_kind,
+                        payload={'direction_id': direction_id, 'brief_id': row['brief_id'],
+                                 'previous_chosen_direction_id': previous_chosen_id,
+                                 'actor': actor, 'actor_kind': actor_kind})
                 updated = conn.execute(
                     "SELECT * FROM design_direction WHERE direction_id=?", (direction_id,)).fetchone()
         return {'direction': self._direction(dict(updated))}
@@ -419,16 +654,105 @@ class DesignLayer:
                         "SELECT * FROM design_system_binding WHERE binding_id=?",
                         (existing[0],)).fetchone()
                     return {'binding': self._binding(dict(row))}
+                # F-2a: a binding for this direction that already exists means this
+                # write REPLACES it -- recorded as binding-rebound carrying the
+                # replaced id. The replaced row is left exactly as written (the v1
+                # schema's no-update trigger forbids touching it); the new row is
+                # the next version, so the read model's "latest revision of the
+                # chosen direction's bindings" (get_design_layer) stays correct.
+                replaced = conn.execute(
+                    "SELECT * FROM design_system_binding WHERE direction_id=?"
+                    " ORDER BY version DESC, created_at DESC, binding_id DESC LIMIT 1",
+                    (direction_id,)).fetchone()
                 binding_id = cstore.new_id('bind')
+                version = int(replaced['version']) + 1 if replaced is not None else 1
                 conn.execute(
                     "INSERT INTO design_system_binding (binding_id, operation_id, project_id,"
                     " direction_id, design_system_name, spec_sha256, version, created_at)"
-                    " VALUES (?,?,?,?,?,? ,1,?)",
+                    " VALUES (?,?,?,?,?,? ,?,?)",
                     (binding_id, operation_id, project_id, direction_id, name,
-                     spec.removeprefix('sha256:'), cstore.now()))
+                     spec.removeprefix('sha256:'), version, cstore.now()))
+                _append_event(
+                    conn, project_id=project_id,
+                    kind='binding-rebound' if replaced is not None else 'binding-created',
+                    brief_id=None, direction_id=direction_id, binding_id=binding_id,
+                    payload={'binding_id': binding_id, 'direction_id': direction_id,
+                             'design_system_name': name, 'version': version,
+                             'spec_sha256': spec,
+                             'replaced_binding_id': replaced['binding_id'] if replaced is not None
+                                                   else None})
                 created = conn.execute(
                     "SELECT * FROM design_system_binding WHERE binding_id=?", (binding_id,)).fetchone()
         return {'binding': self._binding(dict(created))}
+
+    # -- F-2a lineage (read-only) ------------------------------------------
+    def project_of_brief(self, brief_id):
+        """Owner project of a brief id.
+
+        The id-addressed revision/lineage routes carry no project path, so the
+        owner is resolved from the record itself; an unknown id fails closed.
+        """
+        rows = self._rows("SELECT project_id FROM design_brief WHERE brief_id=?", (brief_id,))
+        if not rows:
+            raise DesignLayerError(404, 'BRIEF_NOT_FOUND')
+        return rows[0]['project_id']
+
+    def project_of_direction(self, direction_id):
+        """Owner project of a direction id (see :meth:`project_of_brief`)."""
+        rows = self._rows("SELECT project_id FROM design_direction WHERE direction_id=?",
+                          (direction_id,))
+        if not rows:
+            raise DesignLayerError(404, 'DIRECTION_NOT_FOUND')
+        return rows[0]['project_id']
+
+    def lineage_brief(self, project_id, brief_id):
+        """The brief's version chain, oldest version first (read-only)."""
+        self._check_project(project_id)
+        return {'lineage': {'brief_id': brief_id, **self._chain(
+            project_id, brief_id, "SELECT * FROM design_brief WHERE project_id=?", 'brief_id',
+            'brief-revised', 'BRIEF_NOT_FOUND', self._brief)}}
+
+    def lineage_direction(self, project_id, direction_id):
+        """The direction's version chain, oldest version first (read-only)."""
+        self._check_project(project_id)
+        return {'lineage': {'direction_id': direction_id, **self._chain(
+            project_id, direction_id, "SELECT * FROM design_direction WHERE project_id=?",
+            'direction_id', 'direction-revised', 'DIRECTION_NOT_FOUND', self._direction)}}
+
+    def _chain(self, project_id, row_id, select_sql, id_column, revised_kind, not_found, shape):
+        """Resolve one record's version chain from the append-only events.
+
+        The edge record is the log, not the version numbers: the ``*-revised``
+        payloads map ``new_id -> old_id``, so ANY member of the chain resolves to
+        the same full lineage (an older version included). The chain is then
+        walked forward through ``superseded_by``, so a caller reads history
+        instead of guessing which row is current; the live tip is named
+        explicitly. Nothing here writes.
+        """
+        rows = {row[id_column]: row for row in self._rows(select_sql, (project_id,))}
+        if row_id not in rows:
+            raise DesignLayerError(404, not_found)
+        parents = {}
+        for event in self._rows(
+                "SELECT payload_json FROM design_layer_event WHERE project_id=? AND kind=?"
+                " ORDER BY created_at, rowid", (project_id, revised_kind)):
+            payload = json.loads(event['payload_json'])
+            old_id, new_id = payload.get('old_id'), payload.get('new_id')
+            if old_id in rows and new_id in rows:
+                parents[new_id] = old_id
+        root, seen = row_id, {row_id}
+        while parents.get(root) in rows and parents[root] not in seen:
+            root = parents[root]
+            seen.add(root)
+        chain, cursor, walked = [], root, set()
+        while cursor in rows and cursor not in walked:
+            walked.add(cursor)
+            chain.append(rows[cursor])
+            cursor = rows[cursor]['superseded_by']
+        chain.sort(key=lambda row: (int(row['version']), row['created_at'], row[id_column]))
+        return {'root_id': root, 'requested_id': row_id,
+                'live_id': chain[-1][id_column] if chain else None,
+                'versions': [shape(row) for row in chain]}
 
     # -- design-system catalog ---------------------------------------------
     def design_systems(self):

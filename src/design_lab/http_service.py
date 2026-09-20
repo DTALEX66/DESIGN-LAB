@@ -233,6 +233,24 @@ def make_server(service, token, port=0):
                     match = re.fullmatch(r'/api/projects/([0-9a-f]{32})/directions/(direction-[0-9a-f]{32})', self.path)
                     if match:
                         return self.send_json(200, layer.get_direction(*match.groups()))
+                    # F-2a lineage reads. The project-scoped form is the one that
+                    # can name a foreign project (its 404 is the cross-project
+                    # boundary); the id-scoped form resolves the owner from the
+                    # record itself and fails closed on an unknown id.
+                    match = re.fullmatch(r'/api/projects/([0-9a-f]{32})/briefs/(brief-[0-9a-f]{32})/lineage', self.path)
+                    if match:
+                        return self.send_json(200, layer.lineage_brief(*match.groups()))
+                    match = re.fullmatch(r'/api/projects/([0-9a-f]{32})/directions/(direction-[0-9a-f]{32})/lineage', self.path)
+                    if match:
+                        return self.send_json(200, layer.lineage_direction(*match.groups()))
+                    match = re.fullmatch(r'/api/design-briefs/(brief-[0-9a-f]{32})/lineage', self.path)
+                    if match:
+                        return self.send_json(200, layer.lineage_brief(
+                            layer.project_of_brief(match[1]), match[1]))
+                    match = re.fullmatch(r'/api/design-directions/(direction-[0-9a-f]{32})/lineage', self.path)
+                    if match:
+                        return self.send_json(200, layer.lineage_direction(
+                            layer.project_of_direction(match[1]), match[1]))
                     match = re.fullmatch(r'/api/projects/([0-9a-f]{32})', self.path)
                     if match:
                         project = service.get_project(match[1])
@@ -281,6 +299,33 @@ def make_server(service, token, port=0):
                     if match:
                         value = self.body(fields={'design_system_name', 'idempotency_key'})
                         return self.send_json(201, layer.bind_design_system(match[1], match[2], **value))
+                    # F-2a revisions: appending the next version of a brief or a
+                    # direction. The full content is re-sent (a revision is a new
+                    # immutable row); the project-scoped form fails closed on a
+                    # foreign project, the id-scoped form resolves the owner and
+                    # fails closed on an unknown id.
+                    match = re.fullmatch(r'/api/projects/([0-9a-f]{32})/briefs/(brief-[0-9a-f]{32})/revisions', self.path)
+                    if match:
+                        value = self.body(fields={'title', 'goals', 'constraints',
+                                                   'reference_asset_ids', 'idempotency_key'})
+                        return self.send_json(201, layer.revise_brief(match[1], match[2], **value))
+                    match = re.fullmatch(r'/api/projects/([0-9a-f]{32})/directions/(direction-[0-9a-f]{32})/revisions', self.path)
+                    if match:
+                        value = self.body(fields={'title', 'style_notes', 'color_mood',
+                                                   'typography_mood', 'idempotency_key'})
+                        return self.send_json(201, layer.revise_direction(match[1], match[2], **value))
+                    match = re.fullmatch(r'/api/design-briefs/(brief-[0-9a-f]{32})/revisions', self.path)
+                    if match:
+                        value = self.body(fields={'title', 'goals', 'constraints',
+                                                   'reference_asset_ids', 'idempotency_key'})
+                        return self.send_json(201, layer.revise_brief(
+                            layer.project_of_brief(match[1]), match[1], **value))
+                    match = re.fullmatch(r'/api/design-directions/(direction-[0-9a-f]{32})/revisions', self.path)
+                    if match:
+                        value = self.body(fields={'title', 'style_notes', 'color_mood',
+                                                   'typography_mood', 'idempotency_key'})
+                        return self.send_json(201, layer.revise_direction(
+                            layer.project_of_direction(match[1]), match[1], **value))
                     if self.path != '/api/projects':
                         raise RequestError(404, 'NOT_FOUND')
                     value = self.body()
