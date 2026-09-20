@@ -9,39 +9,28 @@
   },
   "fresh": false,
   "freshnessMeaning": "at generation only; check verifies bound-input integrity, not current Git or cloud state",
-  "generatedAt": "2026-09-17T20:57:21+00:00",
+  "generatedAt": "2026-09-20T00:12:41+00:00",
   "gitStateMeaning": "generation-time observation, not current HEAD",
   "local": {
-    "branch": "feat/ucr-report-truth",
-    "origin_main": "619cd2231d186bf937eeec0980de775444ce8c95",
-    "sha": "619cd2231d186bf937eeec0980de775444ce8c95",
-    "source_worktree_clean": false,
-    "tracked_files": 1925,
-    "worktree_changes": [
-      {
-        "content": "sha256:3e1f8898fbf91059496db3fd97043149ce9e08377adf0a1eb63b14f21f387b7a",
-        "kind": "M",
-        "path": "design-lab/tests/test_current_reporting.py"
-      },
-      {
-        "content": "sha256:89d905dc1e552373550b8846940c257206f959af256e8d4562ed0c9975cc42bf",
-        "kind": "M",
-        "path": "src/design_lab/governance/reporting.py"
-      }
-    ],
-    "worktree_digest": "sha256:f2ad92c98a0129ff329cd76eaebdce72a271c3ce5fad91d7f2c74d294dcae1cf"
+    "branch": "feat/maturity-p0-p1-convergence",
+    "origin_main": "cb2163a2ad6db7bd12ee1ca07c1d3eb2badc328e",
+    "sha": "74ef85d73bec22adaef832185fcb79618843bfc1",
+    "source_worktree_clean": true,
+    "tracked_files": 1951,
+    "worktree_changes": [],
+    "worktree_digest": "sha256:77de1a4fabbbc535c6de6834adf863c4e4ee5d98c7f4c126b86c82f5d41835a1"
   },
   "note": "No GitHub API query was run by this generator; tool installation is not inferred.",
   "remoteRef": "origin/main (local tracking ref)",
   "schemaVersion": "design-lab/cloud-baseline/v2",
   "subjectMeaning": "subjectType=WORKTREE means the tree was dirty at generation; worktreeDigest covers HEAD plus the non-generated changes",
-  "subjectSha": "619cd2231d186bf937eeec0980de775444ce8c95",
-  "subjectType": "WORKTREE",
+  "subjectSha": "74ef85d73bec22adaef832185fcb79618843bfc1",
+  "subjectType": "COMMIT",
   "taskpackHash": "31dde89eb4ede81fe88c0a5c5144adfb86af8db4c4d8c263bde2199180369b69",
   "taskpackId": "DL-TP-20260908-R5",
-  "testRunAt": "2026-09-17T14:28:08+00:00",
-  "testRunId": "testrun-20260917T142806Z-forward-repeat-08a91a030805",
-  "testRunMeaning": "bound run: python scripts/run_bound_test_suite.py --order forward --modules test_job_store test_runtime_attempt_safety",
+  "testRunAt": "2026-09-20T00:11:55+00:00",
+  "testRunId": "testrun-20260920T001141Z-forward-repeat-77de1a4fabbb",
+  "testRunMeaning": "bound run: python scripts/run_bound_test_suite.py --order forward --modules test_asset_store test_creative_job test_creative_ledgers test_creative_lineage test_creative_migration test_creative_version_guard test_creative_f030_f040 test_creative_session_link test_job_store test_runtime_attempt_safety test_runtime_asset_safety test_runtime_explicit_project test_assurance_qa_plane test_assurance_jury test_bundle_store test_operation_coordinator",
   "testRunResult": "OK",
   "unavailable": [
     "currentRemoteSha",
@@ -49,6 +38,6 @@
     "openPullRequests",
     "branchProtection"
   ],
-  "worktreeClean": false,
-  "worktreeDigest": "sha256:f2ad92c98a0129ff329cd76eaebdce72a271c3ce5fad91d7f2c74d294dcae1cf"
+  "worktreeClean": true,
+  "worktreeDigest": "sha256:77de1a4fabbbc535c6de6834adf863c4e4ee5d98c7f4c126b86c82f5d41835a1"
 }

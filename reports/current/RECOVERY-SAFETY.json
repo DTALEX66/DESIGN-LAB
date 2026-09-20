@@ -89,5 +89,9 @@
     "findings": [],
     "ok": true
   },
-  "verdict": "PASS"
+  "verdict": "PASS",
+  "projection": true,
+  "subjectSha": "042ac635ae7a6042db366f7fb19508fc5db7bc65",
+  "fresh": false,
+  "generatedBy": "scripts/verify_recovery_safety.py"
 }

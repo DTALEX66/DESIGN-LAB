@@ -17,21 +17,53 @@
 //   E2E_BROWSER         optional  explicit chromium executablePath; when set
 //                                 it bypasses playwright's revision lookup so a
 //                                 pre-installed browser works with zero download.
-// Exits 0 with `E2E_OK ...` on a full chain pass; non-zero otherwise.
+//   E2E_EVIDENCE_DIR    optional  dir for browser-e2e-summary.json (+ fail.png
+//                                 on failure); default
+//                                 .project-local/task-artifacts/browser-e2e
+// Exits 0 with `E2E_OK ...` on a full chain pass; non-zero otherwise. Every
+// exit path writes the evidence summary so CI artifacts and local runs carry
+// the same machine-readable trail.
+import fs from 'node:fs';
 import { createRequire } from 'node:module';
+import path from 'node:path';
 import process from 'node:process';
 
 const serviceUrl = process.env.E2E_SERVICE_URL;
 const token = process.env.E2E_TOKEN;
 const nmDir = process.env.E2E_NODE_MODULES;
 const browser = process.env.E2E_BROWSER || null;
+const evidenceDir = path.resolve(process.env.E2E_EVIDENCE_DIR || '.project-local/task-artifacts/browser-e2e');
+const errors = [];
+let browserInfo = browser ? String(browser) : null;
+let page = null;
+
+// P0-G: single evidence writer, used by every exit path (PASS and FAIL).
+const writeSummary = (result, error) => {
+  fs.mkdirSync(evidenceDir, { recursive: true });
+  const payload = {
+    kind: 'workbench-browser-e2',
+    subjectSha: process.env.E2E_SUBJECT_SHA || 'local',
+    browser: { engine: 'chromium', version: browserInfo },
+    workflowRunId: process.env.E2E_WORKFLOW_RUN_ID || 'local',
+    scenario: ['create-project', 'import-reference', 'create-brief',
+               'create-direction', 'choose-direction', 'bind-design-system',
+               'persisted-readback'],
+    consoleErrors: errors.length,
+    result,
+  };
+  if (error) payload.error = error;
+  fs.writeFileSync(path.join(evidenceDir, 'browser-e2e-summary.json'),
+                   JSON.stringify(payload, null, 2) + '\n');
+};
 
 if (!serviceUrl || !token || !nmDir) {
   console.error('E2E_CONFIG_MISSING: need E2E_SERVICE_URL, E2E_TOKEN, E2E_NODE_MODULES');
+  writeSummary('FAIL', 'E2E_CONFIG_MISSING: need E2E_SERVICE_URL, E2E_TOKEN, E2E_NODE_MODULES');
   process.exit(3);
 }
 if (!/^[0-9a-f]{64}$/.test(token)) {
   console.error('E2E_TOKEN_SHAPE: must be 64-hex');
+  writeSummary('FAIL', 'E2E_TOKEN_SHAPE: must be 64-hex');
   process.exit(3);
 }
 
@@ -52,9 +84,13 @@ const step = (name, fn) => {
 
 try {
   const b = await pw.chromium.launch(launchOpts);
+  try {
+    browserInfo = await b.browserVersion() || browserInfo;
+  } catch {
+    // version probe is best-effort; launch errors must dominate the summary.
+  }
   const ctx = await b.newContext();
-  const page = await ctx.newPage();
-  const errors = [];
+  page = await ctx.newPage();
   page.on('pageerror', (e) => errors.push('pageerror: ' + String(e)));
   page.on('console', (m) => { if (m.type() === 'error') errors.push('console: ' + m.text()); });
 
@@ -79,18 +115,42 @@ try {
     await page.locator('#project').selectOption({ label: name });
   });
 
+  // P0-05 B04: import a real reference asset and let the picker carry it into the brief.
+  // The PNG is a PIL-verified valid 1x1 RGBA image (not a broken placeholder).
+  await step('import reference', async () => {
+    const png = Buffer.from(
+      '89504e470d0a1a0a0000000d49484452000000010000000108060000001f15c489' +
+      '0000000b49444154789c6360000200000500017a5eab3f0000000049454e44ae426082', 'hex');
+    await page.locator('#file').setInputFiles({ name: 'ref.png', mimeType: 'image/png', buffer: png });
+    await page.locator('#import-button').click();
+    // sendImport() -> refresh() -> populateReferencePicker: one checkbox per imported asset.
+    await page.locator('#reference-picker input[type=checkbox]').first()
+      .waitFor({ state: 'visible', timeout: 20000 });
+  });
+
   // Refresh loads the design-system catalog + design-layer readback into 05.
   await step('refresh design systems', async () => {
     await page.locator('#refresh').click();
     await page.locator('#design-systems li').first().waitFor({ state: 'visible', timeout: 15000 });
   });
 
-  await step('persist brief', async () => {
+  await step('persist brief with reference', async () => {
+    // P0-05 B04: the imported asset is a real reference; check it so the brief
+    // carries a genuine asset id (not an empty list), then prove the readback.
+    await page.locator('#reference-picker input[type=checkbox]').first().check();
     await page.locator('#brief-title').fill('E2E Autumn');
     await page.locator('#brief-goals').fill('modern, warm, restrained');
     await page.locator('#brief-submit').click();
     await page.locator('#design-briefs li', { hasText: 'BRIEF · E2E Autumn' })
       .first().waitFor({ state: 'visible', timeout: 15000 });
+    const briefLine = await page.locator('#design-briefs li').first().innerText();
+    if (!/参考 1/.test(briefLine)) {
+      const reason = 'E2E_REFERENCE_NOT_CARRIED: ' + briefLine;
+      console.error(reason);
+      await captureFailureShot(ctx, b);
+      writeSummary('FAIL', reason);
+      process.exit(6);
+    }
   });
 
   await step('raise direction', async () => {
@@ -124,24 +184,55 @@ try {
   const bindingLine = await page.locator('#design-bindings li').first().innerText();
   const directionLine = await page.locator('#design-directions li').first().innerText();
 
-  await ctx.close();
-  await b.close();
-
+  // Failure checks happen BEFORE the teardown so a failure screenshot can be
+  // captured while the page (and its DOM state) is still alive.
   if (errors.length) {
-    console.error('E2E_BROWSER_ERRORS: ' + errors.slice(0, 8).join(' ;; '));
+    const tail = errors.slice(0, 8).join(' ;; ');
+    console.error('E2E_BROWSER_ERRORS: ' + tail);
+    await captureFailureShot(ctx, b);
+    writeSummary('FAIL', 'E2E_BROWSER_ERRORS: ' + tail);
     process.exit(4);
   }
   if (!/已绑定设计系统/.test(activeText) || !/BINDING ·/.test(bindingLine) ||
       !/CHOSEN by workbench-user/.test(directionLine)) {
-    console.error('E2E_READBACK_MISMATCH:\n' + activeText + '\n' + bindingLine + '\n' + directionLine);
+    const detail = 'E2E_READBACK_MISMATCH:\n' + activeText + '\n' + bindingLine + '\n' + directionLine;
+    console.error(detail);
+    await captureFailureShot(ctx, b);
+    writeSummary('FAIL', detail);
     process.exit(5);
   }
+
+  await ctx.close();
+  await b.close();
+
+  writeSummary('PASS');
   console.log('E2E_OK design_layer=' + JSON.stringify({
     direction: directionLine,
     binding: bindingLine,
     active: activeText,
   }));
 } catch (e) {
-  console.error('E2E_FAIL: ' + e.message.split('\n')[0]);
+  const reason = 'E2E_FAIL: ' + e.message.split('\n')[0];
+  console.error(reason);
+  await captureFailureShot();
+  writeSummary('FAIL', reason);
   process.exit(1);
+}
+
+// P0-G: screenshot the live page when a real failure happens mid-chain, so a
+// CI artifact can show WHERE the slice broke. Best-effort: in the catch path
+// the browser/context may already be dead (or never created — see `let page`)
+// and the shot is skipped; that is not itself a failure.
+async function captureFailureShot(ctx, b) {
+  if (!page) return;
+  try {
+    fs.mkdirSync(evidenceDir, { recursive: true });
+    await page.screenshot({ path: path.join(evidenceDir, 'fail.png') });
+    console.error('E2E_FAIL_SCREENSHOT: ' + path.join(evidenceDir, 'fail.png'));
+  } catch {
+    console.error('E2E_FAIL_SCREENSHOT: unavailable (page/browser already closed)');
+  } finally {
+    if (ctx) { try { await ctx.close(); } catch { /* already torn down */ } }
+    if (b) { try { await b.close(); } catch { /* already torn down */ } }
+  }
 }

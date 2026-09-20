@@ -474,5 +474,9 @@
     }
   ],
   "ci_query_available": true,
-  "note": "read-only snapshot, no mutation. gh fields are best-effort and may be empty when the network/token is unavailable on this host."
+  "note": "read-only snapshot, no mutation. gh fields are best-effort and may be empty when the network/token is unavailable on this host.",
+  "projection": true,
+  "subjectSha": "042ac635ae7a6042db366f7fb19508fc5db7bc65",
+  "fresh": false,
+  "generatedBy": "unattributed"
 }

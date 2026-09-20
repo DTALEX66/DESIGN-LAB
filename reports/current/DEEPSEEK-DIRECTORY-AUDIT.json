@@ -893,5 +893,9 @@
       "note": "supply chain",
       "second_level": {}
     }
-  ]
+  ],
+  "projection": true,
+  "subjectSha": "042ac635ae7a6042db366f7fb19508fc5db7bc65",
+  "fresh": false,
+  "generatedBy": "scripts/deepseek_directory_audit.py"
 }

@@ -1,8 +1,8 @@
 {
   "schemaVersion": "design-lab/final-test-gate/v1",
   "task_key": "DL-TP-20260914-DEEPSEEK-AUTHORITY-R1::DLDS-H010",
-  "generated_at": "2026-09-15T18:36:36+00:00",
-  "subject_sha": "f82f17ee5ec1d0e2973414ad673b00191324c68b",
+  "generated_at": "2026-09-20T00:12:03+00:00",
+  "subject_sha": "74ef85d73bec22adaef832185fcb79618843bfc1",
   "source": ".project-local/task-artifacts/test-run/history.jsonl (written by scripts/run_bound_test_suite.py, not retyped here)",
   "executed_scope": {
     "kind": "declared critical module set",
@@ -30,15 +30,15 @@
   },
   "requirements": {
     "deterministic_forward": {
-      "run_id": "testrun-20260915T175750Z-forward-repeat-400ec91222e0",
+      "run_id": "testrun-20260920T001141Z-forward-repeat-77de1a4fabbb",
       "tests": 220,
       "failures": 0,
       "errors": 0,
       "skipped": 0,
-      "duration_seconds": 8.863,
+      "duration_seconds": 13.077,
       "seed": null,
       "result": "OK",
-      "finished_at": "2026-09-15T17:57:59+00:00"
+      "finished_at": "2026-09-20T00:11:55+00:00"
     },
     "reverse": {
       "run_id": "testrun-20260915T175800Z-reverse-repeat-400ec91222e0",
@@ -80,9 +80,9 @@
       "reverse"
     ],
     "test_counts": {
+      "forward": 220,
       "random": 220,
-      "reverse": 220,
-      "forward": 220
+      "reverse": 220
     },
     "identical_counts": true,
     "zero_failures_in_every_order": true,

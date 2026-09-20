@@ -14,7 +14,15 @@ rather than faking a pass: if `node` + the in-repo `playwright` npm-cache + a
 locally installed Chromium are all present, the real browser drives the slice
 and the test asserts the persisted DOM readback; otherwise it skips with the
 exact reason it is unavailable.
+
+P0-G evidence chain: when the toolchain is present the browser driver also
+writes a machine-readable `browser-e2e-summary.json` (+ `fail.png` on failure)
+into `.project-local/task-artifacts/browser-e2e/` (override: $E2E_EVIDENCE_DIR).
+With `E2E_REQUIRED=1` (the CI no-skip job) a run must leave a PASS summary
+behind; locally the test stays honest — a missing summary is never a failure,
+the honest local answer is the skip reason, not an evidence gap.
 """
+import json
 import os
 import secrets
 import shutil
@@ -115,6 +123,8 @@ class WorkbenchDesignLayerE2ETests(unittest.TestCase):
                     'E2E_SERVICE_URL': f'http://127.0.0.1:{port}',
                     'E2E_TOKEN': token,
                     'E2E_NODE_MODULES': str(node_modules_dir),
+                    'E2E_EVIDENCE_DIR': str(
+                        ROOT / '.project-local' / 'task-artifacts' / 'browser-e2e'),
                 }
                 if browser:
                     env['E2E_BROWSER'] = str(browser)
@@ -127,13 +137,28 @@ class WorkbenchDesignLayerE2ETests(unittest.TestCase):
                 worker.join()
                 server.server_close()
                 tmp.cleanup()
-
-        if proc.returncode != 0:
-            self.fail('E2E browser run exited %d (toolchain present, real failure):\n'
-                      '--- stdout ---\n%s\n--- stderr ---\n%s'
-                      % (proc.returncode, proc.stdout, proc.stderr))
-        self.assertIn('E2E_OK', proc.stdout, 'E2E did not reach a full-slice readback:\n'
-                                              + proc.stdout + proc.stderr)
+            if proc.returncode != 0:
+                self.fail('E2E browser run exited %d (toolchain present, real failure):\n'
+                          '--- stdout ---\n%s\n--- stderr ---\n%s'
+                          % (proc.returncode, proc.stdout, proc.stderr))
+            self.assertIn('E2E_OK', proc.stdout, 'E2E did not reach a full-slice readback:\n'
+                                                  + proc.stdout + proc.stderr)
+            # P0-G evidence chain: required mode (CI no-skip job, $E2E_REQUIRED=1)
+            # must leave a machine-readable PASS summary behind; locally the test
+            # stays honest — a missing summary is NOT a failure (the honest answer
+            # on a toolchain-less checkout is the skip reason above, not a gap).
+            if os.environ.get('E2E_REQUIRED') == '1':
+                summary = ROOT / '.project-local' / 'task-artifacts' / 'browser-e2e' / \
+                    'browser-e2e-summary.json'
+                self.assertTrue(summary.is_file(),
+                                'E2E_REQUIRED but no evidence summary written: '
+                                f'{summary}')
+                payload = json.loads(summary.read_text(encoding='utf-8'))
+                self.assertEqual(payload.get('kind'), 'workbench-browser-e2',
+                                 'E2E summary kind drifted: ' + str(payload.get('kind')))
+                self.assertEqual(payload.get('result'), 'PASS',
+                                 'E2E summary is not a PASS run: '
+                                 + summary.read_text(encoding='utf-8'))
 
     def test_e2e_script_is_lint_clean(self):
         # The browser driver must be a parseable ESM module; guard against a

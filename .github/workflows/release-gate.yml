@@ -54,7 +54,7 @@ jobs:
           cat artifacts.sha256
 
       - name: Upload runtime evidence as Actions Artifact
-        uses: actions/upload-artifact@65c4c4a1ddee5b7f698f8297e8f3f4f7e4b8c1a2 # v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: dl-release-evidence-${{ github.sha }}
           path: |

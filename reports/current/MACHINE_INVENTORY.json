@@ -168,5 +168,9 @@
     "install_registry_does_not_prove": "process running / workflow verified / license applicability"
   },
   "reobserved_at": null,
-  "observation_note": "observed_at is the date the host matrix and model radar cite; a new observation must update those consumers in the same change"
+  "observation_note": "observed_at is the date the host matrix and model radar cite; a new observation must update those consumers in the same change",
+  "projection": true,
+  "subjectSha": "042ac635ae7a6042db366f7fb19508fc5db7bc65",
+  "fresh": false,
+  "generatedBy": "scripts/generate_machine_inventory.py"
 }

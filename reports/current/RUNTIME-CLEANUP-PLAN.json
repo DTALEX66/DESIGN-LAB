@@ -168,5 +168,9 @@
       }
     ],
     "verdict": "OWNER_DELETE_APPROVAL_REQUIRED"
-  }
+  },
+  "projection": true,
+  "subjectSha": "042ac635ae7a6042db366f7fb19508fc5db7bc65",
+  "fresh": false,
+  "generatedBy": "scripts/deepseek_runtime_cleanup.py"
 }

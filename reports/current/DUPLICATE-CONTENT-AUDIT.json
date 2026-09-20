@@ -99,5 +99,9 @@
     "wasted_bytes": 1479163,
     "wasted_mib": 1.411
   },
-  "policy": "duplicate removal is a contract change whenever a manifest references the path; this audit reports, it does not delete"
+  "policy": "duplicate removal is a contract change whenever a manifest references the path; this audit reports, it does not delete",
+  "projection": true,
+  "subjectSha": "042ac635ae7a6042db366f7fb19508fc5db7bc65",
+  "fresh": false,
+  "generatedBy": "scripts/deepseek_content_audit.py"
 }

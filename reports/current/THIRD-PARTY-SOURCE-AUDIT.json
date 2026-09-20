@@ -730,5 +730,9 @@
     "absorbed_trees_outside_lock": []
   },
   "verdict": "NO_FULL_THIRD_PARTY_SOURCE_TREES_TRACKED",
-  "note": "LOCK_REFERENCE with no in-repo copy is the intended state, not a stale claim: the full copy was removed and only the reference remains. A CONDITIONAL_POC or ABSORB_MINIMAL entry whose path is gone would be a real defect."
+  "note": "LOCK_REFERENCE with no in-repo copy is the intended state, not a stale claim: the full copy was removed and only the reference remains. A CONDITIONAL_POC or ABSORB_MINIMAL entry whose path is gone would be a real defect.",
+  "projection": true,
+  "subjectSha": "042ac635ae7a6042db366f7fb19508fc5db7bc65",
+  "fresh": false,
+  "generatedBy": "scripts/deepseek_content_audit.py"
 }

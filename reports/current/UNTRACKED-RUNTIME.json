@@ -121,5 +121,9 @@
     }
   },
   "total_mib": 4448.46,
-  "classification_pending": "DLDS-D030/D040 and Wave 4 classify and act; nothing is deleted here"
+  "classification_pending": "DLDS-D030/D040 and Wave 4 classify and act; nothing is deleted here",
+  "projection": true,
+  "subjectSha": "042ac635ae7a6042db366f7fb19508fc5db7bc65",
+  "fresh": false,
+  "generatedBy": "scripts/deepseek_size_audit.py"
 }

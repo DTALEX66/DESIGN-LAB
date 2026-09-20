@@ -18,6 +18,8 @@
 <section class="panel"><p class="eyebrow">04 / NATIVE ASSETS</p><h2>已登记的 AI / PSD</h2><p>列表为持久化版本记录。点击校验会重新读取原生文件并核对 hash，不代表人工接受或本次宿主重开。</p><ul id="native-assets" class="items"></ul><button id="more-native" class="secondary" hidden>更多原生产物</button><p id="native-info" class="mono" role="status"></p></section>
 <section class="panel"><div class="section-head"><div><p class="eyebrow">05 / DESIGN LAYER</p><h2>Brief → Direction → DesignSystem</h2></div><span class="badge">垂直切片 · 每条都读回</span></div>
 <p>把设计意图落成可追踪的记录：简报固定“为什么设计”，方向给出具体视觉立场（选择即人工判定），绑定固定后续制作的设计契约。每一步都持久化并读回，不代表制作完成或质量验收。</p>
+<p class="eyebrow">参考素材（勾选已导入资产，简报将引用；不导入则为空）</p>
+<ul id="reference-picker" class="items"></ul>
 <form id="design-brief-form" class="design-form"><label>简报标题<input id="brief-title" maxlength="160" required placeholder="例如：秋季品牌视觉"></label>
 <label>目标（逗号分隔）<input id="brief-goals" maxlength="400" required placeholder="现代, 温暖, 克制"></label>
 <label>约束（可选）<input id="brief-constraints" maxlength="400" placeholder="例如：不改变 logo 拓扑"></label><button id="brief-submit">持久化简报</button></form>

@@ -110,5 +110,9 @@
   },
   "design_lab_owned_in_agent_homes": {},
   "verdict": "CENSUS_COMPLETE",
-  "note": "Only the repository-side objects carry an owner of DESIGN-LAB. Nothing in an agent home is claimed by this project at this stage."
+  "note": "Only the repository-side objects carry an owner of DESIGN-LAB. Nothing in an agent home is claimed by this project at this stage.",
+  "projection": true,
+  "subjectSha": "042ac635ae7a6042db366f7fb19508fc5db7bc65",
+  "fresh": false,
+  "generatedBy": "scripts/deepseek_spill_census.py"
 }
