@@ -59,6 +59,43 @@ def validate_contract(ev: object) -> list[str]:
     return failures
 
 
+REQUALIFICATION_FAILURE = (
+    "requalified capability cannot certify {level} on the current tree "
+    "(effective floor E1); requiresRequalification=true in capability-evidence-index"
+)
+
+
+def load_effective_evidence_module():
+    """Load the sibling effective_evidence.py (scripts/ is not a package)."""
+    import importlib.util
+
+    path = Path(__file__).resolve().parent / "effective_evidence.py"
+    spec = importlib.util.spec_from_file_location("effective_evidence", path)
+    if spec is None or spec.loader is None:
+        raise ImportError(f"cannot load effective_evidence from {path}")
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+def requalification_failures(ev: object, index: object, module) -> list[str]:
+    """P1-B: a requalified capability cannot certify above its effective floor.
+
+    ``requiresRequalification=true`` in capability-evidence-index.json means the
+    capability's runtime evidence is bound to another tree, so on the current tree
+    it keeps only its structural ceiling (E1). A release claim at E2-E5 for that
+    capability is therefore not evidence for this checkout.
+    """
+    if not isinstance(ev, dict):
+        return []
+    level = ev.get("evidence_level")
+    if ev.get("capability_id") not in module.requalified(index):
+        return []
+    if module.LEVEL.get(level, -1) > module.LEVEL["E1"]:
+        return [REQUALIFICATION_FAILURE.format(level=level)]
+    return []
+
+
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("evidence", nargs="?", help="release-evidence JSON file; omit to print schema usage")
@@ -108,6 +145,16 @@ def main() -> int:
     ci_head = ((ev.get("ci") or {}).get("head_sha") or "").lower()
     if ci_head and ci_head != ev.get("head_sha", "").lower():
         failures.append("CI head_sha != evidence head_sha (prior green CI reused illegally)")
+
+    # P1-B: historical evidence for a requalified capability never certifies the
+    # current tree above its effective floor (E1).
+    try:
+        effective_module = load_effective_evidence_module()
+        evidence_index = effective_module.load_index(REPO.parent)
+    except (ImportError, OSError, UnicodeError, ValueError) as exc:
+        failures.append(f"capability evidence index unreadable for requalification check: {exc}")
+    else:
+        failures.extend(requalification_failures(ev, evidence_index, effective_module))
 
     # Remote readback
     remote = (ev.get("read_back") or {}).get("remote_sha")

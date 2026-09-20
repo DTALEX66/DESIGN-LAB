@@ -31,6 +31,64 @@ SHA_RE = re.compile(r"^[0-9a-f]{40}$")
 LEVEL_ORDER = {"E0": 0, "E1": 1, "E2": 2, "E3": 3, "E4": 4, "E5": 5}
 
 
+def load_effective_evidence_module():
+    """Load the sibling effective_evidence.py (scripts/ is not a package)."""
+    import importlib.util
+
+    path = Path(__file__).resolve().parent / "effective_evidence.py"
+    spec = importlib.util.spec_from_file_location("effective_evidence", path)
+    if spec is None or spec.loader is None:
+        raise ImportError(f"cannot load effective_evidence from {path}")
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+def effective_evidence_findings(capabilities, current_sha, module):
+    """Separate recorded capability evidence from effective evidence (P1-B).
+
+    Returns ``(info_lines, errors)``. For every capability flagged
+    requiresRequalification an informational line records the pair
+    ``recorded=.. effective=..`` (the recording is real history, it is not an
+    error). An error is raised only when a capability still claims a recorded
+    level at or above its floor while the effective level no longer reaches that
+    floor and no requalification marker explains the gap -- i.e. stale runtime
+    evidence silently certified against the current tree.
+
+    The structural-pass input of ``effective_evidence`` is the deterministic
+    proxy "recorded level >= E1" (the capability's structural checks passed when
+    the record was written).
+    """
+    info: list[str] = []
+    errors: list[str] = []
+    for capability in capabilities:
+        if not isinstance(capability, dict):
+            continue
+        capability_id = capability.get("id", "")
+        recorded = capability.get("actualEvidence")
+        floor = capability.get("minimumRequiredEvidence")
+        if not capability_id or recorded not in LEVEL_ORDER:
+            continue  # already reported as an invalid capability
+        record = dict(capability)
+        record["evidenceLevel"] = recorded
+        structural = module.structural_pass_from_recorded(recorded)
+        effective = module.effective_evidence(record, current_sha, structural)
+        if capability.get("requiresRequalification"):
+            info.append(
+                f"EFFECTIVE_EVIDENCE {capability_id} recorded={recorded} "
+                f"effective={effective} requiresRequalification=true"
+            )
+        if module.meets_floor(recorded, floor) and not module.meets_floor(effective, floor):
+            if not capability.get("requiresRequalification"):
+                errors.append(
+                    f"capability {capability_id} still claims recorded {recorded} at or above its "
+                    f"floor {floor} but the effective level on this tree is {effective} without a "
+                    "requiresRequalification marker (historical evidence cannot satisfy the current "
+                    "tree floor, DL-EVD-002/003)"
+                )
+    return info, errors
+
+
 def check_promotion(level: str, artifacts: list[str]) -> list[str]:
     """Return errors if the evidence level cannot be supported by artifacts."""
     required_for_level = {
@@ -237,6 +295,28 @@ def main() -> int:
                         )
         except (OSError, json.JSONDecodeError) as exc:
             errors.append(f"capability-status unreadable: {exc}")
+
+        # P1-B: recorded vs effective evidence. A capability flagged
+        # requiresRequalification keeps only its structural ceiling (E1) on the
+        # current tree, so its recorded level must not silently certify the floor.
+        try:
+            effective_module = load_effective_evidence_module()
+        except (ImportError, OSError) as exc:
+            errors.append(f"effective_evidence module unavailable: {exc}")
+        else:
+            current_sha = subprocess.run(
+                ["git", "-C", str(REPO.parent), "rev-parse", "HEAD"],
+                capture_output=True,
+                text=True, encoding="utf-8", errors="replace",
+            ).stdout.strip()
+            info_lines, effective_errors = effective_evidence_findings(
+                capabilities if isinstance(capabilities, list) else [],
+                current_sha,
+                effective_module,
+            )
+            for line in info_lines:
+                print(line)
+            errors.extend(effective_errors)
 
         errors.extend(validate_evidence_surfaces(capability_levels))
         errors.extend(validate_report_boundary())
