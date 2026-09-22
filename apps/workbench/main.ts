@@ -1090,14 +1090,14 @@ const ROUTE_VIEWS = [
 type RouteView = (typeof ROUTE_VIEWS)[number]['view'];
 
 // Honest "not open yet" copy per IA slot that has no backend route today.
-// These are facts about the service surface, not placeholders pretending data.
+// Projects / creative-tools / deliverables / evidence are READ-ONLY readbacks
+// of real service routes (see renderProjects/renderCreativeTools/
+// renderDeliverables/renderEvidence). These three slots have NO backend model:
+// research has no persisted conclusions, domains has no independent model, and
+// the service is single-user with no collaboration route — so they say so.
 const VIEW_NOT_OPEN: Partial<Record<RouteView, string>> = {
-  'projects': '项目台账由工作台页面管理（选择项目 / 新建项目）；独立项目列表页未实现。',
   'research': '研究洞察页未开放：当前服务没有研究结论的持久化路由。',
   'design-domains': '设计领域页未开放：领域划分尚无独立后端模型。',
-  'creative-tools': '创作工具页未开放：宿主（Illustrator / Photoshop）任务仍在工作台高级区提交。',
-  'deliverables': '交付中心页未开放：交付包目前随任务读回导出，无独立台账路由。',
-  'evidence': '证据系统页未开放：版本链与绑定读回目前在工作台设计层展示。',
   'collaboration': '团队协作页未开放：本地单机服务尚无协作路由（本地单用户模型）。',
 };
 
@@ -1225,6 +1225,123 @@ async function renderSettings(target: HTMLElement): Promise<void> {
     el('p', { class: 'view-hint' }, '设置页只读回服务端诊断；本服务不修改任何配置。'));
 }
 
+// --- UI real-data routes (2026-09-22): projects / creative-tools /
+//     deliverables / evidence as READ-ONLY readbacks of real service routes.
+//     Operational automation (submit native plan, run task, patch, bundle,
+//     choose direction, bind system) is NEVER triggered here — the page reads
+//     state back and says the action is performed in the host / workbench.
+// ---
+
+// Shared readback-only project picker. Loads /api/projects once, lets the user
+// pick a project, and re-runs `body(projectId)` on each change. No mutation:
+// only GETs below this point.
+async function projectPickerPanel(target: HTMLElement, title: string, body: (projectId: string) => Promise<HTMLElement>): Promise<void> {
+  target.replaceChildren(el('p', { class: 'view-loading' }, '正在读回项目台账…'));
+  const data = await api<ProjectListResponse>('/projects');
+  if (!data.projects.length) {
+    target.replaceChildren(
+      el('h2', {}, title),
+      el('p', { class: 'view-hint' }, '尚无项目。先在工作台新建项目，再读回此视图。'));
+    return;
+  }
+  const select = el('select', { class: 'project-select', id: `${title.replace(/\s+/g, '-')}-project` });
+  select.append(el('option', { value: '' }, `选择项目（共 ${data.projects.length} 个）`));
+  for (const p of data.projects) select.append(el('option', { value: p.id }, p.name));
+  const content = el('div', { class: 'route-view-body' });
+  target.replaceChildren(el('h2', {}, title), el('label', { class: 'project-picker' }, '项目', select), content);
+  const load = async (): Promise<void> => {
+    const id = select.value;
+    if (!id) { content.replaceChildren(el('p', { class: 'view-hint' }, '请选择一个项目后读回。')); return; }
+    content.replaceChildren(el('p', { class: 'view-loading' }, '正在读回该项目…'));
+    try {
+      content.replaceChildren(await body(id));
+    } catch (error) {
+      content.replaceChildren(el('p', { class: 'error' }, `读回失败：${errMsg(error)}`));
+    }
+  };
+  select.onchange = () => { void load(); };
+  await load();
+}
+
+// 项目台账 — a straight readback of /api/projects. No selection here: picking a
+// project happens in the workbench; this page just lists the ledger.
+async function renderProjects(target: HTMLElement): Promise<void> {
+  target.replaceChildren(el('p', { class: 'view-loading' }, '正在读回项目台账…'));
+  const data = await api<ProjectListResponse>('/projects');
+  const list = el('ul', { class: 'items', 'data-view-item': 'projects' },
+    ...(data.projects.length
+      ? data.projects.map((p) => el('li', {}, `${p.name} · ${p.id}`))
+      : [el('li', { class: 'view-hint' }, '尚无项目。在工作台新建项目后出现。')]));
+  target.replaceChildren(
+    el('h2', {}, '项目'),
+    el('p', { class: 'view-hint' }, '真实读回 /api/projects。新建 / 选择项目在工作台执行；本页只读回台账，不修改。'),
+    el('p', { class: 'eyebrow' }, `项目（${data.projects.length}）`),
+    list);
+}
+
+// 创作工具 — read-back of the project's native task ledger. Submitting a native
+// plan (Illustrator / Photoshop) and running/cancelling a task are HOST-DRIVEN
+// actions that live in the workbench Advanced zone; this page only lists state.
+async function renderCreativeTools(target: HTMLElement): Promise<void> {
+  await projectPickerPanel(target, '创作工具', async (id) => {
+    const tasks = await api<TaskListResponse>(`/projects/${id}/tasks`);
+    const rows = tasks.tasks.length
+      ? tasks.tasks.map((t) => el('tr', {},
+          el('td', {}, t.kind), el('td', {}, t.state), el('td', {}, t.attempt.state)))
+      : [el('tr', {}, el('td', { colspan: '3' }, '尚无宿主任务。创作任务由 Illustrator / Photoshop 在工作台高级区提交。'))];
+    return el('div', {},
+      el('p', { class: 'view-hint' }, '宿主任务只读回 /api/projects/{id}/tasks。提交 / 运行 / 取消由宿主（Illustrator / Photoshop）在工作台执行；本页不触发实操。'),
+      el('table', { class: 'resource-table' },
+        el('thead', {}, el('tr', {}, el('th', {}, '类型'), el('th', {}, '状态'), el('th', {}, '尝试'))),
+        el('tbody', {}, ...rows)),
+      el('p', { class: 'eyebrow' }, `任务（${tasks.tasks.length}）`));
+  });
+}
+
+// 交付中心 — read-back of the task ledger with an on-demand delivery note. The
+// bundle ZIP is downloaded on demand from the workbench per task; nothing is
+// packaged or shipped from this page.
+async function renderDeliverables(target: HTMLElement): Promise<void> {
+  await projectPickerPanel(target, '交付中心', async (id) => {
+    const tasks = await api<TaskListResponse>(`/projects/${id}/tasks`);
+    const rows = tasks.tasks.length
+      ? tasks.tasks.map((t) => el('tr', {},
+          el('td', {}, t.kind), el('td', {}, t.state), el('td', {}, t.attempt.state)))
+      : [el('tr', {}, el('td', { colspan: '3' }, '尚无任务。任务完成后交付包随读回导出。'))];
+    return el('div', {},
+      el('p', { class: 'view-hint' }, '交付包按任务在下载时打包（字体 / 链接 / rights / 质量仍需人工验收）。本页只读回任务台账，不下载也不打包。'),
+      el('table', { class: 'resource-table' },
+        el('thead', {}, el('tr', {}, el('th', {}, '类型'), el('th', {}, '状态'), el('th', {}, '尝试'))),
+        el('tbody', {}, ...rows)),
+      el('p', { class: 'eyebrow' }, `交付候选任务（${tasks.tasks.length}）`));
+  });
+}
+
+// 证据系统 — read-back of the design layer: briefs, directions, the chosen
+// direction, design-system bindings and the active binding. Version chains are
+// read on demand from the workbench; this is a read-only evidence view.
+async function renderEvidence(target: HTMLElement): Promise<void> {
+  await projectPickerPanel(target, '证据系统', async (id) => {
+    const layer = (await api<DesignLayerResponse>(`/projects/${id}/design-layer`)).design_layer;
+    const chosen = layer.chosen_direction
+      ? `${layer.chosen_direction.title} · v${layer.chosen_direction.version}` : '（尚未选定方向）';
+    const active = layer.active_binding
+      ? `${layer.active_binding.design_system_name} · 绑定 ${layer.active_binding.direction_id}` : '（无活动绑定）';
+    const systems = el('ul', { class: 'items', 'data-view-item': 'evidence-systems' },
+      ...layer.design_systems.map((s) => el('li', {}, `${s.name} · ${s.title} · v${s.version} · 证据 ${s.evidence_level}`)));
+    return el('div', {},
+      el('table', { class: 'resource-table' },
+        el('tbody', {},
+          el('tr', {}, el('th', { scope: 'row' }, 'briefs'), el('td', {}, String(layer.briefs.length))),
+          el('tr', {}, el('th', { scope: 'row' }, 'directions'), el('td', {}, String(layer.directions.length))),
+          el('tr', {}, el('th', { scope: 'row' }, '选定方向'), el('td', {}, chosen)),
+          el('tr', {}, el('th', { scope: 'row' }, '活动绑定'), el('td', {}, active)))),
+      el('p', { class: 'eyebrow' }, '设计系统登记'),
+      systems,
+      el('p', { class: 'view-hint' }, '版本链（brief / direction 逐版本）在工作台点单条时读回；本页为只读证据视图，不修改 lineage。'));
+  });
+}
+
 async function renderRoute(view: RouteView, target: HTMLElement): Promise<void> {
   target.replaceChildren();
   switch (view) {
@@ -1232,6 +1349,10 @@ async function renderRoute(view: RouteView, target: HTMLElement): Promise<void> 
     case 'brand-systems': await renderBrandSystems(target); return;
     case 'preflight-qa': await renderPreflight(target); return;
     case 'settings': await renderSettings(target); return;
+    case 'projects': await renderProjects(target); return;
+    case 'creative-tools': await renderCreativeTools(target); return;
+    case 'deliverables': await renderDeliverables(target); return;
+    case 'evidence': await renderEvidence(target); return;
     default: {
       const notOpen = VIEW_NOT_OPEN[view];
       target.replaceChildren(
