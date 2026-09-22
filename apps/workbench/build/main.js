@@ -1034,8 +1034,19 @@ async function renderPreflight(target) {
     result.replaceChildren(el("p", { class: "view-loading" }, `正在读回 ${taskId} 的资源判定…`));
     try {
       const data = await api(`/task-preflight?task=${encodeURIComponent(taskId)}`);
+      const blocked = data.blocked_resources.length;
       result.replaceChildren(
-        el("p", { class: "preflight-verdict" }, `判定 ${data.verdict} · 登记 ${data.registry_state} · 机器 ${data.machine_scope} · 阻塞资源 ${data.blocked_resources.length ? data.blocked_resources.join(", ") : "无"}`),
+        el(
+          "div",
+          { class: "verdict-line" },
+          el("span", { class: blocked ? "pill pill-block" : "pill pill-pass" }, data.verdict),
+          el(
+            "span",
+            { class: "verdict-meta" },
+            `登记 ${data.registry_state} · 机器 ${data.machine_scope} · 权限 ${data.permissions.meaning}`
+          )
+        ),
+        blocked ? el("p", { class: "view-hint" }, `阻塞资源 ${blocked} 项：${data.blocked_resources.join(" · ")}。此预检只读回，不安装、不裁许可、不遍历外部根。`) : el("p", { class: "view-hint" }, "无阻塞资源。此为只读预检判定，不等同质量或 rights 验收。"),
         el(
           "table",
           { class: "resource-table" },
@@ -1044,7 +1055,7 @@ async function renderPreflight(target) {
             "tr",
             {},
             el("td", {}, row.ref),
-            el("td", {}, row.state),
+            el("td", {}, el("span", { class: "pill pill-info" }, row.state)),
             el("td", {}, row.meaning)
           )))
         )
@@ -1072,6 +1083,7 @@ async function renderSettings(target) {
     ["写入痕迹", `${env.write_trace} · 迁移 ${env.migration}`],
     ["代理配置", `PRIVATE_NOT_INSPECTED · 不可写（${env.agent_profile.status}）`]
   ];
+  const writablePill = (writable) => el("span", { class: "pill " + (writable ? "pill-pass" : "pill-info") }, writable ? "可写" : "只读");
   const roots = el(
     "table",
     { class: "resource-table" },
@@ -1081,18 +1093,18 @@ async function renderSettings(target) {
       {},
       el("td", {}, name),
       el("td", {}, root.path),
-      el("td", {}, root.writable ? "是" : "否")
+      el("td", {}, writablePill(root.writable))
     )))
   );
   const shared = el(
     "table",
     { class: "resource-table" },
-    el("thead", {}, el("tr", {}, el("th", {}, "外置输入"), el("th", {}, "状态"), el("th", {}, "路径"))),
+    el("thead", {}, el("tr", {}, el("th", {}, "外置库索引"), el("th", {}, "状态"), el("th", {}, "路径"))),
     el("tbody", {}, ...Object.entries(env.shared_inputs).map(([name, input]) => el(
       "tr",
       {},
       el("td", {}, name),
-      el("td", {}, input.status),
+      el("td", {}, el("span", { class: "pill pill-info" }, input.status)),
       el("td", {}, input.path)
     )))
   );

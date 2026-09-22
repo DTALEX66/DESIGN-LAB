@@ -1178,12 +1178,25 @@ async function renderPreflight(target: HTMLElement): Promise<void> {
     result.replaceChildren(el('p', { class: 'view-loading' }, `正在读回 ${taskId} 的资源判定…`));
     try {
       const data = await api<TaskPreflightResponse>(`/task-preflight?task=${encodeURIComponent(taskId)}`);
+      // B07 4-state: loading (above) -> ready (verdict + resource table). The
+      // verdict pill is the explicit PASS / BLOCKED signal; a zero-blocked
+      // readback still says so (never renders a fake "all clear" — it is a
+      // read-only preflight, not an executed quality pass).
+      const blocked = data.blocked_resources.length;
       result.replaceChildren(
-        el('p', { class: 'preflight-verdict' }, `判定 ${data.verdict} · 登记 ${data.registry_state} · 机器 ${data.machine_scope} · 阻塞资源 ${data.blocked_resources.length ? data.blocked_resources.join(', ') : '无'}`),
+        el('div', { class: 'verdict-line' },
+          el('span', { class: blocked ? 'pill pill-block' : 'pill pill-pass' }, data.verdict),
+          el('span', { class: 'verdict-meta' },
+            `登记 ${data.registry_state} · 机器 ${data.machine_scope} · 权限 ${data.permissions.meaning}`)),
+        blocked
+          ? el('p', { class: 'view-hint' }, `阻塞资源 ${blocked} 项：${data.blocked_resources.join(' · ')}。此预检只读回，不安装、不裁许可、不遍历外部根。`)
+          : el('p', { class: 'view-hint' }, '无阻塞资源。此为只读预检判定，不等同质量或 rights 验收。'),
         el('table', { class: 'resource-table' },
           el('thead', {}, el('tr', {}, el('th', {}, '资源'), el('th', {}, '状态'), el('th', {}, '说明'))),
           el('tbody', {}, ...data.resources.map((row: TaskPreflightResource) => el('tr', {},
-            el('td', {}, row.ref), el('td', {}, row.state), el('td', {}, row.meaning))))));
+            el('td', {}, row.ref),
+            el('td', {}, el('span', { class: 'pill pill-info' }, row.state)),
+            el('td', {}, row.meaning))))));
     } catch (error) {
       result.replaceChildren(el('p', { class: 'error' }, `预检未确认：${errMsg(error)}。服务端拒绝时未写入任何判定。`));
     }
@@ -1205,14 +1218,22 @@ async function renderSettings(target: HTMLElement): Promise<void> {
     ['写入痕迹', `${env.write_trace} · 迁移 ${env.migration}`],
     ['代理配置', `PRIVATE_NOT_INSPECTED · 不可写（${env.agent_profile.status}）`],
   ];
+  // LibraryIndex: the external library index is the read-only red-line surface.
+  // Turn each row's status / writability into an explicit pill so the 4-state
+  // contract is visible (a writable root is marked; every shared input stays
+  // read-only DECLARED_NOT_PROBED — the UI never implies it can write there).
+  const writablePill = (writable: boolean): HTMLElement =>
+    el('span', { class: 'pill ' + (writable ? 'pill-pass' : 'pill-info') }, writable ? '可写' : '只读');
   const roots = el('table', { class: 'resource-table' },
     el('thead', {}, el('tr', {}, el('th', {}, '根'), el('th', {}, '路径'), el('th', {}, '可写'))),
     el('tbody', {}, ...Object.entries(env.roots).map(([name, root]) => el('tr', {},
-      el('td', {}, name), el('td', {}, root.path), el('td', {}, root.writable ? '是' : '否')))));
+      el('td', {}, name), el('td', {}, root.path), el('td', {}, writablePill(root.writable))))));
   const shared = el('table', { class: 'resource-table' },
-    el('thead', {}, el('tr', {}, el('th', {}, '外置输入'), el('th', {}, '状态'), el('th', {}, '路径'))),
+    el('thead', {}, el('tr', {}, el('th', {}, '外置库索引'), el('th', {}, '状态'), el('th', {}, '路径'))),
     el('tbody', {}, ...Object.entries(env.shared_inputs).map(([name, input]) => el('tr', {},
-      el('td', {}, name), el('td', {}, input.status), el('td', {}, input.path)))));
+      el('td', {}, name),
+      el('td', {}, el('span', { class: 'pill pill-info' }, input.status)),
+      el('td', {}, input.path)))));
   target.replaceChildren(
     el('h2', {}, '系统设置'),
     el('table', { class: 'resource-table' },
