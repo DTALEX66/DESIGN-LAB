@@ -59,6 +59,12 @@ jobs:
           python design-lab/scripts/verify_visual_quality_v21.py
       - name: Domain Pack V2 contract
         run: python design-lab/scripts/verify_domain_pack_v2.py design-lab/domain-packs/uiux-design
+      - name: Library index 4-file consistency guard (P1-3)
+        # Cross-checks the four library/index documents agree with each other
+        # and every declared shared root is on the local D: drive (E: is
+        # protected, C: is not the declared library drive). Pure-stdlib,
+        # read-only, fail-closed; no external root is probed.
+        run: python design-lab/scripts/verify_library_index_consistency.py
       - name: Python unit tests
         run: python scripts/run_python_tests.py
       - name: MiniGame fixture boundary test
