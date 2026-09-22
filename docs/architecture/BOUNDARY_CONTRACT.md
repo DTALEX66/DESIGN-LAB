@@ -8,6 +8,7 @@
 
 ## DESIGN-LAB 的职责（只做增强，不做替代）
 
+- 唯一设计控制面：`apps/workbench/`，承载 DESIGN-LAB 自有 Project、Brief、Direction、Design Artifact/version、Review、Preflight、Handoff 与 Evidence 的编排和读回；
 - 协议与合同：Brief、ReferenceSet、Direction、DesignSystem、QualityAssessment、Preflight、Handoff、Evidence；
 - 专业方法：MethodCard、DomainPack、Rubric、Scenario、Bundle、Adapter 协议；
 - 知识资产：受治理的来源、方法、标准、注册表、BenchmarkCase；
@@ -20,7 +21,7 @@
 - ❌ 不做 Agent 运行时、聊天客户端、模型网关或通用工作流平台；
 - ❌ 不拥有自己的 provider/model 认证（不写死模型，不持有 API Key）；
 - ❌ 不建独立 SaaS、账号系统或泛用向量库；
-- ❌ 不复制任何宿主的画布、项目、模型路由或 Artifact 系统；
+- ❌ 不复制任何宿主的画布、宿主私有项目数据库、模型路由或宿主私有 Artifact 系统；DESIGN-LAB 自有的设计域 Project/Artifact/version 合同与状态不属于复制；
 - ❌ 不把静态文件、Schema 通过或 VLM 自评冒充运行可用。
 
 ## 宿主职责（平台中立）
@@ -30,7 +31,7 @@
 
 ## 边界硬规则
 
-1. 全仓不得出现第二前端应用壳；
+1. 全仓仅允许 `apps/workbench/` 作为设计控制面，不得出现第二前端应用壳或第二画布；
 2. 全仓不得出现第二 Agent runtime；
 3. 全仓不得出现模型网关；
 4. 全仓不得出现独立账号系统或泛用向量库；

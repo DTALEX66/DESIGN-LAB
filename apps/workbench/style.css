@@ -193,9 +193,9 @@ footer{
 /* UI convergence slice 2: AppShell navigation (B07 12-route IA, B04 tokens).
    Purely additive — no existing selector above is altered. */
 .app-nav{
-  position:fixed;inset:0 auto 0 0;width:168px;z-index:40;
+  position:fixed;inset:0 auto 0 0;width:168px;z-index:60;
   background:var(--surface);border-right:1px solid var(--line);
-  display:grid;grid-template-rows:auto 1fr auto;gap:14px;
+  display:flex;flex-direction:column;gap:8px;overflow-y:auto;
   padding:20px 14px;
 }
 .app-nav-brand{font-size:15px;font-weight:800;letter-spacing:1px;color:var(--accent)}
@@ -211,7 +211,7 @@ footer{
   border-color:var(--line);
   box-shadow:inset 3px 0 0 var(--accent);
 }
-.app-nav-meta{font-size:11px;color:var(--muted);padding:0 4px}
+.app-nav-meta{font-size:11px;color:var(--muted);padding:0 4px;margin-top:auto}
 /* Gutter is scoped to the mounted shell only: without .dl-shell (the E2E /
    unmounted default path) the layout stays the original centered flow.
    Root-cause geometry: the fixed nav (0..168) never participates in flow, so
@@ -223,13 +223,19 @@ footer{
 .dl-shell main{max-width:1240px;margin:28px 24px 28px 192px;padding:0}
 .dl-shell footer{max-width:none;margin:30px 24px 30px 192px;padding:0}
 @media(max-width:760px){
-  .dl-shell header{padding:22px 16px 22px 72px}
-  .dl-shell main{margin:16px 16px 16px 72px}
-  .dl-shell footer{margin:16px 16px 0 72px}
-  .app-nav{width:56px}
-  .app-nav-brand,.app-nav-item{font-size:0}
-  .app-nav-item{padding:10px 6px;text-align:center}
-  .app-nav-meta{display:none}
+  .dl-shell header{padding:22px 16px}
+  .dl-shell main{margin:16px 16px 88px}
+  .dl-shell footer{margin:16px 16px 88px;padding:0}
+  .app-nav{
+    inset:auto 0 0 0;width:auto;height:auto;
+    display:flex;flex-direction:row;gap:6px;overflow-x:auto;overflow-y:hidden;
+    padding:8px 10px;border-right:0;border-top:1px solid var(--line);
+  }
+  .app-nav-brand,.app-nav-meta{display:none}
+  .app-nav-item{
+    flex:0 0 auto;width:auto;min-width:max-content;
+    padding:8px 10px;text-align:center;font-size:11px;white-space:nowrap;
+  }
 }
 .route-panel{
   position:fixed;inset:0 0 0 168px;z-index:20;
@@ -239,7 +245,7 @@ footer{
      bug) — the view left-anchors to the same 192px edge as header/main. */
   padding:130px 24px 40px 24px;
 }
-@media(max-width:760px){.route-panel{inset:0 0 0 56px;padding:100px 16px 30px}}
+@media(max-width:760px){.route-panel{inset:0 0 64px 0;padding:100px 16px 30px}}
 .route-view{max-width:960px}
 .route-view h2{font-size:24px}
 .view-loading{color:var(--muted);font-size:13px}
@@ -279,7 +285,7 @@ footer{
 }
 .resource-table thead th{color:var(--muted);font-weight:650;font-size:11px}
 .resource-table td{color:var(--muted)}
-.preflight-input{width:100%;min-width:320px}
+.preflight-input{width:100%;min-width:min(320px,100%)}
 .preflight-verdict{font-size:13px;color:var(--ink);font-weight:650;margin:14px 0 4px}
 .revision{
   margin:14px 0;padding:14px 16px;

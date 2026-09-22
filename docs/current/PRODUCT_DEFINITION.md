@@ -1,8 +1,9 @@
 # PRODUCT_DEFINITION — DESIGN-LAB（设计实验室）
 
-- 版本：`1.0`｜状态：`ACTIVE`｜SSOT 角色：唯一产品定义
-- 任务包：DESIGN-LAB FULL PRODUCT AND MIGRATION TASKPACK R3
-- 权威：本文件 + `design-lab/config/product-manifest.json` + `BOUNDARY_CONTRACT.md` 一致
+- 版本：`1.1`｜状态：`ACTIVE`｜SSOT 角色：Authority 下的当前产品定义
+- 顶层权威：`/AUTHORITY.md`（`DL-AUTHORITY-2026-09-18-R2`）
+- 当前统一剩余任务入口：`docs/taskpacks/DESIGN-LAB-FINAL-AUTHORITY-CONVERGENCE-TASKPACK-2026-09-18.md`
+- 一致性合同：`design-lab/config/product-manifest.json` + `docs/architecture/BOUNDARY_CONTRACT.md`
 
 ## 中文定位
 
@@ -50,9 +51,9 @@ Host / Agent / Tool Adapters      = 在现有工作界面中执行能力
 Preflight / Handoff / Evidence    = 商业生产闭环
 ```
 
-当前采用 **host-native first**：设计师可在任意已接入宿主中工作；DESIGN-LAB 提供合同、方法、质量门、可编辑交付和适配器。不得为此重建第二画布、聊天客户端、模型网关或通用 SaaS 后端。
+当前采用 **standalone-first + host-native editing**：`apps/workbench/` 是 DESIGN-LAB 唯一用户可见设计控制面，负责 Projects、Brief、References、Directions、Design System、Review、Preflight、Handoff 与 Evidence 的编排和读回；真正原生编辑仍在已接入的专业宿主中完成。不得为此重建第二画布、聊天客户端、模型网关或通用 SaaS 后端。
 
-若未来需要可视化，只允许建设轻量的 **Lab Review Surface**：展示 Brief、方向、质量评分、预检、证据、适配器可用性和交付状态。它不是设计编辑器，不托管用户帐号/模型/画布，不与宿主竞争。
+Workbench 可以展示 Brief、方向、质量评分、预检、证据、适配器可用性和交付状态；它不是设计编辑器，不托管用户帐号、模型或宿主画布，不与专业宿主竞争。
 
 ## 六能力域
 
@@ -76,7 +77,7 @@ DomainPack / Artifact / ToolRun / QualityAssessment / PreflightReport / HandoffP
 
 ## 边界硬规则
 
-- 本仓库不得拥有第二前端、第二 Agent runtime、模型网关、独立账号系统或泛用向量库；
+- 本仓库只允许 `apps/workbench/` 这一套设计控制面，不得拥有第二应用壳、第二画布、第二 Agent runtime、模型网关、独立账号系统或泛用向量库；
 - 产品契约（manifest）不得包含 `primaryRuntime` / `fiveNeutralities`；宿主选择属于本地 profile / 项目级配置；
 - Open Design 是可验证的 Host Adapter，不是默认绑定；
 - MiniGame 仅是游戏视觉设计 fixture，不是产品线；

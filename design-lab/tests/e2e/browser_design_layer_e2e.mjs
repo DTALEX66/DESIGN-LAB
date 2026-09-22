@@ -62,7 +62,7 @@ const writeSummary = (result, error) => {
                'create-direction', 'choose-direction', 'bind-design-system',
                'revise-brief', 'revise-chosen-direction',
                'binding-rebuild-readback', 'reload-persisted-readback',
-               'persisted-readback'],
+               'persisted-readback', 'mobile-appshell-layout'],
     consoleErrors: errors.length,
     result,
   };
@@ -363,6 +363,28 @@ try {
     const activeText = await page.locator('#design-binding-active').first().innerText();
     if (!/绑定需重新建立/.test(activeText) || /已绑定设计系统/.test(activeText)) {
       await abort('E2E_RELOAD_BINDING_NOT_HONEST: ' + activeText, 10, ctx, b);
+    }
+  });
+
+  await step('mobile appshell layout', async () => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    const layout = await page.evaluate(() => {
+      const nav = document.querySelector('.app-nav');
+      const items = Array.from(document.querySelectorAll('.app-nav-item'));
+      const rect = nav?.getBoundingClientRect();
+      const firstStyle = items.length ? getComputedStyle(items[0]) : null;
+      return {
+        itemCount: items.length,
+        fontSize: firstStyle ? Number.parseFloat(firstStyle.fontSize) : 0,
+        navLeft: rect?.left ?? -1,
+        navWidth: rect?.width ?? 0,
+        navHeight: rect?.height ?? 0,
+        overflowX: nav ? getComputedStyle(nav).overflowX : '',
+      };
+    });
+    if (layout.itemCount !== 12 || layout.fontSize < 10 || layout.navLeft !== 0 ||
+        layout.navWidth < 380 || layout.navHeight > 120 || layout.overflowX !== 'auto') {
+      await abort('E2E_MOBILE_APPSHELL_LAYOUT: ' + JSON.stringify(layout), 11, ctx, b);
     }
   });
 

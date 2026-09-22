@@ -1,13 +1,13 @@
 # MINIGAME Domain Pack Source-of-Truth Boundary
 
-## Canonical sources inside WORK-LAB
+## Canonical sources inside DESIGN-LAB
 
 | Role | Canonical path | Meaning |
 |---|---|---|
-| Domain contract | `20-design/open-design/domain-packs/minigame-design/manifest.json` | Capabilities, excluded capabilities, evidence minimum and safety boundary. |
-| Runtime fixture | `20-design/open-design/fixtures/domains/game-visual/` | The only in-repository runtime sample used for deterministic smoke and handoff checks. |
-| Design rules | `20-design/open-design/domain-packs/minigame-design/rules.md` | Human-readable visual and interaction constraints. |
-| Handoff contract | `20-design/open-design/domain-packs/minigame-design/handoff.md` | Required evidence and non-mutating delivery boundary. |
+| Domain contract | `design-lab/domain-packs/minigame-design/manifest.json` | Capabilities, excluded capabilities, evidence minimum and safety boundary. |
+| Runtime fixture | `fixtures/domains/game-visual/` | The only in-repository runtime sample used for deterministic smoke and handoff checks. |
+| Design rules | `design-lab/domain-packs/minigame-design/rules.md` | Human-readable visual and interaction constraints. |
+| Handoff contract | `design-lab/domain-packs/minigame-design/handoff.md` | Required evidence and non-mutating delivery boundary. |
 
 ## Explicit non-sources
 

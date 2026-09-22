@@ -6,6 +6,8 @@ import sqlite3
 import sys
 import tempfile
 import unittest
+from types import SimpleNamespace
+from unittest import mock
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -100,6 +102,19 @@ class VersionGuardTests(unittest.TestCase):
         self.assertEqual(asset_versions.branch_tip(self.conn, "poster", "main"), child["version_id"])
         self.assertEqual([row["branch"] for row in asset_versions.branches(self.conn, "poster")],
                          ["alternate", "main"])
+
+    def test_branch_inventory_tip_uses_version_order_not_uuid_order(self):
+        # A UUID is an identity, not a version ordering. Keep this counterexample
+        # in the repository so branches() cannot regress to MAX(version_id).
+        uuids = [
+            SimpleNamespace(hex="f" * 32), SimpleNamespace(hex="e" * 32),
+            SimpleNamespace(hex="0" * 32), SimpleNamespace(hex="1" * 32),
+        ]
+        with mock.patch.object(asset_versions.asset_store.uuid, "uuid4", side_effect=uuids):
+            root = self._version("1")
+            child = self._version("2", parent_version_id=root["version_id"])
+        rows = asset_versions.branches(self.conn, "poster")
+        self.assertEqual(rows, [{"branch": "main", "versions": 2, "tip": child["version_id"]}])
 
     def test_rejection_is_terminal_and_blocks_serving(self):
         version = self._version("1")

@@ -107,14 +107,21 @@ def chain(conn, version_id: str) -> list:
 def branch_tip(conn, asset_id: str, branch: str = "main"):
     """Highest version on a branch, regardless of state; None when empty."""
     row = conn.execute("SELECT version_id FROM asset_version WHERE asset_id=? AND branch=? "
-                       "ORDER BY version_no DESC LIMIT 1", (asset_id, _branch(branch))).fetchone()
+                       "ORDER BY version_no DESC, version_id DESC LIMIT 1",
+                       (asset_id, _branch(branch))).fetchone()
     return row[0] if row else None
 
 
 def branches(conn, asset_id: str) -> list:
+    # version_id is an opaque identity; UUID ordering must never decide which
+    # version is the branch tip. Use the same version_no ordering as branch_tip.
     return [{"branch": row[0], "versions": row[1], "tip": row[2]} for row in conn.execute(
-        "SELECT branch, COUNT(*), MAX(version_id) FROM asset_version WHERE asset_id=? "
-        "GROUP BY branch ORDER BY branch", (asset_id,))]
+        "SELECT v.branch, COUNT(*), "
+        "(SELECT tip.version_id FROM asset_version AS tip "
+        " WHERE tip.asset_id=v.asset_id AND tip.branch=v.branch "
+        " ORDER BY tip.version_no DESC, tip.version_id DESC LIMIT 1) "
+        "FROM asset_version AS v WHERE v.asset_id=? "
+        "GROUP BY v.branch ORDER BY v.branch", (asset_id,))]
 
 
 def set_label(conn, version_id: str, label) -> None:

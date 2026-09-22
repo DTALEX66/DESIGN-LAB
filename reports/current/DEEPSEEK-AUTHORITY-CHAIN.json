@@ -1,10 +1,10 @@
 {
   "schemaVersion": "design-lab/deepseek-authority-chain/v1",
   "task_key": "DL-TP-20260914-DEEPSEEK-AUTHORITY-R1::DLDS-A010",
-  "generated_at": "2026-09-18T14:29:55+00:00",
+  "generated_at": "2026-09-22T14:19:26+00:00",
   "subject": {
-    "base_sha": "0e9f687ca306226f984f9ac49d222c0d8ff8a1e5",
-    "branch": "feat/dl-authority-convergence-r2",
+    "base_sha": "27cc40f8515a74640ca83e256e2502eb008b65a1",
+    "branch": "codex/design-lab-audit-20260922",
     "worktree_clean": false
   },
   "current_authority": {
@@ -120,8 +120,8 @@
     },
     {
       "path": "AGENTS.md",
-      "bytes": 9757,
-      "sha256": "sha256:653e938e4f8edc57abcb19084390a228c4ec291fae42a47afc188e26bc1d230c",
+      "bytes": 9810,
+      "sha256": "sha256:1aceb38e1b3c02e781c0c470a67fabab50d84a599961aeaf6b38136179d2a823",
       "authority_class": "GOVERNANCE_TRUTH",
       "basis": "root execution rules"
     },
@@ -428,8 +428,8 @@
     },
     {
       "path": "reports/current/DEEPSEEK-AUTHORITY-LEDGER-2026-09-14.json",
-      "bytes": 61361,
-      "sha256": "sha256:974cdf3860dca4a2ad58280ee0f88804184d4d3f6e369abde3f6bbb2ddac2e81",
+      "bytes": 61518,
+      "sha256": "sha256:fb78049b23bb9e314664d96cbefc1c995dbd851d1413909bd6e530c9221cd0de",
       "authority_class": "CURRENT_DEEPSEEK_AUTHORITY",
       "basis": "machine ledger for the authority taskpack (58 tasks)",
       "mutable_state": "the ledger is rewritten at the close of every task, so its bytes and digest are generation-time",
@@ -439,9 +439,5 @@
         "tasks": 58
       }
     }
-  ],
-  "projection": true,
-  "subjectSha": "042ac635ae7a6042db366f7fb19508fc5db7bc65",
-  "fresh": false,
-  "generatedBy": "scripts/deepseek_authority_chain.py"
+  ]
 }

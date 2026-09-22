@@ -55,21 +55,23 @@ reports/        阶段验收、证据与交接报告
 
 ## 关键文档
 
-当前执行入口：[R5 增量任务包](docs/history/taskpacks/r5-20260908/02-TASKS.md)。
+当前统一剩余任务入口：[FINAL Authority Convergence TaskPack](docs/taskpacks/DESIGN-LAB-FINAL-AUTHORITY-CONVERGENCE-TASKPACK-2026-09-18.md)。
+R5 任务包仅作为冻结的产品血统与依赖定义，不是当前派工入口。
 任务状态唯一编辑源：[版本化任务账本（保留原路径）](design-lab/config/task-ledger-r3.json)；
 [生成状态](reports/current/PROJECT_STATUS.md)分代码、测试、宿主实机和交付四轴。
 09-04/09-05 任务包保留为历史需求与映射来源；知识迁移继续延后。
 
 ```text
-docs/PRODUCT_DEFINITION.md    ← 唯一产品定义（SSOT）
-docs/ARCHITECTURE.md          ← 技术架构
-docs/BOUNDARY_CONTRACT.md     ← 职责边界
-docs/NEUTRALITY_POLICY.md     ← 平台中立
-docs/EVIDENCE_POLICY.md       ← 证据政策
-docs/ADAPTER_POLICY.md        ← 适配器政策
-docs/OBJECT_MODEL.md          ← 核心对象模型
-docs/USER_MODES.md            ← 五类用户
-docs/ROADMAP.md               ← 路线图
+AUTHORITY.md                              ← 顶层权威
+docs/current/PRODUCT_DEFINITION.md        ← 产品定义
+docs/architecture/ARCHITECTURE.md         ← 技术架构
+docs/architecture/BOUNDARY_CONTRACT.md    ← 职责边界
+docs/decisions/NEUTRALITY_POLICY.md       ← 平台中立
+docs/decisions/EVIDENCE_POLICY.md         ← 证据政策
+docs/decisions/ADAPTER_POLICY.md          ← 适配器政策
+docs/architecture/OBJECT_MODEL.md         ← 核心对象模型
+docs/current/USER_MODES.md                 ← 五类用户
+docs/current/ROADMAP.md                    ← 路线图
 design-lab/config/product-manifest.json ← 机器可读 SSOT
 ```
 

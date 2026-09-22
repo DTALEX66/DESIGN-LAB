@@ -563,6 +563,8 @@ class DesignLayer:
         self._check_project(project_id)
         if actor_kind not in ('human', 'agent'):
             raise DesignLayerError(400, 'INVALID_ACTOR_KIND')
+        if actor_kind != 'human':
+            raise DesignLayerError(403, 'HUMAN_DIRECTION_CHOICE_REQUIRED')
         actor = _text(actor, 'actor')
         document = {'direction_id': direction_id, 'actor': actor, 'actor_kind': actor_kind}
         with closing(cstore.connect(self._db_path(), project_root=self.paths.project_root)) as conn:
@@ -638,12 +640,18 @@ class DesignLayer:
                 # Fail closed when the target direction exists but is not chosen
                 # (a specific 4xx, never the generic INVALID_REQUEST).
                 dr = conn.execute(
-                    "SELECT chosen FROM design_direction WHERE project_id=? AND direction_id=?",
+                    "SELECT chosen, actor_kind FROM design_direction WHERE project_id=? AND direction_id=?",
                     (project_id, direction_id)).fetchone()
                 if dr is None:
                     raise DesignLayerError(404, 'DIRECTION_NOT_FOUND')
                 if not int(dr['chosen']):
                     raise DesignLayerError(409, 'DIRECTION_NOT_CHOSEN')
+                if dr['actor_kind'] != 'human':
+                    # Upgrade guard: databases created before the human-only
+                    # choice rule may already contain an agent-chosen row.
+                    # It remains visible for audit, but cannot advance to a
+                    # design-system binding until a human chooses it.
+                    raise DesignLayerError(409, 'HUMAN_DIRECTION_CHOICE_REQUIRED')
                 operation_id, _ = _record_intent(
                     conn, scope='bind:' + direction_id, key=idempotency_key, document=document)
                 existing = conn.execute(
