@@ -19,10 +19,13 @@ import type {
   DesignDirection,
   DesignLayerResponse,
   DesignSystemBinding,
+  DesignSystemListResponse,
   DesignSystemRecord,
   DirectionLineageResponse,
   DirectionRevisionResponse,
+  EnvironmentResponse,
   EventListResponse,
+  HealthResponse,
   NativeAssetListResponse,
   NativeAssetRecord,
   NativeAssetVerifyResponse,
@@ -33,6 +36,8 @@ import type {
   TaskActionResponse,
   TaskDispatchResponse,
   TaskListResponse,
+  TaskPreflightResponse,
+  TaskPreflightResource,
   TaskRecord,
 } from './contracts.js';
 
@@ -1043,3 +1048,268 @@ byId<HTMLFormElement>('design-direction-form').onsubmit = (event) => {
 byId<HTMLButtonElement>('design-system-bind').onclick = () => {
   void bindDesignSystem().catch((e) => setStatus(errMsg(e), true));
 };
+
+// ============================================================================
+// UI convergence slice 2 (2026-09-22): AppShell navigation over the B07
+// authoritative 12-route IA (routes.json). Purely additive: it inserts ONE new
+// sidebar + one new route-panel region and toggles them by URL hash. Every
+// pre-existing element id, handler and text label is untouched, so the
+// browser E2E (id-located selectors) and the vm unit smoke keep their
+// contracts. The default view (empty hash) is the original workbench: no hash
+// == the legacy single-page layout, byte for byte.
+//
+// Views are bound to REAL service routes only (no invented KPIs):
+//   dashboard / brand-systems / preflight-qa / settings -> /api/* readbacks
+//   the remaining IA slots carry no backend route today and HONESTLY say so.
+// ============================================================================
+const ROUTE_VIEWS = [
+  { hash: '', view: 'workbench', label: '工作台' },
+  { hash: '#/dashboard', view: 'dashboard', label: '仪表盘' },
+  { hash: '#/projects', view: 'projects', label: '项目' },
+  { hash: '#/research', view: 'research', label: '研究洞察' },
+  { hash: '#/brand-systems', view: 'brand-systems', label: '品牌系统' },
+  { hash: '#/domains', view: 'design-domains', label: '设计领域' },
+  { hash: '#/tools', view: 'creative-tools', label: '创作工具' },
+  { hash: '#/preflight', view: 'preflight-qa', label: '预检 / QA' },
+  { hash: '#/deliverables', view: 'deliverables', label: '交付中心' },
+  { hash: '#/evidence', view: 'evidence', label: '证据系统' },
+  { hash: '#/collaboration', view: 'collaboration', label: '团队协作' },
+  { hash: '#/settings', view: 'settings', label: '系统设置' },
+] as const;
+type RouteView = (typeof ROUTE_VIEWS)[number]['view'];
+
+// Honest "not open yet" copy per IA slot that has no backend route today.
+// These are facts about the service surface, not placeholders pretending data.
+const VIEW_NOT_OPEN: Partial<Record<RouteView, string>> = {
+  'projects': '项目台账由工作台页面管理（选择项目 / 新建项目）；独立项目列表页未实现。',
+  'research': '研究洞察页未开放：当前服务没有研究结论的持久化路由。',
+  'design-domains': '设计领域页未开放：领域划分尚无独立后端模型。',
+  'creative-tools': '创作工具页未开放：宿主（Illustrator / Photoshop）任务仍在工作台高级区提交。',
+  'deliverables': '交付中心页未开放：交付包目前随任务读回导出，无独立台账路由。',
+  'evidence': '证据系统页未开放：版本链与绑定读回目前在工作台设计层展示。',
+  'collaboration': '团队协作页未开放：本地单机服务尚无协作路由（本地单用户模型）。',
+};
+
+function el<K extends keyof HTMLElementTagNameMap>(tag: K, attrs: Record<string, unknown> = {}, ...children: (Node | string)[]): HTMLElementTagNameMap[K] {
+  const node = document.createElement(tag);
+  for (const [key, value] of Object.entries(attrs)) {
+    if (value === null || value === undefined) continue;
+    if (key === 'class') node.className = String(value);
+    else if (key === 'dataset') for (const [dk, dv] of Object.entries(value as Record<string, unknown>)) (node as HTMLElement).dataset[dk] = String(dv);
+    else if (key.startsWith('on') || key === 'type' || key === 'value' || key === 'placeholder')
+      (node as unknown as Record<string, unknown>)[key] = value;
+    else node.setAttribute(key, String(value));
+  }
+  node.append(...children);
+  return node;
+}
+
+function kpiCard(label: string, value: string, note: string): HTMLElement {
+  return el('div', { class: 'kpi-card' },
+    el('p', { class: 'eyebrow' }, label),
+    el('h3', { class: 'kpi-value' }, value),
+    el('p', { class: 'kpi-note' }, note));
+}
+
+function stateMachineStepper(): HTMLElement {
+  const stages = ['brief', 'research', 'designing', 'review', 'qa', 'approved', 'delivered', 'archived'];
+  const ol = el('ol', { class: 'state-machine', 'aria-label': '设计域状态机（契约可视化，不代表项目进度）' });
+  for (const stage of stages) ol.append(el('li', { class: 'state-machine-step', dataset: { state: stage } }, stage));
+  return ol;
+}
+
+async function renderDashboard(target: HTMLElement): Promise<void> {
+  target.replaceChildren(el('p', { class: 'view-loading' }, '正在读回服务状态…'));
+  const [health, projects, systems] = await Promise.all([
+    api<HealthResponse>('/health'),
+    api<ProjectListResponse>('/projects'),
+    api<DesignSystemListResponse>('/design-systems'),
+  ]);
+  const grid = el('div', { class: 'kpi-grid' },
+    kpiCard('服务状态', health.status, `版本 ${health.version} · 作用域 ${health.scope}`),
+    kpiCard('项目', String(projects.projects.length), '来自 /api/projects 真实读回，非统计猜测'),
+    kpiCard('设计系统', String(systems.design_systems.length), '资源登记的设计系统总数'));
+  const systemsList = el('ul', { class: 'items', 'data-view-item': 'brand' },
+    ...systems.design_systems.map((system) => el('li', {},
+      `${system.name} · ${system.title} · v${system.version} · 证据 ${system.evidence_level}`)));
+  target.replaceChildren(
+    el('h2', {}, '仪表盘'),
+    grid,
+    el('p', { class: 'eyebrow' }, '设计系统登记'),
+    systemsList,
+    el('p', { class: 'eyebrow' }, '设计域状态机（B07 契约 · NEXT/BACK 双向）'),
+    stateMachineStepper());
+}
+
+async function renderBrandSystems(target: HTMLElement): Promise<void> {
+  target.replaceChildren(el('p', { class: 'view-loading' }, '正在读回设计系统…'));
+  const systems = await api<DesignSystemListResponse>('/design-systems');
+  target.replaceChildren(
+    el('h2', {}, '品牌系统'),
+    el('ul', { class: 'items', 'data-view-item': 'brand' },
+      ...systems.design_systems.map((system) => el('li', {},
+        `${system.name} · ${system.title} · 版本 ${system.version} · 证据级别 ${system.evidence_level}`))),
+    el('p', { class: 'view-hint' }, '绑定到方向的操作在工作台「05 / DESIGN LAYER」页执行。'));
+}
+
+async function renderPreflight(target: HTMLElement): Promise<void> {
+  target.replaceChildren(el('p', { class: 'view-loading' }, '正在准备预检…'));
+  // The task-resource registry (design-lab/config/task-resources.json) is a
+  // file the preflight reads, NOT an HTTP route — so the UI takes the task
+  // full id as input and fails closed on the service's own 400 envelope.
+  const known = 'DL-TP-20260914-DEEPSEEK-AUTHORITY-R1::DLDS-H020 · …::DL-R5-012 · …::DL-R5-011';
+  const input = el('input', { id: 'preflight-task-input', class: 'preflight-input',
+    placeholder: '<TASKPACK>::<TASK_KEY>，例如 ' + known, maxlength: '200' });
+  const result = el('div', { class: 'preflight-result' });
+  const runPreflight = async (): Promise<void> => {
+    const taskId = input.value.trim();
+    if (!taskId) { result.replaceChildren(el('p', { class: 'view-hint' }, '请先填写要预检的任务全 ID（<TASKPACK>::<TASK_KEY>）。')); return; }
+    result.replaceChildren(el('p', { class: 'view-loading' }, `正在读回 ${taskId} 的资源判定…`));
+    try {
+      const data = await api<TaskPreflightResponse>(`/task-preflight?task=${encodeURIComponent(taskId)}`);
+      result.replaceChildren(
+        el('p', { class: 'preflight-verdict' }, `判定 ${data.verdict} · 登记 ${data.registry_state} · 机器 ${data.machine_scope} · 阻塞资源 ${data.blocked_resources.length ? data.blocked_resources.join(', ') : '无'}`),
+        el('table', { class: 'resource-table' },
+          el('thead', {}, el('tr', {}, el('th', {}, '资源'), el('th', {}, '状态'), el('th', {}, '说明'))),
+          el('tbody', {}, ...data.resources.map((row: TaskPreflightResource) => el('tr', {},
+            el('td', {}, row.ref), el('td', {}, row.state), el('td', {}, row.meaning))))));
+    } catch (error) {
+      result.replaceChildren(el('p', { class: 'error' }, `预检未确认：${errMsg(error)}。服务端拒绝时未写入任何判定。`));
+    }
+  };
+  target.replaceChildren(
+    el('h2', {}, '预检 / QA'),
+    el('p', { class: 'view-hint' }, '与 CLI doctor 同一读回源：只探测与报告，从不安装、从不接受许可、从不遍历外部根。'),
+    el('label', {}, '任务全 ID', input, el('button', { type: 'button', class: 'secondary', onclick: () => { void runPreflight().catch((error) => setStatus(errMsg(error), true)); } }, '读回判定')),
+    result);
+}
+
+async function renderSettings(target: HTMLElement): Promise<void> {
+  target.replaceChildren(el('p', { class: 'view-loading' }, '正在读回运行环境…'));
+  const env = await api<EnvironmentResponse>('/environment');
+  const rows: Array<[string, string]> = [
+    ['环境状态', `${env.status} · ${env.schemaVersion}`],
+    ['项目根', env.project_root],
+    ['项目本地根', env.project_local_root],
+    ['写入痕迹', `${env.write_trace} · 迁移 ${env.migration}`],
+    ['代理配置', `PRIVATE_NOT_INSPECTED · 不可写（${env.agent_profile.status}）`],
+  ];
+  const roots = el('table', { class: 'resource-table' },
+    el('thead', {}, el('tr', {}, el('th', {}, '根'), el('th', {}, '路径'), el('th', {}, '可写'))),
+    el('tbody', {}, ...Object.entries(env.roots).map(([name, root]) => el('tr', {},
+      el('td', {}, name), el('td', {}, root.path), el('td', {}, root.writable ? '是' : '否')))));
+  const shared = el('table', { class: 'resource-table' },
+    el('thead', {}, el('tr', {}, el('th', {}, '外置输入'), el('th', {}, '状态'), el('th', {}, '路径'))),
+    el('tbody', {}, ...Object.entries(env.shared_inputs).map(([name, input]) => el('tr', {},
+      el('td', {}, name), el('td', {}, input.status), el('td', {}, input.path)))));
+  target.replaceChildren(
+    el('h2', {}, '系统设置'),
+    el('table', { class: 'resource-table' },
+      el('tbody', {}, ...rows.map(([label, value]) => el('tr', {},
+        el('th', { scope: 'row' }, label), el('td', {}, value))))),
+    el('p', { class: 'eyebrow' }, '项目根（可写）'),
+    roots,
+    el('p', { class: 'eyebrow' }, '外置输入（只读 · DECLARED_NOT_PROBED）'),
+    shared,
+    el('p', { class: 'view-hint' }, '设置页只读回服务端诊断；本服务不修改任何配置。'));
+}
+
+async function renderRoute(view: RouteView, target: HTMLElement): Promise<void> {
+  target.replaceChildren();
+  switch (view) {
+    case 'dashboard': await renderDashboard(target); return;
+    case 'brand-systems': await renderBrandSystems(target); return;
+    case 'preflight-qa': await renderPreflight(target); return;
+    case 'settings': await renderSettings(target); return;
+    default: {
+      const notOpen = VIEW_NOT_OPEN[view];
+      target.replaceChildren(
+        el('h2', {}, notOpen ? view : '工作台'),
+        el('p', { class: 'view-unopened' }, notOpen ?? '默认工作台。'));
+      return;
+    }
+  }
+}
+
+// Build the shell once; route switching only swaps which region is shown.
+function mountAppShell(): void {
+  const login = byId<HTMLDivElement>('login');
+  const workspace = byId<HTMLDivElement>('workspace');
+  const nav = el('nav', { class: 'app-nav', 'aria-label': 'DESIGN-LAB 导航' },
+    el('span', { class: 'app-nav-brand' }, 'DESIGN-LAB'),
+    ...ROUTE_VIEWS.map((route) => el('button', {
+      type: 'button', class: 'app-nav-item', dataset: { route: route.view },
+      onclick: () => { window.location.hash = route.hash === '' ? '' : route.hash; },
+    }, route.label)),
+    el('span', { class: 'app-nav-meta', id: 'shell-connection' }, '未连接'));
+  const routePanel = el('div', { class: 'route-panel', hidden: true },
+    el('div', { class: 'route-view', id: 'route-view' }));
+  document.body.append(nav, routePanel);
+  // Scope the shell's layout gutter to the mounted state so an unmounted path
+  // (the E2E default) keeps the original centered layout untouched.
+  document.body.classList.add('dl-shell');
+
+  const active = (view: string): void => {
+    for (const item of Array.from(nav.querySelectorAll<HTMLButtonElement>('.app-nav-item')))
+      item.classList.toggle('active', item.dataset.route === view);
+  };
+
+  const current = (): RouteView => {
+    const match = ROUTE_VIEWS.find((route) => route.hash === window.location.hash);
+    return match ? match.view : 'workbench';
+  };
+
+  const show = (): void => {
+    const view = current();
+    const showWorkbench = view === 'workbench';
+    routePanel.hidden = showWorkbench;
+    login.hidden = showWorkbench ? login.hidden : true;
+    if (showWorkbench) {
+      workspace.hidden = login.hidden ? false : workspace.hidden;
+      active('workbench');
+      return;
+    }
+    login.hidden = true;
+    workspace.hidden = true;
+    active(view);
+    const target = byId<HTMLDivElement>('route-view');
+    if (!token) {
+      // No service token in memory: the API views would only 401. Say so
+      // instead of faking data (no phantom KPIs before a connection).
+      target.replaceChildren(
+        el('h2', {}, view),
+        el('p', { class: 'view-unopened' }, '请先在工作台连接本机设计服务，再读回此视图。'));
+      return;
+    }
+    void renderRoute(view, target).catch((error) => {
+      target.replaceChildren(el('p', { class: 'error' }, `视图读回失败：${errMsg(error)}`));
+    });
+  };
+
+  // Reflect the service connection badge into the shell meta slot.
+  const connection = byId<HTMLSpanElement>('connection');
+  const syncMeta = (): void => {
+    byId<HTMLSpanElement>('shell-connection').textContent = connection.textContent || '未连接';
+  };
+  syncMeta();
+  // The original handlers set #connection on connect/disconnect; a
+  // MutationObserver keeps the shell copy in lockstep without touching them.
+  if (typeof MutationObserver !== 'undefined')
+    new MutationObserver(syncMeta).observe(connection, { childList: true, characterData: true });
+
+  window.addEventListener('hashchange', show);
+  show();
+}
+
+// Guard: the vm unit smoke executes the bundle with a DOM mock whose
+// `document` has no `body` and whose context has no `window` — the mount
+// only runs in a real browser when the login panel and a body element
+// both exist. Idempotent via the document flag.
+if (typeof document !== 'undefined'
+    && document.body !== undefined
+    && typeof window !== 'undefined'
+    && document.getElementById('login') !== null
+    && (document as Document & { __dlShellMounted?: boolean }).__dlShellMounted !== true) {
+  (document as Document & { __dlShellMounted?: boolean }).__dlShellMounted = true;
+  mountAppShell();
+}
