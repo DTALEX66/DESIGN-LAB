@@ -189,6 +189,98 @@ footer{
   border-radius:var(--radius-md);
   padding:8px 10px;
 }
+
+/* UI convergence slice 2: AppShell navigation (B07 12-route IA, B04 tokens).
+   Purely additive — no existing selector above is altered. */
+.app-nav{
+  position:fixed;inset:0 auto 0 0;width:168px;z-index:40;
+  background:var(--surface);border-right:1px solid var(--line);
+  display:grid;grid-template-rows:auto 1fr auto;gap:14px;
+  padding:20px 14px;
+}
+.app-nav-brand{font-size:15px;font-weight:800;letter-spacing:1px;color:var(--accent)}
+.app-nav-item{
+  display:block;width:100%;text-align:left;
+  background:transparent;border:1px solid transparent;
+  color:var(--muted);font-size:13px;font-weight:600;
+  padding:8px 10px;cursor:pointer;border-radius:var(--radius-md);
+}
+.app-nav-item:hover{color:var(--ink);background:var(--surface-2)}
+.app-nav-item.active{
+  color:var(--ink);background:var(--surface-2);
+  border-color:var(--line);
+  box-shadow:inset 3px 0 0 var(--accent);
+}
+.app-nav-meta{font-size:11px;color:var(--muted);padding:0 4px}
+/* Gutter is scoped to the mounted shell only: without .dl-shell (the E2E /
+   unmounted default path) the layout stays the original centered flow.
+   Root-cause geometry: the fixed nav (0..168) never participates in flow, so
+   every flow element is re-anchored to the 168px gutter with ONE shared left
+   content edge at 192px (168 gutter + 24 inner gap, matching the nav items'
+   own 14+10 padding) instead of 100vw-based centering calcs that misalign
+   inside the narrower post-nav region. */
+.dl-shell header{position:relative;z-index:50;max-width:none;padding:30px 24px 30px 192px}
+.dl-shell main{max-width:1240px;margin:28px 24px 28px 192px;padding:0}
+.dl-shell footer{max-width:none;margin:30px 24px 30px 192px;padding:0}
+@media(max-width:760px){
+  .dl-shell header{padding:22px 16px 22px 72px}
+  .dl-shell main{margin:16px 16px 16px 72px}
+  .dl-shell footer{margin:16px 16px 0 72px}
+  .app-nav{width:56px}
+  .app-nav-brand,.app-nav-item{font-size:0}
+  .app-nav-item{padding:10px 6px;text-align:center}
+  .app-nav-meta{display:none}
+}
+.route-panel{
+  position:fixed;inset:0 0 0 168px;z-index:20;
+  background:var(--paper);overflow:auto;
+  /* uniform padding; the 130px top clears the floating header. No 100vw-based
+     centering calc on a panel that starts at 168px (that was the "left-gap"
+     bug) — the view left-anchors to the same 192px edge as header/main. */
+  padding:130px 24px 40px 24px;
+}
+@media(max-width:760px){.route-panel{inset:0 0 0 56px;padding:100px 16px 30px}}
+.route-view{max-width:960px}
+.route-view h2{font-size:24px}
+.view-loading{color:var(--muted);font-size:13px}
+.view-hint{font-size:12px;color:var(--muted);line-height:1.7}
+.view-unopened{
+  border:1px dashed var(--line);border-radius:var(--radius-lg);
+  padding:22px;font-size:13px;color:var(--muted);line-height:1.7;
+}
+.kpi-grid{
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
+  gap:14px;margin:18px 0 26px;
+}
+.kpi-card{
+  background:var(--surface);border:1px solid var(--line);
+  border-radius:var(--radius-lg);padding:16px 18px;
+}
+.kpi-value{font-size:28px;margin:4px 0;font-weight:750;color:var(--ink)}
+.kpi-note{font-size:11px;color:var(--muted);line-height:1.6}
+.state-machine{
+  display:flex;flex-wrap:wrap;gap:8px;list-style:none;padding:0;margin:10px 0 24px;
+}
+.state-machine-step{
+  border:1px solid var(--line);border-radius:30px;
+  padding:7px 14px;font-size:12px;font-weight:650;color:var(--muted);
+  background:var(--surface-2);
+  font-family:ui-monospace,monospace;
+}
+.state-machine-step[data-state="approved"],.state-machine-step[data-state="delivered"]{
+  color:var(--ink);border-color:var(--color-success);
+}
+.resource-table{
+  width:100%;border-collapse:collapse;margin:12px 0 22px;font-size:12px;
+}
+.resource-table th,.resource-table td{
+  text-align:left;padding:9px 12px;border-bottom:1px solid var(--line);
+  color:var(--ink);overflow-wrap:anywhere;
+}
+.resource-table thead th{color:var(--muted);font-weight:650;font-size:11px}
+.resource-table td{color:var(--muted)}
+.preflight-input{width:100%;min-width:320px}
+.preflight-verdict{font-size:13px;color:var(--ink);font-weight:650;margin:14px 0 4px}
 .revision{
   margin:14px 0;padding:14px 16px;
   border:1px solid var(--line);border-radius:10px;

@@ -225,3 +225,51 @@ export interface BriefLineageResponse {
 export interface DirectionLineageResponse {
   lineage: DirectionLineage;
 }
+
+// --- UI convergence slice 2: service diagnostics read back by AppShell views ---
+export interface HealthResponse {
+  status: string;
+  version: string;
+  scope: string;
+}
+
+export interface EnvironmentResponse {
+  schemaVersion: string;
+  status: string;
+  project_root: string;
+  project_local_root: string;
+  sources: Record<string, string>;
+  roots: Record<string, { path: string; ownership: string; writable: boolean }>;
+  shared_inputs: Record<string, { path: string; writable: boolean; status: string }>;
+  agent_profile: { status: string; writable: boolean };
+  write_trace: string;
+  migration: string;
+}
+
+export interface TaskPreflightResource {
+  ref: string;
+  kind: string;
+  state: string;
+  meaning: string;
+  host_scope?: string;
+  path?: string | null;
+  licence?: string | null;
+}
+
+export interface TaskPreflightResponse {
+  schemaVersion: string;
+  task_full_id: string;
+  taskpack_id: string;
+  task_key: string;
+  registry_state: string;
+  local_config_fallback: string | null;
+  resources: TaskPreflightResource[];
+  blocked_resources: string[];
+  verdict: string;
+  machine_scope: string;
+  authority_source: string;
+  permissions: { install: boolean; licence_accept: boolean; external_traverse: boolean; meaning: string };
+  install_executed: boolean;
+  licence_accepted: boolean;
+  meaning: string;
+}

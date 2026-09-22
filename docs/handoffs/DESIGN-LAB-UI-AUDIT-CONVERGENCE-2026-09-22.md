@@ -55,11 +55,36 @@
 
 ## 5. Backlog（下一批，按提示词执行顺序）
 
-1. **视觉验收**：截图确认深黑/电蓝换肤（本会话已出效果图），验收通过即 commit Slice 1
-2. **12 页 IA 落点设计**：在 Vanilla 基座上把 `routes.json` 12 路由映射到单页 panel 切换（不引 React）
-3. **DESIGN-LAB 专属 10 组件**落地（PreflightIssue / QualityScore / ControlMatrix / LibraryIndex…）
-4. **Domain State Machine 可视化**：brief→delivered 状态条进 Workbench 右列
+1. ~~视觉验收：截图确认深黑/电蓝换肤~~ → **已验收**（after-skin.png 视觉核验通过）
+2. ~~12 页 IA 落点设计~~ → **Slice 2 已交付（见 §7）**
+3. DESIGN-LAB 专属 10 组件深化（PreflightIssue / QualityScore / ControlMatrix / LibraryIndex 等）
+4. ~~Domain State Machine 可视化~~ → **Slice 2 已落仪表盘**（8 阶段契约条，标注"不代表项目进度"）
 5. 浏览器 E2E 视觉回归（Playwright）纳入 CI，截图比对防换肤回退
+6. 无后端路由的 7 页（研究/领域/工具/交付/证据/协作/项目台账）的后端契约设计（TaskPack B/D 批之后）
+
+## 7. Slice 2：AppShell 12 路由 IA + 仪表盘真实读回（main.ts / contracts.ts / style.css）
+
+| 交付 | 内容 |
+|---|---|
+| AppShell | 左侧 12 路由导航（routes.json 权威 IA）+ hash 路由；空 hash = 原工作台逐字节不变（E2E 零影响） |
+| 真数据视图 | 仪表盘（/health + /projects + /design-systems 真实 KPI）/ 品牌系统（/design-systems）/ 预检QA（/task-preflight fail-closed 读回）/ 系统设置（/environment 只读诊断，含外置输入 DECLARED_NOT_PROBED 表） |
+| 诚实未开放 | 7 页无后端路由 → 明确标注"未开放 + 原因"，未连接时提示先连接（不发 401 不造数据） |
+| 契约新增 | contracts.ts +5 接口（Health/Environment/TaskPreflight*），main.ts 纯增量挂载（document.body/window/幂等 flag 三重守卫，vm 单测安全） |
+| 状态机 | B07 domain-state-machine 8 阶段（brief→archived）契约可视化进仪表盘，明示"契约可视化，不代表进度" |
+
+验证（最终态）：
+- 前端三链：typecheck / build / test:unit 全绿；build/main.js 53.87kB 提交（no-drift gate 新基准）
+- 浏览器 E2E（真实 Chromium 1228 + 真实 loopback 服务）：几何修复前 PASS（3.5s），CSS 修复后**重跑 PASS（2.9s）**，零回归
+- 选择器超集：OLD=67 全保留，NEW=96，MISSING=0
+- Python 全量契约套件：1584 tests OK（skipped=2），exit 0
+- 视觉验收 4/4：192px 统一左锚点（header/main/footer/route-view 同缘）/ 12 导航完整 / 无错位重叠截断 / 深黑电蓝无残留
+几何根因修复记录：`.route-panel` 初稿用 `calc((100vw-360px)/2)` 做居中内边距，但面板实际从
+168px 起（inset left），基准错位导致"左空右满"且状态机条被挤出可视区；修复 = 删除所有
+100vw 居中 calc，全部流元素统一锚定 192px（168 gutter + 24 内间隙，与 nav 条目 14+10 内边距同源），
+route-view 取消 margin:auto 左锚定。缺陷均在 `.dl-shell` 作用域内，未挂载路径（E2E 默认）逐字节不变。
+红线遵守：预检页初稿曾引用不存在的 /task-resources 端点（幻影路由），已改回真实
+/task-preflight?task=… 读回 + 服务端 400 fail-closed；仪表盘删 1 张写死 KPI。
+
 
 ## 6. 红线遵守记录
 
