@@ -30,6 +30,7 @@ import http.client
 import json
 import os
 import secrets
+import sqlite3
 import struct
 import sys
 import tempfile
@@ -185,6 +186,21 @@ class DesignLayerHttpTests(unittest.TestCase):
         self.assertEqual(len(layer['directions']), 1)
         self.assertFalse(layer['directions'][0]['chosen'])
 
+    def test_agent_cannot_make_the_human_direction_choice(self):
+        pid = self._project()
+        brief = self._brief(pid)
+        direction = self._direction(pid, brief['brief_id'])
+        status, body = self.request(
+            'POST', f"/api/projects/{pid}/directions/{direction['direction_id']}/choose",
+            {'actor': 'agent-r5', 'actor_kind': 'agent',
+             'idempotency_key': self.key('agent-choice')})
+        self.assertEqual(status, 403)
+        self.assertEqual(body['error'], 'HUMAN_DIRECTION_CHOICE_REQUIRED')
+        layer = self.request(path=f'/api/projects/{pid}/design-layer')[1]['design_layer']
+        self.assertIsNone(layer['chosen_direction'])
+        self.assertEqual(len(layer['directions']), 1)
+        self.assertFalse(layer['directions'][0]['chosen'])
+
     # -- P0-01 single-choice invariant ------------------------------------
     def test_single_choice_invariant_deselects_siblings(self):
         pid = self._project()
@@ -221,6 +237,28 @@ class DesignLayerHttpTests(unittest.TestCase):
                                     {'design_system_name': 'nebula-tech', 'idempotency_key': self.key('s2')})
         self.assertEqual(status, 201)
         self.assertEqual(body['binding']['design_system_name'], 'nebula-tech')
+
+    def test_bind_rejects_a_legacy_agent_chosen_direction(self):
+        pid = self._project()
+        brief = self._brief(pid)
+        direction = self._direction(pid, brief['brief_id'])
+        # Simulate a pre-fix persisted row. The new choose endpoint cannot create
+        # this state, but bind must still fail closed when upgrading an old DB.
+        conn = sqlite3.connect(str(self.service.database))
+        try:
+            conn.execute(
+                "UPDATE design_direction SET chosen=1, actor=?, actor_kind=? WHERE direction_id=?",
+                ('legacy-agent', 'agent', direction['direction_id']))
+            conn.commit()
+        finally:
+            conn.close()
+        status, body = self.request(
+            'POST', f"/api/projects/{pid}/directions/{direction['direction_id']}/bind",
+            {'design_system_name': 'nebula-tech', 'idempotency_key': self.key('legacy-bind')})
+        self.assertEqual(status, 409)
+        self.assertEqual(body['error'], 'HUMAN_DIRECTION_CHOICE_REQUIRED')
+        layer = self.request(path=f'/api/projects/{pid}/design-layer')[1]['design_layer']
+        self.assertEqual(layer['bindings'], [])
 
     # -- P0-04 constraints is a string|null, not an object ---------------
     def test_constraints_string_roundtrip(self):

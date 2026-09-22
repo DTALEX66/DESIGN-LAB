@@ -18,6 +18,7 @@ from .requirement_ledger import requirement
 GATES = ("DIRECTION", "QUALITY", "RIGHTS", "PRODUCTION", "RELEASE", "METHOD")
 HUMAN_ONLY = ("DIRECTION", "QUALITY", "RIGHTS", "PRODUCTION", "RELEASE")
 KINDS = ("PROPOSED", "DECIDED", "SUPERSEDED", "REVERSED")
+POSITIVE_GATE_CHOICES = frozenset(("APPROVE", "APPROVED", "PASS", "ACCEPT", "ACCEPTED"))
 _IDENTITY = re.compile(r"^DEC-[A-Za-z0-9_.-]{1,64}$")
 _REQ = re.compile(r"^REQ-[A-Za-z0-9_.-]{1,64}$")
 
@@ -98,10 +99,21 @@ def propose(conn, *, job_id: str, dec_id: str, options, actor: str, actor_kind: 
         refs.append(ref)
     if supersedes is not None:
         _identity(supersedes)
-        decision(conn, supersedes)
     with transaction(conn):
         if _current(conn, dec_id):
             raise CreativeError("decision id is already used; decisions are append-only")
+        previous = None
+        if supersedes:
+            # Validate under the same IMMEDIATE transaction as the successor
+            # insert. Two writers cannot both observe one live predecessor and
+            # create a forked lineage.
+            previous = decision(conn, supersedes)
+            if previous["job_id"] != job_id:
+                raise CreativeError("a decision may only supersede another decision in the same job")
+            if previous["state"] not in ("PROPOSED", "DECIDED"):
+                raise CreativeError(f"decision {supersedes!r} is not active and cannot be superseded")
+            if previous["gate"] in HUMAN_ONLY and actor_kind != "human":
+                raise CreativeError(f"{previous['gate']} gate requires a human supersession")
         conn.execute("INSERT INTO decision_event "
                      "(dec_id, job_id, kind, gate, actor, actor_kind, options_json, requirement_refs, "
                      "supersedes, rationale, at) VALUES (?,?,?,?,?,?,?,?,?,?,?)",
@@ -111,7 +123,7 @@ def propose(conn, *, job_id: str, dec_id: str, options, actor: str, actor_kind: 
             conn.execute("INSERT INTO decision_event "
                          "(dec_id, job_id, kind, gate, actor, actor_kind, rationale, supersedes, at) "
                          "VALUES (?,?,?,?,?,?,?,?,?)",
-                         (supersedes, job_id, "SUPERSEDED", None, actor, actor_kind,
+                         (supersedes, previous["job_id"], "SUPERSEDED", previous["gate"], actor, actor_kind,
                           f"superseded by {dec_id}", dec_id, now()))
     return decision(conn, dec_id)
 
@@ -169,19 +181,34 @@ def decisions_for_requirement(conn, req_id: str) -> list:
 
 
 def open_gates(conn, job_id: str) -> list:
-    """Gates that still lack a human-signed DECIDED decision."""
+    """Gates that still lack a live human choice which permits progress."""
     signed = {d["gate"] for d in decisions(conn, job_id)
-              if d["state"] == "DECIDED" and d["gate"] in HUMAN_ONLY}
+              if d["gate"] in HUMAN_ONLY and _gate_satisfied(d)}
     return [gate for gate in HUMAN_ONLY if gate not in signed]
 
 
+def _gate_satisfied(item: dict) -> bool:
+    """A direction choice selects a path; all other human gates must approve."""
+    if item["state"] != "DECIDED" or item.get("actor_kind") != "human":
+        return False
+    if item["gate"] == "DIRECTION":
+        return bool(item.get("chosen"))
+    return str(item.get("chosen") or "").upper() in POSITIVE_GATE_CHOICES
+
+
 def assert_gate(conn, job_id: str, gate: str) -> dict:
-    """Fail closed unless the named gate has a live human decision."""
+    """Fail closed unless the named gate has a live human choice that permits progress."""
     if gate not in HUMAN_ONLY:
         raise CreativeError(f"not a human gate: {gate!r}")
+    blocking = None
     for item in decisions(conn, job_id):
-        if item["gate"] == gate and item["state"] == "DECIDED":
+        if item["gate"] == gate and _gate_satisfied(item):
             return item
+        if item["gate"] == gate and item["state"] == "DECIDED":
+            blocking = item
+    if blocking is not None:
+        raise CreativeError(
+            f"{gate} gate decision {blocking.get('chosen')!r} does not approve progress")
     raise CreativeError(f"{gate} gate is unsigned: a human decision is required before this step")
 
 

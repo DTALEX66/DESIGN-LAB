@@ -144,9 +144,24 @@ class LedgerTests(unittest.TestCase):
                                    rationale="looks fine", actor="agent-r5", actor_kind="agent")
         with self.assertRaisesRegex(store.CreativeError, "gate is unsigned"):
             decision_ledger.assert_gate(self.conn, self.job_id, "RIGHTS")
-        decision_ledger.decide(self.conn, dec_id="DEC-rights", chosen="BLOCK",
-                               rationale="territory terms are unresolved", actor="DTALEX66", actor_kind="human")
-        self.assertEqual(decision_ledger.assert_gate(self.conn, self.job_id, "RIGHTS")["chosen"], "BLOCK")
+        decision_ledger.decide(self.conn, dec_id="DEC-rights", chosen="APPROVE",
+                               rationale="licence and territory are verified", actor="DTALEX66",
+                               actor_kind="human")
+        self.assertEqual(decision_ledger.assert_gate(self.conn, self.job_id, "RIGHTS")["chosen"],
+                         "APPROVE")
+
+    def test_blocking_choice_does_not_satisfy_a_human_gate(self):
+        decision_ledger.propose(
+            self.conn, job_id=self.job_id, dec_id="DEC-rights-block",
+            options=[{"option_id": "APPROVE", "summary": "approve"},
+                     {"option_id": "BLOCK", "summary": "block"}],
+            actor="agent-r5", gate="RIGHTS")
+        decision_ledger.decide(
+            self.conn, dec_id="DEC-rights-block", chosen="BLOCK",
+            rationale="territory terms are unresolved", actor="DTALEX66", actor_kind="human")
+        with self.assertRaisesRegex(store.CreativeError, "does not approve"):
+            decision_ledger.assert_gate(self.conn, self.job_id, "RIGHTS")
+        self.assertIn("RIGHTS", decision_ledger.open_gates(self.conn, self.job_id))
 
     def test_open_gates_lists_unsigned_human_gates(self):
         self.assertEqual(decision_ledger.open_gates(self.conn, self.job_id),
@@ -173,6 +188,51 @@ class LedgerTests(unittest.TestCase):
                                 supersedes="DEC-old")
         self.assertEqual(decision_ledger.decision(self.conn, "DEC-old")["state"], "SUPERSEDED")
         self.assertEqual(decision_ledger.decision(self.conn, "DEC-new")["state"], "PROPOSED")
+
+    def test_supersede_cannot_cross_job_boundaries(self):
+        other = creative_job.create_job(
+            self.conn, brief(), idempotency_scope="s", idempotency_key="other-job")
+        decision_ledger.propose(
+            self.conn, job_id=self.job_id, dec_id="DEC-old",
+            options=[{"option_id": "A", "summary": "v1"}], actor="agent-r5")
+        with self.assertRaisesRegex(store.CreativeError, "same job"):
+            decision_ledger.propose(
+                self.conn, job_id=other["job_id"], dec_id="DEC-new",
+                options=[{"option_id": "B", "summary": "v2"}], actor="agent-r5",
+                supersedes="DEC-old")
+        self.assertEqual(decision_ledger.decision(self.conn, "DEC-old")["state"], "PROPOSED")
+
+    def test_agent_cannot_supersede_a_human_gate_decision(self):
+        decision_ledger.propose(
+            self.conn, job_id=self.job_id, dec_id="DEC-rights-old",
+            options=[{"option_id": "APPROVE", "summary": "approve"}],
+            actor="agent-r5", gate="RIGHTS")
+        decision_ledger.decide(
+            self.conn, dec_id="DEC-rights-old", chosen="APPROVE", rationale="licensed",
+            actor="DTALEX66", actor_kind="human")
+        with self.assertRaisesRegex(store.CreativeError, "human supersession"):
+            decision_ledger.propose(
+                self.conn, job_id=self.job_id, dec_id="DEC-rights-new",
+                options=[{"option_id": "BLOCK", "summary": "block"}],
+                actor="agent-r5", actor_kind="agent", gate="RIGHTS",
+                supersedes="DEC-rights-old")
+        self.assertEqual(decision_ledger.decision(self.conn, "DEC-rights-old")["state"], "DECIDED")
+
+    def test_supersede_has_one_live_successor(self):
+        decision_ledger.propose(
+            self.conn, job_id=self.job_id, dec_id="DEC-old",
+            options=[{"option_id": "A", "summary": "v1"}], actor="agent-r5")
+        decision_ledger.propose(
+            self.conn, job_id=self.job_id, dec_id="DEC-new-a",
+            options=[{"option_id": "B", "summary": "v2"}], actor="agent-r5",
+            supersedes="DEC-old")
+        with self.assertRaisesRegex(store.CreativeError, "not active"):
+            decision_ledger.propose(
+                self.conn, job_id=self.job_id, dec_id="DEC-new-b",
+                options=[{"option_id": "C", "summary": "v3"}], actor="agent-r5",
+                supersedes="DEC-old")
+        with self.assertRaisesRegex(store.CreativeError, "unknown decision"):
+            decision_ledger.decision(self.conn, "DEC-new-b")
 
     def test_decision_can_reference_a_requirement(self):
         self._requirement()

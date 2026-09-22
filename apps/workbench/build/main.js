@@ -1,5 +1,7 @@
 const byId = (id) => document.getElementById(id);
 let token = "";
+let connected = false;
+let connectGeneration = 0;
 let project = "";
 let epoch = 0;
 let taskCursor = null;
@@ -314,26 +316,35 @@ async function sendImport() {
 }
 byId("connect-form").onsubmit = async (event) => {
   event.preventDefault();
-  token = byId("token").value;
+  const generation = ++connectGeneration;
+  const submittedToken = byId("token").value;
   byId("token").value = "";
-  if (!/^[0-9a-f]{64}$/.test(token)) {
+  if (!/^[0-9a-f]{64}$/.test(submittedToken)) {
     token = "";
+    connected = false;
     setStatus("访问令牌格式不正确。", true);
     return;
   }
+  token = submittedToken;
   try {
     await projects();
+    if (generation !== connectGeneration || token !== submittedToken) return;
+    connected = true;
     byId("login").hidden = true;
     byId("workspace").hidden = false;
     byId("connection").textContent = "本机已连接";
     setStatus("选择或新建项目。");
   } catch (error) {
+    if (generation !== connectGeneration || token !== submittedToken) return;
     token = "";
+    connected = false;
     setStatus(errMsg(error), true);
   }
 };
 byId("disconnect").onclick = () => {
+  connectGeneration += 1;
   token = "";
+  connected = false;
   project = "";
   resetProject();
   byId("workspace").hidden = true;
@@ -1153,25 +1164,32 @@ function mountAppShell() {
   const routePanel = el(
     "div",
     { class: "route-panel", hidden: true },
-    el("div", { class: "route-view", id: "route-view" })
+    el("div", { class: "route-view", id: "route-view", "aria-live": "polite" })
   );
   document.body.append(nav, routePanel);
   document.body.classList.add("dl-shell");
   const active = (view) => {
-    for (const item of Array.from(nav.querySelectorAll(".app-nav-item")))
-      item.classList.toggle("active", item.dataset.route === view);
+    for (const item of Array.from(nav.querySelectorAll(".app-nav-item"))) {
+      const selected = item.dataset.route === view;
+      item.classList.toggle("active", selected);
+      if (selected) item.setAttribute("aria-current", "page");
+      else item.removeAttribute("aria-current");
+    }
   };
   const current = () => {
     const match = ROUTE_VIEWS.find((route) => route.hash === window.location.hash);
     return match ? match.view : "workbench";
   };
+  let routeGeneration = 0;
   const show = () => {
     const view = current();
     const showWorkbench = view === "workbench";
+    const generation = ++routeGeneration;
+    const routeToken = token;
     routePanel.hidden = showWorkbench;
-    login.hidden = showWorkbench ? login.hidden : true;
+    login.hidden = showWorkbench ? connected : true;
     if (showWorkbench) {
-      workspace.hidden = login.hidden ? false : workspace.hidden;
+      workspace.hidden = !connected;
       active("workbench");
       return;
     }
@@ -1184,10 +1202,20 @@ function mountAppShell() {
         el("h2", {}, view),
         el("p", { class: "view-unopened" }, "请先在工作台连接本机设计服务，再读回此视图。")
       );
+      target.removeAttribute("aria-busy");
       return;
     }
-    void renderRoute(view, target).catch((error) => {
+    target.replaceChildren(el("p", { class: "view-loading" }, "正在读回当前视图…"));
+    target.setAttribute("aria-busy", "true");
+    const pendingView = document.createElement("div");
+    void renderRoute(view, pendingView).then(() => {
+      if (generation !== routeGeneration || current() !== view || token !== routeToken) return;
+      target.replaceChildren(...Array.from(pendingView.childNodes));
+      target.removeAttribute("aria-busy");
+    }).catch((error) => {
+      if (generation !== routeGeneration || current() !== view || token !== routeToken) return;
       target.replaceChildren(el("p", { class: "error" }, `视图读回失败：${errMsg(error)}`));
+      target.removeAttribute("aria-busy");
     });
   };
   const connection = byId("connection");

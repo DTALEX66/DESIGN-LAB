@@ -7,7 +7,7 @@
   "scripts": {
     "typecheck": "tsc --noEmit",
     "build": "vite build",
-    "test:unit": "node tests/unit.mjs"
+    "test:unit": "node tests/unit.mjs && node tests/appshell.mjs"
   },
   "devDependencies": {
     "typescript": "~5.6.3",

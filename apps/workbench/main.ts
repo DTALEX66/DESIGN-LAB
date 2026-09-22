@@ -46,6 +46,8 @@ const byId = <T extends HTMLElement = HTMLElement>(id: string): T =>
   document.getElementById(id) as T;
 
 let token = '';
+let connected = false;
+let connectGeneration = 0;
 let project = '';
 let epoch = 0;
 let taskCursor: string | null = null;
@@ -388,27 +390,36 @@ async function sendImport() {
 
 byId<HTMLFormElement>('connect-form').onsubmit = async (event) => {
   event.preventDefault();
-  token = byId<HTMLInputElement>('token').value;
+  const generation = ++connectGeneration;
+  const submittedToken = byId<HTMLInputElement>('token').value;
   byId<HTMLInputElement>('token').value = '';
-  if (!/^[0-9a-f]{64}$/.test(token)) {
+  if (!/^[0-9a-f]{64}$/.test(submittedToken)) {
     token = '';
+    connected = false;
     setStatus('访问令牌格式不正确。', true);
     return;
   }
+  token = submittedToken;
   try {
     await projects();
+    if (generation !== connectGeneration || token !== submittedToken) return;
+    connected = true;
     byId<HTMLDivElement>('login').hidden = true;
     byId<HTMLDivElement>('workspace').hidden = false;
     byId<HTMLSpanElement>('connection').textContent = '本机已连接';
     setStatus('选择或新建项目。');
   } catch (error) {
+    if (generation !== connectGeneration || token !== submittedToken) return;
     token = '';
+    connected = false;
     setStatus(errMsg(error), true);
   }
 };
 
 byId<HTMLButtonElement>('disconnect').onclick = () => {
+  connectGeneration += 1;
   token = '';
+  connected = false;
   project = '';
   resetProject();
   byId<HTMLDivElement>('workspace').hidden = true;
@@ -1243,15 +1254,19 @@ function mountAppShell(): void {
     }, route.label)),
     el('span', { class: 'app-nav-meta', id: 'shell-connection' }, '未连接'));
   const routePanel = el('div', { class: 'route-panel', hidden: true },
-    el('div', { class: 'route-view', id: 'route-view' }));
+    el('div', { class: 'route-view', id: 'route-view', 'aria-live': 'polite' }));
   document.body.append(nav, routePanel);
   // Scope the shell's layout gutter to the mounted state so an unmounted path
   // (the E2E default) keeps the original centered layout untouched.
   document.body.classList.add('dl-shell');
 
   const active = (view: string): void => {
-    for (const item of Array.from(nav.querySelectorAll<HTMLButtonElement>('.app-nav-item')))
-      item.classList.toggle('active', item.dataset.route === view);
+    for (const item of Array.from(nav.querySelectorAll<HTMLButtonElement>('.app-nav-item'))) {
+      const selected = item.dataset.route === view;
+      item.classList.toggle('active', selected);
+      if (selected) item.setAttribute('aria-current', 'page');
+      else item.removeAttribute('aria-current');
+    }
   };
 
   const current = (): RouteView => {
@@ -1259,13 +1274,17 @@ function mountAppShell(): void {
     return match ? match.view : 'workbench';
   };
 
+  let routeGeneration = 0;
+
   const show = (): void => {
     const view = current();
     const showWorkbench = view === 'workbench';
+    const generation = ++routeGeneration;
+    const routeToken = token;
     routePanel.hidden = showWorkbench;
-    login.hidden = showWorkbench ? login.hidden : true;
+    login.hidden = showWorkbench ? connected : true;
     if (showWorkbench) {
-      workspace.hidden = login.hidden ? false : workspace.hidden;
+      workspace.hidden = !connected;
       active('workbench');
       return;
     }
@@ -1279,10 +1298,23 @@ function mountAppShell(): void {
       target.replaceChildren(
         el('h2', {}, view),
         el('p', { class: 'view-unopened' }, '请先在工作台连接本机设计服务，再读回此视图。'));
+      target.removeAttribute('aria-busy');
       return;
     }
-    void renderRoute(view, target).catch((error) => {
+    // Render off-DOM, then commit only if this is still the current route and
+    // connection context. A slow success/error from an older route can never
+    // overwrite the newer view's DOM.
+    target.replaceChildren(el('p', { class: 'view-loading' }, '正在读回当前视图…'));
+    target.setAttribute('aria-busy', 'true');
+    const pendingView = document.createElement('div');
+    void renderRoute(view, pendingView).then(() => {
+      if (generation !== routeGeneration || current() !== view || token !== routeToken) return;
+      target.replaceChildren(...Array.from(pendingView.childNodes));
+      target.removeAttribute('aria-busy');
+    }).catch((error) => {
+      if (generation !== routeGeneration || current() !== view || token !== routeToken) return;
       target.replaceChildren(el('p', { class: 'error' }, `视图读回失败：${errMsg(error)}`));
+      target.removeAttribute('aria-busy');
     });
   };
 
