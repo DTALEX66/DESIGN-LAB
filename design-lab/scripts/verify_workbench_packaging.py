@@ -9,9 +9,12 @@ Fails closed if any of:
   * the .gitignore negation that TRACKS apps/workbench/build/ is missing
     (D003 committed-bundle, no-drift; unlike the generic 'build/' ignore above)
   * git does not track apps/workbench/build/main.js
-  * pyproject.toml no longer force-includes apps/workbench ->
-    design_lab/resources/workbench (the wheel packaging path that lets the
-    packaged Python package serve the same committed bundle)
+  * pyproject.toml no longer ships exactly the three served workbench files
+    (index.html / style.css / build/main.js) into design_lab/resources/workbench
+    via the wheel force-include + sdist only-include paths. P1-1 (audit
+    2026-09-21): precise files only — a whole-directory mapping is rejected,
+    because the old whole-directory include dragged the local node_modules
+    (~30MB / 251 files) into locally built wheels/sdists.
 
 Pure stdlib + git; does NOT import the (not-yet-packed) design_lab package, so
 it can run inside the node workbench-gate before the Python wheel exists.
@@ -26,6 +29,13 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 CHECKS: list[tuple[str, bool, str]] = []
+
+# P1-1: exactly the files src/design_lab/workbench.py serves (ROUTES).
+WORKBENCH_FILE_MAPS = [
+    ('apps/workbench/index.html', 'design_lab/resources/workbench/index.html'),
+    ('apps/workbench/style.css', 'design_lab/resources/workbench/style.css'),
+    ('apps/workbench/build/main.js', 'design_lab/resources/workbench/build/main.js'),
+]
 
 
 def check(name: str, ok: bool, detail: str = '') -> None:
@@ -60,11 +70,33 @@ check('git tracks apps/workbench/build/main.js',
       r.returncode == 0 and 'apps/workbench/build/main.js' in r.stdout,
       (r.stdout.strip() or r.stderr.strip()))
 
-# 5) pyproject force-includes the workbench into the wheel resource path.
+# 5) pyproject ships exactly the three served workbench files (wheel mapping
+#    and sdist entry), and the whole-directory mapping is rejected.
 pp = (ROOT / 'pyproject.toml').read_text(encoding='utf-8')
-check('pyproject force-includes apps/workbench -> design_lab/resources/workbench',
-      re.search(r'["\']?apps/workbench["\']?\s*=\s*["\']design_lab/resources/workbench["\']', pp) is not None,
-      'force-include mapping missing — wheel would not ship the committed bundle')
+
+
+def _wheel_mapping_present(src, dst):
+    return re.search(r'["\']?' + re.escape(src) + r'["\']?\s*=\s*["\']'
+                     + re.escape(dst) + r'["\']', pp) is not None
+
+
+details = []
+for src, dst in WORKBENCH_FILE_MAPS:
+    if not _wheel_mapping_present(src, dst):
+        details.append(f'missing wheel force-include {src} -> {dst}')
+if re.search(r'["\']?apps/workbench["\']?\s*=\s*["\']'
+             r'design_lab/resources/workbench["\']', pp):
+    details.append('whole-directory wheel include must not return (P1-1)')
+sdist_block = re.search(r'\[tool\.hatch\.build\.targets\.sdist\].*?\n(.*?)\[tool\.',
+                        pp, re.S)
+sdist = sdist_block.group(1) if sdist_block else ''
+for src, _dst in WORKBENCH_FILE_MAPS:
+    if f'"{src}"' not in sdist:
+        details.append(f'missing sdist only-include entry {src}')
+if '"apps/workbench",' in sdist or '"apps/workbench"]' in sdist:
+    details.append('whole-directory sdist entry must not return (P1-1)')
+check('pyproject ships exactly the 3 served workbench files (P1-1)',
+      not details, '; '.join(details))
 
 failed = [name for name, ok, _ in CHECKS if not ok]
 print('\nWORKBENCH PACKAGING: ' +

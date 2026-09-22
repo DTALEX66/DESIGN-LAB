@@ -33,7 +33,14 @@ exclude = ["src/design_lab/reconstruction/__init__.py"]
 "design-lab/schemas/reconstruction/reconstruction-ir.schema.json" = "design_lab/resources/reconstruction/reconstruction-ir.schema.json"
 "design-lab/schemas/reconstruction/reconstruction-run.schema.json" = "design_lab/resources/reconstruction/reconstruction-run.schema.json"
 "design-lab/schemas/state" = "design_lab/resources/state"
-"apps/workbench" = "design_lab/resources/workbench"
+# P1-1 (audit 2026-09-21): ship ONLY the three files the packaged service
+# actually serves (src/design_lab/workbench.py ROUTES). The whole-directory
+# force-include that replaced this line dragged the local node_modules
+# (30MB / 251 files) into local wheel builds, so a wheel built on a dev
+# machine diverged from the ~0.5MB wheel CI builds from a clean checkout.
+"apps/workbench/index.html" = "design_lab/resources/workbench/index.html"
+"apps/workbench/style.css" = "design_lab/resources/workbench/style.css"
+"apps/workbench/build/main.js" = "design_lab/resources/workbench/build/main.js"
 # E-SLICE-01 design layer: the design-system catalog manifests that a direction
 # may bind to (design_layer.catalog() resolves this packaged-first).
 "design-lab/design-systems" = "design_lab/resources/design-systems"
@@ -41,7 +48,10 @@ exclude = ["src/design_lab/reconstruction/__init__.py"]
 "integrations/hosts/adobe/photoshop-reconstruction/legacy-assemble.jsx" = "design_lab/resources/adobe/photoshop-native-assemble.jsx"
 
 [tool.hatch.build.targets.sdist]
-only-include = ["src/design_lab", "design-lab/schemas/state", "design-lab/design-systems", "apps/workbench", "integrations/hosts/adobe/illustrator/reconstruction-assemble.jsx", "integrations/hosts/adobe/photoshop-reconstruction/legacy-assemble.jsx", "packages/capabilities/reconstruction/__init__.py", "packages/capabilities/reconstruction/contracts.py", "packages/capabilities/reconstruction/adobe_job.py", "packages/capabilities/reconstruction/adobe_lowering.py", "design-lab/schemas/reconstruction/reconstruction-ir.schema.json", "design-lab/schemas/reconstruction/reconstruction-run.schema.json", "pyproject.toml"]
+# P1-1 (audit 2026-09-21): the sdist ships the same three served workbench
+# files as the wheel (was the whole apps/workbench dir, which dragged the
+# local node_modules into sdist builds too).
+only-include = ["src/design_lab", "design-lab/schemas/state", "design-lab/design-systems", "apps/workbench/index.html", "apps/workbench/style.css", "apps/workbench/build/main.js", "integrations/hosts/adobe/illustrator/reconstruction-assemble.jsx", "integrations/hosts/adobe/photoshop-reconstruction/legacy-assemble.jsx", "packages/capabilities/reconstruction/__init__.py", "packages/capabilities/reconstruction/contracts.py", "packages/capabilities/reconstruction/adobe_job.py", "packages/capabilities/reconstruction/adobe_lowering.py", "design-lab/schemas/reconstruction/reconstruction-ir.schema.json", "design-lab/schemas/reconstruction/reconstruction-run.schema.json", "pyproject.toml"]
 
 [tool.pytest.ini_options]
 testpaths = ["design-lab/tests"]
