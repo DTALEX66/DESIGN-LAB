@@ -2,6 +2,19 @@ name: Release Gate (DL-CI-006)
 
 on:
   workflow_dispatch:
+  # F-02 (audit P1-7): the gate must ALSO run on tag push. Without this the
+  # tag-only preflight step below (`if: startsWith(github.ref, 'refs/tags/')`)
+  # is unreachable, so cutting a release tag never triggered E5 qualification
+  # even though the preflight (F-3) was already merged. `*` is intentionally
+  # broad: this repo has 0 tags and no established release-tag convention yet,
+  # so matching every tag is the only choice that cannot silently miss the one
+  # the owner cuts. The gate is fail-closed (INCOMPLETE / BLOCKED, never a
+  # silent PASS for a tag lacking canonical CI), so a stray non-release tag
+  # costs one red 20-min job, not a false release. Tighten this pattern to the
+  # real convention (e.g. `v*`) once release tags are established.
+  push:
+    tags:
+      - '*'
 
 permissions:
   contents: read
