@@ -3,51 +3,20 @@
   "authorityTaskpackId": "DL-TP-20260914-DEEPSEEK-AUTHORITY-R1",
   "environmentFingerprint": {
     "machine": "AMD64",
-    "platform": "Windows-11-10.0.26100-SP0",
-    "python": "3.13.14"
+    "platform": "Windows-10-10.0.26100-SP0",
+    "python": "3.11.15"
   },
-  "fresh": false,
+  "fresh": true,
   "freshnessMeaning": "at generation only; check verifies bound-input integrity, not current Git or cloud state",
-  "generatedAt": "2026-09-20T16:47:09+00:00",
+  "generatedAt": "2026-09-22T16:21:34+00:00",
   "git": {
-    "branch": "feat/p1-control-spike",
-    "origin_main": "9f89452e801fe86e56d541316fcb92db927edec2",
-    "sha": "9f89452e801fe86e56d541316fcb92db927edec2",
-    "source_worktree_clean": false,
-    "tracked_files": 1962,
-    "worktree_changes": [
-      {
-        "content": "sha256:881ea25fdd87ad972941695d3d07bfa6cfa0563dc8639f3dcc74db95465e5696",
-        "kind": "M",
-        "path": "design-lab/scripts/verify_design_lab.py"
-      },
-      {
-        "content": "sha256:36b78954ee90f1f90f53d5d17dc6de1bd0999dafb2be743ca4f51f4c18b355de",
-        "kind": "U",
-        "path": "design-lab/config/control-capability-matrix.json"
-      },
-      {
-        "content": "sha256:e7703d0738f5507cfe627c151af11b2ca0c39ca612a8b025a3956e7663ac1ce5",
-        "kind": "U",
-        "path": "design-lab/schemas/control-capability-matrix.schema.json"
-      },
-      {
-        "content": "sha256:8301909bd94c10ba60554e0325d8044de73d256c99c7a4e14c3663c85ca2e6fc",
-        "kind": "U",
-        "path": "design-lab/scripts/verify_control_capability_matrix.py"
-      },
-      {
-        "content": "sha256:5979efbf1edb61d4e88f8d2090e91e960c1b9a570e2faddc0958c5f42354742f",
-        "kind": "U",
-        "path": "design-lab/tests/test_control_capability_matrix.py"
-      },
-      {
-        "content": "sha256:3cc409458fe93840b38447db7071fdf854c6e0b6f2082b716c16178c2f876346",
-        "kind": "U",
-        "path": "design-lab/tests/test_design_layer_idempotency_recovery.py"
-      }
-    ],
-    "worktree_digest": "sha256:192bf3fb86aa25a7f58ba03fa485eb18af7be8848d89d2d76fcb12da2870cc01"
+    "branch": "main",
+    "origin_main": "d9e2d4667aaed598649558bf9a454d91171e36f1",
+    "sha": "d9e2d4667aaed598649558bf9a454d91171e36f1",
+    "source_worktree_clean": true,
+    "tracked_files": 1973,
+    "worktree_changes": [],
+    "worktree_digest": "sha256:403143d01dc4e76b0ad88ac3ea570bf524c83d11c286bd4e67540b89ab8fd98c"
   },
   "gitStateMeaning": "generation-time observation, not current HEAD",
   "hostLive": "derived from host_live axis only",
@@ -60,8 +29,8 @@
     "quarantinedSources": 162
   },
   "subjectMeaning": "subjectType=WORKTREE means the tree was dirty at generation; worktreeDigest covers HEAD plus the non-generated changes",
-  "subjectSha": "9f89452e801fe86e56d541316fcb92db927edec2",
-  "subjectType": "WORKTREE",
+  "subjectSha": "d9e2d4667aaed598649558bf9a454d91171e36f1",
+  "subjectType": "COMMIT",
   "taskCounts": {
     "PARTIAL": 28
   },
@@ -73,9 +42,9 @@
   "testRunMeaning": "bound run: python scripts/run_bound_test_suite.py --order forward --modules test_asset_store test_creative_job test_creative_ledgers test_creative_lineage test_creative_migration test_creative_version_guard test_creative_f030_f040 test_creative_session_link test_job_store test_runtime_attempt_safety test_runtime_asset_safety test_runtime_explicit_project test_assurance_qa_plane test_assurance_jury test_bundle_store test_operation_coordinator",
   "testRunResult": "OK",
   "tests": {
-    "definedTestMethodCount": 1566,
+    "definedTestMethodCount": 1573,
     "executed": "see individual verified ledger receipts"
   },
-  "worktreeClean": false,
-  "worktreeDigest": "sha256:192bf3fb86aa25a7f58ba03fa485eb18af7be8848d89d2d76fcb12da2870cc01"
+  "worktreeClean": true,
+  "worktreeDigest": "sha256:403143d01dc4e76b0ad88ac3ea570bf524c83d11c286bd4e67540b89ab8fd98c"
 }

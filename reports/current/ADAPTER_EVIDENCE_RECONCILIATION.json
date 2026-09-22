@@ -246,23 +246,23 @@
   "capabilityIndexEntries": 50,
   "environmentFingerprint": {
     "machine": "AMD64",
-    "platform": "Windows-11-10.0.26100-SP0",
-    "python": "3.13.14"
+    "platform": "Windows-10-10.0.26100-SP0",
+    "python": "3.11.15"
   },
-  "fresh": false,
+  "fresh": true,
   "freshnessMeaning": "at generation only; check verifies bound-input integrity, not current Git or cloud state",
-  "generatedAt": "2026-09-20T16:47:09+00:00",
+  "generatedAt": "2026-09-22T16:21:34+00:00",
   "gitStateMeaning": "generation-time observation, not current HEAD",
   "schemaVersion": "design-lab/adapter-reconciliation/v2",
   "subjectMeaning": "subjectType=WORKTREE means the tree was dirty at generation; worktreeDigest covers HEAD plus the non-generated changes",
-  "subjectSha": "9f89452e801fe86e56d541316fcb92db927edec2",
-  "subjectType": "WORKTREE",
+  "subjectSha": "d9e2d4667aaed598649558bf9a454d91171e36f1",
+  "subjectType": "COMMIT",
   "taskpackHash": "31dde89eb4ede81fe88c0a5c5144adfb86af8db4c4d8c263bde2199180369b69",
   "taskpackId": "DL-TP-20260908-R5",
   "testRunAt": "2026-09-20T00:11:55+00:00",
   "testRunId": "testrun-20260920T001141Z-forward-repeat-77de1a4fabbb",
   "testRunMeaning": "bound run: python scripts/run_bound_test_suite.py --order forward --modules test_asset_store test_creative_job test_creative_ledgers test_creative_lineage test_creative_migration test_creative_version_guard test_creative_f030_f040 test_creative_session_link test_job_store test_runtime_attempt_safety test_runtime_asset_safety test_runtime_explicit_project test_assurance_qa_plane test_assurance_jury test_bundle_store test_operation_coordinator",
   "testRunResult": "OK",
-  "worktreeClean": false,
-  "worktreeDigest": "sha256:192bf3fb86aa25a7f58ba03fa485eb18af7be8848d89d2d76fcb12da2870cc01"
+  "worktreeClean": true,
+  "worktreeDigest": "sha256:403143d01dc4e76b0ad88ac3ea570bf524c83d11c286bd4e67540b89ab8fd98c"
 }
