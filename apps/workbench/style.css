@@ -299,3 +299,26 @@ footer{
 .items.lineage li{font-size:12px;color:var(--muted);border-left:2px solid var(--line);padding-left:10px;overflow-wrap:anywhere}
 #brief-lineage-title,#direction-lineage-title{font-size:12px;margin:4px 0}
 #design-binding-active.warn{color:var(--color-warning)}
+/* UI real-data routes (projects / creative-tools / deliverables / evidence) */
+.project-picker{
+  display:inline-flex;align-items:center;gap:8px;
+  font-size:12px;font-weight:650;color:var(--ink);
+  margin:0 0 14px;padding:10px 14px;
+  background:var(--surface-2);border:1px solid var(--line);
+  border-radius:var(--radius-md);
+}
+.project-select{
+  font:inherit;color:var(--ink);background:var(--surface);
+  border:1px solid var(--line);border-radius:var(--radius-md);
+  padding:6px 10px;cursor:pointer;
+}
+.project-select:focus{outline:2px solid var(--accent);outline-offset:1px}
+.route-view-body{margin-top:8px}
+.items{list-style:none;padding:0;margin:10px 0;display:flex;flex-wrap:wrap;gap:8px}
+.items li{
+  font-size:12px;color:var(--ink);
+  background:var(--surface-2);border:1px solid var(--line);
+  border-radius:var(--radius-md);padding:8px 12px;
+}
+.items li.view-hint{background:transparent;border-style:dashed;color:var(--muted)}
+.error{color:var(--color-error);font-size:13px;margin:12px 0}
