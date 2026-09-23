@@ -86,13 +86,13 @@
     "platform": "Windows-10-10.0.26100-SP0",
     "python": "3.11.15"
   },
-  "fresh": false,
+  "fresh": true,
   "freshnessMeaning": "at generation only; check verifies bound-input integrity, not current Git or cloud state",
-  "generatedAt": "2026-09-23T00:20:28+00:00",
+  "generatedAt": "2026-09-23T11:33:53+00:00",
   "gitStateMeaning": "generation-time observation, not current HEAD",
   "schemaVersion": "design-lab/domain-readiness/v2",
   "subjectMeaning": "subjectType=WORKTREE means the tree was dirty at generation; worktreeDigest covers HEAD plus the non-generated changes",
-  "subjectSha": "08a483c8bebddb535fca50d8387e34859047e7ba",
+  "subjectSha": "2eede1c939447ba6a5f778fe3606da6330d5f3c1",
   "subjectType": "COMMIT",
   "taskpackHash": "31dde89eb4ede81fe88c0a5c5144adfb86af8db4c4d8c263bde2199180369b69",
   "taskpackId": "DL-TP-20260908-R5",
@@ -101,5 +101,5 @@
   "testRunMeaning": "bound run: python scripts/run_bound_test_suite.py --order forward --modules test_asset_store test_creative_job test_creative_ledgers test_creative_lineage test_creative_migration test_creative_version_guard test_creative_f030_f040 test_creative_session_link test_job_store test_runtime_attempt_safety test_runtime_asset_safety test_runtime_explicit_project test_assurance_qa_plane test_assurance_jury test_bundle_store test_operation_coordinator",
   "testRunResult": "OK",
   "worktreeClean": true,
-  "worktreeDigest": "sha256:67b79d97889d292be185e4beb8c0dc7a76e3050b7d50fc66ecdc330a22213022"
+  "worktreeDigest": "sha256:27e306d5f4ac24672b44e280e18928cc7e4a0507929ffd2ee53a83d9c6e4d186"
 }
