@@ -62,6 +62,10 @@ design-lab/config/local-profile.json
 design-lab/config/*.local.json
 # verify-chain marker（动态产物，release gate 运行时生成）
 design-lab/config/.verify-chain-ok
+# G-1 / B1 secret history gate：报告由 verify_secret_history.py 在 CI 生成，
+# 内容随扫描 SHA 变化，若 tracked 会与 drift gate 形成 rebind 循环——
+# 故不入 Git，退出码即门（FAIL 时 CI 红），报告留作 CI artifact 供查。
+reports/current/SECRET-HISTORY-REPORT.json
 
 # Project-local runtime data (DL-DIR-MIG-R1)
 .project-local/

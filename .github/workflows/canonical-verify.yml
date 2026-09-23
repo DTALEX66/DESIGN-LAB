@@ -259,7 +259,11 @@ jobs:
     name: License & secret hygiene gate
     runs-on: ubuntu-latest
     steps:
+      # fetch-depth: 0 — the secret-history scan (DL-CLOUDAUDIT-B1 / G-1)
+      # walks every ref's blob revisions, so the job needs full history.
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          fetch-depth: 0
       - name: Root license present
         run: test -f LICENSE && echo "LICENSE present"
       - name: SPDX mirror present
@@ -281,6 +285,18 @@ jobs:
           code=$?
           set -e
           if [ "$code" -eq 1 ]; then echo "no secret-like files tracked"; else echo "SECRET-LIKE FILE FOUND"; exit 1; fi
+      # G-1 / B1: credential pattern scan over the full git history.
+      # --max-blobs 0 = explicit unlimited scope (hitting the default cap
+      # would fail closed; CI scans everything, ~11k blobs, ~5s).
+      - name: Secret history scan (all revisions, redacted report)
+        run: python scripts/verify_secret_history.py --max-blobs 0
+      # The redacted report is the evidence trail: keep it on FAIL too.
+      - name: Upload secret history report
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: secret-history-report
+          path: reports/current/SECRET-HISTORY-REPORT.json
       - name: No CRLF-forbidden diff whitespace
         run: git diff --check
 
