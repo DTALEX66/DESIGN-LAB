@@ -162,7 +162,12 @@ def license_audit(files: list) -> dict:
 
 
 SYNTHETIC_MARKERS = ("should-not", "shouldnot", "example", "dummy", "fake", "placeholder",
-                     "your-", "changeme", "redacted", "not-a-real", "xxxx", "<", "fixture")
+                     "your-", "your_", "changeme", "redacted", "not-a-real", "xxxx", "<", "fixture")
+# "your_" (underscore) documents the same placeholder family as "your-" above:
+# inert research/reference docs use YOUR_RAPIDAPI_KEY / YOUR_BEARER_TOKEN style
+# stand-ins, and real credentials never spell themselves "YOUR_*". The check
+# stays value-based (never a path rule), so a real key in a test path is still
+# caught by the credential-shape clause below.
 # A value whose own shape is a real credential format. A test path is NOT evidence
 # that such a value is synthetic: a real key pasted into a fixture would be exempted
 # by a blanket path rule, which is exactly how a leak survives a scan. Only an
