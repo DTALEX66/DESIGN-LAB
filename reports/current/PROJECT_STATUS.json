@@ -8,26 +8,36 @@
   },
   "fresh": false,
   "freshnessMeaning": "at generation only; check verifies bound-input integrity, not current Git or cloud state",
-  "generatedAt": "2026-09-23T12:53:28+00:00",
+  "generatedAt": "2026-09-23T20:33:32+00:00",
   "git": {
-    "branch": "docs/cloud-audit-20260923",
-    "origin_main": "7b7335f3e0e30cdec41fce2af6ae96b55742a68d",
-    "sha": "7b7335f3e0e30cdec41fce2af6ae96b55742a68d",
+    "branch": "feat/ci-artifact-proof-h001",
+    "origin_main": "a6aeccf6b532417f57dc9f1e66f58cee749f603a",
+    "sha": "a6aeccf6b532417f57dc9f1e66f58cee749f603a",
     "source_worktree_clean": false,
-    "tracked_files": 1977,
+    "tracked_files": 1983,
     "worktree_changes": [
       {
-        "content": "sha256:b096b6549aa4b0c795e6b2f50c03a097d26a72f2180137e012a43dd876f6d4c2",
-        "kind": "U",
-        "path": "docs/audits/DESIGN-LAB-CLOUD-AUDIT-2026-09-23-CROSSWALK.md"
+        "content": "sha256:63c2585c938d1362903088197707d55001b65fda6af89000d3793398c99ecc31",
+        "kind": "M",
+        "path": ".github/workflows/canonical-verify.yml"
       },
       {
-        "content": "sha256:cf84f2ec8b11a3bf6416f328da28978ea5d20f268fa15c975aa39e0ed595fefc",
+        "content": "sha256:c60b82fe7519f7b2ae8b11d73cb317b50907c408226173285b6ecf94c1ababe3",
+        "kind": "M",
+        "path": "design-lab/scripts/verify_design_lab.py"
+      },
+      {
+        "content": "sha256:cb0d830b26e55a7334ea7417756f8c31d1fca67a8d2a959349639fa2d0d715d9",
         "kind": "U",
-        "path": "docs/audits/DESIGN-LAB-CLOUD-AUDIT-2026-09-23-RAW.md"
+        "path": "design-lab/scripts/verify_ci_artifact_proof.py"
+      },
+      {
+        "content": "sha256:a0775185f6a5ecb0d46c2676a9bd47232c3c5b36706fd28d45fa0d7a1f8f0781",
+        "kind": "U",
+        "path": "design-lab/tests/test_ci_artifact_proof.py"
       }
     ],
-    "worktree_digest": "sha256:88e9b1277c02c19c9082131e5cba636b648a36eedeb28e575947aaada0ff11d6"
+    "worktree_digest": "sha256:6185b649c0214aa603842f5478bbf9c01ad99fca04454704d45eca696316f358"
   },
   "gitStateMeaning": "generation-time observation, not current HEAD",
   "hostLive": "derived from host_live axis only",
@@ -40,7 +50,7 @@
     "quarantinedSources": 162
   },
   "subjectMeaning": "subjectType=WORKTREE means the tree was dirty at generation; worktreeDigest covers HEAD plus the non-generated changes",
-  "subjectSha": "7b7335f3e0e30cdec41fce2af6ae96b55742a68d",
+  "subjectSha": "a6aeccf6b532417f57dc9f1e66f58cee749f603a",
   "subjectType": "WORKTREE",
   "taskCounts": {
     "PARTIAL": 28
@@ -53,9 +63,9 @@
   "testRunMeaning": "bound run: python scripts/run_bound_test_suite.py --order forward --modules test_asset_store test_creative_job test_creative_ledgers test_creative_lineage test_creative_migration test_creative_version_guard test_creative_f030_f040 test_creative_session_link test_job_store test_runtime_attempt_safety test_runtime_asset_safety test_runtime_explicit_project test_assurance_qa_plane test_assurance_jury test_bundle_store test_operation_coordinator",
   "testRunResult": "OK",
   "tests": {
-    "definedTestMethodCount": 1584,
+    "definedTestMethodCount": 1626,
     "executed": "see individual verified ledger receipts"
   },
   "worktreeClean": false,
-  "worktreeDigest": "sha256:88e9b1277c02c19c9082131e5cba636b648a36eedeb28e575947aaada0ff11d6"
+  "worktreeDigest": "sha256:6185b649c0214aa603842f5478bbf9c01ad99fca04454704d45eca696316f358"
 }
