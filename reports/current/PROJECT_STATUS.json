@@ -6,17 +6,17 @@
     "platform": "Windows-10-10.0.26100-SP0",
     "python": "3.11.15"
   },
-  "fresh": false,
+  "fresh": true,
   "freshnessMeaning": "at generation only; check verifies bound-input integrity, not current Git or cloud state",
-  "generatedAt": "2026-09-23T00:20:28+00:00",
+  "generatedAt": "2026-09-23T11:33:53+00:00",
   "git": {
-    "branch": "docs/branch-disposition-ledger-20260923",
-    "origin_main": "f3c7ed33079af7ec59860a17782902ae17c1b8c5",
-    "sha": "08a483c8bebddb535fca50d8387e34859047e7ba",
+    "branch": "main",
+    "origin_main": "2eede1c939447ba6a5f778fe3606da6330d5f3c1",
+    "sha": "2eede1c939447ba6a5f778fe3606da6330d5f3c1",
     "source_worktree_clean": true,
     "tracked_files": 1977,
     "worktree_changes": [],
-    "worktree_digest": "sha256:67b79d97889d292be185e4beb8c0dc7a76e3050b7d50fc66ecdc330a22213022"
+    "worktree_digest": "sha256:27e306d5f4ac24672b44e280e18928cc7e4a0507929ffd2ee53a83d9c6e4d186"
   },
   "gitStateMeaning": "generation-time observation, not current HEAD",
   "hostLive": "derived from host_live axis only",
@@ -29,7 +29,7 @@
     "quarantinedSources": 162
   },
   "subjectMeaning": "subjectType=WORKTREE means the tree was dirty at generation; worktreeDigest covers HEAD plus the non-generated changes",
-  "subjectSha": "08a483c8bebddb535fca50d8387e34859047e7ba",
+  "subjectSha": "2eede1c939447ba6a5f778fe3606da6330d5f3c1",
   "subjectType": "COMMIT",
   "taskCounts": {
     "PARTIAL": 28
@@ -46,5 +46,5 @@
     "executed": "see individual verified ledger receipts"
   },
   "worktreeClean": true,
-  "worktreeDigest": "sha256:67b79d97889d292be185e4beb8c0dc7a76e3050b7d50fc66ecdc330a22213022"
+  "worktreeDigest": "sha256:27e306d5f4ac24672b44e280e18928cc7e4a0507929ffd2ee53a83d9c6e4d186"
 }

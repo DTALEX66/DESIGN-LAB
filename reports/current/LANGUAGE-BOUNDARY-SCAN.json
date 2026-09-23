@@ -4,9 +4,9 @@
     "DL-TP-20260914-DEEPSEEK-AUTHORITY-R1::DLDS-C020",
     "DL-TP-20260914-DEEPSEEK-AUTHORITY-R1::DLDS-C050"
   ],
-  "generated_at": "2026-09-20T16:47:02+00:00",
+  "generated_at": "2026-09-23T11:33:53+00:00",
   "subject_sha": "",
-  "tracked_files_scanned": 1962,
+  "tracked_files_scanned": 1977,
   "language_boundary": {
     "forbidden_language_files": [],
     "fixture_scoped_language_files": [
@@ -135,7 +135,7 @@
         "vocabulary": "evidence_levels",
         "schema": "design-lab/schemas/capability-status.schema.json",
         "path": "design-lab/tests/test_creative_ledgers.py",
-        "line": 219,
+        "line": 279,
         "tokens_present": [
           "NOT_RUN",
           "PASS",
