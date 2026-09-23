@@ -84,6 +84,7 @@ SCRIPTS = [
     "verify_reconstruction_bundle.py",
     "verify_host_e3_evidence.py",
     "verify_control_capability_matrix.py",
+    "verify_quality_record.py",
 ]
 
 # Release-time gate: invoked separately with a release-evidence file argument.
