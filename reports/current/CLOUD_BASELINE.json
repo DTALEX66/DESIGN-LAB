@@ -7,25 +7,36 @@
     "platform": "Windows-10-10.0.26100-SP0",
     "python": "3.11.15"
   },
-  "fresh": true,
+  "fresh": false,
   "freshnessMeaning": "at generation only; check verifies bound-input integrity, not current Git or cloud state",
-  "generatedAt": "2026-09-23T11:33:53+00:00",
+  "generatedAt": "2026-09-23T12:53:28+00:00",
   "gitStateMeaning": "generation-time observation, not current HEAD",
   "local": {
-    "branch": "main",
-    "origin_main": "2eede1c939447ba6a5f778fe3606da6330d5f3c1",
-    "sha": "2eede1c939447ba6a5f778fe3606da6330d5f3c1",
-    "source_worktree_clean": true,
+    "branch": "docs/cloud-audit-20260923",
+    "origin_main": "7b7335f3e0e30cdec41fce2af6ae96b55742a68d",
+    "sha": "7b7335f3e0e30cdec41fce2af6ae96b55742a68d",
+    "source_worktree_clean": false,
     "tracked_files": 1977,
-    "worktree_changes": [],
-    "worktree_digest": "sha256:27e306d5f4ac24672b44e280e18928cc7e4a0507929ffd2ee53a83d9c6e4d186"
+    "worktree_changes": [
+      {
+        "content": "sha256:b096b6549aa4b0c795e6b2f50c03a097d26a72f2180137e012a43dd876f6d4c2",
+        "kind": "U",
+        "path": "docs/audits/DESIGN-LAB-CLOUD-AUDIT-2026-09-23-CROSSWALK.md"
+      },
+      {
+        "content": "sha256:cf84f2ec8b11a3bf6416f328da28978ea5d20f268fa15c975aa39e0ed595fefc",
+        "kind": "U",
+        "path": "docs/audits/DESIGN-LAB-CLOUD-AUDIT-2026-09-23-RAW.md"
+      }
+    ],
+    "worktree_digest": "sha256:88e9b1277c02c19c9082131e5cba636b648a36eedeb28e575947aaada0ff11d6"
   },
   "note": "No GitHub API query was run by this generator; tool installation is not inferred.",
   "remoteRef": "origin/main (local tracking ref)",
   "schemaVersion": "design-lab/cloud-baseline/v2",
   "subjectMeaning": "subjectType=WORKTREE means the tree was dirty at generation; worktreeDigest covers HEAD plus the non-generated changes",
-  "subjectSha": "2eede1c939447ba6a5f778fe3606da6330d5f3c1",
-  "subjectType": "COMMIT",
+  "subjectSha": "7b7335f3e0e30cdec41fce2af6ae96b55742a68d",
+  "subjectType": "WORKTREE",
   "taskpackHash": "31dde89eb4ede81fe88c0a5c5144adfb86af8db4c4d8c263bde2199180369b69",
   "taskpackId": "DL-TP-20260908-R5",
   "testRunAt": "2026-09-20T00:11:55+00:00",
@@ -38,6 +49,6 @@
     "openPullRequests",
     "branchProtection"
   ],
-  "worktreeClean": true,
-  "worktreeDigest": "sha256:27e306d5f4ac24672b44e280e18928cc7e4a0507929ffd2ee53a83d9c6e4d186"
+  "worktreeClean": false,
+  "worktreeDigest": "sha256:88e9b1277c02c19c9082131e5cba636b648a36eedeb28e575947aaada0ff11d6"
 }
