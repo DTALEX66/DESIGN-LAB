@@ -270,8 +270,14 @@ jobs:
         run: test -f LICENSES/MIT.txt && echo "LICENSES/MIT.txt present"
       - name: License coverage (SPDX headers + binary sidecars)
         run: python design-lab/scripts/verify_license_coverage.py
-      - name: SPDX SBOM present
-        run: test -f design-lab/config/sbom-v42.spdx.json && echo "sbom-v42.spdx.json present"
+      # G-2 / B2: real SBOM verification, not just presence — SPDX structure,
+      # vendored coverage, and lockfile-level bindings (pnpm/uv/requirements
+      # sha256 + integrity manifests). Pure-stdlib (tomllib, no PyYAML needed),
+      # so it runs on this job's bare python without uv sync. If a lockfile
+      # changes without regenerating the binding, the sha256 check fails
+      # closed until scripts/generate_sbom_lockfiles.py is re-run.
+      - name: SPDX SBOM verify (structure + lockfile bindings)
+        run: python design-lab/scripts/verify_sbom.py
       - name: No obvious secret files tracked
         run: |
           set +e
