@@ -120,6 +120,17 @@ jobs:
         # release hashes are all mutually consistent. No network, no untrusted
         # input; reads only the working tree.
         run: python scripts/verify_top_level_authority.py
+      - name: Language/product drift guard (DL-GOV-130)
+        # G-B: wire the existing DL-GOV-130 guard into CI. Fail-closed,
+        # pure-stdlib, read-only; blocks default-host language and
+        # overstated early-stage (E0/E1) adapter evidence.
+        run: python design-lab/scripts/verify_project_drift.py
+      - name: Path-reference drift + machine policy gate (GA-1, G-A/G-C)
+        # Fail-closed: authority docs' path references must all resolve on
+        # disk (no unapproved drift), and the machine install policy
+        # (allowAutoInstall=false, officialReleaseOnly, E-drive protected,
+        # D-drive external roots) must be present and consistent.
+        run: python scripts/verify_path_refs.py
 
   node-gate:
     name: MiniGame node gate (+ drift check)
