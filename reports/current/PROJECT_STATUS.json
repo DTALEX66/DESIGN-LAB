@@ -8,26 +8,21 @@
   },
   "fresh": false,
   "freshnessMeaning": "at generation only; check verifies bound-input integrity, not current Git or cloud state",
-  "generatedAt": "2026-09-24T16:14:29+00:00",
+  "generatedAt": "2026-09-24T17:14:21+00:00",
   "git": {
-    "branch": "main",
-    "origin_main": "cb9c3ca68a4eb0a12436b719668b16aa09def600",
-    "sha": "cb9c3ca68a4eb0a12436b719668b16aa09def600",
+    "branch": "docs/cloud-audit-20260924-execution-ledger",
+    "origin_main": "b81c28b9aa380fa8f7139bfafa52de2baa3cda13",
+    "sha": "b81c28b9aa380fa8f7139bfafa52de2baa3cda13",
     "source_worktree_clean": false,
-    "tracked_files": 1985,
+    "tracked_files": 1992,
     "worktree_changes": [
       {
-        "content": "sha256:0f88852566491a8faac8fa98fcd24281b6133488d46b150f7734767b13c93e92",
-        "kind": "U",
+        "content": "sha256:f7c3ec77c970a81edbec629338d0c13f4472940a5652b20f83c5e99b0898269e",
+        "kind": "M",
         "path": "docs/audits/DESIGN-LAB-CLOUD-AUDIT-2026-09-24-CROSSWALK.md"
-      },
-      {
-        "content": "sha256:6be7bd78e6cb25b63e8f6f51b02616a06d781decd596a3d5e7f177c419452f5d",
-        "kind": "U",
-        "path": "docs/audits/DESIGN-LAB-CLOUD-AUDIT-2026-09-24-RAW.md"
       }
     ],
-    "worktree_digest": "sha256:3ecf69a09692e8fce44e843aaab13b93f47a8f777bc77b90a52c4591db3b7906"
+    "worktree_digest": "sha256:1a2dcf602e9cc8b5947d8abb816d8c140efd4ea77ef2dbc51c1f3da7cbd05c27"
   },
   "gitStateMeaning": "generation-time observation, not current HEAD",
   "hostLive": "derived from host_live axis only",
@@ -40,7 +35,7 @@
     "quarantinedSources": 162
   },
   "subjectMeaning": "subjectType=WORKTREE means the tree was dirty at generation; worktreeDigest covers HEAD plus the non-generated changes",
-  "subjectSha": "cb9c3ca68a4eb0a12436b719668b16aa09def600",
+  "subjectSha": "b81c28b9aa380fa8f7139bfafa52de2baa3cda13",
   "subjectType": "WORKTREE",
   "taskCounts": {
     "PARTIAL": 28
@@ -53,9 +48,9 @@
   "testRunMeaning": "bound run: python scripts/run_bound_test_suite.py --order forward --modules test_asset_store test_creative_job test_creative_ledgers test_creative_lineage test_creative_migration test_creative_version_guard test_creative_f030_f040 test_creative_session_link test_job_store test_runtime_attempt_safety test_runtime_asset_safety test_runtime_explicit_project test_assurance_qa_plane test_assurance_jury test_bundle_store test_operation_coordinator",
   "testRunResult": "OK",
   "tests": {
-    "definedTestMethodCount": 1636,
+    "definedTestMethodCount": 1662,
     "executed": "see individual verified ledger receipts"
   },
   "worktreeClean": false,
-  "worktreeDigest": "sha256:3ecf69a09692e8fce44e843aaab13b93f47a8f777bc77b90a52c4591db3b7906"
+  "worktreeDigest": "sha256:1a2dcf602e9cc8b5947d8abb816d8c140efd4ea77ef2dbc51c1f3da7cbd05c27"
 }
