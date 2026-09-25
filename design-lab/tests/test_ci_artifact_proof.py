@@ -125,7 +125,7 @@ def green_routes():
     }
 
 
-CONTRACT_RE = re.compile(r"^CI_ARTIFACT_PROOF=(PASS|BLOCKED|INCOMPLETE) checks=\d+ findings=\[.*\]$")
+CONTRACT_RE = re.compile(r"^CI_ARTIFACT_PROOF=(PASS|BLOCKED|INCOMPLETE) gate=ADVISORY checks=\d+ findings=\[.*\]$")
 
 
 class GateBase(unittest.TestCase):
@@ -171,6 +171,17 @@ class PassPathTest(GateBase):
         self.run_gate(fake)
         self.assertEqual((self.tmp / "downloads" / f"{ARTIFACT_S}.zip").read_bytes(), BYTES_S)
         self.assertEqual((self.tmp / "downloads" / f"{ARTIFACT_E2}.zip").read_bytes(), BYTES_E2)
+
+    def test_download_leg_carries_json_accept(self):
+        # api.github.com's artifact archive route negotiates Accept and
+        # answers 415 "Must accept 'application/json'" for octet-stream
+        # (DL-CLOUDAUDIT-2026-09-25 H001). The bytes are a binary zip,
+        # but the request must carry the JSON Accept the gateway requires.
+        fake = FakeFetch(green_routes())
+        self.run_gate(fake)
+        accepts = {url: accept for url, accept in fake.calls}
+        self.assertEqual(accepts[ARCHIVE_S], gate.GITHUB_JSON)
+        self.assertEqual(accepts[ARCHIVE_E2], gate.GITHUB_JSON)
 
     def test_contract_line_shape(self):
         fake = FakeFetch(green_routes())

@@ -318,11 +318,15 @@ class ArtifactReadbackTest(PreflightTestCase):
         self.assertEqual(hashlib.sha256(saved.read_bytes()).hexdigest(), ARTIFACT_DIGEST)
         self.assertEqual(result.facts["artifact_bytes"], len(ARTIFACT_BYTES))
 
-    def test_archive_is_requested_as_octet_stream(self):
+    def test_archive_is_requested_as_json_accept(self):
+        # The api.github.com artifact archive route negotiates Accept and
+        # answers 415 for octet-stream (DL-CLOUDAUDIT-2026-09-25 H001):
+        # the download leg must carry the JSON Accept even though the
+        # bytes it retrieves are a binary zip.
         fake = FakeFetch(green_routes())
         self.run_preflight_with(fake)
         accepts = {url: accept for url, accept in fake.calls}
-        self.assertEqual(accepts[ARTIFACT_URL], preflight.OCTET_STREAM)
+        self.assertEqual(accepts[ARTIFACT_URL], preflight.GITHUB_JSON)
 
     def test_explicit_run_id_is_read_back_even_when_ci_is_blocked(self):
         routes = green_routes(**{
