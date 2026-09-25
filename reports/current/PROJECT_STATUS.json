@@ -8,21 +8,61 @@
   },
   "fresh": false,
   "freshnessMeaning": "at generation only; check verifies bound-input integrity, not current Git or cloud state",
-  "generatedAt": "2026-09-25T01:58:14+00:00",
+  "generatedAt": "2026-09-25T09:43:08+00:00",
   "git": {
-    "branch": "docs/full-sweep-closeout-20260925",
-    "origin_main": "bc71fcce35b17623eff98c0508e5b8d1690ce451",
-    "sha": "bc71fcce35b17623eff98c0508e5b8d1690ce451",
+    "branch": "docs/cloud-audit-20260925-c",
+    "origin_main": "43003618e87db5da61fb6350ef5be2303af66e05",
+    "sha": "43003618e87db5da61fb6350ef5be2303af66e05",
     "source_worktree_clean": false,
-    "tracked_files": 1999,
+    "tracked_files": 2000,
     "worktree_changes": [
       {
-        "content": "sha256:60d5f5549db8e52b9fc985229192eaa17b902c860b123a7baa7b61b58a9d43a9",
+        "content": "sha256:039b98acaeb9cb2c75273b2f2c0e0f6718ce5d0b1f8f81318b33da4d851659a9",
+        "kind": "M",
+        "path": "design-lab/config/adapter-locator-inventory.json"
+      },
+      {
+        "content": "sha256:334862fabe77355b08a3d3d3d152ba7c270a292f93e264825b209dd02bae9808",
+        "kind": "M",
+        "path": "design-lab/scripts/configure_open_design_windows.py"
+      },
+      {
+        "content": "sha256:86598800007e695ea5abc56ed027ff60832b04beebc2511f50e5958489171b1a",
+        "kind": "M",
+        "path": "design-lab/scripts/doctor_open_design_windows.py"
+      },
+      {
+        "content": "sha256:9064941e08f0d5e94afc618a8565684d32c506f740eddd38ad967a946c1d7453",
+        "kind": "M",
+        "path": "design-lab/scripts/verify_adapter_locator_audit.py"
+      },
+      {
+        "content": "sha256:5fd3e4ffcef73c685a8a276e12e8309b254397c427488f48fa08c50d56410ded",
+        "kind": "M",
+        "path": "docs/LOCAL_ENVIRONMENT.md"
+      },
+      {
+        "content": "sha256:714635d38a35455243cb27bc1c925a05a652e62f925a9c9ad29284eeebce74e4",
         "kind": "U",
-        "path": "docs/audits/DESIGN-LAB-FULL-SWEEP-CLOSE-OUT-LEDGER-2026-09-25.md"
+        "path": "design-lab/scripts/resolve_open_design_locator.py"
+      },
+      {
+        "content": "sha256:3c7e7dc1da0a7a5dc11a625e5277fa6b9d9ee315c43a7a48f5e39e9e738ccec3",
+        "kind": "U",
+        "path": "design-lab/tests/test_resolve_open_design_locator.py"
+      },
+      {
+        "content": "sha256:967a159f2447a07504a5597f3de26412849fc98ad7d7a345ea921596ff544a81",
+        "kind": "U",
+        "path": "docs/audits/DESIGN-LAB-CLOUD-AUDIT-2026-09-25-CROSSWALK.md"
+      },
+      {
+        "content": "sha256:8ba4e014c74f16d9aa28ef0885ff9c63762e5b166afe4e077b20369b7e608bce",
+        "kind": "U",
+        "path": "docs/audits/DESIGN-LAB-CLOUD-AUDIT-2026-09-25-RAW.md"
       }
     ],
-    "worktree_digest": "sha256:93302ef33cd89c9dfc149e7d32135ca0b9cbbb1c4ef4fe32b9e38636fe4e070f"
+    "worktree_digest": "sha256:e4ea4fb02d9e7f684d0fd73e2a0cc42b26390ac6382d76cb85942ba3ac23df51"
   },
   "gitStateMeaning": "generation-time observation, not current HEAD",
   "hostLive": "derived from host_live axis only",
@@ -35,7 +75,7 @@
     "quarantinedSources": 162
   },
   "subjectMeaning": "subjectType=WORKTREE means the tree was dirty at generation; worktreeDigest covers HEAD plus the non-generated changes",
-  "subjectSha": "bc71fcce35b17623eff98c0508e5b8d1690ce451",
+  "subjectSha": "43003618e87db5da61fb6350ef5be2303af66e05",
   "subjectType": "WORKTREE",
   "taskCounts": {
     "PARTIAL": 28
@@ -48,9 +88,9 @@
   "testRunMeaning": "bound run: python scripts/run_bound_test_suite.py --order forward --modules test_asset_store test_creative_job test_creative_ledgers test_creative_lineage test_creative_migration test_creative_version_guard test_creative_f030_f040 test_creative_session_link test_job_store test_runtime_attempt_safety test_runtime_asset_safety test_runtime_explicit_project test_assurance_qa_plane test_assurance_jury test_bundle_store test_operation_coordinator",
   "testRunResult": "OK",
   "tests": {
-    "definedTestMethodCount": 1695,
+    "definedTestMethodCount": 1701,
     "executed": "see individual verified ledger receipts"
   },
   "worktreeClean": false,
-  "worktreeDigest": "sha256:93302ef33cd89c9dfc149e7d32135ca0b9cbbb1c4ef4fe32b9e38636fe4e070f"
+  "worktreeDigest": "sha256:e4ea4fb02d9e7f684d0fd73e2a0cc42b26390ac6382d76cb85942ba3ac23df51"
 }
