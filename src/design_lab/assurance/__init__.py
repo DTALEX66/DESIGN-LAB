@@ -5,7 +5,12 @@ This package owns the separated assurance planes of DESIGN-LAB:
 
 * :mod:`~design_lab.assurance.qa_plane` -- the QA plane split (deterministic /
   model-assisted / human) and its evidence ceilings;
-* :mod:`~design_lab.assurance.human_jury` -- the human jury record structure.
+* :mod:`~design_lab.assurance.human_jury` -- the human jury record structure;
+* :mod:`~design_lab.assurance.quality_record` -- the sealed per-artifact
+  QualityRecord (DL-CLOUDAUDIT-B3): three physically separated fields
+  ``quality.{deterministic, automated_judge, human_jury}`` that cannot overwrite
+  one another, a validator, and the guarantee that an automated judge can never
+  reach the gate or fill the human field.
 
 A knowledge-feedback candidate module was parked out of the tree by
 DL-TP-20260914-DEEPSEEK-AUTHORITY-R1::DLDS-A040: no current task requires it and
