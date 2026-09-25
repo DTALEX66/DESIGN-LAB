@@ -85,6 +85,7 @@ SCRIPTS = [
     "verify_host_e3_evidence.py",
     "verify_control_capability_matrix.py",
     "verify_adapter_locator_audit.py",
+    "verify_execution_path_gate.py",
     "verify_quality_record.py",
     "verify_readiness_host_matrix.py",
 ]
