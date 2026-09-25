@@ -1,5 +1,10 @@
 # DESIGN-LAB 最终执行任务包
 
+> **SUPERSEDED（历史任务包）**：本包已被 09-18 FINAL-AUTHORITY-CONVERGENCE
+> TaskPack（`DL-TP-20260918-FINAL-AUTHORITY-CONVERGENCE-R2`）取代，仅为历史
+> 证据保留；不作为 current 任务入口。当前唯一入口见 `AGENTS.md` 与
+> `.project/governance/authority-index.json`。
+
 - TaskPack ID：`DLR-FINAL-20260826-R2-OSS-FAST-TRACK`
 - 目标仓库：[DTALEX66/DESIGN-LAB](https://github.com/DTALEX66/DESIGN-LAB)
 - 审计基线：`main@38d322affaec163e7c7ca0e3610042285aab1f0f`
