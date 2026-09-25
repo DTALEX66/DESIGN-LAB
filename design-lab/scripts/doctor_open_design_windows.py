@@ -17,10 +17,16 @@ import os
 import shutil
 import socket
 import subprocess
+import sys
 import tomllib
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
+
+# Sibling shared locator module (keeps the Open Design machine-location assumption
+# in exactly one place; see design-lab/config/adapter-locator-inventory.json).
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from resolve_open_design_locator import resolve_open_design_exe, resolver_receipt  # noqa: E402
 
 DEFAULT_MODEL = "gpt-5.6-luna"
 DEFAULT_PORTS = (5294, 5499)
@@ -43,8 +49,12 @@ def default_config_path() -> Path:
     return Path(appdata) / "Open Design" / "namespaces" / "release-stable-win" / "data" / "app-config.json"
 
 
-def default_open_design_exe() -> Path:
-    return Path(r"D:\Programs\Open Design\Open Design.exe")
+def default_open_design_exe() -> Path | None:
+    """Fail-closed default: explicit env / PATH resolution, no hard-coded machine
+    install location (cloud audit 2026-09-25 Prompt B slice; replaces the
+    previous owner-machine default)."""
+    res = resolve_open_design_exe(None)
+    return res.path
 
 
 def default_codex_home() -> Path:
@@ -123,9 +133,16 @@ def git_clean(project_root: Path) -> tuple[bool, str]:
 def diagnose(args: argparse.Namespace) -> list[Check]:
     project_root = Path(args.project_root).resolve()
     config_path = Path(args.config)
-    open_design_exe = Path(args.open_design_exe)
+    # Fail-closed exe resolution (cloud audit 2026-09-25 Prompt B): explicit
+    # --open-design-exe wins; otherwise the shared locator (env OPEN_DESIGN_EXE,
+    # then PATH). When unresolved the doctor reports it, never assumes a path.
+    open_design_exe = (
+        Path(args.open_design_exe)
+        if args.open_design_exe
+        else resolve_open_design_exe(None).path
+    )
     codex_home = Path(args.codex_home)
-    launcher = Path(args.launcher) if args.launcher else open_design_exe.with_name("Open Design - GPT Codex Proxy.bat")
+    launcher = Path(args.launcher) if args.launcher else (open_design_exe.with_name("Open Design - GPT Codex Proxy.bat") if open_design_exe else Path("Open Design - GPT Codex Proxy.bat"))
 
     config, config_status = read_json(config_path)
     codex_bin = find_codex_bin(config, args.codex_bin)
@@ -136,7 +153,10 @@ def diagnose(args: argparse.Namespace) -> list[Check]:
 
     checks = [
         Check("project root exists", project_root.exists(), str(project_root)),
-        Check("Open Design executable exists", open_design_exe.exists(), str(open_design_exe)),
+        Check("Open Design executable exists",
+              (open_design_exe.exists() if open_design_exe is not None else False),
+              (str(open_design_exe) if open_design_exe is not None
+               else "UNRESOLVED (fail-closed; no download attempted) — " + resolver_receipt(None).splitlines()[0])),
         Check("app-config.json valid", config is not None, f"{config_path} ({config_status})"),
         Check("agentId is codex", (config or {}).get("agentId") == "codex", str((config or {}).get("agentId"))),
         Check("default model configured", model == args.expected_model, str(model)),
@@ -168,7 +188,9 @@ def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Read-only safe doctor for Open Design + DESIGN-LAB on Windows.")
     parser.add_argument("--project-root", default=str(Path.cwd()), help="DESIGN-LAB clone")
     parser.add_argument("--config", default=str(default_config_path()), help="Open Design app-config.json")
-    parser.add_argument("--open-design-exe", default=str(default_open_design_exe()), help="Open Design.exe path")
+    parser.add_argument("--open-design-exe", default=None,
+                        help="Open Design.exe path; when omitted, resolved via the "
+                             "shared fail-closed locator (env OPEN_DESIGN_EXE, then PATH)")
     parser.add_argument("--codex-bin", default=None, help="Optional explicit codex.exe/codex.cmd path")
     parser.add_argument("--codex-home", default=str(default_codex_home()), help="Codex home")
     parser.add_argument("--launcher", default=None, help="Optional launcher .bat path")

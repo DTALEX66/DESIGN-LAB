@@ -37,9 +37,9 @@
       "line": 49,
       "kind": "violation",
       "reason": "drive-rooted path/exe",
-      "classification": "hardcoded-default: default_open_design_exe() returns D:\\Programs\\Open Design\\Open Design.exe — a specific install drive/location that only holds on the owner's machine; overridable via --open-design-exe but the *default* assumes this machine's layout",
+      "classification": "refactored-locator: hardcoded-default: default_open_design_exe() returns D:\\Programs\\Open Design\\Ope — REFACTORED 2026-09-25 (cloud audit DL-CLOUD-2026-09-25 Prompt B agent slice): the hard-coded owner-machine default was replaced by the shared fail-closed locator design-lab/scripts/resolve_open_design_locator.py (env OPEN_DESIGN_EXE -> PATH, fail-closed with an actionable receipt; no download/clone/install; Win32 App Paths registry probe remains a documented owner-gated extension). Un-pinned: the live violation is removed, so this entry is historical triage, not a live guard.",
       "recommended_locator": "locator refactor: resolve in priority order — env OPEN_DESIGN_EXE, Win32 registry App Paths (Open Design key), shutil.which on PATH; fail closed with an actionable message when none exists (mirrors the Codex CLI auto-detection already done by find_codex_bin). Refactor is the owner-gated TaskPack handoff this inventory defines; the entry is un-pinned when the refactor lands.",
-      "pinned": true
+      "pinned": false
     },
     {
       "id": "48694a6de9f2317d",
@@ -87,9 +87,9 @@
       "line": 47,
       "kind": "violation",
       "reason": "drive-rooted path/exe",
-      "classification": "hardcoded-default: default_open_design_exe() returns D:\\Programs\\Open Design\\Open Design.exe — the same machine-layout assumption as configure_open_design_windows.py:49, duplicated here instead of imported",
+      "classification": "refactored-locator: hardcoded-default: default_open_design_exe() returns D:\\Programs\\Open Design\\Ope — REFACTORED 2026-09-25 (cloud audit DL-CLOUD-2026-09-25 Prompt B agent slice): the hard-coded owner-machine default was replaced by the shared fail-closed locator design-lab/scripts/resolve_open_design_locator.py (env OPEN_DESIGN_EXE -> PATH, fail-closed with an actionable receipt; no download/clone/install; Win32 App Paths registry probe remains a documented owner-gated extension). Un-pinned: the live violation is removed, so this entry is historical triage, not a live guard.",
       "recommended_locator": "same locator refactor as the configure entry (env OPEN_DESIGN_EXE → registry App Paths → PATH, fail closed); deduplicate the helper into a shared module so the assumption exists in exactly one place",
-      "pinned": true
+      "pinned": false
     }
   ]
 }

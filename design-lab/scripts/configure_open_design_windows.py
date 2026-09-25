@@ -23,9 +23,15 @@ import argparse
 import json
 import os
 import shutil
+import sys
 from datetime import datetime
 from pathlib import Path
 from typing import Any
+
+# Sibling shared locator module (keeps the Open Design machine-location assumption
+# in exactly one place; see design-lab/config/adapter-locator-inventory.json).
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from resolve_open_design_locator import resolve_open_design_exe, resolver_receipt  # noqa: E402
 
 DEFAULT_MODEL = "gpt-5.5"
 DEFAULT_PROXY = "http://127.0.0.1:7890"
@@ -45,8 +51,12 @@ def default_config_path() -> Path:
     return Path(appdata) / "Open Design" / "namespaces" / "release-stable-win" / "data" / "app-config.json"
 
 
-def default_open_design_exe() -> Path:
-    return Path(r"D:\Programs\Open Design\Open Design.exe")
+def default_open_design_exe() -> Path | None:
+    """Fail-closed default: explicit env / PATH resolution, no hard-coded machine
+    install location (cloud audit 2026-09-25 Prompt B slice; replaces the
+    previous owner-machine default)."""
+    res = resolve_open_design_exe(None)
+    return res.path
 
 
 def default_codex_home() -> Path:
@@ -111,7 +121,7 @@ def build_project_location(project_root: Path) -> dict[str, Any]:
     return {"id": LOCATION_ID, "name": "DESIGN-LAB", "path": str(project_root)}
 
 
-def build_plan(project_root: Path, config_path: Path, open_design_exe: Path,
+def build_plan(project_root: Path, config_path: Path, open_design_exe: Path | None,
                codex_bin: str | None, codex_home: Path, proxy: str | None,
                model: str, launcher: Path, auth_present: bool, version: str) -> dict[str, Any]:
     """Assemble the exact config/launcher plan WITHOUT writing anything.
@@ -135,9 +145,12 @@ def build_plan(project_root: Path, config_path: Path, open_design_exe: Path,
     launcher_lines.extend([
         f'set "CODEX_BIN={codex_bin}"',
         f'set "CODEX_HOME={codex_home}"',
-        f'start "Open Design" "{open_design_exe}"',
-        "",
     ])
+    if open_design_exe is not None:
+        launcher_lines.append(f'start "Open Design" "{open_design_exe}"')
+    else:
+        launcher_lines.append('rem Open Design exe UNRESOLVED (fail-closed). Set OPEN_DESIGN_EXE or register it in App Paths/PATH, then apply manually.')
+    launcher_lines.append("")
 
     return {
         "schemaVersion": "design-lab/config-plan/v1",
@@ -156,7 +169,7 @@ def build_plan(project_root: Path, config_path: Path, open_design_exe: Path,
             "content": "\r\n".join(launcher_lines),
         },
         "detected": {
-            "open_design_exe": str(open_design_exe),
+            "open_design_exe": str(open_design_exe) if open_design_exe is not None else None,
             "config_path": str(config_path),
             "codex_bin": codex_bin,
             "codex_home": str(codex_home),
@@ -173,7 +186,9 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--project-root", default=str(DEFAULT_PROJECT_ROOT),
                         help="Exact DESIGN-LAB directory (must be an explicit project path, never a wide root)")
     parser.add_argument("--config", default=str(default_config_path()), help="Open Design app-config.json path (reported for manual apply only)")
-    parser.add_argument("--open-design-exe", default=str(default_open_design_exe()), help="Open Design.exe path")
+    parser.add_argument("--open-design-exe", default=None,
+                        help="Open Design.exe path; when omitted, resolved via the "
+                             "shared fail-closed locator (env OPEN_DESIGN_EXE, then PATH)")
     parser.add_argument("--codex-bin", default=None, help="Native codex.exe/codex.cmd path; auto-detected when omitted")
     parser.add_argument("--codex-home", default=str(default_codex_home()), help="Codex home (presence-only OAuth check)")
     parser.add_argument("--model", default=DEFAULT_MODEL, help="Codex model shown in Open Design")
@@ -226,12 +241,23 @@ def main() -> None:
 
     version = smoke_codex(codex_bin, codex_home) if codex_bin else "(not found; plan-only)"
 
-    launcher = Path(args.launcher) if args.launcher else Path(args.open_design_exe).with_name("Open Design - GPT Codex Proxy.bat")
+    # Fail-closed Open Design exe resolution (cloud audit 2026-09-25 Prompt B):
+    # explicit --open-design-exe wins; otherwise env OPEN_DESIGN_EXE / PATH;
+    # when unresolved the plan records it honestly instead of assuming a
+    # machine path. No download, no install.
+    open_design_exe = (
+        Path(args.open_design_exe)
+        if args.open_design_exe
+        else resolve_open_design_exe(None).path
+    )
+    if open_design_exe is None:
+        print(f"OPEN_DESIGN_EXE_UNRESOLVED (fail-closed; no download attempted). {resolver_receipt(None)}")
 
+    launcher = Path(args.launcher) if args.launcher else (open_design_exe.with_name("Open Design - GPT Codex Proxy.bat") if open_design_exe else Path("Open Design - GPT Codex Proxy.bat"))
     plan = build_plan(
         project_root=project_root,
         config_path=config_path,
-        open_design_exe=Path(args.open_design_exe),
+        open_design_exe=open_design_exe,
         codex_bin=codex_bin,
         codex_home=codex_home,
         proxy=None if args.no_proxy else DEFAULT_PROXY,

@@ -62,6 +62,7 @@ SCAN_FILES = [
     "src/design_lab/runtime/paths.py",
     "design-lab/scripts/configure_open_design_windows.py",
     "design-lab/scripts/doctor_open_design_windows.py",
+    "design-lab/scripts/resolve_open_design_locator.py",
     "design-lab/scripts/scaffold_open_design_plugin.py",
     "design-lab/scripts/verify_illustrator_reconstruction_adapter.py",
     "design-lab/scripts/verify_photoshop_reconstruction_adapter.py",

@@ -40,8 +40,9 @@
 
 ## 接续入口
 
-- [当前 R3 任务包](taskpacks/DESIGN-LAB-CLOUD-REAUDIT-TASKPACK-2026-09-06.md)
-- [GPT 高难度接续包](taskpacks/DESIGN-LAB-GPT-REMAINING-2026-09-06.md)
+- [当前统一剩余任务入口（唯一 current integrated TaskPack）](taskpacks/DESIGN-LAB-FINAL-AUTHORITY-CONVERGENCE-TASKPACK-2026-09-18.md)
+- [SUPERSEDED · 09-06 云端复审任务包（历史指针，不作为 current 入口）](taskpacks/DESIGN-LAB-CLOUD-REAUDIT-TASKPACK-2026-09-06.md)
+- [GPT 高难度接续包](taskpacks/DESIGN-LAB-GPT-REMAINING-2026-09-06.md)（资料证据，不自动改项目任务状态）
 - [DP 修订综合交接](handoffs/GPT-R3-REVISION-HANDOFF-2026-09-06.md)（资料证据，不自动改项目任务状态）
 
 知识迁移仍延后；仓外路径登记不等于迁移、写入共享库或发布授权。
