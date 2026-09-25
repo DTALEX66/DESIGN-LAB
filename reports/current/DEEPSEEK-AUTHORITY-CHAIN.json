@@ -1,10 +1,10 @@
 {
   "schemaVersion": "design-lab/deepseek-authority-chain/v1",
   "task_key": "DL-TP-20260914-DEEPSEEK-AUTHORITY-R1::DLDS-A010",
-  "generated_at": "2026-09-22T14:19:26+00:00",
+  "generated_at": "2026-09-25T17:08:38+00:00",
   "subject": {
-    "base_sha": "27cc40f8515a74640ca83e256e2502eb008b65a1",
-    "branch": "codex/design-lab-audit-20260922",
+    "base_sha": "6da1740606291b91901cd921ba32d831a911b03b",
+    "branch": "feat/context-capsule-f",
     "worktree_clean": false
   },
   "current_authority": {
@@ -107,8 +107,8 @@
     "ACTIVE_PRODUCT_PACK": 12,
     "CURRENT_DEEPSEEK_AUTHORITY": 2,
     "GOVERNANCE_TRUTH": 2,
-    "HISTORICAL": 14,
-    "REFERENCE": 12
+    "HISTORICAL": 16,
+    "REFERENCE": 10
   },
   "entries": [
     {
@@ -351,17 +351,17 @@
     },
     {
       "path": "docs/taskpacks/DESIGN-LAB-FINAL-TASKPACK-2026-08-25-2.md",
-      "bytes": 26916,
-      "sha256": "sha256:9dc46b7106459c9561cf987e0bb74ab7e04f65b498f57371d4aa2f1db279b307",
-      "authority_class": "REFERENCE",
-      "basis": "older taskpack retained for reference; not a current dispatch entry"
+      "bytes": 27225,
+      "sha256": "sha256:14f359938707f2389e5a2e13b048ab4436b7f05fe2278c34e115577d022e2f62",
+      "authority_class": "HISTORICAL",
+      "basis": "the file itself carries a SUPERSEDED/HISTORICAL marker"
     },
     {
       "path": "docs/taskpacks/DESIGN-LAB-FINAL-TASKPACK-2026-08-25.md",
-      "bytes": 30290,
-      "sha256": "sha256:052eae492b4d7ef79c769c7db84f1cb8cdd37a9bcca8225ebbc920e7bc44e9f1",
-      "authority_class": "REFERENCE",
-      "basis": "older taskpack retained for reference; not a current dispatch entry"
+      "bytes": 30599,
+      "sha256": "sha256:83c4d2b09cffe74537b0e4e8f06f690923aecbf7c066ce6308ee0bddbe091905",
+      "authority_class": "HISTORICAL",
+      "basis": "the file itself carries a SUPERSEDED/HISTORICAL marker"
     },
     {
       "path": "docs/taskpacks/DESIGN-LAB-GPT-REMAINING-2026-09-06.md",
