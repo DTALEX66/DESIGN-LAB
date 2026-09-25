@@ -85,6 +85,7 @@ SCRIPTS = [
     "verify_host_e3_evidence.py",
     "verify_control_capability_matrix.py",
     "verify_adapter_locator_audit.py",
+    "verify_readiness_host_matrix.py",
 ]
 
 # Release-time gate: invoked separately with a release-evidence file argument.
@@ -116,6 +117,17 @@ RECONSTRUCTION_RELEASE_VERIFIER = "verify_reconstruction_release.py"
 # checkout reports PASS and exits 0. It only turns red if someone commits a
 # matrix that declares a capability outrunning its evidence or bypasses
 # licensing — the "能点软件≠集成" trap this batch closes.
+# DL-CLOUDAUDIT-H001 adds design-lab/scripts/verify_ci_artifact_proof.py:
+# the main-branch CI artifact proof (real GitHub API readback of this run's
+# own uploads: run/SHA identity, /actions/runs/<id>/artifacts query,
+# download + sha256, bound proof record). It is deliberately NOT appended to
+# SCRIPTS, for the same reason as verify_release_preflight.py above: it
+# needs a GITHUB_TOKEN and live network, and it reports INCOMPLETE
+# (non-zero) whenever the upload has not been indexed yet, so running it in
+# this daily/structural chain would turn a re-queryable lag into a red
+# gate. canonical-verify.yml invokes it as its own non-required
+# ci-artifact-proof job (additive, on top of the existing required checks;
+# H003 promotion to a required check stays an owner step).
 
 # E1 确定性检查（DL-QLT-001 / DL-PRD-001），以参数化方式运行
 EXTRA_CHECKS = [

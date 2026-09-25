@@ -52,6 +52,16 @@
         "status": {"enum": ["pending", "completed", "unavailable"]},
         "boundary": {"const": "not-authoritative-before-completed-human-review"}
       }
+    },
+    "evidence_id": {
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$",
+      "description": "DL-CLOUDAUDIT-B5 (R13): the canonical sha256 of this record's substantive fields (every field except evidence_id and supersedes). A committed id that no longer matches the content is an in-place overwrite of the record and must fail the gate. Required on any record with card_status 'accepted' and on every record that participates in a supersedes chain."
+    },
+    "supersedes": {
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$",
+      "description": "DL-CLOUDAUDIT-B5 (R13): append-only revision. The evidence_id of the earlier record of the same card_id that this record supersedes; revisions append a record, they never rewrite the superseded one. A card_id's records form one linear chain (one genesis without supersedes, no forks, no cycles, no dangling links)."
     }
   }
 }
