@@ -463,8 +463,11 @@ def check_artifact(
     if not archive_url:
         rep.blocked(f"ARTIFACT-NO-ARCHIVE-URL name={artifact_name}")
         return
+    # The api.github.com artifact archive route negotiates Accept and
+    # answers 415 for octet-stream; the zip body is unchanged, so the JSON
+    # Accept is required even though the bytes are binary.
     download = api_request(
-        fetch_fn, token, archive_url, rep, f"artifact archive {artifact_name}", accept=OCTET_STREAM
+        fetch_fn, token, archive_url, rep, f"artifact archive {artifact_name}", accept=GITHUB_JSON
     )
     if download is None:
         return

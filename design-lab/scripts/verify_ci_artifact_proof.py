@@ -148,7 +148,16 @@ fetch = _preflight.fetch
 FetchResponse = _preflight.FetchResponse
 FetchUnavailable = _preflight.FetchUnavailable
 GITHUB_JSON = _preflight.GITHUB_JSON
-OCTET_STREAM = _preflight.OCTET_STREAM
+# ---------------------------------------------------------------------------
+# Download-leg Accept fix (DL-CLOUDAUDIT-2026-09-25 H001 / Prompt G):
+# the api.github.com artifact archive endpoint (archive_download_url) is an
+# API route that negotiates Accept -- it answers 415 "Must accept
+# 'application/json'" for octet-stream. The zip body is what comes back
+# either way, but the request must carry the JSON Accept the gateway
+# requires. Verified live: octet-stream -> 415; GITHUB_JSON -> 200 + zip.
+# The octet-stream constant was re-exported here only for the download leg;
+# the release-asset leg keeps its own constant in verify_release_preflight.
+# ---------------------------------------------------------------------------
 api_digest = _preflight.api_digest
 run_artifacts_url = _preflight.run_artifacts_url
 
@@ -193,8 +202,12 @@ class Report:
         return "PASS"
 
     def contract_line(self) -> str:
+        # gate=ADVISORY marks this lane as observability-only (Prompt G #5/#6):
+        # it is never part of the required-green signal, so a red lane must
+        # never be readable as "main is red". The release layer's own
+        # artifact proof stays fail-closed independently of this marking.
         return (
-            f"CI_ARTIFACT_PROOF={self.status()} checks={self.checks} "
+            f"CI_ARTIFACT_PROOF={self.status()} gate=ADVISORY checks={self.checks} "
             f"findings={json.dumps(self.findings, ensure_ascii=False)}"
         )
 
@@ -327,7 +340,10 @@ def check_artifact(
 
 def _get_download(fetch_fn: Fetcher, url: str, token: str | None) -> FetchResponse | None:
     try:
-        return fetch_fn(url, token=token, accept=OCTET_STREAM)
+        # The api.github.com artifact archive route negotiates Accept and
+        # answers 415 for octet-stream; the zip body is unchanged, so the
+        # JSON Accept is required even though the bytes are binary.
+        return fetch_fn(url, token=token, accept=GITHUB_JSON)
     except FetchUnavailable:
         return None
 
@@ -347,6 +363,7 @@ def write_proof(
     """Persist the run/SHA-bound proof record (gitignored runtime dir)."""
     document = {
         "schemaVersion": "design-lab/ci-artifact-proof/v1",
+        "gate": "ADVISORY",
         "audit": "DL-CLOUDAUDIT-H001 (FINAL TaskPack section H: main-run artifact proof)",
         "repo": repo,
         "runId": str(run_id),

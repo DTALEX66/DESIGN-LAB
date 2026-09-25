@@ -358,11 +358,18 @@ jobs:
     # proved those uploads reached GitHub with identical bytes bound to this
     # exact run/SHA. This job runs that proof after both uploaders.
     #
-    # Deliberately NON-required (additive, on top of the existing required
-    # checks): the gate is tri-state and INCOMPLETE whenever the Actions API
-    # has not indexed the upload yet -- a re-dispatch of this job is the
-    # recovery, never a silently-rewritten PASS. Promoting it to a required
-    # check is H003 / an owner step, not part of this landing.
+    # Deliberately NON-required / ADVISORY (additive, on top of the existing
+    # required checks): the gate is tri-state and INCOMPLETE whenever the
+    # Actions API has not indexed the upload yet -- a re-dispatch of this job
+    # is the recovery, never a silently-rewritten PASS. Promoting it to a
+    # required check is H003 / an owner step, not part of this landing.
+    #
+    # Advisory isolation (DL-CLOUDAUDIT-2026-09-25 H001 / Prompt G #5/#6):
+    # the gate's contract line and proof record carry an explicit
+    # gate=ADVISORY marker so a red advisory lane can never be read as "main
+    # is red" in the required-green signal; reports distinguish
+    # required_gate / advisory_gate / proof_incomplete. The release layer's
+    # own artifact proof stays fail-closed independently of this marking.
     #
     # Runs on every outcome of the uploaders (`if: always()`), not only on
     # green: both uploader jobs persist their artifacts with `if: always()`,
