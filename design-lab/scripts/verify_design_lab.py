@@ -85,6 +85,7 @@ SCRIPTS = [
     "verify_host_e3_evidence.py",
     "verify_control_capability_matrix.py",
     "verify_quality_record.py",
+    "verify_readiness_host_matrix.py",
 ]
 
 # Release-time gate: invoked separately with a release-evidence file argument.
