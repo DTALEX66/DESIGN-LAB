@@ -88,6 +88,7 @@ SCRIPTS = [
     "verify_execution_path_gate.py",
     "verify_quality_record.py",
     "verify_readiness_host_matrix.py",
+    "verify_context_integrity.py",
 ]
 
 # Release-time gate: invoked separately with a release-evidence file argument.

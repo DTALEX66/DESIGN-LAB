@@ -1,5 +1,9 @@
 # R3 Codex 运行时修复进展 — 2026-09-06
 
+> **SUPERSEDED（历史快照）**：本报告为 B030 阶段的 superseded 历史检查点，
+> 不作为 current 任务入口；当前唯一入口见 `AGENTS.md` 与
+> `.project/governance/authority-index.json`。
+
 > 历史检查点：以下状态与测试数保留原观察范围。后续 R3-01 已完成本地验收，
 > R3-05 的依赖已满足，R3-02 路径切片已有新增验证。当前状态请以
 > [生成账本投影](PROJECT_STATUS.md) 为准，不将本快照重新解释为新实机测试。
