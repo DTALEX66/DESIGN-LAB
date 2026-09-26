@@ -16,5 +16,5 @@
     "verbatimModuleSyntax": true,
     "skipLibCheck": true
   },
-  "include": ["main.ts", "contracts.ts"]
+  "include": ["main.ts", "contracts.ts", "workbench.ts", "design.ts", "shell.ts"]
 }
