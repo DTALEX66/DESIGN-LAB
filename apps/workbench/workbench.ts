@@ -103,7 +103,7 @@ export function resetProject() {
                     'design-briefs', 'design-directions', 'design-bindings',
                     'brief-lineage', 'direction-lineage'])
     byId<HTMLUListElement>(id).replaceChildren();
-    // F-2b: a project switch also drops the design-layer revision state + its DOM,
+  // F-2b: a project switch also drops the design-layer revision state + its DOM,
   // which design.js owns. The single cross-module call below keeps cross-module
   // state writes at zero (everything else resetProject clears is workbench-local).
   resetDesignRevision();

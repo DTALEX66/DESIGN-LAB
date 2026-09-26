@@ -501,7 +501,7 @@ export async function loadDirectionLineage(directionId: string) {
 // 5 design revision/highlight state vars + the design-layer DOM. Lives in design.js
 // (the owner) so the split keeps cross-module state writes at zero.
 export function resetDesignRevision() {
-// F-2b: a project switch drops the in-flight revision target, the version
+  // F-2b: a project switch drops the in-flight revision target, the version
   // highlight and both chains — nothing from the previous project stays
   // visible as if it were the current project's state.
   revisionBriefTarget = revisionDirectionTarget = null;
