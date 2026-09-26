@@ -1,16 +1,32 @@
 {
   "checkScope": "bound-input-and-output-integrity; not current Git or cloud freshness",
-  "generatedAt": "2026-09-26T00:44:56+00:00",
+  "generatedAt": "2026-09-26T11:39:11+00:00",
   "gitObservation": {
-    "branch": "main",
-    "origin_main": "f1fbbb377b1758923e1a5f1058b1b5e9dcb93c38",
-    "sha": "f1fbbb377b1758923e1a5f1058b1b5e9dcb93c38",
-    "source_worktree_clean": true,
-    "tracked_files": 2017,
-    "worktree_changes": [],
-    "worktree_digest": "sha256:befeb56624e965b2d3dd8f66b275b1ad985cd5eaba95b5c0f639231a61cc0359"
+    "branch": "docs/full-sweep-closure-2026-09-26",
+    "origin_main": "f9d885e62dda64ac929a326dd238e833f09eb11f",
+    "sha": "f9d885e62dda64ac929a326dd238e833f09eb11f",
+    "source_worktree_clean": false,
+    "tracked_files": 2019,
+    "worktree_changes": [
+      {
+        "content": "sha256:7531838c75adb6659a8b82bd6d39e7a381b4c1275cfba9bc8d088c27bb285b50",
+        "kind": "M",
+        "path": "AGENTS.md"
+      },
+      {
+        "content": "sha256:e4bb26916271ba7904b261d623cf70202a2e3c915a6f4d1436a9bcb726304e55",
+        "kind": "U",
+        "path": "docs/audits/DESIGN-LAB-FULL-SWEEP-CLOSE-OUT-LEDGER-2026-09-26.md"
+      },
+      {
+        "content": "sha256:bf02d1dca52c54601efaa8765bfd874bfbaa9623094891c01d9b0cc33e8ad288",
+        "kind": "U",
+        "path": "docs/decisions/K-CASE-SELECTION-RECORD-2026-09-26.md"
+      }
+    ],
+    "worktree_digest": "sha256:3103dd9ed32a9b86fa504d6e3957851238dd2b6b3522d84a56ed1bd3cb42d6c4"
   },
-  "inputDigest": "sha256:5a5d7c91f510099eada685569233ad8bc9867c0e68f27f48bfd6ee5edc09e822",
+  "inputDigest": "sha256:26fc0590fbc3e8708eb658eecde58b142fbc734cdf1626c9e692f730af409f9f",
   "inputDigestMeaning": "primary freshness binding: canonical SHA-256 over the exact input files the projections read plus the git tree scope; recomputed at check time (FU-10)",
   "inputHashes": {
     ".project-local/task-artifacts/comfy-http-live-bb63046b6f444fe9a7a96d0bf66f949b/result.json": "0c7a831cf5fd68a863666d127812f6e9c5d7636b2ed104cc34c648ee6bcaa309",
@@ -261,15 +277,15 @@
   },
   "ledger": "design-lab/config/task-ledger-r3.json",
   "outputHashes": {
-    "ADAPTER_EVIDENCE_RECONCILIATION.json": "cf6f091e19398b6bb70523e34fc426428b22d367446ec79a29e2ffc11186ed6a",
-    "CLOUD_BASELINE.json": "7a700307d7244080ae51bdcaafc36b5d05a4ede5d7ec30ad79512328e62de01e",
-    "CLOUD_BASELINE.md": "15d86ac91713ba7b970c85747ee5975ae25edd2e6db4e42f1fe7fe471ffb279e",
-    "DOMAIN_PACK_READINESS.json": "a927e5985e696dc2ac57f725ab3dd960e3e42dde2f7881b82737f46d2f924a47",
-    "KNOWLEDGE_INVENTORY.json": "b18b8c3445ea159019e9a112b3c12636f7b2a3b777f6aa986d6d29432630d35c",
-    "PROJECT_STATUS.json": "2658a40e874f6ae489a54fae60477a25e6664936283cb7c841d9904dc2b0a7a8",
-    "PROJECT_STATUS.md": "9935f5a033e311a20afcc233930bbb94439e7d149a1193985de9f207c0faa093",
-    "RELEASE_READINESS.json": "4b8099e4e11cccf4611177d70965ddf63588a5a38abe27482f06c296f928a669",
-    "TASK_PROGRESS.json": "466b405664417e77e3eda08398cdc9e21c9b72d13b7a4dac2a1f873a7bc31a85"
+    "ADAPTER_EVIDENCE_RECONCILIATION.json": "67fee20daed792366de7c7b91c39e4e60f3195256c65d141534af0387cd5246a",
+    "CLOUD_BASELINE.json": "315499a36cbc89f352e8f4d9ff375e1ecd08dec6d583d5770a8040279a82c73a",
+    "CLOUD_BASELINE.md": "46e1c2c349e309e9bbd3167073be207394a6f1479bd0cfcd19da4d7a29730ccf",
+    "DOMAIN_PACK_READINESS.json": "dcbbe250585d11923d2fa7118f5f2832e00153ea594a4b6477ce789b32281f2d",
+    "KNOWLEDGE_INVENTORY.json": "77739910ca60490223a8bc4d4b42844884eac081748d3ac2136546c41df17400",
+    "PROJECT_STATUS.json": "b8e00152da188328b72281895e2fd08432e8441d23d7b154dde8ce26c234f9a9",
+    "PROJECT_STATUS.md": "dd24103f394c32b264d6cb16b0c3902e26071e78d596ea5831f405587e0ca2fd",
+    "RELEASE_READINESS.json": "784aa08777ec3f33aba9d9c1a599c22e48aa202cb925c5b2456c5b628355bfce",
+    "TASK_PROGRESS.json": "f2d5cacb06d4ac0a7e91fc9debec6231a6e06768bb3892e0e83dbd0f1785fdfe"
   },
   "reportRoot": "../../reports/current/",
   "reports": [
@@ -285,5 +301,5 @@
   ],
   "schemaVersion": "design-lab/current-report-index/v3",
   "subjectMeaning": "generation-time git observation, not a freshness claim; exact-SHA evidence is the CI artifact",
-  "subjectSha": "f1fbbb377b1758923e1a5f1058b1b5e9dcb93c38"
+  "subjectSha": "f9d885e62dda64ac929a326dd238e833f09eb11f"
 }
