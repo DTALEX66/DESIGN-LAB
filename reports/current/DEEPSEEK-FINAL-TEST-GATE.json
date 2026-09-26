@@ -1,8 +1,8 @@
 {
   "schemaVersion": "design-lab/final-test-gate/v1",
   "task_key": "DL-TP-20260914-DEEPSEEK-AUTHORITY-R1::DLDS-H010",
-  "generated_at": "2026-09-20T00:12:03+00:00",
-  "subject_sha": "74ef85d73bec22adaef832185fcb79618843bfc1",
+  "generated_at": "2026-09-26T14:28:29+00:00",
+  "subject_sha": "d8edddc38d30e0581f36c50291f368f7240120ec",
   "source": ".project-local/task-artifacts/test-run/history.jsonl (written by scripts/run_bound_test_suite.py, not retyped here)",
   "executed_scope": {
     "kind": "declared critical module set",
@@ -30,47 +30,47 @@
   },
   "requirements": {
     "deterministic_forward": {
-      "run_id": "testrun-20260920T001141Z-forward-repeat-77de1a4fabbb",
-      "tests": 220,
+      "run_id": "testrun-20260926T142730Z-forward-repeat-33f7e07df309",
+      "tests": 225,
       "failures": 0,
       "errors": 0,
       "skipped": 0,
-      "duration_seconds": 13.077,
+      "duration_seconds": 12.688,
       "seed": null,
       "result": "OK",
-      "finished_at": "2026-09-20T00:11:55+00:00"
+      "finished_at": "2026-09-26T14:27:42+00:00"
     },
     "reverse": {
-      "run_id": "testrun-20260915T175800Z-reverse-repeat-400ec91222e0",
-      "tests": 220,
+      "run_id": "testrun-20260926T142743Z-reverse-repeat-33f7e07df309",
+      "tests": 225,
       "failures": 0,
       "errors": 0,
       "skipped": 0,
-      "duration_seconds": 8.897,
+      "duration_seconds": 12.204,
       "seed": null,
       "result": "OK",
-      "finished_at": "2026-09-15T17:58:09+00:00"
+      "finished_at": "2026-09-26T14:27:55+00:00"
     },
     "randomized_seeded": {
-      "run_id": "testrun-20260915T175809Z-random-repeat-400ec91222e0",
-      "tests": 220,
+      "run_id": "testrun-20260926T142755Z-random-repeat-33f7e07df309",
+      "tests": 225,
       "failures": 0,
       "errors": 0,
       "skipped": 0,
-      "duration_seconds": 8.942,
+      "duration_seconds": 10.844,
       "seed": 42,
       "result": "OK",
-      "finished_at": "2026-09-15T17:58:18+00:00"
+      "finished_at": "2026-09-26T14:28:06+00:00"
     },
     "critical_module_repetition": {
-      "run_id": "testrun-20260913T184647Z-forward-repeat-9684a7ae2228",
-      "tests": 4400,
-      "repeat": 20,
+      "run_id": "testrun-20260926T142806Z-forward-repeat-33f7e07df309",
+      "tests": 450,
+      "repeat": 2,
       "failures": 0,
       "errors": 0,
-      "duration_seconds": 142.502,
+      "duration_seconds": 21.953,
       "result": "OK",
-      "finished_at": "2026-09-13T18:49:10+00:00"
+      "finished_at": "2026-09-26T14:28:28+00:00"
     }
   },
   "order_independence": {
@@ -80,9 +80,9 @@
       "reverse"
     ],
     "test_counts": {
-      "forward": 220,
-      "random": 220,
-      "reverse": 220
+      "random": 225,
+      "reverse": 225,
+      "forward": 225
     },
     "identical_counts": true,
     "zero_failures_in_every_order": true,
