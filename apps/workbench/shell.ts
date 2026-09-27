@@ -772,15 +772,15 @@ function mountB10Sidebar(): void {
       el('div', {},
         el('strong', {}, 'Alex'),
         el('small', {}, 'Personal Workspace'))));
-  document.body.append(b10Nav);
-
   // ambient + grid-bg glow layers (B10 .app grid layout host).
+  // b10Nav is already inside appGrid (appGrid.append above), so a single
+  // body.append(appGrid) moves the whole subtree — no replaceChild needed.
   const appGrid = el('div', { class: 'b10-app-grid' });
   appGrid.append(
     el('div', { class: 'ambient' }),
     el('div', { class: 'grid-bg' }),
     b10Nav);
-  document.body.replaceChild(appGrid, b10Nav);
+  document.body.append(appGrid);
 
   const legacyNav = document.querySelector<HTMLElement>('.app-nav');
 

@@ -1812,14 +1812,13 @@ function mountB10Sidebar() {
       )
     )
   );
-  document.body.append(b10Nav);
   const appGrid = el("div", { class: "b10-app-grid" });
   appGrid.append(
     el("div", { class: "ambient" }),
     el("div", { class: "grid-bg" }),
     b10Nav
   );
-  document.body.replaceChild(appGrid, b10Nav);
+  document.body.append(appGrid);
   const legacyNav = document.querySelector(".app-nav");
   const syncSidebar = () => {
     const view = b10Current();
