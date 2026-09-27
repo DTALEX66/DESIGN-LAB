@@ -80,14 +80,14 @@
       "reachability_model": "computer-use",
       "truth_model": "artifact-rehash",
       "capabilities": [
-        {"name": "launch", "supported": true, "evidence_level": "E2", "qualified_sha": "9f89452", "note": "clean runner 真 Chromium 启动；workbench-browser-e2e no-skip 门禁（Batch D/P0-G）"},
+        {"name": "launch", "supported": true, "evidence_level": "E2", "qualified_sha": "9f89452", "note": "clean runner 真 Chromium 启动；workbench-browser-e2e no-skip 门禁（Batch D/P0-G）", "evidence_ref": "CI gate 'Workbench browser E2E (exact-SHA controlled-runtime, no-skip)' canonical-verify.yml workbench-browser-e2e job: design-lab/tests/test_workbench_design_layer_e2e.py 16 vm-contract tests, artifact workbench-e2-<sha> .project-local/task-artifacts/browser-e2e/browser-e2e-summary.json"},
         {"name": "inspect", "supported": false, "evidence_level": "E0", "qualified_sha": null, "note": "通用宿主 DOM 检查超出 Workbench 纵切范围"},
-        {"name": "create", "supported": true, "evidence_level": "E2", "qualified_sha": "9f89452", "note": "Project/Brief/Direction/DesignSystem 创建走真实 loopback API（E2 纵切）"},
+        {"name": "create", "supported": true, "evidence_level": "E2", "qualified_sha": "9f89452", "note": "Project/Brief/Direction/DesignSystem 创建走真实 loopback API（E2 纵切）", "evidence_ref": "CI gate 'Workbench browser E2E (exact-SHA controlled-runtime, no-skip)' canonical-verify.yml workbench-browser-e2e job: design-lab/tests/test_workbench_design_layer_e2e.py 16 vm-contract tests, artifact workbench-e2-<sha> .project-local/task-artifacts/browser-e2e/browser-e2e-summary.json"},
         {"name": "patch", "supported": false, "evidence_level": "E0", "qualified_sha": null, "note": "未纳入 E2 纵切"},
         {"name": "save-editable", "supported": false, "evidence_level": "E0", "qualified_sha": null, "note": "不适用浏览器宿主"},
         {"name": "export", "supported": false, "evidence_level": "E0", "qualified_sha": null, "note": "未纳入 E2 纵切"},
-        {"name": "reopen-verify", "supported": true, "evidence_level": "E2", "qualified_sha": "9f89452", "note": "reload + DOM/API/DB 三层读回一致（E2 纵切核心断言）"},
-        {"name": "readback", "supported": true, "evidence_level": "E2", "qualified_sha": "9f89452", "note": "SQLite 持久化 + API 读回 + 浏览器读回三层一致"}
+        {"name": "reopen-verify", "supported": true, "evidence_level": "E2", "qualified_sha": "9f89452", "note": "reload + DOM/API/DB 三层读回一致（E2 纵切核心断言）", "evidence_ref": "CI gate 'Workbench browser E2E (exact-SHA controlled-runtime, no-skip)' canonical-verify.yml workbench-browser-e2e job: design-lab/tests/test_workbench_design_layer_e2e.py 16 vm-contract tests, artifact workbench-e2-<sha> .project-local/task-artifacts/browser-e2e/browser-e2e-summary.json"},
+        {"name": "readback", "supported": true, "evidence_level": "E2", "qualified_sha": "9f89452", "note": "SQLite 持久化 + API 读回 + 浏览器读回三层一致", "evidence_ref": "CI gate 'Workbench browser E2E (exact-SHA controlled-runtime, no-skip)' canonical-verify.yml workbench-browser-e2e job: design-lab/tests/test_workbench_design_layer_e2e.py 16 vm-contract tests, artifact workbench-e2-<sha> .project-local/task-artifacts/browser-e2e/browser-e2e-summary.json"}
       ],
       "authorization": {
         "user_authorized": true,
