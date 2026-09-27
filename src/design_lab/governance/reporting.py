@@ -49,7 +49,37 @@ def _safe(root, relative):
     if not isinstance(relative, str) or not relative or '\\' in relative or ':' in relative:
         raise ValueError('expected a public repository-relative POSIX path')
     rel = PurePosixPath(relative)
-    allowed = {'src', 'scripts', 'design-lab', 'docs', 'reports', 'integrations', 'packages', 'fixtures', '.project'}
+    # Public roots an evidence receipt or projection input may cite.
+    #
+    # This set is now EXACTLY the repository roots AUTHORITY.md §7 declares
+    # ("仓库责任"): apps, src, packages, integrations, design-lab, fixtures,
+    # research, vendor, docs, reports, scripts, .project, .project-local.
+    # `.project-local` is admitted only for task-artifacts/ (see below), and
+    # `.project` is the tracked governance root.
+    #
+    # `apps` was added 2026-09-27 because AUTHORITY.md §3 declares the Workbench
+    # the first-class user-visible front end ("DESIGN-LAB 有前端：apps/workbench/").
+    # Without it NO evidence receipt could cite the front end at all, so the R5
+    # ledger could not record a single front-end fact — a governance gap, not a
+    # safety property.
+    #
+    # `research` and `vendor` were added in the same pass: an audit of this set
+    # against §7 found them missing too, the identical defect class. Leaving them
+    # out would have re-created the gap for §7's own declared roots.
+    #
+    # Owner intent: 2026-09-27, "加入，全部开始" (answering the finding recorded in
+    # the project survey). Rationale: a receipt may cite what the Authority
+    # already declares repository-authoritative. Superseded: the previous 8-root
+    # and 10-root sets. Impact: apps/**, research/** and vendor/** become
+    # citable; nothing else widens.
+    #
+    # The secret guard is deliberately NOT widened: `denied` below still applies
+    # to every path component, so `.env*` / auth.json / credentials.json /
+    # tokens.json / id_rsa remain rejected ANYWHERE in the tree — verified for
+    # `apps/workbench/.env` and `apps/auth.json`. apps/, research/, vendor/ and
+    # services/ were audited for this change and hold no credential-named path.
+    allowed = {'src', 'scripts', 'design-lab', 'docs', 'reports', 'integrations',
+               'packages', 'fixtures', '.project', 'apps', 'research', 'vendor'}
     denied = {'.git', '.hermes', '.openhuman', 'auth.json', 'credentials.json', 'tokens.json', 'id_rsa'}
     def permitted(parts):
         return not any(p.lower() in denied or p.lower().startswith('.env') for p in parts)

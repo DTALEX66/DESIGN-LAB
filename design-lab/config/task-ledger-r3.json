@@ -3,7 +3,7 @@
   "taskpack": "DL-TP-20260908-R5",
   "plan_path": "docs/history/taskpacks/r5-20260908/02-TASKS.md",
   "baseline_sha": "ed8d45ab2857b312f6056c43f7bb5e19dd9b65eb",
-  "updated_at": "2026-09-27T15:11:41Z",
+  "updated_at": "2026-09-27T16:41:37Z",
   "source": {
     "path": "docs/history/taskpacks/r5-20260908/tasks.json",
     "sha256": "31dde89eb4ede81fe88c0a5c5144adfb86af8db4c4d8c263bde2199180369b69"
@@ -4212,11 +4212,15 @@
       "axes": {
         "implementation": {
           "state": "PARTIAL",
-          "evidence": []
+          "evidence": [
+            "r5-workbench-native-task-ui-tests-20260927"
+          ]
         },
         "unit": {
           "state": "PARTIAL",
-          "evidence": []
+          "evidence": [
+            "r5-workbench-native-task-ui-tests-20260927"
+          ]
         },
         "host_live": {
           "state": "PARTIAL",
@@ -5476,11 +5480,15 @@
       "axes": {
         "implementation": {
           "state": "PARTIAL",
-          "evidence": []
+          "evidence": [
+            "r5-workbench-strict-ts-build-truth-20260927"
+          ]
         },
         "unit": {
           "state": "PARTIAL",
-          "evidence": []
+          "evidence": [
+            "r5-workbench-strict-ts-build-truth-20260927"
+          ]
         },
         "host_live": {
           "state": "PARTIAL",
@@ -5660,6 +5668,72 @@
         }
       ],
       "note": "main 分支保护 live 读回 = 9 项 required checks（Python gate / MiniGame / Generated-artifact / License-secret / Open Design / Top-level Authority / Workbench strict-TS / Workbench browser E2E / DeepSeek authority chain），在 634071f 的 push 与 pull_request 两类 run 上均 pass。PARTIAL：只证明 required-check 面，不宣称全部验证环境已补齐。"
+    },
+    {
+      "id": "r5-workbench-strict-ts-build-truth-20260927",
+      "task_ids": [
+        "DL-R5-028"
+      ],
+      "kind": "local_test",
+      "outcome": "PARTIAL",
+      "subject_sha": "634071f3c8ffa87e08fa1386f49c185ff6fa36d8",
+      "binding": "COMMIT",
+      "observed_at": "2026-09-27T16:41:37Z",
+      "software": {
+        "node": "v24.18.1",
+        "typescript": "~5.6.3",
+        "vite": "6.4.3",
+        "runner": "node node_modules/typescript/bin/tsc --noEmit; node node_modules/vite/bin/vite.js build; node tests/unit.mjs; node tests/appshell.mjs",
+        "os": "Windows"
+      },
+      "subject_files": {
+        "apps/workbench/tsconfig.json": "c7cf03334ceb25c0ec9ff4e60ad64016cd3519bb12054f7c6f0582e78e2f8262",
+        "apps/workbench/package.json": "9e73e245210ba1914d3aeb8ed8d62f99e3d2ec206300f39fc5a48059ab4efe90",
+        "apps/workbench/vite.config.ts": "c58e0c2ae118a94d8e34673a809cbab2a49f8edea88c4293344f10bd2bf8cce7"
+      },
+      "artifacts": [
+        {
+          "path": "apps/workbench/build/main.js",
+          "sha256": "454ce542cef0dab554d04ee7f4fba5cc0e1cb5c109f806d9b02351cece301ae1"
+        },
+        {
+          "path": ".project-local/task-artifacts/project-survey-2026-09-27/PROJECT-SURVEY-2026-09-27.md",
+          "sha256": "0efce6a20b1efb5433e64d830906ada77260e9ad799686785f5164d0f4e403c1"
+        }
+      ],
+      "note": "在 634071f 实测：strict TypeScript typecheck exit 0；Vite build exit 0；node tests/unit.mjs 与 tests/appshell.mjs 全绿。构建产物真值面由 required check 'Workbench strict-TS product gate' 与 'Generated-artifact clean-tree gate' 双重守卫（后者要求全树干净，故 apps/workbench/build/main.js 必须与源码同提交）。PARTIAL：非全语言迁移；Ruff 是否 enforce 仍未决策。本 receipt 直到 `apps` 被加入 reporting.py 的证据根 allowed 集合后才可绑定。"
+    },
+    {
+      "id": "r5-workbench-native-task-ui-tests-20260927",
+      "task_ids": [
+        "DL-R5-010"
+      ],
+      "kind": "local_test",
+      "outcome": "PARTIAL",
+      "subject_sha": "634071f3c8ffa87e08fa1386f49c185ff6fa36d8",
+      "binding": "COMMIT",
+      "observed_at": "2026-09-27T16:41:37Z",
+      "software": {
+        "python": "3.13.14 (project .venv)",
+        "runner": "python scripts/run_python_tests.py  ->  Ran 1755 tests, OK (skipped=37)",
+        "os": "Windows"
+      },
+      "subject_files": {
+        "apps/workbench/workbench.ts": "28ee6cd38fc9b6d43bf1fcb23edfc31e9a2577095e996358a5a6b1ccae4118e1",
+        "apps/workbench/index.html": "ecbfe1bfdae58df7a0f67fcb7a54336576c76de3ff234bf87855ed86bb7e92b5",
+        "design-lab/tests/test_workbench_native_ui.py": "08302a82c8c3e21061180f2e1c322a1bb50c97ff7eb930c902bec425bcbe5355"
+      },
+      "artifacts": [
+        {
+          "path": "design-lab/tests/test_workbench_native_ui.py",
+          "sha256": "08302a82c8c3e21061180f2e1c322a1bb50c97ff7eb930c902bec425bcbe5355"
+        },
+        {
+          "path": ".project-local/task-artifacts/project-survey-2026-09-27/PROJECT-SURVEY-2026-09-27.md",
+          "sha256": "0efce6a20b1efb5433e64d830906ada77260e9ad799686785f5164d0f4e403c1"
+        }
+      ],
+      "note": "工作台侧的提交 / 修改 / 取消 / 导出 / 预览 / 原生校验 handler 与契约测试（test_workbench_native_ui.py：分页游标、旧响应不得覆盖新视图、patch 幂等、start/cancel attempt 绑定、bundle hash 校验、409/401 fail-closed）在 634071f 随全量套件执行通过。PARTIAL：这些是受控运行与结构证据，**不**构成真实宿主 E3，也不代表人工验收；host_live 轴因此不绑定。"
     }
   ]
 }
