@@ -972,6 +972,7 @@ function el(tag, attrs = {}, ...children) {
     else if (key === "dataset") for (const [dk, dv] of Object.entries(value)) node.dataset[dk] = String(dv);
     else if (key.startsWith("on") || key === "type" || key === "value" || key === "placeholder")
       node[key] = value;
+    else if (key === "style" && node.style) node.style.cssText = String(value);
     else node.setAttribute(key, String(value));
   }
   node.append(...children);
@@ -1148,13 +1149,13 @@ function sparkSvg(values) {
   svg.setAttribute("class", "spark");
   svg.setAttribute("viewBox", "0 0 100 100");
   svg.setAttribute("preserveAspectRatio", "none");
-  svg.innerHTML = `<defs><linearGradient id="spark-grad-${Math.random().toString(36).slice(2, 8)}" x1="0" x2="1">
+  const gradId = `spark-grad-${Math.random().toString(36).slice(2, 8)}`;
+  svg.innerHTML = `<defs><linearGradient id="${gradId}" x1="0" x2="1">
     <stop offset="0%" stop-color="var(--color-primary)"/>
     <stop offset="100%" stop-color="var(--color-secondary)"/>
   </linearGradient></defs>
-  <polyline points="${points}" fill="none" stroke="var(--color-primary)" stroke-width="3.4"
-    stroke-linecap="round" stroke-linejoin="round"
-    style="filter:drop-shadow(0 0 8px color-mix(in srgb, var(--color-primary) 40%, transparent))"/>`;
+  <polyline points="${points}" fill="none" stroke="url(#${gradId})" stroke-width="3.4"
+    stroke-linecap="round" stroke-linejoin="round"/>`;
   return svg;
 }
 const BRAND_MODULES = ["Logo", "Color", "Typography", "Icon", "Graphic Language", "Templates", "Applications", "Assets"];

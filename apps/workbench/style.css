@@ -248,6 +248,10 @@ body > footer{
    in `.content`; there is no max-width there and the 26/28/30 padding is
    `.content`'s own). */
 .route-view{max-width:none}
+/* sparkline glow — kept here rather than as an inline style attribute because
+   the service sends `style-src 'self'` and an inline style attribute is a CSP
+   violation (style.css:1 comment block has the full rationale). */
+.spark polyline{filter:drop-shadow(0 0 8px color-mix(in srgb,var(--color-primary) 40%, transparent))}
 .route-view h2{font-size:24px}
 .view-loading{color:var(--muted);font-size:13px}
 .view-hint{font-size:12px;color:var(--muted);line-height:1.7}

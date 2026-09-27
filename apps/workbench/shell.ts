@@ -118,6 +118,16 @@ export function el<K extends keyof HTMLElementTagNameMap>(tag: K, attrs: Record<
     else if (key === 'dataset') for (const [dk, dv] of Object.entries(value as Record<string, unknown>)) (node as HTMLElement).dataset[dk] = String(dv);
     else if (key.startsWith('on') || key === 'type' || key === 'value' || key === 'placeholder')
       (node as unknown as Record<string, unknown>)[key] = value;
+    // `style` MUST go through the CSSOM. The service serves every workbench
+    // response with `style-src 'self'` and NO 'unsafe-inline' (CSP in
+    // src/design_lab/workbench.py), which blocks a `style` ATTRIBUTE and logs an
+    // "Applying inline style violates..." console error that the browser E2E
+    // treats as a hard failure; CSSStyleDeclaration writes are exempt. Probed
+    // against the exact CSP in a real browser: setAttribute('style') blocked,
+    // while style.cssText / setProperty / property assignment all applied.
+    // The vm DOM mocks have no CSSStyleDeclaration, so fall back to the
+    // attribute there (a vm context enforces no CSP).
+    else if (key === 'style' && (node as HTMLElement).style) (node as HTMLElement).style.cssText = String(value);
     else node.setAttribute(key, String(value));
   }
   node.append(...children);
@@ -268,13 +278,17 @@ export function sparkSvg(values: number[]): SVGSVGElement {
   svg.setAttribute('class', 'spark');
   svg.setAttribute('viewBox', '0 0 100 100');
   svg.setAttribute('preserveAspectRatio', 'none');
-  svg.innerHTML = `<defs><linearGradient id="spark-grad-${Math.random().toString(36).slice(2, 8)}" x1="0" x2="1">
+  // The glow lives in style.css (`.spark polyline`), NOT as an inline style
+  // attribute: `innerHTML` markup carrying style="..." is an inline style under
+  // the service's `style-src 'self'` and logs a CSP console error. The stroke
+  // uses the primary->secondary gradient, matching B10's `url(#spark-grad)`.
+  const gradId = `spark-grad-${Math.random().toString(36).slice(2, 8)}`;
+  svg.innerHTML = `<defs><linearGradient id="${gradId}" x1="0" x2="1">
     <stop offset="0%" stop-color="var(--color-primary)"/>
     <stop offset="100%" stop-color="var(--color-secondary)"/>
   </linearGradient></defs>
-  <polyline points="${points}" fill="none" stroke="var(--color-primary)" stroke-width="3.4"
-    stroke-linecap="round" stroke-linejoin="round"
-    style="filter:drop-shadow(0 0 8px color-mix(in srgb, var(--color-primary) 40%, transparent))"/>`;
+  <polyline points="${points}" fill="none" stroke="url(#${gradId})" stroke-width="3.4"
+    stroke-linecap="round" stroke-linejoin="round"/>`;
   return svg;
 }
 
