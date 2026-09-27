@@ -32,6 +32,43 @@ function devMode(): boolean {
 }
 
 
+// ---------------------------------------------------------------------------
+// dev/offline readback seam.
+//
+// In dev mode (Vite dev server, or ?dev=1) with NO service token the readback
+// endpoints are unreachable, and every route view used to short-circuit to
+// "请先连接本机设计服务" — so no B10 page structure ever rendered and the 1:1
+// replica was neither visible nor verifiable. This seam answers the SAME
+// readback paths with HONEST EMPTY payloads: collections are empty and scalars
+// are explicit placeholders. No B10 demo number is invented. A held token
+// always goes to the live API (a connected session never reaches this path),
+// and a live failure still throws — nothing here masks a real error.
+function apiOrEmpty<T>(path: string, empty: T): Promise<T> {
+  if (!token && devMode()) return Promise.resolve(empty);
+  return api<T>(path);
+}
+
+// Honest empty payloads for the dev/offline seam (see apiOrEmpty).
+const OFFLINE = {
+  health: { status: 'UNKNOWN', version: '—', scope: 'dev-offline' } as HealthResponse,
+  projects: { projects: [] } as ProjectListResponse,
+  designSystems: { design_systems: [] } as DesignSystemListResponse,
+  tasks: { tasks: [], next_cursor: null } as TaskListResponse,
+  designLayer: {
+    design_layer: {
+      briefs: [], directions: [], chosen_direction: null,
+      bindings: [], active_binding: null, design_systems: [],
+    },
+  } as DesignLayerResponse,
+  environment: {
+    schemaVersion: 'v1', status: 'OFFLINE',
+    project_root: '—', project_local_root: '.project-local',
+    sources: {}, roots: {}, shared_inputs: {},
+    agent_profile: { status: 'DISABLED', writable: false },
+    write_trace: 'NONE', migration: 'NONE',
+  } as EnvironmentResponse,
+};
+
 // ============================================================================
 // UI convergence slice 2 (2026-09-22): AppShell navigation over the B07
 // authoritative 12-route IA (routes.json). Purely additive: it inserts ONE new
@@ -81,18 +118,28 @@ export function el<K extends keyof HTMLElementTagNameMap>(tag: K, attrs: Record<
     else if (key === 'dataset') for (const [dk, dv] of Object.entries(value as Record<string, unknown>)) (node as HTMLElement).dataset[dk] = String(dv);
     else if (key.startsWith('on') || key === 'type' || key === 'value' || key === 'placeholder')
       (node as unknown as Record<string, unknown>)[key] = value;
+    // `style` MUST go through the CSSOM. The service serves every workbench
+    // response with `style-src 'self'` and NO 'unsafe-inline' (CSP in
+    // src/design_lab/workbench.py), which blocks a `style` ATTRIBUTE and logs an
+    // "Applying inline style violates..." console error that the browser E2E
+    // treats as a hard failure; CSSStyleDeclaration writes are exempt. Probed
+    // against the exact CSP in a real browser: setAttribute('style') blocked,
+    // while style.cssText / setProperty / property assignment all applied.
+    // The vm DOM mocks have no CSSStyleDeclaration, so fall back to the
+    // attribute there (a vm context enforces no CSP).
+    else if (key === 'style' && (node as HTMLElement).style) (node as HTMLElement).style.cssText = String(value);
     else node.setAttribute(key, String(value));
   }
   node.append(...children);
   return node;
 }
 
-export function kpiCard(label: string, value: string, note: string, trend?: string): HTMLElement {
-  // B10 1:1 .kpi body: <div class="panel kpi"><strong data-count>value</strong>
-  // <small>label</small><div class="trend">note</div></div>. The 35px primary
-  // big-number comes from the B10 `.kpi strong` rule; count-up animates the
-  // numeric values only (animateKpiCount). Values stay readback-honest — no
-  // B10 demo numbers are invented here.
+// B10 1:1 .kpi body. Parameter order matches EVERY call site
+// (value, label, note) — the previous (label, value) declaration silently
+// inverted the card, rendering the LABEL as B10's 35px primary number and the
+// value as the small caption (and breaking the count-up, which only fires on a
+// numeric <strong>).
+export function kpiCard(value: string, label: string, note: string, trend?: string): HTMLElement {
   const children: (Node | string)[] = [
     el('strong', { dataset: { count: value } }, value),
     el('small', {}, label),
@@ -135,19 +182,26 @@ export function stateMachineStepper(): HTMLElement {
 export async function renderDashboard(target: HTMLElement): Promise<void> {
   target.replaceChildren(el('p', { class: 'view-loading' }, '正在读回服务状态…'));
   const [health, projects, systems] = await Promise.all([
-    api<HealthResponse>('/health'),
-    api<ProjectListResponse>('/projects'),
-    api<DesignSystemListResponse>('/design-systems'),
+    apiOrEmpty<HealthResponse>('/health', OFFLINE.health),
+    apiOrEmpty<ProjectListResponse>('/projects', OFFLINE.projects),
+    apiOrEmpty<DesignSystemListResponse>('/design-systems', OFFLINE.designSystems),
   ]);
   const sysCount = systems.design_systems.length;
   const projCount = projects.projects.length;
-  // B10 1:1 page-head (h2 + p + page-actions) — DESIGN-LAB honest copy, B10 layout.
+  // B10 1:1 page-head (h2 + p + .page-actions) — DESIGN-LAB honest copy, B10 layout.
+  // B10's dashboard page-head carries a secondary ghost + a primary action; the
+  // primary here navigates to the legacy workbench, which owns project creation
+  // (this page is a read-only readback and never writes).
   const pageHead = el('div', { class: 'page-head' },
     el('div', {},
       el('h2', {}, '仪表盘'),
       el('p', {}, '项目、研究、品牌、预检与交付被整合为一个设计智造工作台。')),
     el('div', { class: 'page-actions' },
-      el('button', { type: 'button', class: 'ghost-btn' }, '导出周报')));
+      el('button', { type: 'button', class: 'ghost-btn' }, '导出周报'),
+      el('button', {
+        type: 'button', class: 'primary-btn',
+        onclick: () => { window.location.hash = ''; },
+      }, '+ 新建项目')));
   const grid = el('div', { class: 'kpi-grid' },
     kpiCard(String(projCount), '项目', '来自 /api/projects 真实读回，非统计猜测'),
     kpiCard(String(sysCount), '设计系统', '资源登记的设计系统总数 · /api/design-systems 读回'),
@@ -224,13 +278,17 @@ export function sparkSvg(values: number[]): SVGSVGElement {
   svg.setAttribute('class', 'spark');
   svg.setAttribute('viewBox', '0 0 100 100');
   svg.setAttribute('preserveAspectRatio', 'none');
-  svg.innerHTML = `<defs><linearGradient id="spark-grad-${Math.random().toString(36).slice(2, 8)}" x1="0" x2="1">
+  // The glow lives in style.css (`.spark polyline`), NOT as an inline style
+  // attribute: `innerHTML` markup carrying style="..." is an inline style under
+  // the service's `style-src 'self'` and logs a CSP console error. The stroke
+  // uses the primary->secondary gradient, matching B10's `url(#spark-grad)`.
+  const gradId = `spark-grad-${Math.random().toString(36).slice(2, 8)}`;
+  svg.innerHTML = `<defs><linearGradient id="${gradId}" x1="0" x2="1">
     <stop offset="0%" stop-color="var(--color-primary)"/>
     <stop offset="100%" stop-color="var(--color-secondary)"/>
   </linearGradient></defs>
-  <polyline points="${points}" fill="none" stroke="var(--color-primary)" stroke-width="3.4"
-    stroke-linecap="round" stroke-linejoin="round"
-    style="filter:drop-shadow(0 0 8px color-mix(in srgb, var(--color-primary) 40%, transparent))"/>`;
+  <polyline points="${points}" fill="none" stroke="url(#${gradId})" stroke-width="3.4"
+    stroke-linecap="round" stroke-linejoin="round"/>`;
   return svg;
 }
 
@@ -238,7 +296,7 @@ const BRAND_MODULES = ['Logo', 'Color', 'Typography', 'Icon', 'Graphic Language'
 
 export async function renderBrandSystems(target: HTMLElement): Promise<void> {
   target.replaceChildren(el('p', { class: 'view-loading' }, '正在读回设计系统…'));
-  const systems = await api<DesignSystemListResponse>('/design-systems');
+  const systems = await apiOrEmpty<DesignSystemListResponse>('/design-systems', OFFLINE.designSystems);
   const sysCount = systems.design_systems.length;
   // B10 1:1 page-head (h2 + p + page-actions).
   const pageHead = el('div', { class: 'page-head' },
@@ -294,6 +352,18 @@ export async function renderPreflight(target: HTMLElement): Promise<void> {
   const runBtn = el('button', { type: 'button', class: 'primary-btn', id: 'preflight-run' }, '运行预检');
   const exportBtn = el('button', { type: 'button', class: 'ghost-btn' }, '导出报告');
   const result = el('div', { class: 'panel scan-line preflight-result' });
+  // B10 1:1 .kpi-grid: the four counters B10's preflight page shows. Values are
+  // honest placeholders ("—") until a real preflight readback fills them in —
+  // no B10 demo number is invented.
+  const kpiGrid = el('div', { class: 'kpi-grid' },
+    kpiCard('—', '登记资源', '运行预检后读回'),
+    kpiCard('—', '阻塞资源', '运行预检后读回'),
+    kpiCard('—', '判定', 'PASS / BLOCKED'),
+    kpiCard('—', '机器范围', '运行预检后读回'));
+  const setKpi = (index: number, value: string): void => {
+    const strong = kpiGrid.querySelectorAll('.kpi strong')[index];
+    if (strong) strong.textContent = value;
+  };
   const runPreflight = async (): Promise<void> => {
     const taskId = input.value.trim();
     if (!taskId) { result.replaceChildren(el('p', { class: 'view-hint' }, '请先填写要预检的任务全 ID（<TASKPACK>::<TASK_KEY>）。')); return; }
@@ -305,6 +375,10 @@ export async function renderPreflight(target: HTMLElement): Promise<void> {
       // readback still says so (never renders a fake "all clear" — it is a
       // read-only preflight, not an executed quality pass).
       const blocked = data.blocked_resources.length;
+      setKpi(0, String(data.resources.length));
+      setKpi(1, String(blocked));
+      setKpi(2, data.verdict);
+      setKpi(3, data.machine_scope);
       result.replaceChildren(
         el('span', { class: 'tag ' + (blocked ? 'bad' : 'ok') }, data.verdict),
         el('span', { class: 'muted' },
@@ -312,12 +386,13 @@ export async function renderPreflight(target: HTMLElement): Promise<void> {
         blocked
           ? el('p', { class: 'view-hint' }, `阻塞资源 ${blocked} 项：${data.blocked_resources.join(' · ')}。此预检只读回，不安装、不裁许可、不遍历外部根。`)
           : el('p', { class: 'view-hint' }, '无阻塞资源。此为只读预检判定，不等同质量或 rights 验收。'),
-        el('table', { class: 'resource-table' },
-          el('thead', {}, el('tr', {}, el('th', {}, '资源'), el('th', {}, '状态'), el('th', {}, '说明'))),
-          el('tbody', {}, ...data.resources.map((row: TaskPreflightResource) => el('tr', {},
-            el('td', {}, row.ref),
-            el('td', {}, el('span', { class: 'tag info' }, row.state)),
-            el('td', {}, row.meaning))))));
+        el('div', { class: 'table-wrap' },
+          el('table', { class: 'table' },
+            el('thead', {}, el('tr', {}, el('th', {}, '资源'), el('th', {}, '状态'), el('th', {}, '说明'))),
+            el('tbody', {}, ...data.resources.map((row: TaskPreflightResource) => el('tr', {},
+              el('td', {}, row.ref),
+              el('td', {}, el('span', { class: 'tag info' }, row.state)),
+              el('td', {}, row.meaning)))))));
     } catch (error) {
       result.replaceChildren(el('p', { class: 'error' }, `预检未确认：${errMsg(error)}。服务端拒绝时未写入任何判定。`));
     }
@@ -332,6 +407,7 @@ export async function renderPreflight(target: HTMLElement): Promise<void> {
       exportBtn, runBtn));
   target.replaceChildren(
     pageHead,
+    kpiGrid,
     el('div', { class: 'toolbar' },
       el('label', { class: 'muted' }, '任务全 ID', input)),
     result);
@@ -339,7 +415,7 @@ export async function renderPreflight(target: HTMLElement): Promise<void> {
 
 export async function renderSettings(target: HTMLElement): Promise<void> {
   target.replaceChildren(el('p', { class: 'view-loading' }, '正在读回运行环境…'));
-  const env = await api<EnvironmentResponse>('/environment');
+  const env = await apiOrEmpty<EnvironmentResponse>('/environment', OFFLINE.environment);
   const rows: Array<[string, string]> = [
     ['环境状态', `${env.status} · ${env.schemaVersion}`],
     ['项目根', env.project_root],
@@ -353,17 +429,9 @@ export async function renderSettings(target: HTMLElement): Promise<void> {
   // read-only DECLARED_NOT_PROBED — the UI never implies it can write there).
   const writablePill = (writable: boolean): HTMLElement =>
     el('span', { class: 'tag ' + (writable ? 'ok' : 'info') }, writable ? '可写' : '只读');
-  const roots = el('table', { class: 'resource-table' },
-    el('thead', {}, el('tr', {}, el('th', {}, '根'), el('th', {}, '路径'), el('th', {}, '可写'))),
-    el('tbody', {}, ...Object.entries(env.roots).map(([name, root]) => el('tr', {},
-      el('td', {}, name), el('td', {}, root.path), el('td', {}, writablePill(root.writable))))));
-  const shared = el('table', { class: 'resource-table' },
-    el('thead', {}, el('tr', {}, el('th', {}, '外置库索引'), el('th', {}, '状态'), el('th', {}, '路径'))),
-    el('tbody', {}, ...Object.entries(env.shared_inputs).map(([name, input]) => el('tr', {},
-      el('td', {}, name),
-      el('td', {}, el('span', { class: 'tag info' }, input.status)),
-      el('td', {}, input.path)))));
-  // B10 1:1 page-head（DESIGN-LAB 文案）+ 诊断内容包进 .panel（B10 面板体）。
+  // B10 1:1 page-head + three-col of .panel/.list/.list-item bodies. The
+  // diagnostics are the same real readback — only the presentation is B10's
+  // (a .list-item is exactly "label + status pill", which is what each row is).
   const pageHead = el('div', { class: 'page-head' },
     el('div', {},
       el('h2', {}, '系统设置'),
@@ -372,17 +440,31 @@ export async function renderSettings(target: HTMLElement): Promise<void> {
       el('button', { type: 'button', class: 'ghost-btn' }, '导出诊断')));
   target.replaceChildren(
     pageHead,
-    el('div', { class: 'panel' },
-      el('h3', {}, '环境状态'),
-      el('table', { class: 'resource-table' },
-        el('tbody', {}, ...rows.map(([label, value]) => el('tr', {},
-          el('th', { scope: 'row' }, label), el('td', {}, value)))))),
-    el('div', { class: 'panel' },
-      el('h3', {}, '项目根（可写）'),
-      roots),
-    el('div', { class: 'panel' },
-      el('h3', {}, '外置输入（只读 · DECLARED_NOT_PROBED）'),
-      shared),
+    el('div', { class: 'three-col' },
+      el('div', { class: 'panel' },
+        el('h3', {}, '环境状态'),
+        el('div', { class: 'list' },
+          ...rows.map(([label, value]) => el('div', { class: 'list-item' },
+            el('span', {}, label),
+            el('span', { class: 'tag ' + (label === '代理配置' ? 'warn' : 'info') }, value))))),
+      el('div', { class: 'panel' },
+        el('h3', {}, '项目根（可写）'),
+        el('div', { class: 'list' },
+          ...(Object.keys(env.roots).length
+            ? Object.entries(env.roots).map(([name, root]) => el('div', { class: 'list-item' },
+                el('div', {}, el('strong', {}, name), el('small', {}, root.path)),
+                writablePill(root.writable)))
+            : [el('div', { class: 'list-item' },
+                el('div', {}, el('strong', {}, '尚无根登记'), el('small', {}, '服务未返回 roots')))]))),
+      el('div', { class: 'panel' },
+        el('h3', {}, '外置输入（只读 · DECLARED_NOT_PROBED）'),
+        el('div', { class: 'list' },
+          ...(Object.keys(env.shared_inputs).length
+            ? Object.entries(env.shared_inputs).map(([name, input]) => el('div', { class: 'list-item' },
+                el('div', {}, el('strong', {}, name), el('small', {}, input.path)),
+                el('span', { class: 'tag info' }, input.status)))
+            : [el('div', { class: 'list-item' },
+                el('div', {}, el('strong', {}, '尚无外置输入'), el('small', {}, '服务未返回 shared_inputs')))])))),
     el('p', { class: 'view-hint' }, '代理配置私有状态不可写：PRIVATE_NOT_INSPECTED · 不可写。本服务不读取、不打印任何凭据。'));
 }
 
@@ -398,10 +480,12 @@ export async function renderSettings(target: HTMLElement): Promise<void> {
 // only GETs below this point.
 export async function projectPickerPanel(target: HTMLElement, title: string, body: (projectId: string) => Promise<HTMLElement>): Promise<void> {
   target.replaceChildren(el('p', { class: 'view-loading' }, '正在读回项目台账…'));
-  const data = await api<ProjectListResponse>('/projects');
+  const data = await apiOrEmpty<ProjectListResponse>('/projects', OFFLINE.projects);
   if (!data.projects.length) {
     target.replaceChildren(
-      el('h2', {}, title),
+      el('div', { class: 'page-head' },
+        el('div', {}, el('h2', {}, title),
+          el('p', {}, '只读回服务端台账；本页不提交、不修改。'))),
       el('p', { class: 'view-hint' }, '尚无项目。先在工作台新建项目，再读回此视图。'));
     return;
   }
@@ -409,7 +493,11 @@ export async function projectPickerPanel(target: HTMLElement, title: string, bod
   select.append(el('option', { value: '' }, `选择项目（共 ${data.projects.length} 个）`));
   for (const p of data.projects) select.append(el('option', { value: p.id }, p.name));
   const content = el('div', { class: 'route-view-body' });
-  target.replaceChildren(el('h2', {}, title), el('label', { class: 'project-picker' }, '项目', select), content);
+  target.replaceChildren(
+    el('div', { class: 'page-head' },
+      el('div', {}, el('h2', {}, title),
+        el('p', {}, '只读回服务端台账；本页不提交、不修改。'))),
+    el('label', { class: 'project-picker' }, '项目', select), content);
   const load = async (): Promise<void> => {
     const id = select.value;
     if (!id) { content.replaceChildren(el('p', { class: 'view-hint' }, '请选择一个项目后读回。')); return; }
@@ -428,7 +516,7 @@ export async function projectPickerPanel(target: HTMLElement, title: string, bod
 // project happens in the workbench; this page just lists the ledger.
 export async function renderProjects(target: HTMLElement): Promise<void> {
   target.replaceChildren(el('p', { class: 'view-loading' }, '正在读回项目台账…'));
-  const data = await api<ProjectListResponse>('/projects');
+  const data = await apiOrEmpty<ProjectListResponse>('/projects', OFFLINE.projects);
   const n = data.projects.length;
   // B10 1:1 page-head + kpi-grid（真实读回值，非 B10 演示数字）。
   const pageHead = el('div', { class: 'page-head' },
@@ -474,7 +562,7 @@ const TOOL_ADAPTERS = [
 
 export async function renderCreativeTools(target: HTMLElement): Promise<void> {
   await projectPickerPanel(target, '创作工具', async (id) => {
-    const tasks = await api<TaskListResponse>(`/projects/${id}/tasks`);
+    const tasks = await apiOrEmpty<TaskListResponse>(`/projects/${id}/tasks`, OFFLINE.tasks);
     // B10 1:1 three-col adapter grid（.panel + .tag + .muted），真实读回任务台账。
     const adapterGrid = el('div', { class: 'three-col' },
       ...TOOL_ADAPTERS.map((a) => el('div', { class: 'panel' },
@@ -508,7 +596,7 @@ const DELIVERABLE_KINDS = ['Editable Source', 'PDF', 'PNG', 'SVG', 'PSD', 'AI', 
 
 export async function renderDeliverables(target: HTMLElement): Promise<void> {
   await projectPickerPanel(target, '交付中心', async (id) => {
-    const tasks = await api<TaskListResponse>(`/projects/${id}/tasks`);
+    const tasks = await apiOrEmpty<TaskListResponse>(`/projects/${id}/tasks`, OFFLINE.tasks);
     // B10 1:1 kpi-grid + three-col format cards（.panel 体）。
     const manifestKpis = el('div', { class: 'kpi-grid' },
       kpiCard(String(tasks.tasks.length), '交付候选', '读回任务台账 · 非已打包'),
@@ -544,7 +632,7 @@ export async function renderDeliverables(target: HTMLElement): Promise<void> {
 // read on demand from the workbench; this is a read-only evidence view.
 export async function renderEvidence(target: HTMLElement): Promise<void> {
   await projectPickerPanel(target, '证据系统', async (id) => {
-    const layer = (await api<DesignLayerResponse>(`/projects/${id}/design-layer`)).design_layer;
+    const layer = (await apiOrEmpty<DesignLayerResponse>(`/projects/${id}/design-layer`, OFFLINE.designLayer)).design_layer;
     const chosen = layer.chosen_direction
       ? `${layer.chosen_direction.title} · v${layer.chosen_direction.version}` : '（尚未选定方向）';
     const active = layer.active_binding
@@ -570,12 +658,13 @@ export async function renderEvidence(target: HTMLElement): Promise<void> {
       kpis,
       el('div', { class: 'panel' },
         el('h3', {}, '方向契约'),
-        el('table', { class: 'resource-table' },
-          el('tbody', {},
-            el('tr', {}, el('th', { scope: 'row' }, 'briefs'), el('td', {}, String(layer.briefs.length))),
-            el('tr', {}, el('th', { scope: 'row' }, 'directions'), el('td', {}, String(layer.directions.length))),
-            el('tr', {}, el('th', { scope: 'row' }, '选定方向'), el('td', {}, chosen)),
-            el('tr', {}, el('th', { scope: 'row' }, '活动绑定'), el('td', {}, active))))),
+        el('div', { class: 'table-wrap' },
+          el('table', { class: 'table' },
+            el('tbody', {},
+              el('tr', {}, el('th', { scope: 'row' }, 'briefs'), el('td', {}, String(layer.briefs.length))),
+              el('tr', {}, el('th', { scope: 'row' }, 'directions'), el('td', {}, String(layer.directions.length))),
+              el('tr', {}, el('th', { scope: 'row' }, '选定方向'), el('td', {}, chosen)),
+              el('tr', {}, el('th', { scope: 'row' }, '活动绑定'), el('td', {}, active)))))),
       systems,
       el('p', { class: 'view-hint' }, '版本链（brief / direction 逐版本）在工作台点单条时读回；本页为只读证据视图，不修改 lineage。'));
     return done;
@@ -614,12 +703,22 @@ export function mountAppShell(): void {
       onclick: () => { window.location.hash = route.hash === '' ? '' : route.hash; },
     }, route.label)),
     el('span', { class: 'app-nav-meta', id: 'shell-connection' }, '未连接'));
-  const routePanel = el('div', { class: 'route-panel', hidden: true },
-    el('div', { class: 'route-view', id: 'route-view', 'aria-live': 'polite' }));
-  document.body.append(nav, routePanel);
+  // The route host IS the B10 `section.content#content` view slot (B10 renders
+  // each page as a direct child of `.content`, which supplies the 26/28/30
+  // padding). It is built together with the rest of the B10 `.app` tree by
+  // mountB10Shell(); under the vm smoke that mount is a no-op (the mock has no
+  // querySelector) so the host is appended straight to <body> to keep a valid
+  // render target on the headless path.
+  const routeView = el('div', { class: 'route-view', id: 'route-view', 'aria-live': 'polite' });
+  document.body.append(nav);
   // Scope the shell's layout gutter to the mounted state so an unmounted path
   // (the E2E default) keeps the original centered layout untouched.
   document.body.classList.add('dl-shell');
+
+  // Build the authoritative B10 shell (.app > .ambient + .grid-bg + aside.sidebar
+  // + main.main > header.topbar + section.content#content).
+  const b10 = mountB10Shell(routeView);
+  if (!b10) document.body.append(routeView);
 
   const active = (view: string): void => {
     for (const item of Array.from(nav.querySelectorAll<HTMLButtonElement>('.app-nav-item'))) {
@@ -646,7 +745,12 @@ export function mountAppShell(): void {
     const showWorkbench = view === 'workbench';
     const generation = ++routeGeneration;
     const routeToken = token;
-    routePanel.hidden = showWorkbench;
+    // ONE place decides which chrome is visible: the B10 `.app` owns the view
+    // slot on every route, and the legacy header/main/footer/nav own the default
+    // (empty-hash) workbench view. The previous split — a separate hashchange
+    // listener in mountB10Sidebar racing this one — is what left the B10 overlay
+    // covering the route panel.
+    b10?.sync(view);
     login.hidden = showWorkbench ? connected : true;
     if (showWorkbench) {
       workspace.hidden = !connected;
@@ -657,9 +761,11 @@ export function mountAppShell(): void {
     workspace.hidden = true;
     active(view);
     const target = byId<HTMLDivElement>('route-view');
-    if (!token) {
-      // No service token in memory: the API views would only 401. Say so
-      // instead of faking data (no phantom KPIs before a connection).
+    if (!token && !devMode()) {
+      // No service token in memory and no dev bypass: the API views would only
+      // 401. Say so instead of faking data (no phantom KPIs before a
+      // connection). Under devMode() the views DO render — through apiOrEmpty,
+      // which answers with honest empty payloads and shows the offline notice.
       target.replaceChildren(
         el('h2', {}, view),
         el('p', { class: 'view-unopened' }, '请先在工作台连接本机设计服务，再读回此视图。'));
@@ -688,15 +794,16 @@ export function mountAppShell(): void {
   const syncMeta = (): void => {
     byId<HTMLSpanElement>('shell-connection').textContent = connection.textContent || '未连接';
   };
-  mountB10Sidebar();
   // The original handlers set #connection on connect/disconnect; a
   // MutationObserver keeps the shell copy in lockstep without touching them.
   if (typeof MutationObserver !== 'undefined')
     new MutationObserver(syncMeta).observe(connection, { childList: true, characterData: true });
 
+  // mountB10Overlays() runs BEFORE show() so the palette/drawer/toast/modal ids
+  // and the B10 topbar handlers exist before the first route renders into them.
+  mountB10Overlays();
   window.addEventListener('hashchange', show);
   show();
-  mountB10Overlays();
 }
 
 // ============================================================================
@@ -710,19 +817,30 @@ export function mountAppShell(): void {
 // class="main"><header class="topbar"><div class="search" id="openPalette">
 // ⌘K 搜索页面 / 命令 / 资源</div><div class="top-actions"><button class="ghost-btn"
 // id="topNotice">通知</button><button class="ghost-btn" id="openDrawer">工作区</button>
-// </div></header><section class="content" id="b10-content"></section></main></div>.
+// </div></header><section class="content" id="content"></section></main></div>.
 //
 // All classes come from the B10 CSS block already in style.css (#171). No
 // second navigation system is created: on a route hash the legacy flat .app-nav
-// is hidden and this sidebar owns the 12-route B07 IA; on the legacy workbench
-// view (empty hash) the sidebar hides itself and the flat nav + legacy header
-// stay in place, so the original centered layout and every E2E selector survive.
+// + legacy header/main/footer are hidden and this `.app` owns the viewport; on
+// the legacy workbench view (empty hash) `.app` hides itself and the flat nav +
+// legacy header/main stay in place, so the original centered layout and every
+// E2E selector survive.
+//
+// Returns the `.app` element plus a sync() that is driven from mountAppShell's
+// single show() — NOT from a second hashchange listener (that split is what
+// used to leave the B10 overlay covering the route host). Returns null under
+// the vm smoke, whose MockElement has no querySelector.
 // ============================================================================
-function mountB10Sidebar(): void {
+interface B10Shell {
+  app: HTMLElement;
+  sync(view: string): void;
+}
+
+function mountB10Shell(routeView: HTMLElement): B10Shell | null {
   // Browser-only guard (same semantics as mountB10Overlays): the vm unit smoke
   // has no real querySelectorAll, so this never runs there.
   const probe = document.createElement('div');
-  if (typeof probe.querySelector !== 'function') return;
+  if (typeof probe.querySelector !== 'function') return null;
 
   // Route label / 文案 mirror of B10 NAV (B07 12-route IA, DESIGN-LAB copy).
   const B10_NAV: Array<{ route: string; label: string; hash: string }> = [
@@ -738,21 +856,8 @@ function mountB10Sidebar(): void {
     { route: 'collaboration', label: '团队协作', hash: '#/collaboration' },
     { route: 'settings', label: '系统设置', hash: '#/settings' },
   ];
-  const hashToView = new Map(B10_NAV.map((n) => [n.hash, n.route]));
 
-  // Self-contained route reader (the legacy shell's current() lives in a
-  // different closure and is unavailable here).
-  const b10Current = (): string => {
-    const hash = window.location.hash;
-    if (!hash || hash === '#/') {
-      // Dev-mode empty hash mirrors main.ts: default to the dashboard.
-      if (devMode()) return 'dashboard';
-      return 'workbench';
-    }
-    return hashToView.get(hash) ?? 'workbench';
-  };
-
-  const b10Nav = el('aside', { class: 'sidebar', id: 'b10-sidebar' },
+  const sidebar = el('aside', { class: 'sidebar' },
     el('div', { class: 'brand' },
       el('div', { class: 'brand-mark' }, 'DL'),
       el('div', {},
@@ -772,26 +877,48 @@ function mountB10Sidebar(): void {
       el('div', {},
         el('strong', {}, 'Alex'),
         el('small', {}, 'Personal Workspace'))));
-  // ambient + grid-bg glow layers (B10 .app grid layout host).
-  // b10Nav is already inside appGrid (appGrid.append above), so a single
-  // body.append(appGrid) moves the whole subtree — no replaceChild needed.
-  const appGrid = el('div', { class: 'b10-app-grid' });
-  appGrid.append(
+
+  // B10 .topbar body. Handlers are attached by wireB10Topbar() at the end of
+  // mountB10Overlays(), once the palette/drawer/toast ids exist.
+  const topbar = el('header', { class: 'topbar' },
+    el('div', { class: 'search', id: 'openPalette', role: 'button', tabindex: '0' },
+      '⌘ K\u3000搜索页面 / 命令 / 资源'),
+    el('div', { class: 'top-actions' },
+      el('button', { type: 'button', class: 'ghost-btn', id: 'topNotice' }, '通知'),
+      el('button', { type: 'button', class: 'ghost-btn', id: 'openDrawer' }, '工作区')));
+
+  // The authoritative B10 tree: .app > .ambient + .grid-bg + aside.sidebar +
+  // main.main > header.topbar + section.content#content. The route host is the
+  // `.content` view slot itself, which supplies B10's 26/28/30 padding.
+  //
+  // The offline notice is NOT decoration: without a token the views read back
+  // honest EMPTY payloads, so "项目 0" must be attributable to "not connected"
+  // rather than "there are no projects". It is hidden whenever a token is held.
+  const offlineNotice = el('p', { class: 'muted', id: 'b10-offline' },
+    '本地浏览模式：未连接本机设计服务（无访问令牌）。页面结构为 B10 1:1 真实渲染，'
+    + '但所有读回值为空占位，不是真实台账。连接服务后本提示消失。');
+  const app = el('div', { class: 'app', id: 'b10-app' },
     el('div', { class: 'ambient' }),
     el('div', { class: 'grid-bg' }),
-    b10Nav);
-  document.body.append(appGrid);
+    sidebar,
+    el('main', { class: 'main' },
+      topbar,
+      el('section', { class: 'content', id: 'content' }, offlineNotice, routeView)));
+  document.body.append(app);
 
+  // Legacy chrome that owns the default (empty-hash) workbench view.
   const legacyNav = document.querySelector<HTMLElement>('.app-nav');
+  const legacyChrome = Array.from(document.querySelectorAll<HTMLElement>('body > header, body > main, body > footer'));
 
-  const syncSidebar = (): void => {
-    const view = b10Current();
+  const sync = (view: string): void => {
     const routed = view !== 'workbench';
-    b10Nav.style.display = routed ? 'flex' : 'none';
-    appGrid.classList.toggle('routed', routed);
-    if (routed && legacyNav) legacyNav.setAttribute('hidden', 'true');
-    if (!routed && legacyNav) legacyNav.removeAttribute('hidden');
-    for (const item of Array.from(b10Nav.querySelectorAll<HTMLElement>('.nav button'))) {
+    // `hidden` on .app needs an explicit rule (an author `display:grid` beats
+    // the UA [hidden] rule) — see `.app[hidden]` in style.css.
+    app.hidden = !routed;
+    offlineNotice.hidden = Boolean(token) || !devMode();
+    if (legacyNav) legacyNav.toggleAttribute('hidden', routed);
+    for (const node of legacyChrome) node.toggleAttribute('hidden', routed);
+    for (const item of Array.from(sidebar.querySelectorAll<HTMLElement>('.nav button'))) {
       const selected = item.dataset.route === view;
       item.classList.toggle('active', selected);
       if (selected) item.setAttribute('aria-current', 'page');
@@ -799,9 +926,7 @@ function mountB10Sidebar(): void {
     }
   };
 
-  // Drive the B10 nav state from the same hashchange event as the legacy shell.
-  window.addEventListener('hashchange', syncSidebar);
-  syncSidebar();
+  return { app, sync };
 }
 
 // ============================================================================
@@ -817,8 +942,8 @@ function mountB10Overlays(): void {
   const probe = document.createElement('div');
   if (typeof probe.querySelector !== 'function') return;
 
-  // --- Toast ---
-  const toast = el('div', { class: 'dl-toast', role: 'status', id: 'dl-toast' }, 'Ready');
+  // --- Toast --- (B10 .toast#toast; .show is added/removed, as in B10)
+  const toast = el('div', { class: 'toast', role: 'status', id: 'toast' }, 'Ready');
   document.body.append(toast);
   const toastTimer: { t: number } = { t: 0 };
   const showToast = (msg: string): void => {
@@ -829,46 +954,55 @@ function mountB10Overlays(): void {
   };
   (window as unknown as { __dlToast?: (m: string) => void }).__dlToast = showToast;
 
-  // --- Modal (destructive confirm; used by advanced actions if wired) ---
-  const overlay = el('div', { class: 'dl-modal-overlay', id: 'dl-modal', hidden: true });
-  const modalBox = el('div', { class: 'dl-modal' },
-    el('h3', {}, '确认操作'),
-    el('div', { class: 'dl-modal-body' }, '该操作将写入本地状态。'),
-    el('div', { class: 'dl-modal-actions' },
-      el('button', { class: 'secondary', type: 'button' }, '取消'),
-      el('button', { type: 'button' }, '确认')));
+  // --- Modal --- (B10 .overlay#modal > .modal > h3 + .body + .actions)
+  const overlay = el('div', { class: 'overlay', id: 'modal' });
+  const modalBox = el('div', { class: 'modal' },
+    el('h3', { id: 'modalTitle' }, '确认操作'),
+    el('div', { class: 'body', id: 'modalBody' }, '该操作将写入本地状态。'),
+    el('div', { class: 'actions' },
+      el('button', { class: 'ghost-btn', type: 'button', 'data-close-modal': '' }, '取消'),
+      el('button', { class: 'primary-btn', type: 'button', id: 'modalConfirm' }, '确认')));
   overlay.append(modalBox);
   document.body.append(overlay);
-  const cancelBtn = modalBox.querySelector('.dl-modal-actions .secondary') as HTMLButtonElement;
+  const cancelBtn = modalBox.querySelector('.actions .ghost-btn') as HTMLButtonElement;
   const openModal = (title: string, bodyHtml: string, onConfirm?: () => void): void => {
-    (overlay.querySelector('h3') as HTMLElement).textContent = title;
-    const b = modalBox.querySelector('.dl-modal-body') as HTMLElement;
-    b.innerHTML = bodyHtml;
-    overlay.hidden = false;
+    (modalBox.querySelector('h3') as HTMLElement).textContent = title;
+    (modalBox.querySelector('.body') as HTMLElement).innerHTML = bodyHtml;
     overlay.classList.add('open');
+    (modalBox.querySelector('#modalConfirm') as HTMLButtonElement).onclick = () => {
+      closeModal();
+      if (onConfirm) onConfirm();
+    };
   };
-  const closeModal = (): void => { overlay.classList.remove('open'); overlay.hidden = true; };
+  const closeModal = (): void => { overlay.classList.remove('open'); };
   cancelBtn.onclick = closeModal;
-  (modalBox.querySelector('.dl-modal-actions > .primary, .dl-modal-actions > button:not(.secondary)') as HTMLButtonElement).onclick = () => {
-    closeModal();
-    showToast('已确认');
-  };
 
-  // --- Drawer (Inspector / 详情滑出) ---
-  const drawer = el('aside', { class: 'dl-drawer', id: 'dl-drawer', role: 'dialog', 'aria-label': '工作区详情' },
-    el('h3', {}, '工作区 / Context'),
-    el('p', { class: 'view-hint' }, 'Command Palette：Ctrl/Cmd + K。Esc 关闭浮层。'),
-    el('div', { class: 'status-stack' },
+  // --- Drawer --- (B10 aside.drawer#drawer: h3 + p.muted + .status-stack +
+  // .panel > h3 + .list > .list-item + .primary-btn)
+  const drawer = el('aside', { class: 'drawer', id: 'drawer', role: 'dialog', 'aria-label': '工作区详情' },
+    el('h3', { style: 'margin:0 0 8px' }, '工作区 / Context'),
+    el('p', { class: 'muted', style: 'margin-top:0' }, 'Command Palette（Ctrl/Cmd + K）、Toast、Modal 与 Drawer 由本页真实驱动；视图内容全部来自服务读回。'),
+    el('div', { class: 'status-stack', style: 'margin:14px 0 20px' },
       el('span', { class: 'tag info' }, 'Live UI'),
-      el('span', { class: 'tag ok' }, 'Local State')));
-document.body.append(drawer);
+      el('span', { class: 'tag ok' }, 'Local State'),
+      el('span', { class: 'tag warn' }, 'Readback Only')),
+    el('div', { class: 'panel' },
+      el('h3', {}, '界面状态'),
+      el('div', { class: 'list' },
+        el('div', { class: 'list-item' }, el('span', {}, 'Rendering'), el('span', { class: 'tag ok' }, 'Ready')),
+        el('div', { class: 'list-item' }, el('span', {}, 'Motion Effects'), el('span', { class: 'tag ok' }, 'Enabled')),
+        el('div', { class: 'list-item' }, el('span', {}, 'Palette'), el('span', { class: 'tag info' }, 'Ctrl/Cmd + K')))),
+    el('button', { class: 'primary-btn', type: 'button', id: 'closeDrawer', style: 'margin-top:18px;width:100%' }, '关闭'));
+  document.body.append(drawer);
   const openDrawer = (): void => { drawer.classList.add('open'); };
   const closeDrawer = (): void => { drawer.classList.remove('open'); };
+  (drawer.querySelector('#closeDrawer') as HTMLButtonElement).onclick = closeDrawer;
 
-  // --- Command Palette ---
-  const palette = el('div', { class: 'dl-palette', id: 'dl-palette', role: 'dialog', 'aria-label': '命令面板' },
-    el('input', { id: 'dl-palette-input', placeholder: '搜索页面 / 命令 / 模块…', 'aria-label': '命令搜索' }));
-  const itemsBox = el('div', {});
+  // --- Command Palette --- (B10 .palette#palette > input#paletteInput +
+  // #paletteItems > .item)
+  const palette = el('div', { class: 'palette', id: 'palette', role: 'dialog', 'aria-label': '命令面板' },
+    el('input', { id: 'paletteInput', placeholder: '搜索页面 / 命令 / 模块…', 'aria-label': '命令搜索' }));
+  const itemsBox = el('div', { id: 'paletteItems' });
   palette.append(itemsBox);
   document.body.append(palette);
   const paletteInput = palette.querySelector('input') as HTMLInputElement;
@@ -876,22 +1010,22 @@ document.body.append(drawer);
   const cmds = ROUTE_VIEWS.filter((r) => r.hash !== '')
     .map((r) => ({ id: r.view, label: r.label }));
   for (const c2 of cmds) {
-    itemsBox.append(el('div', { class: 'dl-palette-item', 'data-go': c2.id },
-      c2.label, el('small', {}, 'Open')));
+    itemsBox.append(el('div', { class: 'item', 'data-go': c2.id },
+      el('span', {}, c2.label), el('small', {}, 'Open')));
   }
   const openPalette = (): void => { palette.classList.add('open'); paletteInput.focus(); paletteInput.select(); };
   const closePalette = (): void => {
     palette.classList.remove('open');
     paletteInput.value = '';
-    itemsBox.querySelectorAll('.dl-palette-item').forEach((i) => { (i as HTMLElement).style.display = ''; });
+    itemsBox.querySelectorAll('.item').forEach((i) => { (i as HTMLElement).style.display = ''; });
   };
   paletteInput.addEventListener('input', () => {
     const q = paletteInput.value.toLowerCase();
-    itemsBox.querySelectorAll<HTMLElement>('.dl-palette-item').forEach((item) => {
+    itemsBox.querySelectorAll<HTMLElement>('.item').forEach((item) => {
       item.style.display = item.textContent!.toLowerCase().includes(q) ? 'flex' : 'none';
     });
   });
-  itemsBox.querySelectorAll<HTMLElement>('.dl-palette-item').forEach((item) => {
+  itemsBox.querySelectorAll<HTMLElement>('.item').forEach((item) => {
     item.onclick = () => {
       const go = item.dataset.go;
       if (go) window.location.hash = '#' + go;
@@ -908,8 +1042,8 @@ document.body.append(drawer);
     if (e.key === 'Escape') { closePalette(); closeDrawer(); closeModal(); }
   });
 
-  // (The existing header is workbench-native; overlays here are additive.)
-  mountB10Topbar();
+  // Wire the B10 .topbar built by mountB10Shell (structure there, handlers here).
+  wireB10Topbar(openPalette, showToast, openDrawer);
 }
 
 // ============================================================================
@@ -917,50 +1051,21 @@ document.body.append(drawer);
 // on the B10 .topbar body. Wired after mountB10Overlays so the palette,
 // toast and drawer ids already exist in the DOM.
 // ============================================================================
-function mountB10Topbar(): void {
-  // The B10 .topbar/.search/.top-actions body lives on the routed B10 grid:
-  // a ⌘K search pill (opens the command palette) + 通知 / 工作区 ghost buttons.
-  // Wired only when the palette is already mounted (mountB10Overlays ran first).
-    const probe = document.createElement('div');
-    if (typeof probe.querySelector !== 'function') return;
-
-    const topbar = el('header', { class: 'topbar', id: 'b10-topbar' },
-      el('div', { class: 'search', id: 'b10-open-palette', role: 'button', tabindex: '0' },
-        '⌘ K\u3000搜索页面 / 命令 / 资源'),
-      el('div', { class: 'top-actions' },
-        el('button', { type: 'button', class: 'ghost-btn', id: 'b10-top-notice' }, '通知'),
-        el('button', { type: 'button', class: 'ghost-btn', id: 'b10-open-drawer' }, '工作区')));
-    document.body.append(topbar);
-
-    const openPalette = (): void => {
-      const palette = document.getElementById('dl-palette');
-      const input = document.getElementById('dl-palette-input') as HTMLInputElement | null;
-      if (palette) {
-        palette.classList.add('open');
-        if (input) { input.focus(); input.select(); }
-      }
+function wireB10Topbar(openPalette: () => void, showToast: (m: string) => void, openDrawer: () => void): void {
+  // The B10 .topbar/.search/.top-actions structure is built by mountB10Shell;
+  // this only attaches behaviour, and only once the palette / toast / drawer
+  // exist (mountB10Overlays calls it last).
+  const search = document.getElementById('openPalette');
+  if (search) {
+    search.onclick = openPalette;
+    search.onkeydown = (e: KeyboardEvent) => {
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openPalette(); }
     };
-    const search = document.getElementById('b10-open-palette');
-    if (search) {
-      search.onclick = openPalette;
-      search.onkeydown = (e: KeyboardEvent) => {
-        if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openPalette(); }
-      };
-    }
-    const notice = document.getElementById('b10-top-notice');
-    if (notice) notice.onclick = (): void => {
-      const toast = document.getElementById('dl-toast');
-      if (toast) {
-        toast.textContent = '暂无新的通知';
-        toast.classList.add('show');
-        window.setTimeout(() => toast.classList.remove('show'), 1800);
-      }
-    };
-    const drawerBtn = document.getElementById('b10-open-drawer');
-    if (drawerBtn) drawerBtn.onclick = (): void => {
-      const drawer = document.getElementById('dl-drawer');
-      if (drawer) drawer.classList.add('open');
-    };
+  }
+  const notice = document.getElementById('topNotice');
+  if (notice) notice.onclick = (): void => { showToast('暂无新的通知'); };
+  const drawerBtn = document.getElementById('openDrawer');
+  if (drawerBtn) drawerBtn.onclick = (): void => { openDrawer(); };
 }
 
 // Guard: the vm unit smoke executes the bundle with a DOM mock whose
