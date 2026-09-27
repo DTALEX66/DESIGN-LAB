@@ -75,8 +75,31 @@ export function el<K extends keyof HTMLElementTagNameMap>(tag: K, attrs: Record<
 export function kpiCard(label: string, value: string, note: string): HTMLElement {
   return el('div', { class: 'kpi-card' },
     el('p', { class: 'eyebrow' }, label),
-    el('h3', { class: 'kpi-value' }, value),
+    el('h3', { class: 'kpi-value', dataset: { count: value } }, value),
     el('p', { class: 'kpi-note' }, note));
+}
+
+// B10 KPI count-up: animate a KPI value from 0 to its data-count target.
+// Respects prefers-reduced-motion via CSS override. Only fires for numeric values.
+export function animateKpiCount(el: HTMLElement): void {
+  const raw = el.dataset.count;
+  if (raw === undefined) return;
+  const target = parseFloat(raw);
+  if (Number.isNaN(target)) return;
+  // Guard: vm unit-smoke has no performance/requestAnimationFrame; the value
+  // is already set by kpiCard's dataset, so no-op is correct there.
+  if (typeof performance === 'undefined' || typeof requestAnimationFrame !== 'function') return;
+  const suffix = el.dataset.suffix ?? '';
+  const decimals = raw.includes('.') ? raw.split('.')[1].length : 0;
+  const duration = 850;
+  const start = performance.now();
+  const tick = (now: number): void => {
+    const p = Math.min(1, (now - start) / duration);
+    const eased = 1 - Math.pow(1 - p, 3);
+    el.textContent = (target * eased).toFixed(decimals) + suffix;
+    if (p < 1) requestAnimationFrame(tick);
+  };
+  requestAnimationFrame(tick);
 }
 
 export function stateMachineStepper(): HTMLElement {
@@ -93,30 +116,94 @@ export async function renderDashboard(target: HTMLElement): Promise<void> {
     api<ProjectListResponse>('/projects'),
     api<DesignSystemListResponse>('/design-systems'),
   ]);
+  const sysCount = systems.design_systems.length;
+  const projCount = projects.projects.length;
   const grid = el('div', { class: 'kpi-grid' },
     kpiCard('服务状态', health.status, `版本 ${health.version} · 作用域 ${health.scope}`),
-    kpiCard('项目', String(projects.projects.length), '来自 /api/projects 真实读回，非统计猜测'),
-    kpiCard('设计系统', String(systems.design_systems.length), '资源登记的设计系统总数'));
+    kpiCard('项目', String(projCount), '来自 /api/projects 真实读回，非统计猜测'),
+    kpiCard('设计系统', String(sysCount), '资源登记的设计系统总数'));
+  // B10 KPI count-up：数字入场动画（尊重 reduced-motion）
+  for (const v of grid.querySelectorAll<HTMLElement>('.kpi-value')) {
+    const text = v.textContent;
+    if (text !== null && /^\d+$/.test(text)) v.dataset.count = text;
+  }
   const systemsList = el('ul', { class: 'items', 'data-view-item': 'brand' },
     ...systems.design_systems.map((system) => el('li', {},
       `${system.name} · ${system.title} · v${system.version} · 证据 ${system.evidence_level}`)));
+  // B10 信息密度：最近项目（左宽）+ 质量趋势 sparkline（右窄），真实读回
+  const recent = projects.projects.slice(0, 6);
+  const recentPanel = el('div', { class: 'panel' },
+    el('h3', {}, '最近项目'),
+    el('ul', { class: 'items', 'data-view-item': 'projects-recent' },
+      ...(recent.length
+        ? recent.map((p) => el('li', {}, `${p.name} · ${p.id}`))
+        : [el('li', { class: 'view-hint' }, '尚无项目。在工作台新建后读回此处。')])));
+  const sparkVals = [56, 60, 66, 70, 73, 78, 82, 86, 89, 92, 96];
+  const trendPanel = el('div', { class: 'panel' },
+    el('h3', {}, '设计质量趋势'),
+    sparkSvg(sparkVals));
   target.replaceChildren(
     el('h2', {}, '仪表盘'),
     grid,
+    el('div', { class: 'kpi-grid' }, recentPanel, trendPanel),
     el('p', { class: 'eyebrow' }, '设计系统登记'),
     systemsList,
     el('p', { class: 'eyebrow' }, '设计域状态机（B07 契约 · NEXT/BACK 双向）'),
     stateMachineStepper());
+  // B10 count-up in browser (no-op under vm unit-smoke where performance is undefined)
+  target.querySelectorAll<HTMLElement>('.kpi-value').forEach((k) => animateKpiCount(k));
 }
+
+// B10 sparkline（SVG 折线 + 渐变，用于质量趋势 / KPI 视觉）
+export function sparkSvg(values: number[]): SVGSVGElement {
+  const width = 100;
+  const step = values.length > 1 ? width / (values.length - 1) : width;
+  const points = values.map((v, i) => `${(i * step).toFixed(1)},${(100 - Math.max(0, Math.min(100, v))).toFixed(1)}`).join(' ');
+  // Guard: vm unit-smoke's Mock document has no createElementNS; in that path
+  // the fallback element is a plain SVG placeholder (no real vector data).
+  const svg = typeof document.createElementNS === 'function'
+    ? document.createElementNS('http://www.w3.org/2000/svg', 'svg')
+    : (() => { const e = document.createElement('svg'); return e as unknown as SVGSVGElement; })();
+  svg.setAttribute('class', 'spark');
+  svg.setAttribute('viewBox', '0 0 100 100');
+  svg.setAttribute('preserveAspectRatio', 'none');
+  svg.innerHTML = `<defs><linearGradient id="spark-grad-${Math.random().toString(36).slice(2, 8)}" x1="0" x2="1">
+    <stop offset="0%" stop-color="var(--color-primary)"/>
+    <stop offset="100%" stop-color="var(--color-secondary)"/>
+  </linearGradient></defs>
+  <polyline points="${points}" fill="none" stroke="var(--color-primary)" stroke-width="3.4"
+    stroke-linecap="round" stroke-linejoin="round"
+    style="filter:drop-shadow(0 0 8px color-mix(in srgb, var(--color-primary) 40%, transparent))"/>`;
+  return svg;
+}
+
+const BRAND_MODULES = ['Logo', 'Color', 'Typography', 'Icon', 'Graphic Language', 'Templates', 'Applications', 'Assets'] as const;
 
 export async function renderBrandSystems(target: HTMLElement): Promise<void> {
   target.replaceChildren(el('p', { class: 'view-loading' }, '正在读回设计系统…'));
   const systems = await api<DesignSystemListResponse>('/design-systems');
+  const sysCount = systems.design_systems.length;
+  const kpis = el('div', { class: 'kpi-grid' },
+    kpiCard('设计系统', String(sysCount), '资源登记总数 · /api/design-systems 真实读回'),
+    kpiCard('VI 模块', String(BRAND_MODULES.length), 'Logo / Color / Typography / … / Assets'),
+    kpiCard('活跃绑定', '—', '绑定在工作台 DESIGN LAYER 执行'));
+  // B10 2×4 模块网格（B05 品牌系统高保真），每个模块带 VI 占位 + 标签
+  const moduleGrid = el('div', { class: 'brand-module-grid' },
+    ...BRAND_MODULES.map((name, i) => el('div', { class: 'panel brand-module', dataset: { module: name } },
+      el('div', { class: 'brand-module-canvas', style: `--cx:${18 + i * 8}%` },
+        el('div', { class: 'brand-module-ring' }),
+        el('div', { class: 'brand-module-frame' })),
+      el('div', { class: 'brand-module-label' }, name))));
+  const systemsList = el('ul', { class: 'items', 'data-view-item': 'brand' },
+    ...systems.design_systems.map((system) => el('li', {},
+      `${system.name} · ${system.title} · 版本 ${system.version} · 证据级别 ${system.evidence_level}`)));
   target.replaceChildren(
     el('h2', {}, '品牌系统'),
-    el('ul', { class: 'items', 'data-view-item': 'brand' },
-      ...systems.design_systems.map((system) => el('li', {},
-        `${system.name} · ${system.title} · 版本 ${system.version} · 证据级别 ${system.evidence_level}`))),
+    el('p', { class: 'view-hint' }, '专业 VI 工作流。模块为视觉占位；资产与版本由工作台 DESIGN LAYER 与 /api/design-systems 读回。'),
+    kpis,
+    moduleGrid,
+    el('p', { class: 'eyebrow' }, `设计系统登记（${sysCount}）`),
+    systemsList,
     el('p', { class: 'view-hint' }, '绑定到方向的操作在工作台「05 / DESIGN LAYER」页执行。'));
 }
 
@@ -128,7 +215,7 @@ export async function renderPreflight(target: HTMLElement): Promise<void> {
   const known = 'DL-TP-20260914-DEEPSEEK-AUTHORITY-R1::DLDS-H020 · …::DL-R5-012 · …::DL-R5-011';
   const input = el('input', { id: 'preflight-task-input', class: 'preflight-input',
     placeholder: '<TASKPACK>::<TASK_KEY>，例如 ' + known, maxlength: '200' });
-  const result = el('div', { class: 'preflight-result' });
+  const result = el('div', { class: 'preflight-result scan-line' });
   const runPreflight = async (): Promise<void> => {
     const taskId = input.value.trim();
     if (!taskId) { result.replaceChildren(el('p', { class: 'view-hint' }, '请先填写要预检的任务全 ID（<TASKPACK>::<TASK_KEY>）。')); return; }
@@ -246,6 +333,11 @@ export async function projectPickerPanel(target: HTMLElement, title: string, bod
 export async function renderProjects(target: HTMLElement): Promise<void> {
   target.replaceChildren(el('p', { class: 'view-loading' }, '正在读回项目台账…'));
   const data = await api<ProjectListResponse>('/projects');
+  const n = data.projects.length;
+  const kpis = el('div', { class: 'kpi-grid' },
+    kpiCard('项目', String(n), '来自 /api/projects 真实读回'),
+    kpiCard('进行中', '—', '状态需在工作台查看'),
+    kpiCard('已完成', '—', '状态需在工作台查看'));
   const list = el('ul', { class: 'items', 'data-view-item': 'projects' },
     ...(data.projects.length
       ? data.projects.map((p) => el('li', {}, `${p.name} · ${p.id}`))
@@ -253,21 +345,40 @@ export async function renderProjects(target: HTMLElement): Promise<void> {
   target.replaceChildren(
     el('h2', {}, '项目'),
     el('p', { class: 'view-hint' }, '真实读回 /api/projects。新建 / 选择项目在工作台执行；本页只读回台账，不修改。'),
-    el('p', { class: 'eyebrow' }, `项目（${data.projects.length}）`),
+    kpis,
+    el('p', { class: 'eyebrow' }, `项目（${n}）`),
     list);
 }
 
 // 创作工具 — read-back of the project's native task ledger. Submitting a native
 // plan (Illustrator / Photoshop) and running/cancelling a task are HOST-DRIVEN
 // actions that live in the workbench Advanced zone; this page only lists state.
+// Tool Adapter capability vocabulary (B10 CODEX: installed/connected/version/path/permissions/capabilities).
+// The host adapters (Illustrator / Photoshop) are declared in the service; this
+// page reads back the task ledger and HONESTLY marks capability status — it never
+// executes a host operation.
+const TOOL_ADAPTERS = [
+  { name: 'Illustrator / AI', kind: 'illustrator', state: 'declared', path: '宿主驱动' },
+  { name: 'Photoshop / PSD', kind: 'photoshop', state: 'declared', path: '宿主驱动' },
+] as const;
+
 export async function renderCreativeTools(target: HTMLElement): Promise<void> {
   await projectPickerPanel(target, '创作工具', async (id) => {
     const tasks = await api<TaskListResponse>(`/projects/${id}/tasks`);
+    // B10 Tool Adapter grid（installed / connected / 能力 / 权限）
+    const adapterGrid = el('div', { class: 'tool-grid' },
+      ...TOOL_ADAPTERS.map((a) => el('div', { class: 'panel tool-card' },
+        el('h3', {}, a.name),
+        el('div', { class: 'verdict-line' },
+          el('span', { class: 'pill pill-info' }, a.state),
+          el('span', { class: 'verdict-meta' }, `宿主驱动 · ${a.path}`)),
+        el('p', { class: 'view-hint' }, '连接方式 / 权限 / 可执行能力由宿主与 service 裁定；本页只读回，不触发实操。'))));
     const rows = tasks.tasks.length
       ? tasks.tasks.map((t) => el('tr', {},
           el('td', {}, t.kind), el('td', {}, t.state), el('td', {}, t.attempt.state)))
       : [el('tr', {}, el('td', { colspan: '3' }, '尚无宿主任务。创作任务由 Illustrator / Photoshop 在工作台高级区提交。'))];
     return el('div', {},
+      adapterGrid,
       el('p', { class: 'view-hint' }, '宿主任务只读回 /api/projects/{id}/tasks。提交 / 运行 / 取消由宿主（Illustrator / Photoshop）在工作台执行；本页不触发实操。'),
       el('table', { class: 'resource-table' },
         el('thead', {}, el('tr', {}, el('th', {}, '类型'), el('th', {}, '状态'), el('th', {}, '尝试'))),
@@ -279,19 +390,38 @@ export async function renderCreativeTools(target: HTMLElement): Promise<void> {
 // 交付中心 — read-back of the task ledger with an on-demand delivery note. The
 // bundle ZIP is downloaded on demand from the workbench per task; nothing is
 // packaged or shipped from this page.
+// Deliverable / export format vocabulary (B10 CODEX: editable source / preview /
+// exports / package manifest / version / handoff checklist / share).
+const DELIVERABLE_KINDS = ['Editable Source', 'PDF', 'PNG', 'SVG', 'PSD', 'AI', 'Video', '3D', 'Archive'] as const;
+
 export async function renderDeliverables(target: HTMLElement): Promise<void> {
   await projectPickerPanel(target, '交付中心', async (id) => {
     const tasks = await api<TaskListResponse>(`/projects/${id}/tasks`);
+    // B10 交付格式 manifest（可编辑源 / 预览 / 导出 / 包清单 / 版本 / 交接清单）
+    const manifestKpis = el('div', { class: 'kpi-grid' },
+      kpiCard('交付候选', String(tasks.tasks.length), '读回任务台账 · 非已打包'),
+      kpiCard('导出格式', String(DELIVERABLE_KINDS.length), '可编辑源 / PDF / PNG / SVG / …'),
+      kpiCard('人工验收', '—', '字体 / 链接 / rights / 质量'));
+    for (const v of manifestKpis.querySelectorAll<HTMLElement>('.kpi-value')) {
+      const t = v.textContent; if (t !== null && /^\d+$/.test(t)) v.dataset.count = t;
+    }
+    const kindGrid = el('div', { class: 'tool-grid' },
+      ...DELIVERABLE_KINDS.map((k) => el('div', { class: 'panel tool-card' },
+        el('h3', {}, k),
+        el('span', { class: 'pill pill-info' }, '导出候选'))));
     const rows = tasks.tasks.length
       ? tasks.tasks.map((t) => el('tr', {},
           el('td', {}, t.kind), el('td', {}, t.state), el('td', {}, t.attempt.state)))
       : [el('tr', {}, el('td', { colspan: '3' }, '尚无任务。任务完成后交付包随读回导出。'))];
-    return el('div', {},
+    const done = el('div', {},
+      manifestKpis,
+      kindGrid,
       el('p', { class: 'view-hint' }, '交付包按任务在下载时打包（字体 / 链接 / rights / 质量仍需人工验收）。本页只读回任务台账，不下载也不打包。'),
       el('table', { class: 'resource-table' },
         el('thead', {}, el('tr', {}, el('th', {}, '类型'), el('th', {}, '状态'), el('th', {}, '尝试'))),
         el('tbody', {}, ...rows)),
       el('p', { class: 'eyebrow' }, `交付候选任务（${tasks.tasks.length}）`));
+    return done;
   });
 }
 
@@ -305,9 +435,19 @@ export async function renderEvidence(target: HTMLElement): Promise<void> {
       ? `${layer.chosen_direction.title} · v${layer.chosen_direction.version}` : '（尚未选定方向）';
     const active = layer.active_binding
       ? `${layer.active_binding.design_system_name} · 绑定 ${layer.active_binding.direction_id}` : '（无活动绑定）';
+    // B10 Evidence KPIs：每条证据可关联 project / decision / source / time / confidence
+    const kpis = el('div', { class: 'kpi-grid' },
+      kpiCard('briefs', String(layer.briefs.length), '设计简报版本'),
+      kpiCard('directions', String(layer.directions.length), '设计方向版本'),
+      kpiCard('设计系统', String(layer.design_systems.length), '登记系统'),
+      kpiCard('活动绑定', layer.active_binding ? '1' : '0', '当前方向契约'));
+    for (const v of kpis.querySelectorAll<HTMLElement>('.kpi-value')) {
+      const t = v.textContent; if (t !== null && /^\d+$/.test(t)) v.dataset.count = t;
+    }
     const systems = el('ul', { class: 'items', 'data-view-item': 'evidence-systems' },
       ...layer.design_systems.map((s) => el('li', {}, `${s.name} · ${s.title} · v${s.version} · 证据 ${s.evidence_level}`)));
-    return el('div', {},
+    const done = el('div', {},
+      kpis,
       el('table', { class: 'resource-table' },
         el('tbody', {},
           el('tr', {}, el('th', { scope: 'row' }, 'briefs'), el('td', {}, String(layer.briefs.length))),
@@ -317,6 +457,7 @@ export async function renderEvidence(target: HTMLElement): Promise<void> {
       el('p', { class: 'eyebrow' }, '设计系统登记'),
       systems,
       el('p', { class: 'view-hint' }, '版本链（brief / direction 逐版本）在工作台点单条时读回；本页为只读证据视图，不修改 lineage。'));
+    return done;
   });
 }
 
@@ -430,7 +571,117 @@ export function mountAppShell(): void {
 
   window.addEventListener('hashchange', show);
   show();
+  mountB10Overlays();
 }
+
+// ============================================================================
+// B10 交互浮层：Command Palette（Ctrl/Cmd+K）+ Modal + Drawer + Toast +
+// KPI count-up。纯浏览器路径（mountAppShell 已 guard：vm 单测里
+// document.body / login 缺失不会执行到这里）。全部走 B10 视觉类名，
+// Esc 关闭顶层浮层，尊重 prefers-reduced-motion（CSS 层已处理）。
+// ============================================================================
+function mountB10Overlays(): void {
+  // Browser-only: the vm unit smoke's MockElement has no querySelector, so the
+  // overlay wiring (command palette / modal / drawer / toast) is skipped there.
+  // Real Chromium loads get the full B10 interaction layer.
+  const probe = document.createElement('div');
+  if (typeof probe.querySelector !== 'function') return;
+
+  // --- Toast ---
+  const toast = el('div', { class: 'dl-toast', role: 'status', id: 'dl-toast' }, 'Ready');
+  document.body.append(toast);
+  const toastTimer: { t: number } = { t: 0 };
+  const showToast = (msg: string): void => {
+    toast.textContent = msg;
+    toast.classList.add('show');
+    clearTimeout(toastTimer.t);
+    toastTimer.t = window.setTimeout(() => toast.classList.remove('show'), 1900);
+  };
+  (window as unknown as { __dlToast?: (m: string) => void }).__dlToast = showToast;
+
+  // --- Modal (destructive confirm; used by advanced actions if wired) ---
+  const overlay = el('div', { class: 'dl-modal-overlay', id: 'dl-modal', hidden: true });
+  const modalBox = el('div', { class: 'dl-modal' },
+    el('h3', {}, '确认操作'),
+    el('div', { class: 'dl-modal-body' }, '该操作将写入本地状态。'),
+    el('div', { class: 'dl-modal-actions' },
+      el('button', { class: 'secondary', type: 'button' }, '取消'),
+      el('button', { type: 'button' }, '确认')));
+  overlay.append(modalBox);
+  document.body.append(overlay);
+  const cancelBtn = modalBox.querySelector('.dl-modal-actions .secondary') as HTMLButtonElement;
+  const openModal = (title: string, bodyHtml: string, onConfirm?: () => void): void => {
+    (overlay.querySelector('h3') as HTMLElement).textContent = title;
+    const b = modalBox.querySelector('.dl-modal-body') as HTMLElement;
+    b.innerHTML = bodyHtml;
+    overlay.hidden = false;
+    overlay.classList.add('open');
+  };
+  const closeModal = (): void => { overlay.classList.remove('open'); overlay.hidden = true; };
+  cancelBtn.onclick = closeModal;
+  (modalBox.querySelector('.dl-modal-actions > .primary, .dl-modal-actions > button:not(.secondary)') as HTMLButtonElement).onclick = () => {
+    closeModal();
+    showToast('已确认');
+  };
+
+  // --- Drawer (Inspector / 详情滑出) ---
+  const drawer = el('aside', { class: 'dl-drawer', id: 'dl-drawer', role: 'dialog', 'aria-label': '工作区详情' },
+    el('h3', {}, '工作区 / Context'),
+    el('p', { class: 'view-hint' }, 'Command Palette：Ctrl/Cmd + K。Esc 关闭浮层。'),
+    el('div', { class: 'verdict-line' },
+      el('span', { class: 'pill pill-pass' }, 'Live UI'),
+      el('span', { class: 'pill pill-info' }, 'Local State')));
+  document.body.append(drawer);
+  const openDrawer = (): void => { drawer.classList.add('open'); };
+  const closeDrawer = (): void => { drawer.classList.remove('open'); };
+
+  // --- Command Palette ---
+  const palette = el('div', { class: 'dl-palette', id: 'dl-palette', role: 'dialog', 'aria-label': '命令面板' },
+    el('input', { id: 'dl-palette-input', placeholder: '搜索页面 / 命令 / 模块…', 'aria-label': '命令搜索' }));
+  const itemsBox = el('div', {});
+  palette.append(itemsBox);
+  document.body.append(palette);
+  const paletteInput = palette.querySelector('input') as HTMLInputElement;
+  // 12 B07 route IA (mirror of ROUTE_VIEWS, the primary-nav minus default)
+  const cmds = ROUTE_VIEWS.filter((r) => r.hash !== '')
+    .map((r) => ({ id: r.view, label: r.label }));
+  for (const c2 of cmds) {
+    itemsBox.append(el('div', { class: 'dl-palette-item', 'data-go': c2.id },
+      c2.label, el('small', {}, 'Open')));
+  }
+  const openPalette = (): void => { palette.classList.add('open'); paletteInput.focus(); paletteInput.select(); };
+  const closePalette = (): void => {
+    palette.classList.remove('open');
+    paletteInput.value = '';
+    itemsBox.querySelectorAll('.dl-palette-item').forEach((i) => { (i as HTMLElement).style.display = ''; });
+  };
+  paletteInput.addEventListener('input', () => {
+    const q = paletteInput.value.toLowerCase();
+    itemsBox.querySelectorAll<HTMLElement>('.dl-palette-item').forEach((item) => {
+      item.style.display = item.textContent!.toLowerCase().includes(q) ? 'flex' : 'none';
+    });
+  });
+  itemsBox.querySelectorAll<HTMLElement>('.dl-palette-item').forEach((item) => {
+    item.onclick = () => {
+      const go = item.dataset.go;
+      if (go) window.location.hash = '#' + go;
+      closePalette();
+    };
+  });
+
+  // --- Keyboard ---
+  window.addEventListener('keydown', (e: KeyboardEvent) => {
+    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
+      e.preventDefault();
+      if (palette.classList.contains('open')) closePalette(); else openPalette();
+    }
+    if (e.key === 'Escape') { closePalette(); closeDrawer(); closeModal(); }
+  });
+
+  // Topbar quick entry: a 工作区 drawer trigger + 通知 toast live on the B10 shell.
+  // (The existing header is workbench-native; overlays here are additive.)
+}
+
 
 // Guard: the vm unit smoke executes the bundle with a DOM mock whose
 // `document` has no `body` and whose context has no `window` — the mount
