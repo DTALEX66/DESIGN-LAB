@@ -128,6 +128,7 @@
       "outcome": "PARTIAL",
       "reasons": [
         "OUTCOME_NOT_PASS",
+        "STALE_SUBJECT_SHA",
         "SOURCE_CHANGED_OR_MISSING:design-lab/config/task-ledger-r3.json"
       ],
       "software": {
@@ -159,7 +160,8 @@
       "observed_at": "2026-09-27T15:11:41Z",
       "outcome": "PARTIAL",
       "reasons": [
-        "OUTCOME_NOT_PASS"
+        "OUTCOME_NOT_PASS",
+        "STALE_SUBJECT_SHA"
       ],
       "software": {
         "observation": "HERMES_HOME mtime sweep; git check-ignore; ownership-classified cleanup with sha256 before/after",
@@ -191,7 +193,8 @@
       "observed_at": "2026-09-27T15:11:41Z",
       "outcome": "PARTIAL",
       "reasons": [
-        "OUTCOME_NOT_PASS"
+        "OUTCOME_NOT_PASS",
+        "STALE_SUBJECT_SHA"
       ],
       "software": {
         "gh": "GitHub CLI (keyring auth)",
@@ -207,17 +210,93 @@
         "DL-R5-003"
       ],
       "verified": false
+    },
+    {
+      "artifacts": [
+        {
+          "path": "apps/workbench/build/main.js",
+          "sha256": "454ce542cef0dab554d04ee7f4fba5cc0e1cb5c109f806d9b02351cece301ae1"
+        },
+        {
+          "path": ".project-local/task-artifacts/project-survey-2026-09-27/PROJECT-SURVEY-2026-09-27.md",
+          "sha256": "0efce6a20b1efb5433e64d830906ada77260e9ad799686785f5164d0f4e403c1"
+        }
+      ],
+      "binding": "COMMIT",
+      "id": "r5-workbench-strict-ts-build-truth-20260927",
+      "kind": "local_test",
+      "note": "在 634071f 实测：strict TypeScript typecheck exit 0；Vite build exit 0；node tests/unit.mjs 与 tests/appshell.mjs 全绿。构建产物真值面由 required check 'Workbench strict-TS product gate' 与 'Generated-artifact clean-tree gate' 双重守卫（后者要求全树干净，故 apps/workbench/build/main.js 必须与源码同提交）。PARTIAL：非全语言迁移；Ruff 是否 enforce 仍未决策。本 receipt 直到 `apps` 被加入 reporting.py 的证据根 allowed 集合后才可绑定。",
+      "observed_at": "2026-09-27T16:41:37Z",
+      "outcome": "PARTIAL",
+      "reasons": [
+        "OUTCOME_NOT_PASS",
+        "STALE_SUBJECT_SHA"
+      ],
+      "software": {
+        "node": "v24.18.1",
+        "os": "Windows",
+        "runner": "node node_modules/typescript/bin/tsc --noEmit; node node_modules/vite/bin/vite.js build; node tests/unit.mjs; node tests/appshell.mjs",
+        "typescript": "~5.6.3",
+        "vite": "6.4.3"
+      },
+      "subject_files": {
+        "apps/workbench/package.json": "9e73e245210ba1914d3aeb8ed8d62f99e3d2ec206300f39fc5a48059ab4efe90",
+        "apps/workbench/tsconfig.json": "c7cf03334ceb25c0ec9ff4e60ad64016cd3519bb12054f7c6f0582e78e2f8262",
+        "apps/workbench/vite.config.ts": "c58e0c2ae118a94d8e34673a809cbab2a49f8edea88c4293344f10bd2bf8cce7"
+      },
+      "subject_sha": "634071f3c8ffa87e08fa1386f49c185ff6fa36d8",
+      "task_ids": [
+        "DL-R5-028"
+      ],
+      "verified": false
+    },
+    {
+      "artifacts": [
+        {
+          "path": "design-lab/tests/test_workbench_native_ui.py",
+          "sha256": "08302a82c8c3e21061180f2e1c322a1bb50c97ff7eb930c902bec425bcbe5355"
+        },
+        {
+          "path": ".project-local/task-artifacts/project-survey-2026-09-27/PROJECT-SURVEY-2026-09-27.md",
+          "sha256": "0efce6a20b1efb5433e64d830906ada77260e9ad799686785f5164d0f4e403c1"
+        }
+      ],
+      "binding": "COMMIT",
+      "id": "r5-workbench-native-task-ui-tests-20260927",
+      "kind": "local_test",
+      "note": "工作台侧的提交 / 修改 / 取消 / 导出 / 预览 / 原生校验 handler 与契约测试（test_workbench_native_ui.py：分页游标、旧响应不得覆盖新视图、patch 幂等、start/cancel attempt 绑定、bundle hash 校验、409/401 fail-closed）在 634071f 随全量套件执行通过。PARTIAL：这些是受控运行与结构证据，**不**构成真实宿主 E3，也不代表人工验收；host_live 轴因此不绑定。",
+      "observed_at": "2026-09-27T16:41:37Z",
+      "outcome": "PARTIAL",
+      "reasons": [
+        "OUTCOME_NOT_PASS",
+        "STALE_SUBJECT_SHA"
+      ],
+      "software": {
+        "os": "Windows",
+        "python": "3.13.14 (project .venv)",
+        "runner": "python scripts/run_python_tests.py  ->  Ran 1755 tests, OK (skipped=37)"
+      },
+      "subject_files": {
+        "apps/workbench/index.html": "ecbfe1bfdae58df7a0f67fcb7a54336576c76de3ff234bf87855ed86bb7e92b5",
+        "apps/workbench/workbench.ts": "28ee6cd38fc9b6d43bf1fcb23edfc31e9a2577095e996358a5a6b1ccae4118e1",
+        "design-lab/tests/test_workbench_native_ui.py": "08302a82c8c3e21061180f2e1c322a1bb50c97ff7eb930c902bec425bcbe5355"
+      },
+      "subject_sha": "634071f3c8ffa87e08fa1386f49c185ff6fa36d8",
+      "task_ids": [
+        "DL-R5-010"
+      ],
+      "verified": false
     }
   ],
   "fresh": false,
   "freshnessMeaning": "at generation only; check verifies bound-input integrity, not current Git or cloud state",
-  "generatedAt": "2026-09-27T15:11:48+00:00",
+  "generatedAt": "2026-09-27T16:41:38+00:00",
   "gitStateMeaning": "generation-time observation, not current HEAD",
-  "ledgerUpdatedAt": "2026-09-27T15:11:41Z",
+  "ledgerUpdatedAt": "2026-09-27T16:41:37Z",
   "note": "DONE_LOCAL concerns the declared task axes and dependencies, not a product release or hosted CI.",
   "schemaVersion": "design-lab/task-progress/r5-v1",
   "subjectMeaning": "subjectType=WORKTREE means the tree was dirty at generation; worktreeDigest covers HEAD plus the non-generated changes",
-  "subjectSha": "634071f3c8ffa87e08fa1386f49c185ff6fa36d8",
+  "subjectSha": "cae840d2a45d47cc31797ea4b4cecc98f1918a26",
   "subjectType": "WORKTREE",
   "taskpack": "DL-TP-20260908-R5",
   "taskpackHash": "31dde89eb4ede81fe88c0a5c5144adfb86af8db4c4d8c263bde2199180369b69",
@@ -982,13 +1061,17 @@
         },
         "implementation": {
           "declared_state": "PARTIAL",
-          "evidence": [],
+          "evidence": [
+            "r5-workbench-native-task-ui-tests-20260927"
+          ],
           "reasons": [],
           "state": "PARTIAL"
         },
         "unit": {
           "declared_state": "PARTIAL",
-          "evidence": [],
+          "evidence": [
+            "r5-workbench-native-task-ui-tests-20260927"
+          ],
           "reasons": [],
           "state": "PARTIAL"
         }
@@ -2540,13 +2623,17 @@
         },
         "implementation": {
           "declared_state": "PARTIAL",
-          "evidence": [],
+          "evidence": [
+            "r5-workbench-strict-ts-build-truth-20260927"
+          ],
           "reasons": [],
           "state": "PARTIAL"
         },
         "unit": {
           "declared_state": "PARTIAL",
-          "evidence": [],
+          "evidence": [
+            "r5-workbench-strict-ts-build-truth-20260927"
+          ],
           "reasons": [],
           "state": "PARTIAL"
         }
@@ -2610,5 +2697,5 @@
   "testRunMeaning": "bound run: python scripts/run_bound_test_suite.py --order forward --repeat 2 --modules test_asset_store test_creative_job test_creative_ledgers test_creative_lineage test_creative_migration test_creative_version_guard test_creative_f030_f040 test_creative_session_link test_job_store test_runtime_attempt_safety test_runtime_asset_safety test_runtime_explicit_project test_assurance_qa_plane test_assurance_jury test_bundle_store test_operation_coordinator",
   "testRunResult": "OK",
   "worktreeClean": false,
-  "worktreeDigest": "sha256:d13541b80852df9726a360eb011a568957191a6a27619e9e0efb0931ec22e044"
+  "worktreeDigest": "sha256:6d338c728c7a8a91965293a1a5e2c1d8148f68ca108993c8ebfafc51d7effad8"
 }
