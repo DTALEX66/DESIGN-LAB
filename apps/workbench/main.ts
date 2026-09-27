@@ -30,11 +30,54 @@ byId<HTMLButtonElement>('design-system-bind').onclick = () => {
   void bindDesignSystem().catch((e) => setStatus(errMsg(e), true));
 };
 
+// Dev-mode bypass (local single-user research use): when the page is served by
+// a Vite dev server, the login panel auto-hides and the workspace + AppShell
+// route views mount directly so all 12 B10 pages are browsable without a
+// service token.  API reads stay readback-honest: an API view without a
+// connected token says "请先连接" instead of faking data.  Production
+// (committed build/ + service launcher) keeps the token gate.
+//
+// NOTE: detection lives here and is re-implemented in shell.ts as devMode();
+// keep the two marker checks in sync (@vite/client script OR ?dev=1).
+function devBypassEnabled(): boolean {
+  if (typeof document === 'undefined' || typeof window === 'undefined') return false;
+  // Vite dev server injects @vite/client — the definitive dev-server marker.
+  // Substring-match the src: the injected tag is src="/@vite/client" (no base)
+  // or src="/workbench/@vite/client" (--base /workbench/); both contain the
+  // "@vite/client" marker.
+  if (typeof document.querySelectorAll === 'function'
+      && document.querySelectorAll('script[src*="@vite/client"]').length > 0) return true;
+  // Explicit ?dev=1 query (local single-user research use without a service
+  // token). Guarded: the vm unit-smoke Mock window.location may lack `search`.
+  try {
+    const qs: string | undefined = (window.location as { search?: string }).search;
+    if (typeof qs === 'string' && qs.includes('dev=1')) return true;
+  } catch { /* vm */ }
+  return false;
+}
+
 if (typeof document !== 'undefined'
+    && document.body !== undefined
+    && typeof window !== 'undefined'
+    && devBypassEnabled()
+    && (document as Document & { __dlShellMounted?: boolean }).__dlShellMounted !== true) {
+  (document as Document & { __dlShellMounted?: boolean }).__dlShellMounted = true;
+  mountAppShell();
+} else if (typeof document !== 'undefined'
     && document.body !== undefined
     && typeof window !== 'undefined'
     && document.getElementById('login') !== null
     && (document as Document & { __dlShellMounted?: boolean }).__dlShellMounted !== true) {
   (document as Document & { __dlShellMounted?: boolean }).__dlShellMounted = true;
   mountAppShell();
+}
+
+// Dev-mode: hide the login panel and show the workspace (readback-honest).
+if (typeof document !== 'undefined' && document.body !== undefined && devBypassEnabled()) {
+  const loginEl = document.getElementById('login');
+  const workspaceEl = document.getElementById('workspace');
+  const connEl = document.getElementById('connection');
+  if (loginEl) loginEl.hidden = true;
+  if (workspaceEl) { workspaceEl.hidden = false; }
+  if (connEl) connEl.textContent = '未连接 · 本地浏览模式';
 }

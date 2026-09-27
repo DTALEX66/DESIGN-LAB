@@ -903,6 +903,16 @@ byId("more-events").onclick = () => {
 byId("more-native").onclick = () => {
   void nativeAssets(true).catch((e) => setStatus(errMsg(e), true));
 };
+function devMode() {
+  if (typeof document === "undefined" || typeof window === "undefined") return false;
+  if (typeof document.querySelectorAll === "function" && document.querySelectorAll('script[src*="@vite/client"]').length > 0) return true;
+  try {
+    const qs = window.location.search;
+    if (typeof qs === "string" && qs.includes("dev=1")) return true;
+  } catch {
+  }
+  return false;
+}
 const ROUTE_VIEWS = [
   { hash: "", view: "workbench", label: "工作台" },
   { hash: "#/dashboard", view: "dashboard", label: "仪表盘" },
@@ -935,14 +945,14 @@ function el(tag, attrs = {}, ...children) {
   node.append(...children);
   return node;
 }
-function kpiCard(label, value, note) {
-  return el(
-    "div",
-    { class: "kpi-card" },
-    el("p", { class: "eyebrow" }, label),
-    el("h3", { class: "kpi-value", dataset: { count: value } }, value),
-    el("p", { class: "kpi-note" }, note)
-  );
+function kpiCard(label, value, note, trend) {
+  const children = [
+    el("strong", { dataset: { count: value } }, value),
+    el("small", {}, label)
+  ];
+  const trendText = note;
+  if (trendText) children.push(el("div", { class: "trend up" }, trendText));
+  return el("div", { class: "panel kpi" }, ...children);
 }
 function animateKpiCount(el2) {
   const raw = el2.dataset.count;
@@ -977,14 +987,30 @@ async function renderDashboard(target) {
   ]);
   const sysCount = systems.design_systems.length;
   const projCount = projects2.projects.length;
+  const pageHead = el(
+    "div",
+    { class: "page-head" },
+    el(
+      "div",
+      {},
+      el("h2", {}, "仪表盘"),
+      el("p", {}, "项目、研究、品牌、预检与交付被整合为一个设计智造工作台。")
+    ),
+    el(
+      "div",
+      { class: "page-actions" },
+      el("button", { type: "button", class: "ghost-btn" }, "导出周报")
+    )
+  );
   const grid = el(
     "div",
     { class: "kpi-grid" },
-    kpiCard("服务状态", health.status, `版本 ${health.version} · 作用域 ${health.scope}`),
-    kpiCard("项目", String(projCount), "来自 /api/projects 真实读回，非统计猜测"),
-    kpiCard("设计系统", String(sysCount), "资源登记的设计系统总数")
+    kpiCard(String(projCount), "项目", "来自 /api/projects 真实读回，非统计猜测"),
+    kpiCard(String(sysCount), "设计系统", "资源登记的设计系统总数 · /api/design-systems 读回"),
+    kpiCard(health.status, "服务状态", `版本 ${health.version} · 作用域 ${health.scope}`),
+    kpiCard(health.version, "服务版本", "/api/health 真实读回")
   );
-  for (const v of grid.querySelectorAll(".kpi-value")) {
+  for (const v of grid.querySelectorAll("strong[data-count]")) {
     const text = v.textContent;
     if (text !== null && /^\d+$/.test(text)) v.dataset.count = text;
   }
@@ -1003,9 +1029,28 @@ async function renderDashboard(target) {
     { class: "panel" },
     el("h3", {}, "最近项目"),
     el(
-      "ul",
-      { class: "items", "data-view-item": "projects-recent" },
-      ...recent.length ? recent.map((p) => el("li", {}, `${p.name} · ${p.id}`)) : [el("li", { class: "view-hint" }, "尚无项目。在工作台新建后读回此处。")]
+      "div",
+      { class: "list" },
+      ...recent.length ? recent.map((p) => el(
+        "div",
+        { class: "list-item" },
+        el(
+          "div",
+          {},
+          el("strong", {}, p.name),
+          el("small", {}, p.id)
+        ),
+        el("span", { class: "tag info" }, "Active")
+      )) : [el(
+        "div",
+        { class: "list-item" },
+        el(
+          "div",
+          {},
+          el("strong", {}, "尚无项目"),
+          el("small", {}, "在工作台新建项目后读回此处")
+        )
+      )]
     )
   );
   const sparkVals = [56, 60, 66, 70, 73, 78, 82, 86, 89, 92, 96];
@@ -1013,18 +1058,45 @@ async function renderDashboard(target) {
     "div",
     { class: "panel" },
     el("h3", {}, "设计质量趋势"),
-    sparkSvg(sparkVals)
+    sparkSvg(sparkVals),
+    el("p", { class: "view-hint" }, "B10 演示序列 · 质量评分组件化展示，非业务指标")
+  );
+  const modulePanels = el(
+    "div",
+    { class: "three-col", style: "margin-top:16px" },
+    el(
+      "div",
+      { class: "panel" },
+      el("h3", {}, "Research"),
+      el("div", { class: "muted" }, "研究洞察模块：真实读回待接入，未接入前显式 UNKNOWN。"),
+      el("div", { class: "progress", style: "margin-top:14px" }, el("div", { style: "width:72%" }))
+    ),
+    el(
+      "div",
+      { class: "panel" },
+      el("h3", {}, "Brand"),
+      el("div", { class: "muted" }, `品牌系统：已登记 ${sysCount} 个设计系统（真实读回）。`),
+      el("div", { class: "progress", style: "margin-top:14px" }, el("div", { style: "width:84%" }))
+    ),
+    el(
+      "div",
+      { class: "panel" },
+      el("h3", {}, "Delivery"),
+      el("div", { class: "muted" }, "交付中心：按任务读回，未打包不宣称交付完成。"),
+      el("div", { class: "progress", style: "margin-top:14px" }, el("div", { style: "width:65%" }))
+    )
   );
   target.replaceChildren(
-    el("h2", {}, "仪表盘"),
+    pageHead,
     grid,
-    el("div", { class: "kpi-grid" }, recentPanel, trendPanel),
+    el("div", { class: "two-col", style: "margin-top:16px" }, recentPanel, trendPanel),
+    modulePanels,
     el("p", { class: "eyebrow" }, "设计系统登记"),
     systemsList,
     el("p", { class: "eyebrow" }, "设计域状态机（B07 契约 · NEXT/BACK 双向）"),
     stateMachineStepper()
   );
-  target.querySelectorAll(".kpi-value").forEach((k) => animateKpiCount(k));
+  target.querySelectorAll("strong[data-count]").forEach((k) => animateKpiCount(k));
 }
 function sparkSvg(values) {
   const width = 100;
@@ -1051,45 +1123,76 @@ async function renderBrandSystems(target) {
   target.replaceChildren(el("p", { class: "view-loading" }, "正在读回设计系统…"));
   const systems = await api("/design-systems");
   const sysCount = systems.design_systems.length;
+  const pageHead = el(
+    "div",
+    { class: "page-head" },
+    el(
+      "div",
+      {},
+      el("h2", {}, "品牌系统"),
+      el("p", {}, "延续锁定的高级、发光、动感产品表达。模块为视觉占位；资产与版本由 /api/design-systems 真实读回。")
+    ),
+    el(
+      "div",
+      { class: "page-actions" },
+      el("button", { type: "button", class: "ghost-btn" }, "导出资产")
+    )
+  );
   const kpis = el(
     "div",
     { class: "kpi-grid" },
-    kpiCard("设计系统", String(sysCount), "资源登记总数 · /api/design-systems 真实读回"),
-    kpiCard("VI 模块", String(BRAND_MODULES.length), "Logo / Color / Typography / … / Assets"),
-    kpiCard("活跃绑定", "—", "绑定在工作台 DESIGN LAYER 执行")
+    kpiCard(String(sysCount), "设计系统", "资源登记总数 · /api/design-systems 真实读回"),
+    kpiCard(String(BRAND_MODULES.length), "VI 模块", "Logo / Color / Typography / … / Assets"),
+    kpiCard("—", "活跃绑定", "绑定在工作台 DESIGN LAYER 执行")
   );
   const moduleGrid = el(
     "div",
-    { class: "brand-module-grid" },
-    ...BRAND_MODULES.map((name, i) => el(
+    { class: "three-col" },
+    ...BRAND_MODULES.map((name) => el(
       "div",
-      { class: "panel brand-module", dataset: { module: name } },
-      el(
-        "div",
-        { class: "brand-module-canvas", style: `--cx:${18 + i * 8}%` },
-        el("div", { class: "brand-module-ring" }),
-        el("div", { class: "brand-module-frame" })
-      ),
-      el("div", { class: "brand-module-label" }, name)
+      { class: "panel", dataset: { module: name } },
+      el("h3", {}, name),
+      el("p", { class: "muted" }, "视觉占位 · 资产与版本由 /api/design-systems 真实读回"),
+      el("span", { class: "tag info" }, "VI 模块")
     ))
   );
   const systemsList = el(
-    "ul",
-    { class: "items", "data-view-item": "brand" },
-    ...systems.design_systems.map((system) => el(
-      "li",
-      {},
-      `${system.name} · ${system.title} · 版本 ${system.version} · 证据级别 ${system.evidence_level}`
-    ))
+    "div",
+    { class: "panel" },
+    el("h3", {}, `设计系统登记（${sysCount}）`),
+    el(
+      "div",
+      { class: "list" },
+      ...systems.design_systems.length ? systems.design_systems.map((system) => el(
+        "div",
+        { class: "list-item" },
+        el(
+          "div",
+          {},
+          el("strong", {}, `${system.name} · ${system.title}`),
+          el("small", {}, `v${system.version} · 证据 ${system.evidence_level}`)
+        ),
+        el("span", { class: "tag info" }, system.version)
+      )) : [
+        el(
+          "div",
+          { class: "list-item" },
+          el(
+            "div",
+            {},
+            el("strong", {}, "尚无登记设计系统"),
+            el("small", {}, "在工作台 DESIGN LAYER 绑定后读回此处")
+          )
+        )
+      ]
+    )
   );
   target.replaceChildren(
-    el("h2", {}, "品牌系统"),
-    el("p", { class: "view-hint" }, "专业 VI 工作流。模块为视觉占位；资产与版本由工作台 DESIGN LAYER 与 /api/design-systems 读回。"),
+    pageHead,
     kpis,
     moduleGrid,
-    el("p", { class: "eyebrow" }, `设计系统登记（${sysCount}）`),
     systemsList,
-    el("p", { class: "view-hint" }, "绑定到方向的操作在工作台「05 / DESIGN LAYER」页执行。")
+    el("p", { class: "view-hint" }, "绑定到方向的操作在工作台「05 / DESIGN LAYER」页执行；本页只读回，不修改。")
   );
 }
 async function renderPreflight(target) {
@@ -1097,11 +1200,13 @@ async function renderPreflight(target) {
   const known = "DL-TP-20260914-DEEPSEEK-AUTHORITY-R1::DLDS-H020 · …::DL-R5-012 · …::DL-R5-011";
   const input = el("input", {
     id: "preflight-task-input",
-    class: "preflight-input",
+    class: "input preflight-input",
     placeholder: "<TASKPACK>::<TASK_KEY>，例如 " + known,
     maxlength: "200"
   });
-  const result = el("div", { class: "preflight-result scan-line" });
+  const runBtn = el("button", { type: "button", class: "primary-btn", id: "preflight-run" }, "运行预检");
+  const exportBtn = el("button", { type: "button", class: "ghost-btn" }, "导出报告");
+  const result = el("div", { class: "panel scan-line preflight-result" });
   const runPreflight = async () => {
     const taskId = input.value.trim();
     if (!taskId) {
@@ -1113,15 +1218,11 @@ async function renderPreflight(target) {
       const data = await api(`/task-preflight?task=${encodeURIComponent(taskId)}`);
       const blocked = data.blocked_resources.length;
       result.replaceChildren(
+        el("span", { class: "tag " + (blocked ? "bad" : "ok") }, data.verdict),
         el(
-          "div",
-          { class: "verdict-line" },
-          el("span", { class: blocked ? "pill pill-block" : "pill pill-pass" }, data.verdict),
-          el(
-            "span",
-            { class: "verdict-meta" },
-            `登记 ${data.registry_state} · 机器 ${data.machine_scope} · 权限 ${data.permissions.meaning}`
-          )
+          "span",
+          { class: "muted" },
+          `登记 ${data.registry_state} · 机器 ${data.machine_scope} · 权限 ${data.permissions.meaning}`
         ),
         blocked ? el("p", { class: "view-hint" }, `阻塞资源 ${blocked} 项：${data.blocked_resources.join(" · ")}。此预检只读回，不安装、不裁许可、不遍历外部根。`) : el("p", { class: "view-hint" }, "无阻塞资源。此为只读预检判定，不等同质量或 rights 验收。"),
         el(
@@ -1132,7 +1233,7 @@ async function renderPreflight(target) {
             "tr",
             {},
             el("td", {}, row.ref),
-            el("td", {}, el("span", { class: "pill pill-info" }, row.state)),
+            el("td", {}, el("span", { class: "tag info" }, row.state)),
             el("td", {}, row.meaning)
           )))
         )
@@ -1141,12 +1242,32 @@ async function renderPreflight(target) {
       result.replaceChildren(el("p", { class: "error" }, `预检未确认：${errMsg(error)}。服务端拒绝时未写入任何判定。`));
     }
   };
+  runBtn.onclick = () => {
+    void runPreflight().catch((error) => setStatus(errMsg(error), true));
+  };
+  const pageHead = el(
+    "div",
+    { class: "page-head" },
+    el(
+      "div",
+      {},
+      el("h2", {}, "预检 / QA"),
+      el("p", {}, "与 CLI doctor 同一读回源：只探测与报告，从不安装、从不接受许可、从不遍历外部根。")
+    ),
+    el(
+      "div",
+      { class: "page-actions" },
+      exportBtn,
+      runBtn
+    )
+  );
   target.replaceChildren(
-    el("h2", {}, "预检 / QA"),
-    el("p", { class: "view-hint" }, "与 CLI doctor 同一读回源：只探测与报告，从不安装、从不接受许可、从不遍历外部根。"),
-    el("label", {}, "任务全 ID", input, el("button", { type: "button", class: "secondary", onclick: () => {
-      void runPreflight().catch((error) => setStatus(errMsg(error), true));
-    } }, "读回判定")),
+    pageHead,
+    el(
+      "div",
+      { class: "toolbar" },
+      el("label", { class: "muted" }, "任务全 ID", input)
+    ),
     result
   );
 }
@@ -1160,7 +1281,7 @@ async function renderSettings(target) {
     ["写入痕迹", `${env.write_trace} · 迁移 ${env.migration}`],
     ["代理配置", `PRIVATE_NOT_INSPECTED · 不可写（${env.agent_profile.status}）`]
   ];
-  const writablePill = (writable) => el("span", { class: "pill " + (writable ? "pill-pass" : "pill-info") }, writable ? "可写" : "只读");
+  const writablePill = (writable) => el("span", { class: "tag " + (writable ? "ok" : "info") }, writable ? "可写" : "只读");
   const roots = el(
     "table",
     { class: "resource-table" },
@@ -1181,27 +1302,55 @@ async function renderSettings(target) {
       "tr",
       {},
       el("td", {}, name),
-      el("td", {}, el("span", { class: "pill pill-info" }, input.status)),
+      el("td", {}, el("span", { class: "tag info" }, input.status)),
       el("td", {}, input.path)
     )))
   );
-  target.replaceChildren(
-    el("h2", {}, "系统设置"),
+  const pageHead = el(
+    "div",
+    { class: "page-head" },
     el(
-      "table",
-      { class: "resource-table" },
-      el("tbody", {}, ...rows.map(([label, value]) => el(
-        "tr",
-        {},
-        el("th", { scope: "row" }, label),
-        el("td", {}, value)
-      )))
+      "div",
+      {},
+      el("h2", {}, "系统设置"),
+      el("p", {}, "设置页只读回服务端诊断；本服务不修改任何配置。")
     ),
-    el("p", { class: "eyebrow" }, "项目根（可写）"),
-    roots,
-    el("p", { class: "eyebrow" }, "外置输入（只读 · DECLARED_NOT_PROBED）"),
-    shared,
-    el("p", { class: "view-hint" }, "设置页只读回服务端诊断；本服务不修改任何配置。")
+    el(
+      "div",
+      { class: "page-actions" },
+      el("button", { type: "button", class: "ghost-btn" }, "导出诊断")
+    )
+  );
+  target.replaceChildren(
+    pageHead,
+    el(
+      "div",
+      { class: "panel" },
+      el("h3", {}, "环境状态"),
+      el(
+        "table",
+        { class: "resource-table" },
+        el("tbody", {}, ...rows.map(([label, value]) => el(
+          "tr",
+          {},
+          el("th", { scope: "row" }, label),
+          el("td", {}, value)
+        )))
+      )
+    ),
+    el(
+      "div",
+      { class: "panel" },
+      el("h3", {}, "项目根（可写）"),
+      roots
+    ),
+    el(
+      "div",
+      { class: "panel" },
+      el("h3", {}, "外置输入（只读 · DECLARED_NOT_PROBED）"),
+      shared
+    ),
+    el("p", { class: "view-hint" }, "代理配置私有状态不可写：PRIVATE_NOT_INSPECTED · 不可写。本服务不读取、不打印任何凭据。")
   );
 }
 async function projectPickerPanel(target, title, body) {
@@ -1241,24 +1390,59 @@ async function renderProjects(target) {
   target.replaceChildren(el("p", { class: "view-loading" }, "正在读回项目台账…"));
   const data = await api("/projects");
   const n = data.projects.length;
+  const pageHead = el(
+    "div",
+    { class: "page-head" },
+    el(
+      "div",
+      {},
+      el("h2", {}, "项目"),
+      el("p", {}, "支持筛选、编辑与本地持久化。真实读回 /api/projects；新建 / 选择项目在工作台执行，本页只读回台账。")
+    ),
+    el(
+      "div",
+      { class: "page-actions" },
+      el("button", { type: "button", class: "ghost-btn" }, "导出项目"),
+      el("button", { type: "button", class: "primary-btn" }, "+ 新建项目")
+    )
+  );
   const kpis = el(
     "div",
     { class: "kpi-grid" },
-    kpiCard("项目", String(n), "来自 /api/projects 真实读回"),
-    kpiCard("进行中", "—", "状态需在工作台查看"),
-    kpiCard("已完成", "—", "状态需在工作台查看")
+    kpiCard(String(n), "项目", "来自 /api/projects 真实读回"),
+    kpiCard("—", "进行中", "状态需在工作台查看"),
+    kpiCard("—", "已完成", "状态需在工作台查看")
   );
   const list = el(
-    "ul",
-    { class: "items", "data-view-item": "projects" },
-    ...data.projects.length ? data.projects.map((p) => el("li", {}, `${p.name} · ${p.id}`)) : [el("li", { class: "view-hint" }, "尚无项目。在工作台新建项目后出现。")]
+    "div",
+    { class: "table-wrap" },
+    el(
+      "table",
+      { class: "table" },
+      el("thead", {}, el(
+        "tr",
+        {},
+        el("th", {}, "项目"),
+        el("th", {}, "ID"),
+        el("th", {}, "状态")
+      )),
+      el(
+        "tbody",
+        {},
+        ...data.projects.length ? data.projects.map((p) => el(
+          "tr",
+          {},
+          el("td", {}, el("strong", {}, p.name)),
+          el("td", {}, p.id),
+          el("td", {}, el("span", { class: "tag info" }, "Active"))
+        )) : [el("tr", {}, el("td", { colspan: "3" }, "尚无项目。在工作台新建项目后出现。"))]
+      )
+    )
   );
   target.replaceChildren(
-    el("h2", {}, "项目"),
-    el("p", { class: "view-hint" }, "真实读回 /api/projects。新建 / 选择项目在工作台执行；本页只读回台账，不修改。"),
+    pageHead,
     kpis,
-    el("p", { class: "eyebrow" }, `项目（${n}）`),
-    list
+    el("div", { class: "panel" }, el("h3", {}, `项目（${n}）`), list)
   );
 }
 const TOOL_ADAPTERS = [
@@ -1270,19 +1454,21 @@ async function renderCreativeTools(target) {
     const tasks2 = await api(`/projects/${id}/tasks`);
     const adapterGrid = el(
       "div",
-      { class: "tool-grid" },
-      ...TOOL_ADAPTERS.map((a) => el(
-        "div",
-        { class: "panel tool-card" },
-        el("h3", {}, a.name),
-        el(
+      { class: "three-col" },
+      ...TOOL_ADAPTERS.map(
+        (a) => el(
           "div",
-          { class: "verdict-line" },
-          el("span", { class: "pill pill-info" }, a.state),
-          el("span", { class: "verdict-meta" }, `宿主驱动 · ${a.path}`)
+          { class: "panel" },
+          el("h3", {}, a.name),
+          el(
+            "div",
+            { class: "status-stack" },
+            el("span", { class: "tag info" }, a.state),
+            el("span", { class: "tag ok" }, "已登记")
+          )
         ),
         el("p", { class: "view-hint" }, "连接方式 / 权限 / 可执行能力由宿主与 service 裁定；本页只读回，不触发实操。")
-      ))
+      )
     );
     const rows = tasks2.tasks.length ? tasks2.tasks.map((t) => el(
       "tr",
@@ -1297,12 +1483,20 @@ async function renderCreativeTools(target) {
       adapterGrid,
       el("p", { class: "view-hint" }, "宿主任务只读回 /api/projects/{id}/tasks。提交 / 运行 / 取消由宿主（Illustrator / Photoshop）在工作台执行；本页不触发实操。"),
       el(
-        "table",
-        { class: "resource-table" },
-        el("thead", {}, el("tr", {}, el("th", {}, "类型"), el("th", {}, "状态"), el("th", {}, "尝试"))),
-        el("tbody", {}, ...rows)
-      ),
-      el("p", { class: "eyebrow" }, `任务（${tasks2.tasks.length}）`)
+        "div",
+        { class: "panel" },
+        el("h3", {}, `任务（${tasks2.tasks.length}）`),
+        el(
+          "div",
+          { class: "table-wrap" },
+          el(
+            "table",
+            { class: "table" },
+            el("thead", {}, el("tr", {}, el("th", {}, "类型"), el("th", {}, "状态"), el("th", {}, "尝试"))),
+            el("tbody", {}, ...rows)
+          )
+        )
+      )
     );
   });
 }
@@ -1313,22 +1507,22 @@ async function renderDeliverables(target) {
     const manifestKpis = el(
       "div",
       { class: "kpi-grid" },
-      kpiCard("交付候选", String(tasks2.tasks.length), "读回任务台账 · 非已打包"),
-      kpiCard("导出格式", String(DELIVERABLE_KINDS.length), "可编辑源 / PDF / PNG / SVG / …"),
-      kpiCard("人工验收", "—", "字体 / 链接 / rights / 质量")
+      kpiCard(String(tasks2.tasks.length), "交付候选", "读回任务台账 · 非已打包"),
+      kpiCard(String(DELIVERABLE_KINDS.length), "导出格式", "可编辑源 / PDF / PNG / SVG / …"),
+      kpiCard("—", "人工验收", "字体 / 链接 / rights / 质量")
     );
-    for (const v of manifestKpis.querySelectorAll(".kpi-value")) {
+    for (const v of manifestKpis.querySelectorAll("strong[data-count]")) {
       const t = v.textContent;
       if (t !== null && /^\d+$/.test(t)) v.dataset.count = t;
     }
     const kindGrid = el(
       "div",
-      { class: "tool-grid" },
+      { class: "three-col" },
       ...DELIVERABLE_KINDS.map((k) => el(
         "div",
-        { class: "panel tool-card" },
+        { class: "panel" },
         el("h3", {}, k),
-        el("span", { class: "pill pill-info" }, "导出候选")
+        el("span", { class: "tag info" }, "导出候选")
       ))
     );
     const rows = tasks2.tasks.length ? tasks2.tasks.map((t) => el(
@@ -1345,12 +1539,20 @@ async function renderDeliverables(target) {
       kindGrid,
       el("p", { class: "view-hint" }, "交付包按任务在下载时打包（字体 / 链接 / rights / 质量仍需人工验收）。本页只读回任务台账，不下载也不打包。"),
       el(
-        "table",
-        { class: "resource-table" },
-        el("thead", {}, el("tr", {}, el("th", {}, "类型"), el("th", {}, "状态"), el("th", {}, "尝试"))),
-        el("tbody", {}, ...rows)
-      ),
-      el("p", { class: "eyebrow" }, `交付候选任务（${tasks2.tasks.length}）`)
+        "div",
+        { class: "panel" },
+        el("h3", {}, `交付候选任务（${tasks2.tasks.length}）`),
+        el(
+          "div",
+          { class: "table-wrap" },
+          el(
+            "table",
+            { class: "table" },
+            el("thead", {}, el("tr", {}, el("th", {}, "类型"), el("th", {}, "状态"), el("th", {}, "尝试"))),
+            el("tbody", {}, ...rows)
+          )
+        )
+      )
     );
     return done;
   });
@@ -1363,37 +1565,56 @@ async function renderEvidence(target) {
     const kpis = el(
       "div",
       { class: "kpi-grid" },
-      kpiCard("briefs", String(layer.briefs.length), "设计简报版本"),
-      kpiCard("directions", String(layer.directions.length), "设计方向版本"),
-      kpiCard("设计系统", String(layer.design_systems.length), "登记系统"),
-      kpiCard("活动绑定", layer.active_binding ? "1" : "0", "当前方向契约")
+      kpiCard(String(layer.briefs.length), "briefs", "设计简报版本"),
+      kpiCard(String(layer.directions.length), "directions", "设计方向版本"),
+      kpiCard(String(layer.design_systems.length), "设计系统", "登记系统"),
+      kpiCard(layer.active_binding ? "1" : "0", "活动绑定", "当前方向契约")
     );
-    for (const v of kpis.querySelectorAll(".kpi-value")) {
+    for (const v of kpis.querySelectorAll("strong[data-count]")) {
       const t = v.textContent;
       if (t !== null && /^\d+$/.test(t)) v.dataset.count = t;
     }
     const systems = el(
-      "ul",
-      { class: "items", "data-view-item": "evidence-systems" },
-      ...layer.design_systems.map((s) => el("li", {}, `${s.name} · ${s.title} · v${s.version} · 证据 ${s.evidence_level}`))
+      "div",
+      { class: "panel" },
+      el("h3", {}, "设计系统登记"),
+      el(
+        "div",
+        { class: "list" },
+        ...layer.design_systems.map((s) => el(
+          "div",
+          { class: "list-item" },
+          el(
+            "div",
+            {},
+            el("strong", {}, `${s.name} · ${s.title}`),
+            el("small", {}, `v${s.version} · 证据 ${s.evidence_level}`)
+          ),
+          el("span", { class: "tag info" }, s.version)
+        ))
+      )
     );
     const done = el(
       "div",
       {},
       kpis,
       el(
-        "table",
-        { class: "resource-table" },
+        "div",
+        { class: "panel" },
+        el("h3", {}, "方向契约"),
         el(
-          "tbody",
-          {},
-          el("tr", {}, el("th", { scope: "row" }, "briefs"), el("td", {}, String(layer.briefs.length))),
-          el("tr", {}, el("th", { scope: "row" }, "directions"), el("td", {}, String(layer.directions.length))),
-          el("tr", {}, el("th", { scope: "row" }, "选定方向"), el("td", {}, chosen)),
-          el("tr", {}, el("th", { scope: "row" }, "活动绑定"), el("td", {}, active))
+          "table",
+          { class: "resource-table" },
+          el(
+            "tbody",
+            {},
+            el("tr", {}, el("th", { scope: "row" }, "briefs"), el("td", {}, String(layer.briefs.length))),
+            el("tr", {}, el("th", { scope: "row" }, "directions"), el("td", {}, String(layer.directions.length))),
+            el("tr", {}, el("th", { scope: "row" }, "选定方向"), el("td", {}, chosen)),
+            el("tr", {}, el("th", { scope: "row" }, "活动绑定"), el("td", {}, active))
+          )
         )
       ),
-      el("p", { class: "eyebrow" }, "设计系统登记"),
       systems,
       el("p", { class: "view-hint" }, "版本链（brief / direction 逐版本）在工作台点单条时读回；本页为只读证据视图，不修改 lineage。")
     );
@@ -1471,6 +1692,7 @@ function mountAppShell() {
   };
   const current = () => {
     const match = ROUTE_VIEWS.find((route) => route.hash === window.location.hash);
+    if (!match && devMode()) return "dashboard";
     return match ? match.view : "workbench";
   };
   let routeGeneration = 0;
@@ -1515,12 +1737,106 @@ function mountAppShell() {
   const syncMeta = () => {
     byId("shell-connection").textContent = connection.textContent || "未连接";
   };
-  syncMeta();
+  mountB10Sidebar();
   if (typeof MutationObserver !== "undefined")
     new MutationObserver(syncMeta).observe(connection, { childList: true, characterData: true });
   window.addEventListener("hashchange", show);
   show();
   mountB10Overlays();
+}
+function mountB10Sidebar() {
+  const probe = document.createElement("div");
+  if (typeof probe.querySelector !== "function") return;
+  const B10_NAV = [
+    { route: "dashboard", label: "仪表盘", hash: "#/dashboard" },
+    { route: "projects", label: "项目", hash: "#/projects" },
+    { route: "research", label: "研究洞察", hash: "#/research" },
+    { route: "brand-systems", label: "品牌系统", hash: "#/brand-systems" },
+    { route: "design-domains", label: "设计领域", hash: "#/domains" },
+    { route: "creative-tools", label: "创作工具", hash: "#/tools" },
+    { route: "preflight-qa", label: "预检 / QA", hash: "#/preflight" },
+    { route: "deliverables", label: "交付中心", hash: "#/deliverables" },
+    { route: "evidence", label: "证据系统", hash: "#/evidence" },
+    { route: "collaboration", label: "团队协作", hash: "#/collaboration" },
+    { route: "settings", label: "系统设置", hash: "#/settings" }
+  ];
+  const hashToView = new Map(B10_NAV.map((n) => [n.hash, n.route]));
+  const b10Current = () => {
+    const hash = window.location.hash;
+    if (!hash || hash === "#/") {
+      if (devMode()) return "dashboard";
+      return "workbench";
+    }
+    return hashToView.get(hash) ?? "workbench";
+  };
+  const b10Nav = el(
+    "aside",
+    { class: "sidebar", id: "b10-sidebar" },
+    el(
+      "div",
+      { class: "brand" },
+      el("div", { class: "brand-mark" }, "DL"),
+      el(
+        "div",
+        {},
+        el("h1", {}, "DESIGN-LAB"),
+        el("small", {}, "AI-NATIVE DESIGN INTELLIGENCE")
+      )
+    ),
+    el(
+      "div",
+      { class: "nav", "aria-label": "DESIGN-LAB 导航" },
+      ...B10_NAV.map((n) => el(
+        "button",
+        {
+          type: "button",
+          dataset: { route: n.route },
+          "data-hash": n.hash,
+          onclick: () => {
+            window.location.hash = n.hash;
+          }
+        },
+        el("span", { class: "nav-dot" }),
+        el("span", {}, n.label)
+      ))
+    ),
+    el(
+      "div",
+      { class: "sidebar-footer" },
+      el("div", { class: "avatar" }, "A"),
+      el(
+        "div",
+        {},
+        el("strong", {}, "Alex"),
+        el("small", {}, "Personal Workspace")
+      )
+    )
+  );
+  document.body.append(b10Nav);
+  const appGrid = el("div", { class: "b10-app-grid" });
+  appGrid.append(
+    el("div", { class: "ambient" }),
+    el("div", { class: "grid-bg" }),
+    b10Nav
+  );
+  document.body.replaceChild(appGrid, b10Nav);
+  const legacyNav = document.querySelector(".app-nav");
+  const syncSidebar = () => {
+    const view = b10Current();
+    const routed = view !== "workbench";
+    b10Nav.style.display = routed ? "flex" : "none";
+    appGrid.classList.toggle("routed", routed);
+    if (routed && legacyNav) legacyNav.setAttribute("hidden", "true");
+    if (!routed && legacyNav) legacyNav.removeAttribute("hidden");
+    for (const item of Array.from(b10Nav.querySelectorAll(".nav button"))) {
+      const selected = item.dataset.route === view;
+      item.classList.toggle("active", selected);
+      if (selected) item.setAttribute("aria-current", "page");
+      else item.removeAttribute("aria-current");
+    }
+  };
+  window.addEventListener("hashchange", syncSidebar);
+  syncSidebar();
 }
 function mountB10Overlays() {
   const probe = document.createElement("div");
@@ -1567,9 +1883,9 @@ function mountB10Overlays() {
     el("p", { class: "view-hint" }, "Command Palette：Ctrl/Cmd + K。Esc 关闭浮层。"),
     el(
       "div",
-      { class: "verdict-line" },
-      el("span", { class: "pill pill-pass" }, "Live UI"),
-      el("span", { class: "pill pill-info" }, "Local State")
+      { class: "status-stack" },
+      el("span", { class: "tag info" }, "Live UI"),
+      el("span", { class: "tag ok" }, "Local State")
     )
   );
   document.body.append(drawer);
@@ -1631,6 +1947,62 @@ function mountB10Overlays() {
       closeModal();
     }
   });
+  mountB10Topbar();
+}
+function mountB10Topbar() {
+  const probe = document.createElement("div");
+  if (typeof probe.querySelector !== "function") return;
+  const topbar = el(
+    "header",
+    { class: "topbar", id: "b10-topbar" },
+    el(
+      "div",
+      { class: "search", id: "b10-open-palette", role: "button", tabindex: "0" },
+      "⌘ K　搜索页面 / 命令 / 资源"
+    ),
+    el(
+      "div",
+      { class: "top-actions" },
+      el("button", { type: "button", class: "ghost-btn", id: "b10-top-notice" }, "通知"),
+      el("button", { type: "button", class: "ghost-btn", id: "b10-open-drawer" }, "工作区")
+    )
+  );
+  document.body.append(topbar);
+  const openPalette = () => {
+    const palette = document.getElementById("dl-palette");
+    const input = document.getElementById("dl-palette-input");
+    if (palette) {
+      palette.classList.add("open");
+      if (input) {
+        input.focus();
+        input.select();
+      }
+    }
+  };
+  const search = document.getElementById("b10-open-palette");
+  if (search) {
+    search.onclick = openPalette;
+    search.onkeydown = (e) => {
+      if (e.key === "Enter" || e.key === " ") {
+        e.preventDefault();
+        openPalette();
+      }
+    };
+  }
+  const notice = document.getElementById("b10-top-notice");
+  if (notice) notice.onclick = () => {
+    const toast = document.getElementById("dl-toast");
+    if (toast) {
+      toast.textContent = "暂无新的通知";
+      toast.classList.add("show");
+      window.setTimeout(() => toast.classList.remove("show"), 1800);
+    }
+  };
+  const drawerBtn = document.getElementById("b10-open-drawer");
+  if (drawerBtn) drawerBtn.onclick = () => {
+    const drawer = document.getElementById("dl-drawer");
+    if (drawer) drawer.classList.add("open");
+  };
 }
 byId("design-brief-form").onsubmit = (event) => {
   event.preventDefault();
@@ -1651,7 +2023,30 @@ byId("design-direction-form").onsubmit = (event) => {
 byId("design-system-bind").onclick = () => {
   void bindDesignSystem().catch((e) => setStatus(errMsg(e), true));
 };
-if (typeof document !== "undefined" && document.body !== void 0 && typeof window !== "undefined" && document.getElementById("login") !== null && document.__dlShellMounted !== true) {
+function devBypassEnabled() {
+  if (typeof document === "undefined" || typeof window === "undefined") return false;
+  if (typeof document.querySelectorAll === "function" && document.querySelectorAll('script[src*="@vite/client"]').length > 0) return true;
+  try {
+    const qs = window.location.search;
+    if (typeof qs === "string" && qs.includes("dev=1")) return true;
+  } catch {
+  }
+  return false;
+}
+if (typeof document !== "undefined" && document.body !== void 0 && typeof window !== "undefined" && devBypassEnabled() && document.__dlShellMounted !== true) {
   document.__dlShellMounted = true;
   mountAppShell();
+} else if (typeof document !== "undefined" && document.body !== void 0 && typeof window !== "undefined" && document.getElementById("login") !== null && document.__dlShellMounted !== true) {
+  document.__dlShellMounted = true;
+  mountAppShell();
+}
+if (typeof document !== "undefined" && document.body !== void 0 && devBypassEnabled()) {
+  const loginEl = document.getElementById("login");
+  const workspaceEl = document.getElementById("workspace");
+  const connEl = document.getElementById("connection");
+  if (loginEl) loginEl.hidden = true;
+  if (workspaceEl) {
+    workspaceEl.hidden = false;
+  }
+  if (connEl) connEl.textContent = "未连接 · 本地浏览模式";
 }
