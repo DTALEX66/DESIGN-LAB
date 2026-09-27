@@ -47,14 +47,18 @@
 *{box-sizing:border-box}
 body{margin:0;background:var(--paper);color:var(--ink)}
 
-header{
+/* Page-level chrome of the PRE-B10 workbench page. Scoped with `body >` so it
+   cannot leak into the B10 `.app` shell (whose `main.main` / `header.topbar`
+   carry their own B10 geometry). Without this, `main.main` inherited the legacy
+   1240px `main` cap and the legacy 192px gutter. */
+body > header{
   background:var(--surface);
   color:var(--ink);
   padding:30px max(28px,calc((100vw - 1240px)/2));
   display:flex;align-items:center;gap:18px;
   border-bottom:1px solid var(--line);
 }
-header h1{margin:2px 0;font-size:26px}
+body > header h1{margin:2px 0;font-size:26px}
 .mark{
   font-size:27px;font-weight:800;
   border:1px solid var(--line);
@@ -62,11 +66,11 @@ header h1{margin:2px 0;font-size:26px}
   padding:13px;
   text-shadow:0 0 10px rgba(49,108,255,.45);
 }
-header .badge{margin-left:auto}
+body > header .badge{margin-left:auto}
 .eyebrow{font-size:10px;letter-spacing:2px;font-weight:750;margin:0 0 10px;color:var(--muted)}
-header .eyebrow{color:var(--muted)}
+body > header .eyebrow{color:var(--muted)}
 
-main{max-width:1240px;margin:28px auto;padding:0 22px}
+body > main{max-width:1240px;margin:28px auto;padding:0 22px}
 .panel{
   padding:26px;
   background:var(--surface);
@@ -143,7 +147,7 @@ form label{flex:1}
 }
 .error{color:var(--color-error)!important}
 
-footer{
+body > footer{
   max-width:1240px;margin:30px auto;padding:0 22px 30px;
   font-size:11px;color:var(--muted);
   display:flex;justify-content:space-between;
@@ -152,11 +156,11 @@ footer{
 
 @media(max-width:760px){
   .grid{grid-template-columns:1fr}
-  header{padding:22px}
+  body > header{padding:22px}
   .panel{padding:20px}
   .section-head,.future{align-items:start;flex-direction:column}
   form{align-items:stretch;flex-direction:column}
-  footer{gap:15px;flex-wrap:wrap}
+  body > footer{gap:15px;flex-wrap:wrap}
 }
 @media(prefers-reduced-motion:reduce){
   *{transition:none!important;box-shadow:none!important}
@@ -212,35 +216,23 @@ footer{
   box-shadow:inset 3px 0 0 var(--accent);
 }
 .app-nav-meta{font-size:11px;color:var(--muted);padding:0 4px;margin-top:auto}
-/* Gutter is scoped to the mounted shell only: without .dl-shell (the E2E /
-   unmounted default path) the layout stays the original centered flow.
-   Root-cause geometry: the fixed nav (0..168) never participates in flow, so
-   every flow element is re-anchored to the 168px gutter with ONE shared left
-   content edge at 192px (168 gutter + 24 inner gap, matching the nav items'
-   own 14+10 padding) instead of 100vw-based centering calcs that misalign
-   inside the narrower post-nav region. */
-.b10-app-grid.routed{
-  display:grid;
-  grid-template-columns:280px 1fr;
-  position:fixed;
-  inset:0;
-  z-index:65;
-  background:var(--bg);
-}
-.b10-app-grid .sidebar{min-height:100vh}
-.b10-app-grid .ambient,.b10-app-grid .grid-bg{display:none}
-.b10-app-grid.routed .ambient{display:block;position:absolute}
-.b10-app-grid.routed .grid-bg{display:block;position:absolute}
-/* routed state: the B10 sidebar owns the 280px column; the legacy header/main
-   row is pushed under the overlay so the flat .app-nav stays the workbench view */
-.b10-app-grid.routed ~ header,.b10-app-grid.routed ~ main,.b10-app-grid.routed ~ footer{display:none}
-.dl-shell header{position:relative;z-index:50;max-width:none;padding:30px 24px 30px 192px}
-.dl-shell main{max-width:1240px;margin:28px 24px 28px 192px;padding:0}
-.dl-shell footer{max-width:none;margin:30px 24px 30px 192px;padding:0}
+/* B10 1:1 shell host. The authoritative B10 `.app` grid (280px sidebar + 1fr
+   main, defined in the B10 block below) is the ONLY route shell: `main.main`
+   carries the 78px `.topbar` and the flex-1 `.content` view slot. The legacy
+   page chrome is hidden by the shell's sync() through the `hidden` attribute
+   (`[hidden]{display:none!important}` above), so no `~` sibling hack and no
+   z-index overlay are needed — those were the root cause of the routed view
+   rendering as an empty pane (a z-index:65 opaque overlay painted on top of the
+   z-index:20 route panel, while the body-level topbar was display:none'd).
+   Gutter below is for the LEGACY page only (`body > ...`): without .dl-shell
+   (the E2E / unmounted default path) the layout stays the original centered flow. */
+.dl-shell > header{position:relative;z-index:50;max-width:none;padding:30px 24px 30px 192px}
+.dl-shell > main{max-width:1240px;margin:28px 24px 28px 192px;padding:0}
+.dl-shell > footer{max-width:none;margin:30px 24px 30px 192px;padding:0}
 @media(max-width:760px){
-  .dl-shell header{padding:22px 16px}
-  .dl-shell main{margin:16px 16px 88px}
-  .dl-shell footer{margin:16px 16px 88px;padding:0}
+  .dl-shell > header{padding:22px 16px}
+  .dl-shell > main{margin:16px 16px 88px}
+  .dl-shell > footer{margin:16px 16px 88px;padding:0}
   .app-nav{
     inset:auto 0 0 0;width:auto;height:auto;
     display:flex;flex-direction:row;gap:6px;overflow-x:auto;overflow-y:hidden;
@@ -252,16 +244,10 @@ footer{
     padding:8px 10px;text-align:center;font-size:11px;white-space:nowrap;
   }
 }
-.route-panel{
-  position:fixed;inset:0 0 0 168px;z-index:20;
-  background:var(--paper);overflow:auto;
-  /* uniform padding; the 130px top clears the floating header. No 100vw-based
-     centering calc on a panel that starts at 168px (that was the "left-gap"
-     bug) — the view left-anchors to the same 192px edge as header/main. */
-  padding:130px 24px 40px 24px;
-}
-@media(max-width:760px){.route-panel{inset:0 0 64px 0;padding:100px 16px 30px}}
-.route-view{max-width:960px}
+/* B10 content slot: `#route-view` fills `.content` (B10 puts each page directly
+   in `.content`; there is no max-width there and the 26/28/30 padding is
+   `.content`'s own). */
+.route-view{max-width:none}
 .route-view h2{font-size:24px}
 .view-loading{color:var(--muted);font-size:13px}
 .view-hint{font-size:12px;color:var(--muted);line-height:1.7}
@@ -291,15 +277,8 @@ footer{
 .state-machine-step[data-state="approved"],.state-machine-step[data-state="delivered"]{
   color:var(--ink);border-color:var(--color-success);
 }
-.resource-table{
-  width:100%;border-collapse:collapse;margin:12px 0 22px;font-size:12px;
-}
-.resource-table th,.resource-table td{
-  text-align:left;padding:9px 12px;border-bottom:1px solid var(--line);
-  color:var(--ink);overflow-wrap:anywhere;
-}
-.resource-table thead th{color:var(--muted);font-weight:650;font-size:11px}
-.resource-table td{color:var(--muted)}
+/* (.resource-table removed: every route view now uses the B10 .table-wrap/.table
+   body, so the legacy table skin had no remaining consumer.) */
 .preflight-input{width:100%;min-width:min(320px,100%)}
 .preflight-verdict{font-size:13px;color:var(--ink);font-weight:650;margin:14px 0 4px}
 .revision{

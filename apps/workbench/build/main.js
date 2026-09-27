@@ -913,6 +913,38 @@ function devMode() {
   }
   return false;
 }
+function apiOrEmpty(path, empty) {
+  if (!token && devMode()) return Promise.resolve(empty);
+  return api(path);
+}
+const OFFLINE = {
+  health: { status: "UNKNOWN", version: "—", scope: "dev-offline" },
+  projects: { projects: [] },
+  designSystems: { design_systems: [] },
+  tasks: { tasks: [], next_cursor: null },
+  designLayer: {
+    design_layer: {
+      briefs: [],
+      directions: [],
+      chosen_direction: null,
+      bindings: [],
+      active_binding: null,
+      design_systems: []
+    }
+  },
+  environment: {
+    schemaVersion: "v1",
+    status: "OFFLINE",
+    project_root: "—",
+    project_local_root: ".project-local",
+    sources: {},
+    roots: {},
+    shared_inputs: {},
+    agent_profile: { status: "DISABLED", writable: false },
+    write_trace: "NONE",
+    migration: "NONE"
+  }
+};
 const ROUTE_VIEWS = [
   { hash: "", view: "workbench", label: "工作台" },
   { hash: "#/dashboard", view: "dashboard", label: "仪表盘" },
@@ -945,7 +977,7 @@ function el(tag, attrs = {}, ...children) {
   node.append(...children);
   return node;
 }
-function kpiCard(label, value, note, trend) {
+function kpiCard(value, label, note, trend) {
   const children = [
     el("strong", { dataset: { count: value } }, value),
     el("small", {}, label)
@@ -981,9 +1013,9 @@ function stateMachineStepper() {
 async function renderDashboard(target) {
   target.replaceChildren(el("p", { class: "view-loading" }, "正在读回服务状态…"));
   const [health, projects2, systems] = await Promise.all([
-    api("/health"),
-    api("/projects"),
-    api("/design-systems")
+    apiOrEmpty("/health", OFFLINE.health),
+    apiOrEmpty("/projects", OFFLINE.projects),
+    apiOrEmpty("/design-systems", OFFLINE.designSystems)
   ]);
   const sysCount = systems.design_systems.length;
   const projCount = projects2.projects.length;
@@ -999,7 +1031,14 @@ async function renderDashboard(target) {
     el(
       "div",
       { class: "page-actions" },
-      el("button", { type: "button", class: "ghost-btn" }, "导出周报")
+      el("button", { type: "button", class: "ghost-btn" }, "导出周报"),
+      el("button", {
+        type: "button",
+        class: "primary-btn",
+        onclick: () => {
+          window.location.hash = "";
+        }
+      }, "+ 新建项目")
     )
   );
   const grid = el(
@@ -1121,7 +1160,7 @@ function sparkSvg(values) {
 const BRAND_MODULES = ["Logo", "Color", "Typography", "Icon", "Graphic Language", "Templates", "Applications", "Assets"];
 async function renderBrandSystems(target) {
   target.replaceChildren(el("p", { class: "view-loading" }, "正在读回设计系统…"));
-  const systems = await api("/design-systems");
+  const systems = await apiOrEmpty("/design-systems", OFFLINE.designSystems);
   const sysCount = systems.design_systems.length;
   const pageHead = el(
     "div",
@@ -1207,6 +1246,18 @@ async function renderPreflight(target) {
   const runBtn = el("button", { type: "button", class: "primary-btn", id: "preflight-run" }, "运行预检");
   const exportBtn = el("button", { type: "button", class: "ghost-btn" }, "导出报告");
   const result = el("div", { class: "panel scan-line preflight-result" });
+  const kpiGrid = el(
+    "div",
+    { class: "kpi-grid" },
+    kpiCard("—", "登记资源", "运行预检后读回"),
+    kpiCard("—", "阻塞资源", "运行预检后读回"),
+    kpiCard("—", "判定", "PASS / BLOCKED"),
+    kpiCard("—", "机器范围", "运行预检后读回")
+  );
+  const setKpi = (index, value) => {
+    const strong = kpiGrid.querySelectorAll(".kpi strong")[index];
+    if (strong) strong.textContent = value;
+  };
   const runPreflight = async () => {
     const taskId = input.value.trim();
     if (!taskId) {
@@ -1217,6 +1268,10 @@ async function renderPreflight(target) {
     try {
       const data = await api(`/task-preflight?task=${encodeURIComponent(taskId)}`);
       const blocked = data.blocked_resources.length;
+      setKpi(0, String(data.resources.length));
+      setKpi(1, String(blocked));
+      setKpi(2, data.verdict);
+      setKpi(3, data.machine_scope);
       result.replaceChildren(
         el("span", { class: "tag " + (blocked ? "bad" : "ok") }, data.verdict),
         el(
@@ -1226,16 +1281,20 @@ async function renderPreflight(target) {
         ),
         blocked ? el("p", { class: "view-hint" }, `阻塞资源 ${blocked} 项：${data.blocked_resources.join(" · ")}。此预检只读回，不安装、不裁许可、不遍历外部根。`) : el("p", { class: "view-hint" }, "无阻塞资源。此为只读预检判定，不等同质量或 rights 验收。"),
         el(
-          "table",
-          { class: "resource-table" },
-          el("thead", {}, el("tr", {}, el("th", {}, "资源"), el("th", {}, "状态"), el("th", {}, "说明"))),
-          el("tbody", {}, ...data.resources.map((row) => el(
-            "tr",
-            {},
-            el("td", {}, row.ref),
-            el("td", {}, el("span", { class: "tag info" }, row.state)),
-            el("td", {}, row.meaning)
-          )))
+          "div",
+          { class: "table-wrap" },
+          el(
+            "table",
+            { class: "table" },
+            el("thead", {}, el("tr", {}, el("th", {}, "资源"), el("th", {}, "状态"), el("th", {}, "说明"))),
+            el("tbody", {}, ...data.resources.map((row) => el(
+              "tr",
+              {},
+              el("td", {}, row.ref),
+              el("td", {}, el("span", { class: "tag info" }, row.state)),
+              el("td", {}, row.meaning)
+            )))
+          )
         )
       );
     } catch (error) {
@@ -1263,6 +1322,7 @@ async function renderPreflight(target) {
   );
   target.replaceChildren(
     pageHead,
+    kpiGrid,
     el(
       "div",
       { class: "toolbar" },
@@ -1273,7 +1333,7 @@ async function renderPreflight(target) {
 }
 async function renderSettings(target) {
   target.replaceChildren(el("p", { class: "view-loading" }, "正在读回运行环境…"));
-  const env = await api("/environment");
+  const env = await apiOrEmpty("/environment", OFFLINE.environment);
   const rows = [
     ["环境状态", `${env.status} · ${env.schemaVersion}`],
     ["项目根", env.project_root],
@@ -1282,30 +1342,6 @@ async function renderSettings(target) {
     ["代理配置", `PRIVATE_NOT_INSPECTED · 不可写（${env.agent_profile.status}）`]
   ];
   const writablePill = (writable) => el("span", { class: "tag " + (writable ? "ok" : "info") }, writable ? "可写" : "只读");
-  const roots = el(
-    "table",
-    { class: "resource-table" },
-    el("thead", {}, el("tr", {}, el("th", {}, "根"), el("th", {}, "路径"), el("th", {}, "可写"))),
-    el("tbody", {}, ...Object.entries(env.roots).map(([name, root]) => el(
-      "tr",
-      {},
-      el("td", {}, name),
-      el("td", {}, root.path),
-      el("td", {}, writablePill(root.writable))
-    )))
-  );
-  const shared = el(
-    "table",
-    { class: "resource-table" },
-    el("thead", {}, el("tr", {}, el("th", {}, "外置库索引"), el("th", {}, "状态"), el("th", {}, "路径"))),
-    el("tbody", {}, ...Object.entries(env.shared_inputs).map(([name, input]) => el(
-      "tr",
-      {},
-      el("td", {}, name),
-      el("td", {}, el("span", { class: "tag info" }, input.status)),
-      el("td", {}, input.path)
-    )))
-  );
   const pageHead = el(
     "div",
     { class: "page-head" },
@@ -1325,40 +1361,79 @@ async function renderSettings(target) {
     pageHead,
     el(
       "div",
-      { class: "panel" },
-      el("h3", {}, "环境状态"),
+      { class: "three-col" },
       el(
-        "table",
-        { class: "resource-table" },
-        el("tbody", {}, ...rows.map(([label, value]) => el(
-          "tr",
-          {},
-          el("th", { scope: "row" }, label),
-          el("td", {}, value)
-        )))
+        "div",
+        { class: "panel" },
+        el("h3", {}, "环境状态"),
+        el(
+          "div",
+          { class: "list" },
+          ...rows.map(([label, value]) => el(
+            "div",
+            { class: "list-item" },
+            el("span", {}, label),
+            el("span", { class: "tag " + (label === "代理配置" ? "warn" : "info") }, value)
+          ))
+        )
+      ),
+      el(
+        "div",
+        { class: "panel" },
+        el("h3", {}, "项目根（可写）"),
+        el(
+          "div",
+          { class: "list" },
+          ...Object.keys(env.roots).length ? Object.entries(env.roots).map(([name, root]) => el(
+            "div",
+            { class: "list-item" },
+            el("div", {}, el("strong", {}, name), el("small", {}, root.path)),
+            writablePill(root.writable)
+          )) : [el(
+            "div",
+            { class: "list-item" },
+            el("div", {}, el("strong", {}, "尚无根登记"), el("small", {}, "服务未返回 roots"))
+          )]
+        )
+      ),
+      el(
+        "div",
+        { class: "panel" },
+        el("h3", {}, "外置输入（只读 · DECLARED_NOT_PROBED）"),
+        el(
+          "div",
+          { class: "list" },
+          ...Object.keys(env.shared_inputs).length ? Object.entries(env.shared_inputs).map(([name, input]) => el(
+            "div",
+            { class: "list-item" },
+            el("div", {}, el("strong", {}, name), el("small", {}, input.path)),
+            el("span", { class: "tag info" }, input.status)
+          )) : [el(
+            "div",
+            { class: "list-item" },
+            el("div", {}, el("strong", {}, "尚无外置输入"), el("small", {}, "服务未返回 shared_inputs"))
+          )]
+        )
       )
-    ),
-    el(
-      "div",
-      { class: "panel" },
-      el("h3", {}, "项目根（可写）"),
-      roots
-    ),
-    el(
-      "div",
-      { class: "panel" },
-      el("h3", {}, "外置输入（只读 · DECLARED_NOT_PROBED）"),
-      shared
     ),
     el("p", { class: "view-hint" }, "代理配置私有状态不可写：PRIVATE_NOT_INSPECTED · 不可写。本服务不读取、不打印任何凭据。")
   );
 }
 async function projectPickerPanel(target, title, body) {
   target.replaceChildren(el("p", { class: "view-loading" }, "正在读回项目台账…"));
-  const data = await api("/projects");
+  const data = await apiOrEmpty("/projects", OFFLINE.projects);
   if (!data.projects.length) {
     target.replaceChildren(
-      el("h2", {}, title),
+      el(
+        "div",
+        { class: "page-head" },
+        el(
+          "div",
+          {},
+          el("h2", {}, title),
+          el("p", {}, "只读回服务端台账；本页不提交、不修改。")
+        )
+      ),
       el("p", { class: "view-hint" }, "尚无项目。先在工作台新建项目，再读回此视图。")
     );
     return;
@@ -1367,7 +1442,20 @@ async function projectPickerPanel(target, title, body) {
   select.append(el("option", { value: "" }, `选择项目（共 ${data.projects.length} 个）`));
   for (const p of data.projects) select.append(el("option", { value: p.id }, p.name));
   const content = el("div", { class: "route-view-body" });
-  target.replaceChildren(el("h2", {}, title), el("label", { class: "project-picker" }, "项目", select), content);
+  target.replaceChildren(
+    el(
+      "div",
+      { class: "page-head" },
+      el(
+        "div",
+        {},
+        el("h2", {}, title),
+        el("p", {}, "只读回服务端台账；本页不提交、不修改。")
+      )
+    ),
+    el("label", { class: "project-picker" }, "项目", select),
+    content
+  );
   const load = async () => {
     const id = select.value;
     if (!id) {
@@ -1388,7 +1476,7 @@ async function projectPickerPanel(target, title, body) {
 }
 async function renderProjects(target) {
   target.replaceChildren(el("p", { class: "view-loading" }, "正在读回项目台账…"));
-  const data = await api("/projects");
+  const data = await apiOrEmpty("/projects", OFFLINE.projects);
   const n = data.projects.length;
   const pageHead = el(
     "div",
@@ -1451,7 +1539,7 @@ const TOOL_ADAPTERS = [
 ];
 async function renderCreativeTools(target) {
   await projectPickerPanel(target, "创作工具", async (id) => {
-    const tasks2 = await api(`/projects/${id}/tasks`);
+    const tasks2 = await apiOrEmpty(`/projects/${id}/tasks`, OFFLINE.tasks);
     const adapterGrid = el(
       "div",
       { class: "three-col" },
@@ -1503,7 +1591,7 @@ async function renderCreativeTools(target) {
 const DELIVERABLE_KINDS = ["Editable Source", "PDF", "PNG", "SVG", "PSD", "AI", "Video", "3D", "Archive"];
 async function renderDeliverables(target) {
   await projectPickerPanel(target, "交付中心", async (id) => {
-    const tasks2 = await api(`/projects/${id}/tasks`);
+    const tasks2 = await apiOrEmpty(`/projects/${id}/tasks`, OFFLINE.tasks);
     const manifestKpis = el(
       "div",
       { class: "kpi-grid" },
@@ -1559,7 +1647,7 @@ async function renderDeliverables(target) {
 }
 async function renderEvidence(target) {
   await projectPickerPanel(target, "证据系统", async (id) => {
-    const layer = (await api(`/projects/${id}/design-layer`)).design_layer;
+    const layer = (await apiOrEmpty(`/projects/${id}/design-layer`, OFFLINE.designLayer)).design_layer;
     const chosen = layer.chosen_direction ? `${layer.chosen_direction.title} · v${layer.chosen_direction.version}` : "（尚未选定方向）";
     const active = layer.active_binding ? `${layer.active_binding.design_system_name} · 绑定 ${layer.active_binding.direction_id}` : "（无活动绑定）";
     const kpis = el(
@@ -1603,15 +1691,19 @@ async function renderEvidence(target) {
         { class: "panel" },
         el("h3", {}, "方向契约"),
         el(
-          "table",
-          { class: "resource-table" },
+          "div",
+          { class: "table-wrap" },
           el(
-            "tbody",
-            {},
-            el("tr", {}, el("th", { scope: "row" }, "briefs"), el("td", {}, String(layer.briefs.length))),
-            el("tr", {}, el("th", { scope: "row" }, "directions"), el("td", {}, String(layer.directions.length))),
-            el("tr", {}, el("th", { scope: "row" }, "选定方向"), el("td", {}, chosen)),
-            el("tr", {}, el("th", { scope: "row" }, "活动绑定"), el("td", {}, active))
+            "table",
+            { class: "table" },
+            el(
+              "tbody",
+              {},
+              el("tr", {}, el("th", { scope: "row" }, "briefs"), el("td", {}, String(layer.briefs.length))),
+              el("tr", {}, el("th", { scope: "row" }, "directions"), el("td", {}, String(layer.directions.length))),
+              el("tr", {}, el("th", { scope: "row" }, "选定方向"), el("td", {}, chosen)),
+              el("tr", {}, el("th", { scope: "row" }, "活动绑定"), el("td", {}, active))
+            )
           )
         )
       ),
@@ -1675,13 +1767,11 @@ function mountAppShell() {
     }, route.label)),
     el("span", { class: "app-nav-meta", id: "shell-connection" }, "未连接")
   );
-  const routePanel = el(
-    "div",
-    { class: "route-panel", hidden: true },
-    el("div", { class: "route-view", id: "route-view", "aria-live": "polite" })
-  );
-  document.body.append(nav, routePanel);
+  const routeView = el("div", { class: "route-view", id: "route-view", "aria-live": "polite" });
+  document.body.append(nav);
   document.body.classList.add("dl-shell");
+  const b10 = mountB10Shell(routeView);
+  if (!b10) document.body.append(routeView);
   const active = (view) => {
     for (const item of Array.from(nav.querySelectorAll(".app-nav-item"))) {
       const selected = item.dataset.route === view;
@@ -1701,7 +1791,7 @@ function mountAppShell() {
     const showWorkbench = view === "workbench";
     const generation = ++routeGeneration;
     const routeToken = token;
-    routePanel.hidden = showWorkbench;
+    b10?.sync(view);
     login.hidden = showWorkbench ? connected : true;
     if (showWorkbench) {
       workspace.hidden = !connected;
@@ -1712,7 +1802,7 @@ function mountAppShell() {
     workspace.hidden = true;
     active(view);
     const target = byId("route-view");
-    if (!token) {
+    if (!token && !devMode()) {
       target.replaceChildren(
         el("h2", {}, view),
         el("p", { class: "view-unopened" }, "请先在工作台连接本机设计服务，再读回此视图。")
@@ -1737,16 +1827,15 @@ function mountAppShell() {
   const syncMeta = () => {
     byId("shell-connection").textContent = connection.textContent || "未连接";
   };
-  mountB10Sidebar();
   if (typeof MutationObserver !== "undefined")
     new MutationObserver(syncMeta).observe(connection, { childList: true, characterData: true });
+  mountB10Overlays();
   window.addEventListener("hashchange", show);
   show();
-  mountB10Overlays();
 }
-function mountB10Sidebar() {
+function mountB10Shell(routeView) {
   const probe = document.createElement("div");
-  if (typeof probe.querySelector !== "function") return;
+  if (typeof probe.querySelector !== "function") return null;
   const B10_NAV = [
     { route: "dashboard", label: "仪表盘", hash: "#/dashboard" },
     { route: "projects", label: "项目", hash: "#/projects" },
@@ -1760,18 +1849,9 @@ function mountB10Sidebar() {
     { route: "collaboration", label: "团队协作", hash: "#/collaboration" },
     { route: "settings", label: "系统设置", hash: "#/settings" }
   ];
-  const hashToView = new Map(B10_NAV.map((n) => [n.hash, n.route]));
-  const b10Current = () => {
-    const hash = window.location.hash;
-    if (!hash || hash === "#/") {
-      if (devMode()) return "dashboard";
-      return "workbench";
-    }
-    return hashToView.get(hash) ?? "workbench";
-  };
-  const b10Nav = el(
+  const sidebar = el(
     "aside",
-    { class: "sidebar", id: "b10-sidebar" },
+    { class: "sidebar" },
     el(
       "div",
       { class: "brand" },
@@ -1812,35 +1892,61 @@ function mountB10Sidebar() {
       )
     )
   );
-  const appGrid = el("div", { class: "b10-app-grid" });
-  appGrid.append(
+  const topbar = el(
+    "header",
+    { class: "topbar" },
+    el(
+      "div",
+      { class: "search", id: "openPalette", role: "button", tabindex: "0" },
+      "⌘ K　搜索页面 / 命令 / 资源"
+    ),
+    el(
+      "div",
+      { class: "top-actions" },
+      el("button", { type: "button", class: "ghost-btn", id: "topNotice" }, "通知"),
+      el("button", { type: "button", class: "ghost-btn", id: "openDrawer" }, "工作区")
+    )
+  );
+  const offlineNotice = el(
+    "p",
+    { class: "muted", id: "b10-offline" },
+    "本地浏览模式：未连接本机设计服务（无访问令牌）。页面结构为 B10 1:1 真实渲染，但所有读回值为空占位，不是真实台账。连接服务后本提示消失。"
+  );
+  const app = el(
+    "div",
+    { class: "app", id: "b10-app" },
     el("div", { class: "ambient" }),
     el("div", { class: "grid-bg" }),
-    b10Nav
+    sidebar,
+    el(
+      "main",
+      { class: "main" },
+      topbar,
+      el("section", { class: "content", id: "content" }, offlineNotice, routeView)
+    )
   );
-  document.body.append(appGrid);
+  document.body.append(app);
   const legacyNav = document.querySelector(".app-nav");
-  const syncSidebar = () => {
-    const view = b10Current();
+  const legacyChrome = Array.from(document.querySelectorAll("body > header, body > main, body > footer"));
+  const sync = (view) => {
     const routed = view !== "workbench";
-    b10Nav.style.display = routed ? "flex" : "none";
-    appGrid.classList.toggle("routed", routed);
-    if (routed && legacyNav) legacyNav.setAttribute("hidden", "true");
-    if (!routed && legacyNav) legacyNav.removeAttribute("hidden");
-    for (const item of Array.from(b10Nav.querySelectorAll(".nav button"))) {
+    app.hidden = !routed;
+    offlineNotice.hidden = Boolean(token) || !devMode();
+    if (legacyNav) legacyNav.toggleAttribute("hidden", routed);
+    for (const node of legacyChrome) node.toggleAttribute("hidden", routed);
+    for (const item of Array.from(sidebar.querySelectorAll(".nav button"))) {
       const selected = item.dataset.route === view;
       item.classList.toggle("active", selected);
       if (selected) item.setAttribute("aria-current", "page");
       else item.removeAttribute("aria-current");
     }
   };
-  window.addEventListener("hashchange", syncSidebar);
-  syncSidebar();
+  return { app, sync };
 }
 function mountB10Overlays() {
   const probe = document.createElement("div");
   if (typeof probe.querySelector !== "function") return;
-  const toast = el("div", { class: "dl-toast", role: "status", id: "dl-toast" }, "Ready");
+  const toast = el("div", { class: "toast", role: "status", id: "toast" }, "Ready");
   document.body.append(toast);
   const toastTimer = { t: 0 };
   const showToast = (msg) => {
@@ -1850,53 +1956,66 @@ function mountB10Overlays() {
     toastTimer.t = window.setTimeout(() => toast.classList.remove("show"), 1900);
   };
   window.__dlToast = showToast;
-  const overlay = el("div", { class: "dl-modal-overlay", id: "dl-modal", hidden: true });
+  const overlay = el("div", { class: "overlay", id: "modal" });
   const modalBox = el(
     "div",
-    { class: "dl-modal" },
-    el("h3", {}, "确认操作"),
-    el("div", { class: "dl-modal-body" }, "该操作将写入本地状态。"),
+    { class: "modal" },
+    el("h3", { id: "modalTitle" }, "确认操作"),
+    el("div", { class: "body", id: "modalBody" }, "该操作将写入本地状态。"),
     el(
       "div",
-      { class: "dl-modal-actions" },
-      el("button", { class: "secondary", type: "button" }, "取消"),
-      el("button", { type: "button" }, "确认")
+      { class: "actions" },
+      el("button", { class: "ghost-btn", type: "button", "data-close-modal": "" }, "取消"),
+      el("button", { class: "primary-btn", type: "button", id: "modalConfirm" }, "确认")
     )
   );
   overlay.append(modalBox);
   document.body.append(overlay);
-  const cancelBtn = modalBox.querySelector(".dl-modal-actions .secondary");
+  const cancelBtn = modalBox.querySelector(".actions .ghost-btn");
   const closeModal = () => {
     overlay.classList.remove("open");
-    overlay.hidden = true;
   };
   cancelBtn.onclick = closeModal;
-  modalBox.querySelector(".dl-modal-actions > .primary, .dl-modal-actions > button:not(.secondary)").onclick = () => {
-    closeModal();
-    showToast("已确认");
-  };
   const drawer = el(
     "aside",
-    { class: "dl-drawer", id: "dl-drawer", role: "dialog", "aria-label": "工作区详情" },
-    el("h3", {}, "工作区 / Context"),
-    el("p", { class: "view-hint" }, "Command Palette：Ctrl/Cmd + K。Esc 关闭浮层。"),
+    { class: "drawer", id: "drawer", role: "dialog", "aria-label": "工作区详情" },
+    el("h3", { style: "margin:0 0 8px" }, "工作区 / Context"),
+    el("p", { class: "muted", style: "margin-top:0" }, "Command Palette（Ctrl/Cmd + K）、Toast、Modal 与 Drawer 由本页真实驱动；视图内容全部来自服务读回。"),
     el(
       "div",
-      { class: "status-stack" },
+      { class: "status-stack", style: "margin:14px 0 20px" },
       el("span", { class: "tag info" }, "Live UI"),
-      el("span", { class: "tag ok" }, "Local State")
-    )
+      el("span", { class: "tag ok" }, "Local State"),
+      el("span", { class: "tag warn" }, "Readback Only")
+    ),
+    el(
+      "div",
+      { class: "panel" },
+      el("h3", {}, "界面状态"),
+      el(
+        "div",
+        { class: "list" },
+        el("div", { class: "list-item" }, el("span", {}, "Rendering"), el("span", { class: "tag ok" }, "Ready")),
+        el("div", { class: "list-item" }, el("span", {}, "Motion Effects"), el("span", { class: "tag ok" }, "Enabled")),
+        el("div", { class: "list-item" }, el("span", {}, "Palette"), el("span", { class: "tag info" }, "Ctrl/Cmd + K"))
+      )
+    ),
+    el("button", { class: "primary-btn", type: "button", id: "closeDrawer", style: "margin-top:18px;width:100%" }, "关闭")
   );
   document.body.append(drawer);
+  const openDrawer = () => {
+    drawer.classList.add("open");
+  };
   const closeDrawer = () => {
     drawer.classList.remove("open");
   };
+  drawer.querySelector("#closeDrawer").onclick = closeDrawer;
   const palette = el(
     "div",
-    { class: "dl-palette", id: "dl-palette", role: "dialog", "aria-label": "命令面板" },
-    el("input", { id: "dl-palette-input", placeholder: "搜索页面 / 命令 / 模块…", "aria-label": "命令搜索" })
+    { class: "palette", id: "palette", role: "dialog", "aria-label": "命令面板" },
+    el("input", { id: "paletteInput", placeholder: "搜索页面 / 命令 / 模块…", "aria-label": "命令搜索" })
   );
-  const itemsBox = el("div", {});
+  const itemsBox = el("div", { id: "paletteItems" });
   palette.append(itemsBox);
   document.body.append(palette);
   const paletteInput = palette.querySelector("input");
@@ -1904,8 +2023,8 @@ function mountB10Overlays() {
   for (const c2 of cmds) {
     itemsBox.append(el(
       "div",
-      { class: "dl-palette-item", "data-go": c2.id },
-      c2.label,
+      { class: "item", "data-go": c2.id },
+      el("span", {}, c2.label),
       el("small", {}, "Open")
     ));
   }
@@ -1917,17 +2036,17 @@ function mountB10Overlays() {
   const closePalette = () => {
     palette.classList.remove("open");
     paletteInput.value = "";
-    itemsBox.querySelectorAll(".dl-palette-item").forEach((i) => {
+    itemsBox.querySelectorAll(".item").forEach((i) => {
       i.style.display = "";
     });
   };
   paletteInput.addEventListener("input", () => {
     const q = paletteInput.value.toLowerCase();
-    itemsBox.querySelectorAll(".dl-palette-item").forEach((item) => {
+    itemsBox.querySelectorAll(".item").forEach((item) => {
       item.style.display = item.textContent.toLowerCase().includes(q) ? "flex" : "none";
     });
   });
-  itemsBox.querySelectorAll(".dl-palette-item").forEach((item) => {
+  itemsBox.querySelectorAll(".item").forEach((item) => {
     item.onclick = () => {
       const go = item.dataset.go;
       if (go) window.location.hash = "#" + go;
@@ -1946,39 +2065,10 @@ function mountB10Overlays() {
       closeModal();
     }
   });
-  mountB10Topbar();
+  wireB10Topbar(openPalette, showToast, openDrawer);
 }
-function mountB10Topbar() {
-  const probe = document.createElement("div");
-  if (typeof probe.querySelector !== "function") return;
-  const topbar = el(
-    "header",
-    { class: "topbar", id: "b10-topbar" },
-    el(
-      "div",
-      { class: "search", id: "b10-open-palette", role: "button", tabindex: "0" },
-      "⌘ K　搜索页面 / 命令 / 资源"
-    ),
-    el(
-      "div",
-      { class: "top-actions" },
-      el("button", { type: "button", class: "ghost-btn", id: "b10-top-notice" }, "通知"),
-      el("button", { type: "button", class: "ghost-btn", id: "b10-open-drawer" }, "工作区")
-    )
-  );
-  document.body.append(topbar);
-  const openPalette = () => {
-    const palette = document.getElementById("dl-palette");
-    const input = document.getElementById("dl-palette-input");
-    if (palette) {
-      palette.classList.add("open");
-      if (input) {
-        input.focus();
-        input.select();
-      }
-    }
-  };
-  const search = document.getElementById("b10-open-palette");
+function wireB10Topbar(openPalette, showToast, openDrawer) {
+  const search = document.getElementById("openPalette");
   if (search) {
     search.onclick = openPalette;
     search.onkeydown = (e) => {
@@ -1988,19 +2078,13 @@ function mountB10Topbar() {
       }
     };
   }
-  const notice = document.getElementById("b10-top-notice");
+  const notice = document.getElementById("topNotice");
   if (notice) notice.onclick = () => {
-    const toast = document.getElementById("dl-toast");
-    if (toast) {
-      toast.textContent = "暂无新的通知";
-      toast.classList.add("show");
-      window.setTimeout(() => toast.classList.remove("show"), 1800);
-    }
+    showToast("暂无新的通知");
   };
-  const drawerBtn = document.getElementById("b10-open-drawer");
+  const drawerBtn = document.getElementById("openDrawer");
   if (drawerBtn) drawerBtn.onclick = () => {
-    const drawer = document.getElementById("dl-drawer");
-    if (drawer) drawer.classList.add("open");
+    openDrawer();
   };
 }
 byId("design-brief-form").onsubmit = (event) => {
