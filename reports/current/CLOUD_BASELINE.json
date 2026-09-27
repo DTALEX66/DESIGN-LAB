@@ -9,33 +9,28 @@
   },
   "fresh": false,
   "freshnessMeaning": "at generation only; check verifies bound-input integrity, not current Git or cloud state",
-  "generatedAt": "2026-09-27T03:44:07+00:00",
+  "generatedAt": "2026-09-27T05:34:05+00:00",
   "gitStateMeaning": "generation-time observation, not current HEAD",
   "local": {
-    "branch": "main",
-    "origin_main": "03086b8fb207cb744440f1201f4c52fb7e2016e5",
-    "sha": "03086b8fb207cb744440f1201f4c52fb7e2016e5",
+    "branch": "docs/full-audit-closeout-upload-2026-09-27",
+    "origin_main": "6ba2578a3458d0c320fd43cdb34c8feb9ab3003e",
+    "sha": "6ba2578a3458d0c320fd43cdb34c8feb9ab3003e",
     "source_worktree_clean": false,
-    "tracked_files": 2025,
+    "tracked_files": 2028,
     "worktree_changes": [
       {
-        "content": "sha256:437357efc6fe9d00998f6866aba2c67a9541ad164bbd0a335967e90b1ed6ee6a",
-        "kind": "U",
-        "path": "docs/audits/DESIGN-LAB-CLOUD-AUDIT-2026-09-27-RAW.md"
-      },
-      {
-        "content": "sha256:48c0c51fd8a32810bc8baa1d90941b0f3a3139008bb0e8959ffd8134614c1de0",
-        "kind": "U",
-        "path": "docs/audits/DESIGN-LAB-CLOUD-AUDIT-2026-09-27-RECONCILIATION.md"
+        "content": "sha256:53927c0adc030ac9088606e23280eabbb1f2c53e093acf5667666d17d7f5b5cb",
+        "kind": "A",
+        "path": "docs/audits/DESIGN-LAB-FULL-AUDIT-CLOSE-OUT-LEDGER-2026-09-27.md"
       }
     ],
-    "worktree_digest": "sha256:2e9e01011e37c885e0becd27d8c870e7b03132e57fd7060fcb15521c4ada267d"
+    "worktree_digest": "sha256:70ac665aee69e7e1a55d2a4e333a8d8e05bd5bb697953417da1caa57e860d7ed"
   },
   "note": "No GitHub API query was run by this generator; tool installation is not inferred.",
   "remoteRef": "origin/main (local tracking ref)",
   "schemaVersion": "design-lab/cloud-baseline/v2",
   "subjectMeaning": "subjectType=WORKTREE means the tree was dirty at generation; worktreeDigest covers HEAD plus the non-generated changes",
-  "subjectSha": "03086b8fb207cb744440f1201f4c52fb7e2016e5",
+  "subjectSha": "6ba2578a3458d0c320fd43cdb34c8feb9ab3003e",
   "subjectType": "WORKTREE",
   "taskpackHash": "31dde89eb4ede81fe88c0a5c5144adfb86af8db4c4d8c263bde2199180369b69",
   "taskpackId": "DL-TP-20260908-R5",
@@ -50,5 +45,5 @@
     "branchProtection"
   ],
   "worktreeClean": false,
-  "worktreeDigest": "sha256:2e9e01011e37c885e0becd27d8c870e7b03132e57fd7060fcb15521c4ada267d"
+  "worktreeDigest": "sha256:70ac665aee69e7e1a55d2a4e333a8d8e05bd5bb697953417da1caa57e860d7ed"
 }
