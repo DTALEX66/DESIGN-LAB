@@ -112,17 +112,112 @@
         "DL-R5-012"
       ],
       "verified": false
+    },
+    {
+      "artifacts": [
+        {
+          "path": ".project-local/task-artifacts/project-survey-2026-09-27/PROJECT-SURVEY-2026-09-27.md",
+          "sha256": "0efce6a20b1efb5433e64d830906ada77260e9ad799686785f5164d0f4e403c1"
+        }
+      ],
+      "binding": "COMMIT",
+      "id": "r5-branch-convergence-live-20260927",
+      "kind": "structural",
+      "note": "实读于 634071f：远端分支 28 -> 1（仅 main）；open PR 0；单 worktree；0 stash。仅证明分支/账本收敛这一事实面，不等同 DL-R5-001 全部验收（旧 R4 ID 可追踪性、验收/回退/证据字段完整性未逐项复核），故 outcome=PARTIAL。",
+      "observed_at": "2026-09-27T15:11:41Z",
+      "outcome": "PARTIAL",
+      "reasons": [
+        "OUTCOME_NOT_PASS",
+        "SOURCE_CHANGED_OR_MISSING:design-lab/config/task-ledger-r3.json"
+      ],
+      "software": {
+        "git": "2.55.0.windows.3",
+        "observation": "git ls-remote --heads origin; git worktree list; git stash list; git rev-parse",
+        "os": "Windows"
+      },
+      "subject_files": {
+        ".project/manifest.yaml": "ec43c78581e552faafbe4286d9667d7617b4db55c2d2c53be8d2ccd96a27f728",
+        "design-lab/config/task-ledger-r3.json": "c2addc0ed212016e6c5542ab4f34a5d0cf5c62e053287156131fda3d1a783ad4"
+      },
+      "subject_sha": "634071f3c8ffa87e08fa1386f49c185ff6fa36d8",
+      "task_ids": [
+        "DL-R5-001"
+      ],
+      "verified": false
+    },
+    {
+      "artifacts": [
+        {
+          "path": ".project-local/task-artifacts/project-survey-2026-09-27/PROJECT-SURVEY-2026-09-27.md",
+          "sha256": "0efce6a20b1efb5433e64d830906ada77260e9ad799686785f5164d0f4e403c1"
+        }
+      ],
+      "binding": "COMMIT",
+      "id": "r5-runtime-root-boundary-live-20260927",
+      "kind": "structural",
+      "note": "活跃运行根 = .project-local/（.gitignore:71 忽略）；项目内 .hermes/ 仅剩 skill-call-index.json 且 mtime 2026-08-24（一个月无新增写入），与 AUTHORITY.md §7 一致。本轮按数据所有权清理：4 个会话暂存文件迁入 task-artifacts/external-recovery-2026-09-27/（sha256 移前=移后）、4 个有契约/引用依据的文件就近保留、删除空的嵌套 .project-local/.project-local/。PARTIAL：未逐项核查 Adobe/CLI/UI/技能启动器入口。",
+      "observed_at": "2026-09-27T15:11:41Z",
+      "outcome": "PARTIAL",
+      "reasons": [
+        "OUTCOME_NOT_PASS"
+      ],
+      "software": {
+        "observation": "HERMES_HOME mtime sweep; git check-ignore; ownership-classified cleanup with sha256 before/after",
+        "os": "Windows",
+        "python": "3.13.14 (project .venv)"
+      },
+      "subject_files": {
+        ".project/governance/data-ownership.yaml": "7202baea30612c9acbc722be331913193dec505547bc8e8d73a82642735199c4",
+        ".project/manifest.yaml": "ec43c78581e552faafbe4286d9667d7617b4db55c2d2c53be8d2ccd96a27f728",
+        ".project/paths.json": "166dc075bdb26d4313405e03920d83b90ca52fb8c3f6b237c00ce0a25d048896"
+      },
+      "subject_sha": "634071f3c8ffa87e08fa1386f49c185ff6fa36d8",
+      "task_ids": [
+        "DL-R5-002"
+      ],
+      "verified": false
+    },
+    {
+      "artifacts": [
+        {
+          "path": ".project-local/task-artifacts/project-survey-2026-09-27/PROJECT-SURVEY-2026-09-27.md",
+          "sha256": "0efce6a20b1efb5433e64d830906ada77260e9ad799686785f5164d0f4e403c1"
+        }
+      ],
+      "binding": "COMMIT",
+      "id": "r5-ci-required-checks-live-20260927",
+      "kind": "structural",
+      "note": "main 分支保护 live 读回 = 9 项 required checks（Python gate / MiniGame / Generated-artifact / License-secret / Open Design / Top-level Authority / Workbench strict-TS / Workbench browser E2E / DeepSeek authority chain），在 634071f 的 push 与 pull_request 两类 run 上均 pass。PARTIAL：只证明 required-check 面，不宣称全部验证环境已补齐。",
+      "observed_at": "2026-09-27T15:11:41Z",
+      "outcome": "PARTIAL",
+      "reasons": [
+        "OUTCOME_NOT_PASS"
+      ],
+      "software": {
+        "gh": "GitHub CLI (keyring auth)",
+        "observation": "gh api /repos/DTALEX66/DESIGN-LAB/branches/main/protection; gh pr checks",
+        "runner": "GitHub Actions"
+      },
+      "subject_files": {
+        ".github/workflows/canonical-verify.yml": "59cd3ee84997df1fb0bdfeea1080f4941341e19a97ef18de4740efc212157d01",
+        ".github/workflows/release-gate.yml": "47250ec304e1e400596419116435f2df5386f08c16cf0e73f83c926aaf045722"
+      },
+      "subject_sha": "634071f3c8ffa87e08fa1386f49c185ff6fa36d8",
+      "task_ids": [
+        "DL-R5-003"
+      ],
+      "verified": false
     }
   ],
   "fresh": false,
   "freshnessMeaning": "at generation only; check verifies bound-input integrity, not current Git or cloud state",
-  "generatedAt": "2026-09-27T05:34:05+00:00",
+  "generatedAt": "2026-09-27T15:11:48+00:00",
   "gitStateMeaning": "generation-time observation, not current HEAD",
-  "ledgerUpdatedAt": "2026-09-08T22:51:42Z",
+  "ledgerUpdatedAt": "2026-09-27T15:11:41Z",
   "note": "DONE_LOCAL concerns the declared task axes and dependencies, not a product release or hosted CI.",
   "schemaVersion": "design-lab/task-progress/r5-v1",
   "subjectMeaning": "subjectType=WORKTREE means the tree was dirty at generation; worktreeDigest covers HEAD plus the non-generated changes",
-  "subjectSha": "6ba2578a3458d0c320fd43cdb34c8feb9ab3003e",
+  "subjectSha": "634071f3c8ffa87e08fa1386f49c185ff6fa36d8",
   "subjectType": "WORKTREE",
   "taskpack": "DL-TP-20260908-R5",
   "taskpackHash": "31dde89eb4ede81fe88c0a5c5144adfb86af8db4c4d8c263bde2199180369b69",
@@ -144,7 +239,9 @@
         },
         "implementation": {
           "declared_state": "PARTIAL",
-          "evidence": [],
+          "evidence": [
+            "r5-branch-convergence-live-20260927"
+          ],
           "reasons": [],
           "state": "PARTIAL"
         },
@@ -219,7 +316,9 @@
         },
         "implementation": {
           "declared_state": "PARTIAL",
-          "evidence": [],
+          "evidence": [
+            "r5-runtime-root-boundary-live-20260927"
+          ],
           "reasons": [],
           "state": "PARTIAL"
         },
@@ -299,7 +398,9 @@
         },
         "implementation": {
           "declared_state": "PARTIAL",
-          "evidence": [],
+          "evidence": [
+            "r5-ci-required-checks-live-20260927"
+          ],
           "reasons": [],
           "state": "PARTIAL"
         },
@@ -2509,5 +2610,5 @@
   "testRunMeaning": "bound run: python scripts/run_bound_test_suite.py --order forward --repeat 2 --modules test_asset_store test_creative_job test_creative_ledgers test_creative_lineage test_creative_migration test_creative_version_guard test_creative_f030_f040 test_creative_session_link test_job_store test_runtime_attempt_safety test_runtime_asset_safety test_runtime_explicit_project test_assurance_qa_plane test_assurance_jury test_bundle_store test_operation_coordinator",
   "testRunResult": "OK",
   "worktreeClean": false,
-  "worktreeDigest": "sha256:70ac665aee69e7e1a55d2a4e333a8d8e05bd5bb697953417da1caa57e860d7ed"
+  "worktreeDigest": "sha256:d13541b80852df9726a360eb011a568957191a6a27619e9e0efb0931ec22e044"
 }

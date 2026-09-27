@@ -175,6 +175,22 @@ Merge/delete/release/force-push 仍属于 owner-authorized destructive actions�
 
 以后必须重新实时读取这些动态事实。
 
+### 13.1 动态事实的最新 live 读回（不是 Authority 变更，是对 §13 快照的刷新）
+
+> §13 是 **Authority 建立时**的历史快照，保留原文不改写。以下为**重新实时读取**的结果，
+> 用于避免读者把 §13 的旧值当成当前事实。动态事实**永远以每次审计的 live 读回为准**。
+
+- 观察时间：`2026-09-27`；观察 exact SHA：`634071f3c8ffa87e08fa1386f49c185ff6fa36d8`（`main` = `origin/main`）
+- main required checks = **9 项**（`gh api /repos/DTALEX66/DESIGN-LAB/branches/main/protection` 实读）：
+  Python gate、MiniGame node gate、Generated-artifact clean-tree gate、License & secret hygiene gate、
+  Open Design host adapter gate、Top-level Authority consistency gate、Workbench strict-TS product gate、
+  Workbench browser E2E、DeepSeek authority gate chain
+  （相对 §13 的变化：**已包含** DeepSeek Authority gate，并新增 Workbench strict-TS 与 Workbench browser E2E）
+- 远端分支数 = **1**（仅 `main`）；open PR = **0**（§13 建立时为 28）
+- `apps/workbench/` = **10 个文件**（§13 建立时仅 `index.html / main.ts / style.css`）
+- 最近合并：PR #173（`2026-09-27T14:40:41Z`）→ #172 → #171 → #170 → #169
+- 以上仅为该时刻读数；下一次审计必须重新 live-read。
+
 ## 14. 已关闭且禁止无证据重开的事项
 
 当前 main 已核实：
@@ -201,7 +217,7 @@ Merge/delete/release/force-push 仍属于 owner-authorized destructive actions�
 6. 将 PR #120 Handoff 首屏明确标为 HISTORICAL/NON_AUTHORITATIVE — CLOSED（`docs/handoffs/DESIGN-LAB-UCR-CONVERGENCE-20260918-HANDOFF.md` 首屏 banner）
 7. 接入现有 authority-chain，不建第二 ledger — CLOSED（`scripts/deepseek_authority_chain.py` + `reports/current/DEEPSEEK-AUTHORITY-CHAIN.json`）
 8. 新增 Authority/index consistency verifier — CLOSED（`scripts/verify_top_level_authority.py`，10 checks）
-9. main required checks 加入 Authority gate — CLOSED（gh 读回 main protection：7 项 required checks 含 `Top-level Authority consistency gate (DL-AUTHORITY-2026-09-18-R2)`）
+9. main required checks 加入 Authority gate — CLOSED（gh 读回 main protection：含 `Top-level Authority consistency gate (DL-AUTHORITY-2026-09-18-R2)`；该门禁落地时为 7 项，截至 §13.1 观察时点为 9 项）
 
 ### P0 — Frontend [CLOSED_WITH_REGRESSION_GUARD 2026-09-20]
 > 守卫：main required check `Workbench strict-TS product gate (taskpack 12.2/12.3/12.4/12.5)` + `git diff --exit-code -- apps/workbench/build` + `design-lab/scripts/verify_workbench_packaging.py`。
@@ -209,7 +225,7 @@ Merge/delete/release/force-push 仍属于 owner-authorized destructive actions�
 - pnpm 单一产品依赖真值 — CLOSED（`pnpm-workspace.yaml` + `pnpm-lock.yaml`）
 - Vite build — CLOSED（`apps/workbench/build/main.js`，构建产物受 `git diff --exit-code` 守卫）
 - browser E2E — CLOSED（`workbench-browser-e2e` job + `design-lab/tests/e2e/browser_design_layer_e2e.mjs`；P0-G 已加入证据 JSON 与 artifact 上传）
-- 独立 Workbench CI gate — CLOSED（main protection 7 项 required checks 含 Workbench strict-TS gate）
+- 独立 Workbench CI gate — CLOSED（main protection 含 Workbench strict-TS gate；截至 §13.1 观察时点 required checks 共 9 项）
 - built resources 正确 package — CLOSED（pyproject force-include + P0-H wheel 隔离安装态完整纵切验证）
 - 默认 UI 不再 JSON-centric — CLOSED_WITH_REGRESSION_GUARD（Workbench 面板/选择器交互；**残留**：无人工视觉验收记录，属 E4）
 
@@ -232,7 +248,7 @@ E-SLICE-01（PR #123/#124）+ 不变量修复（Reference 资产校验、DB 级�
 - run #182 无 artifact，不能冒充 artifact readback — 保留（记录性事实，非待办项）
 - 修 LANGUAGE-POLICY 中残留 `DECLARED_NOT_ENFORCED` 单句 — CLOSED（tracked `docs/architecture/LANGUAGE-POLICY.md` 已无该串；`verify_top_level_authority.py` stale-wording check 守卫）
 - Ruff 是否真正 enforce 单独决策，不重开全语言迁移 — OPEN（决策未做）
-- Workbench gate 建成后加入 required checks — CLOSED（main protection 7 项 required checks 已含 Workbench strict-TS gate）
+- Workbench gate 建成后加入 required checks — CLOSED（main protection 已含 Workbench strict-TS gate；截至 §13.1 观察时点 required checks 共 9 项）
 
 ### P1 — Branch cleanup
 实时重读 branch。合并后的 UCR 短分支与旧 candidate 进入 cleanup candidate；旧 S2/S3 继续 semantic residual/equivalence 检查。远端删除仍需 owner 授权。

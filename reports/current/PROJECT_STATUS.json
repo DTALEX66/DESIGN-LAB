@@ -8,21 +8,21 @@
   },
   "fresh": false,
   "freshnessMeaning": "at generation only; check verifies bound-input integrity, not current Git or cloud state",
-  "generatedAt": "2026-09-27T05:34:05+00:00",
+  "generatedAt": "2026-09-27T15:11:48+00:00",
   "git": {
-    "branch": "docs/full-audit-closeout-upload-2026-09-27",
-    "origin_main": "6ba2578a3458d0c320fd43cdb34c8feb9ab3003e",
-    "sha": "6ba2578a3458d0c320fd43cdb34c8feb9ab3003e",
+    "branch": "main",
+    "origin_main": "634071f3c8ffa87e08fa1386f49c185ff6fa36d8",
+    "sha": "634071f3c8ffa87e08fa1386f49c185ff6fa36d8",
     "source_worktree_clean": false,
     "tracked_files": 2028,
     "worktree_changes": [
       {
-        "content": "sha256:53927c0adc030ac9088606e23280eabbb1f2c53e093acf5667666d17d7f5b5cb",
-        "kind": "A",
-        "path": "docs/audits/DESIGN-LAB-FULL-AUDIT-CLOSE-OUT-LEDGER-2026-09-27.md"
+        "content": "sha256:6c353daf4bb0df382be429054890a7c6758579444f71218c8cf317042fe1fb03",
+        "kind": "M",
+        "path": "design-lab/config/task-ledger-r3.json"
       }
     ],
-    "worktree_digest": "sha256:70ac665aee69e7e1a55d2a4e333a8d8e05bd5bb697953417da1caa57e860d7ed"
+    "worktree_digest": "sha256:d13541b80852df9726a360eb011a568957191a6a27619e9e0efb0931ec22e044"
   },
   "gitStateMeaning": "generation-time observation, not current HEAD",
   "hostLive": "derived from host_live axis only",
@@ -35,7 +35,7 @@
     "quarantinedSources": 162
   },
   "subjectMeaning": "subjectType=WORKTREE means the tree was dirty at generation; worktreeDigest covers HEAD plus the non-generated changes",
-  "subjectSha": "6ba2578a3458d0c320fd43cdb34c8feb9ab3003e",
+  "subjectSha": "634071f3c8ffa87e08fa1386f49c185ff6fa36d8",
   "subjectType": "WORKTREE",
   "taskCounts": {
     "PARTIAL": 28
@@ -52,5 +52,5 @@
     "executed": "see individual verified ledger receipts"
   },
   "worktreeClean": false,
-  "worktreeDigest": "sha256:70ac665aee69e7e1a55d2a4e333a8d8e05bd5bb697953417da1caa57e860d7ed"
+  "worktreeDigest": "sha256:d13541b80852df9726a360eb011a568957191a6a27619e9e0efb0931ec22e044"
 }

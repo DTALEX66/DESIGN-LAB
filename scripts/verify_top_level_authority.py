@@ -66,8 +66,18 @@ AUTHORITY_ID = "DL-AUTHORITY-2026-09-18-R2"
 #     first-read; the LANGUAGE-POLICY Node-build wording was corrected)
 # CI readback: `scripts/verify_top_level_authority.py` (canonical-verify.yml
 # line 116) must return TOP_AUTHORITY_GATE=PASS checks=10 failed=[].
+#
+# 2026-09-27 re-pin (AUTHORITY §17: owner intent = "整理梳理本项目，更新 AUTHORITY.md 的
+# 动态事实快照"; reason = §13 is the *establishment* snapshot but its numbers were being
+# read as current — live readback gives 9 required checks / 1 remote branch / 10 workbench
+# files against the file's 7 / 28 / 3; superseded = f7c1e6ad…; impact = §13.1 added as an
+# explicitly dated live readback (the historical §13 snapshot is preserved verbatim) and
+# the three present-tense "7 项 required checks" claims in §15 corrected, so the file no
+# longer asserts stale dynamic facts; no static release content removed; checks count
+# unchanged at 10):
+#   AUTHORITY.md                   f7c1e6ad… -> 7b29d3ea…  (§13.1 live readback)
 R2_RELEASE_HASHES = {
-    "AUTHORITY.md": "f7c1e6adfa569f83cf44997451c50f56617411581db9ee6819621bd9c6b6cdc2",
+    "AUTHORITY.md": "7b29d3ea90122b74a59d3b905a0064fcabd54e0d545e70e3bc3388fbc9c212ec",
     ".project/governance/authority-index.json": "38c01eb0c2bc87e4131d2e8a74a8a026098d636cf58db7cf139c7fcece75d096",
     "docs/current/HISTORY-FREEZE-RULES.md": "b970562dbdc8b4ccfff71ba2354a5b718d2a54efde7db7972c4a2ee2b60e6e40",
     "docs/taskpacks/DESIGN-LAB-FINAL-AUTHORITY-CONVERGENCE-TASKPACK-2026-09-18.md": "62f43ef295d4e90462d1e49e657e490400c4b5568f4e4ad1db3e268e12bb10c7",
