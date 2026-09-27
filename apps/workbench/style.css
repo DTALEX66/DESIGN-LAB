@@ -336,3 +336,224 @@ footer{
 .verdict-line .pill{font-size:13px;padding:5px 14px}
 .verdict-meta{font-size:12px;color:var(--muted);line-height:1.6}
 .error{color:var(--color-error);font-size:13px;margin:12px 0}
+
+
+/* ============================================================================
+   B10 最终版视觉系统层（UI套件 B10 高保真可部署UI 权威）
+   追加层：ambient 光晕 / grid 背景 / 面板发光 / 卡片 lift / 扫光 / Command
+   Palette / Modal / Drawer / Toast / KPI 数字光效。全部走 B04 tokens，
+   无第二套皮肤，紫色不入系统主色（Electric Blue #316CFF only）。
+   尊重 prefers-reduced-motion。
+   ============================================================================ */
+
+/* B10 视觉升级：body 背景加环境光 + 网格底纹（z-index 底层，不影响交互） */
+body{
+  background:
+    radial-gradient(1200px 600px at 18% -8%, color-mix(in srgb, var(--color-primary) 22%, transparent), transparent 60%),
+    radial-gradient(900px 520px at 108% 8%, color-mix(in srgb, var(--color-secondary) 14%, transparent), transparent 55%),
+    var(--color-bg);
+  position:relative;
+  min-height:100vh;
+}
+body::before{
+  content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;opacity:.16;
+  background-image:
+    linear-gradient(color-mix(in srgb, var(--color-primary) 26%, transparent) 1px, transparent 1px),
+    linear-gradient(90deg, color-mix(in srgb, var(--color-primary) 22%, transparent) 1px, transparent 1px);
+  background-size:44px 44px;
+  mask-image:radial-gradient(circle at 50% 18%, #000 0%, transparent 78%);
+}
+
+/* 面板 B10 发光：hover 抬升 + 边框光 + 内高光 */
+.panel{position:relative;overflow:hidden}
+.panel::before{
+  content:"";position:absolute;inset:0;pointer-events:none;
+  background:linear-gradient(180deg, rgba(255,255,255,.04), transparent 22%);
+}
+.panel:hover{
+  border-color:color-mix(in srgb, var(--color-primary) 46%, var(--line));
+  box-shadow:0 18px 44px rgba(0,0,0,.28), 0 0 0 1px color-mix(in srgb, var(--color-primary) 10%, transparent);
+}
+.kpi-card{position:relative;overflow:hidden;transition:transform var(--motion-base), border-color var(--motion-base), box-shadow var(--motion-base)}
+.kpi-card::before{content:"";position:absolute;inset:0;pointer-events:none;
+  background:linear-gradient(135deg, color-mix(in srgb, var(--color-primary) 10%, transparent), transparent 55%)}
+.kpi-card:hover{transform:translateY(-2px);
+  border-color:color-mix(in srgb, var(--color-primary) 44%, var(--line));
+  box-shadow:0 14px 34px rgba(0,0,0,.25), 0 0 0 1px color-mix(in srgb, var(--color-primary) 9%, transparent)}
+.kpi-value{
+  color:var(--color-primary);
+  text-shadow:0 0 22px color-mix(in srgb, var(--color-primary) 34%, transparent);
+  font-variant-numeric:tabular-nums;
+}
+.kpi-note{font-size:11px}
+
+/* 侧栏 B10：选中项渐变发光 + 左侧指示条 + hover 位移 */
+.app-nav{
+  background:linear-gradient(180deg, color-mix(in srgb, var(--surface) 88%, #fff 2%), var(--surface));
+  backdrop-filter:blur(14px);
+}
+.app-nav-brand{
+  color:var(--color-primary);letter-spacing:1.5px;
+  text-shadow:0 0 16px color-mix(in srgb, var(--color-primary) 40%, transparent);
+  font-size:16px;padding:4px 10px 14px;border-bottom:1px solid var(--line);margin-bottom:10px;
+}
+.app-nav-item{transition:transform var(--motion-base), background var(--motion-base), border-color var(--motion-base), box-shadow var(--motion-base)}
+.app-nav-item:hover{transform:translateX(3px);
+  background:color-mix(in srgb, var(--surface-2) 80%, transparent);
+  border-color:color-mix(in srgb, var(--line) 70%, transparent)}
+.app-nav-item.active{
+  background:linear-gradient(180deg, color-mix(in srgb, var(--color-primary) 26%, transparent), color-mix(in srgb, var(--color-primary) 16%, transparent));
+  border-color:color-mix(in srgb, var(--color-primary) 46%, #fff 5%);
+  box-shadow:0 8px 28px color-mix(in srgb, var(--color-primary) 18%, transparent), inset 0 0 0 1px color-mix(in srgb, var(--color-primary) 10%, transparent);
+  color:var(--ink);
+}
+
+/* header 顶部 B10 玻璃 + 光晕 */
+.dl-shell header{
+  background:linear-gradient(180deg, color-mix(in srgb, var(--surface) 84%, transparent), color-mix(in srgb, var(--surface) 74%, transparent));
+  backdrop-filter:blur(14px);
+  box-shadow:0 10px 30px rgba(0,0,0,.18);
+}
+.mark{
+  position:relative;
+  background:radial-gradient(circle at 30% 28%, color-mix(in srgb, var(--color-primary) 80%, #fff 6%), transparent 46%),
+            linear-gradient(135deg, color-mix(in srgb, var(--color-primary) 82%, #fff 3%), color-mix(in srgb, var(--color-secondary) 55%, var(--color-primary)));
+  color:#fff;text-shadow:0 1px 6px rgba(0,0,0,.35);
+  border:0;box-shadow:0 0 0 1px color-mix(in srgb, var(--color-primary) 26%, #fff 5%), 0 10px 30px color-mix(in srgb, var(--color-primary) 38%, transparent);
+}
+
+/* 状态 pill B10 发光 */
+.pill{position:relative}
+.pill-pass{box-shadow:0 0 14px color-mix(in srgb, var(--color-success) 30%, transparent)}
+.pill-block{box-shadow:0 0 14px color-mix(in srgb, var(--color-error) 30%, transparent)}
+.pill-info{box-shadow:0 0 14px color-mix(in srgb, var(--color-info) 26%, transparent)}
+
+/* 按钮 B10：主按钮渐变 + 发光 + 微缩放 */
+button{position:relative}
+button:not(.secondary){
+  background:linear-gradient(135deg, color-mix(in srgb, var(--color-primary) 92%, #fff 4%), color-mix(in srgb, var(--color-secondary) 55%, var(--color-primary)));
+  box-shadow:0 12px 30px color-mix(in srgb, var(--color-primary) 28%, transparent);
+}
+button:not(.secondary):hover{transform:translateY(-1px) scale(1.01)}
+
+/* 预检扫光（B10 关键动画：.scan-line 扫线 sweep） */
+.scan-line{position:relative;overflow:hidden}
+.scan-line::after{
+  content:"";position:absolute;left:0;right:0;top:-22%;height:38%;
+  background:linear-gradient(180deg, transparent, color-mix(in srgb, var(--color-primary) 20%, #fff 3%), transparent);
+  animation:dl-scan-sweep 2.6s linear infinite;pointer-events:none;
+}
+@keyframes dl-scan-sweep{0%{transform:translateY(-120%)}100%{transform:translateY(420%)}}
+
+/* 状态机 B10：approved/delivered 节点呼吸 */
+.state-machine-step[data-state="approved"],
+.state-machine-step[data-state="delivered"]{
+  animation:dl-pulse 3s ease-in-out infinite;
+}
+@keyframes dl-pulse{0%,100%{opacity:1}50%{opacity:.82}}
+
+/* KPI count-up 数字发光入场（.kpi-value 由 JS 设 data-count 时启用） */
+.kpi-value[data-count]{transition:opacity .6s ease}
+
+/* Reduced motion: 关掉全部 B10 动效与光晕 */
+@media (prefers-reduced-motion:reduce){
+  body::before{opacity:.1}
+  .scan-line::after,.state-machine-step[data-state="approved"],
+  .state-machine-step[data-state="delivered"]{animation:none}
+  .kpi-card:hover,.app-nav-item:hover,button:not(.secondary):hover{transform:none}
+  *{transition:none!important}
+}
+
+/* Command Palette（B10 Ctrl/Cmd+K，顶层浮层） */
+.dl-palette{
+  position:fixed;left:50%;top:11vh;transform:translateX(-50%);
+  width:min(820px,94vw);z-index:120;display:none;
+  border-radius:20px;overflow:hidden;
+  background:linear-gradient(180deg, color-mix(in srgb, var(--surface) 90%, #fff 1%), color-mix(in srgb, var(--surface) 98%, #000 1%));
+  border:1px solid color-mix(in srgb, var(--color-primary) 34%, #fff 4%);
+  box-shadow:0 30px 90px rgba(0,0,0,.5);
+}
+.dl-palette.open{display:block}
+.dl-palette input{
+  width:calc(100% - 28px);margin:14px;box-sizing:border-box;
+  border:1px solid var(--line);background:var(--surface-2);color:var(--ink);
+  padding:13px 14px;border-radius:14px;font:inherit;outline:none;
+}
+.dl-palette .dl-palette-item{
+  display:flex;justify-content:space-between;gap:12px;align-items:center;
+  padding:13px 16px;border-top:1px solid color-mix(in srgb, var(--line) 60%, transparent);
+  font-size:13px;color:var(--ink);cursor:pointer;
+}
+.dl-palette .dl-palette-item:hover{background:color-mix(in srgb, var(--surface-2) 80%, transparent)}
+.dl-palette .dl-palette-item small{color:var(--muted);font-size:11px}
+
+/* Modal（B10 顶层浮层，destructive 确认） */
+.dl-modal-overlay{
+  position:fixed;inset:0;background:rgba(0,0,0,.55);backdrop-filter:blur(6px);
+  display:none;align-items:center;justify-content:center;padding:20px;z-index:110;
+}
+.dl-modal-overlay.open{display:flex}
+.dl-modal{
+  width:min(760px,96vw);border-radius:22px;padding:22px;
+  background:linear-gradient(180deg, color-mix(in srgb, var(--surface) 90%, #fff 1%), color-mix(in srgb, var(--surface) 98%, #000 1%));
+  border:1px solid color-mix(in srgb, var(--color-primary) 35%, #fff 4%);
+  box-shadow:0 30px 90px rgba(0,0,0,.5);
+}
+.dl-modal h3{margin:0 0 10px;font-size:19px}
+.dl-modal .dl-modal-body{color:var(--muted);line-height:1.65;font-size:13px}
+.dl-modal .dl-modal-actions{display:flex;justify-content:flex-end;gap:10px;margin-top:18px}
+
+/* Drawer（B10 右滑出，Inspector / 详情） */
+.dl-drawer{
+  position:fixed;top:0;right:-540px;height:100vh;width:min(520px,95vw);z-index:105;
+  background:linear-gradient(180deg, color-mix(in srgb, var(--surface) 90%, #fff 1%), color-mix(in srgb, var(--surface) 98%, #000 1%));
+  border-left:1px solid color-mix(in srgb, var(--color-primary) 28%, #fff 4%);
+  box-shadow:-18px 0 50px rgba(0,0,0,.28);padding:24px;
+  transition:right .28s cubic-bezier(.2,0,0,1);overflow:auto;
+}
+.dl-drawer.open{right:0}
+.dl-drawer h3{margin:0 0 10px}
+
+/* Toast（B10 右下反馈） */
+.dl-toast{
+  position:fixed;right:18px;bottom:18px;z-index:130;
+  min-width:220px;max-width:420px;padding:13px 15px;border-radius:16px;
+  border:1px solid color-mix(in srgb, var(--color-primary) 34%, #fff 4%);
+  background:linear-gradient(180deg, color-mix(in srgb, var(--surface) 88%, #fff 1%), color-mix(in srgb, var(--surface) 98%, #000 1%));
+  box-shadow:0 14px 40px rgba(0,0,0,.35);font-size:13px;color:var(--ink);
+  opacity:0;transform:translateY(12px) scale(.98);pointer-events:none;
+  transition:.22s ease;
+}
+.dl-toast.show{opacity:1;transform:translateY(0) scale(1)}
+
+/* 页面视图 B10 信息密度升级：route-view 内 kpi-grid 四列 */
+.route-view .kpi-grid{grid-template-columns:repeat(auto-fit,minmax(170px,1fr))}
+.route-view .kpi-card .kpi-value{font-size:32px}
+
+
+/* B10 视图网格：品牌系统 2×4 模块 / 工具 Adapter 网格 / sparkline */
+.brand-module-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin:18px 0}
+.brand-module{display:flex;flex-direction:column;gap:12px;padding:16px}
+.brand-module-canvas{
+  position:relative;height:150px;border-radius:14px;overflow:hidden;
+  background:radial-gradient(circle at var(--cx,30%) 30%, color-mix(in srgb, var(--color-primary) 18%, transparent), transparent 42%),
+            linear-gradient(135deg, rgba(255,255,255,.03), rgba(255,255,255,0));
+  border:1px solid color-mix(in srgb, var(--color-primary) 30%, var(--line));
+}
+.brand-module-ring{
+  position:absolute;left:16px;top:18px;width:74px;height:74px;
+  border:2px solid var(--color-primary);border-radius:50%;
+  box-shadow:0 0 18px color-mix(in srgb, var(--color-primary) 30%, transparent);
+}
+.brand-module-frame{
+  position:absolute;right:18px;bottom:16px;width:58px;height:58px;
+  border:2px solid var(--color-secondary);border-radius:10px;
+  box-shadow:0 0 14px color-mix(in srgb, var(--color-secondary) 26%, transparent);
+}
+.brand-module-label{font-size:14px;font-weight:700;color:var(--ink)}
+.tool-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px;margin:18px 0}
+.tool-card{padding:16px}
+.tool-card h3{font-size:15px;margin:0 0 10px}
+.spark{width:100%;height:170px;display:block}
+@media(max-width:1160px){.brand-module-grid{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:760px){.brand-module-grid{grid-template-columns:1fr}}
