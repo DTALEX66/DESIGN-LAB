@@ -1,12 +1,12 @@
 {
   "kind": "design-lab-w03-brief-editor",
-  "project_id": "e54630f4ca684436b6674d54f788cb5b",
+  "project_id": "49fa43731933450bac019850c6cb942e",
   "checks": [
     {
       "name": "project created and selectable",
       "pass": true,
       "detail": {
-        "projectId": "e54630f4ca684436b6674d54f788cb5b"
+        "projectId": "49fa43731933450bac019850c6cb942e"
       }
     },
     {
@@ -97,7 +97,7 @@
       "pass": true,
       "detail": {
         "lineageCount": 2,
-        "lineageText": "版本链（1）\n当前 版本 1\n版本 1 · 秋季品牌视觉\n现代 / 温暖 / 克制 · 不改变 logo 拓扑 · 参考 0 · 2026-09-28T18:04:01.347379+00:00\n当前"
+        "lineageText": "版本链（1）\n当前 版本 1\n版本 1 · 秋季品牌视觉\n现代 / 温暖 / 克制 · 不改变 logo 拓扑 · 参考 0 · 2026-09-28T18:32:50.714205+00:00\n当前"
       }
     },
     {
@@ -120,7 +120,7 @@
           "（无活动绑定）",
           "4",
           "当前",
-          "已取代 → 版本 2（3c835314）",
+          "已取代 → 版本 2（945265b4）",
           "Ready",
           "Enabled",
           "Ctrl/Cmd + K"
@@ -152,7 +152,7 @@
       "name": "reload keeps the project route (context preserved)",
       "pass": true,
       "detail": {
-        "hashAfter": "#/projects/e54630f4ca684436b6674d54f788cb5b"
+        "hashAfter": "#/projects/49fa43731933450bac019850c6cb942e"
       }
     },
     {
@@ -190,5 +190,35 @@
     }
   ],
   "page_errors": [],
-  "measured_at": "2026-09-28T18:04:04.348Z"
+  "measured_at": "2026-09-28T18:32:53.742Z",
+  "vocab_cross_check": [
+    {
+      "name": "FAILED_STATES == TERMINAL - {RECEIPTED}",
+      "pass": true,
+      "detail": [
+        "CANCELLED",
+        "FAILED",
+        "TIMED_OUT"
+      ]
+    },
+    {
+      "name": "OUTCOME_UNKNOWN is 待审, NOT 失败",
+      "pass": true,
+      "detail": [
+        "CANCEL_REQUESTED",
+        "OUTCOME_UNKNOWN",
+        "RECONCILING"
+      ]
+    },
+    {
+      "name": "every ALLOWED attempt state is classified",
+      "pass": true,
+      "detail": []
+    },
+    {
+      "name": "no invented states beyond the service vocabulary",
+      "pass": true,
+      "detail": []
+    }
+  ]
 }

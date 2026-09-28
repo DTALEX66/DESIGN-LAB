@@ -79,13 +79,51 @@ def main() -> int:
     if proc.stderr.strip():
         print("--- stderr ---")
         print(proc.stderr)
-    if proc.returncode != 0:
-        print(f"W03_BRIEF=FAIL exit={proc.returncode}")
+
+    # VOCAB cross-check: the UI's triage sets must match the AUTHORITY (job_store.py).
+    # This is checked from Python rather than exercised with real FAILED tasks, because
+    # reaching FAILED/OUTCOME_UNKNOWN needs a dispatched host. The guard means the UI
+    # cannot silently drift from the state machine it claims to follow.
+    sys.path.insert(0, str(ROOT / "src"))
+    from design_lab.runtime.job_store import ALLOWED, TERMINAL
+    import re
+    shell = (ROOT / "apps" / "workbench" / "shell.ts").read_text(encoding="utf-8")
+
+    def ts_set(name: str) -> set[str]:
+        m = re.search(rf"const {name} = new Set\(\[([^\]]*)\]\)", shell)
+        return set(re.findall(r"'([A-Z_]+)'", m.group(1))) if m else set()
+
+    failed, human, in_flight = ts_set("FAILED_STATES"), ts_set("HUMAN_STATES"), ts_set("IN_FLIGHT_STATES")
+    expected_failed = set(TERMINAL) - {"RECEIPTED"}
+    all_attempt_states = set(ALLOWED)
+    covered = failed | human | in_flight | {"RECEIPTED"}
+    vocab_checks = [
+        ("FAILED_STATES == TERMINAL - {RECEIPTED}", failed == expected_failed, sorted(failed)),
+        ("OUTCOME_UNKNOWN is 待审, NOT 失败", "OUTCOME_UNKNOWN" in human and "OUTCOME_UNKNOWN" not in failed, sorted(human)),
+        ("every ALLOWED attempt state is classified",
+         all_attempt_states <= covered | {"CANCELING"}, sorted(all_attempt_states - covered)),
+        ("no invented states beyond the service vocabulary",
+         (failed | human | in_flight) <= all_attempt_states, sorted((failed | human | in_flight) - all_attempt_states)),
+    ]
+    for label, ok, detail in vocab_checks:
+        print(f"  {'PASS' if ok else '**FAIL**'}  VOCAB: {label} {detail}")
+    vocab_failed = [label for label, ok, _ in vocab_checks if not ok]
+    # Record the cross-check alongside the browser evidence when the driver is asked to.
+    if os.environ.get("W03_VOCAB_TO_STDOUT_ONLY") != "1" and OUT.is_file():
+        payload = json.loads(OUT.read_text(encoding="utf-8"))
+        payload["vocab_cross_check"] = [
+            {"name": label, "pass": ok, "detail": detail} for label, ok, detail in vocab_checks
+        ]
+        OUT.write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
+
+    if proc.returncode != 0 or vocab_failed:
+        print(f"W03_BRIEF=FAIL exit={proc.returncode} vocab_failed={vocab_failed}")
         return 1
     payload = json.loads(OUT.read_text(encoding="utf-8"))
-    failed = [c["name"] for c in payload["checks"] if not c["pass"]]
-    print(f"W03_BRIEF={'OK' if not failed else 'CHECKS_FAILED'} checks={len(payload['checks'])} failed={failed}")
-    return 0 if not failed else 1
+    failed_checks = [c["name"] for c in payload["checks"] if not c["pass"]]
+    print(f"W03_BRIEF={'OK' if not failed_checks else 'CHECKS_FAILED'} "
+          f"checks={len(payload['checks'])} failed={failed_checks} vocab={len(vocab_checks)}")
+    return 0 if not failed_checks else 1
 
 
 if __name__ == "__main__":
