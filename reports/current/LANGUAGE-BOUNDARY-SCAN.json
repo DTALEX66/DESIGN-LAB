@@ -4,9 +4,9 @@
     "DL-TP-20260914-DEEPSEEK-AUTHORITY-R1::DLDS-C020",
     "DL-TP-20260914-DEEPSEEK-AUTHORITY-R1::DLDS-C050"
   ],
-  "generated_at": "2026-09-28T15:47:34+00:00",
+  "generated_at": "2026-09-28T18:05:43+00:00",
   "subject_sha": "",
-  "tracked_files_scanned": 2265,
+  "tracked_files_scanned": 2787,
   "language_boundary": {
     "forbidden_language_files": [],
     "fixture_scoped_language_files": [
@@ -26,10 +26,30 @@
     "second_python_architecture": [],
     "node_manifests": [
       "apps/workbench/package.json",
+      "docs/audits/DESIGN-LAB-UIKIT-CONFORMANCE-2026-09-28/session/b10-1to1-handoff/ui-suite-extract/B08/app/package.json",
+      "docs/audits/DESIGN-LAB-UIKIT-CONFORMANCE-2026-09-28/session/b10-1to1-handoff/ui-suite-extract/B08/packages/ui-core/package.json",
+      "docs/audits/DESIGN-LAB-UIKIT-CONFORMANCE-2026-09-28/ui-kit/B08/app/package.json",
+      "docs/audits/DESIGN-LAB-UIKIT-CONFORMANCE-2026-09-28/ui-kit/B08/packages/ui-core/package.json",
       "fixtures/domains/game-visual/package.json",
       "package.json"
     ],
     "node_server_manifests": [
+      {
+        "path": "docs/audits/DESIGN-LAB-UIKIT-CONFORMANCE-2026-09-28/session/b10-1to1-handoff/ui-suite-extract/B08/app/package.json",
+        "scripts": [
+          "build",
+          "dev",
+          "preview"
+        ]
+      },
+      {
+        "path": "docs/audits/DESIGN-LAB-UIKIT-CONFORMANCE-2026-09-28/ui-kit/B08/app/package.json",
+        "scripts": [
+          "build",
+          "dev",
+          "preview"
+        ]
+      },
       {
         "path": "fixtures/domains/game-visual/package.json",
         "scripts": [
@@ -50,6 +70,22 @@
       }
     ],
     "second_node_backend": [
+      {
+        "path": "docs/audits/DESIGN-LAB-UIKIT-CONFORMANCE-2026-09-28/session/b10-1to1-handoff/ui-suite-extract/B08/app/package.json",
+        "scripts": [
+          "build",
+          "dev",
+          "preview"
+        ]
+      },
+      {
+        "path": "docs/audits/DESIGN-LAB-UIKIT-CONFORMANCE-2026-09-28/ui-kit/B08/app/package.json",
+        "scripts": [
+          "build",
+          "dev",
+          "preview"
+        ]
+      },
       {
         "path": "fixtures/domains/game-visual/package.json",
         "scripts": [

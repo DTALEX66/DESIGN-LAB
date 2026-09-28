@@ -4,6 +4,9 @@
 // design state via named imports (no cross-module writes).
 
 import type {
+  BriefLineageResponse,
+  BriefRevisionResponse,
+  DesignBrief,
   DesignLayerResponse,
   DesignSystemListResponse,
   EnvironmentResponse,
@@ -15,6 +18,10 @@ import type {
 } from './contracts.js';
 
 import { api, byId, connected, errMsg, projects, setStatus, token } from './workbench.js';
+// W03 reuses the SAME pure domain helpers the legacy single-page brief flow uses
+// (design.ts): one validation rule, one error vocabulary, one idempotency key
+// source. Sharing them is what "统一旧单页与新路由的用户流程" means here.
+import { revisionHint, splitList, uuid, versionState } from './design.js';
 
 // Shared dev-mode marker (single source of truth, mirroring main.ts): true when
 // served by a Vite dev server (@vite/client injected) or via ?dev=1. Used to
@@ -704,6 +711,207 @@ export async function renderEvidence(target: HTMLElement): Promise<void> {
 
 // 项目详情 — B07 routes.json 的 `/projects/:id`（project-detail）。W03「项目中心」
 // 的核心动作：从项目列表进入单个项目的上下文。只读回读，不写。
+// ---------------------------------------------------------------------------
+// W03 — real Brief flow inside the route shell.
+//
+// W03 acceptance: "从项目卡进入真实Brief并保存读回；刷新保留项目上下文；失败不弹
+// 「保存成功」；旧工作入口在迁移完成前可用；无假KPI".
+//
+// This panel is reached ONLY from `/projects/:id` (never a nav item — the 12-item
+// `.app-nav-item` invariant is asserted by the browser E2E and the B10 sidebar must
+// stay at 11).
+//
+// It calls the SAME endpoints and the SAME pure helpers as the legacy single-page
+// form (`design.ts`): create POST /projects/{id}/briefs, revise
+// POST /projects/{id}/briefs/{brief_id}/revisions, lineage GET .../lineage.
+// The legacy entry point therefore keeps working unchanged.
+//
+// Failure honesty is structural, not a convention: the success text is written ONLY
+// after the service call resolves, so a rejected write cannot display success. A
+// failure always renders `revisionHint(error)` (STALE_REVISION / BRIEF_NOT_FOUND /
+// UNAUTHORIZED get their real meaning) into the same slot.
+//
+// Markup follows B10 exactly rather than the legacy form: B10 styles fields with
+// `.input` + `placeholder` and uses NO `<label>` element. Using a bare `<label>`
+// here would re-introduce the pre-B10 element-rule coupling this work already
+// removed from `.app` (see findings/W02-LEGACY-COUPLING.md).
+function briefFieldRow(prefix: string): {
+  row: HTMLDivElement; title: HTMLInputElement; goals: HTMLInputElement; constraints: HTMLInputElement;
+} {
+  const title = el('input', { id: `${prefix}-title`, class: 'input', maxlength: '160', placeholder: '简报标题（必填）' });
+  const goals = el('input', { id: `${prefix}-goals`, class: 'input', maxlength: '400', placeholder: '目标，逗号分隔：现代, 温暖, 克制' });
+  const constraints = el('input', { id: `${prefix}-constraints`, class: 'input', maxlength: '400', placeholder: '约束（可选）' });
+  const row = el('div', { class: 'list-item', style: 'display:grid;gap:8px' }, title, goals, constraints);
+  return { row, title, goals, constraints };
+}
+
+function renderBriefEditor(id: string, layer: DesignLayerResponse['design_layer'], target: HTMLElement): HTMLElement {
+  const status = el('p', { class: 'view-hint', id: 'pd-brief-status', role: 'status' }, '本页可真实创建并保存简报；保存成功后从服务端重新读回。');
+  // Refresh the LIVE route host, not the node we were handed.
+  //
+  // When this view is reached through the router, `show()` renders into an OFF-DOM
+  // staging div and then moves its children into `#route-view`; the `target` captured
+  // here is therefore empty and detached by the time a write completes. Re-rendering
+  // into it updated nothing on screen (the status text still appeared, because that
+  // element had been moved into the live tree) -- so a successful save looked saved
+  // while the brief list stayed stale. Resolve the live host by id instead.
+  const refresh = async (): Promise<void> => {
+    const live = document.getElementById('route-view') as HTMLElement | null;
+    await renderProjectDetail(id, live || target);
+  };
+  // Same reason for the status slot: after a refresh the old element is gone, so the
+  // message must be written to whichever node currently carries the id.
+  const liveStatus = (): HTMLElement => (document.getElementById('pd-brief-status') as HTMLElement | null) || status;
+  // W03 asks for "保存状态、焦点和错误定位": a rejected field must be where the eye
+  // already is, and marked for assistive tech, rather than leaving the user to hunt.
+  const clearInvalid = (...fields: HTMLInputElement[]): void => {
+    for (const f of fields) f.removeAttribute('aria-invalid');
+  };
+  const fail = (error: unknown, focus?: HTMLInputElement): void => {
+    const node = liveStatus();
+    node.className = 'error';
+    node.textContent = revisionHint(error);
+    if (focus) {
+      focus.setAttribute('aria-invalid', 'true');
+      focus.focus();
+    }
+  };
+  const ok = (message: string): void => {
+    const node = liveStatus();
+    node.className = 'view-hint';
+    node.textContent = message;
+  };
+
+  const versions = new Map<string, number>();
+  for (const row of layer.briefs) versions.set(row.brief_id, row.version);
+
+  // --- create -----------------------------------------------------------------
+  const create = briefFieldRow('pd-brief');
+  const createBtn = el('button', { type: 'button', class: 'primary-btn', id: 'pd-brief-create' }, '新建简报');
+  let submittedCreate = { identity: '', key: '' };
+  createBtn.addEventListener('click', () => {
+    void (async () => {
+      status.className = 'view-hint';
+      status.textContent = '正在提交…';
+      const title = create.title.value.trim();
+      let goals: string[];
+      try { goals = splitList(create.goals.value, 300, '目标'); } catch (error) { fail(error, create.goals); return; }
+      clearInvalid(create.title, create.goals);
+      if (!title) { fail(new Error('简报需要标题与至少一条目标'), create.title); return; }
+      if (!goals.length) { fail(new Error('简报需要标题与至少一条目标'), create.goals); return; }
+      const constraints = create.constraints.value.trim() || null;
+      // Same idempotency discipline as design.ts: a retry of the SAME content reuses
+      // the key (so a double submit cannot create two versions), different content
+      // gets a new one.
+      const identity = JSON.stringify({ id, title, goals, constraints });
+      if (submittedCreate.identity !== identity) submittedCreate = { identity, key: uuid() };
+      createBtn.disabled = true;
+      try {
+        await api(`/projects/${id}/briefs`, {
+          title, goals, constraints, reference_asset_ids: [], idempotency_key: submittedCreate.key,
+        });
+        await refresh();          // real read-back from the service, not a local echo
+        ok(`简报已保存并读回：「${title}」。`);
+      } catch (error) {
+        fail(error);
+      } finally {
+        createBtn.disabled = false;
+      }
+    })();
+  });
+
+  // --- revise (open a version, edit, save as a NEW version) --------------------
+  const rev = briefFieldRow('pd-rev');
+  const revHint = el('p', { class: 'view-hint', id: 'pd-rev-target' },
+    '在某一简报行点「新版本」以载入该版本内容；保存会新增版本，旧版本只保留为历史。');
+  const revBtn = el('button', { type: 'button', class: 'primary-btn', id: 'pd-brief-revise' }, '保存新版本');
+  let revTarget: DesignBrief | null = null;
+  const lineageBox = el('div', { class: 'list', id: 'pd-brief-lineage' });
+
+  const loadLineage = async (briefId: string): Promise<void> => {
+    const data = await apiOrEmpty<BriefLineageResponse>(`/projects/${id}/briefs/${briefId}/lineage`, {
+      lineage: { brief_id: briefId, root_id: briefId, requested_id: briefId, live_id: null, versions: [] },
+    });
+    const rows = data.lineage.versions;
+    const liveId = data.lineage.live_id;
+    lineageBox.replaceChildren(
+      el('div', { class: 'list-item' },
+        el('div', {}, el('strong', {}, `版本链（${rows.length}）`),
+          el('small', {}, `当前 ${liveId ? `版本 ${versions.get(liveId) ?? '?'}` : '—'}`))),
+      ...rows.map((row) => el('div', { class: 'list-item' },
+        el('div', {},
+          el('strong', {}, `版本 ${row.version} · ${row.title}`),
+          el('small', {}, `${row.goals.join(' / ')}${row.constraints ? ` · ${row.constraints}` : ''} · 参考 ${row.reference_asset_ids.length} · ${row.created_at}`)),
+        el('span', { class: row.brief_id === liveId ? 'tag ok' : 'tag warn' }, versionState(row.superseded_by, versions)))));
+  };
+
+  const startRevision = (brief: DesignBrief): void => {
+    void (async () => {
+      revTarget = brief;
+      rev.title.value = brief.title;
+      rev.goals.value = brief.goals.join(', ');
+      rev.constraints.value = brief.constraints ?? '';
+      revHint.textContent = `正在修订「${brief.title}」版本 ${brief.version}；保存会新增一个版本，版本 ${brief.version} 只保留为历史。`
+        + (brief.superseded_by === null ? '' : ' 注意：该版本已被取代，服务端会以 STALE_REVISION 拒绝这次修订。');
+      rev.title.focus();          // W03: focus lands on the field being revised
+      await loadLineage(brief.brief_id);
+    })();
+  };
+
+  revBtn.addEventListener('click', () => {
+    void (async () => {
+      const source = revTarget;
+      if (!source) { fail(new Error('请先在某一简报行点击「新版本」以载入要修订的内容')); return; }
+      status.className = 'view-hint';
+      status.textContent = '正在提交修订…';
+      const title = rev.title.value.trim();
+      let goals: string[];
+      try { goals = splitList(rev.goals.value, 300, '目标'); } catch (error) { fail(error, rev.goals); return; }
+      clearInvalid(rev.title, rev.goals);
+      if (!title) { fail(new Error('修订需要标题与至少一条目标'), rev.title); return; }
+      if (!goals.length) { fail(new Error('修订需要标题与至少一条目标'), rev.goals); return; }
+      const constraints = rev.constraints.value.trim() || null;
+      revBtn.disabled = true;
+      try {
+        const data = await api<BriefRevisionResponse>(`/projects/${id}/briefs/${source.brief_id}/revisions`, {
+          title, goals, constraints,
+          // carry the source version's references: the route shell has no reference
+          // picker yet (that is W04), and silently dropping them would lose data.
+          reference_asset_ids: source.reference_asset_ids,
+          idempotency_key: uuid(),
+        });
+        await refresh();
+        ok(`简报已保存为版本 ${data.brief.version}；版本 ${source.version} 只保留为历史，旧内容未被改写。`);
+      } catch (error) {
+        fail(error);
+      } finally {
+        revBtn.disabled = false;
+      }
+    })();
+  });
+
+  const briefRows = layer.briefs.length
+    ? layer.briefs.map((brief) => el('div', { class: 'list-item' },
+        el('div', {},
+          el('strong', {}, `${brief.title} · v${brief.version}`),
+          el('small', {}, `${brief.goals.join(' / ')}${brief.constraints ? ` · ${brief.constraints}` : ''} · 参考 ${brief.reference_asset_ids.length} · ${brief.created_at}`)),
+        el('div', { class: 'actions' },
+          el('span', { class: brief.superseded_by === null ? 'tag ok' : 'tag warn' }, versionState(brief.superseded_by, versions)),
+          el('button', { type: 'button', class: 'ghost-btn', onclick: () => startRevision(brief) }, '新版本'))))
+    : [el('div', { class: 'list-item' },
+        el('div', {}, el('strong', {}, '尚无简报'), el('small', {}, '用下方表单创建该项目的第一份简报（真实写入，保存后读回）')))];
+
+  return el('div', { class: 'panel' },
+    el('h3', {}, `简报（Brief）· ${layer.briefs.length} 个版本`),
+    el('div', { class: 'list' }, ...briefRows),
+    el('div', { class: 'list-item', style: 'display:grid;gap:10px' },
+      el('strong', {}, '新建简报'), create.row, el('div', { class: 'actions' }, createBtn)),
+    el('div', { class: 'list-item', style: 'display:grid;gap:10px' },
+      el('strong', {}, '修订 / 新增版本'), revHint, rev.row, el('div', { class: 'actions' }, revBtn)),
+    lineageBox,
+    status);
+}
+
 export async function renderProjectDetail(id: string, target: HTMLElement): Promise<void> {
   target.replaceChildren(el('p', { class: 'view-loading' }, '正在读回该项目…'));
   const listing = await apiOrEmpty<ProjectListResponse>('/projects', OFFLINE.projects);
@@ -721,7 +929,7 @@ export async function renderProjectDetail(id: string, target: HTMLElement): Prom
   const pageHead = el('div', { class: 'page-head' },
     el('div', {},
       el('h2', {}, named ? named.name : id),
-      el('p', {}, `项目详情 · ${id}。只读回读该项目的 tasks 与 design-layer 台账；本页不修改任何状态。`)),
+      el('p', {}, `项目详情 · ${id}。tasks 与 design-layer 为只读回读；下方简报区是真实写入，保存后从服务端读回。`)),
     el('div', { class: 'page-actions' },
       el('button', {
         type: 'button', class: 'ghost-btn',
@@ -755,7 +963,8 @@ export async function renderProjectDetail(id: string, target: HTMLElement): Prom
     pageHead,
     kpis,
     el('div', { class: 'two-col', style: 'margin-top:16px' }, taskPanel, layerPanel),
-    el('p', { class: 'view-hint' }, '本页为只读项目上下文；提交 / 运行 / 取消 / 导出由工作台执行。'));
+    el('div', { style: 'margin-top:16px' }, renderBriefEditor(id, layer, target)),
+    el('p', { class: 'view-hint' }, 'tasks 与 design-layer 台账为只读；简报区可真实创建与修订并读回。提交任务 / 运行 / 取消 / 导出仍由工作台高级区执行。'));
 }
 
 export async function renderRoute(view: AppView, target: HTMLElement): Promise<void> {
