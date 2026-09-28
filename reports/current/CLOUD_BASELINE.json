@@ -9,33 +9,28 @@
   },
   "fresh": false,
   "freshnessMeaning": "at generation only; check verifies bound-input integrity, not current Git or cloud state",
-  "generatedAt": "2026-09-27T16:41:38+00:00",
+  "generatedAt": "2026-09-28T14:26:43+00:00",
   "gitStateMeaning": "generation-time observation, not current HEAD",
   "local": {
     "branch": "main",
-    "origin_main": "cae840d2a45d47cc31797ea4b4cecc98f1918a26",
-    "sha": "cae840d2a45d47cc31797ea4b4cecc98f1918a26",
+    "origin_main": "4c9f18493e909283a5448763f704b3f838531d0a",
+    "sha": "4c9f18493e909283a5448763f704b3f838531d0a",
     "source_worktree_clean": false,
-    "tracked_files": 2028,
+    "tracked_files": 2029,
     "worktree_changes": [
       {
-        "content": "sha256:b39cf363276fed827d41fa229ba2396680bc2a1a57ed7a365e38f51e63a9995d",
+        "content": "sha256:c94654b8723acfd1af1f112773ad9af7847364a84bcce23f35fa2d2e574bcb65",
         "kind": "M",
         "path": "design-lab/config/task-ledger-r3.json"
-      },
-      {
-        "content": "sha256:e4815e58bdb4b5df4298a58c1b412153cfff6f270b9d22c01038474c09e46471",
-        "kind": "M",
-        "path": "src/design_lab/governance/reporting.py"
       }
     ],
-    "worktree_digest": "sha256:6d338c728c7a8a91965293a1a5e2c1d8148f68ca108993c8ebfafc51d7effad8"
+    "worktree_digest": "sha256:473f2f57291486120255119d65709dbc333afa9db0973e3700f8c3e8f08ed495"
   },
   "note": "No GitHub API query was run by this generator; tool installation is not inferred.",
   "remoteRef": "origin/main (local tracking ref)",
   "schemaVersion": "design-lab/cloud-baseline/v2",
   "subjectMeaning": "subjectType=WORKTREE means the tree was dirty at generation; worktreeDigest covers HEAD plus the non-generated changes",
-  "subjectSha": "cae840d2a45d47cc31797ea4b4cecc98f1918a26",
+  "subjectSha": "4c9f18493e909283a5448763f704b3f838531d0a",
   "subjectType": "WORKTREE",
   "taskpackHash": "31dde89eb4ede81fe88c0a5c5144adfb86af8db4c4d8c263bde2199180369b69",
   "taskpackId": "DL-TP-20260908-R5",
@@ -50,5 +45,5 @@
     "branchProtection"
   ],
   "worktreeClean": false,
-  "worktreeDigest": "sha256:6d338c728c7a8a91965293a1a5e2c1d8148f68ca108993c8ebfafc51d7effad8"
+  "worktreeDigest": "sha256:473f2f57291486120255119d65709dbc333afa9db0973e3700f8c3e8f08ed495"
 }
