@@ -37,8 +37,10 @@ the pack and is confirmed correct.
 | `pack/` | The owner-supplied pack documents, verbatim (`00_README` … `04_SOURCES`, `ALIGNMENT-ANALYSIS`, `EXTRACTION-MANIFEST`) |
 | `findings/` | Work-package deliverables — `W00` crosswalk / diff-mapping / evidence-scan, `W01` typography matrix, `W02` component coverage + decision + **`W02-LEGACY-COUPLING`**, `W03` project-detail route, `W14` viewport/keyboard |
 | `evidence/` | Raw, unedited harness outputs (`W02-LEAK-SWEEP.txt`, `*-VERIFY.json`, `*-PROBE.json`) |
+| `evidence/local-gates/` | Gate results: fresh runs for this round (`license-coverage`, `identity-gate`, `top-level-authority`, `context-integrity`, each `exit=0`) plus the session's earlier gate JSON (`authority-gates-latest`, `top-authority-gates-latest`, `control-spike-bad-matrix`, `browser-e2e-summary`, `test-run`) |
 | `harness/` | The audit tooling that produced `evidence/` — runnable, SPDX-tagged |
 | `session/` | Session lineage: commit/PR message drafts, superseded revisions, intermediate probes. **Superseded, kept only for traceability** |
+| `session/project-survey-2026-09-27/` | The preceding round's project-survey documents, carried over for completeness (their own tracked handover is `docs/handoffs/DESIGN-LAB-PROJECT-SURVEY-TRUTH-RESYNC-2026-09-27.md`) |
 | `ui-originals/` | Extracted reference originals (`B04/`, `B07/`, `B10/`) + `EXTRACTION-MANIFEST.json`. The 17 B04 design sheets carry `.license` sidecars |
 
 ## 4. The headline result
@@ -83,11 +85,25 @@ when read in the same task as a CSSOM mutation. All three are documented in
 
 ## 6. Deliberate exclusions
 
-- **9 transient Chromium profile directories** (~142 MB) used by the harnesses are
-  *not* archived — they are browser cache state, not work product. They remain under
+Every remaining `.project-local/task-artifacts/` tree was reviewed before archiving; the
+two that are **not** here, and why:
+
+- **9 transient Chromium profile directories** (~142 MB) used by the harnesses — browser
+  cache state, not work product. They remain under
   `.project-local/task-artifacts/designlab-followup-taskpack-20260928/chrome-profile-*/`.
-- No capability-axis promotion is claimed. `host_live` and `delivery` remain at
-  **1/28** and **0/28**: they require real host hardware and are untouched by this round.
+- **`external-recovery-2026-09-25/`** — contains a bare **git pack** (`*.pack`, `*.idx`,
+  `*.rev`) plus recovered HTML/txt. The pack files are binary git internals, are not valid
+  UTF-8, and would make the identity gate fail closed on unreadable tracked text; they are
+  also not text evidence. Left in `.project-local` deliberately.
+
+Also not re-archived here: prior rounds' artifacts that already have tracked handovers
+under `docs/handoffs/` (`external-recovery-2026-09-25`, `browser-e2e` from 09-26, etc. are
+represented by their gate JSON in `evidence/local-gates/`).
+
+## 7. Capability claims
+
+No capability-axis promotion is claimed. `host_live` and `delivery` remain at **1/28** and
+**0/28**: they require real host hardware and are untouched by this round.
 
 ## 7. Compliance notes
 
