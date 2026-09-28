@@ -853,6 +853,42 @@ function briefFieldRow(prefix: string): {
 
 function renderBriefEditor(id: string, layer: DesignLayerResponse['design_layer'], target: HTMLElement): HTMLElement {
   const status = el('p', { class: 'view-hint', id: 'pd-brief-status', role: 'status' }, '本页可真实创建并保存简报；保存成功后从服务端重新读回。');
+  // Pack 01_RESEARCH_AND_PRODUCT: "表单保存有 dirty、saving、saved、conflict 状态，
+  // 离开未保存页有恢复策略". Those four words ARE the state vocabulary, so they are the
+  // labels. A generic "错误" would lose the one distinction that matters: a CONFLICT is
+  // recoverable (continue from the newest version); a validation failure is not the same
+  // thing at all.
+  const stateChip = el('span', { class: 'tag info', id: 'pd-brief-state' }, '未修改');
+  const setState = (kind: 'idle' | 'dirty' | 'saving' | 'saved' | 'conflict' | 'failed'): void => {
+    const chip = (document.getElementById('pd-brief-state') as HTMLElement | null) || stateChip;
+    const label: Record<typeof kind, string> = {
+      idle: '未修改', dirty: '未保存（dirty）', saving: '保存中（saving）',
+      saved: '已保存（saved）', conflict: '冲突（conflict·可恢复）', failed: '失败',
+    };
+    chip.className = kind === 'saved' ? 'tag ok'
+      : kind === 'conflict' ? 'tag warn'
+        : (kind === 'failed' ? 'tag bad' : 'tag info');
+    chip.textContent = label[kind];
+  };
+  // 离开未保存页的恢复策略: the draft is kept locally (per project + form) and offered back
+  // on return; it is discarded the moment a save succeeds. Nothing is transmitted -- this is
+  // a recovery aid, not a second source of truth.
+  const draftKey = (form: string): string => `design-lab.brief-draft:${id}:${form}`;
+  const readDraft = (form: string): { title: string; goals: string; constraints: string } | null => {
+    try {
+      const raw = globalThis.localStorage?.getItem(draftKey(form));
+      if (!raw) return null;
+      const o = JSON.parse(raw) as { title?: unknown; goals?: unknown; constraints?: unknown };
+      if (typeof o?.title !== 'string' && typeof o?.goals !== 'string') return null;
+      return { title: String(o.title ?? ''), goals: String(o.goals ?? ''), constraints: String(o.constraints ?? '') };
+    } catch { return null; }
+  };
+  const writeDraft = (form: string, v: { title: string; goals: string; constraints: string }): void => {
+    try { globalThis.localStorage?.setItem(draftKey(form), JSON.stringify(v)); } catch { /* private mode */ }
+  };
+  const clearDraft = (form: string): void => {
+    try { globalThis.localStorage?.removeItem(draftKey(form)); } catch { /* ignore */ }
+  };
   // Refresh the LIVE route host, not the node we were handed.
   //
   // When this view is reached through the router, `show()` renders into an OFF-DOM
@@ -877,6 +913,9 @@ function renderBriefEditor(id: string, layer: DesignLayerResponse['design_layer'
     const node = liveStatus();
     node.className = 'error';
     node.textContent = revisionHint(error);
+    // A conflict is recoverable (continue from the newest version); a validation or
+    // transport failure is not the same thing, so they get different states.
+    setState(errMsg(error) === 'STALE_REVISION' ? 'conflict' : 'failed');
     if (focus) {
       focus.setAttribute('aria-invalid', 'true');
       focus.focus();
@@ -895,8 +934,13 @@ function renderBriefEditor(id: string, layer: DesignLayerResponse['design_layer'
   const create = briefFieldRow('pd-brief');
   const createBtn = el('button', { type: 'button', class: 'primary-btn', id: 'pd-brief-create' }, '新建简报');
   let submittedCreate = { identity: '', key: '' };
+  const createValues = () => ({ title: create.title.value, goals: create.goals.value, constraints: create.constraints.value });
+  for (const f of [create.title, create.goals, create.constraints]) {
+    f.addEventListener('input', () => { setState('dirty'); writeDraft('create', createValues()); });
+  }
   createBtn.addEventListener('click', () => {
     void (async () => {
+      setState('saving');
       status.className = 'view-hint';
       status.textContent = '正在提交…';
       const title = create.title.value.trim();
@@ -916,8 +960,14 @@ function renderBriefEditor(id: string, layer: DesignLayerResponse['design_layer'
         await api(`/projects/${id}/briefs`, {
           title, goals, constraints, reference_asset_ids: [], idempotency_key: submittedCreate.key,
         });
+        // Clear the draft BEFORE refreshing: refresh() re-reads localStorage, so clearing
+        // afterwards re-rendered the panel with the draft still present and showed
+        // "已恢复上次未保存的草稿" immediately after a SUCCESSFUL save (caught by the
+        // save-state harness). The draft's reason to exist ends at the write, not after.
+        clearDraft('create');
         await refresh();          // real read-back from the service, not a local echo
         ok(`简报已保存并读回：「${title}」。`);
+        setState('saved');
       } catch (error) {
         fail(error);
       } finally {
@@ -964,10 +1014,15 @@ function renderBriefEditor(id: string, layer: DesignLayerResponse['design_layer'
     })();
   };
 
+  const revValues = () => ({ title: rev.title.value, goals: rev.goals.value, constraints: rev.constraints.value });
+  for (const f of [rev.title, rev.goals, rev.constraints]) {
+    f.addEventListener('input', () => { setState('dirty'); writeDraft('rev', revValues()); });
+  }
   revBtn.addEventListener('click', () => {
     void (async () => {
       const source = revTarget;
       if (!source) { fail(new Error('请先在某一简报行点击「新版本」以载入要修订的内容')); return; }
+      setState('saving');
       status.className = 'view-hint';
       status.textContent = '正在提交修订…';
       const title = rev.title.value.trim();
@@ -986,8 +1041,10 @@ function renderBriefEditor(id: string, layer: DesignLayerResponse['design_layer'
           reference_asset_ids: source.reference_asset_ids,
           idempotency_key: uuid(),
         });
+        clearDraft('rev');        // before refresh(), for the same reason as the create path
         await refresh();
         ok(`简报已保存为版本 ${data.brief.version}；版本 ${source.version} 只保留为历史，旧内容未被改写。`);
+        setState('saved');
       } catch (error) {
         fail(error);
       } finally {
@@ -1007,6 +1064,37 @@ function renderBriefEditor(id: string, layer: DesignLayerResponse['design_layer'
     : [el('div', { class: 'list-item' },
         el('div', {}, el('strong', {}, '尚无简报'), el('small', {}, '用下方表单创建该项目的第一份简报（真实写入，保存后读回）')))];
 
+  // 离开未保存页的恢复策略: restore any draft found for this project + form, disclose it,
+  // and offer a one-click discard. The restored values are NOT silently presented as the
+  // saved version -- the chip says 未保存（dirty） and the note names what was restored.
+  const restored: string[] = [];
+  const createDraft = readDraft('create');
+  if (createDraft) {
+    create.title.value = createDraft.title;
+    create.goals.value = createDraft.goals;
+    create.constraints.value = createDraft.constraints;
+    restored.push('新建简报');
+  }
+  const revDraft = readDraft('rev');
+  if (revDraft) {
+    rev.title.value = revDraft.title;
+    rev.goals.value = revDraft.goals;
+    rev.constraints.value = revDraft.constraints;
+    restored.push('修订');
+  }
+  if (restored.length) setState('dirty');
+  const draftNote = el('p', { class: 'view-hint', id: 'pd-brief-draft' }, restored.length
+    ? `已恢复上次未保存的草稿：${restored.join('、')}。草稿仅保存在本机；保存成功或丢弃后即清除。`
+    : '');
+  const discardBtn = el('button', {
+    type: 'button', class: 'ghost-btn', id: 'pd-brief-discard',
+    onclick: () => {
+      clearDraft('create'); clearDraft('rev');
+      setState('idle');
+      draftNote.textContent = '草稿已丢弃；表单内容未改动服务端任何状态。';
+    },
+  }, '丢弃草稿');
+
   return el('div', { class: 'panel' },
     el('h3', {}, `简报（Brief）· ${layer.briefs.length} 个版本`),
     el('div', { class: 'list' }, ...briefRows),
@@ -1015,6 +1103,8 @@ function renderBriefEditor(id: string, layer: DesignLayerResponse['design_layer'
     el('div', { class: 'list-item', style: 'display:grid;gap:10px' },
       el('strong', {}, '修订 / 新增版本'), revHint, rev.row, el('div', { class: 'actions' }, revBtn)),
     lineageBox,
+    el('div', { class: 'actions', id: 'pd-brief-statebar' }, stateChip, discardBtn),
+    draftNote,
     status);
 }
 
