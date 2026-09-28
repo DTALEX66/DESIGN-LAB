@@ -2422,14 +2422,112 @@ function renderDirectionPanel(id, layer, target) {
     status
   );
 }
+function renderDesignSystemPanel(id, layer, systems, target) {
+  const status = el("p", { class: "view-hint", id: "pd-ds-status", role: "status" }, "");
+  const showError = (m) => {
+    status.className = "error";
+    status.textContent = m;
+  };
+  const showHint = (m) => {
+    status.className = "view-hint";
+    status.textContent = m;
+  };
+  const refresh2 = async () => {
+    const live = document.getElementById("route-view");
+    await renderProjectDetail(id, live || target);
+  };
+  const chosen = layer.chosen_direction;
+  const active = layer.active_binding;
+  const select = el(
+    "select",
+    { id: "pd-ds-name", class: "input" },
+    ...systems.design_systems.length ? systems.design_systems.map((s) => el("option", { value: s.name }, `${s.title} · v${s.version} · 证据 ${s.evidence_level}`)) : [el("option", { value: "" }, "（目录为空或未读回）")]
+  );
+  const bindBtn = el("button", { type: "button", class: "primary-btn", id: "pd-ds-bind" }, "绑定到已选定方向");
+  bindBtn.disabled = !chosen || !systems.design_systems.length;
+  const gate = el("p", { class: "view-hint", id: "pd-ds-gate" }, !chosen ? "绑定不可用：尚无人选定方向。请先在「方向」面板人工选定一个候选（AI 候选不会自动成为选定方向）。" : !systems.design_systems.length ? "绑定不可用：设计系统目录为空或未读回。" : `将绑定到已选定方向「${chosen.title}」（v${chosen.version}）。`);
+  bindBtn.addEventListener("click", () => {
+    void (async () => {
+      const name = select.value;
+      if (!chosen) {
+        showError("请先人工选定一个方向，再绑定设计系统。");
+        return;
+      }
+      if (!name) {
+        showError("请选择要绑定的设计系统。");
+        return;
+      }
+      bindBtn.disabled = true;
+      showHint(`正在绑定 ${name} …`);
+      try {
+        await api(`/projects/${id}/directions/${chosen.direction_id}/bind`, {
+          design_system_name: name,
+          idempotency_key: uuid()
+        });
+        await refresh2();
+        const node = document.getElementById("pd-ds-status");
+        if (node) {
+          node.className = "view-hint";
+          node.textContent = `设计系统已绑定：${name}。设计契约已固定；制作与质量验收仍未执行。`;
+        }
+      } catch (error) {
+        showError(`绑定未确认：${errMsg(error)}`);
+        bindBtn.disabled = false;
+      }
+    })();
+  });
+  const consistent = !!(active && chosen && active.direction_id === chosen.direction_id);
+  return el(
+    "div",
+    { class: "panel" },
+    el("h3", {}, `设计系统（DesignSystem）· 目录 ${systems.design_systems.length} 项 · 绑定 ${layer.bindings.length} 次`),
+    el(
+      "div",
+      { class: "list" },
+      el(
+        "div",
+        { class: "list-item" },
+        el(
+          "div",
+          {},
+          el("strong", {}, "活动绑定"),
+          el("small", {}, active ? `${active.design_system_name} · 绑定于方向 ${active.direction_id} · v${active.version}` : "（无活动绑定）")
+        ),
+        el("span", { class: active ? "tag ok" : "tag info" }, active ? "已绑定" : "未绑定")
+      ),
+      ...active && chosen ? [el(
+        "div",
+        { class: "list-item" },
+        el(
+          "div",
+          {},
+          el("strong", {}, "绑定与选定方向的一致性"),
+          el("small", {}, consistent ? "一致：活动绑定所属方向就是人工选定的方向。" : `不一致：活动绑定属于 ${active.direction_id}，而人工选定的是 ${chosen.direction_id}。`)
+        ),
+        el("span", { class: consistent ? "tag ok" : "tag bad" }, consistent ? "一致" : "不一致")
+      )] : []
+    ),
+    el(
+      "div",
+      { class: "list-item", style: "display:grid;gap:8px" },
+      el("strong", {}, "绑定设计系统（需先有人选定方向）"),
+      gate,
+      select,
+      el("div", { class: "actions" }, bindBtn)
+    ),
+    el("p", { class: "view-hint" }, "Token 编辑/预览/版本 diff/发布/回滚在服务端尚不存在（W06 写 API 缺口，见 findings/W06-TOKEN-WRITE-GAP.md）；此处不做假编辑。"),
+    status
+  );
+}
 async function renderProjectDetail(id, target) {
   target.replaceChildren(el("p", { class: "view-loading" }, "正在读回该项目…"));
   rememberProject(id);
   const listing = await apiOrEmpty("/projects", OFFLINE.projects);
   const named = listing.projects.find((p) => p.id === id);
-  const [tasks2, layerResp] = await Promise.all([
+  const [tasks2, layerResp, systemsResp] = await Promise.all([
     apiOrEmpty(`/projects/${id}/tasks`, OFFLINE.tasks),
-    apiOrEmpty(`/projects/${id}/design-layer`, OFFLINE.designLayer)
+    apiOrEmpty(`/projects/${id}/design-layer`, OFFLINE.designLayer),
+    apiOrEmpty("/design-systems", OFFLINE.designSystems)
   ]);
   const layer = layerResp.design_layer;
   const chosen = layer.chosen_direction ? `${layer.chosen_direction.title} · v${layer.chosen_direction.version}` : "（尚未选定方向）";
@@ -2500,6 +2598,7 @@ async function renderProjectDetail(id, target) {
     el("div", { class: "two-col", style: "margin-top:16px" }, taskPanel, layerPanel),
     el("div", { style: "margin-top:16px" }, renderBriefEditor(id, layer, target)),
     el("div", { style: "margin-top:16px" }, renderDirectionPanel(id, layer, target)),
+    el("div", { style: "margin-top:16px" }, renderDesignSystemPanel(id, layer, systemsResp, target)),
     el("div", { style: "margin-top:16px" }, renderReferencePanel(id)),
     el("p", { class: "view-hint" }, "tasks 与 design-layer 台账为只读；简报区可真实创建与修订并读回；参考素材区读回资产清单并按需预览。提交任务 / 运行 / 取消 / 导出仍由工作台高级区执行。")
   );
