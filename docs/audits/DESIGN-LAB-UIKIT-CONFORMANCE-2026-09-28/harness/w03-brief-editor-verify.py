@@ -27,7 +27,12 @@ from unittest.mock import patch
 ROOT = Path(__file__).resolve().parents[3]
 HERE = Path(__file__).resolve().parent
 NODE_SCRIPT = Path(os.environ.get("W03_NODE_SCRIPT", HERE / "w03-brief-editor.mjs"))
-OUT = ROOT / ".project-local" / "task-artifacts" / "designlab-followup-taskpack-20260928" / "W03-BRIEF-EDITOR.json"
+# Honoured from the environment: this driver is shared by several W03 harnesses, and the
+# first version hard-coded OUT, so a caller's W03_OUT was silently ignored -- the triage
+# evidence was written over round 12's file and the path the caller expected ended up as a
+# ZERO-BYTE file, which then failed the repo's JSON scan with "invalid JSON: char 0".
+_DEFAULT_OUT = ROOT / ".project-local" / "task-artifacts" / "designlab-followup-taskpack-20260928" / "W03-BRIEF-EDITOR.json"
+OUT = Path(os.environ["W03_OUT"]) if os.environ.get("W03_OUT") else _DEFAULT_OUT
 BROWSER = Path("D:/All projects/OS External Configuration/toolchains/playwright/chromium-1228/chrome-win64/chrome.exe")
 
 
@@ -121,6 +126,10 @@ def main() -> int:
         return 1
     payload = json.loads(OUT.read_text(encoding="utf-8"))
     failed_checks = [c["name"] for c in payload["checks"] if not c["pass"]]
+    # Generic verdict: this runner is shared by several harnesses, so report the kind it
+    # actually ran rather than a hard-coded W03 label.
+    print(f"HARNESS={payload.get('kind')} checks={len(payload['checks'])} "
+          f"passed={len(payload['checks']) - len(failed_checks)}")
     print(f"W03_BRIEF={'OK' if not failed_checks else 'CHECKS_FAILED'} "
           f"checks={len(payload['checks'])} failed={failed_checks} vocab={len(vocab_checks)}")
     return 0 if not failed_checks else 1

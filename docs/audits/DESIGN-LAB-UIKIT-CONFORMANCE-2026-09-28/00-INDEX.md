@@ -80,6 +80,25 @@ horizontal overflow, 0 clipped content and 0 off-screen elements — backed by a
 control** proving the overflow detector actually fires. That section also lists four
 harness defects found on the way, each of which had produced a plausible but wrong number.
 
+### 4.2 W03 / W04 in the route shell (later rounds)
+
+`/projects/:id` grew from a read-only page into the project workspace:
+
+| Finding | What it delivered | Verification |
+|---|---|---|
+| `findings/W03-BRIEF-EDITOR.md` | Real **Brief create / open / edit / save / version** (create, revision, lineage read-back), focus + error locating, honest failure path | 21/21 |
+| `findings/W03-TRIAGE-RECENT.md` | **待审 / 失败** dashboard lists from a vocabulary cross-checked against `job_store.py`, plus real **最近项目** recency | 14/14 + vocab 4/4 |
+| `findings/W04-REFERENCES.md` | **参考素材** panel: authenticated on-demand preview, `object-fit:contain`, alpha checkerboard, rights surfacing, located missing-asset errors | 17/17 + vocab 4/4 |
+
+Two things in those findings are worth carrying forward beyond their own work packages:
+
+- **CSP `img-src data:` is a hard constraint**: any image UI here must fetch bytes through
+  `api()` and use a `data:` URL. A bare `<img src="/api/…">` is blocked by CSP — and that
+  block, not authentication, is what the browser enforces first (W04 §3.2).
+- **`contracts.ts` declares `kind`/`version_no` on `AssetRecord` that the live `/assets`
+  payload does not send**; rendering the declared fields printed `undefined` (W04 §3.1).
+  The UI now renders only present fields and a harness check forbids `undefined` in output.
+
 ## 5. Reproduction
 
 ```bash

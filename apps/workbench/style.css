@@ -1037,4 +1037,20 @@ html,body{margin:0}
    restored here explicitly. */
 .toolbar .seg button{transition:none}
 
+/* ==========================================================================
+   W04 参考素材预览（.ref-preview）
+   B10 套件**没有**资产/参考视图，所以这是一个新类（与上面的 `.seg` 同理：新增而不是改 B10）。
+   · `object-fit:contain` 是刻意的：包内 W04 验收要求「图片不被默认裁剪」，`cover` 会裁边。
+   · 棋盘底让 alpha 可见，而不是被当成黑底或白底的实心块。
+   · 必须写 `[hidden]` 覆盖：`display:block` 的优先级高于 UA 的 `[hidden]{display:none}`，
+     否则隐藏态（尚未点「预览」时）仍会占位显示一个空框。
+   ========================================================================== */
+.ref-preview{
+  display:block;max-width:100%;max-height:420px;object-fit:contain;
+  border-radius:12px;padding:6px;
+  background-image:repeating-conic-gradient(#1a2231 0% 25%, #222c3e 0% 50%);
+  background-size:16px 16px;
+}
+.ref-preview[hidden]{display:none}
+
 

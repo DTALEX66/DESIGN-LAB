@@ -4,6 +4,8 @@
 // design state via named imports (no cross-module writes).
 
 import type {
+  AssetContentResponse,
+  AssetListResponse,
   BriefLineageResponse,
   BriefRevisionResponse,
   DesignBrief,
@@ -1015,6 +1017,110 @@ function renderBriefEditor(id: string, layer: DesignLayerResponse['design_layer'
     status);
 }
 
+// ---------------------------------------------------------------------------
+// W04 — 参考与资产 (reference/assets) in the route shell.
+//
+// 鉴权图像路径: the service authenticates with an `Authorization: Bearer` header ONLY
+// (src/design_lab/http_service.py:107) — there is no query-parameter token and no cookie.
+// A bare `<img src="/api/projects/<id>/assets/<asset>/content">` therefore CANNOT load
+// asset bytes (401); the bytes must be fetched through `api()` and turned into a data:
+// URL. That is the same path the legacy `preview()` uses, reused rather than reinvented.
+//
+// 大图按需生成预览: the list renders NO image elements and fetches NO bytes. Content is
+// read only when a row's 「预览」 is clicked, so a project with many assets does not pull
+// every full-size image on page load.
+//
+// 图片不被默认裁剪 / alpha 可见: the preview uses `object-fit: contain` (a `cover` default
+// would crop) over a checkerboard ground so transparency is visible rather than reading as
+// a black or white box. See `.ref-preview` in style.css.
+//
+// 未知 rights: the service writes `NOT_REVIEWED` at import and enforces rights elsewhere;
+// this panel surfaces the value and says plainly that unreviewed rights block production
+// certification. It does NOT claim to enforce anything itself.
+function renderReferencePanel(id: string): HTMLElement {
+  const heading = el('h3', { id: 'pd-ref-heading' }, '参考素材');
+  const list = el('div', { class: 'list', id: 'pd-ref-list' },
+    el('div', { class: 'list-item' }, el('div', {}, el('strong', {}, '正在读回…'))));
+  const preview = el('img', { id: 'pd-ref-preview', class: 'ref-preview', alt: '参考素材预览' });
+  preview.hidden = true;
+  const info = el('p', { class: 'view-hint', id: 'pd-ref-info' },
+    '点某一行的「预览」按需读取该资产；清单本身不预加载整图。');
+  const status = el('p', { class: 'view-hint', id: 'pd-ref-status', role: 'status' }, '');
+  const showError = (message: string): void => { status.className = 'error'; status.textContent = message; };
+  const showHint = (message: string): void => { status.className = 'view-hint'; status.textContent = message; };
+
+  const previewAsset = async (assetId: string): Promise<void> => {
+    showHint(`正在读取 ${assetId} …`);
+    try {
+      const data = await api<AssetContentResponse>(`/projects/${id}/assets/${assetId}/content`);
+      const a = data.asset;
+      if (!['image/png', 'image/jpeg'].includes(a.media_type)) throw new Error(`UNSUPPORTED_PREVIEW:${a.media_type}`);
+      preview.src = `data:${a.media_type};base64,${data.content_base64}`;
+      preview.hidden = false;
+      info.textContent = `${a.width} × ${a.height} · ${a.media_type} · rights: ${a.rights} · sha256 ${a.sha256.slice(0, 16)}…`;
+      showHint(`已按需读回 ${assetId}。`);
+    } catch (error) {
+      // 缺失引用可定位: the failing asset id is named, and no stale image is left shown.
+      preview.hidden = true;
+      preview.removeAttribute('src');
+      info.textContent = '—';
+      showError(`资产 ${assetId} 读取失败：${errMsg(error)}`);
+    }
+  };
+
+  const assetRow = (a: AssetListResponse['assets'][number]): HTMLElement => {
+    const rights = a.rights === 'NOT_REVIEWED'
+      ? el('span', { class: 'tag warn' }, '权利未审查')
+      : el('span', { class: 'tag info' }, a.rights);
+    // NOTE (measured, not assumed): the live /assets payload carries
+    // id, version_id, sha256, byte_size, rights, width, height, media_type -- it does NOT
+    // carry `kind` or `version_no`, even though contracts.ts declares them on AssetRecord.
+    // Rendering the declared fields blindly printed "undefined · 版本 undefined" in the row.
+    // So: build the line from what is actually present, and prefer version_id (which does
+    // exist) over version_no. Nothing here may ever render the string "undefined".
+    const headline = [a.width !== undefined && a.height !== undefined ? `${a.width} × ${a.height}` : null,
+      a.media_type, a.kind].filter(Boolean).join(' · ');
+    const provenance = [a.id,
+      a.version_no !== undefined ? `版本 ${a.version_no}` : null,
+      a.version_id ? `version_id ${a.version_id.slice(0, 12)}…` : null,
+      a.sha256 ? `sha256 ${String(a.sha256).replace(/^sha256:/, '').slice(0, 16)}…` : null,
+    ].filter(Boolean).join(' · ');
+    return el('div', { class: 'list-item' },
+      el('div', {}, el('strong', {}, headline), el('small', {}, provenance)),
+      el('div', { class: 'actions' },
+        rights,
+        el('button', { type: 'button', class: 'ghost-btn', id: `pd-ref-preview-${a.id}`, onclick: () => { void previewAsset(a.id); } }, '预览')));
+  };
+
+  void (async () => {
+    try {
+      const data = await api<AssetListResponse>(`/projects/${id}/assets`);
+      const assets = data.assets;
+      heading.textContent = `参考素材（${assets.length}）`;
+      list.replaceChildren(
+        ...(assets.length ? assets.map(assetRow) : [el('div', { class: 'list-item' },
+          el('div', {}, el('strong', {}, '尚无参考素材'),
+            el('small', {}, '在旧工作台导入后读回此处；未知权利可研究，但会阻止生产认证。')))]));
+      showHint(assets.some((a) => a.rights === 'NOT_REVIEWED')
+        ? '清单已读回。存在「权利未审查」的素材：可继续研究，但在权利清除前不能作为生产认证依据（服务端 fail-closed）。'
+        : '清单已读回；图片内容按需读取。');
+    } catch (error) {
+      // Same honesty rule as the triage panels: an unreadable list is not an empty one.
+      heading.textContent = '参考素材';
+      list.replaceChildren(el('div', { class: 'list-item' },
+        el('div', {}, el('strong', {}, '未读回'),
+          el('small', {}, '资产清单读取失败；此处不显示 0，避免把「没读到」说成「没有」。'))));
+      showError(`资产清单读取失败：${errMsg(error)}`);
+    }
+  })();
+
+  return el('div', { class: 'panel' },
+    heading, list,
+    el('div', { class: 'list-item', style: 'display:grid;gap:8px' },
+      el('strong', {}, '预览（按需读取）'), preview, info),
+    status);
+}
+
 export async function renderProjectDetail(id: string, target: HTMLElement): Promise<void> {
   target.replaceChildren(el('p', { class: 'view-loading' }, '正在读回该项目…'));
   rememberProject(id);   // W03 "最近项目": record the project the user actually opened
@@ -1068,7 +1174,8 @@ export async function renderProjectDetail(id: string, target: HTMLElement): Prom
     kpis,
     el('div', { class: 'two-col', style: 'margin-top:16px' }, taskPanel, layerPanel),
     el('div', { style: 'margin-top:16px' }, renderBriefEditor(id, layer, target)),
-    el('p', { class: 'view-hint' }, 'tasks 与 design-layer 台账为只读；简报区可真实创建与修订并读回。提交任务 / 运行 / 取消 / 导出仍由工作台高级区执行。'));
+    el('div', { style: 'margin-top:16px' }, renderReferencePanel(id)),
+    el('p', { class: 'view-hint' }, 'tasks 与 design-layer 台账为只读；简报区可真实创建与修订并读回；参考素材区读回资产清单并按需预览。提交任务 / 运行 / 取消 / 导出仍由工作台高级区执行。'));
 }
 
 export async function renderRoute(view: AppView, target: HTMLElement): Promise<void> {
