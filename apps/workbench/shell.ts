@@ -98,6 +98,31 @@ export const ROUTE_VIEWS = [
 ] as const;
 export type RouteView = (typeof ROUTE_VIEWS)[number]['view'];
 
+// ---------------------------------------------------------------------------
+// B07 route #3 is `/projects/:id` (project-detail). It must NOT become a
+// ROUTE_VIEWS entry, for two independently verified reasons:
+//   1. the browser E2E asserts `.app-nav-item` length === 12
+//      (design-lab/tests/e2e/browser_design_layer_e2e.mjs:385). ROUTE_VIEWS
+//      already has exactly 12 entries; a 13th would fail that gate.
+//   2. B10's sidebar has 11 items and no detail page, so a nav button for it
+//      would break the 1:1 sidebar (verified by the B10 dom-diff).
+// So the parameterized route is resolved SEPARATELY and is reachable only by
+// navigating from a project row — which is how a detail page should work.
+export type AppView = RouteView | 'project-detail';
+
+const PROJECT_DETAIL_RE = /^#\/projects\/([^/?#]+)$/;
+
+/** Project id from a `#/projects/<id>` hash, or null for any other hash. */
+export function projectDetailId(hash: string): string | null {
+  const m = PROJECT_DETAIL_RE.exec(hash);
+  return m && m[1] ? decodeURIComponent(m[1]) : null;
+}
+
+/** Hash for the project-detail route (B07 `/projects/:id`). */
+export function projectDetailHash(id: string): string {
+  return '#/projects/' + encodeURIComponent(id);
+}
+
 // Honest "not open yet" copy per IA slot that has no backend route today.
 // Projects / creative-tools / deliverables / evidence are READ-ONLY readbacks
 // of real service routes (see renderProjects/renderCreativeTools/
@@ -534,14 +559,20 @@ export async function renderProjects(target: HTMLElement): Promise<void> {
   const list = el('div', { class: 'table-wrap' },
     el('table', { class: 'table' },
       el('thead', {}, el('tr', {},
-        el('th', {}, '项目'), el('th', {}, 'ID'), el('th', {}, '状态'))),
+        el('th', {}, '项目'), el('th', {}, 'ID'), el('th', {}, '状态'), el('th', {}, ''))),
       el('tbody', {},
         ...(data.projects.length
           ? data.projects.map((p) => el('tr', {},
               el('td', {}, el('strong', {}, p.name)),
               el('td', {}, p.id),
-              el('td', {}, el('span', { class: 'tag info' }, 'Active'))))
-          : [el('tr', {}, el('td', { colspan: '3' }, '尚无项目。在工作台新建项目后出现。'))]))));
+              el('td', {}, el('span', { class: 'tag info' }, 'Active')),
+              el('td', {}, el('button', {
+                type: 'button', class: 'ghost-btn',
+                // B07 `/projects/:id` — reached from a row, never a nav item
+                // (ROUTE_VIEWS must stay 12 for the browser E2E nav assertion).
+                onclick: () => { window.location.hash = projectDetailHash(p.id); },
+              }, '打开'))))
+          : [el('tr', {}, el('td', { colspan: '4' }, '尚无项目。在工作台新建项目后出现。'))]))));
   target.replaceChildren(
     pageHead,
     kpis,
@@ -671,7 +702,63 @@ export async function renderEvidence(target: HTMLElement): Promise<void> {
   });
 }
 
-export async function renderRoute(view: RouteView, target: HTMLElement): Promise<void> {
+// 项目详情 — B07 routes.json 的 `/projects/:id`（project-detail）。W03「项目中心」
+// 的核心动作：从项目列表进入单个项目的上下文。只读回读，不写。
+export async function renderProjectDetail(id: string, target: HTMLElement): Promise<void> {
+  target.replaceChildren(el('p', { class: 'view-loading' }, '正在读回该项目…'));
+  const listing = await apiOrEmpty<ProjectListResponse>('/projects', OFFLINE.projects);
+  const named = listing.projects.find((p) => p.id === id);
+  const [tasks, layerResp] = await Promise.all([
+    apiOrEmpty<TaskListResponse>(`/projects/${id}/tasks`, OFFLINE.tasks),
+    apiOrEmpty<DesignLayerResponse>(`/projects/${id}/design-layer`, OFFLINE.designLayer),
+  ]);
+  const layer = layerResp.design_layer;
+  const chosen = layer.chosen_direction
+    ? `${layer.chosen_direction.title} · v${layer.chosen_direction.version}` : '（尚未选定方向）';
+  const active = layer.active_binding
+    ? `${layer.active_binding.design_system_name} · 绑定 ${layer.active_binding.direction_id}` : '（无活动绑定）';
+
+  const pageHead = el('div', { class: 'page-head' },
+    el('div', {},
+      el('h2', {}, named ? named.name : id),
+      el('p', {}, `项目详情 · ${id}。只读回读该项目的 tasks 与 design-layer 台账；本页不修改任何状态。`)),
+    el('div', { class: 'page-actions' },
+      el('button', {
+        type: 'button', class: 'ghost-btn',
+        onclick: () => { window.location.hash = '#/projects'; },
+      }, '返回项目列表')));
+
+  const kpis = el('div', { class: 'kpi-grid' },
+    kpiCard(String(tasks.tasks.length), '任务', '读回 /tasks 台账'),
+    kpiCard(String(layer.briefs.length), '简报版本', '读回 design-layer'),
+    kpiCard(String(layer.directions.length), '方向版本', '读回 design-layer'),
+    kpiCard(layer.active_binding ? '1' : '0', '活动绑定', active));
+
+  const taskPanel = el('div', { class: 'panel' },
+    el('h3', {}, `任务台账（${tasks.tasks.length}）`),
+    el('div', { class: 'list' },
+      ...(tasks.tasks.length
+        ? tasks.tasks.slice(0, 8).map((t) => el('div', { class: 'list-item' },
+            el('div', {}, el('strong', {}, t.kind), el('small', {}, `尝试 ${t.attempt.attempt_no} · ${t.attempt.state}`)),
+            el('span', { class: 'tag info' }, t.state)))
+        : [el('div', { class: 'list-item' },
+            el('div', {}, el('strong', {}, '尚无任务'), el('small', {}, '任务由工作台高级区提交')))])));
+
+  const layerPanel = el('div', { class: 'panel' },
+    el('h3', {}, '设计层契约'),
+    el('div', { class: 'list' },
+      el('div', { class: 'list-item' }, el('span', {}, '选定方向'), el('span', { class: 'tag info' }, chosen)),
+      el('div', { class: 'list-item' }, el('span', {}, '活动绑定'), el('span', { class: 'tag info' }, active)),
+      el('div', { class: 'list-item' }, el('span', {}, '设计系统登记'), el('span', { class: 'tag info' }, String(layer.design_systems.length)))));
+
+  target.replaceChildren(
+    pageHead,
+    kpis,
+    el('div', { class: 'two-col', style: 'margin-top:16px' }, taskPanel, layerPanel),
+    el('p', { class: 'view-hint' }, '本页为只读项目上下文；提交 / 运行 / 取消 / 导出由工作台执行。'));
+}
+
+export async function renderRoute(view: AppView, target: HTMLElement): Promise<void> {
   target.replaceChildren();
   switch (view) {
     case 'dashboard': await renderDashboard(target); return;
@@ -682,6 +769,14 @@ export async function renderRoute(view: RouteView, target: HTMLElement): Promise
     case 'creative-tools': await renderCreativeTools(target); return;
     case 'deliverables': await renderDeliverables(target); return;
     case 'evidence': await renderEvidence(target); return;
+    // B07 `/projects/:id`. The id comes from the hash (renderRoute receives only
+    // the resolved view, matching the existing signature).
+    case 'project-detail': {
+      const id = projectDetailId(window.location.hash);
+      if (!id) { await renderProjects(target); return; }
+      await renderProjectDetail(id, target);
+      return;
+    }
     default: {
       const notOpen = VIEW_NOT_OPEN[view];
       target.replaceChildren(
@@ -729,7 +824,10 @@ export function mountAppShell(): void {
     }
   };
 
-  const current = (): RouteView => {
+  const current = (): AppView => {
+    // Parameterized B07 route resolved BEFORE the exact-match table (it has no
+    // ROUTE_VIEWS entry by design — see the AppView comment).
+    if (projectDetailId(window.location.hash)) return 'project-detail';
     const match = ROUTE_VIEWS.find((route) => route.hash === window.location.hash);
     // Dev-mode: an empty hash defaults to the dashboard (the informative B10
     // page) instead of the bare legacy single-page workbench, so opening the
@@ -919,7 +1017,10 @@ function mountB10Shell(routeView: HTMLElement): B10Shell | null {
     if (legacyNav) legacyNav.toggleAttribute('hidden', routed);
     for (const node of legacyChrome) node.toggleAttribute('hidden', routed);
     for (const item of Array.from(sidebar.querySelectorAll<HTMLElement>('.nav button'))) {
-      const selected = item.dataset.route === view;
+      // A project-detail page has no nav button of its own (B10's sidebar has no
+      // detail entry), so keep 项目 highlighted while it is open.
+      const highlight = view === 'project-detail' ? 'projects' : view;
+      const selected = item.dataset.route === highlight;
       item.classList.toggle('active', selected);
       if (selected) item.setAttribute('aria-current', 'page');
       else item.removeAttribute('aria-current');
