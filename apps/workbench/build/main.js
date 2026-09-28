@@ -2056,6 +2056,121 @@ function renderBriefEditor(id, layer, target) {
     status
   );
 }
+function renderReferencePanel(id) {
+  const heading = el("h3", { id: "pd-ref-heading" }, "参考素材");
+  const list = el(
+    "div",
+    { class: "list", id: "pd-ref-list" },
+    el("div", { class: "list-item" }, el("div", {}, el("strong", {}, "正在读回…")))
+  );
+  const preview2 = el("img", { id: "pd-ref-preview", class: "ref-preview", alt: "参考素材预览" });
+  preview2.hidden = true;
+  const info2 = el(
+    "p",
+    { class: "view-hint", id: "pd-ref-info" },
+    "点某一行的「预览」按需读取该资产；清单本身不预加载整图。"
+  );
+  const status = el("p", { class: "view-hint", id: "pd-ref-status", role: "status" }, "");
+  const showError = (message) => {
+    status.className = "error";
+    status.textContent = message;
+  };
+  const showHint = (message) => {
+    status.className = "view-hint";
+    status.textContent = message;
+  };
+  const previewAsset = async (assetId) => {
+    showHint(`正在读取 ${assetId} …`);
+    try {
+      const data = await api(`/projects/${id}/assets/${assetId}/content`);
+      const a = data.asset;
+      if (!["image/png", "image/jpeg"].includes(a.media_type)) throw new Error(`UNSUPPORTED_PREVIEW:${a.media_type}`);
+      preview2.src = `data:${a.media_type};base64,${data.content_base64}`;
+      preview2.hidden = false;
+      info2.textContent = `${a.width} × ${a.height} · ${a.media_type} · rights: ${a.rights} · sha256 ${a.sha256.slice(0, 16)}…`;
+      showHint(`已按需读回 ${assetId}。`);
+    } catch (error) {
+      preview2.hidden = true;
+      preview2.removeAttribute("src");
+      info2.textContent = "—";
+      showError(`资产 ${assetId} 读取失败：${errMsg(error)}`);
+    }
+  };
+  const assetRow = (a) => {
+    const rights = a.rights === "NOT_REVIEWED" ? el("span", { class: "tag warn" }, "权利未审查") : el("span", { class: "tag info" }, a.rights);
+    const headline = [
+      a.width !== void 0 && a.height !== void 0 ? `${a.width} × ${a.height}` : null,
+      a.media_type,
+      a.kind
+    ].filter(Boolean).join(" · ");
+    const provenance = [
+      a.id,
+      a.version_no !== void 0 ? `版本 ${a.version_no}` : null,
+      a.version_id ? `version_id ${a.version_id.slice(0, 12)}…` : null,
+      a.sha256 ? `sha256 ${String(a.sha256).replace(/^sha256:/, "").slice(0, 16)}…` : null
+    ].filter(Boolean).join(" · ");
+    return el(
+      "div",
+      { class: "list-item" },
+      el("div", {}, el("strong", {}, headline), el("small", {}, provenance)),
+      el(
+        "div",
+        { class: "actions" },
+        rights,
+        el("button", { type: "button", class: "ghost-btn", id: `pd-ref-preview-${a.id}`, onclick: () => {
+          void previewAsset(a.id);
+        } }, "预览")
+      )
+    );
+  };
+  void (async () => {
+    try {
+      const data = await api(`/projects/${id}/assets`);
+      const assets = data.assets;
+      heading.textContent = `参考素材（${assets.length}）`;
+      list.replaceChildren(
+        ...assets.length ? assets.map(assetRow) : [el(
+          "div",
+          { class: "list-item" },
+          el(
+            "div",
+            {},
+            el("strong", {}, "尚无参考素材"),
+            el("small", {}, "在旧工作台导入后读回此处；未知权利可研究，但会阻止生产认证。")
+          )
+        )]
+      );
+      showHint(assets.some((a) => a.rights === "NOT_REVIEWED") ? "清单已读回。存在「权利未审查」的素材：可继续研究，但在权利清除前不能作为生产认证依据（服务端 fail-closed）。" : "清单已读回；图片内容按需读取。");
+    } catch (error) {
+      heading.textContent = "参考素材";
+      list.replaceChildren(el(
+        "div",
+        { class: "list-item" },
+        el(
+          "div",
+          {},
+          el("strong", {}, "未读回"),
+          el("small", {}, "资产清单读取失败；此处不显示 0，避免把「没读到」说成「没有」。")
+        )
+      ));
+      showError(`资产清单读取失败：${errMsg(error)}`);
+    }
+  })();
+  return el(
+    "div",
+    { class: "panel" },
+    heading,
+    list,
+    el(
+      "div",
+      { class: "list-item", style: "display:grid;gap:8px" },
+      el("strong", {}, "预览（按需读取）"),
+      preview2,
+      info2
+    ),
+    status
+  );
+}
 async function renderProjectDetail(id, target) {
   target.replaceChildren(el("p", { class: "view-loading" }, "正在读回该项目…"));
   rememberProject(id);
@@ -2133,7 +2248,8 @@ async function renderProjectDetail(id, target) {
     kpis,
     el("div", { class: "two-col", style: "margin-top:16px" }, taskPanel, layerPanel),
     el("div", { style: "margin-top:16px" }, renderBriefEditor(id, layer, target)),
-    el("p", { class: "view-hint" }, "tasks 与 design-layer 台账为只读；简报区可真实创建与修订并读回。提交任务 / 运行 / 取消 / 导出仍由工作台高级区执行。")
+    el("div", { style: "margin-top:16px" }, renderReferencePanel(id)),
+    el("p", { class: "view-hint" }, "tasks 与 design-layer 台账为只读；简报区可真实创建与修订并读回；参考素材区读回资产清单并按需预览。提交任务 / 运行 / 取消 / 导出仍由工作台高级区执行。")
   );
 }
 async function renderRoute(view, target) {
