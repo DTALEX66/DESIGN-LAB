@@ -1,6 +1,6 @@
 {
   "kind": "design-lab-w03-triage-recent",
-  "project_id": "9e32f66ab1064396adf54654ae972506",
+  "project_id": "57258015966f42aa8ada347ae440c616",
   "checks": [
     {
       "name": "待审 panel renders",
@@ -61,7 +61,7 @@
       "name": "the opened project is marked 最近打开 on the dashboard",
       "pass": true,
       "detail": {
-        "recentText": "最近项目\nW03 Triage 1790620355217\n9e32f66ab1064396adf54654ae972506\n最近打开\n\n按本机最近打开的项目排序（仅保存项目 id 于本机，不上传）。"
+        "recentText": "最近项目\nW03 Triage 1790631621233\n57258015966f42aa8ada347ae440c616\n最近打开\n\n按本机最近打开的项目排序（仅保存项目 id 于本机，不上传）。"
       }
     },
     {
@@ -73,7 +73,7 @@
       "name": "the opened project is listed first (recency order)",
       "pass": true,
       "detail": {
-        "firstRecentRow": "W03 Triage 1790620355217\n9e32f66ab1064396adf54654ae972506\n最近打开"
+        "firstRecentRow": "W03 Triage 1790631621233\n57258015966f42aa8ada347ae440c616\n最近打开"
       }
     },
     {
@@ -94,7 +94,26 @@
       "name": "local recency survives a reload (persisted outside the in-memory session)",
       "pass": true,
       "detail": {
-        "afterReload": "最近项目\nW03 Triage 1790620355217\n9e32f66ab1064396adf54654ae972506\n最近打开\n\n按本机最近打开的项目排序（仅保存项目 id 于本机，不上传）。"
+        "afterReload": "最近项目\nW03 Triage 1790631621233\n57258015966f42aa8ada347ae440c616\n最近打开\n\n按本机最近打开的项目排序（仅保存项目 id 于本机，不上传）。"
+      }
+    },
+    {
+      "name": "继续项目 panel renders",
+      "pass": true,
+      "detail": {}
+    },
+    {
+      "name": "it names the most recently opened project",
+      "pass": true,
+      "detail": {
+        "text": "继续项目\nW03 Triage 1790631621233\n本机最近打开 · 57258015966f42aa8ada347ae440c616\n继续"
+      }
+    },
+    {
+      "name": "继续 navigates into that project",
+      "pass": true,
+      "detail": {
+        "hash": "#/projects/57258015966f42aa8ada347ae440c616"
       }
     },
     {
@@ -112,7 +131,7 @@
       "text": "Failed to load resource: net::ERR_FAILED"
     }
   ],
-  "measured_at": "2026-09-28T18:32:48.746Z",
+  "measured_at": "2026-09-28T21:40:36.081Z",
   "vocab_cross_check": [
     {
       "name": "FAILED_STATES == TERMINAL - {RECEIPTED}",
