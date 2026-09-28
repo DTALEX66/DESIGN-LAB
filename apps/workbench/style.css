@@ -146,7 +146,16 @@ button{
   border:1px solid transparent;cursor:pointer;font-weight:650;
   transition:background var(--motion-base),box-shadow var(--motion-base);
 }
-button:hover{background:var(--accent-hover);box-shadow:var(--glow)}
+/* Legacy page buttons only. This rule predates the B10 shell and sets a solid
+   --accent-hover background. Inside `.app` it LEAKED onto B10's buttons: B10's
+   `.ghost-btn:hover` deliberately changes only transform/border-color/box-shadow
+   and never re-declares `background`, so `button:hover` won the background and
+   every ghost button turned solid accent blue on hover. Measured in Chromium
+   before the fix: rest = color-mix(surface2 62%), hover = rgb(37,88,219).
+   Scoped to the legacy regions (`body > header/main/footer` plus the flat
+   `.app-nav`) so buttons inside `.app` keep B10's own hover appearance. */
+body > header button:hover,body > main button:hover,body > footer button:hover,
+.app-nav button:hover{background:var(--accent-hover);box-shadow:var(--glow)}
 button.secondary{
   background:var(--surface-2);color:var(--ink);border-color:var(--line);
 }
