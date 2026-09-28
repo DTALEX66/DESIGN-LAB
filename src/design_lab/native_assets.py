@@ -58,3 +58,42 @@ class NativeAssets:
             if digest.hexdigest()!=row['sha256'].removeprefix('sha256:'):raise ValueError('hash mismatch')
         except (ValueError,OSError):raise ImageAssetError(409,'NATIVE_ARTIFACT_UNVERIFIED') from None
         return {'asset':dict(self._metadata(row),verification='HASH_VERIFIED')}
+
+
+class Bundles:
+    """Read-only list of a project's design bundles -- i.e. its deliveries.
+
+    The predicate here was MEASURED, not assumed. My first version filtered on
+    asset_kind='design-bundle' and the tests written first rejected it outright:
+      * the asset table has CHECK (asset_kind IN ('raster','vector','text','audio','video',
+        'blend','psd','ai','doc','other')) -- 'design-bundle' is NOT a legal asset_kind;
+      * native_bundles.py:73 actually registers the bundle with asset_kind='other' and
+        asset_id='bundle-'+<native asset id>;
+      * the 'design-bundle' string in that module is a return/statement label, not a column;
+      * native_delivery.py:43 reads a single delivery back via asset_kind='other' AND a
+        specific version_id -- that is a single-resource lookup, not a list.
+    So a query on 'design-bundle' would have matched nothing forever while looking correct.
+    This class exists because no route can answer "what did I deliver?": /assets is
+    raster-only by construction, and /bundles/<id>/versions/<v> is a single resource.
+    """
+
+    def __init__(self,service):
+        self.service=service;self.paths=service.paths
+
+    def list(self,project_id):
+        if self.service.get_project(project_id) is None:raise ImageAssetError(404,'PROJECT_NOT_FOUND')
+        path=self.paths.database_path(self.service.database)
+        with closing(sqlite3.connect(path.as_uri()+'?mode=ro',uri=True)) as conn:
+            conn.row_factory=sqlite3.Row
+            rows=conn.execute('''SELECT a.asset_id,a.asset_kind,v.version_id,v.version_no,
+ f.sha256,f.byte_size FROM asset a
+ JOIN asset_version v ON v.asset_id=a.asset_id JOIN artifact f ON f.version_id=v.version_id
+ WHERE a.project_id=? AND a.asset_kind='other' AND a.asset_id LIKE 'bundle-%'
+ AND v.state='ACTIVE'
+ AND v.version_no=(SELECT MAX(b.version_no) FROM asset_version b
+                   WHERE b.asset_id=a.asset_id AND b.state='ACTIVE')
+ ORDER BY a.asset_id LIMIT 101''',(project_id,)).fetchall()
+        return {'bundles':[dict(id=r['asset_id'],kind='design-bundle',version_id=r['version_id'],
+            version_no=r['version_no'],byte_size=r['byte_size'],
+            sha256='sha256:'+r['sha256'].removeprefix('sha256:'),
+            rights='NOT_REVIEWED',verification='METADATA_ONLY') for r in rows[:100]]}
