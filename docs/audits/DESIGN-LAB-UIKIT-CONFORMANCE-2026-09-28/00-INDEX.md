@@ -41,7 +41,7 @@ the pack and is confirmed correct.
 | `harness/` | The audit tooling that produced `evidence/` — runnable, SPDX-tagged |
 | `session/` | Session lineage: commit/PR message drafts, superseded revisions, intermediate probes. **Superseded, kept only for traceability** |
 | `session/project-survey-2026-09-27/` | The preceding round's project-survey documents, carried over for completeness (their own tracked handover is `docs/handoffs/DESIGN-LAB-PROJECT-SURVEY-TRUTH-RESYNC-2026-09-27.md`) |
-| `ui-originals/` | Extracted reference originals (`B04/`, `B07/`, `B10/`) + `EXTRACTION-MANIFEST.json`. The 17 B04 design sheets carry `.license` sidecars |
+| `ui-originals/` | Extracted reference originals (`B04/`, `B07/`, `B10/`) + `EXTRACTION-MANIFEST.json`. The 17 B04 design sheets carry `asset-sidecar/v1` **JSON** sidecars |
 
 ## 4. The headline result
 
@@ -109,10 +109,40 @@ No capability-axis promotion is claimed. `host_live` and `delivery` remain at **
 
 - Archived `.py`/`.mjs`/`.js` carry `SPDX-License-Identifier: MIT` so the
   **License & secret hygiene gate** (`design-lab/scripts/verify_license_coverage.py`)
-  stays green; the 17 binary sheets carry `.license` sidecars for the same gate.
+  stays green.
+- The 17 binary design sheets carry **`.license` sidecars in `asset-sidecar/v1` JSON**,
+  as required by `verify_asset_governance.py` (DL-AST-001) — free-text SPDX sidecars are
+  a hard violation there because they cannot prove hash or rights. Each records
+  `sha256`, `license: LicenseRef-Owner-Project-Asset`, the rights holder and the three
+  boolean rights flags. **The rights flags are a claim that needs the owner's eye:**
+  `redistributable: true`, `commercialUse: true`, and `modelInputAllowed: false`
+  (no model-training right is asserted for the sheets). Without a registered `sourceId`
+  the schema requires an approved exception, so each carries
+  `exception.approvedBy = "DTALEX66 (project owner)"` with `expiresAt: 2027-09-28` —
+  grounded in the owner's instruction to archive this round's material into the project.
+  **This is an assertion of owner approval, not a verified signature; the owner should
+  confirm or amend it before the expiry.**
+- Two archived filenames were **non-ASCII** in the source archives and were renamed to
+  ASCII, because `git ls-files` quotes such paths and `verify_asset_governance.py` then
+  fails with `cannot stat tracked file` (observed on CI, reproduced locally):
+
+  | Original name | Archived as |
+  |---|---|
+  | `DESIGN-LAB_L4_16张组件系统总览.jpg` | `DESIGN-LAB_L4_B04-16-components-overview.jpg` |
+  | `打开页面_Windows.bat` | `open-page_Windows.bat` |
+
 - Every text file here is valid UTF-8: the **identity gate** reads all tracked text and
   fails **closed** on an unreadable file. (This archive's own first sweep output was
   written UTF-16LE by a PowerShell redirect and was caught by that gate.)
 - Placed under `docs/audits/` deliberately: `docs/taskpacks/**` is scanned by the
   authority-chain and context-integrity gates, so an archive there could be
   misclassified as a historical taskpack or as an authority claim.
+
+## 8. Gate status for this archive (local, full unified verify)
+
+The failure above was found by running the **full** `verify_design_lab.py`, not by
+hand-picking gates — the first push of this archive failed CI on
+`verify_asset_governance.py` precisely because only four gates had been run locally.
+After the fixes: `verify_design_lab.py` all-pass, `ASSET_GOVERNANCE=OK`,
+`LICENSE_COVERAGE=OK`, `IDENTITY_GATE=OK`, `TOP_AUTHORITY_GATE=PASS (10/10)`,
+`VERIFY_CONTEXT_INTEGRITY=PASS`.
