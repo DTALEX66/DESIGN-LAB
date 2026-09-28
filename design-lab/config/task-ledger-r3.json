@@ -3,7 +3,7 @@
   "taskpack": "DL-TP-20260908-R5",
   "plan_path": "docs/history/taskpacks/r5-20260908/02-TASKS.md",
   "baseline_sha": "ed8d45ab2857b312f6056c43f7bb5e19dd9b65eb",
-  "updated_at": "2026-09-27T16:41:37Z",
+  "updated_at": "2026-09-28T14:26:42Z",
   "source": {
     "path": "docs/history/taskpacks/r5-20260908/tasks.json",
     "sha256": "31dde89eb4ede81fe88c0a5c5144adfb86af8db4c4d8c263bde2199180369b69"
@@ -3595,7 +3595,9 @@
         },
         "unit": {
           "state": "PARTIAL",
-          "evidence": []
+          "evidence": [
+            "r5-001-static-unit-20260928"
+          ]
         },
         "host_live": {
           "state": "PARTIAL",
@@ -3663,7 +3665,9 @@
         },
         "unit": {
           "state": "PARTIAL",
-          "evidence": []
+          "evidence": [
+            "r5-002-static-unit-20260928"
+          ]
         },
         "host_live": {
           "state": "PARTIAL",
@@ -3732,7 +3736,9 @@
         },
         "unit": {
           "state": "PARTIAL",
-          "evidence": []
+          "evidence": [
+            "r5-003-static-unit-20260928"
+          ]
         },
         "host_live": {
           "state": "PARTIAL",
@@ -3794,11 +3800,15 @@
       "axes": {
         "implementation": {
           "state": "PARTIAL",
-          "evidence": []
+          "evidence": [
+            "r5-004-static-unit-20260928"
+          ]
         },
         "unit": {
           "state": "PARTIAL",
-          "evidence": []
+          "evidence": [
+            "r5-004-static-unit-20260928"
+          ]
         },
         "host_live": {
           "state": "PARTIAL",
@@ -3863,11 +3873,15 @@
       "axes": {
         "implementation": {
           "state": "PARTIAL",
-          "evidence": []
+          "evidence": [
+            "r5-005-static-unit-20260928"
+          ]
         },
         "unit": {
           "state": "PARTIAL",
-          "evidence": []
+          "evidence": [
+            "r5-005-static-unit-20260928"
+          ]
         },
         "host_live": {
           "state": "PARTIAL",
@@ -3930,11 +3944,15 @@
       "axes": {
         "implementation": {
           "state": "PARTIAL",
-          "evidence": []
+          "evidence": [
+            "r5-006-static-unit-20260928"
+          ]
         },
         "unit": {
           "state": "PARTIAL",
-          "evidence": []
+          "evidence": [
+            "r5-006-static-unit-20260928"
+          ]
         },
         "host_live": {
           "state": "PARTIAL",
@@ -3997,11 +4015,15 @@
       "axes": {
         "implementation": {
           "state": "PARTIAL",
-          "evidence": []
+          "evidence": [
+            "r5-007-static-unit-20260928"
+          ]
         },
         "unit": {
           "state": "PARTIAL",
-          "evidence": []
+          "evidence": [
+            "r5-007-static-unit-20260928"
+          ]
         },
         "host_live": {
           "state": "PARTIAL",
@@ -4071,7 +4093,9 @@
       "axes": {
         "implementation": {
           "state": "PARTIAL",
-          "evidence": []
+          "evidence": [
+            "r5-008-static-unit-20260928"
+          ]
         },
         "unit": {
           "state": "PARTIAL",
@@ -4141,11 +4165,15 @@
       "axes": {
         "implementation": {
           "state": "PARTIAL",
-          "evidence": []
+          "evidence": [
+            "r5-009-static-unit-20260928"
+          ]
         },
         "unit": {
           "state": "PARTIAL",
-          "evidence": []
+          "evidence": [
+            "r5-009-static-unit-20260928"
+          ]
         },
         "host_live": {
           "state": "PARTIAL",
@@ -4288,11 +4316,15 @@
       "axes": {
         "implementation": {
           "state": "PARTIAL",
-          "evidence": []
+          "evidence": [
+            "r5-011-static-unit-20260928"
+          ]
         },
         "unit": {
           "state": "PARTIAL",
-          "evidence": []
+          "evidence": [
+            "r5-011-static-unit-20260928"
+          ]
         },
         "host_live": {
           "state": "PARTIAL",
@@ -4365,7 +4397,9 @@
         },
         "unit": {
           "state": "PARTIAL",
-          "evidence": []
+          "evidence": [
+            "r5-012-static-unit-20260928"
+          ]
         },
         "host_live": {
           "state": "PARTIAL",
@@ -4431,11 +4465,15 @@
       "axes": {
         "implementation": {
           "state": "PARTIAL",
-          "evidence": []
+          "evidence": [
+            "r5-013-static-unit-20260928"
+          ]
         },
         "unit": {
           "state": "PARTIAL",
-          "evidence": []
+          "evidence": [
+            "r5-013-static-unit-20260928"
+          ]
         },
         "host_live": {
           "state": "PARTIAL",
@@ -4503,11 +4541,15 @@
       "axes": {
         "implementation": {
           "state": "PARTIAL",
-          "evidence": []
+          "evidence": [
+            "r5-014-static-unit-20260928"
+          ]
         },
         "unit": {
           "state": "PARTIAL",
-          "evidence": []
+          "evidence": [
+            "r5-014-static-unit-20260928"
+          ]
         },
         "host_live": {
           "state": "PARTIAL",
@@ -4572,11 +4614,15 @@
       "axes": {
         "implementation": {
           "state": "PARTIAL",
-          "evidence": []
+          "evidence": [
+            "r5-015-static-unit-20260928"
+          ]
         },
         "unit": {
           "state": "PARTIAL",
-          "evidence": []
+          "evidence": [
+            "r5-015-static-unit-20260928"
+          ]
         },
         "host_live": {
           "state": "PARTIAL",
@@ -4644,11 +4690,15 @@
       "axes": {
         "implementation": {
           "state": "PARTIAL",
-          "evidence": []
+          "evidence": [
+            "r5-016-static-unit-20260928"
+          ]
         },
         "unit": {
           "state": "PARTIAL",
-          "evidence": []
+          "evidence": [
+            "r5-016-static-unit-20260928"
+          ]
         },
         "host_live": {
           "state": "PARTIAL",
@@ -4716,11 +4766,15 @@
       "axes": {
         "implementation": {
           "state": "PARTIAL",
-          "evidence": []
+          "evidence": [
+            "r5-017-static-unit-20260928"
+          ]
         },
         "unit": {
           "state": "PARTIAL",
-          "evidence": []
+          "evidence": [
+            "r5-017-static-unit-20260928"
+          ]
         },
         "host_live": {
           "state": "PARTIAL",
@@ -4785,11 +4839,15 @@
       "axes": {
         "implementation": {
           "state": "PARTIAL",
-          "evidence": []
+          "evidence": [
+            "r5-018-static-unit-20260928"
+          ]
         },
         "unit": {
           "state": "PARTIAL",
-          "evidence": []
+          "evidence": [
+            "r5-018-static-unit-20260928"
+          ]
         },
         "host_live": {
           "state": "PARTIAL",
@@ -4857,11 +4915,15 @@
       "axes": {
         "implementation": {
           "state": "PARTIAL",
-          "evidence": []
+          "evidence": [
+            "r5-019-static-unit-20260928"
+          ]
         },
         "unit": {
           "state": "PARTIAL",
-          "evidence": []
+          "evidence": [
+            "r5-019-static-unit-20260928"
+          ]
         },
         "host_live": {
           "state": "PARTIAL",
@@ -4930,11 +4992,15 @@
       "axes": {
         "implementation": {
           "state": "PARTIAL",
-          "evidence": []
+          "evidence": [
+            "r5-020-static-unit-20260928"
+          ]
         },
         "unit": {
           "state": "PARTIAL",
-          "evidence": []
+          "evidence": [
+            "r5-020-static-unit-20260928"
+          ]
         },
         "host_live": {
           "state": "PARTIAL",
@@ -5000,11 +5066,15 @@
       "axes": {
         "implementation": {
           "state": "PARTIAL",
-          "evidence": []
+          "evidence": [
+            "r5-021-static-unit-20260928"
+          ]
         },
         "unit": {
           "state": "PARTIAL",
-          "evidence": []
+          "evidence": [
+            "r5-021-static-unit-20260928"
+          ]
         },
         "host_live": {
           "state": "PARTIAL",
@@ -5072,11 +5142,15 @@
       "axes": {
         "implementation": {
           "state": "PARTIAL",
-          "evidence": []
+          "evidence": [
+            "r5-022-static-unit-20260928"
+          ]
         },
         "unit": {
           "state": "PARTIAL",
-          "evidence": []
+          "evidence": [
+            "r5-022-static-unit-20260928"
+          ]
         },
         "host_live": {
           "state": "PARTIAL",
@@ -5139,11 +5213,15 @@
       "axes": {
         "implementation": {
           "state": "PARTIAL",
-          "evidence": []
+          "evidence": [
+            "r5-023-static-unit-20260928"
+          ]
         },
         "unit": {
           "state": "PARTIAL",
-          "evidence": []
+          "evidence": [
+            "r5-023-static-unit-20260928"
+          ]
         },
         "host_live": {
           "state": "PARTIAL",
@@ -5209,11 +5287,15 @@
       "axes": {
         "implementation": {
           "state": "PARTIAL",
-          "evidence": []
+          "evidence": [
+            "r5-024-static-unit-20260928"
+          ]
         },
         "unit": {
           "state": "PARTIAL",
-          "evidence": []
+          "evidence": [
+            "r5-024-static-unit-20260928"
+          ]
         },
         "host_live": {
           "state": "PARTIAL",
@@ -5277,11 +5359,15 @@
       "axes": {
         "implementation": {
           "state": "PARTIAL",
-          "evidence": []
+          "evidence": [
+            "r5-025-static-unit-20260928"
+          ]
         },
         "unit": {
           "state": "PARTIAL",
-          "evidence": []
+          "evidence": [
+            "r5-025-static-unit-20260928"
+          ]
         },
         "host_live": {
           "state": "PARTIAL",
@@ -5345,11 +5431,15 @@
       "axes": {
         "implementation": {
           "state": "PARTIAL",
-          "evidence": []
+          "evidence": [
+            "r5-026-static-unit-20260928"
+          ]
         },
         "unit": {
           "state": "PARTIAL",
-          "evidence": []
+          "evidence": [
+            "r5-026-static-unit-20260928"
+          ]
         },
         "host_live": {
           "state": "PARTIAL",
@@ -5414,11 +5504,15 @@
       "axes": {
         "implementation": {
           "state": "PARTIAL",
-          "evidence": []
+          "evidence": [
+            "r5-027-static-unit-20260928"
+          ]
         },
         "unit": {
           "state": "PARTIAL",
-          "evidence": []
+          "evidence": [
+            "r5-027-static-unit-20260928"
+          ]
         },
         "host_live": {
           "state": "PARTIAL",
@@ -5734,6 +5828,1049 @@
         }
       ],
       "note": "工作台侧的提交 / 修改 / 取消 / 导出 / 预览 / 原生校验 handler 与契约测试（test_workbench_native_ui.py：分页游标、旧响应不得覆盖新视图、patch 幂等、start/cancel attempt 绑定、bundle hash 校验、409/401 fail-closed）在 634071f 随全量套件执行通过。PARTIAL：这些是受控运行与结构证据，**不**构成真实宿主 E3，也不代表人工验收；host_live 轴因此不绑定。"
+    },
+    {
+      "id": "r5-001-static-unit-20260928",
+      "task_ids": [
+        "DL-R5-001"
+      ],
+      "kind": "local_test",
+      "outcome": "PARTIAL",
+      "subject_sha": "4c9f18493e909283a5448763f704b3f838531d0a",
+      "binding": "COMMIT",
+      "observed_at": "2026-09-28T14:26:42Z",
+      "software": {
+        "python": "3.13.14 (project .venv)",
+        "runner": "python scripts/run_python_tests.py -> exit 0 at 4c9f18493e90",
+        "os": "Windows"
+      },
+      "subject_files": {
+        ".project/manifest.yaml": "ec43c78581e552faafbe4286d9667d7617b4db55c2d2c53be8d2ccd96a27f728",
+        "design-lab/tests/test_r5_migration.py": "1662527714033742669aef91495bef5d5623af585044f257b952f9faab4812fa",
+        "design-lab/tests/test_r5_intake.py": "b166d3383557bbc8afdb9de5e52cb9bbaafa426250e50426e44d8c9cb67f19fc",
+        "design-lab/tests/test_current_reporting.py": "3e1f8898fbf91059496db3fd97043149ce9e08377adf0a1eb63b14f21f387b7a"
+      },
+      "artifacts": [
+        {
+          "path": "design-lab/tests/test_r5_migration.py",
+          "sha256": "1662527714033742669aef91495bef5d5623af585044f257b952f9faab4812fa"
+        },
+        {
+          "path": ".project-local/task-artifacts/designlab-followup-taskpack-20260928/W00-EVIDENCE-SCAN.json",
+          "sha256": "554fcddf2c2e3c321fbf8d5c74ab389aa6ac20cc0c54cfc41acab37430ee5001"
+        }
+      ],
+      "note": "静态+单元取证（非完成声明）。该任务的实现模块与测试模块在 4c9f18493e90 上均真实存在，且所引测试随权威套件执行通过。实现模块：.project/manifest.yaml；测试模块 3 个。PARTIAL：未绑定 host_live（无真实 Adobe 宿主运行）与 delivery（无已交付包），故不宣称本任务完成或验收。"
+    },
+    {
+      "id": "r5-002-static-unit-20260928",
+      "task_ids": [
+        "DL-R5-002"
+      ],
+      "kind": "local_test",
+      "outcome": "PARTIAL",
+      "subject_sha": "4c9f18493e909283a5448763f704b3f838531d0a",
+      "binding": "COMMIT",
+      "observed_at": "2026-09-28T14:26:42Z",
+      "software": {
+        "python": "3.13.14 (project .venv)",
+        "runner": "python scripts/run_python_tests.py -> exit 0 at 4c9f18493e90",
+        "os": "Windows"
+      },
+      "subject_files": {
+        ".project/paths.json": "166dc075bdb26d4313405e03920d83b90ca52fb8c3f6b237c00ce0a25d048896",
+        ".project/governance/data-ownership.yaml": "7202baea30612c9acbc722be331913193dec505547bc8e8d73a82642735199c4",
+        "design-lab/scripts/context_capsule.py": "04bca87f702efe9fd58f7a166fe1fa221a73aaaf78de25fb39fc5f79d6a599ed",
+        "design-lab/tests/test_project_paths.py": "3a51537d560e46a20e3f9ab983da73ab81d92764a286f1661c6d274d83bbc8d5",
+        "design-lab/tests/test_path_ref_gate.py": "cb4327f48a20f465e40eba8547d6a82a93c61230b4d8af52cb0fe696dd63879d"
+      },
+      "artifacts": [
+        {
+          "path": "design-lab/tests/test_project_paths.py",
+          "sha256": "3a51537d560e46a20e3f9ab983da73ab81d92764a286f1661c6d274d83bbc8d5"
+        },
+        {
+          "path": ".project-local/task-artifacts/designlab-followup-taskpack-20260928/W00-EVIDENCE-SCAN.json",
+          "sha256": "554fcddf2c2e3c321fbf8d5c74ab389aa6ac20cc0c54cfc41acab37430ee5001"
+        }
+      ],
+      "note": "静态+单元取证（非完成声明）。该任务的实现模块与测试模块在 4c9f18493e90 上均真实存在，且所引测试随权威套件执行通过。实现模块：.project/paths.json、.project/governance/data-ownership.yaml、design-lab/scripts/context_capsule.py；测试模块 2 个。PARTIAL：未绑定 host_live（无真实 Adobe 宿主运行）与 delivery（无已交付包），故不宣称本任务完成或验收。"
+    },
+    {
+      "id": "r5-003-static-unit-20260928",
+      "task_ids": [
+        "DL-R5-003"
+      ],
+      "kind": "local_test",
+      "outcome": "PARTIAL",
+      "subject_sha": "4c9f18493e909283a5448763f704b3f838531d0a",
+      "binding": "COMMIT",
+      "observed_at": "2026-09-28T14:26:42Z",
+      "software": {
+        "python": "3.13.14 (project .venv)",
+        "runner": "python scripts/run_python_tests.py -> exit 0 at 4c9f18493e90",
+        "os": "Windows"
+      },
+      "subject_files": {
+        "scripts/run_python_tests.py": "c1127e1ebe16bcfe7b13b9d5571e93ef346c51717fcf4d3fd8a46d4ad84d532c",
+        "design-lab/tests/test_core_gates.py": "b8db31edc5440294e2edd2e0884c7d2c7734bba4e71af1a3ebc3983e09765943",
+        "design-lab/tests/test_effective_evidence.py": "0e63f2670275b078bc6fa2092518007de9a31a00b79d2bd9a4e73d4124bbd298",
+        "design-lab/tests/test_test_entry_environment.py": "ff8a4aea91c249fb33502a0eb2771649e9418d0fc2374744cfdfd086aeb89bee",
+        "design-lab/tests/test_ci_artifact_proof.py": "64ee124a412aa15dda0ecdd320f63d2dc3b64f236d209d9332d6bf3a5b0f0922"
+      },
+      "artifacts": [
+        {
+          "path": "design-lab/tests/test_core_gates.py",
+          "sha256": "b8db31edc5440294e2edd2e0884c7d2c7734bba4e71af1a3ebc3983e09765943"
+        },
+        {
+          "path": ".project-local/task-artifacts/designlab-followup-taskpack-20260928/W00-EVIDENCE-SCAN.json",
+          "sha256": "554fcddf2c2e3c321fbf8d5c74ab389aa6ac20cc0c54cfc41acab37430ee5001"
+        }
+      ],
+      "note": "静态+单元取证（非完成声明）。该任务的实现模块与测试模块在 4c9f18493e90 上均真实存在，且所引测试随权威套件执行通过。实现模块：scripts/run_python_tests.py；测试模块 4 个。PARTIAL：未绑定 host_live（无真实 Adobe 宿主运行）与 delivery（无已交付包），故不宣称本任务完成或验收。"
+    },
+    {
+      "id": "r5-004-static-unit-20260928",
+      "task_ids": [
+        "DL-R5-004"
+      ],
+      "kind": "local_test",
+      "outcome": "PARTIAL",
+      "subject_sha": "4c9f18493e909283a5448763f704b3f838531d0a",
+      "binding": "COMMIT",
+      "observed_at": "2026-09-28T14:26:42Z",
+      "software": {
+        "python": "3.13.14 (project .venv)",
+        "runner": "python scripts/run_python_tests.py -> exit 0 at 4c9f18493e90",
+        "os": "Windows"
+      },
+      "subject_files": {
+        "src/design_lab/native_tasks.py": "2f657ffbc08afa758767b9b46f4565867549869f1313bd15fb684bd71ecfd04a",
+        "src/design_lab/task_queries.py": "d695156918f873566aacad9e55703091887325f7afccb00446b8863408d80ccb",
+        "src/design_lab/native_workers.py": "56d7cfb221c280da80794bdf5752349b744670963005f90d15cbc0e287aadc50",
+        "design-lab/tests/test_native_recovery_lock.py": "841fe8a291e506619d9d3ae49169ce3063a854e7f6362568d1fed0d151dd2f70",
+        "design-lab/tests/test_native_quiescence.py": "181e226ce1ab6a52e2d1a62a2b5cf0b56aa7a110931d8e1993ec53559c93745d",
+        "design-lab/tests/test_runtime_attempt_safety.py": "675924fa8bb91dd5b0cfb4ec4ef8e9aff4595eb278b4d4810e1e52fa736e40c3",
+        "design-lab/tests/test_operation_coordinator.py": "59144ea4a2eb6edbbd01089e3d54b9b21855e10959adf43e485d89db4565f037"
+      },
+      "artifacts": [
+        {
+          "path": "design-lab/tests/test_native_recovery_lock.py",
+          "sha256": "841fe8a291e506619d9d3ae49169ce3063a854e7f6362568d1fed0d151dd2f70"
+        },
+        {
+          "path": ".project-local/task-artifacts/designlab-followup-taskpack-20260928/W00-EVIDENCE-SCAN.json",
+          "sha256": "554fcddf2c2e3c321fbf8d5c74ab389aa6ac20cc0c54cfc41acab37430ee5001"
+        }
+      ],
+      "note": "静态+单元取证（非完成声明）。该任务的实现模块与测试模块在 4c9f18493e90 上均真实存在，且所引测试随权威套件执行通过。实现模块：src/design_lab/native_tasks.py、src/design_lab/task_queries.py、src/design_lab/native_workers.py；测试模块 4 个。PARTIAL：未绑定 host_live（无真实 Adobe 宿主运行）与 delivery（无已交付包），故不宣称本任务完成或验收。"
+    },
+    {
+      "id": "r5-005-static-unit-20260928",
+      "task_ids": [
+        "DL-R5-005"
+      ],
+      "kind": "local_test",
+      "outcome": "PARTIAL",
+      "subject_sha": "4c9f18493e909283a5448763f704b3f838531d0a",
+      "binding": "COMMIT",
+      "observed_at": "2026-09-28T14:26:42Z",
+      "software": {
+        "python": "3.13.14 (project .venv)",
+        "runner": "python scripts/run_python_tests.py -> exit 0 at 4c9f18493e90",
+        "os": "Windows"
+      },
+      "subject_files": {
+        "src/design_lab/native_assets.py": "9437e0fdba553eabb08ee001cd46d60d021a9a1ee1819f7c30a45f73af9d2c57",
+        "src/design_lab/native_bundles.py": "e8cc6f59694f61fced880282e2a46b8e37d8d446fe2fc3e7e859ce1b7df7914d",
+        "src/design_lab/image_assets.py": "419d96e73264112f509e418472ee6374da0d995b0904c231436f994b9638d6c8",
+        "design-lab/tests/test_asset_store.py": "6521b14d97db1f5b682c5b9cd2035ec580756d2018f165b70f744d85a065a296",
+        "design-lab/tests/test_bundle_store.py": "dd67df3addc67038d7cdd7b981f2c90f59c07922bc24751248cb20805beefc32",
+        "design-lab/tests/test_image_import_recovery.py": "9335f453433f67ff483f12573cfe62db384ebe427e2bf0a0302b81eeda8436ed",
+        "design-lab/tests/test_runtime_asset_safety.py": "c933faee770926e6f88a74441444f3536b4e53a15d9eab5dbad241dc510d07b4"
+      },
+      "artifacts": [
+        {
+          "path": "design-lab/tests/test_asset_store.py",
+          "sha256": "6521b14d97db1f5b682c5b9cd2035ec580756d2018f165b70f744d85a065a296"
+        },
+        {
+          "path": ".project-local/task-artifacts/designlab-followup-taskpack-20260928/W00-EVIDENCE-SCAN.json",
+          "sha256": "554fcddf2c2e3c321fbf8d5c74ab389aa6ac20cc0c54cfc41acab37430ee5001"
+        }
+      ],
+      "note": "静态+单元取证（非完成声明）。该任务的实现模块与测试模块在 4c9f18493e90 上均真实存在，且所引测试随权威套件执行通过。实现模块：src/design_lab/native_assets.py、src/design_lab/native_bundles.py、src/design_lab/image_assets.py；测试模块 4 个。PARTIAL：未绑定 host_live（无真实 Adobe 宿主运行）与 delivery（无已交付包），故不宣称本任务完成或验收。"
+    },
+    {
+      "id": "r5-006-static-unit-20260928",
+      "task_ids": [
+        "DL-R5-006"
+      ],
+      "kind": "local_test",
+      "outcome": "PARTIAL",
+      "subject_sha": "4c9f18493e909283a5448763f704b3f838531d0a",
+      "binding": "COMMIT",
+      "observed_at": "2026-09-28T14:26:42Z",
+      "software": {
+        "python": "3.13.14 (project .venv)",
+        "runner": "python scripts/run_python_tests.py -> exit 0 at 4c9f18493e90",
+        "os": "Windows"
+      },
+      "subject_files": {
+        "src/design_lab/readiness/__init__.py": "effb719064f2e0480fba3df7e2cf2d3c5ef63730511814e9c2f8d6fde1330955",
+        "src/design_lab/readiness/__pycache__/__init__.cpython-313.pyc": "ec93a53004e4393459e2a9e9b22208181d0165adeb84ab6b8e7e9344d7d13233",
+        "src/design_lab/readiness/__pycache__/host_matrix.cpython-313.pyc": "f31f9412ded3410848b39b4efdacc8e6cca4244913c2b27970bbec118b42e933",
+        "src/design_lab/readiness/__pycache__/model_radar.cpython-313.pyc": "7e0361fbf69d9b6cada2d2d9c68f16f46109ce6d21bc51f3a55488ed33009666",
+        "src/design_lab/readiness/__pycache__/reconstruction_bench.cpython-313.pyc": "d0503755f51b25209241ba66ced56482d18bd54d41ef7d8bb16fd7387c35a2fa",
+        "src/design_lab/readiness/__pycache__/vector_provider.cpython-313.pyc": "e0dde776c72b5a7a624b5aba8c4576ca5ecf2e7341f3267d181ab1a8a9bacb22",
+        "src/design_lab/readiness/host_matrix.py": "039b5cacfce044598d12600ea9f8d0df2414bd99f43b2ab7b3800512333fd435",
+        "src/design_lab/readiness/model_radar.py": "1ec2ca4e2ddbd59a7f5977dc8b030483332116a2963bfe1cffd09761a4150dd3",
+        "design-lab/tests/test_model_manifest.py": "551aed3e76be7cb33f2028c9096547b10c7544e06dbbabc4f5a75c6f5e0f1de9",
+        "design-lab/tests/test_model_cache.py": "785a8e8b81356080260e620fce9dcf7d9c0319eec71bde1b21a8bc82ba43d58d",
+        "design-lab/tests/test_profile_resolver.py": "5cdac044dc8e10b68f03839938d75e2688ce09f504b9542d6adaae0e0b8f91d0",
+        "design-lab/tests/test_readiness_model_radar.py": "c14f4d0887b24518d2c7511a2419b98b740df42281fdc3072201ce04dd6c069e"
+      },
+      "artifacts": [
+        {
+          "path": "design-lab/tests/test_model_manifest.py",
+          "sha256": "551aed3e76be7cb33f2028c9096547b10c7544e06dbbabc4f5a75c6f5e0f1de9"
+        },
+        {
+          "path": ".project-local/task-artifacts/designlab-followup-taskpack-20260928/W00-EVIDENCE-SCAN.json",
+          "sha256": "554fcddf2c2e3c321fbf8d5c74ab389aa6ac20cc0c54cfc41acab37430ee5001"
+        }
+      ],
+      "note": "静态+单元取证（非完成声明）。该任务的实现模块与测试模块在 4c9f18493e90 上均真实存在，且所引测试随权威套件执行通过。实现模块：src/design_lab/readiness/；测试模块 4 个。PARTIAL：未绑定 host_live（无真实 Adobe 宿主运行）与 delivery（无已交付包），故不宣称本任务完成或验收。"
+    },
+    {
+      "id": "r5-007-static-unit-20260928",
+      "task_ids": [
+        "DL-R5-007"
+      ],
+      "kind": "local_test",
+      "outcome": "PARTIAL",
+      "subject_sha": "4c9f18493e909283a5448763f704b3f838531d0a",
+      "binding": "COMMIT",
+      "observed_at": "2026-09-28T14:26:42Z",
+      "software": {
+        "python": "3.13.14 (project .venv)",
+        "runner": "python scripts/run_python_tests.py -> exit 0 at 4c9f18493e90",
+        "os": "Windows"
+      },
+      "subject_files": {
+        "src/design_lab/cli.py": "9c8cf44fa4417092e6f32cfda55904dae0a03162407c74a9a1b04bccb58c6e7a",
+        "src/design_lab/service.py": "47c230b55e6f2169b4d9681226f76934cba433a91ebf1e178d7e2db74216eb64",
+        "design-lab/tests/test_doctor.py": "fd59902574dcc23be5c9faad5d7b241d9d152ca7f3e00c6b2835ceff85dde8c1",
+        "design-lab/tests/test_doctor_evidence.py": "09a6ebb07450753774c200ce3532ea2b78432c17aa9f025e87e3649cdc49d803",
+        "design-lab/tests/test_service_cli.py": "31d7f072dfd155a6a2e99417166d67d441dcc61f135131b352d8d60787c07cb5"
+      },
+      "artifacts": [
+        {
+          "path": "design-lab/tests/test_doctor.py",
+          "sha256": "fd59902574dcc23be5c9faad5d7b241d9d152ca7f3e00c6b2835ceff85dde8c1"
+        },
+        {
+          "path": ".project-local/task-artifacts/designlab-followup-taskpack-20260928/W00-EVIDENCE-SCAN.json",
+          "sha256": "554fcddf2c2e3c321fbf8d5c74ab389aa6ac20cc0c54cfc41acab37430ee5001"
+        }
+      ],
+      "note": "静态+单元取证（非完成声明）。该任务的实现模块与测试模块在 4c9f18493e90 上均真实存在，且所引测试随权威套件执行通过。实现模块：src/design_lab/cli.py、src/design_lab/service.py；测试模块 3 个。PARTIAL：未绑定 host_live（无真实 Adobe 宿主运行）与 delivery（无已交付包），故不宣称本任务完成或验收。"
+    },
+    {
+      "id": "r5-008-static-unit-20260928",
+      "task_ids": [
+        "DL-R5-008"
+      ],
+      "kind": "local_test",
+      "outcome": "PARTIAL",
+      "subject_sha": "4c9f18493e909283a5448763f704b3f838531d0a",
+      "binding": "COMMIT",
+      "observed_at": "2026-09-28T14:26:42Z",
+      "software": {
+        "python": "3.13.14 (project .venv)",
+        "runner": "python scripts/run_python_tests.py -> exit 0 at 4c9f18493e90",
+        "os": "Windows"
+      },
+      "subject_files": {
+        "src/design_lab/generators/__init__.py": "3e7a20c0e69689daa28b783f4632a67cf86b3824c1911d4ea8da7c6c95d39844",
+        "src/design_lab/generators/__pycache__/__init__.cpython-313.pyc": "27ab0f08ff503208576d8c0c64292fb4d1b5d40c74079488dc3a02bcf3246375",
+        "src/design_lab/generators/__pycache__/comfy_http.cpython-313.pyc": "ee57b66a5d666a2ad0d25dcd89ba2bdd3ea1a3f40460e6da54c5eaf3ca8446f0",
+        "src/design_lab/generators/__pycache__/comfy_task.cpython-313.pyc": "1ebd517fc07e88ace63bbdf6ca6d092ae2a234f02a4f2b1a896a59dd0de68ca5",
+        "src/design_lab/generators/comfy_http.py": "d8bb2404197bf9014aa550ac100a07ede014c9e6721ff3483c12c54e1d96fdcc",
+        "src/design_lab/generators/comfy_task.py": "7a4d43efa734d48398d985bfd2642b3954effe5de788626f682c051efea36b91",
+        "design-lab/tests/test_comfy_http.py": "fae7d1c672cd3fb5b1ae56f55b94f62443f0830d6c53c9a96d1acfb80f41da92",
+        "design-lab/tests/test_comfy_task_protocol.py": "9e478473f620a77755a1310382be3df4a2e382a21e2a7486784f811ad5aedde6",
+        "design-lab/tests/test_creative_generative.py": "0a45c70433fd126164284b690796cf5374f3adda4934817c320b39990f0abab5"
+      },
+      "artifacts": [
+        {
+          "path": "design-lab/tests/test_comfy_http.py",
+          "sha256": "fae7d1c672cd3fb5b1ae56f55b94f62443f0830d6c53c9a96d1acfb80f41da92"
+        },
+        {
+          "path": ".project-local/task-artifacts/designlab-followup-taskpack-20260928/W00-EVIDENCE-SCAN.json",
+          "sha256": "554fcddf2c2e3c321fbf8d5c74ab389aa6ac20cc0c54cfc41acab37430ee5001"
+        }
+      ],
+      "note": "静态+单元取证（非完成声明）。该任务的实现模块与测试模块在 4c9f18493e90 上均真实存在，且所引测试随权威套件执行通过。实现模块：src/design_lab/generators/；测试模块 3 个。PARTIAL：未绑定 host_live（无真实 Adobe 宿主运行）与 delivery（无已交付包），故不宣称本任务完成或验收。"
+    },
+    {
+      "id": "r5-009-static-unit-20260928",
+      "task_ids": [
+        "DL-R5-009"
+      ],
+      "kind": "local_test",
+      "outcome": "PARTIAL",
+      "subject_sha": "4c9f18493e909283a5448763f704b3f838531d0a",
+      "binding": "COMMIT",
+      "observed_at": "2026-09-28T14:26:42Z",
+      "software": {
+        "python": "3.13.14 (project .venv)",
+        "runner": "python scripts/run_python_tests.py -> exit 0 at 4c9f18493e90",
+        "os": "Windows"
+      },
+      "subject_files": {
+        "src/design_lab/reconstruction/__init__.py": "93a8d54438e18dc5483125a06a1616289b65584f4040521763dc1794a7cb211e",
+        "src/design_lab/reconstruction/__pycache__/__init__.cpython-313.pyc": "2255ae31931a3a3a1814fd2b1a26e91c7901f5d7dad93c8308cb986af58d1046",
+        "design-lab/tests/test_installed_state_resources.py": "e178091e882ef695ecbfb9ea5ba870efcbb6230be46ce0ef3fc138c413f36798",
+        "design-lab/tests/test_rir_source_import.py": "dc03608fccc45a9aed8d19d02bbb4f75e5f02072d27fadd6fe12950965f99889",
+        "design-lab/tests/test_reconstruction_contracts.py": "b6b3fed5b6af93da8d335bc1110a508e22777eadcfbcb5a3bd486b2be13f0161"
+      },
+      "artifacts": [
+        {
+          "path": "design-lab/tests/test_installed_state_resources.py",
+          "sha256": "e178091e882ef695ecbfb9ea5ba870efcbb6230be46ce0ef3fc138c413f36798"
+        },
+        {
+          "path": ".project-local/task-artifacts/designlab-followup-taskpack-20260928/W00-EVIDENCE-SCAN.json",
+          "sha256": "554fcddf2c2e3c321fbf8d5c74ab389aa6ac20cc0c54cfc41acab37430ee5001"
+        }
+      ],
+      "note": "静态+单元取证（非完成声明）。该任务的实现模块与测试模块在 4c9f18493e90 上均真实存在，且所引测试随权威套件执行通过。实现模块：src/design_lab/reconstruction/；测试模块 3 个。PARTIAL：未绑定 host_live（无真实 Adobe 宿主运行）与 delivery（无已交付包），故不宣称本任务完成或验收。"
+    },
+    {
+      "id": "r5-010-static-unit-20260928",
+      "task_ids": [
+        "DL-R5-010"
+      ],
+      "kind": "local_test",
+      "outcome": "PARTIAL",
+      "subject_sha": "4c9f18493e909283a5448763f704b3f838531d0a",
+      "binding": "COMMIT",
+      "observed_at": "2026-09-28T14:26:42Z",
+      "software": {
+        "python": "3.13.14 (project .venv)",
+        "runner": "python scripts/run_python_tests.py -> exit 0 at 4c9f18493e90",
+        "os": "Windows"
+      },
+      "subject_files": {
+        "apps/workbench/workbench.ts": "28ee6cd38fc9b6d43bf1fcb23edfc31e9a2577095e996358a5a6b1ccae4118e1",
+        "apps/workbench/shell.ts": "744f45936bd3c9b708ff5dab43f3ab04a70dd31f5d6773c1eec9d94cdca70478",
+        "src/design_lab/workbench.py": "fbc9671438aaec1eeb0dc3f55446c5e3a243273b4619e97e668c655d2feb3e51",
+        "design-lab/tests/test_workbench_native_ui.py": "08302a82c8c3e21061180f2e1c322a1bb50c97ff7eb930c902bec425bcbe5355",
+        "design-lab/tests/test_workbench_design_layer_e2e.py": "7824886f37b6ce532eaf01ff2fc7c35c54f66474114e9265b62e46d78347895f",
+        "apps/workbench/tests/unit.mjs": "07ff42d2b84097d2ef9dfb60445ef273eb800089d564aa31782c7aa68a001431",
+        "apps/workbench/tests/appshell.mjs": "7805b9815a1711d6480efd9f3e7a90ef2339094191d49b1af417001060dcb325"
+      },
+      "artifacts": [
+        {
+          "path": "design-lab/tests/test_workbench_native_ui.py",
+          "sha256": "08302a82c8c3e21061180f2e1c322a1bb50c97ff7eb930c902bec425bcbe5355"
+        },
+        {
+          "path": ".project-local/task-artifacts/designlab-followup-taskpack-20260928/W00-EVIDENCE-SCAN.json",
+          "sha256": "554fcddf2c2e3c321fbf8d5c74ab389aa6ac20cc0c54cfc41acab37430ee5001"
+        }
+      ],
+      "note": "静态+单元取证（非完成声明）。该任务的实现模块与测试模块在 4c9f18493e90 上均真实存在，且所引测试随权威套件执行通过。实现模块：apps/workbench/workbench.ts、apps/workbench/shell.ts、src/design_lab/workbench.py；测试模块 4 个。PARTIAL：未绑定 host_live（无真实 Adobe 宿主运行）与 delivery（无已交付包），故不宣称本任务完成或验收。"
+    },
+    {
+      "id": "r5-011-static-unit-20260928",
+      "task_ids": [
+        "DL-R5-011"
+      ],
+      "kind": "local_test",
+      "outcome": "PARTIAL",
+      "subject_sha": "4c9f18493e909283a5448763f704b3f838531d0a",
+      "binding": "COMMIT",
+      "observed_at": "2026-09-28T14:26:42Z",
+      "software": {
+        "python": "3.13.14 (project .venv)",
+        "runner": "python scripts/run_python_tests.py -> exit 0 at 4c9f18493e90",
+        "os": "Windows"
+      },
+      "subject_files": {
+        "integrations/hosts/adobe/illustrator/ASSEMBLY-CONTRACT.md": "61135d72c01b5877ca924348f29a0d8a52f74882b936fd4ac95cc3e2c22bfd1c",
+        "integrations/hosts/adobe/illustrator/reconstruction-assemble.jsx": "4a6369fa5a5bb2d631d1a996ecdceac73eb2ba30653a8bb34d837a7a50cf2fc2",
+        "design-lab/tests/test_illustrator_com_adapter.py": "475bac97278b070c762513b8d5184a1148c511b7bfd05a4506e0fbc3a11634e6",
+        "design-lab/tests/test_illustrator_bridge_paths.py": "9608d2f795c62de96b21513de5140f65628025a80b31c9dffa60ca38f7adff4d",
+        "design-lab/tests/test_illustrator_text_readback.py": "92a31b65453ea830ee65f23f7882204f8b9e6f8f29cca2db0cf0b656da50e9da",
+        "design-lab/tests/test_illustrator_local_patch.py": "e808945c2df1605710955a832c020d6075f039c0b28e5f16e365cc049ba27992",
+        "design-lab/tests/test_illustrator_job_validation.py": "7724ad679d8d329ffead5845df0b93c817f1206686eb2fde4408ffed21be4379",
+        "design-lab/tests/test_illustrator_patch_preflight.py": "8dc2a3ef2f7bf03c4455c12bcb6155d75653f3f743515ce35171f223f33582a3"
+      },
+      "artifacts": [
+        {
+          "path": "design-lab/tests/test_illustrator_com_adapter.py",
+          "sha256": "475bac97278b070c762513b8d5184a1148c511b7bfd05a4506e0fbc3a11634e6"
+        },
+        {
+          "path": ".project-local/task-artifacts/designlab-followup-taskpack-20260928/W00-EVIDENCE-SCAN.json",
+          "sha256": "554fcddf2c2e3c321fbf8d5c74ab389aa6ac20cc0c54cfc41acab37430ee5001"
+        }
+      ],
+      "note": "静态+单元取证（非完成声明）。该任务的实现模块与测试模块在 4c9f18493e90 上均真实存在，且所引测试随权威套件执行通过。实现模块：integrations/hosts/adobe/illustrator/；测试模块 6 个。PARTIAL：未绑定 host_live（无真实 Adobe 宿主运行）与 delivery（无已交付包），故不宣称本任务完成或验收。"
+    },
+    {
+      "id": "r5-012-static-unit-20260928",
+      "task_ids": [
+        "DL-R5-012"
+      ],
+      "kind": "local_test",
+      "outcome": "PARTIAL",
+      "subject_sha": "4c9f18493e909283a5448763f704b3f838531d0a",
+      "binding": "COMMIT",
+      "observed_at": "2026-09-28T14:26:42Z",
+      "software": {
+        "python": "3.13.14 (project .venv)",
+        "runner": "python scripts/run_python_tests.py -> exit 0 at 4c9f18493e90",
+        "os": "Windows"
+      },
+      "subject_files": {
+        "integrations/hosts/adobe/adapter.manifest.json": "6ffcdaef95ac723e8b444e5333c77f678c84addb19e803e26d929146fa7e6d2c",
+        "integrations/hosts/adobe/E3_FIXTURE_PROTOCOL.md": "717ccdf5bfb140ef04163892710b74793b7d879c5bd1d535273961390c12b5b6",
+        "integrations/hosts/adobe/evidence/README.md": "70baf026a88d4aa91bc82b398897cece1ae53f815ab7077c1491f8da552522fb",
+        "integrations/hosts/adobe/illustrator/ASSEMBLY-CONTRACT.md": "61135d72c01b5877ca924348f29a0d8a52f74882b936fd4ac95cc3e2c22bfd1c",
+        "integrations/hosts/adobe/illustrator/reconstruction-assemble.jsx": "4a6369fa5a5bb2d631d1a996ecdceac73eb2ba30653a8bb34d837a7a50cf2fc2",
+        "integrations/hosts/adobe/photoshop-reconstruction/index.js": "e9b3aba0ca85fec4c242cff93a453bea262fbba1c9fea00bda18c30d80bbf92c",
+        "integrations/hosts/adobe/photoshop-reconstruction/legacy-assemble.jsx": "31b05500e54520da566a3b95bec8793bc21e0857c760f7aa04b4e14a3e115828",
+        "integrations/hosts/adobe/photoshop-reconstruction/manifest.json": "a4d0943adf903fa7b2350ae971ceb1b7b68139570ca099597ab2061865c0b5c3",
+        "design-lab/tests/test_photoshop_com_adapter.py": "2f7e8c7851a832751e81ba7474145c02d1355b90c748892191c52e72be914132",
+        "design-lab/tests/test_photoshop_readback_scaling.py": "896a2e066774510508b0857546169988e14aaad5d4e218f361fbb14ae2db0c31",
+        "design-lab/tests/test_photoshop_patch_plan.py": "321248df6ec2bc94431dd66f8c3529b19dad732ab36b0ced0a47ecac7d181275",
+        "design-lab/tests/test_photoshop_runtime_entry.py": "b9e7844ba3edd539c066addd5a7a0e04265a043155979687a4475db934d4a9db",
+        "design-lab/tests/test_photoshop_legacy_native.py": "a1d25c966a1dd25338e99a83c02a724487a2431ea8d0093375db45b260e7e88e"
+      },
+      "artifacts": [
+        {
+          "path": "design-lab/tests/test_photoshop_com_adapter.py",
+          "sha256": "2f7e8c7851a832751e81ba7474145c02d1355b90c748892191c52e72be914132"
+        },
+        {
+          "path": ".project-local/task-artifacts/designlab-followup-taskpack-20260928/W00-EVIDENCE-SCAN.json",
+          "sha256": "554fcddf2c2e3c321fbf8d5c74ab389aa6ac20cc0c54cfc41acab37430ee5001"
+        }
+      ],
+      "note": "静态+单元取证（非完成声明）。该任务的实现模块与测试模块在 4c9f18493e90 上均真实存在，且所引测试随权威套件执行通过。实现模块：integrations/hosts/adobe/；测试模块 5 个。PARTIAL：未绑定 host_live（无真实 Adobe 宿主运行）与 delivery（无已交付包），故不宣称本任务完成或验收。"
+    },
+    {
+      "id": "r5-013-static-unit-20260928",
+      "task_ids": [
+        "DL-R5-013"
+      ],
+      "kind": "local_test",
+      "outcome": "PARTIAL",
+      "subject_sha": "4c9f18493e909283a5448763f704b3f838531d0a",
+      "binding": "COMMIT",
+      "observed_at": "2026-09-28T14:26:42Z",
+      "software": {
+        "python": "3.13.14 (project .venv)",
+        "runner": "python scripts/run_python_tests.py -> exit 0 at 4c9f18493e90",
+        "os": "Windows"
+      },
+      "subject_files": {
+        "src/design_lab/reconstruction/__init__.py": "93a8d54438e18dc5483125a06a1616289b65584f4040521763dc1794a7cb211e",
+        "src/design_lab/reconstruction/__pycache__/__init__.cpython-313.pyc": "2255ae31931a3a3a1814fd2b1a26e91c7901f5d7dad93c8308cb986af58d1046",
+        "src/design_lab/native_plan.py": "06e9f00fc27aa0a89472e3ce25a33f359efe52730751adb28a1c4a2716342ae7",
+        "design-lab/tests/test_ocr_object_plan.py": "48482c155fdf1609ec91fb33a3ec7b927a3266e6256b721eabe80e485b9a75f1",
+        "design-lab/tests/test_planar_decomposition.py": "fad45701bd5b60ced849863f7ad3f5b4f74d58633d143710eeeab8453d34c938",
+        "design-lab/tests/test_reconstruction_layers.py": "062b63828982fed8254e7359ab5976e9a97ada5ca79bf451a5d5648ccc8fd9cc",
+        "design-lab/tests/test_design_ir.py": "fb596a24d541a6a12a11b12eb81348ddcedcd4bd7c7e5a98b1ce35173c785e25",
+        "design-lab/tests/test_reconstruction_fusion.py": "6a84199482b9033347827916016a4c54f685975eeca3cad4e9fc60ce7ea49f42"
+      },
+      "artifacts": [
+        {
+          "path": "design-lab/tests/test_ocr_object_plan.py",
+          "sha256": "48482c155fdf1609ec91fb33a3ec7b927a3266e6256b721eabe80e485b9a75f1"
+        },
+        {
+          "path": ".project-local/task-artifacts/designlab-followup-taskpack-20260928/W00-EVIDENCE-SCAN.json",
+          "sha256": "554fcddf2c2e3c321fbf8d5c74ab389aa6ac20cc0c54cfc41acab37430ee5001"
+        }
+      ],
+      "note": "静态+单元取证（非完成声明）。该任务的实现模块与测试模块在 4c9f18493e90 上均真实存在，且所引测试随权威套件执行通过。实现模块：src/design_lab/reconstruction/、src/design_lab/native_plan.py；测试模块 5 个。PARTIAL：未绑定 host_live（无真实 Adobe 宿主运行）与 delivery（无已交付包），故不宣称本任务完成或验收。"
+    },
+    {
+      "id": "r5-014-static-unit-20260928",
+      "task_ids": [
+        "DL-R5-014"
+      ],
+      "kind": "local_test",
+      "outcome": "PARTIAL",
+      "subject_sha": "4c9f18493e909283a5448763f704b3f838531d0a",
+      "binding": "COMMIT",
+      "observed_at": "2026-09-28T14:26:42Z",
+      "software": {
+        "python": "3.13.14 (project .venv)",
+        "runner": "python scripts/run_python_tests.py -> exit 0 at 4c9f18493e90",
+        "os": "Windows"
+      },
+      "subject_files": {
+        "src/design_lab/assurance/__init__.py": "785754c6a70aa42d4056709a97557efe5b641d69b8e6a1abbdf1fab071280063",
+        "src/design_lab/assurance/__pycache__/__init__.cpython-313.pyc": "78c230d6c1d2c05e176fceb3930759bec15fa39b94145648ba9fc32d9b557ce4",
+        "src/design_lab/assurance/__pycache__/human_jury.cpython-313.pyc": "05f5a07f14599e874ca3936aef4bbccf3a981dc1a34bde5145457f662000783f",
+        "src/design_lab/assurance/__pycache__/knowledge_feedback.cpython-313.pyc": "90c306136918ae65e26e2df3509d85811c6acbf9dda4da81cc2244b47d861728",
+        "src/design_lab/assurance/__pycache__/qa_plane.cpython-313.pyc": "c4ce86a0536f16821279460956587915dbafb044e919268949e5637aca6d0a7e",
+        "src/design_lab/assurance/__pycache__/quality_record.cpython-313.pyc": "9fb7ddccdfe4882899f0dd6607cde0f1d822a9dfb0bf5b5cb226275ab21e953d",
+        "src/design_lab/assurance/handoff_readiness.py": "88f10d2dabdfa725db6fa4999701540dfaa648c06b77b4800e6d9e593404ce71",
+        "src/design_lab/assurance/human_jury.py": "f0ae2edf876f8ff307ed4a58ce79c2420a1ad119e4910f97b90322ebf52c86df",
+        "packages/capabilities/quality/jury/__pycache__/check_anti_slop.cpython-311.pyc": "cd1ee2a2f82f1f82508caf68fe9da7db630a55bae8f4df233d441a8d64ba42d2",
+        "packages/capabilities/quality/jury/__pycache__/check_anti_slop.cpython-313.pyc": "e99f6ed3958038686b418a19fefd8d4c711f6d4943cd9bb1c00094c91cfd09a4",
+        "packages/capabilities/quality/jury/check_anti_slop.py": "977a1ba3255844cb91e7864d7d5dda2d539c7b35f2c798cc7b21efdeecf39355",
+        "packages/capabilities/quality/jury/JURY_MODEL.md": "ede33c5d67b817545254db85f8c044de19c48502ef6fc27ca2beb3237edc4bd3",
+        "packages/capabilities/quality/jury/JuryRecord.template.json": "8a018e20b826b5e4fb96753630844e43977e33567065160a1a197667ee71604d",
+        "design-lab/tests/test_assurance_jury.py": "152671fadcbb0a729e5b0aaba2cc05db510a276b5e96d0bde3e6d66870b8ac0f",
+        "design-lab/tests/test_assurance_quality_record.py": "93f1f69f28bd8e48913e701c6ec247bfda00fd4fd244d0be9753707bb17393ab",
+        "design-lab/tests/test_assurance_qa_plane.py": "387b21571b748d46c52a135448f8610b7c847a9155c7a08bc1592a2dad945c99",
+        "design-lab/tests/test_production_preflight.py": "9fdaa3a99f0647e57085454e19f4747060967a11343498151f3483dd00d16a6e",
+        "design-lab/tests/test_quality_gate.py": "3c8823bde28994591e7f661f752907b36fce9d5079271d07a8c7a5103263d5ef",
+        "design-lab/tests/test_quality_pipeline.py": "547eab0c6fcef7b3843c8e5e27d5d174ef1ca4858663e536ef80abe3ab5f5870"
+      },
+      "artifacts": [
+        {
+          "path": "design-lab/tests/test_assurance_jury.py",
+          "sha256": "152671fadcbb0a729e5b0aaba2cc05db510a276b5e96d0bde3e6d66870b8ac0f"
+        },
+        {
+          "path": ".project-local/task-artifacts/designlab-followup-taskpack-20260928/W00-EVIDENCE-SCAN.json",
+          "sha256": "554fcddf2c2e3c321fbf8d5c74ab389aa6ac20cc0c54cfc41acab37430ee5001"
+        }
+      ],
+      "note": "静态+单元取证（非完成声明）。该任务的实现模块与测试模块在 4c9f18493e90 上均真实存在，且所引测试随权威套件执行通过。实现模块：src/design_lab/assurance/、packages/capabilities/quality/jury/；测试模块 6 个。PARTIAL：未绑定 host_live（无真实 Adobe 宿主运行）与 delivery（无已交付包），故不宣称本任务完成或验收。"
+    },
+    {
+      "id": "r5-015-static-unit-20260928",
+      "task_ids": [
+        "DL-R5-015"
+      ],
+      "kind": "local_test",
+      "outcome": "PARTIAL",
+      "subject_sha": "4c9f18493e909283a5448763f704b3f838531d0a",
+      "binding": "COMMIT",
+      "observed_at": "2026-09-28T14:26:42Z",
+      "software": {
+        "python": "3.13.14 (project .venv)",
+        "runner": "python scripts/run_python_tests.py -> exit 0 at 4c9f18493e90",
+        "os": "Windows"
+      },
+      "subject_files": {
+        "design-lab/config/product-manifest.json": "63348b37ad5ceb5b4932f8b6d3abd51111826151a0b21a4c195068fadf499e04",
+        "design-lab/tests/test_release_gate.py": "da4be92d3975024b6e9c8447f486071b0f4b4aa637e7c9c1e04b3197de5609a3",
+        "design-lab/tests/test_release_gate_effective.py": "1e02a3ee4c233a4e145acb654b8141dc78031997df74037dfba0f2ea6605c43d",
+        "design-lab/tests/test_release_preflight.py": "df4de5375284ff959a5569b10deb90b4906c1c932d88bfcfb2616893d0c9a480",
+        "design-lab/tests/test_handoff_readiness.py": "ee2697b5b68622d12d642fab8ce4e1cfdb04acbcf06e1b8e822e75badc7866da"
+      },
+      "artifacts": [
+        {
+          "path": "design-lab/tests/test_release_gate.py",
+          "sha256": "da4be92d3975024b6e9c8447f486071b0f4b4aa637e7c9c1e04b3197de5609a3"
+        },
+        {
+          "path": ".project-local/task-artifacts/designlab-followup-taskpack-20260928/W00-EVIDENCE-SCAN.json",
+          "sha256": "554fcddf2c2e3c321fbf8d5c74ab389aa6ac20cc0c54cfc41acab37430ee5001"
+        }
+      ],
+      "note": "静态+单元取证（非完成声明）。该任务的实现模块与测试模块在 4c9f18493e90 上均真实存在，且所引测试随权威套件执行通过。实现模块：design-lab/config/product-manifest.json；测试模块 4 个。PARTIAL：未绑定 host_live（无真实 Adobe 宿主运行）与 delivery（无已交付包），故不宣称本任务完成或验收。"
+    },
+    {
+      "id": "r5-016-static-unit-20260928",
+      "task_ids": [
+        "DL-R5-016"
+      ],
+      "kind": "local_test",
+      "outcome": "PARTIAL",
+      "subject_sha": "4c9f18493e909283a5448763f704b3f838531d0a",
+      "binding": "COMMIT",
+      "observed_at": "2026-09-28T14:26:42Z",
+      "software": {
+        "python": "3.13.14 (project .venv)",
+        "runner": "python scripts/run_python_tests.py -> exit 0 at 4c9f18493e90",
+        "os": "Windows"
+      },
+      "subject_files": {
+        "src/design_lab/interop/__init__.py": "00b913119c1b2e5cbb4e4cd3c9c1b9ee457b83ad0b7d28fed4d6e95b9eff712d",
+        "src/design_lab/interop/__pycache__/__init__.cpython-313.pyc": "b39468bf926720d40688b3efea04766ba5b6ccc309a0c4773d3de814154e6cb1",
+        "src/design_lab/interop/__pycache__/delivery_receipt.cpython-313.pyc": "ca472a712512d00797e53292ff2078285ede5b078a4002205e362db8897da571",
+        "src/design_lab/interop/__pycache__/dtcg.cpython-313.pyc": "7d8363b2a25a28ec19d87500a8ade0eb7ac747869d72246d9bdd7df5b8a81208",
+        "src/design_lab/interop/__pycache__/penpot.cpython-313.pyc": "866e2209a9fbe296de3664361eb03f19996813ca40f8410b4395cc88502dc6d6",
+        "src/design_lab/interop/__pycache__/provenance.cpython-313.pyc": "313dc010476134ec9b045f9b75f0dc06b1de3d1e2064613ed124b67450577d95",
+        "src/design_lab/interop/__pycache__/timeline.cpython-313.pyc": "332bf40a64eb62e8f021186192ba45e736cfb2481c9a4ee7a616d32cad7988a0",
+        "src/design_lab/interop/delivery_receipt.py": "dbe0c665528b46c9bc8519408f7315acb9b281ed8cc3e412df9c3026c15afa82",
+        "design-lab/tests/test_media_audio.py": "4dca2823cc9d2aba45fed63a75e7698b8f0f8f10a14169b07e9fb1d8940968c0"
+      },
+      "artifacts": [
+        {
+          "path": "design-lab/tests/test_media_audio.py",
+          "sha256": "4dca2823cc9d2aba45fed63a75e7698b8f0f8f10a14169b07e9fb1d8940968c0"
+        },
+        {
+          "path": ".project-local/task-artifacts/designlab-followup-taskpack-20260928/W00-EVIDENCE-SCAN.json",
+          "sha256": "554fcddf2c2e3c321fbf8d5c74ab389aa6ac20cc0c54cfc41acab37430ee5001"
+        }
+      ],
+      "note": "静态+单元取证（非完成声明）。该任务的实现模块与测试模块在 4c9f18493e90 上均真实存在，且所引测试随权威套件执行通过。实现模块：src/design_lab/interop/；测试模块 1 个。PARTIAL：未绑定 host_live（无真实 Adobe 宿主运行）与 delivery（无已交付包），故不宣称本任务完成或验收。"
+    },
+    {
+      "id": "r5-017-static-unit-20260928",
+      "task_ids": [
+        "DL-R5-017"
+      ],
+      "kind": "local_test",
+      "outcome": "PARTIAL",
+      "subject_sha": "4c9f18493e909283a5448763f704b3f838531d0a",
+      "binding": "COMMIT",
+      "observed_at": "2026-09-28T14:26:42Z",
+      "software": {
+        "python": "3.13.14 (project .venv)",
+        "runner": "python scripts/run_python_tests.py -> exit 0 at 4c9f18493e90",
+        "os": "Windows"
+      },
+      "subject_files": {
+        "src/design_lab/interop/__init__.py": "00b913119c1b2e5cbb4e4cd3c9c1b9ee457b83ad0b7d28fed4d6e95b9eff712d",
+        "src/design_lab/interop/__pycache__/__init__.cpython-313.pyc": "b39468bf926720d40688b3efea04766ba5b6ccc309a0c4773d3de814154e6cb1",
+        "src/design_lab/interop/__pycache__/delivery_receipt.cpython-313.pyc": "ca472a712512d00797e53292ff2078285ede5b078a4002205e362db8897da571",
+        "src/design_lab/interop/__pycache__/dtcg.cpython-313.pyc": "7d8363b2a25a28ec19d87500a8ade0eb7ac747869d72246d9bdd7df5b8a81208",
+        "src/design_lab/interop/__pycache__/penpot.cpython-313.pyc": "866e2209a9fbe296de3664361eb03f19996813ca40f8410b4395cc88502dc6d6",
+        "src/design_lab/interop/__pycache__/provenance.cpython-313.pyc": "313dc010476134ec9b045f9b75f0dc06b1de3d1e2064613ed124b67450577d95",
+        "src/design_lab/interop/__pycache__/timeline.cpython-313.pyc": "332bf40a64eb62e8f021186192ba45e736cfb2481c9a4ee7a616d32cad7988a0",
+        "src/design_lab/interop/delivery_receipt.py": "dbe0c665528b46c9bc8519408f7315acb9b281ed8cc3e412df9c3026c15afa82",
+        "design-lab/tests/test_media_audio.py": "4dca2823cc9d2aba45fed63a75e7698b8f0f8f10a14169b07e9fb1d8940968c0"
+      },
+      "artifacts": [
+        {
+          "path": "design-lab/tests/test_media_audio.py",
+          "sha256": "4dca2823cc9d2aba45fed63a75e7698b8f0f8f10a14169b07e9fb1d8940968c0"
+        },
+        {
+          "path": ".project-local/task-artifacts/designlab-followup-taskpack-20260928/W00-EVIDENCE-SCAN.json",
+          "sha256": "554fcddf2c2e3c321fbf8d5c74ab389aa6ac20cc0c54cfc41acab37430ee5001"
+        }
+      ],
+      "note": "静态+单元取证（非完成声明）。该任务的实现模块与测试模块在 4c9f18493e90 上均真实存在，且所引测试随权威套件执行通过。实现模块：src/design_lab/interop/；测试模块 1 个。PARTIAL：未绑定 host_live（无真实 Adobe 宿主运行）与 delivery（无已交付包），故不宣称本任务完成或验收。"
+    },
+    {
+      "id": "r5-018-static-unit-20260928",
+      "task_ids": [
+        "DL-R5-018"
+      ],
+      "kind": "local_test",
+      "outcome": "PARTIAL",
+      "subject_sha": "4c9f18493e909283a5448763f704b3f838531d0a",
+      "binding": "COMMIT",
+      "observed_at": "2026-09-28T14:26:42Z",
+      "software": {
+        "python": "3.13.14 (project .venv)",
+        "runner": "python scripts/run_python_tests.py -> exit 0 at 4c9f18493e90",
+        "os": "Windows"
+      },
+      "subject_files": {
+        "integrations/generators/minimax-h3/adapter.manifest.json": "fe0cba97008aadfae66f50eefed723cca67548fd23d4a1e5ea53041650977a1d",
+        "integrations/generators/minimax-h3/evidence/dl_h3_prod_audio.flac": "c641b38df6575cccee44c8b0f5e1ca395a1cf7ffb40df946b0553d17207c6dd2",
+        "integrations/generators/minimax-h3/evidence/dl_h3_prod_audio.flac.license": "4d1f8a5fa6699d64d53c2c6cf4f56eb6cacbe9b7ce1512504ac287d7e9065d08",
+        "integrations/generators/minimax-h3/evidence/E2-20260816-models-mounted.md": "2d0cb3145352a8eef29b0f8246a5a8fcf2b3f9584db762113e5909e486685ad6",
+        "integrations/generators/minimax-h3/evidence/E3-20260814.md": "1bb6c6eb03466002d48ff9bcd495bc65303dddea26aedd80e2650ea3ca0ee9dc",
+        "integrations/generators/minimax-h3/evidence/E3-20260816-end-to-end-generation.md": "b6a3f62c1ea1daaa554cfc9b0e35028974175aba4ccb3e8e7c2faa6dba6e7434",
+        "integrations/generators/minimax-h3/evidence/README.md": "17d947f7646699a6fef1d39f36997795a1a0f8d83c75032ea369e4e6127faa7f",
+        "integrations/generators/minimax-h3/rights-and-provider-policy.md": "fbdff9adb4b00f571653d0cd583a86d8ba0325a52f0e9ff0cc5a5c9a42920553",
+        "design-lab/tests/test_creative_generative.py": "0a45c70433fd126164284b690796cf5374f3adda4934817c320b39990f0abab5"
+      },
+      "artifacts": [
+        {
+          "path": "design-lab/tests/test_creative_generative.py",
+          "sha256": "0a45c70433fd126164284b690796cf5374f3adda4934817c320b39990f0abab5"
+        },
+        {
+          "path": ".project-local/task-artifacts/designlab-followup-taskpack-20260928/W00-EVIDENCE-SCAN.json",
+          "sha256": "554fcddf2c2e3c321fbf8d5c74ab389aa6ac20cc0c54cfc41acab37430ee5001"
+        }
+      ],
+      "note": "静态+单元取证（非完成声明）。该任务的实现模块与测试模块在 4c9f18493e90 上均真实存在，且所引测试随权威套件执行通过。实现模块：integrations/generators/minimax-h3/；测试模块 1 个。PARTIAL：未绑定 host_live（无真实 Adobe 宿主运行）与 delivery（无已交付包），故不宣称本任务完成或验收。"
+    },
+    {
+      "id": "r5-019-static-unit-20260928",
+      "task_ids": [
+        "DL-R5-019"
+      ],
+      "kind": "local_test",
+      "outcome": "PARTIAL",
+      "subject_sha": "4c9f18493e909283a5448763f704b3f838531d0a",
+      "binding": "COMMIT",
+      "observed_at": "2026-09-28T14:26:42Z",
+      "software": {
+        "python": "3.13.14 (project .venv)",
+        "runner": "python scripts/run_python_tests.py -> exit 0 at 4c9f18493e90",
+        "os": "Windows"
+      },
+      "subject_files": {
+        "src/design_lab/interop/__init__.py": "00b913119c1b2e5cbb4e4cd3c9c1b9ee457b83ad0b7d28fed4d6e95b9eff712d",
+        "src/design_lab/interop/__pycache__/__init__.cpython-313.pyc": "b39468bf926720d40688b3efea04766ba5b6ccc309a0c4773d3de814154e6cb1",
+        "src/design_lab/interop/__pycache__/delivery_receipt.cpython-313.pyc": "ca472a712512d00797e53292ff2078285ede5b078a4002205e362db8897da571",
+        "src/design_lab/interop/__pycache__/dtcg.cpython-313.pyc": "7d8363b2a25a28ec19d87500a8ade0eb7ac747869d72246d9bdd7df5b8a81208",
+        "src/design_lab/interop/__pycache__/penpot.cpython-313.pyc": "866e2209a9fbe296de3664361eb03f19996813ca40f8410b4395cc88502dc6d6",
+        "src/design_lab/interop/__pycache__/provenance.cpython-313.pyc": "313dc010476134ec9b045f9b75f0dc06b1de3d1e2064613ed124b67450577d95",
+        "src/design_lab/interop/__pycache__/timeline.cpython-313.pyc": "332bf40a64eb62e8f021186192ba45e736cfb2481c9a4ee7a616d32cad7988a0",
+        "src/design_lab/interop/delivery_receipt.py": "dbe0c665528b46c9bc8519408f7315acb9b281ed8cc3e412df9c3026c15afa82",
+        "design-lab/tests/test_interop_timeline.py": "203675d2e7992619020eaabc7ceadf82617c270f5e79cd80f01d1b580f4d3748"
+      },
+      "artifacts": [
+        {
+          "path": "design-lab/tests/test_interop_timeline.py",
+          "sha256": "203675d2e7992619020eaabc7ceadf82617c270f5e79cd80f01d1b580f4d3748"
+        },
+        {
+          "path": ".project-local/task-artifacts/designlab-followup-taskpack-20260928/W00-EVIDENCE-SCAN.json",
+          "sha256": "554fcddf2c2e3c321fbf8d5c74ab389aa6ac20cc0c54cfc41acab37430ee5001"
+        }
+      ],
+      "note": "静态+单元取证（非完成声明）。该任务的实现模块与测试模块在 4c9f18493e90 上均真实存在，且所引测试随权威套件执行通过。实现模块：src/design_lab/interop/；测试模块 1 个。PARTIAL：未绑定 host_live（无真实 Adobe 宿主运行）与 delivery（无已交付包），故不宣称本任务完成或验收。"
+    },
+    {
+      "id": "r5-020-static-unit-20260928",
+      "task_ids": [
+        "DL-R5-020"
+      ],
+      "kind": "local_test",
+      "outcome": "PARTIAL",
+      "subject_sha": "4c9f18493e909283a5448763f704b3f838531d0a",
+      "binding": "COMMIT",
+      "observed_at": "2026-09-28T14:26:42Z",
+      "software": {
+        "python": "3.13.14 (project .venv)",
+        "runner": "python scripts/run_python_tests.py -> exit 0 at 4c9f18493e90",
+        "os": "Windows"
+      },
+      "subject_files": {
+        "src/design_lab/interop/__init__.py": "00b913119c1b2e5cbb4e4cd3c9c1b9ee457b83ad0b7d28fed4d6e95b9eff712d",
+        "src/design_lab/interop/__pycache__/__init__.cpython-313.pyc": "b39468bf926720d40688b3efea04766ba5b6ccc309a0c4773d3de814154e6cb1",
+        "src/design_lab/interop/__pycache__/delivery_receipt.cpython-313.pyc": "ca472a712512d00797e53292ff2078285ede5b078a4002205e362db8897da571",
+        "src/design_lab/interop/__pycache__/dtcg.cpython-313.pyc": "7d8363b2a25a28ec19d87500a8ade0eb7ac747869d72246d9bdd7df5b8a81208",
+        "src/design_lab/interop/__pycache__/penpot.cpython-313.pyc": "866e2209a9fbe296de3664361eb03f19996813ca40f8410b4395cc88502dc6d6",
+        "src/design_lab/interop/__pycache__/provenance.cpython-313.pyc": "313dc010476134ec9b045f9b75f0dc06b1de3d1e2064613ed124b67450577d95",
+        "src/design_lab/interop/__pycache__/timeline.cpython-313.pyc": "332bf40a64eb62e8f021186192ba45e736cfb2481c9a4ee7a616d32cad7988a0",
+        "src/design_lab/interop/delivery_receipt.py": "dbe0c665528b46c9bc8519408f7315acb9b281ed8cc3e412df9c3026c15afa82",
+        "design-lab/tests/test_media_three_d.py": "795fb3341dcb0088e89daae9df3ec15e7301327bda4ffcf0b6b16aa8a1278341"
+      },
+      "artifacts": [
+        {
+          "path": "design-lab/tests/test_media_three_d.py",
+          "sha256": "795fb3341dcb0088e89daae9df3ec15e7301327bda4ffcf0b6b16aa8a1278341"
+        },
+        {
+          "path": ".project-local/task-artifacts/designlab-followup-taskpack-20260928/W00-EVIDENCE-SCAN.json",
+          "sha256": "554fcddf2c2e3c321fbf8d5c74ab389aa6ac20cc0c54cfc41acab37430ee5001"
+        }
+      ],
+      "note": "静态+单元取证（非完成声明）。该任务的实现模块与测试模块在 4c9f18493e90 上均真实存在，且所引测试随权威套件执行通过。实现模块：src/design_lab/interop/；测试模块 1 个。PARTIAL：未绑定 host_live（无真实 Adobe 宿主运行）与 delivery（无已交付包），故不宣称本任务完成或验收。"
+    },
+    {
+      "id": "r5-021-static-unit-20260928",
+      "task_ids": [
+        "DL-R5-021"
+      ],
+      "kind": "local_test",
+      "outcome": "PARTIAL",
+      "subject_sha": "4c9f18493e909283a5448763f704b3f838531d0a",
+      "binding": "COMMIT",
+      "observed_at": "2026-09-28T14:26:42Z",
+      "software": {
+        "python": "3.13.14 (project .venv)",
+        "runner": "python scripts/run_python_tests.py -> exit 0 at 4c9f18493e90",
+        "os": "Windows"
+      },
+      "subject_files": {
+        "integrations/executors/agents/codex/.gitkeep": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "integrations/executors/agents/hermes/.gitkeep": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "integrations/hosts/open-design/adapter.manifest.json": "de764dc0c39a0033e3674deb8cb8a772ee91f9cacd4e006c61d09dfeea655d6f",
+        "integrations/hosts/open-design/evidence/G2-real-artifact-20260819.md": "171b84ad0979f79ff4b262fa9982d1e44e5f54a35434ddc5d64f3aeed112f391",
+        "integrations/hosts/open-design/evidence/README.md": "714f887cf08b31c8e29fbe47dbf42263e1da3d7ddd8cf23b816c1366c016ecff",
+        "integrations/hosts/open-design/expert-suite/skills/b2b-backoffice-designer/SKILL.md": "cf542e1d16c9f41988b8e2f792b8f00382735338f2691c1ca0d7e246985eef32",
+        "integrations/hosts/open-design/expert-suite/skills/brand-identity-director/SKILL.md": "b0425a6cc9bf11d5313f240906ccb3f86f362d563bd267d0a71efee878c8d7e1",
+        "integrations/hosts/open-design/expert-suite/skills/design-source-curator/SKILL.md": "253bfca9252f955949551cb3268647fd8f5112532b6aface9207c54e19f7b506",
+        "integrations/hosts/open-design/expert-suite/skills/ecommerce-pdp-designer/SKILL.md": "9b2d42b80ddf5ea9dfdbf53ab38e524f95b209981f6b2834d2ab8e8a723d813a",
+        "integrations/hosts/open-design/expert-suite/skills/master-method-translator/SKILL.md": "25ac113f15b91b97808db9e58872923f53cc0af21db7be5aea321fc645b5a826",
+        "integrations/adapter-registry.json": "f2b2b579ea2c060589c01795eb6e45c4ff2b51af5a0b982278ba762142babb56",
+        "design-lab/tests/test_open_design_host_adapter_neutrality.py": "8e35fcbc623aa277a7f8d24466edce1160edb92723eb0a9de86add9151f75ae3",
+        "design-lab/tests/test_federation_e2e.py": "63421516069d011f6cadc88580967ca36f64a9cb18b1ccca06a8a9620f9d3ca4",
+        "design-lab/tests/test_federation_review.py": "b11e5f48710320ffc3f9df40368f30f9db0b39260f6dc9e1ee2236828aebba7e",
+        "design-lab/tests/test_adapter_spi.py": "cf63fd86b7d611063cc745850ac7a3c346cd442c06d51447c422834d8c954b43"
+      },
+      "artifacts": [
+        {
+          "path": "design-lab/tests/test_open_design_host_adapter_neutrality.py",
+          "sha256": "8e35fcbc623aa277a7f8d24466edce1160edb92723eb0a9de86add9151f75ae3"
+        },
+        {
+          "path": ".project-local/task-artifacts/designlab-followup-taskpack-20260928/W00-EVIDENCE-SCAN.json",
+          "sha256": "554fcddf2c2e3c321fbf8d5c74ab389aa6ac20cc0c54cfc41acab37430ee5001"
+        }
+      ],
+      "note": "静态+单元取证（非完成声明）。该任务的实现模块与测试模块在 4c9f18493e90 上均真实存在，且所引测试随权威套件执行通过。实现模块：integrations/executors/agents/、integrations/hosts/open-design/、integrations/adapter-registry.json；测试模块 4 个。PARTIAL：未绑定 host_live（无真实 Adobe 宿主运行）与 delivery（无已交付包），故不宣称本任务完成或验收。"
+    },
+    {
+      "id": "r5-022-static-unit-20260928",
+      "task_ids": [
+        "DL-R5-022"
+      ],
+      "kind": "local_test",
+      "outcome": "PARTIAL",
+      "subject_sha": "4c9f18493e909283a5448763f704b3f838531d0a",
+      "binding": "COMMIT",
+      "observed_at": "2026-09-28T14:26:42Z",
+      "software": {
+        "python": "3.13.14 (project .venv)",
+        "runner": "python scripts/run_python_tests.py -> exit 0 at 4c9f18493e90",
+        "os": "Windows"
+      },
+      "subject_files": {
+        "src/design_lab/interop/__init__.py": "00b913119c1b2e5cbb4e4cd3c9c1b9ee457b83ad0b7d28fed4d6e95b9eff712d",
+        "src/design_lab/interop/__pycache__/__init__.cpython-313.pyc": "b39468bf926720d40688b3efea04766ba5b6ccc309a0c4773d3de814154e6cb1",
+        "src/design_lab/interop/__pycache__/delivery_receipt.cpython-313.pyc": "ca472a712512d00797e53292ff2078285ede5b078a4002205e362db8897da571",
+        "src/design_lab/interop/__pycache__/dtcg.cpython-313.pyc": "7d8363b2a25a28ec19d87500a8ade0eb7ac747869d72246d9bdd7df5b8a81208",
+        "src/design_lab/interop/__pycache__/penpot.cpython-313.pyc": "866e2209a9fbe296de3664361eb03f19996813ca40f8410b4395cc88502dc6d6",
+        "src/design_lab/interop/__pycache__/provenance.cpython-313.pyc": "313dc010476134ec9b045f9b75f0dc06b1de3d1e2064613ed124b67450577d95",
+        "src/design_lab/interop/__pycache__/timeline.cpython-313.pyc": "332bf40a64eb62e8f021186192ba45e736cfb2481c9a4ee7a616d32cad7988a0",
+        "src/design_lab/interop/delivery_receipt.py": "dbe0c665528b46c9bc8519408f7315acb9b281ed8cc3e412df9c3026c15afa82",
+        "design-lab/tests/test_interop_provenance.py": "0e9706c852681ba98b1670c79c6a3e39874d6de9b246a44347282ea3eb6916c4",
+        "design-lab/tests/test_interop_dtcg.py": "7966d77272c8f696da73882ab7979f1808c81087b7a97c30dbc4721f774bf269"
+      },
+      "artifacts": [
+        {
+          "path": "design-lab/tests/test_interop_provenance.py",
+          "sha256": "0e9706c852681ba98b1670c79c6a3e39874d6de9b246a44347282ea3eb6916c4"
+        },
+        {
+          "path": ".project-local/task-artifacts/designlab-followup-taskpack-20260928/W00-EVIDENCE-SCAN.json",
+          "sha256": "554fcddf2c2e3c321fbf8d5c74ab389aa6ac20cc0c54cfc41acab37430ee5001"
+        }
+      ],
+      "note": "静态+单元取证（非完成声明）。该任务的实现模块与测试模块在 4c9f18493e90 上均真实存在，且所引测试随权威套件执行通过。实现模块：src/design_lab/interop/；测试模块 2 个。PARTIAL：未绑定 host_live（无真实 Adobe 宿主运行）与 delivery（无已交付包），故不宣称本任务完成或验收。"
+    },
+    {
+      "id": "r5-023-static-unit-20260928",
+      "task_ids": [
+        "DL-R5-023"
+      ],
+      "kind": "local_test",
+      "outcome": "PARTIAL",
+      "subject_sha": "4c9f18493e909283a5448763f704b3f838531d0a",
+      "binding": "COMMIT",
+      "observed_at": "2026-09-28T14:26:42Z",
+      "software": {
+        "python": "3.13.14 (project .venv)",
+        "runner": "python scripts/run_python_tests.py -> exit 0 at 4c9f18493e90",
+        "os": "Windows"
+      },
+      "subject_files": {
+        "scripts/generate_current_reports.py": "5f7d89e1e201fb901618189e655a1f191acedeacbd8c81c66fa52c9b4b09aae2",
+        "design-lab/tests/test_history_baseline_retrieval.py": "4ac63874e831c7833b99de876751d00591e824378828042d6d63fa7c068c42fe",
+        "design-lab/tests/test_migration_preview.py": "b75d7e76d738ac43701f425bb6b3ce2b23dd5d6421d27c7161cb1b7389171ce9",
+        "design-lab/tests/test_release_preflight.py": "df4de5375284ff959a5569b10deb90b4906c1c932d88bfcfb2616893d0c9a480"
+      },
+      "artifacts": [
+        {
+          "path": "design-lab/tests/test_history_baseline_retrieval.py",
+          "sha256": "4ac63874e831c7833b99de876751d00591e824378828042d6d63fa7c068c42fe"
+        },
+        {
+          "path": ".project-local/task-artifacts/designlab-followup-taskpack-20260928/W00-EVIDENCE-SCAN.json",
+          "sha256": "554fcddf2c2e3c321fbf8d5c74ab389aa6ac20cc0c54cfc41acab37430ee5001"
+        }
+      ],
+      "note": "静态+单元取证（非完成声明）。该任务的实现模块与测试模块在 4c9f18493e90 上均真实存在，且所引测试随权威套件执行通过。实现模块：scripts/generate_current_reports.py；测试模块 3 个。PARTIAL：未绑定 host_live（无真实 Adobe 宿主运行）与 delivery（无已交付包），故不宣称本任务完成或验收。"
+    },
+    {
+      "id": "r5-024-static-unit-20260928",
+      "task_ids": [
+        "DL-R5-024"
+      ],
+      "kind": "local_test",
+      "outcome": "PARTIAL",
+      "subject_sha": "4c9f18493e909283a5448763f704b3f838531d0a",
+      "binding": "COMMIT",
+      "observed_at": "2026-09-28T14:26:42Z",
+      "software": {
+        "python": "3.13.14 (project .venv)",
+        "runner": "python scripts/run_python_tests.py -> exit 0 at 4c9f18493e90",
+        "os": "Windows"
+      },
+      "subject_files": {
+        "src/design_lab/adapters/__init__.py": "71d19007990563e2ecd3ee10b441898e6ea968a74864dee00b5d572ef7de82ce",
+        "src/design_lab/adapters/__pycache__/__init__.cpython-313.pyc": "f4b46db0a6f3ba62f6bda1942fcb721abf700af1f3d241e9c10cfb225cc11530",
+        "src/design_lab/adapters/__pycache__/illustrator_com.cpython-313.pyc": "7a18de02d7cdc4cc9e13ceddad8189a6741287deb6f6867a782dbe5ab296ef8c",
+        "src/design_lab/adapters/__pycache__/photoshop_com.cpython-313.pyc": "3b2221dff00b8fe096874e34cb79d2b0bb18ca0918fbadf1409895c60508f35c",
+        "src/design_lab/adapters/__pycache__/spi.cpython-313.pyc": "d5043f3ab26ca87ed3257f578c07cf6f10c751d318bc63689655e4d714d90429",
+        "src/design_lab/adapters/illustrator_com.py": "174441fd3626267e8bba9a51c5cdb2ca2a9a82c1dfe1adee128439b8f4b594bb",
+        "src/design_lab/adapters/photoshop_com.py": "df6733334f0e5775ac1a07206c1dcd752afc5faf2ff5f6b84a82f2497d23b4da",
+        "src/design_lab/adapters/spi.py": "b9cb9382f39b484db10fad66cfc701776f02b0d712d4b2ea668fe7e4657998ff",
+        "design-lab/tests/test_control_capability_matrix.py": "5979efbf1edb61d4e88f8d2090e91e960c1b9a570e2faddc0958c5f42354742f",
+        "design-lab/tests/test_adapter_locator_audit.py": "90e6ad4d932a24ef2a9322217a0d378dbcf1d5e90232c0846b7c2cffdef7c5fd"
+      },
+      "artifacts": [
+        {
+          "path": "design-lab/tests/test_control_capability_matrix.py",
+          "sha256": "5979efbf1edb61d4e88f8d2090e91e960c1b9a570e2faddc0958c5f42354742f"
+        },
+        {
+          "path": ".project-local/task-artifacts/designlab-followup-taskpack-20260928/W00-EVIDENCE-SCAN.json",
+          "sha256": "554fcddf2c2e3c321fbf8d5c74ab389aa6ac20cc0c54cfc41acab37430ee5001"
+        }
+      ],
+      "note": "静态+单元取证（非完成声明）。该任务的实现模块与测试模块在 4c9f18493e90 上均真实存在，且所引测试随权威套件执行通过。实现模块：src/design_lab/adapters/；测试模块 2 个。PARTIAL：未绑定 host_live（无真实 Adobe 宿主运行）与 delivery（无已交付包），故不宣称本任务完成或验收。"
+    },
+    {
+      "id": "r5-025-static-unit-20260928",
+      "task_ids": [
+        "DL-R5-025"
+      ],
+      "kind": "local_test",
+      "outcome": "PARTIAL",
+      "subject_sha": "4c9f18493e909283a5448763f704b3f838531d0a",
+      "binding": "COMMIT",
+      "observed_at": "2026-09-28T14:26:42Z",
+      "software": {
+        "python": "3.13.14 (project .venv)",
+        "runner": "python scripts/run_python_tests.py -> exit 0 at 4c9f18493e90",
+        "os": "Windows"
+      },
+      "subject_files": {
+        "src/design_lab/generators/__init__.py": "3e7a20c0e69689daa28b783f4632a67cf86b3824c1911d4ea8da7c6c95d39844",
+        "src/design_lab/generators/__pycache__/__init__.cpython-313.pyc": "27ab0f08ff503208576d8c0c64292fb4d1b5d40c74079488dc3a02bcf3246375",
+        "src/design_lab/generators/__pycache__/comfy_http.cpython-313.pyc": "ee57b66a5d666a2ad0d25dcd89ba2bdd3ea1a3f40460e6da54c5eaf3ca8446f0",
+        "src/design_lab/generators/__pycache__/comfy_task.cpython-313.pyc": "1ebd517fc07e88ace63bbdf6ca6d092ae2a234f02a4f2b1a896a59dd0de68ca5",
+        "src/design_lab/generators/comfy_http.py": "d8bb2404197bf9014aa550ac100a07ede014c9e6721ff3483c12c54e1d96fdcc",
+        "src/design_lab/generators/comfy_task.py": "7a4d43efa734d48398d985bfd2642b3954effe5de788626f682c051efea36b91",
+        "design-lab/tests/test_comfy_task_protocol.py": "9e478473f620a77755a1310382be3df4a2e382a21e2a7486784f811ad5aedde6"
+      },
+      "artifacts": [
+        {
+          "path": "design-lab/tests/test_comfy_task_protocol.py",
+          "sha256": "9e478473f620a77755a1310382be3df4a2e382a21e2a7486784f811ad5aedde6"
+        },
+        {
+          "path": ".project-local/task-artifacts/designlab-followup-taskpack-20260928/W00-EVIDENCE-SCAN.json",
+          "sha256": "554fcddf2c2e3c321fbf8d5c74ab389aa6ac20cc0c54cfc41acab37430ee5001"
+        }
+      ],
+      "note": "静态+单元取证（非完成声明）。该任务的实现模块与测试模块在 4c9f18493e90 上均真实存在，且所引测试随权威套件执行通过。实现模块：src/design_lab/generators/；测试模块 1 个。PARTIAL：未绑定 host_live（无真实 Adobe 宿主运行）与 delivery（无已交付包），故不宣称本任务完成或验收。"
+    },
+    {
+      "id": "r5-026-static-unit-20260928",
+      "task_ids": [
+        "DL-R5-026"
+      ],
+      "kind": "local_test",
+      "outcome": "PARTIAL",
+      "subject_sha": "4c9f18493e909283a5448763f704b3f838531d0a",
+      "binding": "COMMIT",
+      "observed_at": "2026-09-28T14:26:42Z",
+      "software": {
+        "python": "3.13.14 (project .venv)",
+        "runner": "python scripts/run_python_tests.py -> exit 0 at 4c9f18493e90",
+        "os": "Windows"
+      },
+      "subject_files": {
+        "src/design_lab/generators/__init__.py": "3e7a20c0e69689daa28b783f4632a67cf86b3824c1911d4ea8da7c6c95d39844",
+        "src/design_lab/generators/__pycache__/__init__.cpython-313.pyc": "27ab0f08ff503208576d8c0c64292fb4d1b5d40c74079488dc3a02bcf3246375",
+        "src/design_lab/generators/__pycache__/comfy_http.cpython-313.pyc": "ee57b66a5d666a2ad0d25dcd89ba2bdd3ea1a3f40460e6da54c5eaf3ca8446f0",
+        "src/design_lab/generators/__pycache__/comfy_task.cpython-313.pyc": "1ebd517fc07e88ace63bbdf6ca6d092ae2a234f02a4f2b1a896a59dd0de68ca5",
+        "src/design_lab/generators/comfy_http.py": "d8bb2404197bf9014aa550ac100a07ede014c9e6721ff3483c12c54e1d96fdcc",
+        "src/design_lab/generators/comfy_task.py": "7a4d43efa734d48398d985bfd2642b3954effe5de788626f682c051efea36b91",
+        "design-lab/tests/test_comfy_http.py": "fae7d1c672cd3fb5b1ae56f55b94f62443f0830d6c53c9a96d1acfb80f41da92"
+      },
+      "artifacts": [
+        {
+          "path": "design-lab/tests/test_comfy_http.py",
+          "sha256": "fae7d1c672cd3fb5b1ae56f55b94f62443f0830d6c53c9a96d1acfb80f41da92"
+        },
+        {
+          "path": ".project-local/task-artifacts/designlab-followup-taskpack-20260928/W00-EVIDENCE-SCAN.json",
+          "sha256": "554fcddf2c2e3c321fbf8d5c74ab389aa6ac20cc0c54cfc41acab37430ee5001"
+        }
+      ],
+      "note": "静态+单元取证（非完成声明）。该任务的实现模块与测试模块在 4c9f18493e90 上均真实存在，且所引测试随权威套件执行通过。实现模块：src/design_lab/generators/；测试模块 1 个。PARTIAL：未绑定 host_live（无真实 Adobe 宿主运行）与 delivery（无已交付包），故不宣称本任务完成或验收。"
+    },
+    {
+      "id": "r5-027-static-unit-20260928",
+      "task_ids": [
+        "DL-R5-027"
+      ],
+      "kind": "local_test",
+      "outcome": "PARTIAL",
+      "subject_sha": "4c9f18493e909283a5448763f704b3f838531d0a",
+      "binding": "COMMIT",
+      "observed_at": "2026-09-28T14:26:42Z",
+      "software": {
+        "python": "3.13.14 (project .venv)",
+        "runner": "python scripts/run_python_tests.py -> exit 0 at 4c9f18493e90",
+        "os": "Windows"
+      },
+      "subject_files": {
+        "fixtures/domains/game-visual/.gitignore": "263423b98c4407e9292d4edf3092f9c125c14bacd79b12b5ab109a082108dc92",
+        "fixtures/domains/game-visual/AGENTS.md": "8ddc3231f25dafb97f8c1560112ec82a0b864e569704f46fc3e501cf30740b46",
+        "fixtures/domains/game-visual/android-minigame/audio/anomaly.wav": "382f95baa224c665f52e2c7d55982c0a57cba90079803896322209d6e52a0203",
+        "fixtures/domains/game-visual/android-minigame/audio/bgm-anomaly-pressure-loop.wav": "9e0a72a88c78ad465b777dbdc53af3c04710761ccf3d30b468bd20fdf35fc796",
+        "fixtures/domains/game-visual/android-minigame/audio/bgm-night-shift-loop.wav": "b41af085d142ac968a55f2a92cf98ae5aa9e623db811c4e8d0debb38bab441df",
+        "fixtures/domains/game-visual/android-minigame/audio/boot.wav": "b0ff5dc585b2c4afe129fff77a5c64534467b85f587d20e496896d2d583eeae3",
+        "fixtures/domains/game-visual/android-minigame/audio/click.wav": "6eaf268086297982bdba6ccbc5a16777561e6846a14bd069736e6faf62f9175f",
+        "fixtures/domains/game-visual/android-minigame/audio/lockdown.wav": "15dee7e81ea574017d2ce22419326b2b15564a5688204e60d58668af53f8d4f0",
+        "design-lab/tests/test_minigame_visual_fixture_boundary.py": "e46393a089bcefcc105a5752d7c76edead2e566d9e52d6fa3c94983e5befc106"
+      },
+      "artifacts": [
+        {
+          "path": "design-lab/tests/test_minigame_visual_fixture_boundary.py",
+          "sha256": "e46393a089bcefcc105a5752d7c76edead2e566d9e52d6fa3c94983e5befc106"
+        },
+        {
+          "path": ".project-local/task-artifacts/designlab-followup-taskpack-20260928/W00-EVIDENCE-SCAN.json",
+          "sha256": "554fcddf2c2e3c321fbf8d5c74ab389aa6ac20cc0c54cfc41acab37430ee5001"
+        }
+      ],
+      "note": "静态+单元取证（非完成声明）。该任务的实现模块与测试模块在 4c9f18493e90 上均真实存在，且所引测试随权威套件执行通过。实现模块：fixtures/domains/game-visual/；测试模块 1 个。PARTIAL：未绑定 host_live（无真实 Adobe 宿主运行）与 delivery（无已交付包），故不宣称本任务完成或验收。"
+    },
+    {
+      "id": "r5-028-static-unit-20260928",
+      "task_ids": [
+        "DL-R5-028"
+      ],
+      "kind": "local_test",
+      "outcome": "PARTIAL",
+      "subject_sha": "4c9f18493e909283a5448763f704b3f838531d0a",
+      "binding": "COMMIT",
+      "observed_at": "2026-09-28T14:26:42Z",
+      "software": {
+        "python": "3.13.14 (project .venv)",
+        "runner": "python scripts/run_python_tests.py -> exit 0 at 4c9f18493e90",
+        "os": "Windows"
+      },
+      "subject_files": {
+        "apps/workbench/tsconfig.json": "c7cf03334ceb25c0ec9ff4e60ad64016cd3519bb12054f7c6f0582e78e2f8262",
+        "apps/workbench/package.json": "9e73e245210ba1914d3aeb8ed8d62f99e3d2ec206300f39fc5a48059ab4efe90",
+        "apps/workbench/vite.config.ts": "c58e0c2ae118a94d8e34673a809cbab2a49f8edea88c4293344f10bd2bf8cce7",
+        "design-lab/tests/test_workbench_native_ui.py": "08302a82c8c3e21061180f2e1c322a1bb50c97ff7eb930c902bec425bcbe5355",
+        "apps/workbench/tests/unit.mjs": "07ff42d2b84097d2ef9dfb60445ef273eb800089d564aa31782c7aa68a001431"
+      },
+      "artifacts": [
+        {
+          "path": "design-lab/tests/test_workbench_native_ui.py",
+          "sha256": "08302a82c8c3e21061180f2e1c322a1bb50c97ff7eb930c902bec425bcbe5355"
+        },
+        {
+          "path": ".project-local/task-artifacts/designlab-followup-taskpack-20260928/W00-EVIDENCE-SCAN.json",
+          "sha256": "554fcddf2c2e3c321fbf8d5c74ab389aa6ac20cc0c54cfc41acab37430ee5001"
+        }
+      ],
+      "note": "静态+单元取证（非完成声明）。该任务的实现模块与测试模块在 4c9f18493e90 上均真实存在，且所引测试随权威套件执行通过。实现模块：apps/workbench/tsconfig.json、apps/workbench/package.json、apps/workbench/vite.config.ts；测试模块 2 个。PARTIAL：未绑定 host_live（无真实 Adobe 宿主运行）与 delivery（无已交付包），故不宣称本任务完成或验收。"
     }
   ]
 }
