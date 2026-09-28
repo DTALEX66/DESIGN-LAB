@@ -100,12 +100,12 @@ Also not re-archived here: prior rounds' artifacts that already have tracked han
 under `docs/handoffs/` (`external-recovery-2026-09-25`, `browser-e2e` from 09-26, etc. are
 represented by their gate JSON in `evidence/local-gates/`).
 
-## 7. Capability claims
+## 8. Capability claims
 
 No capability-axis promotion is claimed. `host_live` and `delivery` remain at **1/28** and
 **0/28**: they require real host hardware and are untouched by this round.
 
-## 7. Compliance notes
+## 9. Compliance notes
 
 - Archived `.py`/`.mjs`/`.js` carry `SPDX-License-Identifier: MIT` so the
   **License & secret hygiene gate** (`design-lab/scripts/verify_license_coverage.py`)
@@ -138,7 +138,7 @@ No capability-axis promotion is claimed. `host_live` and `delivery` remain at **
   authority-chain and context-integrity gates, so an archive there could be
   misclassified as a historical taskpack or as an authority claim.
 
-## 8. Gate status for this archive (local, full unified verify)
+## 10. Gate status for this archive (local, full unified verify)
 
 The failure above was found by running the **full** `verify_design_lab.py`, not by
 hand-picking gates — the first push of this archive failed CI on
@@ -146,3 +146,19 @@ hand-picking gates — the first push of this archive failed CI on
 After the fixes: `verify_design_lab.py` all-pass, `ASSET_GOVERNANCE=OK`,
 `LICENSE_COVERAGE=OK`, `IDENTITY_GATE=OK`, `TOP_AUTHORITY_GATE=PASS (10/10)`,
 `VERIFY_CONTEXT_INTEGRITY=PASS`.
+
+Full local unit suite: `Ran 1755 tests`, `OK (skipped=37)`, exit 0 — raw log in
+`evidence/pytest-undisturbed.txt`. CI's Python gate (which runs
+`python scripts/run_python_tests.py`) is green on the merge SHA
+`94ed63b96099ef9c1c363f2970502cb04ec92e5e`.
+
+> **A local run of that same suite first reported `errors=2`.** It is not reproducible:
+> the module implicated by the visible output (`test_verifier_internals`, which plants
+> synthetic secrets such as `.hermes/secret-new.json`) passes 58/58 in isolation, and the
+> undisturbed full run is green. That run overlapped this session's own `git add` /
+> `commit` / `push` and `verify_language_boundary.py` rewriting
+> `reports/current/LANGUAGE-BOUNDARY-SCAN.json` — i.e. the repo state was moving
+> underneath a suite that contains repo-state-snapshotting tests. The two error names were
+> **not captured** (the output was tail-truncated), so the concurrency explanation is a
+> **stated hypothesis, not a proven cause**. What is established: the failure is
+> non-reproducible, CI is green, and nothing in it points at this archive.
