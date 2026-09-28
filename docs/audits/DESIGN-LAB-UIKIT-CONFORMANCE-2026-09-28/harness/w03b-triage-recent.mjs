@@ -128,6 +128,16 @@ const afterReload = await panelByTitle('最近项目').first().innerText();
 check('local recency survives a reload (persisted outside the in-memory session)',
   /最近打开/.test(afterReload) && afterReload.includes(name), { afterReload: afterReload.slice(0, 220) });
 
+// ---- E. 继续项目 (pack §101) ---------------------------------------------------
+phase = 'continue-project';
+const continuePanel = page.locator('.panel').filter({ has: page.locator('h3', { hasText: '继续项目' }) });
+check('继续项目 panel renders', await continuePanel.count() === 1, {});
+check('it names the most recently opened project', (await continuePanel.first().innerText()).includes(name),
+  { text: (await continuePanel.first().innerText()).slice(0, 160) });
+await continuePanel.locator('#pd-continue').click();
+await page.waitForTimeout(1200);
+check('继续 navigates into that project', (await page.evaluate(() => window.location.hash)).includes(pid),
+  { hash: await page.evaluate(() => window.location.hash) });
 phase = 'hygiene';
 const unexpected = consoleErrors.filter((e) => e.phase !== 'unreadable-probe');
 check('the only console errors are the deliberately aborted tasks requests',

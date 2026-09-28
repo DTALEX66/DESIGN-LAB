@@ -1228,11 +1228,49 @@ async function renderDashboard(target) {
     );
     return el("div", { class: "panel" }, el("h3", {}, readable === 0 ? title : `${title}（${rows.length}）`), body);
   };
+  const continueId = recentProjectIds()[0];
+  const continueProj = continueId ? projects2.projects.find((p) => p.id === continueId) : void 0;
+  const continuePanel = el(
+    "div",
+    { class: "panel" },
+    el("h3", {}, "继续项目"),
+    el("div", { class: "list" }, continueProj ? el(
+      "div",
+      { class: "list-item" },
+      el("div", {}, el("strong", {}, continueProj.name), el("small", {}, `本机最近打开 · ${continueProj.id}`)),
+      el(
+        "div",
+        { class: "actions" },
+        el("button", {
+          type: "button",
+          class: "primary-btn",
+          id: "pd-continue",
+          onclick: () => {
+            window.location.hash = `#/projects/${encodeURIComponent(continueProj.id)}`;
+          }
+        }, "继续")
+      )
+    ) : el(
+      "div",
+      { class: "list-item" },
+      el(
+        "div",
+        {},
+        el("strong", {}, "尚无「继续项目」"),
+        el("small", {}, "在本机打开过某个项目后，这里会显示最近打开的那一个。")
+      )
+    ))
+  );
   target.replaceChildren(
     pageHead,
     grid,
     el("div", { class: "two-col", style: "margin-top:16px" }, recentPanel, trendPanel),
     modulePanels,
+    // Pack 01_RESEARCH_AND_PRODUCT §101: the home page should offer 「继续项目」. It is
+    // derived from the SAME local recency record the 最近项目 panel uses (project ids only,
+    // kept on this machine, never uploaded), and it is honest when there is nothing to
+    // continue rather than pointing at an arbitrary project.
+    continuePanel,
     el(
       "div",
       { class: "two-col", style: "margin-top:16px" },
