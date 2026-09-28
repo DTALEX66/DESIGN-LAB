@@ -1844,6 +1844,29 @@ function briefFieldRow(prefix) {
   const row = el("div", { class: "list-item", style: "display:grid;gap:8px" }, title, goals, constraints);
   return { row, title, goals, constraints };
 }
+const TITLE_MAX = 18;
+function expandableTitle(text, suffix = "") {
+  const shown = `${text}${suffix}`;
+  const wrap = el("span", { class: "title-cell" });
+  if (shown.length <= TITLE_MAX) {
+    wrap.append(el("strong", { class: "title-text" }, shown));
+    return wrap;
+  }
+  const node = el("strong", { class: "title-text", title: shown }, `${shown.slice(0, TITLE_MAX)}…`);
+  const btn = el("button", {
+    type: "button",
+    class: "ghost-btn title-expand",
+    "aria-expanded": "false",
+    onclick: () => {
+      const expanded = btn.getAttribute("aria-expanded") === "true";
+      btn.setAttribute("aria-expanded", String(!expanded));
+      node.textContent = expanded ? `${shown.slice(0, TITLE_MAX)}…` : shown;
+      btn.textContent = expanded ? "全称" : "收起";
+    }
+  }, "全称");
+  wrap.append(node, btn);
+  return wrap;
+}
 function renderBriefEditor(id, layer, target) {
   const status = el("p", { class: "view-hint", id: "pd-brief-status", role: "status" }, "本页可真实创建并保存简报；保存成功后从服务端重新读回。");
   const stateChip = el("span", { class: "tag info", id: "pd-brief-state" }, "未修改");
@@ -2077,7 +2100,7 @@ function renderBriefEditor(id, layer, target) {
     el(
       "div",
       {},
-      el("strong", {}, `${brief.title} · v${brief.version}`),
+      expandableTitle(brief.title, ` · v${brief.version}`),
       el("small", {}, `${brief.goals.join(" / ")}${brief.constraints ? ` · ${brief.constraints}` : ""} · 参考 ${brief.reference_asset_ids.length} · ${brief.created_at}`)
     ),
     el(
