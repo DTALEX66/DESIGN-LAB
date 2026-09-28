@@ -69,6 +69,17 @@ unchanged and only the hidden dependency is removed. See `findings/W02-LEGACY-CO
 legacy element rules **cannot** simply be scoped to `body > …`. An earlier plan to do
 exactly that would have broken the login and workspace screens.
 
+### 4.1 W14 runtime baseline (later round)
+
+`findings/W14-PERF-SAMPLING.md` + `evidence/W14-RUNTIME-SAMPLING.json`: the pack's W14
+asks to **sample the current state first**. Measured against the real loopback service with
+the pinned Chromium — hot-route interaction **P95 = 19.8 ms** against the pack's proposed
+≤ 200 ms, first-interactive **71 ms** against ≤ 2 s, and 16 viewport×scale cells
+(1920×1080 / 2560×1440 at 100/125/150/200%, i.e. CSS viewports down to 960×540) with **0**
+horizontal overflow, 0 clipped content and 0 off-screen elements — backed by a **positive
+control** proving the overflow detector actually fires. That section also lists four
+harness defects found on the way, each of which had produced a plausible but wrong number.
+
 ## 5. Reproduction
 
 ```bash
