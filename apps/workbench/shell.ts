@@ -9,6 +9,7 @@ import type {
   BriefLineageResponse,
   BriefRevisionResponse,
   DesignBrief,
+  DesignDirection,
   DesignLayerResponse,
   DesignSystemListResponse,
   EnvironmentResponse,
@@ -1233,6 +1234,136 @@ function renderReferencePanel(id: string): HTMLElement {
     status);
 }
 
+// ---------------------------------------------------------------------------
+// W05 — Direction（方向卡 / 候选对比 / 人工选择）.
+//
+// W05 验收 (pack):
+//   1. 版本链、chosen 和 active binding 一致
+//   2. **AI 候选不能自动替代人选**
+//   3. 改变 Brief 使相关审查状态**显式过期**
+//   4. 整图背景不能冒充可编辑重建  <- 属「可修正对象计划」部分，本轮未做（见 finding）
+//
+// What this panel enforces, and why each is not cosmetic:
+//   · Choosing is an explicit human act: it POSTs /directions/{id}/choose with
+//     actor_kind='human'. Nothing auto-chooses -- a freshly created candidate is never
+//     marked chosen, and the panel says so before anyone acts. (验收 2)
+//   · A direction bound to a brief version that has since been SUPERSEDED is flagged as
+//     needing re-review, derived from the readback (superseded_by) rather than a local
+//     guess -- and flagged as "needs re-review", not as silently still-valid nor as
+//     silently void. (验收 3)
+//   · chosen vs active binding is reported as the service actually has it, including the
+//     honest intermediate state "方向已选定，但尚未绑定设计系统". (验收 1)
+function renderDirectionPanel(id: string, layer: DesignLayerResponse['design_layer'], target: HTMLElement): HTMLElement {
+  const status = el('p', { class: 'view-hint', id: 'pd-dir-status', role: 'status' }, '');
+  const showError = (m: string): void => { status.className = 'error'; status.textContent = m; };
+  const showHint = (m: string): void => { status.className = 'view-hint'; status.textContent = m; };
+  const refresh = async (): Promise<void> => {
+    const live = document.getElementById('route-view') as HTMLElement | null;
+    await renderProjectDetail(id, live || target);
+  };
+
+  const briefById = new Map(layer.briefs.map((b) => [b.brief_id, b]));
+  const liveBriefs = layer.briefs.filter((b) => b.superseded_by === null);
+  const chosen = layer.chosen_direction;
+  const binding = layer.active_binding;
+
+  // 验收 1: report the REAL relationship, including the honest intermediate state.
+  const consistency = !chosen
+    ? (binding ? '不一致：存在活动绑定但没有选定方向' : '尚未选定方向')
+    : (binding
+      ? (binding.direction_id === chosen.direction_id
+        ? `一致：选定方向与活动绑定同为一个（${chosen.title}）`
+        : `不一致：选定方向「${chosen.title}」≠ 活动绑定所属方向 ${binding.direction_id}`)
+      : '方向已选定，但尚未绑定设计系统（属正常中间态，不宣称已一致到交付）');
+
+  const directionRow = (d: DesignDirection): HTMLElement => {
+    const bound = briefById.get(d.brief_id);
+    const stale = bound ? bound.superseded_by !== null : true;
+    const mood = [d.color_mood ? `色感 ${d.color_mood}` : null, d.typography_mood ? `字感 ${d.typography_mood}` : null]
+      .filter(Boolean).join(' · ') || '（未填色感/字感）';
+    const notes = d.style_notes && d.style_notes.length ? d.style_notes.join(' / ') : null;
+    return el('div', { class: 'list-item' },
+      el('div', {},
+        el('strong', {}, `${d.title} · v${d.version}`),
+        el('small', {}, `${mood}${notes ? ` · ${notes}` : ''} · ${d.direction_id}`),
+        el('small', {}, d.actor ? `选定人：${d.actor}（${d.actor_kind ?? '未标注类型'}）` : '尚未有人选定'),
+        // 验收 3: explicit expiry, derived from the readback.
+        ...(stale
+          ? [el('small', { class: 'error' }, bound
+            ? `绑定的简报版本 v${bound.version} 已被取代 → 该方向需重新审查（不自动失效，也不自动沿用）`
+            : '绑定的简报已不在当前项目中 → 需重新审查')]
+          : [])),
+      el('div', { class: 'actions' },
+        d.chosen ? el('span', { class: 'tag ok' }, '已选定') : el('span', { class: 'tag info' }, '候选'),
+        ...(d.chosen ? [] : [el('button', {
+          type: 'button', class: 'ghost-btn', id: `pd-dir-choose-${d.direction_id}`,
+          onclick: () => {
+            void (async () => {
+              showHint(`正在以人工身份选定「${d.title}」…`);
+              try {
+                await api(`/projects/${id}/directions/${d.direction_id}/choose`, {
+                  actor: 'workbench-user', actor_kind: 'human', idempotency_key: uuid(),
+                });
+                await refresh();
+              } catch (error) { showError(`方向选择未确认：${errMsg(error)}`); }
+            })();
+          },
+        }, '选定（人工）')])));
+  };
+
+  const briefSelect = el('select', { id: 'pd-dir-brief', class: 'input' },
+    ...(liveBriefs.length
+      ? liveBriefs.map((b) => el('option', { value: b.brief_id }, `${b.title} · v${b.version} · ${b.brief_id.slice(-8)}`))
+      : [el('option', { value: '' }, '（没有可用简报版本）')]));
+  const title = el('input', { id: 'pd-dir-title', class: 'input', maxlength: '160', placeholder: '方向标题（必填）' });
+  const colorMood = el('input', { id: 'pd-dir-color', class: 'input', maxlength: '120', placeholder: '色感（可选）' });
+  const typeMood = el('input', { id: 'pd-dir-type', class: 'input', maxlength: '120', placeholder: '字感（可选）' });
+  const createBtn = el('button', { type: 'button', class: 'primary-btn', id: 'pd-dir-create' }, '新建方向候选');
+
+  createBtn.addEventListener('click', () => {
+    void (async () => {
+      const briefId = briefSelect.value;
+      const t = title.value.trim();
+      if (!briefId) { showError('请先创建一份简报，再立方向。'); return; }
+      if (!t) { showError('方向需要标题。'); title.setAttribute('aria-invalid', 'true'); title.focus(); return; }
+      title.removeAttribute('aria-invalid');
+      createBtn.disabled = true;
+      showHint('正在提交方向候选…');
+      try {
+        await api(`/projects/${id}/directions`, {
+          brief_id: briefId, title: t, style_notes: null,
+          color_mood: colorMood.value.trim() || null,
+          typography_mood: typeMood.value.trim() || null,
+          idempotency_key: uuid(),
+        });
+        await refresh();
+        const node = document.getElementById('pd-dir-status');
+        if (node) {
+          node.className = 'view-hint';
+          node.textContent = `方向候选「${t}」已保存并读回；候选不会自动成为选定方向，必须由人选定。`;
+        }
+      } catch (error) {
+        showError(`方向未确认：${errMsg(error)}`);
+      } finally { createBtn.disabled = false; }
+    })();
+  });
+
+  return el('div', { class: 'panel' },
+    el('h3', {}, `方向（Direction）· ${layer.directions.length} 个候选`),
+    el('p', { class: 'view-hint', id: 'pd-dir-consistency' }, `版本链 / 选定 / 绑定一致性：${consistency}`),
+    el('div', { class: 'list' },
+      ...(layer.directions.length
+        ? [...layer.directions].map(directionRow)
+        : [el('div', { class: 'list-item' },
+          el('div', {}, el('strong', {}, '尚无方向候选'),
+            el('small', {}, '先建立简报，再用下方表单立候选；选定必须由人执行。')))])),
+    el('div', { class: 'list-item', style: 'display:grid;gap:8px' },
+      el('strong', {}, '新建方向候选（绑定到某个简报版本）'),
+      briefSelect, title, colorMood, typeMood,
+      el('div', { class: 'actions' }, createBtn)),
+    status);
+}
+
 export async function renderProjectDetail(id: string, target: HTMLElement): Promise<void> {
   target.replaceChildren(el('p', { class: 'view-loading' }, '正在读回该项目…'));
   rememberProject(id);   // W03 "最近项目": record the project the user actually opened
@@ -1286,6 +1417,7 @@ export async function renderProjectDetail(id: string, target: HTMLElement): Prom
     kpis,
     el('div', { class: 'two-col', style: 'margin-top:16px' }, taskPanel, layerPanel),
     el('div', { style: 'margin-top:16px' }, renderBriefEditor(id, layer, target)),
+    el('div', { style: 'margin-top:16px' }, renderDirectionPanel(id, layer, target)),
     el('div', { style: 'margin-top:16px' }, renderReferencePanel(id)),
     el('p', { class: 'view-hint' }, 'tasks 与 design-layer 台账为只读；简报区可真实创建与修订并读回；参考素材区读回资产清单并按需预览。提交任务 / 运行 / 取消 / 导出仍由工作台高级区执行。'));
 }
