@@ -22,14 +22,38 @@
 
 因此本轮**不做**该面板，**只记录缺口**。这与上一轮的处理一致（上一轮也明确写为「等判定明确后补」）。
 
-## 3. 解除阻塞的两个（都需要改服务端，属独立工作）
+## 3. 解除阻塞的路径
 
-1. **在 `/assets` 的读回投影里补上 `kind`**（`image_assets.py` 的 SELECT 已经能取到 `asset_kind`，
-   只是没有投影出来）——最小改动，且能同时修掉 W04 §3.1 记录的**契约比实现宽**的问题
-   （`contracts.ts` 的 `AssetRecord` 本就声明了 `kind`）。
-2. 或新增一个**按项目列出 bundle 版本的路由**（现有 `/bundles/…/versions/…` 是单条资源，不是列表）。
+### 3.1 ⚠️ 更正：上一版记录的第 1 条路**是错的**
 
-两者都改服务端，**应作为独立一轮**（与 W06 Token 写 API 属同类：先写测试，再改服务，避免半验证的后端改动）。
+上一版写「把 `kind` 投影进 `/assets` 读回即可解除阻塞」。**再次核对源码后，这是错的**：
+
+```
+-- src/design_lab/image_assets.py:48  `_read`
+SELECT a.asset_id, v.version_id, f.path, f.sha256, f.byte_size FROM asset a
+JOIN asset_version v ON a.asset_id=v.asset_id JOIN artifact f ON f.version_id=v.version_id
+WHERE a.project_id=? AND a.asset_kind='raster' AND v.state='ACTIVE' ...
+```
+
+该查询在 **WHERE 里硬过滤 `asset_kind='raster'`**，且选列里**根本没有 `asset_kind`**。因此：
+
+> **`/assets` 按构造只包含 raster，永远不可能包含 `design-bundle`。**
+> 所以「投影 `kind`」对「最近交付」**毫无帮助**——那列即使补上，值也恒为 `raster`。
+
+这条更正很重要：若照上一版的记录去做，会得到一个**看起来补齐了字段、实际永远筛不出交付**的实现。
+
+### 3.2 真正可行的路径（都改服务端）
+
+1. **新增「按项目列出交付（bundle）版本」的路由**——现有
+   `/api/projects/{id}/bundles/bundle-native-…/versions/…` 是**单条资源**，不是列表。
+2. 或**新增交付专用查询**，与 raster 资产清单分开。**不要**放宽 `_read` 的 raster 过滤：
+   那会改变 `/assets` 的既有语义，并可能影响 W04 已交付的参考面板。
+
+### 3.3 顺带更正 W04 §3.1 的归因
+
+`contracts.ts` 的 `AssetRecord` 声明了 `kind`/`version_no` 而 `/assets` 不返回——按上面这条查询，
+**这不是漏投影，而是路由语义（raster-only）**。要让 `/assets` 返回 `kind`，先要决定
+「`/assets` 是『所有资产』还是『所有 raster』」——**这本身是一个语义决策，属待裁决项**。
 
 ## 4. 本轮未改任何产品代码
 
