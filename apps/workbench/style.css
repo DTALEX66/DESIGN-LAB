@@ -129,7 +129,14 @@ body > main{max-width:1240px;margin:28px auto;padding:0 22px}
 }
 .narrow{max-width:620px;margin:56px auto}
 h2{font-size:21px;margin:0 0 14px}
-p{line-height:1.65;color:var(--muted);font-size:13px}
+/* Legacy paragraph defaults, for the pre-B10 page only. B10 ships NO `p` rule at
+   all -- only `.page-head p` and `.muted` -- so paragraphs inside `.app` must
+   fall back to the browser default (16px / 1em margins). Unscoped, this rule
+   leaked: measured in Chromium against the B10 reference, `.page-head p` was
+   13px instead of 16px (line-height 20.15px vs 24.8px) and `.muted` gained
+   13px/13px margins it should not have. Same root cause as the header/main/
+   footer and button:hover leaks: a pre-B10 element selector reaching into `.app`. */
+body > header p,body > main p,body > footer p{line-height:1.65;color:var(--muted);font-size:13px}
 label{display:grid;gap:7px;font-size:12px;font-weight:650;color:var(--ink)}
 
 input,select,button{font:inherit;border-radius:var(--radius-md)}
