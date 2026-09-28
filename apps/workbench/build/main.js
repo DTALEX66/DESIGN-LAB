@@ -1732,6 +1732,225 @@ async function renderEvidence(target) {
     return done;
   });
 }
+function briefFieldRow(prefix) {
+  const title = el("input", { id: `${prefix}-title`, class: "input", maxlength: "160", placeholder: "简报标题（必填）" });
+  const goals = el("input", { id: `${prefix}-goals`, class: "input", maxlength: "400", placeholder: "目标，逗号分隔：现代, 温暖, 克制" });
+  const constraints = el("input", { id: `${prefix}-constraints`, class: "input", maxlength: "400", placeholder: "约束（可选）" });
+  const row = el("div", { class: "list-item", style: "display:grid;gap:8px" }, title, goals, constraints);
+  return { row, title, goals, constraints };
+}
+function renderBriefEditor(id, layer, target) {
+  const status = el("p", { class: "view-hint", id: "pd-brief-status", role: "status" }, "本页可真实创建并保存简报；保存成功后从服务端重新读回。");
+  const refresh2 = async () => {
+    const live = document.getElementById("route-view");
+    await renderProjectDetail(id, live || target);
+  };
+  const liveStatus = () => document.getElementById("pd-brief-status") || status;
+  const clearInvalid = (...fields) => {
+    for (const f of fields) f.removeAttribute("aria-invalid");
+  };
+  const fail = (error, focus) => {
+    const node = liveStatus();
+    node.className = "error";
+    node.textContent = revisionHint(error);
+    if (focus) {
+      focus.setAttribute("aria-invalid", "true");
+      focus.focus();
+    }
+  };
+  const ok = (message) => {
+    const node = liveStatus();
+    node.className = "view-hint";
+    node.textContent = message;
+  };
+  const versions = /* @__PURE__ */ new Map();
+  for (const row of layer.briefs) versions.set(row.brief_id, row.version);
+  const create = briefFieldRow("pd-brief");
+  const createBtn = el("button", { type: "button", class: "primary-btn", id: "pd-brief-create" }, "新建简报");
+  let submittedCreate = { identity: "", key: "" };
+  createBtn.addEventListener("click", () => {
+    void (async () => {
+      status.className = "view-hint";
+      status.textContent = "正在提交…";
+      const title = create.title.value.trim();
+      let goals;
+      try {
+        goals = splitList(create.goals.value, 300, "目标");
+      } catch (error) {
+        fail(error, create.goals);
+        return;
+      }
+      clearInvalid(create.title, create.goals);
+      if (!title) {
+        fail(new Error("简报需要标题与至少一条目标"), create.title);
+        return;
+      }
+      if (!goals.length) {
+        fail(new Error("简报需要标题与至少一条目标"), create.goals);
+        return;
+      }
+      const constraints = create.constraints.value.trim() || null;
+      const identity = JSON.stringify({ id, title, goals, constraints });
+      if (submittedCreate.identity !== identity) submittedCreate = { identity, key: uuid() };
+      createBtn.disabled = true;
+      try {
+        await api(`/projects/${id}/briefs`, {
+          title,
+          goals,
+          constraints,
+          reference_asset_ids: [],
+          idempotency_key: submittedCreate.key
+        });
+        await refresh2();
+        ok(`简报已保存并读回：「${title}」。`);
+      } catch (error) {
+        fail(error);
+      } finally {
+        createBtn.disabled = false;
+      }
+    })();
+  });
+  const rev = briefFieldRow("pd-rev");
+  const revHint = el(
+    "p",
+    { class: "view-hint", id: "pd-rev-target" },
+    "在某一简报行点「新版本」以载入该版本内容；保存会新增版本，旧版本只保留为历史。"
+  );
+  const revBtn = el("button", { type: "button", class: "primary-btn", id: "pd-brief-revise" }, "保存新版本");
+  let revTarget = null;
+  const lineageBox = el("div", { class: "list", id: "pd-brief-lineage" });
+  const loadLineage = async (briefId) => {
+    const data = await apiOrEmpty(`/projects/${id}/briefs/${briefId}/lineage`, {
+      lineage: { brief_id: briefId, root_id: briefId, requested_id: briefId, live_id: null, versions: [] }
+    });
+    const rows = data.lineage.versions;
+    const liveId = data.lineage.live_id;
+    lineageBox.replaceChildren(
+      el(
+        "div",
+        { class: "list-item" },
+        el(
+          "div",
+          {},
+          el("strong", {}, `版本链（${rows.length}）`),
+          el("small", {}, `当前 ${liveId ? `版本 ${versions.get(liveId) ?? "?"}` : "—"}`)
+        )
+      ),
+      ...rows.map((row) => el(
+        "div",
+        { class: "list-item" },
+        el(
+          "div",
+          {},
+          el("strong", {}, `版本 ${row.version} · ${row.title}`),
+          el("small", {}, `${row.goals.join(" / ")}${row.constraints ? ` · ${row.constraints}` : ""} · 参考 ${row.reference_asset_ids.length} · ${row.created_at}`)
+        ),
+        el("span", { class: row.brief_id === liveId ? "tag ok" : "tag warn" }, versionState(row.superseded_by, versions))
+      ))
+    );
+  };
+  const startRevision = (brief) => {
+    void (async () => {
+      revTarget = brief;
+      rev.title.value = brief.title;
+      rev.goals.value = brief.goals.join(", ");
+      rev.constraints.value = brief.constraints ?? "";
+      revHint.textContent = `正在修订「${brief.title}」版本 ${brief.version}；保存会新增一个版本，版本 ${brief.version} 只保留为历史。` + (brief.superseded_by === null ? "" : " 注意：该版本已被取代，服务端会以 STALE_REVISION 拒绝这次修订。");
+      rev.title.focus();
+      await loadLineage(brief.brief_id);
+    })();
+  };
+  revBtn.addEventListener("click", () => {
+    void (async () => {
+      const source = revTarget;
+      if (!source) {
+        fail(new Error("请先在某一简报行点击「新版本」以载入要修订的内容"));
+        return;
+      }
+      status.className = "view-hint";
+      status.textContent = "正在提交修订…";
+      const title = rev.title.value.trim();
+      let goals;
+      try {
+        goals = splitList(rev.goals.value, 300, "目标");
+      } catch (error) {
+        fail(error, rev.goals);
+        return;
+      }
+      clearInvalid(rev.title, rev.goals);
+      if (!title) {
+        fail(new Error("修订需要标题与至少一条目标"), rev.title);
+        return;
+      }
+      if (!goals.length) {
+        fail(new Error("修订需要标题与至少一条目标"), rev.goals);
+        return;
+      }
+      const constraints = rev.constraints.value.trim() || null;
+      revBtn.disabled = true;
+      try {
+        const data = await api(`/projects/${id}/briefs/${source.brief_id}/revisions`, {
+          title,
+          goals,
+          constraints,
+          // carry the source version's references: the route shell has no reference
+          // picker yet (that is W04), and silently dropping them would lose data.
+          reference_asset_ids: source.reference_asset_ids,
+          idempotency_key: uuid()
+        });
+        await refresh2();
+        ok(`简报已保存为版本 ${data.brief.version}；版本 ${source.version} 只保留为历史，旧内容未被改写。`);
+      } catch (error) {
+        fail(error);
+      } finally {
+        revBtn.disabled = false;
+      }
+    })();
+  });
+  const briefRows = layer.briefs.length ? layer.briefs.map((brief) => el(
+    "div",
+    { class: "list-item" },
+    el(
+      "div",
+      {},
+      el("strong", {}, `${brief.title} · v${brief.version}`),
+      el("small", {}, `${brief.goals.join(" / ")}${brief.constraints ? ` · ${brief.constraints}` : ""} · 参考 ${brief.reference_asset_ids.length} · ${brief.created_at}`)
+    ),
+    el(
+      "div",
+      { class: "actions" },
+      el("span", { class: brief.superseded_by === null ? "tag ok" : "tag warn" }, versionState(brief.superseded_by, versions)),
+      el("button", { type: "button", class: "ghost-btn", onclick: () => startRevision(brief) }, "新版本")
+    )
+  )) : [el(
+    "div",
+    { class: "list-item" },
+    el("div", {}, el("strong", {}, "尚无简报"), el("small", {}, "用下方表单创建该项目的第一份简报（真实写入，保存后读回）"))
+  )];
+  return el(
+    "div",
+    { class: "panel" },
+    el("h3", {}, `简报（Brief）· ${layer.briefs.length} 个版本`),
+    el("div", { class: "list" }, ...briefRows),
+    el(
+      "div",
+      { class: "list-item", style: "display:grid;gap:10px" },
+      el("strong", {}, "新建简报"),
+      create.row,
+      el("div", { class: "actions" }, createBtn)
+    ),
+    el(
+      "div",
+      { class: "list-item", style: "display:grid;gap:10px" },
+      el("strong", {}, "修订 / 新增版本"),
+      revHint,
+      rev.row,
+      el("div", { class: "actions" }, revBtn)
+    ),
+    lineageBox,
+    status
+  );
+}
 async function renderProjectDetail(id, target) {
   target.replaceChildren(el("p", { class: "view-loading" }, "正在读回该项目…"));
   const listing = await apiOrEmpty("/projects", OFFLINE.projects);
@@ -1750,7 +1969,7 @@ async function renderProjectDetail(id, target) {
       "div",
       {},
       el("h2", {}, named ? named.name : id),
-      el("p", {}, `项目详情 · ${id}。只读回读该项目的 tasks 与 design-layer 台账；本页不修改任何状态。`)
+      el("p", {}, `项目详情 · ${id}。tasks 与 design-layer 为只读回读；下方简报区是真实写入，保存后从服务端读回。`)
     ),
     el(
       "div",
@@ -1807,7 +2026,8 @@ async function renderProjectDetail(id, target) {
     pageHead,
     kpis,
     el("div", { class: "two-col", style: "margin-top:16px" }, taskPanel, layerPanel),
-    el("p", { class: "view-hint" }, "本页为只读项目上下文；提交 / 运行 / 取消 / 导出由工作台执行。")
+    el("div", { style: "margin-top:16px" }, renderBriefEditor(id, layer, target)),
+    el("p", { class: "view-hint" }, "tasks 与 design-layer 台账为只读；简报区可真实创建与修订并读回。提交任务 / 运行 / 取消 / 导出仍由工作台高级区执行。")
   );
 }
 async function renderRoute(view, target) {
