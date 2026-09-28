@@ -212,3 +212,18 @@ here** or **excluded with a reason**. Measured at archive time; the whole local 
 `verify_context_integrity`, full `verify_design_lab`). Shas are recorded in `file`/`sha256`
 sidecars for every binary. Two archive passes already had to be corrected by CI — see
 §6, §9 and §10.
+
+### One file that `git add -A` silently skipped
+
+`session/hermes-legacy/runtime/_loose/ci-fail.log` was **not** committed: `.gitignore:47`
+has `*.log`, so `git add -A` dropped it without any error, and the archive on `main` had
+746 files against 747 locally. Caught by diffing the local tree against
+`git ls-tree -r origin/main` rather than trusting the local count.
+
+**Fix:** renamed to `ci-fail.log.txt` (identical 219 274 bytes) so it is tracked, rather
+than forcing it in with `git add -f` against an explicit repo policy. `git check-ignore`
+over the whole archive now reports **0** ignored files, so local and `main` are at parity.
+
+*Lesson for any future archive pass:* `git add -A` never reports ignored files, so
+"everything is in the repo" must be verified by comparing file lists — not by watching the
+add appear to succeed.
