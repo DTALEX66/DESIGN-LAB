@@ -42,6 +42,12 @@ the pack and is confirmed correct.
 | `session/` | Session lineage: commit/PR message drafts, superseded revisions, intermediate probes. **Superseded, kept only for traceability** |
 | `session/project-survey-2026-09-27/` | The preceding round's project-survey documents, carried over for completeness (their own tracked handover is `docs/handoffs/DESIGN-LAB-PROJECT-SURVEY-TRUTH-RESYNC-2026-09-27.md`) |
 | `ui-originals/` | Extracted reference originals (`B04/`, `B07/`, `B10/`) + `EXTRACTION-MANIFEST.json`. The 17 B04 design sheets carry `asset-sidecar/v1` **JSON** sidecars |
+| `ui-kit/` | The wider local UI-kit tree: the batches **not** already in `ui-originals/` (`B08/`, `B09/`), the live `B10-batch/`, `mockups/`, `chromium-probe.mjs`. `B04/`, `B07/` and `B10/` were **removed as byte-identical duplicates** of `ui-originals/` (verified by sha256: 18/18, 23/23, 2/2, the two remainder files differing only by the ASCII renames below) |
+| `findings/ui-implementation/` | The earlier UI implementation docs: component map, route map, reference manifest, asset-replacement manifest, visual-QA report |
+| `evidence/deep-audit/` | `dl-deep-audit` batch outputs (child results, library-index audit, report skeleton) |
+| `evidence/governance-state/` | `context-capsule.json`, both `prune-manifest-*.json`, `stash-backup-2026-09-26.json` |
+| `session/b10-1to1-handoff/` | Text-only lineage from the B10 1:1 round (42 files). Its Chromium profile/shader-cache trees were excluded — see §11 |
+| `session/quarantine/`, `session/hermes-legacy/`, `session/reconstruction/` | Quarantined deepseek-round1 state, HERMES legacy migration manifests/journal, reconstruction run contracts |
 
 ## 4. The headline result
 
@@ -162,3 +168,47 @@ Full local unit suite: `Ran 1755 tests`, `OK (skipped=37)`, exit 0 — raw log i
 > **not captured** (the output was tail-truncated), so the concurrency explanation is a
 > **stated hypothesis, not a proven cause**. What is established: the failure is
 > non-reproducible, CI is green, and nothing in it points at this archive.
+
+## 11. Full `.project-local/` reconciliation
+
+Every tree under the runtime root (`.project-local/`, gitignored by design — `AGENTS.md`:
+"运行/证据/缓存根统一为 `.project-local/`") has been reviewed and is either **archived
+here** or **excluded with a reason**. Measured at archive time; the whole local root is
+~1.06 GB, of which ~14 MB is archived.
+
+### Archived
+
+| Tree | Files | MB | Destination |
+|---|---|---|---|
+| `task-artifacts/designlab-followup-taskpack-20260928/` (minus chrome profiles) | 25 + 46 | 2.0 | `pack/`, `findings/`, `evidence/`, `ui-originals/` |
+| `task-artifacts/external-recovery-2026-09-27/` | 139 | 0.5 | `harness/`, `session/` |
+| `task-artifacts/{authority-gates,top-authority-gates,control-spike,browser-e2e,test-run,project-survey-2026-09-27}` | 9 | 0.1 | `evidence/local-gates/`, `session/project-survey-2026-09-27/` |
+| `ui-kit/` (batches not duplicated by `ui-originals/`) | 55 | 1.0 | `ui-kit/` |
+| `ui-implementation/` | 7 | 0.03 | `findings/ui-implementation/` |
+| `artifacts/dl-deep-audit/` | 6 | 0.06 | `evidence/deep-audit/` |
+| `quarantine/`, `reconstruction/` | 4 + ? | 0.1 | `session/` |
+| `archive/hermes-legacy/` (text only) | 411 | 0.6 | `session/hermes-legacy/` |
+| `b10/` | 4 | 0.04 | `ui-kit/B10-batch/` |
+| `b10-1to1-handoff/` (text only) | 42 | 0.2 | `session/b10-1to1-handoff/` |
+| `archive/DESIGN-LAB-FINAL-TASK-PACKAGE-2026-09-04.zip` | 1 | 0.33 | `session/` (+ sidecar) |
+| top-level `*.json` governance state | 4 | 0.01 | `evidence/governance-state/` |
+
+### Excluded — with the reason
+
+| Tree | Files | MB | Why not archived |
+|---|---|---|---|
+| `runs/` | 2596 | 522 | Runtime run output. The project's declared run/evidence root; regenerable and far too large for git. State it describes is already summarised by tracked reports |
+| `projects/` | 346 | 341 | Per-project runtime working sets (the services' own `.project-local`); user/tenant data, not archive material |
+| `task-runtime/` | 1280 | 100 | Test/browser harness scratch |
+| `cache/` | 1914 | 33 | Regenerable cache |
+| 9 × `chrome-profile-*/` + the `chrome-profile*` trees inside `b10-1to1-handoff/audit/evidence/` | ~1900 | ~155 | Chromium profile/cache (incl. `GrShaderCache` shader blobs). Browser state, not work product — the "53 MB of extension-less files" in that handoff are exactly this |
+| `task-artifacts/external-recovery-2026-09-25/` | 37 | 1.1 | Contains a bare **git pack** (`*.pack`/`.idx`/`.rev`). Binary git internals, not valid UTF-8, would make the identity gate fail closed on unreadable tracked text |
+| `archive/hermes-legacy/` binary files | 138 | ~2.4 | Images inside HERMES legacy state; the text manifests/journal **are** archived |
+| `session/hermes-legacy/runtime/final-pack/` (extracted) | 7 | 1.4 | Removed after the identity gate correctly rejected it: 4 files carry the **retired legacy identity string**, which is allowed only in allowlisted history roots (`docs/taskpacks/`, `docs/history/`). Provenance is preserved byte-exactly by the archived **zip** (the identity gate skips `.zip`), so nothing is lost |
+| empty dirs (`profile-resolver-tests/`, `reconstruction/` remnants) | 0 | 0 | Nothing to archive |
+
+**Not a claim of infallibility:** the "archived" rows were copied and then gated
+(`verify_asset_governance`, `verify_license_coverage`, `verify_identity_gate`,
+`verify_context_integrity`, full `verify_design_lab`). Shas are recorded in `file`/`sha256`
+sidecars for every binary. Two archive passes already had to be corrected by CI — see
+§6, §9 and §10.
