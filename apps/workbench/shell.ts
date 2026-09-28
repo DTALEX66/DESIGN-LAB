@@ -695,7 +695,7 @@ export async function renderProjects(target: HTMLElement): Promise<void> {
       el('tbody', {},
         ...(data.projects.length
           ? data.projects.map((p) => el('tr', {},
-              el('td', {}, el('strong', {}, p.name)),
+              el('td', {}, expandableTitle(p.name)),
               el('td', {}, p.id),
               el('td', {}, el('span', { class: 'tag info' }, 'Active')),
               el('td', {}, el('button', {
