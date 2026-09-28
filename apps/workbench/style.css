@@ -914,3 +914,49 @@ html,body{margin:0}
   .page-head{flex-direction:column}
 }
 
+/* ==========================================================================
+   B07 shared-ui-core 工具类契约（DESIGN-LAB 专属原稿）
+   来源：B07 shared-ui-core/breakpoints.css + motion.css
+   原稿解包与 sha256 见 .project-local/.../ui-originals/EXTRACTION-MANIFEST.json
+   此前 7 个工具类**全部缺失**（W01/W02 实测：impl=0/7）。
+
+   两处**刻意不照搬**原稿，均已在下方注明理由。
+   ========================================================================== */
+
+/* .responsive-grid —— B07 只在三个媒体查询里给 grid-template-columns，
+   **从未声明 display:grid**，所以原稿发布的这个类无法独立工作（原稿缺陷）。
+   此处补上让它能生效的最小基类：display:grid + gap。
+   gap 取 --space-4（16px），与实现里 .kpi-grid/.two-col/.three-col 既有的 16px 一致。 */
+.responsive-grid{display:grid;gap:var(--space-4)}
+@media (max-width:767px){
+  .responsive-grid{grid-template-columns:1fr}
+}
+@media (min-width:768px) and (max-width:1199px){
+  .responsive-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media (min-width:1200px){
+  .responsive-grid{grid-template-columns:repeat(12,minmax(0,1fr))}
+}
+
+/* .desktop-only —— 原稿值：<=767px 隐藏。断点用具名 token 的值（767px），
+   但媒体查询不支持 var()，故此处写死，与 --bp-mobile 保持一致。 */
+@media (max-width:767px){
+  .desktop-only{display:none!important}
+}
+
+/* 动效工具类 —— 原稿 motion.css 逐条照搬。 */
+.ui-motion-fast{transition:all var(--motion-fast) cubic-bezier(.2,0,0,1)}
+.ui-motion-base{transition:all var(--motion-base) cubic-bezier(.2,0,0,1)}
+.ui-motion-slow{transition:all var(--motion-slow) cubic-bezier(.2,0,0,1)}
+.focus-ring:focus-visible{outline:2px solid var(--color-primary);outline-offset:2px}
+.pressable:active{transform:scale(.99)}
+
+/* 刻意**未**照搬的两项：
+   X-3/X-4  B07 breakpoints.css 在 <=767px 还有一条 `.sidebar{display:none}`。
+            实现已有 760px（.app-nav）与 B10 的 840px（.sidebar{display:none}）两条，
+            再加 767px 会变成**同一仓第四套移动断点**。断点统一属 owner 裁决项，
+            故此处不加，避免把冲突固化进代码。
+   X-8      component-contracts.md 的交互契约写 "Pressed: scale(0.99), 80ms"，
+            但 B07 自己的 motion.css 只写 `.pressable:active{transform:scale(.99)}`，
+            **未表达 80ms**。此处按 CSS 原稿实现，不自行发明时长。 */
+
