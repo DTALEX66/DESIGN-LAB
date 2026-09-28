@@ -1092,7 +1092,9 @@ function renderReferencePanel(id: string): HTMLElement {
         el('button', { type: 'button', class: 'ghost-btn', id: `pd-ref-preview-${a.id}`, onclick: () => { void previewAsset(a.id); } }, '预览')));
   };
 
-  void (async () => {
+  // Extracted so a completed import can re-read the list from the SERVICE (real
+  // read-back) instead of echoing what the loop thinks it did.
+  const loadAssets = async (): Promise<void> => {
     try {
       const data = await api<AssetListResponse>(`/projects/${id}/assets`);
       const assets = data.assets;
@@ -1100,7 +1102,7 @@ function renderReferencePanel(id: string): HTMLElement {
       list.replaceChildren(
         ...(assets.length ? assets.map(assetRow) : [el('div', { class: 'list-item' },
           el('div', {}, el('strong', {}, '尚无参考素材'),
-            el('small', {}, '在旧工作台导入后读回此处；未知权利可研究，但会阻止生产认证。')))]));
+            el('small', {}, '用下方批量导入，或在旧工作台导入；未知权利可研究，但会阻止生产认证。')))]));
       showHint(assets.some((a) => a.rights === 'NOT_REVIEWED')
         ? '清单已读回。存在「权利未审查」的素材：可继续研究，但在权利清除前不能作为生产认证依据（服务端 fail-closed）。'
         : '清单已读回；图片内容按需读取。');
@@ -1112,12 +1114,122 @@ function renderReferencePanel(id: string): HTMLElement {
           el('small', {}, '资产清单读取失败；此处不显示 0，避免把「没读到」说成「没有」。'))));
       showError(`资产清单读取失败：${errMsg(error)}`);
     }
-  })();
+  };
+  void loadAssets();
+
+  // ---- 批量导入：可取消 + 报告部分失败 ------------------------------------------
+  // The pack's W04 acceptance asks for exactly this: "批量导入可取消并报告部分失败".
+  // The semantics are stated rather than implied:
+  //   · One file per POST -- the service accepts a single content_base64 per request.
+  //   · Cancel takes effect BEFORE THE NEXT FILE STARTS; the file already in flight is
+  //     allowed to finish and its REAL outcome is reported. It is deliberately NOT aborted
+  //     mid-request, because a cancelled in-flight write may still have persisted
+  //     server-side -- claiming otherwise would be the same "report an unknown outcome as
+  //     known" error the triage panels exist to prevent.
+  //   · A failed file never counts as imported; the summary counts only real outcomes.
+  const fileInput = el('input', { type: 'file', id: 'pd-ref-files', class: 'input',
+    multiple: 'multiple', accept: 'image/png,image/jpeg' });
+  const importBtn = el('button', { type: 'button', class: 'primary-btn', id: 'pd-ref-import' }, '开始导入');
+  const cancelBtn = el('button', { type: 'button', class: 'ghost-btn', id: 'pd-ref-cancel' }, '取消');
+  cancelBtn.disabled = true;
+  const results = el('div', { class: 'list', id: 'pd-ref-import-results' });
+  const summary = el('p', { class: 'view-hint', id: 'pd-ref-import-summary' }, '尚未导入。');
+  const selection = el('p', { class: 'view-hint', id: 'pd-ref-selection' }, '未选择文件。');
+  let batchRunning = false;
+  let cancelRequested = false;
+
+  type Row = { name: string; status: 'ok' | 'failed' | 'cancelled'; detail: string };
+  const renderResults = (rows: Row[], pending?: string): void => {
+    results.replaceChildren(...rows.map((r) => el('div', { class: 'list-item' },
+      el('div', {}, el('strong', {}, r.name), el('small', {}, r.detail)),
+      el('span', { class: r.status === 'ok' ? 'tag ok' : (r.status === 'cancelled' ? 'tag warn' : 'tag bad') },
+        r.status === 'ok' ? '已导入' : (r.status === 'cancelled' ? '已取消' : '失败')))));
+    const ok = rows.filter((r) => r.status === 'ok').length;
+    const failed = rows.filter((r) => r.status === 'failed').length;
+    const cancelled = rows.filter((r) => r.status === 'cancelled').length;
+    summary.className = 'view-hint';
+    summary.textContent = `导入 ${rows.length} 个：成功 ${ok} · 失败 ${failed} · 已取消 ${cancelled}`
+      + (failed ? '（失败项未写入服务端）' : '')
+      // While the service read-back is still running the summary says so, so "the loop
+      // finished" is never confused with "the list now reflects the service".
+      + (pending ? ` · ${pending}` : '');
+  };
+
+  fileInput.addEventListener('change', () => {
+    const n = fileInput.files ? fileInput.files.length : 0;
+    selection.textContent = n ? `已选择 ${n} 个文件。` : '未选择文件。';
+  });
+  cancelBtn.addEventListener('click', () => {
+    if (!batchRunning) return;
+    cancelRequested = true;
+    cancelBtn.disabled = true;
+    selection.textContent = '已请求取消：正在上传的这个文件会完成，其余不再开始。';
+  });
+
+  importBtn.addEventListener('click', () => {
+    void (async () => {
+      if (batchRunning) return;
+      const files = Array.from(fileInput.files ?? []);
+      if (!files.length) { showError('请先选择要导入的图片（PNG / JPEG）。'); return; }
+      batchRunning = true;
+      cancelRequested = false;
+      importBtn.disabled = true;
+      cancelBtn.disabled = false;
+      const rows: Row[] = [];
+      for (const file of files) {
+        if (cancelRequested) { rows.push({ name: file.name, status: 'cancelled', detail: '取消后未开始' }); continue; }
+        // Client gate mirrors the legacy import exactly: same media types, same 32 MiB cap.
+        if (!['image/png', 'image/jpeg'].includes(file.type)) {
+          rows.push({ name: file.name, status: 'failed', detail: `不支持的媒体类型 ${file.type || '(空)'}：仅 PNG / JPEG` });
+          renderResults(rows); continue;
+        }
+        if (file.size > 32 * 1024 * 1024) {
+          rows.push({ name: file.name, status: 'failed', detail: `超过 32 MiB（${Math.round(file.size / 1048576)} MiB）` });
+          renderResults(rows); continue;
+        }
+        try {
+          const bytes = new Uint8Array(await file.arrayBuffer());
+          let binary = '';
+          for (let i = 0; i < bytes.length; i += 8192) binary += String.fromCharCode(...bytes.subarray(i, i + 8192));
+          await api(`/projects/${id}/assets`, { content_base64: btoa(binary), idempotency_key: uuid() });
+          rows.push({ name: file.name, status: 'ok', detail: `${Math.round(file.size / 1024)} KiB · 服务端已确认` });
+        } catch (error) {
+          rows.push({ name: file.name, status: 'failed', detail: errMsg(error) });
+        }
+        renderResults(rows);
+      }
+      batchRunning = false;
+      importBtn.disabled = false;
+      cancelBtn.disabled = true;
+      // ALWAYS render the final rows. The first version skipped this on the cancel path
+      // (the cancelled rows were pushed but never painted, and the success message was
+      // gated on !cancelRequested), so a cancelled batch left the PREVIOUS batch's results
+      // and summary on screen -- the user would read stale outcomes as if they were this
+      // run's. Caught by the batch harness.
+      renderResults(rows, '正在从服务端重新读回清单…');
+      await loadAssets();          // real read-back of what the service actually holds
+      renderResults(rows);         // final: loop outcomes AND a settled list
+      const ok = rows.filter((r) => r.status === 'ok').length;
+      const cancelled = rows.filter((r) => r.status === 'cancelled').length;
+      if (cancelRequested) {
+        showHint(`已取消：成功 ${ok}，已取消 ${cancelled}（取消后未开始的文件未写入服务端；正在上传的那个已按其真实结果记入）。`);
+      } else if (ok === rows.length) {
+        showHint(`全部 ${ok} 个文件已导入并从服务端读回。`);
+      } else {
+        showHint(`导入结束：成功 ${ok} / ${rows.length}；失败项未写入，清单已从服务端重新读回。`);
+      }
+    })();
+  });
 
   return el('div', { class: 'panel' },
     heading, list,
     el('div', { class: 'list-item', style: 'display:grid;gap:8px' },
       el('strong', {}, '预览（按需读取）'), preview, info),
+    el('div', { class: 'list-item', style: 'display:grid;gap:8px' },
+      el('strong', {}, '批量导入（PNG / JPEG，单个 ≤ 32 MiB）'),
+      fileInput, selection,
+      el('div', { class: 'actions' }, importBtn, cancelBtn),
+      results, summary),
     status);
 }
 

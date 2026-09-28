@@ -2123,7 +2123,7 @@ function renderReferencePanel(id) {
       )
     );
   };
-  void (async () => {
+  const loadAssets = async () => {
     try {
       const data = await api(`/projects/${id}/assets`);
       const assets = data.assets;
@@ -2136,7 +2136,7 @@ function renderReferencePanel(id) {
             "div",
             {},
             el("strong", {}, "尚无参考素材"),
-            el("small", {}, "在旧工作台导入后读回此处；未知权利可研究，但会阻止生产认证。")
+            el("small", {}, "用下方批量导入，或在旧工作台导入；未知权利可研究，但会阻止生产认证。")
           )
         )]
       );
@@ -2155,7 +2155,106 @@ function renderReferencePanel(id) {
       ));
       showError(`资产清单读取失败：${errMsg(error)}`);
     }
-  })();
+  };
+  void loadAssets();
+  const fileInput = el("input", {
+    type: "file",
+    id: "pd-ref-files",
+    class: "input",
+    multiple: "multiple",
+    accept: "image/png,image/jpeg"
+  });
+  const importBtn = el("button", { type: "button", class: "primary-btn", id: "pd-ref-import" }, "开始导入");
+  const cancelBtn = el("button", { type: "button", class: "ghost-btn", id: "pd-ref-cancel" }, "取消");
+  cancelBtn.disabled = true;
+  const results = el("div", { class: "list", id: "pd-ref-import-results" });
+  const summary = el("p", { class: "view-hint", id: "pd-ref-import-summary" }, "尚未导入。");
+  const selection = el("p", { class: "view-hint", id: "pd-ref-selection" }, "未选择文件。");
+  let batchRunning = false;
+  let cancelRequested = false;
+  const renderResults = (rows, pending) => {
+    results.replaceChildren(...rows.map((r) => el(
+      "div",
+      { class: "list-item" },
+      el("div", {}, el("strong", {}, r.name), el("small", {}, r.detail)),
+      el(
+        "span",
+        { class: r.status === "ok" ? "tag ok" : r.status === "cancelled" ? "tag warn" : "tag bad" },
+        r.status === "ok" ? "已导入" : r.status === "cancelled" ? "已取消" : "失败"
+      )
+    )));
+    const ok = rows.filter((r) => r.status === "ok").length;
+    const failed = rows.filter((r) => r.status === "failed").length;
+    const cancelled = rows.filter((r) => r.status === "cancelled").length;
+    summary.className = "view-hint";
+    summary.textContent = `导入 ${rows.length} 个：成功 ${ok} · 失败 ${failed} · 已取消 ${cancelled}` + (failed ? "（失败项未写入服务端）" : "") + (pending ? ` · ${pending}` : "");
+  };
+  fileInput.addEventListener("change", () => {
+    const n = fileInput.files ? fileInput.files.length : 0;
+    selection.textContent = n ? `已选择 ${n} 个文件。` : "未选择文件。";
+  });
+  cancelBtn.addEventListener("click", () => {
+    if (!batchRunning) return;
+    cancelRequested = true;
+    cancelBtn.disabled = true;
+    selection.textContent = "已请求取消：正在上传的这个文件会完成，其余不再开始。";
+  });
+  importBtn.addEventListener("click", () => {
+    void (async () => {
+      if (batchRunning) return;
+      const files = Array.from(fileInput.files ?? []);
+      if (!files.length) {
+        showError("请先选择要导入的图片（PNG / JPEG）。");
+        return;
+      }
+      batchRunning = true;
+      cancelRequested = false;
+      importBtn.disabled = true;
+      cancelBtn.disabled = false;
+      const rows = [];
+      for (const file of files) {
+        if (cancelRequested) {
+          rows.push({ name: file.name, status: "cancelled", detail: "取消后未开始" });
+          continue;
+        }
+        if (!["image/png", "image/jpeg"].includes(file.type)) {
+          rows.push({ name: file.name, status: "failed", detail: `不支持的媒体类型 ${file.type || "(空)"}：仅 PNG / JPEG` });
+          renderResults(rows);
+          continue;
+        }
+        if (file.size > 32 * 1024 * 1024) {
+          rows.push({ name: file.name, status: "failed", detail: `超过 32 MiB（${Math.round(file.size / 1048576)} MiB）` });
+          renderResults(rows);
+          continue;
+        }
+        try {
+          const bytes = new Uint8Array(await file.arrayBuffer());
+          let binary = "";
+          for (let i = 0; i < bytes.length; i += 8192) binary += String.fromCharCode(...bytes.subarray(i, i + 8192));
+          await api(`/projects/${id}/assets`, { content_base64: btoa(binary), idempotency_key: uuid() });
+          rows.push({ name: file.name, status: "ok", detail: `${Math.round(file.size / 1024)} KiB · 服务端已确认` });
+        } catch (error) {
+          rows.push({ name: file.name, status: "failed", detail: errMsg(error) });
+        }
+        renderResults(rows);
+      }
+      batchRunning = false;
+      importBtn.disabled = false;
+      cancelBtn.disabled = true;
+      renderResults(rows, "正在从服务端重新读回清单…");
+      await loadAssets();
+      renderResults(rows);
+      const ok = rows.filter((r) => r.status === "ok").length;
+      const cancelled = rows.filter((r) => r.status === "cancelled").length;
+      if (cancelRequested) {
+        showHint(`已取消：成功 ${ok}，已取消 ${cancelled}（取消后未开始的文件未写入服务端；正在上传的那个已按其真实结果记入）。`);
+      } else if (ok === rows.length) {
+        showHint(`全部 ${ok} 个文件已导入并从服务端读回。`);
+      } else {
+        showHint(`导入结束：成功 ${ok} / ${rows.length}；失败项未写入，清单已从服务端重新读回。`);
+      }
+    })();
+  });
   return el(
     "div",
     { class: "panel" },
@@ -2167,6 +2266,16 @@ function renderReferencePanel(id) {
       el("strong", {}, "预览（按需读取）"),
       preview2,
       info2
+    ),
+    el(
+      "div",
+      { class: "list-item", style: "display:grid;gap:8px" },
+      el("strong", {}, "批量导入（PNG / JPEG，单个 ≤ 32 MiB）"),
+      fileInput,
+      selection,
+      el("div", { class: "actions" }, importBtn, cancelBtn),
+      results,
+      summary
     ),
     status
   );
