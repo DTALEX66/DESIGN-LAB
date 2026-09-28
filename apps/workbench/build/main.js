@@ -1846,6 +1846,44 @@ function briefFieldRow(prefix) {
 }
 function renderBriefEditor(id, layer, target) {
   const status = el("p", { class: "view-hint", id: "pd-brief-status", role: "status" }, "本页可真实创建并保存简报；保存成功后从服务端重新读回。");
+  const stateChip = el("span", { class: "tag info", id: "pd-brief-state" }, "未修改");
+  const setState = (kind) => {
+    const chip = document.getElementById("pd-brief-state") || stateChip;
+    const label = {
+      idle: "未修改",
+      dirty: "未保存（dirty）",
+      saving: "保存中（saving）",
+      saved: "已保存（saved）",
+      conflict: "冲突（conflict·可恢复）",
+      failed: "失败"
+    };
+    chip.className = kind === "saved" ? "tag ok" : kind === "conflict" ? "tag warn" : kind === "failed" ? "tag bad" : "tag info";
+    chip.textContent = label[kind];
+  };
+  const draftKey = (form) => `design-lab.brief-draft:${id}:${form}`;
+  const readDraft = (form) => {
+    try {
+      const raw = globalThis.localStorage?.getItem(draftKey(form));
+      if (!raw) return null;
+      const o = JSON.parse(raw);
+      if (typeof o?.title !== "string" && typeof o?.goals !== "string") return null;
+      return { title: String(o.title ?? ""), goals: String(o.goals ?? ""), constraints: String(o.constraints ?? "") };
+    } catch {
+      return null;
+    }
+  };
+  const writeDraft = (form, v) => {
+    try {
+      globalThis.localStorage?.setItem(draftKey(form), JSON.stringify(v));
+    } catch {
+    }
+  };
+  const clearDraft = (form) => {
+    try {
+      globalThis.localStorage?.removeItem(draftKey(form));
+    } catch {
+    }
+  };
   const refresh2 = async () => {
     const live = document.getElementById("route-view");
     await renderProjectDetail(id, live || target);
@@ -1858,6 +1896,7 @@ function renderBriefEditor(id, layer, target) {
     const node = liveStatus();
     node.className = "error";
     node.textContent = revisionHint(error);
+    setState(errMsg(error) === "STALE_REVISION" ? "conflict" : "failed");
     if (focus) {
       focus.setAttribute("aria-invalid", "true");
       focus.focus();
@@ -1873,8 +1912,16 @@ function renderBriefEditor(id, layer, target) {
   const create = briefFieldRow("pd-brief");
   const createBtn = el("button", { type: "button", class: "primary-btn", id: "pd-brief-create" }, "新建简报");
   let submittedCreate = { identity: "", key: "" };
+  const createValues = () => ({ title: create.title.value, goals: create.goals.value, constraints: create.constraints.value });
+  for (const f of [create.title, create.goals, create.constraints]) {
+    f.addEventListener("input", () => {
+      setState("dirty");
+      writeDraft("create", createValues());
+    });
+  }
   createBtn.addEventListener("click", () => {
     void (async () => {
+      setState("saving");
       status.className = "view-hint";
       status.textContent = "正在提交…";
       const title = create.title.value.trim();
@@ -1906,8 +1953,10 @@ function renderBriefEditor(id, layer, target) {
           reference_asset_ids: [],
           idempotency_key: submittedCreate.key
         });
+        clearDraft("create");
         await refresh2();
         ok(`简报已保存并读回：「${title}」。`);
+        setState("saved");
       } catch (error) {
         fail(error);
       } finally {
@@ -1965,6 +2014,13 @@ function renderBriefEditor(id, layer, target) {
       await loadLineage(brief.brief_id);
     })();
   };
+  const revValues = () => ({ title: rev.title.value, goals: rev.goals.value, constraints: rev.constraints.value });
+  for (const f of [rev.title, rev.goals, rev.constraints]) {
+    f.addEventListener("input", () => {
+      setState("dirty");
+      writeDraft("rev", revValues());
+    });
+  }
   revBtn.addEventListener("click", () => {
     void (async () => {
       const source = revTarget;
@@ -1972,6 +2028,7 @@ function renderBriefEditor(id, layer, target) {
         fail(new Error("请先在某一简报行点击「新版本」以载入要修订的内容"));
         return;
       }
+      setState("saving");
       status.className = "view-hint";
       status.textContent = "正在提交修订…";
       const title = rev.title.value.trim();
@@ -2003,8 +2060,10 @@ function renderBriefEditor(id, layer, target) {
           reference_asset_ids: source.reference_asset_ids,
           idempotency_key: uuid()
         });
+        clearDraft("rev");
         await refresh2();
         ok(`简报已保存为版本 ${data.brief.version}；版本 ${source.version} 只保留为历史，旧内容未被改写。`);
+        setState("saved");
       } catch (error) {
         fail(error);
       } finally {
@@ -2032,6 +2091,34 @@ function renderBriefEditor(id, layer, target) {
     { class: "list-item" },
     el("div", {}, el("strong", {}, "尚无简报"), el("small", {}, "用下方表单创建该项目的第一份简报（真实写入，保存后读回）"))
   )];
+  const restored = [];
+  const createDraft = readDraft("create");
+  if (createDraft) {
+    create.title.value = createDraft.title;
+    create.goals.value = createDraft.goals;
+    create.constraints.value = createDraft.constraints;
+    restored.push("新建简报");
+  }
+  const revDraft = readDraft("rev");
+  if (revDraft) {
+    rev.title.value = revDraft.title;
+    rev.goals.value = revDraft.goals;
+    rev.constraints.value = revDraft.constraints;
+    restored.push("修订");
+  }
+  if (restored.length) setState("dirty");
+  const draftNote = el("p", { class: "view-hint", id: "pd-brief-draft" }, restored.length ? `已恢复上次未保存的草稿：${restored.join("、")}。草稿仅保存在本机；保存成功或丢弃后即清除。` : "");
+  const discardBtn = el("button", {
+    type: "button",
+    class: "ghost-btn",
+    id: "pd-brief-discard",
+    onclick: () => {
+      clearDraft("create");
+      clearDraft("rev");
+      setState("idle");
+      draftNote.textContent = "草稿已丢弃；表单内容未改动服务端任何状态。";
+    }
+  }, "丢弃草稿");
   return el(
     "div",
     { class: "panel" },
@@ -2053,6 +2140,8 @@ function renderBriefEditor(id, layer, target) {
       el("div", { class: "actions" }, revBtn)
     ),
     lineageBox,
+    el("div", { class: "actions", id: "pd-brief-statebar" }, stateChip, discardBtn),
+    draftNote,
     status
   );
 }
