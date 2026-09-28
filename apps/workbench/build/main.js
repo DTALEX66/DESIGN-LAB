@@ -2422,7 +2422,7 @@ function renderDirectionPanel(id, layer, target) {
       el(
         "div",
         {},
-        el("strong", {}, `${d.title} · v${d.version}`),
+        expandableTitle(d.title, ` · v${d.version}`),
         el("small", {}, `${mood}${notes ? ` · ${notes}` : ""} · ${d.direction_id}`),
         el("small", {}, d.actor ? `选定人：${d.actor}（${d.actor_kind ?? "未标注类型"}）` : "尚未有人选定"),
         ...stale ? [el("small", { class: "error" }, bound ? `绑定的简报版本 v${bound.version} 已被取代 → 该方向需重新审查（不自动失效，也不自动沿用）` : "绑定的简报已不在当前项目中 → 需重新审查")] : []

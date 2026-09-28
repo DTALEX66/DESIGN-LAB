@@ -94,6 +94,16 @@ if (btnCount === 1) {
   check('SKIPPED: control absent, see rowHtml', false, { note: 'entry point not rendered' });
 }
 
+// direction-row titles use the SAME control (they used to be a plain <strong>)
+await page.locator('#pd-dir-title').fill(LONG);
+await page.locator('#pd-dir-create').click();
+await page.waitForFunction(() => /候选不会自动成为选定方向/.test(document.getElementById('pd-dir-status')?.textContent || ''),
+  null, { timeout: 20000 });
+const dirRow = page.locator('.panel').filter({ has: page.locator('h3', { hasText: '方向（Direction）' }) })
+  .locator('.list-item').filter({ hasText: LONG.slice(0, 8) }).first();
+const dirBtn = await dirRow.locator('.title-expand').count();
+check('direction-row titles get the same full-text entry point', dirBtn === 1,
+  { dirBtn, dirRowHtml: await dirRow.evaluate((r) => r.outerHTML).catch(() => 'n/a') });
 check('no console errors', consoleErrors.length === 0, { consoleErrors: consoleErrors.slice(0, 3) });
 
 writeFileSync(OUT, JSON.stringify({
