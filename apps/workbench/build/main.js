@@ -1019,6 +1019,36 @@ function stateMachineStepper() {
   for (const stage of stages) ol.append(el("li", { class: "state-machine-step", dataset: { state: stage } }, stage));
   return ol;
 }
+const FAILED_STATES = /* @__PURE__ */ new Set(["FAILED", "TIMED_OUT", "CANCELLED"]);
+const HUMAN_STATES = /* @__PURE__ */ new Set(["OUTCOME_UNKNOWN", "CANCEL_REQUESTED", "RECONCILING"]);
+const IN_FLIGHT_STATES = /* @__PURE__ */ new Set(["PENDING", "RUNNING"]);
+function taskTriage(state) {
+  if (FAILED_STATES.has(state)) return "failed";
+  if (HUMAN_STATES.has(state)) return "needs_human";
+  if (IN_FLIGHT_STATES.has(state)) return "in_flight";
+  if (state === "RECEIPTED") return "done";
+  return "unknown";
+}
+const RECENT_KEY = "design-lab.recent-projects";
+const RECENT_MAX = 8;
+function recentProjectIds() {
+  try {
+    const raw = globalThis.localStorage?.getItem(RECENT_KEY);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? parsed.filter((v) => typeof v === "string").slice(0, RECENT_MAX) : [];
+  } catch {
+    return [];
+  }
+}
+function rememberProject(id) {
+  if (!id) return;
+  try {
+    const next = [id, ...recentProjectIds().filter((v) => v !== id)].slice(0, RECENT_MAX);
+    globalThis.localStorage?.setItem(RECENT_KEY, JSON.stringify(next));
+  } catch {
+  }
+}
 async function renderDashboard(target) {
   target.replaceChildren(el("p", { class: "view-loading" }, "正在读回服务状态…"));
   const [health, projects2, systems] = await Promise.all([
@@ -1026,6 +1056,26 @@ async function renderDashboard(target) {
     apiOrEmpty("/projects", OFFLINE.projects),
     apiOrEmpty("/design-systems", OFFLINE.designSystems)
   ]);
+  const probeIds = projects2.projects.slice(0, 8).map((p) => p.id);
+  const probes = await Promise.all(probeIds.map(async (pid) => {
+    try {
+      const resp = await api(`/projects/${pid}/tasks`);
+      return { pid, ok: true, tasks: resp.tasks };
+    } catch {
+      return { pid, ok: false, tasks: [] };
+    }
+  }));
+  const readable = probes.filter((p) => p.ok).length;
+  const triageRows = probes.flatMap((p) => p.tasks.map((t) => {
+    const byAttempt = taskTriage(t.attempt.state);
+    return {
+      project: projects2.projects.find((x) => x.id === p.pid)?.name ?? p.pid,
+      kind: t.kind,
+      state: t.state,
+      attempt: t.attempt.state,
+      bucket: byAttempt !== "unknown" ? byAttempt : taskTriage(t.state)
+    };
+  }));
   const sysCount = systems.design_systems.length;
   const projCount = projects2.projects.length;
   const pageHead = el(
@@ -1071,7 +1121,13 @@ async function renderDashboard(target) {
       `${system.name} · ${system.title} · v${system.version} · 证据 ${system.evidence_level}`
     ))
   );
-  const recent = projects2.projects.slice(0, 6);
+  const recent = [...projects2.projects].sort((a, b) => {
+    const rank = recentProjectIds();
+    const ra = rank.indexOf(a.id);
+    const rb = rank.indexOf(b.id);
+    return (ra < 0 ? Number.MAX_SAFE_INTEGER : ra) - (rb < 0 ? Number.MAX_SAFE_INTEGER : rb);
+  }).slice(0, 6);
+  const recentIds = recentProjectIds();
   const recentPanel = el(
     "div",
     { class: "panel" },
@@ -1088,7 +1144,7 @@ async function renderDashboard(target) {
           el("strong", {}, p.name),
           el("small", {}, p.id)
         ),
-        el("span", { class: "tag info" }, "Active")
+        el("span", { class: "tag info" }, recentIds.includes(p.id) ? "最近打开" : "已登记")
       )) : [el(
         "div",
         { class: "list-item" },
@@ -1099,7 +1155,8 @@ async function renderDashboard(target) {
           el("small", {}, "在工作台新建项目后读回此处")
         )
       )]
-    )
+    ),
+    el("p", { class: "view-hint" }, recentIds.length ? "按本机最近打开的项目排序（仅保存项目 id 于本机，不上传）。" : "本机尚未记录打开过的项目，暂按服务返回顺序显示。")
   );
   const sparkVals = [56, 60, 66, 70, 73, 78, 82, 86, 89, 92, 96];
   const trendPanel = el(
@@ -1134,11 +1191,59 @@ async function renderDashboard(target) {
       el("div", { class: "progress", style: "margin-top:14px" }, el("div", { style: "width:65%" }))
     )
   );
+  const triagePanel = (bucket, title, emptyText) => {
+    const rows = triageRows.filter((r) => r.bucket === bucket);
+    const body = readable === 0 ? el("div", { class: "list" }, el(
+      "div",
+      { class: "list-item" },
+      el(
+        "div",
+        {},
+        el("strong", {}, "未读回"),
+        el("small", {}, "服务不可达或未连接；此处不显示 0，避免把「没读到」说成「没有」。")
+      )
+    )) : el(
+      "div",
+      { class: "list" },
+      ...rows.length ? rows.map((r) => el(
+        "div",
+        { class: "list-item" },
+        el(
+          "div",
+          {},
+          el("strong", {}, `${r.project} · ${r.kind}`),
+          el("small", {}, `attempt.state=${r.attempt} · job.state=${r.state}`)
+        ),
+        el("span", { class: bucket === "failed" ? "tag bad" : "tag warn" }, r.attempt)
+      )) : [el(
+        "div",
+        { class: "list-item" },
+        el(
+          "div",
+          {},
+          el("strong", {}, emptyText),
+          el("small", {}, `已读回 ${readable}/${probeIds.length} 个项目的任务`)
+        )
+      )]
+    );
+    return el("div", { class: "panel" }, el("h3", {}, readable === 0 ? title : `${title}（${rows.length}）`), body);
+  };
   target.replaceChildren(
     pageHead,
     grid,
     el("div", { class: "two-col", style: "margin-top:16px" }, recentPanel, trendPanel),
     modulePanels,
+    el(
+      "div",
+      { class: "two-col", style: "margin-top:16px" },
+      triagePanel("needs_human", "待审（需人工处理）", "无待审任务"),
+      triagePanel("failed", "失败", "无失败任务")
+    ),
+    el(
+      "p",
+      { class: "view-hint" },
+      `待审/失败按各项目任务的 attempt.state 判定（词表见 src/design_lab/runtime/job_store.py：TERMINAL={RECEIPTED,FAILED,TIMED_OUT,CANCELLED}）。OUTCOME_UNKNOWN 是「结果未知」，计入待审而**不**计入失败。本轮最多读回 ${probeIds.length} 个项目的任务。`
+    ),
     el("p", { class: "eyebrow" }, "设计系统登记"),
     systemsList,
     el("p", { class: "eyebrow" }, "设计域状态机（B07 契约 · NEXT/BACK 双向）"),
@@ -1953,6 +2058,7 @@ function renderBriefEditor(id, layer, target) {
 }
 async function renderProjectDetail(id, target) {
   target.replaceChildren(el("p", { class: "view-loading" }, "正在读回该项目…"));
+  rememberProject(id);
   const listing = await apiOrEmpty("/projects", OFFLINE.projects);
   const named = listing.projects.find((p) => p.id === id);
   const [tasks2, layerResp] = await Promise.all([

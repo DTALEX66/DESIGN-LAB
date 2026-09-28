@@ -211,6 +211,51 @@ export function stateMachineStepper(): HTMLElement {
   return ol;
 }
 
+// ---------------------------------------------------------------------------
+// W03 — "待审 / 失败列表" and real "最近项目".
+//
+// The task states below are NOT invented here: they are the attempt-state vocabulary of
+// `src/design_lab/runtime/job_store.py` (ALLOWED, and
+// TERMINAL = {RECEIPTED, FAILED, TIMED_OUT, CANCELLED}).
+//
+// The distinction that matters for honesty: OUTCOME_UNKNOWN is **not** a failure. A
+// failed dispatch has an unknown outcome, and folding it into "失败" would report a
+// result the service explicitly refuses to claim. It belongs in "待审" — it needs a
+// human to reconcile — together with CANCEL_REQUESTED and RECONCILING.
+export type TaskTriage = 'failed' | 'needs_human' | 'in_flight' | 'done' | 'unknown';
+const FAILED_STATES = new Set(['FAILED', 'TIMED_OUT', 'CANCELLED']);
+const HUMAN_STATES = new Set(['OUTCOME_UNKNOWN', 'CANCEL_REQUESTED', 'RECONCILING']);
+const IN_FLIGHT_STATES = new Set(['PENDING', 'RUNNING']);
+export function taskTriage(state: string): TaskTriage {
+  if (FAILED_STATES.has(state)) return 'failed';
+  if (HUMAN_STATES.has(state)) return 'needs_human';
+  if (IN_FLIGHT_STATES.has(state)) return 'in_flight';
+  if (state === 'RECEIPTED') return 'done';
+  return 'unknown';
+}
+
+// Recency is client-local (a list of project ids the user actually opened). It is the
+// only durable "which project was I in" signal the single-user desktop build has, and it
+// makes "刷新保留项目上下文" survive more than the URL hash. Guarded: the vm unit smoke
+// has no localStorage and no window, so a throw here would break the smoke.
+const RECENT_KEY = 'design-lab.recent-projects';
+const RECENT_MAX = 8;
+export function recentProjectIds(): string[] {
+  try {
+    const raw = globalThis.localStorage?.getItem(RECENT_KEY);
+    if (!raw) return [];
+    const parsed: unknown = JSON.parse(raw);
+    return Array.isArray(parsed) ? parsed.filter((v): v is string => typeof v === 'string').slice(0, RECENT_MAX) : [];
+  } catch { return []; }
+}
+export function rememberProject(id: string): void {
+  if (!id) return;
+  try {
+    const next = [id, ...recentProjectIds().filter((v) => v !== id)].slice(0, RECENT_MAX);
+    globalThis.localStorage?.setItem(RECENT_KEY, JSON.stringify(next));
+  } catch { /* private mode / vm / no storage: recency is a convenience, never a gate */ }
+}
+
 export async function renderDashboard(target: HTMLElement): Promise<void> {
   target.replaceChildren(el('p', { class: 'view-loading' }, '正在读回服务状态…'));
   const [health, projects, systems] = await Promise.all([
@@ -218,6 +263,30 @@ export async function renderDashboard(target: HTMLElement): Promise<void> {
     apiOrEmpty<ProjectListResponse>('/projects', OFFLINE.projects),
     apiOrEmpty<DesignSystemListResponse>('/design-systems', OFFLINE.designSystems),
   ]);
+  // Tri-state readback for the triage lists: `apiOrEmpty` answers an unreachable service
+  // with an EMPTY payload, so "0 failures" would be a false claim offline. Each project's
+  // tasks are read through `api()` here and per-project failure is recorded, so the panels
+  // can say "未读回" instead of inventing a zero.
+  const probeIds = projects.projects.slice(0, 8).map((p) => p.id);
+  const probes = await Promise.all(probeIds.map(async (pid) => {
+    try {
+      const resp = await api<TaskListResponse>(`/projects/${pid}/tasks`);
+      return { pid, ok: true, tasks: resp.tasks };
+    } catch {
+      return { pid, ok: false, tasks: [] as TaskListResponse['tasks'] };
+    }
+  }));
+  const readable = probes.filter((p) => p.ok).length;
+  const triageRows = probes.flatMap((p) => p.tasks.map((t) => {
+    // The attempt is what fails, so classify by attempt state; fall back to the job state
+    // only when the attempt state is outside the vocabulary.
+    const byAttempt = taskTriage(t.attempt.state);
+    return {
+      project: projects.projects.find((x) => x.id === p.pid)?.name ?? p.pid,
+      kind: t.kind, state: t.state, attempt: t.attempt.state,
+      bucket: byAttempt !== 'unknown' ? byAttempt : taskTriage(t.state),
+    };
+  }));
   const sysCount = systems.design_systems.length;
   const projCount = projects.projects.length;
   // B10 1:1 page-head (h2 + p + .page-actions) — DESIGN-LAB honest copy, B10 layout.
@@ -250,7 +319,12 @@ export async function renderDashboard(target: HTMLElement): Promise<void> {
   // B10 1:1 two-col: 最近项目（左宽，.list/.list-item/.tag）+ 质量趋势
   // （右窄，.panel + .spark）。项目数据是 /api/projects 真实读回，
   // 质量趋势是 B10 演示序列（视觉组件，非业务指标，标 note 说明）。
-  const recent = projects.projects.slice(0, 6);
+  const recent = [...projects.projects].sort((a, b) => {
+    const rank = recentProjectIds();
+    const ra = rank.indexOf(a.id); const rb = rank.indexOf(b.id);
+    return (ra < 0 ? Number.MAX_SAFE_INTEGER : ra) - (rb < 0 ? Number.MAX_SAFE_INTEGER : rb);
+  }).slice(0, 6);
+  const recentIds = recentProjectIds();
   const recentPanel = el('div', { class: 'panel' },
     el('h3', {}, '最近项目'),
     el('div', { class: 'list' },
@@ -259,11 +333,14 @@ export async function renderDashboard(target: HTMLElement): Promise<void> {
             el('div', {},
               el('strong', {}, p.name),
               el('small', {}, p.id)),
-            el('span', { class: 'tag info' }, 'Active')))
+            el('span', { class: 'tag info' }, recentIds.includes(p.id) ? '最近打开' : '已登记')))
         : [el('div', { class: 'list-item' },
             el('div', {},
               el('strong', {}, '尚无项目'),
-              el('small', {}, '在工作台新建项目后读回此处')))])));
+              el('small', {}, '在工作台新建项目后读回此处')))])) ,
+    el('p', { class: 'view-hint' }, recentIds.length
+      ? '按本机最近打开的项目排序（仅保存项目 id 于本机，不上传）。'
+      : '本机尚未记录打开过的项目，暂按服务返回顺序显示。'));
   const sparkVals = [56, 60, 66, 70, 73, 78, 82, 86, 89, 92, 96];
   const trendPanel = el('div', { class: 'panel' },
     el('h3', {}, '设计质量趋势'),
@@ -284,11 +361,37 @@ export async function renderDashboard(target: HTMLElement): Promise<void> {
       el('h3', {}, 'Delivery'),
       el('div', { class: 'muted' }, '交付中心：按任务读回，未打包不宣称交付完成。'),
       el('div', { class: 'progress', style: 'margin-top:14px' }, el('div', { style: 'width:65%' }))));
+  // W03 "待审 / 失败列表": derived from real task readback, never from a demo number.
+  const triagePanel = (bucket: TaskTriage, title: string, emptyText: string): HTMLElement => {
+    const rows = triageRows.filter((r) => r.bucket === bucket);
+    const body = readable === 0
+      // Deliberately NOT "0": an unreachable service has not told us there are none.
+      ? el('div', { class: 'list' }, el('div', { class: 'list-item' },
+          el('div', {}, el('strong', {}, '未读回'),
+            el('small', {}, '服务不可达或未连接；此处不显示 0，避免把「没读到」说成「没有」。'))))
+      : el('div', { class: 'list' },
+          ...(rows.length
+            ? rows.map((r) => el('div', { class: 'list-item' },
+                el('div', {}, el('strong', {}, `${r.project} · ${r.kind}`),
+                  el('small', {}, `attempt.state=${r.attempt} · job.state=${r.state}`)),
+                el('span', { class: bucket === 'failed' ? 'tag bad' : 'tag warn' }, r.attempt)))
+            : [el('div', { class: 'list-item' },
+                el('div', {}, el('strong', {}, emptyText),
+                  el('small', {}, `已读回 ${readable}/${probeIds.length} 个项目的任务`)))]));
+    return el('div', { class: 'panel' }, el('h3', {}, readable === 0 ? title : `${title}（${rows.length}）`), body);
+  };
   target.replaceChildren(
     pageHead,
     grid,
     el('div', { class: 'two-col', style: 'margin-top:16px' }, recentPanel, trendPanel),
     modulePanels,
+    el('div', { class: 'two-col', style: 'margin-top:16px' },
+      triagePanel('needs_human', '待审（需人工处理）', '无待审任务'),
+      triagePanel('failed', '失败', '无失败任务')),
+    el('p', { class: 'view-hint' },
+      '待审/失败按各项目任务的 attempt.state 判定（词表见 src/design_lab/runtime/job_store.py：'
+      + 'TERMINAL={RECEIPTED,FAILED,TIMED_OUT,CANCELLED}）。OUTCOME_UNKNOWN 是「结果未知」，'
+      + `计入待审而**不**计入失败。本轮最多读回 ${probeIds.length} 个项目的任务。`),
     el('p', { class: 'eyebrow' }, '设计系统登记'),
     systemsList,
     el('p', { class: 'eyebrow' }, '设计域状态机（B07 契约 · NEXT/BACK 双向）'),
@@ -914,6 +1017,7 @@ function renderBriefEditor(id: string, layer: DesignLayerResponse['design_layer'
 
 export async function renderProjectDetail(id: string, target: HTMLElement): Promise<void> {
   target.replaceChildren(el('p', { class: 'view-loading' }, '正在读回该项目…'));
+  rememberProject(id);   // W03 "最近项目": record the project the user actually opened
   const listing = await apiOrEmpty<ProjectListResponse>('/projects', OFFLINE.projects);
   const named = listing.projects.find((p) => p.id === id);
   const [tasks, layerResp] = await Promise.all([
