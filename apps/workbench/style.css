@@ -316,7 +316,20 @@ body > footer{
    the service sends `style-src 'self'` and an inline style attribute is a CSP
    violation (style.css:1 comment block has the full rationale). */
 .spark polyline{filter:drop-shadow(0 0 8px color-mix(in srgb,var(--color-primary) 40%, transparent))}
-.route-view h2{font-size:24px}
+/* Route-host heading. The placeholder headings rendered straight into `#route-view`
+   (`el('h2', {}, view)` for an unopened/unconnected view in shell.ts) had NO class, so
+   their vertical margins were supplied by the pre-B10 unscoped `h2{margin:0 0 14px}`
+   rule -- accidentally, via the legacy block, not by any B10 declaration. Measured by
+   the CSSOM delete-and-diff sweep (W02-LEAK-SWEEP.txt): deleting the legacy element
+   rules reverted those margins to the UA default 19.92px, i.e. 8 in-`.app` bindings
+   came from legacy CSS in a shell that is supposed to be B10-only.
+   Declaring the margin here removes that hidden dependency WITHOUT changing what the
+   browser paints (the frozen values are exactly the previously computed ones), so this
+   is a de-coupling, not a redesign. The font-size below is likewise NOT a B10 value:
+   B10's own page heading is `.page-head h2{font-size:32px;margin:0 0 6px}`, while this
+   host renders 24px -- that type-scale divergence is a W01 typography / owner ruling
+   item (X-1/X-2), deliberately left alone here rather than silently "fixed". */
+.route-view h2{font-size:24px;margin:0 0 14px}
 .view-loading{color:var(--muted);font-size:13px}
 .view-hint{font-size:12px;color:var(--muted);line-height:1.7}
 .view-unopened{
