@@ -30,6 +30,54 @@
   --motion-slow:280ms;
   --motion-emphasis:420ms;
 
+  /* ---------------------------------------------------------------------
+     以下四族此前**完全缺失**（W01 实测：space 0/8、font 0/6、bp 0/3、
+     density 0/3、radius.xl 0/1）。现按 DESIGN-LAB 专属原稿补齐为**变量**。
+     纯新增：当前无任何规则消费这些变量，故视觉与行为零变化。
+     来源：B07 shared-ui-core/base-tokens.css + B04 DESIGN-LAB_design_tokens.json
+     （原稿解包位置与 sha256 见 .project-local/.../ui-originals/EXTRACTION-MANIFEST.json）
+
+     注意两处**原稿自相矛盾**，此处不擅自裁决，仅记录：
+       X-1 正文字号：B04 typography.body=18  vs  B07 --font-body=16px
+       X-2 caption ：B04 typography.caption=14  vs  B07 --font-caption=13px
+     下方取 **B07（前端治理层）** 的值作为实现侧暂定值，待 owner 裁决后修正。
+     另：
+       X-3/X-4 移动断点三套并存（B07 767px / 实现 760px / B10 840px）
+       X-7 --radius-sm 名称冲突：B10 桥接块定义为 12px，而 B04 radius.sm=4。
+           为避免破坏 B10 块，此处**不重定义** --radius-sm。
+     --------------------------------------------------------------------- */
+
+  /* 间距标度（B07 base-tokens.css，8 级） */
+  --space-1:4px;
+  --space-2:8px;
+  --space-3:12px;
+  --space-4:16px;
+  --space-6:24px;
+  --space-8:32px;
+  --space-12:48px;
+  --space-16:64px;
+
+  /* 字号标度（B07 base-tokens.css；body/caption 见 X-1/X-2） */
+  --font-display:48px;
+  --font-h1:36px;
+  --font-h2:28px;
+  --font-h3:22px;
+  --font-body:16px;
+  --font-caption:13px;
+
+  /* 断点（B07 base-tokens.css） */
+  --bp-mobile:767px;
+  --bp-tablet:1024px;
+  --bp-desktop:1440px;
+
+  /* 密度（B04 design_tokens.json density；B07 治理层未承载） */
+  --density-comfortable:68;
+  --density-default:56;
+  --density-compact:44;
+
+  /* 圆角补全（B04 radius.xl=20；--radius-sm 见 X-7，不重定义） */
+  --radius-xl:20px;
+
   /* Workbench 内部语义别名（旧变量名保留，值重指到权威色） */
   --ink:var(--color-text);
   --muted:var(--color-muted);
