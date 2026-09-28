@@ -1404,7 +1404,7 @@ function renderDirectionPanel(id: string, layer: DesignLayerResponse['design_lay
     const notes = d.style_notes && d.style_notes.length ? d.style_notes.join(' / ') : null;
     return el('div', { class: 'list-item' },
       el('div', {},
-        el('strong', {}, `${d.title} · v${d.version}`),
+        expandableTitle(d.title, ` · v${d.version}`),
         el('small', {}, `${mood}${notes ? ` · ${notes}` : ''} · ${d.direction_id}`),
         el('small', {}, d.actor ? `选定人：${d.actor}（${d.actor_kind ?? '未标注类型'}）` : '尚未有人选定'),
         // 验收 3: explicit expiry, derived from the readback.
