@@ -959,6 +959,14 @@ const ROUTE_VIEWS = [
   { hash: "#/collaboration", view: "collaboration", label: "团队协作" },
   { hash: "#/settings", view: "settings", label: "系统设置" }
 ];
+const PROJECT_DETAIL_RE = /^#\/projects\/([^/?#]+)$/;
+function projectDetailId(hash) {
+  const m = PROJECT_DETAIL_RE.exec(hash);
+  return m && m[1] ? decodeURIComponent(m[1]) : null;
+}
+function projectDetailHash(id) {
+  return "#/projects/" + encodeURIComponent(id);
+}
 const VIEW_NOT_OPEN = {
   "research": "研究洞察页未开放：当前服务没有研究结论的持久化路由。",
   "design-domains": "设计领域页未开放：领域划分尚无独立后端模型。",
@@ -1513,7 +1521,8 @@ async function renderProjects(target) {
         {},
         el("th", {}, "项目"),
         el("th", {}, "ID"),
-        el("th", {}, "状态")
+        el("th", {}, "状态"),
+        el("th", {}, "")
       )),
       el(
         "tbody",
@@ -1523,8 +1532,17 @@ async function renderProjects(target) {
           {},
           el("td", {}, el("strong", {}, p.name)),
           el("td", {}, p.id),
-          el("td", {}, el("span", { class: "tag info" }, "Active"))
-        )) : [el("tr", {}, el("td", { colspan: "3" }, "尚无项目。在工作台新建项目后出现。"))]
+          el("td", {}, el("span", { class: "tag info" }, "Active")),
+          el("td", {}, el("button", {
+            type: "button",
+            class: "ghost-btn",
+            // B07 `/projects/:id` — reached from a row, never a nav item
+            // (ROUTE_VIEWS must stay 12 for the browser E2E nav assertion).
+            onclick: () => {
+              window.location.hash = projectDetailHash(p.id);
+            }
+          }, "打开"))
+        )) : [el("tr", {}, el("td", { colspan: "4" }, "尚无项目。在工作台新建项目后出现。"))]
       )
     )
   );
@@ -1714,6 +1732,84 @@ async function renderEvidence(target) {
     return done;
   });
 }
+async function renderProjectDetail(id, target) {
+  target.replaceChildren(el("p", { class: "view-loading" }, "正在读回该项目…"));
+  const listing = await apiOrEmpty("/projects", OFFLINE.projects);
+  const named = listing.projects.find((p) => p.id === id);
+  const [tasks2, layerResp] = await Promise.all([
+    apiOrEmpty(`/projects/${id}/tasks`, OFFLINE.tasks),
+    apiOrEmpty(`/projects/${id}/design-layer`, OFFLINE.designLayer)
+  ]);
+  const layer = layerResp.design_layer;
+  const chosen = layer.chosen_direction ? `${layer.chosen_direction.title} · v${layer.chosen_direction.version}` : "（尚未选定方向）";
+  const active = layer.active_binding ? `${layer.active_binding.design_system_name} · 绑定 ${layer.active_binding.direction_id}` : "（无活动绑定）";
+  const pageHead = el(
+    "div",
+    { class: "page-head" },
+    el(
+      "div",
+      {},
+      el("h2", {}, named ? named.name : id),
+      el("p", {}, `项目详情 · ${id}。只读回读该项目的 tasks 与 design-layer 台账；本页不修改任何状态。`)
+    ),
+    el(
+      "div",
+      { class: "page-actions" },
+      el("button", {
+        type: "button",
+        class: "ghost-btn",
+        onclick: () => {
+          window.location.hash = "#/projects";
+        }
+      }, "返回项目列表")
+    )
+  );
+  const kpis = el(
+    "div",
+    { class: "kpi-grid" },
+    kpiCard(String(tasks2.tasks.length), "任务", "读回 /tasks 台账"),
+    kpiCard(String(layer.briefs.length), "简报版本", "读回 design-layer"),
+    kpiCard(String(layer.directions.length), "方向版本", "读回 design-layer"),
+    kpiCard(layer.active_binding ? "1" : "0", "活动绑定", active)
+  );
+  const taskPanel = el(
+    "div",
+    { class: "panel" },
+    el("h3", {}, `任务台账（${tasks2.tasks.length}）`),
+    el(
+      "div",
+      { class: "list" },
+      ...tasks2.tasks.length ? tasks2.tasks.slice(0, 8).map((t) => el(
+        "div",
+        { class: "list-item" },
+        el("div", {}, el("strong", {}, t.kind), el("small", {}, `尝试 ${t.attempt.attempt_no} · ${t.attempt.state}`)),
+        el("span", { class: "tag info" }, t.state)
+      )) : [el(
+        "div",
+        { class: "list-item" },
+        el("div", {}, el("strong", {}, "尚无任务"), el("small", {}, "任务由工作台高级区提交"))
+      )]
+    )
+  );
+  const layerPanel = el(
+    "div",
+    { class: "panel" },
+    el("h3", {}, "设计层契约"),
+    el(
+      "div",
+      { class: "list" },
+      el("div", { class: "list-item" }, el("span", {}, "选定方向"), el("span", { class: "tag info" }, chosen)),
+      el("div", { class: "list-item" }, el("span", {}, "活动绑定"), el("span", { class: "tag info" }, active)),
+      el("div", { class: "list-item" }, el("span", {}, "设计系统登记"), el("span", { class: "tag info" }, String(layer.design_systems.length)))
+    )
+  );
+  target.replaceChildren(
+    pageHead,
+    kpis,
+    el("div", { class: "two-col", style: "margin-top:16px" }, taskPanel, layerPanel),
+    el("p", { class: "view-hint" }, "本页为只读项目上下文；提交 / 运行 / 取消 / 导出由工作台执行。")
+  );
+}
 async function renderRoute(view, target) {
   target.replaceChildren();
   switch (view) {
@@ -1741,6 +1837,17 @@ async function renderRoute(view, target) {
     case "evidence":
       await renderEvidence(target);
       return;
+    // B07 `/projects/:id`. The id comes from the hash (renderRoute receives only
+    // the resolved view, matching the existing signature).
+    case "project-detail": {
+      const id = projectDetailId(window.location.hash);
+      if (!id) {
+        await renderProjects(target);
+        return;
+      }
+      await renderProjectDetail(id, target);
+      return;
+    }
     default: {
       const notOpen = VIEW_NOT_OPEN[view];
       target.replaceChildren(
@@ -1782,6 +1889,7 @@ function mountAppShell() {
     }
   };
   const current = () => {
+    if (projectDetailId(window.location.hash)) return "project-detail";
     const match = ROUTE_VIEWS.find((route) => route.hash === window.location.hash);
     if (!match && devMode()) return "dashboard";
     return match ? match.view : "workbench";
@@ -1936,7 +2044,8 @@ function mountB10Shell(routeView) {
     if (legacyNav) legacyNav.toggleAttribute("hidden", routed);
     for (const node of legacyChrome) node.toggleAttribute("hidden", routed);
     for (const item of Array.from(sidebar.querySelectorAll(".nav button"))) {
-      const selected = item.dataset.route === view;
+      const highlight = view === "project-detail" ? "projects" : view;
+      const selected = item.dataset.route === highlight;
       item.classList.toggle("active", selected);
       if (selected) item.setAttribute("aria-current", "page");
       else item.removeAttribute("aria-current");
