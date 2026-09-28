@@ -976,3 +976,52 @@ html,body{margin:0}
             但 B07 自己的 motion.css 只写 `.pressable:active{transform:scale(.99)}`，
             **未表达 80ms**。此处按 CSS 原稿实现，不自行发明时长。 */
 
+/* ==========================================================================
+   .seg —— 分段控件（B07 component-registry 把 `Tabs` 映射到它）
+
+   B10 **只在 `.toolbar` 作用域内**定义该控件（`.toolbar .seg`），所以脱离
+   toolbar 时这个类完全不可用。这里补上非作用域的 .seg：
+     · 基类与 `button` 外观**照搬 B10 声明原文**；
+     · 四态（default / hover / focus / disabled）按 **B07 component-registry
+       为全部 46 个组件声明的 states** 补齐 —— B10 对 `.toolbar .seg` 只声明
+       default 与 active，且那套只服务 toolbar 场景；
+     · hover 时长取 --motion-fast(120ms)、focus 取 2px ring + 2px offset，
+       两者都是 B07 交互契约里写明的数值（该契约的整体对齐仍属 owner 裁决项，
+       但这里是在**新增**一个 B10 未提供独立定义的控件，不是在改 B10 的外观）。
+   优先级与泄漏边界（已逐属性实测，见 w02-verify-seg.mjs）：
+   B10 的 `.toolbar .seg button`(0,2,1) 只声明 border / background / color /
+   padding / border-radius 五项，且下面 `.seg button`(0,1,1) 把这五项**照抄成
+   同样的字面量**，所以只有 `.seg button` **多出来**的属性才可能泄漏进 toolbar。
+   实测多出来的只有 `transition`（B10 的 toolbar 规则从未声明它）——这就是下面
+   那条 restoration 存在的原因；其余属性实测与 B10 原值逐项相同。
+   ========================================================================== */
+.seg{display:flex;gap:8px;flex-wrap:wrap}
+.seg button{
+  border:1px solid color-mix(in srgb,var(--border) 70%, transparent);
+  background:color-mix(in srgb,var(--surface2) 68%, transparent);
+  color:var(--text);padding:10px 12px;border-radius:12px;
+  transition:all var(--motion-fast) cubic-bezier(.2,0,0,1);
+}
+.seg button:hover{
+  border-color:color-mix(in srgb,var(--primary) 38%, white 3%);
+  transform:translateY(-1px);
+}
+.seg button:focus-visible{
+  outline:2px solid var(--color-primary);outline-offset:2px;
+}
+.seg button.active{
+  background:linear-gradient(135deg,color-mix(in srgb,var(--primary) 86%, white 3%),color-mix(in srgb,var(--secondary) 44%, var(--primary)));
+  border-color:color-mix(in srgb,var(--primary) 48%, white 4%);
+  color:#fff;
+}
+.seg button:disabled{opacity:.45;cursor:not-allowed;transform:none}
+
+/* Restoration: `.seg button`(0,1,1) also matches `.toolbar .seg button`(0,2,1) for
+   the `transition` property, which B10's toolbar rule does not declare -- so the
+   120ms hover timing above leaked INTO B10's toolbar segmented control, which was
+   instant before. Measured: `.toolbar .seg button` transition went none -> 0.12s.
+   B10's `.toolbar .seg` must stay byte-identical, so the pre-existing value is
+   restored here explicitly. */
+.toolbar .seg button{transition:none}
+
+
