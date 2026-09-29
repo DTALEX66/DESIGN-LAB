@@ -1,11 +1,11 @@
 {
   "schemaVersion": "design-lab/deepseek-authority-chain/v1",
   "task_key": "DL-TP-20260914-DEEPSEEK-AUTHORITY-R1::DLDS-A010",
-  "generated_at": "2026-09-28T14:26:44+00:00",
+  "generated_at": "2026-09-29T17:28:40+00:00",
   "subject": {
-    "base_sha": "4c9f18493e909283a5448763f704b3f838531d0a",
-    "branch": "main",
-    "worktree_clean": false
+    "base_sha": "c575b846292bf8d2a38f6ac93d4fbe2a66dac2d0",
+    "branch": "chore/ledger-bundle-route-evidence-20260929",
+    "worktree_clean": true
   },
   "current_authority": {
     "deepseek_execution": {
@@ -127,8 +127,8 @@
     },
     {
       "path": "design-lab/config/task-ledger-r3.json",
-      "bytes": 346041,
-      "sha256": "sha256:c94654b8723acfd1af1f112773ad9af7847364a84bcce23f35fa2d2e574bcb65",
+      "bytes": 355084,
+      "sha256": "sha256:2a8f0e66611402ff3e026638e1dfc7c42e8f3368ed1479be09b5d45b35595525",
       "authority_class": "ACTIVE_PRODUCT_PACK",
       "basis": "R5 task status authoring source (schema design-lab/task-ledger/r5-v1)",
       "ledger": {
@@ -136,7 +136,7 @@
         "taskpack": "DL-TP-20260908-R5",
         "schemaVersion": "design-lab/task-ledger/r5-v1",
         "tasks": 28,
-        "evidence_receipts": 36
+        "evidence_receipts": 37
       }
     },
     {
