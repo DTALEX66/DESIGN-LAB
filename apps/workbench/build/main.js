@@ -922,6 +922,7 @@ const OFFLINE = {
   projects: { projects: [] },
   designSystems: { design_systems: [] },
   tasks: { tasks: [], next_cursor: null },
+  bundles: { bundles: [] },
   designLayer: {
     design_layer: {
       briefs: [],
@@ -2669,15 +2670,99 @@ function renderDesignSystemPanel(id, layer, systems, target) {
     status
   );
 }
+function renderDeliveryPanel(id, data) {
+  const bundles = data.bundles;
+  const heading = el("h3", { id: "pd-deliveries-heading" }, `最近交付（${bundles.length}）`);
+  const status = el("p", { class: "view-hint", id: "pd-deliveries-status", role: "status" }, "");
+  const list = el(
+    "div",
+    { class: "list", id: "pd-deliveries-list" },
+    ...bundles.length ? [] : [el(
+      "div",
+      { class: "list-item" },
+      el(
+        "div",
+        {},
+        el("strong", {}, token ? "尚无交付包" : "未连接"),
+        el("small", {}, token ? "任务完成并打包后，交付会在此读回。" : "连接本机设计服务后读回该项目的交付清单。")
+      )
+    )]
+  );
+  const download = async (bundle) => {
+    const access = token;
+    const route = `/projects/${id}/bundles/${bundle.id}/versions/${bundle.version_id}/content`;
+    status.textContent = `正在核对 ${bundle.id} 的交付包…`;
+    const response = await fetch("/api" + route, { headers: { Authorization: "Bearer " + access }, cache: "no-store" });
+    if (!response.ok) {
+      status.textContent = `交付包读取失败：HTTP ${response.status}。`;
+      return;
+    }
+    const bytes = await response.arrayBuffer();
+    const digest = Array.from(
+      new Uint8Array(await crypto.subtle.digest("SHA-256", bytes)),
+      (b) => b.toString(16).padStart(2, "0")
+    ).join("");
+    if (digest !== bundle.sha256.replace(/^sha256:/, "") || bytes.byteLength !== bundle.byte_size) {
+      status.textContent = "交付包与记录 hash 不一致，未采纳（fail-closed）。";
+      return;
+    }
+    const url = URL.createObjectURL(new Blob([bytes], { type: "application/zip" }));
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `design-lab-${bundle.id.slice(-12)}.zip`;
+    link.click();
+    setTimeout(() => URL.revokeObjectURL(url), 3e4);
+    status.textContent = `交付包已下载并核对 hash；字体、链接、rights 与质量仍需验收。`;
+  };
+  const row = (b) => el(
+    "div",
+    { class: "list-item" },
+    el(
+      "div",
+      {},
+      el("strong", {}, `交付包 · v${b.version_no}`),
+      el("small", {}, `${b.id} · ${b.byte_size} 字节 · sha256 ${String(b.sha256).replace(/^sha256:/, "").slice(0, 16)}…`)
+    ),
+    el(
+      "div",
+      { class: "actions" },
+      el("button", {
+        type: "button",
+        class: "ghost-btn",
+        onclick: () => {
+          void download(b).catch((e) => {
+            status.textContent = `交付包读取失败：${errMsg(e)}`;
+          });
+        }
+      }, "下载交付包"),
+      el(
+        "span",
+        { class: b.rights === "NOT_REVIEWED" ? "tag warn" : "tag info" },
+        b.rights === "NOT_REVIEWED" ? "权利未审查" : b.rights
+      )
+    )
+  );
+  list.append(...bundles.map(row));
+  status.textContent = bundles.length ? "交付清单已读回。hash 在点击「下载交付包」时核对；权利与质量仍需独立验收。" : "该项目当前没有已交付的设计包。";
+  return el(
+    "div",
+    { class: "panel", id: "pd-deliveries" },
+    heading,
+    list,
+    status,
+    el("p", { class: "view-hint" }, "交付包来自原生宿主导出并打包的可编辑源 + 预览 + BOM；读取与 hash 为只读回读，权利 / 质量 / 预检仍由人工验收。")
+  );
+}
 async function renderProjectDetail(id, target) {
   target.replaceChildren(el("p", { class: "view-loading" }, "正在读回该项目…"));
   rememberProject(id);
   const listing = await apiOrEmpty("/projects", OFFLINE.projects);
   const named = listing.projects.find((p) => p.id === id);
-  const [tasks2, layerResp, systemsResp] = await Promise.all([
+  const [tasks2, layerResp, systemsResp, bundlesResp] = await Promise.all([
     apiOrEmpty(`/projects/${id}/tasks`, OFFLINE.tasks),
     apiOrEmpty(`/projects/${id}/design-layer`, OFFLINE.designLayer),
-    apiOrEmpty("/design-systems", OFFLINE.designSystems)
+    apiOrEmpty("/design-systems", OFFLINE.designSystems),
+    apiOrEmpty(`/projects/${id}/bundles`, OFFLINE.bundles)
   ]);
   const layer = layerResp.design_layer;
   const chosen = layer.chosen_direction ? `${layer.chosen_direction.title} · v${layer.chosen_direction.version}` : "（尚未选定方向）";
@@ -2746,6 +2831,7 @@ async function renderProjectDetail(id, target) {
     pageHead,
     kpis,
     el("div", { class: "two-col", style: "margin-top:16px" }, taskPanel, layerPanel),
+    el("div", { style: "margin-top:16px" }, renderDeliveryPanel(id, bundlesResp)),
     el("div", { style: "margin-top:16px" }, renderBriefEditor(id, layer, target)),
     el("div", { style: "margin-top:16px" }, renderDirectionPanel(id, layer, target)),
     el("div", { style: "margin-top:16px" }, renderDesignSystemPanel(id, layer, systemsResp, target)),

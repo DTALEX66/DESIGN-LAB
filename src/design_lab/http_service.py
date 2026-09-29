@@ -17,7 +17,7 @@ from .native_submissions import NativeSubmissions
 from .native_patch_submissions import NativePatchSubmissions
 from .native_tasks import NativeTaskError
 from .native_workers import NativeWorkers
-from .native_assets import NativeAssets
+from .native_assets import Bundles, NativeAssets
 from .native_delivery import NativeDelivery
 from .design_layer import DesignLayer, DesignLayerError
 from . import workbench
@@ -178,6 +178,13 @@ def make_server(service, token, port=0):
                     match = re.fullmatch(r'/api/projects/([0-9a-f]{32})/native-assets/(native-[0-9a-f]{64})/verify',self.path)
                     if match:
                         return self.send_json(200,NativeAssets(service).verify(*match.groups()))
+                    # Project bundle/delivery list: read-back of the project's design
+                    # bundles (its deliveries). The Bundles query class landed in
+                    # native_assets.py first (tests only); this route is what makes
+                    # it reachable from the service and the workbench UI.
+                    match = re.fullmatch(r'/api/projects/([0-9a-f]{32})/bundles',self.path)
+                    if match:
+                        return self.send_json(200,Bundles(service).list(match[1]))
                     match = re.fullmatch(r'/api/projects/([0-9a-f]{32})/tasks(?:\?after=((?:native-)?job-[0-9a-f]{64}))?', self.path)
                     if match:
                         return self.send_json(200, TaskQueries(service).list(match[1], match[2] or ''))
