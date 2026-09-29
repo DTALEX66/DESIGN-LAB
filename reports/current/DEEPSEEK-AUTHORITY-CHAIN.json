@@ -1,11 +1,11 @@
 {
   "schemaVersion": "design-lab/deepseek-authority-chain/v1",
   "task_key": "DL-TP-20260914-DEEPSEEK-AUTHORITY-R1::DLDS-A010",
-  "generated_at": "2026-09-29T17:35:32+00:00",
+  "generated_at": "2026-09-29T17:47:09+00:00",
   "subject": {
-    "base_sha": "fef04cc6dc06ca2c21ae8eb71f84a4c482f846fc",
+    "base_sha": "80e105feb53972db525d3bee875bbf984bda47ed",
     "branch": "chore/ledger-bundle-route-evidence-20260929",
-    "worktree_clean": false
+    "worktree_clean": true
   },
   "current_authority": {
     "deepseek_execution": {
