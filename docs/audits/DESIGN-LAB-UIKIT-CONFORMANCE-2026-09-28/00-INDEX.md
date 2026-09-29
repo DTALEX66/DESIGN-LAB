@@ -48,6 +48,8 @@ the pack and is confirmed correct.
 | `evidence/governance-state/` | `context-capsule.json`, both `prune-manifest-*.json`, `stash-backup-2026-09-26.json` |
 | `session/b10-1to1-handoff/` | Text-only lineage from the B10 1:1 round (42 files). Its Chromium profile/shader-cache trees were excluded — see §11 |
 | `session/quarantine/`, `session/hermes-legacy/`, `session/reconstruction/` | Quarantined deepseek-round1 state, HERMES legacy migration manifests/journal, reconstruction run contracts |
+| `NEXT-ROUND-PLAN-BUNDLES-LIST.md` | The bundle-list route plan. **Its central premise was wrong** (`asset_kind='design-bundle'` is not a legal value); corrected in place by PR #206 with the original text kept and marked |
+| `CLOUD-AUDIT-BRIEF-BUNDLES-LIST-2026-09-28.md` | **Web-audit entry point** for that slice: exact SHA, blob SHAs, PR/run URLs, falsifiable claims C1–C8, explicit non-claims, and a paste-ready audit prompt. Also discloses the two red PR runs (advisory `H001` only) so they are not misread as required-check failures |
 
 ## 4. The headline result
 
