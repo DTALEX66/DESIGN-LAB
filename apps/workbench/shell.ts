@@ -8,6 +8,8 @@ import type {
   AssetListResponse,
   BriefLineageResponse,
   BriefRevisionResponse,
+  BundleListResponse,
+  BundleRecord,
   DesignBrief,
   DesignDirection,
   DesignLayerResponse,
@@ -64,6 +66,7 @@ const OFFLINE = {
   projects: { projects: [] } as ProjectListResponse,
   designSystems: { design_systems: [] } as DesignSystemListResponse,
   tasks: { tasks: [], next_cursor: null } as TaskListResponse,
+  bundles: { bundles: [] } as BundleListResponse,
   designLayer: {
     design_layer: {
       briefs: [], directions: [], chosen_direction: null,
@@ -1594,15 +1597,91 @@ function renderDesignSystemPanel(
     status);
 }
 
+// ---- 最近交付（W03-RECENT-DELIVERIES gap -> now wired to a real route) ----
+// The W03 finding recorded the missing "recent deliveries" module on the project
+// page; that data now exists (GET /projects/:id/bundles) but had no panel. This
+// reads that route and lists the project's delivered design bundles. It REUSES the
+// proven bundle download + hash-verify flow (workbench.ts exportBundle does the
+// same check): we never claim a download succeeded unless the bytes match the
+// recorded sha256/size. Delivery is a read-back of a persisted artifact, not a new
+// KPI; rights/quality stay NOT_REVIEWED until a real host + jury (E3/E4) runs.
+function renderDeliveryPanel(id: string, data: BundleListResponse): HTMLElement {
+  const bundles = data.bundles;
+  const heading = el('h3', { id: 'pd-deliveries-heading' }, `最近交付（${bundles.length}）`);
+  const status = el('p', { class: 'view-hint', id: 'pd-deliveries-status', role: 'status' }, '');
+  // The list itself was read via the service route (apiOrEmpty: a connected session
+  // gets the live readback; dev/offline gets an honest empty payload) — so the rows
+  // below are rendered from what the SERVICE said, never from an invented count.
+  const list = el('div', { class: 'list', id: 'pd-deliveries-list' },
+    ...(bundles.length
+      ? []
+      : [el('div', { class: 'list-item' },
+          el('div', {}, el('strong', {}, token ? '尚无交付包' : '未连接'),
+            el('small', {}, token ? '任务完成并打包后，交付会在此读回。' : '连接本机设计服务后读回该项目的交付清单。')))]));
+
+  // Mirrors exportBundle's hash check so a served bundle is only accepted when its
+  // digest + size match the recorded artifact. Guarded so it cannot break the
+  // headless vm path (no crypto/fetch there): it only runs on real user click.
+  const download = async (bundle: BundleRecord): Promise<void> => {
+    const access = token;
+    const route = `/projects/${id}/bundles/${bundle.id}/versions/${bundle.version_id}/content`;
+    status.textContent = `正在核对 ${bundle.id} 的交付包…`;
+    const response = await fetch('/api' + route, { headers: { Authorization: 'Bearer ' + access }, cache: 'no-store' });
+    if (!response.ok) { status.textContent = `交付包读取失败：HTTP ${response.status}。`; return; }
+    const bytes = await response.arrayBuffer();
+    const digest = Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256', bytes)),
+      (b) => b.toString(16).padStart(2, '0')).join('');
+    if (digest !== bundle.sha256.replace(/^sha256:/, '') || bytes.byteLength !== bundle.byte_size) {
+      status.textContent = '交付包与记录 hash 不一致，未采纳（fail-closed）。';
+      return;
+    }
+    const url = URL.createObjectURL(new Blob([bytes], { type: 'application/zip' }));
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `design-lab-${bundle.id.slice(-12)}.zip`;
+    link.click();
+    setTimeout(() => URL.revokeObjectURL(url), 30000);
+    status.textContent = `交付包已下载并核对 hash；字体、链接、rights 与质量仍需验收。`;
+  };
+
+  const row = (b: BundleRecord): HTMLElement => el('div', { class: 'list-item' },
+    el('div', {},
+      el('strong', {}, `交付包 · v${b.version_no}`),
+      el('small', {}, `${b.id} · ${b.byte_size} 字节 · sha256 ${String(b.sha256).replace(/^sha256:/, '').slice(0, 16)}…`)),
+    el('div', { class: 'actions' },
+      el('button', {
+        type: 'button', class: 'ghost-btn',
+        onclick: () => { void download(b).catch((e) => { status.textContent = `交付包读取失败：${errMsg(e)}`; }); },
+      }, '下载交付包'),
+      el('span', { class: b.rights === 'NOT_REVIEWED' ? 'tag warn' : 'tag info' },
+        b.rights === 'NOT_REVIEWED' ? '权利未审查' : b.rights)));
+
+  // Render the live rows. A connected session's service readback failed here? It
+  // cannot: `data` already holds the service answer (apiOrEmpty turns an offline
+  // dev seam into an honest empty payload; a live failure still surfaces to the
+  // caller, not into a silent "nothing here"). So this branch never hides a real
+  // readback error behind a fake empty list.
+  list.append(...bundles.map(row));
+  status.textContent = bundles.length
+    ? '交付清单已读回。hash 在点击「下载交付包」时核对；权利与质量仍需独立验收。'
+    : '该项目当前没有已交付的设计包。';
+
+  return el('div', { class: 'panel', id: 'pd-deliveries' },
+    heading, list,
+    status,
+    el('p', { class: 'view-hint' }, '交付包来自原生宿主导出并打包的可编辑源 + 预览 + BOM；读取与 hash 为只读回读，权利 / 质量 / 预检仍由人工验收。'));
+}
+
 export async function renderProjectDetail(id: string, target: HTMLElement): Promise<void> {
   target.replaceChildren(el('p', { class: 'view-loading' }, '正在读回该项目…'));
   rememberProject(id);   // W03 "最近项目": record the project the user actually opened
   const listing = await apiOrEmpty<ProjectListResponse>('/projects', OFFLINE.projects);
   const named = listing.projects.find((p) => p.id === id);
-  const [tasks, layerResp, systemsResp] = await Promise.all([
+  const [tasks, layerResp, systemsResp, bundlesResp] = await Promise.all([
     apiOrEmpty<TaskListResponse>(`/projects/${id}/tasks`, OFFLINE.tasks),
     apiOrEmpty<DesignLayerResponse>(`/projects/${id}/design-layer`, OFFLINE.designLayer),
     apiOrEmpty<DesignSystemListResponse>('/design-systems', OFFLINE.designSystems),
+    apiOrEmpty<BundleListResponse>(`/projects/${id}/bundles`, OFFLINE.bundles),
   ]);
   const layer = layerResp.design_layer;
   const chosen = layer.chosen_direction
@@ -1647,6 +1726,7 @@ export async function renderProjectDetail(id: string, target: HTMLElement): Prom
     pageHead,
     kpis,
     el('div', { class: 'two-col', style: 'margin-top:16px' }, taskPanel, layerPanel),
+    el('div', { style: 'margin-top:16px' }, renderDeliveryPanel(id, bundlesResp)),
     el('div', { style: 'margin-top:16px' }, renderBriefEditor(id, layer, target)),
     el('div', { style: 'margin-top:16px' }, renderDirectionPanel(id, layer, target)),
     el('div', { style: 'margin-top:16px' }, renderDesignSystemPanel(id, layer, systemsResp, target)),

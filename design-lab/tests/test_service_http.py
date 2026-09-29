@@ -139,6 +139,55 @@ class ServiceHttpTests(unittest.TestCase):
         archives[0].write_bytes(b'tampered archive')
         self.assertEqual(self.request(path=download)[0],409)
 
+    def test_bundle_list_route_reads_back_project_deliveries(self):
+        # The /projects/<id>/bundles route is what makes the Bundles query class
+        # reachable from the service and the workbench UI (before it had tests
+        # only). Drive a real export first, then read the list back over HTTP.
+        project,other,job=self.seed_exportable_native();self.start()
+        status,created=self.request('POST','/api/projects/'+project+'/tasks/'+job+'/bundle','{}')
+        self.assertEqual(status,201)
+        expected_id=created['bundle']['id']
+        status,listing=self.request(path='/api/projects/'+project+'/bundles')
+        self.assertEqual(status,200)
+        self.assertEqual(len(listing['bundles']),1)
+        row=listing['bundles'][0]
+        self.assertEqual(row['id'],expected_id)
+        self.assertEqual(row['kind'],'design-bundle')   # API label, not the stored column value
+        self.assertEqual(row['version_id'],created['bundle']['version_id'])
+        self.assertEqual(row['byte_size'],created['bundle']['byte_size'])
+        # The list carries the prefixed digest while the export reports bare hex --
+        # the shape the UI's download hash-check (bundle.sha256) normalizes on.
+        self.assertEqual(row['sha256'],'sha256:'+created['bundle']['sha256'])
+        self.assertEqual(row['rights'],'NOT_REVIEWED')
+        self.assertEqual(row['verification'],'METADATA_ONLY')
+        # Cross-project: the same list on the other project must NOT see it.
+        status,foreign=self.request(path='/api/projects/'+other+'/bundles')
+        self.assertEqual(status,200)
+        self.assertEqual(foreign['bundles'],[])
+
+    def test_bundle_list_route_fails_closed_on_unknown_project_and_auth(self):
+        project,other,job=self.seed_exportable_native();self.start()
+        # Unknown-but-well-shaped project id: the query class fails closed with the
+        # same 404 PROJECT_NOT_FOUND its owner-scoped reads use.
+        status,body=self.request(path='/api/projects/'+('f'*32)+'/bundles')
+        self.assertEqual(status,404)
+        self.assertEqual(body['error'],'PROJECT_NOT_FOUND')
+        # Unauthenticated read of a real project list: 401 via guard().
+        status,body=self.request(path='/api/projects/'+project+'/bundles',headers={'Authorization':''})
+        self.assertEqual(status,401)
+        # Malformed id shapes never reach the Bundles class (route regex is
+        # fullmatch-strict): they fall through to the generic 404.
+        for shape in ('/api/projects/bundles','/api/projects/'+project+'/bundles/extra',
+                      '/api/projects/'+project.upper()+'/bundles'):
+            self.assertEqual(self.request(path=shape)[0],404)
+        # An empty project has NO bundles -- that is a 200 empty list, never 404.
+        status,created=self.request('POST','/api/projects',json.dumps({'name':'no deliveries'}))
+        self.assertEqual(status,201)
+        empty=created['project']['id']
+        status,body=self.request(path='/api/projects/'+empty+'/bundles')
+        self.assertEqual(status,200)
+        self.assertEqual(body['bundles'],[])
+
     def seed_native(self):
         from contextlib import closing
         from unittest.mock import patch

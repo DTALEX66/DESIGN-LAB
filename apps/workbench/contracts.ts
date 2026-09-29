@@ -103,6 +103,25 @@ export interface BundleDownloadResponse {
   download_path: string;
 }
 
+// Project delivery read-back: GET /api/projects/<id>/bundles lists the
+// project's design bundles (its deliveries), read from the persisted store.
+// `kind` is the API response label 'design-bundle' -- NOT the stored column
+// value ('other'), which is the measured predicate the query filters on.
+export interface BundleRecord {
+  id: string;
+  kind: string;
+  version_id: string;
+  version_no: number;
+  byte_size: number;
+  sha256: string;
+  rights: string;
+  verification: string;
+}
+
+export interface BundleListResponse {
+  bundles: BundleRecord[];
+}
+
 export interface NativePlanResponse {
   task: TaskRecord;
 }
