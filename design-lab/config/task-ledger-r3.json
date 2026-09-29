@@ -3,7 +3,7 @@
   "taskpack": "DL-TP-20260908-R5",
   "plan_path": "docs/history/taskpacks/r5-20260908/02-TASKS.md",
   "baseline_sha": "ed8d45ab2857b312f6056c43f7bb5e19dd9b65eb",
-  "updated_at": "2026-09-28T14:26:42Z",
+  "updated_at": "2026-09-29T17:45:00Z",
   "source": {
     "path": "docs/history/taskpacks/r5-20260908/tasks.json",
     "sha256": "31dde89eb4ede81fe88c0a5c5144adfb86af8db4c4d8c263bde2199180369b69"
@@ -4241,13 +4241,15 @@
         "implementation": {
           "state": "PARTIAL",
           "evidence": [
-            "r5-workbench-native-task-ui-tests-20260927"
+            "r5-workbench-native-task-ui-tests-20260927",
+            "r5-bundle-list-route-http-ui-20260929"
           ]
         },
         "unit": {
           "state": "PARTIAL",
           "evidence": [
-            "r5-workbench-native-task-ui-tests-20260927"
+            "r5-workbench-native-task-ui-tests-20260927",
+            "r5-bundle-list-route-http-ui-20260929"
           ]
         },
         "host_live": {
@@ -6871,6 +6873,33 @@
         }
       ],
       "note": "静态+单元取证（非完成声明）。该任务的实现模块与测试模块在 4c9f18493e90 上均真实存在，且所引测试随权威套件执行通过。实现模块：apps/workbench/tsconfig.json、apps/workbench/package.json、apps/workbench/vite.config.ts；测试模块 2 个。PARTIAL：未绑定 host_live（无真实 Adobe 宿主运行）与 delivery（无已交付包），故不宣称本任务完成或验收。"
+    },
+    {
+      "id": "r5-bundle-list-route-http-ui-20260929",
+      "task_ids": [
+        "DL-R5-010"
+      ],
+      "kind": "local_test",
+      "outcome": "PARTIAL",
+      "subject_sha": "bf13e462bc717d7687862a101229fc0d86792db5",
+      "binding": "COMMIT",
+      "observed_at": "2026-09-29T17:45:00Z",
+      "software": {
+        "python": "3.13.14 (project .venv)",
+        "runner": "python -m unittest design-lab.tests.test_service_http -v  ->  Ran 27 tests, OK",
+        "full_suite": "python -m unittest discover -s design-lab/tests -p test_*.py -q  ->  Ran 1762 tests, OK (skipped=2)",
+        "typecheck": "tsc --noEmit clean; Vite build byte-identical (sha256 bf7a29ee…)",
+        "os": "Windows"
+      },
+      "subject_files": {
+        "apps/workbench/contracts.ts": "c9b24fb36658bcb2d70020006c9fc97da161edf4886c370c9854438c34939455",
+        "apps/workbench/shell.ts": "a51cedc946ceeabb50ee13aa925bd4b217f3e5524b0f9f91744cc8b577110607",
+        "apps/workbench/build/main.js": "bf7a29ee8323992862cc7e1694a0ecb37ac8c80008b0f86520df18b8350b38eb",
+        "design-lab/tests/test_service_http.py": "3dc8dae6470a70113290c9a8c5b7dfd2b2a66f06154a7e574cd2b740c0bb3495",
+        "src/design_lab/http_service.py": "0b365fad2f3f9bf68fb7ca8437163aa875daee4d93c4746a44106bb4c655ba8d"
+      },
+      "artifacts": [],
+      "note": "PR #211 (merged bf13e46)：把已存在的 Bundles 查询类（native_assets.py，PR #205 落地）通过新增路由 GET /api/projects/<id>/bundles 接入 HTTP 服务，并在 Workbench 项目页新增「最近交付」面板（renderDeliveryPanel），读取该路由并对交付包做 sha256+byte_size fail-closed 核对。修复 WIP 中一处真实 bug（test 传 dict 而非 json.dumps 给 self.request 导致 TypeError）。本地全量 1762 用例 OK，27 用例 test_service_http OK，tsc clean，Vite build 字节确定性验证通过。PARTIAL：这是 E2 受控运行证据（合成 fixture 贯穿路由+面板逻辑），不代表真实宿主 E3、rights E4 或人工 Jury 验收。"
     }
   ]
 }
