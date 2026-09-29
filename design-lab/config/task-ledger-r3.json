@@ -4239,14 +4239,14 @@
       ],
       "axes": {
         "implementation": {
-          "state": "PARTIAL",
+          "state": "IMPLEMENTED_LOCAL",
           "evidence": [
             "r5-workbench-native-task-ui-tests-20260927",
             "r5-bundle-list-route-http-ui-20260929"
           ]
         },
         "unit": {
-          "state": "PARTIAL",
+          "state": "PASS",
           "evidence": [
             "r5-workbench-native-task-ui-tests-20260927",
             "r5-bundle-list-route-http-ui-20260929"
