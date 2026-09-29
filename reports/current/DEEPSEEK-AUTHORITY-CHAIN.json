@@ -1,11 +1,11 @@
 {
   "schemaVersion": "design-lab/deepseek-authority-chain/v1",
   "task_key": "DL-TP-20260914-DEEPSEEK-AUTHORITY-R1::DLDS-A010",
-  "generated_at": "2026-09-29T17:47:09+00:00",
+  "generated_at": "2026-09-29T17:54:45+00:00",
   "subject": {
-    "base_sha": "80e105feb53972db525d3bee875bbf984bda47ed",
+    "base_sha": "73b8cd7c8d6a083b8f35bd33f02d040bd627cba0",
     "branch": "chore/ledger-bundle-route-evidence-20260929",
-    "worktree_clean": true
+    "worktree_clean": false
   },
   "current_authority": {
     "deepseek_execution": {
@@ -131,6 +131,7 @@
       "sha256": "sha256:84e2cbb8e3a7fba88c51a83881c4fe5477701bace1cec21e7fdca560b1c4d0d4",
       "authority_class": "ACTIVE_PRODUCT_PACK",
       "basis": "R5 task status authoring source (schema design-lab/task-ledger/r5-v1)",
+      "mutable_state": "the ledger is rewritten at the close of every task, so its bytes and digest are generation-time",
       "ledger": {
         "kind": "task-ledger",
         "taskpack": "DL-TP-20260908-R5",

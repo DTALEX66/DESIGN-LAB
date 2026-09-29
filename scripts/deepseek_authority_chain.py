@@ -135,7 +135,7 @@ def build() -> dict:
         authority_class, basis = classify(rel, head_text(path))
         entry = {"path": rel, "bytes": path.stat().st_size, "sha256": sha256_file(path),
                  "authority_class": authority_class, "basis": basis}
-        if rel == AUTHORITY_LEDGER:
+        if rel in (AUTHORITY_LEDGER, LEDGER):
             entry["mutable_state"] = ("the ledger is rewritten at the close of every task, so "
                                       "its bytes and digest are generation-time")
         summary = ledger_summary(rel)
