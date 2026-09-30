@@ -1053,4 +1053,83 @@ html,body{margin:0}
 }
 .ref-preview[hidden]{display:none}
 
+/* ==========================================================================
+   2026-09-30 UI convergence — new component styles
+   All new classes use existing B10 CSS custom properties (--surface, --border,
+   --text, --muted, --accent, --glow, etc.). No new custom properties added.
+   ========================================================================== */
+
+/* 横向阶段导航（项目详情页顶部） */
+.stage-nav{
+  display:flex;gap:6px;list-style:none;padding:0;margin:16px 0 0;
+  overflow-x:auto;flex-wrap:nowrap;min-height:38px;
+}
+.stage-nav-item{flex:0 0 auto}
+.stage-nav-btn{
+  display:inline-flex;align-items:center;gap:6px;
+  padding:7px 14px;border-radius:var(--radius-md);
+  border:1px solid var(--border);background:var(--surface-2);
+  color:var(--text);font:var(--font-caption)/1.4 inherit;cursor:pointer;
+  transition:border-color var(--motion-fast),background var(--motion-fast);
+}
+.stage-nav-btn:hover{border-color:var(--accent)}
+.stage-nav-btn.is-current{
+  background:var(--accent);color:#fff;border-color:var(--accent);
+  box-shadow:var(--glow);
+}
+.stage-nav-btn.is-planned{opacity:.72}
+.stage-nav-btn.is-planned .tag{margin-left:4px}
+
+/* 项目详情主区 + Inspector 布局 */
+.project-detail-layout{
+  display:grid;grid-template-columns:1fr 280px;gap:20px;
+  align-items:start;margin-top:16px;
+}
+.project-detail-main{min-width:0}
+@media(max-width:768px){
+  .project-detail-layout{grid-template-columns:1fr}
+  .inspector{order:-1}
+}
+
+/* Inspector（右侧可折叠面板） */
+.inspector{
+  background:var(--surface-2);border:1px solid var(--border);
+  border-radius:var(--radius-lg);padding:16px;
+  position:sticky;top:16px;max-height:calc(100vh - 32px);
+  overflow-y:auto;
+}
+.inspector-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.inspector-head h3{margin:0;font-size:var(--font-caption);text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
+.inspector-toggle{padding:3px 10px;font-size:var(--font-caption)}
+.inspector-body{display:grid;gap:10px}
+.inspector.is-collapsed .inspector-body{display:none}
+
+/* 版本环（data-driven SVG） */
+.version-ring{
+  width:120px;height:120px;margin:0 auto;display:block;
+}
+.version-ring-orbit{
+  stroke:var(--border);stroke-width:2;
+}
+.version-ring-node{
+  fill:var(--surface);stroke:var(--accent);stroke-width:2;
+  transition:r var(--motion-fast);
+}
+.version-ring-node.is-chosen{fill:var(--accent)}
+.version-ring-node:hover{fill:var(--secondary)}
+
+/* 能力卡（blueprint / future-capability） */
+.capability-card{display:grid;gap:8px;padding:14px}
+.capability-card h3{margin:0;font-size:var(--font-caption);color:var(--text)}
+
+/* Quick Launch 面板 */
+.quick-launch{margin-top:0}
+
+/* 高对比模式增强 */
+@media(prefers-contrast:more){
+  .stage-nav-btn{border-width:2px}
+  .version-ring-node{stroke-width:3}
+  .inspector{border-width:2px}
+}
+
 

@@ -1,0 +1,25 @@
+{
+  "taskpack": "DESIGN-LAB_UI_FRONTEND_TASKPACK_20260930",
+  "branch": "feat/ui-commercial-workbench-20260930",
+  "base_sha": "1acbfa15a8c036907aadbdc6938b8706c91b5d3e",
+  "generated_at": "2026-09-30T13:07:59.509668+00:00",
+  "generated_by": "Hermes agent (local pre-commit manifest; CI re-verifies)",
+  "note": "SHA-256 of the exact bytes to be committed; CI's byte-determinism gate rebuilds build/main.js from the committed shell.ts/style.css and asserts no drift (git diff --exit-code over build/).",
+  "files": {
+    "apps/workbench/shell.ts": "467b2299ae9a2625ecd962793ac77cfb1e69bb287cf3636ce1d7fcb2b376924b",
+    "apps/workbench/style.css": "adddff9b50a2df5411eb97850464aaa85a4c331e3c51834ceba1d560646bcd13",
+    "apps/workbench/tests/appshell.mjs": "d791c651cd4b11125d6763651f50a00645db7349834322afa3f485f99d5d6b1d",
+    "apps/workbench/build/main.js": "83ff83e41c34420e5b9fb4e31f3a0bf1d148d9e0f77fe5c602f6d17e78efb73a"
+  },
+  "verification": {
+    "typecheck": "tsc --noEmit -p apps/workbench = PASS",
+    "build": "vite build = 4 modules, 157.71 kB",
+    "unit.mjs": "PASS",
+    "appshell.mjs": "PASS",
+    "test_service_http (27 tests)": "PASS"
+  },
+  "deferred": [
+    "Playwright screenshots (1280/1920/2560/narrow): local Chromium availability unconfirmed in this session; E2E gate in CI runs the no-skip browser slice.",
+    "UI08/UI09 component adoption: decided NOT to adopt (classic-script + CSP + vm smoke contracts conflict); recorded in compat-matrix §4."
+  ]
+}

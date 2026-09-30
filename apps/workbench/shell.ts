@@ -13,8 +13,10 @@ import type {
   DesignBrief,
   DesignDirection,
   DesignLayerResponse,
+  DesignLayerReadback,
   DesignSystemListResponse,
   EnvironmentResponse,
+  EventListResponse,
   HealthResponse,
   ProjectListResponse,
   TaskListResponse,
@@ -148,6 +150,117 @@ export const VIEW_NOT_OPEN: Partial<Record<RouteView, string>> = {
   'collaboration': '团队协作页未开放：本地单机服务尚无协作路由（本地单用户模型）。',
 };
 
+// ---------------------------------------------------------------------------
+// UI convergence 2026-09-30 — 未来能力契约登记表（UI 层单一来源）。
+//
+// 任务包要求：无 backend 的蓝图页不得声称「可用」，每个能力卡必须给来源、
+// 状态、权限与未来接入点；有 backend 的页必须展示真实数据。本登记表是
+// 唯一的 UI 侧声明：实现状态（PLANNED / BLOCKED / IMPLEMENTED）与证据
+// （evidenceRef，指向现有服务契约，不发明 KPI）都引用已有事实；backend
+// 接入后本页数据由对应 /api 路由读回替换。不建第二账本。
+export interface CapabilityContract {
+  capabilityId: string;
+  domain: string;
+  source: string;          // 声明来源（现有契约 / 服务路由 / 宿主），不指向不存在的东西
+  owner: string;
+  route: string;           // 未来（或现有）路由
+  contractRef: string;     // 现有合同/模块引用
+  implementationState: 'PLANNED' | 'BLOCKED' | 'IMPLEMENTED';
+  permission: string;      // 所需权限/宿主状态
+  reason: string;          // 为什么是现在这个状态
+  nextAction: string;      // 明确的下一动作
+}
+const CAPABILITY_REGISTRY: readonly CapabilityContract[] = [
+  { capabilityId: 'research-insights', domain: '研究洞察', source: 'IA 槽位 #/research',
+    owner: 'DESIGN-LAB design core', route: 'GET /api/research/…',
+    contractRef: 'B07 routes.json #research（无后端模型）', implementationState: 'PLANNED',
+    permission: 'brief/reference 已持久化（/api/projects/{id}/assets 已有）',
+    reason: '服务尚无研究结论持久化路由；研究目前由 brief/reference 驱动。',
+    nextAction: '设计 research 结论模型 + 服务路由，然后 UI 读回替换本卡。' },
+  { capabilityId: 'design-domain-model', domain: '设计领域', source: 'IA 槽位 #/domains',
+    owner: 'DESIGN-LAB Domain Pack', route: 'GET /api/domains/…',
+    contractRef: 'docs/… Domain Pack（品牌/UI/平面/电商/包装/动效/3D 域能力声明）',
+    implementationState: 'PLANNED',
+    permission: '域能力声明已存在，独立后端模型未建',
+    reason: '领域划分尚无独立后端模型；现有能力由 Domain Pack 文档承载。',
+    nextAction: '为 Domain Pack 建 /api/domains 读回路由。' },
+  { capabilityId: 'host-adapter-live', domain: '创作工具（宿主实时状态）', source: 'IA 槽位 #/tools',
+    owner: 'Host/Tool Adapter 层', route: 'GET /api/projects/{id}/tasks（已有）+ 宿主探测路由（缺）',
+    contractRef: 'src/design_lab/native_assets.py Bundles；宿主 adapter 合同',
+    implementationState: 'BLOCKED',
+    permission: '宿主（Illustrator/Photoshop 等）需以官方插件/CLI/MCP 形态接入；UI 只读回，不触发实操',
+    reason: '后端尚无宿主在线探测路由；任务台账可读回，但宿主是否在线/可执行只能 UNKNOWN。',
+    nextAction: '在 adapter 层增加宿主探测读回路由（官方接入后），UI 替换 UNKNOWN 占位。' },
+  { capabilityId: 'mcp-diagnostics', domain: 'MCP 诊断', source: '任务包 2026-09-30（新增）',
+    owner: 'MCP 工具层', route: 'GET /api/mcp/…（缺）',
+    contractRef: '无现有 MCP 后端路由',
+    implementationState: 'BLOCKED',
+    permission: '需本机 MCP 运行时 + 服务路由',
+    reason: '当前后端不暴露 MCP 状态；不安装、不假报可用。',
+    nextAction: '后端提供 MCP 读回路由后 UI 接入；在此之前 UI 只标注 BLOCKED。' },
+  { capabilityId: 'collaboration', domain: '团队协作', source: 'IA 槽位 #/collaboration',
+    owner: '（超出当前范围）', route: '无（单用户模型）',
+    contractRef: 'AGENTS.md：本地单用户服务，无协作路由',
+    implementationState: 'PLANNED',
+    permission: '需要多用户/权限模型先立项',
+    reason: '本地单用户模型；协作是后续独立立项，不做假入口。',
+    nextAction: '立项协作模型后再评估路由与页面。' },
+] as const;
+
+// Honest copy + card renderer for blueprint capability slots. Every card shows
+// its real state (PLANNED / BLOCKED) and the integration point; NONE of them
+// is a fake button, and NONE is a KPI.
+function capabilityCard(c: CapabilityContract): HTMLElement {
+  return el('div', { class: 'panel capability-card', dataset: { capability: c.capabilityId } },
+    el('div', {},
+      el('h3', {}, `${c.domain} · ${c.capabilityId}`),
+      el('div', { class: 'status-stack' },
+        el('span', { class: 'tag ' + (c.implementationState === 'BLOCKED' ? 'warn' : 'info') },
+          c.implementationState),
+        el('small', {}, `来源 ${c.source} · 权限 ${c.permission}`))),
+    el('p', { class: 'muted' }, c.reason),
+    el('p', { class: 'view-hint' }, `未来接入：${c.route}（${c.contractRef}）。下一动作：${c.nextAction}`));
+}
+
+// ============================================================================
+// UI convergence 2026-09-30 — dynamic-VI helpers.
+//
+// The ring/orbit is DATA-DRIVEN: nodes are real direction versions read from
+// /api/projects/{id}/design-layer, and the ring is their lineage (superseded
+// chain). It never masks an artwork thumbnail and never claims progress.
+// ============================================================================
+/** Build the version ring for a direction: one node per version, current
+ *  version marked. Pure string/number data in; SVG out. */
+function buildVersionRing(versions: Array<{ version: number; chosen: boolean; superseded_by: string | null }>): SVGSVGElement {
+  const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+  svg.setAttribute('class', 'version-ring');
+  svg.setAttribute('viewBox', '0 0 120 120');
+  svg.setAttribute('role', 'img');
+  svg.setAttribute('aria-label', `方向版本环：${versions.length} 个版本`);
+  const cx = 60, cy = 60, r = 46;
+  // orbit line (the ring itself)
+  const orbit = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+  orbit.setAttribute('class', 'version-ring-orbit');
+  orbit.setAttribute('cx', String(cx)); orbit.setAttribute('cy', String(cy)); orbit.setAttribute('r', String(r));
+  orbit.setAttribute('fill', 'none');
+  svg.append(orbit);
+  versions.forEach((v, i) => {
+    const n = Math.max(versions.length, 1);
+    const angle = (i / n) * Math.PI * 2 - Math.PI / 2;
+    const x = cx + Math.cos(angle) * r;
+    const y = cy + Math.sin(angle) * r;
+    const node = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+    node.setAttribute('class', 'version-ring-node' + (v.chosen ? ' is-chosen' : ''));
+    node.setAttribute('cx', x.toFixed(2)); node.setAttribute('cy', y.toFixed(2));
+    node.setAttribute('r', v.chosen ? '6' : '4');
+    const title = document.createElementNS('http://www.w3.org/2000/svg', 'title');
+    title.textContent = `v${v.version}` + (v.chosen ? '（选定）' : '') + (v.superseded_by ? ' · 已被取代' : '');
+    node.append(title);
+    svg.append(node);
+  });
+  return svg;
+}
+
 export function el<K extends keyof HTMLElementTagNameMap>(tag: K, attrs: Record<string, unknown> = {}, ...children: (Node | string)[]): HTMLElementTagNameMap[K] {
   const node = document.createElement(tag);
   for (const [key, value] of Object.entries(attrs)) {
@@ -264,26 +377,30 @@ export function rememberProject(id: string): void {
 
 export async function renderDashboard(target: HTMLElement): Promise<void> {
   target.replaceChildren(el('p', { class: 'view-loading' }, '正在读回服务状态…'));
-  const [health, projects, systems] = await Promise.all([
+  const [health, projects, systems, environment] = await Promise.all([
     apiOrEmpty<HealthResponse>('/health', OFFLINE.health),
     apiOrEmpty<ProjectListResponse>('/projects', OFFLINE.projects),
     apiOrEmpty<DesignSystemListResponse>('/design-systems', OFFLINE.designSystems),
+    apiOrEmpty<EnvironmentResponse>('/environment', OFFLINE.environment),
   ]);
   // Tri-state readback for the triage lists: `apiOrEmpty` answers an unreachable service
   // with an EMPTY payload, so "0 failures" would be a false claim offline. Each project's
   // tasks are read through `api()` here and per-project failure is recorded, so the panels
   // can say "未读回" instead of inventing a zero.
-  const probeIds = projects.projects.slice(0, 8).map((p) => p.id);
+  // 2026-09-30: bundles are read alongside tasks so the 最近交付 / 活跃生产 panels
+  // below have a real service source, not a placeholder.
+  const probeIds = projects.projects.slice(0, 6).map((p) => p.id);
   const probes = await Promise.all(probeIds.map(async (pid) => {
-    try {
-      const resp = await api<TaskListResponse>(`/projects/${pid}/tasks`);
-      return { pid, ok: true, tasks: resp.tasks };
-    } catch {
-      return { pid, ok: false, tasks: [] as TaskListResponse['tasks'] };
-    }
+    const taskResult: { res: TaskListResponse | null; err: unknown } = { res: null, err: null };
+    const bundleResult: { res: BundleListResponse | null; err: unknown } = { res: null, err: null };
+    try { taskResult.res = await api<TaskListResponse>(`/projects/${pid}/tasks`); }
+    catch (e) { taskResult.err = e; }
+    try { bundleResult.res = await api<BundleListResponse>(`/projects/${pid}/bundles`); }
+    catch (e) { bundleResult.err = e; }
+    return { pid, taskResult, bundleResult };
   }));
-  const readable = probes.filter((p) => p.ok).length;
-  const triageRows = probes.flatMap((p) => p.tasks.map((t) => {
+  const readable = probes.filter((p) => p.taskResult.res !== null).length;
+  const triageRows = probes.flatMap((p) => (p.taskResult.res?.tasks ?? []).map((t) => {
     // The attempt is what fails, so classify by attempt state; fall back to the job state
     // only when the attempt state is outside the vocabulary.
     const byAttempt = taskTriage(t.attempt.state);
@@ -291,8 +408,21 @@ export async function renderDashboard(target: HTMLElement): Promise<void> {
       project: projects.projects.find((x) => x.id === p.pid)?.name ?? p.pid,
       kind: t.kind, state: t.state, attempt: t.attempt.state,
       bucket: byAttempt !== 'unknown' ? byAttempt : taskTriage(t.state),
+      pid: p.pid,
     };
   }));
+  // 活跃生产 = in_flight triage rows; 最近交付 = all bundles read back from the
+  // service, newest-first by byte_size (no invented recency — the service does
+  // not carry a timestamp on BundleRecord today, so we never claim "recent"
+  // without one, and label the panel honestly).
+  const activeProductionRows = triageRows.filter((r) => r.bucket === 'in_flight');
+  const allBundles: Array<BundleRecord & { project: string; pid: string }> = probes.flatMap((p) =>
+    (p.bundleResult.res?.bundles ?? []).map((b) => ({
+      ...b,
+      project: projects.projects.find((x) => x.id === p.pid)?.name ?? p.pid,
+      pid: p.pid,
+    })),
+  );
   const sysCount = systems.design_systems.length;
   const projCount = projects.projects.length;
   // B10 1:1 page-head (h2 + p + .page-actions) — DESIGN-LAB honest copy, B10 layout.
@@ -354,7 +484,9 @@ export async function renderDashboard(target: HTMLElement): Promise<void> {
     el('p', { class: 'view-hint' }, 'B10 演示序列 · 质量评分组件化展示，非业务指标'));
   // B10 1:1 three-col: 设计域模块（Research / Brand / Delivery 三面板，
   // 每面板带 .progress 真值条 + 说明），对齐 B10 renderDashboard 第三段。
-  const modulePanels = el('div', { class: 'three-col', style: 'margin-top:16px' },
+  const researchCard = CAPABILITY_REGISTRY.find((c) => c.capabilityId === 'research-insights');
+const deliveryCard = CAPABILITY_REGISTRY.find((c) => c.capabilityId === 'design-domain-model');
+const modulePanels = el('div', { class: 'three-col', style: 'margin-top:16px' },
     el('div', { class: 'panel' },
       el('h3', {}, 'Research'),
       el('div', { class: 'muted' }, '研究洞察模块：真实读回待接入，未接入前显式 UNKNOWN。'),
@@ -367,6 +499,17 @@ export async function renderDashboard(target: HTMLElement): Promise<void> {
       el('h3', {}, 'Delivery'),
       el('div', { class: 'muted' }, '交付中心：按任务读回，未打包不宣称交付完成。'),
       el('div', { class: 'progress', style: 'margin-top:14px' }, el('div', { style: 'width:65%' }))));
+  // 2026-09-30 — blueprint capability cards on the dashboard: honest PLANNED
+  // states with source/owner/route/contract, never a fake "available" button.
+  const blueprintCards = el('div', { class: 'three-col', style: 'margin-top:16px' },
+    ...(researchCard ? [capabilityCard(researchCard)] : []),
+    ...(deliveryCard ? [capabilityCard(deliveryCard)] : []),
+    el('div', { class: 'panel' },
+      el('h3', {}, '协作'),
+      el('div', { class: 'status-stack' },
+        el('span', { class: 'tag info' }, 'PLANNED'),
+        el('small', {}, '本地单用户模型，无协作路由')),
+      el('p', { class: 'view-hint' }, '协作是后续独立立项；不建假入口，标签保持 feature-gated。')));
   // W03 "待审 / 失败列表": derived from real task readback, never from a demo number.
   const triagePanel = (bucket: TaskTriage, title: string, emptyText: string): HTMLElement => {
     const rows = triageRows.filter((r) => r.bucket === bucket);
@@ -412,7 +555,98 @@ export async function renderDashboard(target: HTMLElement): Promise<void> {
     // continue rather than pointing at an arbitrary project.
     continuePanel,    el('div', { class: 'two-col', style: 'margin-top:16px' },
       triagePanel('needs_human', '待审（需人工处理）', '无待审任务'),
-      triagePanel('failed', '失败', '无失败任务')),
+      triagePanel('failed', '失败', '无失败任务'))),
+    // 2026-09-30 — 活跃生产 + 最近交付 + Host/Capability 状态 + Quick Launch。
+    // 全部来自真实读回：活跃生产 = in_flight triage；最近交付 = /bundles 读回；
+    // Host 状态 = /environment shared_inputs + 能力登记表（诚实 UNKNOWN 占位，
+    // 不做假探测）；Quick Launch = 跳转各视图的一行直达。
+    el('div', { class: 'two-col', style: 'margin-top:16px' },
+      el('div', { class: 'panel' },
+        el('h3', {}, `活跃生产（${activeProductionRows.length}）`),
+        el('div', { class: 'list' },
+          ...(activeProductionRows.length
+            ? activeProductionRows.map((r) => el('div', { class: 'list-item' },
+                el('div', {},
+                  el('strong', {}, `${r.project} · ${r.kind}`),
+                  el('small', {}, `job.state=${r.state} · attempt=${r.attempt}`)),
+                el('span', { class: 'tag warn' }, '运行中')))
+            : [el('div', { class: 'list-item' },
+                el('div', {},
+                  el('strong', {}, readable === 0 ? '未读回' : '无运行中任务'),
+                  el('small', {}, readable === 0
+                    ? '服务不可达或未连接；此处不显示 0，避免把「没读到」说成「没有」。'
+                    : '运行中任务为 PENDING / RUNNING 状态（job_store.py 词表）。')))])),
+      el('div', { class: 'panel' },
+        el('h3', {}, `最近交付（${allBundles.length}）`),
+        el('div', { class: 'list' },
+          ...(allBundles.length
+            ? allBundles.slice(0, 8).map((b) => el('div', { class: 'list-item' },
+                el('div', {},
+                  el('strong', {}, `${b.project} · 交付包 v${b.version_no}`),
+                  el('small', {}, `${b.id} · ${b.byte_size} 字节 · ${b.rights}`)),
+                el('span', { class: b.rights === 'NOT_REVIEWED' ? 'tag warn' : 'tag ok' },
+                  b.rights === 'NOT_REVIEWED' ? '权利未审查' : '已登记')))
+            : [el('div', { class: 'list-item' },
+                el('div', {},
+                  el('strong', {}, '尚无交付包'),
+                  el('small', {}, '任务完成并打包后，交付会在此读回。')))])),
+    )),
+    el('div', { class: 'panel', style: 'margin-top:16px' },
+      el('h3', {}, 'Host / Capability 状态'),
+      el('div', { class: 'three-col' },
+        el('div', { class: 'panel' },
+          el('h3', {}, '宿主读回'),
+          el('div', { class: 'list' },
+            ...TOOL_ADAPTERS.map((a) => el('div', { class: 'list-item' },
+              el('div', {},
+                el('strong', {}, a.name),
+                el('small', {}, a.path)),
+              el('span', { class: 'tag info' }, 'UNKNOWN')))),
+          el('p', { class: 'view-hint' }, '宿主在线状态尚未有服务路由；此处 UNKNOWN，不假报可用。')),
+        el('div', { class: 'panel' },
+          el('h3', {}, '共享输入'),
+          el('div', { class: 'list' },
+            ...Object.entries(environment.shared_inputs).slice(0, 4).map(([k, v]) => el('div', { class: 'list-item' },
+              el('div', {},
+                el('strong', {}, k),
+                el('small', {}, v.path)),
+              el('span', { class: v.status === 'MISSING' ? 'tag bad' : 'tag ok' }, v.status)))),
+          el('p', { class: 'view-hint' }, '来自 /api/environment 真实读回；写权限与状态由服务裁定。')),
+        el('div', { class: 'panel' },
+          el('h3', {}, '未来能力'),
+          el('div', { class: 'list' },
+            ...CAPABILITY_REGISTRY.slice(0, 4).map((c) => el('div', { class: 'list-item' },
+              el('div', {},
+                el('strong', {}, c.domain),
+                el('small', {}, c.contractRef)),
+              el('span', { class: c.implementationState === 'BLOCKED' ? 'tag warn' : 'tag info' },
+                c.implementationState))))),
+      ),
+    el('div', { class: 'panel quick-launch', style: 'margin-top:16px' },
+      el('h3', {}, 'Quick Launch'),
+      el('div', { class: 'list' },
+        el('div', { class: 'list-item' },
+          el('div', {}, el('strong', {}, '新建项目'), el('small', {}, '进入工作台创建项目')),
+          el('div', { class: 'actions' },
+            el('button', { type: 'button', class: 'ghost-btn',
+              onclick: () => { window.location.hash = ''; } }, '工作台'))),
+        el('div', { class: 'list-item' },
+          el('div', {}, el('strong', {}, '项目列表'), el('small', {}, '全部项目一览')),
+          el('div', { class: 'actions' },
+            el('button', { type: 'button', class: 'ghost-btn',
+              onclick: () => { window.location.hash = '#/projects'; } }, '项目'))),
+        el('div', { class: 'list-item' },
+          el('div', {}, el('strong', {}, '创作工具'), el('small', {}, '宿主任务读回')),
+          el('div', { class: 'actions' },
+            el('button', { type: 'button', class: 'ghost-btn',
+              onclick: () => { window.location.hash = '#/tools'; } }, '创作工具'))),
+        el('div', { class: 'list-item' },
+          el('div', {}, el('strong', {}, '预检 / QA'), el('small', {}, '任务资源预检')),
+          el('div', { class: 'actions' },
+            el('button', { type: 'button', class: 'ghost-btn',
+              onclick: () => { window.location.hash = '#/preflight'; } }, '预检'))),
+      )),
+    ),
     el('p', { class: 'view-hint' },
       '待审/失败按各项目任务的 attempt.state 判定（词表见 src/design_lab/runtime/job_store.py：'
       + 'TERMINAL={RECEIPTED,FAILED,TIMED_OUT,CANCELLED}）。OUTCOME_UNKNOWN 是「结果未知」，'
@@ -420,6 +654,7 @@ export async function renderDashboard(target: HTMLElement): Promise<void> {
     el('p', { class: 'eyebrow' }, '设计系统登记'),
     systemsList,
     el('p', { class: 'eyebrow' }, '设计域状态机（B07 契约 · NEXT/BACK 双向）'),
+    blueprintCards,
     stateMachineStepper());
   // B10 count-up in browser (no-op under vm unit-smoke where performance is undefined)
   target.querySelectorAll<HTMLElement>('strong[data-count]').forEach((k) => animateKpiCount(k));
@@ -729,6 +964,36 @@ const TOOL_ADAPTERS = [
 export async function renderCreativeTools(target: HTMLElement): Promise<void> {
   await projectPickerPanel(target, '创作工具', async (id) => {
     const tasks = await apiOrEmpty<TaskListResponse>(`/projects/${id}/tasks`, OFFLINE.tasks);
+    const env = await apiOrEmpty<EnvironmentResponse>('/environment', OFFLINE.environment);
+    // 2026-09-30 — Host/Capability 状态卡：宿主在线状态诚实标注 UNKNOWN
+    // （后端尚无宿主探测路由），共享输入来自 /api/environment 真实读回。
+    const mcpCard = CAPABILITY_REGISTRY.find((c) => c.capabilityId === 'mcp-diagnostics');
+    const hostCard = CAPABILITY_REGISTRY.find((c) => c.capabilityId === 'host-adapter-live');
+    const hostStatus = el('div', { class: 'panel' },
+      el('h3', {}, '宿主 / Capability 状态'),
+      el('div', { class: 'three-col' },
+        el('div', { class: 'panel' },
+          el('h3', {}, '宿主读回'),
+          el('div', { class: 'list' },
+            ...TOOL_ADAPTERS.map((a) => el('div', { class: 'list-item' },
+              el('div', {},
+                el('strong', {}, a.name),
+                el('small', {}, a.path)),
+              el('span', { class: 'tag info' }, 'UNKNOWN')))),
+          el('p', { class: 'view-hint' }, '宿主在线状态尚未有服务路由；此处 UNKNOWN，不假报可用。')),
+        el('div', { class: 'panel' },
+          el('h3', {}, '共享输入'),
+          el('div', { class: 'list' },
+            ...Object.entries(env.shared_inputs).slice(0, 4).map(([k, v]) => el('div', { class: 'list-item' },
+              el('div', {},
+                el('strong', {}, k),
+                el('small', {}, v.path)),
+              el('span', { class: v.status === 'MISSING' ? 'tag bad' : 'tag ok' }, v.status)))),
+          el('p', { class: 'view-hint' }, '来自 /api/environment 真实读回。')),
+        hostCard ? capabilityCard(hostCard) : el('div', { class: 'panel' }),
+        mcpCard ? capabilityCard(mcpCard) : el('div', { class: 'panel' }),
+      ),
+    );
     // B10 1:1 three-col adapter grid（.panel + .tag + .muted），真实读回任务台账。
     const adapterGrid = el('div', { class: 'three-col' },
       ...TOOL_ADAPTERS.map((a) => el('div', { class: 'panel' },
@@ -742,6 +1007,7 @@ export async function renderCreativeTools(target: HTMLElement): Promise<void> {
           el('td', {}, t.kind), el('td', {}, t.state), el('td', {}, t.attempt.state)))
       : [el('tr', {}, el('td', { colspan: '3' }, '尚无宿主任务。创作任务由 Illustrator / Photoshop 在工作台高级区提交。'))];
     return el('div', {},
+      hostStatus,
       adapterGrid,
       el('p', { class: 'view-hint' }, '宿主任务只读回 /api/projects/{id}/tasks。提交 / 运行 / 取消由宿主（Illustrator / Photoshop）在工作台执行；本页不触发实操。'),
       el('div', { class: 'panel' },
@@ -762,11 +1028,52 @@ const DELIVERABLE_KINDS = ['Editable Source', 'PDF', 'PNG', 'SVG', 'PSD', 'AI', 
 
 export async function renderDeliverables(target: HTMLElement): Promise<void> {
   await projectPickerPanel(target, '交付中心', async (id) => {
-    const tasks = await apiOrEmpty<TaskListResponse>(`/projects/${id}/tasks`, OFFLINE.tasks);
-    // B10 1:1 kpi-grid + three-col format cards（.panel 体）。
+    const [tasks, bundles] = await Promise.all([
+      apiOrEmpty<TaskListResponse>(`/projects/${id}/tasks`, OFFLINE.tasks),
+      apiOrEmpty<BundleListResponse>(`/projects/${id}/bundles`, OFFLINE.bundles),
+    ]);
+    // 2026-09-30 — 真实 bundle 读回：显示该项目的交付包（id / 版本 / 字节 / 权利），
+    // 不再只有占位卡片。
+    const bundleRows: (HTMLElement | null)[] = bundles.bundles.length
+      ? bundles.bundles.map((b) => el('div', { class: 'list-item' },
+          el('div', {},
+            el('strong', {}, `交付包 · v${b.version_no}`),
+            el('small', {}, `${b.id} · ${b.byte_size} 字节 · ${b.rights}`)),
+          el('div', { class: 'actions' },
+            el('button', {
+              type: 'button', class: 'ghost-btn',
+              onclick: () => {
+                window.location.hash = '#/projects/' + encodeURIComponent(id);
+              },
+            }, '在项目页下载'),
+            el('span', { class: b.rights === 'NOT_REVIEWED' ? 'tag warn' : 'tag info' },
+              b.rights === 'NOT_REVIEWED' ? '权利未审查' : b.rights))))
+      : [el('div', { class: 'list-item' },
+          el('div', {},
+            el('strong', {}, '尚无交付包'),
+            el('small', {}, '任务完成并打包后，交付会在此读回。')))];
+    const bundleList = el('div', { class: 'list' },
+      ...bundleRows.filter((x): x is HTMLElement => x !== null));
+
+    const bundlePanel = el('div', { class: 'panel' },
+      el('h3', {}, `交付包（${bundles.bundles.length}）`),
+      bundleList,
+      el('p', { class: 'view-hint' }, '交付包来自原生宿主导出；下载与 hash 核对在项目页执行（fail-closed）。权利 / 质量 / 预检仍需独立验收。'));
+    const tasksRows: (HTMLElement | null)[] = tasks.tasks.length
+      ? tasks.tasks.map((t) => el('tr', {},
+          el('td', {}, t.kind), el('td', {}, t.state), el('td', {}, t.attempt.state)))
+      : [el('tr', {}, el('td', { colspan: '3' }, '尚无任务。任务完成后交付包随读回导出。'))];
+    const tasksPanel = el('div', { class: 'panel' },
+      el('h3', {}, `交付候选任务（${tasks.tasks.length}）`),
+      el('div', { class: 'table-wrap' },
+        el('table', { class: 'table' },
+          el('thead', {}, el('tr', {}, el('th', {}, '类型'), el('th', {}, '状态'), el('th', {}, '尝试'))),
+          el('tbody', {}, ...tasksRows.filter((x): x is HTMLElement => x !== null)))),
+    );
+    // B10 1:1 kpi-grid（.panel 体）。
     const manifestKpis = el('div', { class: 'kpi-grid' },
       kpiCard(String(tasks.tasks.length), '交付候选', '读回任务台账 · 非已打包'),
-      kpiCard(String(DELIVERABLE_KINDS.length), '导出格式', '可编辑源 / PDF / PNG / SVG / …'),
+      kpiCard(String(bundles.bundles.length), '交付包', '读回 /bundles · 可下载核对 hash'),
       kpiCard('—', '人工验收', '字体 / 链接 / rights / 质量'));
     for (const v of manifestKpis.querySelectorAll<HTMLElement>('strong[data-count]')) {
       const t = v.textContent; if (t !== null && /^\d+$/.test(t)) v.dataset.count = t;
@@ -775,21 +1082,12 @@ export async function renderDeliverables(target: HTMLElement): Promise<void> {
       ...DELIVERABLE_KINDS.map((k) => el('div', { class: 'panel' },
         el('h3', {}, k),
         el('span', { class: 'tag info' }, '导出候选'))));
-    const rows = tasks.tasks.length
-      ? tasks.tasks.map((t) => el('tr', {},
-          el('td', {}, t.kind), el('td', {}, t.state), el('td', {}, t.attempt.state)))
-      : [el('tr', {}, el('td', { colspan: '3' }, '尚无任务。任务完成后交付包随读回导出。'))];
-    const done = el('div', {},
+    return el('div', {},
       manifestKpis,
       kindGrid,
-      el('p', { class: 'view-hint' }, '交付包按任务在下载时打包（字体 / 链接 / rights / 质量仍需人工验收）。本页只读回任务台账，不下载也不打包。'),
-      el('div', { class: 'panel' },
-        el('h3', {}, `交付候选任务（${tasks.tasks.length}）`),
-        el('div', { class: 'table-wrap' },
-          el('table', { class: 'table' },
-            el('thead', {}, el('tr', {}, el('th', {}, '类型'), el('th', {}, '状态'), el('th', {}, '尝试'))),
-            el('tbody', {}, ...rows)))));
-    return done;
+      el('p', { class: 'view-hint' }, '交付包按任务在下载时打包（字体 / 链接 / rights / 质量仍需人工验收）。本页只读回，不下载也不打包。'),
+      bundlePanel,
+      tasksPanel);
   });
 }
 
@@ -798,17 +1096,54 @@ export async function renderDeliverables(target: HTMLElement): Promise<void> {
 // read on demand from the workbench; this is a read-only evidence view.
 export async function renderEvidence(target: HTMLElement): Promise<void> {
   await projectPickerPanel(target, '证据系统', async (id) => {
-    const layer = (await apiOrEmpty<DesignLayerResponse>(`/projects/${id}/design-layer`, OFFLINE.designLayer)).design_layer;
+    const [layerResp, bundlesResp] = await Promise.all([
+      apiOrEmpty<DesignLayerResponse>(`/projects/${id}/design-layer`, OFFLINE.designLayer),
+      apiOrEmpty<BundleListResponse>(`/projects/${id}/bundles`, OFFLINE.bundles),
+    ]);
+    const layer = layerResp.design_layer;
     const chosen = layer.chosen_direction
       ? `${layer.chosen_direction.title} · v${layer.chosen_direction.version}` : '（尚未选定方向）';
     const active = layer.active_binding
       ? `${layer.active_binding.design_system_name} · 绑定 ${layer.active_binding.direction_id}` : '（无活动绑定）';
+    // 2026-09-30 — 证据绑定面板：项目 → brief → direction → bundle 关联链，
+    // 全部来自真实读回，不发明 KPI。
+    const bindingChain = el('div', { class: 'panel' },
+      el('h3', {}, '证据绑定链'),
+      el('div', { class: 'list' },
+        el('div', { class: 'list-item' },
+          el('div', {}, el('strong', {}, '项目'), el('small', {}, id)),
+          el('span', { class: 'tag ok' }, '已读回')),
+        el('div', { class: 'list-item' },
+          el('div', {},
+            el('strong', {}, `Brief（${layer.briefs.length} 版本）`),
+            el('small', {}, layer.briefs.length
+              ? layer.briefs.map((b) => `v${b.version}`).join(' → ')
+              : '（无）')),
+          el('span', { class: layer.briefs.length ? 'tag ok' : 'tag info' },
+            layer.briefs.length ? '已读回' : '空')),
+        el('div', { class: 'list-item' },
+          el('div', {},
+            el('strong', {}, '选定方向'),
+            el('small', {}, chosen)),
+          el('span', { class: layer.chosen_direction ? 'tag ok' : 'tag warn' },
+            layer.chosen_direction ? '已选定' : '未选定')),
+        el('div', { class: 'list-item' },
+          el('div', {},
+            el('strong', {}, `交付包（${bundlesResp.bundles.length}）`),
+            el('small', {}, bundlesResp.bundles.length
+              ? bundlesResp.bundles.map((b) => `v${b.version_no}`).join(' → ')
+              : '（无）')),
+          el('span', { class: bundlesResp.bundles.length ? 'tag ok' : 'tag info' },
+            bundlesResp.bundles.length ? '已读回' : '空')),
+      ),
+      el('p', { class: 'view-hint' }, '绑定链只读回；方向选定与交付打包在项目页和工作台高级区执行。'),
+    );
     // B10 1:1 kpi-grid（每条证据可关联 project / decision / source / time / confidence）。
     const kpis = el('div', { class: 'kpi-grid' },
       kpiCard(String(layer.briefs.length), 'briefs', '设计简报版本'),
       kpiCard(String(layer.directions.length), 'directions', '设计方向版本'),
       kpiCard(String(layer.design_systems.length), '设计系统', '登记系统'),
-      kpiCard(layer.active_binding ? '1' : '0', '活动绑定', '当前方向契约'));
+      kpiCard(String(bundlesResp.bundles.length), '交付包', '/bundles 读回'));
     for (const v of kpis.querySelectorAll<HTMLElement>('strong[data-count]')) {
       const t = v.textContent; if (t !== null && /^\d+$/.test(t)) v.dataset.count = t;
     }
@@ -822,6 +1157,7 @@ export async function renderEvidence(target: HTMLElement): Promise<void> {
           el('span', { class: 'tag info' }, s.version)))));
     const done = el('div', {},
       kpis,
+      bindingChain,
       el('div', { class: 'panel' },
         el('h3', {}, '方向契约'),
         el('div', { class: 'table-wrap' },
@@ -839,6 +1175,114 @@ export async function renderEvidence(target: HTMLElement): Promise<void> {
 
 // 项目详情 — B07 routes.json 的 `/projects/:id`（project-detail）。W03「项目中心」
 // 的核心动作：从项目列表进入单个项目的上下文。只读回读，不写。
+// 2026-09-30 — 项目详情页横向阶段导航 + 右侧可折叠 Inspector。
+//
+// 阶段顺序固定为任务包「固定创作流」：
+//   Brief → References → Research → Directions → Design System → Production → Versions → Review / Preflight → Handoff → Evidence
+// 每个阶段节点绑定到已渲染的 panel（id 锚点），点击滚动到对应 panel 并高亮。
+// Research / Review / Handoff 无后端路由的阶段标注为「PLANNED」并引用能力登记表。
+// 右侧 Inspector 显示当前选定方向的版本环 + 绑定摘要，可折叠，不遮挡内容。
+const PROJECT_STAGES: Array<{
+  key: string; label: string;
+  panelId: string;           // CSS selector for the target panel
+  state: 'IMPLEMENTED' | 'PLANNED' | 'BLOCKED';
+  note?: string;
+}> = [
+  { key: 'brief',         label: 'Brief',         panelId: '#pd-brief-editor',       state: 'IMPLEMENTED' },
+  { key: 'references',    label: 'References',    panelId: '#pd-reference-panel',    state: 'IMPLEMENTED' },
+  { key: 'research',      label: 'Research',      panelId: '',                       state: 'PLANNED',
+    note: '研究洞察无后端路由（见能力登记表 research-insights）' },
+  { key: 'directions',    label: 'Directions',    panelId: '#pd-direction-panel',    state: 'IMPLEMENTED' },
+  { key: 'design-system', label: 'Design System', panelId: '#pd-design-system-panel', state: 'IMPLEMENTED' },
+  { key: 'production',    label: 'Production',    panelId: '#pd-tasks-panel',        state: 'IMPLEMENTED' },
+  { key: 'versions',      label: 'Versions',      panelId: '#pd-versions-panel',     state: 'IMPLEMENTED' },
+  { key: 'review',        label: 'Review / Preflight', panelId: '#/preflight',        state: 'IMPLEMENTED',
+    note: '预检路由 #/preflight，任务 ID 输入后可运行' },
+  { key: 'handoff',       label: 'Handoff',       panelId: '',                       state: 'PLANNED',
+    note: '交接清单模型未建（能力登记表）' },
+  { key: 'evidence',      label: 'Evidence',      panelId: '#pd-deliveries',          state: 'IMPLEMENTED' },
+];
+
+function buildStageNav(currentStageKey?: string): HTMLElement {
+  const nav = el('ol', { class: 'stage-nav', 'aria-label': '项目阶段导航' });
+  for (const stage of PROJECT_STAGES) {
+    const li = el('li', { class: 'stage-nav-item', dataset: { stage: stage.key, state: stage.state } });
+    const isCurrent = stage.key === currentStageKey;
+    if (isCurrent) li.setAttribute('aria-current', 'step');
+    const btnAttrs: Record<string, unknown> = {
+      type: 'button',
+      class: 'stage-nav-btn' + (stage.state === 'IMPLEMENTED' ? '' : ' is-planned') + (isCurrent ? ' is-current' : ''),
+      onclick: () => {
+        if (stage.panelId.startsWith('#/') ) {
+          // route hash — navigate
+          window.location.hash = stage.panelId.slice(1);
+        } else if (stage.panelId) {
+          const target = document.querySelector(stage.panelId);
+          if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+        // PLANNED stages have no panelId — no-op, but the tooltip is visible
+      },
+      title: stage.note ?? (stage.state === 'IMPLEMENTED' ? '点击跳转到该阶段' : stage.note ?? ''),
+    };
+    const tag: HTMLElement | null = stage.state !== 'IMPLEMENTED'
+      ? el('span', { class: 'tag ' + (stage.state === 'BLOCKED' ? 'warn' : 'info'), 'aria-hidden': 'true' }, stage.state)
+      : null;
+    li.append(el('button', btnAttrs,
+      el('span', { class: 'stage-nav-label' }, stage.label),
+      ...(tag ? [tag] : []),
+    ));
+    nav.append(li);
+  }
+  return nav;
+}
+
+function buildInspectorPanel(id: string, layer: DesignLayerReadback): HTMLElement {
+  // Direction versions for the ring: one node per direction record.
+  const versionData = layer.directions.map((d) => ({
+    version: d.version,
+    chosen: d.chosen,
+    superseded_by: d.superseded_by,
+  }));
+  const ring = buildVersionRing(versionData);
+  const chosen = layer.chosen_direction;
+  const binding = layer.active_binding;
+  const sysItems: Array<HTMLElement | null> = layer.design_systems.length
+    ? [el('div', { class: 'list-item' },
+        el('div', {},
+          el('strong', {}, '设计系统'),
+          el('small', {}, layer.design_systems.map((s) => s.name).join(', '))))]
+    : [];
+  const body = el('div', { class: 'inspector-body' },
+    ring,
+    el('p', { class: 'view-hint' }, `${layer.directions.length} 个方向版本` +
+      (chosen ? ` · 选定：${chosen.title} v${chosen.version}` : ' · 尚未选定方向')),
+    el('div', { class: 'list' },
+      el('div', { class: 'list-item' },
+        el('div', {},
+          el('strong', {}, '活动绑定'),
+          el('small', {}, binding
+            ? `${binding.design_system_name} → ${binding.direction_id}`
+            : '（无活动绑定）')),
+      ),
+      ...sysItems.filter((x): x is HTMLElement => x !== null),
+    ),
+  );
+  return el('aside', { class: 'inspector', id: 'pd-inspector', 'aria-label': '项目 Inspector' },
+    el('div', { class: 'inspector-head' },
+      el('h3', {}, 'Inspector'),
+      el('button', { type: 'button', class: 'ghost-btn inspector-toggle',
+        'aria-expanded': 'true',
+        onclick: (e: Event) => {
+          const btn = e.currentTarget as HTMLButtonElement;
+          const collapsed = btn.getAttribute('aria-expanded') === 'false';
+          btn.setAttribute('aria-expanded', String(!collapsed));
+          (btn.parentElement?.parentElement as HTMLElement | null)?.classList.toggle('is-collapsed', collapsed);
+        },
+      }, '收起'),
+    ),
+    body);
+}
+
 // ---------------------------------------------------------------------------
 // W03 — real Brief flow inside the route shell.
 //
@@ -1147,7 +1591,8 @@ function renderBriefEditor(id: string, layer: DesignLayerResponse['design_layer'
     },
   }, '丢弃草稿');
 
-  return el('div', { class: 'panel' },
+  const panel = el('div', { class: 'panel', id: 'pd-brief-editor' });
+  panel.append(
     el('h3', {}, `简报（Brief）· ${layer.briefs.length} 个版本`),
     el('div', { class: 'list' }, ...briefRows),
     el('div', { class: 'list-item', style: 'display:grid;gap:10px' },
@@ -1158,6 +1603,7 @@ function renderBriefEditor(id: string, layer: DesignLayerResponse['design_layer'
     el('div', { class: 'actions', id: 'pd-brief-statebar' }, stateChip, discardBtn),
     draftNote,
     status);
+  return panel;
 }
 
 // ---------------------------------------------------------------------------
@@ -1364,10 +1810,10 @@ function renderReferencePanel(id: string): HTMLElement {
     })();
   });
 
-  return el('div', { class: 'panel' },
-    heading, list,
-    el('div', { class: 'list-item', style: 'display:grid;gap:8px' },
-      el('strong', {}, '预览（按需读取）'), preview, info),
+  return el('div', { class: 'panel', id: 'pd-reference-panel' },
+      heading, list,
+      el('div', { class: 'list-item', style: 'display:grid;gap:8px' },
+        el('strong', {}, '预览（按需读取）'), preview, info),
     el('div', { class: 'list-item', style: 'display:grid;gap:8px' },
       el('strong', {}, '批量导入（PNG / JPEG，单个 ≤ 32 MiB）'),
       fileInput, selection,
@@ -1490,9 +1936,9 @@ function renderDirectionPanel(id: string, layer: DesignLayerResponse['design_lay
     })();
   });
 
-  return el('div', { class: 'panel' },
-    el('h3', {}, `方向（Direction）· ${layer.directions.length} 个候选`),
-    el('p', { class: 'view-hint', id: 'pd-dir-consistency' }, `版本链 / 选定 / 绑定一致性：${consistency}`),
+  return el('div', { class: 'panel', id: 'pd-direction-panel' },
+      el('h3', {}, `方向（Direction）· ${layer.directions.length} 个候选`),
+      el('p', { class: 'view-hint', id: 'pd-dir-consistency' }, `版本链 / 选定 / 绑定一致性：${consistency}`),
     el('div', { class: 'list' },
       ...(layer.directions.length
         ? [...layer.directions].map(directionRow)
@@ -1572,8 +2018,8 @@ function renderDesignSystemPanel(
   });
 
   const consistent = !!(active && chosen && active.direction_id === chosen.direction_id);
-  return el('div', { class: 'panel' },
-    el('h3', {}, `设计系统（DesignSystem）· 目录 ${systems.design_systems.length} 项 · 绑定 ${layer.bindings.length} 次`),
+  return el('div', { class: 'panel', id: 'pd-design-system-panel' },
+      el('h3', {}, `设计系统（DesignSystem）· 目录 ${systems.design_systems.length} 项 · 绑定 ${layer.bindings.length} 次`),
     el('div', { class: 'list' },
       el('div', { class: 'list-item' },
         el('div', {}, el('strong', {}, '活动绑定'),
@@ -1705,7 +2151,7 @@ export async function renderProjectDetail(id: string, target: HTMLElement): Prom
     kpiCard(String(layer.directions.length), '方向版本', '读回 design-layer'),
     kpiCard(layer.active_binding ? '1' : '0', '活动绑定', active));
 
-  const taskPanel = el('div', { class: 'panel' },
+  const taskPanel = el('div', { class: 'panel', id: 'pd-tasks-panel' },
     el('h3', {}, `任务台账（${tasks.tasks.length}）`),
     el('div', { class: 'list' },
       ...(tasks.tasks.length
@@ -1713,7 +2159,7 @@ export async function renderProjectDetail(id: string, target: HTMLElement): Prom
             el('div', {}, el('strong', {}, t.kind), el('small', {}, `尝试 ${t.attempt.attempt_no} · ${t.attempt.state}`)),
             el('span', { class: 'tag info' }, t.state)))
         : [el('div', { class: 'list-item' },
-            el('div', {}, el('strong', {}, '尚无任务'), el('small', {}, '任务由工作台高级区提交')))])));
+            el('div', {}, el('strong', {}, '尚无任务'), el('small', {}, '任务由工作台高级区提交')))])))
 
   const layerPanel = el('div', { class: 'panel' },
     el('h3', {}, '设计层契约'),
@@ -1722,16 +2168,28 @@ export async function renderProjectDetail(id: string, target: HTMLElement): Prom
       el('div', { class: 'list-item' }, el('span', {}, '活动绑定'), el('span', { class: 'tag info' }, active)),
       el('div', { class: 'list-item' }, el('span', {}, '设计系统登记'), el('span', { class: 'tag info' }, String(layer.design_systems.length)))));
 
+  // 2026-09-30 — 横向阶段导航（Brief → … → Evidence）+ 右侧 Inspector。
+  // Versions 阶段没有独立面板，它的锚点是 Inspector 里的版本环。
+  const stageNav = buildStageNav();
+  const inspector = buildInspectorPanel(id, layer);
+
   target.replaceChildren(
     pageHead,
     kpis,
-    el('div', { class: 'two-col', style: 'margin-top:16px' }, taskPanel, layerPanel),
-    el('div', { style: 'margin-top:16px' }, renderDeliveryPanel(id, bundlesResp)),
-    el('div', { style: 'margin-top:16px' }, renderBriefEditor(id, layer, target)),
-    el('div', { style: 'margin-top:16px' }, renderDirectionPanel(id, layer, target)),
-    el('div', { style: 'margin-top:16px' }, renderDesignSystemPanel(id, layer, systemsResp, target)),
-    el('div', { style: 'margin-top:16px' }, renderReferencePanel(id)),
-    el('p', { class: 'view-hint' }, 'tasks 与 design-layer 台账为只读；简报区可真实创建与修订并读回；参考素材区读回资产清单并按需预览。提交任务 / 运行 / 取消 / 导出仍由工作台高级区执行。'));
+    stageNav,
+    el('div', { class: 'project-detail-layout' },
+      el('div', { class: 'project-detail-main' },
+        el('div', { class: 'two-col', style: 'margin-top:16px' }, taskPanel, layerPanel),
+        el('div', { style: 'margin-top:16px' }, renderDeliveryPanel(id, bundlesResp)),
+        el('div', { style: 'margin-top:16px' }, renderBriefEditor(id, layer, target)),
+        el('div', { style: 'margin-top:16px' }, renderDirectionPanel(id, layer, target)),
+        el('div', { style: 'margin-top:16px' }, renderDesignSystemPanel(id, layer, systemsResp, target)),
+        el('div', { style: 'margin-top:16px' }, renderReferencePanel(id)),
+      ),
+      inspector,
+    ),
+    el('p', { class: 'view-hint' }, 'tasks 与 design-layer 台账为只读；简报区可真实创建与修订并读回；参考素材区读回资产清单并按需预览。提交任务 / 运行 / 取消 / 导出仍由工作台高级区执行。'),
+  );
 }
 
 export async function renderRoute(view: AppView, target: HTMLElement): Promise<void> {
@@ -1755,9 +2213,25 @@ export async function renderRoute(view: AppView, target: HTMLElement): Promise<v
     }
     default: {
       const notOpen = VIEW_NOT_OPEN[view];
+      // 2026-09-30 — blueprint slots now render honest capability cards
+      // (from CAPABILITY_REGISTRY) instead of a bare "unopened" note.
+      // Only VIEW_NOT_OPEN slots (research / design-domains / collaboration)
+      // reach here; creative-tools is handled by its own case above.
+      const cards = el('div', { class: 'three-col' },
+        ...CAPABILITY_REGISTRY.filter((c) =>
+          (view === 'research' && c.capabilityId === 'research-insights') ||
+          (view === 'design-domains' && c.capabilityId === 'design-domain-model') ||
+          (view === 'collaboration' && c.capabilityId === 'collaboration')
+        ).map(capabilityCard));
+      const hasCards = CAPABILITY_REGISTRY.some((c) =>
+        (view === 'research' && c.capabilityId === 'research-insights') ||
+        (view === 'design-domains' && c.capabilityId === 'design-domain-model') ||
+        (view === 'collaboration' && c.capabilityId === 'collaboration'));
       target.replaceChildren(
         el('h2', {}, notOpen ? view : '工作台'),
-        el('p', { class: 'view-unopened' }, notOpen ?? '默认工作台。'));
+        el('p', { class: 'view-unopened' }, notOpen ?? '默认工作台。'),
+        ...(hasCards ? [cards] : []),
+      );
       return;
     }
   }
