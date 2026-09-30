@@ -973,6 +973,122 @@ const VIEW_NOT_OPEN = {
   "design-domains": "设计领域页未开放：领域划分尚无独立后端模型。",
   "collaboration": "团队协作页未开放：本地单机服务尚无协作路由（本地单用户模型）。"
 };
+const CAPABILITY_REGISTRY = [
+  {
+    capabilityId: "research-insights",
+    domain: "研究洞察",
+    source: "IA 槽位 #/research",
+    owner: "DESIGN-LAB design core",
+    route: "GET /api/research/…",
+    contractRef: "B07 routes.json #research（无后端模型）",
+    implementationState: "PLANNED",
+    permission: "brief/reference 已持久化（/api/projects/{id}/assets 已有）",
+    reason: "服务尚无研究结论持久化路由；研究目前由 brief/reference 驱动。",
+    nextAction: "设计 research 结论模型 + 服务路由，然后 UI 读回替换本卡。"
+  },
+  {
+    capabilityId: "design-domain-model",
+    domain: "设计领域",
+    source: "IA 槽位 #/domains",
+    owner: "DESIGN-LAB Domain Pack",
+    route: "GET /api/domains/…",
+    contractRef: "docs/… Domain Pack（品牌/UI/平面/电商/包装/动效/3D 域能力声明）",
+    implementationState: "PLANNED",
+    permission: "域能力声明已存在，独立后端模型未建",
+    reason: "领域划分尚无独立后端模型；现有能力由 Domain Pack 文档承载。",
+    nextAction: "为 Domain Pack 建 /api/domains 读回路由。"
+  },
+  {
+    capabilityId: "host-adapter-live",
+    domain: "创作工具（宿主实时状态）",
+    source: "IA 槽位 #/tools",
+    owner: "Host/Tool Adapter 层",
+    route: "GET /api/projects/{id}/tasks（已有）+ 宿主探测路由（缺）",
+    contractRef: "src/design_lab/native_assets.py Bundles；宿主 adapter 合同",
+    implementationState: "BLOCKED",
+    permission: "宿主（Illustrator/Photoshop 等）需以官方插件/CLI/MCP 形态接入；UI 只读回，不触发实操",
+    reason: "后端尚无宿主在线探测路由；任务台账可读回，但宿主是否在线/可执行只能 UNKNOWN。",
+    nextAction: "在 adapter 层增加宿主探测读回路由（官方接入后），UI 替换 UNKNOWN 占位。"
+  },
+  {
+    capabilityId: "mcp-diagnostics",
+    domain: "MCP 诊断",
+    source: "任务包 2026-09-30（新增）",
+    owner: "MCP 工具层",
+    route: "GET /api/mcp/…（缺）",
+    contractRef: "无现有 MCP 后端路由",
+    implementationState: "BLOCKED",
+    permission: "需本机 MCP 运行时 + 服务路由",
+    reason: "当前后端不暴露 MCP 状态；不安装、不假报可用。",
+    nextAction: "后端提供 MCP 读回路由后 UI 接入；在此之前 UI 只标注 BLOCKED。"
+  },
+  {
+    capabilityId: "collaboration",
+    domain: "团队协作",
+    source: "IA 槽位 #/collaboration",
+    owner: "（超出当前范围）",
+    route: "无（单用户模型）",
+    contractRef: "AGENTS.md：本地单用户服务，无协作路由",
+    implementationState: "PLANNED",
+    permission: "需要多用户/权限模型先立项",
+    reason: "本地单用户模型；协作是后续独立立项，不做假入口。",
+    nextAction: "立项协作模型后再评估路由与页面。"
+  }
+];
+function capabilityCard(c) {
+  return el(
+    "div",
+    { class: "panel capability-card", dataset: { capability: c.capabilityId } },
+    el(
+      "div",
+      {},
+      el("h3", {}, `${c.domain} · ${c.capabilityId}`),
+      el(
+        "div",
+        { class: "status-stack" },
+        el(
+          "span",
+          { class: "tag " + (c.implementationState === "BLOCKED" ? "warn" : "info") },
+          c.implementationState
+        ),
+        el("small", {}, `来源 ${c.source} · 权限 ${c.permission}`)
+      )
+    ),
+    el("p", { class: "muted" }, c.reason),
+    el("p", { class: "view-hint" }, `未来接入：${c.route}（${c.contractRef}）。下一动作：${c.nextAction}`)
+  );
+}
+function buildVersionRing(versions) {
+  const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+  svg.setAttribute("class", "version-ring");
+  svg.setAttribute("viewBox", "0 0 120 120");
+  svg.setAttribute("role", "img");
+  svg.setAttribute("aria-label", `方向版本环：${versions.length} 个版本`);
+  const cx = 60, cy = 60, r = 46;
+  const orbit = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+  orbit.setAttribute("class", "version-ring-orbit");
+  orbit.setAttribute("cx", String(cx));
+  orbit.setAttribute("cy", String(cy));
+  orbit.setAttribute("r", String(r));
+  orbit.setAttribute("fill", "none");
+  svg.append(orbit);
+  versions.forEach((v, i) => {
+    const n = Math.max(versions.length, 1);
+    const angle = i / n * Math.PI * 2 - Math.PI / 2;
+    const x = cx + Math.cos(angle) * r;
+    const y = cy + Math.sin(angle) * r;
+    const node = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+    node.setAttribute("class", "version-ring-node" + (v.chosen ? " is-chosen" : ""));
+    node.setAttribute("cx", x.toFixed(2));
+    node.setAttribute("cy", y.toFixed(2));
+    node.setAttribute("r", v.chosen ? "6" : "4");
+    const title = document.createElementNS("http://www.w3.org/2000/svg", "title");
+    title.textContent = `v${v.version}` + (v.chosen ? "（选定）" : "") + (v.superseded_by ? " · 已被取代" : "");
+    node.append(title);
+    svg.append(node);
+  });
+  return svg;
+}
 function el(tag, attrs = {}, ...children) {
   const node = document.createElement(tag);
   for (const [key, value] of Object.entries(attrs)) {
@@ -1052,31 +1168,48 @@ function rememberProject(id) {
 }
 async function renderDashboard(target) {
   target.replaceChildren(el("p", { class: "view-loading" }, "正在读回服务状态…"));
-  const [health, projects2, systems] = await Promise.all([
+  const [health, projects2, systems, environment] = await Promise.all([
     apiOrEmpty("/health", OFFLINE.health),
     apiOrEmpty("/projects", OFFLINE.projects),
-    apiOrEmpty("/design-systems", OFFLINE.designSystems)
+    apiOrEmpty("/design-systems", OFFLINE.designSystems),
+    apiOrEmpty("/environment", OFFLINE.environment)
   ]);
-  const probeIds = projects2.projects.slice(0, 8).map((p) => p.id);
+  const probeIds = projects2.projects.slice(0, 6).map((p) => p.id);
   const probes = await Promise.all(probeIds.map(async (pid) => {
+    const taskResult = { res: null, err: null };
+    const bundleResult = { res: null, err: null };
     try {
-      const resp = await api(`/projects/${pid}/tasks`);
-      return { pid, ok: true, tasks: resp.tasks };
-    } catch {
-      return { pid, ok: false, tasks: [] };
+      taskResult.res = await api(`/projects/${pid}/tasks`);
+    } catch (e) {
+      taskResult.err = e;
     }
+    try {
+      bundleResult.res = await api(`/projects/${pid}/bundles`);
+    } catch (e) {
+      bundleResult.err = e;
+    }
+    return { pid, taskResult, bundleResult };
   }));
-  const readable = probes.filter((p) => p.ok).length;
-  const triageRows = probes.flatMap((p) => p.tasks.map((t) => {
+  const readable = probes.filter((p) => p.taskResult.res !== null).length;
+  const triageRows = probes.flatMap((p) => (p.taskResult.res?.tasks ?? []).map((t) => {
     const byAttempt = taskTriage(t.attempt.state);
     return {
       project: projects2.projects.find((x) => x.id === p.pid)?.name ?? p.pid,
       kind: t.kind,
       state: t.state,
       attempt: t.attempt.state,
-      bucket: byAttempt !== "unknown" ? byAttempt : taskTriage(t.state)
+      bucket: byAttempt !== "unknown" ? byAttempt : taskTriage(t.state),
+      pid: p.pid
     };
   }));
+  const activeProductionRows = triageRows.filter((r) => r.bucket === "in_flight");
+  const allBundles = probes.flatMap(
+    (p) => (p.bundleResult.res?.bundles ?? []).map((b) => ({
+      ...b,
+      project: projects2.projects.find((x) => x.id === p.pid)?.name ?? p.pid,
+      pid: p.pid
+    }))
+  );
   const sysCount = systems.design_systems.length;
   const projCount = projects2.projects.length;
   const pageHead = el(
@@ -1167,6 +1300,8 @@ async function renderDashboard(target) {
     sparkSvg(sparkVals),
     el("p", { class: "view-hint" }, "B10 演示序列 · 质量评分组件化展示，非业务指标")
   );
+  const researchCard = CAPABILITY_REGISTRY.find((c) => c.capabilityId === "research-insights");
+  const deliveryCard = CAPABILITY_REGISTRY.find((c) => c.capabilityId === "design-domain-model");
   const modulePanels = el(
     "div",
     { class: "three-col", style: "margin-top:16px" },
@@ -1190,6 +1325,24 @@ async function renderDashboard(target) {
       el("h3", {}, "Delivery"),
       el("div", { class: "muted" }, "交付中心：按任务读回，未打包不宣称交付完成。"),
       el("div", { class: "progress", style: "margin-top:14px" }, el("div", { style: "width:65%" }))
+    )
+  );
+  const blueprintCards = el(
+    "div",
+    { class: "three-col", style: "margin-top:16px" },
+    ...researchCard ? [capabilityCard(researchCard)] : [],
+    ...deliveryCard ? [capabilityCard(deliveryCard)] : [],
+    el(
+      "div",
+      { class: "panel" },
+      el("h3", {}, "协作"),
+      el(
+        "div",
+        { class: "status-stack" },
+        el("span", { class: "tag info" }, "PLANNED"),
+        el("small", {}, "本地单用户模型，无协作路由")
+      ),
+      el("p", { class: "view-hint" }, "协作是后续独立立项；不建假入口，标签保持 feature-gated。")
     )
   );
   const triagePanel = (bucket, title, emptyText) => {
@@ -1277,6 +1430,223 @@ async function renderDashboard(target) {
       { class: "two-col", style: "margin-top:16px" },
       triagePanel("needs_human", "待审（需人工处理）", "无待审任务"),
       triagePanel("failed", "失败", "无失败任务")
+    )
+  ), // 2026-09-30 — 活跃生产 + 最近交付 + Host/Capability 状态 + Quick Launch。
+  // 全部来自真实读回：活跃生产 = in_flight triage；最近交付 = /bundles 读回；
+  // Host 状态 = /environment shared_inputs + 能力登记表（诚实 UNKNOWN 占位，
+  // 不做假探测）；Quick Launch = 跳转各视图的一行直达。
+  el(
+    "div",
+    { class: "two-col", style: "margin-top:16px" },
+    el(
+      "div",
+      { class: "panel" },
+      el("h3", {}, `活跃生产（${activeProductionRows.length}）`),
+      el(
+        "div",
+        { class: "list" },
+        ...activeProductionRows.length ? activeProductionRows.map((r) => el(
+          "div",
+          { class: "list-item" },
+          el(
+            "div",
+            {},
+            el("strong", {}, `${r.project} · ${r.kind}`),
+            el("small", {}, `job.state=${r.state} · attempt=${r.attempt}`)
+          ),
+          el("span", { class: "tag warn" }, "运行中")
+        )) : [el(
+          "div",
+          { class: "list-item" },
+          el(
+            "div",
+            {},
+            el("strong", {}, readable === 0 ? "未读回" : "无运行中任务"),
+            el("small", {}, readable === 0 ? "服务不可达或未连接；此处不显示 0，避免把「没读到」说成「没有」。" : "运行中任务为 PENDING / RUNNING 状态（job_store.py 词表）。")
+          )
+        )]
+      ),
+      el(
+        "div",
+        { class: "panel" },
+        el("h3", {}, `最近交付（${allBundles.length}）`),
+        el(
+          "div",
+          { class: "list" },
+          ...allBundles.length ? allBundles.slice(0, 8).map((b) => el(
+            "div",
+            { class: "list-item" },
+            el(
+              "div",
+              {},
+              el("strong", {}, `${b.project} · 交付包 v${b.version_no}`),
+              el("small", {}, `${b.id} · ${b.byte_size} 字节 · ${b.rights}`)
+            ),
+            el(
+              "span",
+              { class: b.rights === "NOT_REVIEWED" ? "tag warn" : "tag ok" },
+              b.rights === "NOT_REVIEWED" ? "权利未审查" : "已登记"
+            )
+          )) : [el(
+            "div",
+            { class: "list-item" },
+            el(
+              "div",
+              {},
+              el("strong", {}, "尚无交付包"),
+              el("small", {}, "任务完成并打包后，交付会在此读回。")
+            )
+          )]
+        )
+      )
+    ),
+    el(
+      "div",
+      { class: "panel", style: "margin-top:16px" },
+      el("h3", {}, "Host / Capability 状态"),
+      el(
+        "div",
+        { class: "three-col" },
+        el(
+          "div",
+          { class: "panel" },
+          el("h3", {}, "宿主读回"),
+          el(
+            "div",
+            { class: "list" },
+            ...TOOL_ADAPTERS.map((a) => el(
+              "div",
+              { class: "list-item" },
+              el(
+                "div",
+                {},
+                el("strong", {}, a.name),
+                el("small", {}, a.path)
+              ),
+              el("span", { class: "tag info" }, "UNKNOWN")
+            ))
+          ),
+          el("p", { class: "view-hint" }, "宿主在线状态尚未有服务路由；此处 UNKNOWN，不假报可用。")
+        ),
+        el(
+          "div",
+          { class: "panel" },
+          el("h3", {}, "共享输入"),
+          el(
+            "div",
+            { class: "list" },
+            ...Object.entries(environment.shared_inputs).slice(0, 4).map(([k, v]) => el(
+              "div",
+              { class: "list-item" },
+              el(
+                "div",
+                {},
+                el("strong", {}, k),
+                el("small", {}, v.path)
+              ),
+              el("span", { class: v.status === "MISSING" ? "tag bad" : "tag ok" }, v.status)
+            ))
+          ),
+          el("p", { class: "view-hint" }, "来自 /api/environment 真实读回；写权限与状态由服务裁定。")
+        ),
+        el(
+          "div",
+          { class: "panel" },
+          el("h3", {}, "未来能力"),
+          el(
+            "div",
+            { class: "list" },
+            ...CAPABILITY_REGISTRY.slice(0, 4).map((c) => el(
+              "div",
+              { class: "list-item" },
+              el(
+                "div",
+                {},
+                el("strong", {}, c.domain),
+                el("small", {}, c.contractRef)
+              ),
+              el(
+                "span",
+                { class: c.implementationState === "BLOCKED" ? "tag warn" : "tag info" },
+                c.implementationState
+              )
+            ))
+          )
+        )
+      ),
+      el(
+        "div",
+        { class: "panel quick-launch", style: "margin-top:16px" },
+        el("h3", {}, "Quick Launch"),
+        el(
+          "div",
+          { class: "list" },
+          el(
+            "div",
+            { class: "list-item" },
+            el("div", {}, el("strong", {}, "新建项目"), el("small", {}, "进入工作台创建项目")),
+            el(
+              "div",
+              { class: "actions" },
+              el("button", {
+                type: "button",
+                class: "ghost-btn",
+                onclick: () => {
+                  window.location.hash = "";
+                }
+              }, "工作台")
+            )
+          ),
+          el(
+            "div",
+            { class: "list-item" },
+            el("div", {}, el("strong", {}, "项目列表"), el("small", {}, "全部项目一览")),
+            el(
+              "div",
+              { class: "actions" },
+              el("button", {
+                type: "button",
+                class: "ghost-btn",
+                onclick: () => {
+                  window.location.hash = "#/projects";
+                }
+              }, "项目")
+            )
+          ),
+          el(
+            "div",
+            { class: "list-item" },
+            el("div", {}, el("strong", {}, "创作工具"), el("small", {}, "宿主任务读回")),
+            el(
+              "div",
+              { class: "actions" },
+              el("button", {
+                type: "button",
+                class: "ghost-btn",
+                onclick: () => {
+                  window.location.hash = "#/tools";
+                }
+              }, "创作工具")
+            )
+          ),
+          el(
+            "div",
+            { class: "list-item" },
+            el("div", {}, el("strong", {}, "预检 / QA"), el("small", {}, "任务资源预检")),
+            el(
+              "div",
+              { class: "actions" },
+              el("button", {
+                type: "button",
+                class: "ghost-btn",
+                onclick: () => {
+                  window.location.hash = "#/preflight";
+                }
+              }, "预检")
+            )
+          )
+        )
+      )
     ),
     el(
       "p",
@@ -1286,6 +1656,7 @@ async function renderDashboard(target) {
     el("p", { class: "eyebrow" }, "设计系统登记"),
     systemsList,
     el("p", { class: "eyebrow" }, "设计域状态机（B07 契约 · NEXT/BACK 双向）"),
+    blueprintCards,
     stateMachineStepper()
   );
   target.querySelectorAll("strong[data-count]").forEach((k) => animateKpiCount(k));
@@ -1703,6 +2074,62 @@ const TOOL_ADAPTERS = [
 async function renderCreativeTools(target) {
   await projectPickerPanel(target, "创作工具", async (id) => {
     const tasks2 = await apiOrEmpty(`/projects/${id}/tasks`, OFFLINE.tasks);
+    const env = await apiOrEmpty("/environment", OFFLINE.environment);
+    const mcpCard = CAPABILITY_REGISTRY.find((c) => c.capabilityId === "mcp-diagnostics");
+    const hostCard = CAPABILITY_REGISTRY.find((c) => c.capabilityId === "host-adapter-live");
+    const hostStatus = el(
+      "div",
+      { class: "panel" },
+      el("h3", {}, "宿主 / Capability 状态"),
+      el(
+        "div",
+        { class: "three-col" },
+        el(
+          "div",
+          { class: "panel" },
+          el("h3", {}, "宿主读回"),
+          el(
+            "div",
+            { class: "list" },
+            ...TOOL_ADAPTERS.map((a) => el(
+              "div",
+              { class: "list-item" },
+              el(
+                "div",
+                {},
+                el("strong", {}, a.name),
+                el("small", {}, a.path)
+              ),
+              el("span", { class: "tag info" }, "UNKNOWN")
+            ))
+          ),
+          el("p", { class: "view-hint" }, "宿主在线状态尚未有服务路由；此处 UNKNOWN，不假报可用。")
+        ),
+        el(
+          "div",
+          { class: "panel" },
+          el("h3", {}, "共享输入"),
+          el(
+            "div",
+            { class: "list" },
+            ...Object.entries(env.shared_inputs).slice(0, 4).map(([k, v]) => el(
+              "div",
+              { class: "list-item" },
+              el(
+                "div",
+                {},
+                el("strong", {}, k),
+                el("small", {}, v.path)
+              ),
+              el("span", { class: v.status === "MISSING" ? "tag bad" : "tag ok" }, v.status)
+            ))
+          ),
+          el("p", { class: "view-hint" }, "来自 /api/environment 真实读回。")
+        ),
+        hostCard ? capabilityCard(hostCard) : el("div", { class: "panel" }),
+        mcpCard ? capabilityCard(mcpCard) : el("div", { class: "panel" })
+      )
+    );
     const adapterGrid = el(
       "div",
       { class: "three-col" },
@@ -1731,6 +2158,7 @@ async function renderCreativeTools(target) {
     return el(
       "div",
       {},
+      hostStatus,
       adapterGrid,
       el("p", { class: "view-hint" }, "宿主任务只读回 /api/projects/{id}/tasks。提交 / 运行 / 取消由宿主（Illustrator / Photoshop）在工作台执行；本页不触发实操。"),
       el(
@@ -1754,12 +2182,84 @@ async function renderCreativeTools(target) {
 const DELIVERABLE_KINDS = ["Editable Source", "PDF", "PNG", "SVG", "PSD", "AI", "Video", "3D", "Archive"];
 async function renderDeliverables(target) {
   await projectPickerPanel(target, "交付中心", async (id) => {
-    const tasks2 = await apiOrEmpty(`/projects/${id}/tasks`, OFFLINE.tasks);
+    const [tasks2, bundles] = await Promise.all([
+      apiOrEmpty(`/projects/${id}/tasks`, OFFLINE.tasks),
+      apiOrEmpty(`/projects/${id}/bundles`, OFFLINE.bundles)
+    ]);
+    const bundleRows = bundles.bundles.length ? bundles.bundles.map((b) => el(
+      "div",
+      { class: "list-item" },
+      el(
+        "div",
+        {},
+        el("strong", {}, `交付包 · v${b.version_no}`),
+        el("small", {}, `${b.id} · ${b.byte_size} 字节 · ${b.rights}`)
+      ),
+      el(
+        "div",
+        { class: "actions" },
+        el("button", {
+          type: "button",
+          class: "ghost-btn",
+          onclick: () => {
+            window.location.hash = "#/projects/" + encodeURIComponent(id);
+          }
+        }, "在项目页下载"),
+        el(
+          "span",
+          { class: b.rights === "NOT_REVIEWED" ? "tag warn" : "tag info" },
+          b.rights === "NOT_REVIEWED" ? "权利未审查" : b.rights
+        )
+      )
+    )) : [el(
+      "div",
+      { class: "list-item" },
+      el(
+        "div",
+        {},
+        el("strong", {}, "尚无交付包"),
+        el("small", {}, "任务完成并打包后，交付会在此读回。")
+      )
+    )];
+    const bundleList = el(
+      "div",
+      { class: "list" },
+      ...bundleRows.filter((x) => x !== null)
+    );
+    const bundlePanel = el(
+      "div",
+      { class: "panel" },
+      el("h3", {}, `交付包（${bundles.bundles.length}）`),
+      bundleList,
+      el("p", { class: "view-hint" }, "交付包来自原生宿主导出；下载与 hash 核对在项目页执行（fail-closed）。权利 / 质量 / 预检仍需独立验收。")
+    );
+    const tasksRows = tasks2.tasks.length ? tasks2.tasks.map((t) => el(
+      "tr",
+      {},
+      el("td", {}, t.kind),
+      el("td", {}, t.state),
+      el("td", {}, t.attempt.state)
+    )) : [el("tr", {}, el("td", { colspan: "3" }, "尚无任务。任务完成后交付包随读回导出。"))];
+    const tasksPanel = el(
+      "div",
+      { class: "panel" },
+      el("h3", {}, `交付候选任务（${tasks2.tasks.length}）`),
+      el(
+        "div",
+        { class: "table-wrap" },
+        el(
+          "table",
+          { class: "table" },
+          el("thead", {}, el("tr", {}, el("th", {}, "类型"), el("th", {}, "状态"), el("th", {}, "尝试"))),
+          el("tbody", {}, ...tasksRows.filter((x) => x !== null))
+        )
+      )
+    );
     const manifestKpis = el(
       "div",
       { class: "kpi-grid" },
       kpiCard(String(tasks2.tasks.length), "交付候选", "读回任务台账 · 非已打包"),
-      kpiCard(String(DELIVERABLE_KINDS.length), "导出格式", "可编辑源 / PDF / PNG / SVG / …"),
+      kpiCard(String(bundles.bundles.length), "交付包", "读回 /bundles · 可下载核对 hash"),
       kpiCard("—", "人工验收", "字体 / 链接 / rights / 质量")
     );
     for (const v of manifestKpis.querySelectorAll("strong[data-count]")) {
@@ -1776,50 +2276,94 @@ async function renderDeliverables(target) {
         el("span", { class: "tag info" }, "导出候选")
       ))
     );
-    const rows = tasks2.tasks.length ? tasks2.tasks.map((t) => el(
-      "tr",
-      {},
-      el("td", {}, t.kind),
-      el("td", {}, t.state),
-      el("td", {}, t.attempt.state)
-    )) : [el("tr", {}, el("td", { colspan: "3" }, "尚无任务。任务完成后交付包随读回导出。"))];
-    const done = el(
+    return el(
       "div",
       {},
       manifestKpis,
       kindGrid,
-      el("p", { class: "view-hint" }, "交付包按任务在下载时打包（字体 / 链接 / rights / 质量仍需人工验收）。本页只读回任务台账，不下载也不打包。"),
-      el(
-        "div",
-        { class: "panel" },
-        el("h3", {}, `交付候选任务（${tasks2.tasks.length}）`),
-        el(
-          "div",
-          { class: "table-wrap" },
-          el(
-            "table",
-            { class: "table" },
-            el("thead", {}, el("tr", {}, el("th", {}, "类型"), el("th", {}, "状态"), el("th", {}, "尝试"))),
-            el("tbody", {}, ...rows)
-          )
-        )
-      )
+      el("p", { class: "view-hint" }, "交付包按任务在下载时打包（字体 / 链接 / rights / 质量仍需人工验收）。本页只读回，不下载也不打包。"),
+      bundlePanel,
+      tasksPanel
     );
-    return done;
   });
 }
 async function renderEvidence(target) {
   await projectPickerPanel(target, "证据系统", async (id) => {
-    const layer = (await apiOrEmpty(`/projects/${id}/design-layer`, OFFLINE.designLayer)).design_layer;
+    const [layerResp, bundlesResp] = await Promise.all([
+      apiOrEmpty(`/projects/${id}/design-layer`, OFFLINE.designLayer),
+      apiOrEmpty(`/projects/${id}/bundles`, OFFLINE.bundles)
+    ]);
+    const layer = layerResp.design_layer;
     const chosen = layer.chosen_direction ? `${layer.chosen_direction.title} · v${layer.chosen_direction.version}` : "（尚未选定方向）";
     const active = layer.active_binding ? `${layer.active_binding.design_system_name} · 绑定 ${layer.active_binding.direction_id}` : "（无活动绑定）";
+    const bindingChain = el(
+      "div",
+      { class: "panel" },
+      el("h3", {}, "证据绑定链"),
+      el(
+        "div",
+        { class: "list" },
+        el(
+          "div",
+          { class: "list-item" },
+          el("div", {}, el("strong", {}, "项目"), el("small", {}, id)),
+          el("span", { class: "tag ok" }, "已读回")
+        ),
+        el(
+          "div",
+          { class: "list-item" },
+          el(
+            "div",
+            {},
+            el("strong", {}, `Brief（${layer.briefs.length} 版本）`),
+            el("small", {}, layer.briefs.length ? layer.briefs.map((b) => `v${b.version}`).join(" → ") : "（无）")
+          ),
+          el(
+            "span",
+            { class: layer.briefs.length ? "tag ok" : "tag info" },
+            layer.briefs.length ? "已读回" : "空"
+          )
+        ),
+        el(
+          "div",
+          { class: "list-item" },
+          el(
+            "div",
+            {},
+            el("strong", {}, "选定方向"),
+            el("small", {}, chosen)
+          ),
+          el(
+            "span",
+            { class: layer.chosen_direction ? "tag ok" : "tag warn" },
+            layer.chosen_direction ? "已选定" : "未选定"
+          )
+        ),
+        el(
+          "div",
+          { class: "list-item" },
+          el(
+            "div",
+            {},
+            el("strong", {}, `交付包（${bundlesResp.bundles.length}）`),
+            el("small", {}, bundlesResp.bundles.length ? bundlesResp.bundles.map((b) => `v${b.version_no}`).join(" → ") : "（无）")
+          ),
+          el(
+            "span",
+            { class: bundlesResp.bundles.length ? "tag ok" : "tag info" },
+            bundlesResp.bundles.length ? "已读回" : "空"
+          )
+        )
+      ),
+      el("p", { class: "view-hint" }, "绑定链只读回；方向选定与交付打包在项目页和工作台高级区执行。")
+    );
     const kpis = el(
       "div",
       { class: "kpi-grid" },
       kpiCard(String(layer.briefs.length), "briefs", "设计简报版本"),
       kpiCard(String(layer.directions.length), "directions", "设计方向版本"),
       kpiCard(String(layer.design_systems.length), "设计系统", "登记系统"),
-      kpiCard(layer.active_binding ? "1" : "0", "活动绑定", "当前方向契约")
+      kpiCard(String(bundlesResp.bundles.length), "交付包", "/bundles 读回")
     );
     for (const v of kpis.querySelectorAll("strong[data-count]")) {
       const t = v.textContent;
@@ -1849,6 +2393,7 @@ async function renderEvidence(target) {
       "div",
       {},
       kpis,
+      bindingChain,
       el(
         "div",
         { class: "panel" },
@@ -1875,6 +2420,128 @@ async function renderEvidence(target) {
     );
     return done;
   });
+}
+const PROJECT_STAGES = [
+  { key: "brief", label: "Brief", panelId: "#pd-brief-editor", state: "IMPLEMENTED" },
+  { key: "references", label: "References", panelId: "#pd-reference-panel", state: "IMPLEMENTED" },
+  {
+    key: "research",
+    label: "Research",
+    panelId: "",
+    state: "PLANNED",
+    note: "研究洞察无后端路由（见能力登记表 research-insights）"
+  },
+  { key: "directions", label: "Directions", panelId: "#pd-direction-panel", state: "IMPLEMENTED" },
+  { key: "design-system", label: "Design System", panelId: "#pd-design-system-panel", state: "IMPLEMENTED" },
+  { key: "production", label: "Production", panelId: "#pd-tasks-panel", state: "IMPLEMENTED" },
+  { key: "versions", label: "Versions", panelId: "#pd-versions-panel", state: "IMPLEMENTED" },
+  {
+    key: "review",
+    label: "Review / Preflight",
+    panelId: "#/preflight",
+    state: "IMPLEMENTED",
+    note: "预检路由 #/preflight，任务 ID 输入后可运行"
+  },
+  {
+    key: "handoff",
+    label: "Handoff",
+    panelId: "",
+    state: "PLANNED",
+    note: "交接清单模型未建（能力登记表）"
+  },
+  { key: "evidence", label: "Evidence", panelId: "#pd-deliveries", state: "IMPLEMENTED" }
+];
+function buildStageNav(currentStageKey) {
+  const nav = el("ol", { class: "stage-nav", "aria-label": "项目阶段导航" });
+  for (const stage of PROJECT_STAGES) {
+    const li = el("li", { class: "stage-nav-item", dataset: { stage: stage.key, state: stage.state } });
+    const isCurrent = stage.key === currentStageKey;
+    if (isCurrent) li.setAttribute("aria-current", "step");
+    const btnAttrs = {
+      type: "button",
+      class: "stage-nav-btn" + (stage.state === "IMPLEMENTED" ? "" : " is-planned") + (isCurrent ? " is-current" : ""),
+      onclick: () => {
+        if (stage.panelId.startsWith("#/")) {
+          window.location.hash = stage.panelId.slice(1);
+        } else if (stage.panelId) {
+          const target = document.querySelector(stage.panelId);
+          if (target) target.scrollIntoView({ behavior: "smooth", block: "start" });
+        }
+      },
+      title: stage.note ?? (stage.state === "IMPLEMENTED" ? "点击跳转到该阶段" : stage.note ?? "")
+    };
+    const tag = stage.state !== "IMPLEMENTED" ? el("span", { class: "tag " + (stage.state === "BLOCKED" ? "warn" : "info"), "aria-hidden": "true" }, stage.state) : null;
+    li.append(el(
+      "button",
+      btnAttrs,
+      el("span", { class: "stage-nav-label" }, stage.label),
+      ...tag ? [tag] : []
+    ));
+    nav.append(li);
+  }
+  return nav;
+}
+function buildInspectorPanel(id, layer) {
+  const versionData = layer.directions.map((d) => ({
+    version: d.version,
+    chosen: d.chosen,
+    superseded_by: d.superseded_by
+  }));
+  const ring = buildVersionRing(versionData);
+  const chosen = layer.chosen_direction;
+  const binding = layer.active_binding;
+  const sysItems = layer.design_systems.length ? [el(
+    "div",
+    { class: "list-item" },
+    el(
+      "div",
+      {},
+      el("strong", {}, "设计系统"),
+      el("small", {}, layer.design_systems.map((s) => s.name).join(", "))
+    )
+  )] : [];
+  const body = el(
+    "div",
+    { class: "inspector-body" },
+    ring,
+    el("p", { class: "view-hint" }, `${layer.directions.length} 个方向版本` + (chosen ? ` · 选定：${chosen.title} v${chosen.version}` : " · 尚未选定方向")),
+    el(
+      "div",
+      { class: "list" },
+      el(
+        "div",
+        { class: "list-item" },
+        el(
+          "div",
+          {},
+          el("strong", {}, "活动绑定"),
+          el("small", {}, binding ? `${binding.design_system_name} → ${binding.direction_id}` : "（无活动绑定）")
+        )
+      ),
+      ...sysItems.filter((x) => x !== null)
+    )
+  );
+  return el(
+    "aside",
+    { class: "inspector", id: "pd-inspector", "aria-label": "项目 Inspector" },
+    el(
+      "div",
+      { class: "inspector-head" },
+      el("h3", {}, "Inspector"),
+      el("button", {
+        type: "button",
+        class: "ghost-btn inspector-toggle",
+        "aria-expanded": "true",
+        onclick: (e) => {
+          const btn = e.currentTarget;
+          const collapsed = btn.getAttribute("aria-expanded") === "false";
+          btn.setAttribute("aria-expanded", String(!collapsed));
+          btn.parentElement?.parentElement?.classList.toggle("is-collapsed", collapsed);
+        }
+      }, "收起")
+    ),
+    body
+  );
 }
 function briefFieldRow(prefix) {
   const title = el("input", { id: `${prefix}-title`, class: "input", maxlength: "160", placeholder: "简报标题（必填）" });
@@ -2181,9 +2848,8 @@ function renderBriefEditor(id, layer, target) {
       draftNote.textContent = "草稿已丢弃；表单内容未改动服务端任何状态。";
     }
   }, "丢弃草稿");
-  return el(
-    "div",
-    { class: "panel" },
+  const panel = el("div", { class: "panel", id: "pd-brief-editor" });
+  panel.append(
     el("h3", {}, `简报（Brief）· ${layer.briefs.length} 个版本`),
     el("div", { class: "list" }, ...briefRows),
     el(
@@ -2206,6 +2872,7 @@ function renderBriefEditor(id, layer, target) {
     draftNote,
     status
   );
+  return panel;
 }
 function renderReferencePanel(id) {
   const heading = el("h3", { id: "pd-ref-heading" }, "参考素材");
@@ -2408,7 +3075,7 @@ function renderReferencePanel(id) {
   });
   return el(
     "div",
-    { class: "panel" },
+    { class: "panel", id: "pd-reference-panel" },
     heading,
     list,
     el(
@@ -2543,7 +3210,7 @@ function renderDirectionPanel(id, layer, target) {
   });
   return el(
     "div",
-    { class: "panel" },
+    { class: "panel", id: "pd-direction-panel" },
     el("h3", {}, `方向（Direction）· ${layer.directions.length} 个候选`),
     el("p", { class: "view-hint", id: "pd-dir-consistency" }, `版本链 / 选定 / 绑定一致性：${consistency}`),
     el(
@@ -2630,7 +3297,7 @@ function renderDesignSystemPanel(id, layer, systems, target) {
   const consistent = !!(active && chosen && active.direction_id === chosen.direction_id);
   return el(
     "div",
-    { class: "panel" },
+    { class: "panel", id: "pd-design-system-panel" },
     el("h3", {}, `设计系统（DesignSystem）· 目录 ${systems.design_systems.length} 项 · 绑定 ${layer.bindings.length} 次`),
     el(
       "div",
@@ -2798,7 +3465,7 @@ async function renderProjectDetail(id, target) {
   );
   const taskPanel = el(
     "div",
-    { class: "panel" },
+    { class: "panel", id: "pd-tasks-panel" },
     el("h3", {}, `任务台账（${tasks2.tasks.length}）`),
     el(
       "div",
@@ -2827,15 +3494,27 @@ async function renderProjectDetail(id, target) {
       el("div", { class: "list-item" }, el("span", {}, "设计系统登记"), el("span", { class: "tag info" }, String(layer.design_systems.length)))
     )
   );
+  const stageNav = buildStageNav();
+  const inspector = buildInspectorPanel(id, layer);
   target.replaceChildren(
     pageHead,
     kpis,
-    el("div", { class: "two-col", style: "margin-top:16px" }, taskPanel, layerPanel),
-    el("div", { style: "margin-top:16px" }, renderDeliveryPanel(id, bundlesResp)),
-    el("div", { style: "margin-top:16px" }, renderBriefEditor(id, layer, target)),
-    el("div", { style: "margin-top:16px" }, renderDirectionPanel(id, layer, target)),
-    el("div", { style: "margin-top:16px" }, renderDesignSystemPanel(id, layer, systemsResp, target)),
-    el("div", { style: "margin-top:16px" }, renderReferencePanel(id)),
+    stageNav,
+    el(
+      "div",
+      { class: "project-detail-layout" },
+      el(
+        "div",
+        { class: "project-detail-main" },
+        el("div", { class: "two-col", style: "margin-top:16px" }, taskPanel, layerPanel),
+        el("div", { style: "margin-top:16px" }, renderDeliveryPanel(id, bundlesResp)),
+        el("div", { style: "margin-top:16px" }, renderBriefEditor(id, layer, target)),
+        el("div", { style: "margin-top:16px" }, renderDirectionPanel(id, layer, target)),
+        el("div", { style: "margin-top:16px" }, renderDesignSystemPanel(id, layer, systemsResp, target)),
+        el("div", { style: "margin-top:16px" }, renderReferencePanel(id))
+      ),
+      inspector
+    ),
     el("p", { class: "view-hint" }, "tasks 与 design-layer 台账为只读；简报区可真实创建与修订并读回；参考素材区读回资产清单并按需预览。提交任务 / 运行 / 取消 / 导出仍由工作台高级区执行。")
   );
 }
@@ -2879,9 +3558,18 @@ async function renderRoute(view, target) {
     }
     default: {
       const notOpen = VIEW_NOT_OPEN[view];
+      const cards = el(
+        "div",
+        { class: "three-col" },
+        ...CAPABILITY_REGISTRY.filter(
+          (c) => view === "research" && c.capabilityId === "research-insights" || view === "design-domains" && c.capabilityId === "design-domain-model" || view === "collaboration" && c.capabilityId === "collaboration"
+        ).map(capabilityCard)
+      );
+      const hasCards = CAPABILITY_REGISTRY.some((c) => view === "research" && c.capabilityId === "research-insights" || view === "design-domains" && c.capabilityId === "design-domain-model" || view === "collaboration" && c.capabilityId === "collaboration");
       target.replaceChildren(
         el("h2", {}, notOpen ? view : "工作台"),
-        el("p", { class: "view-unopened" }, notOpen ?? "默认工作台。")
+        el("p", { class: "view-unopened" }, notOpen ?? "默认工作台。"),
+        ...hasCards ? [cards] : []
       );
       return;
     }
