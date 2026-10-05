@@ -39,10 +39,15 @@
   全量 1762 套件在 UI 分支重跑（结果见 `00_FINAL_STATUS.md`）。
 - **未做**：未在 `main` 的 exact SHA 上重跑绑定测试。
 - 因此只把 `reassessment` 置为 `REVIEWED`（表示“已复核且复核人认可声明值”），
-  **没有**新增 PASS 级 evidence，也**没有**抬升任何 axis。
-  投影器仍按自身规则把 010 的 implementation/unit 判为
+  当时**没有**抬升任何 axis，也没有用旧证据冒充当前能力；
+  投影器按自身规则把 010 的 implementation/unit 判为
   `UNVERIFIED`（`STALE_SUBJECT_SHA`），这是设计上的证据衰减，不是回归。
-  要把这两轴重新变绿，必须补一条 `outcome=PASS` 且绑定当前 SHA 的新 evidence。
+- **随后补做 PASS 级重观测**（同日）：把 node 加入 PATH 让 14 个 native-UI 用例真正执行，
+  `test_service_http` + `test_design_layer_http` + `test_workbench_native_ui`
+  = **61 tests, OK, skipped=0**，绑定 exact SHA `5fb8878d` 与 6 个所测文件的字节哈希，
+  以 `kind=local_test` / `outcome=PASS` 追加为新 evidence 并挂到两轴。
+  重生成后投影读回 `IMPLEMENTED_LOCAL` / `PASS`，而 `host_live` / `delivery` 仍 `PARTIAL`，
+  因此任务整体保持 `PARTIAL`。边界不变：只声明 E2 受控运行时，不含宿主、rights、人工验收。
 
 ## 11 项交叉核对任务的当前真值（按产品轴）
 
@@ -55,7 +60,7 @@
 | DL-R5-004 | 全 PARTIAL | `PARTIAL` |
 | DL-R5-005 | 全 PARTIAL | `PARTIAL` |
 | DL-R5-009 | 全 PARTIAL | `PARTIAL` |
-| DL-R5-010 | implementation/unit `UNVERIFIED`（证据 SHA 衰减），host_live/delivery PARTIAL | `PARTIAL` |
+| DL-R5-010 | implementation=`IMPLEMENTED_LOCAL`、unit=`PASS`（**已由 PASS 级 evidence 验证**），host_live/delivery PARTIAL → 任务整体仍 `PARTIAL` | `PARTIAL` |
 | DL-R5-011 | 全 PARTIAL，`host_live` 证据为空 | `PARTIAL`（宿主 E3 未成立） |
 | DL-R5-012 | 同上 | `PARTIAL`（宿主 E3 未成立） |
 | DL-R5-013 | 全 PARTIAL | `PARTIAL`（本次补上 Plan→RIR 接缝，见 `04`） |

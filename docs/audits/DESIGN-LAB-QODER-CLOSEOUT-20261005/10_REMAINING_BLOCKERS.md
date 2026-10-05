@@ -14,7 +14,7 @@
 
 | # | 项 | 现状 | 建议动作 |
 |---|---|---|---|
-| B1 | `DL-R5-010` implementation/unit 投影为 `UNVERIFIED` | 证据 subject_sha 衰减 | 在目标 SHA 上重跑绑定测试，写一条 `outcome=PASS` 的 evidence |
+| B1 | ~~`DL-R5-010` implementation/unit 投影为 `UNVERIFIED`~~ → **已闭合**：补 `outcome=PASS` evidence（61 tests OK / skipped=0，绑定 `5fb8878d`）后投影为 `IMPLEMENTED_LOCAL` / `PASS`；`host_live` / `delivery` 仍 `PARTIAL` | 后续每有产品代码提交，该证据会自然衰减为 `UNVERIFIED`，需按同法重观测（这是设计，不是缺陷） |
 | B2 | `design-lab/config/capability-evidence-current.json` 的 `generatedAt=2026-09-04` / `task=DL-TP-R2-014` 是生成器里的**常量**：本轮实跑 `generate_capability_evidence_index.py` 内容幂等（50 capabilities、`current_E3=0`、`supported_current` 全 false），但日期永远不变 | 投影无法自证新鲜度，属生成器设计缺陷；修它要先定「时间戳如何处理才不破坏 drift 门」，本轮不擅自改，只记录 |
 | B3 | 28 项 R5 任务 `reassessment` 仅 010 变 `REVIEWED`，其余 27 项仍 `PENDING_EVIDENCE_REVIEW` | 未复核 | 逐条按当前 Authority 产品轴复核；无证据不得抬升 |
 | B4 | 11 项产品轴（CONTRACT/BACKEND/FRONTEND/…）在 ledger 里仍是 4 轴词表 | 词表与 Authority §2 不一致 | 属 Authority 级映射决策，需 owner 定口径后再改，不自作主张 |

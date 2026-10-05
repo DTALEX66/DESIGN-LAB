@@ -428,6 +428,17 @@ def _index_input_digest(reader, snapshot, report_names):
     return 'sha256:' + hashlib.sha256(payload).hexdigest()
 
 
+def validate_ledger_contract(root):
+    """Check the single mutable ledger against its frozen contract only.
+
+    `generate(check=True)` additionally compares generated output against a
+    generation-time git snapshot, which a clean CI checkout can never reproduce.
+    This entry point keeps the part that can: schema, R5 task/axis/evidence rules.
+    """
+    reader = Reader(Path(root).resolve())
+    _validate(reader, reader.json(LEDGER))
+
+
 def generate(root, *, check=False, snapshot=None, generated_at=None):
     root = Path(root).resolve()
     reader = Reader(root)

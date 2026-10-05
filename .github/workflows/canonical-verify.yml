@@ -46,12 +46,13 @@ jobs:
       - name: Evidence boundTree freshness
         if: github.event_name == 'push'
         run: python design-lab/scripts/update_evidence_binding.py --check
-      - name: Current-report drift gate (FA-03 report truth)
-        # reports/current/** is generated from the single mutable ledger. Without
-        # this step a ledger edit that breaks the R5 contract (schema violation,
-        # completion state without REVIEWED reassessment) or leaves the projections
-        # stale stays invisible, and the projections silently age by weeks.
-        run: python scripts/generate_current_reports.py --check
+      - name: Task ledger contract gate (R5)
+        # The projections bind a generation-time git snapshot, so
+        # `generate_current_reports.py --check` can never pass on a clean
+        # checkout. This validates the part that can, and it is exactly the
+        # check that would have caught the 1acbfa1 ledger break instead of
+        # letting reports/current freeze behind a crashing generator.
+        run: python design-lab/scripts/verify_task_ledger_contract.py
       - name: V3 product manifest
         run: python design-lab/scripts/verify_product_manifest_v3.py
       - name: V3 runtime contracts
