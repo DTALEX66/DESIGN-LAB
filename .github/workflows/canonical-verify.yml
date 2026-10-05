@@ -270,10 +270,19 @@ jobs:
         run: |
           uv venv .venv-clean
           uv pip install --python .venv-clean/bin/python dist/*.whl
+          .venv-clean/bin/python -c "import design_lab, PIL, jsonschema, numpy, skimage; print('IMPORTS_OK', design_lab.__file__)"
       - name: Launch the installed Workbench and read it back
         env:
           DL_LAUNCH_INSTALLED: "1"
-        run: .venv-clean/bin/python -m unittest design-lab.tests.test_workbench_launch -v
+        # Assert the outcome instead of trusting the exit code: three tests must
+        # run, and the packaged-resource test must actually execute rather than
+        # skip (a skip here would mean the "installed" layout was never tested).
+        run: |
+          .venv-clean/bin/python -m unittest design-lab.tests.test_workbench_launch -v > launch.log 2>&1
+          tail -20 launch.log
+          grep -q "Ran 3 tests" launch.log
+          grep -q "^OK$" launch.log
+          ! grep -q "skipped" launch.log
 
   generated-artifact-gate:
     name: Generated-artifact clean-tree gate
