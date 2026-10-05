@@ -129,8 +129,7 @@
       "reasons": [
         "OUTCOME_NOT_PASS",
         "STALE_SUBJECT_SHA",
-        "SOURCE_CHANGED_OR_MISSING:design-lab/config/task-ledger-r3.json",
-        "ARTIFACT_CHANGED_OR_MISSING:.project-local/task-artifacts/project-survey-2026-09-27/PROJECT-SURVEY-2026-09-27.md"
+        "SOURCE_CHANGED_OR_MISSING:design-lab/config/task-ledger-r3.json"
       ],
       "software": {
         "git": "2.55.0.windows.3",
@@ -162,8 +161,7 @@
       "outcome": "PARTIAL",
       "reasons": [
         "OUTCOME_NOT_PASS",
-        "STALE_SUBJECT_SHA",
-        "ARTIFACT_CHANGED_OR_MISSING:.project-local/task-artifacts/project-survey-2026-09-27/PROJECT-SURVEY-2026-09-27.md"
+        "STALE_SUBJECT_SHA"
       ],
       "software": {
         "observation": "HERMES_HOME mtime sweep; git check-ignore; ownership-classified cleanup with sha256 before/after",
@@ -197,8 +195,7 @@
       "reasons": [
         "OUTCOME_NOT_PASS",
         "STALE_SUBJECT_SHA",
-        "SOURCE_CHANGED_OR_MISSING:.github/workflows/canonical-verify.yml",
-        "ARTIFACT_CHANGED_OR_MISSING:.project-local/task-artifacts/project-survey-2026-09-27/PROJECT-SURVEY-2026-09-27.md"
+        "SOURCE_CHANGED_OR_MISSING:.github/workflows/canonical-verify.yml"
       ],
       "software": {
         "gh": "GitHub CLI (keyring auth)",
@@ -235,8 +232,7 @@
       "reasons": [
         "OUTCOME_NOT_PASS",
         "STALE_SUBJECT_SHA",
-        "ARTIFACT_CHANGED_OR_MISSING:apps/workbench/build/main.js",
-        "ARTIFACT_CHANGED_OR_MISSING:.project-local/task-artifacts/project-survey-2026-09-27/PROJECT-SURVEY-2026-09-27.md"
+        "ARTIFACT_CHANGED_OR_MISSING:apps/workbench/build/main.js"
       ],
       "software": {
         "node": "v24.18.1",
@@ -275,8 +271,7 @@
       "outcome": "PARTIAL",
       "reasons": [
         "OUTCOME_NOT_PASS",
-        "STALE_SUBJECT_SHA",
-        "ARTIFACT_CHANGED_OR_MISSING:.project-local/task-artifacts/project-survey-2026-09-27/PROJECT-SURVEY-2026-09-27.md"
+        "STALE_SUBJECT_SHA"
       ],
       "software": {
         "os": "Windows",
@@ -313,8 +308,7 @@
       "outcome": "PARTIAL",
       "reasons": [
         "OUTCOME_NOT_PASS",
-        "STALE_SUBJECT_SHA",
-        "ARTIFACT_CHANGED_OR_MISSING:.project-local/task-artifacts/designlab-followup-taskpack-20260928/W00-EVIDENCE-SCAN.json"
+        "STALE_SUBJECT_SHA"
       ],
       "software": {
         "os": "Windows",
@@ -352,8 +346,7 @@
       "outcome": "PARTIAL",
       "reasons": [
         "OUTCOME_NOT_PASS",
-        "STALE_SUBJECT_SHA",
-        "ARTIFACT_CHANGED_OR_MISSING:.project-local/task-artifacts/designlab-followup-taskpack-20260928/W00-EVIDENCE-SCAN.json"
+        "STALE_SUBJECT_SHA"
       ],
       "software": {
         "os": "Windows",
@@ -392,8 +385,7 @@
       "outcome": "PARTIAL",
       "reasons": [
         "OUTCOME_NOT_PASS",
-        "STALE_SUBJECT_SHA",
-        "ARTIFACT_CHANGED_OR_MISSING:.project-local/task-artifacts/designlab-followup-taskpack-20260928/W00-EVIDENCE-SCAN.json"
+        "STALE_SUBJECT_SHA"
       ],
       "software": {
         "os": "Windows",
@@ -432,8 +424,7 @@
       "outcome": "PARTIAL",
       "reasons": [
         "OUTCOME_NOT_PASS",
-        "STALE_SUBJECT_SHA",
-        "ARTIFACT_CHANGED_OR_MISSING:.project-local/task-artifacts/designlab-followup-taskpack-20260928/W00-EVIDENCE-SCAN.json"
+        "STALE_SUBJECT_SHA"
       ],
       "software": {
         "os": "Windows",
@@ -475,8 +466,7 @@
       "reasons": [
         "OUTCOME_NOT_PASS",
         "STALE_SUBJECT_SHA",
-        "SOURCE_CHANGED_OR_MISSING:src/design_lab/native_assets.py",
-        "ARTIFACT_CHANGED_OR_MISSING:.project-local/task-artifacts/designlab-followup-taskpack-20260928/W00-EVIDENCE-SCAN.json"
+        "SOURCE_CHANGED_OR_MISSING:src/design_lab/native_assets.py"
       ],
       "software": {
         "os": "Windows",
@@ -520,10 +510,7 @@
         "STALE_SUBJECT_SHA",
         "SOURCE_CHANGED_OR_MISSING:src/design_lab/readiness/__pycache__/__init__.cpython-313.pyc",
         "SOURCE_CHANGED_OR_MISSING:src/design_lab/readiness/__pycache__/host_matrix.cpython-313.pyc",
-        "SOURCE_CHANGED_OR_MISSING:src/design_lab/readiness/__pycache__/model_radar.cpython-313.pyc",
-        "SOURCE_CHANGED_OR_MISSING:src/design_lab/readiness/__pycache__/reconstruction_bench.cpython-313.pyc",
-        "SOURCE_CHANGED_OR_MISSING:src/design_lab/readiness/__pycache__/vector_provider.cpython-313.pyc",
-        "ARTIFACT_CHANGED_OR_MISSING:.project-local/task-artifacts/designlab-followup-taskpack-20260928/W00-EVIDENCE-SCAN.json"
+        "SOURCE_CHANGED_OR_MISSING:src/design_lab/readiness/__pycache__/model_radar.cpython-313.pyc"
       ],
       "software": {
         "os": "Windows",
@@ -570,7 +557,7 @@
       "reasons": [
         "OUTCOME_NOT_PASS",
         "STALE_SUBJECT_SHA",
-        "ARTIFACT_CHANGED_OR_MISSING:.project-local/task-artifacts/designlab-followup-taskpack-20260928/W00-EVIDENCE-SCAN.json"
+        "SOURCE_CHANGED_OR_MISSING:src/design_lab/cli.py"
       ],
       "software": {
         "os": "Windows",
@@ -610,10 +597,8 @@
       "reasons": [
         "OUTCOME_NOT_PASS",
         "STALE_SUBJECT_SHA",
-        "SOURCE_CHANGED_OR_MISSING:src/design_lab/generators/__pycache__/__init__.cpython-313.pyc",
         "SOURCE_CHANGED_OR_MISSING:src/design_lab/generators/__pycache__/comfy_http.cpython-313.pyc",
-        "SOURCE_CHANGED_OR_MISSING:src/design_lab/generators/__pycache__/comfy_task.cpython-313.pyc",
-        "ARTIFACT_CHANGED_OR_MISSING:.project-local/task-artifacts/designlab-followup-taskpack-20260928/W00-EVIDENCE-SCAN.json"
+        "SOURCE_CHANGED_OR_MISSING:src/design_lab/generators/__pycache__/comfy_task.cpython-313.pyc"
       ],
       "software": {
         "os": "Windows",
@@ -656,9 +641,7 @@
       "outcome": "PARTIAL",
       "reasons": [
         "OUTCOME_NOT_PASS",
-        "STALE_SUBJECT_SHA",
-        "SOURCE_CHANGED_OR_MISSING:src/design_lab/reconstruction/__pycache__/__init__.cpython-313.pyc",
-        "ARTIFACT_CHANGED_OR_MISSING:.project-local/task-artifacts/designlab-followup-taskpack-20260928/W00-EVIDENCE-SCAN.json"
+        "STALE_SUBJECT_SHA"
       ],
       "software": {
         "os": "Windows",
@@ -698,8 +681,7 @@
       "reasons": [
         "OUTCOME_NOT_PASS",
         "STALE_SUBJECT_SHA",
-        "SOURCE_CHANGED_OR_MISSING:apps/workbench/shell.ts",
-        "ARTIFACT_CHANGED_OR_MISSING:.project-local/task-artifacts/designlab-followup-taskpack-20260928/W00-EVIDENCE-SCAN.json"
+        "SOURCE_CHANGED_OR_MISSING:apps/workbench/shell.ts"
       ],
       "software": {
         "os": "Windows",
@@ -740,8 +722,7 @@
       "outcome": "PARTIAL",
       "reasons": [
         "OUTCOME_NOT_PASS",
-        "STALE_SUBJECT_SHA",
-        "ARTIFACT_CHANGED_OR_MISSING:.project-local/task-artifacts/designlab-followup-taskpack-20260928/W00-EVIDENCE-SCAN.json"
+        "STALE_SUBJECT_SHA"
       ],
       "software": {
         "os": "Windows",
@@ -783,8 +764,7 @@
       "outcome": "PARTIAL",
       "reasons": [
         "OUTCOME_NOT_PASS",
-        "STALE_SUBJECT_SHA",
-        "ARTIFACT_CHANGED_OR_MISSING:.project-local/task-artifacts/designlab-followup-taskpack-20260928/W00-EVIDENCE-SCAN.json"
+        "STALE_SUBJECT_SHA"
       ],
       "software": {
         "os": "Windows",
@@ -831,9 +811,7 @@
       "outcome": "PARTIAL",
       "reasons": [
         "OUTCOME_NOT_PASS",
-        "STALE_SUBJECT_SHA",
-        "SOURCE_CHANGED_OR_MISSING:src/design_lab/reconstruction/__pycache__/__init__.cpython-313.pyc",
-        "ARTIFACT_CHANGED_OR_MISSING:.project-local/task-artifacts/designlab-followup-taskpack-20260928/W00-EVIDENCE-SCAN.json"
+        "STALE_SUBJECT_SHA"
       ],
       "software": {
         "os": "Windows",
@@ -875,15 +853,7 @@
       "outcome": "PARTIAL",
       "reasons": [
         "OUTCOME_NOT_PASS",
-        "STALE_SUBJECT_SHA",
-        "SOURCE_CHANGED_OR_MISSING:src/design_lab/assurance/__pycache__/__init__.cpython-313.pyc",
-        "SOURCE_CHANGED_OR_MISSING:src/design_lab/assurance/__pycache__/human_jury.cpython-313.pyc",
-        "SOURCE_CHANGED_OR_MISSING:src/design_lab/assurance/__pycache__/knowledge_feedback.cpython-313.pyc",
-        "SOURCE_CHANGED_OR_MISSING:src/design_lab/assurance/__pycache__/qa_plane.cpython-313.pyc",
-        "SOURCE_CHANGED_OR_MISSING:src/design_lab/assurance/__pycache__/quality_record.cpython-313.pyc",
-        "SOURCE_CHANGED_OR_MISSING:packages/capabilities/quality/jury/__pycache__/check_anti_slop.cpython-311.pyc",
-        "SOURCE_CHANGED_OR_MISSING:packages/capabilities/quality/jury/__pycache__/check_anti_slop.cpython-313.pyc",
-        "ARTIFACT_CHANGED_OR_MISSING:.project-local/task-artifacts/designlab-followup-taskpack-20260928/W00-EVIDENCE-SCAN.json"
+        "STALE_SUBJECT_SHA"
       ],
       "software": {
         "os": "Windows",
@@ -936,8 +906,7 @@
       "outcome": "PARTIAL",
       "reasons": [
         "OUTCOME_NOT_PASS",
-        "STALE_SUBJECT_SHA",
-        "ARTIFACT_CHANGED_OR_MISSING:.project-local/task-artifacts/designlab-followup-taskpack-20260928/W00-EVIDENCE-SCAN.json"
+        "STALE_SUBJECT_SHA"
       ],
       "software": {
         "os": "Windows",
@@ -977,13 +946,9 @@
       "reasons": [
         "OUTCOME_NOT_PASS",
         "STALE_SUBJECT_SHA",
-        "SOURCE_CHANGED_OR_MISSING:src/design_lab/interop/__pycache__/__init__.cpython-313.pyc",
-        "SOURCE_CHANGED_OR_MISSING:src/design_lab/interop/__pycache__/delivery_receipt.cpython-313.pyc",
         "SOURCE_CHANGED_OR_MISSING:src/design_lab/interop/__pycache__/dtcg.cpython-313.pyc",
         "SOURCE_CHANGED_OR_MISSING:src/design_lab/interop/__pycache__/penpot.cpython-313.pyc",
-        "SOURCE_CHANGED_OR_MISSING:src/design_lab/interop/__pycache__/provenance.cpython-313.pyc",
-        "SOURCE_CHANGED_OR_MISSING:src/design_lab/interop/__pycache__/timeline.cpython-313.pyc",
-        "ARTIFACT_CHANGED_OR_MISSING:.project-local/task-artifacts/designlab-followup-taskpack-20260928/W00-EVIDENCE-SCAN.json"
+        "SOURCE_CHANGED_OR_MISSING:src/design_lab/interop/__pycache__/timeline.cpython-313.pyc"
       ],
       "software": {
         "os": "Windows",
@@ -1027,13 +992,9 @@
       "reasons": [
         "OUTCOME_NOT_PASS",
         "STALE_SUBJECT_SHA",
-        "SOURCE_CHANGED_OR_MISSING:src/design_lab/interop/__pycache__/__init__.cpython-313.pyc",
-        "SOURCE_CHANGED_OR_MISSING:src/design_lab/interop/__pycache__/delivery_receipt.cpython-313.pyc",
         "SOURCE_CHANGED_OR_MISSING:src/design_lab/interop/__pycache__/dtcg.cpython-313.pyc",
         "SOURCE_CHANGED_OR_MISSING:src/design_lab/interop/__pycache__/penpot.cpython-313.pyc",
-        "SOURCE_CHANGED_OR_MISSING:src/design_lab/interop/__pycache__/provenance.cpython-313.pyc",
-        "SOURCE_CHANGED_OR_MISSING:src/design_lab/interop/__pycache__/timeline.cpython-313.pyc",
-        "ARTIFACT_CHANGED_OR_MISSING:.project-local/task-artifacts/designlab-followup-taskpack-20260928/W00-EVIDENCE-SCAN.json"
+        "SOURCE_CHANGED_OR_MISSING:src/design_lab/interop/__pycache__/timeline.cpython-313.pyc"
       ],
       "software": {
         "os": "Windows",
@@ -1076,8 +1037,7 @@
       "outcome": "PARTIAL",
       "reasons": [
         "OUTCOME_NOT_PASS",
-        "STALE_SUBJECT_SHA",
-        "ARTIFACT_CHANGED_OR_MISSING:.project-local/task-artifacts/designlab-followup-taskpack-20260928/W00-EVIDENCE-SCAN.json"
+        "STALE_SUBJECT_SHA"
       ],
       "software": {
         "os": "Windows",
@@ -1121,13 +1081,9 @@
       "reasons": [
         "OUTCOME_NOT_PASS",
         "STALE_SUBJECT_SHA",
-        "SOURCE_CHANGED_OR_MISSING:src/design_lab/interop/__pycache__/__init__.cpython-313.pyc",
-        "SOURCE_CHANGED_OR_MISSING:src/design_lab/interop/__pycache__/delivery_receipt.cpython-313.pyc",
         "SOURCE_CHANGED_OR_MISSING:src/design_lab/interop/__pycache__/dtcg.cpython-313.pyc",
         "SOURCE_CHANGED_OR_MISSING:src/design_lab/interop/__pycache__/penpot.cpython-313.pyc",
-        "SOURCE_CHANGED_OR_MISSING:src/design_lab/interop/__pycache__/provenance.cpython-313.pyc",
-        "SOURCE_CHANGED_OR_MISSING:src/design_lab/interop/__pycache__/timeline.cpython-313.pyc",
-        "ARTIFACT_CHANGED_OR_MISSING:.project-local/task-artifacts/designlab-followup-taskpack-20260928/W00-EVIDENCE-SCAN.json"
+        "SOURCE_CHANGED_OR_MISSING:src/design_lab/interop/__pycache__/timeline.cpython-313.pyc"
       ],
       "software": {
         "os": "Windows",
@@ -1171,13 +1127,9 @@
       "reasons": [
         "OUTCOME_NOT_PASS",
         "STALE_SUBJECT_SHA",
-        "SOURCE_CHANGED_OR_MISSING:src/design_lab/interop/__pycache__/__init__.cpython-313.pyc",
-        "SOURCE_CHANGED_OR_MISSING:src/design_lab/interop/__pycache__/delivery_receipt.cpython-313.pyc",
         "SOURCE_CHANGED_OR_MISSING:src/design_lab/interop/__pycache__/dtcg.cpython-313.pyc",
         "SOURCE_CHANGED_OR_MISSING:src/design_lab/interop/__pycache__/penpot.cpython-313.pyc",
-        "SOURCE_CHANGED_OR_MISSING:src/design_lab/interop/__pycache__/provenance.cpython-313.pyc",
-        "SOURCE_CHANGED_OR_MISSING:src/design_lab/interop/__pycache__/timeline.cpython-313.pyc",
-        "ARTIFACT_CHANGED_OR_MISSING:.project-local/task-artifacts/designlab-followup-taskpack-20260928/W00-EVIDENCE-SCAN.json"
+        "SOURCE_CHANGED_OR_MISSING:src/design_lab/interop/__pycache__/timeline.cpython-313.pyc"
       ],
       "software": {
         "os": "Windows",
@@ -1220,8 +1172,7 @@
       "outcome": "PARTIAL",
       "reasons": [
         "OUTCOME_NOT_PASS",
-        "STALE_SUBJECT_SHA",
-        "ARTIFACT_CHANGED_OR_MISSING:.project-local/task-artifacts/designlab-followup-taskpack-20260928/W00-EVIDENCE-SCAN.json"
+        "STALE_SUBJECT_SHA"
       ],
       "software": {
         "os": "Windows",
@@ -1271,13 +1222,9 @@
       "reasons": [
         "OUTCOME_NOT_PASS",
         "STALE_SUBJECT_SHA",
-        "SOURCE_CHANGED_OR_MISSING:src/design_lab/interop/__pycache__/__init__.cpython-313.pyc",
-        "SOURCE_CHANGED_OR_MISSING:src/design_lab/interop/__pycache__/delivery_receipt.cpython-313.pyc",
         "SOURCE_CHANGED_OR_MISSING:src/design_lab/interop/__pycache__/dtcg.cpython-313.pyc",
         "SOURCE_CHANGED_OR_MISSING:src/design_lab/interop/__pycache__/penpot.cpython-313.pyc",
-        "SOURCE_CHANGED_OR_MISSING:src/design_lab/interop/__pycache__/provenance.cpython-313.pyc",
-        "SOURCE_CHANGED_OR_MISSING:src/design_lab/interop/__pycache__/timeline.cpython-313.pyc",
-        "ARTIFACT_CHANGED_OR_MISSING:.project-local/task-artifacts/designlab-followup-taskpack-20260928/W00-EVIDENCE-SCAN.json"
+        "SOURCE_CHANGED_OR_MISSING:src/design_lab/interop/__pycache__/timeline.cpython-313.pyc"
       ],
       "software": {
         "os": "Windows",
@@ -1321,8 +1268,7 @@
       "outcome": "PARTIAL",
       "reasons": [
         "OUTCOME_NOT_PASS",
-        "STALE_SUBJECT_SHA",
-        "ARTIFACT_CHANGED_OR_MISSING:.project-local/task-artifacts/designlab-followup-taskpack-20260928/W00-EVIDENCE-SCAN.json"
+        "STALE_SUBJECT_SHA"
       ],
       "software": {
         "os": "Windows",
@@ -1360,12 +1306,7 @@
       "outcome": "PARTIAL",
       "reasons": [
         "OUTCOME_NOT_PASS",
-        "STALE_SUBJECT_SHA",
-        "SOURCE_CHANGED_OR_MISSING:src/design_lab/adapters/__pycache__/__init__.cpython-313.pyc",
-        "SOURCE_CHANGED_OR_MISSING:src/design_lab/adapters/__pycache__/illustrator_com.cpython-313.pyc",
-        "SOURCE_CHANGED_OR_MISSING:src/design_lab/adapters/__pycache__/photoshop_com.cpython-313.pyc",
-        "SOURCE_CHANGED_OR_MISSING:src/design_lab/adapters/__pycache__/spi.cpython-313.pyc",
-        "ARTIFACT_CHANGED_OR_MISSING:.project-local/task-artifacts/designlab-followup-taskpack-20260928/W00-EVIDENCE-SCAN.json"
+        "STALE_SUBJECT_SHA"
       ],
       "software": {
         "os": "Windows",
@@ -1410,10 +1351,8 @@
       "reasons": [
         "OUTCOME_NOT_PASS",
         "STALE_SUBJECT_SHA",
-        "SOURCE_CHANGED_OR_MISSING:src/design_lab/generators/__pycache__/__init__.cpython-313.pyc",
         "SOURCE_CHANGED_OR_MISSING:src/design_lab/generators/__pycache__/comfy_http.cpython-313.pyc",
-        "SOURCE_CHANGED_OR_MISSING:src/design_lab/generators/__pycache__/comfy_task.cpython-313.pyc",
-        "ARTIFACT_CHANGED_OR_MISSING:.project-local/task-artifacts/designlab-followup-taskpack-20260928/W00-EVIDENCE-SCAN.json"
+        "SOURCE_CHANGED_OR_MISSING:src/design_lab/generators/__pycache__/comfy_task.cpython-313.pyc"
       ],
       "software": {
         "os": "Windows",
@@ -1455,10 +1394,8 @@
       "reasons": [
         "OUTCOME_NOT_PASS",
         "STALE_SUBJECT_SHA",
-        "SOURCE_CHANGED_OR_MISSING:src/design_lab/generators/__pycache__/__init__.cpython-313.pyc",
         "SOURCE_CHANGED_OR_MISSING:src/design_lab/generators/__pycache__/comfy_http.cpython-313.pyc",
-        "SOURCE_CHANGED_OR_MISSING:src/design_lab/generators/__pycache__/comfy_task.cpython-313.pyc",
-        "ARTIFACT_CHANGED_OR_MISSING:.project-local/task-artifacts/designlab-followup-taskpack-20260928/W00-EVIDENCE-SCAN.json"
+        "SOURCE_CHANGED_OR_MISSING:src/design_lab/generators/__pycache__/comfy_task.cpython-313.pyc"
       ],
       "software": {
         "os": "Windows",
@@ -1499,14 +1436,7 @@
       "outcome": "PARTIAL",
       "reasons": [
         "OUTCOME_NOT_PASS",
-        "STALE_SUBJECT_SHA",
-        "SOURCE_CHANGED_OR_MISSING:fixtures/domains/game-visual/android-minigame/audio/anomaly.wav",
-        "SOURCE_CHANGED_OR_MISSING:fixtures/domains/game-visual/android-minigame/audio/bgm-anomaly-pressure-loop.wav",
-        "SOURCE_CHANGED_OR_MISSING:fixtures/domains/game-visual/android-minigame/audio/bgm-night-shift-loop.wav",
-        "SOURCE_CHANGED_OR_MISSING:fixtures/domains/game-visual/android-minigame/audio/boot.wav",
-        "SOURCE_CHANGED_OR_MISSING:fixtures/domains/game-visual/android-minigame/audio/click.wav",
-        "SOURCE_CHANGED_OR_MISSING:fixtures/domains/game-visual/android-minigame/audio/lockdown.wav",
-        "ARTIFACT_CHANGED_OR_MISSING:.project-local/task-artifacts/designlab-followup-taskpack-20260928/W00-EVIDENCE-SCAN.json"
+        "STALE_SUBJECT_SHA"
       ],
       "software": {
         "os": "Windows",
@@ -1549,8 +1479,7 @@
       "outcome": "PARTIAL",
       "reasons": [
         "OUTCOME_NOT_PASS",
-        "STALE_SUBJECT_SHA",
-        "ARTIFACT_CHANGED_OR_MISSING:.project-local/task-artifacts/designlab-followup-taskpack-20260928/W00-EVIDENCE-SCAN.json"
+        "STALE_SUBJECT_SHA"
       ],
       "software": {
         "os": "Windows",
@@ -1606,17 +1535,55 @@
         "DL-R5-010"
       ],
       "verified": false
+    },
+    {
+      "artifacts": [
+        {
+          "path": "design-lab/tests/test_workbench_native_ui.py",
+          "sha256": "08302a82c8c3e21061180f2e1c322a1bb50c97ff7eb930c902bec425bcbe5355"
+        },
+        {
+          "path": "design-lab/tests/test_design_layer_http.py",
+          "sha256": "f331906a878365cc82787a4e01ce86ab9776526bf6479c864e7365fae991dc43"
+        }
+      ],
+      "binding": "COMMIT",
+      "id": "r5-workbench-http-native-ui-reobserved-20261006",
+      "kind": "local_test",
+      "note": "PASS 级重新观测：把 DL-R5-010 的两条既有 evidence（09-27 / 09-29，均 outcome=PARTIAL，其 PARTIAL 指证据覆盖面为 E2 受控运行）在同一产品代码上以零 skip 重跑，61 用例全 OK，并绑定当前 exact SHA 与所测文件字节哈希。范围边界不变：这是 E2 受控运行时证据，不含真实宿主 host_live、不含 rights/E4 人工验收，也不宣称交付 delivery 完成。",
+      "observed_at": "2026-10-05T22:56:02Z",
+      "outcome": "PASS",
+      "reasons": [],
+      "software": {
+        "node": "v24.18.0 (scoop nodejs-lts/current on PATH; without it 14 native-UI cases skip)",
+        "os": "Windows 10.0.26100",
+        "python": "3.13.14 (project .venv)",
+        "runner": "python -m unittest design-lab.tests.test_service_http design-lab.tests.test_design_layer_http design-lab.tests.test_workbench_native_ui -> Ran 61 tests, OK (skipped=0)"
+      },
+      "subject_files": {
+        "apps/workbench/build/main.js": "bf7a29ee8323992862cc7e1694a0ecb37ac8c80008b0f86520df18b8350b38eb",
+        "apps/workbench/shell.ts": "a51cedc946ceeabb50ee13aa925bd4b217f3e5524b0f9f91744cc8b577110607",
+        "design-lab/tests/test_design_layer_http.py": "f331906a878365cc82787a4e01ce86ab9776526bf6479c864e7365fae991dc43",
+        "design-lab/tests/test_service_http.py": "3dc8dae6470a70113290c9a8c5b7dfd2b2a66f06154a7e574cd2b740c0bb3495",
+        "design-lab/tests/test_workbench_native_ui.py": "08302a82c8c3e21061180f2e1c322a1bb50c97ff7eb930c902bec425bcbe5355",
+        "src/design_lab/http_service.py": "0b365fad2f3f9bf68fb7ca8437163aa875daee4d93c4746a44106bb4c655ba8d"
+      },
+      "subject_sha": "5fb8878dabfa10092a557f1c4e0429fbc216a4df",
+      "task_ids": [
+        "DL-R5-010"
+      ],
+      "verified": true
     }
   ],
   "fresh": false,
   "freshnessMeaning": "at generation only; check verifies bound-input integrity, not current Git or cloud state",
-  "generatedAt": "2026-10-05T15:54:03+00:00",
+  "generatedAt": "2026-10-05T22:56:10+00:00",
   "gitStateMeaning": "generation-time observation, not current HEAD",
-  "ledgerUpdatedAt": "2026-10-05T15:40:15Z",
+  "ledgerUpdatedAt": "2026-10-05T22:56:02Z",
   "note": "DONE_LOCAL concerns the declared task axes and dependencies, not a product release or hosted CI.",
   "schemaVersion": "design-lab/task-progress/r5-v1",
   "subjectMeaning": "subjectType=WORKTREE means the tree was dirty at generation; worktreeDigest covers HEAD plus the non-generated changes",
-  "subjectSha": "2c566e6a90da98bf27007f2cc5b7c3d47054de3e",
+  "subjectSha": "5fb8878dabfa10092a557f1c4e0429fbc216a4df",
   "subjectType": "WORKTREE",
   "taskpack": "DL-TP-20260908-R5",
   "taskpackHash": "31dde89eb4ede81fe88c0a5c5144adfb86af8db4c4d8c263bde2199180369b69",
@@ -2411,23 +2378,21 @@
           "declared_state": "IMPLEMENTED_LOCAL",
           "evidence": [
             "r5-workbench-native-task-ui-tests-20260927",
-            "r5-bundle-list-route-http-ui-20260929"
+            "r5-bundle-list-route-http-ui-20260929",
+            "r5-workbench-http-native-ui-reobserved-20261006"
           ],
-          "reasons": [
-            "no current evidence of the required kind"
-          ],
-          "state": "UNVERIFIED"
+          "reasons": [],
+          "state": "IMPLEMENTED_LOCAL"
         },
         "unit": {
           "declared_state": "PASS",
           "evidence": [
             "r5-workbench-native-task-ui-tests-20260927",
-            "r5-bundle-list-route-http-ui-20260929"
+            "r5-bundle-list-route-http-ui-20260929",
+            "r5-workbench-http-native-ui-reobserved-20261006"
           ],
-          "reasons": [
-            "no current evidence of the required kind"
-          ],
-          "state": "UNVERIFIED"
+          "reasons": [],
+          "state": "PASS"
         }
       },
       "condition_decisions": {},
@@ -4112,8 +4077,10 @@
       "unresolved_conditions": []
     }
   ],
-  "testRunId": null,
-  "testRunMeaning": "no bound test run; this projection does not claim a test result",
+  "testRunAt": "2026-09-26T14:28:28+00:00",
+  "testRunId": "testrun-20260926T142806Z-forward-repeat-33f7e07df309",
+  "testRunMeaning": "bound run: python scripts/run_bound_test_suite.py --order forward --repeat 2 --modules test_asset_store test_creative_job test_creative_ledgers test_creative_lineage test_creative_migration test_creative_version_guard test_creative_f030_f040 test_creative_session_link test_job_store test_runtime_attempt_safety test_runtime_asset_safety test_runtime_explicit_project test_assurance_qa_plane test_assurance_jury test_bundle_store test_operation_coordinator",
+  "testRunResult": "OK",
   "worktreeClean": false,
-  "worktreeDigest": "sha256:b240c0f23504483f0777446b310b8544e6aef8afef897d5ec9bf56b1b98562ff"
+  "worktreeDigest": "sha256:281883f8aedb111315cc0b220b02b3cf58f1e73b48edc89bec6400021519f8a1"
 }

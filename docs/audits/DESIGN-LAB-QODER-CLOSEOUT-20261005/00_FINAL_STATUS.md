@@ -17,12 +17,12 @@
 | C0.3 IA 不扩张 | **DONE**（复核，未改） |
 | C0.4 合并 | **READY_FOR_OWNER_MERGE**（PR 仍 DRAFT，merge 属 owner 门） |
 | C1 Ledger/Reports | **DONE_E1**（合同修复 + 投影重生成 + drift 门入 CI） |
-| C2 Reference→Design IR | **PARTIAL**（接缝与合同级集成完成；无 provider 真跑、无宿主 lowering 实测） |
+| C2 Reference→Design IR | **PARTIAL**（接缝 + 真实参考图区域 → staged 资产 → 合法 Illustrator job 已完成；无 provider 真跑、无服务/UI 入口） |
 | C3 Illustrator E3 | **BLOCKED_PERMISSION**（owner 选择只读探测） |
 | C4 Photoshop E3 | **BLOCKED_PERMISSION**（同上） |
 | C5 Readback/Patch/Rollback | **PARTIAL**（宿主未跑，两次局部修改与失败矩阵未实测） |
 | C6 Quality/Jury/Rights/Preflight/Handoff | **PARTIAL** + Human Jury **BLOCKED_HUMAN** |
-| C7 Windows M1 | **PARTIAL**（最短启动入口缺口确认，未实现；install/restart/persistence 未验收） |
+| C7 Windows M1 | `DONE_E2`（启动入口）+ `PARTIAL`（M1 整体）——`--project <dir> workbench` 一条命令可达，启动/CSP/bundle 逐字节/health/401/重启持久化均有测试；clean-install 由新增 CI job 证明（待 CI 判读）；宿主断链仍在 |
 | M1 判据 | **未达 `M1_CANDIDATE`** |
 | E5 / release | **NOT_EXECUTED**（未 tag、未 release） |
 

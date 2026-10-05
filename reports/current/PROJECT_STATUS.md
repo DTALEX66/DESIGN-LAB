@@ -1,10 +1,10 @@
 # PROJECT_STATUS（生成投影）
 
-任务包：DL-TP-20260908-R5；生成时观察 SHA（不是当前 HEAD）：`2c566e6a90da98bf27007f2cc5b7c3d47054de3e`。
+任务包：DL-TP-20260908-R5；生成时观察 SHA（不是当前 HEAD）：`5fb8878dabfa10092a557f1c4e0429fbc216a4df`。
 
-subject_type：`WORKTREE`；worktree_clean：`False`；worktree_digest：`sha256:b240c0f23504483f…`；test_run_id：`None`。
+subject_type：`WORKTREE`；worktree_clean：`False`；worktree_digest：`sha256:281883f8aedb1113…`；test_run_id：`testrun-20260926T142806Z-forward-repeat-33f7e07df309`。
 
-唯一编辑源：`design-lab/config/task-ledger-r3.json`。生成时间 2026-10-05T15:54:03+00:00 不代表重新测试或实机验收。
+唯一编辑源：`design-lab/config/task-ledger-r3.json`。生成时间 2026-10-05T22:56:10+00:00 不代表重新测试或实机验收。
 
 | Task | Status | Implementation | Unit | Host live | Delivery |
 |---|---|---|---|---|---|
@@ -17,7 +17,7 @@ subject_type：`WORKTREE`；worktree_clean：`False`；worktree_digest：`sha256
 | DL-R5-007 | PARTIAL | PARTIAL | PARTIAL | PARTIAL | PARTIAL |
 | DL-R5-008 | PARTIAL | PARTIAL | PARTIAL | PARTIAL | PARTIAL |
 | DL-R5-009 | PARTIAL | PARTIAL | PARTIAL | PARTIAL | PARTIAL |
-| DL-R5-010 | PARTIAL | UNVERIFIED | UNVERIFIED | PARTIAL | PARTIAL |
+| DL-R5-010 | PARTIAL | IMPLEMENTED_LOCAL | PASS | PARTIAL | PARTIAL |
 | DL-R5-011 | PARTIAL | PARTIAL | PARTIAL | PARTIAL | PARTIAL |
 | DL-R5-012 | PARTIAL | PARTIAL | PARTIAL | PARTIAL | PARTIAL |
 | DL-R5-013 | PARTIAL | PARTIAL | PARTIAL | PARTIAL | PARTIAL |
