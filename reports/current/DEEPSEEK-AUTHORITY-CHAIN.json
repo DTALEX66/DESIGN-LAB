@@ -1,10 +1,10 @@
 {
   "schemaVersion": "design-lab/deepseek-authority-chain/v1",
   "task_key": "DL-TP-20260914-DEEPSEEK-AUTHORITY-R1::DLDS-A010",
-  "generated_at": "2026-09-29T17:54:45+00:00",
+  "generated_at": "2026-10-05T23:00:30+00:00",
   "subject": {
-    "base_sha": "73b8cd7c8d6a083b8f35bd33f02d040bd627cba0",
-    "branch": "chore/ledger-bundle-route-evidence-20260929",
+    "base_sha": "ee83c0937b3870e93b80e742d38d3e957d1b11fb",
+    "branch": "qoder/designlab-m1-closeout-20261005",
     "worktree_clean": false
   },
   "current_authority": {
@@ -127,8 +127,8 @@
     },
     {
       "path": "design-lab/config/task-ledger-r3.json",
-      "bytes": 355091,
-      "sha256": "sha256:84e2cbb8e3a7fba88c51a83881c4fe5477701bace1cec21e7fdca560b1c4d0d4",
+      "bytes": 357667,
+      "sha256": "sha256:13f116f761dda9745021bf9dcca29ef3e3bb34cd1e92f33c602e20baa85c6601",
       "authority_class": "ACTIVE_PRODUCT_PACK",
       "basis": "R5 task status authoring source (schema design-lab/task-ledger/r5-v1)",
       "mutable_state": "the ledger is rewritten at the close of every task, so its bytes and digest are generation-time",
@@ -137,7 +137,7 @@
         "taskpack": "DL-TP-20260908-R5",
         "schemaVersion": "design-lab/task-ledger/r5-v1",
         "tasks": 28,
-        "evidence_receipts": 37
+        "evidence_receipts": 38
       }
     },
     {

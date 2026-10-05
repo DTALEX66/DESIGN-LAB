@@ -1553,7 +1553,9 @@
       "note": "PASS 级重新观测：把 DL-R5-010 的两条既有 evidence（09-27 / 09-29，均 outcome=PARTIAL，其 PARTIAL 指证据覆盖面为 E2 受控运行）在同一产品代码上以零 skip 重跑，61 用例全 OK，并绑定当前 exact SHA 与所测文件字节哈希。范围边界不变：这是 E2 受控运行时证据，不含真实宿主 host_live、不含 rights/E4 人工验收，也不宣称交付 delivery 完成。",
       "observed_at": "2026-10-05T22:56:02Z",
       "outcome": "PASS",
-      "reasons": [],
+      "reasons": [
+        "STALE_SUBJECT_SHA"
+      ],
       "software": {
         "node": "v24.18.0 (scoop nodejs-lts/current on PATH; without it 14 native-UI cases skip)",
         "os": "Windows 10.0.26100",
@@ -1572,18 +1574,18 @@
       "task_ids": [
         "DL-R5-010"
       ],
-      "verified": true
+      "verified": false
     }
   ],
   "fresh": false,
   "freshnessMeaning": "at generation only; check verifies bound-input integrity, not current Git or cloud state",
-  "generatedAt": "2026-10-05T22:56:10+00:00",
+  "generatedAt": "2026-10-05T23:00:38+00:00",
   "gitStateMeaning": "generation-time observation, not current HEAD",
   "ledgerUpdatedAt": "2026-10-05T22:56:02Z",
   "note": "DONE_LOCAL concerns the declared task axes and dependencies, not a product release or hosted CI.",
   "schemaVersion": "design-lab/task-progress/r5-v1",
   "subjectMeaning": "subjectType=WORKTREE means the tree was dirty at generation; worktreeDigest covers HEAD plus the non-generated changes",
-  "subjectSha": "5fb8878dabfa10092a557f1c4e0429fbc216a4df",
+  "subjectSha": "ee83c0937b3870e93b80e742d38d3e957d1b11fb",
   "subjectType": "WORKTREE",
   "taskpack": "DL-TP-20260908-R5",
   "taskpackHash": "31dde89eb4ede81fe88c0a5c5144adfb86af8db4c4d8c263bde2199180369b69",
@@ -2381,8 +2383,10 @@
             "r5-bundle-list-route-http-ui-20260929",
             "r5-workbench-http-native-ui-reobserved-20261006"
           ],
-          "reasons": [],
-          "state": "IMPLEMENTED_LOCAL"
+          "reasons": [
+            "no current evidence of the required kind"
+          ],
+          "state": "UNVERIFIED"
         },
         "unit": {
           "declared_state": "PASS",
@@ -2391,8 +2395,10 @@
             "r5-bundle-list-route-http-ui-20260929",
             "r5-workbench-http-native-ui-reobserved-20261006"
           ],
-          "reasons": [],
-          "state": "PASS"
+          "reasons": [
+            "no current evidence of the required kind"
+          ],
+          "state": "UNVERIFIED"
         }
       },
       "condition_decisions": {},
@@ -4082,5 +4088,5 @@
   "testRunMeaning": "bound run: python scripts/run_bound_test_suite.py --order forward --repeat 2 --modules test_asset_store test_creative_job test_creative_ledgers test_creative_lineage test_creative_migration test_creative_version_guard test_creative_f030_f040 test_creative_session_link test_job_store test_runtime_attempt_safety test_runtime_asset_safety test_runtime_explicit_project test_assurance_qa_plane test_assurance_jury test_bundle_store test_operation_coordinator",
   "testRunResult": "OK",
   "worktreeClean": false,
-  "worktreeDigest": "sha256:281883f8aedb111315cc0b220b02b3cf58f1e73b48edc89bec6400021519f8a1"
+  "worktreeDigest": "sha256:583d962cb1f46e52c119351b749d628396cd73f4485b146a314f3c890a87198c"
 }
