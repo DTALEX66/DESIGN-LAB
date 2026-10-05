@@ -42,6 +42,7 @@
 | C5 | 仓库体积预算 `pack_mib=216.0 / hard_budget_mib=256` | 再向 docs 提交二进制证据前需先定 artifact 策略 |
 | C6 | **git worktree 不得放在本仓目录树内**：closeout worktree 建在 `.project-local/wt/c1`（后试 `.wt/c1`）时，`test_reconstruction_evidence` 从「主工作树 1762 tests 无错」变成卡死/超时——它会向上扫到宿主仓库的 `.project-local` 运行时根（含归档与其他 worktree），扫描量爆炸；改在主工作树切分支跑即恢复 | 后续任何 Agent 建 worktree 必须放在仓库外部；本轮已按此纠正执行 |
 | C7 | `design-lab/tests/test_reconstruction_evidence.py:657` 把真实用户目录字面量 `C:\Users\ALEX\private.json` 写进隐私负例（另一例 `/home/alex/private.json`），把本机用户名固化进测试 | 可移植性/隐私卫生问题，宜改合成路径；本轮只记录不擅改（该测试的边界用例需一并核对） |
+| C8 | `generate_current_reports.py --check` **结构上不可能**在「携带刚生成好的报告的 commit」上通过：它比较 `stored_subject` 与 `current_head`，任何提交都会让 HEAD 前进，于是永远返回 `STALE ... rebind required`。本轮实测两次：生成→提交→`--check` 即 STALE（差一步自引用） | 这就是 CI 从未接这个 check 的真实原因，也说明「把 --check 直接接进 CI」是错的（我试过，红了，且红得有理）。CI 侧改用不依赖 git 快照的 `verify_task_ledger_contract.py`；将来若要接投影 drift 门，必须先在生成器里实现「允许报告自身 commit 的一步自引用」判定 |
 
 ## D. 明确冻结的外围扩张（未做，符合任务书 §9/§10）
 

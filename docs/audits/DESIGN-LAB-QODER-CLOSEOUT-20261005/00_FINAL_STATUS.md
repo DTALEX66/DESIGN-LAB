@@ -16,7 +16,7 @@
 | C0.2 文档对齐 | **DONE** |
 | C0.3 IA 不扩张 | **DONE**（复核，未改） |
 | C0.4 合并 | **READY_FOR_OWNER_MERGE**（PR 仍 DRAFT，merge 属 owner 门） |
-| C1 Ledger/Reports | **DONE_E1**（合同修复 + 投影重生成 + drift 门入 CI） |
+| C1 Ledger/Reports | **DONE_E1**（合同修复 + 投影重生成 + CI 接**账本合同门**；投影 drift `--check` 经实测不可接 CI，见 `10` C8） |
 | C2 Reference→Design IR | **PARTIAL**（接缝 + 真实参考图区域 → staged 资产 → 合法 Illustrator job 已完成；无 provider 真跑、无服务/UI 入口） |
 | C3 Illustrator E3 | **BLOCKED_PERMISSION**（owner 选择只读探测） |
 | C4 Photoshop E3 | **BLOCKED_PERMISSION**（同上） |
@@ -55,6 +55,9 @@
 - `scripts/generate_current_reports.py --check`：修复前 `FAIL invalid R5 ledger contract
   at evidence/36/artifacts` → 修复后 `PASS`（scope=bound-input-integrity，
   `current-git-and-cloud=NOT_VERIFIED`）。
+  **限定**：此 `PASS` 只在「生成之后、尚未提交」时成立；把报告提交后 `--check` 必返回
+  `STALE ... rebind required`（它比较 stored_subject 与 current_head），
+  所以 CI 接的是 `verify_task_ledger_contract.py` 而不是这个 check（见 `10` C8）。
 - `verify_top_level_authority` / `verify_path_refs` / `verify_project_drift` /
   `verify_identity_gate` / `verify_license_coverage` / `verify_asset_governance` 全 PASS。
 - `design-lab.tests.test_plan_to_rir`：17 tests OK。

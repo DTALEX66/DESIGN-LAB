@@ -23,10 +23,18 @@
    本机 2026-10-05 复跑 27 用例 OK）。未新增任何不存在的产物。
 2. **L2**：`DL-R5-010.reassessment → REVIEWED`，理由见下节；未改任何 axis 声明值。
 3. **L3**：`canonical-verify.yml` python-gate 增加
-   `Current-report drift gate (generate_current_reports --check)` 步骤。
+   `Task ledger contract gate (R5)`（`verify_task_ledger_contract.py`）。
+   注：第一版接的是 `generate_current_reports.py --check`，CI 立刻红——
+   且红得正确，因为投影绑定生成时 git 快照，clean checkout 永远复现不了。
+   已换成不依赖快照的合同门，并用测试钉住 L1/L2 两类缺陷。
 4. `ledger.updated_at → 2026-10-05T15:40:15Z`，重生成 9 份 current 投影，
    `--check` 由 `DRIFT` 变 `PASS`（scope=bound-input-integrity，
    `current-git-and-cloud=NOT_VERIFIED` —— 生成时工作树含未提交改动，如实记录）。
+   **限定**：该 `PASS` 只在「生成之后、尚未提交」的那一刻成立。把报告提交进去以后，
+   `--check` 必然返回 `STALE ... rebind required`（它拿 `stored_subject` 和
+   `current_head` 比，任何提交都会让 HEAD 前进）。因此本轮**没有**把这个 check 接进 CI，
+   而是接了不依赖 git 快照的 `design-lab/scripts/verify_task_ledger_contract.py`。
+   详见 `10_REMAINING_BLOCKERS.md` 的 C8。
 
 ## DL-R5-010 复核记录（谁审、审了什么、没审什么）
 
