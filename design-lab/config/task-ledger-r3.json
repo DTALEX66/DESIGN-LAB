@@ -3,7 +3,7 @@
   "taskpack": "DL-TP-20260908-R5",
   "plan_path": "docs/history/taskpacks/r5-20260908/02-TASKS.md",
   "baseline_sha": "ed8d45ab2857b312f6056c43f7bb5e19dd9b65eb",
-  "updated_at": "2026-09-29T18:20:00Z",
+  "updated_at": "2026-10-05T15:40:15Z",
   "source": {
     "path": "docs/history/taskpacks/r5-20260908/tasks.json",
     "sha256": "31dde89eb4ede81fe88c0a5c5144adfb86af8db4c4d8c263bde2199180369b69"
@@ -4231,7 +4231,7 @@
       "predecessor_task_ids": [
         "R3-10"
       ],
-      "reassessment": "PENDING_EVIDENCE_REVIEW",
+      "reassessment": "REVIEWED",
       "required_axes": [
         "implementation",
         "unit",
@@ -6898,7 +6898,12 @@
         "design-lab/tests/test_service_http.py": "3dc8dae6470a70113290c9a8c5b7dfd2b2a66f06154a7e574cd2b740c0bb3495",
         "src/design_lab/http_service.py": "0b365fad2f3f9bf68fb7ca8437163aa875daee4d93c4746a44106bb4c655ba8d"
       },
-      "artifacts": [],
+      "artifacts": [
+        {
+          "path": "design-lab/tests/test_service_http.py",
+          "sha256": "3dc8dae6470a70113290c9a8c5b7dfd2b2a66f06154a7e574cd2b740c0bb3495"
+        }
+      ],
       "note": "PR #211 (merged bf13e46)：把已存在的 Bundles 查询类（native_assets.py，PR #205 落地）通过新增路由 GET /api/projects/<id>/bundles 接入 HTTP 服务，并在 Workbench 项目页新增「最近交付」面板（renderDeliveryPanel），读取该路由并对交付包做 sha256+byte_size fail-closed 核对。修复 WIP 中一处真实 bug（test 传 dict 而非 json.dumps 给 self.request 导致 TypeError）。本地全量 1762 用例 OK，27 用例 test_service_http OK，tsc clean，Vite build 字节确定性验证通过。PARTIAL：这是 E2 受控运行证据（合成 fixture 贯穿路由+面板逻辑），不代表真实宿主 E3、rights E4 或人工 Jury 验收。"
     }
   ]

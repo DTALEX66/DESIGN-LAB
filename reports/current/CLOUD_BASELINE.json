@@ -9,35 +9,48 @@
   },
   "fresh": false,
   "freshnessMeaning": "at generation only; check verifies bound-input integrity, not current Git or cloud state",
-  "generatedAt": "2026-09-28T14:26:43+00:00",
+  "generatedAt": "2026-10-05T15:40:42+00:00",
   "gitStateMeaning": "generation-time observation, not current HEAD",
   "local": {
-    "branch": "main",
-    "origin_main": "4c9f18493e909283a5448763f704b3f838531d0a",
-    "sha": "4c9f18493e909283a5448763f704b3f838531d0a",
+    "branch": "qoder/designlab-m1-closeout-20261005",
+    "origin_main": "1acbfa15a8c036907aadbdc6938b8706c91b5d3e",
+    "sha": "c3e43ea46d145ac0e924223e942efcabfd27d471",
     "source_worktree_clean": false,
-    "tracked_files": 2029,
+    "tracked_files": 2818,
     "worktree_changes": [
       {
-        "content": "sha256:c94654b8723acfd1af1f112773ad9af7847364a84bcce23f35fa2d2e574bcb65",
+        "content": "sha256:01d0acd02ff43aaaeacfe5b3d3a702b4c68b7974eb3155344437a97761876869",
+        "kind": "M",
+        "path": ".github/workflows/canonical-verify.yml"
+      },
+      {
+        "content": "sha256:3410f4f41648e6a5752fd138a75965b15d60b4767f0eeb2e3cbd80e2d8f10d4c",
         "kind": "M",
         "path": "design-lab/config/task-ledger-r3.json"
+      },
+      {
+        "content": "sha256:8b59a84321fa57b795505e9eea8896f9110125f482fd4dd60aa6035b4ef4c1b3",
+        "kind": "U",
+        "path": "docs/audits/DESIGN-LAB-QODER-CLOSEOUT-20261005/01_AUTHORITY_AND_BRANCH_AUDIT.md"
+      },
+      {
+        "content": "sha256:af32034405366e581bd2b1d6c02e12bdee47e8633438344b7e9802f6c65c7986",
+        "kind": "U",
+        "path": "docs/audits/DESIGN-LAB-QODER-CLOSEOUT-20261005/03_UI_CLOSEOUT.md"
       }
     ],
-    "worktree_digest": "sha256:473f2f57291486120255119d65709dbc333afa9db0973e3700f8c3e8f08ed495"
+    "worktree_digest": "sha256:7ad5c615cff0606896dbe4c34cf23f50b1c698853893ec300b795ec1b6655ebe"
   },
   "note": "No GitHub API query was run by this generator; tool installation is not inferred.",
   "remoteRef": "origin/main (local tracking ref)",
   "schemaVersion": "design-lab/cloud-baseline/v2",
   "subjectMeaning": "subjectType=WORKTREE means the tree was dirty at generation; worktreeDigest covers HEAD plus the non-generated changes",
-  "subjectSha": "4c9f18493e909283a5448763f704b3f838531d0a",
+  "subjectSha": "c3e43ea46d145ac0e924223e942efcabfd27d471",
   "subjectType": "WORKTREE",
   "taskpackHash": "31dde89eb4ede81fe88c0a5c5144adfb86af8db4c4d8c263bde2199180369b69",
   "taskpackId": "DL-TP-20260908-R5",
-  "testRunAt": "2026-09-26T14:28:28+00:00",
-  "testRunId": "testrun-20260926T142806Z-forward-repeat-33f7e07df309",
-  "testRunMeaning": "bound run: python scripts/run_bound_test_suite.py --order forward --repeat 2 --modules test_asset_store test_creative_job test_creative_ledgers test_creative_lineage test_creative_migration test_creative_version_guard test_creative_f030_f040 test_creative_session_link test_job_store test_runtime_attempt_safety test_runtime_asset_safety test_runtime_explicit_project test_assurance_qa_plane test_assurance_jury test_bundle_store test_operation_coordinator",
-  "testRunResult": "OK",
+  "testRunId": null,
+  "testRunMeaning": "no bound test run; this projection does not claim a test result",
   "unavailable": [
     "currentRemoteSha",
     "exactShaCI",
@@ -45,5 +58,5 @@
     "branchProtection"
   ],
   "worktreeClean": false,
-  "worktreeDigest": "sha256:473f2f57291486120255119d65709dbc333afa9db0973e3700f8c3e8f08ed495"
+  "worktreeDigest": "sha256:7ad5c615cff0606896dbe4c34cf23f50b1c698853893ec300b795ec1b6655ebe"
 }
