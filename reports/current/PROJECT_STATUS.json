@@ -8,46 +8,15 @@
   },
   "fresh": false,
   "freshnessMeaning": "at generation only; check verifies bound-input integrity, not current Git or cloud state",
-  "generatedAt": "2026-10-05T23:00:38+00:00",
+  "generatedAt": "2026-10-05T23:01:20+00:00",
   "git": {
     "branch": "qoder/designlab-m1-closeout-20261005",
     "origin_main": "1acbfa15a8c036907aadbdc6938b8706c91b5d3e",
-    "sha": "ee83c0937b3870e93b80e742d38d3e957d1b11fb",
-    "source_worktree_clean": false,
-    "tracked_files": 2831,
-    "worktree_changes": [
-      {
-        "content": "sha256:ec6286b55395988868094d677a529db1a76419f730a2460a3bfe7b79b8e8241b",
-        "kind": "M",
-        "path": ".github/workflows/canonical-verify.yml"
-      },
-      {
-        "content": "sha256:5bb82dfcf0b64801e35774d38a54248b8066f5fb22ca30f815f1efcf70008ca7",
-        "kind": "M",
-        "path": "docs/audits/DESIGN-LAB-QODER-CLOSEOUT-20261005/02_TASK_CROSSWALK.md"
-      },
-      {
-        "content": "sha256:9175755de1bad03eacab251adbbef37b5817aa82df0bfdc9a4a0eeb3ac13bf90",
-        "kind": "M",
-        "path": "docs/audits/DESIGN-LAB-QODER-CLOSEOUT-20261005/10_REMAINING_BLOCKERS.md"
-      },
-      {
-        "content": "sha256:d8cf23c46c4e502db6e2cbbe1c4d43d7713f3e63b74debf37391594931602e30",
-        "kind": "M",
-        "path": "src/design_lab/governance/reporting.py"
-      },
-      {
-        "content": "sha256:37ec32af2f44d97dd1a22c23fdb7899830c1c4a766d7c7d97544e89a84e89880",
-        "kind": "U",
-        "path": "design-lab/scripts/verify_task_ledger_contract.py"
-      },
-      {
-        "content": "sha256:3775064b14c1f93352394bda1193613379c07c3fc07bd501175555a6848a8d84",
-        "kind": "U",
-        "path": "design-lab/tests/test_task_ledger_contract_gate.py"
-      }
-    ],
-    "worktree_digest": "sha256:583d962cb1f46e52c119351b749d628396cd73f4485b146a314f3c890a87198c"
+    "sha": "71af993ba7293514b6bbe857ebee03a1c80d7291",
+    "source_worktree_clean": true,
+    "tracked_files": 2833,
+    "worktree_changes": [],
+    "worktree_digest": "sha256:05986436403838aa2be1e73380efe1d77ec37718ce24cb76f8fd70b0b2708509"
   },
   "gitStateMeaning": "generation-time observation, not current HEAD",
   "hostLive": "derived from host_live axis only",
@@ -60,8 +29,8 @@
     "quarantinedSources": 162
   },
   "subjectMeaning": "subjectType=WORKTREE means the tree was dirty at generation; worktreeDigest covers HEAD plus the non-generated changes",
-  "subjectSha": "ee83c0937b3870e93b80e742d38d3e957d1b11fb",
-  "subjectType": "WORKTREE",
+  "subjectSha": "71af993ba7293514b6bbe857ebee03a1c80d7291",
+  "subjectType": "COMMIT",
   "taskCounts": {
     "PARTIAL": 28
   },
@@ -76,6 +45,6 @@
     "definedTestMethodCount": 1770,
     "executed": "see individual verified ledger receipts"
   },
-  "worktreeClean": false,
-  "worktreeDigest": "sha256:583d962cb1f46e52c119351b749d628396cd73f4485b146a314f3c890a87198c"
+  "worktreeClean": true,
+  "worktreeDigest": "sha256:05986436403838aa2be1e73380efe1d77ec37718ce24cb76f8fd70b0b2708509"
 }
