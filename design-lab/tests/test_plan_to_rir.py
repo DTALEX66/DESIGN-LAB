@@ -9,6 +9,7 @@ No OCR run, no host execution and no human judgement is claimed here.
 from __future__ import annotations
 
 import sys
+import tempfile
 import unittest
 from pathlib import Path
 
@@ -222,6 +223,84 @@ class PlanToAdobeLoweringTests(unittest.TestCase):
         # The job id is derived from the canonical RIR hash, so the same plan
         # re-lowers to the same addressable object ids the patch path needs.
         self.assertTrue(payload['jobId'].startswith('adobe-'))
+
+
+class MaterializeRasterRegionTests(unittest.TestCase):
+    """A photo region only lowers once it is a real staged asset."""
+
+    SOURCE = REPO / 'design-lab' / 'evals' / 'reconstruction' / 'cases' / \
+        'poster-sunrise-001' / 'reference.png'
+
+    def setUp(self):
+        from design_lab.analysis.decomposition import CanvasRegion, Plan, PlanObject
+        base = REPO / '.project-local' / 'task-runtime' / 'plan-to-rir-tests'
+        base.mkdir(parents=True, exist_ok=True)
+        self.run_dir = Path(tempfile.mkdtemp(dir=base))
+        self.plan = Plan('dec-raster', 'reference/poster.png', 'sha256:' + 'd' * 64,
+                         CanvasRegion(0, 0, 192, 128),
+                         [PlanObject('i-1', 'image', CanvasRegion(10, 10, 100, 50),
+                                     module='heuristic', confidence=0.7)])
+
+    def test_region_is_copied_not_resampled(self):
+        from PIL import Image
+        from design_lab.analysis.plan_to_rir import materialize_raster_regions
+        regions = materialize_raster_regions(self.plan, self.SOURCE, self.run_dir,
+                                             project_root=REPO)
+        staged = self.run_dir / 'i-1.png'
+        self.assertTrue(staged.is_file())
+        with Image.open(staged) as crop:
+            self.assertEqual(crop.size, (100, 50))
+        self.assertEqual(regions['i-1']['width'], 100)
+        self.assertEqual(regions['i-1']['height'], 50)
+        self.assertTrue(regions['i-1']['path'].startswith('.project-local/'))
+        self.assertNotIn('\\', regions['i-1']['path'])
+
+    def test_staged_region_lowers_into_an_illustrator_raster_layer(self):
+        from design_lab.analysis.plan_to_rir import (materialize_raster_regions,
+                                                     plan_to_rir)
+        from design_lab.reconstruction.adobe_job import build_adobe_job
+        regions = materialize_raster_regions(self.plan, self.SOURCE, self.run_dir,
+                                             project_root=REPO)
+        rir = plan_to_rir(self.plan, raster_path=RASTER, project_root=REPO,
+                          timestamp='2026-10-05T00:00:00Z', regions=regions)
+        raster = rir['layers'][0]['raster']
+        self.assertEqual(raster['crop'], {'x': 0, 'y': 0, 'width': 100, 'height': 50})
+        self.assertEqual(raster['sourceMappings'], [])
+        payload = build_adobe_job(rir, self.run_dir, text_styles={},
+                                  project_root=REPO).to_dict()
+        lowered = [item for layer in payload['layers'] for item in layer['items']]
+        self.assertEqual([item['kind'] for item in lowered], ['raster'])
+        self.assertEqual(lowered[0]['id'], 'i-1')
+
+    def test_unmaterialized_region_stays_visible_as_a_gate(self):
+        from design_lab.analysis.plan_to_rir import plan_to_rir
+        from design_lab.reconstruction.adobe_job import AdobeJobError, build_adobe_job
+        rir = plan_to_rir(self.plan, raster_path=RASTER, project_root=REPO,
+                          timestamp='2026-10-05T00:00:00Z')
+        self.assertEqual(len(rir['layers'][0]['raster']['sourceMappings']), 1)
+        with self.assertRaises(AdobeJobError) as caught:
+            build_adobe_job(rir, self.run_dir, text_styles={}, project_root=REPO)
+        self.assertIn('raster remapping/alpha requires explicit preprocessed asset',
+                      str(caught.exception))
+
+    def test_region_outside_the_reference_fails_closed(self):
+        from design_lab.analysis.decomposition import CanvasRegion, DecompositionError, PlanObject
+        from design_lab.analysis.plan_to_rir import materialize_raster_regions
+        self.plan.objects = [PlanObject('i-2', 'image',
+                                        CanvasRegion(150, 100, 100, 100),
+                                        module='heuristic')]
+        with self.assertRaises(DecompositionError):
+            materialize_raster_regions(self.plan, self.SOURCE, self.run_dir,
+                                       project_root=REPO)
+
+    def test_object_id_that_is_not_a_safe_file_name_is_refused(self):
+        from design_lab.analysis.decomposition import CanvasRegion, DecompositionError, PlanObject
+        from design_lab.analysis.plan_to_rir import materialize_raster_regions
+        self.plan.objects = [PlanObject('../escape', 'image',
+                                        CanvasRegion(0, 0, 10, 10), module='heuristic')]
+        with self.assertRaises(DecompositionError):
+            materialize_raster_regions(self.plan, self.SOURCE, self.run_dir,
+                                       project_root=REPO)
 
 
 if __name__ == '__main__':

@@ -11,6 +11,8 @@ node is marked `inferred` because it came from a detector, not a native document
 from __future__ import annotations
 
 from datetime import datetime, timezone
+from pathlib import Path
+import re
 from typing import Any
 
 from .decomposition import CanvasRegion, DecompositionError, Plan
@@ -43,7 +45,8 @@ def _correction_note(reason: str, timestamp: str) -> list[dict[str, str]]:
 
 
 def _node(obj: Any, raster_path: str, z_order: int, timestamp: str,
-          style_overrides: dict[str, dict[str, Any]]) -> dict[str, Any]:
+          style_overrides: dict[str, dict[str, Any]],
+          regions: dict[str, dict[str, Any]]) -> dict[str, Any]:
     """One Plan object -> one RIR node (ids are carried over unchanged)."""
     base: dict[str, Any] = {
         'id': obj.object_id,
@@ -100,14 +103,26 @@ def _node(obj: Any, raster_path: str, z_order: int, timestamp: str,
         base['masks'] = []
         return base
     if obj.kind == 'image':
+        staged = regions.get(obj.object_id)
         base['type'] = 'raster'
-        base['raster'] = {
-            'path': raster_path,
-            'crop': _bounds(obj.region),
-            'alpha': 1,
-            'sourceMappings': [{'sourceBounds': _bounds(obj.region),
-                                'targetBounds': _bounds(obj.region)}],
-        }
+        if staged is None:
+            # Honest but not yet lowerable: the host job layer refuses a raster
+            # whose crop is not materialized, so the user sees a real gate
+            # instead of a silently resampled image.
+            base['raster'] = {
+                'path': raster_path,
+                'crop': _bounds(obj.region),
+                'alpha': 1,
+                'sourceMappings': [{'sourceBounds': _bounds(obj.region),
+                                    'targetBounds': _bounds(obj.region)}],
+            }
+        else:
+            base['raster'] = {
+                'path': staged['path'],
+                'crop': {'x': 0, 'y': 0, 'width': staged['width'], 'height': staged['height']},
+                'alpha': 1,
+                'sourceMappings': [],
+            }
         return base
     if obj.kind in _UNRECOVERED_KINDS:
         base['type'] = 'group'
@@ -121,7 +136,8 @@ def _node(obj: Any, raster_path: str, z_order: int, timestamp: str,
 
 def plan_to_rir(plan: Plan, *, raster_path: str, project_root=None,
                 timestamp: str | None = None,
-                style_overrides: dict[str, dict[str, Any]] | None = None) -> dict[str, Any]:
+                style_overrides: dict[str, dict[str, Any]] | None = None,
+                regions: dict[str, dict[str, Any]] | None = None) -> dict[str, Any]:
     """Return a schema-valid reconstruction-ir/v1 document for `plan`.
 
     `raster_path` must be project-relative: it is the source image the raster
@@ -129,12 +145,16 @@ def plan_to_rir(plan: Plan, *, raster_path: str, project_root=None,
     `style_overrides` carries user-supplied colour per object id; the analysis
     never observes a solid fill, so an absent override stays an empty style and
     host lowering refuses it rather than guessing.
+    `regions` comes from `materialize_raster_regions` and turns an image region
+    into a real staged asset; without it the raster stays unmaterialized and
+    lowering tells the user so.
     """
     if not plan.objects:
         raise DecompositionError('plan has no objects to lower')
     moment = timestamp or datetime.now(timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ')
     overrides = style_overrides or {}
-    layers = [_node(obj, raster_path, index, moment, overrides)
+    staged = regions or {}
+    layers = [_node(obj, raster_path, index, moment, overrides, staged)
               for index, obj in enumerate(plan.objects)]
     rir: dict[str, Any] = {
         'schemaVersion': 'design-lab/reconstruction-ir/v1',
@@ -148,3 +168,52 @@ def plan_to_rir(plan: Plan, *, raster_path: str, project_root=None,
     }
     validate_rir(rir, project_root=project_root)
     return rir
+
+
+_SAFE_ID = re.compile(r'^[A-Za-z0-9][A-Za-z0-9._-]*$')
+
+
+def materialize_raster_regions(plan: Plan, source_image, staging_dir,
+                               *, project_root) -> dict[str, dict[str, Any]]:
+    """Crop every image region out of the reference into its own staged PNG.
+
+    The host job layer accepts a raster only when its crop is the whole staged
+    file, so a photo region has to become a real asset before it can lower.
+    Pixels are copied at the observed region and never resampled.
+    """
+    from PIL import Image
+
+    root = Path(project_root).resolve()
+    staging = Path(staging_dir).resolve()
+    try:
+        relative_dir = staging.relative_to(root)
+    except ValueError:
+        raise DecompositionError(
+            f'staging dir {staging} is outside the project root {root}') from None
+    staging.mkdir(parents=True, exist_ok=True)
+    regions: dict[str, dict[str, Any]] = {}
+    with Image.open(source_image) as image:
+        image.load()
+        width, height = image.size
+        for obj in plan.objects:
+            if obj.kind != 'image':
+                continue
+            if not _SAFE_ID.match(obj.object_id):
+                raise DecompositionError(
+                    f'{obj.object_id}: object id is not usable as a file name')
+            x, y = int(round(obj.region.x)), int(round(obj.region.y))
+            w, h = int(round(obj.region.width)), int(round(obj.region.height))
+            if w <= 0 or h <= 0:
+                raise DecompositionError(f'{obj.object_id}: empty image region')
+            if x < 0 or y < 0 or x + w > width or y + h > height:
+                raise DecompositionError(
+                    f'{obj.object_id}: region {x},{y} {w}x{h} lies outside the '
+                    f'{width}x{height} reference; the analysis must be corrected first')
+            target = staging / f'{obj.object_id}.png'
+            image.crop((x, y, x + w, y + h)).save(target, format='PNG')
+            regions[obj.object_id] = {
+                'path': (relative_dir / target.name).as_posix(),
+                'width': w,
+                'height': h,
+            }
+    return regions
