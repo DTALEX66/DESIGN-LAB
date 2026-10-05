@@ -52,7 +52,7 @@
 
 ## 当前合并判定（2026-10-05，LIVE 读回）
 - PR #213 状态：`OPEN` / **`DRAFT`** / `MERGEABLE` / `mergeStateStatus=CLEAN`，
-  head `0fbb674`（本地收口后前进到 `13fa81e`，需 push 才反映到 PR）。
+  head `0fbb674`（本地收口后前进到 `fbe94ac`，需 push 才反映到 PR）。
 - 判定：`UI_MERGE_READY` 的**本地条件**已满足（全部门绿 + Evidence Truth 已修 +
   文档内部一致 + 无第二 ledger + 无 Authority drift）；
   但 PR 仍是 DRAFT，且 CI 需在 push 后对 exact SHA 重新判绿。

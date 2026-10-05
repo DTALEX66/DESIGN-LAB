@@ -106,7 +106,7 @@
 
 ## 证据（exact SHA）
 - 基线 main：`1acbfa15a8c036907aadbdc6938b8706c91b5d3e`
-- 截图证据基线：`13fa81e90c8d83b0ccee1385eb42785c0807d00d`（本分支）
+- 截图证据基线：`fbe94ac217c52965c19b11ebdddd4bebb37d5829`（本分支）
 - build/main.js SHA-256：`f58a8e1f9776e2c9769629f83cb8cea2c2452b3ef02466463060ee4bbcc05d21`
   （157747 bytes，vite build 4 modules；`8036439` 修复 KPI count-up 后重建）
 - 见 `ASSET_MANIFEST.json` 各文件 SHA-256（CI 重建后回读校验 byte-determinism）。

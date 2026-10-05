@@ -1,0 +1,12 @@
+{
+  "schemaVersion": "design-lab/asset-sidecar/v1",
+  "file": "docs/UI-CONVERGENCE-20260930/screenshot/21-evidence@1280.png",
+  "sha256": "sha256:82fe0274ea762f505d70edc1190d552d6553176c54f97b8c678f94693f8e44ce",
+  "license": "MIT",
+  "author": "DESIGN-LAB Workbench rendered by scripts/capture_workbench_screenshots.py for DTALEX66 (DESIGN-LAB project owner)",
+  "redistributable": true,
+  "modelInputAllowed": false,
+  "commercialUse": true,
+  "sourceId": "commit:fbe94ac217c52965c19b11ebdddd4bebb37d5829",
+  "notes": "First-party screenshot of this repository's own Workbench served by its own loopback service. Visible content: project UI (MIT), one first-party MIT eval reference raster, and text set in locally installed system fonts. Font output rights are asserted only for the local OS licence; no third-party artwork, stock imagery or model output is embedded. modelInputAllowed=false because no training right is asserted."
+}
