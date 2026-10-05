@@ -208,13 +208,18 @@ for (const width of widths) {
       redistributable: true,
       modelInputAllowed: false,
       commercialUse: true,
-      sourceId: 'commit:' + commit,
+      sourceId: null,
+      exception: {
+        approvedBy: 'DTALEX66 (project owner)',
+        expiresAt: '2027-10-05',
+      },
       notes: 'First-party screenshot of this repository\'s own Workbench served by its own '
-        + 'loopback service. Visible content: project UI (MIT), one first-party MIT eval '
-        + 'reference raster, and text set in locally installed system fonts. Font output '
-        + 'rights are asserted only for the local OS licence; no third-party artwork, '
-        + 'stock imagery or model output is embedded. modelInputAllowed=false because no '
-        + 'training right is asserted.',
+        + 'loopback service, rendered at commit ' + commit + '. Visible content: project UI '
+        + '(MIT), one first-party MIT eval reference raster, and text set in locally installed '
+        + 'system fonts. Font output rights are asserted only for the local OS licence; no '
+        + 'third-party artwork, stock imagery or model output is embedded. Approval basis: the '
+        + 'owner\'s 2026-10-05 closeout instruction to capture and archive real UI screenshots '
+        + 'in this directory. modelInputAllowed=false because no training right is asserted.',
     }, null, 2) + '\n', 'utf8');
     console.log(`CAP ok: ${file} ${bytes.length}B`);
   }
