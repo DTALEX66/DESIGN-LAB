@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT
 // Viewport screenshot capture for the Workbench (E1/E2 visual proof only).
 // Drives the REAL loopback service with the committed build/main.js in a real
 // Chromium: bootstrap a project through the UI, then capture every routed page
@@ -197,6 +198,24 @@ for (const width of widths) {
       sha256: sha256(bytes),
       capturedAt: new Date().toISOString(),
     });
+    writeFileSync(filePath + '.license', JSON.stringify({
+      schemaVersion: 'design-lab/asset-sidecar/v1',
+      file: path.relative(process.cwd(), filePath).split(path.sep).join('/'),
+      sha256: 'sha256:' + sha256(bytes),
+      license: 'MIT',
+      author: 'DESIGN-LAB Workbench rendered by scripts/capture_workbench_screenshots.py '
+        + 'for DTALEX66 (DESIGN-LAB project owner)',
+      redistributable: true,
+      modelInputAllowed: false,
+      commercialUse: true,
+      sourceId: 'commit:' + commit,
+      notes: 'First-party screenshot of this repository\'s own Workbench served by its own '
+        + 'loopback service. Visible content: project UI (MIT), one first-party MIT eval '
+        + 'reference raster, and text set in locally installed system fonts. Font output '
+        + 'rights are asserted only for the local OS licence; no third-party artwork, '
+        + 'stock imagery or model output is embedded. modelInputAllowed=false because no '
+        + 'training right is asserted.',
+    }, null, 2) + '\n', 'utf8');
     console.log(`CAP ok: ${file} ${bytes.length}B`);
   }
   await ctx.close();
