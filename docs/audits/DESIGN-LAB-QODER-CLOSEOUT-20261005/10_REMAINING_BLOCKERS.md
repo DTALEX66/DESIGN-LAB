@@ -40,6 +40,8 @@
 | C3 | Playwright 全量 Chromium（`chromium-1228/chrome-win64/chrome.exe`）与 headless-shell 并存；既有浏览器 E2E 的探针**优先 headless-shell**，其 E2 记录里的 browser 字段是路径字符串而非版本号 | 截图证据与 E2 记录的“浏览器”口径不同，报告中已分别写明 |
 | C4 | KPI count-up 是 JS 动画，Playwright `animations:'disabled'` 无效 | 任何“数值证据”截图都必须等数值收敛 |
 | C5 | 仓库体积预算 `pack_mib=216.0 / hard_budget_mib=256` | 再向 docs 提交二进制证据前需先定 artifact 策略 |
+| C6 | **git worktree 不得放在本仓目录树内**：closeout worktree 建在 `.project-local/wt/c1`（后试 `.wt/c1`）时，`test_reconstruction_evidence` 从「主工作树 1762 tests 无错」变成卡死/超时——它会向上扫到宿主仓库的 `.project-local` 运行时根（含归档与其他 worktree），扫描量爆炸；改在主工作树切分支跑即恢复 | 后续任何 Agent 建 worktree 必须放在仓库外部；本轮已按此纠正执行 |
+| C7 | `design-lab/tests/test_reconstruction_evidence.py:657` 把真实用户目录字面量 `C:\Users\ALEX\private.json` 写进隐私负例（另一例 `/home/alex/private.json`），把本机用户名固化进测试 | 可移植性/隐私卫生问题，宜改合成路径；本轮只记录不擅改（该测试的边界用例需一并核对） |
 
 ## D. 明确冻结的外围扩张（未做，符合任务书 §9/§10）
 
