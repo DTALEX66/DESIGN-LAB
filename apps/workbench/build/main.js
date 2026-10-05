@@ -1115,6 +1115,7 @@ function kpiCard(value, label, note, trend) {
 function animateKpiCount(el2) {
   const raw = el2.dataset.count;
   if (raw === void 0) return;
+  if (!/^\d+(\.\d+)?$/.test(raw)) return;
   const target = parseFloat(raw);
   if (Number.isNaN(target)) return;
   if (typeof performance === "undefined" || typeof requestAnimationFrame !== "function") return;

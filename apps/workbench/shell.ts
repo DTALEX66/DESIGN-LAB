@@ -305,6 +305,10 @@ export function kpiCard(value: string, label: string, note: string, trend?: stri
 export function animateKpiCount(el: HTMLElement): void {
   const raw = el.dataset.count;
   if (raw === undefined) return;
+  // A readback KPI must never be rewritten by the animation. Only a plain
+  // number may be counted up: parseFloat('0.1.0-alpha.0') is 0.1, which would
+  // have replaced the service version with a false value.
+  if (!/^\d+(\.\d+)?$/.test(raw)) return;
   const target = parseFloat(raw);
   if (Number.isNaN(target)) return;
   // Guard: vm unit-smoke has no performance/requestAnimationFrame; the value
