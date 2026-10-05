@@ -15,10 +15,21 @@
 | # | 项 | 现状 | 建议动作 |
 |---|---|---|---|
 | B1 | `DL-R5-010` implementation/unit 投影为 `UNVERIFIED` | 证据 subject_sha 衰减 | 在目标 SHA 上重跑绑定测试，写一条 `outcome=PASS` 的 evidence |
-| B2 | `design-lab/config/capability-evidence-current.json` 仍是 2026-09-04 `DL-TP-R2-014` 投影，`bound_sha` 全 null、`supported_current` 全 false | 过期投影 | 由既有生成器重生成并绑定 exact SHA，禁止手工填绿 |
+| B2 | `design-lab/config/capability-evidence-current.json` 的 `generatedAt=2026-09-04` / `task=DL-TP-R2-014` 是生成器里的**常量**：本轮实跑 `generate_capability_evidence_index.py` 内容幂等（50 capabilities、`current_E3=0`、`supported_current` 全 false），但日期永远不变 | 投影无法自证新鲜度，属生成器设计缺陷；修它要先定「时间戳如何处理才不破坏 drift 门」，本轮不擅自改，只记录 |
 | B3 | 28 项 R5 任务 `reassessment` 仅 010 变 `REVIEWED`，其余 27 项仍 `PENDING_EVIDENCE_REVIEW` | 未复核 | 逐条按当前 Authority 产品轴复核；无证据不得抬升 |
 | B4 | 11 项产品轴（CONTRACT/BACKEND/FRONTEND/…）在 ledger 里仍是 4 轴词表 | 词表与 Authority §2 不一致 | 属 Authority 级映射决策，需 owner 定口径后再改，不自作主张 |
 | B5 | `reports/current/DEEPSEEK-AUTHORITY-CHAIN.json` 生成于 2026-09-29 | 可能已漂移 | 用 `scripts/deepseek_authority_chain.py` 重生成并核对 |
+
+## B.1 本清单写下后已在同日（2026-10-06）闭合的项
+
+- **C7.1 一条命令启动**：`python -m design_lab --project <dir> workbench` 已实现，
+  README 增「启动 Workbench（一条命令）」；`design-lab/tests/test_workbench_launch.py`
+  读回 LISTENING/CSP/bundle 逐字节/health/401 与服务重启后项目仍在（E2）。
+- **C7.2 clean install**：本机离线不可建 wheel（venv 无 hatchling、`uv` 不在 PATH），
+  改为新增 CI job `wheel-install-gate` 在干净环境里装 wheel 并跑同一套测试；
+  状态 `PENDING_CI_VERDICT`，**不**提前宣称通过。
+- **C6 的 raster materialization 前置**：`materialize_raster_regions` 已补，
+  照片区域可 lower 成合法 Illustrator raster 层（见 `04`）。
 
 ## C. 本轮发现的环境/工程性事实（值得记录，避免重复踩）
 

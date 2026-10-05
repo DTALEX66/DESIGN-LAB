@@ -49,10 +49,29 @@
 - 补上用户提供的 `text_styles` 与 `style_overrides` 后，同一 IR 成功 lower 成
   合法 Illustrator job，job 层里对象 id 仍是 `ocr-1` / `s-1`。
 
+## 参考区域 → 真实 staged 资产（2026-10-06 追加）
+
+`materialize_raster_regions` 把 Plan 里的 image 区域从参考图**按观察到的尺寸裁出**
+（像素复制，不重采样），落到 run root 内，`plan_to_rir` 再把它写成
+`crop == 整张 staged 图` + `sourceMappings: []` 的 raster 节点。
+这正好满足 host job 层的硬性要求，因此照片区域第一次可以走到
+**合法 Illustrator job 的 raster 层**（测试 `test_staged_region_lowers_into_an_illustrator_raster_layer`，
+层 id 仍是 Plan 的 `i-1`）。
+
+同时钉住两条 fail-closed 边界：
+
+- 区域超出参考图尺寸 → `DecompositionError`，不 clamp、不补边；
+- object id 不是安全文件名（如 `../escape`）→ 拒绝，不 sanitize；
+- 未 materialize 的 raster 保持原样，lowering 明确报
+  `raster remapping/alpha requires explicit preprocessed asset`，
+  让「还差一步」成为可见的门，而不是被偷偷糊过去。
+
 ## 证据等级与未做的事
 
-- 本项为 **E1 结构 + 合同级集成**（schema 校验 + 真实 lowering 函数消费）。
-- **不是 E2**：未跑真实 OCR/描边 provider（`defaultEnabled:false`，ONNX 环境未接入本链）。
+- 本项为 **E1 结构 + 合同级集成**（schema 校验 + 真实 lowering 函数消费 +
+  真实一方参考图 `poster-sunrise-001/reference.png` 被裁成 staged 资产并进入 job）。
+- **不是 E2 的 detector 证据**：`Plan` 的对象仍来自测试内构造的 detections/regions，
+  未跑真实 OCR / 描边 provider（`defaultEnabled:false`，ONNX 环境未接入本链）。
 - **不是 E3**：未启动 Illustrator/Photoshop（owner 本轮只授权只读探测）。
 - 三类真实 Reference fixture（文字+几何海报 / 照片+蒙版+文字 / 复杂合成）
   仍为 `executionStatus: NOT_EXECUTED`，未冒充已验收；
