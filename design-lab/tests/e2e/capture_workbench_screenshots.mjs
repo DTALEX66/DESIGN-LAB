@@ -62,6 +62,16 @@ const shots = [];
 const problems = [];
 const sha256 = (buf) => createHash('sha256').update(buf).digest('hex');
 
+// Build Output Truth: the served bundle is the committed byte, so bind its hash
+// to the record instead of only naming the commit.
+const bundleSubject = () => {
+  const rel = path.join('apps', 'workbench', 'build', 'main.js');
+  const abs = path.resolve(rel);
+  if (!existsSync(abs)) return { bundle: rel, bundleSha256: 'MISSING' };
+  const bytes = readFileSync(abs);
+  return { bundle: rel, bundleBytes: bytes.length, bundleSha256: sha256(bytes) };
+};
+
 // A failed bootstrap is far more diagnosable with the live DOM next to the
 // stack, so dump the visible status/notice text before exiting.
 let livePage = null;
@@ -204,6 +214,7 @@ const manifest = {
   schema: 'design-lab/screenshot-manifest/v1',
   generatedAt: new Date().toISOString(),
   commit,
+  subject: bundleSubject(),
   project: { name: projectName, id: projectId },
   referenceSourceImage: sourceImage || null,
   service: { origin: serviceUrl, pythonVersion },

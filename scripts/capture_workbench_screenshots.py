@@ -101,6 +101,15 @@ def main() -> int:
         print(f"CAP_BLOCKED: driver missing: {DRIVER}")
         return 3
 
+    # Build Output Truth: the screenshots are evidence for an exact commit, so
+    # the served bundle must be the committed byte, not a local rebuild.
+    drift = subprocess.run(["git", "-C", str(REPO), "diff", "--exit-code", "--quiet",
+                            "--", "apps/workbench/build"], capture_output=True, text=True)
+    if drift.returncode != 0:
+        print("CAP_BLOCKED: apps/workbench/build differs from HEAD; "
+              "commit the rebuilt bundle before capturing evidence")
+        return 3
+
     out_dir = (REPO / args.out).resolve()
     out_dir.mkdir(parents=True, exist_ok=True)
     source_image = (REPO / args.source_image).resolve()
