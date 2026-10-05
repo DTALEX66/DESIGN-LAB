@@ -9,43 +9,28 @@
   },
   "fresh": false,
   "freshnessMeaning": "at generation only; check verifies bound-input integrity, not current Git or cloud state",
-  "generatedAt": "2026-10-05T15:40:42+00:00",
+  "generatedAt": "2026-10-05T15:54:03+00:00",
   "gitStateMeaning": "generation-time observation, not current HEAD",
   "local": {
     "branch": "qoder/designlab-m1-closeout-20261005",
     "origin_main": "1acbfa15a8c036907aadbdc6938b8706c91b5d3e",
-    "sha": "c3e43ea46d145ac0e924223e942efcabfd27d471",
+    "sha": "2c566e6a90da98bf27007f2cc5b7c3d47054de3e",
     "source_worktree_clean": false,
-    "tracked_files": 2818,
+    "tracked_files": 2829,
     "worktree_changes": [
       {
-        "content": "sha256:01d0acd02ff43aaaeacfe5b3d3a702b4c68b7974eb3155344437a97761876869",
-        "kind": "M",
-        "path": ".github/workflows/canonical-verify.yml"
-      },
-      {
-        "content": "sha256:3410f4f41648e6a5752fd138a75965b15d60b4767f0eeb2e3cbd80e2d8f10d4c",
-        "kind": "M",
-        "path": "design-lab/config/task-ledger-r3.json"
-      },
-      {
-        "content": "sha256:8b59a84321fa57b795505e9eea8896f9110125f482fd4dd60aa6035b4ef4c1b3",
+        "content": "sha256:3ba085405fe419dc9d1a21abff01440bdebf4be7c32f7094e4d5f7afb2919382",
         "kind": "U",
-        "path": "docs/audits/DESIGN-LAB-QODER-CLOSEOUT-20261005/01_AUTHORITY_AND_BRANCH_AUDIT.md"
-      },
-      {
-        "content": "sha256:af32034405366e581bd2b1d6c02e12bdee47e8633438344b7e9802f6c65c7986",
-        "kind": "U",
-        "path": "docs/audits/DESIGN-LAB-QODER-CLOSEOUT-20261005/03_UI_CLOSEOUT.md"
+        "path": "docs/audits/DESIGN-LAB-QODER-CLOSEOUT-20261005/00_FINAL_STATUS.md"
       }
     ],
-    "worktree_digest": "sha256:7ad5c615cff0606896dbe4c34cf23f50b1c698853893ec300b795ec1b6655ebe"
+    "worktree_digest": "sha256:b240c0f23504483f0777446b310b8544e6aef8afef897d5ec9bf56b1b98562ff"
   },
   "note": "No GitHub API query was run by this generator; tool installation is not inferred.",
   "remoteRef": "origin/main (local tracking ref)",
   "schemaVersion": "design-lab/cloud-baseline/v2",
   "subjectMeaning": "subjectType=WORKTREE means the tree was dirty at generation; worktreeDigest covers HEAD plus the non-generated changes",
-  "subjectSha": "c3e43ea46d145ac0e924223e942efcabfd27d471",
+  "subjectSha": "2c566e6a90da98bf27007f2cc5b7c3d47054de3e",
   "subjectType": "WORKTREE",
   "taskpackHash": "31dde89eb4ede81fe88c0a5c5144adfb86af8db4c4d8c263bde2199180369b69",
   "taskpackId": "DL-TP-20260908-R5",
@@ -58,5 +43,5 @@
     "branchProtection"
   ],
   "worktreeClean": false,
-  "worktreeDigest": "sha256:7ad5c615cff0606896dbe4c34cf23f50b1c698853893ec300b795ec1b6655ebe"
+  "worktreeDigest": "sha256:b240c0f23504483f0777446b310b8544e6aef8afef897d5ec9bf56b1b98562ff"
 }

@@ -14,17 +14,17 @@
   },
   "fresh": false,
   "freshnessMeaning": "at generation only; check verifies bound-input integrity, not current Git or cloud state",
-  "generatedAt": "2026-10-05T15:40:42+00:00",
+  "generatedAt": "2026-10-05T15:54:03+00:00",
   "gitStateMeaning": "generation-time observation, not current HEAD",
   "schemaVersion": "design-lab/release-readiness/v2",
   "status": "NOT_RELEASED",
   "subjectMeaning": "subjectType=WORKTREE means the tree was dirty at generation; worktreeDigest covers HEAD plus the non-generated changes",
-  "subjectSha": "c3e43ea46d145ac0e924223e942efcabfd27d471",
+  "subjectSha": "2c566e6a90da98bf27007f2cc5b7c3d47054de3e",
   "subjectType": "WORKTREE",
   "taskpackHash": "31dde89eb4ede81fe88c0a5c5144adfb86af8db4c4d8c263bde2199180369b69",
   "taskpackId": "DL-TP-20260908-R5",
   "testRunId": null,
   "testRunMeaning": "no bound test run; this projection does not claim a test result",
   "worktreeClean": false,
-  "worktreeDigest": "sha256:7ad5c615cff0606896dbe4c34cf23f50b1c698853893ec300b795ec1b6655ebe"
+  "worktreeDigest": "sha256:b240c0f23504483f0777446b310b8544e6aef8afef897d5ec9bf56b1b98562ff"
 }
