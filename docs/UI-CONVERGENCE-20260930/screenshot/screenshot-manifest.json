@@ -1,0 +1,610 @@
+{
+  "kind": "workbench-viewport-screenshots",
+  "schema": "design-lab/screenshot-manifest/v1",
+  "generatedAt": "2026-10-05T14:55:48.440Z",
+  "commit": "13fa81e90c8d83b0ccee1385eb42785c0807d00d",
+  "subject": {
+    "bundle": "apps\\workbench\\build\\main.js",
+    "bundleBytes": 157747,
+    "bundleSha256": "f58a8e1f9776e2c9769629f83cb8cea2c2452b3ef02466463060ee4bbcc05d21"
+  },
+  "project": {
+    "name": "Closeout 1791212122743",
+    "id": "ea553e3d87b54c83ab7e0a5b799a5e59"
+  },
+  "referenceSourceImage": "D:\\All projects\\DESIGN-LAB\\design-lab\\evals\\reconstruction\\cases\\poster-sunrise-001\\reference.png",
+  "service": {
+    "origin": "http://127.0.0.1:63946",
+    "pythonVersion": "3.13.14"
+  },
+  "browser": {
+    "engine": "chromium",
+    "version": "149.0.7827.55",
+    "executable": "C:\\Users\\ALEX\\AppData\\Local\\ms-playwright\\chromium-1228\\chrome-win64\\chrome.exe",
+    "headless": true
+  },
+  "nodeVersion": "v24.18.0",
+  "capture": {
+    "fullPage": false,
+    "mockUsed": false,
+    "viewports": [
+      390,
+      768,
+      1280,
+      1920,
+      2560
+    ],
+    "pages": [
+      "dashboard",
+      "projects",
+      "project-detail",
+      "creative-tools",
+      "deliverables",
+      "evidence",
+      "preflight",
+      "settings"
+    ]
+  },
+  "screenshots": [
+    {
+      "file": "00-dashboard@390.png",
+      "page": "dashboard",
+      "hashRoute": "#/dashboard",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "url": "http://127.0.0.1:63946/workbench#/dashboard",
+      "bytes": 76001,
+      "bufferBytes": 76001,
+      "sha256": "70a983b7da73366116762fc586a8d6bcc41b702fcd4055274cb9ef7830dc78c7",
+      "capturedAt": "2026-10-05T14:55:25.278Z"
+    },
+    {
+      "file": "01-projects@390.png",
+      "page": "projects",
+      "hashRoute": "#/projects",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "url": "http://127.0.0.1:63946/workbench#/projects",
+      "bytes": 67399,
+      "bufferBytes": 67399,
+      "sha256": "6cd3a86610f1ac63c48409bd3619cc2ebf2c57c0a21726056c8b38d5a501265c",
+      "capturedAt": "2026-10-05T14:55:25.769Z"
+    },
+    {
+      "file": "02-project-detail@390.png",
+      "page": "project-detail",
+      "hashRoute": "#/projects/ea553e3d87b54c83ab7e0a5b799a5e59",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "url": "http://127.0.0.1:63946/workbench#/projects/ea553e3d87b54c83ab7e0a5b799a5e59",
+      "bytes": 63410,
+      "bufferBytes": 63410,
+      "sha256": "940325523c53d6e0d3aa4257744ac2ea7e6f11a2481c2f8da5823c69558db975",
+      "capturedAt": "2026-10-05T14:55:26.299Z"
+    },
+    {
+      "file": "03-creative-tools@390.png",
+      "page": "creative-tools",
+      "hashRoute": "#/tools",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "url": "http://127.0.0.1:63946/workbench#/tools",
+      "bytes": 39179,
+      "bufferBytes": 39179,
+      "sha256": "3779a93e02d74450dbb5500449470657feb78eb6428fc8884cae079331a83a8c",
+      "capturedAt": "2026-10-05T14:55:26.754Z"
+    },
+    {
+      "file": "04-deliverables@390.png",
+      "page": "deliverables",
+      "hashRoute": "#/deliverables",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "url": "http://127.0.0.1:63946/workbench#/deliverables",
+      "bytes": 39825,
+      "bufferBytes": 39825,
+      "sha256": "a4e72f8596bdf1ca3d844e18b063541f678fe2086849c410ee4872c87b592cda",
+      "capturedAt": "2026-10-05T14:55:27.205Z"
+    },
+    {
+      "file": "05-evidence@390.png",
+      "page": "evidence",
+      "hashRoute": "#/evidence",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "url": "http://127.0.0.1:63946/workbench#/evidence",
+      "bytes": 40998,
+      "bufferBytes": 40998,
+      "sha256": "4c989d14f750ea60ceb42660e79306ac1494a28c74d2f6a6928e1d5c44dcaf88",
+      "capturedAt": "2026-10-05T14:55:27.656Z"
+    },
+    {
+      "file": "06-preflight@390.png",
+      "page": "preflight",
+      "hashRoute": "#/preflight",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "url": "http://127.0.0.1:63946/workbench#/preflight",
+      "bytes": 69466,
+      "bufferBytes": 69466,
+      "sha256": "258dd6eec52a2d07360d0d4f58fbf5b01123e35cf397ad4cefce59fa2eb3a58b",
+      "capturedAt": "2026-10-05T14:55:28.163Z"
+    },
+    {
+      "file": "07-settings@390.png",
+      "page": "settings",
+      "hashRoute": "#/settings",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "url": "http://127.0.0.1:63946/workbench#/settings",
+      "bytes": 81248,
+      "bufferBytes": 81248,
+      "sha256": "962360552ece87cf7ffe5fec8451f2c709d153910e2b1d257ab5d2036f957f3b",
+      "capturedAt": "2026-10-05T14:55:28.644Z"
+    },
+    {
+      "file": "08-dashboard@768.png",
+      "page": "dashboard",
+      "hashRoute": "#/dashboard",
+      "viewport": {
+        "width": 768,
+        "height": 1024
+      },
+      "url": "http://127.0.0.1:63946/workbench#/dashboard",
+      "bytes": 105743,
+      "bufferBytes": 105743,
+      "sha256": "906e6e3f225fc370d6fa6c3e9cedc12737e16e234795bddff2637d6cfd87996d",
+      "capturedAt": "2026-10-05T14:55:29.849Z"
+    },
+    {
+      "file": "09-projects@768.png",
+      "page": "projects",
+      "hashRoute": "#/projects",
+      "viewport": {
+        "width": 768,
+        "height": 1024
+      },
+      "url": "http://127.0.0.1:63946/workbench#/projects",
+      "bytes": 92343,
+      "bufferBytes": 92343,
+      "sha256": "083c3302fb7be16aaee8246be0be8cd51753d83a0b2a5db22ad432590f539cce",
+      "capturedAt": "2026-10-05T14:55:30.346Z"
+    },
+    {
+      "file": "10-project-detail@768.png",
+      "page": "project-detail",
+      "hashRoute": "#/projects/ea553e3d87b54c83ab7e0a5b799a5e59",
+      "viewport": {
+        "width": 768,
+        "height": 1024
+      },
+      "url": "http://127.0.0.1:63946/workbench#/projects/ea553e3d87b54c83ab7e0a5b799a5e59",
+      "bytes": 91930,
+      "bufferBytes": 91930,
+      "sha256": "8236c1fcbd365543ed6aeeb4a62339d782938cb70bce394694347e7f2019a640",
+      "capturedAt": "2026-10-05T14:55:30.907Z"
+    },
+    {
+      "file": "11-creative-tools@768.png",
+      "page": "creative-tools",
+      "hashRoute": "#/tools",
+      "viewport": {
+        "width": 768,
+        "height": 1024
+      },
+      "url": "http://127.0.0.1:63946/workbench#/tools",
+      "bytes": 50067,
+      "bufferBytes": 50067,
+      "sha256": "3e1a141d9c9ab4011dc38ec9a3bde5e76d6bd946a2ba3fea58306315643e9b6d",
+      "capturedAt": "2026-10-05T14:55:31.383Z"
+    },
+    {
+      "file": "12-deliverables@768.png",
+      "page": "deliverables",
+      "hashRoute": "#/deliverables",
+      "viewport": {
+        "width": 768,
+        "height": 1024
+      },
+      "url": "http://127.0.0.1:63946/workbench#/deliverables",
+      "bytes": 50727,
+      "bufferBytes": 50727,
+      "sha256": "7d85f4a970515d45403ad20085be1161bfc16e61f87b69dd41ead0a93b32308a",
+      "capturedAt": "2026-10-05T14:55:31.849Z"
+    },
+    {
+      "file": "13-evidence@768.png",
+      "page": "evidence",
+      "hashRoute": "#/evidence",
+      "viewport": {
+        "width": 768,
+        "height": 1024
+      },
+      "url": "http://127.0.0.1:63946/workbench#/evidence",
+      "bytes": 51787,
+      "bufferBytes": 51787,
+      "sha256": "690a37d1fb07cade082789b8895c70b0451bbb49ff134bd83dcb4ff717351698",
+      "capturedAt": "2026-10-05T14:55:32.315Z"
+    },
+    {
+      "file": "14-preflight@768.png",
+      "page": "preflight",
+      "hashRoute": "#/preflight",
+      "viewport": {
+        "width": 768,
+        "height": 1024
+      },
+      "url": "http://127.0.0.1:63946/workbench#/preflight",
+      "bytes": 89138,
+      "bufferBytes": 89138,
+      "sha256": "b8af29fc7c9f961eb6e9777f632170fcd1ff87dc23955917a0e363489e986cd4",
+      "capturedAt": "2026-10-05T14:55:32.797Z"
+    },
+    {
+      "file": "15-settings@768.png",
+      "page": "settings",
+      "hashRoute": "#/settings",
+      "viewport": {
+        "width": 768,
+        "height": 1024
+      },
+      "url": "http://127.0.0.1:63946/workbench#/settings",
+      "bytes": 137116,
+      "bufferBytes": 137116,
+      "sha256": "b289c30db6fcbd504204cc1dcbdd17ecc39bdb51ed1ff921a8feef1413fc79da",
+      "capturedAt": "2026-10-05T14:55:33.286Z"
+    },
+    {
+      "file": "16-dashboard@1280.png",
+      "page": "dashboard",
+      "hashRoute": "#/dashboard",
+      "viewport": {
+        "width": 1280,
+        "height": 800
+      },
+      "url": "http://127.0.0.1:63946/workbench#/dashboard",
+      "bytes": 180476,
+      "bufferBytes": 180476,
+      "sha256": "ad196e257afd7813ec64d2b61f85e97879b24a284679a180027c8136ed590d20",
+      "capturedAt": "2026-10-05T14:55:34.553Z"
+    },
+    {
+      "file": "17-projects@1280.png",
+      "page": "projects",
+      "hashRoute": "#/projects",
+      "viewport": {
+        "width": 1280,
+        "height": 800
+      },
+      "url": "http://127.0.0.1:63946/workbench#/projects",
+      "bytes": 130227,
+      "bufferBytes": 130227,
+      "sha256": "ffe91b08baeed690ba04473491550d80b5e13a53759edd88b7559d524f90ce88",
+      "capturedAt": "2026-10-05T14:55:35.056Z"
+    },
+    {
+      "file": "18-project-detail@1280.png",
+      "page": "project-detail",
+      "hashRoute": "#/projects/ea553e3d87b54c83ab7e0a5b799a5e59",
+      "viewport": {
+        "width": 1280,
+        "height": 800
+      },
+      "url": "http://127.0.0.1:63946/workbench#/projects/ea553e3d87b54c83ab7e0a5b799a5e59",
+      "bytes": 166397,
+      "bufferBytes": 166397,
+      "sha256": "f8624ef8602d1864521d9193dd1f9ebc38ba8b65622482394e205b944ad1dd26",
+      "capturedAt": "2026-10-05T14:55:35.610Z"
+    },
+    {
+      "file": "19-creative-tools@1280.png",
+      "page": "creative-tools",
+      "hashRoute": "#/tools",
+      "viewport": {
+        "width": 1280,
+        "height": 800
+      },
+      "url": "http://127.0.0.1:63946/workbench#/tools",
+      "bytes": 90465,
+      "bufferBytes": 90465,
+      "sha256": "bd17ee97e15670638c807f1baa3cfd9f873021a123fd18d367780128074ce311",
+      "capturedAt": "2026-10-05T14:55:36.091Z"
+    },
+    {
+      "file": "20-deliverables@1280.png",
+      "page": "deliverables",
+      "hashRoute": "#/deliverables",
+      "viewport": {
+        "width": 1280,
+        "height": 800
+      },
+      "url": "http://127.0.0.1:63946/workbench#/deliverables",
+      "bytes": 91281,
+      "bufferBytes": 91281,
+      "sha256": "d8729b718058c66829bfc7aed6eb0d0c23cfa39c557cf46710fc7cc630df8408",
+      "capturedAt": "2026-10-05T14:55:36.563Z"
+    },
+    {
+      "file": "21-evidence@1280.png",
+      "page": "evidence",
+      "hashRoute": "#/evidence",
+      "viewport": {
+        "width": 1280,
+        "height": 800
+      },
+      "url": "http://127.0.0.1:63946/workbench#/evidence",
+      "bytes": 92531,
+      "bufferBytes": 92531,
+      "sha256": "82fe0274ea762f505d70edc1190d552d6553176c54f97b8c678f94693f8e44ce",
+      "capturedAt": "2026-10-05T14:55:37.057Z"
+    },
+    {
+      "file": "22-preflight@1280.png",
+      "page": "preflight",
+      "hashRoute": "#/preflight",
+      "viewport": {
+        "width": 1280,
+        "height": 800
+      },
+      "url": "http://127.0.0.1:63946/workbench#/preflight",
+      "bytes": 125440,
+      "bufferBytes": 125440,
+      "sha256": "3909e580b90ebe8bc91465895b60bb9c515ece6ceede106157c02e133d59e296",
+      "capturedAt": "2026-10-05T14:55:37.547Z"
+    },
+    {
+      "file": "23-settings@1280.png",
+      "page": "settings",
+      "hashRoute": "#/settings",
+      "viewport": {
+        "width": 1280,
+        "height": 800
+      },
+      "url": "http://127.0.0.1:63946/workbench#/settings",
+      "bytes": 195708,
+      "bufferBytes": 195708,
+      "sha256": "3bc2855c8ddc7f11ca5a1b9b2c1d714d020a532845d09e3bae492a2905bdd3df",
+      "capturedAt": "2026-10-05T14:55:38.049Z"
+    },
+    {
+      "file": "24-dashboard@1920.png",
+      "page": "dashboard",
+      "hashRoute": "#/dashboard",
+      "viewport": {
+        "width": 1920,
+        "height": 1080
+      },
+      "url": "http://127.0.0.1:63946/workbench#/dashboard",
+      "bytes": 245193,
+      "bufferBytes": 245193,
+      "sha256": "f257c3c9cd4827d1e58c6ad3b07bba7a7416827e25ed68f55598e33285b2d68f",
+      "capturedAt": "2026-10-05T14:55:39.377Z"
+    },
+    {
+      "file": "25-projects@1920.png",
+      "page": "projects",
+      "hashRoute": "#/projects",
+      "viewport": {
+        "width": 1920,
+        "height": 1080
+      },
+      "url": "http://127.0.0.1:63946/workbench#/projects",
+      "bytes": 150394,
+      "bufferBytes": 150394,
+      "sha256": "2e0deb330f85349b151c380b829fa75ee7651f696bd059347c865c674b26fd00",
+      "capturedAt": "2026-10-05T14:55:39.892Z"
+    },
+    {
+      "file": "26-project-detail@1920.png",
+      "page": "project-detail",
+      "hashRoute": "#/projects/ea553e3d87b54c83ab7e0a5b799a5e59",
+      "viewport": {
+        "width": 1920,
+        "height": 1080
+      },
+      "url": "http://127.0.0.1:63946/workbench#/projects/ea553e3d87b54c83ab7e0a5b799a5e59",
+      "bytes": 240634,
+      "bufferBytes": 240634,
+      "sha256": "254404361d704e33dd5ce3b9e82843287cc948604722d0c1eeac9cf01649b44f",
+      "capturedAt": "2026-10-05T14:55:40.484Z"
+    },
+    {
+      "file": "27-creative-tools@1920.png",
+      "page": "creative-tools",
+      "hashRoute": "#/tools",
+      "viewport": {
+        "width": 1920,
+        "height": 1080
+      },
+      "url": "http://127.0.0.1:63946/workbench#/tools",
+      "bytes": 107968,
+      "bufferBytes": 107968,
+      "sha256": "aa88141a8e7146aa5df36bb4e4c877973e1900dd262e48a905a9cc721a414f49",
+      "capturedAt": "2026-10-05T14:55:40.983Z"
+    },
+    {
+      "file": "28-deliverables@1920.png",
+      "page": "deliverables",
+      "hashRoute": "#/deliverables",
+      "viewport": {
+        "width": 1920,
+        "height": 1080
+      },
+      "url": "http://127.0.0.1:63946/workbench#/deliverables",
+      "bytes": 108639,
+      "bufferBytes": 108639,
+      "sha256": "95e44499317a47ff7ad7f19edbedd58135025467fadeb76c18c366747ba621ad",
+      "capturedAt": "2026-10-05T14:55:41.483Z"
+    },
+    {
+      "file": "29-evidence@1920.png",
+      "page": "evidence",
+      "hashRoute": "#/evidence",
+      "viewport": {
+        "width": 1920,
+        "height": 1080
+      },
+      "url": "http://127.0.0.1:63946/workbench#/evidence",
+      "bytes": 110101,
+      "bufferBytes": 110101,
+      "sha256": "6ffd2b8b39dadd706dd02b80736d68a77657f8a5452007ec53faaf0b356ef04e",
+      "capturedAt": "2026-10-05T14:55:41.983Z"
+    },
+    {
+      "file": "30-preflight@1920.png",
+      "page": "preflight",
+      "hashRoute": "#/preflight",
+      "viewport": {
+        "width": 1920,
+        "height": 1080
+      },
+      "url": "http://127.0.0.1:63946/workbench#/preflight",
+      "bytes": 145350,
+      "bufferBytes": 145350,
+      "sha256": "ab164128675c55d8fa1247c334fb4f14b8c66a3becbdb74e638e1d6f503043e3",
+      "capturedAt": "2026-10-05T14:55:42.490Z"
+    },
+    {
+      "file": "31-settings@1920.png",
+      "page": "settings",
+      "hashRoute": "#/settings",
+      "viewport": {
+        "width": 1920,
+        "height": 1080
+      },
+      "url": "http://127.0.0.1:63946/workbench#/settings",
+      "bytes": 235852,
+      "bufferBytes": 235852,
+      "sha256": "544bd164f0f634015a46682519dbcc74bc6f6cbb1068aac1e1a985957b27563e",
+      "capturedAt": "2026-10-05T14:55:43.022Z"
+    },
+    {
+      "file": "32-dashboard@2560.png",
+      "page": "dashboard",
+      "hashRoute": "#/dashboard",
+      "viewport": {
+        "width": 2560,
+        "height": 1440
+      },
+      "url": "http://127.0.0.1:63946/workbench#/dashboard",
+      "bytes": 283131,
+      "bufferBytes": 283131,
+      "sha256": "c0b57e370f31062a5f9630490622562a68ca774ab7c2f902f3f8e6b64b74e2e5",
+      "capturedAt": "2026-10-05T14:55:44.359Z"
+    },
+    {
+      "file": "33-projects@2560.png",
+      "page": "projects",
+      "hashRoute": "#/projects",
+      "viewport": {
+        "width": 2560,
+        "height": 1440
+      },
+      "url": "http://127.0.0.1:63946/workbench#/projects",
+      "bytes": 170152,
+      "bufferBytes": 170152,
+      "sha256": "2bcda14f55a3ab3e5fbeaa65a72d833ae52bc9ab74f172dbf50fa5855b07b0ad",
+      "capturedAt": "2026-10-05T14:55:44.903Z"
+    },
+    {
+      "file": "34-project-detail@2560.png",
+      "page": "project-detail",
+      "hashRoute": "#/projects/ea553e3d87b54c83ab7e0a5b799a5e59",
+      "viewport": {
+        "width": 2560,
+        "height": 1440
+      },
+      "url": "http://127.0.0.1:63946/workbench#/projects/ea553e3d87b54c83ab7e0a5b799a5e59",
+      "bytes": 304078,
+      "bufferBytes": 304078,
+      "sha256": "4feb995da90ae1be7fce2d0d201cf8f2d562dbef976f13b3bc3e0f342907dea4",
+      "capturedAt": "2026-10-05T14:55:45.531Z"
+    },
+    {
+      "file": "35-creative-tools@2560.png",
+      "page": "creative-tools",
+      "hashRoute": "#/tools",
+      "viewport": {
+        "width": 2560,
+        "height": 1440
+      },
+      "url": "http://127.0.0.1:63946/workbench#/tools",
+      "bytes": 127266,
+      "bufferBytes": 127266,
+      "sha256": "ce00e4fec4e235e15a3ce9724aaae3c5d3e0fff489d82036b2d35a4040b20015",
+      "capturedAt": "2026-10-05T14:55:46.063Z"
+    },
+    {
+      "file": "36-deliverables@2560.png",
+      "page": "deliverables",
+      "hashRoute": "#/deliverables",
+      "viewport": {
+        "width": 2560,
+        "height": 1440
+      },
+      "url": "http://127.0.0.1:63946/workbench#/deliverables",
+      "bytes": 128154,
+      "bufferBytes": 128154,
+      "sha256": "4dd3c7346e4c02e9eb06add4b2659179adfec0bd221f7a653216119b07335f25",
+      "capturedAt": "2026-10-05T14:55:46.607Z"
+    },
+    {
+      "file": "37-evidence@2560.png",
+      "page": "evidence",
+      "hashRoute": "#/evidence",
+      "viewport": {
+        "width": 2560,
+        "height": 1440
+      },
+      "url": "http://127.0.0.1:63946/workbench#/evidence",
+      "bytes": 129555,
+      "bufferBytes": 129555,
+      "sha256": "f994c1925efb0dfc0fa8f94b01c1a3139e6e0f70f89842e8d09bfba995692681",
+      "capturedAt": "2026-10-05T14:55:47.122Z"
+    },
+    {
+      "file": "38-preflight@2560.png",
+      "page": "preflight",
+      "hashRoute": "#/preflight",
+      "viewport": {
+        "width": 2560,
+        "height": 1440
+      },
+      "url": "http://127.0.0.1:63946/workbench#/preflight",
+      "bytes": 164588,
+      "bufferBytes": 164588,
+      "sha256": "1390db8ae2c46f0d2c0fc07b5704edffefdf524395e524015ff121130777a45d",
+      "capturedAt": "2026-10-05T14:55:47.639Z"
+    },
+    {
+      "file": "39-settings@2560.png",
+      "page": "settings",
+      "hashRoute": "#/settings",
+      "viewport": {
+        "width": 2560,
+        "height": 1440
+      },
+      "url": "http://127.0.0.1:63946/workbench#/settings",
+      "bytes": 251512,
+      "bufferBytes": 251512,
+      "sha256": "1bc93cb68b626a3d3f9ef86dcfd4202612e51cbb63b62462ca7c44cf9d8612e0",
+      "capturedAt": "2026-10-05T14:55:48.202Z"
+    }
+  ]
+}

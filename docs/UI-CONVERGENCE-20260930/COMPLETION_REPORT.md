@@ -68,12 +68,20 @@
 
 | 门 | 结果 |
 |---|---|
-| tsc --noEmit -p apps/workbench（strict） | PASS |
-| vite build（4 modules，157.71 kB） | PASS，build/main.js 已重建 |
-| node tests/unit.mjs（classic-script 契约） | PASS |
-| node tests/appshell.mjs（路由/连接/读回竞争） | PASS |
-| .venv/Scripts/python -m unittest design-lab.tests.test_service_http（27 tests） | PASS |
-| 全量 unittest discover（1762 tests） | 进行中（CI 复核） |
+| tsc --noEmit -p apps/workbench（strict） | PASS（2026-10-05 复跑） |
+| vite build（4 modules，157.75 kB / 157747 B） | PASS，build/main.js 已随 KPI 修复重建 |
+| node tests/unit.mjs（classic-script 契约） | PASS（2026-10-05 复跑） |
+| node tests/appshell.mjs（路由/连接/读回竞争） | PASS（2026-10-05 复跑） |
+| test_service_http + test_design_layer_http（47 tests） | PASS（2026-10-05 复跑） |
+| design-lab/scripts/verify_design_lab.py（V3 verifier 全链） | PASS（2026-10-05） |
+| scripts/verify_top_level_authority.py（10 checks） | PASS（2026-10-05） |
+| design-lab/scripts/verify_project_drift.py | PASS（2026-10-05） |
+| scripts/verify_path_refs.py（10 checks） | PASS（2026-10-05） |
+| design-lab/scripts/verify_identity_gate.py | PASS（2026-10-05） |
+| design-lab/scripts/verify_workbench_packaging.py（5 checks） | PASS（2026-10-05） |
+| git diff --exit-code -- apps/workbench/build | CLEAN（2026-10-05 重建后无 drift） |
+| 视口截图（真实服务 + 真实 Chromium，40 张） | PASS，零 pageerror / console error |
+| 全量 unittest discover（1762 tests） | 2026-10-05 本地复跑中，结果见本分支后续提交 |
 
 ## 明确不做（边界）
 
@@ -87,13 +95,18 @@
 - 宿主实操任务（PS/AI/Figma/Penpot/ComfyUI/Blender 真实驱动）不在本分支执行。
 
 ## 待办（合并前）
-- 全量 unittest discover 1762 tests（本地后台跑完 + CI 复核）
-- Playwright 截图（1280×820 / 1920×1080 / 2560×1440 / 窄屏）— 本地 Chromium
-  可用性确认；CI E2E 门跑 no-skip 浏览器片
+- 全量 unittest discover 1762 tests（2026-10-05 本地复跑中 + CI 复核）
+- ~~Playwright 截图（1280/1920/2560/窄屏）~~ → **已完成**：
+  `scripts/capture_workbench_screenshots.py` 真实执行 5 视口 × 8 页面 = 40 张，
+  逐张 hash 见 `screenshot/screenshot-manifest.json` 与 `SCREENSHOTS.md`。
+  注意：本文件此前与 `SCREENSHOTS.md` 状态互相矛盾（一边 DEFERRED、一边声称已生成），
+  已统一为真实状态。
 - 7 份报告生成（本文件 + FINAL_IA + VISUAL_QA + HOST_UI_MATRIX +
-  ASSET_MANIFEST.json（已生成）+ GOLDEN_FLOWS + MERGE_READY_HANDOFF）
+  ASSET_MANIFEST.json + GOLDEN_FLOWS + MERGE_READY_HANDOFF）— 已完成并互相对齐
 
 ## 证据（exact SHA）
 - 基线 main：`1acbfa15a8c036907aadbdc6938b8706c91b5d3e`
-- build/main.js SHA-256：`83ff83e41c34420e…`（157705 bytes，vite build 4 modules）
+- 截图证据基线：`13fa81e90c8d83b0ccee1385eb42785c0807d00d`（本分支）
+- build/main.js SHA-256：`f58a8e1f9776e2c9769629f83cb8cea2c2452b3ef02466463060ee4bbcc05d21`
+  （157747 bytes，vite build 4 modules；`8036439` 修复 KPI count-up 后重建）
 - 见 `ASSET_MANIFEST.json` 各文件 SHA-256（CI 重建后回读校验 byte-determinism）。

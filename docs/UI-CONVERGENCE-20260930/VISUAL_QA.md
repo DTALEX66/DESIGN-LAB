@@ -39,10 +39,17 @@
 - 服务不可达时：活跃生产 / 待审 / 失败 显示「未读回」而非 0。
 
 ## 截图清单（本分支状态）
-- DEFERRED：Playwright 本地 Chromium 未在本会话确认；CI `workbench-browser-e2e`
-  门跑 no-skip 浏览器片（exact-SHA controlled-runtime）。本地补拍矩阵：
-  1280×820 / 1920×1080 / 2560×1440 / 窄屏（390×844）。
-  补拍位置与文件名待记录于本文件（CI 通过后回填）。
+- IMPLEMENTED：2026-10-05 用 `scripts/capture_workbench_screenshots.py` 真实执行，
+  5 视口（390×844 / 768×1024 / 1280×800 / 1920×1080 / 2560×1440）× 8 页面 =
+  **40 张 PNG**，落在 `docs/UI-CONVERGENCE-20260930/screenshot/`，
+  逐张 SHA-256 + 视口 + URL + 时间戳 + exact commit + bundle hash 记录在
+  `screenshot/screenshot-manifest.json`，表格见 `SCREENSHOTS.md`。
+- 浏览器：本机 Chromium 149.0.7827.55（`chromium-1228/chrome-win64/chrome.exe`，
+  非 headless-shell），真实服务读回数据，无 mock。
+- 证据等级：E1 结构 + E2 受控运行时。视觉验收（E4 人工）仍未执行，
+  本文件不构成人工验收判定。
+- 截图过程暴露并修复 2 个真实缺陷（KPI count-up 把 `0.1.0-alpha.0` 渲染成 `0.1`；
+  count-up 中间帧被拍进证据），详见 `SCREENSHOTS.md`「本轮截图暴露并修复的真实缺陷」。
 
 ## 与 E2E 冻结面的关系
 - `.app-nav-item` 数量 12、移动端布局测量（fontSize / navLeft / navWidth /
