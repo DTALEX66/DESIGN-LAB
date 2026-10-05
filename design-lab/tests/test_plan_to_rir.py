@@ -125,6 +125,14 @@ class PlanToRirTests(unittest.TestCase):
             plan_to_rir(_plan(), raster_path='D:/elsewhere/poster.png',
                         project_root=REPO, timestamp='2026-10-05T00:00:00Z')
 
+    def test_absent_detector_score_is_labelled_not_silently_zero(self):
+        from design_lab.analysis.decomposition import CanvasRegion, PlanObject
+        plan = _plan(objects=[PlanObject('i-2', 'image', CanvasRegion(0, 0, 10, 10),
+                                        module='heuristic')])
+        confidence = self._rir(plan)['layers'][0]['confidence']
+        self.assertEqual(confidence['score'], 0.0)
+        self.assertIn('confidence unreported', confidence['method'])
+
     def test_unsupported_kind_fails_closed(self):
         from design_lab.analysis.decomposition import CanvasRegion, DecompositionError, PlanObject
         plan = _plan(objects=[PlanObject('x-1', 'video', CanvasRegion(0, 0, 5, 5))])

@@ -3,10 +3,10 @@
 
 This is the seam between analysis and editable IR: every RIR node keeps the
 Plan object's content-hash-stable id (so the existing `/patch` path can address
-it), and nothing that the analysis did not observe is invented here. Unknown
-fonts stay an empty candidate list, untraced geometry stays a group flagged for
-user correction, and every node is marked `inferred` because it came from a
-detector, not from a native document.
+it), and nothing that the analysis did not observe is invented here. An
+unmatched font yields no candidate, an untraced shape is a flagged bounds box
+rather than traced geometry, unrecovered content stays an empty group, and every
+node is marked `inferred` because it came from a detector, not a native document.
 """
 from __future__ import annotations
 
@@ -29,12 +29,12 @@ def _path_data(polygon: tuple[tuple[float, float], ...]) -> str:
     return f'M {points} Z'
 
 
-def _confidence(obj, method: str) -> dict[str, Any]:
+def _confidence(obj: Any, method: str) -> dict[str, Any]:
     score = obj.confidence
     if score is None:
-        # An absent detector score is not a score of zero; keep it explicitly
-        # low and let the method string say where it came from.
-        score = 0.0
+        # The contract requires a score, but an absent detector score is not a
+        # measurement of zero confidence: say so in the method string.
+        return {'score': 0.0, 'method': method + ' (confidence unreported)'}
     return {'score': max(0.0, min(1.0, float(score))), 'method': method}
 
 
