@@ -250,8 +250,21 @@ V-5：设置页面板改为整幅，让 `.list-item` 已有的 `space-between` �
 - **项目详情**：tab 行末位 `资源预检（非设计评审）` 顶到右边缘；INSPECTOR 里一个**空圆环**（只有描边 + 一个点）。
 - **品牌蓝** `#316CFF` 仍无法承载白色正文（另案记录）。
 
-### 一个必须披露的副作用
+### 一个必须披露的副作用（含精确定位）
 
-`capture_workbench_screenshots.mjs` **不是只读导航**：它会在服务指向的项目根里创建项目
-（名如 `Closeout <时间戳>`）。本轮两次运行在主检出的 gitignored `.project-local/` 下留下 2 条项目记录。
-未进 Git，但记录在此，以免本机 `.project-local` 内容日后无法解释。
+`capture_workbench_screenshots.mjs` **不是只读导航**：它会在服务指向的项目根里创建项目。
+本轮两次运行（`--project` 指向主检出）在
+`.project-local/task-runtime/service/state.db` 的 `project` 表留下 **2 行**：
+
+```
+6474cccad81645df8993bfd806bb0c13  Closeout 1791294101099  2026-10-06T13:41:41Z
+ec92b251ceee483099fe33ca06155513  Closeout 1791294601059  2026-10-06T13:50:01Z
+```
+
+这两行现在会出现在仪表盘的「最近项目」里。未进 Git（`.project-local` 全量 ignored），
+但**没有代为删除**——删 `project` 行会牵动 `asset / design_brief / design_direction` 等表的外键，
+而该库里也可能有非本轮数据，所以留给 owner 决定。
+
+更该修的是脚本本身：**任何一次截图运行都会改动真实项目状态**。
+它应当像 `test_workbench_design_layer_e2e.py` 那样，把服务挂到一个
+`tempfile.TemporaryDirectory()` 合成根上，而不是复用调用方传入的项目根。
