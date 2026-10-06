@@ -7,22 +7,22 @@
     "platform": "Windows-11-10.0.26100-SP0",
     "python": "3.13.14"
   },
-  "fresh": true,
+  "fresh": false,
   "freshnessMeaning": "at generation only; check verifies bound-input integrity, not current Git or cloud state",
-  "generatedAt": "2026-10-06T18:25:40+00:00",
+  "generatedAt": "2026-10-06T20:52:07+00:00",
   "gitStateMeaning": "generation-time observation, not current HEAD",
   "migrationStatus": "deferred",
   "quarantinedSources": 162,
   "schemaVersion": "design-lab/knowledge-inventory/v1",
   "subjectMeaning": "subjectType=WORKTREE means the tree was dirty at generation; worktreeDigest covers HEAD plus the non-generated changes",
-  "subjectSha": "c15056f28b73965b87cf86c60b64d9351e031106",
-  "subjectType": "COMMIT",
+  "subjectSha": "a7167512cf7d01e582f6a58c19879417860e63d4",
+  "subjectType": "WORKTREE",
   "taskpackHash": "31dde89eb4ede81fe88c0a5c5144adfb86af8db4c4d8c263bde2199180369b69",
   "taskpackId": "DL-TP-20260908-R5",
   "testRunAt": "2026-10-06T05:11:47+00:00",
   "testRunId": "testrun-20261006T051130Z-forward-repeat-91beed9eafb6",
   "testRunMeaning": "bound run: python scripts/run_bound_test_suite.py --order forward --repeat 2 --modules test_asset_store test_creative_job test_creative_ledgers test_creative_lineage test_creative_migration test_creative_version_guard test_creative_f030_f040 test_creative_session_link test_job_store test_runtime_attempt_safety test_runtime_asset_safety test_runtime_explicit_project test_assurance_qa_plane test_assurance_jury test_bundle_store test_operation_coordinator",
   "testRunResult": "OK",
-  "worktreeClean": true,
-  "worktreeDigest": "sha256:5f0d4f26fdb9d431dea3592240175468bb2af5b0f604f7b7d43de7061f752cfc"
+  "worktreeClean": false,
+  "worktreeDigest": "sha256:b27876944eb13134ba5601dc96fd976385f3941e19807be0123e8a00a692f944"
 }
