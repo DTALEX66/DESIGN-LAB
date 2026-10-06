@@ -1000,7 +1000,7 @@ function projectDetailHash(id) {
 }
 const VIEW_NOT_OPEN = {
   "research": "研究洞察页未开放：当前服务没有研究结论的持久化路由。",
-  "design-domains": "设计领域页未开放：领域划分尚无独立后端模型。",
+  "design-domains": "设计领域页未开放：域包模型已在仓内（schema、DOMAIN_PACK_SPEC_V2 与 13 个域包，并有 verify_domain_pack_v2.py 校验），缺的是 GET /api/domains 读回路由。",
   "collaboration": "团队协作页未开放：本地单机服务尚无协作路由（本地单用户模型）。"
 };
 const CAPABILITY_REGISTRY = [

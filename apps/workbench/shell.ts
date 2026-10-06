@@ -160,12 +160,13 @@ export function projectDetailHash(id: string): string {
 // Honest "not open yet" copy per IA slot that has no backend route today.
 // Projects / creative-tools / deliverables / evidence are READ-ONLY readbacks
 // of real service routes (see renderProjects/renderCreativeTools/
-// renderDeliverables/renderEvidence). These three slots have NO backend model:
-// research has no persisted conclusions, domains has no independent model, and
-// the service is single-user with no collaboration route — so they say so.
+// renderDeliverables/renderEvidence). These three slots have NO readback route:
+// research has no persisted conclusions, domains has a model in the repo but no
+// GET /api/domains, and the service is single-user with no collaboration route —
+// so they say so, in the same terms the capability card below uses.
 export const VIEW_NOT_OPEN: Partial<Record<RouteView, string>> = {
   'research': '研究洞察页未开放：当前服务没有研究结论的持久化路由。',
-  'design-domains': '设计领域页未开放：领域划分尚无独立后端模型。',
+  'design-domains': '设计领域页未开放：域包模型已在仓内（schema、DOMAIN_PACK_SPEC_V2 与 13 个域包，并有 verify_domain_pack_v2.py 校验），缺的是 GET /api/domains 读回路由。',
   'collaboration': '团队协作页未开放：本地单机服务尚无协作路由（本地单用户模型）。',
 };
 
