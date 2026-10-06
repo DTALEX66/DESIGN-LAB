@@ -696,7 +696,10 @@ html,body{margin:0}
 .kpi .trend{display:flex;align-items:center;gap:6px;font-size:12px;margin-top:6px;color:var(--muted)}
 .kpi .trend.up{color:var(--success)}
 .kpi .trend.warn{color:var(--warning)}
-.list{display:flex;flex-direction:column;gap:10px}
+/* .list is a real <ul> now, so it inherits UA defaults the flex <div> never
+   had: 40px start padding, disc markers and block margins. Reset them here,
+   otherwise every converted list gains an indent and bullets. */
+.list{display:flex;flex-direction:column;gap:10px;margin:0;padding:0;list-style:none}
 /* A bordered row. Two different things wore `.list-item` at once (audit D-2):
    a member of a `.list`, and a free-standing form/action card appended straight
    to a `.panel`. The cards are now `.row-card`. Both names deliberately share one

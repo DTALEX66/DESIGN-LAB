@@ -9,48 +9,43 @@
   },
   "fresh": false,
   "freshnessMeaning": "at generation only; check verifies bound-input integrity, not current Git or cloud state",
-  "generatedAt": "2026-10-06T19:30:29+00:00",
+  "generatedAt": "2026-10-06T20:42:53+00:00",
   "gitStateMeaning": "generation-time observation, not current HEAD",
   "local": {
-    "branch": "qoder/designlab-css-single-definition-20261007",
-    "origin_main": "5321a974f0de03fee2f346cff7926620190ca57f",
-    "sha": "6b98ecc314ac34fffab443a63ec640eb04a7ff43",
+    "branch": "qoder/designlab-ul-li-semantics-20261007",
+    "origin_main": "efe8a67b7944af04263ee6f260f72b616b8122f8",
+    "sha": "d1f1fb2d040d851271f9b3258bddb91db16dae7b",
     "source_worktree_clean": false,
     "tracked_files": 2966,
     "worktree_changes": [
       {
-        "content": "sha256:d9a6ca516125338ca3eaad0398c8e5229ea87140e9bf33816858202415f685e9",
+        "content": "sha256:cf5fb648b6b19dd3950dcba87e601ff1298503186bf706f58f55e4387085b114",
         "kind": "M",
         "path": "apps/workbench/build/main.js"
       },
       {
-        "content": "sha256:20aa223f8a6281e2d1c60d08600d0543a8b611806f71ef1edabc99f6c20f9d63",
+        "content": "sha256:0179ce3f8046f4cf1755ce4d528773be250ff919df1b6e3ca86dc0da348df224",
         "kind": "M",
         "path": "apps/workbench/shell.ts"
       },
       {
-        "content": "sha256:dec6a4604e0a0b21dbb1b2ce4d6b6fea86d8e25ea3bcdc5b926192a228ae4cd7",
+        "content": "sha256:29d231e92aa3f9c94b89addeb399bb91826acdb6677fab4ca51b8ada3e334239",
         "kind": "M",
         "path": "apps/workbench/style.css"
       },
       {
-        "content": "sha256:a465b874177d4378ddb709284a3515a855281505ab151d638166f4ae9b3076e8",
+        "content": "sha256:da0e3127f0dbd4f23cc2a4aa17b50ed7d6300b15027bdad6c3ed86cfebda7dbc",
         "kind": "M",
         "path": "design-lab/tests/test_workbench_css_single_definition.py"
-      },
-      {
-        "content": "sha256:e6db99ee25bc63767df26ca79cbd94cc6b06e06396652cc63cdc1e4ae5cab69b",
-        "kind": "M",
-        "path": "docs/audits/DESIGN-LAB-WORKBENCH-VISUAL-AUDIT-20261006.md"
       }
     ],
-    "worktree_digest": "sha256:c2c2721fea6c6b8b15246e8c30856746aa654e4f6e45e8c3554b9b7ea6ee091b"
+    "worktree_digest": "sha256:0b88f3091a48f0ef9a88b1c6740a57938caf75482bf569029ecee7824aebe562"
   },
   "note": "No GitHub API query was run by this generator; tool installation is not inferred.",
   "remoteRef": "origin/main (local tracking ref)",
   "schemaVersion": "design-lab/cloud-baseline/v2",
   "subjectMeaning": "subjectType=WORKTREE means the tree was dirty at generation; worktreeDigest covers HEAD plus the non-generated changes",
-  "subjectSha": "6b98ecc314ac34fffab443a63ec640eb04a7ff43",
+  "subjectSha": "d1f1fb2d040d851271f9b3258bddb91db16dae7b",
   "subjectType": "WORKTREE",
   "taskpackHash": "31dde89eb4ede81fe88c0a5c5144adfb86af8db4c4d8c263bde2199180369b69",
   "taskpackId": "DL-TP-20260908-R5",
@@ -65,5 +60,5 @@
     "branchProtection"
   ],
   "worktreeClean": false,
-  "worktreeDigest": "sha256:c2c2721fea6c6b8b15246e8c30856746aa654e4f6e45e8c3554b9b7ea6ee091b"
+  "worktreeDigest": "sha256:0b88f3091a48f0ef9a88b1c6740a57938caf75482bf569029ecee7824aebe562"
 }

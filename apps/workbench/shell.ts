@@ -520,14 +520,14 @@ export async function renderDashboard(target: HTMLElement): Promise<void> {
   const recentIds = recentProjectIds();
   const recentPanel = el('div', { class: 'panel' },
     el('h3', {}, '最近项目'),
-    el('div', { class: 'list' },
+    el('ul', { class: 'list' },
       ...(recent.length
-        ? recent.map((p) => el('div', { class: 'list-item' },
+        ? recent.map((p) => el('li', { class: 'list-item' },
             el('div', {},
               el('strong', {}, p.name),
               el('small', {}, p.id)),
             el('span', { class: 'tag info' }, recentIds.includes(p.id) ? '最近打开' : '已登记')))
-        : [el('div', { class: 'list-item' },
+        : [el('li', { class: 'list-item' },
             el('div', {},
               el('strong', {}, '尚无项目'),
               el('small', {}, '在工作台新建项目后读回此处')))])) ,
@@ -575,16 +575,16 @@ const modulePanels = el('div', { class: 'three-col', style: 'margin-top:16px' },
     const rows = triageRows.filter((r) => r.bucket === bucket);
     const body = readable === 0
       // Deliberately NOT "0": an unreachable service has not told us there are none.
-      ? el('div', { class: 'list' }, el('div', { class: 'list-item' },
+      ? el('ul', { class: 'list' }, el('li', { class: 'list-item' },
           el('div', {}, el('strong', {}, '未读回'),
             el('small', {}, '服务不可达或未连接；此处不显示 0，避免把「没读到」说成「没有」。'))))
-      : el('div', { class: 'list' },
+      : el('ul', { class: 'list' },
           ...(rows.length
-            ? rows.map((r) => el('div', { class: 'list-item' },
+            ? rows.map((r) => el('li', { class: 'list-item' },
                 el('div', {}, el('strong', {}, `${r.project} · ${r.kind}`),
                   el('small', {}, `attempt.state=${r.attempt} · job.state=${r.state}`)),
                 el('span', { class: bucket === 'failed' ? 'tag bad' : 'tag warn' }, r.attempt)))
-            : [el('div', { class: 'list-item' },
+            : [el('li', { class: 'list-item' },
                 el('div', {}, el('strong', {}, emptyText),
                   el('small', {}, `已读回 ${readable}/${probeIds.length} 个项目的任务`)))]));
     return el('div', { class: 'panel' }, el('h3', {}, readable === 0 ? title : `${title}（${rows.length}）`), body);
@@ -593,15 +593,15 @@ const modulePanels = el('div', { class: 'three-col', style: 'margin-top:16px' },
   const continueProj = continueId ? projects.projects.find((p) => p.id === continueId) : undefined;
   const continuePanel = el('div', { class: 'panel' },
     el('h3', {}, '继续项目'),
-    el('div', { class: 'list' }, continueProj
-      ? el('div', { class: 'list-item' },
+    el('ul', { class: 'list' }, continueProj
+      ? el('li', { class: 'list-item' },
         el('div', {}, el('strong', {}, continueProj.name), el('small', {}, `本机最近打开 · ${continueProj.id}`)),
         el('div', { class: 'actions' },
           el('button', {
             type: 'button', class: 'primary-btn', id: 'pd-continue',
             onclick: () => { window.location.hash = `#/projects/${encodeURIComponent(continueProj.id)}`; },
           }, '继续')))
-      : el('div', { class: 'list-item' },
+      : el('li', { class: 'list-item' },
         el('div', {}, el('strong', {}, '尚无「继续项目」'),
           el('small', {}, '在本机打开过某个项目后，这里会显示最近打开的那一个。')))));
   target.replaceChildren(
@@ -623,9 +623,9 @@ const modulePanels = el('div', { class: 'three-col', style: 'margin-top:16px' },
     el('div', { class: 'two-col', style: 'margin-top:16px' },
       el('div', { class: 'panel' },
         el('h3', {}, `活跃生产（${activeProductionRows.length}）`),
-        el('div', { class: 'list' },
+        el('ul', { class: 'list' },
           ...(activeProductionRows.length
-            ? activeProductionRows.map((r) => el('div', { class: 'list-item' },
+            ? activeProductionRows.map((r) => el('li', { class: 'list-item' },
                 el('div', {},
                   el('strong', {}, `${r.project} · ${r.kind}`),
                   el('small', {}, `job.state=${r.state} · attempt=${r.attempt}`)),
@@ -633,7 +633,7 @@ const modulePanels = el('div', { class: 'three-col', style: 'margin-top:16px' },
                 // before adapter dispatch), so the pill carries the real state
                 // instead of claiming 运行中 for both.
                 el('span', { class: 'tag warn' }, r.attempt)))
-            : [el('div', { class: 'list-item' },
+            : [el('li', { class: 'list-item' },
                 el('div', {},
                   el('strong', {}, readable === 0 ? '未读回' : '无运行中任务'),
                   el('small', {}, readable === 0
@@ -643,15 +643,15 @@ const modulePanels = el('div', { class: 'three-col', style: 'margin-top:16px' },
         el('h3', {}, bundlesReadable === probes.length
           ? `交付包（${allBundles.length}）`
           : `交付包（未读回 ${probes.length - bundlesReadable}/${probes.length} 项目）`),
-        el('div', { class: 'list' },
+        el('ul', { class: 'list' },
           ...(allBundles.length
-            ? allBundles.slice(0, 8).map((b) => el('div', { class: 'list-item' },
+            ? allBundles.slice(0, 8).map((b) => el('li', { class: 'list-item' },
                 el('div', {},
                   el('strong', {}, `${b.project} · 交付包 v${b.version_no}`),
                   el('small', {}, `${b.id} · ${b.byte_size} 字节 · ${b.rights}`)),
                 el('span', { class: b.rights === 'NOT_REVIEWED' ? 'tag warn' : 'tag info' },
                   b.rights === 'NOT_REVIEWED' ? '权利未审查' : b.rights)))
-            : [el('div', { class: 'list-item' },
+            : [el('li', { class: 'list-item' },
                 el('div', {},
                   el('strong', {}, '尚无交付包'),
                   el('small', {}, '任务完成并打包后，交付会在此读回。')))])),
@@ -661,8 +661,8 @@ const modulePanels = el('div', { class: 'three-col', style: 'margin-top:16px' },
       el('div', { class: 'three-col' },
         el('div', { class: 'panel' },
           el('h3', {}, '宿主读回'),
-          el('div', { class: 'list' },
-            ...TOOL_ADAPTERS.map((a) => el('div', { class: 'list-item' },
+          el('ul', { class: 'list' },
+            ...TOOL_ADAPTERS.map((a) => el('li', { class: 'list-item' },
               el('div', {},
                 el('strong', {}, a.name),
                 el('small', {}, a.path)),
@@ -670,8 +670,8 @@ const modulePanels = el('div', { class: 'three-col', style: 'margin-top:16px' },
           el('p', { class: 'view-hint' }, '宿主在线状态尚未有服务路由；此处 UNKNOWN，不假报可用。')),
         el('div', { class: 'panel' },
           el('h3', {}, '共享输入'),
-          el('div', { class: 'list' },
-            ...Object.entries(environment.shared_inputs).slice(0, 4).map(([k, v]) => el('div', { class: 'list-item' },
+          el('ul', { class: 'list' },
+            ...Object.entries(environment.shared_inputs).slice(0, 4).map(([k, v]) => el('li', { class: 'list-item' },
               el('div', {},
                 el('strong', {}, k),
                 el('small', {}, v.path)),
@@ -684,8 +684,8 @@ const modulePanels = el('div', { class: 'three-col', style: 'margin-top:16px' },
           el('p', { class: 'view-hint' }, '服务端环境读回；写权限与状态由服务裁定。')),
         el('div', { class: 'panel' },
           el('h3', {}, '未来能力'),
-          el('div', { class: 'list' },
-            ...CAPABILITY_REGISTRY.slice(0, 4).map((c) => el('div', { class: 'list-item' },
+          el('ul', { class: 'list' },
+            ...CAPABILITY_REGISTRY.slice(0, 4).map((c) => el('li', { class: 'list-item' },
               el('div', {},
                 el('strong', {}, c.domain),
                 el('small', {}, c.contractRef)),
@@ -694,23 +694,23 @@ const modulePanels = el('div', { class: 'three-col', style: 'margin-top:16px' },
       ),
     el('div', { class: 'panel quick-launch', style: 'margin-top:16px' },
       el('h3', {}, 'Quick Launch'),
-      el('div', { class: 'list' },
-        el('div', { class: 'list-item' },
+      el('ul', { class: 'list' },
+        el('li', { class: 'list-item' },
           el('div', {}, el('strong', {}, '新建项目'), el('small', {}, '进入工作台创建项目')),
           el('div', { class: 'actions' },
             el('button', { type: 'button', class: 'ghost-btn',
               onclick: () => { window.location.hash = ''; } }, '工作台'))),
-        el('div', { class: 'list-item' },
+        el('li', { class: 'list-item' },
           el('div', {}, el('strong', {}, '项目列表'), el('small', {}, '全部项目一览')),
           el('div', { class: 'actions' },
             el('button', { type: 'button', class: 'ghost-btn',
               onclick: () => { window.location.hash = '#/projects'; } }, '项目'))),
-        el('div', { class: 'list-item' },
+        el('li', { class: 'list-item' },
           el('div', {}, el('strong', {}, '创作工具'), el('small', {}, '宿主任务读回')),
           el('div', { class: 'actions' },
             el('button', { type: 'button', class: 'ghost-btn',
               onclick: () => { window.location.hash = '#/tools'; } }, '创作工具'))),
-        el('div', { class: 'list-item' },
+        el('li', { class: 'list-item' },
           el('div', {}, el('strong', {}, '预检 / QA'), el('small', {}, '任务资源预检')),
           el('div', { class: 'actions' },
             el('button', { type: 'button', class: 'ghost-btn',
@@ -755,14 +755,14 @@ export async function renderBrandSystems(target: HTMLElement): Promise<void> {
       el('span', { class: 'tag info' }, 'VI 模块'))));
   const systemsList = el('div', { class: 'panel' },
     el('h3', {}, `设计系统登记（${sysCount}）`),
-    el('div', { class: 'list' },
+    el('ul', { class: 'list' },
       ...(systems.design_systems.length
-        ? systems.design_systems.map((system) => el('div', { class: 'list-item' },
+        ? systems.design_systems.map((system) => el('li', { class: 'list-item' },
             el('div', {},
               el('strong', {}, `${system.name} · ${system.title}`),
               el('small', {}, `v${system.version} · 证据 ${system.evidence_level}`)),
             el('span', { class: 'tag info' }, system.version)))
-        : [el('div', { class: 'list-item' },
+        : [el('li', { class: 'list-item' },
             el('div', {},
               el('strong', {}, '尚无登记设计系统'),
               el('small', {}, '在工作台 DESIGN LAYER 绑定后读回此处')
@@ -879,10 +879,10 @@ export async function renderPreflight(target: HTMLElement): Promise<void> {
 // is how the rule got missed the second time it was needed.
 function valueRow(label: string, value: string, long: boolean, tagClass = 'info'): HTMLElement {
   return long
-    ? el('div', { class: 'list-item value-row' },
+    ? el('li', { class: 'list-item value-row' },
         el('span', {}, label),
         el('span', { class: 'value-mono' }, value))
-    : el('div', { class: 'list-item' },
+    : el('li', { class: 'list-item' },
         el('span', {}, label),
         el('span', { class: 'tag ' + tagClass }, value));
 }
@@ -927,7 +927,7 @@ export async function renderSettings(target: HTMLElement): Promise<void> {
     // than truncated.
     el('div', { class: 'panel' },
       el('h3', {}, '环境状态'),
-      el('div', { class: 'list' },
+      el('ul', { class: 'list' },
         ...rows.map((r) => valueRow(r.label, r.value, r.long,
           r.label === '代理配置' ? 'warn' : 'info')))),
     // 路径诊断是后端对接面，不是设计生产面：默认收起，展开才占版面。
@@ -937,21 +937,21 @@ export async function renderSettings(target: HTMLElement): Promise<void> {
         el('div', { class: 'three-col' },
           el('div', { class: 'panel' },
             el('h3', {}, '项目根（服务声明可写，未探测）'),
-            el('div', { class: 'list' },
+            el('ul', { class: 'list' },
               ...(Object.keys(env.roots).length
-                ? Object.entries(env.roots).map(([name, root]) => el('div', { class: 'list-item' },
+                ? Object.entries(env.roots).map(([name, root]) => el('li', { class: 'list-item' },
                     el('div', {}, el('strong', {}, name), el('small', {}, root.path)),
                     writablePill(root.writable)))
-                : [el('div', { class: 'list-item' },
+                : [el('li', { class: 'list-item' },
                     el('div', {}, el('strong', {}, '尚无根登记'), el('small', {}, '服务未返回 roots')))]))),
           el('div', { class: 'panel' },
             el('h3', {}, '外置输入（只读 · DECLARED_NOT_PROBED）'),
-            el('div', { class: 'list' },
+            el('ul', { class: 'list' },
               ...(Object.keys(env.shared_inputs).length
-                ? Object.entries(env.shared_inputs).map(([name, input]) => el('div', { class: 'list-item' },
+                ? Object.entries(env.shared_inputs).map(([name, input]) => el('li', { class: 'list-item' },
                     el('div', {}, el('strong', {}, name), el('small', {}, input.path)),
                     el('span', { class: 'tag info' }, input.status)))
-                : [el('div', { class: 'list-item' },
+                : [el('li', { class: 'list-item' },
                     el('div', {}, el('strong', {}, '尚无外置输入'), el('small', {}, '服务未返回 shared_inputs')))])))))),
     el('p', { class: 'view-hint' }, '代理配置私有状态不可写：PRIVATE_NOT_INSPECTED · 不可写。本服务不读取、不打印任何凭据。'));
 }
@@ -1085,8 +1085,8 @@ export async function renderCreativeTools(target: HTMLElement): Promise<void> {
       el('div', { class: 'three-col' },
         el('div', { class: 'panel' },
           el('h3', {}, '宿主读回'),
-          el('div', { class: 'list' },
-            ...TOOL_ADAPTERS.map((a) => el('div', { class: 'list-item' },
+          el('ul', { class: 'list' },
+            ...TOOL_ADAPTERS.map((a) => el('li', { class: 'list-item' },
               el('div', {},
                 el('strong', {}, a.name),
                 el('small', {}, a.path)),
@@ -1094,8 +1094,8 @@ export async function renderCreativeTools(target: HTMLElement): Promise<void> {
           el('p', { class: 'view-hint' }, '宿主在线状态尚未有服务路由；此处 UNKNOWN，不假报可用。')),
         el('div', { class: 'panel' },
           el('h3', {}, '共享输入'),
-          el('div', { class: 'list' },
-            ...Object.entries(env.shared_inputs).slice(0, 4).map(([k, v]) => el('div', { class: 'list-item' },
+          el('ul', { class: 'list' },
+            ...Object.entries(env.shared_inputs).slice(0, 4).map(([k, v]) => el('li', { class: 'list-item' },
               el('div', {},
                 el('strong', {}, k),
                 el('small', {}, v.path)),
@@ -1152,7 +1152,7 @@ export async function renderDeliverables(target: HTMLElement): Promise<void> {
     // 2026-09-30 — 真实 bundle 读回：显示该项目的交付包（id / 版本 / 字节 / 权利），
     // 不再只有占位卡片。
     const bundleRows: (HTMLElement | null)[] = bundles.bundles.length
-      ? bundles.bundles.map((b) => el('div', { class: 'list-item' },
+      ? bundles.bundles.map((b) => el('li', { class: 'list-item' },
           el('div', {},
             el('strong', {}, `交付包 · v${b.version_no}`),
             el('small', {}, `${b.id} · ${b.byte_size} 字节 · ${b.rights}`)),
@@ -1165,11 +1165,11 @@ export async function renderDeliverables(target: HTMLElement): Promise<void> {
             }, '在项目页下载'),
             el('span', { class: b.rights === 'NOT_REVIEWED' ? 'tag warn' : 'tag info' },
               b.rights === 'NOT_REVIEWED' ? '权利未审查' : b.rights))))
-      : [el('div', { class: 'list-item' },
+      : [el('li', { class: 'list-item' },
           el('div', {},
             el('strong', {}, '尚无交付包'),
             el('small', {}, '任务完成并打包后，交付会在此读回。')))];
-    const bundleList = el('div', { class: 'list' },
+    const bundleList = el('ul', { class: 'list' },
       ...bundleRows.filter((x): x is HTMLElement => x !== null));
 
     const bundlePanel = el('div', { class: 'panel' },
@@ -1227,11 +1227,11 @@ export async function renderEvidence(target: HTMLElement): Promise<void> {
     // 全部来自真实读回，不发明 KPI。
     const bindingChain = el('div', { class: 'panel' },
       el('h3', {}, '证据绑定链'),
-      el('div', { class: 'list' },
-        el('div', { class: 'list-item' },
+      el('ul', { class: 'list' },
+        el('li', { class: 'list-item' },
           el('div', {}, el('strong', {}, '项目'), el('small', {}, id)),
           el('span', { class: 'tag ok' }, '已读回')),
-        el('div', { class: 'list-item' },
+        el('li', { class: 'list-item' },
           el('div', {},
             el('strong', {}, `Brief（${layer.briefs.length} 版本）`),
             el('small', {}, layer.briefs.length
@@ -1239,13 +1239,13 @@ export async function renderEvidence(target: HTMLElement): Promise<void> {
               : '（无）')),
           el('span', { class: layer.briefs.length ? 'tag ok' : 'tag info' },
             layer.briefs.length ? '已读回' : '空')),
-        el('div', { class: 'list-item' },
+        el('li', { class: 'list-item' },
           el('div', {},
             el('strong', {}, '选定方向'),
             el('small', {}, chosen)),
           el('span', { class: layer.chosen_direction ? 'tag ok' : 'tag warn' },
             layer.chosen_direction ? '已选定' : '未选定')),
-        el('div', { class: 'list-item' },
+        el('li', { class: 'list-item' },
           el('div', {},
             el('strong', {}, `交付包（${bundlesResp.bundles.length}）`),
             el('small', {}, bundlesResp.bundles.length
@@ -1267,8 +1267,8 @@ export async function renderEvidence(target: HTMLElement): Promise<void> {
     }
     const systems = el('div', { class: 'panel' },
       el('h3', {}, '设计系统登记'),
-      el('div', { class: 'list' },
-        ...layer.design_systems.map((s) => el('div', { class: 'list-item' },
+      el('ul', { class: 'list' },
+        ...layer.design_systems.map((s) => el('li', { class: 'list-item' },
           el('div', {},
             el('strong', {}, `${s.name} · ${s.title}`),
             el('small', {}, `v${s.version} · 证据 ${s.evidence_level}`)),
@@ -1387,7 +1387,7 @@ function buildInspectorPanel(id: string, layer: DesignLayerReadback): HTMLElemen
   const chosen = layer.chosen_direction;
   const binding = layer.active_binding;
   const sysItems: Array<HTMLElement | null> = layer.design_systems.length
-    ? [el('div', { class: 'list-item' },
+    ? [el('li', { class: 'list-item' },
         el('div', {},
           el('strong', {}, '设计系统'),
           el('small', {}, layer.design_systems.map((s) => s.name).join(', '))))]
@@ -1396,8 +1396,8 @@ function buildInspectorPanel(id: string, layer: DesignLayerReadback): HTMLElemen
     ring,
     el('p', { class: 'view-hint' }, `${layer.directions.length} 个方向版本` +
       (chosen ? ` · 选定：${chosen.title} v${chosen.version}` : ' · 尚未选定方向')),
-    el('div', { class: 'list' },
-      el('div', { class: 'list-item' },
+    el('ul', { class: 'list' },
+      el('li', { class: 'list-item' },
         el('div', {},
           el('strong', {}, '活动绑定'),
           el('small', {}, binding
@@ -1641,7 +1641,7 @@ function renderBriefEditor(id: string, layer: DesignLayerResponse['design_layer'
     '在某一简报行点「新版本」以载入该版本内容；保存会新增版本，旧版本只保留为历史。');
   const revBtn = el('button', { type: 'button', class: 'primary-btn', id: 'pd-brief-revise' }, '保存新版本');
   let revTarget: DesignBrief | null = null;
-  const lineageBox = el('div', { class: 'list', id: 'pd-brief-lineage' });
+  const lineageBox = el('ul', { class: 'list', id: 'pd-brief-lineage' });
 
   const loadLineage = async (briefId: string): Promise<void> => {
     const data = await apiOrEmpty<BriefLineageResponse>(`/projects/${id}/briefs/${briefId}/lineage`, {
@@ -1650,10 +1650,10 @@ function renderBriefEditor(id: string, layer: DesignLayerResponse['design_layer'
     const rows = data.lineage.versions;
     const liveId = data.lineage.live_id;
     lineageBox.replaceChildren(
-      el('div', { class: 'list-item' },
+      el('li', { class: 'list-item' },
         el('div', {}, el('strong', {}, `版本链（${rows.length}）`),
           el('small', {}, `当前 ${liveId ? `版本 ${versions.get(liveId) ?? '?'}` : '—'}`))),
-      ...rows.map((row) => el('div', { class: 'list-item' },
+      ...rows.map((row) => el('li', { class: 'list-item' },
         el('div', {},
           el('strong', {}, `版本 ${row.version} · ${row.title}`),
           el('small', {}, `${row.goals.join(' / ')}${row.constraints ? ` · ${row.constraints}` : ''} · 参考 ${row.reference_asset_ids.length} · ${row.created_at}`)),
@@ -1713,14 +1713,14 @@ function renderBriefEditor(id: string, layer: DesignLayerResponse['design_layer'
   });
 
   const briefRows = layer.briefs.length
-    ? layer.briefs.map((brief) => el('div', { class: 'list-item' },
+    ? layer.briefs.map((brief) => el('li', { class: 'list-item' },
         el('div', {},
           expandableTitle(brief.title, ` · v${brief.version}`),
           el('small', {}, `${brief.goals.join(' / ')}${brief.constraints ? ` · ${brief.constraints}` : ''} · 参考 ${brief.reference_asset_ids.length} · ${brief.created_at}`)),
         el('div', { class: 'actions' },
           el('span', { class: brief.superseded_by === null ? 'tag ok' : 'tag warn' }, versionState(brief.superseded_by, versions)),
           el('button', { type: 'button', class: 'ghost-btn', onclick: () => startRevision(brief) }, '新版本'))))
-    : [el('div', { class: 'list-item' },
+    : [el('li', { class: 'list-item' },
         el('div', {}, el('strong', {}, '尚无简报'), el('small', {}, '用下方表单创建该项目的第一份简报（真实写入，保存后读回）')))];
 
   // 离开未保存页的恢复策略: restore any draft found for this project + form, disclose it,
@@ -1757,7 +1757,7 @@ function renderBriefEditor(id: string, layer: DesignLayerResponse['design_layer'
   const panel = el('div', { class: 'panel', id: 'pd-brief-editor' });
   panel.append(
     el('h3', {}, `简报（Brief）· ${layer.briefs.length} 个版本`),
-    el('div', { class: 'list' }, ...briefRows),
+    el('ul', { class: 'list' }, ...briefRows),
     el('div', { class: 'row-card', style: 'display:grid;gap:10px' },
       el('strong', {}, '新建简报'), create.row, el('div', { class: 'actions' }, createBtn)),
     el('div', { class: 'row-card', style: 'display:grid;gap:10px' },
@@ -1791,8 +1791,8 @@ function renderBriefEditor(id: string, layer: DesignLayerResponse['design_layer'
 // certification. It does NOT claim to enforce anything itself.
 function renderReferencePanel(id: string): HTMLElement {
   const heading = el('h3', { id: 'pd-ref-heading' }, '参考素材');
-  const list = el('div', { class: 'list', id: 'pd-ref-list' },
-    el('div', { class: 'list-item' }, el('div', {}, el('strong', {}, '正在读回…'))));
+  const list = el('ul', { class: 'list', id: 'pd-ref-list' },
+    el('li', { class: 'list-item' }, el('div', {}, el('strong', {}, '正在读回…'))));
   const preview = el('img', { id: 'pd-ref-preview', class: 'ref-preview', alt: '参考素材预览' });
   preview.hidden = true;
   const info = el('p', { class: 'view-hint', id: 'pd-ref-info' },
@@ -1837,7 +1837,7 @@ function renderReferencePanel(id: string): HTMLElement {
       a.version_id ? `version_id ${a.version_id.slice(0, 12)}…` : null,
       a.sha256 ? `sha256 ${String(a.sha256).replace(/^sha256:/, '').slice(0, 16)}…` : null,
     ].filter(Boolean).join(' · ');
-    return el('div', { class: 'list-item' },
+    return el('li', { class: 'list-item' },
       el('div', {}, el('strong', {}, headline), el('small', {}, provenance)),
       el('div', { class: 'actions' },
         rights,
@@ -1852,7 +1852,7 @@ function renderReferencePanel(id: string): HTMLElement {
       const assets = data.assets;
       heading.textContent = `参考素材（${assets.length}）`;
       list.replaceChildren(
-        ...(assets.length ? assets.map(assetRow) : [el('div', { class: 'list-item' },
+        ...(assets.length ? assets.map(assetRow) : [el('li', { class: 'list-item' },
           el('div', {}, el('strong', {}, '尚无参考素材'),
             el('small', {}, '用下方批量导入，或在旧工作台导入；未知权利可研究，但会阻止生产认证。')))]));
       showHint(assets.some((a) => a.rights === 'NOT_REVIEWED')
@@ -1862,7 +1862,7 @@ function renderReferencePanel(id: string): HTMLElement {
     } catch (error) {
       // Same honesty rule as the triage panels: an unreadable list is not an empty one.
       heading.textContent = '参考素材';
-      list.replaceChildren(el('div', { class: 'list-item' },
+      list.replaceChildren(el('li', { class: 'list-item' },
         el('div', {}, el('strong', {}, '未读回'),
           el('small', {}, '资产清单读取失败；此处不显示 0，避免把「没读到」说成「没有」。'))));
       showError(`资产清单读取失败：${errMsg(error)}`);
@@ -1886,7 +1886,7 @@ function renderReferencePanel(id: string): HTMLElement {
   const importBtn = el('button', { type: 'button', class: 'primary-btn', id: 'pd-ref-import' }, '开始导入');
   const cancelBtn = el('button', { type: 'button', class: 'ghost-btn', id: 'pd-ref-cancel' }, '取消');
   cancelBtn.disabled = true;
-  const results = el('div', { class: 'list', id: 'pd-ref-import-results' });
+  const results = el('ul', { class: 'list', id: 'pd-ref-import-results' });
   const summary = el('p', { class: 'view-hint', id: 'pd-ref-import-summary' }, '尚未导入。');
   const selection = el('p', { class: 'view-hint', id: 'pd-ref-selection' }, '未选择文件。');
   let batchRunning = false;
@@ -1894,7 +1894,7 @@ function renderReferencePanel(id: string): HTMLElement {
 
   type Row = { name: string; status: 'ok' | 'failed' | 'cancelled'; detail: string };
   const renderResults = (rows: Row[], pending?: string): void => {
-    results.replaceChildren(...rows.map((r) => el('div', { class: 'list-item' },
+    results.replaceChildren(...rows.map((r) => el('li', { class: 'list-item' },
       el('div', {}, el('strong', {}, r.name), el('small', {}, r.detail)),
       el('span', { class: r.status === 'ok' ? 'tag ok' : (r.status === 'cancelled' ? 'tag warn' : 'tag bad') },
         r.status === 'ok' ? '已导入' : (r.status === 'cancelled' ? '已取消' : '失败')))));
@@ -2039,7 +2039,7 @@ function renderDirectionPanel(id: string, layer: DesignLayerResponse['design_lay
     const mood = [d.color_mood ? `色感 ${d.color_mood}` : null, d.typography_mood ? `字感 ${d.typography_mood}` : null]
       .filter(Boolean).join(' · ') || '（未填色感/字感）';
     const notes = d.style_notes && d.style_notes.length ? d.style_notes.join(' / ') : null;
-    return el('div', { class: 'list-item' },
+    return el('li', { class: 'list-item' },
       el('div', {},
         expandableTitle(d.title, ` · v${d.version}`),
         el('small', {}, `${mood}${notes ? ` · ${notes}` : ''} · ${d.direction_id}`),
@@ -2108,10 +2108,10 @@ function renderDirectionPanel(id: string, layer: DesignLayerResponse['design_lay
   return el('div', { class: 'panel', id: 'pd-direction-panel' },
       el('h3', {}, `方向（Direction）· ${layer.directions.length} 个候选`),
       el('p', { class: 'view-hint', id: 'pd-dir-consistency' }, `版本链 / 选定 / 绑定一致性：${consistency}`),
-    el('div', { class: 'list' },
+    el('ul', { class: 'list' },
       ...(layer.directions.length
         ? [...layer.directions].map(directionRow)
-        : [el('div', { class: 'list-item' },
+        : [el('li', { class: 'list-item' },
           el('div', {}, el('strong', {}, '尚无方向候选'),
             el('small', {}, '先建立简报，再用下方表单立候选；选定必须由人执行。')))])),
     el('div', { class: 'row-card', style: 'display:grid;gap:8px' },
@@ -2192,15 +2192,15 @@ function renderDesignSystemPanel(
   const consistent = !!(active && chosen && active.direction_id === chosen.direction_id);
   return el('div', { class: 'panel', id: 'pd-design-system-panel' },
       el('h3', {}, `设计系统（DesignSystem）· 目录 ${systems.design_systems.length} 项 · 绑定 ${layer.bindings.length} 次`),
-    el('div', { class: 'list' },
-      el('div', { class: 'list-item' },
+    el('ul', { class: 'list' },
+      el('li', { class: 'list-item' },
         el('div', {}, el('strong', {}, '活动绑定'),
           el('small', {}, active
             ? `${active.design_system_name} · 绑定于方向 ${active.direction_id} · v${active.version}`
             : '（无活动绑定）')),
         el('span', { class: active ? 'tag ok' : 'tag info' }, active ? '已绑定' : '未绑定')),
       ...(active && chosen
-        ? [el('div', { class: 'list-item' },
+        ? [el('li', { class: 'list-item' },
           el('div', {}, el('strong', {}, '绑定与选定方向的一致性'),
             el('small', {}, consistent
               ? '一致：活动绑定所属方向就是人工选定的方向。'
@@ -2230,10 +2230,10 @@ function renderDeliveryPanel(id: string, data: BundleListResponse): HTMLElement 
   // The list itself was read via the service route (apiOrEmpty: a connected session
   // gets the live readback; dev/offline gets an honest empty payload) — so the rows
   // below are rendered from what the SERVICE said, never from an invented count.
-  const list = el('div', { class: 'list', id: 'pd-deliveries-list' },
+  const list = el('ul', { class: 'list', id: 'pd-deliveries-list' },
     ...(bundles.length
       ? []
-      : [el('div', { class: 'list-item' },
+      : [el('li', { class: 'list-item' },
           el('div', {}, el('strong', {}, token ? '尚无交付包' : '未连接'),
             el('small', {}, token ? '任务完成并打包后，交付会在此读回。' : '连接本机设计服务后读回该项目的交付清单。')))]));
 
@@ -2262,7 +2262,7 @@ function renderDeliveryPanel(id: string, data: BundleListResponse): HTMLElement 
     status.textContent = `交付包已下载并核对 hash；字体、链接、rights 与质量仍需验收。`;
   };
 
-  const row = (b: BundleRecord): HTMLElement => el('div', { class: 'list-item' },
+  const row = (b: BundleRecord): HTMLElement => el('li', { class: 'list-item' },
     el('div', {},
       el('strong', {}, `交付包 · v${b.version_no}`),
       el('small', {}, `${b.id} · ${b.byte_size} 字节 · sha256 ${String(b.sha256).replace(/^sha256:/, '').slice(0, 16)}…`)),
@@ -2330,17 +2330,17 @@ export async function renderProjectDetail(id: string, target: HTMLElement): Prom
 
   const taskPanel = el('div', { class: 'panel', id: 'pd-tasks-panel' },
     el('h3', {}, `任务台账（${tasks.tasks.length}）`),
-    el('div', { class: 'list' },
+    el('ul', { class: 'list' },
       ...(tasks.tasks.length
-        ? tasks.tasks.slice(0, 8).map((t) => el('div', { class: 'list-item' },
+        ? tasks.tasks.slice(0, 8).map((t) => el('li', { class: 'list-item' },
             el('div', {}, el('strong', {}, t.kind), el('small', {}, `尝试 ${t.attempt.attempt_no} · ${t.attempt.state}`)),
             el('span', { class: 'tag info' }, t.state)))
-        : [el('div', { class: 'list-item' },
+        : [el('li', { class: 'list-item' },
             el('div', {}, el('strong', {}, '尚无任务'), el('small', {}, '任务由工作台高级区提交')))])))
 
   const layerPanel = el('div', { class: 'panel' },
     el('h3', {}, '设计层契约'),
-    el('div', { class: 'list' },
+    el('ul', { class: 'list' },
       valueRow('选定方向', chosen, false),
       // `active` always embeds a 32-hex direction_id, so it is a long value by
       // construction and must never go into the nowrap .tag pill (F-2).
@@ -2777,10 +2777,10 @@ function mountB10Overlays(): void {
       el('span', { class: 'tag warn' }, '只读不回写')),
     el('div', { class: 'panel' },
       el('h3', {}, '前端能力（不代表数据读回）'),
-      el('div', { class: 'list' },
-        el('div', { class: 'list-item' }, el('span', {}, '本页浮层'), el('span', { class: 'tag info' }, '已渲染')),
-        el('div', { class: 'list-item' }, el('span', {}, '动效'), el('span', { class: 'tag info' }, '跟随系统偏好')),
-        el('div', { class: 'list-item' }, el('span', {}, '命令面板'), el('span', { class: 'tag info' }, 'Ctrl/Cmd + K')))),
+      el('ul', { class: 'list' },
+        el('li', { class: 'list-item' }, el('span', {}, '本页浮层'), el('span', { class: 'tag info' }, '已渲染')),
+        el('li', { class: 'list-item' }, el('span', {}, '动效'), el('span', { class: 'tag info' }, '跟随系统偏好')),
+        el('li', { class: 'list-item' }, el('span', {}, '命令面板'), el('span', { class: 'tag info' }, 'Ctrl/Cmd + K')))),
     el('button', { class: 'primary-btn', type: 'button', id: 'closeDrawer', style: 'margin-top:18px;width:100%' }, '关闭'));
   document.body.append(drawer);
   const openDrawer = (): void => { drawer.classList.add('open'); };
