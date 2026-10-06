@@ -24,7 +24,11 @@
 
 ## 1. 现在在哪（实测）
 
-- `main` 本地 = 远端 = **`d35bfc814bb1c5d583447c8bc4d4f572adff782a`**，工作树干净（0 项）。
+> 本节数字是**写作时刻**的读数。本文档自身通过 PR #223 进入 main，那次合并就把 main 往前推了一格
+> （`d35bfc81` → `3f2842c5`）。所以**不要引用下面的 SHA 作为当前值**，按 §6 第一步自己读回。
+> 这不是疏漏，是这类"落仓即过期"文档的固有性质（与投影 `fresh=false` 同源）。
+
+- `main` 本地 = 远端 = **`d35bfc814bb1c5d583447c8bc4d4f572adff782a`**（写作时），工作树干净（0 项）。
 - 分支只剩 `main`；worktree 只剩主检出 `D:/All projects/DESIGN-LAB`。
 - 恢复标签：`preserve/codex-github-delivery-docs-20260929` → `daa7af46`（内容已证实过时，见 §3.6）。
 - 账本：28 任务（14 P0 / 14 P1），**四轴全部 PARTIAL**，27 项 `PENDING_EVIDENCE_REVIEW`。
