@@ -20,7 +20,7 @@ class DoctorEvidenceTests(unittest.TestCase):
              patch.object(doctor.shutil, 'which', return_value='D:/fixture/' + tool + '.exe'), \
              patch.object(doctor.subprocess, 'run', side_effect=error,
                           return_value=subprocess.CompletedProcess([], code, output, stderr)) as run:
-            status = doctor.probe_tools()[0]
+            status = doctor.probe_tools(bindings={})[0]
         return status, run.call_args
 
     def test_correct_ffmpeg_flag_and_success_still_not_workflow_verification(self):
@@ -60,7 +60,7 @@ class DoctorEvidenceTests(unittest.TestCase):
 
     def test_missing_is_only_scoped_not_found(self):
         with patch.object(doctor.shutil, 'which', return_value=None), patch.object(doctor.subprocess, 'run') as run:
-            statuses = doctor.probe_tools()
+            statuses = doctor.probe_tools(bindings={})
         self.assertTrue(all(s.version_status == 'NOT_FOUND_IN_SEARCH_SCOPE' for s in statuses))
         self.assertTrue(all(s.search_scope for s in statuses))
         self.assertFalse(run.called)
