@@ -99,6 +99,8 @@ acceptance：A1 同名三版本可回退；A2 任一副文件失败无假成功�
    这是唯一能绕过"先校验后打包"的时间窗，也是"无假成功"最该被证伪的地方。
 2. 校验阶段失败时**不留 journal 孤儿**：`:65-70` 与 `:92-99` 都只断言 `asset_version` 计数为 0，
    没有断言 `asset_publication` 中不存在 `PREPARED` 行。
+> **2026-10-07 缺口 1 与 2 已由 #247 补齐**（纯测试 PR，未改生产文件）：拷贝期两种改动（变大 / 等长换内容）各有独立用例，校验阶段失败另断言 `asset_publication` 无残留且纠正后可重试。两条守卫分别删除后都被检出，并暴露出第三层防线：任一带内守卫被删时 `verify_bundle` 仍会以成员 hash 不符拒绝。缺口 3（候选档案泄漏）保持未动、也未写断言，因为它按 owner 口径才定得了性质。
+
 3. 候选档案泄漏：`bundle_store.py:106` 每次尝试写一个 `runtime/bundle-candidates/<uuid>.zip`，
    失败后不清理。`:105` 注释把它声明为 "project-owned recovery evidence"，
    所以**这是设计意图还是遗漏属 owner 口径**，不由实现侧静默改；

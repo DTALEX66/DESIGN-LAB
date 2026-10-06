@@ -251,11 +251,11 @@
   },
   "fresh": false,
   "freshnessMeaning": "at generation only; check verifies bound-input integrity, not current Git or cloud state",
-  "generatedAt": "2026-10-06T20:20:38+00:00",
+  "generatedAt": "2026-10-06T20:25:10+00:00",
   "gitStateMeaning": "generation-time observation, not current HEAD",
   "schemaVersion": "design-lab/adapter-reconciliation/v2",
   "subjectMeaning": "subjectType=WORKTREE means the tree was dirty at generation; worktreeDigest covers HEAD plus the non-generated changes",
-  "subjectSha": "f1412ed3ec84362280aceb975607a6ff0452b9ae",
+  "subjectSha": "c3fda9edc45c03a910e0b5de2768998b0b818852",
   "subjectType": "WORKTREE",
   "taskpackHash": "31dde89eb4ede81fe88c0a5c5144adfb86af8db4c4d8c263bde2199180369b69",
   "taskpackId": "DL-TP-20260908-R5",
@@ -264,5 +264,5 @@
   "testRunMeaning": "bound run: python scripts/run_bound_test_suite.py --order forward --repeat 2 --modules test_asset_store test_creative_job test_creative_ledgers test_creative_lineage test_creative_migration test_creative_version_guard test_creative_f030_f040 test_creative_session_link test_job_store test_runtime_attempt_safety test_runtime_asset_safety test_runtime_explicit_project test_assurance_qa_plane test_assurance_jury test_bundle_store test_operation_coordinator",
   "testRunResult": "OK",
   "worktreeClean": false,
-  "worktreeDigest": "sha256:6d1823d6ede703e58526cad08d0ac9d72277649e6eba28ae492f1b8efd8a9b4f"
+  "worktreeDigest": "sha256:d80f8a6b7cb395191bc225490e9ab2c084193d54576a0b9df4190525f4e1dd0d"
 }

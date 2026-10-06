@@ -1,7 +1,7 @@
 {
   "schemaVersion": "design-lab/repo-classification/v1",
-  "generatedAt": "2026-10-06T20:20:42Z",
-  "observedCommit": "f1412ed3ec84362280aceb975607a6ff0452b9ae",
+  "generatedAt": "2026-10-06T20:25:13Z",
+  "observedCommit": "c3fda9edc45c03a910e0b5de2768998b0b818852",
   "totals": {
     "trackedFiles": 2967,
     "workingTreeMiB": 49.5,
@@ -60,7 +60,7 @@
       "category": "evidence",
       "note": "审计与验收证据包",
       "files": 820,
-      "bytes": 7124384,
+      "bytes": 7126964,
       "cited_by_authority": 0,
       "lastTouch": "2026-10-07"
     },
@@ -141,7 +141,7 @@
       "category": "generated",
       "note": "当前状态投影（由生成器再生）",
       "files": 63,
-      "bytes": 1022014,
+      "bytes": 1022013,
       "cited_by_authority": 4,
       "lastTouch": "2026-10-07"
     },

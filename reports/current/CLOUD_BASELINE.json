@@ -9,28 +9,28 @@
   },
   "fresh": false,
   "freshnessMeaning": "at generation only; check verifies bound-input integrity, not current Git or cloud state",
-  "generatedAt": "2026-10-06T20:20:38+00:00",
+  "generatedAt": "2026-10-06T20:25:10+00:00",
   "gitStateMeaning": "generation-time observation, not current HEAD",
   "local": {
     "branch": "qoder/designlab-t1-review-r5-005-20261007",
-    "origin_main": "2796965c4ae69ced985f3894bbaed77c61626894",
-    "sha": "f1412ed3ec84362280aceb975607a6ff0452b9ae",
+    "origin_main": "efe8a67b7944af04263ee6f260f72b616b8122f8",
+    "sha": "c3fda9edc45c03a910e0b5de2768998b0b818852",
     "source_worktree_clean": false,
     "tracked_files": 2967,
     "worktree_changes": [
       {
-        "content": "sha256:2be33a993165cc9fe6a6f98c6eae3f9db350f77e6bf84845efc7dc4827d8d0b0",
+        "content": "sha256:8bd9dd20e50433b43282bcfb211da708146208882b54532daf20f7e476fc6f14",
         "kind": "M",
         "path": "docs/audits/DESIGN-LAB-T1-LEDGER-REVIEW-DL-R5-005-20261007.md"
       }
     ],
-    "worktree_digest": "sha256:6d1823d6ede703e58526cad08d0ac9d72277649e6eba28ae492f1b8efd8a9b4f"
+    "worktree_digest": "sha256:d80f8a6b7cb395191bc225490e9ab2c084193d54576a0b9df4190525f4e1dd0d"
   },
   "note": "No GitHub API query was run by this generator; tool installation is not inferred.",
   "remoteRef": "origin/main (local tracking ref)",
   "schemaVersion": "design-lab/cloud-baseline/v2",
   "subjectMeaning": "subjectType=WORKTREE means the tree was dirty at generation; worktreeDigest covers HEAD plus the non-generated changes",
-  "subjectSha": "f1412ed3ec84362280aceb975607a6ff0452b9ae",
+  "subjectSha": "c3fda9edc45c03a910e0b5de2768998b0b818852",
   "subjectType": "WORKTREE",
   "taskpackHash": "31dde89eb4ede81fe88c0a5c5144adfb86af8db4c4d8c263bde2199180369b69",
   "taskpackId": "DL-TP-20260908-R5",
@@ -45,5 +45,5 @@
     "branchProtection"
   ],
   "worktreeClean": false,
-  "worktreeDigest": "sha256:6d1823d6ede703e58526cad08d0ac9d72277649e6eba28ae492f1b8efd8a9b4f"
+  "worktreeDigest": "sha256:d80f8a6b7cb395191bc225490e9ab2c084193d54576a0b9df4190525f4e1dd0d"
 }
