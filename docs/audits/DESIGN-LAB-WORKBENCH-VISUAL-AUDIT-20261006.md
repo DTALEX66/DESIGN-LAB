@@ -144,7 +144,7 @@ node design-lab/tests/e2e/audit_workbench_overflow.mjs
 | # | 事项 | 为什么不能自决 |
 |---|---|---|
 | D-1 | **字体栈首位 `Inter` 未随包分发**。本机 `document.fonts.check('12px Inter')` 为 true 只是因为系统装了 Inter；换机即退化到 Segoe UI。 | 字体属品牌决策；且 frontend-design 规范明确禁用 Inter/system 字体堆 |
-| D-2 | `style.css` 中 `.items` 被定义两次（grid / flex），`.mono`、`.error` 亦重复，后声明胜出 | 清理需确认哪一份是权威（B10 原稿 vs 实现侧） |
+| ~~D-2~~ | **已裁决并部分落地**（owner 2026-10-07：「批准拆类，我按新类名做」）。`.items` 拆成 `.items-stack`（纵向整宽按钮列表，legacy workspace）与 `.items-chips`（真实数据路由的换行药丸行）；`.mono` 三处、`.error` 两处合并为各一处权威定义，合并值等于**原先实际生效**的样式，界面零变化。新增 `design-lab/tests/test_workbench_css_single_definition.py`：任何同类选择器重复定义即失败，确有意的层级覆盖必须写进 `SANCTIONED` 并给理由（该表是双向的，条目修好后不删也会失败）。 | 剩余一半是 `.list-item` 的**重载语义**拆分（列表成员 vs 带边框行卡片），见 §十 |
 | D-3 | 原稿自相矛盾项 X-1（正文 18 vs 16px）、X-2（caption 14 vs 13px）、X-3/X-4（断点 767/760/840）、X-7（`--radius-sm` 12px 冲突） | 文件内已记录但未裁决 |
 | D-4 | 移动端 12 项导航在 390 视口需横向滚动（1059px 内容 / 390px 视口） | 是可滚动容器，不算缺陷；但是否改为抽屉/分段导航属产品决策 |
 | ~~D-5~~ | **已裁决并落地**（owner 2026-10-06：「现在接，并先证伪」）| 见 §八。闸门已进入 required CI job，workflow 文件本身未被改动（该文件被 SHA-256 钉在两份账本里）|
@@ -273,3 +273,68 @@ ec92b251ceee483099fe33ca06155513  Closeout 1791294601059  2026-10-06T13:50:01Z
 且没有覆盖 `PROJECT_LOCAL_ROOT`，于是状态写进了主检出的 `.project-local`。
 **结论不是"去修脚本"，而是"抓图一律走 `scripts/capture_workbench_screenshots.py`，
 不要手起服务指向真实根"**。这段更正留在记录里，是为了不让一条错误的"待修项"被后人当指令执行。
+
+---
+
+## 十、D-2 的另一半：`.list-item` 拆分，以及一条被引用的依据并不存在
+
+owner 已裁决「批准拆类」，因此这里记录**拆分前提**，而不是再次讨论要不要拆。
+
+### 10.1 我先纠正自己引用过的依据
+
+`docs/handoffs/DESIGN-LAB-WORKBENCH-VISUAL-AUDIT-HANDOFF-2026-10-06.md` 里我写"不可机械化"的
+**第二个**理由是：改 B10 结构类名会破坏"由 B10 dom-diff 验证的 1:1"。2026-10-07 逐条查证后，
+这个理由**不成立**：
+
+- 全仓唯一会读 B10 参考稿的可运行代码是两份**一次性审计脚本**，位于
+  `docs/audits/DESIGN-LAB-UIKIT-CONFORMANCE-2026-09-28/harness/`：
+  `w02-component-coverage.py:24-33`（正则抽类名，只 `print` + 落 JSON）、
+  `w01-extract-and-compare.py:87`（只打印 `:root` 行）。两者**没有 assert、没有非零退出**，
+  也**不在 CI 里**。
+- 被当作证据引用的 `dom-diff.json` 是**冻结产物**（`.project-local/.../b10-1to1-handoff/audit/
+  evidence/dom-diff.json:38-48`，比较的是类名与每类计数），**生成它的脚本不在仓内**。
+- `style.css` 里"145 rules / 4 keyframes"只存在于注释本身（`style.css:421`、`:427`），
+  没有任何机器可读副本。
+- CI 里真实存在的硬数字断言只有一个、且与此无关：`.app-nav-item === 12`
+  （`design-lab/tests/e2e/browser_design_layer_e2e.mjs:373`）。
+- `list-item` 在 `design-lab/tests`、`apps/workbench/tests`、`scripts`、`packages`、`src`、
+  `fixtures` 里**作为选择器出现 0 次**，所以改名不会撞到任何断言。
+
+**结论**：阻止拆分的"1:1 保真闸门"是我继承来的一条口头依据，落不到可运行代码上。
+真正的约束只剩两条：`build/main.js` 是无差异重建产物（CI `git diff --exit-code`），
+以及 `.app-nav-item` 必须是 12 个。
+
+### 10.2 拆分方案（下一波实施）
+
+`list-item` 全部 70 处都在 `apps/workbench/shell.ts`，`class:'list'` 容器 30 处。两类语义混在
+一个类上：
+
+- **真正的列表成员**：`valueRow()`（`shell.ts:880-888`，用于 `:930`、`:2343`）——应成为
+  `<li class="list-item">`，父容器 `<ul class="list">`；读屏软件因此能报出"共 N 项"。
+- **独立的表单/操作卡片**：`shell.ts:1761`、`:1763`、`:1984`、`:1986`、`:2117`、`:2210` 这 6 处
+  **直接 append 到 `.panel`**，不在任何 `.list` 内；`briefFieldRow()`（`:1463`）产出的
+  `.list-item` 还被当作另一个 `.list-item` 的子元素用。这些若强改成 `<li>` 会落在 `<ul>` 外
+  （非法 HTML）或产生 `li` 套 `li`。它们应改为新类 **`.row-card`**（保留现有边框/内距/悬停）。
+
+即：`div.list` → `ul.list`、其成员 `div.list-item` → `li.list-item`；6 处游离卡片与
+`briefFieldRow` → `.row-card`。这一步会改变**无障碍树**（多了 `list`/`listitem` 角色）而不改变
+像素布局——`§五` 的溢出闸门与 `test_workbench_contrast_gate.py` 必须在改后重跑取证。
+
+### 10.3 落地进度（2026-10-07）
+
+**卡片半边已完成**：`.list-item` 的重载被拆成两个名字。卡片是**可机械识别**的那一半——
+判据就是"自带 inline `display`"（列表成员从不这样），所以 `class: 'list-item', style: 'display:grid…'`
+这个形状精确命中 7 处（6 个直接 append 到 `.panel` 的卡片 + `briefFieldRow` 的 row）。
+
+拆分**不是改样式**：原来给 `.list-item` 的每一条规则都改成 `.row-card,.list-item` 成对选择器，
+两个名字共享同一组表面声明，所以计算值不可能变。这一半的正确性由**真实浏览器闸门**取证
+（溢出闸门 + 对比度闸门在改动前后都必须绿），而不是由"看起来一样"取证。
+`test_workbench_css_single_definition.py` 里钉住两条防回退断言：`shell.ts` 不得再出现
+`class: 'list-item', style: 'display:` 这个形状（否则 ul/li 改造会产出落在 `ul` 外的 `li`），
+以及 `.row-card` 必须带着卡片表面那组声明。两条断言都在改动前的树上验证过会失败
+（旧树命中 7 次、且完全没有 `.row-card`），不是空转。
+
+**未完成的半边**：`div.list` → `ul.list`、成员 `div.list-item` → `li.list-item`。
+63 处成员里有 30 个 `.list` 容器，且成员并非都在创建点就地内联（例如 `directionRow()`、
+`briefRows` 先建成变量再展开进容器），所以标签必须跟着**归属**走而不是跟着创建点走。
+这是下一步，且现在才真正可做：卡片已经搬走，容器里剩下的就都是成员。
