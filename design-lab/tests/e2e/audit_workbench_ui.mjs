@@ -224,6 +224,50 @@ for (const width of widths) {
     }
   }
 
+  // Command palette: it is the only route switch left under 840px, and it used
+  // to navigate to `#dashboard` while the router matches `#/dashboard`, so every
+  // row landed on the legacy workbench page. Assert the row's label and the
+  // route that actually renders are the same page.
+  await navigate(page, '');
+  await page.keyboard.press('Control+k');
+  const paletteOpen = await page.evaluate(() => document.querySelector('#palette')
+    ?.classList.contains('open'));
+  if (!paletteOpen) {
+    add('palette', `${width} Ctrl+K did not open the palette`);
+  } else {
+    const rows = await page.evaluate(() => Array.from(
+      document.querySelectorAll('#paletteItems .item')).map((i) => ({
+      label: i.textContent.replace('打开', '').trim(), go: i.dataset.go,
+      keyboard: i.tagName === 'BUTTON' || i.tabIndex >= 0,
+    })));
+    if (!rows.length) add('palette', `${width} palette has no rows`);
+    if (rows.some((r) => !r.keyboard)) add('palette-keyboard', `${width} palette rows are not focusable`);
+    const probeRow = rows[0];
+    if (probeRow) {
+      await page.evaluate((go) => {
+        document.querySelector(`#paletteItems .item[data-go="${go}"]`).click();
+      }, probeRow.go);
+      // Route render is async (off-DOM then commit); reading the heading before
+      // it lands proves nothing about where the row went.
+      await page.waitForFunction(() => {
+        const view = document.querySelector('#route-view');
+        const heading = view && view.querySelector('h2');
+        return !!heading && (heading.textContent || '').trim().length > 0
+          && !view.querySelector('.view-loading');
+      }, null, { timeout: 15000 }).catch(() => {});
+      const landed = await page.evaluate(() => ({
+        hash: window.location.hash,
+        heading: (document.querySelector('#route-view h2') || {}).textContent || '',
+      }));
+      if (landed.hash !== probeRow.go) {
+        add('palette-route', `${width} row ${probeRow.go} landed on ${landed.hash}`);
+      } else if (!landed.heading.includes(probeRow.label)) {
+        add('palette-route', `${width} landed on ${landed.hash} but the heading is `
+          + `"${landed.heading.trim()}" not "${probeRow.label}"`);
+      }
+    }
+  }
+
   // Degraded state, in-session: the explicit disconnect must leave an honest
   // "not read back" notice on every view, never a confident zero.
   await navigate(page, '#/dashboard');
