@@ -1049,12 +1049,12 @@ html,body{margin:0}
   .search{width:100%}
   .content{padding:18px}
   .kpi-grid{grid-template-columns:1fr}
-  /* Four readback counters, one per row, pushed the first real list below the fold on
-     a phone. The value and its label share a line and the note wraps under them, so a
-     KPI costs two lines instead of four. */
-  .kpi-card{display:flex;flex-wrap:wrap;align-items:baseline;gap:2px 12px;padding:12px 14px}
-  .kpi-value{margin:0;font-size:22px;flex:0 0 auto}
-  .kpi-note{flex:1 1 100%}
+  /* The counters are `.panel.kpi` (strong + small + .trend), and the three lines are
+     deliberate -- round 2 of the visual audit separated label from provenance note
+     because they ran into each other. So the mobile cost is trimmed from the numeral
+     and the padding, not by collapsing lines back together. */
+  .kpi strong{font-size:26px;margin-bottom:6px}
+  .kpi .trend{margin-top:4px}
   .page-head{flex-direction:column}
 }
 
