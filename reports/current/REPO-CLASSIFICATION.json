@@ -1,10 +1,10 @@
 {
   "schemaVersion": "design-lab/repo-classification/v1",
-  "generatedAt": "2026-10-06T06:27:34Z",
-  "observedCommit": "50b000ab9d71e9483fe3dbcece883cea894c2dcd",
+  "generatedAt": "2026-10-06T08:21:21Z",
+  "observedCommit": "413473d1a6210eb5c52f1e6b48cb425e39de9bf5",
   "totals": {
-    "trackedFiles": 2916,
-    "workingTreeMiB": 44.81,
+    "trackedFiles": 2919,
+    "workingTreeMiB": 44.83,
     "packMiB": 223.82,
     "note": "pack 含全部历史与 tag 归档；working tree 为当前检出字节。两者之差不是垃圾。"
   },
@@ -22,7 +22,7 @@
     "evidence": {
       "files": 1147,
       "bundles": 5,
-      "mib": 26.35
+      "mib": 26.34
     },
     "generated": {
       "files": 84,
@@ -40,9 +40,9 @@
       "mib": 0.22
     },
     "source": {
-      "files": 1307,
+      "files": 1310,
       "bundles": 7,
-      "mib": 8.77
+      "mib": 8.78
     }
   },
   "bundles": [
@@ -77,8 +77,8 @@
       "path": "design-lab/",
       "category": "source",
       "note": "设计核心其余模块",
-      "files": 824,
-      "bytes": 5496650,
+      "files": 826,
+      "bytes": 5507701,
       "cited_by_authority": 4,
       "lastTouch": "2026-10-06"
     },
@@ -87,7 +87,7 @@
       "category": "evidence",
       "note": "UI 收口证据与记录",
       "files": 93,
-      "bytes": 5291545,
+      "bytes": 5285307,
       "cited_by_authority": 0,
       "lastTouch": "2026-10-06"
     },
@@ -132,7 +132,7 @@
       "category": "generated",
       "note": "当前状态投影（由生成器再生）",
       "files": 63,
-      "bytes": 1009410,
+      "bytes": 1009412,
       "cited_by_authority": 4,
       "lastTouch": "2026-10-06"
     },
@@ -141,7 +141,7 @@
       "category": "documentation",
       "note": "其余文档",
       "files": 109,
-      "bytes": 1001442,
+      "bytes": 1002481,
       "cited_by_authority": 11,
       "lastTouch": "2026-10-06"
     },
@@ -150,9 +150,9 @@
       "category": "source",
       "note": "产品源码",
       "files": 85,
-      "bytes": 881036,
+      "bytes": 883283,
       "cited_by_authority": 0,
-      "lastTouch": "2026-09-30"
+      "lastTouch": "2026-10-06"
     },
     {
       "path": "integrations/",
@@ -167,8 +167,8 @@
       "path": "scripts/",
       "category": "source",
       "note": "根级门与工具",
-      "files": 49,
-      "bytes": 499902,
+      "files": 50,
+      "bytes": 505271,
       "cited_by_authority": 4,
       "lastTouch": "2026-10-06"
     },
@@ -177,7 +177,7 @@
       "category": "generated",
       "note": "提交的构建产物（Build Output Truth）",
       "files": 13,
-      "bytes": 464934,
+      "bytes": 467141,
       "cited_by_authority": 0,
       "lastTouch": "2026-10-06"
     },
