@@ -147,6 +147,26 @@ def scan(root: Path, *, depth: int = 3) -> tuple[dict, bool, list]:
     return entries, complete, links
 
 
+def declared_external_roots() -> tuple[str, ...]:
+    """The external roots this project declares in `.project/paths.json`.
+
+    Forbidden run directories were only ever accepted through `--external`, and
+    nothing read the declaration, so a default invocation reported
+    `external_roots=0` and could not certify the shared library roots at all --
+    which is precisely why the flag never got passed and the guard quietly
+    covered less than it appeared to.
+    """
+    paths_file = REPO / ".project" / "paths.json"
+    try:
+        doc = json.loads(paths_file.read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return ()
+    shared = doc.get("shared_inputs") if isinstance(doc, dict) else None
+    if not isinstance(shared, dict):
+        return ()
+    return tuple(str(v) for v in shared.values() if isinstance(v, str) and v.strip())
+
+
 def snapshot(snapshot_id: str, externals: tuple | None = None) -> int:
     SNAPSHOT_DIR.mkdir(parents=True, exist_ok=True)
     externals = [Path(x) for x in (externals or ())]
@@ -173,7 +193,14 @@ def snapshot(snapshot_id: str, externals: tuple | None = None) -> int:
         document["agent_homes"][name] = entries
         document["agent_homes_complete"][name] = complete
     for external in externals:
-        entries, complete, _links = scan(external.resolve(), depth=8)
+        resolved = external.resolve()
+        entries, complete, _links = scan(resolved, depth=8)
+        if not resolved.is_dir():
+            # A declared root that is not present on this machine observed
+            # nothing. scan() returns an empty inventory with complete=True for a
+            # missing path, which would let "not installed here" be read as
+            # "no spill here"; the verdict has to stay INCOMPLETE instead.
+            complete = False
         document["external_forbidden"][str(external)] = entries
         document["external_forbidden_complete"][str(external)] = complete
     path = SNAPSHOT_DIR / f"{snapshot_id}.json"
@@ -376,9 +403,12 @@ def main(argv=None) -> int:
     group.add_argument("--self-test", action="store_true")
     parser.add_argument("--external", action="append", default=None,
                         metavar="DIR",
-                        help="forbidden project run directory; declare on snapshot AND diff")
+                        help="additional forbidden project run directory; declare on snapshot AND diff")
+    parser.add_argument("--no-declared-externals", action="store_true",
+                        help="do not fold in the roots declared in .project/paths.json")
     args = parser.parse_args(argv)
-    externals = tuple(args.external or ())
+    declared = () if args.no_declared_externals else declared_external_roots()
+    externals = tuple(dict.fromkeys([*(args.external or ()), *declared]))
     if args.self_test:
         return self_test(externals)
     return snapshot(args.snapshot, externals) if args.snapshot else diff(args.diff, externals)
