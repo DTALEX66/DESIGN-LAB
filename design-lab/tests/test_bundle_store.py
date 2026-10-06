@@ -98,5 +98,72 @@ class BundleStoreTests(unittest.TestCase):
         with zipfile.ZipFile(row[1]) as archive:
             self.assertEqual(set(archive.namelist()),{'bundle-manifest.json','native.ai','preview.png'})
 
+    def test_secondary_member_growing_after_validation_fails_during_copy(self):
+        """The only window that the "validate everything first" ordering leaves open.
+
+        publish_bundle hashes every member before it stages anything, so a wrong
+        hash can never publish (already covered at :67). What that ordering does NOT
+        cover is a member that changes after it was measured and while it is being
+        copied -- bundle_store.py:114-119 is the guard for that, and nothing else in
+        the suite reaches it.
+        """
+        real=self.assets._file_hash
+        target=self.inputs/'preview.png'
+        def grow_after_measuring(path,*args,**kwargs):
+            digest=real(path,*args,**kwargs)
+            if Path(path)==target:
+                target.write_bytes(b'preview fixture'+b'x'*8)
+            return digest
+        with patch.object(self.assets,'_file_hash',side_effect=grow_after_measuring):
+            with patch.object(self.assets,'publish_version',side_effect=AssertionError('must not publish')) as invoke:
+                with self.assertRaises(ValueError) as caught:
+                    self.publish()
+        self.assertIn('bundle source grew while copying',str(caught.exception))
+        invoke.assert_not_called()
+        self.assertEqual(self.conn.execute('SELECT COUNT(*) FROM asset_version').fetchone()[0],0)
+        self.assertEqual(self.conn.execute('SELECT COUNT(*) FROM asset_publication').fetchone()[0],0)
+
+    def test_secondary_member_rewritten_at_same_size_fails_during_copy(self):
+        """The other half of the copy window: same byte count, different content.
+
+        The size guard cannot see this and the digest guard cannot see a size change,
+        so each branch needs its own case; with the size guard deleted this scenario
+        still has to be refused rather than published as a hash-mismatched archive.
+        """
+        real=self.assets._file_hash
+        target=self.inputs/'preview.png'
+        def rewrite_after_measuring(path,*args,**kwargs):
+            digest=real(path,*args,**kwargs)
+            if Path(path)==target:
+                original=target.read_bytes()
+                target.write_bytes(original[:-1]+bytes([(original[-1]^0x20)]))
+            return digest
+        with patch.object(self.assets,'_file_hash',side_effect=rewrite_after_measuring):
+            with patch.object(self.assets,'publish_version',side_effect=AssertionError('must not publish')) as invoke:
+                with self.assertRaises(ValueError) as caught:
+                    self.publish()
+        self.assertIn('bundle source changed while copying',str(caught.exception))
+        invoke.assert_not_called()
+        self.assertEqual(self.conn.execute('SELECT COUNT(*) FROM asset_version').fetchone()[0],0)
+        self.assertEqual(self.conn.execute('SELECT COUNT(*) FROM asset_publication').fetchone()[0],0)
+
+    def test_validation_failure_journals_nothing(self):
+        """The existing wrong-hash test asserts no version; it does not assert no attempt.
+
+        A PREPARED row with no committed publication is recovery evidence, so it is
+        worth knowing which failures create one. Failing before staging should create
+        none at all.
+        """
+        self.files['preview.png']['sha256']='0'*64
+        with self.assertRaises(ValueError):self.publish()
+        self.assertEqual(self.conn.execute('SELECT COUNT(*) FROM asset_version').fetchone()[0],0)
+        self.assertEqual(self.conn.execute('SELECT COUNT(*) FROM asset_publication').fetchone()[0],0)
+        # a retry with the correct hash still succeeds, so the failed call left no lock
+        # or journal state that could block the same attempt later
+        self.files['preview.png']['sha256']=hashlib.sha256(
+            (self.inputs/'preview.png').read_bytes()).hexdigest()
+        self.assertTrue(self.publish())
+        self.assertEqual(self.conn.execute('SELECT COUNT(*) FROM asset_version').fetchone()[0],1)
+
 
 if __name__=='__main__':unittest.main()
