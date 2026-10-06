@@ -250,21 +250,26 @@ V-5：设置页面板改为整幅，让 `.list-item` 已有的 `space-between` �
 - **项目详情**：tab 行末位 `资源预检（非设计评审）` 顶到右边缘；INSPECTOR 里一个**空圆环**（只有描边 + 一个点）。
 - **品牌蓝** `#316CFF` 仍无法承载白色正文（另案记录）。
 
-### 一个必须披露的副作用（含精确定位）
+### 一次副作用，以及对本节初稿一处错误归因的更正
 
-`capture_workbench_screenshots.mjs` **不是只读导航**：它会在服务指向的项目根里创建项目。
-本轮两次运行（`--project` 指向主检出）在
-`.project-local/task-runtime/service/state.db` 的 `project` 表留下 **2 行**：
+本轮抓图留下 2 条项目记录：`.project-local/task-runtime/service/state.db` 的 `project` 表——
 
 ```
 6474cccad81645df8993bfd806bb0c13  Closeout 1791294101099  2026-10-06T13:41:41Z
 ec92b251ceee483099fe33ca06155513  Closeout 1791294601059  2026-10-06T13:50:01Z
 ```
 
-这两行现在会出现在仪表盘的「最近项目」里。未进 Git（`.project-local` 全量 ignored），
-但**没有代为删除**——删 `project` 行会牵动 `asset / design_brief / design_direction` 等表的外键，
-而该库里也可能有非本轮数据，所以留给 owner 决定。
+它们会出现在仪表盘的「最近项目」里。**没有代为删除**：`asset / design_brief / design_direction`
+等表按 project_id 关联，删行会牵动它们，且该库也可能有非本轮数据，所以留给 owner 决定。
 
-更该修的是脚本本身：**任何一次截图运行都会改动真实项目状态**。
-它应当像 `test_workbench_design_layer_e2e.py` 那样，把服务挂到一个
-`tempfile.TemporaryDirectory()` 合成根上，而不是复用调用方传入的项目根。
+**更正一处错误归因**：本节日初稿写成"`capture_workbench_screenshots.mjs` 不是只读导航，
+任何一次截图运行都会改动真实项目状态，应当改成挂临时根"。**这个说法是错的。**
+仓内官方入口 `scripts/capture_workbench_screenshots.py:121-130` 已经正是那么做的——
+`tempfile.TemporaryDirectory()` + 写入合成 `AGENTS.md` + 把 `PROJECT_LOCAL_ROOT` 指向该临时目录，
+再 `ProjectService(str(root))`。驱动脚本创建项目是**设计如此**（否则没有真实可截的详情页），
+而它落在哪里由入口决定，入口已经隔离了。
+
+真实原因是我自己写的临时 runner 用了 `python -m design_lab --project <仓库根> workbench`
+且没有覆盖 `PROJECT_LOCAL_ROOT`，于是状态写进了主检出的 `.project-local`。
+**结论不是"去修脚本"，而是"抓图一律走 `scripts/capture_workbench_screenshots.py`，
+不要手起服务指向真实根"**。这段更正留在记录里，是为了不让一条错误的"待修项"被后人当指令执行。
