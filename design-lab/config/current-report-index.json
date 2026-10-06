@@ -1,284 +1,113 @@
 {
   "checkScope": "bound-input-and-output-integrity; not current Git or cloud freshness",
-  "generatedAt": "2026-10-06T21:54:06+00:00",
+  "generatedAt": "2026-10-06T22:33:50+00:00",
   "gitObservation": {
     "branch": "tmp-rebase-qoder/designlab-restart-reconciliation-20261007",
-    "origin_main": "093ebdaa85aa83f2b34f45901657a9808806b0c2",
-    "sha": "7714849cb471fd2ca0b4f035967f0e1566b73e87",
+    "origin_main": "dbf887e2caf6629315a38c220cefc7813496985a",
+    "sha": "2dc365ab41c69eaa40e88d70c65e1118811ba3fc",
     "source_worktree_clean": false,
-    "tracked_files": 2970,
+    "tracked_files": 2976,
     "worktree_changes": [
       {
-        "content": "sha256:fd45a774c5fd59f01b6475837317c580a30c130e3770f463032adb1ff6d6996d",
+        "content": "sha256:f5f79872cb8be8f15697ea0b46894d4f0c2841e4a5910259e79cdf022ba45531",
         "kind": "A",
-        "path": "design-lab/tests/test_inert_blob_placement.py"
+        "path": "design-lab/tests/test_doctor_tool_bindings.py"
       },
       {
-        "content": "sha256:b93f138e05cdb8a786028aaa6fc9ce79e8dd703ee6bb52cae350c8d2ee8e45e4",
+        "content": "sha256:6e1e39cfe123d454d4bc678051d7137d6293b8f4a056d297cad10a3f48b264a1",
         "kind": "A",
-        "path": "design-lab/tests/test_test_environment_guard.py"
+        "path": "design-lab/tests/test_vendor_revisions.py"
       },
       {
-        "content": "sha256:bdc6163c379c4bfee3203ecb0aaa2eb5079dd0e1d8190dbdc22ed713e2adce09",
+        "content": "sha256:a465b874177d4378ddb709284a3515a855281505ab151d638166f4ae9b3076e8",
         "kind": "A",
-        "path": "docs/audits/DESIGN-LAB-T1-LEDGER-REVIEW-DL-R5-003-20261007.md"
+        "path": "design-lab/tests/test_workbench_css_single_definition.py"
       },
       {
-        "content": "sha256:80bd5b672a22dd7708562c7f9747d03ce66fdd6c5b96a706157c290ecd59c73b",
+        "content": "sha256:add0c76ef46d3bc4b4361f28e116a1f672a4af19fb4771b1329da3b148178e86",
+        "kind": "A",
+        "path": "docs/audits/DESIGN-LAB-T1-LEDGER-REVIEW-DL-R5-004-20261007.md"
+      },
+      {
+        "content": "sha256:1ff255d266969ad0125925620d13c838069d5f0407803a141f319181d23ae12d",
+        "kind": "A",
+        "path": "scripts/derive_vendor_revisions.py"
+      },
+      {
+        "content": "sha256:e3dd702c77840847683c3693e7ec7519363f2ccb203127adfa504d08c61a2898",
+        "kind": "A",
+        "path": "vendor/sources.revisions.json"
+      },
+      {
+        "content": "sha256:8fe9dbbf85876c42b8d86ef7e2473c826fa431f309023df52fc770b3753b8703",
+        "kind": "M",
+        "path": ".project/paths.json"
+      },
+      {
+        "content": "sha256:1efd564d54c7ba77c10aed10c8153811356238676c67a2c9135962ce1d397d63",
         "kind": "M",
         "path": "apps/workbench/build/main.js"
       },
       {
-        "content": "sha256:a0a9f3ade5611a6e41b758f8e0fdcc77c35110cee0a0e803554914698fa392e5",
+        "content": "sha256:35d8449aab658af094c64ea32a576926116016d384f7707d8090e959b971098a",
+        "kind": "M",
+        "path": "apps/workbench/index.html"
+      },
+      {
+        "content": "sha256:f81e9430cb87e222930da9cac18c526246bf940a2d3865e9ec8dd343c1e2f35f",
         "kind": "M",
         "path": "apps/workbench/shell.ts"
       },
       {
-        "content": "sha256:faee420b39fd1cb8ae2f881030f9c5a2cb29ef49fd2410268a858adcd045776a",
+        "content": "sha256:01ea99f42423d9cbb9e828f2d0d9bbc067787dc3a6b439ffdda78c455427e513",
         "kind": "M",
-        "path": "design-lab/research/global-absorption/QUARANTINE_REGISTRY.json"
+        "path": "apps/workbench/style.css"
       },
       {
-        "content": "sha256:5ecb47944893ba03c723126125222a4e7672a2de83a3fc72fd607c26ac6e716b",
+        "content": "sha256:0cbb2b98788f42464eba5b154130ba88b049d1871341d69acdd33e1cd769fc31",
         "kind": "M",
-        "path": "vendor/sources.lock.json"
+        "path": "design-lab/tests/test_doctor_evidence.py"
       },
       {
-        "content": "sha256:6d6a2a9caf2e6d2b76974050427053b2892d8aa4c33fd168ce63a537fcee9d96",
-        "kind": "R",
-        "moved_from": "packages/capabilities/production/huashu-design/LICENSE",
-        "path": "design-lab/research/quarantine/huashu-design/LICENSE"
+        "content": "sha256:e6db99ee25bc63767df26ca79cbd94cc6b06e06396652cc63cdc1e4ae5cab69b",
+        "kind": "M",
+        "path": "docs/audits/DESIGN-LAB-WORKBENCH-VISUAL-AUDIT-20261006.md"
       },
       {
-        "content": "sha256:46ac145fcbeea3795da48be85910df8c3fd3d95710753bab47c6d39504357f80",
-        "kind": "R",
-        "moved_from": "packages/capabilities/production/huashu-design/README.md",
-        "path": "design-lab/research/quarantine/huashu-design/README.md"
+        "content": "sha256:3b12fd5f7ce4bfa6b34e9807bfa199bc671b2fdad660350d70ecd855c4a99ea1",
+        "kind": "M",
+        "path": "docs/handoffs/DESIGN-LAB-WORKBENCH-VISUAL-AUDIT-HANDOFF-2026-10-06.md"
       },
       {
-        "content": "sha256:db1c782b7f32afcf7119d758b12fa6c97e3c2ba327c394b190f63a08e48799c4",
-        "kind": "R",
-        "moved_from": "packages/capabilities/production/huashu-design/SKILL.md",
-        "path": "design-lab/research/quarantine/huashu-design/SKILL.md"
+        "content": "sha256:09581ac1778c2c447767d94d07ac32d53e2792b6f83e7e68364a3fc026ff0f33",
+        "kind": "M",
+        "path": "src/design_lab/runtime/doctor.py"
       },
       {
-        "content": "sha256:399bca9fb403b50fdf89e0fbcaaba7168848c53a2f83d56b53b14bb404c5dd7a",
-        "kind": "R",
-        "moved_from": "packages/capabilities/production/huashu-design/SOURCE.md",
-        "path": "design-lab/research/quarantine/huashu-design/SOURCE.md"
-      },
-      {
-        "content": "sha256:25475265cb8af01c38778f771db2b11199bc50c2dca8d58e7372ab555ad77809",
-        "kind": "R",
-        "moved_from": "packages/capabilities/production/huashu-design/references/ai-video-review.md",
-        "path": "design-lab/research/quarantine/huashu-design/references/ai-video-review.md"
-      },
-      {
-        "content": "sha256:347a751b3114199e52c2349c2ad6a00c619a5cee5f50cec114ded0d0fbdc9ffe",
-        "kind": "R",
-        "moved_from": "packages/capabilities/production/huashu-design/references/animation-best-practices.md",
-        "path": "design-lab/research/quarantine/huashu-design/references/animation-best-practices.md"
-      },
-      {
-        "content": "sha256:10c897e79ec0e976ef0a622c6fc05147e996081c9a83b451770de97a80cd84d7",
-        "kind": "R",
-        "moved_from": "packages/capabilities/production/huashu-design/references/animation-pitfalls.md",
-        "path": "design-lab/research/quarantine/huashu-design/references/animation-pitfalls.md"
-      },
-      {
-        "content": "sha256:8790b4580f182b082f8df8740fc09337c29ed323f5fd6ffc960fb158ae68ae98",
-        "kind": "R",
-        "moved_from": "packages/capabilities/production/huashu-design/references/animations.md",
-        "path": "design-lab/research/quarantine/huashu-design/references/animations.md"
-      },
-      {
-        "content": "sha256:964492c5d298c30445080ec176969c538da283f039b514047db1abe9a8634a43",
-        "kind": "R",
-        "moved_from": "packages/capabilities/production/huashu-design/references/app-prototype.md",
-        "path": "design-lab/research/quarantine/huashu-design/references/app-prototype.md"
-      },
-      {
-        "content": "sha256:263847cc370e097d5ef31287556111de7d2098551dfc5b06641d7ea60fcf82ba",
-        "kind": "R",
-        "moved_from": "packages/capabilities/production/huashu-design/references/apple-gallery-showcase.md",
-        "path": "design-lab/research/quarantine/huashu-design/references/apple-gallery-showcase.md"
-      },
-      {
-        "content": "sha256:aa8c76e64100507b7f264a78b9408028935b2bdafe2bbde695ed4a49555a75a0",
-        "kind": "R",
-        "moved_from": "packages/capabilities/production/huashu-design/references/audio-design-rules.md",
-        "path": "design-lab/research/quarantine/huashu-design/references/audio-design-rules.md"
-      },
-      {
-        "content": "sha256:bc476983114f00057134d47b229fb4496a37bbac2fcbb4bf9f86139165e1528d",
-        "kind": "R",
-        "moved_from": "packages/capabilities/production/huashu-design/references/brand-asset-protocol.md",
-        "path": "design-lab/research/quarantine/huashu-design/references/brand-asset-protocol.md"
-      },
-      {
-        "content": "sha256:17d9ec457df9920953588ffdd1fdff92c3679093cebd3b022b48861105563c71",
-        "kind": "R",
-        "moved_from": "packages/capabilities/production/huashu-design/references/camera-language.md",
-        "path": "design-lab/research/quarantine/huashu-design/references/camera-language.md"
-      },
-      {
-        "content": "sha256:1266cb4feb14e44997b6abcc33091991565402ec6a7b22698628b31a4da472b8",
-        "kind": "R",
-        "moved_from": "packages/capabilities/production/huashu-design/references/cinematic-patterns.md",
-        "path": "design-lab/research/quarantine/huashu-design/references/cinematic-patterns.md"
-      },
-      {
-        "content": "sha256:3c0bcf0e94b4f6cc64b11e871ba8d53607ad6ec7317f08dc3f7f5bb6708088a7",
-        "kind": "R",
-        "moved_from": "packages/capabilities/production/huashu-design/references/content-guidelines.md",
-        "path": "design-lab/research/quarantine/huashu-design/references/content-guidelines.md"
-      },
-      {
-        "content": "sha256:3636ed8422bb88a11bc3e1db00b252b707f20cf83f6ec900077abb020ff7a8ce",
-        "kind": "R",
-        "moved_from": "packages/capabilities/production/huashu-design/references/critique-guide.md",
-        "path": "design-lab/research/quarantine/huashu-design/references/critique-guide.md"
-      },
-      {
-        "content": "sha256:93a7e6be5f6cb29076d3651747d5033701362ddd03283b1ddf11b105757430b6",
-        "kind": "R",
-        "moved_from": "packages/capabilities/production/huashu-design/references/design-context.md",
-        "path": "design-lab/research/quarantine/huashu-design/references/design-context.md"
-      },
-      {
-        "content": "sha256:f1904cd217fe3c974d7bc4ae6ea57cbbfef9e5362e86f836ed45fd74af8f0fea",
-        "kind": "R",
-        "moved_from": "packages/capabilities/production/huashu-design/references/design-styles.md",
-        "path": "design-lab/research/quarantine/huashu-design/references/design-styles.md"
-      },
-      {
-        "content": "sha256:b5b56aa3e94bc5858b1b0405b86a3c4f5f983ddf0df4584d63caf44328a8e2d7",
-        "kind": "R",
-        "moved_from": "packages/capabilities/production/huashu-design/references/editable-pptx.md",
-        "path": "design-lab/research/quarantine/huashu-design/references/editable-pptx.md"
-      },
-      {
-        "content": "sha256:374f346aeab61192f497130f933424bd3a3850e2f68e03f73cd3fa81e058a33a",
-        "kind": "R",
-        "moved_from": "packages/capabilities/production/huashu-design/references/gsap-recipes.md",
-        "path": "design-lab/research/quarantine/huashu-design/references/gsap-recipes.md"
-      },
-      {
-        "content": "sha256:57df5520e54dc0cc69e486670a7e395958f6b95408275f9413c5bb5a06de5c5e",
-        "kind": "R",
-        "moved_from": "packages/capabilities/production/huashu-design/references/hero-animation-case-study.md",
-        "path": "design-lab/research/quarantine/huashu-design/references/hero-animation-case-study.md"
-      },
-      {
-        "content": "sha256:247354f0255de2486117783d29cfaa104cd5bdf9ad918c85918a3e78ec04dbca",
-        "kind": "R",
-        "moved_from": "packages/capabilities/production/huashu-design/references/hyperframes-backend.md",
-        "path": "design-lab/research/quarantine/huashu-design/references/hyperframes-backend.md"
-      },
-      {
-        "content": "sha256:1cc8c18d693231c3b2438057a1fc43fd72edbf7f2a60eec548dad6903cd13338",
-        "kind": "R",
-        "moved_from": "packages/capabilities/production/huashu-design/references/launch-film-director-notes.md",
-        "path": "design-lab/research/quarantine/huashu-design/references/launch-film-director-notes.md"
-      },
-      {
-        "content": "sha256:e1f80cc2e3e12d04405f897f3da49b371dbc7782c5ba23152a956c2780e738da",
-        "kind": "R",
-        "moved_from": "packages/capabilities/production/huashu-design/references/multi-perspective-parallel-case-study.md",
-        "path": "design-lab/research/quarantine/huashu-design/references/multi-perspective-parallel-case-study.md"
-      },
-      {
-        "content": "sha256:97dfcbbea673131b9d10c5fe0c553fe489d3c2e583381de72e8c1b3c5eed5346",
-        "kind": "R",
-        "moved_from": "packages/capabilities/production/huashu-design/references/react-setup.md",
-        "path": "design-lab/research/quarantine/huashu-design/references/react-setup.md"
-      },
-      {
-        "content": "sha256:c91852062d923787896076368fff883bed2eb8b53087f1efdc2f81ed3014a314",
-        "kind": "R",
-        "moved_from": "packages/capabilities/production/huashu-design/references/scene-templates.md",
-        "path": "design-lab/research/quarantine/huashu-design/references/scene-templates.md"
-      },
-      {
-        "content": "sha256:43e5e00a23e72b78b1872fbf88c38f829a2d3feb5cc5dc49260cdeb98f1958f9",
-        "kind": "R",
-        "moved_from": "packages/capabilities/production/huashu-design/references/sfx-library.md",
-        "path": "design-lab/research/quarantine/huashu-design/references/sfx-library.md"
-      },
-      {
-        "content": "sha256:f7c67305f9f169c6ce86bb35ddf5fd0b95bd543822f7aa0e27f0f66bbd95ac05",
-        "kind": "R",
-        "moved_from": "packages/capabilities/production/huashu-design/references/slide-decks.md",
-        "path": "design-lab/research/quarantine/huashu-design/references/slide-decks.md"
-      },
-      {
-        "content": "sha256:b8775952ae96bbe3e99f080520896fa9d853d324733c771da5f45da865b6f884",
-        "kind": "R",
-        "moved_from": "packages/capabilities/production/huashu-design/references/storyboard-basics.md",
-        "path": "design-lab/research/quarantine/huashu-design/references/storyboard-basics.md"
-      },
-      {
-        "content": "sha256:88569174eaa1d790e5f261a287e44ea39f6b8bce926493d21ad5ff4e7c2ef441",
-        "kind": "R",
-        "moved_from": "packages/capabilities/production/huashu-design/references/tweaks-system.md",
-        "path": "design-lab/research/quarantine/huashu-design/references/tweaks-system.md"
-      },
-      {
-        "content": "sha256:661ec64c19df00ef0e90fc388a1e61f5adbdd3b7fe0f4c536f9ba60901c3dee7",
-        "kind": "R",
-        "moved_from": "packages/capabilities/production/huashu-design/references/typography.md",
-        "path": "design-lab/research/quarantine/huashu-design/references/typography.md"
-      },
-      {
-        "content": "sha256:38a2b52ad03d97442757016f1ef2c4c439d4f3e9f234cdce81cacc6fb60a894c",
-        "kind": "R",
-        "moved_from": "packages/capabilities/production/huashu-design/references/ui-demo-animation.md",
-        "path": "design-lab/research/quarantine/huashu-design/references/ui-demo-animation.md"
-      },
-      {
-        "content": "sha256:f969b6861f86c5a410618c562d585efab221583f132bc75f1d0e81703008aeb6",
-        "kind": "R",
-        "moved_from": "packages/capabilities/production/huashu-design/references/verification.md",
-        "path": "design-lab/research/quarantine/huashu-design/references/verification.md"
-      },
-      {
-        "content": "sha256:7ed97faa22b49f407c61a482eddb3b30a7463c3e5e491e5a4b2bcb48ad7929f6",
-        "kind": "R",
-        "moved_from": "packages/capabilities/production/huashu-design/references/video-export.md",
-        "path": "design-lab/research/quarantine/huashu-design/references/video-export.md"
-      },
-      {
-        "content": "sha256:c8e992779eb3de74b7c46c195a46dd716ee922def7ea5f9e19beef814834e756",
-        "kind": "R",
-        "moved_from": "packages/capabilities/production/huashu-design/references/voiceover-pipeline.md",
-        "path": "design-lab/research/quarantine/huashu-design/references/voiceover-pipeline.md"
-      },
-      {
-        "content": "sha256:57c032774cb789949bb5ef5840cefc137f31573cc2449fc8f699a794bf40d4ee",
-        "kind": "R",
-        "moved_from": "packages/capabilities/production/huashu-design/references/workflow.md",
-        "path": "design-lab/research/quarantine/huashu-design/references/workflow.md"
+        "content": "sha256:ec1571e8d80465ae16d997920b6aa1708f8b7495be2b0a5cc3f2445238ba77cb",
+        "kind": "M",
+        "path": "src/design_lab/runtime/paths.py"
       }
     ],
-    "worktree_digest": "sha256:944e1bf94ca76f2daa58e06932d02f49d42c3a55399c31604ac8aad640fe8e63"
+    "worktree_digest": "sha256:692d3a7138717916c194491bf6d77c8c1b14d1dfe32e3a0fbeb3d8a4667526bf"
   },
-  "inputDigest": "sha256:bd16bb3adef41e8cbf380f87937cd1b9268d979843661dddc096e31e7fa56c34",
+  "inputDigest": "sha256:01528e31b4bc4c39d28fe94284c07093769ddbb2994808a1f7317f2be0519760",
   "inputDigestMeaning": "primary freshness binding: canonical SHA-256 over the exact input files the projections read plus the git tree scope; recomputed at check time (FU-10)",
   "inputHashes": {
     ".github/workflows/canonical-verify.yml": "77734ded9bc7ac5b8223840cf483f70c62dc1c9740b60c2f3cf0219f7790a15e",
     ".github/workflows/release-gate.yml": "47250ec304e1e400596419116435f2df5386f08c16cf0e73f83c926aaf045722",
     ".project-local/task-artifacts/comfy-http-live-bb63046b6f444fe9a7a96d0bf66f949b/result.json": null,
-    ".project-local/task-artifacts/designlab-followup-taskpack-20260928/W00-EVIDENCE-SCAN.json": "554fcddf2c2e3c321fbf8d5c74ab389aa6ac20cc0c54cfc41acab37430ee5001",
-    ".project-local/task-artifacts/project-survey-2026-09-27/PROJECT-SURVEY-2026-09-27.md": "0efce6a20b1efb5433e64d830906ada77260e9ad799686785f5164d0f4e403c1",
-    ".project-local/task-artifacts/test-run/last-run.json": "ff601f46185c27b84e13ea1ffd3da0c3a950860628fc74239377194df2191857",
+    ".project-local/task-artifacts/designlab-followup-taskpack-20260928/W00-EVIDENCE-SCAN.json": null,
+    ".project-local/task-artifacts/project-survey-2026-09-27/PROJECT-SURVEY-2026-09-27.md": null,
+    ".project-local/task-artifacts/test-run/last-run.json": null,
     ".project/governance/data-ownership.yaml": "7202baea30612c9acbc722be331913193dec505547bc8e8d73a82642735199c4",
     ".project/manifest.yaml": "ec43c78581e552faafbe4286d9667d7617b4db55c2d2c53be8d2ccd96a27f728",
-    ".project/paths.json": "166dc075bdb26d4313405e03920d83b90ca52fb8c3f6b237c00ce0a25d048896",
-    "apps/workbench/build/main.js": "80bd5b672a22dd7708562c7f9747d03ce66fdd6c5b96a706157c290ecd59c73b",
+    ".project/paths.json": "8fe9dbbf85876c42b8d86ef7e2473c826fa431f309023df52fc770b3753b8703",
+    "apps/workbench/build/main.js": "1efd564d54c7ba77c10aed10c8153811356238676c67a2c9135962ce1d397d63",
     "apps/workbench/contracts.ts": "c9b24fb36658bcb2d70020006c9fc97da161edf4886c370c9854438c34939455",
-    "apps/workbench/index.html": "d69f985a25c2af3384dd5c2fd70d3438fdab6ec508e0ea07d90b3fb3ac00e5e7",
+    "apps/workbench/index.html": "35d8449aab658af094c64ea32a576926116016d384f7707d8090e959b971098a",
     "apps/workbench/package.json": "9e73e245210ba1914d3aeb8ed8d62f99e3d2ec206300f39fc5a48059ab4efe90",
-    "apps/workbench/shell.ts": "a0a9f3ade5611a6e41b758f8e0fdcc77c35110cee0a0e803554914698fa392e5",
+    "apps/workbench/shell.ts": "f81e9430cb87e222930da9cac18c526246bf940a2d3865e9ec8dd343c1e2f35f",
     "apps/workbench/tests/appshell.mjs": "d791c651cd4b11125d6763651f50a00645db7349834322afa3f485f99d5d6b1d",
     "apps/workbench/tests/unit.mjs": "07ff42d2b84097d2ef9dfb60445ef273eb800089d564aa31782c7aa68a001431",
     "apps/workbench/tsconfig.json": "c7cf03334ceb25c0ec9ff4e60ad64016cd3519bb12054f7c6f0582e78e2f8262",
@@ -400,7 +229,8 @@
     "design-lab/tests/test_design_layer_revision.py": "b1892cc41335d912a3c3172c55a09474f6419d50eb16fc575b85092203d98cdc",
     "design-lab/tests/test_design_memory.py": "8f505b090aa79634b6d9d3922ad4cf355611b89d6e2e71f69cea69f28496a192",
     "design-lab/tests/test_doctor.py": "fd59902574dcc23be5c9faad5d7b241d9d152ca7f3e00c6b2835ceff85dde8c1",
-    "design-lab/tests/test_doctor_evidence.py": "09a6ebb07450753774c200ce3532ea2b78432c17aa9f025e87e3649cdc49d803",
+    "design-lab/tests/test_doctor_evidence.py": "0cbb2b98788f42464eba5b154130ba88b049d1871341d69acdd33e1cd769fc31",
+    "design-lab/tests/test_doctor_tool_bindings.py": "f5f79872cb8be8f15697ea0b46894d4f0c2841e4a5910259e79cdf022ba45531",
     "design-lab/tests/test_effective_evidence.py": "0e63f2670275b078bc6fa2092518007de9a31a00b79d2bd9a4e73d4124bbd298",
     "design-lab/tests/test_evidence_artifact_presence.py": "1d6927e133b37195eeb2e1b2c6b5e4ce8c0a61c1abb34349d38412509ba7418b",
     "design-lab/tests/test_evidence_cards.py": "f5dd587db9631e10ac1f284c6b15843dd75c599c960579754a686c44eabcbab6",
@@ -519,9 +349,11 @@
     "design-lab/tests/test_tool_locator_and_execution_path.py": "5092f661292774f19f9d2fc927a4c19cd1358ff1c9cc3fa6a709e783dd7d382b",
     "design-lab/tests/test_v2_domain_pack.py": "c317cef15105baa95c95b19760225438179b38551bdd30cdc0e73365798da350",
     "design-lab/tests/test_v2_surface_provider_intake.py": "bd7a27dfddbd6b70325a25277f6fb65ce6bcf34aecde54315404018daf52b264",
+    "design-lab/tests/test_vendor_revisions.py": "6e1e39cfe123d454d4bc678051d7137d6293b8f4a056d297cad10a3f48b264a1",
     "design-lab/tests/test_verifier_internals.py": "4afa2afaee8d7bd905c726e649e54f163c5138eb8db28142a813099267e4e350",
     "design-lab/tests/test_visual_quality_scan_boundary.py": "adb5f2d392dd262b1d0aac751a2f86c738a6c05b4a48a4c47e165eb669fa62cb",
     "design-lab/tests/test_workbench_contrast_gate.py": "8728b9fdbf35bfd6465289b32826dfe9edcb7b5f0bfa119265fe93c60561412c",
+    "design-lab/tests/test_workbench_css_single_definition.py": "a465b874177d4378ddb709284a3515a855281505ab151d638166f4ae9b3076e8",
     "design-lab/tests/test_workbench_design_layer_e2e.py": "7824886f37b6ce532eaf01ff2fc7c35c54f66474114e9265b62e46d78347895f",
     "design-lab/tests/test_workbench_launch.py": "f196c02240003b6ff4975693a63692c12f498467dd3662c772077fcb53270aa6",
     "design-lab/tests/test_workbench_native_ui.py": "08302a82c8c3e21061180f2e1c322a1bb50c97ff7eb930c902bec425bcbe5355",
@@ -538,12 +370,12 @@
     "docs/taskpacks/DESIGN-LAB-CLOUD-REAUDIT-TASKPACK-2026-09-06.md": "3d6edf1a00f4f4f7eb19005a2acba2c73bd0dc71a6d2ec5ba9ed5ae689c6454c",
     "fixtures/domains/game-visual/.gitignore": "263423b98c4407e9292d4edf3092f9c125c14bacd79b12b5ab109a082108dc92",
     "fixtures/domains/game-visual/AGENTS.md": "8ddc3231f25dafb97f8c1560112ec82a0b864e569704f46fc3e501cf30740b46",
-    "fixtures/domains/game-visual/android-minigame/audio/anomaly.wav": "382f95baa224c665f52e2c7d55982c0a57cba90079803896322209d6e52a0203",
-    "fixtures/domains/game-visual/android-minigame/audio/bgm-anomaly-pressure-loop.wav": "9e0a72a88c78ad465b777dbdc53af3c04710761ccf3d30b468bd20fdf35fc796",
-    "fixtures/domains/game-visual/android-minigame/audio/bgm-night-shift-loop.wav": "b41af085d142ac968a55f2a92cf98ae5aa9e623db811c4e8d0debb38bab441df",
-    "fixtures/domains/game-visual/android-minigame/audio/boot.wav": "b0ff5dc585b2c4afe129fff77a5c64534467b85f587d20e496896d2d583eeae3",
-    "fixtures/domains/game-visual/android-minigame/audio/click.wav": "6eaf268086297982bdba6ccbc5a16777561e6846a14bd069736e6faf62f9175f",
-    "fixtures/domains/game-visual/android-minigame/audio/lockdown.wav": "15dee7e81ea574017d2ce22419326b2b15564a5688204e60d58668af53f8d4f0",
+    "fixtures/domains/game-visual/android-minigame/audio/anomaly.wav": null,
+    "fixtures/domains/game-visual/android-minigame/audio/bgm-anomaly-pressure-loop.wav": null,
+    "fixtures/domains/game-visual/android-minigame/audio/bgm-night-shift-loop.wav": null,
+    "fixtures/domains/game-visual/android-minigame/audio/boot.wav": null,
+    "fixtures/domains/game-visual/android-minigame/audio/click.wav": null,
+    "fixtures/domains/game-visual/android-minigame/audio/lockdown.wav": null,
     "integrations/adapter-registry.json": "f2b2b579ea2c060589c01795eb6e45c4ff2b51af5a0b982278ba762142babb56",
     "integrations/executors/agents/codex/.gitkeep": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
     "integrations/executors/agents/hermes/.gitkeep": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
@@ -573,44 +405,44 @@
     "integrations/hosts/open-design/expert-suite/skills/master-method-translator/SKILL.md": "25ac113f15b91b97808db9e58872923f53cc0af21db7be5aea321fc645b5a826",
     "packages/capabilities/quality/jury/JURY_MODEL.md": "ede33c5d67b817545254db85f8c044de19c48502ef6fc27ca2beb3237edc4bd3",
     "packages/capabilities/quality/jury/JuryRecord.template.json": "8a018e20b826b5e4fb96753630844e43977e33567065160a1a197667ee71604d",
-    "packages/capabilities/quality/jury/__pycache__/check_anti_slop.cpython-311.pyc": "cd1ee2a2f82f1f82508caf68fe9da7db630a55bae8f4df233d441a8d64ba42d2",
-    "packages/capabilities/quality/jury/__pycache__/check_anti_slop.cpython-313.pyc": "e99f6ed3958038686b418a19fefd8d4c711f6d4943cd9bb1c00094c91cfd09a4",
+    "packages/capabilities/quality/jury/__pycache__/check_anti_slop.cpython-311.pyc": null,
+    "packages/capabilities/quality/jury/__pycache__/check_anti_slop.cpython-313.pyc": null,
     "packages/capabilities/quality/jury/check_anti_slop.py": "977a1ba3255844cb91e7864d7d5dda2d539c7b35f2c798cc7b21efdeecf39355",
     "reports/current/DEEPSEEK-AUTHORITY-LEDGER-2026-09-14.json": "fb78049b23bb9e314664d96cbefc1c995dbd851d1413909bd6e530c9221cd0de",
     "scripts/generate_current_reports.py": "5f7d89e1e201fb901618189e655a1f191acedeacbd8c81c66fa52c9b4b09aae2",
     "scripts/run_python_tests.py": "c1127e1ebe16bcfe7b13b9d5571e93ef346c51717fcf4d3fd8a46d4ad84d532c",
     "src/design_lab/adapters/__init__.py": "71d19007990563e2ecd3ee10b441898e6ea968a74864dee00b5d572ef7de82ce",
-    "src/design_lab/adapters/__pycache__/__init__.cpython-313.pyc": "f4b46db0a6f3ba62f6bda1942fcb721abf700af1f3d241e9c10cfb225cc11530",
-    "src/design_lab/adapters/__pycache__/illustrator_com.cpython-313.pyc": "7a18de02d7cdc4cc9e13ceddad8189a6741287deb6f6867a782dbe5ab296ef8c",
-    "src/design_lab/adapters/__pycache__/photoshop_com.cpython-313.pyc": "3b2221dff00b8fe096874e34cb79d2b0bb18ca0918fbadf1409895c60508f35c",
-    "src/design_lab/adapters/__pycache__/spi.cpython-313.pyc": "d5043f3ab26ca87ed3257f578c07cf6f10c751d318bc63689655e4d714d90429",
+    "src/design_lab/adapters/__pycache__/__init__.cpython-313.pyc": null,
+    "src/design_lab/adapters/__pycache__/illustrator_com.cpython-313.pyc": null,
+    "src/design_lab/adapters/__pycache__/photoshop_com.cpython-313.pyc": null,
+    "src/design_lab/adapters/__pycache__/spi.cpython-313.pyc": null,
     "src/design_lab/adapters/illustrator_com.py": "174441fd3626267e8bba9a51c5cdb2ca2a9a82c1dfe1adee128439b8f4b594bb",
     "src/design_lab/adapters/photoshop_com.py": "df6733334f0e5775ac1a07206c1dcd752afc5faf2ff5f6b84a82f2497d23b4da",
     "src/design_lab/adapters/spi.py": "b9cb9382f39b484db10fad66cfc701776f02b0d712d4b2ea668fe7e4657998ff",
     "src/design_lab/assurance/__init__.py": "785754c6a70aa42d4056709a97557efe5b641d69b8e6a1abbdf1fab071280063",
-    "src/design_lab/assurance/__pycache__/__init__.cpython-313.pyc": "78c230d6c1d2c05e176fceb3930759bec15fa39b94145648ba9fc32d9b557ce4",
-    "src/design_lab/assurance/__pycache__/human_jury.cpython-313.pyc": "05f5a07f14599e874ca3936aef4bbccf3a981dc1a34bde5145457f662000783f",
-    "src/design_lab/assurance/__pycache__/knowledge_feedback.cpython-313.pyc": "90c306136918ae65e26e2df3509d85811c6acbf9dda4da81cc2244b47d861728",
-    "src/design_lab/assurance/__pycache__/qa_plane.cpython-313.pyc": "c4ce86a0536f16821279460956587915dbafb044e919268949e5637aca6d0a7e",
-    "src/design_lab/assurance/__pycache__/quality_record.cpython-313.pyc": "9fb7ddccdfe4882899f0dd6607cde0f1d822a9dfb0bf5b5cb226275ab21e953d",
+    "src/design_lab/assurance/__pycache__/__init__.cpython-313.pyc": null,
+    "src/design_lab/assurance/__pycache__/human_jury.cpython-313.pyc": null,
+    "src/design_lab/assurance/__pycache__/knowledge_feedback.cpython-313.pyc": null,
+    "src/design_lab/assurance/__pycache__/qa_plane.cpython-313.pyc": null,
+    "src/design_lab/assurance/__pycache__/quality_record.cpython-313.pyc": null,
     "src/design_lab/assurance/handoff_readiness.py": "88f10d2dabdfa725db6fa4999701540dfaa648c06b77b4800e6d9e593404ce71",
     "src/design_lab/assurance/human_jury.py": "f0ae2edf876f8ff307ed4a58ce79c2420a1ad119e4910f97b90322ebf52c86df",
     "src/design_lab/cli.py": "740f2da716f721110d59bcfad3b3a7e9c146009c99c38ca460293fee3d4763ca",
     "src/design_lab/generators/__init__.py": "3e7a20c0e69689daa28b783f4632a67cf86b3824c1911d4ea8da7c6c95d39844",
-    "src/design_lab/generators/__pycache__/__init__.cpython-313.pyc": "27ab0f08ff503208576d8c0c64292fb4d1b5d40c74079488dc3a02bcf3246375",
-    "src/design_lab/generators/__pycache__/comfy_http.cpython-313.pyc": "e7f12bbd80862230e147ae83cb68d55929bb036cd0530d67f6c165e34e94f2b0",
-    "src/design_lab/generators/__pycache__/comfy_task.cpython-313.pyc": "cbd6a0353b862232d1e6b527537dcaf972bad0d04b270df53caab236dd6dc9eb",
+    "src/design_lab/generators/__pycache__/__init__.cpython-313.pyc": null,
+    "src/design_lab/generators/__pycache__/comfy_http.cpython-313.pyc": null,
+    "src/design_lab/generators/__pycache__/comfy_task.cpython-313.pyc": null,
     "src/design_lab/generators/comfy_http.py": "d8bb2404197bf9014aa550ac100a07ede014c9e6721ff3483c12c54e1d96fdcc",
     "src/design_lab/generators/comfy_task.py": "7a4d43efa734d48398d985bfd2642b3954effe5de788626f682c051efea36b91",
     "src/design_lab/http_service.py": "b7138a895e8fa5d01453734ff79fe451122c0037747b10a0c768b47dbe409183",
     "src/design_lab/image_assets.py": "419d96e73264112f509e418472ee6374da0d995b0904c231436f994b9638d6c8",
     "src/design_lab/interop/__init__.py": "00b913119c1b2e5cbb4e4cd3c9c1b9ee457b83ad0b7d28fed4d6e95b9eff712d",
-    "src/design_lab/interop/__pycache__/__init__.cpython-313.pyc": "b39468bf926720d40688b3efea04766ba5b6ccc309a0c4773d3de814154e6cb1",
-    "src/design_lab/interop/__pycache__/delivery_receipt.cpython-313.pyc": "ca472a712512d00797e53292ff2078285ede5b078a4002205e362db8897da571",
-    "src/design_lab/interop/__pycache__/dtcg.cpython-313.pyc": "9c62fc461003809371c275e0c5ed7cc009e4a061f615959add57f90179e04906",
-    "src/design_lab/interop/__pycache__/penpot.cpython-313.pyc": "904f83f30a7f1461f9320c771cdccda13bfd0efa00453dea9f93e272e23621be",
-    "src/design_lab/interop/__pycache__/provenance.cpython-313.pyc": "313dc010476134ec9b045f9b75f0dc06b1de3d1e2064613ed124b67450577d95",
-    "src/design_lab/interop/__pycache__/timeline.cpython-313.pyc": "c2ac8344aded88d10c9613a20a6883b898fa3cea00776b149c2f121cf35e6c26",
+    "src/design_lab/interop/__pycache__/__init__.cpython-313.pyc": null,
+    "src/design_lab/interop/__pycache__/delivery_receipt.cpython-313.pyc": null,
+    "src/design_lab/interop/__pycache__/dtcg.cpython-313.pyc": null,
+    "src/design_lab/interop/__pycache__/penpot.cpython-313.pyc": null,
+    "src/design_lab/interop/__pycache__/provenance.cpython-313.pyc": null,
+    "src/design_lab/interop/__pycache__/timeline.cpython-313.pyc": null,
     "src/design_lab/interop/delivery_receipt.py": "dbe0c665528b46c9bc8519408f7315acb9b281ed8cc3e412df9c3026c15afa82",
     "src/design_lab/native_assets.py": "05a5d575cc3ee16dbb59b7a97617e4759859508a2bce2520853a2f444c52e217",
     "src/design_lab/native_bundles.py": "e8cc6f59694f61fced880282e2a46b8e37d8d446fe2fc3e7e859ce1b7df7914d",
@@ -619,15 +451,15 @@
     "src/design_lab/native_tasks.py": "330e110b8a33d094485c0386a7a7ce9d2e1abd94354ccbf08fe74eeabbea9fd0",
     "src/design_lab/native_workers.py": "56d7cfb221c280da80794bdf5752349b744670963005f90d15cbc0e287aadc50",
     "src/design_lab/readiness/__init__.py": "effb719064f2e0480fba3df7e2cf2d3c5ef63730511814e9c2f8d6fde1330955",
-    "src/design_lab/readiness/__pycache__/__init__.cpython-313.pyc": "8e737d1830d7ddbd423c6d9b0edeb2c55f88c6a50e3b71ea8a40137b04bde716",
-    "src/design_lab/readiness/__pycache__/host_matrix.cpython-313.pyc": "902bb0f266025b4c148e5b92697b2d30420581734def0c63babe6d78ff928317",
-    "src/design_lab/readiness/__pycache__/model_radar.cpython-313.pyc": "53c9ca5b2c57c5bac04e8018d2d5f526449cf0ba5b60ad3d8e47e799d7f48008",
-    "src/design_lab/readiness/__pycache__/reconstruction_bench.cpython-313.pyc": "d0503755f51b25209241ba66ced56482d18bd54d41ef7d8bb16fd7387c35a2fa",
-    "src/design_lab/readiness/__pycache__/vector_provider.cpython-313.pyc": "e0dde776c72b5a7a624b5aba8c4576ca5ecf2e7341f3267d181ab1a8a9bacb22",
+    "src/design_lab/readiness/__pycache__/__init__.cpython-313.pyc": null,
+    "src/design_lab/readiness/__pycache__/host_matrix.cpython-313.pyc": null,
+    "src/design_lab/readiness/__pycache__/model_radar.cpython-313.pyc": null,
+    "src/design_lab/readiness/__pycache__/reconstruction_bench.cpython-313.pyc": null,
+    "src/design_lab/readiness/__pycache__/vector_provider.cpython-313.pyc": null,
     "src/design_lab/readiness/host_matrix.py": "039b5cacfce044598d12600ea9f8d0df2414bd99f43b2ab7b3800512333fd435",
     "src/design_lab/readiness/model_radar.py": "1ec2ca4e2ddbd59a7f5977dc8b030483332116a2963bfe1cffd09761a4150dd3",
     "src/design_lab/reconstruction/__init__.py": "93a8d54438e18dc5483125a06a1616289b65584f4040521763dc1794a7cb211e",
-    "src/design_lab/reconstruction/__pycache__/__init__.cpython-313.pyc": "2255ae31931a3a3a1814fd2b1a26e91c7901f5d7dad93c8308cb986af58d1046",
+    "src/design_lab/reconstruction/__pycache__/__init__.cpython-313.pyc": null,
     "src/design_lab/runtime/project_backup.py": "59cfa96e392d704a0350778f468b30b09425a38cf16681fde761c6d47487ba45",
     "src/design_lab/service.py": "9406c996df80dd6b96f182848b925fa38011cb1a3c5221a287ba7f554b503b87",
     "src/design_lab/task_queries.py": "d695156918f873566aacad9e55703091887325f7afccb00446b8863408d80ccb",
@@ -635,15 +467,15 @@
   },
   "ledger": "design-lab/config/task-ledger-r3.json",
   "outputHashes": {
-    "ADAPTER_EVIDENCE_RECONCILIATION.json": "7eb2d70a59a51a1901215cfd6ff78c61d1fe80111dd4055c9d2c4a3e6353ca2a",
-    "CLOUD_BASELINE.json": "49f3e53632aebb9ef566d1d2cf3118227ecf5f42491e871d30337db5031ca390",
-    "CLOUD_BASELINE.md": "3bb13d01191d5e913ea903b0bee212b13242c4ca16d6a3e287bdba3ee15258c6",
-    "DOMAIN_PACK_READINESS.json": "fe2b09ddf3554cf512777ca85d5ae69901201eb59657bafbcb4d97359fe1d7fd",
-    "KNOWLEDGE_INVENTORY.json": "a61e7b2e3029619bb2e73f3a09451f95eebe5576eaf6529b038edbf11ad73a83",
-    "PROJECT_STATUS.json": "f56fa501cea1a71c4fa655dd01a54889907607479a81bf29bde9867cc94c38a0",
-    "PROJECT_STATUS.md": "a73d28b97987643cf3bac2b01134d49079bfc2b794e53ef97a1b7fe56441b7f5",
-    "RELEASE_READINESS.json": "ab51c224c81147b21c7ab10309e7e22e491fc557204d816aa9ae72ad16c34331",
-    "TASK_PROGRESS.json": "1fcabfdb478baed9590a83da561facdfe6a060b9418c83cf7ee526e39240b89a"
+    "ADAPTER_EVIDENCE_RECONCILIATION.json": "79ee9a23a334b6503f09998d9bc4667549247783c1d7e51a8b138dab2f362e50",
+    "CLOUD_BASELINE.json": "e8bde9e3d799b74a5ca0dadcfb29fdcacb591ac1c839bdf776e5a250f4ff7a68",
+    "CLOUD_BASELINE.md": "bb01a27118a3fe80c64162550d4393e537f96c2a4c597ab5cc0e7645f20c6155",
+    "DOMAIN_PACK_READINESS.json": "0b77381db6357a5ca1f6e9d756da64142872e804c8120923d63c81ed2fd942aa",
+    "KNOWLEDGE_INVENTORY.json": "6aed7c680f79baa3536d15b36d64d4978d077db9f797740679b09e19ce6150ea",
+    "PROJECT_STATUS.json": "95bdf149a5bcdb58f082fd3ac7d7497937adb5fd62c112e8777a3f29192ede1b",
+    "PROJECT_STATUS.md": "d3a3638219eac77a482a7be2aea318dd5247ef034fc80d17809d3e463897b92d",
+    "RELEASE_READINESS.json": "7b5a8474ec42578cab781e6a6bc46217671baed0ca108245c03f6648ad98cd6e",
+    "TASK_PROGRESS.json": "af35ccb8b194f40784bf0f4b16d5964020a4e65159d90dbd9c6084b4aeb043a1"
   },
   "reportRoot": "../../reports/current/",
   "reports": [
@@ -659,5 +491,5 @@
   ],
   "schemaVersion": "design-lab/current-report-index/v3",
   "subjectMeaning": "generation-time git observation, not a freshness claim; exact-SHA evidence is the CI artifact",
-  "subjectSha": "7714849cb471fd2ca0b4f035967f0e1566b73e87"
+  "subjectSha": "2dc365ab41c69eaa40e88d70c65e1118811ba3fc"
 }
