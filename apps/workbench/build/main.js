@@ -1010,7 +1010,7 @@ const CAPABILITY_REGISTRY = [
     source: "IA 槽位 #/research",
     owner: "DESIGN-LAB design core",
     route: "GET /api/research/…",
-    contractRef: "B07 routes.json #research（无后端模型）",
+    contractRef: "apps/workbench/shell.ts ROUTE_VIEWS（12 路由 IA）；无后端模型",
     implementationState: "PLANNED",
     permission: "brief/reference 已持久化（/api/projects/{id}/assets 已有）",
     reason: "服务尚无研究结论持久化路由；研究目前由 brief/reference 驱动。",
@@ -1022,10 +1022,10 @@ const CAPABILITY_REGISTRY = [
     source: "IA 槽位 #/domains",
     owner: "DESIGN-LAB Domain Pack",
     route: "GET /api/domains/…",
-    contractRef: "docs/… Domain Pack（品牌/UI/平面/电商/包装/动效/3D 域能力声明）",
+    contractRef: "design-lab/schemas/domain-pack.schema.json · design-lab/domain-packs/DOMAIN_PACK_SPEC_V2.md（13 个域包）",
     implementationState: "PLANNED",
-    permission: "域能力声明已存在，独立后端模型未建",
-    reason: "领域划分尚无独立后端模型；现有能力由 Domain Pack 文档承载。",
+    permission: "域包模型与 13 个域包已落仓（E1 结构级）；缺 HTTP 读回路由",
+    reason: '域划分并非"尚无模型"：schema、DOMAIN_PACK_SPEC_V2 与 13 个域包目录都在仓内，并有 verify_domain_pack_v2.py 校验；缺的只是 GET /api/domains 读回。',
     nextAction: "为 Domain Pack 建 /api/domains 读回路由。"
   },
   {
