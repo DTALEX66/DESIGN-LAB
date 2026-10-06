@@ -7,36 +7,25 @@
     "platform": "Windows-11-10.0.26100-SP0",
     "python": "3.13.14"
   },
-  "fresh": false,
+  "fresh": true,
   "freshnessMeaning": "at generation only; check verifies bound-input integrity, not current Git or cloud state",
-  "generatedAt": "2026-10-06T17:34:34+00:00",
+  "generatedAt": "2026-10-06T18:25:40+00:00",
   "gitStateMeaning": "generation-time observation, not current HEAD",
   "local": {
-    "branch": "qoder/designlab-source-registry-truth-20261007",
-    "origin_main": "ba382043260b831c7aa1f0d807ed04ed9a27a38c",
-    "sha": "ba382043260b831c7aa1f0d807ed04ed9a27a38c",
-    "source_worktree_clean": false,
-    "tracked_files": 2961,
-    "worktree_changes": [
-      {
-        "content": "sha256:7119d9b31f1be2962babe5b9c7da12e4e5f9c961a3be1777165e296a84c4d1fc",
-        "kind": "M",
-        "path": "design-lab/research/global-absorption/SOURCE_REGISTRY.json"
-      },
-      {
-        "content": "sha256:8df502286ac104f0b2b7e756c97ad82cf6f7f284487488d25cc87ff049057ae0",
-        "kind": "M",
-        "path": "design-lab/scripts/verify_source_registry.py"
-      }
-    ],
-    "worktree_digest": "sha256:43da1064a4261ea3e7b0d940894d225a3ce67e3f845846542f95090e6bcdf479"
+    "branch": "qoder/designlab-repo-body-cleanup-20261007",
+    "origin_main": "c15056f28b73965b87cf86c60b64d9351e031106",
+    "sha": "c15056f28b73965b87cf86c60b64d9351e031106",
+    "source_worktree_clean": true,
+    "tracked_files": 2962,
+    "worktree_changes": [],
+    "worktree_digest": "sha256:5f0d4f26fdb9d431dea3592240175468bb2af5b0f604f7b7d43de7061f752cfc"
   },
   "note": "No GitHub API query was run by this generator; tool installation is not inferred.",
   "remoteRef": "origin/main (local tracking ref)",
   "schemaVersion": "design-lab/cloud-baseline/v2",
   "subjectMeaning": "subjectType=WORKTREE means the tree was dirty at generation; worktreeDigest covers HEAD plus the non-generated changes",
-  "subjectSha": "ba382043260b831c7aa1f0d807ed04ed9a27a38c",
-  "subjectType": "WORKTREE",
+  "subjectSha": "c15056f28b73965b87cf86c60b64d9351e031106",
+  "subjectType": "COMMIT",
   "taskpackHash": "31dde89eb4ede81fe88c0a5c5144adfb86af8db4c4d8c263bde2199180369b69",
   "taskpackId": "DL-TP-20260908-R5",
   "testRunAt": "2026-10-06T05:11:47+00:00",
@@ -49,6 +38,6 @@
     "openPullRequests",
     "branchProtection"
   ],
-  "worktreeClean": false,
-  "worktreeDigest": "sha256:43da1064a4261ea3e7b0d940894d225a3ce67e3f845846542f95090e6bcdf479"
+  "worktreeClean": true,
+  "worktreeDigest": "sha256:5f0d4f26fdb9d431dea3592240175468bb2af5b0f604f7b7d43de7061f752cfc"
 }
