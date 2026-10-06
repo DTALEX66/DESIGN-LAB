@@ -1,10 +1,10 @@
 {
   "schemaVersion": "design-lab/repo-classification/v1",
-  "generatedAt": "2026-10-06T08:32:23Z",
-  "observedCommit": "c5965db6d8bb1a09947c4610f619db8555ceb479",
+  "generatedAt": "2026-10-06T08:35:14Z",
+  "observedCommit": "0c0922335403e31d2eb5e9561e9d63c3032018d8",
   "totals": {
-    "trackedFiles": 2925,
-    "workingTreeMiB": 44.83,
+    "trackedFiles": 2921,
+    "workingTreeMiB": 44.84,
     "packMiB": 223.82,
     "note": "pack 含全部历史与 tag 归档；working tree 为当前检出字节。两者之差不是垃圾。"
   },
@@ -25,9 +25,9 @@
       "mib": 26.34
     },
     "generated": {
-      "files": 86,
+      "files": 84,
       "bundles": 4,
-      "mib": 1.47
+      "mib": 1.45
     },
     "history": {
       "files": 234,
@@ -40,9 +40,9 @@
       "mib": 0.22
     },
     "source": {
-      "files": 1314,
+      "files": 1312,
       "bundles": 7,
-      "mib": 8.82
+      "mib": 8.79
     }
   },
   "bundles": [
@@ -78,7 +78,7 @@
       "category": "source",
       "note": "设计核心其余模块",
       "files": 828,
-      "bytes": 5507701,
+      "bytes": 5516729,
       "cited_by_authority": 4,
       "lastTouch": "2026-10-06"
     },
@@ -131,8 +131,8 @@
       "path": "reports/current/",
       "category": "generated",
       "note": "当前状态投影（由生成器再生）",
-      "files": 65,
-      "bytes": 1032708,
+      "files": 63,
+      "bytes": 1009412,
       "cited_by_authority": 4,
       "lastTouch": "2026-10-06"
     },
@@ -177,7 +177,7 @@
       "category": "generated",
       "note": "提交的构建产物（Build Output Truth）",
       "files": 13,
-      "bytes": 467141,
+      "bytes": 467495,
       "cited_by_authority": 0,
       "lastTouch": "2026-10-06"
     },
@@ -200,20 +200,20 @@
       "lastTouch": "2026-09-04"
     },
     {
-      "path": ".github/",
-      "category": "source",
-      "note": "CI 定义",
-      "files": 7,
-      "bytes": 68734,
-      "cited_by_authority": 3,
-      "lastTouch": "2026-10-06"
-    },
-    {
       "path": "reports/",
       "category": "generated",
       "note": "其余报告",
       "files": 7,
       "bytes": 37317,
+      "cited_by_authority": 1,
+      "lastTouch": "2026-10-06"
+    },
+    {
+      "path": ".github/",
+      "category": "source",
+      "note": "CI 定义",
+      "files": 5,
+      "bytes": 27771,
       "cited_by_authority": 1,
       "lastTouch": "2026-10-06"
     },
