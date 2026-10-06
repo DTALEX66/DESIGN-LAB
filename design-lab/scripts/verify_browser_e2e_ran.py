@@ -31,6 +31,7 @@ ROOT = Path(__file__).resolve().parents[2]
 TEST_MODULES = (
     "test_workbench_design_layer_e2e",
     "test_workbench_overflow_gate",
+    "test_workbench_contrast_gate",
 )
 
 
