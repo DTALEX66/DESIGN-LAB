@@ -1,10 +1,10 @@
 {
   "schemaVersion": "design-lab/repo-classification/v1",
-  "generatedAt": "2026-10-06T20:42:56Z",
-  "observedCommit": "d1f1fb2d040d851271f9b3258bddb91db16dae7b",
+  "generatedAt": "2026-10-06T22:10:48Z",
+  "observedCommit": "b7f82ac01d52728f831ea5d1209fca95d5843e90",
   "totals": {
-    "trackedFiles": 2966,
-    "workingTreeMiB": 49.5,
+    "trackedFiles": 2971,
+    "workingTreeMiB": 49.52,
     "packMiB": 237.66,
     "note": "pack 含全部历史与 tag 归档；working tree 为当前检出字节。两者之差不是垃圾。"
   },
@@ -20,9 +20,9 @@
       "mib": 5.17
     },
     "evidence": {
-      "files": 1167,
+      "files": 1170,
       "bundles": 5,
-      "mib": 26.56
+      "mib": 26.57
     },
     "generated": {
       "files": 84,
@@ -40,9 +40,9 @@
       "mib": 0.23
     },
     "source": {
-      "files": 1330,
+      "files": 1332,
       "bundles": 7,
-      "mib": 8.98
+      "mib": 8.99
     }
   },
   "bundles": [
@@ -59,8 +59,8 @@
       "path": "docs/audits/",
       "category": "evidence",
       "note": "审计与验收证据包",
-      "files": 818,
-      "bytes": 7109422,
+      "files": 821,
+      "bytes": 7117823,
       "cited_by_authority": 0,
       "lastTouch": "2026-10-07"
     },
@@ -77,8 +77,8 @@
       "path": "design-lab/",
       "category": "source",
       "note": "设计核心其余模块",
-      "files": 842,
-      "bytes": 5632056,
+      "files": 880,
+      "bytes": 6219807,
       "cited_by_authority": 4,
       "lastTouch": "2026-10-07"
     },
@@ -114,7 +114,7 @@
       "category": "history",
       "note": "交接血统（非当前入口）",
       "files": 82,
-      "bytes": 2238699,
+      "bytes": 2237749,
       "cited_by_authority": 1,
       "lastTouch": "2026-10-07"
     },
@@ -128,20 +128,11 @@
       "lastTouch": "2026-09-26"
     },
     {
-      "path": "packages/",
-      "category": "source",
-      "note": "能力包",
-      "files": 275,
-      "bytes": 1390757,
-      "cited_by_authority": 0,
-      "lastTouch": "2026-09-18"
-    },
-    {
       "path": "reports/current/",
       "category": "generated",
       "note": "当前状态投影（由生成器再生）",
       "files": 63,
-      "bytes": 1023484,
+      "bytes": 1023633,
       "cited_by_authority": 4,
       "lastTouch": "2026-10-07"
     },
@@ -159,9 +150,9 @@
       "category": "source",
       "note": "产品源码",
       "files": 87,
-      "bytes": 906650,
+      "bytes": 911150,
       "cited_by_authority": 0,
-      "lastTouch": "2026-10-06"
+      "lastTouch": "2026-10-07"
     },
     {
       "path": "integrations/",
@@ -173,20 +164,29 @@
       "lastTouch": "2026-09-18"
     },
     {
+      "path": "packages/",
+      "category": "source",
+      "note": "能力包",
+      "files": 239,
+      "bytes": 809034,
+      "cited_by_authority": 0,
+      "lastTouch": "2026-10-07"
+    },
+    {
       "path": "scripts/",
       "category": "source",
       "note": "根级门与工具",
       "files": 52,
-      "bytes": 557982,
+      "bytes": 559528,
       "cited_by_authority": 4,
-      "lastTouch": "2026-10-06"
+      "lastTouch": "2026-10-07"
     },
     {
       "path": "apps/",
       "category": "generated",
       "note": "提交的构建产物（Build Output Truth）",
       "files": 13,
-      "bytes": 484327,
+      "bytes": 483777,
       "cited_by_authority": 0,
       "lastTouch": "2026-10-07"
     },
@@ -231,9 +231,9 @@
       "category": "source",
       "note": "第三方源码副本（inert source blobs）",
       "files": 1,
-      "bytes": 23306,
+      "bytes": 23483,
       "cited_by_authority": 0,
-      "lastTouch": "2026-09-14"
+      "lastTouch": "2026-10-07"
     },
     {
       "path": "docs/golden-cases/",
@@ -285,9 +285,9 @@
       "category": "authority",
       "note": "机器权威索引与策略",
       "files": 8,
-      "bytes": 8220,
+      "bytes": 8459,
       "cited_by_authority": 2,
-      "lastTouch": "2026-09-25"
+      "lastTouch": "2026-10-07"
     },
     {
       "path": "WORK-LAB-DESIGN-MODULE-FINAL-HANDOFF-2026-08-07.md",

@@ -5674,7 +5674,7 @@
         "source_tier": "A",
         "integration_mode": "vendor-adapt",
         "status": "adopt-now",
-        "target": "knowledge/production/huashu-design/",
+        "target": "design-lab/research/quarantine/huashu-design/",
         "absorb": "HTML 高保真原型、幻灯片、动画、评审、品牌协议、摄影语言、分镜（32 references，中文）",
         "restrictions": "MIT 版权声明保留；assets/ 大文件不复制",
         "reviewed_at": "2026-08-13",

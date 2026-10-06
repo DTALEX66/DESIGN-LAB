@@ -1100,6 +1100,7 @@ function capabilityCard(c) {
   );
 }
 function buildVersionRing(versions) {
+  if (versions.length <= 1) return null;
   const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
   svg.setAttribute("class", "version-ring");
   svg.setAttribute("viewBox", "0 0 120 120");
@@ -1947,7 +1948,10 @@ async function renderSettings(target) {
     el(
       "div",
       { class: "panel" },
-      el("h3", {}, "环境状态"),
+      // The panel heading and its first row were both called 环境状态, so the
+      // page read the heading as a duplicate of the value under it. The panel is
+      // a readback of the service environment; the row inside it is the status.
+      el("h3", {}, "服务端环境读回"),
       el(
         "ul",
         { class: "list" },
@@ -2639,7 +2643,7 @@ function buildInspectorPanel(id, layer) {
   const body = el(
     "div",
     { class: "inspector-body" },
-    ring,
+    ...ring ? [ring] : [],
     el("p", { class: "view-hint" }, `${layer.directions.length} 个方向版本` + (chosen ? ` · 选定：${chosen.title} v${chosen.version}` : " · 尚未选定方向")),
     el(
       "ul",
