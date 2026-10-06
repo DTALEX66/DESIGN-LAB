@@ -141,7 +141,40 @@ node design-lab/tests/e2e/audit_workbench_overflow.mjs
 
 ---
 
-## 4. 结论口径（沿用，不要退化）
+## 4. T1 账本复核：已具备的前置观测，以及为什么还没有改任何轴状态
+
+**已完成的真实观测**（这是复核的前提，之前一直缺）：
+
+- 解释器：项目自带 `.venv`（Python **3.13.14**，`skimage 0.26.0`）——与
+  `reports/current/TASK_PROGRESS.json` 的 `environmentFingerprint.python` 一致。
+- SHA：`28667300de28acb61031d0d2db53256e9c196138`（含 PR #216/#217/#218/#219/#220/#221）。
+- 命令：`python scripts/run_python_tests.py`
+- 结果：**`Ran 1807 tests in 1150.552s — OK (skipped=39)`**，0 failures / 0 errors。
+
+**一次被推翻的错误读数（务必别重犯）**：同一命令我先用外置
+`10-toolchains/python/venv313` 跑过一次，得到 `Ran 1734 tests — FAILED (failures=11, errors=43)`，
+而**包装器退出码是 0**。那 54 项不是仓库坏了：`venv313` 里没有 `scikit-image`，
+`packages/capabilities/reconstruction/metrics.py` 导入 `skimage` 失败，
+整批 reconstruction 测试模块以 `unittest.loader._FailedTest` 形式报错——
+测试数从 1734 涨到 1807 正是这批模块被真正导入的证据。
+教训：读回执不读包装状态；测试**总数**变化本身就是环境错误的信号。
+
+**为什么 27 项 `PENDING_EVIDENCE_REVIEW` 仍然没动**：
+
+1. 契约把 `required_axes` 由 `HOST_TASKS/DELIVERY_TASKS` 派生、任务定义必须等于
+   `docs/history/taskpacks/r5-20260908/tasks.json` 冻结源，所以能改的只有轴状态与证据引用；
+2. 但把 `PARTIAL` 写成 `PASS` 需要**逐任务**对照其 `acceptance` 条目复核，
+   并且 `host_live` / `delivery` 两轴要的是真实宿主运行与人工验收——本次套件观测**不支持**它们；
+3. 证据工件若绑 `.project-local/**`（gitignored）就会在换检出后变成
+   `ARTIFACT_CHANGED_OR_MISSING`——这正是现有若干条证据今日的处境，不该再复制这个坑。
+
+所以这一步的正确做法是**逐任务**推进（建议从 `DL-R5-001` 起，它是 P0 里唯一无依赖的根节点，
+被 002/003/004/006/009/023/028 直接依赖），而不是批量翻牌。
+本观测可作为 implementation/unit 两轴的**当前 SHA 重观测依据**引用。
+
+---
+
+## 5. 结论口径（沿用，不要退化）
 
 - 热度（star / like）**不得相加**，必须带平台 / 对象 / 日期 / 来源；热度只是发现信号，不是质量证据。
 - 未测量就是 `null`，不能用 0 冒充。
