@@ -1712,13 +1712,13 @@
   ],
   "fresh": false,
   "freshnessMeaning": "at generation only; check verifies bound-input integrity, not current Git or cloud state",
-  "generatedAt": "2026-10-06T23:06:12+00:00",
+  "generatedAt": "2026-10-06T23:16:23+00:00",
   "gitStateMeaning": "generation-time observation, not current HEAD",
   "ledgerUpdatedAt": "2026-10-06T03:12:05Z",
   "note": "DONE_LOCAL concerns the declared task axes and dependencies, not a product release or hosted CI.",
   "schemaVersion": "design-lab/task-progress/r5-v1",
   "subjectMeaning": "subjectType=WORKTREE means the tree was dirty at generation; worktreeDigest covers HEAD plus the non-generated changes",
-  "subjectSha": "2023ce1d9ea6ab18f973c65609222ef3373a28f5",
+  "subjectSha": "3125e2b79accf6c80e7767771514741dc4598d95",
   "subjectType": "WORKTREE",
   "taskpack": "DL-TP-20260908-R5",
   "taskpackHash": "31dde89eb4ede81fe88c0a5c5144adfb86af8db4c4d8c263bde2199180369b69",
@@ -4221,5 +4221,5 @@
   "testRunId": null,
   "testRunMeaning": "no bound test run; this projection does not claim a test result",
   "worktreeClean": false,
-  "worktreeDigest": "sha256:074cd1654005b880fddbec8a61bfbfc30a78d690cb4fadddce370c0ce31dcc0c"
+  "worktreeDigest": "sha256:498d65cec699f4c3f41e89679f1cd21fbbf0247b1fdb2a926ed49da92c6bb13d"
 }
