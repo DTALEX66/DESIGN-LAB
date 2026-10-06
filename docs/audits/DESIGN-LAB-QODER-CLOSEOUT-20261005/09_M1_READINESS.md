@@ -8,7 +8,7 @@
 |---|---|---|
 | C7.1 一个启动入口 | **已实现**：`python -m design_lab --project <dir> workbench [--port] [--no-browser]` 进程内起服务，首行输出 `{status,url,port,token}`，token 只存在于该进程与终端（不进 argv/URL/文件），默认自动开本机浏览器。`serve` 保留为脚本化底层入口（tty 上仍拒绝无 stdin 启动） | `DONE_E2`（测试驱动真实 CLI 子进程读回） |
 | 启动读回证明 | `design-lab/tests/test_workbench_launch.py`：LISTENING 公告、`/workbench` 200 + CSP 逐字节、`/workbench/main.js` 与**已提交 bundle 逐字节相等**、带 token 的 `/api/health` = OK、无 token 的 `/api/projects` = 401 | 3 tests（2 PASS + 1 诚实 skip） |
-| C7.2 Install | 本机离线无法建 wheel（venv 无 hatchling、`uv` 不在 PATH）→ 改为**新增 CI job** `wheel-install-gate`：`uv build --wheel` → 干净 venv 安装 → `DL_LAUNCH_INSTALLED=1` 跑同一套启动测试，其中 packaged 测试断言安装态 bundle 与提交态逐字节一致 | `PENDING_CI_VERDICT`（本地不宣称） |
+| C7.2 Install | 本机离线无法建 wheel（venv 无 hatchling、`uv` 不在 PATH）→ 由 CI job `wheel-install-gate` 承担：`uv build --wheel` → 干净 venv 安装 → `DL_LAUNCH_INSTALLED=1` 跑同一套启动测试。**已判读为真**：pass / 16s，日志逐条可见 `Ran 3 tests in 1.123s` + `OK`，其中 packaged 测试**未 skip**，证明安装态 bundle 与提交态逐字节一致；job 内置反空转断言（要求 `Ran 3 tests`、`OK`、不得出现 skipped，并显式 import `PIL/jsonschema/numpy/skimage`） | `DONE_E2`（CI exact-SHA `725c5b12`） |
 | C7.3 Persistence | `test_project_data_survives_a_full_process_restart`：经 API 建项目 → **终止进程** → 重启 → 项目仍在同一 id | `DONE_E2` |
 | 技术栈边界 | 未引入 Electron/Tauri/第二前端；启动器是同一 Python 包内的一个子命令 | 符合 Authority §3/§4 |
 | C7.4 Restart / C7.5 Upgrade-backup-rollback | 服务级重启已覆盖；**应用级/Windows 会话级重启与升级-备份-回滚未执行** | `NOT_EXECUTED` |

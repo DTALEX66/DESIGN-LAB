@@ -26,8 +26,8 @@
   README 增「启动 Workbench（一条命令）」；`design-lab/tests/test_workbench_launch.py`
   读回 LISTENING/CSP/bundle 逐字节/health/401 与服务重启后项目仍在（E2）。
 - **C7.2 clean install**：本机离线不可建 wheel（venv 无 hatchling、`uv` 不在 PATH），
-  改为新增 CI job `wheel-install-gate` 在干净环境里装 wheel 并跑同一套测试；
-  状态 `PENDING_CI_VERDICT`，**不**提前宣称通过。
+  改由 CI job `wheel-install-gate` 承担；首版 1 秒变绿被判定为疑似空转并加反空转断言，
+  硬化版在 `725c5b12` **真判读通过**（16s，`Ran 3 tests` + `OK` + packaged 测试未 skip）。
 - **C6 的 raster materialization 前置**：`materialize_raster_regions` 已补，
   照片区域可 lower 成合法 Illustrator raster 层（见 `04`）。
 

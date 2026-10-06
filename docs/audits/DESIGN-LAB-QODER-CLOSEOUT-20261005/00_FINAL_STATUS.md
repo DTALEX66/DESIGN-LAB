@@ -22,7 +22,7 @@
 | C4 Photoshop E3 | **BLOCKED_PERMISSION**（同上） |
 | C5 Readback/Patch/Rollback | **PARTIAL**（宿主未跑，两次局部修改与失败矩阵未实测） |
 | C6 Quality/Jury/Rights/Preflight/Handoff | **PARTIAL** + Human Jury **BLOCKED_HUMAN** |
-| C7 Windows M1 | `DONE_E2`（启动入口）+ `PARTIAL`（M1 整体）——`--project <dir> workbench` 一条命令可达，启动/CSP/bundle 逐字节/health/401/重启持久化均有测试；clean-install 由新增 CI job 证明（待 CI 判读）；宿主断链仍在 |
+| C7 Windows M1 | `DONE_E2`（启动入口 + clean-install 均 CI 判读为真绿）+ `PARTIAL`（M1 整体）——`--project <dir> workbench` 一条命令可达，启动/CSP/bundle 逐字节/health/401/重启持久化均有测试；应用级/会话级重启与备份-升级-回滚未做；宿主断链仍在 |
 | M1 判据 | **未达 `M1_CANDIDATE`** |
 | E5 / release | **NOT_EXECUTED**（未 tag、未 release） |
 
@@ -53,13 +53,17 @@
 
 ### closeout 分支
 
-- **本地全量套件未出结论**：closeout 分支的 `scripts/run_python_tests.py` 重跑因机器中途休眠，
-  6 小时仍未打出 `Ran ...` 汇总，已主动终止。该分支的全量套件判据**只以 CI `Python gate` 为准**，
-  本地不宣称。
-- **clean-install 门首版疑似空转**：它在约 1 秒内变绿，不足以真正安装
-  Pillow/numpy/scikit-image 并跑三个起服务的测试；且整轮未结束时日志不可读。
-  已改为断言自身结果（显式 import 依赖 + 要求 `Ran 3 tests` + `OK` + 不得出现 skipped）。
-  在硬化版于 CI 变绿之前，clean-install 只算 `PENDING_CI_VERDICT`。
+- **CI exact-SHA 判读已回来并核实为真**（PR #214 @ `725c5b12`）：
+  `Python gate (V3 verifiers + unit tests)` = **pass / 8m27s**（含本轮新增的
+  `test_plan_to_rir` 22 项与 `test_workbench_launch` 3 项），
+  `Clean wheel install + Workbench launch gate` = **pass / 16s**。
+  后者已逐行读日志确认**不是空转**：
+  `Ran 3 tests in 1.123s` + `OK`，且
+  `test_packaged_install_serves_the_committed_bundle ... ok`（**没有 skip**），
+  即安装态 wheel 服务出的 bundle 与提交态逐字节一致。
+  硬化前的 1 秒变绿确属可疑，加断言后耗时 16s 且逐条可见。
+- 本机全量套件重跑因机器休眠未出汇总即被终止；该分支的全量套件判据以
+  上述 CI `Python gate` 为准（更强的 exact-SHA 证据），本地不重复宣称。
 - `scripts/generate_current_reports.py --check`：修复前 `FAIL invalid R5 ledger contract
   at evidence/36/artifacts` → 修复后 `PASS`（scope=bound-input-integrity，
   `current-git-and-cloud=NOT_VERIFIED`）。
