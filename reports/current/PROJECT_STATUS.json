@@ -8,15 +8,41 @@
   },
   "fresh": false,
   "freshnessMeaning": "at generation only; check verifies bound-input integrity, not current Git or cloud state",
-  "generatedAt": "2026-10-06T21:53:16+00:00",
+  "generatedAt": "2026-10-06T22:04:57+00:00",
   "git": {
     "branch": "tmp-rebase-qoder/designlab-vendor-revisions-20261007",
-    "origin_main": "093ebdaa85aa83f2b34f45901657a9808806b0c2",
-    "sha": "467e8ef3c6ce90fdab79694c3f5ddae3cf3c5d6d",
-    "source_worktree_clean": true,
-    "tracked_files": 2972,
-    "worktree_changes": [],
-    "worktree_digest": "sha256:d40e37e9d8db2a08f25221e6e9fb551d1344af5473591daac08e256c8987ac06"
+    "origin_main": "b7f82ac01d52728f831ea5d1209fca95d5843e90",
+    "sha": "46ce0785072265059e74b0dd64d7a8603db6d338",
+    "source_worktree_clean": false,
+    "tracked_files": 2973,
+    "worktree_changes": [
+      {
+        "content": "sha256:f5f79872cb8be8f15697ea0b46894d4f0c2841e4a5910259e79cdf022ba45531",
+        "kind": "A",
+        "path": "design-lab/tests/test_doctor_tool_bindings.py"
+      },
+      {
+        "content": "sha256:8fe9dbbf85876c42b8d86ef7e2473c826fa431f309023df52fc770b3753b8703",
+        "kind": "M",
+        "path": ".project/paths.json"
+      },
+      {
+        "content": "sha256:0cbb2b98788f42464eba5b154130ba88b049d1871341d69acdd33e1cd769fc31",
+        "kind": "M",
+        "path": "design-lab/tests/test_doctor_evidence.py"
+      },
+      {
+        "content": "sha256:09581ac1778c2c447767d94d07ac32d53e2792b6f83e7e68364a3fc026ff0f33",
+        "kind": "M",
+        "path": "src/design_lab/runtime/doctor.py"
+      },
+      {
+        "content": "sha256:ec1571e8d80465ae16d997920b6aa1708f8b7495be2b0a5cc3f2445238ba77cb",
+        "kind": "M",
+        "path": "src/design_lab/runtime/paths.py"
+      }
+    ],
+    "worktree_digest": "sha256:64c6fb2ed51bf32bb4166bb17475c7ebd780f7fcc3e6aab9dcf3d6b76ec2b0dd"
   },
   "gitStateMeaning": "generation-time observation, not current HEAD",
   "hostLive": "derived from host_live axis only",
@@ -29,22 +55,20 @@
     "quarantinedSources": 162
   },
   "subjectMeaning": "subjectType=WORKTREE means the tree was dirty at generation; worktreeDigest covers HEAD plus the non-generated changes",
-  "subjectSha": "467e8ef3c6ce90fdab79694c3f5ddae3cf3c5d6d",
-  "subjectType": "COMMIT",
+  "subjectSha": "46ce0785072265059e74b0dd64d7a8603db6d338",
+  "subjectType": "WORKTREE",
   "taskCounts": {
     "PARTIAL": 28
   },
   "taskpack": "DL-TP-20260908-R5",
   "taskpackHash": "31dde89eb4ede81fe88c0a5c5144adfb86af8db4c4d8c263bde2199180369b69",
   "taskpackId": "DL-TP-20260908-R5",
-  "testRunAt": "2026-10-06T05:11:47+00:00",
-  "testRunId": "testrun-20261006T051130Z-forward-repeat-91beed9eafb6",
-  "testRunMeaning": "bound run: python scripts/run_bound_test_suite.py --order forward --repeat 2 --modules test_asset_store test_creative_job test_creative_ledgers test_creative_lineage test_creative_migration test_creative_version_guard test_creative_f030_f040 test_creative_session_link test_job_store test_runtime_attempt_safety test_runtime_asset_safety test_runtime_explicit_project test_assurance_qa_plane test_assurance_jury test_bundle_store test_operation_coordinator",
-  "testRunResult": "OK",
+  "testRunId": null,
+  "testRunMeaning": "no bound test run; this projection does not claim a test result",
   "tests": {
-    "definedTestMethodCount": 1800,
+    "definedTestMethodCount": 1812,
     "executed": "see individual verified ledger receipts"
   },
-  "worktreeClean": true,
-  "worktreeDigest": "sha256:d40e37e9d8db2a08f25221e6e9fb551d1344af5473591daac08e256c8987ac06"
+  "worktreeClean": false,
+  "worktreeDigest": "sha256:64c6fb2ed51bf32bb4166bb17475c7ebd780f7fcc3e6aab9dcf3d6b76ec2b0dd"
 }
