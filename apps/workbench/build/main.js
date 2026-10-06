@@ -1072,7 +1072,7 @@ function capabilityCard(c) {
     el(
       "div",
       {},
-      el("h3", {}, `${c.domain} · ${c.capabilityId}`),
+      el("h3", {}, c.domain),
       el(
         "div",
         { class: "status-stack" },
@@ -1080,12 +1080,23 @@ function capabilityCard(c) {
           "span",
           { class: "tag " + (c.implementationState === "BLOCKED" ? "warn" : "info") },
           en(c.implementationState)
-        ),
-        el("small", {}, `来源 ${c.source} · 权限 ${c.permission}`)
+        )
       )
     ),
     el("p", { class: "muted" }, c.reason),
-    el("p", { class: "view-hint" }, `未来接入：${c.route}（${c.contractRef}）。下一动作：${c.nextAction}`)
+    el(
+      "details",
+      { class: "advanced" },
+      el("summary", {}, "接入明细"),
+      el(
+        "div",
+        { class: "advanced-body" },
+        el("p", { class: "view-hint" }, `状态来源：${c.source}`),
+        el("p", { class: "view-hint" }, `所需条件：${c.permission}`),
+        el("p", { class: "view-hint" }, `工程落点：${c.route}（${c.contractRef}）`),
+        el("p", { class: "view-hint" }, `下一动作：${c.nextAction}`)
+      )
+    )
   );
 }
 function buildVersionRing(versions) {
@@ -1274,10 +1285,10 @@ async function renderDashboard(target) {
   const grid = el(
     "div",
     { class: "kpi-grid" },
-    kpiCard(String(projCount), "项目", "来自 /api/projects 真实读回，非统计猜测"),
-    kpiCard(String(sysCount), "设计系统", "资源登记的设计系统总数 · /api/design-systems 读回"),
+    kpiCard(String(projCount), "项目", "服务端项目台账读回，非统计猜测"),
+    kpiCard(String(sysCount), "设计系统", "资源登记的设计系统总数 · 服务端目录读回"),
     kpiCard(health.status, "服务状态", `版本 ${health.version} · 作用域 ${health.scope}`),
-    kpiCard(health.version, "服务版本", "/api/health 真实读回")
+    kpiCard(health.version, "服务版本", "服务自检读回")
   );
   for (const v of grid.querySelectorAll("strong[data-count]")) {
     const text = v.textContent;
@@ -1350,7 +1361,7 @@ async function renderDashboard(target) {
       "div",
       { class: "panel" },
       el("h3", {}, "Brand"),
-      el("div", { class: "muted" }, `品牌系统：目录登记 ${sysCount} 个设计系统（/api/design-systems 读回，全局目录而非本项目状态）。`)
+      el("div", { class: "muted" }, `品牌系统：目录登记 ${sysCount} 个设计系统（服务端目录读回，全局目录而非本项目状态）。`)
     ),
     el(
       "div",
@@ -1586,7 +1597,7 @@ async function renderDashboard(target) {
               }, en(v.status))
             ))
           ),
-          el("p", { class: "view-hint" }, "来自 /api/environment 真实读回；写权限与状态由服务裁定。")
+          el("p", { class: "view-hint" }, "服务端环境读回；写权限与状态由服务裁定。")
         ),
         el(
           "div",
@@ -1712,14 +1723,14 @@ async function renderBrandSystems(target) {
       "div",
       {},
       el("h2", {}, "品牌系统"),
-      el("p", {}, "延续锁定的高级、发光、动感产品表达。模块为视觉占位；资产与版本由 /api/design-systems 真实读回。")
+      el("p", {}, "延续锁定的高级、发光、动感产品表达。模块为视觉占位；资产与版本由服务端目录读回。")
     ),
     el("div", { class: "page-actions" })
   );
   const kpis = el(
     "div",
     { class: "kpi-grid" },
-    kpiCard(String(sysCount), "设计系统", "资源登记总数 · /api/design-systems 真实读回"),
+    kpiCard(String(sysCount), "设计系统", "资源登记总数 · 服务端目录读回"),
     kpiCard(String(BRAND_MODULES.length), "VI 模块", "Logo / Color / Typography / … / Assets"),
     kpiCard("—", "活跃绑定", "绑定在工作台 DESIGN LAYER 执行")
   );
@@ -1730,7 +1741,7 @@ async function renderBrandSystems(target) {
       "div",
       { class: "panel", dataset: { module: name } },
       el("h3", {}, name),
-      el("p", { class: "muted" }, "视觉占位 · 资产与版本由 /api/design-systems 真实读回"),
+      el("p", { class: "muted" }, "视觉占位 · 资产与版本由服务端目录读回"),
       el("span", { class: "tag info" }, "VI 模块")
     ))
   );
@@ -1889,12 +1900,24 @@ async function renderSettings(target) {
   target.replaceChildren(el("p", { class: "view-loading" }, "正在读回运行环境…"));
   const env = await apiOrEmpty("/environment", OFFLINE.environment);
   const rows = [
-    ["环境状态", `${env.status} · ${env.schemaVersion}`],
-    ["项目根", env.project_root],
-    ["项目本地根", env.project_local_root],
-    ["写入痕迹", `${env.write_trace} · 迁移 ${env.migration}`],
-    ["代理配置", `${env.agent_profile.status} · ${env.agent_profile.writable ? "可写" : "不可写"}`]
+    { label: "环境状态", value: env.status, long: false },
+    { label: "诊断契约", value: env.schemaVersion, long: true },
+    { label: "项目根", value: env.project_root, long: true },
+    { label: "项目本地根", value: env.project_local_root, long: true },
+    { label: "写入痕迹", value: `${env.write_trace} · 迁移 ${env.migration}`, long: false },
+    { label: "代理配置", value: `${env.agent_profile.status} · ${env.agent_profile.writable ? "可写" : "不可写"}`, long: false }
   ];
+  const valueRow = (label, value, long, tagClass = "info") => long ? el(
+    "div",
+    { class: "list-item value-row" },
+    el("span", {}, label),
+    el("span", { class: "value-mono" }, value)
+  ) : el(
+    "div",
+    { class: "list-item" },
+    el("span", {}, label),
+    el("span", { class: "tag " + tagClass }, value)
+  );
   const writablePill = (writable) => el(
     "span",
     { class: "tag " + (writable ? "warn" : "info") },
@@ -1923,50 +1946,64 @@ async function renderSettings(target) {
         el(
           "div",
           { class: "list" },
-          ...rows.map(([label, value]) => el(
-            "div",
-            { class: "list-item" },
-            el("span", {}, label),
-            el("span", { class: "tag " + (label === "代理配置" ? "warn" : "info") }, value)
+          ...rows.map((r) => valueRow(
+            r.label,
+            r.value,
+            r.long,
+            r.label === "代理配置" ? "warn" : "info"
           ))
         )
-      ),
+      )
+    ),
+    // 路径诊断是后端对接面，不是设计生产面：默认收起，展开才占版面。
+    el(
+      "details",
+      { class: "advanced" },
+      el("summary", {}, "服务端路径诊断（默认收起）"),
       el(
         "div",
-        { class: "panel" },
-        el("h3", {}, "项目根（服务声明可写，未探测）"),
+        { class: "advanced-body" },
         el(
           "div",
-          { class: "list" },
-          ...Object.keys(env.roots).length ? Object.entries(env.roots).map(([name, root]) => el(
+          { class: "three-col" },
+          el(
             "div",
-            { class: "list-item" },
-            el("div", {}, el("strong", {}, name), el("small", {}, root.path)),
-            writablePill(root.writable)
-          )) : [el(
+            { class: "panel" },
+            el("h3", {}, "项目根（服务声明可写，未探测）"),
+            el(
+              "div",
+              { class: "list" },
+              ...Object.keys(env.roots).length ? Object.entries(env.roots).map(([name, root]) => el(
+                "div",
+                { class: "list-item" },
+                el("div", {}, el("strong", {}, name), el("small", {}, root.path)),
+                writablePill(root.writable)
+              )) : [el(
+                "div",
+                { class: "list-item" },
+                el("div", {}, el("strong", {}, "尚无根登记"), el("small", {}, "服务未返回 roots"))
+              )]
+            )
+          ),
+          el(
             "div",
-            { class: "list-item" },
-            el("div", {}, el("strong", {}, "尚无根登记"), el("small", {}, "服务未返回 roots"))
-          )]
-        )
-      ),
-      el(
-        "div",
-        { class: "panel" },
-        el("h3", {}, "外置输入（只读 · DECLARED_NOT_PROBED）"),
-        el(
-          "div",
-          { class: "list" },
-          ...Object.keys(env.shared_inputs).length ? Object.entries(env.shared_inputs).map(([name, input]) => el(
-            "div",
-            { class: "list-item" },
-            el("div", {}, el("strong", {}, name), el("small", {}, input.path)),
-            el("span", { class: "tag info" }, input.status)
-          )) : [el(
-            "div",
-            { class: "list-item" },
-            el("div", {}, el("strong", {}, "尚无外置输入"), el("small", {}, "服务未返回 shared_inputs"))
-          )]
+            { class: "panel" },
+            el("h3", {}, "外置输入（只读 · DECLARED_NOT_PROBED）"),
+            el(
+              "div",
+              { class: "list" },
+              ...Object.keys(env.shared_inputs).length ? Object.entries(env.shared_inputs).map(([name, input]) => el(
+                "div",
+                { class: "list-item" },
+                el("div", {}, el("strong", {}, name), el("small", {}, input.path)),
+                el("span", { class: "tag info" }, input.status)
+              )) : [el(
+                "div",
+                { class: "list-item" },
+                el("div", {}, el("strong", {}, "尚无外置输入"), el("small", {}, "服务未返回 shared_inputs"))
+              )]
+            )
+          )
         )
       )
     ),
@@ -2039,7 +2076,7 @@ async function renderProjects(target) {
       "div",
       {},
       el("h2", {}, "项目"),
-      el("p", {}, "支持筛选、编辑与本地持久化。真实读回 /api/projects；新建 / 选择项目在工作台执行，本页只读回台账。")
+      el("p", {}, "支持筛选、编辑与本地持久化。数据来自服务端台账；新建 / 选择项目在工作台执行，本页只读回。")
     ),
     el(
       "div",
@@ -2056,7 +2093,7 @@ async function renderProjects(target) {
   const kpis = el(
     "div",
     { class: "kpi-grid" },
-    kpiCard(String(n), "项目", "来自 /api/projects 真实读回"),
+    kpiCard(String(n), "项目", "服务端台账读回"),
     kpiCard("—", "进行中", "状态需在工作台查看"),
     kpiCard("—", "已完成", "状态需在工作台查看")
   );
@@ -2171,7 +2208,7 @@ async function renderCreativeTools(target) {
               }, en(v.status))
             ))
           ),
-          el("p", { class: "view-hint" }, "来自 /api/environment 真实读回。")
+          el("p", { class: "view-hint" }, "服务端环境读回。")
         ),
         hostCard ? capabilityCard(hostCard) : el("div", { class: "panel" }),
         mcpCard ? capabilityCard(mcpCard) : el("div", { class: "panel" })
@@ -2207,7 +2244,7 @@ async function renderCreativeTools(target) {
       {},
       hostStatus,
       adapterGrid,
-      el("p", { class: "view-hint" }, "宿主任务只读回 /api/projects/{id}/tasks。提交 / 运行 / 取消由宿主（Illustrator / Photoshop）在工作台执行；本页不触发实操。"),
+      el("p", { class: "view-hint" }, "宿主任务只读回服务端任务台账。提交 / 运行 / 取消由宿主（Illustrator / Photoshop）在工作台执行；本页不触发实操。"),
       el(
         "div",
         { class: "panel" },
@@ -2516,7 +2553,7 @@ const PROJECT_STAGES = [
     label: "资源预检（非设计评审）",
     panelId: "#/preflight",
     state: "IMPLEMENTED",
-    note: "仅任务包资源预检 /api/task-preflight；设计质量 / Jury / 生产 preflight 无路由"
+    note: "仅任务包资源预检可读回；设计质量 / Jury / 生产预检尚无入口"
   },
   {
     key: "handoff",
