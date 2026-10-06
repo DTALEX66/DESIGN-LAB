@@ -7,24 +7,24 @@
     "platform": "Windows-11-10.0.26100-SP0",
     "python": "3.13.14"
   },
-  "fresh": true,
+  "fresh": false,
   "freshnessMeaning": "at generation only; check verifies bound-input integrity, not current Git or cloud state",
-  "generatedAt": "2026-10-06T13:37:26+00:00",
+  "generatedAt": "2026-10-06T14:11:11+00:00",
   "gitStateMeaning": "generation-time observation, not current HEAD",
   "local": {
-    "branch": "main",
-    "origin_main": "113412862584bb065508ee1af091577718bf5771",
-    "sha": "113412862584bb065508ee1af091577718bf5771",
+    "branch": "qoder/designlab-reports-refresh-20261006",
+    "origin_main": "f8f345631c61c05eb20914f570a8caee4061eb04",
+    "sha": "08e5b04c719fe32694e4bd10d6fde3bb03d39330",
     "source_worktree_clean": true,
     "tracked_files": 2959,
     "worktree_changes": [],
-    "worktree_digest": "sha256:1e0954e0d971e4710ebbf7408d80eb240996f999dde63aa17cd3bea349d9e546"
+    "worktree_digest": "sha256:b6bb63fc8fd40bb8394202d0d551f1e609024c7fe51a9cde9a888af2bfbfe0e3"
   },
   "note": "No GitHub API query was run by this generator; tool installation is not inferred.",
   "remoteRef": "origin/main (local tracking ref)",
   "schemaVersion": "design-lab/cloud-baseline/v2",
   "subjectMeaning": "subjectType=WORKTREE means the tree was dirty at generation; worktreeDigest covers HEAD plus the non-generated changes",
-  "subjectSha": "113412862584bb065508ee1af091577718bf5771",
+  "subjectSha": "08e5b04c719fe32694e4bd10d6fde3bb03d39330",
   "subjectType": "COMMIT",
   "taskpackHash": "31dde89eb4ede81fe88c0a5c5144adfb86af8db4c4d8c263bde2199180369b69",
   "taskpackId": "DL-TP-20260908-R5",
@@ -39,5 +39,5 @@
     "branchProtection"
   ],
   "worktreeClean": true,
-  "worktreeDigest": "sha256:1e0954e0d971e4710ebbf7408d80eb240996f999dde63aa17cd3bea349d9e546"
+  "worktreeDigest": "sha256:b6bb63fc8fd40bb8394202d0d551f1e609024c7fe51a9cde9a888af2bfbfe0e3"
 }
