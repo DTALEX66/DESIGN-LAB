@@ -993,8 +993,10 @@ html,body{margin:0}
   .two-col,.three-col,.split{grid-template-columns:1fr}
 }
 /* The drawer trigger only exists on narrow screens; the sidebar is a permanent
-   column above 840px, so a second way to open it would be noise. */
-.nav-toggle{display:none}
+   column above 840px, so a second way to open it would be noise. It must not
+   shrink: as a flex sibling of the full-width search field it got squeezed to
+   two characters wide and 导航 wrapped onto two vertical lines. */
+.nav-toggle{display:none;flex:0 0 auto;white-space:nowrap;padding:0 14px}
 @media (max-width:840px){
   .app{grid-template-columns:1fr}
   /* .sidebar used to be `display:none` here, which removed all twelve nav targets
