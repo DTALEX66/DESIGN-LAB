@@ -52,6 +52,17 @@ python scripts/classify_repo.py --check  # 只读校验：派生事实与已提�
 `docs/current/`（5 个）是产品与路线图定义；`reports/current/`（62 个）是**机器投影**，
 两者不可混用：投影可被再生，定义需人裁决。
 
+已受理但**尚未采纳为 Authority** 的请求包：`docs/taskpacks/DESIGN-LAB-GLOBAL-DESIGN-CAPABILITY-INTELLIGENCE-TASKPACK-2026-10-06.md`
+（`REQUESTED`；当前派工入口仍是 §1 的 2026-09-18 包）。它对应的机器可读骨架在
+`design-lab/schemas/candidate-taxonomy.schema.json` + `research/candidates/CANDIDATE-TAXONOMY.json`，
+并由 `design-lab/scripts/verify_candidate_taxonomy.py` 把「未测轴必须为 null、评分必须有
+evidenceRef、parentRepoStars 不得冒充自身、无许可不得越过 QUARANTINE、代理不得自签 reviewedBy」
+变成 CI 门。
+
+第三方候选的登记位置是 `research/candidates/`（CONDITIONAL_POC 索引区，源码只在
+`.project-local/cache/vendor/<id>`，不进 Git）；已人工复核的源在
+`design-lab/research/global-absorption/SOURCE_REGISTRY.json`（v3，`reviewedBy` 为人工责任字段）。
+
 ## 4. 证据区（禁止「整理式删除」）
 
 | 位置 | 文件数 | 说明 |
