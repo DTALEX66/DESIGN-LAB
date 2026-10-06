@@ -117,6 +117,15 @@ node design-lab/tests/e2e/audit_workbench_overflow.mjs
       正确前提是把"列表成员"与"带边框行卡片"**拆成两个类**，而这与本轮自我约束
       「不改 B10 结构类名」直接冲突 → **归入 D-2（哪份定义权威）一起由 owner 裁决**。
       已回滚，未提交任何半成品。
+      > **2026-10-07 更正（覆盖上面两处措辞）**：① 第 2 条理由不成立——所谓"B10 dom-diff 验证
+      > 的 1:1"没有可运行生成器，全仓唯一读参考稿的两份 harness 脚本只 print 不 assert 也不在
+      > CI，"145 rules" 只活在注释里，`list-item` 作为选择器在全部测试里出现 0 次；真正存在的
+      > 硬断言只有 `.app-nav-item === 12`。② owner 已裁决「批准拆类」，`.items/.mono/.error`
+      > 已按 `.items-stack`/`.items-chips` + 单一权威定义落地，并由
+      > `design-lab/tests/test_workbench_css_single_definition.py` 钉住。方案与逐条引用见
+      > `docs/audits/DESIGN-LAB-WORKBENCH-VISUAL-AUDIT-20261006.md` §十。
+      > 本条目里 `shell.ts:1441/1445/1736-1742` 是写下当时的行号，其后 #228/#229/#238 改过该文件，
+      > 现行号为 `1463/1761/1763`（见 §10.2）。点状时间戳不作现值引用。
 
 ---
 
