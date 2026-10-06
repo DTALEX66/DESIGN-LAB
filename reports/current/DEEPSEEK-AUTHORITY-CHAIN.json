@@ -1,9 +1,9 @@
 {
   "schemaVersion": "design-lab/deepseek-authority-chain/v1",
   "task_key": "DL-TP-20260914-DEEPSEEK-AUTHORITY-R1::DLDS-A010",
-  "generated_at": "2026-10-06T08:48:04+00:00",
+  "generated_at": "2026-10-06T08:57:40+00:00",
   "subject": {
-    "base_sha": "355970a81d2f4c057f07555ffd9aeed0398cd0e8",
+    "base_sha": "42b3e6b84f6e6c2fb21f141d4b36c8450dfb4cb3",
     "branch": "qoder/designlab-m1-closeout-20261005",
     "worktree_clean": false
   },
@@ -108,7 +108,7 @@
     "CURRENT_DEEPSEEK_AUTHORITY": 2,
     "GOVERNANCE_TRUTH": 2,
     "HISTORICAL": 16,
-    "REFERENCE": 10
+    "REFERENCE": 11
   },
   "entries": [
     {
@@ -292,14 +292,14 @@
       "bytes": 28612,
       "sha256": "sha256:3d6edf1a00f4f4f7eb19005a2acba2c73bd0dc71a6d2ec5ba9ed5ae689c6454c",
       "authority_class": "REFERENCE",
-      "basis": "older taskpack retained for reference; not a current dispatch entry"
+      "basis": "taskpack retained for reference; not a current dispatch entry"
     },
     {
       "path": "docs/taskpacks/DESIGN-LAB-CODEX-REAL-HOST-HANDOFF.md",
       "bytes": 13625,
       "sha256": "sha256:a905602a2ac6db980e8ecff4b2053c52c2106f7cc52eb916a0c3978d5393fbdf",
       "authority_class": "REFERENCE",
-      "basis": "older taskpack retained for reference; not a current dispatch entry"
+      "basis": "taskpack retained for reference; not a current dispatch entry"
     },
     {
       "path": "docs/taskpacks/DESIGN-LAB-DEEPSEEK-AUTHORITY-TASKPACK-2026-09-14.md",
@@ -313,7 +313,7 @@
       "bytes": 18319,
       "sha256": "sha256:29b53215f81f230c7977ccd7d4e9861ef7decf5d1b28bf38516f9613b1191785",
       "authority_class": "REFERENCE",
-      "basis": "older taskpack retained for reference; not a current dispatch entry"
+      "basis": "taskpack retained for reference; not a current dispatch entry"
     },
     {
       "path": "docs/taskpacks/DESIGN-LAB-DIRECTORY-MIGRATION-CLEANUP-TASKPACK-2026-09-01-2.md",
@@ -334,21 +334,21 @@
       "bytes": 17504,
       "sha256": "sha256:15660e0806f65b30b6256a6617149813ab77873148e3456a75f86ce0bce976f0",
       "authority_class": "REFERENCE",
-      "basis": "older taskpack retained for reference; not a current dispatch entry"
+      "basis": "taskpack retained for reference; not a current dispatch entry"
     },
     {
       "path": "docs/taskpacks/DESIGN-LAB-DP-CORRECTION-TASKPACK-V2-2026-09-06.md",
       "bytes": 14019,
       "sha256": "sha256:841c9f48d4cd4ef739f988daaa2a7fd69b1501d2c0578543dd0b8d1e30b3b2d3",
       "authority_class": "REFERENCE",
-      "basis": "older taskpack retained for reference; not a current dispatch entry"
+      "basis": "taskpack retained for reference; not a current dispatch entry"
     },
     {
       "path": "docs/taskpacks/DESIGN-LAB-FINAL-AUTHORITY-CONVERGENCE-TASKPACK-2026-09-18.md",
       "bytes": 8111,
       "sha256": "sha256:62f43ef295d4e90462d1e49e657e490400c4b5568f4e4ad1db3e268e12bb10c7",
       "authority_class": "REFERENCE",
-      "basis": "older taskpack retained for reference; not a current dispatch entry"
+      "basis": "taskpack retained for reference; not a current dispatch entry"
     },
     {
       "path": "docs/taskpacks/DESIGN-LAB-FINAL-TASKPACK-2026-08-25-2.md",
@@ -365,11 +365,19 @@
       "basis": "the file itself carries a SUPERSEDED/HISTORICAL marker"
     },
     {
+      "path": "docs/taskpacks/DESIGN-LAB-GLOBAL-DESIGN-CAPABILITY-INTELLIGENCE-TASKPACK-2026-10-06.md",
+      "bytes": 9079,
+      "sha256": "sha256:8acad56c5f979971c3a3b32d6c8640f0a3729027adf4fa175b808214ef2e5cab",
+      "authority_class": "REFERENCE",
+      "basis": "requested work package archived for reference; not adopted as current authority",
+      "mutable_state": "a requested work package is edited while under review; its classification is the claim, not its bytes"
+    },
+    {
       "path": "docs/taskpacks/DESIGN-LAB-GPT-REMAINING-2026-09-06.md",
       "bytes": 18021,
       "sha256": "sha256:c340ea26a68c9b11e25035b8eb53e5bc2974c77db98f36e0c6c6ad2d2e29220a",
       "authority_class": "REFERENCE",
-      "basis": "older taskpack retained for reference; not a current dispatch entry"
+      "basis": "taskpack retained for reference; not a current dispatch entry"
     },
     {
       "path": "docs/taskpacks/DESIGN-LAB-MULTIMODAL-CODEX-HANDOFF-2026-09-05.md",
@@ -390,7 +398,7 @@
       "bytes": 4501,
       "sha256": "sha256:5fc15cad4a02f7a7e4966bc1c000d4ea39e4b5d3b2dae5389d1ada4c0fdd8fc0",
       "authority_class": "REFERENCE",
-      "basis": "older taskpack retained for reference; not a current dispatch entry"
+      "basis": "taskpack retained for reference; not a current dispatch entry"
     },
     {
       "path": "docs/taskpacks/DESIGN-LAB-TODAY-EXECUTION-TASKPACK-2026-09-04.md",
@@ -404,7 +412,7 @@
       "bytes": 22408,
       "sha256": "sha256:b38a0b6d61ffe2c572bd5c40565845c8fb4347a6fe52de1d203acfb49de2a75b",
       "authority_class": "REFERENCE",
-      "basis": "older taskpack retained for reference; not a current dispatch entry"
+      "basis": "taskpack retained for reference; not a current dispatch entry"
     },
     {
       "path": "docs/taskpacks/DLR-FINAL-20260826-R2-OSS-FAST-TRACK.md",
@@ -418,7 +426,7 @@
       "bytes": 5138,
       "sha256": "sha256:b51456a00795935ef562da7fd2277a3133cbcbf90eaf1299577aa9f416bde3ba",
       "authority_class": "REFERENCE",
-      "basis": "older taskpack retained for reference; not a current dispatch entry"
+      "basis": "taskpack retained for reference; not a current dispatch entry"
     },
     {
       "path": "docs/taskpacks/TRI-OSS-FAST-TRACK-20260826-R1.md",
