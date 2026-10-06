@@ -481,6 +481,7 @@
         "OUTCOME_NOT_PASS",
         "STALE_SUBJECT_SHA",
         "SOURCE_CHANGED_OR_MISSING:src/design_lab/native_assets.py",
+        "SOURCE_CHANGED_OR_MISSING:design-lab/tests/test_bundle_store.py",
         "ARTIFACT_CHANGED_OR_MISSING:.project-local/task-artifacts/designlab-followup-taskpack-20260928/W00-EVIDENCE-SCAN.json"
       ],
       "software": {
@@ -1711,13 +1712,13 @@
   ],
   "fresh": false,
   "freshnessMeaning": "at generation only; check verifies bound-input integrity, not current Git or cloud state",
-  "generatedAt": "2026-10-06T22:45:22+00:00",
+  "generatedAt": "2026-10-06T22:56:50+00:00",
   "gitStateMeaning": "generation-time observation, not current HEAD",
   "ledgerUpdatedAt": "2026-10-06T03:12:05Z",
   "note": "DONE_LOCAL concerns the declared task axes and dependencies, not a product release or hosted CI.",
   "schemaVersion": "design-lab/task-progress/r5-v1",
   "subjectMeaning": "subjectType=WORKTREE means the tree was dirty at generation; worktreeDigest covers HEAD plus the non-generated changes",
-  "subjectSha": "70c1904bb6f22fca574a55e7bf60bc4449d7f66b",
+  "subjectSha": "5e841d7a1a373b142c28d41932743a960dce7dce",
   "subjectType": "WORKTREE",
   "taskpack": "DL-TP-20260908-R5",
   "taskpackHash": "31dde89eb4ede81fe88c0a5c5144adfb86af8db4c4d8c263bde2199180369b69",
@@ -4220,5 +4221,5 @@
   "testRunId": null,
   "testRunMeaning": "no bound test run; this projection does not claim a test result",
   "worktreeClean": false,
-  "worktreeDigest": "sha256:9f76bf617399f37b20485055acab77756df92c16ec19b13ee8af2b007a0b7446"
+  "worktreeDigest": "sha256:2f1727a27ffb8634d4fc4e4160a6f4f8873aaf94d3acdcd145d0fd105da97093"
 }

@@ -9,12 +9,12 @@
   },
   "fresh": false,
   "freshnessMeaning": "at generation only; check verifies bound-input integrity, not current Git or cloud state",
-  "generatedAt": "2026-10-06T22:45:22+00:00",
+  "generatedAt": "2026-10-06T22:56:50+00:00",
   "gitStateMeaning": "generation-time observation, not current HEAD",
   "local": {
-    "branch": "tmp-rebase-qoder/designlab-t1-review-r5-005-20261007",
-    "origin_main": "f98d9371d4a79ccfd3fff9d5bd9394194c4e8f18",
-    "sha": "70c1904bb6f22fca574a55e7bf60bc4449d7f66b",
+    "branch": "tmp-rebase-qoder/designlab-bundle-copy-window-20261007",
+    "origin_main": "1afe57ee18cc782012fbd55f3ad31177bcb50501",
+    "sha": "5e841d7a1a373b142c28d41932743a960dce7dce",
     "source_worktree_clean": false,
     "tracked_files": 2977,
     "worktree_changes": [
@@ -22,11 +22,6 @@
         "content": "sha256:701d9cd41aa60797f9233025632c4bd23c32e9c83e13e6fbb833f3705889317e",
         "kind": "A",
         "path": "design-lab/tests/test_boot_reconciliation.py"
-      },
-      {
-        "content": "sha256:f5f79872cb8be8f15697ea0b46894d4f0c2841e4a5910259e79cdf022ba45531",
-        "kind": "A",
-        "path": "design-lab/tests/test_doctor_tool_bindings.py"
       },
       {
         "content": "sha256:6e1e39cfe123d454d4bc678051d7137d6293b8f4a056d297cad10a3f48b264a1",
@@ -44,6 +39,11 @@
         "path": "docs/audits/DESIGN-LAB-T1-LEDGER-REVIEW-DL-R5-004-20261007.md"
       },
       {
+        "content": "sha256:8bd9dd20e50433b43282bcfb211da708146208882b54532daf20f7e476fc6f14",
+        "kind": "A",
+        "path": "docs/audits/DESIGN-LAB-T1-LEDGER-REVIEW-DL-R5-005-20261007.md"
+      },
+      {
         "content": "sha256:1ff255d266969ad0125925620d13c838069d5f0407803a141f319181d23ae12d",
         "kind": "A",
         "path": "scripts/derive_vendor_revisions.py"
@@ -52,11 +52,6 @@
         "content": "sha256:e3dd702c77840847683c3693e7ec7519363f2ccb203127adfa504d08c61a2898",
         "kind": "A",
         "path": "vendor/sources.revisions.json"
-      },
-      {
-        "content": "sha256:8fe9dbbf85876c42b8d86ef7e2473c826fa431f309023df52fc770b3753b8703",
-        "kind": "M",
-        "path": ".project/paths.json"
       },
       {
         "content": "sha256:1efd564d54c7ba77c10aed10c8153811356238676c67a2c9135962ce1d397d63",
@@ -77,11 +72,6 @@
         "content": "sha256:01ea99f42423d9cbb9e828f2d0d9bbc067787dc3a6b439ffdda78c455427e513",
         "kind": "M",
         "path": "apps/workbench/style.css"
-      },
-      {
-        "content": "sha256:0cbb2b98788f42464eba5b154130ba88b049d1871341d69acdd33e1cd769fc31",
-        "kind": "M",
-        "path": "design-lab/tests/test_doctor_evidence.py"
       },
       {
         "content": "sha256:e6db99ee25bc63767df26ca79cbd94cc6b06e06396652cc63cdc1e4ae5cab69b",
@@ -109,19 +99,9 @@
         "path": "src/design_lab/native_tasks.py"
       },
       {
-        "content": "sha256:09581ac1778c2c447767d94d07ac32d53e2792b6f83e7e68364a3fc026ff0f33",
-        "kind": "M",
-        "path": "src/design_lab/runtime/doctor.py"
-      },
-      {
         "content": "sha256:a7a727e52dbb8834efe6d7852436a9123dbcd4ead23c854c6a281bdbfb134252",
         "kind": "M",
         "path": "src/design_lab/runtime/job_store.py"
-      },
-      {
-        "content": "sha256:ec1571e8d80465ae16d997920b6aa1708f8b7495be2b0a5cc3f2445238ba77cb",
-        "kind": "M",
-        "path": "src/design_lab/runtime/paths.py"
       },
       {
         "content": "sha256:9406c996df80dd6b96f182848b925fa38011cb1a3c5221a287ba7f554b503b87",
@@ -129,13 +109,13 @@
         "path": "src/design_lab/service.py"
       }
     ],
-    "worktree_digest": "sha256:9f76bf617399f37b20485055acab77756df92c16ec19b13ee8af2b007a0b7446"
+    "worktree_digest": "sha256:2f1727a27ffb8634d4fc4e4160a6f4f8873aaf94d3acdcd145d0fd105da97093"
   },
   "note": "No GitHub API query was run by this generator; tool installation is not inferred.",
   "remoteRef": "origin/main (local tracking ref)",
   "schemaVersion": "design-lab/cloud-baseline/v2",
   "subjectMeaning": "subjectType=WORKTREE means the tree was dirty at generation; worktreeDigest covers HEAD plus the non-generated changes",
-  "subjectSha": "70c1904bb6f22fca574a55e7bf60bc4449d7f66b",
+  "subjectSha": "5e841d7a1a373b142c28d41932743a960dce7dce",
   "subjectType": "WORKTREE",
   "taskpackHash": "31dde89eb4ede81fe88c0a5c5144adfb86af8db4c4d8c263bde2199180369b69",
   "taskpackId": "DL-TP-20260908-R5",
@@ -148,5 +128,5 @@
     "branchProtection"
   ],
   "worktreeClean": false,
-  "worktreeDigest": "sha256:9f76bf617399f37b20485055acab77756df92c16ec19b13ee8af2b007a0b7446"
+  "worktreeDigest": "sha256:2f1727a27ffb8634d4fc4e4160a6f4f8873aaf94d3acdcd145d0fd105da97093"
 }
