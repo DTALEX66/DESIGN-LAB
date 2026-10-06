@@ -7,41 +7,37 @@
     "platform": "Windows-11-10.0.26100-SP0",
     "python": "3.13.14"
   },
-  "fresh": false,
+  "fresh": true,
   "freshnessMeaning": "at generation only; check verifies bound-input integrity, not current Git or cloud state",
-  "generatedAt": "2026-10-06T03:12:17+00:00",
+  "generatedAt": "2026-10-06T13:37:26+00:00",
   "gitStateMeaning": "generation-time observation, not current HEAD",
   "local": {
-    "branch": "qoder/designlab-m1-closeout-20261005",
-    "origin_main": "1acbfa15a8c036907aadbdc6938b8706c91b5d3e",
-    "sha": "3d3ff3e7729561102c7a11af756591f9e5af2f33",
-    "source_worktree_clean": false,
-    "tracked_files": 2841,
-    "worktree_changes": [
-      {
-        "content": "sha256:fc38dc469e67b6af1c0af167eedd9c951f84bb1bfdb88f67d293ac8261a45088",
-        "kind": "M",
-        "path": "design-lab/config/task-ledger-r3.json"
-      }
-    ],
-    "worktree_digest": "sha256:2173296d357ec1c9d6c5fb0c8d43ca5472f0e302cb09bad35097c109591390de"
+    "branch": "main",
+    "origin_main": "113412862584bb065508ee1af091577718bf5771",
+    "sha": "113412862584bb065508ee1af091577718bf5771",
+    "source_worktree_clean": true,
+    "tracked_files": 2959,
+    "worktree_changes": [],
+    "worktree_digest": "sha256:1e0954e0d971e4710ebbf7408d80eb240996f999dde63aa17cd3bea349d9e546"
   },
   "note": "No GitHub API query was run by this generator; tool installation is not inferred.",
   "remoteRef": "origin/main (local tracking ref)",
   "schemaVersion": "design-lab/cloud-baseline/v2",
   "subjectMeaning": "subjectType=WORKTREE means the tree was dirty at generation; worktreeDigest covers HEAD plus the non-generated changes",
-  "subjectSha": "3d3ff3e7729561102c7a11af756591f9e5af2f33",
-  "subjectType": "WORKTREE",
+  "subjectSha": "113412862584bb065508ee1af091577718bf5771",
+  "subjectType": "COMMIT",
   "taskpackHash": "31dde89eb4ede81fe88c0a5c5144adfb86af8db4c4d8c263bde2199180369b69",
   "taskpackId": "DL-TP-20260908-R5",
-  "testRunId": null,
-  "testRunMeaning": "no bound test run; this projection does not claim a test result",
+  "testRunAt": "2026-10-06T05:11:47+00:00",
+  "testRunId": "testrun-20261006T051130Z-forward-repeat-91beed9eafb6",
+  "testRunMeaning": "bound run: python scripts/run_bound_test_suite.py --order forward --repeat 2 --modules test_asset_store test_creative_job test_creative_ledgers test_creative_lineage test_creative_migration test_creative_version_guard test_creative_f030_f040 test_creative_session_link test_job_store test_runtime_attempt_safety test_runtime_asset_safety test_runtime_explicit_project test_assurance_qa_plane test_assurance_jury test_bundle_store test_operation_coordinator",
+  "testRunResult": "OK",
   "unavailable": [
     "currentRemoteSha",
     "exactShaCI",
     "openPullRequests",
     "branchProtection"
   ],
-  "worktreeClean": false,
-  "worktreeDigest": "sha256:2173296d357ec1c9d6c5fb0c8d43ca5472f0e302cb09bad35097c109591390de"
+  "worktreeClean": true,
+  "worktreeDigest": "sha256:1e0954e0d971e4710ebbf7408d80eb240996f999dde63aa17cd3bea349d9e546"
 }
