@@ -1897,6 +1897,19 @@ async function renderPreflight(target) {
     result
   );
 }
+function valueRow(label, value, long, tagClass = "info") {
+  return long ? el(
+    "div",
+    { class: "list-item value-row" },
+    el("span", {}, label),
+    el("span", { class: "value-mono" }, value)
+  ) : el(
+    "div",
+    { class: "list-item" },
+    el("span", {}, label),
+    el("span", { class: "tag " + tagClass }, value)
+  );
+}
 async function renderSettings(target) {
   target.replaceChildren(el("p", { class: "view-loading" }, "正在读回运行环境…"));
   const env = await apiOrEmpty("/environment", OFFLINE.environment);
@@ -1908,17 +1921,6 @@ async function renderSettings(target) {
     { label: "写入痕迹", value: `写入 ${env.write_trace} · 迁移 ${env.migration}`, long: false },
     { label: "代理配置", value: `${env.agent_profile.status} · ${env.agent_profile.writable ? "可写" : "不可写"}`, long: false }
   ];
-  const valueRow = (label, value, long, tagClass = "info") => long ? el(
-    "div",
-    { class: "list-item value-row" },
-    el("span", {}, label),
-    el("span", { class: "value-mono" }, value)
-  ) : el(
-    "div",
-    { class: "list-item" },
-    el("span", {}, label),
-    el("span", { class: "tag " + tagClass }, value)
-  );
   const writablePill = (writable) => el(
     "span",
     { class: "tag " + (writable ? "warn" : "info") },
@@ -3638,9 +3640,11 @@ async function renderProjectDetail(id, target) {
     el(
       "div",
       { class: "list" },
-      el("div", { class: "list-item" }, el("span", {}, "选定方向"), el("span", { class: "tag info" }, chosen)),
-      el("div", { class: "list-item" }, el("span", {}, "活动绑定"), el("span", { class: "tag info" }, active)),
-      el("div", { class: "list-item" }, el("span", {}, "设计系统登记"), el("span", { class: "tag info" }, String(layer.design_systems.length)))
+      valueRow("选定方向", chosen, false),
+      // `active` always embeds a 32-hex direction_id, so it is a long value by
+      // construction and must never go into the nowrap .tag pill (F-2).
+      valueRow("活动绑定", active, true),
+      valueRow("设计系统登记", String(layer.design_systems.length), false)
     )
   );
   const stageNav = buildStageNav();
