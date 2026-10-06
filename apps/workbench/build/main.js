@@ -3846,7 +3846,7 @@ function mountB10Shell(routeView) {
   ];
   const sidebar = el(
     "aside",
-    { class: "sidebar" },
+    { class: "sidebar", id: "app-sidebar" },
     el(
       "div",
       { class: "brand" },
@@ -3894,9 +3894,25 @@ function mountB10Shell(routeView) {
     )
   );
   const modKey = /Mac|iPhone|iPad|iPod/.test(navigator.userAgent) ? "⌘" : "Ctrl";
+  const navToggle = el("button", {
+    type: "button",
+    class: "nav-toggle ghost-btn",
+    id: "navToggle",
+    "aria-expanded": "false",
+    "aria-controls": "app-sidebar"
+  }, "导航");
+  const setNavOpen = (open) => {
+    sidebar.classList.toggle("open", open);
+    navToggle.setAttribute("aria-expanded", String(open));
+  };
+  navToggle.onclick = () => setNavOpen(!sidebar.classList.contains("open"));
+  sidebar.addEventListener("click", (event) => {
+    if (event.target.closest("button")) setNavOpen(false);
+  });
   const topbar = el(
     "header",
     { class: "topbar" },
+    navToggle,
     el(
       "div",
       { class: "search", id: "openPalette", role: "button", tabindex: "0" },
