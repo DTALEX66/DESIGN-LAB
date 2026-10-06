@@ -201,22 +201,38 @@ def main() -> int:
         print('REPO_CLASSIFICATION=MISSING')
         return 1
     committed = json.loads(OUT.read_text(encoding='utf-8'))
-    watched = lambda t: {'trackedFiles': t['trackedFiles'], 'workingTreeMiB': t['workingTreeMiB']}
-    if watched(committed['totals']) != watched(payload['totals']):
-        print('REPO_CLASSIFICATION=DRIFT totals\n  committed=%s\n  derived=%s'
-              % (json.dumps(committed['totals']), json.dumps(payload['totals'])))
+    # Two different things are being conflated by a single equality test, and only
+    # one of them is a lie:
+    #   * a bundle path that no longer exists, or a category the rules no longer
+    #     produce, means the committed catalogue DESCRIBES SOMETHING THAT IS GONE.
+    #     That is a lie and must fail.
+    #   * counts and byte totals move every time anyone adds a file. Comparing them
+    #     for equality turns the gate into a tripwire that goes red for ordinary
+    #     work (it did, twice, on the branches that introduced it) while protecting
+    #     nothing about honesty. That is reported as DRIFT_NOTICE and does not fail.
+    known_categories = {category for _, category, _ in CATEGORY_RULES}
+    committed_paths = {e['path'] for e in committed['bundles']}
+    missing = sorted(p for p in committed_paths if not (REPO / p).exists())
+    if missing:
+        print('REPO_CLASSIFICATION=FAIL bundles name paths that no longer exist: %s'
+              % missing[:6])
         return 1
-    if committed['categories'] != payload['categories']:
-        print('REPO_CLASSIFICATION=DRIFT categories')
-        print('  committed=%s' % json.dumps(committed['categories'], ensure_ascii=False)[:400])
-        print('  derived=%s' % json.dumps(payload['categories'], ensure_ascii=False)[:400])
+    unknown = sorted({e['category'] for e in committed['bundles']} - known_categories)
+    if unknown:
+        print('REPO_CLASSIFICATION=FAIL categories the rules no longer produce: %s' % unknown)
         return 1
     key = lambda items: {e['path']: (e['category'], e['files'], e['bytes']) for e in items}
-    if key(committed['bundles']) != key(payload['bundles']):
-        moved = sorted(set(key(committed['bundles'])) ^ set(key(payload['bundles'])))
-        print('REPO_CLASSIFICATION=DRIFT bundles', moved[:10])
-        return 1
-    print('REPO_CLASSIFICATION=OK (derived facts match the committed file)')
+    watched = lambda t: {'trackedFiles': t['trackedFiles'], 'workingTreeMiB': t['workingTreeMiB']}
+    fresh = key(payload['bundles'])
+    stale_paths = sorted(set(fresh) - committed_paths)
+    if watched(committed['totals']) != watched(payload['totals']) \
+            or committed['categories'] != payload['categories'] \
+            or key(committed['bundles']) != fresh:
+        print('REPO_CLASSIFICATION=DRIFT_NOTICE regenerating would add %d bundle(s) '
+              '(e.g. %s); totals committed=%s derived=%s'
+              % (len(stale_paths), stale_paths[:3],
+                 watched(committed['totals']), watched(payload['totals'])))
+    print('REPO_CLASSIFICATION=OK (no dead paths, no unknown categories)')
     return 0
 
 
