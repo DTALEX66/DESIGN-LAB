@@ -111,12 +111,26 @@ pack 223.82 MiB  −  工作区 44.78 MiB  ≈  179 MiB 全部是历史对象
 
 ## 7. 结构债（记录，不在本轮擅动）
 
+- **批量归档被三件事同时卡住**（核查结果，不是偏好）：
+  1. `scripts/verify_top_level_authority.py` 的 R2 释放完整性把
+     `AUTHORITY.md`、`.project/governance/authority-index.json`、
+     `docs/current/HISTORY-FREEZE-RULES.md` 与当前任务包**按 SHA-256 逐字节钉死**；
+  2. `.project/governance/authority-index.json`（被钉）引用
+     `docs/taskpacks/DESIGN-LAB-DEEPSEEK-AUTHORITY-TASKPACK-2026-09-14.md`——
+     该文件一旦搬迁，被钉索引里出现死链；改索引又破坏被钉哈希；
+  3. 其余 5 个 superseded 任务包只被 `AGENTS.md`（未钉）引用，可搬——
+     但只搬 5 个、留下 1 个搬不了，等于把一个已按「家族」冻结的集合拆成两种形状，
+     可读性反而下降。
+  `HISTORY-FREEZE-RULES.md` 的口径是：superseded taskpacks **已按状态冻结**，
+  并禁止 mass-delete；物理搬迁前必须先确认 replacement / callers /
+  history preservation / link update。上面第 2 条正是「link update 无法完成」。
+  **因此本轮以派生索引完成分类，不做物理搬迁。**
 - **两个分叉头**：`feat/ui-commercial-workbench-20260930`（PR #213）与
   `qoder/designlab-m1-closeout-20261005`（PR #214）各自从 `main` 分叉（merge-base `1acbfa15`，
-  彼此 10 / 28 提交互不含）。**在任一分支合入前做全仓批量重命名，会让两边冲突不可解**；
-  因此本轮采用「派生索引 + 规则文件」而非批量搬文件。合并顺序归 owner。
+  彼此 10 / 28 提交互不含）。在任一分支合入前做全仓重命名，会让两边冲突不可解；
+  合并顺序归 owner，之后再谈搬迁。
 - `WORK-LAB-DESIGN-MODULE-FINAL-HANDOFF-2026-08-07.md` 留在根级：
   `docs/history/project-memory-history/V4_MIGRATION_FINAL_STATE.md` 以「该文件在根级」为
   历史记录内容引用它，搬走会让那条历史记录失真。属可信度优先于整齐的例子。
 - `docs/superpowers/`、`docs/research/`、`docs/golden-cases/` 与 `design-lab/research/`
-  存在主题重叠；等两个头合并后再统一收口，避免冲突放大。
+  存在主题重叠；等两个头合并后统一收口。

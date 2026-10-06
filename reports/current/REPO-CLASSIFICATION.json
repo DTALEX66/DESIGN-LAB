@@ -1,10 +1,10 @@
 {
   "schemaVersion": "design-lab/repo-classification/v1",
-  "generatedAt": "2026-10-06T06:22:44Z",
-  "observedCommit": "80d38ca45923897b8e829fb3d197f8063cb80db9",
+  "generatedAt": "2026-10-06T06:27:34Z",
+  "observedCommit": "50b000ab9d71e9483fe3dbcece883cea894c2dcd",
   "totals": {
-    "trackedFiles": 2913,
-    "workingTreeMiB": 44.78,
+    "trackedFiles": 2916,
+    "workingTreeMiB": 44.81,
     "packMiB": 223.82,
     "note": "pack 含全部历史与 tag 归档；working tree 为当前检出字节。两者之差不是垃圾。"
   },
@@ -15,9 +15,9 @@
       "mib": 0.03
     },
     "documentation": {
-      "files": 110,
+      "files": 111,
       "bundles": 2,
-      "mib": 0.96
+      "mib": 0.97
     },
     "evidence": {
       "files": 1147,
@@ -25,9 +25,9 @@
       "mib": 26.35
     },
     "generated": {
-      "files": 83,
+      "files": 84,
       "bundles": 4,
-      "mib": 1.43
+      "mib": 1.45
     },
     "history": {
       "files": 234,
@@ -40,9 +40,9 @@
       "mib": 0.22
     },
     "source": {
-      "files": 1306,
+      "files": 1307,
       "bundles": 7,
-      "mib": 8.76
+      "mib": 8.77
     }
   },
   "bundles": [
@@ -131,8 +131,8 @@
       "path": "reports/current/",
       "category": "generated",
       "note": "当前状态投影（由生成器再生）",
-      "files": 62,
-      "bytes": 997764,
+      "files": 63,
+      "bytes": 1009410,
       "cited_by_authority": 4,
       "lastTouch": "2026-10-06"
     },
@@ -140,8 +140,8 @@
       "path": "docs/",
       "category": "documentation",
       "note": "其余文档",
-      "files": 108,
-      "bytes": 994409,
+      "files": 109,
+      "bytes": 1001442,
       "cited_by_authority": 11,
       "lastTouch": "2026-10-06"
     },
@@ -167,8 +167,8 @@
       "path": "scripts/",
       "category": "source",
       "note": "根级门与工具",
-      "files": 48,
-      "bytes": 489494,
+      "files": 49,
+      "bytes": 499902,
       "cited_by_authority": 4,
       "lastTouch": "2026-10-06"
     },
@@ -213,9 +213,9 @@
       "category": "source",
       "note": "CI 定义",
       "files": 5,
-      "bytes": 27537,
+      "bytes": 27640,
       "cited_by_authority": 1,
-      "lastTouch": "2026-09-29"
+      "lastTouch": "2026-10-06"
     },
     {
       "path": "vendor/",
