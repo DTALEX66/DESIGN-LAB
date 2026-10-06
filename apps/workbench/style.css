@@ -82,6 +82,12 @@
   --ink:var(--color-text);
   --muted:var(--color-muted);
   --line:var(--color-border);
+  /* WCAG 1.4.11 needs >=3:1 for the boundary of an interactive component, and
+     for many inputs the 1px border is the only boundary cue (their fill differs
+     from the panel by ~1.06:1). --color-border measures 1.71:1 on the panel and
+     1.62:1 on the input fill. This token exists for FORM CONTROLS ONLY; panel
+     and card borders stay on --line as decoration. */
+  --border-strong:#4A6FA5;   /* 3.65:1 on surface, 3.46:1 on surface-2, 3.87:1 on bg */
   --accent:var(--color-primary);
   --accent-hover:#2558DB;
   --paper:var(--color-bg);
@@ -141,7 +147,7 @@ label{display:grid;gap:7px;font-size:12px;font-weight:650;color:var(--ink)}
 
 input,select,button{font:inherit;border-radius:var(--radius-md)}
 input,select{
-  padding:11px;border:1px solid var(--line);max-width:100%;
+  padding:11px;border:1px solid var(--border-strong);max-width:100%;
   background:var(--surface-2);color:var(--ink);
 }
 input:focus,select:focus,button:focus-visible{
@@ -246,7 +252,7 @@ body > footer{
 :is(#plan-form,#patch-form){display:grid;grid-template-columns:1fr;align-items:stretch}
 :is(#plan-form,#patch-form) textarea{
   width:100%;resize:vertical;padding:12px;
-  border:1px solid var(--line);border-radius:var(--radius-md);
+  border:1px solid var(--border-strong);border-radius:var(--radius-md);
   font:12px/1.6 ui-monospace,monospace;color:var(--ink);background:var(--surface-2);
 }
 :is(#plan-form,#patch-form) textarea:focus{
@@ -713,7 +719,7 @@ html,body{margin:0}
 }
 .toolbar input,.toolbar textarea,.toolbar select,.input{
   width:auto;min-width:0;
-  border:1px solid color-mix(in srgb,var(--border) 72%, transparent);
+  border:1px solid var(--border-strong);
   background:color-mix(in srgb,var(--surface2) 72%, transparent);
   color:var(--text);padding:11px 12px;border-radius:12px;
 }
@@ -844,7 +850,7 @@ html,body{margin:0}
 .palette.open{display:block}
 .palette input{
   width:calc(100% - 24px);margin:12px;
-  border:1px solid color-mix(in srgb,var(--border) 70%, transparent);
+  border:1px solid var(--border-strong);
   background:color-mix(in srgb,var(--surface2) 74%, transparent);
   color:var(--text);padding:14px;border-radius:14px;
 }

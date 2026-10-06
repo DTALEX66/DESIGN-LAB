@@ -1455,18 +1455,31 @@ function renderBriefEditor(id: string, layer: DesignLayerResponse['design_layer'
   // 离开未保存页的恢复策略: the draft is kept locally (per project + form) and offered back
   // on return; it is discarded the moment a save succeeds. Nothing is transmitted -- this is
   // a recovery aid, not a second source of truth.
+  //
+  // It is nonetheless design text sitting in browser origin storage, which is
+  // outside the "产物留在项目内" boundary, so it is bounded rather than open-ended:
+  // a 24 h TTL, a size ceiling, and malformed records are refused. Surviving a
+  // reload is the feature; surviving indefinitely is not.
   const draftKey = (form: string): string => `design-lab.brief-draft:${id}:${form}`;
+  const DRAFT_TTL_MS = 24 * 60 * 60 * 1000;
+  const DRAFT_MAX_CHARS = 2000;
   const readDraft = (form: string): { title: string; goals: string; constraints: string } | null => {
     try {
       const raw = globalThis.localStorage?.getItem(draftKey(form));
-      if (!raw) return null;
-      const o = JSON.parse(raw) as { title?: unknown; goals?: unknown; constraints?: unknown };
+      if (!raw || raw.length > DRAFT_MAX_CHARS) return null;
+      const o = JSON.parse(raw) as { title?: unknown; goals?: unknown; constraints?: unknown;
+                                     savedAt?: unknown };
       if (typeof o?.title !== 'string' && typeof o?.goals !== 'string') return null;
+      if (typeof o.savedAt !== 'number' || Date.now() - o.savedAt > DRAFT_TTL_MS) return null;
       return { title: String(o.title ?? ''), goals: String(o.goals ?? ''), constraints: String(o.constraints ?? '') };
     } catch { return null; }
   };
   const writeDraft = (form: string, v: { title: string; goals: string; constraints: string }): void => {
-    try { globalThis.localStorage?.setItem(draftKey(form), JSON.stringify(v)); } catch { /* private mode */ }
+    try {
+      const payload = JSON.stringify({ ...v, savedAt: Date.now() });
+      if (payload.length > DRAFT_MAX_CHARS) return;
+      globalThis.localStorage?.setItem(draftKey(form), payload);
+    } catch { /* private mode */ }
   };
   const clearDraft = (form: string): void => {
     try { globalThis.localStorage?.removeItem(draftKey(form)); } catch { /* ignore */ }

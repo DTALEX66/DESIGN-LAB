@@ -128,11 +128,11 @@ function renderDesignLayer(data) {
   if (focusRows.length) focusRows[0].focus();
 }
 function info(id) {
-  const p = document.createElement("p");
-  p.id = id;
-  p.className = "empty";
-  p.textContent = "尚未绑定设计系统。";
-  return p;
+  const li = document.createElement("li");
+  li.id = id;
+  li.className = "empty";
+  li.textContent = "尚未绑定设计系统。";
+  return li;
 }
 async function refreshDesign() {
   if (!project) return;
@@ -484,6 +484,13 @@ async function api(path, body) {
   if (!response.ok) throw new Error(value.error || "SERVICE_ERROR");
   return value;
 }
+function setListNotice(listId, text) {
+  const list = byId(listId);
+  const li = document.createElement("li");
+  li.className = "empty";
+  li.textContent = text;
+  list.replaceChildren(li);
+}
 function button(list, label, action) {
   const li = document.createElement("li");
   const b = document.createElement("button");
@@ -586,7 +593,7 @@ async function tasks(append = false) {
     if (task.kind.endsWith("-native") && task.attempt.state === "PENDING")
       button("tasks", `启动任务 · ${task.job_id.slice(-12)}`, () => startTask(task));
   }
-  if (!append && !data.tasks.length) byId("tasks").textContent = "尚无任务。导入图片后可查看真实记录。";
+  if (!append && !data.tasks.length) setListNotice("tasks", "尚无任务。导入图片后可查看真实记录。");
   taskCursor = data.next_cursor;
   byId("more-tasks").hidden = taskCursor === null;
 }
@@ -729,7 +736,7 @@ async function nativeAssets(append = false) {
   if (!append) byId("native-assets").replaceChildren();
   for (const asset of data.assets)
     button("native-assets", `校验 ${asset.kind.toUpperCase()} · v${asset.version_no} · ${asset.version_id} · 数据库记录`, () => verifyNative(asset));
-  if (!append && !data.assets.length) byId("native-assets").textContent = "暂无已登记的 AI/PSD。";
+  if (!append && !data.assets.length) setListNotice("native-assets", "暂无已登记的 AI/PSD。");
   nativeCursor = data.next_cursor;
   byId("more-native").hidden = nativeCursor === null;
 }
@@ -2679,12 +2686,15 @@ function renderBriefEditor(id, layer, target) {
     chip.textContent = label[kind];
   };
   const draftKey = (form) => `design-lab.brief-draft:${id}:${form}`;
+  const DRAFT_TTL_MS = 24 * 60 * 60 * 1e3;
+  const DRAFT_MAX_CHARS = 2e3;
   const readDraft = (form) => {
     try {
       const raw = globalThis.localStorage?.getItem(draftKey(form));
-      if (!raw) return null;
+      if (!raw || raw.length > DRAFT_MAX_CHARS) return null;
       const o = JSON.parse(raw);
       if (typeof o?.title !== "string" && typeof o?.goals !== "string") return null;
+      if (typeof o.savedAt !== "number" || Date.now() - o.savedAt > DRAFT_TTL_MS) return null;
       return { title: String(o.title ?? ""), goals: String(o.goals ?? ""), constraints: String(o.constraints ?? "") };
     } catch {
       return null;
@@ -2692,7 +2702,9 @@ function renderBriefEditor(id, layer, target) {
   };
   const writeDraft = (form, v) => {
     try {
-      globalThis.localStorage?.setItem(draftKey(form), JSON.stringify(v));
+      const payload = JSON.stringify({ ...v, savedAt: Date.now() });
+      if (payload.length > DRAFT_MAX_CHARS) return;
+      globalThis.localStorage?.setItem(draftKey(form), payload);
     } catch {
     }
   };

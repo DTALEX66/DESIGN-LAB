@@ -100,6 +100,17 @@ export async function api<T>(path: string, body?: Record<string, unknown>): Prom
   return value as T;
 }
 
+// Empty-state notice for a <ul>. Assigning `textContent` on the list itself put
+// a bare text node inside a <ul>, which breaks the list's item count and is
+// invalid per WCAG 4.1.1; the notice is now a real <li>.
+export function setListNotice(listId: string, text: string): void {
+  const list = byId<HTMLUListElement>(listId);
+  const li = document.createElement('li');
+  li.className = 'empty';
+  li.textContent = text;
+  list.replaceChildren(li);
+}
+
 export function button(list: string, label: string, action: () => Promise<void>) {
   const li = document.createElement('li');
   const b = document.createElement('button');
@@ -205,7 +216,7 @@ export async function tasks(append = false) {
     if (task.kind.endsWith('-native') && task.attempt.state === 'PENDING')
       button('tasks', `启动任务 · ${task.job_id.slice(-12)}`, () => startTask(task));
   }
-  if (!append && !data.tasks.length) byId<HTMLUListElement>('tasks').textContent = '尚无任务。导入图片后可查看真实记录。';
+  if (!append && !data.tasks.length) setListNotice('tasks', '尚无任务。导入图片后可查看真实记录。');
   taskCursor = data.next_cursor;
   byId<HTMLButtonElement>('more-tasks').hidden = taskCursor === null;
 }
@@ -363,7 +374,7 @@ export async function nativeAssets(append = false) {
   if (!append) byId<HTMLUListElement>('native-assets').replaceChildren();
   for (const asset of data.assets)
     button('native-assets', `校验 ${asset.kind.toUpperCase()} · v${asset.version_no} · ${asset.version_id} · 数据库记录`, () => verifyNative(asset));
-  if (!append && !data.assets.length) byId<HTMLUListElement>('native-assets').textContent = '暂无已登记的 AI/PSD。';
+  if (!append && !data.assets.length) setListNotice('native-assets', '暂无已登记的 AI/PSD。');
   nativeCursor = data.next_cursor;
   byId<HTMLButtonElement>('more-native').hidden = nativeCursor === null;
 }
