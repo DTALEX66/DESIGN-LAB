@@ -792,7 +792,10 @@ export async function renderPreflight(target: HTMLElement): Promise<void> {
   // full id as input and fails closed on the service's own 400 envelope.
   const known = 'DL-TP-20260914-DEEPSEEK-AUTHORITY-R1::DLDS-H020';
   const input = el('input', { id: 'preflight-task-input', class: 'input preflight-input',
-    placeholder: '<TASKPACK>::<TASK_KEY>，例如 ' + known, maxlength: '200',
+    // The example used to live in the placeholder, where a placeholder cannot wrap:
+    // at 1280 the field clipped it after the comma, so the format was visible and the
+    // only concrete example was not. It moved into the result panel's first message.
+    placeholder: '<TASKPACK>::<TASK_KEY>', maxlength: '200',
     'aria-label': '任务资源预检 ID，格式为任务包 ID::任务键' });
   const runBtn = el('button', { type: 'button', class: 'primary-btn', id: 'preflight-run' }, '运行预检');
   // `.scan-line` was on this panel from construction and nothing ever added or
@@ -800,7 +803,11 @@ export async function renderPreflight(target: HTMLElement): Promise<void> {
   // page looked like it was working before the user pressed 运行预检. A sweep is
   // only honest while a scan is actually in flight; re-add it around the run,
   // not around the empty panel.
-  const result = el('div', { class: 'panel preflight-result' });
+  const result = el('div', { class: 'panel preflight-result' },
+    // Constructed empty, this rendered as a large blank bordered box, which reads as
+    // a broken panel rather than as a result area waiting for a run.
+    el('p', { class: 'view-hint' },
+      '尚未运行预检。填写任务全 ID（形如 ' + known + '），点「运行预检」后在此读回判定与资源清单。'));
   // B10 1:1 .kpi-grid: the four counters B10's preflight page shows. Values are
   // honest placeholders ("—") until a real preflight readback fills them in —
   // no B10 demo number is invented.
