@@ -53,6 +53,13 @@ jobs:
         # check that would have caught the 1acbfa1 ledger break instead of
         # letting reports/current freeze behind a crashing generator.
         run: python design-lab/scripts/verify_task_ledger_contract.py
+      - name: Evidence artefact presence gate
+        # A tracked artefact that has gone is a hard break; a `.project-local`
+        # runtime artefact is expected to be absent on a clean checkout, and a
+        # mutable source file used as an artefact decays on every edit. Those
+        # two report WARN, so this documents how much of the ledger is actually
+        # readable back without turning the gate permanently red.
+        run: python design-lab/scripts/verify_evidence_artifact_presence.py
       - name: V3 product manifest
         run: python design-lab/scripts/verify_product_manifest_v3.py
       - name: V3 runtime contracts
