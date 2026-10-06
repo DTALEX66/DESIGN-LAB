@@ -1383,7 +1383,7 @@ async function renderDashboard(target) {
       el(
         "div",
         { class: "status-stack" },
-        el("span", { class: "tag info" }, "PLANNED"),
+        el("span", { class: "tag neutral" }, en("PLANNED")),
         el("small", {}, "本地单用户模型，无协作路由")
       ),
       el("p", { class: "view-hint" }, "协作是后续独立立项；不建假入口，标签保持 feature-gated。")
@@ -1570,7 +1570,7 @@ async function renderDashboard(target) {
                 el("strong", {}, a.name),
                 el("small", {}, a.path)
               ),
-              el("span", { class: "tag info" }, "UNKNOWN")
+              el("span", { class: "tag neutral" }, en("UNKNOWN"))
             ))
           ),
           el("p", { class: "view-hint" }, "宿主在线状态尚未有服务路由；此处 UNKNOWN，不假报可用。")
@@ -1796,7 +1796,7 @@ async function renderPreflight(target) {
     "aria-label": "任务资源预检 ID，格式为任务包 ID::任务键"
   });
   const runBtn = el("button", { type: "button", class: "primary-btn", id: "preflight-run" }, "运行预检");
-  const result = el("div", { class: "panel scan-line preflight-result" });
+  const result = el("div", { class: "panel preflight-result" });
   const kpiGrid = el(
     "div",
     { class: "kpi-grid" },
@@ -2054,7 +2054,13 @@ async function projectPickerPanel(target, title, body) {
   const load = async () => {
     const id = select.value;
     if (!id) {
-      content.replaceChildren(el("p", { class: "view-hint" }, "请选择一个项目后读回。"));
+      content.replaceChildren(el(
+        "div",
+        { class: "empty" },
+        el("div", { class: "icon", "aria-hidden": "true" }, "—"),
+        el("p", {}, `未选择项目，${title}没有可读回的记录`),
+        el("small", {}, "在上方「项目」中选择项目后，本页从服务端台账只读回；未读回不显示数字。")
+      ));
       return;
     }
     content.replaceChildren(el("p", { class: "view-loading" }, "正在读回该项目…"));
@@ -2131,7 +2137,7 @@ async function renderProjects(target) {
           // /api/projects returns only {id, name}: ProjectRecord carries no
           // status field, so the ledger cannot say "Active". The same page
           // already refuses to guess 进行中/已完成 in its KPIs.
-          el("td", {}, el("span", { class: "tag info" }, "未读回")),
+          el("td", {}, el("span", { class: "tag neutral" }, "未读回")),
           el("td", {}, el("button", {
             type: "button",
             class: "ghost-btn",
@@ -2184,7 +2190,7 @@ async function renderCreativeTools(target) {
                 el("strong", {}, a.name),
                 el("small", {}, a.path)
               ),
-              el("span", { class: "tag info" }, "UNKNOWN")
+              el("span", { class: "tag neutral" }, en("UNKNOWN"))
             ))
           ),
           el("p", { class: "view-hint" }, "宿主在线状态尚未有服务路由；此处 UNKNOWN，不假报可用。")
@@ -2600,7 +2606,7 @@ function buildStageNav(currentStageKey) {
       },
       title: stage.note ?? (stage.state === "IMPLEMENTED" ? "点击跳转到该阶段" : stage.note ?? "")
     };
-    const tag = stage.state !== "IMPLEMENTED" ? el("span", { class: "tag " + (stage.state === "BLOCKED" ? "warn" : "info") }, en(stage.state)) : null;
+    const tag = stage.state !== "IMPLEMENTED" ? el("span", { class: "tag " + (stage.state === "BLOCKED" ? "warn" : "neutral") }, en(stage.state)) : null;
     li.append(el(
       "button",
       btnAttrs,

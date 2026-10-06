@@ -567,7 +567,7 @@ const modulePanels = el('div', { class: 'three-col', style: 'margin-top:16px' },
     el('div', { class: 'panel' },
       el('h3', {}, '协作'),
       el('div', { class: 'status-stack' },
-        el('span', { class: 'tag info' }, 'PLANNED'),
+        el('span', { class: 'tag neutral' }, en('PLANNED')),
         el('small', {}, '本地单用户模型，无协作路由')),
       el('p', { class: 'view-hint' }, '协作是后续独立立项；不建假入口，标签保持 feature-gated。')));
   // W03 "待审 / 失败列表": derived from real task readback, never from a demo number.
@@ -666,7 +666,7 @@ const modulePanels = el('div', { class: 'three-col', style: 'margin-top:16px' },
               el('div', {},
                 el('strong', {}, a.name),
                 el('small', {}, a.path)),
-              el('span', { class: 'tag info' }, 'UNKNOWN')))),
+              el('span', { class: 'tag neutral' }, en('UNKNOWN'))))),
           el('p', { class: 'view-hint' }, '宿主在线状态尚未有服务路由；此处 UNKNOWN，不假报可用。')),
         el('div', { class: 'panel' },
           el('h3', {}, '共享输入'),
@@ -789,7 +789,12 @@ export async function renderPreflight(target: HTMLElement): Promise<void> {
     placeholder: '<TASKPACK>::<TASK_KEY>，例如 ' + known, maxlength: '200',
     'aria-label': '任务资源预检 ID，格式为任务包 ID::任务键' });
   const runBtn = el('button', { type: 'button', class: 'primary-btn', id: 'preflight-run' }, '运行预检');
-  const result = el('div', { class: 'panel scan-line preflight-result' });
+  // `.scan-line` was on this panel from construction and nothing ever added or
+  // removed it, so the light sweep looped forever on an empty result box -- the
+  // page looked like it was working before the user pressed 运行预检. A sweep is
+  // only honest while a scan is actually in flight; re-add it around the run,
+  // not around the empty panel.
+  const result = el('div', { class: 'panel preflight-result' });
   // B10 1:1 .kpi-grid: the four counters B10's preflight page shows. Values are
   // honest placeholders ("—") until a real preflight readback fills them in —
   // no B10 demo number is invented.
@@ -983,7 +988,18 @@ export async function projectPickerPanel(target: HTMLElement, title: string, bod
     el('label', { class: 'project-picker' }, '项目', select), content);
   const load = async (): Promise<void> => {
     const id = select.value;
-    if (!id) { content.replaceChildren(el('p', { class: 'view-hint' }, '请选择一个项目后读回。')); return; }
+    if (!id) {
+      // Three routed views (创作工具 / 交付中心 / 证据系统) shared this handler and
+      // showed one grey sentence above a full screen of black, which reads as a
+      // broken page rather than an unselected one. The repo already ships an
+      // `.empty` component; use it, and say what will appear once a project is
+      // picked without inventing any value in the meantime.
+      content.replaceChildren(el('div', { class: 'empty' },
+        el('div', { class: 'icon', 'aria-hidden': 'true' }, '—'),
+        el('p', {}, `未选择项目，${title}没有可读回的记录`),
+        el('small', {}, '在上方「项目」中选择项目后，本页从服务端台账只读回；未读回不显示数字。')));
+      return;
+    }
     content.replaceChildren(el('p', { class: 'view-loading' }, '正在读回该项目…'));
     try {
       content.replaceChildren(await body(id));
@@ -1030,7 +1046,7 @@ export async function renderProjects(target: HTMLElement): Promise<void> {
               // /api/projects returns only {id, name}: ProjectRecord carries no
               // status field, so the ledger cannot say "Active". The same page
               // already refuses to guess 进行中/已完成 in its KPIs.
-              el('td', {}, el('span', { class: 'tag info' }, '未读回')),
+              el('td', {}, el('span', { class: 'tag neutral' }, '未读回')),
               el('td', {}, el('button', {
                 type: 'button', class: 'ghost-btn',
                 // B07 `/projects/:id` — reached from a row, never a nav item
@@ -1074,7 +1090,7 @@ export async function renderCreativeTools(target: HTMLElement): Promise<void> {
               el('div', {},
                 el('strong', {}, a.name),
                 el('small', {}, a.path)),
-              el('span', { class: 'tag info' }, 'UNKNOWN')))),
+              el('span', { class: 'tag neutral' }, en('UNKNOWN'))))),
           el('p', { class: 'view-hint' }, '宿主在线状态尚未有服务路由；此处 UNKNOWN，不假报可用。')),
         el('div', { class: 'panel' },
           el('h3', {}, '共享输入'),
@@ -1349,7 +1365,7 @@ function buildStageNav(currentStageKey?: string): HTMLElement {
     // signal that a stage is PLANNED was a pointer-only `title`, so a keyboard
     // user pressed an enabled-looking button and nothing happened.
     const tag: HTMLElement | null = stage.state !== 'IMPLEMENTED'
-      ? el('span', { class: 'tag ' + (stage.state === 'BLOCKED' ? 'warn' : 'info') }, en(stage.state))
+      ? el('span', { class: 'tag ' + (stage.state === 'BLOCKED' ? 'warn' : 'neutral') }, en(stage.state))
       : null;
     li.append(el('button', btnAttrs,
       el('span', { class: 'stage-nav-label' }, stage.label),
