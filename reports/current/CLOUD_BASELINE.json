@@ -9,23 +9,29 @@
   },
   "fresh": false,
   "freshnessMeaning": "at generation only; check verifies bound-input integrity, not current Git or cloud state",
-  "generatedAt": "2026-10-06T02:52:47+00:00",
+  "generatedAt": "2026-10-06T03:12:17+00:00",
   "gitStateMeaning": "generation-time observation, not current HEAD",
   "local": {
     "branch": "qoder/designlab-m1-closeout-20261005",
     "origin_main": "1acbfa15a8c036907aadbdc6938b8706c91b5d3e",
-    "sha": "b76b325d1ca088d72b0ea6386406f34e026f75f3",
-    "source_worktree_clean": true,
+    "sha": "3d3ff3e7729561102c7a11af756591f9e5af2f33",
+    "source_worktree_clean": false,
     "tracked_files": 2841,
-    "worktree_changes": [],
-    "worktree_digest": "sha256:784107ee2744212695d7b52e5f690e34262e0a2b5b38cc2fef61f61ad204e401"
+    "worktree_changes": [
+      {
+        "content": "sha256:fc38dc469e67b6af1c0af167eedd9c951f84bb1bfdb88f67d293ac8261a45088",
+        "kind": "M",
+        "path": "design-lab/config/task-ledger-r3.json"
+      }
+    ],
+    "worktree_digest": "sha256:2173296d357ec1c9d6c5fb0c8d43ca5472f0e302cb09bad35097c109591390de"
   },
   "note": "No GitHub API query was run by this generator; tool installation is not inferred.",
   "remoteRef": "origin/main (local tracking ref)",
   "schemaVersion": "design-lab/cloud-baseline/v2",
   "subjectMeaning": "subjectType=WORKTREE means the tree was dirty at generation; worktreeDigest covers HEAD plus the non-generated changes",
-  "subjectSha": "b76b325d1ca088d72b0ea6386406f34e026f75f3",
-  "subjectType": "COMMIT",
+  "subjectSha": "3d3ff3e7729561102c7a11af756591f9e5af2f33",
+  "subjectType": "WORKTREE",
   "taskpackHash": "31dde89eb4ede81fe88c0a5c5144adfb86af8db4c4d8c263bde2199180369b69",
   "taskpackId": "DL-TP-20260908-R5",
   "testRunId": null,
@@ -36,6 +42,6 @@
     "openPullRequests",
     "branchProtection"
   ],
-  "worktreeClean": true,
-  "worktreeDigest": "sha256:784107ee2744212695d7b52e5f690e34262e0a2b5b38cc2fef61f61ad204e401"
+  "worktreeClean": false,
+  "worktreeDigest": "sha256:2173296d357ec1c9d6c5fb0c8d43ca5472f0e302cb09bad35097c109591390de"
 }

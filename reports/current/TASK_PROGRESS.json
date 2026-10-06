@@ -1575,18 +1575,57 @@
         "DL-R5-010"
       ],
       "verified": false
+    },
+    {
+      "artifacts": [
+        {
+          "path": "design-lab/tests/test_workbench_launch.py",
+          "sha256": "f196c02240003b6ff4975693a63692c12f498467dd3662c772077fcb53270aa6"
+        },
+        {
+          "path": "design-lab/tests/test_project_backup.py",
+          "sha256": "0f394c92451c7aa92787f5972c2c40dab5947fbf639029aae932564fe40871ca"
+        }
+      ],
+      "binding": "COMMIT",
+      "id": "r5-m1-runtime-slice-20261006",
+      "kind": "local_test",
+      "note": "M1 运行时切片的 PASS 级观测：一条命令启动（LISTENING/CSP/服务 bundle 与提交态逐字节相等/带 token 的 health/无 token 401）、服务进程重启后项目仍在、备份→恢复→逐文件哈希回读、状态库与版本不兼容时拒绝恢复、干净 wheel 安装在 CI 上跑通同一组启动测试。刻意不把两轴从 PARTIAL 抬升：DL-R5-015 的验收是 M1 整体可用判据，其黄金流仍断在宿主 E3（owner 本轮只授权只读探测）与 Human Jury（BLOCKED_HUMAN），且依赖的 DL-R5-003/014 仍 PARTIAL。本记录只覆盖运行时切片，不构成 M1 声明。",
+      "observed_at": "2026-10-06T03:12:05Z",
+      "outcome": "PASS",
+      "reasons": [],
+      "software": {
+        "clean_install": "CI job wheel-install-gate at 725c5b12: uv build --wheel, clean venv, Ran 3 tests OK with no skips",
+        "node": "v24.18.0 (scoop nodejs-lts/current on PATH)",
+        "os": "Windows 10.0.26100",
+        "python": "3.13.14 (project .venv)",
+        "runner": "python -m unittest design-lab.tests.test_workbench_launch design-lab.tests.test_project_backup design-lab.tests.test_installed_state_resources design-lab.tests.test_release_gate -> Ran 20 tests, OK (skipped=1: packaged-resource check needs an installed wheel)"
+      },
+      "subject_files": {
+        "design-lab/tests/test_project_backup.py": "0f394c92451c7aa92787f5972c2c40dab5947fbf639029aae932564fe40871ca",
+        "design-lab/tests/test_workbench_launch.py": "f196c02240003b6ff4975693a63692c12f498467dd3662c772077fcb53270aa6",
+        "src/design_lab/cli.py": "cfe863fd88ac86b458377fd3ae021bc8047bfbc252cd3e0809e0462959cfc937",
+        "src/design_lab/http_service.py": "0b365fad2f3f9bf68fb7ca8437163aa875daee4d93c4746a44106bb4c655ba8d",
+        "src/design_lab/runtime/project_backup.py": "59cfa96e392d704a0350778f468b30b09425a38cf16681fde761c6d47487ba45",
+        "src/design_lab/workbench.py": "fbc9671438aaec1eeb0dc3f55446c5e3a243273b4619e97e668c655d2feb3e51"
+      },
+      "subject_sha": "3d3ff3e7729561102c7a11af756591f9e5af2f33",
+      "task_ids": [
+        "DL-R5-015"
+      ],
+      "verified": true
     }
   ],
   "fresh": false,
   "freshnessMeaning": "at generation only; check verifies bound-input integrity, not current Git or cloud state",
-  "generatedAt": "2026-10-06T02:52:47+00:00",
+  "generatedAt": "2026-10-06T03:12:17+00:00",
   "gitStateMeaning": "generation-time observation, not current HEAD",
-  "ledgerUpdatedAt": "2026-10-05T22:56:02Z",
+  "ledgerUpdatedAt": "2026-10-06T03:12:05Z",
   "note": "DONE_LOCAL concerns the declared task axes and dependencies, not a product release or hosted CI.",
   "schemaVersion": "design-lab/task-progress/r5-v1",
   "subjectMeaning": "subjectType=WORKTREE means the tree was dirty at generation; worktreeDigest covers HEAD plus the non-generated changes",
-  "subjectSha": "b76b325d1ca088d72b0ea6386406f34e026f75f3",
-  "subjectType": "COMMIT",
+  "subjectSha": "3d3ff3e7729561102c7a11af756591f9e5af2f33",
+  "subjectType": "WORKTREE",
   "taskpack": "DL-TP-20260908-R5",
   "taskpackHash": "31dde89eb4ede81fe88c0a5c5144adfb86af8db4c4d8c263bde2199180369b69",
   "taskpackId": "DL-TP-20260908-R5",
@@ -2844,7 +2883,8 @@
         "implementation": {
           "declared_state": "PARTIAL",
           "evidence": [
-            "r5-015-static-unit-20260928"
+            "r5-015-static-unit-20260928",
+            "r5-m1-runtime-slice-20261006"
           ],
           "reasons": [],
           "state": "PARTIAL"
@@ -2852,7 +2892,8 @@
         "unit": {
           "declared_state": "PARTIAL",
           "evidence": [
-            "r5-015-static-unit-20260928"
+            "r5-015-static-unit-20260928",
+            "r5-m1-runtime-slice-20261006"
           ],
           "reasons": [],
           "state": "PARTIAL"
@@ -4085,6 +4126,6 @@
   ],
   "testRunId": null,
   "testRunMeaning": "no bound test run; this projection does not claim a test result",
-  "worktreeClean": true,
-  "worktreeDigest": "sha256:784107ee2744212695d7b52e5f690e34262e0a2b5b38cc2fef61f61ad204e401"
+  "worktreeClean": false,
+  "worktreeDigest": "sha256:2173296d357ec1c9d6c5fb0c8d43ca5472f0e302cb09bad35097c109591390de"
 }
