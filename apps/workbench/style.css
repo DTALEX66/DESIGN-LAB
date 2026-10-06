@@ -1227,3 +1227,94 @@ html,body{margin:0}
 .palette button.item:focus-visible{
   outline:3px solid var(--color-secondary);outline-offset:-3px;
 }
+
+/* ==========================================================================
+   UI-AUDIT-20261006 · overflow + type-scale repairs.
+
+   证据（Chromium 实测，本机真实服务）：
+     .project-local/tmp/overflow-{1440,1280,1024,768,390}.json
+   复测脚本：apps/workbench/__audit-overflow.mjs（临时）
+   实测结论（修复前）：
+     · 系统设置页 div.panel 在 1440 下被裁掉 388px、390 下被裁掉 391px；
+     · 项目页表格在 1024 下外溢 23px；
+     · legacy 工作台页 16 处文字为 10px。
+
+   本区块只做三件事：让宽内容可收缩、让长值换行、把字号拉回项目自己
+   声明的 token 尺度。不引入新色板、不改 B10 结构类名、不改 B10 声明值。
+   ========================================================================== */
+
+/* --- F-1 宽内容不可收缩：grid / flex 子项默认 min-width:auto --------------
+   设置页 .panel 被裁 388px 的直接原因：.three-col 子项无法收缩，
+   .list-item（flex + space-between）里的 .tag（white-space:nowrap）
+   顶着一条完整文件系统路径把行撑到 ~600px，面板 overflow:hidden 静默裁掉。 */
+.two-col>*,.three-col>*,.split>*,.kpi-grid>*{min-width:0}
+.list-item,.list-item>*{min-width:0}
+/* 兜底：即便某个 .tag 仍是 nowrap 长串，也让它换行到下一行而不是顶破面板。
+   只有在内容真的放不下时才会触发，不改变常规行的视觉。 */
+.list-item{flex-wrap:wrap}
+.items,.items>*{min-width:0}
+
+/* --- F-2 长值不再塞进 .tag ------------------------------------------------
+   .tag 是短状态药丸，white-space:nowrap 是它的正确行为；路径、hash、
+   schema id 属于"长值"，用等宽换行块承载，两者职责分开。 */
+.value-mono{
+  font-family:ui-monospace,SFMono-Regular,Menlo,monospace;
+  font-size:12px;line-height:1.55;color:var(--text);
+  max-width:100%;overflow-wrap:anywhere;word-break:break-word;
+}
+/* 长值行改为上下堆叠：标签一行、值一行，避免值被挤成两三字符宽的竖条 */
+.list-item.value-row{flex-direction:column;align-items:stretch;gap:6px}
+/* 路径同样会撑破 .list-item small */
+.list-item small{overflow-wrap:anywhere;word-break:break-word}
+/* 表格区是可滚动区域（.table-wrap overflow:auto），限宽后即可横向卷动而不顶破面板 */
+.table-wrap{max-width:100%}
+
+/* --- F-3 字号回到项目自己声明的 token 尺度 --------------------------------
+   :root 已声明 --font-caption:13px / --font-body:16px，但实现侧实际用的是
+   10px（.eyebrow）、13px（legacy 正文）、11px（.mono/.badge）。
+   中文没有大写形态，10px + 2px 字距不可读。此处只做"实现服从规范"，
+   不发明新值：eyebrow 取 12px（标签仍小于正文），正文取 14px（仍低于
+   --font-body 16px，避免改变信息密度层级），等宽取 12px。 */
+.eyebrow{font-size:12px;letter-spacing:.08em}
+body > header p,body > main p,body > footer p{font-size:14px}
+.mono{font-size:12px}
+.badge{font-size:12px}
+
+/* eyebrow 只用于短标签；长说明走 .note，避免把 60 字正文压成 10px。 */
+.note{font-size:13px;line-height:1.7;color:var(--muted);overflow-wrap:anywhere;margin:6px 0}
+
+/* 侧栏品牌副标题原本 10px —— 全站最小文本统一到 12px，
+   不让任何可见文字低于 11px（audit_workbench_overflow.mjs OV_STRICT 门槛）。 */
+.brand small{font-size:12px}
+
+/* --- F-4 高级 / 诊断区默认收起 -------------------------------------------
+   对象计划（RIR JSON）、局部修改（Patch JSON）、服务端诊断属于对接与调试
+   面，不是设计生产主流程。默认收起，展开后才占版面。 */
+.advanced{
+  border:1px solid var(--line);border-radius:var(--radius-lg);
+  background:var(--surface);margin-bottom:20px;
+}
+.advanced>summary{
+  cursor:pointer;padding:16px 22px;list-style:none;
+  font-size:14px;font-weight:650;color:var(--ink);
+  display:flex;align-items:center;gap:10px;
+}
+.advanced>summary::-webkit-details-marker{display:none}
+.advanced>summary::before{
+  content:"";flex:0 0 auto;width:7px;height:7px;
+  border-right:2px solid var(--accent);border-bottom:2px solid var(--accent);
+  transform:rotate(-45deg);transition:transform var(--motion-fast);
+}
+.advanced[open]>summary::before{transform:rotate(45deg)}
+.advanced>summary:focus-visible{
+  outline:3px solid var(--color-secondary);outline-offset:2px;border-radius:var(--radius-md);
+}
+.advanced-body{padding:0 22px 22px}
+/* 嵌在面板内部的明细折叠：不再套一层边框/底色，避免边框套边框。 */
+.panel .advanced{
+  border:0;background:transparent;margin:6px 0 0;border-radius:0;
+  border-top:1px solid var(--line);
+}
+.panel .advanced>summary{padding:12px 0;font-size:12px;font-weight:600;color:var(--muted)}
+.panel .advanced>summary:hover{color:var(--ink)}
+.panel .advanced-body{padding:0 0 12px}
