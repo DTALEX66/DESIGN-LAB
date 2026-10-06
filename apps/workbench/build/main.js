@@ -1076,9 +1076,14 @@ function capabilityCard(c) {
       el(
         "div",
         { class: "status-stack" },
+        // style.css establishes `.tag.neutral` for exactly this: a non-verdict must not
+        // borrow the weight of a verdict. PLANNED says "no answer yet", so it gets the
+        // outline pill the dashboard blueprint cards already use -- and IMPLEMENTED,
+        // which this call site would otherwise have painted the same `info` blue, is a
+        // real verdict and gets the affirmative one.
         el(
           "span",
-          { class: "tag " + (c.implementationState === "BLOCKED" ? "warn" : "info") },
+          { class: "tag " + (c.implementationState === "BLOCKED" ? "warn" : c.implementationState === "IMPLEMENTED" ? "ok" : "neutral") },
           en(c.implementationState)
         )
       )
