@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT
 """DL-GOV-INERT: third-party agent-instruction blobs must stay out of active paths.
 
 AGENTS.md requires upstream `AGENTS / CLAUDE / cursorrules / SKILL / install /
