@@ -230,15 +230,23 @@ const CAPABILITY_REGISTRY: readonly CapabilityContract[] = [
 // its real state (PLANNED / BLOCKED) and the integration point; NONE of them
 // is a fake button, and NONE is a KPI.
 function capabilityCard(c: CapabilityContract): HTMLElement {
+  // UI-AUDIT-20261006：能力卡面向人的是"这是什么、现在什么状态、为什么"；
+  // 路由 / 合同引用 / owner / 下一动作是工程对接面，默认收起。状态标签
+  // （PLANNED / BLOCKED）始终可见 —— 诚实标注是这张卡存在的理由，不能折起来。
   return el('div', { class: 'panel capability-card', dataset: { capability: c.capabilityId } },
     el('div', {},
-      el('h3', {}, `${c.domain} · ${c.capabilityId}`),
+      el('h3', {}, c.domain),
       el('div', { class: 'status-stack' },
         el('span', { class: 'tag ' + (c.implementationState === 'BLOCKED' ? 'warn' : 'info') },
-          en(c.implementationState)),
-        el('small', {}, `来源 ${c.source} · 权限 ${c.permission}`))),
+          en(c.implementationState)))),
     el('p', { class: 'muted' }, c.reason),
-    el('p', { class: 'view-hint' }, `未来接入：${c.route}（${c.contractRef}）。下一动作：${c.nextAction}`));
+    el('details', { class: 'advanced' },
+      el('summary', {}, '接入明细'),
+      el('div', { class: 'advanced-body' },
+        el('p', { class: 'view-hint' }, `状态来源：${c.source}`),
+        el('p', { class: 'view-hint' }, `所需条件：${c.permission}`),
+        el('p', { class: 'view-hint' }, `工程落点：${c.route}（${c.contractRef}）`),
+        el('p', { class: 'view-hint' }, `下一动作：${c.nextAction}`))));
 }
 
 // ============================================================================
@@ -484,10 +492,10 @@ export async function renderDashboard(target: HTMLElement): Promise<void> {
         onclick: () => { window.location.hash = ''; },
       }, '+ 新建项目')));
   const grid = el('div', { class: 'kpi-grid' },
-    kpiCard(String(projCount), '项目', '来自 /api/projects 真实读回，非统计猜测'),
-    kpiCard(String(sysCount), '设计系统', '资源登记的设计系统总数 · /api/design-systems 读回'),
+    kpiCard(String(projCount), '项目', '服务端项目台账读回，非统计猜测'),
+    kpiCard(String(sysCount), '设计系统', '资源登记的设计系统总数 · 服务端目录读回'),
     kpiCard(health.status, '服务状态', `版本 ${health.version} · 作用域 ${health.scope}`),
-    kpiCard(health.version, '服务版本', '/api/health 真实读回'));
+    kpiCard(health.version, '服务版本', '服务自检读回'));
   // B10 1:1 count-up target: the new .kpi strong[data-count] numbers.
   for (const v of grid.querySelectorAll<HTMLElement>('strong[data-count]')) {
     const text = v.textContent;
@@ -542,7 +550,7 @@ const modulePanels = el('div', { class: 'three-col', style: 'margin-top:16px' },
       el('div', { class: 'muted' }, '研究洞察模块：真实读回待接入，未接入前显式 UNKNOWN。')),
     el('div', { class: 'panel' },
       el('h3', {}, 'Brand'),
-      el('div', { class: 'muted' }, `品牌系统：目录登记 ${sysCount} 个设计系统（/api/design-systems 读回，全局目录而非本项目状态）。`)),
+      el('div', { class: 'muted' }, `品牌系统：目录登记 ${sysCount} 个设计系统（服务端目录读回，全局目录而非本项目状态）。`)),
     el('div', { class: 'panel' },
       el('h3', {}, 'Delivery'),
       el('div', { class: 'muted' }, '交付中心：按任务读回，未打包不宣称交付完成。')));
@@ -668,7 +676,7 @@ const modulePanels = el('div', { class: 'three-col', style: 'margin-top:16px' },
                 class: v.status === 'MISSING' ? 'tag bad'
                   : (v.status === 'DECLARED_NOT_PROBED' ? 'tag warn' : 'tag ok'),
               }, en(v.status))))),
-          el('p', { class: 'view-hint' }, '来自 /api/environment 真实读回；写权限与状态由服务裁定。')),
+          el('p', { class: 'view-hint' }, '服务端环境读回；写权限与状态由服务裁定。')),
         el('div', { class: 'panel' },
           el('h3', {}, '未来能力'),
           el('div', { class: 'list' },
@@ -728,17 +736,17 @@ export async function renderBrandSystems(target: HTMLElement): Promise<void> {
   const pageHead = el('div', { class: 'page-head' },
     el('div', {},
       el('h2', {}, '品牌系统'),
-      el('p', {}, '延续锁定的高级、发光、动感产品表达。模块为视觉占位；资产与版本由 /api/design-systems 真实读回。')),
+      el('p', {}, '延续锁定的高级、发光、动感产品表达。模块为视觉占位；资产与版本由服务端目录读回。')),
     el('div', { class: 'page-actions' }));
   const kpis = el('div', { class: 'kpi-grid' },
-    kpiCard(String(sysCount), '设计系统', '资源登记总数 · /api/design-systems 真实读回'),
+    kpiCard(String(sysCount), '设计系统', '资源登记总数 · 服务端目录读回'),
     kpiCard(String(BRAND_MODULES.length), 'VI 模块', 'Logo / Color / Typography / … / Assets'),
     kpiCard('—', '活跃绑定', '绑定在工作台 DESIGN LAYER 执行'));
   // B10 1:1 three-col brand panels — .panel/.tag/.muted bodies only (B10 CSS 已存在类).
   const moduleGrid = el('div', { class: 'three-col' },
     ...BRAND_MODULES.map((name) => el('div', { class: 'panel', dataset: { module: name } },
       el('h3', {}, name),
-      el('p', { class: 'muted' }, '视觉占位 · 资产与版本由 /api/design-systems 真实读回'),
+      el('p', { class: 'muted' }, '视觉占位 · 资产与版本由服务端目录读回'),
       el('span', { class: 'tag info' }, 'VI 模块'))));
   const systemsList = el('div', { class: 'panel' },
     el('h3', {}, `设计系统登记（${sysCount}）`),
@@ -858,13 +866,26 @@ export async function renderPreflight(target: HTMLElement): Promise<void> {
 export async function renderSettings(target: HTMLElement): Promise<void> {
   target.replaceChildren(el('p', { class: 'view-loading' }, '正在读回运行环境…'));
   const env = await apiOrEmpty<EnvironmentResponse>('/environment', OFFLINE.environment);
-  const rows: Array<[string, string]> = [
-    ['环境状态', `${env.status} · ${env.schemaVersion}`],
-    ['项目根', env.project_root],
-    ['项目本地根', env.project_local_root],
-    ['写入痕迹', `${env.write_trace} · 迁移 ${env.migration}`],
-    ['代理配置', `${env.agent_profile.status} · ${env.agent_profile.writable ? '可写' : '不可写'}`],
+  // `long` = 该值是文件系统路径这类长标识。UI-AUDIT-20261006 F-1：长值不得
+  // 塞进 .tag —— .tag 是 nowrap 短状态药丸，承载完整路径时会把 .list-item
+  // 撑到 ~600px，再被 .panel 的 overflow:hidden 静默裁掉（1440 下实测裁掉
+  // 388px）。长值走 .value-mono（等宽 + 换行 + 独占一行）。
+  const rows: Array<{ label: string; value: string; long: boolean }> = [
+    { label: '环境状态', value: env.status, long: false },
+    { label: '诊断契约', value: env.schemaVersion, long: true },
+    { label: '项目根', value: env.project_root, long: true },
+    { label: '项目本地根', value: env.project_local_root, long: true },
+    { label: '写入痕迹', value: `${env.write_trace} · 迁移 ${env.migration}`, long: false },
+    { label: '代理配置', value: `${env.agent_profile.status} · ${env.agent_profile.writable ? '可写' : '不可写'}`, long: false },
   ];
+  const valueRow = (label: string, value: string, long: boolean, tagClass = 'info'): HTMLElement =>
+    long
+      ? el('div', { class: 'list-item value-row' },
+          el('span', {}, label),
+          el('span', { class: 'value-mono' }, value))
+      : el('div', { class: 'list-item' },
+          el('span', {}, label),
+          el('span', { class: 'tag ' + tagClass }, value));
   // LibraryIndex: the external library index is the read-only red-line surface.
   // Turn each row's status / writability into an explicit pill so the 4-state
   // contract is visible. `runtime/paths.py` returns a DECLARED `writable` flag
@@ -887,27 +908,31 @@ export async function renderSettings(target: HTMLElement): Promise<void> {
       el('div', { class: 'panel' },
         el('h3', {}, '环境状态'),
         el('div', { class: 'list' },
-          ...rows.map(([label, value]) => el('div', { class: 'list-item' },
-            el('span', {}, label),
-            el('span', { class: 'tag ' + (label === '代理配置' ? 'warn' : 'info') }, value))))),
-      el('div', { class: 'panel' },
-        el('h3', {}, '项目根（服务声明可写，未探测）'),
-        el('div', { class: 'list' },
-          ...(Object.keys(env.roots).length
-            ? Object.entries(env.roots).map(([name, root]) => el('div', { class: 'list-item' },
-                el('div', {}, el('strong', {}, name), el('small', {}, root.path)),
-                writablePill(root.writable)))
-            : [el('div', { class: 'list-item' },
-                el('div', {}, el('strong', {}, '尚无根登记'), el('small', {}, '服务未返回 roots')))]))),
-      el('div', { class: 'panel' },
-        el('h3', {}, '外置输入（只读 · DECLARED_NOT_PROBED）'),
-        el('div', { class: 'list' },
-          ...(Object.keys(env.shared_inputs).length
-            ? Object.entries(env.shared_inputs).map(([name, input]) => el('div', { class: 'list-item' },
-                el('div', {}, el('strong', {}, name), el('small', {}, input.path)),
-                el('span', { class: 'tag info' }, input.status)))
-            : [el('div', { class: 'list-item' },
-                el('div', {}, el('strong', {}, '尚无外置输入'), el('small', {}, '服务未返回 shared_inputs')))])))),
+          ...rows.map((r) => valueRow(r.label, r.value, r.long,
+            r.label === '代理配置' ? 'warn' : 'info'))))),
+    // 路径诊断是后端对接面，不是设计生产面：默认收起，展开才占版面。
+    el('details', { class: 'advanced' },
+      el('summary', {}, '服务端路径诊断（默认收起）'),
+      el('div', { class: 'advanced-body' },
+        el('div', { class: 'three-col' },
+          el('div', { class: 'panel' },
+            el('h3', {}, '项目根（服务声明可写，未探测）'),
+            el('div', { class: 'list' },
+              ...(Object.keys(env.roots).length
+                ? Object.entries(env.roots).map(([name, root]) => el('div', { class: 'list-item' },
+                    el('div', {}, el('strong', {}, name), el('small', {}, root.path)),
+                    writablePill(root.writable)))
+                : [el('div', { class: 'list-item' },
+                    el('div', {}, el('strong', {}, '尚无根登记'), el('small', {}, '服务未返回 roots')))]))),
+          el('div', { class: 'panel' },
+            el('h3', {}, '外置输入（只读 · DECLARED_NOT_PROBED）'),
+            el('div', { class: 'list' },
+              ...(Object.keys(env.shared_inputs).length
+                ? Object.entries(env.shared_inputs).map(([name, input]) => el('div', { class: 'list-item' },
+                    el('div', {}, el('strong', {}, name), el('small', {}, input.path)),
+                    el('span', { class: 'tag info' }, input.status)))
+                : [el('div', { class: 'list-item' },
+                    el('div', {}, el('strong', {}, '尚无外置输入'), el('small', {}, '服务未返回 shared_inputs')))])))))),
     el('p', { class: 'view-hint' }, '代理配置私有状态不可写：PRIVATE_NOT_INSPECTED · 不可写。本服务不读取、不打印任何凭据。'));
 }
 
@@ -965,14 +990,14 @@ export async function renderProjects(target: HTMLElement): Promise<void> {
   const pageHead = el('div', { class: 'page-head' },
     el('div', {},
       el('h2', {}, '项目'),
-      el('p', {}, '支持筛选、编辑与本地持久化。真实读回 /api/projects；新建 / 选择项目在工作台执行，本页只读回台账。')),
+      el('p', {}, '支持筛选、编辑与本地持久化。数据来自服务端台账；新建 / 选择项目在工作台执行，本页只读回。')),
     el('div', { class: 'page-actions' },
       el('button', {
         type: 'button', class: 'primary-btn',
         onclick: () => { window.location.hash = ''; },
       }, '+ 新建项目')));
   const kpis = el('div', { class: 'kpi-grid' },
-    kpiCard(String(n), '项目', '来自 /api/projects 真实读回'),
+    kpiCard(String(n), '项目', '服务端台账读回'),
     kpiCard('—', '进行中', '状态需在工作台查看'),
     kpiCard('—', '已完成', '状态需在工作台查看'));
   // B10 1:1 table（.table-wrap + .table，B10 表体），内容仍是真实台账。
@@ -1021,7 +1046,7 @@ export async function renderCreativeTools(target: HTMLElement): Promise<void> {
     const tasks = await apiOrEmpty<TaskListResponse>(`/projects/${id}/tasks`, OFFLINE.tasks);
     const env = await apiOrEmpty<EnvironmentResponse>('/environment', OFFLINE.environment);
     // 2026-09-30 — Host/Capability 状态卡：宿主在线状态诚实标注 UNKNOWN
-    // （后端尚无宿主探测路由），共享输入来自 /api/environment 真实读回。
+    // （后端尚无宿主探测路由），共享输入服务端环境读回。
     const mcpCard = CAPABILITY_REGISTRY.find((c) => c.capabilityId === 'mcp-diagnostics');
     const hostCard = CAPABILITY_REGISTRY.find((c) => c.capabilityId === 'host-adapter-live');
     const hostStatus = el('div', { class: 'panel' },
@@ -1049,7 +1074,7 @@ export async function renderCreativeTools(target: HTMLElement): Promise<void> {
                 class: v.status === 'MISSING' ? 'tag bad'
                   : (v.status === 'DECLARED_NOT_PROBED' ? 'tag warn' : 'tag ok'),
               }, en(v.status))))),
-          el('p', { class: 'view-hint' }, '来自 /api/environment 真实读回。')),
+          el('p', { class: 'view-hint' }, '服务端环境读回。')),
         hostCard ? capabilityCard(hostCard) : el('div', { class: 'panel' }),
         mcpCard ? capabilityCard(mcpCard) : el('div', { class: 'panel' }),
       ),
@@ -1069,7 +1094,7 @@ export async function renderCreativeTools(target: HTMLElement): Promise<void> {
     return el('div', {},
       hostStatus,
       adapterGrid,
-      el('p', { class: 'view-hint' }, '宿主任务只读回 /api/projects/{id}/tasks。提交 / 运行 / 取消由宿主（Illustrator / Photoshop）在工作台执行；本页不触发实操。'),
+      el('p', { class: 'view-hint' }, '宿主任务只读回服务端任务台账。提交 / 运行 / 取消由宿主（Illustrator / Photoshop）在工作台执行；本页不触发实操。'),
       el('div', { class: 'panel' },
         el('h3', {}, `任务（${tasks.tasks.length}）`),
         el('div', { class: 'table-wrap', tabindex: '0', role: 'region',
@@ -1269,7 +1294,7 @@ const PROJECT_STAGES: Array<{
   // task-resource doctor. Design quality, Jury and production preflight have no
   // route, so the stage name carries the boundary in visible text.
   { key: 'review',        label: '资源预检（非设计评审）', panelId: '#/preflight',   state: 'IMPLEMENTED',
-    note: '仅任务包资源预检 /api/task-preflight；设计质量 / Jury / 生产 preflight 无路由' },
+    note: '仅任务包资源预检可读回；设计质量 / Jury / 生产预检尚无入口' },
   { key: 'handoff',       label: 'Handoff',       panelId: '',                       state: 'PLANNED',
     note: '交接清单模型未建（能力登记表）' },
   // #pd-deliveries is a bundle manifest (id/kind/size/sha256/rights). E0-E5

@@ -18,7 +18,7 @@
 <section class="panel"><p class="eyebrow">04 / NATIVE ASSETS</p><h2>已登记的 AI / PSD</h2><p>列表为持久化版本记录。点击校验会重新读取原生文件并核对 hash，不代表人工接受或本次宿主重开。</p><ul id="native-assets" class="items"></ul><button id="more-native" class="secondary" hidden>更多原生产物</button><p id="native-info" class="mono" role="status"></p></section>
 <section class="panel"><div class="section-head"><div><p class="eyebrow">05 / DESIGN LAYER</p><h2>Brief → Direction → DesignSystem</h2></div><span class="badge">垂直切片 · 每条都读回</span></div>
 <p>把设计意图落成可追踪的记录：简报固定“为什么设计”，方向给出具体视觉立场（选择即人工判定），绑定固定后续制作的设计契约。每一步都持久化并读回，不代表制作完成或质量验收。每个简报与方向行都可以用「新版本」新增下一个版本：旧版本只保留为历史，内容不会被改写；已被取代的版本再次改版会被服务端拒绝（409 STALE_REVISION）。修订已选定方向时，选择结论随新版本带走，但设计系统绑定仍留在旧版本上，需要在最新版本上重新绑定。</p>
-<p class="eyebrow">参考素材（勾选已导入资产，简报将引用；不导入则为空。点击简报的「新版本」时会按该版本引用的素材自动勾选）</p>
+<p class="note">参考素材：勾选已导入资产，简报将引用。点击「新版本」时按该版本引用的素材自动勾选。</p>
 <ul id="reference-picker" class="items"></ul>
 <form id="design-brief-form" class="design-form"><label>简报标题<input id="brief-title" maxlength="160" required placeholder="例如：秋季品牌视觉"></label>
 <label>目标（逗号分隔）<input id="brief-goals" maxlength="400" required placeholder="现代, 温暖, 克制"></label>
@@ -49,14 +49,16 @@
 <label>绑定到当前所选方向<select id="design-system"></select></label>
 <button id="design-system-bind">绑定设计系统</button>
 <ul id="design-bindings" class="items"></ul><p id="design-binding-active" class="mono"></p></div></div></section>
-<section class="panel"><p class="eyebrow">ADVANCED / OBJECT PLAN</p><h2>检查与提交对象计划</h2><p>高级 RIR 合同输入，不是参考图自动拆解。可编辑 JSON 后提交；raster.path 必须使用当前项目已导入的完整 img-ID，不接受本地路径。文字节点样式按对象 ID 提供 font、size、color。提交只排队，需在任务列表显式启动。</p>
+<details class="advanced"><summary>高级 · 对象计划（RIR 合同输入）</summary><div class="advanced-body">
+<h2>检查与提交对象计划</h2><p>高级 RIR 合同输入，不是参考图自动拆解。可编辑 JSON 后提交；raster.path 必须使用当前项目已导入的完整 img-ID，不接受本地路径。文字节点样式按对象 ID 提供 font、size、color。提交只排队，需在任务列表显式启动。</p>
 <form id="plan-form"><label>目标宿主<select id="plan-host"><option value="illustrator">Illustrator / AI</option><option value="photoshop">Photoshop / PSD</option></select></label>
 <label>RIR JSON<textarea id="plan-rir" rows="12" maxlength="3800000" required spellcheck="false"></textarea></label>
 <label>文字样式 JSON<textarea id="plan-styles" rows="5" maxlength="100000" required spellcheck="false">{}</textarea></label><button id="plan-submit">校验并排队</button></form>
-<p>自动参考拆解、复杂参考复刻与人工验收仍待完成；不能以整图贴底冒充分层。</p></section>
-<section class="panel"><p class="eyebrow">ADVANCED / LOCAL PATCH</p><h2>Adobe 对象局部修改</h2>
+<p>自动参考拆解、复杂参考复刻与人工验收仍待完成；不能以整图贴底冒充分层。</p></div></details>
+<details class="advanced"><summary>高级 · Adobe 对象局部修改</summary><div class="advanced-body">
+<h2>Adobe 对象局部修改</h2>
 <p id="patch-source" class="mono">请从已完成的 Illustrator 或 Photoshop 任务选择修改来源。</p>
 <p>Illustrator 支持文字或保持拓扑的路径修改；Photoshop 支持文字或单对象移动（move，delta 为像素偏移 [x,y]）。对象 ID 来自对象计划；不接受脚本或文件路径。每次保存新副本，第二次修改请选择第一次修改完成后的任务。</p>
-<form id="patch-form"><label>修改 JSON<textarea id="patch-json" rows="6" maxlength="900000" required spellcheck="false" aria-label="局部对象修改 JSON">{"kind":"text","id":"title","text":"修改后的文字"}</textarea></label><button id="patch-submit">校验并排队局部修改</button></form></section></div>
+<form id="patch-form"><label>修改 JSON<textarea id="patch-json" rows="6" maxlength="900000" required spellcheck="false" aria-label="局部对象修改 JSON">{"kind":"text","id":"title","text":"修改后的文字"}</textarea></label><button id="patch-submit">校验并排队局部修改</button></form></div></details></div>
 <p id="status" role="status" aria-live="polite">本地优先 · 不连接云端 · 不上传到第三方</p></main>
 <footer>DESIGN-LAB / 设计智能与生产能力层 <span>实验入口 · 非完整产品验收</span></footer></body></html>
