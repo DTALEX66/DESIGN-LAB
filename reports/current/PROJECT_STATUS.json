@@ -6,17 +6,17 @@
     "platform": "Windows-11-10.0.26100-SP0",
     "python": "3.13.14"
   },
-  "fresh": false,
+  "fresh": true,
   "freshnessMeaning": "at generation only; check verifies bound-input integrity, not current Git or cloud state",
-  "generatedAt": "2026-10-06T14:11:11+00:00",
+  "generatedAt": "2026-10-06T16:09:09+00:00",
   "git": {
-    "branch": "qoder/designlab-reports-refresh-20261006",
-    "origin_main": "f8f345631c61c05eb20914f570a8caee4061eb04",
-    "sha": "08e5b04c719fe32694e4bd10d6fde3bb03d39330",
+    "branch": "main",
+    "origin_main": "3f2842c513a58b41e790de45dfb2c052a85473d5",
+    "sha": "3f2842c513a58b41e790de45dfb2c052a85473d5",
     "source_worktree_clean": true,
-    "tracked_files": 2959,
+    "tracked_files": 2960,
     "worktree_changes": [],
-    "worktree_digest": "sha256:b6bb63fc8fd40bb8394202d0d551f1e609024c7fe51a9cde9a888af2bfbfe0e3"
+    "worktree_digest": "sha256:71dab27cef4700eb83c84af25bd22b8f9cec02016463a35ae9bad74857435ede"
   },
   "gitStateMeaning": "generation-time observation, not current HEAD",
   "hostLive": "derived from host_live axis only",
@@ -29,7 +29,7 @@
     "quarantinedSources": 162
   },
   "subjectMeaning": "subjectType=WORKTREE means the tree was dirty at generation; worktreeDigest covers HEAD plus the non-generated changes",
-  "subjectSha": "08e5b04c719fe32694e4bd10d6fde3bb03d39330",
+  "subjectSha": "3f2842c513a58b41e790de45dfb2c052a85473d5",
   "subjectType": "COMMIT",
   "taskCounts": {
     "PARTIAL": 28
@@ -46,5 +46,5 @@
     "executed": "see individual verified ledger receipts"
   },
   "worktreeClean": true,
-  "worktreeDigest": "sha256:b6bb63fc8fd40bb8394202d0d551f1e609024c7fe51a9cde9a888af2bfbfe0e3"
+  "worktreeDigest": "sha256:71dab27cef4700eb83c84af25bd22b8f9cec02016463a35ae9bad74857435ede"
 }
