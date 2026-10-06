@@ -7,25 +7,36 @@
     "platform": "Windows-11-10.0.26100-SP0",
     "python": "3.13.14"
   },
-  "fresh": true,
+  "fresh": false,
   "freshnessMeaning": "at generation only; check verifies bound-input integrity, not current Git or cloud state",
-  "generatedAt": "2026-10-06T16:09:09+00:00",
+  "generatedAt": "2026-10-06T17:34:34+00:00",
   "gitStateMeaning": "generation-time observation, not current HEAD",
   "local": {
-    "branch": "main",
-    "origin_main": "3f2842c513a58b41e790de45dfb2c052a85473d5",
-    "sha": "3f2842c513a58b41e790de45dfb2c052a85473d5",
-    "source_worktree_clean": true,
-    "tracked_files": 2960,
-    "worktree_changes": [],
-    "worktree_digest": "sha256:71dab27cef4700eb83c84af25bd22b8f9cec02016463a35ae9bad74857435ede"
+    "branch": "qoder/designlab-source-registry-truth-20261007",
+    "origin_main": "ba382043260b831c7aa1f0d807ed04ed9a27a38c",
+    "sha": "ba382043260b831c7aa1f0d807ed04ed9a27a38c",
+    "source_worktree_clean": false,
+    "tracked_files": 2961,
+    "worktree_changes": [
+      {
+        "content": "sha256:7119d9b31f1be2962babe5b9c7da12e4e5f9c961a3be1777165e296a84c4d1fc",
+        "kind": "M",
+        "path": "design-lab/research/global-absorption/SOURCE_REGISTRY.json"
+      },
+      {
+        "content": "sha256:8df502286ac104f0b2b7e756c97ad82cf6f7f284487488d25cc87ff049057ae0",
+        "kind": "M",
+        "path": "design-lab/scripts/verify_source_registry.py"
+      }
+    ],
+    "worktree_digest": "sha256:43da1064a4261ea3e7b0d940894d225a3ce67e3f845846542f95090e6bcdf479"
   },
   "note": "No GitHub API query was run by this generator; tool installation is not inferred.",
   "remoteRef": "origin/main (local tracking ref)",
   "schemaVersion": "design-lab/cloud-baseline/v2",
   "subjectMeaning": "subjectType=WORKTREE means the tree was dirty at generation; worktreeDigest covers HEAD plus the non-generated changes",
-  "subjectSha": "3f2842c513a58b41e790de45dfb2c052a85473d5",
-  "subjectType": "COMMIT",
+  "subjectSha": "ba382043260b831c7aa1f0d807ed04ed9a27a38c",
+  "subjectType": "WORKTREE",
   "taskpackHash": "31dde89eb4ede81fe88c0a5c5144adfb86af8db4c4d8c263bde2199180369b69",
   "taskpackId": "DL-TP-20260908-R5",
   "testRunAt": "2026-10-06T05:11:47+00:00",
@@ -38,6 +49,6 @@
     "openPullRequests",
     "branchProtection"
   ],
-  "worktreeClean": true,
-  "worktreeDigest": "sha256:71dab27cef4700eb83c84af25bd22b8f9cec02016463a35ae9bad74857435ede"
+  "worktreeClean": false,
+  "worktreeDigest": "sha256:43da1064a4261ea3e7b0d940894d225a3ce67e3f845846542f95090e6bcdf479"
 }

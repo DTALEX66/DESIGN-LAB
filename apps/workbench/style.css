@@ -713,6 +713,23 @@ html,body{margin:0}
 .tag.warn{background:linear-gradient(135deg,#f2b541,#c98c00)}
 .tag.bad{background:linear-gradient(135deg,#f87171,#ee5f5f)}
 .tag.info{background:linear-gradient(135deg,var(--secondary),#3c8aff)}
+/* A non-verdict must not borrow the weight of a verdict. PLANNED / UNKNOWN /
+   未读回 say "the service has no answer here", and until now they were painted
+   with the same saturated .info fill as a real status, so the page read as
+   four equally-weighted outcomes. Neutral is outline-only and uses the
+   established secondary-text token. */
+.tag.neutral{
+  background:transparent;color:var(--muted);font-weight:600;
+  border:1px solid color-mix(in srgb,var(--border) 80%, transparent);
+}
+/* A PLANNED stage can be the selected stage, and the selected stage button is
+   filled with the accent. A transparent muted pill there drops below readable
+   contrast, so on that one surface the neutral pill inverts to white-on-fill
+   while keeping its outline-only, unfilled character. */
+.stage-nav-btn.is-current .tag.neutral{
+  color:#fff;border-color:color-mix(in srgb,white 60%, transparent);
+  background:color-mix(in srgb,#000 18%, transparent);
+}
 .table-wrap{overflow:auto}
 .table{
   width:100%;border-collapse:collapse;min-width:720px;

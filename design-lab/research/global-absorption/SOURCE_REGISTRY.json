@@ -23,7 +23,7 @@
       },
       "integration": {
         "mode": "vendor-adapt",
-        "status": "active",
+        "status": "review-required",
         "target": "design-lab/knowledge/sources/ckw-design-skill",
         "restrictions": "read-only reference and skill activation; MIT"
       }
@@ -47,7 +47,7 @@
       },
       "integration": {
         "mode": "vendor-adapt",
-        "status": "active",
+        "status": "review-required",
         "target": "design-lab/knowledge/sources/pixelmatch",
         "restrictions": "ISC; pixel diff for review scorecard"
       }
@@ -71,7 +71,7 @@
       },
       "integration": {
         "mode": "vendor-adapt",
-        "status": "active",
+        "status": "review-required",
         "target": "design-lab/knowledge/tool-control/",
         "restrictions": "MIT; reference only (AI 2023 version-gated)"
       }
@@ -95,7 +95,7 @@
       },
       "integration": {
         "mode": "vendor-adapt",
-        "status": "active",
+        "status": "review-required",
         "target": "design-lab/knowledge/tool-control/scripts/photoshop/",
         "restrictions": "MIT; editable scripts"
       }
@@ -119,7 +119,7 @@
       },
       "integration": {
         "mode": "vendor-adapt",
-        "status": "active",
+        "status": "review-required",
         "target": "design-lab/knowledge/tool-control/scripts/illustrator/",
         "restrictions": "MIT; editable scripts"
       }
@@ -143,7 +143,7 @@
       },
       "integration": {
         "mode": "vendor-adapt",
-        "status": "active",
+        "status": "review-required",
         "target": "design-lab/knowledge/tool-control/scripts/inkscape/",
         "restrictions": "MIT"
       }
