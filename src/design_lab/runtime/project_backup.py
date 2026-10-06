@@ -80,6 +80,7 @@ def create_backup(local_root, archive_path, *, members=None,
             'createdAt': datetime.now(timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ'),
             'designLabVersion': version,
             'projectLocalRootName': local_root.name,
+            'stateSchemaVersion': state_schema_version(local_root),
             'members': entries,
             'fileCount': len(entries),
             'totalBytes': sum(entry['bytes'] for entry in entries),
@@ -122,11 +123,59 @@ def verify_backup(archive_path) -> dict:
     return manifest
 
 
-def restore_backup(archive_path, target_local_root, *, force: bool = False) -> dict:
+def state_schema_version(local_root) -> int | None:
+    """Read the SQLite schema version of the service state database, if present."""
+    database = Path(local_root).joinpath(*PurePosixPath('task-runtime/service/state.db').parts)
+    if not database.is_file():
+        return None
+    import sqlite3
+    try:
+        with sqlite3.connect(f'file:{database}?mode=ro', uri=True) as connection:
+            row = connection.execute('PRAGMA user_version').fetchone()
+    except sqlite3.Error:
+        # A database this build cannot open reports no version, which skips the
+        # comparison rather than pretending it passed.
+        return None
+    return None if row is None else int(row[0])
+
+
+def compatibility(manifest: dict, *, version: str = 'unknown',
+                  local_state_schema_version: int | None = None) -> dict:
+    """Say whether an archive may be restored into this build.
+
+    An archive from a newer design-lab or a newer state schema can carry rows
+    this build cannot interpret, so a mismatch is reported instead of being
+    silently unpacked. The caller decides whether to override with
+    `allow_upgrade`.
+    """
+    reasons = []
+    archived = manifest.get('stateSchemaVersion')
+    if local_state_schema_version is not None:
+        if archived is None:
+            reasons.append('ARCHIVE_RECORDS_NO_STATE_SCHEMA')
+        elif int(archived) != int(local_state_schema_version):
+            reasons.append(f'STATE_SCHEMA_MISMATCH:archive={archived}'
+                           f':local={local_state_schema_version}')
+    archived_version = str(manifest.get('designLabVersion', ''))
+    if version != 'unknown' and archived_version and archived_version != version:
+        reasons.append(f'VERSION_MISMATCH:archive={archived_version}:local={version}')
+    return {'compatible': not reasons, 'reasons': reasons,
+            'archiveVersion': archived_version or None,
+            'archiveStateSchemaVersion': archived}
+
+
+def restore_backup(archive_path, target_local_root, *, force: bool = False,
+                   allow_upgrade: bool = False, version: str = 'unknown',
+                   local_state_schema_version: int | None = None) -> dict:
     """Unpack a verified archive under `target_local_root` and re-read every hash."""
     archive_path = Path(archive_path).resolve()
     target = Path(target_local_root).resolve()
     manifest = verify_backup(archive_path)
+    check = compatibility(manifest, version=version,
+                          local_state_schema_version=local_state_schema_version)
+    if not check['compatible'] and not allow_upgrade:
+        raise BackupError('backup is not compatible with this build: '
+                          + ','.join(check['reasons']))
     if target.exists() and any(target.rglob('*')) and not force:
         raise BackupError(f'target root is not empty (pass force to overwrite): {target.name}')
     target.mkdir(parents=True, exist_ok=True)
@@ -143,4 +192,5 @@ def restore_backup(archive_path, target_local_root, *, force: bool = False) -> d
             restored += 1
     return {'schemaVersion': BACKUP_SCHEMA, 'restored': restored,
             'totalBytes': manifest['totalBytes'],
-            'createdAt': manifest['createdAt'], 'verified': True}
+            'createdAt': manifest['createdAt'], 'verified': True,
+            'compatibility': check}

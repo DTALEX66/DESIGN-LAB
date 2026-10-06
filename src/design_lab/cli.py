@@ -43,6 +43,8 @@ def main(argv=None):
                          help='target local root; defaults to this project\'s own')
     restore.add_argument('--force', action='store_true',
                          help='allow restoring over a non-empty target')
+    restore.add_argument('--allow-upgrade', action='store_true',
+                         help='restore despite a version or state-schema mismatch')
     args = parser.parse_args(argv)
     if hasattr(sys.stdout, 'reconfigure'):
         sys.stdout.reconfigure(encoding='utf-8')
@@ -101,9 +103,12 @@ def main(argv=None):
                       'createdAt': manifest['createdAt']}
         elif args.command == 'restore':
             from pathlib import Path
-            from .runtime.project_backup import restore_backup
+            from .runtime.project_backup import restore_backup, state_schema_version
             target = Path(args.into) if args.into else service.paths.local_root
-            result = restore_backup(args.archive, target, force=args.force)
+            result = restore_backup(
+                args.archive, target, force=args.force, allow_upgrade=args.allow_upgrade,
+                version=__version__,
+                local_state_schema_version=state_schema_version(service.paths.local_root))
             result['status'] = 'RESTORE_VERIFIED'
             result['target'] = Path(target).name
         elif args.command == 'native-worker':

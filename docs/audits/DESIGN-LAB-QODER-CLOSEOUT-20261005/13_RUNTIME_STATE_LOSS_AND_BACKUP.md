@@ -36,14 +36,21 @@ python -m design_lab --project . backup --member projects \
 
 ```json
 {"status":"BACKUP_CREATED","fileCount":346,"totalBytes":357703756,
- "sha256":"d8f3696d6f9f9266bb26622b204e69d6acd4607d9b665f8ba3782176607e0226",
- "createdAt":"2026-10-06T02:51:17Z"}
+ "sha256":"4fed9987c1348f3c7b9516872d0c39b3620db4764a38be707477b30e072bdef3",
+ "createdAt":"2026-10-06T03:05:29Z"}
 ```
 
-归档 72,651,101 bytes（deflate）。
+归档 72,651,101 bytes（deflate）。该归档由含版本兼容字段的最终契约重生成，
+`stateSchemaVersion` 记为 `null`（此刻本地已无 state.db，检查被如实跳过而非假装通过）。
 **恢复已在真实数据上验证**：`restore_backup` 到全新根，
 `restored=346`、`verified=true`，并对 50 个文件做「恢复件 vs 在盘件」双端 sha256 比对，
 **0 不一致**。验证用的 342 MiB 副本随后删除，只留归档。
+
+### 索引能否从盘上重建：不能（实测）
+
+`.project-local/projects/**` 共 472 条目，其中 **JSON 元数据文件 0 个**。
+可复原的只有目录名里的 project / asset / plan id；项目名、版本血缘与 rights 记录
+只存在于已删除的 `state.db`，无副本。**结论：索引不可重建**，只能保留文件本体归档。
 
 > 该归档位于 gitignored 运行根内，**仍可能被下一次清理带走**。
 > 需要 owner 把它移出仓库目录或另存他盘；若 owner 判定这批产物无价值，
@@ -63,6 +70,10 @@ python -m design_lab --project . backup --member projects \
   `BackupError` 走既有 JSON 错误通道，不抛栈。
 - 默认成员刻意只含**持久产品状态**（`projects`、`task-runtime/service`），
   不含缓存与运行 scratch —— 正是这次事故的成因分类。
+- **版本兼容（C7.5 的另一半）**：归档记录 `stateSchemaVersion`（读自 state.db 的
+  `PRAGMA user_version`）与 `designLabVersion`；restore 前比对，不一致即
+  `BackupError`，需显式 `--allow-upgrade` 才继续。打不开的库返回 `None` 使检查
+  **被跳过而非判通过**（有测试钉住这一点）。
 
 测试：`design-lab/tests/test_project_backup.py` **6 项全过**，
 其中 1 项是 subprocess 走真实 CLI 的 backup→restore 往返。

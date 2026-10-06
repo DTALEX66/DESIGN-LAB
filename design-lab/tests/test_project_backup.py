@@ -32,7 +32,13 @@ def _state_root(parent: Path) -> Path:
     (local / 'projects' / 'p1' / 'state-marker.json').write_text(
         json.dumps({'id': 'p1', 'name': 'Backup Probe'}), encoding='utf-8')
     (local / 'task-runtime' / 'service').mkdir(parents=True)
-    (local / 'task-runtime' / 'service' / 'state.db').write_bytes(b'SQLITE' + b'\x00' * 64)
+    import sqlite3
+    connection = sqlite3.connect(local / 'task-runtime' / 'service' / 'state.db')
+    connection.execute('PRAGMA user_version = 7')
+    connection.execute('CREATE TABLE marker (id text primary key, name text)')
+    connection.execute("INSERT INTO marker VALUES ('p1', 'Backup Probe')")
+    connection.commit()
+    connection.close()
     return local
 
 
@@ -104,6 +110,27 @@ class ProjectBackupTests(unittest.TestCase):
         receipt = restore_backup(self.archive, target, force=True)
         self.assertEqual(receipt['restored'], 3)
 
+    def test_archive_records_the_state_schema_version(self):
+        manifest = create_backup(self.local, self.archive)
+        self.assertEqual(manifest['stateSchemaVersion'], 7)
+
+    def test_state_schema_mismatch_refuses_restore_unless_overridden(self):
+        create_backup(self.local, self.archive)
+        with self.assertRaisesRegex(BackupError, 'STATE_SCHEMA_MISMATCH:archive=7:local=8'):
+            restore_backup(self.archive, self.base / 'blocked',
+                           local_state_schema_version=8)
+        receipt = restore_backup(self.archive, self.base / 'allowed',
+                                 local_state_schema_version=8, allow_upgrade=True)
+        self.assertEqual(receipt['restored'], 3)
+        self.assertFalse(receipt['compatibility']['compatible'])
+
+    def test_unreadable_database_reports_no_version_instead_of_passing(self):
+        from design_lab.runtime.project_backup import state_schema_version
+        broken = self.base / 'broken-local'
+        (broken / 'task-runtime' / 'service').mkdir(parents=True)
+        (broken / 'task-runtime' / 'service' / 'state.db').write_bytes(b'not a database')
+        self.assertIsNone(state_schema_version(broken))
+
 
 class BackupCliTests(unittest.TestCase):
     def test_cli_backup_then_restore_into_a_fresh_root(self):
@@ -135,6 +162,9 @@ class BackupCliTests(unittest.TestCase):
         receipt = json.loads(restored.stdout)
         self.assertEqual(receipt['status'], 'RESTORE_VERIFIED')
         self.assertEqual(receipt['restored'], 3)
+        self.assertTrue(receipt['compatibility']['compatible'],
+                        'a backup taken by this build must restore into this build')
+        self.assertEqual(receipt['compatibility']['archiveStateSchemaVersion'], 7)
         self.assertTrue((base / 'recovered' / 'task-runtime' / 'service'
                          / 'state.db').is_file())
 
