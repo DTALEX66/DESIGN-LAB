@@ -1,10 +1,10 @@
 {
   "schemaVersion": "design-lab/repo-classification/v1",
-  "generatedAt": "2026-10-06T20:16:06Z",
-  "observedCommit": "2796965c4ae69ced985f3894bbaed77c61626894",
+  "generatedAt": "2026-10-06T20:20:42Z",
+  "observedCommit": "f1412ed3ec84362280aceb975607a6ff0452b9ae",
   "totals": {
-    "trackedFiles": 2966,
-    "workingTreeMiB": 49.49,
+    "trackedFiles": 2967,
+    "workingTreeMiB": 49.5,
     "packMiB": 237.66,
     "note": "pack 含全部历史与 tag 归档；working tree 为当前检出字节。两者之差不是垃圾。"
   },
@@ -20,14 +20,14 @@
       "mib": 5.17
     },
     "evidence": {
-      "files": 1168,
+      "files": 1169,
       "bundles": 5,
-      "mib": 26.56
+      "mib": 26.58
     },
     "generated": {
       "files": 84,
       "bundles": 4,
-      "mib": 1.48
+      "mib": 1.47
     },
     "history": {
       "files": 236,
@@ -59,8 +59,8 @@
       "path": "docs/audits/",
       "category": "evidence",
       "note": "审计与验收证据包",
-      "files": 819,
-      "bytes": 7112090,
+      "files": 820,
+      "bytes": 7124384,
       "cited_by_authority": 0,
       "lastTouch": "2026-10-07"
     },
@@ -78,7 +78,7 @@
       "category": "source",
       "note": "设计核心其余模块",
       "files": 841,
-      "bytes": 5618104,
+      "bytes": 5618031,
       "cited_by_authority": 4,
       "lastTouch": "2026-10-07"
     },
@@ -141,7 +141,7 @@
       "category": "generated",
       "note": "当前状态投影（由生成器再生）",
       "files": 63,
-      "bytes": 1022404,
+      "bytes": 1022014,
       "cited_by_authority": 4,
       "lastTouch": "2026-10-07"
     },

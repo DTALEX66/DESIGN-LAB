@@ -8,21 +8,21 @@
   },
   "fresh": false,
   "freshnessMeaning": "at generation only; check verifies bound-input integrity, not current Git or cloud state",
-  "generatedAt": "2026-10-06T20:16:03+00:00",
+  "generatedAt": "2026-10-06T20:20:38+00:00",
   "git": {
     "branch": "qoder/designlab-t1-review-r5-005-20261007",
     "origin_main": "2796965c4ae69ced985f3894bbaed77c61626894",
-    "sha": "2796965c4ae69ced985f3894bbaed77c61626894",
+    "sha": "f1412ed3ec84362280aceb975607a6ff0452b9ae",
     "source_worktree_clean": false,
-    "tracked_files": 2966,
+    "tracked_files": 2967,
     "worktree_changes": [
       {
-        "content": "sha256:251fab1b392b321b0477c337d093be39fdfc230e76ca8d1c93ae8268061efd7c",
-        "kind": "U",
+        "content": "sha256:2be33a993165cc9fe6a6f98c6eae3f9db350f77e6bf84845efc7dc4827d8d0b0",
+        "kind": "M",
         "path": "docs/audits/DESIGN-LAB-T1-LEDGER-REVIEW-DL-R5-005-20261007.md"
       }
     ],
-    "worktree_digest": "sha256:aea173ac37e42d3187bcaac7a627cc6438f52ad5f8bd7c536afefb1936077322"
+    "worktree_digest": "sha256:6d1823d6ede703e58526cad08d0ac9d72277649e6eba28ae492f1b8efd8a9b4f"
   },
   "gitStateMeaning": "generation-time observation, not current HEAD",
   "hostLive": "derived from host_live axis only",
@@ -35,7 +35,7 @@
     "quarantinedSources": 162
   },
   "subjectMeaning": "subjectType=WORKTREE means the tree was dirty at generation; worktreeDigest covers HEAD plus the non-generated changes",
-  "subjectSha": "2796965c4ae69ced985f3894bbaed77c61626894",
+  "subjectSha": "f1412ed3ec84362280aceb975607a6ff0452b9ae",
   "subjectType": "WORKTREE",
   "taskCounts": {
     "PARTIAL": 28
@@ -52,5 +52,5 @@
     "executed": "see individual verified ledger receipts"
   },
   "worktreeClean": false,
-  "worktreeDigest": "sha256:aea173ac37e42d3187bcaac7a627cc6438f52ad5f8bd7c536afefb1936077322"
+  "worktreeDigest": "sha256:6d1823d6ede703e58526cad08d0ac9d72277649e6eba28ae492f1b8efd8a9b4f"
 }
