@@ -143,6 +143,14 @@ def build() -> dict:
         if rel in (AUTHORITY_LEDGER, LEDGER):
             entry["mutable_state"] = ("the ledger is rewritten at the close of every task, so "
                                       "its bytes and digest are generation-time")
+        elif basis.startswith("requested work package"):
+            # A REQUESTED pack is a live working document, not history: it is
+            # expected to be edited while it is being reviewed, and digesting its
+            # bytes makes every ordinary edit a chain failure. Its CLASS is still
+            # compared, so it can never become current authority by accident --
+            # which is the claim this artifact actually makes.
+            entry["mutable_state"] = ("a requested work package is edited while under review; "
+                                      "its classification is the claim, not its bytes")
         summary = ledger_summary(rel)
         if summary:
             entry["ledger"] = summary

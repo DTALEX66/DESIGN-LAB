@@ -1,9 +1,9 @@
 {
   "schemaVersion": "design-lab/deepseek-authority-chain/v1",
   "task_key": "DL-TP-20260914-DEEPSEEK-AUTHORITY-R1::DLDS-A010",
-  "generated_at": "2026-10-06T08:19:38+00:00",
+  "generated_at": "2026-10-06T08:40:46+00:00",
   "subject": {
-    "base_sha": "fb01c36e40595d2273c92d2447ff01c495b8ada8",
+    "base_sha": "35f7a59858bb3c5ba5cf98c60ab225409a85c988",
     "branch": "feat/global-capability-intake-scaffold",
     "worktree_clean": false
   },
@@ -366,10 +366,11 @@
     },
     {
       "path": "docs/taskpacks/DESIGN-LAB-GLOBAL-DESIGN-CAPABILITY-INTELLIGENCE-TASKPACK-2026-10-06.md",
-      "bytes": 7845,
-      "sha256": "sha256:2f84ed5a214ec8c860aac0913c1da4fa677fecf911eb69c504925d1b6077b8d6",
+      "bytes": 9198,
+      "sha256": "sha256:cda698029d825286e57f0519eeab8e437efea5bb65816851dac06cf6365a3b86",
       "authority_class": "REFERENCE",
-      "basis": "requested work package archived for reference; not adopted as current authority"
+      "basis": "requested work package archived for reference; not adopted as current authority",
+      "mutable_state": "a requested work package is edited while under review; its classification is the claim, not its bytes"
     },
     {
       "path": "docs/taskpacks/DESIGN-LAB-GPT-REMAINING-2026-09-06.md",
