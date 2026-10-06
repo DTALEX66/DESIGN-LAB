@@ -11,7 +11,7 @@ from dataclasses import dataclass, field
 import argparse
 import json
 import re
-from .paths import PROJECT_ROOT
+from .paths import PROJECT_ROOT, resolve_paths
 
 EXPECTED = {
     "uv": ">=0.4",
@@ -50,12 +50,42 @@ def _version(tool, text):
     return tuple(int(value or 0) for value in match.groups()[:3])
 
 
-def probe_tools() -> list[ToolStatus]:
+def _declared_binding(tool, bindings) -> str | None:
+    entry = bindings.get(tool)
+    if not entry or entry.get("status") != "BOUND":
+        return None
+    return entry.get("path") or None
+
+
+def probe_tools(bindings: dict | None = None) -> list[ToolStatus]:
+    """Probe every expected tool. `bindings` defaults to the machine's own config.
+
+    Passing `{}` means "no registered bindings", which is what the PATH-only tests
+    assert; without the parameter they would read whatever happens to be in this
+    checkout's .project/paths.json and stop being tests of anything in particular.
+    """
     out = []
+    if bindings is None:
+        bindings = resolve_paths(project_root=PROJECT_ROOT).tool_bindings()
     for tool, requirement in EXPECTED.items():
-        executable = shutil.which(tool)
-        status = ToolStatus(tool, bool(executable), path=executable or "")
+        # A registered binding wins over PATH. AGENTS.md makes .project/paths.json
+        # authoritative for local external roots, and the failure this removes is
+        # concrete: node and ffmpeg are installed under the declared toolchain root
+        # yet were reported NOT_FOUND_IN_SEARCH_SCOPE because neither is on PATH.
+        declared = _declared_binding(tool, bindings)
+        executable = declared or shutil.which(tool)
+        status = ToolStatus(tool, bool(executable), path=executable or "",
+                            path_source=(f"declared:.project/paths.json#tools.{tool}"
+                                         if declared else "shutil.which"),
+                            search_scope=("declared binding, then current process PATH"
+                                          if declared else
+                                          "Current process PATH and platform executable search rules only"))
         out.append(status)
+        if declared is None and tool in bindings:
+            # The owner registered it and the binding is unusable. Say so, rather
+            # than silently degrading to "not installed" and losing the distinction.
+            status.drift.append(f"DECLARED_BINDING_UNUSABLE ({bindings[tool].get('status')}); "
+                                "fell back to PATH")
         if not executable:
             status.drift.append("NOT_FOUND_IN_SEARCH_SCOPE; expected " + requirement)
             continue
