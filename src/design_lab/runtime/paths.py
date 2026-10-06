@@ -7,7 +7,7 @@ Shared input declarations are not filesystem probes or migration permission.
 """
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 import json
 import os
 from pathlib import Path, PureWindowsPath
@@ -95,12 +95,21 @@ def _load_config(root):
         config = json.loads(config_path.read_text(encoding='utf-8'), object_pairs_hook=unique)
     except (UnicodeError, json.JSONDecodeError) as exc:
         raise PathPolicyError('invalid project paths configuration') from exc
-    if (not isinstance(config, dict) or config.get('schemaVersion') != 'design-lab/project-paths/v1'
-            or set(config) - {'schemaVersion', 'project_local_root', 'shared_inputs'}):
+    if (not isinstance(config, dict)
+            or config.get('schemaVersion') not in {'design-lab/project-paths/v1',
+                                                   'design-lab/project-paths/v2'}
+            or set(config) - {'schemaVersion', 'project_local_root', 'shared_inputs', 'tools'}):
         raise PathPolicyError('unsupported project paths configuration')
     inputs = config.get('shared_inputs', {})
     if not isinstance(inputs, dict) or any(not isinstance(k, str) or not isinstance(v, str) for k, v in inputs.items()):
         raise PathPolicyError('shared inputs must be named path declarations')
+    tools = config.get('tools', {})
+    if not isinstance(tools, dict) or any(not isinstance(k, str) or not isinstance(v, str) for k, v in tools.items()):
+        raise PathPolicyError('tool bindings must be named path declarations')
+    # The version keeps its meaning: `tools` is a v2 field, so a v1 document may
+    # not carry it even though the key itself would parse.
+    if tools and config.get('schemaVersion') != 'design-lab/project-paths/v2':
+        raise PathPolicyError('tool bindings require project paths schema v2')
     return config
 
 
@@ -110,6 +119,7 @@ class ProjectPaths:
     local_root: Path
     sources: dict[str, str]
     shared_inputs: dict[str, str]
+    tools: dict[str, str] = field(default_factory=dict)
 
     @property
     def runtime_root(self):
@@ -161,6 +171,41 @@ class ProjectPaths:
                 'TMP': str(task/'tmp'), 'XDG_CACHE_HOME': str(self.local_root/'cache'),
                 'HF_HOME': str(self.model_cache/'huggingface'), 'TORCH_HOME': str(self.model_cache/'torch')}
 
+    def tool_bindings(self):
+        """Classify every `.project/paths.json` `tools` entry without running it.
+
+        A binding must sit inside one of the declared shared-input roots. Without
+        that rule `tools` would be an arbitrary executable path the project trusts,
+        which is a worse version of the problem it solves: the point is to stop
+        reporting *registered* software as missing, not to widen what can be run.
+        """
+        roots = {name: Path(raw).as_posix().rstrip('/').casefold()
+                 for name, raw in self.shared_inputs.items()}
+        out = {}
+        for name, raw in self.tools.items():
+            if not isinstance(raw, str) or not raw.strip():
+                out[name] = {'path': raw, 'owner': None, 'status': 'DECLARED_VALUE_INVALID'}
+                continue
+            posix = Path(raw).as_posix().rstrip('/')
+            folded = posix.casefold()
+            owner = next((label for label, base in roots.items()
+                          if folded == base or folded.startswith(base + '/')), None)
+            if owner is None:
+                status, reason = 'DECLARED_OUTSIDE_SHARED_ROOT', \
+                    'binding is not under any declared shared-input root, so it is not trusted'
+            else:
+                candidate = Path(raw)
+                if candidate.is_file():
+                    status, reason = 'BOUND', None
+                elif candidate.exists():
+                    status, reason = 'DECLARED_PATH_NOT_A_FILE', None
+                else:
+                    status, reason = 'DECLARED_PATH_MISSING', \
+                        'registered path is absent; the tool may still be on PATH'
+            out[name] = {'path': posix, 'owner': owner, 'status': status,
+                         **({'reason': reason} if reason else {})}
+        return out
+
     def describe(self):
         roots = {'runtime': self.runtime_root, 'evidence': self.evidence_root,
                  'projects': self.projects_root, 'model_cache': self.model_cache}
@@ -171,6 +216,7 @@ class ProjectPaths:
                           for name, path in roots.items()},
                 'shared_inputs': {name: {'path': path, 'writable': False, 'status': 'DECLARED_NOT_PROBED'}
                                   for name, path in self.shared_inputs.items()},
+                'tools': self.tool_bindings(),
                 'agent_profile': {'status': 'PRIVATE_NOT_INSPECTED', 'writable': False},
                 'write_trace': 'NOT_EXECUTED', 'migration': 'NOT_EXECUTED'}
 
@@ -191,4 +237,5 @@ def resolve_paths(*, project_root=None, environ=None, project_local_root=None):
     if project_local_root is not None:
         value, source = project_local_root, 'explicit'
     local_root = _local_path(root, value)
-    return ProjectPaths(root, local_root, {'project_local_root': source}, config.get('shared_inputs', {}))
+    return ProjectPaths(root, local_root, {'project_local_root': source},
+                        config.get('shared_inputs', {}), config.get('tools', {}))

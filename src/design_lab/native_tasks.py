@@ -366,17 +366,33 @@ CREATE TABLE IF NOT EXISTS native_recovery_protocol_v2 (
             aid=attempt['attempt_id']
             if _expected_attempt_id is not None and aid!=_expected_attempt_id:
                 raise NativeTaskError('NATIVE_QUEUE_ATTEMPT_CHANGED')
-            if not self._claim(conn,attempt,host):return self._existing(conn,jobs.latest_attempt(conn,attempt['job_id']),project_id)
-            adapter_returned=False
+            # Holding the attempt's OS lock for the whole execution is what makes
+            # "the lock is free" mean "no process is running this attempt". Without
+            # it, start-up reconciliation cannot tell a crashed attempt from an
+            # in-flight one, and relabelling an in-flight one is forbidden.
+            # A busy lock is not an error here: this is the same idempotency key, so
+            # the holder is executing the attempt this caller asked about and the
+            # answer is its current state. Contending for a *different* attempt on
+            # the same host still fails closed with HOST_BUSY from _claim.
             try:
-                receipt=_dispatch(host,job,project_root=self.owner,approved_root=root)
-                adapter_returned=True
-                self._verify_receipt(receipt,job,request,outputs)
-                with jobs._transaction(conn):
-                    conn.execute('UPDATE native_execution_v1 SET receipt_json=? WHERE attempt_id=?',(_json(receipt),aid))
-                asset=self._publish(project_id,'native-'+identity,primary,outputs[primary],receipt,aid)
-                return self._finish(conn,aid,host,dict(asset=asset,native=receipt))
-            except Exception as exc:
-                no_effect=(not adapter_returned and isinstance(exc,(photoshop_com.PhotoshopDispatchError,illustrator_com.IllustratorDispatchError)) and not exc.outcome_unknown)
-                current=self._failed(conn,aid,host,no_effect)
-                raise NativeTaskError('NATIVE_NOT_STARTED' if no_effect else 'NATIVE_OUTCOME_UNKNOWN',attempt=current) from exc
+                attempt_lock=recovery_lock(self.paths,aid)
+                attempt_lock.__enter__()
+            except RecoveryBusy:
+                return self._existing(conn,jobs.latest_attempt(conn,attempt['job_id']),project_id)
+            try:
+                if not self._claim(conn,attempt,host):return self._existing(conn,jobs.latest_attempt(conn,attempt['job_id']),project_id)
+                adapter_returned=False
+                try:
+                    receipt=_dispatch(host,job,project_root=self.owner,approved_root=root)
+                    adapter_returned=True
+                    self._verify_receipt(receipt,job,request,outputs)
+                    with jobs._transaction(conn):
+                        conn.execute('UPDATE native_execution_v1 SET receipt_json=? WHERE attempt_id=?',(_json(receipt),aid))
+                    asset=self._publish(project_id,'native-'+identity,primary,outputs[primary],receipt,aid)
+                    return self._finish(conn,aid,host,dict(asset=asset,native=receipt))
+                except Exception as exc:
+                    no_effect=(not adapter_returned and isinstance(exc,(photoshop_com.PhotoshopDispatchError,illustrator_com.IllustratorDispatchError)) and not exc.outcome_unknown)
+                    current=self._failed(conn,aid,host,no_effect)
+                    raise NativeTaskError('NATIVE_NOT_STARTED' if no_effect else 'NATIVE_OUTCOME_UNKNOWN',attempt=current) from exc
+            finally:
+                attempt_lock.__exit__(None,None,None)

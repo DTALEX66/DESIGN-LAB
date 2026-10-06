@@ -14,6 +14,31 @@ class ProjectService:
         self.database = self.paths.database_path(
             self.paths.runtime_root / 'service/state.db')
 
+    def reconcile_interrupted_attempts(self):
+        """Turn attempts left RUNNING by a dead worker into a visible unknown outcome.
+
+        Called by the service entry points before they start serving, so that
+        reopening the Workbench after a crash reads "result unknown, reconcile"
+        instead of a permanent "running". An attempt whose worker is still alive
+        is left alone: the non-blocking OS lock is what proves the difference, and
+        relabelling live work is the one thing recovery may not do.
+        """
+        if not self.database.exists():
+            return []
+        from .runtime import job_store
+        from .runtime.native_recovery_lock import RecoveryBusy, recovery_lock
+
+        def holder_is_gone(attempt_id):
+            try:
+                with recovery_lock(self.paths, attempt_id):
+                    return True
+            except RecoveryBusy:
+                return False
+
+        with closing(job_store.connect(self.database,
+                                       project_root=self.paths.project_root)) as conn:
+            return job_store.recover_orphaned_attempts(conn, holder_is_gone=holder_is_gone)
+
     def list_projects(self):
         if not self.database.exists():
             return []
