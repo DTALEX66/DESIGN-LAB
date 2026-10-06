@@ -9,28 +9,28 @@
   },
   "fresh": false,
   "freshnessMeaning": "at generation only; check verifies bound-input integrity, not current Git or cloud state",
-  "generatedAt": "2026-10-06T22:32:48+00:00",
+  "generatedAt": "2026-10-06T22:35:28+00:00",
   "gitStateMeaning": "generation-time observation, not current HEAD",
   "local": {
     "branch": "qoder/designlab-stage-nav-wrap-20261007",
-    "origin_main": "a371675157b5bbe4d9e72b2bb286d1160d51eab7",
-    "sha": "a371675157b5bbe4d9e72b2bb286d1160d51eab7",
+    "origin_main": "dbf887e2caf6629315a38c220cefc7813496985a",
+    "sha": "d957e1e8e6bd543c69e794e9145f1e28c8becb7f",
     "source_worktree_clean": false,
-    "tracked_files": 2974,
+    "tracked_files": 2975,
     "worktree_changes": [
       {
-        "content": "sha256:7c6e0c37777e7155275fff14e29c84d2d436bd300385f6b5097d32106203f0b7",
-        "kind": "M",
-        "path": "apps/workbench/style.css"
+        "content": "sha256:09818639cdab4ad0d4130bc472b841db0f963bac89311b07b873068e0d0fd919",
+        "kind": "A",
+        "path": "design-lab/tests/test_workbench_stage_nav_reachability.py"
       }
     ],
-    "worktree_digest": "sha256:b9f9940c1ed40b8e16e1abaf8d838f3e9dfb20c2b4d38ae25110dc2ef0597f9a"
+    "worktree_digest": "sha256:e2d270e3884db47fbb76a868d8bdba4bb8234842c82c4a188f0ed6ceeef0e8a6"
   },
   "note": "No GitHub API query was run by this generator; tool installation is not inferred.",
   "remoteRef": "origin/main (local tracking ref)",
   "schemaVersion": "design-lab/cloud-baseline/v2",
   "subjectMeaning": "subjectType=WORKTREE means the tree was dirty at generation; worktreeDigest covers HEAD plus the non-generated changes",
-  "subjectSha": "a371675157b5bbe4d9e72b2bb286d1160d51eab7",
+  "subjectSha": "d957e1e8e6bd543c69e794e9145f1e28c8becb7f",
   "subjectType": "WORKTREE",
   "taskpackHash": "31dde89eb4ede81fe88c0a5c5144adfb86af8db4c4d8c263bde2199180369b69",
   "taskpackId": "DL-TP-20260908-R5",
@@ -45,5 +45,5 @@
     "branchProtection"
   ],
   "worktreeClean": false,
-  "worktreeDigest": "sha256:b9f9940c1ed40b8e16e1abaf8d838f3e9dfb20c2b4d38ae25110dc2ef0597f9a"
+  "worktreeDigest": "sha256:e2d270e3884db47fbb76a868d8bdba4bb8234842c82c4a188f0ed6ceeef0e8a6"
 }

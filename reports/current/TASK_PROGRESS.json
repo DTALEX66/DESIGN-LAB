@@ -1636,13 +1636,13 @@
   ],
   "fresh": false,
   "freshnessMeaning": "at generation only; check verifies bound-input integrity, not current Git or cloud state",
-  "generatedAt": "2026-10-06T22:32:48+00:00",
+  "generatedAt": "2026-10-06T22:35:28+00:00",
   "gitStateMeaning": "generation-time observation, not current HEAD",
   "ledgerUpdatedAt": "2026-10-06T03:12:05Z",
   "note": "DONE_LOCAL concerns the declared task axes and dependencies, not a product release or hosted CI.",
   "schemaVersion": "design-lab/task-progress/r5-v1",
   "subjectMeaning": "subjectType=WORKTREE means the tree was dirty at generation; worktreeDigest covers HEAD plus the non-generated changes",
-  "subjectSha": "a371675157b5bbe4d9e72b2bb286d1160d51eab7",
+  "subjectSha": "d957e1e8e6bd543c69e794e9145f1e28c8becb7f",
   "subjectType": "WORKTREE",
   "taskpack": "DL-TP-20260908-R5",
   "taskpackHash": "31dde89eb4ede81fe88c0a5c5144adfb86af8db4c4d8c263bde2199180369b69",
@@ -4147,5 +4147,5 @@
   "testRunMeaning": "bound run: python scripts/run_bound_test_suite.py --order forward --repeat 2 --modules test_asset_store test_creative_job test_creative_ledgers test_creative_lineage test_creative_migration test_creative_version_guard test_creative_f030_f040 test_creative_session_link test_job_store test_runtime_attempt_safety test_runtime_asset_safety test_runtime_explicit_project test_assurance_qa_plane test_assurance_jury test_bundle_store test_operation_coordinator",
   "testRunResult": "OK",
   "worktreeClean": false,
-  "worktreeDigest": "sha256:b9f9940c1ed40b8e16e1abaf8d838f3e9dfb20c2b4d38ae25110dc2ef0597f9a"
+  "worktreeDigest": "sha256:e2d270e3884db47fbb76a868d8bdba4bb8234842c82c4a188f0ed6ceeef0e8a6"
 }
