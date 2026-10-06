@@ -1,8 +1,8 @@
 {
   "schemaVersion": "design-lab/fresh-clone-verification/v1",
   "task_key": "DL-TP-20260914-DEEPSEEK-AUTHORITY-R1::DLDS-H020",
-  "verified_at": "2026-09-15T19:11:12+00:00",
-  "subject_sha": "f82f17ee5ec1d0e2973414ad673b00191324c68b",
+  "verified_at": "2026-10-06T23:28:57+00:00",
+  "subject_sha": "4ea25c3805ca199af8cfbbd7deb5303848635382",
   "clone_path": ".project-local/task-runtime/fresh-clone",
   "interpreter": {
     "command": "D:\\All projects\\DESIGN-LAB\\.venv\\Scripts\\python.exe",
@@ -13,22 +13,22 @@
     {
       "stage": "clone",
       "state": "PASS",
-      "evidence": "cloned HEAD f82f17ee5ec1 into an ignored directory"
+      "evidence": "cloned HEAD 4ea25c3805ca into an ignored directory"
     },
     {
       "stage": "clone_head_matches",
       "state": "PASS",
-      "evidence": "clone HEAD f82f17ee5ec1 vs source f82f17ee5ec1"
+      "evidence": "clone HEAD 4ea25c3805ca vs source 4ea25c3805ca"
     },
     {
       "stage": "tracked_content_present",
       "state": "PASS",
-      "evidence": "1907 tracked files; missing: none"
+      "evidence": "2979 tracked files; missing: none"
     },
     {
       "stage": "contracts_parse",
       "state": "PASS",
-      "evidence": "118 schemas parse"
+      "evidence": "121 schemas parse"
     },
     {
       "stage": "contract_graph",
@@ -53,7 +53,7 @@
     {
       "stage": "install",
       "state": "NOT_VERIFIABLE",
-      "evidence": "CI runs 'uv sync --locked'; uv: None. No install was attempted: uv is absent and no network is used, so a clean-clone install cannot be proven here."
+      "evidence": "CI runs 'uv sync --locked'; uv: C:\\Users\\ALEX\\.local\\bin\\uv.EXE. No install was attempted: uv is absent and no network is used, so a clean-clone install cannot be proven here."
     }
   ],
   "failures": [],
@@ -61,9 +61,5 @@
     "install"
   ],
   "verdict": "PASS",
-  "note": "a clone proves the committed tree; it cannot prove an install without uv and a network, and that stage is recorded as NOT_VERIFIABLE rather than passed",
-  "projection": true,
-  "subjectSha": "042ac635ae7a6042db366f7fb19508fc5db7bc65",
-  "fresh": false,
-  "generatedBy": "scripts/verify_fresh_clone.py"
+  "note": "a clone proves the committed tree; it cannot prove an install without uv and a network, and that stage is recorded as NOT_VERIFIABLE rather than passed"
 }

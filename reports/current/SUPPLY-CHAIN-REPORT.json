@@ -6,7 +6,7 @@
     "DL-TP-20260914-DEEPSEEK-AUTHORITY-R1::DLDS-G030",
     "DL-TP-20260914-DEEPSEEK-AUTHORITY-R1::DLDS-G040"
   ],
-  "generated_at": "2026-09-13T18:57:40+00:00",
+  "generated_at": "2026-10-06T23:28:52+00:00",
   "subject_sha": "",
   "canonical_adapter_status": [
     "DECLARED",
@@ -78,8 +78,18 @@
       ],
       "hits": [],
       "hit_count": 0,
-      "synthetic_values_exempted": 1,
+      "synthetic_values_exempted": 3,
       "exempted": [
+        {
+          "pattern": "generic-secret",
+          "path": "design-lab/tests/test_secret_history_scan.py",
+          "reason": "in-value synthetic marker"
+        },
+        {
+          "pattern": "generic-secret",
+          "path": "design-lab/tests/test_secret_history_scan.py",
+          "reason": "in-value synthetic marker"
+        },
         {
           "pattern": "generic-secret",
           "path": "fixtures/domains/game-visual/tests/analytics.test.js",
@@ -132,10 +142,12 @@
     },
     "G040_lockfile_audit": {
       "lockfiles": [
+        "pnpm-lock.yaml",
         "requirements.txt",
         "uv.lock"
       ],
       "managers": [
+        "node",
         "python"
       ],
       "single_manager_per_ecosystem": true,
@@ -180,9 +192,5 @@
   "migration_debt": {
     "adapter_status_entries_still_legacy": 30,
     "note": "the frozen eight-value vocabulary is the target; the registry still uses the legacy names, and the gate maps them explicitly so the debt is a number"
-  },
-  "projection": true,
-  "subjectSha": "042ac635ae7a6042db366f7fb19508fc5db7bc65",
-  "fresh": false,
-  "generatedBy": "scripts/verify_supply_chain.py"
+  }
 }
