@@ -17,6 +17,13 @@
 | ultimate-uiux | 54 | github.com/ca-who-codes/ultimate.UIUX.design.skills | MIT | CONDITIONAL_POC | ultimate-uiux |
 | tool-control | 120 | 归档库（creold/photoshop-scripts、creold/illustrator-scripts、Comfy-Org、style-dictionary 等，README 逐项列源） | MIT / Apache-2.0（逐子树） | CONDITIONAL_POC | tool-control |
 
+> **回源覆盖边界（2026-10-06 对账）**：本节 7 行 + 下节 30 行 = **37 行**，但
+> `research/candidates/observations/github-observation-20261006T105000Z.json` 自报
+> `counts.recordedInReadme = 36`。差额就是 `tool-control`：它的"来源"是若干归档库的合集，
+> **没有单一 canonical upstream**，所以未被该轮回源解析；它在 `CANDIDATE-TAXONOMY.json` 中
+> `canonicalUrl` 为 `null`（`scripts/build_candidate_taxonomy.py` 已明确声明这一处理，非遗漏）。
+> 口径约束：**"979 个上游已观测"不包含 `tool-control`**；其许可为逐子树声明，尚未逐项读原文核实。
+
 ### visual-quality 子仓（30 个第三方收录，2026-08-14 收录）
 
 > 计数对账 2026-10-06：下表 **30 行**，与主检出（`D:/All projects/DESIGN-LAB`）本机 ignored
