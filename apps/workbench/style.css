@@ -1171,7 +1171,10 @@ html,body{margin:0}
 /* 横向阶段导航（项目详情页顶部） */
 .stage-nav{
   display:flex;gap:6px;list-style:none;padding:0;margin:16px 0 0;
-  overflow-x:auto;flex-wrap:nowrap;min-height:38px;
+  /* Wraps rather than scrolling: with nine stages the row overflowed at 1280 and the
+     last two were unreachable without a scrollbar affordance, so the primary stage
+     navigation hid its own tail on a desktop viewport. */
+  flex-wrap:wrap;
 }
 .stage-nav-item{flex:0 0 auto}
 .stage-nav-btn{

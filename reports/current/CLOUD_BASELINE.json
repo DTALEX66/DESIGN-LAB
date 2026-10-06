@@ -9,68 +9,35 @@
   },
   "fresh": false,
   "freshnessMeaning": "at generation only; check verifies bound-input integrity, not current Git or cloud state",
-  "generatedAt": "2026-10-06T22:15:06+00:00",
+  "generatedAt": "2026-10-06T22:32:48+00:00",
   "gitStateMeaning": "generation-time observation, not current HEAD",
   "local": {
-    "branch": "tmp-rebase-qoder/designlab-css-single-definition-20261007",
-    "origin_main": "f36ba6ec1b52dd91978ab4f4dac239d2f7eba9b3",
-    "sha": "ca4471a7c045af8ba28ae24605adabf7f1d0e384",
+    "branch": "qoder/designlab-stage-nav-wrap-20261007",
+    "origin_main": "a371675157b5bbe4d9e72b2bb286d1160d51eab7",
+    "sha": "a371675157b5bbe4d9e72b2bb286d1160d51eab7",
     "source_worktree_clean": false,
     "tracked_files": 2974,
     "worktree_changes": [
       {
-        "content": "sha256:f5f79872cb8be8f15697ea0b46894d4f0c2841e4a5910259e79cdf022ba45531",
-        "kind": "A",
-        "path": "design-lab/tests/test_doctor_tool_bindings.py"
-      },
-      {
-        "content": "sha256:6e1e39cfe123d454d4bc678051d7137d6293b8f4a056d297cad10a3f48b264a1",
-        "kind": "A",
-        "path": "design-lab/tests/test_vendor_revisions.py"
-      },
-      {
-        "content": "sha256:1ff255d266969ad0125925620d13c838069d5f0407803a141f319181d23ae12d",
-        "kind": "A",
-        "path": "scripts/derive_vendor_revisions.py"
-      },
-      {
-        "content": "sha256:e3dd702c77840847683c3693e7ec7519363f2ccb203127adfa504d08c61a2898",
-        "kind": "A",
-        "path": "vendor/sources.revisions.json"
-      },
-      {
-        "content": "sha256:8fe9dbbf85876c42b8d86ef7e2473c826fa431f309023df52fc770b3753b8703",
+        "content": "sha256:7c6e0c37777e7155275fff14e29c84d2d436bd300385f6b5097d32106203f0b7",
         "kind": "M",
-        "path": ".project/paths.json"
-      },
-      {
-        "content": "sha256:0cbb2b98788f42464eba5b154130ba88b049d1871341d69acdd33e1cd769fc31",
-        "kind": "M",
-        "path": "design-lab/tests/test_doctor_evidence.py"
-      },
-      {
-        "content": "sha256:09581ac1778c2c447767d94d07ac32d53e2792b6f83e7e68364a3fc026ff0f33",
-        "kind": "M",
-        "path": "src/design_lab/runtime/doctor.py"
-      },
-      {
-        "content": "sha256:ec1571e8d80465ae16d997920b6aa1708f8b7495be2b0a5cc3f2445238ba77cb",
-        "kind": "M",
-        "path": "src/design_lab/runtime/paths.py"
+        "path": "apps/workbench/style.css"
       }
     ],
-    "worktree_digest": "sha256:bcef3e86fe544d7fbf96399c438e793fba3021b47aa24b945476fb48b86aac83"
+    "worktree_digest": "sha256:b9f9940c1ed40b8e16e1abaf8d838f3e9dfb20c2b4d38ae25110dc2ef0597f9a"
   },
   "note": "No GitHub API query was run by this generator; tool installation is not inferred.",
   "remoteRef": "origin/main (local tracking ref)",
   "schemaVersion": "design-lab/cloud-baseline/v2",
   "subjectMeaning": "subjectType=WORKTREE means the tree was dirty at generation; worktreeDigest covers HEAD plus the non-generated changes",
-  "subjectSha": "ca4471a7c045af8ba28ae24605adabf7f1d0e384",
+  "subjectSha": "a371675157b5bbe4d9e72b2bb286d1160d51eab7",
   "subjectType": "WORKTREE",
   "taskpackHash": "31dde89eb4ede81fe88c0a5c5144adfb86af8db4c4d8c263bde2199180369b69",
   "taskpackId": "DL-TP-20260908-R5",
-  "testRunId": null,
-  "testRunMeaning": "no bound test run; this projection does not claim a test result",
+  "testRunAt": "2026-10-06T05:11:47+00:00",
+  "testRunId": "testrun-20261006T051130Z-forward-repeat-91beed9eafb6",
+  "testRunMeaning": "bound run: python scripts/run_bound_test_suite.py --order forward --repeat 2 --modules test_asset_store test_creative_job test_creative_ledgers test_creative_lineage test_creative_migration test_creative_version_guard test_creative_f030_f040 test_creative_session_link test_job_store test_runtime_attempt_safety test_runtime_asset_safety test_runtime_explicit_project test_assurance_qa_plane test_assurance_jury test_bundle_store test_operation_coordinator",
+  "testRunResult": "OK",
   "unavailable": [
     "currentRemoteSha",
     "exactShaCI",
@@ -78,5 +45,5 @@
     "branchProtection"
   ],
   "worktreeClean": false,
-  "worktreeDigest": "sha256:bcef3e86fe544d7fbf96399c438e793fba3021b47aa24b945476fb48b86aac83"
+  "worktreeDigest": "sha256:b9f9940c1ed40b8e16e1abaf8d838f3e9dfb20c2b4d38ae25110dc2ef0597f9a"
 }
