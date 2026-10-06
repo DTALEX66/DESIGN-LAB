@@ -82,10 +82,11 @@ version_id 且 guard 保留"，它偷换了主语。这个区分很重要，否�
 
 顺带说清为什么不该无脑接线：`recover_interrupted` 扫的是**全表** `state='RUNNING'`，如果在工作进程
 还活着的时候于启动处调用它，会把**在途**任务标成 `OUTCOME_UNKNOWN`——这正是 docstring 禁止的
-"steal live work"。正确的启动对账必须**逐 attempt 判活**：对每个 RUNNING 的 attempt 用
-`runtime/native_recovery_lock.py:12`（OS 级 `msvcrt`/`fcntl`、永不 unlink、永不过期）试探，
-拿得到锁才说明上一个持有者确实没了，才可以改状态。这个原语已经存在且已有活体测试，缺的是把
-它和对账拼起来并接上启动点。
+"steal live work"。原计划的补救是"对每个 RUNNING 的 attempt 用 `native_recovery_lock.py:12`
+（OS 级 `msvcrt`/`fcntl`、永不 unlink、永不过期）试探，拿得到锁才改状态"。
+**2026-10-07 复核：这条补救本身不成立**，因为那把锁只被**恢复**路径持有、执行路径不持有，
+而且 `native_workers.py`（全文 50 行）没有任何落盘 PID 或覆盖 worker 生命周期的 OS 锁——
+**本机当前不存在可判"执行者已死"的信号**。缺的是前置件而不是接线，详见 §三 的自我更正。
 
 ### A3「未证明停止不解锁」— **成立**（而且比要求的更严）
 
@@ -125,12 +126,33 @@ version_id 且 guard 保留"，它偷换了主语。这个区分很重要，否�
 - `delivery`：无交付包验收。维持 `PARTIAL`。
 
 **抬升 unit 的最小充分动作**（按序，均可自动化）：
-1. 逐 attempt 判活的启动对账：用 `recovery_lock` 试探，只对"证明没了"的 RUNNING 改状态；
-2. 一个真子进程测试：崩溃留下 `RUNNING` + `receipt_json IS NULL`，重启后 (a) 变 `OUTCOME_UNKNOWN`、
-   (b) `asset_version` 计数不变（不重复建对象）、(c) 有活锁持有时**不改**它的状态；
-3. 把 §四那个空转闸门改成真调用检查（这一步不做，后面任何"已接上"的声明都没有对抗者）；
-4. 在合并后的 exact SHA 上重跑套件，取 `commands_and_exit_codes` + `environment_versions`，
-   新证据只绑定**入仓路径**。
+
+> **2026-10-07 当天自我更正（写下本节之后、实施之前查证）**：下面第 1 步原写为
+> "用 `native_recovery_lock.recovery_lock(paths, attempt_id)` 逐 attempt 试探"。**这条做法是错的**，
+> 已作废，正确形态见 (1')。查证结果：
+> - `recovery_lock(self.paths, attempt_id)` 在 `native_tasks.py:216` 只被
+>   `reconcile_receipted`（`:204`，**恢复**路径）持有，**不是**执行路径持有；
+>   `native_bundles.py:36` 同样是恢复路径。
+> - `native_workers.py` 全文只有 50 行：进程内 `threading.Lock`（`:17`）+ 一个
+>   `subprocess.Popen`（`:43`）。**没有落盘的 PID、没有覆盖 worker 生命周期的 OS 锁。**
+>
+> 结论：**"某 attempt 的锁空闲"只能证明"没有 recovery worker 在跑它"，不能证明执行它的进程已经死了。**
+> 若照原第 1 步接线，启动对账会把**在途** RUNNING 误标 `OUTCOME_UNKNOWN`，
+> 恰好违反它自己引用的那句 "Caller must stop old workers, not steal live work"。
+> 这也解释了为什么 `recover_interrupted` 当初就没被接上：不是漏接，是**缺前置件**。
+
+(1') **先造判活前置件**：让**执行**中的 attempt 全程持有
+`recovery_lock(paths, attempt_id)`（从 `_claim` 到 `_finish`/`_failed` 为止）。OS 级锁随进程消失自动释放，
+于是"锁空闲"才等价于"既没有执行者也没有 recovery 者在跑这个 attempt"。
+接线前必须先核对**重入**：`reconcile_receipted` 与 `native_bundles.py:36` 已经在同 attempt_id 上取同一把锁，
+`msvcrt.locking` 非重入，若某个持锁调用链再进 `run()` 就是自锁死。
+(2') 逐 attempt 判活的启动对账：对每个 RUNNING 的 attempt 试探该锁，拿得到才改状态。
+(3') 真子进程测试：崩溃留下 `RUNNING` + `receipt_json IS NULL` → 重启后 (a) 变 `OUTCOME_UNKNOWN`、
+(b) `asset_version` 计数不变（不重复建对象）、(c) **有活执行者持锁时不改它的状态**——(c) 是这整节存在的理由。
+(4') 把 §四那个空转闸门改成真断言：生产调用点 + "执行路径确实持锁" 的结构检查；这一步不做，
+    新接的路径仍然没有对抗者。
+(5') 在合并后的 exact SHA 上重跑套件，取 `commands_and_exit_codes` + `environment_versions`，
+    新证据只绑定**入仓路径**。
 
 `host_live` 不在最小动作内：它要真人授权宿主，不能自证。
 
@@ -152,7 +174,9 @@ version_id 且 guard 保留"，它偷换了主语。这个区分很重要，否�
 (a) 断言存在**生产调用点**（扫 `src/design_lab/` 而非测试，找到 `recover_interrupted(` 的调用），
 (b) 断言调用是**逐 attempt 判活**的（存在 `recovery_lock` 组合使用的结构），
 (c) 覆盖判据从"文件含 `unknown`"改为"该测试真的调用了 `recover_interrupted` / 启动对账入口"。
-在 (a) 落地之前，§三第 3 步不许跳过——否则新接的启动对账仍然没有任何对抗者。
+在 (a) 落地之前，§三 的 (4') 不许跳过——否则新接的启动对账仍然没有任何对抗者。
+（并且 (a) 单独做也不够：若闸门只查"存在生产调用点"，它会放过一个**没有判活前置件**的错误接线，
+所以 (a) 必须同时断言"执行路径确实持有 attempt 级 OS 锁"这一结构。）
 
 （本记录只登记该发现，不改动该脚本：脚本自身的修改必须与新测试同批落地，且要先证伪。
 留作 DL-R5-004 最小动作的第 3 步。）
