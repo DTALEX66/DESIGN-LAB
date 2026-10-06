@@ -271,7 +271,9 @@
       "outcome": "PARTIAL",
       "reasons": [
         "OUTCOME_NOT_PASS",
-        "STALE_SUBJECT_SHA"
+        "STALE_SUBJECT_SHA",
+        "SOURCE_CHANGED_OR_MISSING:apps/workbench/workbench.ts",
+        "SOURCE_CHANGED_OR_MISSING:apps/workbench/index.html"
       ],
       "software": {
         "os": "Windows",
@@ -681,7 +683,10 @@
       "reasons": [
         "OUTCOME_NOT_PASS",
         "STALE_SUBJECT_SHA",
-        "SOURCE_CHANGED_OR_MISSING:apps/workbench/shell.ts"
+        "SOURCE_CHANGED_OR_MISSING:apps/workbench/workbench.ts",
+        "SOURCE_CHANGED_OR_MISSING:apps/workbench/shell.ts",
+        "SOURCE_CHANGED_OR_MISSING:src/design_lab/workbench.py",
+        "SOURCE_CHANGED_OR_MISSING:apps/workbench/tests/appshell.mjs"
       ],
       "software": {
         "os": "Windows",
@@ -1514,7 +1519,10 @@
       "outcome": "PARTIAL",
       "reasons": [
         "OUTCOME_NOT_PASS",
-        "STALE_SUBJECT_SHA"
+        "STALE_SUBJECT_SHA",
+        "SOURCE_CHANGED_OR_MISSING:apps/workbench/shell.ts",
+        "SOURCE_CHANGED_OR_MISSING:apps/workbench/build/main.js",
+        "SOURCE_CHANGED_OR_MISSING:src/design_lab/http_service.py"
       ],
       "software": {
         "full_suite": "python -m unittest discover -s design-lab/tests -p test_*.py -q  ->  Ran 1762 tests, OK (skipped=2)",
@@ -1554,7 +1562,10 @@
       "observed_at": "2026-10-05T22:56:02Z",
       "outcome": "PASS",
       "reasons": [
-        "STALE_SUBJECT_SHA"
+        "STALE_SUBJECT_SHA",
+        "SOURCE_CHANGED_OR_MISSING:src/design_lab/http_service.py",
+        "SOURCE_CHANGED_OR_MISSING:apps/workbench/shell.ts",
+        "SOURCE_CHANGED_OR_MISSING:apps/workbench/build/main.js"
       ],
       "software": {
         "node": "v24.18.0 (scoop nodejs-lts/current on PATH; without it 14 native-UI cases skip)",
@@ -1593,7 +1604,11 @@
       "note": "M1 运行时切片的 PASS 级观测：一条命令启动（LISTENING/CSP/服务 bundle 与提交态逐字节相等/带 token 的 health/无 token 401）、服务进程重启后项目仍在、备份→恢复→逐文件哈希回读、状态库与版本不兼容时拒绝恢复、干净 wheel 安装在 CI 上跑通同一组启动测试。刻意不把两轴从 PARTIAL 抬升：DL-R5-015 的验收是 M1 整体可用判据，其黄金流仍断在宿主 E3（owner 本轮只授权只读探测）与 Human Jury（BLOCKED_HUMAN），且依赖的 DL-R5-003/014 仍 PARTIAL。本记录只覆盖运行时切片，不构成 M1 声明。",
       "observed_at": "2026-10-06T03:12:05Z",
       "outcome": "PASS",
-      "reasons": [],
+      "reasons": [
+        "STALE_SUBJECT_SHA",
+        "SOURCE_CHANGED_OR_MISSING:src/design_lab/http_service.py",
+        "SOURCE_CHANGED_OR_MISSING:src/design_lab/workbench.py"
+      ],
       "software": {
         "clean_install": "CI job wheel-install-gate at 725c5b12: uv build --wheel, clean venv, Ran 3 tests OK with no skips",
         "node": "v24.18.0 (scoop nodejs-lts/current on PATH)",
@@ -1613,19 +1628,19 @@
       "task_ids": [
         "DL-R5-015"
       ],
-      "verified": true
+      "verified": false
     }
   ],
   "fresh": false,
   "freshnessMeaning": "at generation only; check verifies bound-input integrity, not current Git or cloud state",
-  "generatedAt": "2026-10-06T03:12:17+00:00",
+  "generatedAt": "2026-10-06T14:11:11+00:00",
   "gitStateMeaning": "generation-time observation, not current HEAD",
   "ledgerUpdatedAt": "2026-10-06T03:12:05Z",
   "note": "DONE_LOCAL concerns the declared task axes and dependencies, not a product release or hosted CI.",
   "schemaVersion": "design-lab/task-progress/r5-v1",
   "subjectMeaning": "subjectType=WORKTREE means the tree was dirty at generation; worktreeDigest covers HEAD plus the non-generated changes",
-  "subjectSha": "3d3ff3e7729561102c7a11af756591f9e5af2f33",
-  "subjectType": "WORKTREE",
+  "subjectSha": "08e5b04c719fe32694e4bd10d6fde3bb03d39330",
+  "subjectType": "COMMIT",
   "taskpack": "DL-TP-20260908-R5",
   "taskpackHash": "31dde89eb4ede81fe88c0a5c5144adfb86af8db4c4d8c263bde2199180369b69",
   "taskpackId": "DL-TP-20260908-R5",
@@ -4124,8 +4139,10 @@
       "unresolved_conditions": []
     }
   ],
-  "testRunId": null,
-  "testRunMeaning": "no bound test run; this projection does not claim a test result",
-  "worktreeClean": false,
-  "worktreeDigest": "sha256:2173296d357ec1c9d6c5fb0c8d43ca5472f0e302cb09bad35097c109591390de"
+  "testRunAt": "2026-10-06T05:11:47+00:00",
+  "testRunId": "testrun-20261006T051130Z-forward-repeat-91beed9eafb6",
+  "testRunMeaning": "bound run: python scripts/run_bound_test_suite.py --order forward --repeat 2 --modules test_asset_store test_creative_job test_creative_ledgers test_creative_lineage test_creative_migration test_creative_version_guard test_creative_f030_f040 test_creative_session_link test_job_store test_runtime_attempt_safety test_runtime_asset_safety test_runtime_explicit_project test_assurance_qa_plane test_assurance_jury test_bundle_store test_operation_coordinator",
+  "testRunResult": "OK",
+  "worktreeClean": true,
+  "worktreeDigest": "sha256:b6bb63fc8fd40bb8394202d0d551f1e609024c7fe51a9cde9a888af2bfbfe0e3"
 }
