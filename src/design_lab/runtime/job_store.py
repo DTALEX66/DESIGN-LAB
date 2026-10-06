@@ -324,3 +324,34 @@ def recover_interrupted(conn):
             _change(conn, attempt, "OUTCOME_UNKNOWN", "worker interrupted; reconcile before any retry")
             _op(conn, op, "OUTCOME_UNKNOWN")
         return [aid for (aid,) in rows]
+
+
+def recover_orphaned_attempts(conn, *, holder_is_gone):
+    """Relabel RUNNING attempts whose executing process is provably gone.
+
+    `recover_interrupted` above assumes its caller already stopped every worker.
+    A service that simply starts cannot assume that, so this variant demands a
+    per-attempt liveness probe and skips anything still held. Derived from the
+    non-blocking OS lock in runtime/native_recovery_lock.py, "free" means "there
+    is no holder", never "the holder looks old".
+
+    Relabelling is over-pessimistic by design: it creates no objects, claims no
+    retry and leaves the host guard intact, so the worst a probe race can cost is
+    one extra reconciliation step -- never a lost or duplicated publication.
+    """
+    if not callable(holder_is_gone):
+        raise TypeError('RECOVERY_LIVENESS_PROBE_REQUIRED')
+    with _transaction(conn):
+        running = [aid for (aid,) in conn.execute(
+            "SELECT attempt_id FROM attempt_state WHERE state='RUNNING'").fetchall()]
+    orphans = [aid for aid in running if holder_is_gone(aid)]
+    if not orphans:
+        return []
+    with _transaction(conn):
+        for aid in orphans:
+            attempt, op = _current(conn, aid)
+            if attempt['state'] != 'RUNNING':
+                continue
+            _change(conn, attempt, "OUTCOME_UNKNOWN", "worker interrupted; reconcile before any retry")
+            _op(conn, op, "OUTCOME_UNKNOWN")
+    return orphans
