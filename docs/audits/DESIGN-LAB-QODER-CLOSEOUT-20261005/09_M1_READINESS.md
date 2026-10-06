@@ -11,7 +11,8 @@
 | C7.2 Install | 本机离线无法建 wheel（venv 无 hatchling、`uv` 不在 PATH）→ 由 CI job `wheel-install-gate` 承担：`uv build --wheel` → 干净 venv 安装 → `DL_LAUNCH_INSTALLED=1` 跑同一套启动测试。**已判读为真**：pass / 16s，日志逐条可见 `Ran 3 tests in 1.123s` + `OK`，其中 packaged 测试**未 skip**，证明安装态 bundle 与提交态逐字节一致；job 内置反空转断言（要求 `Ran 3 tests`、`OK`、不得出现 skipped，并显式 import `PIL/jsonschema/numpy/skimage`） | `DONE_E2`（CI exact-SHA `725c5b12`） |
 | C7.3 Persistence | `test_project_data_survives_a_full_process_restart`：经 API 建项目 → **终止进程** → 重启 → 项目仍在同一 id | `DONE_E2` |
 | 技术栈边界 | 未引入 Electron/Tauri/第二前端；启动器是同一 Python 包内的一个子命令 | 符合 Authority §3/§4 |
-| C7.4 Restart / C7.5 Upgrade-backup-rollback | 服务级重启已覆盖；**应用级/Windows 会话级重启与升级-备份-回滚未执行** | `NOT_EXECUTED` |
+| C7.4 Restart | 服务级重启已由测试覆盖（终止进程→重启→项目仍在）；**应用级/Windows 会话级重启未执行** | `PARTIAL` |
+| C7.5 Upgrade / backup / rollback | **契约已实现**：`design-lab ... backup` / `restore`，zip + 逐文件 sha256 manifest、恢复后逐文件回读比对、路径逃逸/盘符/`..` 拒绝、非空目标需 `--force`、`PRAGMA user_version` 与 `designLabVersion` 不兼容时拒绝恢复（需 `--allow-upgrade`）；9 项测试含真实 CLI 往返。**升级演练（旧归档→新 schema）尚未做过** | `DONE_E2`（备份/恢复）+ `PARTIAL`（升级演练） |
 | C7.6 黄金流 | 主链仍断在宿主一步（owner 不授权启动），后续 Human Jury / Rights / Preflight / Handoff / 重开再编辑无法发生 | `BLOCKED` |
 
 ## 为什么不能叫 M1

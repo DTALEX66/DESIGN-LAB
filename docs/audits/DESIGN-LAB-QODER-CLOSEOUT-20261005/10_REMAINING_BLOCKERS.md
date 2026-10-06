@@ -20,11 +20,20 @@
 | B4 | 11 项产品轴（CONTRACT/BACKEND/FRONTEND/…）在 ledger 里仍是 4 轴词表 | 词表与 Authority §2 不一致 | 属 Authority 级映射决策，需 owner 定口径后再改，不自作主张 |
 | B5 | `reports/current/DEEPSEEK-AUTHORITY-CHAIN.json` 生成于 2026-09-29 | 可能已漂移 | 用 `scripts/deepseek_authority_chain.py` 重生成并核对 |
 
+## A.5 数据完整性事件（本轮唯一由 Agent 造成的损失，详见 `13`）
+
+误删 `task-runtime/service/state.db` → 346 个 / 357,703,756 bytes 原生产物失去索引；
+0 个有 git 副本；卷影副本不可达；**索引不可重建**。文件本体已固化为归档
+`.project-local/backups/orphaned-project-state-20261006.zip`
+（sha256 `4fed9987c1348f3c7b9516872d0c39b3620db4764a38be707477b30e072bdef3`），
+**但该归档仍在 gitignored 运行根内，需 owner 立即移出**。
+
 ## B.1 本清单写下后已在同日（2026-10-06）闭合的项
 
 - **C7.1 一条命令启动**：`python -m design_lab --project <dir> workbench` 已实现，
   README 增「启动 Workbench（一条命令）」；`design-lab/tests/test_workbench_launch.py`
   读回 LISTENING/CSP/bundle 逐字节/health/401 与服务重启后项目仍在（E2）。
+- **C7.5 备份/恢复契约**：`project_backup.py` + CLI `backup`/`restore` + 版本兼容拒绝恢复，9 项测试；已在真实孤儿数据上完成备份→恢复→逐哈希回读验证。
 - **C7.2 clean install**：本机离线不可建 wheel（venv 无 hatchling、`uv` 不在 PATH），
   改由 CI job `wheel-install-gate` 承担；首版 1 秒变绿被判定为疑似空转并加反空转断言，
   硬化版在 `725c5b12` **真判读通过**（16s，`Ran 3 tests` + `OK` + packaged 测试未 skip）。

@@ -17,7 +17,7 @@
 | C0.3 IA 不扩张 | **DONE**（复核，未改） |
 | C0.4 合并 | **READY_FOR_OWNER_MERGE**（PR 仍 DRAFT，merge 属 owner 门） |
 | C1 Ledger/Reports | **DONE_E1**（合同修复 + 投影重生成 + CI 接**账本合同门**；投影 drift `--check` 经实测不可接 CI，见 `10` C8） |
-| C2 Reference→Design IR | **PARTIAL**（接缝 + 真实参考图区域 → staged 资产 → 合法 Illustrator job 已完成；无 provider 真跑、无服务/UI 入口） |
+| C2 Reference→Design IR | **PARTIAL**（接缝 + 真实参考图区域 → staged 资产 → 合法 Illustrator job 已完成；无 provider 真跑、无服务/UI 入口。**刻意不做**只有传输层、无产出方无消费者的 object-plan 路由） |
 | C3 Illustrator E3 | **BLOCKED_PERMISSION**（owner 选择只读探测） |
 | C4 Photoshop E3 | **BLOCKED_PERMISSION**（同上） |
 | C5 Readback/Patch/Rollback | **PARTIAL**（宿主未跑，两次局部修改与失败矩阵未实测） |
@@ -84,6 +84,23 @@
 | 账本合同修复 + 投影重生成 + CI drift 门 | `95b446d` |
 | Plan→RIR 接缝 + 17 项测试 | `src/design_lab/analysis/plan_to_rir.py`、`design-lab/tests/test_plan_to_rir.py`（`c3e43ea`、`2c566e6`） |
 | 11 份只读收口报告 | `docs/audits/DESIGN-LAB-QODER-CLOSEOUT-20261005/` |
+
+## 同日追加（2026-10-06，见 `12`/`13`）
+
+- **数据损失事件**：清理时误删 `task-runtime/service/state.db`（前次审计标 RETAIN），
+  346 个 / 357,703,756 bytes 原生产物失去索引，**0 个有 git 副本，索引不可重建**。
+  已用新契约把文件本体固化为归档（sha256 `4fed9987…`），恢复往返在真实数据上验证。
+  完整经过、影响与自我规则修正见 `13_RUNTIME_STATE_LOSS_AND_BACKUP.md`。
+- **新增备份/恢复契约**：zip + 逐文件 sha256 manifest、restore 逐文件回读比对、
+  路径逃逸与盘符拒绝、非空目标需显式覆盖、`state.db` 的 `PRAGMA user_version`
+  与版本不兼容时拒绝恢复（`--allow-upgrade` 显式覆盖），CLI `backup`/`restore`，9 项测试。
+- **新增产物在盘门**：`verify_evidence_artifact_presence.py`，
+  首跑抓到一条把可变源文件当产物的历史衰减记录（已固化为断言）。
+- **新增账本证据**：`r5-m1-runtime-slice-20261006`（PASS，绑定 `3d3ff3e7`，20 tests
+  OK / 1 诚实 skip + CI 干净安装），挂到 DL-R5-015 两轴的**证据列表**，
+  但两轴**保持 PARTIAL**：M1 整体判据仍断在宿主与人工门，窄观测不冒充里程碑。
+- **瘦身**：`.project-local` 903 → 545 MiB（含 72 MB 新归档），
+  删前 3412 行清单入仓；`.git` 223.8 MiB 因禁止重写历史而未动。
 
 ## 未做的事（明确不冒充）
 
