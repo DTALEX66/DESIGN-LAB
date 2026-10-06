@@ -9,108 +9,45 @@
   },
   "fresh": false,
   "freshnessMeaning": "at generation only; check verifies bound-input integrity, not current Git or cloud state",
-  "generatedAt": "2026-10-06T22:33:50+00:00",
+  "generatedAt": "2026-10-06T22:55:09+00:00",
   "gitStateMeaning": "generation-time observation, not current HEAD",
   "local": {
-    "branch": "tmp-rebase-qoder/designlab-restart-reconciliation-20261007",
-    "origin_main": "dbf887e2caf6629315a38c220cefc7813496985a",
-    "sha": "2dc365ab41c69eaa40e88d70c65e1118811ba3fc",
+    "branch": "qoder/designlab-t1-review-r5-008-20261007",
+    "origin_main": "f98d9371d4a79ccfd3fff9d5bd9394194c4e8f18",
+    "sha": "f98d9371d4a79ccfd3fff9d5bd9394194c4e8f18",
     "source_worktree_clean": false,
-    "tracked_files": 2976,
+    "tracked_files": 2977,
     "worktree_changes": [
       {
-        "content": "sha256:f5f79872cb8be8f15697ea0b46894d4f0c2841e4a5910259e79cdf022ba45531",
+        "content": "sha256:3f5f7930fae81482870bd24fec2b54d42869410c45664b4f9038655a1a9f41ed",
         "kind": "A",
-        "path": "design-lab/tests/test_doctor_tool_bindings.py"
+        "path": "docs/audits/DESIGN-LAB-T1-LEDGER-REVIEW-DL-R5-008-20261007.md"
       },
       {
-        "content": "sha256:6e1e39cfe123d454d4bc678051d7137d6293b8f4a056d297cad10a3f48b264a1",
-        "kind": "A",
-        "path": "design-lab/tests/test_vendor_revisions.py"
-      },
-      {
-        "content": "sha256:a465b874177d4378ddb709284a3515a855281505ab151d638166f4ae9b3076e8",
-        "kind": "A",
-        "path": "design-lab/tests/test_workbench_css_single_definition.py"
-      },
-      {
-        "content": "sha256:add0c76ef46d3bc4b4361f28e116a1f672a4af19fb4771b1329da3b148178e86",
-        "kind": "A",
-        "path": "docs/audits/DESIGN-LAB-T1-LEDGER-REVIEW-DL-R5-004-20261007.md"
-      },
-      {
-        "content": "sha256:1ff255d266969ad0125925620d13c838069d5f0407803a141f319181d23ae12d",
-        "kind": "A",
-        "path": "scripts/derive_vendor_revisions.py"
-      },
-      {
-        "content": "sha256:e3dd702c77840847683c3693e7ec7519363f2ccb203127adfa504d08c61a2898",
-        "kind": "A",
-        "path": "vendor/sources.revisions.json"
-      },
-      {
-        "content": "sha256:8fe9dbbf85876c42b8d86ef7e2473c826fa431f309023df52fc770b3753b8703",
+        "content": "sha256:82ce888801880f444af93213a2d13ba85436f9af4445b6ce4a0e143f7c1aedd3",
         "kind": "M",
-        "path": ".project/paths.json"
+        "path": "design-lab/tests/test_comfy_task_protocol.py"
       },
       {
-        "content": "sha256:1efd564d54c7ba77c10aed10c8153811356238676c67a2c9135962ce1d397d63",
+        "content": "sha256:a852120ebebbd8f1b8eeac14ad030a0d87d9f4d095131d4a6729c4081f378fb7",
         "kind": "M",
-        "path": "apps/workbench/build/main.js"
-      },
-      {
-        "content": "sha256:35d8449aab658af094c64ea32a576926116016d384f7707d8090e959b971098a",
-        "kind": "M",
-        "path": "apps/workbench/index.html"
-      },
-      {
-        "content": "sha256:f81e9430cb87e222930da9cac18c526246bf940a2d3865e9ec8dd343c1e2f35f",
-        "kind": "M",
-        "path": "apps/workbench/shell.ts"
-      },
-      {
-        "content": "sha256:01ea99f42423d9cbb9e828f2d0d9bbc067787dc3a6b439ffdda78c455427e513",
-        "kind": "M",
-        "path": "apps/workbench/style.css"
-      },
-      {
-        "content": "sha256:0cbb2b98788f42464eba5b154130ba88b049d1871341d69acdd33e1cd769fc31",
-        "kind": "M",
-        "path": "design-lab/tests/test_doctor_evidence.py"
-      },
-      {
-        "content": "sha256:e6db99ee25bc63767df26ca79cbd94cc6b06e06396652cc63cdc1e4ae5cab69b",
-        "kind": "M",
-        "path": "docs/audits/DESIGN-LAB-WORKBENCH-VISUAL-AUDIT-20261006.md"
-      },
-      {
-        "content": "sha256:3b12fd5f7ce4bfa6b34e9807bfa199bc671b2fdad660350d70ecd855c4a99ea1",
-        "kind": "M",
-        "path": "docs/handoffs/DESIGN-LAB-WORKBENCH-VISUAL-AUDIT-HANDOFF-2026-10-06.md"
-      },
-      {
-        "content": "sha256:09581ac1778c2c447767d94d07ac32d53e2792b6f83e7e68364a3fc026ff0f33",
-        "kind": "M",
-        "path": "src/design_lab/runtime/doctor.py"
-      },
-      {
-        "content": "sha256:ec1571e8d80465ae16d997920b6aa1708f8b7495be2b0a5cc3f2445238ba77cb",
-        "kind": "M",
-        "path": "src/design_lab/runtime/paths.py"
+        "path": "src/design_lab/generators/comfy_task.py"
       }
     ],
-    "worktree_digest": "sha256:692d3a7138717916c194491bf6d77c8c1b14d1dfe32e3a0fbeb3d8a4667526bf"
+    "worktree_digest": "sha256:9e04de4e1349c34c8a8b915d390e2ac0a3cb74890f0b659199496510cd37a318"
   },
   "note": "No GitHub API query was run by this generator; tool installation is not inferred.",
   "remoteRef": "origin/main (local tracking ref)",
   "schemaVersion": "design-lab/cloud-baseline/v2",
   "subjectMeaning": "subjectType=WORKTREE means the tree was dirty at generation; worktreeDigest covers HEAD plus the non-generated changes",
-  "subjectSha": "2dc365ab41c69eaa40e88d70c65e1118811ba3fc",
+  "subjectSha": "f98d9371d4a79ccfd3fff9d5bd9394194c4e8f18",
   "subjectType": "WORKTREE",
   "taskpackHash": "31dde89eb4ede81fe88c0a5c5144adfb86af8db4c4d8c263bde2199180369b69",
   "taskpackId": "DL-TP-20260908-R5",
-  "testRunId": null,
-  "testRunMeaning": "no bound test run; this projection does not claim a test result",
+  "testRunAt": "2026-10-06T05:11:47+00:00",
+  "testRunId": "testrun-20261006T051130Z-forward-repeat-91beed9eafb6",
+  "testRunMeaning": "bound run: python scripts/run_bound_test_suite.py --order forward --repeat 2 --modules test_asset_store test_creative_job test_creative_ledgers test_creative_lineage test_creative_migration test_creative_version_guard test_creative_f030_f040 test_creative_session_link test_job_store test_runtime_attempt_safety test_runtime_asset_safety test_runtime_explicit_project test_assurance_qa_plane test_assurance_jury test_bundle_store test_operation_coordinator",
+  "testRunResult": "OK",
   "unavailable": [
     "currentRemoteSha",
     "exactShaCI",
@@ -118,5 +55,5 @@
     "branchProtection"
   ],
   "worktreeClean": false,
-  "worktreeDigest": "sha256:692d3a7138717916c194491bf6d77c8c1b14d1dfe32e3a0fbeb3d8a4667526bf"
+  "worktreeDigest": "sha256:9e04de4e1349c34c8a8b915d390e2ac0a3cb74890f0b659199496510cd37a318"
 }

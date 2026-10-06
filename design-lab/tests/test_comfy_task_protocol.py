@@ -121,6 +121,11 @@ class ComfyTaskProtocolTests(unittest.TestCase):
         t.validate()
         with self.assertRaises(ComfyTaskError):
             ComfyTask("t1", self._pin(), "not-a-hash").validate()
+        # The all-zero hash was already refused for node source_hash and for the
+        # result fingerprint; as an inputs_hash it passed, so a task could claim it
+        # had hashed its inputs without having hashed anything.
+        with self.assertRaises(ComfyTaskError):
+            ComfyTask("t1", self._pin(), "sha256:" + "0" * 64).validate()
 
 
 class TaskStateMachineTests(unittest.TestCase):

@@ -97,8 +97,8 @@ class ComfyTask:
         if not _WORKFLOW_ID.fullmatch(self.task_id):
             raise ComfyTaskError(f"invalid task_id: {self.task_id!r}")
         self.workflow.validate()
-        if not _SHA256.fullmatch(self.inputs_hash):
-            raise ComfyTaskError("inputs_hash must be sha256:...")
+        if not _SHA256.fullmatch(self.inputs_hash) or self.inputs_hash == 'sha256:' + '0' * 64:
+            raise ComfyTaskError("inputs_hash must be a nonzero sha256:...")
 
 
 @dataclass
