@@ -57,6 +57,18 @@ export const setStatus = (text: string, error = false) => {
   const el = byId<HTMLParagraphElement>('status');
   el.textContent = text;
   el.classList.toggle('error', error);
+  // On every routed view `body > main` — which owns #status — is `hidden`, so a
+  // preflight or patch failure was written into an element neither the eye nor a
+  // screen reader could reach. Mirror it into the shell's live region, which
+  // exists on both paths.
+  // Guarded like the rest of the shell: the vm smoke's Mock document has
+  // getElementById but no querySelector.
+  const main = typeof document.querySelector === 'function'
+    ? document.querySelector('body > main') as HTMLElement | null : null;
+  if (main && main.hidden) {
+    const live = document.querySelector('.sr-status');
+    if (live) live.textContent = text;
+  }
 };
 
 export const errMsg = (error: unknown) => (error instanceof Error ? error.message : String(error));

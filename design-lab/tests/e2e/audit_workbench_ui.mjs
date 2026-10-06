@@ -49,7 +49,14 @@ const PROBE = () => {
   const bgOf = (el) => {
     let node = el;
     while (node) {
-      const colour = parse(getComputedStyle(node).backgroundColor);
+      const style = getComputedStyle(node);
+      // A gradient lives in background-image, so backgroundColor is transparent
+      // and walking further up compares the text against a surface nobody sees.
+      // Those pairs are NOT measurable from computed styles: report them as
+      // indeterminate instead of inventing a pass or a fail. Their ratios are
+      // asserted statically against the exact gradient stops in style.css.
+      if (style.backgroundImage && style.backgroundImage !== 'none') return null;
+      const colour = parse(style.backgroundColor);
       if (colour) return colour;
       node = node.parentElement;
     }
@@ -66,6 +73,7 @@ const PROBE = () => {
   // the only honest "is this rendered" test.
   const rendered = (el) => el.getClientRects().length > 0;
   const contrast = [];
+  let gradientBacked = 0;
   for (const el of document.querySelectorAll('body *')) {
     if (!text(el) || el.children.length || !rendered(el)) continue;
     const style = getComputedStyle(el);
@@ -73,11 +81,13 @@ const PROBE = () => {
     if (Number(style.opacity) < 0.35) continue;
     const fg = parse(style.color);
     if (!fg) continue;
+    const bg = bgOf(el);
+    if (bg === null) { gradientBacked += 1; continue; }
     const size = parseFloat(style.fontSize) || 16;
     const bold = Number(style.fontWeight) >= 700;
     const large = size >= 24 || (size >= 18.66 && bold);
     const need = large ? 3 : 4.5;
-    const got = ratio(fg, bgOf(el));
+    const got = ratio(fg, bg);
     if (got < need) {
       contrast.push({ tag: el.tagName.toLowerCase(), size: Math.round(size),
                       need, got: Number(got.toFixed(2)),
@@ -114,6 +124,7 @@ const PROBE = () => {
     .length;
   return {
     contrast, clickableNotReachable, unnamed, images, overflow, targets,
+    gradientBacked,
     focusables: focusables.length,
     paint: Math.round(performance.getEntriesByType('paint')
       .find((e) => e.name === 'first-contentful-paint')?.startTime ?? -1),
@@ -257,10 +268,10 @@ for (const width of widths) {
   // The action works: follow it and the connect form must appear.
   if (!cold.loginVisible && cold.connectAction) {
     await page.locator('#route-view button').first().click();
-    const reached = await page.evaluate(() => {
+    const reached = await page.waitForFunction(() => {
       const n = document.querySelector('#login');
       return !!n && !n.hidden;
-    });
+    }, null, { timeout: 5000 }).then(() => true).catch(() => false);
     if (!reached) add('cold-start', `${width} 前往工作台连接 did not reveal the connect form`);
   }
   await ctx.close();

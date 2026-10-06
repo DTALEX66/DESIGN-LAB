@@ -459,6 +459,11 @@ const setStatus = (text, error = false) => {
   const el2 = byId("status");
   el2.textContent = text;
   el2.classList.toggle("error", error);
+  const main = typeof document.querySelector === "function" ? document.querySelector("body > main") : null;
+  if (main && main.hidden) {
+    const live = document.querySelector(".sr-status");
+    if (live) live.textContent = text;
+  }
 };
 const errMsg = (error) => error instanceof Error ? error.message : String(error);
 const dropSession = () => {
