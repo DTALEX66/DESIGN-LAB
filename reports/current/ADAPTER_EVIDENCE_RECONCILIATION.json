@@ -251,18 +251,16 @@
   },
   "fresh": false,
   "freshnessMeaning": "at generation only; check verifies bound-input integrity, not current Git or cloud state",
-  "generatedAt": "2026-10-06T21:53:43+00:00",
+  "generatedAt": "2026-10-06T22:15:06+00:00",
   "gitStateMeaning": "generation-time observation, not current HEAD",
   "schemaVersion": "design-lab/adapter-reconciliation/v2",
   "subjectMeaning": "subjectType=WORKTREE means the tree was dirty at generation; worktreeDigest covers HEAD plus the non-generated changes",
-  "subjectSha": "d1f1fb2d040d851271f9b3258bddb91db16dae7b",
+  "subjectSha": "ca4471a7c045af8ba28ae24605adabf7f1d0e384",
   "subjectType": "WORKTREE",
   "taskpackHash": "31dde89eb4ede81fe88c0a5c5144adfb86af8db4c4d8c263bde2199180369b69",
   "taskpackId": "DL-TP-20260908-R5",
-  "testRunAt": "2026-10-06T05:11:47+00:00",
-  "testRunId": "testrun-20261006T051130Z-forward-repeat-91beed9eafb6",
-  "testRunMeaning": "bound run: python scripts/run_bound_test_suite.py --order forward --repeat 2 --modules test_asset_store test_creative_job test_creative_ledgers test_creative_lineage test_creative_migration test_creative_version_guard test_creative_f030_f040 test_creative_session_link test_job_store test_runtime_attempt_safety test_runtime_asset_safety test_runtime_explicit_project test_assurance_qa_plane test_assurance_jury test_bundle_store test_operation_coordinator",
-  "testRunResult": "OK",
+  "testRunId": null,
+  "testRunMeaning": "no bound test run; this projection does not claim a test result",
   "worktreeClean": false,
-  "worktreeDigest": "sha256:d59d22999c34228a4c4ba63c727906598979fa16d4b8f8f341cb7746d0a50333"
+  "worktreeDigest": "sha256:bcef3e86fe544d7fbf96399c438e793fba3021b47aa24b945476fb48b86aac83"
 }
