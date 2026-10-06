@@ -17,7 +17,14 @@
 | ultimate-uiux | 54 | github.com/ca-who-codes/ultimate.UIUX.design.skills | MIT | CONDITIONAL_POC | ultimate-uiux |
 | tool-control | 120 | 归档库（creold/photoshop-scripts、creold/illustrator-scripts、Comfy-Org、style-dictionary 等，README 逐项列源） | MIT / Apache-2.0（逐子树） | CONDITIONAL_POC | tool-control |
 
-### visual-quality 子仓（25 个第三方收录，2026-08-14）
+### visual-quality 子仓（30 个第三方收录，2026-08-14 收录）
+
+> 计数对账 2026-10-06：下表 **30 行**，与主检出（`D:/All projects/DESIGN-LAB`）本机 ignored
+> vendor cache `.project-local/cache/vendor/visual-quality__*` 的 **30 个目录逐名一致**；
+> 同检出下 vendor cache 总计 37 个目录 = 本节 30 + 上一节 7。
+> 原小标题写「25 个」，与以上两项实测均不符，已按实测更正为 30。
+> 注：本分支的 `CANDIDATE-TAXONOMY.json` 仍是 7 条种子版，尚未包含 visual-quality 条目；
+> 投影到 37 条的版本在 `qoder/designlab-global-capability-intake-20261006`（`73426936`）。
 
 | 候选 | 文件数 | 来源 | 许可 | cache 键 |
 |---|---:|---|---|---|
