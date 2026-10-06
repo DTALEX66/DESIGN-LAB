@@ -1,6 +1,7 @@
 # SPDX-License-Identifier: MIT
 """Explicit-project CLI; no inferred install-directory or user-profile writes."""
 import argparse
+import hashlib
 import json
 import sqlite3
 import sys
@@ -8,6 +9,7 @@ import sys
 from . import __version__
 from .runtime.asset_store import AssetError
 from .runtime.paths import PathPolicyError
+from .runtime.project_backup import BackupError
 from .service import ProjectService
 
 
@@ -19,11 +21,30 @@ def main(argv=None):
     commands.add_parser('paths', help='read-only project path diagnosis')
     server = commands.add_parser('serve', help='loopback metadata API; launcher supplies temporary token on stdin')
     server.add_argument('--port', type=int, default=0)
+    workbench = commands.add_parser(
+        'workbench',
+        help='start the service and print the sign-in URL and one-time token (no external launcher)')
+    workbench.add_argument('--port', type=int, default=0)
+    workbench.add_argument('--no-browser', action='store_true',
+                           help='print the URL instead of opening the local browser')
     worker = commands.add_parser('native-worker', help='execute one persisted approved native attempt')
     worker.add_argument('--attempt', required=True)
     projects = commands.add_parser('projects').add_subparsers(dest='action', required=True)
     projects.add_parser('list')
     projects.add_parser('create').add_argument('--name', required=True)
+    backup = commands.add_parser('backup',
+                                 help='archive the durable project state into one verified zip')
+    backup.add_argument('--out', default=None, help='target directory or .zip path')
+    backup.add_argument('--member', action='append', dest='members',
+                        help='local-root-relative path to include (repeatable)')
+    restore = commands.add_parser('restore', help='unpack a backup and re-verify every hash')
+    restore.add_argument('--from', dest='archive', required=True)
+    restore.add_argument('--into', default=None,
+                         help='target local root; defaults to this project\'s own')
+    restore.add_argument('--force', action='store_true',
+                         help='allow restoring over a non-empty target')
+    restore.add_argument('--allow-upgrade', action='store_true',
+                         help='restore despite a version or state-schema mismatch')
     args = parser.parse_args(argv)
     if hasattr(sys.stdout, 'reconfigure'):
         sys.stdout.reconfigure(encoding='utf-8')
@@ -41,6 +62,55 @@ def main(argv=None):
                 except KeyboardInterrupt:
                     pass
             return 0
+        elif args.command == 'workbench':
+            import secrets
+            from .http_service import make_server
+            token = secrets.token_hex(32)
+            with make_server(service, token, args.port) as httpd:
+                url = f'http://127.0.0.1:{httpd.server_port}/workbench'
+                # The token is the sign-in the Workbench asks for; it lives only in
+                # this process and this terminal, never in argv, a file or a URL.
+                print(json.dumps({'status': 'LISTENING', 'url': url,
+                                  'port': httpd.server_port, 'token': token,
+                                  'token_ttl': 'until this process exits'}), flush=True)
+                if not args.no_browser:
+                    import webbrowser
+                    webbrowser.open(url)
+                try:
+                    httpd.serve_forever()
+                except KeyboardInterrupt:
+                    pass
+            return 0
+        elif args.command == 'backup':
+            from datetime import datetime, timezone
+            from pathlib import Path
+            from .runtime.project_backup import create_backup
+            local_root = Path(service.paths.local_root)
+            members = tuple(args.members) if args.members else None
+            stamp = datetime.now(timezone.utc).strftime('%Y%m%dT%H%M%SZ')
+            destination = Path(args.out) if args.out else local_root / 'backups'
+            if destination.suffix.lower() == '.zip':
+                destination.parent.mkdir(parents=True, exist_ok=True)
+            else:
+                destination.mkdir(parents=True, exist_ok=True)
+                destination = destination / f'design-lab-backup-{stamp}.zip'
+            manifest = create_backup(local_root, destination, members=members,
+                                     version=__version__)
+            result = {'status': 'BACKUP_CREATED', 'archive': destination.name,
+                      'fileCount': manifest['fileCount'],
+                      'totalBytes': manifest['totalBytes'],
+                      'sha256': hashlib.sha256(destination.read_bytes()).hexdigest(),
+                      'createdAt': manifest['createdAt']}
+        elif args.command == 'restore':
+            from pathlib import Path
+            from .runtime.project_backup import restore_backup, state_schema_version
+            target = Path(args.into) if args.into else service.paths.local_root
+            result = restore_backup(
+                args.archive, target, force=args.force, allow_upgrade=args.allow_upgrade,
+                version=__version__,
+                local_state_schema_version=state_schema_version(service.paths.local_root))
+            result['status'] = 'RESTORE_VERIFIED'
+            result['target'] = Path(target).name
         elif args.command == 'native-worker':
             from .native_tasks import NativeTasks, NativeTaskError
             try:
@@ -56,7 +126,8 @@ def main(argv=None):
             result = {'projects': service.list_projects()}
         else:
             result = {'project': service.create_project(args.name)}
-    except (ValueError, OSError, sqlite3.Error, AssetError, PathPolicyError) as exc:
+    except (ValueError, OSError, sqlite3.Error, AssetError, PathPolicyError,
+            BackupError) as exc:
         print(json.dumps({'status': 'ERROR', 'error': type(exc).__name__, 'detail': str(exc)}, ensure_ascii=False))
         return 2
     print(json.dumps(result, ensure_ascii=False, indent=2))

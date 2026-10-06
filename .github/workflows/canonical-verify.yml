@@ -46,6 +46,20 @@ jobs:
       - name: Evidence boundTree freshness
         if: github.event_name == 'push'
         run: python design-lab/scripts/update_evidence_binding.py --check
+      - name: Task ledger contract gate (R5)
+        # The projections bind a generation-time git snapshot, so
+        # `generate_current_reports.py --check` can never pass on a clean
+        # checkout. This validates the part that can, and it is exactly the
+        # check that would have caught the 1acbfa1 ledger break instead of
+        # letting reports/current freeze behind a crashing generator.
+        run: python design-lab/scripts/verify_task_ledger_contract.py
+      - name: Evidence artefact presence gate
+        # A tracked artefact that has gone is a hard break; a `.project-local`
+        # runtime artefact is expected to be absent on a clean checkout, and a
+        # mutable source file used as an artefact decays on every edit. Those
+        # two report WARN, so this documents how much of the ledger is actually
+        # readable back without turning the gate permanently red.
+        run: python design-lab/scripts/verify_evidence_artifact_presence.py
       - name: V3 product manifest
         run: python design-lab/scripts/verify_product_manifest_v3.py
       - name: Repo classification index freshness
@@ -247,6 +261,41 @@ jobs:
           name: workbench-e2-${{ github.sha }}
           path: .project-local/task-artifacts/browser-e2e/
           if-no-files-found: error
+
+  wheel-install-gate:
+    name: Clean wheel install + Workbench launch gate
+    runs-on: ubuntu-latest
+    # C7.1 / C7.2: the Workbench must be reachable from an installed package
+    # with no repo CWD or sys.path trick. Build the wheel, install it into a
+    # clean environment, then run the launch + restart-persistence tests
+    # against that install (DL_LAUNCH_INSTALLED=1 stops the test from
+    # re-injecting the source tree).
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5.6.0
+        with:
+          python-version: '3.12'
+      - name: Build the wheel
+        run: |
+          python -m pip install uv
+          uv build --wheel
+      - name: Install it into a clean environment
+        run: |
+          uv venv .venv-clean
+          uv pip install --python .venv-clean/bin/python dist/*.whl
+          .venv-clean/bin/python -c "import design_lab, PIL, jsonschema, numpy, skimage; print('IMPORTS_OK', design_lab.__file__)"
+      - name: Launch the installed Workbench and read it back
+        env:
+          DL_LAUNCH_INSTALLED: "1"
+        # Assert the outcome instead of trusting the exit code: three tests must
+        # run, and the packaged-resource test must actually execute rather than
+        # skip (a skip here would mean the "installed" layout was never tested).
+        run: |
+          .venv-clean/bin/python -m unittest design-lab.tests.test_workbench_launch -v > launch.log 2>&1
+          tail -20 launch.log
+          grep -q "Ran 3 tests" launch.log
+          grep -q "^OK$" launch.log
+          ! grep -q "skipped" launch.log
 
   generated-artifact-gate:
     name: Generated-artifact clean-tree gate

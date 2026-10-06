@@ -1,10 +1,10 @@
 {
   "schemaVersion": "design-lab/deepseek-authority-chain/v1",
   "task_key": "DL-TP-20260914-DEEPSEEK-AUTHORITY-R1::DLDS-A010",
-  "generated_at": "2026-10-06T08:47:13+00:00",
+  "generated_at": "2026-10-06T08:57:40+00:00",
   "subject": {
-    "base_sha": "f5977e192044b5dfdacd32d5dd4aacc8ce94614c",
-    "branch": "feat/global-capability-intake-scaffold",
+    "base_sha": "42b3e6b84f6e6c2fb21f141d4b36c8450dfb4cb3",
+    "branch": "qoder/designlab-m1-closeout-20261005",
     "worktree_clean": false
   },
   "current_authority": {
@@ -127,8 +127,8 @@
     },
     {
       "path": "design-lab/config/task-ledger-r3.json",
-      "bytes": 348187,
-      "sha256": "sha256:5965449f74e3bec73b8ee7fc2bd5ad3739721df82e13d0fea1fcef144a49c642",
+      "bytes": 353408,
+      "sha256": "sha256:e2171c107a002fc503cacafef1486fcd775c4f938df630c7eec7cdd6229ef259",
       "authority_class": "ACTIVE_PRODUCT_PACK",
       "basis": "R5 task status authoring source (schema design-lab/task-ledger/r5-v1)",
       "mutable_state": "the ledger is rewritten at the close of every task, so its bytes and digest are generation-time",
@@ -137,7 +137,7 @@
         "taskpack": "DL-TP-20260908-R5",
         "schemaVersion": "design-lab/task-ledger/r5-v1",
         "tasks": 28,
-        "evidence_receipts": 37
+        "evidence_receipts": 39
       }
     },
     {
@@ -366,8 +366,8 @@
     },
     {
       "path": "docs/taskpacks/DESIGN-LAB-GLOBAL-DESIGN-CAPABILITY-INTELLIGENCE-TASKPACK-2026-10-06.md",
-      "bytes": 9198,
-      "sha256": "sha256:cda698029d825286e57f0519eeab8e437efea5bb65816851dac06cf6365a3b86",
+      "bytes": 9079,
+      "sha256": "sha256:8acad56c5f979971c3a3b32d6c8640f0a3729027adf4fa175b808214ef2e5cab",
       "authority_class": "REFERENCE",
       "basis": "requested work package archived for reference; not adopted as current authority",
       "mutable_state": "a requested work package is edited while under review; its classification is the claim, not its bytes"

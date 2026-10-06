@@ -105,6 +105,21 @@ reports/current/TASK_PROGRESS.json ← 由 design-lab/config/task-ledger-r3.json
 报告中的 Git 信息是生成时观察，不是此刻 HEAD；`--check` 验证绑定输入与输出的完整性，不替代当前 Git 状态或 GitHub exact-SHA 读回。提交报告不会仅因提交自身改变 HEAD 而造成自引用漂移；更新源码/证据后仍需重新生成和验证。
 旧 `generate_project_status.py` 入口转发到同一生成器。
 
+## 启动 Workbench（一条命令）
+
+```bash
+python -m design_lab --project <设计项目目录> workbench
+```
+
+- 首行输出 `{"status":"LISTENING","url":"http://127.0.0.1:<port>/workbench","token":"<64-hex>"}`；
+  默认自动打开本机浏览器（`--no-browser` 关闭），把 token 粘进登录框即可进入。
+- 只有一个进程：静态 UI 与 `/api/*` 同源，不需要先起别的内部服务。
+- token 只存在于该进程与这次终端输出，不进命令行参数、不落盘，进程退出即失效。
+- 脚本化/CI 场景用底层入口：`python -m design_lab --project <dir> serve --port <p>`，
+  token 由 stdin 注入（`serve` 在 tty 上直接拒绝启动，避免误以为可以手敲）。
+- 项目数据持久化在 `<项目>/.project-local/`；服务重启后项目、简报、方向与绑定仍在
+  （`design-lab/tests/test_workbench_launch.py` 覆盖启动、CSP、bundle 与重启读回）。
+
 ## 验证入口
 
 ```bash
