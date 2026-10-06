@@ -96,7 +96,12 @@ def classify(rel: str, head: str) -> tuple:
     if rel.startswith("docs/history/"):
         return "HISTORICAL", "frozen historical path (docs/history/)"
     if rel.startswith("docs/taskpacks/"):
-        return "REFERENCE", "older taskpack retained for reference; not a current dispatch entry"
+        # A newer-but-unadopted pack is not "older": say what it actually is, so the
+        # generated basis does not misdescribe a REQUESTED work package as history.
+        if "REQUESTED" in head:
+            return "REFERENCE", ("requested work package archived for reference; "
+                                 "not adopted as current authority")
+        return "REFERENCE", "taskpack retained for reference; not a current dispatch entry"
     return "REFERENCE", "no superseding marker found; retained for reference"
 
 
