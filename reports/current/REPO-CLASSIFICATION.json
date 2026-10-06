@@ -1,10 +1,10 @@
 {
   "schemaVersion": "design-lab/repo-classification/v1",
-  "generatedAt": "2026-10-06T06:27:34Z",
-  "observedCommit": "50b000ab9d71e9483fe3dbcece883cea894c2dcd",
+  "generatedAt": "2026-10-06T08:20:05Z",
+  "observedCommit": "f3ceccbf914bd7a532e28761c9565c93f86639da",
   "totals": {
-    "trackedFiles": 2916,
-    "workingTreeMiB": 44.81,
+    "trackedFiles": 2923,
+    "workingTreeMiB": 44.86,
     "packMiB": 223.82,
     "note": "pack 含全部历史与 tag 归档；working tree 为当前检出字节。两者之差不是垃圾。"
   },
@@ -15,14 +15,14 @@
       "mib": 0.03
     },
     "documentation": {
-      "files": 111,
+      "files": 113,
       "bundles": 2,
-      "mib": 0.97
+      "mib": 0.99
     },
     "evidence": {
       "files": 1147,
       "bundles": 5,
-      "mib": 26.35
+      "mib": 26.34
     },
     "generated": {
       "files": 84,
@@ -40,9 +40,9 @@
       "mib": 0.22
     },
     "source": {
-      "files": 1307,
+      "files": 1312,
       "bundles": 7,
-      "mib": 8.77
+      "mib": 8.8
     }
   },
   "bundles": [
@@ -77,8 +77,8 @@
       "path": "design-lab/",
       "category": "source",
       "note": "设计核心其余模块",
-      "files": 824,
-      "bytes": 5496650,
+      "files": 828,
+      "bytes": 5526060,
       "cited_by_authority": 4,
       "lastTouch": "2026-10-06"
     },
@@ -87,7 +87,7 @@
       "category": "evidence",
       "note": "UI 收口证据与记录",
       "files": 93,
-      "bytes": 5291545,
+      "bytes": 5285307,
       "cited_by_authority": 0,
       "lastTouch": "2026-10-06"
     },
@@ -128,21 +128,21 @@
       "lastTouch": "2026-09-18"
     },
     {
+      "path": "docs/",
+      "category": "documentation",
+      "note": "其余文档",
+      "files": 110,
+      "bytes": 1011209,
+      "cited_by_authority": 11,
+      "lastTouch": "2026-10-06"
+    },
+    {
       "path": "reports/current/",
       "category": "generated",
       "note": "当前状态投影（由生成器再生）",
       "files": 63,
-      "bytes": 1009410,
+      "bytes": 1009711,
       "cited_by_authority": 4,
-      "lastTouch": "2026-10-06"
-    },
-    {
-      "path": "docs/",
-      "category": "documentation",
-      "note": "其余文档",
-      "files": 109,
-      "bytes": 1001442,
-      "cited_by_authority": 11,
       "lastTouch": "2026-10-06"
     },
     {
@@ -150,9 +150,9 @@
       "category": "source",
       "note": "产品源码",
       "files": 85,
-      "bytes": 881036,
+      "bytes": 883283,
       "cited_by_authority": 0,
-      "lastTouch": "2026-09-30"
+      "lastTouch": "2026-10-06"
     },
     {
       "path": "integrations/",
@@ -167,8 +167,8 @@
       "path": "scripts/",
       "category": "source",
       "note": "根级门与工具",
-      "files": 49,
-      "bytes": 499902,
+      "files": 50,
+      "bytes": 505618,
       "cited_by_authority": 4,
       "lastTouch": "2026-10-06"
     },
@@ -177,7 +177,7 @@
       "category": "generated",
       "note": "提交的构建产物（Build Output Truth）",
       "files": 13,
-      "bytes": 464934,
+      "bytes": 467141,
       "cited_by_authority": 0,
       "lastTouch": "2026-10-06"
     },
@@ -213,8 +213,17 @@
       "category": "source",
       "note": "CI 定义",
       "files": 5,
-      "bytes": 27640,
+      "bytes": 27764,
       "cited_by_authority": 1,
+      "lastTouch": "2026-10-06"
+    },
+    {
+      "path": "research/",
+      "category": "documentation",
+      "note": "研究素材",
+      "files": 3,
+      "bytes": 27170,
+      "cited_by_authority": 0,
       "lastTouch": "2026-10-06"
     },
     {
@@ -243,15 +252,6 @@
       "bytes": 21123,
       "cited_by_authority": 1,
       "lastTouch": "2026-09-19"
-    },
-    {
-      "path": "research/",
-      "category": "documentation",
-      "note": "研究素材",
-      "files": 2,
-      "bytes": 16320,
-      "cited_by_authority": 0,
-      "lastTouch": "2026-09-04"
     },
     {
       "path": "AUTHORITY.md",
