@@ -697,6 +697,12 @@ html,body{margin:0}
 .kpi .trend.up{color:var(--success)}
 .kpi .trend.warn{color:var(--warning)}
 .list{display:flex;flex-direction:column;gap:10px}
+/* A bordered row. Two different things wore `.list-item` at once (audit D-2):
+   a member of a `.list`, and a free-standing form/action card appended straight
+   to a `.panel`. The cards are now `.row-card`. Both names deliberately share one
+   surface rule set below rather than re-authoring it, so the rename is provably
+   not a restyle; divergence is a separate, intentional edit. */
+.row-card,
 .list-item{
   display:flex;justify-content:space-between;align-items:center;gap:12px;
   padding:13px 14px;border-radius:14px;
@@ -704,10 +710,12 @@ html,body{margin:0}
   border:1px solid color-mix(in srgb,var(--border) 68%, transparent);
   transition:.18s ease;
 }
+.row-card:hover,
 .list-item:hover{
   transform:translateY(-1px);
   border-color:color-mix(in srgb,var(--primary) 34%, white 3%);
 }
+.row-card small,
 .list-item small{display:block;color:var(--muted);margin-top:3px}
 /* AA contrast, measured in Chromium against these exact fills. 12px/700 is NOT
    "large text" (that needs >=18.66px bold), so the 4.5:1 floor applies and the
@@ -1282,10 +1290,10 @@ html,body{margin:0}
    .list-item（flex + space-between）里的 .tag（white-space:nowrap）
    顶着一条完整文件系统路径把行撑到 ~600px，面板 overflow:hidden 静默裁掉。 */
 .two-col>*,.three-col>*,.split>*,.kpi-grid>*{min-width:0}
-.list-item,.list-item>*{min-width:0}
+.row-card,.list-item,.row-card>*,.list-item>*{min-width:0}
 /* 兜底：即便某个 .tag 仍是 nowrap 长串，也让它换行到下一行而不是顶破面板。
    只有在内容真的放不下时才会触发，不改变常规行的视觉。 */
-.list-item{flex-wrap:wrap}
+.row-card,.list-item{flex-wrap:wrap}
 .items-stack,.items-chips,.items-stack>*,.items-chips>*{min-width:0}
 
 /* --- F-2 长值不再塞进 .tag ------------------------------------------------
@@ -1299,6 +1307,7 @@ html,body{margin:0}
 /* 长值行改为上下堆叠：标签一行、值一行，避免值被挤成两三字符宽的竖条 */
 .list-item.value-row{flex-direction:column;align-items:stretch;gap:6px}
 /* 路径同样会撑破 .list-item small */
+.row-card small,
 .list-item small{overflow-wrap:anywhere;word-break:break-word}
 /* 表格区是可滚动区域（.table-wrap overflow:auto），限宽后即可横向卷动而不顶破面板 */
 .table-wrap{max-width:100%}

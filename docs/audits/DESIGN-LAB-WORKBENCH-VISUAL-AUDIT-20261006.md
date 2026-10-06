@@ -319,3 +319,22 @@ owner 已裁决「批准拆类」，因此这里记录**拆分前提**，而不�
 即：`div.list` → `ul.list`、其成员 `div.list-item` → `li.list-item`；6 处游离卡片与
 `briefFieldRow` → `.row-card`。这一步会改变**无障碍树**（多了 `list`/`listitem` 角色）而不改变
 像素布局——`§五` 的溢出闸门与 `test_workbench_contrast_gate.py` 必须在改后重跑取证。
+
+### 10.3 落地进度（2026-10-07）
+
+**卡片半边已完成**：`.list-item` 的重载被拆成两个名字。卡片是**可机械识别**的那一半——
+判据就是"自带 inline `display`"（列表成员从不这样），所以 `class: 'list-item', style: 'display:grid…'`
+这个形状精确命中 7 处（6 个直接 append 到 `.panel` 的卡片 + `briefFieldRow` 的 row）。
+
+拆分**不是改样式**：原来给 `.list-item` 的每一条规则都改成 `.row-card,.list-item` 成对选择器，
+两个名字共享同一组表面声明，所以计算值不可能变。这一半的正确性由**真实浏览器闸门**取证
+（溢出闸门 + 对比度闸门在改动前后都必须绿），而不是由"看起来一样"取证。
+`test_workbench_css_single_definition.py` 里钉住两条防回退断言：`shell.ts` 不得再出现
+`class: 'list-item', style: 'display:` 这个形状（否则 ul/li 改造会产出落在 `ul` 外的 `li`），
+以及 `.row-card` 必须带着卡片表面那组声明。两条断言都在改动前的树上验证过会失败
+（旧树命中 7 次、且完全没有 `.row-card`），不是空转。
+
+**未完成的半边**：`div.list` → `ul.list`、成员 `div.list-item` → `li.list-item`。
+63 处成员里有 30 个 `.list` 容器，且成员并非都在创建点就地内联（例如 `directionRow()`、
+`briefRows` 先建成变量再展开进容器），所以标签必须跟着**归属**走而不是跟着创建点走。
+这是下一步，且现在才真正可做：卡片已经搬走，容器里剩下的就都是成员。

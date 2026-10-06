@@ -1460,7 +1460,7 @@ function briefFieldRow(prefix: string): {
   const title = el('input', { id: `${prefix}-title`, class: 'input', maxlength: '160', placeholder: '例如：秋季品牌视觉' });
   const goals = el('input', { id: `${prefix}-goals`, class: 'input', maxlength: '400', placeholder: '现代, 温暖, 克制' });
   const constraints = el('input', { id: `${prefix}-constraints`, class: 'input', maxlength: '400', placeholder: '例如：不改变 logo 拓扑' });
-  const row = el('div', { class: 'list-item', style: 'display:grid;gap:8px' },
+  const row = el('div', { class: 'row-card', style: 'display:grid;gap:8px' },
     fieldRow('简报标题（必填）', title, `${prefix}-title`),
     fieldRow('目标（逗号分隔，必填）', goals, `${prefix}-goals`),
     fieldRow('约束（可选）', constraints, `${prefix}-constraints`));
@@ -1758,9 +1758,9 @@ function renderBriefEditor(id: string, layer: DesignLayerResponse['design_layer'
   panel.append(
     el('h3', {}, `简报（Brief）· ${layer.briefs.length} 个版本`),
     el('div', { class: 'list' }, ...briefRows),
-    el('div', { class: 'list-item', style: 'display:grid;gap:10px' },
+    el('div', { class: 'row-card', style: 'display:grid;gap:10px' },
       el('strong', {}, '新建简报'), create.row, el('div', { class: 'actions' }, createBtn)),
-    el('div', { class: 'list-item', style: 'display:grid;gap:10px' },
+    el('div', { class: 'row-card', style: 'display:grid;gap:10px' },
       el('strong', {}, '修订 / 新增版本'), revHint, rev.row, el('div', { class: 'actions' }, revBtn)),
     lineageBox,
     el('div', { class: 'actions', id: 'pd-brief-statebar' }, stateChip, discardBtn),
@@ -1981,9 +1981,9 @@ function renderReferencePanel(id: string): HTMLElement {
 
   return el('div', { class: 'panel', id: 'pd-reference-panel' },
       heading, list,
-      el('div', { class: 'list-item', style: 'display:grid;gap:8px' },
+      el('div', { class: 'row-card', style: 'display:grid;gap:8px' },
         el('strong', {}, '预览（按需读取）'), preview, info),
-    el('div', { class: 'list-item', style: 'display:grid;gap:8px' },
+    el('div', { class: 'row-card', style: 'display:grid;gap:8px' },
       el('strong', {}, '批量导入（PNG / JPEG，单个 ≤ 32 MiB）'),
       fieldRow('选择要导入的图片', fileInput, 'pd-ref-files'), selection,
       el('div', { class: 'actions' }, importBtn, cancelBtn),
@@ -2114,7 +2114,7 @@ function renderDirectionPanel(id: string, layer: DesignLayerResponse['design_lay
         : [el('div', { class: 'list-item' },
           el('div', {}, el('strong', {}, '尚无方向候选'),
             el('small', {}, '先建立简报，再用下方表单立候选；选定必须由人执行。')))])),
-    el('div', { class: 'list-item', style: 'display:grid;gap:8px' },
+    el('div', { class: 'row-card', style: 'display:grid;gap:8px' },
       el('strong', {}, '新建方向候选（绑定到某个简报版本）'),
       fieldRow('所属简报版本', briefSelect, 'pd-dir-brief'),
       fieldRow('方向标题（必填）', title, 'pd-dir-title'),
@@ -2207,7 +2207,7 @@ function renderDesignSystemPanel(
               : `不一致：活动绑定属于 ${active.direction_id}，而人工选定的是 ${chosen.direction_id}。`)),
           el('span', { class: consistent ? 'tag ok' : 'tag bad' }, consistent ? '一致' : '不一致'))]
         : [])),
-    el('div', { class: 'list-item', style: 'display:grid;gap:8px' },
+    el('div', { class: 'row-card', style: 'display:grid;gap:8px' },
       el('strong', {}, '绑定设计系统（需先有人选定方向）'),
       gate, fieldRow('要绑定的设计系统', select, 'pd-ds-name'),
       el('div', { class: 'actions' }, bindBtn)),

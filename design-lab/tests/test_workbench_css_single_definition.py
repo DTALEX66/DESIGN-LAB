@@ -272,5 +272,31 @@ class DTwoSplitLanded(unittest.TestCase):
         self.assertIn("items-chips", shell)
 
 
+class RowCardSplitLanded(unittest.TestCase):
+    """`.list-item` also meant "free-standing card"; that overload is now gone.
+
+    The card half was identifiable exactly because it overrides the row layout
+    with its own inline `display`, which a list member never does.
+    """
+
+    def setUp(self):
+        self.css = STYLE_SHEET.read_text(encoding="utf-8")
+        self.shell = (WORKBENCH_DIR / "shell.ts").read_text(encoding="utf-8")
+
+    def test_no_card_still_wears_the_list_member_name(self):
+        shape = re.findall(r"class: 'list-item', style: 'display:", self.shell)
+        self.assertEqual(shape, [],
+                         "an element that sets its own display is a card, not a list "
+                         "member; it must use .row-card or the ul/li conversion will "
+                         "produce an <li> outside a <ul>")
+
+    def test_row_card_is_defined_with_the_card_surface(self):
+        block = re.search(r"\.row-card,\s*\.list-item\{([^}]*)\}", strip_comments(self.css))
+        self.assertIsNotNone(block, ".row-card must share the card surface block")
+        for prop in ("padding", "border-radius", "background", "border", "transition"):
+            self.assertIn(prop, block.group(1),
+                          f".row-card/.list-item lost {prop}")
+
+
 if __name__ == "__main__":
     unittest.main(verbosity=2)
