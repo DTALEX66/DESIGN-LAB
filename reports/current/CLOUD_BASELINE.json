@@ -9,14 +9,14 @@
   },
   "fresh": false,
   "freshnessMeaning": "at generation only; check verifies bound-input integrity, not current Git or cloud state",
-  "generatedAt": "2026-10-06T22:15:06+00:00",
+  "generatedAt": "2026-10-06T22:24:27+00:00",
   "gitStateMeaning": "generation-time observation, not current HEAD",
   "local": {
-    "branch": "tmp-rebase-qoder/designlab-css-single-definition-20261007",
-    "origin_main": "f36ba6ec1b52dd91978ab4f4dac239d2f7eba9b3",
-    "sha": "ca4471a7c045af8ba28ae24605adabf7f1d0e384",
+    "branch": "tmp-rebase-qoder/designlab-t1-review-r5-004-20261007",
+    "origin_main": "a371675157b5bbe4d9e72b2bb286d1160d51eab7",
+    "sha": "4d4eddd06b2f4e14f1bdab1227f6e6f328e44630",
     "source_worktree_clean": false,
-    "tracked_files": 2974,
+    "tracked_files": 2975,
     "worktree_changes": [
       {
         "content": "sha256:f5f79872cb8be8f15697ea0b46894d4f0c2841e4a5910259e79cdf022ba45531",
@@ -27,6 +27,11 @@
         "content": "sha256:6e1e39cfe123d454d4bc678051d7137d6293b8f4a056d297cad10a3f48b264a1",
         "kind": "A",
         "path": "design-lab/tests/test_vendor_revisions.py"
+      },
+      {
+        "content": "sha256:a465b874177d4378ddb709284a3515a855281505ab151d638166f4ae9b3076e8",
+        "kind": "A",
+        "path": "design-lab/tests/test_workbench_css_single_definition.py"
       },
       {
         "content": "sha256:1ff255d266969ad0125925620d13c838069d5f0407803a141f319181d23ae12d",
@@ -44,9 +49,39 @@
         "path": ".project/paths.json"
       },
       {
+        "content": "sha256:1efd564d54c7ba77c10aed10c8153811356238676c67a2c9135962ce1d397d63",
+        "kind": "M",
+        "path": "apps/workbench/build/main.js"
+      },
+      {
+        "content": "sha256:35d8449aab658af094c64ea32a576926116016d384f7707d8090e959b971098a",
+        "kind": "M",
+        "path": "apps/workbench/index.html"
+      },
+      {
+        "content": "sha256:f81e9430cb87e222930da9cac18c526246bf940a2d3865e9ec8dd343c1e2f35f",
+        "kind": "M",
+        "path": "apps/workbench/shell.ts"
+      },
+      {
+        "content": "sha256:01ea99f42423d9cbb9e828f2d0d9bbc067787dc3a6b439ffdda78c455427e513",
+        "kind": "M",
+        "path": "apps/workbench/style.css"
+      },
+      {
         "content": "sha256:0cbb2b98788f42464eba5b154130ba88b049d1871341d69acdd33e1cd769fc31",
         "kind": "M",
         "path": "design-lab/tests/test_doctor_evidence.py"
+      },
+      {
+        "content": "sha256:e6db99ee25bc63767df26ca79cbd94cc6b06e06396652cc63cdc1e4ae5cab69b",
+        "kind": "M",
+        "path": "docs/audits/DESIGN-LAB-WORKBENCH-VISUAL-AUDIT-20261006.md"
+      },
+      {
+        "content": "sha256:3b12fd5f7ce4bfa6b34e9807bfa199bc671b2fdad660350d70ecd855c4a99ea1",
+        "kind": "M",
+        "path": "docs/handoffs/DESIGN-LAB-WORKBENCH-VISUAL-AUDIT-HANDOFF-2026-10-06.md"
       },
       {
         "content": "sha256:09581ac1778c2c447767d94d07ac32d53e2792b6f83e7e68364a3fc026ff0f33",
@@ -59,13 +94,13 @@
         "path": "src/design_lab/runtime/paths.py"
       }
     ],
-    "worktree_digest": "sha256:bcef3e86fe544d7fbf96399c438e793fba3021b47aa24b945476fb48b86aac83"
+    "worktree_digest": "sha256:215368853c09b67da5102aced8bcdf56c5faac9d28b9a8989a90cc41ca5be44f"
   },
   "note": "No GitHub API query was run by this generator; tool installation is not inferred.",
   "remoteRef": "origin/main (local tracking ref)",
   "schemaVersion": "design-lab/cloud-baseline/v2",
   "subjectMeaning": "subjectType=WORKTREE means the tree was dirty at generation; worktreeDigest covers HEAD plus the non-generated changes",
-  "subjectSha": "ca4471a7c045af8ba28ae24605adabf7f1d0e384",
+  "subjectSha": "4d4eddd06b2f4e14f1bdab1227f6e6f328e44630",
   "subjectType": "WORKTREE",
   "taskpackHash": "31dde89eb4ede81fe88c0a5c5144adfb86af8db4c4d8c263bde2199180369b69",
   "taskpackId": "DL-TP-20260908-R5",
@@ -78,5 +113,5 @@
     "branchProtection"
   ],
   "worktreeClean": false,
-  "worktreeDigest": "sha256:bcef3e86fe544d7fbf96399c438e793fba3021b47aa24b945476fb48b86aac83"
+  "worktreeDigest": "sha256:215368853c09b67da5102aced8bcdf56c5faac9d28b9a8989a90cc41ca5be44f"
 }
