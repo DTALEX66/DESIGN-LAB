@@ -136,6 +136,15 @@ def main() -> int:
             errors.append(f"{prefix} integration.status invalid: {status!r}")
         if "target" in integration and not isinstance(integration["target"], str):
             errors.append(f"{prefix} integration.target must be string")
+        # An `active` absorption claims the destination exists in the repo. Before
+        # this line only checked the target was a string, so all six active
+        # entries kept passing after DL-DIR-MIG-R1 (c9cde8a5) deleted the whole
+        # design-lab/knowledge tree they pointed into. Existence is the claim.
+        if status == "active" and isinstance(integration.get("target"), str):
+            target = integration["target"]
+            if target and not (ROOT.parent / target).exists():
+                errors.append(
+                    f"{prefix} integration.status=active but target is missing: {target}")
 
         # ---- governance checks (only for schema-clean entries) ----
         if verrors:
