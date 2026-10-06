@@ -1,22 +1,273 @@
 {
   "checkScope": "bound-input-and-output-integrity; not current Git or cloud freshness",
-  "generatedAt": "2026-10-06T19:42:18+00:00",
+  "generatedAt": "2026-10-06T21:53:55+00:00",
   "gitObservation": {
-    "branch": "qoder/designlab-t1-review-r5-004-20261007",
-    "origin_main": "ee2cf1fafb487588b09dfdee993f9b1d28f668e6",
-    "sha": "78bf25132f8b266d83e33377d670c41075769d66",
+    "branch": "tmp-rebase-qoder/designlab-t1-review-r5-004-20261007",
+    "origin_main": "093ebdaa85aa83f2b34f45901657a9808806b0c2",
+    "sha": "342a13ea8ffdc0660e0ab5cd119c5511bbea7457",
     "source_worktree_clean": false,
-    "tracked_files": 2967,
+    "tracked_files": 2970,
     "worktree_changes": [
       {
-        "content": "sha256:add0c76ef46d3bc4b4361f28e116a1f672a4af19fb4771b1329da3b148178e86",
+        "content": "sha256:fd45a774c5fd59f01b6475837317c580a30c130e3770f463032adb1ff6d6996d",
+        "kind": "A",
+        "path": "design-lab/tests/test_inert_blob_placement.py"
+      },
+      {
+        "content": "sha256:b93f138e05cdb8a786028aaa6fc9ce79e8dd703ee6bb52cae350c8d2ee8e45e4",
+        "kind": "A",
+        "path": "design-lab/tests/test_test_environment_guard.py"
+      },
+      {
+        "content": "sha256:bdc6163c379c4bfee3203ecb0aaa2eb5079dd0e1d8190dbdc22ed713e2adce09",
+        "kind": "A",
+        "path": "docs/audits/DESIGN-LAB-T1-LEDGER-REVIEW-DL-R5-003-20261007.md"
+      },
+      {
+        "content": "sha256:80bd5b672a22dd7708562c7f9747d03ce66fdd6c5b96a706157c290ecd59c73b",
         "kind": "M",
-        "path": "docs/audits/DESIGN-LAB-T1-LEDGER-REVIEW-DL-R5-004-20261007.md"
+        "path": "apps/workbench/build/main.js"
+      },
+      {
+        "content": "sha256:a0a9f3ade5611a6e41b758f8e0fdcc77c35110cee0a0e803554914698fa392e5",
+        "kind": "M",
+        "path": "apps/workbench/shell.ts"
+      },
+      {
+        "content": "sha256:faee420b39fd1cb8ae2f881030f9c5a2cb29ef49fd2410268a858adcd045776a",
+        "kind": "M",
+        "path": "design-lab/research/global-absorption/QUARANTINE_REGISTRY.json"
+      },
+      {
+        "content": "sha256:4ce04241bbf0181a864cdd87eb52831ce55d638ee2654fce254331411d9c0c5a",
+        "kind": "M",
+        "path": "scripts/verify_zero_spill.py"
+      },
+      {
+        "content": "sha256:5ecb47944893ba03c723126125222a4e7672a2de83a3fc72fd607c26ac6e716b",
+        "kind": "M",
+        "path": "vendor/sources.lock.json"
+      },
+      {
+        "content": "sha256:6d6a2a9caf2e6d2b76974050427053b2892d8aa4c33fd168ce63a537fcee9d96",
+        "kind": "R",
+        "moved_from": "packages/capabilities/production/huashu-design/LICENSE",
+        "path": "design-lab/research/quarantine/huashu-design/LICENSE"
+      },
+      {
+        "content": "sha256:46ac145fcbeea3795da48be85910df8c3fd3d95710753bab47c6d39504357f80",
+        "kind": "R",
+        "moved_from": "packages/capabilities/production/huashu-design/README.md",
+        "path": "design-lab/research/quarantine/huashu-design/README.md"
+      },
+      {
+        "content": "sha256:db1c782b7f32afcf7119d758b12fa6c97e3c2ba327c394b190f63a08e48799c4",
+        "kind": "R",
+        "moved_from": "packages/capabilities/production/huashu-design/SKILL.md",
+        "path": "design-lab/research/quarantine/huashu-design/SKILL.md"
+      },
+      {
+        "content": "sha256:399bca9fb403b50fdf89e0fbcaaba7168848c53a2f83d56b53b14bb404c5dd7a",
+        "kind": "R",
+        "moved_from": "packages/capabilities/production/huashu-design/SOURCE.md",
+        "path": "design-lab/research/quarantine/huashu-design/SOURCE.md"
+      },
+      {
+        "content": "sha256:25475265cb8af01c38778f771db2b11199bc50c2dca8d58e7372ab555ad77809",
+        "kind": "R",
+        "moved_from": "packages/capabilities/production/huashu-design/references/ai-video-review.md",
+        "path": "design-lab/research/quarantine/huashu-design/references/ai-video-review.md"
+      },
+      {
+        "content": "sha256:347a751b3114199e52c2349c2ad6a00c619a5cee5f50cec114ded0d0fbdc9ffe",
+        "kind": "R",
+        "moved_from": "packages/capabilities/production/huashu-design/references/animation-best-practices.md",
+        "path": "design-lab/research/quarantine/huashu-design/references/animation-best-practices.md"
+      },
+      {
+        "content": "sha256:10c897e79ec0e976ef0a622c6fc05147e996081c9a83b451770de97a80cd84d7",
+        "kind": "R",
+        "moved_from": "packages/capabilities/production/huashu-design/references/animation-pitfalls.md",
+        "path": "design-lab/research/quarantine/huashu-design/references/animation-pitfalls.md"
+      },
+      {
+        "content": "sha256:8790b4580f182b082f8df8740fc09337c29ed323f5fd6ffc960fb158ae68ae98",
+        "kind": "R",
+        "moved_from": "packages/capabilities/production/huashu-design/references/animations.md",
+        "path": "design-lab/research/quarantine/huashu-design/references/animations.md"
+      },
+      {
+        "content": "sha256:964492c5d298c30445080ec176969c538da283f039b514047db1abe9a8634a43",
+        "kind": "R",
+        "moved_from": "packages/capabilities/production/huashu-design/references/app-prototype.md",
+        "path": "design-lab/research/quarantine/huashu-design/references/app-prototype.md"
+      },
+      {
+        "content": "sha256:263847cc370e097d5ef31287556111de7d2098551dfc5b06641d7ea60fcf82ba",
+        "kind": "R",
+        "moved_from": "packages/capabilities/production/huashu-design/references/apple-gallery-showcase.md",
+        "path": "design-lab/research/quarantine/huashu-design/references/apple-gallery-showcase.md"
+      },
+      {
+        "content": "sha256:aa8c76e64100507b7f264a78b9408028935b2bdafe2bbde695ed4a49555a75a0",
+        "kind": "R",
+        "moved_from": "packages/capabilities/production/huashu-design/references/audio-design-rules.md",
+        "path": "design-lab/research/quarantine/huashu-design/references/audio-design-rules.md"
+      },
+      {
+        "content": "sha256:bc476983114f00057134d47b229fb4496a37bbac2fcbb4bf9f86139165e1528d",
+        "kind": "R",
+        "moved_from": "packages/capabilities/production/huashu-design/references/brand-asset-protocol.md",
+        "path": "design-lab/research/quarantine/huashu-design/references/brand-asset-protocol.md"
+      },
+      {
+        "content": "sha256:17d9ec457df9920953588ffdd1fdff92c3679093cebd3b022b48861105563c71",
+        "kind": "R",
+        "moved_from": "packages/capabilities/production/huashu-design/references/camera-language.md",
+        "path": "design-lab/research/quarantine/huashu-design/references/camera-language.md"
+      },
+      {
+        "content": "sha256:1266cb4feb14e44997b6abcc33091991565402ec6a7b22698628b31a4da472b8",
+        "kind": "R",
+        "moved_from": "packages/capabilities/production/huashu-design/references/cinematic-patterns.md",
+        "path": "design-lab/research/quarantine/huashu-design/references/cinematic-patterns.md"
+      },
+      {
+        "content": "sha256:3c0bcf0e94b4f6cc64b11e871ba8d53607ad6ec7317f08dc3f7f5bb6708088a7",
+        "kind": "R",
+        "moved_from": "packages/capabilities/production/huashu-design/references/content-guidelines.md",
+        "path": "design-lab/research/quarantine/huashu-design/references/content-guidelines.md"
+      },
+      {
+        "content": "sha256:3636ed8422bb88a11bc3e1db00b252b707f20cf83f6ec900077abb020ff7a8ce",
+        "kind": "R",
+        "moved_from": "packages/capabilities/production/huashu-design/references/critique-guide.md",
+        "path": "design-lab/research/quarantine/huashu-design/references/critique-guide.md"
+      },
+      {
+        "content": "sha256:93a7e6be5f6cb29076d3651747d5033701362ddd03283b1ddf11b105757430b6",
+        "kind": "R",
+        "moved_from": "packages/capabilities/production/huashu-design/references/design-context.md",
+        "path": "design-lab/research/quarantine/huashu-design/references/design-context.md"
+      },
+      {
+        "content": "sha256:f1904cd217fe3c974d7bc4ae6ea57cbbfef9e5362e86f836ed45fd74af8f0fea",
+        "kind": "R",
+        "moved_from": "packages/capabilities/production/huashu-design/references/design-styles.md",
+        "path": "design-lab/research/quarantine/huashu-design/references/design-styles.md"
+      },
+      {
+        "content": "sha256:b5b56aa3e94bc5858b1b0405b86a3c4f5f983ddf0df4584d63caf44328a8e2d7",
+        "kind": "R",
+        "moved_from": "packages/capabilities/production/huashu-design/references/editable-pptx.md",
+        "path": "design-lab/research/quarantine/huashu-design/references/editable-pptx.md"
+      },
+      {
+        "content": "sha256:374f346aeab61192f497130f933424bd3a3850e2f68e03f73cd3fa81e058a33a",
+        "kind": "R",
+        "moved_from": "packages/capabilities/production/huashu-design/references/gsap-recipes.md",
+        "path": "design-lab/research/quarantine/huashu-design/references/gsap-recipes.md"
+      },
+      {
+        "content": "sha256:57df5520e54dc0cc69e486670a7e395958f6b95408275f9413c5bb5a06de5c5e",
+        "kind": "R",
+        "moved_from": "packages/capabilities/production/huashu-design/references/hero-animation-case-study.md",
+        "path": "design-lab/research/quarantine/huashu-design/references/hero-animation-case-study.md"
+      },
+      {
+        "content": "sha256:247354f0255de2486117783d29cfaa104cd5bdf9ad918c85918a3e78ec04dbca",
+        "kind": "R",
+        "moved_from": "packages/capabilities/production/huashu-design/references/hyperframes-backend.md",
+        "path": "design-lab/research/quarantine/huashu-design/references/hyperframes-backend.md"
+      },
+      {
+        "content": "sha256:1cc8c18d693231c3b2438057a1fc43fd72edbf7f2a60eec548dad6903cd13338",
+        "kind": "R",
+        "moved_from": "packages/capabilities/production/huashu-design/references/launch-film-director-notes.md",
+        "path": "design-lab/research/quarantine/huashu-design/references/launch-film-director-notes.md"
+      },
+      {
+        "content": "sha256:e1f80cc2e3e12d04405f897f3da49b371dbc7782c5ba23152a956c2780e738da",
+        "kind": "R",
+        "moved_from": "packages/capabilities/production/huashu-design/references/multi-perspective-parallel-case-study.md",
+        "path": "design-lab/research/quarantine/huashu-design/references/multi-perspective-parallel-case-study.md"
+      },
+      {
+        "content": "sha256:97dfcbbea673131b9d10c5fe0c553fe489d3c2e583381de72e8c1b3c5eed5346",
+        "kind": "R",
+        "moved_from": "packages/capabilities/production/huashu-design/references/react-setup.md",
+        "path": "design-lab/research/quarantine/huashu-design/references/react-setup.md"
+      },
+      {
+        "content": "sha256:c91852062d923787896076368fff883bed2eb8b53087f1efdc2f81ed3014a314",
+        "kind": "R",
+        "moved_from": "packages/capabilities/production/huashu-design/references/scene-templates.md",
+        "path": "design-lab/research/quarantine/huashu-design/references/scene-templates.md"
+      },
+      {
+        "content": "sha256:43e5e00a23e72b78b1872fbf88c38f829a2d3feb5cc5dc49260cdeb98f1958f9",
+        "kind": "R",
+        "moved_from": "packages/capabilities/production/huashu-design/references/sfx-library.md",
+        "path": "design-lab/research/quarantine/huashu-design/references/sfx-library.md"
+      },
+      {
+        "content": "sha256:f7c67305f9f169c6ce86bb35ddf5fd0b95bd543822f7aa0e27f0f66bbd95ac05",
+        "kind": "R",
+        "moved_from": "packages/capabilities/production/huashu-design/references/slide-decks.md",
+        "path": "design-lab/research/quarantine/huashu-design/references/slide-decks.md"
+      },
+      {
+        "content": "sha256:b8775952ae96bbe3e99f080520896fa9d853d324733c771da5f45da865b6f884",
+        "kind": "R",
+        "moved_from": "packages/capabilities/production/huashu-design/references/storyboard-basics.md",
+        "path": "design-lab/research/quarantine/huashu-design/references/storyboard-basics.md"
+      },
+      {
+        "content": "sha256:88569174eaa1d790e5f261a287e44ea39f6b8bce926493d21ad5ff4e7c2ef441",
+        "kind": "R",
+        "moved_from": "packages/capabilities/production/huashu-design/references/tweaks-system.md",
+        "path": "design-lab/research/quarantine/huashu-design/references/tweaks-system.md"
+      },
+      {
+        "content": "sha256:661ec64c19df00ef0e90fc388a1e61f5adbdd3b7fe0f4c536f9ba60901c3dee7",
+        "kind": "R",
+        "moved_from": "packages/capabilities/production/huashu-design/references/typography.md",
+        "path": "design-lab/research/quarantine/huashu-design/references/typography.md"
+      },
+      {
+        "content": "sha256:38a2b52ad03d97442757016f1ef2c4c439d4f3e9f234cdce81cacc6fb60a894c",
+        "kind": "R",
+        "moved_from": "packages/capabilities/production/huashu-design/references/ui-demo-animation.md",
+        "path": "design-lab/research/quarantine/huashu-design/references/ui-demo-animation.md"
+      },
+      {
+        "content": "sha256:f969b6861f86c5a410618c562d585efab221583f132bc75f1d0e81703008aeb6",
+        "kind": "R",
+        "moved_from": "packages/capabilities/production/huashu-design/references/verification.md",
+        "path": "design-lab/research/quarantine/huashu-design/references/verification.md"
+      },
+      {
+        "content": "sha256:7ed97faa22b49f407c61a482eddb3b30a7463c3e5e491e5a4b2bcb48ad7929f6",
+        "kind": "R",
+        "moved_from": "packages/capabilities/production/huashu-design/references/video-export.md",
+        "path": "design-lab/research/quarantine/huashu-design/references/video-export.md"
+      },
+      {
+        "content": "sha256:c8e992779eb3de74b7c46c195a46dd716ee922def7ea5f9e19beef814834e756",
+        "kind": "R",
+        "moved_from": "packages/capabilities/production/huashu-design/references/voiceover-pipeline.md",
+        "path": "design-lab/research/quarantine/huashu-design/references/voiceover-pipeline.md"
+      },
+      {
+        "content": "sha256:57c032774cb789949bb5ef5840cefc137f31573cc2449fc8f699a794bf40d4ee",
+        "kind": "R",
+        "moved_from": "packages/capabilities/production/huashu-design/references/workflow.md",
+        "path": "design-lab/research/quarantine/huashu-design/references/workflow.md"
       }
     ],
-    "worktree_digest": "sha256:5bbe7e25e01d7531d6099a5662504f34eb189fbeaa76d2874e25966d0625dc5a"
+    "worktree_digest": "sha256:60d7e00c8c9d8efa536396362fb0f05fc4ecebd8c63921c36061244955250195"
   },
-  "inputDigest": "sha256:7ecd4d92d2815ce334bf5bab3826c9a53f3de78748432628988ae3bea3ae07b7",
+  "inputDigest": "sha256:a784de37969a38e86a2d4ef5789521d24fe3fe4db0cb784c5d1392bb9fc14b10",
   "inputDigestMeaning": "primary freshness binding: canonical SHA-256 over the exact input files the projections read plus the git tree scope; recomputed at check time (FU-10)",
   "inputHashes": {
     ".github/workflows/canonical-verify.yml": "77734ded9bc7ac5b8223840cf483f70c62dc1c9740b60c2f3cf0219f7790a15e",
@@ -28,11 +279,11 @@
     ".project/governance/data-ownership.yaml": "7202baea30612c9acbc722be331913193dec505547bc8e8d73a82642735199c4",
     ".project/manifest.yaml": "ec43c78581e552faafbe4286d9667d7617b4db55c2d2c53be8d2ccd96a27f728",
     ".project/paths.json": "166dc075bdb26d4313405e03920d83b90ca52fb8c3f6b237c00ce0a25d048896",
-    "apps/workbench/build/main.js": "5afd318423f3ae7397495d193ddf79cc09ccdce9a6bc56aadd0c8253cf5fbcee",
+    "apps/workbench/build/main.js": "80bd5b672a22dd7708562c7f9747d03ce66fdd6c5b96a706157c290ecd59c73b",
     "apps/workbench/contracts.ts": "c9b24fb36658bcb2d70020006c9fc97da161edf4886c370c9854438c34939455",
     "apps/workbench/index.html": "d69f985a25c2af3384dd5c2fd70d3438fdab6ec508e0ea07d90b3fb3ac00e5e7",
     "apps/workbench/package.json": "9e73e245210ba1914d3aeb8ed8d62f99e3d2ec206300f39fc5a48059ab4efe90",
-    "apps/workbench/shell.ts": "d58e42377fe80b63407fae858a16f8d690f4f63b6188a8bee0e68a4226420190",
+    "apps/workbench/shell.ts": "a0a9f3ade5611a6e41b758f8e0fdcc77c35110cee0a0e803554914698fa392e5",
     "apps/workbench/tests/appshell.mjs": "d791c651cd4b11125d6763651f50a00645db7349834322afa3f485f99d5d6b1d",
     "apps/workbench/tests/unit.mjs": "07ff42d2b84097d2ef9dfb60445ef273eb800089d564aa31782c7aa68a001431",
     "apps/workbench/tsconfig.json": "c7cf03334ceb25c0ec9ff4e60ad64016cd3519bb12054f7c6f0582e78e2f8262",
@@ -116,7 +367,7 @@
     "design-lab/domain-packs/visual-design/profile.json": "c003eb9fd526f8adfcebe6d58d99279008aaace9b7fd4d4fc011858b3a8dc0df",
     "design-lab/domain-packs/visual-design/rubric.json": "e2911d750bff96823c2bb7bae7364dee03c6f0281036ad38c01c10bb3bef44b3",
     "design-lab/domain-packs/visual-design/sources.json": "c6fdf12d6e67b9e6ef102305233ee511085821db01977770d7feabaee3461d5a",
-    "design-lab/research/global-absorption/QUARANTINE_REGISTRY.json": "6028eabb7a7868f77ba1a5538646e24079280817ec61fc9fddc928f7292936ad",
+    "design-lab/research/global-absorption/QUARANTINE_REGISTRY.json": "faee420b39fd1cb8ae2f881030f9c5a2cb29ef49fd2410268a858adcd045776a",
     "design-lab/research/global-absorption/SOURCE_REGISTRY.json": "7119d9b31f1be2962babe5b9c7da12e4e5f9c961a3be1777165e296a84c4d1fc",
     "design-lab/schemas/task-ledger-r3.schema.json": "044f7cde2ccf893d21fad287b74ff0b56eca401c4e534a157d7f979603187529",
     "design-lab/scripts/context_capsule.py": "04bca87f702efe9fd58f7a166fe1fa221a73aaaf78de25fb39fc5f79d6a599ed",
@@ -173,6 +424,7 @@
     "design-lab/tests/test_illustrator_patch_preflight.py": "8dc2a3ef2f7bf03c4455c12bcb6155d75653f3f743515ce35171f223f33582a3",
     "design-lab/tests/test_illustrator_text_readback.py": "92a31b65453ea830ee65f23f7882204f8b9e6f8f29cca2db0cf0b656da50e9da",
     "design-lab/tests/test_image_import_recovery.py": "9335f453433f67ff483f12573cfe62db384ebe427e2bf0a0302b81eeda8436ed",
+    "design-lab/tests/test_inert_blob_placement.py": "fd45a774c5fd59f01b6475837317c580a30c130e3770f463032adb1ff6d6996d",
     "design-lab/tests/test_installed_state_resources.py": "e178091e882ef695ecbfb9ea5ba870efcbb6230be46ce0ef3fc138c413f36798",
     "design-lab/tests/test_interop_dtcg.py": "7966d77272c8f696da73882ab7979f1808c81087b7a97c30dbc4721f774bf269",
     "design-lab/tests/test_interop_penpot.py": "0bacc3f240be4628a5fd7c14166cce256a08a65b66118c9cab33e2953cc7b6e6",
@@ -267,6 +519,7 @@
     "design-lab/tests/test_state_store.py": "b3df15638dc554f0523086bcfb8f2d90dce471d2a28f9e93ce2bca1bb40bf488",
     "design-lab/tests/test_task_ledger_contract_gate.py": "3775064b14c1f93352394bda1193613379c07c3fc07bd501175555a6848a8d84",
     "design-lab/tests/test_test_entry_environment.py": "ff8a4aea91c249fb33502a0eb2771649e9418d0fc2374744cfdfd086aeb89bee",
+    "design-lab/tests/test_test_environment_guard.py": "b93f138e05cdb8a786028aaa6fc9ce79e8dd703ee6bb52cae350c8d2ee8e45e4",
     "design-lab/tests/test_tool_locator_and_execution_path.py": "5092f661292774f19f9d2fc927a4c19cd1358ff1c9cc3fa6a709e783dd7d382b",
     "design-lab/tests/test_v2_domain_pack.py": "c317cef15105baa95c95b19760225438179b38551bdd30cdc0e73365798da350",
     "design-lab/tests/test_v2_surface_provider_intake.py": "bd7a27dfddbd6b70325a25277f6fb65ce6bcf34aecde54315404018daf52b264",
@@ -386,15 +639,15 @@
   },
   "ledger": "design-lab/config/task-ledger-r3.json",
   "outputHashes": {
-    "ADAPTER_EVIDENCE_RECONCILIATION.json": "e8749cd99114034ec7bc4bdc6ac5f300124db9a689d3f4e61c7c5a82492d582c",
-    "CLOUD_BASELINE.json": "edfcc01e28907805b8b8ded685c429dddb79bb8b3383120dc89f2716abb19016",
-    "CLOUD_BASELINE.md": "970cc3fa1c121e893566b48e42bb289e3b897091bb52ac1560b4b1d306d76caf",
-    "DOMAIN_PACK_READINESS.json": "d60cb59874a5a8a257b5598cfc4966009eb2f975e579c10731f9a2c55c111793",
-    "KNOWLEDGE_INVENTORY.json": "4a484e60021e0eb5750ba2925df34c5f0ad97814fc688513ae567ebf8e9f920f",
-    "PROJECT_STATUS.json": "0035b0db1392e89800390aef0706d6b4cb9e697dc5df487804290fb40386572e",
-    "PROJECT_STATUS.md": "ffadf869ea76c113a1ff7a36fdf8dd4b2d6ad0935bb7b7cb3348f2861f16a3a5",
-    "RELEASE_READINESS.json": "dc6336ff27efadb1d6f26cc5b9ea103e2d1125156b0686af4a7766e591b4cea2",
-    "TASK_PROGRESS.json": "2ef2cd73e7516c93b86cde2c911a31ec919ae18cfd15fff82b610489ac1f27fa"
+    "ADAPTER_EVIDENCE_RECONCILIATION.json": "0b2905be9bd1d50c931f18795a133b4be3118329eedf6fba7075a16cc52b61ef",
+    "CLOUD_BASELINE.json": "72816175c2703e50a3f865c5e42162d2c297df4684742ed0f8912c33eb2eae5a",
+    "CLOUD_BASELINE.md": "3967634110769ead1dad4bbb9a9768ea8d0e20debf314f8ed6fb95e03641084c",
+    "DOMAIN_PACK_READINESS.json": "4d8ccfbe057e4455f09a232bd73d3107e2ec1fb7db49b031824ccc6c23f1b133",
+    "KNOWLEDGE_INVENTORY.json": "e3bc825bb9beff89206f032b60dd55c2ba39a1e680d00492f1facfc59a859d76",
+    "PROJECT_STATUS.json": "bdded457e20667f61fe0090db77dda19470ba931ea597fdc196e3c7d66867b5c",
+    "PROJECT_STATUS.md": "aa70a9a0e412eb2edb8ba938c80e8463bfb1846f27bd81228c38c48e0556ef35",
+    "RELEASE_READINESS.json": "ad1ffb87b4127770885bee4b1dc0f16db09e19d1a63ff7483f768495d22955c4",
+    "TASK_PROGRESS.json": "d940b3a4d1825808e83c9b5d3659fb3b826699d49e5546ba9b3890cbd4a36e59"
   },
   "reportRoot": "../../reports/current/",
   "reports": [
@@ -410,5 +663,5 @@
   ],
   "schemaVersion": "design-lab/current-report-index/v3",
   "subjectMeaning": "generation-time git observation, not a freshness claim; exact-SHA evidence is the CI artifact",
-  "subjectSha": "78bf25132f8b266d83e33377d670c41075769d66"
+  "subjectSha": "342a13ea8ffdc0660e0ab5cd119c5511bbea7457"
 }
