@@ -120,7 +120,7 @@ if (activeDashboard?.attributes.get('aria-current') !== 'page')
   throw new Error('当前路由必须通过 aria-current=page 暴露给辅助技术');
 shell.window.location.hash = '#/settings';
 shell.dispatchHashchange();
-const dashboardRequests = shell.pending.splice(0, 3);
+const dashboardRequests = shell.pending.splice(0, 4);
 const settingsRequest = shell.pending.shift();
 settingsRequest.resolve(response({
   status: 'OK', schemaVersion: 'v1', project_root: 'D:/project', project_local_root: '.project-local',
@@ -132,16 +132,30 @@ shell.window.location.hash = '#/dashboard';
 shell.dispatchHashchange();
 if (!shell.elements.get('route-view').textContent.includes('正在读回当前视图'))
   throw new Error('切换到新 route 后必须立即显示 loading，而不是保留旧页面');
-const latestDashboardRequests = shell.pending.splice(0, 3);
+const latestDashboardRequests = shell.pending.splice(0, 4);
+// Resolve the OLD (gen1) dashboard's four requests — the third of which is the
+// environment readback — first. Their late success must be rejected by the
+// generation guard, so the current loading state survives.
 dashboardRequests[0].resolve(response({ status: 'OK', version: 'test', scope: 'local' }));
 dashboardRequests[1].resolve(response({ projects: [] }));
 dashboardRequests[2].resolve(response({ design_systems: [] }));
+dashboardRequests[3].resolve(response({
+  status: 'OK', schemaVersion: 'v1', project_root: 'D:/project', project_local_root: '.project-local',
+  write_trace: 'NONE', migration: 'NONE', agent_profile: { status: 'DISABLED' },
+  roots: {}, shared_inputs: {},
+}));
 await flush();
 if (!shell.elements.get('route-view').textContent.includes('正在读回当前视图'))
   throw new Error('旧 dashboard success 不得覆盖新 dashboard 的 loading 状态');
+// Now resolve the CURRENT (gen3) dashboard's requests so it commits.
 latestDashboardRequests[0].resolve(response({ status: 'OK', version: 'test', scope: 'local' }));
 latestDashboardRequests[1].resolve(response({ projects: [] }));
 latestDashboardRequests[2].resolve(response({ design_systems: [] }));
+latestDashboardRequests[3].resolve(response({
+  status: 'OK', schemaVersion: 'v1', project_root: 'D:/project', project_local_root: '.project-local',
+  write_trace: 'NONE', migration: 'NONE', agent_profile: { status: 'DISABLED' },
+  roots: {}, shared_inputs: {},
+}));
 await flush();
 if (!shell.elements.get('route-view').textContent.includes('仪表盘'))
   throw new Error('当前 dashboard 请求完成后必须提交当前视图');

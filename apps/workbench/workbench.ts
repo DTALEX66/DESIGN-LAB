@@ -57,12 +57,36 @@ export const setStatus = (text: string, error = false) => {
   const el = byId<HTMLParagraphElement>('status');
   el.textContent = text;
   el.classList.toggle('error', error);
+  // On every routed view `body > main` — which owns #status — is `hidden`, so a
+  // preflight or patch failure was written into an element neither the eye nor a
+  // screen reader could reach. Mirror it into the shell's live region, which
+  // exists on both paths.
+  // Guarded like the rest of the shell: the vm smoke's Mock document has
+  // getElementById but no querySelector.
+  const main = typeof document.querySelector === 'function'
+    ? document.querySelector('body > main') as HTMLElement | null : null;
+  if (main && main.hidden) {
+    const live = document.querySelector('.sr-status');
+    if (live) live.textContent = text;
+  }
 };
 
 export const errMsg = (error: unknown) => (error instanceof Error ? error.message : String(error));
 
 // Generic fetch wrapper: T is the strict contract type for the endpoint; only the
 // wire-level error envelope is read from the body, everything else is typed.
+// A 401 at any point means the token this page holds is no longer the token the
+// service accepts (typically a service restart with a fresh token). Clearing it
+// only during the initial connect left the session looking live forever: the
+// route gate in shell.ts keys off `token`, so every view kept rendering 401
+// text as if it were data.
+const dropSession = (): void => {
+  token = '';
+  connected = false;
+  const badge = byId<HTMLSpanElement>('connection');
+  if (badge) badge.textContent = '未连接';
+};
+
 export async function api<T>(path: string, body?: Record<string, unknown>): Promise<T> {
   const response = await fetch('/api' + path, {
     method: body ? 'POST' : 'GET',
@@ -71,8 +95,20 @@ export async function api<T>(path: string, body?: Record<string, unknown>): Prom
     cache: 'no-store',
   });
   const value = (await response.json()) as { error?: string } & Record<string, unknown>;
+  if (response.status === 401) dropSession();
   if (!response.ok) throw new Error(value.error || 'SERVICE_ERROR');
   return value as T;
+}
+
+// Empty-state notice for a <ul>. Assigning `textContent` on the list itself put
+// a bare text node inside a <ul>, which breaks the list's item count and is
+// invalid per WCAG 4.1.1; the notice is now a real <li>.
+export function setListNotice(listId: string, text: string): void {
+  const list = byId<HTMLUListElement>(listId);
+  const li = document.createElement('li');
+  li.className = 'empty';
+  li.textContent = text;
+  list.replaceChildren(li);
 }
 
 export function button(list: string, label: string, action: () => Promise<void>) {
@@ -180,7 +216,7 @@ export async function tasks(append = false) {
     if (task.kind.endsWith('-native') && task.attempt.state === 'PENDING')
       button('tasks', `启动任务 · ${task.job_id.slice(-12)}`, () => startTask(task));
   }
-  if (!append && !data.tasks.length) byId<HTMLUListElement>('tasks').textContent = '尚无任务。导入图片后可查看真实记录。';
+  if (!append && !data.tasks.length) setListNotice('tasks', '尚无任务。导入图片后可查看真实记录。');
   taskCursor = data.next_cursor;
   byId<HTMLButtonElement>('more-tasks').hidden = taskCursor === null;
 }
@@ -338,7 +374,7 @@ export async function nativeAssets(append = false) {
   if (!append) byId<HTMLUListElement>('native-assets').replaceChildren();
   for (const asset of data.assets)
     button('native-assets', `校验 ${asset.kind.toUpperCase()} · v${asset.version_no} · ${asset.version_id} · 数据库记录`, () => verifyNative(asset));
-  if (!append && !data.assets.length) byId<HTMLUListElement>('native-assets').textContent = '暂无已登记的 AI/PSD。';
+  if (!append && !data.assets.length) setListNotice('native-assets', '暂无已登记的 AI/PSD。');
   nativeCursor = data.next_cursor;
   byId<HTMLButtonElement>('more-native').hidden = nativeCursor === null;
 }
