@@ -8,26 +8,21 @@
   },
   "fresh": false,
   "freshnessMeaning": "at generation only; check verifies bound-input integrity, not current Git or cloud state",
-  "generatedAt": "2026-10-06T22:43:01+00:00",
+  "generatedAt": "2026-10-06T22:48:22+00:00",
   "git": {
     "branch": "qoder/designlab-stage-nav-wrap-20261007",
-    "origin_main": "dbf887e2caf6629315a38c220cefc7813496985a",
-    "sha": "856e2cca082257b3edae93cf3afe6480c2a52d58",
+    "origin_main": "f98d9371d4a79ccfd3fff9d5bd9394194c4e8f18",
+    "sha": "49a676e37a53e7d0f1a8bd4adc31c4550339cc74",
     "source_worktree_clean": false,
     "tracked_files": 2975,
     "worktree_changes": [
       {
-        "content": "sha256:2929cf1745f073fb2f7a5ceb37b29e91f27649679388c9993b173ebd90cb260a",
+        "content": "sha256:004cb1b4d7ecdda65b0b44310f21de64ac9e996d950c708c0f760bed7b6de547",
         "kind": "M",
-        "path": "apps/workbench/build/main.js"
-      },
-      {
-        "content": "sha256:77106c6f18782f25d1d79b4d694248d491fb3eb442d3062e298fe6a34943481b",
-        "kind": "M",
-        "path": "apps/workbench/shell.ts"
+        "path": "docs/audits/DESIGN-LAB-WORKBENCH-VISUAL-AUDIT-20261006.md"
       }
     ],
-    "worktree_digest": "sha256:c533ddd0d1033eeb6eab1f92f24430d24b1bfd27af10e76d19ea93f002f23bc1"
+    "worktree_digest": "sha256:8d3a2300346fb9bd95a76a57103e2a24ca660f2ff802d29d4861e3b0ee743022"
   },
   "gitStateMeaning": "generation-time observation, not current HEAD",
   "hostLive": "derived from host_live axis only",
@@ -40,7 +35,7 @@
     "quarantinedSources": 162
   },
   "subjectMeaning": "subjectType=WORKTREE means the tree was dirty at generation; worktreeDigest covers HEAD plus the non-generated changes",
-  "subjectSha": "856e2cca082257b3edae93cf3afe6480c2a52d58",
+  "subjectSha": "49a676e37a53e7d0f1a8bd4adc31c4550339cc74",
   "subjectType": "WORKTREE",
   "taskCounts": {
     "PARTIAL": 28
@@ -57,5 +52,5 @@
     "executed": "see individual verified ledger receipts"
   },
   "worktreeClean": false,
-  "worktreeDigest": "sha256:c533ddd0d1033eeb6eab1f92f24430d24b1bfd27af10e76d19ea93f002f23bc1"
+  "worktreeDigest": "sha256:8d3a2300346fb9bd95a76a57103e2a24ca660f2ff802d29d4861e3b0ee743022"
 }

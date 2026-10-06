@@ -1,27 +1,22 @@
 {
   "checkScope": "bound-input-and-output-integrity; not current Git or cloud freshness",
-  "generatedAt": "2026-10-06T22:43:01+00:00",
+  "generatedAt": "2026-10-06T22:48:22+00:00",
   "gitObservation": {
     "branch": "qoder/designlab-stage-nav-wrap-20261007",
-    "origin_main": "dbf887e2caf6629315a38c220cefc7813496985a",
-    "sha": "856e2cca082257b3edae93cf3afe6480c2a52d58",
+    "origin_main": "f98d9371d4a79ccfd3fff9d5bd9394194c4e8f18",
+    "sha": "49a676e37a53e7d0f1a8bd4adc31c4550339cc74",
     "source_worktree_clean": false,
     "tracked_files": 2975,
     "worktree_changes": [
       {
-        "content": "sha256:2929cf1745f073fb2f7a5ceb37b29e91f27649679388c9993b173ebd90cb260a",
+        "content": "sha256:004cb1b4d7ecdda65b0b44310f21de64ac9e996d950c708c0f760bed7b6de547",
         "kind": "M",
-        "path": "apps/workbench/build/main.js"
-      },
-      {
-        "content": "sha256:77106c6f18782f25d1d79b4d694248d491fb3eb442d3062e298fe6a34943481b",
-        "kind": "M",
-        "path": "apps/workbench/shell.ts"
+        "path": "docs/audits/DESIGN-LAB-WORKBENCH-VISUAL-AUDIT-20261006.md"
       }
     ],
-    "worktree_digest": "sha256:c533ddd0d1033eeb6eab1f92f24430d24b1bfd27af10e76d19ea93f002f23bc1"
+    "worktree_digest": "sha256:8d3a2300346fb9bd95a76a57103e2a24ca660f2ff802d29d4861e3b0ee743022"
   },
-  "inputDigest": "sha256:c16aa13e01a8f284b2a55e01df33965092f4992d11d5cd458a150af8f858f7dd",
+  "inputDigest": "sha256:fceb5f6c7e19973fe19d180c4b94ab6296ea1b2ef65ef8972b6078a43a3da902",
   "inputDigestMeaning": "primary freshness binding: canonical SHA-256 over the exact input files the projections read plus the git tree scope; recomputed at check time (FU-10)",
   "inputHashes": {
     ".github/workflows/canonical-verify.yml": "77734ded9bc7ac5b8223840cf483f70c62dc1c9740b60c2f3cf0219f7790a15e",
@@ -397,15 +392,15 @@
   },
   "ledger": "design-lab/config/task-ledger-r3.json",
   "outputHashes": {
-    "ADAPTER_EVIDENCE_RECONCILIATION.json": "9695c49e48f8156e335debd1208d9c9d76c02af45d0fde886a099e2e7c515b80",
-    "CLOUD_BASELINE.json": "b0c097124b71eb689055aac2a66c77cdd52425b462613ed64f4b8b62e87a5f12",
-    "CLOUD_BASELINE.md": "11619a90349656e88517a29b805d290d8e7538de9418ae977196016cc3e3bf8b",
-    "DOMAIN_PACK_READINESS.json": "fa6dc8509944098d59ef267e1a6cdba057bc6aca9ec2e9379919c607093308a6",
-    "KNOWLEDGE_INVENTORY.json": "b954326aea442d4e7924bb670e4a081d60bf26762dba2e9e87ebb2457506ac84",
-    "PROJECT_STATUS.json": "242ec408fbf564fffcaeb756122483faab5eaa2a2b0ec047552bc8b95522bb5b",
-    "PROJECT_STATUS.md": "bf8fba4b81aa99fd62499dde05355613597eb8f8faebc66e520baef0af9af497",
-    "RELEASE_READINESS.json": "6c66c7af5b6d2cf8a96d0b46ed846e013f4e8e532f352af68120f4af9bcf04dd",
-    "TASK_PROGRESS.json": "56757a7fff1d6e0985098e5cdf8d538b7c6f2248279c9a8b1115e3b8d26a13c0"
+    "ADAPTER_EVIDENCE_RECONCILIATION.json": "627253c353c4fa85ab4460ba15ca1acf540e0be1e6bbcdd358ad7cfcecbd8e17",
+    "CLOUD_BASELINE.json": "37918056a5d303b36b2a30f026d9e1296d0d5a7a954ddf434c3fb8ce8f88edde",
+    "CLOUD_BASELINE.md": "cd4d46951ffd7b4b53dd2bec5aa2308212014688808516ed528785c3e736f069",
+    "DOMAIN_PACK_READINESS.json": "1cb51f7e6ca7fdca5ae8e4ae162d1d140388fb6af40266ce930ac59e97c49830",
+    "KNOWLEDGE_INVENTORY.json": "504c3e256debf22dea1e356f53cac22b7f0e22c3da1f5173411714e184a1b749",
+    "PROJECT_STATUS.json": "df44be48dc7ba19e2e9d4a36287391c62095beb72d13046fadb640da6fe151b9",
+    "PROJECT_STATUS.md": "98c868c66b0ba74dbb88605f13b1e3f68969795b90046309615a53836895c5da",
+    "RELEASE_READINESS.json": "1d144c9689f3f8c8fe02403efff75d448a9b431ae711f207273b53159cbb1c39",
+    "TASK_PROGRESS.json": "907ea993998a84c1391da0a1a1d0acb28ced0b7f55bfed78d65826456f6df7c7"
   },
   "reportRoot": "../../reports/current/",
   "reports": [
@@ -421,5 +416,5 @@
   ],
   "schemaVersion": "design-lab/current-report-index/v3",
   "subjectMeaning": "generation-time git observation, not a freshness claim; exact-SHA evidence is the CI artifact",
-  "subjectSha": "856e2cca082257b3edae93cf3afe6480c2a52d58"
+  "subjectSha": "49a676e37a53e7d0f1a8bd4adc31c4550339cc74"
 }
