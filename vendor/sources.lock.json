@@ -456,10 +456,10 @@
     },
     {
       "id": "huashu-design",
-      "path": "packages/capabilities/production/huashu-design",
+      "path": "design-lab/research/quarantine/huashu-design",
       "disposition": "ABSORB_MINIMAL",
       "license": "MIT",
-      "notes": "absorbed 2026-08-13; source https://github.com/alchaincyf/huashu-design (alchaincyf); source-level vendoring of SKILL.md + references/ only, assets/scripts/demos excluded; provenance recorded in packages/capabilities/production/huashu-design/SOURCE.md",
+      "notes": "absorbed 2026-08-13; source https://github.com/alchaincyf/huashu-design (alchaincyf); source-level vendoring of SKILL.md + references/ only, assets/scripts/demos excluded; provenance recorded in design-lab/research/quarantine/huashu-design/SOURCE.md; relocated out of the active capability path on 2026-10-07 because a third-party SKILL.md with trigger phrases must not sit where tool discovery looks (AGENTS.md inert-source rule)",
       "files": 36,
       "canonicalUrl": "https://github.com/alchaincyf/huashu-design",
       "provenanceSource": "discovered in SOURCE.md of the locked copy",
