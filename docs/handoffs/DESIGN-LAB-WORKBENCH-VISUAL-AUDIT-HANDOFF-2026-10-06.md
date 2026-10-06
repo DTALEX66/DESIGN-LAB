@@ -106,6 +106,17 @@ node design-lab/tests/e2e/audit_workbench_overflow.mjs
 - [ ] C2 真实 provider 跑通；C3/C4 Illustrator/Photoshop E3 只读探针
 - [ ] C6.2 Human Jury E4 —— **agent 禁止执行**
 - [ ] UI `div.list / .list-item` → `ul/li` 语义化改造
+      **2026-10-06 已评估：不可机械化，暂缓。** 我实际做过一次全量替换（30 个 `.list` 容器 +
+      67 个 `.list-item`，脚本带计数校验、0 残留），`tsc` 立刻在 `shell.ts:1445` 报
+      `HTMLLIElement` 不满足声明的 `HTMLDivElement` —— 顺藤摸出 `.list-item` 是**重载语义**：
+      1. **7 处** `class: 'list-item', style:'display:grid…'` 其实是独立的表单/操作卡片，
+         其中 `shell.ts:1736-1742` 两个直接 `panel.append(...)`，**不在任何 `.list` 里** → 变成
+         `li` 就落在 `ul` 外，非法 HTML；
+      2. `briefFieldRow()`（`shell.ts:1441`）本身产出 `.list-item`，却被当作另一个
+         `.list-item` 的子元素使用（`create.row` / `rev.row`，1740/1742）→ 会变成 `li` 套 `li`。
+      正确前提是把"列表成员"与"带边框行卡片"**拆成两个类**，而这与本轮自我约束
+      「不改 B10 结构类名」直接冲突 → **归入 D-2（哪份定义权威）一起由 owner 裁决**。
+      已回滚，未提交任何半成品。
 
 ---
 
