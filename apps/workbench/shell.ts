@@ -868,6 +868,20 @@ export async function renderPreflight(target: HTMLElement): Promise<void> {
     result);
 }
 
+// UI-AUDIT-20261006 F-2, single implementation: `.tag` is a nowrap short-state
+// pill, so any long identifier (path, schema id, 32-hex binding id) must go to
+// `.value-mono` on its own row instead. This was local to renderSettings, which
+// is how the rule got missed the second time it was needed.
+function valueRow(label: string, value: string, long: boolean, tagClass = 'info'): HTMLElement {
+  return long
+    ? el('div', { class: 'list-item value-row' },
+        el('span', {}, label),
+        el('span', { class: 'value-mono' }, value))
+    : el('div', { class: 'list-item' },
+        el('span', {}, label),
+        el('span', { class: 'tag ' + tagClass }, value));
+}
+
 export async function renderSettings(target: HTMLElement): Promise<void> {
   target.replaceChildren(el('p', { class: 'view-loading' }, '正在读回运行环境…'));
   const env = await apiOrEmpty<EnvironmentResponse>('/environment', OFFLINE.environment);
@@ -883,14 +897,6 @@ export async function renderSettings(target: HTMLElement): Promise<void> {
     { label: '写入痕迹', value: `写入 ${env.write_trace} · 迁移 ${env.migration}`, long: false },
     { label: '代理配置', value: `${env.agent_profile.status} · ${env.agent_profile.writable ? '可写' : '不可写'}`, long: false },
   ];
-  const valueRow = (label: string, value: string, long: boolean, tagClass = 'info'): HTMLElement =>
-    long
-      ? el('div', { class: 'list-item value-row' },
-          el('span', {}, label),
-          el('span', { class: 'value-mono' }, value))
-      : el('div', { class: 'list-item' },
-          el('span', {}, label),
-          el('span', { class: 'tag ' + tagClass }, value));
   // LibraryIndex: the external library index is the read-only red-line surface.
   // Turn each row's status / writability into an explicit pill so the 4-state
   // contract is visible. `runtime/paths.py` returns a DECLARED `writable` flag
@@ -2319,9 +2325,11 @@ export async function renderProjectDetail(id: string, target: HTMLElement): Prom
   const layerPanel = el('div', { class: 'panel' },
     el('h3', {}, '设计层契约'),
     el('div', { class: 'list' },
-      el('div', { class: 'list-item' }, el('span', {}, '选定方向'), el('span', { class: 'tag info' }, chosen)),
-      el('div', { class: 'list-item' }, el('span', {}, '活动绑定'), el('span', { class: 'tag info' }, active)),
-      el('div', { class: 'list-item' }, el('span', {}, '设计系统登记'), el('span', { class: 'tag info' }, String(layer.design_systems.length)))));
+      valueRow('选定方向', chosen, false),
+      // `active` always embeds a 32-hex direction_id, so it is a long value by
+      // construction and must never go into the nowrap .tag pill (F-2).
+      valueRow('活动绑定', active, true),
+      valueRow('设计系统登记', String(layer.design_systems.length), false)));
 
   // 2026-09-30 — 横向阶段导航（Brief → … → Evidence）+ 右侧 Inspector。
   // Versions 阶段没有独立面板，它的锚点是 Inspector 里的版本环。
