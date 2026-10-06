@@ -4,7 +4,7 @@
     "DL-TP-20260914-DEEPSEEK-AUTHORITY-R1::DLDS-I000",
     "DL-TP-20260914-DEEPSEEK-AUTHORITY-R1::DLDS-I010"
   ],
-  "checked_at": "2026-10-06T19:58:34+00:00",
+  "checked_at": "2026-10-06T20:01:21+00:00",
   "subject_sha": "",
   "I000_destructive_operations": {
     "doctrine": "plan -> candidate list -> backup/digest -> verification -> rollback -> receipt",
