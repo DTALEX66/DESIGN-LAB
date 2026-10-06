@@ -332,8 +332,13 @@ export function kpiCard(value: string, label: string, note: string, trend?: stri
   // Reachable on the real service too: `?dev=1` enables the seam.
   const unread = !token && value === '0';
   const shown = unread ? '—' : value;
+  // A KPI value that is not a count (a version string, a status word, the unread
+  // em-dash) must not wear the 35px numeral treatment: at 1440 `0.1.0-alpha.0`
+  // wrapped to `0.1.0-alpha.` + `0`, and `OK` read as a metric that had improved.
+  // Only numeric values keep the large-figure scale.
+  const isText = !/^\d[\d,]*(?:\.\d+)?$/.test(shown);
   const children: (Node | string)[] = [
-    el('strong', { dataset: { count: shown } }, shown),
+    el('strong', { dataset: { count: shown }, class: isText ? 'is-text' : null }, shown),
     el('small', {}, label),
   ];
   const trendText = unread ? '未读回：未连接本机设计服务' : (trend ?? note);
@@ -875,7 +880,7 @@ export async function renderSettings(target: HTMLElement): Promise<void> {
     { label: '诊断契约', value: env.schemaVersion, long: true },
     { label: '项目根', value: env.project_root, long: true },
     { label: '项目本地根', value: env.project_local_root, long: true },
-    { label: '写入痕迹', value: `${env.write_trace} · 迁移 ${env.migration}`, long: false },
+    { label: '写入痕迹', value: `写入 ${env.write_trace} · 迁移 ${env.migration}`, long: false },
     { label: '代理配置', value: `${env.agent_profile.status} · ${env.agent_profile.writable ? '可写' : '不可写'}`, long: false },
   ];
   const valueRow = (label: string, value: string, long: boolean, tagClass = 'info'): HTMLElement =>
@@ -904,12 +909,16 @@ export async function renderSettings(target: HTMLElement): Promise<void> {
     el('div', { class: 'page-actions' }));
   target.replaceChildren(
     pageHead,
-    el('div', { class: 'three-col' },
-      el('div', { class: 'panel' },
-        el('h3', {}, '环境状态'),
-        el('div', { class: 'list' },
-          ...rows.map((r) => valueRow(r.label, r.value, r.long,
-            r.label === '代理配置' ? 'warn' : 'info'))))),
+    // This panel is the only child of the row, so it must not sit in a
+    // three-column grid: at 1440 it rendered ~450px wide with 950px of empty
+    // canvas to its right. Full width lets .list-item's space-between put the
+    // label left and the status pill right, which reads as designed rather
+    // than truncated.
+    el('div', { class: 'panel' },
+      el('h3', {}, '环境状态'),
+      el('div', { class: 'list' },
+        ...rows.map((r) => valueRow(r.label, r.value, r.long,
+          r.label === '代理配置' ? 'warn' : 'info')))),
     // 路径诊断是后端对接面，不是设计生产面：默认收起，展开才占版面。
     el('details', { class: 'advanced' },
       el('summary', {}, '服务端路径诊断（默认收起）'),
@@ -2607,9 +2616,13 @@ function mountB10Shell(routeView: HTMLElement): B10Shell | null {
 
   // B10 .topbar body. Handlers are attached by wireB10Topbar() at the end of
   // mountB10Overlays(), once the palette/drawer/toast ids exist.
+  // The modifier glyph is platform-dependent: the service is served on Windows
+  // and Linux too, where `⌘` advertises a key that no keyboard on those hosts
+  // has. macOS keeps ⌘; everything else gets the literal `Ctrl`.
+  const modKey = /Mac|iPhone|iPad|iPod/.test(navigator.userAgent) ? '⌘' : 'Ctrl';
   const topbar = el('header', { class: 'topbar' },
     el('div', { class: 'search', id: 'openPalette', role: 'button', tabindex: '0' },
-      '⌘ K\u3000搜索页面 / 命令 / 资源'),
+      `${modKey} K\u3000搜索页面 / 命令 / 资源`),
     el('div', { class: 'top-actions' },
       el('button', { type: 'button', class: 'ghost-btn', id: 'topNotice' }, '通知'),
       el('button', { type: 'button', class: 'ghost-btn', id: 'openDrawer' }, '工作区')));

@@ -674,8 +674,16 @@ html,body{margin:0}
 .kpi strong{
   display:block;font-size:35px;line-height:1.05;margin-bottom:10px;color:var(--primary)
 }
-.kpi small{color:var(--muted)}
-.kpi .trend{display:inline-flex;align-items:center;gap:6px;font-size:12px;margin-top:10px;color:var(--muted)}
+/* Non-count KPI values (version strings, status words, the unread em-dash) are
+   labels, not magnitudes: at 35px `0.1.0-alpha.0` wrapped mid-token. */
+.kpi strong.is-text{font-size:19px;line-height:1.35;margin-bottom:8px;letter-spacing:.01em}
+/* UI-AUDIT-20261006 round 2: `small` was inline and `.trend` was inline-flex, so
+   the label and the provenance note painted on ONE line with no separator and
+   produced sentences like 项目服务端项目台账读回 / 服务版本服务自检读回. They are
+   two different facts — label is what the number counts, the note is where it
+   came from — so each gets its own line and its own weight. */
+.kpi small{display:block;color:var(--ink);font-size:13px}
+.kpi .trend{display:flex;align-items:center;gap:6px;font-size:12px;margin-top:6px;color:var(--muted)}
 .kpi .trend.up{color:var(--success)}
 .kpi .trend.warn{color:var(--warning)}
 .list{display:flex;flex-direction:column;gap:10px}
