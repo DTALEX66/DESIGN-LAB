@@ -147,7 +147,7 @@ node design-lab/tests/e2e/audit_workbench_overflow.mjs
 | D-2 | `style.css` 中 `.items` 被定义两次（grid / flex），`.mono`、`.error` 亦重复，后声明胜出 | 清理需确认哪一份是权威（B10 原稿 vs 实现侧） |
 | D-3 | 原稿自相矛盾项 X-1（正文 18 vs 16px）、X-2（caption 14 vs 13px）、X-3/X-4（断点 767/760/840）、X-7（`--radius-sm` 12px 冲突） | 文件内已记录但未裁决 |
 | D-4 | 移动端 12 项导航在 390 视口需横向滚动（1059px 内容 / 390px 视口） | 是可滚动容器，不算缺陷；但是否改为抽屉/分段导航属产品决策 |
-| D-5 | 本页是否纳入 `canonical-verify.yml` 自动验证 | 需要真实服务 + Chromium，CI 环境是否具备待确认 |
+| ~~D-5~~ | **已裁决并落地**（owner 2026-10-06：「现在接，并先证伪」）| 见 §八。闸门已进入 required CI job，workflow 文件本身未被改动（该文件被 SHA-256 钉在两份账本里）|
 
 ---
 
@@ -158,3 +158,42 @@ node design-lab/tests/e2e/audit_workbench_overflow.mjs
 - 「好不好看」没有结论，也没有被声称有结论。
 - 截图已抓取至 `.project-local/tmp/workbench-shots/`（16 张），但审计者**未对截图做视觉判读**
   （当前模型不读图），本报告结论全部来自 DOM 几何测量，不来自看图。
+
+---
+
+## 八、D-5 落地：闸门进入 CI（owner 2026-10-06 裁决「现在接，并先证伪」）
+
+**CI 是否具备真实服务 + Chromium** —— 具备，不需要新 job：
+`canonical-verify.yml` 的 `workbench-browser-e2e` job（ubuntu-latest）已用 lockfile 钉住的
+playwright + `playwright install chromium`，并由
+`design-lab/tests/test_workbench_design_layer_e2e.py:108-130` 起真实 loopback
+`ProjectService`（OS 选端口、内存 token），注入的 env 恰好是本闸门读的四个变量。
+该 job 在 branch protection 的 required contexts 里（实测 `gh api branches/main/protection`）。
+
+**改动最小化**：`canonical-verify.yml` 本身**未改** —— 它被 SHA-256 钉在
+`design-lab/config/task-ledger-r3.json` 与 `current-report-index.json` 两份账本里，
+动它会破坏 pin。只改：
+
+1. 新增 `design-lab/tests/test_workbench_overflow_gate.py`（复用既有 probe-driven 工具链探测与
+   合成项目根 harness；Windows 下用 `Popen` + 文件重定向 + `wait(timeout)` 而非
+   `capture_output`，避免管道句柄永久阻塞）。
+2. `design-lab/scripts/verify_browser_e2e_ran.py`：`TEST_MODULE` → `TEST_MODULES`，
+   对每个模块累计 ran/skipped/failed，任一模块 skip 或 fail 即 exit 1。该脚本未被任何账本钉住。
+
+**纳入前先证伪**（同一合成根 harness，2026-10-06 实测）：
+
+| UI | 结果 | 退出码 |
+|---|---|---|
+| pre-fix 检出（main `f2172744`） | `OV_SUMMARY clipped=5 stray=8 tiny=70` → `OV_FAIL` | 1（红）|
+| post-fix 检出（本分支） | `OV_SUMMARY clipped=0 stray=0 tiny=0` → `OV_OK` | 0（绿）|
+
+第二行同样用新写的 unittest 模块跑出 `OK`，第一行跑出 `FAILED (failures=1)`，
+失败信息里带着真实裁切明细（`CLIPPED 390:settings +97px div.panel`）。
+**所以 CI 上的绿不是因为合成项目空**，闸门在 CI 形态下仍然有牙。
+
+**必须记下的环境分歧**：本机 Windows 直接跑
+`test_workbench_design_layer_e2e.py` 在 `import reference` 步骤 20s 超时失败，
+而同一 SHA `5dd36046` 在 CI（Linux）上该 job 实测 `success`
+（run 37457793767，job 级结论，不是 workflow rollup）。
+两者未对齐，原因未查明；本报告不把它说成「E2E 在本机也通过」，也不据此推断 CI 结果有假。
+本闸门自身不受该步骤影响（只做导航 + 几何测量，不导入 reference）。
