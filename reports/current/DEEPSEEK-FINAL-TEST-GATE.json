@@ -1,8 +1,8 @@
 {
   "schemaVersion": "design-lab/final-test-gate/v1",
   "task_key": "DL-TP-20260914-DEEPSEEK-AUTHORITY-R1::DLDS-H010",
-  "generated_at": "2026-09-26T14:28:29+00:00",
-  "subject_sha": "d8edddc38d30e0581f36c50291f368f7240120ec",
+  "generated_at": "2026-10-06T05:11:47+00:00",
+  "subject_sha": "e86d72c8f00e4322198c057d6fd3f53f312fcfcb",
   "source": ".project-local/task-artifacts/test-run/history.jsonl (written by scripts/run_bound_test_suite.py, not retyped here)",
   "executed_scope": {
     "kind": "declared critical module set",
@@ -30,47 +30,47 @@
   },
   "requirements": {
     "deterministic_forward": {
-      "run_id": "testrun-20260926T142730Z-forward-repeat-33f7e07df309",
+      "run_id": "testrun-20261006T051101Z-forward-repeat-91beed9eafb6",
       "tests": 225,
       "failures": 0,
       "errors": 0,
       "skipped": 0,
-      "duration_seconds": 12.688,
+      "duration_seconds": 9.625,
       "seed": null,
       "result": "OK",
-      "finished_at": "2026-09-26T14:27:42+00:00"
+      "finished_at": "2026-10-06T05:11:11+00:00"
     },
     "reverse": {
-      "run_id": "testrun-20260926T142743Z-reverse-repeat-33f7e07df309",
+      "run_id": "testrun-20261006T051111Z-reverse-repeat-91beed9eafb6",
       "tests": 225,
       "failures": 0,
       "errors": 0,
       "skipped": 0,
-      "duration_seconds": 12.204,
+      "duration_seconds": 8.921,
       "seed": null,
       "result": "OK",
-      "finished_at": "2026-09-26T14:27:55+00:00"
+      "finished_at": "2026-10-06T05:11:20+00:00"
     },
     "randomized_seeded": {
-      "run_id": "testrun-20260926T142755Z-random-repeat-33f7e07df309",
+      "run_id": "testrun-20261006T051121Z-random-repeat-91beed9eafb6",
       "tests": 225,
       "failures": 0,
       "errors": 0,
       "skipped": 0,
-      "duration_seconds": 10.844,
+      "duration_seconds": 8.937,
       "seed": 42,
       "result": "OK",
-      "finished_at": "2026-09-26T14:28:06+00:00"
+      "finished_at": "2026-10-06T05:11:30+00:00"
     },
     "critical_module_repetition": {
-      "run_id": "testrun-20260926T142806Z-forward-repeat-33f7e07df309",
+      "run_id": "testrun-20261006T051130Z-forward-repeat-91beed9eafb6",
       "tests": 450,
       "repeat": 2,
       "failures": 0,
       "errors": 0,
-      "duration_seconds": 21.953,
+      "duration_seconds": 16.547,
       "result": "OK",
-      "finished_at": "2026-09-26T14:28:28+00:00"
+      "finished_at": "2026-10-06T05:11:47+00:00"
     }
   },
   "order_independence": {

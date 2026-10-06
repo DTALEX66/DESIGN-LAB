@@ -188,11 +188,13 @@ export function renderDesignLayer(data: DesignLayerResponse) {
 }
 
 export function info(id: string): HTMLElement {
-  const p = document.createElement('p');
-  p.id = id;
-  p.className = 'empty';
-  p.textContent = id === 'design-bindings-empty' ? '尚未绑定设计系统。' : '';
-  return p;
+  // An <li>, not a <p>: this is appended straight into <ul id="design-bindings">,
+  // and a non-li child breaks the list's item count for assistive tech (WCAG 4.1.1).
+  const li = document.createElement('li');
+  li.id = id;
+  li.className = 'empty';
+  li.textContent = id === 'design-bindings-empty' ? '尚未绑定设计系统。' : '';
+  return li;
 }
 
 export async function refreshDesign() {

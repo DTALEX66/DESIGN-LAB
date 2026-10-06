@@ -48,6 +48,10 @@ jobs:
         run: python design-lab/scripts/update_evidence_binding.py --check
       - name: V3 product manifest
         run: python design-lab/scripts/verify_product_manifest_v3.py
+      - name: Repo classification index freshness
+        run: python scripts/classify_repo.py --check
+      - name: State vocabulary contract (no hand-copied enums)
+        run: python design-lab/scripts/verify_state_vocabularies.py
       - name: V3 runtime contracts
         run: python design-lab/scripts/verify_runtime_contracts_v3.py
       - name: V3 visual scoring

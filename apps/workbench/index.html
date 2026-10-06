@@ -3,7 +3,7 @@
 <title>DESIGN-LAB · 工作台</title><link rel="stylesheet" href="/workbench/style.css">
 <script type="module" src="/workbench/main.js"></script></head>
 <body><header><div class="mark">D/L</div><div><p class="eyebrow">DESIGN-LAB / LOCAL STUDIO</p><h1>设计工作台</h1></div><span id="connection" class="badge">未连接</span></header>
-<main><section id="login" class="panel narrow"><p class="eyebrow">SESSION ACCESS</p><h2>连接本机设计服务</h2>
+<main><a class="skip-link" href="#content">跳到主内容</a><section id="login" class="panel narrow"><p class="eyebrow">SESSION ACCESS</p><h2>连接本机设计服务</h2>
 <p>输入启动器提供的临时访问令牌。令牌只驻留本页面内存，关闭或刷新页面后需重新连接。</p>
 <form id="connect-form"><label>临时访问令牌<input id="token" class="input" type="password" autocomplete="off" required maxlength="64" spellcheck="false"></label><button class="primary-btn">连接服务</button></form></section>
 <div id="workspace" hidden><section class="panel toolbar"><div><p class="eyebrow">PROJECT LIBRARY</p><h2>项目与参考</h2></div>
@@ -51,7 +51,7 @@
 <ul id="design-bindings" class="items"></ul><p id="design-binding-active" class="mono"></p></div></div></section>
 <section class="panel"><p class="eyebrow">ADVANCED / OBJECT PLAN</p><h2>检查与提交对象计划</h2><p>高级 RIR 合同输入，不是参考图自动拆解。可编辑 JSON 后提交；raster.path 必须使用当前项目已导入的完整 img-ID，不接受本地路径。文字节点样式按对象 ID 提供 font、size、color。提交只排队，需在任务列表显式启动。</p>
 <form id="plan-form"><label>目标宿主<select id="plan-host"><option value="illustrator">Illustrator / AI</option><option value="photoshop">Photoshop / PSD</option></select></label>
-<label>RIR JSON<textarea id="plan-rir" rows="12" maxlength="3800000" required spellcheck="false" aria-label="可修正的 RIR 对象计划"></textarea></label>
+<label>RIR JSON<textarea id="plan-rir" rows="12" maxlength="3800000" required spellcheck="false"></textarea></label>
 <label>文字样式 JSON<textarea id="plan-styles" rows="5" maxlength="100000" required spellcheck="false">{}</textarea></label><button id="plan-submit">校验并排队</button></form>
 <p>自动参考拆解、复杂参考复刻与人工验收仍待完成；不能以整图贴底冒充分层。</p></section>
 <section class="panel"><p class="eyebrow">ADVANCED / LOCAL PATCH</p><h2>Adobe 对象局部修改</h2>
