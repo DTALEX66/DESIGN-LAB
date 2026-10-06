@@ -1018,9 +1018,25 @@ html,body{margin:0}
   .kpi-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
   .two-col,.three-col,.split{grid-template-columns:1fr}
 }
+/* The drawer trigger only exists on narrow screens; the sidebar is a permanent
+   column above 840px, so a second way to open it would be noise. It must not
+   shrink: as a flex sibling of the full-width search field it got squeezed to
+   two characters wide and 导航 wrapped onto two vertical lines. */
+.nav-toggle{display:none;flex:0 0 auto;white-space:nowrap;padding:0 14px}
 @media (max-width:840px){
   .app{grid-template-columns:1fr}
-  .sidebar{display:none}
+  /* .sidebar used to be `display:none` here, which removed all twelve nav targets
+     from the rendered tree: on a phone there was no way off the page you landed
+     on. It is now an off-canvas drawer using the same `.open` convention as
+     `.drawer`, and only translate/opacity animate so it stays composited. */
+  .sidebar{
+    position:fixed;top:0;left:0;height:100vh;min-height:0;
+    width:min(78vw,300px);z-index:88;overflow-y:auto;
+    transform:translateX(-100%);transition:transform .18s ease;
+    box-shadow:18px 0 50px rgba(0,0,0,.25)
+  }
+  .sidebar.open{transform:translateX(0)}
+  .nav-toggle{display:inline-flex}
   .top-actions{display:none}
   .search{width:100%}
   .content{padding:18px}

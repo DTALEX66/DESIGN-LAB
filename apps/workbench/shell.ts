@@ -2611,7 +2611,7 @@ function mountB10Shell(routeView: HTMLElement): B10Shell | null {
     { route: 'settings', label: '系统设置', hash: '#/settings' },
   ];
 
-  const sidebar = el('aside', { class: 'sidebar' },
+  const sidebar = el('aside', { class: 'sidebar', id: 'app-sidebar' },
     el('div', { class: 'brand' },
       el('div', { class: 'brand-mark' }, 'DL'),
       el('div', {},
@@ -2644,7 +2644,22 @@ function mountB10Shell(routeView: HTMLElement): B10Shell | null {
   // and Linux too, where `⌘` advertises a key that no keyboard on those hosts
   // has. macOS keeps ⌘; everything else gets the literal `Ctrl`.
   const modKey = /Mac|iPhone|iPad|iPod/.test(navigator.userAgent) ? '⌘' : 'Ctrl';
+  // At <=840px the sidebar is an off-canvas drawer (see .nav-toggle in
+  // style.css), so it needs a trigger that exists only there. Above that width
+  // the button is display:none and the drawer classes are inert.
+  const navToggle = el('button', { type: 'button', class: 'nav-toggle ghost-btn',
+    id: 'navToggle', 'aria-expanded': 'false', 'aria-controls': 'app-sidebar' }, '导航');
+  const setNavOpen = (open: boolean): void => {
+    sidebar.classList.toggle('open', open);
+    navToggle.setAttribute('aria-expanded', String(open));
+  };
+  navToggle.onclick = (): void => setNavOpen(!sidebar.classList.contains('open'));
+  // Without this the drawer stays on top of the page you just chose to visit.
+  sidebar.addEventListener('click', (event: Event) => {
+    if ((event.target as HTMLElement).closest('button')) setNavOpen(false);
+  });
   const topbar = el('header', { class: 'topbar' },
+    navToggle,
     el('div', { class: 'search', id: 'openPalette', role: 'button', tabindex: '0' },
       `${modKey} K\u3000搜索页面 / 命令 / 资源`),
     el('div', { class: 'top-actions' },
