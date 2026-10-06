@@ -36,13 +36,27 @@ const req = createRequire(nmDir + '/noop.js');
 const pw = req('playwright');
 
 // Routed pages, in capture order. `dynamic` pages need the bootstrapped id.
+//
+// This list used to cover 8 of the 12 entries in shell.ts ROUTE_VIEWS, so four routed
+// pages -- including 品牌系统, which has a real /api/* readback -- had never been
+// rendered by any screenshot round. A route that is never captured cannot fail the
+// geometry gates either, so the omission read as "the UI is audited".
+//
+// The `''` (工作台) entry is deliberately NOT here: it is not a `#route-view` page.
+// Measured -- at the landing URL `#route-view` stays present but empty and hidden, so
+// waiting on it times out. The landing surface is the app shell itself, captured by the
+// browser E2E rather than by this page loop.
 const PAGES = [
   { key: 'dashboard', hash: '#/dashboard' },
   { key: 'projects', hash: '#/projects' },
   { key: 'project-detail', hash: null, dynamic: true },
+  { key: 'research', hash: '#/research' },
+  { key: 'brand-systems', hash: '#/brand-systems' },
+  { key: 'domains', hash: '#/domains' },
   { key: 'creative-tools', hash: '#/tools' },
   { key: 'deliverables', hash: '#/deliverables' },
   { key: 'evidence', hash: '#/evidence' },
+  { key: 'collaboration', hash: '#/collaboration' },
   { key: 'preflight', hash: '#/preflight' },
   { key: 'settings', hash: '#/settings' },
 ];
