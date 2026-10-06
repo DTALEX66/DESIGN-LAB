@@ -91,3 +91,47 @@ FRESH_CLONE=PASS stages=9 failures=[] unverifiable=['install']
   CC0 的 `packages/capabilities/standards/front-end-design-checklist/`，
   即它是 `ABSORB_MINIMAL` 却没有 revision，属 AUTHORITY §9 未闭合项。
   本轮把这两个 id 钉成断言（第三个混进来就会红），处置仍需 owner/上游查证。
+
+## 六、那 9 条无 revision 的来源能不能离线补齐——不能，而且有个陷阱
+
+接上 revision 记录之后，自然的下一步就是"把 9 条 unresolved 也补掉"。逐个查了本地证据，
+结论是**一条都补不了**，并且过程中撞到一个值得单独记的陷阱。
+
+### 查了什么
+
+| 来源 | 本地是否有 commit | 实际记录的东西 |
+|---|---|---|
+| `ai-product-os-frontend` | 无 | `SOURCE.md`：repo URL、license MIT、`branch: main`、vendored 2026-08-14、外置隔离位置与"SHA-256 回读一致" |
+| `front-end-design-checklist` | 无 | `SOURCE.md`：repo URL、CC0-1.0、吸收日期 2026-08-13、吸收方式、可再分发=是 |
+| 其余 7 条（`anydesign`、`claude-design-skill`、`design-system-prompt`、`motion-engine`、`shipit-ui`、`web-content-designer`、`tool-control`） | 无 | lock 的 `notes` 里**连 URL 都没有**；`tool-control` 写的是 `origin: multiple (...)` 多来源 |
+
+`ai-product-os-frontend/skills-lock.json` 里确实有一堆哈希，但那是**每个 SKILL.md 的
+`computedHash`（SHA-256 内容哈希）**，不是 git commit。
+
+### 陷阱：40 位十六进制不等于 commit
+
+在上述两个目录里 `grep -Eoh "[0-9a-f]{40}"` 能命中若干串——它们全是
+**SHA-256 被截断到 40 位的前缀**。而 #242 那条防漂移断言用的是
+`^[0-9a-f]{7,40}$`，**照单全收**。也就是说：将来任何人"顺手"用内容哈希去补 revision，
+格式检查会绿，而记录会说谎——把"这份文件的哈希"当成"我们取的是这个提交"。
+git 短 SHA 与 SHA-256 前缀在语法上无法区分，所以这道关不能只靠正则。
+
+现在真正兜住的是**构造性来源**：`derive_vendor_revisions.py` 只从
+`CANDIDATE-TAXONOMY.pinnedCommitSHA` 取值，且 `test_vendor_revisions` 每次重派生比对。
+只要有人手工填一个哈希进去，重派生就会不一致而报错——**这条比正则重要**，
+读代码的人应当知道防的是哪个。
+
+### 因此本轮的处置
+
+不新增离线补齐的假动作，改为把"缺什么"变成机器可见的分类：
+
+```
+revision_unresolved_with_url    = [ai-product-os-frontend, front-end-design-checklist]   # 2
+revision_unresolved_without_url = [anydesign, claude-design-skill, design-system-prompt,
+                                   motion-engine, shipit-ui, tool-control, web-content-designer]  # 7
+resolved(37) + 2 + 7 == entries(46)      # 由 test_claim_honesty_gates 断言
+```
+
+两类的前置动作不同，且都需要人：2 条要先确定"当初取的是哪个提交"（HEAD-now 不算，
+上游自 2026-08 以来可变），7 条要先确定上游是谁。`tool-control` 另有一层：
+它本来就是多来源拼装，单一 revision 字段对它可能压根不适用，需要 owner 定口径。

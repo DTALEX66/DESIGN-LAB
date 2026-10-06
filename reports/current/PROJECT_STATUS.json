@@ -8,61 +8,31 @@
   },
   "fresh": false,
   "freshnessMeaning": "at generation only; check verifies bound-input integrity, not current Git or cloud state",
-  "generatedAt": "2026-10-06T23:36:48+00:00",
+  "generatedAt": "2026-10-06T23:42:09+00:00",
   "git": {
     "branch": "qoder/designlab-gate-reachability-20261007",
-    "origin_main": "4ea25c3805ca199af8cfbbd7deb5303848635382",
-    "sha": "b727bc2682750964fa85333cfcb06c94bbae449a",
+    "origin_main": "a0aaa5b0116e2da37731f1bfab7683554b30aa3f",
+    "sha": "cf4c2076f6a09b2fc2e43328f08de3f1f54a9977",
     "source_worktree_clean": false,
     "tracked_files": 2984,
     "worktree_changes": [
       {
-        "content": "sha256:09818639cdab4ad0d4130bc472b841db0f963bac89311b07b873068e0d0fd919",
-        "kind": "A",
-        "path": "design-lab/tests/test_workbench_stage_nav_reachability.py"
-      },
-      {
-        "content": "sha256:a2ee24eefa1798eede5a5cff07eff99d8a7eee80bd182b459f82137842947231",
-        "kind": "A",
-        "path": "design-lab/tests/test_workbench_ui_audit_gate.py"
-      },
-      {
-        "content": "sha256:0a5dac46ac463940b1ef6ef212ccbf6056c52558ba1bccdd8b1bd1bb5981058b",
+        "content": "sha256:81468bf5a366328e4f78fae0454796742bb2f6810c191eea4fccff72b8164e1e",
         "kind": "M",
-        "path": "apps/workbench/build/main.js"
+        "path": "design-lab/tests/test_claim_honesty_gates.py"
       },
       {
-        "content": "sha256:458d0d03066532988fcff1c5a3ac2db11f05aaa161df94ea6e25b400af18a4f0",
+        "content": "sha256:25c5c41674aeb117b29b49447acd76873c517105ea9bbca67148e720b29f3a44",
         "kind": "M",
-        "path": "apps/workbench/shell.ts"
+        "path": "docs/audits/DESIGN-LAB-GATE-REACHABILITY-AUDIT-20261007.md"
       },
       {
-        "content": "sha256:6bbf2d51c70546bacedb9d318a91fb0449ae70f66e5c387d5f024ac65668b893",
+        "content": "sha256:0d30f37b06adafb44147e08bcc5d3a6748e6908ad4e311e804baa00494a1ecb8",
         "kind": "M",
-        "path": "apps/workbench/style.css"
-      },
-      {
-        "content": "sha256:6b9f1003ad50b040f329951ea2dde43befae0ee981faf5df0789460c80f69863",
-        "kind": "M",
-        "path": "design-lab/tests/e2e/audit_workbench_ui.mjs"
-      },
-      {
-        "content": "sha256:7838be4aabcdd86620e939f8574e480ef23c0f3986b10a37efd6630d33883a62",
-        "kind": "M",
-        "path": "design-lab/tests/e2e/capture_workbench_screenshots.mjs"
-      },
-      {
-        "content": "sha256:7bb2888673cd18c43dbcb14e4c1c615af41008274f21a0291e5da1029d43e18a",
-        "kind": "M",
-        "path": "docs/UI-CONVERGENCE-20260930/ui-audit/report.json"
-      },
-      {
-        "content": "sha256:bf613af837a0f3298d75609551edb920edde5c34e27dd6df23e3b0300166cfff",
-        "kind": "M",
-        "path": "docs/audits/DESIGN-LAB-WORKBENCH-VISUAL-AUDIT-20261006.md"
+        "path": "scripts/verify_supply_chain.py"
       }
     ],
-    "worktree_digest": "sha256:5eafa9d9dc974ea56b1074de1a65f042a30de9524c9365d4beb82d3f981150a4"
+    "worktree_digest": "sha256:0932d2c1af4f852ced7dfdea2aa75d72df920743dfc9916a397c8b018b51418d"
   },
   "gitStateMeaning": "generation-time observation, not current HEAD",
   "hostLive": "derived from host_live axis only",
@@ -75,7 +45,7 @@
     "quarantinedSources": 162
   },
   "subjectMeaning": "subjectType=WORKTREE means the tree was dirty at generation; worktreeDigest covers HEAD plus the non-generated changes",
-  "subjectSha": "b727bc2682750964fa85333cfcb06c94bbae449a",
+  "subjectSha": "cf4c2076f6a09b2fc2e43328f08de3f1f54a9977",
   "subjectType": "WORKTREE",
   "taskCounts": {
     "PARTIAL": 28
@@ -92,5 +62,5 @@
     "executed": "see individual verified ledger receipts"
   },
   "worktreeClean": false,
-  "worktreeDigest": "sha256:5eafa9d9dc974ea56b1074de1a65f042a30de9524c9365d4beb82d3f981150a4"
+  "worktreeDigest": "sha256:0932d2c1af4f852ced7dfdea2aa75d72df920743dfc9916a397c8b018b51418d"
 }

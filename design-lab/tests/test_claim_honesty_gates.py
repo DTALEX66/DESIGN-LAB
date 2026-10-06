@@ -81,6 +81,19 @@ class ClaimHonestyGateTests(unittest.TestCase):
                          ["ai-product-os-frontend", "front-end-design-checklist"],
                          "the set of absorbed-without-revision sources changed; either "
                          "close the gap or record why the expectation moved")
+        # Measured 2026-10-07: none of the nine is resolvable offline. Two have a repo
+        # URL in the lock notes but no commit anywhere in their SOURCE.md / skills-lock.json,
+        # and the only 40-hex strings in those directories are truncated SHA-256 content
+        # hashes -- which the revision regex would accept as a commit. Seven have no URL
+        # at all, so a human has to identify the upstream before any lookup is possible.
+        self.assertEqual(sorted(check["revision_unresolved_with_url"]),
+                         ["ai-product-os-frontend", "front-end-design-checklist"])
+        self.assertEqual(len(check["revision_unresolved_without_url"]), 7)
+        self.assertEqual(check["revision_record"]["resolved"]
+                         + len(check["revision_unresolved_with_url"])
+                         + len(check["revision_unresolved_without_url"]),
+                         check["entries"],
+                         "resolved + unresolved no longer accounts for every lock entry")
 
 
 if __name__ == '__main__':

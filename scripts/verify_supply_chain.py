@@ -105,6 +105,19 @@ def sources_lock_check(files: list) -> dict:
                          if e["id"] in absorb_ids and e["id"] not in resolved
                          and e["id"] not in unresolved)
     absorb_unresolved = sorted(absorb_ids & unresolved)
+    # Split the unresolved by what a human would need to close them: a source with a
+    # URL needs an authoritative revision lookup, a source without one needs the URL
+    # first. Measured 2026-10-07: neither is resolvable offline -- the two SOURCE.md
+    # records and skills-lock.json carry repo, license, branch and vendoring date but
+    # no commit, and the only 40-hex strings in those directories are truncated
+    # SHA-256 content hashes, which are not revisions.
+    by_id = {s.get("id"): s for s in lock.get("sources", [])}
+
+    def _notes_has_url(source_id) -> bool:
+        return bool(re.search(r"https?://", str(by_id.get(source_id, {}).get("notes") or "")))
+
+    unresolved_with_url = sorted(i for i in unresolved if _notes_has_url(i))
+    unresolved_without_url = sorted(unresolved - set(unresolved_with_url))
     lock_ids = {e["id"] for e in entries}
     return {"entries": len(entries), "problems": problems, "latest_identities": latest_identities,
             "canonical_url_coverage": sum(1 for e in entries if e["has_url"]),
@@ -113,6 +126,8 @@ def sources_lock_check(files: list) -> dict:
                                 "unresolved": len(unresolved)},
             "absorb_without_revision": absorb_gaps,
             "absorb_unresolved": absorb_unresolved,
+            "revision_unresolved_with_url": unresolved_with_url,
+            "revision_unresolved_without_url": unresolved_without_url,
             "revision_record_ids_not_in_lock": sorted((resolved | unresolved) - lock_ids),
             "ok": not problems and not latest_identities}
 

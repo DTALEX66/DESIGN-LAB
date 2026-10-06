@@ -6,7 +6,7 @@
     "DL-TP-20260914-DEEPSEEK-AUTHORITY-R1::DLDS-G030",
     "DL-TP-20260914-DEEPSEEK-AUTHORITY-R1::DLDS-G040"
   ],
-  "generated_at": "2026-10-06T23:36:15+00:00",
+  "generated_at": "2026-10-06T23:42:08+00:00",
   "subject_sha": "",
   "canonical_adapter_status": [
     "DECLARED",
@@ -42,6 +42,19 @@
       "absorb_unresolved": [
         "ai-product-os-frontend",
         "front-end-design-checklist"
+      ],
+      "revision_unresolved_with_url": [
+        "ai-product-os-frontend",
+        "front-end-design-checklist"
+      ],
+      "revision_unresolved_without_url": [
+        "anydesign",
+        "claude-design-skill",
+        "design-system-prompt",
+        "motion-engine",
+        "shipit-ui",
+        "tool-control",
+        "web-content-designer"
       ],
       "revision_record_ids_not_in_lock": [],
       "ok": true
