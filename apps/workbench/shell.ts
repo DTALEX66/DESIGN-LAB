@@ -235,7 +235,7 @@ function capabilityCard(c: CapabilityContract): HTMLElement {
       el('h3', {}, `${c.domain} · ${c.capabilityId}`),
       el('div', { class: 'status-stack' },
         el('span', { class: 'tag ' + (c.implementationState === 'BLOCKED' ? 'warn' : 'info') },
-          c.implementationState),
+          en(c.implementationState)),
         el('small', {}, `来源 ${c.source} · 权限 ${c.permission}`))),
     el('p', { class: 'muted' }, c.reason),
     el('p', { class: 'view-hint' }, `未来接入：${c.route}（${c.contractRef}）。下一动作：${c.nextAction}`));
@@ -304,8 +304,16 @@ export function el<K extends keyof HTMLElementTagNameMap>(tag: K, attrs: Record<
   return node;
 }
 
-// B10 1:1 .kpi body. Parameter order matches EVERY call site
-// (value, label, note) — the previous (label, value) declaration silently
+// Machine-state words stay English on purpose -- they are the service's own
+// vocabulary, and translating them would create exactly the second vocabulary
+// that verify_state_vocabularies.py exists to prevent. Inside a lang="zh-CN"
+// document they must be marked instead, or a screen reader pronounces them with
+// Chinese phonemes (WCAG 3.1.2 Language of Parts).
+export function en(text: string): HTMLElement {
+  return el('span', { lang: 'en' }, text);
+}
+
+// B10 1:1 .kpi body. Parameter order matches EVERY call site// (value, label, note) — the previous (label, value) declaration silently
 // inverted the card, rendering the LABEL as B10's 35px primary number and the
 // value as the small caption (and breaking the count-up, which only fires on a
 // numeric <strong>).
@@ -363,7 +371,7 @@ export function animateKpiCount(el: HTMLElement): void {
 export function stateMachineStepper(): HTMLElement {
   const stages = ['brief', 'research', 'designing', 'review', 'qa', 'approved', 'delivered', 'archived'];
   const ol = el('ol', { class: 'state-machine', 'aria-label': '设计域状态机（契约可视化，不代表项目进度）' });
-  for (const stage of stages) ol.append(el('li', { class: 'state-machine-step', dataset: { state: stage } }, stage));
+  for (const stage of stages) ol.append(el('li', { class: 'state-machine-step', dataset: { state: stage } }, en(stage)));
   return ol;
 }
 
@@ -659,7 +667,7 @@ const modulePanels = el('div', { class: 'three-col', style: 'margin-top:16px' },
                 // runtime/paths.py reports DECLARED_NOT_PROBED, a declaration.
                 class: v.status === 'MISSING' ? 'tag bad'
                   : (v.status === 'DECLARED_NOT_PROBED' ? 'tag warn' : 'tag ok'),
-              }, v.status)))),
+              }, en(v.status))))),
           el('p', { class: 'view-hint' }, '来自 /api/environment 真实读回；写权限与状态由服务裁定。')),
         el('div', { class: 'panel' },
           el('h3', {}, '未来能力'),
@@ -1040,7 +1048,7 @@ export async function renderCreativeTools(target: HTMLElement): Promise<void> {
                 // runtime/paths.py reports DECLARED_NOT_PROBED, a declaration.
                 class: v.status === 'MISSING' ? 'tag bad'
                   : (v.status === 'DECLARED_NOT_PROBED' ? 'tag warn' : 'tag ok'),
-              }, v.status)))),
+              }, en(v.status))))),
           el('p', { class: 'view-hint' }, '来自 /api/environment 真实读回。')),
         hostCard ? capabilityCard(hostCard) : el('div', { class: 'panel' }),
         mcpCard ? capabilityCard(mcpCard) : el('div', { class: 'panel' }),
@@ -1301,7 +1309,7 @@ function buildStageNav(currentStageKey?: string): HTMLElement {
     // signal that a stage is PLANNED was a pointer-only `title`, so a keyboard
     // user pressed an enabled-looking button and nothing happened.
     const tag: HTMLElement | null = stage.state !== 'IMPLEMENTED'
-      ? el('span', { class: 'tag ' + (stage.state === 'BLOCKED' ? 'warn' : 'info') }, stage.state)
+      ? el('span', { class: 'tag ' + (stage.state === 'BLOCKED' ? 'warn' : 'info') }, en(stage.state))
       : null;
     li.append(el('button', btnAttrs,
       el('span', { class: 'stage-nav-label' }, stage.label),

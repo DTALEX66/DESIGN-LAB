@@ -1079,7 +1079,7 @@ function capabilityCard(c) {
         el(
           "span",
           { class: "tag " + (c.implementationState === "BLOCKED" ? "warn" : "info") },
-          c.implementationState
+          en(c.implementationState)
         ),
         el("small", {}, `来源 ${c.source} · 权限 ${c.permission}`)
       )
@@ -1133,6 +1133,9 @@ function el(tag, attrs = {}, ...children) {
   node.append(...children);
   return node;
 }
+function en(text) {
+  return el("span", { lang: "en" }, text);
+}
 function kpiCard(value, label, note, trend) {
   const unread = !token && value === "0";
   const shown = unread ? "—" : value;
@@ -1167,7 +1170,7 @@ function animateKpiCount(el2) {
 function stateMachineStepper() {
   const stages = ["brief", "research", "designing", "review", "qa", "approved", "delivered", "archived"];
   const ol = el("ol", { class: "state-machine", "aria-label": "设计域状态机（契约可视化，不代表项目进度）" });
-  for (const stage of stages) ol.append(el("li", { class: "state-machine-step", dataset: { state: stage } }, stage));
+  for (const stage of stages) ol.append(el("li", { class: "state-machine-step", dataset: { state: stage } }, en(stage)));
   return ol;
 }
 const FAILED_STATES = /* @__PURE__ */ new Set(["FAILED", "TIMED_OUT", "CANCELLED"]);
@@ -1580,7 +1583,7 @@ async function renderDashboard(target) {
                 // Only a probe that actually saw the root may be green:
                 // runtime/paths.py reports DECLARED_NOT_PROBED, a declaration.
                 class: v.status === "MISSING" ? "tag bad" : v.status === "DECLARED_NOT_PROBED" ? "tag warn" : "tag ok"
-              }, v.status)
+              }, en(v.status))
             ))
           ),
           el("p", { class: "view-hint" }, "来自 /api/environment 真实读回；写权限与状态由服务裁定。")
@@ -2165,7 +2168,7 @@ async function renderCreativeTools(target) {
                 // Only a probe that actually saw the root may be green:
                 // runtime/paths.py reports DECLARED_NOT_PROBED, a declaration.
                 class: v.status === "MISSING" ? "tag bad" : v.status === "DECLARED_NOT_PROBED" ? "tag warn" : "tag ok"
-              }, v.status)
+              }, en(v.status))
             ))
           ),
           el("p", { class: "view-hint" }, "来自 /api/environment 真实读回。")
@@ -2556,7 +2559,7 @@ function buildStageNav(currentStageKey) {
       },
       title: stage.note ?? (stage.state === "IMPLEMENTED" ? "点击跳转到该阶段" : stage.note ?? "")
     };
-    const tag = stage.state !== "IMPLEMENTED" ? el("span", { class: "tag " + (stage.state === "BLOCKED" ? "warn" : "info") }, stage.state) : null;
+    const tag = stage.state !== "IMPLEMENTED" ? el("span", { class: "tag " + (stage.state === "BLOCKED" ? "warn" : "info") }, en(stage.state)) : null;
     li.append(el(
       "button",
       btnAttrs,
