@@ -22,6 +22,7 @@ from __future__ import annotations
 import argparse
 import inspect
 import json
+import re
 import subprocess
 import sys
 from datetime import datetime, timezone
@@ -41,7 +42,8 @@ MANIFESTS = {
     ".project-local/archive/hermes-legacy/MIGRATION-MANIFEST.json":
         "scripts/deepseek_hermes_migration.py",
 }
-UNKNOWN_OUTCOME_TESTS = ("design-lab/tests/test_runtime_attempt_safety.py",)
+UNKNOWN_OUTCOME_TESTS = ("design-lab/tests/test_runtime_attempt_safety.py",
+                         "design-lab/tests/test_boot_reconciliation.py")
 
 
 def git(*args: str) -> str:
@@ -77,6 +79,69 @@ def audit_manifest(rel: str, tool: str) -> dict:
             "ok": all(elements.values()) and all(tool_modes.values())}
 
 
+PRODUCTION_ROOT = REPO / "src" / "design_lab"
+JOB_STORE_MODULE = "src/design_lab/runtime/job_store.py"
+RECOVERY_ENTRY_POINTS = ("recover_orphaned_attempts", "recover_interrupted",
+                         "reconcile_attempt", "reconcile_receipted")
+
+
+def python_sources(root):
+    if not root.is_dir():
+        return
+    for path in sorted(root.rglob("*.py")):
+        if "__pycache__" in path.parts:
+            continue
+        yield path
+
+
+def production_call_sites(name, root=PRODUCTION_ROOT):
+    """POSIX paths under the production package that call `name(...)`.
+
+    Scoped to src/design_lab on purpose. The previous version of this gate counted
+    a test file as proof that production behaves, which is exactly how a function
+    with no caller at all passed for months.
+    """
+    pattern = re.compile(rf"\b{re.escape(name)}\s*\(")
+    hits = []
+    for path in python_sources(root):
+        if not pattern.search(path.read_text(encoding="utf-8", errors="ignore")):
+            continue
+        try:
+            hits.append(path.relative_to(REPO).as_posix())
+        except ValueError:
+            hits.append(path.relative_to(root.parent).as_posix())
+    return hits
+
+
+def executes_under_attempt_lock():
+    """True only while NativeTasks.execute itself takes the attempt's OS lock.
+
+    That hold is what turns "no holder" into "the worker is gone". Without it the
+    liveness probe below would be guessing, and guessing is what A3 forbids.
+    """
+    path = REPO / "src" / "design_lab" / "native_tasks.py"
+    if not path.is_file():
+        return False
+    source = path.read_text(encoding="utf-8", errors="ignore")
+    start = source.find("    def execute(self,")
+    if start < 0:
+        return False
+    body = source[start + 1:]
+    following = body.find("\n    def ")
+    if following >= 0:
+        body = body[:following]
+    return "recovery_lock(" in body and "RecoveryBusy" in body
+
+
+def test_exercises_recovery(rel):
+    """A test counts when it calls a recovery entry point, not when it contains a word."""
+    path = REPO / rel
+    if not path.is_file():
+        return False
+    text = path.read_text(encoding="utf-8", errors="ignore")
+    return any(re.search(rf"\b{re.escape(name)}\s*\(", text) for name in RECOVERY_ENTRY_POINTS)
+
+
 def audit_unknown_outcome() -> dict:
     from design_lab.runtime import job_store
     allowed = job_store.ALLOWED
@@ -96,17 +161,40 @@ def audit_unknown_outcome() -> dict:
     signature = inspect.signature(job_store.reconcile_attempt)
     if "proof" not in signature.parameters:
         findings.append("reconcile_attempt does not require a proof")
-    if not hasattr(job_store, "recover_interrupted"):
-        findings.append("no restart recovery entry point")
+    if not hasattr(job_store, "recover_orphaned_attempts"):
+        findings.append("no liveness-gated restart recovery entry point exists")
+
+    # This used to be `hasattr(job_store, "recover_interrupted")`, which is true
+    # for as long as the function is *defined* -- including the whole period in
+    # which nothing called it. Existence is not the claim; a caller is.
+    gated = [p for p in production_call_sites("recover_orphaned_attempts")
+             if p != "src/design_lab/runtime/job_store.py"]
+    blind = [p for p in production_call_sites("recover_interrupted")
+             if p != "src/design_lab/runtime/job_store.py"]
+    if not gated:
+        findings.append("recover_orphaned_attempts has no production caller: restart "
+                        "reconciles nothing")
+    if blind:
+        findings.append(f"the blind RUNNING scan is called from production: {blind}")
+
+    # Without this, "the lock is free" would not mean "the worker is gone", and
+    # the liveness probe above would be guessing.
+    if not executes_under_attempt_lock():
+        findings.append("NativeTasks.execute does not hold the attempt's recovery lock, "
+                        "so a free lock cannot prove the worker stopped")
+
     covered = [rel for rel in UNKNOWN_OUTCOME_TESTS
-               if (REPO / rel).is_file() and "unknown" in (REPO / rel).read_text(
-                   encoding="utf-8", errors="ignore").lower()]
+               if test_exercises_recovery(rel)]
     if not covered:
-        findings.append("no test covers unknown-outcome recovery")
+        findings.append("no test calls a recovery entry point (a file merely "
+                        "mentioning the word 'unknown' does not count)")
     return {"outcome_unknown_successors": sorted(allowed.get("OUTCOME_UNKNOWN", [])),
             "terminal_states": sorted(terminal),
             "reconcile_requires_proof": "proof" in signature.parameters,
-            "recovery_entry_point": hasattr(job_store, "recover_interrupted"),
+            "recovery_is_called_in_production": bool(gated),
+            "recovery_production_callers": gated,
+            "blind_scan_production_callers": blind,
+            "execution_holds_attempt_lock": executes_under_attempt_lock(),
             "tests": covered, "findings": findings, "ok": not findings}
 
 

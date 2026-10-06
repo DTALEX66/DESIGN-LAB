@@ -55,8 +55,11 @@ def main(argv=None):
             if sys.stdin.isatty():
                 raise ValueError('SERVICE_REQUIRES_LAUNCHER_STDIN')
             token = sys.stdin.readline(66).rstrip('\r\n')
+            reconciled = service.reconcile_interrupted_attempts()
             with make_server(service, token, args.port) as httpd:
-                print(json.dumps({'status': 'LISTENING', 'host': '127.0.0.1', 'port': httpd.server_port}), flush=True)
+                print(json.dumps({'status': 'LISTENING', 'host': '127.0.0.1',
+                                  'port': httpd.server_port,
+                                  'reconciled_attempts': len(reconciled)}), flush=True)
                 try:
                     httpd.serve_forever()
                 except KeyboardInterrupt:
@@ -66,12 +69,14 @@ def main(argv=None):
             import secrets
             from .http_service import make_server
             token = secrets.token_hex(32)
+            reconciled = service.reconcile_interrupted_attempts()
             with make_server(service, token, args.port) as httpd:
                 url = f'http://127.0.0.1:{httpd.server_port}/workbench'
                 # The token is the sign-in the Workbench asks for; it lives only in
                 # this process and this terminal, never in argv, a file or a URL.
                 print(json.dumps({'status': 'LISTENING', 'url': url,
                                   'port': httpd.server_port, 'token': token,
+                                  'reconciled_attempts': len(reconciled),
                                   'token_ttl': 'until this process exits'}), flush=True)
                 if not args.no_browser:
                     import webbrowser

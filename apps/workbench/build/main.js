@@ -1298,7 +1298,7 @@ async function renderDashboard(target) {
   }
   const systemsList = el(
     "ul",
-    { class: "items", "data-view-item": "brand" },
+    { class: "items-chips", "data-view-item": "brand" },
     ...systems.design_systems.map((system) => el(
       "li",
       {},
@@ -2693,7 +2693,7 @@ function briefFieldRow(prefix) {
   const constraints = el("input", { id: `${prefix}-constraints`, class: "input", maxlength: "400", placeholder: "例如：不改变 logo 拓扑" });
   const row = el(
     "div",
-    { class: "list-item", style: "display:grid;gap:8px" },
+    { class: "row-card", style: "display:grid;gap:8px" },
     fieldRow("简报标题（必填）", title, `${prefix}-title`),
     fieldRow("目标（逗号分隔，必填）", goals, `${prefix}-goals`),
     fieldRow("约束（可选）", constraints, `${prefix}-constraints`)
@@ -3009,14 +3009,14 @@ function renderBriefEditor(id, layer, target) {
     el("div", { class: "list" }, ...briefRows),
     el(
       "div",
-      { class: "list-item", style: "display:grid;gap:10px" },
+      { class: "row-card", style: "display:grid;gap:10px" },
       el("strong", {}, "新建简报"),
       create.row,
       el("div", { class: "actions" }, createBtn)
     ),
     el(
       "div",
-      { class: "list-item", style: "display:grid;gap:10px" },
+      { class: "row-card", style: "display:grid;gap:10px" },
       el("strong", {}, "修订 / 新增版本"),
       revHint,
       rev.row,
@@ -3237,14 +3237,14 @@ function renderReferencePanel(id) {
     list,
     el(
       "div",
-      { class: "list-item", style: "display:grid;gap:8px" },
+      { class: "row-card", style: "display:grid;gap:8px" },
       el("strong", {}, "预览（按需读取）"),
       preview2,
       info2
     ),
     el(
       "div",
-      { class: "list-item", style: "display:grid;gap:8px" },
+      { class: "row-card", style: "display:grid;gap:8px" },
       el("strong", {}, "批量导入（PNG / JPEG，单个 ≤ 32 MiB）"),
       fieldRow("选择要导入的图片", fileInput, "pd-ref-files"),
       selection,
@@ -3386,7 +3386,7 @@ function renderDirectionPanel(id, layer, target) {
     ),
     el(
       "div",
-      { class: "list-item", style: "display:grid;gap:8px" },
+      { class: "row-card", style: "display:grid;gap:8px" },
       el("strong", {}, "新建方向候选（绑定到某个简报版本）"),
       fieldRow("所属简报版本", briefSelect, "pd-dir-brief"),
       fieldRow("方向标题（必填）", title, "pd-dir-title"),
@@ -3484,7 +3484,7 @@ function renderDesignSystemPanel(id, layer, systems, target) {
     ),
     el(
       "div",
-      { class: "list-item", style: "display:grid;gap:8px" },
+      { class: "row-card", style: "display:grid;gap:8px" },
       el("strong", {}, "绑定设计系统（需先有人选定方向）"),
       gate,
       fieldRow("要绑定的设计系统", select, "pd-ds-name"),
