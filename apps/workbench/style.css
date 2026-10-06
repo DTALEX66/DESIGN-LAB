@@ -197,14 +197,21 @@ form label{flex:1}
 .preview img{max-width:100%;max-height:430px;object-fit:contain}
 .preview p{padding:22px;background:rgba(13,18,33,.85)}
 
-.mono{font-family:ui-monospace,monospace;font-size:11px;overflow-wrap:anywhere}
-.items{padding:0;list-style:none;display:grid;gap:9px}
-.items button{
+/* .mono used to be written in three separate blocks and the last one won, so
+   this line contributed only overflow-wrap while family and size came from
+   elsewhere. The merged values below are the previously *effective* style. */
+.mono{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12px;overflow-wrap:anywhere}
+/* Renamed from .items, which was also defined further down as a wrapping chip
+   row (now .items-chips). This is the stacked full-width-button list used by
+   the legacy project-library workspace. display lives in exactly one block per
+   name; the min-width shrink-guard at the bottom re-lists both on purpose. */
+.items-stack{padding:0;list-style:none;display:grid;gap:9px}
+.items-stack button{
   text-align:left;width:100%;
   background:var(--surface-2);color:var(--ink);
   border:1px solid var(--line);font-size:12px;overflow-wrap:anywhere;
 }
-.items button:hover{border-color:var(--color-primary)}
+.items-stack button:hover{border-color:var(--color-primary)}
 
 .section-head,.future{display:flex;justify-content:space-between;align-items:center;gap:18px}
 .badge{
@@ -218,7 +225,6 @@ form label{flex:1}
   border-left:3px solid var(--accent);
   padding:10px 16px;background:var(--surface-2);
 }
-.error{color:var(--color-error)!important}
 
 body > footer{
   max-width:1240px;margin:30px auto;padding:0 22px 30px;
@@ -389,8 +395,8 @@ body > footer{
 .revision .eyebrow{margin:0 0 8px}
 .revision .mono{font-size:12px;margin:6px 0}
 .revision form{margin:10px 0 4px}
-.items.lineage{margin-top:6px}
-.items.lineage li{font-size:12px;color:var(--muted);border-left:2px solid var(--line);padding-left:10px;overflow-wrap:anywhere}
+.items-stack.lineage{margin-top:6px}
+.items-stack.lineage li{font-size:12px;color:var(--muted);border-left:2px solid var(--line);padding-left:10px;overflow-wrap:anywhere}
 #brief-lineage-title,#direction-lineage-title{font-size:12px;margin:4px 0}
 #design-binding-active.warn{color:var(--color-warning)}
 /* UI real-data routes (projects / creative-tools / deliverables / evidence) */
@@ -408,14 +414,18 @@ body > footer{
 }
 .project-select:focus{outline:2px solid var(--accent);outline-offset:1px}
 .route-view-body{margin-top:8px}
-.items{list-style:none;padding:0;margin:10px 0;display:flex;flex-wrap:wrap;gap:8px}
-.items li{
+/* The real-data routes render short values as a wrapping chip row, which is a
+   different layout from .items-stack; they used to share one overloaded name. */
+.items-chips{list-style:none;padding:0;margin:10px 0;display:flex;flex-wrap:wrap;gap:8px}
+.items-chips li{
   font-size:12px;color:var(--ink);
   background:var(--surface-2);border:1px solid var(--line);
   border-radius:var(--radius-md);padding:8px 12px;
 }
-.items li.view-hint{background:transparent;border-style:dashed;color:var(--muted)}
-.error{color:var(--color-error);font-size:13px;margin:12px 0}
+.items-chips li.view-hint{background:transparent;border-style:dashed;color:var(--muted)}
+/* Single authoritative definition. !important on the colour is load-bearing: an
+   error message rendered as an .items-chips li would otherwise take --ink. */
+.error{color:var(--color-error)!important;font-size:13px;margin:12px 0}
 
 /* B10 final high-fidelity visual layer — 1:1 replica of the UI-suite B10 index.html
    <style> block (145 rules / 4 keyframes). Authority order B10 > B09 > ... > B01.
@@ -982,7 +992,6 @@ html,body{margin:0}
   pointer-events:none;
 }
 .status-stack{display:flex;gap:10px;flex-wrap:wrap}
-.mono{font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
 .empty{
   text-align:center;padding:56px 20px;color:var(--muted)
 }
@@ -1277,7 +1286,7 @@ html,body{margin:0}
 /* 兜底：即便某个 .tag 仍是 nowrap 长串，也让它换行到下一行而不是顶破面板。
    只有在内容真的放不下时才会触发，不改变常规行的视觉。 */
 .list-item{flex-wrap:wrap}
-.items,.items>*{min-width:0}
+.items-stack,.items-chips,.items-stack>*,.items-chips>*{min-width:0}
 
 /* --- F-2 长值不再塞进 .tag ------------------------------------------------
    .tag 是短状态药丸，white-space:nowrap 是它的正确行为；路径、hash、
@@ -1302,7 +1311,8 @@ html,body{margin:0}
    --font-body 16px，避免改变信息密度层级），等宽取 12px。 */
 .eyebrow{font-size:12px;letter-spacing:.08em}
 body > header p,body > main p,body > footer p{font-size:14px}
-.mono{font-size:12px}
+/* .mono's 12px is now carried by the single authoritative .mono block near the
+   top of this file rather than by an override here; .badge has no such block. */
 .badge{font-size:12px}
 
 /* eyebrow 只用于短标签；长说明走 .note，避免把 60 字正文压成 10px。 */

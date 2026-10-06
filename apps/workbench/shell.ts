@@ -506,7 +506,7 @@ export async function renderDashboard(target: HTMLElement): Promise<void> {
     const text = v.textContent;
     if (text !== null && /^\d+$/.test(text)) v.dataset.count = text;
   }
-  const systemsList = el('ul', { class: 'items', 'data-view-item': 'brand' },
+  const systemsList = el('ul', { class: 'items-chips', 'data-view-item': 'brand' },
     ...systems.design_systems.map((system) => el('li', {},
       `${system.name} · ${system.title} · v${system.version} · 证据 ${system.evidence_level}`)));
   // B10 1:1 two-col: 最近项目（左宽，.list/.list-item/.tag）+ 质量趋势

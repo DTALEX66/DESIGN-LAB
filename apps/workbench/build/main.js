@@ -1297,7 +1297,7 @@ async function renderDashboard(target) {
   }
   const systemsList = el(
     "ul",
-    { class: "items", "data-view-item": "brand" },
+    { class: "items-chips", "data-view-item": "brand" },
     ...systems.design_systems.map((system) => el(
       "li",
       {},
