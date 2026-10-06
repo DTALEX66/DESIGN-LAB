@@ -32,12 +32,16 @@ VERIFIER = ROOT / "scripts" / "verify_recovery_safety.py"
 # Written to the temp dir and executed as a separate process: an OS lock held here
 # is held by a *different* process, which is the only way to make "the holder died"
 # mean something.
+# environ={} because the authoritative suite runner exports PROJECT_LOCAL_ROOT at the
+# repository root; inheriting it makes resolve_paths reject the temp project as an
+# out-of-root policy violation. test_native_recovery_lock.py uses the same convention,
+# which is why its cross-process case passes on CI and this one initially did not.
 HOLDER_SCRIPT = '''
 import sys, time
 sys.path.insert(0, sys.argv[1])
 from design_lab.runtime.paths import resolve_paths
 from design_lab.runtime.native_recovery_lock import recovery_lock
-paths = resolve_paths(project_root=sys.argv[2])
+paths = resolve_paths(project_root=sys.argv[2], environ={})
 with recovery_lock(paths, sys.argv[3]):
     print("HELD", flush=True)
     time.sleep(float(sys.argv[4]))
@@ -81,8 +85,10 @@ class ProbeIsRequired(unittest.TestCase):
             cwd=str(ROOT), stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
             text=True, env={**os.environ})
         try:
-            self.assertEqual("HELD", child.stdout.readline().strip(),
-                             "the child never reported holding the lock")
+            first = child.stdout.readline().strip()
+            self.assertEqual("HELD", first,
+                             "the child never reported holding the lock; its first output "
+                             f"line was: {first[:300]!r}")
             flipped = jobs.recover_orphaned_attempts(
                 self.conn, holder_is_gone=lambda a: self._free(a))
             self.assertEqual(flipped, [],
@@ -123,7 +129,7 @@ class ProbeIsRequired(unittest.TestCase):
     def _free(self, attempt_id):
         from design_lab.runtime.native_recovery_lock import RecoveryBusy, recovery_lock
         try:
-            with recovery_lock(resolve_paths(project_root=self.root), attempt_id):
+            with recovery_lock(resolve_paths(project_root=self.root, environ={}), attempt_id):
                 return True
         except RecoveryBusy:
             return False
@@ -205,7 +211,12 @@ class RecoverySafetyVerifierIsExecuted(unittest.TestCase):
             (package / "quiet.py").write_text("def h():\n    return 1\n", encoding="utf-8")
             (package / "definer.py").write_text("def f(a):\n    return a\n", encoding="utf-8")
             hits = self.verifier.production_call_sites("f", root=package)
-            self.assertEqual(hits, ["pkg/caller.py", "pkg/definer.py"])
+            # Basenames, not paths: the suite runner redirects the temp root inside the
+            # repository, so a repo-relative expectation would differ between CI and a
+            # bare shell. Which files were found is the claim; where the temp dir sits
+            # is not.
+            self.assertEqual(sorted(Path(h).name for h in hits),
+                             ["caller.py", "definer.py"], hits)
             self.assertEqual(self.verifier.production_call_sites("never_called", root=package), [])
 
     def test_a_test_that_only_mentions_the_word_unknown_does_not_count(self):
