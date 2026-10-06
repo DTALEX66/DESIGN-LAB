@@ -81,5 +81,13 @@ FRESH_CLONE=PASS stages=9 failures=[] unverifiable=['install']
   本轮把三个实质性的刷新并提交，`CLEAN-TREE-REPORT.json` 刻意回退（它记的是某次工作树的瞬时脏状态，
   不是仓库级事实）。
 - `verify_supply_chain` 报 `G000_sources_lock entries=46 urls=39 revisions=0`：
-  #242 已把逐源 revision 落到 `vendor/sources.revisions.json`，但这条检查仍只看 lock 本身，
-  没有读那份新记录。属可接的下一步，本轮未改。
+  #242 把逐源 revision 写进了 `vendor/sources.revisions.json`，而这条检查只读 lock。
+  **本轮已接上**（同一提交内）：`revision_coverage` 现在同时看派生记录，实跑
+  `revisions=37`，并新增 `revision_record` / `absorb_without_revision` /
+  `revision_record_ids_not_in_lock` 三个字段；`test_claim_honesty_gates.py` 直接断言
+  `revision_coverage > 0`，因为**少报自己覆盖率的闸门比没有闸门更坏**——那个数字正是别人信的东西。
+- 接上之后立刻多出一条此前看不见的发现：`absorb_unresolved` 有**两个**而不是一个——
+  `ai-product-os-frontend` 与 `front-end-design-checklist`。后者正是"已吸收"清单里那份
+  CC0 的 `packages/capabilities/standards/front-end-design-checklist/`，
+  即它是 `ABSORB_MINIMAL` 却没有 revision，属 AUTHORITY §9 未闭合项。
+  本轮把这两个 id 钉成断言（第三个混进来就会红），处置仍需 owner/上游查证。

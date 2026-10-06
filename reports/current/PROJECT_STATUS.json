@@ -8,36 +8,31 @@
   },
   "fresh": false,
   "freshnessMeaning": "at generation only; check verifies bound-input integrity, not current Git or cloud state",
-  "generatedAt": "2026-10-06T23:29:07+00:00",
+  "generatedAt": "2026-10-06T23:33:27+00:00",
   "git": {
     "branch": "qoder/designlab-gate-reachability-20261007",
     "origin_main": "4ea25c3805ca199af8cfbbd7deb5303848635382",
-    "sha": "4ea25c3805ca199af8cfbbd7deb5303848635382",
+    "sha": "fb9b3c7f86940c25a7a676929fb00ef947912ae9",
     "source_worktree_clean": false,
     "tracked_files": 2982,
     "worktree_changes": [
       {
-        "content": "sha256:95501d41a92fb87b40659650272079da959046cb0438560f6ed2df6b1206de32",
-        "kind": "A",
+        "content": "sha256:02bc79bea0d8ff494167c54b4e7172ac8fd513525380feb554ba9ce62b561bed",
+        "kind": "M",
         "path": "design-lab/tests/test_claim_honesty_gates.py"
       },
       {
-        "content": "sha256:4f318e7eed85e1792b872133c9927f1abeb6ff366ea643a70593e8b86d9086e9",
-        "kind": "A",
-        "path": "design-lab/tests/test_gate_reachability.py"
-      },
-      {
-        "content": "sha256:7c5d397da2537177ba9699628651b01d9010087cf452f8e859612751409a63ad",
-        "kind": "A",
+        "content": "sha256:44fb3e8c1c3a36c14be25a1d39800ba890474b2b4fd8b36ac93b8fac54e0fdda",
+        "kind": "M",
         "path": "docs/audits/DESIGN-LAB-GATE-REACHABILITY-AUDIT-20261007.md"
       },
       {
-        "content": "sha256:719e686fc6e7e6587a2a8de2fd4c063ca56089f01290958e7a7f4626cb6da118",
+        "content": "sha256:171ba7097fdf729169bbf83e9be17c5292a11029074ac8b14f5534b3bda97347",
         "kind": "M",
-        "path": "scripts/verify_fresh_clone.py"
+        "path": "scripts/verify_supply_chain.py"
       }
     ],
-    "worktree_digest": "sha256:cd628c277632f0e443caf71487737ceace9923ffaef1935cb0e7e4c0a5eabcde"
+    "worktree_digest": "sha256:a4a2934dc68433c384481641dcba0feca2bd5f3c616e2bce2655c06ae87a4ea0"
   },
   "gitStateMeaning": "generation-time observation, not current HEAD",
   "hostLive": "derived from host_live axis only",
@@ -50,7 +45,7 @@
     "quarantinedSources": 162
   },
   "subjectMeaning": "subjectType=WORKTREE means the tree was dirty at generation; worktreeDigest covers HEAD plus the non-generated changes",
-  "subjectSha": "4ea25c3805ca199af8cfbbd7deb5303848635382",
+  "subjectSha": "fb9b3c7f86940c25a7a676929fb00ef947912ae9",
   "subjectType": "WORKTREE",
   "taskCounts": {
     "PARTIAL": 28
@@ -63,9 +58,9 @@
   "testRunMeaning": "bound run: python scripts/run_bound_test_suite.py --order forward --repeat 2 --modules test_asset_store test_creative_job test_creative_ledgers test_creative_lineage test_creative_migration test_creative_version_guard test_creative_f030_f040 test_creative_session_link test_job_store test_runtime_attempt_safety test_runtime_asset_safety test_runtime_explicit_project test_assurance_qa_plane test_assurance_jury test_bundle_store test_operation_coordinator",
   "testRunResult": "OK",
   "tests": {
-    "definedTestMethodCount": 1845,
+    "definedTestMethodCount": 1846,
     "executed": "see individual verified ledger receipts"
   },
   "worktreeClean": false,
-  "worktreeDigest": "sha256:cd628c277632f0e443caf71487737ceace9923ffaef1935cb0e7e4c0a5eabcde"
+  "worktreeDigest": "sha256:a4a2934dc68433c384481641dcba0feca2bd5f3c616e2bce2655c06ae87a4ea0"
 }

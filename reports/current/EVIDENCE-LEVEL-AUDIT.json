@@ -1,7 +1,7 @@
 {
   "schemaVersion": "design-lab/evidence-level-audit/v1",
   "task_key": "DL-TP-20260914-DEEPSEEK-AUTHORITY-R1::DLDS-H040",
-  "audited_at": "2026-10-06T23:28:51+00:00",
+  "audited_at": "2026-10-06T23:36:14+00:00",
   "subject_sha": "",
   "claim_surface": [
     "integrations/adapter-registry.json",

@@ -12,6 +12,7 @@ prints nothing and exits 0 has not examined anything.
 """
 from __future__ import annotations
 
+import json
 import re
 import subprocess
 import sys
@@ -55,6 +56,31 @@ class ClaimHonestyGateTests(unittest.TestCase):
 
     def test_supply_chain_lock_is_consistent(self) -> None:
         self.run_gate(*GATES[2])
+
+    def test_supply_chain_sees_the_derived_revision_record(self) -> None:
+        """The join, asserted.
+
+        `revision_coverage` read only the lock and reported 0 while PR #242's derived
+        record held 37 revisions. A gate that under-reports its own coverage is worse
+        than no gate, because the number is what people trust.
+        """
+        report = ROOT / "reports" / "current" / "SUPPLY-CHAIN-REPORT.json"
+        self.assertTrue(report.is_file(), "the gate ran but wrote no report to inspect")
+        check = json.loads(report.read_text(encoding="utf-8"))["checks"]["G000_sources_lock"]
+        self.assertGreater(check["revision_coverage"], 0,
+                           "revision_coverage is zero again: the lock and the derived "
+                           "revision record have stopped being read together")
+        self.assertEqual(check["revision_record_ids_not_in_lock"], [],
+                         "the revision record describes sources the lock no longer has")
+        self.assertEqual(check["absorb_without_revision"], [],
+                         "an ABSORB source appears in neither the resolved nor the "
+                         "unresolved revision list -- that is a hole in the record")
+        # Recorded §9 gaps, not failures: source known, revision pending. Pinning the set
+        # means a third one cannot join silently.
+        self.assertEqual(sorted(check["absorb_unresolved"]),
+                         ["ai-product-os-frontend", "front-end-design-checklist"],
+                         "the set of absorbed-without-revision sources changed; either "
+                         "close the gap or record why the expectation moved")
 
 
 if __name__ == '__main__':

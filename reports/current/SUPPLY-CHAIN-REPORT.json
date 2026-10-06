@@ -6,7 +6,7 @@
     "DL-TP-20260914-DEEPSEEK-AUTHORITY-R1::DLDS-G030",
     "DL-TP-20260914-DEEPSEEK-AUTHORITY-R1::DLDS-G040"
   ],
-  "generated_at": "2026-10-06T23:28:52+00:00",
+  "generated_at": "2026-10-06T23:36:15+00:00",
   "subject_sha": "",
   "canonical_adapter_status": [
     "DECLARED",
@@ -32,7 +32,18 @@
       "problems": [],
       "latest_identities": [],
       "canonical_url_coverage": 39,
-      "revision_coverage": 0,
+      "revision_coverage": 37,
+      "revision_record": {
+        "present": true,
+        "resolved": 37,
+        "unresolved": 9
+      },
+      "absorb_without_revision": [],
+      "absorb_unresolved": [
+        "ai-product-os-frontend",
+        "front-end-design-checklist"
+      ],
+      "revision_record_ids_not_in_lock": [],
       "ok": true
     },
     "G010_adapter_status": {
