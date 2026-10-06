@@ -8,13 +8,13 @@
   },
   "fresh": false,
   "freshnessMeaning": "at generation only; check verifies bound-input integrity, not current Git or cloud state",
-  "generatedAt": "2026-10-06T23:16:23+00:00",
+  "generatedAt": "2026-10-06T23:27:50+00:00",
   "git": {
-    "branch": "tmp-rebase-qoder/designlab-t1-review-r5-007-20261007",
-    "origin_main": "2ce656473279f0eb1fb60765902d39876e7368d6",
-    "sha": "3125e2b79accf6c80e7767771514741dc4598d95",
+    "branch": "tmp-rebase-qoder/designlab-vendor-presence-20261007",
+    "origin_main": "4ea25c3805ca199af8cfbbd7deb5303848635382",
+    "sha": "7e868af559b8785b649d642416242c9777e0805c",
     "source_worktree_clean": false,
-    "tracked_files": 2979,
+    "tracked_files": 2981,
     "worktree_changes": [
       {
         "content": "sha256:701d9cd41aa60797f9233025632c4bd23c32e9c83e13e6fbb833f3705889317e",
@@ -45,6 +45,11 @@
         "content": "sha256:1c0b974538491258dc41608b87f5211a53c27a5451533389dbcc7ca1fb0ddee9",
         "kind": "A",
         "path": "docs/audits/DESIGN-LAB-T1-LEDGER-REVIEW-DL-R5-006-20261007.md"
+      },
+      {
+        "content": "sha256:2027d329e1b4ce0afe5889ef0b885ededb7836244c7c07b559fdfd58d994045c",
+        "kind": "A",
+        "path": "docs/audits/DESIGN-LAB-T1-LEDGER-REVIEW-DL-R5-007-20261007.md"
       },
       {
         "content": "sha256:1ff255d266969ad0125925620d13c838069d5f0407803a141f319181d23ae12d",
@@ -117,7 +122,7 @@
         "path": "src/design_lab/service.py"
       }
     ],
-    "worktree_digest": "sha256:498d65cec699f4c3f41e89679f1cd21fbbf0247b1fdb2a926ed49da92c6bb13d"
+    "worktree_digest": "sha256:57ea9d944d325d5c7844aa1d89b269bccc88a2b384486faab973bc03c5f7f446"
   },
   "gitStateMeaning": "generation-time observation, not current HEAD",
   "hostLive": "derived from host_live axis only",
@@ -130,7 +135,7 @@
     "quarantinedSources": 162
   },
   "subjectMeaning": "subjectType=WORKTREE means the tree was dirty at generation; worktreeDigest covers HEAD plus the non-generated changes",
-  "subjectSha": "3125e2b79accf6c80e7767771514741dc4598d95",
+  "subjectSha": "7e868af559b8785b649d642416242c9777e0805c",
   "subjectType": "WORKTREE",
   "taskCounts": {
     "PARTIAL": 28
@@ -141,9 +146,9 @@
   "testRunId": null,
   "testRunMeaning": "no bound test run; this projection does not claim a test result",
   "tests": {
-    "definedTestMethodCount": 1838,
+    "definedTestMethodCount": 1862,
     "executed": "see individual verified ledger receipts"
   },
   "worktreeClean": false,
-  "worktreeDigest": "sha256:498d65cec699f4c3f41e89679f1cd21fbbf0247b1fdb2a926ed49da92c6bb13d"
+  "worktreeDigest": "sha256:57ea9d944d325d5c7844aa1d89b269bccc88a2b384486faab973bc03c5f7f446"
 }
