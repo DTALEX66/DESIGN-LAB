@@ -161,7 +161,8 @@
       "outcome": "PARTIAL",
       "reasons": [
         "OUTCOME_NOT_PASS",
-        "STALE_SUBJECT_SHA"
+        "STALE_SUBJECT_SHA",
+        "SOURCE_CHANGED_OR_MISSING:.project/paths.json"
       ],
       "software": {
         "observation": "HERMES_HOME mtime sweep; git check-ignore; ownership-classified cleanup with sha256 before/after",
@@ -348,7 +349,8 @@
       "outcome": "PARTIAL",
       "reasons": [
         "OUTCOME_NOT_PASS",
-        "STALE_SUBJECT_SHA"
+        "STALE_SUBJECT_SHA",
+        "SOURCE_CHANGED_OR_MISSING:.project/paths.json"
       ],
       "software": {
         "os": "Windows",
@@ -559,7 +561,8 @@
       "reasons": [
         "OUTCOME_NOT_PASS",
         "STALE_SUBJECT_SHA",
-        "SOURCE_CHANGED_OR_MISSING:src/design_lab/cli.py"
+        "SOURCE_CHANGED_OR_MISSING:src/design_lab/cli.py",
+        "SOURCE_CHANGED_OR_MISSING:design-lab/tests/test_doctor_evidence.py"
       ],
       "software": {
         "os": "Windows",
@@ -1633,13 +1636,13 @@
   ],
   "fresh": false,
   "freshnessMeaning": "at generation only; check verifies bound-input integrity, not current Git or cloud state",
-  "generatedAt": "2026-10-06T20:30:46+00:00",
+  "generatedAt": "2026-10-06T21:54:41+00:00",
   "gitStateMeaning": "generation-time observation, not current HEAD",
   "ledgerUpdatedAt": "2026-10-06T03:12:05Z",
   "note": "DONE_LOCAL concerns the declared task axes and dependencies, not a product release or hosted CI.",
   "schemaVersion": "design-lab/task-progress/r5-v1",
   "subjectMeaning": "subjectType=WORKTREE means the tree was dirty at generation; worktreeDigest covers HEAD plus the non-generated changes",
-  "subjectSha": "efe8a67b7944af04263ee6f260f72b616b8122f8",
+  "subjectSha": "2e704a6ffc27ae0e80abdc2bd095251b59ae47c1",
   "subjectType": "WORKTREE",
   "taskpack": "DL-TP-20260908-R5",
   "taskpackHash": "31dde89eb4ede81fe88c0a5c5144adfb86af8db4c4d8c263bde2199180369b69",
@@ -4144,5 +4147,5 @@
   "testRunMeaning": "bound run: python scripts/run_bound_test_suite.py --order forward --repeat 2 --modules test_asset_store test_creative_job test_creative_ledgers test_creative_lineage test_creative_migration test_creative_version_guard test_creative_f030_f040 test_creative_session_link test_job_store test_runtime_attempt_safety test_runtime_asset_safety test_runtime_explicit_project test_assurance_qa_plane test_assurance_jury test_bundle_store test_operation_coordinator",
   "testRunResult": "OK",
   "worktreeClean": false,
-  "worktreeDigest": "sha256:2a9cbfecf5a96fa0b3faf8f94b826f3b105847cde60aeca45573d5a3dbc96fdb"
+  "worktreeDigest": "sha256:49bdd49ce0ba1cbe4fdd8d7d07e54bd44c31b8ccf12881e58199ab0213b489bb"
 }
