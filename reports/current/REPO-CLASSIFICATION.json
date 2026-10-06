@@ -1,7 +1,7 @@
 {
   "schemaVersion": "design-lab/repo-classification/v1",
-  "generatedAt": "2026-10-06T08:20:05Z",
-  "observedCommit": "f3ceccbf914bd7a532e28761c9565c93f86639da",
+  "generatedAt": "2026-10-06T08:23:17Z",
+  "observedCommit": "bbdb172037ac515472ab4f15aca1985866c1f5ff",
   "totals": {
     "trackedFiles": 2923,
     "workingTreeMiB": 44.86,
@@ -141,7 +141,7 @@
       "category": "generated",
       "note": "当前状态投影（由生成器再生）",
       "files": 63,
-      "bytes": 1009711,
+      "bytes": 1009710,
       "cited_by_authority": 4,
       "lastTouch": "2026-10-06"
     },
