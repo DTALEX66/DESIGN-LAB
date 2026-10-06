@@ -149,7 +149,10 @@ input:focus,select:focus,button:focus-visible{
 }
 button{
   padding:11px 17px;
-  background:var(--accent);color:#fff;
+  /* --accent (#316CFF) carries white at 4.45:1 — under AA for these 13-16px
+     labels. --accent-hover (#2558DB, 6.0:1) becomes the rest fill and the hover
+   moves one step deeper so the affordance survives the swap. */
+  background:var(--accent-hover);color:#fff;
   border:1px solid transparent;cursor:pointer;font-weight:650;
   transition:background var(--motion-base),box-shadow var(--motion-base);
 }
@@ -162,7 +165,7 @@ button{
    Scoped to the legacy regions (`body > header/main/footer` plus the flat
    `.app-nav`) so buttons inside `.app` keep B10's own hover appearance. */
 body > header button:hover,body > main button:hover,body > footer button:hover,
-.app-nav button:hover{background:var(--accent-hover);box-shadow:var(--glow)}
+.app-nav button:hover{background:#1D4FC4;box-shadow:var(--glow)}
 button.secondary{
   background:var(--surface-2);color:var(--ink);border-color:var(--line);
 }
@@ -226,8 +229,18 @@ body > footer{
   form{align-items:stretch;flex-direction:column}
   body > footer{gap:15px;flex-wrap:wrap}
 }
+/* Reduced motion has to cover `animation`, not only `transition`: .ambient's
+   12s floatGlow, .flow-svg dashMove, .graph-stage .core pulse and the preflight
+   .scan-line::after sweep are all infinite keyframe loops, and the old block
+   left every one of them running (WCAG 2.2.2 / 2.3.3). Outlines are deliberately
+   NOT touched — the focus ring must survive the preference. */
 @media(prefers-reduced-motion:reduce){
-  *{transition:none!important;box-shadow:none!important}
+  *,*::before,*::after{
+    transition:none!important;
+    animation-duration:.001ms!important;
+    animation-iteration-count:1!important;
+    scroll-behavior:auto!important;
+  }
 }
 
 :is(#plan-form,#patch-form){display:grid;grid-template-columns:1fr;align-items:stretch}
@@ -266,7 +279,7 @@ body > footer{
   display:flex;flex-direction:column;gap:8px;overflow-y:auto;
   padding:20px 14px;
 }
-.app-nav-brand{font-size:15px;font-weight:800;letter-spacing:1px;color:var(--accent)}
+.app-nav-brand{font-size:15px;font-weight:800;letter-spacing:1px;color:var(--secondary)}
 .app-nav-item{
   display:block;width:100%;text-align:left;
   background:transparent;border:1px solid transparent;
@@ -510,7 +523,7 @@ html,body{margin:0}
   box-shadow:0 0 0 1px color-mix(in srgb,var(--primary) 25%, white 5%),0 10px 30px color-mix(in srgb,var(--primary) 38%, transparent);
 }
 .brand h1{margin:0;font-size:17px;line-height:1.15}
-.brand small{display:block;margin-top:4px;color:var(--primary);font-size:10px;letter-spacing:.12em}
+.brand small{display:block;margin-top:4px;color:var(--secondary);font-size:10px;letter-spacing:.12em}
 .nav{display:flex;flex-direction:column;gap:7px;overflow:auto;padding-right:4px}
 .nav button{
   position:relative;
@@ -597,15 +610,20 @@ html,body{margin:0}
   border-color:color-mix(in srgb,var(--primary) 38%, white 3%);
   box-shadow:0 8px 28px rgba(0,0,0,.15);
 }
+/* White 13-16px/700 labels are normal text, so the fill must clear 4.5:1 by
+   itself. Electric Blue #316CFF carries white at only 4.45:1 and the previous
+   gradient mixed it lighter (3.92 / 3.13) — every primary label failed AA.
+   #1D4FC4 -> #2A63D8 is the same hue, deeper: 7.08 / 5.42. */
 .primary-btn{
   border:0;color:#fff;font-weight:700;
-  background:linear-gradient(135deg,color-mix(in srgb,var(--primary) 92%, white 4%),color-mix(in srgb,var(--secondary) 55%, var(--primary)));
+  background:linear-gradient(135deg,#1D4FC4,#2A63D8);
   box-shadow:0 12px 30px color-mix(in srgb,var(--primary) 28%, transparent);
 }
 .primary-btn:hover{transform:translateY(-1px) scale(1.01)}
 .danger-btn{
   border:0;color:#fff;font-weight:700;
-  background:linear-gradient(135deg,color-mix(in srgb,var(--error) 88%, white 3%),color-mix(in srgb,var(--error) 60%, #000));
+  /* was #F05252-derived: white on the light stop measured 3.2:1. */
+  background:linear-gradient(135deg,#C03030,#8F2A2A);
 }
 .content{
   flex:1;overflow:auto;padding:26px 28px 30px;
@@ -667,15 +685,20 @@ html,body{margin:0}
   border-color:color-mix(in srgb,var(--primary) 34%, white 3%);
 }
 .list-item small{display:block;color:var(--muted);margin-top:3px}
+/* AA contrast, measured in Chromium against these exact fills. 12px/700 is NOT
+   "large text" (that needs >=18.66px bold), so the 4.5:1 floor applies and the
+   former #fff on these gradients failed at 1.83-3.35:1. Dark ink on the light
+   stops measures 5.9-10.8:1. The .bad and .info gradients moved to their
+   lighter stops because the originals failed even against ink. */
 .tag{
   display:inline-flex;align-items:center;gap:6px;
-  padding:5px 9px;border-radius:999px;font-size:12px;font-weight:700;color:#fff;
+  padding:5px 9px;border-radius:999px;font-size:12px;font-weight:700;color:var(--bg);
   white-space:nowrap;
 }
 .tag.ok{background:linear-gradient(135deg,#27c86a,#11a74d)}
 .tag.warn{background:linear-gradient(135deg,#f2b541,#c98c00)}
-.tag.bad{background:linear-gradient(135deg,#f86b6b,#cb3e3e)}
-.tag.info{background:linear-gradient(135deg,var(--primary),color-mix(in srgb,var(--secondary) 45%, var(--primary)))}
+.tag.bad{background:linear-gradient(135deg,#f87171,#ee5f5f)}
+.tag.info{background:linear-gradient(135deg,var(--secondary),#3c8aff)}
 .table-wrap{overflow:auto}
 .table{
   width:100%;border-collapse:collapse;min-width:720px;
@@ -693,11 +716,19 @@ html,body{margin:0}
   border:1px solid color-mix(in srgb,var(--border) 72%, transparent);
   background:color-mix(in srgb,var(--surface2) 72%, transparent);
   color:var(--text);padding:11px 12px;border-radius:12px;
-  outline:none;
 }
-.toolbar input:focus,.toolbar textarea:focus,.toolbar select:focus,.input:focus{
+/* The ring is an OUTLINE, not the 12%-alpha box-shadow that used to be the only
+   focus cue here: that shadow composites to about 1.13:1 against --surface-2,
+   i.e. invisible, which fails WCAG 2.4.7. --color-secondary on --surface-2 is
+   7.47:1. Keeping `outline` also survives the reduced-motion block below,
+   which zeroes box-shadow but never outline. */
+.toolbar input:focus-visible,.toolbar textarea:focus-visible,.toolbar select:focus-visible,
+.input:focus-visible{
+  outline:3px solid var(--color-secondary);outline-offset:2px;
   border-color:color-mix(in srgb,var(--primary) 48%, white 4%);
-  box-shadow:0 0 0 4px color-mix(in srgb,var(--primary) 12%, transparent);
+}
+[role="button"]:focus-visible,.table-wrap:focus-visible,#route-view:focus-visible{
+  outline:3px solid var(--color-secondary);outline-offset:-2px;
 }
 .toolbar .seg{
   display:flex;gap:8px;flex-wrap:wrap
@@ -708,7 +739,7 @@ html,body{margin:0}
   color:var(--text);padding:10px 12px;border-radius:12px
 }
 .toolbar .seg button.active{
-  background:linear-gradient(135deg,color-mix(in srgb,var(--primary) 86%, white 3%),color-mix(in srgb,var(--secondary) 44%, var(--primary)));
+  background:linear-gradient(135deg,#1D4FC4,#2A63D8);
   border-color:color-mix(in srgb,var(--primary) 48%, white 4%);
   color:#fff;
 }
@@ -789,7 +820,16 @@ html,body{margin:0}
   box-shadow:-18px 0 50px rgba(0,0,0,.25);
   z-index:88;
   padding:24px;
-  transition:right .28s cubic-bezier(.2,0,0,1);
+  /* Off-canvas alone is NOT hidden: every control inside a closed drawer stayed
+     Tab-reachable and exposed to assistive tech as a phantom dialog. The
+     visibility step is delayed by the slide duration on close and immediate on
+     open, so the transition still reads the same. */
+  visibility:hidden;
+  transition:right .28s cubic-bezier(.2,0,0,1),visibility 0s linear .28s;
+}
+.drawer.open{
+  visibility:visible;
+  transition:right .28s cubic-bezier(.2,0,0,1),visibility 0s linear 0s;
 }
 .drawer.open{right:0}
 .palette{
@@ -806,7 +846,12 @@ html,body{margin:0}
   width:calc(100% - 24px);margin:12px;
   border:1px solid color-mix(in srgb,var(--border) 70%, transparent);
   background:color-mix(in srgb,var(--surface2) 74%, transparent);
-  color:var(--text);padding:14px;border-radius:14px;outline:none;
+  color:var(--text);padding:14px;border-radius:14px;
+}
+/* This field is auto-focused by Ctrl/Cmd+K; with no ring at all the keyboard
+   user has no indication of where the caret landed. */
+.palette input:focus-visible{
+  outline:3px solid var(--color-secondary);outline-offset:2px;
 }
 .palette .item{
   display:flex;justify-content:space-between;gap:12px;align-items:center;
@@ -1023,7 +1068,7 @@ html,body{margin:0}
   outline:2px solid var(--color-primary);outline-offset:2px;
 }
 .seg button.active{
-  background:linear-gradient(135deg,color-mix(in srgb,var(--primary) 86%, white 3%),color-mix(in srgb,var(--secondary) 44%, var(--primary)));
+  background:linear-gradient(135deg,#1D4FC4,#2A63D8);
   border-color:color-mix(in srgb,var(--primary) 48%, white 4%);
   color:#fff;
 }
@@ -1074,7 +1119,7 @@ html,body{margin:0}
 }
 .stage-nav-btn:hover{border-color:var(--accent)}
 .stage-nav-btn.is-current{
-  background:var(--accent);color:#fff;border-color:var(--accent);
+  background:var(--accent-hover);color:#fff;border-color:var(--accent-hover);
   box-shadow:var(--glow);
 }
 .stage-nav-btn.is-planned{opacity:.72}
@@ -1133,3 +1178,46 @@ html,body{margin:0}
 }
 
 
+
+/* ==========================================================================
+   UI-AUDIT-20261006 additions. Every rule here is CLASS-scoped on purpose: the
+   bare element selectors above (label / button) are pre-B10 legacy couplings
+   that W02 removed from `.app`, and re-introducing them inside the shell is
+   what previously leaked 13px margins and solid-blue hovers into B10 markup.
+   ========================================================================== */
+
+/* Persistent field labels for the project-detail forms. Wins on specificity
+   over `label{display:grid;...}`. */
+.field-row{display:grid;gap:6px}
+.field-label{
+  display:block;font-size:12px;font-weight:650;letter-spacing:.02em;
+  color:var(--text);
+}
+
+/* Screen-reader-only live region for route changes. Positioned off-layout
+   rather than display:none, which would remove it from the a11y tree. */
+.sr-status{
+  position:absolute;width:1px;height:1px;margin:-1px;padding:0;
+  overflow:hidden;clip-path:inset(50%);white-space:nowrap;border:0;
+}
+
+/* WCAG 2.4.1 bypass blocks. The 11-item sidebar repeats on all 12 routes. */
+.skip-link{
+  position:absolute;left:-9999px;top:0;z-index:200;
+  padding:10px 16px;border-radius:var(--radius-md);
+  background:var(--accent-hover);color:#fff;font-weight:700;
+}
+.skip-link:focus{left:8px;top:8px}
+
+/* Palette rows became real <button>s so the only route switch left under 840px
+   is keyboard-reachable. Reset the legacy `button` fill/padding they inherit. */
+.palette button.item{
+  width:100%;text-align:left;cursor:pointer;
+  background:transparent;color:var(--text);
+  border:0;border-top:1px solid color-mix(in srgb,var(--border) 55%, transparent);
+  border-radius:0;box-shadow:none;font-weight:600;
+}
+.palette button.item:hover{background:color-mix(in srgb,var(--surface2) 80%, transparent);box-shadow:none}
+.palette button.item:focus-visible{
+  outline:3px solid var(--color-secondary);outline-offset:-3px;
+}

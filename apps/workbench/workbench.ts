@@ -63,6 +63,18 @@ export const errMsg = (error: unknown) => (error instanceof Error ? error.messag
 
 // Generic fetch wrapper: T is the strict contract type for the endpoint; only the
 // wire-level error envelope is read from the body, everything else is typed.
+// A 401 at any point means the token this page holds is no longer the token the
+// service accepts (typically a service restart with a fresh token). Clearing it
+// only during the initial connect left the session looking live forever: the
+// route gate in shell.ts keys off `token`, so every view kept rendering 401
+// text as if it were data.
+const dropSession = (): void => {
+  token = '';
+  connected = false;
+  const badge = byId<HTMLSpanElement>('connection');
+  if (badge) badge.textContent = '未连接';
+};
+
 export async function api<T>(path: string, body?: Record<string, unknown>): Promise<T> {
   const response = await fetch('/api' + path, {
     method: body ? 'POST' : 'GET',
@@ -71,6 +83,7 @@ export async function api<T>(path: string, body?: Record<string, unknown>): Prom
     cache: 'no-store',
   });
   const value = (await response.json()) as { error?: string } & Record<string, unknown>;
+  if (response.status === 401) dropSession();
   if (!response.ok) throw new Error(value.error || 'SERVICE_ERROR');
   return value as T;
 }
