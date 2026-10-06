@@ -1,9 +1,9 @@
 {
   "schemaVersion": "design-lab/deepseek-authority-chain/v1",
   "task_key": "DL-TP-20260914-DEEPSEEK-AUTHORITY-R1::DLDS-A010",
-  "generated_at": "2026-10-06T08:40:46+00:00",
+  "generated_at": "2026-10-06T08:47:13+00:00",
   "subject": {
-    "base_sha": "35f7a59858bb3c5ba5cf98c60ab225409a85c988",
+    "base_sha": "f5977e192044b5dfdacd32d5dd4aacc8ce94614c",
     "branch": "feat/global-capability-intake-scaffold",
     "worktree_clean": false
   },

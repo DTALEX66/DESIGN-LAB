@@ -52,6 +52,8 @@ jobs:
         run: python scripts/classify_repo.py --check
       - name: Candidate taxonomy anti-fabrication rules
         run: python design-lab/scripts/verify_candidate_taxonomy.py
+      - name: State vocabulary contract (no hand-copied enums)
+        run: python design-lab/scripts/verify_state_vocabularies.py
       - name: V3 runtime contracts
         run: python design-lab/scripts/verify_runtime_contracts_v3.py
       - name: V3 visual scoring

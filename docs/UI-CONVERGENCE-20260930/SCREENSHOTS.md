@@ -47,20 +47,20 @@
 
 ```json
 {
-  "generatedAt": "2026-10-06T08:16:40.416Z",
-  "commit": "7de2d5ac6b4958415288362d75780e44aa20340a",
+  "generatedAt": "2026-10-06T08:36:59.857Z",
+  "commit": "8167e623b7c31d63567ca189b4c33215059b1acb",
   "subject": {
     "bundle": "apps\\workbench\\build\\main.js",
-    "bundleBytes": 163771,
-    "bundleSha256": "eb451da2cacd28ab0f3c84774a26e6560d6dd5eb75d757faa2ad5f6198f6d2d5"
+    "bundleBytes": 164033,
+    "bundleSha256": "79ab1cf5c6228678c308f3356038ccf4210d698d6763008e498d88a30efa90b6"
   },
   "project": {
-    "name": "Closeout 1791274575689",
-    "id": "9477a2ba7f4a4857875c2a945c420f44"
+    "name": "Closeout 1791275795091",
+    "id": "13ec60724577474498718544c22b508b"
   },
   "referenceSourceImage": "D:\\All projects\\DESIGN-LAB\\design-lab\\evals\\reconstruction\\cases\\poster-sunrise-001\\reference.png",
   "service": {
-    "origin": "http://127.0.0.1:52663",
+    "origin": "http://127.0.0.1:63107",
     "pythonVersion": "3.12.13"
   },
   "browser": {
@@ -99,49 +99,49 @@
 | 文件 | 视口 | 路由 | 字节 | SHA-256 |
 |---|---|---|---|---|
 | `00-dashboard@390.png` | 390×844 | `#/dashboard` | 76,186 | `a5d400b52258216c630cddb5fce2d04dc99183d3bf3d5b94b7073fbf172cd395` |
-| `01-projects@390.png` | 390×844 | `#/projects` | 65,559 | `05e7aea0a61ac25804ed146a4f7581d444a65dc3ca9de9fb86cf5ca7ece28414` |
-| `02-project-detail@390.png` | 390×844 | `#/projects/9477a2ba7f4a4857875c2a945c420f44` | 63,246 | `e1927b1aaeec98867174d987df9dae9bc0d10dd69b90c5a2e56fd0140e6c4ae9` |
+| `01-projects@390.png` | 390×844 | `#/projects` | 65,556 | `e6de64669ec366570ea8a6d73d2917f4caa6632dad18d1b8de21c27f944d072d` |
+| `02-project-detail@390.png` | 390×844 | `#/projects/13ec60724577474498718544c22b508b` | 63,051 | `4651fddca099c183049fe695377e73a1eadae87f0083380a05cfc987edbb0579` |
 | `03-creative-tools@390.png` | 390×844 | `#/tools` | 39,179 | `3779a93e02d74450dbb5500449470657feb78eb6428fc8884cae079331a83a8c` |
 | `04-deliverables@390.png` | 390×844 | `#/deliverables` | 39,825 | `a4e72f8596bdf1ca3d844e18b063541f678fe2086849c410ee4872c87b592cda` |
 | `05-evidence@390.png` | 390×844 | `#/evidence` | 40,998 | `4c989d14f750ea60ceb42660e79306ac1494a28c74d2f6a6928e1d5c44dcaf88` |
 | `06-preflight@390.png` | 390×844 | `#/preflight` | 67,199 | `0f3fffbcac1803ba06ecfb66a8bc7c5843216e3795a129336d78827f9aea2f2d` |
-| `07-settings@390.png` | 390×844 | `#/settings` | 80,266 | `a9fd89de40eab1ec49289572b1df79040a557b8561fb7c3f1cb26c8bd901b3c9` |
-| `08-dashboard@768.png` | 768×1024 | `#/dashboard` | 102,945 | `92db57f9e25f6cf7228eba3dfc3e3baa91ca6c2e23c7d1075c5d1e211682e628` |
-| `09-projects@768.png` | 768×1024 | `#/projects` | 88,985 | `3281899435eadba556a09dbb6d5e75ba293d7edd2c483574166897ae0eb2cf0e` |
-| `10-project-detail@768.png` | 768×1024 | `#/projects/9477a2ba7f4a4857875c2a945c420f44` | 88,903 | `0bfbd5efbc4a2b0f22a7762da0457ba6bf7a3cc96217ffcf22faf98bd4766410` |
+| `07-settings@390.png` | 390×844 | `#/settings` | 80,416 | `7babd93ca16311bcc2059ae683fe56a18aa7d9f37de65042154a5a0b7c9e7eb7` |
+| `08-dashboard@768.png` | 768×1024 | `#/dashboard` | 103,072 | `f1ceb5e9fcd5259b561728b7f63662bfab47f0ae64b004359795d9bcb7afc68f` |
+| `09-projects@768.png` | 768×1024 | `#/projects` | 88,604 | `7bd747f9e91735d5e9c7d12237cb0c18df4f16e86a0ee6d0aae1fec4fe1ee4fa` |
+| `10-project-detail@768.png` | 768×1024 | `#/projects/13ec60724577474498718544c22b508b` | 88,615 | `ec4f8e86444348d18cc1235b1989e0b74e87f828afe5dd75e70f289b6e5651c1` |
 | `11-creative-tools@768.png` | 768×1024 | `#/tools` | 48,903 | `30eaeb5ce5c27889a6d528fded1c924c2d2b581e8e0281cde7f443c6103c0f35` |
 | `12-deliverables@768.png` | 768×1024 | `#/deliverables` | 49,548 | `0eca1a0ffcb227d23e1f42efd67803d4f17660537a0e8f673fb21202f9797e42` |
 | `13-evidence@768.png` | 768×1024 | `#/evidence` | 50,612 | `04621cc73e83276506784b6f3ebd32b9c01734c0167e135bdf1a2db1bf503b85` |
 | `14-preflight@768.png` | 768×1024 | `#/preflight` | 84,307 | `26dc2a6a58dfc6f1008285450be874e45e064b48a740d9afd41766259bf457e6` |
-| `15-settings@768.png` | 768×1024 | `#/settings` | 138,927 | `804d389bdbb39058650d2bc69467eaf3c4f0031d1233cac6f7f61ac2136f1817` |
-| `16-dashboard@1280.png` | 1280×800 | `#/dashboard` | 184,276 | `b8ad1a405fd95e08219ab9959ec648d46aba2c561e400649a697fa8283937571` |
-| `17-projects@1280.png` | 1280×800 | `#/projects` | 130,272 | `94f9dd0205a165bdd95bb9ffbbaf78ce29c7bb68b6f8863992f1afc673545006` |
-| `18-project-detail@1280.png` | 1280×800 | `#/projects/9477a2ba7f4a4857875c2a945c420f44` | 166,788 | `71965d7a87dfad2edddc40c2f0d4f616d1ef81653093c5ea4f1b8502b0f103f8` |
+| `15-settings@768.png` | 768×1024 | `#/settings` | 138,934 | `95c41727a2ab6c75106f709e901ea75eecdf9c4326a2abffcb661385e37470fc` |
+| `16-dashboard@1280.png` | 1280×800 | `#/dashboard` | 184,368 | `57b0b6df156bd3cc07d6bdcd6e737c1fa0c048b7a888a68b31ad3b7db87b6af8` |
+| `17-projects@1280.png` | 1280×800 | `#/projects` | 130,332 | `2a20819b10cf9a160071df1a35d3212d110f30557a4f35c8efede1ff75b656dc` |
+| `18-project-detail@1280.png` | 1280×800 | `#/projects/13ec60724577474498718544c22b508b` | 166,604 | `bd158b26effa56878a8bd9c8331bb14491f4562bf379bfbcc935cc2c3ab09bff` |
 | `19-creative-tools@1280.png` | 1280×800 | `#/tools` | 91,082 | `7dc2356d3e0c3a75fef57aa839bba91918240a0b782c7c14d16f2f69f8fe1606` |
 | `20-deliverables@1280.png` | 1280×800 | `#/deliverables` | 91,943 | `d7a81e3449adafa7266f4a8f2fd377a2e5dc037b78feedda59e677134c4f6c1d` |
 | `21-evidence@1280.png` | 1280×800 | `#/evidence` | 93,188 | `de33dc092451ce82093c2283710d5cccb5a6d47e5fe6b2127cf48dab1490c3e3` |
 | `22-preflight@1280.png` | 1280×800 | `#/preflight` | 123,963 | `03abfcc319d2d51cd10c9598e9ab91afc29b78f9626e6f668877199c1cbd76be` |
-| `23-settings@1280.png` | 1280×800 | `#/settings` | 197,862 | `9332601274c5479516ed8aff315a1229df28dabafa09ab400c9e416230eed524` |
-| `24-dashboard@1920.png` | 1920×1080 | `#/dashboard` | 239,340 | `a1d4e2b8fc48831ef94b473d38bf79b05d6ad7f425efa6e343bea9d8273da2de` |
-| `25-projects@1920.png` | 1920×1080 | `#/projects` | 151,316 | `0de3a6d2952b945579cbb6bc8ca2862701a88fda98f2535da0fb5014697e932d` |
-| `26-project-detail@1920.png` | 1920×1080 | `#/projects/9477a2ba7f4a4857875c2a945c420f44` | 245,003 | `293ae0064715c4ff857a0f01ba8797bd2f376530d1a3e5ab1d93f8c09714a1bb` |
+| `23-settings@1280.png` | 1280×800 | `#/settings` | 198,192 | `344fb2dc5af7cb2fbb55bb67bfa3d6de86989ebdb1a505777d831f42a866c81e` |
+| `24-dashboard@1920.png` | 1920×1080 | `#/dashboard` | 239,596 | `36abc911561b041b7328b94b3c1af9ae686d942693df17cf704797de644c5676` |
+| `25-projects@1920.png` | 1920×1080 | `#/projects` | 151,384 | `fcf9a21a36f738c3eb1b2badf5c9bb61362323de71430a46d38e5ab7c8a05a0e` |
+| `26-project-detail@1920.png` | 1920×1080 | `#/projects/13ec60724577474498718544c22b508b` | 244,100 | `f872acdaa7d8da497713ae6040483fb5a26042acd046f07bece30927caff8b68` |
 | `27-creative-tools@1920.png` | 1920×1080 | `#/tools` | 109,022 | `467b58406981439c4c6ce968553284727057f78eb9c5d88f73b065a28fc118d3` |
-| `28-deliverables@1920.png` | 1920×1080 | `#/deliverables` | 109,631 | `ea40ec19280ead8d4dadeb5146595e52e0e8b1ab7edbab182324bb0ebcdc6dd2` |
+| `28-deliverables@1920.png` | 1920×1080 | `#/deliverables` | 109,532 | `b7e780b2e2434e41bc42bfab4218556c7da902d910d825118d1ffa56f389ae69` |
 | `29-evidence@1920.png` | 1920×1080 | `#/evidence` | 111,070 | `b562198581d84b0bdcbb364856a6ce24ce972fb12bcdf2951132b55a0a517755` |
 | `30-preflight@1920.png` | 1920×1080 | `#/preflight` | 144,144 | `df0eba1d2e3a7c1a703a2b3f790342f2fffc36786de77b90433f8d7ad1d53e04` |
-| `31-settings@1920.png` | 1920×1080 | `#/settings` | 244,163 | `034c0d49da26bd74af5321b9b8e925650ad74c2f40f13cc036518ed2d8f2af55` |
-| `32-dashboard@2560.png` | 2560×1440 | `#/dashboard` | 260,199 | `702413dfed59625c24480c8e49b947f75b0145854a5f9dfc543d392b841b5f7b` |
-| `33-projects@2560.png` | 2560×1440 | `#/projects` | 170,284 | `e1adc9a6c2ef5ffb296f2f23e5bef6c6c444e4b3578d9c0a8bb56855bbdd9be8` |
-| `34-project-detail@2560.png` | 2560×1440 | `#/projects/9477a2ba7f4a4857875c2a945c420f44` | 307,642 | `83679264cfc60e4b9f479472b98c98c41fb30267c243086afab9e3b8986b3ea8` |
+| `31-settings@1920.png` | 1920×1080 | `#/settings` | 244,646 | `d87f8f2ebe8b24cd363f7d0441bdfbabe194359f28728a4a8b14a3e17f76bc1f` |
+| `32-dashboard@2560.png` | 2560×1440 | `#/dashboard` | 260,375 | `c42355060b72d1755f6341b9f222d46b0feb60564e325ec507de9abf3cb3e0ad` |
+| `33-projects@2560.png` | 2560×1440 | `#/projects` | 170,209 | `557c47bfcc4bd51e04833538c21a34fa1934f60ba21529250fe59ab63b8f2f33` |
+| `34-project-detail@2560.png` | 2560×1440 | `#/projects/13ec60724577474498718544c22b508b` | 306,958 | `121c6792109aa935e716a5bc12e0e5679baefc5d97c61249512e1b31595befb2` |
 | `35-creative-tools@2560.png` | 2560×1440 | `#/tools` | 127,936 | `1484a87b0f1933a89c4d367e50d3469e0a7e3214d846fb46ae1c6f77e16e9f44` |
 | `36-deliverables@2560.png` | 2560×1440 | `#/deliverables` | 128,722 | `4040e6344aa124acd092e3aab180c5a0523584e21280a01226c77a487060b510` |
 | `37-evidence@2560.png` | 2560×1440 | `#/evidence` | 130,236 | `e245898c3f0b1e375bff7725e3541943cdf6640676036068767f28e28d5b2e4e` |
 | `38-preflight@2560.png` | 2560×1440 | `#/preflight` | 163,108 | `2566357e31e8a0b7f4c9f14fd081eb56b588733ba65944af06985fdb4659adf6` |
-| `39-settings@2560.png` | 2560×1440 | `#/settings` | 259,023 | `b63ff6460e7c836e07b81677962426fbe41ec5261b451ae5b078cd14d1366050` |
+| `39-settings@2560.png` | 2560×1440 | `#/settings` | 259,017 | `1cbb578aedea1145326f037e880a33ab3d776df58161ac1d5e75574c69392453` |
 
 ## 观察记录（由清单内 `rendered` 字段生成，非人工描述）
 
-- 捕获时间 `2026-10-06T08:16:40.416Z`；commit `7de2d5ac`；bundle `163771` 字节。
+- 捕获时间 `2026-10-06T08:36:59.857Z`；commit `8167e623`；bundle `164033` 字节。
 
 ### `#/dashboard`
 
@@ -154,13 +154,11 @@
 
 ### `#/projects/:id`
 
-- 详情页面板标题：「Closeout 1791274575689」, 「任务台账（1）」, 「设计层契约」, 「交付包（0）」, 「简报（Brief）· 1 个版本」, 「方向（Direction）· 1 个候选」, 「设计系统（DesignSystem）· 目录 4 项 · 绑定 1 次」, 「参考素材（1）」, 「Inspector」
+- 详情页面板标题：「Closeout 1791275795091」, 「任务台账（1）」, 「设计层契约」, 「交付包（0）」, 「简报（Brief）· 1 个版本」, 「方向（Direction）· 1 个候选」, 「设计系统（DesignSystem）· 目录 4 项 · 绑定 1 次」, 「参考素材（1）」, 「Inspector」
 
 ### 布局与溢出（来自 `ui-audit/report.json`，65 作用域）
 
-- 横向溢出：0；触控目标 <24px：0；无可访问名控件：0；对比度失败：0；命令面板：0。
-
-- 视口 5 档 × 13 视图 = 65 作用域；占位视图会被判 `measurement-invalid`，本轮 0。
+- 横向溢出：0；触控目标 <24px：0；无可访问名控件：0；对比度失败：0；命令面板：0；measurement-invalid：0。
 
 ## 历轮截图暴露并修复的真实缺陷
 

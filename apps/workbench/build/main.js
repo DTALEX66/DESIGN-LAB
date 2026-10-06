@@ -1010,7 +1010,7 @@ const CAPABILITY_REGISTRY = [
     source: "IA 槽位 #/research",
     owner: "DESIGN-LAB design core",
     route: "GET /api/research/…",
-    contractRef: "B07 routes.json #research（无后端模型）",
+    contractRef: "apps/workbench/shell.ts ROUTE_VIEWS（12 路由 IA）；无后端模型",
     implementationState: "PLANNED",
     permission: "brief/reference 已持久化（/api/projects/{id}/assets 已有）",
     reason: "服务尚无研究结论持久化路由；研究目前由 brief/reference 驱动。",
@@ -1022,10 +1022,10 @@ const CAPABILITY_REGISTRY = [
     source: "IA 槽位 #/domains",
     owner: "DESIGN-LAB Domain Pack",
     route: "GET /api/domains/…",
-    contractRef: "docs/… Domain Pack（品牌/UI/平面/电商/包装/动效/3D 域能力声明）",
+    contractRef: "design-lab/schemas/domain-pack.schema.json · design-lab/domain-packs/DOMAIN_PACK_SPEC_V2.md（13 个域包）",
     implementationState: "PLANNED",
-    permission: "域能力声明已存在，独立后端模型未建",
-    reason: "领域划分尚无独立后端模型；现有能力由 Domain Pack 文档承载。",
+    permission: "域包模型与 13 个域包已落仓（E1 结构级）；缺 HTTP 读回路由",
+    reason: '域划分并非"尚无模型"：schema、DOMAIN_PACK_SPEC_V2 与 13 个域包目录都在仓内，并有 verify_domain_pack_v2.py 校验；缺的只是 GET /api/domains 读回。',
     nextAction: "为 Domain Pack 建 /api/domains 读回路由。"
   },
   {
@@ -1079,7 +1079,7 @@ function capabilityCard(c) {
         el(
           "span",
           { class: "tag " + (c.implementationState === "BLOCKED" ? "warn" : "info") },
-          c.implementationState
+          en(c.implementationState)
         ),
         el("small", {}, `来源 ${c.source} · 权限 ${c.permission}`)
       )
@@ -1133,6 +1133,9 @@ function el(tag, attrs = {}, ...children) {
   node.append(...children);
   return node;
 }
+function en(text) {
+  return el("span", { lang: "en" }, text);
+}
 function kpiCard(value, label, note, trend) {
   const unread = !token && value === "0";
   const shown = unread ? "—" : value;
@@ -1167,7 +1170,7 @@ function animateKpiCount(el2) {
 function stateMachineStepper() {
   const stages = ["brief", "research", "designing", "review", "qa", "approved", "delivered", "archived"];
   const ol = el("ol", { class: "state-machine", "aria-label": "设计域状态机（契约可视化，不代表项目进度）" });
-  for (const stage of stages) ol.append(el("li", { class: "state-machine-step", dataset: { state: stage } }, stage));
+  for (const stage of stages) ol.append(el("li", { class: "state-machine-step", dataset: { state: stage } }, en(stage)));
   return ol;
 }
 const FAILED_STATES = /* @__PURE__ */ new Set(["FAILED", "TIMED_OUT", "CANCELLED"]);
@@ -1580,7 +1583,7 @@ async function renderDashboard(target) {
                 // Only a probe that actually saw the root may be green:
                 // runtime/paths.py reports DECLARED_NOT_PROBED, a declaration.
                 class: v.status === "MISSING" ? "tag bad" : v.status === "DECLARED_NOT_PROBED" ? "tag warn" : "tag ok"
-              }, v.status)
+              }, en(v.status))
             ))
           ),
           el("p", { class: "view-hint" }, "来自 /api/environment 真实读回；写权限与状态由服务裁定。")
@@ -2165,7 +2168,7 @@ async function renderCreativeTools(target) {
                 // Only a probe that actually saw the root may be green:
                 // runtime/paths.py reports DECLARED_NOT_PROBED, a declaration.
                 class: v.status === "MISSING" ? "tag bad" : v.status === "DECLARED_NOT_PROBED" ? "tag warn" : "tag ok"
-              }, v.status)
+              }, en(v.status))
             ))
           ),
           el("p", { class: "view-hint" }, "来自 /api/environment 真实读回。")
@@ -2556,7 +2559,7 @@ function buildStageNav(currentStageKey) {
       },
       title: stage.note ?? (stage.state === "IMPLEMENTED" ? "点击跳转到该阶段" : stage.note ?? "")
     };
-    const tag = stage.state !== "IMPLEMENTED" ? el("span", { class: "tag " + (stage.state === "BLOCKED" ? "warn" : "info") }, stage.state) : null;
+    const tag = stage.state !== "IMPLEMENTED" ? el("span", { class: "tag " + (stage.state === "BLOCKED" ? "warn" : "info") }, en(stage.state)) : null;
     li.append(el(
       "button",
       btnAttrs,

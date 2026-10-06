@@ -1,0 +1,67 @@
+{
+  "schemaVersion": "design-lab/state-vocabularies/v1",
+  "note": "Vocabulary contract. Enums and status words are NOT hand-copied between Python, TypeScript and host JS (LANGUAGE-POLICY §5): this file records the one truth and design-lab/scripts/verify_state_vocabularies.py checks BOTH the Python services and the Workbench UI against it. It exists because a hand copy drifted -- the UI advertised the preflight verdict as 'PASS / BLOCKED' while runtime/task_resources.py only ever emits READY or BLOCKED.",
+  "sources": {
+    "attemptStates": "src/design_lab/runtime/job_store.py (ALLOWED / TERMINAL)",
+    "preflight": "src/design_lab/runtime/task_resources.py (verdict, resource state, registry_state)",
+    "ui": "apps/workbench/shell.ts (FAILED_STATES / HUMAN_STATES / IN_FLIGHT_STATES)"
+  },
+  "attemptStates": {
+    "all": [
+      "PENDING",
+      "RUNNING",
+      "OUTCOME_UNKNOWN",
+      "CANCEL_REQUESTED",
+      "RECONCILING",
+      "RECEIPTED",
+      "FAILED",
+      "TIMED_OUT",
+      "CANCELLED"
+    ],
+    "terminal": [
+      "RECEIPTED",
+      "FAILED",
+      "TIMED_OUT",
+      "CANCELLED"
+    ],
+    "failed": [
+      "FAILED",
+      "TIMED_OUT",
+      "CANCELLED"
+    ],
+    "needsHuman": [
+      "OUTCOME_UNKNOWN",
+      "CANCEL_REQUESTED",
+      "RECONCILING"
+    ],
+    "inFlight": [
+      "PENDING",
+      "RUNNING"
+    ],
+    "done": [
+      "RECEIPTED"
+    ]
+  },
+  "taskResourcePreflight": {
+    "verdicts": [
+      "BLOCKED",
+      "READY"
+    ],
+    "resourceStates": [
+      "RESOLVED",
+      "UNAVAILABLE",
+      "UNRESOLVED_INERT",
+      "METADATA_ONLY",
+      "DECLARED_NOT_PROBED"
+    ],
+    "blockingResourceStates": [
+      "UNAVAILABLE",
+      "UNRESOLVED_INERT"
+    ],
+    "registryStates": [
+      "PRESENT",
+      "NOT_AVAILABLE"
+    ],
+    "semantics": "blocked = any resource whose state is in blockingResourceStates. METADATA_ONLY (model recorded, never loaded) and DECLARED_NOT_PROBED (external/host/licence root declared, never traversed) are honest non-findings and do NOT block; a UI that renders them as failures would overstate a rejection the service never made."
+  }
+}

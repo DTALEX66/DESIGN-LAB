@@ -1,10 +1,10 @@
 {
   "schemaVersion": "design-lab/repo-classification/v1",
-  "generatedAt": "2026-10-06T08:39:40Z",
-  "observedCommit": "e37ac064f2a77e5e0c74a96b38382e17d7b3a36c",
+  "generatedAt": "2026-10-06T08:47:14Z",
+  "observedCommit": "f5977e192044b5dfdacd32d5dd4aacc8ce94614c",
   "totals": {
-    "trackedFiles": 2923,
-    "workingTreeMiB": 44.86,
+    "trackedFiles": 2925,
+    "workingTreeMiB": 44.87,
     "packMiB": 223.82,
     "note": "pack 含全部历史与 tag 归档；working tree 为当前检出字节。两者之差不是垃圾。"
   },
@@ -40,7 +40,7 @@
       "mib": 0.22
     },
     "source": {
-      "files": 1312,
+      "files": 1314,
       "bundles": 7,
       "mib": 8.8
     }
@@ -77,7 +77,7 @@
       "path": "design-lab/",
       "category": "source",
       "note": "设计核心其余模块",
-      "files": 828,
+      "files": 830,
       "bytes": 5526060,
       "cited_by_authority": 4,
       "lastTouch": "2026-10-06"
@@ -132,7 +132,7 @@
       "category": "documentation",
       "note": "其余文档",
       "files": 110,
-      "bytes": 1011209,
+      "bytes": 1012443,
       "cited_by_authority": 11,
       "lastTouch": "2026-10-06"
     },
@@ -141,7 +141,7 @@
       "category": "generated",
       "note": "当前状态投影（由生成器再生）",
       "files": 63,
-      "bytes": 1009710,
+      "bytes": 1009838,
       "cited_by_authority": 4,
       "lastTouch": "2026-10-06"
     },
@@ -168,7 +168,7 @@
       "category": "source",
       "note": "根级门与工具",
       "files": 50,
-      "bytes": 506597,
+      "bytes": 507223,
       "cited_by_authority": 4,
       "lastTouch": "2026-10-06"
     },

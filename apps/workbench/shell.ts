@@ -192,16 +192,16 @@ export interface CapabilityContract {
 const CAPABILITY_REGISTRY: readonly CapabilityContract[] = [
   { capabilityId: 'research-insights', domain: '研究洞察', source: 'IA 槽位 #/research',
     owner: 'DESIGN-LAB design core', route: 'GET /api/research/…',
-    contractRef: 'B07 routes.json #research（无后端模型）', implementationState: 'PLANNED',
+    contractRef: 'apps/workbench/shell.ts ROUTE_VIEWS（12 路由 IA）；无后端模型', implementationState: 'PLANNED',
     permission: 'brief/reference 已持久化（/api/projects/{id}/assets 已有）',
     reason: '服务尚无研究结论持久化路由；研究目前由 brief/reference 驱动。',
     nextAction: '设计 research 结论模型 + 服务路由，然后 UI 读回替换本卡。' },
   { capabilityId: 'design-domain-model', domain: '设计领域', source: 'IA 槽位 #/domains',
     owner: 'DESIGN-LAB Domain Pack', route: 'GET /api/domains/…',
-    contractRef: 'docs/… Domain Pack（品牌/UI/平面/电商/包装/动效/3D 域能力声明）',
+    contractRef: 'design-lab/schemas/domain-pack.schema.json · design-lab/domain-packs/DOMAIN_PACK_SPEC_V2.md（13 个域包）',
     implementationState: 'PLANNED',
-    permission: '域能力声明已存在，独立后端模型未建',
-    reason: '领域划分尚无独立后端模型；现有能力由 Domain Pack 文档承载。',
+    permission: '域包模型与 13 个域包已落仓（E1 结构级）；缺 HTTP 读回路由',
+    reason: '域划分并非"尚无模型"：schema、DOMAIN_PACK_SPEC_V2 与 13 个域包目录都在仓内，并有 verify_domain_pack_v2.py 校验；缺的只是 GET /api/domains 读回。',
     nextAction: '为 Domain Pack 建 /api/domains 读回路由。' },
   { capabilityId: 'host-adapter-live', domain: '创作工具（宿主实时状态）', source: 'IA 槽位 #/tools',
     owner: 'Host/Tool Adapter 层', route: 'GET /api/projects/{id}/tasks（已有）+ 宿主探测路由（缺）',
@@ -235,7 +235,7 @@ function capabilityCard(c: CapabilityContract): HTMLElement {
       el('h3', {}, `${c.domain} · ${c.capabilityId}`),
       el('div', { class: 'status-stack' },
         el('span', { class: 'tag ' + (c.implementationState === 'BLOCKED' ? 'warn' : 'info') },
-          c.implementationState),
+          en(c.implementationState)),
         el('small', {}, `来源 ${c.source} · 权限 ${c.permission}`))),
     el('p', { class: 'muted' }, c.reason),
     el('p', { class: 'view-hint' }, `未来接入：${c.route}（${c.contractRef}）。下一动作：${c.nextAction}`));
@@ -304,8 +304,16 @@ export function el<K extends keyof HTMLElementTagNameMap>(tag: K, attrs: Record<
   return node;
 }
 
-// B10 1:1 .kpi body. Parameter order matches EVERY call site
-// (value, label, note) — the previous (label, value) declaration silently
+// Machine-state words stay English on purpose -- they are the service's own
+// vocabulary, and translating them would create exactly the second vocabulary
+// that verify_state_vocabularies.py exists to prevent. Inside a lang="zh-CN"
+// document they must be marked instead, or a screen reader pronounces them with
+// Chinese phonemes (WCAG 3.1.2 Language of Parts).
+export function en(text: string): HTMLElement {
+  return el('span', { lang: 'en' }, text);
+}
+
+// B10 1:1 .kpi body. Parameter order matches EVERY call site// (value, label, note) — the previous (label, value) declaration silently
 // inverted the card, rendering the LABEL as B10's 35px primary number and the
 // value as the small caption (and breaking the count-up, which only fires on a
 // numeric <strong>).
@@ -363,7 +371,7 @@ export function animateKpiCount(el: HTMLElement): void {
 export function stateMachineStepper(): HTMLElement {
   const stages = ['brief', 'research', 'designing', 'review', 'qa', 'approved', 'delivered', 'archived'];
   const ol = el('ol', { class: 'state-machine', 'aria-label': '设计域状态机（契约可视化，不代表项目进度）' });
-  for (const stage of stages) ol.append(el('li', { class: 'state-machine-step', dataset: { state: stage } }, stage));
+  for (const stage of stages) ol.append(el('li', { class: 'state-machine-step', dataset: { state: stage } }, en(stage)));
   return ol;
 }
 
@@ -659,7 +667,7 @@ const modulePanels = el('div', { class: 'three-col', style: 'margin-top:16px' },
                 // runtime/paths.py reports DECLARED_NOT_PROBED, a declaration.
                 class: v.status === 'MISSING' ? 'tag bad'
                   : (v.status === 'DECLARED_NOT_PROBED' ? 'tag warn' : 'tag ok'),
-              }, v.status)))),
+              }, en(v.status))))),
           el('p', { class: 'view-hint' }, '来自 /api/environment 真实读回；写权限与状态由服务裁定。')),
         el('div', { class: 'panel' },
           el('h3', {}, '未来能力'),
@@ -1040,7 +1048,7 @@ export async function renderCreativeTools(target: HTMLElement): Promise<void> {
                 // runtime/paths.py reports DECLARED_NOT_PROBED, a declaration.
                 class: v.status === 'MISSING' ? 'tag bad'
                   : (v.status === 'DECLARED_NOT_PROBED' ? 'tag warn' : 'tag ok'),
-              }, v.status)))),
+              }, en(v.status))))),
           el('p', { class: 'view-hint' }, '来自 /api/environment 真实读回。')),
         hostCard ? capabilityCard(hostCard) : el('div', { class: 'panel' }),
         mcpCard ? capabilityCard(mcpCard) : el('div', { class: 'panel' }),
@@ -1301,7 +1309,7 @@ function buildStageNav(currentStageKey?: string): HTMLElement {
     // signal that a stage is PLANNED was a pointer-only `title`, so a keyboard
     // user pressed an enabled-looking button and nothing happened.
     const tag: HTMLElement | null = stage.state !== 'IMPLEMENTED'
-      ? el('span', { class: 'tag ' + (stage.state === 'BLOCKED' ? 'warn' : 'info') }, stage.state)
+      ? el('span', { class: 'tag ' + (stage.state === 'BLOCKED' ? 'warn' : 'info') }, en(stage.state))
       : null;
     li.append(el('button', btnAttrs,
       el('span', { class: 'stage-nav-label' }, stage.label),
