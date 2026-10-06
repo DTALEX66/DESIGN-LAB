@@ -187,6 +187,20 @@ for (const width of widths) {
     const filePath = path.join(outDir, file);
     const buffer = await page.screenshot({ path: filePath, fullPage: false, animations: 'disabled' });
     const bytes = readFileSync(filePath);
+    // The numbers the PNG shows are recorded next to the PNG. Prose that
+    // re-describes a screenshot is a second, unbound source of truth, and this
+    // file already has one fabricated round behind it; quoting the manifest
+    // instead means the same bytes back both.
+    const rendered = await page.evaluate(() => ({
+      kpis: Array.from(document.querySelectorAll('#route-view .kpi')).map((card) => ({
+        value: (card.querySelector('strong') || {}).textContent?.trim() ?? '',
+        label: (card.querySelector('small') || {}).textContent?.trim() ?? '',
+        note: (card.querySelector('.trend') || {}).textContent?.trim() ?? '',
+      })),
+      headings: Array.from(document.querySelectorAll('#route-view h2, #route-view h3'))
+        .map((h) => h.textContent.trim()).slice(0, 14),
+      unreadBack: /未读回|未连接/.test(document.querySelector('#route-view')?.textContent ?? ''),
+    }));
     shots.push({
       file,
       page: p.key,
@@ -196,6 +210,7 @@ for (const width of widths) {
       bytes: bytes.length,
       bufferBytes: buffer.length,
       sha256: sha256(bytes),
+      rendered,
       capturedAt: new Date().toISOString(),
     });
     writeFileSync(filePath + '.license', JSON.stringify({

@@ -1,7 +1,7 @@
 {
   "schemaVersion": "design-lab/asset-sidecar/v1",
   "file": "docs/UI-CONVERGENCE-20260930/screenshot/11-creative-tools@768.png",
-  "sha256": "sha256:3e1a141d9c9ab4011dc38ec9a3bde5e76d6bd946a2ba3fea58306315643e9b6d",
+  "sha256": "sha256:30eaeb5ce5c27889a6d528fded1c924c2d2b581e8e0281cde7f443c6103c0f35",
   "license": "MIT",
   "author": "DESIGN-LAB Workbench rendered by scripts/capture_workbench_screenshots.py for DTALEX66 (DESIGN-LAB project owner)",
   "redistributable": true,
@@ -12,5 +12,5 @@
     "approvedBy": "DTALEX66 (project owner)",
     "expiresAt": "2027-10-05"
   },
-  "notes": "First-party screenshot of this repository's own Workbench served by its own loopback service, rendered at commit fbe94ac217c52965c19b11ebdddd4bebb37d5829. Visible content: project UI (MIT), one first-party MIT eval reference raster, and text set in locally installed system fonts. Font output rights are asserted only for the local OS licence; no third-party artwork, stock imagery or model output is embedded. Approval basis: the owner's 2026-10-05 closeout instruction to capture and archive real UI screenshots in this directory. modelInputAllowed=false because no training right is asserted."
+  "notes": "First-party screenshot of this repository's own Workbench served by its own loopback service, rendered at commit ca67834ae675c3ea3885d94ef0c47c04761dad81. Visible content: project UI (MIT), one first-party MIT eval reference raster, and text set in locally installed system fonts. Font output rights are asserted only for the local OS licence; no third-party artwork, stock imagery or model output is embedded. Approval basis: the owner's 2026-10-05 closeout instruction to capture and archive real UI screenshots in this directory. modelInputAllowed=false because no training right is asserted."
 }

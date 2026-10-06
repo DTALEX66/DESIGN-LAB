@@ -1,21 +1,21 @@
 {
   "kind": "workbench-viewport-screenshots",
   "schema": "design-lab/screenshot-manifest/v1",
-  "generatedAt": "2026-10-05T15:03:38.595Z",
-  "commit": "fbe94ac217c52965c19b11ebdddd4bebb37d5829",
+  "generatedAt": "2026-10-06T04:42:50.398Z",
+  "commit": "ca67834ae675c3ea3885d94ef0c47c04761dad81",
   "subject": {
     "bundle": "apps\\workbench\\build\\main.js",
-    "bundleBytes": 157747,
-    "bundleSha256": "f58a8e1f9776e2c9769629f83cb8cea2c2452b3ef02466463060ee4bbcc05d21"
+    "bundleBytes": 163269,
+    "bundleSha256": "3f0600198df895806a227e8cca6fd93183529387db5508b4bdaa1e65cae215fe"
   },
   "project": {
-    "name": "Closeout 1791212592470",
-    "id": "7739ebfa5d434eb5b3152fa21db58781"
+    "name": "Closeout 1791261745788",
+    "id": "3d44b5210bd34d6b82bb115001b8dc86"
   },
   "referenceSourceImage": "D:\\All projects\\DESIGN-LAB\\design-lab\\evals\\reconstruction\\cases\\poster-sunrise-001\\reference.png",
   "service": {
-    "origin": "http://127.0.0.1:57518",
-    "pythonVersion": "3.13.14"
+    "origin": "http://127.0.0.1:55663",
+    "pythonVersion": "3.12.13"
   },
   "browser": {
     "engine": "chromium",
@@ -54,11 +54,47 @@
         "width": 390,
         "height": 844
       },
-      "url": "http://127.0.0.1:57518/workbench#/dashboard",
-      "bytes": 76001,
-      "bufferBytes": 76001,
-      "sha256": "70a983b7da73366116762fc586a8d6bcc41b702fcd4055274cb9ef7830dc78c7",
-      "capturedAt": "2026-10-05T15:03:15.306Z"
+      "url": "http://127.0.0.1:55663/workbench#/dashboard",
+      "bytes": 76186,
+      "bufferBytes": 76186,
+      "sha256": "a5d400b52258216c630cddb5fce2d04dc99183d3bf3d5b94b7073fbf172cd395",
+      "rendered": {
+        "kpis": [
+          {
+            "value": "1",
+            "label": "项目",
+            "note": "来自 /api/projects 真实读回，非统计猜测"
+          },
+          {
+            "value": "4",
+            "label": "设计系统",
+            "note": "资源登记的设计系统总数 · /api/design-systems 读回"
+          },
+          {
+            "value": "OK",
+            "label": "服务状态",
+            "note": "版本 0.1.0-alpha.0 · 作用域 project-metadata"
+          },
+          {
+            "value": "0.1.0-alpha.0",
+            "label": "服务版本",
+            "note": "/api/health 真实读回"
+          }
+        ],
+        "headings": [
+          "仪表盘",
+          "最近项目",
+          "设计质量趋势 · 未读回",
+          "Research",
+          "Brand",
+          "Delivery",
+          "继续项目",
+          "待审（需人工处理）（0）",
+          "失败（0）"
+        ],
+        "unreadBack": true
+      },
+      "capturedAt": "2026-10-06T04:42:28.328Z"
     },
     {
       "file": "01-projects@390.png",
@@ -68,25 +104,85 @@
         "width": 390,
         "height": 844
       },
-      "url": "http://127.0.0.1:57518/workbench#/projects",
-      "bytes": 67398,
-      "bufferBytes": 67398,
-      "sha256": "17517d20757954d3ad43ef2ccce8ae8ac6dcc8851980484ceed00d9df455a67a",
-      "capturedAt": "2026-10-05T15:03:15.787Z"
+      "url": "http://127.0.0.1:55663/workbench#/projects",
+      "bytes": 65548,
+      "bufferBytes": 65548,
+      "sha256": "2abf785321e5176756f97e2fa91e830966953fc53560510aab091d3745a905f6",
+      "rendered": {
+        "kpis": [
+          {
+            "value": "1",
+            "label": "项目",
+            "note": "来自 /api/projects 真实读回"
+          },
+          {
+            "value": "—",
+            "label": "进行中",
+            "note": "状态需在工作台查看"
+          },
+          {
+            "value": "—",
+            "label": "已完成",
+            "note": "状态需在工作台查看"
+          }
+        ],
+        "headings": [
+          "项目",
+          "项目（1）"
+        ],
+        "unreadBack": true
+      },
+      "capturedAt": "2026-10-06T04:42:28.809Z"
     },
     {
       "file": "02-project-detail@390.png",
       "page": "project-detail",
-      "hashRoute": "#/projects/7739ebfa5d434eb5b3152fa21db58781",
+      "hashRoute": "#/projects/3d44b5210bd34d6b82bb115001b8dc86",
       "viewport": {
         "width": 390,
         "height": 844
       },
-      "url": "http://127.0.0.1:57518/workbench#/projects/7739ebfa5d434eb5b3152fa21db58781",
-      "bytes": 63430,
-      "bufferBytes": 63430,
-      "sha256": "0ef997d3405dd2e93339bb2b454e0c94f25fbe7012d66d219f53f6d05397aa89",
-      "capturedAt": "2026-10-05T15:03:16.318Z"
+      "url": "http://127.0.0.1:55663/workbench#/projects/3d44b5210bd34d6b82bb115001b8dc86",
+      "bytes": 63444,
+      "bufferBytes": 63444,
+      "sha256": "eefbe5e4f1e154bdd7dbedcfe965ce940cb1b302634161895393abcafc70e768",
+      "rendered": {
+        "kpis": [
+          {
+            "value": "1",
+            "label": "任务",
+            "note": "读回 /tasks 台账"
+          },
+          {
+            "value": "1",
+            "label": "简报版本",
+            "note": "读回 design-layer"
+          },
+          {
+            "value": "1",
+            "label": "方向版本",
+            "note": "读回 design-layer"
+          },
+          {
+            "value": "1",
+            "label": "活动绑定",
+            "note": "anomaly-monitor-dark · 绑定 direction-8279ddded6eb44b3936a85231288dd2f"
+          }
+        ],
+        "headings": [
+          "Closeout 1791261745788",
+          "任务台账（1）",
+          "设计层契约",
+          "交付包（0）",
+          "简报（Brief）· 1 个版本",
+          "方向（Direction）· 1 个候选",
+          "设计系统（DesignSystem）· 目录 4 项 · 绑定 1 次",
+          "参考素材（1）",
+          "Inspector"
+        ],
+        "unreadBack": false
+      },
+      "capturedAt": "2026-10-06T04:42:29.301Z"
     },
     {
       "file": "03-creative-tools@390.png",
@@ -96,11 +192,18 @@
         "width": 390,
         "height": 844
       },
-      "url": "http://127.0.0.1:57518/workbench#/tools",
+      "url": "http://127.0.0.1:55663/workbench#/tools",
       "bytes": 39179,
       "bufferBytes": 39179,
       "sha256": "3779a93e02d74450dbb5500449470657feb78eb6428fc8884cae079331a83a8c",
-      "capturedAt": "2026-10-05T15:03:16.780Z"
+      "rendered": {
+        "kpis": [],
+        "headings": [
+          "创作工具"
+        ],
+        "unreadBack": false
+      },
+      "capturedAt": "2026-10-06T04:42:29.756Z"
     },
     {
       "file": "04-deliverables@390.png",
@@ -110,11 +213,18 @@
         "width": 390,
         "height": 844
       },
-      "url": "http://127.0.0.1:57518/workbench#/deliverables",
+      "url": "http://127.0.0.1:55663/workbench#/deliverables",
       "bytes": 39825,
       "bufferBytes": 39825,
       "sha256": "a4e72f8596bdf1ca3d844e18b063541f678fe2086849c410ee4872c87b592cda",
-      "capturedAt": "2026-10-05T15:03:17.247Z"
+      "rendered": {
+        "kpis": [],
+        "headings": [
+          "交付中心"
+        ],
+        "unreadBack": false
+      },
+      "capturedAt": "2026-10-06T04:42:30.239Z"
     },
     {
       "file": "05-evidence@390.png",
@@ -124,11 +234,18 @@
         "width": 390,
         "height": 844
       },
-      "url": "http://127.0.0.1:57518/workbench#/evidence",
+      "url": "http://127.0.0.1:55663/workbench#/evidence",
       "bytes": 40998,
       "bufferBytes": 40998,
       "sha256": "4c989d14f750ea60ceb42660e79306ac1494a28c74d2f6a6928e1d5c44dcaf88",
-      "capturedAt": "2026-10-05T15:03:17.714Z"
+      "rendered": {
+        "kpis": [],
+        "headings": [
+          "证据系统"
+        ],
+        "unreadBack": false
+      },
+      "capturedAt": "2026-10-06T04:42:30.718Z"
     },
     {
       "file": "06-preflight@390.png",
@@ -138,11 +255,39 @@
         "width": 390,
         "height": 844
       },
-      "url": "http://127.0.0.1:57518/workbench#/preflight",
-      "bytes": 69466,
-      "bufferBytes": 69466,
-      "sha256": "258dd6eec52a2d07360d0d4f58fbf5b01123e35cf397ad4cefce59fa2eb3a58b",
-      "capturedAt": "2026-10-05T15:03:18.221Z"
+      "url": "http://127.0.0.1:55663/workbench#/preflight",
+      "bytes": 67199,
+      "bufferBytes": 67199,
+      "sha256": "0f3fffbcac1803ba06ecfb66a8bc7c5843216e3795a129336d78827f9aea2f2d",
+      "rendered": {
+        "kpis": [
+          {
+            "value": "—",
+            "label": "登记资源",
+            "note": "运行预检后读回"
+          },
+          {
+            "value": "—",
+            "label": "阻塞资源",
+            "note": "运行预检后读回"
+          },
+          {
+            "value": "—",
+            "label": "判定",
+            "note": "READY / BLOCKED"
+          },
+          {
+            "value": "—",
+            "label": "机器范围",
+            "note": "运行预检后读回"
+          }
+        ],
+        "headings": [
+          "预检 / QA"
+        ],
+        "unreadBack": false
+      },
+      "capturedAt": "2026-10-06T04:42:31.182Z"
     },
     {
       "file": "07-settings@390.png",
@@ -152,11 +297,21 @@
         "width": 390,
         "height": 844
       },
-      "url": "http://127.0.0.1:57518/workbench#/settings",
-      "bytes": 81220,
-      "bufferBytes": 81220,
-      "sha256": "58505434adf843bb3acda10f51d6ae113991adc49cc6cefdba6bb22015057bbc",
-      "capturedAt": "2026-10-05T15:03:18.710Z"
+      "url": "http://127.0.0.1:55663/workbench#/settings",
+      "bytes": 80482,
+      "bufferBytes": 80482,
+      "sha256": "333c3cb1ac86b57ed729f73d3b560bd20d508a68bffd22ab341f0e5ef9a7f955",
+      "rendered": {
+        "kpis": [],
+        "headings": [
+          "系统设置",
+          "环境状态",
+          "项目根（服务声明可写，未探测）",
+          "外置输入（只读 · DECLARED_NOT_PROBED）"
+        ],
+        "unreadBack": false
+      },
+      "capturedAt": "2026-10-06T04:42:31.640Z"
     },
     {
       "file": "08-dashboard@768.png",
@@ -166,11 +321,47 @@
         "width": 768,
         "height": 1024
       },
-      "url": "http://127.0.0.1:57518/workbench#/dashboard",
-      "bytes": 105705,
-      "bufferBytes": 105705,
-      "sha256": "2b9e028e3dd1d4e09f6f260398c69335f65614eb24ca6f66da3a78c5a7a8f08f",
-      "capturedAt": "2026-10-05T15:03:19.982Z"
+      "url": "http://127.0.0.1:55663/workbench#/dashboard",
+      "bytes": 103134,
+      "bufferBytes": 103134,
+      "sha256": "dd9b1f85d0cf94564950b56907a186820eb1d3feca0a753a0c1eabf680566899",
+      "rendered": {
+        "kpis": [
+          {
+            "value": "1",
+            "label": "项目",
+            "note": "来自 /api/projects 真实读回，非统计猜测"
+          },
+          {
+            "value": "4",
+            "label": "设计系统",
+            "note": "资源登记的设计系统总数 · /api/design-systems 读回"
+          },
+          {
+            "value": "OK",
+            "label": "服务状态",
+            "note": "版本 0.1.0-alpha.0 · 作用域 project-metadata"
+          },
+          {
+            "value": "0.1.0-alpha.0",
+            "label": "服务版本",
+            "note": "/api/health 真实读回"
+          }
+        ],
+        "headings": [
+          "仪表盘",
+          "最近项目",
+          "设计质量趋势 · 未读回",
+          "Research",
+          "Brand",
+          "Delivery",
+          "继续项目",
+          "待审（需人工处理）（0）",
+          "失败（0）"
+        ],
+        "unreadBack": true
+      },
+      "capturedAt": "2026-10-06T04:42:32.829Z"
     },
     {
       "file": "09-projects@768.png",
@@ -180,25 +371,85 @@
         "width": 768,
         "height": 1024
       },
-      "url": "http://127.0.0.1:57518/workbench#/projects",
-      "bytes": 92249,
-      "bufferBytes": 92249,
-      "sha256": "65efcd7459d69bc0637185b7cd8cb3cd9bdcf7b6355b68f61523834e2f6d327b",
-      "capturedAt": "2026-10-05T15:03:20.480Z"
+      "url": "http://127.0.0.1:55663/workbench#/projects",
+      "bytes": 88586,
+      "bufferBytes": 88586,
+      "sha256": "af226f4ddde19ad9bf73bf72c60857cf4e53d2362e3aa7cd4568d2ede2170b64",
+      "rendered": {
+        "kpis": [
+          {
+            "value": "1",
+            "label": "项目",
+            "note": "来自 /api/projects 真实读回"
+          },
+          {
+            "value": "—",
+            "label": "进行中",
+            "note": "状态需在工作台查看"
+          },
+          {
+            "value": "—",
+            "label": "已完成",
+            "note": "状态需在工作台查看"
+          }
+        ],
+        "headings": [
+          "项目",
+          "项目（1）"
+        ],
+        "unreadBack": true
+      },
+      "capturedAt": "2026-10-06T04:42:33.308Z"
     },
     {
       "file": "10-project-detail@768.png",
       "page": "project-detail",
-      "hashRoute": "#/projects/7739ebfa5d434eb5b3152fa21db58781",
+      "hashRoute": "#/projects/3d44b5210bd34d6b82bb115001b8dc86",
       "viewport": {
         "width": 768,
         "height": 1024
       },
-      "url": "http://127.0.0.1:57518/workbench#/projects/7739ebfa5d434eb5b3152fa21db58781",
-      "bytes": 92069,
-      "bufferBytes": 92069,
-      "sha256": "01d5a984d1bed488810581e0405d6c1c963fcb28c52b640e651ac3b491b9f95b",
-      "capturedAt": "2026-10-05T15:03:21.012Z"
+      "url": "http://127.0.0.1:55663/workbench#/projects/3d44b5210bd34d6b82bb115001b8dc86",
+      "bytes": 89069,
+      "bufferBytes": 89069,
+      "sha256": "fa802836363b0da590e80fd40108e5546ad8b8dcfe7f96fc6b8ba87bce99e67c",
+      "rendered": {
+        "kpis": [
+          {
+            "value": "1",
+            "label": "任务",
+            "note": "读回 /tasks 台账"
+          },
+          {
+            "value": "1",
+            "label": "简报版本",
+            "note": "读回 design-layer"
+          },
+          {
+            "value": "1",
+            "label": "方向版本",
+            "note": "读回 design-layer"
+          },
+          {
+            "value": "1",
+            "label": "活动绑定",
+            "note": "anomaly-monitor-dark · 绑定 direction-8279ddded6eb44b3936a85231288dd2f"
+          }
+        ],
+        "headings": [
+          "Closeout 1791261745788",
+          "任务台账（1）",
+          "设计层契约",
+          "交付包（0）",
+          "简报（Brief）· 1 个版本",
+          "方向（Direction）· 1 个候选",
+          "设计系统（DesignSystem）· 目录 4 项 · 绑定 1 次",
+          "参考素材（1）",
+          "Inspector"
+        ],
+        "unreadBack": false
+      },
+      "capturedAt": "2026-10-06T04:42:33.833Z"
     },
     {
       "file": "11-creative-tools@768.png",
@@ -208,11 +459,18 @@
         "width": 768,
         "height": 1024
       },
-      "url": "http://127.0.0.1:57518/workbench#/tools",
-      "bytes": 50067,
-      "bufferBytes": 50067,
-      "sha256": "3e1a141d9c9ab4011dc38ec9a3bde5e76d6bd946a2ba3fea58306315643e9b6d",
-      "capturedAt": "2026-10-05T15:03:21.490Z"
+      "url": "http://127.0.0.1:55663/workbench#/tools",
+      "bytes": 48903,
+      "bufferBytes": 48903,
+      "sha256": "30eaeb5ce5c27889a6d528fded1c924c2d2b581e8e0281cde7f443c6103c0f35",
+      "rendered": {
+        "kpis": [],
+        "headings": [
+          "创作工具"
+        ],
+        "unreadBack": false
+      },
+      "capturedAt": "2026-10-06T04:42:34.309Z"
     },
     {
       "file": "12-deliverables@768.png",
@@ -222,11 +480,18 @@
         "width": 768,
         "height": 1024
       },
-      "url": "http://127.0.0.1:57518/workbench#/deliverables",
-      "bytes": 50727,
-      "bufferBytes": 50727,
-      "sha256": "7d85f4a970515d45403ad20085be1161bfc16e61f87b69dd41ead0a93b32308a",
-      "capturedAt": "2026-10-05T15:03:21.952Z"
+      "url": "http://127.0.0.1:55663/workbench#/deliverables",
+      "bytes": 49548,
+      "bufferBytes": 49548,
+      "sha256": "0eca1a0ffcb227d23e1f42efd67803d4f17660537a0e8f673fb21202f9797e42",
+      "rendered": {
+        "kpis": [],
+        "headings": [
+          "交付中心"
+        ],
+        "unreadBack": false
+      },
+      "capturedAt": "2026-10-06T04:42:34.775Z"
     },
     {
       "file": "13-evidence@768.png",
@@ -236,11 +501,18 @@
         "width": 768,
         "height": 1024
       },
-      "url": "http://127.0.0.1:57518/workbench#/evidence",
-      "bytes": 51787,
-      "bufferBytes": 51787,
-      "sha256": "690a37d1fb07cade082789b8895c70b0451bbb49ff134bd83dcb4ff717351698",
-      "capturedAt": "2026-10-05T15:03:22.439Z"
+      "url": "http://127.0.0.1:55663/workbench#/evidence",
+      "bytes": 50612,
+      "bufferBytes": 50612,
+      "sha256": "04621cc73e83276506784b6f3ebd32b9c01734c0167e135bdf1a2db1bf503b85",
+      "rendered": {
+        "kpis": [],
+        "headings": [
+          "证据系统"
+        ],
+        "unreadBack": false
+      },
+      "capturedAt": "2026-10-06T04:42:35.258Z"
     },
     {
       "file": "14-preflight@768.png",
@@ -250,11 +522,39 @@
         "width": 768,
         "height": 1024
       },
-      "url": "http://127.0.0.1:57518/workbench#/preflight",
-      "bytes": 89138,
-      "bufferBytes": 89138,
-      "sha256": "b8af29fc7c9f961eb6e9777f632170fcd1ff87dc23955917a0e363489e986cd4",
-      "capturedAt": "2026-10-05T15:03:22.931Z"
+      "url": "http://127.0.0.1:55663/workbench#/preflight",
+      "bytes": 84180,
+      "bufferBytes": 84180,
+      "sha256": "9c5dc8de976b5822802e46c1d38aaf7b19308882e3063584dd7e21dbfe5e8472",
+      "rendered": {
+        "kpis": [
+          {
+            "value": "—",
+            "label": "登记资源",
+            "note": "运行预检后读回"
+          },
+          {
+            "value": "—",
+            "label": "阻塞资源",
+            "note": "运行预检后读回"
+          },
+          {
+            "value": "—",
+            "label": "判定",
+            "note": "READY / BLOCKED"
+          },
+          {
+            "value": "—",
+            "label": "机器范围",
+            "note": "运行预检后读回"
+          }
+        ],
+        "headings": [
+          "预检 / QA"
+        ],
+        "unreadBack": false
+      },
+      "capturedAt": "2026-10-06T04:42:35.732Z"
     },
     {
       "file": "15-settings@768.png",
@@ -264,11 +564,21 @@
         "width": 768,
         "height": 1024
       },
-      "url": "http://127.0.0.1:57518/workbench#/settings",
-      "bytes": 137398,
-      "bufferBytes": 137398,
-      "sha256": "d4d6ce0b5789ae003af9028d4f1d3c0aba6d5a70b5353108a30e27b53e1534e9",
-      "capturedAt": "2026-10-05T15:03:23.440Z"
+      "url": "http://127.0.0.1:55663/workbench#/settings",
+      "bytes": 139856,
+      "bufferBytes": 139856,
+      "sha256": "60ab1db6f0a42c1f5e7a78d684d5c53af18bdc4b4fece47adb984d25e3b00d47",
+      "rendered": {
+        "kpis": [],
+        "headings": [
+          "系统设置",
+          "环境状态",
+          "项目根（服务声明可写，未探测）",
+          "外置输入（只读 · DECLARED_NOT_PROBED）"
+        ],
+        "unreadBack": false
+      },
+      "capturedAt": "2026-10-06T04:42:36.206Z"
     },
     {
       "file": "16-dashboard@1280.png",
@@ -278,11 +588,47 @@
         "width": 1280,
         "height": 800
       },
-      "url": "http://127.0.0.1:57518/workbench#/dashboard",
-      "bytes": 180430,
-      "bufferBytes": 180430,
-      "sha256": "5caa62ded80ef4f9b2a6e871ea4ef5de4a2db510f94fb13a5d7d939719ccc613",
-      "capturedAt": "2026-10-05T15:03:24.719Z"
+      "url": "http://127.0.0.1:55663/workbench#/dashboard",
+      "bytes": 184388,
+      "bufferBytes": 184388,
+      "sha256": "dd813998b591b8284e4bf54d403f2be9db231ad5f0895ac12cab77608016346e",
+      "rendered": {
+        "kpis": [
+          {
+            "value": "1",
+            "label": "项目",
+            "note": "来自 /api/projects 真实读回，非统计猜测"
+          },
+          {
+            "value": "4",
+            "label": "设计系统",
+            "note": "资源登记的设计系统总数 · /api/design-systems 读回"
+          },
+          {
+            "value": "OK",
+            "label": "服务状态",
+            "note": "版本 0.1.0-alpha.0 · 作用域 project-metadata"
+          },
+          {
+            "value": "0.1.0-alpha.0",
+            "label": "服务版本",
+            "note": "/api/health 真实读回"
+          }
+        ],
+        "headings": [
+          "仪表盘",
+          "最近项目",
+          "设计质量趋势 · 未读回",
+          "Research",
+          "Brand",
+          "Delivery",
+          "继续项目",
+          "待审（需人工处理）（0）",
+          "失败（0）"
+        ],
+        "unreadBack": true
+      },
+      "capturedAt": "2026-10-06T04:42:37.425Z"
     },
     {
       "file": "17-projects@1280.png",
@@ -292,25 +638,85 @@
         "width": 1280,
         "height": 800
       },
-      "url": "http://127.0.0.1:57518/workbench#/projects",
-      "bytes": 130113,
-      "bufferBytes": 130113,
-      "sha256": "337285bd50ddff1a812f646814fc4d2bbf69bf6d9f5f247eec6970f0583dc085",
-      "capturedAt": "2026-10-05T15:03:25.207Z"
+      "url": "http://127.0.0.1:55663/workbench#/projects",
+      "bytes": 130342,
+      "bufferBytes": 130342,
+      "sha256": "d6e6749e23ef0fb14d383d248c2307b01ab60cbe676d8b0395d70ec7ee0c3f08",
+      "rendered": {
+        "kpis": [
+          {
+            "value": "1",
+            "label": "项目",
+            "note": "来自 /api/projects 真实读回"
+          },
+          {
+            "value": "—",
+            "label": "进行中",
+            "note": "状态需在工作台查看"
+          },
+          {
+            "value": "—",
+            "label": "已完成",
+            "note": "状态需在工作台查看"
+          }
+        ],
+        "headings": [
+          "项目",
+          "项目（1）"
+        ],
+        "unreadBack": true
+      },
+      "capturedAt": "2026-10-06T04:42:37.899Z"
     },
     {
       "file": "18-project-detail@1280.png",
       "page": "project-detail",
-      "hashRoute": "#/projects/7739ebfa5d434eb5b3152fa21db58781",
+      "hashRoute": "#/projects/3d44b5210bd34d6b82bb115001b8dc86",
       "viewport": {
         "width": 1280,
         "height": 800
       },
-      "url": "http://127.0.0.1:57518/workbench#/projects/7739ebfa5d434eb5b3152fa21db58781",
-      "bytes": 166631,
-      "bufferBytes": 166631,
-      "sha256": "be7e6b07195b3e728ba4ffe7c47fd01edecc9e4ce44f926f25bd842ac0893b65",
-      "capturedAt": "2026-10-05T15:03:25.764Z"
+      "url": "http://127.0.0.1:55663/workbench#/projects/3d44b5210bd34d6b82bb115001b8dc86",
+      "bytes": 167129,
+      "bufferBytes": 167129,
+      "sha256": "2aa2df8a846cc5382906f8dbbf91b6f4f6b96f286de69237db140b6c329eeb2a",
+      "rendered": {
+        "kpis": [
+          {
+            "value": "1",
+            "label": "任务",
+            "note": "读回 /tasks 台账"
+          },
+          {
+            "value": "1",
+            "label": "简报版本",
+            "note": "读回 design-layer"
+          },
+          {
+            "value": "1",
+            "label": "方向版本",
+            "note": "读回 design-layer"
+          },
+          {
+            "value": "1",
+            "label": "活动绑定",
+            "note": "anomaly-monitor-dark · 绑定 direction-8279ddded6eb44b3936a85231288dd2f"
+          }
+        ],
+        "headings": [
+          "Closeout 1791261745788",
+          "任务台账（1）",
+          "设计层契约",
+          "交付包（0）",
+          "简报（Brief）· 1 个版本",
+          "方向（Direction）· 1 个候选",
+          "设计系统（DesignSystem）· 目录 4 项 · 绑定 1 次",
+          "参考素材（1）",
+          "Inspector"
+        ],
+        "unreadBack": false
+      },
+      "capturedAt": "2026-10-06T04:42:38.425Z"
     },
     {
       "file": "19-creative-tools@1280.png",
@@ -320,11 +726,18 @@
         "width": 1280,
         "height": 800
       },
-      "url": "http://127.0.0.1:57518/workbench#/tools",
-      "bytes": 90465,
-      "bufferBytes": 90465,
-      "sha256": "bd17ee97e15670638c807f1baa3cfd9f873021a123fd18d367780128074ce311",
-      "capturedAt": "2026-10-05T15:03:26.249Z"
+      "url": "http://127.0.0.1:55663/workbench#/tools",
+      "bytes": 91082,
+      "bufferBytes": 91082,
+      "sha256": "7dc2356d3e0c3a75fef57aa839bba91918240a0b782c7c14d16f2f69f8fe1606",
+      "rendered": {
+        "kpis": [],
+        "headings": [
+          "创作工具"
+        ],
+        "unreadBack": false
+      },
+      "capturedAt": "2026-10-06T04:42:38.900Z"
     },
     {
       "file": "20-deliverables@1280.png",
@@ -334,11 +747,18 @@
         "width": 1280,
         "height": 800
       },
-      "url": "http://127.0.0.1:57518/workbench#/deliverables",
-      "bytes": 91281,
-      "bufferBytes": 91281,
-      "sha256": "d8729b718058c66829bfc7aed6eb0d0c23cfa39c557cf46710fc7cc630df8408",
-      "capturedAt": "2026-10-05T15:03:26.747Z"
+      "url": "http://127.0.0.1:55663/workbench#/deliverables",
+      "bytes": 91943,
+      "bufferBytes": 91943,
+      "sha256": "d7a81e3449adafa7266f4a8f2fd377a2e5dc037b78feedda59e677134c4f6c1d",
+      "rendered": {
+        "kpis": [],
+        "headings": [
+          "交付中心"
+        ],
+        "unreadBack": false
+      },
+      "capturedAt": "2026-10-06T04:42:39.360Z"
     },
     {
       "file": "21-evidence@1280.png",
@@ -348,11 +768,18 @@
         "width": 1280,
         "height": 800
       },
-      "url": "http://127.0.0.1:57518/workbench#/evidence",
-      "bytes": 92531,
-      "bufferBytes": 92531,
-      "sha256": "82fe0274ea762f505d70edc1190d552d6553176c54f97b8c678f94693f8e44ce",
-      "capturedAt": "2026-10-05T15:03:27.228Z"
+      "url": "http://127.0.0.1:55663/workbench#/evidence",
+      "bytes": 93188,
+      "bufferBytes": 93188,
+      "sha256": "de33dc092451ce82093c2283710d5cccb5a6d47e5fe6b2127cf48dab1490c3e3",
+      "rendered": {
+        "kpis": [],
+        "headings": [
+          "证据系统"
+        ],
+        "unreadBack": false
+      },
+      "capturedAt": "2026-10-06T04:42:39.827Z"
     },
     {
       "file": "22-preflight@1280.png",
@@ -362,11 +789,39 @@
         "width": 1280,
         "height": 800
       },
-      "url": "http://127.0.0.1:57518/workbench#/preflight",
-      "bytes": 125440,
-      "bufferBytes": 125440,
-      "sha256": "3909e580b90ebe8bc91465895b60bb9c515ece6ceede106157c02e133d59e296",
-      "capturedAt": "2026-10-05T15:03:27.724Z"
+      "url": "http://127.0.0.1:55663/workbench#/preflight",
+      "bytes": 123827,
+      "bufferBytes": 123827,
+      "sha256": "e7bf4a1ccc0e76aa8fadf828555c03ac516d556f93361a1bfa0fa4eafd6097e2",
+      "rendered": {
+        "kpis": [
+          {
+            "value": "—",
+            "label": "登记资源",
+            "note": "运行预检后读回"
+          },
+          {
+            "value": "—",
+            "label": "阻塞资源",
+            "note": "运行预检后读回"
+          },
+          {
+            "value": "—",
+            "label": "判定",
+            "note": "READY / BLOCKED"
+          },
+          {
+            "value": "—",
+            "label": "机器范围",
+            "note": "运行预检后读回"
+          }
+        ],
+        "headings": [
+          "预检 / QA"
+        ],
+        "unreadBack": false
+      },
+      "capturedAt": "2026-10-06T04:42:40.282Z"
     },
     {
       "file": "23-settings@1280.png",
@@ -376,11 +831,21 @@
         "width": 1280,
         "height": 800
       },
-      "url": "http://127.0.0.1:57518/workbench#/settings",
-      "bytes": 194947,
-      "bufferBytes": 194947,
-      "sha256": "99e117c2371f78eb9bc2b052d9144148298db48bc749994c09d2e4fbfecf841a",
-      "capturedAt": "2026-10-05T15:03:28.246Z"
+      "url": "http://127.0.0.1:55663/workbench#/settings",
+      "bytes": 197474,
+      "bufferBytes": 197474,
+      "sha256": "f2d9a121426b335462e96fef012cfc4b4a25c82a5f80f025e7a5d00ae5788a37",
+      "rendered": {
+        "kpis": [],
+        "headings": [
+          "系统设置",
+          "环境状态",
+          "项目根（服务声明可写，未探测）",
+          "外置输入（只读 · DECLARED_NOT_PROBED）"
+        ],
+        "unreadBack": false
+      },
+      "capturedAt": "2026-10-06T04:42:40.763Z"
     },
     {
       "file": "24-dashboard@1920.png",
@@ -390,11 +855,47 @@
         "width": 1920,
         "height": 1080
       },
-      "url": "http://127.0.0.1:57518/workbench#/dashboard",
-      "bytes": 245303,
-      "bufferBytes": 245303,
-      "sha256": "9d762c4ff77a905936ca153e5711e8a20be619da9d69aeff35d448e9832615c5",
-      "capturedAt": "2026-10-05T15:03:29.611Z"
+      "url": "http://127.0.0.1:55663/workbench#/dashboard",
+      "bytes": 239457,
+      "bufferBytes": 239457,
+      "sha256": "f58c3cfab0a343f2657b4304d82d7e467cebff410c1bbd072aada6c8bae79cdd",
+      "rendered": {
+        "kpis": [
+          {
+            "value": "1",
+            "label": "项目",
+            "note": "来自 /api/projects 真实读回，非统计猜测"
+          },
+          {
+            "value": "4",
+            "label": "设计系统",
+            "note": "资源登记的设计系统总数 · /api/design-systems 读回"
+          },
+          {
+            "value": "OK",
+            "label": "服务状态",
+            "note": "版本 0.1.0-alpha.0 · 作用域 project-metadata"
+          },
+          {
+            "value": "0.1.0-alpha.0",
+            "label": "服务版本",
+            "note": "/api/health 真实读回"
+          }
+        ],
+        "headings": [
+          "仪表盘",
+          "最近项目",
+          "设计质量趋势 · 未读回",
+          "Research",
+          "Brand",
+          "Delivery",
+          "继续项目",
+          "待审（需人工处理）（0）",
+          "失败（0）"
+        ],
+        "unreadBack": true
+      },
+      "capturedAt": "2026-10-06T04:42:41.993Z"
     },
     {
       "file": "25-projects@1920.png",
@@ -404,25 +905,85 @@
         "width": 1920,
         "height": 1080
       },
-      "url": "http://127.0.0.1:57518/workbench#/projects",
-      "bytes": 150436,
-      "bufferBytes": 150436,
-      "sha256": "abb32d56e7121818616631ae9850aeb5385bba92a5f1fc5604cf959e2b530042",
-      "capturedAt": "2026-10-05T15:03:30.108Z"
+      "url": "http://127.0.0.1:55663/workbench#/projects",
+      "bytes": 151072,
+      "bufferBytes": 151072,
+      "sha256": "60b5ccaee013f15ffdb30dcde283402c0c214978eda023004d810965e6207bfc",
+      "rendered": {
+        "kpis": [
+          {
+            "value": "1",
+            "label": "项目",
+            "note": "来自 /api/projects 真实读回"
+          },
+          {
+            "value": "—",
+            "label": "进行中",
+            "note": "状态需在工作台查看"
+          },
+          {
+            "value": "—",
+            "label": "已完成",
+            "note": "状态需在工作台查看"
+          }
+        ],
+        "headings": [
+          "项目",
+          "项目（1）"
+        ],
+        "unreadBack": true
+      },
+      "capturedAt": "2026-10-06T04:42:42.500Z"
     },
     {
       "file": "26-project-detail@1920.png",
       "page": "project-detail",
-      "hashRoute": "#/projects/7739ebfa5d434eb5b3152fa21db58781",
+      "hashRoute": "#/projects/3d44b5210bd34d6b82bb115001b8dc86",
       "viewport": {
         "width": 1920,
         "height": 1080
       },
-      "url": "http://127.0.0.1:57518/workbench#/projects/7739ebfa5d434eb5b3152fa21db58781",
-      "bytes": 241203,
-      "bufferBytes": 241203,
-      "sha256": "ac5e48c96a70954a2413a3e81de997a039b278422a42936b8661377a9942e685",
-      "capturedAt": "2026-10-05T15:03:30.727Z"
+      "url": "http://127.0.0.1:55663/workbench#/projects/3d44b5210bd34d6b82bb115001b8dc86",
+      "bytes": 245769,
+      "bufferBytes": 245769,
+      "sha256": "1c7166663586e3fce9e5e8487c579391f034a6390e7fd289be25a3a2ef5f93c3",
+      "rendered": {
+        "kpis": [
+          {
+            "value": "1",
+            "label": "任务",
+            "note": "读回 /tasks 台账"
+          },
+          {
+            "value": "1",
+            "label": "简报版本",
+            "note": "读回 design-layer"
+          },
+          {
+            "value": "1",
+            "label": "方向版本",
+            "note": "读回 design-layer"
+          },
+          {
+            "value": "1",
+            "label": "活动绑定",
+            "note": "anomaly-monitor-dark · 绑定 direction-8279ddded6eb44b3936a85231288dd2f"
+          }
+        ],
+        "headings": [
+          "Closeout 1791261745788",
+          "任务台账（1）",
+          "设计层契约",
+          "交付包（0）",
+          "简报（Brief）· 1 个版本",
+          "方向（Direction）· 1 个候选",
+          "设计系统（DesignSystem）· 目录 4 项 · 绑定 1 次",
+          "参考素材（1）",
+          "Inspector"
+        ],
+        "unreadBack": false
+      },
+      "capturedAt": "2026-10-06T04:42:43.039Z"
     },
     {
       "file": "27-creative-tools@1920.png",
@@ -432,11 +993,18 @@
         "width": 1920,
         "height": 1080
       },
-      "url": "http://127.0.0.1:57518/workbench#/tools",
-      "bytes": 107968,
-      "bufferBytes": 107968,
-      "sha256": "aa88141a8e7146aa5df36bb4e4c877973e1900dd262e48a905a9cc721a414f49",
-      "capturedAt": "2026-10-05T15:03:31.238Z"
+      "url": "http://127.0.0.1:55663/workbench#/tools",
+      "bytes": 109022,
+      "bufferBytes": 109022,
+      "sha256": "467b58406981439c4c6ce968553284727057f78eb9c5d88f73b065a28fc118d3",
+      "rendered": {
+        "kpis": [],
+        "headings": [
+          "创作工具"
+        ],
+        "unreadBack": false
+      },
+      "capturedAt": "2026-10-06T04:42:43.522Z"
     },
     {
       "file": "28-deliverables@1920.png",
@@ -446,11 +1014,18 @@
         "width": 1920,
         "height": 1080
       },
-      "url": "http://127.0.0.1:57518/workbench#/deliverables",
-      "bytes": 108541,
-      "bufferBytes": 108541,
-      "sha256": "dd1d7783948226d3b19e7dc9211966889554ce0283610eb8d85eb7d78ac694e9",
-      "capturedAt": "2026-10-05T15:03:31.750Z"
+      "url": "http://127.0.0.1:55663/workbench#/deliverables",
+      "bytes": 109631,
+      "bufferBytes": 109631,
+      "sha256": "ea40ec19280ead8d4dadeb5146595e52e0e8b1ab7edbab182324bb0ebcdc6dd2",
+      "rendered": {
+        "kpis": [],
+        "headings": [
+          "交付中心"
+        ],
+        "unreadBack": false
+      },
+      "capturedAt": "2026-10-06T04:42:43.984Z"
     },
     {
       "file": "29-evidence@1920.png",
@@ -460,11 +1035,18 @@
         "width": 1920,
         "height": 1080
       },
-      "url": "http://127.0.0.1:57518/workbench#/evidence",
-      "bytes": 110101,
-      "bufferBytes": 110101,
-      "sha256": "6ffd2b8b39dadd706dd02b80736d68a77657f8a5452007ec53faaf0b356ef04e",
-      "capturedAt": "2026-10-05T15:03:32.257Z"
+      "url": "http://127.0.0.1:55663/workbench#/evidence",
+      "bytes": 111070,
+      "bufferBytes": 111070,
+      "sha256": "b562198581d84b0bdcbb364856a6ce24ce972fb12bcdf2951132b55a0a517755",
+      "rendered": {
+        "kpis": [],
+        "headings": [
+          "证据系统"
+        ],
+        "unreadBack": false
+      },
+      "capturedAt": "2026-10-06T04:42:44.454Z"
     },
     {
       "file": "30-preflight@1920.png",
@@ -474,11 +1056,39 @@
         "width": 1920,
         "height": 1080
       },
-      "url": "http://127.0.0.1:57518/workbench#/preflight",
-      "bytes": 145350,
-      "bufferBytes": 145350,
-      "sha256": "ab164128675c55d8fa1247c334fb4f14b8c66a3becbdb74e638e1d6f503043e3",
-      "capturedAt": "2026-10-05T15:03:32.779Z"
+      "url": "http://127.0.0.1:55663/workbench#/preflight",
+      "bytes": 144061,
+      "bufferBytes": 144061,
+      "sha256": "e99bc533070d5e80e6debdf263c5aa4ae7e488bff0bc77d7030ce5cd860d8e7a",
+      "rendered": {
+        "kpis": [
+          {
+            "value": "—",
+            "label": "登记资源",
+            "note": "运行预检后读回"
+          },
+          {
+            "value": "—",
+            "label": "阻塞资源",
+            "note": "运行预检后读回"
+          },
+          {
+            "value": "—",
+            "label": "判定",
+            "note": "READY / BLOCKED"
+          },
+          {
+            "value": "—",
+            "label": "机器范围",
+            "note": "运行预检后读回"
+          }
+        ],
+        "headings": [
+          "预检 / QA"
+        ],
+        "unreadBack": false
+      },
+      "capturedAt": "2026-10-06T04:42:44.922Z"
     },
     {
       "file": "31-settings@1920.png",
@@ -488,11 +1098,21 @@
         "width": 1920,
         "height": 1080
       },
-      "url": "http://127.0.0.1:57518/workbench#/settings",
-      "bytes": 235090,
-      "bufferBytes": 235090,
-      "sha256": "3b0ffcbaf738fb0e8981d53e95d6921192da0d4ac578eb67055ba04d65d56afc",
-      "capturedAt": "2026-10-05T15:03:33.326Z"
+      "url": "http://127.0.0.1:55663/workbench#/settings",
+      "bytes": 245651,
+      "bufferBytes": 245651,
+      "sha256": "9f6cab15459b2179718935f2a560bd765f04f399bbfd96687148391fc35f78e9",
+      "rendered": {
+        "kpis": [],
+        "headings": [
+          "系统设置",
+          "环境状态",
+          "项目根（服务声明可写，未探测）",
+          "外置输入（只读 · DECLARED_NOT_PROBED）"
+        ],
+        "unreadBack": false
+      },
+      "capturedAt": "2026-10-06T04:42:45.429Z"
     },
     {
       "file": "32-dashboard@2560.png",
@@ -502,11 +1122,47 @@
         "width": 2560,
         "height": 1440
       },
-      "url": "http://127.0.0.1:57518/workbench#/dashboard",
-      "bytes": 283182,
-      "bufferBytes": 283182,
-      "sha256": "bf97a7a94e75ce1ff44e2fe72b76acfcbe2f5975a93bf744a6ba918615aa3754",
-      "capturedAt": "2026-10-05T15:03:34.691Z"
+      "url": "http://127.0.0.1:55663/workbench#/dashboard",
+      "bytes": 260261,
+      "bufferBytes": 260261,
+      "sha256": "2dedf6d9417a47c8e48944129430b3a856ffb264c35941ba671097f29095c1af",
+      "rendered": {
+        "kpis": [
+          {
+            "value": "1",
+            "label": "项目",
+            "note": "来自 /api/projects 真实读回，非统计猜测"
+          },
+          {
+            "value": "4",
+            "label": "设计系统",
+            "note": "资源登记的设计系统总数 · /api/design-systems 读回"
+          },
+          {
+            "value": "OK",
+            "label": "服务状态",
+            "note": "版本 0.1.0-alpha.0 · 作用域 project-metadata"
+          },
+          {
+            "value": "0.1.0-alpha.0",
+            "label": "服务版本",
+            "note": "/api/health 真实读回"
+          }
+        ],
+        "headings": [
+          "仪表盘",
+          "最近项目",
+          "设计质量趋势 · 未读回",
+          "Research",
+          "Brand",
+          "Delivery",
+          "继续项目",
+          "待审（需人工处理）（0）",
+          "失败（0）"
+        ],
+        "unreadBack": true
+      },
+      "capturedAt": "2026-10-06T04:42:46.655Z"
     },
     {
       "file": "33-projects@2560.png",
@@ -516,25 +1172,85 @@
         "width": 2560,
         "height": 1440
       },
-      "url": "http://127.0.0.1:57518/workbench#/projects",
-      "bytes": 170084,
-      "bufferBytes": 170084,
-      "sha256": "0fd2ad80189bd45a8ee434a24c9995e5d89fb8041d59ef76bd1e8fca0c3d5999",
-      "capturedAt": "2026-10-05T15:03:35.259Z"
+      "url": "http://127.0.0.1:55663/workbench#/projects",
+      "bytes": 170427,
+      "bufferBytes": 170427,
+      "sha256": "9e1ae542a61ed5c4e4227889b2f64721eb76c4eea8de04c34fdd9965d57e2892",
+      "rendered": {
+        "kpis": [
+          {
+            "value": "1",
+            "label": "项目",
+            "note": "来自 /api/projects 真实读回"
+          },
+          {
+            "value": "—",
+            "label": "进行中",
+            "note": "状态需在工作台查看"
+          },
+          {
+            "value": "—",
+            "label": "已完成",
+            "note": "状态需在工作台查看"
+          }
+        ],
+        "headings": [
+          "项目",
+          "项目（1）"
+        ],
+        "unreadBack": true
+      },
+      "capturedAt": "2026-10-06T04:42:47.142Z"
     },
     {
       "file": "34-project-detail@2560.png",
       "page": "project-detail",
-      "hashRoute": "#/projects/7739ebfa5d434eb5b3152fa21db58781",
+      "hashRoute": "#/projects/3d44b5210bd34d6b82bb115001b8dc86",
       "viewport": {
         "width": 2560,
         "height": 1440
       },
-      "url": "http://127.0.0.1:57518/workbench#/projects/7739ebfa5d434eb5b3152fa21db58781",
-      "bytes": 304612,
-      "bufferBytes": 304612,
-      "sha256": "fe012616837160190c7dbeb11726085c178b8427b47db033d4ea75ee4588df39",
-      "capturedAt": "2026-10-05T15:03:35.891Z"
+      "url": "http://127.0.0.1:55663/workbench#/projects/3d44b5210bd34d6b82bb115001b8dc86",
+      "bytes": 308071,
+      "bufferBytes": 308071,
+      "sha256": "8e3c9dfcaa56605758684360c5fece9989f19b378830acd604825b7efa8fd287",
+      "rendered": {
+        "kpis": [
+          {
+            "value": "1",
+            "label": "任务",
+            "note": "读回 /tasks 台账"
+          },
+          {
+            "value": "1",
+            "label": "简报版本",
+            "note": "读回 design-layer"
+          },
+          {
+            "value": "1",
+            "label": "方向版本",
+            "note": "读回 design-layer"
+          },
+          {
+            "value": "1",
+            "label": "活动绑定",
+            "note": "anomaly-monitor-dark · 绑定 direction-8279ddded6eb44b3936a85231288dd2f"
+          }
+        ],
+        "headings": [
+          "Closeout 1791261745788",
+          "任务台账（1）",
+          "设计层契约",
+          "交付包（0）",
+          "简报（Brief）· 1 个版本",
+          "方向（Direction）· 1 个候选",
+          "设计系统（DesignSystem）· 目录 4 项 · 绑定 1 次",
+          "参考素材（1）",
+          "Inspector"
+        ],
+        "unreadBack": false
+      },
+      "capturedAt": "2026-10-06T04:42:47.710Z"
     },
     {
       "file": "35-creative-tools@2560.png",
@@ -544,11 +1260,18 @@
         "width": 2560,
         "height": 1440
       },
-      "url": "http://127.0.0.1:57518/workbench#/tools",
-      "bytes": 127266,
-      "bufferBytes": 127266,
-      "sha256": "ce00e4fec4e235e15a3ce9724aaae3c5d3e0fff489d82036b2d35a4040b20015",
-      "capturedAt": "2026-10-05T15:03:36.426Z"
+      "url": "http://127.0.0.1:55663/workbench#/tools",
+      "bytes": 127936,
+      "bufferBytes": 127936,
+      "sha256": "1484a87b0f1933a89c4d367e50d3469e0a7e3214d846fb46ae1c6f77e16e9f44",
+      "rendered": {
+        "kpis": [],
+        "headings": [
+          "创作工具"
+        ],
+        "unreadBack": false
+      },
+      "capturedAt": "2026-10-06T04:42:48.211Z"
     },
     {
       "file": "36-deliverables@2560.png",
@@ -558,11 +1281,18 @@
         "width": 2560,
         "height": 1440
       },
-      "url": "http://127.0.0.1:57518/workbench#/deliverables",
-      "bytes": 128154,
-      "bufferBytes": 128154,
-      "sha256": "4dd3c7346e4c02e9eb06add4b2659179adfec0bd221f7a653216119b07335f25",
-      "capturedAt": "2026-10-05T15:03:36.913Z"
+      "url": "http://127.0.0.1:55663/workbench#/deliverables",
+      "bytes": 128722,
+      "bufferBytes": 128722,
+      "sha256": "4040e6344aa124acd092e3aab180c5a0523584e21280a01226c77a487060b510",
+      "rendered": {
+        "kpis": [],
+        "headings": [
+          "交付中心"
+        ],
+        "unreadBack": false
+      },
+      "capturedAt": "2026-10-06T04:42:48.728Z"
     },
     {
       "file": "37-evidence@2560.png",
@@ -572,11 +1302,18 @@
         "width": 2560,
         "height": 1440
       },
-      "url": "http://127.0.0.1:57518/workbench#/evidence",
-      "bytes": 129555,
-      "bufferBytes": 129555,
-      "sha256": "f994c1925efb0dfc0fa8f94b01c1a3139e6e0f70f89842e8d09bfba995692681",
-      "capturedAt": "2026-10-05T15:03:37.409Z"
+      "url": "http://127.0.0.1:55663/workbench#/evidence",
+      "bytes": 130236,
+      "bufferBytes": 130236,
+      "sha256": "e245898c3f0b1e375bff7725e3541943cdf6640676036068767f28e28d5b2e4e",
+      "rendered": {
+        "kpis": [],
+        "headings": [
+          "证据系统"
+        ],
+        "unreadBack": false
+      },
+      "capturedAt": "2026-10-06T04:42:49.243Z"
     },
     {
       "file": "38-preflight@2560.png",
@@ -586,11 +1323,39 @@
         "width": 2560,
         "height": 1440
       },
-      "url": "http://127.0.0.1:57518/workbench#/preflight",
-      "bytes": 164588,
-      "bufferBytes": 164588,
-      "sha256": "1390db8ae2c46f0d2c0fc07b5704edffefdf524395e524015ff121130777a45d",
-      "capturedAt": "2026-10-05T15:03:37.896Z"
+      "url": "http://127.0.0.1:55663/workbench#/preflight",
+      "bytes": 163068,
+      "bufferBytes": 163068,
+      "sha256": "97ddbc9d70e54cc3f107ce59d975fb8c106ccb51ddb76e57c7bcf36062dab345",
+      "rendered": {
+        "kpis": [
+          {
+            "value": "—",
+            "label": "登记资源",
+            "note": "运行预检后读回"
+          },
+          {
+            "value": "—",
+            "label": "阻塞资源",
+            "note": "运行预检后读回"
+          },
+          {
+            "value": "—",
+            "label": "判定",
+            "note": "READY / BLOCKED"
+          },
+          {
+            "value": "—",
+            "label": "机器范围",
+            "note": "运行预检后读回"
+          }
+        ],
+        "headings": [
+          "预检 / QA"
+        ],
+        "unreadBack": false
+      },
+      "capturedAt": "2026-10-06T04:42:49.742Z"
     },
     {
       "file": "39-settings@2560.png",
@@ -600,11 +1365,21 @@
         "width": 2560,
         "height": 1440
       },
-      "url": "http://127.0.0.1:57518/workbench#/settings",
-      "bytes": 250321,
-      "bufferBytes": 250321,
-      "sha256": "e23adf09da4fb7f8e2352fda535224664857927c1a6e8c42ebf05bdf790456f8",
-      "capturedAt": "2026-10-05T15:03:38.420Z"
+      "url": "http://127.0.0.1:55663/workbench#/settings",
+      "bytes": 261146,
+      "bufferBytes": 261146,
+      "sha256": "607d4353a9225a173295347b015b614c6af29b63b069d1e3c87bc69499171451",
+      "rendered": {
+        "kpis": [],
+        "headings": [
+          "系统设置",
+          "环境状态",
+          "项目根（服务声明可写，未探测）",
+          "外置输入（只读 · DECLARED_NOT_PROBED）"
+        ],
+        "unreadBack": false
+      },
+      "capturedAt": "2026-10-06T04:42:50.236Z"
     }
   ]
 }
