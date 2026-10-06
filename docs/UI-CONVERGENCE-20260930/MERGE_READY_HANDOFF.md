@@ -33,31 +33,43 @@
   `0.1.0-alpha.0` → 服务版本卡显示 `0.1`（假值）。修复 commit `8036439`。
 - 仍未做（不假称）：宿主 E3、人工视觉验收 E4、tag/release E5。
 
-## 合并前还需（CI 门）
-1. `workbench-gate`：pnpm frozen install → tsc → vite build → unit smoke →
-   packaging verifier → **No-drift（git diff --exit-code build/）**。
-   本分支已提交重建后的 build/main.js，drift 门应绿。
-2. `workbench-browser-e2e`：no-skip 浏览器片（exact-SHA controlled-runtime）；
-   冻结断言 `.app-nav-item===12` 与 `#design-*` 选择器未触碰。
-3. Python gate（unittest 全量 + V3 verifiers）。
-4. DeepSeek authority gate：本分支**未改** `task-ledger-r3.json` 与
-   `DEEPSEEK-AUTHORITY-CHAIN.json` → 无投影漂移；若 CI 仍报 DRIFT，
-   按 `scripts/deepseek_authority_chain.py` 重新生成（LEDGER 已标
-   mutable_state，结构性修复在 508d54b）。
+## 合并前 CI 门（已在 `84ffc19` 实测，不再是预期）
+1. `workbench-gate`（pnpm frozen install → tsc → vite build → unit smoke →
+   packaging verifier → No-drift `git diff --exit-code build/`）= **SUCCESS**。
+   本分支提交的重建 bundle 与 CI 重建逐字节一致。
+2. `workbench-browser-e2e`（no-skip，exact-SHA controlled-runtime）= **SUCCESS**；
+   冻结断言 `.app-nav-item===12` 与 `#design-*` 选择器未触碰。本机另以
+   `E2E_REQUIRED=1` 跑过一遍：`ran=2 skipped=0 failed=0`、`consoleErrors=0`。
+3. `Python gate`（unittest 全量 + V3 verifiers）= **SUCCESS**。
+   注：`694ad2d` 上曾红过一次，根因是截图 sidecar 缺 `sourceId` 例外记录，
+   未过 `verify_asset_governance`；`84ffc19` 修复后转绿。
+4. `DeepSeek authority gate chain` = **SUCCESS**（本分支未改 ledger 与链产物，
+   故无投影漂移）。
+5. `License & secret hygiene` / `Generated-artifact clean-tree` /
+   `MiniGame node` / `Top-level Authority` / `Open Design host adapter` = **SUCCESS**。
 
 ## 合并后（owner 门，不在本 PR 内）
 - E3/E4 宿主实操验收（owner gate）
 - tag / release（用户明确不操作自动化任务，本分支不 tag）
 - ~~Playwright 截图 4 分辨率补拍~~ → 已于 2026-10-05 真实完成（见上 Evidence Truth Repair）
 
-## 当前合并判定（2026-10-05，LIVE 读回）
-- PR #213 状态：`OPEN` / **`DRAFT`** / `MERGEABLE` / `mergeStateStatus=CLEAN`，
-  head `0fbb674`（本地收口后前进到 `fbe94ac`，需 push 才反映到 PR）。
-- 判定：`UI_MERGE_READY` 的**本地条件**已满足（全部门绿 + Evidence Truth 已修 +
-  文档内部一致 + 无第二 ledger + 无 Authority drift）；
-  但 PR 仍是 DRAFT，且 CI 需在 push 后对 exact SHA 重新判绿。
-- 停在 `READY_FOR_OWNER_MERGE`：un-draft、push、merge、branch 删除均需 owner 授权，
-  本会话不代为执行。
+## 当前合并判定（2026-10-06 更新，LIVE 读回）
+- PR #213 状态：`OPEN` / **`DRAFT`** / `MERGEABLE` / `mergeStateStatus=CLEAN`。
+- 远端 head 已推进：`0fbb674` → … → `84ffc1954b71c34ab638d85ea0cbc41e5abe33a3`
+  （已 push；`fbe94ac` 是截图证据基线，`84ffc19` 修的是 sidecar 权利记录格式）。
+- CI 对 **exact SHA `84ffc19`** 判读：`Canonical Verify` 全部 job **SUCCESS**
+  （18 pass / 2 skipped，skip 的是仅 main 推送才跑的 artifact proof）。
+  对照证据：`694ad2d` 曾 **failure**（`Python gate`，根因 = 截图 sidecar 未过
+  `verify_asset_governance`），由 `84ffc19` 修复后转绿。
+- 判定：`UI_MERGE_READY` 成立（本地门全绿 + Evidence Truth 已修 + 文档内部一致 +
+  无第二 ledger + 无 Authority drift + **CI exact-SHA 已绿**）。
+- 仍停在 `READY_FOR_OWNER_MERGE`：un-draft、merge、branch 删除需 owner 授权。
+- **合并顺序提醒**：账本合同修复与投影重生成在另一条分支
+  `qoder/designlab-m1-closeout-20261005`（PR #214）上；`main` 目前的账本仍是
+  违反自身 R5 合同的状态。两条都进 `main` 之后，#214 里那条 PASS evidence 因
+  `apps/workbench/shell.ts` / `build/main.js` 字节变化会自然衰减为
+  `SOURCE_CHANGED_OR_MISSING`，需在新 SHA 上重跑一次 61 用例再补记录
+  （这是投影器设计的证据衰减，不是回归）。
 
 ## 回滚
 - 单 PR squash 回滚：revert 该 merge commit；build/main.js 随 shell.ts/style.css

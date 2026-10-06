@@ -81,7 +81,7 @@
 | design-lab/scripts/verify_workbench_packaging.py（5 checks） | PASS（2026-10-05） |
 | git diff --exit-code -- apps/workbench/build | CLEAN（2026-10-05 重建后无 drift） |
 | 视口截图（真实服务 + 真实 Chromium，40 张） | PASS，零 pageerror / console error |
-| 全量 unittest discover（1762 tests） | 2026-10-05 本地复跑中，结果见本分支后续提交 |
+| 全量 unittest（1762 tests） | CI `Python gate` 对 exact SHA `84ffc19` = **SUCCESS**；本机在 `694ad2d` 跑到 `Ran 1762 tests / failures=1`，唯一失败项 `test_aggregate_verify_runs` → `verify_asset_governance`，即 sidecar 权利记录问题，已由 `84ffc19` 修复并单独复验为 `ASSET_GOVERNANCE=OK` |
 
 ## 明确不做（边界）
 
@@ -95,7 +95,7 @@
 - 宿主实操任务（PS/AI/Figma/Penpot/ComfyUI/Blender 真实驱动）不在本分支执行。
 
 ## 待办（合并前）
-- 全量 unittest discover 1762 tests（2026-10-05 本地复跑中 + CI 复核）
+- ~~全量 unittest discover 1762 tests~~ → **CI 已判绿**（`Python gate` @ `84ffc19` = SUCCESS）
 - ~~Playwright 截图（1280/1920/2560/窄屏）~~ → **已完成**：
   `scripts/capture_workbench_screenshots.py` 真实执行 5 视口 × 8 页面 = 40 张，
   逐张 hash 见 `screenshot/screenshot-manifest.json` 与 `SCREENSHOTS.md`。
