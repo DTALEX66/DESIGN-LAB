@@ -22,7 +22,7 @@
 
 **Standalone-first（ADR-001）**：DESIGN-LAB 可独立完成完整设计生产闭环；启动、测试、恢复、
 Golden Workflow **不探测也不要求** WORK-LAB 或 ArcheAxis（二者默认关闭）。Open Design 是可选的
-宿主 / 工具 Adapter，不是运行依赖，也不是默认宿主。设计师在已接入的专业宿主（Photoshop、
+宿主 / 工具 Adapter，不是运行依赖，也不享有预设入口的地位。设计师在已接入的专业宿主（Photoshop、
 Illustrator、Figma、Blender 等）里做真正的原生编辑；工作台是**用户可见的设计控制面**，不是第二画布。
 
 ## 能力覆盖矩阵（声称口径，不是进度表）
