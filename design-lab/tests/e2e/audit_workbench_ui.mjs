@@ -117,13 +117,27 @@ const PROBE = () => {
     .filter((el) => rendered(el) && !el.hasAttribute('alt')).length;
   const overflow = document.documentElement.scrollWidth
     - Math.min(window.innerWidth, document.documentElement.clientWidth);
-  const targets = Array.from(document.querySelectorAll(
+  // The count alone was not actionable: the audit reported "1 target under 24px"
+  // on every route at 390 for a whole run without naming the element, so the
+  // violation could be seen but not fixed. Identity and measured box travel together now.
+  const smallTargets = Array.from(document.querySelectorAll(
     'button,a[href],input,select,[role="button"]'))
-    .map((el) => el.getBoundingClientRect())
-    .filter((r) => r.width > 0 && r.height > 0 && (r.height < 24 || r.width < 24))
-    .length;
+    .filter((el) => {
+      const r = el.getBoundingClientRect();
+      return r.width > 0 && r.height > 0 && (r.height < 24 || r.width < 24);
+    })
+    .map((el) => {
+      const r = el.getBoundingClientRect();
+      const cls = typeof el.className === 'string' && el.className.trim()
+        ? '.' + el.className.trim().split(/\s+/).join('.') : '';
+      const text = (el.textContent || el.getAttribute('aria-label') || '').trim().slice(0, 18);
+      return `${el.tagName.toLowerCase()}${el.id ? '#' + el.id : ''}${cls} `
+        + `${Math.round(r.width)}x${Math.round(r.height)} "${text}"`;
+    });
+  const targets = smallTargets.length;
   return {
     contrast, clickableNotReachable, unnamed, images, overflow, targets,
+    targetDetail: smallTargets,
     gradientBacked,
     focusables: focusables.length,
     paint: Math.round(performance.getEntriesByType('paint')
@@ -220,7 +234,8 @@ for (const width of widths) {
     if (probe.images) add('alt', `${width} ${route} ${probe.images} img without alt`);
     if (probe.overflow > 0) add('overflow', `${width} ${route} +${probe.overflow}px`);
     if (width <= 430 && probe.targets) {
-      add('touch-target', `${width} ${route} ${probe.targets} targets under 24px`);
+      add('touch-target', `${width} ${route} ${probe.targets} targets under 24px`
+        + `: ${probe.targetDetail.slice(0, 3).join(' | ')}`);
     }
   }
 
