@@ -1,7 +1,7 @@
 {
   "schemaVersion": "design-lab/repo-classification/v1",
-  "generatedAt": "2026-10-06T08:35:14Z",
-  "observedCommit": "0c0922335403e31d2eb5e9561e9d63c3032018d8",
+  "generatedAt": "2026-10-06T08:37:09Z",
+  "observedCommit": "8167e623b7c31d63567ca189b4c33215059b1acb",
   "totals": {
     "trackedFiles": 2921,
     "workingTreeMiB": 44.84,
@@ -22,7 +22,7 @@
     "evidence": {
       "files": 1147,
       "bundles": 5,
-      "mib": 26.34
+      "mib": 26.35
     },
     "generated": {
       "files": 84,
@@ -87,7 +87,7 @@
       "category": "evidence",
       "note": "UI 收口证据与记录",
       "files": 93,
-      "bytes": 5285307,
+      "bytes": 5290981,
       "cited_by_authority": 0,
       "lastTouch": "2026-10-06"
     },
@@ -177,7 +177,7 @@
       "category": "generated",
       "note": "提交的构建产物（Build Output Truth）",
       "files": 13,
-      "bytes": 467495,
+      "bytes": 468060,
       "cited_by_authority": 0,
       "lastTouch": "2026-10-06"
     },
