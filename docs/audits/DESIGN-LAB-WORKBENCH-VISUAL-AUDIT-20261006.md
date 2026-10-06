@@ -424,3 +424,53 @@ INSPECTOR 空环。
 12 条路由视图中，11 条进入截图清单并被渲染读取，`工作台` 外壳由浏览器 E2E 覆盖；
 `tsc --noEmit` rc 0、vite 构建 167.39 kB、`tests/unit.mjs` 与 `tests/appshell.mjs` 全通过，
 且产物里同时核对到本轮新串与 §十一 的预检新串（防止补丁跨分支搬错 bundle）。
+
+---
+
+## 十三、一个跑了但没人看的量化审计：手机唯一导航控件只有 23px 高
+
+`scripts/audit_workbench_ui.py` 早就存在，量的是**溢出、对比度、键盘可达、触摸目标、
+可访问名、降级态措辞、控制台噪声**，跨 5 个视口共 65 个 scope。本轮第一次跑它：
+
+```
+AUDIT_SCOPES 65 violations=12 ok=False      # 修复前
+  touch-target: 390 #/dashboard 1 targets under 24px
+  touch-target: 390 #/projects 1 targets under 24px
+  … 12 条路由每条 1 个
+```
+
+**全仓检索确认：没有任何 workflow 跑它**（`.github/workflows/` 里 `audit_workbench_ui` 零命中）。
+所以这不是"缺陷刚出现"，而是**一个已存在、能发现、但没人执行的审计**——它守的东西一直是裸的。
+
+### 报出来的数字当时还不可行动
+
+违规串只有 `1 targets under 24px`，没有元素身份，12 条路由各报一次也看不出是同一个东西。
+于是先改探针：`audit_workbench_ui.mjs` 现在连同**测量盒**一起报出身份：
+
+```
+touch-target: 390 #/brand-systems 1 targets under 24px:
+  button#navToggle.nav-toggle.ghost-btn 62x23 "导航"
+```
+
+### 真凶是一次"好心的修复"留下的过校正
+
+`#navToggle` 是 840px 以下**唯一**的导航入口（侧栏此时是 off-canvas 抽屉）。
+`style.css:1033` 写着 `.nav-toggle{…padding:0 14px}`——那条注释说明它当初是为了解决
+"作为全宽搜索框的 flex 兄弟被挤到只剩两个字、导航竖排换行"。
+但真正解决挤压的是同一行里的 `flex:0 0 auto` 与 `white-space:nowrap`；
+`padding:0 14px` 顺带把 `.ghost-btn` 的 `padding:10px 14px` 竖向清零，
+于是控件从约 41px 高被压成 **23px**，低于审计用的 24px 触摸目标下限。
+修法就是删掉这个多余的 padding 覆盖，两个真正的守卫保留。
+
+### 修完与固化
+
+```
+AUDIT_SCOPES 65 violations=0 ok=True        # 五视口全量，修复后
+```
+
+并把该审计接进 CI：`design-lab/tests/test_workbench_ui_audit_gate.py`
+（经 `run_python_tests.py` 发现，与 §八 D-5 同一套"不改被哈希钉死的 workflow"的路径）。
+**双向证伪**：固定后的树上 `OK`（3.5s，两视口）；把那一行 padding 还原后同一测试变红，
+且失败信息直接点名 `button#navToggle… 62x23`。测试还拒绝两种假绿：
+stdout 出现 `AUDIT_BLOCKED` 判失败，`AUDIT_SCOPES` 缺失或为 0 也判失败——
+空违规列表和"什么都没测"在报告里长得一样。

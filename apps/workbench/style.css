@@ -1029,8 +1029,12 @@ html,body{margin:0}
 /* The drawer trigger only exists on narrow screens; the sidebar is a permanent
    column above 840px, so a second way to open it would be noise. It must not
    shrink: as a flex sibling of the full-width search field it got squeezed to
-   two characters wide and 导航 wrapped onto two vertical lines. */
-.nav-toggle{display:none;flex:0 0 auto;white-space:nowrap;padding:0 14px}
+   two characters wide and 导航 wrapped onto two vertical lines.
+   `flex:0 0 auto` and `white-space:nowrap` are what fix that; the earlier
+   `padding:0 14px` over-corrected and cancelled .ghost-btn's 10px vertical
+   padding, leaving the only mobile navigation control at 62x23 -- under the
+   24px touch-target floor. The padding override is gone, the two real guards stay. */
+.nav-toggle{display:none;flex:0 0 auto;white-space:nowrap}
 @media (max-width:840px){
   .app{grid-template-columns:1fr}
   /* .sidebar used to be `display:none` here, which removed all twelve nav targets
