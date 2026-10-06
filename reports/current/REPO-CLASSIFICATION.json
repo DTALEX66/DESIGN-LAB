@@ -1,7 +1,7 @@
 {
   "schemaVersion": "design-lab/repo-classification/v1",
-  "generatedAt": "2026-10-06T08:23:17Z",
-  "observedCommit": "bbdb172037ac515472ab4f15aca1985866c1f5ff",
+  "generatedAt": "2026-10-06T08:39:40Z",
+  "observedCommit": "e37ac064f2a77e5e0c74a96b38382e17d7b3a36c",
   "totals": {
     "trackedFiles": 2923,
     "workingTreeMiB": 44.86,
@@ -168,7 +168,7 @@
       "category": "source",
       "note": "根级门与工具",
       "files": 50,
-      "bytes": 505618,
+      "bytes": 506597,
       "cited_by_authority": 4,
       "lastTouch": "2026-10-06"
     },

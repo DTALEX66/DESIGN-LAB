@@ -69,10 +69,29 @@ closed），已修。
 
 ## 4. 尚未执行的部分（不粉饰）
 
-- **≥120 canonical candidates 的全球发现未做**：需要跨 ≥10 个来源的实时公开检索
-  （GitHub/npm/PyPI、skills.sh 等 Skill 生态、MCP 目录、Figma/Penpot/shadcn/21st.dev 等设计生态）。
-  在没有真实检索结果前，我不会往注册表里填条目——那正是任务书 §15/§58 禁止的伪造。
-  因此当前投影只有仓内已有事实的 7 条，且全部 `benchmarkStatus: none`、`evidenceLevel: E0`。
+### 4.1 一次真实发现尝试，以及为什么它没有产出条目（2026-10-06）
+
+本会话执行了两次公开检索（"Agent Skills repository design taste UI quality 2026"、
+"anthropics skills github repository frontend-design webapp-testing license"），
+结果**全部是镜像/聚合站**：同一个 `anthropics/skills` 被同一站点以 4 个语言路径重复托管
+（`tool.lu/{es_ES,vi_VN,ru_RU,ja_JP}/skill/g19RQAS`），其余为 CSDN/segmentfault/头条等
+二手转述，标题里出现的"8.2 万 Star"没有任何可回溯的 canonical 归属。
+
+按任务书 §14/§35/§58 的口径，这类结果**只能算 Discovery Source，不得当作 upstream**，
+因此**一条候选都没有登记**——把它们写成候选，正是任务书要防的 star laundering 与镜像冒充上游。
+这次尝试本身是一个可用发现，已记为下一次发现任务的输入：
+
+- 检索面被镜像农场污染；**必须**能直接解析到 `github.com/<owner>/<repo>` 才能登记，
+  且 license 要来自 canonical 仓库自身的 LICENSE 文件，不是转述；
+- 需要一个带 API 凭证的检索通道（GitHub API / npm registry / PyPI JSON）来拿
+  `stars / license / updated_at / default_branch` 等**带 observedAt 的原始事实**；
+  纯自然语言搜索返回的是二手叙事，不满足 §15 的 "指标必须有来源与观测时间"；
+- 在拿到该通道前，`CANDIDATE-TAXONOMY.json` 保持只有 7 条仓内既有事实，
+  `searchSaturationReason` **不予声明**（未饱和，也未开始）。
+
+### 4.2 其余未执行项
+
+- **≥120 canonical candidates 的全球发现未做**：见 §4.1。未做，也未用假行填充。
 - **Adoption 指标全部为 null**：`observedAt`/来源缺失时不得填数（§15）。
 - **本机候选源码未核验**：`.project-local/cache/vendor/<id>` 为 ignored 缓存，本会话未逐仓
   读取其 LICENSE/SKILL.md，故未做 §18 的 prompt-injection/供应链审计。
