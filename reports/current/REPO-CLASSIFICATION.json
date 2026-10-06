@@ -1,10 +1,10 @@
 {
   "schemaVersion": "design-lab/repo-classification/v1",
-  "generatedAt": "2026-10-06T19:29:38Z",
-  "observedCommit": "6b98ecc314ac34fffab443a63ec640eb04a7ff43",
+  "generatedAt": "2026-10-06T18:25:30Z",
+  "observedCommit": "c15056f28b73965b87cf86c60b64d9351e031106",
   "totals": {
-    "trackedFiles": 2966,
-    "workingTreeMiB": 49.5,
+    "trackedFiles": 2962,
+    "workingTreeMiB": 49.45,
     "packMiB": 237.6,
     "note": "pack 含全部历史与 tag 归档；working tree 为当前检出字节。两者之差不是垃圾。"
   },
@@ -20,9 +20,9 @@
       "mib": 5.17
     },
     "evidence": {
-      "files": 1167,
+      "files": 1166,
       "bundles": 5,
-      "mib": 26.56
+      "mib": 26.55
     },
     "generated": {
       "files": 84,
@@ -40,9 +40,9 @@
       "mib": 0.23
     },
     "source": {
-      "files": 1330,
+      "files": 1327,
       "bundles": 7,
-      "mib": 8.98
+      "mib": 8.95
     }
   },
   "bundles": [
@@ -59,8 +59,8 @@
       "path": "docs/audits/",
       "category": "evidence",
       "note": "审计与验收证据包",
-      "files": 818,
-      "bytes": 7107840,
+      "files": 817,
+      "bytes": 7098592,
       "cited_by_authority": 0,
       "lastTouch": "2026-10-07"
     },
@@ -77,8 +77,8 @@
       "path": "design-lab/",
       "category": "source",
       "note": "设计核心其余模块",
-      "files": 842,
-      "bytes": 5630734,
+      "files": 839,
+      "bytes": 5598975,
       "cited_by_authority": 4,
       "lastTouch": "2026-10-07"
     },
@@ -114,7 +114,7 @@
       "category": "history",
       "note": "交接血统（非当前入口）",
       "files": 82,
-      "bytes": 2238699,
+      "bytes": 2237749,
       "cited_by_authority": 1,
       "lastTouch": "2026-10-07"
     },
@@ -141,7 +141,7 @@
       "category": "generated",
       "note": "当前状态投影（由生成器再生）",
       "files": 63,
-      "bytes": 1023421,
+      "bytes": 1022404,
       "cited_by_authority": 4,
       "lastTouch": "2026-10-07"
     },
@@ -186,7 +186,7 @@
       "category": "generated",
       "note": "提交的构建产物（Build Output Truth）",
       "files": 13,
-      "bytes": 481431,
+      "bytes": 480336,
       "cited_by_authority": 0,
       "lastTouch": "2026-10-07"
     },

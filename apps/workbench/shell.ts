@@ -258,7 +258,13 @@ function capabilityCard(c: CapabilityContract): HTMLElement {
 // ============================================================================
 /** Build the version ring for a direction: one node per version, current
  *  version marked. Pure string/number data in; SVG out. */
-function buildVersionRing(versions: Array<{ version: number; chosen: boolean; superseded_by: string | null }>): SVGSVGElement {
+function buildVersionRing(versions: Array<{ version: number; chosen: boolean; superseded_by: string | null }>): SVGSVGElement | null {
+  // The ring's whole meaning is sequence: chosen vs superseded vs still current.
+  // With one version there is no sequence, and the orbit plus a single dot at
+  // twelve o'clock read as a gauge stuck at zero -- a broken widget, not a
+  // result. The line below it already states "1 个方向版本 · 选定：…", so the
+  // honest rendering for n <= 1 is no ring at all.
+  if (versions.length <= 1) return null;
   const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
   svg.setAttribute('class', 'version-ring');
   svg.setAttribute('viewBox', '0 0 120 120');
@@ -926,7 +932,10 @@ export async function renderSettings(target: HTMLElement): Promise<void> {
     // label left and the status pill right, which reads as designed rather
     // than truncated.
     el('div', { class: 'panel' },
-      el('h3', {}, '环境状态'),
+      // The panel heading and its first row were both called 环境状态, so the
+      // page read the heading as a duplicate of the value under it. The panel is
+      // a readback of the service environment; the row inside it is the status.
+      el('h3', {}, '服务端环境读回'),
       el('div', { class: 'list' },
         ...rows.map((r) => valueRow(r.label, r.value, r.long,
           r.label === '代理配置' ? 'warn' : 'info')))),
@@ -1393,7 +1402,7 @@ function buildInspectorPanel(id: string, layer: DesignLayerReadback): HTMLElemen
           el('small', {}, layer.design_systems.map((s) => s.name).join(', '))))]
     : [];
   const body = el('div', { class: 'inspector-body' },
-    ring,
+    ...(ring ? [ring] : []),
     el('p', { class: 'view-hint' }, `${layer.directions.length} 个方向版本` +
       (chosen ? ` · 选定：${chosen.title} v${chosen.version}` : ' · 尚未选定方向')),
     el('div', { class: 'list' },
