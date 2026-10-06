@@ -199,7 +199,14 @@ def make_server(service, token, port=0):
                         return self.send_json(200, images.content(*match.groups()) if match[2] else
                                               {'assets': images.list(match[1])})
                     if self.path == '/api/health':
-                        return self.send_json(200, {'status': 'OK', 'version': __version__, 'scope': 'project-metadata'})
+                        # bundleSha256/bundleOrigin are not decoration: an installed
+                        # wheel copy of the UI wins over the checkout, so this is how
+                        # an operator (and the wheel-install gate) sees WHICH bytes
+                        # are actually being served.
+                        return self.send_json(200, {'status': 'OK', 'version': __version__,
+                                                    'scope': 'project-metadata',
+                                                    'bundleSha256': workbench.served_bundle_sha256(),
+                                                    'bundleOrigin': workbench.bundle_origin()})
                     if self.path == '/api/environment':
                         return self.send_json(200, service.paths.describe())
                     if urlsplit(self.path).path == '/api/task-preflight':
@@ -352,6 +359,15 @@ def make_server(service, token, port=0):
                 self.send_json(400, {'error': 'INVALID_REQUEST'})
             except (sqlite3.Error, AssetError, OSError):
                 self.send_json(503, {'error': 'PROJECT_STORE_UNAVAILABLE'})
+            except Exception:
+                # Terminal clause. Anything outside the named taxonomy (a
+                # RecursionError from deeply nested RIR JSON, for instance) used to
+                # escape dispatch, so socketserver printed a traceback to stderr and
+                # dropped the connection: the client saw a reset, the dashboard kept
+                # showing stale state, and no machine-readable error existed. The
+                # type name is deliberately NOT echoed -- it can carry module and
+                # path detail, and this surface is authenticated but still local.
+                self.send_json(500, {'error': 'INTERNAL'})
 
         do_GET = dispatch
         do_POST = dispatch
