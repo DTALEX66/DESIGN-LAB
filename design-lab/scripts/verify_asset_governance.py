@@ -115,6 +115,36 @@ def sidecar_findings(rel: str, binary: Path, sidecar: Path) -> list[str]:
     return errs
 
 
+def tracked_blob_sizes() -> dict[str, int]:
+    """Byte size of every tracked path, straight from the index and object store.
+
+    Deliberately NOT `Path.stat()`: a tracked path can point at bytes that are
+    absent in a given checkout (absorbed or gitignored locations), and a missing
+    file would then measure 0 bytes and silently pass every size budget.
+    """
+    sha_by_path: dict[str, str] = {}
+    for line in git(["ls-files", "-s"]).splitlines():
+        meta, _, path = line.partition("\t")
+        parts = meta.split()
+        if path and len(parts) >= 2:
+            sha_by_path[path] = parts[1]
+    shas = sorted(set(sha_by_path.values()))
+    sizes: dict[str, int] = {}
+    for i in range(0, len(shas), 2000):
+        chunk = shas[i:i + 2000]
+        probe = subprocess.run(["git", "cat-file", "--batch-check"], input="\n".join(chunk),
+                               capture_output=True, text=True, cwd=str(REPO),
+                               encoding="utf-8", errors="replace")
+        for line in probe.stdout.splitlines():
+            parts = line.split()
+            if len(parts) >= 3 and parts[1] == "blob" and parts[2].isdigit():
+                sizes[parts[0]] = int(parts[2])
+    missing = sorted(p for p, s in sha_by_path.items() if s not in sizes)
+    if missing:
+        raise RuntimeError(f"{len(missing)} tracked blobs unreadable, e.g. {missing[:3]}")
+    return {path: sizes[sha] for path, sha in sha_by_path.items()}
+
+
 def main() -> int:
     errors: list[str] = []
     warnings: list[str] = []
@@ -136,6 +166,43 @@ def main() -> int:
     # 2. per-file cap + 3. binary gate on tracked files
     tracked = git(["ls-files"]).splitlines()
     quarantine_bytes = 0
+
+    # Large-asset declarations. The pack has already grown past its warning line,
+    # and ~179 MiB of it is history that cannot be reclaimed without destroying
+    # archive-evidence tags. The only cheap lever left is refusing NEW unbound
+    # large binaries, so each >=256 KiB file must sit inside a budgeted,
+    # reason-carrying bundle in design-lab/config/large-assets.json.
+    #
+    # Sizes come from git's own index mode blob, not from the filesystem: a
+    # tracked path may be a pointer into a gitignored / absorbed location that has
+    # no bytes on disk in some checkouts, and a missing file must not silently
+    # read as a zero-byte pass.
+    try:
+        large = json.loads((REPO / 'design-lab' / 'config' / 'large-assets.json')
+                           .read_text(encoding='utf-8'))
+        assert large['schemaVersion'] == 'design-lab/large-assets/v1'
+        assert large['bundles']
+    except (OSError, KeyError, AssertionError, json.JSONDecodeError) as exc:
+        errors.append(f'large-assets declaration unreadable: {exc}')
+        large = {'declareAboveKiB': 256, 'bundles': [], 'workingTreeBudgetMib': 0}
+    large_total = 0
+    per_bundle: dict[str, int] = {}
+    try:
+        blob_sizes = tracked_blob_sizes()
+    except RuntimeError as exc:
+        errors.append(f"cannot measure tracked blobs: {exc}")
+        blob_sizes = {}
+    # The working-tree budget covers every tracked path: text files are cheap per
+    # byte but unbounded in count, and this repository's pack is already past its
+    # warning line.
+    working_tree_mib = sum(
+        size for rel, size in blob_sizes.items() if not rel.startswith(SKIPPED_PREFIXES)
+    ) / 1048576
+    if working_tree_mib > large['workingTreeBudgetMib']:
+        errors.append(f"working tree {working_tree_mib:.1f} MiB exceeds "
+                      f"{large['workingTreeBudgetMib']} MiB budget")
+    declare_above = large['declareAboveKiB'] * 1024
+
     for rel in tracked:
         if rel.startswith(SKIPPED_PREFIXES):
             if rel.startswith("design-lab/research/quarantine/"):
@@ -157,6 +224,19 @@ def main() -> int:
         if suffix not in BINARY_SUFFIXES:
             continue
         binary_count += 1
+        # Declaration applies to binaries only: a 340 KiB JSON ledger is normal
+        # working material and must not need a review-time opt-in every edit.
+        blob = blob_sizes.get(rel, size)
+        if blob >= declare_above:
+            large_total += blob
+            declared = next((b for b in large['bundles'] if rel.startswith(b['prefix'])), None)
+            if declared is None:
+                errors.append(
+                    f'large binary outside a declared bundle: {rel} '
+                    f'({blob/1024:.0f} KiB) — extend design-lab/config/large-assets.json '
+                    f'with a reason in review before committing it')
+            else:
+                per_bundle[declared['prefix']] = per_bundle.get(declared['prefix'], 0) + blob
         sidecar = Path(str(p) + ".license")
         if not sidecar.exists():
             errors.append(f"binary without .license sidecar (DL-AST-001): {rel}")
@@ -205,6 +285,15 @@ def main() -> int:
                         errors.append(f"binary exception expired {exc_info['expiresAt']}: {rel}")
                 except ValueError:
                     errors.append(f"binary exception expiresAt invalid: {rel} ({exc_info.get('expiresAt')!r})")
+
+    for bundle in large['bundles']:
+        actual = per_bundle.get(bundle['prefix'], 0)
+        if actual > bundle['budgetMib'] * 1048576:
+            errors.append(f"bundle over budget: {bundle['prefix']} "
+                          f"{actual/1048576:.2f} MiB > {bundle['budgetMib']} MiB")
+    print(f"LARGE_ASSETS declared_bundles={len(large['bundles'])} "
+          f"large_mib={large_total/1048576:.2f} working_tree_mib={working_tree_mib:.2f} "
+          f"working_tree_budget_mib={large['workingTreeBudgetMib']}")
 
     print(f"ASSET_GOVERNANCE={'FAIL' if errors else 'OK'}")
     print(f"pack_mib={pack_mib:.1f} hard_budget_mib={TOTAL_BUDGET_MIB} warn_mib={WARN_BUDGET_MIB} "
