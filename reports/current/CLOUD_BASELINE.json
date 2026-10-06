@@ -9,28 +9,28 @@
   },
   "fresh": false,
   "freshnessMeaning": "at generation only; check verifies bound-input integrity, not current Git or cloud state",
-  "generatedAt": "2026-10-06T20:07:58+00:00",
+  "generatedAt": "2026-10-06T20:24:06+00:00",
   "gitStateMeaning": "generation-time observation, not current HEAD",
   "local": {
-    "branch": "qoder/designlab-quarantine-inert-blob-20261007",
-    "origin_main": "2796965c4ae69ced985f3894bbaed77c61626894",
-    "sha": "5b2a516ae5a9f416a22a4985d1a479171debd2a3",
+    "branch": "qoder/designlab-bundle-copy-window-20261007",
+    "origin_main": "efe8a67b7944af04263ee6f260f72b616b8122f8",
+    "sha": "efe8a67b7944af04263ee6f260f72b616b8122f8",
     "source_worktree_clean": false,
     "tracked_files": 2967,
     "worktree_changes": [
       {
-        "content": "sha256:fd45a774c5fd59f01b6475837317c580a30c130e3770f463032adb1ff6d6996d",
+        "content": "sha256:cfe8047d7a148b9501850640fce446f776c60b981e9455ae3005688dab87ce1f",
         "kind": "M",
-        "path": "design-lab/tests/test_inert_blob_placement.py"
+        "path": "design-lab/tests/test_bundle_store.py"
       }
     ],
-    "worktree_digest": "sha256:934abe8012192b646428f46dbba8526842433dead81152ba1364620a502cd17c"
+    "worktree_digest": "sha256:8f825af021d93f30f5d58aad4d5cbc46891231e6c2bf7320966962b3b2e16e9f"
   },
   "note": "No GitHub API query was run by this generator; tool installation is not inferred.",
   "remoteRef": "origin/main (local tracking ref)",
   "schemaVersion": "design-lab/cloud-baseline/v2",
   "subjectMeaning": "subjectType=WORKTREE means the tree was dirty at generation; worktreeDigest covers HEAD plus the non-generated changes",
-  "subjectSha": "5b2a516ae5a9f416a22a4985d1a479171debd2a3",
+  "subjectSha": "efe8a67b7944af04263ee6f260f72b616b8122f8",
   "subjectType": "WORKTREE",
   "taskpackHash": "31dde89eb4ede81fe88c0a5c5144adfb86af8db4c4d8c263bde2199180369b69",
   "taskpackId": "DL-TP-20260908-R5",
@@ -45,5 +45,5 @@
     "branchProtection"
   ],
   "worktreeClean": false,
-  "worktreeDigest": "sha256:934abe8012192b646428f46dbba8526842433dead81152ba1364620a502cd17c"
+  "worktreeDigest": "sha256:8f825af021d93f30f5d58aad4d5cbc46891231e6c2bf7320966962b3b2e16e9f"
 }
