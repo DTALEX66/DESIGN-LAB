@@ -9,49 +9,23 @@
   },
   "fresh": false,
   "freshnessMeaning": "at generation only; check verifies bound-input integrity, not current Git or cloud state",
-  "generatedAt": "2026-10-06T02:38:20+00:00",
+  "generatedAt": "2026-10-06T02:52:47+00:00",
   "gitStateMeaning": "generation-time observation, not current HEAD",
   "local": {
     "branch": "qoder/designlab-m1-closeout-20261005",
     "origin_main": "1acbfa15a8c036907aadbdc6938b8706c91b5d3e",
-    "sha": "0dc99d72b76fe9d0d61e80e2576658be65d782c3",
-    "source_worktree_clean": false,
-    "tracked_files": 2833,
-    "worktree_changes": [
-      {
-        "content": "sha256:93b2ddeeff6d99b7501ea265a6e812282a380bd30f9ec75c939ccfb53285cc67",
-        "kind": "M",
-        "path": ".github/workflows/canonical-verify.yml"
-      },
-      {
-        "content": "sha256:4ee2e1d23b991eab99e288f051d46d296e7a5adca598e10bfae76a84edd7e9d8",
-        "kind": "U",
-        "path": "design-lab/scripts/verify_evidence_artifact_presence.py"
-      },
-      {
-        "content": "sha256:1d6927e133b37195eeb2e1b2c6b5e4ce8c0a61c1abb34349d38412509ba7418b",
-        "kind": "U",
-        "path": "design-lab/tests/test_evidence_artifact_presence.py"
-      },
-      {
-        "content": "sha256:1bdcfb56103834e6d71ffafb0e8cef8e58c893316bf64d8d0eefffa8c3183576",
-        "kind": "U",
-        "path": "docs/audits/DESIGN-LAB-QODER-CLOSEOUT-20261005/12_SPILL_AND_SIZE_AUDIT.md"
-      },
-      {
-        "content": "sha256:7097a6d07d4223fcd9e4f1e9037dfc2b70ab9fbf19a10170ac021beafaa7fda6",
-        "kind": "U",
-        "path": "docs/audits/DESIGN-LAB-QODER-CLOSEOUT-20261005/runtime-cleanup-inventory-20261006.jsonl.gz"
-      }
-    ],
-    "worktree_digest": "sha256:1ba62cee835c20924a77c9a26cd46fb56bff178bf29900377d32a24755ec400c"
+    "sha": "b76b325d1ca088d72b0ea6386406f34e026f75f3",
+    "source_worktree_clean": true,
+    "tracked_files": 2841,
+    "worktree_changes": [],
+    "worktree_digest": "sha256:784107ee2744212695d7b52e5f690e34262e0a2b5b38cc2fef61f61ad204e401"
   },
   "note": "No GitHub API query was run by this generator; tool installation is not inferred.",
   "remoteRef": "origin/main (local tracking ref)",
   "schemaVersion": "design-lab/cloud-baseline/v2",
   "subjectMeaning": "subjectType=WORKTREE means the tree was dirty at generation; worktreeDigest covers HEAD plus the non-generated changes",
-  "subjectSha": "0dc99d72b76fe9d0d61e80e2576658be65d782c3",
-  "subjectType": "WORKTREE",
+  "subjectSha": "b76b325d1ca088d72b0ea6386406f34e026f75f3",
+  "subjectType": "COMMIT",
   "taskpackHash": "31dde89eb4ede81fe88c0a5c5144adfb86af8db4c4d8c263bde2199180369b69",
   "taskpackId": "DL-TP-20260908-R5",
   "testRunId": null,
@@ -62,6 +36,6 @@
     "openPullRequests",
     "branchProtection"
   ],
-  "worktreeClean": false,
-  "worktreeDigest": "sha256:1ba62cee835c20924a77c9a26cd46fb56bff178bf29900377d32a24755ec400c"
+  "worktreeClean": true,
+  "worktreeDigest": "sha256:784107ee2744212695d7b52e5f690e34262e0a2b5b38cc2fef61f61ad204e401"
 }
