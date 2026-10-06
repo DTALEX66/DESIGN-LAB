@@ -191,9 +191,85 @@ playwright + `playwright install chromium`，并由
 失败信息里带着真实裁切明细（`CLIPPED 390:settings +97px div.panel`）。
 **所以 CI 上的绿不是因为合成项目空**，闸门在 CI 形态下仍然有牙。
 
-**必须记下的环境分歧**：本机 Windows 直接跑
+**环境分歧：记录已被后续实测推翻（同日更正）**。本节原先写下：本机 Windows 跑
 `test_workbench_design_layer_e2e.py` 在 `import reference` 步骤 20s 超时失败，
 而同一 SHA `5dd36046` 在 CI（Linux）上该 job 实测 `success`
-（run 37457793767，job 级结论，不是 workflow rollup）。
-两者未对齐，原因未查明；本报告不把它说成「E2E 在本机也通过」，也不据此推断 CI 结果有假。
+（run 37457793767，job 级结论，不是 workflow rollup），并标注"原因未查明"。
+
+复验结果：在**主检出**上用 python 3.13.14 连续跑两次，**两次都通过**（3.496s / 3.235s，
+`Ran 2 tests OK`）。失败没有复现，所以它**不是 Windows/Linux 分歧**。
+
+两次之间的已知差异（不足以定因，只作线索）：失败那次跑在已删除的 worktree 里，
+合成项目根长 139 字符（`C:\Users\ALEX\WorkBuddy\Worktrees\DESIGN-LAB\qoder-designlab-m1-closeout-20261005-12871b2c\…`），
+且用 python 3.12.13 + venv312；复验这次在主检出，根路径更短，python 3.13.14 + venv313
+（与投影记录的 `environmentFingerprint.python` 一致）。
+
+保留原观测而不删，是为了不掩盖"曾经红过一次且原因不明"这个事实；
+但结论口径改为：**不可复现的单次超时**，而非跨平台缺陷。
 本闸门自身不受该步骤影响（只做导航 + 几何测量，不导入 reference）。
+
+---
+
+## 九、第二轮：真的读图（owner 2026-10-06「界面呢」）
+
+§七 的诚实边界是"审计者未对截图做视觉判读（当前模型不读图）"。这个前提对后续执行者**不成立**，
+所以本轮做了上一轮放弃的那一半：**headless Chromium 对真实 loopback 服务**抓 8 页 × 3 视口
+（390 / 1280 / 1440）= 24 张 PNG，逐张判读，同一轮再跑几何闸门交叉核对。
+
+### 测不到但看得见的缺陷
+
+这一类的共同点是：内容没被裁、能滚到、字号也达标，所以 `CLIPPED/STRAY/tiny` 全为 0，
+**上一轮的闸门对它们完全无感**。
+
+| # | 缺陷 | 屏幕上读到的样子 | 根因 |
+|---|---|---|---|
+| V-1 | KPI 卡的 label 与来源说明挤成一行且无分隔 | `项目服务端项目台账读回，非统计猜测`、`设计系统资源登记的设计系统总数`、`服务版本服务自检读回` —— label 被当成说明的开头，读起来像坏掉的模板 | `.kpi small` 是 `inline`，`.kpi .trend` 是 `inline-flex`，同处一个行盒 |
+| V-2 | 非计数值套用 35px 大数字排版 | `0.1.0-alpha.0` 在 1440 断成 `0.1.0-alpha.` + `0`；`OK` 看起来像"变好了的指标" | 所有 KPI `strong` 同一字号，不区分是不是计数 |
+| V-3 | 一个药丸里同一个状态词出现两次 | `NOT_EXECUTED · 迁移 NOT_EXECUTED` | 设置页插值时只给后半截加了"迁移"标签 |
+| V-4 | 平台符号错误 | Windows/Linux 上搜索位显示 `⌘K`，那类键盘上没有这个键 | 硬编码 macOS 符号 |
+| V-5 | 设置页 ~950px 死白 | 面板是 `.three-col` 的**唯一子元素**，只占 1/3 宽，右侧整片空 | 单元素套了三列栅格 |
+
+### 修复
+
+V-1：label 与说明各自成行、各给权重（label `--ink`，说明 `--muted`）。
+V-2：非计数值走 `.kpi strong.is-text`（19px 标签尺度），判定条件与 count-up 动画已有的"是否数字"一致。
+V-3：两半分别标注为 `写入 … · 迁移 …`。
+V-4：`/Mac|iPhone|iPad|iPod/` 判平台，macOS 保留 ⌘，其余显示 `Ctrl`。
+V-5：设置页面板改为整幅，让 `.list-item` 已有的 `space-between` 把标签推左、状态药丸推右。
+
+验证：`tsc --noEmit` 0、`vite build` 0、`unit.mjs` 0、`appshell.mjs` 0；
+重抓 24 张并逐张复读，五处均已消失；同一构建重跑几何闸门仍
+`clipped=0 stray=0 tiny=0` / `OV_OK`（即修复没有把裁切引回来）。
+
+### 本轮**没有**改、留给 owner 的
+
+- **语言策略**：三张能力卡标题是英文 `Research / Brand / Delivery`，而页面其余标题是中文。
+  这是有意的双语层级还是漂移，属品牌判断，不由执行者定。
+- **信息架构**：这三张卡内容全是坏消息（未接入 / 未读回），却摆在首页正中、与已可用面同权重。
+- **侧栏**：12 项一层、圆点样式全同、不区分"已开放/未开放"；390 首屏**看不到任何导航入口**。
+- **项目详情**：tab 行末位 `资源预检（非设计评审）` 顶到右边缘；INSPECTOR 里一个**空圆环**（只有描边 + 一个点）。
+- **品牌蓝** `#316CFF` 仍无法承载白色正文（另案记录）。
+
+### 一次副作用，以及对本节初稿一处错误归因的更正
+
+本轮抓图留下 2 条项目记录：`.project-local/task-runtime/service/state.db` 的 `project` 表——
+
+```
+6474cccad81645df8993bfd806bb0c13  Closeout 1791294101099  2026-10-06T13:41:41Z
+ec92b251ceee483099fe33ca06155513  Closeout 1791294601059  2026-10-06T13:50:01Z
+```
+
+它们会出现在仪表盘的「最近项目」里。**没有代为删除**：`asset / design_brief / design_direction`
+等表按 project_id 关联，删行会牵动它们，且该库也可能有非本轮数据，所以留给 owner 决定。
+
+**更正一处错误归因**：本节日初稿写成"`capture_workbench_screenshots.mjs` 不是只读导航，
+任何一次截图运行都会改动真实项目状态，应当改成挂临时根"。**这个说法是错的。**
+仓内官方入口 `scripts/capture_workbench_screenshots.py:121-130` 已经正是那么做的——
+`tempfile.TemporaryDirectory()` + 写入合成 `AGENTS.md` + 把 `PROJECT_LOCAL_ROOT` 指向该临时目录，
+再 `ProjectService(str(root))`。驱动脚本创建项目是**设计如此**（否则没有真实可截的详情页），
+而它落在哪里由入口决定，入口已经隔离了。
+
+真实原因是我自己写的临时 runner 用了 `python -m design_lab --project <仓库根> workbench`
+且没有覆盖 `PROJECT_LOCAL_ROOT`，于是状态写进了主检出的 `.project-local`。
+**结论不是"去修脚本"，而是"抓图一律走 `scripts/capture_workbench_screenshots.py`，
+不要手起服务指向真实根"**。这段更正留在记录里，是为了不让一条错误的"待修项"被后人当指令执行。
