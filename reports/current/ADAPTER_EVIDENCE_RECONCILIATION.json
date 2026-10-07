@@ -251,16 +251,18 @@
   },
   "fresh": false,
   "freshnessMeaning": "at generation only; check verifies bound-input integrity, not current Git or cloud state",
-  "generatedAt": "2026-10-07T00:44:28+00:00",
+  "generatedAt": "2026-10-07T15:54:40+00:00",
   "gitStateMeaning": "generation-time observation, not current HEAD",
   "schemaVersion": "design-lab/adapter-reconciliation/v2",
   "subjectMeaning": "subjectType=WORKTREE means the tree was dirty at generation; worktreeDigest covers HEAD plus the non-generated changes",
-  "subjectSha": "63b12e96ec19871de7c34fdbb7d7a79721fddacc",
+  "subjectSha": "fc03a3033e900a8066d863a223636cc68804c4fa",
   "subjectType": "WORKTREE",
   "taskpackHash": "31dde89eb4ede81fe88c0a5c5144adfb86af8db4c4d8c263bde2199180369b69",
   "taskpackId": "DL-TP-20260908-R5",
-  "testRunId": null,
-  "testRunMeaning": "no bound test run; this projection does not claim a test result",
+  "testRunAt": "2026-10-07T15:54:31+00:00",
+  "testRunId": "testrun-20261007T155427Z-forward-repeat-c6fdc3d34f49",
+  "testRunMeaning": "bound run: python scripts/run_bound_test_suite.py --modules test_project_backup test_runtime_asset_safety test_installed_state_resources test_release_gate --label backup-consistency-targeted",
+  "testRunResult": "OK",
   "worktreeClean": false,
-  "worktreeDigest": "sha256:306ed65ea0a2caa0b6c4c83374fe5c534a6a8e8aa54be50172e16eee3bbf80e8"
+  "worktreeDigest": "sha256:c6fdc3d34f4955acd69b588bcfde2012c8ab3c138958f362c451a40a538838b5"
 }
