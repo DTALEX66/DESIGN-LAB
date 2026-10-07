@@ -6,7 +6,7 @@
     "git": {"kind": "tool", "name": "git", "version": ">=2.40", "source": "PATH search scope"},
     "ffmpeg": {"kind": "tool", "name": "ffmpeg", "version": ">=6.0", "source": "PATH search scope", "note": "host-scope: audio/video real execution belongs to Codex; declaration only"},
     "node": {"kind": "tool", "name": "node", "version": ">=20", "source": "PATH search scope"},
-    "python-project-venv": {"kind": "tool", "name": "python", "version": ">=3.11", "source": "project .venv (locked by uv.lock)", "note": "interpreter resolution is platform-neutral; no hardcoded Scripts/python.exe"},
+    "python-project-venv": {"kind": "tool", "name": "python", "version": ">=3.11", "source": "project .venv (locked by uv.lock)", "resolution": "project-venv", "note": "interpreter resolution is platform-neutral; no hardcoded Scripts/python.exe"},
     "model-library": {"kind": "model", "path": "declared in .project/paths.json shared_inputs.model-library", "licence": "UNKNOWN until verified per model", "note": "METADATA_ONLY: never loaded or run by the preflight"},
     "design-assets": {"kind": "external", "path": "declared in .project/paths.json shared_inputs.design-assets", "note": "DECLARED_NOT_PROBED"},
     "os-toolchain": {"kind": "external", "path": "declared in .project/paths.json shared_inputs.os-toolchain", "note": "DECLARED_NOT_PROBED"},
