@@ -87,7 +87,9 @@ CI 的 wheel 门断言 `Ran 3 tests` 且禁止 skip,所以这条读回是**扩�
 解析并限定在本项目,归档字节按登记摘要校验,成员路径越界直接拒绝 —— 页面不接受文件路径。
 
 一条 profile 覆盖度事实记在此处而不是藏起来:`missing-links` 只由 print profile 声明,
-所以 digital 归档不做链接校验。这是 profile 的声明范围,不是本模块漏实现;要改得改 profile。
+所以 digital 归档不做链接校验。这是 profile 的声明范围,不是本模块漏实现;链接图对
+PNG/JPG 这类数字交付没有对象可查,把它加进 digital 只会凭空多出一条恒真的检查。要改
+得改 profile,并由改的人负责那条检查在数字域里究竟量什么。
 
 ## 4. 本波次未闭合的(不假装做完)
 
@@ -192,6 +194,39 @@ appshell 报的是上一个变异的错。之后所有变异脚本都先断言�
 门自己也被反证过:11 条用例里包含"摘要不同必须报 MISMATCH""路径缺失必须报 ABSENT""提交取
 不到必须报 NO_COMMIT 而不是当作通过""豁免是按记录生效不是按路径生效""清单里的条目变得可验证
 时必须报 stale",以及一条专门防止 OK 空心化的断言 —— 它比较 `subject_files=` 与 `checked=`
-两个计数并要求总数 > 200。该脚本已进 `verify_design_lab.py` 的聚合清单(现共 57 个,failed=0)。
+两个计数并要求总数 > 200。该脚本已进 `verify_design_lab.py` 的聚合清单(现共 58 个,failed=0)。
+
+### 5.6 我的预检界面把 CI 的词表门改红了(而我所有的定向门都没抓到)
+
+`d5192069` 之后直接跑 `verify_state_vocabularies.py` 是 FAIL:
+
+```
+ERROR: shell.ts advertises 'PASS' as a status; the service emits only ['BLOCKED', 'READY']
+ERROR: build/main.js advertises 'PASS' as a status; the service emits only ['BLOCKED', 'READY']
+```
+
+而我把 UI 相关门全跑了一遍都是绿的。原因不是门太松,是我没跑它 —— 这条门只在
+`canonical-verify.yml` 里单独调用,**不在聚合清单里**,所以本地绑定运行永远碰不到它。
+先补结构:把它加进 `verify_design_lab.py`,让本地与 CI 见到同一套东西。
+
+门的语义也要说清楚。它当初禁 'PASS',是因为 `runtime/task_resources.py` 只发 READY/BLOCKED,
+而界面把预检判定写成 'PASS / BLOCKED'。现在有了**第二个发射器**
+(`assurance/production_preflight.py`),它的判定真的是 PASS / WARN / BLOCKED / INCOMPLETE ——
+所以"这个词本身是假的"不再成立。
+
+改法不是把词加进白名单了事:
+- 词表文件 `design-lab/config/state-vocabularies.json` 新增 `artifactPreflight`,带 `sources`
+  指向发射它的模块;门双向核对该词表,`VERDICTS` 改了而词表不改就变红。
+- 界面里的状态字面量必须属于**某个已声明词表**;没有发射器能产出的词(OKAY、APPROVED、
+  自造的 SUPERB)照旧致命。
+- 原来那个谎的**形状**继续点名禁止:'PASS / BLOCKED' 仍然致命,因为任务资源预检只发
+  READY/BLOCKED。放宽的是词,不是那句假话。
+
+这条门原先一个测试都没有,所以"它还能抓到东西"从来没人证明过。新增
+`test_state_vocabularies_gate.py` 9 条,夹具一律是**真实文件 + 一处替换**,并且断言"这一处
+替换确实改变了门解析到的集合"—— 我第一次写的 job_store 变异改的是转移表里的值而不是键,
+门看不见,测试因此假绿;加了这条断言之后它就没法再假绿。9 条全过,含"历史谎形状仍致命"与
+"真树的 PASS 是合法的"(门不能紧到把诚实读成违规)。
+
 
 

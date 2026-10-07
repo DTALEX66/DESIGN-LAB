@@ -28,6 +28,8 @@ REPO = Path(__file__).resolve().parents[2]
 CONTRACT = REPO / 'design-lab' / 'config' / 'state-vocabularies.json'
 JOB_STORE = REPO / 'src' / 'design_lab' / 'runtime' / 'job_store.py'
 TASK_RESOURCES = REPO / 'src' / 'design_lab' / 'runtime' / 'task_resources.py'
+PRODUCTION_PREFLIGHT = (REPO / 'src' / 'design_lab' / 'assurance' /
+                        'production_preflight.py')
 SHELL_TS = REPO / 'apps' / 'workbench' / 'shell.ts'
 BUNDLE = REPO / 'apps' / 'workbench' / 'build' / 'main.js'
 
@@ -58,6 +60,16 @@ def py_preflight() -> tuple[set[str], set[str], set[str], set[str]]:
     blocking = set(re.findall(r'"([A-Z_]+)"', block_match.group(1))) if block_match else set()
     registry = set(re.findall(r'registry_state = "([A-Z_]+)"', text))
     return verdict, states, registry, blocking
+
+
+def py_artifact_preflight() -> tuple[set[str], set[str]]:
+    """VERDICTS, plus the outcome constants the module declares."""
+    text = PRODUCTION_PREFLIGHT.read_text(encoding='utf-8')
+    body = re.search(r'^VERDICTS = \((.*?)\)$', text, re.M).group(1)
+    verdicts = set(re.findall(r"'([A-Z]{3,12})'", body))
+    outcomes = {value for _name, value in
+                re.findall(r"^([A-Z_]{3,15}) = '([A-Z_]{3,15})'$", text, re.M)}
+    return verdicts, outcomes
 
 
 def ts_set(name: str) -> set[str]:
@@ -119,6 +131,17 @@ def main() -> int:
             errors.append(f'task_resources {label} = {sorted(actual)} but contract says '
                           f'{sorted(expected)}')
 
+    artifact_verdicts, artifact_outcomes = py_artifact_preflight()
+    declared_artifact_verdicts = set(contract['artifactPreflight']['verdicts'])
+    declared_artifact_outcomes = set(contract['artifactPreflight']['outcomes'])
+    if artifact_verdicts != declared_artifact_verdicts:
+        errors.append(f'production_preflight VERDICTS = {sorted(artifact_verdicts)} '
+                      f'but the contract says {sorted(declared_artifact_verdicts)}')
+    missing = declared_artifact_outcomes - artifact_outcomes
+    if missing:
+        errors.append(f'the contract declares outcome words the emitter does not '
+                      f'define: {sorted(missing)}')
+
     # The specific regression this file exists for: the UI taught a verdict word
     # the service cannot emit. Look for the verdict-shaped literal only, so an
     # unrelated use of the word elsewhere cannot produce a false alarm.
@@ -126,14 +149,31 @@ def main() -> int:
         if not path.is_file():
             continue
         body = path.read_text(encoding='utf-8', errors='replace')
-        for hit in re.findall(r"['\"]([A-Z]{3,10})\s*/\s*[A-Z]{3,10}['\"]", body):
-            if set(hit.split('/')) - declared_verdicts:
-                errors.append(f'{label} advertises the verdict pattern {hit!r}; the service '
-                              f'emits only {sorted(declared_verdicts)}')
+        # A status word is legitimate when SOME declared emitter produces it. This is
+        # looser than the original file-wide ban on 'PASS', and the reason is recorded in
+        # the contract rather than left implicit: assurance/production_preflight.py really
+        # does verdict PASS / WARN / BLOCKED / INCOMPLETE. The original shape of the lie --
+        # an artifact-style verdict pasted onto the task-resource preflight, which emits
+        # only READY or BLOCKED -- is denied by name below, and a word no emitter produces
+        # is still caught by both rules.
+        vocabularies = [declared_verdicts, declared_artifact_verdicts,
+                        declared_artifact_outcomes, declared_all]
+        denied_pairs = {'BLOCKED / PASS': 'the task-resource preflight emits READY or '
+                                          'BLOCKED only'}
+        for hit in re.findall(r"['\"]([A-Z]{3,10}(?:\s*/\s*[A-Z]{3,10})+)['\"]", body):
+            words = {word.strip() for word in hit.split('/')}
+            shape = ' / '.join(sorted(words))
+            if shape in denied_pairs:
+                errors.append(f'{label} advertises the verdict pair {hit!r}: '
+                              f'{denied_pairs[shape]}')
+            elif not any(words <= vocabulary for vocabulary in vocabularies):
+                errors.append(f'{label} advertises the status {hit!r}, which no declared '
+                              'emitter produces')
         for hit in re.findall(r"['\"](PASS|FAIL|OKAY|APPROVED)['\"]", body):
-            if hit not in declared_verdicts:
-                errors.append(f'{label} advertises {hit!r} as a status; the service emits '
-                              f'only {sorted(declared_verdicts)}')
+            if not any(hit in vocabulary for vocabulary in vocabularies):
+                errors.append(f'{label} advertises {hit!r} as a status; no declared emitter '
+                              f'produces it (task preflight: {sorted(declared_verdicts)}, '
+                              f'artifact preflight: {sorted(declared_artifact_verdicts)})')
 
     print(f'STATE_VOCABULARIES attempt_states={len(declared_all)} verdicts='
           f'{contract["taskResourcePreflight"]["verdicts"]} errors={len(errors)}')

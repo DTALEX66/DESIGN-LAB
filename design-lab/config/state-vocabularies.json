@@ -4,7 +4,8 @@
   "sources": {
     "attemptStates": "src/design_lab/runtime/job_store.py (ALLOWED / TERMINAL)",
     "preflight": "src/design_lab/runtime/task_resources.py (verdict, resource state, registry_state)",
-    "ui": "apps/workbench/shell.ts (FAILED_STATES / HUMAN_STATES / IN_FLIGHT_STATES)"
+    "ui": "apps/workbench/shell.ts (FAILED_STATES / HUMAN_STATES / IN_FLIGHT_STATES)",
+    "artifactPreflight": "src/design_lab/assurance/production_preflight.py (VERDICTS + the outcome constants)"
   },
   "attemptStates": {
     "all": [
@@ -63,5 +64,21 @@
       "NOT_AVAILABLE"
     ],
     "semantics": "blocked = any resource whose state is in blockingResourceStates. METADATA_ONLY (model recorded, never loaded) and DECLARED_NOT_PROBED (external/host/licence root declared, never traversed) are honest non-findings and do NOT block; a UI that renders them as failures would overstate a rejection the service never made."
+  },
+  "artifactPreflight": {
+    "verdicts": [
+      "PASS",
+      "WARN",
+      "BLOCKED",
+      "INCOMPLETE"
+    ],
+    "outcomes": [
+      "PASS",
+      "WARNING",
+      "FAIL",
+      "NOT_MEASURED",
+      "NOT_APPLICABLE"
+    ],
+    "note": "A delivery artifact is judged by this emitter, so PASS is a real verdict here. It is still not a verdict of the task-resource preflight, which emits only READY or BLOCKED."
   }
 }

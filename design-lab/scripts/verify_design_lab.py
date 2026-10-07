@@ -36,6 +36,10 @@ def run_child(command: list) -> subprocess.CompletedProcess:
 SCRIPTS = [
     "verify_identity_gate.py",
     "verify_ledger_subject_binding.py",
+    # CI runs this one directly; it was missing from the aggregate, so a local bound run
+    # could go green while the vocabulary contract was broken. That is exactly how a UI
+    # change on 2026-10-08 passed every gate I ran and still broke canonical-verify.
+    "verify_state_vocabularies.py",
     "verify_project_drift.py",
     "verify_knowledge_lifecycle.py",
     "verify_design_kernel.py",
