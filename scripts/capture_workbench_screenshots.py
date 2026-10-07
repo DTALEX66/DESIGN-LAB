@@ -79,7 +79,7 @@ def git_head() -> str:
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--out", default="docs/UI-CONVERGENCE-20260930/screenshot")
-    parser.add_argument("--widths", default="390,768,1280,1920,2560")
+    parser.add_argument("--widths", default="1280,1920,2560")
     parser.add_argument("--source-image",
                         default="design-lab/evals/reconstruction/cases/"
                                 "poster-sunrise-001/reference.png")

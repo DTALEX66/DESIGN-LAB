@@ -32,7 +32,7 @@ from test_workbench_design_layer_e2e import _find_browser, _find_node_modules_di
 
 ROOT = _TESTS_DIR.parents[1]
 AUDITOR = ROOT / 'scripts' / 'audit_workbench_ui.py'
-WIDTHS = os.environ.get('UI_AUDIT_WIDTHS', '390,1280')
+WIDTHS = os.environ.get('UI_AUDIT_WIDTHS', '1280,1920')
 
 
 def _evidence_dir() -> Path:
