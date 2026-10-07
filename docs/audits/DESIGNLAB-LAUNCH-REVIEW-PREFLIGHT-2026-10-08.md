@@ -166,7 +166,52 @@ appshell 报的是上一个变异的错。之后所有变异脚本都先断言�
 `acknowledge_cancel` 仍然没有生产调用点:那需要宿主协议先有一种"已停止"的事件,属于协议问题,
 不是补一根线就能做完的事。
 
-### 5.5 账本里的 subject_files 从来没被验过
+### 6. 链路逐条判定与本轮新抓到的事实(2026-10-08,含只读审计的交叉核对)
+
+一个只读审计子智能体 gave me a table; I re-checked its claims instead of pasting it, because
+two of them did not survive contact with the code.
+
+| 链路 | 判定 | 依据 / 仍需 |
+|---|---|---|
+| 合同 | PARTIAL | `design-lab/schemas/contracts/*.json` 32 份在 `src/design_lab/` 里**一个读者都没有**;产物预检的 schema 与发射器字段名待对账(子任务进行中) |
+| 后端 | REACHABLE | `http_service.py` 路由表 |
+| 前端 | PARTIAL | `#/domains` 之前无任何后端;`#/collaboration` 属本地单机模型的诚实空页 |
+| 持久化 | REACHABLE | 新增 `design_system_token`、`delivery_receipt_v1`、`jury_record` 三类真表 |
+| 读回 | PARTIAL | 重启读回有;**启动恢复的摘要目前只上 stdout,没有路由也没有界面** |
+| 质量 | MISSING | `assurance/qa_plane.py` + `quality_record.py` 只有测试与 handoff 脚本消费;产品里没有路由、没有 CLI 动词,门开不了 |
+| 预检 | REACHABLE(不持久) | 交付中心真能跑并读回;结论**故意不落库**(见下) |
+| 交付 | PARTIAL | 回执已落库并可 CLI 读回;`receipt()` 还没有 GET 路由;PDF/Video/3D 仍不产出 |
+| 证据 | PARTIAL | `#/evidence` 只投影设计层与交付包计数,不显示 jury、预检、回执 |
+
+我自己核对出来的四条:
+
+1. **rights 不是门,是常量。** `native_assets.py:36,99`、`image_assets.py:72,140`、
+   `native_bundles.py:126-156` 一律把 `'NOT_REVIEWED'` **注入**响应 —— 状态库里没有 rights 列,
+   全仓没有任何 `UPDATE … rights`。所以 `shell.ts:814,1851` 那句
+   `b.rights === 'NOT_REVIEWED' ? warn : b.rights` 的 else 分支是死代码:这个标签永远不会变。
+   AGENTS.md 承诺的 Rights gate 因此是"声明了但没有实现",已列为待办,不是工程量之争。
+2. **审计子智能体的一条结论是错的。** 它说 `#/research` 已接后端却仍写着"未开放"。实测
+   `http_service.py` 里没有任何 research 路由,`shell.ts:296` 那句话是**诚实的**。
+   W13(ResearchFinding/MethodCard)确实整体缺失 —— 结论方向不同,处理方式也不同:前者要改注释,
+   后者要补链路。
+3. **活动账本自 2026-09 的 R5 迁移起就没有 schema。** 唯一存在的
+   `task-ledger-r3.schema.json` 钉的是 `r3-v1` / `DL-TP-20260906-R3` / `^R3-\d\d$` / 要求
+   `acceptance`,拿它校验活账本得 105 条错(69 条 id 形态、28 条缺 `acceptance`、外加
+   `predecessor`/`definition`/`reassessment` 未声明、artifact 形状不同、evidence 有 maxItems)。
+   但把**冻结的 R3 前继账本**拿去校验同一份 schema,得 0 条错 —— 所以 r3 schema 不是烂文件,
+   它管的是 r3 那份;真正的缺口是迁到 `r5-v1` 时没人写 r5 的 schema,而 AGENTS.md 早就把
+   `r5-v1` 说成"只是版本标识,不是文件路径",等于把这个缺口写在文档里挂着。
+   现在补 r5 schema,并让门按账本自己的 `schemaVersion` 选文件:`schemaVersion` 指不到文件就是
+   硬失败(这次的根因正是一个没有文件背后的版本串)。
+4. **`audit_event` 只写不读。** `asset_store.py:144,250` 在写,产品代码从不 SELECT,
+   只有 `test_asset_store.py:99` 读。要么把它读出来,要么停止写 —— 一个只有写入的日志看起来
+   像审计线索,其实不是。
+
+一个我做的**不修**决定:预检结论不入库。预检是对**当前字节**的一次计算,重新跑很便宜;把
+"PASS"存下来就等于给一份可能立刻改变的判定一个持久身份,反而制造陈旧绿灯。要留的是"跑过、
+跑了什么、结论是什么"这一类**事件**,不是可被反复读取当成现状的判定值。`#/evidence` 因此应当
+读回 jury 与回执,并让预检保持"当场跑"。
+
 
 每条 evidence 记录都带 `subject_sha` + `subject_files{路径: 摘要}`,这是**局外人唯一能复核
 "这条证据到底绑的是哪份字节"**的机制。而 `verify_evidence_artifact_presence` 只看
