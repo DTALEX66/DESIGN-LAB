@@ -135,9 +135,17 @@ const PROBE = () => {
         + `${Math.round(r.width)}x${Math.round(r.height)} "${text}"`;
     });
   const targets = smallTargets.length;
+  // A project picker with exactly one real option and nothing selected is a dead
+  // end, not a choice: the readback already named the only project there is.
+  const pickers = Array.from(document.querySelectorAll('select.project-select'))
+    .filter(rendered)
+    .map((el) => ({ id: el.id || '(no-id)',
+                    real: Array.from(el.options).filter((o) => o.value).length,
+                    selected: !!el.value }));
   return {
     contrast, clickableNotReachable, unnamed, images, overflow, targets,
     targetDetail: smallTargets,
+    pickers,
     gradientBacked,
     focusables: focusables.length,
     paint: Math.round(performance.getEntriesByType('paint')
@@ -231,6 +239,12 @@ for (const width of widths) {
       add('keyboard', `${width} ${route} click target not reachable: ${item}`);
     }
     for (const item of probe.unnamed) add('label', `${width} ${route} ${item}`);
+    for (const p of probe.pickers) {
+      if (p.real === 1 && !p.selected) {
+        add('picker-dead-end', `${width} ${route} select#${p.id} offers exactly one `
+          + 'project and has none selected, so the view shows its empty state');
+      }
+    }
     if (probe.images) add('alt', `${width} ${route} ${probe.images} img without alt`);
     if (probe.overflow > 0) add('overflow', `${width} ${route} +${probe.overflow}px`);
     if (width <= 430 && probe.targets) {

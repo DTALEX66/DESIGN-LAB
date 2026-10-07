@@ -2055,8 +2055,9 @@ async function projectPickerPanel(target, title, body) {
     );
     return;
   }
+  const sole = data.projects.length === 1 ? data.projects[0] : null;
   const select = el("select", { class: "project-select", id: `${title.replace(/\s+/g, "-")}-project` });
-  select.append(el("option", { value: "" }, `选择项目（共 ${data.projects.length} 个）`));
+  if (!sole) select.append(el("option", { value: "" }, `选择项目（共 ${data.projects.length} 个）`));
   for (const p of data.projects) select.append(el("option", { value: p.id }, p.name));
   const content = el("div", { class: "route-view-body" });
   target.replaceChildren(

@@ -1000,8 +1000,12 @@ export async function projectPickerPanel(target: HTMLElement, title: string, bod
       el('p', { class: 'view-hint' }, '尚无项目。先在工作台新建项目，再读回此视图。'));
     return;
   }
+  // One project in the ledger and a placeholder selected is a dead first screen:
+  // the readback already named the only project there is, so open it. Only
+  // reachable from a real readback — the offline fallback list is empty.
+  const sole = data.projects.length === 1 ? data.projects[0] : null;
   const select = el('select', { class: 'project-select', id: `${title.replace(/\s+/g, '-')}-project` });
-  select.append(el('option', { value: '' }, `选择项目（共 ${data.projects.length} 个）`));
+  if (!sole) select.append(el('option', { value: '' }, `选择项目（共 ${data.projects.length} 个）`));
   for (const p of data.projects) select.append(el('option', { value: p.id }, p.name));
   const content = el('div', { class: 'route-view-body' });
   target.replaceChildren(
