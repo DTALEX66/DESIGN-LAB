@@ -11,6 +11,7 @@ a binding that is not BOUND, or whose file is gone, must NOT buy a READY.
 """
 from __future__ import annotations
 
+import json
 import sys
 import tempfile
 import unittest
@@ -110,6 +111,72 @@ class PreflightVerdictTests(unittest.TestCase):
         self.assertEqual(result['verdict'], 'BLOCKED')
         self.assertEqual(result['resources'][0]['declared_binding_state'],
                          'BOUND_PATH_NOW_MISSING')
+
+
+class ProjectVenvResolutionTests(unittest.TestCase):
+    """`python-project-venv` declares its source as the project venv; the probe must answer
+    that declaration without any machine-specific absolute path being written anywhere."""
+
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(self.tmp.cleanup)
+        self.root = Path(self.tmp.name)
+
+    def _make(self, layout):
+        exe = self.root / layout
+        exe.parent.mkdir(parents=True, exist_ok=True)
+        exe.write_bytes(b'')
+        return exe
+
+    def test_windows_venv_layout_resolves_when_path_misses(self):
+        self._make('.venv/Scripts/python.exe')
+        with patch('design_lab.runtime.task_resources.shutil.which', return_value=None):
+            record = _probe_tool('python', '>=3.11', None, root=self.root,
+                                 resolution='project-venv')
+        self.assertEqual(record['state'], 'RESOLVED')
+        self.assertIn('.venv/Scripts/python.exe', record['resolved_path'].replace('\\', '/'))
+        self.assertEqual(record['path_source'], 'project-venv:.venv')
+
+    def test_posix_venv_layout_resolves_when_path_misses(self):
+        self._make('.venv/bin/python')
+        with patch('design_lab.runtime.task_resources.shutil.which', return_value=None):
+            record = _probe_tool('python', '>=3.11', None, root=self.root,
+                                 resolution='project-venv')
+        self.assertEqual(record['state'], 'RESOLVED')
+
+    def test_no_venv_falls_through_to_path_rather_than_claiming_one(self):
+        with patch('design_lab.runtime.task_resources.shutil.which', return_value=None):
+            record = _probe_tool('python', '>=3.11', None, root=self.root,
+                                 resolution='project-venv')
+        self.assertEqual(record['state'], 'UNAVAILABLE')
+        self.assertIsNone(record['resolved_path'])
+
+    def test_a_non_venv_resource_never_borrows_the_venv_answer(self):
+        self._make('.venv/Scripts/python.exe')
+        with patch('design_lab.runtime.task_resources.shutil.which', return_value=None):
+            record = _probe_tool('python', '>=3.11', None, root=self.root, resolution=None)
+        self.assertEqual(record['state'], 'UNAVAILABLE')
+
+    def test_a_registered_binding_outranks_the_venv(self):
+        bound = self._make('elsewhere/python.exe')
+        self._make('.venv/Scripts/python.exe')
+        with patch('design_lab.runtime.task_resources.shutil.which', return_value=None):
+            record = _probe_tool('python', '>=3.11', {'python': {'path': str(bound),
+                                                                 'status': 'BOUND'}},
+                                 root=self.root, resolution='project-venv')
+        self.assertEqual(record['path_source'], 'declared:.project/paths.json#tools.python')
+
+
+class RegistryWiringTests(unittest.TestCase):
+    def test_the_declared_source_is_actually_declared(self):
+        """The venv answer only applies to an entry that says so; if the registry entry
+        loses its `resolution`, the probe silently reverts to PATH and the task goes
+        BLOCKED again -- so pin the wiring, not just the mechanism."""
+        registry = json.loads((ROOT / 'design-lab/config/task-resources.json')
+                              .read_text(encoding='utf-8'))
+        entry = registry['resources']['python-project-venv']
+        self.assertEqual(entry.get('resolution'), 'project-venv')
+        self.assertEqual(entry.get('name'), 'python')
 
 
 if __name__ == '__main__':

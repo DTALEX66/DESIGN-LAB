@@ -27,6 +27,9 @@ import shutil
 from pathlib import Path
 
 REGISTRY_SCHEMA = "design-lab/task-resources/v1"
+# The two layouts a virtualenv actually ships, per platform. Checked relative to the
+# project root so the answer needs no machine-specific absolute path anywhere on disk.
+VENV_LAYOUTS = (".venv/Scripts/python.exe", ".venv/bin/python")
 REGISTRY_REL = "design-lab/config/task-resources.json"
 
 
@@ -57,21 +60,44 @@ def entry_host_scope(entry) -> str:
 
 
 def _probe_tool(name: str, declared_version: str | None,
-                bindings: dict | None = None) -> dict:
+                bindings: dict | None = None, root: Path | None = None,
+                resolution: str | None = None) -> dict:
     """Read-only path probe; never installs and never accepts a licence.
 
-    A binding registered in ``.project/paths.json`` wins over the PATH scan. Only a
-    ``BOUND`` entry qualifies, and ``BOUND`` is granted by
-    ``ProjectPaths.tool_bindings()`` after checking the path sits inside one of the
-    declared shared-input roots -- without that second opinion ``tools`` would just be an
-    arbitrary executable path the project trusts, which is a worse version of the problem
-    it solves.
+    Resolution order, strongest declaration first:
+
+    1. a binding registered in ``.project/paths.json``, but only if it is ``BOUND`` --
+       and ``BOUND`` is granted by ``ProjectPaths.tool_bindings()`` after checking the
+       path sits inside one of the declared shared-input roots. Without that second
+       opinion ``tools`` would just be an arbitrary executable path the project trusts,
+       which is a worse version of the problem it solves.
+    2. the project's own venv, when the registry entry declares ``resolution:
+       project-venv``. This is the entry's own stated source ("project .venv (locked by
+       uv.lock)"), and it is answered by checking the two standard venv layouts under the
+       project root -- so no absolute, machine-specific interpreter path has to be written
+       into a tracked file, which is what that entry's note exists to prevent.
+    3. the current process PATH.
+
+    A missing venv therefore falls through to PATH rather than being reported as present.
     """
     binding = (bindings or {}).get(name) or {}
     declared = binding.get("path") if binding.get("status") == "BOUND" else None
     declared_usable = bool(declared) and Path(str(declared)).is_file()
-    resolved = declared if declared_usable else shutil.which(name)
-    from_declared = bool(declared) and declared_usable
+    venv_path = None
+    if not declared_usable and resolution == "project-venv" and root is not None:
+        for layout in VENV_LAYOUTS:
+            candidate = Path(root) / layout
+            if candidate.is_file():
+                venv_path = candidate.as_posix()
+                break
+    resolved = (declared if declared_usable
+                else venv_path if venv_path
+                else shutil.which(name))
+    # Which source *actually* answered, derived from the resolution rather than from each
+    # source's own usability: a label computed independently of what won can describe a
+    # path that was never used (that mismatch is what a precedence swap exposed here).
+    from_declared = bool(declared) and declared_usable and resolved == declared
+    from_venv = bool(venv_path) and resolved == venv_path and not from_declared
     # Spelled as a variable assignment rather than inline in the dict: the state-vocabulary
     # gate scans this module's text and reads both branches of that assignment form to
     # prove the UI and this module share one vocabulary. Inlining the ternary here silently
@@ -82,8 +108,10 @@ def _probe_tool(name: str, declared_version: str | None,
         "kind": "tool",
         "resolved_path": resolved,
         "path_source": (f"declared:.project/paths.json#tools.{name}" if from_declared
+                        else "project-venv:.venv" if from_venv
                         else "shutil.which" if resolved else None),
         "search_scope": ("declared binding, then current process PATH" if from_declared
+                         else "project venv layouts, then current process PATH" if from_venv
                          else "current process PATH only"),
         "declared_version": declared_version,
         "state": state,
@@ -144,7 +172,8 @@ def preflight(root: Path, task_full_id: str, *, registry=None, paths_describe=No
         if kind == "tool":
             results.append({"ref": ref, "host_scope": host_scope,
                             **_probe_tool(entry.get("name", ref), entry.get("version"),
-                                          tool_bindings)})
+                                          tool_bindings, root=root,
+                                          resolution=entry.get("resolution"))})
         elif kind == "model":
             results.append({"ref": ref, "kind": "model", "host_scope": host_scope,
                             "state": "METADATA_ONLY",
