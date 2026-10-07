@@ -514,14 +514,16 @@ html,body{margin:0}
   mask-image:radial-gradient(circle at center, black 45%, transparent 95%);
 }
 .sidebar{
-  position:relative;
+  /* Sticky, not just tall: as a stretched grid item the sidebar grew to the
+     document height, so `.sidebar-footer`'s margin-top:auto parked the identity
+     block below the fold on every route taller than the viewport. */
+  position:sticky;top:0;height:100vh;overflow-y:auto;
   background:linear-gradient(180deg,color-mix(in srgb,var(--sidebar) 85%, #fff 2%),var(--sidebar));
   border-right:1px solid color-mix(in srgb,var(--border) 75%, transparent);
   padding:22px 18px;
   display:flex;
   flex-direction:column;
   backdrop-filter:blur(18px);
-  min-height:100vh;
 }
 .brand{
   display:flex;gap:14px;align-items:center;
@@ -654,7 +656,9 @@ html,body{margin:0}
 .kpi-grid,.two-col,.three-col,.split{
   display:grid;gap:16px;
 }
-.kpi-grid{grid-template-columns:repeat(4,minmax(0,1fr))}
+/* auto-fit, not a fixed 4: three routes hold three counters, and a 4-column
+   track left a ~240px hole at the right edge of the row. */
+.kpi-grid{grid-template-columns:repeat(auto-fit,minmax(210px,1fr))}
 .two-col{grid-template-columns:1.2fr 1fr}
 .three-col{grid-template-columns:repeat(3,minmax(0,1fr))}
 .split{grid-template-columns:1.35fr .95fr}

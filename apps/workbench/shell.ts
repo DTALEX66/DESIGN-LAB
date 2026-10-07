@@ -758,7 +758,7 @@ export async function renderBrandSystems(target: HTMLElement): Promise<void> {
     el('div', { class: 'page-actions' }));
   const kpis = el('div', { class: 'kpi-grid' },
     kpiCard(String(sysCount), '设计系统', '资源登记总数 · 服务端目录读回'),
-    kpiCard(String(BRAND_MODULES.length), 'VI 模块', 'Logo / Color / Typography / … / Assets'),
+    kpiCard(String(BRAND_MODULES.length), 'VI 模块', BRAND_MODULES.join(' / ')),
     kpiCard('—', '活跃绑定', '绑定在工作台 DESIGN LAYER 执行'));
   // B10 1:1 three-col brand panels — .panel/.tag/.muted bodies only (B10 CSS 已存在类).
   const moduleGrid = el('div', { class: 'three-col' },
