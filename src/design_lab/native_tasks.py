@@ -180,7 +180,15 @@ CREATE TABLE IF NOT EXISTS native_recovery_protocol_v2 (
             evidence=jobs._evidence(dict(operation_id=op,attempt_id=aid,artifact_sha256=digest,readback_sha256=digest,
                 kind='native-host-published',native=result['native'],version_id=result['asset']['version_id'],rights='NOT_REVIEWED'),op,aid)
             jobs._resolution(conn,aid,'effect_verified',evidence);jobs._op(conn,op,'SUCCEEDED')
-            jobs._change(conn,current,'RECEIPTED','native readback and published bytes verified')
+            # A cancel the adapter never acknowledged must not vanish into a success.
+            # RECEIPTED is the truthful state -- the bytes really were published and
+            # read back -- but the record has to say the operator asked and the host
+            # delivered anyway, or the ledger reads as an uncontested completion.
+            jobs._change(conn,current,'RECEIPTED',
+                         'native readback and published bytes verified after a cancel '
+                         'request the adapter never acknowledged'
+                         if current['state']=='CANCEL_REQUESTED'
+                         else 'native readback and published bytes verified')
             result['attempt']=jobs._record(conn,aid)
             conn.execute('UPDATE native_execution_v1 SET result_json=? WHERE attempt_id=?',(_json(result),aid))
             conn.execute('DELETE FROM native_host_guard_v1 WHERE host=? AND attempt_id=?',(host,aid))

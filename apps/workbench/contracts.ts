@@ -12,10 +12,18 @@ export interface TaskAttempt {
   state: string;
 }
 
+export interface TaskCancel {
+  requested: boolean;
+  acknowledged: boolean;
+}
+
 export interface TaskRecord {
   kind: string;
   state: string;
   job_id: string;
+  // The service emits both flags for every attempt, so a receipted task can be told apart
+  // from one whose cancellation the operator asked for and the host never acknowledged.
+  cancel: TaskCancel;
   attempt: TaskAttempt;
 }
 

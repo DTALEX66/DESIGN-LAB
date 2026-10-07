@@ -373,6 +373,17 @@ const byElementId = (root, id) => findIn(root, (node) => Boolean(node && node.at
   && typeof node.attributes.get === 'function' && node.attributes.get('id') === id));
 
 const BUNDLE_ID = 'bundle-native-' + '0123456789abcdef'.repeat(4);
+const BUNDLE_ROW = { id: BUNDLE_ID, kind: 'design-bundle', version_id: 'v-1', version_no: 1,
+  byte_size: 2048, sha256: 'sha256:' + 'a'.repeat(64),
+  rights: 'NOT_REVIEWED', verification: 'METADATA_ONLY' };
+const TASK_ROW = (cancel) => ({ kind: 'photoshop-native', state: 'SUCCEEDED', job_id: 'job-1',
+  cancel, attempt: { attempt_id: 'att-1', attempt_no: 1, state: 'RECEIPTED',
+                     started_at: 'now', ended_at: 'now' } });
+const resolveDeliverables = (requests, tasks) => {
+  for (const request of requests)
+    request.resolve(response(request.path.endsWith('/bundles') ? { bundles: [BUNDLE_ROW] }
+      : { tasks }));
+};
 const PREFLIGHT_READBACK = {
   schemaVersion: 'design-lab/artifact-preflight/v1', profile: 'print',
   profileSchema: 'design-lab/preflight-profile/v1', verdict: 'INCOMPLETE',
@@ -403,13 +414,7 @@ const built = shell.pending.splice(0, shell.pending.length);
 for (const request of built)
   if (request.path.includes('/preflight'))
     throw new Error(`构建交付中心时就在预检 ${request.path} —— 没有人选过交付包，结论只能是猜测`);
-for (const request of built) {
-  request.resolve(response(request.path.endsWith('/bundles')
-    ? { bundles: [{ id: BUNDLE_ID, kind: 'design-bundle', version_id: 'v-1', version_no: 1,
-                   byte_size: 2048, sha256: 'sha256:' + 'a'.repeat(64),
-                   rights: 'NOT_REVIEWED', verification: 'METADATA_ONLY' }] }
-    : { tasks: [] }));
-}
+resolveDeliverables(built, [TASK_ROW({ requested: true, acknowledged: false })]);
 await flush();
 // Reads that start after the awaited join still happen without a click, so the stray
 // check has to run once the page has settled -- not only at the splice above.
@@ -458,6 +463,18 @@ if (!refused.includes('预检未确认') || !refused.includes('归档摘要与�
 if (refused.includes('INCOMPLETE'))
   throw new Error('拒绝后上一条判定仍留在屏上，等于把失败的请求算成了一个结论');
 
-console.log('ok: ⑥ 产物预检列不自动跑、一次点击一个请求、判据与未量项上屏、拒绝替换旧判定');
+// The cancel flags, on the same page. An attempt that receipted after the operator asked
+// it to stop is a different outcome from an uncontested completion, and the state word
+// alone cannot show it.
+if (!routeView.textContent.includes('取消未确认'))
+  throw new Error('取消未被确认却交付了结果时页面必须说出来，只写 RECEIPTED 会把被拒绝的操作说成被接受');
+projectSelect.onchange();
+const quiet = shell.pending.splice(0, shell.pending.length);
+resolveDeliverables(quiet, [TASK_ROW({ requested: false, acknowledged: false })]);
+await flush();
+if (routeView.textContent.includes('取消未确认'))
+  throw new Error('没有人请求取消时，页面不得说取消未确认');
+
+console.log('ok: ⑥ 产物预检列不自动跑、一次点击一个请求、判据与未量项上屏、拒绝替换旧判定、未确认的取消上屏');
 
 console.log('APPSHELL REGRESSION: all checks passed');

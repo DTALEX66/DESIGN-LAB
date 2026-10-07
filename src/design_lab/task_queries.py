@@ -36,10 +36,16 @@ class TaskQueries:
     def _rows(conn, project_id, job_id=None, after=''):
         return conn.execute(
             'SELECT j.job_id,j.operation_id,o.state,o.updated_at,i.idempotency_scope,'
-            'a.attempt_id,a.attempt_no,a.state AS attempt_state,a.started_at,a.ended_at '
+            'a.attempt_id,a.attempt_no,a.state AS attempt_state,a.started_at,a.ended_at,'
+            # The cancel flags travel with the attempt so a reader can tell "nobody asked"
+            # from "the operator asked and the host delivered anyway". COALESCE because a
+            # pre-v2 attempt can have no resolution row at all.
+            "COALESCE(r.cancel_requested,0) AS cancel_requested,"
+            'COALESCE(r.cancel_acked,0) AS cancel_acked '
             'FROM job j JOIN operation_intent i ON i.operation_id=j.operation_id '
             'JOIN operation_state o ON o.operation_id=j.operation_id '
             'JOIN attempt_state a ON a.job_id=j.job_id '
+            'LEFT JOIN attempt_resolution r ON r.attempt_id=a.attempt_id '
             'WHERE i.idempotency_scope IN (?,?,?) AND (? IS NULL OR j.job_id=?) AND j.job_id>? '
             'AND a.attempt_no=(SELECT MAX(b.attempt_no) FROM attempt_state b WHERE b.job_id=j.job_id) '
             'ORDER BY j.job_id LIMIT 101',
@@ -52,6 +58,8 @@ class TaskQueries:
                 'kind': ('image-import' if row['idempotency_scope'].startswith('image-import:')
                          else row['idempotency_scope'].rsplit(':',1)[1]+'-native'),
                 'state': row['state'], 'updated_at': row['updated_at'],
+                'cancel': {'requested': bool(row['cancel_requested']),
+                           'acknowledged': bool(row['cancel_acked'])},
                 'attempt': {'attempt_id': row['attempt_id'], 'attempt_no': row['attempt_no'],
                             'state': row['attempt_state'], 'started_at': row['started_at'],
                             'ended_at': row['ended_at']}}

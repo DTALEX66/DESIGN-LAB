@@ -1751,7 +1751,12 @@ export async function renderDeliverables(target: HTMLElement): Promise<void> {
       preflightOut);
     const tasksRows: (HTMLElement | null)[] = tasks.tasks.length
       ? tasks.tasks.map((t) => el('tr', {},
-          el('td', {}, t.kind), el('td', {}, t.state), el('td', {}, t.attempt.state)))
+          el('td', {}, t.kind), el('td', {}, t.state),
+          el('td', {}, t.attempt.state,
+            // RECEIPTED alone cannot tell an uncontested completion from one the operator
+            // asked to stop and the host delivered anyway; the flags are what separate them.
+            t.cancel.requested && !t.cancel.acknowledged
+              ? el('span', { class: 'tag warn' }, '取消未确认') : '')))
       : [el('tr', {}, emptyTd(tasks, '尚无任务', '任务完成后交付包随读回导出。', 3))];
     const tasksPanel = el('div', { class: 'panel' },
       el('h3', {}, `交付候选任务（${tasks.tasks.length}）`),

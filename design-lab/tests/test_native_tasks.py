@@ -149,6 +149,43 @@ class NativeTaskTests(unittest.TestCase):
         self.assertEqual(result['attempt']['state'],'CANCELLED')
         self.assertFalse((self.run/'output.psd').exists())
 
+    def test_cancel_requested_while_the_host_works_stays_visible_after_receipt(self):
+        # No adapter event can acknowledge a stop, so a cancel asked mid-flight ends one of
+        # two ways: the host fails (CANCELLED) or it delivers (RECEIPTED with the cancel
+        # unacknowledged). The second used to be indistinguishable from an uncontested
+        # completion on every surface, which is how a refused operation reads as accepted.
+        from design_lab.task_queries import TaskQueries
+        module=self.module()
+        queued=module.NativeTasks(self.service).enqueue(self.project,'photoshop',self.job,
+            idempotency_key='key',approved_root=self.run,authorization=self.authorization)
+        aid=queued['attempt']['attempt_id']
+        def dispatch_with_cancel(host,job,**kwargs):
+            with closing(job_store.connect(self.service.database,project_root=self.root)) as conn:
+                job_store.request_cancel(conn,aid)
+            return self.native(host,job,**kwargs)
+        with patch.object(module,'_dispatch',side_effect=dispatch_with_cancel):
+            result=module.NativeTasks(self.service).execute_queued(aid)
+        self.assertEqual(result['attempt']['state'],'RECEIPTED')
+        self.assertIn('cancel',result['attempt']['note'])
+        self.assertIn('never acknowledged',result['attempt']['note'])
+        task=TaskQueries(self.service).get(self.project,result['attempt']['job_id'])['task']
+        self.assertEqual(task['cancel'],{'requested':True,'acknowledged':False})
+        with closing(job_store.connect(self.service.database,project_root=self.root)) as conn:
+            row=conn.execute('SELECT cancel_requested,cancel_acked FROM attempt_resolution'
+                             ' WHERE attempt_id=?',(aid,)).fetchone()
+        self.assertEqual((row[0],row[1]),(1,0),'an unacknowledged cancel must not be recorded as one')
+
+    def test_an_ordinary_receipt_reports_no_cancel_at_all(self):
+        """Falsification for the new readback field: `requested` must not default to true,
+        and a plain completion must say so rather than leaving the reader to guess."""
+        from design_lab.task_queries import TaskQueries
+        module=self.module()
+        with patch.object(module,'_dispatch',side_effect=self.native):
+            result=self.execute()
+        task=TaskQueries(self.service).get(self.project,result['attempt']['job_id'])['task']
+        self.assertEqual(task['cancel'],{'requested':False,'acknowledged':False})
+        self.assertNotIn('cancel',result['attempt']['note'])
+
     def test_queued_input_change_is_rejected_before_host_claim(self):
         module=self.module()
         queued=module.NativeTasks(self.service).enqueue(self.project,'photoshop',self.job,
