@@ -212,7 +212,7 @@ Accept/Reject/Change 面（合同完备、无路由无 UI，人工字段按铁�
 
 所以模型线索剩下的工作是权利裁决（owner）与宿主验证（E2+），不是我能靠读盘完成的。
 
-**capture 记录改为仓内相对路径（PR #271）。** `screenshot-manifest.json` 之前记的是解析后的
+**capture 记录改为仓内相对路径（PR #271，并入 13e8cc94）。** `screenshot-manifest.json` 之前记的是解析后的
 绝对路径，导致同样一次 capture 从 linked worktree 跑出来就和主 checkout 的记录不同——本轮
 因此把一份 39 张的批次留在了仓外。改为按仓内相对路径记录（与 PNG sidecar 一致），确实指向
 仓外时保留绝对形式。
@@ -220,3 +220,25 @@ Accept/Reject/Change 面（合同完备、无路由无 UI，人工字段按铁�
 **仍未收口、且需要 owner 拍的一条**：截图证据刷新遇到分叉。页序自 #259 起变化使旧的已提交 PNG
 全部成为孤儿，要么并存（≈ +5 MiB）、要么删受版本控制的旧图。新生成的 78 个文件已移到
 `.project-local/tmp/cap-orphans-270/` **备查未删**，仓库里的 manifest 未动。
+
+## 九、并入后的全量复观测（exact SHA ae309cef，本机）
+
+上面每一条都是分项证据；这里把整面重跑一遍，避免"每扇门各自绿、合起来没人验过"。
+
+| 面 | 命令 | 结果 |
+|---|---|---|
+| 统一校验器 | `python design-lab/scripts/verify_design_lab.py` | 56 项 PASS，exit 0 |
+| 溢出/裁切门 | `test_workbench_overflow_gate.py` | OK，43.2 s |
+| 对比度门 | `test_workbench_contrast_gate.py` | OK，57.2 s |
+| 浏览器纵切 | `test_workbench_design_layer_e2e.py`（`E2E_REQUIRED=1`） | PASS |
+| 预检交接 | `test_workbench_preflight_handoff_e2e.py` | OK |
+| node 三门 | `unit.mjs` / `shape-notice-coverage.mjs` / `appshell.mjs` | 全过，含 ⑤8 / ①7+零泄漏8 / ④2 / ②8双路径 |
+
+**两处我拒绝轻信的读数。** 纵切与预检两条"浏览器"测试只用了 2.7 s / 2.5 s，而对比度门要 57 s——
+这个差值可疑，所以没有直接采信。去读测试自己落盘的
+`.project-local/task-artifacts/browser-e2e/browser-e2e-summary.json`：`result: PASS`、
+`consoleErrors: 0`、12 个场景逐条在列（create-project → … → `reload-persisted-readback` →
+`mobile-appshell-layout`），浏览器是 headless shell。快是真的快（loopback + 无 sleep），不是没跑。
+
+同一份 summary 里 `subjectSha: "local"`——本机跑不绑定 SHA，只有 CI 会填。所以这条复观测的证据
+类别是"本机当前 SHA 的一次通过"，不能当 E3/E4，也不该被引用成 CI 结论。
