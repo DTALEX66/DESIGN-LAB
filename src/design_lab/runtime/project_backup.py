@@ -174,8 +174,9 @@ def _write_backup(local_root: Path, archive_path: Path, relatives,
             'projectLocalRootName': local_root.name,
             'productionQuiescence': proof,
             # Restore needs the root the archive came from to tell a relocated
-            # artifact path from a foreign one. Without it an archive can only be
-            # read back where it was made (see _relocate_artifact_paths).
+            # artifact or journal path from a foreign one. Without it an archive can
+            # only be read back where it was made (see _relocate_artifact_paths and
+            # _relocate_publication_journal).
             'sourceLocalRoot': str(local_root),
             'stateSchemaVersion': state_schema_version(local_root),
             'members': entries,
@@ -420,9 +421,10 @@ def restore_backup(archive_path, target_local_root, *, force: bool = False,
                 if _sha256_bytes(destination.read_bytes()) != entry['sha256']:
                     raise BackupError(f'restored hash mismatch: {relative.as_posix()}')
                 restored += 1
-        # Rebase the artifact index while it is still the staged copy, so the
+        # Rebase the live indexes while they are still the staged copy, so the
         # bytes that go on disk already point at where the files will be.
         artifacts = _relocate_artifact_paths(staged, manifest, destination_root=target)
+        journal = _relocate_publication_journal(staged, manifest, destination_root=target)
         relocated = artifacts['relocated']
         target.mkdir(parents=True, exist_ok=True)
         installed = []
@@ -452,6 +454,11 @@ def restore_backup(archive_path, target_local_root, *, force: bool = False,
             raise
     return {'schemaVersion': BACKUP_SCHEMA, 'restored': restored,
             'relocatedArtifactPaths': relocated,
+            # The crash journal travels too: its four path columns are filesystem
+            # coordinates, and a PREPARED row left pointing at the archived root
+            # is one recovery can never see (see _relocate_publication_journal).
+            'relocatedPublicationPaths': journal['relocated'],
+            'publicationJournalRows': journal['rows'],
             'artifactsHashVerified': artifacts['verified'],
             'artifactsUnverifiable': artifacts['unverifiable'],
             # Carried through from the archive: the backup either proved no writer
@@ -461,7 +468,8 @@ def restore_backup(archive_path, target_local_root, *, force: bool = False,
             # Signed execution history is deliberately not rewritten; a host
             # plan made under another root has to be replanned, not repointed.
             'nativeExecutionRecovery': 'REPLAN_REQUIRED_AFTER_RELOCATION'
-                                       if relocated else 'UNCHANGED',
+                                       if relocated or journal['relocated']
+                                       else 'UNCHANGED',
             'totalBytes': manifest['totalBytes'],
             'createdAt': manifest['createdAt'], 'verified': True,
             'compatibility': check}
@@ -536,3 +544,102 @@ def _relocate_artifact_paths(root, manifest, *, destination_root=None):
                 relocated += 1
         conn.commit()
         return {'relocated': relocated, 'verified': verified, 'unverifiable': unverifiable}
+
+
+# `asset_publication` columns that are filesystem coordinates and nothing else.
+# Every other column in the row is identity or verdict, and is never rewritten.
+PUBLICATION_PATH_COLUMNS = ('store_root', 'stage_path', 'final_path', 'quarantine_path')
+# Journal states product code reads back: PREPARED is the half-made publication
+# `asset_store.recover_publications` selects on (`WHERE store_root=? AND
+# state='PREPARED'`), COMMITTED is the row `asset_store.publish_version` re-reads
+# for its idempotency check and `_check_path`s against the store root it was handed.
+JOURNAL_STATES_READ_BACK = ('PREPARED', 'COMMITTED')
+
+
+def _relocate_publication_journal(root, manifest, *, destination_root=None):
+    """Rebase the publication journal's path columns into the restore target.
+
+    WHY THIS IS THE SAFE FORM. `asset_publication` is the crash journal
+    `publish_version` writes before it renames, and `recover_publications` reads it
+    back with `WHERE store_root=? AND state='PREPARED'`. The four columns here are
+    pure filesystem coordinates, so the same rebase the artifact index already gets
+    applies to them: left archived-stale, the new root's recovery selects nothing
+    and the in-flight publication is neither recovered nor reported, while a
+    COMMITTED row makes `publish_version` raise 'publication path escapes store
+    root' over bytes that are in fact sitting beside the index. Selecting by
+    identity instead -- dropping the `store_root=?` predicate -- would widen every
+    live root's recovery to rows belonging to other stores, so the journal text is
+    corrected and the predicate is not.
+
+    Only path data is rewritten. `state`, `sha256`, `holder_attempt_id`,
+    `generation`, `version_id`, `publication_id`, `asset_id` and `created_at` stay
+    exactly as archived: they are the fenced writer's verdict and identity, and
+    re-dating or re-fencing a journal row would launder a claim this root never
+    made. Nothing here claims the journal's bytes are proven either -- a PREPARED
+    row may hold a partial staged copy by design (recovery quarantines it, or
+    reports MISSING), so no digest is re-checked here; the artifact index is where
+    `_relocate_artifact_paths` proves bytes against digests.
+
+    What this deliberately does NOT touch:
+    * `native_host_guard_v1` -- it carries no path column, and its claim is
+      non-expiring on purpose ('Host guards deliberately never expire',
+      native_tasks.py). Clearing, re-dating or re-keying a restored guard would let
+      a second writer share a host the archived attempt may still be holding.
+    * `native_execution_v1` and the attempt/operation state -- signed execution
+      records, never rewritten per the standing owner ruling; that is why the
+      receipt reports REPLAN_REQUIRED_AFTER_RELOCATION instead of repointing them.
+
+    A journal row naming a path outside the archived local root is refused, exactly
+    as an artifact row naming one is: it indexes bytes nobody backed up.
+    """
+    database = Path(root) / 'task-runtime/service/state.db'
+    if not database.is_file():
+        return {'relocated': 0, 'rows': 0}
+    destination_root = Path(root) if destination_root is None else Path(destination_root)
+    source_root = manifest.get('sourceLocalRoot')
+    with closing(sqlite3.connect(database)) as conn:
+        if not conn.execute("SELECT 1 FROM sqlite_master WHERE type='table' "
+                           "AND name='asset_publication'").fetchone():
+            return {'relocated': 0, 'rows': 0}
+        relocated = rows = 0
+        selected = ', '.join(PUBLICATION_PATH_COLUMNS)
+        for rowid, state, *paths in conn.execute(
+                f'SELECT rowid, state, {selected} FROM asset_publication').fetchall():
+            rows += 1
+            if source_root is None:
+                # No origin recorded, so a moved path cannot be told from a foreign
+                # one. A row that product code still has to read back is then a
+                # publication this restore can never make recoverable, and the
+                # honest answer is to refuse, not to report a clean restore.
+                if state in JOURNAL_STATES_READ_BACK:
+                    stored = Path(paths[0])
+                    if stored.is_absolute() and not stored.is_relative_to(destination_root):
+                        raise BackupError(
+                            'legacy archive records no source root; its '
+                            f'{state} publication journal still names a store outside '
+                            f'the restore target, so it cannot be recovered here: '
+                            f'{paths[0]}')
+                continue
+            source = Path(source_root)
+            updates = []
+            for column, value in zip(PUBLICATION_PATH_COLUMNS, paths):
+                original = Path(value)
+                if not original.is_absolute():
+                    # The store always writes absolute paths; anything else travels
+                    # as it is rather than being guessed at.
+                    continue
+                if not original.is_relative_to(source):
+                    raise BackupError(f'publication journal {column} is outside the '
+                                      f'archived local root: {value}')
+                moved = destination_root / original.relative_to(source)
+                if str(moved) != value:
+                    updates.append((str(moved), column))
+            if updates:
+                # Column names come from PUBLICATION_PATH_COLUMNS, never from data.
+                conn.execute('UPDATE asset_publication SET '
+                             + ', '.join(f'{column} = ?' for _, column in updates)
+                             + ' WHERE rowid = ?',
+                             tuple(value for value, _ in updates) + (rowid,))
+                relocated += 1
+        conn.commit()
+        return {'relocated': relocated, 'rows': rows}

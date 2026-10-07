@@ -496,8 +496,8 @@ def _insert_artifact(local: Path, stored_path, digest):
         conn.commit()
 
 
-def _publication_row(local: Path, publication_id, state, holder='attempt-1'):
-    root = local / 'projects/p1/assets'
+def _publication_row(local: Path, publication_id, state, holder='attempt-1', *, root=None):
+    root = Path(local) / 'projects/p1/assets' if root is None else Path(root)
     with closing(sqlite3.connect(local / 'task-runtime/service/state.db')) as conn:
         conn.execute('INSERT INTO asset_publication VALUES (?,?,?,?,?,?,?,?,?,?,?,?)',
                      (publication_id, 'a1', str(root), str(root / 'staging'),
@@ -687,6 +687,338 @@ class WriteCoordinationTests(unittest.TestCase):
         receipt = restore_backup(self.archive, self.base / 'partial')
         self.assertEqual(receipt['artifactsHashVerified'], 0)
         self.assertEqual(receipt['artifactsUnverifiable'], 1)
+
+
+def _owner_root(parent: Path, name: str) -> Path:
+    """A real project owner: the AGENTS.md marker `resolve_paths` demands."""
+    owner = parent / name
+    owner.mkdir(parents=True)
+    (owner / 'AGENTS.md').write_text('# synthetic publication fixture', encoding='utf-8')
+    return owner
+
+
+def _barrier_blind_to(*labels):
+    """Write an archive the CURRENT quiescence barrier would refuse to produce.
+
+    `create_backup` blocks on a PREPARED journal row and on a host-guard row --
+    both are in `project_backup.ACTIVITY_QUERIES` -- so this build cannot put
+    either into an archive. An archive made by a build whose barrier did not look
+    at that table carries whatever the journal held, though, and the restore is the
+    side that has to survive it. Only the named labels are hidden, and only while
+    the archive is being built: the restore, the recovery and the host claim under
+    test all run on unpatched product code.
+    """
+    from unittest.mock import patch
+    from design_lab.runtime import project_backup
+    kept = tuple(entry for entry in project_backup.ACTIVITY_QUERIES
+                 if entry[0] not in labels)
+    if len(kept) == len(project_backup.ACTIVITY_QUERIES):
+        raise AssertionError(f'no barrier label named {labels}')
+    return patch.object(project_backup, 'ACTIVITY_QUERIES', kept)
+
+
+class PublicationJournalTests(unittest.TestCase):
+    """A crash journal has to survive being restored under a different root.
+
+    `asset_store.recover_publications` selects
+    `WHERE store_root=? AND state='PREPARED'`, and the restore only ever rebased
+    the artifact index, so a journal row that travelled into a new root stayed
+    pointing at the old one: the new root's recovery selected nothing and returned
+    an empty list -- neither recovered nor missing, just quiet. Same row, same
+    bytes, same store.
+    """
+
+    def setUp(self):
+        from unittest.mock import patch
+        self.base = Path(tempfile.mkdtemp(dir=REPO / '.project-local' / 'task-runtime'))
+        self.environment = patch.dict(os.environ)
+        self.environment.start()
+        self.addCleanup(self.environment.stop)
+        os.environ.pop('PROJECT_LOCAL_ROOT', None)
+        self.owner = _owner_root(self.base, 'journal-owner')
+        self.local = self.owner / '.project-local'
+        self.db = self.local / 'task-runtime' / 'service' / 'state.db'
+        self.archive = self.base / 'journal.zip'
+        from design_lab.service import ProjectService
+        self.service = ProjectService(self.owner)
+        self.project = self.service.create_project('Journal restore fixture')['id']
+        self.store = self.service.paths.category_dir('projects', self.project, 'assets')
+
+    def _recovered_owner(self, name='journal-recovered'):
+        return _owner_root(self.base, name)
+
+    def _member_bytes(self):
+        """One real file under `projects`, so the archive has a member to carry."""
+        member = self.local / 'projects' / self.project / 'assets' / 'journal-fixture.txt'
+        member.parent.mkdir(parents=True, exist_ok=True)
+        member.write_bytes(b'journal fixture bytes')
+        return member
+
+    def _journal_verdict(self, database):
+        """The columns that are identity or verdict, never path data."""
+        with closing(sqlite3.connect(database)) as conn:
+            return conn.execute('SELECT publication_id, asset_id, state, sha256,'
+                                ' holder_attempt_id, generation, version_id, created_at'
+                                ' FROM asset_publication').fetchall()
+
+    def _recovered_store(self, recovered):
+        """The store root exactly as the product computes it for recovery."""
+        from design_lab.service import ProjectService
+        return ProjectService(recovered).paths.category_dir('projects', self.project,
+                                                            'assets')
+
+    def _crash_a_publication(self, *, release=True):
+        """Publish through the product and die between stage and commit.
+
+        Returns (digest, staged_file). `publish_version` never releases
+        the lease -- the caller does (image_assets.py:131) -- so releasing it here
+        is what leaves a journal row for the archive rather than a live writer.
+        """
+        from unittest.mock import patch
+        from design_lab.runtime import asset_store as assets
+        source = self.base / 'incoming.psd'
+        source.write_bytes(b'publication bytes that never committed' * 5)
+        digest = 'sha256:' + hashlib.sha256(source.read_bytes()).hexdigest()
+        with closing(sqlite3.connect(self.db)) as conn:
+            assets.register_asset(conn, self.project, 'a1', 'psd')
+            self.assertTrue(assets.acquire_writer(conn, 'asset:a1', 'attempt-crash',
+                                                  lease_seconds=60))
+            generation = assets.writer_token(conn, 'asset:a1', 'attempt-crash')
+            with patch.object(assets, '_after_stage',
+                              side_effect=OSError('stopped between stage and commit')):
+                with self.assertRaises(OSError):
+                    assets.publish_version(conn, 'a1', source, store_root=self.store,
+                                           artifact_name='native.psd',
+                                           expected_sha256=digest,
+                                           holder_attempt_id='attempt-crash',
+                                           generation=generation,
+                                           project_root=self.owner)
+            if release:
+                assets.release_writer(conn, 'asset:a1', 'attempt-crash',
+                                      generation=generation)
+            conn.commit()
+            staged = conn.execute("SELECT stage_path FROM asset_publication"
+                                  " WHERE state='PREPARED'").fetchone()[0]
+        return digest, Path(staged)
+
+    def test_prepared_publication_from_the_archive_is_recovered_in_the_new_root(self):
+        digest, staged = self._crash_a_publication()
+        self.assertTrue(staged.is_file(), 'the fixture must leave the half-made bytes')
+        before = self._journal_verdict(self.db)
+        with _barrier_blind_to('PREPARED_PUBLICATION'):
+            manifest = create_backup(self.local, self.archive)
+        self.assertTrue(any('/staging/' in entry['path'] for entry in manifest['members']),
+                        'the staged bytes have to travel in the archive')
+
+        recovered = self._recovered_owner()
+        target = recovered / '.project-local'
+        restored_db = target / 'task-runtime/service/state.db'
+        receipt = restore_backup(self.archive, target)
+        with closing(sqlite3.connect(restored_db)) as conn:
+            rebased = conn.execute('SELECT store_root, stage_path, final_path,'
+                                   ' quarantine_path FROM asset_publication').fetchone()
+        # Read before recovery runs: recovery is entitled to rewrite `state`, and
+        # nothing else, so the verdict has to be judged while only the restore has
+        # had its hand on the row.
+        verdict_after_restore = self._journal_verdict(restored_db)
+
+        # The claim itself, in the order that matters: the product's own recovery,
+        # run against the new root the way `native_tasks` runs it, has to find the
+        # row. Pre-fix this returned [] -- the row was neither recovered nor
+        # reported, only quiet.
+        from design_lab.runtime import asset_store as assets
+        restored_store = self._recovered_store(recovered)
+        with closing(sqlite3.connect(restored_db)) as conn:
+            recovered_rows = assets.recover_publications(conn, store_root=restored_store,
+                                                         project_root=recovered)
+        self.assertEqual([row['state'] for row in recovered_rows], ['QUARANTINED'],
+                         'an archived PREPARED row must be recovered, not skipped')
+        # The recovery was handed exactly what this build computes for the new
+        # owner's asset category (native_tasks.py:161), and it reached the row: so
+        # the stored text has to be that same path, not merely some path in it.
+        self.assertEqual(rebased[0], str(restored_store),
+                         'the rebased store root must be what this build computes')
+        quarantined = Path(recovered_rows[0]['path'])
+        self.assertEqual(quarantined, Path(rebased[3]))
+        self.assertTrue(quarantined.is_relative_to(target))
+        self.assertEqual('sha256:' + hashlib.sha256(quarantined.read_bytes()).hexdigest(),
+                         digest, 'recovery must quarantine the bytes that really travelled')
+        self.assertFalse(Path(rebased[1]).exists(),
+                         'recovery moved the restored staging copy, not some other file')
+        self.assertTrue(staged.is_file(),
+                        'a restore must leave the root it came from alone')
+
+        # Then what the restore itself reports, and what it refused to touch.
+        self.assertEqual(receipt['relocatedPublicationPaths'], 1,
+                         'the archived journal row must have been rebased into the target')
+        self.assertEqual(receipt['relocatedArtifactPaths'], 0,
+                         'a PREPARED row has no artifact row; only the journal moved')
+        self.assertEqual(receipt['nativeExecutionRecovery'], 'REPLAN_REQUIRED_AFTER_RELOCATION')
+        self.assertEqual(verdict_after_restore, before,
+                         'a restore fixes path columns only; the verdict travels')
+        for stored in rebased:
+            self.assertTrue(Path(stored).is_relative_to(target),
+                            f'{stored} still names the root it was archived from')
+            self.assertFalse(Path(stored).is_relative_to(self.local),
+                             f'{stored} was not rebased out of the source root')
+
+    def test_committed_journal_path_is_rebased_so_identical_bytes_return_the_version(self):
+        """The same gap on a row this build can archive: COMMITTED final_path.
+
+        `publish_version` re-reads a COMMITTED row for its idempotency check and
+        `_check_path`s the stored final path against the root it was handed. Left
+        archived-stale, re-publishing bytes that are genuinely present raises
+        'publication path escapes store root'.
+        """
+        from design_lab.runtime import asset_store as assets
+        source = self.base / 'committed.psd'
+        source.write_bytes(b'fully published bytes' * 4)
+        digest = 'sha256:' + hashlib.sha256(source.read_bytes()).hexdigest()
+        with closing(sqlite3.connect(self.db)) as conn:
+            assets.register_asset(conn, self.project, 'a2', 'psd')
+            assets.acquire_writer(conn, 'asset:a2', 'attempt-ok', lease_seconds=60)
+            generation = assets.writer_token(conn, 'asset:a2', 'attempt-ok')
+            version = assets.publish_version(conn, 'a2', source, store_root=self.store,
+                                             artifact_name='native.psd',
+                                             expected_sha256=digest,
+                                             holder_attempt_id='attempt-ok',
+                                             generation=generation,
+                                             project_root=self.owner)
+            assets.release_writer(conn, 'asset:a2', 'attempt-ok', generation=generation)
+            conn.commit()
+        create_backup(self.local, self.archive)
+
+        recovered = self._recovered_owner('committed-recovered')
+        target = recovered / '.project-local'
+        receipt = restore_backup(self.archive, target)
+
+        # The claim first: re-publishing the very same bytes into the restored root
+        # must resolve to the version that already exists, not error over a journal
+        # row that still names the root the archive came from.
+        restored_store = self._recovered_store(recovered)
+        with closing(sqlite3.connect(target / 'task-runtime/service/state.db')) as conn:
+            assets.register_asset(conn, self.project, 'a2', 'psd')
+            assets.acquire_writer(conn, 'asset:a2', 'attempt-again', lease_seconds=60)
+            again = assets.writer_token(conn, 'asset:a2', 'attempt-again')
+            try:
+                returned = assets.publish_version(conn, 'a2', source,
+                                                  store_root=restored_store,
+                                                  artifact_name='native.psd',
+                                                  expected_sha256=digest,
+                                                  holder_attempt_id='attempt-again',
+                                                  generation=again,
+                                                  project_root=recovered)
+            finally:
+                assets.release_writer(conn, 'asset:a2', 'attempt-again', generation=again)
+            versions = conn.execute('SELECT COUNT(*) FROM asset_version').fetchone()[0]
+        self.assertEqual(returned, version,
+                         'the same bytes must resolve to the version already published')
+        self.assertEqual(versions, 1, 'no second version row may be minted for the same bytes')
+        self.assertEqual(receipt['relocatedPublicationPaths'], 1,
+                         'the committed journal row must have been rebased into the target')
+
+    def test_legacy_archive_with_an_unrecoverable_prepared_row_refuses_the_restore(self):
+        """No recorded origin means no honest rebase: refuse, do not report clean."""
+        self._crash_a_publication()
+        with _barrier_blind_to('PREPARED_PUBLICATION'):
+            create_backup(self.local, self.archive)
+        legacy = self.base / 'legacy-journal.zip'
+        _rewrite_manifest(self.archive, legacy, drop=('sourceLocalRoot',))
+        target = self.base / 'legacy-journal-target'
+        with self.assertRaisesRegex(BackupError, 'cannot be recovered here'):
+            restore_backup(legacy, target / 'recovery')
+        self.assertFalse((target / 'recovery' / 'task-runtime').exists(),
+                         'a refused restore must not leave a half-restored root behind')
+        # Same archive, same root it came from: the journal rows already live where
+        # they point, so the refusal is about the move and not about the row.
+        receipt = restore_backup(legacy, self.local, force=True)
+        self.assertEqual(receipt['relocatedPublicationPaths'], 0)
+
+    def test_journal_row_naming_bytes_outside_the_archived_root_refuses_the_restore(self):
+        """A journal row indexing bytes nobody backed up is not restorable.
+
+        The artifact index already answers this way (`_relocate_artifact_paths`
+        refuses an artifact path outside the archived local root); the journal is
+        the second index of the same bytes and gets the same answer, because a
+        rebase that happily rewrote a foreign path would be pointing recovery at
+        bytes outside the restore it is supposed to be making.
+        """
+        self._member_bytes()
+        foreign = self.base / 'elsewhere' / 'assets'
+        _publication_row(self.local, 'pub-foreign', 'PREPARED', root=foreign)
+        with _barrier_blind_to('PREPARED_PUBLICATION'):
+            create_backup(self.local, self.archive)
+        with self.assertRaisesRegex(BackupError,
+                                    'publication journal store_root is outside'):
+            restore_backup(self.archive,
+                           self.base / 'foreign-target' / '.project-local')
+        self.assertFalse((self.base / 'foreign-target' / '.project-local').exists(),
+                         'a refused restore must not leave a half-restored root behind')
+
+    def test_archived_host_guard_is_never_relocated_or_revived(self):
+        """The guard has no path column, so the journal rebase must leave it alone.
+
+        'Not revived' is asserted both ways: the archived claim travels verbatim --
+        no refreshed `acquired_at`, no re-keyed attempt, no deleted row -- and the
+        restored project still cannot claim that host for a new attempt, because a
+        guard cleared or re-dated by a restore would let a second writer share a
+        host the archived attempt may still be holding.
+        """
+        from unittest.mock import patch
+        from design_lab.runtime import job_store as jobs
+        from design_lab.runtime.attempt_contract import request_hash
+        self._member_bytes()
+        # Every row here goes in through the product's own stores, so the archived
+        # database is one the product could have written -- including the attempt
+        # the guard points at, which the restored root needs present to judge it.
+        with closing(jobs.connect(self.db, project_root=self.owner)) as conn:
+            conn.execute(_tracked_ddl('native_host_guard_v1'))
+            claimed = jobs.begin_attempt(conn, 'job-guard', operation_id='op-guard',
+                                         idempotency_scope='native:p1:illustrator',
+                                         idempotency_key='guard-claim',
+                                         request_hash=request_hash({'host': 'illustrator'}))
+            archived = ('illustrator', claimed['attempt_id'], '2026-10-08T00:00:00Z')
+            conn.execute('INSERT INTO native_host_guard_v1 VALUES (?,?,?)', archived)
+            conn.commit()
+            archived_attempt = conn.execute(
+                'SELECT attempt_id, job_id, attempt_no, state, started_at, ended_at, note'
+                ' FROM attempt_state').fetchone()
+        _publication_row(self.local, 'pub-alongside-guard', 'PREPARED')
+        with _barrier_blind_to('PREPARED_PUBLICATION', 'HOST_GUARD', 'NON_TERMINAL_ATTEMPT'):
+            create_backup(self.local, self.archive)
+
+        recovered = self._recovered_owner('guard-recovered')
+        target = recovered / '.project-local'
+        receipt = restore_backup(self.archive, target)
+        self.assertEqual(receipt['relocatedPublicationPaths'], 1,
+                         'the journal rebase must really have run on this database')
+        restored = target / 'task-runtime' / 'service' / 'state.db'
+        with closing(sqlite3.connect(restored)) as conn:
+            self.assertEqual(conn.execute('SELECT host, attempt_id, acquired_at'
+                                          ' FROM native_host_guard_v1').fetchall(),
+                             [archived],
+                             'the guard travels verbatim: not cleared, not re-dated,'
+                             ' not re-keyed to an attempt this root made')
+            self.assertEqual(conn.execute(
+                'SELECT attempt_id, job_id, attempt_no, state, started_at, ended_at, note'
+                ' FROM attempt_state').fetchone(), archived_attempt,
+                'signed attempt state is never rewritten by a restore')
+        # Through the product's own claim path: a fresh attempt in the restored
+        # root is refused the host, so nothing was absorbed, cleared or re-issued.
+        from design_lab.native_tasks import NativeTasks, NativeTaskError
+        from design_lab.service import ProjectService
+        with patch.dict(os.environ):
+            os.environ.pop('PROJECT_LOCAL_ROOT', None)
+            tasks = NativeTasks(ProjectService(recovered))
+            with closing(tasks._connect()) as conn:
+                attempt = jobs.begin_attempt(conn, 'job-guard-check',
+                                             operation_id='op-guard-check',
+                                             idempotency_scope='native:p1:illustrator',
+                                             idempotency_key='guard-check',
+                                             request_hash=request_hash({'host': 'illustrator',
+                                                                        'project': 'p1'}))
+                with self.assertRaisesRegex(NativeTaskError, 'HOST_BUSY_UNRESOLVED'):
+                    tasks._claim(conn, attempt, 'illustrator')
 
 
 class BackupCliTests(unittest.TestCase):
