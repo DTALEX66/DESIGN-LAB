@@ -594,5 +594,28 @@ v.version_id ORDER BY CASE g.role WHEN 'deliverable' THEN 0 ELSE 1 END, g.path L
 46 条 delivery 范围用例通过。
 
 
+## 14. 第九段:备份的"没有人在写"证明,看不见人工签署(2026-10-08 追加)
+
+`project_backup.py` 的静默证明由两部分组成:活动查询(租约、未完成 attempt、宿主守卫)
+加 `COUNTER_QUERIES`(只增计数器的前后对比,用来抓"在抓取窗口里开始并完成"的写入)。
+但 **`jury_record` 与 `quality_record` 都不取写租约** —— `jury_store.record()` /
+`quality_store.record()` 直接 commit —— 也不在任何活动查询里。于是:一次人在页面上签裁决的
+动作正好落在备份窗口内时,前后两次读取的活动集合仍然为空,归档照样写着
+`productionQuiescence=PROVED_QUIESCENT`,而那份签名**不在这个包里**。
+这是"用一次证明掩盖另一类写入",与 §5.4 那个"取消未确认却报成功"是同族。
+
+修法是把这两张表加进计数器集合(缺表时 `_read_activity` 本来就跳过,所以对旧库安全),
+并让用例真的在窗口里签一条:`_database_snapshot` 被包住,签名落在前后两次读取之间,
+`create_backup` 必须以 `moved during the backup window` 拒绝,且**不留半成品归档**。
+反证:删掉这两行计数器,用例立刻在"备份没在看的表,就看不见它动"这条断言上红
+(`.project-local/tmp/falsify_backup_watches_human_records.py`),还原后 43 条绿
+(其中 1 条是本仓既有的按名跳过,不是本次新增)。
+
+同一族里我此刻**不**动的两处,理由是它们不是谎而是设计选择:`RECEIPT_QUERY` 的 artifact 连接
+是故意的 EXISTS 过滤并用 `fetchone` 读取(重复行不改变结论);
+`delivery_receipt_v1` 有租约与代际围栏保护,已经在活动查询覆盖范围内。
+rights 表落地之后必须同样进入计数器 —— 该要求已写进任务 #10 的验收条件,不是事后追认。
+
+
 
 

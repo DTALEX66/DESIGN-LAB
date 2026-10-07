@@ -464,7 +464,8 @@ def _tracked_ddl(table):
 
 
 ACTIVITY_TABLES = ('asset', 'asset_version', 'artifact', 'asset_writer_lock',
-                   'asset_publication', 'attempt_state', 'native_host_guard_v1')
+                   'asset_publication', 'attempt_state', 'native_host_guard_v1',
+                   'jury_record', 'quality_record')
 
 
 def _activity_root(parent: Path) -> Path:
@@ -645,6 +646,39 @@ class WriteCoordinationTests(unittest.TestCase):
         self.assertEqual(proof['countersBefore'], proof['countersAfter'])
         receipt = restore_backup(self.archive, self.base / 'restored')
         self.assertEqual(receipt['productionQuiescence'], 'PROVED_QUIESCENT')
+
+    def test_a_human_record_written_inside_the_window_is_not_read_as_quiet(self):
+        """A verdict takes no lease, so the counters are the only witness it moved."""
+        from design_lab.runtime import project_backup
+        from unittest.mock import patch
+        first = project_backup.production_state(self.local)
+        self.assertEqual(first['state'], 'PROVED_QUIESCENT')
+        self.assertIn('jury_record', first['counters'],
+                      'a table the backup does not count is a table it cannot see move')
+        self.assertIn('quality_record', first['counters'])
+
+        original = project_backup._database_snapshot
+
+        def sign_during_snapshot(source, scratch):
+            payload = original(source, scratch)
+            with closing(sqlite3.connect(self.db)) as conn:
+                conn.execute('INSERT INTO jury_record (jury_record_id, kind, project_id,'
+                             ' subject_ref, artifact_sha256, verdict, juror_id, juror_kind,'
+                             ' attestation, document_json, decided_at)'
+                             ' VALUES ("jury-window-1","JURY_VERDICT","p1","version:v1",'
+                             '"sha256:" || ?,"APPROVE","dtalex66","HUMAN",'
+                             '"reviewed at 100%","{}","2026-10-08T00:00:00Z")',
+                             ('0' * 64,))
+                conn.commit()
+            return payload
+
+        second = self.base / 'human-in-window.zip'
+        with patch.object(project_backup, '_database_snapshot',
+                          side_effect=sign_during_snapshot):
+            with self.assertRaisesRegex(BackupError, 'moved during the backup window'):
+                create_backup(self.local, second)
+        self.assertFalse(second.exists(),
+                         'a window that swallowed a signature must not produce an archive')
 
     def test_a_root_that_cannot_observe_writers_says_so_and_stays_said(self):
         """The plain fixture database has no writer tables: that is not "quiet"."""

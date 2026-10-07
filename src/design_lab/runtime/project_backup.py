@@ -236,6 +236,13 @@ COUNTER_QUERIES = (
     ('artifact', 'rowid'),
     ('attempt_event', 'event_no'),
     ('asset_writer_lock', 'generation'),
+    # A signed human record takes no writer lease -- jury_store.record() and
+    # quality_store.record() commit straight through -- so a lease check cannot see
+    # one land. Without these two rows a backup window that swallowed a verdict in
+    # flight would still report PROVED_QUIESCENT, and the archive that "proved" nothing
+    # moved would be missing the attestation the project cites later.
+    ('jury_record', 'rowid'),
+    ('quality_record', 'rowid'),
 )
 
 
