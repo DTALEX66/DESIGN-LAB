@@ -293,11 +293,24 @@ console.log('ok: ④ 真实空读回仍照实报告为空（两个视图正向�
 // that asked the service shows ONLY the failure and its reason, and a route that never
 // asks must not claim a failure it did not have.
 let failedChecked = 0;
+let sawTransport = false;
+let sawServiceError = false;
 for (const hash of routeHashes) {
   shell.window.location.hash = hash;
   shell.dispatchHashchange();
   const requests = shell.pending.splice(0, shell.pending.length);
-  for (const request of requests) request.reject(new Error('ECONNREFUSED 127.0.0.1'));
+  // Two different failures, because they travel different code paths. A transport
+  // rejection arrives as an Error from OUTSIDE the vm realm, so `error instanceof Error`
+  // is false in the page and the message comes from String(error); a service that answers
+  // with an error envelope is thrown by api() INSIDE the realm and reaches the page as its
+  // bare error code. Alternated PER ROUTE rather than per request: a view fires several
+  // reads together and the first rejection wins the race, so mixing them inside one view
+  // would mean the service-error text could never reach the screen.
+  const viaTransport = routeHashes.indexOf(hash) % 2 === 0;
+  for (const request of requests) {
+    if (viaTransport) request.reject(new Error('ECONNREFUSED 127.0.0.1'));
+    else request.resolve(response({ error: 'SERVICE_UNAVAILABLE' }, false));
+  }
   await flush();
   const text = (shell.elements.get('route-view').textContent ?? '').trim();
   if (!requests.length) {
@@ -309,8 +322,10 @@ for (const hash of routeHashes) {
     throw new Error(`${hash}: 读回被拒绝后页面没有以失败开头，旧内容可能留在屏上：${text.slice(0, 160)}`);
   if (!text.replace('视图读回失败：', '').trim())
     throw new Error(`${hash}: 只说失败、没有说原因`);
-  if (!text.includes('ECONNREFUSED'))
+  if (!/ECONNREFUSED|SERVICE_UNAVAILABLE/.test(text))
     throw new Error(`${hash}: 失败原因里没有服务的实际错误：${text.slice(0, 160)}`);
+  if (text.includes('ECONNREFUSED')) sawTransport = true;
+  if (text.includes('SERVICE_UNAVAILABLE')) sawServiceError = true;
   if (text.includes('未读回：未连接'))
     throw new Error(`${hash}: 已连接但请求被拒，不是未连接，两种状态不得混用`);
   const leaked = LIVE_ONLY_PHRASES.filter((phrase) => text.includes(phrase));
@@ -320,6 +335,11 @@ for (const hash of routeHashes) {
 }
 if (failedChecked < 8)
   throw new Error(`② 失败态只有 ${failedChecked} 个视图被验证（下限 8）—— 该列的门失效了`);
-console.log(`ok: ② 请求失败时 ${failedChecked} 个视图只报失败与原因，无旧内容残留；未读回/实况措辞零泄漏`);
+// A single-request route can only ever show the transport path, so "both paths measured"
+// has to be counted rather than asserted by intent.
+if (!sawTransport || !sawServiceError)
+  throw new Error(`② 只测到 ${(sawTransport ? '传输被拒' : '') + (sawServiceError ? ' 服务错误' : '')}，`
+    + '另一条失败路径没有任何视图走过（交替注入被单请求视图抵消了）');
+console.log(`ok: ② 请求失败时 ${failedChecked} 个视图只报失败与原因（传输被拒 + 服务错误两条路径都实测到），无旧内容残留`);
 
 console.log('APPSHELL REGRESSION: all checks passed');
