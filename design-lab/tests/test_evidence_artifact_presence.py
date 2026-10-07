@@ -35,7 +35,7 @@ class EvidenceArtifactPresenceTests(unittest.TestCase):
                          'every tracked evidence artefact must still exist')
         # Known decay, asserted rather than hidden. Each entry is a record whose
         # artefact bytes legitimately moved after the observation, and the inventory is
-        # exact so the NEXT unannounced move still goes red. Four records on four
+         # exact so the NEXT unannounced move still goes red. Five records on five
         # distinct artefacts -- and the numbers here are re-measured, not inherited: see
         # the correction below, because this count was wrong in this file for an hour.
         #   * build/main.js -- a 2026-09-27 record used a mutable build output as
@@ -65,12 +65,20 @@ class EvidenceArtifactPresenceTests(unittest.TestCase):
             ('design-lab/tests/test_project_backup.py', 'HASH_MOVED_SINCE_OBSERVATION'): 1,
             ('design-lab/tests/test_workbench_launch.py', 'HASH_MOVED_SINCE_OBSERVATION'): 1,
             ('design-lab/tests/test_service_http.py', 'HASH_MOVED_SINCE_OBSERVATION'): 1,
+            # 2026-10-08, commit 02fa13cd: the row that recorded the per-module verification pass
+            # binds its artefacts to the code it describes rather than to the audit prose -- one of
+            # those files is this one, and the line-ending fix then edited it. So the record's
+            # artefact is older than the bytes it names, which is exactly what this inventory
+            # exists to say out loud. Nothing is rewritten: the row stays the observation it was and
+            # the correcting row for the defect names the current bytes.
+            ('design-lab/tests/test_evidence_artifact_presence.py',
+             'HASH_MOVED_SINCE_OBSERVATION'): 1,
         })
         self.assertEqual(counts, expected,
                          'the drifted-artefact inventory is exact in both directions: a new '
                          'move, a new artefact name, or one more record on a known artefact '
                          'are all findings, and a drifted pair that quietly disappeared is too')
-        self.assertEqual(sum(counts.values()), 4,
+        self.assertEqual(sum(counts.values()), 5,
                          'the total drifted-record count is pinned, not derived')
 
     def test_missing_tracked_artefact_is_a_hard_break_not_a_warning(self):
