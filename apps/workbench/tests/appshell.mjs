@@ -287,4 +287,39 @@ if (!liveSystemsText.includes('尚无登记设计系统'))
   throw new Error('设计系统读回为空时页面必须说明为空');
 console.log('ok: ④ 真实空读回仍照实报告为空（两个视图正向对照）');
 
+// ② REQUEST FAILED, swept over every route. A connected session whose read comes back
+// refused is the state most likely to lie by silence: the previous route's numbers could
+// stay on screen and read as current. Measured behaviour being pinned here -- every route
+// that asked the service shows ONLY the failure and its reason, and a route that never
+// asks must not claim a failure it did not have.
+let failedChecked = 0;
+for (const hash of routeHashes) {
+  shell.window.location.hash = hash;
+  shell.dispatchHashchange();
+  const requests = shell.pending.splice(0, shell.pending.length);
+  for (const request of requests) request.reject(new Error('ECONNREFUSED 127.0.0.1'));
+  await flush();
+  const text = (shell.elements.get('route-view').textContent ?? '').trim();
+  if (!requests.length) {
+    if (text.includes('视图读回失败'))
+      throw new Error(`${hash}: 这一面没有发起任何读回，却报告读回失败`);
+    continue;
+  }
+  if (!text.startsWith('视图读回失败'))
+    throw new Error(`${hash}: 读回被拒绝后页面没有以失败开头，旧内容可能留在屏上：${text.slice(0, 160)}`);
+  if (!text.replace('视图读回失败：', '').trim())
+    throw new Error(`${hash}: 只说失败、没有说原因`);
+  if (!text.includes('ECONNREFUSED'))
+    throw new Error(`${hash}: 失败原因里没有服务的实际错误：${text.slice(0, 160)}`);
+  if (text.includes('未读回：未连接'))
+    throw new Error(`${hash}: 已连接但请求被拒，不是未连接，两种状态不得混用`);
+  const leaked = LIVE_ONLY_PHRASES.filter((phrase) => text.includes(phrase));
+  if (leaked.length)
+    throw new Error(`${hash}: 失败页仍带着成功读回才有的措辞：${leaked.join(' / ')}`);
+  failedChecked += 1;
+}
+if (failedChecked < 8)
+  throw new Error(`② 失败态只有 ${failedChecked} 个视图被验证（下限 8）—— 该列的门失效了`);
+console.log(`ok: ② 请求失败时 ${failedChecked} 个视图只报失败与原因，无旧内容残留；未读回/实况措辞零泄漏`);
+
 console.log('APPSHELL REGRESSION: all checks passed');
