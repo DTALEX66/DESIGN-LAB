@@ -60,6 +60,10 @@ SCRIPTS = [
     # local bound run could go green while the four-word verdict vocabulary drifted --
     # this is the same class of hole as the vocabulary gate being CI-only.
     "verify_artifact_preflight_contract.py",
+    # Four surfaces got the same question wrong in one session -- "which ACTIVE row is the
+    # current version of this asset" -- because publish_version never demotes replaced
+    # bytes. Each is fixed; this is the check that keeps a fifth reader from being written.
+    "verify_current_version_rule.py",
     # Which contract schemas the product actually honours, and which route payload
     # versions really exist in an emitter. Both were written from payloads captured off
     # a live make_server socket, and both audit the committed ledger, so they must run

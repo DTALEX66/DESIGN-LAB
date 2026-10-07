@@ -531,4 +531,31 @@ NOT_REVIEWED,不能被措辞成已经在流程里**(`interop/delivery_receipt.py
   playwright)。跳过记为跳过,不算覆盖;绑定运行里 `skipped=0` 只在非浏览器集合上成立。
 
 
+## 12. 第七段:同一个缺陷今天犯了四次,于是它变成一条门(2026-10-08 追加)
+
+§8(评审清单给了废稿)、§9(预检量了碰巧先返回的行)、§10/5b8e7d51(一个主体替整个项目出证)
+是同一个问题的四个面:**`publish_version` 从不降级被替换的字节,全仓没有任何生产代码把
+`asset_version.state` 写成 `SUPERSEDED`,所以 `state='ACTIVE'` 等于整条修订史。**
+第四次是本轮扫描时新抓到的:`image_assets._read` 也只筛 `state='ACTIVE'`,于是
+- `list()` 把同一个 raster 资产按修订次数重复列出(**实测**:去掉规则后新用例就在这条断言上红);
+- `content()` 要求 `len(rows) == 1`,否则 `raise ImageAssetError(404, 'ASSET_NOT_FOUND')`
+  —— 一个存在的资产没有确定的读取结果(**这是读代码得到的事实**,不是我测到的现象,
+  因为同一用例里前面的重复断言先失败)。
+
+产品其他位置早已按"`version_no` 最大的 ACTIVE 行 = 当前版本"来读(`native_assets.list` 两处、
+`asset_store.current_version`),所以修法不是发明新约定,而是**把已有约定写成必须说出来的话**:
+
+`design-lab/scripts/verify_current_version_rule.py` 用 AST 取每个模块里的字符串常量,找出同时含
+`asset_version` 与 `state='ACTIVE'` 的 SQL,要求**同一条语句**里出现
+`MAX(<别名>.version_no)` 或 `ORDER BY <别名>.version_no DESC`,或者它本就钉在某一个
+`version_id = ?` / `sha256 = ?` 上(重发布同一次字节不需要回答"哪个是当前版本")。
+它拒绝的是谎,不是数字:新增一个合规读取器不会动任何计数;扫描到零条语句判 FAIL(空扫描和干净
+树不能共用一个结论);豁免表若指向已经不存在的语句判 `STALE_EXEMPTION`。
+
+实测 11 条 ACTIVE 读取:`RULED=8 / PINNED=3 / UNRULED=0`。`test_current_version_rule.py` 8 条
+用例用**合成夹具**逐条打出各分支(合规两类、两种钉法、裸 ACTIVE 必须点名 `UNRULED: offender.py`、
+空目录、不存在的目录、失效豁免),另外两条真的断言"活树干净"和"这条门已在聚合清单里"
+—— 一条没人调用的门只是文档。门已注册,聚合现为 62 项;`test_gate_reachability` 4 条仍绿。
+
+
 

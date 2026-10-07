@@ -53,6 +53,12 @@ class ImageAssets:
                 "SELECT a.asset_id,v.version_id,f.path,f.sha256,f.byte_size FROM asset a "
                 "JOIN asset_version v ON a.asset_id=v.asset_id JOIN artifact f ON f.version_id=v.version_id "
                 "WHERE a.project_id=? AND a.asset_kind='raster' AND v.state='ACTIVE' "
+                # Publishing never demotes the bytes it replaced, so 'ACTIVE' alone is the
+                # whole revision history: without this the same asset listed twice, and
+                # content() -- which requires exactly one row -- answered 404 for an asset
+                # that exists. Same current-version rule native_assets and jury_store use.
+                "AND v.version_no=(SELECT MAX(b.version_no) FROM asset_version b "
+                "WHERE b.asset_id=v.asset_id AND b.state='ACTIVE') "
                 "AND (? IS NULL OR a.asset_id=?) ORDER BY a.created_at,a.asset_id",
                 (project_id, asset_id, asset_id)).fetchall()
 
