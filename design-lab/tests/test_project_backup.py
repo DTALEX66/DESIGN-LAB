@@ -735,7 +735,18 @@ class PublicationJournalTests(unittest.TestCase):
         self.environment.start()
         self.addCleanup(self.environment.stop)
         os.environ.pop('PROJECT_LOCAL_ROOT', None)
-        self.owner = _owner_root(self.base, 'journal-owner')
+        self.owner = _owner_root(self.base, 'jo')
+        # Windows caps a plain path at 260 characters and a restore creates
+        # <owner>/.project-local/.../staged/projects/<32 hex>/assets/staging/<64 hex>
+        # below its target, so the fixture's OWN labels are the only part of that chain
+        # this test controls -- they are kept short, and the remaining budget is asserted
+        # here instead of being discovered as an opaque WinError 206 on a deeper checkout.
+        # Measured: these cases pass in the primary tree and failed at 276 characters in a
+        # nested git worktree until the labels were shortened.
+        self.assertLess(len(str(self.base)) + len('jo/.project-local/task-runtime/service'),
+                        200, f'fixture root is already {len(str(self.base))} chars deep at '
+                             f'{self.base}: shorten the checkout path, because no label here '
+                             'can recover that budget')
         self.local = self.owner / '.project-local'
         self.db = self.local / 'task-runtime' / 'service' / 'state.db'
         self.archive = self.base / 'journal.zip'
@@ -744,7 +755,7 @@ class PublicationJournalTests(unittest.TestCase):
         self.project = self.service.create_project('Journal restore fixture')['id']
         self.store = self.service.paths.category_dir('projects', self.project, 'assets')
 
-    def _recovered_owner(self, name='journal-recovered'):
+    def _recovered_owner(self, name='jr'):
         return _owner_root(self.base, name)
 
     def _member_bytes(self):
@@ -871,7 +882,7 @@ class PublicationJournalTests(unittest.TestCase):
         'publication path escapes store root'.
         """
         from design_lab.runtime import asset_store as assets
-        source = self.base / 'committed.psd'
+        source = self.base / 'c.psd'
         source.write_bytes(b'fully published bytes' * 4)
         digest = 'sha256:' + hashlib.sha256(source.read_bytes()).hexdigest()
         with closing(sqlite3.connect(self.db)) as conn:
@@ -888,7 +899,7 @@ class PublicationJournalTests(unittest.TestCase):
             conn.commit()
         create_backup(self.local, self.archive)
 
-        recovered = self._recovered_owner('committed-recovered')
+        recovered = self._recovered_owner('cr')
         target = recovered / '.project-local'
         receipt = restore_backup(self.archive, target)
 
@@ -922,9 +933,9 @@ class PublicationJournalTests(unittest.TestCase):
         self._crash_a_publication()
         with _barrier_blind_to('PREPARED_PUBLICATION'):
             create_backup(self.local, self.archive)
-        legacy = self.base / 'legacy-journal.zip'
+        legacy = self.base / 'lj.zip'
         _rewrite_manifest(self.archive, legacy, drop=('sourceLocalRoot',))
-        target = self.base / 'legacy-journal-target'
+        target = self.base / 'lt'
         with self.assertRaisesRegex(BackupError, 'cannot be recovered here'):
             restore_backup(legacy, target / 'recovery')
         self.assertFalse((target / 'recovery' / 'task-runtime').exists(),
@@ -987,7 +998,7 @@ class PublicationJournalTests(unittest.TestCase):
         with _barrier_blind_to('PREPARED_PUBLICATION', 'HOST_GUARD', 'NON_TERMINAL_ATTEMPT'):
             create_backup(self.local, self.archive)
 
-        recovered = self._recovered_owner('guard-recovered')
+        recovered = self._recovered_owner('gr')
         target = recovered / '.project-local'
         receipt = restore_backup(self.archive, target)
         self.assertEqual(receipt['relocatedPublicationPaths'], 1,
