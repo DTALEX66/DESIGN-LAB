@@ -23,6 +23,24 @@ This module emits that vocabulary for the checks it can actually measure and say
 So a PSD whose transparency flattening this build cannot inspect reports INCOMPLETE
 with the reason, instead of inheriting a green tick from the checks that happened
 to work.
+
+Contract binding, recorded 2026-10-08 (a schema audit claimed this payload disagreed
+with ``design-lab/schemas/preflight.schema.json`` over ``verdict`` vs ``status``):
+
+* that schema describes the PROFILE documents under ``design-lab/production/profiles/``
+  (``const`` ``schemaVersion`` ``design-lab/preflight/v2``, requiring ``preflight_id``
+  and ``required_checks``), plus the optional nested ``result`` report that
+  :func:`design_lab.assurance.handoff_readiness.decide` consumes. It never requires a
+  top-level ``status``, and this module is not its instance: the profile is its INPUT
+  (:func:`load_profile`), the report below is this module's own OUTPUT.
+* the output is bound to ``design-lab/schemas/artifact-preflight.schema.json``
+  (``design-lab/artifact-preflight/v1``), whose top-level outcome field is ``verdict``.
+  The Workbench column reads ``verdict`` from
+  ``GET /api/projects/<id>/bundles/<id>/preflight`` today, so the field name is the
+  shipped contract, not drift.
+* emitter and schema are compared in both directions -- required-but-not-emitted and
+  emitted-but-not-declared -- by ``design-lab/scripts/verify_artifact_preflight_contract.py``,
+  which validates a real emitted payload and fails when it finds nothing to compare.
 """
 from __future__ import annotations
 
@@ -298,6 +316,11 @@ def run_preflight(artifacts, *, profile: str = 'digital', bom: dict | None = Non
         verdict = 'PASS'
 
     return {
+        # The version below, not design-lab/preflight/v2, is this payload's contract:
+        # schemas/artifact-preflight.schema.json binds it and declares `verdict` (not
+        # `status`) as its top-level outcome, because that is what the Workbench column
+        # reads from the HTTP response today. verify_artifact_preflight_contract.py
+        # re-checks the two against each other in both directions.
         'schemaVersion': 'design-lab/artifact-preflight/v1',
         'profile': profile, 'profileSchema': document.get('schemaVersion'),
         'verdict': verdict,

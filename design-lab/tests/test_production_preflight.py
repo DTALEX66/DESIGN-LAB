@@ -11,6 +11,7 @@ from __future__ import annotations
 import hashlib
 import json
 import io
+import importlib.util
 import sys
 import tempfile
 import unittest
@@ -22,6 +23,17 @@ sys.path.insert(0, str(REPO / 'src'))
 from PIL import Image
 
 from design_lab.assurance import production_preflight as pp   # noqa: E402
+
+GATE = REPO / 'design-lab' / 'scripts' / 'verify_artifact_preflight_contract.py'
+ARTIFACT_SCHEMA = REPO / 'design-lab' / 'schemas' / 'artifact-preflight.schema.json'
+
+
+def load_gate():
+    """The gate is one implementation, used by the product path and the CLI."""
+    spec = importlib.util.spec_from_file_location('verify_artifact_preflight_contract', GATE)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
 
 
 def write_image(directory: Path, name: str, *, mode='RGB', size=(120, 90), dpi=None):
@@ -237,6 +249,159 @@ class ArchivePreflightTests(unittest.TestCase):
         with self.assertRaises(pp.PreflightError) as caught:
             pp.preflight_bundle(service, project_id, 'bundle-missing', profile='digital')
         self.assertIn('bundle-missing', str(caught.exception))
+
+
+class PayloadContractGateTests(unittest.TestCase):
+    """The emitted payload and its schema are held against each other, both ways.
+
+    A 2026-10-08 audit reported that this payload's `verdict` disagreed with
+    `schemas/preflight.schema.json`, which requires `status`. Reading the files, that schema
+    is bound to the PROFILE documents (const `design-lab/preflight/v2`, requiring
+    `preflight_id` + `required_checks`) and never required a top-level `status`; this payload
+    declares its own version and has a schema of its own
+    (`schemas/artifact-preflight.schema.json`). The false part is settled by reading; the
+    true gap was that NOTHING validated this payload at all -- the only contract surface for
+    it was a TypeScript interface in the page. These tests keep that gap shut, in the product
+    test path, not only in a script someone has to remember to run.
+
+    The weakened documents here are copies held in memory; no shipped file is edited.
+    """
+
+    @classmethod
+    def setUpClass(cls):
+        cls.gate = load_gate()
+        cls.binding = cls.gate.BINDINGS[0]
+        cls.real_cases = cls.gate.build_real_payloads()
+        cls.schema = json.loads(ARTIFACT_SCHEMA.read_text(encoding='utf-8'))
+
+    def _cases(self, mutate):
+        """Re-run the real emitter and mutate the resulting COPY, never the product."""
+        cases = json.loads(json.dumps(self.gate.build_real_payloads()))
+        return [(label, mutate(payload)) for label, payload in cases]
+
+    def _errors(self, schema=None, cases=None, emitter_text=None):
+        return self.gate.check_binding(
+            self.binding,
+            cases=self.real_cases if cases is None else cases,
+            schema_doc=schema,
+            emitter_text=(self.binding['emitter'].read_text(encoding='utf-8')
+                          if emitter_text is None else emitter_text))[0]
+
+    def test_the_real_payload_satisfies_its_schema(self):
+        errors = self._errors()
+        self.assertEqual(errors, [], 'the shipped emitter and the shipped schema disagree:\n'
+                         + '\n'.join(errors))
+
+    def test_the_gate_itself_passes_end_to_end(self):
+        errors, notes = self.gate.run()
+        self.assertEqual(errors, [], '\n'.join(errors))
+        self.assertTrue(notes, 'the gate reported nothing compared')
+
+    def test_the_emitter_still_declares_the_version_the_schema_binds(self):
+        const = self.schema['properties']['schemaVersion']['const']
+        source = self.binding['emitter'].read_text(encoding='utf-8')
+        self.assertIn(f"'{const}'", source,
+                      'the schema binds a schemaVersion the emitter no longer produces')
+        self.assertEqual(pp.run_preflight([], profile='digital')['schemaVersion'], const)
+
+    def test_a_field_the_schema_requires_but_the_emitter_dropped_is_red(self):
+        weakened = json.loads(json.dumps(self.schema))
+        weakened['required'].append('status')      # the contract the audit believed existed
+        errors = self._errors(schema=weakened)
+        red = [e for e in errors if 'MISSING_FROM_EMITTER' in e]
+        self.assertEqual(len(red), 2, f'one per real case, got {red}')
+        for error in red:
+            self.assertIn("'status'", error)
+
+    def test_a_field_the_emitter_added_and_the_schema_forbids_is_red(self):
+        def add_ghost(payload):
+            payload['verdict_confidence'] = 0.9
+            return payload
+        errors = self._errors(cases=self._cases(add_ghost))
+        red = [e for e in errors if 'UNDECLARED_BY_SCHEMA' in e]
+        self.assertEqual(len(red), 2, f'one per real case, got {red}')
+        for error in red:
+            self.assertIn('verdict_confidence', error)
+
+    def test_renaming_verdict_to_status_is_red_in_both_directions_at_once(self):
+        """The exact mutation the audit's proposed "fix" would have made.
+
+        Renaming the field the page reads is not a fix: the schema still demands `verdict`
+        and the closed schema still forbids `status`, so the drift must be named twice.
+        """
+        def rename(payload):
+            payload['status'] = payload.pop('verdict')
+            return payload
+        errors = self._errors(cases=self._cases(rename))
+        missing = [e for e in errors if 'MISSING_FROM_EMITTER' in e and "'verdict'" in e]
+        extra = [e for e in errors if 'UNDECLARED_BY_SCHEMA' in e and 'status' in e]
+        self.assertEqual(len(missing), 2, f'`verdict` must still be required: {missing}')
+        self.assertEqual(len(extra), 2, f'`status` must still be undeclared: {extra}')
+
+    def test_nested_drift_is_red_too(self):
+        """`findings[].criterion` is what the column renders; dropping it is the real risk."""
+        def drop_criterion(payload):
+            for finding in payload['findings']:
+                finding.pop('criterion')
+            return payload
+        errors = self._errors(cases=self._cases(drop_criterion))
+        red = [e for e in errors if 'MISSING_FROM_EMITTER' in e and 'criterion' in e]
+        self.assertTrue(red, 'a nested field must not sail through')
+        # One finding per declared check, in each case: the count is the payload's, but every
+        # case has to be convicted, not just the first.
+        convicted = {label for label, _ in self.real_cases
+                     if any(label in error and 'criterion' in error for error in red)}
+        self.assertEqual(convicted, {label for label, _ in self.real_cases},
+                         f'a real case escaped the nested check: {convicted}')
+
+    def test_a_vocabulary_change_is_red(self):
+        """An outcome or verdict outside the declared enum is a contract break, not a colour."""
+        def new_verdict(payload):
+            payload['verdict'] = 'PARTIAL'
+            return payload
+        errors = self._errors(cases=self._cases(new_verdict))
+        self.assertTrue(any('SCHEMA_VIOLATION' in e and 'PARTIAL' in e for e in errors),
+                        f'an invented verdict must be named: {errors}')
+
+    def test_nothing_to_compare_is_never_a_pass(self):
+        empty_cases = self.gate.check_binding(self.binding, cases=[])
+        self.assertTrue(any('NOTHING_TO_COMPARE' in e for e in empty_cases[0]), empty_cases[0])
+        self.assertTrue(any('NOTHING_TO_COMPARE' in e
+                            for e in self.gate.run(bindings=[])[0]),
+                        'a gate with no binding cannot report a pass')
+        # A schema that declares no fields would compare nothing against any payload.
+        open_schema = {'$schema': 'https://json-schema.org/draft/2020-12/schema',
+                       'type': 'object'}
+        errors = self.gate.check_binding(self.binding, cases=self.real_cases,
+                                         schema_doc=open_schema)[0]
+        self.assertTrue(any('NOTHING_TO_COMPARE' in e for e in errors),
+                        f'an empty schema must not read as coverage: {errors}')
+
+    def test_the_profile_schema_is_not_the_artifact_report_binding(self):
+        """Recorded so the two contracts cannot be quietly merged again.
+
+        `schemas/preflight.schema.json` binds the profile documents; it requires fields no
+        report emits and forbids every field a report does emit. Asserting that here is what
+        makes a future "just align them" edit expensive.
+        """
+        import jsonschema
+        profile_schema = json.loads((REPO / 'design-lab' / 'schemas' / 'preflight.schema.json')
+                                    .read_text(encoding='utf-8'))
+        self.assertEqual(profile_schema['properties']['schemaVersion']['const'],
+                         'design-lab/preflight/v2')
+        self.assertNotIn('verdict', profile_schema['properties'])
+        self.assertNotIn('status', profile_schema['required'],
+                         'the audit read a top-level `status` into this schema; it has none')
+        for label, payload in self.real_cases:
+            errors = list(jsonschema.Draft202012Validator(profile_schema)
+                          .iter_errors(payload))
+            self.assertTrue(errors, f'{label} is not a profile document and must not validate '
+                                    'against the profile schema')
+            messages = ' | '.join(error.message for error in errors)
+            for field in ('preflight_id', 'required_checks'):
+                self.assertIn(f"'{field}' is a required property", messages,
+                              f'the profile schema should reject a report for lacking its own '
+                              f'{field!r}; it did not: {messages}')
 
 
 if __name__ == '__main__':
