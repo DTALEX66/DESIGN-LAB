@@ -334,6 +334,26 @@ export function en(text: string): HTMLElement {
   return el('span', { lang: 'en' }, text);
 }
 
+// One shared-input row per declared external root. Only a probe that actually saw
+// the root may be green: runtime/paths.py reports DECLARED_NOT_PROBED, a
+// declaration. An empty map gets a row that says so, because a blank list under a
+// "服务端环境读回" heading reads as a readback that found nothing to report.
+function sharedInputRows(inputs: EnvironmentResponse['shared_inputs'],
+                         limit = 4): HTMLElement[] {
+  const entries = Object.entries(inputs).slice(0, limit);
+  if (!entries.length) {
+    return [el('li', { class: 'list-item' },
+      el('div', {}, el('strong', {}, '尚无外置输入'),
+        el('small', {}, '服务未返回 shared_inputs')))];
+  }
+  return entries.map(([name, input]) => el('li', { class: 'list-item' },
+    el('div', {}, el('strong', {}, name), el('small', {}, input.path)),
+    el('span', {
+      class: input.status === 'MISSING' ? 'tag bad'
+        : (input.status === 'DECLARED_NOT_PROBED' ? 'tag warn' : 'tag ok'),
+    }, en(input.status))));
+}
+
 // B10 1:1 .kpi body. Parameter order matches EVERY call site// (value, label, note) — the previous (label, value) declaration silently
 // inverted the card, rendering the LABEL as B10's 35px primary number and the
 // value as the small caption (and breaking the count-up, which only fires on a
@@ -683,17 +703,7 @@ const modulePanels = el('div', { class: 'three-col', style: 'margin-top:16px' },
           el('p', { class: 'view-hint' }, '宿主在线状态尚未有服务路由；此处 UNKNOWN，不假报可用。')),
         el('div', { class: 'panel' },
           el('h3', {}, '共享输入'),
-          el('ul', { class: 'list' },
-            ...Object.entries(environment.shared_inputs).slice(0, 4).map(([k, v]) => el('li', { class: 'list-item' },
-              el('div', {},
-                el('strong', {}, k),
-                el('small', {}, v.path)),
-              el('span', {
-                // Only a probe that actually saw the root may be green:
-                // runtime/paths.py reports DECLARED_NOT_PROBED, a declaration.
-                class: v.status === 'MISSING' ? 'tag bad'
-                  : (v.status === 'DECLARED_NOT_PROBED' ? 'tag warn' : 'tag ok'),
-              }, en(v.status))))),
+          el('ul', { class: 'list' }, ...sharedInputRows(environment.shared_inputs)),
           el('p', { class: 'view-hint' }, '服务端环境读回；写权限与状态由服务裁定。')),
         el('div', { class: 'panel' },
           el('h3', {}, '未来能力'),
@@ -758,7 +768,7 @@ export async function renderBrandSystems(target: HTMLElement): Promise<void> {
     el('div', { class: 'page-actions' }));
   const kpis = el('div', { class: 'kpi-grid' },
     kpiCard(String(sysCount), '设计系统', '资源登记总数 · 服务端目录读回'),
-    kpiCard(String(BRAND_MODULES.length), 'VI 模块', 'Logo / Color / Typography / … / Assets'),
+    kpiCard(String(BRAND_MODULES.length), 'VI 模块', BRAND_MODULES.join(' / ')),
     kpiCard('—', '活跃绑定', '绑定在工作台 DESIGN LAYER 执行'));
   // B10 1:1 three-col brand panels — .panel/.tag/.muted bodies only (B10 CSS 已存在类).
   const moduleGrid = el('div', { class: 'three-col' },
@@ -1000,8 +1010,12 @@ export async function projectPickerPanel(target: HTMLElement, title: string, bod
       el('p', { class: 'view-hint' }, '尚无项目。先在工作台新建项目，再读回此视图。'));
     return;
   }
+  // One project in the ledger and a placeholder selected is a dead first screen:
+  // the readback already named the only project there is, so open it. Only
+  // reachable from a real readback — the offline fallback list is empty.
+  const sole = data.projects.length === 1 ? data.projects[0] : null;
   const select = el('select', { class: 'project-select', id: `${title.replace(/\s+/g, '-')}-project` });
-  select.append(el('option', { value: '' }, `选择项目（共 ${data.projects.length} 个）`));
+  if (!sole) select.append(el('option', { value: '' }, `选择项目（共 ${data.projects.length} 个）`));
   for (const p of data.projects) select.append(el('option', { value: p.id }, p.name));
   const content = el('div', { class: 'route-view-body' });
   target.replaceChildren(
@@ -1117,24 +1131,14 @@ export async function renderCreativeTools(target: HTMLElement): Promise<void> {
           el('p', { class: 'view-hint' }, '宿主在线状态尚未有服务路由；此处 UNKNOWN，不假报可用。')),
         el('div', { class: 'panel' },
           el('h3', {}, '共享输入'),
-          el('ul', { class: 'list' },
-            ...Object.entries(env.shared_inputs).slice(0, 4).map(([k, v]) => el('li', { class: 'list-item' },
-              el('div', {},
-                el('strong', {}, k),
-                el('small', {}, v.path)),
-              el('span', {
-                // Only a probe that actually saw the root may be green:
-                // runtime/paths.py reports DECLARED_NOT_PROBED, a declaration.
-                class: v.status === 'MISSING' ? 'tag bad'
-                  : (v.status === 'DECLARED_NOT_PROBED' ? 'tag warn' : 'tag ok'),
-              }, en(v.status))))),
+          el('ul', { class: 'list' }, ...sharedInputRows(env.shared_inputs)),
           el('p', { class: 'view-hint' }, '服务端环境读回。')),
         hostCard ? capabilityCard(hostCard) : el('div', { class: 'panel' }),
         mcpCard ? capabilityCard(mcpCard) : el('div', { class: 'panel' }),
       ),
     );
     // B10 1:1 three-col adapter grid（.panel + .tag + .muted），真实读回任务台账。
-    const adapterGrid = el('div', { class: 'three-col' },
+    const adapterGrid = el('div', { class: 'card-flow' },
       ...TOOL_ADAPTERS.map((a) => el('div', { class: 'panel' },
         el('h3', {}, a.name),
         el('div', { class: 'status-stack' },
@@ -2419,7 +2423,7 @@ export async function renderRoute(view: AppView, target: HTMLElement): Promise<v
       // (from CAPABILITY_REGISTRY) instead of a bare "unopened" note.
       // Only VIEW_NOT_OPEN slots (research / design-domains / collaboration)
       // reach here; creative-tools is handled by its own case above.
-      const cards = el('div', { class: 'three-col' },
+      const cards = el('div', { class: 'card-flow' },
         ...CAPABILITY_REGISTRY.filter((c) =>
           (view === 'research' && c.capabilityId === 'research-insights') ||
           (view === 'design-domains' && c.capabilityId === 'design-domain-model') ||

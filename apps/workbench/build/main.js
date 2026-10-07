@@ -1153,6 +1153,29 @@ function el(tag, attrs = {}, ...children) {
 function en(text) {
   return el("span", { lang: "en" }, text);
 }
+function sharedInputRows(inputs, limit = 4) {
+  const entries = Object.entries(inputs).slice(0, limit);
+  if (!entries.length) {
+    return [el(
+      "li",
+      { class: "list-item" },
+      el(
+        "div",
+        {},
+        el("strong", {}, "尚无外置输入"),
+        el("small", {}, "服务未返回 shared_inputs")
+      )
+    )];
+  }
+  return entries.map(([name, input]) => el(
+    "li",
+    { class: "list-item" },
+    el("div", {}, el("strong", {}, name), el("small", {}, input.path)),
+    el("span", {
+      class: input.status === "MISSING" ? "tag bad" : input.status === "DECLARED_NOT_PROBED" ? "tag warn" : "tag ok"
+    }, en(input.status))
+  ));
+}
 function kpiCard(value, label, note, trend) {
   const unread = !token && value === "0";
   const shown = unread ? "—" : value;
@@ -1585,25 +1608,7 @@ async function renderDashboard(target) {
           "div",
           { class: "panel" },
           el("h3", {}, "共享输入"),
-          el(
-            "ul",
-            { class: "list" },
-            ...Object.entries(environment.shared_inputs).slice(0, 4).map(([k, v]) => el(
-              "li",
-              { class: "list-item" },
-              el(
-                "div",
-                {},
-                el("strong", {}, k),
-                el("small", {}, v.path)
-              ),
-              el("span", {
-                // Only a probe that actually saw the root may be green:
-                // runtime/paths.py reports DECLARED_NOT_PROBED, a declaration.
-                class: v.status === "MISSING" ? "tag bad" : v.status === "DECLARED_NOT_PROBED" ? "tag warn" : "tag ok"
-              }, en(v.status))
-            ))
-          ),
+          el("ul", { class: "list" }, ...sharedInputRows(environment.shared_inputs)),
           el("p", { class: "view-hint" }, "服务端环境读回；写权限与状态由服务裁定。")
         ),
         el(
@@ -1738,7 +1743,7 @@ async function renderBrandSystems(target) {
     "div",
     { class: "kpi-grid" },
     kpiCard(String(sysCount), "设计系统", "资源登记总数 · 服务端目录读回"),
-    kpiCard(String(BRAND_MODULES.length), "VI 模块", "Logo / Color / Typography / … / Assets"),
+    kpiCard(String(BRAND_MODULES.length), "VI 模块", BRAND_MODULES.join(" / ")),
     kpiCard("—", "活跃绑定", "绑定在工作台 DESIGN LAYER 执行")
   );
   const moduleGrid = el(
@@ -2055,8 +2060,9 @@ async function projectPickerPanel(target, title, body) {
     );
     return;
   }
+  const sole = data.projects.length === 1 ? data.projects[0] : null;
   const select = el("select", { class: "project-select", id: `${title.replace(/\s+/g, "-")}-project` });
-  select.append(el("option", { value: "" }, `选择项目（共 ${data.projects.length} 个）`));
+  if (!sole) select.append(el("option", { value: "" }, `选择项目（共 ${data.projects.length} 个）`));
   for (const p of data.projects) select.append(el("option", { value: p.id }, p.name));
   const content = el("div", { class: "route-view-body" });
   target.replaceChildren(
@@ -2221,25 +2227,7 @@ async function renderCreativeTools(target) {
           "div",
           { class: "panel" },
           el("h3", {}, "共享输入"),
-          el(
-            "ul",
-            { class: "list" },
-            ...Object.entries(env.shared_inputs).slice(0, 4).map(([k, v]) => el(
-              "li",
-              { class: "list-item" },
-              el(
-                "div",
-                {},
-                el("strong", {}, k),
-                el("small", {}, v.path)
-              ),
-              el("span", {
-                // Only a probe that actually saw the root may be green:
-                // runtime/paths.py reports DECLARED_NOT_PROBED, a declaration.
-                class: v.status === "MISSING" ? "tag bad" : v.status === "DECLARED_NOT_PROBED" ? "tag warn" : "tag ok"
-              }, en(v.status))
-            ))
-          ),
+          el("ul", { class: "list" }, ...sharedInputRows(env.shared_inputs)),
           el("p", { class: "view-hint" }, "服务端环境读回。")
         ),
         hostCard ? capabilityCard(hostCard) : el("div", { class: "panel" }),
@@ -2248,7 +2236,7 @@ async function renderCreativeTools(target) {
     );
     const adapterGrid = el(
       "div",
-      { class: "three-col" },
+      { class: "card-flow" },
       ...TOOL_ADAPTERS.map(
         (a) => el(
           "div",
@@ -3741,7 +3729,7 @@ async function renderRoute(view, target) {
       const notOpen = VIEW_NOT_OPEN[view];
       const cards = el(
         "div",
-        { class: "three-col" },
+        { class: "card-flow" },
         ...CAPABILITY_REGISTRY.filter(
           (c) => view === "research" && c.capabilityId === "research-insights" || view === "design-domains" && c.capabilityId === "design-domain-model" || view === "collaboration" && c.capabilityId === "collaboration"
         ).map(capabilityCard)
