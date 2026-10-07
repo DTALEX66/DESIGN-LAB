@@ -10,6 +10,10 @@
 - **服务**：`python -m design_lab --project <dir> workbench --port 8787`，本机 token（一次性，不入仓）
 - **浏览器**：Chromium 1228（`%LOCALAPPDATA%/ms-playwright/chromium-1228/chrome-win64/chrome.exe`）
 - **视口**：1440 / 1280 / 1024 / 768 / 390 × 12 条路由
+  > **2026-10-07 口径更新（owner 裁定：只收口径，不删代码）**：当前视口口径为
+  > **1440 / 1280 / 1920 / 2560**，capture 入口只产出这四面。上面这行是本次审计当时的覆盖面，
+  > 保留不改；`@390` / `@768` 的截图、license 记录与 overflow 报告作为历史证据原样留在仓内，
+  > 移动端布局代码与样式一律未删。引用"当前"证据时以四面桌面口径为准。
 - **证据产物**：`.project-local/tmp/overflow-*.json`（修复前）、`gate-red.json`（证伪）、`gate-final.json`（修复后）
 
 ---
