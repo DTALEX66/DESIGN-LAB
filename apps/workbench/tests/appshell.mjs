@@ -228,4 +228,63 @@ if (noticeViews < 8)
   throw new Error(`只有 ${noticeViews} 个视图报告了缺失形状（下限 8）—— ⑤ 的铺开出现了回归`);
 console.log(`ok: ⑤ 形状告警渲染在 ${noticeViews} 个视图上；${silentViews.length} 个路由不读服务：${silentViews.join(' ')}`);
 
+// ①/④ OFFLINE sweep. A second context that never connects: devMode() reads
+// window.location.search, so '?dev=1' is what lets the seam answer with its honest empty
+// payload. Those payloads are marked, and an empty that was never asked about must not be
+// described with the wording reserved for a readback that really returned nothing.
+const LIVE_ONLY_PHRASES = [
+  '尚无项目。先在工作台新建项目，再读回此视图。',   // project picker
+  '尚无项目 在工作台新建项目后出现。',              // projects table cell
+  '尚无登记设计系统',                              // brand systems
+  '尚无根登记', '尚无外置输入',                    // settings
+  '尚无宿主任务',                                  // creative tools
+  '尚无交付包',                                    // dashboard + deliverables
+  '尚无任务 任务完成后交付包随读回导出。',          // deliverables tasks cell
+];
+
+const offline = makeContext();
+offline.window.location.search = '?dev=1';
+let offlineChecked = 0;
+for (const hash of ['', ...routeHashes]) {
+  offline.window.location.hash = hash;
+  offline.dispatchHashchange();
+  await flush();
+  // The empty hash is the legacy workbench, which owns #workspace; every route view
+  // renders into #route-view. Asking the wrong host would read an element that was
+  // never built rather than the page that is actually on screen.
+  const host = hash ? 'route-view' : 'workspace';
+  const text = offline.elements.get(host)?.textContent ?? '';
+  const leaked = LIVE_ONLY_PHRASES.filter((phrase) => text.includes(phrase));
+  if (leaked.length)
+    throw new Error(`未连接时 ${hash || '(workbench)'} 把没问过的事说成了实况：${leaked.join(' / ')}`);
+  if (text.includes('未读回：未连接本机设计服务')) offlineChecked += 1;
+}
+if (offlineChecked < 5)
+  throw new Error(`未连接态只有 ${offlineChecked} 个视图声明了未读回（下限 5）—— 空态措辞的门失效了`);
+console.log(`ok: ① 未连接态 ${offlineChecked} 个视图报告未读回，${LIVE_ONLY_PHRASES.length} 条实况专属措辞零泄漏`);
+
+// Positive control for the same switch: connected, with a service that really answers an
+// empty collection, the page MUST claim the ledger is empty. Without this half the offline
+// assertions above would be satisfied by deleting every empty-state sentence.
+shell.window.location.hash = '#/projects';
+shell.dispatchHashchange();
+const emptyProjects = shell.pending.shift();
+emptyProjects.resolve(response({ projects: [] }));
+await flush();
+const liveEmptyText = shell.elements.get('route-view').textContent;
+if (!liveEmptyText.includes('尚无项目 在工作台新建项目后出现。'))
+  throw new Error(`服务真的答了空台账时，必须照实说尚无项目；实际读到：${liveEmptyText.slice(0, 240)}`);
+if (liveEmptyText.includes('未读回'))
+  throw new Error('一次形状完整的空读回不得出现任何未读回措辞');
+
+shell.window.location.hash = '#/brand-systems';
+shell.dispatchHashchange();
+const emptySystems = shell.pending.shift();
+emptySystems.resolve(response({ design_systems: [] }));
+await flush();
+const liveSystemsText = shell.elements.get('route-view').textContent;
+if (!liveSystemsText.includes('尚无登记设计系统'))
+  throw new Error('设计系统读回为空时页面必须说明为空');
+console.log('ok: ④ 真实空读回仍照实报告为空（两个视图正向对照）');
+
 console.log('APPSHELL REGRESSION: all checks passed');
