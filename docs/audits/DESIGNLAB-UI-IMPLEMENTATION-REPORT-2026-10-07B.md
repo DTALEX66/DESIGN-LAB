@@ -91,3 +91,92 @@ E2 的限定：`subjectSha` 本地记为 `"local"`，CI 上才绑 exact SHA；�
 
 **本轮收尾证据（a9e4398c）**：`AUDIT_SCOPES 39 violations=0 ok=True`、`CAP_DONE shots=39`、
 `test_capability_library.py` OK、`test_workbench_preflight_handoff_e2e.py` OK。
+
+## 七、⑤/①/④ 三面收口、桌面端口径、开源池实测（2026-10-07，main = 52dfb791）
+
+§六 的"仍开放"三项在本轮收掉两项，另一项被实测证明不是 agent 能做的。此处**追加**而非改写
+§六——那一段是当时状态的记录，改写它会让"当时确实没做完"这件事失去痕迹。
+
+**⑤ 形状异常（已并入 14d7179a / PR #265）。** `未读回：响应缺少 X` 从 2 面铺到 **21 处 seam 读回**。
+两道门互补：AST 门按变量名证明每个 `apiOrEmpty` 绑定值都被引用，`ROUTE_VIEWS` 扫描门证明这句话
+真的进了 DOM。扫描门当场逮到 AST 门看不见的一处谎——`projectPickerPanel` 空台账时提前 return，
+把"服务没返回 projects"说成 `尚无项目`。六项变异逐一跑过两道门，结果记在 PR #265。
+
+**① 未连接 与 ④ 真实空（已并入 52dfb791 / PR #266）。** 离线兜底载荷在 seam 源头打标，13 处空行
+按读回状态措辞；`projectPickerPanel` 现在区分**三种**空（真 0 / 响应缺字段 / 未连接）。门是双向的：
+未连接时 13 个路由零条"实况专属"措辞泄漏，而已连接且服务真答空集时必须照实说 `尚无项目`——
+只有前半句的门，删光空态句子就能变绿。
+
+**桌面端口径（owner 2026-10-07 裁定：只收口径，不删代码）。** 当前视口口径为
+**1440 / 1280 / 1920 / 2560**，capture 入口只产出这四面 × 13 路由。`@390`、`@768` 的截图、
+license 记录与 overflow 报告**作为历史证据原样保留在仓内**，不删除；移动端布局代码与样式
+一律未动。§视口清单（本文档 §一 与视觉审计 §12 行）里出现的 390/768 数字属于该历史批次，
+不代表当前口径。
+
+**预检解析器一致性（已并入 aae165cc / PR #267）。** `doctor.probe_tools` 与
+`task_resources._probe_tool` 对"这台机器有没有 node"给出过互相矛盾的答案，而
+`/api/task-preflight` 的注释声称两者永不一致的情况不存在。#267 把 `preflight()` 里从未被使用的
+`paths_describe` 形参接上。**本机判定一项未变**：剩余 BLOCKED 全部来自 `python-project-venv`，
+它在 `paths.json` 中没有注册，而其登记说明明确拒绝硬编码 `Scripts/python.exe`，`paths.json` 又是
+带绝对路径的受版本控制文件——**以何种平台中立方式声明项目 venv 属 owner 裁决**，未自采基线。
+
+**开源池吸收实测（并行只读子智能体，结论逐条回查过 HEAD 字节）。** 结论：**本轮没有 agent 可完成
+的吸收动作**，且"未吸收"这个状态本身是被正确记录的，不是缺口。依据：46 条源的 presence 为
+`LOCAL_CACHE_ONLY` 37 / `ABSENT_FROM_GIT` 6 / `IN_REPO` 3；三条 `IN_REPO` 里两条落在
+`test_inert_blob_placement.py` 认定的 inert quarantine 根内，第三条
+`packages/capabilities/standards/front-end-design-checklist` 只有 LICENSE/README/SOURCE.md 三个
+文件、在 `src/` 与 `apps/` 中零引用——即"随仓携带"，不是"已并入"。`src/` 下没有任何 per-file
+upstream SPDX；真正的吸收登记册 `design-lab/research/global-absorption/SOURCE_REGISTRY.json` 6 条
+全部 `review-required`，且 6 个 `integration.targetPath` 指向的 `design-lab/knowledge/…` 目录
+**全部不存在**，与那 46 条完全不相交；晋升需要 `reviewedBy`，而分类账策略
+`humanReviewOnly: true` 与 `verify_candidate_taxonomy.py` 写明 agent 不得设置该字段。
+两条权利字段为非 SPDX 自由文本（`ui-ux-pro-max` = `MIT License`、`tool-control` =
+`MIT / Apache-2.0 per-subtree`），后者是真实的按子树双许可，**不可归一**；二者一律交权利门，
+不由 agent 改写观测到的值。
+
+**两道门当场拦下我自己的两处错（门均未修改）。** 真实浏览器 overflow 门在 1440/1280/1920 各报一个
+`<11px` 节点，来自我在表格单元里放的 `<small>`；词表门两次变红，一次因为我把 state 写成内联三元
+表达式（它的文本扫描读不到 `UNAVAILABLE`），一次因为我在解释这件事的注释里写了它扫描的那个式样，
+`X`/`Y` 被当成状态词。另有一处**度量**修正：list 行计数从"字面量出现次数"改为"渲染行数"
+（字面量 + `emptyLi` 调用点，各减定义本身），**阈值 50 未动**——降阈值就是我在放宽断言。
+
+**仍未开放**：候选的真实适配 / 资格化 / 撤回（宿主运行 + 人工验收）；Human Jury 的
+Accept/Reject/Change 面（合同完备、无路由无 UI，人工字段按铁律永不由 agent 填写）；
+`python-project-venv` 的平台中立声明方式（owner）；两条自由文本判决（权利门）。
+
+**一条截图证据的结构性边界（本轮实测得出，不是推测）。** 视觉审计 §十五 对宿主 adapter 行留着
+"未单独截图复核，按同一机制推定"。本轮想把它补成像素证据，结论是**当前证据工具做不到**：
+`capture_workbench_screenshots.mjs:216` 固定 `fullPage: false`，每面只拍视口顶部，而 adapter 网格
+在 `宿主 / Capability 状态` 面板之后——**低于 fold 的内容在全部 39 张已提交截图里都不存在**。
+`audit_workbench_ui` 的 `report.json` 只记 `violations`，健康节点不留几何，所以也无法事后量。
+因此这不是"再拍一张"能收的，而是截图口径本身的选择（加滚动帧 ≈ 提交集翻倍、约 +5 MiB；
+或改 full-page ≈ 换掉整批证据的类别）。**属 owner 口径裁决，本轮只登记，不自行改证据工具。**
+推广一句：本应用任何低于 fold 的内容，都不在现有截图证据的覆盖范围内。
+
+**外溢数据实测（并行只读 + 逐条回查）。** 写路径治理是干净的：`runtime/paths.py` 的
+`_local_path` / `checked_path` 把每个可写根限制在 `.project-local` 之下并拒绝外来盘符，
+资产、bundle、报告、作业存储全部走这条路；`.project/paths.json` 的四个外置根在
+`describe()` 里一律 `writable:false`。仓内所有硬编码的兄弟目录路径经逐条判读均为**读输入**。
+三条需要记录的结果：
+
+1. **唯一确认过的外溢已在此前清掉**：8 张 ComfyUI 生成图曾落在共享工具根
+   `…/ComfyUI/output`，由 `scripts/clean_nebula_spill.py` 处理，manifest 在
+   `.project-local/task-artifacts/spill-cleanup-20261007/`。
+2. 同一根下还剩 `test_render_00001_.png`（352,325 B，mtime 2026-08-28）。**本轮不删。**
+   依据是内容而非猜：读它自己的 `tEXt prompt` 块，是一张 SDXL 工作流
+   （`sd_xl_base_1.0` + `clip_l/clip_g` + `sdxl_vae`，512×512，提示词
+   "a beautiful modern corporate lobby, premium interior design…"），该提示词与文件名
+   在本仓全文检索**零命中**（`test_render` 的命中全是无关的 `test_renderer_*` 测试名）。
+   不可归因于 DESIGN-LAB 的文件，不因为"看起来像我们的"就从别人共享根里删掉。
+3. `cli.py` 的 `backup --out` 与 `restore --into` 确实绕过 `checked_path`，但这是**有意的
+   用户显式目标**（默认落在 `local_root/backups`，即受管内），备份到外部正是该功能的用途；
+   给它加约束会砍掉一个真实特性。记录为"规则的显式例外"，不是缺陷。
+
+反向泄漏仍在（已知、非本轮新增，数字为本机实测）。`.gitignore:71` 忽略整个 `.project-local/`；
+其中 `projects/` 实测 **341.1 MiB**（最大两个工作区 281.7 MiB / 49.1 MiB），`task-artifacts/`
+实测 **115.1 MiB**（含 `04-deliverables@*.png` 及其 `.license`）。这两个工作区里**不是缓存**：
+按文件排出的前几名是 `assets/versions/<id>/delivery.zip`（单个 30.19 MiB，多版本并存）、
+`native-plans/<id>/master.png`（18.51 MiB）与 `master.illustrator.svg`（3.46 MiB）——
+即真实交付物与原生工程文件只活在单机，而 `reports/current/**` 的账本又引用它们。
+需要的是"哪些进仓、进仓后多大"的口径裁决（本机 `git count-objects -vH` 实测
+`size-pack` 为 **238.91 MiB**，一次性并入 341 MiB 交付物不是可逆动作），不是再删一次缓存。
