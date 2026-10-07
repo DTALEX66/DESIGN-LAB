@@ -103,11 +103,15 @@ def _container_member_names(path, rel, hits) -> None:
                 return
 
 
+SCANNED = {'files': 0}
+
+
 def scan() -> list[str]:
     hits: list[str] = []
     for p in _active_files(hits):
         if not p.is_file():
             continue
+        SCANNED['files'] += 1
         rel = p.relative_to(ROOT).as_posix()
         if any(rel.startswith(prefix) for prefix in ALLOW_ROOT_PREFIXES):
             continue
@@ -170,12 +174,22 @@ def scan() -> list[str]:
 
 def main() -> int:
     hits = scan()
+    scanned = SCANNED['files']
     if hits:
-        print(f"IDENTITY_GATE=FAIL total={len(hits)}")
+        print(f"IDENTITY_GATE=FAIL total={len(hits)} scanned={scanned}")
         for h in hits[:30]:
             print(f"  {h}")
         return 1
-    print("IDENTITY_GATE=OK total=0")
+    # A liveness floor, not an inventory: the tree holds ~3.0k files and adding or
+    # removing one is never a failure, but a walk that saw almost nothing would print
+    # the same OK total=0 as a genuinely clean repository. Unreadable directories and
+    # skipped reparse points already arrive as hits, so this catches the remaining case
+    # of a scan that examined nothing and looked like a pass.
+    if scanned < 2000:
+        print(f"IDENTITY_GATE=FAIL scanned={scanned} total=0 "
+              f"reason=the walk examined too few files to be a check at all")
+        return 1
+    print(f"IDENTITY_GATE=OK total=0 scanned={scanned}")
     return 0
 
 
