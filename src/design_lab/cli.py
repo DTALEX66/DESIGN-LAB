@@ -27,6 +27,9 @@ def main(argv=None):
     workbench.add_argument('--port', type=int, default=0)
     workbench.add_argument('--no-browser', action='store_true',
                            help='print the URL instead of opening the local browser')
+    workbench.add_argument('--manual-connect', action='store_true',
+                           help='compatibility mode: print a temporary token instead of '
+                                'connecting the launched page automatically')
     worker = commands.add_parser('native-worker', help='execute one persisted approved native attempt')
     worker.add_argument('--attempt', required=True)
     projects = commands.add_parser('projects').add_subparsers(dest='action', required=True)
@@ -70,14 +73,21 @@ def main(argv=None):
             from .http_service import make_server
             token = secrets.token_hex(32)
             reconciled = service.reconcile_interrupted_attempts()
-            with make_server(service, token, args.port) as httpd:
+            with make_server(service, token, args.port,
+                             local_session=not args.manual_connect) as httpd:
                 url = f'http://127.0.0.1:{httpd.server_port}/workbench'
                 # The token is the sign-in the Workbench asks for; it lives only in
                 # this process and this terminal, never in argv, a file or a URL.
+                # In the default mode it is not even printed: the launched page
+                # picks it up through the same-origin handshake, so nothing has to
+                # be copied, and a stray terminal scrollback cannot carry a secret.
                 print(json.dumps({'status': 'LISTENING', 'url': url,
-                                  'port': httpd.server_port, 'token': token,
+                                  'port': httpd.server_port,
                                   'reconciled_attempts': len(reconciled),
-                                  'token_ttl': 'until this process exits'}), flush=True)
+                                  **({'token': token,
+                                      'token_ttl': 'until this process exits'}
+                                     if args.manual_connect
+                                     else {'connection': 'automatic'})}), flush=True)
                 if not args.no_browser:
                     import webbrowser
                     webbrowser.open(url)

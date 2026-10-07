@@ -112,7 +112,11 @@ export async function api<T>(path: string, body?: Record<string, unknown>): Prom
     throw new Error(`服务回复无法解析（HTTP ${response.status}，${errMsg(error)}）`);
   }
   if (response.status === 401) dropSession();
-  if (!response.ok) throw new Error(value.error || 'SERVICE_ERROR');
+  if (!response.ok) {
+    if (value.error === 'PROJECT_PATH_TOO_LONG')
+      throw new Error('项目路径过长，Windows 无法保存。请将项目放在较短的目录后重试。');
+    throw new Error(value.error || 'SERVICE_ERROR');
+  }
   return value as T;
 }
 
@@ -169,7 +173,19 @@ export async function projects() {
   const data = await api<ProjectListResponse>('/projects');
   byId<HTMLSelectElement>('project').replaceChildren(new Option('选择项目', ''));
   for (const p of data.projects) byId<HTMLSelectElement>('project').append(new Option(p.name, p.id));
+  if (!project) {
+    let remembered = '';
+    try { remembered = window.localStorage.getItem('design-lab:active-project') || ''; }
+    catch { /* Storage may be disabled; the service remains usable. */ }
+    if (data.projects.some((p) => p.id === remembered)) project = remembered;
+    else if (data.projects.length === 1) project = data.projects[0]!.id;
+  }
   if (data.projects.some((p) => p.id === project)) byId<HTMLSelectElement>('project').value = project;
+}
+
+function rememberProject(): void {
+  try { window.localStorage.setItem('design-lab:active-project', project); }
+  catch { /* Project state itself is persisted by the service. */ }
 }
 
 export async function loadEvents(job: string, append = false) {
@@ -333,6 +349,7 @@ export async function refresh() {
 // P0-05: one checkbox per imported asset; checked ids are what submitBrief sends.
 export function populateReferencePicker(assetIds: string[]) {
   const picker = byId<HTMLUListElement>('reference-picker');
+  const selected = new Set(typeof document.querySelectorAll === 'function' ? selectedReferences() : []);
   picker.replaceChildren();
   if (!assetIds.length) {
     const li = document.createElement('li');
@@ -347,6 +364,7 @@ export function populateReferencePicker(assetIds: string[]) {
     box.type = 'checkbox';
     box.name = 'reference-asset';
     box.value = id;
+    box.checked = selected.has(id);
     label.append(box, document.createTextNode(' ' + id));
     li.append(label);
     picker.append(li);
@@ -416,11 +434,22 @@ export async function sendImport() {
   }
 }
 
-byId<HTMLFormElement>('connect-form').onsubmit = async (event) => {
-  event.preventDefault();
+export async function connectLocalService(submittedToken = ''): Promise<void> {
   const generation = ++connectGeneration;
-  const submittedToken = byId<HTMLInputElement>('token').value;
-  byId<HTMLInputElement>('token').value = '';
+  if (!submittedToken) {
+    setStatus('正在连接本机设计服务…');
+    try {
+      const response = await fetch('/api/local-session', { cache: 'no-store', signal: AbortSignal.timeout(8000) });
+      if (!response.ok) throw new Error('本机服务未开启自动连接，请使用官方 workbench 启动入口。');
+      const session = await response.json() as { token?: string };
+      if (generation !== connectGeneration) return;
+      submittedToken = session.token || '';
+    } catch (error) {
+      if (generation !== connectGeneration) return;
+      setStatus(errMsg(error), true);
+      return;
+    }
+  }
   if (!/^[0-9a-f]{64}$/.test(submittedToken)) {
     token = '';
     connected = false;
@@ -436,12 +465,26 @@ byId<HTMLFormElement>('connect-form').onsubmit = async (event) => {
     byId<HTMLDivElement>('workspace').hidden = false;
     byId<HTMLSpanElement>('connection').textContent = '本机已连接';
     setStatus('选择或新建项目。');
+    if (typeof window !== 'undefined' && typeof window.dispatchEvent === 'function')
+      window.dispatchEvent(new Event('hashchange'));
+    if (project) {
+      resetProject();
+      void Promise.all([refresh(), loadDesignSystems(), refreshDesign()])
+        .catch((error) => setStatus(`已连接，项目读回失败：${errMsg(error)}`, true));
+    }
   } catch (error) {
     if (generation !== connectGeneration || token !== submittedToken) return;
     token = '';
     connected = false;
     setStatus(errMsg(error), true);
   }
+}
+
+byId<HTMLFormElement>('connect-form').onsubmit = async (event) => {
+  event.preventDefault();
+  const submittedToken = byId<HTMLInputElement>('token').value;
+  byId<HTMLInputElement>('token').value = '';
+  await connectLocalService(submittedToken);
 };
 
 byId<HTMLButtonElement>('disconnect').onclick = () => {
@@ -458,6 +501,7 @@ byId<HTMLButtonElement>('disconnect').onclick = () => {
 
 byId<HTMLSelectElement>('project').onchange = () => {
   project = byId<HTMLSelectElement>('project').value;
+  rememberProject();
   resetProject();
   refresh().catch((e) => setStatus(errMsg(e), true));
   loadDesignSystems().catch((e) => setStatus(errMsg(e), true));
@@ -470,17 +514,27 @@ byId<HTMLButtonElement>('refresh').onclick = () => {
   void refreshDesign().catch((e) => setStatus(errMsg(e), true));
 };
 
+let creatingProject = false;
 byId<HTMLFormElement>('create-form').onsubmit = async (event) => {
   event.preventDefault();
+  if (creatingProject) return;
+  creatingProject = true;
+  const form = byId<HTMLFormElement>('create-form');
+  const submit = typeof form.querySelector === 'function' ? form.querySelector<HTMLButtonElement>('button') : null;
+  if (submit) submit.disabled = true;
   try {
     const data = await api<ProjectCreateResponse>('/projects', { name: byId<HTMLInputElement>('project-name').value });
     project = data.project.id;
+    rememberProject();
     resetProject();
     await projects();
     byId<HTMLInputElement>('project-name').value = '';
     await refresh();
   } catch (error) {
     setStatus(errMsg(error), true);
+  } finally {
+    creatingProject = false;
+    if (submit) submit.disabled = false;
   }
 };
 

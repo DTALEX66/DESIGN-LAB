@@ -21,6 +21,7 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
+from importlib.resources import files
 
 SCHEMA_VERSION = "design-lab/capability-library/v1"
 LOCK_REL = Path("vendor") / "sources.lock.json"
@@ -175,7 +176,15 @@ REPO_ROOT = Path(__file__).resolve().parents[3]
 
 def build(root: Path | None = None) -> dict:
     """Return the capability library projection for one repository root."""
-    root = Path(root) if root is not None else REPO_ROOT
+    if root is None:
+        # Packaged first, repository second. REPO_ROOT is three levels up from this
+        # file, which is the checkout in development and `<venv>/Lib` in an
+        # installed wheel -- so without this branch the library only ever worked
+        # from a source checkout while looking like a product feature.
+        packaged = files("design_lab").joinpath("resources", "capability-library")
+        root = packaged if packaged.joinpath(LOCK_REL).is_file() else REPO_ROOT
+    else:
+        root = Path(root)
     lock = _read_json(root / LOCK_REL)
     revisions = _read_json(root / REVISIONS_REL)
     radar = _read_json(root / RADAR_REL)

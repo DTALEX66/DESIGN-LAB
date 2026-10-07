@@ -37,8 +37,14 @@ def _unique_object(pairs):
     return result
 
 
-def make_server(service, token, port=0):
-    """Caller owns server lifetime; token is supplied in memory, never logged."""
+def make_server(service, token, port=0, *, local_session=False):
+    """Caller owns server lifetime; token is supplied in memory, never logged.
+
+    `local_session` is the official personal launcher's handshake: the page this
+    server itself opened may ask for the token, so nobody has to copy it out of a
+    terminal. It is not an account system and not an auth relaxation -- see the
+    `/api/local-session` handler for exactly who is answered.
+    """
     if not isinstance(token, str) or not re.fullmatch(r'[0-9a-f]{64}', token):
         raise ValueError('INVALID_SERVICE_TOKEN')
     if type(port) is not int or not 0 <= port <= 65535:
@@ -135,9 +141,24 @@ def make_server(service, token, port=0):
 
         def dispatch(self):
             try:
+                if (self.command == 'GET' and self.path == '/api/local-session'
+                        and local_session):
+                    self.guard(require_auth=False)
+                    # `guard` already pins Host to 127.0.0.1:<port> (which is what
+                    # stops DNS rebinding) and allows an absent Sec-Fetch-Site.
+                    # Absent is not enough here: any local process can forge that,
+                    # so only a browser that this very server served is answered.
+                    if self.headers.get_all('Sec-Fetch-Site', []) != ['same-origin']:
+                        raise RequestError(403, 'SAME_ORIGIN_REQUIRED')
+                    return self.send_json(200, {'token': token})
                 if self.command == 'GET' and self.path in workbench.ROUTES:
                     self.guard(require_auth=False)
                     payload, mime = workbench.resource(self.path)
+                    if local_session and self.path == '/workbench':
+                        # The page asks for the session only when its own server
+                        # says auto-connect is on; a bundle copied elsewhere must not
+                        # knock on a door that will never answer.
+                        payload = payload.replace(b'<body>', b'<body data-local-session="auto">', 1)
                     self.send_response(200)
                     self.send_header('Content-Type', mime + '; charset=utf-8')
                     self.send_header('Content-Length', str(len(payload)))
@@ -365,7 +386,15 @@ def make_server(service, token, port=0):
                 self.send_json(503, {'error': 'IMAGE_DEPENDENCY_UNAVAILABLE'})
             except (ValueError, PathPolicyError):
                 self.send_json(400, {'error': 'INVALID_REQUEST'})
-            except (sqlite3.Error, AssetError, OSError):
+            except OSError as exc:
+                # winerror 206 is ERROR_FILENAME_EXCED_RANGE: the project lives
+                # under a path Windows cannot address. Folding that into "store
+                # unavailable" sends the user to look at the database instead of
+                # at where the project is stored.
+                code = ('PROJECT_PATH_TOO_LONG' if getattr(exc, 'winerror', None) == 206
+                        else 'PROJECT_STORE_UNAVAILABLE')
+                self.send_json(503, {'error': code})
+            except (sqlite3.Error, AssetError):
                 self.send_json(503, {'error': 'PROJECT_STORE_UNAVAILABLE'})
             except Exception:
                 # Terminal clause. Anything outside the named taxonomy (a

@@ -9,6 +9,7 @@
 import { byId, errMsg, setStatus } from './workbench.js';
 import { bindDesignSystem, submitBrief, submitBriefRevision, submitDirection, submitDirectionRevision } from './design.js';
 import { mountAppShell } from './shell.js';
+import { connectLocalService } from './workbench.js';
 
 byId<HTMLFormElement>('design-brief-form').onsubmit = (event) => {
   event.preventDefault();
@@ -35,7 +36,7 @@ byId<HTMLButtonElement>('design-system-bind').onclick = () => {
 // route views mount directly so all 12 B10 pages are browsable without a
 // service token.  API reads stay readback-honest: an API view without a
 // connected token says "请先连接" instead of faking data.  Production
-// (committed build/ + service launcher) keeps the token gate.
+// builds connect automatically through the official loopback launcher.
 //
 // NOTE: detection lives here and is re-implemented in shell.ts as devMode();
 // keep the two marker checks in sync (@vite/client script OR ?dev=1).
@@ -81,3 +82,7 @@ if (typeof document !== 'undefined' && document.body !== undefined && devBypassE
   if (workspaceEl) { workspaceEl.hidden = false; }
   if (connEl) connEl.textContent = '未连接 · 本地浏览模式';
 }
+
+// Official loopback launcher: page reload reconnects without copying credentials.
+if (typeof window !== 'undefined' && document.body?.dataset.localSession === 'auto'
+    && !devBypassEnabled()) void connectLocalService();
