@@ -298,7 +298,8 @@ venv → 装 wheel → **把 wheel 内的 `design_lab/resources/workbench/build/
 门自己也被反证过:11 条用例里包含"摘要不同必须报 MISMATCH""路径缺失必须报 ABSENT""提交取
 不到必须报 NO_COMMIT 而不是当作通过""豁免是按记录生效不是按路径生效""清单里的条目变得可验证
 时必须报 stale",以及一条专门防止 OK 空心化的断言 —— 它比较 `subject_files=` 与 `checked=`
-两个计数并要求总数 > 200。该脚本已进 `verify_design_lab.py` 的聚合清单(现共 58 个,failed=0)。
+两个计数并要求总数 > 200。该脚本已进 `verify_design_lab.py` 的聚合清单(条数随波次变动,
+当前实测值记在 §8 末,不在此处钉一个会过期的数字)。
 
 ### 5.6 我的预检界面把 CI 的词表门改红了(而我所有的定向门都没抓到)
 
@@ -380,6 +381,13 @@ needle 是我按记忆写的 SQL 文本,和文件里的 Python 字符串拼接�
 补齐后 `VERIFY_ROUTE_PAYLOAD_CONTRACTS=PASS bindings=5 failures=0`。结论不是谁改错了,
 而是共享工作树里"我刚才读到的字节"只是快照,不是事实:改合同之前要重读、改完要立刻用真门重跑。
 另记:该门此刻尚未进 `verify_design_lab.py` 聚合清单 —— 一个没人调用的门等于文档,已列入待注册项。
+
+注册状态实测(`ast` 数 `SCRIPTS` 列表元素,2026-10-08):聚合清单 **59** 项。本波把
+`verify_artifact_preflight_contract.py` 注册了进去(它此前只在文档里被引用,没人调用),
+`verify_ledger_schema_pairing.py` 由 ledger schema 那一路的 worker 同时注册。
+**仍未注册**:`verify_route_payload_contracts.py`、`verify_contract_bindings.py` ——
+两个脚本此刻正在被各自的作者改写(文件 mtime 在我读到它们之后又变过),把它们接进聚合前先
+等其字节稳定,否则聚合变红的究竟是真缺陷还是并发写入就分不清了;这一条留给聚合轮。
 
 
 

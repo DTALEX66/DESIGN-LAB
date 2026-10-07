@@ -35,6 +35,10 @@ def run_child(command: list) -> subprocess.CompletedProcess:
 
 SCRIPTS = [
     "verify_identity_gate.py",
+    # The ledger's own contract: select a schema BY the ledger's schemaVersion, fail hard when
+    # a version names no schema file (that is exactly how r5-v1 shipped without a contract for
+    # a month), and keep schema and data accountable in both directions.
+    "verify_ledger_schema_pairing.py",
     "verify_ledger_subject_binding.py",
     # CI runs this one directly; it was missing from the aggregate, so a local bound run
     # could go green while the vocabulary contract was broken. That is exactly how a UI
@@ -51,6 +55,11 @@ SCRIPTS = [
     "verify_aesthetic_rules.py",
     "verify_design_ir.py",
     "verify_production_preflight.py",
+    # The preflight verdicts the product emits are compared, on live payloads, against
+    # design-lab/schemas/artifact-preflight.schema.json. Without this in the aggregate a
+    # local bound run could go green while the four-word verdict vocabulary drifted --
+    # this is the same class of hole as the vocabulary gate being CI-only.
+    "verify_artifact_preflight_contract.py",
     "verify_experience_corpus.py",
     "verify_design_actions.py",
     "verify_tool_action_plan.py",
