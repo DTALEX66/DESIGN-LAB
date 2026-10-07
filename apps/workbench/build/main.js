@@ -961,6 +961,10 @@ function apiOrEmpty(path, empty) {
     return live;
   });
 }
+function shapeNoticeRows(...values) {
+  const notes = values.map(shapeNotice).filter(Boolean);
+  return notes.length ? [el("p", { class: "error" }, notes.join("；"))] : [];
+}
 function shapeNotice(value) {
   const missing = value?.[SHAPE_MISSING];
   return Array.isArray(missing) && missing.length ? `未读回：响应缺少 ${missing.join("、")}` : "";
@@ -1289,7 +1293,6 @@ async function renderDashboard(target) {
     apiOrEmpty("/design-systems", OFFLINE.designSystems),
     apiOrEmpty("/environment", OFFLINE.environment)
   ]);
-  const shapeNote = [health, projects2, systems, environment].map(shapeNotice).filter(Boolean).join("；");
   const probeIds = projects2.projects.slice(0, 6).map((p) => p.id);
   const probes = await Promise.all(probeIds.map(async (pid) => {
     const taskResult = { res: null, err: null };
@@ -1337,7 +1340,7 @@ async function renderDashboard(target) {
       "div",
       {},
       el("h2", {}, "仪表盘"),
-      el("p", {}, "项目、品牌、预检与交付已可读回；研究、设计领域、协作尚未开放（见能力登记表）。" + (shapeNote ? ` ${shapeNote}。` : ""))
+      el("p", {}, "项目、品牌、预检与交付已可读回；研究、设计领域、协作尚未开放（见能力登记表）。")
     ),
     el(
       "div",
@@ -1542,7 +1545,8 @@ async function renderDashboard(target) {
       { class: "two-col", style: "margin-top:16px" },
       triagePanel("needs_human", "待审（需人工处理）", "无待审任务"),
       triagePanel("failed", "失败", "无失败任务")
-    )
+    ),
+    ...shapeNoticeRows(environment, health, projects2, systems)
   ), // 2026-09-30 — 活跃生产 + 最近交付 + Host/Capability 状态 + Quick Launch。
   // 全部来自真实读回：活跃生产 = in_flight triage；最近交付 = /bundles 读回；
   // Host 状态 = /environment shared_inputs + 能力登记表（诚实 UNKNOWN 占位，
@@ -1832,7 +1836,8 @@ async function renderBrandSystems(target) {
     kpis,
     moduleGrid,
     systemsList,
-    el("p", { class: "view-hint" }, "绑定到方向的操作在工作台「05 / DESIGN LAYER」页执行；本页只读回，不修改。")
+    el("p", { class: "view-hint" }, "绑定到方向的操作在工作台「05 / DESIGN LAYER」页执行；本页只读回，不修改。"),
+    ...shapeNoticeRows(systems)
   );
 }
 async function renderPreflight(target) {
@@ -2118,7 +2123,8 @@ async function renderCapabilityLibrary(target) {
       el("h3", {}, "研究结论"),
       el("p", { class: "view-unopened" }, notOpen),
       researchCard ? capabilityCard(researchCard) : el("p", { class: "view-hint" }, "（登记表无此项）")
-    )
+    ),
+    ...shapeNoticeRows(data)
   );
   render();
 }
@@ -2226,12 +2232,14 @@ async function renderSettings(target) {
         )
       )
     ),
-    el("p", { class: "view-hint" }, "代理配置私有状态不可写：PRIVATE_NOT_INSPECTED · 不可写。本服务不读取、不打印任何凭据。")
+    el("p", { class: "view-hint" }, "代理配置私有状态不可写：PRIVATE_NOT_INSPECTED · 不可写。本服务不读取、不打印任何凭据。"),
+    ...shapeNoticeRows(env)
   );
 }
 async function projectPickerPanel(target, title, body) {
   target.replaceChildren(el("p", { class: "view-loading" }, "正在读回项目台账…"));
   const data = await apiOrEmpty("/projects", OFFLINE.projects);
+  const unread = shapeNotice(data);
   if (!data.projects.length) {
     target.replaceChildren(
       el(
@@ -2244,7 +2252,7 @@ async function projectPickerPanel(target, title, body) {
           el("p", {}, "只读回服务端台账；本页不提交、不修改。")
         )
       ),
-      el("p", { class: "view-hint" }, "尚无项目。先在工作台新建项目，再读回此视图。")
+      ...unread ? [el("p", { class: "error" }, `${unread}，因此无法判断台账是否为空`)] : [el("p", { class: "view-hint" }, "尚无项目。先在工作台新建项目，再读回此视图。")]
     );
     return;
   }
@@ -2265,7 +2273,8 @@ async function projectPickerPanel(target, title, body) {
       )
     ),
     el("label", { class: "project-picker" }, "项目", select),
-    content
+    content,
+    ...shapeNoticeRows(data)
   );
   const load = async () => {
     const id = select.value;
@@ -2295,7 +2304,6 @@ async function renderProjects(target) {
   target.replaceChildren(el("p", { class: "view-loading" }, "正在读回项目台账…"));
   const data = await apiOrEmpty("/projects", OFFLINE.projects);
   const n = data.projects.length;
-  const shapeNote = shapeNotice(data);
   const pageHead = el(
     "div",
     { class: "page-head" },
@@ -2303,7 +2311,7 @@ async function renderProjects(target) {
       "div",
       {},
       el("h2", {}, "项目"),
-      el("p", {}, "支持筛选、编辑与本地持久化。数据来自服务端台账；新建 / 选择项目在工作台执行，本页只读回。" + (shapeNote ? ` ${shapeNote}。` : ""))
+      el("p", {}, "支持筛选、编辑与本地持久化。数据来自服务端台账；新建 / 选择项目在工作台执行，本页只读回。")
     ),
     el(
       "div",
@@ -2371,7 +2379,8 @@ async function renderProjects(target) {
   target.replaceChildren(
     pageHead,
     kpis,
-    el("div", { class: "panel" }, el("h3", {}, `项目（${n}）`), list)
+    el("div", { class: "panel" }, el("h3", {}, `项目（${n}）`), list),
+    ...shapeNoticeRows(data)
   );
 }
 const TOOL_ADAPTERS = [
@@ -2477,7 +2486,8 @@ async function renderCreativeTools(target) {
             el("tbody", {}, ...rows)
           )
         )
-      )
+      ),
+      ...shapeNoticeRows(env, tasks2)
     );
   });
 }
@@ -2590,7 +2600,8 @@ async function renderDeliverables(target) {
       kindGrid,
       el("p", { class: "view-hint" }, "交付包按任务在下载时打包（字体 / 链接 / rights / 质量仍需人工验收）。本页只读回，不下载也不打包。"),
       bundlePanel,
-      tasksPanel
+      tasksPanel,
+      ...shapeNoticeRows(bundles, tasks2)
     );
   });
 }
@@ -2728,7 +2739,8 @@ async function renderEvidence(target) {
         )
       ),
       systems,
-      el("p", { class: "view-hint" }, "版本链（brief / direction 逐版本）在工作台点单条时读回；本页为只读证据视图，不修改 lineage。")
+      el("p", { class: "view-hint" }, "版本链（brief / direction 逐版本）在工作台点单条时读回；本页为只读证据视图，不修改 lineage。"),
+      ...shapeNoticeRows(layerResp, bundlesResp)
     );
     return done;
   });
@@ -3062,7 +3074,9 @@ function renderBriefEditor(id, layer, target) {
     });
     const rows = data.lineage.versions;
     const liveId = data.lineage.live_id;
+    const notice = shapeNotice(data);
     lineageBox.replaceChildren(
+      ...notice ? [el("li", { class: "error" }, notice)] : [],
       el(
         "li",
         { class: "list-item" },
@@ -3877,7 +3891,8 @@ async function renderProjectDetail(id, target) {
       ),
       inspector
     ),
-    el("p", { class: "view-hint" }, "tasks 与 design-layer 台账为只读；简报区可真实创建与修订并读回；参考素材区读回资产清单并按需预览。提交任务 / 运行 / 取消 / 导出仍由工作台高级区执行。")
+    el("p", { class: "view-hint" }, "tasks 与 design-layer 台账为只读；简报区可真实创建与修订并读回；参考素材区读回资产清单并按需预览。提交任务 / 运行 / 取消 / 导出仍由工作台高级区执行。"),
+    ...shapeNoticeRows(bundlesResp, layerResp, listing, systemsResp, tasks2)
   );
 }
 async function renderRoute(view, target) {
