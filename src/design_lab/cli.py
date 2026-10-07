@@ -63,6 +63,11 @@ def main(argv=None):
                          help='operator identity recorded on the decision (required with --attempt)')
     recovery.add_argument('--receipt', default=None,
                          help='the operator statement authorizing this decision (required with --attempt)')
+    trail = commands.add_parser(
+        'audit-trail',
+        help='read back the writer journal: lease takeovers and versions created by an attempt')
+    trail.add_argument('--limit', type=int, default=20,
+                       help='rows to read, newest first (1-200)')
     projects = commands.add_parser('projects').add_subparsers(dest='action', required=True)
     projects.add_parser('list')
     projects.add_parser('create').add_argument('--name', required=True)
@@ -168,6 +173,18 @@ def main(argv=None):
                 local_state_schema_version=state_schema_version(service.paths.local_root))
             result['status'] = 'RESTORE_VERIFIED'
             result['target'] = Path(target).name
+        elif args.command == 'audit-trail':
+            from .runtime.audit_trail import recent as _audit_recent
+            try:
+                print(json.dumps({'status': 'AUDIT_TRAIL',
+                                  'journal': _audit_recent(service, limit=args.limit)},
+                                 ensure_ascii=False, sort_keys=True))
+            except ValueError as exc:
+                # The limit is the caller's mistake, not the store's; say which so the
+                # operator does not go looking for a broken database.
+                print(json.dumps({'status': 'ERROR', 'error': 'INVALID_AUDIT_TRAIL_REQUEST',
+                                  'detail': str(exc)}, ensure_ascii=False, sort_keys=True))
+                return 2
         elif args.command == 'native-recovery':
             from .native_tasks import NativeTaskError
             from .runtime.job_store import AttemptError
