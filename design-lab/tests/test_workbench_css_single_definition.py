@@ -339,7 +339,11 @@ class ListItemIsReallyAListMember(unittest.TestCase):
         self.assertGreaterEqual(rendered_rows, 50,
                                 "the source builds list rows through el('li') or emptyLi(); "
                                 "a drop below 50 means rows were deleted, not converted")
-        self.assertEqual(self.shell.count("el('ul', { class: 'list'"), 30)
+        # An exact inventory, not a floor: the equality is what makes a half-done
+        # migration impossible to miss. 2026-10-08: 30 -> 31 because the Human Jury
+        # readback column joined it as a real <ul> (its first version was a <div>,
+        # which the two assertions above caught).
+        self.assertEqual(self.shell.count("el('ul', { class: 'list'"), 31)
 
 
 if __name__ == "__main__":

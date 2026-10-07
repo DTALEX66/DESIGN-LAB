@@ -354,4 +354,110 @@ if (!sawTransport || !sawServiceError || !sawUnparsable)
   ].filter(Boolean).join(' + ') || '无'}，另一种没有任何视图走过`);
 console.log(`ok: ② 请求失败时 ${failedChecked} 个视图只报失败与原因（传输被拒 + 回复不可解析 + 服务错误三条路径都实测到），无旧内容残留`);
 
+// ⑥ 产物预检 column, driven from a real click on the real bundle. The static contract
+// (design-lab/tests/test_artifact_preflight_ui_contract.py) proves the page declares the
+// profiles the route accepts and paints the fields the service sends; that is a text
+// check and cannot see behaviour. This block proves: nothing is asked of the service
+// while the page is being built, one click makes exactly one request to that bundle's
+// own route, the readback carries the criterion behind each verdict, and a refusal
+// replaces the previous verdict rather than decorating it.
+function findIn(node, predicate) {
+  if (node && predicate(node)) return node;
+  for (const child of (node && node.children ? node.children : [])) {
+    const hit = findIn(child, predicate);
+    if (hit) return hit;
+  }
+  return null;
+}
+const byElementId = (root, id) => findIn(root, (node) => Boolean(node && node.attributes
+  && typeof node.attributes.get === 'function' && node.attributes.get('id') === id));
+
+const BUNDLE_ID = 'bundle-native-' + '0123456789abcdef'.repeat(4);
+const PREFLIGHT_READBACK = {
+  schemaVersion: 'design-lab/artifact-preflight/v1', profile: 'print',
+  profileSchema: 'design-lab/preflight-profile/v1', verdict: 'INCOMPLETE',
+  artifacts: [],
+  findings: [
+    { id: 'missing-links', severity: 'blocker', outcome: 'NOT_MEASURED',
+      detail: '本构建没有该检查的测量器', criterion: '链接必须随包存在且摘要相符', measured: {} },
+    { id: 'color-mode', severity: 'high', outcome: 'PASS',
+      detail: '色彩模式 CMYK', criterion: '印刷交付应为 CMYK（ISO 12647 语境）', measured: {} },
+  ],
+  counts: { PASS: 1, WARNING: 0, FAIL: 0, NOT_MEASURED: 1, NOT_APPLICABLE: 0 },
+  meaning: 'PASS 要求每条适用检查都被真量过且通过。',
+};
+
+shell.window.location.hash = '#/deliverables';
+shell.dispatchHashchange();
+const deliverableProjects = shell.pending.shift();
+deliverableProjects.resolve(response({ projects: [{ id: 'p1', name: 'Alpha' }] }));
+await flush();
+const routeView = shell.elements.get('route-view');
+const projectSelect = byElementId(routeView, '交付中心-project');
+if (!projectSelect) throw new Error('交付中心没有渲染项目选择器，⑥ 找不到入口');
+// A real <select> defaults to its first option; the mock has no selection model, so the
+// pick is applied the way the browser would apply it and the change handler runs.
+projectSelect.value = 'p1';
+projectSelect.onchange();
+const built = shell.pending.splice(0, shell.pending.length);
+for (const request of built)
+  if (request.path.includes('/preflight'))
+    throw new Error(`构建交付中心时就在预检 ${request.path} —— 没有人选过交付包，结论只能是猜测`);
+for (const request of built) {
+  request.resolve(response(request.path.endsWith('/bundles')
+    ? { bundles: [{ id: BUNDLE_ID, kind: 'design-bundle', version_id: 'v-1', version_no: 1,
+                   byte_size: 2048, sha256: 'sha256:' + 'a'.repeat(64),
+                   rights: 'NOT_REVIEWED', verification: 'METADATA_ONLY' }] }
+    : { tasks: [] }));
+}
+await flush();
+// Reads that start after the awaited join still happen without a click, so the stray
+// check has to run once the page has settled -- not only at the splice above.
+const stray = shell.pending.splice(0, shell.pending.length);
+if (stray.length)
+  throw new Error(`没有人点击，页面却发出了 ${stray.map((r) => r.path).join(' ')} —— `
+    + '预检结论不能来自一次没人请求的读取');
+
+const runButton = byElementId(routeView, 'bundle-preflight-run');
+if (!runButton) throw new Error('交付包读回后没有出现预检按钮');
+if (runButton.disabled) throw new Error('有交付登记时预检按钮不得是禁用的');
+const bundleSelect = byElementId(routeView, 'bundle-preflight-target');
+const profileSelect = byElementId(routeView, 'bundle-preflight-profile');
+if (!bundleSelect || !profileSelect) throw new Error('预检缺少交付包或 profile 选择器');
+const outcomeHost = byElementId(routeView, 'bundle-preflight-outcome');
+if (!outcomeHost) throw new Error('预检读回区不可定位 —— 它没有把结论挂在屏上的稳定位置');
+bundleSelect.value = BUNDLE_ID;
+profileSelect.value = 'print';
+if (outcomeHost.textContent.includes('INCOMPLETE'))
+  throw new Error('预检结论在没有点击之前就出现在屏幕上');
+
+runButton.onclick();
+const first = shell.pending.splice(0, shell.pending.length);
+if (first.length !== 1) throw new Error(`一次点击发出了 ${first.length} 个请求，应为 1 个`);
+if (first[0].path !== `/api/projects/p1/bundles/${BUNDLE_ID}/preflight?profile=print`)
+  throw new Error(`点击预检打到了 ${first[0].path} —— 必须是所选交付包自己的路由`);
+first[0].resolve(response(PREFLIGHT_READBACK));
+await flush();
+const outcomeText = outcomeHost.textContent;
+for (const must of ['INCOMPLETE', 'missing-links', 'NOT_MEASURED', '未量 1 项 / 共 2 项',
+                    '判据：印刷交付应为 CMYK（ISO 12647 语境）',
+                    'PASS 要求每条适用检查都被真量过且通过。'])
+  if (!outcomeText.includes(must))
+    throw new Error(`预检读回缺少 ${must}：${outcomeText.slice(0, 200)}`);
+
+// The refusal half: a rejected preflight must not leave the previous verdict standing.
+bundleSelect.value = BUNDLE_ID;
+runButton.onclick();
+const second = shell.pending.splice(0, shell.pending.length);
+if (second.length !== 1) throw new Error(`第二次点击发出了 ${second.length} 个请求`);
+second[0].resolve(response({ error: '归档摘要与登记的字节不一致' }, false));
+await flush();
+const refused = outcomeHost.textContent;
+if (!refused.includes('预检未确认') || !refused.includes('归档摘要与登记的字节不一致'))
+  throw new Error(`预检被拒时页面没有说出拒绝原因：${refused.slice(0, 200)}`);
+if (refused.includes('INCOMPLETE'))
+  throw new Error('拒绝后上一条判定仍留在屏上，等于把失败的请求算成了一个结论');
+
+console.log('ok: ⑥ 产物预检列不自动跑、一次点击一个请求、判据与未量项上屏、拒绝替换旧判定');
+
 console.log('APPSHELL REGRESSION: all checks passed');

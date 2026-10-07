@@ -1971,16 +1971,20 @@ function juryReadbackPanel(projectId, data, reload, unread) {
     );
   }
   const verdicts = Object.entries(data.current_verdicts ?? {});
-  const list = el("div", { class: "list" }, ...verdicts.length ? verdicts.map(([subject, record]) => el(
-    "div",
+  const list = el("ul", { class: "list" }, ...verdicts.length ? verdicts.map(([subject, record]) => el(
+    "li",
     { class: "list-item" },
-    el("strong", {}, String(record["verdict"] ?? "未记录判定")),
-    el("div", { class: "value-mono" }, subject),
-    el("div", { class: "muted" }, String((record["juror"] ?? {}).attestation ?? "无评审依据"))
-  )) : [el(
-    "p",
-    { class: "view-hint" },
-    "尚无人签署的裁决。Agent 建议不计入验收，人工签署是唯一改变此处的途径。"
+    el(
+      "div",
+      {},
+      el("strong", {}, String(record["verdict"] ?? "未记录判定")),
+      el("div", { class: "value-mono" }, subject),
+      el("div", { class: "muted" }, String((record["juror"] ?? {}).attestation ?? "无评审依据"))
+    )
+  )) : [emptyLi(
+    data,
+    "尚无人签署的裁决",
+    "Agent 建议不计入验收，人工签署是唯一改变此处的途径。"
   )]);
   const summary = el(
     "p",
@@ -2814,6 +2818,92 @@ const DELIVERABLE_FORMATS = [
   { format: "Video", producedBy: null },
   { format: "3D", producedBy: null }
 ];
+const PREFLIGHT_PROFILES = ["print", "digital", "video"];
+const OUTCOME_TAGS = {
+  PASS: "ok",
+  WARNING: "warn",
+  FAIL: "bad",
+  NOT_MEASURED: "warn",
+  NOT_APPLICABLE: "neutral"
+};
+function artifactPreflightPanel(bundleId, data) {
+  const tagClass = data.verdict === "PASS" ? "ok" : data.verdict === "WARN" || data.verdict === "INCOMPLETE" ? "warn" : data.verdict === "BLOCKED" ? "bad" : "neutral";
+  const unmeasured = data.counts["NOT_MEASURED"] ?? 0;
+  return el(
+    "div",
+    { class: "bundle-preflight-readback" },
+    el(
+      "p",
+      {},
+      el("span", { class: "tag " + tagClass }, en(data.verdict)),
+      el(
+        "span",
+        { class: "muted" },
+        `profile ${en(data.profile)} · 判据版本 ${String(data.profileSchema)} · 未量 ${unmeasured} 项 / 共 ${data.findings.length} 项`
+      )
+    ),
+    // The rule that keeps INCOMPLETE honest is the service's sentence, not the page's.
+    el("p", { class: "view-hint" }, data.meaning),
+    el(
+      "div",
+      {
+        class: "table-wrap",
+        tabindex: "0",
+        role: "region",
+        "aria-label": "产物预检结果表（可横向滚动）"
+      },
+      el(
+        "table",
+        { class: "table" },
+        el("thead", {}, el(
+          "tr",
+          {},
+          el("th", {}, "检查项"),
+          el("th", {}, "严重度"),
+          el("th", {}, "结论"),
+          el("th", {}, "读回与判据")
+        )),
+        el("tbody", {}, ...data.findings.map((finding) => el(
+          "tr",
+          {},
+          el("td", {}, finding.id),
+          el("td", {}, el("span", { class: "tag info" }, en(finding.severity))),
+          el("td", {}, el("span", {
+            class: "tag " + (OUTCOME_TAGS[finding.outcome] ?? "neutral")
+          }, en(finding.outcome))),
+          // Both strings travel: the reading and the criterion it was judged against.
+          // A table of verdicts with no stated basis is what this module exists to stop.
+          el(
+            "td",
+            {},
+            finding.detail,
+            el("div", { class: "value-mono" }, "判据：" + finding.criterion)
+          )
+        )))
+      )
+    )
+  );
+}
+async function runArtifactPreflight(projectId, bundleId, profile, host) {
+  host.replaceChildren(el(
+    "p",
+    { class: "view-loading" },
+    `正在按 ${profile} profile 预检 ${bundleId}…`
+  ));
+  try {
+    const data = await api(
+      `/projects/${projectId}/bundles/${bundleId}/preflight?profile=${encodeURIComponent(profile)}`,
+      {}
+    );
+    host.replaceChildren(artifactPreflightPanel(bundleId, data));
+  } catch (error) {
+    host.replaceChildren(el(
+      "p",
+      { class: "error" },
+      `预检未确认：${errMsg(error)}。服务端拒绝时没有写入任何结论。`
+    ));
+  }
+}
 async function renderDeliverables(target) {
   await projectPickerPanel(target, "交付中心", async (id) => {
     const [tasks2, bundles] = await Promise.all([
@@ -2851,12 +2941,68 @@ async function renderDeliverables(target) {
       { class: "list" },
       ...bundleRows.filter((x) => x !== null)
     );
+    const bundlePicker = el("select", { class: "input", id: "bundle-preflight-target" });
+    if (bundles.bundles.length) {
+      for (const b of bundles.bundles) {
+        bundlePicker.append(new Option(`v${b.version_no} · ${b.id}`, b.id));
+      }
+    } else {
+      const [head, note] = emptyWording(
+        bundles,
+        "暂无交付包可预检",
+        "任务完成并打包后，交付会在此读回并可预检。"
+      );
+      bundlePicker.append(new Option(`${head} · ${note}`, ""));
+    }
+    const profilePicker = el(
+      "select",
+      { class: "input", id: "bundle-preflight-profile" },
+      ...PREFLIGHT_PROFILES.map((name) => new Option(name, name))
+    );
+    const preflightOut = el(
+      "div",
+      {
+        class: "bundle-preflight-outcome",
+        id: "bundle-preflight-outcome"
+      },
+      el(
+        "p",
+        { class: "view-hint" },
+        "尚未预检：预检只读取归档自带字节与随包清单，不修改交付包，也不代替 rights / 质量验收。"
+      )
+    );
+    const preflightRun = el("button", {
+      type: "button",
+      class: "primary-btn",
+      id: "bundle-preflight-run"
+    }, "预检所选交付包");
+    preflightRun.disabled = bundles.bundles.length === 0;
+    preflightRun.onclick = () => {
+      const bundleId = bundlePicker.value;
+      if (!bundleId) {
+        preflightOut.replaceChildren(el(
+          "p",
+          { class: "error" },
+          "未预检：没有可选的交付登记，预检不能对一个凭记忆写出的 id 给出结论。"
+        ));
+        return;
+      }
+      void runArtifactPreflight(id, bundleId, profilePicker.value, preflightOut);
+    };
     const bundlePanel = el(
       "div",
       { class: "panel" },
       el("h3", {}, `交付包（${bundles.bundles.length}）`),
       bundleList,
-      el("p", { class: "view-hint" }, "交付包来自原生宿主导出；下载与 hash 核对在项目页执行（fail-closed）。权利 / 质量 / 预检仍需独立验收。")
+      el("p", { class: "view-hint" }, "交付包来自原生宿主导出；下载与 hash 核对在项目页执行（fail-closed）。"),
+      el(
+        "div",
+        { class: "toolbar" },
+        el("label", { class: "muted" }, "交付包", bundlePicker),
+        el("label", { class: "muted" }, "profile", profilePicker),
+        preflightRun
+      ),
+      preflightOut
     );
     const tasksRows = tasks2.tasks.length ? tasks2.tasks.map((t) => el(
       "tr",
