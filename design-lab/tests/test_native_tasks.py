@@ -4,9 +4,12 @@ from contextlib import closing
 import hashlib
 import importlib
 import importlib.util
+import io
 import json
 import os
 from pathlib import Path
+import queue
+import secrets
 import sys
 import subprocess
 import tempfile
@@ -22,7 +25,31 @@ from design_lab.runtime import job_store
 from design_lab.adapters.photoshop_com import PhotoshopDispatchError
 
 
-class NativeTaskTests(unittest.TestCase):
+def native_receipt(run,job):
+    """The bytes and the receipt a real host would leave behind.
+
+    Shared with the crash children below, so a persisted receipt in these tests
+    is the same artifact the parent process would have verified, not a shortcut.
+    """
+    primary=run/job['outputName'];preview=run/job['previewName']
+    primary.write_bytes(b'8BPS\x00\x01 controlled fake COM boundary')
+    Image.new('RGB',(8,6),'red').save(preview)
+    def digest(p):return dict(sha256=hashlib.sha256(p.read_bytes()).hexdigest(),byte_size=p.stat().st_size)
+    return dict(status='NATIVE_READBACK',job_id=job['jobId'],host_version='26.7.0',bridge_sha256='b'*64,
+        job_sha256=hashlib.sha256(json.dumps(job,sort_keys=True,ensure_ascii=True,separators=(',',':')).encode()).hexdigest(),
+        inputs={str(run/'input.png'):digest(run/'input.png')},artifacts={'psd':digest(primary),'png':digest(preview)},
+        documents_before=0,documents_after=0)
+
+
+def quiescence_receipt(job):
+    """A fixed host cleanup: the host is idle, the outputs are explicitly not accepted."""
+    return dict(status='HOST_QUIESCENT_ARTIFACTS_UNACCEPTED',job_id=job['jobId'],
+        documents_before=0,documents_after=0,closed_documents=0,artifacts={})
+
+
+class NativeFixture:
+    """One real project directory, real SQLite, only the COM/host call doubled."""
+
     def setUp(self):
         parent=ROOT/'.project-local/task-runtime/native-task-tests';parent.mkdir(parents=True,exist_ok=True)
         temp=tempfile.TemporaryDirectory(dir=parent);self.addCleanup(temp.cleanup)
@@ -45,15 +72,10 @@ class NativeTaskTests(unittest.TestCase):
             idempotency_key=key,approved_root=self.run,authorization=self.authorization)
 
     def native(self,host,job,**kwargs):
-        primary=self.run/job['outputName'];preview=self.run/job['previewName']
-        primary.write_bytes(b'8BPS\x00\x01 controlled fake COM boundary')
-        Image.new('RGB',(8,6),'red').save(preview)
-        def digest(p):return dict(sha256=hashlib.sha256(p.read_bytes()).hexdigest(),byte_size=p.stat().st_size)
-        return dict(status='NATIVE_READBACK',job_id=job['jobId'],host_version='26.7.0',bridge_sha256='b'*64,
-            job_sha256=hashlib.sha256(json.dumps(job,sort_keys=True,ensure_ascii=True,separators=(',',':')).encode()).hexdigest(),
-            inputs={str(self.run/'input.png'):digest(self.run/'input.png')},artifacts={'psd':digest(primary),'png':digest(preview)},
-            documents_before=0,documents_after=0)
+        return native_receipt(self.run,job)
 
+
+class NativeTaskTests(NativeFixture,unittest.TestCase):
     def test_restart_reuses_one_native_execution_and_published_version(self):
         module=self.module()
         with patch.object(module,'_dispatch',side_effect=self.native) as invoke:
@@ -575,3 +597,290 @@ class NativeTaskTests(unittest.TestCase):
         with patch.object(module,'_dispatch') as invoke:
             with self.assertRaises(module.NativeTaskError):self.execute()
             invoke.assert_not_called()
+
+
+class StartUpRecoveryDecisions(NativeFixture,unittest.TestCase):
+    """A project that died mid-host-run must be reachable from the product, not only from tests.
+
+    reconcile_receipted and quiesce_* existed and were unit tested, but nothing in
+    production could call them, so an attempt left at OUTCOME_UNKNOWN was a
+    permanent dead end. These drive the start-up readback and the explicit operator
+    decision through the real service, the real CLI and a real child process that
+    dies during the host call; only the COM boundary is doubled.
+    """
+
+    def crash_child(self,*,persist_receipt,key='crash'):
+        """Die in a real child process mid-run, leaving the attempt RUNNING with its guard.
+
+        persist_receipt=False is a process killed inside COM; True is one killed
+        after its receipt row committed but before publication. Both are what a
+        crash actually leaves behind: no verdict, no artifact, host held.
+        """
+        module=self.module()
+        queued=module.NativeTasks(self.service).enqueue(self.project,'photoshop',self.job,
+            idempotency_key=key,approved_root=self.run,authorization=self.authorization)
+        aid=queued['attempt']['attempt_id']
+        crash=('nt.NativeTasks._publish=lambda *a,**k: os._exit(43); ' if persist_receipt
+               else 'nt._dispatch=lambda host,j,**k: os._exit(43); ')
+        code=('import sys,os,json; sys.path.insert(0,sys.argv[1]); sys.path.insert(0,sys.argv[5]); '
+              'from pathlib import Path; import test_native_tasks as T; '
+              'from design_lab.service import ProjectService; from design_lab import native_tasks as nt; '
+              'run=Path(sys.argv[4]); job=json.loads(sys.argv[6]); '
+              'nt._dispatch=lambda host,j,**k: T.native_receipt(run,j); '+crash+
+              'nt.NativeTasks(ProjectService(sys.argv[2])).execute(sys.argv[3],"photoshop",job,'
+              'idempotency_key=sys.argv[7],approved_root=str(run),authorization=json.loads(sys.argv[8]))')
+        child=subprocess.run([sys.executable,'-B','-X','utf8','-c',code,str(ROOT/'src'),str(self.root),
+            self.project,str(self.run),str(Path(__file__).resolve().parent),json.dumps(self.job),key,
+            json.dumps(self.authorization)],cwd=str(self.root),capture_output=True,text=True,
+            encoding='utf-8',errors='replace',timeout=60)
+        self.assertEqual(child.returncode,43,child.stderr)
+        identity=hashlib.sha256((self.project+':photoshop:'+key).encode()).hexdigest()
+        with closing(job_store.connect(self.service.database,project_root=self.root)) as conn:
+            self.assertEqual(job_store.latest_attempt(conn,'native-job-'+identity)['state'],'RUNNING')
+        with closing(module.NativeTasks(self.service)._connect()) as conn:
+            self.assertEqual(conn.execute('SELECT COUNT(*) FROM native_host_guard_v1').fetchone()[0],1,
+                             'the crashed run must still own its host guard')
+            self.assertEqual(conn.execute('SELECT receipt_json IS NOT NULL FROM native_execution_v1 '
+                'WHERE attempt_id=?',(aid,)).fetchone()[0],1 if persist_receipt else 0)
+            self.assertEqual(conn.execute('SELECT COUNT(*) FROM asset_version').fetchone()[0],0)
+        return aid
+
+    def decision(self,attempt_id):
+        found=[d for d in self.service.recovery_readback()['decisions'] if d['attempt_id']==attempt_id]
+        self.assertEqual(len(found),1,'the unresolved attempt must be listed exactly once')
+        return found[0]
+
+    def cli(self,*argv):
+        from design_lab import cli
+        out=io.StringIO()
+        with patch('sys.stdout',new=out):
+            code=cli.main(['--project',str(self.root),*argv])
+        return code,json.loads(out.getvalue()),out.getvalue()
+
+    def test_a_crashed_host_run_is_listed_as_needing_a_decision(self):
+        module=self.module();aid=self.crash_child(persist_receipt=False)
+        self.assertEqual(self.service.recovery_readback()['pending'],1)
+        crashed=self.decision(aid)
+        self.assertEqual(crashed['state'],'RUNNING')
+        self.assertIsNone(crashed['action'],'a crash may not be decided before it is labelled')
+        self.assertEqual(crashed['reason'],'RUNNING_ATTEMPT_AWAITS_START_UP_RELABELLING')
+        self.assertFalse(crashed['worker_active'],'the crashed holder must be provably gone')
+        # A readback is a read: nothing is decided, released or published by looking.
+        self.assertEqual(self.decision(aid),crashed)
+        self.assertEqual(self.service.reconcile_interrupted_attempts(),[aid])
+        listed=self.decision(aid)
+        self.assertEqual((listed['state'],listed['operation'],listed['host_guard'],
+            listed['receipt_persisted'],listed['action']),
+            ('OUTCOME_UNKNOWN','OUTCOME_UNKNOWN','self',False,'quiesce'))
+        with closing(module.NativeTasks(self.service)._connect()) as conn:
+            self.assertEqual(conn.execute('SELECT COUNT(*) FROM asset_version').fetchone()[0],0)
+            self.assertEqual(conn.execute('SELECT COUNT(*) FROM artifact').fetchone()[0],0)
+            self.assertEqual(conn.execute('SELECT COUNT(*) FROM native_host_guard_v1').fetchone()[0],1)
+            self.assertEqual(conn.execute('SELECT COUNT(*) FROM native_quiescence_v1').fetchone()[0],0)
+
+    def test_boot_decision_reconciles_the_persisted_receipt_and_never_redispatches(self):
+        module=self.module();aid=self.crash_child(persist_receipt=True)
+        self.assertEqual(self.service.reconcile_interrupted_attempts(),[aid])
+        listed=self.decision(aid)
+        self.assertEqual((listed['action'],listed['receipt_persisted'],listed['host_guard']),
+                         ('reconcile',True,'self'))
+        with closing(module.NativeTasks(self.service)._connect()) as conn:
+            persisted=conn.execute('SELECT receipt_json FROM native_execution_v1 WHERE attempt_id=?',
+                                   (aid,)).fetchone()[0]
+        self.assertTrue(persisted,'the crashed run committed its receipt before dying')
+        with patch.object(module,'_dispatch',side_effect=AssertionError('recovery must not dispatch')) as invoke,\
+             patch.object(module.photoshop_com,'execute') as adapter:
+            decided=self.service.decide_native_recovery(aid,authorization=self.authorization)
+        invoke.assert_not_called();adapter.assert_not_called()
+        self.assertEqual(decided['result']['attempt']['state'],'RECEIPTED')
+        published=Path(decided['result']['asset']['path'])
+        self.assertTrue(published.is_relative_to(self.service.paths.projects_root))
+        self.assertEqual(published.read_bytes(),(self.run/'output.psd').read_bytes())
+        with closing(module.NativeTasks(self.service)._connect()) as conn:
+            self.assertEqual(conn.execute('SELECT receipt_json FROM native_execution_v1 WHERE attempt_id=?',
+                (aid,)).fetchone()[0],persisted,'it used the persisted receipt, not new host evidence')
+            self.assertEqual(conn.execute('SELECT COUNT(*) FROM native_host_guard_v1').fetchone()[0],0)
+            self.assertEqual(conn.execute('SELECT COUNT(*) FROM asset_version').fetchone()[0],1)
+            proof,evidence=conn.execute('SELECT proof,evidence_json FROM attempt_resolution WHERE attempt_id=?',
+                                        (aid,)).fetchone()
+        self.assertEqual(proof,'effect_verified')
+        bound=json.loads(evidence)
+        # The success is bound to bytes that exist, so it is not a claimed verdict.
+        self.assertEqual(bound['artifact_sha256'],
+                         'sha256:'+hashlib.sha256((self.run/'output.psd').read_bytes()).hexdigest())
+        self.assertEqual(bound['attempt_id'],aid)
+        self.assertEqual(self.service.recovery_readback()['pending'],0,'decided work stops being pending')
+
+    def test_a_live_run_lease_refuses_the_decision_and_leaves_the_attempt_untouched(self):
+        module=self.module();aid=self.crash_child(persist_receipt=True)
+        self.assertEqual(self.service.reconcile_interrupted_attempts(),[aid])
+        self.assertEqual(self.decision(aid)['action'],'reconcile')
+        from design_lab.runtime.native_recovery_lock import recovery_lock
+        tasks=module.NativeTasks(self.service)
+        with recovery_lock(tasks.paths,aid):
+            live=self.decision(aid)
+            self.assertTrue(live['worker_active'])
+            self.assertEqual(live['reason'],'NATIVE_RUN_LIVE')
+            self.assertIsNone(live['action'])
+            with patch.object(module,'_dispatch',side_effect=AssertionError('no host')) as invoke,\
+                 patch.object(module.assets,'publish_version') as publish:
+                with self.assertRaises(module.NativeTaskError) as caught:
+                    self.service.decide_native_recovery(aid,authorization=self.authorization)
+            self.assertEqual(str(caught.exception),'RECOVERY_DECISION_WORKER_ACTIVE')
+            invoke.assert_not_called();publish.assert_not_called()
+        after=self.decision(aid)
+        self.assertEqual((after['state'],after['host_guard'],after['receipt_persisted'],after['action']),
+                         ('OUTCOME_UNKNOWN','self',True,'reconcile'))
+        with closing(tasks._connect()) as conn:
+            self.assertEqual(conn.execute('SELECT attempt_id FROM native_host_guard_v1').fetchone(),(aid,),
+                             'a refused decision may not release the guard')
+            self.assertEqual(conn.execute('SELECT COUNT(*) FROM asset_version').fetchone()[0],0)
+
+    def test_an_attempt_whose_host_belongs_to_another_run_is_refused(self):
+        module=self.module()
+        with patch.object(module,'_dispatch',side_effect=PhotoshopDispatchError('unknown',outcome_unknown=True)):
+            with self.assertRaises(module.NativeTaskError) as first:self.execute(key='one')
+        a=first.exception.attempt['attempt_id']
+        with patch.object(module.photoshop_com,'quiesce',return_value=quiescence_receipt(self.job)):
+            self.service.decide_native_recovery(a,authorization=self.authorization)
+        self.assertEqual(self.decision(a)['reason'],'HOST_QUIESCENT_OUTPUTS_UNACCEPTED_NEEDS_USER')
+        self.assertIsNone(self.decision(a)['action'])
+        with patch.object(module,'_dispatch',side_effect=PhotoshopDispatchError('unknown',outcome_unknown=True)):
+            with self.assertRaises(module.NativeTaskError) as second:self.execute(key='two')
+        b=second.exception.attempt['attempt_id']
+        blocked=self.decision(a)
+        self.assertEqual((blocked['host_guard'],blocked['action'],blocked['reason'],
+                          blocked['blocking_attempt_id']),
+                         ('other',None,'HOST_GUARD_HELD_BY_ANOTHER_ATTEMPT',b))
+        self.assertEqual(self.decision(b)['action'],'quiesce','the current holder is still decidable')
+        with patch.object(module,'_dispatch',side_effect=AssertionError('no host')) as invoke,\
+             patch.object(module.photoshop_com,'quiesce') as cleanup:
+            with self.assertRaises(module.NativeTaskError) as refused:
+                self.service.decide_native_recovery(a,authorization=self.authorization)
+            invoke.assert_not_called();cleanup.assert_not_called()
+        self.assertEqual(str(refused.exception),'RECOVERY_DECISION_INDETERMINATE')
+        self.assertEqual(refused.exception.attempt['reason'],'HOST_GUARD_HELD_BY_ANOTHER_ATTEMPT')
+        with closing(module.NativeTasks(self.service)._connect()) as conn:
+            self.assertEqual(conn.execute('SELECT attempt_id FROM native_host_guard_v1').fetchall(),[(b,)],
+                             'refusing must not disturb the run that owns the host')
+
+    def test_no_verdict_without_operator_authorization_and_no_pass_without_evidence(self):
+        module=self.module();aid=self.crash_child(persist_receipt=False)
+        self.assertEqual(self.service.reconcile_interrupted_attempts(),[aid])
+        self.assertEqual(self.decision(aid)['action'],'quiesce')
+        unsigned=({},dict(self.authorization,actor='  '),dict(self.authorization,scope='any-other-scope'),
+                  dict(self.authorization,receipt=''),dict(self.authorization,extra='x'))
+        with patch.object(module,'_dispatch',side_effect=AssertionError('no host')) as invoke,\
+             patch.object(module.photoshop_com,'quiesce') as cleanup:
+            for bad in unsigned:
+                with self.assertRaises(module.NativeTaskError) as caught:
+                    self.service.decide_native_recovery(aid,authorization=bad)
+                self.assertEqual(str(caught.exception),'RECOVERY_DECISION_AUTHORIZATION_REQUIRED')
+            cleanup.assert_not_called()
+            self.assertEqual(self.decision(aid)['action'],'quiesce','a refusal decides nothing')
+            with patch.object(module.photoshop_com,'quiesce',
+                              return_value=quiescence_receipt(self.job)) as done:
+                decided=self.service.decide_native_recovery(aid,authorization=self.authorization)
+            invoke.assert_not_called()
+            self.assertEqual(done.call_count,1)
+        attempt=decided['result']['attempt']
+        self.assertEqual(attempt['state'],'RECONCILING')
+        self.assertNotIn(attempt['state'],job_store.TERMINAL)
+        self.assertEqual(decided['result']['quiescence']['status'],'HOST_QUIESCENT_ARTIFACTS_UNACCEPTED')
+        with closing(module.NativeTasks(self.service)._connect()) as conn:
+            self.assertEqual(conn.execute('SELECT COUNT(*) FROM asset_version').fetchone()[0],0)
+            self.assertEqual(conn.execute('SELECT COUNT(*) FROM artifact').fetchone()[0],0)
+            self.assertEqual(conn.execute('SELECT COUNT(*) FROM native_host_guard_v1').fetchone()[0],0)
+            _,op=job_store._current(conn,aid)
+            self.assertEqual(job_store.operation_status(conn,op)['state'],'PAUSED_NEEDS_USER')
+        self.assertEqual(self.service.recovery_readback()['actionable'],0,
+                         'a paused host is pending a human judgement, never an action')
+        self.assertTrue(self.decision(aid)['quiescence_recorded'])
+
+    def test_an_unbound_persisted_request_offers_no_action_and_stays_unknown(self):
+        module=self.module();aid=self.crash_child(persist_receipt=False)
+        self.assertEqual(self.service.reconcile_interrupted_attempts(),[aid])
+        self.assertEqual(self.decision(aid)['action'],'quiesce')
+        with closing(module.NativeTasks(self.service)._connect()) as conn:
+            raw=json.loads(conn.execute('SELECT request_json FROM native_execution_v1 WHERE attempt_id=?',
+                                        (aid,)).fetchone()[0])
+            raw['job']['outputName']='different.psd'
+            conn.execute('UPDATE native_execution_v1 SET request_json=? WHERE attempt_id=?',
+                         (json.dumps(raw),aid));conn.commit()
+        tampered=self.decision(aid)
+        self.assertFalse(tampered['request_bound'])
+        self.assertIsNone(tampered['action'])
+        self.assertEqual(tampered['reason'],'NATIVE_REQUEST_UNBOUND')
+        with patch.object(module,'_dispatch') as invoke,\
+             patch.object(module.photoshop_com,'quiesce') as cleanup:
+            with self.assertRaises(module.NativeTaskError) as caught:
+                self.service.decide_native_recovery(aid,authorization=self.authorization)
+            invoke.assert_not_called();cleanup.assert_not_called()
+        self.assertEqual(str(caught.exception),'RECOVERY_DECISION_INDETERMINATE')
+        self.assertEqual(caught.exception.attempt['state'],'OUTCOME_UNKNOWN')
+        with closing(module.NativeTasks(self.service)._connect()) as conn:
+            self.assertEqual(conn.execute('SELECT COUNT(*) FROM native_host_guard_v1').fetchone()[0],1)
+            self.assertEqual(conn.execute('SELECT COUNT(*) FROM native_quiescence_v1').fetchone()[0],0)
+
+    def test_the_cli_lists_and_decides_only_for_a_signed_operator(self):
+        module=self.module();aid=self.crash_child(persist_receipt=True)
+        self.assertEqual(self.service.reconcile_interrupted_attempts(),[aid])
+        with patch.object(module,'_dispatch',side_effect=AssertionError('the host stays untouched')) as invoke:
+            code,listing,printed=self.cli('native-recovery')
+            self.assertEqual((code,listing['status'],listing['recovery']['status'],
+                              listing['recovery']['pending'],listing['recovery']['actionable']),
+                             (0,'RECOVERY_READBACK','OK',1,1))
+            self.assertEqual(listing['recovery']['needsDecision'][0]['action'],'reconcile')
+            self.assertNotIn(str(self.run),printed,'the readback must not carry the run root')
+            self.assertNotIn(self.authorization['receipt'],printed)
+            code,refused,_=self.cli('native-recovery','--attempt',aid)
+            self.assertEqual((code,refused['error']),(2,'RECOVERY_DECISION_AUTHORIZATION_REQUIRED'))
+            self.assertEqual(self.decision(aid)['action'],'reconcile','the refusal decided nothing')
+            code,decided,_=self.cli('native-recovery','--attempt',aid,'--actor','recovery-operator',
+                '--receipt','operator authorized publication-only recovery after the crash')
+            self.assertEqual(code,0)
+            self.assertEqual((decided['status'],decided['action'],decided['state'],
+                              decided['artifacts_accepted']),('RECOVERY_DECIDED','reconcile','RECEIPTED',True))
+            invoke.assert_not_called()
+            code,after,after_text=self.cli('native-recovery')
+            self.assertEqual((code,after['recovery']['pending'],after['recovery']['actionable']),(0,0,0))
+            self.assertNotIn(str(self.run),after_text)
+
+    def test_the_server_boot_announces_what_needs_a_decision_and_takes_no_action(self):
+        aid=self.crash_child(persist_receipt=True)
+        code='import sys; sys.path.insert(0, sys.argv.pop(1)); from design_lab.cli import main; sys.exit(main())'
+        child=subprocess.Popen([sys.executable,'-B','-X','utf8','-c',code,str(ROOT/'src'),
+            '--project',str(self.root),'serve','--port','0'],cwd=str(self.root),env=dict(os.environ),
+            stdin=subprocess.PIPE,stdout=subprocess.PIPE,stderr=subprocess.PIPE,text=True,encoding='utf-8')
+        self.addCleanup(self.stop_server,child)
+        child.stdin.write(secrets.token_hex(32)+'\n');child.stdin.flush();child.stdin.close()
+        lines=queue.Queue()
+        threading.Thread(target=lambda:lines.put(child.stdout.readline()),daemon=True).start()
+        try:line=lines.get(timeout=30)
+        except queue.Empty:self.fail('the server never announced readiness')
+        self.stop_server(child)
+        ready=json.loads(line)
+        self.assertEqual(ready['status'],'LISTENING')
+        self.assertEqual(ready['reconciled_attempts'],1,'start-up still converts the crash')
+        self.assertEqual([(d['attempt_id'],d['state'],d['action']) for d in ready['recovery']['needsDecision']],
+                         [(aid,'OUTCOME_UNKNOWN','reconcile')])
+        self.assertEqual(ready['recovery']['status'],'OK')
+        self.assertEqual(ready['recovery']['actionable'],1,'it reports the action, it does not take it')
+        self.assertNotIn(str(self.run),line)
+        self.assertEqual(self.decision(aid)['state'],'OUTCOME_UNKNOWN','boot announces but never decides')
+
+    def stop_server(self,child):
+        if child.poll() is None:child.terminate()
+        child.wait(timeout=20)
+        for stream in (child.stdin,child.stdout,child.stderr):
+            stream.close()
+
+    def test_no_native_history_and_no_state_file_are_both_reported_as_nothing_pending(self):
+        readback=self.service.recovery_readback()
+        self.assertEqual((readback['status'],readback['pending'],readback['actionable'],
+                          readback['truncated']),('OK',0,0,False))
+        self.service.database.unlink()
+        self.assertFalse(self.service.database.exists())
+        self.assertEqual(self.service.recovery_readback()['pending'],0)
+        self.assertEqual(self.service.native_recovery_decisions(),[])
+

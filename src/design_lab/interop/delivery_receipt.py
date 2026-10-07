@@ -30,7 +30,8 @@ from datetime import datetime
 from ..runtime.attempt_contract import canonical_hash, request_hash
 from ..runtime.paths import PROJECT_ROOT
 from . import InteropError, load_schema, schema_errors
-from .provenance import SIGNING_STATUS, manifest_digest, validate_manifest
+from .provenance import (SIGNING_STATUS, build_manifest, manifest_digest,
+                         validate_manifest)
 
 SCHEMA_VERSION = "design-lab/delivery-receipt/v2"
 TASK_ID = "DL-P0-161"
@@ -234,7 +235,6 @@ def _provenance_digest(entry: dict, where: str) -> str:
 # --------------------------------------------------------------------------- #
 # build
 # --------------------------------------------------------------------------- #
-
 def build_receipt(delivery, *, host_readback=None) -> dict:
     """Build a deterministic DeliveryReceipt V2 for one job.
 
@@ -485,4 +485,233 @@ def loads(text) -> dict:
             "serialized receipt is not in canonical form; re-serialize with dumps() before signing "
             "or comparing hashes"
         )
+    return receipt
+
+
+# --------------------------------------------------------------------------- #
+# a real bundle delivery -> receipt
+# --------------------------------------------------------------------------- #
+#
+# Everything above this line is a contract: it takes a delivery record and records
+# it. This section is the mapping the *product path* uses, and it is still pure --
+# it reads no file and no database; the caller hands it the bundle manifest that
+# ``runtime.bundle_store.verify_bundle`` already re-read from the published archive.
+#
+# What a real local delivery actually knows at bundle time, and nothing beyond it:
+#
+# * every member's digest and byte size, from the manifest whose member bytes were
+#   just re-hashed by ``verify_bundle``;
+# * which host produced the primary artifact and the host version string the
+#   adapter parsed out of the host's own reply;
+# * the native attempt id (the operation identity) and the job the attempt belongs
+#   to, plus the moment the attempt was receipted (``attempt_state.ended_at``);
+# * the state of every gate the bundle manifest records -- and every one of those
+#   states is NOT_REVIEWED / NOT_VERIFIED, which is projected as NOT_RUN /
+#   UNVERIFIED, never as a verdict;
+# * the immutable source version the archive was exported from, as the rollback
+#   reference.
+#
+# What it does not know, and therefore does not write: a host readback. No host
+# opens the delivered artifact and re-saves it in this product (the Photoshop
+# adapter saves, then closes the document with DONOTSAVECHANGES, and nothing
+# re-opens the saved file), so every deliverable gets ``host_readback: null`` and
+# ``axes.delivery`` stays ``PARTIAL``. A field this mapping cannot derive from a
+# recorded value makes it refuse the whole receipt; it never fills a plausible one.
+
+#: ``schemaVersion`` of the archive manifest this mapping consumes.
+BUNDLE_SCHEMA_VERSION = "design-lab/asset-bundle/v1"
+#: The hosts whose native execution this product can name as a producer.
+BUNDLE_HOSTS = ("photoshop", "illustrator")
+#: Member role -> the ``editable`` declaration the receipt may carry for it. Only
+#: the host-native layered document is declared editable; a preview is a flattened
+#: render. Role ``input`` is absent on purpose: those members are byte copies of the
+#: caller's own source files, so stating their editability would be a claim about a
+#: document DESIGN-LAB never produced. They ship as provenance ingredients of the
+#: deliverables instead (see :func:`bundle_inputs`), not as deliverables.
+BUNDLE_ROLE_EDITABLE = {"primary": True, "preview": False}
+#: Member suffix -> DESIGN-LAB asset kind, which ``provenance`` carries as ``format``.
+#: An unlisted suffix stops the receipt rather than guessing a kind.
+BUNDLE_MEMBER_KINDS = {".psd": "psd", ".ai": "ai", ".png": "raster", ".svg": "vector"}
+#: The rights profile a bundle declares: none. ``no-rights-declared`` is the C2PA
+#: profile that asserts *nothing* about licensing (no creative-work, no training
+#: assertion), which is exactly the state of an unreviewed delivery.
+BUNDLE_RIGHTS_PROFILE = "no-rights-declared"
+#: Requirement naming the one thing the delivery genuinely proves about its bytes.
+BUNDLE_BYTES_REQUIREMENT = "req-native-bytes-verified"
+#: ``(metadata key, req_id, {recorded state -> receipt status})``. A state outside
+#: the inner mapping is not a status the receipt may invent, so it fails closed.
+BUNDLE_GATE_REQUIREMENTS = (
+    ("rights", "req-rights-review", {"NOT_REVIEWED": "NOT_RUN"}),
+    ("quality", "req-quality-review", {"NOT_REVIEWED": "NOT_RUN"}),
+    ("font_rights", "req-font-rights", {"NOT_REVIEWED": "NOT_RUN"}),
+    ("link_relocation", "req-link-relocation", {"NOT_VERIFIED": "UNVERIFIED"}),
+)
+
+
+def _member_suffix(name: str) -> str:
+    base = name.rsplit("/", 1)[-1]
+    return "" if "." not in base else "." + base.rsplit(".", 1)[-1].lower()
+
+
+def bundle_requirements(metadata, *, bundle_bytes_verified: bool,
+                        where: str = "delivery.requirements") -> list:
+    """Project the gate states a bundle manifest records into requirement records.
+
+    ``bundle_bytes_verified`` must be ``True`` only when the manifest came back from
+    :func:`design_lab.runtime.bundle_store.verify_bundle`, which re-reads every
+    member and compares its digest and size to the manifest record; that is the
+    evidence behind ``req-native-bytes-verified``. Nothing else in this projection is
+    claimed as verified: an unreviewed rights gate stays ``NOT_RUN``.
+    """
+    if not isinstance(metadata, dict):
+        raise _fail(f"{where} source must be an object")
+    records = []
+    for key, req_id, mapping in BUNDLE_GATE_REQUIREMENTS:
+        state = metadata.get(key)
+        if state not in mapping:
+            raise _fail(
+                f"bundle metadata {key} is {state!r}, which has no receipt projection; the receipt "
+                f"records only {', '.join(f'{k} -> {v}' for k, v in sorted(mapping.items()))} and "
+                "will not guess a status for an unlisted state"
+            )
+        records.append({"req_id": req_id, "status": mapping[state]})
+    verified = _boolean(bundle_bytes_verified, "delivery.bundle_bytes_verified")
+    records.append({"req_id": BUNDLE_BYTES_REQUIREMENT, "status": "PASS" if verified else "NOT_RUN"})
+    return _normalize_requirements(records, where)
+
+
+def bundle_inputs(manifest) -> list:
+    """The source assets shipped inside the archive, as C2PA ingredient records.
+
+    Identity is the DESIGN-LAB asset id the bundle metadata recorded; the digest is
+    the member's own record in the same manifest, so an input the archive does not
+    actually carry cannot be named here.
+    """
+    files = manifest["files"]
+    entries = manifest.get("metadata", {}).get("input_assets", [])
+    if not isinstance(entries, list):
+        raise _fail("bundle.metadata.input_assets must be an array")
+    inputs = []
+    for index, entry in enumerate(entries):
+        where = f"bundle.metadata.input_assets[{index}]"
+        if not isinstance(entry, dict):
+            raise _fail(f"{where} must be an object")
+        version_id = _text(entry.get("id"), f"{where}.id")
+        member = _text(entry.get("member"), f"{where}.member")
+        record = files.get(member)
+        if not isinstance(record, dict):
+            raise _fail(
+                f"{where} names bundle member {member!r}, which the archive manifest does not "
+                "declare; an input the archive does not carry cannot be put in the provenance"
+            )
+        inputs.append({"version_id": version_id,
+                       "sha256": _digest("sha256:" + str(record.get("sha256")),
+                                         f"{where}.sha256"),
+                       "relationship": "inputTo"})
+    seen = {item["version_id"] for item in inputs}
+    if len(seen) != len(inputs):
+        raise _fail("bundle declares the same input asset id more than once")
+    return sorted(inputs, key=lambda item: item["version_id"])
+
+
+def bundle_provenance(*, name, record, metadata, host: str, inputs, when: str) -> dict:
+    """Project one shipped member onto the unsigned C2PA structure it deserves.
+
+    The producer is the native host that wrote the bytes (named by the execution
+    record, with the host version string the adapter parsed from the host's reply),
+    the action is ``c2pa.created`` at the moment DESIGN-LAB persisted that host's
+    readback, and the rights profile is ``no-rights-declared`` because the delivery
+    has no rights review to project. ``when`` is that persisted ledger time, never a
+    claim about the host's own clock.
+    """
+    kind = BUNDLE_MEMBER_KINDS.get(_member_suffix(name))
+    if kind is None:
+        raise _fail(
+            f"bundle member {name!r} has suffix {_member_suffix(name)!r}, which this product maps "
+            f"to no DESIGN-LAB asset kind ({', '.join(sorted(BUNDLE_MEMBER_KINDS))}); the receipt "
+            "would have to state a format it cannot derive"
+        )
+    artifact = _digest("sha256:" + str(record.get("sha256")), f"bundle.files[{name}].sha256")
+    return build_manifest({
+        "deliverable_id": name,
+        "artifact_sha256": artifact,
+        "asset_kind": kind,
+        "producer": {"operation_id": _text(metadata.get("native_attempt_id"),
+                                           "bundle.metadata.native_attempt_id"),
+                     "provider_id": host, "model_id": None},
+        "inputs": inputs,
+        "actions": [{"action": "c2pa.created", "when": when,
+                     "software_agent": f"{host} {metadata.get('host_version')}"}],
+        "rights_profile": BUNDLE_RIGHTS_PROFILE,
+        "created_at": when,
+    })
+
+
+def receipt_for_bundle(manifest, *, job_id: str, created_at: str, receipted_at: str,
+                       rollback, bundle_bytes_verified: bool, host_readback=None) -> dict:
+    """Build, validate and return the DeliveryReceipt V2 for one published bundle.
+
+    ``manifest`` is the archive manifest returned by
+    :func:`design_lab.runtime.bundle_store.verify_bundle` (so its member digests have
+    just been re-read from the published bytes). ``created_at`` is the bundle version
+    row's own persisted timestamp -- the receipt stays clock-free, the caller supplies
+    it. ``receipted_at`` is the native attempt's persisted ``ended_at``, the moment
+    DESIGN-LAB recorded the host's readback. ``rollback`` must reference an existing
+    immutable version; :func:`verify_receipt` runs here, inside the product path, so a
+    document that violates the schema or overclaims its evidence is never persisted.
+
+    Only members with a ``primary`` or ``preview`` role become deliverables, and
+    ``host_readback`` defaults to ``None``: this product does not open the delivered
+    artifact in a host, so the receipt it emits is always ``PARTIAL``.
+    """
+    if not isinstance(manifest, dict) or set(manifest) != {"schemaVersion", "primary",
+                                                           "files", "metadata"}:
+        raise _fail("bundle manifest must carry schemaVersion, primary, files and metadata")
+    if manifest["schemaVersion"] != BUNDLE_SCHEMA_VERSION:
+        raise _fail(
+            f"bundle manifest schemaVersion must be {BUNDLE_SCHEMA_VERSION!r}; got "
+            f"{manifest['schemaVersion']!r}"
+        )
+    files = manifest["files"]
+    metadata = manifest["metadata"]
+    if not isinstance(files, dict) or not files or not isinstance(metadata, dict):
+        raise _fail("bundle manifest needs nonempty files and metadata")
+    host = metadata.get("host")
+    if host not in BUNDLE_HOSTS:
+        raise _fail(
+            f"bundle metadata host is {host!r}, which this product cannot name as a producer; "
+            f"known native hosts are {', '.join(BUNDLE_HOSTS)}"
+        )
+    _text(metadata.get("host_version"), "bundle.metadata.host_version")
+    _text(metadata.get("source_asset_id"), "bundle.metadata.source_asset_id")
+    job = _text(job_id, "delivery.job_id")
+    stamp = _timestamp(created_at, "delivery.created_at")
+    when = _timestamp(receipted_at, "delivery.receipted_at")
+    rollback_record = _normalize_rollback(rollback, "delivery.rollback")
+    requirements = bundle_requirements(metadata, bundle_bytes_verified=bundle_bytes_verified)
+    inputs = bundle_inputs(manifest)
+
+    deliverables = []
+    for name, record in sorted(files.items()):
+        if not isinstance(record, dict) or record.get("role") not in BUNDLE_ROLE_EDITABLE:
+            continue
+        deliverables.append({
+            "deliverable_id": name,
+            "artifact_sha256": _digest("sha256:" + str(record.get("sha256")),
+                                       f"bundle.files[{name}].sha256"),
+            "byte_size": _integer(record.get("byte_size"), f"bundle.files[{name}].byte_size"),
+            "editable": BUNDLE_ROLE_EDITABLE[record["role"]],
+            "provenance_manifest": bundle_provenance(name=name, record=record, metadata=metadata,
+                                                     host=host, inputs=inputs, when=when),
+            "requirements": requirements,
+            "rollback": rollback_record,
+        })
+    if not deliverables:
+        raise _fail(
+            "bundle declares no member with role 'primary' or 'preview', so nothing in it is a "
+            "deliverable; an archive of inputs alone is not receiptable"
+        )
+    receipt = build_receipt({"job_id": job, "created_at": stamp, "deliverables": deliverables},
+                            host_readback=host_readback)
+    verify_receipt(receipt)
     return receipt

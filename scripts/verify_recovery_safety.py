@@ -43,7 +43,8 @@ MANIFESTS = {
         "scripts/deepseek_hermes_migration.py",
 }
 UNKNOWN_OUTCOME_TESTS = ("design-lab/tests/test_runtime_attempt_safety.py",
-                         "design-lab/tests/test_boot_reconciliation.py")
+                         "design-lab/tests/test_boot_reconciliation.py",
+                         "design-lab/tests/test_native_tasks.py")
 
 
 def git(*args: str) -> str:
@@ -81,8 +82,10 @@ def audit_manifest(rel: str, tool: str) -> dict:
 
 PRODUCTION_ROOT = REPO / "src" / "design_lab"
 JOB_STORE_MODULE = "src/design_lab/runtime/job_store.py"
+NATIVE_TASKS_MODULE = "src/design_lab/native_tasks.py"
+SERVICE_MODULE = "src/design_lab/service.py"
 RECOVERY_ENTRY_POINTS = ("recover_orphaned_attempts", "recover_interrupted",
-                         "reconcile_attempt", "reconcile_receipted")
+                         "reconcile_attempt", "reconcile_receipted", "decide_native_recovery")
 
 
 def python_sources(root):
@@ -131,6 +134,66 @@ def executes_under_attempt_lock():
     if following >= 0:
         body = body[:following]
     return "recovery_lock(" in body and "RecoveryBusy" in body
+
+
+def _method_body(path, signature):
+    """The source lines of one method, read the same way executes_under_attempt_lock does."""
+    source = path.read_text(encoding="utf-8", errors="ignore") if path.is_file() else ""
+    start = source.find(signature)
+    if start < 0:
+        return ""
+    body = source[start + len(signature):]
+    following = body.find("\n    def ")
+    return body[:following] if following >= 0 else body
+
+
+def native_recovery_decision_is_wired():
+    """The verified recovery entries must be reachable, and reachable only on a signature.
+
+    This gate exists because reconcilable code with no caller passed for months. A
+    restart that can only relabel is half a recovery: the unresolved attempt still
+    needs somebody to decide it, so the decision path is checked end to end --
+    a production caller, an authorization it cannot bypass, a refusal while a run
+    is live, and no route back to the host.
+    """
+    tasks = REPO / NATIVE_TASKS_MODULE
+    router = _method_body(tasks, "    def decide_recovery(self,")
+    readback = _method_body(tasks, "    def recovery_decisions(self,")
+    derived = _method_body(tasks, "    def _decision(self,")
+    callers = [p for p in production_call_sites("decide_native_recovery") if p != SERVICE_MODULE]
+    boot = [p for p in production_call_sites("recovery_readback") if p != SERVICE_MODULE]
+    return {
+        "decision_entry_exists": bool(router),
+        "decision_production_callers": callers,
+        "start_up_readback_callers": boot,
+        "decision_requires_authorization": "RECOVERY_DECISION_AUTHORIZATION_REQUIRED" in router,
+        # The refusal lives on the whole reachable path: the derivation probes the
+        # OS lease and the router both raises for it and takes that same lock
+        # around host cleanup, so a live run cannot start underneath a decision.
+        "decision_refuses_live_run": ("RECOVERY_DECISION_WORKER_ACTIVE" in router
+                                      and "_worker_active" in derived
+                                      and "recovery_lock(" in router),
+        "decision_reaches_verified_entries": ("reconcile_receipted(" in router
+                                             and "quiesce_photoshop" in router
+                                             and "quiesce_illustrator" in router),
+        "decision_never_dispatches": "_dispatch(" not in router + readback + derived,
+        "readback_invents_no_verdict": "_failed(" not in readback + derived
+                                      and "_finish(" not in readback + derived,
+    }
+
+
+def decision_tests():
+    """Tests count when they drive the readback AND an authorized decide, not before."""
+    hits = []
+    for rel in UNKNOWN_OUTCOME_TESTS:
+        path = REPO / rel
+        if not path.is_file():
+            continue
+        text = path.read_text(encoding="utf-8", errors="ignore")
+        if (re.search(r"\brecovery_readback\s*\(", text)
+                and re.search(r"\bdecide_native_recovery\s*\(", text)):
+            hits.append(rel)
+    return hits
 
 
 def test_exercises_recovery(rel):
@@ -188,6 +251,28 @@ def audit_unknown_outcome() -> dict:
     if not covered:
         findings.append("no test calls a recovery entry point (a file merely "
                         "mentioning the word 'unknown' does not count)")
+    decision = native_recovery_decision_is_wired()
+    if not decision["decision_entry_exists"]:
+        findings.append("no recovery decision entry point exists: an unresolved native "
+                        "attempt can be relabelled but never decided")
+    if not decision["decision_production_callers"]:
+        findings.append("the recovery decision is unreachable from production: "
+                        f"{NATIVE_TASKS_MODULE} defines it, nothing calls it")
+    if not decision["start_up_readback_callers"]:
+        findings.append("no start-up path reads what needs a decision, so a crash leaves "
+                        "the operator with nothing to act on")
+    for claim, present in (
+            ("demands an authorization it cannot bypass", decision["decision_requires_authorization"]),
+            ("refuses an attempt whose run is live", decision["decision_refuses_live_run"]),
+            ("reaches the verified reconcile/quiesce entries",
+             decision["decision_reaches_verified_entries"]),
+            ("never dispatches to a host", decision["decision_never_dispatches"]),
+            ("names no verdict it did not verify", decision["readback_invents_no_verdict"])):
+        if not present:
+            findings.append(f"the recovery decision path does not {claim}")
+    if not decision_tests():
+        findings.append("no test drives the start-up recovery decision path "
+                        "(readback plus an authorized decide)")
     return {"outcome_unknown_successors": sorted(allowed.get("OUTCOME_UNKNOWN", [])),
             "terminal_states": sorted(terminal),
             "reconcile_requires_proof": "proof" in signature.parameters,
@@ -195,6 +280,7 @@ def audit_unknown_outcome() -> dict:
             "recovery_production_callers": gated,
             "blind_scan_production_callers": blind,
             "execution_holds_attempt_lock": executes_under_attempt_lock(),
+            "native_recovery_decision": decision,
             "tests": covered, "findings": findings, "ok": not findings}
 
 

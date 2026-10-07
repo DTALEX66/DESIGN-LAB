@@ -9,6 +9,7 @@ from contextlib import closing
 import hashlib
 import json
 import re
+import sqlite3
 
 from .adapters import illustrator_com, photoshop_com
 from .runtime import asset_store as assets, job_store as jobs
@@ -23,6 +24,13 @@ class NativeTaskError(RuntimeError):
 
 def _dispatch(host,job,**kwargs):
     return {'illustrator':illustrator_com,'photoshop':photoshop_com}[host].execute(job,**kwargs)
+
+
+def _authorization_valid(authorization):
+    """The exact scoped authorization the verified recovery entries already demand."""
+    return (isinstance(authorization,dict) and set(authorization)=={'actor','scope','receipt'}
+        and authorization['scope']=='project-native-test'
+        and all(isinstance(v,str) and v.strip() and len(v)<=2000 for v in authorization.values()))
 
 
 def _json(value):
@@ -320,6 +328,176 @@ CREATE TABLE IF NOT EXISTS native_recovery_protocol_v2 (
                     conn.execute('DELETE FROM native_host_guard_v1 WHERE host=? AND attempt_id=?',(host,attempt_id))
                     return dict(attempt=jobs._record(conn,attempt_id),quiescence=receipt)
             except Exception as exc:raise NativeTaskError('QUIESCENCE_OUTCOME_UNKNOWN_GUARD_RETAINED') from exc
+
+    def _worker_active(self,attempt_id):
+        """True only while a process still holds this attempt's execution lock.
+
+        "Free" means there is no holder, never "the holder looks old"; it is the
+        same probe the start-up relabelling uses, and it is the only thing that
+        lets recovery tell a crashed run from a run that is still writing.
+        """
+        try:
+            with recovery_lock(self.paths,attempt_id):
+                return False
+        except RecoveryBusy:
+            return True
+
+    def _request_bound(self,conn,attempt_id,raw_request):
+        """Whether the persisted request still hashes to its own operation intent."""
+        row=conn.execute('SELECT i.request_hash FROM job j JOIN operation_intent i ON i.operation_id=j.operation_id '
+            'WHERE j.job_id=(SELECT job_id FROM attempt_state WHERE attempt_id=?)',(attempt_id,)).fetchone()
+        if not row:return False
+        try:
+            return request_hash(json.loads(raw_request))==row[0]
+        except (ValueError,TypeError,json.JSONDecodeError):
+            return False
+
+    def _decision(self,conn,attempt_id,host,project_id,state,has_receipt,raw_request):
+        """One unresolved native attempt: what can decide it, and why if nothing can.
+
+        Read-only. Every field is a persisted ledger fact or a live lock probe;
+        an action is named only when the existing verified entry would accept
+        this exact state. Anything else stays UNKNOWN and says so.
+        """
+        decision=dict(attempt_id=attempt_id,project_id=project_id,host=host,state=state,
+            operation=None,receipt_persisted=bool(has_receipt),host_guard=None,
+            worker_active=False,request_bound=self._request_bound(conn,attempt_id,raw_request),
+            quiescence_recorded=False,action=None,reason=None)
+        guard=conn.execute('SELECT attempt_id FROM native_host_guard_v1 WHERE host=?',(host,)).fetchone()
+        decision['host_guard']=(None if not guard else ('self' if guard[0]==attempt_id else 'other'))
+        try:
+            current,op=jobs._current(conn,attempt_id)
+        except jobs.AttemptError:
+            decision['reason']='ATTEMPT_NOT_CURRENT_OR_OPERATION_AMBIGUOUS';return decision
+        status=jobs.operation_status(conn,op)
+        decision['operation']=status['state'] if status else None
+        if current['state']=='RUNNING':
+            # Still claimed: either a run that is alive (untouchable) or a crash the
+            # start-up relabelling has not converted yet. Neither may be decided here.
+            decision['worker_active']=self._worker_active(attempt_id)
+            decision['reason']=('NATIVE_RUN_LIVE' if decision['worker_active']
+                                else 'RUNNING_ATTEMPT_AWAITS_START_UP_RELABELLING')
+            return decision
+        if current['state'] not in ('OUTCOME_UNKNOWN','RECONCILING'):
+            decision['reason']='NATIVE_ATTEMPT_ALREADY_DECIDED';return decision
+        if current['state']!=state:
+            decision['reason']='RECOVERY_STATE_CHANGED';return decision
+        quiesced=conn.execute('SELECT receipt_json FROM native_quiescence_v1 WHERE attempt_id=?',(attempt_id,)).fetchone()
+        decision['quiescence_recorded']=bool(quiesced and quiesced[0] is not None)
+        claim=conn.execute('SELECT 1 FROM native_reconciliation_v1 WHERE attempt_id=?',(attempt_id,)).fetchone()
+        protocol=conn.execute('SELECT protocol FROM native_recovery_protocol_v2 WHERE attempt_id=?',(attempt_id,)).fetchone()
+        decision['worker_active']=self._worker_active(attempt_id)
+        if decision['worker_active']:
+            decision['reason']='NATIVE_RUN_LIVE';return decision
+        # Both verified entries demand that this attempt owns its host's guard, so
+        # another attempt holding it is a real run ahead of this decision, not noise.
+        if decision['host_guard']=='other':
+            decision['reason']='HOST_GUARD_HELD_BY_ANOTHER_ATTEMPT'
+            decision['blocking_attempt_id']=guard[0];return decision
+        if quiesced:
+            decision['reason']=('HOST_QUIESCENT_OUTPUTS_UNACCEPTED_NEEDS_USER' if decision['quiescence_recorded']
+                                else 'QUIESCENCE_CLAIM_RETAINED')
+            return decision
+        if decision['host_guard'] is None:
+            decision['reason']='HOST_GUARD_ABSENT';return decision
+        if current['state']=='OUTCOME_UNKNOWN':
+            if claim:decision['reason']='RECONCILIATION_CLAIM_RETAINED';return decision
+            if has_receipt:decision['action']='reconcile';return decision
+            # No receipt cannot prove the host finished; only fixed cleanup is
+            # available, and it accepts nothing.
+            if not decision['request_bound']:
+                decision['reason']='NATIVE_REQUEST_UNBOUND';return decision
+            decision['action']='quiesce';return decision
+        if has_receipt and claim and protocol==('os-lock-v1',):
+            decision['action']='reconcile';return decision
+        decision['reason']='RECONCILING_NOT_RESUMABLE';return decision
+
+    def _read_only(self):
+        """Read the ledger without migrating it.
+
+        `_connect` creates the native tables, and creating them rewrites the
+        database file. "Just telling me what needs a decision" may not be a write:
+        the HTTP/start-up read-only guarantee is asserted on this file's bytes.
+        A ledger with no native tables has no native attempts, which is reported
+        as an empty list, while any other read failure is raised, not swallowed.
+        """
+        database=self.paths.database_path(self.service.database)
+        conn=sqlite3.connect(database.as_uri()+'?mode=ro',uri=True)
+        conn.execute('PRAGMA foreign_keys = ON')
+        return conn
+
+    def _unresolved_rows(self,conn):
+        try:
+            return conn.execute('SELECT n.attempt_id,n.host,n.project_id,a.state,n.receipt_json,'
+                'n.request_json FROM native_execution_v1 n JOIN attempt_state a ON a.attempt_id=n.attempt_id '
+                'JOIN job j ON j.job_id=a.job_id WHERE a.state IN '
+                "('OUTCOME_UNKNOWN','RECONCILING','RUNNING') ORDER BY a.started_at,n.attempt_id").fetchall()
+        except sqlite3.OperationalError as exc:
+            if 'no such table' in str(exc).lower():return []
+            raise
+
+    def _persisted_attempt(self,conn,attempt_id):
+        """The persisted native binding for one attempt, or None if there is none."""
+        try:
+            return conn.execute('SELECT n.host,n.project_id,a.state,n.receipt_json,n.request_json '
+                'FROM native_execution_v1 n JOIN attempt_state a ON a.attempt_id=n.attempt_id '
+                'WHERE n.attempt_id=?',(attempt_id,)).fetchone()
+        except sqlite3.OperationalError as exc:
+            if 'no such table' in str(exc).lower():return None
+            raise
+
+    def recovery_decisions(self):
+        """List the persisted native attempts whose outcome the machine cannot decide.
+
+        This is a readback, not an action: it changes no state, releases no host
+        guard, publishes nothing and infers no verdict. Attempts still RUNNING are
+        listed too, always without an action, because the only honest reading of
+        "running with a dead holder" is a crash that start-up relabelling must
+        convert into OUTCOME_UNKNOWN before any verified entry applies.
+        """
+        with closing(self._read_only()) as conn:
+            return [self._decision(conn,*row) for row in self._unresolved_rows(conn)]
+
+    def decide_recovery(self,attempt_id,*,authorization):
+        """Route one unresolved native attempt to the verified entry that fits it.
+
+        Explicit operator command, never a start-up action: the entries this can
+        reach all require a scoped human authorization, and a process that
+        supplies one for itself would be manufacturing the approval it claims to
+        resume. The action is re-derived here, not replayed from an earlier
+        listing, and a state with no verified entry stays UNKNOWN and says so.
+        """
+        if not _authorization_valid(authorization):
+            raise NativeTaskError('RECOVERY_DECISION_AUTHORIZATION_REQUIRED')
+        if not isinstance(attempt_id,str) or not re.fullmatch(r'att-[0-9a-f]{32}',attempt_id):
+            raise NativeTaskError('INVALID_NATIVE_ATTEMPT')
+        with closing(self._read_only()) as conn:
+            row=self._persisted_attempt(conn,attempt_id)
+            if not row:raise NativeTaskError('RECOVERY_DECISION_NOT_PENDING')
+            decision=self._decision(conn,attempt_id,row[0],row[1],row[2],row[3],row[4])
+        if decision['state'] in jobs.TERMINAL:
+            raise NativeTaskError('RECOVERY_DECISION_NOT_PENDING',attempt=decision)
+        if decision['worker_active']:
+            # A live holder means the run may still be writing. Refuse untouched.
+            raise NativeTaskError('RECOVERY_DECISION_WORKER_ACTIVE',attempt=decision)
+        action=decision['action']
+        if action is None:
+            raise NativeTaskError('RECOVERY_DECISION_INDETERMINATE',attempt=decision)
+        if action=='reconcile':
+            # reconcile_receipted owns the attempt lock itself; taking it here
+            # would deadlock against it, so the probe above is the gate.
+            return dict(decision=decision,result=self.reconcile_receipted(
+                attempt_id,authorization=authorization))
+        try:
+            # Hold the lock across cleanup so no dispatch can start underneath it:
+            # a host run takes this same lock for its whole life, and quiesce
+            # re-checks state and guard inside its own transaction.
+            with recovery_lock(self.paths,attempt_id):
+                quiesce={'photoshop':self.quiesce_photoshop,'illustrator':self.quiesce_illustrator}[decision['host']]
+                return dict(decision=decision,result=quiesce(
+                    attempt_id,authorization=authorization))
+        except RecoveryBusy as exc:
+            raise NativeTaskError('RECOVERY_DECISION_WORKER_ACTIVE') from exc
 
     def _enqueue_prepared(self,conn,project_id,host,identity,request,idempotency_key):
         try:

@@ -1,13 +1,76 @@
 # SPDX-License-Identifier: MIT
-"""Internal verified native bundle export, preserving the primary-asset API."""
+"""Internal verified native bundle export, preserving the primary-asset API.
+
+Every delivery published here also carries a DeliveryReceipt V2: it is built from the
+archive manifest only after ``verify_bundle`` has re-read every member, validated
+against ``design-lab/schemas/interop-delivery-receipt-v2.schema.json`` inside this
+product path, and persisted next to the version it describes. A receipt that cannot be
+built honestly stops the export instead of shipping a document that overclaims.
+"""
 from contextlib import closing
 import json
 from pathlib import Path
 import re
 
+from .interop import InteropError, delivery_receipt
 from .runtime import asset_store as assets, job_store as jobs
 from .runtime.bundle_store import publish_bundle, verify_bundle
 from .runtime.native_recovery_lock import recovery_lock
+
+
+def _ensure_receipt_table(conn):
+    """Own the receipt ledger here: it belongs to delivery export, not to the host."""
+    conn.execute('CREATE TABLE IF NOT EXISTS delivery_receipt_v1 ('
+        'version_id TEXT PRIMARY KEY REFERENCES asset_version(version_id),'
+        ' project_id TEXT NOT NULL REFERENCES project(project_id),'
+        ' asset_id TEXT NOT NULL REFERENCES asset(asset_id),'
+        ' job_id TEXT NOT NULL, receipt_id TEXT NOT NULL UNIQUE,'
+        ' receipt_sha256 TEXT NOT NULL UNIQUE, receipt_json TEXT NOT NULL, stored_at TEXT NOT NULL)')
+
+
+def _rollback_of(source):
+    """The restore point a bundle delivery genuinely has: the immutable version it was
+    exported from. The export only appends a new asset version, so dropping that
+    appended version returns the recorded state. No restore is performed here, and the
+    receipt itself declares its rollback record to be a plan.
+    """
+    return dict(backup_ref=f"asset:{source['id']}/version:{source['version_id']}",
+                procedure='remove the appended bundle version from the project asset store; the '
+                          f"source native version {source['version_id']} this archive was exported "
+                          'from is unmodified by the export and was hash-verified when this receipt '
+                          'was written. No restore has been performed.')
+
+
+def _receipt_for_version(conn, *, manifest, attempt, project_id, asset_id, version, source):
+    """Build, validate, persist and return the receipt for one published version.
+
+    Idempotent by construction: the receipt reads only persisted, immutable facts, so a
+    replay rebuilds the identical document. A stored receipt that differs from the
+    rebuilt one is a real integrity break and fails closed rather than being rewritten.
+    """
+    from .native_tasks import NativeTaskError
+    created=conn.execute('SELECT created_at FROM asset_version WHERE version_id=?',(version,)).fetchone()
+    if not created or not created[0]:
+        raise NativeTaskError('BUNDLE_RECEIPT_UNAVAILABLE')
+    try:
+        receipt=delivery_receipt.receipt_for_bundle(manifest,
+            job_id=attempt['job_id'], created_at=created[0], receipted_at=attempt['ended_at'],
+            rollback=_rollback_of(source), bundle_bytes_verified=True)
+        text=delivery_receipt.dumps(receipt)
+    except (InteropError, KeyError, TypeError, ValueError) as exc:
+        raise NativeTaskError('BUNDLE_RECEIPT_UNVERIFIABLE') from exc
+    _ensure_receipt_table(conn)
+    stored=conn.execute('SELECT receipt_json,receipt_id,receipt_sha256 FROM delivery_receipt_v1 '
+                        'WHERE version_id=?',(version,)).fetchone()
+    if stored:
+        if tuple(stored)!=(text,receipt['receipt_id'],receipt['receipt_sha256']):
+            raise NativeTaskError('BUNDLE_RECEIPT_CONFLICT')
+        return receipt
+    with assets._transaction(conn):
+        conn.execute('INSERT INTO delivery_receipt_v1 VALUES (?,?,?,?,?,?,?,?)',
+            (version,project_id,asset_id,receipt['job_id'],receipt['receipt_id'],
+             receipt['receipt_sha256'],text,assets._now()))
+    return receipt
 
 
 def _requested_fonts(job):
@@ -84,9 +147,12 @@ def export_bundle(tasks, attempt_id, authorization):
                     path=tasks._inside(artifact[0],store)
                     if assets._file_hash(path)!=artifact[1] or path.stat().st_size!=artifact[2]:
                         raise NativeTaskError('BUNDLE_PUBLISHED_BYTES_CHANGED')
-                    verify_bundle(path,project_root=tasks.owner)
+                    manifest=verify_bundle(path,project_root=tasks.owner)
+                    receipt=_receipt_for_version(publication,manifest=manifest,attempt=attempt,
+                        project_id=project_id,asset_id=asset_id,version=version,source=result['asset'])
                     return dict(id=asset_id,version_id=version,path=str(path),sha256=artifact[1].removeprefix('sha256:'),
-                                byte_size=artifact[2],kind='design-bundle',rights='NOT_REVIEWED')
+                                byte_size=artifact[2],kind='design-bundle',rights='NOT_REVIEWED',
+                                receipt=receipt)
                 finally:
                     assets.release_writer(publication,resource,attempt_id,generation=generation)
     except NativeTaskError:

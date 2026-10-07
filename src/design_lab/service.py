@@ -39,6 +39,44 @@ class ProjectService:
                                        project_root=self.paths.project_root)) as conn:
             return job_store.recover_orphaned_attempts(conn, holder_is_gone=holder_is_gone)
 
+    def native_recovery_decisions(self):
+        """Which persisted native attempts still need a decision, and what can decide them.
+
+        Read-only: no state changes, no guard released, no verdict inferred. A
+        decision cannot be taken here because every entry it points at requires a
+        scoped human authorization that a start-up process may not supply for
+        itself -- see decide_native_recovery.
+        """
+        if not self.database.exists():
+            return []
+        from .native_tasks import NativeTasks
+        return NativeTasks(self).recovery_decisions()
+
+    def recovery_readback(self):
+        """Start-up readback of pending native recovery decisions; takes no action.
+
+        If the ledger cannot be read, this says it could not judge rather than
+        reporting an empty list, which would read as "nothing needs a decision".
+        """
+        try:
+            decisions = self.native_recovery_decisions()
+        except (sqlite3.Error, OSError, ValueError) as exc:
+            return {'status': 'UNAVAILABLE', 'error': type(exc).__name__,
+                    'pending': None, 'actionable': None, 'listed': 0,
+                    'truncated': False, 'decisions': []}
+        # The launcher reads this line before serving, so it stays bounded; the
+        # counts are the full truth, only the detail list is truncated.
+        limit = 25
+        return {'status': 'OK', 'pending': len(decisions),
+                'actionable': sum(1 for d in decisions if d['action']),
+                'listed': min(len(decisions), limit), 'truncated': len(decisions) > limit,
+                'decisions': decisions[:limit]}
+
+    def decide_native_recovery(self, attempt_id, *, authorization):
+        """Explicit operator decision for one unresolved native attempt."""
+        from .native_tasks import NativeTasks
+        return NativeTasks(self).decide_recovery(attempt_id, authorization=authorization)
+
     def list_projects(self):
         if not self.database.exists():
             return []
