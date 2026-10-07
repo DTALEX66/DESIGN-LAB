@@ -389,3 +389,43 @@ export interface TaskPreflightResponse {
   licence_accepted: boolean;
   meaning: string;
 }
+
+// --- Domain Pack readback: GET /api/domains --------------------------------
+// The four words are the closed vocabulary of src/design_lab/domain_packs.py. They are
+// declared here rather than free strings because a page that invented a fifth verdict
+// ("approved", "accepted") would be claiming a judgement no emitter produces; the
+// two-way equality with the Python tuple is pinned by
+// design-lab/tests/test_domain_pack_readback.py (LANGUAGE-POLICY §5 — enums are not
+// hand-copied between languages without a check that both sides match).
+export type DomainPackValidation = 'VALIDATES' | 'INVALID' | 'UNREADABLE' | 'NOT_CHECKED';
+
+/** One pack directory, with the identity its own manifest declares. */
+export interface DomainPackRecord {
+  directory: string;
+  /** null = the manifest does not declare it (or could not be read). Not "none", not "". */
+  packId: string | null;
+  version: string | null;
+  displayName: string | null;
+  /** A workflow/domain-pack/v1 manifest has no `domain` field at all. */
+  domain: string | null;
+  manifestSchemaVersion: string | null;
+  dependencies: string[] | null;
+  validation: DomainPackValidation;
+  validationErrors: string[];
+  validationErrorCount: number;
+  note: string | null;
+}
+
+export interface DomainListResponse {
+  schemaVersion: string;
+  meaning: string;
+  unmeasuredMeans: string;
+  root: string;
+  rootState: string;
+  validationVocabulary: string[];
+  checker: { path: string; state: string; note: string | null };
+  sources: Record<string, string>;
+  counts: { packs: number; byValidation: Record<string, number> };
+  packs: DomainPackRecord[];
+}
+

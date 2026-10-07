@@ -228,6 +228,104 @@ if (noticeViews < 8)
   throw new Error(`只有 ${noticeViews} 个视图报告了缺失形状（下限 8）—— ⑤ 的铺开出现了回归`);
 console.log(`ok: ⑤ 形状告警渲染在 ${noticeViews} 个视图上；${silentViews.length} 个路由不读服务：${silentViews.join(' ')}`);
 
+// ⑤ TARGETED, #/domains. The sweep above proves a notice can reach a screen; it cannot
+// prove this particular page asks for anything. `#/domains` was the route with no backend
+// at all — listed, reachable, reading nothing while the repository held the packs and the
+// checker. So this pins the three things that made the gap a gap:
+//   1. the view makes exactly one read, of /api/domains (a page that reads nothing, or
+//      reads somewhere else, is the old defect back);
+//   2. a 200 that omits `packs` is reported as 未读回 and never rendered as "the project
+//      has no packs" — the lie an empty <ul> tells;
+//   3. a real payload renders real rows: the rejected pack's own checker reason is on
+//      screen, and the verdict word is marked lang="en" (service vocabulary, WCAG 3.1.2).
+shell.window.location.hash = '#/domains';
+shell.dispatchHashchange();
+const domainsReads = shell.pending.splice(0, shell.pending.length);
+if (domainsReads.length !== 1)
+  throw new Error(`#/domains 读回了 ${domainsReads.length} 次，应为恰好 1 次 GET /api/domains`);
+if (domainsReads[0].path !== '/api/domains')
+  throw new Error(`#/domains 打到了 ${domainsReads[0].path}，不是 /api/domains`);
+domainsReads[0].resolve(response({}));
+await flush();
+const domainsShapeText = shell.elements.get('route-view').textContent;
+// The notice lists every refilled field in template order, so `packs` is asserted to be
+// NAMED by it rather than assumed to be first.
+if (!/未读回：响应缺少[^；]*\bpacks\b/.test(domainsShapeText))
+  throw new Error(`域包集合缺失时必须点名 packs：…${domainsShapeText.slice(-300)}`);
+if (domainsShapeText.includes('尚无域包目录'))
+  throw new Error('响应没有给出 packs 时，页面不得声称尚无域包目录');
+if (domainsShapeText.includes('视图读回失败'))
+  throw new Error('缺少 packs 不得把整页压成读回失败');
+
+const DOMAINS_READBACK = {
+  schemaVersion: 'design-lab/domain-pack-readback/v1',
+  meaning: 'Read-only projection of the committed Domain Pack directories.',
+  unmeasuredMeans: 'null = the manifest does not declare that field.',
+  root: 'design-lab/domain-packs', rootState: 'PRESENT',
+  validationVocabulary: ['VALIDATES', 'INVALID', 'UNREADABLE', 'NOT_CHECKED'],
+  checker: { path: 'design-lab/scripts/verify_domain_pack_v2.py', state: 'LOADED', note: null },
+  sources: { packRoot: 'design-lab/domain-packs' },
+  counts: { packs: 2, byValidation: { VALIDATES: 1, INVALID: 1, UNREADABLE: 0, NOT_CHECKED: 0 } },
+  packs: [
+    { directory: 'uiux-design', packId: 'uiux-design', version: '0.1.0',
+      displayName: 'UI/UX Design Domain Pack', domain: 'ui-ux',
+      manifestSchemaVersion: 'design-lab/domain-pack/v2', dependencies: ['jsonschema'],
+      validation: 'VALIDATES', validationErrors: [], validationErrorCount: 0, note: null },
+    { directory: 'minigame-design', packId: 'minigame-design', version: '0.1.0',
+      displayName: 'MINIGAME Design Domain Pack', domain: null,
+      manifestSchemaVersion: 'workflow/domain-pack/v1', dependencies: null,
+      validation: 'INVALID',
+      validationErrors: ["schema validation failed: 'domain' is a required property"],
+      validationErrorCount: 11, note: null },
+  ],
+};
+shell.window.location.hash = '#/domains';
+shell.dispatchHashchange();
+const domainsGood = shell.pending.splice(0, shell.pending.length);
+domainsGood[0].resolve(response(DOMAINS_READBACK));
+await flush();
+const domainsGoodText = shell.elements.get('route-view').textContent;
+if (domainsGoodText.includes('未读回：响应缺少'))
+  throw new Error('形状完整的域包读回不得出现形状告警');
+if (!domainsGoodText.includes('域包登记（2）'))
+  throw new Error(`域包数量必须由读回给出：${domainsGoodText.slice(0, 200)}`);
+if (!domainsGoodText.includes('ui-ux') || !domainsGoodText.includes('jsonschema'))
+  throw new Error('域包身份 / 领域 / 依赖没有上屏');
+if (!domainsGoodText.includes("'domain' is a required property"))
+  throw new Error('被拒绝的域包必须带着校验器的原因上屏，而不是只留一个数字');
+if (!domainsGoodText.includes('校验器共 11 条'))
+  throw new Error('原因被截断时必须注明校验器实际给出了多少条');
+if (domainsGoodText.includes('13'))
+  throw new Error(`页面又带上了没有出处的数字：${domainsGoodText.slice(0, 240)}`);
+const englishVerdicts = [];
+(function walkMarked(node) {
+  if (node?.attributes?.get('lang') === 'en') englishVerdicts.push(node.textContent);
+  for (const child of (node?.children ?? [])) walkMarked(child);
+})(shell.elements.get('route-view'));
+for (const state of ['VALIDATES', 'INVALID'])
+  if (!englishVerdicts.includes(state))
+    throw new Error(`判定 ${state} 必须带 lang="en" 标记（服务词汇，不翻译）：${englishVerdicts.join('/')}`);
+
+// The reverse direction of the same sentence: a service that really answers an empty
+// catalog may be described as empty. Without this the 尚无 wording above could be earned
+// by a page that never renders rows at all.
+shell.window.location.hash = '#/domains';
+shell.dispatchHashchange();
+const domainsEmpty = shell.pending.splice(0, shell.pending.length);
+domainsEmpty[0].resolve(response({ ...DOMAINS_READBACK,
+  counts: { packs: 0, byValidation: {} }, packs: [] }));
+await flush();
+const domainsEmptyText = shell.elements.get('route-view').textContent;
+if (!domainsEmptyText.includes('尚无域包目录'))
+  throw new Error('服务真的答了空目录时，页面必须照实说尚无域包目录');
+// Asserted as the three notice SHAPES rather than the bare word: the page's own
+// explanatory line names 未声明 / 未读回 as the two different things it distinguishes, and
+// a substring check on the word alone would convict the explanation for the lie.
+for (const notice of ['未读回：响应缺少', '未读回：未连接', '未读回判定基础'])
+  if (domainsEmptyText.includes(notice))
+    throw new Error(`一次形状完整的空读回不得出现 ${notice}：…${domainsEmptyText.slice(-300)}`);
+console.log('ok: ⑤ #/domains 读一个路由、缺 packs 说未读回、真实读回上屏带 lang="en" 与原因、空目录照实说尚无');
+
 // ①/④ OFFLINE sweep. A second context that never connects: devMode() reads
 // window.location.search, so '?dev=1' is what lets the seam answer with its honest empty
 // payload. Those payloads are marked, and an empty that was never asked about must not be
@@ -240,6 +338,7 @@ const LIVE_ONLY_PHRASES = [
   '尚无宿主任务',                                  // creative tools
   '尚无交付包',                                    // dashboard + deliverables
   '尚无任务 任务完成后交付包随读回导出。',          // deliverables tasks cell
+  '尚无域包目录',                                  // design domains
 ];
 
 const offline = makeContext();

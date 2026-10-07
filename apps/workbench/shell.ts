@@ -15,6 +15,9 @@ import type {
   DesignLayerResponse,
   DesignLayerReadback,
   DesignSystemListResponse,
+  DomainListResponse,
+  DomainPackRecord,
+  DomainPackValidation,
   EnvironmentResponse,
   CapabilityLibraryResponse,
   EventListResponse,
@@ -121,6 +124,16 @@ export function shapeNotice(value: unknown): string {
     ? `未读回：响应缺少 ${missing.join('、')}` : '';
 }
 
+// The per-field question shapeNotice cannot answer: it reports the whole list, and a view
+// that is about to describe an EMPTY collection needs to know whether THAT field is one
+// the seam invented. An empty <ul> may be called 尚无 only when the service really
+// answered "nothing here"; when the seam had to supply the empty, saying 尚无 would be
+// the claim the notice two lines down contradicts.
+export function shapeFieldMissing(value: unknown, field: string): boolean {
+  const missing = (value as Record<symbol, unknown> | null)?.[SHAPE_MISSING];
+  return Array.isArray(missing) && missing.includes(field);
+}
+
 function markDisconnected<T extends object>(payload: T): T {
   const mark = (target: object): void => {
     Object.defineProperty(target, DISCONNECTED, { value: true, enumerable: false });
@@ -173,6 +186,22 @@ const OFFLINE = {
     counts: { total: 0, byKind: {}, byLicense: {}, byRevisionState: {}, qualified: 0 },
     sources: {}, capabilities: [],
   } as CapabilityLibraryResponse,
+  // The domain readback's honest empty: the counts are zero because nothing was read,
+  // and rootState / checker.state say WHY instead of leaving a blank the page would
+  // have to guess at. `validationVocabulary` is the service's own declaration of its
+  // closed verdict set, so it is NOT filled in here: inventing it offline would put
+  // words on the screen that no readback produced. The tally rows are built from
+  // `counts.byValidation`, which is empty for exactly this reason.
+  domains: {
+    schemaVersion: 'design-lab/domain-pack-readback/v1',
+    meaning: '未连接本机设计服务', unmeasuredMeans: 'null = 未声明 / 未判定，不是 0',
+    root: 'design-lab/domain-packs', rootState: 'NOT_READ',
+    validationVocabulary: [],
+    checker: { path: 'design-lab/scripts/verify_domain_pack_v2.py',
+               state: 'NOT_READ', note: '未连接本机设计服务' },
+    sources: {}, counts: { packs: 0, byValidation: {} }, packs: [],
+  } as DomainListResponse,
+
   tasks: { tasks: [], next_cursor: null } as TaskListResponse,
   bundles: { bundles: [] } as BundleListResponse,
   designLayer: {
@@ -266,13 +295,15 @@ export function projectDetailHash(id: string): string {
 // Honest "not open yet" copy per IA slot that has no backend route today.
 // Projects / creative-tools / deliverables / evidence are READ-ONLY readbacks
 // of real service routes (see renderProjects/renderCreativeTools/
-// renderDeliverables/renderEvidence). These three slots have NO readback route:
-// research has no persisted conclusions, domains has a model in the repo but no
-// GET /api/domains, and the service is single-user with no collaboration route —
-// so they say so, in the same terms the capability card below uses.
+// renderDeliverables/renderEvidence), and since 2026-10-08 so is design-domains
+// (renderDomains over GET /api/domains, which projects the committed pack
+// directories through the repo's own verify_domain_pack_v2.py). These two slots
+// still have NO readback route: research has no persisted conclusions, and the
+// service is single-user with no collaboration route — so they say so, in the
+// same terms the capability card below uses. No pack count is written here: the
+// numbers a reader needs come from the route, per pack.
 export const VIEW_NOT_OPEN: Partial<Record<RouteView, string>> = {
   'research': '研究洞察页未开放：当前服务没有研究结论的持久化路由。',
-  'design-domains': '设计领域页未开放：域包模型已在仓内（schema、DOMAIN_PACK_SPEC_V2 与 13 个域包，并有 verify_domain_pack_v2.py 校验），缺的是 GET /api/domains 读回路由。',
   'collaboration': '团队协作页未开放：本地单机服务尚无协作路由（本地单用户模型）。',
 };
 
@@ -304,12 +335,14 @@ const CAPABILITY_REGISTRY: readonly CapabilityContract[] = [
     reason: '服务尚无研究结论持久化路由；研究目前由 brief/reference 驱动。',
     nextAction: '设计 research 结论模型 + 服务路由，然后 UI 读回替换本卡。' },
   { capabilityId: 'design-domain-model', domain: '设计领域', source: 'IA 槽位 #/domains',
-    owner: 'DESIGN-LAB Domain Pack', route: 'GET /api/domains/…',
-    contractRef: 'design-lab/schemas/domain-pack.schema.json · design-lab/domain-packs/DOMAIN_PACK_SPEC_V2.md（13 个域包）',
-    implementationState: 'PLANNED',
-    permission: '域包模型与 13 个域包已落仓（E1 结构级）；缺 HTTP 读回路由',
-    reason: '域划分并非"尚无模型"：schema、DOMAIN_PACK_SPEC_V2 与 13 个域包目录都在仓内，并有 verify_domain_pack_v2.py 校验；缺的只是 GET /api/domains 读回。',
-    nextAction: '为 Domain Pack 建 /api/domains 读回路由。' },
+    owner: 'DESIGN-LAB Domain Pack', route: 'GET /api/domains',
+    contractRef: 'design-lab/schemas/domain-pack.schema.json · design-lab/domain-packs/DOMAIN_PACK_SPEC_V2.md · design-lab/scripts/verify_domain_pack_v2.py · src/design_lab/domain_packs.py',
+    implementationState: 'IMPLEMENTED',
+    permission: '域包目录与 manifest 为仓内已提交记录（E1 结构级）；本视图只读回，不安装、不生成、不判定设计质量',
+    reason: '读回路由已落地：页面列出 design-lab/domain-packs 下真实存在的目录，并逐包给出仓内校验器自己的判定与原因。'
+      + '仍未闭合的是能力验收本身——仍有目录声明 workflow/domain-pack/v1 而被 Spec V2 校验器拒绝，'
+      + '具体数量与目录名由路由给出，不在 UI 侧写死。',
+    nextAction: '把仍处 v1 的域包补齐到 Spec V2 十要素，并按 E2+ 做宿主与设计质量验收；UI 读回无需再改。' },
   { capabilityId: 'host-adapter-live', domain: '创作工具（宿主实时状态）', source: 'IA 槽位 #/tools',
     owner: 'Host/Tool Adapter 层', route: 'GET /api/projects/{id}/tasks（已有）+ 宿主探测路由（缺）',
     contractRef: 'src/design_lab/native_assets.py Bundles；宿主 adapter 合同',
@@ -1327,6 +1360,182 @@ export async function renderCapabilityLibrary(target: HTMLElement): Promise<void
       researchCard ? capabilityCard(researchCard) : el('p', { class: 'view-hint' }, '（登记表无此项）')),
     ...shapeNoticeRows(data));
   render();
+}
+
+// ---------------------------------------------------------------------------
+// 设计领域 — B07 route `#/domains`.
+//
+// 2026-10-08. This slot used to be a card that said the model exists but has no read
+// route, and it named the pack count by hand (a bare "13" in the Chinese copy). Measured
+// truth: 13 pack DIRECTORIES exist under design-lab/domain-packs, and the repo's own
+// Spec V2 checker accepts 12 of them -- the 13th still declares workflow/domain-pack/v1
+// and is rejected with its own list of reasons. So every number on this page now comes
+// from GET /api/domains, per pack, and the verdict word is the checker's, not the page's.
+//
+// The two things this view must never say: that VALIDATES is anything stronger than a
+// STRUCTURAL (E1) statement about files in this repository, and that a null field is an
+// empty one (the payload's own `unmeasuredMeans` states the rule; the rows say which
+// silence they are reporting).
+const DOMAIN_TONE: Record<DomainPackValidation, string> = {
+  // VALIDATES is the only green, and it is green about structure. NOT_CHECKED is
+  // deliberately warn rather than bad: no verdict was produced, which is not a failure.
+  VALIDATES: 'ok', INVALID: 'bad', UNREADABLE: 'bad', NOT_CHECKED: 'warn',
+};
+
+const DOMAIN_UNREAD = '未读回';
+const DOMAIN_UNDECLARED = '未声明';
+
+/** A field of the ENVELOPE the response left out (root, path, meaning). `normaliseShape`
+ *  refills collections only, so an absent scalar would otherwise paint "undefined". */
+export function domainRead(value: string | null | undefined): string {
+  return value ? value : DOMAIN_UNREAD;
+}
+
+/** A field of the pack's OWN manifest. `null` is the pack being silent about it (a v1
+ *  manifest really has no `domain`); an absent key is the service being silent. Two
+ *  different facts, so they get two different words and never a defaulted string. */
+export function domainDeclared(value: string | null | undefined): string {
+  return value === undefined ? DOMAIN_UNREAD : (value ?? DOMAIN_UNDECLARED);
+}
+
+export function domainDependencies(values: string[] | null | undefined): string {
+  if (values === undefined) return DOMAIN_UNREAD;
+  if (values === null) return DOMAIN_UNDECLARED;
+  return values.length ? values.join(' / ') : '声明为空（无依赖）';
+}
+
+/** The verdict word is the service's vocabulary, so it is marked and not translated; a
+ *  row with no verdict word says so in the page's own language instead of wrapping
+ *  "undefined" in a lang="en" pill. */
+export function domainVerdict(value: DomainPackValidation | undefined): HTMLElement | string {
+  return value === undefined ? DOMAIN_UNREAD : en(value);
+}
+
+export function domainTone(value: DomainPackValidation | undefined): string {
+  return value === undefined ? 'warn' : (DOMAIN_TONE[value] ?? 'warn');
+}
+
+/** One pack directory, identity and declared domain included. */
+export function domainPackRow(pack: DomainPackRecord): HTMLElement {
+  return el('li', { class: 'list-item' },
+    el('div', {},
+      el('strong', {}, pack.displayName ?? domainRead(pack.directory)),
+      el('small', {}, `目录 ${domainRead(pack.directory)}`
+        + ` · pack_id ${domainDeclared(pack.packId)}`
+        + ` · 版本 ${domainDeclared(pack.version)}`
+        + ` · 领域 ${domainDeclared(pack.domain)}`
+        + ` · 清单 schema ${domainDeclared(pack.manifestSchemaVersion)}`
+        + ` · 依赖 ${domainDependencies(pack.dependencies)}`)),
+    el('span', { class: 'tag ' + domainTone(pack.validation) },
+      domainVerdict(pack.validation)));
+}
+
+export async function renderDomains(target: HTMLElement): Promise<void> {
+  target.replaceChildren(el('p', { class: 'view-loading' }, '正在读回域包…'));
+  const data = await apiOrEmpty<DomainListResponse>('/domains', OFFLINE.domains);
+  // The seam refills collections at the response level; a pack ROW whose own list is
+  // absent would throw several frames from the field that went missing, so the one list
+  // this view iterates per row is guarded where it is read.
+  const packs = data.packs.map((pack) => ({ ...pack,
+    validationErrors: Array.isArray(pack.validationErrors) ? pack.validationErrors : [] }));
+  const tallies = data.counts.byValidation;
+  // Rows the checker did not pass: shown with their reasons rather than folded into a
+  // number, because "1 rejected" tells a reader nothing to act on.
+  const findings = packs.filter((pack) => pack.validation !== 'VALIDATES');
+  const judged = (state: DomainPackValidation): number =>
+    packs.filter((pack) => pack.validation === state).length;
+  const truncated = findings.filter((pack) => pack.validationErrors.length
+    < (pack.validationErrorCount ?? pack.validationErrors.length));
+
+  const pageHead = el('div', { class: 'page-head' },
+    el('div', {},
+      el('h2', {}, '设计领域'),
+      el('p', { class: 'muted' },
+        '域包清单、身份与判定全部来自 ', el('span', { class: 'mono' }, domainRead(data.root)),
+        ' 的服务端读回；判定由仓内校验器 ',
+        el('span', { class: 'mono' }, domainRead(data.checker.path)),
+        ' 逐包给出。', en('VALIDATES'), ' 只表示结构（E1）合规：不是宿主运行、不是设计验收、'
+        + '也不是该领域能力已被认定。未声明与未读回是两件事，分开写。')),
+    el('div', { class: 'page-actions' }));
+
+  // Every card counts the records this call returned. None of them is typed here, and
+  // none of them reads `counts`: that map's scalars are not refilled by the seam, so a
+  // missing key would otherwise be shown as a zero the service never answered.
+  const kpis = el('div', { class: 'kpi-grid' },
+    kpiCard(String(packs.length), '域包目录', `${domainRead(data.root)} 读回`),
+    kpiCard(String(judged('VALIDATES')), '结构校验通过', '校验器判定，E1 结构级'),
+    kpiCard(String(judged('INVALID')), '校验不通过', '下方逐项列出校验器原因'),
+    kpiCard(String(packs.length - judged('VALIDATES')),
+            '未通过 / 无判定', '校验不通过、清单读不到或未产生判定，逐项见下方'));
+
+  // Why the list may be empty even though the page rendered: the root and the checker
+  // are read before any pack is, and either can be unavailable. A missing root is NOT
+  // the same fact as an empty catalog, so it must not borrow 尚无 wording.
+  const unavailable: string[] = [];
+  if (data.rootState !== 'PRESENT') {
+    unavailable.push(`域包根 ${domainRead(data.root)} 的状态是 ${domainRead(data.rootState)}，`
+      + '没有目录被列出');
+  }
+  if (data.checker.state !== 'LOADED') {
+    unavailable.push(`校验器 ${domainRead(data.checker.path)} 未能载入`
+      + `${data.checker.note ? `（${data.checker.note}）` : ''}，因此没有任何域包获得判定`);
+  }
+  const banner = unavailable.length
+    ? [el('p', { class: 'error' }, '未读回判定基础：' + unavailable.join('；') + '。')] : [];
+
+  const entries = Object.entries(tallies);
+  const tallyLine = el('p', { class: 'view-hint' },
+    entries.length
+      ? `判定分布（路由统计）：${entries.map(([state, count]) => `${state} ${count}`).join(' · ')}`
+      // An empty tally has two different causes and the page must not pick one at random:
+      // nothing was asked (no session), or the service answered with no counts at all.
+      : (disconnectedNotice(data)
+        ? `判定分布未读回：${disconnectedNotice(data)}`
+        : '判定分布为空：本次读回没有给出判定计数，逐包状态见上方列表'));
+
+  const packList = el('div', { class: 'panel' },
+    el('h3', {}, `域包登记（${packs.length}）`),
+    el('ul', { class: 'list' },
+      ...(packs.length
+        ? packs.map(domainPackRow)
+        // An empty list has three possible histories and the row has to name the right
+        // one: the service answered "no packs" (尚无), the seam had to invent the
+        // collection because the response omitted it (未读回, and 尚无 is forbidden), or
+        // nothing was asked at all (emptyLi's own disconnected wording wins).
+        : [emptyLi(data,
+          shapeFieldMissing(data, 'packs') ? '未读回' : '尚无域包目录',
+          shapeFieldMissing(data, 'packs')
+            ? '响应没有给出 packs，所以这一屏不是服务端答出来的空台账'
+            : `${domainRead(data.root)} 下没有可读回的域包目录`)])),
+    tallyLine);
+
+  const findingPanel = el('div', { class: 'panel' },
+    el('h3', {}, `结构校验发现（${findings.length}）`),
+    ...(findings.length
+      ? findings.map((pack) => el('p', { class: 'view-hint' },
+          el('span', { class: 'mono' }, domainRead(pack.directory)), ' · ',
+          domainVerdict(pack.validation),
+          `：${pack.validationErrors.length
+            ? pack.validationErrors.join(' ｜ ') : '（校验器未给出逐条原因）'}`,
+          pack.validationErrors.length < (pack.validationErrorCount ?? 0)
+            ? `（校验器共 ${pack.validationErrorCount} 条，此处每条只取首行）` : '',
+          pack.note ? ` 备注：${pack.note}` : ''))
+      : [el('p', { class: 'view-hint' },
+          data.checker.state === 'LOADED' && data.rootState === 'PRESENT'
+            ? '本次读回的每个域包目录都通过结构校验；这不构成领域能力验收。'
+            : '没有可报告的发现，因为判定基础本身未读回（见上方告警）。')]));
+
+  target.replaceChildren(
+    pageHead,
+    kpis,
+    ...banner,
+    packList,
+    findingPanel,
+    el('p', { class: 'view-hint' },
+      `${domainRead(data.meaning)} ${domainRead(data.unmeasuredMeans)}`
+      + (truncated.length ? `（其中 ${truncated.length} 项的校验原因按每条首行截断）` : '')
+      + ' 本页不安装、不生成、不改写域包，也不判定设计质量。'),
+    ...shapeNoticeRows(data));
 }
 
 export async function renderSettings(target: HTMLElement): Promise<void> {
@@ -3150,6 +3359,7 @@ export async function renderRoute(view: AppView, target: HTMLElement): Promise<v
     case 'creative-tools': await renderCreativeTools(target); return;
     case 'deliverables': await renderDeliverables(target); return;
     case 'evidence': await renderEvidence(target); return;
+    case 'design-domains': await renderDomains(target); return;
     // B07 `/projects/:id`. The id comes from the hash (renderRoute receives only
     // the resolved view, matching the existing signature).
     case 'project-detail': {
@@ -3162,10 +3372,10 @@ export async function renderRoute(view: AppView, target: HTMLElement): Promise<v
       const notOpen = VIEW_NOT_OPEN[view];
       // 2026-09-30 — blueprint slots now render honest capability cards
       // (from CAPABILITY_REGISTRY) instead of a bare "unopened" note.
-      // Only the remaining VIEW_NOT_OPEN slots (design-domains / collaboration) reach
-      // here; research now has a real readback of its own and creative-tools never did.
-      const slotFor = (v: string) => v === 'design-domains' ? 'design-domain-model'
-        : v === 'collaboration' ? 'collaboration' : null;
+      // 2026-10-08 — design-domains left this branch: it now reads GET /api/domains
+      // through renderDomains. Only `collaboration` still has no backend to read, so
+      // it is the single slot that reaches here and gets its capability card.
+      const slotFor = (v: string) => v === 'collaboration' ? 'collaboration' : null;
       const wanted = slotFor(view);
       const cards = el('div', { class: 'card-flow' },
         ...CAPABILITY_REGISTRY.filter((c) => c.capabilityId === wanted).map(capabilityCard));

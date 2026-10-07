@@ -240,6 +240,17 @@ def make_server(service, token, port=0, *, local_session=False):
                         # reads the committed records, never a machine-local cache.
                         from .analysis.capability_library import build
                         return self.send_json(200, build())
+                    if self.path == '/api/domains':
+                        # Same class of read as /api/capabilities: committed repository
+                        # records, not project or machine state, so the root is the
+                        # package's own repository root. Domain Pack SPEC V2 asks for a
+                        # structural check, and this serves the verdict
+                        # design-lab/scripts/verify_domain_pack_v2.py itself gives each
+                        # pack -- a read path with its own copy of the rules would be a
+                        # second authority able to disagree with CI. Read-only by design:
+                        # no POST/PUT/DELETE form of this path is dispatched below.
+                        from . import domain_packs
+                        return self.send_json(200, domain_packs.build())
                     if urlsplit(self.path).path == '/api/task-preflight':
                         # DL-AUDIT-20260914-04: the same preflight the CLI doctor
                         # uses, so workbench and CLI can never disagree. Read-only.

@@ -1037,6 +1037,10 @@ function shapeNotice(value) {
   const missing = value?.[SHAPE_MISSING];
   return Array.isArray(missing) && missing.length ? `未读回：响应缺少 ${missing.join("、")}` : "";
 }
+function shapeFieldMissing(value, field) {
+  const missing = value?.[SHAPE_MISSING];
+  return Array.isArray(missing) && missing.includes(field);
+}
 function markDisconnected(payload) {
   const mark = (target) => {
     Object.defineProperty(target, DISCONNECTED, { value: true, enumerable: false });
@@ -1074,6 +1078,28 @@ const OFFLINE = {
     counts: { total: 0, byKind: {}, byLicense: {}, byRevisionState: {}, qualified: 0 },
     sources: {},
     capabilities: []
+  },
+  // The domain readback's honest empty: the counts are zero because nothing was read,
+  // and rootState / checker.state say WHY instead of leaving a blank the page would
+  // have to guess at. `validationVocabulary` is the service's own declaration of its
+  // closed verdict set, so it is NOT filled in here: inventing it offline would put
+  // words on the screen that no readback produced. The tally rows are built from
+  // `counts.byValidation`, which is empty for exactly this reason.
+  domains: {
+    schemaVersion: "design-lab/domain-pack-readback/v1",
+    meaning: "未连接本机设计服务",
+    unmeasuredMeans: "null = 未声明 / 未判定，不是 0",
+    root: "design-lab/domain-packs",
+    rootState: "NOT_READ",
+    validationVocabulary: [],
+    checker: {
+      path: "design-lab/scripts/verify_domain_pack_v2.py",
+      state: "NOT_READ",
+      note: "未连接本机设计服务"
+    },
+    sources: {},
+    counts: { packs: 0, byValidation: {} },
+    packs: []
   },
   tasks: { tasks: [], next_cursor: null },
   bundles: { bundles: [] },
@@ -1135,7 +1161,6 @@ function projectDetailHash(id) {
 }
 const VIEW_NOT_OPEN = {
   "research": "研究洞察页未开放：当前服务没有研究结论的持久化路由。",
-  "design-domains": "设计领域页未开放：域包模型已在仓内（schema、DOMAIN_PACK_SPEC_V2 与 13 个域包，并有 verify_domain_pack_v2.py 校验），缺的是 GET /api/domains 读回路由。",
   "collaboration": "团队协作页未开放：本地单机服务尚无协作路由（本地单用户模型）。"
 };
 const CAPABILITY_REGISTRY = [
@@ -1156,12 +1181,12 @@ const CAPABILITY_REGISTRY = [
     domain: "设计领域",
     source: "IA 槽位 #/domains",
     owner: "DESIGN-LAB Domain Pack",
-    route: "GET /api/domains/…",
-    contractRef: "design-lab/schemas/domain-pack.schema.json · design-lab/domain-packs/DOMAIN_PACK_SPEC_V2.md（13 个域包）",
-    implementationState: "PLANNED",
-    permission: "域包模型与 13 个域包已落仓（E1 结构级）；缺 HTTP 读回路由",
-    reason: '域划分并非"尚无模型"：schema、DOMAIN_PACK_SPEC_V2 与 13 个域包目录都在仓内，并有 verify_domain_pack_v2.py 校验；缺的只是 GET /api/domains 读回。',
-    nextAction: "为 Domain Pack 建 /api/domains 读回路由。"
+    route: "GET /api/domains",
+    contractRef: "design-lab/schemas/domain-pack.schema.json · design-lab/domain-packs/DOMAIN_PACK_SPEC_V2.md · design-lab/scripts/verify_domain_pack_v2.py · src/design_lab/domain_packs.py",
+    implementationState: "IMPLEMENTED",
+    permission: "域包目录与 manifest 为仓内已提交记录（E1 结构级）；本视图只读回，不安装、不生成、不判定设计质量",
+    reason: "读回路由已落地：页面列出 design-lab/domain-packs 下真实存在的目录，并逐包给出仓内校验器自己的判定与原因。仍未闭合的是能力验收本身——仍有目录声明 workflow/domain-pack/v1 而被 Spec V2 校验器拒绝，具体数量与目录名由路由给出，不在 UI 侧写死。",
+    nextAction: "把仍处 v1 的域包补齐到 Spec V2 十要素，并按 E2+ 做宿主与设计质量验收；UI 读回无需再改。"
   },
   {
     capabilityId: "host-adapter-live",
@@ -2450,6 +2475,156 @@ async function renderCapabilityLibrary(target) {
     ...shapeNoticeRows(data)
   );
   render();
+}
+const DOMAIN_TONE = {
+  // VALIDATES is the only green, and it is green about structure. NOT_CHECKED is
+  // deliberately warn rather than bad: no verdict was produced, which is not a failure.
+  VALIDATES: "ok",
+  INVALID: "bad",
+  UNREADABLE: "bad",
+  NOT_CHECKED: "warn"
+};
+const DOMAIN_UNREAD = "未读回";
+const DOMAIN_UNDECLARED = "未声明";
+function domainRead(value) {
+  return value ? value : DOMAIN_UNREAD;
+}
+function domainDeclared(value) {
+  return value === void 0 ? DOMAIN_UNREAD : value ?? DOMAIN_UNDECLARED;
+}
+function domainDependencies(values) {
+  if (values === void 0) return DOMAIN_UNREAD;
+  if (values === null) return DOMAIN_UNDECLARED;
+  return values.length ? values.join(" / ") : "声明为空（无依赖）";
+}
+function domainVerdict(value) {
+  return value === void 0 ? DOMAIN_UNREAD : en(value);
+}
+function domainTone(value) {
+  return value === void 0 ? "warn" : DOMAIN_TONE[value] ?? "warn";
+}
+function domainPackRow(pack) {
+  return el(
+    "li",
+    { class: "list-item" },
+    el(
+      "div",
+      {},
+      el("strong", {}, pack.displayName ?? domainRead(pack.directory)),
+      el("small", {}, `目录 ${domainRead(pack.directory)} · pack_id ${domainDeclared(pack.packId)} · 版本 ${domainDeclared(pack.version)} · 领域 ${domainDeclared(pack.domain)} · 清单 schema ${domainDeclared(pack.manifestSchemaVersion)} · 依赖 ${domainDependencies(pack.dependencies)}`)
+    ),
+    el(
+      "span",
+      { class: "tag " + domainTone(pack.validation) },
+      domainVerdict(pack.validation)
+    )
+  );
+}
+async function renderDomains(target) {
+  target.replaceChildren(el("p", { class: "view-loading" }, "正在读回域包…"));
+  const data = await apiOrEmpty("/domains", OFFLINE.domains);
+  const packs = data.packs.map((pack) => ({
+    ...pack,
+    validationErrors: Array.isArray(pack.validationErrors) ? pack.validationErrors : []
+  }));
+  const tallies = data.counts.byValidation;
+  const findings = packs.filter((pack) => pack.validation !== "VALIDATES");
+  const judged = (state) => packs.filter((pack) => pack.validation === state).length;
+  const truncated = findings.filter((pack) => pack.validationErrors.length < (pack.validationErrorCount ?? pack.validationErrors.length));
+  const pageHead = el(
+    "div",
+    { class: "page-head" },
+    el(
+      "div",
+      {},
+      el("h2", {}, "设计领域"),
+      el(
+        "p",
+        { class: "muted" },
+        "域包清单、身份与判定全部来自 ",
+        el("span", { class: "mono" }, domainRead(data.root)),
+        " 的服务端读回；判定由仓内校验器 ",
+        el("span", { class: "mono" }, domainRead(data.checker.path)),
+        " 逐包给出。",
+        en("VALIDATES"),
+        " 只表示结构（E1）合规：不是宿主运行、不是设计验收、也不是该领域能力已被认定。未声明与未读回是两件事，分开写。"
+      )
+    ),
+    el("div", { class: "page-actions" })
+  );
+  const kpis = el(
+    "div",
+    { class: "kpi-grid" },
+    kpiCard(String(packs.length), "域包目录", `${domainRead(data.root)} 读回`),
+    kpiCard(String(judged("VALIDATES")), "结构校验通过", "校验器判定，E1 结构级"),
+    kpiCard(String(judged("INVALID")), "校验不通过", "下方逐项列出校验器原因"),
+    kpiCard(
+      String(packs.length - judged("VALIDATES")),
+      "未通过 / 无判定",
+      "校验不通过、清单读不到或未产生判定，逐项见下方"
+    )
+  );
+  const unavailable = [];
+  if (data.rootState !== "PRESENT") {
+    unavailable.push(`域包根 ${domainRead(data.root)} 的状态是 ${domainRead(data.rootState)}，没有目录被列出`);
+  }
+  if (data.checker.state !== "LOADED") {
+    unavailable.push(`校验器 ${domainRead(data.checker.path)} 未能载入${data.checker.note ? `（${data.checker.note}）` : ""}，因此没有任何域包获得判定`);
+  }
+  const banner = unavailable.length ? [el("p", { class: "error" }, "未读回判定基础：" + unavailable.join("；") + "。")] : [];
+  const entries = Object.entries(tallies);
+  const tallyLine = el(
+    "p",
+    { class: "view-hint" },
+    entries.length ? `判定分布（路由统计）：${entries.map(([state, count]) => `${state} ${count}`).join(" · ")}` : disconnectedNotice(data) ? `判定分布未读回：${disconnectedNotice(data)}` : "判定分布为空：本次读回没有给出判定计数，逐包状态见上方列表"
+  );
+  const packList = el(
+    "div",
+    { class: "panel" },
+    el("h3", {}, `域包登记（${packs.length}）`),
+    el(
+      "ul",
+      { class: "list" },
+      ...packs.length ? packs.map(domainPackRow) : [emptyLi(
+        data,
+        shapeFieldMissing(data, "packs") ? "未读回" : "尚无域包目录",
+        shapeFieldMissing(data, "packs") ? "响应没有给出 packs，所以这一屏不是服务端答出来的空台账" : `${domainRead(data.root)} 下没有可读回的域包目录`
+      )]
+    ),
+    tallyLine
+  );
+  const findingPanel = el(
+    "div",
+    { class: "panel" },
+    el("h3", {}, `结构校验发现（${findings.length}）`),
+    ...findings.length ? findings.map((pack) => el(
+      "p",
+      { class: "view-hint" },
+      el("span", { class: "mono" }, domainRead(pack.directory)),
+      " · ",
+      domainVerdict(pack.validation),
+      `：${pack.validationErrors.length ? pack.validationErrors.join(" ｜ ") : "（校验器未给出逐条原因）"}`,
+      pack.validationErrors.length < (pack.validationErrorCount ?? 0) ? `（校验器共 ${pack.validationErrorCount} 条，此处每条只取首行）` : "",
+      pack.note ? ` 备注：${pack.note}` : ""
+    )) : [el(
+      "p",
+      { class: "view-hint" },
+      data.checker.state === "LOADED" && data.rootState === "PRESENT" ? "本次读回的每个域包目录都通过结构校验；这不构成领域能力验收。" : "没有可报告的发现，因为判定基础本身未读回（见上方告警）。"
+    )]
+  );
+  target.replaceChildren(
+    pageHead,
+    kpis,
+    ...banner,
+    packList,
+    findingPanel,
+    el(
+      "p",
+      { class: "view-hint" },
+      `${domainRead(data.meaning)} ${domainRead(data.unmeasuredMeans)}` + (truncated.length ? `（其中 ${truncated.length} 项的校验原因按每条首行截断）` : "") + " 本页不安装、不生成、不改写域包，也不判定设计质量。"
+    ),
+    ...shapeNoticeRows(data)
+  );
 }
 async function renderSettings(target) {
   target.replaceChildren(el("p", { class: "view-loading" }, "正在读回运行环境…"));
@@ -4525,6 +4700,9 @@ async function renderRoute(view, target) {
     case "evidence":
       await renderEvidence(target);
       return;
+    case "design-domains":
+      await renderDomains(target);
+      return;
     // B07 `/projects/:id`. The id comes from the hash (renderRoute receives only
     // the resolved view, matching the existing signature).
     case "project-detail": {
@@ -4538,7 +4716,7 @@ async function renderRoute(view, target) {
     }
     default: {
       const notOpen = VIEW_NOT_OPEN[view];
-      const slotFor = (v) => v === "design-domains" ? "design-domain-model" : v === "collaboration" ? "collaboration" : null;
+      const slotFor = (v) => v === "collaboration" ? "collaboration" : null;
       const wanted = slotFor(view);
       const cards = el(
         "div",

@@ -344,9 +344,11 @@ class ListItemIsReallyAListMember(unittest.TestCase):
         # readback column joined it as a real <ul> (its first version was a <div>,
         # which the two assertions above caught). 2026-10-08 later: 31 -> 32 for the
         # design-system Token column (renderTokenDocumentPanel) -- its live rows and
-        # its empty state are both real list members. The number moves because the
+        # its empty state are both real list members. 2026-10-08 again: 32 -> 33 for
+        # the Domain Pack column (renderDomains), whose rows come from domainPackRow()
+        # and whose empty state comes from emptyLi(). The number moves because the
         # inventory grew by one verified column, not because a check was relaxed.
-        self.assertEqual(self.shell.count("el('ul', { class: 'list'"), 32)
+        self.assertEqual(self.shell.count("el('ul', { class: 'list'"), 33)
 
 
 if __name__ == "__main__":
