@@ -69,6 +69,10 @@ function devMode(): boolean {
 // The fields that had to be invented are recorded on the object, so a view can say
 // 未读回：响应缺少 … instead of silently rendering the empty case as 尚无.
 const SHAPE_MISSING = Symbol.for('design-lab/shape-missing');
+// The seam's other failure mode: with no session it hands out an honest EMPTY payload
+// so the page structure still renders. That empty is not evidence the ledger has
+// nothing in it, so it is marked at the source and no view may describe it as a zero.
+const DISCONNECTED = Symbol.for('design-lab/disconnected');
 
 function normaliseShape(live: Record<string, unknown>, template: unknown, prefix = ''): string[] {
   if (template === null || typeof template !== 'object') return [];
@@ -89,7 +93,7 @@ function normaliseShape(live: Record<string, unknown>, template: unknown, prefix
 }
 
 function apiOrEmpty<T extends object>(path: string, empty: T): Promise<T> {
-  if (!token && devMode()) return Promise.resolve(empty);
+  if (!token && devMode()) return Promise.resolve(markDisconnected(empty));
   return api<Record<string, unknown>>(path).then((live) => {
     const missing = normaliseShape(live, empty);
     if (missing.length) Object.defineProperty(live, SHAPE_MISSING, { value: missing, enumerable: false });
@@ -112,6 +116,46 @@ export function shapeNotice(value: unknown): string {
   const missing = (value as Record<symbol, unknown> | null)?.[SHAPE_MISSING];
   return Array.isArray(missing) && missing.length
     ? `未读回：响应缺少 ${missing.join('、')}` : '';
+}
+
+function markDisconnected<T extends object>(payload: T): T {
+  const mark = (target: object): void => {
+    Object.defineProperty(target, DISCONNECTED, { value: true, enumerable: false });
+  };
+  mark(payload);
+  // Views hold the collection they walked (`layer`, not the response root), so the
+  // marker has to survive one level of nesting to be reachable where it is needed.
+  for (const value of Object.values(payload)) {
+    if (value !== null && typeof value === 'object') mark(value);
+  }
+  return payload;
+}
+
+// What a view must say when there was no readback at all. Distinct from shapeNotice:
+// there the service answered and omitted a field; here nothing was ever asked.
+export function disconnectedNotice(value: unknown): string {
+  return (value as Record<symbol, unknown> | null)?.[DISCONNECTED] === true
+    ? '未读回：未连接本机设计服务' : '';
+}
+
+// The two headings an empty collection may carry. `noun` (尚无X) is a claim about the
+// ledger, so it is allowed only on a real readback. Both directions matter: the offline
+// case may not borrow the confident wording, and a real empty may not hide behind 未读回.
+export function emptyWording(value: unknown, noun: string, hint: string): [string, string] {
+  const offline = disconnectedNotice(value);
+  return offline ? ['未读回', offline] : [noun, hint];
+}
+
+export function emptyLi(value: unknown, noun: string, hint: string): HTMLElement {
+  const [head, note] = emptyWording(value, noun, hint);
+  return el('li', { class: 'list-item' }, el('div', {}, el('strong', {}, head), el('small', {}, note)));
+}
+
+export function emptyTd(value: unknown, noun: string, hint: string, colspan: number): HTMLElement {
+  const [head, note] = emptyWording(value, noun, hint);
+  // One text node, not a <small> caption: inside a table cell the 0.8em small is the
+  // size the overflow gate measures, and it failed at every width on the first run.
+  return el('td', { colspan: String(colspan) }, `${head} ${note}`);
 }
 
 // Honest empty payloads for the dev/offline seam (see apiOrEmpty).
@@ -396,14 +440,10 @@ export function en(text: string): HTMLElement {
 // the root may be green: runtime/paths.py reports DECLARED_NOT_PROBED, a
 // declaration. An empty map gets a row that says so, because a blank list under a
 // "服务端环境读回" heading reads as a readback that found nothing to report.
-function sharedInputRows(inputs: EnvironmentResponse['shared_inputs'],
-                         limit = 4): HTMLElement[] {
-  const entries = Object.entries(inputs).slice(0, limit);
-  if (!entries.length) {
-    return [el('li', { class: 'list-item' },
-      el('div', {}, el('strong', {}, '尚无外置输入'),
-        el('small', {}, '服务未返回 shared_inputs')))];
-  }
+function sharedInputRows(response: EnvironmentResponse, limit = 4): HTMLElement[] {
+  const entries = Object.entries(response.shared_inputs).slice(0, limit);
+  // An empty map from an unconnected seam is not a server that answered "no roots".
+  if (!entries.length) return [emptyLi(response, '尚无外置输入', '服务未返回 shared_inputs')];
   return entries.map(([name, input]) => el('li', { class: 'list-item' },
     el('div', {}, el('strong', {}, name), el('small', {}, input.path)),
     el('span', {
@@ -627,10 +667,7 @@ export async function renderDashboard(target: HTMLElement): Promise<void> {
               el('strong', {}, p.name),
               el('small', {}, p.id)),
             el('span', { class: 'tag info' }, recentIds.includes(p.id) ? '最近打开' : '已登记')))
-        : [el('li', { class: 'list-item' },
-            el('div', {},
-              el('strong', {}, '尚无项目'),
-              el('small', {}, '在工作台新建项目后读回此处')))])) ,
+        : [emptyLi(projects, '尚无项目', '在工作台新建项目后读回此处')])) ,
     el('p', { class: 'view-hint' }, recentIds.length
       ? '按本机最近打开的项目排序（仅保存项目 id 于本机，不上传）。'
       : '本机尚未记录打开过的项目，暂按服务返回顺序显示。'));
@@ -750,10 +787,7 @@ const modulePanels = el('div', { class: 'three-col', style: 'margin-top:16px' },
                   el('small', {}, `${b.id} · ${b.byte_size} 字节 · ${b.rights}`)),
                 el('span', { class: b.rights === 'NOT_REVIEWED' ? 'tag warn' : 'tag info' },
                   b.rights === 'NOT_REVIEWED' ? '权利未审查' : b.rights)))
-            : [el('li', { class: 'list-item' },
-                el('div', {},
-                  el('strong', {}, '尚无交付包'),
-                  el('small', {}, '任务完成并打包后，交付会在此读回。')))])),
+            : [emptyLi(projects, '尚无交付包', '任务完成并打包后，交付会在此读回。')])),
     )),
     el('div', { class: 'panel', style: 'margin-top:16px' },
       el('h3', {}, 'Host / Capability 状态'),
@@ -769,7 +803,7 @@ const modulePanels = el('div', { class: 'three-col', style: 'margin-top:16px' },
           el('p', { class: 'view-hint' }, '宿主在线状态尚未有服务路由；此处 UNKNOWN，不假报可用。')),
         el('div', { class: 'panel' },
           el('h3', {}, '共享输入'),
-          el('ul', { class: 'list' }, ...sharedInputRows(environment.shared_inputs)),
+          el('ul', { class: 'list' }, ...sharedInputRows(environment)),
           el('p', { class: 'view-hint' }, '服务端环境读回；写权限与状态由服务裁定。')),
         el('div', { class: 'panel' },
           el('h3', {}, '未来能力'),
@@ -851,12 +885,7 @@ export async function renderBrandSystems(target: HTMLElement): Promise<void> {
               el('strong', {}, `${system.name} · ${system.title}`),
               el('small', {}, `v${system.version} · 证据 ${system.evidence_level}`)),
             el('span', { class: 'tag info' }, system.version)))
-        : [el('li', { class: 'list-item' },
-            el('div', {},
-              el('strong', {}, '尚无登记设计系统'),
-              el('small', {}, '在工作台 DESIGN LAYER 绑定后读回此处')
-            )
-        )
+        : [emptyLi(systems, '尚无登记设计系统', '在工作台 DESIGN LAYER 绑定后读回此处')
       ])
     )
   );
@@ -1146,8 +1175,7 @@ export async function renderSettings(target: HTMLElement): Promise<void> {
                 ? Object.entries(env.roots).map(([name, root]) => el('li', { class: 'list-item' },
                     el('div', {}, el('strong', {}, name), el('small', {}, root.path)),
                     writablePill(root.writable)))
-                : [el('li', { class: 'list-item' },
-                    el('div', {}, el('strong', {}, '尚无根登记'), el('small', {}, '服务未返回 roots')))]))),
+                : [emptyLi(env, '尚无根登记', '服务未返回 roots')]))),
           el('div', { class: 'panel' },
             el('h3', {}, '外置输入（只读 · DECLARED_NOT_PROBED）'),
             el('ul', { class: 'list' },
@@ -1155,8 +1183,7 @@ export async function renderSettings(target: HTMLElement): Promise<void> {
                 ? Object.entries(env.shared_inputs).map(([name, input]) => el('li', { class: 'list-item' },
                     el('div', {}, el('strong', {}, name), el('small', {}, input.path)),
                     el('span', { class: 'tag info' }, input.status)))
-                : [el('li', { class: 'list-item' },
-                    el('div', {}, el('strong', {}, '尚无外置输入'), el('small', {}, '服务未返回 shared_inputs')))])))))),
+                : [emptyLi(env, '尚无外置输入', '服务未返回 shared_inputs')])))))),
     el('p', { class: 'view-hint' }, '代理配置私有状态不可写：PRIVATE_NOT_INSPECTED · 不可写。本服务不读取、不打印任何凭据。'),
     ...shapeNoticeRows(env));
 }
@@ -1175,17 +1202,20 @@ export async function projectPickerPanel(target: HTMLElement, title: string, bod
   target.replaceChildren(el('p', { class: 'view-loading' }, '正在读回项目台账…'));
   const data = await apiOrEmpty<ProjectListResponse>('/projects', OFFLINE.projects);
   const unread = shapeNotice(data);
+  const offline = disconnectedNotice(data);
   if (!data.projects.length) {
-    // Two different empties, and the earlier branch confused them: a ledger that
-    // genuinely holds no project, versus a 200 that never carried the collection.
-    // Only the first may be described as 尚无项目.
+    // Three different empties, and the earlier branch collapsed them into one claim:
+    // a ledger that genuinely holds no project, a 200 that never carried the collection,
+    // and a page that never asked because nothing is connected. Only the first may say
+    // 尚无项目.
     target.replaceChildren(
       el('div', { class: 'page-head' },
         el('div', {}, el('h2', {}, title),
           el('p', {}, '只读回服务端台账；本页不提交、不修改。'))),
-      ...(unread
-        ? [el('p', { class: 'error' }, `${unread}，因此无法判断台账是否为空`)]
-        : [el('p', { class: 'view-hint' }, '尚无项目。先在工作台新建项目，再读回此视图。')]));
+      el('p', { class: unread || offline ? 'error' : 'view-hint' },
+        unread ? `${unread}，因此无法判断台账是否为空`
+          : offline ? `${offline}，台账未读回，不能断言为空`
+            : '尚无项目。先在工作台新建项目，再读回此视图。'));
     return;
   }
   // One project in the ledger and a placeholder selected is a dead first screen:
@@ -1269,7 +1299,7 @@ export async function renderProjects(target: HTMLElement): Promise<void> {
                 // (ROUTE_VIEWS must stay 12 for the browser E2E nav assertion).
                 onclick: () => { window.location.hash = projectDetailHash(p.id); },
               }, '打开'))))
-          : [el('tr', {}, el('td', { colspan: '4' }, '尚无项目。在工作台新建项目后出现。'))]))));
+          : [el('tr', {}, emptyTd(data, '尚无项目', '在工作台新建项目后出现。', 4))]))));
   target.replaceChildren(
     pageHead,
     kpis,
@@ -1311,7 +1341,7 @@ export async function renderCreativeTools(target: HTMLElement): Promise<void> {
           el('p', { class: 'view-hint' }, '宿主在线状态尚未有服务路由；此处 UNKNOWN，不假报可用。')),
         el('div', { class: 'panel' },
           el('h3', {}, '共享输入'),
-          el('ul', { class: 'list' }, ...sharedInputRows(env.shared_inputs)),
+          el('ul', { class: 'list' }, ...sharedInputRows(env)),
           el('p', { class: 'view-hint' }, '服务端环境读回。')),
         hostCard ? capabilityCard(hostCard) : el('div', { class: 'panel' }),
         mcpCard ? capabilityCard(mcpCard) : el('div', { class: 'panel' }),
@@ -1332,7 +1362,7 @@ export async function renderCreativeTools(target: HTMLElement): Promise<void> {
     const rows = tasks.tasks.length
       ? tasks.tasks.map((t) => el('tr', {},
           el('td', {}, t.kind), el('td', {}, t.state), el('td', {}, t.attempt.state)))
-      : [el('tr', {}, el('td', { colspan: '3' }, '尚无宿主任务。创作任务由 Illustrator / Photoshop 在工作台高级区提交。'))];
+      : [el('tr', {}, emptyTd(tasks, '尚无宿主任务', '创作任务由 Illustrator / Photoshop 在工作台高级区提交。', 3))];
     return el('div', {},
       hostStatus,
       adapterGrid,
@@ -1377,10 +1407,7 @@ export async function renderDeliverables(target: HTMLElement): Promise<void> {
             }, '在项目页下载'),
             el('span', { class: b.rights === 'NOT_REVIEWED' ? 'tag warn' : 'tag info' },
               b.rights === 'NOT_REVIEWED' ? '权利未审查' : b.rights))))
-      : [el('li', { class: 'list-item' },
-          el('div', {},
-            el('strong', {}, '尚无交付包'),
-            el('small', {}, '任务完成并打包后，交付会在此读回。')))];
+      : [emptyLi(bundles, '尚无交付包', '任务完成并打包后，交付会在此读回。')];
     const bundleList = el('ul', { class: 'list' },
       ...bundleRows.filter((x): x is HTMLElement => x !== null));
 
@@ -1391,7 +1418,7 @@ export async function renderDeliverables(target: HTMLElement): Promise<void> {
     const tasksRows: (HTMLElement | null)[] = tasks.tasks.length
       ? tasks.tasks.map((t) => el('tr', {},
           el('td', {}, t.kind), el('td', {}, t.state), el('td', {}, t.attempt.state)))
-      : [el('tr', {}, el('td', { colspan: '3' }, '尚无任务。任务完成后交付包随读回导出。'))];
+      : [el('tr', {}, emptyTd(tasks, '尚无任务', '任务完成后交付包随读回导出。', 3))];
     const tasksPanel = el('div', { class: 'panel' },
       el('h3', {}, `交付候选任务（${tasks.tasks.length}）`),
       el('div', { class: 'table-wrap', tabindex: '0', role: 'region',
@@ -1938,8 +1965,7 @@ function renderBriefEditor(id: string, layer: DesignLayerResponse['design_layer'
         el('div', { class: 'actions' },
           el('span', { class: brief.superseded_by === null ? 'tag ok' : 'tag warn' }, versionState(brief.superseded_by, versions)),
           el('button', { type: 'button', class: 'ghost-btn', onclick: () => startRevision(brief) }, '新版本'))))
-    : [el('li', { class: 'list-item' },
-        el('div', {}, el('strong', {}, '尚无简报'), el('small', {}, '用下方表单创建该项目的第一份简报（真实写入，保存后读回）')))];
+    : [emptyLi(layer, '尚无简报', '用下方表单创建该项目的第一份简报（真实写入，保存后读回）')];
 
   // 离开未保存页的恢复策略: restore any draft found for this project + form, disclose it,
   // and offer a one-click discard. The restored values are NOT silently presented as the
@@ -2329,9 +2355,7 @@ function renderDirectionPanel(id: string, layer: DesignLayerResponse['design_lay
     el('ul', { class: 'list' },
       ...(layer.directions.length
         ? [...layer.directions].map(directionRow)
-        : [el('li', { class: 'list-item' },
-          el('div', {}, el('strong', {}, '尚无方向候选'),
-            el('small', {}, '先建立简报，再用下方表单立候选；选定必须由人执行。')))])),
+        : [emptyLi(layer, '尚无方向候选', '先建立简报，再用下方表单立候选；选定必须由人执行。')])),
     el('div', { class: 'row-card', style: 'display:grid;gap:8px' },
       el('strong', {}, '新建方向候选（绑定到某个简报版本）'),
       fieldRow('所属简报版本', briefSelect, 'pd-dir-brief'),
@@ -2553,8 +2577,7 @@ export async function renderProjectDetail(id: string, target: HTMLElement): Prom
         ? tasks.tasks.slice(0, 8).map((t) => el('li', { class: 'list-item' },
             el('div', {}, el('strong', {}, t.kind), el('small', {}, `尝试 ${t.attempt.attempt_no} · ${t.attempt.state}`)),
             el('span', { class: 'tag info' }, t.state)))
-        : [el('li', { class: 'list-item' },
-            el('div', {}, el('strong', {}, '尚无任务'), el('small', {}, '任务由工作台高级区提交')))])))
+        : [emptyLi(tasks, '尚无任务', '任务由工作台高级区提交')])))
 
   const layerPanel = el('div', { class: 'panel' },
     el('h3', {}, '设计层契约'),

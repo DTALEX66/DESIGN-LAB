@@ -933,6 +933,7 @@ function devMode() {
   return false;
 }
 const SHAPE_MISSING = Symbol.for("design-lab/shape-missing");
+const DISCONNECTED = Symbol.for("design-lab/disconnected");
 function normaliseShape(live, template, prefix = "") {
   if (template === null || typeof template !== "object") return [];
   const missing = [];
@@ -954,7 +955,7 @@ function normaliseShape(live, template, prefix = "") {
   return missing;
 }
 function apiOrEmpty(path, empty) {
-  if (!token && devMode()) return Promise.resolve(empty);
+  if (!token && devMode()) return Promise.resolve(markDisconnected(empty));
   return api(path).then((live) => {
     const missing = normaliseShape(live, empty);
     if (missing.length) Object.defineProperty(live, SHAPE_MISSING, { value: missing, enumerable: false });
@@ -968,6 +969,31 @@ function shapeNoticeRows(...values) {
 function shapeNotice(value) {
   const missing = value?.[SHAPE_MISSING];
   return Array.isArray(missing) && missing.length ? `未读回：响应缺少 ${missing.join("、")}` : "";
+}
+function markDisconnected(payload) {
+  const mark = (target) => {
+    Object.defineProperty(target, DISCONNECTED, { value: true, enumerable: false });
+  };
+  mark(payload);
+  for (const value of Object.values(payload)) {
+    if (value !== null && typeof value === "object") mark(value);
+  }
+  return payload;
+}
+function disconnectedNotice(value) {
+  return value?.[DISCONNECTED] === true ? "未读回：未连接本机设计服务" : "";
+}
+function emptyWording(value, noun, hint) {
+  const offline = disconnectedNotice(value);
+  return offline ? ["未读回", offline] : [noun, hint];
+}
+function emptyLi(value, noun, hint) {
+  const [head, note] = emptyWording(value, noun, hint);
+  return el("li", { class: "list-item" }, el("div", {}, el("strong", {}, head), el("small", {}, note)));
+}
+function emptyTd(value, noun, hint, colspan) {
+  const [head, note] = emptyWording(value, noun, hint);
+  return el("td", { colspan: String(colspan) }, `${head} ${note}`);
 }
 const OFFLINE = {
   health: { status: "UNKNOWN", version: "—", scope: "dev-offline" },
@@ -1194,20 +1220,9 @@ function el(tag, attrs = {}, ...children) {
 function en(text) {
   return el("span", { lang: "en" }, text);
 }
-function sharedInputRows(inputs, limit = 4) {
-  const entries = Object.entries(inputs).slice(0, limit);
-  if (!entries.length) {
-    return [el(
-      "li",
-      { class: "list-item" },
-      el(
-        "div",
-        {},
-        el("strong", {}, "尚无外置输入"),
-        el("small", {}, "服务未返回 shared_inputs")
-      )
-    )];
-  }
+function sharedInputRows(response, limit = 4) {
+  const entries = Object.entries(response.shared_inputs).slice(0, limit);
+  if (!entries.length) return [emptyLi(response, "尚无外置输入", "服务未返回 shared_inputs")];
   return entries.map(([name, input]) => el(
     "li",
     { class: "list-item" },
@@ -1399,16 +1414,7 @@ async function renderDashboard(target) {
           el("small", {}, p.id)
         ),
         el("span", { class: "tag info" }, recentIds.includes(p.id) ? "最近打开" : "已登记")
-      )) : [el(
-        "li",
-        { class: "list-item" },
-        el(
-          "div",
-          {},
-          el("strong", {}, "尚无项目"),
-          el("small", {}, "在工作台新建项目后读回此处")
-        )
-      )]
+      )) : [emptyLi(projects2, "尚无项目", "在工作台新建项目后读回此处")]
     ),
     el("p", { class: "view-hint" }, recentIds.length ? "按本机最近打开的项目排序（仅保存项目 id 于本机，不上传）。" : "本机尚未记录打开过的项目，暂按服务返回顺序显示。")
   );
@@ -1606,16 +1612,7 @@ async function renderDashboard(target) {
               { class: b.rights === "NOT_REVIEWED" ? "tag warn" : "tag info" },
               b.rights === "NOT_REVIEWED" ? "权利未审查" : b.rights
             )
-          )) : [el(
-            "li",
-            { class: "list-item" },
-            el(
-              "div",
-              {},
-              el("strong", {}, "尚无交付包"),
-              el("small", {}, "任务完成并打包后，交付会在此读回。")
-            )
-          )]
+          )) : [emptyLi(projects2, "尚无交付包", "任务完成并打包后，交付会在此读回。")]
         )
       )
     ),
@@ -1651,7 +1648,7 @@ async function renderDashboard(target) {
           "div",
           { class: "panel" },
           el("h3", {}, "共享输入"),
-          el("ul", { class: "list" }, ...sharedInputRows(environment.shared_inputs)),
+          el("ul", { class: "list" }, ...sharedInputRows(environment)),
           el("p", { class: "view-hint" }, "服务端环境读回；写权限与状态由服务裁定。")
         ),
         el(
@@ -1818,16 +1815,7 @@ async function renderBrandSystems(target) {
         ),
         el("span", { class: "tag info" }, system.version)
       )) : [
-        el(
-          "li",
-          { class: "list-item" },
-          el(
-            "div",
-            {},
-            el("strong", {}, "尚无登记设计系统"),
-            el("small", {}, "在工作台 DESIGN LAYER 绑定后读回此处")
-          )
-        )
+        emptyLi(systems, "尚无登记设计系统", "在工作台 DESIGN LAYER 绑定后读回此处")
       ]
     )
   );
@@ -2203,11 +2191,7 @@ async function renderSettings(target) {
                 { class: "list-item" },
                 el("div", {}, el("strong", {}, name), el("small", {}, root.path)),
                 writablePill(root.writable)
-              )) : [el(
-                "li",
-                { class: "list-item" },
-                el("div", {}, el("strong", {}, "尚无根登记"), el("small", {}, "服务未返回 roots"))
-              )]
+              )) : [emptyLi(env, "尚无根登记", "服务未返回 roots")]
             )
           ),
           el(
@@ -2222,11 +2206,7 @@ async function renderSettings(target) {
                 { class: "list-item" },
                 el("div", {}, el("strong", {}, name), el("small", {}, input.path)),
                 el("span", { class: "tag info" }, input.status)
-              )) : [el(
-                "li",
-                { class: "list-item" },
-                el("div", {}, el("strong", {}, "尚无外置输入"), el("small", {}, "服务未返回 shared_inputs"))
-              )]
+              )) : [emptyLi(env, "尚无外置输入", "服务未返回 shared_inputs")]
             )
           )
         )
@@ -2240,6 +2220,7 @@ async function projectPickerPanel(target, title, body) {
   target.replaceChildren(el("p", { class: "view-loading" }, "正在读回项目台账…"));
   const data = await apiOrEmpty("/projects", OFFLINE.projects);
   const unread = shapeNotice(data);
+  const offline = disconnectedNotice(data);
   if (!data.projects.length) {
     target.replaceChildren(
       el(
@@ -2252,7 +2233,11 @@ async function projectPickerPanel(target, title, body) {
           el("p", {}, "只读回服务端台账；本页不提交、不修改。")
         )
       ),
-      ...unread ? [el("p", { class: "error" }, `${unread}，因此无法判断台账是否为空`)] : [el("p", { class: "view-hint" }, "尚无项目。先在工作台新建项目，再读回此视图。")]
+      el(
+        "p",
+        { class: unread || offline ? "error" : "view-hint" },
+        unread ? `${unread}，因此无法判断台账是否为空` : offline ? `${offline}，台账未读回，不能断言为空` : "尚无项目。先在工作台新建项目，再读回此视图。"
+      )
     );
     return;
   }
@@ -2372,7 +2357,7 @@ async function renderProjects(target) {
               window.location.hash = projectDetailHash(p.id);
             }
           }, "打开"))
-        )) : [el("tr", {}, el("td", { colspan: "4" }, "尚无项目。在工作台新建项目后出现。"))]
+        )) : [el("tr", {}, emptyTd(data, "尚无项目", "在工作台新建项目后出现。", 4))]
       )
     )
   );
@@ -2425,7 +2410,7 @@ async function renderCreativeTools(target) {
           "div",
           { class: "panel" },
           el("h3", {}, "共享输入"),
-          el("ul", { class: "list" }, ...sharedInputRows(env.shared_inputs)),
+          el("ul", { class: "list" }, ...sharedInputRows(env)),
           el("p", { class: "view-hint" }, "服务端环境读回。")
         ),
         hostCard ? capabilityCard(hostCard) : el("div", { class: "panel" }),
@@ -2460,7 +2445,7 @@ async function renderCreativeTools(target) {
       el("td", {}, t.kind),
       el("td", {}, t.state),
       el("td", {}, t.attempt.state)
-    )) : [el("tr", {}, el("td", { colspan: "3" }, "尚无宿主任务。创作任务由 Illustrator / Photoshop 在工作台高级区提交。"))];
+    )) : [el("tr", {}, emptyTd(tasks2, "尚无宿主任务", "创作任务由 Illustrator / Photoshop 在工作台高级区提交。", 3))];
     return el(
       "div",
       {},
@@ -2523,16 +2508,7 @@ async function renderDeliverables(target) {
           b.rights === "NOT_REVIEWED" ? "权利未审查" : b.rights
         )
       )
-    )) : [el(
-      "li",
-      { class: "list-item" },
-      el(
-        "div",
-        {},
-        el("strong", {}, "尚无交付包"),
-        el("small", {}, "任务完成并打包后，交付会在此读回。")
-      )
-    )];
+    )) : [emptyLi(bundles, "尚无交付包", "任务完成并打包后，交付会在此读回。")];
     const bundleList = el(
       "ul",
       { class: "list" },
@@ -2551,7 +2527,7 @@ async function renderDeliverables(target) {
       el("td", {}, t.kind),
       el("td", {}, t.state),
       el("td", {}, t.attempt.state)
-    )) : [el("tr", {}, el("td", { colspan: "3" }, "尚无任务。任务完成后交付包随读回导出。"))];
+    )) : [el("tr", {}, emptyTd(tasks2, "尚无任务", "任务完成后交付包随读回导出。", 3))];
     const tasksPanel = el(
       "div",
       { class: "panel" },
@@ -3183,11 +3159,7 @@ function renderBriefEditor(id, layer, target) {
       el("span", { class: brief.superseded_by === null ? "tag ok" : "tag warn" }, versionState(brief.superseded_by, versions)),
       el("button", { type: "button", class: "ghost-btn", onclick: () => startRevision(brief) }, "新版本")
     )
-  )) : [el(
-    "li",
-    { class: "list-item" },
-    el("div", {}, el("strong", {}, "尚无简报"), el("small", {}, "用下方表单创建该项目的第一份简报（真实写入，保存后读回）"))
-  )];
+  )) : [emptyLi(layer, "尚无简报", "用下方表单创建该项目的第一份简报（真实写入，保存后读回）")];
   const restored = [];
   const createDraft = readDraft("create");
   if (createDraft) {
@@ -3586,16 +3558,7 @@ function renderDirectionPanel(id, layer, target) {
     el(
       "ul",
       { class: "list" },
-      ...layer.directions.length ? [...layer.directions].map(directionRow) : [el(
-        "li",
-        { class: "list-item" },
-        el(
-          "div",
-          {},
-          el("strong", {}, "尚无方向候选"),
-          el("small", {}, "先建立简报，再用下方表单立候选；选定必须由人执行。")
-        )
-      )]
+      ...layer.directions.length ? [...layer.directions].map(directionRow) : [emptyLi(layer, "尚无方向候选", "先建立简报，再用下方表单立候选；选定必须由人执行。")]
     ),
     el(
       "div",
@@ -3849,11 +3812,7 @@ async function renderProjectDetail(id, target) {
         { class: "list-item" },
         el("div", {}, el("strong", {}, t.kind), el("small", {}, `尝试 ${t.attempt.attempt_no} · ${t.attempt.state}`)),
         el("span", { class: "tag info" }, t.state)
-      )) : [el(
-        "li",
-        { class: "list-item" },
-        el("div", {}, el("strong", {}, "尚无任务"), el("small", {}, "任务由工作台高级区提交"))
-      )]
+      )) : [emptyLi(tasks2, "尚无任务", "任务由工作台高级区提交")]
     )
   );
   const layerPanel = el(
