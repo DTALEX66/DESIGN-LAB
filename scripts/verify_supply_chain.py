@@ -68,6 +68,13 @@ def read_json(rel: str):
 
 def sources_lock_check(files: list) -> dict:
     lock = read_json("vendor/sources.lock.json") or {}
+    # PR #242 derives per-source revisions into its own record rather than restating
+    # them in the lock, because a revision copied by hand can drift from the taxonomy
+    # pin it came from. Reading only the lock made `revision_coverage` report 0 for
+    # 37 sources whose revisions are recorded and anti-drift-tested.
+    revisions = read_json("vendor/sources.revisions.json") or {}
+    resolved = set(revisions.get("sources") or {})
+    unresolved = {str(item.get("id")) for item in revisions.get("unresolved") or []}
     required = ("id", "path", "disposition", "license")
     entries, problems = [], []
     latest_identities = []
@@ -76,14 +83,52 @@ def sources_lock_check(files: list) -> dict:
         blob = json.dumps(source).lower()
         if re.search(r'"(commit|revision|version|canonicalurl)"\s*:\s*"latest"', blob):
             latest_identities.append(source.get("id"))
-        entries.append({"id": source.get("id"), "missing_fields": missing,
+        source_id = source.get("id")
+        has_revision = bool(source.get("commit") or source.get("revision")
+                            or source_id in resolved)
+        entries.append({"id": source_id, "missing_fields": missing,
                         "has_url": bool(source.get("canonicalUrl") or source.get("url")),
-                        "has_revision": bool(source.get("commit") or source.get("revision"))})
+                        "has_revision": has_revision})
         if missing:
-            problems.append({"id": source.get("id"), "missing": missing})
+            problems.append({"id": source_id, "missing": missing})
+    # AUTHORITY §9 wants source AND revision for an absorbed file. Nine sources are
+    # unresolved with a recorded reason, so absence is reported as a number rather than
+    # turned into a red build -- a documented unknown must not block every PR, but it
+    # must be visible and it must not be silently growing.
+    absorb_ids = {s.get("id") for s in lock.get("sources", [])
+                  if str(s.get("disposition") or "").startswith("ABSORB")}
+    # Two different things: `absorb_without_revision` is a hole in the record itself
+    # (the source appears in neither list), which should stay empty; `absorb_unresolved`
+    # is AUTHORITY §9 satisfied on source but not yet on revision, which is a recorded
+    # unknown the owner has to close -- visible, but not a red build.
+    absorb_gaps = sorted(e["id"] for e in entries
+                         if e["id"] in absorb_ids and e["id"] not in resolved
+                         and e["id"] not in unresolved)
+    absorb_unresolved = sorted(absorb_ids & unresolved)
+    # Split the unresolved by what a human would need to close them: a source with a
+    # URL needs an authoritative revision lookup, a source without one needs the URL
+    # first. Measured 2026-10-07: neither is resolvable offline -- the two SOURCE.md
+    # records and skills-lock.json carry repo, license, branch and vendoring date but
+    # no commit, and the only 40-hex strings in those directories are truncated
+    # SHA-256 content hashes, which are not revisions.
+    by_id = {s.get("id"): s for s in lock.get("sources", [])}
+
+    def _notes_has_url(source_id) -> bool:
+        return bool(re.search(r"https?://", str(by_id.get(source_id, {}).get("notes") or "")))
+
+    unresolved_with_url = sorted(i for i in unresolved if _notes_has_url(i))
+    unresolved_without_url = sorted(unresolved - set(unresolved_with_url))
+    lock_ids = {e["id"] for e in entries}
     return {"entries": len(entries), "problems": problems, "latest_identities": latest_identities,
             "canonical_url_coverage": sum(1 for e in entries if e["has_url"]),
             "revision_coverage": sum(1 for e in entries if e["has_revision"]),
+            "revision_record": {"present": bool(revisions), "resolved": len(resolved),
+                                "unresolved": len(unresolved)},
+            "absorb_without_revision": absorb_gaps,
+            "absorb_unresolved": absorb_unresolved,
+            "revision_unresolved_with_url": unresolved_with_url,
+            "revision_unresolved_without_url": unresolved_without_url,
+            "revision_record_ids_not_in_lock": sorted((resolved | unresolved) - lock_ids),
             "ok": not problems and not latest_identities}
 
 

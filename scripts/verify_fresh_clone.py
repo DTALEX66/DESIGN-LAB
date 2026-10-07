@@ -23,6 +23,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import shutil
 import subprocess
 from datetime import datetime, timezone
@@ -68,6 +69,27 @@ def git(*args: str) -> str:
                           encoding="utf-8", errors="replace").stdout.strip()
 
 
+def clear_previous_clone(path: Path) -> str | None:
+    """Remove the leftover clone, or return the reason it could not be removed.
+
+    This used to be `shutil.rmtree(path, ignore_errors=True)`, which hid a real
+    failure: a nested clone contains paths long enough that plain deletion on Windows
+    does not clear the tree, the directory survived, and the very next line's clone
+    failed with "destination path already exists". The gate reported
+    FAIL against the *clone* stage while the actual cause was the leftover, and the
+    error text was discarded. The `\\\\?\\` prefix opts the path into Win32 long-path
+    handling; if removal still fails, the failure is named instead of swallowed.
+    """
+    if not path.exists():
+        return None
+    target = Path("\\\\?\\" + str(path)) if os.name == "nt" else path
+    try:
+        shutil.rmtree(target)
+    except OSError as exc:
+        return f"{type(exc).__name__} removing {path}: {exc}"
+    return None if not path.exists() else "directory still present after removal"
+
+
 def main(argv=None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--tests", action="store_true", help="also run the bounded test subset")
@@ -77,10 +99,12 @@ def main(argv=None) -> int:
     def stage(name: str, state: str, evidence: str) -> None:
         stages.append({"stage": name, "state": state, "evidence": evidence[:400]})
 
-    if CLONE.exists():
-        shutil.rmtree(CLONE, ignore_errors=True)
-    CLONE.parent.mkdir(parents=True, exist_ok=True)
-    code, out = run(["git", "clone", "--quiet", "--no-hardlinks", str(REPO), str(CLONE)], REPO)
+    leftover = clear_previous_clone(CLONE)
+    if leftover is not None:
+        code, out = 1, leftover
+    else:
+        CLONE.parent.mkdir(parents=True, exist_ok=True)
+        code, out = run(["git", "clone", "--quiet", "--no-hardlinks", str(REPO), str(CLONE)], REPO)
     stage("clone", "PASS" if code == 0 else "FAIL", out or f"cloned HEAD {git('rev-parse', 'HEAD')[:12]} into an ignored directory")
 
     if code == 0:

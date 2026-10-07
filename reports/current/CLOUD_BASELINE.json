@@ -9,15 +9,50 @@
   },
   "fresh": false,
   "freshnessMeaning": "at generation only; check verifies bound-input integrity, not current Git or cloud state",
-  "generatedAt": "2026-10-07T00:16:24+00:00",
+  "generatedAt": "2026-10-07T00:29:26+00:00",
   "gitStateMeaning": "generation-time observation, not current HEAD",
   "local": {
-    "branch": "tmp-rebase-qoder/designlab-t1-review-r5-008-20261007",
-    "origin_main": "af9a27ccdb194bb974188641d92ecb8db9bbaedb",
-    "sha": "6479c927a02e21340912009f14bec469a28d303e",
+    "branch": "tmp-rebase-qoder/designlab-gate-reachability-20261007",
+    "origin_main": "a248044f3285f0b153e79668eb78c3ddc257bc3c",
+    "sha": "c6dc6ad0b8a12daf3e633bc667801836a21133e3",
     "source_worktree_clean": false,
-    "tracked_files": 2987,
+    "tracked_files": 2991,
     "worktree_changes": [
+      {
+        "content": "sha256:9b39b19d5a4b6dff144846cff8497920e5406c4b28545f4546ca4ec0738ee157",
+        "kind": "A",
+        "path": "design-lab/tests/test_comfy_inputs_hash_guard.py"
+      },
+      {
+        "content": "sha256:5411116f7f617acd8ac3d7f58e02526ee800c22080aabe8f6aa0955c9b504dc6",
+        "kind": "A",
+        "path": "design-lab/tests/test_source_lock_presence.py"
+      },
+      {
+        "content": "sha256:7bc05cce1a53c16e6cc93e21515650c64be69850acc8aa8e8c43f28c43784b72",
+        "kind": "A",
+        "path": "docs/audits/DESIGN-LAB-PROJECT-BODY-AND-SPILL-CLEANUP-20261007.md"
+      },
+      {
+        "content": "sha256:65200833fd8e6d2be1bd1e9192e4e390feb480f8fe0eb4d5692d1b1a90a50202",
+        "kind": "A",
+        "path": "docs/audits/DESIGN-LAB-PROJECT-BODY-AND-SPILL-CLEANUP-20261007/evidence/nebula-comfyui-output.json"
+      },
+      {
+        "content": "sha256:3f5f7930fae81482870bd24fec2b54d42869410c45664b4f9038655a1a9f41ed",
+        "kind": "A",
+        "path": "docs/audits/DESIGN-LAB-T1-LEDGER-REVIEW-DL-R5-008-20261007.md"
+      },
+      {
+        "content": "sha256:4ad4e844e4f8dd5a8ede492845d92274487fc1133c0688ed41ad31fef3069ccb",
+        "kind": "A",
+        "path": "scripts/amend_source_lock_presence.py"
+      },
+      {
+        "content": "sha256:8d8ff926e958b7e22c78f9060b1b4c5089ae8b6dc6edae4a08c4a9ca0d9bc20b",
+        "kind": "A",
+        "path": "scripts/clean_nebula_spill.py"
+      },
       {
         "content": "sha256:01b7497316e314650ec301927ab6d6db848ae70dc172e130a0b020455c73adff",
         "kind": "M",
@@ -37,15 +72,25 @@
         "content": "sha256:da0e3127f0dbd4f23cc2a4aa17b50ed7d6300b15027bdad6c3ed86cfebda7dbc",
         "kind": "M",
         "path": "design-lab/tests/test_workbench_css_single_definition.py"
+      },
+      {
+        "content": "sha256:a852120ebebbd8f1b8eeac14ad030a0d87d9f4d095131d4a6729c4081f378fb7",
+        "kind": "M",
+        "path": "src/design_lab/generators/comfy_task.py"
+      },
+      {
+        "content": "sha256:e465f383440dc98b7c28994dd997808483b117b7a5ea407bcaf45321de58a573",
+        "kind": "M",
+        "path": "vendor/sources.lock.json"
       }
     ],
-    "worktree_digest": "sha256:6a6dbcfe9f221053848d315be5332d6a146ef6e63ce5f65b6c425b5db42c9985"
+    "worktree_digest": "sha256:3ff0ff8d41dd8b3deb5f571c15415f36ce191ed64c6857ade3605e9074511cb1"
   },
   "note": "No GitHub API query was run by this generator; tool installation is not inferred.",
   "remoteRef": "origin/main (local tracking ref)",
   "schemaVersion": "design-lab/cloud-baseline/v2",
   "subjectMeaning": "subjectType=WORKTREE means the tree was dirty at generation; worktreeDigest covers HEAD plus the non-generated changes",
-  "subjectSha": "6479c927a02e21340912009f14bec469a28d303e",
+  "subjectSha": "c6dc6ad0b8a12daf3e633bc667801836a21133e3",
   "subjectType": "WORKTREE",
   "taskpackHash": "31dde89eb4ede81fe88c0a5c5144adfb86af8db4c4d8c263bde2199180369b69",
   "taskpackId": "DL-TP-20260908-R5",
@@ -58,5 +103,5 @@
     "branchProtection"
   ],
   "worktreeClean": false,
-  "worktreeDigest": "sha256:6a6dbcfe9f221053848d315be5332d6a146ef6e63ce5f65b6c425b5db42c9985"
+  "worktreeDigest": "sha256:3ff0ff8d41dd8b3deb5f571c15415f36ce191ed64c6857ade3605e9074511cb1"
 }
