@@ -420,4 +420,42 @@ SELECT art.path, art.sha256 FROM artifact art JOIN ... WHERE ... ORDER BY v.vers
 没有引入界面可以说而服务发不出的词)。
 
 
+## 10. 第六段:没人问过的 rights 门,不能写成"正在等答复"(2026-10-08 追加)
+
+`creative/approval.py` 的投影把两件事用同一个词说:
+
+```python
+STATES = ("PENDING", "APPROVED", "REJECTED", "REVERSED")
+def _projection_state(record):
+    if record is None:
+        return "PENDING"      # <- 从来没有提交过任何请求
+```
+`record is None` 是"这个门根本没被打开过",而 `PENDING` 的意思是"已经有人被问、正等人答复"。
+RIGHTS 门最常见的真实状态恰恰是前者,于是它读起来像后者——交付前检查会以为审查正在进行,
+而实际上没有一个人被要求看过许可证。这违反项目自己写在案的一条规则:**缺席的审查必须停在
+NOT_REVIEWED,不能被措辞成已经在流程里**(`interop/delivery_receipt.py` 也正是这样把
+`NOT_REVIEWED` 映射成 `NOT_RUN` 的)。
+
+改法是加一个词并把两件事分开,而不是把 `PENDING` 说轻一点:
+`NOT_REVIEWED`(没有任何记录 / 该请求已被替代 SUPERSEDED)与
+`PENDING`(PROPOSED,已提交、等人答复)。`granted` 仍然只在 `state == "APPROVED"` 为真,
+`require_approval` 的失败分支一个字都没动——所以这次改的只是"没做"要说成"没做"。
+
+反证两头都要(`.project-local/tmp/falsify_approval_vocabulary.py`):
+把 `None` 改回 `PENDING` → 未触碰门与门清单两条用例红;
+把 `PROPOSED` 改成 `NOT_REVIEWED` → "问了才叫待答复"与清单用例红。
+42 条用例通过(改动前这两个模块共 40 条:其中断言 `PENDING` 的那条被替换成 3 条语义正确的用例,
+`test_an_untouched_gate_reports_not_reviewed_and_still_blocks` 保留了原有的阻断断言);
+两次变异都在还原后回到 42 绿。
+
+还没闭合的(如实标注,不假装做完):rights 目前只有这条**审批投影**,仍然
+**没有** `rights` 状态表、没有 `/api/.../rights` 路由、没有界面面板、
+`design-lab/schemas/contracts/rights-decision.schema.json` 在
+`contract-bindings.json` 里仍是 `INERT`(74 个主体的 `config/rights-registry.json` 没有任何
+`src/` 代码读取,`assurance/handoff_readiness._rights_gates` 会算裁决但**零个产品调用方**)。
+把这条链按 Human Jury 的形状补齐(裁决器 → 只追加表 + 迁移登记 → HTTP 门面与路由 → 面板 →
+词表声明 → 反证)是下一步,并且界面一旦要说 `APPROVED`,`state-vocabularies.json` 必须先有一个
+真能发出该词的来源——否则 `verify_state_vocabularies.py` 会正确地把它判成界面谎。
+
+
 

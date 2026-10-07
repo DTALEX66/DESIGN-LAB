@@ -21,7 +21,11 @@ from .decision_ledger import HUMAN_ONLY, GATES, decision, decisions, propose, de
 from .store import CreativeError, now, require_job, transaction
 
 # Approval states, and how they project into the v1 approval table's state column.
-STATES = ("PENDING", "APPROVED", "REJECTED", "REVERSED")
+# NOT_REVIEWED and PENDING are different facts and may not share a word: PENDING says
+# somebody has been asked and owes an answer, NOT_REVIEWED says no request was ever
+# filed. Collapsing them made an untouched rights gate read as "in review", which is
+# how a gate nobody opened ends up looking like a gate somebody is about to close.
+STATES = ("NOT_REVIEWED", "PENDING", "APPROVED", "REJECTED", "REVERSED")
 APPROVAL_OPTIONS = (
     {"option_id": "APPROVE", "summary": "grant the approval", "tradeoffs": ""},
     {"option_id": "REJECT", "summary": "refuse the approval", "tradeoffs": ""},
@@ -42,12 +46,19 @@ def approval_id(job_id: str, gate: str) -> str:
 
 def _projection_state(record) -> str:
     if record is None:
-        return "PENDING"
+        # Nothing was ever filed for this gate. This is not "awaiting a human".
+        return "NOT_REVIEWED"
     if record["state"] == "DECIDED":
+        # A DECIDED row whose choice is not one of the two options the gate offers is a
+        # data bug, and the gate stays ungranted rather than inventing a state for it.
         return _STATE_BY_CHOICE.get(record.get("chosen") or "", "PENDING")
     if record["state"] == "REVERSED":
         return "REVERSED"
-    return "PENDING"
+    if record["state"] == "PROPOSED":
+        return "PENDING"
+    # SUPERSEDED: this request was replaced by another one, so no answer is outstanding
+    # on it -- and it certainly has not been granted.
+    return "NOT_REVIEWED"
 
 
 def request_approval(conn, *, job_id: str, gate: str, actor: str, actor_kind: str = "agent",

@@ -151,13 +151,37 @@ class ApprovalContractTests(unittest.TestCase):
         self.job_id = creative_job.create_job(self.conn, brief(), idempotency_scope="f040",
                                               idempotency_key="job")["job_id"]
 
-    def test_a_gate_starts_pending_and_blocks(self):
+    def test_an_untouched_gate_reports_not_reviewed_and_still_blocks(self):
         status = approval.approval_status(self.conn, job_id=self.job_id, gate="RIGHTS")
-        self.assertEqual(status["state"], "PENDING")
+        # Nobody has been asked, so the honest word is NOT_REVIEWED. Reading it as
+        # PENDING would tell a delivery check that a review is in progress.
+        self.assertEqual(status["state"], "NOT_REVIEWED")
         self.assertFalse(status["granted"])
         with self.assertRaisesRegex(store.CreativeError, "must grant it"):
             approval.require_approval(self.conn, job_id=self.job_id, gate="RIGHTS")
         self.assertIn("RIGHTS", approval.pending_approvals(self.conn, self.job_id))
+
+    def test_asking_a_gate_is_what_makes_it_pending(self):
+        """PENDING is reserved for a request that exists and awaits a human."""
+        asked = approval.request_approval(self.conn, job_id=self.job_id, gate="RIGHTS",
+                                          actor="agent-r5", actor_kind="agent")
+        self.assertEqual(asked["state"], "PENDING")
+        self.assertFalse(asked["granted"])
+        with self.assertRaisesRegex(store.CreativeError, "must grant it"):
+            approval.require_approval(self.conn, job_id=self.job_id, gate="RIGHTS")
+
+    def test_the_gate_inventory_names_untouched_gates_as_not_reviewed(self):
+        approval.request_approval(self.conn, job_id=self.job_id, gate="RIGHTS",
+                                  actor="agent-r5", actor_kind="agent")
+        inventory = approval.gate_inventory(self.conn, self.job_id)
+        self.assertEqual(inventory["gates"]["RIGHTS"], "PENDING")
+        untouched = [gate for gate in approval.HUMAN_ONLY if gate != "RIGHTS"]
+        self.assertTrue(untouched, "the inventory needs more than one gate to be worth reading")
+        for gate in untouched:
+            self.assertEqual(inventory["gates"][gate], "NOT_REVIEWED",
+                             f'{gate} was never asked; it may not read as anything else')
+        self.assertEqual(set(inventory["open_gates"]), set(approval.HUMAN_ONLY))
+        self.assertEqual(inventory["granted"], [])
 
     def test_an_agent_can_ask_but_never_grant(self):
         approval.request_approval(self.conn, job_id=self.job_id, gate="RIGHTS",
