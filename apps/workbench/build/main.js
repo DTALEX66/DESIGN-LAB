@@ -4090,7 +4090,6 @@ function mountB10Shell(routeView, syncLegacyNavCue) {
   const probe = document.createElement("div");
   if (typeof probe.querySelector !== "function") return null;
   const B10_NAV = [
-    { route: "workbench", label: "工作台", hash: "" },
     { route: "dashboard", label: "仪表盘", hash: "#/dashboard" },
     { route: "projects", label: "项目", hash: "#/projects" },
     { route: "research", label: "研究洞察", hash: "#/research" },
@@ -4168,8 +4167,6 @@ function mountB10Shell(routeView, syncLegacyNavCue) {
     if (open) sidebar.querySelector(".nav button")?.focus();
     else if (mobile && sidebar.contains(document.activeElement)) navToggle.focus();
   };
-  setNavOpen(false);
-  window.matchMedia("(max-width: 840px)").addEventListener("change", () => setNavOpen(false));
   navToggle.onclick = () => setNavOpen(!sidebar.classList.contains("open"));
   sidebar.addEventListener("click", (event) => {
     if (event.target.closest("button")) setNavOpen(false);
@@ -4211,20 +4208,12 @@ function mountB10Shell(routeView, syncLegacyNavCue) {
   document.body.append(app);
   const legacyNav = document.querySelector(".app-nav");
   const legacyChrome = Array.from(document.querySelectorAll("body > header, body > main, body > footer"));
-  const legacyMain = document.querySelector("body > main");
-  const workbenchView = el("section", { class: "personal-workbench", id: "workbench-view" });
-  if (legacyMain) {
-    workbenchView.append(...Array.from(legacyMain.childNodes));
-    app.querySelector("#content")?.append(workbenchView);
-  }
   const sync = (view) => {
     const routed = view !== "workbench";
-    app.hidden = false;
-    workbenchView.hidden = routed;
-    routeView.hidden = !routed;
+    app.hidden = !routed;
     offlineNotice.hidden = Boolean(token) || !devMode();
-    if (legacyNav) legacyNav.hidden = true;
-    for (const node of legacyChrome) node.hidden = true;
+    if (legacyNav) legacyNav.toggleAttribute("hidden", routed);
+    for (const node of legacyChrome) node.toggleAttribute("hidden", routed);
     if (!routed) syncLegacyNavCue();
     byId("personal-connection").textContent = connected ? "本机服务已连接" : "本机服务未连接";
     for (const item of Array.from(sidebar.querySelectorAll(".nav button"))) {

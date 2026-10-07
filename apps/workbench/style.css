@@ -1426,24 +1426,14 @@ body > header p,body > main p,body > footer p{font-size:14px}
 .panel .advanced>summary:hover{color:var(--ink)}
 .panel .advanced-body{padding:0 0 12px}
 
-/* Personal product shell: one navigation surface for every workflow. */
-.app .personal-workbench { min-width: 0; }
-.app .personal-workbench[hidden], .app .route-view[hidden] { display: none !important; }
-.app .personal-workbench > .skip-link { position: absolute; }
-.app .personal-workbench .toolbar { flex-wrap: wrap; }
-.app .personal-workbench .panel { min-width: 0; }
-.app .personal-workbench .grid, .app .personal-workbench .design-grid { min-width: 0; }
-@media (max-width: 840px) {
-  .app .personal-workbench .grid, .app .personal-workbench .design-grid { grid-template-columns: minmax(0, 1fr); }
-  .app .personal-workbench .toolbar label, .app .personal-workbench .toolbar form { width: 100%; }
-}
-body[data-local-session="auto"] #connect-form details { display: none; }
-
-/* Constrain the capability library on narrow viewports. */
+/* The capability library is a wide table inside a flexible picker bar; without
+   these it forced horizontal overflow on narrow viewports. */
 .route-view .panel, .route-view .project-picker { min-width: 0; }
 .capability-filter { width: 100%; max-width: 100%; min-width: 0; }
-
 @media (max-width: 840px) {
   .route-view .project-picker:has(.capability-filter) { display: flex; flex-wrap: wrap; width: 100%; }
   .route-view .project-picker .capability-filter { flex-basis: 100%; width: 100%; }
 }
+
+/* With auto-connect on, typing a token is the fallback, not the task. */
+body[data-local-session="auto"] #connect-form details { display: none; }

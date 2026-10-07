@@ -2850,7 +2850,6 @@ function mountB10Shell(routeView: HTMLElement, syncLegacyNavCue: () => void): B1
 
   // Route label / 文案 mirror of B10 NAV (B07 12-route IA, DESIGN-LAB copy).
   const B10_NAV: Array<{ route: string; label: string; hash: string }> = [
-    { route: 'workbench', label: '工作台', hash: '' },
     { route: 'dashboard', label: '仪表盘', hash: '#/dashboard' },
     { route: 'projects', label: '项目', hash: '#/projects' },
     { route: 'research', label: '研究洞察', hash: '#/research' },
@@ -2906,16 +2905,15 @@ function mountB10Shell(routeView: HTMLElement, syncLegacyNavCue: () => void): B1
     sidebar.classList.toggle('open', open);
     navToggle.setAttribute('aria-expanded', String(open));
     // A closed off-canvas drawer that is only translated off-screen stays
-    // focusable: Tab walks into links nobody can see. `inert` removes the whole
-    // subtree from tab order and from hit-testing, but only on the mobile
-    // layout -- on desktop the sidebar is visible and must stay interactive.
+    // focusable, so Tab walks into links nobody can see and a click can land on
+    // them. `inert` takes the whole subtree out of the tab order and hit-testing,
+    // but only on the mobile layout: on desktop the sidebar is visible and must
+    // stay interactive.
     const mobile = window.matchMedia('(max-width: 840px)').matches;
     sidebar.toggleAttribute('inert', mobile && !open);
     if (open) sidebar.querySelector<HTMLButtonElement>('.nav button')?.focus();
     else if (mobile && sidebar.contains(document.activeElement)) navToggle.focus();
   };
-  setNavOpen(false);
-  window.matchMedia('(max-width: 840px)').addEventListener('change', () => setNavOpen(false));
   navToggle.onclick = (): void => setNavOpen(!sidebar.classList.contains('open'));
   // Without this the drawer stays on top of the page you just chose to visit.
   sidebar.addEventListener('click', (event: Event) => {
@@ -2948,32 +2946,21 @@ function mountB10Shell(routeView: HTMLElement, syncLegacyNavCue: () => void): B1
       el('section', { class: 'content', id: 'content' }, offlineNotice, routeView)));
   document.body.append(app);
 
-  // Legacy chrome that used to own the default (empty-hash) workbench view from
-  // OUTSIDE this shell -- which left the product with two shells, one sidebar for
-  // the routed pages and `.app-nav` for the landing page. The landing content now
-  // moves inside the shell, so 工作台 is a route like any other.
+  // Legacy chrome that owns the default (empty-hash) workbench view.
   const legacyNav = document.querySelector<HTMLElement>('.app-nav');
   const legacyChrome = Array.from(document.querySelectorAll<HTMLElement>('body > header, body > main, body > footer'));
-  const legacyMain = document.querySelector<HTMLElement>('body > main');
-  const workbenchView = el('section', { class: 'personal-workbench', id: 'workbench-view' });
-  if (legacyMain) {
-    workbenchView.append(...Array.from(legacyMain.childNodes));
-    app.querySelector<HTMLElement>('#content')?.append(workbenchView);
-  }
 
   const sync = (view: string): void => {
     const routed = view !== 'workbench';
     // `hidden` on .app needs an explicit rule (an author `display:grid` beats
     // the UA [hidden] rule) — see `.app[hidden]` in style.css.
-    app.hidden = false;
-    workbenchView.hidden = routed;
-    routeView.hidden = !routed;
+    app.hidden = !routed;
     offlineNotice.hidden = Boolean(token) || !devMode();
-    if (legacyNav) legacyNav.hidden = true;
-    for (const node of legacyChrome) node.hidden = true;
-    // Kept on the ported path: the pinned nav cue is the landing view's own
-    // behaviour, and moving the view inside the shell must not silently drop it.
+    if (legacyNav) legacyNav.toggleAttribute('hidden', routed);
+    for (const node of legacyChrome) node.toggleAttribute('hidden', routed);
     if (!routed) syncLegacyNavCue();
+    // The topbar identity block used to read a static "无身份路由 · 未读回" on every
+    // route. The connection state is real and already known here, so show it.
     byId<HTMLElement>('personal-connection').textContent =
       connected ? '本机服务已连接' : '本机服务未连接';
     for (const item of Array.from(sidebar.querySelectorAll<HTMLElement>('.nav button'))) {
