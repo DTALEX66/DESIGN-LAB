@@ -230,7 +230,8 @@ def make_server(service, token, port=0):
                         if not task:
                             raise RequestError(400, 'TASK_REQUIRED')
                         try:
-                            value = preflight(service.paths.project_root, task)
+                            value = preflight(service.paths.project_root, task,
+                                              paths_describe=service.paths.describe())
                         except TaskResourceError:
                             return self.send_json(400, {'error': 'TASK_PREFLIGHT_REJECTED'})
                         return self.send_json(200, value)
