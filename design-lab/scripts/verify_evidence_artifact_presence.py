@@ -27,12 +27,32 @@ LEDGER = 'design-lab/config/task-ledger-r3.json'
 RUNTIME_PREFIX = '.project-local/'
 
 
-def _sha256(path: Path) -> str:
-    digest = hashlib.sha256()
-    with path.open('rb') as handle:
-        for chunk in iter(lambda: handle.read(1 << 20), b''):
-            digest.update(chunk)
-    return digest.hexdigest()
+def _sha256(data: bytes) -> str:
+    return hashlib.sha256(data).hexdigest()
+
+
+def _git(root: Path, *args: str) -> bytes | None:
+    """`git` over a pipe, or None when it refuses. A non-zero exit is an answer, not a crash."""
+    completed = subprocess.run(['git', '-C', str(root), *args], capture_output=True)
+    return completed.stdout if completed.returncode == 0 else None
+
+
+def _current_bytes(root: Path, rel: str) -> bytes | None:
+    """The tracked content of one path, in the form git stores it.
+
+    Deliberately NOT `Path.read_bytes()`. A record's hash is the SHA-256 of the *blob*, and on this
+    platform a working file can legitimately differ from its own blob by line endings alone
+    (`.gitattributes` declares `text=auto`, and several files are CRLF in the checkout and LF in the
+    object store). Comparing the two directly made every CRLF artefact report
+    HASH_MOVED_SINCE_OBSERVATION on every run, whatever its content: 23 records on the wave's own
+    audit document were line-ending noise, not decay, and a drift inventory that is mostly noise is
+    read as nothing. `git show HEAD:<path>` is the committed bytes; the index form is the fallback
+    for a path that is tracked but not yet in HEAD.
+    """
+    blob = _git(root, 'show', f'HEAD:{rel}')
+    if blob is None:
+        blob = _git(root, 'show', f':{rel}')
+    return blob
 
 
 def evaluate(root: Path, ledger: dict) -> dict:
@@ -57,7 +77,11 @@ def evaluate(root: Path, ledger: dict) -> dict:
             if not path.is_file():
                 broken.append((receipt['id'], rel, 'MISSING'))
                 continue
-            if _sha256(path) != artifact['sha256']:
+            current = _current_bytes(root, rel)
+            if current is None:
+                broken.append((receipt['id'], rel, 'NO-GIT-OBJECT'))
+                continue
+            if _sha256(current) != artifact['sha256']:
                 # The artefact was a mutable source file: it moved on since the
                 # observation. That is decay the projector already accounts for,
                 # not destroyed proof, so it must not make the gate red forever.

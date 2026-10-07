@@ -35,10 +35,9 @@ class EvidenceArtifactPresenceTests(unittest.TestCase):
                          'every tracked evidence artefact must still exist')
         # Known decay, asserted rather than hidden. Each entry is a record whose
         # artefact bytes legitimately moved after the observation, and the inventory is
-        # exact so the NEXT unannounced move still goes red. Four distinct artefacts
-        # today, accounting for 27 drifted records: the bundle output, the two M1-bound
-        # test files, test_service_http.py -- and the wave's own audit document, which
-        # 23 records cite and which every new section moves.
+        # exact so the NEXT unannounced move still goes red. Four records on four
+        # distinct artefacts -- and the numbers here are re-measured, not inherited: see
+        # the correction below, because this count was wrong in this file for an hour.
         #   * build/main.js -- a 2026-09-27 record used a mutable build output as
         #     its artefact, so the bundle has since moved on;
         #   * the two files the 2026-10-06 M1 runtime-slice record bound by hash --
@@ -48,40 +47,30 @@ class EvidenceArtifactPresenceTests(unittest.TestCase):
         #   * test_service_http.py -- 0cb1397b added the delivery-receipt route cases.
         # In every case the older record is not rewritten: it stays as the historical
         # observation it was, and a newer record carries the current binding.
-        # Expressed as (artefact, reason, record_count) rather than one flat pair per record,
-        # because 2026-10-08 made the flat form unreadable: the wave appended 23 records and every
-        # one of them cites docs/audits/DESIGNLAB-LAUNCH-REVIEW-PREFLIGHT-2026-10-08.md as its
-        # report artefact, so 23 identical pairs landed in a list that is supposed to be readable
-        # at a glance. Nothing is weaker for the change -- the count is part of the expectation, so
-        # the 24th record that moves this document is still red, and so is any new artefact name.
-        # Recorded as a finding about the record shape, not fixed by editing history: a continuously
-        # written audit document is a guaranteed-drifting hash target, so a future wave should bind
-        # its records to the code and receipt it describes and cite the prose without hashing it.
-        # The older records are NOT rewritten: each stays the observation it was, and the reason
-        # names what moved it.
+        #
+        # 2026-10-08, a correction that has to stay in the file: an hour ago this inventory was
+        # widened to 27 records across 5 artefacts, and the extra 23 were a measurement bug, not
+        # decay. The gate hashed `Path.read_bytes()` and compared it to a record's blob hash, so on
+        # this platform every CRLF working file drifted permanently -- `.gitattributes` says
+        # text=auto and the audit document, this test module and others are CRLF in the checkout and
+        # LF in the object store. `git hash-object <file>` equals the HEAD blob for all of them,
+        # which is the proof that no content moved. The gate now hashes the committed form
+        # (`git show HEAD:<path>`, index as fallback), and the count went back to the four this
+        # assertion named before. Kept in Counter form with the total pinned because a count that
+        # cannot be disturbed guards nothing: a fifth real move, or a 24th record on one of these
+        # artefacts, is still red.
         counts = collections.Counter((record, why) for _, record, why in result['drifted'])
         expected = collections.Counter({
             ('apps/workbench/build/main.js', 'HASH_MOVED_SINCE_OBSERVATION'): 1,
-            # The 2026-10-06 M1 runtime-slice record bound these two test files by
-            # hash; both were legitimately rewritten since (the backup snapshot, then
-            # the launcher's token path).
             ('design-lab/tests/test_project_backup.py', 'HASH_MOVED_SINCE_OBSERVATION'): 1,
             ('design-lab/tests/test_workbench_launch.py', 'HASH_MOVED_SINCE_OBSERVATION'): 1,
-            # 2026-10-08, commit 0cb1397b: the delivery-receipt readback added its
-            # route cases to this module, so the bytes that
-            # r5-bundle-list-route-http-ui-20260929 hashed are older than the code they
-            # describe. The current binding is carried by the wave record
-            # r5-010-delivery-receipt-is-readable-and-the-evidence-page-reads-it-20261008.
             ('design-lab/tests/test_service_http.py', 'HASH_MOVED_SINCE_OBSERVATION'): 1,
-            # 2026-10-08: 23 records from this wave, all drifting on the same live document.
-            ('docs/audits/DESIGNLAB-LAUNCH-REVIEW-PREFLIGHT-2026-10-08.md',
-             'HASH_MOVED_SINCE_OBSERVATION'): 23,
         })
         self.assertEqual(counts, expected,
                          'the drifted-artefact inventory is exact in both directions: a new '
                          'move, a new artefact name, or one more record on a known artefact '
                          'are all findings, and a drifted pair that quietly disappeared is too')
-        self.assertEqual(sum(counts.values()), 27,
+        self.assertEqual(sum(counts.values()), 4,
                          'the total drifted-record count is pinned, not derived')
 
     def test_missing_tracked_artefact_is_a_hard_break_not_a_warning(self):
