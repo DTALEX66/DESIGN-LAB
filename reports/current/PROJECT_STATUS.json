@@ -8,36 +8,106 @@
   },
   "fresh": false,
   "freshnessMeaning": "at generation only; check verifies bound-input integrity, not current Git or cloud state",
-  "generatedAt": "2026-10-06T23:49:13+00:00",
+  "generatedAt": "2026-10-07T00:44:28+00:00",
   "git": {
-    "branch": "qoder/designlab-model-library-inventory",
-    "origin_main": "977b1b8582bf01a4927726f6add07132ef571168",
-    "sha": "977b1b8582bf01a4927726f6add07132ef571168",
+    "branch": "tmp-rebase-qoder/designlab-model-library-inventory",
+    "origin_main": "479cb825803ba971bc40a210d37707730b5fa6d2",
+    "sha": "63b12e96ec19871de7c34fdbb7d7a79721fddacc",
     "source_worktree_clean": false,
-    "tracked_files": 2987,
+    "tracked_files": 2994,
     "worktree_changes": [
       {
-        "content": "sha256:443f9fe324d5435c02564acf9773834a18b98ef2c2dba64cd59716ad2ac04d2e",
+        "content": "sha256:81468bf5a366328e4f78fae0454796742bb2f6810c191eea4fccff72b8164e1e",
         "kind": "A",
-        "path": "design-lab/tests/test_external_assets_index_consistency.py"
+        "path": "design-lab/tests/test_claim_honesty_gates.py"
       },
       {
-        "content": "sha256:b138a6af4c79e14fe220556c32253d4e5b7772d062d71182e3c871a76b2802cf",
+        "content": "sha256:9b39b19d5a4b6dff144846cff8497920e5406c4b28545f4546ca4ec0738ee157",
         "kind": "A",
-        "path": "docs/audits/DESIGN-LAB-MODEL-LIBRARY-INVENTORY-20261007.md"
+        "path": "design-lab/tests/test_comfy_inputs_hash_guard.py"
       },
       {
-        "content": "sha256:63ddd294ccbdcfdbc8ab6a02c9f7236459f81c97f0aea9a7941a0de76f651ca3",
+        "content": "sha256:4f318e7eed85e1792b872133c9927f1abeb6ff366ea643a70593e8b86d9086e9",
         "kind": "A",
-        "path": "scripts/inventory_model_library.py"
+        "path": "design-lab/tests/test_gate_reachability.py"
       },
       {
-        "content": "sha256:5057c7fdbf921bda57b2abaa95a8b94834b48a3bfef004c79d34899cccfba55c",
+        "content": "sha256:09818639cdab4ad0d4130bc472b841db0f963bac89311b07b873068e0d0fd919",
+        "kind": "A",
+        "path": "design-lab/tests/test_workbench_stage_nav_reachability.py"
+      },
+      {
+        "content": "sha256:a2ee24eefa1798eede5a5cff07eff99d8a7eee80bd182b459f82137842947231",
+        "kind": "A",
+        "path": "design-lab/tests/test_workbench_ui_audit_gate.py"
+      },
+      {
+        "content": "sha256:25c5c41674aeb117b29b49447acd76873c517105ea9bbca67148e720b29f3a44",
+        "kind": "A",
+        "path": "docs/audits/DESIGN-LAB-GATE-REACHABILITY-AUDIT-20261007.md"
+      },
+      {
+        "content": "sha256:3f5f7930fae81482870bd24fec2b54d42869410c45664b4f9038655a1a9f41ed",
+        "kind": "A",
+        "path": "docs/audits/DESIGN-LAB-T1-LEDGER-REVIEW-DL-R5-008-20261007.md"
+      },
+      {
+        "content": "sha256:01b7497316e314650ec301927ab6d6db848ae70dc172e130a0b020455c73adff",
         "kind": "M",
-        "path": "design-lab/config/external-assets-index.json"
+        "path": "apps/workbench/build/main.js"
+      },
+      {
+        "content": "sha256:d93981dc97eef253da9abcdcd9c7ece9c9fe5a4c97913fec1ecbed8b457896f7",
+        "kind": "M",
+        "path": "apps/workbench/shell.ts"
+      },
+      {
+        "content": "sha256:1fb01c14875b29f87025204feefa4dd45c20bae21562fba2866e8d225310bf60",
+        "kind": "M",
+        "path": "apps/workbench/style.css"
+      },
+      {
+        "content": "sha256:6b9f1003ad50b040f329951ea2dde43befae0ee981faf5df0789460c80f69863",
+        "kind": "M",
+        "path": "design-lab/tests/e2e/audit_workbench_ui.mjs"
+      },
+      {
+        "content": "sha256:7838be4aabcdd86620e939f8574e480ef23c0f3986b10a37efd6630d33883a62",
+        "kind": "M",
+        "path": "design-lab/tests/e2e/capture_workbench_screenshots.mjs"
+      },
+      {
+        "content": "sha256:da0e3127f0dbd4f23cc2a4aa17b50ed7d6300b15027bdad6c3ed86cfebda7dbc",
+        "kind": "M",
+        "path": "design-lab/tests/test_workbench_css_single_definition.py"
+      },
+      {
+        "content": "sha256:7bb2888673cd18c43dbcb14e4c1c615af41008274f21a0291e5da1029d43e18a",
+        "kind": "M",
+        "path": "docs/UI-CONVERGENCE-20260930/ui-audit/report.json"
+      },
+      {
+        "content": "sha256:bf613af837a0f3298d75609551edb920edde5c34e27dd6df23e3b0300166cfff",
+        "kind": "M",
+        "path": "docs/audits/DESIGN-LAB-WORKBENCH-VISUAL-AUDIT-20261006.md"
+      },
+      {
+        "content": "sha256:848317fef9f887c39376acb1eb83070ee2485e066c295151a7ead8da954b2e05",
+        "kind": "M",
+        "path": "scripts/verify_fresh_clone.py"
+      },
+      {
+        "content": "sha256:0d30f37b06adafb44147e08bcc5d3a6748e6908ad4e311e804baa00494a1ecb8",
+        "kind": "M",
+        "path": "scripts/verify_supply_chain.py"
+      },
+      {
+        "content": "sha256:a852120ebebbd8f1b8eeac14ad030a0d87d9f4d095131d4a6729c4081f378fb7",
+        "kind": "M",
+        "path": "src/design_lab/generators/comfy_task.py"
       }
     ],
-    "worktree_digest": "sha256:894a2cd24449df0e468d78eebe3c1a95c73058a73451fac9078f59332e678cf7"
+    "worktree_digest": "sha256:306ed65ea0a2caa0b6c4c83374fe5c534a6a8e8aa54be50172e16eee3bbf80e8"
   },
   "gitStateMeaning": "generation-time observation, not current HEAD",
   "hostLive": "derived from host_live axis only",
@@ -50,7 +120,7 @@
     "quarantinedSources": 162
   },
   "subjectMeaning": "subjectType=WORKTREE means the tree was dirty at generation; worktreeDigest covers HEAD plus the non-generated changes",
-  "subjectSha": "977b1b8582bf01a4927726f6add07132ef571168",
+  "subjectSha": "63b12e96ec19871de7c34fdbb7d7a79721fddacc",
   "subjectType": "WORKTREE",
   "taskCounts": {
     "PARTIAL": 28
@@ -58,14 +128,12 @@
   "taskpack": "DL-TP-20260908-R5",
   "taskpackHash": "31dde89eb4ede81fe88c0a5c5144adfb86af8db4c4d8c263bde2199180369b69",
   "taskpackId": "DL-TP-20260908-R5",
-  "testRunAt": "2026-10-06T05:11:47+00:00",
-  "testRunId": "testrun-20261006T051130Z-forward-repeat-91beed9eafb6",
-  "testRunMeaning": "bound run: python scripts/run_bound_test_suite.py --order forward --repeat 2 --modules test_asset_store test_creative_job test_creative_ledgers test_creative_lineage test_creative_migration test_creative_version_guard test_creative_f030_f040 test_creative_session_link test_job_store test_runtime_attempt_safety test_runtime_asset_safety test_runtime_explicit_project test_assurance_qa_plane test_assurance_jury test_bundle_store test_operation_coordinator",
-  "testRunResult": "OK",
+  "testRunId": null,
+  "testRunMeaning": "no bound test run; this projection does not claim a test result",
   "tests": {
-    "definedTestMethodCount": 1869,
+    "definedTestMethodCount": 1888,
     "executed": "see individual verified ledger receipts"
   },
   "worktreeClean": false,
-  "worktreeDigest": "sha256:894a2cd24449df0e468d78eebe3c1a95c73058a73451fac9078f59332e678cf7"
+  "worktreeDigest": "sha256:306ed65ea0a2caa0b6c4c83374fe5c534a6a8e8aa54be50172e16eee3bbf80e8"
 }

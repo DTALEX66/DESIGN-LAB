@@ -298,5 +298,39 @@ class RowCardSplitLanded(unittest.TestCase):
                           f".row-card/.list-item lost {prop}")
 
 
+class ListItemIsReallyAListMember(unittest.TestCase):
+    """`.list` renders as <ul> with <li> members; cards stay <div>.
+
+    The pattern here is deliberately a regex over the whole attribute object rather
+    than a class-name substring. My first pass at this conversion counted
+    `class: 'list-item'` occurrences and reported a complete match, while
+    `class: 'list-item value-row'` -- a different string -- sat untouched in the same
+    helper. A real browser walk found it; this assertion makes the static check see
+    it too.
+    """
+
+    def setUp(self):
+        self.shell = (WORKBENCH_DIR / "shell.ts").read_text(encoding="utf-8")
+
+    def test_no_div_still_claims_to_be_a_list_member(self):
+        stray = re.findall(r"el\('div',\s*\{[^}]*class:\s*'[^']*\blist-item\b", self.shell)
+        self.assertEqual(stray, [],
+                         "a <div> carrying .list-item renders as a list member without "
+                         "being one, so screen readers will not announce it in the list")
+
+    def test_no_div_still_claims_to_be_a_list_container(self):
+        stray = re.findall(r"el\('div',\s*\{[^}]*class:\s*'[^']*\blist\b[^']*'", self.shell)
+        filtered = [s for s in stray if re.search(r"class:\s*'list(\s|')", s)
+                    and 'list-item' not in s and 'inspector' not in s]
+        self.assertEqual(filtered, [],
+                         "a <div> still used as a .list container would leave its <li> "
+                         "children outside a list")
+
+    def test_members_and_containers_are_both_present(self):
+        """Guard against the assertion above passing because everything was deleted."""
+        self.assertGreaterEqual(self.shell.count("el('li', { class: 'list-item'"), 50)
+        self.assertEqual(self.shell.count("el('ul', { class: 'list'"), 30)
+
+
 if __name__ == "__main__":
     unittest.main(verbosity=2)
