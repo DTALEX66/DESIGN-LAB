@@ -8,26 +8,21 @@
   },
   "fresh": false,
   "freshnessMeaning": "at generation only; check verifies bound-input integrity, not current Git or cloud state",
-  "generatedAt": "2026-10-07T15:54:40+00:00",
+  "generatedAt": "2026-10-07T16:30:36+00:00",
   "git": {
     "branch": "qoder/designlab-backup-consistency-20261007",
     "origin_main": "fc03a3033e900a8066d863a223636cc68804c4fa",
-    "sha": "fc03a3033e900a8066d863a223636cc68804c4fa",
+    "sha": "71a5e974d2677ddd049d64b60ddc844d9fa2fc94",
     "source_worktree_clean": false,
-    "tracked_files": 3005,
+    "tracked_files": 3006,
     "worktree_changes": [
       {
-        "content": "sha256:c47b92863fcf34dc5c8f9469dff55c29cd463e167ccfc39cc4685d9060996ff5",
+        "content": "sha256:6a4dd2f399b7f59173d8c8a67a2dc6a528d7147650fd246d08e869186e1e10d8",
         "kind": "M",
-        "path": "design-lab/tests/test_project_backup.py"
-      },
-      {
-        "content": "sha256:2490626a982c993ffa7449c070856433a6a67c8998d9e7b175474304e778aabd",
-        "kind": "M",
-        "path": "src/design_lab/runtime/project_backup.py"
+        "path": "design-lab/config/task-ledger-r3.json"
       }
     ],
-    "worktree_digest": "sha256:c6fdc3d34f4955acd69b588bcfde2012c8ab3c138958f362c451a40a538838b5"
+    "worktree_digest": "sha256:efd8846cd1566d27db97f7848a414c6d06f74382c023d93957a5ea5271737c12"
   },
   "gitStateMeaning": "generation-time observation, not current HEAD",
   "hostLive": "derived from host_live axis only",
@@ -40,7 +35,7 @@
     "quarantinedSources": 162
   },
   "subjectMeaning": "subjectType=WORKTREE means the tree was dirty at generation; worktreeDigest covers HEAD plus the non-generated changes",
-  "subjectSha": "fc03a3033e900a8066d863a223636cc68804c4fa",
+  "subjectSha": "71a5e974d2677ddd049d64b60ddc844d9fa2fc94",
   "subjectType": "WORKTREE",
   "taskCounts": {
     "PARTIAL": 28
@@ -48,14 +43,14 @@
   "taskpack": "DL-TP-20260908-R5",
   "taskpackHash": "31dde89eb4ede81fe88c0a5c5144adfb86af8db4c4d8c263bde2199180369b69",
   "taskpackId": "DL-TP-20260908-R5",
-  "testRunAt": "2026-10-07T15:54:31+00:00",
-  "testRunId": "testrun-20261007T155427Z-forward-repeat-c6fdc3d34f49",
-  "testRunMeaning": "bound run: python scripts/run_bound_test_suite.py --modules test_project_backup test_runtime_asset_safety test_installed_state_resources test_release_gate --label backup-consistency-targeted",
+  "testRunAt": "2026-10-07T16:27:52+00:00",
+  "testRunId": "testrun-20261007T162748Z-forward-repeat-c76a67d31cbe",
+  "testRunMeaning": "bound run: python scripts/run_bound_test_suite.py --modules test_project_backup test_evidence_artifact_presence test_runtime_asset_safety test_installed_state_resources test_release_gate --label backup-coordination-71a5e974",
   "testRunResult": "OK",
   "tests": {
-    "definedTestMethodCount": 1942,
+    "definedTestMethodCount": 1954,
     "executed": "see individual verified ledger receipts"
   },
   "worktreeClean": false,
-  "worktreeDigest": "sha256:c6fdc3d34f4955acd69b588bcfde2012c8ab3c138958f362c451a40a538838b5"
+  "worktreeDigest": "sha256:efd8846cd1566d27db97f7848a414c6d06f74382c023d93957a5ea5271737c12"
 }

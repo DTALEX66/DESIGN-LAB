@@ -1645,17 +1645,51 @@
         "DL-R5-015"
       ],
       "verified": false
+    },
+    {
+      "artifacts": [
+        {
+          "path": "docs/audits/DESIGNLAB-BACKUP-CONSISTENCY-2026-10-08.md",
+          "sha256": "a386339514b5bd8614dc969faa0ee4fddfd38bbfcdd58daa446dc109acae8017"
+        }
+      ],
+      "binding": "COMMIT",
+      "id": "r5-004-005-backup-consistency-20261007",
+      "kind": "local_test",
+      "note": "Backup and restore consistency, on top of live main fc03a303. Four defects reproduced then fixed (see docs/audits/DESIGNLAB-BACKUP-CONSISTENCY-2026-10-08.md): state.db was archived as raw bytes so WAL-committed rows were lost; a '#' in the runtime root made the naive file-URI form read user_version 0 for a database whose real version is 7 (measured on this machine), which is the number the compatibility gate trusts; the archive was opened before members were enumerated so it could enumerate itself; restore wrote straight into the target, leaving a half-replaced project on failure. A project-level write barrier now reads the writer lease, the publication journal, the host guard and the attempt row before and after capture, and compares monotonic counters -- without those, a publication that starts and finishes inside the window leaves both reads empty and a set difference calls it consistent. Restore re-hashes every artifact row against the archived bytes and counts rows it cannot judge as unverifiable rather than passing them.\nEleven axes: CONTRACT ok (backup-manifest v1 unchanged; sourceLocalRoot and productionQuiescence added, both optional on read) / BACKEND ok / FRONTEND not touched by this change / PERSISTENCE ok / HOST_OR_GENERATOR not applicable here / READBACK ok (37 cases read bytes back, including a real PNG through ProjectService+ImageAssets restored into a different owner root) / QUALITY not claimed / RIGHTS not claimed / PREFLIGHT ok for backup only / DELIVERY not claimed / EVIDENCE ok (this record, bound to an exact commit and a bound-run manifest).\nEvidence level: E2 CONTROLLED_RUNTIME. Synthetic state roots driven through real product code paths; no real host, so host_live stays PARTIAL. Nine gates were falsified against weakened copies of the product module and each went red for the reason it claims to catch (.project-local/tmp/falsify_backup_gates.py); two of them caught my own errors first: comparing expires_at in SQL made every live lease look expired because SQLite orders REAL below TEXT, and publish_version does not release the writer lease so the PREPARED-journal gate was never reached.\nOpen in this task: the asset_publication recovery journal keeps old absolute paths after a cross-root restore, so recover_publications(store_root=new) selects by store_root=?, finds nothing, and silently skips a PREPARED row; writers that never record to the state database are invisible to the barrier, which is why the archive carries tablesObserved; and a root whose database records no writer tables reports WRITES_NOT_OBSERVABLE, which restore echoes rather than upgrading to a proof. DL-R5-004 and DL-R5-005 therefore stay PARTIAL: axis states were not raised, because r5_contract.py:100 requires reassessment=REVIEWED first and that is a review judgement, not something this record may grant.\nOne skip, environment-bounded: test_linked_backup_member_is_refused cannot create a symlink here (WinError 1314, no privilege, not escalated).\nRollback: revert 71a5e974 701ace9c 707c067b 7ee682d9 on qoder/designlab-backup-consistency-20261007; the pre-port uncommitted bytes stay recoverable at rescue/designlab-personal-audit-dirty-20261007 (8eea1c320ca5f61857ff266a23be2170c09b7203).",
+      "observed_at": "2026-10-07T16:30:26Z",
+      "outcome": "PASS",
+      "reasons": [],
+      "software": {
+        "node": "NOT_MEASURED (FileNotFoundError)",
+        "platform": "Windows-11-10.0.26100-SP0",
+        "python": "3.13.14 (project .venv)",
+        "runner": "python scripts/run_bound_test_suite.py --modules test_project_backup test_evidence_artifact_presence test_runtime_asset_safety test_installed_state_resources test_release_gate --label backup-coordination-71a5e974 -> run_id=testrun-20261007T162748Z-forward-repeat-c76a67d31cbe, tests_run=84, failures=0, errors=0, skipped=1, duration=3.49s, worktree_clean=True",
+        "test_manifest": "sha256:0c9b3d740d0c1b5fff38ed01ff9b51519cddc06914df3987655195e863269481",
+        "worktree_digest": "sha256:c76a67d31cbefa415f42866a4141c629ca43368116a1453744bc41e8824cef89"
+      },
+      "subject_files": {
+        "design-lab/tests/test_evidence_artifact_presence.py": "1253d138ff68b5c7ba5c4b48ced18867f7e2f062a28b0fc145f498c43150abf0",
+        "design-lab/tests/test_project_backup.py": "f725ad874086c3f71b70f51df57439a32db66c1ed3d89f3c2ea667a7def1096a",
+        "src/design_lab/runtime/project_backup.py": "78a484ba12a34aff967f1ddd13c15605bb0fbec87d86325896e474172b294b5b"
+      },
+      "subject_sha": "71a5e974d2677ddd049d64b60ddc844d9fa2fc94",
+      "task_ids": [
+        "DL-R5-004",
+        "DL-R5-005"
+      ],
+      "verified": true
     }
   ],
   "fresh": false,
   "freshnessMeaning": "at generation only; check verifies bound-input integrity, not current Git or cloud state",
-  "generatedAt": "2026-10-07T15:54:40+00:00",
+  "generatedAt": "2026-10-07T16:30:36+00:00",
   "gitStateMeaning": "generation-time observation, not current HEAD",
-  "ledgerUpdatedAt": "2026-10-06T03:12:05Z",
+  "ledgerUpdatedAt": "2026-10-07T16:30:26Z",
   "note": "DONE_LOCAL concerns the declared task axes and dependencies, not a product release or hosted CI.",
   "schemaVersion": "design-lab/task-progress/r5-v1",
   "subjectMeaning": "subjectType=WORKTREE means the tree was dirty at generation; worktreeDigest covers HEAD plus the non-generated changes",
-  "subjectSha": "fc03a3033e900a8066d863a223636cc68804c4fa",
+  "subjectSha": "71a5e974d2677ddd049d64b60ddc844d9fa2fc94",
   "subjectType": "WORKTREE",
   "taskpack": "DL-TP-20260908-R5",
   "taskpackHash": "31dde89eb4ede81fe88c0a5c5144adfb86af8db4c4d8c263bde2199180369b69",
@@ -1926,7 +1960,8 @@
         "implementation": {
           "declared_state": "PARTIAL",
           "evidence": [
-            "r5-004-static-unit-20260928"
+            "r5-004-static-unit-20260928",
+            "r5-004-005-backup-consistency-20261007"
           ],
           "reasons": [],
           "state": "PARTIAL"
@@ -1934,7 +1969,8 @@
         "unit": {
           "declared_state": "PARTIAL",
           "evidence": [
-            "r5-004-static-unit-20260928"
+            "r5-004-static-unit-20260928",
+            "r5-004-005-backup-consistency-20261007"
           ],
           "reasons": [],
           "state": "PARTIAL"
@@ -2010,7 +2046,8 @@
         "implementation": {
           "declared_state": "PARTIAL",
           "evidence": [
-            "r5-005-static-unit-20260928"
+            "r5-005-static-unit-20260928",
+            "r5-004-005-backup-consistency-20261007"
           ],
           "reasons": [],
           "state": "PARTIAL"
@@ -2018,7 +2055,8 @@
         "unit": {
           "declared_state": "PARTIAL",
           "evidence": [
-            "r5-005-static-unit-20260928"
+            "r5-005-static-unit-20260928",
+            "r5-004-005-backup-consistency-20261007"
           ],
           "reasons": [],
           "state": "PARTIAL"
@@ -4155,10 +4193,10 @@
       "unresolved_conditions": []
     }
   ],
-  "testRunAt": "2026-10-07T15:54:31+00:00",
-  "testRunId": "testrun-20261007T155427Z-forward-repeat-c6fdc3d34f49",
-  "testRunMeaning": "bound run: python scripts/run_bound_test_suite.py --modules test_project_backup test_runtime_asset_safety test_installed_state_resources test_release_gate --label backup-consistency-targeted",
+  "testRunAt": "2026-10-07T16:27:52+00:00",
+  "testRunId": "testrun-20261007T162748Z-forward-repeat-c76a67d31cbe",
+  "testRunMeaning": "bound run: python scripts/run_bound_test_suite.py --modules test_project_backup test_evidence_artifact_presence test_runtime_asset_safety test_installed_state_resources test_release_gate --label backup-coordination-71a5e974",
   "testRunResult": "OK",
   "worktreeClean": false,
-  "worktreeDigest": "sha256:c6fdc3d34f4955acd69b588bcfde2012c8ab3c138958f362c451a40a538838b5"
+  "worktreeDigest": "sha256:efd8846cd1566d27db97f7848a414c6d06f74382c023d93957a5ea5271737c12"
 }
