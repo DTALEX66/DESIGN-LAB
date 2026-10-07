@@ -59,6 +59,13 @@ class ImageAssets:
                 # that exists. Same current-version rule native_assets and jury_store use.
                 "AND v.version_no=(SELECT MAX(b.version_no) FROM asset_version b "
                 "WHERE b.asset_id=v.asset_id AND b.state='ACTIVE') "
+                # A version may register several artifacts, and the join would emit one row
+                # per artifact -- which breaks the same one-row promise twice over: the
+                # library repeats the asset, and content() reports 404 for an asset that is
+                # there. Prefer the deliverable, then name; exactly one row per asset.
+                "AND f.artifact_id=(SELECT g.artifact_id FROM artifact g "
+                "WHERE g.version_id=v.version_id ORDER BY "
+                "CASE g.role WHEN 'deliverable' THEN 0 ELSE 1 END, g.path LIMIT 1) "
                 "AND (? IS NULL OR a.asset_id=?) ORDER BY a.created_at,a.asset_id",
                 (project_id, asset_id, asset_id)).fetchall()
 

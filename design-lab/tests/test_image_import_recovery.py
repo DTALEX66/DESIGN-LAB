@@ -61,6 +61,41 @@ class RasterCurrentVersionTests(unittest.TestCase):
                     'SELECT COUNT(*) FROM asset_version WHERE state="ACTIVE"').fetchone()[0], 2,
                     'the store really does keep both ACTIVE rows -- that is the premise here')
 
+    def test_a_second_artifact_on_the_same_version_does_not_split_the_asset(self):
+        """One row per asset, on the deliverable, whatever the artifact table holds."""
+        parent = ROOT / '.project-local' / 'task-runtime' / 'raster-artifacts'
+        parent.mkdir(parents=True, exist_ok=True)
+        with tempfile.TemporaryDirectory(dir=parent) as temporary:
+            os.environ.pop('PROJECT_LOCAL_ROOT', None)
+            root = Path(temporary)
+            (root / 'AGENTS.md').write_text('# raster artifact fixture', encoding='utf-8')
+            service = ProjectService(root)
+            project = service.create_project('Raster artifacts')['id']
+            images = ImageAssets(service)
+            deliverable = self._png('orange')
+            version = self._publish(service, project, 'img-2', deliverable)
+            # A preview whose NAME sorts before the deliverable's, so a read that ordered
+            # by path alone would serve the wrong bytes.
+            store = service.paths.category_dir('projects', project, 'assets')
+            preview = store / 'aa-preview.png'
+            preview.write_bytes(self._png('purple'))
+            with closing(sqlite3.connect(service.database)) as conn:
+                conn.execute('INSERT INTO artifact (artifact_id, version_id, path, sha256,'
+                             ' byte_size, role) VALUES (?,?,?,?,?,?)',
+                             ('a-preview', version, str(preview),
+                              'sha256:' + hashlib.sha256(preview.read_bytes()).hexdigest(),
+                              preview.stat().st_size, 'preview'))
+                conn.commit()
+            listed = images.list(project)
+            self.assertEqual([row['id'] for row in listed], ['img-2'],
+                             f'an extra registered file must not duplicate the asset: {listed}')
+            self.assertEqual(listed[0]['sha256'],
+                             'sha256:' + hashlib.sha256(deliverable).hexdigest(),
+                             'the listed digest must be the deliverable, not a preview')
+            served = images.content(project, 'img-2')
+            self.assertEqual(base64.b64decode(served['content_base64']), deliverable)
+
+
     def _publish(self, service, project_id, asset_id, payload: bytes):
         from contextlib import closing
         store = service.paths.category_dir('projects', project_id, 'assets')
