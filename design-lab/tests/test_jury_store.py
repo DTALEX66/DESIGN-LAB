@@ -160,6 +160,53 @@ class JuryStoreTests(unittest.TestCase):
                          [stored.get('jury_record_id') or stored.get('proposal_id')],
                          'a proposal must be listed under the id it actually carries')
 
+    def _proposal(self, **overrides):
+        """A proposal document built by the contract itself, so a mutation below is the
+        only thing wrong with it."""
+        document = human_jury.agent_may_propose(
+            proposal_id='prop-9', subject_ref=self._document()['subject_ref'],
+            artifact_sha256=self.digest, proposer='review-agent', criteria=CRITERIA,
+            suggested_verdict='APPROVE', rationale='weighted score above the floor',
+            created_at='2026-10-08T00:00:00Z').as_dict()
+        document.update(overrides)
+        return document
+
+    def test_a_proposal_is_stored_only_if_the_contract_accepts_its_values(self):
+        """The route pins the proposal's KEY SET; only human_jury judges the values.
+
+        Before this check the store wrote whatever the endpoint accepted, so a proposal
+        with a non-digest artifact, a verdict word that does not exist, an empty rationale
+        or a timestamp that is not RFC 3339 became a permanent row -- in an append-only
+        table whose whole purpose is that a later reader can trust what the agent said.
+        """
+        cases = {
+            'artifact_sha256': ('not-a-digest',),
+            'suggested_verdict': ('MAYBE',),
+            'rationale': ('',),
+            'created_at': ('last tuesday',),
+            'proposer': ('',),
+        }
+        for index, (field, values) in enumerate(sorted(cases.items())):
+            for value in values:
+                with self.subTest(field=field, value=value):
+                    before = len(jury_store.list_records(self.conn, 'p1'))
+                    # A distinct id per case: if the guard is missing, the colliding id would
+                    # surface as an IntegrityError and mask which refusal actually failed.
+                    with self.assertRaises(JuryStoreError) as refused:
+                        jury_store.record(self.conn, project_id='p1',
+                                          document=self._proposal(proposal_id=f'prop-{index}',
+                                                                   **{field: value}),
+                                          kind=human_jury.KIND_PROPOSAL)
+                    self.assertTrue(str(refused.exception).strip(),
+                                    'a refusal has to say why it refused')
+                    self.assertEqual(len(jury_store.list_records(self.conn, 'p1')), before,
+                                     'a refused proposal must not leave a row behind')
+        # and the unmutated document still lands, or the loop above proves nothing
+        stored = jury_store.record(self.conn, project_id='p1',
+                                   document=self._proposal(proposal_id='prop-valid'),
+                                   kind=human_jury.KIND_PROPOSAL)
+        self.assertEqual(stored['kind'], human_jury.KIND_PROPOSAL)
+
     def test_a_proposal_carrying_a_verdict_is_refused(self):
         smuggled = self._document()
         smuggled.pop('jury_record_id')

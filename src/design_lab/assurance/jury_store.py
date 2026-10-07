@@ -20,7 +20,8 @@ from __future__ import annotations
 import json
 import sqlite3
 
-from .human_jury import AssuranceError, KIND_PROPOSAL, KIND_VERDICT, record_verdict
+from .human_jury import (AssuranceError, KIND_PROPOSAL, KIND_VERDICT, agent_may_propose,
+                         record_verdict)
 from ..runtime.state_resources import state_schema
 
 _JURIES = state_schema('design-lab-state-jury-v1.sql')
@@ -90,6 +91,22 @@ def record(conn, *, project_id, document: dict, kind: str = KIND_VERDICT) -> dic
         if document.get('verdict') is not None:
             raise JuryStoreError(
                 'a proposal may not carry a verdict; an agent may propose, never decide')
+        # The route pins the key set; only the contract checks the VALUES. Without this
+        # call a proposal with a non-digest artifact_sha256, an empty rationale, a
+        # suggested_verdict outside the declared vocabulary or criteria that are not
+        # criterion objects would be appended to an immutable table -- and the row is
+        # exactly the kind of record a later reader trusts as "what the agent said".
+        # Reuse the contract's own builder rather than re-implementing its rules here.
+        try:
+            document = agent_may_propose(
+                proposal_id=document.get('proposal_id'), subject_ref=document.get('subject_ref'),
+                artifact_sha256=document.get('artifact_sha256'),
+                proposer=document.get('proposer'), criteria=document.get('criteria'),
+                suggested_verdict=document.get('suggested_verdict'),
+                rationale=document.get('rationale'),
+                created_at=document.get('created_at')).as_dict()
+        except AssuranceError as exc:
+            raise JuryStoreError(str(exc)) from None
     else:
         try:
             document = record_verdict(document)
