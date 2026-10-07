@@ -1,0 +1,696 @@
+{
+  "$comment": "The contract-binding ledger for design-lab/schemas/contracts/. One row per schema, one row per route src/design_lab/http_service.py dispatches on. Re-checked on every run by design-lab/scripts/verify_contract_bindings.py: a BINDING row's named producer/consumer must still exist and still contain the declared version string, and an INERT row must state what is actually true rather than describing unimplemented work as pending. Paths are repo-relative; instance and test refs are path:line.",
+  "schemaVersion": "design-lab/contract-bindings/v1",
+  "recorded": "2026-10-08",
+  "status_vocabulary": {
+    "BINDING": "a place in src/ produces or consumes this exact shape and names this version",
+    "INERT": "nothing in src/ produces or consumes this shape; the row says what exists instead"
+  },
+  "route_kind_vocabulary": {
+    "BOUND_SCHEMA": "the payload is validated by the named schema file against the named emitter",
+    "SCHEMA_LESS": "no schema validates this payload; the reason states why, and a version-bearing row must state the debt outright"
+  },
+  "contracts": [
+    {
+      "schema": "design-lab/schemas/contracts/action-plan.schema.json",
+      "version": "design-lab/action-plan/v1",
+      "status": "INERT",
+      "instances": [],
+      "tests": [],
+      "fixtures": [],
+      "reason": "Nothing implements this. plan_id/jobs appear nowhere in src/. The action-plan boundary that does exist is bound by design-lab/schemas/tool-action-plan.schema.json, checked by design-lab/scripts/verify_tool_action_plan.py against design-lab/evals/tool-action-plan/sample-hero.json -- a different document with a different field vocabulary, which this schema does not describe."
+    },
+    {
+      "schema": "design-lab/schemas/contracts/asset-manifest.schema.json",
+      "version": "design-lab/asset-manifest/v1",
+      "status": "INERT",
+      "instances": [],
+      "tests": [],
+      "fixtures": [],
+      "reason": "Two documents claim one version identity. This file requires snake_case manifest_id/assets while design-lab/schemas/asset-manifest.schema.json carries $id design-lab/asset-manifest/v1 and requires camelCase manifestId. The camelCase one is the file scripts/verify_contract_graph.py:79 reads; no src/ module produces either shape."
+    },
+    {
+      "schema": "design-lab/schemas/contracts/asset-ref.schema.json",
+      "version": "design-lab/asset-ref/v1",
+      "status": "INERT",
+      "instances": [],
+      "tests": [],
+      "fixtures": [],
+      "reason": "Nothing implements this. content_hash/trait_set/runtime_binding appear nowhere in src/. The asset_ref hits in src/design_lab/interop/timeline.py:607 are a plain string field of the OTIO timeline contract, a different shape under a colliding name; test_illustrator_job_validation.py:67 matches on the word assetId, not on this schema."
+    },
+    {
+      "schema": "design-lab/schemas/contracts/audit-event.schema.json",
+      "version": "design-lab/audit-event/v1",
+      "status": "INERT",
+      "instances": [],
+      "tests": [],
+      "fixtures": [],
+      "reason": "Half of this shape is real and the schema cannot be satisfied by it. The live audit_event table (design-lab/schemas/state/design-lab-state-v1.sql:45, written at src/design_lab/runtime/asset_store.py:144) carries exactly audit_id/actor/action/at -- this schema's four required fields other than schemaVersion -- but never emits a schemaVersion, so a real row fails this closed document. No JSON audit-event payload exists in src/."
+    },
+    {
+      "schema": "design-lab/schemas/contracts/capability-def.schema.json",
+      "version": "design-lab/capability-def/v1",
+      "status": "INERT",
+      "instances": [],
+      "tests": [],
+      "fixtures": [],
+      "reason": "Nothing implements this. capability_id plus integration_id as a required pair appears nowhere outside this file. The capability surface the product serves is /api/capabilities (src/design_lab/analysis/capability_library.py), which emits design-lab/capability-library/v1 and is not bound by any schema."
+    },
+    {
+      "schema": "design-lab/schemas/contracts/capability-evidence.schema.json",
+      "version": "design-lab/capability-evidence/v1",
+      "status": "INERT",
+      "instances": [],
+      "tests": [
+        "design-lab/tests/test_contract_schema_integrity.py:108",
+        "design-lab/tests/test_contract_schema_integrity.py:127"
+      ],
+      "fixtures": [],
+      "reason": "Superseded in place. The records the product actually reads and writes are design-lab/capability-evidence-current/v1 (design-lab/config/capability-evidence-current.json) and design-lab/capability-evidence-index/v3, whose fields are capability_id/declared_level/supported_current and actualEvidence/artifact/evidence/run. The only instances of THIS document are the two synthetic fixtures in the tests named above; src/design_lab/governance/reporting.py:337 reads the current record, never this shape."
+    },
+    {
+      "schema": "design-lab/schemas/contracts/capability-ref.schema.json",
+      "version": "design-lab/capability-ref/v1",
+      "status": "INERT",
+      "instances": [],
+      "tests": [],
+      "fixtures": [],
+      "reason": "Nothing implements this. registry_id and capability_ref appear nowhere outside this file."
+    },
+    {
+      "schema": "design-lab/schemas/contracts/change-set.schema.json",
+      "version": "design-lab/change-set/v1",
+      "status": "INERT",
+      "instances": [],
+      "tests": [],
+      "fixtures": [],
+      "reason": "Nothing implements this. change_set_id/changes appear nowhere in src/. Revision history that does exist is the design-layer superseded_by chain (src/design_lab/design_layer.py), a per-record chain with no change-set document at any boundary."
+    },
+    {
+      "schema": "design-lab/schemas/contracts/delivery-receipt.schema.json",
+      "version": "design-lab/delivery-receipt/v1",
+      "status": "INERT",
+      "instances": [],
+      "tests": [],
+      "fixtures": [],
+      "reason": "Superseded by a shape this file would reject. The live receipt is design-lab/delivery-receipt/v2, emitted at src/design_lab/interop/delivery_receipt.py:36 and bound by design-lab/schemas/interop-delivery-receipt-v2.schema.json. v2 requires receipt_sha256/job_id/deliverables/axes, none of which this additionalProperties:false document declares, and requires delivery_id/delivered_at/status, which v2 does not carry. Nothing produces the v1 shape."
+    },
+    {
+      "schema": "design-lab/schemas/contracts/design-context.schema.json",
+      "version": "design-lab/design-context/v1",
+      "status": "INERT",
+      "instances": [],
+      "tests": [],
+      "fixtures": [],
+      "reason": "Nothing implements this. context_id and the revision pairing appear nowhere in src/."
+    },
+    {
+      "schema": "design-lab/schemas/contracts/design-control-mcp.schema.json",
+      "version": "design-lab/design-control-mcp/v1",
+      "status": "INERT",
+      "instances": [],
+      "tests": [],
+      "fixtures": [],
+      "reason": "Nothing implements this. allowed_tools/forbidden appear nowhere in src/, apps/, packages/ or integrations/. The MCP surface the product exposes is the host adapter path, which carries no such document."
+    },
+    {
+      "schema": "design-lab/schemas/contracts/design-diff.schema.json",
+      "version": "design-lab/design-diff/v1",
+      "status": "INERT",
+      "instances": [],
+      "tests": [],
+      "fixtures": [],
+      "reason": "Nothing implements this. diff_id/before_revision/after_revision appear nowhere in src/."
+    },
+    {
+      "schema": "design-lab/schemas/contracts/document-session.schema.json",
+      "version": "design-lab/document-session/v1",
+      "status": "INERT",
+      "instances": [],
+      "tests": [],
+      "fixtures": [],
+      "reason": "Nothing implements this. session_id with lease_state/dirty/checkpoint appears nowhere in src/; DESIGN-LAB holds no document session -- AGENTS.md rules out a second canvas, and no route serves one."
+    },
+    {
+      "schema": "design-lab/schemas/contracts/evidence-ttl.schema.json",
+      "version": "design-lab/evidence-ttl/v1",
+      "status": "INERT",
+      "instances": [],
+      "tests": [],
+      "fixtures": [],
+      "reason": "Nothing implements this. ttl_days appears nowhere in src/. Evidence ageing is handled by the ledger projections in src/design_lab/governance/reporting.py, which carry no TTL document."
+    },
+    {
+      "schema": "design-lab/schemas/contracts/execution-envelope.schema.json",
+      "version": "design-lab/execution-envelope/v1",
+      "status": "INERT",
+      "instances": [],
+      "tests": [],
+      "fixtures": [],
+      "reason": "Nothing implements this. envelope_id and a capability_ref/payload pairing appear nowhere in src/. Execution that exists is recorded in the native_execution_v1 table (src/design_lab/native_bundles.py:101) as request_json/receipt_json per attempt, an envelope-free shape, and design-lab/schemas/execution-result.schema.json is the document that describes it -- which this schema does not describe."
+    },
+    {
+      "schema": "design-lab/schemas/contracts/host-session.schema.json",
+      "version": "design-lab/host-session/v1",
+      "status": "INERT",
+      "instances": [],
+      "tests": [],
+      "fixtures": [],
+      "reason": "Nothing implements this. session_kind/session_mode/ownership appear nowhere in src/. Host identity that does exist is per-attempt in native_tasks/native_workers, under the job vocabularies, with no host-session document."
+    },
+    {
+      "schema": "design-lab/schemas/contracts/integration-def.schema.json",
+      "version": "design-lab/integration-def/v1",
+      "status": "INERT",
+      "instances": [],
+      "tests": [],
+      "fixtures": [],
+      "reason": "Nothing implements this. integration_id/executable_ref appear nowhere in src/."
+    },
+    {
+      "schema": "design-lab/schemas/contracts/job-attempt.schema.json",
+      "version": "design-lab/job-attempt/v1",
+      "status": "INERT",
+      "instances": [],
+      "tests": [
+        "design-lab/tests/test_contract_schema_integrity.py:149",
+        "design-lab/tests/test_contract_schema_integrity.py:160"
+      ],
+      "fixtures": [],
+      "reason": "Contradicted by the store it describes. The live job_attempt table (design-lab/schemas/state/design-lab-state-v1.sql:19, written at src/design_lab/runtime/job_store.py:158) stores job_id/attempt_no/started_at only -- no attempt_id and no status, both required here. The only instances that satisfy this document are the two synthetic fixtures named above; TaskQueries builds attempt records from the DB row, not from this shape."
+    },
+    {
+      "schema": "design-lab/schemas/contracts/job-spec.schema.json",
+      "version": "design-lab/job-spec/v1",
+      "status": "INERT",
+      "instances": [],
+      "tests": [
+        "design-lab/tests/test_contract_schema_integrity.py:63",
+        "design-lab/tests/test_contract_schema_integrity.py:80"
+      ],
+      "fixtures": [],
+      "reason": "One-sided version bump plus a shape nobody emits. src/design_lab/creative/creative_job.py:126 writes design-lab/job-spec/v2 into the job table while design-lab/schemas/state/design-lab-state-v1.sql:16 still defaults the column to v1 and this schema binds v1. The job document that IS validated is design-lab/creative-job/v1 (creative_job.py:27-28 against design-lab/schemas/creative-job.schema.json), whose fields are not job_id/schemaVersion/operation_intent/attempt_no. Only the two synthetic fixtures above satisfy this file."
+    },
+    {
+      "schema": "design-lab/schemas/contracts/jury-decision.schema.json",
+      "version": "design-lab/jury-decision/v1",
+      "status": "INERT",
+      "instances": [],
+      "tests": [],
+      "fixtures": [],
+      "reason": "Superseded. The jury payload that crosses the boundary is design-lab/assurance-jury-record/v2 (src/design_lab/assurance/human_jury.py:77, bound by design-lab/schemas/assurance-jury-record-v2.schema.json) and the readback envelope design-lab/jury-readback/v1 (src/design_lab/jury_review.py:45). jury_id/score/decision as a required trio appear nowhere in src/; packages/capabilities/quality/jury/JuryRecord.template.json shares the jury_id name but binds design-lab/schemas/jury-record.schema.json instead."
+    },
+    {
+      "schema": "design-lab/schemas/contracts/knowledge-candidate.schema.json",
+      "version": "design-lab/knowledge-candidate/v1",
+      "status": "INERT",
+      "instances": [],
+      "tests": [],
+      "fixtures": [],
+      "reason": "Superseded. The KnowledgeCandidate exit is bound by design-lab/schemas/candidate-knowledge.schema.json (design-lab/candidate-knowledge/v1) and by assurance-knowledge-candidate-v2.schema.json, named in scripts/deepseek_worktree_reconciliation.py:124. candidate_id/knowledge_type/state as this file requires them appear nowhere in src/."
+    },
+    {
+      "schema": "design-lab/schemas/contracts/operation-intent.schema.json",
+      "version": "design-lab/operation-intent/v1",
+      "status": "INERT",
+      "instances": [],
+      "tests": [
+        "design-lab/tests/test_contract_schema_integrity.py:72"
+      ],
+      "fixtures": [],
+      "reason": "The concept is live; this document is not. operation_intent is a real table (design-lab/schemas/state/design-lab-state-v1.sql:4, written at src/design_lab/creative/store.py:232) carrying operation_id/idempotency_scope/idempotency_key/request_hash plus created_at -- the same four fields minus schemaVersion, as SQL columns that are never serialised as a JSON document. The idempotency_key the routes accept is checked only by the exact-key-set test in http_service.py body(). This schema is exercised only as the nested $defs of job-spec's synthetic fixture."
+    },
+    {
+      "schema": "design-lab/schemas/contracts/operation-receipt.schema.json",
+      "version": "design-lab/operation-receipt/v1",
+      "status": "INERT",
+      "instances": [],
+      "tests": [],
+      "fixtures": [],
+      "reason": "Nothing implements this, and the table that shares its name is dead: operation_receipt is created by design-lab/schemas/state/design-lab-state-v1.sql:26 but no INSERT or SELECT for it exists anywhere in src/. Its stale_fence/received_at columns are not declared by this additionalProperties:false document, so a real row would be rejected."
+    },
+    {
+      "schema": "design-lab/schemas/contracts/permission-manifest.schema.json",
+      "version": "design-lab/permission-manifest/v1",
+      "status": "INERT",
+      "instances": [],
+      "tests": [],
+      "fixtures": [],
+      "reason": "Nothing implements this. manifest_id with a permissions array appears nowhere in src/. Host authorization that exists is the per-attempt authorization dict built in src/design_lab/native_delivery.py and consumed by the COM adapters, with no permission-manifest document."
+    },
+    {
+      "schema": "design-lab/schemas/contracts/planar-decomposition.schema.json",
+      "version": "design-lab/planar-decomposition/v1",
+      "status": "BINDING",
+      "instances": [
+        "src/design_lab/analysis/decomposition.py:164"
+      ],
+      "tests": [
+        "design-lab/tests/test_planar_decomposition.py:82",
+        "design-lab/tests/test_ocr_object_plan.py:35",
+        "design-lab/tests/host_fixtures/qualify_ocr_object_plan.py:28"
+      ],
+      "fixtures": [
+        "generated at run time by design-lab/tests/host_fixtures/qualify_ocr_object_plan.py:45"
+      ],
+      "reason": "The only contract in this directory with a real emitter: DecompositionPlan.to_contract() at src/design_lab/analysis/decomposition.py:164 writes this exact schemaVersion const and field set, and test_planar_decomposition.py:82 validates the emitted JSON against this file rather than a hand-written fixture. src/design_lab/analysis/plan_to_rir.py consumes the plan but names it only in prose, so it is not listed as an instance: an instance the gate cannot re-check against the version literal is a rot risk, not coverage."
+    },
+    {
+      "schema": "design-lab/schemas/contracts/probe-result.schema.json",
+      "version": "design-lab/probe-result/v1",
+      "status": "INERT",
+      "instances": [],
+      "tests": [],
+      "fixtures": [],
+      "reason": "Nothing implements this. probe_id appears nowhere in src/. Host probing that exists emits design-lab/adobe-host-job/v1 and design-lab/photoshop-native-job/v1 (src/design_lab/adapters/illustrator_com.py:129, src/design_lab/adapters/photoshop_com.py:155), neither of which is this shape."
+    },
+    {
+      "schema": "design-lab/schemas/contracts/projection-cursor.schema.json",
+      "version": "design-lab/projection-cursor/v1",
+      "status": "INERT",
+      "instances": [],
+      "tests": [],
+      "fixtures": [],
+      "reason": "Nothing implements this. cursor_id appears nowhere in src/. Pagination that exists is the opaque after= token on the list routes, carried as a query parameter and never as a document."
+    },
+    {
+      "schema": "design-lab/schemas/contracts/retry-policy.schema.json",
+      "version": "design-lab/retry-policy/v1",
+      "status": "INERT",
+      "instances": [],
+      "tests": [],
+      "fixtures": [],
+      "reason": "Nothing implements this. policy_id and max_attempts appear nowhere in src/; retry and requeue behaviour lives as constants inside src/design_lab/native_workers.py and is never published as a policy document."
+    },
+    {
+      "schema": "design-lab/schemas/contracts/rights-decision.schema.json",
+      "version": "design-lab/rights-decision/v1",
+      "status": "INERT",
+      "instances": [],
+      "tests": [],
+      "fixtures": [],
+      "reason": "Nothing implements this. use_scope/decided_by/decided_at appear nowhere in src/. The human rights gate that exists is the approval table plus src/design_lab/creative/approval.py:101 approval_status(), whose fields are job_id/gate/approval_id/state/actor/actor_kind -- no field name in common with this document."
+    },
+    {
+      "schema": "design-lab/schemas/contracts/run-event.schema.json",
+      "version": "design-lab/run-event/v1",
+      "status": "INERT",
+      "instances": [],
+      "tests": [],
+      "fixtures": [],
+      "reason": "Nothing implements this. The outbox table (design-lab/schemas/state/design-lab-state-v1.sql:52) has event_id/event_type/payload but is created and never written -- no INSERT or SELECT for outbox exists in src/. Events on the wire come from src/design_lab/task_queries.py events(), a different shape with no schemaVersion."
+    },
+    {
+      "schema": "design-lab/schemas/contracts/run-receipt.schema.json",
+      "version": "design-lab/run-receipt/v1",
+      "status": "INERT",
+      "instances": [],
+      "tests": [],
+      "fixtures": [],
+      "reason": "Nothing implements this. run_id paired with a provenance object appears nowhere in src/. Execution records that exist are design-lab/execution-result/v1 and the native_execution_v1 table, neither of which is this shape."
+    },
+    {
+      "schema": "design-lab/schemas/contracts/runtime-binding.schema.json",
+      "version": "design-lab/runtime-binding/v1",
+      "status": "INERT",
+      "instances": [],
+      "tests": [],
+      "fixtures": [],
+      "reason": "Nothing implements this. binding_id/adapter_id/binding as a required trio appear nowhere in src/. src/design_lab/design_layer.py:799 mints a bind id for a design-system binding, an unrelated concept; the adapter contract that is live is design-lab/schemas/adapter-contract.schema.json."
+    }
+  ],
+  "routes": [
+    {
+      "route": "/api/local-session",
+      "method": "GET",
+      "kind": "SCHEMA_LESS",
+      "handler": "local_session",
+      "marker": "SAME_ORIGIN_REQUIRED",
+      "reason": "No schema and none is needed: the response is the single-field token handoff {'token': ...} for the launcher this server itself served. It is not a design payload and crosses no product boundary; the fail-closed rules are the same-origin and Host pins in guard()."
+    },
+    {
+      "route": "workbench.ROUTES",
+      "method": "GET",
+      "kind": "SCHEMA_LESS",
+      "handler": "workbench",
+      "marker": "workbench.resource",
+      "reason": "No schema and none is needed: static bundle bytes (HTML/JS/CSS) served with the workbench CSP, not a JSON product payload."
+    },
+    {
+      "route": "/workbench",
+      "method": "GET",
+      "kind": "SCHEMA_LESS",
+      "handler": "workbench",
+      "marker": "data-local-session=\"auto\"",
+      "reason": "No schema and none is needed: the same static page, with one body attribute injected when the launcher's auto-connect handshake is on. Bytes are covered by the workbench bundle-digest gates, not by a payload schema."
+    },
+    {
+      "route": "/api/projects/([0-9a-f]{32})/bundles/(bundle-native-[0-9a-f]{64})/versions/(v-[0-9a-f]{32})/content",
+      "method": "GET",
+      "kind": "SCHEMA_LESS",
+      "handler": "NativeDelivery",
+      "marker": "application/zip",
+      "reason": "No schema and none is needed for the response: it is the delivery archive as application/zip with an X-Content-SHA256 digest. The manifest inside the archive IS schema'd -- design-lab/asset-bundle/v1 and design-lab/delivery-receipt/v2 are validated by src/design_lab/interop/delivery_receipt.py, bound by the /bundle route row below."
+    },
+    {
+      "route": "/api/projects/([0-9a-f]{32})/native-assets(?:\\?after=(native-[0-9a-f]{64}))?",
+      "method": "GET",
+      "kind": "SCHEMA_LESS",
+      "handler": "NativeAssets",
+      "reason": "No schema and none is needed for the envelope: src/design_lab/native_assets.py returns a paging list of asset identifiers read from the state DB, and carries no schemaVersion of its own. The receipt documents it points at are bound elsewhere in this ledger."
+    },
+    {
+      "route": "/api/projects/([0-9a-f]{32})/native-assets/(native-[0-9a-f]{64})/verify",
+      "method": "GET",
+      "kind": "SCHEMA_LESS",
+      "handler": "NativeAssets",
+      "reason": "No schema and none is needed for the envelope: a verify verdict over stored digests, produced by src/design_lab/native_assets.py with no schemaVersion. Its inputs are the persisted receipt documents."
+    },
+    {
+      "route": "/api/projects/([0-9a-f]{32})/bundles",
+      "method": "GET",
+      "kind": "SCHEMA_LESS",
+      "handler": "Bundles",
+      "reason": "No schema and none is needed for the envelope: a read-back listing of a project's design bundles from the state DB, with no schemaVersion declared by src/design_lab/native_assets.py Bundles."
+    },
+    {
+      "route": "/api/projects/([0-9a-f]{32})/tasks(?:\\?after=((?:native-)?job-[0-9a-f]{64}))?",
+      "method": "GET",
+      "kind": "SCHEMA_LESS",
+      "handler": "TaskQueries",
+      "reason": "No schema: src/design_lab/task_queries.py returns task records whose attempt/cancel/state vocabulary is pinned by design-lab/schemas/status-vocabulary (the status contract gate) and by apps/workbench/contracts.ts TaskRecord, but the response envelope declares no schemaVersion and nothing validates it. Recorded debt, not a clean boundary."
+    },
+    {
+      "route": "/api/projects/([0-9a-f]{32})/tasks/((?:native-)?job-[0-9a-f]{64})(/events)?(?:\\?after=([0-9]{1,16}))?",
+      "method": "GET",
+      "kind": "SCHEMA_LESS",
+      "handler": "TaskQueries",
+      "reason": "No schema: one dispatch covers the task read and its event page. src/design_lab/task_queries.py builds both from the native_execution_v1 tables and emits no schemaVersion, so neither is validated at the boundary. Recorded debt."
+    },
+    {
+      "route": "/api/projects/([0-9a-f]{32})/assets(?:/(img-[0-9a-f]{64})/content)?",
+      "method": "GET",
+      "kind": "SCHEMA_LESS",
+      "handler": "ImageAssets",
+      "reason": "No schema and none is needed for the shape: the list branch is identifiers from the asset store, the content branch is raw image bytes. src/design_lab/image_assets.py declares no schemaVersion."
+    },
+    {
+      "route": "/api/health",
+      "method": "GET",
+      "kind": "SCHEMA_LESS",
+      "handler": "served_bundle_sha256",
+      "reason": "No schema and none is needed: a five-field liveness projection (status/version/scope/bundleSha256/bundleOrigin) asserted field by field by the service and wheel-install gates."
+    },
+    {
+      "route": "/api/environment",
+      "method": "GET",
+      "kind": "SCHEMA_LESS",
+      "handler": "describe",
+      "emitter": "src/design_lab/runtime/paths.py:212",
+      "version": "design-lab/path-diagnostic/v1",
+      "reason": "The payload declares design-lab/path-diagnostic/v1 (src/design_lab/runtime/paths.py:212) and there is NO SCHEMA for it anywhere in design-lab/schemas: an unvalidated boundary payload, recorded as debt rather than as a clean contract."
+    },
+    {
+      "route": "/api/capabilities",
+      "method": "GET",
+      "kind": "SCHEMA_LESS",
+      "handler": "capability_library",
+      "emitter": "src/design_lab/analysis/capability_library.py:210",
+      "version": "design-lab/capability-library/v1",
+      "reason": "The payload declares design-lab/capability-library/v1 (src/design_lab/analysis/capability_library.py:26) and there is NO SCHEMA for it: nothing validates what the capability surface serves. Recorded debt."
+    },
+    {
+      "route": "/api/domains",
+      "method": "GET",
+      "kind": "SCHEMA_LESS",
+      "handler": "domain_packs",
+      "emitter": "src/design_lab/domain_packs.py:181",
+      "version": "design-lab/domain-pack-readback/v1",
+      "reason": "The readback envelope declares design-lab/domain-pack-readback/v1 (src/design_lab/domain_packs.py:41) and there is NO SCHEMA for that envelope. The packs it reports on are validated against design-lab/schemas/domain-pack.schema.json, so the inner records are bound and the outer document is not. Recorded debt."
+    },
+    {
+      "route": "/api/task-preflight",
+      "method": "GET",
+      "kind": "SCHEMA_LESS",
+      "handler": "task_resources",
+      "emitter": "src/design_lab/runtime/task_resources.py:194",
+      "version": "design-lab/task-resource-preflight/v1",
+      "reason": "The payload declares design-lab/task-resource-preflight/v1 (src/design_lab/runtime/task_resources.py:194) and there is NO SCHEMA for it. The registry it reads is checked only by a hand-written equality against design-lab/task-resources/v1 at task_resources.py:52, not by a schema. Recorded debt -- this is the same shape of gap that commit 1ea64bbe closed for artifact-preflight."
+    },
+    {
+      "route": "/api/projects",
+      "method": "GET+POST",
+      "kind": "SCHEMA_LESS",
+      "handler": "list_projects",
+      "reason": "No schema and none is needed for the envelope: one dispatch serves the project listing and project creation. Both bodies are a single name field or an id list from the project store; the exact-key-set rule in http_service.py body() is what refuses extra fields. src/design_lab/service.py declares no schemaVersion."
+    },
+    {
+      "route": "/api/design-systems",
+      "method": "GET",
+      "kind": "SCHEMA_LESS",
+      "handler": "design_systems",
+      "reason": "No schema: src/design_lab/design_layer.py returns the packaged design-system catalog with no schemaVersion, and nothing validates the envelope at the boundary. Recorded debt."
+    },
+    {
+      "route": "/api/projects/([0-9a-f]{32})/design-layer",
+      "method": "GET",
+      "kind": "SCHEMA_LESS",
+      "handler": "get_design_layer",
+      "reason": "No schema: the project's design-layer roll-up is assembled in src/design_lab/design_layer.py with no schemaVersion. Recorded debt."
+    },
+    {
+      "route": "/api/projects/([0-9a-f]{32})/jury",
+      "method": "GET",
+      "kind": "SCHEMA_LESS",
+      "handler": "JuryReview",
+      "emitter": "src/design_lab/jury_review.py:45",
+      "version": "design-lab/jury-readback/v1",
+      "reason": "The payload declares design-lab/jury-readback/v1 (src/design_lab/jury_review.py:45) and there is NO SCHEMA for the envelope. The records it wraps ARE bound -- each is a design-lab/assurance-jury-record/v2 document validated on the way in by the two jury write routes below -- so the read path is the unboud half. Recorded debt."
+    },
+    {
+      "route": "/api/projects/([0-9a-f]{32})/briefs(?:\\?after=(brief-[0-9a-f]{32}))?",
+      "method": "GET",
+      "kind": "SCHEMA_LESS",
+      "handler": "list_briefs",
+      "reason": "No schema for the envelope: a paging list of brief rows read from the design-layer tables by src/design_lab/design_layer.py, which declares no schemaVersion. Recorded debt."
+    },
+    {
+      "route": "/api/projects/([0-9a-f]{32})/briefs/(brief-[0-9a-f]{32})",
+      "method": "GET",
+      "kind": "SCHEMA_LESS",
+      "handler": "get_brief",
+      "reason": "No schema for the envelope: one brief record from src/design_lab/design_layer.py with no schemaVersion. Recorded debt."
+    },
+    {
+      "route": "/api/projects/([0-9a-f]{32})/directions(?:\\?after=(direction-[0-9a-f]{32}))?",
+      "method": "GET",
+      "kind": "SCHEMA_LESS",
+      "handler": "list_directions",
+      "reason": "No schema for the envelope: a paging list from src/design_lab/design_layer.py with no schemaVersion. Recorded debt."
+    },
+    {
+      "route": "/api/projects/([0-9a-f]{32})/directions/(direction-[0-9a-f]{32})",
+      "method": "GET",
+      "kind": "SCHEMA_LESS",
+      "handler": "get_direction",
+      "reason": "No schema for the envelope: one direction record with no schemaVersion. Recorded debt."
+    },
+    {
+      "route": "/api/projects/([0-9a-f]{32})/briefs/(brief-[0-9a-f]{32})/lineage",
+      "method": "GET",
+      "kind": "SCHEMA_LESS",
+      "handler": "lineage_brief",
+      "reason": "No schema for the envelope: the superseded_by chain plus design_layer_event rows, assembled in src/design_lab/design_layer.py with no schemaVersion. The event kinds it reports are pinned by EVENT_KINDS (design_layer.py:128) and the table CHECK, not by a schema. Recorded debt."
+    },
+    {
+      "route": "/api/projects/([0-9a-f]{32})/directions/(direction-[0-9a-f]{32})/lineage",
+      "method": "GET",
+      "kind": "SCHEMA_LESS",
+      "handler": "lineage_direction",
+      "reason": "No schema for the envelope, as for the brief lineage: chain plus events from src/design_lab/design_layer.py, no schemaVersion. Recorded debt."
+    },
+    {
+      "route": "/api/design-briefs/(brief-[0-9a-f]{32})/lineage",
+      "method": "GET",
+      "kind": "SCHEMA_LESS",
+      "handler": "project_of_brief",
+      "reason": "No schema for the envelope: the id-scoped lineage read, same document as the project-scoped form, resolved through project_of_brief so a foreign id fails closed. Recorded debt."
+    },
+    {
+      "route": "/api/design-directions/(direction-[0-9a-f]{32})/lineage",
+      "method": "GET",
+      "kind": "SCHEMA_LESS",
+      "handler": "project_of_direction",
+      "reason": "No schema for the envelope: the id-scoped direction lineage read. Recorded debt."
+    },
+    {
+      "route": "/api/projects/([0-9a-f]{32})/design-system-tokens",
+      "method": "GET",
+      "kind": "SCHEMA_LESS",
+      "handler": "list_token_documents",
+      "reason": "No schema for the LIST envelope: src/design_lab/design_layer.py list_token_documents wraps per-system rows whose documents are individually bound by the write path below, but the envelope declares no schemaVersion. Recorded debt."
+    },
+    {
+      "route": "/api/projects/([0-9a-f]{32})/design-system-tokens/(<DESIGN_SYSTEM_NAME_PATTERN>)(/lineage)?",
+      "method": "GET",
+      "kind": "BOUND_SCHEMA",
+      "handler": "get_tokens",
+      "schema": "design-lab/schemas/interop-dtcg-document.schema.json",
+      "version": "2025.10",
+      "emitter": "src/design_lab/interop/dtcg.py:79",
+      "reason": "The token document this route returns is the stored DTCG document, which was validated against this schema before it was ever persisted (design_layer.py validate_token_document, src/design_lab/interop/dtcg.py:566)."
+    },
+    {
+      "route": "/api/projects/([0-9a-f]{32})",
+      "method": "GET",
+      "kind": "SCHEMA_LESS",
+      "handler": "get_project",
+      "reason": "No schema and none is needed: one project row from the project store wrapped as {'project': ...}. Recorded debt only if that envelope ever grows fields; today it is an identifier read."
+    },
+    {
+      "route": "/api/projects/([0-9a-f]{32})/tasks/(native-job-[0-9a-f]{64})/patch",
+      "method": "POST",
+      "kind": "SCHEMA_LESS",
+      "handler": "NativePatchSubmissions",
+      "emitter": "src/design_lab/adapters/illustrator_com.py:123",
+      "version": "design-lab/adobe-patch-job/v1",
+      "reason": "The request body carries a patch document declaring design-lab/adobe-patch-job/v1 or design-lab/photoshop-patch-job/v1 and there is NO SCHEMA for either: src/design_lab/adapters/illustrator_com.py:122-129 and src/design_lab/adapters/photoshop_com.py:121-128 enforce required-key sets and a schemaVersion equality by hand. That is a real check, but it is not this contract surface, and a new field shape would be judged only by hand-written sets. Recorded debt."
+    },
+    {
+      "route": "/api/projects/([0-9a-f]{32})/tasks/(native-job-[0-9a-f]{64})/run",
+      "method": "POST",
+      "kind": "SCHEMA_LESS",
+      "handler": "NativeWorkers",
+      "reason": "No schema and none is needed: the body is exactly one field (attempt_id), refused by the exact-key-set rule in http_service.py body(), and the response is a start verdict with no schemaVersion."
+    },
+    {
+      "route": "/api/projects/([0-9a-f]{32})/native-plans",
+      "method": "POST",
+      "kind": "SCHEMA_LESS",
+      "handler": "NativeSubmissions",
+      "emitter": "src/design_lab/adapters/photoshop_com.py:155",
+      "version": "design-lab/photoshop-native-job/v1",
+      "reason": "The job built from this submission declares design-lab/photoshop-native-job/v1 (src/design_lab/adapters/photoshop_com.py:155) and there is NO SCHEMA for it. The sibling Adobe vocabulary design-lab/adobe-host-job/v1 does have a file, design-lab/schemas/reconstruction/adobe-host-job.schema.json, but no src/ module loads it, so it validates nothing on this path -- the same declared-but-unread shape this ledger exists to name. Recorded debt."
+    },
+    {
+      "route": "/api/projects/([0-9a-f]{32})/tasks/(native-job-[0-9a-f]{64})/cancel",
+      "method": "POST",
+      "kind": "SCHEMA_LESS",
+      "handler": "TaskCommands",
+      "reason": "No schema and none is needed: body is one attempt_id field, response is the cancel/readback verdict enforced by the native task state machine in src/design_lab/native_tasks.py rather than by a payload document."
+    },
+    {
+      "route": "/api/projects/([0-9a-f]{32})/tasks/(native-job-[0-9a-f]{64})/bundle",
+      "method": "POST",
+      "kind": "BOUND_SCHEMA",
+      "handler": "NativeDelivery",
+      "schema": "design-lab/schemas/interop-delivery-receipt-v2.schema.json",
+      "version": "design-lab/delivery-receipt/v2",
+      "emitter": "src/design_lab/interop/delivery_receipt.py:36",
+      "reason": "The export writes a delivery receipt validated against this schema before it is persisted and re-verified on every read-back (src/design_lab/native_bundles.py:6, src/design_lab/native_delivery.py:51). Note this is v2: the contracts/delivery-receipt.schema.json v1 document in the same repository binds a shape nothing emits."
+    },
+    {
+      "route": "/api/projects/([0-9a-f]{32})/assets",
+      "method": "POST",
+      "kind": "SCHEMA_LESS",
+      "handler": "ImageAssets",
+      "reason": "No schema and none is needed: the body is exactly content_base64 plus idempotency_key, size- and content-type-pinned by http_service.py body(), and the response is an asset identifier record with no schemaVersion."
+    },
+    {
+      "route": "/api/projects/([0-9a-f]{32})/bundles/(bundle-native-[0-9a-f]{64})/preflight(?:\\?profile=(print|digital|video))?",
+      "method": "POST",
+      "kind": "BOUND_SCHEMA",
+      "handler": "preflight_bundle",
+      "schema": "design-lab/schemas/artifact-preflight.schema.json",
+      "version": "design-lab/artifact-preflight/v1",
+      "emitter": "src/design_lab/assurance/production_preflight.py:324",
+      "reason": "The precedent this ledger is modelled on: the artifact report declares design-lab/artifact-preflight/v1 and is checked against its schema over two real wire-serialised payloads by design-lab/scripts/verify_artifact_preflight_contract.py."
+    },
+    {
+      "route": "/api/projects/([0-9a-f]{32})/jury/verdict",
+      "method": "POST",
+      "kind": "BOUND_SCHEMA",
+      "handler": "JuryReview",
+      "schema": "design-lab/schemas/assurance-jury-record-v2.schema.json",
+      "version": "design-lab/assurance-jury-record/v2",
+      "emitter": "src/design_lab/assurance/human_jury.py:77",
+      "reason": "The body's exact key set is refused at the route and the record is validated against this schema before it is stored (src/design_lab/assurance/human_jury.py:185)."
+    },
+    {
+      "route": "/api/projects/([0-9a-f]{32})/jury/proposal",
+      "method": "POST",
+      "kind": "BOUND_SCHEMA",
+      "handler": "JuryReview",
+      "schema": "design-lab/schemas/assurance-jury-record-v2.schema.json",
+      "version": "design-lab/assurance-jury-record/v2",
+      "emitter": "src/design_lab/assurance/human_jury.py:77",
+      "reason": "An agent proposal is checked against the same contract, not merely its key set (src/design_lab/assurance/human_jury.py:330 _validate_proposal_schema)."
+    },
+    {
+      "route": "/api/projects/([0-9a-f]{32})/briefs",
+      "method": "POST",
+      "kind": "SCHEMA_LESS",
+      "handler": "create_brief",
+      "reason": "No schema: a brief is created from five exact body fields and persisted as design-layer rows; neither the request document nor the response envelope carries a schemaVersion, and design-lab/schemas/design-brief.schema.json is not loaded on this path. Recorded debt."
+    },
+    {
+      "route": "/api/projects/([0-9a-f]{32})/directions",
+      "method": "POST",
+      "kind": "SCHEMA_LESS",
+      "handler": "create_direction",
+      "reason": "No schema: same as the brief write -- six exact fields, rows in the design-layer tables, no schemaVersion on either side. Recorded debt."
+    },
+    {
+      "route": "/api/projects/([0-9a-f]{32})/directions/(direction-[0-9a-f]{32})/choose",
+      "method": "POST",
+      "kind": "SCHEMA_LESS",
+      "handler": "choose_direction",
+      "reason": "No schema: a human-gate decision recorded as an event row (actor/actor_kind/idempotency_key), enforced by EVENT_KINDS and the table CHECK in src/design_lab/design_layer.py rather than by a payload document."
+    },
+    {
+      "route": "/api/projects/([0-9a-f]{32})/directions/(direction-[0-9a-f]{32})/bind",
+      "method": "POST",
+      "kind": "SCHEMA_LESS",
+      "handler": "bind_design_system",
+      "reason": "No schema: a binding row plus event, validated by the catalog membership check in src/design_lab/design_layer.py. Recorded debt."
+    },
+    {
+      "route": "/api/projects/([0-9a-f]{32})/briefs/(brief-[0-9a-f]{32})/revisions",
+      "method": "POST",
+      "kind": "SCHEMA_LESS",
+      "handler": "revise_brief",
+      "reason": "No schema: the next immutable version of a brief, guarded by expected_version/superseded_by chain rules in src/design_lab/design_layer.py. Recorded debt."
+    },
+    {
+      "route": "/api/projects/([0-9a-f]{32})/directions/(direction-[0-9a-f]{32})/revisions",
+      "method": "POST",
+      "kind": "SCHEMA_LESS",
+      "handler": "revise_direction",
+      "reason": "No schema: the direction revision chain, same rules as the brief revision. Recorded debt."
+    },
+    {
+      "route": "/api/design-briefs/(brief-[0-9a-f]{32})/revisions",
+      "method": "POST",
+      "kind": "SCHEMA_LESS",
+      "handler": "revise_brief",
+      "reason": "No schema: the id-scoped form of the brief revision, which resolves the owner before writing so a foreign id cannot append. Recorded debt."
+    },
+    {
+      "route": "/api/design-directions/(direction-[0-9a-f]{32})/revisions",
+      "method": "POST",
+      "kind": "SCHEMA_LESS",
+      "handler": "revise_direction",
+      "reason": "No schema: the id-scoped form of the direction revision. Recorded debt."
+    },
+    {
+      "route": "/api/projects/([0-9a-f]{32})/design-system-tokens/(<DESIGN_SYSTEM_NAME_PATTERN>)",
+      "method": "POST",
+      "kind": "BOUND_SCHEMA",
+      "handler": "write_tokens",
+      "schema": "design-lab/schemas/interop-dtcg-document.schema.json",
+      "version": "2025.10",
+      "emitter": "src/design_lab/interop/dtcg.py:79",
+      "reason": "A submitted token document is validated against this schema plus the canonical semantic rules BEFORE anything is persisted, and the write fails closed when no validator is importable (src/design_lab/design_layer.py:253, src/design_lab/interop/dtcg.py:566)."
+    }
+  ]
+}

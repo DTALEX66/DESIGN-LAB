@@ -1,0 +1,453 @@
+#!/usr/bin/env python3
+# SPDX-License-Identifier: MIT
+"""DL-CONTRACT-BINDINGS: every declared contract is either honoured or named as inert.
+
+Why this gate exists. ``design-lab/schemas/contracts/`` holds 32 JSON Schemas and NONE of
+them is read at runtime: ``grep -rn "schemas/contracts" src/`` returns nothing, and the
+apparent hits in ``src/design_lab/`` are prose or version literals belonging to a different
+document (``interop/delivery_receipt.py`` loads the ROOT-level
+``interop-delivery-receipt-v2.schema.json``, not ``contracts/delivery-receipt.schema.json``).
+Enforcement was a synthetic-fixture test (``tests/test_contract_schema_integrity.py``) that
+invents its own instances, so the directory read as coverage while the product answered a
+different vocabulary. "Declared but unread" is the same false-green shape as a vocabulary
+nobody emits: a reader sees a schema and assumes a boundary is enforced.
+
+This gate does not pretend the directory is real. It records, per schema, whether a place in
+``src/`` produces or consumes that exact shape, and it re-checks that claim on every run --
+so a BINDING cannot rot into fiction and an INERT row cannot be laundered into "future work".
+
+What it enforces:
+
+1. COVERAGE -- every file in ``design-lab/schemas/contracts/`` has exactly one row in
+   ``design-lab/config/contract-bindings.json``. A new schema with no row is red
+   (UNLISTED_SCHEMA); a listed schema that vanished is red (SCHEMA_ROW_ABSENT); two rows for
+   one file is red (DUPLICATE_SCHEMA_ROW).
+2. BINDING TEETH -- a row may say BINDING only if it names ``path:line`` producers/consumers
+   in ``src/`` that still exist AND still contain the declared version string
+   (BINDING_ROTTEN). The row's version must equal the schema's ``schemaVersion`` const
+   (VERSION_DRIFT), so a one-sided bump is a finding, not an orphaned document.
+3. INERT HONESTY -- an INERT row must carry a reason, must name no instance
+   (INERT_ROW_HAS_INSTANCE: the schema is live, reclassify it), and must not phrase the truth
+   as pending work (INERT_REASON_EVASIVE).
+4. BOUNDARY COVERAGE -- every route ``src/design_lab/http_service.py`` dispatches on must
+   have exactly one ledger row. Each row names its handler symbol, which must still appear in
+   ``http_service.py`` (ROUTE_HANDLER_MISSING), and is either BOUND_SCHEMA -- a schema file
+   that exists, carries the version string, and an emitter in ``src/`` that still produces
+   that version -- or SCHEMA_LESS with a reason that says why nothing validates it. This is
+   the check that would have caught the artifact-preflight gap (commit 1ea64bbe: a payload
+   claiming ``design-lab/artifact-preflight/v1`` with no schema behind it).
+5. STALE IN EITHER DIRECTION -- a SCHEMA_LESS row whose payload declares a version for which
+   a schema now exists is red (SCHEMA_LESS_STALE): the ledger describes a debt someone has
+   already paid.
+6. NOTHING TO COMPARE IS A FAILURE. Zero schema files, zero ledger rows, zero routes found,
+   zero route rows, or zero BOUND_SCHEMA route rows are each red. A gate that matched nothing
+   must not report a pass.
+
+Usage:
+    python design-lab/scripts/verify_contract_bindings.py [--list-routes]
+Exit 0 when the ledger is true, 1 otherwise. The last line printed is
+``VERIFY_CONTRACT_BINDINGS=PASS|FAIL ...``.
+"""
+from __future__ import annotations
+
+import ast
+import json
+import re
+import sys
+from pathlib import Path
+
+REPO = Path(__file__).resolve().parents[2]
+CONTRACT_DIR = 'design-lab/schemas/contracts'
+LEDGER_REL = 'design-lab/config/contract-bindings.json'
+HTTP_REL = 'src/design_lab/http_service.py'
+SCHEMA_ROOT = 'design-lab/schemas'
+
+BINDING = 'BINDING'
+INERT = 'INERT'
+STATUSES = (BINDING, INERT)
+
+BOUND_SCHEMA = 'BOUND_SCHEMA'
+SCHEMA_LESS = 'SCHEMA_LESS'
+ROUTE_KINDS = (BOUND_SCHEMA, SCHEMA_LESS)
+
+# An INERT row that says one of these is not reporting the truth it was asked to report.
+EVASIVE = ('future work', 'roadmap', 'planned', 'to be implemented', 'will be implemented',
+           'will implement', 'not yet', 'eventually', 'todo', 'for now', 'later')
+
+# A SCHEMA_LESS row whose payload still declares a version must say so in plain words.
+DEBT_PHRASES = ('no schema', 'nothing validates', 'never validated', 'unvalidated')
+
+
+def declared_version(schema_doc) -> str | None:
+    """The version a schema binds: its ``schemaVersion`` const, or its $id if it is a version."""
+    const = ((schema_doc.get('properties') or {}).get('schemaVersion') or {}).get('const')
+    if isinstance(const, str):
+        return const
+    ident = schema_doc.get('$id')
+    return ident if isinstance(ident, str) and '/v' in ident else None
+
+
+def schema_version_index(root: Path) -> dict[str, list[str]]:
+    """version -> schema files declaring it, so a paid-off debt cannot stay listed as unpaid."""
+    index: dict[str, list[str]] = {}
+    for path in sorted(root.rglob('*.json')):
+        if 'contracts' in path.parts:
+            continue
+        try:
+            doc = json.loads(path.read_text(encoding='utf-8'))
+        except (OSError, ValueError):
+            continue
+        if not isinstance(doc, dict):
+            continue
+        version = declared_version(doc)
+        if version:
+            index.setdefault(version, []).append(path.relative_to(root.parent).as_posix())
+        # A schema may bind the version as an enum member or bare literal rather than a const.
+        text = path.read_text(encoding='utf-8', errors='ignore')
+        for token in set(WORD_VERSIONS.findall(text)):
+            index.setdefault(token, [])
+            if path.relative_to(root.parent).as_posix() not in index[token]:
+                index[token].append(path.relative_to(root.parent).as_posix())
+    return index
+
+
+WORD_VERSIONS = re.compile(r'"(design-lab/[a-z0-9-]+/v[0-9]+)"')
+
+
+def route_tokens(path: Path) -> list[tuple[str, int]]:
+    """Every path this dispatcher matches on, as (key, line).
+
+    Parsed from the AST rather than a regex over the source: the patterns are written as
+    adjacent string literals concatenated across lines with ``+ NAME +`` continuations, and a
+    text regex either merges two routes or splits one. A Name in a concatenation is rendered
+    ``<NAME>`` so the key stays stable when the referenced constant's value changes.
+    """
+    tree = ast.parse(path.read_text(encoding='utf-8'), filename=str(path))
+    found: list[tuple[str, int]] = []
+
+    def literalise(node) -> str | None:
+        if isinstance(node, ast.Constant) and isinstance(node.value, str):
+            return node.value
+        if isinstance(node, ast.JoinedStr):
+            return None
+        if isinstance(node, ast.Name):
+            return f'<{node.id}>'
+        if isinstance(node, ast.BinOp) and isinstance(node.op, ast.Add):
+            left, right = literalise(node.left), literalise(node.right)
+            if left is not None and right is not None:
+                return left + right
+        return None
+
+    for node in ast.walk(tree):
+        if (isinstance(node, ast.Call) and isinstance(node.func, ast.Attribute)
+                and node.func.attr == 'fullmatch' and len(node.args) >= 2):
+            pattern, target = literalise(node.args[0]), node.args[1]
+            if pattern and pattern.startswith('/') and isinstance(target, ast.Attribute) \
+                    and target.attr == 'path':
+                found.append((pattern, node.lineno))
+        if isinstance(node, ast.Compare) and len(node.ops) == 1:
+            op, comparator = node.ops[0], node.comparators[0]
+            if isinstance(comparator, ast.Constant) and isinstance(comparator.value, str) \
+                    and _is_self_path(node.left):
+                if isinstance(op, ast.Eq):
+                    found.append((comparator.value, node.lineno))
+        if isinstance(node, ast.Compare) and len(node.ops) == 1 and isinstance(node.ops[0], ast.In) \
+                and _is_self_path(node.left) and isinstance(node.comparators[0], ast.Attribute) \
+                and node.comparators[0].attr == 'ROUTES':
+            found.append(('workbench.ROUTES', node.lineno))
+    return found
+
+
+def _is_self_path(node) -> bool:
+    """``self.path`` or ``urlsplit(self.path).path`` -- both forms are dispatched on."""
+    if isinstance(node, ast.Attribute) and node.attr == 'path':
+        value = node.value
+        if isinstance(value, ast.Name) and value.id == 'self':
+            return True
+        if isinstance(value, ast.Call) and isinstance(value.func, ast.Name) \
+                and value.func.id == 'urlsplit':
+            inner = value.args[0] if value.args else None
+            return isinstance(inner, ast.Attribute) and inner.attr == 'path'
+    return False
+
+
+def version_literals(path: Path, version: str) -> int:
+    """How many times this source handles the version string ITSELF, not mentions it.
+
+    The artifact-preflight gate counts quoted literals; this counts AST string constants
+    whose value is exactly the version. The difference matters: ``production_preflight.py``
+    carries the version in prose inside a docstring as well as in the emitted dict, and a
+    substring test would call a docstring a producer. A docstring is one long Constant, so it
+    cannot pass; ``{'schemaVersion': 'design-lab/x/v1'}``, ``x == 'design-lab/x/v1'`` and
+    ``SCHEMA_VERSION = 'design-lab/x/v1'`` all do. A file that no longer assigns or compares
+    the version is a rotted binding, which is what this gate is for.
+    """
+    text = path.read_text(encoding='utf-8', errors='ignore')
+    try:
+        tree = ast.parse(text, filename=str(path))
+    except SyntaxError:
+        return text.count(f"'{version}'") + text.count(f'"{version}"')
+    return sum(1 for node in ast.walk(tree)
+               if isinstance(node, ast.Constant) and node.value == version)
+
+
+def instance_path(ref: str) -> str:
+    """`path:line` or `path:line note` -> `path`."""
+    return ref.split(':', 1)[0].strip()
+
+
+def check_contract_rows(repo: Path, rows, absent=frozenset()) -> tuple[list[str], dict]:
+    errors, notes = [], []
+    counted = {'BINDING': 0, 'INERT': 0}
+    for row in rows:
+        rel = row.get('schema') or ''
+        status = row.get('status')
+        label = Path(rel).name or '<no schema path>'
+        if status not in STATUSES:
+            errors.append(f'{label}: BAD_STATUS {status!r} -- a row is either BINDING or INERT')
+            continue
+        counted[status] += 1
+        path = repo / rel
+        if not path.is_file():
+            # The coverage pass already convicted this row once; a second red line for the same
+            # defect would make "exactly N reds" meaningless.
+            if rel not in absent:
+                errors.append(f'{label}: SCHEMA_ROW_ABSENT {rel} -- listed in the ledger, not on disk')
+            continue
+        try:
+            doc = json.loads(path.read_text(encoding='utf-8'))
+        except ValueError as exc:
+            errors.append(f'{label}: SCHEMA_ROW_ABSENT {rel} is not readable JSON: {exc}')
+            continue
+        declared = declared_version(doc)
+        stated = row.get('version')
+        if declared and stated != declared:
+            errors.append(f'{label}: VERSION_DRIFT the schema binds {declared!r} but the ledger '
+                          f'row says {stated!r}')
+            continue
+        instances = row.get('instances') or []
+        tests = row.get('tests') or []
+        for ref in tests:
+            test_path = repo / instance_path(ref)
+            if not test_path.is_file():
+                errors.append(f'{label}: TEST_ROW_STALE {ref} -- the test that was said to '
+                              'exercise this schema is gone')
+        reason = (row.get('reason') or '').strip()
+        if status == BINDING:
+            if not instances:
+                errors.append(f'{label}: BINDING_WITHOUT_INSTANCE -- a BINDING row must name a '
+                              'src/ producer or consumer of this exact shape')
+                continue
+            live = 0
+            for ref in instances:
+                target = repo / instance_path(ref)
+                if not target.is_file():
+                    errors.append(f'{label}: BINDING_ROTTEN {ref} -- the named file no longer exists')
+                    continue
+                if not version_literals(target, stated):
+                    errors.append(f'{label}: BINDING_ROTTEN {ref} -- the named file no longer '
+                                  f'carries {stated!r} as a value it produces or compares; a '
+                                  'prose mention is not a binding')
+                    continue
+                live += 1
+            notes.append(f'{label}: BINDING instances={live} of {len(instances)} tests={len(tests)}')
+        else:
+            if instances:
+                errors.append(f'{label}: INERT_ROW_HAS_INSTANCE -- the row says INERT but names '
+                              f'{instances[0]!r}; an implemented schema must be BINDING')
+            if not reason:
+                errors.append(f'{label}: INERT_REASON_MISSING -- an INERT row must say what is '
+                              'actually true about it')
+            else:
+                lowered = reason.lower()
+                hit = [word for word in EVASIVE if word in lowered]
+                if hit:
+                    errors.append(f'{label}: INERT_REASON_EVASIVE {hit} -- nothing implements '
+                                  'this; say that instead of describing it as pending')
+                notes.append(f'{label}: INERT')
+    return errors, counted, notes
+
+
+def check_route_rows(repo: Path, rows, http_text: str, index) -> tuple[list[str], dict]:
+    errors, notes = [], []
+    counted = {BOUND_SCHEMA: 0, SCHEMA_LESS: 0}
+    for row in rows:
+        route = row.get('route') or '<no route>'
+        kind = row.get('kind')
+        if kind not in ROUTE_KINDS:
+            errors.append(f'{route}: BAD_ROUTE_KIND {kind!r} -- BOUND_SCHEMA or SCHEMA_LESS')
+            continue
+        counted[kind] += 1
+        handler = row.get('handler') or ''
+        if handler and handler not in http_text:
+            errors.append(f'{route}: ROUTE_HANDLER_MISSING {handler} no longer appears in '
+                          f'{HTTP_REL} -- the row describes a dispatcher that is not there')
+        marker = row.get('marker')
+        if marker and marker not in http_text:
+            errors.append(f'{route}: ROUTE_MARKER_MISSING {marker!r} is not sent by {HTTP_REL}')
+        version = row.get('version')
+        emitter = row.get('emitter')
+        reason = (row.get('reason') or '').strip()
+        if kind == BOUND_SCHEMA:
+            if not (version and emitter and row.get('schema')):
+                errors.append(f'{route}: BAD_ROUTE_KIND -- a BOUND_SCHEMA row must name schema, '
+                              'version and emitter')
+                continue
+            schema_path = repo / row['schema']
+            if not schema_path.is_file():
+                errors.append(f'{route}: ROUTE_SCHEMA_ABSENT {row["schema"]} does not exist')
+                continue
+            text = schema_path.read_text(encoding='utf-8', errors='ignore')
+            if version not in text:
+                errors.append(f'{route}: ROUTE_VERSION_UNBOUND {schema_path.name} does not carry '
+                              f'{version!r} -- the row binds a schema that does not bind it')
+            else:
+                try:
+                    const = declared_version(json.loads(text))
+                except ValueError:
+                    const = None
+                if const and const != version:
+                    errors.append(f'{route}: ROUTE_VERSION_UNBOUND {schema_path.name} binds '
+                                  f'{const!r}, not the {version!r} the row claims')
+            target = repo / instance_path(emitter)
+            if not target.is_file():
+                errors.append(f'{route}: ROUTE_EMITTER_MISSING {emitter} does not exist')
+            elif not version_literals(target, version):
+                errors.append(f'{route}: ROUTE_EMITTER_MISSING {emitter} no longer carries '
+                              f'{version!r} as a value it produces or compares -- one side '
+                              'moved and the row rotted')
+            notes.append(f'{route}: BOUND_SCHEMA {version} by {Path(instance_path(emitter)).name}')
+        else:
+            if not reason:
+                errors.append(f'{route}: SCHEMA_LESS_WITHOUT_REASON -- a route with no schema '
+                              'must say why nothing validates its payload')
+            if version:
+                holders = index.get(version) or []
+                if holders:
+                    errors.append(f'{route}: SCHEMA_LESS_STALE {version} is declared by '
+                                  f'{holders[0]} -- this row reports unpaid debt that has been paid')
+                elif not any(phrase in reason.lower() for phrase in DEBT_PHRASES):
+                    errors.append(f'{route}: SCHEMA_LESS_WITHOUT_REASON -- the payload declares '
+                                  f'{version!r} but no schema exists; the reason must state that '
+                                  'plainly instead of describing the route as unremarkable')
+                else:
+                    notes.append(f'{route}: SCHEMA_LESS debt {version}')
+            else:
+                notes.append(f'{route}: SCHEMA_LESS')
+    return errors, counted, notes
+
+
+def run(repo: Path = REPO, ledger_path: Path | None = None) -> tuple[list[str], list[str], dict]:
+    """Return (errors, notes, summary). Errors empty means the ledger is true."""
+    repo = Path(repo)
+    ledger_file = Path(ledger_path) if ledger_path else repo / LEDGER_REL
+    errors: list[str] = []
+    notes: list[str] = []
+
+    files = sorted((repo / CONTRACT_DIR).glob('*.json'))
+    if not files:
+        return ([f'NOTHING_TO_COMPARE: no schema exists under {CONTRACT_DIR} -- the gate found '
+                 'nothing to account for'], [], {'schemas': 0})
+    if not ledger_file.is_file():
+        return ([f'NOTHING_TO_COMPARE: {ledger_file.name} does not exist, so none of the '
+                 f'{len(files)} declared contracts is accounted for'], [],
+                {'schemas': len(files)})
+    try:
+        ledger = json.loads(ledger_file.read_text(encoding='utf-8'))
+    except ValueError as exc:
+        return ([f'NOTHING_TO_COMPARE: {ledger_file.name} is not readable JSON: {exc}'], [],
+                {'schemas': len(files)})
+
+    contract_rows = ledger.get('contracts') or []
+    route_rows = ledger.get('routes') or []
+    if not contract_rows:
+        errors.append('NOTHING_TO_COMPARE: the ledger declares no contract rows at all')
+    if not route_rows:
+        errors.append('NOTHING_TO_COMPARE: the ledger declares no route rows at all')
+
+    listed = [row.get('schema') for row in contract_rows]
+    seen: set[str] = set()
+    for rel in listed:
+        if rel in seen:
+            errors.append(f'DUPLICATE_SCHEMA_ROW {rel} is listed twice -- one row per schema')
+        seen.add(rel)
+    expected = {(repo / CONTRACT_DIR / p.name).relative_to(repo).as_posix() for p in files}
+    for missing in sorted(expected - seen):
+        errors.append(f'UNLISTED_SCHEMA {missing} exists on disk with no ledger row -- '
+                      'a reader would assume it is enforced')
+    for extra in sorted(seen - expected):
+        errors.append(f'SCHEMA_ROW_ABSENT {extra} is listed but no longer on disk')
+
+    row_errors, counts, row_notes = check_contract_rows(repo, contract_rows, seen - expected)
+    errors.extend(row_errors)
+    notes.extend(row_notes)
+
+    http_path = repo / HTTP_REL
+    if not http_path.is_file():
+        errors.append(f'NOTHING_TO_COMPARE: {HTTP_REL} does not exist, so the boundary set '
+                      'could not be read')
+        return (errors, notes, {'schemas': len(files), 'binding': counts[BINDING],
+                               'inert': counts[INERT], 'routes': 0, 'bound': 0})
+    http_text = http_path.read_text(encoding='utf-8')
+    try:
+        tokens = route_tokens(http_path)
+    except SyntaxError as exc:
+        errors.append(f'NOTHING_TO_COMPARE: {HTTP_REL} does not parse: {exc}')
+        tokens = []
+    if not tokens:
+        errors.append(f'NOTHING_TO_COMPARE: no route was found in {HTTP_REL} -- the boundary '
+                      'ledger proved nothing')
+
+    route_keys = [row.get('route') for row in route_rows]
+    route_seen: set[str] = set()
+    for key in route_keys:
+        if key in route_seen:
+            errors.append(f'DUPLICATE_ROUTE_ROW {key} is listed twice')
+        route_seen.add(key)
+    token_keys = {key for key, _ in tokens}
+    for key in sorted(token_keys - route_seen):
+        errors.append(f'UNLISTED_ROUTE {key} is dispatched by {HTTP_REL} but has no ledger row '
+                      '-- a payload can cross the boundary unvalidated')
+    for key in sorted(route_seen - token_keys):
+        errors.append(f'ROUTE_ROW_ABSENT {key} is listed but {HTTP_REL} no longer dispatches it')
+
+    index = schema_version_index(repo / SCHEMA_ROOT)
+    route_errors, route_counts, route_notes = check_route_rows(repo, route_rows, http_text, index)
+    errors.extend(route_errors)
+    notes.extend(route_notes)
+
+    if route_rows and route_counts[BOUND_SCHEMA] == 0:
+        errors.append('NOTHING_TO_COMPARE: no route row is BOUND_SCHEMA -- a boundary ledger in '
+                      'which nothing is actually validated proves nothing')
+
+    summary = {'schemas': len(files), 'binding': counts[BINDING], 'inert': counts[INERT],
+               'routes': len(route_rows), 'dispatched': len(tokens),
+               'bound': route_counts[BOUND_SCHEMA], 'schema_less': route_counts[SCHEMA_LESS]}
+    return errors, notes, summary
+
+
+def main(argv=None) -> int:
+    argv = list(sys.argv[1:] if argv is None else argv)
+    repo = REPO
+    if '--list-routes' in argv:
+        for key, line in route_tokens(repo / HTTP_REL):
+            print(f'{line:>4}  {key}')
+        return 0
+    errors, notes, summary = run(repo)
+    for note in notes:
+        print('  checked', note)
+    for error in errors:
+        print('ERROR:', error)
+    # The verdict is the LAST line and starts with VERIFY_ on purpose:
+    # design-lab/scripts/verify_design_lab.py scans its output from the end for a line starting
+    # with VERIFY_ (or PASS/FAIL/EVIDENCE_) to summarise each gate, and a verdict printed first
+    # among 80 detail lines shows up as no verdict at all.
+    print(f'VERIFY_CONTRACT_BINDINGS={"FAIL" if errors else "PASS"} schemas={summary["schemas"]} '
+          f'binding={summary["binding"]} inert={summary["inert"]} '
+          f'routes={summary.get("routes", 0)} dispatched={summary.get("dispatched", 0)} '
+          f'bound={summary.get("bound", 0)} schema_less={summary.get("schema_less", 0)}')
+    return 1 if errors else 0
+
+
+if __name__ == '__main__':
+    raise SystemExit(main())
