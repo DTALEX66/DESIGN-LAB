@@ -53,15 +53,15 @@ def main(argv=None):
                                 'connecting the launched page automatically')
     worker = commands.add_parser('native-worker', help='execute one persisted approved native attempt')
     worker.add_argument('--attempt', required=True)
-    recovery = commands.add_parser(
+    recovery_command = commands.add_parser(
         'native-recovery',
         help='list persisted native attempts whose outcome is unknown; decide one only with '
              'explicit operator authorization')
-    recovery.add_argument('--attempt', default=None,
+    recovery_command.add_argument('--attempt', default=None,
                           help='unresolved attempt to decide; omit to list without acting')
-    recovery.add_argument('--actor', default=None,
+    recovery_command.add_argument('--actor', default=None,
                          help='operator identity recorded on the decision (required with --attempt)')
-    recovery.add_argument('--receipt', default=None,
+    recovery_command.add_argument('--receipt', default=None,
                          help='the operator statement authorizing this decision (required with --attempt)')
     trail = commands.add_parser(
         'audit-trail',
@@ -130,7 +130,7 @@ def main(argv=None):
                 print(json.dumps({'status': 'LISTENING', 'url': url,
                                   'port': httpd.server_port,
                                   'reconciled_attempts': len(reconciled),
-                                  'recovery': recovery,
+                                  'recovery': recovery_summary,
                                   **({'token': token,
                                       'token_ttl': 'until this process exits'}
                                      if args.manual_connect
