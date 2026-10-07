@@ -88,13 +88,29 @@ const dropSession = (): void => {
 };
 
 export async function api<T>(path: string, body?: Record<string, unknown>): Promise<T> {
-  const response = await fetch('/api' + path, {
-    method: body ? 'POST' : 'GET',
-    headers: { Authorization: 'Bearer ' + token, ...(body ? { 'Content-Type': 'application/json' } : {}) },
-    ...(body ? { body: JSON.stringify(body) } : {}),
-    cache: 'no-store',
-  });
-  const value = (await response.json()) as { error?: string } & Record<string, unknown>;
+  let response: Response;
+  try {
+    response = await fetch('/api' + path, {
+      method: body ? 'POST' : 'GET',
+      headers: { Authorization: 'Bearer ' + token, ...(body ? { 'Content-Type': 'application/json' } : {}) },
+      ...(body ? { body: JSON.stringify(body) } : {}),
+      cache: 'no-store',
+    });
+  } catch (error) {
+    // The request never got an answer. Unwrapped, this reaches the page as the browser's
+    // own "Failed to fetch", which is indistinguishable from a view bug and tells the
+    // operator nothing to do. Name what is unreachable, keep the browser's reason.
+    throw new Error(`无法连接本机设计服务（${errMsg(error)}）`);
+  }
+  let value: { error?: string } & Record<string, unknown>;
+  try {
+    value = (await response.json()) as { error?: string } & Record<string, unknown>;
+  } catch (error) {
+    // A reply that is not JSON is a different failure from an unreachable service -- most
+    // often something in front of the workbench answered instead of the workbench -- and
+    // the status code is the only clue worth preserving.
+    throw new Error(`服务回复无法解析（HTTP ${response.status}，${errMsg(error)}）`);
+  }
   if (response.status === 401) dropSession();
   if (!response.ok) throw new Error(value.error || 'SERVICE_ERROR');
   return value as T;

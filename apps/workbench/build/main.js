@@ -473,13 +473,23 @@ const dropSession = () => {
   if (badge) badge.textContent = "未连接";
 };
 async function api(path, body) {
-  const response = await fetch("/api" + path, {
-    method: body ? "POST" : "GET",
-    headers: { Authorization: "Bearer " + token, ...body ? { "Content-Type": "application/json" } : {} },
-    ...body ? { body: JSON.stringify(body) } : {},
-    cache: "no-store"
-  });
-  const value = await response.json();
+  let response;
+  try {
+    response = await fetch("/api" + path, {
+      method: body ? "POST" : "GET",
+      headers: { Authorization: "Bearer " + token, ...body ? { "Content-Type": "application/json" } : {} },
+      ...body ? { body: JSON.stringify(body) } : {},
+      cache: "no-store"
+    });
+  } catch (error) {
+    throw new Error(`无法连接本机设计服务（${errMsg(error)}）`);
+  }
+  let value;
+  try {
+    value = await response.json();
+  } catch (error) {
+    throw new Error(`服务回复无法解析（HTTP ${response.status}，${errMsg(error)}）`);
+  }
   if (response.status === 401) dropSession();
   if (!response.ok) throw new Error(value.error || "SERVICE_ERROR");
   return value;
