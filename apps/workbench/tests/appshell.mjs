@@ -160,4 +160,36 @@ await flush();
 if (!shell.elements.get('route-view').textContent.includes('仪表盘'))
   throw new Error('当前 dashboard 请求完成后必须提交当前视图');
 
+// State ⑤ of the UI state matrix, both directions.
+// (a) A 200 response that omits a collection must degrade visibly: the page still
+//     renders, and it says the field was missing rather than showing 尚无项目 as if the
+//     server had answered zero. Before the fix this threw at data.projects.length and
+//     the top-level catch replaced the whole view with a TypeError message.
+shell.window.location.hash = '#/projects';
+shell.dispatchHashchange();
+const malformedProjects = shell.pending.shift();
+malformedProjects.resolve(response({}));
+await flush();
+const malformedText = shell.elements.get('route-view').textContent;
+if (!malformedText.includes('未读回：响应缺少 projects'))
+  throw new Error('响应缺少集合时必须说明未读回，而不是渲染成"尚无项目"');
+if (malformedText.includes('视图读回失败'))
+  throw new Error('缺少一个集合不得让整页读回失败');
+
+// (b) A well-formed response must NOT carry the notice — otherwise the guard is just
+//     noise and the (a) assertion proves nothing.
+shell.window.location.hash = '#/dashboard';
+shell.dispatchHashchange();
+shell.pending.splice(0, 4);   // the dashboard's own reads, left unresolved on purpose
+shell.window.location.hash = '#/projects';
+shell.dispatchHashchange();
+const goodProjects = shell.pending.shift();
+goodProjects.resolve(response({ projects: [{ id: 'p1', name: 'Alpha' }] }));
+await flush();
+const goodText = shell.elements.get('route-view').textContent;
+if (goodText.includes('未读回：响应缺少'))
+  throw new Error('形状完整的响应不得出现形状告警');
+if (!goodText.includes('Alpha'))
+  throw new Error('形状完整的响应必须照常渲染');
+
 console.log('APPSHELL REGRESSION: all checks passed');
