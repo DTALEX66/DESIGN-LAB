@@ -91,12 +91,36 @@ class WorkbenchLaunchTests(unittest.TestCase):
                 time.sleep(0.2)
         self.fail('service never became healthy: ' + base)
 
+    def _session_token(self, announcement):
+        """Get the token the way the launched page does, and prove it was not printed.
+
+        These tests used to read `announcement['token']`. That assertion could only
+        ever pass while the launcher kept leaking the credential into stdout, so it
+        was silently protecting the old behaviour. The handshake is now the product
+        path: an empty announcement is the requirement, and the same-origin session
+        endpoint is where a token comes from.
+        """
+        self.assertNotIn('token', announcement,
+                         'the official launcher must not print a credential')
+        self.assertEqual(announcement.get('connection'), 'automatic')
+        base = announcement['url'].rsplit('/workbench', 1)[0]
+        request = urllib.request.Request(base + '/api/local-session', method='GET')
+        # urllib sends no Sec-Fetch-Site, which is the shape a plain local client
+        # forges, so this has to be refused first before the browser-shaped retry.
+        with self.assertRaises(urllib.error.HTTPError) as refused:
+            urllib.request.urlopen(request, timeout=15)
+        self.assertEqual(refused.exception.code, 403)
+        request.add_header('Sec-Fetch-Site', 'same-origin')
+        with urllib.request.urlopen(request, timeout=15) as response:
+            token = json.loads(response.read())['token']
+        self.assertRegex(token, r'^[0-9a-f]{64}$')
+        return token
+
     def test_single_command_serves_the_committed_workbench(self):
         _, announcement = self._start(self._root())
         self.assertEqual(announcement['status'], 'LISTENING')
-        self.assertRegex(announcement['token'], r'^[0-9a-f]{64}$')
         base = announcement['url'].rsplit('/workbench', 1)[0]
-        token = announcement['token']
+        token = self._session_token(announcement)
 
         status, headers, html = self._request(base, '/workbench')
         self.assertEqual(status, 200)
@@ -119,7 +143,8 @@ class WorkbenchLaunchTests(unittest.TestCase):
     def test_project_data_survives_a_full_process_restart(self):
         root = self._root()
         handle, first = self._start(root)
-        base, token = first['url'].rsplit('/workbench', 1)[0], first['token']
+        base = first['url'].rsplit('/workbench', 1)[0]
+        token = self._session_token(first)
         self._wait_for_health(base, token)
         _, _, created = self._request(
             base, '/api/projects', token,
@@ -128,7 +153,8 @@ class WorkbenchLaunchTests(unittest.TestCase):
 
         self._stop(handle)
         _, second = self._start(root)
-        base2, token2 = second['url'].rsplit('/workbench', 1)[0], second['token']
+        base2 = second['url'].rsplit('/workbench', 1)[0]
+        token2 = self._session_token(second)
         self._wait_for_health(base2, token2)
         status, _, body = self._request(base2, '/api/projects', token2)
         self.assertEqual(status, 200)
@@ -147,6 +173,34 @@ class WorkbenchLaunchTests(unittest.TestCase):
         if not packaged.is_file():
             self.skipTest('source checkout: no packaged workbench resource to verify')
         self.assertEqual(packaged.read_bytes(), BUNDLE.read_bytes())
+
+        # Same proof for the capability library, which the wheel used not to ship:
+        # it resolved its four inputs from three directories above its own file,
+        # which in an installed build is `<venv>/Lib`, so `/api/capabilities` could
+        # only ever raise there. Comparing the installed projection against the one
+        # built from the repository is what says the archive carries the real
+        # inventory rather than an empty list that happens to render.
+        from design_lab.analysis.capability_library import build
+        from_installed = build()
+        from_repository = build(REPO)
+        # Same proof for the capability library, which the wheel used not to ship:
+        # it resolved its four inputs from three directories above its own file,
+        # which in an installed build is `<venv>/Lib`, so `/api/capabilities` could
+        # only ever raise there. Comparing the installed projection against the one
+        # built from the repository is what says the archive carries the real
+        # inventory rather than an empty list that happens to render.
+        from design_lab.analysis.capability_library import build
+        from_installed = build()
+        from_repository = build(REPO)
+        self.assertEqual(from_installed['counts'], from_repository['counts'],
+                         'the installed library reports different totals than the '
+                         'repository inputs it is supposed to be carrying')
+        self.assertEqual(from_installed['capabilities'], from_repository['capabilities'],
+                         'an installed library must answer with the same records, not '
+                         'a shorter list that still renders as a populated page')
+        self.assertGreater(from_installed['counts']['total'], 0,
+                           'an empty projection would satisfy equality only against '
+                           'another empty one')
 
 
 if __name__ == '__main__':
