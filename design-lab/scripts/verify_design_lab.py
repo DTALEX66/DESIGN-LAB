@@ -70,6 +70,12 @@ SCRIPTS = [
     # where every other ledger gate runs instead of living in a doc nobody executes.
     "verify_contract_bindings.py",
     "verify_route_payload_contracts.py",
+    # 2026-10-08: the RIGHTS gate had a 74-subject requirements list, a hand-written band
+    # table claiming to classify it, and a `counts` block nothing recomputed. An unclassified
+    # licence state fell into a WARNING, so `READY_FOR_HANDOFF` was reachable over a position
+    # nobody had ruled on. The band is now fail-closed and this re-checks the table against
+    # the file, recomputes the summary, and resolves every cited provenance path.
+    "verify_rights_registry.py",
     "verify_experience_corpus.py",
     "verify_design_actions.py",
     "verify_tool_action_plan.py",

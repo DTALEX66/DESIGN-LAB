@@ -9,9 +9,12 @@ decision. It creates no parallel quality truth:
   ``QualityRecord`` via :func:`design_lab.assurance.quality_record.
   final_gate_of` (the record is validated by the record module, so an
   automated judge can never reach the gate here either);
-* the rights field vocabulary is the frozen ``rights-registry.json`` set
-  (``FORBIDDEN`` / ``NOT_ADJUDICATED`` / ``ADJUDICATED`` /
-  ``PERSONAL_RESEARCH_NONCOMMERCIAL_ONLY`` / ``NO_THIRD_PARTY_DISTRIBUTION``);
+* the rights bands below are THIS module's classification of the state values that
+  ``design-lab/config/rights-registry.json`` actually records, not a copy of a list the
+  registry publishes: the file states values, and only a policy can say which of them block
+  a handoff. ``design-lab/scripts/verify_rights_readiness_bands.py`` binds the classification
+  to the file it claims to classify -- every value present in the registry must fall in one
+  band, or the gate goes red instead of the combiner quietly reclassifying it;
 * the preflight shape is ``preflight.schema.json`` (``result.status`` +
   ``required_checks[].severity`` + per-check status);
 * the handoff shape is ``design-handoff.schema.json`` (artifacts, assets,
@@ -35,14 +38,18 @@ from typing import Any, Mapping
 
 from design_lab.assurance import quality_record
 
-# -- frozen rights vocabulary (design-lab/config/rights-registry.json) ------
+# -- rights state bands: see the module docstring, bound by
+#    design-lab/scripts/verify_rights_readiness_bands.py ------------------
 _RIGHTS_BLOCKING = ("FORBIDDEN", "NOT_ADJUDICATED")
 _RIGHTS_RESTRICTING = (
     "PERSONAL_RESEARCH_NONCOMMERCIAL_ONLY",
     "NO_THIRD_PARTY_DISTRIBUTION",
 )
 _RIGHTS_CLEAN = ("ADJUDICATED",)
-_RIGHTS_FIELDS = ("use_restriction", "output_restriction", "redistribution")
+#: The four fields a subject's licence position is recorded in. `territory.state` is nested,
+#: so it is named here as the read-back path rather than as a flat key.
+RIGHTS_FIELDS = ("territory.state", "use_restriction", "output_restriction",
+                 "redistribution")
 
 # severities that a failing preflight check maps to
 _BLOCKING_SEVERITY = "blocker"
@@ -77,30 +84,57 @@ def _quality_gates(quality: Mapping[str, Any]) -> tuple[list, list, list, Mappin
     return blockers, warnings, info, document
 
 
+def _state_of(entry: Mapping[str, Any], field: str) -> Any:
+    """The recorded value of one rights field, reading `territory.state` through its path."""
+    if field == "territory.state":
+        return (entry.get("territory") or {}).get("state")
+    return entry.get(field)
+
+
+def rights_band(state: Any) -> str:
+    """Which band a recorded rights state falls in: BLOCKER / WARNING / ABSENT / UNCLASSIFIED.
+
+    One function owns the classification so a caller, a route and this combiner cannot each
+    answer "does this licence state block a handoff" with a different rule.
+    """
+    if state is None:
+        return "ABSENT"
+    if state in _RIGHTS_BLOCKING:
+        return "BLOCKER"
+    if state in _RIGHTS_RESTRICTING:
+        return "WARNING"
+    if state in _RIGHTS_CLEAN:
+        return "CLEAN"
+    return "UNCLASSIFIED"
+
+
 def _rights_gates(rights_entries: list[Mapping[str, Any]]) -> tuple[list, list, list]:
     blockers, warnings, info = [], [], []
     for entry in rights_entries:
         subject = str(entry.get("subject_id", "<unspecified>"))
-        states = {
-            "territory.state": (entry.get("territory") or {}).get("state"),
-            "use_restriction": entry.get("use_restriction"),
-            "output_restriction": entry.get("output_restriction"),
-            "redistribution": entry.get("redistribution"),
-        }
+        states = {field: _state_of(entry, field) for field in RIGHTS_FIELDS}
         for field, state in states.items():
-            if state is None:
+            band = rights_band(state)
+            if band == "ABSENT":
                 # a rights field the registry did not record -- the registry
                 # never guesses a legal position, so an absence is not clean
                 warnings.append(f"rights:{subject}:{field}=ABSENT (registry recorded no value)")
-            elif state in _RIGHTS_BLOCKING:
+            elif band == "BLOCKER":
                 blockers.append(f"rights:{subject}:{field}={state}")
-            elif state in _RIGHTS_RESTRICTING:
+            elif band == "WARNING":
                 warnings.append(f"rights:{subject}:{field}={state}")
-            elif state in _RIGHTS_CLEAN:
+            elif band == "CLEAN":
                 info.append(f"rights:{subject}:{field}=ADJUDICATED")
             else:
-                # an unrecognised state must never silently read as clean
-                warnings.append(f"rights:{subject}:{field}={state!r} (unrecognised state)")
+                # Fail closed. A state this module does not classify is a licence position
+                # nobody has ruled on, and `READY_FOR_HANDOFF` means "not a single blocker".
+                # A warning would let a new registry value -- `LITIGATION_HOLD`, a typo of
+                # `FORBIDEN`, a value added under another taskpack -- pass straight through,
+                # because the unclassified band was never a place a blocker could come from.
+                blockers.append(
+                    f"rights:{subject}:{field}={state!r} UNCLASSIFIED (not in any rights "
+                    'band; blocking rather than letting an unruled licence state reach '
+                    'READY_FOR_HANDOFF)')
     return blockers, warnings, info
 
 
@@ -209,5 +243,5 @@ def decide(*, quality_record_doc: Mapping[str, Any],
 
 
 __all__ = [
-    "decide", "ReadinessError",
+    "decide", "ReadinessError", "RIGHTS_FIELDS", "rights_band",
 ]

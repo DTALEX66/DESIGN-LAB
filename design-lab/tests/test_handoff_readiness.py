@@ -1,12 +1,12 @@
 # SPDX-License-Identifier: MIT
 """DL-CLOUD-2026-09-25 Prompt I: the Quality->Jury->Rights->Preflight->Handoff
-readiness combiner's seven acceptance cases.
+readiness combiner's acceptance cases, plus the RIGHTS band fail-closed cases.
 
 The combiner is a pure backend decision layer (see
 :mod:`design_lab.assurance.handoff_readiness`). These fixtures exercise the
 closed vocabulary of the four existing contracts -- the sealed QualityRecord,
-the frozen rights-registry states, the preflight check model, and the
-commercial handoff -- and pin the acceptance cases the audit enumerates:
+the rights-registry states the combiner classifies, the preflight check model,
+and the commercial handoff -- and pin the acceptance cases the audit enumerates:
 
 * an automated judge's high score never unblocks a human REJECT;
 * a rights ``FORBIDDEN``/``NOT_ADJUDICATED`` field blocks;
@@ -15,6 +15,11 @@ commercial handoff -- and pin the acceptance cases the audit enumerates:
 * a re-open failure (a failing reopen-readback preflight check) blocks;
 * the all-pass case reaches READY_FOR_HANDOFF;
 * the UI signals (BLOCKER band) mirror the backend decision exactly.
+
+``RightsBandFailClosedTests`` pins the case the audit found by reading the band table against
+the registry file: a rights state the table cannot classify must BLOCK, because a readiness
+verdict is only "no blockers" and an unruled licence position is the least safe thing to pass
+straight through to ``READY_FOR_HANDOFF``.
 """
 from __future__ import annotations
 
@@ -204,6 +209,85 @@ class PromptIHandoffReadinessTests(unittest.TestCase):
                       preflight=None, handoff=HANDOFF)
         self.assertEqual(d["readiness"], "BLOCKED")
         self.assertTrue(any("no report supplied" in s for s in d["blockers"]))
+
+
+class RightsBandFailClosedTests(unittest.TestCase):
+    """A licence state the combiner cannot classify must block, never merely warn.
+
+    The band table is a hand-written classification of values the registry records, and
+    ``READY_FOR_HANDOFF`` is reachable whenever the BLOCKER band is empty. So while an
+    unclassified state produced only a WARNING, every value the table did not know -- a state
+    added under another taskpack, a misspelling of ``FORBIDDEN``, a legal hold -- read as
+    "nothing blocks here". These tests pin the opposite: the unknown is the most dangerous
+    input, and it is treated as one.
+    """
+
+    def test_unclassified_rights_state_blocks_the_handoff(self):
+        held = [{"subject_id": "font:litigated", "kind": "font", "license": "OFL-1.1",
+                 "territory": {"limits": [], "state": "ADJUDICATED"},
+                 "use_restriction": "LITIGATION_HOLD", "output_restriction": "ADJUDICATED",
+                 "redistribution": "ADJUDICATED"}]
+        d = ready(quality=qrec(approve()), rights=held, pf=preflight(), hf=HANDOFF)
+        self.assertEqual(d["readiness"], "BLOCKED")
+        self.assertTrue(any("font:litigated:use_restriction" in s and "UNCLASSIFIED" in s
+                            for s in d["blockers"]), d["blockers"])
+        self.assertFalse(any("LITIGATION_HOLD" in s for s in d["warnings"]),
+                         'an unclassified state must not be parked in the warning band')
+
+    def test_misspelling_a_blocking_state_cannot_read_as_clean(self):
+        typo = [{**BLOCK_RIGHTS[0], "redistribution": "FORBIDEN"}]
+        d = ready(quality=qrec(approve()), rights=typo, pf=preflight(), hf=HANDOFF)
+        self.assertEqual(d["readiness"], "BLOCKED")
+        self.assertTrue(any("FORBIDEN" in s and "UNCLASSIFIED" in s for s in d["blockers"]))
+
+    def test_a_state_absent_from_the_registry_is_still_only_a_warning(self):
+        """The fix is about *unknown* values, not about missing ones."""
+        gap = [{"subject_id": "font:inter", "kind": "font", "license": "OFL-1.1",
+                "territory": {"limits": [], "state": "ADJUDICATED"},
+                "use_restriction": None, "output_restriction": "ADJUDICATED",
+                "redistribution": "ADJUDICATED"}]
+        d = ready(quality=qrec(approve()), rights=gap, pf=preflight(), hf=HANDOFF)
+        self.assertIn("rights:font:inter:use_restriction=ABSENT (registry recorded no value)",
+                      d["warnings"])
+        self.assertEqual(d["readiness"], "READY_FOR_HANDOFF")
+
+    def test_nested_territory_state_is_read_through_its_path(self):
+        """`territory.state` nests; a flat read of it would see None and stop blocking."""
+        blocking = [{"subject_id": "model:h3", "kind": "model", "license": "UNLICENSED",
+                     "territory": {"limits": ["commercial"], "state": "FORBIDDEN"},
+                     "use_restriction": "ADJUDICATED", "output_restriction": "ADJUDICATED",
+                     "redistribution": "ADJUDICATED"}]
+        self.assertEqual(hr.rights_band("FORBIDDEN"), "BLOCKER")
+        d = ready(quality=qrec(approve()), rights=blocking, pf=preflight(), hf=HANDOFF)
+        self.assertIn("rights:model:h3:territory.state=FORBIDDEN", d["blockers"])
+
+    def test_every_state_the_shipped_registry_records_is_classified(self):
+        """The band table and the file it classifies agree today, on every field."""
+        import json
+        registry = json.loads((ROOT / "design-lab/config/rights-registry.json")
+                              .read_text(encoding="utf-8"))
+        entries = registry["entries"]
+        self.assertTrue(entries, "an empty registry would make this test vacuous")
+        readings = [(e["subject_id"], field, state_of(e, field))
+                    for e in entries for field in hr.RIGHTS_FIELDS]
+        unclassified = [f'{subject}:{field}={state!r}'
+                        for subject, field, state in readings
+                        if hr.rights_band(state) == "UNCLASSIFIED"]
+        # Name the offenders in the message: 284 entries x 4 fields makes an assertEqual diff
+        # unreadable ("Diff is 18272 characters long"), which tells an operator nothing.
+        self.assertEqual(unclassified, [],
+                         'no rights band classifies: ' + ', '.join(unclassified[:8])
+                         + ('' if len(unclassified) <= 8 else
+                            f' ... (+{len(unclassified) - 8} more)'))
+        seen = sorted({state for _, _, state in readings})
+        self.assertGreaterEqual(len(seen), 2, "a one-value vocabulary tests nothing")
+
+
+def state_of(entry, field):
+    """The registry records `territory.state` nested and the rest flat."""
+    if field == "territory.state":
+        return (entry.get("territory") or {}).get("state")
+    return entry.get(field)
 
 
 if __name__ == "__main__":
