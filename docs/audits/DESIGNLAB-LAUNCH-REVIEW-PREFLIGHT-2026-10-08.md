@@ -390,4 +390,34 @@ needle 是我按记忆写的 SQL 文本,和文件里的 Python 字符串拼接�
 等其字节稳定,否则聚合变红的究竟是真缺陷还是并发写入就分不清了;这一条留给聚合轮。
 
 
+## 9. 第五段:预检曾经量的是"碰巧先返回的那一行"(2026-10-08 追加)
+
+`preflight_bundle` 把状态库里的登记解析成"要量哪个文件"时用的是
+
+```sql
+SELECT art.path, art.sha256 FROM artifact art JOIN ... WHERE ... ORDER BY v.version_no DESC
+```
+然后 `fetchone()`。`ORDER BY` 只管版本号,**同一版本登记多个 artifact 时没有任何次序**——
+而 `creative/asset_versions.create_version(artifacts=[...])` 明确允许一个版本登记多个产物。
+于是"这次交付的预检结论"其实取决于 SQLite 恰好先给哪一行。
+
+这不是我推测出来的:反证脚本(`.project-local/tmp/falsify_preflight_artifact_scope.py`)把
+查询退回原样之后,新增用例 `test_a_preview_registered_before_the_deliverable_does_not_become_the_verdict`
+立刻变红——它按 `[preview, deliverable]` 的顺序登记两个产物,旧代码量了 **preview** 并把结论
+当作整次交付。改法:`WHERE` 里显式取该资产 ACTIVE 中的最大 `version_no`(与 §8 里评审清单同一条
+规则),`ORDER BY CASE art.role WHEN 'deliverable' THEN 0 ELSE 1 END, art.path, art.artifact_id`
+把次序写死;同版本还登记着却没被量的字节,追加一条 `artifact-scope` 的 `NOT_MEASURED` finding
+并**重新聚合** verdict —— `run_preflight` 里的聚合规则抽成 `_aggregate`/`_recount`,两处共用一个实现,
+避免以后又长出第二个"结论怎么算"。
+
+有一条必须说清楚,不然这条记录就是在给自己贴金:`test_a_newer_revision_is_preflighted_instead_of_the_one_it_replaced`
+在旧查询下**仍然是绿的**——旧的 `ORDER BY v.version_no DESC` 本来就把改版取对了,所以这条用例
+不是缺陷证明,它只是把"预检当前交付物"钉成契约。真正被反证出来的缺陷只有一个:同一版本内的产物选择。
+
+33 条用例通过(29 原有 + 4 新增),两段变异都在指名用例上以断言失败变红、还原后回到 33 绿;
+`verify_artifact_preflight_contract` / `verify_production_preflight` / `verify_state_vocabularies` /
+`verify_route_payload_contracts` 四道门同批通过(新 finding 的 `NOT_MEASURED` 属于已声明词表,
+没有引入界面可以说而服务发不出的词)。
+
+
 

@@ -23,6 +23,7 @@ sys.path.insert(0, str(REPO / 'src'))
 from PIL import Image
 
 from design_lab.assurance import production_preflight as pp   # noqa: E402
+from design_lab.service import ProjectService                  # noqa: E402
 
 GATE = REPO / 'design-lab' / 'scripts' / 'verify_artifact_preflight_contract.py'
 ARTIFACT_SCHEMA = REPO / 'design-lab' / 'schemas' / 'artifact-preflight.schema.json'
@@ -249,6 +250,157 @@ class ArchivePreflightTests(unittest.TestCase):
         with self.assertRaises(pp.PreflightError) as caught:
             pp.preflight_bundle(service, project_id, 'bundle-missing', profile='digital')
         self.assertIn('bundle-missing', str(caught.exception))
+
+
+class RegisteredArtifactScopeTests(unittest.TestCase):
+    """Which bytes a registered delivery verdict is actually about.
+
+    `preflight_bundle` used to run `fetchone()` over a join with no artifact ordering,
+    so a version that registers a preview beside its deliverable could be certified on
+    whichever row SQLite happened to yield first, with nothing saying the other bytes
+    were never opened. These cases hold the selection to the deliverable and require
+    the rest to be reported as unmeasured.
+    """
+
+    def setUp(self):
+        import os
+        os.environ.pop('PROJECT_LOCAL_ROOT', None)
+        self.base = Path(tempfile.mkdtemp(dir=REPO / '.project-local' / 'task-runtime'))
+        self.project = self.base / 'project'
+        self.project.mkdir()
+        (self.project / 'AGENTS.md').write_text('# preflight fixture', encoding='utf-8')
+        self.service = ProjectService(self.project)
+        self.project_id = self.service.create_project('Artifact Scope')['id']
+
+    def _publish(self, archive: Path, *, asset_id, artifact_name='deliverable.zip'):
+        from contextlib import closing
+        from design_lab.runtime import asset_store as assets
+        store = self.service.paths.category_dir('projects', self.project_id, 'assets')
+        digest = 'sha256:' + hashlib.sha256(archive.read_bytes()).hexdigest()
+        with closing(assets.connect(self.service.database,
+                                    project_root=self.service.paths.project_root)) as conn:
+            if conn.execute('SELECT 1 FROM asset WHERE asset_id = ?', (asset_id,)).fetchone() is None:
+                conn.execute('INSERT INTO asset VALUES (?, ?, "other", ?)',
+                             (asset_id, self.project_id, '2026-10-08T00:00:00Z'))
+            conn.commit()
+            self.assertTrue(assets.acquire_writer(conn, f'asset:{asset_id}', 'attempt-pf'))
+            generation = assets.writer_token(conn, f'asset:{asset_id}', 'attempt-pf')
+            version_id = assets.publish_version(
+                conn, asset_id, archive, store_root=store, artifact_name=artifact_name,
+                expected_sha256=digest, holder_attempt_id='attempt-pf', generation=generation)
+            assets.release_writer(conn, f'asset:{asset_id}', 'attempt-pf', generation=generation)
+        return version_id
+
+    def _add_sibling_artifact(self, version_id, sibling: Path, *, role='preview'):
+        """Register a second file against the same version, as `create_version` may."""
+        from contextlib import closing
+        from design_lab.runtime import asset_store as assets
+        with closing(assets.connect(self.service.database,
+                                    project_root=self.service.paths.project_root)) as conn:
+            conn.execute('INSERT INTO artifact (artifact_id, version_id, path, sha256,'
+                         ' byte_size, role) VALUES (?,?,?,?,?,?)',
+                         ('a-' + sibling.stem, version_id, str(sibling),
+                          'sha256:' + hashlib.sha256(sibling.read_bytes()).hexdigest(),
+                          sibling.stat().st_size, role))
+            conn.commit()
+
+    def _scope(self, result):
+        return [item for item in result['findings'] if item['id'] == 'artifact-scope']
+
+    def test_the_deliverable_is_what_gets_measured_even_when_a_sibling_is_listed_first(self):
+        deliverable = self._archive_named('deliverable.zip')
+        version_id = self._publish(deliverable, asset_id='bundle-scope-1')
+        # Register a sibling BEFORE the query runs; role ordering, not row order, decides.
+        self._add_sibling_artifact(version_id, self._archive_named('preview-sheet.zip'))
+        result = pp.preflight_bundle(self.service, self.project_id, 'bundle-scope-1',
+                                     profile='digital')
+        self.assertEqual(result['archive']['name'], 'deliverable.zip',
+                         'the verdict must be about the deliverable, not an arbitrary row')
+
+    def test_bytes_registered_but_not_measured_are_reported_as_unmeasured(self):
+        deliverable = self._archive_named('deliverable.zip')
+        version_id = self._publish(deliverable, asset_id='bundle-scope-2')
+        baseline = pp.preflight_bundle(self.service, self.project_id, 'bundle-scope-2',
+                                       profile='digital')
+        self.assertEqual(self._scope(baseline), [], 'one registered artifact leaves nothing unmeasured')
+
+        self._add_sibling_artifact(version_id, self._archive_named('preview-sheet.zip'))
+        after = pp.preflight_bundle(self.service, self.project_id, 'bundle-scope-2',
+                                    profile='digital')
+        scope = self._scope(after)
+        self.assertEqual(len(scope), 1, 'the extra bytes have to be named, not silently ignored')
+        self.assertEqual(scope[0]['outcome'], pp.NOT_MEASURED)
+        self.assertEqual(scope[0]['measured']['unmeasured'], ['preview-sheet.zip'])
+        self.assertEqual(scope[0]['measured']['measured'], ['deliverable.zip'])
+        self.assertEqual(after['counts'][pp.NOT_MEASURED], baseline['counts'][pp.NOT_MEASURED] + 1,
+                         'the count must move with the finding, or the aggregate is decorative')
+        self.assertNotEqual(after['verdict'], pp.PASS)
+
+    def test_a_newer_revision_is_preflighted_instead_of_the_one_it_replaced(self):
+        old = self._archive_named('deliverable.zip', seed=b'first shipment')
+        self._publish(old, asset_id='bundle-scope-3')
+        newer = self._archive_named('deliverable.zip', seed=b'revised shipment')
+        self._publish(newer, asset_id='bundle-scope-3')
+        result = pp.preflight_bundle(self.service, self.project_id, 'bundle-scope-3',
+                                     profile='digital')
+        self.assertEqual(result['archive']['sha256'],
+                         hashlib.sha256(newer.read_bytes()).hexdigest(),
+                         'preflighting a revision nobody will deliver is a green about nothing')
+
+    def _register(self, asset_id, rows):
+        """Register one ACTIVE version with the given (path, role) artifacts, in order.
+
+        `create_version` accepts a list of artifacts, so the preview really can be
+        registered before the deliverable -- which is the case an unordered
+        `fetchone()` used to certify the wrong bytes for.
+        """
+        from contextlib import closing
+        from design_lab.runtime import asset_store as assets
+        with closing(assets.connect(self.service.database,
+                                    project_root=self.service.paths.project_root)) as conn:
+            if conn.execute('SELECT 1 FROM asset WHERE asset_id = ?', (asset_id,)).fetchone() is None:
+                conn.execute('INSERT INTO asset VALUES (?, ?, "other", ?)',
+                             (asset_id, self.project_id, '2026-10-08T00:00:00Z'))
+            conn.commit()
+            artifacts = [(str(path), 'sha256:' + hashlib.sha256(path.read_bytes()).hexdigest(),
+                          path.stat().st_size, role) for path, role in rows]
+            content = next((item[1] for item in artifacts if item[3] == 'deliverable'),
+                           artifacts[0][1])
+            return assets.record_version(conn, asset_id, content, state='ACTIVE',
+                                         artifacts=artifacts)
+
+    def test_a_preview_registered_before_the_deliverable_does_not_become_the_verdict(self):
+        deliverable = self._archive_named('deliverable.zip')
+        preview = self._archive_named('preview-sheet.zip', seed=b'preview only')
+        self._register('bundle-scope-0', [(preview, 'preview'), (deliverable, 'deliverable')])
+        result = pp.preflight_bundle(self.service, self.project_id, 'bundle-scope-0',
+                                     profile='digital')
+        self.assertEqual(result['archive']['name'], 'deliverable.zip',
+                         'the row that came first in the table is not the shipped artifact')
+        self.assertEqual(result['archive']['sha256'],
+                         hashlib.sha256(deliverable.read_bytes()).hexdigest())
+        scope = self._scope(result)
+        self.assertEqual(len(scope), 1)
+        self.assertEqual(scope[0]['measured']['unmeasured'], ['preview-sheet.zip'])
+        self.assertEqual(scope[0]['measured']['measured'], ['deliverable.zip'])
+
+    def _archive_named(self, name, *, seed=None):
+        """A real delivery archive: one member plus a manifest that matches its bytes."""
+        import zipfile
+        work = self.base / f'build-{name}-{len(seed or b"")}-{seed is not None}'
+        work.mkdir(exist_ok=True)
+        image = write_image(work, 'art.png', dpi=(300, 300))
+        if seed is not None:
+            # Different bytes -> a different digest, so two revisions stay distinguishable.
+            image = work / 'revised.png'
+            image.write_bytes((work / 'art.png').read_bytes() + seed)
+        archive = work / name
+        digest = hashlib.sha256(image.read_bytes()).hexdigest()
+        with zipfile.ZipFile(archive, 'w') as out:
+            out.writestr('art.png', image.read_bytes())
+            out.writestr('bundle-manifest.json',
+                         json.dumps({'files': {'art.png': {'sha256': digest}}}, ensure_ascii=False))
+        return archive
 
 
 class PayloadContractGateTests(unittest.TestCase):

@@ -139,15 +139,41 @@ def preflight_bundle(service, project_id, bundle_id, *, profile='digital') -> di
     from ..runtime.asset_store import connect as connect_assets
     database = service.paths.database_path(service.database)
     with closing(connect_assets(database, project_root=service.paths.project_root)) as conn:
-        row = conn.execute(
-            'SELECT art.path, art.sha256 FROM artifact art'
+        # A version may register several artifacts (deliverable + preview + notes);
+        # `fetchone` on an unordered join used to preflight whichever SQLite happened
+        # to return first and report its verdict as if it covered the delivery.
+        rows = conn.execute(
+            'SELECT art.artifact_id, art.path, art.sha256, art.role,'
+            ' v.version_id, v.version_no FROM artifact art'
             ' JOIN asset_version v ON v.version_id = art.version_id'
             ' JOIN asset a ON a.asset_id = v.asset_id'
             " WHERE a.asset_id = ? AND a.project_id = ? AND v.state = 'ACTIVE'"
-            ' ORDER BY v.version_no DESC', (bundle_id, project_id)).fetchone()
-    if row is None:
+            ' AND v.version_no = (SELECT MAX(b.version_no) FROM asset_version b'
+            '                     WHERE b.asset_id = v.asset_id AND b.state = \'ACTIVE\')'
+            ' ORDER BY CASE art.role WHEN \'deliverable\' THEN 0 ELSE 1 END,'
+            ' art.path, art.artifact_id', (bundle_id, project_id)).fetchall()
+    # The state connection returns plain rows, so the selected columns are named here
+    # rather than relied on by position further down.
+    fields = ('artifact_id', 'path', 'sha256', 'role', 'version_id', 'version_no')
+    rows = [dict(zip(fields, row)) for row in rows]
+    if not rows:
         raise PreflightError(f'该项目没有可预检的交付登记：{bundle_id}')
-    return preflight_archive(row[0], profile=profile, expected_sha256=row[1])
+    primary = rows[0]
+    result = preflight_archive(primary['path'], profile=profile, expected_sha256=primary['sha256'])
+    unmeasured = rows[1:]
+    if unmeasured:
+        names = ', '.join(f"{item['role']}:{Path(str(item['path'])).name}" for item in unmeasured)
+        result['findings'].append(_finding(
+            'artifact-scope', 'blocker', NOT_MEASURED,
+            f'本次只度量了 {primary["role"]} 一个产物（{Path(str(primary["path"])).name}）；'
+            f'该版本还登记了 {len(unmeasured)} 个未度量的字节：{names}',
+            criterion='交付结论只能覆盖被真正量过的字节，同版本登记的其它产物必须显式报未度量',
+            measured={'measured': [Path(str(primary['path'])).name],
+                      'unmeasured': [Path(str(item['path'])).name for item in unmeasured],
+                      'version_id': primary['version_id'],
+                      'version_no': primary['version_no']}))
+        _recount(result)
+    return result
 
 
 def _finding(check_id, severity, outcome, detail, *, criterion, measured=None):
@@ -295,6 +321,31 @@ def _measure(check_id, severity, images, profile, bom):
                    f'{check_id} 需要读取容器内部结构或外部标准，本构建不声称检查过')]
 
 
+def _aggregate(findings):
+    """The one verdict rule, so no caller can invent a second one.
+
+    A NOT_MEASURED finding has to push the verdict to INCOMPLETE -- an unmeasured check
+    may not inherit the green of the checks that did run.
+    """
+    outcomes = {item['outcome'] for item in findings}
+    if any(item['outcome'] == FAIL and item['severity'] == 'blocker' for item in findings):
+        return 'BLOCKED'
+    if NOT_MEASURED in outcomes:
+        return 'INCOMPLETE'
+    if any(item['outcome'] in (FAIL, WARNING) for item in findings):
+        return 'WARN'
+    return 'PASS'
+
+
+def _recount(result: dict) -> dict:
+    """Re-derive verdict and counts from the findings actually present."""
+    findings = result['findings']
+    result['verdict'] = _aggregate(findings)
+    result['counts'] = {outcome: sum(1 for item in findings if item['outcome'] == outcome)
+                        for outcome in (PASS, WARNING, FAIL, NOT_MEASURED, NOT_APPLICABLE)}
+    return result
+
+
 def run_preflight(artifacts, *, profile: str = 'digital', bom: dict | None = None) -> dict:
     """Preflight artifact paths against one declared profile."""
     document = load_profile(profile)
@@ -305,17 +356,7 @@ def run_preflight(artifacts, *, profile: str = 'digital', bom: dict | None = Non
     for check_id, check_severity in declared:
         findings.extend(_measure(check_id, check_severity, images, profile, bom))
 
-    outcomes = {item['outcome'] for item in findings}
-    if any(item['outcome'] == FAIL and item['severity'] == 'blocker' for item in findings):
-        verdict = 'BLOCKED'
-    elif NOT_MEASURED in outcomes:
-        verdict = 'INCOMPLETE'
-    elif any(item['outcome'] in (FAIL, WARNING) for item in findings):
-        verdict = 'WARN'
-    else:
-        verdict = 'PASS'
-
-    return {
+    return _recount({
         # The version below, not design-lab/preflight/v2, is this payload's contract:
         # schemas/artifact-preflight.schema.json binds it and declares `verdict` (not
         # `status`) as its top-level outcome, because that is what the Workbench column
@@ -323,7 +364,7 @@ def run_preflight(artifacts, *, profile: str = 'digital', bom: dict | None = Non
         # re-checks the two against each other in both directions.
         'schemaVersion': 'design-lab/artifact-preflight/v1',
         'profile': profile, 'profileSchema': document.get('schemaVersion'),
-        'verdict': verdict,
+        'verdict': _aggregate(findings),
         'artifacts': [{'name': item['name'], 'bytes': item['bytes'], 'mode': item['mode'],
                        'width': item['width'], 'height': item['height'], 'dpi': item['dpi'],
                        'format': item['format']} for item in images],
@@ -332,4 +373,4 @@ def run_preflight(artifacts, *, profile: str = 'digital', bom: dict | None = Non
                    for outcome in (PASS, WARNING, FAIL, NOT_MEASURED, NOT_APPLICABLE)},
         'meaning': ('PASS 要求每条适用检查都被真正量过且通过；任何 NOT_MEASURED 都把结论压到 '
                     'INCOMPLETE，不沿用其它检查的绿灯。每条结论带 criterion，写明判据来自哪里。'),
-    }
+    })
