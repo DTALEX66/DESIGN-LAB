@@ -1032,8 +1032,12 @@ html,body{margin:0}
 /* The drawer trigger only exists on narrow screens; the sidebar is a permanent
    column above 840px, so a second way to open it would be noise. It must not
    shrink: as a flex sibling of the full-width search field it got squeezed to
-   two characters wide and 导航 wrapped onto two vertical lines. */
-.nav-toggle{display:none;flex:0 0 auto;white-space:nowrap;padding:0 14px}
+   two characters wide and 导航 wrapped onto two vertical lines.
+   `flex:0 0 auto` and `white-space:nowrap` are what fix that; the earlier
+   `padding:0 14px` over-corrected and cancelled .ghost-btn's 10px vertical
+   padding, leaving the only mobile navigation control at 62x23 -- under the
+   24px touch-target floor. The padding override is gone, the two real guards stay. */
+.nav-toggle{display:none;flex:0 0 auto;white-space:nowrap}
 @media (max-width:840px){
   .app{grid-template-columns:1fr}
   /* .sidebar used to be `display:none` here, which removed all twelve nav targets
@@ -1051,7 +1055,17 @@ html,body{margin:0}
   .top-actions{display:none}
   .search{width:100%}
   .content{padding:18px}
+  /* Every card on the page is a .panel, and its desktop padding is what actually
+     makes a three-line counter cost 140px on a phone. Tightening it here is the
+     difference between four empty boxes and one screen of content. */
+  .panel{padding:14px 16px}
   .kpi-grid{grid-template-columns:1fr}
+  /* The counters are `.panel.kpi` (strong + small + .trend), and the three lines are
+     deliberate -- round 2 of the visual audit separated label from provenance note
+     because they ran into each other. So the mobile cost is trimmed from the numeral
+     and the padding, not by collapsing lines back together. */
+  .kpi strong{font-size:26px;margin-bottom:6px}
+  .kpi .trend{margin-top:4px}
   .page-head{flex-direction:column}
 }
 
@@ -1174,7 +1188,10 @@ html,body{margin:0}
 /* 横向阶段导航（项目详情页顶部） */
 .stage-nav{
   display:flex;gap:6px;list-style:none;padding:0;margin:16px 0 0;
-  overflow-x:auto;flex-wrap:nowrap;min-height:38px;
+  /* Wraps rather than scrolling: with nine stages the row overflowed at 1280 and the
+     last two were unreachable without a scrollbar affordance, so the primary stage
+     navigation hid its own tail on a desktop viewport. */
+  flex-wrap:wrap;
 }
 .stage-nav-item{flex:0 0 auto}
 .stage-nav-btn{

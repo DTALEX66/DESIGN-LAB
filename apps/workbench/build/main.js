@@ -1000,7 +1000,7 @@ function projectDetailHash(id) {
 }
 const VIEW_NOT_OPEN = {
   "research": "研究洞察页未开放：当前服务没有研究结论的持久化路由。",
-  "design-domains": "设计领域页未开放：领域划分尚无独立后端模型。",
+  "design-domains": "设计领域页未开放：域包模型已在仓内（schema、DOMAIN_PACK_SPEC_V2 与 13 个域包，并有 verify_domain_pack_v2.py 校验），缺的是 GET /api/domains 读回路由。",
   "collaboration": "团队协作页未开放：本地单机服务尚无协作路由（本地单用户模型）。"
 };
 const CAPABILITY_REGISTRY = [
@@ -1076,9 +1076,14 @@ function capabilityCard(c) {
       el(
         "div",
         { class: "status-stack" },
+        // style.css establishes `.tag.neutral` for exactly this: a non-verdict must not
+        // borrow the weight of a verdict. PLANNED says "no answer yet", so it gets the
+        // outline pill the dashboard blueprint cards already use -- and IMPLEMENTED,
+        // which this call site would otherwise have painted the same `info` blue, is a
+        // real verdict and gets the affirmative one.
         el(
           "span",
-          { class: "tag " + (c.implementationState === "BLOCKED" ? "warn" : "info") },
+          { class: "tag " + (c.implementationState === "BLOCKED" ? "warn" : c.implementationState === "IMPLEMENTED" ? "ok" : "neutral") },
           en(c.implementationState)
         )
       )
@@ -1792,12 +1797,25 @@ async function renderPreflight(target) {
   const input = el("input", {
     id: "preflight-task-input",
     class: "input preflight-input",
-    placeholder: "<TASKPACK>::<TASK_KEY>，例如 " + known,
+    // The example used to live in the placeholder, where a placeholder cannot wrap:
+    // at 1280 the field clipped it after the comma, so the format was visible and the
+    // only concrete example was not. It moved into the result panel's first message.
+    placeholder: "<TASKPACK>::<TASK_KEY>",
     maxlength: "200",
     "aria-label": "任务资源预检 ID，格式为任务包 ID::任务键"
   });
   const runBtn = el("button", { type: "button", class: "primary-btn", id: "preflight-run" }, "运行预检");
-  const result = el("div", { class: "panel preflight-result" });
+  const result = el(
+    "div",
+    { class: "panel preflight-result" },
+    // Constructed empty, this rendered as a large blank bordered box, which reads as
+    // a broken panel rather than as a result area waiting for a run.
+    el(
+      "p",
+      { class: "view-hint" },
+      "尚未运行预检。填写任务全 ID（形如 " + known + "），点「运行预检」后在此读回判定与资源清单。"
+    )
+  );
   const kpiGrid = el(
     "div",
     { class: "kpi-grid" },
