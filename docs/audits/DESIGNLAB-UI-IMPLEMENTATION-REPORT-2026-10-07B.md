@@ -152,3 +152,31 @@ Accept/Reject/Change 面（合同完备、无路由无 UI，人工字段按铁�
 因此这不是"再拍一张"能收的，而是截图口径本身的选择（加滚动帧 ≈ 提交集翻倍、约 +5 MiB；
 或改 full-page ≈ 换掉整批证据的类别）。**属 owner 口径裁决，本轮只登记，不自行改证据工具。**
 推广一句：本应用任何低于 fold 的内容，都不在现有截图证据的覆盖范围内。
+
+**外溢数据实测（并行只读 + 逐条回查）。** 写路径治理是干净的：`runtime/paths.py` 的
+`_local_path` / `checked_path` 把每个可写根限制在 `.project-local` 之下并拒绝外来盘符，
+资产、bundle、报告、作业存储全部走这条路；`.project/paths.json` 的四个外置根在
+`describe()` 里一律 `writable:false`。仓内所有硬编码的兄弟目录路径经逐条判读均为**读输入**。
+三条需要记录的结果：
+
+1. **唯一确认过的外溢已在此前清掉**：8 张 ComfyUI 生成图曾落在共享工具根
+   `…/ComfyUI/output`，由 `scripts/clean_nebula_spill.py` 处理，manifest 在
+   `.project-local/task-artifacts/spill-cleanup-20261007/`。
+2. 同一根下还剩 `test_render_00001_.png`（352,325 B，mtime 2026-08-28）。**本轮不删。**
+   依据是内容而非猜：读它自己的 `tEXt prompt` 块，是一张 SDXL 工作流
+   （`sd_xl_base_1.0` + `clip_l/clip_g` + `sdxl_vae`，512×512，提示词
+   "a beautiful modern corporate lobby, premium interior design…"），该提示词与文件名
+   在本仓全文检索**零命中**（`test_render` 的命中全是无关的 `test_renderer_*` 测试名）。
+   不可归因于 DESIGN-LAB 的文件，不因为"看起来像我们的"就从别人共享根里删掉。
+3. `cli.py` 的 `backup --out` 与 `restore --into` 确实绕过 `checked_path`，但这是**有意的
+   用户显式目标**（默认落在 `local_root/backups`，即受管内），备份到外部正是该功能的用途；
+   给它加约束会砍掉一个真实特性。记录为"规则的显式例外"，不是缺陷。
+
+反向泄漏仍在（已知、非本轮新增，数字为本机实测）。`.gitignore:71` 忽略整个 `.project-local/`；
+其中 `projects/` 实测 **341.1 MiB**（最大两个工作区 281.7 MiB / 49.1 MiB），`task-artifacts/`
+实测 **115.1 MiB**（含 `04-deliverables@*.png` 及其 `.license`）。这两个工作区里**不是缓存**：
+按文件排出的前几名是 `assets/versions/<id>/delivery.zip`（单个 30.19 MiB，多版本并存）、
+`native-plans/<id>/master.png`（18.51 MiB）与 `master.illustrator.svg`（3.46 MiB）——
+即真实交付物与原生工程文件只活在单机，而 `reports/current/**` 的账本又引用它们。
+需要的是"哪些进仓、进仓后多大"的口径裁决（仓 pack 现为 224 MiB 量级，一次性并入 341 MiB
+交付物不是可逆动作），不是再删一次缓存。
