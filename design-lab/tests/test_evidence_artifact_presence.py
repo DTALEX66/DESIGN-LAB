@@ -46,16 +46,19 @@ class EvidenceArtifactPresenceTests(unittest.TestCase):
         # Compared sorted: the gate emits in ledger-record order, which is an
         # artefact of which record was appended first and carries no meaning here.
         # The set itself stays exact -- an unlisted fourth move still fails.
-        self.assertEqual(sorted((r, why) for _, r, why in result['drifted']),
-                         sorted([('apps/workbench/build/main.js',
-                                  'HASH_MOVED_SINCE_OBSERVATION'),
-                                 ('design-lab/tests/test_project_backup.py',
-                                  'HASH_MOVED_SINCE_OBSERVATION'),
-                                 # And again one commit later: the M1 slice record also
-                                 # bound the launcher test, whose token-reading lines had
-                                 # to move when the launcher stopped printing a token.
-                                 ('design-lab/tests/test_workbench_launch.py',
-                                  'HASH_MOVED_SINCE_OBSERVATION')])])
+        # Written as two locals rather than one nested expression, because the
+        # nested form is how I committed a syntax error here once already.
+        observed = sorted((record, why) for _, record, why in result['drifted'])
+        expected = sorted([
+            ('apps/workbench/build/main.js', 'HASH_MOVED_SINCE_OBSERVATION'),
+            # The 2026-10-06 M1 runtime-slice record bound these two test files by
+            # hash; both were legitimately rewritten since (the backup snapshot, then
+            # the launcher's token path). The record is not rewritten -- it stays as
+            # the observation it was, and newer records carry the current binding.
+            ('design-lab/tests/test_project_backup.py', 'HASH_MOVED_SINCE_OBSERVATION'),
+            ('design-lab/tests/test_workbench_launch.py', 'HASH_MOVED_SINCE_OBSERVATION'),
+        ])
+        self.assertEqual(observed, expected)
 
     def test_missing_tracked_artefact_is_a_hard_break_not_a_warning(self):
         ledger = copy.deepcopy(_ledger())
