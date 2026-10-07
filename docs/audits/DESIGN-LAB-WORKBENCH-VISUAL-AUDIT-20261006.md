@@ -474,3 +474,67 @@ AUDIT_SCOPES 65 violations=0 ok=True        # 五视口全量，修复后
 且失败信息直接点名 `button#navToggle… 62x23`。测试还拒绝两种假绿：
 stdout 出现 `AUDIT_BLOCKED` 判失败，`AUDIT_SCOPES` 缺失或为 0 也判失败——
 空违规列表和"什么都没测"在报告里长得一样。
+
+
+## 十四、#249 合并后重读 12/12：量化审计仍然看不见的三件事
+
+基线 `main = af9a27cc`（#249 ul/li 已并入）。先复跑两套既有证据，确认合并没有把
+"绿" 变成假绿：
+
+```
+AUDIT_SCOPES 65 violations=0 ok=True          # 1440/1280/1024/840/390 × 13 作用域
+CAP_DONE shots=12                              # 12 条路由全部捕获，绑定该 commit
+```
+
+然后逐屏读渲染像素（1280 视口）。三处缺陷没有一处能被上述任何一道门表达。
+
+### 1. 侧栏身份块在四条路由上根本不在屏幕上
+
+`.sidebar` 是 `.app{display:grid}` 的**被拉伸网格项**：它的高度等于整篇文档的高度，
+而 `.sidebar-footer{margin-top:auto}` 因此被推到文档底部。页面一旦超过视口，
+"本地单用户 / 无身份路由 · 未读回" 这块身份读回就落在折叠线以下——用户滚到页面底
+才能看见自己是谁，而首屏看不见。
+
+用像素计数把范围量化（x10..270 × y700..795 亮度 >90 的点数，`af9a27cc` 捕获）：
+
+```
+NO-META   dashboard  project-detail  brand-systems  settings     (4/12)
+HAS-META  其余 8 条路由，bright=1274（完全一致的同一位置）
+```
+
+发现者是并行只读子智能体，但它把范围报成"仅 brand-systems 一屏"——**错**，实测是
+四条。修法是把它变成 `position:sticky;top:0;height:100vh;overflow-y:auto`，也就是
+`<=840px` 抽屉早就在用的同一套声明；修复后同一测点 **12/12 HAS-META**。
+
+### 2. 台账只有一个项目时，三个 picker 路由仍是一屏死路
+
+创作工具 / 交付中心 / 证据系统共用 `projectPickerPanel`。占位 option
+（`选择项目（共 1 个）`）默认选中，于是页面显示"未选择项目 …… 没有可读回的记录"
+加一个空态环——而**同一次读回刚刚告诉我们台账里只有这一个项目**。
+现在只有一个项目时不再放占位项，直接打开它；离线路径的 `OFFLINE.projects` 是空数组，
+所以这条分支只可能由真实读回进入，不会把演示数据当读回展示。
+
+这道检查已经做成审计项 `picker-dead-end`，并且**先证伪再用**：在 `af9a27cc` 的旧
+bundle 上跑新审计器，`AUDIT_SCOPES 13 violations=3 ok=False`，三条正是
+`#/tools`、`#/deliverables`、`#/evidence`；换成修复后的 bundle 则
+`AUDIT_SCOPES 65 violations=0 ok=True`。
+
+### 3. 固定 4 列的 KPI 网格，和一个自己打脸的计数注释
+
+`.kpi-grid{grid-template-columns:repeat(4,minmax(0,1fr))}` 对四个计数器的路由是对的，
+但品牌系统只有三个，右侧于是留下约 240px 的空洞，卡片行的右边缘和下方模块网格对不齐。
+改为 `repeat(auto-fit,minmax(210px,1fr))`：三个就铺三份，四个仍铺四份。
+
+同一屏的 `VI 模块` 计数卡写着 `Logo / Color / Typography / … / Assets`——数字说 8，
+注释用省略号藏掉 8 个里的 5 个。改为直接 `BRAND_MODULES.join(' / ')`，注释与常量不
+再可能漂移。
+
+### 一条被推翻的怀疑
+
+读 `project-detail` 时我以为第四张计数卡把 `direction-6de…4646c6` 截断了（旁边的
+设计层契约面板同一字符串多出一行 `c6`）。实测该 direction_id 全长 42 字符，卡片里
+是完整的，面板那行 `c6` 只是它自己更窄导致的换行点不同。**不是缺陷，记录以免重查**。
+
+修复后（`438dbaa7`）：`AUDIT_SCOPES 65 violations=0 ok=True`，身份块 12/12，
+证据系统首屏直接给出 `1 briefs / 1 directions / 4 设计系统 / 0 交付包` 与证据绑定链
+四行真实读回。
