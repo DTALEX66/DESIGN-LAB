@@ -143,3 +143,12 @@ upstream SPDX；真正的吸收登记册 `design-lab/research/global-absorption/
 **仍未开放**：候选的真实适配 / 资格化 / 撤回（宿主运行 + 人工验收）；Human Jury 的
 Accept/Reject/Change 面（合同完备、无路由无 UI，人工字段按铁律永不由 agent 填写）；
 `python-project-venv` 的平台中立声明方式（owner）；两条自由文本判决（权利门）。
+
+**一条截图证据的结构性边界（本轮实测得出，不是推测）。** 视觉审计 §十五 对宿主 adapter 行留着
+"未单独截图复核，按同一机制推定"。本轮想把它补成像素证据，结论是**当前证据工具做不到**：
+`capture_workbench_screenshots.mjs:216` 固定 `fullPage: false`，每面只拍视口顶部，而 adapter 网格
+在 `宿主 / Capability 状态` 面板之后——**低于 fold 的内容在全部 39 张已提交截图里都不存在**。
+`audit_workbench_ui` 的 `report.json` 只记 `violations`，健康节点不留几何，所以也无法事后量。
+因此这不是"再拍一张"能收的，而是截图口径本身的选择（加滚动帧 ≈ 提交集翻倍、约 +5 MiB；
+或改 full-page ≈ 换掉整批证据的类别）。**属 owner 口径裁决，本轮只登记，不自行改证据工具。**
+推广一句：本应用任何低于 fold 的内容，都不在现有截图证据的覆盖范围内。
