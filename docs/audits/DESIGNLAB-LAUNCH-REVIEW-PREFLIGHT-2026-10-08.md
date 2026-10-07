@@ -212,6 +212,65 @@ two of them did not survive contact with the code.
 跑了什么、结论是什么"这一类**事件**,不是可被反复读取当成现状的判定值。`#/evidence` 因此应当
 读回 jury 与回执,并让预检保持"当场跑"。
 
+## 7. 第三段:入口与安装态(提交 181ce73a / faedcc27 / fa5db57d)
+
+### 7.1 官方启动命令被自己打死了,而我的定向门全绿
+
+`fa69afc0` 给 `cli.py` 加了 `native-recovery`,其中 `recovery = commands.add_parser(...)`。同一函数作用域里
+workbench 分支打印的 LISTENING 行写的是 `'recovery': recovery` —— 打的是 **argparse 子解析器对象**,于是
+`json.dumps` 抛 `Object of type ArgumentParser is not serializable`,**产品在打印端口之前就崩了**。
+serve 分支三行之外打印的是 `recovery_summary`,只有 workbench 分支被同名变量吃掉。
+
+我提交前跑了 `test_native_tasks`、`test_boot_reconciliation`、`test_service_cli`,全绿。漏掉的是启动器自己的
+`test_workbench_launch` —— 因为"改了 cli.py"没有让我想到"跑启动器测试"。抓它的是**安装态复验**(见 7.3),
+不是门集合。修的时候不止改那一行:把解析器改名 `recovery_command`,让"能被打错的东西"不存在。
+修完做一次对照实验:把 bug 放回去,`test_workbench_launch` 在**源码态也 2 个失败** —— 门有牙,是我的
+验证顺序没有。
+
+### 7.2 `audit_event` 一直在写,没人读
+
+`asset_store.py:144,250` 写 `asset_version_created:*` 与 `writer_takeover:*`,产品代码从不 SELECT,只有
+`test_asset_store.py` 读。写不进问题的日志不是审计线索:它长得像,回答问题时什么都不答。最该被看见的是
+`writer_takeover` —— `takeover_writer` 会主动递增 generation 并把资源交给新写者(卡死/崩溃的持有者就是靠它
+不再阻塞项目),之后运维第一个问题是"谁在什么时候接管了什么"。
+
+`runtime/audit_trail.py` 用存储自己的路径策略以 `mode=ro` 打开,所以它不可能变成第二个写者;三种"空"分开
+(没有状态库 / 库里没有 journal 行 / 这一页读完);actor 保持是 attempt id,不翻译成人名;分页用
+`(at, audit_id)` 行值比较,因为只按微秒时间戳排序无法保证不重复不丢。
+三条常设断言防回退:src 里必须有人 SELECT 它、读路径必须被 CLI 调用、写必须还在写 —— 否则第一条会被
+"把写删掉"这一手悄悄满足。两个削弱(永远报 PRESENT、按 offset 分页)都实测变红。
+
+### 7.3 安装态必须在当前 HEAD 重测,而且要防"用到上一天的 wheel"
+
+全量绑定跑里 `test_packaged_install_serves_the_committed_bundle` 在源码态**合法 skip**,所以本地那句
+`OK (skipped=1)` 对安装态什么也不证明。本轮重测:删掉旧 wheel → `uv build --wheel --out-dir dist` → 干净
+venv → 装 wheel → **把 wheel 内的 `design_lab/resources/workbench/build/main.js` 与仓内已提交 bundle 逐字节
+比对**(相同,208231B)→ 四份能力库输入随包 → `DL_LAUNCH_INSTALLED=1` 下 `Ran 3 tests / OK` 且
+**skip 行为 0**。
+
+第一次尝试是假的:`uv build --out dist` 不是合法参数,构建失败,`install` 装的是**前一天的 wheel**,而
+`INSTALL_RC=0` 和"导入成功"全都成立。这与 7.1 同族:**producer 失败后,下一个环节会安心地量残留物**。
+所以校验脚本现在先删产物、比字节、要求 0 skip,并且失败时也要把日志落盘(第一版抛异常时把证据一起丢了)。
+
+### 7.4 32 份 contracts/ schema 里,只有 1 份是真的
+
+`design-lab/schemas/contracts/` 声明 32 份合同;`grep -rn "schemas/contracts" src/` 为空 —— 运行时一份都不读。
+唯一名副其实的是 `design-lab/planar-decomposition/v1`(`analysis/decomposition.py:164` 真的产出它,测试校验的是
+**产出的** JSON)。其余 31 份 INERT,其中几份不是"没读"而是**与实现相反**,继续留着就是让下一个读者误信:
+
+- `contracts/delivery-receipt` 钉 v1 且要求 `delivery_id/delivered_at`、禁掉随包 v2 必需的
+  `receipt_sha256/job_id/deliverables/axes`(我把两份文件的 const 与 required 并排读出来确认);
+- `contracts/job-spec` 钉 v1,而 `creative_job.py` 写 v2,状态库 DEFAULT 还是 v1;
+- `asset-manifest` 在同一个版本身份下有两份,字段大小写不同;
+- `audit-event` / `operation-intent` 描述真表的必填字段里没有 `schemaVersion`,所以任何真实行都永远不满足
+  那份 closed schema。
+
+新门 `verify_contract_bindings.py` 是一张双向清单(32 schema 一行一条 + 48 条路由:6 条 BOUND_SCHEMA、
+42 条 SCHEMA_LESS),并把**九条"发出 schemaVersion 但没有对应 schema"的路由记成具名债务** —— 其中一条是本轮
+`domain-pack-readback/v1` 自己造的。记账而不是遮掉:本轮另一个门(§5.3)之所以存在,就是因为"声明了但没人
+校验"和"没人声明"看起来一样。
+
+
 
 每条 evidence 记录都带 `subject_sha` + `subject_files{路径: 摘要}`,这是**局外人唯一能复核
 "这条证据到底绑的是哪份字节"**的机制。而 `verify_evidence_artifact_presence` 只看
