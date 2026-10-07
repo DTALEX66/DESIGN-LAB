@@ -592,8 +592,10 @@ const JURY_READBACK = {
     verdict: 'APPROVE', kind: 'JURY_VERDICT',
     juror: { juror_id: 'dtalex66', kind: 'HUMAN', attestation: '在 100% 缩放下对照参考图审读' } } },
   reviewable_versions: [{ subject_ref: JURY_SUBJECT, artifact_sha256: 'sha256:' + 'a'.repeat(64),
-                          asset_id: 'a1' }],
+                          asset_id: 'a1', version_no: 1 }],
   human_acceptance: 'ACCEPTED',
+  // The denominator jury_review.py publishes with the word; the page has to show it.
+  accepted_versions: 1, reviewable_active_versions: 1,
 };
 const RECEIPT_READBACK = {
   schemaVersion: 'design-lab/delivery-receipt/v2',
@@ -673,7 +675,7 @@ answerEvidence(juryReads, JURY_READBACK, { bundles: [EVIDENCE_BUNDLE] });
 await flush();
 const juryText = evidenceView.textContent;
 for (const must of ['APPROVE', JURY_SUBJECT, '在 100% 缩放下对照参考图审读',
-                    '已签署 1 · Agent 建议 2', 'ACCEPTED'])
+                    '已签署 1 · Agent 建议 2', 'ACCEPTED', '当前版本已接受 1/1'])
   if (!juryText.includes(must))
     throw new Error(`人工裁决读回缺少 ${must}：${juryText.slice(0, 240)}`);
 if (juryText.includes('尚无人签署的裁决'))
@@ -684,6 +686,23 @@ const juryMarked = collectMarked(evidenceView);
 for (const word of ['ACCEPTED', 'JURY_VERDICT'])
   if (!juryMarked.includes(word))
     throw new Error(`判定 ${word} 必须带 lang="en"（服务词汇，不翻译）：${juryMarked.join('/')}`);
+
+// (b2) A readback that carries no denominator must not have one invented for it.
+// 0/0 would read as "nothing was left to accept" -- a claim about the ledger that the
+// response never made, and exactly the shape this page has been caught on before.
+shell.pending.splice(0, shell.pending.length);
+evidenceSelect.onchange();
+const bareReads = shell.pending.splice(0, shell.pending.length);
+answerEvidence(bareReads, { ...JURY_READBACK,
+                            accepted_versions: undefined,
+                            reviewable_active_versions: undefined },
+               { bundles: [EVIDENCE_BUNDLE] });
+await flush();
+const bareText = evidenceView.textContent;
+if (!bareText.includes('当前版本已接受 未读回'))
+  throw new Error(`缺少分母时应说未读回：${bareText.slice(0, 240)}`);
+if (bareText.includes('0/0'))
+  throw new Error('页面把一个没读回的分数写成了 0/0');
 
 // (c) The receipt: one click, one request to the selected version's own route.
 const receiptButton = byElementId(evidenceView, 'evidence-receipt-run');

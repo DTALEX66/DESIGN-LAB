@@ -1948,6 +1948,12 @@ const JURY_UNREADABLE = {
   reviewable_versions: [],
   human_acceptance: "UNKNOWN"
 };
+function acceptanceFraction(data) {
+  const accepted = data.accepted_versions;
+  const total = data.reviewable_active_versions;
+  if (typeof accepted !== "number" || typeof total !== "number") return "未读回";
+  return `${accepted}/${total}`;
+}
 async function renderJuryReview(host) {
   host.replaceChildren(el("p", { class: "view-loading" }, "正在读回评审记录…"));
   const projects2 = await apiOrEmpty("/projects", OFFLINE.projects);
@@ -2017,7 +2023,7 @@ function juryReadbackPanel(projectId, data, reload, unread) {
   const summary = el(
     "p",
     { class: "view-hint" },
-    `已签署 ${data.verdict_count ?? 0} · Agent 建议 ${data.proposal_count ?? 0} · 人工验收 ` + (data.human_acceptance === "ACCEPTED" ? "已接受" : "未接受")
+    `已签署 ${data.verdict_count ?? 0} · Agent 建议 ${data.proposal_count ?? 0} · 人工验收 ` + (data.human_acceptance === "ACCEPTED" ? "已接受" : "未接受") + `（当前版本 ${acceptanceFraction(data)}）`
   );
   return el(
     "div",
@@ -2072,7 +2078,7 @@ function evidenceJuryColumn(data) {
     el(
       "p",
       { class: "view-hint" },
-      `已签署 ${verdictCount} · Agent 建议 ${proposalCount} · 当前有判定版本 ${verdicts.length} 个`
+      `已签署 ${verdictCount} · Agent 建议 ${proposalCount} · 当前版本已接受 ${acceptanceFraction(data)}`
     ),
     el(
       "p",

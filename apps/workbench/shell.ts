@@ -961,7 +961,7 @@ export function juryCriteriaWith(assessments: Array<{ note: string; score: numbe
   }));
 }
 
-interface JuryVersion { subject_ref: string; artifact_sha256: string; asset_id: string }
+interface JuryVersion { subject_ref: string; artifact_sha256: string; asset_id: string; version_no: number }
 interface JuryReadback {
   schemaVersion?: string;
   records: Array<Record<string, unknown>>;
@@ -970,6 +970,12 @@ interface JuryReadback {
   current_verdicts: Record<string, Record<string, unknown>>;
   reviewable_versions: JuryVersion[];
   human_acceptance: string;
+  // The denominator of 'ACCEPTED'. jury_review.py only says ACCEPTED when every
+  // reviewable version carries a current APPROVE, so the page has to show which
+  // fraction it is standing on; both are optional because an older or a partial
+  // response may not carry them, and an absent count is not a zero.
+  accepted_versions?: number;
+  reviewable_active_versions?: number;
   error?: string;
 }
 
@@ -978,6 +984,16 @@ const JURY_UNREADABLE: JuryReadback = {
   proposal_count: 0, current_verdicts: {}, reviewable_versions: [],
   human_acceptance: 'UNKNOWN',
 };
+
+function acceptanceFraction(data: JuryReadback): string {
+  // Both halves arrive from jury_review.py together or not at all. An absent pair is
+  // printed as 未读回 rather than 0/0, because 0/0 would read as "there was nothing to
+  // accept" -- a claim about the ledger the response never made.
+  const accepted = data.accepted_versions;
+  const total = data.reviewable_active_versions;
+  if (typeof accepted !== 'number' || typeof total !== 'number') return '未读回';
+  return `${accepted}/${total}`;
+}
 
 export async function renderJuryReview(host: HTMLElement): Promise<void> {
   host.replaceChildren(el('p', { class: 'view-loading' }, '正在读回评审记录…'));
@@ -1031,7 +1047,8 @@ function juryReadbackPanel(projectId: string, data: JuryReadback,
         'Agent 建议不计入验收，人工签署是唯一改变此处的途径。')]);
   const summary = el('p', { class: 'view-hint' },
     `已签署 ${data.verdict_count ?? 0} · Agent 建议 ${data.proposal_count ?? 0} · 人工验收 `
-    + (data.human_acceptance === 'ACCEPTED' ? '已接受' : '未接受'));
+    + (data.human_acceptance === 'ACCEPTED' ? '已接受' : '未接受')
+    + `（当前版本 ${acceptanceFraction(data)}）`);
   return el('div', {}, summary, list,
            juryVerdictForm(projectId, data.reviewable_versions ?? [], reload));
 }
@@ -1077,7 +1094,7 @@ function evidenceJuryColumn(data: JuryReadback): HTMLElement {
   return el('div', { class: 'panel' }, heading,
     el('p', { class: 'view-hint' },
       `已签署 ${verdictCount} · Agent 建议 ${proposalCount} · `
-      + `当前有判定版本 ${verdicts.length} 个`),
+      + `当前版本已接受 ${acceptanceFraction(data)}`),
     el('p', {}, acceptance
       ? el('span', { class: 'tag ' + (ACCEPTANCE_TAGS[acceptance] ?? 'neutral') },
           en(acceptance))
