@@ -180,3 +180,43 @@ Accept/Reject/Change 面（合同完备、无路由无 UI，人工字段按铁�
 即真实交付物与原生工程文件只活在单机，而 `reports/current/**` 的账本又引用它们。
 需要的是"哪些进仓、进仓后多大"的口径裁决（本机 `git count-objects -vH` 实测
 `size-pack` 为 **238.91 MiB**，一次性并入 341 MiB 交付物不是可逆动作），不是再删一次缓存。
+
+## 八、② 补齐、六列成门、模型线索实测（2026-10-07，main = 2e634524）
+
+**② 请求失败态已按路由实测（PR #270，并入 2e634524）。** 此前这一列只对连接流程断言过。
+现在每个路由都被扫一遍：会读服务的 8 面在请求被拒时**只**渲染 `视图读回失败：<原因>`，
+不残留上一面内容；不读服务的 3 面不得谎报失败。两种失败按**路由**交替注入——
+传输层拒绝（vm 外创建，页面里 `instanceof Error` 为假，走 `String(error)`）与服务错误信封
+（`api()` 在 realm 内 throw，走 `error.message`）是两条不同代码路径，且"两条都测到"由计数断言
+自证，不靠意图。变异测试 3/3：吞掉失败留旧页 / 只说失败不说原因 / 报成未连接。
+
+过程中我公开更正过一次：把 `Error: ` 前缀当成产品措辞问题写进了 PR 描述，实际是我探针
+跨 realm 造成的夹具性质；追下去还发现当时只测了一条错误路径。
+
+**状态矩阵六列现在全部有门。** ① 未连接（`appshell.mjs` 未连接扫描，13 路由）、
+② 请求失败（同上，双向）、③ 加载中（路由切换后立即 `正在读回当前视图`，且旧 generation 的
+迟到成功不得覆盖）、④ 真实空（正向对照：服务真答空集必须说 `尚无X`）、
+⑤ 形状异常（`shape-notice-coverage.mjs` 按 AST 逐绑定 + 路由级畸形注入）、
+⑥ 真实数据（`browser_design_layer_e2e.mjs` 全纵切，含 `reload persisted readback`）。
+"几何门全绿≠界面好"这条限制不变。
+
+**模型线索实测：本轮不哈希，理由是先量了再动手。** `design-lab/readiness/model-radar.json`
+14 条：4 条 `WEIGHTS_COMPLETE`（minimax-h3 的 diffusion / text-encoder / video-vae / audio-vae，
+合计 **39.55 GiB**，确实落在声明库根 `D:/All projects/Model library`），2 条 `METADATA_ONLY`，
+8 条 `ABSENT`。那 4 条 `weights_sha256` 全空，看着像"该补没补"。两处实测否掉了动手：
+
+- 该文件自己的 `policy[0]`：*"This registry records what is present and what is claimed;
+  it never loads, downloads, **hashes**, or runs a model."* —— 往里写哈希违反它声明的合同；
+- 4 条全部 `radar_state=BLOCKED_BY_LICENSE`、`license_id=PENDING-OWNER-ADJUDICATION`，
+  其中 3 条硬件 `EXCEEDS`（需 20/12/8 GiB）。**阻塞不是缺 checksum**，补上也解不开任何东西。
+
+所以模型线索剩下的工作是权利裁决（owner）与宿主验证（E2+），不是我能靠读盘完成的。
+
+**capture 记录改为仓内相对路径（PR #271）。** `screenshot-manifest.json` 之前记的是解析后的
+绝对路径，导致同样一次 capture 从 linked worktree 跑出来就和主 checkout 的记录不同——本轮
+因此把一份 39 张的批次留在了仓外。改为按仓内相对路径记录（与 PNG sidecar 一致），确实指向
+仓外时保留绝对形式。
+
+**仍未收口、且需要 owner 拍的一条**：截图证据刷新遇到分叉。页序自 #259 起变化使旧的已提交 PNG
+全部成为孤儿，要么并存（≈ +5 MiB）、要么删受版本控制的旧图。新生成的 78 个文件已移到
+`.project-local/tmp/cap-orphans-270/` **备查未删**，仓库里的 manifest 未动。
