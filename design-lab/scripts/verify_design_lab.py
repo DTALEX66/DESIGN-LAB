@@ -35,6 +35,7 @@ def run_child(command: list) -> subprocess.CompletedProcess:
 
 SCRIPTS = [
     "verify_identity_gate.py",
+    "verify_ledger_subject_binding.py",
     "verify_project_drift.py",
     "verify_knowledge_lifecycle.py",
     "verify_design_kernel.py",
