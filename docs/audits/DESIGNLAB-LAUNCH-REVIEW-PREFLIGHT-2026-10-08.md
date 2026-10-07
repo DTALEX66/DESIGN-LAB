@@ -474,7 +474,7 @@ NOT_REVIEWED,不能被措辞成已经在流程里**(`interop/delivery_receipt.py
 ## 11. 本波次提交清单与仍未闭合的口(2026-10-08)
 
 <!-- WAVE COMMITS:BEGIN -->
-本波次落仓的提交(43 个,`fc03a303`..`14269a36`,由 `git log --reverse --format=%h %s` 直接生成,不手抄):
+本波次落仓的提交(63 个,`fc03a303`..`d60edfe4`,由 `git log --reverse --format=%h %s` 直接生成,不手抄):
 
 | 提交 | 说明 |
 |---|---|
@@ -521,6 +521,26 @@ NOT_REVIEWED,不能被措辞成已经在流程里**(`interop/delivery_receipt.py
 | `0cb1397b` | feat(evidence): the delivery receipt is readable over HTTP, and 证据系统 reads it back |
 | `5b8e7d51` | feat(quality): a sealed QualityRecord is stored, readable and reachable from the CLI |
 | `14269a36` | feat(workbench): 已接受 now states its denominator on screen |
+| `4003ac29` | docs(audit): wave section 11 -- the commit table regenerated from git, and the open ends split by who can close them |
+| `08d0a01d` | fix(assets): the raster library read a revision history as if it were one current version |
+| `cd14f0e4` | fix(assets): a raster asset registering a second file was listed twice and could not be served |
+| `81c51812` | fix(native): one asset that registers a preview was listed twice and answered 404 on verify |
+| `072dab84` | fix(delivery): a bundle that registered a preview could not be downloaded |
+| `601a6422` | fix(backup): a signature that landed inside the backup window was not seen by the quiescence proof |
+| `747c14c5` | feat(rights): the RIGHTS human gate gets a store, a route, a verb and a word for "nobody filed" |
+| `4d0910df` | fix(backup): PROVED_QUIESCENT only ever covered the tables it happened to name |
+| `e5e697fa` | docs(audit): correct my own rights status claims against HEAD, not against memory |
+| `0ddfa2d3` | fix(rights): resending a decision that stated nothing for an optional field is a replay |
+| `53fbecb1` | test(evidence): register the fourth drifted binding the ledger now carries |
+| `8f0d4f98` | fix(verify): the identity gate could report a clean tree after examining no files |
+| `575df868` | docs(audit): retract my own falsification claim about the identity gate |
+| `9760a888` | docs(audit): the record's own citations were measured, and why that check is not a gate |
+| `3da7bbe4` | docs(audit): a mis-anchored falsifier produced the mirror error -- a false "not enforced" |
+| `f9626391` | docs(verify): measure the identity floor against the environment that actually runs it |
+| `d5b5b1d6` | fix(rights): an unruled licence state could reach READY_FOR_HANDOFF |
+| `80d2241c` | feat(research): ResearchFinding becomes persisted, routable state with its own read-back |
+| `3548bc52` | feat(rights): the Human RIGHTS gate gets a Workbench panel that can decide it |
+| `d60edfe4` | feat(workbench): 研究洞察 reads its findings, and its own capability table can no longer lie |
 <!-- WAVE COMMITS:END -->
 
 仍未闭合,按"能不能由我自己关掉"分开列:
@@ -723,6 +743,94 @@ HEAD(或 gitignored 工作证据根),带 `:行号` 的还必须落在该文件�
 也会被我的名字正则捞进来,于是它把四五个合法名字报成"不存在的表"。它同时还是**空断言**:
 我先把 watched 与状态表集合取过交集,再去断言交集里的名字都在状态表里。删掉它,理由是
 "名字打错"这件事已经被盲表断言覆盖了(打错 = 真表变盲),不需要一个建立在错误前提上的额外检查。
+
+
+## 19. 第十一段:RIGHTS 的"未裁定"状态,原本只会警告(2026-10-08 追加,`d5b5b1d6`)
+
+`handoff_readiness.py` 顶部把三个波段写成字面量,注释称其为
+"the frozen rights-registry.json set"。它不是从那份文件读出来的,是一份**手抄的第二权威**;
+而两份权威一旦分歧,分歧只朝一个方向暴露:落在三波段之外的状态值走 `else`,
+产出一条 WARNING,而 `READY_FOR_HANDOFF` 的判据是 BLOCKER 为空。
+于是"一个没人裁过的许可状态"与"没有任何东西阻塞交付"在同一个屏幕上同时成立。
+
+现在未分类状态按名字阻塞。真正把它钉住的是反证而不是这段叙述:
+`falsify_rights_band_fail_closed.py` 把四种失败模式逐条装回去,每种都必须由**指定那条断言**变红 ——
+
+| 装回去的缺陷 | 指名的断言 | 首行报错 |
+|---|---|---|
+| 未分类仍只警告 | `test_unclassified_rights_state_blocks_the_handoff` | `'READY_FOR_HANDOFF' != 'BLOCKED'` |
+| 未知值当作 CLEAN | 同上 | 同上 |
+| `territory.state` 被平铺读取 | `test_nested_territory_state_is_read_through_its_path` | `'rights:model:h3:territory.state=FORBIDDEN' not found in []` |
+| 阻塞波段被清空 | `test_every_state_the_shipped_registry_records_is_classified` | 逐条点名未被分类的状态 |
+
+这份脚本的**第一版自己骗了我一次**:主案例的锚点用错了引号风格,匹配不到任何字节,
+于是它把最重要的那条"已证明"静默跳过。现在锚点匹配不到字节会被报成 `NOT TESTED`,
+而不是当作通过 —— 与 §18 是同一条病的另一种发作。
+
+新增 `verify_rights_registry.py`,把这份抄本与它所声称的文件绑起来:
+**74 条 × 4 个字段 = 296 次分类(284 阻塞 / 8 限制 / 4 干净 / 0 未分类)**;
+`counts` 那四个手工维护的数字全部由 `entries` 重新算出并必须相等(74/4/70/4);
+重复 subject 拒绝;`generated_from` 5 项与逐条 `evidence_source` 8 项引用路径必须存在。
+空注册表被当作失败而不是干净。
+
+**仍未闭合,且我没有替 owner 决定**:注册表列的是 74 个**许可主体**,而读回算的是**本项目提交过的
+使用范围**。`cleared = bool(scopes) and len(approved) == len(scopes)` 说的是"提交过的都批了",
+不是"该提交的都提交了"。哪一个项目实际用到 74 项中的哪些,是 owner 的 RIGHTS 判断,
+本仓没有任何文件声明它,我也没有伪造一份。因此 `DOES_NOT_PROVE` 里那句"本台账不持有需求清单"
+今天依然成立,并且现在有了门把它保持在成立状态(注册表一变,门就红)。
+
+
+## 20. 第十二段:产品自述的能力表,可以是假的(2026-10-08 追加,`d60edfe4`)
+
+`VIEW_NOT_OPEN` 与 `CAPABILITY_REGISTRY` 是 Workbench 里两份**机器可读的自我声明**
+(某个 IA 槽有没有后端路由、某项能力是 PLANNED/BLOCKED/IMPLEMENTED)。它们的存在是因为任务包要求
+"无 backend 的蓝图页不得声称可用"。但没有任何东西把它们与 `http_service.py` 实际 dispatch 的路由对比过。
+
+研究结论的存储、门面、GET/POST 路由与 `research` verb 落进来之后:
+槽位仍在告诉操作人"当前服务没有研究结论的持久化路由",登记表那一行仍写着 PLANNED、
+route 仍是 `GET /api/research/…`。这是**反过来的假绿灯**:产品宣传一个它已经补上的缺口,
+而且宣传的位置正是读者用来判断该信什么的那张表。
+
+`verify_capability_self_description.py` 双向绑定:声称无路由的槽若有一条"终段字面量与槽同名"的路由
+被 dispatch 就红;声称 IMPLEMENTED 的行若它命名的路由不存在也红(只查前一个方向,就能靠把
+PLANNED 改成 IMPLEMENTED 来"修好"这张表)。行的 `route` 允许写成散文或省略号,那种值不可匹配,
+所以给行加了显式 `slot` 字段 —— 这一条不是装饰:反证里专门有一个用例把 route 换回省略号形式,
+此时**只有 slot  linkage 还能抓到谎**。路由清单复用
+`verify_contract_bindings.route_tokens` 那台 AST 读路机,两个门不会在"服务 dispatch 了什么"上分歧。
+实测:52 条路由 / 32 个终段资源 / 5 行 / 1 个合法无后端的槽(collaboration)。15 条牙测试,
+含一份"把视图比对删掉的弱化门副本让同一个谎通过"的反证与四条空扫描地板线。
+
+视图本身现在读这条路由:不画任何完成词(`research_verdict` 为 null 时上屏的是服务自己那句理由),
+无来源的主张在本地就拒发而不是发给会拒它的存储,替代链接走查询参数,完全相同的重发保留
+`finding_id` 让服务端能认成 replay,而改过的文档必须换新 id,响应没带下来的计数读作 `未读回` 而非 0。
+
+反证(`falsify_research_panel.py`,4/4 感到)顺带抓出两处我自己的方法缺陷,值得记进 §18 那条规则:
+1. 两个锚点在文件里**也匹配 rights 的辅助函数**,于是脚本改的是"排在前面的那个函数",
+   研究代码一个字节都没动却报 `NOT FELT`。现在锚点必须**恰好匹配一次**,否则报 `NOT TESTED`。
+2. 我写的 `/\b共 0 条\b/` 永远不会匹配任何东西 —— JavaScript 的 `\b` 是 `\w` 边界,
+   CJK 字符不是词字符。断言改成匹配渲染后的字面形式,该变异随即变红。
+
+`ul class="list"` 容器清单由测量得出 35 → **38**,并且这一批暴露了清单针脚的语义:
+它只匹配**恰好** `'list'` 的类名,`'list research-findings'` 这种带钩子的写法会**逃出清单**却仍吃
+`.list` 样式 —— 与 §滚动可见那条同形(门的计数针脚比它看起来窄)。三个容器统一改用裸 `list`。
+
+
+## 21. 本轮的 BLOCKED 与未闭合(照实记,不当完成)
+
+- **真实宿主 E3 / 真人 Jury E4 / 发布 E5**:仍为 owner 门,未自动化,未被任何绿灯冒充。
+- **D-6 落地工作台壳统一**:第二个壳仍未收,保持 BLOCKED。
+- **`#18` 交付收据承诺的 rollback 引用**:`native_bundles._rollback_of` 写入
+  `backup_ref = asset:{id}/version:{version_id}`,procedure 文本声称源版本"未被导出改动且写收据时已核过摘要";
+  读回侧从未解析这个引用。修它要把收据路由的响应换成信封(`receipt` 文档本身受 `receipt_sha256`
+  自摘要约束,**不能**直接往里加字段,否则响应与它自己声明的摘要不再一致),连带 route payload schema、
+  contract-bindings 行、UI 文本与双向反证。我没有把它拆成"先写一个没人调用的解析函数"入库 ——
+  那正好是本文反复报告的"声明了但没人读"这一类。
+- **MethodCard**:`design-lab/schemas/method-card.schema.json` 与 `asset-counts.json` 里 77 个
+  `method_cards` 之外,`src/` 里没有任何生产/消费它的代码,两种不兼容的定义仍未裁定。
+- **两条并行切片是靠我复核入库的**,不是靠它们的自述:两个子代理都在 150 轮上限处停住
+  (rights 面板停在"还没有测试断言 chip 颜色"这句中间;research 停在"post-mutation 合并验证"),
+  所以我按字节复核了它们的树(tsc / vite build / appshell / shape-notice / CSS 清单 / 词汇门 /
+  53+19 条研究测试)才提交。
 
 
 
