@@ -294,12 +294,31 @@ export interface CapabilityRecord {
   /** null means no host run and no human acceptance exists yet - not `false`. */
   qualified: boolean | null;
   qualificationEvidence: string | null;
+  sourceType: string | null;
+  evidenceLevel: string | null;
+  upstreamOwner: string | null;
+  licenseUrl: string | null;
+  rightsNotes: string | null;
+  removalPath: string | null;
+  popularity: {
+    stargazerCount: number | null;
+    forkCount: number | null;
+    observedAt: string | null;
+    source: string | null;
+    isNotQuality: boolean;
+  } | null;
+  unclassifiedAxes: string[];
 }
 
 export interface CapabilityLibraryResponse {
   schemaVersion: string;
   meaning: string;
   unmeasuredMeans: string;
+  classification?: {
+    joined: number;
+    unclassifiedAxes: string[];
+    note: string;
+  };
   counts: {
     total: number;
     byKind: Record<string, number>;

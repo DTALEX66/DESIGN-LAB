@@ -26,6 +26,40 @@ SCHEMA_VERSION = "design-lab/capability-library/v1"
 LOCK_REL = Path("vendor") / "sources.lock.json"
 REVISIONS_REL = Path("vendor") / "sources.revisions.json"
 RADAR_REL = Path("design-lab") / "readiness" / "model-radar.json"
+TAXONOMY_REL = Path("research") / "candidates" / "CANDIDATE-TAXONOMY.json"
+
+#: Axes the taxonomy schema declares but has never received a value for. They are
+#: reported as unclassified rather than hidden, because a hidden column is how an
+#: absent human judgement starts to look like a completed one.
+CLASSIFICATION_AXES = ("domains", "artifactTypes", "capabilityLayers",
+                       "aestheticAxes", "styleArchetypes", "tier", "designQuality")
+
+
+def _repo_key(url: str | None) -> str:
+    """Normalise to `owner/repo` for an exact join. No fuzzy or name matching:
+    the revision record's own method field sets that rule and it holds here too."""
+    value = (url or "").strip().lower().rstrip("/")
+    for prefix in ("https://", "http://", "git+", "ssh://"):
+        if value.startswith(prefix):
+            value = value[len(prefix):]
+    for prefix in ("github.com/", "gitlab.com/", "gitee.com/"):
+        if value.startswith(prefix):
+            value = value[len(prefix):]
+    return value.removesuffix(".git")
+
+
+def _taxonomy_index(root: Path) -> dict:
+    """candidateId-by-repo-key from the observation taxonomy, or {} when absent."""
+    path = root / TAXONOMY_REL
+    if not path.is_file():
+        return {}
+    index = {}
+    for entry in _read_json(path).get("entries", []):
+        for field in ("canonicalRepo", "canonicalUrl"):
+            key = _repo_key(entry.get(field))
+            if key:
+                index.setdefault(key, entry)
+    return index
 
 #: Qualification is a host run plus a human acceptance outcome. Neither is
 #: derivable from a registry, so the field is null until one is recorded.
@@ -38,7 +72,8 @@ def _read_json(path: Path) -> dict:
     return json.loads(path.read_text(encoding="utf-8"))
 
 
-def _source_capability(entry: dict, revisions: dict, unresolved: dict) -> dict:
+def _source_capability(entry: dict, revisions: dict, unresolved: dict,
+                       taxonomy: dict, repo_for_id: dict) -> dict:
     identity = str(entry.get("id", ""))
     pinned = revisions.get(identity)
     if pinned:
@@ -66,6 +101,40 @@ def _source_capability(entry: dict, revisions: dict, unresolved: dict) -> dict:
         "contentDigest": entry.get("contentDigest"),
         "qualified": UNQUALIFIED,
         "qualificationEvidence": None,
+        **_taxonomy_axes(taxonomy.get(_repo_key(repo_for_id.get(identity)))),
+    }
+
+
+def _taxonomy_axes(candidate: dict | None) -> dict:
+    """The axes a joined taxonomy entry actually carries, plus what it does not.
+
+    `evidenceLevel` and `rights` are real observations; `adoption` is popularity and is
+    labelled as such because the taxonomy policy states popularityIsNotQuality. The
+    classification axes are surfaced as null when unpopulated rather than defaulted.
+    """
+    if not candidate:
+        return {"sourceType": None, "evidenceLevel": None, "upstreamOwner": None,
+                "licenseUrl": None, "rightsNotes": None, "removalPath": None,
+                "popularity": None, "unclassifiedAxes": list(CLASSIFICATION_AXES)}
+    rights = candidate.get("rights") or {}
+    adoption = candidate.get("adoption") or {}
+    metrics = adoption.get("metrics") or {}
+    axes = [axis for axis in CLASSIFICATION_AXES if not candidate.get(axis)]
+    return {
+        "sourceType": candidate.get("sourceType"),
+        "evidenceLevel": candidate.get("evidenceLevel"),
+        "upstreamOwner": candidate.get("upstreamOwner"),
+        "licenseUrl": rights.get("licenseURL"),
+        "rightsNotes": rights.get("rightsNotes"),
+        "removalPath": candidate.get("removalPath"),
+        "popularity": {
+            "stargazerCount": metrics.get("stargazerCount"),
+            "forkCount": metrics.get("forkCount"),
+            "observedAt": adoption.get("observedAt"),
+            "source": adoption.get("source"),
+            "isNotQuality": True,
+        },
+        "unclassifiedAxes": axes,
     }
 
 
@@ -90,6 +159,10 @@ def _model_capability(entry: dict) -> dict:
         "contentDigest": None,
         "qualified": UNQUALIFIED,
         "qualificationEvidence": None,
+        # Every record carries the same keys, whichever kind it is: a missing axis on a
+        # model row must read as unclassified, not as an absent field the view has to
+        # special-case.
+        **_taxonomy_axes(None),
     }
 
 
@@ -110,7 +183,9 @@ def build(root: Path | None = None) -> dict:
     unresolved = {str(item.get("id")): item.get("reason")
                   for item in (revisions.get("unresolved") or [])}
 
-    capabilities = [_source_capability(entry, pinned, unresolved)
+    taxonomy = _taxonomy_index(root)
+    repo_for_id = {str(k): (v or {}).get("repo") for k, v in pinned.items()}
+    capabilities = [_source_capability(entry, pinned, unresolved, taxonomy, repo_for_id)
                     for entry in lock.get("sources", [])]
     capabilities += [_model_capability(entry) for entry in radar.get("entries", [])]
 
@@ -121,8 +196,16 @@ def build(root: Path | None = None) -> dict:
             counts[key] = counts.get(key, 0) + 1
         return dict(sorted(counts.items()))
 
+    unclassified = sorted({axis for c in capabilities for axis in c.get("unclassifiedAxes", [])})
     return {
         "schemaVersion": SCHEMA_VERSION,
+        "classification": {
+            "joined": sum(1 for c in capabilities if c.get("sourceType")),
+            "unclassifiedAxes": unclassified,
+            "note": ("These axes are declared by the candidate taxonomy and empty for "
+                     "every observed candidate; filling them is a human classification "
+                     "task, not a UI one."),
+        },
         "meaning": ("Read-only projection of the source lock, the vendor revision "
                     "record and the model radar. It never installs, qualifies, "
                     "licenses or runs anything."),
@@ -131,6 +214,7 @@ def build(root: Path | None = None) -> dict:
                             "run and no human acceptance exists yet."),
         "counts": {
             "total": len(capabilities),
+            "joinedToTaxonomy": sum(1 for c in capabilities if c.get("sourceType")),
             "byKind": tally("kind"),
             "byLicense": tally("license"),
             "byRevisionState": tally("revisionState"),

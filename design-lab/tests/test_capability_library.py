@@ -25,6 +25,50 @@ sys.path.insert(0, str(ROOT / 'src'))
 from design_lab.analysis import capability_library  # noqa: E402
 
 
+class EnrichmentTests(unittest.TestCase):
+    def setUp(self):
+        self.doc = capability_library.build(ROOT)
+
+    def test_every_record_has_one_shape_regardless_of_kind(self):
+        # Models are outside the vendor/taxonomy mechanism. If their rows simply
+        # omitted those keys, every consumer would need a kind branch and an absent
+        # axis would be indistinguishable from an unclassified one.
+        shapes = {tuple(sorted(record)) for record in self.doc['capabilities']}
+        self.assertEqual(len(shapes), 1, f'{len(shapes)} different record shapes')
+
+    def test_popularity_is_never_presented_without_its_label_and_stamp(self):
+        # The taxonomy policy states popularityIsNotQuality; a row that shows stars
+        # without that marker turns an observation into a de facto score.
+        with_stars = [c for c in self.doc['capabilities'] if c['popularity']]
+        self.assertTrue(with_stars, 'no joined records to check the rule against')
+        for record in with_stars:
+            self.assertTrue(record['popularity']['isNotQuality'])
+            self.assertIsNotNone(record['popularity']['observedAt'])
+
+    def test_unclassified_axes_are_derived_and_never_invented(self):
+        axes = set(capability_library.CLASSIFICATION_AXES)
+        reported = set(self.doc['classification']['unclassifiedAxes'])
+        self.assertTrue(reported <= axes, f'invented axes surfaced: {reported - axes}')
+        for record in self.doc['capabilities']:
+            self.assertTrue(set(record['unclassifiedAxes']) <= axes)
+        joined = [c for c in self.doc['capabilities'] if c['sourceType']]
+        self.assertEqual(self.doc['classification']['joined'], len(joined))
+
+    def test_a_missing_taxonomy_degrades_the_join_without_failing_the_library(self):
+        import shutil
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            for rel in (capability_library.LOCK_REL, capability_library.REVISIONS_REL,
+                        capability_library.RADAR_REL):
+                target = root / rel
+                target.parent.mkdir(parents=True, exist_ok=True)
+                shutil.copyfile(ROOT / rel, target)
+            doc = capability_library.build(root)
+        self.assertEqual(doc['classification']['joined'], 0)
+        self.assertTrue(doc['capabilities'])
+        self.assertTrue(all(c['qualified'] is None for c in doc['capabilities']))
+
+
 class ProjectionTests(unittest.TestCase):
     def setUp(self):
         self.doc = capability_library.build(ROOT)

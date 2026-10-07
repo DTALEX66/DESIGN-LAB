@@ -1994,12 +1994,29 @@ async function renderCapabilityLibrary(target) {
       c.domain,
       c.disposition,
       c.presence,
-      c.revisionState
+      c.revisionState,
+      c.sourceType,
+      c.evidenceLevel,
+      c.upstreamOwner
     ].join(" ").toLowerCase().includes(needle)) : rows;
     body.replaceChildren(...keep.map((c) => el(
       "tr",
       {},
-      el("td", {}, el("strong", {}, c.id), el("div", { class: "muted" }, c.kind)),
+      el(
+        "td",
+        {},
+        el("strong", {}, c.id),
+        el("div", { class: "muted" }, `${c.kind} · ${c.sourceType ?? "未分类"}`),
+        // The withdrawal instruction is part of the record, not an afterthought: the
+        // plan asks for upgrade/withdraw with source references, and this is the
+        // recorded path for exactly this candidate.
+        c.removalPath ? el(
+          "details",
+          { class: "capability-withdraw" },
+          el("summary", {}, "撤回路径"),
+          el("p", { class: "mono" }, c.removalPath)
+        ) : ""
+      ),
       el("td", {}, c.license ?? "（无记录）"),
       el("td", {}, c.disposition ?? "—"),
       el("td", {}, c.presence ?? "—"),
@@ -2008,7 +2025,19 @@ async function renderCapabilityLibrary(target) {
         // unresolved and not-verified are warnings, never blanks.
         class: "tag " + (c.revisionState === "VERIFIED" ? "ok" : "warn")
       }, en(c.revisionState)), c.revision ? el("div", { class: "mono" }, c.revision) : ""),
-      el("td", {}, c.qualified === null ? el("span", { class: "tag neutral" }, "未判定") : el("span", { class: "tag info" }, String(c.qualified)))
+      el("td", {}, c.qualified === null ? el("span", { class: "tag neutral" }, "未判定") : el("span", { class: "tag info" }, String(c.qualified))),
+      el("td", {}, c.evidenceLevel ? el(
+        "span",
+        { class: "tag " + (c.evidenceLevel === "E0" ? "warn" : "info") },
+        en(c.evidenceLevel)
+      ) : el("span", { class: "tag neutral" }, "未记录")),
+      // Popularity is shown with its observation stamp and an explicit not-a-score
+      // marker, per the taxonomy policy `popularityIsNotQuality`.
+      el("td", {}, c.popularity ? el(
+        "span",
+        { class: "muted" },
+        `★ ${c.popularity.stargazerCount ?? "—"} · fork ${c.popularity.forkCount ?? "—"} · ${c.popularity.observedAt?.slice(0, 10) ?? "未记时间"} · 非质量分`
+      ) : el("span", { class: "muted" }, "未观测"))
     )));
     shown.textContent = `显示 ${keep.length} / ${rows.length} 条`;
   };
@@ -2060,10 +2089,27 @@ async function renderCapabilityLibrary(target) {
             el("th", {}, "处置"),
             el("th", {}, "存在状态"),
             el("th", {}, "修订"),
-            el("th", {}, "资格判定")
+            el("th", {}, "资格判定"),
+            el("th", {}, "证据级"),
+            el("th", {}, "热度（非质量分）")
           )),
           body
         )
+      )
+    ),
+    el(
+      "div",
+      { class: "panel" },
+      el("h3", {}, "分类轴现状"),
+      el(
+        "p",
+        { class: "view-hint" },
+        `已连接候选分类 ${data.classification?.joined ?? 0} / ${data.counts.total} 条。` + (data.classification?.unclassifiedAxes?.length ? `以下轴在候选分类账中全部为空，界面不代填：${data.classification.unclassifiedAxes.join("、")}。` : "所有已声明分类轴均有值。") + ` ${data.classification?.note ?? ""}`
+      ),
+      el(
+        "p",
+        { class: "view-hint" },
+        "热度取自 GitHub 观测并带观测时间；策略明确 popularityIsNotQuality，因此它不参与排序或判定。"
       )
     ),
     el(
