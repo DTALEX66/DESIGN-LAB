@@ -1160,7 +1160,10 @@ function projectDetailHash(id) {
   return "#/projects/" + encodeURIComponent(id);
 }
 const VIEW_NOT_OPEN = {
-  "research": "研究洞察页未开放：当前服务没有研究结论的持久化路由。",
+  // 'research' left this table on 2026-10-08: GET/POST /api/projects/{id}/research is dispatched
+  // by src/design_lab/http_service.py and renderResearch reads it back. A slot that has a route
+  // may not keep a "no route" notice -- design-lab/scripts/verify_capability_self_description.py
+  // now refuses the pair.
   "collaboration": "团队协作页未开放：本地单机服务尚无协作路由（本地单用户模型）。"
 };
 const CAPABILITY_REGISTRY = [
@@ -1169,12 +1172,13 @@ const CAPABILITY_REGISTRY = [
     domain: "研究洞察",
     source: "IA 槽位 #/research",
     owner: "DESIGN-LAB design core",
-    route: "GET /api/research/…",
-    contractRef: "apps/workbench/shell.ts ROUTE_VIEWS（12 路由 IA）；无后端模型",
-    implementationState: "PLANNED",
+    route: "GET /api/projects/{id}/research",
+    slot: "research",
+    contractRef: "design-lab/schemas/research-finding.schema.json · design-lab/schemas/state/design-lab-state-research-v1.sql · src/design_lab/assurance/research_store.py · src/design_lab/research_review.py",
+    implementationState: "IMPLEMENTED",
     permission: "brief/reference 已持久化（/api/projects/{id}/assets 已有）",
-    reason: "服务尚无研究结论持久化路由；研究目前由 brief/reference 驱动。",
-    nextAction: "设计 research 结论模型 + 服务路由，然后 UI 读回替换本卡。"
+    reason: "读回路由已落地：本项目已持久化的研究结论、来源覆盖与置信度分布由该路由给出，空读回说成空读回而不是 0 条判定。仍未闭合的是结论本身的验收——一条研究结论不证明设计质量，也不是知识导出，页面与服务端都不给完成词。",
+    nextAction: "按 E2+ 用真实 brief 走一遍「采集→落库→读回→取代」，并把结论送入既有的 Direction/Quality 门；UI 读回无需再改。"
   },
   {
     capabilityId: "design-domain-model",
@@ -2635,6 +2639,270 @@ async function renderRightsReview(host) {
   host.replaceChildren(el("label", { class: "muted" }, "权利项目", picker), outcome, body);
   await load();
 }
+const RESEARCH_UNREADABLE = {
+  schemaVersion: "design-lab/research-readback/v1",
+  findings: [],
+  current_findings: {},
+  confidence_counts: {},
+  does_not_prove: [],
+  actor_kinds: {},
+  unattributed_findings: []
+};
+function researchNumber(data, key) {
+  const value = data[key];
+  return typeof value === "number" ? String(value) : "未读回";
+}
+function researchFacts(data) {
+  const verdict = data.research_verdict;
+  const tagClass = verdict === null || verdict === void 0 ? "warn" : "info";
+  const tags = Object.entries(data.confidence_counts ?? {});
+  return el(
+    "div",
+    { class: "panel research-facts" },
+    el("h3", {}, "研究结论读回"),
+    el(
+      "p",
+      { class: "view-hint" },
+      `共 ${researchNumber(data, "finding_count")} 条 · 现行 ${researchNumber(data, "current_finding_count")} 条 · 已被取代 ${researchNumber(data, "superseded_finding_count")} 条 · 有来源 ${researchNumber(data, "sourced_finding_count")} 条 · 无来源 ${researchNumber(data, "unsourced_finding_count")} 条 · 来源引用合计 ${researchNumber(data, "source_ref_total")} 个`
+    ),
+    el(
+      "p",
+      { class: "muted" },
+      `来源字段名取自响应（${data.source_ref_field ?? "未读回"}），置信度计数来自服务端逐词表给出（含 0），标注数 ${researchNumber(data, "stated_confidence_count")}；未署名 ${researchNumber(data, "unattributed_findings")} 条。`
+    ),
+    tags.length ? el("div", {}, ...tags.flatMap(([word, count]) => [
+      el(
+        "span",
+        { class: "tag " + (count ? "info" : "neutral") },
+        en(word)
+      ),
+      el("span", { class: "muted" }, String(count))
+    ])) : el("p", { class: "view-hint" }, "置信度计数未读回：响应没有给出 confidence_counts，本页不代替服务发明分类。"),
+    el(
+      "span",
+      { class: "tag " + tagClass },
+      verdict === null || verdict === void 0 ? "无完成判定词" : en(String(verdict))
+    ),
+    el(
+      "p",
+      { class: "view-hint" },
+      data.research_verdict_note ?? "判定说明未读回：响应没有给出 research_verdict_note。"
+    ),
+    el(
+      "p",
+      { class: "muted" },
+      `本面不证明设计质量（proves_design_quality=${String(data.proves_design_quality ?? "未读回")}），也不是知识导出（is_knowledge_export=${String(data.is_knowledge_export ?? "未读回")}）。`
+    ),
+    ...data.undeclared_disclaimer ? [el("p", { class: "view-hint" }, `未声明免责：${data.undeclared_disclaimer}`)] : [],
+    el(
+      "ul",
+      { class: "list" },
+      ...(data.does_not_prove ?? []).map((line) => el(
+        "li",
+        { class: "list-item" },
+        el("span", {}, en(line))
+      ))
+    ),
+    ...data.does_not_prove?.length ? [] : [el(
+      "p",
+      { class: "view-hint" },
+      "本读回未给出 does_not_prove，因此无法说明这些数字不覆盖什么。"
+    )]
+  );
+}
+function researchFindingRows(data) {
+  const current = data.current_findings ?? {};
+  const findings = data.findings ?? [];
+  if (!findings.length) {
+    return el(
+      "ul",
+      { class: "list" },
+      emptyLi(
+        data,
+        "本项目尚无已持久化的研究结论",
+        "记录一条带来源的结论后在此读回；未读回不等于本项目没有结论。"
+      )
+    );
+  }
+  return el(
+    "ul",
+    { class: "list" },
+    ...findings.map((record) => {
+      const id = typeof record.finding_id === "string" ? record.finding_id : "未读回";
+      const superseded = !Object.prototype.hasOwnProperty.call(current, id);
+      const sources = Array.isArray(record.sourceRefs) ? record.sourceRefs : [];
+      return el(
+        "li",
+        { class: "list-item" },
+        el("span", {}, record.claim ?? "结论正文未读回"),
+        el("span", { class: "value-mono" }, id),
+        el(
+          "span",
+          { class: "tag " + (superseded ? "neutral" : "info") },
+          superseded ? "已被取代" : "现行"
+        ),
+        el(
+          "span",
+          { class: "tag " + (record.confidence ? "info" : "warn") },
+          record.confidence ? en(record.confidence) : "未标注置信度"
+        ),
+        el(
+          "span",
+          { class: "muted" },
+          sources.length ? `来源 ${sources.join(" · ")}` : "来源未读回"
+        )
+      );
+    })
+  );
+}
+function researchDecisionForm(projectId, data, reload, outcome) {
+  const vocabulary = Array.isArray(data.confidence_vocabulary) ? data.confidence_vocabulary : [];
+  const claim = el("textarea", {
+    class: "input",
+    id: "research-claim",
+    maxlength: "4000",
+    "aria-label": "研究结论正文"
+  });
+  const sources = el("input", {
+    class: "input",
+    id: "research-sources",
+    maxlength: "2000",
+    placeholder: "interview-07, bench-figma-2026-05",
+    "aria-label": "支撑这条结论的来源引用，用逗号或空格分隔，至少一个"
+  });
+  const confidence = el("select", { class: "input", id: "research-confidence" });
+  confidence.append(new Option("不标注（响应里就不会有这个字段）", ""));
+  for (const word of vocabulary) confidence.append(new Option(word, word));
+  const notRule = el("input", { type: "checkbox", id: "research-not-design-rule" });
+  const supersedes = el("select", { class: "input", id: "research-supersedes" });
+  supersedes.append(new Option("不替代：这是一条新的结论", ""));
+  for (const id of Object.keys(data.current_findings ?? {})) {
+    supersedes.append(new Option(id, id));
+  }
+  const submit = el(
+    "button",
+    { type: "button", class: "primary-btn", id: "research-submit" },
+    "记录一条研究结论"
+  );
+  let findingId = "";
+  let lastFingerprint = "";
+  submit.onclick = () => {
+    void (async () => {
+      const text = claim.value.trim();
+      const refs = sources.value.split(/[,\n\s]+/).map((part) => part.trim()).filter(Boolean);
+      if (!text) {
+        outcome.textContent = "未提交：结论正文为空。页面不发送一条没有主张的记录。";
+        return;
+      }
+      if (!refs.length) {
+        outcome.textContent = "未提交：没有任何来源引用。一条没有来源的结论是猜测，服务端会拒绝（RESEARCH_SOURCE_REQUIRED），本页不替你补一个来源。";
+        return;
+      }
+      const body = {
+        claim: text,
+        sourceRefs: refs
+      };
+      if (confidence.value) body.confidence = confidence.value;
+      if (notRule.checked) body.notDesignRule = true;
+      const fingerprint = JSON.stringify(body);
+      if (fingerprint !== lastFingerprint) {
+        findingId = "rf-" + Math.random().toString(16).slice(2, 34);
+        lastFingerprint = fingerprint;
+      }
+      const previous = supersedes.value;
+      const payload = { ...body, finding_id: findingId };
+      submit.disabled = true;
+      outcome.textContent = "提交中…";
+      try {
+        await api(`/projects/${projectId}/research` + (previous ? `?supersedes=${encodeURIComponent(previous)}` : ""), payload);
+        await reload();
+        outcome.textContent = "已记录一条研究结论；上方读回来自服务端，不是本页记住的输入。这条结论不等于设计质量判定，也不等于知识导出。";
+      } catch (error) {
+        const envelope = error.serviceEnvelope;
+        outcome.textContent = `未记录：${typeof envelope?.error === "string" ? envelope.error : errMsg(error)}` + (typeof envelope?.detail === "string" && envelope.detail ? ` —— ${envelope.detail}` : "") + "。服务端未写入任何结论。";
+      } finally {
+        submit.disabled = false;
+      }
+    })().catch((error) => setStatus(errMsg(error), true));
+  };
+  return el(
+    "div",
+    { class: "panel research-form" },
+    el("h3", {}, "记录一条研究结论"),
+    el(
+      "p",
+      { class: "view-hint" },
+      "一条结论必须带至少一个来源引用；置信度只有你选了才会出现在记录里，页面不默认一个。这里写入的是工作输入，不是 Human Gate 裁决，也不会提升任何验收轴。"
+    ),
+    el("label", {}, "结论正文", claim),
+    el("label", {}, "来源引用（至少一个）", sources),
+    el("label", {}, "置信度（可选）", confidence),
+    el("label", {}, "标注这不是一条设计规则（可选）", notRule),
+    el("label", {}, "取代哪条现行结论（只列读回中出现过的）", supersedes),
+    submit
+  );
+}
+async function renderResearch(host) {
+  host.replaceChildren(el("p", { class: "view-loading" }, "正在读回研究结论…"));
+  const projects2 = await apiOrEmpty("/projects", OFFLINE.projects);
+  const projectShape = shapeNotice(projects2);
+  if (projectShape) {
+    host.replaceChildren(el("p", { class: "error" }, `研究项目清单未读回：${projectShape}`));
+    return;
+  }
+  if (!projects2.projects.length) {
+    const offline = disconnectedNotice(projects2);
+    host.replaceChildren(el(
+      "p",
+      { class: offline ? "error" : "view-hint" },
+      offline ? `${offline}，项目台账未读回，因此不能断言无项目，也不能替某个项目记录结论。` : "本机尚无项目：研究结论按项目保存，这里不能替不存在的项目建立结论。"
+    ));
+    return;
+  }
+  const picker = el("select", { class: "input", id: "research-project" });
+  for (const p of projects2.projects) picker.append(new Option(p.name, p.id));
+  const outcome = el("p", { class: "view-hint", id: "research-review-outcome" }, "");
+  const body = el("div", { class: "research-body" });
+  const load = async () => {
+    const id = picker.value || projects2.projects[0].id;
+    const data = await apiOrEmpty(
+      `/projects/${id}/research`,
+      RESEARCH_UNREADABLE
+    );
+    const shape = shapeNotice(data);
+    body.replaceChildren(
+      shape ? el("p", { class: "error" }, `研究读回形状异常：${shape}`) : researchFacts(data),
+      researchFindingRows(data),
+      researchDecisionForm(id, data, load, outcome)
+    );
+  };
+  picker.onchange = () => {
+    void load().catch((error) => setStatus(errMsg(error), true));
+  };
+  host.replaceChildren(
+    el(
+      "div",
+      { class: "page-head" },
+      el(
+        "div",
+        {},
+        el("h2", {}, "研究洞察"),
+        el("p", {}, "按项目读回已持久化的研究结论与其来源覆盖；写入是工作输入，不是验收判定。")
+      )
+    ),
+    el("label", { class: "muted" }, "研究项目", picker),
+    outcome,
+    body
+  );
+  await load();
+}
+async function renderResearchView(target) {
+  const findings = el("div", { id: "research-findings" });
+  const library = el("div", { id: "capability-library" });
+  target.replaceChildren(findings, library);
+  await renderResearch(findings);
+  await renderCapabilityLibrary(library);
+}
 async function renderPreflight(target) {
   target.replaceChildren(el("p", { class: "view-loading" }, "正在准备预检…"));
   const known = "DL-TP-20260914-DEEPSEEK-AUTHORITY-R1::DLDS-H020";
@@ -2870,7 +3138,6 @@ async function renderCapabilityLibrary(target) {
   filter.oninput = () => {
     render();
   };
-  const notOpen = VIEW_NOT_OPEN["research"];
   const researchCard = CAPABILITY_REGISTRY.find((c) => c.capabilityId === "research-insights");
   target.replaceChildren(
     el(
@@ -2879,7 +3146,7 @@ async function renderCapabilityLibrary(target) {
       el(
         "div",
         {},
-        el("h2", {}, "研究洞察 / 能力库"),
+        el("h2", {}, "能力库"),
         // The payload carries `unmeasuredMeans` for machines; the reader gets the same
         // rule in the page's own language, with the English state words left untranslated.
         el("p", {}, "只读回仓内已维护的能力记录：来源锁、修订账与模型雷达。空白不等于 0：未经宿主运行与人工验收的项标为 未判定，未取回修订的项标为 NOT_VERIFIED 或 UNRESOLVED；本视图不安装、不取证、不代签许可。")
@@ -2942,7 +3209,7 @@ async function renderCapabilityLibrary(target) {
       "div",
       { class: "panel" },
       el("h3", {}, "研究结论"),
-      el("p", { class: "view-unopened" }, notOpen),
+      el("p", { class: "view-hint" }, "研究结论已改为读本项目的持久化路由，在本页上方读回；这里保留登记表卡片本身，不再声称缺少路由。"),
       researchCard ? capabilityCard(researchCard) : el("p", { class: "view-hint" }, "（登记表无此项）")
     ),
     ...shapeNoticeRows(data)
@@ -5415,7 +5682,7 @@ async function renderRoute(view, target) {
       await renderPreflight(target);
       return;
     case "research":
-      await renderCapabilityLibrary(target);
+      await renderResearchView(target);
       return;
     case "settings":
       await renderSettings(target);

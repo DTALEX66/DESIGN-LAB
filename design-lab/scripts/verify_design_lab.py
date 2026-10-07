@@ -76,6 +76,11 @@ SCRIPTS = [
     # nobody had ruled on. The band is now fail-closed and this re-checks the table against
     # the file, recomputes the summary, and resolves every cited provenance path.
     "verify_rights_registry.py",
+    # The Workbench describes its own coverage in VIEW_NOT_OPEN and CAPABILITY_REGISTRY, and
+    # nothing compared that text with the routes the service dispatches. It went stale the week
+    # the research store landed: the slot still told the operator no route persisted conclusions.
+    # This is the check that makes the self-description an assertion instead of a note.
+    "verify_capability_self_description.py",
     "verify_experience_corpus.py",
     "verify_design_actions.py",
     "verify_tool_action_plan.py",

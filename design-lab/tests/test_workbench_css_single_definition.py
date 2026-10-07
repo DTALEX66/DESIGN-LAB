@@ -359,7 +359,16 @@ class ListItemIsReallyAListMember(unittest.TestCase):
         # the does_not_prove lines are paragraphs, so neither adds a container.
         # The number moves because the inventory grew by one verified column, not because
         # a check was relaxed.
-        self.assertEqual(self.shell.count("el('ul', { class: 'list'"), 35)
+        # 2026-10-08 again: 35 -> 38 for the 研究洞察 read-back. Three containers, all three
+        # named: researchFacts() lists the façade's own does_not_prove lines so the numbers on the
+        # page travel with the sentence about what they do not cover; researchFindingRows() lists
+        # the project's persisted findings as real <li> members; and its empty branch is the
+        # repository's own three-way empty (emptyLi behind emptyWording), so an absent service can
+        # never be drawn as "this project has no findings". Measured with
+        # `s.count("el('ul', { class: 'list'")`, because the needle matches the exact class -- a
+        # `class: 'list research-findings'` hook would sit outside this inventory while still
+        # taking .list styling, so all three use the bare class.
+        self.assertEqual(self.shell.count("el('ul', { class: 'list'"), 38)
 
 
 if __name__ == "__main__":

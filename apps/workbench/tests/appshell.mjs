@@ -1163,4 +1163,225 @@ if (!/未读回：响应缺少[^\n]*current_decisions/.test(unreadRightsText))
 rightsFixture = RIGHTS_READBACK;
 console.log('ok: ⑧ 权利门：决定词来自读回且带 lang="en"、无预选、构建页面零 POST、注定被拒的写不发请求、一次点击一个 POST 带契约字段与查询参数替代、成功后读回来自服务端、拒绝替换上一条已提交、证据列读回每人每范围决定与分母/冲突/仅名字核查/does_not_prove、缺分母说未读回不画 0/0、空台账说"没有被问过"不说等待审查');
 
+// ⑨ 研究洞察 · persisted findings. GET/POST /api/projects/<32-hex>/research became a real
+// route, and the slot that used to say "no persisted conclusions route exists" now reads the
+// ledger back. The claims worth driving are the ones a static page cannot make: a write leaves
+// only on click and carries exactly the closed contract field set (no schemaVersion, because
+// this contract declares none), a supersede link travels as a query parameter and not inside the
+// document, an identical retry keeps its finding_id so the service can call it a replay while a
+// changed document must take a fresh one, and the page never invents a completion word -- the
+// façade publishes `research_verdict: null` precisely because "how many findings exist" is not
+// "is the research finished". A count the response never carried reads 未读回 rather than 0.
+const RESEARCH_PROJECTS = { projects: [{ id: 'p1', name: 'Alpha' }, { id: 'p2', name: 'Beta' }] };
+let researchFixture = {
+  schemaVersion: 'design-lab/research-readback/v1', project_id: 'p1',
+  findings: [
+    { finding_id: 'rf-one', claim: '包装线上一半的返工来自色数超限', sourceRefs: ['interview-07'],
+      confidence: 'medium' },
+    { finding_id: 'rf-two', claim: '模板复用率随交付格式数量下降',
+      sourceRefs: ['bench-figma-2026-05', 'telemetry-12'] },
+  ],
+  current_findings: { 'rf-one': {}, 'rf-two': {} },
+  finding_count: 2, current_finding_count: 2, superseded_finding_count: 0,
+  sourced_finding_count: 2, unsourced_finding_count: 0, source_ref_total: 3,
+  source_ref_field: 'sourceRefs',
+  confidence_counts: { high: 0, medium: 1, low: 0, speculative: 0 },
+  confidence_vocabulary: ['high', 'medium', 'low', 'speculative'],
+  stated_confidence_count: 1, unattributed_findings: ['rf-one', 'rf-two'],
+  actor_kinds: { UNDECLARED: 2 }, undeclared_disclaimer: 'HTTP 提交不携带作者类型',
+  proves_design_quality: false, is_knowledge_export: false,
+  research_verdict: null,
+  research_verdict_note: 'this surface publishes no completion or clearance word',
+  does_not_prove: ['a finding is working input, not a design quality verdict'],
+};
+const researchAnswer = (path) => (path === '/api/projects' ? RESEARCH_PROJECTS
+  : path.includes('/research') ? researchFixture : {});
+
+async function drainResearchReads() {
+  const seen = [];
+  for (let round = 0; round < 8; round += 1) {
+    await flush();
+    const fresh = shell.pending.splice(0, shell.pending.length);
+    if (!fresh.length) break;
+    seen.push(...fresh);
+    for (const request of fresh) request.resolve(response(researchAnswer(request.path)));
+  }
+  await flush();
+  return seen;
+}
+
+shell.window.location.hash = '#/research';
+shell.dispatchHashchange();
+const researchReads = await drainResearchReads();
+for (const expected of ['/api/projects', '/api/projects/p1/research'])
+  if (!researchReads.some((request) => request.path === expected))
+    throw new Error(`研究洞察没有读回 ${expected}；实际读到 ${
+      researchReads.map((request) => request.path).join(' ')}`);
+const researchView = shell.elements.get('route-view');
+const researchOutcome = byElementId(researchView, 'research-review-outcome');
+const claimField = byElementId(researchView, 'research-claim');
+const sourcesField = byElementId(researchView, 'research-sources');
+const confidenceField = byElementId(researchView, 'research-confidence');
+const supersedeField = byElementId(researchView, 'research-supersedes');
+const researchButton = byElementId(researchView, 'research-submit');
+if (!researchOutcome || !claimField || !sourcesField || !confidenceField || !supersedeField
+  || !researchButton)
+  throw new Error('研究表单的某个入口在页面上不可定位 —— ⑨ 找不到提交面');
+
+// The view replaced its own "not open" copy: the notice lives in VIEW_NOT_OPEN and the route is
+// now dispatched, so both halves must be gone from the rendered page.
+const researchText = (researchView.textContent || '');
+if (researchText.includes('未开放') || researchText.includes('没有研究结论的持久化路由'))
+  throw new Error(`研究洞察仍显示"未开放"文案，而路由已存在：${researchText.slice(0, 140)}`);
+// No completion word may appear, and the null verdict must be explained rather than blanked.
+for (const forbidden of ['RESEARCH_COMPLETE', 'CLEARED', 'PENDING_REVIEW', '研究已完成'])
+  if (researchText.includes(forbidden))
+    throw new Error(`研究读回出现了它不该有的判定词 ${forbidden}`);
+if (!researchText.includes('无完成判定词'))
+  throw new Error('research_verdict 为 null 时页面必须说明"无完成判定词"，而不是留一个空徽章');
+if (!researchText.includes('this surface publishes no completion or clearance word'))
+  throw new Error('服务端给出的 research_verdict_note 没有上屏');
+if (!researchText.includes('a finding is working input, not a design quality verdict'))
+  throw new Error('does_not_prove 的行文没有上屏，数字就会脱离它的限制条件被读');
+const confidenceWords = ['high', 'medium', 'low', 'speculative'];
+for (const word of confidenceWords) {
+  const option = findIn(researchView, (node) => node.tagName === 'OPTION' && node.value === word);
+  if (!option) throw new Error(`置信度 ${word} 来自读回的 confidence_vocabulary，却不在下拉里`);
+}
+if (confidenceField.value !== '')
+  throw new Error('置信度下拉预先选了值：没有人选的置信度不能是默认值');
+
+// Building the page writes nothing.
+if (researchReads.some((request) => request.init && request.init.method === 'POST'))
+  throw new Error('构建研究页面时发出了 POST —— 一条结论只能由点击记录');
+
+// (a) The two local refusals send nothing: no claim, and no source. The store refuses an
+// unsourced finding outright, so the page declines to send a doomed write instead of inventing
+// a citation for the operator.
+researchButton.onclick();
+if (shell.pending.length)
+  throw new Error(`结论正文为空时仍发出了 ${shell.pending.map((r) => r.path).join(' ')}`);
+if (!researchOutcome.textContent.includes('未提交')
+  || !researchOutcome.textContent.includes('结论正文为空'))
+  throw new Error(`缺结论正文时页面没有说明原因：${researchOutcome.textContent.slice(0, 160)}`);
+claimField.value = '包装改版后货架识别度下降';
+sourcesField.value = '   ';
+researchButton.onclick();
+if (shell.pending.length)
+  throw new Error('没有来源引用时仍发出了 POST：页面不替操作人补一个来源');
+if (!researchOutcome.textContent.includes('没有任何来源引用'))
+  throw new Error(`缺来源时页面没有说明原因：${researchOutcome.textContent.slice(0, 160)}`);
+
+// (b) One click, one POST, with the closed contract field set and no invented schemaVersion.
+sourcesField.value = 'interview-11, shelf-photo-03';
+confidenceField.value = 'low';
+researchButton.onclick();
+const researchSent = shell.pending.splice(0, shell.pending.length);
+if (researchSent.length !== 1)
+  throw new Error(`一次点击发出了 ${researchSent.length} 个请求，应为 1 个`);
+if (researchSent[0].path !== '/api/projects/p1/research')
+  throw new Error(`提交打到了 ${researchSent[0].path}，必须是所选项目的 research 路由`);
+if (!researchSent[0].init || researchSent[0].init.method !== 'POST')
+  throw new Error('研究结论的提交不是 POST');
+const researchBody = JSON.parse(researchSent[0].init.body);
+const RESEARCH_REQUIRED = ['finding_id', 'claim', 'sourceRefs'];
+for (const field of RESEARCH_REQUIRED)
+  if (!(field in researchBody))
+    throw new Error(`提交缺少契约必备字段 ${field}`);
+if ('schemaVersion' in researchBody)
+  throw new Error('提交带了 schemaVersion：research-finding 契约关闭属性且未声明该字段，服务端会按未知属性拒绝');
+const allowedKeys = new Set(['finding_id', 'claim', 'sourceRefs', 'confidence', 'notDesignRule']);
+for (const key of Object.keys(researchBody))
+  if (!allowedKeys.has(key))
+    throw new Error(`提交带了契约之外的字段 ${key}`);
+if (!Array.isArray(researchBody.sourceRefs) || researchBody.sourceRefs.length !== 2
+  || researchBody.sourceRefs[0] !== 'interview-11')
+  throw new Error(`来源拆分不符：${JSON.stringify(researchBody.sourceRefs)}`);
+if (researchBody.confidence !== 'low')
+  throw new Error(`所选置信度没有原样送出：${researchBody.confidence}`);
+if ('notDesignRule' in researchBody)
+  throw new Error('未勾选的可选布尔字段被写成了 false： absence 与 false 是不同的记录');
+if (!/^rf-[0-9a-f]{1,32}$/.test(researchBody.finding_id))
+  throw new Error(`finding_id ${researchBody.finding_id} 形状与服务端生成的一致前缀不符`);
+const firstFindingId = researchBody.finding_id;
+
+// (c) An identical resend keeps the id, so the service can answer "replay" instead of filing the
+// same claim twice; a changed document must take a fresh id, because the store refuses an id
+// whose content moved.
+researchButton.onclick();
+const resend = shell.pending.splice(0, shell.pending.length);
+if (resend.length !== 1)
+  throw new Error(`第二次相同点击发出了 ${resend.length} 个请求`);
+if (JSON.parse(resend[0].init.body).finding_id !== firstFindingId)
+  throw new Error('完全相同的重复提交换了 finding_id：服务端会把一次主张记成两条结论');
+claimField.value = '包装改版后货架识别度下降（补：夜间陈列）';
+researchButton.onclick();
+const changed = shell.pending.splice(0, shell.pending.length);
+if (JSON.parse(changed[0].init.body).finding_id === firstFindingId)
+  throw new Error('改过的正文仍沿用旧 finding_id：服务端会以 ID 已占用拒绝，页面不该发注定被拒的写');
+
+// (d) Supersession is a query parameter, and only CURRENT findings are offered as targets.
+supersedeField.value = 'rf-one';
+researchButton.onclick();
+const superseding = shell.pending.splice(0, shell.pending.length);
+if (superseding.length !== 1 || !superseding[0].path.startsWith('/api/projects/p1/research')
+  || !String(superseding[0].init.body).length)
+  throw new Error(`替代提交形状不对：${superseding.length} 个请求 `
+    + `${superseding.map((r) => `${r.path}|${r.init && r.init.method}`).join(' ; ')}`);
+if (!superseding[0].path.includes('supersedes=rf-one'))
+  throw new Error(`替代链接没有作为查询参数送出：${superseding[0].path}`);
+if ('supersedes' in JSON.parse(superseding[0].init.body))
+  throw new Error('提交把 supersedes 塞进了文档：契约关闭属性且未声明它');
+if (!byElementId(researchView, 'research-supersedes'))
+  throw new Error('替代选择器消失了');
+
+// (e) Success reads the ledger back from the service; a refusal then replaces that sentence
+// rather than leaving a stale green beside an error.
+superseding[0].resolve(response({ finding_id: 'rf-new', claim: 'x', sourceRefs: ['s'] }));
+await drainResearchReads();
+if (!researchOutcome.textContent.includes('已记录'))
+  throw new Error(`记录成功后没有说明结论来自服务端读回：${researchOutcome.textContent.slice(0, 160)}`);
+researchButton.onclick();
+const failing = shell.pending.splice(0, shell.pending.length);
+failing[0].resolve(response({ error: 'RESEARCH_SOURCE_REQUIRED',
+  detail: 'a finding must cite at least one source' }, false));
+await flush();
+if (!researchOutcome.textContent.includes('未记录')
+  || !researchOutcome.textContent.includes('RESEARCH_SOURCE_REQUIRED'))
+  throw new Error(`服务端拒绝没有替换上一条成功说法：${researchOutcome.textContent.slice(0, 200)}`);
+if (researchOutcome.textContent.includes('已记录'))
+  throw new Error('一次被拒的写留下了"已记录"：同一屏上出现两个矛盾判定');
+
+// (f) The unread half. A read-back that never arrived must not be drawn as a project holding no
+// findings, and a count the response did not carry must not appear as 0.
+// Shape-complete but count-free, so this case measures exactly one thing: a count the response
+// never carried. A malformed payload would be caught by the shape notice instead (block ② covers
+// that path), and the counts line would never render.
+researchFixture = { schemaVersion: 'design-lab/research-readback/v1', project_id: 'p1',
+  findings: [], current_findings: {}, confidence_counts: {}, does_not_prove: [],
+  actor_kinds: {}, unattributed_findings: [],
+  confidence_vocabulary: ['high', 'medium', 'low', 'speculative'] };
+shell.window.location.hash = '#/dashboard';
+shell.dispatchHashchange();
+await flush();
+shell.window.location.hash = '#/research';
+shell.dispatchHashchange();
+await drainResearchReads();
+const strippedView = shell.elements.get('route-view');
+const strippedText = strippedView.textContent || '';
+if (!strippedText.includes('共 未读回 条'))
+  throw new Error(`响应没带计数时,读数行必须逐字说"共 未读回 条"：${strippedText.slice(0, 220)}`);
+// Not `\b共 0 条\b`: \\b is a word boundary over \\w only, and CJK characters are not word
+// characters in JavaScript, so the guard could never have matched anything. The check is on the
+// exact rendered form instead -- which is what the falsifier's fourth case proved was load-bearing.
+if (strippedText.includes('共 0 条'))
+  throw new Error('未读回的计数被画成了 0 条：空响应与空台账是两件事');
+if (!strippedText.includes('本项目尚无已持久化的研究结论')
+  && !strippedText.includes('未读回不等于本项目没有结论'))
+  throw new Error(`空且确已读回的台账必须说清"没有被记录"：${strippedText.slice(0, 200)}`);
+if (strippedText.includes('RESEARCH_COMPLETE'))
+  throw new Error('空台账被说成了完成');
+
+console.log('ok: ⑨ 研究洞察读回已持久化的结论：判定词一个都不画、null 判定给出服务端的说明、置信度选项来自读回且无预选、构建页面零 POST、空正文与无来源两种本地拒绝都不发请求、一次点击一个 POST 且只带契约字段（无 schemaVersion、未勾选的布尔不写成 false）、相同重发沿用 finding_id 而改动必换新 id、替代作为查询参数且只列现行结论、成功后读回来自服务端、拒绝替换上一条已提交、缺计数说未读回不画 0 条');
+
 console.log('APPSHELL REGRESSION: all checks passed');
