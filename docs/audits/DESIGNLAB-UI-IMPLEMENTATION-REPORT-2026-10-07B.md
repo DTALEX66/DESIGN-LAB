@@ -305,6 +305,30 @@ commit、生成时间不是测试时间"那条口径的表现，不影响被选�
 **这个记录器现在给不出的东西**：它记录 skip 的**数量**，不记录是哪 4 条、为什么跳。
 所以上表里 `skipped=4` 只能读成"有 4 条没跑"，不能读成"4 条无关紧要"。这是仪器的缺口，不是结论。
 
+**同日补记（缺口已修，且对 §十 那次跑做了补跑）**：`scripts/run_bound_test_suite.py` 现在把每条 skip
+记成"用例 id + 该用例自己声明的原因"，stdout 逐条 `SKIP …` 打出，列表超过上限时明确说被截断，
+并且当"计数有、身份没有"时以 `BOUND_SKIP_IDENTITY=DEFECT` 退 3 —— 那种组合只可能是记录器没读到自己
+的输入，不能让一整面绿把它盖过去。
+
+用改好的记录器在同一分支 head（`0b844b70`）上补跑了整面：`Ran 1946, OK, skipped=5`（1946 = 1939 +
+本改动的 7 条；5 = 原 4 条 + 本改动自带的一条命名 fixture skip）。四条环境性 skip 被点到名：
+
+| 用例 | 用例自己说的原因 |
+|---|---|
+| `test_model_manifest…test_cache_symlink_to_own_blob_supported_but_escape_and_broken_rejected` | `ENVIRONMENT_FAIL: native symlink creation lacks Windows privilege (1314)` |
+| `test_visual_quality_scan_boundary…test_source_link_is_rejected_without_reading_target` | 同上，WinError 1314（客户端没有所需的特权） |
+| `test_source_lock_presence…test_cache_digest_is_verified_only_when_this_machine_has_the_bytes` | `this machine has no vendor cache; cache integrity is NOT_VERIFIED here` |
+| `test_workbench_launch…test_packaged_install_serves_the_committed_bundle` | `source checkout: no packaged workbench resource to verify` |
+
+**读数**：这四条没有一条是"真检查悄悄不见了"。两条是 Windows 建符号链接需要
+`SeCreateSymbolicLinkPrivilege`，本机按策略不用管理员权限去绕（提权跑不在授权范围内）；一条是这台机器
+没有 vendor cache，缓存完整性在这里就是 `NOT_VERIFIED`；一条是源码检出根本没有"已打包安装"这件事可验。
+所以 §十 那个 `skipped=4` 现在可以读成"4 条环境边界"，而不是"4 个未知"。
+
+**口径**：这四条身份是**补跑**给的，不是从 `dcc9d12e` 那份旧记录里读出来的——旧记录器没写身份，
+补跑的 head 也比它多 7 条用例。两者用例集的差就是本改动自己，所以可以合理判为同一组，但这句话是推断，
+不是原记录的内容。缺口对未来的跑关闭；已落盘的旧记录不追溯改写，这是口径不是谦虚。
+
 ### 工具腿：实测无缺口
 
 `python scripts/design_lab_doctor.py`（仓库自己的入口，不是裸调用）→ 4 个声明工具全部
