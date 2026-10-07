@@ -622,6 +622,8 @@
         "SOURCE_CHANGED_OR_MISSING:src/design_lab/generators/__pycache__/__init__.cpython-313.pyc",
         "SOURCE_CHANGED_OR_MISSING:src/design_lab/generators/__pycache__/comfy_http.cpython-313.pyc",
         "SOURCE_CHANGED_OR_MISSING:src/design_lab/generators/__pycache__/comfy_task.cpython-313.pyc",
+        "SOURCE_CHANGED_OR_MISSING:src/design_lab/generators/comfy_task.py",
+        "SOURCE_CHANGED_OR_MISSING:design-lab/tests/test_comfy_task_protocol.py",
         "ARTIFACT_CHANGED_OR_MISSING:.project-local/task-artifacts/designlab-followup-taskpack-20260928/W00-EVIDENCE-SCAN.json"
       ],
       "software": {
@@ -1425,6 +1427,9 @@
         "SOURCE_CHANGED_OR_MISSING:src/design_lab/generators/__pycache__/__init__.cpython-313.pyc",
         "SOURCE_CHANGED_OR_MISSING:src/design_lab/generators/__pycache__/comfy_http.cpython-313.pyc",
         "SOURCE_CHANGED_OR_MISSING:src/design_lab/generators/__pycache__/comfy_task.cpython-313.pyc",
+        "SOURCE_CHANGED_OR_MISSING:src/design_lab/generators/comfy_task.py",
+        "SOURCE_CHANGED_OR_MISSING:design-lab/tests/test_comfy_task_protocol.py",
+        "ARTIFACT_CHANGED_OR_MISSING:design-lab/tests/test_comfy_task_protocol.py",
         "ARTIFACT_CHANGED_OR_MISSING:.project-local/task-artifacts/designlab-followup-taskpack-20260928/W00-EVIDENCE-SCAN.json"
       ],
       "software": {
@@ -1470,6 +1475,7 @@
         "SOURCE_CHANGED_OR_MISSING:src/design_lab/generators/__pycache__/__init__.cpython-313.pyc",
         "SOURCE_CHANGED_OR_MISSING:src/design_lab/generators/__pycache__/comfy_http.cpython-313.pyc",
         "SOURCE_CHANGED_OR_MISSING:src/design_lab/generators/__pycache__/comfy_task.cpython-313.pyc",
+        "SOURCE_CHANGED_OR_MISSING:src/design_lab/generators/comfy_task.py",
         "ARTIFACT_CHANGED_OR_MISSING:.project-local/task-artifacts/designlab-followup-taskpack-20260928/W00-EVIDENCE-SCAN.json"
       ],
       "software": {
@@ -1712,13 +1718,13 @@
   ],
   "fresh": false,
   "freshnessMeaning": "at generation only; check verifies bound-input integrity, not current Git or cloud state",
-  "generatedAt": "2026-10-07T00:06:11+00:00",
+  "generatedAt": "2026-10-07T00:16:24+00:00",
   "gitStateMeaning": "generation-time observation, not current HEAD",
   "ledgerUpdatedAt": "2026-10-06T03:12:05Z",
   "note": "DONE_LOCAL concerns the declared task axes and dependencies, not a product release or hosted CI.",
   "schemaVersion": "design-lab/task-progress/r5-v1",
   "subjectMeaning": "subjectType=WORKTREE means the tree was dirty at generation; worktreeDigest covers HEAD plus the non-generated changes",
-  "subjectSha": "8dbc800256f90ded2536f103b223827800beaf47",
+  "subjectSha": "6479c927a02e21340912009f14bec469a28d303e",
   "subjectType": "WORKTREE",
   "taskpack": "DL-TP-20260908-R5",
   "taskpackHash": "31dde89eb4ede81fe88c0a5c5144adfb86af8db4c4d8c263bde2199180369b69",
@@ -4221,5 +4227,5 @@
   "testRunId": null,
   "testRunMeaning": "no bound test run; this projection does not claim a test result",
   "worktreeClean": false,
-  "worktreeDigest": "sha256:26cfc6a56294e05345c1947247517cc5a7ae6f33100c4b4d809bd173e5b7cbe2"
+  "worktreeDigest": "sha256:6a6dbcfe9f221053848d315be5332d6a146ef6e63ce5f65b6c425b5db42c9985"
 }
