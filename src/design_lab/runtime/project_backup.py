@@ -243,6 +243,18 @@ COUNTER_QUERIES = (
     # moved would be missing the attestation the project cites later.
     ('jury_record', 'rowid'),
     ('quality_record', 'rowid'),
+    # The rest of the tables production writes without holding a lease. Each was
+    # measured, not guessed: design-lab/tests/test_backup_watches_written_tables.py
+    # derives the written set from the shipped INSERTs and refuses either direction of
+    # disagreement, so a new store cannot be added while the proof stays blind to it.
+    ('project', 'rowid'),
+    ('asset', 'rowid'),
+    ('approval', 'rowid'),
+    ('audit_event', 'rowid'),
+    ('job', 'rowid'),
+    ('job_attempt', 'rowid'),
+    ('operation_intent', 'rowid'),
+    ('rights_decision', 'rowid'),
 )
 
 

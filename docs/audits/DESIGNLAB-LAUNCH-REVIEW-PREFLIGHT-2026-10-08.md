@@ -617,5 +617,32 @@ v.version_id ORDER BY CASE g.role WHEN 'deliverable' THEN 0 ELSE 1 END, g.path L
 rights 表落地之后必须同样进入计数器 —— 该要求已写进任务 #10 的验收条件,不是事后追认。
 
 
+## 15. 第十段:"没有人在写"这句证明,覆盖面原本是猜的(2026-10-08 追加)
+
+§14 修完两张表之后,把这条覆盖问题一次量清楚:用大小写不敏感、覆盖
+`INSERT / INSERT OR REPLACE / INSERT OR IGNORE …` 全部拼法的正则,从 `src/design_lab/**` 抽出
+**产品真的会写的状态表**,再与 `project_backup.py` 里出现过的表名相减。测得 18 张状态表、
+14 张有产品写入路径,其中 8 张当时不在证明的视野里:
+`project / asset / approval / audit_event / job / job_attempt / operation_intent / rights_decision`
+(每张都带写入者文件名归属,不是我看着表名猜的)。
+
+这些表全部不持写租约,却都会被产品直接 commit。也就是说 `PROVED_QUIESCENT` 这句话覆盖的
+只是它列出的那些表,其余表在备份窗口里怎么动它都不知道 —— 一句关于整个状态库的结论,实际
+建立在一部分库的观察上。八张全部加入 `COUNTER_QUERIES`(缺表时 `_read_activity` 本来跳过,
+对旧库安全)。
+
+覆盖关系本身变成一条测试:`test_backup_watches_written_tables.py` 双向检查 ——
+"有写入但没被计数"判红,"豁免表指向一张已经不写入的表"也判红,空推导判红
+(断言 written ≥ 12,否则正则一坏全套断言就假绿)。两个方向都反证过:删掉一行计数器 →
+盲表用例红;把计数器名字改成 `approvals` → 同一用例红(真实表变盲)。
+还原后同批绿:覆盖 5 条 + 备份 43 条(1 条既有按名跳过)+ rights 58 条。
+
+我自己在这段里也写坏过一次测试:先加的"每个被计数的名字必须是状态表"其实是**错的断言** ——
+`native_host_guard_v1` 声明在 `native_tasks.py` 里而非 `.sql`,`FROM sqlite_master` / `PRAGMA`
+也会被我的名字正则捞进来,于是它把四五个合法名字报成"不存在的表"。它同时还是**空断言**:
+我先把 watched 与状态表集合取过交集,再去断言交集里的名字都在状态表里。删掉它,理由是
+"名字打错"这件事已经被盲表断言覆盖了(打错 = 真表变盲),不需要一个建立在错误前提上的额外检查。
+
+
 
 
