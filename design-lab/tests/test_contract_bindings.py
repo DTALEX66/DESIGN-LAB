@@ -222,12 +222,18 @@ class GateTeethTests(unittest.TestCase):
         # photoshop-native-job/v1), still unpaid. 2026-10-08 (rights chain): the list is 3,
         # because GET /api/projects/<id>/rights answers a design-lab/rights-readback/v1
         # envelope that has no schema behind it -- named here as debt, with the reason
-        # stating it plainly, rather than left unlisted. The loop below is the teeth and did
-        # not move: every remaining claim still has to name its missing schema.
+        # stating it plainly, rather than left unlisted. 2026-10-08 (research chain): the list is 4,
+        # because GET /api/projects/<id>/research answers a design-lab/research-readback/v1 envelope
+        # with no schema behind it -- the same shape of named debt as the rights read-back, added by
+        # the slice that made findings persistable, and its POST sibling is the BOUND_SCHEMA row that
+        # validates against research-finding.schema.json. An unchanged list here would be the false
+        # claim, not the safer one. The loop below is the teeth and did not move: every remaining
+        # claim still has to name its missing schema.
         self.assertEqual(sorted(row['route'] for row in claiming),
                          sorted(['/api/projects/([0-9a-f]{32})/tasks/(native-job-[0-9a-f]{64})/patch',
                                  '/api/projects/([0-9a-f]{32})/native-plans',
-                                 '/api/projects/([0-9a-f]{32})/rights']),
+                                 '/api/projects/([0-9a-f]{32})/rights',
+                                 '/api/projects/([0-9a-f]{32})/research']),
                          'the unpaid version-bearing routes are an inventory, so a paid debt '
                          'left listed as unpaid and an unlisted new debt are both red here')
         for row in claiming:
@@ -322,6 +328,10 @@ class GateTeethTests(unittest.TestCase):
         # http_service.py now dispatches on -- GET .../rights (the read-back, named as
         # schema-less debt) and POST .../rights (bound to rights-decision.schema.json) --
         # each with the ledger row UNLISTED_ROUTE would convict it for being absent.
+        # 2026-10-08 (research chain): 51 -> 53, for the two routes the persisted-findings slice
+        # added -- GET .../research (named as schema-less debt over its read-back envelope) and
+        # POST .../research (BOUND_SCHEMA against research-finding.schema.json). `dispatched` moves
+        # with it because both patterns are read out of http_service.py by the same AST reader.
         # `bound` is the one token derived from the ledger instead of pinned, on the same
         # date, and the reason is recorded rather than left implicit: paying a SCHEMA_LESS
         # debt (adding a schema behind an existing row) also moves it, so a literal here
@@ -333,12 +343,12 @@ class GateTeethTests(unittest.TestCase):
         ledger = json.loads((REPO / self.gate.LEDGER_REL).read_text(encoding='utf-8'))
         expected_bound = sum(1 for row in ledger['routes']
                              if row.get('kind') == self.gate.BOUND_SCHEMA)
-        self.assertEqual(len(lines), 1 + 32 + 51,
+        self.assertEqual(len(lines), 1 + CONTRACTS + 53,
                          'one verdict line, one note per contract row, one per route row')
         verdict = lines[-1]
         self.assertTrue(verdict.startswith('VERIFY_CONTRACT_BINDINGS=PASS'), verdict)
         for token in (f'schemas={CONTRACTS}', f'binding={BINDING_ROWS}', f'inert={INERT_ROWS}',
-                      'routes=51', 'dispatched=51', f'bound={expected_bound}'):
+                      'routes=53', 'dispatched=53', f'bound={expected_bound}'):
             self.assertIn(token, verdict)
 
     # --- failure modes, each against a mutated copy ------------------------------
