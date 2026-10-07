@@ -63,8 +63,12 @@ class JuryHttpTests(unittest.TestCase):
         store = self.service.paths.category_dir('projects', project_id, 'assets')
         database = self.service.database
         with closing(assets.connect(database, project_root=self.service.paths.project_root)) as conn:
-            conn.execute('INSERT INTO asset VALUES (?, ?, "psd", ?)',
-                         (asset_id, project_id, '2026-10-08T00:00:00Z'))
+            # A second call for the same asset_id is a re-publication, which is what
+            # supersedes a judged version with new bytes; the asset row already exists.
+            if conn.execute('SELECT 1 FROM asset WHERE asset_id = ? AND project_id = ?',
+                            (asset_id, project_id)).fetchone() is None:
+                conn.execute('INSERT INTO asset VALUES (?, ?, "psd", ?)',
+                             (asset_id, project_id, '2026-10-08T00:00:00Z'))
             conn.commit()
             resource = f'asset:{asset_id}'
             self.assertTrue(assets.acquire_writer(conn, resource, 'attempt-http'))
@@ -120,6 +124,11 @@ class JuryHttpTests(unittest.TestCase):
         self.assertEqual(body['verdict_count'], 0)
         self.assertEqual(body['human_acceptance'], 'NOT_ACCEPTED')
         self.assertEqual(body['current_verdicts'], {})
+        # The counts are published, so 'NOT_ACCEPTED' never has to be taken on faith:
+        # 0 of 1 is a project nobody has accepted, and it is distinguishable from
+        # 0 of 0, which is a project with nothing published yet.
+        self.assertEqual(body['accepted_versions'], 0)
+        self.assertEqual(body['reviewable_active_versions'], 1)
         # The reviewer is shown what may be judged, with its digest, so a verdict
         # never depends on a hand-typed hash.
         self.assertEqual([row['subject_ref'] for row in body['reviewable_versions']],
@@ -157,6 +166,102 @@ class JuryHttpTests(unittest.TestCase):
         self.assertEqual(status, 200)
         self.assertEqual([row['jury_record_id'] for row in reread['records']], ['jury-http-1'])
         self.assertEqual(reread['human_acceptance'], 'ACCEPTED')
+
+    def test_one_approved_version_does_not_stand_for_a_project_that_has_two(self):
+        """`ACCEPTED` is a sentence about the project, so partial acceptance reads partial."""
+        second_version, second_digest = self._publish(b'second artwork under review',
+                                                      asset_id='a2')
+        _, before = self.call('GET', f'/api/projects/{self.project_id}/jury')
+        self.assertEqual((before['accepted_versions'], before['reviewable_active_versions']),
+                         (0, 2))
+
+        self.assertEqual(self.call('POST', f'/api/projects/{self.project_id}/jury/verdict',
+                                   self._verdict())[0], 201)
+        _, half = self.call('GET', f'/api/projects/{self.project_id}/jury')
+        self.assertEqual((half['accepted_versions'], half['reviewable_active_versions']), (1, 2))
+        self.assertEqual(half['human_acceptance'], 'NOT_ACCEPTED',
+                         'a signature on one of two live versions is not the project accepted')
+
+        self.assertEqual(
+            self.call('POST', f'/api/projects/{self.project_id}/jury/verdict',
+                      self._verdict(jury_record_id='jury-http-2',
+                                    subject_ref=f'{jury_store.SUBJECT_PREFIX}{second_version}',
+                                    artifact_sha256=second_digest))[0], 201)
+        _, whole = self.call('GET', f'/api/projects/{self.project_id}/jury')
+        self.assertEqual((whole['accepted_versions'], whole['reviewable_active_versions']),
+                         (2, 2))
+        self.assertEqual(whole['human_acceptance'], 'ACCEPTED')
+
+        # A withdrawal has to be able to take the project back out of ACCEPTED, so the
+        # status tracks the current verdicts rather than the mere fact that somebody
+        # once signed. (The rejection carries an evidence_ref because a REJECT without
+        # one is refused by the contract, and it has to here too.)
+        self.assertEqual(
+            self.call('POST', f'/api/projects/{self.project_id}/jury/verdict',
+                      self._verdict(jury_record_id='jury-http-3', verdict='REJECT',
+                                    subject_ref=f'{jury_store.SUBJECT_PREFIX}{second_version}',
+                                    artifact_sha256=second_digest,
+                                    evidence_refs=['100% crop: the colour band shifts'],
+                                    supersedes='jury-http-2',
+                                    decided_at='2026-10-08T02:00:00Z'))[0], 201)
+        _, withdrawn = self.call('GET', f'/api/projects/{self.project_id}/jury')
+        self.assertEqual((withdrawn['accepted_versions'],
+                          withdrawn['reviewable_active_versions']), (1, 2))
+        self.assertEqual(withdrawn['human_acceptance'], 'NOT_ACCEPTED')
+
+    def test_a_project_with_nothing_published_is_not_accepted_by_default(self):
+        """0 of 0 is vacuously 'all accepted' and must never be reported as ACCEPTED."""
+        empty_id = self.service.create_project('Nothing Published')['id']
+        _, body = self.call('GET', f'/api/projects/{empty_id}/jury')
+        self.assertEqual(body['reviewable_versions'], [])
+        self.assertEqual(body['reviewable_active_versions'], 0)
+        self.assertEqual(body['accepted_versions'], 0)
+        self.assertEqual(body['human_acceptance'], 'NOT_ACCEPTED')
+
+    def test_an_approval_of_bytes_that_no_longer_exist_stops_accepting_the_project(self):
+        """A signature is bound to a digest, so it cannot outlive the version it signed.
+
+        This is the case that a 'did anybody approve anything' rule got wrong: the
+        approval is still on file and still true of the bytes it named, but those
+        bytes are no longer what the project would deliver. Reporting ACCEPTED there
+        certified a version nobody can read back.
+        """
+        self.assertEqual(self.call('POST', f'/api/projects/{self.project_id}/jury/verdict',
+                                   self._verdict())[0], 201)
+        _, before = self.call('GET', f'/api/projects/{self.project_id}/jury')
+        self.assertEqual(before['human_acceptance'], 'ACCEPTED')
+
+        newer_version, newer_digest = self._publish(b'revised artwork supersedes the old one')
+        _, after = self.call('GET', f'/api/projects/{self.project_id}/jury')
+        self.assertEqual([row['version_id'] for row in after['reviewable_versions']],
+                         [newer_version])
+        self.assertEqual((after['accepted_versions'], after['reviewable_active_versions']),
+                         (0, 1))
+        self.assertEqual(after['human_acceptance'], 'NOT_ACCEPTED',
+                         'the live version is unjudged; an old signature is not consent to it')
+        # The store never demotes replaced bytes, so 'still ACTIVE' is not enough to make
+        # a revision judgeable: signing a draft has to be refused by name rather than
+        # filed as a verdict that quietly counts for nothing.
+        status, refused = self.call(
+            'POST', f'/api/projects/{self.project_id}/jury/verdict',
+            self._verdict(jury_record_id='jury-http-stale'))
+        self.assertEqual(status, 400, 'a replaced revision must not be filable as a verdict')
+        self.assertIn('latest ACTIVE', refused['error'])
+        # The superseded approval is still readable and still names its own digest.
+        self.assertIn(self._verdict()['jury_record_id'],
+                      [row['jury_record_id'] for row in after['records']])
+        self.assertEqual(list(after['current_verdicts']),
+                         [f'{jury_store.SUBJECT_PREFIX}{self.version_id}'])
+        # And re-judging the bytes that are actually current closes it again.
+        self.assertEqual(
+            self.call('POST', f'/api/projects/{self.project_id}/jury/verdict',
+                      self._verdict(jury_record_id='jury-http-2',
+                                    subject_ref=f'{jury_store.SUBJECT_PREFIX}{newer_version}',
+                                    artifact_sha256=newer_digest))[0], 201)
+        _, closed = self.call('GET', f'/api/projects/{self.project_id}/jury')
+        self.assertEqual((closed['accepted_versions'], closed['reviewable_active_versions']),
+                         (1, 1))
+        self.assertEqual(closed['human_acceptance'], 'ACCEPTED')
 
     def test_an_agent_signature_is_refused_with_the_reason_not_a_generic_400(self):
         document = self._verdict(juror={'juror_id': 'codex', 'kind': 'CODEX',

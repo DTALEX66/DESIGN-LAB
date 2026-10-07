@@ -333,4 +333,53 @@ ERROR: build/main.js advertises 'PASS' as a status; the service emits only ['BLO
 "真树的 PASS 是合法的"(门不能紧到把诚实读成违规)。
 
 
+## 8. 第四段:"已接受"曾经由一个版本代表整个项目(2026-10-08 追加)
+
+我自己发布的能力里有一个过度断言,读代码时抓到:`JuryReview.list()` 算
+`human_acceptance` 用的是 `any(item['verdict'] == 'APPROVE' for item in current.values())`。
+一个项目十次修订,只要在任何一次上签过 APPROVE,界面就报"人工验收 已接受"。
+这一词是给**项目**下的结论,却由**单个版本**的签字满足。
+
+顺着它查出第二层,而且是存储层的:`publish_version` 从不降级被替换的字节 —— 全仓没有任何
+一条把 `asset_version.state` 写成 `SUPERSEDED` 的生产代码(只有测试直接 UPDATE)。
+于是 `reviewable_versions` 取"所有 ACTIVE 版本"就等于取整条修订史:
+一个资产改十次,评审清单上就摆着十张稿子,给废稿签字也会被记成有效判定。
+产品其他位置早已按"当前版本 = 该资产 ACTIVE 里最大的 `version_no`"来读
+(`native_assets.list`、`asset_store.current_version`),评审面是唯一没跟上的一处。
+
+三处都是收紧,没有一处放宽:
+
+- 谓词改成"每个在评审清单上的版本都带一个现行 APPROVE",并且**显式**要求清单非空:
+  `0 of 0` 在数学上为真,但"还没发布任何东西的项目已被人工接受"是一句假话,所以报
+  `NOT_ACCEPTED`。
+- `reviewable_versions` 与产品其余读法对齐:每个资产一行,取 ACTIVE 中最大 `version_no`。
+- `record()` 拒绝对"已被替换的修订"签字,并把两个 `version_no` 都点名 ——
+  以前的拒绝理由只有 `state != 'ACTIVE'`,对废稿毫无约束力。
+
+读回里加了 `accepted_versions` 与 `reviewable_active_versions`,"已接受"从此带着它的
+分母;`design-lab/schemas/jury-readback.schema.json` 把这条语义写死(空清单必须
+`NOT_ACCEPTED`,`ACCEPTED` 要求分母 ≥ 1)。
+
+反证是三段变异(`.project-local/tmp/falsify_jury_acceptance.py`),每段都必须在指名用例上
+以断言失败(不是 ERROR)变红、还原后回到 12 绿:
+把谓词退回 `any(...)` → 两条用例红;删掉取最新 `version_no` 的子查询 → 降级签字用例红;
+把 `record()` 里"被替换即拒绝"的判断短路 → 同一条用例红。第一次跑这个反证脚本时,第三段的
+needle 是我按记忆写的 SQL 文本,和文件里的 Python 字符串拼接形式不一致,0 命中;脚本因此
+报 `NEED NOT FOUND` 而不是假装"变异无影响"——这正是它该有的行为。
+
+同族的第二处发射器已经定位、尚未处理:`assurance/quality_store.py:465` 的
+`'human_acceptance': 'ACCEPTED' if accepted else 'NOT_ACCEPTED'` 是同一个 `if 非空` 过度断言,
+它的 `assessable_versions()` 也仍在取全部 ACTIVE 版本。本轮不并行改它的原因是 worker 正在写
+这个文件(见下)。
+
+协作实况值得记一条:同一时间窗里,worker 正在创建
+`design-lab/schemas/jury-readback.schema.json` 与
+`design-lab/scripts/verify_route_payload_contracts.py`。我在几分钟内读到的是**两个不同版本**的
+同一个 schema —— 第一版 `reviewableVersion` 不含 `version_no`,我在中间把它从发射器里删掉,
+再跑新门就得到 `'version_no' is a required property` + `MISSING_FROM_EMITTER` 两条红。
+补齐后 `VERIFY_ROUTE_PAYLOAD_CONTRACTS=PASS bindings=5 failures=0`。结论不是谁改错了,
+而是共享工作树里"我刚才读到的字节"只是快照,不是事实:改合同之前要重读、改完要立刻用真门重跑。
+另记:该门此刻尚未进 `verify_design_lab.py` 聚合清单 —— 一个没人调用的门等于文档,已列入待注册项。
+
+
 

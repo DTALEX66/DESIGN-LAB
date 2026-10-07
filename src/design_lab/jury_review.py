@@ -41,6 +41,15 @@ class JuryReview:
             reviewable = jury_store.reviewable_versions(conn, project_id)
         verdicts = [item for item in records if item.get('kind') == KIND_VERDICT]
         proposals = [item for item in records if item.get('kind') == KIND_PROPOSAL]
+        # 'ACCEPTED' is a sentence about the PROJECT, so it may not be satisfied by one
+        # approved version out of ten: every reviewable version -- the current one per
+        # asset -- has to carry a current APPROVE. An empty reviewable set is
+        # NOT_ACCEPTED on purpose: "all zero of zero passed" is vacuously true, and a
+        # project with nothing published yet has not been accepted by anyone.
+        active_refs = {item['subject_ref'] for item in reviewable}
+        accepted_refs = {ref for ref in active_refs
+                         if (current.get(ref) or {}).get('verdict') == 'APPROVE'}
+        every_version_approved = bool(active_refs) and accepted_refs == active_refs
         return {
             'schemaVersion': 'design-lab/jury-readback/v1',
             'project_id': project_id,
@@ -51,8 +60,9 @@ class JuryReview:
             # review list here means nobody signed anything, not that work is fine.
             'current_verdicts': current,
             'reviewable_versions': reviewable,
-            'human_acceptance': 'ACCEPTED' if any(
-                item['verdict'] == 'APPROVE' for item in current.values()) else 'NOT_ACCEPTED',
+            'accepted_versions': len(accepted_refs),
+            'reviewable_active_versions': len(active_refs),
+            'human_acceptance': 'ACCEPTED' if every_version_approved else 'NOT_ACCEPTED',
         }
 
     def record_verdict(self, project_id, document):

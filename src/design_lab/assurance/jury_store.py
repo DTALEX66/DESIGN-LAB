@@ -67,7 +67,9 @@ def _version_row(conn, project_id, subject_ref):
             'nothing cannot be reviewed or reverted')
     version_id = subject_ref[len(SUBJECT_PREFIX):]
     return conn.execute(
-        'SELECT v.version_id, v.asset_id, v.content_sha256, v.state, a.project_id'
+        'SELECT v.version_id, v.asset_id, v.version_no, v.content_sha256, v.state, a.project_id,'
+        ' (SELECT MAX(b.version_no) FROM asset_version b'
+        '   WHERE b.asset_id = v.asset_id AND b.state = \'ACTIVE\') AS latest_version_no'
         ' FROM asset_version v JOIN asset a ON a.asset_id = v.asset_id'
         ' WHERE v.version_id = ?', (version_id,)).fetchone()
 
@@ -122,6 +124,14 @@ def record(conn, *, project_id, document: dict, kind: str = KIND_VERDICT) -> dic
             raise JuryStoreError(
                 f'{subject_ref} is {row["state"]}, not ACTIVE; only a currently readable '
                 'version can be accepted, and a superseded one must be re-judged on its own')
+        # A revision that was published after this one leaves it ACTIVE on disk (the
+        # store never demotes replaced bytes), so `state` alone would still let a
+        # reviewer sign a draft and have it count as accepting the deliverable.
+        if row['version_no'] != row['latest_version_no']:
+            raise JuryStoreError(
+                f'{subject_ref} is version {row["version_no"]} of {row["asset_id"]}, but the '
+                f'latest ACTIVE one is {row["latest_version_no"]}; a verdict has to name the '
+                'bytes that would actually be delivered, not a draft they replaced')
         stored = _normalise_digest(document.get('artifact_sha256'))
         if stored != _normalise_digest(row['content_sha256']):
             raise JuryStoreError(
@@ -174,19 +184,29 @@ def list_records(conn, project_id, *, after=None) -> list:
 
 
 def reviewable_versions(conn, project_id) -> list:
-    """The ACTIVE versions a verdict may be filed against, digest included.
+    """The version a verdict may be filed against per asset, digest included.
 
     A reviewer should never have to type a digest: the point of binding a verdict
     to one is that nobody has to trust a hand-written value. This is the list the
     picker offers, and `record` re-checks the pairing anyway.
+
+    One row per asset, not one per revision: `publish_version` never demotes the
+    bytes it replaced, so an asset keeps every ACTIVE version it has ever had, and
+    the product reads "the current one" as the highest `version_no` elsewhere
+    (`native_assets.list`, `current_version`). Offering the whole history here would
+    invite a signature on a superseded draft and then let that signature count as
+    acceptance of work that is no longer deliverable.
     """
     rows = conn.execute(
-        "SELECT v.version_id, v.asset_id, v.content_sha256, v.created_at"
+        "SELECT v.version_id, v.asset_id, v.content_sha256, v.created_at, v.version_no"
         " FROM asset_version v JOIN asset a ON a.asset_id = v.asset_id"
         " WHERE a.project_id = ? AND v.state = 'ACTIVE'"
+        " AND v.version_no = (SELECT MAX(b.version_no) FROM asset_version b"
+        "                     WHERE b.asset_id = v.asset_id AND b.state = 'ACTIVE')"
         " ORDER BY v.created_at, v.version_id", (project_id,)).fetchall()
     return [{'subject_ref': f'{SUBJECT_PREFIX}{row["version_id"]}',
              'version_id': row['version_id'], 'asset_id': row['asset_id'],
+             'version_no': row['version_no'],
              'artifact_sha256': row['content_sha256'], 'created_at': row['created_at']}
             for row in rows]
 
