@@ -514,6 +514,15 @@ export async function renderDashboard(target: HTMLElement): Promise<void> {
       pid: p.pid,
     })),
   );
+  // `bundlesReadable === probes.length` is vacuously true when there are no probes, so
+  // the heading painted a real-looking 交付包（0） with nothing asked. The middle branch
+  // says what is actually known -- the ledger offered no project to read -- rather than
+  // a bundle count or a failed-readback claim; distinguishing "server says empty" from
+  // "we never asked" at list level is the separate defect already filed in the state
+  // matrix, and this heading does not pretend to solve it.
+  const bundleHeading = !probes.length ? '交付包（台账无项目可读）'
+    : bundlesReadable === probes.length ? `交付包（${allBundles.length}）`
+    : `交付包（未读回 ${probes.length - bundlesReadable}/${probes.length} 项目）`;
   const sysCount = systems.design_systems.length;
   const projCount = projects.projects.length;
   // B10 1:1 page-head (h2 + p + .page-actions) — DESIGN-LAB honest copy, B10 layout.
@@ -673,9 +682,7 @@ const modulePanels = el('div', { class: 'three-col', style: 'margin-top:16px' },
                     ? '服务不可达或未连接；此处不显示 0，避免把「没读到」说成「没有」。'
                     : '运行中任务为 PENDING / RUNNING 状态（服务侧作业状态词表）。')))])),
       el('div', { class: 'panel' },
-        el('h3', {}, bundlesReadable === probes.length
-          ? `交付包（${allBundles.length}）`
-          : `交付包（未读回 ${probes.length - bundlesReadable}/${probes.length} 项目）`),
+        el('h3', {}, bundleHeading),
         el('ul', { class: 'list' },
           ...(allBundles.length
             ? allBundles.slice(0, 8).map((b) => el('li', { class: 'list-item' },
@@ -1143,7 +1150,11 @@ export async function renderCreativeTools(target: HTMLElement): Promise<void> {
         el('h3', {}, a.name),
         el('div', { class: 'status-stack' },
           el('span', { class: 'tag info' }, a.state),
-          el('span', { class: 'tag ok' }, '已登记'))),
+          // Neutral, not ok: the fact here is that an adapter entry exists in
+          // integrations/adapter-registry.json. Nothing probed the host, and the panel
+          // above this one says so ("UNKNOWN，不假报可用"). A green pill on the same
+          // page contradicted it.
+          el('span', { class: 'tag neutral' }, '登记于 adapter-registry'))),
         el('p', { class: 'view-hint' }, '连接方式 / 权限 / 可执行能力由宿主与 service 裁定；本页只读回，不触发实操。')));
     const rows = tasks.tasks.length
       ? tasks.tasks.map((t) => el('tr', {},

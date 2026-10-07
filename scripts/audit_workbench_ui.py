@@ -83,7 +83,7 @@ def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--out",
                         default="docs/UI-CONVERGENCE-20260930/ui-audit/report.json")
-    parser.add_argument("--widths", default="390,768,1280,1920,2560")
+    parser.add_argument("--widths", default="1280,1920,2560")
     args = parser.parse_args()
 
     node = find_node()

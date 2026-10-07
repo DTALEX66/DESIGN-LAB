@@ -54,7 +54,7 @@ from test_workbench_design_layer_e2e import _find_browser, _find_node_modules_di
 
 ROOT = _TESTS_DIR.parents[1]
 GATE_SCRIPT = _TESTS_DIR / 'e2e' / 'audit_workbench_contrast.mjs'
-WIDTHS = os.environ.get('CT_WIDTHS', '1440,390')
+WIDTHS = os.environ.get('CT_WIDTHS', '1440,1920')
 
 
 def _evidence_dir():

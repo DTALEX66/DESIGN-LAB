@@ -27,7 +27,7 @@ const serviceUrl = process.env.E2E_SERVICE_URL;
 const token = process.env.E2E_TOKEN;
 const nmDir = process.env.E2E_NODE_MODULES;
 const browserPath = process.env.E2E_BROWSER || undefined;
-const widths = (process.env.OV_WIDTHS || '1440,1024,390')
+const widths = (process.env.OV_WIDTHS || '1440,1280,1920')
   .split(',').map((w) => Number.parseInt(w, 10)).filter((w) => Number.isFinite(w) && w > 0);
 const outPath = process.env.OV_OUT || '';
 const strict = process.env.OV_STRICT === '1';

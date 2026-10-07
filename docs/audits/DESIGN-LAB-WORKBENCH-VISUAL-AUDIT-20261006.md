@@ -624,3 +624,58 @@ owner 定，记录在此并列入待裁清单：
 
 **未做**：真实 app 在非零 `scrollLeft` 下的中段实测（现有捕获/审计 harness 不滚动）。
 D-6 的另一半——首屏是否并入 B10 壳——仍是 owner 裁决，本分支未替它决定。
+
+## 十六、证据面收到桌面端：一条需要写清代价的取舍
+
+owner 2026-10-07 指令："优先跑通全量执行桌面端电脑端UI，先删除手机端其他端等"。
+经确认取 **"只收口径，不删代码"**，且"其他端"仅指手机 / 平板（未开放路由与宿主入口卡保留）。
+
+### 改了什么
+
+9 处宽度默认值，全部是口径，不是能力：
+
+| 位置 | 旧 | 新 |
+|---|---|---|
+| `audit_workbench_ui.mjs` / `capture_workbench_screenshots.mjs` | `390,768,1280,1920,2560` | `1280,1920,2560` |
+| `audit_workbench_contrast.mjs` | `1440,390` | `1440,1920` |
+| `audit_workbench_overflow.mjs` | `1440,1024,390` | `1440,1280,1920` |
+| `scripts/audit_workbench_ui.py` / `capture_workbench_screenshots.py` | 同上五宽 | `1280,1920,2560` |
+| `test_workbench_ui_audit_gate.py` | `390,1280` | `1280,1920` |
+| `test_workbench_overflow_gate.py` | `1440,1024,390` | `1440,1280,1920` |
+| `test_workbench_contrast_gate.py` | `1440,390` | `1440,1920` |
+
+CI 的证据面由这三道 python 门决定（`canonical-verify.yml` 不写宽度，且被 SHA-256 钉死，
+本轮未触碰）。量化作用域从 13 面 × 5 宽 = 65 缩到 13 面 × 3 宽 = 39。
+
+### 没删什么，以及代价
+
+7 个宽度媒体查询、off-canvas 抽屉、`#navToggle`、§十三 修好的 23px 触摸目标、
+#259 刚并入的移动端滚动提示、审计里的 `touch-target(<=430)` 与 `palette(<=840)` 检查、
+`test_workbench_sidebar_pinning.py` 的抽屉断言——**代码全部留在仓里**。
+
+代价必须说明白：新宽度里已无 <1024，所以这些移动专用分支从此在 CI 中**不被触发**。
+也就是说 #254 与 #259 那两次修复的门禁保护消失了，未来任何一次移动端回归都不会变红。
+这是"不删代码"的直接后果，不是疏漏。
+
+### 需要恢复移动证据时（无需改代码）
+
+三道门都读环境变量，不改代码即可把口径调回去。已实测：
+
+```
+UI_AUDIT_WIDTHS=390,1280 python -m unittest discover -s design-lab/tests \
+  -t design-lab/tests -p 'test_workbench_ui_audit_gate.py'      # → OK
+OV_WIDTHS=1440,1024,390  … -p 'test_workbench_overflow_gate.py'
+CT_WIDTHS=1440,390       … -p 'test_workbench_contrast_gate.py'
+```
+
+### 本轮实测
+
+| 运行 | 结果 |
+|---|---|
+| 三道门在新桌面默认值下 | overflow OK（42.8s）、contrast OK（57.2s，2 项）、ui audit OK（3.9s） |
+| 三道门把移动宽度调回去 | overflow OK（42.7s）、contrast OK（57.7s）、ui audit OK（4.9s） |
+| 量化审计默认口径 | `AUDIT_SCOPES 39 violations=0 ok=True` |
+| 捕获默认口径 | `CAP_DONE shots=39`，`@390` / `@768` 计数为 0 |
+
+即：口径收窄没有让任何一道门变红，也没有让任何一道门失去可执行性——
+它只是不再在 CI 里覆盖 <1024。

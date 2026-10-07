@@ -15,7 +15,7 @@ if (!serviceUrl || !token || !nmDir) {
   console.error('AUDIT_CONFIG_MISSING');
   process.exit(2);
 }
-const widths = (process.env.AUDIT_WIDTHS || '390,768,1280,1920,2560')
+const widths = (process.env.AUDIT_WIDTHS || '1280,1920,2560')
   .split(',').map((w) => Number.parseInt(w, 10)).filter(Number.isFinite);
 const HEIGHT = { 390: 844, 768: 1024, 1280: 800, 1920: 1080, 2560: 1440 };
 

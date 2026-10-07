@@ -1,0 +1,58 @@
+# DESIGN-LAB UI 实施收敛报告 B
+
+**日期** 2026-10-07 · **Authority** `DL-AUTHORITY-2026-09-18-R2`
+**基线** `main = 72d6ae4b`（#259 并入后）· 本报告随 `#260` 落地
+**接手** CODEX 分支 `qoder/designlab-picker-autoselect-20261007` 的未提交移动端改动
+**与 CODEX 报告的关系** 取代 `DESIGNLAB-UI-IMPLEMENTATION-REPORT-2026-10-07.md` 中"远端状态 UNKNOWN"
+与"Chromium 不可用"两节——那两条是它的 sandbox 限制，不是仓库事实；本文给出实测值。
+
+## 一、桌面端 UI 现在能做什么（有证据）
+
+| 能力 | 证据 | 等级 |
+|---|---|---|
+| 13 个面在 1280/1920/2560 全部渲染，无溢出/无对比度违规 | `AUDIT_SCOPES 39 violations=0 ok=True` | E2 |
+| 真实设计链：建项目→导入参考→建 Brief→建方向→选定→绑定设计系统→改 Brief→改已选方向→重建绑定读回→**重开页面后仍读回** | `browser-e2e-summary.json`：12 场景 `result=PASS`，`consoleErrors=0` | E2 |
+| 每面首屏截图 + 机读清单（headings/KPIs/unread 计数随图存档） | `CAP_DONE shots=39`，manifest 绑定 commit | E1–E2 |
+| 移动端链（appshell 布局） | 同一 E2E 的 `mobile-appshell-layout` 场景 | E2 |
+
+E2 的限定：`subjectSha` 本地记为 `"local"`，CI 上才绑 exact SHA；本地这份证据不绑 SHA，引用时须说明。
+
+## 二、本轮真实改掉的东西
+
+| 缺陷 | 为什么之前的门看不见 | 落点 |
+|---|---|---|
+| 侧栏身份块在 4 条长页路由掉出折叠线 | 拉伸网格项不是溢出，是比屏高 | #258 |
+| 台账只有 1 项目时三个 picker 面是死路 | 空态环"可滚动即合法" | #258 + 新审计项 |
+| `.kpi-grid` 固定 4 列，3 计数器留 ~240px 空洞 | 空洞不是违规 | #258 |
+| 共享输入零行仍标"服务端环境读回" | 空列表与读到空同形 | #258 |
+| 未开放页 1 卡 / 宿主 2 卡塞三栏 | 同上 | #258 |
+| 移动端滚动提示会随菜单滚走 | 类/aria 检查两种写法都绿 | #259（CODEX 提出，实测后改 sticky） |
+| 宿主网格无据绿标"已登记"，同页却写 UNKNOWN | 颜色语义不在任何门的断言里 | #260 |
+| `交付包（0）` 的 `0 === 0` 空真值通过 | 计数看着合法 | #260 |
+
+配套守卫：`picker-dead-end`（先证伪：旧 bundle 3 违规）、`test_workbench_sidebar_pinning.py`
+（4 处变异致死）。
+
+## 三、明确未完成
+
+1. **⑤ 响应形状异常**：13 面仍全部 NOT HANDLED。我实现过 seam 级校验，真实服务全绿，
+   但打挂 `appshell.mjs`（该 harness 喂部分 mock，我的校验比它保护的合同更严）→
+   已 `git revert`，不改测试不加豁免。要做对需要逐视图降级合同 + 双向 fixture。
+2. **Rights / Preflight 阻断案例、Handoff 可重开**：界面存在、我已逐屏读过，
+   但**没有浏览器链覆盖**（E2E 的 12 场景不含它们）。
+3. **首屏仍是第二套壳**（D-6 未决）：legacy 导航 + "本机已连接" vs B10 侧栏 +
+   "本地单用户 / 无身份路由 · 未读回"。本轮只补了它的移动端 affordance，没有替 owner 统一。
+4. **移动端已无 CI 覆盖**：证据口径按指令收到 ≥1024，代码保留。恢复用 env，已实测。
+
+## 四、需要 owner 才能推进的（不是我的进度问题）
+
+- 真实宿主 E3（Illustrator / Photoshop 保存 + 重开局部编辑）：需明确授权拉起宿主窗口。
+- Human Jury E4、release E5、发布：需真人 / 决定。
+- D-1 Inter、D-3 规格矛盾、品牌蓝 `#316CFF`、中英标题政策、首页坏消息权重、
+  INSPECTOR 空环、D-6 壳统一。
+
+## 五、回滚范围
+
+本轮全部改动集中在 `apps/workbench/{shell.ts,style.css,build/main.js}`、
+三道门的宽度默认值、`design-lab/tests/` 两个测试文件、以及 `docs/audits/` 三份记录；
+无依赖变更、无 lockfile 变更、无数据库或外部副作用。逐 commit 可 revert。

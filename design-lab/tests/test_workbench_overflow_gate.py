@@ -42,7 +42,7 @@ from test_workbench_design_layer_e2e import _find_browser, _find_node_modules_di
 
 ROOT = _TESTS_DIR.parents[1]
 GATE_SCRIPT = _TESTS_DIR / 'e2e' / 'audit_workbench_overflow.mjs'
-WIDTHS = os.environ.get('OV_WIDTHS', '1440,1024,390')
+WIDTHS = os.environ.get('OV_WIDTHS', '1440,1280,1920')
 
 
 def _evidence_dir():

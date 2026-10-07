@@ -18,7 +18,7 @@ const outDir = process.env.CAP_OUT_DIR;
 const commit = process.env.CAP_COMMIT || 'unknown';
 const sourceImage = process.env.CAP_SOURCE_IMAGE || '';
 const pythonVersion = process.env.CAP_PYTHON_VERSION || 'unknown';
-const widths = (process.env.CAP_WIDTHS || '390,768,1280,1920,2560')
+const widths = (process.env.CAP_WIDTHS || '1280,1920,2560')
   .split(',').map((w) => Number.parseInt(w, 10)).filter((w) => Number.isFinite(w) && w > 0);
 
 const VIEWPORT_HEIGHT = { 390: 844, 768: 1024, 1280: 800, 1440: 900, 1920: 1080, 2560: 1440 };
