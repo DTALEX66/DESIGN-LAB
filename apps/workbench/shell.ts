@@ -2423,7 +2423,7 @@ export async function renderRoute(view: AppView, target: HTMLElement): Promise<v
       // (from CAPABILITY_REGISTRY) instead of a bare "unopened" note.
       // Only VIEW_NOT_OPEN slots (research / design-domains / collaboration)
       // reach here; creative-tools is handled by its own case above.
-      const cards = el('div', { class: 'three-col' },
+      const cards = el('div', { class: 'card-flow' },
         ...CAPABILITY_REGISTRY.filter((c) =>
           (view === 'research' && c.capabilityId === 'research-insights') ||
           (view === 'design-domains' && c.capabilityId === 'design-domain-model') ||

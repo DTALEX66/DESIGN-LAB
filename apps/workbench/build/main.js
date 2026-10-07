@@ -3729,7 +3729,7 @@ async function renderRoute(view, target) {
       const notOpen = VIEW_NOT_OPEN[view];
       const cards = el(
         "div",
-        { class: "three-col" },
+        { class: "card-flow" },
         ...CAPABILITY_REGISTRY.filter(
           (c) => view === "research" && c.capabilityId === "research-insights" || view === "design-domains" && c.capabilityId === "design-domain-model" || view === "collaboration" && c.capabilityId === "collaboration"
         ).map(capabilityCard)

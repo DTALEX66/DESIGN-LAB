@@ -661,6 +661,11 @@ html,body{margin:0}
 .kpi-grid{grid-template-columns:repeat(auto-fit,minmax(210px,1fr))}
 .two-col{grid-template-columns:1.2fr 1fr}
 .three-col{grid-template-columns:repeat(3,minmax(0,1fr))}
+/* The unopened-route slots hold exactly one capability card each, and a fixed
+   3-track grid left ~640px of dead canvas beside it under a full-width banner.
+   auto-fit collapses the unused tracks, so one card fills the row and two or
+   three still share it evenly. */
+.card-flow{display:grid;gap:16px;grid-template-columns:repeat(auto-fit,minmax(280px,1fr))}
 .split{grid-template-columns:1.35fr .95fr}
 .panel{
   position:relative;
