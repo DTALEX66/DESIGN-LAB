@@ -987,7 +987,7 @@ export async function renderCapabilityLibrary(target: HTMLElement): Promise<void
   target.replaceChildren(el('p', { class: 'view-loading' }, '正在读回能力库…'));
   const data = await apiOrEmpty<CapabilityLibraryResponse>('/capabilities', OFFLINE.capabilities);
   const rows = data.capabilities;
-  const filter = el('input', { class: 'input', type: 'search', id: 'capability-filter',
+  const filter = el('input', { class: 'input capability-filter', type: 'search', id: 'capability-filter',
     placeholder: '按 ID / 许可 / 域 / 处置 / 修订状态过滤',
     'aria-label': '能力库过滤' });
   const shown = el('span', { class: 'muted', id: 'capability-shown' }, '');
@@ -1022,7 +1022,11 @@ export async function renderCapabilityLibrary(target: HTMLElement): Promise<void
     el('div', { class: 'page-head' },
       el('div', {},
         el('h2', {}, '研究洞察 / 能力库'),
-        el('p', {}, `只读回仓内已维护的能力记录：来源锁、修订账与模型雷达。${data.unmeasuredMeans}`)),
+        // The payload carries `unmeasuredMeans` for machines; the reader gets the same
+        // rule in the page's own language, with the English state words left untranslated.
+        el('p', {}, '只读回仓内已维护的能力记录：来源锁、修订账与模型雷达。'
+          + '空白不等于 0：未经宿主运行与人工验收的项标为 未判定，'
+          + '未取回修订的项标为 NOT_VERIFIED 或 UNRESOLVED；本视图不安装、不取证、不代签许可。')),
       el('div', { class: 'page-actions' }, shown)),
     el('div', { class: 'panel' },
       el('h3', {}, `能力记录（${data.counts.total}）`),

@@ -679,6 +679,9 @@ html,body{margin:0}
    auto-fit collapses the unused tracks, so one card fills the row and two or
    three still share it evenly. */
 .card-flow{display:grid;gap:16px;grid-template-columns:repeat(auto-fit,minmax(280px,1fr))}
+/* The library filter's placeholder is longer than a default picker cell, and a
+   clipped placeholder reads as a broken field. */
+.capability-filter{flex:1 1 auto;min-width:min(340px,100%)}
 .split{grid-template-columns:1.35fr .95fr}
 .panel{
   position:relative;

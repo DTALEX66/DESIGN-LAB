@@ -1978,7 +1978,7 @@ async function renderCapabilityLibrary(target) {
   const data = await apiOrEmpty("/capabilities", OFFLINE.capabilities);
   const rows = data.capabilities;
   const filter = el("input", {
-    class: "input",
+    class: "input capability-filter",
     type: "search",
     id: "capability-filter",
     placeholder: "按 ID / 许可 / 域 / 处置 / 修订状态过滤",
@@ -2025,7 +2025,9 @@ async function renderCapabilityLibrary(target) {
         "div",
         {},
         el("h2", {}, "研究洞察 / 能力库"),
-        el("p", {}, `只读回仓内已维护的能力记录：来源锁、修订账与模型雷达。${data.unmeasuredMeans}`)
+        // The payload carries `unmeasuredMeans` for machines; the reader gets the same
+        // rule in the page's own language, with the English state words left untranslated.
+        el("p", {}, "只读回仓内已维护的能力记录：来源锁、修订账与模型雷达。空白不等于 0：未经宿主运行与人工验收的项标为 未判定，未取回修订的项标为 NOT_VERIFIED 或 UNRESOLVED；本视图不安装、不取证、不代签许可。")
       ),
       el("div", { class: "page-actions" }, shown)
     ),
