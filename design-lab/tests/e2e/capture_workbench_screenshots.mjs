@@ -17,6 +17,13 @@ const browser = process.env.E2E_BROWSER;
 const outDir = process.env.CAP_OUT_DIR;
 const commit = process.env.CAP_COMMIT || 'unknown';
 const sourceImage = process.env.CAP_SOURCE_IMAGE || '';
+// Repo-relative when the file is inside the checkout, absolute (and visibly so) when the
+// operator pointed at something outside it.
+const referenceSourceRecorded = (() => {
+  if (!sourceImage) return null;
+  const rel = path.relative(process.cwd(), sourceImage).split(path.sep).join('/');
+  return rel && !rel.startsWith('..') && !path.isAbsolute(rel) ? rel : sourceImage;
+})();
 const pythonVersion = process.env.CAP_PYTHON_VERSION || 'unknown';
 const widths = (process.env.CAP_WIDTHS || '1280,1920,2560')
   .split(',').map((w) => Number.parseInt(w, 10)).filter((w) => Number.isFinite(w) && w > 0);
@@ -284,7 +291,13 @@ const manifest = {
   commit,
   subject: bundleSubject(),
   project: { name: projectName, id: projectId },
-  referenceSourceImage: sourceImage || null,
+  // Recorded relative to the repo, the same way the PNG sidecars record their own path.
+  // The absolute form made the committed manifest machine-specific: running the identical
+  // capture from a linked worktree produced a different record, so the evidence could not
+  // be committed from anywhere but the primary checkout. An outside-repo --source-image
+  // keeps its absolute form and says so, rather than being smuggled into a repo-relative
+  // path that resolves to nothing.
+  referenceSourceImage: referenceSourceRecorded,
   service: { origin: serviceUrl, pythonVersion },
   browser: { engine: 'chromium', version: browserVersion, executable: browser || 'playwright-default', headless: true },
   nodeVersion: process.version,
