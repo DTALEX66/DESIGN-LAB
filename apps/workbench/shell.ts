@@ -57,9 +57,50 @@ function devMode(): boolean {
 // are explicit placeholders. No B10 demo number is invented. A held token
 // always goes to the live API (a connected session never reaches this path),
 // and a live failure still throws — nothing here masks a real error.
-function apiOrEmpty<T>(path: string, empty: T): Promise<T> {
+//
+// State ⑤ of the UI state matrix. A live response that omitted a collection the view
+// was about to walk used to throw at that field access, several layers away, and the
+// top-level catch reported the whole view as failed with a TypeError as its only
+// message. The response is therefore normalised against the shape the call site
+// already declares through its `empty` fallback: an absent list becomes an empty list
+// and an absent map becomes an empty map, which is strictly more permissive than
+// today (a well-formed response is untouched, and a partial one stops crashing).
+// The fields that had to be invented are recorded on the object, so a view can say
+// 未读回：响应缺少 … instead of silently rendering the empty case as 尚无.
+const SHAPE_MISSING = Symbol.for('design-lab/shape-missing');
+
+function normaliseShape(live: Record<string, unknown>, template: unknown, prefix = ''): string[] {
+  if (template === null || typeof template !== 'object') return [];
+  const missing: string[] = [];
+  for (const [key, want] of Object.entries(template as Record<string, unknown>)) {
+    const field = prefix ? `${prefix}.${key}` : key;
+    if (Array.isArray(want)) {
+      if (!Array.isArray(live[key])) { live[key] = []; missing.push(field); }
+    } else if (want !== null && typeof want === 'object') {
+      if (live[key] === null || typeof live[key] !== 'object') { live[key] = {}; missing.push(field); }
+      missing.push(...normaliseShape(live[key] as Record<string, unknown>, want, field));
+    }
+    // null and primitive fallbacks are skipped: null is a legal live value for
+    // chosen_direction / active_binding / next_cursor, so requiring one would
+    // fabricate a failure the service never produced.
+  }
+  return missing;
+}
+
+function apiOrEmpty<T extends object>(path: string, empty: T): Promise<T> {
   if (!token && devMode()) return Promise.resolve(empty);
-  return api<T>(path);
+  return api<Record<string, unknown>>(path).then((live) => {
+    const missing = normaliseShape(live, empty);
+    if (missing.length) Object.defineProperty(live, SHAPE_MISSING, { value: missing, enumerable: false });
+    return live as T;
+  });
+}
+
+// What a view must say when the service answered 200 but left a collection out.
+export function shapeNotice(value: unknown): string {
+  const missing = (value as Record<symbol, unknown> | null)?.[SHAPE_MISSING];
+  return Array.isArray(missing) && missing.length
+    ? `未读回：响应缺少 ${missing.join('、')}` : '';
 }
 
 // Honest empty payloads for the dev/offline seam (see apiOrEmpty).
@@ -474,6 +515,10 @@ export async function renderDashboard(target: HTMLElement): Promise<void> {
     apiOrEmpty<DesignSystemListResponse>('/design-systems', OFFLINE.designSystems),
     apiOrEmpty<EnvironmentResponse>('/environment', OFFLINE.environment),
   ]);
+  // One notice for all four reads: a collection the service left out is normalised to
+  // empty, and without saying so the page would present that as a real zero.
+  const shapeNote = [health, projects, systems, environment]
+    .map(shapeNotice).filter(Boolean).join('；');
   // Tri-state readback for the triage lists: `apiOrEmpty` answers an unreachable service
   // with an EMPTY payload, so "0 failures" would be a false claim offline. Each project's
   // tasks are read through `api()` here and per-project failure is recorded, so the panels
@@ -532,7 +577,8 @@ export async function renderDashboard(target: HTMLElement): Promise<void> {
   const pageHead = el('div', { class: 'page-head' },
     el('div', {},
       el('h2', {}, '仪表盘'),
-      el('p', {}, '项目、品牌、预检与交付已可读回；研究、设计领域、协作尚未开放（见能力登记表）。')),
+      el('p', {}, '项目、品牌、预检与交付已可读回；研究、设计领域、协作尚未开放（见能力登记表）。'
+        + (shapeNote ? ` ${shapeNote}。` : ''))),
     el('div', { class: 'page-actions' },
       el('button', {
         type: 'button', class: 'primary-btn',
@@ -1061,11 +1107,15 @@ export async function renderProjects(target: HTMLElement): Promise<void> {
   target.replaceChildren(el('p', { class: 'view-loading' }, '正在读回项目台账…'));
   const data = await apiOrEmpty<ProjectListResponse>('/projects', OFFLINE.projects);
   const n = data.projects.length;
+  // Without this, a response that omitted `projects` would normalise to an empty list
+  // and the page would say 尚无项目 as if the server had answered zero.
+  const shapeNote = shapeNotice(data);
   // B10 1:1 page-head + kpi-grid（真实读回值，非 B10 演示数字）。
   const pageHead = el('div', { class: 'page-head' },
     el('div', {},
       el('h2', {}, '项目'),
-      el('p', {}, '支持筛选、编辑与本地持久化。数据来自服务端台账；新建 / 选择项目在工作台执行，本页只读回。')),
+      el('p', {}, '支持筛选、编辑与本地持久化。数据来自服务端台账；新建 / 选择项目在工作台执行，本页只读回。'
+        + (shapeNote ? ` ${shapeNote}。` : ''))),
     el('div', { class: 'page-actions' },
       el('button', {
         type: 'button', class: 'primary-btn',

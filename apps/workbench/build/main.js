@@ -932,9 +932,38 @@ function devMode() {
   }
   return false;
 }
+const SHAPE_MISSING = Symbol.for("design-lab/shape-missing");
+function normaliseShape(live, template, prefix = "") {
+  if (template === null || typeof template !== "object") return [];
+  const missing = [];
+  for (const [key, want] of Object.entries(template)) {
+    const field = prefix ? `${prefix}.${key}` : key;
+    if (Array.isArray(want)) {
+      if (!Array.isArray(live[key])) {
+        live[key] = [];
+        missing.push(field);
+      }
+    } else if (want !== null && typeof want === "object") {
+      if (live[key] === null || typeof live[key] !== "object") {
+        live[key] = {};
+        missing.push(field);
+      }
+      missing.push(...normaliseShape(live[key], want, field));
+    }
+  }
+  return missing;
+}
 function apiOrEmpty(path, empty) {
   if (!token && devMode()) return Promise.resolve(empty);
-  return api(path);
+  return api(path).then((live) => {
+    const missing = normaliseShape(live, empty);
+    if (missing.length) Object.defineProperty(live, SHAPE_MISSING, { value: missing, enumerable: false });
+    return live;
+  });
+}
+function shapeNotice(value) {
+  const missing = value?.[SHAPE_MISSING];
+  return Array.isArray(missing) && missing.length ? `未读回：响应缺少 ${missing.join("、")}` : "";
 }
 const OFFLINE = {
   health: { status: "UNKNOWN", version: "—", scope: "dev-offline" },
@@ -1252,6 +1281,7 @@ async function renderDashboard(target) {
     apiOrEmpty("/design-systems", OFFLINE.designSystems),
     apiOrEmpty("/environment", OFFLINE.environment)
   ]);
+  const shapeNote = [health, projects2, systems, environment].map(shapeNotice).filter(Boolean).join("；");
   const probeIds = projects2.projects.slice(0, 6).map((p) => p.id);
   const probes = await Promise.all(probeIds.map(async (pid) => {
     const taskResult = { res: null, err: null };
@@ -1299,7 +1329,7 @@ async function renderDashboard(target) {
       "div",
       {},
       el("h2", {}, "仪表盘"),
-      el("p", {}, "项目、品牌、预检与交付已可读回；研究、设计领域、协作尚未开放（见能力登记表）。")
+      el("p", {}, "项目、品牌、预检与交付已可读回；研究、设计领域、协作尚未开放（见能力登记表）。" + (shapeNote ? ` ${shapeNote}。` : ""))
     ),
     el(
       "div",
@@ -2108,6 +2138,7 @@ async function renderProjects(target) {
   target.replaceChildren(el("p", { class: "view-loading" }, "正在读回项目台账…"));
   const data = await apiOrEmpty("/projects", OFFLINE.projects);
   const n = data.projects.length;
+  const shapeNote = shapeNotice(data);
   const pageHead = el(
     "div",
     { class: "page-head" },
@@ -2115,7 +2146,7 @@ async function renderProjects(target) {
       "div",
       {},
       el("h2", {}, "项目"),
-      el("p", {}, "支持筛选、编辑与本地持久化。数据来自服务端台账；新建 / 选择项目在工作台执行，本页只读回。")
+      el("p", {}, "支持筛选、编辑与本地持久化。数据来自服务端台账；新建 / 选择项目在工作台执行，本页只读回。" + (shapeNote ? ` ${shapeNote}。` : ""))
     ),
     el(
       "div",
