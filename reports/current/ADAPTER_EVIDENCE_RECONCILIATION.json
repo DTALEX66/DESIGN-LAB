@@ -251,16 +251,16 @@
   },
   "fresh": false,
   "freshnessMeaning": "at generation only; check verifies bound-input integrity, not current Git or cloud state",
-  "generatedAt": "2026-10-07T00:29:26+00:00",
+  "generatedAt": "2026-10-07T00:44:28+00:00",
   "gitStateMeaning": "generation-time observation, not current HEAD",
   "schemaVersion": "design-lab/adapter-reconciliation/v2",
   "subjectMeaning": "subjectType=WORKTREE means the tree was dirty at generation; worktreeDigest covers HEAD plus the non-generated changes",
-  "subjectSha": "c6dc6ad0b8a12daf3e633bc667801836a21133e3",
+  "subjectSha": "63b12e96ec19871de7c34fdbb7d7a79721fddacc",
   "subjectType": "WORKTREE",
   "taskpackHash": "31dde89eb4ede81fe88c0a5c5144adfb86af8db4c4d8c263bde2199180369b69",
   "taskpackId": "DL-TP-20260908-R5",
   "testRunId": null,
   "testRunMeaning": "no bound test run; this projection does not claim a test result",
   "worktreeClean": false,
-  "worktreeDigest": "sha256:3ff0ff8d41dd8b3deb5f571c15415f36ce191ed64c6857ade3605e9074511cb1"
+  "worktreeDigest": "sha256:306ed65ea0a2caa0b6c4c83374fe5c534a6a8e8aa54be50172e16eee3bbf80e8"
 }
