@@ -7,7 +7,8 @@ runner records, for every run:
 
 * the subject: commit sha, worktree digest, worktree clean flag;
 * what ran: order, seed, pattern, selected modules, repeat count;
-* the result: tests run, failures, errors, skipped, exit code, duration;
+* the result: tests run, failures, errors, skipped (with the identity and stated
+  reason of each skipped case, not just a count), exit code, duration;
 * the environment fingerprint.
 
 It writes `.project-local/task-artifacts/test-run/last-run.json`, which is exactly
@@ -84,6 +85,20 @@ def order_tests(tests: list, order: str, seed: int) -> list:
     return shuffled
 
 
+def skip_details(result, limit: int = 40) -> tuple:
+    """Which cases did not run, plus the reason the case itself stated.
+
+    A bare `skipped=4` is a measurement of this runner's scope, not of the world: it
+    cannot distinguish "four host probes found no host" from "four real checks stopped
+    being collected". The reason comes from the test's own skip decorator, so the record
+    never states a cause the code does not know, and a list longer than `limit` reports
+    that it was cut instead of letting the cut read as the whole truth.
+    """
+    entries = [{"case": str(case), "case_id": case.id(), "reason": str(reason)}
+               for case, reason in result.skipped]
+    return entries[:limit], len(entries) > limit
+
+
 def main(argv=None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--order", choices=("forward", "reverse", "random"), default="forward")
@@ -138,6 +153,7 @@ def main(argv=None) -> int:
         manifest.append(identifier)
     manifest_hash = "sha256:" + hashlib.sha256("\n".join(manifest).encode("utf-8")).hexdigest()
     result = unittest.TextTestRunner(verbosity=1).run(suite)
+    skips, skips_truncated = skip_details(result)
     duration = round(time.monotonic() - clock, 3)
     run_id = (f"testrun-{started.strftime('%Y%m%dT%H%M%SZ')}-{args.order}"
               f"{'' if not args.modules else '-repeat'}-{worktree_digest()[7:19]}")
@@ -181,6 +197,8 @@ def main(argv=None) -> int:
                             "platform — a Linux record never stands in for a Windows host result",
         "failures_detail": [str(test) for test, _ in result.failures][:20],
         "errors_detail": [str(test) for test, _ in result.errors][:20],
+        "skipped_detail": skips,
+        "skipped_detail_truncated": skips_truncated,
     }
     RECORD_DIR.mkdir(parents=True, exist_ok=True)
     RECORD.write_text(json.dumps(record, indent=2, ensure_ascii=False) + "\n",
@@ -194,6 +212,16 @@ def main(argv=None) -> int:
           f"failures={record['failures']} errors={record['errors']} skipped={record['skipped']} "
           f"order={args.order} subject={record['subject']['commit_sha'][:12]} "
           f"clean={record['subject']['worktree_clean']} in {duration}s")
+    for entry in skips:
+        print(f"SKIP {entry['case_id']} :: {entry['reason']}")
+    if record["skipped"] and not skips:
+        # The count was recorded but no case was. That is this runner failing to read
+        # its own input, and a green suite must not be allowed to hide it.
+        print("BOUND_SKIP_IDENTITY=DEFECT skipped>0 was recorded but no case identity "
+              "came out of the result; the count alone is not evidence")
+        return 3
+    if skips_truncated:
+        print(f"SKIP_DETAIL_TRUNCATED identities shown={len(skips)} of skipped={record['skipped']}")
     return record["exit_code"]
 
 
