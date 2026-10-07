@@ -157,7 +157,8 @@ def main(argv=None):
     if args.task:
         from ..runtime.task_resources import TaskResourceError, preflight
         try:
-            result = preflight(PROJECT_ROOT, args.task)
+            result = preflight(PROJECT_ROOT, args.task,
+                               paths_describe=resolve_paths(project_root=PROJECT_ROOT).describe())
         except TaskResourceError as exc:
             result = {'status': 'TASK_PREFLIGHT_FAIL', 'task_full_id': args.task, 'reason': str(exc)}
         print(json.dumps(result, ensure_ascii=False, indent=2))

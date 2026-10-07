@@ -56,20 +56,47 @@ def entry_host_scope(entry) -> str:
     return entry.get("host_scope", "none") if isinstance(entry, dict) else "none"
 
 
-def _probe_tool(name: str, declared_version: str | None) -> dict:
-    """Read-only path probe; never installs and never accepts a licence."""
-    executable = shutil.which(name)
-    state = "RESOLVED" if executable else "UNAVAILABLE"
-    return {
+def _probe_tool(name: str, declared_version: str | None,
+                bindings: dict | None = None) -> dict:
+    """Read-only path probe; never installs and never accepts a licence.
+
+    A binding registered in ``.project/paths.json`` wins over the PATH scan. Only a
+    ``BOUND`` entry qualifies, and ``BOUND`` is granted by
+    ``ProjectPaths.tool_bindings()`` after checking the path sits inside one of the
+    declared shared-input roots -- without that second opinion ``tools`` would just be an
+    arbitrary executable path the project trusts, which is a worse version of the problem
+    it solves.
+    """
+    binding = (bindings or {}).get(name) or {}
+    declared = binding.get("path") if binding.get("status") == "BOUND" else None
+    declared_usable = bool(declared) and Path(str(declared)).is_file()
+    resolved = declared if declared_usable else shutil.which(name)
+    from_declared = bool(declared) and declared_usable
+    # Spelled as a variable assignment rather than inline in the dict: the state-vocabulary
+    # gate scans this module's text and reads both branches of that assignment form to
+    # prove the UI and this module share one vocabulary. Inlining the ternary here silently
+    # removes UNAVAILABLE from what that scan can see -- and note the scan is textual, so
+    # even an example of that form written in a comment counts as a state word.
+    state = "RESOLVED" if resolved else "UNAVAILABLE"
+    record = {
         "kind": "tool",
-        "resolved_path": executable,
-        "path_source": "shutil.which" if executable else None,
-        "search_scope": "current process PATH only",
+        "resolved_path": resolved,
+        "path_source": (f"declared:.project/paths.json#tools.{name}" if from_declared
+                        else "shutil.which" if resolved else None),
+        "search_scope": ("declared binding, then current process PATH" if from_declared
+                         else "current process PATH only"),
         "declared_version": declared_version,
         "state": state,
         "meaning": ("tool found in search scope; version NOT re-proven here"
-                    if executable else "tool absent from the current search scope"),
+                    if resolved else "tool absent from the current search scope"),
     }
+    if binding.get("status") not in (None, "BOUND"):
+        # The owner registered it and the registration is unusable. Say which, instead of
+        # letting the answer read as "this software is not installed here".
+        record["declared_binding_state"] = str(binding.get("status"))
+    elif declared and not declared_usable:
+        record["declared_binding_state"] = "BOUND_PATH_NOW_MISSING"
+    return record
 
 
 def preflight(root: Path, task_full_id: str, *, registry=None, paths_describe=None) -> dict:
@@ -99,6 +126,11 @@ def preflight(root: Path, task_full_id: str, *, registry=None, paths_describe=No
         needs = [ref for ref in (doc or {}).get("requires_by_task", {}).get(task_full_id, [])]
 
     results = []
+    # `paths_describe` is `ProjectPaths.describe()` from the caller that owns the machine
+    # config; only its `tools` map is consulted here. Left None, the probe stays PATH-only
+    # exactly as before, so a caller that has not resolved paths cannot be blamed for a
+    # tool it never described.
+    tool_bindings = (paths_describe or {}).get("tools") or {}
     for ref in needs:
         entry = resources.get(ref)
         if entry is None:
@@ -111,7 +143,8 @@ def preflight(root: Path, task_full_id: str, *, registry=None, paths_describe=No
         host_scope = entry.get("host_scope", "none")
         if kind == "tool":
             results.append({"ref": ref, "host_scope": host_scope,
-                            **_probe_tool(entry.get("name", ref), entry.get("version"))})
+                            **_probe_tool(entry.get("name", ref), entry.get("version"),
+                                          tool_bindings)})
         elif kind == "model":
             results.append({"ref": ref, "kind": "model", "host_scope": host_scope,
                             "state": "METADATA_ONLY",
