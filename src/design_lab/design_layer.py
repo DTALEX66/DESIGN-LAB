@@ -40,6 +40,8 @@ from pathlib import Path
 
 from .creative import store as cstore
 from .creative.store import CreativeError
+from .interop import InteropError, dtcg, schema_errors
+from .runtime import asset_store as assets
 from .runtime.paths import PROJECT_ROOT, PathPolicyError
 
 # P0-07: the design-system catalog (source of the design contracts a direction
@@ -72,8 +74,13 @@ def _catalog_root():
 
 
 class DesignLayerError(ValueError):
-    def __init__(self, status, code):
+    def __init__(self, status, code, detail=None):
         self.status, self.code = status, code
+        # Field-path-qualified reasons for the refusals a reviewer can act on
+        # ("color.brand.$value is not a CSS color string"). ``code`` stays the
+        # machine word; ``detail`` is the extra, and it is absent for every
+        # pre-existing refusal so their response bodies do not change shape.
+        self.detail = list(detail) if detail else []
 
 
 def _text(value, field, *, max_len=400):
@@ -170,6 +177,123 @@ def catalog():
                 'evidence_level': (data.get('evidence') or {}).get('level', 'E0'),
             })
     return systems
+
+
+# --------------------------------------------------------------------------- #
+# Design-system TOKEN documents (closes W06-TOKEN-WRITE-GAP G1/G2/G3/G4)
+# --------------------------------------------------------------------------- #
+
+#: The exact body keys the token write route accepts. Declared here rather than
+#: inline at the route so ``design-lab/tests/test_design_system_token_form_contract.py``
+#: can prove the page posts this set and nothing else (the same trick the jury
+#: form contract plays with JURY_CRITERIA).
+TOKEN_WRITE_FIELDS = frozenset({'document', 'expected_version', 'actor', 'actor_kind',
+                                'idempotency_key'})
+
+#: Design-system names are catalog directory names (``uiux-commercial-light``);
+#: the route pattern and the service both use this shape, so a name can never be
+#: a path, a URL fragment or an overlong blob.
+DESIGN_SYSTEM_NAME_PATTERN = r'[a-z0-9][a-z0-9-]{0,63}'
+_DESIGN_SYSTEM_NAME_RE = re.compile(DESIGN_SYSTEM_NAME_PATTERN)
+
+#: The token document is a DTCG document, so its writer lease is scoped to the
+#: (project, design system) pair the chain belongs to.
+TOKEN_LEASE_PREFIX = 'design-system-tokens:'
+TOKEN_LEASE_SECONDS = 30.0
+
+#: Cap on the submitted document size; enforced again by the route's body limit.
+TOKEN_DOCUMENT_MAX_KEYS = 4096
+#: Cap on nesting depth (DTCG group trees are shallow by design; a deep document is
+#: an attack surface on the validator, not a design system).
+TOKEN_DOCUMENT_MAX_DEPTH = 40
+
+
+def _token_lease_key(project_id, design_system_name):
+    return f'{TOKEN_LEASE_PREFIX}{project_id}:{design_system_name}'
+
+
+def _count_nodes(value):
+    """Rough JSON node count, for the size guard. Not a validation rule."""
+    if isinstance(value, dict):
+        return 1 + sum(_count_nodes(item) for item in value.values())
+    if isinstance(value, list):
+        return 1 + sum(_count_nodes(item) for item in value)
+    return 1
+
+
+def _json_shape_problems(value, path='document', depth=0):
+    """A submitted token document must be JSON-shaped before a schema can judge it.
+
+    Over HTTP the body already came from ``json.loads``, so keys are strings and
+    NaN cannot appear; this guard exists for the direct service call, where a
+    Python int key makes jsonschema's patternProperties raise a TypeError that
+    would otherwise be read as a validator failure, and a NaN would make the
+    canonical hash refuse later with no path attached. Depth is capped so a
+    pathological document fails closed here instead of in the recursion limit.
+    """
+    if depth > TOKEN_DOCUMENT_MAX_DEPTH:
+        return [f'{path}: nests deeper than {TOKEN_DOCUMENT_MAX_DEPTH} levels']
+    problems: list[str] = []
+    if isinstance(value, dict):
+        for key, item in value.items():
+            if not isinstance(key, str):
+                problems.append(f'{path}: object keys must be strings, '
+                                f'got {type(key).__name__}')
+                continue
+            problems.extend(_json_shape_problems(item, f'{path}.{key}', depth + 1))
+    elif isinstance(value, list):
+        for index, item in enumerate(value):
+            problems.extend(_json_shape_problems(item, f'{path}[{index}]', depth + 1))
+    elif isinstance(value, float) and (value != value
+                                       or value in (float('inf'), float('-inf'))):
+        problems.append(f'{path}: NaN and Infinity are not JSON numbers')
+    return problems[:10]
+
+
+def validate_token_document(document):
+    """Validate a submitted DTCG token document; return ``(report, problems)``.
+
+    ``problems`` is a list of field-path-qualified messages (G4 asked for exactly
+    that, because a bare INVALID_REQUEST tells the reviewer nothing to fix). Two
+    layers run, both already in the repo, neither weakened here:
+
+    * the structural draft 2020-12 schema ``interop-dtcg-document.schema.json``,
+      via ``interop.schema_errors``, which is what names the offending path;
+    * :func:`design_lab.interop.dtcg.validate_document`, the canonical semantic
+      contract ($type inheritance, alias resolution and cycle rejection, composite
+      member completeness, per-type value shape).
+
+    The canonical path is what runs: a pre-2025.10 document (``string``/``boolean``
+    types, a ``typography`` value without ``letterSpacing``) is REFUSED with the
+    adapter named in the message rather than quietly adapted, because adapting on
+    the server's behalf would write values the reviewer never typed. If no schema
+    validator is importable this fails closed (a token document that cannot be
+    validated must not be persisted); nothing is invented and nothing is skipped.
+    """
+    if not isinstance(document, dict) or not document:
+        return None, ['document: a DTCG token document must be a nonempty JSON object']
+    if _count_nodes(document) > TOKEN_DOCUMENT_MAX_KEYS:
+        return None, [f'document: exceeds the {TOKEN_DOCUMENT_MAX_KEYS} JSON node cap']
+    shape = _json_shape_problems(document)
+    if shape:
+        return None, shape
+    try:
+        problems = schema_errors(dtcg.load_schema(), document)
+    except InteropError as exc:
+        message = str(exc)
+        # A schema the build cannot load, or a validator that is not installed, is
+        # this product's failure, not the reviewer's: say so and refuse to write
+        # rather than reporting their document as invalid.
+        if message.startswith(('JSON Schema', 'structural validation requires')) \
+                and 'could not run' not in message:
+            raise DesignLayerError(503, 'TOKEN_VALIDATOR_UNAVAILABLE', [message]) from None
+        raise DesignLayerError(400, 'TOKEN_DOCUMENT_INVALID', [f'document: {message}']) from None
+    if problems:
+        return None, [f'document: {problem}' for problem in problems]
+    try:
+        return dtcg.validate_document(document), []
+    except InteropError as exc:
+        return None, [f'document: {exc}']
 
 
 class DesignLayer:
@@ -692,6 +816,200 @@ class DesignLayer:
                 created = conn.execute(
                     "SELECT * FROM design_system_binding WHERE binding_id=?", (binding_id,)).fetchone()
         return {'binding': self._binding(dict(created))}
+
+    # -- design-system token documents (write + readback) -------------------
+    @staticmethod
+    def _token_document(row) -> dict:
+        return {
+            'token_document_id': row['token_document_id'],
+            'project_id': row['project_id'],
+            'design_system_name': row['design_system_name'],
+            'document': json.loads(row['document_json']),
+            'token_count': row['token_count'],
+            'dtcg_schema_version': row['dtcg_schema_version'],
+            'spec_sha256': 'sha256:' + row['spec_sha256'],
+            'actor': row['actor'],
+            'actor_kind': row['actor_kind'],
+            'version': row['version'],
+            'superseded_by': row['superseded_by'],
+            'created_at': row['created_at'],
+        }
+
+    def _live_token_rows(self, project_id, design_system_name=None):
+        """The live (not superseded) token rows of a project, by design system."""
+        sql = ("SELECT * FROM design_system_token WHERE project_id=?"
+               " AND superseded_by IS NULL")
+        params = [project_id]
+        if design_system_name is not None:
+            sql += " AND design_system_name=?"
+            params.append(design_system_name)
+        return self._rows(sql + " ORDER BY design_system_name", params)
+
+    def write_tokens(self, project_id, design_system_name, *, document, expected_version,
+                     actor, actor_kind, idempotency_key):
+        """Append ONE version of a project's DTCG token document for a design system.
+
+        The chain contract is the one ``revise_brief`` already uses, and the
+        reasons below are the refusals, each with its own code so the page can say
+        what to fix instead of showing one grey INVALID_REQUEST:
+
+        * ``UNKNOWN_DESIGN_SYSTEM`` (400) -- the name is not in the packaged
+          catalog, so no token document may be recorded against a system that does
+          not exist here;
+        * ``TOKEN_DOCUMENT_INVALID`` (400, with field-path ``detail``) -- the
+          document fails the DTCG schema or the canonical semantic contract;
+          validation runs BEFORE anything is persisted, and a pre-2025.10 document
+          is refused with the adapter named rather than silently converted;
+        * ``TOKEN_VALIDATOR_UNAVAILABLE`` (503) -- no schema validator importable,
+          so the document cannot be judged and is not written (fail closed);
+        * ``STALE_REVISION`` (409) -- ``expected_version`` is not the live tip, so
+          this write would supersede a version its author never saw; the caller
+          re-reads the tip and re-applies, exactly the recovery path the brief
+          revisions already document;
+        * ``TOKEN_DOCUMENT_AMBIGUOUS`` (409) -- more than one live row for the
+          pair, which this build cannot produce and refuses to guess a winner for;
+        * ``IDEMPOTENCY_CONFLICT`` (409) -- the shared intent table's rule: a
+          replayed key with different content;
+        * ``TOKEN_WRITER_BUSY`` / ``TOKEN_WRITER_LEASE_LOST`` (409) -- the repo's
+          ONE writer lease (``runtime/asset_store.py``) fenced by generation.
+
+        A published version is never mutated: the new row is an append and the
+        previous row only moves its ``superseded_by`` pointer, and the v4 schema's
+        BEFORE UPDATE OF trigger makes rewriting a content column a database error
+        even for a caller that bypasses this method.
+        """
+        self._check_project(project_id)
+        name = _text(design_system_name, 'design_system_name', max_len=64)
+        if not _DESIGN_SYSTEM_NAME_RE.fullmatch(name):
+            raise DesignLayerError(400, 'INVALID_DESIGN_SYSTEM_NAME')
+        if name not in {entry['name'] for entry in catalog()}:
+            raise DesignLayerError(400, 'UNKNOWN_DESIGN_SYSTEM')
+        if isinstance(expected_version, bool) or not isinstance(expected_version, int) \
+                or expected_version < 0:
+            raise DesignLayerError(400, 'INVALID_EXPECTED_VERSION')
+        if actor_kind not in ('human', 'agent'):
+            raise DesignLayerError(400, 'INVALID_ACTOR_KIND')
+        actor = _text(actor, 'actor')
+        report, problems = validate_token_document(document)
+        if problems:
+            raise DesignLayerError(400, 'TOKEN_DOCUMENT_INVALID', problems)
+
+        content = {'design_system_name': name, 'document': document}
+        spec = cstore.hash_document(content)
+        intent = {'expected_version': expected_version, 'actor': actor,
+                  'actor_kind': actor_kind, **content}
+        resource = _token_lease_key(project_id, name)
+        holder = cstore.new_id('token-writer')
+        with closing(cstore.connect(self._db_path(), project_root=self.paths.project_root)) as conn:
+            try:
+                acquired = assets.acquire_writer(conn, resource, holder,
+                                                 lease_seconds=TOKEN_LEASE_SECONDS)
+            except assets.AssetError:
+                raise DesignLayerError(503, 'TOKEN_WRITER_LEASE_UNAVAILABLE') from None
+            if not acquired:
+                # Another writer holds this document's lease. Refusing is the whole
+                # point: two concurrent appends would each pass the
+                # expected_version check they read before the other committed.
+                raise DesignLayerError(409, 'TOKEN_WRITER_BUSY')
+            generation = assets.writer_token(conn, resource, holder)
+            try:
+                with cstore.transaction(conn):
+                    conn.row_factory = sqlite3.Row
+                    # Same fence the publication path uses, asserted inside this
+                    # transaction: a lease that lapsed while the document was being
+                    # judged rolls the append back instead of landing unopposed.
+                    assets.assert_writer_fence(conn, resource, holder, generation)
+                    # Read the tip on THIS connection, not through _rows(): a second
+                    # connection would read the pre-transaction state and, in WAL,
+                    # could block behind the writer lock this transaction holds.
+                    live = conn.execute(
+                        "SELECT * FROM design_system_token WHERE project_id=?"
+                        " AND design_system_name=? AND superseded_by IS NULL"
+                        " ORDER BY version DESC", (project_id, name)).fetchall()
+                    if len(live) > 1:
+                        raise DesignLayerError(409, 'TOKEN_DOCUMENT_AMBIGUOUS')
+                    tip = live[0] if live else None
+                    operation_id, _ = _record_intent(
+                        conn, scope='design-system-tokens:' + project_id,
+                        key=idempotency_key, document=intent)
+                    existing = conn.execute(
+                        "SELECT * FROM design_system_token WHERE operation_id=?",
+                        (operation_id,)).fetchone()
+                    if existing is not None:
+                        # Idempotent replay: the same key returns the version it
+                        # already appended and appends nothing new.
+                        return {'token_document': self._token_document(dict(existing))}
+                    current = int(tip['version']) if tip else 0
+                    if current != expected_version:
+                        raise DesignLayerError(409, 'STALE_REVISION')
+                    version = current + 1
+                    token_document_id = cstore.new_id('tokdoc')
+                    conn.execute(
+                        "INSERT INTO design_system_token (token_document_id, operation_id,"
+                        " project_id, design_system_name, document_json, token_count,"
+                        " dtcg_schema_version, spec_sha256, actor, actor_kind, version,"
+                        " created_at) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)",
+                        (token_document_id, operation_id, project_id, name,
+                         _json_field(document), report['token_count'],
+                         report['schemaVersion'], spec.removeprefix('sha256:'),
+                         actor, actor_kind, version, cstore.now()))
+                    if tip is not None:
+                        # The ONLY column a revision may touch on the previous row.
+                        conn.execute(
+                            "UPDATE design_system_token SET superseded_by=?"
+                            " WHERE token_document_id=?",
+                            (token_document_id, tip['token_document_id']))
+                    created = conn.execute(
+                        "SELECT * FROM design_system_token WHERE token_document_id=?",
+                        (token_document_id,)).fetchone()
+                    return {'token_document': self._token_document(dict(created))}
+            except assets.AssetError:
+                # _fence refuses a stale or expired generation; that is a
+                # concurrency fact the page can recover from, not a store failure.
+                raise DesignLayerError(409, 'TOKEN_WRITER_LEASE_LOST') from None
+            finally:
+                assets.release_writer(conn, resource, holder, generation=generation)
+
+    def list_token_documents(self, project_id):
+        """The project's LIVE token documents -- an honest empty list when none."""
+        self._check_project(project_id)
+        return {'token_documents': [self._token_document(row)
+                                    for row in self._live_token_rows(project_id)]}
+
+    def get_tokens(self, project_id, design_system_name):
+        """The live token document of one design system in this project."""
+        self._check_project(project_id)
+        rows = self._live_token_rows(project_id, design_system_name)
+        if not rows:
+            raise DesignLayerError(404, 'TOKEN_DOCUMENT_NOT_FOUND')
+        return {'token_document': self._token_document(rows[0])}
+
+    def token_lineage(self, project_id, design_system_name):
+        """Every recorded version of one document chain, oldest first (read-only).
+
+        Unlike ``lineage_brief`` this walks the ``superseded_by`` pointers alone:
+        the token chain has no row in ``design_layer_event`` (its CHECK constraint
+        enumerates the brief/direction/binding kinds and a v1-v3 table's CHECK
+        cannot be widened by an additive migration). Per-version actor, actor_kind,
+        created_at and spec digest are columns on the row itself, so the history
+        still says who wrote what.
+        """
+        self._check_project(project_id)
+        rows = self._rows(
+            "SELECT * FROM design_system_token WHERE project_id=?"
+            " AND design_system_name=? ORDER BY version, created_at, token_document_id",
+            (project_id, design_system_name))
+        if not rows:
+            raise DesignLayerError(404, 'TOKEN_DOCUMENT_NOT_FOUND')
+        live = [row for row in rows if row['superseded_by'] is None]
+        if len(live) != 1:
+            raise DesignLayerError(409, 'TOKEN_DOCUMENT_AMBIGUOUS')
+        return {'lineage': {
+            'design_system_name': design_system_name, 'project_id': project_id,
+            'root_id': rows[0]['token_document_id'],
+            'requested_version': rows[-1]['version'],
+            'live_id': live[0]['token_document_id'],
+            'versions': [self._token_document(row) for row in rows]}}
 
     # -- F-2a lineage (read-only) ------------------------------------------
     def project_of_brief(self, brief_id):

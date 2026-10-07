@@ -253,6 +253,40 @@ export interface DirectionLineageResponse {
   lineage: DirectionLineage;
 }
 
+// --- design-system TOKEN documents (W06 token write chain) -----------------
+// The record the service persists and reads back. `document` is the DTCG token
+// document exactly as written; the CSS custom-property map is a projection and is
+// never stored, so it has no field here.
+export interface TokenDocumentRecord {
+  token_document_id: string;
+  project_id: string;
+  design_system_name: string;
+  document: Record<string, unknown>;
+  token_count: number;
+  dtcg_schema_version: string;
+  spec_sha256: string;
+  actor: string | null;
+  actor_kind: string | null;
+  version: number;
+  superseded_by: string | null;
+  created_at: string;
+}
+
+export interface TokenDocumentListResponse {
+  token_documents: TokenDocumentRecord[];
+}
+
+export interface TokenDocumentGetResponse {
+  token_document: TokenDocumentRecord;
+}
+
+// A refusal that carries field paths: TOKEN_DOCUMENT_INVALID arrives with the
+// DTCG schema/semantic reasons, which is the only form a reviewer can fix.
+export interface TokenWriteError {
+  error: string;
+  detail?: string[];
+}
+
 // --- UI convergence slice 2: service diagnostics read back by AppShell views ---
 export interface HealthResponse {
   status: string;

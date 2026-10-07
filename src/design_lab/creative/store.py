@@ -29,6 +29,7 @@ _ATTEMPT_V2_SCHEMA = state_schema("design-lab-state-attempt-v2.sql")
 _DESIGN_LAYER_SCHEMA = state_schema("design-lab-state-design-layer-v1.sql")
 _DESIGN_LAYER_V2_SCHEMA = state_schema("design-lab-state-design-layer-v2.sql")
 _DESIGN_LAYER_V3_SCHEMA = state_schema("design-lab-state-design-layer-v3.sql")
+_DESIGN_LAYER_V4_SCHEMA = state_schema("design-lab-state-design-layer-v4.sql")
 MIGRATION = "creative-v1"
 def _design_layer_v2_precheck(conn: sqlite3.Connection) -> None:
     """P0-A+ fail-closed precheck for the single-choice invariant index.
@@ -78,6 +79,12 @@ GUARDED_MIGRATIONS = (
     # a table nothing has written yet), and the DDL carries the append-only
     # triggers, so a repeated event_id fails closed instead of overwriting.
     ("design-layer-v3", _DESIGN_LAYER_V3_SCHEMA, "design_brief"),
+    # design-layer-v4: design-system TOKEN documents (append-only version chain).
+    # Applied after v1 because it references operation_intent and project, and
+    # after v3 so the design-layer migration family stays in numeric order. No
+    # precheck: CREATE TABLE of a table nothing has written yet. The DDL carries
+    # the content-immutability triggers, so a recorded version cannot be rewritten.
+    ("design-layer-v4", _DESIGN_LAYER_V4_SCHEMA, "design_brief"),
 )
 
 ASSET_KINDS = ("raster", "vector", "text", "audio", "video", "blend",

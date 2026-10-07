@@ -19,7 +19,8 @@ from .native_tasks import NativeTaskError
 from .native_workers import NativeWorkers
 from .native_assets import Bundles, NativeAssets
 from .native_delivery import NativeDelivery
-from .design_layer import DesignLayer, DesignLayerError
+from .design_layer import (DesignLayer, DesignLayerError, DESIGN_SYSTEM_NAME_PATTERN,
+                           TOKEN_WRITE_FIELDS)
 from .jury_review import JuryReview, JuryReviewError
 from .assurance.production_preflight import PreflightError, preflight_bundle
 from . import workbench
@@ -299,6 +300,18 @@ def make_server(service, token, port=0, *, local_session=False):
                     if match:
                         return self.send_json(200, layer.lineage_direction(
                             layer.project_of_direction(match[1]), match[1]))
+                    # Design-system TOKEN documents (W06 G1/G2/G3). The list form is
+                    # what the workbench column reads, so an empty ledger answers an
+                    # empty list rather than a 404 the page would have to guess at.
+                    match = re.fullmatch(r'/api/projects/([0-9a-f]{32})/design-system-tokens', self.path)
+                    if match:
+                        return self.send_json(200, layer.list_token_documents(match[1]))
+                    match = re.fullmatch(
+                        r'/api/projects/([0-9a-f]{32})/design-system-tokens/('
+                        + DESIGN_SYSTEM_NAME_PATTERN + r')(/lineage)?', self.path)
+                    if match:
+                        return self.send_json(200, layer.token_lineage(match[1], match[2])
+                                              if match[3] else layer.get_tokens(match[1], match[2]))
                     match = re.fullmatch(r'/api/projects/([0-9a-f]{32})', self.path)
                     if match:
                         project = service.get_project(match[1])
@@ -403,6 +416,15 @@ def make_server(service, token, port=0, *, local_session=False):
                                                    'typography_mood', 'idempotency_key'})
                         return self.send_json(201, layer.revise_direction(
                             layer.project_of_direction(match[1]), match[1], **value))
+                    match = re.fullmatch(
+                        r'/api/projects/([0-9a-f]{32})/design-system-tokens/('
+                        + DESIGN_SYSTEM_NAME_PATTERN + r')', self.path)
+                    if match:
+                        # Exact-key body again: an unknown field is refused rather
+                        # than dropped, and `expected_version` is what makes a lost
+                        # concurrent revision visible instead of silent.
+                        value = self.body(fields=TOKEN_WRITE_FIELDS, limit=262_144)
+                        return self.send_json(201, layer.write_tokens(match[1], match[2], **value))
                     if self.path != '/api/projects':
                         raise RequestError(404, 'NOT_FOUND')
                     value = self.body()
@@ -415,7 +437,15 @@ def make_server(service, token, port=0, *, local_session=False):
             except NativeTaskError:
                 self.send_json(409, {'error':'NATIVE_TASK_REQUIRES_RECONCILIATION'})
             except DesignLayerError as exc:
-                self.send_json(exc.status, {'error': exc.code})
+                # Before the generic ValueError clause, and with its detail when it
+                # has one: a refused token document carries the field paths
+                # ("document: color.brand.$value is not a CSS color string"), and
+                # collapsing it into INVALID_REQUEST would leave the reviewer with
+                # a JSON box and no idea what to change.
+                payload = {'error': exc.code}
+                if exc.detail:
+                    payload['detail'] = exc.detail[:10]
+                self.send_json(exc.status, payload)
             # Before the generic ValueError clause: a refused jury signature carries
             # the reason ("an agent-signed verdict is refused: juror kind 'CODEX'"),
             # and collapsing it to INVALID_REQUEST would hide why a human gate was

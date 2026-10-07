@@ -23,6 +23,9 @@ import type {
   TaskListResponse,
   TaskPreflightResource,
   TaskPreflightResponse,
+  TokenDocumentGetResponse,
+  TokenDocumentListResponse,
+  TokenDocumentRecord,
 } from './contracts.js';
 
 import { api, byId, connected, errMsg, projects, setStatus, token } from './workbench.js';
@@ -163,6 +166,7 @@ const OFFLINE = {
   health: { status: 'UNKNOWN', version: '—', scope: 'dev-offline' } as HealthResponse,
   projects: { projects: [] } as ProjectListResponse,
   designSystems: { design_systems: [] } as DesignSystemListResponse,
+  tokenDocuments: { token_documents: [] } as TokenDocumentListResponse,
   capabilities: {
     schemaVersion: 'design-lab/capability-library/v1',
     meaning: '未连接本机设计服务', unmeasuredMeans: 'null = 未判定，不是 0',
@@ -2718,9 +2722,10 @@ function renderDirectionPanel(id: string, layer: DesignLayerResponse['design_lay
 // mean production or quality acceptance. The panel repeats that and surfaces the catalog's
 // `evidence_level` exactly as the service reports it (no self-promotion).
 //
-// The Token WRITE half of W06 (edit/preview/diff/publish/rollback) does not exist in the
-// service yet; see findings/W06-TOKEN-WRITE-GAP.md for the measured gap and the proposed
-// minimal schema/version/validation/permission design. It is deliberately not invented here.
+// The Token WRITE half of W06 is now wired: see renderTokenDocumentPanel below, which
+// posts a DTCG document to POST /api/projects/:id/design-system-tokens/{name} and reads the
+// persisted version back. What still does NOT exist in the service is diff / publish /
+// rollback (findings/W06-TOKEN-WRITE-GAP.md G5), so those are not offered here.
 function renderDesignSystemPanel(
   id: string, layer: DesignLayerResponse['design_layer'], systems: DesignSystemListResponse,
   target: HTMLElement,
@@ -2794,8 +2799,183 @@ function renderDesignSystemPanel(
       el('strong', {}, '绑定设计系统（需先有人选定方向）'),
       gate, fieldRow('要绑定的设计系统', select, 'pd-ds-name'),
       el('div', { class: 'actions' }, bindBtn)),
-    el('p', { class: 'view-hint' }, 'Token 编辑 / 预览 / 版本 diff / 发布 / 回滚在服务端尚无写 API，未实现；此处不做假编辑。'),
+    el('p', { class: 'view-hint' },
+      'Token 文档的写入与版本链在下方「设计系统 Token」面板执行（真实写入，读回持久化行）；'
+      + '版本 diff、发布与回滚尚无路由，本页不做假 diff。'),
     status);
+}
+
+// ---------------------------------------------------------------------------
+// Design-system TOKEN documents — the W06 token write chain, closed.
+//
+// W06-TOKEN-WRITE-GAP.md measured that a design system had a BINDING but no
+// writable token VALUES (G1 no write route, G2 no project-level document,
+// G3 no version chain, G4 no field-level reason). The column below reads
+// /projects/:id/design-system-tokens — the persisted row, listed only when it is
+// really live — and posts a DTCG document to the same route.
+//
+// What the page does NOT do:
+//   * it never edits a stored version. The form sends `expected_version` = the
+//     live tip THIS readback just reported, so a write that raced someone else's
+//     revision comes back STALE_REVISION instead of quietly replacing it;
+//   * it never renders a token value the service did not store: the rows below are
+//     the service's own `document`, and the preview stays inside this panel —
+//     the workbench's own brand never reads project tokens (§3.6 of the finding);
+//   * it claims no acceptance. DTCG validation is structural evidence (E1/E2
+//     local persistence); a host token tool, a rights check and a jury review are
+//     still NOT_REVIEWED and say so.
+//
+// The three exported declarations are the page's half of the contract and are read
+// by design-lab/tests/test_design_system_token_form_contract.py, which pushes
+// TOKEN_SAMPLE_DOCUMENT through the real DTCG validator and compares the field
+// lists against what the service actually accepts and emits. Rename a field here
+// and that gate goes red; it will not ship a column that renders undefined.
+export const TOKEN_DOCUMENT_FIELDS = [
+  'token_document_id', 'project_id', 'design_system_name', 'document', 'token_count',
+  'dtcg_schema_version', 'spec_sha256', 'actor', 'actor_kind', 'version',
+  'superseded_by', 'created_at',
+] as const;
+
+// The exact body keys POST /projects/:id/design-system-tokens/{name} accepts; the
+// service declares the same set as design_layer.TOKEN_WRITE_FIELDS.
+export const TOKEN_WRITE_FIELDS = [
+  'actor', 'actor_kind', 'document', 'expected_version', 'idempotency_key',
+] as const;
+
+// The starting point the editor offers when a project has no document yet. It is
+// canonical DTCG 2025.10 (a $type-inheriting group, a resolvable alias and a
+// dimension), because the contract test feeds this very string into
+// dtcg.validate_document: the page may not offer a document the service refuses.
+export const TOKEN_SAMPLE_DOCUMENT =
+  '{"color":{"$type":"color","brand":{"$value":"#2563EB"},"surface":{"$value":"{color.brand}"}},"scale":{"$type":"dimension","space":{"md":{"$value":"16px"}}}}';
+
+// `api()` throws the service's code as the message and carries the envelope, so a
+// refusal can be shown with the field paths that caused it.
+function serviceErrorDetail(error: unknown): string[] {
+  const envelope = (error as { serviceEnvelope?: { detail?: unknown } } | null)?.serviceEnvelope;
+  const detail = envelope?.detail;
+  return Array.isArray(detail) ? detail.filter((line): line is string => typeof line === 'string') : [];
+}
+
+function tokenBaseline(documents: TokenDocumentRecord[], name: string): TokenDocumentRecord | null {
+  return documents.find((row) => row.design_system_name === name) ?? null;
+}
+
+export function renderTokenDocumentPanel(
+  id: string, tokens: TokenDocumentListResponse, systems: DesignSystemListResponse,
+  target: HTMLElement,
+): HTMLElement {
+  const documents = tokens.token_documents;
+  const status = el('p', { class: 'view-hint', id: 'pd-token-status', role: 'status' }, '');
+  const showError = (message: string): void => { status.className = 'error'; status.textContent = message; };
+  const showHint = (message: string): void => { status.className = 'view-hint'; status.textContent = message; };
+  const refresh = async (): Promise<void> => {
+    const live = document.getElementById('route-view') as HTMLElement | null;
+    await renderProjectDetail(id, live || target);
+  };
+
+  const select = el('select', { id: 'pd-token-name', class: 'input' },
+    ...(systems.design_systems.length
+      ? systems.design_systems.map((system) => el('option', {
+          value: system.name }, `${system.title} · ${system.name} · 证据 ${system.evidence_level}`))
+      : [el('option', { value: '' }, '（目录为空或未读回）')]));
+  const editor = el('textarea', {
+    id: 'pd-token-document', class: 'input', rows: '10', spellcheck: 'false',
+    'aria-label': 'DTCG Token 文档 JSON',
+  });
+  const gate = el('p', { class: 'view-hint', id: 'pd-token-gate' }, '');
+  // The editor starts from what the service actually holds for the chosen system,
+  // so a revision edits real persisted values instead of a template.
+  const fill = (): void => {
+    const live = tokenBaseline(documents, select.value);
+    editor.value = live ? JSON.stringify(live.document, null, 2) : TOKEN_SAMPLE_DOCUMENT;
+    gate.textContent = !systems.design_systems.length
+      ? '写入不可用：设计系统目录为空或未读回，服务端会以 UNKNOWN_DESIGN_SYSTEM 拒绝。'
+      : live
+        ? `将追加到 ${live.design_system_name} 的 v${live.version}（${live.token_count} 个 token）。`
+          + `本次提交基于 expected_version=${live.version}，服务端写入 v${live.version + 1}。`
+        : `${select.value || '（未选择）'} 尚无 Token 文档；本次提交创建 v1。`;
+  };
+  fill();
+  select.addEventListener('change', () => { fill(); });
+
+  const writeBtn = el('button', {
+    type: 'button', class: 'primary-btn', id: 'pd-token-write',
+  }, documents.length ? '追加 Token 版本（真实写入）' : '提交 Token 文档（真实写入）');
+  writeBtn.disabled = !systems.design_systems.length;
+
+  writeBtn.addEventListener('click', () => {
+    void (async () => {
+      const name = select.value;
+      if (!name) { showError('请先选择一个已登记的设计系统，再提交 Token 文档。'); return; }
+      let parsed: Record<string, unknown>;
+      try {
+        parsed = JSON.parse(editor.value) as Record<string, unknown>;
+      } catch (error) {
+        // Refuse locally with the reason, and do not ask the service to judge
+        // something that is not even JSON.
+        showError(`Token 文档不是合法 JSON：${errMsg(error)}。本次未提交，服务端未写入任何内容。`);
+        return;
+      }
+      const base = tokenBaseline(documents, name);
+      const expectedVersion = base ? base.version : 0;
+      writeBtn.disabled = true;
+      showHint(`正在提交 ${name} 的 Token 文档（基于 v${expectedVersion}）…`);
+      try {
+        const result = await api<TokenDocumentGetResponse>(
+          `/projects/${id}/design-system-tokens/${name}`, {
+            document: parsed,
+            expected_version: expectedVersion,
+            actor: 'workbench-user',
+            actor_kind: 'human',
+            idempotency_key: uuid(),
+          });
+        await refresh();
+        const node = document.getElementById('pd-token-status');
+        if (node) {
+          node.className = 'view-hint';
+          node.textContent = `已写入并读回 v${result.token_document.version}`
+            + `（${result.token_document.token_count} 个 token · DTCG ${result.token_document.dtcg_schema_version}）。`
+            + '持久化与版本追加已验证；宿主 Token 工具、权利与质量验收仍未执行。';
+        }
+      } catch (error) {
+        const detail = serviceErrorDetail(error);
+        const stale = errMsg(error) === 'STALE_REVISION';
+        showError(`Token 文档未被接受：${errMsg(error)}`
+          + (detail.length ? `；字段：${detail.slice(0, 3).join(' | ')}` : '')
+          + (stale ? `；${revisionHint(error)}` : '')
+          + '；服务端未写入任何内容。');
+        writeBtn.disabled = false;
+      }
+    })();
+  });
+
+  const rows = documents.length
+    ? documents.map((doc) => el('li', { class: 'list-item' },
+        el('div', {},
+          el('strong', {}, `${doc.design_system_name} · v${doc.version}`),
+          el('small', {}, `${doc.token_count} 个 token · DTCG ${doc.dtcg_schema_version}`
+            + ` · ${doc.spec_sha256.slice(0, 17)}…`),
+          el('small', {}, `写回：${doc.actor || '未标注'} · ${doc.created_at}`)),
+        el('span', { class: doc.actor_kind === 'human' ? 'tag ok' : 'tag info' },
+          doc.actor_kind ? en(doc.actor_kind) : '未标注身份')))
+    : [emptyLi(tokens, '尚无 Token 文档',
+        '用下方表单提交一份 DTCG Token 文档；写入后在此读回持久化行。')];
+
+  return el('div', { class: 'panel', id: 'pd-token-panel' },
+    el('h3', {}, `设计系统 Token（DTCG）· 当前文档 ${documents.length}`),
+    el('ul', { class: 'list' }, ...rows),
+    el('div', { class: 'row-card', style: 'display:grid;gap:8px' },
+      el('strong', {}, documents.length ? '修订 Token 文档（追加新版本）' : '提交 Token 文档（创建 v1）'),
+      gate,
+      fieldRow('设计系统', select, 'pd-token-name'),
+      fieldRow('Token 文档 JSON', editor, 'pd-token-document'),
+      el('div', { class: 'actions' }, writeBtn)),
+    status,
+    el('p', { class: 'view-hint' },
+      '写入前服务端跑 DTCG 结构（interop-dtcg-document.schema.json）与语义校验（$type 继承、'
+      + '别名解析与成环、composite 成员完整性），并按项目 + 设计系统追加版本；'
+      + '已写入的版本不可改写，发布与回滚尚无路由。'));
 }
 
 // ---- 最近交付（W03-RECENT-DELIVERIES gap -> now wired to a real route) ----
@@ -2883,11 +3063,13 @@ export async function renderProjectDetail(id: string, target: HTMLElement): Prom
   rememberProject(id);   // W03 "最近项目": record the project the user actually opened
   const listing = await apiOrEmpty<ProjectListResponse>('/projects', OFFLINE.projects);
   const named = listing.projects.find((p) => p.id === id);
-  const [tasks, layerResp, systemsResp, bundlesResp] = await Promise.all([
+  const [tasks, layerResp, systemsResp, bundlesResp, tokensResp] = await Promise.all([
     apiOrEmpty<TaskListResponse>(`/projects/${id}/tasks`, OFFLINE.tasks),
     apiOrEmpty<DesignLayerResponse>(`/projects/${id}/design-layer`, OFFLINE.designLayer),
     apiOrEmpty<DesignSystemListResponse>('/design-systems', OFFLINE.designSystems),
     apiOrEmpty<BundleListResponse>(`/projects/${id}/bundles`, OFFLINE.bundles),
+    apiOrEmpty<TokenDocumentListResponse>(`/projects/${id}/design-system-tokens`,
+      OFFLINE.tokenDocuments),
   ]);
   const layer = layerResp.design_layer;
   const chosen = layer.chosen_direction
@@ -2945,12 +3127,15 @@ export async function renderProjectDetail(id: string, target: HTMLElement): Prom
         el('div', { style: 'margin-top:16px' }, renderBriefEditor(id, layer, target)),
         el('div', { style: 'margin-top:16px' }, renderDirectionPanel(id, layer, target)),
         el('div', { style: 'margin-top:16px' }, renderDesignSystemPanel(id, layer, systemsResp, target)),
+        el('div', { style: 'margin-top:16px' }, renderTokenDocumentPanel(id, tokensResp, systemsResp, target)),
         el('div', { style: 'margin-top:16px' }, renderReferencePanel(id)),
       ),
       inspector,
     ),
-    el('p', { class: 'view-hint' }, 'tasks 与 design-layer 台账为只读；简报区可真实创建与修订并读回；参考素材区读回资产清单并按需预览。提交任务 / 运行 / 取消 / 导出仍由工作台高级区执行。'),
-    ...shapeNoticeRows(bundlesResp, layerResp, listing, systemsResp, tasks));
+    el('p', { class: 'view-hint' }, 'tasks 与 design-layer 台账为只读；简报区可真实创建与修订并读回，'
+      + 'Token 区可真实提交 DTCG 文档并按版本追加读回；参考素材区读回资产清单并按需预览。'
+      + '提交任务 / 运行 / 取消 / 导出仍由工作台高级区执行。'),
+    ...shapeNoticeRows(bundlesResp, layerResp, listing, systemsResp, tasks, tokensResp));
 }
 
 export async function renderRoute(view: AppView, target: HTMLElement): Promise<void> {

@@ -494,7 +494,9 @@ async function api(path, body) {
   if (!response.ok) {
     if (value.error === "PROJECT_PATH_TOO_LONG")
       throw new Error("项目路径过长，Windows 无法保存。请将项目放在较短的目录后重试。");
-    throw new Error(value.error || "SERVICE_ERROR");
+    const failure = new Error(value.error || "SERVICE_ERROR");
+    failure.serviceEnvelope = value;
+    throw failure;
   }
   return value;
 }
@@ -1064,6 +1066,7 @@ const OFFLINE = {
   health: { status: "UNKNOWN", version: "—", scope: "dev-offline" },
   projects: { projects: [] },
   designSystems: { design_systems: [] },
+  tokenDocuments: { token_documents: [] },
   capabilities: {
     schemaVersion: "design-lab/capability-library/v1",
     meaning: "未连接本机设计服务",
@@ -4156,8 +4159,151 @@ function renderDesignSystemPanel(id, layer, systems, target) {
       fieldRow("要绑定的设计系统", select, "pd-ds-name"),
       el("div", { class: "actions" }, bindBtn)
     ),
-    el("p", { class: "view-hint" }, "Token 编辑 / 预览 / 版本 diff / 发布 / 回滚在服务端尚无写 API，未实现；此处不做假编辑。"),
+    el(
+      "p",
+      { class: "view-hint" },
+      "Token 文档的写入与版本链在下方「设计系统 Token」面板执行（真实写入，读回持久化行）；版本 diff、发布与回滚尚无路由，本页不做假 diff。"
+    ),
     status
+  );
+}
+const TOKEN_SAMPLE_DOCUMENT = '{"color":{"$type":"color","brand":{"$value":"#2563EB"},"surface":{"$value":"{color.brand}"}},"scale":{"$type":"dimension","space":{"md":{"$value":"16px"}}}}';
+function serviceErrorDetail(error) {
+  const envelope = error?.serviceEnvelope;
+  const detail = envelope?.detail;
+  return Array.isArray(detail) ? detail.filter((line) => typeof line === "string") : [];
+}
+function tokenBaseline(documents, name) {
+  return documents.find((row) => row.design_system_name === name) ?? null;
+}
+function renderTokenDocumentPanel(id, tokens, systems, target) {
+  const documents = tokens.token_documents;
+  const status = el("p", { class: "view-hint", id: "pd-token-status", role: "status" }, "");
+  const showError = (message) => {
+    status.className = "error";
+    status.textContent = message;
+  };
+  const showHint = (message) => {
+    status.className = "view-hint";
+    status.textContent = message;
+  };
+  const refresh2 = async () => {
+    const live = document.getElementById("route-view");
+    await renderProjectDetail(id, live || target);
+  };
+  const select = el(
+    "select",
+    { id: "pd-token-name", class: "input" },
+    ...systems.design_systems.length ? systems.design_systems.map((system) => el("option", {
+      value: system.name
+    }, `${system.title} · ${system.name} · 证据 ${system.evidence_level}`)) : [el("option", { value: "" }, "（目录为空或未读回）")]
+  );
+  const editor = el("textarea", {
+    id: "pd-token-document",
+    class: "input",
+    rows: "10",
+    spellcheck: "false",
+    "aria-label": "DTCG Token 文档 JSON"
+  });
+  const gate = el("p", { class: "view-hint", id: "pd-token-gate" }, "");
+  const fill = () => {
+    const live = tokenBaseline(documents, select.value);
+    editor.value = live ? JSON.stringify(live.document, null, 2) : TOKEN_SAMPLE_DOCUMENT;
+    gate.textContent = !systems.design_systems.length ? "写入不可用：设计系统目录为空或未读回，服务端会以 UNKNOWN_DESIGN_SYSTEM 拒绝。" : live ? `将追加到 ${live.design_system_name} 的 v${live.version}（${live.token_count} 个 token）。本次提交基于 expected_version=${live.version}，服务端写入 v${live.version + 1}。` : `${select.value || "（未选择）"} 尚无 Token 文档；本次提交创建 v1。`;
+  };
+  fill();
+  select.addEventListener("change", () => {
+    fill();
+  });
+  const writeBtn = el("button", {
+    type: "button",
+    class: "primary-btn",
+    id: "pd-token-write"
+  }, documents.length ? "追加 Token 版本（真实写入）" : "提交 Token 文档（真实写入）");
+  writeBtn.disabled = !systems.design_systems.length;
+  writeBtn.addEventListener("click", () => {
+    void (async () => {
+      const name = select.value;
+      if (!name) {
+        showError("请先选择一个已登记的设计系统，再提交 Token 文档。");
+        return;
+      }
+      let parsed;
+      try {
+        parsed = JSON.parse(editor.value);
+      } catch (error) {
+        showError(`Token 文档不是合法 JSON：${errMsg(error)}。本次未提交，服务端未写入任何内容。`);
+        return;
+      }
+      const base = tokenBaseline(documents, name);
+      const expectedVersion = base ? base.version : 0;
+      writeBtn.disabled = true;
+      showHint(`正在提交 ${name} 的 Token 文档（基于 v${expectedVersion}）…`);
+      try {
+        const result = await api(
+          `/projects/${id}/design-system-tokens/${name}`,
+          {
+            document: parsed,
+            expected_version: expectedVersion,
+            actor: "workbench-user",
+            actor_kind: "human",
+            idempotency_key: uuid()
+          }
+        );
+        await refresh2();
+        const node = document.getElementById("pd-token-status");
+        if (node) {
+          node.className = "view-hint";
+          node.textContent = `已写入并读回 v${result.token_document.version}（${result.token_document.token_count} 个 token · DTCG ${result.token_document.dtcg_schema_version}）。持久化与版本追加已验证；宿主 Token 工具、权利与质量验收仍未执行。`;
+        }
+      } catch (error) {
+        const detail = serviceErrorDetail(error);
+        const stale = errMsg(error) === "STALE_REVISION";
+        showError(`Token 文档未被接受：${errMsg(error)}` + (detail.length ? `；字段：${detail.slice(0, 3).join(" | ")}` : "") + (stale ? `；${revisionHint(error)}` : "") + "；服务端未写入任何内容。");
+        writeBtn.disabled = false;
+      }
+    })();
+  });
+  const rows = documents.length ? documents.map((doc) => el(
+    "li",
+    { class: "list-item" },
+    el(
+      "div",
+      {},
+      el("strong", {}, `${doc.design_system_name} · v${doc.version}`),
+      el("small", {}, `${doc.token_count} 个 token · DTCG ${doc.dtcg_schema_version} · ${doc.spec_sha256.slice(0, 17)}…`),
+      el("small", {}, `写回：${doc.actor || "未标注"} · ${doc.created_at}`)
+    ),
+    el(
+      "span",
+      { class: doc.actor_kind === "human" ? "tag ok" : "tag info" },
+      doc.actor_kind ? en(doc.actor_kind) : "未标注身份"
+    )
+  )) : [emptyLi(
+    tokens,
+    "尚无 Token 文档",
+    "用下方表单提交一份 DTCG Token 文档；写入后在此读回持久化行。"
+  )];
+  return el(
+    "div",
+    { class: "panel", id: "pd-token-panel" },
+    el("h3", {}, `设计系统 Token（DTCG）· 当前文档 ${documents.length}`),
+    el("ul", { class: "list" }, ...rows),
+    el(
+      "div",
+      { class: "row-card", style: "display:grid;gap:8px" },
+      el("strong", {}, documents.length ? "修订 Token 文档（追加新版本）" : "提交 Token 文档（创建 v1）"),
+      gate,
+      fieldRow("设计系统", select, "pd-token-name"),
+      fieldRow("Token 文档 JSON", editor, "pd-token-document"),
+      el("div", { class: "actions" }, writeBtn)
+    ),
+    status,
+    el(
+      "p",
+      { class: "view-hint" },
+      "写入前服务端跑 DTCG 结构（interop-dtcg-document.schema.json）与语义校验（$type 继承、别名解析与成环、composite 成员完整性），并按项目 + 设计系统追加版本；已写入的版本不可改写，发布与回滚尚无路由。"
+    )
   );
 }
 function renderDeliveryPanel(id, data) {
@@ -4252,11 +4398,15 @@ async function renderProjectDetail(id, target) {
   rememberProject(id);
   const listing = await apiOrEmpty("/projects", OFFLINE.projects);
   const named = listing.projects.find((p) => p.id === id);
-  const [tasks2, layerResp, systemsResp, bundlesResp] = await Promise.all([
+  const [tasks2, layerResp, systemsResp, bundlesResp, tokensResp] = await Promise.all([
     apiOrEmpty(`/projects/${id}/tasks`, OFFLINE.tasks),
     apiOrEmpty(`/projects/${id}/design-layer`, OFFLINE.designLayer),
     apiOrEmpty("/design-systems", OFFLINE.designSystems),
-    apiOrEmpty(`/projects/${id}/bundles`, OFFLINE.bundles)
+    apiOrEmpty(`/projects/${id}/bundles`, OFFLINE.bundles),
+    apiOrEmpty(
+      `/projects/${id}/design-system-tokens`,
+      OFFLINE.tokenDocuments
+    )
   ]);
   const layer = layerResp.design_layer;
   const chosen = layer.chosen_direction ? `${layer.chosen_direction.title} · v${layer.chosen_direction.version}` : "（尚未选定方向）";
@@ -4336,12 +4486,13 @@ async function renderProjectDetail(id, target) {
         el("div", { style: "margin-top:16px" }, renderBriefEditor(id, layer, target)),
         el("div", { style: "margin-top:16px" }, renderDirectionPanel(id, layer, target)),
         el("div", { style: "margin-top:16px" }, renderDesignSystemPanel(id, layer, systemsResp, target)),
+        el("div", { style: "margin-top:16px" }, renderTokenDocumentPanel(id, tokensResp, systemsResp, target)),
         el("div", { style: "margin-top:16px" }, renderReferencePanel(id))
       ),
       inspector
     ),
-    el("p", { class: "view-hint" }, "tasks 与 design-layer 台账为只读；简报区可真实创建与修订并读回；参考素材区读回资产清单并按需预览。提交任务 / 运行 / 取消 / 导出仍由工作台高级区执行。"),
-    ...shapeNoticeRows(bundlesResp, layerResp, listing, systemsResp, tasks2)
+    el("p", { class: "view-hint" }, "tasks 与 design-layer 台账为只读；简报区可真实创建与修订并读回，Token 区可真实提交 DTCG 文档并按版本追加读回；参考素材区读回资产清单并按需预览。提交任务 / 运行 / 取消 / 导出仍由工作台高级区执行。"),
+    ...shapeNoticeRows(bundlesResp, layerResp, listing, systemsResp, tasks2, tokensResp)
   );
 }
 async function renderRoute(view, target) {

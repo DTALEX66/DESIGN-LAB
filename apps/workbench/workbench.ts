@@ -115,7 +115,14 @@ export async function api<T>(path: string, body?: Record<string, unknown>): Prom
   if (!response.ok) {
     if (value.error === 'PROJECT_PATH_TOO_LONG')
       throw new Error('项目路径过长，Windows 无法保存。请将项目放在较短的目录后重试。');
-    throw new Error(value.error || 'SERVICE_ERROR');
+    // The envelope travels with the error. A refusal may carry field-level detail
+    // (a rejected DTCG token document names the paths), and dropping it here would
+    // leave the page with a code and nothing the operator can fix.
+    const failure = new Error(value.error || 'SERVICE_ERROR') as Error & {
+      serviceEnvelope?: Record<string, unknown>;
+    };
+    failure.serviceEnvelope = value;
+    throw failure;
   }
   return value as T;
 }
