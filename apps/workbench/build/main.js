@@ -1153,6 +1153,29 @@ function el(tag, attrs = {}, ...children) {
 function en(text) {
   return el("span", { lang: "en" }, text);
 }
+function sharedInputRows(inputs, limit = 4) {
+  const entries = Object.entries(inputs).slice(0, limit);
+  if (!entries.length) {
+    return [el(
+      "li",
+      { class: "list-item" },
+      el(
+        "div",
+        {},
+        el("strong", {}, "尚无外置输入"),
+        el("small", {}, "服务未返回 shared_inputs")
+      )
+    )];
+  }
+  return entries.map(([name, input]) => el(
+    "li",
+    { class: "list-item" },
+    el("div", {}, el("strong", {}, name), el("small", {}, input.path)),
+    el("span", {
+      class: input.status === "MISSING" ? "tag bad" : input.status === "DECLARED_NOT_PROBED" ? "tag warn" : "tag ok"
+    }, en(input.status))
+  ));
+}
 function kpiCard(value, label, note, trend) {
   const unread = !token && value === "0";
   const shown = unread ? "—" : value;
@@ -1585,25 +1608,7 @@ async function renderDashboard(target) {
           "div",
           { class: "panel" },
           el("h3", {}, "共享输入"),
-          el(
-            "ul",
-            { class: "list" },
-            ...Object.entries(environment.shared_inputs).slice(0, 4).map(([k, v]) => el(
-              "li",
-              { class: "list-item" },
-              el(
-                "div",
-                {},
-                el("strong", {}, k),
-                el("small", {}, v.path)
-              ),
-              el("span", {
-                // Only a probe that actually saw the root may be green:
-                // runtime/paths.py reports DECLARED_NOT_PROBED, a declaration.
-                class: v.status === "MISSING" ? "tag bad" : v.status === "DECLARED_NOT_PROBED" ? "tag warn" : "tag ok"
-              }, en(v.status))
-            ))
-          ),
+          el("ul", { class: "list" }, ...sharedInputRows(environment.shared_inputs)),
           el("p", { class: "view-hint" }, "服务端环境读回；写权限与状态由服务裁定。")
         ),
         el(
@@ -2222,25 +2227,7 @@ async function renderCreativeTools(target) {
           "div",
           { class: "panel" },
           el("h3", {}, "共享输入"),
-          el(
-            "ul",
-            { class: "list" },
-            ...Object.entries(env.shared_inputs).slice(0, 4).map(([k, v]) => el(
-              "li",
-              { class: "list-item" },
-              el(
-                "div",
-                {},
-                el("strong", {}, k),
-                el("small", {}, v.path)
-              ),
-              el("span", {
-                // Only a probe that actually saw the root may be green:
-                // runtime/paths.py reports DECLARED_NOT_PROBED, a declaration.
-                class: v.status === "MISSING" ? "tag bad" : v.status === "DECLARED_NOT_PROBED" ? "tag warn" : "tag ok"
-              }, en(v.status))
-            ))
-          ),
+          el("ul", { class: "list" }, ...sharedInputRows(env.shared_inputs)),
           el("p", { class: "view-hint" }, "服务端环境读回。")
         ),
         hostCard ? capabilityCard(hostCard) : el("div", { class: "panel" }),
