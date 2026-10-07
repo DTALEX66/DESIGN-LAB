@@ -74,5 +74,31 @@ class CounterRowTests(unittest.TestCase):
             self.assertNotIn("repeat(4", block)
 
 
+class MobileNavCueTests(unittest.TestCase):
+    """The legacy bottom nav's continuation cue must stay painted while it scrolls.
+
+    `::after` on a scroll container is positioned against the *content* box, so an
+    absolutely positioned cue travels with the items and disappears mid-scroll. That
+    was measured, not assumed: arrow pixels at scrollLeft 0/300/600 came out
+    13/0/0 with 670/370/70px of menu still off-screen, and 10/10/10 once the cue was
+    a sticky flex item. A class- or aria-presence check goes green over both builds.
+    """
+
+    def cue_rule(self) -> str:
+        match = re.search(r"\.app-nav\.has-scroll-more::after\{(.*?)\}", CSS, re.DOTALL)
+        self.assertIsNotNone(match, "the continuation-cue rule was removed")
+        return match.group(1)
+
+    def test_cue_is_pinned_to_the_scrollport_not_the_content(self):
+        rule = self.cue_rule()
+        self.assertIn("position:sticky", rule)
+        self.assertIn("right:0", rule)
+        self.assertNotIn("position:absolute", rule)
+
+    def test_cue_cannot_swallow_a_tap(self):
+        # It overlays the last item, so it must stay out of the hit test.
+        self.assertIn("pointer-events:none", self.cue_rule())
+
+
 if __name__ == "__main__":
     unittest.main()

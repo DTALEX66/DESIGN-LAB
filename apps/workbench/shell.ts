@@ -2454,6 +2454,20 @@ export function mountAppShell(): void {
       onclick: () => { window.location.hash = route.hash === '' ? '' : route.hash; },
     }, route.label)),
     el('span', { class: 'app-nav-meta', id: 'shell-connection' }, '未连接'));
+  // The legacy Workbench still has a separate shell while the D-6 product
+  // direction remains open. On narrow screens its bottom navigation is wider
+  // than the viewport; keep a visible continuation cue only while more items
+  // remain to the right, so the scrollable menu does not look truncated.
+  const syncLegacyNavCue = (): void => {
+    const mobile = typeof window.matchMedia === 'function'
+      && window.matchMedia('(max-width: 760px)').matches;
+    const hasMore = mobile
+      && nav.scrollWidth > nav.clientWidth
+      && nav.scrollLeft + nav.clientWidth < nav.scrollWidth - 1;
+    nav.classList.toggle('has-scroll-more', hasMore);
+  };
+  nav.addEventListener('scroll', syncLegacyNavCue, { passive: true });
+  window.addEventListener('resize', syncLegacyNavCue);
   // The route host IS the B10 `section.content#content` view slot (B10 renders
   // each page as a direct child of `.content`, which supplies the 26/28/30
   // padding). It is built together with the rest of the B10 `.app` tree by
@@ -2471,7 +2485,7 @@ export function mountAppShell(): void {
 
   // Build the authoritative B10 shell (.app > .ambient + .grid-bg + aside.sidebar
   // + main.main > header.topbar + section.content#content).
-  const b10 = mountB10Shell(routeView);
+  const b10 = mountB10Shell(routeView, syncLegacyNavCue);
   if (!b10) document.body.append(routeView);
 
   const active = (view: string): void => {
@@ -2617,7 +2631,7 @@ interface B10Shell {
   sync(view: string): void;
 }
 
-function mountB10Shell(routeView: HTMLElement): B10Shell | null {
+function mountB10Shell(routeView: HTMLElement, syncLegacyNavCue: () => void): B10Shell | null {
   // Browser-only guard (same semantics as mountB10Overlays): the vm unit smoke
   // has no real querySelectorAll, so this never runs there.
   const probe = document.createElement('div');
@@ -2724,6 +2738,7 @@ function mountB10Shell(routeView: HTMLElement): B10Shell | null {
     offlineNotice.hidden = Boolean(token) || !devMode();
     if (legacyNav) legacyNav.toggleAttribute('hidden', routed);
     for (const node of legacyChrome) node.toggleAttribute('hidden', routed);
+    if (!routed) syncLegacyNavCue();
     for (const item of Array.from(sidebar.querySelectorAll<HTMLElement>('.nav button'))) {
       // A project-detail page has no nav button of its own (B10's sidebar has no
       // detail entry), so keep 项目 highlighted while it is open.
