@@ -68,7 +68,14 @@ function makeContext() {
     Option: class Option extends MockElement {
       constructor(text, value) { super('option'); this.textContent = text; this.value = value; }
     },
-    fetch: (path) => new Promise((resolve, reject) => pending.push({ path, resolve, reject })),
+    // `init` is recorded because block ⑧ has to see the METHOD and the BODY of a
+    // submission: "one click, one request" is not proved by the path alone, and a rights
+    // form that put the supersession link in the document instead of the query string would
+    // still hit this exact path (the closed contract refuses that field, so it must not be
+    // sent).
+    fetch: (path, init) => new Promise((resolve, reject) => pending.push({
+      path, init, resolve, reject,
+    })),
   });
   vm.runInContext(source, context, { filename: 'build/main.js' });
   return { context, elements, pending, window, dispatchHashchange: () => listeners.get('hashchange')?.() };
@@ -213,9 +220,19 @@ const silentViews = [];
 for (const hash of routeHashes) {
   shell.window.location.hash = hash;
   shell.dispatchHashchange();
-  const requests = shell.pending.splice(0, shell.pending.length);
-  for (const request of requests) request.resolve(response({}));
-  await flush();
+  // Drain until the route goes quiet, not just the first batch: a view that CHAINS its
+  // reads (预检 / QA reads /projects for the jury panel, then again for the rights panel)
+  // creates the second request only after the first one resolves. Splicing once would
+  // leave that request unresolved forever, the router would never commit the view, and this
+  // sweep would then be measuring the previous route's DOM -- a green gate about nothing.
+  const requests = [];
+  for (let round = 0; round < 8; round += 1) {
+    const fresh = shell.pending.splice(0, shell.pending.length);
+    if (!fresh.length) break;
+    requests.push(...fresh);
+    for (const request of fresh) request.resolve(response({}));
+    await flush();
+  }
   if (!requests.length) { silentViews.push(hash); continue; }
   const text = shell.elements.get('route-view').textContent;
   if (text.includes('视图读回失败'))
@@ -597,6 +614,43 @@ const JURY_READBACK = {
   // The denominator jury_review.py publishes with the word; the page has to show it.
   accepted_versions: 1, reviewable_active_versions: 1,
 };
+// The rights readback as `rights_review.readback()` shapes it: every collection the seam
+// can report missing is here, the counts are numbers, and the clearance word is the one
+// these rows actually support. Block ⑦ passes it so the jury assertions measure the jury;
+// block ⑧ mutates it.
+const RIGHTS_SCOPE_A = 'font-brandon-grotesk';
+const RIGHTS_SCOPE_B = 'client-photo-01';
+const RIGHTS_DECISION_A = 'rights-' + 'a'.repeat(32);
+const RIGHTS_DECISION_B = 'rights-' + 'b'.repeat(32);
+const RIGHTS_READBACK = {
+  schemaVersion: 'design-lab/rights-readback/v1', project_id: 'p1',
+  decisions: [], decision_count: 2,
+  // The rows are `document_json` as rights_review.py returns it: the contract's own closed
+  // property set, and nothing else. No actor_kind, no supersedes -- those are store columns
+  // that never cross the HTTP boundary, which is exactly why name_checked_only exists.
+  current_decisions: {
+    [RIGHTS_SCOPE_A]: { decision_id: RIGHTS_DECISION_A,
+      schemaVersion: 'design-lab/rights-decision/v1', use_scope: RIGHTS_SCOPE_A,
+      decision: 'APPROVED', decided_by: 'dtalex66', decided_at: '2026-10-08T09:00:00Z',
+      license_ref: 'LICENSE:OFL.txt', note: '对照 SIL OFL 1.1 全文确认桌面授权',
+      territory: 'worldwide' },
+    [RIGHTS_SCOPE_B]: { decision_id: RIGHTS_DECISION_B,
+      schemaVersion: 'design-lab/rights-decision/v1', use_scope: RIGHTS_SCOPE_B,
+      decision: 'DENIED', decided_by: 'dtalex66', decided_at: '2026-10-08T09:05:00Z' },
+  },
+  decision_states: { APPROVED: 1, DENIED: 1, PENDING_REVIEW: 0, BLOCKED_BY_LICENSE: 0 },
+  filed_scope_count: 2, approved_scope_count: 1,
+  unapproved_scopes: [{ use_scope: RIGHTS_SCOPE_B, decision: 'DENIED',
+                        decision_id: RIGHTS_DECISION_B, decided_by: 'dtalex66' }],
+  ever_filed_scopes: [RIGHTS_SCOPE_A, RIGHTS_SCOPE_B],
+  scope_conflicts: [], name_checked_only: [RIGHTS_SCOPE_A, RIGHTS_SCOPE_B],
+  rights_clearance: 'NOT_REVIEWED',
+  clearance_vocabulary: ['CLEARED', 'NOT_REVIEWED'],
+  decision_vocabulary: ['APPROVED', 'DENIED', 'PENDING_REVIEW', 'BLOCKED_BY_LICENSE'],
+  does_not_prove: ['CLEARED covers the use scopes this project has actually filed a '
+    + 'decision for; it holds no requirements list',
+    'a rights decision clears none of the quality, production or release gates'],
+};
 const RECEIPT_READBACK = {
   schemaVersion: 'design-lab/delivery-receipt/v2',
   job_id: 'native-job-' + '1'.repeat(64),
@@ -643,20 +697,21 @@ for (const forbidden of ['/preflight', '/receipt'])
   if (evidencePaths.some((path) => path.includes(forbidden)))
     throw new Error(`构建证据页时就在运行交付结论 ${forbidden} —— 没有人选中交付包`);
 const expects = ['/api/projects/p1/design-layer', '/api/projects/p1/bundles',
-                 '/api/projects/p1/jury'];
+                 '/api/projects/p1/jury', '/api/projects/p1/rights'];
 for (const expected of expects)
   if (!evidencePaths.includes(expected))
     throw new Error(`证据系统没有读回 ${expected}；实际读到 ${evidencePaths.join(' ')}`);
-const answerEvidence = (requests, jury, bundles) => {
+const answerEvidence = (requests, jury, bundles, rights) => {
   for (const request of requests) {
     if (request.path.endsWith('/jury')) request.resolve(response(jury));
     else if (request.path.endsWith('/bundles')) request.resolve(response(bundles));
+    else if (request.path.endsWith('/rights')) request.resolve(response(rights ?? {}));
     else request.resolve(response(DESIGN_LAYER_EMPTY));
   }
 };
 // (a) A jury readback that never carried the collection must be reported as unread, and
 // must NOT be shown as "there are no verdicts" -- the lie an empty <ul> tells.
-answerEvidence(evidenceBuild, {}, { bundles: [EVIDENCE_BUNDLE] });
+answerEvidence(evidenceBuild, {}, { bundles: [EVIDENCE_BUNDLE] }, RIGHTS_READBACK);
 await flush();
 const unreadJuryText = evidenceView.textContent;
 if (!/未读回[^\n]*current_verdicts|裁决未读回/.test(unreadJuryText))
@@ -671,7 +726,7 @@ if (unreadJuryText.includes('视图读回失败'))
 shell.pending.splice(0, shell.pending.length);
 evidenceSelect.onchange();
 const juryReads = shell.pending.splice(0, shell.pending.length);
-answerEvidence(juryReads, JURY_READBACK, { bundles: [EVIDENCE_BUNDLE] });
+answerEvidence(juryReads, JURY_READBACK, { bundles: [EVIDENCE_BUNDLE] }, RIGHTS_READBACK);
 await flush();
 const juryText = evidenceView.textContent;
 for (const must of ['APPROVE', JURY_SUBJECT, '在 100% 缩放下对照参考图审读',
@@ -696,7 +751,7 @@ const bareReads = shell.pending.splice(0, shell.pending.length);
 answerEvidence(bareReads, { ...JURY_READBACK,
                             accepted_versions: undefined,
                             reviewable_active_versions: undefined },
-               { bundles: [EVIDENCE_BUNDLE] });
+               { bundles: [EVIDENCE_BUNDLE] }, RIGHTS_READBACK);
 await flush();
 const bareText = evidenceView.textContent;
 if (!bareText.includes('当前版本已接受 未读回'))
@@ -782,7 +837,8 @@ if (!receiptBox.textContent.includes('拒绝出证'))
 // a request: the receipt cannot be pointed at a version from memory.
 evidenceSelect.onchange();
 const rebuilt = shell.pending.splice(0, shell.pending.length);
-answerEvidence(rebuilt, JURY_READBACK, { bundles: [{ ...EVIDENCE_BUNDLE, version_id: undefined }] });
+answerEvidence(rebuilt, JURY_READBACK, { bundles: [{ ...EVIDENCE_BUNDLE, version_id: undefined }] },
+               RIGHTS_READBACK);
 await flush();
 const blindBox = byElementId(shell.elements.get('route-view'), 'evidence-receipt-outcome');
 const blindButton = byElementId(shell.elements.get('route-view'), 'evidence-receipt-run');
@@ -795,5 +851,316 @@ if (strayReceipt.length)
 if (!blindBox.textContent.includes('未读回收据'))
   throw new Error(`版本 id 缺失时必须说明未读回：${blindBox.textContent.slice(0, 160)}`);
 console.log('ok: ⑦ 证据系统读回裁决/预检/收据：缺字段说未读回不当作空列表、裁决与 lang="en" 上屏、一次点击一个收据请求、404 与 409 两种拒绝各说各话、两框互不覆盖、版本未读回时不发请求');
+
+// ⑧ 权利决定 · Human RIGHTS. The rights gate got a real route (GET/POST
+// /api/projects/<32-hex>/rights, src/design_lab/rights_review.py) and now has a real
+// surface: a form on 预检 / QA where a human signs, and a read-only column on 证据系统.
+// Behaviour is what text cannot prove, so this block drives it: one click files exactly one
+// decision to the POST route with the contract's own field set, no request leaves before
+// the project and the supersession target have been read back, a refusal replaces the
+// previous verdict instead of leaving a stale green, and every word on screen is the
+// service's own (lang="en", never translated). The 未读回 half is the shape this repo has
+// been burned on: a count the response never carried must not be drawn as 0/0, and
+// NOT_REVIEWED must not read as "somebody owes an answer".
+const RIGHTS_PROJECTS = { projects: [{ id: 'p1', name: 'Alpha' }, { id: 'p2', name: 'Beta' }] };
+let rightsFixture = RIGHTS_READBACK;
+const rightsAnswer = (path) => (path === '/api/projects' ? RIGHTS_PROJECTS
+  : path.includes('/rights') ? rightsFixture : JURY_READBACK);
+
+// Drain every read a view chains, answering by path. 预检 / QA reads /projects twice (the
+// jury panel and the rights panel each ask for themselves) and then the two ledgers, so a
+// single splice would leave the second half of the page forever loading.
+async function drainReads() {
+  const seen = [];
+  for (let round = 0; round < 8; round += 1) {
+    // Settle first, then take what arrived: a read created only as the continuation of the
+    // one resolved in the previous round (the rights form's reload-after-POST) is not in
+    // the queue yet at the moment of the click.
+    await flush();
+    const fresh = shell.pending.splice(0, shell.pending.length);
+    if (!fresh.length) break;
+    seen.push(...fresh);
+    for (const request of fresh) request.resolve(response(rightsAnswer(request.path)));
+  }
+  await flush();
+  return seen;
+}
+
+shell.window.location.hash = '#/preflight';
+shell.dispatchHashchange();
+const qaReads = await drainReads();
+const preflightView = shell.elements.get('route-view');
+for (const expected of ['/api/projects', '/api/projects/p1/jury', '/api/projects/p1/rights'])
+  if (!qaReads.some((request) => request.path === expected))
+    throw new Error(`预检 / QA 没有读回 ${expected}；实际读到 ${
+      qaReads.map((request) => request.path).join(' ')}`);
+const rightsOutcome = byElementId(preflightView, 'rights-review-outcome');
+const scopeField = byElementId(preflightView, 'rights-use-scope');
+const signerField = byElementId(preflightView, 'rights-decided-by');
+const supersedesField = byElementId(preflightView, 'rights-supersedes');
+const rightsButton = byElementId(preflightView, 'rights-submit');
+if (!rightsOutcome || !scopeField || !signerField || !supersedesField || !rightsButton)
+  throw new Error('权利表单的某个入口在页面上不可定位 —— ⑧ 找不到提交面');
+// The decision words offered are the readback's own `decision_vocabulary`, and nothing
+// else. A radio the contract does not allow would be an offer nobody can honour; a
+// pre-checked one would file a status nobody chose.
+const markedWords = collectMarked(preflightView);
+for (const word of ['APPROVED', 'DENIED', 'PENDING_REVIEW', 'BLOCKED_BY_LICENSE']) {
+  const radio = byElementId(preflightView, `rights-decision-${word}`);
+  if (!radio) throw new Error(`决定词 ${word} 没有出现在表单里，而它来自读回的 decision_vocabulary`);
+  if (radio.value !== word)
+    throw new Error(`决定词单选框的 value 是 ${radio.value}，不是合同的 ${word}`);
+  if (!markedWords.includes(word))
+    throw new Error(`决定词 ${word} 必须带 lang="en"（服务词汇，不翻译）`);
+}
+if (findIn(preflightView, (node) => node.attributes && node.attributes.get('name') === 'rights-decision'
+  && node.checked === true))
+  throw new Error('权利表单预先选中了一个决定词：没有人选择的状态不能是默认值');
+const builtInPosts = qaReads.filter((request) => request.init && request.init.method === 'POST');
+if (builtInPosts.length)
+  throw new Error(`构建页面时发出了 POST：${builtInPosts.map((r) => r.path).join(' ')} —— `
+    + '一条权利决定只能由点击提交，不能由打开页面替人签署');
+
+// (a) Local refusals send nothing. An empty use scope and a supersession aimed at another
+// scope are both doomed writes; refusing them here keeps the append-only ledger clean.
+rightsButton.onclick();
+if (shell.pending.length)
+  throw new Error(`使用范围未填写时仍发出了 ${shell.pending.map((r) => r.path).join(' ')} —— `
+    + '决定必须落在一个范围上');
+if (!rightsOutcome.textContent.includes('未提交') || !rightsOutcome.textContent.includes('使用范围'))
+  throw new Error(`缺使用范围时必须说明为什么没提交：${rightsOutcome.textContent.slice(0, 160)}`);
+scopeField.value = RIGHTS_SCOPE_A;
+signerField.value = 'dtalex66';
+byElementId(preflightView, `rights-decision-${'DENIED'}`).checked = true;
+supersedesField.value = RIGHTS_DECISION_B;   // decided RIGHTS_SCOPE_B, not SCOPE_A
+rightsButton.onclick();
+if (shell.pending.length)
+  throw new Error(`替代目标与使用范围不同却仍发出了 ${shell.pending.map((r) => r.path).join(' ')} —— `
+    + '跨范围替代会让被取代的决定无人计数，服务端也必然拒绝');
+if (!rightsOutcome.textContent.includes('不是同一个使用范围'))
+  throw new Error(`跨范围替代被拒时页面没有说明原因：${rightsOutcome.textContent.slice(0, 200)}`);
+supersedesField.value = '';
+
+// (b) One click, one POST, to the rights route with the contract's own field set.
+const posted = { decision: 'DENIED', use_scope: RIGHTS_SCOPE_A };
+rightsButton.onclick();
+const submitted = shell.pending.splice(0, shell.pending.length);
+if (submitted.length !== 1)
+  throw new Error(`一次点击发出了 ${submitted.length} 个请求，应为 1 个`);
+if (submitted[0].path !== '/api/projects/p1/rights')
+  throw new Error(`提交打到了 ${submitted[0].path}，必须是所选项目的 rights 路由`);
+if (!submitted[0].init || submitted[0].init.method !== 'POST')
+  throw new Error('提交的 HTTP 方法不是 POST —— 一条权利决定不能被写成一次读取');
+const RIGHT_FIELDS = ['schemaVersion', 'use_scope', 'decision', 'decided_by', 'decided_at'];
+const sentBody = JSON.parse(submitted[0].init.body);
+for (const field of RIGHT_FIELDS)
+  if (!(field in sentBody))
+    throw new Error(`提交缺少合同必备字段 ${field}：服务端会按契约拒绝，页面不该先漏掉它`);
+if (sentBody.use_scope !== posted.use_scope || sentBody.decision !== posted.decision)
+  throw new Error(`提交的 scope/decision 与所选不符：${JSON.stringify(sentBody)}`);
+if (sentBody.schemaVersion !== 'design-lab/rights-decision/v1')
+  throw new Error(`提交的 schemaVersion 是 ${sentBody.schemaVersion}，必须是契约绑定的版本`);
+if ('supersedes' in sentBody || 'juror' in sentBody || 'actor_kind' in sentBody)
+  throw new Error('提交把替代链接或评审人字段塞进了文档：契约关闭属性，supersedes 是查询参数');
+if (!/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$/.test(sentBody.decided_at))
+  throw new Error(`decided_at ${sentBody.decided_at} 不是服务接受的 RFC3339 UTC 形状`);
+const firstDecisionId = sentBody.decision_id;
+
+// (c) Success reads the ledger back from the service. The outcome line lives outside the
+// re-rendered panel on purpose: written inside it, the reload would detach the very node
+// the message was put in and the operator would see nothing after a filed decision.
+submitted[0].resolve(response(sentBody));
+await drainReads();
+if (!rightsOutcome.textContent.includes('已提交'))
+  throw new Error(`提交成功后没有说明结论来自服务端读回：${rightsOutcome.textContent.slice(0, 160)}`);
+if (!rightsOutcome.textContent.includes('上方读回来自服务端'))
+  throw new Error('提交成功的说法必须指向服务端读回，而不是页面记住的输入');
+
+// (d) The refusal replaces the verdict: the same box, no stale green sentence standing next
+// to a write the service rejected, and the refusal reason in the service's own words.
+// The success reload rebuilt the panel, so the fields are looked up in the NEW form and the
+// decision word has to be chosen again -- nothing carries over except the outcome line,
+// which lives outside the re-rendered body.
+const previousView = shell.elements.get('route-view');
+const previousScope = byElementId(previousView, 'rights-use-scope');
+const previousSigner = byElementId(previousView, 'rights-decided-by');
+const previousButton = byElementId(previousView, 'rights-submit');
+const previousRadio = byElementId(previousView, 'rights-decision-DENIED');
+if (!previousScope || !previousButton || !previousRadio || !previousSigner)
+  throw new Error('提交成功读回后表单没有重新渲染 —— 一条决定不能留在已失效的面板上');
+previousScope.value = 'third-party-model-weights';
+previousSigner.value = 'dtalex66';
+previousRadio.checked = true;
+previousButton.onclick();
+const refusedPosts = shell.pending.splice(0, shell.pending.length);
+if (refusedPosts.length !== 1) throw new Error(`第二次点击发出了 ${refusedPosts.length} 个请求，应为 1 个`);
+if (JSON.parse(refusedPosts[0].init.body).decision_id === firstDecisionId)
+  throw new Error('改了内容的提交沿用了上一条的 decision_id：一条新决定必须是新的一行，'
+    + '而服务端会把这个 id 当撞车拒绝');
+refusedPosts[0].resolve(response({ error: 'RIGHTS_NOT_HUMAN',
+  detail: 'an agent-signed rights decision is refused: `decided_by` \'review-agent\' names automation' },
+  false));
+await flush();
+const afterRefusal = rightsOutcome.textContent;
+if (!afterRefusal.includes('RIGHTS_NOT_HUMAN') || !afterRefusal.includes('names automation'))
+  throw new Error(`权利提交被拒时页面没有带着拒绝码与理由上屏：${afterRefusal.slice(0, 200)}`);
+if (afterRefusal.includes('已提交'))
+  throw new Error('拒绝后上一条"已提交"仍留在屏上，等于把被拒的写入算成了一条决定');
+if (!afterRefusal.includes('没有写入任何决定'))
+  throw new Error('拒绝的说法必须说明服务端什么都没写，否则读者会以为上方读回是这次的结果');
+
+// (e) The read-only column on 证据系统: what stands per scope, who decided, the clearance
+// with its denominator, the two limit reports, and the service's own does-not-prove text.
+shell.window.location.hash = '#/evidence';
+shell.dispatchHashchange();
+const evidenceRightsRequests = shell.pending.splice(0, shell.pending.length);
+if (evidenceRightsRequests.length !== 1)
+  throw new Error(`#/evidence 打开时发出了 ${evidenceRightsRequests.length} 个请求，应只有项目台账`);
+evidenceRightsRequests[0].resolve(response(RIGHTS_PROJECTS));
+await flush();
+const rightsEvidenceView = shell.elements.get('route-view');
+const rightsEvidenceSelect = byElementId(rightsEvidenceView, '证据系统-project');
+rightsEvidenceSelect.value = 'p1';
+rightsEvidenceSelect.onchange();
+const evidenceReads = shell.pending.splice(0, shell.pending.length);
+answerEvidence(evidenceReads, JURY_READBACK, { bundles: [EVIDENCE_BUNDLE] }, RIGHTS_READBACK);
+await flush();
+const rightsText = rightsEvidenceView.textContent;
+for (const must of [
+  '权利决定读回 · Human RIGHTS',
+  RIGHTS_SCOPE_A, RIGHTS_SCOPE_B,
+  `决定 ${RIGHTS_DECISION_A}`, '决定人 dtalex66',
+  '当前批准 1/2', '决定总数 2',
+  '本读回不证明',
+  'CLEARED covers the use scopes this project has actually filed a decision for',
+  // 两条限制必须逐条上屏，不能被折叠成一个数量。
+  'a rights decision clears none of the quality, production or release gates',
+  // scope_conflicts is empty here, so the conflict sentence must not appear at all;
+  // name_checked_only is not, so its limit has to be stated.
+  '仅按名字核查的范围 2 个',
+  '已提交但未计入清算的范围：client-photo-01（DENIED）',
+])
+  if (!rightsText.includes(must))
+    throw new Error(`权利读回列缺少 ${must}：${rightsText.slice(0, 260)}`);
+if (rightsText.includes('范围冲突'))
+  throw new Error('scope_conflicts 为空时页面不得声称存在范围冲突');
+if (rightsText.includes('尚无人签署的权利决定'))
+  throw new Error('有决定可读回时页面仍说无人签署');
+if (rightsText.includes('未读回：响应缺少'))
+  throw new Error('形状完整的权利读回不得出现形状告警');
+const rightsMarked = collectMarked(rightsEvidenceView);
+for (const word of ['NOT_REVIEWED', 'APPROVED', 'DENIED'])
+  if (!rightsMarked.includes(word))
+    throw new Error(`权利状态词 ${word} 必须带 lang="en"（服务词汇，不翻译）：${rightsMarked.join('/')}`);
+// A chip colour is a claim too, and it is the one a reader parses before the words.
+// `.tag.ok` is the affirmative pill the stylesheet draws green, so NOT_REVIEWED and DENIED
+// may never wear it, and a scope the façade counts as approved must.
+function tagsPainted(node, out = []) {
+  if (node?.className && /^tag\b/.test(node.className)) out.push([node.className, node.textContent]);
+  for (const child of (node?.children ?? [])) tagsPainted(child, out);
+  return out;
+}
+const painted = tagsPainted(rightsEvidenceView);
+const green = painted.filter(([klass]) => /\bok\b/.test(klass)).map(([, text]) => text);
+const neutral = painted.filter(([klass]) => /neutral/.test(klass)).map(([, text]) => text);
+if (green.includes('NOT_REVIEWED'))
+  throw new Error('NOT_REVIEWED 被涂成了肯定色：一道没被清算的门不能看起来像通过了');
+if (green.includes('DENIED'))
+  throw new Error('DENIED 被涂成了肯定色：façade 列在未批准范围里的决定不能是绿的');
+if (!green.includes('APPROVED'))
+  throw new Error(`由 unapproved_scopes 判定为批准的范围必须带肯定色：实际绿标 ${green.join('/')}`);
+if (painted.some(([klass, text]) => text === 'DENIED' && !/\bbad\b/.test(klass)))
+  throw new Error('DENIED 必须用拒绝色，而不是一个中性标签');
+if (neutral.length)
+  throw new Error(`决定词读回完整时不应出现中性标签：${neutral.join('/')}`);
+
+// (f) A count the response never carried is not a zero. 0/0 would read as "nothing needed
+// clearing" -- the very vacuity rights_review.py refuses to compute as CLEARED.
+rightsFixture = { ...RIGHTS_READBACK,
+  approved_scope_count: undefined, filed_scope_count: undefined, decision_count: undefined };
+rightsEvidenceSelect.onchange();
+const bareRights = shell.pending.splice(0, shell.pending.length);
+answerEvidence(bareRights, JURY_READBACK, { bundles: [EVIDENCE_BUNDLE] }, rightsFixture);
+await flush();
+const bareRightsText = rightsEvidenceView.textContent;
+if (!bareRightsText.includes('当前批准 未读回'))
+  throw new Error(`缺少分母时应说未读回：${bareRightsText.slice(0, 240)}`);
+if (bareRightsText.includes('0/0'))
+  throw new Error('页面把没读回的分数画成了 0/0');
+if (!bareRightsText.includes('决定总数 未读回'))
+  throw new Error('缺少决定总数时不得显示数字');
+
+// (g) NOT_REVIEWED with nothing filed is "never asked", not "waiting for an answer".
+rightsFixture = { ...RIGHTS_READBACK, current_decisions: {}, unapproved_scopes: [],
+  ever_filed_scopes: [], scope_conflicts: [], name_checked_only: [],
+  filed_scope_count: 0, approved_scope_count: 0,
+  decision_count: 0, decision_states: { APPROVED: 0, DENIED: 0, PENDING_REVIEW: 0,
+                                        BLOCKED_BY_LICENSE: 0 } };
+rightsEvidenceSelect.onchange();
+const nothingFiled = shell.pending.splice(0, shell.pending.length);
+answerEvidence(nothingFiled, JURY_READBACK, { bundles: [EVIDENCE_BUNDLE] }, rightsFixture);
+await flush();
+const filedText = rightsEvidenceView.textContent;
+if (!filedText.includes('尚无人签署的权利决定'))
+  throw new Error('服务真的答了空台账时必须照实说尚无');
+if (!filedText.includes('没有被问过'))
+  throw new Error('未被提交过的权利门必须说"没有被问过"，而不是让 NOT_REVIEWED 读成有人在等答复');
+if (/等待(审查|答复)|正在审查/.test(filedText.replace(/不是有人在等答复|不是"正在等待审查"/g, '')))
+  throw new Error('空台账的读回把 NOT_REVIEWED 说成了正在等待审查');
+if (filedText.includes('仅按名字核查'))
+  throw new Error('name_checked_only 为空时页面不得声称存在仅按名字核查的行');
+if (!filedText.includes('PENDING_REVIEW 0'))
+  throw new Error('状态计数必须原样读回：没有人类提交的 PENDING_REVIEW 应显示 0，而不是缺席');
+
+// (h) A fork in the chain is reported, not silently tie-broken.
+rightsFixture = { ...RIGHTS_READBACK,
+  scope_conflicts: [{ use_scope: RIGHTS_SCOPE_A, decision_ids: [RIGHTS_DECISION_A, 'rights-c'] }] };
+rightsEvidenceSelect.onchange();
+const conflicted = shell.pending.splice(0, shell.pending.length);
+answerEvidence(conflicted, JURY_READBACK, { bundles: [EVIDENCE_BUNDLE] }, rightsFixture);
+await flush();
+const conflictText = rightsEvidenceView.textContent;
+if (!conflictText.includes('范围冲突 1 项') || !conflictText.includes(RIGHTS_DECISION_A))
+  throw new Error(`多条现行决定时必须点名范围与决定 id：${conflictText.slice(0, 240)}`);
+if (!conflictText.includes('是不确定的'))
+  throw new Error('冲突必须被说成"当前立场不确定"，而不是悄悄选一条显示');
+
+// (i) A superseded scope must not let a clearance quietly cover less than anybody filed.
+// `ever_filed_scopes` counts every scope anybody ever filed; `current_decisions` only the
+// standing ones. The page states the difference rather than leaving the reader to notice
+// the denominator moved.
+rightsFixture = { ...RIGHTS_READBACK, ever_filed_scopes: [RIGHTS_SCOPE_A, RIGHTS_SCOPE_B,
+  'third-party-model-weights'] };
+rightsEvidenceSelect.onchange();
+const narrowed = shell.pending.splice(0, shell.pending.length);
+answerEvidence(narrowed, JURY_READBACK, { bundles: [EVIDENCE_BUNDLE] }, rightsFixture);
+await flush();
+const narrowedText = rightsEvidenceView.textContent;
+if (!narrowedText.includes('曾提交过的范围 3 个'))
+  throw new Error(`曾提交过的范围数必须来自 ever_filed_scopes：${narrowedText.slice(0, 200)}`);
+if (!narrowedText.includes('1 个范围已不再出现在现行集合中'))
+  throw new Error('被取代的范围离场时页面要说出差额，否则清算看起来覆盖了比实际更多的东西');
+if (narrowedText.includes('2 个范围已不再出现'))
+  throw new Error('差额的算术错了：3 个曾提交、2 个现行，只能差 1 个');
+
+// (j) A field the response never carried is unread, never an empty list. `current_decisions`
+// is a collection the seam must refill, so the column says which field is missing and does
+// not claim nobody signed.
+rightsFixture = { ...RIGHTS_READBACK, current_decisions: undefined, does_not_prove: undefined };
+rightsEvidenceSelect.onchange();
+const unreadRights = shell.pending.splice(0, shell.pending.length);
+answerEvidence(unreadRights, JURY_READBACK, { bundles: [EVIDENCE_BUNDLE] }, rightsFixture);
+await flush();
+const unreadRightsText = rightsEvidenceView.textContent;
+if (!unreadRightsText.includes('权利决定未读回'))
+  throw new Error(`权利字段缺失时页面必须说未读回：${unreadRightsText.slice(0, 240)}`);
+if (unreadRightsText.includes('尚无人签署的权利决定'))
+  throw new Error('响应没有给出 current_decisions 时，页面不得声称尚无人签署的权利决定');
+if (unreadRightsText.includes('视图读回失败'))
+  throw new Error('缺少一个集合不得把整页压成读回失败');
+if (!/未读回：响应缺少[^\n]*current_decisions/.test(unreadRightsText))
+  throw new Error('未读回的说法必须点名缺的是哪个字段');
+rightsFixture = RIGHTS_READBACK;
+console.log('ok: ⑧ 权利门：决定词来自读回且带 lang="en"、无预选、构建页面零 POST、注定被拒的写不发请求、一次点击一个 POST 带契约字段与查询参数替代、成功后读回来自服务端、拒绝替换上一条已提交、证据列读回每人每范围决定与分母/冲突/仅名字核查/does_not_prove、缺分母说未读回不画 0/0、空台账说"没有被问过"不说等待审查');
 
 console.log('APPSHELL REGRESSION: all checks passed');

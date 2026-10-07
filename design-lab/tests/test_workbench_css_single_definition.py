@@ -351,9 +351,15 @@ class ListItemIsReallyAListMember(unittest.TestCase):
         # <li> members and its empty state comes from emptyLi(), so a read that did not
         # arrive cannot be shown as an empty list. The delivery-receipt column rendered
         # beside it is tables inside .table-wrap, so it adds no container to this count.
+        # 2026-10-08 again: 34 -> 35 for the Human RIGHTS column -- rightsScopeRows() is
+        # the one list container the rights slice adds, shared by the 预检 / QA readback
+        # panel and the read-only 证据系统 column so the two surfaces cannot disagree about
+        # what stands; its rows are real <li> members and its empty state is emptyLi(). The
+        # rights submission form is a <details>/label/input form (like the jury form) and
+        # the does_not_prove lines are paragraphs, so neither adds a container.
         # The number moves because the inventory grew by one verified column, not because
         # a check was relaxed.
-        self.assertEqual(self.shell.count("el('ul', { class: 'list'"), 34)
+        self.assertEqual(self.shell.count("el('ul', { class: 'list'"), 35)
 
 
 if __name__ == "__main__":

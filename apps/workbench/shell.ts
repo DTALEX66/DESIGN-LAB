@@ -1204,6 +1204,448 @@ function juryVerdictForm(projectId: string, versions: JuryVersion[],
       submit, outcome));
 }
 
+// ============================================================================
+// RIGHTS — the Human 权利 gate, 2026-10-08.
+//
+// The backend exists: GET/POST /api/projects/<32-hex>/rights over
+// `src/design_lab/rights_review.py`, which stores append-only decisions in
+// `assurance/rights_ledger.py` against the contract loaded from disk. What was missing
+// was the surface: a human could file only from the CLI, and nobody could read the gate
+// back. Signing lives here on 预检 / QA (the jury form's slot); the read-only report
+// lives on 证据系统.
+//
+// Three rules are load-bearing, and all three are this project's old wounds:
+//
+//   * A field the response never carried is rendered 未读回 -- never an empty list, a
+//     zero, or `0/0`. `0 of 0` is precisely the vacuity rights_review.py refuses to
+//     compute ("cleared by nobody"), so the page may not draw it either.
+//   * NOT_REVIEWED covers two different facts -- nobody filed anything, and a filed
+//     decision is not an approval. The readback publishes the counts that tell them apart
+//     beside the word, so this column shows them and the word never reads as "a review is
+//     pending".
+//   * The decision words a human may pick come from the readback's own
+//     `decision_vocabulary`, which the store loads from rights-decision.schema.json. The
+//     form therefore offers what the contract allows -- including PENDING_REVIEW, which
+//     only a human may file -- and nothing the page invented. The façade never infers
+//     that word, and neither does this page.
+// ============================================================================
+interface RightsDecisionRecord {
+  decision_id: string;
+  schemaVersion?: string;
+  use_scope: string;
+  decision: string;
+  decided_by: string;
+  decided_at: string;
+  territory?: string | null;
+  license_ref?: string | null;
+  note?: string | null;
+  // No `actor_kind` and no `supersedes` here on purpose. Both are COLUMNS the store keeps
+  // beside the document, and the readback hands back `document_json` -- the contract's own
+  // closed property set -- so neither word can cross the HTTP boundary at all. A row read
+  // over HTTP is therefore name-checked only, and says so through `name_checked_only`;
+  // a superseded scope leaves `current_decisions` and stays in `ever_filed_scopes`.
+  // Declaring either field here would let the page render a claim this route cannot send.
+}
+
+interface RightsUnapprovedScope {
+  use_scope: string; decision: string; decision_id: string; decided_by: string;
+}
+
+interface RightsScopeConflict { use_scope: string; decision_ids: string[] }
+
+interface RightsReadback {
+  schemaVersion?: string;
+  project_id?: string;
+  decisions: RightsDecisionRecord[];
+  decision_count?: number;
+  current_decisions: Record<string, RightsDecisionRecord>;
+  decision_states?: Record<string, number>;
+  filed_scope_count?: number;
+  approved_scope_count?: number;
+  unapproved_scopes: RightsUnapprovedScope[];
+  ever_filed_scopes: string[];
+  scope_conflicts: RightsScopeConflict[];
+  name_checked_only: string[];
+  rights_clearance?: string;
+  clearance_vocabulary?: string[];
+  decision_vocabulary?: string[];
+  does_not_prove: string[];
+  error?: string;
+}
+
+// The seam's honest empty for a rights read that never happened. Every collection is
+// present-but-empty AND marked, so no view may describe it as a ledger holding nothing.
+// The scalars are deliberately absent: normaliseShape does not refill a number or a word,
+// and a clearance invented here would be a claim the page cannot trace back to an emitter.
+const RIGHTS_UNREADABLE: RightsReadback = {
+  schemaVersion: 'design-lab/rights-readback/v1',
+  decisions: [], current_decisions: {}, unapproved_scopes: [], ever_filed_scopes: [],
+  scope_conflicts: [], name_checked_only: [], does_not_prove: [],
+};
+
+// A tag colour is a claim. These two maps are compared with their emitters by
+// design-lab/tests/test_rights_ui_contract.py: the clearance keys with
+// `rights_review.CLEARANCE_STATES` both ways, the decision keys with the contract's own
+// enum minus the word that clears.
+const RIGHTS_CLEARANCE_TAGS: Record<string, string> = { CLEARED: 'ok', NOT_REVIEWED: 'warn' };
+
+// The non-approving decision words and how loud each one is. The approving word is
+// deliberately NOT a key: the page decides whether a scope clears from the façade's own
+// `unapproved_scopes` list, so no hand copy of the contract's approval literal enters this
+// file -- which is the exact copy verify_state_vocabularies.py convicts here, and a word
+// the contract later drops cannot keep a chip nobody emits.
+const RIGHTS_DECISION_TAGS: Record<string, string> = {
+  DENIED: 'bad', BLOCKED_BY_LICENSE: 'bad', PENDING_REVIEW: 'warn',
+};
+
+// The version the bound contract binds as a value. Written once, as data the page sends,
+// not as a restatement of the schema's field list -- the store loads that file and refuses
+// anything bound differently.
+const RIGHTS_DECISION_SCHEMA_VERSION = 'design-lab/rights-decision/v1';
+
+function rightsCount(value: number | undefined): string {
+  return typeof value === 'number' ? String(value) : '未读回';
+}
+
+function clearanceFraction(data: RightsReadback): string {
+  // approved/filed arrives from rights_review.py as a pair or not at all. An absent pair is
+  // printed as 未读回 because 0/0 would read as "nothing needed clearing" -- a claim about
+  // the ledger the response never made.
+  if (typeof data.approved_scope_count !== 'number' || typeof data.filed_scope_count !== 'number')
+    return '未读回';
+  return `${data.approved_scope_count}/${data.filed_scope_count}`;
+}
+
+// Which scopes the façade does NOT count as approved. Null means the readback never said,
+// and then no scope may be painted green here.
+function unapprovedScopeSet(data: RightsReadback): Set<string> | null {
+  return Array.isArray(data.unapproved_scopes)
+    ? new Set(data.unapproved_scopes.map((row) => String(row?.use_scope ?? '')))
+    : null;
+}
+
+function rightsDecisionTagClass(scope: string, record: RightsDecisionRecord | undefined,
+                                unapproved: Set<string> | null): string {
+  if (unapproved === null) return 'neutral';
+  if (!unapproved.has(scope)) return 'ok';
+  return RIGHTS_DECISION_TAGS[String(record?.decision ?? '')] ?? 'warn';
+}
+
+// The clearance word, in the sentence the readback supports. `rights_clearance` is a
+// scalar, so normaliseShape cannot refill it and an absent word is a real possibility.
+function clearanceExplanation(data: RightsReadback, clearance: string): string {
+  if (!clearance) return ' · 服务端没有给出清算词，本页不替它补一个；未读回不等于未清算。';
+  const filed = data.filed_scope_count;
+  const outstanding = data.unapproved_scopes;
+  if (typeof filed !== 'number' || !Array.isArray(outstanding))
+    return ' · 分母未读回，所以这一行只转述清算词本身，不推断它站在多少个范围上。';
+  if (filed === 0)
+    return ' · 该项目没有任何使用范围被提交过：这道门没有被问过，不是有人在等答复。'
+      + ' PENDING_REVIEW 只能由人提交产生，服务与页面都不会替没人问过的范围生成它。';
+  if (outstanding.length)
+    return ` · 已提交但未计入清算的范围：${outstanding
+      .map((row) => `${row.use_scope}（${row.decision}）`).join('、')}。`
+      + ' 这一行说的是"读起来未清算"，不是"正在等待审查"。';
+  return ' · 已提交的范围全部处于批准状态；清算只覆盖这些范围，见下方"本读回不证明"。';
+}
+
+// The per-scope rows, shared by both surfaces so the gate says the same thing in both
+// places. One `<ul>` literal, which is the only list container this slice adds -- the
+// pinned inventory in design-lab/tests/test_workbench_css_single_definition.py moves by 1.
+function rightsScopeRows(data: RightsReadback, emptyHint: string): HTMLElement {
+  const scopes = Object.entries(data.current_decisions ?? {});
+  const unapproved = unapprovedScopeSet(data);
+  return el('ul', { class: 'list' }, ...(scopes.length
+    ? scopes.map(([scope, record]) => el('li', { class: 'list-item' },
+        el('div', {},
+          el('strong', {}, scope),
+          // A decision id and a license reference are long identifiers: their own
+          // .value-mono row, never inside the nowrap .tag pill (UI-AUDIT-20261006).
+          el('div', { class: 'value-mono' },
+            `决定 ${String(record?.decision_id ?? '未读回')}`
+            + (record?.license_ref ? ` · 许可 ${String(record.license_ref)}` : '')),
+          el('div', { class: 'muted' },
+            `决定人 ${String(record?.decided_by ?? '未读回')}`
+            + (record?.decided_at ? ` · ${String(record.decided_at)}` : ' · 决定时间未读回')
+            + (record?.territory ? ` · 地域 ${String(record.territory)}` : '')),
+          record?.note ? el('div', { class: 'view-hint' }, String(record.note)) : ''),
+        el('span', {
+          class: 'tag ' + rightsDecisionTagClass(scope, record, unapproved),
+        }, record?.decision ? en(String(record.decision)) : '决定词未读回')))
+    // An empty here is a real readback that answered "nothing filed", which is exactly the
+    // case 尚无 is allowed for; a read that did not arrive never reaches this function.
+    : [emptyLi(data, '尚无人签署的权利决定', emptyHint)]));
+}
+
+// The readback's own numbers, words and limits -- everything both surfaces show. Spread
+// into the caller's panel so the QA view and the evidence view cannot drift apart.
+function rightsFacts(data: RightsReadback): HTMLElement[] {
+  const clearance = typeof data.rights_clearance === 'string' ? data.rights_clearance : '';
+  const states = data.decision_states && typeof data.decision_states === 'object'
+    ? Object.entries(data.decision_states) : [];
+  // How many scopes anybody ever filed, against how many stand now. Both halves come from
+  // the readback, and the difference is what a supersession does: the replaced row leaves
+  // `current_decisions` and stays in `ever_filed_scopes`. Saying it out loud is what keeps
+  // a clearance from quietly covering less than it did.
+  const everCount = Array.isArray(data.ever_filed_scopes) ? data.ever_filed_scopes.length : null;
+  const standingCount = Object.keys(data.current_decisions ?? {}).length;
+  const nodes: HTMLElement[] = [
+    el('p', { class: 'view-hint' },
+      `当前批准 ${clearanceFraction(data)} · 决定总数 ${rightsCount(data.decision_count)} · `
+      + `曾提交过的范围 ${everCount === null ? '未读回' : String(everCount)} 个`),
+    el('p', {},
+      el('span', { class: 'tag ' + (RIGHTS_CLEARANCE_TAGS[clearance] ?? 'neutral') },
+        clearance ? en(clearance) : '权利清算状态未读回'),
+      el('span', { class: 'muted' }, clearanceExplanation(data, clearance))),
+  ];
+  if (everCount !== null && everCount > standingCount) {
+    nodes.push(el('p', { class: 'view-hint' },
+      `${everCount - standingCount} 个范围已不再出现在现行集合中（被后来的决定取代），`
+      + '清算只按现行集合计算。'));
+  }
+  nodes.push(el('p', { class: 'muted' },
+    states.length
+      ? `现行决定按状态：${states.map(([word, count]) => `${word} ${count}`).join(' · ')}`
+      : '状态计数未读回：响应没有给出 decision_states，本页不自行清点。'));
+  if (data.scope_conflicts.length) {
+    nodes.push(el('p', { class: 'error' },
+      `范围冲突 ${data.scope_conflicts.length} 项：`
+      + data.scope_conflicts.map((row) => `${row.use_scope}（${(row.decision_ids ?? [])
+        .join('、')}）`).join('；')
+      + '。同一范围带着多条未被取代的现行决定，这些范围的"当前权利立场"是不确定的；'
+      + '服务端取最新一条只是为了给出读回，不是替人裁决。'));
+  }
+  if (data.name_checked_only.length) {
+    nodes.push(el('p', { class: 'view-hint' },
+      `仅按名字核查的范围 ${data.name_checked_only.length} 个：${data.name_checked_only.join('、')}。`
+      + '合同关闭属性，HTTP 提交带不进声明的 actor kind，所以这些行只证明署名不自称自动化，'
+      + '不证明是一只手敲的字。'));
+  }
+  nodes.push(el('div', { class: 'rights-does-not-prove' },
+    el('p', { class: 'muted' },
+      `本读回不证明（由服务端自己列出，${data.does_not_prove.length} 条）：`),
+    ...(data.does_not_prove.length
+      ? data.does_not_prove.map((line) => el('p', { class: 'view-hint' }, String(line)))
+      : [el('p', { class: 'error' },
+          '未读回：响应没有给出 does_not_prove，本页不替服务端省略它自己声明的限制。')])));
+  return nodes;
+}
+
+// 证据系统 — read-only. Filing a rights decision is a Human Gate and happens on
+// 预检 / QA; this column reports what that gate actually produced, next to the delivery.
+function evidenceRightsColumn(data: RightsReadback, unread: string): HTMLElement {
+  const heading = el('h3', {}, '权利决定读回 · Human RIGHTS');
+  if (unread) {
+    return el('div', { class: 'panel' }, heading,
+      el('p', { class: 'error' },
+        `${unread}；权利决定未读回。未读回不等于没有决定，也不等于已清算。`));
+  }
+  if (data.error) {
+    return el('div', { class: 'panel' }, heading,
+      el('p', { class: 'error' },
+        `权利未读回：${String(data.error)}。未读回不等于没有决定，也不等于已清算。`));
+  }
+  return el('div', { class: 'panel' }, heading,
+    ...rightsFacts(data),
+    rightsScopeRows(data, '权利决定需在预检 / QA 页由人提交后在此读回；'
+      + '没有被提交过的范围不会出现在这里，也不会带任何默认状态。'),
+    el('p', { class: 'view-hint' },
+      '本页只读回决定与清算，不提交、不改写：提交是 Human Gate，在预检 / QA 页执行。'
+      + '权利门不代替质量、制作与发布门。'));
+}
+
+function rightsReadbackPanel(projectId: string, data: RightsReadback,
+                             reload: () => Promise<void>, unread: string,
+                             outcome: HTMLElement): HTMLElement {
+  if (unread) {
+    return el('div', {}, el('p', { class: 'error' },
+      `权利读回不完整：${unread}。缺失字段不会被当作空集合或已清算。`));
+  }
+  if (data.error) {
+    return el('p', { class: 'error' },
+      `权利未读回：${String(data.error)}。未读回不等于无决定，也不等于已清算。`);
+  }
+  return el('div', {},
+    ...rightsFacts(data),
+    rightsScopeRows(data, '在下方提交一条决定后在此读回；未被提交过的范围没有默认状态。'),
+    rightsDecisionForm(projectId, data, reload, outcome));
+}
+
+// The form: one click files ONE decision for ONE use scope. `supersedes` is offered as a
+// select over the decision ids the readback named, never as free text, because a
+// supersession pointing at an id from memory would either 404 or replace the wrong row.
+function rightsDecisionForm(projectId: string, data: RightsReadback,
+                           reload: () => Promise<void>,
+                           outcome: HTMLElement): HTMLElement {
+  // The contract's enum as the readback states it. An absent vocabulary means the page has
+  // no words to offer, so it files nothing rather than offering a guessed set.
+  const vocabulary = Array.isArray(data.decision_vocabulary) ? data.decision_vocabulary : [];
+  const scope = el('input', { class: 'input', id: 'rights-use-scope', type: 'text',
+    placeholder: '使用范围，例如 font-brandon-grotesk / client-photo-01', autocomplete: 'off' });
+  const signer = el('input', { class: 'input', id: 'rights-decided-by', type: 'text',
+    placeholder: '决定人（人的名字；自称 agent / model / system 的署名会被服务端拒绝）',
+    autocomplete: 'off' });
+  const territory = el('input', { class: 'input', id: 'rights-territory', type: 'text',
+    placeholder: '可选：地域，例如 worldwide / cn-only' });
+  const licenseRef = el('input', { class: 'input', id: 'rights-license-ref', type: 'text',
+    placeholder: '可选：许可文本的引用，例如 LICENSE-FILE:OFL.txt' });
+  const note = el('textarea', { class: 'input', id: 'rights-note',
+    placeholder: '可选：依据哪份文本、在什么范围内作出的判断' });
+  const decisionInputs = vocabulary.map((word) => el('input', {
+    type: 'radio', name: 'rights-decision', id: `rights-decision-${word}`, value: word }));
+  const supersedes = el('select', { class: 'input', id: 'rights-supersedes' });
+  const supersedeScopes = new Map<string, string>();
+  supersedes.append(new Option('不替代：这是一条新的决定', ''));
+  for (const [useScope, record] of Object.entries(data.current_decisions ?? {})) {
+    const previous = typeof record?.decision_id === 'string' ? record.decision_id : '';
+    if (!previous) continue;
+    // Only CURRENT decisions are offered: a row that already carries a replacement is
+    // un-superseedable (RIGHTS_ALREADY_SUPERSEDED), and offering it would invite a fork.
+    supersedeScopes.set(previous, useScope);
+    supersedes.append(new Option(`${useScope} · ${previous}`, previous));
+  }
+  const submit = el('button', { type: 'button', class: 'primary-btn', id: 'rights-submit' },
+                     '提交权利决定');
+  if (!vocabulary.length) submit.disabled = true;
+  // One decision_id per distinct document. A retry of the identical submission replays
+  // (rights_review.py recognises the id), while a fresh id for the same words would file a
+  // second signature for one human judgement; a CHANGED document must take a fresh id,
+  // because the store refuses an id whose content moved.
+  let decisionId = '';
+  let lastFingerprint = '';
+  submit.onclick = (): void => {
+    void (async (): Promise<void> => {
+      const useScope = scope.value.trim();
+      const chosen = decisionInputs.find((node) => node.checked);
+      const actor = signer.value.trim();
+      if (!vocabulary.length) {
+        outcome.textContent = '未提交：决定词表未读回（响应没有给出 decision_vocabulary），'
+          + '页面不替合同发明一个状态词。';
+        return;
+      }
+      if (!useScope) {
+        outcome.textContent = '未提交：必须先写明使用范围；一条决定要落在一个范围上，'
+          + '否则读回时没人知道它管什么。';
+        return;
+      }
+      if (!chosen) {
+        outcome.textContent = '未提交：没有选中任何决定词；权利门不接受页面替你猜的默认状态。';
+        return;
+      }
+      if (!actor) {
+        outcome.textContent = '未提交：决定人必须写明。权利门不由发起请求的人默认签署，'
+          + '服务端也会按名字拒绝自称自动化的署名。';
+        return;
+      }
+      const previousId = supersedes.value;
+      const previousScope = supersedeScopes.get(previousId) ?? '';
+      if (previousId && previousScope && previousScope !== useScope) {
+        // The store refuses this with RIGHTS_SUPERSEDES_SCOPE_MISMATCH; the page declines
+        // to send a doomed write because a replacement for another scope would leave the
+        // first decision unreferenced and uncountable.
+        outcome.textContent = `未提交：${previousId} 决定的是 ${previousScope}，`
+          + `与 ${useScope} 不是同一个使用范围；替代只能落在同一范围上，本页不发送注定被拒的请求。`;
+        return;
+      }
+      const body: Record<string, unknown> = {
+        schemaVersion: RIGHTS_DECISION_SCHEMA_VERSION,
+        use_scope: useScope,
+        decision: chosen.value,
+        decided_by: actor,
+        // The page stamps the moment of signing from the browser clock and the service
+        // validates its RFC3339 shape; the human name is what the gate records, not this.
+        decided_at: new Date().toISOString().replace(/\.\d{3}Z$/, 'Z'),
+        territory: territory.value.trim() || null,
+        license_ref: licenseRef.value.trim() || null,
+        note: note.value.trim() || null,
+      };
+      const fingerprint = JSON.stringify(body);
+      if (fingerprint !== lastFingerprint) {
+        decisionId = 'rights-' + Math.random().toString(16).slice(2, 34);
+        lastFingerprint = fingerprint;
+      }
+      const payload = { decision_id: decisionId, ...body };
+      submit.disabled = true;
+      outcome.textContent = '提交中…';
+      try {
+        await api(`/projects/${projectId}/rights`
+          + (previousId ? `?supersedes=${encodeURIComponent(previousId)}` : ''), payload);
+        // Read back from the service rather than echoing what was just typed: the scope
+        // list changing is proof the decision was stored, not proof the browser remembered.
+        await reload();
+        outcome.textContent = '已提交一条权利决定；上方读回来自服务端，不是本页记住的输入。';
+      } catch (error) {
+        const envelope = (error as Error & {
+          serviceEnvelope?: Record<string, unknown>;
+        }).serviceEnvelope;
+        const code = typeof envelope?.error === 'string' ? envelope.error : errMsg(error);
+        const detail = typeof envelope?.detail === 'string' ? envelope.detail : '';
+        // The refusal replaces this box outright: a previous 已提交 standing next to a
+        // request the service refused would leave two contradictory verdicts on one screen.
+        outcome.textContent = `未提交：${code}${detail ? ` —— ${detail}` : ''}。`
+          + '服务端没有写入任何决定；上方读回仍是提交之前的状态，不是这次的结论。';
+      } finally {
+        submit.disabled = false;
+      }
+    })();
+  };
+  return el('details', { class: 'advanced' },
+    el('summary', {}, '提交权利决定（写入项目状态，之后不可修改，只能由新决定取代）'),
+    el('div', { class: 'advanced-body' },
+      el('p', { class: 'view-hint' },
+        vocabulary.length
+          ? `可用决定词由服务端合同给出：${vocabulary.join(' / ')}。`
+          : '决定词表未读回：响应没有给出 decision_vocabulary，本表单不可提交。'),
+      el('p', { class: 'view-hint' },
+        '一条决定只覆盖一个使用范围；PENDING_REVIEW 只有人选它才会出现，页面与服务端都不会'
+        + '替没人问过的范围生成它。一次点击提交一条。'),
+      el('label', {}, '使用范围', scope),
+      el('div', {}, ...vocabulary.flatMap((word, index) => [
+        decisionInputs[index],
+        el('label', { for: `rights-decision-${word}` }, en(word))])),
+      el('label', {}, '决定人', signer),
+      el('label', {}, '地域（可选）', territory),
+      el('label', {}, '许可引用（可选）', licenseRef),
+      el('label', {}, '说明（可选）', note),
+      el('label', {}, '取代哪条现行决定（只列读回中出现过的）', supersedes),
+      submit));
+}
+
+export async function renderRightsReview(host: HTMLElement): Promise<void> {
+  host.replaceChildren(el('p', { class: 'view-loading' }, '正在读回权利决定…'));
+  const projects = await apiOrEmpty<ProjectListResponse>('/projects', OFFLINE.projects);
+  const projectShape = shapeNotice(projects);
+  if (projectShape) {
+    host.replaceChildren(el('p', { class: 'error' },
+      `权利项目清单未读回：${projectShape}`));
+    return;
+  }
+  if (!projects.projects.length) {
+    // The same three empties as the shared picker: only a ledger that really answered
+    // "no projects" may be described as having none.
+    const offline = disconnectedNotice(projects);
+    host.replaceChildren(el('p', { class: offline ? 'error' : 'view-hint' },
+      offline ? `${offline}，项目台账未读回，因此不能断言无项目，也不能替某个项目提交权利决定。`
+        : '本机尚无项目：权利决定按项目保存，这里不能替不存在的项目宣称已清算。'));
+    return;
+  }
+  const picker = el('select', { class: 'input', id: 'rights-project' } as never);
+  for (const p of projects.projects) picker.append(new Option(p.name, p.id));
+  // The outcome line lives OUTSIDE the re-rendered body: a success or a refusal that was
+  // written into the panel would be detached by the very reload that earned it.
+  const outcome = el('p', { class: 'view-hint', id: 'rights-review-outcome' }, '');
+  const body = el('div', { class: 'rights-body' });
+  const load = async (): Promise<void> => {
+    const id = picker.value || projects.projects[0].id;
+    const data = await apiOrEmpty<RightsReadback>(`/projects/${id}/rights`, RIGHTS_UNREADABLE);
+    const shape = shapeNotice(data);
+    body.replaceChildren(rightsReadbackPanel(id, data, load, shape, outcome));
+  };
+  picker.onchange = (): void => { void load().catch((error) => setStatus(errMsg(error), true)); };
+  host.replaceChildren(el('label', { class: 'muted' }, '权利项目', picker), outcome, body);
+  await load();
+}
+
 export async function renderPreflight(target: HTMLElement): Promise<void> {
   target.replaceChildren(el('p', { class: 'view-loading' }, '正在准备预检…'));
   // The task-resource registry (design-lab/config/task-resources.json) is a
@@ -1298,6 +1740,7 @@ export async function renderPreflight(target: HTMLElement): Promise<void> {
     el('div', { class: 'page-actions' },
       runBtn));
   const juryHost = el('div', { id: 'jury-review' });
+  const rightsHost = el('div', { id: 'rights-review' });
   target.replaceChildren(
     pageHead,
     kpiGrid,
@@ -1308,10 +1751,17 @@ export async function renderPreflight(target: HTMLElement): Promise<void> {
       el('h3', {}, '设计评审 · Human Jury'),
       el('p', { class: 'view-hint' },
         '与上方资源预检是两件事：这里读回的是人工签署的裁决，绑定到具体版本摘要。'),
-      juryHost));
+      juryHost),
+    el('section', { class: 'panel' },
+      el('h3', {}, '权利决定 · Human RIGHTS'),
+      el('p', { class: 'view-hint' },
+        '与上方资源预检、人工评审都是不同的门：这里读回并提交的是一条使用范围上的许可立场。'
+        + '提交是 Human Gate，只在本页由人执行；证据系统只读回。'),
+      rightsHost));
   // Rejections propagate to the router on purpose. Swallowing them into a toast
   // would leave this page looking healthy while its review column is stale.
   await renderJuryReview(juryHost);
+  await renderRightsReview(rightsHost);
 }
 
 // UI-AUDIT-20261006 F-2, single implementation: `.tag` is a nowrap short-state
@@ -2296,12 +2746,14 @@ export async function renderDeliverables(target: HTMLElement): Promise<void> {
 // What still does not appear here: the E0-E5 evidence records, which have no route.
 export async function renderEvidence(target: HTMLElement): Promise<void> {
   await projectPickerPanel(target, '证据系统', async (id) => {
-    const [layerResp, bundlesResp, juryResp] = await Promise.all([
+    const [layerResp, bundlesResp, juryResp, rightsResp] = await Promise.all([
       apiOrEmpty<DesignLayerResponse>(`/projects/${id}/design-layer`, OFFLINE.designLayer),
       apiOrEmpty<BundleListResponse>(`/projects/${id}/bundles`, OFFLINE.bundles),
       apiOrEmpty<JuryReadback>(`/projects/${id}/jury`, JURY_UNREADABLE),
+      apiOrEmpty<RightsReadback>(`/projects/${id}/rights`, RIGHTS_UNREADABLE),
     ]);
     const juryUnread = shapeNotice(juryResp) || disconnectedNotice(juryResp);
+    const rightsUnread = shapeNotice(rightsResp) || disconnectedNotice(rightsResp);
     const layer = layerResp.design_layer;
     const chosen = layer.chosen_direction
       ? `${layer.chosen_direction.title} · v${layer.chosen_direction.version}` : '（尚未选定方向）';
@@ -2367,6 +2819,7 @@ export async function renderEvidence(target: HTMLElement): Promise<void> {
       kpis,
       bindingChain,
       evidenceJuryColumn(juryResp),
+      evidenceRightsColumn(rightsResp, rightsUnread),
       evidenceDeliveryColumn(id, bundlesResp),
       el('div', { class: 'panel' },
         el('h3', {}, '方向契约'),
@@ -2381,7 +2834,7 @@ export async function renderEvidence(target: HTMLElement): Promise<void> {
       systems,
       el('p', { class: 'view-hint' }, '版本链（brief / direction 逐版本）在工作台点单条时读回；本页为只读证据视图，不修改 lineage。'
         + '交付登记的两项读回（预检 / 收据）需要选中交付包后点击执行，E0–E5 证据记录仍无服务路由。'),
-      ...shapeNoticeRows(layerResp, bundlesResp, juryResp));
+      ...shapeNoticeRows(layerResp, bundlesResp, juryResp, rightsResp));
     return done;
   });
 }
