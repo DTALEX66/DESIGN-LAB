@@ -353,6 +353,16 @@
       "reason": "No schema and none is needed for the response: it is the delivery archive as application/zip with an X-Content-SHA256 digest. The manifest inside the archive IS schema'd -- design-lab/asset-bundle/v1 and design-lab/delivery-receipt/v2 are validated by src/design_lab/interop/delivery_receipt.py, bound by the /bundle route row below."
     },
     {
+      "route": "/api/projects/([0-9a-f]{32})/bundles/(bundle-native-[0-9a-f]{64})/versions/(v-[0-9a-f]{32})/receipt",
+      "method": "GET",
+      "kind": "BOUND_SCHEMA",
+      "handler": "NativeDelivery",
+      "schema": "design-lab/schemas/interop-delivery-receipt-v2.schema.json",
+      "version": "design-lab/delivery-receipt/v2",
+      "emitter": "src/design_lab/interop/delivery_receipt.py:36",
+      "reason": "Added 2026-10-08 with the route. The response IS the persisted DeliveryReceipt V2 document, so it is bound by the same schema and the same emitter as the POST .../bundle row that writes it: receipt_for_bundle() runs verify_receipt() before anything is stored (src/design_lab/native_bundles.py) and NativeDelivery.receipt() re-parses through delivery_receipt.loads(), which re-verifies identity, digests and the axes claim, on every read. Nothing on this route is answered from a re-derived copy. The two refusals keep their own codes: 404 DELIVERY_RECEIPT_NOT_FOUND means no receipt was ever recorded for this ACTIVE version, 409 DELIVERY_RECEIPT_UNVERIFIED means a stored document contradicts its own bytes and the service will not certify them."
+    },
+    {
       "route": "/api/projects/([0-9a-f]{32})/native-assets(?:\\?after=(native-[0-9a-f]{64}))?",
       "method": "GET",
       "kind": "SCHEMA_LESS",
@@ -404,38 +414,42 @@
     {
       "route": "/api/environment",
       "method": "GET",
-      "kind": "SCHEMA_LESS",
+      "kind": "BOUND_SCHEMA",
       "handler": "describe",
-      "emitter": "src/design_lab/runtime/paths.py:212",
+      "schema": "design-lab/schemas/path-diagnostic.schema.json",
       "version": "design-lab/path-diagnostic/v1",
-      "reason": "The payload declares design-lab/path-diagnostic/v1 (src/design_lab/runtime/paths.py:212) and there is NO SCHEMA for it anywhere in design-lab/schemas: an unvalidated boundary payload, recorded as debt rather than as a clean contract."
+      "emitter": "src/design_lab/runtime/paths.py:212",
+      "reason": "Debt paid 2026-10-08. ProjectPaths.describe() wrote design-lab/path-diagnostic/v1 with no schema behind it; design-lab/schemas/path-diagnostic.schema.json now describes the envelope that actually ships -- the four project-owned roots, the DECLARED_NOT_PROBED shared inputs, the five tool_bindings() states and the NOT_EXECUTED write/migration markers -- and design-lab/scripts/verify_route_payload_contracts.py validates the bytes this route really wrote against it."
     },
     {
       "route": "/api/capabilities",
       "method": "GET",
-      "kind": "SCHEMA_LESS",
+      "kind": "BOUND_SCHEMA",
       "handler": "capability_library",
-      "emitter": "src/design_lab/analysis/capability_library.py:210",
+      "schema": "design-lab/schemas/capability-library.schema.json",
       "version": "design-lab/capability-library/v1",
-      "reason": "The payload declares design-lab/capability-library/v1 (src/design_lab/analysis/capability_library.py:26) and there is NO SCHEMA for it: nothing validates what the capability surface serves. Recorded debt."
+      "emitter": "src/design_lab/analysis/capability_library.py:210",
+      "reason": "Debt paid 2026-10-08. design-lab/schemas/capability-library.schema.json binds the 24-key record the projection really emits (46 sources + 14 models in this checkout), keeping the emitter's own vocabulary (kind, revisionState) enumerated while disposition/presence/license/sourceType stay pass-through strings owned by source-record.schema.json and readiness-model-radar.schema.json, and holding qualified at const null because no host run and no human acceptance exists yet. A real GET payload is checked against it by design-lab/scripts/verify_route_payload_contracts.py."
     },
     {
       "route": "/api/domains",
       "method": "GET",
-      "kind": "SCHEMA_LESS",
+      "kind": "BOUND_SCHEMA",
       "handler": "domain_packs",
-      "emitter": "src/design_lab/domain_packs.py:181",
+      "schema": "design-lab/schemas/domain-pack-readback.schema.json",
       "version": "design-lab/domain-pack-readback/v1",
-      "reason": "The readback envelope declares design-lab/domain-pack-readback/v1 (src/design_lab/domain_packs.py:41) and there is NO SCHEMA for that envelope. The packs it reports on are validated against design-lab/schemas/domain-pack.schema.json, so the inner records are bound and the outer document is not. Recorded debt."
+      "emitter": "src/design_lab/domain_packs.py:181",
+      "reason": "Debt paid 2026-10-08. The inner packs were always bound (design-lab/schemas/domain-pack.schema.json, judged by design-lab/scripts/verify_domain_pack_v2.py); this row was the unboud half. design-lab/schemas/domain-pack-readback.schema.json now closes the envelope, enumerates all four validation states and requires counts.byValidation to carry each of them, so a zero is never an absent category. Validated against the real response by design-lab/scripts/verify_route_payload_contracts.py."
     },
     {
       "route": "/api/task-preflight",
       "method": "GET",
-      "kind": "SCHEMA_LESS",
+      "kind": "BOUND_SCHEMA",
       "handler": "task_resources",
-      "emitter": "src/design_lab/runtime/task_resources.py:194",
+      "schema": "design-lab/schemas/task-resource-preflight.schema.json",
       "version": "design-lab/task-resource-preflight/v1",
-      "reason": "The payload declares design-lab/task-resource-preflight/v1 (src/design_lab/runtime/task_resources.py:194) and there is NO SCHEMA for it. The registry it reads is checked only by a hand-written equality against design-lab/task-resources/v1 at task_resources.py:52, not by a schema. Recorded debt -- this is the same shape of gap that commit 1ea64bbe closed for artifact-preflight."
+      "emitter": "src/design_lab/runtime/task_resources.py:194",
+      "reason": "Debt paid 2026-10-08, the same shape of gap commit 1ea64bbe closed for artifact-preflight. design-lab/schemas/task-resource-preflight.schema.json binds the four resource branches the preflight really returns (tool, model, declared host/licence/external, inert) and pins the verdict to the list it is computed from: BLOCKED requires a named blocker, READY forbids one, and local_config_fallback appears exactly when no registry was read. REGISTRY_INERT is named in the module docstring and never emitted, so the enum does not promise it. Three real task payloads are validated by design-lab/scripts/verify_route_payload_contracts.py. The registry this reads is still checked only by the hand-written equality at task_resources.py:52 -- that is design-lab/task-resources/v1, an input document, not this boundary."
     },
     {
       "route": "/api/projects",
@@ -461,11 +475,12 @@
     {
       "route": "/api/projects/([0-9a-f]{32})/jury",
       "method": "GET",
-      "kind": "SCHEMA_LESS",
+      "kind": "BOUND_SCHEMA",
       "handler": "JuryReview",
-      "emitter": "src/design_lab/jury_review.py:45",
+      "schema": "design-lab/schemas/jury-readback.schema.json",
       "version": "design-lab/jury-readback/v1",
-      "reason": "The payload declares design-lab/jury-readback/v1 (src/design_lab/jury_review.py:45) and there is NO SCHEMA for the envelope. The records it wraps ARE bound -- each is a design-lab/assurance-jury-record/v2 document validated on the way in by the two jury write routes below -- so the read path is the unboud half. Recorded debt."
+      "emitter": "src/design_lab/jury_review.py:53",
+      "reason": "Debt paid 2026-10-08. The records this envelope wraps were always bound (each is a design-lab/assurance-jury-record/v2 document validated on the way in by the two write routes below); the read path was the unboud half. design-lab/schemas/jury-readback.schema.json now closes the envelope and REFERENCES those records by $ref to assurance-jury-record-v2.schema.json rather than restating them, so one contract owns a jury record. It also binds what a reader can be misled by: ACCEPTED requires at least one ACTIVE reviewable version and a current APPROVE for every one of them, and an empty reviewable set is NOT_ACCEPTED with accepted_versions 0. Two real responses -- a filed review and an empty project -- are validated by design-lab/scripts/verify_route_payload_contracts.py, which is what caught reviewable_versions gaining version_no when the store began offering one row per asset."
     },
     {
       "route": "/api/projects/([0-9a-f]{32})/briefs(?:\\?after=(brief-[0-9a-f]{32}))?",

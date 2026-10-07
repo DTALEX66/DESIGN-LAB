@@ -60,6 +60,12 @@ SCRIPTS = [
     # local bound run could go green while the four-word verdict vocabulary drifted --
     # this is the same class of hole as the vocabulary gate being CI-only.
     "verify_artifact_preflight_contract.py",
+    # Which contract schemas the product actually honours, and which route payload
+    # versions really exist in an emitter. Both were written from payloads captured off
+    # a live make_server socket, and both audit the committed ledger, so they must run
+    # where every other ledger gate runs instead of living in a doc nobody executes.
+    "verify_contract_bindings.py",
+    "verify_route_payload_contracts.py",
     "verify_experience_corpus.py",
     "verify_design_actions.py",
     "verify_tool_action_plan.py",

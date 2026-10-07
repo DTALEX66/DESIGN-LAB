@@ -42,6 +42,16 @@ What it enforces:
 6. NOTHING TO COMPARE IS A FAILURE. Zero schema files, zero ledger rows, zero routes found,
    zero route rows, or zero BOUND_SCHEMA route rows are each red. A gate that matched nothing
    must not report a pass.
+7. THE VERSION COMES FROM THE CODE, NOT FROM THE ROW. A row that names an emitter is held
+   against what that file actually writes as a ``schemaVersion`` VALUE (parsed from the AST, so
+   a docstring that quotes a version is not an emission and ``{'schemaVersion': SCHEMA_VERSION}``
+   resolved through the module's own assignment is). If the file emits versions and the row's
+   version is not one of them, that is EMITTER_VERSION_DISAGREES; if the row drops the version
+   field while its emitter still writes one, that is SCHEMA_LESS_DEBT_UNNAMED. This is the check
+   that stops a debt row being laundered into an unremarkable one by deleting the ``version``
+   line -- and it is why a paid-off debt is flipped to BOUND_SCHEMA here and re-validated against
+   a real response by design-lab/scripts/verify_route_payload_contracts.py, rather than quietly
+   stopped being mentioned.
 
 Usage:
     python design-lab/scripts/verify_contract_bindings.py [--list-routes]
@@ -112,6 +122,55 @@ def schema_version_index(root: Path) -> dict[str, list[str]]:
 
 
 WORD_VERSIONS = re.compile(r'"(design-lab/[a-z0-9-]+/v[0-9]+)"')
+
+#: A boundary version is `design-lab/<name>/v<N>`; an interop spec version ("2025.10") is not
+#: one, so it is collected by the schema-text scan and never demanded of an emitter here.
+VERSION_TOKEN = re.compile(r'^design-lab/[a-z0-9][a-z0-9.-]*/v[0-9]+$')
+
+
+def emitted_versions(path: Path) -> set[str]:
+    """Every version this file WRITES as a ``schemaVersion`` value.
+
+    Parsed from the AST for the same reason the route set is: a docstring that quotes
+    ``design-lab/artifact-preflight/v1`` is prose, not an emission, while
+    ``{'schemaVersion': SCHEMA_VERSION}`` is an emission whose value lives in a module-level
+    assignment. Only a dict key literally named ``schemaVersion`` counts, so the registry
+    comparison at ``task_resources.py:52`` (``doc.get("schemaVersion") != REGISTRY_SCHEMA``)
+    stays an input check and is not mistaken for a boundary payload.
+    """
+    try:
+        tree = ast.parse(path.read_text(encoding='utf-8', errors='ignore'), filename=str(path))
+    except (OSError, SyntaxError, ValueError):
+        return set()
+    names: dict[str, str] = {}
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Assign):
+            targets, value = node.targets, node.value
+        elif isinstance(node, ast.AnnAssign) and node.value is not None:
+            targets, value = [node.target], node.value
+        else:
+            continue
+        if not (isinstance(value, ast.Constant) and isinstance(value.value, str)):
+            continue
+        for target in targets:
+            if isinstance(target, ast.Name):
+                names[target.id] = value.value
+    found: set[str] = set()
+    for node in ast.walk(tree):
+        if not isinstance(node, ast.Dict):
+            continue
+        for key, value in zip(node.keys, node.values):
+            if not (isinstance(key, ast.Constant) and key.value == 'schemaVersion'):
+                continue
+            literal = None
+            if isinstance(value, ast.Constant) and isinstance(value.value, str):
+                literal = value.value
+            elif isinstance(value, ast.Name):
+                literal = names.get(value.id)
+            if isinstance(literal, str) and VERSION_TOKEN.match(literal):
+                found.add(literal)
+    return found
+
 
 
 def route_tokens(path: Path) -> list[tuple[str, int]]:
@@ -288,6 +347,30 @@ def check_route_rows(repo: Path, rows, http_text: str, index) -> tuple[list[str]
         version = row.get('version')
         emitter = row.get('emitter')
         reason = (row.get('reason') or '').strip()
+        if emitter:
+            # Rule 7: the version is taken from the emitter's own AST, so a row cannot keep
+            # its claim by restating it. A file that writes no schemaVersion dict at all is
+            # judged by what it does hold: the Adobe job validators compare the version rather
+            # than minting it, and that is still a value the source produces or compares.
+            # Where the old literal has vanished from the file outright, ROUTE_EMITTER_MISSING
+            # below is the more specific finding and this stays quiet -- one defect, one line.
+            target = repo / instance_path(emitter)
+            emitted = emitted_versions(target)
+            carries = version_literals(target, version) if version else 0
+            if emitted and version and version not in emitted and carries:
+                errors.append(f'{route}: EMITTER_VERSION_DISAGREES {emitter} writes '
+                              f'{sorted(emitted)} as its schemaVersion, not {version!r} -- the '
+                              'row binds a version this file no longer emits, while the old '
+                              'literal still sits in the source and reads as a live binding')
+            elif not version and emitter and kind == SCHEMA_LESS:
+                errors.append(f'{route}: SCHEMA_LESS_DEBT_UNNAMED {emitter} is named as the '
+                              'source of this payload while the row declares no version at all '
+                              '-- dropping the debt line does not pay the debt')
+            elif not emitted and version and kind == SCHEMA_LESS and not carries:
+                errors.append(f'{route}: EMITTER_VERSION_DISAGREES {emitter} neither writes '
+                              f'{version!r} as a schemaVersion nor carries it as a value it '
+                              'produces or compares -- the row names an emitter that no longer '
+                              'knows this version')
         if kind == BOUND_SCHEMA:
             if not (version and emitter and row.get('schema')):
                 errors.append(f'{route}: BAD_ROUTE_KIND -- a BOUND_SCHEMA row must name schema, '
@@ -323,7 +406,11 @@ def check_route_rows(repo: Path, rows, http_text: str, index) -> tuple[list[str]
                               'must say why nothing validates its payload')
             if version:
                 holders = index.get(version) or []
-                if holders:
+                if not emitter:
+                    errors.append(f'{route}: SCHEMA_LESS_DEBT_WITHOUT_EMITTER the payload '
+                                  f'declares {version!r} but the row names no emitter, so the '
+                                  'claim cannot be re-checked against the code that writes it')
+                elif holders:
                     errors.append(f'{route}: SCHEMA_LESS_STALE {version} is declared by '
                                   f'{holders[0]} -- this row reports unpaid debt that has been paid')
                 elif not any(phrase in reason.lower() for phrase in DEBT_PHRASES):

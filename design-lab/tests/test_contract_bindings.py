@@ -206,13 +206,92 @@ class GateTeethTests(unittest.TestCase):
         ledger = json.loads((REPO / self.gate.LEDGER_REL).read_text(encoding='utf-8'))
         claiming = [row for row in ledger['routes']
                     if row['kind'] == self.gate.SCHEMA_LESS and row.get('version')]
-        self.assertGreaterEqual(len(claiming), 6)
+        # An exact inventory of the debts still unpaid, not a floor. 2026-10-08: 7 -> 2,
+        # because design-lab/jury-readback/v1, design-lab/task-resource-preflight/v1,
+        # design-lab/path-diagnostic/v1, design-lab/capability-library/v1 and
+        # design-lab/domain-pack-readback/v1 each gained a schema and are now BOUND_SCHEMA
+        # rows validated against a live response by
+        # design-lab/scripts/verify_route_payload_contracts.py. The two left are the Adobe
+        # job-spec debts (adobe-patch-job/v1 with photoshop-patch-job/v1 on one route, and
+        # photoshop-native-job/v1), still unpaid. The loop below is the teeth and did not
+        # move: every remaining claim still has to name its missing schema.
+        self.assertEqual(sorted(row['route'] for row in claiming),
+                         sorted(['/api/projects/([0-9a-f]{32})/tasks/(native-job-[0-9a-f]{64})/patch',
+                                 '/api/projects/([0-9a-f]{32})/native-plans']),
+                         'the unpaid version-bearing routes are an inventory, so a paid debt '
+                         'left listed as unpaid and an unlisted new debt are both red here')
         for row in claiming:
             self.assertTrue(any(phrase in row['reason'].lower()
                                 for phrase in self.gate.DEBT_PHRASES),
                             f'{row["route"]} declares {row["version"]} without naming the debt')
             holders = self.gate.schema_version_index(REPO / self.gate.SCHEMA_ROOT).get(row['version'])
             self.assertIsNone(holders, f'{row["route"]} says schema-less but {holders} exists')
+
+    def test_the_five_closed_route_families_are_bound_and_stay_bound(self):
+        """A paid debt is a BOUND_SCHEMA row naming a schema that exists, carries the version,
+        and names the file that writes it. Recorded 2026-10-08."""
+        index = self.gate.schema_version_index(REPO / self.gate.SCHEMA_ROOT)
+        closed = {
+            '/api/environment': 'design-lab/path-diagnostic/v1',
+            '/api/capabilities': 'design-lab/capability-library/v1',
+            '/api/domains': 'design-lab/domain-pack-readback/v1',
+            '/api/task-preflight': 'design-lab/task-resource-preflight/v1',
+            '/api/projects/([0-9a-f]{32})/jury': 'design-lab/jury-readback/v1',
+        }
+        ledger = json.loads((REPO / self.gate.LEDGER_REL).read_text(encoding='utf-8'))
+        rows = {row['route']: row for row in ledger['routes']}
+        for route, version in closed.items():
+            row = rows[route]
+            self.assertEqual(row['kind'], self.gate.BOUND_SCHEMA, route)
+            self.assertEqual(row['version'], version, route)
+            self.assertTrue((REPO / row['schema']).is_file(), f'{route} binds an absent schema')
+            schema = json.loads((REPO / row['schema']).read_text(encoding='utf-8'))
+            self.assertEqual(schema['properties']['schemaVersion']['const'], version, route)
+            self.assertIs(schema.get('additionalProperties'), False,
+                          f'{row["schema"]} is not closed, so a new field would pass silently')
+            emitter_file = row['emitter'].split(':')[0]
+            self.assertIn(version, self.gate.emitted_versions(REPO / emitter_file),
+                          f'{emitter_file} no longer writes {version} as a schemaVersion')
+            self.assertIn(version, index, f'no schema in {self.gate.SCHEMA_ROOT} binds {version}')
+
+    def test_a_debt_row_cannot_be_laundered_by_deleting_the_version_line(self):
+        """The gate reads the version out of the emitter's own AST, so dropping the ledger's
+        `version` field does not make an unvalidated boundary payload validated -- and a paid
+        debt cannot be pushed back to a plain row by deleting the line that names it."""
+        for name, route, mutate in (
+            # A closed family, laundered by calling it SCHEMA_LESS again and removing the debt.
+            ('paid-then-unlined', '/api/task-preflight',
+             lambda row: (row.pop('version'), row.update(kind='SCHEMA_LESS'))),
+            # A debt still unpaid, laundered by removing only the version it names.
+            ('debt-unlined', '/api/projects/([0-9a-f]{32})/tasks/(native-job-[0-9a-f]{64})/patch',
+             lambda row: row.pop('version')),
+        ):
+            repo = self.scratch(name)
+
+            def apply(doc, route=route, mutate=mutate):
+                for row in doc['routes']:
+                    if row['route'] == route:
+                        mutate(row)
+
+            edit_ledger(repo, apply)
+            errors, _, _ = self.run_gate(repo)
+            reason = self.assert_red_for(errors, 'SCHEMA_LESS_DEBT_UNNAMED', 1)
+            self.assertIn(route, reason)
+            self.assertIn('dropping the debt line does not pay the debt', reason)
+
+    def test_a_bound_row_pointed_at_an_emitter_that_no_longer_writes_it_is_red(self):
+        """The version literal is still in the source -- it just is not what the payload writes
+        any more. ROUTE_EMITTER_MISSING cannot see that; the AST emission set can."""
+        repo = self.scratch('emitter-disagrees')
+        rel = 'src/design_lab/domain_packs.py'
+        original = (repo / rel).read_text(encoding='utf-8')
+        write_mutant(repo, rel, patched(
+            original, '        "schemaVersion": SCHEMA_VERSION,',
+            '        "schemaVersion": "design-lab/domain-pack-readback/v2",'))
+        errors, _, _ = self.run_gate(repo)
+        reason = self.assert_red_for(errors, 'EMITTER_VERSION_DISAGREES', 1)
+        self.assertIn('/api/domains', reason)
+        self.assertIn('design-lab/domain-pack-readback/v1', reason)
 
     def test_verdict_line_is_what_the_aggregate_matches(self):
         """verify_design_lab.py summarises each gate by scanning its output from the end for a
@@ -223,12 +302,29 @@ class GateTeethTests(unittest.TestCase):
             code = self.gate.main([])
         lines = [line for line in buffer.getvalue().splitlines() if line]
         self.assertEqual(code, 0, f'the shipped ledger exits nonzero: {lines[-6:]}')
-        self.assertEqual(len(lines), 1 + 32 + 48,
+        # An exact inventory of the ledger, not a floor: it moves only when the ledger
+        # itself gains a row the gate then re-checks. 2026-10-08: 48 -> 49 routes and
+        # dispatched 48 -> 49 for the new GET .../bundles/<id>/versions/<v>/receipt row,
+        # which binds the persisted DeliveryReceipt V2 to the same schema and the same
+        # emitter the POST .../bundle row already binds. Nothing was re-thresholded: the
+        # route is dispatched in http_service.py, so an unchanged count is the false claim.
+        # `bound` is the one token derived from the ledger instead of pinned, on the same
+        # date, and the reason is recorded rather than left implicit: paying a SCHEMA_LESS
+        # debt (adding a schema behind an existing row) also moves it, so a literal here
+        # would convict the route that arrived last for a count it never touched. The
+        # assertion is not softer for it -- this counts the rows straight out of
+        # design-lab/config/contract-bindings.json while the gate counts its own, and a
+        # verdict line that disagrees with the ledger is still red, as is a ledger with no
+        # BOUND_SCHEMA row at all (NOTHING_TO_COMPARE, inside the gate).
+        ledger = json.loads((REPO / self.gate.LEDGER_REL).read_text(encoding='utf-8'))
+        expected_bound = sum(1 for row in ledger['routes']
+                             if row.get('kind') == self.gate.BOUND_SCHEMA)
+        self.assertEqual(len(lines), 1 + 32 + 49,
                          'one verdict line, one note per contract row, one per route row')
         verdict = lines[-1]
         self.assertTrue(verdict.startswith('VERIFY_CONTRACT_BINDINGS=PASS'), verdict)
         for token in (f'schemas={CONTRACTS}', f'binding={BINDING_ROWS}', f'inert={INERT_ROWS}',
-                      'routes=48', 'dispatched=48', 'bound=6'):
+                      'routes=49', 'dispatched=49', f'bound={expected_bound}'):
             self.assertIn(token, verdict)
 
     # --- failure modes, each against a mutated copy ------------------------------

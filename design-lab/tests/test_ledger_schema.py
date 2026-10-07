@@ -389,13 +389,16 @@ class NotWeakerThanTheExistingContract(unittest.TestCase):
         self.assertEqual(self.r5['properties']['evidence']['minItems'], 1)
 
     def test_the_r5_contract_module_still_accepts_the_real_ledger(self):
-        """Read-only cross-check: the procedural contract and the declarative one agree on the
-        live ledger today. Compared, not merged -- this module owns the rules a JSON Schema
-        cannot say."""
-        sys.path.insert(0, str(ROOT / 'src'))
-        from design_lab.governance.reporting import Reader, validate_ledger_contract
-        validate_ledger_contract(ROOT)
-        Reader(ROOT)
+        """Read-only cross-check: the procedural contract CI runs and my declarative schema
+        agree on the live ledger. Shelled out rather than imported -- ``design_lab.governance``
+        is an active concurrent-edit zone, and an import error in someone else's file must not
+        turn this module into a pile of errors. Compared, not merged: that module owns the
+        rules a JSON Schema cannot say."""
+        script = ROOT / 'design-lab' / 'scripts' / 'verify_task_ledger_contract.py'
+        result = subprocess.run([sys.executable, '-B', str(script)], capture_output=True,
+                                text=True, encoding='utf-8', errors='replace', cwd=ROOT)
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        self.assertIn('TASK_LEDGER_CONTRACT=OK', result.stdout)
 
 
 class MutatedFailureModes(unittest.TestCase):
