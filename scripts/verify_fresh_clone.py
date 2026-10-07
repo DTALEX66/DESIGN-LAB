@@ -74,8 +74,8 @@ def clear_previous_clone(path: Path) -> str | None:
 
     This used to be `shutil.rmtree(path, ignore_errors=True)`, which hid a real
     failure: a nested clone contains paths long enough that plain deletion on Windows
-    does not clear the tree, the directory survived, and the very next line's
-    `git clone` then failed with "destination path already exists". The gate reported
+    does not clear the tree, the directory survived, and the very next line's clone
+    failed with "destination path already exists". The gate reported
     FAIL against the *clone* stage while the actual cause was the leftover, and the
     error text was discarded. The `\\\\?\\` prefix opts the path into Win32 long-path
     handling; if removal still fails, the failure is named instead of swallowed.
