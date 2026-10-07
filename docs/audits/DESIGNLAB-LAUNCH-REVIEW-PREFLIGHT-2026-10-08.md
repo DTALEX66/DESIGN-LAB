@@ -558,4 +558,33 @@ NOT_REVIEWED,不能被措辞成已经在流程里**(`interop/delivery_receipt.py
 —— 一条没人调用的门只是文档。门已注册,聚合现为 62 项;`test_gate_reachability` 4 条仍绿。
 
 
+## 13. 第八段:同一约定还有两处没人测过的读取,这次是实测到的(2026-10-08 追加)
+
+§12 的门只保证"语句里说了哪个版本是当前版本",它不检查**一个资产登记多个文件**的情形。
+顺着这条线又找到两处同类读取,而且 `NativeAssets.list` / `Bundles.list` / `verify()`
+**过去没有任何测试**(仓里只剩 `test_bundles_list.py` 的 `__pycache__` 残骸,源文件早已不在):
+
+- 两处列表都 `JOIN artifact`,于是一个资产登记了 preview 就在清单里出现两次;
+- `verify()` 与 `content()` 一样要求 `len(rows) == 1`,否则 `NATIVE_ASSET_NOT_FOUND`。
+
+区别是这次缺陷是**测出来的**,不是读出来的:
+`.project-local/tmp/falsify_native_listing_rows.py` 把新增的"取 deliverable、按 role 再按 path
+的唯一 artifact 子查询"删掉之后,`test_verify_still_answers_for_an_asset_that_registered_a_preview`
+以产品自己抛的 `ImageAssetError(404)` 变红 —— 一个就在磁盘上的资产回答"不存在";清单重复那条同批变红。
+
+修法是同一句约定:`f.artifact_id = (SELECT g.artifact_id FROM artifact g WHERE g.version_id =
+v.version_id ORDER BY CASE g.role WHEN 'deliverable' THEN 0 ELSE 1 END, g.path LIMIT 1)`。
+预览文件的**名字故意排在 `native.psd` 之前**,所以只按 path 排序的写法会送错字节。
+5 条新用例通过(含"未知资产仍按正确理由 404",防止修复把"没有行"偷换成"成功");
+`verify_current_version_rule` 仍 `OK statements=11 RULED=8 PINNED=3 UNRULED=0`。
+
+两条反证脚本自己也各修了一次分类错误,记下来是因为它们都会伪装成"门有效":
+1. 我原先把"以 ERROR 变红"一律当成可疑(纪律是"断言失败而不是 ERROR 才算感到"),但这里 ERROR
+   恰是产品自己抛的 404。把 SyntaxError/ImportError/sqlite 错误与产品异常分开之后判定才正确。
+2. `falsify_acceptance_denominator_ui.py` 第一次跑出两个假"感到",因为它只改 `shell.ts`,而
+   appshell 门在 vm 里执行的是 `build/main.js`(源码只在另一段里被 grep)。它现在先 `vite build`,
+   构建失败就拒绝跑门。
+
+
+
 

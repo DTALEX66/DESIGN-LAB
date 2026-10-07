@@ -27,6 +27,8 @@ class NativeAssets:
  WHERE a.project_id=? AND a.asset_kind IN ('psd','ai') AND v.state='ACTIVE'
  AND a.asset_id LIKE 'native-%' AND (? IS NULL OR a.asset_id=?) AND a.asset_id>?
  AND v.version_no=(SELECT MAX(b.version_no) FROM asset_version b WHERE b.asset_id=a.asset_id AND b.state='ACTIVE')
+ AND f.artifact_id=(SELECT g.artifact_id FROM artifact g WHERE g.version_id=v.version_id
+   ORDER BY CASE g.role WHEN 'deliverable' THEN 0 ELSE 1 END, g.path LIMIT 1)
  ORDER BY a.asset_id LIMIT 101''',(project_id,asset_id,asset_id,after)).fetchall()
 
     @staticmethod
@@ -92,6 +94,8 @@ class Bundles:
  AND v.state='ACTIVE'
  AND v.version_no=(SELECT MAX(b.version_no) FROM asset_version b
                    WHERE b.asset_id=a.asset_id AND b.state='ACTIVE')
+ AND f.artifact_id=(SELECT g.artifact_id FROM artifact g WHERE g.version_id=v.version_id
+   ORDER BY CASE g.role WHEN 'deliverable' THEN 0 ELSE 1 END, g.path LIMIT 1)
  ORDER BY a.asset_id LIMIT 101''',(project_id,)).fetchall()
         return {'bundles':[dict(id=r['asset_id'],kind='design-bundle',version_id=r['version_id'],
             version_no=r['version_no'],byte_size=r['byte_size'],
