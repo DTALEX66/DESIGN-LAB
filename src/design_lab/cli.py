@@ -133,6 +133,47 @@ def main(argv=None):
     quality.add_argument('--record-id', dest='record_id', default=None,
                          help='explicit quality_record_id, so a retry of a submission is '
                               'refused as taken instead of appending a second record')
+    # 2026-10-08: the RIGHTS gate reachable from the product, in the same shape as
+    # `quality` above. Every write input is optional at the parser level so a missing one
+    # is answered in this file's own JSON error vocabulary rather than as argparse usage
+    # text -- an operator scripting this verb gets a machine-readable reason either way.
+    rights = commands.add_parser(
+        'rights',
+        help='record one human rights decision, or --record omitted: read back what is '
+             'filed, what stands per use scope, and what none of it proves')
+    rights.add_argument('--project-id', default=None, help='owning project id (32 hex)')
+    rights.add_argument('--record', action='store_true',
+                        help='append one decision; without it this verb reads back and writes '
+                             'nothing')
+    rights.add_argument('--scope', default=None,
+                        help='use_scope the decision is about, e.g. commercial-print '
+                             '(required with --record)')
+    rights.add_argument('--decision', default=None,
+                        help='one of the contract enum: APPROVED, DENIED, PENDING_REVIEW, '
+                             'BLOCKED_BY_LICENSE (required with --record)')
+    rights.add_argument('--decided-by', dest='decided_by', default=None,
+                        help='who signed the decision; an actor that names automation is '
+                             'refused by name (required with --record)')
+    rights.add_argument('--decided-at', dest='decided_at', default=None,
+                        help='RFC 3339 timestamp of the decision, e.g. 2026-10-08T00:00:00Z; '
+                             'nothing is defaulted, because a timestamp this verb invented is '
+                             'not the moment a human decided (required with --record)')
+    rights.add_argument('--actor-kind', dest='actor_kind', default=None,
+                        help='HUMAN or PANEL; declared as a column the contract cannot carry, '
+                             'so a CLI-filed decision is a declared human signature rather '
+                             'than a name-checked one (required with --record)')
+    rights.add_argument('--decision-id', dest='decision_id', default=None,
+                        help='explicit decision_id, so a retry of a submission is refused as '
+                             'taken instead of appending a second decision')
+    rights.add_argument('--territory', default=None,
+                        help='territory the approval covers (optional)')
+    rights.add_argument('--license-ref', dest='license_ref', default=None,
+                        help='the licence or terms this decision was taken under (optional)')
+    rights.add_argument('--note', default=None,
+                        help='what the decision-maker stated about it (optional)')
+    rights.add_argument('--supersedes', default=None,
+                        help='decision_id this decision replaces (append-only: the replaced '
+                             'decision stays readable, and it must be about the same scope)')
     projects = commands.add_parser('projects').add_subparsers(dest='action', required=True)
     projects.add_parser('list')
     projects.add_parser('create').add_argument('--name', required=True)
@@ -341,6 +382,83 @@ def main(argv=None):
                     # Kept because a refusal that escaped unlabelled must not traceback.
                     print(json.dumps({'status': 'ERROR', 'error': 'QUALITY_RECORD_REFUSED',
                                       'detail': str(exc)}, ensure_ascii=False))
+                    return 2
+        elif args.command == 'rights':
+            from contextlib import closing
+            from .assurance import rights_ledger
+            from .rights_review import readback as rights_readback
+            if not args.project_id:
+                print(json.dumps({'status': 'ERROR', 'error': 'RIGHTS_PROJECT_REQUIRED',
+                                  'detail': 'rights needs --project-id; the state database '
+                                            'holds every project of this owner and a read must '
+                                            'not guess one'}, ensure_ascii=False))
+                return 2
+            if service.get_project(args.project_id) is None:
+                # Checked before anything opens the database: a read for an unknown project
+                # id must not create runtime state, and it must not read as an empty honest
+                # "nothing filed yet" for a project that does not exist.
+                print(json.dumps({'status': 'ERROR', 'error': 'RIGHTS_PROJECT_UNKNOWN',
+                                  'detail': f'project {args.project_id} is not recorded in '
+                                            'this owner root', 'create_with': 'design-lab '
+                                            '--project <dir> projects create --name <name>'},
+                                 ensure_ascii=False))
+                return 2
+            if args.record:
+                missing_inputs = [name for name, value in (
+                    ('--scope', args.scope), ('--decision', args.decision),
+                    ('--decided-by', args.decided_by), ('--decided-at', args.decided_at),
+                    ('--actor-kind', args.actor_kind))
+                    if not (isinstance(value, str) and value.strip())]
+                if missing_inputs:
+                    # No default actor, no default timestamp, no default decision: a rights
+                    # decision this verb cannot attribute to a named human is not one the
+                    # product may file on anyone's behalf.
+                    print(json.dumps({'status': 'ERROR',
+                                      'error': 'RIGHTS_RECORD_INPUTS_REQUIRED',
+                                      'detail': 'recording needs ' + ', '.join(missing_inputs)
+                                                + '; omit --record to read the decisions '
+                                                  'already filed'}, ensure_ascii=False))
+                    return 2
+                # The document is assembled from the flags and validated against the loaded
+                # contract; this verb owns no copy of the contract's field list. An optional
+                # field the operator did not state stays absent rather than being filled in.
+                document = {'schemaVersion': rights_ledger.CONTRACT_VERSION,
+                            'decision_id': args.decision_id or rights_ledger.new_decision_id(),
+                            'use_scope': args.scope, 'decision': args.decision,
+                            'decided_by': args.decided_by, 'decided_at': args.decided_at}
+                for _flag, name in (('--territory', 'territory'),
+                                    ('--license-ref', 'license_ref'), ('--note', 'note')):
+                    value = getattr(args, name)
+                    if isinstance(value, str) and value.strip():
+                        document[name] = value
+            with closing(rights_ledger.connect(
+                    service.paths.database_path(service.database),
+                    project_root=service.paths.project_root)) as rights_conn:
+                try:
+                    if args.record:
+                        stored = rights_ledger.record(rights_conn, project_id=args.project_id,
+                                                      document=document,
+                                                      actor_kind=args.actor_kind,
+                                                      supersedes=args.supersedes)
+                        view = rights_readback(rights_conn, args.project_id)
+                        # The receipt repeats the limits rather than summarising them away:
+                        # the person filing a licence approval is the person most likely to
+                        # over-read a CLEARED.
+                        result = {'status': 'RIGHTS_RECORDED', 'decision': stored,
+                                  'rights_clearance': view['rights_clearance'],
+                                  'approved_scope_count': view['approved_scope_count'],
+                                  'filed_scope_count': view['filed_scope_count'],
+                                  'decision_count': view['decision_count'],
+                                  'does_not_prove': view['does_not_prove']}
+                    else:
+                        result = {'status': 'RIGHTS_READBACK',
+                                  **rights_readback(rights_conn, args.project_id)}
+                except rights_ledger.RightsLedgerError as exc:
+                    # Every refusal carries the code that names the rule, so an operator can
+                    # tell an unknown project from a bad decision word from an agent trying to
+                    # sign a human gate.
+                    print(json.dumps({'status': 'ERROR', 'error': exc.code, 'detail': str(exc),
+                                      'project_id': args.project_id}, ensure_ascii=False))
                     return 2
         elif args.command == 'native-recovery':
             from .native_tasks import NativeTaskError

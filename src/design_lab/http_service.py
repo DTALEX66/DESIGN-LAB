@@ -22,6 +22,7 @@ from .native_delivery import NativeDelivery
 from .design_layer import (DesignLayer, DesignLayerError, DESIGN_SYSTEM_NAME_PATTERN,
                            TOKEN_WRITE_FIELDS)
 from .jury_review import JuryReview, JuryReviewError
+from .rights_review import RightsReview, RightsReviewError, write_fields
 from .assurance.production_preflight import PreflightError, preflight_bundle
 from . import workbench
 
@@ -297,6 +298,13 @@ def make_server(service, token, port=0, *, local_session=False):
                     match = re.fullmatch(r'/api/projects/([0-9a-f]{32})/jury', self.path)
                     if match:
                         return self.send_json(200, JuryReview(service).list(match[1]))
+                    match = re.fullmatch(r'/api/projects/([0-9a-f]{32})/rights', self.path)
+                    if match:
+                        # The rights read-back is the same class of read as /jury: what a
+                        # human filed, what stands now, and the clearance word the stored
+                        # rows actually support. An empty ledger answers 200 with
+                        # NOT_REVIEWED rather than a 404 the page would have to guess at.
+                        return self.send_json(200, RightsReview(service).list(match[1]))
                     match = re.fullmatch(r'/api/projects/([0-9a-f]{32})/briefs(?:\?after=(brief-[0-9a-f]{32}))?', self.path)
                     if match:
                         return self.send_json(200, layer.list_briefs(match[1], match[2] or ''))
@@ -400,6 +408,19 @@ def make_server(service, token, port=0, *, local_session=False):
                             'rationale', 'created_at'}, limit=65536)
                         return self.send_json(201, JuryReview(service).record_proposal(
                             match[1], value))
+                    match = re.fullmatch(
+                        r'/api/projects/([0-9a-f]{32})/rights'
+                        r'(?:\?supersedes=([A-Za-z0-9_.:-]{1,80}))?', self.path)
+                    if match:
+                        # Exact key set, loaded from the contract itself (rights_review
+                        # .write_fields) rather than restated here: an unknown field is
+                        # refused rather than silently dropped, and a supersession link is
+                        # a column on the row, not a document field the closed schema never
+                        # declared. Superseding is how a human withdraws an approval without
+                        # editing history.
+                        value = self.body(fields=write_fields(), limit=65536)
+                        return self.send_json(201, RightsReview(service).record(
+                            match[1], value, supersedes=match[2]))
                     match = re.fullmatch(r'/api/projects/([0-9a-f]{32})/briefs', self.path)
                     if match:
                         value = self.body(fields={'title', 'goals', 'constraints', 'reference_asset_ids', 'idempotency_key'})
@@ -479,6 +500,16 @@ def make_server(service, token, port=0, *, local_session=False):
             # not granted.
             except JuryReviewError as exc:
                 self.send_json(exc.status, {'error': exc.code})
+            # Same position and same reasoning as the jury clause above: a refused rights
+            # signature has to arrive as the rule that refused it (RIGHTS_NOT_HUMAN) with
+            # the name it refused, and a stored row that no longer satisfies its own
+            # contract has to arrive as a 409, not as a retryable 400. The code is what a
+            # caller branches on; the detail is what an operator reads.
+            except RightsReviewError as exc:
+                payload = {'error': exc.code}
+                if exc.detail:
+                    payload['detail'] = exc.detail
+                self.send_json(exc.status, payload)
             # A preflight refusal is a statement about the artifact ("the archive
             # digest does not match what was approved", "a manifest member is
             # missing"), so it must reach the page intact.

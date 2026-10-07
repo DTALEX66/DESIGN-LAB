@@ -285,11 +285,16 @@
     {
       "schema": "design-lab/schemas/contracts/rights-decision.schema.json",
       "version": "design-lab/rights-decision/v1",
-      "status": "INERT",
-      "instances": [],
-      "tests": [],
+      "status": "BINDING",
+      "instances": [
+        "src/design_lab/assurance/rights_ledger.py:74"
+      ],
+      "tests": [
+        "design-lab/tests/test_rights_ledger.py:420",
+        "design-lab/tests/test_rights_http.py:118"
+      ],
       "fixtures": [],
-      "reason": "Nothing implements this. use_scope/decided_by/decided_at appear nowhere in src/. The human rights gate that exists is the approval table plus src/design_lab/creative/approval.py:101 approval_status(), whose fields are job_id/gate/approval_id/state/actor/actor_kind -- no field name in common with this document."
+      "reason": "Bound 2026-10-08. src/design_lab/assurance/rights_ledger.py loads this file at read time (contract(), lru-cached) and validates every document against it before a row is written, including the decision enum and the closed property set; src/design_lab/rights_review.py exposes the same loaded set as the route's exact key set. Nothing in the store or the facade copies the field list, so a schema word that moves moves the gate with it -- design-lab/tests/test_rights_ledger.py re-reads the SQL CHECK list against the loaded enum for exactly that reason."
     },
     {
       "schema": "design-lab/schemas/contracts/run-event.schema.json",
@@ -640,6 +645,25 @@
       "version": "design-lab/assurance-jury-record/v2",
       "emitter": "src/design_lab/assurance/human_jury.py:77",
       "reason": "An agent proposal is checked against the same contract, not merely its key set (src/design_lab/assurance/human_jury.py:330 _validate_proposal_schema)."
+    },
+    {
+      "route": "/api/projects/([0-9a-f]{32})/rights",
+      "method": "GET",
+      "kind": "SCHEMA_LESS",
+      "handler": "RightsReview",
+      "version": "design-lab/rights-readback/v1",
+      "emitter": "src/design_lab/rights_review.py:101",
+      "reason": "No schema validates this envelope -- named as debt, not as an unremarkable read. The decisions it wraps ARE bound (each is a design-lab/rights-decision/v1 document, validated by assurance/rights_ledger.py on the way in and re-validated from the stored bytes on the way out); src/design_lab/rights_review.py writes the envelope's own schemaVersion while nothing describes the envelope. The word a reader can be misled by is rights_clearance: CLEARED requires at least one filed use scope AND a current APPROVED for every filed scope, an empty ledger reads NOT_REVIEWED rather than 0-of-0 cleared, and PENDING_REVIEW is only ever a word a human filed -- never one the facade infers. design-lab/tests/test_rights_http.py asserts those rules against real responses. Closing this the way the jury readback was closed needs a rights-readback.schema.json plus a payload case in design-lab/scripts/verify_route_payload_contracts.py; that is not claimed here because it was not done."
+    },
+    {
+      "route": "/api/projects/([0-9a-f]{32})/rights(?:\\?supersedes=([A-Za-z0-9_.:-]{1,80}))?",
+      "method": "POST",
+      "kind": "BOUND_SCHEMA",
+      "handler": "RightsReview",
+      "schema": "design-lab/schemas/contracts/rights-decision.schema.json",
+      "version": "design-lab/rights-decision/v1",
+      "emitter": "src/design_lab/assurance/rights_ledger.py:74",
+      "reason": "The body's exact key set is the contract's own property names, read from the loaded schema (src/design_lab/rights_review.py write_fields) rather than restated in the dispatcher, so an unknown field is refused instead of dropped; the document is then validated against this schema before the row is written (src/design_lab/assurance/rights_ledger.py _validate_against_contract). The enum, the required trio and additionalProperties:false all come from the file named here. The one thing the schema cannot express is checked beside it: an actor that names automation is refused by name, and the signing kind is a column on the row because the closed contract has no field for it."
     },
     {
       "route": "/api/projects/([0-9a-f]{32})/briefs",

@@ -13,7 +13,15 @@ FAILS when:
   * a Python source no longer matches the recorded vocabulary (two-way);
   * the Workbench's triage sets match neither the contract nor each other;
   * a verdict/status literal appears in the UI that the service cannot emit
-    (the 'PASS' class of false claim), including inside the built bundle.
+    (the 'PASS' class of false claim), including inside the built bundle;
+  * the rights block's clearance or decision words are not exactly what
+    src/design_lab/rights_review.py emits and what the bound rights-decision
+    contract allows -- or when a block names a source file that is not there.
+    The rights words are deliberately NOT admitted into the UI status-word check
+    below: that check guards the attempt / task-preflight / artifact-preflight
+    planes, and 'APPROVED' becoming legal there is the loosening this file was
+    written to refuse. Wiring the rights panel's own UI emitter is a later step
+    and has to be wired by name.
 
 Read-only. Pure stdlib.
 """
@@ -30,6 +38,14 @@ JOB_STORE = REPO / 'src' / 'design_lab' / 'runtime' / 'job_store.py'
 TASK_RESOURCES = REPO / 'src' / 'design_lab' / 'runtime' / 'task_resources.py'
 PRODUCTION_PREFLIGHT = (REPO / 'src' / 'design_lab' / 'assurance' /
                         'production_preflight.py')
+# 2026-10-08 rights-gate reachability. The clearance words are produced by the facade, the
+# decision words by the bound contract, which `assurance/rights_ledger.py` LOADS rather than
+# copies -- so this check compares the contract file against what the contract file says,
+# and a Python copy that drifted from either side is a finding.
+RIGHTS_REVIEW = REPO / 'src' / 'design_lab' / 'rights_review.py'
+RIGHTS_LEDGER = REPO / 'src' / 'design_lab' / 'assurance' / 'rights_ledger.py'
+RIGHTS_CONTRACT = (REPO / 'design-lab' / 'schemas' / 'contracts' /
+                   'rights-decision.schema.json')
 SHELL_TS = REPO / 'apps' / 'workbench' / 'shell.ts'
 BUNDLE = REPO / 'apps' / 'workbench' / 'build' / 'main.js'
 
@@ -70,6 +86,80 @@ def py_artifact_preflight() -> tuple[set[str], set[str]]:
     outcomes = {value for _name, value in
                 re.findall(r"^([A-Z_]{3,15}) = '([A-Z_]{3,15})'$", text, re.M)}
     return verdicts, outcomes
+
+
+def py_rights() -> tuple[set[str], set[str], list[str]]:
+    """(clearance words the facade can emit, decision words the bound contract allows, notes).
+
+    The clearance set is read out of `CLEARANCE_STATES = (A, B)` with each name resolved
+    through the module's own `NAME = 'WORD'` assignments, so a docstring that quotes a word
+    is prose and not an emission -- the same rule `verify_contract_bindings.py` applies to
+    emitted versions. The decision set is read from the contract FILE, which is the point:
+    `rights_ledger.py` loads that enum instead of copying it, so a word the contract does not
+    allow cannot be declared here and a word the contract dropped cannot stay on show.
+    """
+    notes: list[str] = []
+    clearance: set[str] = set()
+    if RIGHTS_REVIEW.is_file():
+        text = RIGHTS_REVIEW.read_text(encoding='utf-8')
+        assigned = dict(re.findall(r"^([A-Z][A-Z0-9_]*) = '([A-Z][A-Z0-9_]*)'$", text, re.M))
+        anchor = re.search(r'^CLEARANCE_STATES = \((.*?)\)$', text, re.M)
+        if anchor is None:
+            notes.append('rights_review.py declares no CLEARANCE_STATES tuple, so the '
+                         'clearance vocabulary cannot be read from its emitter')
+        else:
+            names = re.findall(r'[A-Z][A-Z0-9_]*', anchor.group(1))
+            unresolved = [name for name in names if name not in assigned]
+            if unresolved:
+                notes.append(f'CLEARANCE_STATES names {unresolved}, which rights_review.py '
+                             'does not assign to a word, so the vocabulary is not resolvable')
+            clearance = {assigned[name] for name in names if name in assigned}
+    else:
+        notes.append(f'{RIGHTS_REVIEW.relative_to(REPO)} does not exist')
+    decisions: set[str] = set()
+    if RIGHTS_LEDGER.is_file():
+        if 'decision_vocabulary' not in RIGHTS_LEDGER.read_text(encoding='utf-8',
+                                                                 errors='replace'):
+            notes.append('rights_ledger.py no longer defines decision_vocabulary(), so nothing '
+                         'loads the contract enum the rights block declares')
+    else:
+        notes.append(f'{RIGHTS_LEDGER.relative_to(REPO)} does not exist')
+    if RIGHTS_CONTRACT.is_file():
+        try:
+            doc = json.loads(RIGHTS_CONTRACT.read_text(encoding='utf-8'))
+        except ValueError as exc:
+            notes.append(f'rights-decision.schema.json is not readable JSON: {exc}')
+            doc = {}
+        enum = ((doc.get('properties') or {}).get('decision') or {}).get('enum')
+        if not isinstance(enum, list) or not enum:
+            notes.append('rights-decision.schema.json declares no decision enum; a rights gate '
+                         'with no closed vocabulary accepts any word')
+        else:
+            decisions = set(enum)
+    else:
+        notes.append(f'{RIGHTS_CONTRACT.relative_to(REPO)} does not exist')
+    return clearance, decisions, notes
+
+
+def declared_source_files(contract: dict) -> list[tuple[str, str]]:
+    """Every (label, path) this contract names as an emitter.
+
+    A `sources` entry pointing at a file that is not there is the decoration this file exists
+    to refuse: a reader would believe the vocabulary has an emitter behind it.
+    """
+    named: list[tuple[str, str]] = []
+
+    def collect(block: dict, label: str) -> None:
+        for key, value in (block.get('sources') or {}).items():
+            path = str(value).split(' ')[0].split('(')[0].strip()
+            if path.startswith(('src/', 'apps/', 'design-lab/')):
+                named.append((f'{label}.{key}', path))
+
+    collect(contract, 'top')
+    for name, block in contract.items():
+        if isinstance(block, dict) and isinstance(block.get('sources'), dict):
+            collect(block, name)
+    return named
 
 
 def ts_set(name: str) -> set[str]:
@@ -141,6 +231,38 @@ def main() -> int:
     if missing:
         errors.append(f'the contract declares outcome words the emitter does not '
                       f'define: {sorted(missing)}')
+
+    # The rights vocabulary, 2026-10-08. Declared words are compared with the emitter that
+    # produces them, and an empty comparison is a finding rather than a silence.
+    rights_block = contract.get('rights')
+    if not isinstance(rights_block, dict):
+        errors.append('the contract declares no rights vocabulary, so the words the rights '
+                      'gate shows are a hand copy nobody checks')
+    else:
+        emitted_clearance, emitted_decisions, rights_notes = py_rights()
+        errors.extend(f'rights: {note}' for note in rights_notes)
+        for label, declared, emitted in (
+                ('clearance', set(rights_block.get('clearance') or []), emitted_clearance),
+                ('decision', set(rights_block.get('decisions') or []), emitted_decisions)):
+            if not declared:
+                errors.append(f'rights: NOTHING_TO_COMPARE the contract declares no '
+                              f'{label} words')
+            elif not emitted:
+                errors.append(f'rights: NOTHING_TO_COMPARE no emitter produces any {label} '
+                              'word, so the declared vocabulary proved nothing')
+            elif declared != emitted:
+                errors.append(f'rights {label} = {sorted(declared)} but the emitter produces '
+                              f'{sorted(emitted)} -- the UI would show a word nobody can '
+                              'produce, or lose one that is real')
+        if set(rights_block.get('clearance') or []) & {'PENDING', 'PENDING_REVIEW'}:
+            errors.append('rights: the clearance vocabulary offers a PENDING word. An '
+                          'untouched gate was never asked anything; only a human decision may '
+                          'say PENDING_REVIEW')
+
+    for label, path in declared_source_files(contract):
+        if not (REPO / path).is_file():
+            errors.append(f'sources/{label} names {path}, which does not exist -- a '
+                          'vocabulary with an unread source is a hand copy in disguise')
 
     # The specific regression this file exists for: the UI taught a verdict word
     # the service cannot emit. Look for the verdict-shaped literal only, so an
