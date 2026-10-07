@@ -42,11 +42,13 @@ const pw = req('playwright');
 // rendered by any screenshot round. A route that is never captured cannot fail the
 // geometry gates either, so the omission read as "the UI is audited".
 //
-// The `''` (工作台) entry is deliberately NOT here: it is not a `#route-view` page.
-// Measured -- at the landing URL `#route-view` stays present but empty and hidden, so
-// waiting on it times out. The landing surface is the app shell itself, captured by the
-// browser E2E rather than by this page loop.
+// The landing surface (工作台) is the app shell, not a `#route-view` page: measured,
+// at the landing URL `#route-view` stays present but empty and hidden, so waiting on it
+// times out. It used to be left out on the belief that the browser E2E shot it -- that
+// E2E only writes a PNG on failure (`fail.png`), so in a normal run the primary surface
+// was never captured by anything. It is captured here against its own host element.
 const PAGES = [
+  { key: 'workbench', hash: '', host: '#workspace' },
   { key: 'dashboard', hash: '#/dashboard' },
   { key: 'projects', hash: '#/projects' },
   { key: 'project-detail', hash: null, dynamic: true },
@@ -185,17 +187,29 @@ for (const width of widths) {
   const { ctx, page } = await openWorkspace(width);
   for (const p of PAGES) {
     const hash = pageHash(p);
-    await page.goto(serviceUrl + '/workbench' + hash, { waitUntil: 'load' });
-    await page.locator('#route-view').waitFor({ state: 'visible', timeout: 20000 });
-    await page.waitForFunction(() =>
-      !document.querySelector('#route-view .view-loading'), null, { timeout: 30000 })
+    const host = p.host || '#route-view';
+    if (p.host) {
+      // The landing surface reveals itself only while the session token lives in
+      // THIS document's closure (`show()` hides #workspace whenever !connected), so a
+      // reload cannot reach it -- it would capture the connect form and call it the
+      // workbench. Step out to a routed view and back with same-document hash changes
+      // so the token survives and the hashchange actually fires.
+      await page.evaluate(() => { window.location.hash = '#/dashboard'; });
+      await page.locator('#route-view').waitFor({ state: 'visible', timeout: 20000 });
+      await page.evaluate(() => { window.location.hash = ''; });
+    } else {
+      await page.goto(serviceUrl + '/workbench' + hash, { waitUntil: 'load' });
+    }
+    await page.locator(host).waitFor({ state: 'visible', timeout: 20000 });
+    await page.waitForFunction((sel) =>
+      !document.querySelector(sel + ' .view-loading'), host, { timeout: 30000 })
       .catch(() => problems.push(`loading-timeout@${width} ${p.key}`));
     // KPI count-up is JS-driven, so a mid-animation frame would freeze a wrong
     // number into the evidence; wait until every readback value has settled.
-    await page.waitForFunction(() => Array.from(
-        document.querySelectorAll('#route-view strong[data-count]'))
+    await page.waitForFunction((sel) => Array.from(
+        document.querySelectorAll(sel + ' strong[data-count]'))
       .every((n) => (n.textContent || '').trim() === n.dataset.count),
-    null, { timeout: 8000 }).catch(() => problems.push(`kpi-settle-timeout@${width} ${p.key}`));
+    host, { timeout: 8000 }).catch(() => problems.push(`kpi-settle-timeout@${width} ${p.key}`));
     await page.waitForTimeout(400);
     const file = `${String(shots.length).padStart(2, '0')}-${p.key}@${width}.png`;
     const filePath = path.join(outDir, file);
@@ -205,16 +219,17 @@ for (const width of widths) {
     // re-describes a screenshot is a second, unbound source of truth, and this
     // file already has one fabricated round behind it; quoting the manifest
     // instead means the same bytes back both.
-    const rendered = await page.evaluate(() => ({
-      kpis: Array.from(document.querySelectorAll('#route-view .kpi')).map((card) => ({
+    const rendered = await page.evaluate((sel) => ({
+      host: sel,
+      kpis: Array.from(document.querySelectorAll(sel + ' .kpi')).map((card) => ({
         value: (card.querySelector('strong') || {}).textContent?.trim() ?? '',
         label: (card.querySelector('small') || {}).textContent?.trim() ?? '',
         note: (card.querySelector('.trend') || {}).textContent?.trim() ?? '',
       })),
-      headings: Array.from(document.querySelectorAll('#route-view h2, #route-view h3'))
+      headings: Array.from(document.querySelectorAll(sel + ' h2, ' + sel + ' h3'))
         .map((h) => h.textContent.trim()).slice(0, 14),
-      unreadBack: /未读回|未连接/.test(document.querySelector('#route-view')?.textContent ?? ''),
-    }));
+      unreadBack: /未读回|未连接/.test(document.querySelector(sel)?.textContent ?? ''),
+    }), host);
     shots.push({
       file,
       page: p.key,
