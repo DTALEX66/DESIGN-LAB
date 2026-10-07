@@ -20,6 +20,7 @@ from .native_workers import NativeWorkers
 from .native_assets import Bundles, NativeAssets
 from .native_delivery import NativeDelivery
 from .design_layer import DesignLayer, DesignLayerError
+from .jury_review import JuryReview, JuryReviewError
 from . import workbench
 
 
@@ -264,6 +265,9 @@ def make_server(service, token, port=0, *, local_session=False):
                     match = re.fullmatch(r'/api/projects/([0-9a-f]{32})/design-layer', self.path)
                     if match:
                         return self.send_json(200, layer.get_design_layer(match[1]))
+                    match = re.fullmatch(r'/api/projects/([0-9a-f]{32})/jury', self.path)
+                    if match:
+                        return self.send_json(200, JuryReview(service).list(match[1]))
                     match = re.fullmatch(r'/api/projects/([0-9a-f]{32})/briefs(?:\?after=(brief-[0-9a-f]{32}))?', self.path)
                     if match:
                         return self.send_json(200, layer.list_briefs(match[1], match[2] or ''))
@@ -326,6 +330,25 @@ def make_server(service, token, port=0, *, local_session=False):
                         value = self.body(fields={'content_base64', 'idempotency_key'}, limit=45_000_256)
                         return self.send_json(201, ImageAssets(service).import_image(match[1], **value))
                     layer = DesignLayer(service)
+                    match = re.fullmatch(r'/api/projects/([0-9a-f]{32})/jury/verdict', self.path)
+                    if match:
+                        # The exact key set is the point: an unknown field is refused
+                        # rather than silently dropped, and `juror`/`criteria` stay
+                        # nested for the contract layer to validate.
+                        value = self.body(fields={
+                            'schemaVersion', 'kind', 'jury_record_id', 'subject_ref',
+                            'artifact_sha256', 'juror', 'criteria', 'verdict',
+                            'decided_at', 'supersedes', 'evidence_refs'}, limit=65536)
+                        return self.send_json(201, JuryReview(service).record_verdict(
+                            match[1], value))
+                    match = re.fullmatch(r'/api/projects/([0-9a-f]{32})/jury/proposal', self.path)
+                    if match:
+                        value = self.body(fields={
+                            'schemaVersion', 'kind', 'proposal_id', 'subject_ref',
+                            'artifact_sha256', 'proposer', 'criteria', 'suggested_verdict',
+                            'rationale', 'created_at'}, limit=65536)
+                        return self.send_json(201, JuryReview(service).record_proposal(
+                            match[1], value))
                     match = re.fullmatch(r'/api/projects/([0-9a-f]{32})/briefs', self.path)
                     if match:
                         value = self.body(fields={'title', 'goals', 'constraints', 'reference_asset_ids', 'idempotency_key'})
@@ -381,6 +404,12 @@ def make_server(service, token, port=0, *, local_session=False):
             except NativeTaskError:
                 self.send_json(409, {'error':'NATIVE_TASK_REQUIRES_RECONCILIATION'})
             except DesignLayerError as exc:
+                self.send_json(exc.status, {'error': exc.code})
+            # Before the generic ValueError clause: a refused jury signature carries
+            # the reason ("an agent-signed verdict is refused: juror kind 'CODEX'"),
+            # and collapsing it to INVALID_REQUEST would hide why a human gate was
+            # not granted.
+            except JuryReviewError as exc:
                 self.send_json(exc.status, {'error': exc.code})
             except ImportError:
                 self.send_json(503, {'error': 'IMAGE_DEPENDENCY_UNAVAILABLE'})
