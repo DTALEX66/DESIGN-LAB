@@ -9,34 +9,39 @@
   },
   "fresh": false,
   "freshnessMeaning": "at generation only; check verifies bound-input integrity, not current Git or cloud state",
-  "generatedAt": "2026-10-07T16:50:33+00:00",
+  "generatedAt": "2026-10-07T22:56:49+00:00",
   "gitStateMeaning": "generation-time observation, not current HEAD",
   "local": {
     "branch": "qoder/designlab-backup-consistency-20261007",
     "origin_main": "fc03a3033e900a8066d863a223636cc68804c4fa",
-    "sha": "dcc27769d763dc2f5aa0f1586bc57f8c896269e6",
+    "sha": "dd2d685ca0de8861130f6523c316f6012529df27",
     "source_worktree_clean": false,
-    "tracked_files": 3007,
+    "tracked_files": 3067,
     "worktree_changes": [
       {
-        "content": "sha256:c0c8cc799e8109e5636aec30c308a3baaea7bd242bcb930f208489302cc70375",
+        "content": "sha256:eedd6cc60c001781e87fdd42a30d1cef8e748548faa2f8966f2e7d00f8db9fa5",
         "kind": "M",
-        "path": "design-lab/tests/test_evidence_artifact_presence.py"
+        "path": "design-lab/config/task-ledger-r3.json"
+      },
+      {
+        "content": "sha256:80e49ccfa635601690619793574831bfeffe0d3367aba31252d01301bfaaf8e0",
+        "kind": "M",
+        "path": "src/design_lab/assurance/quality_store.py"
       }
     ],
-    "worktree_digest": "sha256:4a41d34ca9503acebe675d42c458350b317bb8559c950d0b9929a493bea9e522"
+    "worktree_digest": "sha256:a0b6abe22f345f6f229d33d0ea8ed7f487b984ae6be55699effd3ec6d3546a6c"
   },
   "note": "No GitHub API query was run by this generator; tool installation is not inferred.",
   "remoteRef": "origin/main (local tracking ref)",
   "schemaVersion": "design-lab/cloud-baseline/v2",
   "subjectMeaning": "subjectType=WORKTREE means the tree was dirty at generation; worktreeDigest covers HEAD plus the non-generated changes",
-  "subjectSha": "dcc27769d763dc2f5aa0f1586bc57f8c896269e6",
+  "subjectSha": "dd2d685ca0de8861130f6523c316f6012529df27",
   "subjectType": "WORKTREE",
   "taskpackHash": "31dde89eb4ede81fe88c0a5c5144adfb86af8db4c4d8c263bde2199180369b69",
   "taskpackId": "DL-TP-20260908-R5",
-  "testRunAt": "2026-10-07T16:45:44+00:00",
-  "testRunId": "testrun-20261007T164349Z-forward-repeat-9936bc9f0edd",
-  "testRunMeaning": "bound run: python scripts/run_bound_test_suite.py --modules test_workbench_overflow_gate test_workbench_contrast_gate test_workbench_ui_audit_gate test_workbench_design_layer_e2e test_personal_launch_session test_project_backup test_capability_library --label launch-and-backup-gates-5cc5380e",
+  "testRunAt": "2026-10-07T22:56:21+00:00",
+  "testRunId": "testrun-20261007T225537Z-forward-repeat-c8ba1f15db94",
+  "testRunMeaning": "bound run: python scripts/run_bound_test_suite.py --label wave-20261008-final-binding-pass --modules test_handoff_readiness test_rights_registry_gate test_rights_ledger test_rights_http test_rights_ui_contract test_research_store test_research_http test_capability_self_description_gate test_workbench_css_single_definition test_contract_bindings test_backup_watches_written_tables test_current_version_rule test_quality_store test_gate_reachability test_route_payload_contracts test_delivery_evidence_ui_contract test_ledger_schema test_state_vocabularies_gate",
   "testRunResult": "OK",
   "unavailable": [
     "currentRemoteSha",
@@ -45,5 +50,5 @@
     "branchProtection"
   ],
   "worktreeClean": false,
-  "worktreeDigest": "sha256:4a41d34ca9503acebe675d42c458350b317bb8559c950d0b9929a493bea9e522"
+  "worktreeDigest": "sha256:a0b6abe22f345f6f229d33d0ea8ed7f487b984ae6be55699effd3ec6d3546a6c"
 }

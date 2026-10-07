@@ -4,7 +4,7 @@
     "DL-TP-20260914-DEEPSEEK-AUTHORITY-R1::DLDS-I000",
     "DL-TP-20260914-DEEPSEEK-AUTHORITY-R1::DLDS-I010"
   ],
-  "checked_at": "2026-10-06T20:01:21+00:00",
+  "checked_at": "2026-10-07T18:54:48+00:00",
   "subject_sha": "",
   "I000_destructive_operations": {
     "doctrine": "plan -> candidate list -> backup/digest -> verification -> rollback -> receipt",
@@ -88,9 +88,24 @@
     ],
     "blind_scan_production_callers": [],
     "execution_holds_attempt_lock": true,
+    "native_recovery_decision": {
+      "decision_entry_exists": true,
+      "decision_production_callers": [
+        "src/design_lab/cli.py"
+      ],
+      "start_up_readback_callers": [
+        "src/design_lab/cli.py"
+      ],
+      "decision_requires_authorization": true,
+      "decision_refuses_live_run": true,
+      "decision_reaches_verified_entries": true,
+      "decision_never_dispatches": true,
+      "readback_invents_no_verdict": true
+    },
     "tests": [
       "design-lab/tests/test_runtime_attempt_safety.py",
-      "design-lab/tests/test_boot_reconciliation.py"
+      "design-lab/tests/test_boot_reconciliation.py",
+      "design-lab/tests/test_native_tasks.py"
     ],
     "findings": [],
     "ok": true

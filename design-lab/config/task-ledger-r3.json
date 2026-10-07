@@ -3,7 +3,7 @@
   "taskpack": "DL-TP-20260908-R5",
   "plan_path": "docs/history/taskpacks/r5-20260908/02-TASKS.md",
   "baseline_sha": "ed8d45ab2857b312f6056c43f7bb5e19dd9b65eb",
-  "updated_at": "2026-10-07T16:30:26Z",
+  "updated_at": "2026-10-07T22:56:36Z",
   "source": {
     "path": "docs/history/taskpacks/r5-20260908/tasks.json",
     "sha256": "31dde89eb4ede81fe88c0a5c5144adfb86af8db4c4d8c263bde2199180369b69"
@@ -7018,6 +7018,754 @@
         }
       ],
       "note": "Backup and restore consistency, on top of live main fc03a303. Four defects reproduced then fixed (see docs/audits/DESIGNLAB-BACKUP-CONSISTENCY-2026-10-08.md): state.db was archived as raw bytes so WAL-committed rows were lost; a '#' in the runtime root made the naive file-URI form read user_version 0 for a database whose real version is 7 (measured on this machine), which is the number the compatibility gate trusts; the archive was opened before members were enumerated so it could enumerate itself; restore wrote straight into the target, leaving a half-replaced project on failure. A project-level write barrier now reads the writer lease, the publication journal, the host guard and the attempt row before and after capture, and compares monotonic counters -- without those, a publication that starts and finishes inside the window leaves both reads empty and a set difference calls it consistent. Restore re-hashes every artifact row against the archived bytes and counts rows it cannot judge as unverifiable rather than passing them.\nEleven axes: CONTRACT ok (backup-manifest v1 unchanged; sourceLocalRoot and productionQuiescence added, both optional on read) / BACKEND ok / FRONTEND not touched by this change / PERSISTENCE ok / HOST_OR_GENERATOR not applicable here / READBACK ok (37 cases read bytes back, including a real PNG through ProjectService+ImageAssets restored into a different owner root) / QUALITY not claimed / RIGHTS not claimed / PREFLIGHT ok for backup only / DELIVERY not claimed / EVIDENCE ok (this record, bound to an exact commit and a bound-run manifest).\nEvidence level: E2 CONTROLLED_RUNTIME. Synthetic state roots driven through real product code paths; no real host, so host_live stays PARTIAL. Nine gates were falsified against weakened copies of the product module and each went red for the reason it claims to catch (.project-local/tmp/falsify_backup_gates.py); two of them caught my own errors first: comparing expires_at in SQL made every live lease look expired because SQLite orders REAL below TEXT, and publish_version does not release the writer lease so the PREPARED-journal gate was never reached.\nOpen in this task: the asset_publication recovery journal keeps old absolute paths after a cross-root restore, so recover_publications(store_root=new) selects by store_root=?, finds nothing, and silently skips a PREPARED row; writers that never record to the state database are invisible to the barrier, which is why the archive carries tablesObserved; and a root whose database records no writer tables reports WRITES_NOT_OBSERVABLE, which restore echoes rather than upgrading to a proof. DL-R5-004 and DL-R5-005 therefore stay PARTIAL: axis states were not raised, because r5_contract.py:100 requires reassessment=REVIEWED first and that is a review judgement, not something this record may grant.\nOne skip, environment-bounded: test_linked_backup_member_is_refused cannot create a symlink here (WinError 1314, no privilege, not escalated).\nRollback: revert 71a5e974 701ace9c 707c067b 7ee682d9 on qoder/designlab-backup-consistency-20261007; the pre-port uncommitted bytes stay recoverable at rescue/designlab-personal-audit-dirty-20261007 (8eea1c320ca5f61857ff266a23be2170c09b7203)."
+    },
+    {
+      "id": "r5-009-official-launch-install-state-20261008",
+      "task_ids": [
+        "DL-R5-009"
+      ],
+      "kind": "local_test",
+      "outcome": "PASS",
+      "subject_sha": "dd2d685ca0de8861130f6523c316f6012529df27",
+      "binding": "COMMIT",
+      "observed_at": "2026-10-07T22:56:21Z",
+      "software": {
+        "python": "3.13.14 (project .venv)",
+        "platform": "Windows-11-10.0.26100-SP0",
+        "runner": "python scripts/run_bound_test_suite.py --label  -> run_id=testrun-20261007T225537Z-forward-repeat-c8ba1f15db94, tests_run=349, failures=0, errors=0, skipped=0, duration=44.011s, order=forward, worktree_clean=False",
+        "test_manifest": "sha256:e179d97a432a5ba05de259cab269839aafc0e5fcf3dc0739e52c3319804df17d",
+        "worktree_digest": "sha256:c8ba1f15db94b58167ab04d075f9a2927ec49ac8a179bca4aea8ff512de58133"
+      },
+      "subject_files": {
+        "src/design_lab/cli.py": "664e0b96709c9fcb1d722f38f4caf7e5d4ff65b3bdd9295b867ade224fd96e74",
+        "src/design_lab/http_service.py": "92ed4446cfd86e89b663c3558c224d8311f9c56d555be61dd1a18ed6cb80489e",
+        "src/design_lab/analysis/capability_library.py": "7d84c46eff26e062c479e568caac153135ef09922c226f8091387f81610c9516",
+        "pyproject.toml": "0bb4a587855415993b3ff277b5d9dde9c3d3ad57b7526e6aa60434c9d275ba60",
+        "design-lab/tests/test_personal_launch_session.py": "674f036ddc004db1bdb70f052567eebd8096af52019711f1e5117b5d22d249e3",
+        "design-lab/tests/test_workbench_launch.py": "d0ba589e3486bbbcbf3e2ded90cd2305512e04373f5fbae29de7ef042897293a"
+      },
+      "artifacts": [
+        {
+          "path": "docs/audits/DESIGNLAB-LAUNCH-REVIEW-PREFLIGHT-2026-10-08.md",
+          "sha256": "9e8ebf3b9689592d4d5dd21560db3df416c458f8c984e80b51c53f6595a4cf0d"
+        }
+      ],
+      "note": "Official launch connects its own page and the install state is measured, not assumed. `design-lab workbench` no longer prints a one-time token: the page the service opens picks the session up through GET /api/local-session, answered only when Sec-Fetch-Site is exactly same-origin -- deliberately narrower than `guard`, which tolerates an absent Sec-Fetch-Site and is fine for serving a page but not for handing over a credential. `--manual-connect` keeps the old behaviour for external launchers. OSError winerror 206 is split out of PROJECT_STORE_UNAVAILABLE as PROJECT_PATH_TOO_LONG, because a long path is the real Windows failure here and reporting it as 'store unavailable' sends the operator to the database instead of to where the project lives. capability_library.py inferred the repo root with parents[3], so an installed wheel could not read its four inputs and failed closed as PROJECT_STORE_UNAVAILABLE -- a diagnosis pointing at the wrong subsystem; the inputs now ship in the wheel and resolve install-first. Install state proved at this HEAD rather than inherited from an earlier receipt: uv build -> clean uv venv -> install -> the wheel's own design_lab/resources/workbench/build/main.js is byte-identical to the committed bundle -> four capability-library inputs shipped -> test_workbench_launch ran 3 cases with ZERO skips under DL_LAUNCH_INSTALLED=1 (a source checkout skips that case, so a local OK there proves nothing). Two process defects surfaced on the way and are recorded instead of hidden: `uv build --out` is the wrong flag, the build failed, and the install step silently used a wheel from the previous day -- the harness now deletes the artifact and compares member bytes; and the launch command itself was broken by this wave (see the recovery record) and found only by this proof, not by the gates I had chosen. E2 CONTROLLED_RUNTIME: real interpreter, real venv, real HTTP; no host, so host_live and delivery stay PARTIAL."
+    },
+    {
+      "id": "r5-014-human-jury-persistence-and-ui-20261008",
+      "task_ids": [
+        "DL-R5-014"
+      ],
+      "kind": "local_test",
+      "outcome": "PASS",
+      "subject_sha": "dd2d685ca0de8861130f6523c316f6012529df27",
+      "binding": "COMMIT",
+      "observed_at": "2026-10-07T22:56:21Z",
+      "software": {
+        "python": "3.13.14 (project .venv)",
+        "platform": "Windows-11-10.0.26100-SP0",
+        "runner": "python scripts/run_bound_test_suite.py --label  -> run_id=testrun-20261007T225537Z-forward-repeat-c8ba1f15db94, tests_run=349, failures=0, errors=0, skipped=0, duration=44.011s, order=forward, worktree_clean=False",
+        "test_manifest": "sha256:e179d97a432a5ba05de259cab269839aafc0e5fcf3dc0739e52c3319804df17d",
+        "worktree_digest": "sha256:c8ba1f15db94b58167ab04d075f9a2927ec49ac8a179bca4aea8ff512de58133"
+      },
+      "subject_files": {
+        "src/design_lab/assurance/jury_store.py": "69c7c738fce9d5114e33e4fe71d218425e78478ce6d9206f329e88ee48f6923d",
+        "src/design_lab/jury_review.py": "f44a2fef0fcdd5baf766a9302ef8920e5c3be7e7b479618e69dd6b6230656f08",
+        "design-lab/schemas/state/design-lab-state-jury-v1.sql": "47aade9ef7fb9aa40923d9a09c6a4ac99f21c2afc53fe7ac97809553fad470b1",
+        "design-lab/tests/test_jury_store.py": "a8091c21637e55bbef644f9a2f7316b89f4fb64e5fd390177218fae9f45cdfab",
+        "design-lab/tests/test_jury_http.py": "9768255e552420ea5f85dd37fe755cccd1b369f575cffeffc5da8434b76329ed",
+        "design-lab/tests/test_jury_review_form_contract.py": "321f275a0aced928d3ba962ccf3983f3369695799b1a1c3f4bc0060aa02eafe0",
+        "apps/workbench/shell.ts": "75fb84d8e80d33210c741f82b393623c094fbf259b6530a9ac4c3d40b97433c7"
+      },
+      "artifacts": [
+        {
+          "path": "docs/audits/DESIGNLAB-LAUNCH-REVIEW-PREFLIGHT-2026-10-08.md",
+          "sha256": "9e8ebf3b9689592d4d5dd21560db3df416c458f8c984e80b51c53f6595a4cf0d"
+        }
+      ],
+      "note": "Human Jury moved from a validator to a usable capability. human_jury.py had checked verdicts for a while with no table, no route and no screen: a review could not survive a restart and the page could only show a placeholder. Added: design-lab-state-jury-v1.sql as append-only with UPDATE and DELETE triggers that refuse, because rewriting a signed verdict in place is rewriting the acceptance history a project cites; jury_store.record(), which requires the verdict to bind an ACTIVE version of the same project with a matching digest, refuses agent-kind signatories by type name, forbids superseding an already-superseded record (that would fork 'the current verdict'), and never lets a proposal into the verdict column; connect() delegating to asset_store.connect so path policy and the assets-v2 migration are not implemented twice; and four routes. Replay semantics are explicit -- same commit twice replays, same id with different content is 409 -- because a browser retrying after a lost response must not mint a second signature. JuryReviewError maps before the generic ValueError clause so 'artifact_sha256 does not match the version being judged' reaches the page instead of collapsing to INVALID_REQUEST. The review column on the preflight page reads back current verdicts, proposal counts and whether human acceptance actually exists, and signs from reviewable_versions so nobody hand-copies a digest. Two gates caught my own errors: the form collected a note but no score, which the contract requires per axis (every submit would have 400ed), so test_jury_review_form_contract.py now feeds the page's own declared axes through the real validator; and the column's first version used <div class='list'>/<div class='list-item'>, which the markup convention gate caught -- those classes read as a list and are announced as nothing. E2; the verdicts in the table are synthetic fixtures, so E4 human acceptance is NOT claimed and axis states stay PARTIAL pending a reviewer's reassessment (r5_contract requires reassessment=REVIEWED before an axis may read PASS)."
+    },
+    {
+      "id": "r5-014-artifact-preflight-chain-20261008",
+      "task_ids": [
+        "DL-R5-014"
+      ],
+      "kind": "local_test",
+      "outcome": "PASS",
+      "subject_sha": "dd2d685ca0de8861130f6523c316f6012529df27",
+      "binding": "COMMIT",
+      "observed_at": "2026-10-07T22:56:21Z",
+      "software": {
+        "python": "3.13.14 (project .venv)",
+        "platform": "Windows-11-10.0.26100-SP0",
+        "runner": "python scripts/run_bound_test_suite.py --label  -> run_id=testrun-20261007T225537Z-forward-repeat-c8ba1f15db94, tests_run=349, failures=0, errors=0, skipped=0, duration=44.011s, order=forward, worktree_clean=False",
+        "test_manifest": "sha256:e179d97a432a5ba05de259cab269839aafc0e5fcf3dc0739e52c3319804df17d",
+        "worktree_digest": "sha256:c8ba1f15db94b58167ab04d075f9a2927ec49ac8a179bca4aea8ff512de58133"
+      },
+      "subject_files": {
+        "src/design_lab/assurance/production_preflight.py": "cb3693227d6781f44a5c9865916b19eca25a42a6d535f5d7470c940440bf415b",
+        "design-lab/schemas/artifact-preflight.schema.json": "c5fd722480602cb61caec64954c7c4832e723d340e50082ca0095ee63fd81249",
+        "design-lab/scripts/verify_artifact_preflight_contract.py": "790d13cbb9f9901e7954a599e853da1065ab96a3e28c682455beae1917e5e94b",
+        "design-lab/tests/test_production_preflight.py": "c718e17f4f8f62ef07c6b49f7d69bcb7ca28971a62937f874cebf2ab7b1b12a1",
+        "design-lab/tests/test_artifact_preflight_ui_contract.py": "13a0114d4f29d15d0b6181c2d754f66befcdc2bce574df0854e9c5c008f5e32e",
+        "apps/workbench/tests/appshell.mjs": "fbc8508f3736309128bb94fed89b5adf389e4a8b64a0055be1da725b3656ba89"
+      },
+      "artifacts": [
+        {
+          "path": "docs/audits/DESIGNLAB-LAUNCH-REVIEW-PREFLIGHT-2026-10-08.md",
+          "sha256": "9e8ebf3b9689592d4d5dd21560db3df416c458f8c984e80b51c53f6595a4cf0d"
+        }
+      ],
+      "note": "Production preflight of an ARTIFACT now exists and reaches the screen. Before this there were two things that looked like preflight and were not it: /api/task-preflight, which probes tools and resources for a task, and design-lab/production/preflight/check_preflight.py, which walks a directory and returns five string codes -- while profiles/*.json declared a pass|warning|fail x blocker|high|medium vocabulary nothing could emit. A declared vocabulary nobody can produce is a false-green machine: readers assume the checks ran. The emitter reports only checks the profile declares (both directions asserted, since omission and invention green-wash equally), attaches the `criterion` each verdict was judged against including where the criterion came from when the profile states no threshold, and caps the verdict at INCOMPLETE whenever anything is NOT_MEASURED -- so a PSD whose transparency flattening this build cannot inspect reports INCOMPLETE with a reason instead of inheriting a tick. Measured from real bytes with Pillow: pixel size, physical size and effective PPI where DPI is present, colour mode against profile intent, alpha, container format, and link presence and digests against the archive's own manifest. Explicitly NOT measured: bleed, safe area, overprint, transparency flattening, PDF configuration, page order, font embedding/outlining, duration, frame rate, loudness, codec, and size where no cap is declared. The route resolves the bundle from the state database by id within the project and verifies the archived bytes against the registered digest, so no path ever arrives from the browser. The Workbench column is proven twice: a static contract gate checks the profiles the page offers against the profile files AND the route's own query pattern, and appshell block 6 drives the built bundle -- no click no request, one click one request to that bundle's route, criterion on screen, a refusal replacing the previous verdict. Five product mutations each turned the right gate red. Also fixed: the payload claimed design-lab/artifact-preflight/v1 with no schema behind it anywhere -- only a TS interface -- so the schema and a checker over two real wire-serialised payloads now exist and fail on required-but-unemitted, emitted-but-forbidden, nested drift, one-sided version bumps and NOTHING_TO_COMPARE. Preflight verdicts are deliberately NOT persisted: a preflight is a computation over current bytes and re-running it is cheap, while storing PASS gives a judgement more permanence than the bytes have."
+    },
+    {
+      "id": "r5-010-cancel-unacknowledged-stops-being-invisible-20261008",
+      "task_ids": [
+        "DL-R5-010"
+      ],
+      "kind": "local_test",
+      "outcome": "PASS",
+      "subject_sha": "dd2d685ca0de8861130f6523c316f6012529df27",
+      "binding": "COMMIT",
+      "observed_at": "2026-10-07T22:56:21Z",
+      "software": {
+        "python": "3.13.14 (project .venv)",
+        "platform": "Windows-11-10.0.26100-SP0",
+        "runner": "python scripts/run_bound_test_suite.py --label  -> run_id=testrun-20261007T225537Z-forward-repeat-c8ba1f15db94, tests_run=349, failures=0, errors=0, skipped=0, duration=44.011s, order=forward, worktree_clean=False",
+        "test_manifest": "sha256:e179d97a432a5ba05de259cab269839aafc0e5fcf3dc0739e52c3319804df17d",
+        "worktree_digest": "sha256:c8ba1f15db94b58167ab04d075f9a2927ec49ac8a179bca4aea8ff512de58133"
+      },
+      "subject_files": {
+        "src/design_lab/native_tasks.py": "e8d14c2e83029331cc1d70aab8b2bd00fab8cfc1d915f2b7263c322f72741f6e",
+        "src/design_lab/task_queries.py": "3d58d36027817d48cb0fbfe4e43fa92a74c301e1ca5836894d76b8279aa31e9d",
+        "apps/workbench/contracts.ts": "8aaa8857ab5fb2f9edf3ab632fdf09c6ab9242dd4141da36126a6e1084ee3f97",
+        "apps/workbench/shell.ts": "75fb84d8e80d33210c741f82b393623c094fbf259b6530a9ac4c3d40b97433c7",
+        "design-lab/tests/test_native_tasks.py": "90b609ed8de1b902d80a3030a69ed437c960a573890564cd6392075f10db799f"
+      },
+      "artifacts": [
+        {
+          "path": "docs/audits/DESIGNLAB-LAUNCH-REVIEW-PREFLIGHT-2026-10-08.md",
+          "sha256": "9e8ebf3b9689592d4d5dd21560db3df416c458f8c984e80b51c53f6595a4cf0d"
+        }
+      ],
+      "note": "POST /tasks/<job>/cancel moved the attempt to CANCEL_REQUESTED and answered 202, and no adapter event can acknowledge a stop, so `acknowledge_cancel` -- the only path to RECONCILING -- has no production caller. That leaves two endings for a cancel asked mid-flight: the host fails (CANCELLED) or the host delivers. The second went through `_finish` and committed RECEIPTED with a note that hid the outstanding cancel, and the task readback carried no cancel fields at all, so a refused operation was indistinguishable from an uncontested completion on every surface -- including the page that tells the operator 'requesting cancellation is not the same as cancelling'. RECEIPTED is kept, because the bytes really were published and read back and inventing a state would be the other kind of lie; what changed is legibility. The attempt note now names the unacknowledged cancel, /tasks carries cancel.requested and cancel.acknowledged (COALESCEd, since a pre-v2 attempt may have no resolution row), and 交付中心 tags the row. Two unit cases pin the service half, one of them asserting that an ordinary receipt reports requested:false so the new field cannot read as always-cancelled; appshell block 6 renders the built bundle both ways. Falsified: deleting the marker trips the positive assertion, and widening the predicate to '||' trips the negative one. Still open and named: acknowledge_cancel needs a 'host stopped' event the native protocol does not have, which is a protocol question, not a wire I can add."
+    },
+    {
+      "id": "r5-004-native-recovery-reachable-20261008",
+      "task_ids": [
+        "DL-R5-004"
+      ],
+      "kind": "local_test",
+      "outcome": "PASS",
+      "subject_sha": "dd2d685ca0de8861130f6523c316f6012529df27",
+      "binding": "COMMIT",
+      "observed_at": "2026-10-07T22:56:21Z",
+      "software": {
+        "python": "3.13.14 (project .venv)",
+        "platform": "Windows-11-10.0.26100-SP0",
+        "runner": "python scripts/run_bound_test_suite.py --label  -> run_id=testrun-20261007T225537Z-forward-repeat-c8ba1f15db94, tests_run=349, failures=0, errors=0, skipped=0, duration=44.011s, order=forward, worktree_clean=False",
+        "test_manifest": "sha256:e179d97a432a5ba05de259cab269839aafc0e5fcf3dc0739e52c3319804df17d",
+        "worktree_digest": "sha256:c8ba1f15db94b58167ab04d075f9a2927ec49ac8a179bca4aea8ff512de58133"
+      },
+      "subject_files": {
+        "src/design_lab/service.py": "497aa2beffb7280aa9b92acacbc0aa6b885a78ad6bb1d68ebf9423b8ef6e3582",
+        "src/design_lab/native_tasks.py": "e8d14c2e83029331cc1d70aab8b2bd00fab8cfc1d915f2b7263c322f72741f6e",
+        "src/design_lab/cli.py": "664e0b96709c9fcb1d722f38f4caf7e5d4ff65b3bdd9295b867ade224fd96e74",
+        "scripts/verify_recovery_safety.py": "e943ce331f3ec6a1acca428fca2ea23ccac434b581d773bab2b6bf2a1727cda9",
+        "design-lab/tests/test_native_tasks.py": "90b609ed8de1b902d80a3030a69ed437c960a573890564cd6392075f10db799f"
+      },
+      "artifacts": [
+        {
+          "path": "docs/audits/DESIGNLAB-LAUNCH-REVIEW-PREFLIGHT-2026-10-08.md",
+          "sha256": "9e8ebf3b9689592d4d5dd21560db3df416c458f8c984e80b51c53f6595a4cf0d"
+        }
+      ],
+      "note": "Restart reconciliation machinery existed with no way to reach it: boot relabelled RUNNING to OUTCOME_UNKNOWN and stopped, so a project that crashed mid-host-run could never be reconciled or quiesced from the product even though reconcile_receipted and quiesce_* were implemented and tested. Now service.py exposes reconcile_interrupted_attempts / native_recovery_decisions / recovery_readback, native_tasks gained recovery_decisions plus a decide path that takes the OS attempt lock before delegating (so continue becomes a bounded worker, never an inline host call), and cli.py grew a native-recovery verb that lists without acting and refuses to decide unless --actor and --receipt are both supplied. Deliberate limit, measured rather than assumed: deciding requires a scoped human authorization, so boot cannot decide for itself -- it announces blockers, and the operator either closes the app or signs for a decision. One honest residual, stated as not-done: reconcile_receipted is now reachable but cannot complete without a live Photoshop/Illustrator, and quiesce_* needs a durable live-PID+nonce identity binding (native_host_guard_v1 has none) -- with a live PID the host is still working and the method's own contract forbids disturbing it. This slice also introduced and then fixed a severe regression: the workbench launch printed 'recovery': recovery, where `recovery` had become the argparse subparser in the same scope, so `design-lab workbench` died in json.dumps before reporting a port. It survived my own verification because I ran the task/recovery/CLI modules and not the launcher's test; the install-state proof is what surfaced it. The parser variable is renamed so nothing in scope can be printed by mistake, and restoring the bug was used to prove the launch test fails on it. The slice's gate also caught two defects in its own first draft (an inline test double whose call the real code never performs, and a claim that the old path re-dispatched when publish_version is fenced to refuse a stale writer). E2; host_live stays PARTIAL."
+    },
+    {
+      "id": "r5-005-delivery-receipt-persisted-at-publish-20261008",
+      "task_ids": [
+        "DL-R5-005"
+      ],
+      "kind": "local_test",
+      "outcome": "PASS",
+      "subject_sha": "dd2d685ca0de8861130f6523c316f6012529df27",
+      "binding": "COMMIT",
+      "observed_at": "2026-10-07T22:56:21Z",
+      "software": {
+        "python": "3.13.14 (project .venv)",
+        "platform": "Windows-11-10.0.26100-SP0",
+        "runner": "python scripts/run_bound_test_suite.py --label  -> run_id=testrun-20261007T225537Z-forward-repeat-c8ba1f15db94, tests_run=349, failures=0, errors=0, skipped=0, duration=44.011s, order=forward, worktree_clean=False",
+        "test_manifest": "sha256:e179d97a432a5ba05de259cab269839aafc0e5fcf3dc0739e52c3319804df17d",
+        "worktree_digest": "sha256:c8ba1f15db94b58167ab04d075f9a2927ec49ac8a179bca4aea8ff512de58133"
+      },
+      "subject_files": {
+        "src/design_lab/interop/delivery_receipt.py": "d2ff2a79254eb9cbb926a473d6405074edda661f8f519c0a20ed958ff7273211",
+        "src/design_lab/native_bundles.py": "084e066d817e767e4d488bc6c499a96c6651cf19b4babe80d3083803cdeb68ae",
+        "src/design_lab/native_delivery.py": "6fdcd8ce727d9073545553f7e2c0fafeaf6c92515068bcbc770b120d93d927f3",
+        "design-lab/tests/test_delivery_receipt_wiring.py": "3613b9ab9f9f63e480812c52b93aca5e4cebd39b8f92a637ec3637aa0408aed9"
+      },
+      "artifacts": [
+        {
+          "path": "docs/audits/DESIGNLAB-LAUNCH-REVIEW-PREFLIGHT-2026-10-08.md",
+          "sha256": "9e8ebf3b9689592d4d5dd21560db3df416c458f8c984e80b51c53f6595a4cf0d"
+        }
+      ],
+      "note": "build_receipt had zero production callers, so real deliveries carried no receipt document even though the v2 schema and its validator existed. export_bundle now verifies the archive, builds the receipt from those same bytes, validates it against interop-delivery-receipt-v2 INSIDE the product path, persists it and returns it with the bundle; reading a delivery re-verifies rather than trusting the stored row. What it can claim: per-member digests and sizes re-read from the published archive, host and host version, attempt/job identity, persisted publication and receipted timestamps, the C2PA projection digest, and the verified immutable source version as rollback ref. What it cannot claim, and says so: any host readback (every host_readback is null, so the delivery axis stays PARTIAL) and any rights/quality/font verdict (NOT_REVIEWED -> NOT_RUN, NOT_VERIFIED -> UNVERIFIED, never upgraded). Where a fact the document would need is unknown the code refuses with BUNDLE_RECEIPT_UNVERIFIABLE instead of filling a plausible value; input members ship as provenance ingredients rather than being counted as deliverables whose editability is unknowable. Eleven cases include persisted-plus-schema-valid receipt, identical read-back after a restart with a new service instance, project scoping, a tampered row refused, and a refuse-rather-than-invent case; seven gates falsified against weakened copies. Related finding recorded elsewhere: design-lab/schemas/contracts/delivery-receipt.schema.json is v1 and is contradicted by the shipped v2 (it requires delivery_id/delivered_at and forbids receipt_sha256/job_id/deliverables/axes) -- verified by reading both files side by side."
+    },
+    {
+      "id": "r5-005-design-system-token-write-path-20261008",
+      "task_ids": [
+        "DL-R5-005"
+      ],
+      "kind": "local_test",
+      "outcome": "PASS",
+      "subject_sha": "dd2d685ca0de8861130f6523c316f6012529df27",
+      "binding": "COMMIT",
+      "observed_at": "2026-10-07T22:56:21Z",
+      "software": {
+        "python": "3.13.14 (project .venv)",
+        "platform": "Windows-11-10.0.26100-SP0",
+        "runner": "python scripts/run_bound_test_suite.py --label  -> run_id=testrun-20261007T225537Z-forward-repeat-c8ba1f15db94, tests_run=349, failures=0, errors=0, skipped=0, duration=44.011s, order=forward, worktree_clean=False",
+        "test_manifest": "sha256:e179d97a432a5ba05de259cab269839aafc0e5fcf3dc0739e52c3319804df17d",
+        "worktree_digest": "sha256:c8ba1f15db94b58167ab04d075f9a2927ec49ac8a179bca4aea8ff512de58133"
+      },
+      "subject_files": {
+        "src/design_lab/design_layer.py": "4bc428abac8bf029bcaa6e8d2285caba1985e0a1ae432467ecbdb0f2a9349087",
+        "src/design_lab/http_service.py": "92ed4446cfd86e89b663c3558c224d8311f9c56d555be61dd1a18ed6cb80489e",
+        "src/design_lab/runtime/asset_store.py": "551dd9895cb102978fc1c320b7a6ad50b033405bc36f4675c31ade69c2f0e7bc",
+        "src/design_lab/runtime/state_resources.py": "2c25849a001f186508866a58d9cddbecf0145e14a969ce84d65693462f9980f8",
+        "design-lab/schemas/state/design-lab-state-design-layer-v4.sql": "d6b7cffbc8909fc322b539fde2e8feabd0ff7d088a9206cdcb4be953c79d04d4",
+        "design-lab/tests/test_design_system_tokens.py": "d6640eb04f154673b4497dcaaaf89a76eab508d904351559f6181229d7ea82d8",
+        "design-lab/tests/test_design_system_tokens_http.py": "7220968ec6f7b8958b551bb4efd344415224ce17d0f23a1c7b1e6066b520c868",
+        "design-lab/tests/test_design_system_token_form_contract.py": "fe882734af91019079c22096b0399a45f4cf199f2ad4a1d87d2baad29c4e7117",
+        "apps/workbench/shell.ts": "75fb84d8e80d33210c741f82b393623c094fbf259b6530a9ac4c3d40b97433c7"
+      },
+      "artifacts": [
+        {
+          "path": "docs/audits/DESIGNLAB-LAUNCH-REVIEW-PREFLIGHT-2026-10-08.md",
+          "sha256": "9e8ebf3b9689592d4d5dd21560db3df416c458f8c984e80b51c53f6595a4cf0d"
+        }
+      ],
+      "note": "Design-system TOKENS had a contract and a CLI but no write path: the workbench could list design systems and bind one, and an operator had no way to record token values and have them persisted, versioned, read back after a restart and shown. write_tokens appends one version per write under the repo's ONE writer lease (generation fenced, through a new read-only assert_writer_fence so a SQLite-only writer that owns its transaction reuses the rule instead of adding a second lock), validates the document against the DTCG schema and the canonical semantic contract BEFORE anything is persisted, and refuses with its own code per reason -- unknown design system, invalid document with the failing field path, a pre-2025.10 document rather than a silently adapted one, no validator importable (503, fail closed), stale expected_version, ambiguous live rows, idempotent replay with different content, a second writer. A published version is never mutated: the previous row only moves its superseded_by pointer, and the new v4 state schema makes rewriting or deleting a content column a DATABASE error, so a caller that bypasses the method still cannot rewrite history. Three routes plus a workbench column that reads the persisted document and its chain, with a form contract test that feeds the page's own declared shape through the real validator -- the same trick that caught the jury form emitting a document the service would always refuse. 36 cases including readback after a restart with a new service instance, lease contention, and two design systems keeping separate chains. The list-container inventory moved 31 -> 32 for this column, named in the gate's comment, because that number is an inventory that may only grow by a verified list."
+    },
+    {
+      "id": "r5-004-publication-journal-rebased-on-restore-20261008",
+      "task_ids": [
+        "DL-R5-004"
+      ],
+      "kind": "local_test",
+      "outcome": "PASS",
+      "subject_sha": "dd2d685ca0de8861130f6523c316f6012529df27",
+      "binding": "COMMIT",
+      "observed_at": "2026-10-07T22:56:21Z",
+      "software": {
+        "python": "3.13.14 (project .venv)",
+        "platform": "Windows-11-10.0.26100-SP0",
+        "runner": "python scripts/run_bound_test_suite.py --label  -> run_id=testrun-20261007T225537Z-forward-repeat-c8ba1f15db94, tests_run=349, failures=0, errors=0, skipped=0, duration=44.011s, order=forward, worktree_clean=False",
+        "test_manifest": "sha256:e179d97a432a5ba05de259cab269839aafc0e5fcf3dc0739e52c3319804df17d",
+        "worktree_digest": "sha256:c8ba1f15db94b58167ab04d075f9a2927ec49ac8a179bca4aea8ff512de58133"
+      },
+      "subject_files": {
+        "src/design_lab/runtime/project_backup.py": "41585f4bf18cd807f744da1125d249b0e3de0344d85768143c98acc134a8fa28",
+        "design-lab/tests/test_project_backup.py": "2dadc5e7d3e654bf4abb5c3a9bd20a629b8929778f11073a6b46de5a9a978b2f"
+      },
+      "artifacts": [
+        {
+          "path": "docs/audits/DESIGNLAB-LAUNCH-REVIEW-PREFLIGHT-2026-10-08.md",
+          "sha256": "9e8ebf3b9689592d4d5dd21560db3df416c458f8c984e80b51c53f6595a4cf0d"
+        }
+      ],
+      "note": "My own earlier audit record claimed the archived asset_publication journal keeps the old root, so recover_publications(store_root=new) selects store_root=?, finds nothing and silently skips the row. Confirmed against the live bytes, with a correction the worker earned: this build's quiescence barrier refuses to ARCHIVE while a PREPARED row exists, so the symptom reachable today is a COMMITTED row whose stale final_path makes the restored project raise 'publication path escapes store root' over bytes that are plainly present. Restore now rewrites exactly the four filesystem columns (store_root, stage_path, final_path, quarantine_path) of every journal row and nothing else -- state, digests, holder, generation, version_id and ids stay verbatim, because those are the signed parts -- and the store_root=? predicate is deliberately NOT widened, since matching on identity instead would let one root's recovery touch another root's rows. native_host_guard_v1 is asserted unmoved, because reviving an archived guard would let two writers share one host. The honest half is the refusal: when an archive carries no source root and the journal names paths that cannot be proven inside the target, restore refuses instead of reporting success, and a foreign path refuses outright. Five new cases, 42 in the module, 8/8 falsifications against weakened copies including the pre-change behaviour, so the failure mode is shown to have existed rather than asserted. Follow-up this record also owns: verifying the committed HEAD in an isolated worktree exposed that two of these fixtures passed locally and failed at a deeper checkout -- a restore path reaches 276 characters against Windows' 260 cap once the fixture labels are added. Labels shortened and setUp now asserts the remaining depth budget, so the next deepening fails with a number instead of an opaque WinError 206; 42 cases verified green at both depths."
+    },
+    {
+      "id": "r5-003-verification-gates-wave-20261008",
+      "task_ids": [
+        "DL-R5-003"
+      ],
+      "kind": "local_test",
+      "outcome": "PASS",
+      "subject_sha": "dd2d685ca0de8861130f6523c316f6012529df27",
+      "binding": "COMMIT",
+      "observed_at": "2026-10-07T22:56:21Z",
+      "software": {
+        "python": "3.13.14 (project .venv)",
+        "platform": "Windows-11-10.0.26100-SP0",
+        "runner": "python scripts/run_bound_test_suite.py --label  -> run_id=testrun-20261007T225537Z-forward-repeat-c8ba1f15db94, tests_run=349, failures=0, errors=0, skipped=0, duration=44.011s, order=forward, worktree_clean=False",
+        "test_manifest": "sha256:e179d97a432a5ba05de259cab269839aafc0e5fcf3dc0739e52c3319804df17d",
+        "worktree_digest": "sha256:c8ba1f15db94b58167ab04d075f9a2927ec49ac8a179bca4aea8ff512de58133"
+      },
+      "subject_files": {
+        "design-lab/scripts/verify_identity_gate.py": "11b212179738defc14c3badf5da85c28fc1c8997fad77ac6560ba589ec5ed4d9",
+        "design-lab/scripts/verify_ledger_subject_binding.py": "27f8c0df7316bfa2a8f4c909471cb7837fb939063409306c10e0b10dec13dfae",
+        "design-lab/tests/test_ledger_subject_binding.py": "642ef37fa7ec08e8ef8385455e2da69cabe3ceec9963982752a292b911db1099",
+        "design-lab/scripts/verify_state_vocabularies.py": "0132e97663946c1163fd4ee7c5940918601fa3996bcefb5ff4a52a3338d9e368",
+        "design-lab/config/state-vocabularies.json": "54460ab51c86488102351f52198cc412a1724b725ff178c980dd560ad5e51e4a",
+        "design-lab/tests/test_state_vocabularies_gate.py": "df588dfa5558f84973ba20dbe147aba3091eb3a9848bab08573962a00380c92c",
+        "design-lab/scripts/verify_design_lab.py": "670493f35240c1de8731e58d509fb3ab6e46c97d09c3beaa25a8502715e5fe44",
+        "src/design_lab/runtime/audit_trail.py": "a2eec8a429ff93e1a9964afa95f652871a482c1f27b81c603e60bc879379d924",
+        "design-lab/tests/test_audit_trail.py": "b0ec6c74c02fa5549e0a73bd3a3e9e4e66dab2464651d184cb2a5b774387f15e",
+        "design-lab/scripts/verify_contract_bindings.py": "cdaec96e48c6a5333bd96de651b895cde1c4c82653287a376aaeb21d0a3fa984",
+        "design-lab/config/contract-bindings.json": "c3a4df0e540ecdb0f4c5f01f765d56f60a43e449b518948283027b8dadfef1e0",
+        "design-lab/tests/test_contract_bindings.py": "cef3b44165a319a38c27a9ee250d5aed8b89f00106db1989a0a8667288bad850"
+      },
+      "artifacts": [
+        {
+          "path": "docs/audits/DESIGNLAB-LAUNCH-REVIEW-PREFLIGHT-2026-10-08.md",
+          "sha256": "9e8ebf3b9689592d4d5dd21560db3df416c458f8c984e80b51c53f6595a4cf0d"
+        }
+      ],
+      "note": "Five verification defects, all of the same family: a check that reports success while observing nothing. (1) verify_identity_gate.py utf-8-decoded every file under dist/, so a locally built wheel turned it red while detecting nothing and CI -- a clean checkout with no dist/ -- could never see that. A .whl is a zip and a zip is where a legacy package name actually travels, so containers are now matched by MEMBER NAME and an unopenable container fails closed; measured first that both containers in the active tree are clean by name, and recorded the limit: the frozen task-package archive under docs/audits carries legacy strings in member BODIES, which this gate does not claim to read. (2) Nothing ever validated a record's subject_files. Recomputed from `git show` against the bound commit: 268 declared, 201 reproduce, 67 do not -- 4 substantive over-claims from the 2026-09-09 batch (three digests that differ from the blob at a06c1db0 and one path absent there, i.e. digests taken from the working tree of the moment) and 63 disk-as-subject entries (57 .pyc never tracked, 6 audio fixtures committed after their bound commit). New gate with a TWO-WAY sanctioned list: a new defect fails and an entry that has become verifiable fails too; blessings are per (record, path) so a new record cannot borrow an old exemption. The four substantive records are left as written -- correcting them would fabricate evidence -- and are named in source. (3) The Workbench's preflight column broke canonical-verify while every gate I had run stayed green, because verify_state_vocabularies.py ran only in the workflow and never in the aggregate -- now registered (58 scripts, failed=0). The rule itself needed correcting, not the page: 'PASS' was banned file-wide because task_resources emits only READY/BLOCKED, while production_preflight genuinely verdicts PASS/WARN/BLOCKED/INCOMPLETE. The contract now declares that vocabulary with its source module named and checks it two ways; a status word must belong to SOME declared emitter; and the original lie keeps its own named ban, so 'PASS / BLOCKED' is still rejected. The gate had no test module at all in its whole life; it now has nine cases on real-file-plus-one-substitution fixtures that assert the substitution actually changed what the gate parses -- my first job_store mutation edited a transition value instead of a key and would have passed for no reason. (4) The live ledger has had NO schema since the 2026-09 R5 migration: the only file pins r3-v1 / DL-TP-20260906-R3 / ^R3-..$ / required 'acceptance' and yields 105 violations, while the frozen r3 predecessor validates against it with 0 errors -- so it is the correct contract for the r3 file and the r5 one was simply never written (AGENTS.md notes the r5-v1 string is 'not a file path', i.e. the gap is documented and open). (5) audit_event was written in two places and read by no product code -- a journal nobody can query is not an audit trail. runtime/audit_trail.py reads it through the store's path policy mode=ro, distinguishes no-database / empty / page, keeps actor as an attempt id rather than a person, and pages on the (at, audit_id) row value because a microsecond timestamp alone cannot page without repeating or dropping a row. Three standing guards so it cannot regress: something in src must SELECT it, the reader must be reached from the CLI, and the writes must still exist. Both weakenings (always claim PRESENT; page by offset) demonstrated red. All five are E1/E2 structural-and-controlled claims about verification, and none of them upgrades a task axis: axes require a reviewer's reassessment."
+    },
+    {
+      "id": "r5-023-domain-pack-readback-20261008",
+      "task_ids": [
+        "DL-R5-023"
+      ],
+      "kind": "local_test",
+      "outcome": "PASS",
+      "subject_sha": "dd2d685ca0de8861130f6523c316f6012529df27",
+      "binding": "COMMIT",
+      "observed_at": "2026-10-07T22:56:21Z",
+      "software": {
+        "python": "3.13.14 (project .venv)",
+        "platform": "Windows-11-10.0.26100-SP0",
+        "runner": "python scripts/run_bound_test_suite.py --label  -> run_id=testrun-20261007T225537Z-forward-repeat-c8ba1f15db94, tests_run=349, failures=0, errors=0, skipped=0, duration=44.011s, order=forward, worktree_clean=False",
+        "test_manifest": "sha256:e179d97a432a5ba05de259cab269839aafc0e5fcf3dc0739e52c3319804df17d",
+        "worktree_digest": "sha256:c8ba1f15db94b58167ab04d075f9a2927ec49ac8a179bca4aea8ff512de58133"
+      },
+      "subject_files": {
+        "src/design_lab/domain_packs.py": "a961d1627f5b92024c618dd8cd0345f0e5a2364cc87db759f6f4803a0280bbad",
+        "src/design_lab/http_service.py": "92ed4446cfd86e89b663c3558c224d8311f9c56d555be61dd1a18ed6cb80489e",
+        "design-lab/tests/test_domain_pack_readback.py": "a5fc9f28236d266a95bb36b7d129145b2ed44cc31c55b89c55c899cfdb7120e2",
+        "apps/workbench/shell.ts": "75fb84d8e80d33210c741f82b393623c094fbf259b6530a9ac4c3d40b97433c7"
+      },
+      "artifacts": [
+        {
+          "path": "docs/audits/DESIGNLAB-LAUNCH-REVIEW-PREFLIGHT-2026-10-08.md",
+          "sha256": "9e8ebf3b9689592d4d5dd21560db3df416c458f8c984e80b51c53f6595a4cf0d"
+        }
+      ],
+      "note": "#/domains was a routed view with no backend at all, while the repository already had the domain packs, a manifest schema and its own checker: the page could not say what was there. GET /api/domains now projects the committed pack directories through that checker and the view renders the result. The honesty rules are enforced by tests rather than asserted in prose: the verdict is the repo's own checker's, unaltered, and a manifest that parses in the projection can still be rejected by the checker because it re-reads from disk -- both are reported rather than reconciled by a local opinion; four states (VALIDATES / INVALID / UNREADABLE / NOT_CHECKED) so absent, unreadable and unparsable are never folded into 'valid'; when the checker cannot be loaded nothing is given a verdict at all; identity fields come from the manifest as declared, and a v1 manifest has no `domain`, so defaulting one would be the projection inventing a claim to fill a column; and VALIDATES is labelled as what it is -- a structural (E1) statement about files in this repository, not a host run, not a design verdict and not an acceptance. Falsified by me after the worker ran out of budget: forcing every pack to VALIDATES turned 4 cases red, and claiming a verdict when the checker was not run turned its case red (an earlier mutation of mine only rewrote prose and proved nothing, which is why the second version aims at the state). ATTRIBUTION LIMITATION, recorded rather than hidden: no R5 task names a domain-pack readback. It is filed under DL-R5-023 as the extension/maintenance surface because that is the nearest declared scope, and any crosswalk from the FINAL-AUTHORITY TaskPack's W-items should re-file it explicitly rather than leave this inference unmarked."
+    },
+    {
+      "id": "r5-014-jury-acceptance-is-a-sentence-about-the-project-20261008",
+      "task_ids": [
+        "DL-R5-014"
+      ],
+      "kind": "local_test",
+      "outcome": "PASS",
+      "subject_sha": "dd2d685ca0de8861130f6523c316f6012529df27",
+      "binding": "COMMIT",
+      "observed_at": "2026-10-07T22:56:21Z",
+      "software": {
+        "python": "3.13.14 (project .venv)",
+        "platform": "Windows-11-10.0.26100-SP0",
+        "runner": "python scripts/run_bound_test_suite.py --label  -> run_id=testrun-20261007T225537Z-forward-repeat-c8ba1f15db94, tests_run=349, failures=0, errors=0, skipped=0, duration=44.011s, order=forward, worktree_clean=False",
+        "test_manifest": "sha256:e179d97a432a5ba05de259cab269839aafc0e5fcf3dc0739e52c3319804df17d",
+        "worktree_digest": "sha256:c8ba1f15db94b58167ab04d075f9a2927ec49ac8a179bca4aea8ff512de58133"
+      },
+      "subject_files": {
+        "src/design_lab/jury_review.py": "f44a2fef0fcdd5baf766a9302ef8920e5c3be7e7b479618e69dd6b6230656f08",
+        "src/design_lab/assurance/jury_store.py": "69c7c738fce9d5114e33e4fe71d218425e78478ce6d9206f329e88ee48f6923d",
+        "design-lab/tests/test_jury_http.py": "9768255e552420ea5f85dd37fe755cccd1b369f575cffeffc5da8434b76329ed",
+        "design-lab/schemas/jury-readback.schema.json": "998b32ac7567cf7112df29295117d7214c87656de4eabb255cef02965f822be6"
+      },
+      "artifacts": [
+        {
+          "path": "docs/audits/DESIGNLAB-LAUNCH-REVIEW-PREFLIGHT-2026-10-08.md",
+          "sha256": "9e8ebf3b9689592d4d5dd21560db3df416c458f8c984e80b51c53f6595a4cf0d"
+        }
+      ],
+      "note": "Fixed an over-claim in the capability I had shipped myself: JuryReview.list() computed human_acceptance with any(item['verdict'] == 'APPROVE'), so one signed version out of ten made the project read 已接受. Following it down found the storage fact behind it: publish_version never demotes the bytes it replaced and nothing in the repository writes asset_version.state='SUPERSEDED' (only tests flip it), so 'every ACTIVE version' was a revision history -- the reviewer could sign a superseded draft and it counted. Acceptance now requires the current version of every asset to carry a current APPROVE, an empty reviewable set is NOT_ACCEPTED on purpose (0 of 0 is vacuously true, and a project with nothing published has not been accepted by anyone), and record() refuses a verdict on a replaced revision by naming both version_no values. accepted_versions and reviewable_active_versions travel with the word so the UI can state its denominator, and jury-readback.schema.json binds the rule. E1/E2: 29 tests green (test_jury_http 12, store, form contract); falsifier falsify_jury_acceptance.py drives three mutations -- predicate back to any(), narrowing removed, refusal short-circuited -- each red on the named case, assertion failure not ERROR, restored to 12 green. The first run of that falsifier reported NEED NOT FOUND for one needle I had written from memory as SQL text rather than the module's Python string concatenation; it refused instead of pretending the mutation was inert."
+    },
+    {
+      "id": "r5-014-preflight-measures-the-registered-delivery-not-any-row-20261008",
+      "task_ids": [
+        "DL-R5-014"
+      ],
+      "kind": "local_test",
+      "outcome": "PASS",
+      "subject_sha": "dd2d685ca0de8861130f6523c316f6012529df27",
+      "binding": "COMMIT",
+      "observed_at": "2026-10-07T22:56:21Z",
+      "software": {
+        "python": "3.13.14 (project .venv)",
+        "platform": "Windows-11-10.0.26100-SP0",
+        "runner": "python scripts/run_bound_test_suite.py --label  -> run_id=testrun-20261007T225537Z-forward-repeat-c8ba1f15db94, tests_run=349, failures=0, errors=0, skipped=0, duration=44.011s, order=forward, worktree_clean=False",
+        "test_manifest": "sha256:e179d97a432a5ba05de259cab269839aafc0e5fcf3dc0739e52c3319804df17d",
+        "worktree_digest": "sha256:c8ba1f15db94b58167ab04d075f9a2927ec49ac8a179bca4aea8ff512de58133"
+      },
+      "subject_files": {
+        "src/design_lab/assurance/production_preflight.py": "cb3693227d6781f44a5c9865916b19eca25a42a6d535f5d7470c940440bf415b",
+        "design-lab/tests/test_production_preflight.py": "c718e17f4f8f62ef07c6b49f7d69bcb7ca28971a62937f874cebf2ab7b1b12a1",
+        "design-lab/schemas/artifact-preflight.schema.json": "c5fd722480602cb61caec64954c7c4832e723d340e50082ca0095ee63fd81249"
+      },
+      "artifacts": [
+        {
+          "path": "docs/audits/DESIGNLAB-LAUNCH-REVIEW-PREFLIGHT-2026-10-08.md",
+          "sha256": "9e8ebf3b9689592d4d5dd21560db3df416c458f8c984e80b51c53f6595a4cf0d"
+        }
+      ],
+      "note": "preflight_bundle resolved 'which bytes to check' with an unordered fetchone over a join that can widen, while creative/asset_versions.create_version(artifacts=[...]) openly registers several artifacts per version. Proven, not asserted: with the old query restored, registering a preview before the deliverable certifies the PREVIEW and reports it as the delivery verdict (the case goes red with the product's own numbers). Selection is now the asset's current version ordered by role then path, and bytes registered on that version but not measured append an artifact-scope NOT_MEASURED finding that recomputes the verdict through the single _aggregate/_recount helper, so there is one rule for how a verdict is computed instead of two that can drift. Honest negative recorded in the audit: the newer-revision case stayed GREEN under the old query -- ORDER BY version_no DESC already got the revision right -- so that test is a contract pin, not evidence of a defect. E1/E2: 33 tests green, two mutations felt on the named cases; verify_artifact_preflight_contract, verify_production_preflight, verify_state_vocabularies and verify_route_payload_contracts all pass on these bytes."
+    },
+    {
+      "id": "r5-014-approval-vocabulary-not-reviewed-versus-pending-20261008",
+      "task_ids": [
+        "DL-R5-014"
+      ],
+      "kind": "local_test",
+      "outcome": "PASS",
+      "subject_sha": "dd2d685ca0de8861130f6523c316f6012529df27",
+      "binding": "COMMIT",
+      "observed_at": "2026-10-07T22:56:21Z",
+      "software": {
+        "python": "3.13.14 (project .venv)",
+        "platform": "Windows-11-10.0.26100-SP0",
+        "runner": "python scripts/run_bound_test_suite.py --label  -> run_id=testrun-20261007T225537Z-forward-repeat-c8ba1f15db94, tests_run=349, failures=0, errors=0, skipped=0, duration=44.011s, order=forward, worktree_clean=False",
+        "test_manifest": "sha256:e179d97a432a5ba05de259cab269839aafc0e5fcf3dc0739e52c3319804df17d",
+        "worktree_digest": "sha256:c8ba1f15db94b58167ab04d075f9a2927ec49ac8a179bca4aea8ff512de58133"
+      },
+      "subject_files": {
+        "src/design_lab/creative/approval.py": "e56b2f12790aedae65890448b25f4246d73db99b18ea87a8d03f709b08c8cf5d",
+        "design-lab/tests/test_creative_f030_f040.py": "958342967187ce774a60b191babaf2447a4ab90e9a0cf539e80986503c2b49e1",
+        "src/design_lab/interop/delivery_receipt.py": "d2ff2a79254eb9cbb926a473d6405074edda661f8f519c0a20ed958ff7273211"
+      },
+      "artifacts": [
+        {
+          "path": "docs/audits/DESIGNLAB-LAUNCH-REVIEW-PREFLIGHT-2026-10-08.md",
+          "sha256": "9e8ebf3b9689592d4d5dd21560db3df416c458f8c984e80b51c53f6595a4cf0d"
+        }
+      ],
+      "note": "creative/approval.py projected 'no decision record exists' as PENDING, so an untouched RIGHTS gate read as a review in progress -- against this project's own rule that an absent review stays NOT_REVIEWED, which is also how interop/delivery_receipt.py maps it to NOT_RUN. States now split NOT_REVIEWED (nothing filed, or the request was superseded) from PENDING (a real proposal awaiting a human); granted and require_approval were not touched, so the gate blocks exactly as before and only the description of why became honest. Attribution limitation recorded rather than hidden: no R5 task names a rights decision ledger; this is filed under DL-R5-014 as the Human Gate surface and should be re-filed explicitly when the rights chain (adjudicator, append-only table, route, panel, vocabulary source) is dispatched. E1: 42 tests green across approval and decision-ledger modules (the module counted 40 before: one assertion of PENDING was replaced by three semantically correct cases, the block assertion kept), 52 including handoff_readiness; falsify_approval_vocabulary.py proves both halves -- None->PENDING and PROPOSED->NOT_REVIEWED -- each red on the named cases and restored green."
+    },
+    {
+      "id": "r5-005-atomic-versions-one-current-row-per-asset-20261008",
+      "task_ids": [
+        "DL-R5-005",
+        "DL-R5-003"
+      ],
+      "kind": "local_test",
+      "outcome": "PASS",
+      "subject_sha": "dd2d685ca0de8861130f6523c316f6012529df27",
+      "binding": "COMMIT",
+      "observed_at": "2026-10-07T22:56:21Z",
+      "software": {
+        "python": "3.13.14 (project .venv)",
+        "platform": "Windows-11-10.0.26100-SP0",
+        "runner": "python scripts/run_bound_test_suite.py --label  -> run_id=testrun-20261007T225537Z-forward-repeat-c8ba1f15db94, tests_run=349, failures=0, errors=0, skipped=0, duration=44.011s, order=forward, worktree_clean=False",
+        "test_manifest": "sha256:e179d97a432a5ba05de259cab269839aafc0e5fcf3dc0739e52c3319804df17d",
+        "worktree_digest": "sha256:c8ba1f15db94b58167ab04d075f9a2927ec49ac8a179bca4aea8ff512de58133"
+      },
+      "subject_files": {
+        "design-lab/scripts/verify_current_version_rule.py": "70a402e966a9c483d7431589fc7a6683b8b3bd9730a370a002366622c4b461ab",
+        "design-lab/tests/test_current_version_rule.py": "94e861c2245c030d1ea0d8b06cec6c5ba0e42223c6997f62b44590c99e0c5966",
+        "src/design_lab/image_assets.py": "9012c23a0cd71599b31c4677c31dcd20a5026128b2b59c1ec29a6657dc8480f6",
+        "src/design_lab/native_assets.py": "32845fbd3998140dd8fd14fef2a10c60874b2255a37ec4f163d283f44f6d1bce",
+        "src/design_lab/native_delivery.py": "6fdcd8ce727d9073545553f7e2c0fafeaf6c92515068bcbc770b120d93d927f3",
+        "design-lab/tests/test_native_asset_listing.py": "53a94e4df1f9c5ffb70231e8d4e8ab25343351dd7231bbad300cf29f41ae8980",
+        "design-lab/tests/test_image_import_recovery.py": "93a55289f2dc4039b8ee2b65ecbe879217976e06cd6e0319a2eb7155e1abc94e"
+      },
+      "artifacts": [
+        {
+          "path": "docs/audits/DESIGNLAB-LAUNCH-REVIEW-PREFLIGHT-2026-10-08.md",
+          "sha256": "9e8ebf3b9689592d4d5dd21560db3df416c458f8c984e80b51c53f6595a4cf0d"
+        }
+      ],
+      "note": "The same missing statement of intent appeared in four shipped readers in one session, so it is now an enforced convention. Fixes: jury reviewable list and quality assessable_versions return the highest ACTIVE version_no per asset; preflight and image_assets and native_assets and Bundles also pick ONE artifact per version (deliverable first, then path) because the join can widen independently of revisions; NativeDelivery.content() stopped answering 404 BUNDLE_NOT_FOUND for a package that exists because a contact sheet was registered beside it (measured by mutation: the product's own refusal), and RECEIPT_QUERY's artifact join is left alone deliberately and documented -- it is an EXISTS filter read with fetchone, not a cardinality claim. verify_current_version_rule.py reads every string literal in the shipped modules with AST and fails any statement that filters state='ACTIVE' without naming how it picks the current version (MAX(version_no) / ORDER BY version_no DESC, or pinned version_id / sha256); it fails on an empty scan and on a stale exemption, and it gates on lies rather than counts so adding a compliant reader moves no number. Measured: 11 ACTIVE reads, 8 ruled, 3 pinned, 0 unruled. New coverage where there was none: native_assets/Bundles listing and verify had no test at all (only a __pycache__ of a deleted test_bundles_list.py) -- 6 cases now, including that an unknown asset still 404s for the right reason so the fix cannot trade a false 404 for a false success. 8 gate tests + 2 raster + 6 listing + 46 delivery-scope green; four falsifiers felt; the gate is registered in the aggregate (62 entries) and reaches CI through canonical-verify.yml's verify_design_lab.py step."
+    },
+    {
+      "id": "r5-010-delivery-receipt-is-readable-and-the-evidence-page-reads-it-20261008",
+      "task_ids": [
+        "DL-R5-010",
+        "DL-R5-005"
+      ],
+      "kind": "local_test",
+      "outcome": "PASS",
+      "subject_sha": "dd2d685ca0de8861130f6523c316f6012529df27",
+      "binding": "COMMIT",
+      "observed_at": "2026-10-07T22:56:21Z",
+      "software": {
+        "python": "3.13.14 (project .venv)",
+        "platform": "Windows-11-10.0.26100-SP0",
+        "runner": "python scripts/run_bound_test_suite.py --label  -> run_id=testrun-20261007T225537Z-forward-repeat-c8ba1f15db94, tests_run=349, failures=0, errors=0, skipped=0, duration=44.011s, order=forward, worktree_clean=False",
+        "test_manifest": "sha256:e179d97a432a5ba05de259cab269839aafc0e5fcf3dc0739e52c3319804df17d",
+        "worktree_digest": "sha256:c8ba1f15db94b58167ab04d075f9a2927ec49ac8a179bca4aea8ff512de58133"
+      },
+      "subject_files": {
+        "src/design_lab/http_service.py": "92ed4446cfd86e89b663c3558c224d8311f9c56d555be61dd1a18ed6cb80489e",
+        "apps/workbench/shell.ts": "75fb84d8e80d33210c741f82b393623c094fbf259b6530a9ac4c3d40b97433c7",
+        "apps/workbench/build/main.js": "4e4a68d15e51effabab5d9b667197359c072d3ed8cf0ab7eab921177ef2bd2d1",
+        "apps/workbench/tests/appshell.mjs": "fbc8508f3736309128bb94fed89b5adf389e4a8b64a0055be1da725b3656ba89",
+        "design-lab/tests/test_service_http.py": "a3f0641b0d5f23ea3e72079489f66a25f4d317de17ddf62d94675be3258754aa",
+        "design-lab/tests/test_delivery_evidence_ui_contract.py": "a9e411831e9da00766646706837c63185f2d454b989df07865a003baacfff1cf"
+      },
+      "artifacts": [
+        {
+          "path": "docs/audits/DESIGNLAB-LAUNCH-REVIEW-PREFLIGHT-2026-10-08.md",
+          "sha256": "9e8ebf3b9689592d4d5dd21560db3df416c458f8c984e80b51c53f6595a4cf0d"
+        }
+      ],
+      "note": "GET /api/projects/<id>/bundles/<bundle>/versions/<v>/receipt serves the same DeliveryReceipt V2 the delivery-receipt CLI verb writes, verified by NativeDelivery on every read, and dispatch keeps the two refusals apart: 404 DELIVERY_RECEIPT_NOT_FOUND (we wrote no document about this delivery) versus 409 DELIVERY_RECEIPT_UNVERIFIED (a stored document contradicts its own bytes). Folding either into INVALID_REQUEST would read as a bad request the operator could go back and fix, which is a different fact about different bytes. 证据系统 reads verdicts, preflight and receipt as three independent reads, says 未读回 rather than showing an empty list when a field is absent, keeps 404 and 409 apart on screen, sends one request per click, and issues none before a version has been read back; the panel also states the acceptance denominator (已接受 n/m 当前版本) and prints 未读回, never 0/0, when the service did not supply it. Verified on these bytes by me after the owning agent ran out of budget: 29 service-HTTP tests green run ALONE (the two readiness timeouts in a contended run were my own CPU contention with three other suites, not a defect -- re-measured, not excused), appshell blocks 1-7 pass, tsc --noEmit clean, a fresh vite build reproduces the committed bundle byte for byte, shape-notice coverage reports all 26 seam reads, list-container inventory moved 33->34 for the new jury column with the assertEqual form intact. Process defect recorded: the first UI falsifier reported two green 'passes' because appshell.mjs executes build/main.js in a vm and only greps shell.ts -- it now rebuilds and refuses to run the gate when the build fails."
+    },
+    {
+      "id": "r5-003-ledger-schema-and-route-payload-contracts-20261008",
+      "task_ids": [
+        "DL-R5-003",
+        "DL-R5-001"
+      ],
+      "kind": "local_test",
+      "outcome": "PASS",
+      "subject_sha": "dd2d685ca0de8861130f6523c316f6012529df27",
+      "binding": "COMMIT",
+      "observed_at": "2026-10-07T22:56:21Z",
+      "software": {
+        "python": "3.13.14 (project .venv)",
+        "platform": "Windows-11-10.0.26100-SP0",
+        "runner": "python scripts/run_bound_test_suite.py --label  -> run_id=testrun-20261007T225537Z-forward-repeat-c8ba1f15db94, tests_run=349, failures=0, errors=0, skipped=0, duration=44.011s, order=forward, worktree_clean=False",
+        "test_manifest": "sha256:e179d97a432a5ba05de259cab269839aafc0e5fcf3dc0739e52c3319804df17d",
+        "worktree_digest": "sha256:c8ba1f15db94b58167ab04d075f9a2927ec49ac8a179bca4aea8ff512de58133"
+      },
+      "subject_files": {
+        "design-lab/schemas/task-ledger-r5-v1.schema.json": "16bb6319ba472785dd316113e7d9e8741f01de75c0ff1326d1c58cc3c049ed64",
+        "design-lab/scripts/verify_ledger_schema_pairing.py": "1c49346039f4b2214847cc7dc25593b33102548d070a8943048bcca3c5bae3a3",
+        "design-lab/tests/test_ledger_schema.py": "78e9864ab0d11959e43d8da71035999e13c7c2bc4e6eb12f67296de3a72c9e81",
+        "design-lab/scripts/verify_route_payload_contracts.py": "87efb99960ef4254c2c165e3b801e16611f3c064b9db91bb30304193511c1a84",
+        "design-lab/schemas/jury-readback.schema.json": "998b32ac7567cf7112df29295117d7214c87656de4eabb255cef02965f822be6",
+        "design-lab/tests/test_route_payload_contracts.py": "52b88d05ce8962ebc2a264daccbdf148bc45b117d4517c83407ae43d1f3b6197",
+        "design-lab/scripts/verify_design_lab.py": "670493f35240c1de8731e58d509fb3ab6e46c97d09c3beaa25a8502715e5fe44"
+      },
+      "artifacts": [
+        {
+          "path": "docs/audits/DESIGNLAB-LAUNCH-REVIEW-PREFLIGHT-2026-10-08.md",
+          "sha256": "9e8ebf3b9689592d4d5dd21560db3df416c458f8c984e80b51c53f6595a4cf0d"
+        }
+      ],
+      "note": "Verification layer, not product surface. The mutable ledger declared schemaVersion design-lab/task-ledger/r5-v1 for a month with no schema behind it: added task-ledger-r5-v1.schema.json plus verify_ledger_schema_pairing.py, which selects a schema BY that field, fails hard when a version names none, and holds schema and data accountable in both directions (undeclared field by path; declared-but-unused property, with a dated two-way register because the frozen r3 schema never closed tasks[] -- 7 fields sit undeclared and 1 declared key is unused, printed as registered_undeclared=7 / registered_unused=1). Live pair: 28 tasks, 40 evidence records, defects=0; 40 tests. Second half: 31 of 32 contract schemas were INERT and 42 route payload versions carried no schema, so five families are now BOUND (path-diagnostic, capability-library, domain-pack-readback, task-resource-preflight, jury-readback), each schema written from a payload captured over a real make_server socket rather than hand-written, cross-checked against the ledger and the emitter's own schemaVersion string both ways (LEDGER_DISAGREES / UNVALIDATED_BINDING / VERSION_DRIFT / MISSING_FROM_EMITTER / UNDECLARED_BY_SCHEMA); three Adobe job-spec versions stay named debt and deleting the debt note now goes red. 83 tests green, bound=12. Both new gates were registered into the aggregate by me after their author flagged it does not own that file. Self-correction recorded: committing verify_design_lab.py whole carried a co-worker's registration line for a verifier that was still untracked, so HEAD listed a MISSING entry -- found by re-reading the SCRIPTS list by AST in a detached worktree of my own commit, and repaired forward by committing the gate, schema and tests together after running them green on those bytes."
+    },
+    {
+      "id": "r5-014-quality-record-persisted-and-project-acceptance-recomputed-20261008",
+      "task_ids": [
+        "DL-R5-014"
+      ],
+      "kind": "local_test",
+      "outcome": "PASS",
+      "subject_sha": "dd2d685ca0de8861130f6523c316f6012529df27",
+      "binding": "COMMIT",
+      "observed_at": "2026-10-07T22:56:21Z",
+      "software": {
+        "python": "3.13.14 (project .venv)",
+        "platform": "Windows-11-10.0.26100-SP0",
+        "runner": "python scripts/run_bound_test_suite.py --label  -> run_id=testrun-20261007T225537Z-forward-repeat-c8ba1f15db94, tests_run=349, failures=0, errors=0, skipped=0, duration=44.011s, order=forward, worktree_clean=False",
+        "test_manifest": "sha256:e179d97a432a5ba05de259cab269839aafc0e5fcf3dc0739e52c3319804df17d",
+        "worktree_digest": "sha256:c8ba1f15db94b58167ab04d075f9a2927ec49ac8a179bca4aea8ff512de58133"
+      },
+      "subject_files": {
+        "src/design_lab/assurance/quality_store.py": "80e49ccfa635601690619793574831bfeffe0d3367aba31252d01301bfaaf8e0",
+        "design-lab/schemas/state/design-lab-state-quality-v1.sql": "2a968da464e1d2e7f0b08aeb8c1c68ac5be73420e459795cb545d8ce25942550",
+        "design-lab/tests/test_quality_store.py": "6dc0a3f952711c6fa17de7426e378b9bc1d7368e22080f6eaff757877a01b0a0",
+        "src/design_lab/cli.py": "664e0b96709c9fcb1d722f38f4caf7e5d4ff65b3bdd9295b867ade224fd96e74"
+      },
+      "artifacts": [
+        {
+          "path": "docs/audits/DESIGNLAB-LAUNCH-REVIEW-PREFLIGHT-2026-10-08.md",
+          "sha256": "9e8ebf3b9689592d4d5dd21560db3df416c458f8c984e80b51c53f6595a4cf0d"
+        }
+      ],
+      "note": "The quality gate had a contract and nowhere to live: no table held a sealed assessment, so the CLI could not answer what a project's quality verdict was or who signed it. Added the append-only quality_record table (registered additively in runtime/state_resources.py with a dated comment; no existing resource renamed or re-versioned), the store that validates against the record contract and refuses an assessment whose deterministic finding is bound to a different digest than the document describes -- a guard my own first fixture tripped, which is evidence it works -- plus the quality CLI verb and the readback. Two honesty fixes in the readback, both mutation-felt: human_acceptance no longer reads ACCEPTED when one subject out of many was accepted (0 of 0 is NOT_ACCEPTED), and assessable_versions offers the current version per asset instead of the whole revision history, mirroring jury_store so the two surfaces cannot disagree about what 'current' means. E1/E2: 31 quality + 5 state-resource tests green (36 batch), two mutations red on the named cases and restored."
+    },
+    {
+      "id": "r5-014-rights-ledger-store-route-verb-and-a-word-for-nobody-filed-20261008",
+      "task_ids": [
+        "DL-R5-014",
+        "DL-R5-003"
+      ],
+      "kind": "local_test",
+      "outcome": "PASS",
+      "subject_sha": "dd2d685ca0de8861130f6523c316f6012529df27",
+      "binding": "COMMIT",
+      "observed_at": "2026-10-07T22:56:21Z",
+      "software": {
+        "python": "3.13.14 (project .venv)",
+        "platform": "Windows-11-10.0.26100-SP0",
+        "runner": "python scripts/run_bound_test_suite.py --label  -> run_id=testrun-20261007T225537Z-forward-repeat-c8ba1f15db94, tests_run=349, failures=0, errors=0, skipped=0, duration=44.011s, order=forward, worktree_clean=False",
+        "test_manifest": "sha256:e179d97a432a5ba05de259cab269839aafc0e5fcf3dc0739e52c3319804df17d",
+        "worktree_digest": "sha256:c8ba1f15db94b58167ab04d075f9a2927ec49ac8a179bca4aea8ff512de58133"
+      },
+      "subject_files": {
+        "src/design_lab/assurance/rights_ledger.py": "45ce40ca67ebb0d9b01bdb0b688ad9a2120d8c96e5ff5f1391d46f31b5eba407",
+        "src/design_lab/rights_review.py": "f4d771e17937689c4f714275135113ef68564260bde57f496bf5ab1355b277d4",
+        "design-lab/tests/test_rights_ledger.py": "a4615a6a4e537999458042323a2f6cc97c83a85143664ddbccd363651c546e17",
+        "design-lab/tests/test_rights_http.py": "8e0e44229737ef1cee625fa58e0331256026c226a4054dffc27ba7ed5ad8adc0"
+      },
+      "artifacts": [
+        {
+          "path": "docs/audits/DESIGNLAB-LAUNCH-REVIEW-PREFLIGHT-2026-10-08.md",
+          "sha256": "9e8ebf3b9689592d4d5dd21560db3df416c458f8c984e80b51c53f6595a4cf0d"
+        }
+      ],
+      "note": "The RIGHTS gate was the only human gate with a contract and no store: the schema closed its properties, the registry recorded 74 licence subjects, and nothing in src/ read any of it, so no verb, route or release check could cite a decision. Added assurance/rights_ledger.py, which loads rights-decision.schema.json FROM DISK and reads the field list, required trio and decision enum out of that file instead of copying them (a second copy is a second authority able to disagree), enforces append-only history at the row level, carries supersedes as a COLUMN rather than a document field so a smuggled one is refused as unknown, and offers no function that can synthesise PENDING_REVIEW -- an untouched gate reads NOT_REVIEWED because nobody filed it, not because a default was invented. Refusals go out under 14 closed codes and an unlisted code raises AssertionError rather than shipping a word nothing documents. Wired GET/POST /api/projects/{id}/rights, the `rights` CLI verb, the rights block in state-vocabularies.json and the contract-bindings row INERT->BINDING. 58 tests green (test_rights_ledger + test_rights_http). One defect found in my own code after the first commit: resending a decision that stated nothing for an optional field arrived as \"note\": null, did not match the stored document and was answered 409 RIGHTS_DECISION_ID_TAKEN -- the null-to-absent clean-up now runs BEFORE the replay comparison, and the regression test pins it."
+    },
+    {
+      "id": "r5-003-identity-floor-backup-quiescence-coverage-and-the-fourth-drift-row-20261008",
+      "task_ids": [
+        "DL-R5-003",
+        "DL-R5-004"
+      ],
+      "kind": "local_test",
+      "outcome": "PASS",
+      "subject_sha": "dd2d685ca0de8861130f6523c316f6012529df27",
+      "binding": "COMMIT",
+      "observed_at": "2026-10-07T22:56:21Z",
+      "software": {
+        "python": "3.13.14 (project .venv)",
+        "platform": "Windows-11-10.0.26100-SP0",
+        "runner": "python scripts/run_bound_test_suite.py --label  -> run_id=testrun-20261007T225537Z-forward-repeat-c8ba1f15db94, tests_run=349, failures=0, errors=0, skipped=0, duration=44.011s, order=forward, worktree_clean=False",
+        "test_manifest": "sha256:e179d97a432a5ba05de259cab269839aafc0e5fcf3dc0739e52c3319804df17d",
+        "worktree_digest": "sha256:c8ba1f15db94b58167ab04d075f9a2927ec49ac8a179bca4aea8ff512de58133"
+      },
+      "subject_files": {
+        "design-lab/scripts/verify_identity_gate.py": "11b212179738defc14c3badf5da85c28fc1c8997fad77ac6560ba589ec5ed4d9",
+        "src/design_lab/runtime/project_backup.py": "41585f4bf18cd807f744da1125d249b0e3de0344d85768143c98acc134a8fa28",
+        "design-lab/tests/test_evidence_artifact_presence.py": "cdcb08cd0cb0ab00ad42cedd32f63ae17e85305e3212bebdc9cdc5770646e7e3",
+        "design-lab/tests/test_backup_watches_written_tables.py": "6a5f0217fcd6a3780ef622f7c0026adc4c933486d962f033fde070c850946100"
+      },
+      "artifacts": [
+        {
+          "path": "docs/audits/DESIGNLAB-LAUNCH-REVIEW-PREFLIGHT-2026-10-08.md",
+          "sha256": "9e8ebf3b9689592d4d5dd21560db3df416c458f8c984e80b51c53f6595a4cf0d"
+        }
+      ],
+      "note": "Three honesty holes in the checking layer itself. verify_identity_gate.py could report a clean tree after examining no files, so it now fails under 2000 scanned with the vacuity reason named -- measured at 2838 in a clean checkout and 3012 in this dirty one, and the comment says which environment the floor was measured against because the CI checkout is the clean one. My first falsification of that floor was WRONG (I claimed mutating the walk root went unnoticed; it is caught by the pre-existing onerror->hits rule), shipped in 8f0d4f98 and retracted in 575df868; the floor was then really proven by neutralising the counter itself. project_backup.PROVED_QUIESCENT only ever covered the tables it happened to name, while jury_record, quality_record, project, asset, approval, audit_event, job, job_attempt, operation_intent, rights_decision and research_finding all commit WITHOUT a writer lease, so a signature that landed inside the backup window was invisible to the quiescence proof; all are now counted, with an enforcement test that a counted table cannot be dropped silently. test_evidence_artifact_presence.py's exact drift inventory moved to four entries with the fourth naming the binding record and the newer record that carries the current binding."
+    },
+    {
+      "id": "r5-014-right-band-fail-closed-and-the-registry-that-nobody-read-20261008",
+      "task_ids": [
+        "DL-R5-014",
+        "DL-R5-003"
+      ],
+      "kind": "local_test",
+      "outcome": "PASS",
+      "subject_sha": "dd2d685ca0de8861130f6523c316f6012529df27",
+      "binding": "COMMIT",
+      "observed_at": "2026-10-07T22:56:21Z",
+      "software": {
+        "python": "3.13.14 (project .venv)",
+        "platform": "Windows-11-10.0.26100-SP0",
+        "runner": "python scripts/run_bound_test_suite.py --label  -> run_id=testrun-20261007T225537Z-forward-repeat-c8ba1f15db94, tests_run=349, failures=0, errors=0, skipped=0, duration=44.011s, order=forward, worktree_clean=False",
+        "test_manifest": "sha256:e179d97a432a5ba05de259cab269839aafc0e5fcf3dc0739e52c3319804df17d",
+        "worktree_digest": "sha256:c8ba1f15db94b58167ab04d075f9a2927ec49ac8a179bca4aea8ff512de58133"
+      },
+      "subject_files": {
+        "src/design_lab/assurance/handoff_readiness.py": "03151f9162e12020eef1ff4e2ca58593dfa9077e5586812d1d6b9c8de6805803",
+        "design-lab/scripts/verify_rights_registry.py": "48f1a58d27243dc7c74fecdc4c35bff42c9bcd4a2b64835a52d75e63993ab32a",
+        "design-lab/tests/test_rights_registry_gate.py": "27dba1800b82dbe842e0879cef2a9627a7b14a4b44f7f2157798d16be40ecfcc",
+        "design-lab/tests/test_handoff_readiness.py": "73862aeb872a417648b2d16dd4909dd536c6c2dea4e5d7071cc34ba25ed7e28a"
+      },
+      "artifacts": [
+        {
+          "path": "docs/audits/DESIGNLAB-LAUNCH-REVIEW-PREFLIGHT-2026-10-08.md",
+          "sha256": "9e8ebf3b9689592d4d5dd21560db3df416c458f8c984e80b51c53f6595a4cf0d"
+        }
+      ],
+      "note": "handoff_readiness.py classified rights states into three hand-written bands under a comment calling them 'the frozen rights-registry.json set', and a state outside every band fell to an else that emitted a WARNING. READY_FOR_HANDOFF means the BLOCKER band is empty, so an unruled licence position -- a value added under another taskpack, or a misspelling of FORBIDDEN -- read as nothing blocks here. An unclassified state now blocks by name. verify_rights_registry.py binds the classification to the file it claims to read: 74 entries x 4 fields = 296 classifications (284 blocking, 8 restricting, 4 clean, 0 unclassified), the four hand-maintained counts (74/4/70/4) are recomputed from the entries under stated definitions, duplicate subjects are refused, and all 5 generated_from plus 8 per-entry evidence_source citations must resolve. 15 combiner tests + 17 gate tests green. The falsifier restored four failure modes (warn-on-unclassified, unknown-reads-clean, flat territory.state read, dropped blocking band) and each was convicted by the named assertion -- after its first draft turned out to SKIP the primary case, because the anchor did not match the shipped quote style; a mutation that changes no bytes is now reported instead of passing silently. Not closed: the registry lists 74 subjects and nothing selects which ones a project actually uses, so CLEARED still means 'every scope filed here is approved' and the façade says so in does_not_prove. That selection is the owner's RIGHTS decision and was not invented."
+    },
+    {
+      "id": "r5-010-research-findings-become-persisted-state-end-to-end-20261008",
+      "task_ids": [
+        "DL-R5-010",
+        "DL-R5-004"
+      ],
+      "kind": "local_test",
+      "outcome": "PASS",
+      "subject_sha": "dd2d685ca0de8861130f6523c316f6012529df27",
+      "binding": "COMMIT",
+      "observed_at": "2026-10-07T22:56:21Z",
+      "software": {
+        "python": "3.13.14 (project .venv)",
+        "platform": "Windows-11-10.0.26100-SP0",
+        "runner": "python scripts/run_bound_test_suite.py --label  -> run_id=testrun-20261007T225537Z-forward-repeat-c8ba1f15db94, tests_run=349, failures=0, errors=0, skipped=0, duration=44.011s, order=forward, worktree_clean=False",
+        "test_manifest": "sha256:e179d97a432a5ba05de259cab269839aafc0e5fcf3dc0739e52c3319804df17d",
+        "worktree_digest": "sha256:c8ba1f15db94b58167ab04d075f9a2927ec49ac8a179bca4aea8ff512de58133"
+      },
+      "subject_files": {
+        "src/design_lab/assurance/research_store.py": "45ba930994c7a5a9631c30647b3b865afaf7cfad75066a2c394ef8639980d686",
+        "src/design_lab/research_review.py": "0b80c1dd7889a473988885041024bb4fcde19515a0ece5a5b491d46e7821bdeb",
+        "design-lab/tests/test_research_store.py": "45a355ca75a4333b3bd19109c5334eafed089527ca40e8532edf954092a994db",
+        "design-lab/tests/test_research_http.py": "ddc6dc015d240c338f755375df1ca703977c80ef04ec8d2c4bee0ff39167757c",
+        "apps/workbench/shell.ts": "75fb84d8e80d33210c741f82b393623c094fbf259b6530a9ac4c3d40b97433c7"
+      },
+      "artifacts": [
+        {
+          "path": "docs/audits/DESIGNLAB-LAUNCH-REVIEW-PREFLIGHT-2026-10-08.md",
+          "sha256": "9e8ebf3b9689592d4d5dd21560db3df416c458f8c984e80b51c53f6595a4cf0d"
+        }
+      ],
+      "note": "research-finding.schema.json declared the shape and the Workbench said, in its own copy, that research had no persisted conclusions and no readback route. Both were true. Added the append-only research_finding table (registered additively in runtime/state_resources.py), assurance/research_store.py, the research_review façade, GET/POST /api/projects/{id}/research and the `research` verb. A claim with no source is refused rather than counted; the read-back re-derives sourced/unsourced counts from the stored bytes instead of the count column, publishes every confidence-vocabulary member including zeros, and emits no completion word at all -- research_verdict is null with the reason attached, because 'how many findings exist' and 'is the research finished' are unrelated questions and no human gate lives here. 53 store + 19 HTTP tests green. research_finding was also added to project_backup.COUNTER_QUERIES: record() commits without a writer lease, so a backup window that swallowed one would still have reported PROVED_QUIESCENT. The 研究洞察 slot now reads this route back, files a finding, and no longer claims a gap the service has closed: appshell block (9) drives it (no completion word drawn, null verdict explained, options sourced from the read-back with no preselection, zero POSTs while building, two local refusals that send nothing, one click one POST carrying exactly the closed field set with no schemaVersion because this contract declares none, identical retry keeps its finding_id while a changed document must take a fresh one, supersede as a query parameter over current findings only, refusal replacing the prior success, and a count the response never carried reading 未读回 rather than 0)."
+    },
+    {
+      "id": "r5-014-rights-decision-panel-closes-the-last-gate-with-no-screen-20261008",
+      "task_ids": [
+        "DL-R5-014",
+        "DL-R5-010"
+      ],
+      "kind": "local_test",
+      "outcome": "PASS",
+      "subject_sha": "dd2d685ca0de8861130f6523c316f6012529df27",
+      "binding": "COMMIT",
+      "observed_at": "2026-10-07T22:56:21Z",
+      "software": {
+        "python": "3.13.14 (project .venv)",
+        "platform": "Windows-11-10.0.26100-SP0",
+        "runner": "python scripts/run_bound_test_suite.py --label  -> run_id=testrun-20261007T225537Z-forward-repeat-c8ba1f15db94, tests_run=349, failures=0, errors=0, skipped=0, duration=44.011s, order=forward, worktree_clean=False",
+        "test_manifest": "sha256:e179d97a432a5ba05de259cab269839aafc0e5fcf3dc0739e52c3319804df17d",
+        "worktree_digest": "sha256:c8ba1f15db94b58167ab04d075f9a2927ec49ac8a179bca4aea8ff512de58133"
+      },
+      "subject_files": {
+        "apps/workbench/shell.ts": "75fb84d8e80d33210c741f82b393623c094fbf259b6530a9ac4c3d40b97433c7",
+        "design-lab/tests/test_rights_ui_contract.py": "0e5f58ae93746ed67a861c9e3d7684ac5eb7499376bd91a03d35b03c1a351278",
+        "apps/workbench/tests/appshell.mjs": "fbc8508f3736309128bb94fed89b5adf389e4a8b64a0055be1da725b3656ba89",
+        "design-lab/tests/test_workbench_css_single_definition.py": "78ae428637aab532b8ed5ca16789d2640b713fc1a341087ff7d7eac239dace42"
+      },
+      "artifacts": [
+        {
+          "path": "docs/audits/DESIGNLAB-LAUNCH-REVIEW-PREFLIGHT-2026-10-08.md",
+          "sha256": "9e8ebf3b9689592d4d5dd21560db3df416c458f8c984e80b51c53f6595a4cf0d"
+        }
+      ],
+      "note": "The rights gate could store a decision, read one back and be signed from a CLI by someone who could also have edited the file; no screen let an operator reach either. Added the Human RIGHTS panel to 预检 / QA and a read-only column on 证据系统: it clears only with the words the façade emits, offers PENDING_REVIEW as a human choice and never as a default, draws an unread denominator as unread rather than 0/0, transponds the contract's limits instead of restating them, and leaves service state words English-marked. test_rights_ui_contract.py (18 tests) reads shell.ts the way verify_state_vocabularies.py does, so the UI cannot advertise a verdict the service cannot produce; appshell block (8) drives the behaviour, including that building the page sends no POST and that a doomed cross-scope supersede is refused locally. The list-container inventory moved 34->35 with the reason named in the test. Recorded honestly: the agent that wrote this slice stopped at its turn limit mid-falsifier, so its bytes were re-verified here (tsc, vite build, appshell, shape-notice coverage, CSS inventory, vocabulary gate) rather than accepted from its report."
+    },
+    {
+      "id": "r5-003-the-products-own-capability-table-can-no-longer-go-stale-20261008",
+      "task_ids": [
+        "DL-R5-003",
+        "DL-R5-010"
+      ],
+      "kind": "local_test",
+      "outcome": "PASS",
+      "subject_sha": "dd2d685ca0de8861130f6523c316f6012529df27",
+      "binding": "COMMIT",
+      "observed_at": "2026-10-07T22:56:21Z",
+      "software": {
+        "python": "3.13.14 (project .venv)",
+        "platform": "Windows-11-10.0.26100-SP0",
+        "runner": "python scripts/run_bound_test_suite.py --label  -> run_id=testrun-20261007T225537Z-forward-repeat-c8ba1f15db94, tests_run=349, failures=0, errors=0, skipped=0, duration=44.011s, order=forward, worktree_clean=False",
+        "test_manifest": "sha256:e179d97a432a5ba05de259cab269839aafc0e5fcf3dc0739e52c3319804df17d",
+        "worktree_digest": "sha256:c8ba1f15db94b58167ab04d075f9a2927ec49ac8a179bca4aea8ff512de58133"
+      },
+      "subject_files": {
+        "design-lab/scripts/verify_capability_self_description.py": "84f9bc0a85853d82d850c23c0d59a4bc8d22946c3bb98f768a183d6ad9b08fce",
+        "design-lab/tests/test_capability_self_description_gate.py": "a322a6d8d6b21f40d208fd99b6f6a81d26815bfba557ea4fc648bf1fba91b81b",
+        "apps/workbench/tests/appshell.mjs": "fbc8508f3736309128bb94fed89b5adf389e4a8b64a0055be1da725b3656ba89"
+      },
+      "artifacts": [
+        {
+          "path": "docs/audits/DESIGNLAB-LAUNCH-REVIEW-PREFLIGHT-2026-10-08.md",
+          "sha256": "9e8ebf3b9689592d4d5dd21560db3df416c458f8c984e80b51c53f6595a4cf0d"
+        }
+      ],
+      "note": "VIEW_NOT_OPEN and CAPABILITY_REGISTRY are machine-readable claims about what the product can do, and nothing compared them with the service. When the research route landed the slot still told the operator no route persisted conclusions and the row still said PLANNED -- an inverted false green, in the one table a reader uses to decide what to trust. verify_capability_self_description.py binds them in both directions: a slot claiming no route is refused when a route whose terminal literal segment names it is dispatched, a row claiming IMPLEMENTED is refused when the route it names is not, and rows now carry an explicit `slot` because prose routes like 'GET /api/research/…' cannot be matched (that case is what the linkage buys). Routes come from the AST reader the boundary ledger already uses, so the two gates cannot disagree about the dispatch table: measured 52 routes, 32 terminal resources, 5 rows, 1 slot legitimately unbacked. 15 teeth tests, including a weakened copy of the gate letting the same lie through and four vacuity floors. The falsifier for the panel exposed two method defects worth recording: two of its anchors also matched the rights helpers, so it had been editing whichever function came first (anchors are now required to match exactly once), and a '\\b共 0 条\\b' guard could never have matched anything because CJK characters are not word characters in JavaScript -- the assertion is on the exact rendered form now and convicts."
     }
   ]
 }
