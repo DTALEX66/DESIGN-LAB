@@ -969,6 +969,14 @@ const OFFLINE = {
   health: { status: "UNKNOWN", version: "—", scope: "dev-offline" },
   projects: { projects: [] },
   designSystems: { design_systems: [] },
+  capabilities: {
+    schemaVersion: "design-lab/capability-library/v1",
+    meaning: "未连接本机设计服务",
+    unmeasuredMeans: "null = 未判定，不是 0",
+    counts: { total: 0, byKind: {}, byLicense: {}, byRevisionState: {}, qualified: 0 },
+    sources: {},
+    capabilities: []
+  },
   tasks: { tasks: [], next_cursor: null },
   bundles: { bundles: [] },
   designLayer: {
@@ -1964,6 +1972,107 @@ function valueRow(label, value, long, tagClass = "info") {
     el("span", {}, label),
     el("span", { class: "tag " + tagClass }, value)
   );
+}
+async function renderCapabilityLibrary(target) {
+  target.replaceChildren(el("p", { class: "view-loading" }, "正在读回能力库…"));
+  const data = await apiOrEmpty("/capabilities", OFFLINE.capabilities);
+  const rows = data.capabilities;
+  const filter = el("input", {
+    class: "input",
+    type: "search",
+    id: "capability-filter",
+    placeholder: "按 ID / 许可 / 域 / 处置 / 修订状态过滤",
+    "aria-label": "能力库过滤"
+  });
+  const shown = el("span", { class: "muted", id: "capability-shown" }, "");
+  const body = el("tbody", {});
+  const render = () => {
+    const needle = (filter.value || "").trim().toLowerCase();
+    const keep = needle ? rows.filter((c) => [
+      c.id,
+      c.license,
+      c.domain,
+      c.disposition,
+      c.presence,
+      c.revisionState
+    ].join(" ").toLowerCase().includes(needle)) : rows;
+    body.replaceChildren(...keep.map((c) => el(
+      "tr",
+      {},
+      el("td", {}, el("strong", {}, c.id), el("div", { class: "muted" }, c.kind)),
+      el("td", {}, c.license ?? "（无记录）"),
+      el("td", {}, c.disposition ?? "—"),
+      el("td", {}, c.presence ?? "—"),
+      el("td", {}, el("span", {
+        // A revision recovered by exact repository-path join is the only green here;
+        // unresolved and not-verified are warnings, never blanks.
+        class: "tag " + (c.revisionState === "VERIFIED" ? "ok" : "warn")
+      }, en(c.revisionState)), c.revision ? el("div", { class: "mono" }, c.revision) : ""),
+      el("td", {}, c.qualified === null ? el("span", { class: "tag neutral" }, "未判定") : el("span", { class: "tag info" }, String(c.qualified)))
+    )));
+    shown.textContent = `显示 ${keep.length} / ${rows.length} 条`;
+  };
+  filter.oninput = () => {
+    render();
+  };
+  const notOpen = VIEW_NOT_OPEN["research"];
+  const researchCard = CAPABILITY_REGISTRY.find((c) => c.capabilityId === "research-insights");
+  target.replaceChildren(
+    el(
+      "div",
+      { class: "page-head" },
+      el(
+        "div",
+        {},
+        el("h2", {}, "研究洞察 / 能力库"),
+        el("p", {}, `只读回仓内已维护的能力记录：来源锁、修订账与模型雷达。${data.unmeasuredMeans}`)
+      ),
+      el("div", { class: "page-actions" }, shown)
+    ),
+    el(
+      "div",
+      { class: "panel" },
+      el("h3", {}, `能力记录（${data.counts.total}）`),
+      el(
+        "p",
+        { class: "view-hint" },
+        `许可分布 ${Object.entries(data.counts.byLicense).map(([k, v]) => `${k} ${v}`).join(" · ")}；修订 ${Object.entries(data.counts.byRevisionState).map(([k, v]) => `${k} ${v}`).join(" · ")}；已判定 ${data.counts.qualified}。本视图不安装、不取证、不代签许可。`
+      ),
+      el("label", { class: "project-picker" }, "过滤", filter),
+      el(
+        "div",
+        {
+          class: "table-wrap",
+          tabindex: "0",
+          role: "region",
+          "aria-label": "能力库表（可横向滚动）"
+        },
+        el(
+          "table",
+          { class: "table" },
+          el("thead", {}, el(
+            "tr",
+            {},
+            el("th", {}, "能力"),
+            el("th", {}, "许可"),
+            el("th", {}, "处置"),
+            el("th", {}, "存在状态"),
+            el("th", {}, "修订"),
+            el("th", {}, "资格判定")
+          )),
+          body
+        )
+      )
+    ),
+    el(
+      "div",
+      { class: "panel" },
+      el("h3", {}, "研究结论"),
+      el("p", { class: "view-unopened" }, notOpen),
+      researchCard ? capabilityCard(researchCard) : el("p", { class: "view-hint" }, "（登记表无此项）")
+    )
+  );
+  render();
 }
 async function renderSettings(target) {
   target.replaceChildren(el("p", { class: "view-loading" }, "正在读回运行环境…"));
@@ -3735,6 +3844,9 @@ async function renderRoute(view, target) {
     case "preflight-qa":
       await renderPreflight(target);
       return;
+    case "research":
+      await renderCapabilityLibrary(target);
+      return;
     case "settings":
       await renderSettings(target);
       return;
@@ -3763,14 +3875,14 @@ async function renderRoute(view, target) {
     }
     default: {
       const notOpen = VIEW_NOT_OPEN[view];
+      const slotFor = (v) => v === "design-domains" ? "design-domain-model" : v === "collaboration" ? "collaboration" : null;
+      const wanted = slotFor(view);
       const cards = el(
         "div",
         { class: "card-flow" },
-        ...CAPABILITY_REGISTRY.filter(
-          (c) => view === "research" && c.capabilityId === "research-insights" || view === "design-domains" && c.capabilityId === "design-domain-model" || view === "collaboration" && c.capabilityId === "collaboration"
-        ).map(capabilityCard)
+        ...CAPABILITY_REGISTRY.filter((c) => c.capabilityId === wanted).map(capabilityCard)
       );
-      const hasCards = CAPABILITY_REGISTRY.some((c) => view === "research" && c.capabilityId === "research-insights" || view === "design-domains" && c.capabilityId === "design-domain-model" || view === "collaboration" && c.capabilityId === "collaboration");
+      const hasCards = CAPABILITY_REGISTRY.some((c) => c.capabilityId === wanted);
       target.replaceChildren(
         el("h2", {}, notOpen ? viewLabel(view) : "工作台"),
         el("p", { class: "view-unopened" }, notOpen ?? "默认工作台。"),

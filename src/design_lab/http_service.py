@@ -209,6 +209,13 @@ def make_server(service, token, port=0):
                                                     'bundleOrigin': workbench.bundle_origin()})
                     if self.path == '/api/environment':
                         return self.send_json(200, service.paths.describe())
+                    if self.path == '/api/capabilities':
+                        # UI plan: the capability library is a read-only projection of
+                        # the source lock, the vendor revision record and the model
+                        # radar. It installs, qualifies and licenses nothing, and it
+                        # reads the committed records, never a machine-local cache.
+                        from .analysis.capability_library import build
+                        return self.send_json(200, build())
                     if urlsplit(self.path).path == '/api/task-preflight':
                         # DL-AUDIT-20260914-04: the same preflight the CLI doctor
                         # uses, so workbench and CLI can never disagree. Read-only.
