@@ -29,6 +29,16 @@ class IdentityScanBoundaryTests(unittest.TestCase):
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_bytes(raw)
 
+    def write_zip(self, relative, names, body=b'# SPDX-License-Identifier: MIT\n'):
+        """A real ZIP container holding those member names -- wheel-shaped bytes."""
+        import io
+        import zipfile
+        buffer = io.BytesIO()
+        with zipfile.ZipFile(buffer, 'w') as archive:
+            for name in names:
+                archive.writestr(name, body)
+        self.write(relative, buffer.getvalue())
+
     def test_runtime_database_does_not_fail_source_identity_gate(self):
         self.write('.project-local/task-runtime/fixture.db', b'\xff\x00SQLite fixture')
         self.write('src/good.py', b'# SPDX-License-Identifier: MIT\n')
@@ -78,6 +88,37 @@ print(json.dumps(visited))
         hits = self.module.scan()
         self.assertEqual(len(hits), 1, hits)
         self.assertTrue(hits[0].startswith('.github/workflows/active.yml:'))
+
+    def test_built_wheel_is_not_judged_as_utf8_text(self):
+        """The regression this branch produced.
+
+        `uv build` writes dist/*.whl, which is ignored by git but visible to this walk.
+        A wheel is a ZIP: reading it as text raises a decode error, and the gate reported
+        that as an identity hit. So every local build turned the gate red while detecting
+        nothing -- and CI, which never has a dist/, could not see the defect at all.
+        """
+        self.write_zip('dist/design_lab-0.1.0a0-py3-none-any.whl',
+                       ['design_lab/__init__.py', 'design_lab-0.1.0a0.dist-info/METADATA'])
+        self.write('src/good.py', b'# SPDX-License-Identifier: MIT\n')
+        self.assertEqual(self.module.scan(), [])
+
+    def test_legacy_package_name_inside_a_container_is_caught(self):
+        """Falsification: the container branch must have teeth, not just tolerance.
+
+        Member names are where a legacy package identity travels -- a wheel for the old
+        name would otherwise have passed straight through the binary skip.
+        """
+        self.write_zip('dist/opendesign_assistance-0.1-py3-none-any.whl',
+                       ['opendesign_assistance/__init__.py'])
+        hits = self.module.scan()
+        self.assertEqual(len(hits), 1, hits)
+        self.assertIn(':: member opendesign_assistance/__init__.py', hits[0])
+
+    def test_unopenable_container_fails_closed(self):
+        self.write('fixtures/corrupt.zip', b'\x00\x00not a zip at all\xff')
+        hits = self.module.scan()
+        self.assertEqual(len(hits), 1, hits)
+        self.assertIn('container unreadable', hits[0])
 
 
 if __name__ == '__main__':

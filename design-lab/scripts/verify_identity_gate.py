@@ -46,6 +46,13 @@ EXCLUDED_NAMES = {
     'sessions.db', 'session.db', 'cookies', 'keychain',
 }
 
+# ZIP containers get their own treatment: the bytes are not UTF-8, but the member
+# names are, and that is exactly where a legacy package name travels. A `.whl` was
+# previously neither in the container branch nor in the binary-skip list, so every
+# `uv build` in the working tree turned the gate red with a decode error that
+# detected nothing (measured: dist/design_lab-0.1.0a0-py3-none-any.whl).
+CONTAINER_SUFFIXES = {'.zip', '.whl'}
+
 
 def _excluded(name):
     return name.casefold() in EXCLUDED_NAMES or name.casefold().startswith(('.env', '.hermes'))
@@ -78,6 +85,24 @@ def _active_files(hits):
             yield path
 
 
+def _container_member_names(path, rel, hits) -> None:
+    """Match the legacy identity against a ZIP container's member names."""
+    import zipfile
+    try:
+        with zipfile.ZipFile(path) as archive:
+            names = archive.namelist()
+    except Exception as exc:
+        # Fail-closed, the same rule that governs unreadable text: a container that
+        # cannot be opened cannot be shown to be clean.
+        hits.append(f'{rel}: container unreadable ({type(exc).__name__})')
+        return
+    for name in names:
+        for pattern in LEGACY:
+            if re.search(pattern, name, re.IGNORECASE):
+                hits.append(f'{rel} :: member {name}: {pattern}')
+                return
+
+
 def scan() -> list[str]:
     hits: list[str] = []
     for p in _active_files(hits):
@@ -106,6 +131,12 @@ def scan() -> list[str]:
         # Test files asserting the gate's detection logic legitimately embed
         # the legacy patterns as fixtures (semantic requirement, not violation).
         if rel.startswith("design-lab/tests/") and rel.endswith(".py"):
+            continue
+        # A ZIP container (including a built wheel) is matched by member name, which
+        # is where a package identity actually travels. This runs before the binary
+        # skip so `.zip`/`.whl` can never be waved through unexamined.
+        if Path(rel).suffix.lower() in CONTAINER_SUFFIXES:
+            _container_member_names(p, rel, hits)
             continue
         # Binary assets are not text; identity patterns cannot appear in them.
         # Skipping them is not fail-open (patterns are text-only by definition).
