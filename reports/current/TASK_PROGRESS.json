@@ -1721,6 +1721,7 @@
       "observed_at": "2026-10-07T22:56:21Z",
       "outcome": "PASS",
       "reasons": [
+        "STALE_SUBJECT_SHA",
         "ARTIFACT_CHANGED_OR_MISSING:docs/audits/DESIGNLAB-LAUNCH-REVIEW-PREFLIGHT-2026-10-08.md"
       ],
       "software": {
@@ -1758,6 +1759,7 @@
       "observed_at": "2026-10-07T22:56:21Z",
       "outcome": "PASS",
       "reasons": [
+        "STALE_SUBJECT_SHA",
         "SOURCE_CHANGED_OR_MISSING:src/design_lab/assurance/jury_store.py",
         "SOURCE_CHANGED_OR_MISSING:src/design_lab/jury_review.py",
         "SOURCE_CHANGED_OR_MISSING:design-lab/tests/test_jury_review_form_contract.py",
@@ -1799,6 +1801,7 @@
       "observed_at": "2026-10-07T22:56:21Z",
       "outcome": "PASS",
       "reasons": [
+        "STALE_SUBJECT_SHA",
         "SOURCE_CHANGED_OR_MISSING:src/design_lab/assurance/production_preflight.py",
         "SOURCE_CHANGED_OR_MISSING:design-lab/tests/test_production_preflight.py",
         "ARTIFACT_CHANGED_OR_MISSING:docs/audits/DESIGNLAB-LAUNCH-REVIEW-PREFLIGHT-2026-10-08.md"
@@ -1838,6 +1841,7 @@
       "observed_at": "2026-10-07T22:56:21Z",
       "outcome": "PASS",
       "reasons": [
+        "STALE_SUBJECT_SHA",
         "ARTIFACT_CHANGED_OR_MISSING:docs/audits/DESIGNLAB-LAUNCH-REVIEW-PREFLIGHT-2026-10-08.md"
       ],
       "software": {
@@ -1874,6 +1878,7 @@
       "observed_at": "2026-10-07T22:56:21Z",
       "outcome": "PASS",
       "reasons": [
+        "STALE_SUBJECT_SHA",
         "ARTIFACT_CHANGED_OR_MISSING:docs/audits/DESIGNLAB-LAUNCH-REVIEW-PREFLIGHT-2026-10-08.md"
       ],
       "software": {
@@ -1910,6 +1915,7 @@
       "observed_at": "2026-10-07T22:56:21Z",
       "outcome": "PASS",
       "reasons": [
+        "STALE_SUBJECT_SHA",
         "SOURCE_CHANGED_OR_MISSING:src/design_lab/native_delivery.py",
         "ARTIFACT_CHANGED_OR_MISSING:docs/audits/DESIGNLAB-LAUNCH-REVIEW-PREFLIGHT-2026-10-08.md"
       ],
@@ -1946,6 +1952,7 @@
       "observed_at": "2026-10-07T22:56:21Z",
       "outcome": "PASS",
       "reasons": [
+        "STALE_SUBJECT_SHA",
         "ARTIFACT_CHANGED_OR_MISSING:docs/audits/DESIGNLAB-LAUNCH-REVIEW-PREFLIGHT-2026-10-08.md"
       ],
       "software": {
@@ -1986,6 +1993,7 @@
       "observed_at": "2026-10-07T22:56:21Z",
       "outcome": "PASS",
       "reasons": [
+        "STALE_SUBJECT_SHA",
         "SOURCE_CHANGED_OR_MISSING:src/design_lab/runtime/project_backup.py",
         "ARTIFACT_CHANGED_OR_MISSING:docs/audits/DESIGNLAB-LAUNCH-REVIEW-PREFLIGHT-2026-10-08.md"
       ],
@@ -2020,6 +2028,7 @@
       "observed_at": "2026-10-07T22:56:21Z",
       "outcome": "PASS",
       "reasons": [
+        "STALE_SUBJECT_SHA",
         "SOURCE_CHANGED_OR_MISSING:design-lab/scripts/verify_identity_gate.py",
         "SOURCE_CHANGED_OR_MISSING:design-lab/scripts/verify_ledger_subject_binding.py",
         "SOURCE_CHANGED_OR_MISSING:src/design_lab/runtime/audit_trail.py",
@@ -2067,7 +2076,9 @@
       "observed_at": "2026-10-07T22:56:21Z",
       "outcome": "PASS",
       "reasons": [
+        "STALE_SUBJECT_SHA",
         "SOURCE_CHANGED_OR_MISSING:src/design_lab/domain_packs.py",
+        "SOURCE_CHANGED_OR_MISSING:design-lab/tests/test_domain_pack_readback.py",
         "ARTIFACT_CHANGED_OR_MISSING:docs/audits/DESIGNLAB-LAUNCH-REVIEW-PREFLIGHT-2026-10-08.md"
       ],
       "software": {
@@ -2103,6 +2114,7 @@
       "observed_at": "2026-10-07T22:56:21Z",
       "outcome": "PASS",
       "reasons": [
+        "STALE_SUBJECT_SHA",
         "SOURCE_CHANGED_OR_MISSING:src/design_lab/jury_review.py",
         "SOURCE_CHANGED_OR_MISSING:src/design_lab/assurance/jury_store.py",
         "ARTIFACT_CHANGED_OR_MISSING:docs/audits/DESIGNLAB-LAUNCH-REVIEW-PREFLIGHT-2026-10-08.md"
@@ -2140,6 +2152,7 @@
       "observed_at": "2026-10-07T22:56:21Z",
       "outcome": "PASS",
       "reasons": [
+        "STALE_SUBJECT_SHA",
         "SOURCE_CHANGED_OR_MISSING:src/design_lab/assurance/production_preflight.py",
         "SOURCE_CHANGED_OR_MISSING:design-lab/tests/test_production_preflight.py",
         "ARTIFACT_CHANGED_OR_MISSING:docs/audits/DESIGNLAB-LAUNCH-REVIEW-PREFLIGHT-2026-10-08.md"
@@ -2176,6 +2189,7 @@
       "observed_at": "2026-10-07T22:56:21Z",
       "outcome": "PASS",
       "reasons": [
+        "STALE_SUBJECT_SHA",
         "SOURCE_CHANGED_OR_MISSING:src/design_lab/creative/approval.py",
         "ARTIFACT_CHANGED_OR_MISSING:docs/audits/DESIGNLAB-LAUNCH-REVIEW-PREFLIGHT-2026-10-08.md"
       ],
@@ -2211,6 +2225,7 @@
       "observed_at": "2026-10-07T22:56:21Z",
       "outcome": "PASS",
       "reasons": [
+        "STALE_SUBJECT_SHA",
         "SOURCE_CHANGED_OR_MISSING:src/design_lab/image_assets.py",
         "SOURCE_CHANGED_OR_MISSING:src/design_lab/native_assets.py",
         "SOURCE_CHANGED_OR_MISSING:src/design_lab/native_delivery.py",
@@ -2253,6 +2268,7 @@
       "observed_at": "2026-10-07T22:56:21Z",
       "outcome": "PASS",
       "reasons": [
+        "STALE_SUBJECT_SHA",
         "ARTIFACT_CHANGED_OR_MISSING:docs/audits/DESIGNLAB-LAUNCH-REVIEW-PREFLIGHT-2026-10-08.md"
       ],
       "software": {
@@ -2291,6 +2307,7 @@
       "observed_at": "2026-10-07T22:56:21Z",
       "outcome": "PASS",
       "reasons": [
+        "STALE_SUBJECT_SHA",
         "SOURCE_CHANGED_OR_MISSING:design-lab/schemas/task-ledger-r5-v1.schema.json",
         "SOURCE_CHANGED_OR_MISSING:design-lab/scripts/verify_ledger_schema_pairing.py",
         "ARTIFACT_CHANGED_OR_MISSING:docs/audits/DESIGNLAB-LAUNCH-REVIEW-PREFLIGHT-2026-10-08.md"
@@ -2332,6 +2349,7 @@
       "observed_at": "2026-10-07T22:56:21Z",
       "outcome": "PASS",
       "reasons": [
+        "STALE_SUBJECT_SHA",
         "ARTIFACT_CHANGED_OR_MISSING:docs/audits/DESIGNLAB-LAUNCH-REVIEW-PREFLIGHT-2026-10-08.md"
       ],
       "software": {
@@ -2367,6 +2385,7 @@
       "observed_at": "2026-10-07T22:56:21Z",
       "outcome": "PASS",
       "reasons": [
+        "STALE_SUBJECT_SHA",
         "SOURCE_CHANGED_OR_MISSING:src/design_lab/assurance/rights_ledger.py",
         "SOURCE_CHANGED_OR_MISSING:src/design_lab/rights_review.py",
         "ARTIFACT_CHANGED_OR_MISSING:docs/audits/DESIGNLAB-LAUNCH-REVIEW-PREFLIGHT-2026-10-08.md"
@@ -2405,6 +2424,7 @@
       "observed_at": "2026-10-07T22:56:21Z",
       "outcome": "PASS",
       "reasons": [
+        "STALE_SUBJECT_SHA",
         "SOURCE_CHANGED_OR_MISSING:design-lab/scripts/verify_identity_gate.py",
         "SOURCE_CHANGED_OR_MISSING:src/design_lab/runtime/project_backup.py",
         "SOURCE_CHANGED_OR_MISSING:design-lab/tests/test_evidence_artifact_presence.py",
@@ -2444,6 +2464,7 @@
       "observed_at": "2026-10-07T22:56:21Z",
       "outcome": "PASS",
       "reasons": [
+        "STALE_SUBJECT_SHA",
         "ARTIFACT_CHANGED_OR_MISSING:docs/audits/DESIGNLAB-LAUNCH-REVIEW-PREFLIGHT-2026-10-08.md"
       ],
       "software": {
@@ -2480,6 +2501,7 @@
       "observed_at": "2026-10-07T22:56:21Z",
       "outcome": "PASS",
       "reasons": [
+        "STALE_SUBJECT_SHA",
         "ARTIFACT_CHANGED_OR_MISSING:docs/audits/DESIGNLAB-LAUNCH-REVIEW-PREFLIGHT-2026-10-08.md"
       ],
       "software": {
@@ -2517,6 +2539,7 @@
       "observed_at": "2026-10-07T22:56:21Z",
       "outcome": "PASS",
       "reasons": [
+        "STALE_SUBJECT_SHA",
         "ARTIFACT_CHANGED_OR_MISSING:docs/audits/DESIGNLAB-LAUNCH-REVIEW-PREFLIGHT-2026-10-08.md"
       ],
       "software": {
@@ -2553,6 +2576,7 @@
       "observed_at": "2026-10-07T22:56:21Z",
       "outcome": "PASS",
       "reasons": [
+        "STALE_SUBJECT_SHA",
         "SOURCE_CHANGED_OR_MISSING:design-lab/scripts/verify_capability_self_description.py",
         "ARTIFACT_CHANGED_OR_MISSING:docs/audits/DESIGNLAB-LAUNCH-REVIEW-PREFLIGHT-2026-10-08.md"
       ],
@@ -2574,17 +2598,91 @@
         "DL-R5-010"
       ],
       "verified": false
+    },
+    {
+      "artifacts": [
+        {
+          "path": "design-lab/tests/test_evidence_artifact_presence.py",
+          "sha256": "fc1e82ce56246803614f2c5526381242377adb8cfc4e3681a3b608a0b5643bbb"
+        },
+        {
+          "path": "design-lab/tests/test_domain_pack_readback.py",
+          "sha256": "077dd83619b9be04dab1c040c3320e42e43382dd6609838c77d974faecb8678c"
+        }
+      ],
+      "binding": "COMMIT",
+      "id": "r5-003-per-module-verification-and-two-assertions-my-own-wave-moved-20261008",
+      "kind": "local_test",
+      "note": "Closes the verification hole the wave itself opened, with a measurement instrument the repo did not have. scripts/run_python_tests.py discovers every module into ONE process with no per-module deadline, so a single blocking case means no summary at all: two full-suite attempts this session stalled mid-run, and a stalled run was not allowed to be reported as a pass. Added a per-module pass with a hard timeout (205 modules): 203 OK, and the only two non-OK -- test_reconstruction_evidence.py (faulthandler puts it in ntpath.realpath with an invalid frame) and test_reconstruction_semantics.py (errors=13) -- reproduce identically at the session baseline 1d18ae80, so they are pre-existing and now filed, not attributed to this wave. My own 60s deadline was also wrong: test_verifier_internals takes 81s and passed, so a timeout in that first table was an instrument defect, not a product one. Two assertions moved because content moved: the drift inventory is now (artefact, reason, record-count) with the total pinned, and the domain-pack gate stopped claiming ownership of the whole IMPLEMENTED set while the general rule stays enforced by verify_capability_self_description.py. Neither number is decoration -- each was perturbed by one in a scratch copy of the test and convicted its own assertion, and the shipped file was confirmed byte-identical afterwards. Bound run at this subject: 374 cases, 0 failures, 0 errors, 0 skips.",
+      "observed_at": "2026-10-07T23:46:31Z",
+      "outcome": "PASS",
+      "reasons": [
+        "STALE_SUBJECT_SHA",
+        "SOURCE_CHANGED_OR_MISSING:design-lab/tests/test_evidence_artifact_presence.py",
+        "ARTIFACT_CHANGED_OR_MISSING:design-lab/tests/test_evidence_artifact_presence.py"
+      ],
+      "software": {
+        "platform": "Windows-11-10.0.26100-SP0",
+        "python": "3.13.14 (project .venv)",
+        "runner": "python scripts/run_bound_test_suite.py --label  -> run_id=testrun-20261007T234552Z-forward-repeat-548d2e6c1fb6, tests_run=374, failures=0, errors=0, skipped=0, duration=38.973s, order=forward, worktree_clean=False",
+        "test_manifest": "sha256:4222a1b6ef3160eec36a69f8ed0205d4ce108ad9b83cab9d08d9ac6ab6783ad2",
+        "worktree_digest": "sha256:548d2e6c1fb681fb886418377faf56c79c5a635882b91bc7d720d15cd46c4c24"
+      },
+      "subject_files": {
+        "design-lab/tests/test_domain_pack_readback.py": "077dd83619b9be04dab1c040c3320e42e43382dd6609838c77d974faecb8678c",
+        "design-lab/tests/test_evidence_artifact_presence.py": "fc1e82ce56246803614f2c5526381242377adb8cfc4e3681a3b608a0b5643bbb"
+      },
+      "subject_sha": "493c6a7b42ccbdd881fb19facd63b615867bbcd7",
+      "task_ids": [
+        "DL-R5-003"
+      ],
+      "verified": false
+    },
+    {
+      "artifacts": [
+        {
+          "path": "design-lab/scripts/verify_evidence_artifact_presence.py",
+          "sha256": "3158d8abcbc35e2159a8d611e81789de4e724fe48c96b8ff8ef773a03d9f6436"
+        },
+        {
+          "path": "design-lab/tests/test_evidence_artifact_presence.py",
+          "sha256": "f2717d11e7c619149510a3ddcfbb3dbc2c12df298e27deeeaaec141e76e89eb6"
+        }
+      ],
+      "binding": "COMMIT",
+      "id": "r5-003-artefact-gate-hashed-working-bytes-so-crlf-always-drifted-20261008",
+      "kind": "local_test",
+      "note": "A defect in the checking layer, found because the previous commit's own explanation was wrong. This wave widened verify_evidence_artifact_presence.py's drift inventory from 4 entries to 27 and I recorded the reason as 23 records citing the live audit document. False: the document had not moved. The gate hashed `Path.read_bytes()` and compared it to a record's blob digest, while .gitattributes declares text=auto -- so every CRLF working file drifts on every run regardless of content. `git hash-object` equals the HEAD blob for the audit document, the test module and the bundle, which is the proof. The gate now hashes the committed form (git show HEAD:<path>, index as fallback for a tracked-but-uncommitted path) and the count is back to the four real moves the file named before. Counter-plus-pinned-total form kept, and falsified in BOTH directions: a recorded hash that no longer matches the committed bytes still drifts (that is what a genuine move produces), while flipping a clean artefact's line endings drifts nothing; the probed file is restored and byte-compared afterwards. Sibling gate re-run over its own scope: LEDGER_SUBJECT_BINDING=OK subject_files=388 checked=388 known_unverifiable=67 records=64, EVIDENCE_ARTIFACTS=WARN tracked_broken=0 tracked_drifted=4. Recorded forward as a correction instead of rewriting 493c6a7b or the row filed under it.",
+      "observed_at": "2026-10-07T23:54:15Z",
+      "outcome": "PASS",
+      "reasons": [],
+      "software": {
+        "platform": "Windows-11-10.0.26100-SP0",
+        "python": "3.13.14 (project .venv)",
+        "runner": "python scripts/run_bound_test_suite.py --label  -> run_id=testrun-20261007T235332Z-forward-repeat-0d92c995e094, tests_run=356, failures=0, errors=0, skipped=0, duration=42.492s, order=forward, worktree_clean=False",
+        "test_manifest": "sha256:1fbf51dc5839b580b42d8cd32364dc7ac7841b6b80a68e8d7a91e46d12056ea8",
+        "worktree_digest": "sha256:0d92c995e094584b242c98691a89683a204591de129bf491a746c10c3e25b100"
+      },
+      "subject_files": {
+        "design-lab/scripts/verify_evidence_artifact_presence.py": "3158d8abcbc35e2159a8d611e81789de4e724fe48c96b8ff8ef773a03d9f6436",
+        "design-lab/tests/test_evidence_artifact_presence.py": "f2717d11e7c619149510a3ddcfbb3dbc2c12df298e27deeeaaec141e76e89eb6"
+      },
+      "subject_sha": "dbbca7121b6a275a913f5130e4b85d2cd4e521af",
+      "task_ids": [
+        "DL-R5-003"
+      ],
+      "verified": true
     }
   ],
   "fresh": false,
   "freshnessMeaning": "at generation only; check verifies bound-input integrity, not current Git or cloud state",
-  "generatedAt": "2026-10-07T22:56:49+00:00",
+  "generatedAt": "2026-10-07T23:54:29+00:00",
   "gitStateMeaning": "generation-time observation, not current HEAD",
-  "ledgerUpdatedAt": "2026-10-07T22:56:36Z",
+  "ledgerUpdatedAt": "2026-10-07T23:54:28Z",
   "note": "DONE_LOCAL concerns the declared task axes and dependencies, not a product release or hosted CI.",
   "schemaVersion": "design-lab/task-progress/r5-v1",
   "subjectMeaning": "subjectType=WORKTREE means the tree was dirty at generation; worktreeDigest covers HEAD plus the non-generated changes",
-  "subjectSha": "dd2d685ca0de8861130f6523c316f6012529df27",
+  "subjectSha": "dbbca7121b6a275a913f5130e4b85d2cd4e521af",
   "subjectType": "WORKTREE",
   "taskpack": "DL-TP-20260908-R5",
   "taskpackHash": "31dde89eb4ede81fe88c0a5c5144adfb86af8db4c4d8c263bde2199180369b69",
@@ -5088,10 +5186,10 @@
       "unresolved_conditions": []
     }
   ],
-  "testRunAt": "2026-10-07T22:56:21+00:00",
-  "testRunId": "testrun-20261007T225537Z-forward-repeat-c8ba1f15db94",
-  "testRunMeaning": "bound run: python scripts/run_bound_test_suite.py --label wave-20261008-final-binding-pass --modules test_handoff_readiness test_rights_registry_gate test_rights_ledger test_rights_http test_rights_ui_contract test_research_store test_research_http test_capability_self_description_gate test_workbench_css_single_definition test_contract_bindings test_backup_watches_written_tables test_current_version_rule test_quality_store test_gate_reachability test_route_payload_contracts test_delivery_evidence_ui_contract test_ledger_schema test_state_vocabularies_gate",
+  "testRunAt": "2026-10-07T23:54:15+00:00",
+  "testRunId": "testrun-20261007T235332Z-forward-repeat-0d92c995e094",
+  "testRunMeaning": "bound run: python scripts/run_bound_test_suite.py --label wave-20261008-artefact-gate-line-ending-fix --modules test_evidence_artifact_presence test_domain_pack_readback test_ledger_schema test_state_vocabularies_gate test_gate_reachability test_contract_bindings test_capability_self_description_gate test_rights_registry_gate test_handoff_readiness test_rights_ledger test_rights_http test_research_store test_research_http test_workbench_css_single_definition test_backup_watches_written_tables test_current_version_rule test_quality_store test_route_payload_contracts test_delivery_evidence_ui_contract",
   "testRunResult": "OK",
   "worktreeClean": false,
-  "worktreeDigest": "sha256:a0b6abe22f345f6f229d33d0ea8ed7f487b984ae6be55699effd3ec6d3546a6c"
+  "worktreeDigest": "sha256:2b51193db2b4fee0aed6ed548746f300aa36b5ba76bfc53ae4757446b5cfe136"
 }
