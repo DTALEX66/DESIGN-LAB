@@ -113,7 +113,7 @@ license 记录与 overflow 报告**作为历史证据原样保留在仓内**，�
 一律未动。§视口清单（本文档 §一 与视觉审计 §12 行）里出现的 390/768 数字属于该历史批次，
 不代表当前口径。
 
-**预检解析器一致性（PR #267，本文件写下时仍 OPEN，不记为完成）。** `doctor.probe_tools` 与
+**预检解析器一致性（已并入 aae165cc / PR #267）。** `doctor.probe_tools` 与
 `task_resources._probe_tool` 对"这台机器有没有 node"给出过互相矛盾的答案，而
 `/api/task-preflight` 的注释声称两者永不一致的情况不存在。#267 把 `preflight()` 里从未被使用的
 `paths_describe` 形参接上。**本机判定一项未变**：剩余 BLOCKED 全部来自 `python-project-venv`，
