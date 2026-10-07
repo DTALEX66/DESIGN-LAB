@@ -21,6 +21,7 @@ from .native_assets import Bundles, NativeAssets
 from .native_delivery import NativeDelivery
 from .design_layer import DesignLayer, DesignLayerError
 from .jury_review import JuryReview, JuryReviewError
+from .assurance.production_preflight import PreflightError, preflight_bundle
 from . import workbench
 
 
@@ -330,6 +331,16 @@ def make_server(service, token, port=0, *, local_session=False):
                         value = self.body(fields={'content_base64', 'idempotency_key'}, limit=45_000_256)
                         return self.send_json(201, ImageAssets(service).import_image(match[1], **value))
                     layer = DesignLayer(service)
+                    match = re.fullmatch(
+                        r'/api/projects/([0-9a-f]{32})/bundles'
+                        r'/(bundle-native-[0-9a-f]{64})/preflight'
+                        r'(?:\?profile=(print|digital|video))?', self.path)
+                    if match:
+                        # The bundle is resolved from the state database by id and
+                        # restricted to this project; no path arrives from the page.
+                        # The profile is validated here rather than trusted downstream.
+                        return self.send_json(200, preflight_bundle(
+                            service, match[1], match[2], profile=match[3] or 'digital'))
                     match = re.fullmatch(r'/api/projects/([0-9a-f]{32})/jury/verdict', self.path)
                     if match:
                         # The exact key set is the point: an unknown field is refused
@@ -411,6 +422,11 @@ def make_server(service, token, port=0, *, local_session=False):
             # not granted.
             except JuryReviewError as exc:
                 self.send_json(exc.status, {'error': exc.code})
+            # A preflight refusal is a statement about the artifact ("the archive
+            # digest does not match what was approved", "a manifest member is
+            # missing"), so it must reach the page intact.
+            except PreflightError as exc:
+                self.send_json(400, {'error': str(exc)})
             except ImportError:
                 self.send_json(503, {'error': 'IMAGE_DEPENDENCY_UNAVAILABLE'})
             except (ValueError, PathPolicyError):

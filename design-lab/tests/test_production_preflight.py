@@ -1,27 +1,243 @@
 # SPDX-License-Identifier: MIT
-"""DL C2: production preflight tests."""
+"""Artifact preflight: measured checks, and a verdict that cannot inherit a green.
+
+The profiles under design-lab/production/profiles/ declared pass|warning|fail long
+before anything could emit them. These tests are written so the dishonest outcomes
+are the ones that fail: an unmeasured check lifting the verdict to PASS, a missing
+artifact passing, a digest mismatch passing, a check quietly disappearing.
+"""
 from __future__ import annotations
 
-import subprocess
+import hashlib
+import json
+import io
 import sys
+import tempfile
 import unittest
 from pathlib import Path
 
-SCRIPTS = Path(__file__).resolve().parents[1] / "scripts"
+REPO = Path(__file__).resolve().parents[2]
+sys.path.insert(0, str(REPO / 'src'))
+
+from PIL import Image
+
+from design_lab.assurance import production_preflight as pp   # noqa: E402
 
 
-class ProductionPreflightTests(unittest.TestCase):
-    def test_preflight_verifier_passes(self):
-        r = subprocess.run([sys.executable, str(SCRIPTS / "verify_production_preflight.py")], capture_output=True, text=True, encoding="utf-8", errors="replace")
-        self.assertIn("PRODUCTION_PREFLIGHT=PASS", r.stdout, r.stdout + r.stderr)
+def write_image(directory: Path, name: str, *, mode='RGB', size=(120, 90), dpi=None):
+    stream = io.BytesIO()
+    image = Image.new(mode, size, 'red' if mode == 'RGB' else 128)
+    save = {'format': 'PNG'}
+    if dpi:
+        save['dpi'] = dpi
+    image.save(stream, **save)
+    path = directory / name
+    path.write_bytes(stream.getvalue())
+    return path
 
-    def test_three_profiles_exist(self):
-        import json
-        base = SCRIPTS.parent / "production/profiles"
-        for name in ("preflight-print.json", "preflight-digital.json", "preflight-video.json"):
-            data = json.loads((base / name).read_text(encoding="utf-8"))
-            self.assertEqual(data["schemaVersion"], "design-lab/preflight/v2")
+
+class PreflightTests(unittest.TestCase):
+    def setUp(self):
+        self.base = Path(tempfile.mkdtemp(dir=REPO / '.project-local' / 'task-runtime'))
+
+    def _checks(self, result, check_id):
+        return [item for item in result['findings'] if item['id'] == check_id]
+
+    def _first(self, result, check_id):
+        rows = self._checks(result, check_id)
+        self.assertTrue(rows, f'no finding for {check_id}')
+        return rows[0]['outcome']
+
+    def test_digital_pixel_checks_are_measured_from_the_bytes(self):
+        image = write_image(self.base, 'poster.png', dpi=(300, 300))
+        result = pp.run_preflight([image], profile='digital')
+        self.assertEqual(self._first(result, 'pixel-dimensions'), pp.PASS)
+        self.assertEqual(self._checks(result, 'pixel-dimensions')[0]['measured']['width'], 120)
+        self.assertEqual(self._first(result, 'color-profile'), pp.PASS)
+        self.assertEqual(self._first(result, 'format'), pp.PASS)
+
+    def test_a_print_job_still_in_rgb_is_blocked_not_warned(self):
+        image = write_image(self.base, 'flyer.png', mode='RGB')
+        result = pp.run_preflight([image], profile='print')
+        colour = self._checks(result, 'color-mode-output-intent')[0]
+        self.assertEqual(colour['outcome'], pp.FAIL)
+        self.assertEqual(colour['severity'], 'blocker')
+        self.assertEqual(result['verdict'], 'BLOCKED')
+
+    def test_missing_dpi_is_reported_as_unmeasured_rather_than_zero(self):
+        image = write_image(self.base, 'no-dpi.png')
+        result = pp.run_preflight([image], profile='print')
+        check = self._checks(result, 'resolution-effective-ppi')[0]
+        self.assertEqual(check['outcome'], pp.NOT_MEASURED)
+        self.assertEqual(check['measured'], {},
+                         'an unmeasured check must not publish a number it did not read')
+        self.assertIn('未记录 DPI', check['detail'])
+
+    def test_an_absent_artifact_is_a_failure_not_a_silence(self):
+        result = pp.run_preflight([self.base / 'never-written.png'], profile='digital')
+        self.assertEqual(result['verdict'], 'BLOCKED')
+        self.assertIn('不存在', self._checks(result, 'artifact-present')[0]['detail'])
+
+    def test_a_zero_byte_artifact_cannot_pass(self):
+        empty = self.base / 'empty.png'
+        empty.write_bytes(b'')
+        result = pp.run_preflight([empty], profile='digital')
+        self.assertEqual(result['verdict'], 'BLOCKED')
+
+    def test_links_are_checked_against_the_bill_of_materials(self):
+        image = write_image(self.base, 'hero.png')
+        other = write_image(self.base, 'logo.png')
+        bom = {'items': [{'id': 'logo', 'path': str(other),
+                          'sha256': hashlib.sha256(other.read_bytes()).hexdigest()}]}
+        good = pp.run_preflight([image], profile='print', bom=bom)
+        self.assertEqual(self._first(good, 'missing-links'), pp.PASS)
+
+        bom['items'].append({'id': 'gone', 'path': str(self.base / 'gone.png')})
+        broken = pp.run_preflight([image], profile='print', bom=bom)
+        check = self._checks(broken, 'missing-links')[0]
+        self.assertEqual(check['outcome'], pp.FAIL)
+        self.assertIn('gone', check['detail'])
+
+    def test_a_digest_that_does_not_match_the_bytes_is_a_failure(self):
+        image = write_image(self.base, 'hero.png')
+        other = write_image(self.base, 'logo.png')
+        bom = {'items': [{'id': 'logo', 'path': str(other), 'sha256': 'sha256:' + '0' * 64}]}
+        result = pp.run_preflight([image], profile='print', bom=bom)
+        self.assertIn('摘要与清单不符', self._checks(result, 'missing-links')[0]['detail'])
+
+    def test_an_empty_bill_of_materials_fails_rather_than_passing_vacuously(self):
+        image = write_image(self.base, 'hero.png')
+        result = pp.run_preflight([image], profile='print', bom={'items': []})
+        self.assertEqual(self._first(result, 'missing-links'), pp.FAIL)
+
+    def test_no_profile_can_reach_pass_while_anything_is_unmeasured(self):
+        """The invariant that keeps a green honest across every shipped profile."""
+        image = write_image(self.base, 'art.png', dpi=(300, 300))
+        names = sorted(path.stem.replace('preflight-', '')
+                       for path in pp.PROFILE_DIR.glob('preflight-*.json'))
+        self.assertEqual(names, ['digital', 'print', 'video'])
+        for profile in names:
+            with self.subTest(profile=profile):
+                result = pp.run_preflight([image], profile=profile)
+                if result['counts'][pp.NOT_MEASURED]:
+                    self.assertNotEqual(
+                        result['verdict'], 'PASS',
+                        f'{profile}: 有检查未量，结论却是 PASS')
+                    if result['counts'][pp.FAIL] == 0:
+                        self.assertEqual(result['verdict'], 'INCOMPLETE',
+                                         '无阻塞失败时，未量项必须让结论停在 INCOMPLETE')
+
+    def test_every_declared_check_appears_and_nothing_undeclared_is_invented(self):
+        """A check dropped from the output is how a profile goes green by omission."""
+        image = write_image(self.base, 'art.png')
+        for name in ('print', 'digital', 'video'):
+            declared = {check['id'] for check in pp.load_profile(name)['required_checks']}
+            emitted = {item['id'] for item in pp.run_preflight([image], profile=name)['findings']}
+            self.assertEqual(declared - emitted, set(), f'{name} dropped declared checks')
+            self.assertEqual(emitted - declared - {'artifact-present'}, set(),
+                             f'{name} reported checks its profile never declared')
+
+    def test_every_finding_states_the_criterion_it_was_judged_against(self):
+        image = write_image(self.base, 'art.png')
+        for name in ('print', 'digital', 'video'):
+            for item in pp.run_preflight([image], profile=name)['findings']:
+                self.assertTrue(str(item.get('criterion', '')).strip(),
+                                f'{name}/{item["id"]} gives a verdict with no stated criterion')
+
+    def test_a_container_this_build_cannot_open_never_becomes_a_pass(self):
+        fake = self.base / 'layout.psd'
+        fake.write_bytes(b'not a real psd header')
+        result = pp.run_preflight([fake], profile='print')
+        self.assertTrue(any(item['outcome'] == pp.NOT_MEASURED
+                            for item in self._checks(result, 'pixel-dimensions')),
+                        'an unreadable container must not be reported as measured')
+        self.assertNotEqual(result['verdict'], 'PASS')
+
+    def test_the_verdict_and_outcome_vocabulary_is_closed(self):
+        image = write_image(self.base, 'art.png')
+        result = pp.run_preflight([image], profile='print')
+        self.assertIn(result['verdict'], pp.VERDICTS)
+        for item in result['findings']:
+            self.assertIn(item['outcome'], (pp.PASS, pp.WARNING, pp.FAIL,
+                                            pp.NOT_MEASURED, pp.NOT_APPLICABLE))
 
 
-if __name__ == "__main__":
+class ArchivePreflightTests(unittest.TestCase):
+    """The route-facing entry: a registered delivery archive, resolved by id."""
+
+    def setUp(self):
+        self.base = Path(tempfile.mkdtemp(dir=REPO / '.project-local' / 'task-runtime'))
+
+    def _archive(self, *, tamper=False, slip=False):
+        import zipfile
+        preview = write_image(self.base, 'preview.png', dpi=(300, 300))
+        archive = self.base / 'delivery.zip'
+        files = {'preview.png': {'sha256': hashlib.sha256(preview.read_bytes()).hexdigest()}}
+        if tamper:
+            files['preview.png']['sha256'] = '0' * 64
+        with zipfile.ZipFile(archive, 'w') as out:
+            out.writestr('preview.png', preview.read_bytes())
+            if slip:
+                out.writestr('../escaped.png', b'evil')
+            out.writestr('bundle-manifest.json',
+                         json.dumps({'files': files}, ensure_ascii=False))
+        return archive, hashlib.sha256(archive.read_bytes()).hexdigest()
+
+    def test_a_registered_archive_is_measured_and_says_what_it_could_not_measure(self):
+        archive, digest = self._archive()
+        result = pp.preflight_archive(archive, profile='print', expected_sha256=digest)
+        self.assertEqual(result['archive']['sha256'], digest)
+        links = [item for item in result['findings'] if item['id'] == 'missing-links']
+        self.assertTrue(links, 'the print profile declares missing-links; it must be reported')
+        self.assertEqual(links[0]['outcome'], pp.PASS,
+                         f'link check reported: {links[0]["detail"]}')
+        self.assertNotEqual(result['verdict'], pp.PASS,
+                            'every shipped profile still carries checks this build cannot measure')
+
+    def test_a_digital_archive_reports_only_what_the_digital_profile_declares(self):
+        # `missing-links` is declared by print only. Reporting it under digital would
+        # be inventing a check; dropping it under print would be hiding one.
+        archive, digest = self._archive()
+        result = pp.preflight_archive(archive, profile='digital', expected_sha256=digest)
+        declared = {check['id'] for check in pp.load_profile('digital')['required_checks']}
+        self.assertNotIn('missing-links', declared)
+        self.assertNotIn('missing-links',
+                         {item['id'] for item in result['findings']},
+                         'reporting an undeclared check is as wrong as dropping a declared one')
+
+    def test_a_member_whose_bytes_differ_from_the_manifest_is_a_link_failure(self):
+        archive, digest = self._archive(tamper=True)
+        result = pp.preflight_archive(archive, profile='print', expected_sha256=digest)
+        links = [item for item in result['findings'] if item['id'] == 'missing-links']
+        self.assertEqual(links[0]['outcome'], pp.FAIL,
+                         'the manifest and the bytes disagree, and that must be a finding')
+        self.assertIn('摘要与清单不符', links[0]['detail'])
+        self.assertEqual(result['verdict'], 'BLOCKED')
+
+    def test_an_archive_that_does_not_match_its_registration_is_refused(self):
+        archive, digest = self._archive()
+        with self.assertRaisesRegex(pp.PreflightError, '摘要与登记不符'):
+            pp.preflight_archive(archive, profile='digital',
+                                 expected_sha256='sha256:' + '9' * 64)
+
+    def test_a_zip_slip_member_is_refused_before_anything_is_written(self):
+        archive, digest = self._archive(slip=True)
+        with self.assertRaisesRegex(pp.PreflightError, '越界'):
+            pp.preflight_archive(archive, profile='digital', expected_sha256=digest)
+
+    def test_an_unregistered_bundle_is_reported_as_such(self):
+        from design_lab.service import ProjectService
+        import os
+        os.environ.pop('PROJECT_LOCAL_ROOT', None)
+        project = self.base / 'project'
+        project.mkdir()
+        (project / 'AGENTS.md').write_text('# preflight fixture', encoding='utf-8')
+        service = ProjectService(project)
+        project_id = service.create_project('Preflight Probe')['id']
+        with self.assertRaises(pp.PreflightError) as caught:
+            pp.preflight_bundle(service, project_id, 'bundle-missing', profile='digital')
+        self.assertIn('bundle-missing', str(caught.exception))
+
+
+if __name__ == '__main__':
     unittest.main()
