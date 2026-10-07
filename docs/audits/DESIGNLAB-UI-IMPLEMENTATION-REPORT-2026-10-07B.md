@@ -242,3 +242,99 @@ Accept/Reject/Change 面（合同完备、无路由无 UI，人工字段按铁�
 
 同一份 summary 里 `subjectSha: "local"`——本机跑不绑定 SHA，只有 CI 会填。所以这条复观测的证据
 类别是"本机当前 SHA 的一次通过"，不能当 E3/E4，也不该被引用成 CI 结论。
+
+## 十、settled main 的全量收尾复观测（exact SHA `dcc9d12e96fa`，本机）
+
+260–273 这批 UI PR 到这里全部并入，开放 PR 归零，没有待合分支，
+所以这一节不是又一项分项证据，而是把整面在**稳定后的 main 字节**上重跑一遍。
+
+### 并入清单（从 `git log --first-parent` 生成，不手抄）
+
+| PR | merge SHA | 来源分支 |
+|---|---|---|
+| #260 | `22fddb3958f9` | DTALEX66/qoder/designlab-desktop-evidence-scope |
+| #261 | `0d82428f5c3e` | DTALEX66/qoder/designlab-shape-degradation |
+| #262 | `b846937482ce` | DTALEX66/qoder/designlab-preflight-chain |
+| #263 | `a9e4398cc6b6` | DTALEX66/qoder/designlab-capability-library |
+| #264 | `5e03117cdaab` | DTALEX66/qoder/designlab-ui-record-convergence |
+| #265 | `14d7179a5b5c` | DTALEX66/qoder/designlab-notice-rollout |
+| #266 | `52dfb791d0c9` | DTALEX66/qoder/designlab-readstate |
+| #267 | `aae165ccdc35` | DTALEX66/qoder/designlab-declared-tool-roots |
+| #268 | `f4f236a92015` | DTALEX66/qoder/designlab-ui-closeout-266 |
+| #269 | `81f6615847a4` | DTALEX66/qoder/designlab-project-venv |
+| #270 | `2e634524c563` | DTALEX66/qoder/designlab-failed-state |
+| #271 | `13e8cc9496a8` | DTALEX66/qoder/designlab-manifest-relpath |
+| #272 | `868dc9f7e7e8` | DTALEX66/qoder/designlab-ui-closeout-final |
+| #273 | `dcc9d12e96fa` | DTALEX66/qoder/designlab-unreachable-diagnosis |
+
+### node 侧（在 `dcc9d12e96fa` 上直接跑）
+
+- `tsc --noEmit` → exit 0
+- `vite build` → 产物与已提交 `apps/workbench/build` 逐字节相同（`git diff --exit-code -- apps/workbench/build` → 0）
+- `unit.mjs` 过；`shape-notice-coverage.mjs` 过，21 个 seam 读回点全部有归属；
+  `appshell.mjs` 过：⑤ 8 视图、① 未读回+零泄漏、④ 真实空正向对照、
+  ② 8 视图三条失败路径（传输被拒 + 回复不可解析 + 服务错误）都实测到
+
+### 浏览器门（真实 Chromium，经仓库自己的绑定跑器）
+
+`python scripts/run_bound_test_suite.py --modules test_workbench_overflow_gate
+test_workbench_contrast_gate test_workbench_ui_audit_gate
+test_workbench_design_layer_e2e test_workbench_preflight_handoff_e2e`
+（`E2E_REQUIRED=1`）→ Ran 7, OK, 108.7 s, skipped=0。
+纵切自己落盘的 summary 是本轮新写的：`result: PASS`、`scenario: 12`、`consoleErrors: 0`、
+`subjectSha: "local"` —— 本机跑不绑 SHA，只有 CI 会填，所以这条的类别是"本机当前 SHA 一次通过"。
+
+### Python 全量绑定跑
+
+记录器（`last-run.json`）自己写的字段：
+
+| 字段 | 值 |
+|---|---|
+| run_id | `testrun-20261007T073246Z-forward-90ab9ebc04ed` |
+| tests_run / failures / errors / skipped | 1939 / 0 / 0 / 4 |
+| result / exit_code | `OK` / 0 |
+| duration | 1377.306 s |
+| 起讫 | 2026-10-07T07:32:46+00:00 → 2026-10-07T07:55:43+00:00 |
+| test manifest | `sha256:562ecf713…` |
+| subject / worktree_clean | `dcc9d12e96fa` / false |
+
+**`worktree_clean=false` 的解释，不藏。** 跑完后工作树里 `reports/current/` 三个投影被测试就地重写，
+差异只是 `audited_at` / `generated_at` 三个时间戳（我已把这三份还原成提交态）。这正是"投影绑定自己的
+commit、生成时间不是测试时间"那条口径的表现，不影响被选中的用例集（`test_manifest_sha256` 是同一份）。
+
+**这个记录器现在给不出的东西**：它记录 skip 的**数量**，不记录是哪 4 条、为什么跳。
+所以上表里 `skipped=4` 只能读成"有 4 条没跑"，不能读成"4 条无关紧要"。这是仪器的缺口，不是结论。
+
+### 工具腿：实测无缺口
+
+`python scripts/design_lab_doctor.py`（仓库自己的入口，不是裸调用）→ 4 个声明工具全部
+`found=true` + `VERSION_VERIFIED` + `drift=[]`：`uv`←shutil.which; `git`←shutil.which; `ffmpeg`←declared:.project/paths.json#tools.ffmpeg; `node`←declared:.project/paths.json#tools.node。
+即 ffmpeg 与 node 由 `.project/paths.json` 的声明根回答，uv 与 git 由当前进程 PATH 回答。
+
+### 模型腿：仍是 owner 的权利门，我没有动
+
+`design-lab/config/external-assets-index.json` 当前 24 条，
+状态分布 {'review-required': 20, 'active': 4}，`generated_at` 仍是 `2026-08-16`。
+这 20 条 `review-required` 是许可归属队列（openRAIL-M / Qwen / sherpa 各类条款都不是本项目的 MIT），
+按铁律只能 owner 裁；我不刷新这份索引（会把本机绝对路径写进受版本控制的文件），
+也不复制或散列权重（文件政策禁止，且阻塞项是许可与硬件，不是"找不到文件"）。
+
+### README ↔ GitHub About：核对一致，无改动
+
+逐条比对了仓库 About 与 `README.md` 开头的自我描述（定位、闭环序列、E0–E5 口径、
+"不做第二画布/通用 Agent runtime"）——两边说法一致，没有需要改的一面。
+交接里那条"待复核"到此关闭。**说明这是人读核对，不是门**：仓库里没有一条 CI 检查会因 About 漂移而变红。
+
+### 清洁腿：四项仍待 owner，未删任何东西
+
+保留点：`.project-local/tmp/cap-orphans-270/`（78 个新生成但已成孤儿的截图文件，备查未删）；
+仓库内的 manifest 与受版本控制的旧图未动。其余三项（`.project-local/projects/` 的 341.1 MiB
+交付物口径、需要 junction 拆除的 worktree 清理、6 个悬空 review-required 吸收目标与
+`tool-control`/`omniparser` 的双许可）都记在 §四、§七、§八，同样没有被我"顺手清掉"。
+
+### 这一节没有声称的
+
+- 不是 E3：没有真实宿主里的 brief→原生可编辑产物→重开读回；
+- 不是 E4：Jury 的人工字段一个都没由我填；
+- 不是 E5：没有 tag、没有 release、没有安装/升级复现；
+- 全绿的是"门的口径"，不是"界面好不好"——后者需要 owner 逐屏看渲染，§七已把口径写清。
