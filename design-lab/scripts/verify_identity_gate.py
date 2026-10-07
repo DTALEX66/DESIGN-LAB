@@ -182,9 +182,11 @@ def main() -> int:
         return 1
     # A liveness floor, not an inventory: the tree holds ~3.0k files and adding or
     # removing one is never a failure, but a walk that saw almost nothing would print
-    # the same OK total=0 as a genuinely clean repository. Unreadable directories and
-    # skipped reparse points already arrive as hits, so this catches the remaining case
-    # of a scan that examined nothing and looked like a pass.
+    # the same OK total=0 as a genuinely clean repository. Measured on the binding
+    # environment rather than the convenient one: a CLEAN detached worktree of HEAD --
+    # what CI checks out, no dist/, no untracked scratch -- walks 2838 files; this dirty
+    # tree walked 3012. Unreadable directories and skipped reparse points already arrive
+    # as hits, so this catches the remaining case of a scan that examined nothing.
     if scanned < 2000:
         print(f"IDENTITY_GATE=FAIL scanned={scanned} total=0 "
               f"reason=the walk examined too few files to be a check at all")
