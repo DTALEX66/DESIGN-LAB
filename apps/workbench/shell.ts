@@ -57,9 +57,48 @@ function devMode(): boolean {
 // are explicit placeholders. No B10 demo number is invented. A held token
 // always goes to the live API (a connected session never reaches this path),
 // and a live failure still throws — nothing here masks a real error.
-function apiOrEmpty<T>(path: string, empty: T): Promise<T> {
+//
+// State ⑤ of the UI state matrix: a live response whose shape differed from the
+// contract crashed later, at an unrelated `.map` / `.length`, and the top-level catch
+// reported a whole-view failure whose message was a TypeError. The collections a view
+// is about to dereference are therefore checked at the seam. What must be a list (or
+// an object) is derived from the fallback the call site already passes, so no site has
+// to keep a second, drift-prone list of expectations; `null` fallbacks are skipped
+// because null is legal there and inventing a requirement would fabricate a failure.
+function requiredShapes(value: unknown, prefix = ''): Array<[string, 'array' | 'object']> {
+  const found: Array<[string, 'array' | 'object']> = [];
+  if (Array.isArray(value)) {
+    if (prefix) found.push([prefix, 'array']);
+    return found;
+  }
+  if (value !== null && typeof value === 'object') {
+    if (prefix) found.push([prefix, 'object']);
+    for (const [key, child] of Object.entries(value as Record<string, unknown>)) {
+      found.push(...requiredShapes(child, prefix ? `${prefix}.${key}` : key));
+    }
+  }
+  return found;
+}
+
+function pickAt(root: unknown, dotted: string): unknown {
+  return dotted.split('.').reduce<unknown>((node, key) =>
+    (node === null || typeof node !== 'object') ? undefined : (node as Record<string, unknown>)[key],
+  root);
+}
+
+function apiOrEmpty<T extends object>(path: string, empty: T): Promise<T> {
   if (!token && devMode()) return Promise.resolve(empty);
-  return api<T>(path);
+  return api<T>(path).then((live) => {
+    for (const [field, kind] of requiredShapes(empty)) {
+      const got = pickAt(live, field);
+      const ok = kind === 'array' ? Array.isArray(got)
+        : (got !== null && typeof got === 'object');
+      if (!ok) {
+        throw new Error(`服务端响应形状与合同不符：${path} 的 ${field} 应为${kind === 'array' ? '列表' : '对象'}`);
+      }
+    }
+    return live;
+  });
 }
 
 // Honest empty payloads for the dev/offline seam (see apiOrEmpty).

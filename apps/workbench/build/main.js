@@ -932,9 +932,38 @@ function devMode() {
   }
   return false;
 }
+function requiredShapes(value, prefix = "") {
+  const found = [];
+  if (Array.isArray(value)) {
+    if (prefix) found.push([prefix, "array"]);
+    return found;
+  }
+  if (value !== null && typeof value === "object") {
+    if (prefix) found.push([prefix, "object"]);
+    for (const [key, child] of Object.entries(value)) {
+      found.push(...requiredShapes(child, prefix ? `${prefix}.${key}` : key));
+    }
+  }
+  return found;
+}
+function pickAt(root, dotted) {
+  return dotted.split(".").reduce(
+    (node, key) => node === null || typeof node !== "object" ? void 0 : node[key],
+    root
+  );
+}
 function apiOrEmpty(path, empty) {
   if (!token && devMode()) return Promise.resolve(empty);
-  return api(path);
+  return api(path).then((live) => {
+    for (const [field, kind] of requiredShapes(empty)) {
+      const got = pickAt(live, field);
+      const ok = kind === "array" ? Array.isArray(got) : got !== null && typeof got === "object";
+      if (!ok) {
+        throw new Error(`服务端响应形状与合同不符：${path} 的 ${field} 应为${kind === "array" ? "列表" : "对象"}`);
+      }
+    }
+    return live;
+  });
 }
 const OFFLINE = {
   health: { status: "UNKNOWN", version: "—", scope: "dev-offline" },
