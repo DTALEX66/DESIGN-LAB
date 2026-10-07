@@ -1896,6 +1896,253 @@ async function renderBrandSystems(target) {
     ...shapeNoticeRows(systems)
   );
 }
+const JURY_CRITERIA = [
+  { criterion_id: "brief-fit", weight: 0.25 },
+  { criterion_id: "composition", weight: 0.25 },
+  { criterion_id: "typography", weight: 0.2 },
+  { criterion_id: "brand-system", weight: 0.15 },
+  { criterion_id: "production", weight: 0.15 }
+];
+function juryCriteriaWith(assessments) {
+  return JURY_CRITERIA.map((axis, index) => ({
+    criterion_id: axis.criterion_id,
+    weight: axis.weight,
+    note: assessments[index]?.note ?? "",
+    score: assessments[index]?.score ?? 0
+  }));
+}
+const JURY_UNREADABLE = {
+  schemaVersion: "design-lab/jury-readback/v1",
+  records: [],
+  verdict_count: 0,
+  proposal_count: 0,
+  current_verdicts: {},
+  reviewable_versions: [],
+  human_acceptance: "UNKNOWN"
+};
+async function renderJuryReview(host) {
+  host.replaceChildren(el("p", { class: "view-loading" }, "正在读回评审记录…"));
+  const projects2 = await apiOrEmpty("/projects", OFFLINE.projects);
+  const projectShape = shapeNotice(projects2);
+  if (projectShape) {
+    host.replaceChildren(el(
+      "p",
+      { class: "error" },
+      `评审项目清单未读回：${projectShape}`
+    ));
+    return;
+  }
+  if (!projects2.projects.length) {
+    host.replaceChildren(el(
+      "p",
+      { class: "view-hint" },
+      "本机尚无项目：评审记录按项目保存，这里不能替某个项目宣称已验收。"
+    ));
+    return;
+  }
+  const picker = el("select", { class: "input", id: "jury-project" });
+  for (const p of projects2.projects) picker.append(new Option(p.name, p.id));
+  const load = async () => {
+    const id = picker.value || projects2.projects[0].id;
+    const data = await apiOrEmpty(`/projects/${id}/jury`, JURY_UNREADABLE);
+    const shape = shapeNotice(data);
+    body.replaceChildren(juryReadbackPanel(id, data, load, shape));
+  };
+  const body = el("div", { class: "jury-body" });
+  picker.onchange = () => {
+    void load().catch((error) => setStatus(errMsg(error), true));
+  };
+  host.replaceChildren(el("label", { class: "muted" }, "评审项目", picker), body);
+  await load();
+}
+function juryReadbackPanel(projectId, data, reload, unread) {
+  if (unread) {
+    return el("div", {}, el(
+      "p",
+      { class: "error" },
+      `评审读回不完整：${unread}。缺失字段不会被当作空集合或已验收。`
+    ));
+  }
+  if (data.error) {
+    return el(
+      "p",
+      { class: "error" },
+      `评审未读回：${data.error}。未读回不等于无裁决，也不等于已验收。`
+    );
+  }
+  const verdicts = Object.entries(data.current_verdicts ?? {});
+  const list = el("div", { class: "list" }, ...verdicts.length ? verdicts.map(([subject, record]) => el(
+    "div",
+    { class: "list-item" },
+    el("strong", {}, String(record["verdict"] ?? "未记录判定")),
+    el("div", { class: "value-mono" }, subject),
+    el("div", { class: "muted" }, String((record["juror"] ?? {}).attestation ?? "无评审依据"))
+  )) : [el(
+    "p",
+    { class: "view-hint" },
+    "尚无人签署的裁决。Agent 建议不计入验收，人工签署是唯一改变此处的途径。"
+  )]);
+  const summary = el(
+    "p",
+    { class: "view-hint" },
+    `已签署 ${data.verdict_count ?? 0} · Agent 建议 ${data.proposal_count ?? 0} · 人工验收 ` + (data.human_acceptance === "ACCEPTED" ? "已接受" : "未接受")
+  );
+  return el(
+    "div",
+    {},
+    summary,
+    list,
+    juryVerdictForm(projectId, data.reviewable_versions ?? [], reload)
+  );
+}
+function juryVerdictForm(projectId, versions, reload) {
+  const versionSelect = el("select", { class: "input", id: "jury-version" });
+  versionSelect.append(new Option("选择被评审的版本", ""));
+  for (const v of versions) {
+    versionSelect.append(new Option(
+      `${v.subject_ref} · ${v.artifact_sha256.slice(0, 12)}…`,
+      v.subject_ref
+    ));
+  }
+  const juror = el("input", {
+    class: "input",
+    id: "jury-juror",
+    type: "text",
+    placeholder: "评审人 id",
+    autocomplete: "off"
+  });
+  const attestation = el("textarea", {
+    class: "input",
+    id: "jury-attestation",
+    placeholder: "你在什么条件下看了这份产物（放大比例、屏幕、与参考的对比）"
+  });
+  const approve = el("input", {
+    type: "radio",
+    name: "jury-verdict",
+    id: "jury-approve",
+    value: "APPROVE"
+  });
+  const reject = el("input", {
+    type: "radio",
+    name: "jury-verdict",
+    id: "jury-reject",
+    value: "REJECT"
+  });
+  const evidence = el("textarea", {
+    class: "input",
+    id: "jury-evidence",
+    placeholder: "拒绝时必填，一行一条依据"
+  });
+  const scores = JURY_CRITERIA.map((axis) => el("input", {
+    class: "input",
+    type: "number",
+    id: `jury-score-${axis.criterion_id}`,
+    min: "0",
+    max: "5",
+    step: "0.1",
+    "aria-label": `${axis.criterion_id} 评分`
+  }));
+  const notes = JURY_CRITERIA.map((axis) => el("input", {
+    class: "input",
+    type: "text",
+    id: `jury-note-${axis.criterion_id}`,
+    placeholder: `${axis.criterion_id} 的评审说明`
+  }));
+  const outcome = el("p", { class: "view-hint", id: "jury-outcome" }, "");
+  const submit = el(
+    "button",
+    { type: "button", class: "primary-btn", id: "jury-submit" },
+    "签署裁决"
+  );
+  submit.onclick = () => {
+    void (async () => {
+      const chosen = versionSelect.value;
+      const digest = versions.find((v) => v.subject_ref === chosen)?.artifact_sha256 ?? "";
+      const verdict = approve.checked ? "APPROVE" : reject.checked ? "REJECT" : "";
+      if (!chosen || !digest) {
+        outcome.textContent = "未签署：必须先选择被评审的版本，裁决不能指向凭记忆写出的摘要。";
+        return;
+      }
+      if (!verdict) {
+        outcome.textContent = "未签署：不接受任何默认判定。";
+        return;
+      }
+      const invalid = scores.findIndex((node) => node.value === "" || Number(node.value) < 0 || Number(node.value) > 5);
+      if (invalid >= 0) {
+        outcome.textContent = `未签署：${JURY_CRITERIA[invalid].criterion_id} 分值缺失或超出 0-5。`;
+        return;
+      }
+      if (verdict === "REJECT" && !evidence.value.trim()) {
+        outcome.textContent = "未签署：拒绝必须写明依据，否则无法复核或申诉。";
+        return;
+      }
+      submit.disabled = true;
+      outcome.textContent = "提交中…";
+      try {
+        await api(`/projects/${projectId}/jury/verdict`, {
+          schemaVersion: "design-lab/assurance-jury-record/v2",
+          kind: "JURY_VERDICT",
+          jury_record_id: "jury-" + Math.random().toString(16).slice(2, 34),
+          subject_ref: chosen,
+          artifact_sha256: digest,
+          juror: {
+            juror_id: juror.value.trim(),
+            kind: "HUMAN",
+            members: [],
+            attestation: attestation.value.trim()
+          },
+          criteria: juryCriteriaWith(scores.map((node, index) => ({
+            score: Number(node.value),
+            note: notes[index].value.trim()
+          }))),
+          verdict,
+          decided_at: (/* @__PURE__ */ new Date()).toISOString().replace(/\.\d{3}Z$/, "Z"),
+          supersedes: null,
+          evidence_refs: evidence.value.split("\n").map((line) => line.trim()).filter(Boolean)
+        });
+        await reload();
+        outcome.textContent = "已签署；下方列表为服务端读回。";
+      } catch (error) {
+        outcome.textContent = `未签署：${errMsg(error)}`;
+      } finally {
+        submit.disabled = false;
+      }
+    })();
+  };
+  return el(
+    "details",
+    { class: "advanced" },
+    el("summary", {}, "签署人工裁决（写入项目状态，之后不可修改）"),
+    el(
+      "div",
+      { class: "advanced-body" },
+      versions.length ? el("p", { class: "view-hint" }, "版本与其摘要由服务端读回，不由人手写。") : el(
+        "p",
+        { class: "view-hint" },
+        "该项目当前没有 ACTIVE 版本可评审；生产发布后此处才会出现候选。"
+      ),
+      el("label", {}, "被评审版本", versionSelect),
+      el("label", {}, "评审人", juror),
+      el("label", {}, "评审依据", attestation),
+      el(
+        "div",
+        {},
+        approve,
+        el("label", { for: "jury-approve" }, "接受"),
+        " ",
+        reject,
+        el("label", { for: "jury-reject" }, "拒绝")
+      ),
+      el("label", {}, "拒绝依据（拒绝时必填）", evidence),
+      ...JURY_CRITERIA.flatMap((axis, index) => [
+        el("label", {}, `${axis.criterion_id} · 分值 0-5（权重 ${axis.weight}）`, scores[index]),
+        el("label", {}, `${axis.criterion_id} · 说明`, notes[index])
+      ]),
+      submit,
+      outcome
+    )
+  );
+}
 async function renderPreflight(target) {
   target.replaceChildren(el("p", { class: "view-loading" }, "正在准备预检…"));
   const known = "DL-TP-20260914-DEEPSEEK-AUTHORITY-R1::DLDS-H020";
@@ -2010,6 +2257,7 @@ async function renderPreflight(target) {
       runBtn
     )
   );
+  const juryHost = el("div", { id: "jury-review" });
   target.replaceChildren(
     pageHead,
     kpiGrid,
@@ -2018,8 +2266,20 @@ async function renderPreflight(target) {
       { class: "toolbar" },
       el("label", { class: "muted" }, "任务全 ID", input)
     ),
-    result
+    result,
+    el(
+      "section",
+      { class: "panel" },
+      el("h3", {}, "设计评审 · Human Jury"),
+      el(
+        "p",
+        { class: "view-hint" },
+        "与上方资源预检是两件事：这里读回的是人工签署的裁决，绑定到具体版本摘要。"
+      ),
+      juryHost
+    )
   );
+  await renderJuryReview(juryHost);
 }
 function valueRow(label, value, long, tagClass = "info") {
   return long ? el(
@@ -2828,10 +3088,10 @@ const PROJECT_STAGES = [
   // route, so the stage name carries the boundary in visible text.
   {
     key: "review",
-    label: "资源预检（非设计评审）",
+    label: "资源预检 + 人工评审",
     panelId: "#/preflight",
     state: "IMPLEMENTED",
-    note: "仅任务包资源预检可读回；设计质量 / Jury / 生产预检尚无入口"
+    note: "任务包资源预检与 Human Jury 裁决均可读回；设计质量趋势与生产产物预检尚无入口"
   },
   {
     key: "handoff",
