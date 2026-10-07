@@ -8,31 +8,81 @@
   },
   "fresh": false,
   "freshnessMeaning": "at generation only; check verifies bound-input integrity, not current Git or cloud state",
-  "generatedAt": "2026-10-06T23:42:09+00:00",
+  "generatedAt": "2026-10-07T00:29:26+00:00",
   "git": {
-    "branch": "qoder/designlab-gate-reachability-20261007",
-    "origin_main": "a0aaa5b0116e2da37731f1bfab7683554b30aa3f",
-    "sha": "cf4c2076f6a09b2fc2e43328f08de3f1f54a9977",
+    "branch": "tmp-rebase-qoder/designlab-gate-reachability-20261007",
+    "origin_main": "a248044f3285f0b153e79668eb78c3ddc257bc3c",
+    "sha": "c6dc6ad0b8a12daf3e633bc667801836a21133e3",
     "source_worktree_clean": false,
-    "tracked_files": 2984,
+    "tracked_files": 2991,
     "worktree_changes": [
       {
-        "content": "sha256:81468bf5a366328e4f78fae0454796742bb2f6810c191eea4fccff72b8164e1e",
-        "kind": "M",
-        "path": "design-lab/tests/test_claim_honesty_gates.py"
+        "content": "sha256:9b39b19d5a4b6dff144846cff8497920e5406c4b28545f4546ca4ec0738ee157",
+        "kind": "A",
+        "path": "design-lab/tests/test_comfy_inputs_hash_guard.py"
       },
       {
-        "content": "sha256:25c5c41674aeb117b29b49447acd76873c517105ea9bbca67148e720b29f3a44",
-        "kind": "M",
-        "path": "docs/audits/DESIGN-LAB-GATE-REACHABILITY-AUDIT-20261007.md"
+        "content": "sha256:5411116f7f617acd8ac3d7f58e02526ee800c22080aabe8f6aa0955c9b504dc6",
+        "kind": "A",
+        "path": "design-lab/tests/test_source_lock_presence.py"
       },
       {
-        "content": "sha256:0d30f37b06adafb44147e08bcc5d3a6748e6908ad4e311e804baa00494a1ecb8",
+        "content": "sha256:7bc05cce1a53c16e6cc93e21515650c64be69850acc8aa8e8c43f28c43784b72",
+        "kind": "A",
+        "path": "docs/audits/DESIGN-LAB-PROJECT-BODY-AND-SPILL-CLEANUP-20261007.md"
+      },
+      {
+        "content": "sha256:65200833fd8e6d2be1bd1e9192e4e390feb480f8fe0eb4d5692d1b1a90a50202",
+        "kind": "A",
+        "path": "docs/audits/DESIGN-LAB-PROJECT-BODY-AND-SPILL-CLEANUP-20261007/evidence/nebula-comfyui-output.json"
+      },
+      {
+        "content": "sha256:3f5f7930fae81482870bd24fec2b54d42869410c45664b4f9038655a1a9f41ed",
+        "kind": "A",
+        "path": "docs/audits/DESIGN-LAB-T1-LEDGER-REVIEW-DL-R5-008-20261007.md"
+      },
+      {
+        "content": "sha256:4ad4e844e4f8dd5a8ede492845d92274487fc1133c0688ed41ad31fef3069ccb",
+        "kind": "A",
+        "path": "scripts/amend_source_lock_presence.py"
+      },
+      {
+        "content": "sha256:8d8ff926e958b7e22c78f9060b1b4c5089ae8b6dc6edae4a08c4a9ca0d9bc20b",
+        "kind": "A",
+        "path": "scripts/clean_nebula_spill.py"
+      },
+      {
+        "content": "sha256:01b7497316e314650ec301927ab6d6db848ae70dc172e130a0b020455c73adff",
         "kind": "M",
-        "path": "scripts/verify_supply_chain.py"
+        "path": "apps/workbench/build/main.js"
+      },
+      {
+        "content": "sha256:d93981dc97eef253da9abcdcd9c7ece9c9fe5a4c97913fec1ecbed8b457896f7",
+        "kind": "M",
+        "path": "apps/workbench/shell.ts"
+      },
+      {
+        "content": "sha256:1fb01c14875b29f87025204feefa4dd45c20bae21562fba2866e8d225310bf60",
+        "kind": "M",
+        "path": "apps/workbench/style.css"
+      },
+      {
+        "content": "sha256:da0e3127f0dbd4f23cc2a4aa17b50ed7d6300b15027bdad6c3ed86cfebda7dbc",
+        "kind": "M",
+        "path": "design-lab/tests/test_workbench_css_single_definition.py"
+      },
+      {
+        "content": "sha256:a852120ebebbd8f1b8eeac14ad030a0d87d9f4d095131d4a6729c4081f378fb7",
+        "kind": "M",
+        "path": "src/design_lab/generators/comfy_task.py"
+      },
+      {
+        "content": "sha256:e465f383440dc98b7c28994dd997808483b117b7a5ea407bcaf45321de58a573",
+        "kind": "M",
+        "path": "vendor/sources.lock.json"
       }
     ],
-    "worktree_digest": "sha256:0932d2c1af4f852ced7dfdea2aa75d72df920743dfc9916a397c8b018b51418d"
+    "worktree_digest": "sha256:3ff0ff8d41dd8b3deb5f571c15415f36ce191ed64c6857ade3605e9074511cb1"
   },
   "gitStateMeaning": "generation-time observation, not current HEAD",
   "hostLive": "derived from host_live axis only",
@@ -45,7 +95,7 @@
     "quarantinedSources": 162
   },
   "subjectMeaning": "subjectType=WORKTREE means the tree was dirty at generation; worktreeDigest covers HEAD plus the non-generated changes",
-  "subjectSha": "cf4c2076f6a09b2fc2e43328f08de3f1f54a9977",
+  "subjectSha": "c6dc6ad0b8a12daf3e633bc667801836a21133e3",
   "subjectType": "WORKTREE",
   "taskCounts": {
     "PARTIAL": 28
@@ -53,14 +103,12 @@
   "taskpack": "DL-TP-20260908-R5",
   "taskpackHash": "31dde89eb4ede81fe88c0a5c5144adfb86af8db4c4d8c263bde2199180369b69",
   "taskpackId": "DL-TP-20260908-R5",
-  "testRunAt": "2026-10-06T05:11:47+00:00",
-  "testRunId": "testrun-20261006T051130Z-forward-repeat-91beed9eafb6",
-  "testRunMeaning": "bound run: python scripts/run_bound_test_suite.py --order forward --repeat 2 --modules test_asset_store test_creative_job test_creative_ledgers test_creative_lineage test_creative_migration test_creative_version_guard test_creative_f030_f040 test_creative_session_link test_job_store test_runtime_attempt_safety test_runtime_asset_safety test_runtime_explicit_project test_assurance_qa_plane test_assurance_jury test_bundle_store test_operation_coordinator",
-  "testRunResult": "OK",
+  "testRunId": null,
+  "testRunMeaning": "no bound test run; this projection does not claim a test result",
   "tests": {
-    "definedTestMethodCount": 1852,
+    "definedTestMethodCount": 1881,
     "executed": "see individual verified ledger receipts"
   },
   "worktreeClean": false,
-  "worktreeDigest": "sha256:0932d2c1af4f852ced7dfdea2aa75d72df920743dfc9916a397c8b018b51418d"
+  "worktreeDigest": "sha256:3ff0ff8d41dd8b3deb5f571c15415f36ce191ed64c6857ade3605e9074511cb1"
 }

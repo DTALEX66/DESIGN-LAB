@@ -1,11 +1,11 @@
 {
   "schemaVersion": "design-lab/repo-classification/v1",
-  "generatedAt": "2026-10-06T23:37:15Z",
-  "observedCommit": "cf4c2076f6a09b2fc2e43328f08de3f1f54a9977",
+  "generatedAt": "2026-10-06T22:10:48Z",
+  "observedCommit": "b7f82ac01d52728f831ea5d1209fca95d5843e90",
   "totals": {
-    "trackedFiles": 2984,
-    "workingTreeMiB": 49.67,
-    "packMiB": 238.56,
+    "trackedFiles": 2971,
+    "workingTreeMiB": 49.52,
+    "packMiB": 237.66,
     "note": "pack 含全部历史与 tag 归档；working tree 为当前检出字节。两者之差不是垃圾。"
   },
   "categories": {
@@ -20,9 +20,9 @@
       "mib": 5.17
     },
     "evidence": {
-      "files": 1174,
+      "files": 1170,
       "bundles": 5,
-      "mib": 26.64
+      "mib": 26.57
     },
     "generated": {
       "files": 84,
@@ -40,9 +40,9 @@
       "mib": 0.23
     },
     "source": {
-      "files": 1341,
+      "files": 1332,
       "bundles": 7,
-      "mib": 9.06
+      "mib": 8.99
     }
   },
   "bundles": [
@@ -59,8 +59,8 @@
       "path": "docs/audits/",
       "category": "evidence",
       "note": "审计与验收证据包",
-      "files": 825,
-      "bytes": 7192783,
+      "files": 821,
+      "bytes": 7117823,
       "cited_by_authority": 0,
       "lastTouch": "2026-10-07"
     },
@@ -77,8 +77,8 @@
       "path": "design-lab/",
       "category": "source",
       "note": "设计核心其余模块",
-      "files": 887,
-      "bytes": 6275118,
+      "files": 880,
+      "bytes": 6219807,
       "cited_by_authority": 4,
       "lastTouch": "2026-10-07"
     },
@@ -87,9 +87,9 @@
       "category": "evidence",
       "note": "UI 收口证据与记录",
       "files": 93,
-      "bytes": 5286403,
+      "bytes": 5286405,
       "cited_by_authority": 0,
-      "lastTouch": "2026-10-07"
+      "lastTouch": "2026-10-06"
     },
     {
       "path": "research/",
@@ -114,7 +114,7 @@
       "category": "history",
       "note": "交接血统（非当前入口）",
       "files": 82,
-      "bytes": 2238699,
+      "bytes": 2237749,
       "cited_by_authority": 1,
       "lastTouch": "2026-10-07"
     },
@@ -132,7 +132,7 @@
       "category": "generated",
       "note": "当前状态投影（由生成器再生）",
       "files": 63,
-      "bytes": 1025874,
+      "bytes": 1023633,
       "cited_by_authority": 4,
       "lastTouch": "2026-10-07"
     },
@@ -150,7 +150,7 @@
       "category": "source",
       "note": "产品源码",
       "files": 87,
-      "bytes": 915124,
+      "bytes": 911150,
       "cited_by_authority": 0,
       "lastTouch": "2026-10-07"
     },
@@ -176,8 +176,8 @@
       "path": "scripts/",
       "category": "source",
       "note": "根级门与工具",
-      "files": 53,
-      "bytes": 570475,
+      "files": 52,
+      "bytes": 559528,
       "cited_by_authority": 4,
       "lastTouch": "2026-10-07"
     },
@@ -186,7 +186,7 @@
       "category": "generated",
       "note": "提交的构建产物（Build Output Truth）",
       "files": 13,
-      "bytes": 488910,
+      "bytes": 483777,
       "cited_by_authority": 0,
       "lastTouch": "2026-10-07"
     },
@@ -230,8 +230,8 @@
       "path": "vendor/",
       "category": "source",
       "note": "第三方源码副本（inert source blobs）",
-      "files": 2,
-      "bytes": 30399,
+      "files": 1,
+      "bytes": 23483,
       "cited_by_authority": 0,
       "lastTouch": "2026-10-07"
     },
