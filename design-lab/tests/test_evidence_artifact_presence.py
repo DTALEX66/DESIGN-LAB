@@ -32,10 +32,21 @@ class EvidenceArtifactPresenceTests(unittest.TestCase):
         result = gate.evaluate(REPO, _ledger())
         self.assertEqual(result['broken'], [],
                          'every tracked evidence artefact must still exist')
-        # Known decay, asserted rather than hidden: one 2026-09-27 record used a
-        # mutable source file as its artefact, so the bundle has since moved on.
+        # Known decay, asserted rather than hidden. Each entry is a record whose
+        # artefact bytes legitimately moved after the observation, and the list is
+        # exact so the NEXT unannounced move still goes red:
+        #   * build/main.js -- a 2026-09-27 record used a mutable build output as
+        #     its artefact, so the bundle has since moved on;
+        #   * test_project_backup.py -- the 2026-10-06 M1 runtime-slice record
+        #     asserted the backup test file's bytes; commit 701ace9c replaced the
+        #     raw file copy with a snapshot plus a writer barrier, so those bytes
+        #     are now older than the code they describe. That record is not
+        #     rewritten: it stays as the historical observation, and the newer
+        #     evidence record carries the current binding.
         self.assertEqual([(r, why) for _, r, why in result['drifted']],
                          [('apps/workbench/build/main.js',
+                           'HASH_MOVED_SINCE_OBSERVATION'),
+                          ('design-lab/tests/test_project_backup.py',
                            'HASH_MOVED_SINCE_OBSERVATION')])
 
     def test_missing_tracked_artefact_is_a_hard_break_not_a_warning(self):
