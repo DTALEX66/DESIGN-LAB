@@ -458,4 +458,77 @@ NOT_REVIEWED,不能被措辞成已经在流程里**(`interop/delivery_receipt.py
 真能发出该词的来源——否则 `verify_state_vocabularies.py` 会正确地把它判成界面谎。
 
 
+## 11. 本波次提交清单与仍未闭合的口(2026-10-08)
+
+<!-- WAVE COMMITS:BEGIN -->
+本波次落仓的提交(43 个,`fc03a303`..`14269a36`,由 `git log --reverse --format=%h %s` 直接生成,不手抄):
+
+| 提交 | 说明 |
+|---|---|
+| `7ee682d9` | fix(runtime): snapshot the state database, and stage what a restore installs |
+| `707c067b` | chore(reports): rebind the projections to the backup inputs they describe |
+| `701ace9c` | fix(runtime): make a backup prove no production writer moved |
+| `71a5e974` | docs(audit): record the backup fixes, and name the new stale artefact instead of hiding it |
+| `b713bf3e` | chore(ledger): bind the backup-consistency evidence to the run that proves it |
+| `10bf16a3` | feat(runtime): the official launch connects its own page, and the library ships its inputs |
+| `1b928576` | fix(workbench): the landing view stops being a second shell, and the bundle follows |
+| `5cc5380e` | Revert "fix(workbench): the landing view stops being a second shell" -- D-6 is the owner's call |
+| `dcc27769` | test(launch): read the token through the handshake, so the tests cannot keep the leak alive |
+| `9c208c78` | test(evidence): name the third stale artefact the launcher change produced |
+| `c78ff19b` | test(evidence): compare the drift set without depending on record order |
+| `3fb13115` | fix(test): repair the syntax error committed in c78ff19b |
+| `e84aabf9` | fix(workbench): stop offering delivery formats the bundle writer cannot produce |
+| `0c36669f` | feat(assurance): make a Human Jury verdict storable, serveable and readable back |
+| `c2e74aac` | feat(workbench): a reviewer can read and sign jury verdicts from the preflight page |
+| `d74e7c41` | feat(assurance): artifact preflight that measures what it can and admits the rest |
+| `a8e0c67c` | fix(governance): read a wheel by member name instead of decoding it as text |
+| `d5192069` | fix(workbench): the jury rows are a real list, and 交付中心 can preflight a delivery |
+| `edf0c85a` | fix(native): a cancel the host never acknowledged stops disappearing into a success |
+| `a91d6a27` | feat(governance): check a record's subject bytes against the commit it claims to bind |
+| `ed6d84f0` | fix(assurance): a jury proposal is checked against the contract, not just its key set |
+| `775eff60` | fix(governance): a second verdict emitter, declared -- and the gate that never had a test |
+| `894c526a` | feat(design-system): a token document can now be written, versioned, read back and seen |
+| `29c97c3d` | fix(runtime): a restored project rebases its publication journal, and cannot claim clean otherwise |
+| `1ea64bbe` | fix(assurance): the preflight payload gets a schema, and the claimed drift was a false positive |
+| `23bb997a` | fix(runtime): commit the writer-fence assertion the token append already calls |
+| `fa69afc0` | feat(runtime): recovery decisions and delivery receipts are now reachable, not just callable |
+| `fda18e93` | test(recovery): make the journal fixtures survive a deeper checkout |
+| `27624963` | docs(audit): record the nine-link verdict, and which audit claims did not survive checking |
+| `faedcc27` | feat(runtime): the writer journal can be read back, so it becomes an audit trail |
+| `17a770a9` | feat(domains): 设计领域 reads the packs that are actually on disk |
+| `fa5db57d` | feat(governance): name which contract schemas the product actually honours -- one of 32 |
+| `181ce73a` | fix(launch): the official workbench command was serializing its own argparse object |
+| `3d12c3f7` | docs(audit): entry-point death, a write-only journal, a fake install proof, and 31 of 32 inert contracts |
+| `de9601ed` | fix(jury): one signature no longer stands for the whole project |
+| `a587f339` | chore(verify): the preflight contract gate had no caller, and my doc pinned a stale count |
+| `47aa7d01` | fix(verify): the aggregate gained a registration before the verifier existed |
+| `87524737` | fix(preflight): the registered delivery is now measured, not whichever row came first |
+| `76fa17b0` | fix(rights): a gate nobody opened no longer reads as one awaiting an answer |
+| `88ea30c1` | feat(governance): five route payloads gain schemas written from live captures, and both gates get callers |
+| `0cb1397b` | feat(evidence): the delivery receipt is readable over HTTP, and 证据系统 reads it back |
+| `5b8e7d51` | feat(quality): a sealed QualityRecord is stored, readable and reachable from the CLI |
+| `14269a36` | feat(workbench): 已接受 now states its denominator on screen |
+<!-- WAVE COMMITS:END -->
+
+仍未闭合,按"能不能由我自己关掉"分开列:
+
+**我这边继续做的:**
+- rights 链:裁决器 → 只追加表 + 迁移登记 → HTTP 门面与路由 → `rights` CLI → 词表声明 →
+  `contract-bindings` 行由 INERT 转 BOUND → 界面面板 → 反证(§10 末的清单)。
+- ResearchFinding / MethodCard 仍无端到端持久化与读回。
+- 聚合清单现在 61 项(本波注册 4 处:artifact preflight 合同、ledger schema 配对、
+  contract bindings、route payload);所有新门都要在最终 HEAD 上随聚合与绑定运行再跑一遍。
+- 绑定运行的证据追加 + `reports/current/*` 投影再生成(`--check` 目前报 DRIFT,因为本波
+  新增了测试模块与门)。
+
+**必须由人或外部条件闭合的(BLOCKED,不伪造):**
+- 真实宿主 E3(Photoshop / Illustrator 实拍读回):需要 owner 明确授权去操作正在使用的宿主文档。
+- 真人 Jury E4:需要真人签署;我不会代签或伪造 attestation。
+- 发布 E5:需要 release 与 exact-SHA CI 上下文;推送与发布按授权逐次判断。
+- D-6:落地工作台与主壳统一 —— `apps/workbench/shell.ts` 的 `.app-nav` 几何门钉住了现状,
+  这是两个壳的合同问题,不是顺手能改的样式。
+- 本地浏览器门会**按名跳过**(`test_workbench_ui_audit_gate` 需要 bundle 与 HEAD 一致且需要
+  playwright)。跳过记为跳过,不算覆盖;绑定运行里 `skipped=0` 只在非浏览器集合上成立。
+
+
 
