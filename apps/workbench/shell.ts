@@ -97,6 +97,16 @@ function apiOrEmpty<T extends object>(path: string, empty: T): Promise<T> {
   });
 }
 
+// One row per view that had to invent a collection because the service left it out.
+// Spread into the view's children; empty means nothing to report, so a healthy read
+// adds no noise. This is deliberately per-view rather than one shared accumulator:
+// renders run off-DOM and race, and a losing generation would otherwise leak its
+// notice into the view that won.
+export function shapeNoticeRows(...values: unknown[]): HTMLElement[] {
+  const notes = values.map(shapeNotice).filter(Boolean);
+  return notes.length ? [el('p', { class: 'error' }, notes.join('；'))] : [];
+}
+
 // What a view must say when the service answered 200 but left a collection out.
 export function shapeNotice(value: unknown): string {
   const missing = (value as Record<symbol, unknown> | null)?.[SHAPE_MISSING];
@@ -522,10 +532,6 @@ export async function renderDashboard(target: HTMLElement): Promise<void> {
     apiOrEmpty<DesignSystemListResponse>('/design-systems', OFFLINE.designSystems),
     apiOrEmpty<EnvironmentResponse>('/environment', OFFLINE.environment),
   ]);
-  // One notice for all four reads: a collection the service left out is normalised to
-  // empty, and without saying so the page would present that as a real zero.
-  const shapeNote = [health, projects, systems, environment]
-    .map(shapeNotice).filter(Boolean).join('；');
   // Tri-state readback for the triage lists: `apiOrEmpty` answers an unreachable service
   // with an EMPTY payload, so "0 failures" would be a false claim offline. Each project's
   // tasks are read through `api()` here and per-project failure is recorded, so the panels
@@ -584,8 +590,7 @@ export async function renderDashboard(target: HTMLElement): Promise<void> {
   const pageHead = el('div', { class: 'page-head' },
     el('div', {},
       el('h2', {}, '仪表盘'),
-      el('p', {}, '项目、品牌、预检与交付已可读回；研究、设计领域、协作尚未开放（见能力登记表）。'
-        + (shapeNote ? ` ${shapeNote}。` : ''))),
+      el('p', {}, '项目、品牌、预检与交付已可读回；研究、设计领域、协作尚未开放（见能力登记表）。')),
     el('div', { class: 'page-actions' },
       el('button', {
         type: 'button', class: 'primary-btn',
@@ -710,7 +715,8 @@ const modulePanels = el('div', { class: 'three-col', style: 'margin-top:16px' },
     // continue rather than pointing at an arbitrary project.
     continuePanel,    el('div', { class: 'two-col', style: 'margin-top:16px' },
       triagePanel('needs_human', '待审（需人工处理）', '无待审任务'),
-      triagePanel('failed', '失败', '无失败任务'))),
+      triagePanel('failed', '失败', '无失败任务')),
+    ...shapeNoticeRows(environment, health, projects, systems)),
     // 2026-09-30 — 活跃生产 + 最近交付 + Host/Capability 状态 + Quick Launch。
     // 全部来自真实读回：活跃生产 = in_flight triage；最近交付 = /bundles 读回；
     // Host 状态 = /environment shared_inputs + 能力登记表（诚实 UNKNOWN 占位，
@@ -859,7 +865,8 @@ export async function renderBrandSystems(target: HTMLElement): Promise<void> {
     kpis,
     moduleGrid,
     systemsList,
-    el('p', { class: 'view-hint' }, '绑定到方向的操作在工作台「05 / DESIGN LAYER」页执行；本页只读回，不修改。'));
+    el('p', { class: 'view-hint' }, '绑定到方向的操作在工作台「05 / DESIGN LAYER」页执行；本页只读回，不修改。'),
+    ...shapeNoticeRows(systems));
 }
 
 export async function renderPreflight(target: HTMLElement): Promise<void> {
@@ -1076,7 +1083,8 @@ export async function renderCapabilityLibrary(target: HTMLElement): Promise<void
     el('div', { class: 'panel' },
       el('h3', {}, '研究结论'),
       el('p', { class: 'view-unopened' }, notOpen ?? '（无）'),
-      researchCard ? capabilityCard(researchCard) : el('p', { class: 'view-hint' }, '（登记表无此项）')));
+      researchCard ? capabilityCard(researchCard) : el('p', { class: 'view-hint' }, '（登记表无此项）')),
+    ...shapeNoticeRows(data));
   render();
 }
 
@@ -1149,7 +1157,8 @@ export async function renderSettings(target: HTMLElement): Promise<void> {
                     el('span', { class: 'tag info' }, input.status)))
                 : [el('li', { class: 'list-item' },
                     el('div', {}, el('strong', {}, '尚无外置输入'), el('small', {}, '服务未返回 shared_inputs')))])))))),
-    el('p', { class: 'view-hint' }, '代理配置私有状态不可写：PRIVATE_NOT_INSPECTED · 不可写。本服务不读取、不打印任何凭据。'));
+    el('p', { class: 'view-hint' }, '代理配置私有状态不可写：PRIVATE_NOT_INSPECTED · 不可写。本服务不读取、不打印任何凭据。'),
+    ...shapeNoticeRows(env));
 }
 
 // --- UI real-data routes (2026-09-22): projects / creative-tools /
@@ -1165,12 +1174,18 @@ export async function renderSettings(target: HTMLElement): Promise<void> {
 export async function projectPickerPanel(target: HTMLElement, title: string, body: (projectId: string) => Promise<HTMLElement>): Promise<void> {
   target.replaceChildren(el('p', { class: 'view-loading' }, '正在读回项目台账…'));
   const data = await apiOrEmpty<ProjectListResponse>('/projects', OFFLINE.projects);
+  const unread = shapeNotice(data);
   if (!data.projects.length) {
+    // Two different empties, and the earlier branch confused them: a ledger that
+    // genuinely holds no project, versus a 200 that never carried the collection.
+    // Only the first may be described as 尚无项目.
     target.replaceChildren(
       el('div', { class: 'page-head' },
         el('div', {}, el('h2', {}, title),
           el('p', {}, '只读回服务端台账；本页不提交、不修改。'))),
-      el('p', { class: 'view-hint' }, '尚无项目。先在工作台新建项目，再读回此视图。'));
+      ...(unread
+        ? [el('p', { class: 'error' }, `${unread}，因此无法判断台账是否为空`)]
+        : [el('p', { class: 'view-hint' }, '尚无项目。先在工作台新建项目，再读回此视图。')]));
     return;
   }
   // One project in the ledger and a placeholder selected is a dead first screen:
@@ -1185,7 +1200,8 @@ export async function projectPickerPanel(target: HTMLElement, title: string, bod
     el('div', { class: 'page-head' },
       el('div', {}, el('h2', {}, title),
         el('p', {}, '只读回服务端台账；本页不提交、不修改。'))),
-    el('label', { class: 'project-picker' }, '项目', select), content);
+    el('label', { class: 'project-picker' }, '项目', select), content,
+    ...shapeNoticeRows(data));
   const load = async (): Promise<void> => {
     const id = select.value;
     if (!id) {
@@ -1217,15 +1233,11 @@ export async function renderProjects(target: HTMLElement): Promise<void> {
   target.replaceChildren(el('p', { class: 'view-loading' }, '正在读回项目台账…'));
   const data = await apiOrEmpty<ProjectListResponse>('/projects', OFFLINE.projects);
   const n = data.projects.length;
-  // Without this, a response that omitted `projects` would normalise to an empty list
-  // and the page would say 尚无项目 as if the server had answered zero.
-  const shapeNote = shapeNotice(data);
   // B10 1:1 page-head + kpi-grid（真实读回值，非 B10 演示数字）。
   const pageHead = el('div', { class: 'page-head' },
     el('div', {},
       el('h2', {}, '项目'),
-      el('p', {}, '支持筛选、编辑与本地持久化。数据来自服务端台账；新建 / 选择项目在工作台执行，本页只读回。'
-        + (shapeNote ? ` ${shapeNote}。` : ''))),
+      el('p', {}, '支持筛选、编辑与本地持久化。数据来自服务端台账；新建 / 选择项目在工作台执行，本页只读回。')),
     el('div', { class: 'page-actions' },
       el('button', {
         type: 'button', class: 'primary-btn',
@@ -1261,7 +1273,8 @@ export async function renderProjects(target: HTMLElement): Promise<void> {
   target.replaceChildren(
     pageHead,
     kpis,
-    el('div', { class: 'panel' }, el('h3', {}, `项目（${n}）`), list));
+    el('div', { class: 'panel' }, el('h3', {}, `项目（${n}）`), list),
+    ...shapeNoticeRows(data));
 }
 
 // 创作工具 — read-back of the project's native task ledger. Submitting a native
@@ -1330,7 +1343,8 @@ export async function renderCreativeTools(target: HTMLElement): Promise<void> {
           'aria-label': '设计领域任务表（可横向滚动）' },
           el('table', { class: 'table' },
             el('thead', {}, el('tr', {}, el('th', {}, '类型'), el('th', {}, '状态'), el('th', {}, '尝试'))),
-            el('tbody', {}, ...rows)))));
+            el('tbody', {}, ...rows)))),
+    ...shapeNoticeRows(env, tasks));
   });
 }
 
@@ -1403,7 +1417,8 @@ export async function renderDeliverables(target: HTMLElement): Promise<void> {
       kindGrid,
       el('p', { class: 'view-hint' }, '交付包按任务在下载时打包（字体 / 链接 / rights / 质量仍需人工验收）。本页只读回，不下载也不打包。'),
       bundlePanel,
-      tasksPanel);
+      tasksPanel,
+    ...shapeNoticeRows(bundles, tasks));
   });
 }
 
@@ -1485,7 +1500,8 @@ export async function renderEvidence(target: HTMLElement): Promise<void> {
               el('tr', {}, el('th', { scope: 'row' }, '选定方向'), el('td', {}, chosen)),
               el('tr', {}, el('th', { scope: 'row' }, '活动绑定'), el('td', {}, active)))))),
       systems,
-      el('p', { class: 'view-hint' }, '版本链（brief / direction 逐版本）在工作台点单条时读回；本页为只读证据视图，不修改 lineage。'));
+      el('p', { class: 'view-hint' }, '版本链（brief / direction 逐版本）在工作台点单条时读回；本页为只读证据视图，不修改 lineage。'),
+      ...shapeNoticeRows(layerResp, bundlesResp));
     return done;
   });
 }
@@ -1847,7 +1863,11 @@ function renderBriefEditor(id: string, layer: DesignLayerResponse['design_layer'
     });
     const rows = data.lineage.versions;
     const liveId = data.lineage.live_id;
+    // The box is a <ul>, so the notice has to be an <li>; the sentence itself still
+    // comes from the one shapeNotice source the page-level rows use.
+    const notice = shapeNotice(data);
     lineageBox.replaceChildren(
+      ...(notice ? [el('li', { class: 'error' }, notice)] : []),
       el('li', { class: 'list-item' },
         el('div', {}, el('strong', {}, `版本链（${rows.length}）`),
           el('small', {}, `当前 ${liveId ? `版本 ${versions.get(liveId) ?? '?'}` : '—'}`))),
@@ -2566,7 +2586,7 @@ export async function renderProjectDetail(id: string, target: HTMLElement): Prom
       inspector,
     ),
     el('p', { class: 'view-hint' }, 'tasks 与 design-layer 台账为只读；简报区可真实创建与修订并读回；参考素材区读回资产清单并按需预览。提交任务 / 运行 / 取消 / 导出仍由工作台高级区执行。'),
-  );
+    ...shapeNoticeRows(bundlesResp, layerResp, listing, systemsResp, tasks));
 }
 
 export async function renderRoute(view: AppView, target: HTMLElement): Promise<void> {

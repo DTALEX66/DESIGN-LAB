@@ -192,4 +192,40 @@ if (goodText.includes('未读回：响应缺少'))
 if (!goodText.includes('Alpha'))
   throw new Error('形状完整的响应必须照常渲染');
 
+// ⑤ SWEEP over every routable view, in both directions, driven from the route table
+// itself (shape-notice-coverage.mjs proves each binding is REPORTED; this proves the
+// report REACHES THE SCREEN). A view that reads through the seam and gets a 200 with a
+// collection missing must render 未读回：响应缺少 …; a view that reads nothing is allowed
+// to say nothing, but a mass of "reads nothing" is a rollout regression, so the count
+// has a floor.
+const shellSource = readFileSync(join(here, '..', 'shell.ts'), 'utf8');
+const tableStart = shellSource.indexOf('export const ROUTE_VIEWS');
+const tableEnd = shellSource.indexOf('export type RouteView');
+if (tableStart < 0 || tableEnd < tableStart)
+  throw new Error('ROUTE_VIEWS 表定位失败 —— 路由扫描失去覆盖面');
+const routeHashes = [...shellSource.slice(tableStart, tableEnd)
+  .matchAll(/hash: '(#[^']*)'/g)].map((m) => m[1]);
+if (routeHashes.length < 10)
+  throw new Error(`只从 ROUTE_VIEWS 提取到 ${routeHashes.length} 个 hash —— 提取式已失效，不要相信本扫描的覆盖面`);
+
+let noticeViews = 0;
+const silentViews = [];
+for (const hash of routeHashes) {
+  shell.window.location.hash = hash;
+  shell.dispatchHashchange();
+  const requests = shell.pending.splice(0, shell.pending.length);
+  for (const request of requests) request.resolve(response({}));
+  await flush();
+  if (!requests.length) { silentViews.push(hash); continue; }
+  const text = shell.elements.get('route-view').textContent;
+  if (text.includes('视图读回失败'))
+    throw new Error(`${hash}: 缺少集合把整页压成了读回失败（${text.slice(0, 120)}）`);
+  if (!text.includes('未读回：响应缺少'))
+    throw new Error(`${hash}: 发起 ${requests.length} 次 seam 读回却没有说明缺少哪个字段`);
+  noticeViews += 1;
+}
+if (noticeViews < 8)
+  throw new Error(`只有 ${noticeViews} 个视图报告了缺失形状（下限 8）—— ⑤ 的铺开出现了回归`);
+console.log(`ok: ⑤ 形状告警渲染在 ${noticeViews} 个视图上；${silentViews.length} 个路由不读服务：${silentViews.join(' ')}`);
+
 console.log('APPSHELL REGRESSION: all checks passed');
