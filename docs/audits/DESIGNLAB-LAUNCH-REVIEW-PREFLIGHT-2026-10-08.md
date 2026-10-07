@@ -651,6 +651,33 @@ rights 表落地之后必须同样进入计数器 —— 该要求已写进任�
 盲表用例红;把计数器名字改成 `approvals` → 同一用例红(真实表变盲)。
 还原后同批绿:覆盖 5 条 + 备份 43 条(1 条既有按名跳过)+ rights 58 条。
 
+
+## 16. 追正:`8f0d4f98` 那条提交对反证的说法是错的
+
+那条提交写"把 walk 指向不存在的目录 → 改前会打印 OK total=0,改后以空洞原因失败"。
+**这句不成立**,它撞的其实是两条不同路径:
+
+- `os.walk(ROOT / 'no-such-directory')` 会让 `onerror` 回调把
+  `active directory unreadable: [WinError 3]` 追加进 `hits`,而 hits 非空在**今天之前就已经失败**
+  —— 它证明的是既有规则,不是我新加的地板线;
+- 真正证明新地板线的是另一个变异:计数器 `SCANNED['files'] += 1` 改成 `+= 0`,于是 hits 为空
+  而 scanned=0,才打印出
+  `IDENTITY_GATE=FAIL scanned=0 total=0 reason=the walk examined too few files to be a check at all`。
+
+我第一版反证脚本在**打印阶段**被 cp936 控制台打断(`UnicodeEncodeError: 'gbk' codec can't encode
+character '\u03f5'`),而我从残留输出里看到"它红了"就写了提交说明 —— 红了不等于为正确的理由红。
+修好的脚本(`.project-local/tmp/falsify_identity_scan_liveness.py`)现在显式跑两条变异、各自断言
+reason 文本、并 `sys.stdout.reconfigure(encoding='utf-8')` 防止打印把自己先杀掉:两条都感到,
+还原后 `OK total=0 scanned=3012`。
+
+并入既有纪律:**反证必须断言失败的原因字符串,不能只断言"变红了"**。这与
+"退出码/包装状态不是证据"以及"探针自己也要被反证"是同一族。
+
+同一批还登记了账本漂移的第四条(`0cb1397b` 改写了 `test_service_http.py`,由
+`r5-bundle-list-route-http-ui-20260929` 绑定的字节比它描述的代码更旧):做法是把条目**连同理由**
+加进那份精确清单,并把清单头注释从"只报 2/4 条"补成 4 条 —— 少报覆盖面与不报是同一类问题。
+双向反证:漏登记会红;留着一条已经不再漂移的借口也会红。
+
 我自己在这段里也写坏过一次测试:先加的"每个被计数的名字必须是状态表"其实是**错的断言** ——
 `native_host_guard_v1` 声明在 `native_tasks.py` 里而非 `.sql`,`FROM sqlite_master` / `PRAGMA`
 也会被我的名字正则捞进来,于是它把四五个合法名字报成"不存在的表"。它同时还是**空断言**:
