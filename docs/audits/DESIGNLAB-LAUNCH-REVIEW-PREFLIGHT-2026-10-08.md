@@ -457,6 +457,19 @@ NOT_REVIEWED,不能被措辞成已经在流程里**(`interop/delivery_receipt.py
 词表声明 → 反证)是下一步,并且界面一旦要说 `APPROVED`,`state-vocabularies.json` 必须先有一个
 真能发出该词的来源——否则 `verify_state_vocabularies.py` 会正确地把它判成界面谎。
 
+> **2026-10-08 追正(提交 `747c14c5` + `4d0910df`,按 HEAD 复核过才写)**:上面这段里
+> 除“界面面板”以外都过期了。现已存在:`assurance/rights_ledger.py`(契约从磁盘读取、
+> 版本双向比对、封闭的拒绝码表)、`design-lab-state-rights-v1.sql` 的只追加表与
+> UPDATE/DELETE 触发器、`rights_review.py` 门面 + GET/POST 两条路由(`http_service.py:301,412`)、
+> `rights` CLI 动词、`state-vocabularies.json` 的 `rights` 词表(带真实 `sources`),
+> 账本里 `rights-decision.schema.json` 已由 INERT 转 BINDING(带实例与测试行号)。
+> 仍未闭合的三条,逐条按 HEAD 验证过:①**界面面板还没有**(任务 #16 正在做);
+> ②`config/rights-registry.json` 的 74 个主体仍然没有任何 `src/` 读取者;
+> ③`handoff_readiness._rights_gates` 仍然零个产品调用方(只剩注释里的提及)。
+> ②③是“数据与一个会算裁决的函数都在,但没人把它们接到链上”,不是措辞问题;
+> 把它们接进裁决流程需要 owner 对“什么算一个需要裁决的主体清单”给出判据,
+> 我不会用一次自动读取替这个判断做主。
+
 
 ## 11. 本波次提交清单与仍未闭合的口(2026-10-08)
 
@@ -513,11 +526,12 @@ NOT_REVIEWED,不能被措辞成已经在流程里**(`interop/delivery_receipt.py
 仍未闭合,按"能不能由我自己关掉"分开列:
 
 **我这边继续做的:**
-- rights 链:裁决器 → 只追加表 + 迁移登记 → HTTP 门面与路由 → `rights` CLI → 词表声明 →
-  `contract-bindings` 行由 INERT 转 BOUND → 界面面板 → 反证(§10 末的清单)。
+- ~~rights 链:裁决器 → 只追加表 + 迁移登记 → HTTP 门面与路由 → `rights` CLI → 词表声明 →
+  `contract-bindings` 行由 INERT 转 BOUND → 界面面板 → 反证(§10 末的清单)~~ —— 除**界面面板**
+  外已在 `747c14c5`/`4d0910df` 闭合;逐条按 HEAD 复核的追正见 §10 末。
 - ResearchFinding / MethodCard 仍无端到端持久化与读回。
-- 聚合清单现在 61 项(本波注册 4 处:artifact preflight 合同、ledger schema 配对、
-  contract bindings、route payload);所有新门都要在最终 HEAD 上随聚合与绑定运行再跑一遍。
+- 聚合清单现在 62 项(本波注册 5 处:artifact preflight 合同、ledger schema 配对、
+  contract bindings、route payload、current-version 约定);所有新门都要在最终 HEAD 上随聚合与绑定运行再跑一遍。
 - 绑定运行的证据追加 + `reports/current/*` 投影再生成(`--check` 目前报 DRIFT,因为本波
   新增了测试模块与门)。
 
