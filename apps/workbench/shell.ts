@@ -153,7 +153,9 @@ export function emptyLi(value: unknown, noun: string, hint: string): HTMLElement
 
 export function emptyTd(value: unknown, noun: string, hint: string, colspan: number): HTMLElement {
   const [head, note] = emptyWording(value, noun, hint);
-  return el('td', { colspan: String(colspan) }, el('span', {}, head), el('small', {}, ` ${note}`));
+  // One text node, not a <small> caption: inside a table cell the 0.8em small is the
+  // size the overflow gate measures, and it failed at every width on the first run.
+  return el('td', { colspan: String(colspan) }, `${head} ${note}`);
 }
 
 // Honest empty payloads for the dev/offline seam (see apiOrEmpty).

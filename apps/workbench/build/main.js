@@ -993,7 +993,7 @@ function emptyLi(value, noun, hint) {
 }
 function emptyTd(value, noun, hint, colspan) {
   const [head, note] = emptyWording(value, noun, hint);
-  return el("td", { colspan: String(colspan) }, el("span", {}, head), el("small", {}, ` ${note}`));
+  return el("td", { colspan: String(colspan) }, `${head} ${note}`);
 }
 const OFFLINE = {
   health: { status: "UNKNOWN", version: "—", scope: "dev-offline" },
