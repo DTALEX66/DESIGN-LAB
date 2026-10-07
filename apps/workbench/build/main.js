@@ -491,7 +491,11 @@ async function api(path, body) {
     throw new Error(`服务回复无法解析（HTTP ${response.status}，${errMsg(error)}）`);
   }
   if (response.status === 401) dropSession();
-  if (!response.ok) throw new Error(value.error || "SERVICE_ERROR");
+  if (!response.ok) {
+    if (value.error === "PROJECT_PATH_TOO_LONG")
+      throw new Error("项目路径过长，Windows 无法保存。请将项目放在较短的目录后重试。");
+    throw new Error(value.error || "SERVICE_ERROR");
+  }
   return value;
 }
 function setListNotice(listId, text) {
@@ -543,7 +547,22 @@ async function projects() {
   const data = await api("/projects");
   byId("project").replaceChildren(new Option("选择项目", ""));
   for (const p of data.projects) byId("project").append(new Option(p.name, p.id));
+  if (!project) {
+    let remembered = "";
+    try {
+      remembered = window.localStorage.getItem("design-lab:active-project") || "";
+    } catch {
+    }
+    if (data.projects.some((p) => p.id === remembered)) project = remembered;
+    else if (data.projects.length === 1) project = data.projects[0].id;
+  }
   if (data.projects.some((p) => p.id === project)) byId("project").value = project;
+}
+function rememberProject$1() {
+  try {
+    window.localStorage.setItem("design-lab:active-project", project);
+  } catch {
+  }
 }
 async function loadEvents(job, append = false) {
   if (append && job !== eventJob) return;
@@ -693,6 +712,7 @@ async function refresh() {
 }
 function populateReferencePicker(assetIds) {
   const picker = byId("reference-picker");
+  const selected = new Set(typeof document.querySelectorAll === "function" ? selectedReferences() : []);
   picker.replaceChildren();
   if (!assetIds.length) {
     const li = document.createElement("li");
@@ -707,6 +727,7 @@ function populateReferencePicker(assetIds) {
     box.type = "checkbox";
     box.name = "reference-asset";
     box.value = id;
+    box.checked = selected.has(id);
     label.append(box, document.createTextNode(" " + id));
     li.append(label);
     picker.append(li);
@@ -770,11 +791,22 @@ async function sendImport() {
     byId("import-button").disabled = false;
   }
 }
-byId("connect-form").onsubmit = async (event) => {
-  event.preventDefault();
+async function connectLocalService(submittedToken = "") {
   const generation = ++connectGeneration;
-  const submittedToken = byId("token").value;
-  byId("token").value = "";
+  if (!submittedToken) {
+    setStatus("正在连接本机设计服务…");
+    try {
+      const response = await fetch("/api/local-session", { cache: "no-store", signal: AbortSignal.timeout(8e3) });
+      if (!response.ok) throw new Error("本机服务未开启自动连接，请使用官方 workbench 启动入口。");
+      const session = await response.json();
+      if (generation !== connectGeneration) return;
+      submittedToken = session.token || "";
+    } catch (error) {
+      if (generation !== connectGeneration) return;
+      setStatus(errMsg(error), true);
+      return;
+    }
+  }
   if (!/^[0-9a-f]{64}$/.test(submittedToken)) {
     token = "";
     connected = false;
@@ -790,12 +822,24 @@ byId("connect-form").onsubmit = async (event) => {
     byId("workspace").hidden = false;
     byId("connection").textContent = "本机已连接";
     setStatus("选择或新建项目。");
+    if (typeof window !== "undefined" && typeof window.dispatchEvent === "function")
+      window.dispatchEvent(new Event("hashchange"));
+    if (project) {
+      resetProject();
+      void Promise.all([refresh(), loadDesignSystems(), refreshDesign()]).catch((error) => setStatus(`已连接，项目读回失败：${errMsg(error)}`, true));
+    }
   } catch (error) {
     if (generation !== connectGeneration || token !== submittedToken) return;
     token = "";
     connected = false;
     setStatus(errMsg(error), true);
   }
+}
+byId("connect-form").onsubmit = async (event) => {
+  event.preventDefault();
+  const submittedToken = byId("token").value;
+  byId("token").value = "";
+  await connectLocalService(submittedToken);
 };
 byId("disconnect").onclick = () => {
   connectGeneration += 1;
@@ -810,6 +854,7 @@ byId("disconnect").onclick = () => {
 };
 byId("project").onchange = () => {
   project = byId("project").value;
+  rememberProject$1();
   resetProject();
   refresh().catch((e) => setStatus(errMsg(e), true));
   loadDesignSystems().catch((e) => setStatus(errMsg(e), true));
@@ -820,17 +865,27 @@ byId("refresh").onclick = () => {
   void loadDesignSystems().catch((e) => setStatus(errMsg(e), true));
   void refreshDesign().catch((e) => setStatus(errMsg(e), true));
 };
+let creatingProject = false;
 byId("create-form").onsubmit = async (event) => {
   event.preventDefault();
+  if (creatingProject) return;
+  creatingProject = true;
+  const form = byId("create-form");
+  const submit = typeof form.querySelector === "function" ? form.querySelector("button") : null;
+  if (submit) submit.disabled = true;
   try {
     const data = await api("/projects", { name: byId("project-name").value });
     project = data.project.id;
+    rememberProject$1();
     resetProject();
     await projects();
     byId("project-name").value = "";
     await refresh();
   } catch (error) {
     setStatus(errMsg(error), true);
+  } finally {
+    creatingProject = false;
+    if (submit) submit.disabled = false;
   }
 };
 byId("import-form").onsubmit = async (event) => {
@@ -4035,6 +4090,7 @@ function mountB10Shell(routeView, syncLegacyNavCue) {
   const probe = document.createElement("div");
   if (typeof probe.querySelector !== "function") return null;
   const B10_NAV = [
+    { route: "workbench", label: "工作台", hash: "" },
     { route: "dashboard", label: "仪表盘", hash: "#/dashboard" },
     { route: "projects", label: "项目", hash: "#/projects" },
     { route: "research", label: "研究洞察", hash: "#/research" },
@@ -4092,7 +4148,7 @@ function mountB10Shell(routeView, syncLegacyNavCue) {
         "div",
         {},
         el("strong", {}, "本地单用户"),
-        el("small", {}, "无身份路由 · 未读回")
+        el("small", { id: "personal-connection" }, "本机服务未连接")
       )
     )
   );
@@ -4107,7 +4163,13 @@ function mountB10Shell(routeView, syncLegacyNavCue) {
   const setNavOpen = (open) => {
     sidebar.classList.toggle("open", open);
     navToggle.setAttribute("aria-expanded", String(open));
+    const mobile = window.matchMedia("(max-width: 840px)").matches;
+    sidebar.toggleAttribute("inert", mobile && !open);
+    if (open) sidebar.querySelector(".nav button")?.focus();
+    else if (mobile && sidebar.contains(document.activeElement)) navToggle.focus();
   };
+  setNavOpen(false);
+  window.matchMedia("(max-width: 840px)").addEventListener("change", () => setNavOpen(false));
   navToggle.onclick = () => setNavOpen(!sidebar.classList.contains("open"));
   sidebar.addEventListener("click", (event) => {
     if (event.target.closest("button")) setNavOpen(false);
@@ -4149,13 +4211,22 @@ function mountB10Shell(routeView, syncLegacyNavCue) {
   document.body.append(app);
   const legacyNav = document.querySelector(".app-nav");
   const legacyChrome = Array.from(document.querySelectorAll("body > header, body > main, body > footer"));
+  const legacyMain = document.querySelector("body > main");
+  const workbenchView = el("section", { class: "personal-workbench", id: "workbench-view" });
+  if (legacyMain) {
+    workbenchView.append(...Array.from(legacyMain.childNodes));
+    app.querySelector("#content")?.append(workbenchView);
+  }
   const sync = (view) => {
     const routed = view !== "workbench";
-    app.hidden = !routed;
+    app.hidden = false;
+    workbenchView.hidden = routed;
+    routeView.hidden = !routed;
     offlineNotice.hidden = Boolean(token) || !devMode();
-    if (legacyNav) legacyNav.toggleAttribute("hidden", routed);
-    for (const node of legacyChrome) node.toggleAttribute("hidden", routed);
+    if (legacyNav) legacyNav.hidden = true;
+    for (const node of legacyChrome) node.hidden = true;
     if (!routed) syncLegacyNavCue();
+    byId("personal-connection").textContent = connected ? "本机服务已连接" : "本机服务未连接";
     for (const item of Array.from(sidebar.querySelectorAll(".nav button"))) {
       const highlight = view === "project-detail" ? "projects" : view;
       const selected = item.dataset.route === highlight;
@@ -4362,3 +4433,4 @@ if (typeof document !== "undefined" && document.body !== void 0 && devBypassEnab
   }
   if (connEl) connEl.textContent = "未连接 · 本地浏览模式";
 }
+if (typeof window !== "undefined" && document.body?.dataset.localSession === "auto" && !devBypassEnabled()) void connectLocalService();
