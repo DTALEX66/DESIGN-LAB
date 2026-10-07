@@ -328,7 +328,17 @@ class ListItemIsReallyAListMember(unittest.TestCase):
 
     def test_members_and_containers_are_both_present(self):
         """Guard against the assertion above passing because everything was deleted."""
-        self.assertGreaterEqual(self.shell.count("el('li', { class: 'list-item'"), 50)
+        # Rows are counted as *rendered*, not as literal strings in the file: an empty
+        # state now comes from emptyLi(), which holds the one `el('li', ...)` literal for
+        # all of its call sites. Counting literals alone fell to 47 while every list row
+        # was still an <li> -- the floor is about the DOM, so the measure has to follow
+        # the helper. The two subtractions drop the helper's own definition from each
+        # tally so a call site is counted exactly once.
+        rendered_rows = (self.shell.count("el('li', { class: 'list-item'") - 1
+                         + self.shell.count("emptyLi(") - 1)
+        self.assertGreaterEqual(rendered_rows, 50,
+                                "the source builds list rows through el('li') or emptyLi(); "
+                                "a drop below 50 means rows were deleted, not converted")
         self.assertEqual(self.shell.count("el('ul', { class: 'list'"), 30)
 
 
