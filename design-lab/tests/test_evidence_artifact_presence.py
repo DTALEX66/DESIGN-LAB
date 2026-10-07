@@ -34,15 +34,16 @@ class EvidenceArtifactPresenceTests(unittest.TestCase):
                          'every tracked evidence artefact must still exist')
         # Known decay, asserted rather than hidden. Each entry is a record whose
         # artefact bytes legitimately moved after the observation, and the list is
-        # exact so the NEXT unannounced move still goes red:
+        # exact so the NEXT unannounced move still goes red. Four entries today:
         #   * build/main.js -- a 2026-09-27 record used a mutable build output as
         #     its artefact, so the bundle has since moved on;
-        #   * test_project_backup.py -- the 2026-10-06 M1 runtime-slice record
-        #     asserted the backup test file's bytes; commit 701ace9c replaced the
-        #     raw file copy with a snapshot plus a writer barrier, so those bytes
-        #     are now older than the code they describe. That record is not
-        #     rewritten: it stays as the historical observation, and the newer
-        #     evidence record carries the current binding.
+        #   * the two files the 2026-10-06 M1 runtime-slice record bound by hash --
+        #     test_project_backup.py (commit 701ace9c replaced the raw file copy with a
+        #     snapshot plus a writer barrier) and test_workbench_launch.py (the launch
+        #     token path moved into the service);
+        #   * test_service_http.py -- 0cb1397b added the delivery-receipt route cases.
+        # In every case the older record is not rewritten: it stays as the historical
+        # observation it was, and a newer record carries the current binding.
         # Compared sorted: the gate emits in ledger-record order, which is an
         # artefact of which record was appended first and carries no meaning here.
         # The set itself stays exact -- an unlisted fourth move still fails.
@@ -57,6 +58,15 @@ class EvidenceArtifactPresenceTests(unittest.TestCase):
             # the observation it was, and newer records carry the current binding.
             ('design-lab/tests/test_project_backup.py', 'HASH_MOVED_SINCE_OBSERVATION'),
             ('design-lab/tests/test_workbench_launch.py', 'HASH_MOVED_SINCE_OBSERVATION'),
+            # 2026-10-08, commit 0cb1397b: the delivery-receipt readback added its
+            # route cases to this module, so the bytes that
+            # r5-bundle-list-route-http-ui-20260929 hashed are older than the code they
+            # describe. That record is a historical observation of the bundle-list route
+            # and stays as filed. The current binding is carried by the wave record
+            # r5-010-delivery-receipt-is-readable-and-the-evidence-page-reads-it-20261008,
+            # which names this file in subject_files and is appended by the same wave's
+            # bound run (it is not in the ledger yet at the moment this line is written).
+            ('design-lab/tests/test_service_http.py', 'HASH_MOVED_SINCE_OBSERVATION'),
         ])
         self.assertEqual(observed, expected)
 
