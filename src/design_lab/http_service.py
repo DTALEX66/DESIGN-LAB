@@ -23,6 +23,8 @@ from .design_layer import (DesignLayer, DesignLayerError, DESIGN_SYSTEM_NAME_PAT
                            TOKEN_WRITE_FIELDS)
 from .jury_review import JuryReview, JuryReviewError
 from .rights_review import RightsReview, RightsReviewError, write_fields
+from .research_review import (ResearchReview, ResearchReviewError,
+                              write_fields as research_write_fields)
 from .assurance.production_preflight import PreflightError, preflight_bundle
 from . import workbench
 
@@ -305,6 +307,14 @@ def make_server(service, token, port=0, *, local_session=False):
                         # rows actually support. An empty ledger answers 200 with
                         # NOT_REVIEWED rather than a 404 the page would have to guess at.
                         return self.send_json(200, RightsReview(service).list(match[1]))
+                    match = re.fullmatch(r'/api/projects/([0-9a-f]{32})/research', self.path)
+                    if match:
+                        # Same class of read again, with one deliberate difference: research
+                        # has NO project-level verdict word to publish, so an empty panel
+                        # answers 200 with counts of zero and `research_verdict` null rather
+                        # than a 404 the page would have to invent a word for, and rather than
+                        # a "cleared"-shaped field that would read as a gate nobody put here.
+                        return self.send_json(200, ResearchReview(service).list(match[1]))
                     match = re.fullmatch(r'/api/projects/([0-9a-f]{32})/briefs(?:\?after=(brief-[0-9a-f]{32}))?', self.path)
                     if match:
                         return self.send_json(200, layer.list_briefs(match[1], match[2] or ''))
@@ -421,6 +431,19 @@ def make_server(service, token, port=0, *, local_session=False):
                         value = self.body(fields=write_fields(), limit=65536)
                         return self.send_json(201, RightsReview(service).record(
                             match[1], value, supersedes=match[2]))
+                    match = re.fullmatch(
+                        r'/api/projects/([0-9a-f]{32})/research'
+                        r'(?:\?supersedes=([A-Za-z0-9_.:-]{1,80}))?', self.path)
+                    if match:
+                        # Exact key set again, loaded from the research-finding contract
+                        # (research_review.write_fields) rather than restated here, so an
+                        # unknown field is refused instead of dropped -- including the
+                        # `schemaVersion` a caller of the rights or jury routes would send by
+                        # habit, which this closed contract does not declare. A supersede link
+                        # is a column on the row, never a document field.
+                        value = self.body(fields=research_write_fields(), limit=65536)
+                        return self.send_json(201, ResearchReview(service).record(
+                            match[1], value, supersedes=match[2]))
                     match = re.fullmatch(r'/api/projects/([0-9a-f]{32})/briefs', self.path)
                     if match:
                         value = self.body(fields={'title', 'goals', 'constraints', 'reference_asset_ids', 'idempotency_key'})
@@ -506,6 +529,16 @@ def make_server(service, token, port=0, *, local_session=False):
             # contract has to arrive as a 409, not as a retryable 400. The code is what a
             # caller branches on; the detail is what an operator reads.
             except RightsReviewError as exc:
+                payload = {'error': exc.code}
+                if exc.detail:
+                    payload['detail'] = exc.detail
+                self.send_json(exc.status, payload)
+            # Same position and same reasoning as the rights clause: "that finding cites no
+            # source", "that chain belongs to another project" and "a machine signed this as a
+            # human statement" are three different refusals an operator has to be able to act
+            # on, and folding them into INVALID_REQUEST would leave a page guessing which one
+            # it hit.
+            except ResearchReviewError as exc:
                 payload = {'error': exc.code}
                 if exc.detail:
                     payload['detail'] = exc.detail

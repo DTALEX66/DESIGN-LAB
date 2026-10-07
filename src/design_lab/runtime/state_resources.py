@@ -25,6 +25,11 @@ _NAMES = frozenset({
     # src/design_lab/assurance/rights_ledger.py). Additive: one new immutable
     # resource name, no existing file renamed or re-versioned.
     'design-lab-state-rights-v1.sql',
+    # 2026-10-08 research-finding reachability: the ResearchFinding working-state store
+    # (design-lab/schemas/state/design-lab-state-research-v1.sql, applied by
+    # src/design_lab/assurance/research_store.py). Additive: one new immutable resource
+    # name, no existing file renamed or re-versioned.
+    'design-lab-state-research-v1.sql',
     'design-lab-state-design-layer-v1.sql',
     'design-lab-state-design-layer-v2.sql',
     'design-lab-state-design-layer-v3.sql',

@@ -174,6 +174,47 @@ def main(argv=None):
     rights.add_argument('--supersedes', default=None,
                         help='decision_id this decision replaces (append-only: the replaced '
                              'decision stays readable, and it must be about the same scope)')
+    # 2026-10-08: research findings become citable state. Same shape as `rights` above, and
+    # deliberately NOT a gate verb: every write input is optional at the parser level so a
+    # missing one is answered in this file's own JSON error vocabulary rather than as argparse
+    # usage text, and no claim, no source and no author is ever defaulted by this verb.
+    research = commands.add_parser(
+        'research',
+        help='record one research finding against a project, or --record omitted: read back '
+             'what is filed, how much of it cites a source, and what none of it proves')
+    research.add_argument('--project-id', default=None, help='owning project id (32 hex)')
+    research.add_argument('--record', action='store_true',
+                          help='append one finding; without it this verb reads back and writes '
+                               'nothing')
+    research.add_argument('--claim', default=None,
+                          help='the finding being recorded (required with --record)')
+    research.add_argument('--source', action='append', dest='source_refs', default=None,
+                          help='a source this finding rests on, e.g. interview-07 or '
+                               'bench-figma-2026-05 (repeatable, required with --record: a '
+                               'claim with no source is a guess, and the store refuses one)')
+    research.add_argument('--confidence', default=None,
+                          help='one of the contract enum: high, medium, low, speculative '
+                               '(optional; nothing is defaulted, because an unstated '
+                               'confidence is a different record from an invented one)')
+    research.add_argument('--not-design-rule', dest='not_design_rule', action='store_true',
+                          help='state explicitly that this finding is not a design rule. The '
+                               'contract can only ever carry `true`, so the flag adds the '
+                               'disclaimer; omitting it stores no disclaimer rather than '
+                               'assuming one')
+    research.add_argument('--finding-id', dest='finding_id', default=None,
+                          help='explicit finding_id, so a retry of a submission is refused as '
+                               'taken instead of appending a second finding')
+    research.add_argument('--recorded-by', dest='recorded_by', default=None,
+                          help='who or what authored the finding (optional; omitted, it is '
+                               'stored unattributed and the read-back lists it as such)')
+    research.add_argument('--actor-kind', dest='actor_kind', default=None,
+                          help='HUMAN/PANEL or an automated kind. A finding is not a human '
+                               'gate, so an agent may record one -- but declaring HUMAN while '
+                               'naming automation is refused by name (see RESEARCH_NOT_HUMAN)')
+    research.add_argument('--supersedes', default=None,
+                          help='finding_id this finding replaces (append-only: the replaced '
+                               'finding stays readable, and it must be a finding of the same '
+                               'project)')
     projects = commands.add_parser('projects').add_subparsers(dest='action', required=True)
     projects.add_parser('list')
     projects.add_parser('create').add_argument('--name', required=True)
@@ -459,6 +500,89 @@ def main(argv=None):
                     # sign a human gate.
                     print(json.dumps({'status': 'ERROR', 'error': exc.code, 'detail': str(exc),
                                       'project_id': args.project_id}, ensure_ascii=False))
+                    return 2
+        elif args.command == 'research':
+            from contextlib import closing
+            from .assurance import research_store
+            from .research_review import readback as research_readback
+            if not args.project_id:
+                print(json.dumps({'status': 'ERROR', 'error': 'RESEARCH_PROJECT_REQUIRED',
+                                  'detail': 'research needs --project-id; the state database '
+                                            'holds every project of this owner and a read must '
+                                            'not guess one'}, ensure_ascii=False))
+                return 2
+            if service.get_project(args.project_id) is None:
+                # Checked before anything opens the database: a read for an unknown project id
+                # must not create runtime state, and it must not read as an empty honest
+                # "nothing filed yet" for a project that does not exist.
+                print(json.dumps({'status': 'ERROR', 'error': 'RESEARCH_PROJECT_UNKNOWN',
+                                  'detail': f'project {args.project_id} is not recorded in '
+                                            'this owner root', 'create_with': 'design-lab '
+                                            '--project <dir> projects create --name <name>'},
+                                 ensure_ascii=False))
+                return 2
+            if args.record:
+                missing_inputs = []
+                if not (isinstance(args.claim, str) and args.claim.strip()):
+                    missing_inputs.append('--claim')
+                if not args.source_refs:
+                    missing_inputs.append('--source')
+                if missing_inputs:
+                    # No default claim, no default source, no default author: a finding this
+                    # verb cannot attribute or ground is a guess, and the product does not file
+                    # guesses on anyone's behalf.
+                    print(json.dumps({'status': 'ERROR',
+                                      'error': 'RESEARCH_RECORD_INPUTS_REQUIRED',
+                                      'detail': 'recording needs ' + ', '.join(missing_inputs)
+                                                + '; a finding with no source is a guess, and '
+                                                  'omitting --record reads the findings already '
+                                                  'filed'}, ensure_ascii=False))
+                    return 2
+                # Assembled from the flags and validated against the loaded contract; this verb
+                # owns no copy of the contract's field list. Note there is no schemaVersion
+                # here: the research-finding contract closes its properties without declaring
+                # one, so a finding that carried the field the OTHER contracts use would be
+                # refused for it. An optional field the operator did not state stays absent.
+                document = {'finding_id': args.finding_id or research_store.new_finding_id(),
+                            'claim': args.claim, 'sourceRefs': list(args.source_refs)}
+                if isinstance(args.confidence, str) and args.confidence.strip():
+                    document['confidence'] = args.confidence.strip()
+                if args.not_design_rule:
+                    document['notDesignRule'] = True
+            with closing(research_store.connect(
+                    service.paths.database_path(service.database),
+                    project_root=service.paths.project_root)) as research_conn:
+                try:
+                    if args.record:
+                        stored = research_store.record(research_conn,
+                                                       project_id=args.project_id,
+                                                       document=document,
+                                                       recorded_by=args.recorded_by,
+                                                       actor_kind=args.actor_kind,
+                                                       supersedes=args.supersedes)
+                        view = research_readback(research_conn, args.project_id)
+                        # The receipt repeats the limits rather than summarising them away:
+                        # the person who just filed a finding is the person most likely to read
+                        # a populated panel as a finished piece of research.
+                        result = {'status': 'RESEARCH_RECORDED', 'finding': stored,
+                                  'finding_count': view['finding_count'],
+                                  'current_finding_count': view['current_finding_count'],
+                                  'sourced_finding_count': view['sourced_finding_count'],
+                                  'research_verdict': view['research_verdict'],
+                                  'proves_design_quality': view['proves_design_quality'],
+                                  'is_knowledge_export': view['is_knowledge_export'],
+                                  'does_not_prove': view['does_not_prove']}
+                    else:
+                        result = {'status': 'RESEARCH_READBACK',
+                                  **research_readback(research_conn, args.project_id)}
+                except research_store.ResearchStoreError as exc:
+                    # Every refusal carries the code that names the rule, so an operator can
+                    # tell an unknown project from an unsourced claim from a machine claiming a
+                    # human authorship -- and `does_not_prove` is on the read-back either way.
+                    print(json.dumps({'status': 'ERROR', 'error': exc.code, 'detail': str(exc),
+                                      'project_id': args.project_id,
+                                      'does_not_prove': list(research_store.DOES_NOT_PROVE)},
+                                     ensure_ascii=False))
                     return 2
         elif args.command == 'native-recovery':
             from .native_tasks import NativeTaskError

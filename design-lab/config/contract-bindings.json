@@ -290,8 +290,8 @@
         "src/design_lab/assurance/rights_ledger.py:74"
       ],
       "tests": [
-        "design-lab/tests/test_rights_ledger.py:420",
-        "design-lab/tests/test_rights_http.py:118"
+        "design-lab/tests/test_rights_ledger.py:56",
+        "design-lab/tests/test_rights_http.py:53"
       ],
       "fixtures": [],
       "reason": "Bound 2026-10-08. src/design_lab/assurance/rights_ledger.py loads this file at read time (contract(), lru-cached) and validates every document against it before a row is written, including the decision enum and the closed property set; src/design_lab/rights_review.py exposes the same loaded set as the route's exact key set. Nothing in the store or the facade copies the field list, so a schema word that moves moves the gate with it -- design-lab/tests/test_rights_ledger.py re-reads the SQL CHECK list against the loaded enum for exactly that reason."
@@ -664,6 +664,25 @@
       "version": "design-lab/rights-decision/v1",
       "emitter": "src/design_lab/assurance/rights_ledger.py:74",
       "reason": "The body's exact key set is the contract's own property names, read from the loaded schema (src/design_lab/rights_review.py write_fields) rather than restated in the dispatcher, so an unknown field is refused instead of dropped; the document is then validated against this schema before the row is written (src/design_lab/assurance/rights_ledger.py _validate_against_contract). The enum, the required trio and additionalProperties:false all come from the file named here. The one thing the schema cannot express is checked beside it: an actor that names automation is refused by name, and the signing kind is a column on the row because the closed contract has no field for it."
+    },
+    {
+      "route": "/api/projects/([0-9a-f]{32})/research",
+      "method": "GET",
+      "kind": "SCHEMA_LESS",
+      "handler": "ResearchReview",
+      "version": "design-lab/research-readback/v1",
+      "emitter": "src/design_lab/research_review.py:94",
+      "reason": "No schema validates this envelope -- named as debt, not as an unremarkable read, in the same shape as the GET .../rights row above. The findings it wraps ARE bound (each is a research-finding document validated by assurance/research_store.py on the way in and re-validated from the stored bytes on the way out); src/design_lab/research_review.py writes the envelope's own schemaVersion while nothing describes the envelope. What this surface deliberately does NOT have is a project-level verdict word: rights has rights_clearance because the rights gate exists, and research has a count because no gate is cleared by writing findings down, so `research_verdict` is null, `proves_design_quality` and `is_knowledge_export` are false, and design-lab/tests/test_research_http.py asserts that the gate vocabulary's own words (CLEARED, NOT_REVIEWED, PENDING_REVIEW, ACCEPTED) never appear in the body. Closing this the way the jury readback was closed needs a research-readback.schema.json plus a payload case in design-lab/scripts/verify_route_payload_contracts.py; that is not claimed here because it was not done."
+    },
+    {
+      "route": "/api/projects/([0-9a-f]{32})/research(?:\\?supersedes=([A-Za-z0-9_.:-]{1,80}))?",
+      "method": "POST",
+      "kind": "BOUND_SCHEMA",
+      "handler": "ResearchReview",
+      "schema": "design-lab/schemas/research-finding.schema.json",
+      "version": "https://dtalex66.local/schemas/research-finding.json",
+      "emitter": "src/design_lab/assurance/research_store.py:85",
+      "reason": "Added 2026-10-08 with the route. The body's exact key set is the contract's own property names, read from the loaded schema (src/design_lab/research_review.py write_fields -> research_store.field_names) rather than restated in the dispatcher, so an unknown field is refused instead of dropped; the document is then validated against design-lab/schemas/research-finding.schema.json AS LOADED (src/design_lab/assurance/research_store.py _validate_against_contract) before any row is written. The required trio, the confidence enum, additionalProperties:false and the notDesignRule const all come from that file -- no field list is copied into Python, and the source-list field is located by structure (the required field declared as an array), not by a hardcoded name. The version named here is the schema's `$id`, not a design-lab/x/v1 token, because this contract declares NO schemaVersion property: its closed property set is exactly finding_id/claim/sourceRefs/confidence/notDesignRule, so `$id` is the only identity it binds and research_store.CONTRACT_ID (line 85) is the value compared and refused against. The rules the schema cannot express are enforced beside it: a sourceRefs list that is empty, whitespace-only or duplicated is refused as the guess it is, one row cannot be superseded twice, and a supersede may not reach into another project. This row is also the whole claim about research-finding.schema.json: the ledger's `contracts` array accounts for design-lab/schemas/contracts/*.json only (verify_contract_bindings.py derives its coverage from that directory), and this schema has always lived one level up, so it has no INERT row to flip -- before 2026-10-08 nothing in src/ read it at all, and now two named test files do."
     },
     {
       "route": "/api/projects/([0-9a-f]{32})/briefs",

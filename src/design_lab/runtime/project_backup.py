@@ -255,6 +255,9 @@ COUNTER_QUERIES = (
     ('job_attempt', 'rowid'),
     ('operation_intent', 'rowid'),
     ('rights_decision', 'rowid'),
+    # 2026-10-08: research_store.record() commits a finding with no writer lease either, so a
+    # backup window that swallowed one in flight would otherwise still report PROVED_QUIESCENT.
+    ('research_finding', 'rowid'),
 )
 
 

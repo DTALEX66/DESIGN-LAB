@@ -34,8 +34,14 @@ SCRATCH_BASE = REPO / '.project-local' / 'task-runtime' / 'contract-bindings-scr
 GATE_PATH = REPO / 'design-lab' / 'scripts' / 'verify_contract_bindings.py'
 
 CONTRACTS = 32
-BINDING_ROWS = 1
-INERT_ROWS = 31
+# 2026-10-08 rights-gate reachability: design-lab/schemas/contracts/rights-decision.schema
+# json went INERT -> BINDING when src/design_lab/assurance/rights_ledger.py began loading it
+# (contract() reads the file, its enum and its closed property set at validation time), so one
+# row left the inert inventory and joined the bound one. Not a re-threshold: the ledger itself
+# moved, and design-lab/scripts/verify_contract_bindings.py re-checks the named instance and
+# both named test files on every run.
+BINDING_ROWS = 2
+INERT_ROWS = 30
 
 
 def load_gate(path: Path = None):
@@ -211,13 +217,17 @@ class GateTeethTests(unittest.TestCase):
         # design-lab/path-diagnostic/v1, design-lab/capability-library/v1 and
         # design-lab/domain-pack-readback/v1 each gained a schema and are now BOUND_SCHEMA
         # rows validated against a live response by
-        # design-lab/scripts/verify_route_payload_contracts.py. The two left are the Adobe
+        # design-lab/scripts/verify_route_payload_contracts.py. The two left were the Adobe
         # job-spec debts (adobe-patch-job/v1 with photoshop-patch-job/v1 on one route, and
-        # photoshop-native-job/v1), still unpaid. The loop below is the teeth and did not
-        # move: every remaining claim still has to name its missing schema.
+        # photoshop-native-job/v1), still unpaid. 2026-10-08 (rights chain): the list is 3,
+        # because GET /api/projects/<id>/rights answers a design-lab/rights-readback/v1
+        # envelope that has no schema behind it -- named here as debt, with the reason
+        # stating it plainly, rather than left unlisted. The loop below is the teeth and did
+        # not move: every remaining claim still has to name its missing schema.
         self.assertEqual(sorted(row['route'] for row in claiming),
                          sorted(['/api/projects/([0-9a-f]{32})/tasks/(native-job-[0-9a-f]{64})/patch',
-                                 '/api/projects/([0-9a-f]{32})/native-plans']),
+                                 '/api/projects/([0-9a-f]{32})/native-plans',
+                                 '/api/projects/([0-9a-f]{32})/rights']),
                          'the unpaid version-bearing routes are an inventory, so a paid debt '
                          'left listed as unpaid and an unlisted new debt are both red here')
         for row in claiming:
@@ -308,6 +318,10 @@ class GateTeethTests(unittest.TestCase):
         # which binds the persisted DeliveryReceipt V2 to the same schema and the same
         # emitter the POST .../bundle row already binds. Nothing was re-thresholded: the
         # route is dispatched in http_service.py, so an unchanged count is the false claim.
+        # 2026-10-08 (rights chain): 49 -> 51, for the two routes src/design_lab/
+        # http_service.py now dispatches on -- GET .../rights (the read-back, named as
+        # schema-less debt) and POST .../rights (bound to rights-decision.schema.json) --
+        # each with the ledger row UNLISTED_ROUTE would convict it for being absent.
         # `bound` is the one token derived from the ledger instead of pinned, on the same
         # date, and the reason is recorded rather than left implicit: paying a SCHEMA_LESS
         # debt (adding a schema behind an existing row) also moves it, so a literal here
@@ -319,12 +333,12 @@ class GateTeethTests(unittest.TestCase):
         ledger = json.loads((REPO / self.gate.LEDGER_REL).read_text(encoding='utf-8'))
         expected_bound = sum(1 for row in ledger['routes']
                              if row.get('kind') == self.gate.BOUND_SCHEMA)
-        self.assertEqual(len(lines), 1 + 32 + 49,
+        self.assertEqual(len(lines), 1 + 32 + 51,
                          'one verdict line, one note per contract row, one per route row')
         verdict = lines[-1]
         self.assertTrue(verdict.startswith('VERIFY_CONTRACT_BINDINGS=PASS'), verdict)
         for token in (f'schemas={CONTRACTS}', f'binding={BINDING_ROWS}', f'inert={INERT_ROWS}',
-                      'routes=49', 'dispatched=49', f'bound={expected_bound}'):
+                      'routes=51', 'dispatched=51', f'bound={expected_bound}'):
             self.assertIn(token, verdict)
 
     # --- failure modes, each against a mutated copy ------------------------------
@@ -361,6 +375,13 @@ class GateTeethTests(unittest.TestCase):
         self.assertIn('design-lab/planar-decomposition/v1', reason)
 
     def test_binding_row_without_a_producer_is_red(self):
+        """Every BINDING row loses its claim when its instances go: one red line each.
+
+        The mutation is class-wide on purpose. 2026-10-08 (rights chain): this expected one
+        line while one row was BINDING; rights-decision.schema.json is the second, so the
+        count is the bound inventory rather than a threshold -- and a new BINDING row that
+        could be stripped without moving this number is exactly what would go unnoticed.
+        """
         repo = self.scratch('binding-without-producer')
 
         def mutate(doc):
@@ -370,8 +391,8 @@ class GateTeethTests(unittest.TestCase):
 
         edit_ledger(repo, mutate)
         errors, _, summary = self.run_gate(repo)
-        self.assert_red_for(errors, 'BINDING_WITHOUT_INSTANCE', 1)
-        self.assertEqual(summary['binding'], 1)
+        self.assert_red_for(errors, 'BINDING_WITHOUT_INSTANCE', BINDING_ROWS)
+        self.assertEqual(summary['binding'], BINDING_ROWS)
 
     def test_missing_ledger_is_red_not_green(self):
         repo = self.scratch('no-ledger')
@@ -493,8 +514,14 @@ class GateTeethTests(unittest.TestCase):
                 repo, 'src/design_lab/analysis/decomposition.py',
                 patched((repo / 'src/design_lab/analysis/decomposition.py').read_text(encoding='utf-8'),
                         '"design-lab/planar-decomposition/v1"', '"design-lab/planar-decomposition/v9"')),
+            # 2026-10-08 (rights chain): scoped to one row instead of "every BINDING row",
+            # because there are now two of them and this loop's invariant is that each case
+            # moves exactly one red line. The class-wide version lives in
+            # test_binding_row_without_a_producer_is_red, which expects one line per bound
+            # row. Stripping the rights row also proves that row's instance is a real one.
             'binding-without-producer': lambda repo: edit_ledger(repo, lambda doc: [
-                row.update(instances=[]) for row in doc['contracts'] if row['status'] == 'BINDING']),
+                row.update(instances=[]) for row in doc['contracts']
+                if row['schema'].endswith('rights-decision.schema.json')]),
             'no-ledger': lambda repo: (repo / self.gate.LEDGER_REL).unlink(),
         }
         for name, apply in cases.items():
