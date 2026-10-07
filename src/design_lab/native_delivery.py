@@ -82,7 +82,13 @@ class NativeDelivery:
         with closing(sqlite3.connect(database.as_uri()+'?mode=ro',uri=True)) as conn:
             rows=conn.execute('SELECT f.path,f.sha256,f.byte_size FROM asset a JOIN asset_version v ON v.asset_id=a.asset_id '
                 'JOIN artifact f ON f.version_id=v.version_id WHERE a.project_id=? AND a.asset_id=? '
-                "AND a.asset_kind='other' AND v.version_id=? AND v.state='ACTIVE'",(project_id,asset_id,version_id)).fetchall()
+                "AND a.asset_kind='other' AND v.version_id=? AND v.state='ACTIVE' "
+                # The version is pinned, but a version may register more than one file, and
+                # this read demands exactly one row: without the preference a delivery that
+                # carries a preview answered 404 BUNDLE_NOT_FOUND for a package that exists.
+                'AND f.artifact_id=(SELECT g.artifact_id FROM artifact g WHERE g.version_id=v.version_id '
+                "ORDER BY CASE g.role WHEN 'deliverable' THEN 0 ELSE 1 END, g.path LIMIT 1)",
+                (project_id,asset_id,version_id)).fetchall()
         if len(rows)!=1:raise ImageAssetError(404,'BUNDLE_NOT_FOUND')
         raw_path,expected,size=rows[0]
         try:

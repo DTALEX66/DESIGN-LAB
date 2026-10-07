@@ -585,6 +585,14 @@ v.version_id ORDER BY CASE g.role WHEN 'deliverable' THEN 0 ELSE 1 END, g.path L
    appshell 门在 vm 里执行的是 `build/main.js`(源码只在另一段里被 grep)。它现在先 `vite build`,
    构建失败就拒绝跑门。
 
+顺着这条约定还查到第三处:`NativeDelivery.content()` 虽然钉住了 `v.version_id=?`,但它同样
+`JOIN artifact` 并要求 `len(rows) == 1`,所以一个登记了预览文件的交付包**下载时回答
+`404 BUNDLE_NOT_FOUND`** —— 这次不是读出来的,是删掉子查询后由产品自己抛出来实测到的
+(`.project-local/tmp/falsify_bundle_content_row.py`)。修法与上面同一句约定。
+`RECEIPT_QUERY` 里的 `JOIN artifact` 则是有意为之(用连接当"该版本确实发布过产物"的过滤条件),
+读取用 `fetchone`,重复行不改变结论,因此不动它 —— 记录在此是为了让下一个人不必再猜。
+46 条 delivery 范围用例通过。
+
 
 
 

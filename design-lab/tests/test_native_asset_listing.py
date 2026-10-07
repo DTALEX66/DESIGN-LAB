@@ -43,8 +43,8 @@ class OneRowPerAssetTests(unittest.TestCase):
         self.store = self.service.paths.category_dir('projects', self.project, 'assets')
         self.store.mkdir(parents=True, exist_ok=True)
 
-    def _publish(self, asset_id, kind, payload: bytes):
-        source = self.root / f'in-{asset_id[:12]}-{len(payload)}.psd'
+    def _publish(self, asset_id, kind, payload: bytes, artifact_name='native.psd'):
+        source = self.root / f'in-{asset_id[:12]}-{len(payload)}-{artifact_name}.psd'
         source.write_bytes(payload)
         digest = 'sha256:' + hashlib.sha256(payload).hexdigest()
         with closing(asset_store.connect(self.service.database,
@@ -54,7 +54,7 @@ class OneRowPerAssetTests(unittest.TestCase):
             self.assertTrue(asset_store.acquire_writer(conn, f'asset:{asset_id}', attempt))
             generation = asset_store.writer_token(conn, f'asset:{asset_id}', attempt)
             version = asset_store.publish_version(conn, asset_id, source, store_root=self.store,
-                                                 artifact_name='native.psd',
+                                                 artifact_name=artifact_name,
                                                  expected_sha256=digest,
                                                  holder_attempt_id=attempt, generation=generation)
             asset_store.release_writer(conn, f'asset:{asset_id}', attempt, generation=generation)
@@ -106,6 +106,25 @@ class OneRowPerAssetTests(unittest.TestCase):
         self.assertEqual([row['id'] for row in listing['bundles']], [BUNDLE_ID],
                          f'a delivery counted twice is two promises: {listing["bundles"]}')
         self.assertEqual(listing['bundles'][0]['sha256'], digest)
+
+    def test_a_bundle_that_registered_a_preview_is_still_downloadable(self):
+        """content() demands one row, so a second registered file made a real package 404."""
+        import io
+        import zipfile
+        from design_lab.native_delivery import NativeDelivery
+        archive = io.BytesIO()
+        with zipfile.ZipFile(archive, 'w') as out:
+            out.writestr('poster.png', b'shipped bytes')
+        payload = archive.getvalue()
+        version, digest = self._publish(BUNDLE_ID, 'other', payload,
+                                        artifact_name='delivery.zip')
+        self._register_preview(version, b'contact sheet' * 4)
+        with NativeDelivery(self.service).content(self.project, BUNDLE_ID, version) as read:
+            stream, size, actual = read
+            self.assertEqual(stream.read(), payload)
+        self.assertEqual(size, len(payload))
+        self.assertEqual(actual, hashlib.sha256(payload).hexdigest())
+        self.assertEqual('sha256:' + actual, digest)
 
     def test_an_unknown_native_asset_is_still_a_404_for_the_right_reason(self):
         """The fix must not turn 'no rows' into a success -- the code has to stay put."""
