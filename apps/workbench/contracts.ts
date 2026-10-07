@@ -275,6 +275,61 @@ export interface TaskPreflightResource {
   licence?: string | null;
 }
 
+/** Projection of vendor/sources.lock.json + sources.revisions.json + model-radar. */
+export interface CapabilityRecord {
+  id: string;
+  kind: string;
+  domain: string | null;
+  title: string;
+  disposition: string | null;
+  license: string | null;
+  presence: string | null;
+  url: string | null;
+  revision: string | null;
+  revisionState: string;
+  revisionReason: string | null;
+  repo: string | null;
+  observedAt: string | null;
+  contentDigest: string | null;
+  /** null means no host run and no human acceptance exists yet - not `false`. */
+  qualified: boolean | null;
+  qualificationEvidence: string | null;
+  sourceType: string | null;
+  evidenceLevel: string | null;
+  upstreamOwner: string | null;
+  licenseUrl: string | null;
+  rightsNotes: string | null;
+  removalPath: string | null;
+  popularity: {
+    stargazerCount: number | null;
+    forkCount: number | null;
+    observedAt: string | null;
+    source: string | null;
+    isNotQuality: boolean;
+  } | null;
+  unclassifiedAxes: string[];
+}
+
+export interface CapabilityLibraryResponse {
+  schemaVersion: string;
+  meaning: string;
+  unmeasuredMeans: string;
+  classification?: {
+    joined: number;
+    unclassifiedAxes: string[];
+    note: string;
+  };
+  counts: {
+    total: number;
+    byKind: Record<string, number>;
+    byLicense: Record<string, number>;
+    byRevisionState: Record<string, number>;
+    qualified: number;
+  };
+  sources: Record<string, string>;
+  capabilities: CapabilityRecord[];
+}
+
 export interface TaskPreflightResponse {
   schemaVersion: string;
   task_full_id: string;
