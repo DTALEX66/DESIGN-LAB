@@ -327,6 +327,19 @@ body > footer{
     display:flex;flex-direction:row;gap:6px;overflow-x:auto;overflow-y:hidden;
     padding:8px 10px;border-right:0;border-top:1px solid var(--line);
   }
+  /* The legacy Workbench has more destinations than fit on a phone. The
+     measured scroll state toggles this cue off once the user reaches the end. */
+  .app-nav.has-scroll-more::after{
+    /* sticky, not absolute: the nav IS the scroll container, and an absolutely
+       positioned pseudo is placed against its content box, so it slid away with the
+       items and the cue vanished mid-scroll (measured: arrow pixels 13 / 0 / 0 at
+       scrollLeft 0 / 300 / 600 with 670px of menu still off-screen). As a sticky
+       flex item it stays at the right edge of the scrollport (10 / 10 / 10). */
+    content:"›";position:sticky;right:0;flex:0 0 32px;min-width:32px;margin-left:-32px;
+    align-self:stretch;display:grid;place-items:center;color:var(--secondary);font-size:22px;
+    background:linear-gradient(90deg,transparent,var(--surface) 42%);
+    pointer-events:none;
+  }
   .app-nav-brand,.app-nav-meta{display:none}
   .app-nav-item{
     flex:0 0 auto;width:auto;min-width:max-content;

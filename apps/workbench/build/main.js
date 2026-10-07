@@ -3761,10 +3761,17 @@ function mountAppShell() {
     }, route.label)),
     el("span", { class: "app-nav-meta", id: "shell-connection" }, "未连接")
   );
+  const syncLegacyNavCue = () => {
+    const mobile = typeof window.matchMedia === "function" && window.matchMedia("(max-width: 760px)").matches;
+    const hasMore = mobile && nav.scrollWidth > nav.clientWidth && nav.scrollLeft + nav.clientWidth < nav.scrollWidth - 1;
+    nav.classList.toggle("has-scroll-more", hasMore);
+  };
+  nav.addEventListener("scroll", syncLegacyNavCue, { passive: true });
+  window.addEventListener("resize", syncLegacyNavCue);
   const routeView = el("div", { class: "route-view", id: "route-view", tabindex: "-1" });
   document.body.append(nav);
   document.body.classList.add("dl-shell");
-  const b10 = mountB10Shell(routeView);
+  const b10 = mountB10Shell(routeView, syncLegacyNavCue);
   if (!b10) document.body.append(routeView);
   const active = (view) => {
     for (const item of Array.from(nav.querySelectorAll(".app-nav-item"))) {
@@ -3844,7 +3851,7 @@ function mountAppShell() {
   window.addEventListener("hashchange", show);
   show();
 }
-function mountB10Shell(routeView) {
+function mountB10Shell(routeView, syncLegacyNavCue) {
   const probe = document.createElement("div");
   if (typeof probe.querySelector !== "function") return null;
   const B10_NAV = [
@@ -3968,6 +3975,7 @@ function mountB10Shell(routeView) {
     offlineNotice.hidden = Boolean(token) || !devMode();
     if (legacyNav) legacyNav.toggleAttribute("hidden", routed);
     for (const node of legacyChrome) node.toggleAttribute("hidden", routed);
+    if (!routed) syncLegacyNavCue();
     for (const item of Array.from(sidebar.querySelectorAll(".nav button"))) {
       const highlight = view === "project-detail" ? "projects" : view;
       const selected = item.dataset.route === highlight;
