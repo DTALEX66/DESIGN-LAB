@@ -413,16 +413,44 @@ class ShellClaimTests(unittest.TestCase):
         self.assertTrue(rows, 'no capability rows extracted')
         implemented = [(name, body) for name, body in rows
                        if "implementationState: 'IMPLEMENTED'" in body]
-        self.assertEqual([name for name, _ in implemented], ['design-domain-model'],
-                         'the IMPLEMENTED claim this gate exists to check is not the one '
-                         'under test, or has disappeared')
-        for name, body in implemented:
+        # This case exists to hold the 设计领域 row to its own claim, so it asserts that row is
+        # present and checked, not that it is alone. It used to pin the whole IMPLEMENTED set to
+        # ['design-domain-model'], which meant a second honest row anywhere in the registry failed a
+        # domain-pack gate -- and the route regex below only understands a flat '/api/x' path, so a
+        # scoped route like /api/projects/{id}/research could not have passed it however true it was.
+        # The general property ("no row may claim IMPLEMENTED over a route the service does not
+        # dispatch") is not dropped by this: design-lab/scripts/verify_capability_self_description.py
+        # owns it, matches `{id}` segment by segment, adds the slot linkage, and runs in the local
+        # aggregate -- and its own teeth test refuses a weakened copy of that comparison.
+        names = [name for name, _ in implemented]
+        self.assertIn('design-domain-model', names,
+                      'the IMPLEMENTED claim this gate exists to check has disappeared')
+        self.assertEqual(len(names), len(set(names)),
+                         'a capability row is claimed IMPLEMENTED twice, so one of them is not '
+                         'the row this gate can vouch for')
+        self.assertTrue(implemented, 'no row claims IMPLEMENTED, so the rule below checks nothing')
+        # Flat-route grammar: `self.path == '/api/x'` is how a one-segment route is dispatched, and
+        # a scoped route (/api/projects/{id}/research) is a compiled regex instead, so this gate
+        # literally cannot vouch for one. Rows outside its grammar are named here rather than left
+        # silently unchecked -- verify_capability_self_description.py matches those segment by
+        # segment, and a weakened copy of that comparison is convicted by its own teeth test.
+        flat = [(name, body) for name, body in implemented
+                if re.search(r"route: 'GET /api/[a-z0-9-]+'", body)]
+        outside = sorted(name for name, body in implemented
+                         if not re.search(r"route: 'GET /api/[a-z0-9-]+'", body))
+        for name, body in flat:
             route = re.search(r"route: 'GET (/api/[a-z0-9-]+)'", body)
             self.assertIsNotNone(route, f'{name}: an IMPLEMENTED row declares no exact route')
             path = route.group(1)
             self.assertIn(f"self.path == '{path}'", dispatch,
                           f'{name}: claims {path} is implemented, but http_service.py '
                           'does not dispatch it')
+        self.assertTrue(flat, 'no IMPLEMENTED row is inside this gate\'s grammar, so it proves '
+                        'nothing about the registry it reads')
+        self.assertEqual(outside, ['research-insights'],
+                         f'IMPLEMENTED rows outside the flat grammar are now {outside}; each one '
+                         'must be named here and covered by '
+                         'verify_capability_self_description.py')
 
     def test_the_two_languages_declare_the_same_validation_vocabulary(self):
         # LANGUAGE-POLICY §5: an enum may be hand-copied only where a check proves both
