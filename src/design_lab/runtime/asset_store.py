@@ -220,6 +220,21 @@ def _fence(conn, resource_key, holder_attempt_id, generation):
         raise AssetError("expired or stale writer fencing token")
 
 
+def assert_writer_fence(conn, resource_key, holder_attempt_id, generation):
+    """Assert the caller's lease is still current, on the CALLER's open transaction.
+
+    ``_fence`` is the rule ``renew_writer`` and ``publish_version`` already apply,
+    but both open their own transaction and therefore refuse a connection that is
+    mid-write (``_transaction`` fails closed on ``conn.in_transaction``). A
+    SQLite-only writer that owns its transaction -- the design-system token append
+    in ``design_layer.py`` -- needs the same check without a second BEGIN, so it
+    gets this one instead of a second lock. Read-only: it asserts, never renews,
+    never extends an expiry and never takes a lease from another holder.
+    """
+    _fence(conn, resource_key, holder_attempt_id, generation)
+    return generation
+
+
 def takeover_writer(conn, resource_key, holder_attempt_id, *, lease_seconds=60, expected_holder=None):
     """Explicit handover; always increments generation and records the change."""
     expires = _expiry(lease_seconds)
