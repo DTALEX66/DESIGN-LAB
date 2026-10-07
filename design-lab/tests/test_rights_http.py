@@ -228,6 +228,24 @@ class RightsHttpTests(unittest.TestCase):
         self.assertEqual(status, 400, body)
         self.assertEqual(body['error'], 'RIGHTS_TIMESTAMP_INVALID')
 
+    def test_a_resend_that_stated_nothing_for_an_optional_field_is_still_a_replay(self):
+        """The null -> absent clean-up happens before the replay comparison.
+
+        Comparing the raw body against the stored (normalized) document would answer a
+        resend with 409 "id taken", and the only way a human could then re-file is with a new
+        decision_id -- a second signature for one decision.
+        """
+        document = decision(decision_id='rd-http-null', note=None)
+        self.assertEqual(self.write(document)[0], 201)
+        _, after_first = self.read()
+        self.assertNotIn('note', after_first['current_decisions']['commercial-print'])
+        status, replay = self.write(document)
+        self.assertEqual(status, 201, replay)
+        self.assertEqual(replay['decision_id'], 'rd-http-null')
+        _, body = self.read()
+        self.assertEqual(body['decision_count'], 1,
+                         'a resend is not a second attestation')
+
     def test_the_route_pins_the_contract_key_set_and_refuses_an_invention(self):
         document = decision(decision_id='rd-extra')
         document['expires_at'] = '2027-01-01T00:00:00Z'

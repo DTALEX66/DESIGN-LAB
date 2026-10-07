@@ -153,14 +153,18 @@ class RightsReview:
                                     'recognised as a retry instead of filed as a second '
                                     'decision')
         try:
-            payload = json.dumps(document, ensure_ascii=False, sort_keys=True)
+            rounded = json.loads(json.dumps(document, ensure_ascii=False, sort_keys=True))
         except (TypeError, ValueError):
             raise RightsReviewError(400, 'INVALID_JSON',
                                     'the body is not JSON that can be stored') from None
         # Optional contract fields may be sent as null at the boundary -- "not stated" -- and
-        # absence is what the contract allows, not a null value for them.
-        document = {name: value for name, value in json.loads(payload).items()
+        # absence is what the contract allows, never a null value for them. The clean-up
+        # happens BEFORE the replay comparison: the stored row is the normalized document, so
+        # comparing the raw body against it would turn an identical resend into a 409 and
+        # make a human re-file a decision they already signed.
+        document = {name: value for name, value in rounded.items()
                     if not (value is None and name in rights_ledger.optional_field_names())}
+        payload = json.dumps(document, ensure_ascii=False, sort_keys=True)
         with closing(self._connect()) as conn:
             existing = conn.execute('SELECT document_json FROM rights_decision'
                                     ' WHERE decision_id = ?', (decision_id,)).fetchone()
