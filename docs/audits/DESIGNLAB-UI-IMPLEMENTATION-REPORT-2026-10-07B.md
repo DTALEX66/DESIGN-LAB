@@ -178,5 +178,5 @@ Accept/Reject/Change 面（合同完备、无路由无 UI，人工字段按铁�
 按文件排出的前几名是 `assets/versions/<id>/delivery.zip`（单个 30.19 MiB，多版本并存）、
 `native-plans/<id>/master.png`（18.51 MiB）与 `master.illustrator.svg`（3.46 MiB）——
 即真实交付物与原生工程文件只活在单机，而 `reports/current/**` 的账本又引用它们。
-需要的是"哪些进仓、进仓后多大"的口径裁决（仓 pack 现为 224 MiB 量级，一次性并入 341 MiB
-交付物不是可逆动作），不是再删一次缓存。
+需要的是"哪些进仓、进仓后多大"的口径裁决（本机 `git count-objects -vH` 实测
+`size-pack` 为 **238.91 MiB**，一次性并入 341 MiB 交付物不是可逆动作），不是再删一次缓存。
