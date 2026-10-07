@@ -15,6 +15,11 @@ _NAMES = frozenset({
     'design-lab-state-attempt-v2.sql',
     'design-lab-state-creative-v1.sql',
     'design-lab-state-jury-v1.sql',
+    # 2026-10-08 quality-gate reachability: the sealed QualityRecord store
+    # (design-lab/schemas/state/design-lab-state-quality-v1.sql, applied by
+    # src/design_lab/assurance/quality_store.py). Additive: one new immutable
+    # resource name, no existing file renamed or re-versioned.
+    'design-lab-state-quality-v1.sql',
     'design-lab-state-design-layer-v1.sql',
     'design-lab-state-design-layer-v2.sql',
     'design-lab-state-design-layer-v3.sql',

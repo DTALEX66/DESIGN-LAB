@@ -34,6 +34,30 @@ def _recovery_summary(readback):
                               for d in readback['decisions']]}
 
 
+def _quality_criteria(raw_items):
+    """Parse `--criterion id:weight:score[:note]` into criterion documents.
+
+    Shape only: the weights-summing-to-one, the score range and the "an extreme
+    score needs a note" rules belong to human_jury, which validates what this
+    returns. Silently defaulting a weight or a score here would put words in the
+    juror's mouth, so a malformed part raises instead.
+    """
+    documents = []
+    for raw in (raw_items or ()):
+        parts = str(raw).split(':', 3)
+        if len(parts) < 3:
+            raise ValueError(f'--criterion {raw!r} must be criterion_id:weight:score[:note]')
+        try:
+            weight = float(parts[1])
+            score = float(parts[2])
+        except ValueError:
+            raise ValueError(f'--criterion {raw!r} carries a weight or score that is not a '
+                             'number') from None
+        documents.append({'criterion_id': parts[0].strip(), 'weight': weight, 'score': score,
+                          'note': parts[3].strip() if len(parts) > 3 else None})
+    return documents
+
+
 def main(argv=None):
     parser = argparse.ArgumentParser(prog='design-lab')
     parser.add_argument('--version', action='version', version=__version__)
@@ -68,6 +92,47 @@ def main(argv=None):
         help='read back the writer journal: lease takeovers and versions created by an attempt')
     trail.add_argument('--limit', type=int, default=20,
                        help='rows to read, newest first (1-200)')
+    # 2026-10-08: the Quality gate reachable from the product. Every input below is
+    # optional AT THE PARSER LEVEL on purpose: a missing one is refused in this file's
+    # own JSON error vocabulary (like native-recovery does), not as argparse usage
+    # text, so an operator scripting this verb always gets a machine-readable reason.
+    quality = commands.add_parser(
+        'quality',
+        help='record one sealed quality assessment, or --record omitted: read back what is '
+             'recorded, whether any of it is human acceptance, and what none of it proves')
+    quality.add_argument('--project-id', default=None, help='owning project id (32 hex)')
+    quality.add_argument('--record', action='store_true',
+                         help='append one assessment; without it this verb reads back and '
+                              'writes nothing')
+    quality.add_argument('--subject', default=None,
+                         help='"version:<id>" the assessment is about (required with --record)')
+    quality.add_argument('--digest', default=None,
+                         help='artifact_sha256 being judged; it must be the digest that version '
+                              'holds (required with --record)')
+    quality.add_argument('--actor', default=None,
+                         help='who signs the human acceptance (required with --record)')
+    quality.add_argument('--actor-kind', dest='actor_kind', default=None,
+                         help='HUMAN or PANEL; an automated kind is refused by name '
+                              '(required with --record)')
+    quality.add_argument('--attestation', default=None,
+                         help='what that actor actually looked at and how '
+                              '(required with --record)')
+    quality.add_argument('--verdict', default=None,
+                         help='APPROVE or REJECT, signed by the actor above '
+                              '(required with --record)')
+    quality.add_argument('--criterion', action='append', dest='criteria', default=None,
+                         help='criterion_id:weight:score[:note] the verdict was judged on '
+                              '(repeatable; weights must sum to 1.0)')
+    quality.add_argument('--evidence', action='append', dest='evidence_refs', default=None,
+                         help='evidence ref supporting a REJECT (repeatable)')
+    quality.add_argument('--member', action='append', dest='panel_members', default=None,
+                         help='named member of a PANEL juror (repeatable)')
+    quality.add_argument('--supersedes', default=None,
+                         help='quality_record_id this assessment replaces (append-only: the '
+                              'replaced record stays readable)')
+    quality.add_argument('--record-id', dest='record_id', default=None,
+                         help='explicit quality_record_id, so a retry of a submission is '
+                              'refused as taken instead of appending a second record')
     projects = commands.add_parser('projects').add_subparsers(dest='action', required=True)
     projects.add_parser('list')
     projects.add_parser('create').add_argument('--name', required=True)
@@ -185,6 +250,98 @@ def main(argv=None):
                 print(json.dumps({'status': 'ERROR', 'error': 'INVALID_AUDIT_TRAIL_REQUEST',
                                   'detail': str(exc)}, ensure_ascii=False, sort_keys=True))
                 return 2
+        elif args.command == 'quality':
+            from contextlib import closing
+            from .assurance import AssuranceError, quality_store
+            if not args.project_id:
+                print(json.dumps({'status': 'ERROR', 'error': 'QUALITY_PROJECT_REQUIRED',
+                                  'detail': 'quality needs --project-id; the state database '
+                                            'holds every project of this owner and a read must '
+                                            'not guess one'}, ensure_ascii=False))
+                return 2
+            if service.get_project(args.project_id) is None:
+                # Checked before anything opens the database: a read for an unknown
+                # project id must not create runtime state, and it must not read as an
+                # empty honest "nothing recorded yet" for a project that does not exist.
+                print(json.dumps({'status': 'ERROR', 'error': 'QUALITY_PROJECT_UNKNOWN',
+                                  'detail': f'project {args.project_id} is not recorded in '
+                                            'this owner root', 'create_with': 'design-lab '
+                                            '--project <dir> projects create --name <name>'},
+                                 ensure_ascii=False))
+                return 2
+            if args.record:
+                missing_inputs = [name for name, value in (
+                    ('--subject', args.subject), ('--digest', args.digest),
+                    ('--actor', args.actor), ('--actor-kind', args.actor_kind),
+                    ('--attestation', args.attestation), ('--verdict', args.verdict))
+                    if not (isinstance(value, str) and value.strip())]
+                if missing_inputs:
+                    # No default actor, no default attestation, no default verdict: an
+                    # assessment this verb cannot attribute to a named human is not one
+                    # the product may file for them.
+                    print(json.dumps({'status': 'ERROR',
+                                      'error': 'QUALITY_RECORD_INPUTS_REQUIRED',
+                                      'detail': 'recording needs ' + ', '.join(missing_inputs)
+                                                + '; omit --record to read the assessments '
+                                                  'already recorded'}, ensure_ascii=False))
+                    return 2
+                try:
+                    criterion_docs = _quality_criteria(args.criteria)
+                except ValueError as exc:
+                    # A mistyped --criterion is the operator's mistake, not the gate's;
+                    # naming it here keeps the store from being blamed for a typo.
+                    print(json.dumps({'status': 'ERROR', 'error': 'INVALID_QUALITY_CRITERION',
+                                      'detail': str(exc)}, ensure_ascii=False))
+                    return 2
+                if not criterion_docs:
+                    print(json.dumps({'status': 'ERROR',
+                                      'error': 'QUALITY_CRITERION_MISSING',
+                                      'detail': 'recording a human acceptance needs at least '
+                                                'one --criterion id:weight:score[:note]; a '
+                                                'verdict nobody described certifies nothing'},
+                                     ensure_ascii=False))
+                    return 2
+            with closing(quality_store.connect(
+                    service.paths.database_path(service.database),
+                    project_root=service.paths.project_root)) as quality_conn:
+                try:
+                    if args.record:
+                        verdict_document = quality_store.human_acceptance(
+                            actor=args.actor, actor_kind=args.actor_kind,
+                            attestation=args.attestation, verdict=args.verdict,
+                            subject_ref=args.subject, artifact_sha256=args.digest,
+                            criteria=criterion_docs, members=args.panel_members or (),
+                            evidence_refs=args.evidence_refs or ())
+                        stored_record = quality_store.record(
+                            quality_conn, project_id=args.project_id,
+                            subject_ref=args.subject, artifact_sha256=args.digest,
+                            human_verdict=verdict_document, supersedes=args.supersedes,
+                            quality_record_id=args.record_id)
+                        readback_view = quality_store.summary(quality_conn, args.project_id)
+                        # The receipt repeats the limits instead of summarising them away:
+                        # the person recording is the person most likely to over-read a PASS.
+                        result = {'status': 'QUALITY_RECORDED',
+                                  'record': stored_record,
+                                  'final_gate': stored_record['final_gate'],
+                                  'human_acceptance': readback_view['human_acceptance'],
+                                  'record_count': readback_view['record_count'],
+                                  'does_not_prove': readback_view['does_not_prove']}
+                    else:
+                        result = {'status': 'QUALITY_READBACK',
+                                  **quality_store.summary(quality_conn, args.project_id)}
+                except quality_store.QualityStoreError as exc:
+                    # Every refusal this verb makes carries the code that names the rule,
+                    # so an operator can tell a wrong digest from an unknown project from
+                    # an automated judge trying to sign a human gate.
+                    print(json.dumps({'status': 'ERROR', 'error': exc.code, 'detail': str(exc),
+                                      'project_id': args.project_id}, ensure_ascii=False))
+                    return 2
+                except AssuranceError as exc:
+                    # Should not be reachable: the store labels every contract refusal.
+                    # Kept because a refusal that escaped unlabelled must not traceback.
+                    print(json.dumps({'status': 'ERROR', 'error': 'QUALITY_RECORD_REFUSED',
+                                      'detail': str(exc)}, ensure_ascii=False))
+                    return 2
         elif args.command == 'native-recovery':
             from .native_tasks import NativeTaskError
             from .runtime.job_store import AttemptError
