@@ -868,7 +868,10 @@ export async function renderBrandSystems(target: HTMLElement): Promise<void> {
     el('div', { class: 'page-actions' }));
   const kpis = el('div', { class: 'kpi-grid' },
     kpiCard(String(sysCount), '设计系统', '资源登记总数 · 服务端目录读回'),
-    kpiCard(String(BRAND_MODULES.length), 'VI 模块', BRAND_MODULES.join(' / ')),
+    // A frontend constant counted into a KPI is a number the service never read
+    // back, however honest the caption. It reads as unmeasured until there is a
+    // brand-module store behind it.
+    kpiCard('—', 'VI 模块', '无服务端读回 · 下方为设计参考模块名,非资产统计'),
     kpiCard('—', '活跃绑定', '绑定在工作台 DESIGN LAYER 执行'));
   // B10 1:1 three-col brand panels — .panel/.tag/.muted bodies only (B10 CSS 已存在类).
   const moduleGrid = el('div', { class: 'three-col' },
@@ -1383,7 +1386,23 @@ export async function renderCreativeTools(target: HTMLElement): Promise<void> {
 // packaged or shipped from this page.
 // Deliverable / export format vocabulary (B10 CODEX: editable source / preview /
 // exports / package manifest / version / handoff checklist / share).
-const DELIVERABLE_KINDS = ['Editable Source', 'PDF', 'PNG', 'SVG', 'PSD', 'AI', 'Video', '3D', 'Archive'] as const;
+// What the delivery layer can actually emit, per member name, and what it cannot.
+// A flat list of nine "导出候选" read as an offer: the bundle writer produces
+// native.psd / native.ai / preview.png / preview.svg / delivery.zip and nothing
+// else, so PDF, Video and 3D were decorative. `producedBy` is checked against the
+// Python emitters by design-lab/tests/test_deliverable_claims_match_emitters.py,
+// in both directions -- a new claim without an emitter fails, and an emitter the
+// page stopped offering fails too.
+const DELIVERABLE_FORMATS: ReadonlyArray<{ format: string; producedBy: string | null }> = [
+  { format: 'PSD', producedBy: 'native.psd' },
+  { format: 'AI', producedBy: 'native.ai' },
+  { format: 'PNG', producedBy: 'preview.png' },
+  { format: 'SVG', producedBy: 'preview.svg' },
+  { format: 'Archive', producedBy: 'delivery.zip' },
+  { format: 'PDF', producedBy: null },
+  { format: 'Video', producedBy: null },
+  { format: '3D', producedBy: null },
+] as const;
 
 export async function renderDeliverables(target: HTMLElement): Promise<void> {
   await projectPickerPanel(target, '交付中心', async (id) => {
@@ -1436,9 +1455,11 @@ export async function renderDeliverables(target: HTMLElement): Promise<void> {
       const t = v.textContent; if (t !== null && /^\d+$/.test(t)) v.dataset.count = t;
     }
     const kindGrid = el('div', { class: 'three-col' },
-      ...DELIVERABLE_KINDS.map((k) => el('div', { class: 'panel' },
-        el('h3', {}, k),
-        el('span', { class: 'tag info' }, '导出候选'))));
+      ...DELIVERABLE_FORMATS.map((f) => el('div', { class: 'panel' },
+        el('h3', {}, f.format),
+        f.producedBy
+          ? el('span', { class: 'tag ok' }, `可产出 · ${f.producedBy}`)
+          : el('span', { class: 'tag warn' }, '当前不产出 · 未接入'))));
     return el('div', {},
       manifestKpis,
       kindGrid,

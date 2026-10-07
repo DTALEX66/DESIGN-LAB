@@ -1848,7 +1848,10 @@ async function renderBrandSystems(target) {
     "div",
     { class: "kpi-grid" },
     kpiCard(String(sysCount), "设计系统", "资源登记总数 · 服务端目录读回"),
-    kpiCard(String(BRAND_MODULES.length), "VI 模块", BRAND_MODULES.join(" / ")),
+    // A frontend constant counted into a KPI is a number the service never read
+    // back, however honest the caption. It reads as unmeasured until there is a
+    // brand-module store behind it.
+    kpiCard("—", "VI 模块", "无服务端读回 · 下方为设计参考模块名,非资产统计"),
     kpiCard("—", "活跃绑定", "绑定在工作台 DESIGN LAYER 执行")
   );
   const moduleGrid = el(
@@ -2541,7 +2544,16 @@ async function renderCreativeTools(target) {
     );
   });
 }
-const DELIVERABLE_KINDS = ["Editable Source", "PDF", "PNG", "SVG", "PSD", "AI", "Video", "3D", "Archive"];
+const DELIVERABLE_FORMATS = [
+  { format: "PSD", producedBy: "native.psd" },
+  { format: "AI", producedBy: "native.ai" },
+  { format: "PNG", producedBy: "preview.png" },
+  { format: "SVG", producedBy: "preview.svg" },
+  { format: "Archive", producedBy: "delivery.zip" },
+  { format: "PDF", producedBy: null },
+  { format: "Video", producedBy: null },
+  { format: "3D", producedBy: null }
+];
 async function renderDeliverables(target) {
   await projectPickerPanel(target, "交付中心", async (id) => {
     const [tasks2, bundles] = await Promise.all([
@@ -2627,11 +2639,11 @@ async function renderDeliverables(target) {
     const kindGrid = el(
       "div",
       { class: "three-col" },
-      ...DELIVERABLE_KINDS.map((k) => el(
+      ...DELIVERABLE_FORMATS.map((f) => el(
         "div",
         { class: "panel" },
-        el("h3", {}, k),
-        el("span", { class: "tag info" }, "导出候选")
+        el("h3", {}, f.format),
+        f.producedBy ? el("span", { class: "tag ok" }, `可产出 · ${f.producedBy}`) : el("span", { class: "tag warn" }, "当前不产出 · 未接入")
       ))
     );
     return el(
