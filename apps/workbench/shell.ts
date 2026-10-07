@@ -1138,7 +1138,7 @@ export async function renderCreativeTools(target: HTMLElement): Promise<void> {
       ),
     );
     // B10 1:1 three-col adapter grid（.panel + .tag + .muted），真实读回任务台账。
-    const adapterGrid = el('div', { class: 'three-col' },
+    const adapterGrid = el('div', { class: 'card-flow' },
       ...TOOL_ADAPTERS.map((a) => el('div', { class: 'panel' },
         el('h3', {}, a.name),
         el('div', { class: 'status-stack' },

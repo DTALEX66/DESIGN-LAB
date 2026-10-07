@@ -2236,7 +2236,7 @@ async function renderCreativeTools(target) {
     );
     const adapterGrid = el(
       "div",
-      { class: "three-col" },
+      { class: "card-flow" },
       ...TOOL_ADAPTERS.map(
         (a) => el(
           "div",
