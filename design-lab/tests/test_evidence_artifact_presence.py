@@ -47,6 +47,11 @@ class EvidenceArtifactPresenceTests(unittest.TestCase):
                          [('apps/workbench/build/main.js',
                            'HASH_MOVED_SINCE_OBSERVATION'),
                           ('design-lab/tests/test_project_backup.py',
+                           'HASH_MOVED_SINCE_OBSERVATION'),
+                          # And the same again one commit later: the M1 slice record
+                          # also bound the launcher test, whose token-reading lines
+                          # had to move when the launcher stopped printing a token.
+                          ('design-lab/tests/test_workbench_launch.py',
                            'HASH_MOVED_SINCE_OBSERVATION')])
 
     def test_missing_tracked_artefact_is_a_hard_break_not_a_warning(self):
