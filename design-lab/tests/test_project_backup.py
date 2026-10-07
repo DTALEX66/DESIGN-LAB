@@ -10,6 +10,7 @@ from __future__ import annotations
 import hashlib
 import json
 import os
+import re
 import sqlite3
 from contextlib import closing
 from pathlib import Path, PurePosixPath
@@ -441,6 +442,251 @@ class RelocationTests(unittest.TestCase):
             assets = images.list(project)
             self.assertEqual(len(assets), 1)
             self.assertEqual(images.content(project, assets[0]['id'])['content_base64'], encoded)
+
+
+def _tracked_ddl(table):
+    """Pull one CREATE TABLE statement out of the place the product declares it.
+
+    The barrier reads the product's own tables, so the fixtures must create those
+    exact tables. Re-declaring columns here would let a test pass against a schema
+    the product never writes. Two of them (the host guard, the recovery protocol)
+    are declared inside native_tasks.py rather than a .sql file, so both sources
+    are searched and an unfound table fails the test instead of being invented.
+    """
+    sources = sorted((REPO / 'design-lab/schemas/state').glob('*.sql')) + [
+        REPO / 'src/design_lab/native_tasks.py']
+    for path in sources:
+        match = re.search(rf"CREATE TABLE (?:IF NOT EXISTS )?{table}\b.*?\n\s*\);",
+                          path.read_text(encoding='utf-8'), re.S)
+        if match:
+            return match.group(0)
+    raise AssertionError(f'{table} is not declared by any tracked schema or DDL string')
+
+
+ACTIVITY_TABLES = ('asset', 'asset_version', 'artifact', 'asset_writer_lock',
+                   'asset_publication', 'attempt_state', 'native_host_guard_v1')
+
+
+def _activity_root(parent: Path) -> Path:
+    """A state root whose database carries the tables production writes through."""
+    local = _state_root(parent)
+    conn = sqlite3.connect(local / 'task-runtime/service/state.db')
+    try:
+        conn.execute('CREATE TABLE project (project_id TEXT PRIMARY KEY,'
+                     ' display_name TEXT NOT NULL, created_at TEXT NOT NULL)')
+        for table in ACTIVITY_TABLES:
+            conn.execute(_tracked_ddl(table))
+        conn.execute('INSERT INTO project VALUES ("p1","Activity Probe","2026-10-08T00:00:00Z")')
+        conn.execute('INSERT INTO asset VALUES ("a1","p1","psd","2026-10-08T00:00:00Z")')
+        conn.commit()
+    finally:
+        conn.close()
+    return local
+
+
+def _insert_artifact(local: Path, stored_path, digest):
+    with closing(sqlite3.connect(local / 'task-runtime/service/state.db')) as conn:
+        conn.execute('INSERT INTO asset_version (version_id, asset_id, version_no,'
+                     ' content_sha256, state, created_at)'
+                     ' VALUES ("v1","a1",1,?,"ACTIVE","2026-10-08T00:00:00Z")',
+                     (digest or 'sha256:' + 'a' * 64,))
+        conn.execute('INSERT INTO artifact (artifact_id, version_id, path, sha256,'
+                     ' byte_size, role) VALUES ("art1","v1",?,?,10,"deliverable")',
+                     (str(stored_path), digest))
+        conn.commit()
+
+
+def _publication_row(local: Path, publication_id, state, holder='attempt-1'):
+    root = local / 'projects/p1/assets'
+    with closing(sqlite3.connect(local / 'task-runtime/service/state.db')) as conn:
+        conn.execute('INSERT INTO asset_publication VALUES (?,?,?,?,?,?,?,?,?,?,?,?)',
+                     (publication_id, 'a1', str(root), str(root / 'staging'),
+                      str(root / 'versions'), str(root / 'quarantine'),
+                      'sha256:' + 'b' * 64, holder, 1, state, None,
+                      '2026-10-08T00:00:00Z'))
+        conn.commit()
+
+
+class WriteCoordinationTests(unittest.TestCase):
+    """A backup is cross-file consistent only if no writer moved during the window.
+
+    The barrier reads what production itself records: the per-asset writer lease,
+    the publication journal, the host guard and the attempt row. Fixtures go
+    through those real writers (`asset_store.acquire_writer`, `publish_version` and
+    its crash seam) rather than hand-inserted rows, so the test proves the product's
+    own state is what the gate looks at.
+    """
+
+    def setUp(self):
+        self.base = Path(tempfile.mkdtemp(dir=REPO / '.project-local' / 'task-runtime'))
+        self.local = _activity_root(self.base)
+        self.db = self.local / 'task-runtime/service/state.db'
+        self.archive = self.base / 'backup.zip'
+
+    def _publish_lease(self, resource='asset:a1', holder='attempt-1', lease=60):
+        from design_lab.runtime import asset_store as assets
+        with closing(sqlite3.connect(self.db)) as conn:
+            self.assertTrue(assets.acquire_writer(conn, resource, holder,
+                                                 lease_seconds=lease))
+            conn.commit()
+            return assets.writer_token(conn, resource, holder)
+
+    def test_backup_refuses_while_a_real_lease_is_held(self):
+        self._publish_lease()
+        with self.assertRaisesRegex(BackupError, 'LIVE_WRITER_LOCK'):
+            create_backup(self.local, self.archive)
+        self.assertFalse(self.archive.exists(),
+                         'a refused backup must not leave an archive behind')
+
+    def test_a_lease_that_expired_is_not_counted_as_live(self):
+        """An expired lease fences its holder out of every remaining DB step."""
+        from unittest.mock import patch
+        from design_lab.runtime import asset_store
+        self._publish_lease()
+        with patch.object(asset_store, '_clock',
+                          return_value=asset_store._clock() + 120):
+            manifest = create_backup(self.local, self.archive)
+        self.assertEqual(manifest['productionQuiescence']['state'], 'PROVED_QUIESCENT')
+
+    def test_a_legacy_held_lease_without_expiry_blocks(self):
+        """`acquire_writer` refuses to treat a missing expiry as executable.
+
+        The row is inserted directly because no current writer creates it: it is
+        the pre-expiry-schema shape the store still honours, and a barrier that
+        ignored it would back up over a lease the product itself respects.
+        """
+        with closing(sqlite3.connect(self.db)) as conn:
+            conn.execute("INSERT INTO asset_writer_lock (resource_key, holder_attempt_id,"
+                         " generation, state, acquired_at, expires_at)"
+                         " VALUES ('asset:a1','attempt-legacy',1,'HELD',"
+                         "'2026-10-08T00:00:00Z',NULL)")
+            conn.commit()
+        with self.assertRaisesRegex(BackupError, 'LIVE_WRITER_LOCK'):
+            create_backup(self.local, self.archive)
+
+    def test_backup_refuses_over_a_prepared_publication(self):
+        """Crash the real publisher between stage and commit, then try to back up.
+
+        The lease is released explicitly afterwards, because that is what the
+        caller does and not the publisher: `publish_version` never calls
+        `release_writer` (image_assets.py:131 owns the `finally`). Releasing it
+        here isolates the journal -- otherwise the lease alone blocks the backup
+        and this test would prove nothing about PREPARED rows.
+        """
+        from unittest.mock import patch
+        from design_lab.runtime import asset_store as assets
+        generation = self._publish_lease(holder='attempt-9')
+        source = self.base / 'incoming.psd'
+        source.write_bytes(b'publication in flight')
+        digest = 'sha256:' + hashlib.sha256(source.read_bytes()).hexdigest()
+        root = self.local / 'projects/p1/assets'
+        with closing(sqlite3.connect(self.db)) as conn:
+            with patch.object(assets, '_after_stage',
+                              side_effect=OSError('stopped between stage and commit')):
+                with self.assertRaises(OSError):
+                    assets.publish_version(conn, 'a1', source, store_root=root,
+                                          artifact_name='native.psd',
+                                          expected_sha256=digest,
+                                          holder_attempt_id='attempt-9',
+                                          generation=generation)
+            assets.release_writer(conn, 'asset:a1', 'attempt-9', generation=generation)
+            conn.commit()
+            prepared = conn.execute("SELECT COUNT(*) FROM asset_publication"
+                                    " WHERE state='PREPARED'").fetchone()[0]
+        self.assertEqual(prepared, 1, 'the fixture must leave exactly one half-made publication')
+        with self.assertRaisesRegex(BackupError, 'PREPARED_PUBLICATION'):
+            create_backup(self.local, self.archive)
+
+    def test_a_publication_that_completes_inside_the_window_is_detected(self):
+        """The blind spot: nothing is live in either read, yet a row appeared."""
+        from unittest.mock import patch
+        from design_lab.runtime import project_backup
+        create_backup(self.local, self.archive)
+        original = project_backup._database_snapshot
+        moved = []
+
+        def publish_during_snapshot(source, scratch):
+            payload = original(source, scratch)
+            _publication_row(self.local, 'pub-fast', 'COMMITTED')
+            moved.append(True)
+            return payload
+
+        second = self.base / 'second.zip'
+        with patch.object(project_backup, '_database_snapshot',
+                          side_effect=publish_during_snapshot):
+            with self.assertRaisesRegex(BackupError, 'moved during the backup window'):
+                create_backup(self.local, second)
+        self.assertTrue(moved, 'the fixture must actually have written inside the window')
+        self.assertFalse(second.exists(), 'a window that moved must not produce an archive')
+
+    def test_host_guard_and_running_attempt_both_block(self):
+        with closing(sqlite3.connect(self.db)) as conn:
+            conn.execute('INSERT INTO attempt_state VALUES (?,?,?,?,?,?,?)',
+                         ('at-1', 'job-1', 1, 'RUNNING', '2026-10-08T00:00:00Z', None, None))
+            conn.commit()
+        with self.assertRaisesRegex(BackupError, 'NON_TERMINAL_ATTEMPT'):
+            create_backup(self.local, self.archive)
+        with closing(sqlite3.connect(self.db)) as conn:
+            conn.execute("DELETE FROM attempt_state WHERE attempt_id='at-1'")
+            conn.execute('INSERT INTO attempt_state VALUES (?,?,?,?,?,?,?)',
+                         ('at-2', 'job-2', 1, 'RECEIPTED', '2026-10-08T00:00:00Z',
+                          '2026-10-08T00:00:01Z', None))
+            conn.execute('INSERT INTO native_host_guard_v1 VALUES (?,?,?)',
+                         ('illustrator', 'at-2', '2026-10-08T00:00:00Z'))
+            conn.commit()
+        with self.assertRaisesRegex(BackupError, 'HOST_GUARD'):
+            create_backup(self.local, self.archive)
+
+    def test_quiet_root_records_the_proof_and_restore_echoes_it(self):
+        manifest = create_backup(self.local, self.archive)
+        proof = manifest['productionQuiescence']
+        self.assertEqual(proof['state'], 'PROVED_QUIESCENT')
+        self.assertIn('asset_writer_lock', proof['tablesObserved'])
+        self.assertEqual(proof['countersBefore'], proof['countersAfter'])
+        receipt = restore_backup(self.archive, self.base / 'restored')
+        self.assertEqual(receipt['productionQuiescence'], 'PROVED_QUIESCENT')
+
+    def test_a_root_that_cannot_observe_writers_says_so_and_stays_said(self):
+        """The plain fixture database has no writer tables: that is not "quiet"."""
+        plain = _state_root(self.base / 'plain')
+        manifest = create_backup(plain, self.base / 'plain.zip')
+        self.assertEqual(manifest['productionQuiescence']['state'], 'WRITES_NOT_OBSERVABLE')
+        self.assertEqual(manifest['productionQuiescence']['tablesObserved'], [])
+        receipt = restore_backup(self.base / 'plain.zip', self.base / 'plain-restored')
+        self.assertEqual(receipt['productionQuiescence'], 'WRITES_NOT_OBSERVABLE',
+                         'a restore may not upgrade an unproven backup into a proof')
+
+    def test_a_root_with_no_database_reports_no_database(self):
+        bare = self.base / 'bare'
+        (bare / 'projects').mkdir(parents=True)
+        (bare / 'projects' / 'note.txt').write_text('no state db yet', encoding='utf-8')
+        (bare / 'task-runtime' / 'service').mkdir(parents=True)
+        manifest = create_backup(bare, self.base / 'bare.zip')
+        self.assertEqual(manifest['productionQuiescence']['state'], 'NO_STATE_DATABASE')
+
+    def test_restore_proves_the_index_against_the_archived_bytes(self):
+        asset = self.local / 'projects/p1/assets/versions/v1/native.psd'
+        digest = hashlib.sha256(asset.read_bytes()).hexdigest()
+        _insert_artifact(self.local, str(asset), digest)
+        create_backup(self.local, self.archive)
+        receipt = restore_backup(self.archive, self.base / 'proven')
+        self.assertEqual(receipt['artifactsHashVerified'], 1)
+        self.assertEqual(receipt['artifactsUnverifiable'], 0)
+
+    def test_restore_refuses_an_index_that_lies_about_the_bytes(self):
+        asset = self.local / 'projects/p1/assets/versions/v1/native.psd'
+        _insert_artifact(self.local, str(asset), '0' * 64)
+        create_backup(self.local, self.archive)
+        with self.assertRaisesRegex(BackupError, 'hash does not match the index'):
+            restore_backup(self.archive, self.base / 'refused')
+
+    def test_a_row_without_a_digest_is_counted_not_passed(self):
+        asset = self.local / 'projects/p1/assets/versions/v1/native.psd'
+        _insert_artifact(self.local, str(asset), None)
+        create_backup(self.local, self.archive)
+        receipt = restore_backup(self.archive, self.base / 'partial')
+        self.assertEqual(receipt['artifactsHashVerified'], 0)
+        self.assertEqual(receipt['artifactsUnverifiable'], 1)
 
 
 class BackupCliTests(unittest.TestCase):

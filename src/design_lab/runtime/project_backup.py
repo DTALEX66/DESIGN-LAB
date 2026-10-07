@@ -21,17 +21,20 @@ Two guarantees the first version did not have, both learned from that incident:
   already committed into its WAL -- instead of copying file bytes that may split
   a commit across `state.db` and `state.db-wal`.
 
-What that still does *not* give: cross-file consistency between the database and
-the asset bytes beside it. A backup taken while a publisher is running can pair
-an older database with a newer artifact file. Closing that gap needs a
-project-level write barrier around backup and publish; the receipt says so
-instead of the archive pretending to.
+What that still does *not* give: a writer that touches the files without ever
+recording to the state database is invisible to this barrier. Everything the
+product itself publishes does record (the writer lease, the publication journal,
+the host guard and the attempt row), so the archive can prove no such writer
+moved during the capture -- but the proof is only as good as the record, and a
+root whose database carries none of those tables reports
+`WRITES_NOT_OBSERVABLE` rather than pretending to be quiet.
 """
 from __future__ import annotations
 
 import hashlib
 import json
 import os
+import re
 import sqlite3
 import tempfile
 import zipfile
@@ -59,6 +62,21 @@ class BackupError(RuntimeError):
 
 def _sha256_bytes(payload: bytes) -> str:
     return hashlib.sha256(payload).hexdigest()
+
+
+def _digest_matches(payload: bytes, stored):
+    """True/False when the index can be judged, None when it cannot be read.
+
+    The asset store writes digests through `canonical_hash`, which prefixes
+    `sha256:` (runtime/attempt_contract.py:10), so a bare-hex comparison against
+    real production rows always fails. A value that is neither form is not a
+    mismatch -- it is an index this build cannot interpret, and claiming either
+    would be a lie in the opposite direction.
+    """
+    normal = str(stored).strip().removeprefix('sha256:').lower()
+    if not re.fullmatch(r'[0-9a-f]{64}', normal):
+        return None
+    return normal == _sha256_bytes(payload)
 
 
 def _safe_relative(value: str) -> PurePosixPath:
@@ -107,6 +125,7 @@ def create_backup(local_root, archive_path, *, members=None,
     local_root = Path(local_root).resolve()
     archive_path = Path(archive_path).resolve()
     relatives = _iter_members(local_root, members)
+    before = production_state(local_root)
     member_roots = [local_root.joinpath(*_safe_relative(member).parts)
                     for member in members]
     if any(archive_path.is_relative_to(root) for root in member_roots):
@@ -117,7 +136,8 @@ def create_backup(local_root, archive_path, *, members=None,
     with tempfile.TemporaryDirectory(prefix='design-lab-backup-',
                                      dir=archive_path.parent) as scratch:
         pending = Path(scratch) / 'pending.zip'
-        manifest = _write_backup(local_root, pending, relatives, version, Path(scratch))
+        manifest = _write_backup(local_root, pending, relatives, version, Path(scratch),
+                                 before)
         verified = verify_backup(pending)
         if verified['fileCount'] != manifest['fileCount']:
             raise BackupError('backup verification count mismatch')
@@ -126,7 +146,7 @@ def create_backup(local_root, archive_path, *, members=None,
 
 
 def _write_backup(local_root: Path, archive_path: Path, relatives,
-                  version: str, scratch: Path) -> dict:
+                  version: str, scratch: Path, before: dict) -> dict:
     entries = []
     with zipfile.ZipFile(archive_path, 'w', compression=zipfile.ZIP_DEFLATED) as archive:
         for relative in relatives:
@@ -143,11 +163,16 @@ def _write_backup(local_root: Path, archive_path: Path, relatives,
             entries.append({'path': posix, 'bytes': len(payload),
                             'sha256': _sha256_bytes(payload)})
             archive.writestr(posix, payload)
+        # Every byte is captured by this point, so the after-read brackets the copy
+        # window. A writer that moved raises here, before the manifest exists, and
+        # the pending archive is thrown away with the temporary directory.
+        proof = _quiescence_proof(before, production_state(local_root))
         manifest = {
             'schemaVersion': BACKUP_SCHEMA,
             'createdAt': datetime.now(timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ'),
             'designLabVersion': version,
             'projectLocalRootName': local_root.name,
+            'productionQuiescence': proof,
             # Restore needs the root the archive came from to tell a relocated
             # artifact path from a foreign one. Without it an archive can only be
             # read back where it was made (see _relocate_artifact_paths).
@@ -166,12 +191,126 @@ def _database_snapshot(source: Path, scratch: Path) -> bytes:
     """Snapshot a possibly-live database through SQLite's own backup API."""
     snapshot = scratch / 'state.db'
     try:
-        with closing(sqlite3.connect(source.as_uri() + '?mode=ro', uri=True)) as live:
+        with closing(_open_readonly(source)) as live:
             with closing(sqlite3.connect(snapshot)) as destination:
                 live.backup(destination)
     except sqlite3.Error as exc:
         raise BackupError(f'state database cannot be snapshotted: {exc}') from None
     return snapshot.read_bytes()
+
+
+# What production writes leave behind in the state database. A backup is only
+# cross-file consistent if none of it moved while the files were being copied.
+ACTIVITY_QUERIES = (
+    # (label, table, sql, row -> identity)
+    ('PREPARED_PUBLICATION', 'asset_publication',
+     "SELECT publication_id, asset_id FROM asset_publication WHERE state='PREPARED'"
+     " ORDER BY publication_id",
+     lambda row: f'{row[0]}#{row[1]}'),
+    ('HOST_GUARD', 'native_host_guard_v1',
+     "SELECT host, attempt_id FROM native_host_guard_v1 ORDER BY host",
+     lambda row: f'{row[0]}#{row[1]}'),
+    ('NON_TERMINAL_ATTEMPT', 'attempt_state',
+     "SELECT attempt_id, state FROM attempt_state WHERE state IN"
+     " ('PENDING','RUNNING','CANCEL_REQUESTED','RECONCILING','OUTCOME_UNKNOWN')"
+     " ORDER BY attempt_id",
+     lambda row: f'{row[0]}#{row[1]}'),
+)
+
+# The writer lease is judged in Python, not in SQL, and deliberately so:
+# `expires_at` holds a unix float (asset_store._expiry -> time.time()), while
+# `acquire_writer` additionally treats a legacy HELD row with NO expiry as
+# blocking. Comparing either of those in SQL is how a busy root gets read as
+# quiet -- a REAL expiry compared against a TEXT now is always "less", so every
+# live lease would look expired. The store's own predicates are the truth here.
+LEASE_SELECT = ("SELECT resource_key, holder_attempt_id, generation, state, expires_at"
+                " FROM asset_writer_lock ORDER BY resource_key")
+
+# Counters that only ever grow. They catch the publication that starts AND
+# finishes inside the capture window: both reads then show an empty activity set,
+# yet bytes moved -- a set difference alone would call that consistent.
+COUNTER_QUERIES = (
+    ('asset_publication', 'rowid'),
+    ('asset_version', 'rowid'),
+    ('artifact', 'rowid'),
+    ('attempt_event', 'event_no'),
+    ('asset_writer_lock', 'generation'),
+)
+
+
+def production_state(local_root: Path) -> dict:
+    """Read the write activity the state database records, without touching it.
+
+    `observable` is False when the database carries none of the tables that
+    record writers. That is not the same statement as "nothing is running", and
+    an archive must not convert one into the other.
+    """
+    database = local_root.joinpath(*PurePosixPath(STATE_DATABASE_MEMBER).parts)
+    if not database.is_file():
+        return {'state': 'NO_STATE_DATABASE', 'observable': False, 'activity': [],
+                'counters': {}, 'tables_observed': []}
+    try:
+        with closing(_open_readonly(database)) as conn:
+            return _read_activity(conn)
+    except sqlite3.Error:
+        # A database this build cannot read proves only that writers cannot be
+        # observed, not that none are running. Say so, and let the snapshot step
+        # fail closed with its own precise reason.
+        return {'state': 'STATE_DATABASE_UNREADABLE', 'observable': False,
+                'activity': [], 'counters': {}, 'tables_observed': []}
+
+
+def _read_activity(conn) -> dict:
+    from .asset_store import _expiration, _lease_live
+    tables = {row[0] for row in
+              conn.execute("SELECT name FROM sqlite_master WHERE type='table'")}
+    activity = []
+    if 'asset_writer_lock' in tables:
+        for resource, *lease in conn.execute(LEASE_SELECT).fetchall():
+            # HELD with a live expiry, or legacy HELD with no expiry at all --
+            # both block acquire_writer, so both block a backup.
+            if _lease_live(lease) or (lease[2] == 'HELD' and _expiration(lease) is None):
+                activity.append(f'LIVE_WRITER_LOCK:{resource}#{lease[0]}+{lease[1]}')
+    for label, table, sql, identity in ACTIVITY_QUERIES:
+        if table not in tables:
+            continue
+        activity += [f'{label}:{identity(row)}' for row in conn.execute(sql).fetchall()]
+    counters = {}
+    for table, column in COUNTER_QUERIES:
+        if table not in tables:
+            continue
+        count, total = conn.execute(
+            f'SELECT COUNT(*), COALESCE(SUM({column}), 0) FROM {table}').fetchone()
+        counters[table] = [int(count), int(total)]
+    writer_tables = {'asset_writer_lock'} | {table for _, table, _, _ in ACTIVITY_QUERIES}
+    observed = sorted((({table for table, _ in COUNTER_QUERIES} | writer_tables) & tables))
+    return {'state': ('WRITES_NOT_OBSERVABLE' if not observed
+                      else 'BUSY' if activity else 'PROVED_QUIESCENT'),
+            'observable': bool(observed), 'activity': sorted(activity),
+            'counters': counters, 'tables_observed': list(observed)}
+
+
+def _quiescence_proof(before: dict, after: dict) -> dict:
+    """Refuse when a writer was live or moved; otherwise record what was proved."""
+    if not before['observable']:
+        return {'state': before['state'], 'tablesObserved': before['tables_observed'],
+                'activityBefore': before['activity'], 'activityAfter': after['activity'],
+                'countersBefore': before['counters'], 'countersAfter': after['counters']}
+    if before['activity']:
+        raise BackupError('production write in flight before backup: '
+                          + ';'.join(before['activity']))
+    if after['activity']:
+        raise BackupError('production write in flight during backup: '
+                          + ';'.join(after['activity']))
+    if before['counters'] != after['counters']:
+        moved = ';'.join(
+            f'{key}:{before["counters"].get(key)}->{after["counters"].get(key)}'
+            for key in sorted(set(before['counters']) | set(after['counters']))
+            if before['counters'].get(key) != after['counters'].get(key))
+        raise BackupError(f'production write moved during the backup window: {moved}')
+    return {'state': 'PROVED_QUIESCENT', 'tablesObserved': before['tables_observed'],
+            'activityBefore': [], 'activityAfter': [],
+            'countersBefore': before['counters'], 'countersAfter': after['counters']}
 
 
 def _manifest_of(archive_path: Path) -> dict:
@@ -283,7 +422,8 @@ def restore_backup(archive_path, target_local_root, *, force: bool = False,
                 restored += 1
         # Rebase the artifact index while it is still the staged copy, so the
         # bytes that go on disk already point at where the files will be.
-        relocated = _relocate_artifact_paths(staged, manifest, destination_root=target)
+        artifacts = _relocate_artifact_paths(staged, manifest, destination_root=target)
+        relocated = artifacts['relocated']
         target.mkdir(parents=True, exist_ok=True)
         installed = []
         try:
@@ -312,6 +452,12 @@ def restore_backup(archive_path, target_local_root, *, force: bool = False,
             raise
     return {'schemaVersion': BACKUP_SCHEMA, 'restored': restored,
             'relocatedArtifactPaths': relocated,
+            'artifactsHashVerified': artifacts['verified'],
+            'artifactsUnverifiable': artifacts['unverifiable'],
+            # Carried through from the archive: the backup either proved no writer
+            # moved, or it says plainly that it could not look.
+            'productionQuiescence': manifest.get('productionQuiescence', {}).get(
+                'state', 'ARCHIVE_RECORDS_NO_QUIESCENCE'),
             # Signed execution history is deliberately not rewritten; a host
             # plan made under another root has to be replanned, not repointed.
             'nativeExecutionRecovery': 'REPLAN_REQUIRED_AFTER_RELOCATION'
@@ -322,29 +468,38 @@ def restore_backup(archive_path, target_local_root, *, force: bool = False,
 
 
 def _relocate_artifact_paths(root, manifest, *, destination_root=None):
-    """Rebase the live artifact index, without rewriting signed execution receipts.
+    """Rebase the live artifact index and prove it matches the archived bytes.
 
     `root` is the staged copy of the local root; `destination_root` is where it
-    will live once installed. Every artifact row must resolve to a file the
-    archive actually carries -- a database that indexes a byte nobody backed up
-    is the failure this whole module exists to prevent, so it is refused here
-    rather than restored and discovered later.
+    will live once installed. Two things are checked, not one:
+
+    * every absolute artifact row must resolve to a file the archive actually
+      carries -- a database that indexes a byte nobody backed up is the failure
+      this whole module exists to prevent, so it is refused here rather than
+      restored and discovered later;
+    * where the row records a sha256, the archived bytes must match it. That is
+      the assertion which proves the database and the files beside it agree. A
+      row without a digest, or with a relative path this code cannot resolve the
+      way the store does, is counted as unverifiable instead of passing.
     """
     database = root / 'task-runtime/service/state.db'
     if not database.is_file():
-        return 0
+        return {'relocated': 0, 'verified': 0, 'unverifiable': 0}
     destination_root = Path(root) if destination_root is None else Path(destination_root)
     source_root = manifest.get('sourceLocalRoot')
     with closing(sqlite3.connect(database)) as conn:
         if not conn.execute("SELECT 1 FROM sqlite_master WHERE type='table' "
                            "AND name='artifact'").fetchone():
-            return 0
-        relocated = 0
-        for rowid, value in conn.execute('SELECT rowid, path FROM artifact').fetchall():
+            return {'relocated': 0, 'verified': 0, 'unverifiable': 0}
+        relocated = verified = unverifiable = 0
+        for rowid, value, digest in conn.execute(
+                'SELECT rowid, path, sha256 FROM artifact').fetchall():
             original = Path(value)
             if not original.is_absolute():
                 # Relative rows are resolved by the store against its own root,
-                # so they travel with the archive unchanged.
+                # so they travel with the archive unchanged -- but nothing here can
+                # prove the bytes beside them, so they are counted, never passed.
+                unverifiable += 1
                 continue
             if source_root is None:
                 # An archive made before sourceLocalRoot existed carries no origin,
@@ -354,17 +509,30 @@ def _relocate_artifact_paths(root, manifest, *, destination_root=None):
                     raise BackupError(
                         'legacy archive records no source root; artifact paths still '
                         f'point outside the restore target: {value}')
+                unverifiable += 1
                 continue
             source = Path(source_root)
             if not original.is_relative_to(source):
                 raise BackupError(f'artifact path is outside the archived local root: {value}')
             relative = original.relative_to(source)
-            if not (Path(root) / relative).is_file():
+            staged_file = Path(root) / relative
+            if not staged_file.is_file():
                 raise BackupError(f'restored artifact is absent: {relative.as_posix()}')
+            if digest:
+                outcome = _digest_matches(staged_file.read_bytes(), digest)
+                if outcome is False:
+                    raise BackupError('restored artifact hash does not match the index: '
+                                      f'{relative.as_posix()}')
+                if outcome is None:
+                    unverifiable += 1
+                else:
+                    verified += 1
+            else:
+                unverifiable += 1
             destination = destination_root / relative
             if destination != original:
                 conn.execute('UPDATE artifact SET path = ? WHERE rowid = ?',
                              (str(destination), rowid))
                 relocated += 1
         conn.commit()
-        return relocated
+        return {'relocated': relocated, 'verified': verified, 'unverifiable': unverifiable}
