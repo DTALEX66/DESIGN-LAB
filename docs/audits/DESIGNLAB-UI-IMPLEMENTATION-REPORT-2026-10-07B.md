@@ -60,3 +60,34 @@ E2 的限定：`subjectSha` 本地记为 `"local"`，CI 上才绑 exact SHA；�
 本轮全部改动集中在 `apps/workbench/{shell.ts,style.css,build/main.js}`、
 三道门的宽度默认值、`design-lab/tests/` 两个测试文件、以及 `docs/audits/` 三份记录；
 无依赖变更、无 lockfile 变更、无数据库或外部副作用。逐 commit 可 revert。
+
+## 六、并入后的收敛（#262、#263，main = a9e4398c）
+
+§三 写下的两项已有实质推进，此处更新记录，避免报告停在旧状态。
+
+**Preflight 的阻断→修复→重新检查已进入真实浏览器链（#262）。**
+`design-lab/tests/e2e/browser_preflight_handoff.mjs` 由 shell 门驱动，对真实 loopback 服务
+与真实 `design-lab/config/task-resources.json` fixture 执行 5 个断言步：视图挂载且输入框可见；
+可解析工具 → READY 且判定 KPI 填充；缺失工具 → BLOCKED、点名被阻塞 ref 与 UNAVAILABLE、
+并断言上一个 READY 已被清除而非留在屏上；改声明后同一 task id 复检 → READY；
+交付中心在已连接且零交付包时读作真 0 而非未读回。shell 门断言**步数恰好为 5**，
+少一步即变红，防止某步悄悄不再被执行。
+该门的 skip 路径（无 node / 无 playwright / 无 Chromium / fixture 的 git 前提不成立）
+是照抄同族门构造出来的，本轮未单独实测，记为未验证。
+
+**能力库已成为真实读回并带上可得的分类轴（#263）。** 60 条记录（46 源 + 14 模型），
+精确仓库路径连接 37/46。先测量后动手的结论值得留档：候选分类账 26 个字段里
+`domains`、`artifactTypes`、`capabilityLayers`、`aestheticAxes`、`styleArchetypes`、`tier`、
+`designQuality`、`currentVersion`、`referenceLineages`、`reviewedBy`、`reviewedAt`、
+`humanApprovalRef` 在 980 条中**全空**，而 `sourceType`、`rights`、`evidenceLevel`、
+`adoption`、`removalPath` 等 980/980 有值。因此提示词的"多轴分类"是**人工录入缺口**，
+不是界面缺口；界面不代填，并把空轴显式列为未分类。
+`evidenceLevel` 全部为 E0，按"仅声明"渲染为警示而非中性事实；热度带观测时间、来源与
+`isNotQuality`，因为分类账策略写明 popularityIsNotQuality。
+
+**仍开放（且不是我能替完成的）**：对某一项候选真实做适配 / 资格化 / 撤回——需要宿主运行
+与人工验收；Human Jury 的 Accept/Reject/Change 面——`human_jury.py` 合同完备但无路由无 UI，
+且其人工字段按铁律永不由 agent 填写；⑤ 的"未读回：响应缺少 X"文案目前只接到项目与仪表盘两面。
+
+**本轮收尾证据（a9e4398c）**：`AUDIT_SCOPES 39 violations=0 ok=True`、`CAP_DONE shots=39`、
+`test_capability_library.py` OK、`test_workbench_preflight_handoff_e2e.py` OK。
