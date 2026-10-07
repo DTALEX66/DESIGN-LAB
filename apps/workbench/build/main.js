@@ -1289,6 +1289,7 @@ async function renderDashboard(target) {
       pid: p.pid
     }))
   );
+  const bundleHeading = !probes.length ? "交付包（台账无项目可读）" : bundlesReadable === probes.length ? `交付包（${allBundles.length}）` : `交付包（未读回 ${probes.length - bundlesReadable}/${probes.length} 项目）`;
   const sysCount = systems.design_systems.length;
   const projCount = projects2.projects.length;
   const pageHead = el(
@@ -1545,7 +1546,7 @@ async function renderDashboard(target) {
       el(
         "div",
         { class: "panel" },
-        el("h3", {}, bundlesReadable === probes.length ? `交付包（${allBundles.length}）` : `交付包（未读回 ${probes.length - bundlesReadable}/${probes.length} 项目）`),
+        el("h3", {}, bundleHeading),
         el(
           "ul",
           { class: "list" },
@@ -2246,7 +2247,11 @@ async function renderCreativeTools(target) {
             "div",
             { class: "status-stack" },
             el("span", { class: "tag info" }, a.state),
-            el("span", { class: "tag ok" }, "已登记")
+            // Neutral, not ok: the fact here is that an adapter entry exists in
+            // integrations/adapter-registry.json. Nothing probed the host, and the panel
+            // above this one says so ("UNKNOWN，不假报可用"). A green pill on the same
+            // page contradicted it.
+            el("span", { class: "tag neutral" }, "登记于 adapter-registry")
           )
         ),
         el("p", { class: "view-hint" }, "连接方式 / 权限 / 可执行能力由宿主与 service 裁定；本页只读回，不触发实操。")
