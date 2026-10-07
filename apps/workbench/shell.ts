@@ -1036,6 +1036,59 @@ function juryReadbackPanel(projectId: string, data: JuryReadback,
            juryVerdictForm(projectId, data.reviewable_versions ?? [], reload));
 }
 
+// 证据系统 — the Human Jury column, read-only. Signing a verdict is a Human Gate and it
+// happens on 预检 / QA, whose form is the only place a juror types an attestation; this
+// column reports what that gate actually said, next to the delivery it covers.
+//
+// Two things make it more than a list: an ACCEPTED here is the project's own state
+// (jury_review.py only says ACCEPTED when every reviewable version carries a current
+// human APPROVE), and the wording for an unread readback is different from the wording
+// for an empty one. `未读回` never borrows `尚无`: a page that did not get the field
+// cannot claim the ledger has no verdicts.
+const ACCEPTANCE_TAGS: Record<string, string> = { ACCEPTED: 'ok', NOT_ACCEPTED: 'warn' };
+
+function evidenceJuryColumn(data: JuryReadback): HTMLElement {
+  const heading = el('h3', {}, '人工评审裁决 · Human Jury');
+  const unread = shapeNotice(data) || disconnectedNotice(data);
+  if (unread) {
+    return el('div', { class: 'panel' }, heading,
+      el('p', { class: 'error' },
+        `${unread}；裁决未读回。未读回不等于无裁决，也不等于已验收。`));
+  }
+  const verdicts = Object.entries(data.current_verdicts ?? {});
+  const list = el('ul', { class: 'list' }, ...(verdicts.length
+    ? verdicts.map(([subject, record]) => el('li', { class: 'list-item' },
+        el('div', {},
+          el('strong', {}, String(record['verdict'] ?? '未记录判定')),
+          // subject_ref and the artifact digest are long identifiers: their own row in
+          // .value-mono, never inside the nowrap .tag pill.
+          el('div', { class: 'value-mono' }, subject),
+          el('div', { class: 'muted' }, String(((record['juror'] ?? {}) as Record<string, unknown>)
+            .attestation ?? '无评审依据'))),
+        record['kind'] ? el('span', { class: 'tag info' }, en(String(record['kind']))) : ''))
+    : [emptyLi(data, '尚无人签署的裁决',
+        '裁决需在预检 / QA 页由人签署后在此读回；Agent 建议不计入验收。')]));
+  const acceptance = typeof data.human_acceptance === 'string' ? data.human_acceptance : '';
+  // A count the response never carried is not a zero: normaliseShape only refills
+  // collections, so a scalar can still be absent, and 已签署 0 would be a claim about
+  // the ledger that nothing supports.
+  const verdictCount = typeof data.verdict_count === 'number' ? String(data.verdict_count) : '未读回';
+  const proposalCount = typeof data.proposal_count === 'number' ? String(data.proposal_count) : '未读回';
+  return el('div', { class: 'panel' }, heading,
+    el('p', { class: 'view-hint' },
+      `已签署 ${verdictCount} · Agent 建议 ${proposalCount} · `
+      + `当前有判定版本 ${verdicts.length} 个`),
+    el('p', {}, acceptance
+      ? el('span', { class: 'tag ' + (ACCEPTANCE_TAGS[acceptance] ?? 'neutral') },
+          en(acceptance))
+      : el('span', { class: 'tag neutral' }, '人工验收状态未读回'),
+      el('span', { class: 'muted' },
+        ' · 人工验收是按项目当前版本算的，一条裁决不会替整个项目出证。')),
+    list,
+    el('p', { class: 'view-hint' },
+      '本页只读回裁决，不签署、不改写：签署是 Human Gate，在预检 / QA 页执行。'));
+}
+
 function juryVerdictForm(projectId: string, versions: JuryVersion[],
                           reload: () => Promise<void>): HTMLElement {
   const versionSelect = el('select', { class: 'input', id: 'jury-version' });
@@ -1894,6 +1947,212 @@ async function runArtifactPreflight(projectId: string, bundleId: string, profile
   }
 }
 
+// ---- 交付收据 (DeliveryReceipt V2) ------------------------------------------------
+// The document the `delivery-receipt` CLI verb has been reading, now reachable at
+// GET /api/projects/<id>/bundles/<bundle>/versions/<version>/receipt.
+//
+// It is a user-initiated read, not a page-build read, for the same reason 产物预检 is:
+// a receipt belongs to ONE bundle version and the page has not been told which delivery
+// the operator means -- reading "the" receipt would be a guess about a version nobody
+// picked. It also goes through plain `api()` because the route refuses, and a refused
+// receipt is a fact about the delivery, not a broken view:
+//   * 404 DELIVERY_RECEIPT_NOT_FOUND  -- no receipt was ever recorded for that version;
+//   * 409 DELIVERY_RECEIPT_UNVERIFIED -- the stored document no longer matches the
+//     digest it carries, so the service will not certify these bytes.
+// Those two must stay two sentences on the screen. They arrive through the service's
+// own codes (dispatch() maps ImageAssetError before the generic ValueError clause, so
+// neither collapses into INVALID_REQUEST), and the answer replaces this box only.
+type DeliveryReceiptRequirementRecord = { req_id: string; status: string };
+type DeliveryReceiptDeliverable = {
+  deliverable_id: string; artifact_sha256: string; byte_size: number; editable: boolean;
+  host_readback: Record<string, unknown> | null;
+  readback_matches_artifact: boolean | null;
+  requirements: DeliveryReceiptRequirementRecord[];
+  rollback: { backup_ref: string; procedure: string } | null;
+};
+type DeliveryReceiptReadback = {
+  schemaVersion: string; job_id: string; created_at?: string;
+  axes: { delivery: string }; receipt_id: string; receipt_sha256: string;
+  deliverables: DeliveryReceiptDeliverable[];
+};
+
+// Only an axis `interop/delivery_receipt.py` can actually write (DELIVERY_AXES) colours
+// a chip here: design-lab/tests/test_delivery_evidence_ui_contract.py compares this map
+// with that constant both ways, so the page cannot grow a third, greener verdict and a
+// word the emitter dropped cannot keep a colour here. Anything unlisted is `neutral`.
+const RECEIPT_AXIS_TAGS: Record<string, string> = { PASS: 'ok', PARTIAL: 'warn' };
+
+// A receipt id, a digest, a job id and a rollback reference are all long: `.tag` is a
+// nowrap pill that would clip the one string the operator has to compare, so each goes
+// on its own row through `.value-mono` (the same rule valueRow encodes for settings).
+function receiptIdentityRow(label: string, value: string): HTMLElement {
+  return el('tr', {}, el('th', { scope: 'row' }, label),
+    el('td', {}, el('div', { class: 'value-mono' }, value)));
+}
+
+function deliveryReceiptTableWrap(label: string, table: HTMLElement): HTMLElement {
+  return el('div', { class: 'table-wrap', tabindex: '0', role: 'region',
+    'aria-label': label }, table);
+}
+
+function deliveryReceiptPanel(data: DeliveryReceiptReadback): HTMLElement {
+  if (!Array.isArray(data.deliverables)) {
+    // "0 个交付物" would be the invention: the document did not answer this field.
+    return el('p', { class: 'error' },
+      '收据形状未读回：文档没有给出 deliverables，本页不替它猜交付物数量。');
+  }
+  const axis = typeof data.axes?.delivery === 'string' ? data.axes.delivery : '';
+  const identity = [
+    receiptIdentityRow('文档版本', String(data.schemaVersion ?? '')),
+    receiptIdentityRow('收据 id', String(data.receipt_id ?? '')),
+    receiptIdentityRow('收据摘要', String(data.receipt_sha256 ?? '')),
+    receiptIdentityRow('绑定任务', String(data.job_id ?? '')),
+    receiptIdentityRow('记录时间', String(data.created_at ?? '文档未记录时间')),
+  ];
+  const entries = data.deliverables.map((entry) => el('tr', {},
+    el('td', {}, entry.deliverable_id),
+    el('td', {}, String(entry.byte_size)),
+    el('td', {}, entry.editable ? '可编辑源文件' : '预览（压平）'),
+    // The readback columns are what the PARTIAL axis is about: a real delivery here
+    // never re-opens its own artifact in the host, so this says 无 rather than passing.
+    el('td', {}, entry.host_readback
+      ? (entry.readback_matches_artifact === false ? '有读回记录 · 与交付摘要不一致'
+        : '有读回记录')
+      : '无宿主读回记录'),
+    el('td', {}, el('div', { class: 'value-mono' }, String(entry.artifact_sha256)),
+      el('div', { class: 'value-mono' },
+        `回滚参照：${String(entry.rollback?.backup_ref ?? '文档未记录')}`))));
+  const requirements = data.deliverables.flatMap((entry) => (entry.requirements ?? [])
+    .map((requirement) => el('tr', {},
+      el('td', {}, entry.deliverable_id),
+      el('td', {}, requirement.req_id),
+      // The status word is the document's own, never a paraphrase: a receipt that
+      // records NOT_RUN for rights must not be painted 未通过 or 已验收.
+      el('td', {}, el('span', { class: 'tag info' }, en(String(requirement.status)))))));
+  return el('div', { class: 'delivery-receipt-readback' },
+    el('p', {},
+      el('span', { class: 'tag ' + (RECEIPT_AXIS_TAGS[axis] ?? 'neutral') },
+        axis ? en(axis) : '轴值未读回'),
+      el('span', { class: 'muted' }, `交付收据 · ${data.deliverables.length} 个交付物`)),
+    deliveryReceiptTableWrap('交付收据身份与时间表（可横向滚动）',
+      el('table', { class: 'table' }, el('tbody', {}, ...identity))),
+    deliveryReceiptTableWrap('交付收据条目表（可横向滚动）',
+      el('table', { class: 'table' },
+        el('thead', {}, el('tr', {}, el('th', {}, '交付物'), el('th', {}, '字节'),
+          el('th', {}, '可编辑性'), el('th', {}, '宿主读回'), el('th', {}, '产物摘要 / 回滚参照'))),
+        el('tbody', {}, ...entries))),
+    deliveryReceiptTableWrap('交付收据要求项表（可横向滚动）',
+      el('table', { class: 'table' },
+        el('thead', {}, el('tr', {}, el('th', {}, '交付物'), el('th', {}, '要求项'),
+          el('th', {}, '登记状态'))),
+        el('tbody', {}, ...requirements))),
+    el('p', { class: 'view-hint' },
+      '收据读回的是交付时登记的事实：成员摘要、字节、可编辑性声明与逐项要求状态。'
+      + '要求项为 NOT_RUN / UNVERIFIED 说的是这些门当时没有跑，不是跑失败了；'
+      + '本页不把它读成 rights 或质量验收。'));
+}
+
+// The refusal, in the refusal's own words. Naming the code is not decoration: it is the
+// handle the operator takes back to the CLI, and the two 404/409 answers differ in what
+// happens next (publish a receipt vs. stop trusting these bytes).
+function receiptRefusal(error: unknown): string {
+  const envelope = (error as Error & { serviceEnvelope?: Record<string, unknown> })
+    .serviceEnvelope;
+  const code = typeof envelope?.['error'] === 'string' ? envelope['error'] : errMsg(error);
+  if (code === 'DELIVERY_RECEIPT_NOT_FOUND') {
+    return '未读回交付收据（DELIVERY_RECEIPT_NOT_FOUND）：该 ACTIVE 版本没有已登记的收据文档。'
+      + '没有收据不等于交付失败，也不等于已验收；要出证需由交付流程写入。';
+  }
+  if (code === 'DELIVERY_RECEIPT_UNVERIFIED') {
+    return '拒绝出证（DELIVERY_RECEIPT_UNVERIFIED）：已登记的收据文档与它自己记录的摘要对不上，'
+      + '服务端没有读出它，本页也不会替它解释或补全。这不是请求写错，是这批字节不再被证明。';
+  }
+  return `收据未确认：${code}。服务端拒绝时没有写入任何结论。`;
+}
+
+async function runDeliveryReceipt(projectId: string, bundleId: string, versionId: string,
+                                  host: HTMLElement): Promise<void> {
+  host.replaceChildren(el('p', { class: 'view-loading' },
+    `正在读回 ${versionId} 的交付收据…`));
+  try {
+    const data = await api<DeliveryReceiptReadback>(
+      `/projects/${projectId}/bundles/${bundleId}/versions/${versionId}/receipt`);
+    host.replaceChildren(deliveryReceiptPanel(data));
+  } catch (error) {
+    // The box is replaced, not annotated: a receipt that refuses must not sit under the
+    // document read from the previous version.
+    host.replaceChildren(el('p', { class: 'error' }, receiptRefusal(error)));
+  }
+}
+
+// 证据系统 — the delivery-record column. One picked bundle drives both operator reads
+// that belong to a specific delivered version; neither runs while the page is built,
+// because a verdict about a delivery nobody selected is a guess, not a readback.
+function evidenceDeliveryColumn(projectId: string, bundles: BundleListResponse): HTMLElement {
+  const picker = el('select', { class: 'input', id: 'evidence-delivery-target' });
+  const versions = new Map<string, string>();
+  for (const bundle of bundles.bundles) versions.set(bundle.id, bundle.version_id);
+  if (bundles.bundles.length) {
+    for (const bundle of bundles.bundles) {
+      picker.append(new Option(`v${bundle.version_no} · ${bundle.id}`, bundle.id));
+    }
+  } else {
+    // Through emptyWording so an unreachable service cannot be described as a project
+    // that has no deliveries.
+    const [head, note] = emptyWording(bundles, '暂无交付包可读回',
+      '交付发布后在此列出，预检与收据按包读回。');
+    picker.append(new Option(`${head} · ${note}`, ''));
+  }
+  const profilePicker = el('select', { class: 'input', id: 'evidence-delivery-profile' },
+    ...PREFLIGHT_PROFILES.map((name) => new Option(name, name)));
+  const preflightOut = el('div', { class: 'bundle-preflight-outcome',
+    id: 'evidence-preflight-outcome' },
+    el('p', { class: 'view-hint' },
+      '尚未预检：预检只读取归档自带字节与随包清单，不修改交付包，也不代替 rights / 质量验收。'));
+  const receiptOut = el('div', { class: 'delivery-receipt-outcome',
+    id: 'evidence-receipt-outcome' },
+    el('p', { class: 'view-hint' },
+      '尚未读回交付收据：收据是交付时写下的文档，选中交付包后在此读回它说了什么、没说什么。'));
+  const preflightRun = el('button', { type: 'button', class: 'primary-btn',
+    id: 'evidence-preflight-run' }, '预检所选交付包');
+  const receiptRun = el('button', { type: 'button', class: 'ghost-btn',
+    id: 'evidence-receipt-run' }, '读回交付收据');
+  preflightRun.disabled = bundles.bundles.length === 0;
+  receiptRun.disabled = bundles.bundles.length === 0;
+  preflightRun.onclick = (): void => {
+    const bundleId = picker.value;
+    if (!bundleId) {
+      preflightOut.replaceChildren(el('p', { class: 'error' },
+        '未预检：没有可选的交付登记，预检不能对一个凭记忆写出的 id 给出结论。'));
+      return;
+    }
+    void runArtifactPreflight(projectId, bundleId, profilePicker.value, preflightOut);
+  };
+  receiptRun.onclick = (): void => {
+    const bundleId = picker.value;
+    // The version id must come from the same readback row as the bundle id. A delivery
+    // list that named a bundle without its ACTIVE version cannot be receipted from
+    // memory, so this refuses in its own box rather than calling a guessed path.
+    const versionId = versions.get(bundleId) ?? '';
+    if (!bundleId || !versionId) {
+      receiptOut.replaceChildren(el('p', { class: 'error' },
+        '未读回收据：交付读回没有同时给出该包的 id 与版本 id，'
+        + '收据不能指向一个凭记忆写出的版本。'));
+      return;
+    }
+    void runDeliveryReceipt(projectId, bundleId, versionId, receiptOut);
+  };
+  return el('div', { class: 'panel' },
+    el('h3', {}, '交付登记的读回 · 产物预检与交付收据'),
+    el('div', { class: 'toolbar' },
+      el('label', { class: 'muted' }, '交付包', picker),
+      el('label', { class: 'muted' }, 'profile', profilePicker),
+      preflightRun, receiptRun),
+    el('p', { class: 'view-hint' },
+      '两项都先选交付包：结论属于那一个版本。预检运行检查，收据读回交付时已登记的文档；两者都不修改交付包。'),
+    preflightOut, receiptOut);
+}
+
 export async function renderDeliverables(target: HTMLElement): Promise<void> {
   await projectPickerPanel(target, '交付中心', async (id) => {
     const [tasks, bundles] = await Promise.all([
@@ -2006,12 +2265,26 @@ export async function renderDeliverables(target: HTMLElement): Promise<void> {
 // 证据系统 — read-back of the design layer: briefs, directions, the chosen
 // direction, design-system bindings and the active binding. Version chains are
 // read on demand from the workbench; this is a read-only evidence view.
+//
+// Since 2026-10-08 it also reads back the three OPERATOR records whose service sides
+// already existed while this page showed only counts:
+//   * the Human Jury verdicts -- GET /projects/<id>/jury, on the same read the
+//     预检 / QA page uses, projected here without a signing form (a gate is signed
+//     where the juror types the attestation, not here);
+//   * the artifact preflight of a chosen bundle -- POST .../bundles/<id>/preflight?profile=;
+//   * the delivery receipt of that same bundle version -- GET
+//     .../bundles/<id>/versions/<v>/receipt.
+// The last two are click-initiated and land in their own boxes: both are statements
+// about ONE delivered version, so neither may be produced for a delivery nobody picked.
+// What still does not appear here: the E0-E5 evidence records, which have no route.
 export async function renderEvidence(target: HTMLElement): Promise<void> {
   await projectPickerPanel(target, '证据系统', async (id) => {
-    const [layerResp, bundlesResp] = await Promise.all([
+    const [layerResp, bundlesResp, juryResp] = await Promise.all([
       apiOrEmpty<DesignLayerResponse>(`/projects/${id}/design-layer`, OFFLINE.designLayer),
       apiOrEmpty<BundleListResponse>(`/projects/${id}/bundles`, OFFLINE.bundles),
+      apiOrEmpty<JuryReadback>(`/projects/${id}/jury`, JURY_UNREADABLE),
     ]);
+    const juryUnread = shapeNotice(juryResp) || disconnectedNotice(juryResp);
     const layer = layerResp.design_layer;
     const chosen = layer.chosen_direction
       ? `${layer.chosen_direction.title} · v${layer.chosen_direction.version}` : '（尚未选定方向）';
@@ -2051,11 +2324,17 @@ export async function renderEvidence(target: HTMLElement): Promise<void> {
       el('p', { class: 'view-hint' }, '绑定链只读回；方向选定与交付打包在项目页和工作台高级区执行。'),
     );
     // B10 1:1 kpi-grid（每条证据可关联 project / decision / source / time / confidence）。
+    // The fifth card is the jury readback's own count; a read that did not arrive shows
+    // — rather than 0, because "no verdicts" and "no verdict read back" are different
+    // claims about the same project.
     const kpis = el('div', { class: 'kpi-grid' },
       kpiCard(String(layer.briefs.length), 'briefs', '设计简报版本'),
       kpiCard(String(layer.directions.length), 'directions', '设计方向版本'),
       kpiCard(String(layer.design_systems.length), '设计系统', '登记系统'),
-      kpiCard(String(bundlesResp.bundles.length), '交付包', '/bundles 读回'));
+      kpiCard(String(bundlesResp.bundles.length), '交付包', '/bundles 读回'),
+      kpiCard(juryUnread || typeof juryResp.verdict_count !== 'number'
+        ? '—' : String(juryResp.verdict_count), '人工裁决',
+        juryUnread ? '裁决未读回' : 'GET /jury 读回 · 仅人工签署'));
     for (const v of kpis.querySelectorAll<HTMLElement>('strong[data-count]')) {
       const t = v.textContent; if (t !== null && /^\d+$/.test(t)) v.dataset.count = t;
     }
@@ -2070,6 +2349,8 @@ export async function renderEvidence(target: HTMLElement): Promise<void> {
     const done = el('div', {},
       kpis,
       bindingChain,
+      evidenceJuryColumn(juryResp),
+      evidenceDeliveryColumn(id, bundlesResp),
       el('div', { class: 'panel' },
         el('h3', {}, '方向契约'),
         el('div', { class: 'table-wrap', tabindex: '0', role: 'region',
@@ -2081,8 +2362,9 @@ export async function renderEvidence(target: HTMLElement): Promise<void> {
               el('tr', {}, el('th', { scope: 'row' }, '选定方向'), el('td', {}, chosen)),
               el('tr', {}, el('th', { scope: 'row' }, '活动绑定'), el('td', {}, active)))))),
       systems,
-      el('p', { class: 'view-hint' }, '版本链（brief / direction 逐版本）在工作台点单条时读回；本页为只读证据视图，不修改 lineage。'),
-      ...shapeNoticeRows(layerResp, bundlesResp));
+      el('p', { class: 'view-hint' }, '版本链（brief / direction 逐版本）在工作台点单条时读回；本页为只读证据视图，不修改 lineage。'
+        + '交付登记的两项读回（预检 / 收据）需要选中交付包后点击执行，E0–E5 证据记录仍无服务路由。'),
+      ...shapeNoticeRows(layerResp, bundlesResp, juryResp));
     return done;
   });
 }

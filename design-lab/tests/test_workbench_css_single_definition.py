@@ -346,9 +346,14 @@ class ListItemIsReallyAListMember(unittest.TestCase):
         # design-system Token column (renderTokenDocumentPanel) -- its live rows and
         # its empty state are both real list members. 2026-10-08 again: 32 -> 33 for
         # the Domain Pack column (renderDomains), whose rows come from domainPackRow()
-        # and whose empty state comes from emptyLi(). The number moves because the
-        # inventory grew by one verified column, not because a check was relaxed.
-        self.assertEqual(self.shell.count("el('ul', { class: 'list'"), 33)
+        # and whose empty state comes from emptyLi(). 2026-10-08 again: 33 -> 34 for the
+        # Human Jury column on 证据系统 (evidenceJuryColumn) -- its verdict rows are real
+        # <li> members and its empty state comes from emptyLi(), so a read that did not
+        # arrive cannot be shown as an empty list. The delivery-receipt column rendered
+        # beside it is tables inside .table-wrap, so it adds no container to this count.
+        # The number moves because the inventory grew by one verified column, not because
+        # a check was relaxed.
+        self.assertEqual(self.shell.count("el('ul', { class: 'list'"), 34)
 
 
 if __name__ == "__main__":

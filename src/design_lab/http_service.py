@@ -196,6 +196,22 @@ def make_server(service, token, port=0, *, local_session=False):
                                 # a truncated ZIP stream. Client verifies length/hash.
                                 return
                         return
+                    # The DeliveryReceipt V2 the `delivery-receipt` CLI verb reads
+                    # (cli.py), now readable over the same boundary NativeDelivery
+                    # already owns. Nothing is caught and re-raised here on purpose:
+                    # NativeDelivery.receipt verifies the persisted document and its
+                    # own digest on every read, and dispatch() maps ImageAssetError by
+                    # its status AND code two clauses above the generic ValueError
+                    # one. So a version that was never receipted stays
+                    # 404 DELIVERY_RECEIPT_NOT_FOUND ("we wrote no document about this
+                    # delivery") while a stored document its own bytes contradict
+                    # stays 409 DELIVERY_RECEIPT_UNVERIFIED ("we refuse to certify
+                    # these"). Folding either into INVALID_REQUEST would read as a bad
+                    # request the operator could go back and fix, which is a different
+                    # fact about different bytes.
+                    match = re.fullmatch(r'/api/projects/([0-9a-f]{32})/bundles/(bundle-native-[0-9a-f]{64})/versions/(v-[0-9a-f]{32})/receipt',self.path)
+                    if match:
+                        return self.send_json(200,NativeDelivery(service).receipt(*match.groups()))
                     match = re.fullmatch(r'/api/projects/([0-9a-f]{32})/native-assets(?:\?after=(native-[0-9a-f]{64}))?',self.path)
                     if match:
                         return self.send_json(200,NativeAssets(service).list(match[1],match[2] or ''))

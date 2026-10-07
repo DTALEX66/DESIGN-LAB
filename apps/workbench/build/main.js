@@ -2027,6 +2027,75 @@ function juryReadbackPanel(projectId, data, reload, unread) {
     juryVerdictForm(projectId, data.reviewable_versions ?? [], reload)
   );
 }
+const ACCEPTANCE_TAGS = { ACCEPTED: "ok", NOT_ACCEPTED: "warn" };
+function evidenceJuryColumn(data) {
+  const heading = el("h3", {}, "人工评审裁决 · Human Jury");
+  const unread = shapeNotice(data) || disconnectedNotice(data);
+  if (unread) {
+    return el(
+      "div",
+      { class: "panel" },
+      heading,
+      el(
+        "p",
+        { class: "error" },
+        `${unread}；裁决未读回。未读回不等于无裁决，也不等于已验收。`
+      )
+    );
+  }
+  const verdicts = Object.entries(data.current_verdicts ?? {});
+  const list = el("ul", { class: "list" }, ...verdicts.length ? verdicts.map(([subject, record]) => el(
+    "li",
+    { class: "list-item" },
+    el(
+      "div",
+      {},
+      el("strong", {}, String(record["verdict"] ?? "未记录判定")),
+      // subject_ref and the artifact digest are long identifiers: their own row in
+      // .value-mono, never inside the nowrap .tag pill.
+      el("div", { class: "value-mono" }, subject),
+      el("div", { class: "muted" }, String((record["juror"] ?? {}).attestation ?? "无评审依据"))
+    ),
+    record["kind"] ? el("span", { class: "tag info" }, en(String(record["kind"]))) : ""
+  )) : [emptyLi(
+    data,
+    "尚无人签署的裁决",
+    "裁决需在预检 / QA 页由人签署后在此读回；Agent 建议不计入验收。"
+  )]);
+  const acceptance = typeof data.human_acceptance === "string" ? data.human_acceptance : "";
+  const verdictCount = typeof data.verdict_count === "number" ? String(data.verdict_count) : "未读回";
+  const proposalCount = typeof data.proposal_count === "number" ? String(data.proposal_count) : "未读回";
+  return el(
+    "div",
+    { class: "panel" },
+    heading,
+    el(
+      "p",
+      { class: "view-hint" },
+      `已签署 ${verdictCount} · Agent 建议 ${proposalCount} · 当前有判定版本 ${verdicts.length} 个`
+    ),
+    el(
+      "p",
+      {},
+      acceptance ? el(
+        "span",
+        { class: "tag " + (ACCEPTANCE_TAGS[acceptance] ?? "neutral") },
+        en(acceptance)
+      ) : el("span", { class: "tag neutral" }, "人工验收状态未读回"),
+      el(
+        "span",
+        { class: "muted" },
+        " · 人工验收是按项目当前版本算的，一条裁决不会替整个项目出证。"
+      )
+    ),
+    list,
+    el(
+      "p",
+      { class: "view-hint" },
+      "本页只读回裁决，不签署、不改写：签署是 Human Gate，在预检 / QA 页执行。"
+    )
+  );
+}
 function juryVerdictForm(projectId, versions, reload) {
   const versionSelect = el("select", { class: "input", id: "jury-version" });
   versionSelect.append(new Option("选择被评审的版本", ""));
@@ -3082,6 +3151,253 @@ async function runArtifactPreflight(projectId, bundleId, profile, host) {
     ));
   }
 }
+const RECEIPT_AXIS_TAGS = { PASS: "ok", PARTIAL: "warn" };
+function receiptIdentityRow(label, value) {
+  return el(
+    "tr",
+    {},
+    el("th", { scope: "row" }, label),
+    el("td", {}, el("div", { class: "value-mono" }, value))
+  );
+}
+function deliveryReceiptTableWrap(label, table) {
+  return el("div", {
+    class: "table-wrap",
+    tabindex: "0",
+    role: "region",
+    "aria-label": label
+  }, table);
+}
+function deliveryReceiptPanel(data) {
+  if (!Array.isArray(data.deliverables)) {
+    return el(
+      "p",
+      { class: "error" },
+      "收据形状未读回：文档没有给出 deliverables，本页不替它猜交付物数量。"
+    );
+  }
+  const axis = typeof data.axes?.delivery === "string" ? data.axes.delivery : "";
+  const identity = [
+    receiptIdentityRow("文档版本", String(data.schemaVersion ?? "")),
+    receiptIdentityRow("收据 id", String(data.receipt_id ?? "")),
+    receiptIdentityRow("收据摘要", String(data.receipt_sha256 ?? "")),
+    receiptIdentityRow("绑定任务", String(data.job_id ?? "")),
+    receiptIdentityRow("记录时间", String(data.created_at ?? "文档未记录时间"))
+  ];
+  const entries = data.deliverables.map((entry) => el(
+    "tr",
+    {},
+    el("td", {}, entry.deliverable_id),
+    el("td", {}, String(entry.byte_size)),
+    el("td", {}, entry.editable ? "可编辑源文件" : "预览（压平）"),
+    // The readback columns are what the PARTIAL axis is about: a real delivery here
+    // never re-opens its own artifact in the host, so this says 无 rather than passing.
+    el("td", {}, entry.host_readback ? entry.readback_matches_artifact === false ? "有读回记录 · 与交付摘要不一致" : "有读回记录" : "无宿主读回记录"),
+    el(
+      "td",
+      {},
+      el("div", { class: "value-mono" }, String(entry.artifact_sha256)),
+      el(
+        "div",
+        { class: "value-mono" },
+        `回滚参照：${String(entry.rollback?.backup_ref ?? "文档未记录")}`
+      )
+    )
+  ));
+  const requirements = data.deliverables.flatMap((entry) => (entry.requirements ?? []).map((requirement) => el(
+    "tr",
+    {},
+    el("td", {}, entry.deliverable_id),
+    el("td", {}, requirement.req_id),
+    // The status word is the document's own, never a paraphrase: a receipt that
+    // records NOT_RUN for rights must not be painted 未通过 or 已验收.
+    el("td", {}, el("span", { class: "tag info" }, en(String(requirement.status))))
+  )));
+  return el(
+    "div",
+    { class: "delivery-receipt-readback" },
+    el(
+      "p",
+      {},
+      el(
+        "span",
+        { class: "tag " + (RECEIPT_AXIS_TAGS[axis] ?? "neutral") },
+        axis ? en(axis) : "轴值未读回"
+      ),
+      el("span", { class: "muted" }, `交付收据 · ${data.deliverables.length} 个交付物`)
+    ),
+    deliveryReceiptTableWrap(
+      "交付收据身份与时间表（可横向滚动）",
+      el("table", { class: "table" }, el("tbody", {}, ...identity))
+    ),
+    deliveryReceiptTableWrap(
+      "交付收据条目表（可横向滚动）",
+      el(
+        "table",
+        { class: "table" },
+        el("thead", {}, el(
+          "tr",
+          {},
+          el("th", {}, "交付物"),
+          el("th", {}, "字节"),
+          el("th", {}, "可编辑性"),
+          el("th", {}, "宿主读回"),
+          el("th", {}, "产物摘要 / 回滚参照")
+        )),
+        el("tbody", {}, ...entries)
+      )
+    ),
+    deliveryReceiptTableWrap(
+      "交付收据要求项表（可横向滚动）",
+      el(
+        "table",
+        { class: "table" },
+        el("thead", {}, el(
+          "tr",
+          {},
+          el("th", {}, "交付物"),
+          el("th", {}, "要求项"),
+          el("th", {}, "登记状态")
+        )),
+        el("tbody", {}, ...requirements)
+      )
+    ),
+    el(
+      "p",
+      { class: "view-hint" },
+      "收据读回的是交付时登记的事实：成员摘要、字节、可编辑性声明与逐项要求状态。要求项为 NOT_RUN / UNVERIFIED 说的是这些门当时没有跑，不是跑失败了；本页不把它读成 rights 或质量验收。"
+    )
+  );
+}
+function receiptRefusal(error) {
+  const envelope = error.serviceEnvelope;
+  const code = typeof envelope?.["error"] === "string" ? envelope["error"] : errMsg(error);
+  if (code === "DELIVERY_RECEIPT_NOT_FOUND") {
+    return "未读回交付收据（DELIVERY_RECEIPT_NOT_FOUND）：该 ACTIVE 版本没有已登记的收据文档。没有收据不等于交付失败，也不等于已验收；要出证需由交付流程写入。";
+  }
+  if (code === "DELIVERY_RECEIPT_UNVERIFIED") {
+    return "拒绝出证（DELIVERY_RECEIPT_UNVERIFIED）：已登记的收据文档与它自己记录的摘要对不上，服务端没有读出它，本页也不会替它解释或补全。这不是请求写错，是这批字节不再被证明。";
+  }
+  return `收据未确认：${code}。服务端拒绝时没有写入任何结论。`;
+}
+async function runDeliveryReceipt(projectId, bundleId, versionId, host) {
+  host.replaceChildren(el(
+    "p",
+    { class: "view-loading" },
+    `正在读回 ${versionId} 的交付收据…`
+  ));
+  try {
+    const data = await api(
+      `/projects/${projectId}/bundles/${bundleId}/versions/${versionId}/receipt`
+    );
+    host.replaceChildren(deliveryReceiptPanel(data));
+  } catch (error) {
+    host.replaceChildren(el("p", { class: "error" }, receiptRefusal(error)));
+  }
+}
+function evidenceDeliveryColumn(projectId, bundles) {
+  const picker = el("select", { class: "input", id: "evidence-delivery-target" });
+  const versions = /* @__PURE__ */ new Map();
+  for (const bundle of bundles.bundles) versions.set(bundle.id, bundle.version_id);
+  if (bundles.bundles.length) {
+    for (const bundle of bundles.bundles) {
+      picker.append(new Option(`v${bundle.version_no} · ${bundle.id}`, bundle.id));
+    }
+  } else {
+    const [head, note] = emptyWording(
+      bundles,
+      "暂无交付包可读回",
+      "交付发布后在此列出，预检与收据按包读回。"
+    );
+    picker.append(new Option(`${head} · ${note}`, ""));
+  }
+  const profilePicker = el(
+    "select",
+    { class: "input", id: "evidence-delivery-profile" },
+    ...PREFLIGHT_PROFILES.map((name) => new Option(name, name))
+  );
+  const preflightOut = el(
+    "div",
+    {
+      class: "bundle-preflight-outcome",
+      id: "evidence-preflight-outcome"
+    },
+    el(
+      "p",
+      { class: "view-hint" },
+      "尚未预检：预检只读取归档自带字节与随包清单，不修改交付包，也不代替 rights / 质量验收。"
+    )
+  );
+  const receiptOut = el(
+    "div",
+    {
+      class: "delivery-receipt-outcome",
+      id: "evidence-receipt-outcome"
+    },
+    el(
+      "p",
+      { class: "view-hint" },
+      "尚未读回交付收据：收据是交付时写下的文档，选中交付包后在此读回它说了什么、没说什么。"
+    )
+  );
+  const preflightRun = el("button", {
+    type: "button",
+    class: "primary-btn",
+    id: "evidence-preflight-run"
+  }, "预检所选交付包");
+  const receiptRun = el("button", {
+    type: "button",
+    class: "ghost-btn",
+    id: "evidence-receipt-run"
+  }, "读回交付收据");
+  preflightRun.disabled = bundles.bundles.length === 0;
+  receiptRun.disabled = bundles.bundles.length === 0;
+  preflightRun.onclick = () => {
+    const bundleId = picker.value;
+    if (!bundleId) {
+      preflightOut.replaceChildren(el(
+        "p",
+        { class: "error" },
+        "未预检：没有可选的交付登记，预检不能对一个凭记忆写出的 id 给出结论。"
+      ));
+      return;
+    }
+    void runArtifactPreflight(projectId, bundleId, profilePicker.value, preflightOut);
+  };
+  receiptRun.onclick = () => {
+    const bundleId = picker.value;
+    const versionId = versions.get(bundleId) ?? "";
+    if (!bundleId || !versionId) {
+      receiptOut.replaceChildren(el(
+        "p",
+        { class: "error" },
+        "未读回收据：交付读回没有同时给出该包的 id 与版本 id，收据不能指向一个凭记忆写出的版本。"
+      ));
+      return;
+    }
+    void runDeliveryReceipt(projectId, bundleId, versionId, receiptOut);
+  };
+  return el(
+    "div",
+    { class: "panel" },
+    el("h3", {}, "交付登记的读回 · 产物预检与交付收据"),
+    el(
+      "div",
+      { class: "toolbar" },
+      el("label", { class: "muted" }, "交付包", picker),
+      el("label", { class: "muted" }, "profile", profilePicker),
+      preflightRun,
+      receiptRun
+    ),
+    el(
+      "p",
+      { class: "view-hint" },
+      "两项都先选交付包：结论属于那一个版本。预检运行检查，收据读回交付时已登记的文档；两者都不修改交付包。"
+    ),
+    preflightOut,
+    receiptOut
+  );
+}
 async function renderDeliverables(target) {
   await projectPickerPanel(target, "交付中心", async (id) => {
     const [tasks2, bundles] = await Promise.all([
@@ -3251,10 +3567,12 @@ async function renderDeliverables(target) {
 }
 async function renderEvidence(target) {
   await projectPickerPanel(target, "证据系统", async (id) => {
-    const [layerResp, bundlesResp] = await Promise.all([
+    const [layerResp, bundlesResp, juryResp] = await Promise.all([
       apiOrEmpty(`/projects/${id}/design-layer`, OFFLINE.designLayer),
-      apiOrEmpty(`/projects/${id}/bundles`, OFFLINE.bundles)
+      apiOrEmpty(`/projects/${id}/bundles`, OFFLINE.bundles),
+      apiOrEmpty(`/projects/${id}/jury`, JURY_UNREADABLE)
     ]);
+    const juryUnread = shapeNotice(juryResp) || disconnectedNotice(juryResp);
     const layer = layerResp.design_layer;
     const chosen = layer.chosen_direction ? `${layer.chosen_direction.title} · v${layer.chosen_direction.version}` : "（尚未选定方向）";
     const active = layer.active_binding ? `${layer.active_binding.design_system_name} · 绑定 ${layer.active_binding.direction_id}` : "（无活动绑定）";
@@ -3325,7 +3643,12 @@ async function renderEvidence(target) {
       kpiCard(String(layer.briefs.length), "briefs", "设计简报版本"),
       kpiCard(String(layer.directions.length), "directions", "设计方向版本"),
       kpiCard(String(layer.design_systems.length), "设计系统", "登记系统"),
-      kpiCard(String(bundlesResp.bundles.length), "交付包", "/bundles 读回")
+      kpiCard(String(bundlesResp.bundles.length), "交付包", "/bundles 读回"),
+      kpiCard(
+        juryUnread || typeof juryResp.verdict_count !== "number" ? "—" : String(juryResp.verdict_count),
+        "人工裁决",
+        juryUnread ? "裁决未读回" : "GET /jury 读回 · 仅人工签署"
+      )
     );
     for (const v of kpis.querySelectorAll("strong[data-count]")) {
       const t = v.textContent;
@@ -3356,6 +3679,8 @@ async function renderEvidence(target) {
       {},
       kpis,
       bindingChain,
+      evidenceJuryColumn(juryResp),
+      evidenceDeliveryColumn(id, bundlesResp),
       el(
         "div",
         { class: "panel" },
@@ -3383,8 +3708,8 @@ async function renderEvidence(target) {
         )
       ),
       systems,
-      el("p", { class: "view-hint" }, "版本链（brief / direction 逐版本）在工作台点单条时读回；本页为只读证据视图，不修改 lineage。"),
-      ...shapeNoticeRows(layerResp, bundlesResp)
+      el("p", { class: "view-hint" }, "版本链（brief / direction 逐版本）在工作台点单条时读回；本页为只读证据视图，不修改 lineage。交付登记的两项读回（预检 / 收据）需要选中交付包后点击执行，E0–E5 证据记录仍无服务路由。"),
+      ...shapeNoticeRows(layerResp, bundlesResp, juryResp)
     );
     return done;
   });

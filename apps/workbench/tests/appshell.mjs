@@ -576,4 +576,205 @@ if (routeView.textContent.includes('取消未确认'))
 
 console.log('ok: ⑥ 产物预检列不自动跑、一次点击一个请求、判据与未量项上屏、拒绝替换旧判定、未确认的取消上屏');
 
+// ⑦ 证据系统 now reads back the operator records that already had working backends:
+// the Human Jury verdicts (GET /jury), the artifact preflight of a chosen bundle and the
+// delivery receipt of that bundle's version (GET .../receipt). Block ⑥ proved the same
+// shape for the 交付中心 column; what is new here is (a) a route read that must
+// distinguish "no receipt was recorded" from "these bytes will not be certified", and
+// (b) a jury column that must not turn an unread readback into an empty list.
+const EVIDENCE_VERSION_ID = 'v-' + '0123456789abcdef'.repeat(2);
+const EVIDENCE_BUNDLE = { ...BUNDLE_ROW, version_id: EVIDENCE_VERSION_ID };
+const JURY_SUBJECT = `version:${EVIDENCE_VERSION_ID}`;
+const JURY_READBACK = {
+  schemaVersion: 'design-lab/jury-readback/v1',
+  records: [], verdict_count: 1, proposal_count: 2,
+  current_verdicts: { [JURY_SUBJECT]: {
+    verdict: 'APPROVE', kind: 'JURY_VERDICT',
+    juror: { juror_id: 'dtalex66', kind: 'HUMAN', attestation: '在 100% 缩放下对照参考图审读' } } },
+  reviewable_versions: [{ subject_ref: JURY_SUBJECT, artifact_sha256: 'sha256:' + 'a'.repeat(64),
+                          asset_id: 'a1' }],
+  human_acceptance: 'ACCEPTED',
+};
+const RECEIPT_READBACK = {
+  schemaVersion: 'design-lab/delivery-receipt/v2',
+  job_id: 'native-job-' + '1'.repeat(64),
+  created_at: '2026-10-08T09:00:00+00:00',
+  axes: { delivery: 'PARTIAL' },
+  receipt_id: 'receipt-' + 'a'.repeat(16),
+  receipt_sha256: 'sha256:' + 'b'.repeat(64),
+  deliverables: [
+    { deliverable_id: 'native.psd', artifact_sha256: 'sha256:' + 'c'.repeat(64), byte_size: 4096,
+      editable: true, host_readback: null, readback_matches_artifact: null,
+      requirements: [{ req_id: 'req-rights-review', status: 'NOT_RUN' },
+                     { req_id: 'req-native-bytes-verified', status: 'PASS' }],
+      rollback: { backup_ref: 'asset:native-' + 'e'.repeat(64), procedure: 'drop the appended version' } },
+    { deliverable_id: 'preview.png', artifact_sha256: 'sha256:' + 'f'.repeat(64), byte_size: 1024,
+      editable: false, host_readback: null, readback_matches_artifact: null,
+      requirements: [{ req_id: 'req-rights-review', status: 'NOT_RUN' }],
+      rollback: { backup_ref: 'asset:native-' + 'e'.repeat(64), procedure: 'drop the appended version' } },
+  ],
+};
+const DESIGN_LAYER_EMPTY = { design_layer: { briefs: [], directions: [], chosen_direction: null,
+  bindings: [], active_binding: null, design_systems: [] } };
+
+function collectMarked(node, out = []) {
+  if (node?.attributes?.get('lang') === 'en') out.push(node.textContent);
+  for (const child of (node?.children ?? [])) collectMarked(child, out);
+  return out;
+}
+
+shell.window.location.hash = '#/evidence';
+shell.dispatchHashchange();
+const evidencePickerRequest = shell.pending.splice(0, shell.pending.length);
+if (evidencePickerRequest.length !== 1)
+  throw new Error(`#/evidence 打开时发出了 ${evidencePickerRequest.length} 个请求，应只有项目台账`);
+evidencePickerRequest[0].resolve(response({ projects: [{ id: 'p1', name: 'Alpha' }] }));
+await flush();
+const evidenceView = shell.elements.get('route-view');
+const evidenceSelect = byElementId(evidenceView, '证据系统-project');
+if (!evidenceSelect) throw new Error('证据系统没有渲染项目选择器，⑦ 找不到入口');
+evidenceSelect.value = 'p1';
+evidenceSelect.onchange();
+const evidenceBuild = shell.pending.splice(0, shell.pending.length);
+const evidencePaths = evidenceBuild.map((request) => request.path);
+for (const forbidden of ['/preflight', '/receipt'])
+  if (evidencePaths.some((path) => path.includes(forbidden)))
+    throw new Error(`构建证据页时就在运行交付结论 ${forbidden} —— 没有人选中交付包`);
+const expects = ['/api/projects/p1/design-layer', '/api/projects/p1/bundles',
+                 '/api/projects/p1/jury'];
+for (const expected of expects)
+  if (!evidencePaths.includes(expected))
+    throw new Error(`证据系统没有读回 ${expected}；实际读到 ${evidencePaths.join(' ')}`);
+const answerEvidence = (requests, jury, bundles) => {
+  for (const request of requests) {
+    if (request.path.endsWith('/jury')) request.resolve(response(jury));
+    else if (request.path.endsWith('/bundles')) request.resolve(response(bundles));
+    else request.resolve(response(DESIGN_LAYER_EMPTY));
+  }
+};
+// (a) A jury readback that never carried the collection must be reported as unread, and
+// must NOT be shown as "there are no verdicts" -- the lie an empty <ul> tells.
+answerEvidence(evidenceBuild, {}, { bundles: [EVIDENCE_BUNDLE] });
+await flush();
+const unreadJuryText = evidenceView.textContent;
+if (!/未读回[^\n]*current_verdicts|裁决未读回/.test(unreadJuryText))
+  throw new Error(`jury 字段缺失时页面必须说未读回：…${unreadJuryText.slice(0, 260)}`);
+if (unreadJuryText.includes('尚无人签署的裁决'))
+  throw new Error('响应没有给出 current_verdicts 时，页面不得声称尚无人签署的裁决');
+if (unreadJuryText.includes('视图读回失败'))
+  throw new Error('缺少一个集合不得把整页压成读回失败');
+
+// (b) A real verdict comes up with the service's own words, and the long ids stay on
+// their own .value-mono rows.
+shell.pending.splice(0, shell.pending.length);
+evidenceSelect.onchange();
+const juryReads = shell.pending.splice(0, shell.pending.length);
+answerEvidence(juryReads, JURY_READBACK, { bundles: [EVIDENCE_BUNDLE] });
+await flush();
+const juryText = evidenceView.textContent;
+for (const must of ['APPROVE', JURY_SUBJECT, '在 100% 缩放下对照参考图审读',
+                    '已签署 1 · Agent 建议 2', 'ACCEPTED'])
+  if (!juryText.includes(must))
+    throw new Error(`人工裁决读回缺少 ${must}：${juryText.slice(0, 240)}`);
+if (juryText.includes('尚无人签署的裁决'))
+  throw new Error('有裁决可读回时页面仍说无人签署');
+if (juryText.includes('未读回：响应缺少'))
+  throw new Error('形状完整的裁决读回不得出现形状告警');
+const juryMarked = collectMarked(evidenceView);
+for (const word of ['ACCEPTED', 'JURY_VERDICT'])
+  if (!juryMarked.includes(word))
+    throw new Error(`判定 ${word} 必须带 lang="en"（服务词汇，不翻译）：${juryMarked.join('/')}`);
+
+// (c) The receipt: one click, one request to the selected version's own route.
+const receiptButton = byElementId(evidenceView, 'evidence-receipt-run');
+const preflightButton = byElementId(evidenceView, 'evidence-preflight-run');
+const receiptBox = byElementId(evidenceView, 'evidence-receipt-outcome');
+const preflightBox = byElementId(evidenceView, 'evidence-preflight-outcome');
+const bundlePicker = byElementId(evidenceView, 'evidence-delivery-target');
+const profilePicker = byElementId(evidenceView, 'evidence-delivery-profile');
+if (!receiptButton || !receiptBox) throw new Error('证据系统没有交付收据的入口或读回框');
+if (receiptButton.disabled || preflightButton.disabled)
+  throw new Error('有交付登记时两个读回按钮都不得是禁用的');
+if (receiptBox.textContent.includes('PARTIAL'))
+  throw new Error('收据结论在没有点击之前就出现在屏幕上');
+bundlePicker.value = EVIDENCE_BUNDLE.id;
+profilePicker.value = 'print';
+receiptButton.onclick();
+const receiptRequests = shell.pending.splice(0, shell.pending.length);
+if (receiptRequests.length !== 1)
+  throw new Error(`一次收据点击发出了 ${receiptRequests.length} 个请求，应为 1 个`);
+if (receiptRequests[0].path
+  !== `/api/projects/p1/bundles/${EVIDENCE_BUNDLE.id}/versions/${EVIDENCE_VERSION_ID}/receipt`)
+  throw new Error(`收据打到了 ${receiptRequests[0].path} —— 必须是所选版本自己的路由`);
+receiptRequests[0].resolve(response(RECEIPT_READBACK));
+await flush();
+const receiptText = receiptBox.textContent;
+for (const must of ['PARTIAL', 'native.psd', 'preview.png', 'sha256:' + 'c'.repeat(64),
+                    'req-rights-review', 'NOT_RUN', '无宿主读回记录',
+                    `回滚参照：${RECEIPT_READBACK.deliverables[0].rollback.backup_ref}`])
+  if (!receiptText.includes(must))
+    throw new Error(`交付收据读回缺少 ${must}：${receiptText.slice(0, 220)}`);
+if (receiptText.includes('轴值未读回'))
+  throw new Error('文档给出了 axes.delivery，页面不得说轴值未读回');
+const receiptMarked = collectMarked(receiptBox);
+for (const word of ['PARTIAL', 'NOT_RUN'])
+  if (!receiptMarked.includes(word))
+    throw new Error(`收据状态词 ${word} 必须带 lang="en"：${receiptMarked.join('/')}`);
+
+// (d) The two refusals are two different sentences. 404 says nothing was recorded;
+// 409 says these bytes will not be certified -- and neither may keep the document that
+// the previous read put on the screen.
+receiptButton.onclick();
+const notFoundRead = shell.pending.splice(0, shell.pending.length);
+if (notFoundRead.length !== 1) throw new Error(`第二次收据点击发出了 ${notFoundRead.length} 个请求`);
+notFoundRead[0].resolve(response({ error: 'DELIVERY_RECEIPT_NOT_FOUND' }, false));
+await flush();
+const missingText = receiptBox.textContent;
+if (!missingText.includes('DELIVERY_RECEIPT_NOT_FOUND') || !missingText.includes('没有收据不等于交付失败'))
+  throw new Error(`无收据的 404 要说清是哪一件事：${missingText.slice(0, 200)}`);
+if (missingText.includes('PARTIAL') || missingText.includes('native.psd'))
+  throw new Error('拒绝后上一份收据文档仍留在屏上');
+receiptButton.onclick();
+const unverifiedRead = shell.pending.splice(0, shell.pending.length);
+unverifiedRead[0].resolve(response({ error: 'DELIVERY_RECEIPT_UNVERIFIED' }, false));
+await flush();
+const refusedText = receiptBox.textContent;
+if (!refusedText.includes('DELIVERY_RECEIPT_UNVERIFIED') || !refusedText.includes('拒绝出证'))
+  throw new Error(`拒绝对字节出证必须说成另一件事：${refusedText.slice(0, 200)}`);
+if (refusedText.includes('DELIVERY_RECEIPT_NOT_FOUND'))
+  throw new Error('409 的框里还挂着 404 的说法，两种状态混成了一条');
+
+// (e) The preflight lands in its own box, and does not touch the receipt's.
+preflightButton.onclick();
+const preflightReads = shell.pending.splice(0, shell.pending.length);
+if (preflightReads.length !== 1)
+  throw new Error(`一次预检点击发出了 ${preflightReads.length} 个请求，应为 1 个`);
+if (preflightReads[0].path
+  !== `/api/projects/p1/bundles/${EVIDENCE_BUNDLE.id}/preflight?profile=print`)
+  throw new Error(`证据页预检打到了 ${preflightReads[0].path}`);
+preflightReads[0].resolve(response(PREFLIGHT_READBACK));
+await flush();
+if (!preflightBox.textContent.includes('INCOMPLETE') || !preflightBox.textContent.includes('missing-links'))
+  throw new Error('预检读回没有进入证据页自己的框');
+if (!receiptBox.textContent.includes('拒绝出证'))
+  throw new Error('预检把收据框自己的结论冲掉了 —— 两个框必须互不覆盖');
+
+// (f) A delivery list that named a bundle but not its ACTIVE version is refused without
+// a request: the receipt cannot be pointed at a version from memory.
+evidenceSelect.onchange();
+const rebuilt = shell.pending.splice(0, shell.pending.length);
+answerEvidence(rebuilt, JURY_READBACK, { bundles: [{ ...EVIDENCE_BUNDLE, version_id: undefined }] });
+await flush();
+const blindBox = byElementId(shell.elements.get('route-view'), 'evidence-receipt-outcome');
+const blindButton = byElementId(shell.elements.get('route-view'), 'evidence-receipt-run');
+const blindPicker = byElementId(shell.elements.get('route-view'), 'evidence-delivery-target');
+blindPicker.value = EVIDENCE_BUNDLE.id;
+blindButton.onclick();
+const strayReceipt = shell.pending.splice(0, shell.pending.length);
+if (strayReceipt.length)
+  throw new Error(`版本 id 未读回时仍然发出了 ${strayReceipt.map((r) => r.path).join(' ')} —— 收据不能指向凭记忆的版本`);
+if (!blindBox.textContent.includes('未读回收据'))
+  throw new Error(`版本 id 缺失时必须说明未读回：${blindBox.textContent.slice(0, 160)}`);
+console.log('ok: ⑦ 证据系统读回裁决/预检/收据：缺字段说未读回不当作空列表、裁决与 lang="en" 上屏、一次点击一个收据请求、404 与 409 两种拒绝各说各话、两框互不覆盖、版本未读回时不发请求');
+
 console.log('APPSHELL REGRESSION: all checks passed');

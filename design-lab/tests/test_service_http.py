@@ -165,6 +165,104 @@ class ServiceHttpTests(unittest.TestCase):
         self.assertEqual(status,200)
         self.assertEqual(foreign['bundles'],[])
 
+    def receipt_route(self, project, bundle_id, version_id):
+        return (f'/api/projects/{project}/bundles/{bundle_id}/versions/{version_id}/receipt')
+
+    def test_delivery_receipt_route_reads_back_the_persisted_document(self):
+        """GET .../versions/<v>/receipt -- the CLI's `delivery-receipt` read over HTTP.
+
+        The route answers through NativeDelivery.receipt(), which re-verifies the stored
+        document against its own derived digest before anything is sent, so the page gets
+        the bytes the delivery wrote or a refusal, never a re-derived approximation. The
+        two refusals are the point of this test: a version that was never receipted is a
+        different fact (404 DELIVERY_RECEIPT_NOT_FOUND) from a stored receipt whose own
+        bytes contradict it (409 DELIVERY_RECEIPT_UNVERIFIED), and collapsing either into
+        INVALID_REQUEST would tell the operator to go fix a request that was fine.
+        """
+        from contextlib import closing
+        import sqlite3
+        from design_lab.service import ProjectService
+        project, other, job = self.seed_exportable_native(); self.start()
+        status, created = self.request('POST', '/api/projects/'+project+'/tasks/'+job+'/bundle', '{}')
+        self.assertEqual(status, 201, created)
+        bundle_id, version_id = created['bundle']['id'], created['bundle']['version_id']
+        route = self.receipt_route(project, bundle_id, version_id)
+
+        status, receipt = self.request(path=route)
+        self.assertEqual(status, 200, receipt)
+        self.assertEqual(receipt, created['bundle']['receipt'])
+        self.assertEqual(receipt['schemaVersion'], 'design-lab/delivery-receipt/v2')
+        self.assertEqual(receipt['job_id'], job)
+        # No host opens a delivered artifact in this product, so a real delivery is
+        # PARTIAL by construction; a route that reported PASS would be the lie.
+        self.assertEqual(receipt['axes'], {'delivery': 'PARTIAL'})
+        self.assertEqual([entry['deliverable_id'] for entry in receipt['deliverables']],
+                         ['native.psd', 'preview.png'])
+        for entry in receipt['deliverables']:
+            self.assertIsNone(entry['host_readback'])
+            self.assertIsNone(entry['readback_matches_artifact'])
+        # A receipt describes bytes; it is not a directory listing. No key of the
+        # document or of a deliverable carries a path, and the project root does not
+        # appear anywhere in the payload.
+        self.assertNotIn('path', set(receipt))
+        for entry in receipt['deliverables']:
+            self.assertNotIn('path', set(entry))
+        self.assertNotIn(str(self.root), json.dumps(receipt))
+
+        # (a) a version with no receipt recorded: 404, and the code says WHICH 404.
+        missing = self.receipt_route(project, bundle_id, 'v-' + '0' * 32)
+        status, body = self.request(path=missing)
+        self.assertEqual(status, 404)
+        self.assertEqual(body['error'], 'DELIVERY_RECEIPT_NOT_FOUND')
+
+        # (b) the same route refusing to certify bytes: after the stored document is
+        # edited, the hash it carries no longer matches the body it derives from.
+        service = ProjectService(self.root)
+        database = service.paths.database_path(service.database)
+        with closing(sqlite3.connect(database)) as conn:
+            stored = conn.execute('SELECT receipt_json FROM delivery_receipt_v1 WHERE version_id=?',
+                                  (version_id,)).fetchone()[0]
+            tampered = json.loads(stored)
+            tampered['deliverables'][0]['byte_size'] += 1
+            conn.execute('UPDATE delivery_receipt_v1 SET receipt_json=? WHERE version_id=?',
+                         (json.dumps(tampered, sort_keys=True, ensure_ascii=False,
+                                     separators=(',', ':')), version_id))
+            conn.commit()
+        status, refused = self.request(path=route)
+        self.assertEqual(status, 409)
+        self.assertEqual(refused['error'], 'DELIVERY_RECEIPT_UNVERIFIED')
+        self.assertNotEqual(body['error'], refused['error'],
+                            '"no receipt was ever recorded" and "we refuse to certify these '
+                            'bytes" must stay two different answers')
+        # The refusal is about the document, not the request: the same read that now
+        # answers 409 is the read that answered 200 before the bytes moved.
+
+    def test_delivery_receipt_route_keeps_the_project_boundary_and_the_id_shape(self):
+        """Ownership first, then shape: nothing here narrows to a guessable id."""
+        project, other, job = self.seed_exportable_native(); self.start()
+        _, created = self.request('POST', '/api/projects/'+project+'/tasks/'+job+'/bundle', '{}')
+        bundle_id, version_id = created['bundle']['id'], created['bundle']['version_id']
+        route = self.receipt_route(project, bundle_id, version_id)
+        self.assertEqual(self.request(path=route)[0], 200)
+        # A foreign project holding the same ids reads nothing -- and it is refused with
+        # the receipt's own code, because the asset ledger, not the row's self-declared
+        # project_id, decides whose document this is.
+        status, body = self.request(path=self.receipt_route(other, bundle_id, version_id))
+        self.assertEqual(status, 404)
+        self.assertEqual(body['error'], 'DELIVERY_RECEIPT_NOT_FOUND')
+        # Unknown-but-well-shaped project: the project check, not the receipt check.
+        status, body = self.request(path=self.receipt_route('f' * 32, bundle_id, version_id))
+        self.assertEqual(status, 404)
+        self.assertEqual(body['error'], 'PROJECT_NOT_FOUND')
+        self.assertEqual(self.request(path=route, headers={'Authorization': ''})[0], 401)
+        # Malformed ids never reach NativeDelivery (the pattern is a fullmatch on the
+        # whole path, as narrow as the /content route beside it).
+        for shape in (route.replace(version_id, 'V-' + '0' * 32),
+                      route.replace(bundle_id, 'bundle-native-' + '0' * 63),
+                      route.replace('/receipt', ''), route + '/extra',
+                      route.replace(f'/bundles/{bundle_id}', f'/bundles/{bundle_id}/versions')):
+            self.assertEqual(self.request(path=shape)[0], 404, shape)
+
     def test_bundle_list_route_fails_closed_on_unknown_project_and_auth(self):
         project,other,job=self.seed_exportable_native();self.start()
         # Unknown-but-well-shaped project id: the query class fails closed with the
