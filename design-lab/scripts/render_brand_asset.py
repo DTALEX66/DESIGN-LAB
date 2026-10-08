@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+# SPDX-License-Identifier: MIT
 """Extract the DESIGN-LAB brand mark from the owner's black-and-white artwork and
 inline it into the served stylesheet as a data URI.
 
