@@ -21,6 +21,30 @@ bundle，绑定 exact SHA 与产物哈希；不含宿主渲染，不含人工 Ju
 
 复现前先绑 PATH：`D:\All projects\OS External Configuration\10-toolchains\scoop\apps\nodejs-lts\24.18.0`。
 
+### 0.1 一次性 harness 安装（命令，本机两处陷阱都要绕）
+
+```bash
+# 依赖装在仓内被忽略的目录里，插件缓存一律不动
+npm install --no-audit --no-fund \
+  --cache "D:/All projects/DESIGN-LAB/.project-local/runs/npm-cache" \
+  --registry=https://registry.npmjs.org \
+  --prefix "D:/All projects/DESIGN-LAB/.project-local/runs/node-libs" \
+  fast-glob@3.3.3 yaml@2.9.1 @axe-core/playwright@4.13.0 @playwright/test@1.63.0
+
+# 浏览器：必须用「运行期真正解析到的」那份 playwright-core 的 CLI，
+# 顶层被提升成 1.64.0 的那一份要的是 build 1248，装上照样启动失败
+PLAYWRIGHT_BROWSERS_PATH="D:\All projects\DESIGN-LAB\.project-local\runs\pw-browsers" \
+  node ".project-local/runs/node-libs/node_modules/playwright/node_modules/playwright-core/cli.js" \
+  install chromium-headless-shell
+```
+
+两条不是可选项而是本机事实：`C:\Users\ALEX\scoop` 是指向
+`D:\All projects\OS configuration\toolchains\scoop` 的 junction，目标已不存在，
+所以 npm 默认缓存目录 `mkdir` 报 `ENOTDIR`（`--cache` 必须显式给可写处）；
+`ms-playwright` 系统缓存里只有 1208/1228，没有 1.63.0 要的 **1243**，
+所以 build 由本仓自己下到 `.project-local/runs/pw-browsers`（114.6 MiB），
+而不是拿别的 Chromium 顶替 —— 顶替就等于把"用 X 引擎测出的结论"写成"用 Y 引擎测出的"。
+
 ## 1. 先把 runner 跑起来：两个自证型缺陷
 
 runner 之前"跑不起来"的原因不是网络，也不是缺工具，而是本仓自己写的两件东西：

@@ -215,10 +215,10 @@ def main() -> int:
             return blocked(f"missing resolve hook: {NODE_LIBS / part}")
     if not (NODE_LIBS / "node_modules" / "yaml").is_dir():
         return blocked(
-            f"missing dependency harness: {NODE_LIBS / 'node_modules'} -- install with "
-            "npm install --cache <a writable cache> --prefix "
-            f"{NODE_LIBS.as_posix()} fast-glob yaml @axe-core/playwright "
-            "@playwright/test@1.63.0")
+            f"missing dependency harness: {NODE_LIBS / 'node_modules'} needs fast-glob, "
+            "yaml, @axe-core/playwright and @playwright/test@1.63.0 -- the one-time setup "
+            "command, including the cache-root workaround this machine requires, is "
+            "recorded in docs/audits/DESIGNLAB-EXTERNAL-DESIGN-REVIEW-2026-10-09.md")
 
     declared = config_value(r'^\s*baseUrl:\s*"?https?://127\.0\.0\.1:(\d+)"?')
     if not declared:
