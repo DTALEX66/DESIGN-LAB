@@ -18,6 +18,7 @@ enforcedBy:
   - design-lab/tests/test_interop_dtcg.py
   - design-lab/tests/test_workbench_css_single_definition.py
   - design-lab/tests/test_design_debt_baseline.py
+  - design-lab/tests/test_ui_layering.py
   - design-lab/tests/e2e/audit_workbench_contrast.mjs
   - design-lab/tests/e2e/audit_workbench_ui.mjs
   - design-lab/tests/e2e/audit_workbench_overflow.mjs
@@ -63,7 +64,12 @@ measuredDebtAtCommit: 700ee3fb
 - 断点：`≤840px` 侧栏转 off-canvas 抽屉（`#navToggle` + `inert`）；`≤760px` 旧版页头导航转底部横滚。
 - **高度也是断点**：侧栏导航 11 项需 587px，窗口高度 ≤720 时列表溢出，此时必须出现
   `.nav.has-scroll-more` 的粘性 cue，滚到底自动消失。`overflow:auto` 不算可供性。
-- 层级：`z-index` 目前 12 处且无层级表 → 新增层层必须先进表再使用。
+- 层级：12 处 `z-index` 已全部落成层级表 `design-lab/config/ui-layering.json`（11 层，值与
+  选择器由 `design-lab/scripts/verify_ui_layering.py` 从 `style.css` 量得，界面源里不得再出现
+  裸数字；表里少一句说明、多一行没用的层、选择的规则变了都对不上号）。**实测遗留**：
+  `--layer-flow-figure(0)` 与 `--layer-flow-node(2)` 所在的 `.flow-svg`/`.node` 在 12 条路由
+  × 1440/820/390 三档视口的真实 DOM 里从未出现 —— 疑似死样式，待 owner 裁决后删或接回；
+  `.sidebar` 的 88 只在 ≤840px 生效（实测 820/390 为 88，1440 为 `auto`，那里它是 sticky 列）。
 
 ## 3. 红线（违反即 blocker，不是建议）
 

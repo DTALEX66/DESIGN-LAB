@@ -34,6 +34,20 @@
   --motion-slow:280ms;
   --motion-emphasis:420ms;
 
+  /* 层级（此前 12 处字面 z-index、无表）：值逐条从本文件量得，登记在
+     design-lab/config/ui-layering.json；新增层层必须先进那张表再用。 */
+  --layer-canvas-grid:-3;
+  --layer-canvas-ambient:-2;
+  --layer-flow-figure:0;
+  --layer-flow-node:2;
+  --layer-topbar:50;
+  --layer-nav-rail:60;
+  --layer-drawer:88;
+  --layer-scrim:90;
+  --layer-palette:95;
+  --layer-toast:110;
+  --layer-skip-link:200;
+
   /* ---------------------------------------------------------------------
      以下四族此前**完全缺失**（W01 实测：space 0/8、font 0/6、bp 0/3、
      density 0/3、radius.xl 0/1）。现按 DESIGN-LAB 专属原稿补齐为**变量**。
@@ -299,7 +313,7 @@ body > footer{
 /* UI convergence slice 2: AppShell navigation (B07 12-route IA, B04 tokens).
    Purely additive — no existing selector above is altered. */
 .app-nav{
-  position:fixed;inset:0 auto 0 0;width:168px;z-index:60;
+  position:fixed;inset:0 auto 0 0;width:168px;z-index:var(--layer-nav-rail);
   background:var(--surface);border-right:1px solid var(--line);
   display:flex;flex-direction:column;gap:8px;overflow-y:auto;
   padding:20px 14px;
@@ -328,7 +342,7 @@ body > footer{
    z-index:20 route panel, while the body-level topbar was display:none'd).
    Gutter below is for the LEGACY page only (`body > ...`): without .dl-shell
    (the E2E / unmounted default path) the layout stays the original centered flow. */
-.dl-shell > header{position:relative;z-index:50;max-width:none;padding:30px 24px 30px 192px}
+.dl-shell > header{position:relative;z-index:var(--layer-topbar);max-width:none;padding:30px 24px 30px 192px}
 .dl-shell > main{max-width:1240px;margin:28px 24px 28px 192px;padding:0}
 .dl-shell > footer{max-width:none;margin:30px 24px 30px 192px;padding:0}
 @media(max-width:760px){
@@ -513,7 +527,7 @@ html,body{margin:0}
   inset:auto;
   border-radius:999px;
   filter:blur(80px);
-  z-index:-2;
+  z-index:var(--layer-canvas-ambient);
   opacity:.45;
   animation:floatGlow 12s ease-in-out infinite;
 }
@@ -532,7 +546,7 @@ html,body{margin:0}
   animation-delay:-7s;
 }
 .grid-bg{
-  position:absolute;inset:0;z-index:-3;opacity:.22;
+  position:absolute;inset:0;z-index:var(--layer-canvas-grid);opacity:.22;
   background-image:
     linear-gradient(var(--grid) 1px, transparent 1px),
     linear-gradient(90deg,var(--grid) 1px, transparent 1px);
@@ -883,7 +897,7 @@ html,body{margin:0}
   overflow:hidden;
 }
 .flow-svg{
-  position:absolute;inset:0;pointer-events:none;z-index:0;
+  position:absolute;inset:0;pointer-events:none;z-index:var(--layer-flow-figure);
 }
 .flow-svg path{
   stroke:color-mix(in srgb,var(--primary) 62%, white 3%);
@@ -893,7 +907,7 @@ html,body{margin:0}
   filter:drop-shadow(0 0 10px color-mix(in srgb,var(--primary) 40%, transparent));
 }
 .node{
-  position:absolute;z-index:2;
+  position:absolute;z-index:var(--layer-flow-node);
   min-width:150px;max-width:190px;
   padding:14px 16px;border-radius:16px;
   background:
@@ -909,7 +923,7 @@ html,body{margin:0}
 .node .meta{color:var(--muted);font-size:12px;margin-top:5px}
 .overlay{
   position:fixed;inset:0;background:rgba(0,0,0,.55);backdrop-filter:blur(6px);
-  display:none;align-items:center;justify-content:center;padding:20px;z-index:90;
+  display:none;align-items:center;justify-content:center;padding:20px;z-index:var(--layer-scrim);
 }
 .overlay.open{display:flex}
 .modal{
@@ -927,7 +941,7 @@ html,body{margin:0}
   background:linear-gradient(180deg,color-mix(in srgb,var(--surface) 90%, white 1%),color-mix(in srgb,var(--surface) 98%, black 1%));
   border-left:1px solid color-mix(in srgb,var(--primary) 28%, white 4%);
   box-shadow:-18px 0 50px rgba(0,0,0,.25);
-  z-index:88;
+  z-index:var(--layer-drawer);
   padding:24px;
   /* Off-canvas alone is NOT hidden: every control inside a closed drawer stayed
      Tab-reachable and exposed to assistive tech as a phantom dialog. The
@@ -948,7 +962,7 @@ html,body{margin:0}
   background:linear-gradient(180deg,color-mix(in srgb,var(--surface) 90%, white 1%),color-mix(in srgb,var(--surface) 98%, black 1%));
   border:1px solid color-mix(in srgb,var(--primary) 34%, white 4%);
   box-shadow:var(--shadow);
-  display:none;z-index:95;
+  display:none;z-index:var(--layer-palette);
 }
 .palette.open{display:block}
 .palette input{
@@ -970,7 +984,7 @@ html,body{margin:0}
   background:color-mix(in srgb,var(--surface2) 74%, transparent)
 }
 .toast{
-  position:fixed;right:18px;bottom:18px;z-index:110;
+  position:fixed;right:18px;bottom:18px;z-index:var(--layer-toast);
   min-width:220px;max-width:420px;
   padding:13px 15px;border-radius:16px;
   border:1px solid color-mix(in srgb,var(--primary) 34%, white 4%);
@@ -1103,7 +1117,7 @@ html,body{margin:0}
      `.drawer`, and only translate/opacity animate so it stays composited. */
   .sidebar{
     position:fixed;top:0;left:0;height:100vh;min-height:0;
-    width:min(78vw,300px);z-index:88;overflow-y:auto;
+    width:min(78vw,300px);z-index:var(--layer-drawer);overflow-y:auto;
     transform:translateX(-100%);transition:transform .18s ease;
     box-shadow:18px 0 50px rgba(0,0,0,.25)
   }
@@ -1344,7 +1358,7 @@ html,body{margin:0}
 
 /* WCAG 2.4.1 bypass blocks. The 11-item sidebar repeats on all 12 routes. */
 .skip-link{
-  position:absolute;left:-9999px;top:0;z-index:200;
+  position:absolute;left:-9999px;top:0;z-index:var(--layer-skip-link);
   padding:10px 16px;border-radius:var(--radius-md);
   background:var(--accent-hover);color:#fff;font-weight:700;
 }

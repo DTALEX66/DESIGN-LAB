@@ -111,6 +111,11 @@ SCRIPTS = [
     # document, exactly one dispatch entry equal to the index's currentIntegrated, and
     # fails when this registry contradicts the index instead of letting two truths drift.
     "verify_task_document_states.py",
+    # DESIGN.md §2 says a new stacking layer has to be registered before it is used. Until
+    # this verifier existed nothing checked it, so the rule was a sentence and any bare
+    # `z-index` could ship. Values and selectors are derived from style.css, which makes the
+    # table and the stylesheet one fact instead of two.
+    "verify_ui_layering.py",
     "verify_dtcg_tokens.py",
     "verify_extraction_chain.py",
     "verify_federation_e2e.py",

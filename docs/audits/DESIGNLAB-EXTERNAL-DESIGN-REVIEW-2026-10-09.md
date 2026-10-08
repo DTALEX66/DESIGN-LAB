@@ -335,3 +335,41 @@ unparsable=0 controlMisses=0`，`CT_MARGIN tightest=4.11 need=3`。
 伪元素仍不在模型内 —— 这条限制写在代码注释里，不留成口头保证。
 CI 侧看守加了两条断言（`test_workbench_contrast_gate.py`）：`controlMisses==0`、
 `unparsable==0`；本地实测该模块 `Ran 2 tests … OK`（57.6s）。
+
+## 10. 层级表补上了（DESIGN.md §2 记的那条缺口）
+
+§2 原文："z-index 目前 12 处且无层级表 → 新增层层必须先进表再使用"。这句话此前没有任何东西检查。
+本轮实测：`style.css` 里 **12 处声明、11 个不同值**（注释里提到的 `z-index:65`/`z-index:20` 是历史叙述，
+不计入 —— 计数前先把注释抹平，这条也写成了测试），全部换成命名令牌：
+
+| 令牌 | 值 | 承载规则（实测） |
+|---|---|---|
+| `--layer-canvas-grid` | -3 | `.grid-bg` |
+| `--layer-canvas-ambient` | -2 | `.ambient`(+伪元素) |
+| `--layer-flow-figure` / `--layer-flow-node` | 0 / 2 | `.flow-svg` / `.node` |
+| `--layer-topbar` | 50 | `.dl-shell > header` |
+| `--layer-nav-rail` | 60 | `.app-nav` |
+| `--layer-drawer` | 88 | `.drawer`、`.sidebar` |
+| `--layer-scrim` / `--layer-palette` / `--layer-toast` | 90 / 95 / 110 | `.overlay` / `.palette` / `.toast` |
+| `--layer-skip-link` | 200 | `.skip-link` |
+
+真页面回读（`layer_resolve.mjs`、三档视口）：除 `.sidebar` 外全部按表解析；
+`.sidebar` 的 88 只在 ≤840px 生效（实测 820→88、390→88、1440→`auto`，那里它是 sticky 列，
+本来就不需要层级）。**没改任何数值**，所以层序与渲染不变。
+
+两条真实收获，都不是"表建好了"本身：
+
+1. **验自己的解析器被测试当场抓住两次**。第一版 `TOKEN_DECL` 以行首锚定，紧凑写法
+   `:root{--a:1;--b:2}` 下第二个令牌读不到，于是凭空报 `UNDECLARED-TOKEN` + `TABLE-STALE-LAYER`；
+   改成"分隔符锚定"后又踩到正则匹配不重叠的坑（吃掉前一个 `;` 就看不见下一个声明）。
+   现解法是先取 `:root{…}` 块再在块内配对，测试同时钉住两种写法。
+2. **两处疑似死样式**：`.flow-svg`/`.node` 在 12 条路由 × 1440/820/390 的真实 DOM 里从未出现。
+   本轮不删（删除要判断，且这两层所属组件可能是待接回的功能），但把它们钉在表的 `note` 字段里，
+   `--write` 重新生成时保留人工/实测字段，只重算值与选择器。
+
+门与看守：`design-lab/scripts/verify_ui_layering.py`（已进聚合，`total=69 → 70`），
+拒绝裸数字、未声明令牌、表值漂移、失效行、选择器归属漂移、没人解释的层；
+`design-lab/tests/test_ui_layering.py` 11 项里 7 项是**种出来的故障**（每条分支各一种），
+另有空集正控制，防止"分支从未走到"。实测：`UI_LAYERING=PASS declarations=12 layers=11
+values=[-3,-2,0,2,50,60,88,90,95,110,200]`，`Ran 11 tests … OK`，
+`DESIGN_DEBT_BASELINE=PASS`（债存量未受影响：26 / 516 / 24），`test_gate_reachability OK`。
