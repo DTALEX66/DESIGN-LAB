@@ -24,12 +24,20 @@ Usage:
     python scripts/deepseek_hermes_migration.py --apply
     python scripts/deepseek_hermes_migration.py --verify
     python scripts/deepseek_hermes_migration.py --restore
+
+`--verify` is the read-only form and it is split (2026-10-09): the manifest it audits is the
+versioned copy under ``reports/history/destructive-receipts-2026-09-13``, and an archived object
+that is gone must be named by the versioned prune record, so a deletion without a tracked reason
+still fails. Whether this machine still holds the archive is reported as
+``archive=MEASURED_ON_THIS_MACHINE`` or ``ABSENT_ON_THIS_MACHINE``; a clean checkout is not a
+deletion, and that is what previously made this form fail forever while nothing invoked it.
 """
 from __future__ import annotations
 
 import argparse
 import hashlib
 import json
+import re
 import shutil
 from datetime import datetime, timezone
 from pathlib import Path
@@ -38,10 +46,83 @@ REPO = Path(__file__).resolve().parents[1]
 CENSUS = REPO / "reports/current/SPILL-CENSUS.json"
 ARCHIVE = REPO / ".project-local/archive/hermes-legacy"
 MANIFEST = ARCHIVE / "MIGRATION-MANIFEST.json"
+# Versioned copies of the two records the verdict needs. The manifest was archived byte-for-byte
+# on 2026-10-09 (sha256 prefix 5088e4766929b68f, equal to the live copy at copy time), and the
+# prune manifest has been tracked since 2026-09-26.
+TRACKED_MANIFEST = REPO / "reports/history/destructive-receipts-2026-09-13/MIGRATION-MANIFEST.json"
+PRUNE_RECORD = REPO / ("docs/audits/DESIGN-LAB-UIKIT-CONFORMANCE-2026-09-28/evidence/"
+                       "governance-state/prune-manifest-2026-09-26.json")
+ARCHIVE_PREFIX = "archive/hermes-legacy/"
+DIGEST_FORM = re.compile(r"^(sha256:)?[0-9a-f]{64}$")
 TASK_KEYS = ["DL-TP-20260914-DEEPSEEK-AUTHORITY-R1::DLDS-E020",
              "DL-TP-20260914-DEEPSEEK-AUTHORITY-R1::DLDS-E030",
              "DL-TP-20260914-DEEPSEEK-AUTHORITY-R1::DLDS-E040"]
 LOOSE_SOURCES = (".hermes/task-runtime",)
+
+
+def recorded_removals() -> dict:
+    """Archive-relative targets whose deletion a tracked record already states.
+
+    The prune manifest writes each entry as `<path> (<size>, <reason>)`; the path is everything
+    before the first space, and the parenthetical is the reason, which must be there -- a removal
+    without a stated reason is not a record, it is a disappearance.
+    """
+    if not PRUNE_RECORD.is_file():
+        return {}
+    document = json.loads(PRUNE_RECORD.read_text(encoding="utf-8"))
+    removals = {}
+    for entry in (document.get("phase2") or {}).get("removed") or []:
+        path = str(entry).split(" ")[0].replace("\\", "/")
+        reason = str(entry)[len(path):].strip()
+        if not path.startswith(ARCHIVE_PREFIX):
+            continue
+        target = ".project-local/" + path
+        removals[target] = {"reason": reason, "pruned_at": (document.get("phase2") or {}).get("at")
+                            or document.get("pruned_at"), "entry": str(entry)}
+    return removals
+
+
+def manifest_findings(manifest: dict, records: list, removals: dict) -> list:
+    """The tracked half: the two versioned records must describe the same set of objects."""
+    findings = []
+    if not str(manifest.get("schemaVersion") or "").startswith("design-lab/hermes-migration-manifest"):
+        findings.append(f"schemaVersion={manifest.get('schemaVersion')!r} is not the migration "
+                        "manifest contract")
+    declared = set(manifest.get("task_keys") or [])
+    if not declared <= set(TASK_KEYS):
+        findings.append(f"task_keys={sorted(declared)} name operations outside "
+                        f"{sorted(TASK_KEYS)}")
+    if manifest.get("restore_command") != "python scripts/deepseek_hermes_migration.py --restore":
+        findings.append("restore_command is not this tool's documented --restore form")
+    seen = set()
+    for record in records:
+        source = str(record.get("source") or "")
+        target = str(record.get("target") or "")
+        label = target or source or "<unnamed record>"
+        if not source.startswith(".hermes/"):
+            findings.append(f"record {label} has a source outside the legacy roots: {source!r}")
+        if not target.startswith(".project-local/archive/hermes-legacy/"):
+            findings.append(f"record {label} archives outside the hermes-legacy root: {target!r}")
+        if target in seen:
+            findings.append(f"record {label} appears twice; one target cannot hold two datasets")
+        seen.add(target)
+        if not DIGEST_FORM.match(str(record.get("verified_digest") or "")):
+            findings.append(f"record {label} has no digest a restore could be verified against: "
+                            f"{record.get('verified_digest')!r}")
+        restore = str(record.get("restore") or "")
+        if not (restore.startswith("copy ") and "back to" in restore
+                and Path(target).name in restore):
+            findings.append(f"record {label} has a restore note that does not say where the "
+                            f"bytes go back: {restore!r}")
+        if int(record.get("files") or 0) <= 0 and int(record.get("bytes") or 0) <= 0 \
+                and not record.get("empty"):
+            findings.append(f"record {label} claims an archived object with neither files nor bytes")
+    for target in removals:
+        if target not in seen:
+            findings.append(f"the prune record names {target} as an archived object it removed, "
+                            "but no migration record describes that object")
+    return findings
+
 
 
 def digest_tree(path: Path) -> tuple:
@@ -218,34 +299,62 @@ def reconcile() -> int:
 
 
 def verify() -> int:
-    if not MANIFEST.is_file():
-        print("MIGRATION_VERIFY=FAIL no manifest")
+    """Two halves: what the tracked records say, and what this machine still holds.
+
+    Measured 2026-10-09: this form had been FAIL for weeks with nobody watching, because it is
+    invoked by no CI table, no aggregate entry and no test. Its complaint was real but stale --
+    108 of 109 archived objects are present with unchanged digests, no source was left behind, and
+    the single absent one (`.project-local/archive/hermes-legacy/runtime/dl-ad-pkg-ci`, 253.3 MB /
+    5559 files) is removed in a tracked record: `prune-manifest-2026-09-26.json` `phase2.removed[0]`
+    and the closeout ledger §C, both dated 2026-09-26, both stating it was CI-reproducible. So the
+    assertion "an archived object must still be here" was never updated for a recorded, reasoned
+    deletion, and the honest repair is to require the deletion to be *named* rather to pretend the
+    archive is intact.
+
+    The manifest is read from its archived copy under `reports/history/`, which is versioned; the
+    live copy under the gitignored archive root is what makes the survival question machine-bound,
+    so absence of that root is reported as `archive=ABSENT_ON_THIS_MACHINE` and never fails. An
+    archived object that is missing WITHOUT a tracked removal record still fails.
+    """
+    if not TRACKED_MANIFEST.is_file():
+        print("MIGRATION_VERIFY=FAIL no tracked manifest")
         return 1
-    manifest = json.loads(MANIFEST.read_text(encoding="utf-8"))
-    failures = []
-    for record in manifest["records"]:
-        source_exists = (REPO / record["source"]).exists()
-        if record.get("empty"):
-            if source_exists:
-                failures.append(f"empty legacy directory still present {record['source']}")
-            continue
-        target = REPO / record["target"]
-        if not target.exists():
-            failures.append(f"missing target {record['target']}")
-            continue
-        if target.is_dir():
-            _, _, digest = digest_tree(target)
-        else:
-            _, _ = 1, target.stat().st_size
-            digest = hashlib.sha256(target.read_bytes()).hexdigest()
-        if digest != record["verified_digest"]:
-            failures.append(f"digest changed {record['target']}")
-        if source_exists:
-            failures.append(f"source still present {record['source']}")
-    for failure in failures:
-        print("FAIL", failure)
-    print(f"MIGRATION_VERIFY={'PASS' if not failures else 'FAIL'} objects={len(manifest['records'])}")
-    return 0 if not failures else 1
+    manifest = json.loads(TRACKED_MANIFEST.read_text(encoding="utf-8"))
+    records = manifest["records"]
+    removals = recorded_removals()
+    findings = manifest_findings(manifest, records, removals)
+
+    archive_present = ARCHIVE.is_dir()
+    if archive_present:
+        for record in records:
+            target = REPO / record["target"]
+            if record.get("empty"):
+                if (REPO / record["source"]).exists():
+                    findings.append(f"empty legacy directory still present {record['source']}")
+                continue
+            if not target.exists():
+                if record["target"] in removals:
+                    continue
+                findings.append(f"missing target {record['target']} is not named by a tracked "
+                                "removal record")
+                continue
+            if (REPO / record["source"]).exists():
+                findings.append(f"source still present {record['source']}")
+            if target.is_dir():
+                _, _, digest = digest_tree(target)
+            else:
+                digest = hashlib.sha256(target.read_bytes()).hexdigest()
+            if digest != record["verified_digest"]:
+                findings.append(f"digest changed {record['target']}")
+
+    for finding in findings:
+        print("FAIL", finding)
+    survival = ("ABSENT_ON_THIS_MACHINE" if not archive_present
+                else "MEASURED_ON_THIS_MACHINE")
+    print(f"MIGRATION_VERIFY={'PASS' if not findings else 'FAIL'} objects={len(records)} "
+          f"recorded_removals={len(removals)} archive={survival}")
+    return 0 if not findings else 1
+
 
 
 def restore() -> int:

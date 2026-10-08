@@ -16,6 +16,7 @@ bug this gate exists to catch, so a test plants exactly that and requires the ga
 from __future__ import annotations
 
 import json
+import re
 import subprocess
 import sys
 import unittest
@@ -35,6 +36,19 @@ class EntryTableTests(unittest.TestCase):
             self.assertTrue(argv, f"{generator} would be invoked bare, which is its writer form")
             self.assertIn(argv[0], v.READ_ONLY_FLAGS,
                           f"{generator} {argv} is not a read-only form")
+
+    def test_every_receipt_check_is_read_only_and_actually_declared(self) -> None:
+        for generator, argv in v.RECEIPT_CHECKS:
+            self.assertTrue(argv, f"{generator} would be invoked bare, which is its writer form")
+            self.assertIn(argv[0], v.READ_ONLY_FLAGS, f"{generator} {argv} is not a read-only form")
+            self.assertTrue((ROOT / generator).is_file(), generator)
+            # Quote-agnostic: the flags are declared with single quotes in some scripts and double
+            # in others, and a quote-style assumption here would convict a working entry.
+            self.assertIsNotNone(
+                re.search(r"[\"']" + re.escape(argv[0]) + r"[\"']",
+                          (ROOT / generator).read_text(encoding="utf-8")),
+                f"{generator} does not declare {argv[0]}, so the entry names a mode that does "
+                "not exist")
 
     def test_every_entry_record_and_generator_exist(self) -> None:
         for record, generator, _argv in v.ENTRIES:
@@ -90,7 +104,8 @@ class FindingTests(unittest.TestCase):
         failures, exclusions, checked, missing = v.check()
         self.assertEqual(failures, [], "a tracked projection disagrees with its own record")
         self.assertEqual(missing, [])
-        self.assertEqual((len(checked), len(exclusions)), (len(v.ENTRIES), len(v.EXCLUDED)))
+        self.assertEqual((len(checked), len(exclusions)),
+                         (len(v.ENTRIES) + len(v.RECEIPT_CHECKS), len(v.EXCLUDED)))
 
     def test_the_gate_still_reports_an_exclusion_it_is_given(self) -> None:
         """The register is empty, which must not be allowed to make its reporting untested.
@@ -107,7 +122,9 @@ class FindingTests(unittest.TestCase):
             failures, exclusions, checked, missing = v.check()
             self.assertEqual(exclusions, ["reports/current/SPILL-CENSUS.json: planted: "
                                           "not re-checkable on a clone"])
-            self.assertEqual(checked, [kept[0]])
+            self.assertEqual(checked, [kept[0]] + [script for script, _argv in v.RECEIPT_CHECKS],
+                             "the receipts table ran outside the declared order, so its results "
+                             "cannot be attributed")
             self.assertEqual(failures, [], "a declared exclusion was counted as a defect")
             self.assertEqual(missing, [])
         finally:
@@ -119,6 +136,31 @@ class FindingTests(unittest.TestCase):
         v.ENTRIES[0] = (v.ENTRIES[0][0], v.ENTRIES[0][1], [])
         failures = v.check()[0]
         self.assertTrue(any("FRESHNESS-WRITER-INVOKED" in f for f in failures), failures)
+
+    def test_a_writer_receipt_is_refused_by_the_same_rule(self) -> None:
+        """The receipt table is a second loop over the same guard, so it needs its own plant."""
+        original = list(v.RECEIPT_CHECKS)
+        try:
+            v.RECEIPT_CHECKS[:] = [(original[0][0], [])]
+            failures = v.check()[0]
+            self.assertTrue(any("FRESHNESS-WRITER-INVOKED" in f for f in failures), failures)
+        finally:
+            v.RECEIPT_CHECKS[:] = original
+
+    def test_a_failing_receipt_is_named_with_its_own_code(self) -> None:
+        """A read-only form that exits non-zero must surface as FRESHNESS-RECEIPT-DRIFT.
+
+        The plant is a declared-looking flag the tool does not implement (--self-test on the
+        migration tool), so argparse exits 2. An argv that is not a read-only flag at all is
+        refused earlier, by test_a_writer_receipt_is_refused_by_the_same_rule.
+        """
+        original = list(v.RECEIPT_CHECKS)
+        try:
+            v.RECEIPT_CHECKS[:] = [("scripts/deepseek_hermes_migration.py", ["--self-test"])]
+            failures = v.check()[0]
+            self.assertTrue(any("FRESHNESS-RECEIPT-DRIFT" in f for f in failures), failures)
+        finally:
+            v.RECEIPT_CHECKS[:] = original
 
     def test_a_missing_record_is_convicted(self) -> None:
         v.ENTRIES[0] = ("reports/current/not-a-real-projection.json", v.ENTRIES[0][1], ["--check"])
@@ -190,6 +232,9 @@ class RuntimeTests(unittest.TestCase):
         # Derived from the gate's own tables rather than a literal: a pinned number here went
         # stale the moment an exclusion was fixed, which is the opposite of what it should catch.
         self.assertIn(f"records={len(v.ENTRIES)}", lines[-1])
+        self.assertIn(f"receipts={len(v.RECEIPT_CHECKS)}", lines[-1])
+        self.assertIn(f"verified={len(v.ENTRIES) + len(v.RECEIPT_CHECKS)}", lines[-1],
+                      "a declared read-only form did not actually run")
         self.assertIn(f"excluded={len(v.EXCLUDED)}", lines[-1])
         self.assertLess(len(v.EXCLUDED), len(v.ENTRIES),
                         "the gate excludes as many records as it holds, so it verifies nothing")

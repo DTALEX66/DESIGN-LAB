@@ -78,7 +78,24 @@ ENTRIES = [
 # exclusion may only come back by naming its measured cause here and in that test.
 EXCLUDED: dict = {}
 
-READ_ONLY_FLAGS = ("--check", "--self-test")
+READ_ONLY_FLAGS = ("--check", "--self-test", "--verify")
+
+# Read-only forms that audit versioned records rather than re-deriving a projection: the same
+# discipline, a different subject. `deepseek_hermes_migration.py --verify` is here because it had
+# been FAILING for weeks in both trees and nothing invoked it -- its complaint was half real (the
+# archive is intact) and half stale (one archived object is deleted in a tracked prune record).
+# Wiring it here means a regression in either record is seen instead of accumulated.
+RECEIPT_CHECKS = [
+    ("scripts/deepseek_hermes_migration.py", ["--verify"]),
+    # Reached today only as a bare name in the aggregate's SCRIPTS, i.e. whatever its default mode
+    # happens to be. Naming --check here gives it the same per-child write guard as every other
+    # read-only form, instead of trusting that the default is still the checker.
+    ("design-lab/scripts/verify_vendor_manifests.py", ["--check"]),
+    # Measured 2026-10-09 in a clean tree: 0-1s, PASS, reads tracked text only.
+    ("scripts/design_debt_baseline.py", ["--check"]),
+    ("design-lab/scripts/inert_contract_survey.py", ["--check"]),
+]
+
 
 
 def porcelain() -> str:
@@ -141,6 +158,19 @@ def check() -> tuple[list[str], list[str], list[str], int]:
             failures.append(f"FRESHNESS-DRIFT {record} -- {generator} {' '.join(argv)} exited "
                             f"{code}: {tail}")
         checked.append(record)
+    for generator, argv in RECEIPT_CHECKS:
+        if not argv or argv[0] not in READ_ONLY_FLAGS:
+            failures.append(f"FRESHNESS-WRITER-INVOKED {generator} would be run with {argv}, "
+                            "which is not a read-only form")
+            continue
+        code, tail, dirty = run_entry_read_only(generator, argv)
+        for path in dirty:
+            failures.append(f"FRESHNESS-CHECK-WROTE {generator} {' '.join(argv)} modified "
+                            f"{path}, so its verdict describes bytes it just rewrote")
+        if code != 0:
+            failures.append(f"FRESHNESS-RECEIPT-DRIFT {generator} {' '.join(argv)} exited "
+                            f"{code}: {tail}")
+        checked.append(generator)
     return failures, [f"{key}: {value}" for key, value in sorted(EXCLUDED.items())], checked, missing
 
 
@@ -156,9 +186,11 @@ def main(argv: list[str] | None = None) -> int:
     if args.list:
         for record, generator, gate_args in ENTRIES:
             print(f"  ENTRY {record} <- {generator} {' '.join(gate_args)}")
+        for generator, gate_args in RECEIPT_CHECKS:
+            print(f"  RECEIPT {generator} {' '.join(gate_args)}")
     print(f"VERIFY_PROJECTION_FRESHNESS={'OK' if not failures else 'FAIL'} "
-          f"records={len(ENTRIES)} verified={len(checked)} excluded={len(EXCLUDED)} "
-          f"findings={len(failures)}")
+          f"records={len(ENTRIES)} verified={len(checked)} receipts={len(RECEIPT_CHECKS)} "
+          f"excluded={len(EXCLUDED)} findings={len(failures)}")
     return 1 if failures else 0
 
 
