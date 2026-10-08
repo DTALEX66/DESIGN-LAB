@@ -35,7 +35,7 @@ class EvidenceArtifactPresenceTests(unittest.TestCase):
                          'every tracked evidence artefact must still exist')
         # Known decay, asserted rather than hidden. Each entry is a record whose
         # artefact bytes legitimately moved after the observation, and the inventory is
-         # exact so the NEXT unannounced move still goes red. Five records on five
+        # exact so the NEXT unannounced move still goes red. Twenty-eight records on six
         # distinct artefacts -- and the numbers here are re-measured, not inherited: see
         # the correction below, because this count was wrong in this file for an hour.
         #   * build/main.js -- a 2026-09-27 record used a mutable build output as
@@ -52,8 +52,13 @@ class EvidenceArtifactPresenceTests(unittest.TestCase):
         # widened to 27 records across 5 artefacts, and the extra 23 were a measurement bug, not
         # decay. The gate hashed `Path.read_bytes()` and compared it to a record's blob hash, so on
         # this platform every CRLF working file drifted permanently -- `.gitattributes` says
-        # text=auto and the audit document, this test module and others are CRLF in the checkout and
-        # LF in the object store. `git hash-object <file>` equals the HEAD blob for all of them,
+        # text=auto and the audit document is CRLF in the checkout and LF in the object store. (One
+        # more correction, same day: this sentence also named "this test module" as CRLF, and
+        # counting the bytes says it is LF. The CRLF set among the artefacts these records name is
+        # the audit document, src/design_lab/native_delivery.py,
+        # design-lab/config/contract-bindings.json and the two rollback test modules; build/main.js,
+        # http_service.py, shell.ts and this file are LF.)
+        # `git hash-object <file>` equals the HEAD blob for all of them,
         # which is the proof that no content moved. The gate now hashes the committed form
         # (`git show HEAD:<path>`, index as fallback), and the count went back to the four this
         # assertion named before. Kept in Counter form with the total pinned because a count that
@@ -73,12 +78,27 @@ class EvidenceArtifactPresenceTests(unittest.TestCase):
             # the correcting row for the defect names the current bytes.
             ('design-lab/tests/test_evidence_artifact_presence.py',
              'HASH_MOVED_SINCE_OBSERVATION'): 1,
+            # 2026-10-08, the second time this exact number appeared in this file -- and the first
+            # time it is true. Twenty-three records name
+            # docs/audits/DESIGNLAB-LAUNCH-REVIEW-PREFLIGHT-2026-10-08.md as their artefact, and
+            # section 22 of that document is now committed, so HEAD's bytes for that path are no
+            # longer the bytes those records hashed. This is NOT the bug recorded below: that one
+            # was 23 drifts caused by hashing working bytes against a blob hash on a CRLF checkout,
+            # disproved by `git hash-object` equalling the HEAD blob. Here the committed blob
+            # itself moved, which is what a continuously written document does to every record that
+            # cites it. The practice this pays for is already in force: a new record binds the code
+            # it describes (see the r5-010 rollback row), so it drifts when that code moves and not
+            # when the prose is extended. The 23 ids are named by the gate's own output; none of
+            # them is rewritten -- each stays the observation it was, and the newest records carry
+            # the current binding.
+            ('docs/audits/DESIGNLAB-LAUNCH-REVIEW-PREFLIGHT-2026-10-08.md',
+             'HASH_MOVED_SINCE_OBSERVATION'): 23,
         })
         self.assertEqual(counts, expected,
                          'the drifted-artefact inventory is exact in both directions: a new '
                          'move, a new artefact name, or one more record on a known artefact '
                          'are all findings, and a drifted pair that quietly disappeared is too')
-        self.assertEqual(sum(counts.values()), 5,
+        self.assertEqual(sum(counts.values()), 28,
                          'the total drifted-record count is pinned, not derived')
 
     def test_missing_tracked_artefact_is_a_hard_break_not_a_warning(self):
