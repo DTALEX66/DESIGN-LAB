@@ -88,11 +88,11 @@
   },
   "fresh": false,
   "freshnessMeaning": "at generation only; check verifies bound-input integrity, not current Git or cloud state",
-  "generatedAt": "2026-10-08T04:45:13+00:00",
+  "generatedAt": "2026-10-08T04:48:52+00:00",
   "gitStateMeaning": "generation-time observation, not current HEAD",
   "schemaVersion": "design-lab/domain-readiness/v2",
   "subjectMeaning": "subjectType=WORKTREE means the tree was dirty at generation; worktreeDigest covers HEAD plus the non-generated changes",
-  "subjectSha": "7aae88ddb5c673ddf96cd34437579a03ed905c61",
+  "subjectSha": "59e07a783d56c125ea32b2b9db8df6ddcc97a500",
   "subjectType": "COMMIT",
   "taskpackHash": "31dde89eb4ede81fe88c0a5c5144adfb86af8db4c4d8c263bde2199180369b69",
   "taskpackId": "DL-TP-20260908-R5",
@@ -101,5 +101,5 @@
   "testRunMeaning": "bound run: python scripts/run_bound_test_suite.py --label r5-003-brief-readback-and-prose-classifier-with-node-20261008 --modules test_brief_readback_contract test_design_layer_http test_design_layer_revision test_route_payload_contracts test_contract_bindings test_object_model_backing_gate test_evidence_artifact_presence test_gate_reachability test_test_selfsufficiency_gate test_template_contracts_gate test_delivery_bom test_delivery_receipt_wiring test_rollback_state_classifier test_delivery_evidence_ui_contract test_workbench_native_ui",
   "testRunResult": "OK",
   "worktreeClean": true,
-  "worktreeDigest": "sha256:3e605ced21b6afd13250176230abbe87eb9b264d5b3bf5324532eebdbea0704d"
+  "worktreeDigest": "sha256:33c8a87b3ff93f8adfb3c5d2a4705fac6db2ba0d43ee885b1261a6b99f0e7e67"
 }
