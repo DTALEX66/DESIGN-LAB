@@ -73,6 +73,10 @@ measuredDebtAtCommit: 700ee3fb
 3. 读回不到就是读回不到：空态必须区分"没有数据"与"没读到"（`未读回` ≠ `0` ≠ `尚无`）。
 4. 不得为了视觉整齐把 `aria-hidden` 的装饰资产旁边再放一份同名文字。
 5. 未过 `verify_asset_governance.py` 的二进制不得进界面。
+6. landmark 元素（`aside`/`main`/`nav`/`section`/`form`）不得改挂 `role="dialog"`：
+   ARIA in HTML 不允许这一对，且非模态面板（无焦点约束、背后仍可用）本就不是 dialog。
+   去掉角色必须保留可访问名，否则该区域变成无名 landmark。由
+   `design-lab/tests/e2e/audit_workbench_ui.mjs` 的 `role-permittedness` 断言看守。
 
 ## 4. Do / Don't
 

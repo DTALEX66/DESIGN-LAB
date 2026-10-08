@@ -247,3 +247,36 @@ shadow_resets_skipped=2 chromatic=13 neutral_alpha=13`；`DESIGN_DEBT_BASELINE=P
 test_workbench_brand_asset test_design_debt_baseline test_workbench_packaging`，subject `8e63c6be`）。
 本轮**没有**重跑界面几何门，理由写明：改动被逐处证明为像素与布局中立（计算值相同），
 几何断言无变量可动。
+
+## 8. §3 新增加的一条：`#drawer` 的角色合法性（已修，逐处实测）
+
+原码 `apps/workbench/shell.ts:5138` 是 `aside.drawer#drawer role="dialog" aria-modal="false"`。
+两处自相矛盾：ARIA in HTML 不允许 `aside` 改挂 `dialog`；而这个面板不模态——没有焦点约束，
+背后页面照常可用。axe 因此在**每一屏**都把 `aria-allowed-role` 记成"未判定"而不是通过。
+本仓此前没有任何门问"这个角色这个标签合不合法"：已有的抽屉守卫测的是行为与几何
+（`aria-expanded` 起始 false、关闭态可达项数、`position:fixed`）。
+
+改法取"它本来就是补充性区域"：`<aside>` 保留隐式 `complementary`，删掉 `role`/`aria-modal`，
+`aria-label="工作区详情"` 原样留着（删角色不许顺手删掉名字，否则变成无名 landmark）。
+
+| 检查 | 改前 | 改后（同一探针、同一服务、committed bundle） |
+|---|---|---|
+| `aria-allowed-role` 未判定 | 每屏 1 处（`#drawer`），5/5 屏 | **0 处** |
+| axe passes（通过规则组数） | 40 / 35 / 37 / 35 / 32 | 40 / 35 / 37 / 35 / 32（未变） |
+| 判定的对比度节点 | 28 / 22 / 22 / 22 / 22 | 28 / 22 / 22 / 22 / 22（未变） |
+| `color-contrast` 未判定 | 71 / 55 / 35 / 36 / 9 | 71 / 55 / 35 / 36 / 9（**没被这次改动解决，仍是缺口**） |
+| bundle 里 `dialog` 字面量 | 2（drawer + 命令面板） | 1（只剩命令面板，`div[role=dialog]` 合法） |
+|  served bundle sha | `f5eff17a…` | `0c3f7dc7795094764612c6c5703d66d37f9de92cd55c6a3d804861b945b5ed64` |
+
+看守落进已接入 CI 的 `design-lab/tests/e2e/audit_workbench_ui.mjs`（新增 `role-permittedness`：
+landmark 挂 dialog 即红、`#drawer` 不在文档里即红——缺席不算通过、`#drawer` 丢名字即红）。
+断言被证伪过才有意义：`role_predicate_falsification.mjs` 在同一页面上先读 CLEAN
+（`matches=[]`、`drawerRole=null`、名字仍在），再把 `role="dialog"` 种回去，选择器读出
+`["aside#drawer[role=dialog]"]` → `ROLE_PREDICATE_FALSIFICATION=OK`。
+
+本轮判定：`AUDIT_SCOPES 39 violations=0 ok=True`（`scripts/audit_workbench_ui.py`，
+输出写到 `.project-local/.../workbench-ui-audit-rolegate.json`，不去改那份绑在 `05d6d761`
+的已提交报告）；workbench 三个 vm 契约套件 `unit/appshell/shape-notice-coverage` 全 0；
+`tsc --noEmit` 0；`vite build` 0（bundle 与源码同提交，否则 UI 门自己会拒绝测量）。
+重跑全套没有理由，因此没跑：改动面是一个属性删除 + 一条门内断言，CI 的 Python gate
+会在 exact SHA 上给全套结论。
