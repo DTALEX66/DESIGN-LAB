@@ -4944,7 +4944,7 @@ function mountB10Shell(routeView: HTMLElement, syncLegacyNavCue: () => void): B1
 
   const sidebar = el('aside', { class: 'sidebar', id: 'app-sidebar' },
     el('div', { class: 'brand' },
-      el('div', { class: 'brand-mark' }, 'DL'),
+      el('div', { class: 'brand-mark', 'aria-hidden': 'true' }),
       el('div', {},
         el('h1', {}, 'DESIGN-LAB'),
         el('small', {}, '设计智能与生产能力层'))),

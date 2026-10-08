@@ -6188,7 +6188,7 @@ function mountB10Shell(routeView, syncLegacyNavCue) {
     el(
       "div",
       { class: "brand" },
-      el("div", { class: "brand-mark" }, "DL"),
+      el("div", { class: "brand-mark", "aria-hidden": "true" }),
       el(
         "div",
         {},

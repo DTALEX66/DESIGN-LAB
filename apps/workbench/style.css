@@ -94,6 +94,14 @@
   --surface:var(--color-surface);
   --surface-2:var(--color-surface-2);
   --glow:0 0 14px rgba(49,108,255,.30);
+  /* The brand mark, as the owner's black-and-white artwork cut out of its ground.
+     Generated -- see design-lab/scripts/render_brand_asset.py and the region markers.
+     It is a token rather than an asset route because src/design_lab/workbench.py serves
+     a fixed three-path allowlist under `img-src data:`; a /workbench/*.png route would
+     mean widening both. */
+  /* brand-mark:begin sha256=07cd6e20e17f8e1574aff1c9d48dc0a34bea9594984add01143a66f1e1082f00 */
+  --brand-mark:url("data:image/png;base64,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");
+  /* brand-mark:end */
 
   font-family:system-ui,"Microsoft YaHei",sans-serif;
 }
@@ -113,12 +121,13 @@ body > header{
   border-bottom:1px solid var(--line);
 }
 body > header h1{margin:2px 0;font-size:26px}
+/* The legacy page's brand tile. Same cut-out mark as the B10 sidebar, same reason for
+   aria-hidden: the wordmark next to it is the accessible name. */
 .mark{
-  font-size:27px;font-weight:800;
+  width:52px;height:52px;border-radius:12px;
   border:1px solid var(--line);
-  color:var(--accent);
-  padding:13px;
-  text-shadow:0 0 10px rgba(49,108,255,.45);
+  background:var(--brand-mark) center/72% no-repeat;
+  box-shadow:var(--glow);
 }
 body > header .badge{margin-left:auto}
 .eyebrow{font-size:10px;letter-spacing:2px;font-weight:750;margin:0 0 10px;color:var(--muted)}
@@ -545,13 +554,19 @@ html,body{margin:0}
   margin-bottom:16px;
 }
 .brand-mark{
+  position:relative;
   width:48px;height:48px;border-radius:16px;
-  display:grid;place-items:center;
-  color:#fff;font-weight:900;letter-spacing:.04em;
   background:
     radial-gradient(circle at 30% 30%,color-mix(in srgb,var(--primary) 80%, white 6%),transparent 45%),
     linear-gradient(135deg,color-mix(in srgb,var(--primary) 80%, #fff 3%),color-mix(in srgb,var(--secondary) 55%, var(--primary)));
   box-shadow:0 0 0 1px color-mix(in srgb,var(--primary) 25%, white 5%),0 10px 30px color-mix(in srgb,var(--primary) 38%, transparent);
+}
+/* The glyph rides an ::after so the bloom follows the letterform: a `filter` on the
+   tile itself would glow the rounded square's own edge instead of the mark. */
+.brand-mark::after{
+  content:'';position:absolute;inset:0;
+  background:var(--brand-mark) center/76% no-repeat;
+  filter:drop-shadow(0 0 3px rgba(255,255,255,.5)) drop-shadow(0 0 12px rgba(75,175,255,.45));
 }
 .brand h1{margin:0;font-size:17px;line-height:1.15}
 .brand small{display:block;margin-top:4px;color:var(--secondary);font-size:10px;letter-spacing:.12em}

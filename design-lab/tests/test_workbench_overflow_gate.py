@@ -145,6 +145,25 @@ class WorkbenchOverflowGateTests(unittest.TestCase):
         self.assertIn('read', {value.get('state') for value in interactions.values()},
                       'no width ever displayed the readback itself; the gate would have passed on '
                       'an error card, so the rendered panel is unverified')
+        # The brand tile at every width the gate walked. `decode` is the load-bearing one:
+        # it is the browser reporting the natural size of the bitmap the inlined data URI
+        # actually produced, which is the only proof here that the stylesheet carries the
+        # mark rather than a declaration pointing at nothing.
+        brand = report.get('brand', {})
+        measured = [w.strip() for w in WIDTHS.split(',') if w.strip()]
+        self.assertEqual(sorted(brand, key=str), sorted(measured, key=str),
+                         'the gate reported the brand tile for some widths and not others')
+        for width, seen in brand.items():
+            self.assertTrue(seen.get('present'), f'{width}: no .brand-mark was mounted')
+            self.assertEqual(seen.get('text', 'x'), '',
+                             f'{width}: the tile carries text, so a screen reader says the name twice')
+            self.assertEqual(seen.get('ariaHidden'), 'true',
+                             f'{width}: the decorative tile is exposed to assistive tech')
+            self.assertEqual(seen.get('decode'), '144x144',
+                             f'{width}: the inlined mark decoded as {seen.get("decode")}')
+            self.assertGreater(seen.get('uriChars', 0), 1000,
+                               f'{width}: the data URI is a stub, not the mark')
+            self.assertTrue(seen.get('glow'), f'{width}: the mark has no bloom')
 
 
 if __name__ == '__main__':

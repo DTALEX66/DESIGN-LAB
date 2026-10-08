@@ -102,10 +102,12 @@ const MEASURE = () => {
 };
 
 const browser = await chromium.launch({ executablePath: browserPath, args: ['--no-sandbox'] });
-const report = { serviceUrl, widths, routes: {} };
+const report = { serviceUrl, widths, routes: {}, brand: {} };
 let clippedTotal = 0, strayTotal = 0, tinyTotal = 0;
 const interactionMissing = [];
 const interactionStates = [];
+// The brand tile, measured once per width. See BRAND_PROBE below for what it proves.
+const brandProblems = [];
 
 for (const w of widths) {
   const page = await browser.newPage({ viewport: { width: w, height: 900 } });
@@ -162,6 +164,53 @@ for (const w of widths) {
     tinyTotal += m.tiny.length;
     console.log(`w=${String(w).padEnd(5)} ${name.padEnd(13)} docX=${String(m.docOverflowX).padStart(3)} clipped=${String(m.clipped.length).padStart(2)} stray=${String(m.stray.length).padStart(2)} scrollOk=${String(m.scrollOk).padStart(2)} tiny=${String(m.tiny.length).padStart(2)}`);
   }
+  // The brand tile is the owner's logo inlined into the stylesheet as a data URI, so
+  // "is the logo showing?" cannot be answered from the CSS text: the declaration survives
+  // a malformed URI, and the vm harness never mounts the shell at all (its MockElement has
+  // no querySelector, which is the shell's own capability guard). This measures the painted
+  // tile -- the ::after background resolved to a data URI the browser decoded to the
+  // expected bitmap, the tile carries no text, and the wordmark beside it is the name.
+  const brand = await page.evaluate(() => {
+    const tile = document.querySelector('.brand-mark');
+    if (!tile) return { present: false };
+    const after = getComputedStyle(tile, '::after');
+    const rect = tile.getBoundingClientRect();
+    const match = /url\("?(data:image\/png;base64,[A-Za-z0-9+/=]+)"?\)/
+      .exec(after.backgroundImage || '');
+    return {
+      present: true,
+      text: (tile.textContent || '').trim(),
+      ariaHidden: tile.getAttribute('aria-hidden'),
+      size: [Math.round(rect.width), Math.round(rect.height)],
+      glow: (after.filter || 'none') !== 'none',
+      uri: match ? match[1] : '',
+      name: (document.querySelector('.brand h1') || {}).textContent || '',
+    };
+  });
+  const decode = brand.uri
+    ? await page.evaluate((uri) => new Promise((resolve) => {
+      const img = new Image();
+      img.onload = () => resolve(`${img.naturalWidth}x${img.naturalHeight}`);
+      img.onerror = () => resolve('decode-failed');
+      img.src = uri;
+    }), brand.uri)
+    : 'no-data-uri';
+  const seen = { ...brand, uriChars: brand.uri.length, decode };
+  delete seen.uri; // 6.6 KB of base64 does not belong in a report a human reads.
+  report.brand[w] = seen;
+  if (!brand.present) {
+    brandProblems.push(`${w}: no .brand-mark in the mounted shell`);
+  } else {
+    if (brand.text) brandProblems.push(`${w}: the tile carries text "${brand.text}"`);
+    if (brand.ariaHidden !== 'true') brandProblems.push(`${w}: the tile is not aria-hidden`);
+    if (!brand.glow) brandProblems.push(`${w}: the mark has no bloom (::after filter is none)`);
+    if (brand.uriChars < 1000) brandProblems.push(`${w}: the inlined uri is ${brand.uriChars} chars`);
+    if (decode !== '144x144') brandProblems.push(`${w}: the mark decoded as ${decode}, not 144x144`);
+    if (!brand.name.includes('DESIGN-LAB')) brandProblems.push(`${w}: no wordmark beside the tile`);
+    // A collapsed sidebar (the 760px breakpoint) legitimately has no box to measure.
+    if (brand.size[0] > 0 && brand.size.join('x') !== '48x48')
+      brandProblems.push(`${w}: the tile is ${brand.size.join('x')}, not 48x48`);
+  }
   await page.close();
 }
 await browser.close();
@@ -171,9 +220,13 @@ if (interactionMissing.length) {
   console.log('OV_INTERACTION_UNMEASURED ' + interactionMissing.join(' | '));
   fail('OV_INTERACTION_UNMEASURED');
 }
+if (brandProblems.length) {
+  console.log('OV_BRAND_BROKEN ' + brandProblems.join(' | '));
+  fail('OV_BRAND_BROKEN');
+}
 
 console.log('');
-console.log(`OV_SUMMARY clipped=${clippedTotal} stray=${strayTotal} tiny=${tinyTotal} interactions=${interactionStates.length} [${interactionStates.join(',')}]`);
+console.log(`OV_SUMMARY clipped=${clippedTotal} stray=${strayTotal} tiny=${tinyTotal} interactions=${interactionStates.length} [${interactionStates.join(',')}] brand=${Object.keys(report.brand).length}`);
 if (clippedTotal > 0) {
   for (const [k, v] of Object.entries(report.routes)) {
     for (const c of v.clipped) console.log(`  CLIPPED ${k} +${c.by}px ${c.el.slice(0, 100)}`);

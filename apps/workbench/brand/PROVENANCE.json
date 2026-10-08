@@ -1,0 +1,26 @@
+{
+  "source_sha256": "71be068292b4882c7e51019bacebee6f23ed8d191a640f75cca8dd1da639e413",
+  "source_size": [
+    1344,
+    1384
+  ],
+  "monogram_band": [
+    329,
+    197,
+    1011,
+    858
+  ],
+  "monogram_source_px": [
+    683,
+    662
+  ],
+  "canvas_px": 144,
+  "glyph_px": [
+    124,
+    120
+  ],
+  "luminance_ramp": [
+    64.0,
+    192.0
+  ]
+}
