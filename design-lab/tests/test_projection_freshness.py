@@ -66,9 +66,10 @@ class EntryTableTests(unittest.TestCase):
         # RECOVERY-SAFETY left on 2026-10-09: its three destructive-operation receipts were
         # archived under reports/history/destructive-receipts-2026-09-13 and the gate now
         # audits them from there, so a clean checkout reaches the same verdict as this disk.
-        self.assertEqual(sorted(v.EXCLUDED),
-                         ["reports/current/DEEPSEEK-FINAL-TEST-GATE.json",
-                          "reports/current/SPILL-CENSUS.json"],
+        # DEEPSEEK-FINAL-TEST-GATE left the same day: its --check judges the record against
+        # versioned test files and its own rows rather than re-deriving runs from a gitignored
+        # bound-test history.
+        self.assertEqual(sorted(v.EXCLUDED), ["reports/current/SPILL-CENSUS.json"],
                          "the set of excluded projections moved; either fix the check and "
                          "remove the row, or record here why the expectation moved")
         for record, reason in v.EXCLUDED.items():

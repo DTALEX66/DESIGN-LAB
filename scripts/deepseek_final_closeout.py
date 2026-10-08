@@ -556,8 +556,12 @@ REMEDIATION_EXCEPTIONS = [
      "state": "PARTIALLY_FIXED_AND_REPORTED", "owner": "Codex or owner"},
     {"area": "test gate scope", "exception":
         "H010 executed all four required runs over a declared critical set of 16 stateful and "
-        "contract-holding modules (220 tests: forward, reverse, randomized seed 42, and 20x "
-        "repetition = 4400 tests, all zero failures). The same three orders over the entire "
+        "contract-holding modules (220 tests per order in the 2026-09-14 run: forward, "
+        "reverse, randomized seed 42, and 20x "
+        "repetition = 4400 tests, all zero failures). Dated 2026-10-09: the gate record now "
+        "carries the 2026-10-06 runs, which measure 225 tests per order with a 2x "
+        "repetition = 450; the 220 above was typed, never re-derived from a run. "
+        "The same three orders over the entire "
         "discovered suite (1392 tests) are DEFERRED, not passed: one pass costs roughly 25 "
         "minutes against 7.6 seconds for the critical set, and that exact load coincided with "
         "the host kernel bugcheck 0x4E that this run is still diagnosing",

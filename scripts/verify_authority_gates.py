@@ -10,7 +10,7 @@ the whole gate in a fixed, explicit order instead of relying on convention:
 3. ``verify_source_lock.py --check``          — 46-source identity gate (DLDS-G000/D010)
 4. ``verify_contract_graph.py --check``       — cross-concept contract integrity
 5. ``verify_language_boundary.py``            — language + vocabulary-copy gate
-6. ``deepseek_test_gate_report.py``           — 220-test critical set; the 1392-test
+6. ``deepseek_test_gate_report.py``           — the declared critical set (16 modules, 225 tests per order as measured); the 1392-test
    full-suite orders stay recorded DEFERRED in their own state field and are
    surfaced in the aggregator record, never silently absorbed
 
@@ -21,7 +21,7 @@ INCOMPLETE, not read as clean.
 
 Evidence policy (fail-closed, platform-bound):
 * where the local bound-test history is checked out (``.project-local``), the
-  test gate verifies the *recorded* 220-test runs against that history;
+  test gate verifies the *recorded* critical-set runs against that history;
 * in a fresh CI checkout that history is gitignored and absent, so the
   aggregator EXECUTES the critical set (three orders + the repeat record) under
   ``run_bound_test_suite.py`` and verifies the freshly generated gate report.
@@ -110,7 +110,7 @@ def run_gate(name: str, script: str, gate_args: list[str]) -> dict:
 
 
 def critical_module_set() -> list[str]:
-    """The declared 220-test critical set, owned by the test-gate report."""
+    """The declared critical module set, owned by the test-gate report."""
     sys.path.insert(0, str(REPO / "scripts"))
     from deepseek_test_gate_report import CRITICAL_MODULES
     return list(CRITICAL_MODULES)
@@ -157,7 +157,7 @@ def local_history_present() -> bool:
 
 
 def run_test_gate(modules: list[str]) -> dict:
-    """Verify the 220-test critical set, platform-bound, fail-closed.
+    """Verify the declared critical set, platform-bound, fail-closed.
 
     Where the local bound-test history is checked out, verify the *recorded*
     runs against it. In a fresh CI checkout that history is gitignored and
@@ -191,7 +191,7 @@ def run_test_gate(modules: list[str]) -> dict:
     result = "PASS" if all_ok and generated["result"] == "PASS" else "FAIL"
     return {"gate": "test-gate", "result": result, "substeps": substeps,
             "generated_summary": generated.get("summary_line", ""),
-            "note": "no local bound history in this checkout; the critical 220-test set was "
+            "note": "no local bound history in this checkout; the declared critical set was "
                     "executed here (three orders + a repeat) and the platform fingerprint in "
                     "the bound records is authoritative — a Linux CI pass never stands in "
                     "for a Windows host result"}

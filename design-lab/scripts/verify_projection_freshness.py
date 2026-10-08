@@ -57,21 +57,25 @@ ENTRIES = [
     # are archived under reports/history/destructive-receipts-2026-09-13, so the verdict no longer
     # depends on this machine's gitignored .project-local copies.
     ("reports/current/RECOVERY-SAFETY.json", "scripts/verify_recovery_safety.py", ["--check"]),
+    # Also left the register on 2026-10-09: --check now judges the record against the repository
+    # (the declared module set as versioned test files) and against its own rows, instead of
+    # re-deriving the runs from this machine's gitignored bound-test history.
+    ("reports/current/DEEPSEEK-FINAL-TEST-GATE.json", "scripts/deepseek_test_gate_report.py",
+     ["--check"]),
 ]
 
 # Excluded, each with the measured reason. These stay visible here precisely so that "the gate is
 # green" never reads as "every projection was verified". The set only shrinks by fixing a check;
 # test_projection_freshness.py names the members, so one cannot join silently.
+# One left as of 2026-10-09: SPILL-CENSUS, whose fix is the next commit.
 EXCLUDED = {
     "reports/current/SPILL-CENSUS.json":
-        "scripts/deepseek_spill_census.py --check passes in the tree that generated the record and "
-        "reports DRIFT in a clean checkout of the same commit, so its verdict is a statement about "
-        "this disk; it must be made to answer from tracked state before it can be verified here",
-    "reports/current/DEEPSEEK-FINAL-TEST-GATE.json":
-        "scripts/deepseek_test_gate_report.py --check reads "
-        ".project-local/task-artifacts/test-run/history.jsonl, which is gitignored, so on a clone "
-        "it says 'results changed since generation'; the authority chain handles that by running "
-        "the bound suite instead, which is an execution and not a check",
+        "scripts/deepseek_spill_census.py --check compares repository_totals_bytes, which is the "
+        "sum over .hermes children that a clone does not have, so it passes in the tree that "
+        "generated the record and reports DRIFT in a clean checkout. Measured 2026-10-09: stored "
+        "{\"UNKNOWN\": 13638} against {} with .hermes/ ABSENT. It must be split into the parts a "
+        "record can be judged on (classification rules, totals arithmetic, the spill premise, the "
+        "privacy flags) and the disk facts it can only report.",
 }
 
 READ_ONLY_FLAGS = ("--check", "--self-test")
