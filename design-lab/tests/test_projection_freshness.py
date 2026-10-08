@@ -68,10 +68,11 @@ class EntryTableTests(unittest.TestCase):
         # audits them from there, so a clean checkout reaches the same verdict as this disk.
         # DEEPSEEK-FINAL-TEST-GATE left the same day: its --check judges the record against
         # versioned test files and its own rows rather than re-deriving runs from a gitignored
-        # bound-test history.
-        self.assertEqual(sorted(v.EXCLUDED), ["reports/current/SPILL-CENSUS.json"],
-                         "the set of excluded projections moved; either fix the check and "
-                         "remove the row, or record here why the expectation moved")
+        # bound-test history. SPILL-CENSUS left last: it judges the record against the path rules,
+        # git and its own arithmetic, and reports the live byte census as machine state.
+        self.assertEqual(v.EXCLUDED, {},
+                         "an exclusion came back; it must name its measured cause here and in "
+                         "the gate, and the cause has to be a real machine dependency")
         for record, reason in v.EXCLUDED.items():
             self.assertTrue((ROOT / record).is_file(), record)
             self.assertGreater(len(reason), 60, f"{record}'s exclusion reason is a placeholder")
@@ -90,6 +91,29 @@ class FindingTests(unittest.TestCase):
         self.assertEqual(failures, [], "a tracked projection disagrees with its own record")
         self.assertEqual(missing, [])
         self.assertEqual((len(checked), len(exclusions)), (len(v.ENTRIES), len(v.EXCLUDED)))
+
+    def test_the_gate_still_reports_an_exclusion_it_is_given(self) -> None:
+        """The register is empty, which must not be allowed to make its reporting untested.
+
+        One cheap entry plus a planted exclusion: an exclusion is a declared limitation, so it
+        has to surface as a NOTICE and must never be counted as a finding.
+        """
+        entries, excluded = list(v.ENTRIES), dict(v.EXCLUDED)
+        kept = next(entry for entry in entries if entry[0] == "reports/current/CONTRACT-GRAPH.json")
+        try:
+            v.ENTRIES[:] = [kept]
+            v.EXCLUDED.clear()
+            v.EXCLUDED["reports/current/SPILL-CENSUS.json"] = "planted: not re-checkable on a clone"
+            failures, exclusions, checked, missing = v.check()
+            self.assertEqual(exclusions, ["reports/current/SPILL-CENSUS.json: planted: "
+                                          "not re-checkable on a clone"])
+            self.assertEqual(checked, [kept[0]])
+            self.assertEqual(failures, [], "a declared exclusion was counted as a defect")
+            self.assertEqual(missing, [])
+        finally:
+            v.ENTRIES[:] = entries
+            v.EXCLUDED.clear()
+            v.EXCLUDED.update(excluded)
 
     def test_a_writer_entry_is_refused(self) -> None:
         v.ENTRIES[0] = (v.ENTRIES[0][0], v.ENTRIES[0][1], [])

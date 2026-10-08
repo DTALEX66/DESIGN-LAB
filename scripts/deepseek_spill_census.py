@@ -18,6 +18,25 @@ delete policy that applies.
 
 Writes reports/current/SPILL-CENSUS.json.
 
+`--check` judges the record; it does not re-census the disk. Measured 2026-10-09 in two trees of
+`d6ba107f`: the old form compared `repository_totals_bytes` against a sum over `.hermes` children
+that a clone does not have, so it printed PASS where the directories exist and DRIFT in a clean
+checkout of the same commit (stored `{"UNKNOWN": 13638}` against `{}` with `.hermes/` ABSENT). At
+the same time it passed in the generating tree while three of the agent-home counts it carries were
+already stale there (`.codex` entries 83 recorded against 91 live, `.dsh` 0 against 9, `.hermes` 3
+against 0) -- a field nobody compares is decoration, and a byte census nobody can reproduce is a
+statement about one workstation.
+
+So the check now asserts what is true of the record itself and of the repository: the path rules
+still produce the recorded classification, reason, delete policy and recreatability; the totals
+arithmetic adds up over the recorded objects; no two objects claim the same archive target; nothing
+owner-marked UNPROVEN is proposed for touch; the spill premise holds, i.e. every recorded source
+path is un-versioned content; and the privacy invariants the scope declares (agent homes visited at
+path level only, `content_read` false, E: never touched). The live census is then reported --
+`local_state=MATCHES_RECORDED_TOTALS / DIFFERS_FROM_RECORDED_TOTALS / NOTHING_ON_THIS_MACHINE` --
+so drift on a machine that has the directories stays visible without being able to convict a
+machine that has none.
+
 Usage:
     python scripts/deepseek_spill_census.py [--check]
 """
@@ -174,6 +193,127 @@ def agent_home_discovery() -> dict:
     return discovery
 
 
+def tracked_paths() -> set:
+    result = subprocess.run(["git", "-C", str(REPO), "ls-files"], capture_output=True,
+                            text=True, encoding="utf-8", errors="replace")
+    return set((result.stdout or "").splitlines())
+
+
+def implied_policy(classification: str, empty: bool) -> str:
+    if empty:
+        return "REMOVE_EMPTY_LEGACY_DIRECTORY"
+    if classification in {"CACHE", "TEMP", "RUNTIME_STATE", "EVIDENCE"}:
+        return "AUTO_WITH_MANIFEST"
+    return "OWNER_DELETE_APPROVAL_REQUIRED"
+
+
+def record_findings(record: dict) -> list:
+    """Judge the census record against the rules that produced it and against git.
+
+    Every finding here is answerable in any checkout of the commit, which is what the old
+    byte-sum comparison never was.
+    """
+    findings: list[str] = []
+    objects = record.get("repository_legacy_objects") or []
+    tracked = tracked_paths()
+
+    totals: dict = {}
+    seen_targets: dict = {}
+    for item in objects:
+        source = str(item.get("source_path") or "")
+        label = source or "<no source_path>"
+        if not source:
+            findings.append("SPILL-OBJECT-UNNAMED an object is recorded without a source path")
+            continue
+        if source.replace("\\", "/") in tracked:
+            findings.append(f"SPILL-PREMISE-BROKEN {label} is recorded as spill but git versions "
+                            "it, so this is repository content and must not be archived or deleted")
+        if item.get("owner") == "UNPROVEN":
+            if item.get("delete_policy") != "DO_NOT_TOUCH":
+                findings.append(f"SPILL-UNPROVEN-TOUCHABLE {label} is not provably DESIGN-LAB "
+                                f"content yet proposes {item.get('delete_policy')}")
+            if item.get("target_path"):
+                findings.append(f"SPILL-UNPROVEN-TARGET {label} would be moved by this project "
+                                "even though its ownership is unproven")
+            if not source.startswith(".hermes/"):
+                findings.append(f"SPILL-UNPROVEN-SCOPE {label} is outside the repository legacy "
+                                "roots this census is allowed to speak about")
+            if item.get("recreatable"):
+                findings.append(f"SPILL-UNPROVEN-RECREATABLE {label} claims an unproven object "
+                                "can be recreated")
+        else:
+            kind, reason = classify(source)
+            if item.get("classification") != kind:
+                findings.append(f"SPILL-RULE-CLASSIFICATION {label} records "
+                                f"{item.get('classification')!r}, the path rule says {kind!r}")
+            if not str(item.get("reason") or "").startswith(reason):
+                findings.append(f"SPILL-RULE-REASON {label} records a reason that does not start "
+                                f"with the rule's own text {reason!r}")
+            policy = implied_policy(str(item.get("classification") or ""), bool(item.get("empty")))
+            if item.get("delete_policy") != policy:
+                findings.append(f"SPILL-RULE-POLICY {label} records "
+                                f"{item.get('delete_policy')!r}, the rule implies {policy!r}")
+            recreatable = str(item.get("classification")) in {"CACHE", "TEMP"} or bool(item.get("empty"))
+            if bool(item.get("recreatable")) != recreatable:
+                findings.append(f"SPILL-RULE-RECREATABLE {label} records recreatable="
+                                f"{item.get('recreatable')!r}, the rule implies {recreatable}")
+            if not item.get("digest"):
+                findings.append(f"SPILL-RULE-DIGEST {label} is a repository object with no digest, "
+                                "so a restore cannot be verified")
+        target = item.get("target_path")
+        if target:
+            if target in seen_targets:
+                findings.append(f"SPILL-TARGET-COLLISION {target} is claimed by both "
+                                f"{seen_targets[target]} and {label}; two different datasets would "
+                                "be merged into one archive path")
+            seen_targets[target] = label
+        totals[str(item.get("classification"))] = (
+            totals.get(str(item.get("classification")), 0) + int(item.get("bytes") or 0))
+
+    if record.get("repository_totals_bytes") != totals:
+        findings.append(f"SPILL-TOTALS-ARITHMETIC the record says "
+                        f"{json.dumps(record.get('repository_totals_bytes'), sort_keys=True)} but "
+                        f"its own objects sum to {json.dumps(totals, sort_keys=True)}")
+    total_mib = round(sum(totals.values()) / 1048576, 2)
+    if record.get("repository_total_mib") != total_mib:
+        findings.append(f"SPILL-TOTALS-MIB the record says {record.get('repository_total_mib')!r}, "
+                        f"the recorded bytes give {total_mib!r}")
+
+    scope = record.get("scope") or {}
+    if "E:\\" not in json.dumps(scope.get("never_touched") or []):
+        findings.append("SPILL-SCOPE-E-DRIVE the census no longer declares E: untouched")
+    if not scope.get("not_read"):
+        findings.append("SPILL-SCOPE-NOT-READ the record no longer states what it refuses to read")
+    homes = record.get("agent_homes") or {}
+    if not homes:
+        findings.append("SPILL-SCOPE-HOMES no agent homes were recorded, so the path-level-only "
+                        "promise is not evidenced")
+    for name, home in homes.items():
+        if home.get("content_read"):
+            findings.append(f"SPILL-PRIVACY {name} records content_read=true; native agent state "
+                            "is out of scope and must never be read")
+        if not home.get("scope_note"):
+            findings.append(f"SPILL-PRIVACY {name} carries no scope note")
+        if not isinstance(home.get("native_entries_seen"), int):
+            findings.append(f"SPILL-SHAPE {name}.native_entries_seen is not a count")
+    if str(record.get("verdict")) != "CENSUS_COMPLETE":
+        findings.append(f"SPILL-VERDICT verdict={record.get('verdict')!r}; the census is either "
+                        "complete or it is not reported as a census")
+    return findings
+
+
+def local_state(record: dict) -> str:
+    """Machine state, reported and never compared: does this disk still look like the census?"""
+    if not (REPO / ".hermes").is_dir():
+        return "NOTHING_ON_THIS_MACHINE"
+    totals: dict = {}
+    for item in repo_legacy_census():
+        totals[item["classification"]] = totals.get(item["classification"], 0) + item["bytes"]
+    if totals == (record.get("repository_totals_bytes") or {}):
+        return "MATCHES_RECORDED_TOTALS"
+    return "DIFFERS_FROM_RECORDED_TOTALS"
+
+
 def main(argv=None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--check", action="store_true")
@@ -210,11 +350,23 @@ def main(argv=None) -> int:
                 "home is claimed by this project at this stage.",
     }
     if args.check:
-        if not OUT.is_file() or json.loads(OUT.read_text(encoding="utf-8"))["repository_totals_bytes"] != totals:
-            print("SPILL_CENSUS=DRIFT")
+        if not OUT.is_file():
+            print("SPILL_CENSUS=FAIL missing " + OUT.name)
             return 1
-        print("SPILL_CENSUS=PASS")
-        return 0
+        try:
+            stored = json.loads(OUT.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError, ValueError) as exc:
+            print(f"SPILL_CENSUS=FAIL unreadable {OUT.name} {type(exc).__name__}")
+            return 1
+        findings = record_findings(stored)
+        for finding in findings:
+            print("SPILL_CENSUS=FINDING " + finding)
+        # The byte totals are a fact about this disk; saying it out loud is the point, deciding
+        # the record's honesty from it never was.
+        print(f"SPILL_CENSUS={'PASS' if not findings else 'FAIL'} "
+              f"objects={len(stored.get('repository_legacy_objects') or [])} "
+              f"rules={len(findings)} local_state={local_state(stored)}")
+        return 0 if not findings else 1
     OUT.parent.mkdir(parents=True, exist_ok=True)
     OUT.write_text(json.dumps(document, indent=2, ensure_ascii=False) + "\n",
                    encoding="utf-8", newline="\n")

@@ -11,12 +11,15 @@ that is also an orphan), and three further checks pass on the machine that gener
 and fail on a clean checkout, which means their green proves nothing about the repository.
 
 So this gate runs each entry's own read-only form and reports the verdict lines, and the entry list
-is exactly the set measured to pass in **both** trees. Two of those three have since been fixed and
-moved into ENTRIES: RECOVERY-SAFETY on 2026-10-09, by archiving its destructive-operation receipts
-under reports/history/destructive-receipts-2026-09-13 so the verdict reads versioned bytes instead
-of this machine's gitignored ``.project-local``. SPILL-CENSUS and DEEPSEEK-FINAL-TEST-GATE remain
-declared below with the reason and what would let them in; they are not silently dropped, and a
-third cannot join without an entry here plus a stated reason for any removal. (Dated correction: the
+is exactly the set measured to pass in **both** trees. All three of those machine-dependent checks
+have been fixed and moved into ENTRIES: RECOVERY-SAFETY by archiving its destructive-operation
+receipts under reports/history/destructive-receipts-2026-09-13 so the verdict reads versioned bytes
+instead of this machine's gitignored ``.project-local``; DEEPSEEK-FINAL-TEST-GATE by judging the
+record against versioned test files and its own rows instead of re-deriving runs from a gitignored
+bound-test history; and SPILL-CENSUS by judging the record against the path rules, git and its own
+arithmetic while reporting the live census as machine state. EXCLUDED is therefore empty and is
+kept as a named register rather than deleted: it is the place an unverifiable projection has to go
+and say why, and ``test_projection_freshness.py`` pins that it holds nothing. (Dated correction: the
 first version of this docstring said "four excluded entries" while the table held three -- a number
 written from a remembered list rather than from the bytes, which is the same class of defect the
 gate exists to catch.)
@@ -62,21 +65,18 @@ ENTRIES = [
     # re-deriving the runs from this machine's gitignored bound-test history.
     ("reports/current/DEEPSEEK-FINAL-TEST-GATE.json", "scripts/deepseek_test_gate_report.py",
      ["--check"]),
+    # The last of the three. Its --check used to sum .hermes bytes off this disk; it now judges
+    # the record against the path rules that produced it, against git, and against its own
+    # arithmetic, and reports the live census as machine state.
+    ("reports/current/SPILL-CENSUS.json", "scripts/deepseek_spill_census.py", ["--check"]),
 ]
 
 # Excluded, each with the measured reason. These stay visible here precisely so that "the gate is
 # green" never reads as "every projection was verified". The set only shrinks by fixing a check;
 # test_projection_freshness.py names the members, so one cannot join silently.
-# One left as of 2026-10-09: SPILL-CENSUS, whose fix is the next commit.
-EXCLUDED = {
-    "reports/current/SPILL-CENSUS.json":
-        "scripts/deepseek_spill_census.py --check compares repository_totals_bytes, which is the "
-        "sum over .hermes children that a clone does not have, so it passes in the tree that "
-        "generated the record and reports DRIFT in a clean checkout. Measured 2026-10-09: stored "
-        "{\"UNKNOWN\": 13638} against {} with .hermes/ ABSENT. It must be split into the parts a "
-        "record can be judged on (classification rules, totals arithmetic, the spill premise, the "
-        "privacy flags) and the disk facts it can only report.",
-}
+# Closed on 2026-10-09: all three machine-dependent checks now answer from tracked state. An
+# exclusion may only come back by naming its measured cause here and in that test.
+EXCLUDED: dict = {}
 
 READ_ONLY_FLAGS = ("--check", "--self-test")
 
