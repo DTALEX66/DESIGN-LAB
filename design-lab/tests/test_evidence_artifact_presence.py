@@ -35,7 +35,7 @@ class EvidenceArtifactPresenceTests(unittest.TestCase):
                          'every tracked evidence artefact must still exist')
         # Known decay, asserted rather than hidden. Each entry is a record whose
         # artefact bytes legitimately moved after the observation, and the inventory is
-        # exact so the NEXT unannounced move still goes red. Twenty-eight records on six
+        # exact so the NEXT unannounced move still goes red. Twenty-nine records on six
         # distinct artefacts -- and the numbers here are re-measured, not inherited: see
         # the correction below, because this count was wrong in this file for an hour.
         #   * build/main.js -- a 2026-09-27 record used a mutable build output as
@@ -76,8 +76,16 @@ class EvidenceArtifactPresenceTests(unittest.TestCase):
             # artefact is older than the bytes it names, which is exactly what this inventory
             # exists to say out loud. Nothing is rewritten: the row stays the observation it was and
             # the correcting row for the defect names the current bytes.
+            # 2026-10-08, one more on this same artefact, and the cause is this very commit: the
+            # change that widened the inventory below lives in this file, so HEAD's bytes for it are
+            # newer than BOTH records that name it -- r5-003-per-module-verification-and-two-assertions-my-own-wave-moved-20261008
+            # and r5-003-artefact-gate-hashed-working-bytes-so-crlf-always-drifted-20261008. A record
+            # that names a source file ages whenever that file is edited; that is the property this
+            # inventory exists to make visible, and the bound run caught it before I did -- the
+            # module passed standalone (against the pre-commit HEAD) and failed once the commit
+            # existed. The count is re-measured here, not inherited from the line above.
             ('design-lab/tests/test_evidence_artifact_presence.py',
-             'HASH_MOVED_SINCE_OBSERVATION'): 1,
+             'HASH_MOVED_SINCE_OBSERVATION'): 2,
             # 2026-10-08, the second time this exact number appeared in this file -- and the first
             # time it is true. Twenty-three records name
             # docs/audits/DESIGNLAB-LAUNCH-REVIEW-PREFLIGHT-2026-10-08.md as their artefact, and
@@ -98,7 +106,7 @@ class EvidenceArtifactPresenceTests(unittest.TestCase):
                          'the drifted-artefact inventory is exact in both directions: a new '
                          'move, a new artefact name, or one more record on a known artefact '
                          'are all findings, and a drifted pair that quietly disappeared is too')
-        self.assertEqual(sum(counts.values()), 28,
+        self.assertEqual(sum(counts.values()), 29,
                          'the total drifted-record count is pinned, not derived')
 
     def test_missing_tracked_artefact_is_a_hard_break_not_a_warning(self):
