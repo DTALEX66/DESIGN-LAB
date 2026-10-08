@@ -196,25 +196,150 @@ def _validate(reader, ledger):
     return tasks, receipts, order
 
 
+RUNTIME_ARTIFACT_ROOT = '.project-local/task-artifacts/'
+
+
+class _CommitReader:
+    """Blob access for a receipt bound to a commit, cached so one projection reads each blob once."""
+
+    def __init__(self, root):
+        self.root = Path(root).resolve()
+        self._blobs = {}
+        self._commits = {}
+        self._modified = {}
+
+    def _run(self, *args):
+        return subprocess.run(['git', '-c', 'color.ui=false', '-C', str(self.root), *args],
+                              capture_output=True)
+
+    def has_commit(self, sha):
+        if sha not in self._commits:
+            self._commits[sha] = self._run('cat-file', '-e', f'{sha}^{{commit}}').returncode == 0
+        return self._commits[sha]
+
+    def blob(self, sha, relative):
+        key = (sha, relative)
+        if key not in self._blobs:
+            result = self._run('show', f'{sha}:{relative}')
+            self._blobs[key] = result.stdout if result.returncode == 0 else None
+        return self._blobs[key]
+
+    def locally_modified(self, sha):
+        """Paths whose working-tree bytes differ from `sha` -- a dirty tree is not today's bytes."""
+        if sha not in self._modified:
+            result = self._run('diff', '--name-only', '-z', sha, '--')
+            if result.returncode != 0:
+                raise ValueError(f'git inspection failed: diff {sha}')
+            self._modified[sha] = {line for line in
+                                   result.stdout.decode('utf-8', 'surrogateescape').split('\0')
+                                   if line}
+        return self._modified[sha]
+
+    def tracked_today(self, relative):
+        """Is this path version controlled at all, on any branch, right now?"""
+        result = self._run('ls-files', '--error-unmatch', '--', relative)
+        return result.returncode == 0
+
+
+def _claimed_digests(receipt):
+    """Every path this receipt hashes, with the digest it hashes for it.
+
+    subject_files and artifacts can name the same path; one claim per path is checked, and two
+    different digests for one path are a contradiction the row itself has to answer for.
+    """
+    claimed, conflicts = {}, []
+    for relative, digest in (receipt['subject_files'] or {}).items():
+        if claimed.setdefault(relative, digest) != digest:
+            conflicts.append(relative)
+    for artifact in receipt['artifacts']:
+        relative = artifact['path']
+        if claimed.setdefault(relative, artifact['sha256']) != artifact['sha256']:
+            conflicts.append(relative)
+    return claimed, sorted(set(conflicts))
+
+
+def _receipt_findings(receipt, subject_sha, reader, commits):
+    """Re-check a receipt on the basis its own `binding` declares, then ask if it still speaks for today.
+
+    INTEGRITY -- are the bytes this receipt hashed where it says they came from?
+      A COMMIT receipt claims a commit, so only that commit's blobs can re-check it. The old code
+      compared a COMMIT receipt's digests against the working tree of whichever commit the projection
+      was generated at, which convicted a row for the CRLF normalisation its git attributes impose and
+      for drift it never claimed to rule out -- and it could not prove the bytes it was checking were
+      the bytes the receipt hashed. Measured 2026-10-08 that made every receipt unverifiable: 0 of 73
+      `verified`, so no axis could ever be promoted and the flag carried no information. Re-checked
+      against the bound commit, 406 of 411 claimed digests reproduce; the five that do not are
+      convicted below by name instead of hidden in a wall of red.
+      A WORKTREE_FILES receipt admits its bytes came off a dirty tree, so only this disk can show
+      them, and only while that tree is still the tree it was taken from.
+    CURRENCY -- does the receipt still describe the bytes the projection is speaking for?
+      Intact history about files that have since moved is honest but is not evidence about today's
+      code, so it must not promote an axis. That decay is what
+      docs/decisions/R3-REPORT-OBSERVATION-SEMANTICS-2026-09-07 declares; it could not be expressed
+      while integrity and currency shared one flag that was already red at every SHA.
+    """
+    integrity, currency = [], []
+    if receipt['outcome'] != 'PASS':
+        integrity.append('OUTCOME_NOT_PASS')
+    claimed, conflicts = _claimed_digests(receipt)
+    for relative in conflicts:
+        integrity.append(f'DIGEST_CONFLICT_FOR_SAME_PATH:{relative}')
+    binding = receipt.get('binding')
+    bound = receipt['subject_sha']
+    if binding == 'COMMIT' and not commits.has_commit(bound):
+        integrity.append(f'SUBJECT_COMMIT_ABSENT:{bound}')
+        return integrity, currency
+    in_subject = binding == 'COMMIT' and commits.has_commit(subject_sha)
+    modified = commits.locally_modified(subject_sha) if in_subject else set()
+    for relative, expected in claimed.items():
+        # Every path is still read from disk so a file that changes mid-projection trips Reader.
+        raw = reader.read(relative, optional=True)
+        if relative.startswith(RUNTIME_ARTIFACT_ROOT):
+            if raw is None:
+                integrity.append(f'RUNTIME_ARTIFACT_ABSENT_ON_THIS_MACHINE:{relative}')
+            elif hashlib.sha256(raw).hexdigest() != expected:
+                integrity.append(f'RUNTIME_ARTIFACT_DIGEST_DIFFERS:{relative}')
+            continue
+        if binding == 'COMMIT':
+            blob = commits.blob(bound, relative)
+            if blob is None:
+                # Two different lies. A path version controlled today simply was not in the commit the
+                # row names, so the row bound the wrong SHA. A path no commit ever held cannot be
+                # re-read at any SHA: measured 2026-10-08, 63 of the 411 COMMIT-bound claims are of
+                # this kind -- 57 `__pycache__/*.pyc` byte-compiled caches and 6 audio bytes under
+                # `fixtures/domains/game-visual/android-minigame/`, which that directory's own
+                # .gitignore excludes -- spread over 14 receipts dated 2026-09-28.
+                integrity.append(f'PATH_NOT_IN_BOUND_COMMIT:{relative}' if commits.tracked_today(relative)
+                                 else f'ARTIFACT_IS_NOT_VERSIONED:{relative}')
+            elif hashlib.sha256(blob).hexdigest() != expected:
+                integrity.append(f'DIGEST_NOT_REPRODUCIBLE_AT_BOUND_COMMIT:{relative}')
+            elif not in_subject:
+                currency.append(f'PROJECTION_SUBJECT_NOT_A_COMMIT:{subject_sha}')
+            elif relative in modified:
+                currency.append(f'LOCALLY_MODIFIED_SINCE_SUBJECT:{relative}')
+            elif commits.blob(subject_sha, relative) != blob:
+                currency.append(f'MOVED_SINCE_BOUND_COMMIT:{relative}')
+        else:
+            if bound != subject_sha:
+                currency.append('STALE_SUBJECT_SHA')
+            if raw is None:
+                integrity.append(f'EVIDENCE_FILE_MISSING:{relative}')
+            elif hashlib.sha256(raw).hexdigest() != expected:
+                integrity.append(f'EVIDENCE_DIGEST_DIFFERS:{relative}')
+    return integrity, currency
+
+
 def project_ledger(root, ledger, subject_sha, *, reader=None):
     reader = reader or Reader(root)
     tasks, receipts, order = _validate(reader, ledger)
+    commits = _CommitReader(root)
     evaluated = {}
     for eid, receipt in receipts.items():
-        reasons = []
-        if receipt['outcome'] != 'PASS':
-            reasons.append('OUTCOME_NOT_PASS')
-        if receipt['subject_sha'] != subject_sha:
-            reasons.append('STALE_SUBJECT_SHA')
-        for relative, expected in receipt['subject_files'].items():
-            reader.read(relative, optional=True)
-            if reader.hashes[relative] != expected:
-                reasons.append(f'SOURCE_CHANGED_OR_MISSING:{relative}')
-        for artifact in receipt['artifacts']:
-            reader.read(artifact['path'], optional=True)
-            if reader.hashes[artifact['path']] != artifact['sha256']:
-                reasons.append(f'ARTIFACT_CHANGED_OR_MISSING:{artifact["path"]}')
-        evaluated[eid] = {**receipt, 'verified': not reasons, 'reasons': reasons}
+        integrity, currency = _receipt_findings(receipt, subject_sha, reader, commits)
+        evaluated[eid] = {**receipt, 'verified': not integrity,
+                          'current': not integrity and not currency,
+                          'integrity_reasons': integrity, 'currency_reasons': currency,
+                          'reasons': integrity + currency}
     projected = {}
     for tid in order:
         task = tasks[tid]
@@ -224,7 +349,8 @@ def project_ledger(root, ledger, subject_sha, *, reader=None):
             state = declaration['state']
             if state in {'PASS', 'IMPLEMENTED_LOCAL'}:
                 good = [eid for eid in declaration['evidence'] if evaluated[eid]['verified']
-                        and tid in evaluated[eid]['task_ids'] and evaluated[eid]['kind'] in KINDS[axis]]
+                        and evaluated[eid]['current'] and tid in evaluated[eid]['task_ids']
+                        and evaluated[eid]['kind'] in KINDS[axis]]
                 if not good:
                     state = 'UNVERIFIED'
                     reasons.append('no current evidence of the required kind')

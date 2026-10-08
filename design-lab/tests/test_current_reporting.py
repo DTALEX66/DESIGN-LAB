@@ -382,3 +382,241 @@ class Fa03CheckVerdictTests(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
+class EvidenceBindingBasisTests(unittest.TestCase):
+    """A COMMIT receipt is re-checked against the commit it names, never against today's tree.
+
+    Measured 2026-10-08 on the real ledger: the old rule compared a COMMIT receipt's blob digests
+    against working-tree bytes and demanded the receipt name the projection's own commit. Both are
+    impossible for a row bound to a parent commit, so 0 of 73 receipts were `verified`, no evidence
+    axis could ever be promoted, and the flag carried no information. Re-checked on the basis the
+    ledger's own `binding` enum declares, 36 of 73 are intact and 2 still describe today's bytes.
+    """
+
+    def setUp(self):
+        from design_lab.governance import reporting
+        self.reporting = reporting
+        runtime = ROOT / '.project-local/task-runtime/r3-binding-basis-tests'
+        runtime.mkdir(parents=True, exist_ok=True)
+        temp = tempfile.TemporaryDirectory(dir=runtime)
+        self.addCleanup(temp.cleanup)
+        self.root = Path(temp.name)
+        env_patch = patch.dict(self.reporting.os.environ,
+                               {'PROJECT_LOCAL_ROOT': str(self.root / '.project-local')})
+        env_patch.start()
+        self.addCleanup(env_patch.stop)
+        self.write('AGENTS.md', '# isolated report project')
+        self.ledger = json.loads(
+            (ROOT / 'docs/history/taskpacks/r3-ledger-pre-r5-20260909.json').read_text(encoding='utf-8'))
+        self.ledger['evidence'] = []
+        for task in self.ledger['tasks']:
+            for axis in task['axes'].values():
+                axis.update(state='NOT_EXECUTED', evidence=[])
+        self.write('design-lab/schemas/task-ledger-r3.schema.json',
+                   (ROOT / 'design-lab/schemas/task-ledger-r3.schema.json').read_text(encoding='utf-8'))
+        self.write(self.ledger['plan_path'], '# fixture plan')
+        self.write('docs/history/taskpacks/r3-tasks-2026-09-06.json',
+                   (ROOT / 'docs/history/taskpacks/r3-tasks-2026-09-06.json').read_text(encoding='utf-8'))
+        self.write('src/logic.py', 'fixture = 1\n')
+        self.write('docs/notes.md', '# notes\n')
+        self.write('.gitignore', '.project-local/\n__pycache__/\n*.pyc\n')
+        self.git('init')
+        self.git('add', '--', '.')
+        self.git('commit', '-m', 'observation subject')
+        self.observed = self.git('rev-parse', 'HEAD')
+
+    def write(self, rel, content):
+        path = self.root / rel
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(content, encoding='utf-8', newline='\n')
+
+    def write_bytes(self, rel, raw):
+        path = self.root / rel
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_bytes(raw)
+
+    def git(self, *args):
+        result = subprocess.run(
+            ['git', '-c', 'user.name=Binding Fixture', '-c',
+             'user.email=fixture@example.invalid', '-c', 'core.autocrlf=false', *args],
+            cwd=self.root, capture_output=True, text=True, encoding='utf-8', errors='replace')
+        self.assertEqual(result.returncode, 0, result.stderr)
+        return result.stdout.strip()
+
+    def commit_change(self, rel, content, message='later change'):
+        self.write(rel, content)
+        self.git('add', '--', rel)
+        self.git('commit', '-m', message)
+        return self.git('rev-parse', 'HEAD')
+
+    def blob(self, rel, sha=None):
+        result = subprocess.run(['git', '-C', str(self.root), 'show', f'{sha or self.observed}:{rel}'],
+                                capture_output=True)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        return hashlib.sha256(result.stdout).hexdigest()
+
+    def receipt(self, *, binding='COMMIT', subject=None, subject_files=None, artifacts=None):
+        subject = subject or self.observed
+        claimed = subject_files or {'src/logic.py': self.blob('src/logic.py', subject)}
+        listed = artifacts if artifacts is not None else [
+            {'path': 'src/logic.py', 'sha256': self.blob('src/logic.py', subject)}]
+        row = dict(id='bound', kind='local_test', outcome='PASS', subject_sha=subject,
+                   binding=binding, task_ids=['R3-01', 'R3-02', 'R3-05'],
+                   observed_at='2026-10-08T00:00:00Z', software={'python': 'fixture'},
+                   subject_files=claimed, artifacts=listed, note='fixture')
+        self.ledger['evidence'] = [row]
+        return row
+
+    def qualify(self, task_id='R3-01'):
+        task = next(t for t in self.ledger['tasks'] if t['id'] == task_id)
+        for name, state in (('implementation', 'IMPLEMENTED_LOCAL'), ('unit', 'PASS')):
+            task['axes'][name] = {'state': state, 'evidence': ['bound']}
+
+    def project(self, subject=None):
+        result = self.reporting.project_ledger(self.root, self.ledger, subject or self.head())
+        row = next(t for t in result['tasks'] if t['id'] == 'R3-01')
+        return result['evidence'][0], row
+
+    def head(self):
+        return self.git('rev-parse', 'HEAD')
+
+    def test_a_commit_receipt_verifies_at_a_later_commit_that_did_not_move_the_cited_file(self):
+        self.receipt()
+        self.qualify()
+        head = self.commit_change('docs/notes.md', '# notes\n\nappended\n')
+        evidence, row = self.project(head)
+        self.assertEqual([], evidence['integrity_reasons'])
+        self.assertEqual([], evidence['currency_reasons'])
+        self.assertTrue(evidence['verified'])
+        self.assertTrue(evidence['current'])
+        self.assertNotIn('STALE_SUBJECT_SHA', evidence['reasons'])
+        self.assertEqual(row['axes']['unit']['state'], 'PASS')
+        self.assertEqual(row['status'], 'DONE_LOCAL')
+
+    def test_a_normalised_working_tree_does_not_convict_a_commit_bound_receipt(self):
+        """The real cause of the 2026-10-08 wall of red: CRLF bytes on disk, LF bytes in the blob.
+
+        `design-lab/config/contract-bindings.json` is exactly this file in the product repository --
+        its git attributes normalise it -- so every receipt naming it was reported changed while git
+        itself called the tree clean.
+        """
+        self.write('.gitattributes', '*.py text eol=lf\n')
+        self.git('add', '--', '.gitattributes')
+        self.git('commit', '-m', 'normalise python')
+        subject = self.git('rev-parse', 'HEAD')
+        self.write_bytes('src/logic.py', b'fixture = 1\r\n')
+        self.assertEqual('', self.git('diff', '--name-only', subject, '--', 'src/logic.py'),
+                         'git must call this content unchanged, which is the condition under test')
+        stored = self.blob('src/logic.py', subject)
+        on_disk = hashlib.sha256((self.root / 'src/logic.py').read_bytes()).hexdigest()
+        self.assertIn(b'\r\n', (self.root / 'src/logic.py').read_bytes())
+        self.assertNotEqual(stored, on_disk, 'the fixture must reproduce blob-vs-worktree divergence')
+        self.receipt(subject=subject, subject_files={'src/logic.py': stored},
+                     artifacts=[{'path': 'src/logic.py', 'sha256': stored}])
+        self.qualify()
+        evidence, row = self.project(subject)
+        self.assertEqual([], evidence['integrity_reasons'])
+        self.assertEqual([], evidence['currency_reasons'])
+        self.assertTrue(evidence['verified'], evidence['reasons'])
+        self.assertEqual(row['status'], 'DONE_LOCAL')
+
+    def test_a_receipt_about_bytes_that_have_since_moved_is_intact_history_not_current_evidence(self):
+        self.receipt()
+        self.qualify()
+        head = self.commit_change('src/logic.py', 'fixture = 2\n')
+        evidence, row = self.project(head)
+        self.assertTrue(evidence['verified'], 'the bound commit still holds what the row hashed')
+        self.assertFalse(evidence['current'])
+        self.assertEqual(['MOVED_SINCE_BOUND_COMMIT:src/logic.py'], evidence['currency_reasons'])
+        self.assertEqual(row['axes']['unit']['state'], 'UNVERIFIED')
+        self.assertNotEqual(row['status'], 'DONE_LOCAL')
+
+    def test_a_digest_the_bound_commit_never_held_is_named_and_costs_exactly_one_line(self):
+        self.receipt(subject_files={'src/logic.py': 'e' * 64},
+                     artifacts=[{'path': 'src/logic.py', 'sha256': 'e' * 64}])
+        self.qualify()
+        evidence, row = self.project()
+        self.assertFalse(evidence['verified'])
+        self.assertEqual(['DIGEST_NOT_REPRODUCIBLE_AT_BOUND_COMMIT:src/logic.py'],
+                         evidence['integrity_reasons'])
+        self.assertEqual(row['axes']['unit']['state'], 'UNVERIFIED')
+
+    def test_a_path_that_first_appeared_after_the_bound_commit_is_not_in_it(self):
+        self.receipt()
+        self.qualify()
+        head = self.commit_change('src/added_later.py', 'later = 1\n')
+        receipt = self.receipt(
+            subject_files={'src/added_later.py': self.blob('src/added_later.py', head)},
+            artifacts=[{'path': 'src/added_later.py', 'sha256': self.blob('src/added_later.py', head)}])
+        receipt['subject_sha'] = self.observed
+        evidence, _row = self.project(head)
+        self.assertFalse(evidence['verified'])
+        self.assertEqual(['PATH_NOT_IN_BOUND_COMMIT:src/added_later.py'], evidence['integrity_reasons'])
+
+    def test_an_artefact_no_commit_ever_held_is_called_unversioned_not_changed(self):
+        cache = 'src/__pycache__/logic.cpython-313.pyc'
+        (self.root / 'src/__pycache__').mkdir(parents=True, exist_ok=True)
+        (self.root / cache).write_bytes(b'\x00\x0b\x61\x62 derived cache')
+        digest = hashlib.sha256((self.root / cache).read_bytes()).hexdigest()
+        self.receipt(subject_files={'src/logic.py': self.blob('src/logic.py')},
+                     artifacts=[{'path': cache, 'sha256': digest}])
+        self.qualify()
+        evidence, row = self.project()
+        self.assertFalse(evidence['verified'])
+        self.assertEqual([f'ARTIFACT_IS_NOT_VERSIONED:{cache}'], evidence['integrity_reasons'])
+        self.assertEqual(row['axes']['unit']['state'], 'UNVERIFIED')
+
+    def test_one_path_claimed_with_two_digests_is_a_contradiction_in_the_row(self):
+        self.receipt(subject_files={'src/logic.py': self.blob('src/logic.py')},
+                     artifacts=[{'path': 'src/logic.py', 'sha256': 'a' * 64}])
+        self.qualify()
+        evidence, _row = self.project()
+        self.assertFalse(evidence['verified'])
+        self.assertEqual(['DIGEST_CONFLICT_FOR_SAME_PATH:src/logic.py'], evidence['integrity_reasons'])
+
+    def test_a_runtime_artefact_is_judged_by_this_disk_and_its_absence_still_blocks(self):
+        log = '.project-local/task-artifacts/run.log'
+        self.write(log, 'controlled fixture passed\n')
+        digest = hashlib.sha256((self.root / log).read_bytes()).hexdigest()
+        self.receipt(artifacts=[{'path': 'src/logic.py', 'sha256': self.blob('src/logic.py')},
+                                {'path': log, 'sha256': digest}])
+        self.qualify()
+        evidence, row = self.project()
+        self.assertTrue(evidence['verified'], evidence['reasons'])
+        self.assertEqual(row['axes']['unit']['state'], 'PASS')
+        gone = self.receipt(artifacts=[{'path': 'src/logic.py', 'sha256': self.blob('src/logic.py')},
+                                       {'path': '.project-local/task-artifacts/never-written.log',
+                                        'sha256': digest}])
+        self.qualify()
+        evidence, row = self.project()
+        self.assertFalse(evidence['verified'])
+        self.assertEqual(
+            ['RUNTIME_ARTIFACT_ABSENT_ON_THIS_MACHINE:.project-local/task-artifacts/never-written.log'],
+            evidence['integrity_reasons'])
+        self.assertEqual(row['axes']['unit']['state'], 'UNVERIFIED')
+        self.assertIsNotNone(gone)
+
+    def test_a_worktree_files_receipt_still_expires_on_a_different_subject(self):
+        """The other half of the enum: a row that admits a dirty tree is only ever true of that tree."""
+        digest = hashlib.sha256((self.root / 'src/logic.py').read_bytes()).hexdigest()
+        self.receipt(binding='WORKTREE_FILES',
+                     subject_files={'src/logic.py': digest},
+                     artifacts=[{'path': 'src/logic.py', 'sha256': digest}])
+        self.qualify()
+        head = self.commit_change('docs/notes.md', '# notes\n\nlater\n')
+        evidence, row = self.project(head)
+        self.assertEqual([], evidence['integrity_reasons'])
+        self.assertEqual(['STALE_SUBJECT_SHA'], evidence['currency_reasons'])
+        self.assertTrue(evidence['verified'])
+        self.assertFalse(evidence['current'])
+        self.assertEqual(row['axes']['unit']['state'], 'UNVERIFIED')
+
+    def test_a_locally_modified_cited_file_is_not_evidence_for_the_subject(self):
+        self.receipt()
+        self.qualify()
+        self.write('src/logic.py', 'fixture = 99\n')
+        evidence, row = self.project()
+        self.assertTrue(evidence['verified'], 'the bound commit is untouched')
+        self.assertEqual(['LOCALLY_MODIFIED_SINCE_SUBJECT:src/logic.py'], evidence['currency_reasons'])
+        self.assertEqual(row['axes']['unit']['state'], 'UNVERIFIED')
+
+
