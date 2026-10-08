@@ -1,10 +1,10 @@
 {
   "schemaVersion": "design-lab/repo-classification/v1",
-  "generatedAt": "2026-10-08T19:33:42Z",
-  "observedCommit": "f1f96a37232fa779453e6f60a463071905f94f9c",
+  "generatedAt": "2026-10-08T20:02:41Z",
+  "observedCommit": "45ee831d539cc4c91c71612566a0a12cb0573329",
   "totals": {
     "trackedFiles": 3369,
-    "workingTreeMiB": 60.37,
+    "workingTreeMiB": 60.38,
     "packMiB": 242.0,
     "note": "pack 含全部历史与 tag 归档；working tree 为当前检出字节。两者之差不是垃圾。"
   },
@@ -69,7 +69,7 @@
       "category": "source",
       "note": "设计核心其余模块",
       "files": 971,
-      "bytes": 7831778,
+      "bytes": 7837108,
       "cited_by_authority": 7,
       "lastTouch": "2026-10-09"
     },
@@ -78,7 +78,7 @@
       "category": "evidence",
       "note": "审计与验收证据包",
       "files": 835,
-      "bytes": 7502603,
+      "bytes": 7504964,
       "cited_by_authority": 7,
       "lastTouch": "2026-10-09"
     },
@@ -141,7 +141,7 @@
       "category": "generated",
       "note": "当前状态投影（由生成器再生）",
       "files": 63,
-      "bytes": 1246062,
+      "bytes": 1246021,
       "cited_by_authority": 4,
       "lastTouch": "2026-10-09"
     },
@@ -285,7 +285,7 @@
       "category": "repo-meta",
       "note": "根级运维与政策文档",
       "files": 1,
-      "bytes": 9382,
+      "bytes": 9608,
       "cited_by_authority": 0,
       "lastTouch": "2026-10-09"
     },
