@@ -199,12 +199,25 @@ class EvidenceArtifactPresenceTests(unittest.TestCase):
             # by the row this wave appends.
             ('design-lab/tests/test_oda4_0204b_object_model_roundtrip.py',
              'HASH_MOVED_SINCE_OBSERVATION'): 1,
+            # 2026-10-08, commit af9a0985 added one pair, and it is a record bound to code:
+            # r5-002-static-unit-20260928 hashes design-lab/tests/test_project_paths.py as its
+            # artefact, and that commit put two new cases in the module (an inherited
+            # PROJECT_LOCAL_ROOT that names an enclosing checkout must not relocate a project
+            # the caller named explicitly; and the escaping/protected ambient values must still
+            # fail closed). The runtime root policy genuinely moved, so the 2026-09-28
+            # observation now describes older bytes than the file it names. The record is not
+            # rewritten -- it stays the observation it was, and this line is what makes the age
+            # visible instead of silently absorbing it. Re-measured at this HEAD, not inherited
+            # from the lines above: observed 54 pairs against the 53 pinned before this line,
+            # broken=0, and the only difference was this artefact.
+            ('design-lab/tests/test_project_paths.py',
+             'HASH_MOVED_SINCE_OBSERVATION'): 1,
         })
         self.assertEqual(counts, expected,
                          'the drifted-artefact inventory is exact in both directions: a new '
                          'move, a new artefact name, or one more record on a known artefact '
                          'are all findings, and a drifted pair that quietly disappeared is too')
-        self.assertEqual(sum(counts.values()), 53,
+        self.assertEqual(sum(counts.values()), 54,
                          'the total drifted-record count is pinned, not derived')
 
     def test_missing_tracked_artefact_is_a_hard_break_not_a_warning(self):

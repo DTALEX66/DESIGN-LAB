@@ -419,7 +419,8 @@
       ],
       "binding": "COMMIT",
       "currency_reasons": [
-        "MOVED_SINCE_BOUND_COMMIT:.project/paths.json"
+        "MOVED_SINCE_BOUND_COMMIT:.project/paths.json",
+        "MOVED_SINCE_BOUND_COMMIT:design-lab/tests/test_project_paths.py"
       ],
       "current": false,
       "id": "r5-002-static-unit-20260928",
@@ -432,7 +433,8 @@
       "outcome": "PARTIAL",
       "reasons": [
         "OUTCOME_NOT_PASS",
-        "MOVED_SINCE_BOUND_COMMIT:.project/paths.json"
+        "MOVED_SINCE_BOUND_COMMIT:.project/paths.json",
+        "MOVED_SINCE_BOUND_COMMIT:design-lab/tests/test_project_paths.py"
       ],
       "software": {
         "os": "Windows",
@@ -2053,7 +2055,7 @@
       "currency_reasons": [
         "MOVED_SINCE_BOUND_COMMIT:src/design_lab/runtime/project_backup.py",
         "MOVED_SINCE_BOUND_COMMIT:design-lab/tests/test_project_backup.py",
-        "MOVED_SINCE_BOUND_COMMIT:design-lab/tests/test_evidence_artifact_presence.py"
+        "LOCALLY_MODIFIED_SINCE_SUBJECT:design-lab/tests/test_evidence_artifact_presence.py"
       ],
       "current": false,
       "id": "r5-004-005-backup-consistency-20261007",
@@ -2065,7 +2067,7 @@
       "reasons": [
         "MOVED_SINCE_BOUND_COMMIT:src/design_lab/runtime/project_backup.py",
         "MOVED_SINCE_BOUND_COMMIT:design-lab/tests/test_project_backup.py",
-        "MOVED_SINCE_BOUND_COMMIT:design-lab/tests/test_evidence_artifact_presence.py"
+        "LOCALLY_MODIFIED_SINCE_SUBJECT:design-lab/tests/test_evidence_artifact_presence.py"
       ],
       "software": {
         "node": "NOT_MEASURED (FileNotFoundError)",
@@ -2422,6 +2424,7 @@
       ],
       "binding": "COMMIT",
       "currency_reasons": [
+        "MOVED_SINCE_BOUND_COMMIT:design-lab/tests/test_project_backup.py",
         "MOVED_SINCE_BOUND_COMMIT:docs/audits/DESIGNLAB-LAUNCH-REVIEW-PREFLIGHT-2026-10-08.md"
       ],
       "current": false,
@@ -2432,6 +2435,7 @@
       "observed_at": "2026-10-07T22:56:21Z",
       "outcome": "PASS",
       "reasons": [
+        "MOVED_SINCE_BOUND_COMMIT:design-lab/tests/test_project_backup.py",
         "MOVED_SINCE_BOUND_COMMIT:docs/audits/DESIGNLAB-LAUNCH-REVIEW-PREFLIGHT-2026-10-08.md"
       ],
       "software": {
@@ -2920,7 +2924,7 @@
       ],
       "binding": "COMMIT",
       "currency_reasons": [
-        "MOVED_SINCE_BOUND_COMMIT:design-lab/tests/test_evidence_artifact_presence.py",
+        "LOCALLY_MODIFIED_SINCE_SUBJECT:design-lab/tests/test_evidence_artifact_presence.py",
         "MOVED_SINCE_BOUND_COMMIT:docs/audits/DESIGNLAB-LAUNCH-REVIEW-PREFLIGHT-2026-10-08.md"
       ],
       "current": false,
@@ -2931,7 +2935,7 @@
       "observed_at": "2026-10-07T22:56:21Z",
       "outcome": "PASS",
       "reasons": [
-        "MOVED_SINCE_BOUND_COMMIT:design-lab/tests/test_evidence_artifact_presence.py",
+        "LOCALLY_MODIFIED_SINCE_SUBJECT:design-lab/tests/test_evidence_artifact_presence.py",
         "MOVED_SINCE_BOUND_COMMIT:docs/audits/DESIGNLAB-LAUNCH-REVIEW-PREFLIGHT-2026-10-08.md"
       ],
       "software": {
@@ -3141,7 +3145,7 @@
       ],
       "binding": "COMMIT",
       "currency_reasons": [
-        "MOVED_SINCE_BOUND_COMMIT:design-lab/tests/test_evidence_artifact_presence.py"
+        "LOCALLY_MODIFIED_SINCE_SUBJECT:design-lab/tests/test_evidence_artifact_presence.py"
       ],
       "current": false,
       "id": "r5-003-per-module-verification-and-two-assertions-my-own-wave-moved-20261008",
@@ -3151,7 +3155,7 @@
       "observed_at": "2026-10-07T23:46:31Z",
       "outcome": "PASS",
       "reasons": [
-        "MOVED_SINCE_BOUND_COMMIT:design-lab/tests/test_evidence_artifact_presence.py"
+        "LOCALLY_MODIFIED_SINCE_SUBJECT:design-lab/tests/test_evidence_artifact_presence.py"
       ],
       "software": {
         "platform": "Windows-11-10.0.26100-SP0",
@@ -3183,7 +3187,7 @@
       ],
       "binding": "COMMIT",
       "currency_reasons": [
-        "MOVED_SINCE_BOUND_COMMIT:design-lab/tests/test_evidence_artifact_presence.py"
+        "LOCALLY_MODIFIED_SINCE_SUBJECT:design-lab/tests/test_evidence_artifact_presence.py"
       ],
       "current": false,
       "id": "r5-003-artefact-gate-hashed-working-bytes-so-crlf-always-drifted-20261008",
@@ -3193,7 +3197,7 @@
       "observed_at": "2026-10-07T23:54:15Z",
       "outcome": "PASS",
       "reasons": [
-        "MOVED_SINCE_BOUND_COMMIT:design-lab/tests/test_evidence_artifact_presence.py"
+        "LOCALLY_MODIFIED_SINCE_SUBJECT:design-lab/tests/test_evidence_artifact_presence.py"
       ],
       "software": {
         "platform": "Windows-11-10.0.26100-SP0",
@@ -3356,7 +3360,8 @@
       "binding": "COMMIT",
       "currency_reasons": [
         "MOVED_SINCE_BOUND_COMMIT:design-lab/scripts/verify_design_lab.py",
-        "MOVED_SINCE_BOUND_COMMIT:design-lab/tests/test_evidence_artifact_presence.py",
+        "MOVED_SINCE_BOUND_COMMIT:design-lab/tests/test_workbench_launch.py",
+        "LOCALLY_MODIFIED_SINCE_SUBJECT:design-lab/tests/test_evidence_artifact_presence.py",
         "MOVED_SINCE_BOUND_COMMIT:docs/audits/DESIGNLAB-LAUNCH-REVIEW-PREFLIGHT-2026-10-08.md"
       ],
       "current": false,
@@ -3368,7 +3373,8 @@
       "outcome": "PASS",
       "reasons": [
         "MOVED_SINCE_BOUND_COMMIT:design-lab/scripts/verify_design_lab.py",
-        "MOVED_SINCE_BOUND_COMMIT:design-lab/tests/test_evidence_artifact_presence.py",
+        "MOVED_SINCE_BOUND_COMMIT:design-lab/tests/test_workbench_launch.py",
+        "LOCALLY_MODIFIED_SINCE_SUBJECT:design-lab/tests/test_evidence_artifact_presence.py",
         "MOVED_SINCE_BOUND_COMMIT:docs/audits/DESIGNLAB-LAUNCH-REVIEW-PREFLIGHT-2026-10-08.md"
       ],
       "software": {
@@ -3650,7 +3656,7 @@
       "currency_reasons": [
         "MOVED_SINCE_BOUND_COMMIT:design-lab/config/contract-bindings.json",
         "MOVED_SINCE_BOUND_COMMIT:design-lab/tests/test_contract_bindings.py",
-        "MOVED_SINCE_BOUND_COMMIT:design-lab/tests/test_evidence_artifact_presence.py"
+        "LOCALLY_MODIFIED_SINCE_SUBJECT:design-lab/tests/test_evidence_artifact_presence.py"
       ],
       "current": false,
       "id": "r5-001-inert-contract-claims-re-measured-and-citations-made-paths-20261008",
@@ -3662,7 +3668,7 @@
       "reasons": [
         "MOVED_SINCE_BOUND_COMMIT:design-lab/config/contract-bindings.json",
         "MOVED_SINCE_BOUND_COMMIT:design-lab/tests/test_contract_bindings.py",
-        "MOVED_SINCE_BOUND_COMMIT:design-lab/tests/test_evidence_artifact_presence.py"
+        "LOCALLY_MODIFIED_SINCE_SUBJECT:design-lab/tests/test_evidence_artifact_presence.py"
       ],
       "software": {
         "platform": "Windows-11-10.0.26100-SP0",
@@ -3746,7 +3752,7 @@
       "binding": "COMMIT",
       "currency_reasons": [
         "MOVED_SINCE_BOUND_COMMIT:src/design_lab/governance/reporting.py",
-        "MOVED_SINCE_BOUND_COMMIT:design-lab/tests/test_evidence_artifact_presence.py"
+        "LOCALLY_MODIFIED_SINCE_SUBJECT:design-lab/tests/test_evidence_artifact_presence.py"
       ],
       "current": false,
       "id": "r5-003-one-owner-for-byte-claims-and-a-gate-that-stops-judging-disclaimed-bytes-20261008",
@@ -3757,7 +3763,7 @@
       "outcome": "PASS",
       "reasons": [
         "MOVED_SINCE_BOUND_COMMIT:src/design_lab/governance/reporting.py",
-        "MOVED_SINCE_BOUND_COMMIT:design-lab/tests/test_evidence_artifact_presence.py"
+        "LOCALLY_MODIFIED_SINCE_SUBJECT:design-lab/tests/test_evidence_artifact_presence.py"
       ],
       "software": {
         "platform": "Windows-11-10.0.26100-SP0",
@@ -3837,14 +3843,14 @@
   ],
   "fresh": false,
   "freshnessMeaning": "at generation only; check verifies bound-input integrity, not current Git or cloud state",
-  "generatedAt": "2026-10-08T15:27:05+00:00",
+  "generatedAt": "2026-10-08T16:09:11+00:00",
   "gitStateMeaning": "generation-time observation, not current HEAD",
   "ledgerUpdatedAt": "2026-10-08T03:04:03Z",
   "note": "DONE_LOCAL concerns the declared task axes and dependencies, not a product release or hosted CI.",
   "schemaVersion": "design-lab/task-progress/r5-v1",
   "subjectMeaning": "subjectType=WORKTREE means the tree was dirty at generation; worktreeDigest covers HEAD plus the non-generated changes",
-  "subjectSha": "557e72671f5418e200ef786b0b456ebc5038840c",
-  "subjectType": "COMMIT",
+  "subjectSha": "af9a0985fb1d7ab09ce7b8b1fa290e756a9e1385",
+  "subjectType": "WORKTREE",
   "taskpack": "DL-TP-20260908-R5",
   "taskpackHash": "31dde89eb4ede81fe88c0a5c5144adfb86af8db4c4d8c263bde2199180369b69",
   "taskpackId": "DL-TP-20260908-R5",
@@ -6351,6 +6357,6 @@
   "testRunId": "testrun-20261008T144437Z-forward-7328bfad9510",
   "testRunMeaning": "bound run: python scripts/run_bound_test_suite.py --order forward --label record-archive-29",
   "testRunResult": "FAILED",
-  "worktreeClean": true,
-  "worktreeDigest": "sha256:307a24482b7a37dbdb4050f6a275c4272a99f82efe571aa24a0baff2aae803da"
+  "worktreeClean": false,
+  "worktreeDigest": "sha256:1f2ec83ba9fb68e254bb2e684c09e0da26c65a2b08874eb91e3a1ff3f25faafd"
 }
