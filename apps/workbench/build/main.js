@@ -4709,7 +4709,7 @@ async function renderEvidence(target) {
         )
       ),
       systems,
-      el("p", { class: "view-hint" }, "版本链（brief / direction 逐版本）在工作台点单条时读回；本页为只读证据视图，不修改 lineage。交付登记的两项读回（预检 / 收据）需要选中交付包后点击执行，E0–E5 证据记录仍无服务路由。"),
+      el("p", { class: "view-hint" }, "版本链（brief / direction 逐版本）在工作台点单条时读回；本页为只读证据视图，不修改 lineage。交付登记的两项读回（预检 / 收据）需要选中交付包后点击执行；证据链完整性由上方卡片对当前检出读回（GET /api/evidence-projection），但 E0–E5 的逐条证据记录仍无服务路由。"),
       ...shapeNoticeRows(layerResp, bundlesResp, juryResp, rightsResp)
     );
     return done;
@@ -4764,7 +4764,7 @@ const PROJECT_STAGES = [
     label: "Evidence",
     panelId: "#pd-deliveries",
     state: "PLANNED",
-    note: "交付包清单已可读回；E0–E5 证据记录无服务路由"
+    note: "交付包清单与证据链完整性投影均可读回；E0–E5 逐条证据记录仍无路由"
   }
 ];
 function buildStageNav(currentStageKey) {

@@ -1124,8 +1124,18 @@ if (!inlineRefusalText.includes('EVIDENCE_CONTRACT_VIOLATION')
 if (kpiPairs(projectionBox).length)
   throw new Error('一个带拒绝码的响应不得画出任何 KPI 数字');
 
+// The view's own caption said no evidence read has a route, two rows above a card that reads one.
+// Boundary text the page itself contradicts is how a stale limitation keeps getting quoted as fact.
+const evidenceText = evidenceView.textContent;
+if (!evidenceText.includes('/api/evidence-projection'))
+  throw new Error('证据链面板没有说明它读的是哪条路由');
+if (/E0[–-]E5 证据记录仍无服务路由/.test(evidenceText))
+  throw new Error('路由已上线，caption 还在照抄旧的"无服务路由"，且没有说明上方卡片读的是什么');
+if (!evidenceText.includes('逐条证据记录'))
+  throw new Error('边界要保留：E0–E5 的逐条记录仍然没有路由，不能因为投影上线就被忘掉');
+
 console.log('ok: ⑦b 证据链完整性：构建页面零读回、一次点击一个请求、三个判定各说各话且带 lang="en"、'
-  + '理由分布来自服务端、截断要说明、缺 totals/receipts 说未读回不画数、拒绝带码且不冒充空账本');
+  + '理由分布来自服务端、截断要说明、缺 totals/receipts 说未读回不画数、拒绝带码且不冒充空账本、边界文案与已上线路由不矛盾');
 
 // ⑧ 权利决定 · Human RIGHTS. The rights gate got a real route (GET/POST
 // /api/projects/<32-hex>/rights, src/design_lab/rights_review.py) and now has a real
