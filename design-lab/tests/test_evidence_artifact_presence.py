@@ -35,7 +35,7 @@ class EvidenceArtifactPresenceTests(unittest.TestCase):
                          'every tracked evidence artefact must still exist')
         # Known decay, asserted rather than hidden. Each entry is a record whose
         # artefact bytes legitimately moved after the observation, and the inventory is
-        # exact so the NEXT unannounced move still goes red. Forty-seven records on nineteen
+        # exact so the NEXT unannounced move still goes red. Fifty-one records on twenty
         # distinct artefacts -- and the numbers here are re-measured, not inherited: see
         # the correction below, because this count was wrong in this file for an hour.
         #   * build/main.js -- a 2026-09-27 record used a mutable build output as
@@ -136,7 +136,7 @@ class EvidenceArtifactPresenceTests(unittest.TestCase):
             #     so this class of staleness cannot come back.
             # Nothing above is rewritten: each stays the observation it was.
             ('design-lab/config/contract-bindings.json',
-             'HASH_MOVED_SINCE_OBSERVATION'): 1,
+             'HASH_MOVED_SINCE_OBSERVATION'): 2,
             ('design-lab/scripts/verify_design_lab.py',
              'HASH_MOVED_SINCE_OBSERVATION'): 1,
             ('design-lab/tests/test_object_model_backing_gate.py',
@@ -160,6 +160,20 @@ class EvidenceArtifactPresenceTests(unittest.TestCase):
             ('design-lab/scripts/verify_contract_bindings.py',
              'HASH_MOVED_SINCE_OBSERVATION'): 1,
             ('design-lab/tests/test_contract_bindings.py',
+             'HASH_MOVED_SINCE_OBSERVATION'): 2,
+            # 2026-10-08, the evidence readback wave (3520c82f / 2aeaaaf4 / a0d001a8) added four
+            # pairs. Every one is a record bound to code that this wave genuinely changed, which is
+            # the binding practice this file asks for -- they drift because the shipped implementation
+            # moved, not because prose was extended:
+            #   * verify_route_payload_contracts.py -- a seventh live-socket binding for
+            #     GET /api/evidence-projection, validated over 156 object locations;
+            #   * contract-bindings.json -- the route row that makes that binding non-removable
+            #     (routes 53 -> 54, bound 15 -> 16);
+            #   * test_contract_bindings.py -- its pinned route count moved with the same row;
+            #   * reporting.py -- the claim enumeration became the single owner the binding gate
+            #     imports, and the object reads were batched per commit (10.0s -> 1.0s).
+            # No older record is rewritten; each stays the observation it was.
+            ('design-lab/scripts/verify_route_payload_contracts.py',
              'HASH_MOVED_SINCE_OBSERVATION'): 1,
             ('docs/audits/DESIGNLAB-LAUNCH-REVIEW-PREFLIGHT-2026-10-08.md',
              'HASH_MOVED_SINCE_OBSERVATION'): 23,
@@ -169,13 +183,13 @@ class EvidenceArtifactPresenceTests(unittest.TestCase):
             # rewritten -- it stays the observation it was, and this line is what makes that visible
             # instead of silent.
             ('src/design_lab/governance/reporting.py',
-             'HASH_MOVED_SINCE_OBSERVATION'): 1,
+             'HASH_MOVED_SINCE_OBSERVATION'): 2,
         })
         self.assertEqual(counts, expected,
                          'the drifted-artefact inventory is exact in both directions: a new '
                          'move, a new artefact name, or one more record on a known artefact '
                          'are all findings, and a drifted pair that quietly disappeared is too')
-        self.assertEqual(sum(counts.values()), 47,
+        self.assertEqual(sum(counts.values()), 51,
                          'the total drifted-record count is pinned, not derived')
 
     def test_missing_tracked_artefact_is_a_hard_break_not_a_warning(self):
