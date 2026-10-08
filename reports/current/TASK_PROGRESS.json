@@ -2460,6 +2460,8 @@
       ],
       "binding": "COMMIT",
       "currency_reasons": [
+        "MOVED_SINCE_BOUND_COMMIT:design-lab/scripts/verify_ledger_subject_binding.py",
+        "MOVED_SINCE_BOUND_COMMIT:design-lab/tests/test_ledger_subject_binding.py",
         "MOVED_SINCE_BOUND_COMMIT:design-lab/scripts/verify_design_lab.py",
         "MOVED_SINCE_BOUND_COMMIT:design-lab/scripts/verify_contract_bindings.py",
         "MOVED_SINCE_BOUND_COMMIT:design-lab/config/contract-bindings.json",
@@ -2474,6 +2476,8 @@
       "observed_at": "2026-10-07T22:56:21Z",
       "outcome": "PASS",
       "reasons": [
+        "MOVED_SINCE_BOUND_COMMIT:design-lab/scripts/verify_ledger_subject_binding.py",
+        "MOVED_SINCE_BOUND_COMMIT:design-lab/tests/test_ledger_subject_binding.py",
         "MOVED_SINCE_BOUND_COMMIT:design-lab/scripts/verify_design_lab.py",
         "MOVED_SINCE_BOUND_COMMIT:design-lab/scripts/verify_contract_bindings.py",
         "MOVED_SINCE_BOUND_COMMIT:design-lab/config/contract-bindings.json",
@@ -3629,15 +3633,19 @@
         }
       ],
       "binding": "COMMIT",
-      "currency_reasons": [],
-      "current": true,
+      "currency_reasons": [
+        "MOVED_SINCE_BOUND_COMMIT:design-lab/tests/test_evidence_artifact_presence.py"
+      ],
+      "current": false,
       "id": "r5-001-inert-contract-claims-re-measured-and-citations-made-paths-20261008",
       "integrity_reasons": [],
       "kind": "local_test",
       "note": "Thirty rows of the contract ledger said 'nothing implements this', and nothing was checking. design-lab/config/contract-bindings.json holds 32 contract rows and reports schemas=32 binding=2 inert=30; every INERT row defends itself with a prose reason -- 'plan_id/jobs appear nowhere in src/', 'no emitter, no reader'. A negative claim is the one class of ledger entry that cannot fail on its own: the day the schema gets wired, the row keeps saying INERT and the gate keeps passing. So the claim is now re-tested on every run instead of believed. MEASURED, and the first measurement was wrong: matching each schema's required/property names against src/, packages/ and apps/ convicted 27 of the 30 as lies. That verdict was a bug in my instrument -- action, at, note, result, state, decision and changes are field names that occur in practically every product file, so a field name appearing in code is not a shape being produced. The question that works is the one the object-model gate already asks: who NAMES this file. Re-measured at this HEAD with the gate's own product_corpus(): 204 product files under src/, packages/, apps/ and integrations/, and 0 of the 30 INERT schemas are named by any of them, so all thirty claims hold. Recorded as a repeat of section 25's lesson rather than smoothed over. Two rules were added to verify_contract_bindings.py. (8) A citation must be a path: every instances/tests/fixtures entry has to start with a repository path and a numeric :line anchor must fall inside that file (CITATION_MALFORMED, CITATION_LINE_OUT_OF_RANGE). This caught a live defect immediately -- planar-decomposition's fixtures entry read 'generated at run time by design-lab/tests/host_fixtures/qualify_ocr_object_plan.py:45', a sentence parked in the one field whose entire job is to be re-checkable, which made the row look evidenced while nothing could check it. The entry is now the generator path alone (that line is genuinely where the instance is assembled and jsonschema-validated) and the explanation moved to reason. Adjacent bug found while testing it: the scratch-tree builder copied instances and tests but never fixtures, so the gate's fixture rules could not have worked on a copy at all; it copies fixtures now, and the three tests that convict a bad fixtures citation on a scratch tree only go red because the copy carries the file they rewrite. (9) An INERT row that any product file names goes red (INERT_BUT_NAMED_BY_PRODUCT), searched over RAW text, comments and docstrings included. The strictness is deliberate and its cost was measured before shipping: it convicts nothing today, and it can only ever be over-strict -- someone who writes a schema's file name into a src/ comment is asked to justify the row, which is the right outcome for a claim that nothing implements it, while a lenient rule would let a wired schema hide as unimplemented forever. A third correction came from my own new rule. An early version checked file existence for all three citation groups, so a vanished tests file was convicted twice in one run: TEST_ROW_STALE (the pre-existing rule) and CITATION_STALE (mine). The surgicality assertion assert_red_for(..., 1) refused it, which is exactly what 'exactly N red lines' is for in this repository. Existence is now checked only for fixtures; line drift is checked everywhere; instances/tests keep BINDING_ROTTEN, INERT_ROW_HAS_INSTANCE and TEST_ROW_STALE. The rule was not weakened to make a test pass -- the duplicate half was, and the distinct half (a line anchor that no longer points at what it claimed) is still caught. FALSIFIED deliberately: four new tests -- a citation that is prose wearing a path, a citation pointing past the end of its file, a citation to a file that is gone, and an INERT row named by product code in BOTH a string literal and a comment. VERIFIED at this HEAD, re-run rather than inherited: VERIFY_CONTRACT_BINDINGS=PASS schemas=32 binding=2 inert=30 routes=53 dispatched=53 bound=15 schema_less=38; the citation inventory is 15 entries, all with a numeric line anchor, none failing to start with a repository path; test_contract_bindings.py 32 OK; the drift inventory re-measured from the gate at 46 records over 18 distinct artefacts (was 44/16 before this wave, both moved pairs bound to the gate that re-tests the INERT claims and its injection tests) and pinned with a dated reason in test_evidence_artifact_presence.py. The bound suite ran tests_run=310 failures=0 errors=0 skipped=0 on a clean tree at this commit with the declared nodejs-lts 24.18.0 directory on PATH, so the UI module executed rather than self-skipping. STILL OPEN, for the owner and not decided here: what should happen to the thirty INERT contracts. run-event / job-spec / job-attempt / operation-intent / operation-receipt / host-session / document-session describe the same kernel activity as the native_* tables the product already writes, so the likeliest answer is that these rows are a second declared shape for one thing -- but retiring or wiring them is a product decision, and this row only makes 'nothing implements them' into something a machine re-checks. E1/E2 only: a structural ledger plus controlled local execution; no design host is involved, so host_live and delivery stay PARTIAL and E3/E4/E5 are untouched by this row.",
       "observed_at": "2026-10-08T05:06:06Z",
       "outcome": "PASS",
-      "reasons": [],
+      "reasons": [
+        "MOVED_SINCE_BOUND_COMMIT:design-lab/tests/test_evidence_artifact_presence.py"
+      ],
       "software": {
         "platform": "Windows-11-10.0.26100-SP0",
         "python": "3.13.14 (project .venv)",
@@ -3670,15 +3678,19 @@
         }
       ],
       "binding": "COMMIT",
-      "currency_reasons": [],
-      "current": true,
+      "currency_reasons": [
+        "MOVED_SINCE_BOUND_COMMIT:src/design_lab/governance/reporting.py"
+      ],
+      "current": false,
       "id": "r5-001-the-evidence-projection-could-never-verify-a-commit-bound-receipt-20261008",
       "integrity_reasons": [],
       "kind": "local_test",
       "note": "The last link of the chain was the one that had never been tested against its own claims. MEASURED at e1ca2902 before the change: reports/current/TASK_PROGRESS.json reported 0 of 73 receipts `verified`. Not a display problem -- the axis-demotion rule in reporting.py (226 before this change, 351 after) demotes an axis declared PASS or IMPLEMENTED_LOCAL to UNVERIFIED unless some receipt is verified, belongs to that task and matches the axis kind, so with zero verified receipts NO axis could ever be promoted, and the flag itself carried no information. Two unsatisfiable conditions produced it, both inside project_ledger, which never read the `binding` field at all: it compared a COMMIT receipt's blob digests against the WORKING TREE of whichever commit the projection happened to be generated at, and it demanded the receipt name that same commit. The second is unreachable for any row, because a projection can only record a commit that already exists while the row lands in a later one; the first fails for every file git normalises, which is why config/contract-bindings.json -- CRLF on disk, LF in the blob, and `git status` calling the tree clean -- convicted every receipt naming it. The schema already states the distinction project_ledger ignored (design-lab/schemas/task-ledger-r5-v1.schema.json:316-317: WORKTREE_FILES 'says the bytes came from a dirty tree and may never be presented as a commit'). The fix separates the two questions that were sharing one flag. INTEGRITY (`verified`): are the bytes this receipt hashed still where this receipt says they came from -- git show <subject_sha>:<path> for a COMMIT row, this disk for a WORKTREE_FILES row, this disk for a .project-local/task-artifacts/** runtime artefact. CURRENCY (`current`): does it still describe the bytes the projection is now speaking for -- MOVED_SINCE_BOUND_COMMIT, LOCALLY_MODIFIED_SINCE_SUBJECT, and STALE_SUBJECT_SHA kept for the WORKTREE_FILES rows it was written for. An axis needs both, so nothing was loosened: test_source_mutation_invalidates_prior_pass, test_missing_artifact_does_not_reuse_declared_pass and test_wrong_subject_commit_is_stale all pass unchanged. One path named in both subject_files and artifacts is now checked once, ending the double red line for a single fact (the same one-defect-one-line rule as section 29.4). New reasons name the path: DIGEST_NOT_REPRODUCIBLE_AT_BOUND_COMMIT, PATH_NOT_IN_BOUND_COMMIT, ARTIFACT_IS_NOT_VERSIONED, DIGEST_CONFLICT_FOR_SAME_PATH, RUNTIME_ARTIFACT_ABSENT_ON_THIS_MACHINE, SUBJECT_COMMIT_ABSENT. What it found, stated at the level the evidence supports. Of 502 COMMIT-bound claims, 406 reproduce at their own bound commit and ZERO fail on the digest: the commit binding, where it is a real commit claim, is sound. The defect is elsewhere -- 63 claims cite bytes no commit ever held, across 14 rows all named r5-*-static-unit-20260928: 57 __pycache__/*.pyc byte-compiled caches and 6 wav files under fixtures/domains/game-visual/android-minigame/, which that directory's own .gitignore line 12 excludes. A COMMIT row citing a .pyc claims committed status for bytes that exist on exactly one machine and change on every interpreter run. 33 further COMMIT claims are declared runtime artefacts, which is legitimate, and one of them is already gone from this disk (r5-comfy-http-model-free-live-20260909 -> .project-local/task-artifacts/comfy-http-live-*/result.json), the named instance of the per-machine artefact debt. The 9 WORKTREE_FILES claims are judged against the disk and 2 of them no longer match it, which is those rows admitting their own subject matter. Nothing was rewritten: those 14 and 3 rows stay what they were, and are now named. Two instrument errors of mine are part of this record. First: I classified 'not tracked today' as 'machine-bound', which reported 5 bad paths where there are 63. Second, and worse, my first measurement applied commit semantics to every row and produced 3 'digests that reproduce nowhere', which I wrote into the audit draft as evidence of fabricated records. All three belong to the 3 WORKTREE_FILES rows -- rows that never claimed to be commit observations -- so the accusation was manufactured by the wrong question, the same failure mode as section 29.2, this time aimed at my own instrument. The claim was deleted before shipping. Third catch: my regression test asserted `git status --porcelain` is empty to describe a CRLF-on-disk/LF-in-blob file, and git answered `M src/logic.py` while `git diff --name-only <subject>` answered empty. Probed both against three attribute combinations and the real repository (.project-local/tmp/probe_crlf_status.py); the currency rule uses `diff`, which normalises per attributes and is the semantics this rule needs. VERIFIED at this HEAD, re-run rather than inherited: test_current_reporting.py 43 OK (10 new cases covering the new basis, including the CRLF regression and a contradiction test), test_r5_migration.py 10 OK, bound run tests=387 failures=0 errors=0 skipped=0 order=forward on a clean tree at 981a4a703f6d with the declared nodejs-lts 24.18.0 on PATH, aggregate VERIFY_DESIGN_LAB=OK total=68 failed=0, CURRENT_REPORTS=PASS mode=generate. After the change: 36 of 73 receipts are intact records and 2 still describe today's bytes (r5-010-template-contracts-and-delivery-bom-20261008, r5-001-inert-contract-claims-re-measured-and-citations-made-paths-20261008); reason distribution OUTCOME_NOT_PASS 37, ARTIFACT_IS_NOT_VERSIONED 63, RUNTIME_ARTIFACT_ABSENT_ON_THIS_MACHINE 1, EVIDENCE_DIGEST_DIFFERS 2, MOVED_SINCE_BOUND_COMMIT 149, STALE_SUBJECT_SHA 8, LOCALLY_MODIFIED_SINCE_SUBJECT 1 -- and that last one points at test_current_reporting.py itself, modified by this very wave, which is the rule working. Task counts are UNCHANGED at {'PARTIAL': 28}: this flipped no green light, which is the point -- the field can now be red for a reason and green for a reason. Also recorded because part of why this survived is that no one was watching this component: `verified` has no consumer in this repository outside reporting.py:351 itself -- neither the workbench nor any verify_*.py gate reads the projected field. The LEDGER behind it WAS being refused, by a gate that already used the correct basis (see the correction below); the projection was the un-watched half. E1/E2 only: a projection rule plus its controlled tests; no design host involved, so host_live and delivery stay PARTIAL and E3/E4/E5 are untouched by this row. CORRECTED AFTER DRAFTING, and the correction is part of the record: section 30.6 of the audit doc. I first wrote these 63 citations up as a defect nobody had caught, and that is wrong -- design-lab/scripts/verify_ledger_subject_binding.py already re-computes every subject_files digest from git show <subject_sha>:<path> (its lines 12-14), carries a dated two-way KNOWN list of 67 entries over 17 rows (57 .pyc, 6 .wav, 4 .py), and refuses both an unlisted defect and a listed entry that has quietly become verifiable. It reports LEDGER_SUBJECT_BINDING=OK subject_files=447 checked=447 known_unverifiable=67 records=73 at this HEAD, and it passes inside the 68-gate aggregate. So the ledger WAS being checked, on the correct basis; what was missing was that the projection -- the component that decides axis promotion -- judged the same claims on a different basis and knew nothing about the sanctioned list. The remaining gap is therefore expressiveness, not permission: the projection currently reports sanctioned and new unversioned citations identically as ARTIFACT_IS_NOT_VERSIONED, and the right next step is basis alignment (share that KNOWN list, split the two reasons) -- both stay red, only the unsanctioned one needs an owner. This row deliberately does NOT import the waiver list: a governance-acknowledged unverifiable claim must not be laundered into a promotable record. E2 boundary note unchanged: no design host involved, host_live and delivery stay PARTIAL, E3/E4/E5 untouched.",
       "observed_at": "2026-10-08T05:43:31Z",
       "outcome": "PASS",
-      "reasons": [],
+      "reasons": [
+        "MOVED_SINCE_BOUND_COMMIT:src/design_lab/governance/reporting.py"
+      ],
       "software": {
         "platform": "Windows-11-10.0.26100-SP0",
         "python": "3.13.14 (project .venv)",
@@ -3697,17 +3709,62 @@
         "DL-R5-003"
       ],
       "verified": true
+    },
+    {
+      "artifacts": [
+        {
+          "path": "src/design_lab/governance/reporting.py",
+          "sha256": "954164928fa3de430a7f61990eedec962bd6cba2ef27c5a819b969cbd79d3e70"
+        },
+        {
+          "path": "design-lab/scripts/verify_ledger_subject_binding.py",
+          "sha256": "f16545997a8b1834be7fa9ea945091a5e3192764362dabb27d28b345eddbb68f"
+        },
+        {
+          "path": "design-lab/tests/test_ledger_subject_binding.py",
+          "sha256": "d28311bd5c5e8f6161837aa6e4c54c6f002192b52899aa0c808ec94a8005963a"
+        }
+      ],
+      "binding": "COMMIT",
+      "currency_reasons": [],
+      "current": true,
+      "id": "r5-003-one-owner-for-byte-claims-and-a-gate-that-stops-judging-disclaimed-bytes-20261008",
+      "integrity_reasons": [],
+      "kind": "local_test",
+      "note": "Section 30 ended with a fix and a leftover root cause, and the root cause was the reason to do this row: two components recompute a receipt's byte claims and each kept its own copy of the question 'which paths count'. The binding gate recomputed subject_files from the object database; the current reports projected subject_files plus artifacts against the working tree. Two owners of one rule is how the projection ended up reporting 0 of 73 verified, so repairing only the projection would have left the seam where the next disagreement grows. design_lab.governance.reporting now owns the enumeration -- Claims (claimed, runtime, conflicts, pairs), basis(), claims() -- and the gate imports it and keeps only its own verdict. The rule: subject_files AND artifacts are byte claims; one path is one claim; a path claimed with two different digests in one record is a contradiction (DIGEST_CONFLICT_FOR_SAME_PATH); paths under .project-local/task-artifacts/** are outside every commit basis and are COUNTED (runtime=34) rather than dropped from the denominator; a record with no binding is read by the stricter COMMIT basis, so silence never buys leniency. Reading `binding` also exposed a basis error inside the gate itself, which had been booked as someone else's evidence debt. classify() ignored `binding` entirely, so it judged the three WORKTREE_FILES records against the object database -- and that value's own schema note says the bytes 'came from a dirty tree and may never be presented as a commit' (design-lab/schemas/task-ledger-r5-v1.schema.json:316-317). Four resulting lines had been parked in the gate's KNOWN waiver list with reasons reading 'this entry does not equal the bytes at that commit -- the subject was read from the working tree', i.e. the list was absorbing the gate's wrong basis as a defect of the records. Those four entries are gone (KNOWN 67 -> 63), and the 63 that remain are all genuinely 'no commit can ever hold these bytes' -- 57 __pycache__/*.pyc and 6 wav under a directory its own .gitignore excludes. No record's bytes were rewritten and no digest was 'corrected': the gate simply stopped convicting records by a basis they disclaim, and now counts those claims out loud (worktree_claims=8). The two-way rot guard is untouched, so a new unversioned citation -- subject_files or artifacts -- is refused at the door instead of being classified downstream, which is where section 30.6 proposed putting it; enforcement beats annotation. Coverage moved from the old 450 subject_files-only claims to 472 commit-basis claims (checked=472 subject_files=450 runtime=34 worktree_claims=8 known_unverifiable=63 records=74), and 26 of those are artifact claims the gate had never looked at. FALSIFIED deliberately: eight new cases -- an artifact citation that its bound commit does not hold is convicted; an artifact citation that does reproduce is counted as coverage; a WORKTREE_FILES record is not judged by the object database but is counted (commit_claims 0, worktree_claims 2); a runtime artifact is counted rather than skipped; one path with two digests is a contradiction; a missing binding defaults to COMMIT; an unresolvable bound commit costs BOTH lists, not just subject_files; and no entry left in KNOWN belongs to a non-commit-basis record. test_ledger_subject_binding 19 OK (was 11), test_current_reporting 43 OK, test_evidence_artifact_presence 4 OK. A failure of mine is recorded rather than smoothed over: the first bound run at ce3359e2 was FAILED(1), and the one red was test_tracked_artefacts_of_the_real_ledger_all_read_back -- my own edit to reporting.py moved an artefact that an older record hashes, which is exactly what that pin exists to catch. The fix was to re-measure the inventory from the gate and pin 46 -> 47 pairs over 19 distinct artefacts with a dated reason, not to relax the assertion; the prose count in the same file said 'Forty-six records on eighteen' and is corrected in the same commit, because a comment that disagrees with the pin it explains is the next reader's trap. While measuring it I unpacked the gate's drifted tuples in the wrong order and had the inventory keyed by artefact while believing it was keyed by record; caught by reading the test's own counter before writing any number. VERIFIED at this HEAD, re-run rather than inherited: bound run tests=406 failures=0 errors=0 skipped=0 order=forward on a clean tree at 8811a0c1b2a8 with the declared nodejs-lts 24.18.0 on PATH; aggregate VERIFY_DESIGN_LAB=OK total=68 failed=0; CURRENT_REPORTS=PASS; the projection on this subject reports 74 receipts, 37 intact records and 1 still describing today's bytes -- the second one, the section-29 row, lost currency because this wave's own drift-pin commit moved test_evidence_artifact_presence.py, which that row cites; the currency rule catching my own commit is the rule working, and it is why these numbers are measured at the subject SHA rather than quoted from a neighbouring commit. Reasons: OUTCOME_NOT_PASS 37, ARTIFACT_IS_NOT_VERSIONED 63, RUNTIME_ARTIFACT_ABSENT_ON_THIS_MACHINE 1, EVIDENCE_DIGEST_DIFFERS 2, MOVED_SINCE_BOUND_COMMIT 154, STALE_SUBJECT_SHA 8, and task counts unchanged at {'PARTIAL': 28} -- this wave lights no green light, which is the same acceptance as section 30's: the fields became capable of being true. OPEN for the owner, not decided here: the 63 remaining sanctioned citations still sit in rows that declare binding: COMMIT while citing bytes no commit ever held. Re-binding them to WORKTREE_FILES would be the semantically correct write, and would also be an admission that those rows were never commit observations -- editing historical evidence is the owner's call, not mine. Task 21 (two MethodCard shapes, zero producers), the brief content model, the jury template V1-vs-product-V2 split and the wire-or-retire decision on the 30 INERT contracts are all still owner-gated with reviewable artifacts in the repository. E1/E2 only: a gate, a projection rule and their controlled tests; no design host involved, so host_live and delivery stay PARTIAL and E3/E4/E5 are untouched by this row.",
+      "observed_at": "2026-10-08T06:05:33Z",
+      "outcome": "PASS",
+      "reasons": [],
+      "software": {
+        "platform": "Windows-11-10.0.26100-SP0",
+        "python": "3.13.14 (project .venv)",
+        "runner": "python scripts/run_bound_test_suite.py --label claim-owner-unification-20261008 --modules test_current_reporting test_ledger_subject_binding test_r5_migration test_contract_bindings test_object_model_backing_gate test_route_payload_contracts test_brief_readback_contract test_template_contracts_gate test_delivery_bom test_production_preflight test_evidence_artifact_presence test_gate_reachability test_test_selfsufficiency_gate test_state_vocabularies_gate test_ledger_schema test_rights_ledger test_design_system_tokens test_interop_dtcg -> run_id=testrun-20261008T060437Z-forward-repeat-6cc2276872ca, tests_run=406, failures=0, errors=0, skipped=0, duration=55.915s, order=forward, worktree_clean=True",
+        "test_manifest": "sha256:aaaedd2d463c671fe82d68147a4f2722602534c1da7984b98499d3a38de54aea",
+        "worktree_digest": "sha256:6cc2276872ca0194bf853f0f473cfb4cfae9e8d395777f260ee479c55ad633bc"
+      },
+      "subject_files": {
+        "design-lab/scripts/verify_ledger_subject_binding.py": "f16545997a8b1834be7fa9ea945091a5e3192764362dabb27d28b345eddbb68f",
+        "design-lab/tests/test_evidence_artifact_presence.py": "4a34b988bb2abc4336a228a77d06e8440661f25a05a9ffdafd5b69a2181f81cd",
+        "design-lab/tests/test_ledger_subject_binding.py": "d28311bd5c5e8f6161837aa6e4c54c6f002192b52899aa0c808ec94a8005963a",
+        "src/design_lab/governance/reporting.py": "954164928fa3de430a7f61990eedec962bd6cba2ef27c5a819b969cbd79d3e70"
+      },
+      "subject_sha": "8811a0c1b2a8a6863e16b35262059717f7814829",
+      "task_ids": [
+        "DL-R5-003",
+        "DL-R5-001"
+      ],
+      "verified": true
     }
   ],
   "fresh": false,
   "freshnessMeaning": "at generation only; check verifies bound-input integrity, not current Git or cloud state",
-  "generatedAt": "2026-10-08T05:44:43+00:00",
+  "generatedAt": "2026-10-08T06:09:03+00:00",
   "gitStateMeaning": "generation-time observation, not current HEAD",
   "ledgerUpdatedAt": "2026-10-08T03:04:03Z",
   "note": "DONE_LOCAL concerns the declared task axes and dependencies, not a product release or hosted CI.",
   "schemaVersion": "design-lab/task-progress/r5-v1",
   "subjectMeaning": "subjectType=WORKTREE means the tree was dirty at generation; worktreeDigest covers HEAD plus the non-generated changes",
-  "subjectSha": "52ce85246094c132a18d4bd177669f6017f7eb35",
+  "subjectSha": "c30498b48b5c72d39c7c19cf3cda0933234581df",
   "subjectType": "COMMIT",
   "taskpack": "DL-TP-20260908-R5",
   "taskpackHash": "31dde89eb4ede81fe88c0a5c5144adfb86af8db4c4d8c263bde2199180369b69",
@@ -6211,10 +6268,10 @@
       "unresolved_conditions": []
     }
   ],
-  "testRunAt": "2026-10-08T05:43:31+00:00",
-  "testRunId": "testrun-20261008T054252Z-forward-repeat-6b4d91bc77e4",
-  "testRunMeaning": "bound run: python scripts/run_bound_test_suite.py --label evidence-binding-basis-20261008 --modules test_current_reporting test_r5_migration test_contract_bindings test_object_model_backing_gate test_route_payload_contracts test_brief_readback_contract test_template_contracts_gate test_delivery_bom test_production_preflight test_evidence_artifact_presence test_gate_reachability test_test_selfsufficiency_gate test_state_vocabularies_gate test_ledger_schema test_rights_ledger test_design_system_tokens test_interop_dtcg",
+  "testRunAt": "2026-10-08T06:05:33+00:00",
+  "testRunId": "testrun-20261008T060437Z-forward-repeat-6cc2276872ca",
+  "testRunMeaning": "bound run: python scripts/run_bound_test_suite.py --label claim-owner-unification-20261008 --modules test_current_reporting test_ledger_subject_binding test_r5_migration test_contract_bindings test_object_model_backing_gate test_route_payload_contracts test_brief_readback_contract test_template_contracts_gate test_delivery_bom test_production_preflight test_evidence_artifact_presence test_gate_reachability test_test_selfsufficiency_gate test_state_vocabularies_gate test_ledger_schema test_rights_ledger test_design_system_tokens test_interop_dtcg",
   "testRunResult": "OK",
   "worktreeClean": true,
-  "worktreeDigest": "sha256:cd10982a49d3df057ba61ee1a62c179795028f8a4416f8fb80c2e21bfe7ae950"
+  "worktreeDigest": "sha256:17ec983fa894e5778852bbf90a960601591471ba0a75b02f3f5b9b6522702645"
 }
