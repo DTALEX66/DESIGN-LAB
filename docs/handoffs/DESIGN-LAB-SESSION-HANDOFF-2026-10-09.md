@@ -252,3 +252,87 @@ reviewedBy）保持挂起不代签。判定只读实测产物（last-run.json、
 工作流文件被 SHA-256 pin，我不动它；这里只把测到的差异写成可核对的字段名。
 下一步决定（owner 项，已在册）：投影是否停止嵌 `testRunId` 与本机缺件；若停止，
 `--check` 就能作为干净检出上的真门接进 CI，那句注释也就有了可以被验证的版本。
+
+## 10. 追加（同日第三回合）：三条机器依赖的 `--check` 全部改成从 tracked 状态回答，登记表清零
+
+任务表 #21。三个提交，逐条独立可回退：
+
+- `363ba17c` `fix(gates): read the destructive-operation receipts from versioned bytes`
+- `db76cc41` `fix(gates): judge the critical-set record from the repository, not from this machine's runs`
+- `c9b0be1f` `fix(gates): judge the spill census by its rules, and report its bytes`
+
+细节与全部实测数字在 `docs/audits/DESIGNLAB-WRITER-GATE-INVOCATION-AUDIT-2026-10-09.md` §8（含那张
+"比的字段 / 本机值 / 干净检出重算值 / 输入性质 / 新判据 / 机器态词表"六列表）。这里只留结论：
+
+1. `RECOVERY-SAFETY` 的破坏性操作回执原本只活在 `.project-local/`，已逐字节归档到
+   `reports/history/destructive-receipts-2026-09-13/`（3 份，73203 / 3162 / 55071 B，与原件 sha256 一致，
+   本来就是 LF，所以 `.gitattributes` 一个字没改）。门现在从归档字节判，`--check` 也从"只比 verdict
+   一个字段"变成比整份判断。
+2. `DEEPSEEK-FINAL-TEST-GATE` 的运行不可从仓库重放（执行是权威链的事），改后判 16 个模块是否为版本化
+   测试文件、记录自己的数字是否支持自己的结论、DEFERRED 是否还诚实。顺带量到
+   `executed_scope.tests_per_order` 是手写的 220，而它引用的那三条运行各自记 **225**（复跑 450=225×2），
+   这个数字从没被读过；现在派生并被比对，散文按"描述当前事实"与"描述 2026-09-14 那次运行"分别更正。
+3. `SPILL-CENSUS` 记录**故意没重写**（规则读的字段现存记录都带），只把检查换成规则+算术+git 前提+隐私
+   声明，因此它的 `subject_sha` 仍为空、仍在债务表里——这条没有推进 #18/#20。
+4. `verify_projection_freshness.py`：`records=14 verified=14 excluded=0 findings=0`，本机与干净检出
+   （`c9b0be1f`，无 `.project-local`）逐字相同，porcelain 前后 0。EXCLUDED 保留为空 dict，机制由
+   一条"埋一条假豁免必须以 NOTICE 出现且不算 finding"的测试继续覆盖。
+5. 新测试 53 条（15 + 16 + 22），每条守卫都有埋缺陷分支；机器无关性用"把走盘函数换成 raise，判断必须
+   照旧出干净"来证明。
+6. 本轮结束时：`AUTHORITY_GATES=PASS gates=6 failed=none`、`VERIFY_DESIGN_LAB=OK total=73 failed=0`、
+   `VERIFY_REPORT_SUBJECT_BINDING=OK records=69 bound=61 declared_unbound=8 joined_call_sites=0
+   findings=0`、`NO_OVERCLAIM=PASS claims=8 supported=4 qualified=4 unsupported=0`（重跑后计数一字未动，
+   两份被重绑的记录没有引入新主张）。
+
+### 10.1 有两条我**没有**顺手做掉的事，理由实测
+
+- 普查型投影（`LANGUAGE-INVENTORY` / `REPO-CLASSIFICATION`）的 `tracked_files_total` 一类描述性数字，
+  在本轮新增 5 个 tracked 文件后没有重绑。不重绑的理由：记录里记的字段（本机实测
+  `tracked_files_total=1907`，`git ls-files` 今天 3422）本来就声明为快照，而我这轮重写的
+  `--check` 明确只判自相矛盾、把树移动写成 NOTICE；把它们重绑要逐个重写 `subject_sha`，那正是 §9/#20
+  还等 owner 定的问题。要重绑请在同一个决定里做。
+- `RECOVERY-SAFETY.json` 的重绑是**被迫**的（形状变了，不重绑则 `--check` 必然红），因此它的债务行按
+  "债已闭合"规则必须删。登记 `thisRound.rebasedOn` 写清了：在哪个 head 跑的、为什么必须跑、以及
+  "绑定运行记的是运行结束时的 HEAD"这个问题并未因此被决定。#18 的可选项从 9 个变 8 个。
+
+### 10.2 另请 owner 看一眼的一条（我没动）
+
+`reports/current/SPILL-CENSUS.json` 的 `agent_homes.*.path` 记的是本机 agent home 的绝对路径（含用户名），
+`design_lab_owned[]` 记条目名；这些已提交并推送过，现在改不能收回既成事实。是否把这类字段脱敏成
+`~/.codex` 形式、或整段移出 tracked 投影，请定。
+
+## 11. 下一轮提示词（可直接粘贴；§7 的那份已被本节取代）
+
+> 目标不变：持续推进 DESIGN-LAB 前后端打磨，每轮从已入账缺陷/账本 PARTIAL 余量里挑具体项做掉并验证；
+> 严禁无理由重复全量审计（全套、聚合门、重跑普查只在有新证据需求或判定需要时跑，并写明理由）；
+> 判定只读实测产物（`last-run.json`、门输出、CI job 结论）；owner 裁决项（DESIGN.md 主色、sidecar 签字、
+> REQUESTED 包、投影 `testRunId`/`subject_sha` 重绑策略、`agent_homes.*.path` 脱敏）保持挂起不代签。
+>
+> 边界（逐字沿用）：授权项目内本地实现/修复/构建与验证；commit/push/PR/merge/发布/远程删除/付费调用/
+> 跨项目读写/操作真实宿主文档按明确授权分别判断；禁止 reset --hard、clean、批量 restore|checkout、
+> 覆盖未知修改、删真实项目；不读打印密钥；不递归扫全量 `.project-local`|磁盘|Home；E:/F: 无 exact path
+> 不得访问；不改 ACL/提权/全局安装/改 PATH/藏 stderr 让机器协议测试变绿；不改阈值、不删断言、不批量 skip 换绿。
+>
+> 起点（实测于 `c9b0be1f`，本机与干净检出一致）：`VERIFY_PROJECTION_FRESHNESS=OK records=14 verified=14
+> excluded=0 findings=0`；`AUTHORITY_GATES=PASS gates=6`；`VERIFY_DESIGN_LAB=OK total=73 failed=0`；
+> `VERIFY_REPORT_SUBJECT_BINDING=OK records=69 bound=61 declared_unbound=8`；
+> `NO_OVERCLAIM=PASS claims=8 supported=4 qualified=4 unsupported=0`；CI 仍从未执行（11 个 job 全
+> `steps=0`，GitHub Actions 计费是 owner 侧开关）。
+>
+> 第一批（按顺序）：
+> 1. 把 §8 的三条修复接到 CI 可见面：确认 `canonical-verify.yml` 的每一步实际会跑到
+>    `verify_projection_freshness.py`（它在聚合门里），并从 workflow 逐行列出"哪些 `--check` 门在 CI
+>    里根本没有步骤"——被 SHA pin 的工作流我不能改，所以产出一份"需要 owner 批准加的行"清单，
+>    每行附它守的断言与一条能在本地证明它会红的埋缺陷。
+> 2. `#20` 的证据补齐但不代签：逐份列出仍嵌 `testRunId` / `RUNTIME_ARTIFACT_ABSENT_ON_THIS_MACHINE`
+>    的 tracked 投影，给出"删字段"与"保留但在 `--check` 里声明为机器态"两个方案各自的实测影响面
+>    （哪些门、哪些测试、哪条 ledger 引用会变）。
+> 3. 继续做已入账缺陷：`tool-control` 之外的 6 条 `ABSENT_FROM_GIT` lock 行仍指向被 `c9cde8a5` 删掉的树；
+>    先测"现在还有没有可用的上游来源"，把可判的写成门，不可判的按现有格式登记理由。
+> 4. 界面基准那条（首批第 3 项）在没有 owner 的 GUI/联网授权前不再重跑：只把已实测到的"离线材料不足"
+>    （6 个缓存根里 markup/style/tsx 共 83 个非 jsx 文件：css 11 / html 25 / tsx 21 / jsx 119 / svg 26）
+>    维持在册，不造表。
+>
+> 收尾：`git status --porcelain` 必须 0；提交只带本轮实际改的文件；push 后必须用 `git ls-remote`
+> 证明双端一致（不看本地 tracking ref）。每一轮结束给出下一轮提示词。
+
