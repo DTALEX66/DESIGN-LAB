@@ -1286,3 +1286,87 @@ schema 的全部规则都在 `$defs/rootGroup` 里（`minProperties: 1` + `patte
 `test_object_model_backing_gate=12 OK`。
 UNREFERENCED 对象行剩 5 条：`artifact`、`tool-run`、`reference-set`、`candidate-knowledge`、
 `method-card`（其中 `method-card` 仍是 #21 的形状裁定）。
+
+## 28. 简报读回终于有了自己的合同：一条 SCHEMA_LESS 债被还上
+
+### 28.1 测出来的两条不相干的事
+
+`GET /api/projects/<id>/briefs` 返回的分页信封在 `config/contract-bindings.json` 里记的是
+`SCHEMA_LESS`："a paging list of brief rows ... which declares no schemaVersion. Recorded debt."
+而 `object-model.json` 给 brief 指的 `schemas/design-brief.schema.json` 要求
+`discipline / objective / audience / deliverables / constraints`——**产品从来没存过这些字段**。
+真实被写、被读、被页面渲染的是另一套东西（`design_layer.py`）：
+`title` + `goals[]`（非空）+ `constraints?` + `reference_asset_ids[]`（去重、≤32、每个必须是本项目
+真实 asset）+ `spec_sha256` + `version` + `superseded_by` + `created_at`。
+
+也就是说：一个正在被使用的载荷无人校验，而一份校验存在却无人执行。这两件事挨在一起放了一个多月。
+
+### 28.2 还债的方式（以及为什么不复用那份 schema）
+
+新增 `design-lab/schemas/brief-readback.schema.json`：信封
+`required[schemaVersion, briefs, next_cursor]` 且 `additionalProperties:false`，`briefs` 上限 100
+（与 `LIMIT 101` 分页一致），记录用 `$defs/brief` 闭合九字段——`brief_id/superseded_by/next_cursor`
+钉 `^brief-[0-9a-f]{32}$`，`spec_sha256` 钉 `^sha256:[0-9a-f]{64}$`，`goals` `minItems:1`，
+`version` `minimum:1`，全部与写入端已经强制的上限对齐，不新增宽恕。
+`design_layer._check_brief_readback()` 在 **list / get / lineage 三条读路径上**执行，
+不匹配就 `500 BRIEF_CONTRACT_VIOLATION` 并带上字段路径；路由因此不可能把一个"缺列"的简报发给页面，
+让人读成"这个项目没有简报"。
+
+**没有把 brief 行改指到这份新 schema**，这是本轮与 27 节的关键差别：27 节里
+`design-system.schema.json` 与实现描述的是同一个东西（token 文档）而形状写错，所以指过去是纠错；
+这里 `design-brief.schema.json` 描述的是**另一种野心**（专业简报内容模型），把它删掉等于用一次注册表
+编辑替 owner 决定"DESIGN-LAB 不再拥有简报内容模型"。因此两条声明并存，差异写进 ledger 的
+`reason` 里作为未决决定，`brief` 行仍是 TOOLING_ONLY、计数不动（`7/9/5`）。
+
+### 28.3 谁在真实字节上校验它
+
+`design-lab/scripts/verify_route_payload_contracts.py` 增加一条 binding，并在同一个 harness 里
+**用写路由造数据**：POST 一份简报、再 POST 一个 revision（两个版本、一条活链），
+参考 asset 是先 INSERT 的真实 asset 行（`img-` + 64 hex，正是写入端要求的形状）。
+比对的两个载荷都是路由自己写出的字节，包括"本项目一份简报都没有"的空信封分支——空列表必须能被
+读成空项目而不是错误。`VERIFY_ROUTE_PAYLOAD_CONTRACTS=PASS bindings=6`（5→6），
+brief-readback 两条 case 比较 4 个对象位置（两个信封 + 两条记录；`$ref` 会被跟进去，
+所以九字段是真的在比，不是只比外壳）。`contract-bindings.json` 该行由 `SCHEMA_LESS` 变
+`BOUND_SCHEMA`，聚合数从 `bound=14/schema_less=39` 变 `bound=15/schema_less=38`。
+
+### 28.4 顺带：我自己写坏两次，两次都不是编译器抓住的
+
+第一次：我想给 `design_layer.py` 插入常量，把 Edit 的 `new_string` 写成与 `old_string` 几乎相同的
+内容，结果吞掉一个换行，`def _brief(row) -> dict:` 与 `return {` 被并成一行。**这次没有改变行为**——
+Python 允许 def 行上跟单语句套件，我把这个形状单独拿出来编译过（`broken_rc=0`），所以它只是一处
+错误的字节，不是一个故障。真正的问题是：编译器不能当这个编辑的检验器，我不写"它差点没编译过"这种
+没测过的话。
+
+第二次是真坏：我把 `_seed_briefs()` 插进了 `__enter__` 的尾部，`__enter__` 从此没有
+`return self`，`with Harness() as harness` 会拿到 `None`。`py_compile` 同样过了——因为
+`return brief_id` 后面那个孤立的 `return self` 在语法上完全合法，只是永远不会执行。
+**发现它靠的是把方法边界重读一遍**：第一次跑那条门报的是
+`RuntimeError: BRIEF_WRITE_REFUSED 400 INVALID_REFERENCE_ASSET_ID`（参考 id 形状问题），我去读
+`__enter__` 附近 36 行想确认 seed 的调用位置，才看见 `return self` 掉到了我新方法的后面。
+也就是说：一次运行只暴露了它前面那个错误，第二个错误是我在复读结构时抓到的——
+"能编译"不是证据，跑它、并把改动附近读一遍才是。
+
+同一轮里还有一个正向例子：参考 asset id 我用了 `'a1'`，被写入端
+`INVALID_REFERENCE_ASSET_ID` 拒绝。这条拒绝正是那条校验存在的意义，所以我没有放宽校验，而是按
+`_ASSET_ID_SHAPE`（`img-` + 64 hex）先 INSERT 一行真 asset 再引用它。
+
+防复发的断言也加了一条：`test_the_three_brief_reads_all_run_the_guard` 断言
+list / get / lineage 三条读路径源码里都仍在调用校验函数——"某一条读路径悄悄不再判"就是这类合同最
+常见的死法。
+
+### 28.5 本轮数字
+
+`VERIFY_ROUTE_PAYLOAD_CONTRACTS=PASS bindings=6 failures=0`；`VERIFY_CONTRACT_BINDINGS=PASS
+schemas=32 binding=2 inert=30 routes=53 dispatched=53 bound=15 schema_less=38`；
+`DESIGN_KERNEL=PASS`；`OBJECT_MODEL_BACKING=OK product=7 tooling_only=9 unreferenced=5`（未动）；
+新模块 `test_brief_readback_contract.py=19 OK`，`test_design_layer_http=20 OK`、
+`test_design_layer_revision=14 OK`、`test_route_payload_contracts=20 OK`、
+`test_evidence_artifact_presence=4 OK`、`test_gate_reachability=4 OK`、
+`test_test_selfsufficiency_gate=13 OK`。
+四条 `design_layer.py` 行号指针全部按实际行重新核对：`:63`（版本常量，新增）、`:166`
+（EVENT_KINDS，被我的插入从 128 推到 166）、`:291`（validate_token_document，从 253 推到 291）、
+`:799`（hash_document，仍在原位）。
+
+待 owner 裁定：brief 的两份形状——要么把内容模型（discipline/objective/audience/deliverables/
+success_metrics/brand_assets）做进产品，要么正式退役 `design-brief.schema.json`。本轮只还了读回合同
+这条债，没有替它选。

@@ -121,7 +121,39 @@ class Harness:
         self.thread = threading.Thread(target=self.httpd.serve_forever, daemon=True)
         self.thread.start()
         self._file_jury_records()
+        self.brief_id = self._seed_briefs()
         return self
+
+    def _seed_briefs(self):
+        """A real brief plus a real revision of it, through the write routes.
+
+        Two versioned rows so the compared payload exercises more than the single-record case:
+        the list carries both, ``next_cursor`` stays null because the page is not full, and the
+        reference id is a genuine asset of the same project (the writer refuses anything else),
+        so the schema is judged against a record that could not have been assembled by hand.
+        """
+        ref_id = 'img-' + 'a1' * 32
+        with closing(self.assets.connect(self.service.database,
+                                         project_root=self.service.paths.project_root)) as conn:
+            conn.execute('INSERT INTO asset VALUES (?, ?, "psd", ?)',
+                         (ref_id, self.filled, '2026-10-08T00:00:00Z'))
+            conn.commit()
+        status, body = self.call('POST', f'/api/projects/{self.filled}/briefs', {
+            'title': 'Launch poster, zh-CN first', 'goals': ['modern', 'warm', 'restrained'],
+            'constraints': 'must survive single-colour print', 'reference_asset_ids': [ref_id],
+            'idempotency_key': 'brief-contract-create'})
+        if status != 201:
+            raise RuntimeError(f'BRIEF_WRITE_REFUSED {status} {body}')
+        brief_id = body['brief']['brief_id']
+        status, body = self.call('POST', f'/api/projects/{self.filled}/briefs/{brief_id}/revisions',
+                                 {'title': 'Launch poster, zh-CN first',
+                                  'goals': ['modern', 'warm', 'restrained', 'no stock shapes'],
+                                  'constraints': 'must survive single-colour print',
+                                  'reference_asset_ids': [ref_id],
+                                  'idempotency_key': 'brief-contract-revise'})
+        if status != 201:
+            raise RuntimeError(f'BRIEF_REVISION_REFUSED {status} {body}')
+        return brief_id
 
     def __exit__(self, *exc):
         if self.httpd is not None:
@@ -249,6 +281,22 @@ def build_bindings():
             'cases': lambda h: [
                 ('GET .../jury with a verdict and a proposal', h.get(f'/api/projects/{h.filled}/jury')),
                 ('GET .../jury with nothing filed', h.get(f'/api/projects/{h.empty}/jury')),
+            ],
+        },
+        {
+            'name': 'brief-readback',
+            'route': '/api/projects/([0-9a-f]{32})/briefs(?:\\?after=(brief-[0-9a-f]{32}))?',
+            'method': 'GET',
+            'schema': 'design-lab/schemas/brief-readback.schema.json',
+            'emitter': 'src/design_lab/design_layer.py',
+            'version': 'design-lab/brief-readback/v1',
+            # A project whose brief was created AND revised (two versioned rows, a live chain)
+            # against a project that has never had one. The empty branch is the one a page must
+            # not be able to read as a failure, and the populated branch carries a reference id
+            # that only exists because the writer accepted a real asset of the same project.
+            'cases': lambda h: [
+                ('GET .../briefs with a revised brief', h.get(f'/api/projects/{h.filled}/briefs')),
+                ('GET .../briefs with nothing filed', h.get(f'/api/projects/{h.empty}/briefs')),
             ],
         },
         {

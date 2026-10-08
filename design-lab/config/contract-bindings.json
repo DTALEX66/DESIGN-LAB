@@ -490,16 +490,19 @@
     {
       "route": "/api/projects/([0-9a-f]{32})/briefs(?:\\?after=(brief-[0-9a-f]{32}))?",
       "method": "GET",
-      "kind": "SCHEMA_LESS",
+      "kind": "BOUND_SCHEMA",
       "handler": "list_briefs",
-      "reason": "No schema for the envelope: a paging list of brief rows read from the design-layer tables by src/design_lab/design_layer.py, which declares no schemaVersion. Recorded debt."
+      "schema": "design-lab/schemas/brief-readback.schema.json",
+      "version": "design-lab/brief-readback/v1",
+      "emitter": "src/design_lab/design_layer.py:63",
+      "reason": "Debt paid 2026-10-08. The envelope carried no identity, so the brief list the Workbench pages through was described only by a TypeScript interface in shell.ts. design-lab/schemas/brief-readback.schema.json now closes the envelope (schemaVersion, briefs, next_cursor), pins the record fields it actually serves, and bounds the page at 100 rows with at most 32 references per brief -- the limits the writer already enforces. design_layer._check_brief_readback() runs it on every read, so a code change that renames a key or drops the sha256: prefix answers 500 BRIEF_CONTRACT_VIOLATION with the field paths instead of serving a short record. This is NOT design-lab/schemas/design-brief.schema.json, whose discipline/objective/audience/deliverables model no code stores; that divergence stays an open decision."
     },
     {
       "route": "/api/projects/([0-9a-f]{32})/briefs/(brief-[0-9a-f]{32})",
       "method": "GET",
       "kind": "SCHEMA_LESS",
       "handler": "get_brief",
-      "reason": "No schema for the envelope: one brief record from src/design_lab/design_layer.py with no schemaVersion. Recorded debt."
+      "reason": "No schema for the envelope itself: one brief record wrapped in {brief: ...} with no schemaVersion on the wrapper. The record is no longer unjudged -- design_layer validates it against $defs.brief of design-lab/schemas/brief-readback.schema.json on every read (500 BRIEF_CONTRACT_VIOLATION with field paths on a mismatch). Recorded debt: binding the wrapper needs the envelope version, which only list_briefs carries today."
     },
     {
       "route": "/api/projects/([0-9a-f]{32})/directions(?:\\?after=(direction-[0-9a-f]{32}))?",
@@ -520,7 +523,7 @@
       "method": "GET",
       "kind": "SCHEMA_LESS",
       "handler": "lineage_brief",
-      "reason": "No schema for the envelope: the superseded_by chain plus design_layer_event rows, assembled in src/design_lab/design_layer.py with no schemaVersion. The event kinds it reports are pinned by EVENT_KINDS (design_layer.py:128) and the table CHECK, not by a schema. Recorded debt."
+      "reason": "No schema for the envelope: the superseded_by chain plus design_layer_event rows, assembled in src/design_lab/design_layer.py with no schemaVersion on the wrapper. Each version in the chain is now judged -- lineage_brief runs every record through $defs.brief of design-lab/schemas/brief-readback.schema.json and refuses a mismatch as 500 BRIEF_CONTRACT_VIOLATION. The event kinds it reports are pinned by EVENT_KINDS (design_layer.py:166) and the table CHECK, not by a schema. Recorded debt: the wrapper."
     },
     {
       "route": "/api/projects/([0-9a-f]{32})/directions/(direction-[0-9a-f]{32})/lineage",
@@ -748,7 +751,7 @@
       "schema": "design-lab/schemas/interop-dtcg-document.schema.json",
       "version": "2025.10",
       "emitter": "src/design_lab/interop/dtcg.py:79",
-      "reason": "A submitted token document is validated against this schema plus the canonical semantic rules BEFORE anything is persisted, and the write fails closed when no validator is importable (src/design_lab/design_layer.py:253, src/design_lab/interop/dtcg.py:566)."
+      "reason": "A submitted token document is validated against this schema plus the canonical semantic rules BEFORE anything is persisted, and the write fails closed when no validator is importable (src/design_lab/design_layer.py:291, src/design_lab/interop/dtcg.py:566)."
     }
   ]
 }

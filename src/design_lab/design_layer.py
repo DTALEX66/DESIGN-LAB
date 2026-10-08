@@ -54,6 +54,44 @@ from .runtime.paths import PROJECT_ROOT, PathPolicyError
 _CATALOG_PKG = ('design_lab', 'resources', 'design-systems')
 _CATALOG_SOURCE = ('design-lab', 'design-systems')
 
+#: The brief readback's own contract. ``design-lab/schemas/design-brief.schema.json`` declares a
+#: content model -- discipline, objective, audience, deliverables, success_metrics, brand_assets --
+#: that no code in this repository stores, serves or validates, while the route answers with a
+#: versioned record (title, goals, constraints, reference ids, spec digest, chain pointers). Rather
+#: than leave the served payload described only by a TypeScript interface in the page, the payload
+#: gets the contract it actually satisfies; the divergence of the two shapes stays an open decision.
+BRIEF_READBACK_SCHEMA_VERSION = 'design-lab/brief-readback/v1'
+BRIEF_READBACK_SCHEMA_PATH = (Path(PROJECT_ROOT) / 'design-lab' / 'schemas'
+                              / 'brief-readback.schema.json')
+
+
+def _brief_readback_schema():
+    from .interop import load_schema
+    schema = load_schema(BRIEF_READBACK_SCHEMA_PATH)
+    if not (schema.get('$defs') or {}).get('brief'):
+        raise DesignLayerError(500, 'BRIEF_CONTRACT_VIOLATION',
+                               [f'{BRIEF_READBACK_SCHEMA_PATH.name} declares no $defs.brief record'])
+    return schema
+
+
+def _check_brief_readback(payload, *, envelope: bool):
+    """Refuse to serve a brief that does not satisfy the readback contract.
+
+    Every field here is written by this module, so a mismatch means code and contract have diverged
+    -- a renamed key, a dropped ``sha256:`` prefix, a null replaced by an empty string. Without this
+    the page would receive a short record and a reader would call the project empty; with it the
+    failure is a named 500 carrying the field paths.
+    """
+    schema = _brief_readback_schema()
+    target = schema if envelope else {**(schema['$defs']['brief']), '$defs': schema['$defs']}
+    try:
+        problems = schema_errors(target, payload)
+    except InteropError as exc:
+        raise DesignLayerError(500, 'BRIEF_CONTRACT_VIOLATION', [str(exc)]) from exc
+    if problems:
+        raise DesignLayerError(500, 'BRIEF_CONTRACT_VIOLATION', problems)
+    return payload
+
 
 def _catalog_root():
     """Return the first design-system catalog root that actually has manifests."""
@@ -446,8 +484,10 @@ class DesignLayer:
         rows = self._rows(
             "SELECT * FROM design_brief WHERE project_id=? AND brief_id>? ORDER BY brief_id LIMIT 101",
             (project_id, after))
-        return {'briefs': [self._brief(r) for r in rows[:100]],
-                'next_cursor': rows[99]['brief_id'] if len(rows) > 100 else None}
+        return _check_brief_readback(
+            {'schemaVersion': BRIEF_READBACK_SCHEMA_VERSION,
+             'briefs': [self._brief(r) for r in rows[:100]],
+             'next_cursor': rows[99]['brief_id'] if len(rows) > 100 else None}, envelope=True)
 
     def get_brief(self, project_id, brief_id):
         self._check_project(project_id)
@@ -455,7 +495,7 @@ class DesignLayer:
             "SELECT * FROM design_brief WHERE project_id=? AND brief_id=?", (project_id, brief_id))
         if not rows:
             raise DesignLayerError(404, 'BRIEF_NOT_FOUND')
-        return {'brief': self._brief(rows[0])}
+        return {'brief': _check_brief_readback(self._brief(rows[0]), envelope=False)}
 
     def revise_brief(self, project_id, brief_id, *, title, goals, constraints,
                      reference_asset_ids, idempotency_key):
@@ -1034,9 +1074,12 @@ class DesignLayer:
     def lineage_brief(self, project_id, brief_id):
         """The brief's version chain, oldest version first (read-only)."""
         self._check_project(project_id)
-        return {'lineage': {'brief_id': brief_id, **self._chain(
-            project_id, brief_id, "SELECT * FROM design_brief WHERE project_id=?", 'brief_id',
-            'brief-revised', 'BRIEF_NOT_FOUND', self._brief)}}
+        chain = self._chain(project_id, brief_id,
+                            "SELECT * FROM design_brief WHERE project_id=?", 'brief_id',
+                            'brief-revised', 'BRIEF_NOT_FOUND', self._brief)
+        for record in chain['versions']:
+            _check_brief_readback(record, envelope=False)
+        return {'lineage': {'brief_id': brief_id, **chain}}
 
     def lineage_direction(self, project_id, direction_id):
         """The direction's version chain, oldest version first (read-only)."""
