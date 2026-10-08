@@ -11,9 +11,15 @@ that is also an orphan), and three further checks pass on the machine that gener
 and fail on a clean checkout, which means their green proves nothing about the repository.
 
 So this gate runs each entry's own read-only form and reports the verdict lines, and the entry list
-is exactly the set measured to pass in **both** trees. The four excluded entries are declared below
-with the reason and what would let them in; they are not silently dropped, and a fifth cannot join
-without an entry here plus a stated reason for any removal.
+is exactly the set measured to pass in **both** trees. Two of those three have since been fixed and
+moved into ENTRIES: RECOVERY-SAFETY on 2026-10-09, by archiving its destructive-operation receipts
+under reports/history/destructive-receipts-2026-09-13 so the verdict reads versioned bytes instead
+of this machine's gitignored ``.project-local``. SPILL-CENSUS and DEEPSEEK-FINAL-TEST-GATE remain
+declared below with the reason and what would let them in; they are not silently dropped, and a
+third cannot join without an entry here plus a stated reason for any removal. (Dated correction: the
+first version of this docstring said "four excluded entries" while the table held three -- a number
+written from a remembered list rather than from the bytes, which is the same class of defect the
+gate exists to catch.)
 
 Read-only by construction: only the ``--check``/``--self-test`` argv appears in ENTRIES, and
 ``test_projection_freshness.py`` refuses an entry whose argument list is empty (that is the writer
@@ -47,10 +53,15 @@ ENTRIES = [
     ("reports/current/SUPPLY-CHAIN-REPORT.json", "scripts/verify_supply_chain.py", ["--check"]),
     ("reports/current/MACHINE_INVENTORY.json", "scripts/generate_machine_inventory.py",
      ["--check"]),
+    # Left the register below on 2026-10-09: the three destructive-operation receipts it audits
+    # are archived under reports/history/destructive-receipts-2026-09-13, so the verdict no longer
+    # depends on this machine's gitignored .project-local copies.
+    ("reports/current/RECOVERY-SAFETY.json", "scripts/verify_recovery_safety.py", ["--check"]),
 ]
 
 # Excluded, each with the measured reason. These stay visible here precisely so that "the gate is
-# green" never reads as "every projection was verified".
+# green" never reads as "every projection was verified". The set only shrinks by fixing a check;
+# test_projection_freshness.py names the members, so one cannot join silently.
 EXCLUDED = {
     "reports/current/SPILL-CENSUS.json":
         "scripts/deepseek_spill_census.py --check passes in the tree that generated the record and "
@@ -61,9 +72,6 @@ EXCLUDED = {
         ".project-local/task-artifacts/test-run/history.jsonl, which is gitignored, so on a clone "
         "it says 'results changed since generation'; the authority chain handles that by running "
         "the bound suite instead, which is an execution and not a check",
-    "reports/current/RECOVERY-SAFETY.json":
-        "scripts/verify_recovery_safety.py --check passes locally and reports DRIFT on a clean "
-        "checkout; same reason for exclusion as SPILL-CENSUS",
 }
 
 READ_ONLY_FLAGS = ("--check", "--self-test")

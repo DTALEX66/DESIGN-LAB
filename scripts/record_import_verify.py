@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # SPDX-License-Identifier: MIT
-"""DL-REC-29 verification: re-prove that every landed import equals its source.
+r"""DL-REC-29 verification: re-prove that every landed import equals its source.
 
 Reads the committed manifest and, for each row, compares NAME + SIZE + CRC32 + sha256:
 

@@ -315,7 +315,20 @@ class ReportSubjectBindingTests(unittest.TestCase):
     def test_the_shipped_register_declares_exactly_the_measured_debt(self) -> None:
         document = json.loads((ROOT / DEBT_REL).read_text(encoding="utf-8"))
         records, calls = document["records"], document["callSites"]
-        self.assertEqual(len(records), 9, "the unbound set only moves when a record is re-run")
+        # Pinned as a set: a row may leave only by the record being re-run at a recorded head,
+        # and a new one may not join silently. RECOVERY-SAFETY left on 2026-10-09 when
+        # scripts/verify_recovery_safety.py changed its own verdict shape and had to be rebound;
+        # the register's `thisRound.rebasedOn` records that run and what it did not decide.
+        self.assertEqual(sorted(row["path"] for row in records),
+                         ["design-lab/config/rights-registry.json",
+                          "reports/current/CLEAN-TREE-REPORT.json",
+                          "reports/current/CONTRACT-GRAPH.json",
+                          "reports/current/FOUNDATION-AUDIT.json",
+                          "reports/current/LANGUAGE-BOUNDARY-SCAN.json",
+                          "reports/current/POST-CLEANUP-AUDIT.json",
+                          "reports/current/REPOSITORY-SIZE.json",
+                          "reports/current/SPILL-CENSUS.json"],
+                         "the unbound set only moves when a record is re-run")
         # Pinned with the reason. On 2026-10-09 all nine producers were repaired, so the code
         # debt is closed and only the data debt is left; a new joined call is refused outright
         # by GIT-ARG-JOINED instead of landing here as a row.
@@ -339,7 +352,7 @@ class ReportSubjectBindingTests(unittest.TestCase):
                              f"{declared['producer']} still contains the broken shape")
 
     def test_every_declared_gap_names_the_evidence_it_would_re_base(self) -> None:
-        """Why these nine were not simply re-run: each record is cited by a closed ledger task."""
+        """Why these rows were not simply re-run: each record is cited by a closed ledger task."""
         document = json.loads((ROOT / DEBT_REL).read_text(encoding="utf-8"))
         for declared in document["records"]:
             tasks = declared["citedByLedgerTasks"]

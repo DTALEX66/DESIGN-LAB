@@ -14,12 +14,22 @@ no successors, and a reconciliation API must demand a proof.
 
 Writes reports/current/RECOVERY-SAFETY.json.
 
+The verdict answers from tracked state only. I000 was measured on 2026-10-09 to read its
+three receipts from ``.project-local``, which is gitignored, so in a clean checkout of the
+commit that recorded PASS all three came back missing and the gate reported DRIFT -- a
+destructive-operation receipt that survives only on the machine that produced it is not a
+receipt. The three manifests are therefore archived under ``reports/history/`` (byte-for-byte
+copies, sha256 verified against the live files at copy time) and audited from there. What the
+live copies still hold on this machine is reported, never compared, so a clean CI checkout
+gets the same judgement as this workstation.
+
 Usage:
     python scripts/verify_recovery_safety.py [--check]
 """
 from __future__ import annotations
 
 import argparse
+import hashlib
 import inspect
 import json
 import re
@@ -33,18 +43,27 @@ sys.path.insert(0, str(REPO / "src"))
 OUT = REPO / "reports/current/RECOVERY-SAFETY.json"
 TASK_KEYS = ["DL-TP-20260914-DEEPSEEK-AUTHORITY-R1::DLDS-I000",
              "DL-TP-20260914-DEEPSEEK-AUTHORITY-R1::DLDS-I010"]
-# manifest path -> the tool that writes it
+AUTHORITY_ID = TASK_KEYS[0].split("::")[0]
+OPERATION_ID = re.compile(r"DLDS-[A-Z]\d{3}")
+RECEIPT_ARCHIVE = "reports/history/destructive-receipts-2026-09-13"
+# archived receipt -> (the tool that wrote it, the machine-local copy it was taken from)
 MANIFESTS = {
-    ".project-local/quarantine/deepseek-round1/RUNTIME-CLEANUP-MANIFEST.json":
+    f"{RECEIPT_ARCHIVE}/RUNTIME-CLEANUP-MANIFEST.json": (
         "scripts/deepseek_runtime_cleanup.py",
-    ".project-local/quarantine/deepseek-round1/DELETE-MANIFEST.json":
+        ".project-local/quarantine/deepseek-round1/RUNTIME-CLEANUP-MANIFEST.json"),
+    f"{RECEIPT_ARCHIVE}/DELETE-MANIFEST.json": (
         "scripts/deepseek_quarantine_out_of_pack.py",
-    ".project-local/archive/hermes-legacy/MIGRATION-MANIFEST.json":
+        ".project-local/quarantine/deepseek-round1/DELETE-MANIFEST.json"),
+    f"{RECEIPT_ARCHIVE}/MIGRATION-MANIFEST.json": (
         "scripts/deepseek_hermes_migration.py",
+        ".project-local/archive/hermes-legacy/MIGRATION-MANIFEST.json"),
 }
 UNKNOWN_OUTCOME_TESTS = ("design-lab/tests/test_runtime_attempt_safety.py",
                          "design-lab/tests/test_boot_reconciliation.py",
                          "design-lab/tests/test_native_tasks.py")
+# A receipt must name the operation it receipts, and only address repository paths.
+RECEIPT_TASK_KEY_FIELDS = ("task_key", "task_keys")
+RECEIPT_PATH_FIELDS = ("path", "source", "target", "quarantined_to", "restore", "deleted_to")
 
 
 def git(*args: str) -> str:
@@ -52,10 +71,37 @@ def git(*args: str) -> str:
                           encoding="utf-8", errors="replace").stdout.strip()
 
 
-def audit_manifest(rel: str, tool: str) -> dict:
+def file_digest(path: Path) -> str:
+    return "sha256:" + hashlib.sha256(path.read_bytes()).hexdigest()
+
+
+def repo_relative(rel: str) -> bool:
+    """True when the receipt addresses a repository path, not a drive or a home directory."""
+    text = str(rel).replace("\\", "/")
+    if not text or text.startswith("/"):
+        return False
+    if re.match(r"^[A-Za-z]:", text):
+        return False
+    return not Path(text).is_absolute()
+
+
+def tool_operation_ids(tool_source: str) -> set:
+    """The operation ids the producing tool itself declares.
+
+    One tool stamps several ids (the hermes migration writes E020/E030/E040 into one
+    manifest), so the join is a set test rather than a single-key equality.
+    """
+    return set(OPERATION_ID.findall(tool_source))
+
+
+
+def audit_manifest(rel: str, tool: str, live_rel: str) -> dict:
+    """Audit one archived receipt, and report (never judge) the live copy on this machine."""
     path = REPO / rel
+    audit = {"receipt": rel, "tool": tool, "live_copy": live_rel, "exists": False,
+             "elements": {}, "ok": False}
     if not path.is_file():
-        return {"manifest": rel, "tool": tool, "exists": False, "elements": {}, "ok": False}
+        return audit
     document = json.loads(path.read_text(encoding="utf-8"))
     records = document.get("records") or document.get("deleted") or document.get("files") or []
     text = json.dumps(document, ensure_ascii=False).lower()
@@ -75,9 +121,50 @@ def audit_manifest(rel: str, tool: str) -> dict:
     }
     tool_source = (REPO / tool).read_text(encoding="utf-8") if (REPO / tool).is_file() else ""
     tool_modes = {"plan_mode": "--plan" in tool_source, "restore_mode": "--restore" in tool_source}
-    return {"manifest": rel, "tool": tool, "exists": True, "entries": len(records),
-            "elements": elements, "tool_modes": tool_modes,
-            "ok": all(elements.values()) and all(tool_modes.values())}
+
+    # Binding checks: all machine-independent, all answerable from the archived bytes.
+    # Measured 2026-10-09: a receipt does NOT carry this gate's own I000/I010 keys -- each
+    # operation is stamped with the id of the tool that performed it (DLDS-D030, DLDS-A040,
+    # DLDS-E020..E040). So the join is receipt id <-> id declared in that tool's source.
+    declared = set()
+    for field in RECEIPT_TASK_KEY_FIELDS:
+        value = document.get(field)
+        declared.update(value if isinstance(value, list) else ([value] if value else []))
+    off_authority = sorted(key for key in declared if not key.startswith(AUTHORITY_ID + "::"))
+    foreign_ids = sorted({operation for key in declared
+                          for operation in OPERATION_ID.findall(key)
+                          if operation not in tool_operation_ids(tool_source)})
+    unversioned = sorted({str(r.get(field)) for r in records for field in RECEIPT_PATH_FIELDS
+                          if field in r and not repo_relative(r.get(field) or "")})
+    tracked = git("ls-files", "--", rel)
+    binding = {
+        "names_the_tools_operation": bool(declared) and not foreign_ids and not off_authority,
+        "receipt_task_keys": sorted(declared),
+        "keys_outside_the_authority_pack": off_authority,
+        "ids_the_producing_tool_never_declares": foreign_ids,
+        "paths_are_repo_relative": not unversioned,
+        "non_repository_paths": unversioned[:10],
+        "receipt_is_versioned": bool(tracked),
+    }
+    live = REPO / live_rel
+    if not live.is_file():
+        copy_state = "LIVE_COPY_ABSENT"          # a clean checkout: expected, not a defect
+    elif file_digest(live) == file_digest(path):
+        copy_state = "MATCHES_ARCHIVED_COPY"
+    else:
+        copy_state = "DIFFERS_FROM_ARCHIVED_COPY"
+
+    audit.update({
+        "exists": True, "entries": len(records), "elements": elements, "tool_modes": tool_modes,
+        "binding": binding,
+        "archived_digest": file_digest(path),
+        # Reported, never compared by --check: whether this machine still holds the same bytes.
+        "live_copy_state": copy_state,
+        "ok": (all(elements.values()) and all(tool_modes.values())
+               and all(value for key, value in binding.items() if isinstance(value, bool))),
+    })
+    return audit
+
 
 
 PRODUCTION_ROOT = REPO / "src" / "design_lab"
@@ -288,16 +375,21 @@ def main(argv=None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--check", action="store_true")
     args = parser.parse_args(argv)
-    manifests = [audit_manifest(rel, tool) for rel, tool in MANIFESTS.items()]
+    manifests = [audit_manifest(rel, tool, live) for rel, (tool, live) in MANIFESTS.items()]
     recovery = audit_unknown_outcome()
-    failures = [m["manifest"] for m in manifests if not m["ok"]]
+    failures = [m["receipt"] for m in manifests if not m["ok"]]
     document = {
-        "schemaVersion": "design-lab/recovery-safety/v1",
+        "schemaVersion": "design-lab/recovery-safety/v2",
         "task_keys": TASK_KEYS,
         "checked_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
         "subject_sha": git("rev-parse", "HEAD"),
+        "verdict_rule": "answerable from tracked state: the archived receipts, the three tools "
+                        "in the repository, and the runtime state machine in src/. The live "
+                        "copies under .project-local are reported as machine state and are "
+                        "never compared, so a clean checkout judges the same as this disk.",
         "I000_destructive_operations": {
             "doctrine": "plan -> candidate list -> backup/digest -> verification -> rollback -> receipt",
+            "receipt_archive": RECEIPT_ARCHIVE,
             "manifests": manifests, "failures": failures,
         },
         "I010_unknown_outcome": {
@@ -308,10 +400,32 @@ def main(argv=None) -> int:
         "verdict": "PASS" if not failures and recovery["ok"] else "FAIL",
     }
     if args.check:
-        if not OUT.is_file() or json.loads(OUT.read_text(encoding="utf-8"))["verdict"] != document["verdict"]:
-            print("RECOVERY_SAFETY=DRIFT")
+        if not OUT.is_file():
+            print("RECOVERY_SAFETY=DRIFT missing RECOVERY-SAFETY.json")
             return 1
-        print("RECOVERY_SAFETY=PASS")
+        stored = json.loads(OUT.read_text(encoding="utf-8"))
+        volatile = {"checked_at", "subject_sha"}
+
+        def strip_machine(node):
+            if isinstance(node, dict):
+                return {key: strip_machine(value) for key, value in node.items()
+                        if key != "live_copy_state"}
+            if isinstance(node, list):
+                return [strip_machine(item) for item in node]
+            return node
+
+        stored_part = {k: strip_machine(v) for k, v in stored.items() if k not in volatile}
+        fresh_part = {k: strip_machine(v) for k, v in document.items() if k not in volatile}
+        if stored_part != fresh_part:
+            drifted = sorted({k for k in set(stored_part) | set(fresh_part)
+                              if stored_part.get(k) != fresh_part.get(k)})
+            print(f"RECOVERY_SAFETY=DRIFT fields changed since generation {drifted}")
+            return 1
+        copies = {}
+        for item in manifests:
+            copies[item["live_copy_state"]] = copies.get(item["live_copy_state"], 0) + 1
+        print("RECOVERY_SAFETY=PASS receipts audited from tracked state "
+              + " ".join(f"{key}={value}" for key, value in sorted(copies.items())))
         return 0
     OUT.parent.mkdir(parents=True, exist_ok=True)
     OUT.write_text(json.dumps(document, indent=2, ensure_ascii=False) + "\n", encoding="utf-8", newline="\n")
@@ -320,11 +434,15 @@ def main(argv=None) -> int:
     for item in manifests:
         missing = [name for name, present in item["elements"].items() if not present]
         modes = [name for name, present in item.get("tool_modes", {}).items() if not present]
-        print(f"  {'ok  ' if item['ok'] else 'FAIL'} {Path(item['manifest']).name:32} "
-              f"entries={item.get('entries')} missing={missing or 'none'} modes={modes or 'ok'}")
+        binding = [name for name, present in item.get("binding", {}).items()
+                   if isinstance(present, bool) and not present]
+        print(f"  {'ok  ' if item['ok'] else 'FAIL'} {Path(item['receipt']).name:32} "
+              f"entries={item.get('entries')} missing={missing or 'none'} modes={modes or 'ok'} "
+              f"binding={binding or 'ok'} live={item.get('live_copy_state')}")
     for finding in recovery["findings"]:
         print("  FINDING:", finding)
     return 0 if document["verdict"] == "PASS" else 1
+
 
 
 if __name__ == "__main__":

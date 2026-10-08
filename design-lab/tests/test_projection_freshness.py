@@ -6,8 +6,9 @@ Two defects came out of building `verify_projection_freshness.py`. The first:
 the live tree, so it had been red for weeks while nothing ran it -- no workflow step, no aggregate
 entry, no test, and no reachability pattern match. The second: three other read-only forms pass on
 the machine that generated their record and report DRIFT in a clean checkout of the same commit, so
-their green describes a disk rather than a repository. Those three are named exclusions with
-reasons, not dropped entries.
+their green describes a disk rather than a repository. Those were named exclusions with reasons, not
+dropped entries; one of them (RECOVERY-SAFETY) has since been fixed by archiving the receipts it
+audits, and the two left are still named in `test_exclusions_are_named_with_a_reason_and_a_real_script`.
 
 The falsification that matters here is the writer form: an entry invoked with no arguments is the
 bug this gate exists to catch, so a test plants exactly that and requires the gate to refuse.
@@ -60,8 +61,16 @@ class EntryTableTests(unittest.TestCase):
         # parses that list rather than grepping it -- one guard, one shape, no duplicated rule here.
 
     def test_exclusions_are_named_with_a_reason_and_a_real_script(self) -> None:
-        self.assertEqual(len(v.EXCLUDED), 3, "an exclusion may only be removed by fixing the "
-                                            "check, never by deleting the row")
+        # A shrinking register: the set is named because a row may only leave by fixing the
+        # check, and a new row must be a deliberate edit here as well.
+        # RECOVERY-SAFETY left on 2026-10-09: its three destructive-operation receipts were
+        # archived under reports/history/destructive-receipts-2026-09-13 and the gate now
+        # audits them from there, so a clean checkout reaches the same verdict as this disk.
+        self.assertEqual(sorted(v.EXCLUDED),
+                         ["reports/current/DEEPSEEK-FINAL-TEST-GATE.json",
+                          "reports/current/SPILL-CENSUS.json"],
+                         "the set of excluded projections moved; either fix the check and "
+                         "remove the row, or record here why the expectation moved")
         for record, reason in v.EXCLUDED.items():
             self.assertTrue((ROOT / record).is_file(), record)
             self.assertGreater(len(reason), 60, f"{record}'s exclusion reason is a placeholder")
@@ -79,7 +88,7 @@ class FindingTests(unittest.TestCase):
         failures, exclusions, checked, missing = v.check()
         self.assertEqual(failures, [], "a tracked projection disagrees with its own record")
         self.assertEqual(missing, [])
-        self.assertEqual((len(checked), len(exclusions)), (len(v.ENTRIES), 3))
+        self.assertEqual((len(checked), len(exclusions)), (len(v.ENTRIES), len(v.EXCLUDED)))
 
     def test_a_writer_entry_is_refused(self) -> None:
         v.ENTRIES[0] = (v.ENTRIES[0][0], v.ENTRIES[0][1], [])
@@ -153,7 +162,12 @@ class RuntimeTests(unittest.TestCase):
                          (self.gate_run.stdout or "")[-1200:] + (self.gate_run.stderr or "")[-600:])
         lines = [line for line in self.gate_run.stdout.splitlines() if line.strip()]
         self.assertTrue(lines[-1].startswith("VERIFY_PROJECTION_FRESHNESS=OK"), lines[-1])
-        self.assertIn("excluded=3", lines[-1])
+        # Derived from the gate's own tables rather than a literal: a pinned number here went
+        # stale the moment an exclusion was fixed, which is the opposite of what it should catch.
+        self.assertIn(f"records={len(v.ENTRIES)}", lines[-1])
+        self.assertIn(f"excluded={len(v.EXCLUDED)}", lines[-1])
+        self.assertLess(len(v.EXCLUDED), len(v.ENTRIES),
+                        "the gate excludes as many records as it holds, so it verifies nothing")
 
     def test_it_writes_no_tracked_file(self) -> None:
         self.assertEqual(self.porcelain_before, self.porcelain_after,
