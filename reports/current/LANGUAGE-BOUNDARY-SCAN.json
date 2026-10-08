@@ -4,9 +4,9 @@
     "DL-TP-20260914-DEEPSEEK-AUTHORITY-R1::DLDS-C020",
     "DL-TP-20260914-DEEPSEEK-AUTHORITY-R1::DLDS-C050"
   ],
-  "generated_at": "2026-10-06T20:00:16+00:00",
+  "generated_at": "2026-10-08T16:10:27+00:00",
   "subject_sha": "",
-  "tracked_files_scanned": 2966,
+  "tracked_files_scanned": 3360,
   "language_boundary": {
     "forbidden_language_files": [],
     "fixture_scoped_language_files": [
@@ -233,7 +233,7 @@
         "vocabulary": "evidence_levels",
         "schema": "design-lab/schemas/capability-status.schema.json",
         "path": "src/design_lab/interop/delivery_receipt.py",
-        "line": 42,
+        "line": 43,
         "tokens_present": [
           "BLOCKED",
           "FAIL",
@@ -306,7 +306,7 @@
         "vocabulary": "task_axes_states",
         "schema": "design-lab/schemas/task-ledger-r3.schema.json",
         "path": "src/design_lab/interop/delivery_receipt.py",
-        "line": 42,
+        "line": 43,
         "tokens_present": [
           "BLOCKED",
           "FAIL",
