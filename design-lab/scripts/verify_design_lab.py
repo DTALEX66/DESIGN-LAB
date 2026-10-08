@@ -134,6 +134,12 @@ SCRIPTS = [
     # to the digest the lock records -- so "we hold these 37 trees" stops being a claim about
     # somebody's disk. Runs with no arguments: the check reads repository state only.
     "verify_vendor_manifests.py",
+    # Tracked projections that publish a subject field. `git("rev-parse HEAD")` as one argv
+    # element is rejected by git, the helper returns empty stdout, and the field is written as
+    # "" -- nine records were in that state with nothing checking it. The gate grades every
+    # `subject_sha`/`subjectSha` under reports/current and design-lab/config against a shrinking
+    # debt register, and refuses the call shape itself so a tenth cannot appear.
+    "verify_report_subject_binding.py",
     "verify_v2_protocols.py",
     "verify_visual_quality_v21.py",
     "verify_style_master_method.py",

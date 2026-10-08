@@ -1,0 +1,149 @@
+{
+  "schemaVersion": "design-lab/report-subject-debt/v1",
+  "declaredBy": "qoder agent, 2026-10-09, from the measurement in the same commit that added design-lab/scripts/verify_report_subject_binding.py",
+  "meaning": "these tracked projections publish a subject field that names no commit, and each row is produced by the joined git call declared beside it. This is a booked defect list, not an exemption: it is allowed to shrink and never to grow silently, and a new joined call in any generator is refused outright.",
+  "beforeThisRegister": {
+    "recordsWithSubjectKey": 69,
+    "unbound": 9,
+    "joinedGitCallSites": 9
+  },
+  "records": [
+    {
+      "path": "reports/current/CLEAN-TREE-REPORT.json",
+      "key": "subject_sha",
+      "producer": "scripts/verify_clean_tree.py",
+      "reason": "the generator calls git(\"rev-parse HEAD\") as one argv element, so git rejects it, the helper returns empty stdout, and this field is written as \"\". Fixed shape: git(\"rev-parse\", \"HEAD\"). Closing this row means fixing the call, regenerating the record, and deleting BOTH the record row and its callSites row in the same commit -- verify_report_subject_binding.py convicts a row that stays after the field is bound.",
+      "declaredOn": "2026-10-09"
+    },
+    {
+      "path": "reports/current/CONTRACT-GRAPH.json",
+      "key": "subject_sha",
+      "producer": "scripts/verify_contract_graph.py",
+      "reason": "the generator calls git(\"rev-parse HEAD\") as one argv element, so git rejects it, the helper returns empty stdout, and this field is written as \"\". Fixed shape: git(\"rev-parse\", \"HEAD\"). Closing this row means fixing the call, regenerating the record, and deleting BOTH the record row and its callSites row in the same commit -- verify_report_subject_binding.py convicts a row that stays after the field is bound.",
+      "declaredOn": "2026-10-09"
+    },
+    {
+      "path": "reports/current/FOUNDATION-AUDIT.json",
+      "key": "subject_sha",
+      "producer": "scripts/deepseek_foundation_audit.py",
+      "reason": "the generator calls git(\"rev-parse HEAD\") as one argv element, so git rejects it, the helper returns empty stdout, and this field is written as \"\". Fixed shape: git(\"rev-parse\", \"HEAD\"). Closing this row means fixing the call, regenerating the record, and deleting BOTH the record row and its callSites row in the same commit -- verify_report_subject_binding.py convicts a row that stays after the field is bound.",
+      "declaredOn": "2026-10-09"
+    },
+    {
+      "path": "reports/current/LANGUAGE-BOUNDARY-SCAN.json",
+      "key": "subject_sha",
+      "producer": "scripts/verify_language_boundary.py",
+      "reason": "the generator calls git(\"rev-parse HEAD\") as one argv element, so git rejects it, the helper returns empty stdout, and this field is written as \"\". Fixed shape: git(\"rev-parse\", \"HEAD\"). Closing this row means fixing the call, regenerating the record, and deleting BOTH the record row and its callSites row in the same commit -- verify_report_subject_binding.py convicts a row that stays after the field is bound.",
+      "declaredOn": "2026-10-09"
+    },
+    {
+      "path": "reports/current/POST-CLEANUP-AUDIT.json",
+      "key": "subject_sha",
+      "producer": "scripts/deepseek_post_cleanup_audit.py",
+      "reason": "the generator calls git(\"rev-parse HEAD\") as one argv element, so git rejects it, the helper returns empty stdout, and this field is written as \"\". Fixed shape: git(\"rev-parse\", \"HEAD\"). Closing this row means fixing the call, regenerating the record, and deleting BOTH the record row and its callSites row in the same commit -- verify_report_subject_binding.py convicts a row that stays after the field is bound.",
+      "declaredOn": "2026-10-09"
+    },
+    {
+      "path": "reports/current/RECOVERY-SAFETY.json",
+      "key": "subject_sha",
+      "producer": "scripts/verify_recovery_safety.py",
+      "reason": "the generator calls git(\"rev-parse HEAD\") as one argv element, so git rejects it, the helper returns empty stdout, and this field is written as \"\". Fixed shape: git(\"rev-parse\", \"HEAD\"). Closing this row means fixing the call, regenerating the record, and deleting BOTH the record row and its callSites row in the same commit -- verify_report_subject_binding.py convicts a row that stays after the field is bound.",
+      "declaredOn": "2026-10-09"
+    },
+    {
+      "path": "reports/current/REPOSITORY-SIZE.json",
+      "key": "subject_sha",
+      "producer": "scripts/deepseek_size_audit.py",
+      "reason": "the generator calls git(\"rev-parse HEAD\") as one argv element, so git rejects it, the helper returns empty stdout, and this field is written as \"\". Fixed shape: git(\"rev-parse\", \"HEAD\"). Closing this row means fixing the call, regenerating the record, and deleting BOTH the record row and its callSites row in the same commit -- verify_report_subject_binding.py convicts a row that stays after the field is bound.",
+      "declaredOn": "2026-10-09"
+    },
+    {
+      "path": "reports/current/SPILL-CENSUS.json",
+      "key": "subject_sha",
+      "producer": "scripts/deepseek_spill_census.py",
+      "reason": "the generator calls git(\"rev-parse HEAD\") as one argv element, so git rejects it, the helper returns empty stdout, and this field is written as \"\". Fixed shape: git(\"rev-parse\", \"HEAD\"). Closing this row means fixing the call, regenerating the record, and deleting BOTH the record row and its callSites row in the same commit -- verify_report_subject_binding.py convicts a row that stays after the field is bound.",
+      "declaredOn": "2026-10-09"
+    },
+    {
+      "path": "design-lab/config/rights-registry.json",
+      "key": "subject_sha",
+      "producer": "scripts/generate_rights_registry.py",
+      "reason": "the generator calls git(\"rev-parse HEAD\") as one argv element, so git rejects it, the helper returns empty stdout, and this field is written as \"\". Fixed shape: git(\"rev-parse\", \"HEAD\"). Closing this row means fixing the call, regenerating the record, and deleting BOTH the record row and its callSites row in the same commit -- verify_report_subject_binding.py convicts a row that stays after the field is bound.",
+      "declaredOn": "2026-10-09"
+    }
+  ],
+  "callSites": [
+    {
+      "script": "scripts/deepseek_foundation_audit.py",
+      "joinedArgument": "rev-parse HEAD",
+      "line": 161,
+      "writesRecord": "reports/current/FOUNDATION-AUDIT.json",
+      "reason": "one argv element where git needs two, so `git rev-parse HEAD` never runs and the record this script writes carries an empty subject. Fix the call at this line, regenerate that record, and delete BOTH rows in the same commit.",
+      "declaredOn": "2026-10-09"
+    },
+    {
+      "script": "scripts/deepseek_post_cleanup_audit.py",
+      "joinedArgument": "rev-parse HEAD",
+      "line": 153,
+      "writesRecord": "reports/current/POST-CLEANUP-AUDIT.json",
+      "reason": "one argv element where git needs two, so `git rev-parse HEAD` never runs and the record this script writes carries an empty subject. Fix the call at this line, regenerate that record, and delete BOTH rows in the same commit.",
+      "declaredOn": "2026-10-09"
+    },
+    {
+      "script": "scripts/deepseek_size_audit.py",
+      "joinedArgument": "rev-parse HEAD",
+      "line": 147,
+      "writesRecord": "reports/current/REPOSITORY-SIZE.json",
+      "reason": "one argv element where git needs two, so `git rev-parse HEAD` never runs and the record this script writes carries an empty subject. Fix the call at this line, regenerate that record, and delete BOTH rows in the same commit.",
+      "declaredOn": "2026-10-09"
+    },
+    {
+      "script": "scripts/deepseek_spill_census.py",
+      "joinedArgument": "rev-parse HEAD",
+      "line": 190,
+      "writesRecord": "reports/current/SPILL-CENSUS.json",
+      "reason": "one argv element where git needs two, so `git rev-parse HEAD` never runs and the record this script writes carries an empty subject. Fix the call at this line, regenerate that record, and delete BOTH rows in the same commit.",
+      "declaredOn": "2026-10-09"
+    },
+    {
+      "script": "scripts/generate_rights_registry.py",
+      "joinedArgument": "rev-parse HEAD",
+      "line": 108,
+      "writesRecord": "design-lab/config/rights-registry.json",
+      "reason": "one argv element where git needs two, so `git rev-parse HEAD` never runs and the record this script writes carries an empty subject. Fix the call at this line, regenerate that record, and delete BOTH rows in the same commit.",
+      "declaredOn": "2026-10-09"
+    },
+    {
+      "script": "scripts/verify_clean_tree.py",
+      "joinedArgument": "rev-parse HEAD",
+      "line": 82,
+      "writesRecord": "reports/current/CLEAN-TREE-REPORT.json",
+      "reason": "one argv element where git needs two, so `git rev-parse HEAD` never runs and the record this script writes carries an empty subject. Fix the call at this line, regenerate that record, and delete BOTH rows in the same commit.",
+      "declaredOn": "2026-10-09"
+    },
+    {
+      "script": "scripts/verify_contract_graph.py",
+      "joinedArgument": "rev-parse HEAD",
+      "line": 284,
+      "writesRecord": "reports/current/CONTRACT-GRAPH.json",
+      "reason": "one argv element where git needs two, so `git rev-parse HEAD` never runs and the record this script writes carries an empty subject. Fix the call at this line, regenerate that record, and delete BOTH rows in the same commit.",
+      "declaredOn": "2026-10-09"
+    },
+    {
+      "script": "scripts/verify_language_boundary.py",
+      "joinedArgument": "rev-parse HEAD",
+      "line": 247,
+      "writesRecord": "reports/current/LANGUAGE-BOUNDARY-SCAN.json",
+      "reason": "one argv element where git needs two, so `git rev-parse HEAD` never runs and the record this script writes carries an empty subject. Fix the call at this line, regenerate that record, and delete BOTH rows in the same commit.",
+      "declaredOn": "2026-10-09"
+    },
+    {
+      "script": "scripts/verify_recovery_safety.py",
+      "joinedArgument": "rev-parse HEAD",
+      "line": 298,
+      "writesRecord": "reports/current/RECOVERY-SAFETY.json",
+      "reason": "one argv element where git needs two, so `git rev-parse HEAD` never runs and the record this script writes carries an empty subject. Fix the call at this line, regenerate that record, and delete BOTH rows in the same commit.",
+      "declaredOn": "2026-10-09"
+    }
+  ]
+}

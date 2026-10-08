@@ -163,3 +163,39 @@ skip 换绿。owner 裁决项（DESIGN.md 主色、sidecar 签字、REQUESTED �
 reviewedBy）保持挂起不代签。判定只读实测产物（last-run.json、门输出、CI job 结论）。
 严禁无理由重复全量审计循环。本轮结束给出下一轮提示词，边界逐字重述，只写实测基线。
 ```
+
+## 8. 追加（同日下一回合）：投影的"主题"字段有 9 条从未绑到任何提交
+
+找别的东西时撞上的。`scripts/verify_supply_chain.py` 里写的是 `git("rev-parse HEAD")`——
+一个 argv 元素，git 直接拒绝，helper 返回空串，于是报告的 `subject_sha` 一直是 `""`。
+把 `reports/current/*.json` 与 `design-lab/config/*.json` 全扫一遍：**带 subject 字段的记录 69 条
+（按 key 计），其中 9 条为空**，且这 9 条正好与残留的 9 个 `git("... ...")` 调用一一配对
+（`git("rev-parse", "HEAD")` 分开传的 60 条都有值）。没有门看过这个字段：一个"不指向任何东西"
+的出处字段和一个"还没填"的字段长得一模一样，而 `deepseek_final_closeout.py` 与账本里的
+`#<check>` 证据指针都在把它们当作绑定过的记录引用。
+
+本回合做的：
+- 修掉我这一片里三道门的调用（`verify_supply_chain.py` / `verify_evidence_levels.py` /
+  `verify_no_overclaim.py`），重新生成它们的报告：三份现在都写 `db6c146d6784c…`。
+- **第二个缺陷同批修掉**：`test_claim_honesty_gates.py` 用裸模式调这三道门，而裸模式就是**写模式**，
+  所以每跑一次全套就重写三份被跟踪的报告——投影"每次跑都不干净"这句话，至少这三份的原因是测试
+  当了写手，不是 run_id 嵌进投影。现在测试改调 `--check`（比对存储记录与当场重算，且不写盘），
+  并加两条断言：跑完门之后 `git status --porcelain` 对这三个路径必须为空；三份的 `subject_sha`
+  必须是 40 位十六进制。`verify_no_overclaim.py --check` 原先只印一个词、不报数（等于无法区分
+  "过了"和"什么都没看"），现在两种模式印同一行测量值；比较的内容没放宽。
+- 新门 `design-lab/scripts/verify_report_subject_binding.py`（注册进聚合，SCRIPTS 70 → 71）：
+  逐条给 `subject_sha`/`subjectSha` 定级，允许为空**当且仅当**它在
+  `design-lab/config/report-subject-debt.json` 里有行（写它的脚本 + 理由 + 声明日期）；
+  已绑定的记录若仍留在册上就是红（册子只能因修好而缩短）；并且用 **AST 拒绝调用形状本身**——
+  任何 `git("… …")` 单串参数直接红，未声明的第十个没处藏。当前实测
+  `VERIFY_REPORT_SUBJECT_BINDING=OK records=69 bound=60 declared_unbound=9 joined_call_sites=9 findings=0`。
+- 测试 `design-lab/tests/test_report_subject_binding.py` 26 例 OK，每条 finding 各埋一份假记录；
+  其中两条抓到了我自己写门时的两个真缺陷：注册表被读两遍导致同一问题报两遍，
+  以及"在册但记录已不存在"那条断言当时**永远不会触发**（只在遍历已扫描记录时检查，方向反了）。
+
+写剩的 9 条债（在册，逐条可执行）：`CLEAN-TREE-REPORT` / `CONTRACT-GRAPH` / `FOUNDATION-AUDIT` /
+`LANGUAGE-BOUNDARY-SCAN` / `POST-CLEANUP-AUDIT` / `RECOVERY-SAFETY` / `REPOSITORY-SIZE` /
+`SPILL-CENSUS` 的 `subject_sha`，以及 `design-lab/config/rights-registry.json` 的同名字段；
+生产脚本逐条写在册子里。**为什么这回合不一次修完**：修完要各自重算记录，而
+`DEEPSEEK-*` 几份被 DeepSeek 血统链与 `generate_rights_registry.py` 的派生链消费，
+重算前必须先确认谁在摘要它们——那是又一次跨记录协同变更，按同一套纪律单独做。

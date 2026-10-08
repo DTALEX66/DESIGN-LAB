@@ -1,0 +1,312 @@
+# SPDX-License-Identifier: MIT
+"""A projection that claims a subject must name a commit, or the gap is a booked row.
+
+`git("rev-parse HEAD")` -- one argv element -- is rejected by git, the helper returns empty
+stdout, and `subject_sha` is written as `""`. Nine tracked records were in that state on
+2026-10-09 and no gate noticed, because a field that names nothing looks identical to a field
+nobody filled in. `verify_report_subject_binding.py` grades every `subject_sha`/`subjectSha`
+under `reports/current/` and `design-lab/config/`, and refuses the call shape itself so a tenth
+cannot appear.
+
+Each finding is fed a planted defect, and the two that matter most are pinned: a record that
+becomes bound while still declared is red (the register may only shrink), and a joined call in a
+script nobody declared is red (the register may not grow).
+"""
+from __future__ import annotations
+
+import json
+import subprocess
+import sys
+import tempfile
+import unittest
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parents[2]
+SCRIPT = ROOT / "design-lab" / "scripts" / "verify_report_subject_binding.py"
+DEBT_REL = "design-lab/config/report-subject-debt.json"
+SHA_A = "a" * 40
+SHA_B = "b" * 40
+
+sys.path.insert(0, str(ROOT / "design-lab" / "scripts"))
+
+import verify_report_subject_binding as v  # noqa: E402
+
+
+class Tree:
+    """A repository-shaped tmp dir the gate can be pointed at."""
+
+    def __init__(self, ctx: tempfile.TemporaryDirectory) -> None:
+        self.root = Path(ctx.name)
+        (self.root / "reports" / "current").mkdir(parents=True, exist_ok=True)
+        (self.root / "design-lab" / "config").mkdir(parents=True, exist_ok=True)
+        (self.root / "scripts").mkdir(parents=True, exist_ok=True)
+
+    def record(self, name: str, document: dict, directory: str = "reports/current") -> str:
+        rel = f"{directory}/{name}"
+        (self.root / rel).parent.mkdir(parents=True, exist_ok=True)
+        (self.root / rel).write_text(json.dumps(document, indent=2) + "\n",
+                                     encoding="utf-8", newline="\n")
+        return rel
+
+    def generator(self, name: str, body: str) -> str:
+        rel = f"scripts/{name}"
+        (self.root / rel).write_text(body, encoding="utf-8", newline="\n")
+        return rel
+
+    def debt(self, records: list[dict], call_sites: list[dict] | None = None,
+             schema: str = v.SCHEMA_VERSION) -> None:
+        document = {"schemaVersion": schema, "records": records,
+                    "callSites": call_sites or []}
+        (self.root / DEBT_REL).write_text(json.dumps(document, indent=2) + "\n",
+                                          encoding="utf-8", newline="\n")
+
+    def problems(self) -> list[str]:
+        return v.check(self.root)[0]
+
+    def result(self):
+        return v.check(self.root)
+
+
+def row(rel: str, key: str = "subject_sha", producer: str = "scripts/writer.py") -> dict:
+    return {"path": rel, "key": key, "producer": producer,
+            "reason": "the generator joins the git arguments", "declaredOn": "2026-10-09"}
+
+
+class ReportSubjectBindingTests(unittest.TestCase):
+    def setUp(self) -> None:
+        self._stack: list[tempfile.TemporaryDirectory] = []
+
+    def tree(self) -> Tree:
+        ctx = tempfile.TemporaryDirectory()
+        self._stack.append(ctx)
+        return Tree(ctx)
+
+    def tearDown(self) -> None:
+        for ctx in self._stack:
+            ctx.cleanup()
+        self._stack.clear()
+
+    # ---- the data rule ----
+
+    def test_a_bound_record_passes_with_no_register_at_all(self) -> None:
+        tree = self.tree()
+        tree.record("BOUND.json", {"schemaVersion": "x/v1", "subject_sha": SHA_A})
+        self.assertEqual(tree.problems(), [])
+        self.assertEqual(tree.result()[1:3], (1, 0))
+
+    def test_an_empty_subject_that_is_not_declared_is_convicted(self) -> None:
+        tree = self.tree()
+        rel = tree.record("EMPTY.json", {"schemaVersion": "x/v1", "subject_sha": ""})
+        findings = tree.problems()
+        self.assertTrue(any(f.startswith("REPORT-SUBJECT-UNBOUND") and rel in f
+                            for f in findings), findings)
+
+    def test_the_same_gap_declared_is_counted_instead_of_failed(self) -> None:
+        tree = self.tree()
+        rel = tree.record("EMPTY.json", {"schemaVersion": "x/v1", "subject_sha": ""})
+        tree.generator("writer.py", "def git(*a): pass\n")
+        tree.debt([row(rel)])
+        self.assertEqual(tree.problems(), [])
+        problems, records, declared, _joined = tree.result()
+        self.assertEqual((records, declared), (1, 1))
+
+    def test_a_record_that_becomes_bound_must_leave_the_register(self) -> None:
+        """The register only shrinks. A row kept after the fix is its own finding."""
+        tree = self.tree()
+        rel = tree.record("FIXED.json", {"schemaVersion": "x/v1", "subject_sha": SHA_A})
+        tree.generator("writer.py", "def git(*a): pass\n")
+        tree.debt([row(rel)])
+        self.assertTrue(any("REPORT-DEBT-CLOSED-NOT-REMOVED" in f for f in tree.problems()))
+
+    def test_a_half_written_value_is_convicted_as_shape_not_as_empty(self) -> None:
+        tree = self.tree()
+        rel = tree.record("TRUNC.json", {"schemaVersion": "x/v1", "subject_sha": SHA_A[:39]})
+        tree.generator("writer.py", "def git(*a): pass\n")
+        tree.debt([row(rel)])
+        self.assertTrue(any("REPORT-SUBJECT-SHAPE" in f for f in tree.problems()))
+
+    def test_a_declared_producer_that_is_gone_is_convicted(self) -> None:
+        tree = self.tree()
+        rel = tree.record("EMPTY.json", {"schemaVersion": "x/v1", "subject_sha": ""})
+        tree.debt([row(rel, producer="scripts/dead.py")])
+        self.assertTrue(any("REPORT-DEBT-PRODUCER-MISSING" in f for f in tree.problems()))
+
+    def test_a_declared_row_for_a_field_that_is_not_read_is_convicted(self) -> None:
+        tree = self.tree()
+        tree.record("OTHER.json", {"schemaVersion": "x/v1", "subject_sha": SHA_A})
+        tree.generator("writer.py", "def git(*a): pass\n")
+        tree.debt([row("reports/current/GONE.json")])
+        findings = tree.problems()
+        self.assertTrue(any("REPORT-DEBT-UNSCANNED" in f for f in findings), findings)
+
+    def test_one_corrupt_register_yields_exactly_one_finding(self) -> None:
+        """The register is parsed once; a doubled finding teaches consumers to ignore it."""
+        tree = self.tree()
+        tree.record("EMPTY.json", {"schemaVersion": "x/v1", "subject_sha": ""})
+        (tree.root / DEBT_REL).write_text("{not json", encoding="utf-8")
+        unreadable = [f for f in tree.problems() if f.startswith("REPORT-DEBT-UNREADABLE")]
+        self.assertEqual(len(unreadable), 1, unreadable)
+
+    def test_a_row_without_a_reason_is_not_a_declaration(self) -> None:
+        tree = self.tree()
+        rel = tree.record("EMPTY.json", {"schemaVersion": "x/v1", "subject_sha": ""})
+        tree.generator("writer.py", "def git(*a): pass\n")
+        tree.debt([{"path": rel, "key": "subject_sha", "producer": "scripts/writer.py"}])
+        self.assertTrue(any("REPORT-DEBT-ROW-INCOMPLETE" in f for f in tree.problems()))
+
+    def test_a_duplicated_row_is_convicted(self) -> None:
+        tree = self.tree()
+        rel = tree.record("EMPTY.json", {"schemaVersion": "x/v1", "subject_sha": ""})
+        tree.generator("writer.py", "def git(*a): pass\n")
+        tree.debt([row(rel), row(rel)])
+        self.assertTrue(any("REPORT-DEBT-DUPLICATE" in f for f in tree.problems()))
+
+    def test_a_foreign_schema_version_is_convicted(self) -> None:
+        tree = self.tree()
+        rel = tree.record("EMPTY.json", {"schemaVersion": "x/v1", "subject_sha": ""})
+        tree.generator("writer.py", "def git(*a): pass\n")
+        tree.debt([row(rel)], schema="design-lab/report-subject-debt/v0")
+        self.assertTrue(any("REPORT-DEBT-SCHEMA" in f for f in tree.problems()))
+
+    def test_a_missing_register_still_convicts_an_undeclared_gap(self) -> None:
+        """Absence of the register is not absence of debt: the record itself is graded."""
+        tree = self.tree()
+        rel = tree.record("EMPTY.json", {"schemaVersion": "x/v1", "subject_sha": ""})
+        findings = tree.problems()
+        self.assertTrue(any(f.startswith("REPORT-SUBJECT-UNBOUND") and rel in f
+                            for f in findings), findings)
+        self.assertEqual([f for f in findings if "UNREADABLE" in f], [],
+                         "no register is the normal state of a debt-free repository")
+
+    def test_both_spellings_are_graded_and_a_bound_sibling_is_named(self) -> None:
+        """One key can be empty while the other holds a commit; a reader gets only what it asks."""
+        tree = self.tree()
+        rel = tree.record("TWIN.json", {"subject_sha": "", "subjectSha": SHA_B})
+        findings = tree.problems()
+        self.assertTrue(any("REPORT-SUBJECT-UNBOUND" in f and "under the other spelling" in f
+                            for f in findings), findings)
+        tree.debt([row(rel)])
+        self.assertEqual([f for f in tree.problems() if "SUBJECT" in f], [])
+        self.assertEqual(tree.result()[2], 1)
+
+    def test_the_key_is_part_of_the_row_identity(self) -> None:
+        tree = self.tree()
+        rel = tree.record("TWIN.json", {"subject_sha": "", "subjectSha": ""})
+        tree.generator("writer.py", "def git(*a): pass\n")
+        tree.debt([row(rel)])
+        self.assertTrue(any("REPORT-SUBJECT-UNBOUND" in f and "subjectSha" in f
+                            for f in tree.problems()))
+
+    def test_unparseable_and_oversized_records_are_skipped_not_guessed(self) -> None:
+        tree = self.tree()
+        (tree.root / "reports" / "current" / "broken.json").write_text("{not json",
+                                                                       encoding="utf-8")
+        big = tree.record("big.json", {"subject_sha": ""})
+        path = tree.root / big
+        path.write_text(json.dumps({"subject_sha": "", "pad": "x" * 4_000_000}),
+                        encoding="utf-8", newline="\n")
+        self.assertEqual([rel for rel, _k, _v in v.subject_records(tree.root)], [])
+
+    # ---- the code rule ----
+
+    def test_a_joined_git_call_is_refused(self) -> None:
+        tree = self.tree()
+        tree.record("BOUND.json", {"subject_sha": SHA_A})
+        tree.generator("maker.py", 'def git(*args):\n    pass\n\n\ngit("rev-parse HEAD")\n')
+        tree.debt([])
+        findings = tree.problems()
+        self.assertTrue(any(f.startswith("GIT-ARG-JOINED") for f in findings), findings)
+
+    def test_a_declared_call_site_is_booked_rather_than_failed(self) -> None:
+        tree = self.tree()
+        tree.record("BOUND.json", {"subject_sha": SHA_A})
+        tree.generator("maker.py", 'def git(*args):\n    pass\n\n\ngit("rev-parse HEAD")\n')
+        tree.debt([], [{"script": "scripts/maker.py", "joinedArgument": "rev-parse HEAD",
+                        "writesRecord": "reports/current/BOUND.json",
+                        "reason": "booked", "declaredOn": "2026-10-09"}])
+        self.assertEqual(tree.problems(), [])
+        self.assertEqual(tree.result()[3], 1)
+
+    def test_a_separated_call_that_stays_declared_is_convicted(self) -> None:
+        tree = self.tree()
+        tree.record("BOUND.json", {"subject_sha": SHA_A})
+        tree.generator("maker.py", 'def git(*args):\n    pass\n\n\ngit("rev-parse", "HEAD")\n')
+        tree.debt([], [{"script": "scripts/maker.py", "joinedArgument": "rev-parse HEAD",
+                        "writesRecord": "reports/current/BOUND.json",
+                        "reason": "booked", "declaredOn": "2026-10-09"}])
+        self.assertTrue(any("CALL-DEBT-CLOSED-NOT-REMOVED" in f for f in tree.problems()))
+
+    def test_a_call_site_declared_for_the_wrong_argument_is_convicted(self) -> None:
+        tree = self.tree()
+        tree.record("BOUND.json", {"subject_sha": SHA_A})
+        tree.generator("maker.py", 'def git(*args):\n    pass\n\n\ngit("status --porcelain")\n')
+        tree.debt([], [{"script": "scripts/maker.py", "joinedArgument": "rev-parse HEAD",
+                        "writesRecord": "reports/current/BOUND.json",
+                        "reason": "booked", "declaredOn": "2026-10-09"}])
+        self.assertTrue(any("CALL-DEBT-ARG-MISMATCH" in f for f in tree.problems()))
+
+    def test_a_declared_call_site_whose_script_is_gone_is_convicted(self) -> None:
+        tree = self.tree()
+        tree.record("BOUND.json", {"subject_sha": SHA_A})
+        tree.debt([], [{"script": "scripts/dead.py", "joinedArgument": "rev-parse HEAD",
+                        "writesRecord": "reports/current/BOUND.json",
+                        "reason": "booked", "declaredOn": "2026-10-09"}])
+        self.assertTrue(any("CALL-DEBT-PRODUCER-MISSING" in f for f in tree.problems()))
+
+    def test_only_the_git_helper_is_scanned(self) -> None:
+        """A different function legitimately takes one spaced string; it is not this bug."""
+        tree = self.tree()
+        tree.record("BOUND.json", {"subject_sha": SHA_A})
+        tree.generator("other.py",
+                       'def run(*args):\n    pass\n\n\nrun("rev-parse HEAD")\n')
+        tree.debt([])
+        self.assertEqual(tree.problems(), [])
+
+    # ---- shipped state ----
+
+    def test_the_shipped_repository_passes_the_gate(self) -> None:
+        r = subprocess.run([sys.executable, str(SCRIPT)], capture_output=True, text=True,
+                           encoding="utf-8", errors="replace", cwd=str(ROOT))
+        self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
+        self.assertIn("VERIFY_REPORT_SUBJECT_BINDING=OK", r.stdout)
+
+    def test_the_shipped_register_declares_exactly_the_measured_debt(self) -> None:
+        document = json.loads((ROOT / DEBT_REL).read_text(encoding="utf-8"))
+        records, calls = document["records"], document["callSites"]
+        self.assertEqual(len(records), 9, "the unbound set only moves when a generator is fixed")
+        self.assertEqual(len(calls), 9, "each unbound record is produced by one joined call")
+        self.assertEqual(sorted(r["path"] for r in records),
+                         sorted(c["writesRecord"] for c in calls),
+                         "a record is declared without its producer call, or the other way round")
+        for call in calls:
+            script = (ROOT / call["script"]).read_text(encoding="utf-8")
+            self.assertIn(f'git("{call["joinedArgument"]}")', script,
+                          f"{call['script']} no longer contains the declared shape")
+
+    def test_no_declared_record_is_already_bound(self) -> None:
+        document = json.loads((ROOT / DEBT_REL).read_text(encoding="utf-8"))
+        values = {(rel, key): value for rel, key, value in v.subject_records()}
+        for row_ in document["records"]:
+            value = str(values.get((row_["path"], row_["key"])) or "")
+            self.assertFalse(v.SHA40.match(value),
+                             f"{row_['path']}#{row_['key']} is bound but still declared")
+
+    def test_the_three_fixed_gates_are_no_longer_in_the_debt(self) -> None:
+        """The fix in the same round must show up as a smaller register, not a quieter gate."""
+        document = json.loads((ROOT / DEBT_REL).read_text(encoding="utf-8"))
+        paths = {r["path"] for r in document["records"]} | {c["script"] for c in document["callSites"]}
+        for fixed in ("SUPPLY-CHAIN-REPORT.json", "EVIDENCE-LEVEL-AUDIT.json",
+                      "NO-OVERCLAIM-AUDIT.json", "verify_supply_chain.py",
+                      "verify_evidence_levels.py", "verify_no_overclaim.py"):
+            self.assertNotIn(fixed, " ".join(sorted(paths)),
+                             f"{fixed} was fixed in this round and must not stay declared")
+
+    def test_the_gate_is_registered_in_the_aggregate(self) -> None:
+        scripts = (ROOT / "design-lab" / "scripts" / "verify_design_lab.py").read_text(
+            encoding="utf-8")
+        self.assertIn("verify_report_subject_binding.py", scripts,
+                      "a gate nobody invokes is documentation")
+
+
+if __name__ == "__main__":
+    unittest.main()
