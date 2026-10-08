@@ -155,6 +155,16 @@ class WorkbenchContrastGateTests(unittest.TestCase):
         checked = int(_summary(out).get('checked', '0'))
         self.assertGreaterEqual(checked, 500,
                                 'probe measured only %d text runs; coverage is suspect' % checked)
+        # The gate plants a white-on-`color(srgb 1 1 1)` pair on every route. Chromium
+        # serialises a resolved color-mix() that way, so a parser that cannot read it drops
+        # the background and grades the text against the page instead -- a 21:1 pass on a
+        # 1:1 pair. Both fields must stay at zero or the pass counts are not trustworthy.
+        summary = _summary(out)
+        self.assertEqual(summary.get('controlMisses'), '0',
+                         'the parser control was not caught somewhere: %s' % summary)
+        self.assertEqual(summary.get('unparsable'), '0',
+                         'a colour the page computes could not be parsed, so at least one '
+                         'background was dropped from the stack: %s' % summary)
 
     def test_contrast_maths_reference_table_is_satisfied(self):
         """The probe recomputes published WCAG 2.1 ratios with the same lum()/ratio()

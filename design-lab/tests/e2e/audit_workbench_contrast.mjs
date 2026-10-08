@@ -53,17 +53,42 @@ const ROUTES = [
 ];
 
 const MEASURE = () => {
+  // Chromium serialises a resolved `color-mix()` as `color(srgb r g b / a)` (values 0..1 or
+  // percentages), not as `rgba()`, so a stylesheet that uses color-mix silently disappears
+  // from a rgb-only parser: the layer is dropped and the text is measured against whatever
+  // is behind it. That is a false green, which is worse than a red.
+  const SRGB = /^color\(\s*srgb\s+([\d.]+%?)\s+([\d.]+%?)\s+([\d.]+%?)(?:\s*\/\s*([\d.]+%?))?\s*\)$/;
+  const unknown = [];
+  const noteUnknown = (where, value) => {
+    if (unknown.length < 12) unknown.push(`${where} ${String(value).slice(0, 48)}`);
+  };
+  const num = (token, scale) => {
+    if (token === undefined || token === null) return scale;
+    return token.endsWith('%')
+      ? Math.round((parseFloat(token) / 100) * 255)
+      : Math.round(parseFloat(token) * scale);
+  };
   const parse = (c) => {
     const m = /rgba?\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*(?:,\s*([\d.]+))?\s*\)/.exec(c || '');
-    if (!m) return null;
-    return { r: +m[1], g: +m[2], b: +m[3], a: m[4] === undefined ? 1 : parseFloat(m[4]) };
+    if (m) return { r: +m[1], g: +m[2], b: +m[3], a: m[4] === undefined ? 1 : parseFloat(m[4]) };
+    const s = SRGB.exec((c || '').trim());
+    if (s) {
+      const alpha = s[4] === undefined ? 1
+        : (s[4].endsWith('%') ? parseFloat(s[4]) / 100 : parseFloat(s[4]));
+      return { r: num(s[1], 255), g: num(s[2], 255), b: num(s[3], 255), a: alpha };
+    }
+    if (c && !/^(transparent|none|normal)$/.test(String(c).trim())
+        && String(c).trim() !== 'rgba(0, 0, 0, 0)') {
+      noteUnknown('unparsed-colour:', c);
+    }
+    return null;
   };
   // Colour stops inside a linear-gradient()/radial-gradient() value. Chromium
   // leaves these as authored text, so they must be read out of the string.
   const gradientStops = (image) => {
     if (!image || image === 'none') return [];
     const out = [];
-    for (const mm of image.matchAll(/rgba?\([^)]*\)|#[0-9a-fA-F]{3,8}\b/g)) {
+    for (const mm of image.matchAll(/rgba?\([^)]*\)|color\([^)]*\)|#[0-9a-fA-F]{3,8}\b/g)) {
       const p = parse(mm[0].startsWith('#')
         ? (() => {
             let h = mm[0].slice(1);
@@ -112,6 +137,21 @@ const MEASURE = () => {
 
   const canvas = parse(getComputedStyle(document.body).backgroundColor) || { r: 255, g: 255, b: 255, a: 1 };
 
+  // Control, planted before the sweep so the ordinary per-node path grades it: white text
+  // on a background Chromium reports as `color(srgb 1 1 1)` -- the serialisation a resolved
+  // `color-mix()` produces. A parser that cannot read that form drops the background and
+  // grades the text against the dark page canvas instead, which is a 21:1 PASS on a 1:1
+  // white-on-white pair. If this control ever stops being reported, the parser has regressed
+  // and every green below it is a lie.
+  {
+    const control = document.createElement('div');
+    control.id = 'ct-control';
+    control.style.cssText = 'position:fixed;left:-10000px;top:0;width:140px;height:40px;'
+      + 'background:color(srgb 1 1 1);color:rgb(255, 255, 255);font-size:16px;font-weight:400';
+    control.textContent = 'AA CONTROL';
+    document.body.append(control);
+  }
+
   // Every element that paints text of its own.
   const targets = [];
   for (const el of document.querySelectorAll('body *')) {
@@ -129,6 +169,8 @@ const MEASURE = () => {
 
   const fails = [];
   let checked = 0;
+  let pseudoLayers = 0;
+  let margin = null;
   const desc = (el) => {
     const cls = (el.getAttribute('class') || '').trim();
     const id = el.id ? `#${el.id}` : '';
@@ -149,6 +191,26 @@ const MEASURE = () => {
       if (solid && solid.a > 0) stack.push({ solid });
       const stops = gradientStops(s.backgroundImage);
       if (stops.length) stack.push({ stops });
+      // A `::before`/`::after` is a real backdrop only where it actually covers the box.
+      // Measured on the active nav item: its `::before` is a 3px x 25px indicator bar at
+      // left:-4px, and treating it as a candidate background put a bright gradient behind
+      // text that is painted on a dark scrim -- a phantom 2.21:1 failure. So a pseudo layer
+      // only enters the stack when its resolved box covers most of its originator's box,
+      // which is how the full-bleed scrims are written (`inset:0`) and the bars are not.
+      for (const pseudo of ['::before', '::after']) {
+        const ps = getComputedStyle(p, pseudo);
+        if (!ps.content || ps.content === 'none') continue;
+        const host = p.getBoundingClientRect();
+        const pw = parseFloat(ps.width);
+        const ph = parseFloat(ps.height);
+        if (!(host.width > 0 && host.height > 0)
+            || !(Number.isFinite(pw) && Number.isFinite(ph))
+            || pw < host.width * 0.6 || ph < host.height * 0.6) continue;
+        const pSolid = parse(ps.backgroundColor);
+        if (pSolid && pSolid.a > 0) { stack.push({ solid: pSolid }); pseudoLayers += 1; }
+        const pStops = gradientStops(ps.backgroundImage);
+        if (pStops.length) { stack.push({ stops: pStops }); pseudoLayers += 1; }
+      }
       if (solid && solid.a >= 1) ancestorsOpaque = true;
     }
 
@@ -195,6 +257,13 @@ const MEASURE = () => {
       if (worst === null || r < worst.ratio) worst = { ratio: r, bg };
     }
     checked += 1;
+    // The margin is the useful half of a green: 0 violations without the closest
+    // node's ratio cannot tell a comfortable pass from one one rounding away from red.
+    // The planted control is excluded -- it is a deliberate 1:1, so including it would
+    // make every run report the tightest pair as the test fixture.
+    if (el.id !== 'ct-control' && (margin === null || worst.ratio < margin.ratio)) {
+      margin = { ratio: Math.round(worst.ratio * 100) / 100, need, el: desc(el).slice(0, 90) };
+    }
     if (worst.ratio < need) {
       fails.push({
         el: desc(el), px: Math.round(size * 10) / 10, bold,
@@ -204,13 +273,24 @@ const MEASURE = () => {
     }
   }
 
-  return { checked, fails: fails.slice(0, 60), failCount: fails.length, math };
+  const controlRow = fails.find((f) => f.el.includes('#ct-control')) || null;
+  const control = {
+    planted: true,
+    reported: !!controlRow,
+    ratio: controlRow ? controlRow.got : null,
+    need: controlRow ? controlRow.need : null,
+  };
+  document.querySelector('#ct-control')?.remove();
+  return { checked, fails: fails.slice(0, 60), failCount: fails.length, math,
+           pseudoLayers, unknown, control, margin };
 };
 
 const browser = await chromium.launch({ executablePath: browserPath, args: ['--no-sandbox'] });
 const report = { serviceUrl, widths, routes: {} };
-let failTotal = 0, checkedTotal = 0;
+let failTotal = 0, checkedTotal = 0, unknownTotal = 0, pseudoTotal = 0;
 const mathChecks = [];
+const unknownSamples = [];
+const controlBad = [];
 
 for (const w of widths) {
   const page = await browser.newPage({ viewport: { width: w, height: 900 } });
@@ -225,12 +305,23 @@ for (const w of widths) {
     report.routes[`${w}:${name}`] = m;
     for (const c of m.math) if (!mathChecks.some((k) => k.a === c.a && k.b === c.b)) mathChecks.push(c);
 
-    failTotal += m.failCount;
+    // The planted control is a deliberate failure; it must be counted as proof the parser
+    // works, never as a product violation.
+    failTotal += m.failCount - (m.control.reported ? 1 : 0);
     checkedTotal += m.checked;
-    console.log(`w=${String(w).padEnd(5)} ${name.padEnd(13)} checked=${String(m.checked).padStart(4)} belowAA=${String(m.failCount).padStart(3)}`);
+    unknownTotal += m.unknown.length;
+    if (!m.control.reported) controlBad.push(`${w}:${name} ${JSON.stringify(m.control)}`);
+    pseudoTotal += m.pseudoLayers;
+    for (const u of m.unknown) if (unknownSamples.length < 12) unknownSamples.push(`${w}:${name} ${u}`);
+    console.log(`w=${String(w).padEnd(5)} ${name.padEnd(13)} checked=${String(m.checked).padStart(4)} belowAA=${String(m.failCount - (m.control.reported ? 1 : 0)).padStart(3)} pseudoLayers=${String(m.pseudoLayers).padStart(3)} unparsable=${m.unknown.length} control=${m.control.reported ? 'caught' : 'MISSED'}`);
   }
   await page.close();
 }
+const tightest = Object.values(report.routes)
+  .map((v) => v.margin).filter(Boolean)
+  .sort((a, b) => a.ratio - b.ratio)[0] || null;
+console.log(`CT_MARGIN tightest=${tightest ? tightest.ratio : 'n/a'}`
+  + ` need=${tightest ? tightest.need : 'n/a'} route=${tightest ? tightest.el : 'none'}`);
 await browser.close();
 
 if (outPath) writeFileSync(outPath, JSON.stringify(report, null, 2));
@@ -245,14 +336,34 @@ if (mathBad.length > 0) {
 }
 
 console.log('');
-console.log(`CT_SUMMARY checked=${checkedTotal} belowAA=${failTotal} strict=${strict ? 1 : 0} mathChecks=${mathChecks.length} mathBad=${mathChecks.filter((c) => !c.ok).length}`);
+console.log(`CT_SUMMARY checked=${checkedTotal} belowAA=${failTotal} pseudoLayers=${pseudoTotal}`
+  + ` unparsable=${unknownTotal} controlMisses=${controlBad.length} strict=${strict ? 1 : 0}`
+  + ` mathChecks=${mathChecks.length} mathBad=${mathChecks.filter((c) => !c.ok).length}`);
 if (failTotal > 0) {
   for (const [k, v] of Object.entries(report.routes)) {
     for (const f of v.fails) {
+      if (f.el.includes('#ct-control')) continue;
       console.log(`  LOWCONTRAST ${k} ${f.got}:1 need>=${f.need}:1 ${f.px}px${f.bold ? ' bold' : ''} opacity=${f.opacity} fg=${f.fg} :: ${f.el.slice(0, 96)}`);
     }
   }
   console.error(`CT_FAIL: ${failTotal} text run(s) below WCAG 2.1 AA contrast`);
   process.exit(1);
 }
-console.log('CT_OK: every measured text run meets WCAG 2.1 AA for its painted background');
+// A colour this file cannot read is not a pass. Before this rule existed, a
+// `color(srgb ...)` backdrop (what Chromium returns for a resolved color-mix) simply
+// dropped out of the stack and the text was graded against the page instead of its scrim.
+if (controlBad.length > 0) {
+  for (const bad of controlBad) console.log(`  CONTROL-MISSED ${bad}`);
+  console.error(`CT_FAIL: the white-on-color(srgb) control was not reported as a failure in `
+    + `${controlBad.length} route(s) -- the colour parser is blind to a background the page `
+    + 'actually paints, so the pass counts are not trustworthy');
+  process.exit(1);
+}
+if (unknownTotal > 0) {
+  for (const u of unknownSamples) console.log(`  UNPARSABLE ${u}`);
+  console.error(`CT_FAIL: ${unknownTotal} colour value(s) this gate cannot parse; `
+    + 'extending the parser is the fix, not the threshold');
+  process.exit(1);
+}
+console.log('CT_OK: every measured text run meets WCAG 2.1 AA for its painted background,'
+  + ' and every colour the page computes was parsed');
