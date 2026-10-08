@@ -1495,3 +1495,100 @@ bound=15 schema_less=38`；`test_contract_bindings.py` 32 条 OK（含 4 条新�
 仍待 owner：这 30 份 INERT 里要不要接线、接哪几份（`run-event`/`job-spec`/`job-attempt`/
 `operation-intent`/`operation-receipt`/`host-session`/`document-session` 这一组明显对着
 native_* 表，是同一内核决定的不同侧面）；本轮只把它们的"没人实现"变成可复测的事实。
+
+## 30. 证据链的最后一环自己撒了谎：73 条收据全部"未核验"，而这是规则缺陷不是事实
+
+### 30.1 为什么做这一片
+
+能力链的最后一环是"证据"。账本把每条观察绑到一个提交上：`binding: COMMIT` 声明"这些字节来自那个
+提交"；同一 enum 的另一个取值 `WORKTREE_FILES` 在 schema 里带着注释"字节来自脏工作树，永远不得冒充
+提交"（`design-lab/schemas/task-ledger-r5-v1.schema.json:316-317`）。投影
+`src/design_lab/governance/reporting.py::project_ledger()` 负责回答"这条收据还成立吗"。
+
+它从来没读过 `binding`。它对每条收据都做两件事：把收据里的摘要和**当前工作树**的字节比对；并要求
+收据的 `subject_sha` 等于**投影生成时所在的提交**。第二条在实践中不可达：投影只能记录一个已存在的
+提交，而账本行必然落在那个提交之后的提交里，所以等式对任何一行都不成立。第一条对任何被 git 属性
+正常化的文件也不成立（见 30.3 的 CRLF）。
+
+2026-10-08 在 `e1ca2902` 实测：73 条收据，`verified` 为真 **0** 条。后果不是"显示不好看"，而是
+`reporting.py:226` 的轴降级规则——轴声明为 `PASS`/`IMPLEMENTED_LOCAL` 时，必须有一条 `verified`
+且属于本任务、kind 匹配的证据，否则降为 `UNVERIFIED`。既然 0 条通过，**任何轴的晋级在结构上不可
+能**，而这个标志本身携带的信息量为零。没人发现，是因为 28 个任务的声明状态本来就都是 `PARTIAL`，
+一片"未核验"看起来像正常衰减。
+
+### 30.2 先把仪器测准：同一片里我自己错了两次
+
+第一次是判据。我用"这个路径今天是否被 git 跟踪"区分"提交内字节"与"机器本地字节"，得到"仅 5 条路径
+不在其绑定提交里"。这个数太小了：未被跟踪不等于机器绑定，它同样可能是**任何提交都不曾持有的派生
+字节**。按声明的绑定重测，这类引用是 **63 条**，覆盖 14 行 `r5-*-static-unit-20260928`：57 个
+`__pycache__/*.pyc` 字节码缓存，6 个 `fixtures/domains/game-visual/android-minigame/` 下的 wav——
+该目录被同目录 `.gitignore` 第 12 行排除。把 `*.pyc` 写成 `binding: COMMIT` 的工件，等于声称一段
+任何提交都不曾持有的字节是提交内容。
+
+第二次更要紧，因为它是我写进草稿的一条不实指控。第一版测量对**所有**行都按"取绑定提交 blob 比对"
+判定，于是报出 3 条"摘要在任何提交都复现不出来"，我把它当作伪造证据的实证写了进去。实际上这 3 条
+全在**一共只有 3 行的 `WORKTREE_FILES`** 里（`r5-comfy-structural-rejection-20260909` 等，2026-09-09，
+outcome 均为 `PARTIAL`）。这三行从未声明自己是提交观察，是我拿提交语义去审判它们才审判出莫须有。
+与 29.2 同一类错误（问错问题），这次问的是自己的仪器；指控已删除，按声明的绑定重新分类。
+
+第三次是工具的分歧，发生在我的回归测试上。我按"`git status --porcelain` 为空"刻画"CRLF 工作树 +
+LF blob 且 git 认为干净"的条件，测试直接红：`git status` 报 `M src/logic.py`，而
+`git diff --name-only <subject>` 报空。用探针（`.project-local/tmp/probe_crlf_status.py`，三种属性
+组合加真仓实况）确认后，时效规则改为基于 `diff`——它按属性正常化后再比较，正是这里要的语义；真仓
+`design-lab/config/contract-bindings.json` 磁盘 CRLF、blob LF，`status` 与 `diff` 都给空。
+
+### 30.3 现在的规则：把"记录完好"和"仍适用于今天"拆成两个字段
+
+一条收据要回答两个不同问题，混在一起就必然要么永远红、要么掩盖真相：
+
+- **完整性 `verified`**——收据哈希的字节还在它自己声称的地方吗。`COMMIT` →
+  `git show <subject_sha>:<path>` 取 blob 比对；`WORKTREE_FILES` → 只能用这块磁盘；
+  `.project-local/task-artifacts/**` → 声明为运行期工件，同样落回本机。新理由逐个点名路径：
+  `DIGEST_NOT_REPRODUCIBLE_AT_BOUND_COMMIT`、`PATH_NOT_IN_BOUND_COMMIT`、
+  `ARTIFACT_IS_NOT_VERSIONED`、`DIGEST_CONFLICT_FOR_SAME_PATH`（同一路径被同一行以两个不同摘要
+  声明）、`RUNTIME_ARTIFACT_ABSENT_ON_THIS_MACHINE`、`SUBJECT_COMMIT_ABSENT`。
+- **时效性 `current`**——这条收据还在描述投影此刻要为其发言的字节吗。`MOVED_SINCE_BOUND_COMMIT`、
+  `LOCALLY_MODIFIED_SINCE_SUBJECT`，而 `STALE_SUBJECT_SHA` 保留给 `WORKTREE_FILES`，那个字段本来
+  就是给"脏树上取的观察"用的。
+
+轴降级同时要求两者，所以这次改动**没有放松任何门槛**：
+`test_source_mutation_invalidates_prior_pass`、`test_missing_artifact_does_not_reuse_declared_pass`、
+`test_wrong_subject_commit_is_stale` 原样通过；改的只是把"永远不可满足"换成"按各自语义可满足"。
+同一文件被 `subject_files` 与 `artifacts` 双重点名时现在只判一次，不再对同一事实发两行红——这是
+29.4 的"一个缺陷一行红"在同一条链上的应用。
+
+### 30.4 被点名的真实缺陷，不掩盖
+
+- **63 条未版本化工件引用**，14 行（30.2）。历史行不重写：它们仍是当时的观察，只是从今往后被点名。
+- **1 条运行期工件本机已不存在**：`r5-comfy-http-model-free-live-20260909` 引用的
+  `.project-local/task-artifacts/comfy-http-live-…/result.json`。这是"多数账本工件只活在某台机器"
+  那笔债的具名一处。
+- **`COMMIT` 声明里没有任何一条摘要在自己绑定的提交上复现失败**：被版本化的 406 条全部对上。缺陷
+  集中在"引用了根本不在版本控制里的东西"，不在"哈希写错"。这一点值得如实说，因为它意味着账本的
+  提交绑定本身是可信的。
+- **`verified` 此前没有仓外消费者**：除 `reporting.py:226` 之外，前端与 `design-lab/scripts/verify_*.py`
+  都不读这个字段，所以这个缺陷可以长期存在而不被任何门拒绝——一个没人调用的断言就是文档。
+
+### 30.5 数字（在 `763bcf47` 重跑，不继承）
+
+`COMMIT` 声明共 502 条：406 条 blob 在其绑定提交复现，63 条引用未被版本控制的字节，33 条是运行期
+工件声明。`WORKTREE_FILES` 声明共 9 条，按磁盘判定，其中 2 条路径的磁盘字节已不等于当年取的树——
+它们本来就承认自己是脏树观察。73 条收据：**36 条完整**，**2 条仍适用于今天的字节**
+（`r5-010-template-contracts-and-delivery-bom-20261008`、
+`r5-001-inert-contract-claims-re-measured-and-citations-made-paths-20261008`）。
+理由分布：`OUTCOME_NOT_PASS` 37、`ARTIFACT_IS_NOT_VERSIONED` 63、
+`RUNTIME_ARTIFACT_ABSENT_ON_THIS_MACHINE` 1、`EVIDENCE_DIGEST_DIFFERS` 2；时效侧
+`MOVED_SINCE_BOUND_COMMIT` 149、`STALE_SUBJECT_SHA` 8、`LOCALLY_MODIFIED_SINCE_SUBJECT` 1
+（最后这条正指 `test_current_reporting.py` 本身——生成时它已被本次修改，规则抓得对）。
+
+投影任务计数不变：`{'PARTIAL': 28}`——这次改动**没有点亮任何绿灯**，这正是重点：同一个字段现在
+既能因真理由红，也能因真理由绿。`test_current_reporting.py` 43 例 OK（新增 10 例覆盖新语义），
+`test_r5_migration.py` 10 例 OK，bound run `tests=387 failures=0 errors=0 skipped=0 order=forward
+clean=True subject=763bcf471067`，聚合 `VERIFY_DESIGN_LAB=OK total=68 failed=0`，
+`CURRENT_REPORTS=PASS mode=generate`。
+
+只到 E1/E2：这是一条**投影规则**与其受控测试，未涉及宿主；E3/E4/E5 不因本片改变。
+
+需要 owner 判断、这里不自作主张的：那 63 条未版本化引用要不要由 `verify_ledger_subject_binding.py`
+升成硬门。升门会让 14 行历史收据在 CI 上一直红，除非同时给它们一份具名豁免清单；不升则只由投影
+报告。两种都比"永远全红"诚实，代价不同，而且这是治理选择不是技术必然。
