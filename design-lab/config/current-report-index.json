@@ -1,27 +1,16 @@
 {
   "checkScope": "bound-input-and-output-integrity; not current Git or cloud freshness",
-  "generatedAt": "2026-10-08T14:42:07+00:00",
+  "generatedAt": "2026-10-08T15:27:05+00:00",
   "gitObservation": {
     "branch": "qoder/designlab-backup-consistency-20261007",
     "origin_main": "fc03a3033e900a8066d863a223636cc68804c4fa",
-    "sha": "ce3f06644dde2e3785a2c776318cceac1035fc07",
-    "source_worktree_clean": false,
+    "sha": "557e72671f5418e200ef786b0b456ebc5038840c",
+    "source_worktree_clean": true,
     "tracked_files": 3360,
-    "worktree_changes": [
-      {
-        "content": "sha256:acaa620d05ccd9c316a99e64d0bbffc91f78d32d430bbf2f919bb548bfdcbe00",
-        "kind": "M",
-        "path": "docs/INDEX.md"
-      },
-      {
-        "content": "sha256:adc642f01e6dcb2fe3939bdc3ba07b9ac0222b59d8cd06e5519df0aa2e1d6832",
-        "kind": "M",
-        "path": "scripts/classify_repo.py"
-      }
-    ],
-    "worktree_digest": "sha256:03c3e37837bdf43059ae4a173d2ba30bf3afddb1752e1082e38e7cf4442354cc"
+    "worktree_changes": [],
+    "worktree_digest": "sha256:307a24482b7a37dbdb4050f6a275c4272a99f82efe571aa24a0baff2aae803da"
   },
-  "inputDigest": "sha256:a2ee0f2716fdc5b7be4da49c958bb89d9e42c5634cf07e5d7fee35d9f2a9b20c",
+  "inputDigest": "sha256:5a6f6585cff6150c8a85873d8e321980d50b8570d33d4206d286e5e2d7a15661",
   "inputDigestMeaning": "primary freshness binding: canonical SHA-256 over the exact input files the projections read plus the git tree scope; recomputed at check time (FU-10)",
   "inputHashes": {
     ".github/workflows/canonical-verify.yml": "77734ded9bc7ac5b8223840cf483f70c62dc1c9740b60c2f3cf0219f7790a15e",
@@ -29,7 +18,7 @@
     ".project-local/task-artifacts/comfy-http-live-bb63046b6f444fe9a7a96d0bf66f949b/result.json": null,
     ".project-local/task-artifacts/designlab-followup-taskpack-20260928/W00-EVIDENCE-SCAN.json": "554fcddf2c2e3c321fbf8d5c74ab389aa6ac20cc0c54cfc41acab37430ee5001",
     ".project-local/task-artifacts/project-survey-2026-09-27/PROJECT-SURVEY-2026-09-27.md": "0efce6a20b1efb5433e64d830906ada77260e9ad799686785f5164d0f4e403c1",
-    ".project-local/task-artifacts/test-run/last-run.json": "f12918a21c5cfe904ad9a5dc71793b9d0e6f77ea1817374ce6a134adf86d91e3",
+    ".project-local/task-artifacts/test-run/last-run.json": "8c1397946ad1126c061c10c42ea1ca3e16062b74a5d986b87a3b8447e6fb5f5d",
     ".project/governance/data-ownership.yaml": "7202baea30612c9acbc722be331913193dec505547bc8e8d73a82642735199c4",
     ".project/manifest.yaml": "ec43c78581e552faafbe4286d9667d7617b4db55c2d2c53be8d2ccd96a27f728",
     ".project/paths.json": "8fe9dbbf85876c42b8d86ef7e2473c826fa431f309023df52fc770b3753b8703",
@@ -323,6 +312,7 @@
     "design-lab/tests/test_reconstruction_security.py": "4bedeacd91b76674113c8171f89867f795e1eb39bc2f23aabad98e43556d310f",
     "design-lab/tests/test_reconstruction_semantics.py": "67bceae1701d30a9aa18be01be5f0ed0b0ad440dc1c205b98b354195dbbb7d25",
     "design-lab/tests/test_reconstruction_svg.py": "005b44f98305d6555ba2c83ace77efd80758d116d13d6008ac11a642b87995cb",
+    "design-lab/tests/test_record_import_fidelity.py": "a4a05df42c7c1752f06047bd92f8d9e0c9b70ea1373f396764258a4fa82c2592",
     "design-lab/tests/test_reference_e2e.py": "074c7719e2817b76a60b9e9364fcf8eab5545e13754e30b2b14fb34e172f8688",
     "design-lab/tests/test_release_gate.py": "da4be92d3975024b6e9c8447f486071b0f4b4aa637e7c9c1e04b3197de5609a3",
     "design-lab/tests/test_release_gate_effective.py": "1e02a3ee4c233a4e145acb654b8141dc78031997df74037dfba0f2ea6605c43d",
@@ -457,7 +447,7 @@
     "src/design_lab/generators/__init__.py": "3e7a20c0e69689daa28b783f4632a67cf86b3824c1911d4ea8da7c6c95d39844",
     "src/design_lab/generators/__pycache__/__init__.cpython-313.pyc": "27ab0f08ff503208576d8c0c64292fb4d1b5d40c74079488dc3a02bcf3246375",
     "src/design_lab/generators/__pycache__/comfy_http.cpython-313.pyc": "e7f12bbd80862230e147ae83cb68d55929bb036cd0530d67f6c165e34e94f2b0",
-    "src/design_lab/generators/__pycache__/comfy_task.cpython-313.pyc": "1be45dccd280c3f945e81c66a7d957edb9c0218978f088a21aec4a2e3870199b",
+    "src/design_lab/generators/__pycache__/comfy_task.cpython-313.pyc": "576aca84cf52ecb2c9cc455e86ca93a27aacaa4f178e615f39b6a8a5bc688c6e",
     "src/design_lab/generators/comfy_http.py": "d8bb2404197bf9014aa550ac100a07ede014c9e6721ff3483c12c54e1d96fdcc",
     "src/design_lab/generators/comfy_task.py": "a852120ebebbd8f1b8eeac14ad030a0d87d9f4d095131d4a6729c4081f378fb7",
     "src/design_lab/governance/evidence_readback.py": "5c947e5ebbb8f46d13a445642f1fe6a481fcd7eaabaf32ebbcb124a8db8511ad",
@@ -503,15 +493,15 @@
   },
   "ledger": "design-lab/config/task-ledger-r3.json",
   "outputHashes": {
-    "ADAPTER_EVIDENCE_RECONCILIATION.json": "55ae139587fad681a0c8b815a0826f44eadfc17bfe45aca472b73d322301d602",
-    "CLOUD_BASELINE.json": "cf5740afdbf156d9a74c678616ef4b500da5038dc28dae5a8c3484d2fc55d1de",
-    "CLOUD_BASELINE.md": "1e9036f7552dec4de2d39f3159e4757c67f948108dd050ba2776f877b848f4c1",
-    "DOMAIN_PACK_READINESS.json": "dab26a561dae2987582a2c0ed3410ef05d995d3abb6163ced8264133032fd17d",
-    "KNOWLEDGE_INVENTORY.json": "dfdc0225dc365211589b4d6df87875230f80472f657fa2b0ca8a518cd566243a",
-    "PROJECT_STATUS.json": "845ffbcf78ea3777e2a1944798317903e2b290071a4cbad55bff6f43cd3e8953",
-    "PROJECT_STATUS.md": "c702a1c7c5189ee35fa97210771bba6d6bafe13727400fa97e51ba7ff4211660",
-    "RELEASE_READINESS.json": "2f98224c1ca159945d0325c99c13f379d00d4ca959b7eac54ea00d9f54ac7c3f",
-    "TASK_PROGRESS.json": "47e81298261fe7feefbaea665683d4bd95b1c5483d171138e0ff1f260a18afb0"
+    "ADAPTER_EVIDENCE_RECONCILIATION.json": "4301b398bb02063da178bf6602ad3d780b85a6f9968461d0c08b04d9749a98fe",
+    "CLOUD_BASELINE.json": "b5da7a413c5b5af324d79d1b1c614d02359e64edfb566b47b75edaa772ab7aa5",
+    "CLOUD_BASELINE.md": "2b4c20e5c619b5ace3c28f19745a44494894825c7cc5ac8ef32d71d98309e9ac",
+    "DOMAIN_PACK_READINESS.json": "fd66f424e4337b9180249106596043587f4b203db80ed2a864d87f2e4f4e1c9a",
+    "KNOWLEDGE_INVENTORY.json": "ab2f8f9fb303bc95379b813b3bc4295bfd69cd620ca9dd63fcdc808a069c25ee",
+    "PROJECT_STATUS.json": "0dc292b02ba8c9921cf45df536ecddd9bceac2afe0bdc480cdd8aabdb4d099dd",
+    "PROJECT_STATUS.md": "046c05842fb49b1dfa6f126d6cf841b5ff141b57dd559e715a2cf52131b50cbe",
+    "RELEASE_READINESS.json": "be1ed1df8551c41e53aee611e300047c07e2204b7fa77fc4b8bbdb50e09bc555",
+    "TASK_PROGRESS.json": "965968c2cae6036a6e41d0e9d85a8e821e98fc8d3fe889d810811f7789fea49c"
   },
   "reportRoot": "../../reports/current/",
   "reports": [
@@ -527,5 +517,5 @@
   ],
   "schemaVersion": "design-lab/current-report-index/v3",
   "subjectMeaning": "generation-time git observation, not a freshness claim; exact-SHA evidence is the CI artifact",
-  "subjectSha": "ce3f06644dde2e3785a2c776318cceac1035fc07"
+  "subjectSha": "557e72671f5418e200ef786b0b456ebc5038840c"
 }

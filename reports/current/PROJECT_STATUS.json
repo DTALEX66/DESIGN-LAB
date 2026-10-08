@@ -8,26 +8,15 @@
   },
   "fresh": false,
   "freshnessMeaning": "at generation only; check verifies bound-input integrity, not current Git or cloud state",
-  "generatedAt": "2026-10-08T14:42:07+00:00",
+  "generatedAt": "2026-10-08T15:27:05+00:00",
   "git": {
     "branch": "qoder/designlab-backup-consistency-20261007",
     "origin_main": "fc03a3033e900a8066d863a223636cc68804c4fa",
-    "sha": "ce3f06644dde2e3785a2c776318cceac1035fc07",
-    "source_worktree_clean": false,
+    "sha": "557e72671f5418e200ef786b0b456ebc5038840c",
+    "source_worktree_clean": true,
     "tracked_files": 3360,
-    "worktree_changes": [
-      {
-        "content": "sha256:acaa620d05ccd9c316a99e64d0bbffc91f78d32d430bbf2f919bb548bfdcbe00",
-        "kind": "M",
-        "path": "docs/INDEX.md"
-      },
-      {
-        "content": "sha256:adc642f01e6dcb2fe3939bdc3ba07b9ac0222b59d8cd06e5519df0aa2e1d6832",
-        "kind": "M",
-        "path": "scripts/classify_repo.py"
-      }
-    ],
-    "worktree_digest": "sha256:03c3e37837bdf43059ae4a173d2ba30bf3afddb1752e1082e38e7cf4442354cc"
+    "worktree_changes": [],
+    "worktree_digest": "sha256:307a24482b7a37dbdb4050f6a275c4272a99f82efe571aa24a0baff2aae803da"
   },
   "gitStateMeaning": "generation-time observation, not current HEAD",
   "hostLive": "derived from host_live axis only",
@@ -40,22 +29,22 @@
     "quarantinedSources": 162
   },
   "subjectMeaning": "subjectType=WORKTREE means the tree was dirty at generation; worktreeDigest covers HEAD plus the non-generated changes",
-  "subjectSha": "ce3f06644dde2e3785a2c776318cceac1035fc07",
-  "subjectType": "WORKTREE",
+  "subjectSha": "557e72671f5418e200ef786b0b456ebc5038840c",
+  "subjectType": "COMMIT",
   "taskCounts": {
     "PARTIAL": 28
   },
   "taskpack": "DL-TP-20260908-R5",
   "taskpackHash": "31dde89eb4ede81fe88c0a5c5144adfb86af8db4c4d8c263bde2199180369b69",
   "taskpackId": "DL-TP-20260908-R5",
-  "testRunAt": "2026-10-08T12:22:44+00:00",
-  "testRunId": "testrun-20261008T115408Z-forward-2eff6d33e865",
-  "testRunMeaning": "bound run: python scripts/run_bound_test_suite.py --order forward --label brand-nav-ui-wave",
+  "testRunAt": "2026-10-08T15:06:36+00:00",
+  "testRunId": "testrun-20261008T144437Z-forward-7328bfad9510",
+  "testRunMeaning": "bound run: python scripts/run_bound_test_suite.py --order forward --label record-archive-29",
   "testRunResult": "FAILED",
   "tests": {
-    "definedTestMethodCount": 2667,
+    "definedTestMethodCount": 2671,
     "executed": "see individual verified ledger receipts"
   },
-  "worktreeClean": false,
-  "worktreeDigest": "sha256:03c3e37837bdf43059ae4a173d2ba30bf3afddb1752e1082e38e7cf4442354cc"
+  "worktreeClean": true,
+  "worktreeDigest": "sha256:307a24482b7a37dbdb4050f6a275c4272a99f82efe571aa24a0baff2aae803da"
 }

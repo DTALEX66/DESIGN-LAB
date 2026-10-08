@@ -3837,14 +3837,14 @@
   ],
   "fresh": false,
   "freshnessMeaning": "at generation only; check verifies bound-input integrity, not current Git or cloud state",
-  "generatedAt": "2026-10-08T14:42:07+00:00",
+  "generatedAt": "2026-10-08T15:27:05+00:00",
   "gitStateMeaning": "generation-time observation, not current HEAD",
   "ledgerUpdatedAt": "2026-10-08T03:04:03Z",
   "note": "DONE_LOCAL concerns the declared task axes and dependencies, not a product release or hosted CI.",
   "schemaVersion": "design-lab/task-progress/r5-v1",
   "subjectMeaning": "subjectType=WORKTREE means the tree was dirty at generation; worktreeDigest covers HEAD plus the non-generated changes",
-  "subjectSha": "ce3f06644dde2e3785a2c776318cceac1035fc07",
-  "subjectType": "WORKTREE",
+  "subjectSha": "557e72671f5418e200ef786b0b456ebc5038840c",
+  "subjectType": "COMMIT",
   "taskpack": "DL-TP-20260908-R5",
   "taskpackHash": "31dde89eb4ede81fe88c0a5c5144adfb86af8db4c4d8c263bde2199180369b69",
   "taskpackId": "DL-TP-20260908-R5",
@@ -6347,10 +6347,10 @@
       "unresolved_conditions": []
     }
   ],
-  "testRunAt": "2026-10-08T12:22:44+00:00",
-  "testRunId": "testrun-20261008T115408Z-forward-2eff6d33e865",
-  "testRunMeaning": "bound run: python scripts/run_bound_test_suite.py --order forward --label brand-nav-ui-wave",
+  "testRunAt": "2026-10-08T15:06:36+00:00",
+  "testRunId": "testrun-20261008T144437Z-forward-7328bfad9510",
+  "testRunMeaning": "bound run: python scripts/run_bound_test_suite.py --order forward --label record-archive-29",
   "testRunResult": "FAILED",
-  "worktreeClean": false,
-  "worktreeDigest": "sha256:03c3e37837bdf43059ae4a173d2ba30bf3afddb1752e1082e38e7cf4442354cc"
+  "worktreeClean": true,
+  "worktreeDigest": "sha256:307a24482b7a37dbdb4050f6a275c4272a99f82efe571aa24a0baff2aae803da"
 }
