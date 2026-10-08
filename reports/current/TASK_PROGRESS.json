@@ -22,15 +22,25 @@
         }
       ],
       "binding": "WORKTREE_FILES",
+      "currency_reasons": [
+        "STALE_SUBJECT_SHA",
+        "STALE_SUBJECT_SHA"
+      ],
+      "current": false,
       "id": "r5-comfy-http-model-free-live-20260909",
+      "integrity_reasons": [
+        "OUTCOME_NOT_PASS",
+        "RUNTIME_ARTIFACT_ABSENT_ON_THIS_MACHINE:.project-local/task-artifacts/comfy-http-live-bb63046b6f444fe9a7a96d0bf66f949b/result.json"
+      ],
       "kind": "host_live",
       "note": "真实专用实例EmptyImage/SaveImage，经新客户端提交和history读回，64x64像素与PNG hash核对通过；不是模型生成。专用PID11964已terminate并确认端口57815关闭，不计优雅恢复。WS、持久任务、取消ACK、10次模型基准及H3未完成。observed_at为本次证据重读绑定时间，实际执行时间见原始history；ignored原件换机缺失应MISSING。",
       "observed_at": "2026-09-08T22:51:42Z",
       "outcome": "PARTIAL",
       "reasons": [
         "OUTCOME_NOT_PASS",
+        "RUNTIME_ARTIFACT_ABSENT_ON_THIS_MACHINE:.project-local/task-artifacts/comfy-http-live-bb63046b6f444fe9a7a96d0bf66f949b/result.json",
         "STALE_SUBJECT_SHA",
-        "ARTIFACT_CHANGED_OR_MISSING:.project-local/task-artifacts/comfy-http-live-bb63046b6f444fe9a7a96d0bf66f949b/result.json"
+        "STALE_SUBJECT_SHA"
       ],
       "software": {
         "host": "ComfyUI 0.33.1",
@@ -55,16 +65,29 @@
         }
       ],
       "binding": "WORKTREE_FILES",
+      "currency_reasons": [
+        "STALE_SUBJECT_SHA",
+        "STALE_SUBJECT_SHA",
+        "STALE_SUBJECT_SHA"
+      ],
+      "current": false,
       "id": "r5-comfy-structural-rejection-20260909",
+      "integrity_reasons": [
+        "OUTCOME_NOT_PASS",
+        "EVIDENCE_DIGEST_DIFFERS:src/design_lab/generators/comfy_task.py",
+        "EVIDENCE_DIGEST_DIFFERS:design-lab/tests/test_comfy_task_protocol.py"
+      ],
       "kind": "local_test",
       "note": "14项真实协议单元测试通过，新增拒绝测试先出现16个subtest失败再修复。仅词法路径/指纹、零checksum和重复node ID，不能证明产物实际hash或Comfy传输；REST/WS、取消ACK、恢复和10次模型基准仍未完成。修改晚于953项全量，因此不继承其结果。",
       "observed_at": "2026-09-08T22:36:19Z",
       "outcome": "PARTIAL",
       "reasons": [
         "OUTCOME_NOT_PASS",
+        "EVIDENCE_DIGEST_DIFFERS:src/design_lab/generators/comfy_task.py",
+        "EVIDENCE_DIGEST_DIFFERS:design-lab/tests/test_comfy_task_protocol.py",
         "STALE_SUBJECT_SHA",
-        "SOURCE_CHANGED_OR_MISSING:src/design_lab/generators/comfy_task.py",
-        "SOURCE_CHANGED_OR_MISSING:design-lab/tests/test_comfy_task_protocol.py"
+        "STALE_SUBJECT_SHA",
+        "STALE_SUBJECT_SHA"
       ],
       "software": {
         "python": "project .venv Python 3.13.14",
@@ -92,13 +115,24 @@
         }
       ],
       "binding": "WORKTREE_FILES",
+      "currency_reasons": [
+        "STALE_SUBJECT_SHA",
+        "STALE_SUBJECT_SHA",
+        "STALE_SUBJECT_SHA"
+      ],
+      "current": false,
       "id": "r5-ps-handoff-review-20260909",
+      "integrity_reasons": [
+        "OUTCOME_NOT_PASS"
+      ],
       "kind": "structural",
       "note": "交接证据定位，不是新宿主验收：报告记载真实PSD两次patch，但本记录仅绑定文档与工作区源码。第二轮953项全量回归仍有1个WinError10053错误、2 skipped；独立重复30次通过不能抵扣全量失败。原生原件、页面整链、对象独立性、人工质量与发布仍需分别核验。不得提升host_live或delivery。",
       "observed_at": "2026-09-08T22:04:01Z",
       "outcome": "PARTIAL",
       "reasons": [
         "OUTCOME_NOT_PASS",
+        "STALE_SUBJECT_SHA",
+        "STALE_SUBJECT_SHA",
         "STALE_SUBJECT_SHA"
       ],
       "software": {
@@ -121,15 +155,21 @@
         }
       ],
       "binding": "COMMIT",
+      "currency_reasons": [
+        "MOVED_SINCE_BOUND_COMMIT:design-lab/config/task-ledger-r3.json"
+      ],
+      "current": false,
       "id": "r5-branch-convergence-live-20260927",
+      "integrity_reasons": [
+        "OUTCOME_NOT_PASS"
+      ],
       "kind": "structural",
       "note": "实读于 634071f：远端分支 28 -> 1（仅 main）；open PR 0；单 worktree；0 stash。仅证明分支/账本收敛这一事实面，不等同 DL-R5-001 全部验收（旧 R4 ID 可追踪性、验收/回退/证据字段完整性未逐项复核），故 outcome=PARTIAL。",
       "observed_at": "2026-09-27T15:11:41Z",
       "outcome": "PARTIAL",
       "reasons": [
         "OUTCOME_NOT_PASS",
-        "STALE_SUBJECT_SHA",
-        "SOURCE_CHANGED_OR_MISSING:design-lab/config/task-ledger-r3.json"
+        "MOVED_SINCE_BOUND_COMMIT:design-lab/config/task-ledger-r3.json"
       ],
       "software": {
         "git": "2.55.0.windows.3",
@@ -154,15 +194,21 @@
         }
       ],
       "binding": "COMMIT",
+      "currency_reasons": [
+        "MOVED_SINCE_BOUND_COMMIT:.project/paths.json"
+      ],
+      "current": false,
       "id": "r5-runtime-root-boundary-live-20260927",
+      "integrity_reasons": [
+        "OUTCOME_NOT_PASS"
+      ],
       "kind": "structural",
       "note": "活跃运行根 = .project-local/（.gitignore:71 忽略）；项目内 .hermes/ 仅剩 skill-call-index.json 且 mtime 2026-08-24（一个月无新增写入），与 AUTHORITY.md §7 一致。本轮按数据所有权清理：4 个会话暂存文件迁入 task-artifacts/external-recovery-2026-09-27/（sha256 移前=移后）、4 个有契约/引用依据的文件就近保留、删除空的嵌套 .project-local/.project-local/。PARTIAL：未逐项核查 Adobe/CLI/UI/技能启动器入口。",
       "observed_at": "2026-09-27T15:11:41Z",
       "outcome": "PARTIAL",
       "reasons": [
         "OUTCOME_NOT_PASS",
-        "STALE_SUBJECT_SHA",
-        "SOURCE_CHANGED_OR_MISSING:.project/paths.json"
+        "MOVED_SINCE_BOUND_COMMIT:.project/paths.json"
       ],
       "software": {
         "observation": "HERMES_HOME mtime sweep; git check-ignore; ownership-classified cleanup with sha256 before/after",
@@ -188,15 +234,21 @@
         }
       ],
       "binding": "COMMIT",
+      "currency_reasons": [
+        "MOVED_SINCE_BOUND_COMMIT:.github/workflows/canonical-verify.yml"
+      ],
+      "current": false,
       "id": "r5-ci-required-checks-live-20260927",
+      "integrity_reasons": [
+        "OUTCOME_NOT_PASS"
+      ],
       "kind": "structural",
       "note": "main 分支保护 live 读回 = 9 项 required checks（Python gate / MiniGame / Generated-artifact / License-secret / Open Design / Top-level Authority / Workbench strict-TS / Workbench browser E2E / DeepSeek authority chain），在 634071f 的 push 与 pull_request 两类 run 上均 pass。PARTIAL：只证明 required-check 面，不宣称全部验证环境已补齐。",
       "observed_at": "2026-09-27T15:11:41Z",
       "outcome": "PARTIAL",
       "reasons": [
         "OUTCOME_NOT_PASS",
-        "STALE_SUBJECT_SHA",
-        "SOURCE_CHANGED_OR_MISSING:.github/workflows/canonical-verify.yml"
+        "MOVED_SINCE_BOUND_COMMIT:.github/workflows/canonical-verify.yml"
       ],
       "software": {
         "gh": "GitHub CLI (keyring auth)",
@@ -225,16 +277,23 @@
         }
       ],
       "binding": "COMMIT",
+      "currency_reasons": [
+        "MOVED_SINCE_BOUND_COMMIT:apps/workbench/package.json",
+        "MOVED_SINCE_BOUND_COMMIT:apps/workbench/build/main.js"
+      ],
+      "current": false,
       "id": "r5-workbench-strict-ts-build-truth-20260927",
+      "integrity_reasons": [
+        "OUTCOME_NOT_PASS"
+      ],
       "kind": "local_test",
       "note": "在 634071f 实测：strict TypeScript typecheck exit 0；Vite build exit 0；node tests/unit.mjs 与 tests/appshell.mjs 全绿。构建产物真值面由 required check 'Workbench strict-TS product gate' 与 'Generated-artifact clean-tree gate' 双重守卫（后者要求全树干净，故 apps/workbench/build/main.js 必须与源码同提交）。PARTIAL：非全语言迁移；Ruff 是否 enforce 仍未决策。本 receipt 直到 `apps` 被加入 reporting.py 的证据根 allowed 集合后才可绑定。",
       "observed_at": "2026-09-27T16:41:37Z",
       "outcome": "PARTIAL",
       "reasons": [
         "OUTCOME_NOT_PASS",
-        "STALE_SUBJECT_SHA",
-        "SOURCE_CHANGED_OR_MISSING:apps/workbench/package.json",
-        "ARTIFACT_CHANGED_OR_MISSING:apps/workbench/build/main.js"
+        "MOVED_SINCE_BOUND_COMMIT:apps/workbench/package.json",
+        "MOVED_SINCE_BOUND_COMMIT:apps/workbench/build/main.js"
       ],
       "software": {
         "node": "v24.18.1",
@@ -266,18 +325,25 @@
         }
       ],
       "binding": "COMMIT",
+      "currency_reasons": [
+        "MOVED_SINCE_BOUND_COMMIT:apps/workbench/workbench.ts",
+        "MOVED_SINCE_BOUND_COMMIT:apps/workbench/index.html",
+        "MOVED_SINCE_BOUND_COMMIT:design-lab/tests/test_workbench_native_ui.py"
+      ],
+      "current": false,
       "id": "r5-workbench-native-task-ui-tests-20260927",
+      "integrity_reasons": [
+        "OUTCOME_NOT_PASS"
+      ],
       "kind": "local_test",
       "note": "工作台侧的提交 / 修改 / 取消 / 导出 / 预览 / 原生校验 handler 与契约测试（test_workbench_native_ui.py：分页游标、旧响应不得覆盖新视图、patch 幂等、start/cancel attempt 绑定、bundle hash 校验、409/401 fail-closed）在 634071f 随全量套件执行通过。PARTIAL：这些是受控运行与结构证据，**不**构成真实宿主 E3，也不代表人工验收；host_live 轴因此不绑定。",
       "observed_at": "2026-09-27T16:41:37Z",
       "outcome": "PARTIAL",
       "reasons": [
         "OUTCOME_NOT_PASS",
-        "STALE_SUBJECT_SHA",
-        "SOURCE_CHANGED_OR_MISSING:apps/workbench/workbench.ts",
-        "SOURCE_CHANGED_OR_MISSING:apps/workbench/index.html",
-        "SOURCE_CHANGED_OR_MISSING:design-lab/tests/test_workbench_native_ui.py",
-        "ARTIFACT_CHANGED_OR_MISSING:design-lab/tests/test_workbench_native_ui.py"
+        "MOVED_SINCE_BOUND_COMMIT:apps/workbench/workbench.ts",
+        "MOVED_SINCE_BOUND_COMMIT:apps/workbench/index.html",
+        "MOVED_SINCE_BOUND_COMMIT:design-lab/tests/test_workbench_native_ui.py"
       ],
       "software": {
         "os": "Windows",
@@ -307,14 +373,21 @@
         }
       ],
       "binding": "COMMIT",
+      "currency_reasons": [
+        "MOVED_SINCE_BOUND_COMMIT:design-lab/tests/test_current_reporting.py"
+      ],
+      "current": false,
       "id": "r5-001-static-unit-20260928",
+      "integrity_reasons": [
+        "OUTCOME_NOT_PASS"
+      ],
       "kind": "local_test",
       "note": "静态+单元取证（非完成声明）。该任务的实现模块与测试模块在 4c9f18493e90 上均真实存在，且所引测试随权威套件执行通过。实现模块：.project/manifest.yaml；测试模块 3 个。PARTIAL：未绑定 host_live（无真实 Adobe 宿主运行）与 delivery（无已交付包），故不宣称本任务完成或验收。",
       "observed_at": "2026-09-28T14:26:42Z",
       "outcome": "PARTIAL",
       "reasons": [
         "OUTCOME_NOT_PASS",
-        "STALE_SUBJECT_SHA"
+        "MOVED_SINCE_BOUND_COMMIT:design-lab/tests/test_current_reporting.py"
       ],
       "software": {
         "os": "Windows",
@@ -345,15 +418,21 @@
         }
       ],
       "binding": "COMMIT",
+      "currency_reasons": [
+        "MOVED_SINCE_BOUND_COMMIT:.project/paths.json"
+      ],
+      "current": false,
       "id": "r5-002-static-unit-20260928",
+      "integrity_reasons": [
+        "OUTCOME_NOT_PASS"
+      ],
       "kind": "local_test",
       "note": "静态+单元取证（非完成声明）。该任务的实现模块与测试模块在 4c9f18493e90 上均真实存在，且所引测试随权威套件执行通过。实现模块：.project/paths.json、.project/governance/data-ownership.yaml、design-lab/scripts/context_capsule.py；测试模块 2 个。PARTIAL：未绑定 host_live（无真实 Adobe 宿主运行）与 delivery（无已交付包），故不宣称本任务完成或验收。",
       "observed_at": "2026-09-28T14:26:42Z",
       "outcome": "PARTIAL",
       "reasons": [
         "OUTCOME_NOT_PASS",
-        "STALE_SUBJECT_SHA",
-        "SOURCE_CHANGED_OR_MISSING:.project/paths.json"
+        "MOVED_SINCE_BOUND_COMMIT:.project/paths.json"
       ],
       "software": {
         "os": "Windows",
@@ -385,14 +464,18 @@
         }
       ],
       "binding": "COMMIT",
+      "currency_reasons": [],
+      "current": false,
       "id": "r5-003-static-unit-20260928",
+      "integrity_reasons": [
+        "OUTCOME_NOT_PASS"
+      ],
       "kind": "local_test",
       "note": "静态+单元取证（非完成声明）。该任务的实现模块与测试模块在 4c9f18493e90 上均真实存在，且所引测试随权威套件执行通过。实现模块：scripts/run_python_tests.py；测试模块 4 个。PARTIAL：未绑定 host_live（无真实 Adobe 宿主运行）与 delivery（无已交付包），故不宣称本任务完成或验收。",
       "observed_at": "2026-09-28T14:26:42Z",
       "outcome": "PARTIAL",
       "reasons": [
-        "OUTCOME_NOT_PASS",
-        "STALE_SUBJECT_SHA"
+        "OUTCOME_NOT_PASS"
       ],
       "software": {
         "os": "Windows",
@@ -424,16 +507,23 @@
         }
       ],
       "binding": "COMMIT",
+      "currency_reasons": [
+        "MOVED_SINCE_BOUND_COMMIT:src/design_lab/native_tasks.py",
+        "MOVED_SINCE_BOUND_COMMIT:src/design_lab/task_queries.py"
+      ],
+      "current": false,
       "id": "r5-004-static-unit-20260928",
+      "integrity_reasons": [
+        "OUTCOME_NOT_PASS"
+      ],
       "kind": "local_test",
       "note": "静态+单元取证（非完成声明）。该任务的实现模块与测试模块在 4c9f18493e90 上均真实存在，且所引测试随权威套件执行通过。实现模块：src/design_lab/native_tasks.py、src/design_lab/task_queries.py、src/design_lab/native_workers.py；测试模块 4 个。PARTIAL：未绑定 host_live（无真实 Adobe 宿主运行）与 delivery（无已交付包），故不宣称本任务完成或验收。",
       "observed_at": "2026-09-28T14:26:42Z",
       "outcome": "PARTIAL",
       "reasons": [
         "OUTCOME_NOT_PASS",
-        "STALE_SUBJECT_SHA",
-        "SOURCE_CHANGED_OR_MISSING:src/design_lab/native_tasks.py",
-        "SOURCE_CHANGED_OR_MISSING:src/design_lab/task_queries.py"
+        "MOVED_SINCE_BOUND_COMMIT:src/design_lab/native_tasks.py",
+        "MOVED_SINCE_BOUND_COMMIT:src/design_lab/task_queries.py"
       ],
       "software": {
         "os": "Windows",
@@ -467,19 +557,29 @@
         }
       ],
       "binding": "COMMIT",
+      "currency_reasons": [
+        "MOVED_SINCE_BOUND_COMMIT:src/design_lab/native_assets.py",
+        "MOVED_SINCE_BOUND_COMMIT:src/design_lab/native_bundles.py",
+        "MOVED_SINCE_BOUND_COMMIT:src/design_lab/image_assets.py",
+        "MOVED_SINCE_BOUND_COMMIT:design-lab/tests/test_bundle_store.py",
+        "MOVED_SINCE_BOUND_COMMIT:design-lab/tests/test_image_import_recovery.py"
+      ],
+      "current": false,
       "id": "r5-005-static-unit-20260928",
+      "integrity_reasons": [
+        "OUTCOME_NOT_PASS"
+      ],
       "kind": "local_test",
       "note": "静态+单元取证（非完成声明）。该任务的实现模块与测试模块在 4c9f18493e90 上均真实存在，且所引测试随权威套件执行通过。实现模块：src/design_lab/native_assets.py、src/design_lab/native_bundles.py、src/design_lab/image_assets.py；测试模块 4 个。PARTIAL：未绑定 host_live（无真实 Adobe 宿主运行）与 delivery（无已交付包），故不宣称本任务完成或验收。",
       "observed_at": "2026-09-28T14:26:42Z",
       "outcome": "PARTIAL",
       "reasons": [
         "OUTCOME_NOT_PASS",
-        "STALE_SUBJECT_SHA",
-        "SOURCE_CHANGED_OR_MISSING:src/design_lab/native_assets.py",
-        "SOURCE_CHANGED_OR_MISSING:src/design_lab/native_bundles.py",
-        "SOURCE_CHANGED_OR_MISSING:src/design_lab/image_assets.py",
-        "SOURCE_CHANGED_OR_MISSING:design-lab/tests/test_bundle_store.py",
-        "SOURCE_CHANGED_OR_MISSING:design-lab/tests/test_image_import_recovery.py"
+        "MOVED_SINCE_BOUND_COMMIT:src/design_lab/native_assets.py",
+        "MOVED_SINCE_BOUND_COMMIT:src/design_lab/native_bundles.py",
+        "MOVED_SINCE_BOUND_COMMIT:src/design_lab/image_assets.py",
+        "MOVED_SINCE_BOUND_COMMIT:design-lab/tests/test_bundle_store.py",
+        "MOVED_SINCE_BOUND_COMMIT:design-lab/tests/test_image_import_recovery.py"
       ],
       "software": {
         "os": "Windows",
@@ -513,19 +613,31 @@
         }
       ],
       "binding": "COMMIT",
+      "currency_reasons": [
+        "MOVED_SINCE_BOUND_COMMIT:design-lab/tests/test_model_manifest.py"
+      ],
+      "current": false,
       "id": "r5-006-static-unit-20260928",
+      "integrity_reasons": [
+        "OUTCOME_NOT_PASS",
+        "ARTIFACT_IS_NOT_VERSIONED:src/design_lab/readiness/__pycache__/__init__.cpython-313.pyc",
+        "ARTIFACT_IS_NOT_VERSIONED:src/design_lab/readiness/__pycache__/host_matrix.cpython-313.pyc",
+        "ARTIFACT_IS_NOT_VERSIONED:src/design_lab/readiness/__pycache__/model_radar.cpython-313.pyc",
+        "ARTIFACT_IS_NOT_VERSIONED:src/design_lab/readiness/__pycache__/reconstruction_bench.cpython-313.pyc",
+        "ARTIFACT_IS_NOT_VERSIONED:src/design_lab/readiness/__pycache__/vector_provider.cpython-313.pyc"
+      ],
       "kind": "local_test",
       "note": "静态+单元取证（非完成声明）。该任务的实现模块与测试模块在 4c9f18493e90 上均真实存在，且所引测试随权威套件执行通过。实现模块：src/design_lab/readiness/；测试模块 4 个。PARTIAL：未绑定 host_live（无真实 Adobe 宿主运行）与 delivery（无已交付包），故不宣称本任务完成或验收。",
       "observed_at": "2026-09-28T14:26:42Z",
       "outcome": "PARTIAL",
       "reasons": [
         "OUTCOME_NOT_PASS",
-        "STALE_SUBJECT_SHA",
-        "SOURCE_CHANGED_OR_MISSING:src/design_lab/readiness/__pycache__/__init__.cpython-313.pyc",
-        "SOURCE_CHANGED_OR_MISSING:src/design_lab/readiness/__pycache__/host_matrix.cpython-313.pyc",
-        "SOURCE_CHANGED_OR_MISSING:src/design_lab/readiness/__pycache__/model_radar.cpython-313.pyc",
-        "SOURCE_CHANGED_OR_MISSING:design-lab/tests/test_model_manifest.py",
-        "ARTIFACT_CHANGED_OR_MISSING:design-lab/tests/test_model_manifest.py"
+        "ARTIFACT_IS_NOT_VERSIONED:src/design_lab/readiness/__pycache__/__init__.cpython-313.pyc",
+        "ARTIFACT_IS_NOT_VERSIONED:src/design_lab/readiness/__pycache__/host_matrix.cpython-313.pyc",
+        "ARTIFACT_IS_NOT_VERSIONED:src/design_lab/readiness/__pycache__/model_radar.cpython-313.pyc",
+        "ARTIFACT_IS_NOT_VERSIONED:src/design_lab/readiness/__pycache__/reconstruction_bench.cpython-313.pyc",
+        "ARTIFACT_IS_NOT_VERSIONED:src/design_lab/readiness/__pycache__/vector_provider.cpython-313.pyc",
+        "MOVED_SINCE_BOUND_COMMIT:design-lab/tests/test_model_manifest.py"
       ],
       "software": {
         "os": "Windows",
@@ -564,17 +676,25 @@
         }
       ],
       "binding": "COMMIT",
+      "currency_reasons": [
+        "MOVED_SINCE_BOUND_COMMIT:src/design_lab/cli.py",
+        "MOVED_SINCE_BOUND_COMMIT:src/design_lab/service.py",
+        "MOVED_SINCE_BOUND_COMMIT:design-lab/tests/test_doctor_evidence.py"
+      ],
+      "current": false,
       "id": "r5-007-static-unit-20260928",
+      "integrity_reasons": [
+        "OUTCOME_NOT_PASS"
+      ],
       "kind": "local_test",
       "note": "静态+单元取证（非完成声明）。该任务的实现模块与测试模块在 4c9f18493e90 上均真实存在，且所引测试随权威套件执行通过。实现模块：src/design_lab/cli.py、src/design_lab/service.py；测试模块 3 个。PARTIAL：未绑定 host_live（无真实 Adobe 宿主运行）与 delivery（无已交付包），故不宣称本任务完成或验收。",
       "observed_at": "2026-09-28T14:26:42Z",
       "outcome": "PARTIAL",
       "reasons": [
         "OUTCOME_NOT_PASS",
-        "STALE_SUBJECT_SHA",
-        "SOURCE_CHANGED_OR_MISSING:src/design_lab/cli.py",
-        "SOURCE_CHANGED_OR_MISSING:src/design_lab/service.py",
-        "SOURCE_CHANGED_OR_MISSING:design-lab/tests/test_doctor_evidence.py"
+        "MOVED_SINCE_BOUND_COMMIT:src/design_lab/cli.py",
+        "MOVED_SINCE_BOUND_COMMIT:src/design_lab/service.py",
+        "MOVED_SINCE_BOUND_COMMIT:design-lab/tests/test_doctor_evidence.py"
       ],
       "software": {
         "os": "Windows",
@@ -606,19 +726,29 @@
         }
       ],
       "binding": "COMMIT",
+      "currency_reasons": [
+        "MOVED_SINCE_BOUND_COMMIT:src/design_lab/generators/comfy_task.py",
+        "MOVED_SINCE_BOUND_COMMIT:design-lab/tests/test_comfy_http.py"
+      ],
+      "current": false,
       "id": "r5-008-static-unit-20260928",
+      "integrity_reasons": [
+        "OUTCOME_NOT_PASS",
+        "ARTIFACT_IS_NOT_VERSIONED:src/design_lab/generators/__pycache__/__init__.cpython-313.pyc",
+        "ARTIFACT_IS_NOT_VERSIONED:src/design_lab/generators/__pycache__/comfy_http.cpython-313.pyc",
+        "ARTIFACT_IS_NOT_VERSIONED:src/design_lab/generators/__pycache__/comfy_task.cpython-313.pyc"
+      ],
       "kind": "local_test",
       "note": "静态+单元取证（非完成声明）。该任务的实现模块与测试模块在 4c9f18493e90 上均真实存在，且所引测试随权威套件执行通过。实现模块：src/design_lab/generators/；测试模块 3 个。PARTIAL：未绑定 host_live（无真实 Adobe 宿主运行）与 delivery（无已交付包），故不宣称本任务完成或验收。",
       "observed_at": "2026-09-28T14:26:42Z",
       "outcome": "PARTIAL",
       "reasons": [
         "OUTCOME_NOT_PASS",
-        "STALE_SUBJECT_SHA",
-        "SOURCE_CHANGED_OR_MISSING:src/design_lab/generators/__pycache__/comfy_http.cpython-313.pyc",
-        "SOURCE_CHANGED_OR_MISSING:src/design_lab/generators/__pycache__/comfy_task.cpython-313.pyc",
-        "SOURCE_CHANGED_OR_MISSING:src/design_lab/generators/comfy_task.py",
-        "SOURCE_CHANGED_OR_MISSING:design-lab/tests/test_comfy_http.py",
-        "ARTIFACT_CHANGED_OR_MISSING:design-lab/tests/test_comfy_http.py"
+        "ARTIFACT_IS_NOT_VERSIONED:src/design_lab/generators/__pycache__/__init__.cpython-313.pyc",
+        "ARTIFACT_IS_NOT_VERSIONED:src/design_lab/generators/__pycache__/comfy_http.cpython-313.pyc",
+        "ARTIFACT_IS_NOT_VERSIONED:src/design_lab/generators/__pycache__/comfy_task.cpython-313.pyc",
+        "MOVED_SINCE_BOUND_COMMIT:src/design_lab/generators/comfy_task.py",
+        "MOVED_SINCE_BOUND_COMMIT:design-lab/tests/test_comfy_http.py"
       ],
       "software": {
         "os": "Windows",
@@ -654,15 +784,23 @@
         }
       ],
       "binding": "COMMIT",
+      "currency_reasons": [
+        "MOVED_SINCE_BOUND_COMMIT:design-lab/tests/test_rir_source_import.py"
+      ],
+      "current": false,
       "id": "r5-009-static-unit-20260928",
+      "integrity_reasons": [
+        "OUTCOME_NOT_PASS",
+        "ARTIFACT_IS_NOT_VERSIONED:src/design_lab/reconstruction/__pycache__/__init__.cpython-313.pyc"
+      ],
       "kind": "local_test",
       "note": "静态+单元取证（非完成声明）。该任务的实现模块与测试模块在 4c9f18493e90 上均真实存在，且所引测试随权威套件执行通过。实现模块：src/design_lab/reconstruction/；测试模块 3 个。PARTIAL：未绑定 host_live（无真实 Adobe 宿主运行）与 delivery（无已交付包），故不宣称本任务完成或验收。",
       "observed_at": "2026-09-28T14:26:42Z",
       "outcome": "PARTIAL",
       "reasons": [
         "OUTCOME_NOT_PASS",
-        "STALE_SUBJECT_SHA",
-        "SOURCE_CHANGED_OR_MISSING:design-lab/tests/test_rir_source_import.py"
+        "ARTIFACT_IS_NOT_VERSIONED:src/design_lab/reconstruction/__pycache__/__init__.cpython-313.pyc",
+        "MOVED_SINCE_BOUND_COMMIT:design-lab/tests/test_rir_source_import.py"
       ],
       "software": {
         "os": "Windows",
@@ -694,20 +832,29 @@
         }
       ],
       "binding": "COMMIT",
+      "currency_reasons": [
+        "MOVED_SINCE_BOUND_COMMIT:apps/workbench/workbench.ts",
+        "MOVED_SINCE_BOUND_COMMIT:apps/workbench/shell.ts",
+        "MOVED_SINCE_BOUND_COMMIT:src/design_lab/workbench.py",
+        "MOVED_SINCE_BOUND_COMMIT:design-lab/tests/test_workbench_native_ui.py",
+        "MOVED_SINCE_BOUND_COMMIT:apps/workbench/tests/appshell.mjs"
+      ],
+      "current": false,
       "id": "r5-010-static-unit-20260928",
+      "integrity_reasons": [
+        "OUTCOME_NOT_PASS"
+      ],
       "kind": "local_test",
       "note": "静态+单元取证（非完成声明）。该任务的实现模块与测试模块在 4c9f18493e90 上均真实存在，且所引测试随权威套件执行通过。实现模块：apps/workbench/workbench.ts、apps/workbench/shell.ts、src/design_lab/workbench.py；测试模块 4 个。PARTIAL：未绑定 host_live（无真实 Adobe 宿主运行）与 delivery（无已交付包），故不宣称本任务完成或验收。",
       "observed_at": "2026-09-28T14:26:42Z",
       "outcome": "PARTIAL",
       "reasons": [
         "OUTCOME_NOT_PASS",
-        "STALE_SUBJECT_SHA",
-        "SOURCE_CHANGED_OR_MISSING:apps/workbench/workbench.ts",
-        "SOURCE_CHANGED_OR_MISSING:apps/workbench/shell.ts",
-        "SOURCE_CHANGED_OR_MISSING:src/design_lab/workbench.py",
-        "SOURCE_CHANGED_OR_MISSING:design-lab/tests/test_workbench_native_ui.py",
-        "SOURCE_CHANGED_OR_MISSING:apps/workbench/tests/appshell.mjs",
-        "ARTIFACT_CHANGED_OR_MISSING:design-lab/tests/test_workbench_native_ui.py"
+        "MOVED_SINCE_BOUND_COMMIT:apps/workbench/workbench.ts",
+        "MOVED_SINCE_BOUND_COMMIT:apps/workbench/shell.ts",
+        "MOVED_SINCE_BOUND_COMMIT:src/design_lab/workbench.py",
+        "MOVED_SINCE_BOUND_COMMIT:design-lab/tests/test_workbench_native_ui.py",
+        "MOVED_SINCE_BOUND_COMMIT:apps/workbench/tests/appshell.mjs"
       ],
       "software": {
         "os": "Windows",
@@ -741,16 +888,21 @@
         }
       ],
       "binding": "COMMIT",
+      "currency_reasons": [
+        "MOVED_SINCE_BOUND_COMMIT:design-lab/tests/test_illustrator_com_adapter.py"
+      ],
+      "current": false,
       "id": "r5-011-static-unit-20260928",
+      "integrity_reasons": [
+        "OUTCOME_NOT_PASS"
+      ],
       "kind": "local_test",
       "note": "静态+单元取证（非完成声明）。该任务的实现模块与测试模块在 4c9f18493e90 上均真实存在，且所引测试随权威套件执行通过。实现模块：integrations/hosts/adobe/illustrator/；测试模块 6 个。PARTIAL：未绑定 host_live（无真实 Adobe 宿主运行）与 delivery（无已交付包），故不宣称本任务完成或验收。",
       "observed_at": "2026-09-28T14:26:42Z",
       "outcome": "PARTIAL",
       "reasons": [
         "OUTCOME_NOT_PASS",
-        "STALE_SUBJECT_SHA",
-        "SOURCE_CHANGED_OR_MISSING:design-lab/tests/test_illustrator_com_adapter.py",
-        "ARTIFACT_CHANGED_OR_MISSING:design-lab/tests/test_illustrator_com_adapter.py"
+        "MOVED_SINCE_BOUND_COMMIT:design-lab/tests/test_illustrator_com_adapter.py"
       ],
       "software": {
         "os": "Windows",
@@ -785,18 +937,25 @@
         }
       ],
       "binding": "COMMIT",
+      "currency_reasons": [
+        "MOVED_SINCE_BOUND_COMMIT:design-lab/tests/test_photoshop_com_adapter.py",
+        "MOVED_SINCE_BOUND_COMMIT:design-lab/tests/test_photoshop_patch_plan.py",
+        "MOVED_SINCE_BOUND_COMMIT:design-lab/tests/test_photoshop_legacy_native.py"
+      ],
+      "current": false,
       "id": "r5-012-static-unit-20260928",
+      "integrity_reasons": [
+        "OUTCOME_NOT_PASS"
+      ],
       "kind": "local_test",
       "note": "静态+单元取证（非完成声明）。该任务的实现模块与测试模块在 4c9f18493e90 上均真实存在，且所引测试随权威套件执行通过。实现模块：integrations/hosts/adobe/；测试模块 5 个。PARTIAL：未绑定 host_live（无真实 Adobe 宿主运行）与 delivery（无已交付包），故不宣称本任务完成或验收。",
       "observed_at": "2026-09-28T14:26:42Z",
       "outcome": "PARTIAL",
       "reasons": [
         "OUTCOME_NOT_PASS",
-        "STALE_SUBJECT_SHA",
-        "SOURCE_CHANGED_OR_MISSING:design-lab/tests/test_photoshop_com_adapter.py",
-        "SOURCE_CHANGED_OR_MISSING:design-lab/tests/test_photoshop_patch_plan.py",
-        "SOURCE_CHANGED_OR_MISSING:design-lab/tests/test_photoshop_legacy_native.py",
-        "ARTIFACT_CHANGED_OR_MISSING:design-lab/tests/test_photoshop_com_adapter.py"
+        "MOVED_SINCE_BOUND_COMMIT:design-lab/tests/test_photoshop_com_adapter.py",
+        "MOVED_SINCE_BOUND_COMMIT:design-lab/tests/test_photoshop_patch_plan.py",
+        "MOVED_SINCE_BOUND_COMMIT:design-lab/tests/test_photoshop_legacy_native.py"
       ],
       "software": {
         "os": "Windows",
@@ -836,14 +995,20 @@
         }
       ],
       "binding": "COMMIT",
+      "currency_reasons": [],
+      "current": false,
       "id": "r5-013-static-unit-20260928",
+      "integrity_reasons": [
+        "OUTCOME_NOT_PASS",
+        "ARTIFACT_IS_NOT_VERSIONED:src/design_lab/reconstruction/__pycache__/__init__.cpython-313.pyc"
+      ],
       "kind": "local_test",
       "note": "静态+单元取证（非完成声明）。该任务的实现模块与测试模块在 4c9f18493e90 上均真实存在，且所引测试随权威套件执行通过。实现模块：src/design_lab/reconstruction/、src/design_lab/native_plan.py；测试模块 5 个。PARTIAL：未绑定 host_live（无真实 Adobe 宿主运行）与 delivery（无已交付包），故不宣称本任务完成或验收。",
       "observed_at": "2026-09-28T14:26:42Z",
       "outcome": "PARTIAL",
       "reasons": [
         "OUTCOME_NOT_PASS",
-        "STALE_SUBJECT_SHA"
+        "ARTIFACT_IS_NOT_VERSIONED:src/design_lab/reconstruction/__pycache__/__init__.cpython-313.pyc"
       ],
       "software": {
         "os": "Windows",
@@ -878,17 +1043,39 @@
         }
       ],
       "binding": "COMMIT",
+      "currency_reasons": [
+        "MOVED_SINCE_BOUND_COMMIT:src/design_lab/assurance/handoff_readiness.py",
+        "MOVED_SINCE_BOUND_COMMIT:packages/capabilities/quality/jury/JuryRecord.template.json",
+        "MOVED_SINCE_BOUND_COMMIT:design-lab/tests/test_production_preflight.py"
+      ],
+      "current": false,
       "id": "r5-014-static-unit-20260928",
+      "integrity_reasons": [
+        "OUTCOME_NOT_PASS",
+        "ARTIFACT_IS_NOT_VERSIONED:src/design_lab/assurance/__pycache__/__init__.cpython-313.pyc",
+        "ARTIFACT_IS_NOT_VERSIONED:src/design_lab/assurance/__pycache__/human_jury.cpython-313.pyc",
+        "ARTIFACT_IS_NOT_VERSIONED:src/design_lab/assurance/__pycache__/knowledge_feedback.cpython-313.pyc",
+        "ARTIFACT_IS_NOT_VERSIONED:src/design_lab/assurance/__pycache__/qa_plane.cpython-313.pyc",
+        "ARTIFACT_IS_NOT_VERSIONED:src/design_lab/assurance/__pycache__/quality_record.cpython-313.pyc",
+        "ARTIFACT_IS_NOT_VERSIONED:packages/capabilities/quality/jury/__pycache__/check_anti_slop.cpython-311.pyc",
+        "ARTIFACT_IS_NOT_VERSIONED:packages/capabilities/quality/jury/__pycache__/check_anti_slop.cpython-313.pyc"
+      ],
       "kind": "local_test",
       "note": "静态+单元取证（非完成声明）。该任务的实现模块与测试模块在 4c9f18493e90 上均真实存在，且所引测试随权威套件执行通过。实现模块：src/design_lab/assurance/、packages/capabilities/quality/jury/；测试模块 6 个。PARTIAL：未绑定 host_live（无真实 Adobe 宿主运行）与 delivery（无已交付包），故不宣称本任务完成或验收。",
       "observed_at": "2026-09-28T14:26:42Z",
       "outcome": "PARTIAL",
       "reasons": [
         "OUTCOME_NOT_PASS",
-        "STALE_SUBJECT_SHA",
-        "SOURCE_CHANGED_OR_MISSING:src/design_lab/assurance/handoff_readiness.py",
-        "SOURCE_CHANGED_OR_MISSING:packages/capabilities/quality/jury/JuryRecord.template.json",
-        "SOURCE_CHANGED_OR_MISSING:design-lab/tests/test_production_preflight.py"
+        "ARTIFACT_IS_NOT_VERSIONED:src/design_lab/assurance/__pycache__/__init__.cpython-313.pyc",
+        "ARTIFACT_IS_NOT_VERSIONED:src/design_lab/assurance/__pycache__/human_jury.cpython-313.pyc",
+        "ARTIFACT_IS_NOT_VERSIONED:src/design_lab/assurance/__pycache__/knowledge_feedback.cpython-313.pyc",
+        "ARTIFACT_IS_NOT_VERSIONED:src/design_lab/assurance/__pycache__/qa_plane.cpython-313.pyc",
+        "ARTIFACT_IS_NOT_VERSIONED:src/design_lab/assurance/__pycache__/quality_record.cpython-313.pyc",
+        "ARTIFACT_IS_NOT_VERSIONED:packages/capabilities/quality/jury/__pycache__/check_anti_slop.cpython-311.pyc",
+        "ARTIFACT_IS_NOT_VERSIONED:packages/capabilities/quality/jury/__pycache__/check_anti_slop.cpython-313.pyc",
+        "MOVED_SINCE_BOUND_COMMIT:src/design_lab/assurance/handoff_readiness.py",
+        "MOVED_SINCE_BOUND_COMMIT:packages/capabilities/quality/jury/JuryRecord.template.json",
+        "MOVED_SINCE_BOUND_COMMIT:design-lab/tests/test_production_preflight.py"
       ],
       "software": {
         "os": "Windows",
@@ -934,15 +1121,21 @@
         }
       ],
       "binding": "COMMIT",
+      "currency_reasons": [
+        "MOVED_SINCE_BOUND_COMMIT:design-lab/tests/test_handoff_readiness.py"
+      ],
+      "current": false,
       "id": "r5-015-static-unit-20260928",
+      "integrity_reasons": [
+        "OUTCOME_NOT_PASS"
+      ],
       "kind": "local_test",
       "note": "静态+单元取证（非完成声明）。该任务的实现模块与测试模块在 4c9f18493e90 上均真实存在，且所引测试随权威套件执行通过。实现模块：design-lab/config/product-manifest.json；测试模块 4 个。PARTIAL：未绑定 host_live（无真实 Adobe 宿主运行）与 delivery（无已交付包），故不宣称本任务完成或验收。",
       "observed_at": "2026-09-28T14:26:42Z",
       "outcome": "PARTIAL",
       "reasons": [
         "OUTCOME_NOT_PASS",
-        "STALE_SUBJECT_SHA",
-        "SOURCE_CHANGED_OR_MISSING:design-lab/tests/test_handoff_readiness.py"
+        "MOVED_SINCE_BOUND_COMMIT:design-lab/tests/test_handoff_readiness.py"
       ],
       "software": {
         "os": "Windows",
@@ -974,19 +1167,33 @@
         }
       ],
       "binding": "COMMIT",
+      "currency_reasons": [
+        "MOVED_SINCE_BOUND_COMMIT:src/design_lab/interop/delivery_receipt.py"
+      ],
+      "current": false,
       "id": "r5-016-static-unit-20260928",
+      "integrity_reasons": [
+        "OUTCOME_NOT_PASS",
+        "ARTIFACT_IS_NOT_VERSIONED:src/design_lab/interop/__pycache__/__init__.cpython-313.pyc",
+        "ARTIFACT_IS_NOT_VERSIONED:src/design_lab/interop/__pycache__/delivery_receipt.cpython-313.pyc",
+        "ARTIFACT_IS_NOT_VERSIONED:src/design_lab/interop/__pycache__/dtcg.cpython-313.pyc",
+        "ARTIFACT_IS_NOT_VERSIONED:src/design_lab/interop/__pycache__/penpot.cpython-313.pyc",
+        "ARTIFACT_IS_NOT_VERSIONED:src/design_lab/interop/__pycache__/provenance.cpython-313.pyc",
+        "ARTIFACT_IS_NOT_VERSIONED:src/design_lab/interop/__pycache__/timeline.cpython-313.pyc"
+      ],
       "kind": "local_test",
       "note": "静态+单元取证（非完成声明）。该任务的实现模块与测试模块在 4c9f18493e90 上均真实存在，且所引测试随权威套件执行通过。实现模块：src/design_lab/interop/；测试模块 1 个。PARTIAL：未绑定 host_live（无真实 Adobe 宿主运行）与 delivery（无已交付包），故不宣称本任务完成或验收。",
       "observed_at": "2026-09-28T14:26:42Z",
       "outcome": "PARTIAL",
       "reasons": [
         "OUTCOME_NOT_PASS",
-        "STALE_SUBJECT_SHA",
-        "SOURCE_CHANGED_OR_MISSING:src/design_lab/interop/__pycache__/delivery_receipt.cpython-313.pyc",
-        "SOURCE_CHANGED_OR_MISSING:src/design_lab/interop/__pycache__/dtcg.cpython-313.pyc",
-        "SOURCE_CHANGED_OR_MISSING:src/design_lab/interop/__pycache__/penpot.cpython-313.pyc",
-        "SOURCE_CHANGED_OR_MISSING:src/design_lab/interop/__pycache__/timeline.cpython-313.pyc",
-        "SOURCE_CHANGED_OR_MISSING:src/design_lab/interop/delivery_receipt.py"
+        "ARTIFACT_IS_NOT_VERSIONED:src/design_lab/interop/__pycache__/__init__.cpython-313.pyc",
+        "ARTIFACT_IS_NOT_VERSIONED:src/design_lab/interop/__pycache__/delivery_receipt.cpython-313.pyc",
+        "ARTIFACT_IS_NOT_VERSIONED:src/design_lab/interop/__pycache__/dtcg.cpython-313.pyc",
+        "ARTIFACT_IS_NOT_VERSIONED:src/design_lab/interop/__pycache__/penpot.cpython-313.pyc",
+        "ARTIFACT_IS_NOT_VERSIONED:src/design_lab/interop/__pycache__/provenance.cpython-313.pyc",
+        "ARTIFACT_IS_NOT_VERSIONED:src/design_lab/interop/__pycache__/timeline.cpython-313.pyc",
+        "MOVED_SINCE_BOUND_COMMIT:src/design_lab/interop/delivery_receipt.py"
       ],
       "software": {
         "os": "Windows",
@@ -1022,19 +1229,33 @@
         }
       ],
       "binding": "COMMIT",
+      "currency_reasons": [
+        "MOVED_SINCE_BOUND_COMMIT:src/design_lab/interop/delivery_receipt.py"
+      ],
+      "current": false,
       "id": "r5-017-static-unit-20260928",
+      "integrity_reasons": [
+        "OUTCOME_NOT_PASS",
+        "ARTIFACT_IS_NOT_VERSIONED:src/design_lab/interop/__pycache__/__init__.cpython-313.pyc",
+        "ARTIFACT_IS_NOT_VERSIONED:src/design_lab/interop/__pycache__/delivery_receipt.cpython-313.pyc",
+        "ARTIFACT_IS_NOT_VERSIONED:src/design_lab/interop/__pycache__/dtcg.cpython-313.pyc",
+        "ARTIFACT_IS_NOT_VERSIONED:src/design_lab/interop/__pycache__/penpot.cpython-313.pyc",
+        "ARTIFACT_IS_NOT_VERSIONED:src/design_lab/interop/__pycache__/provenance.cpython-313.pyc",
+        "ARTIFACT_IS_NOT_VERSIONED:src/design_lab/interop/__pycache__/timeline.cpython-313.pyc"
+      ],
       "kind": "local_test",
       "note": "静态+单元取证（非完成声明）。该任务的实现模块与测试模块在 4c9f18493e90 上均真实存在，且所引测试随权威套件执行通过。实现模块：src/design_lab/interop/；测试模块 1 个。PARTIAL：未绑定 host_live（无真实 Adobe 宿主运行）与 delivery（无已交付包），故不宣称本任务完成或验收。",
       "observed_at": "2026-09-28T14:26:42Z",
       "outcome": "PARTIAL",
       "reasons": [
         "OUTCOME_NOT_PASS",
-        "STALE_SUBJECT_SHA",
-        "SOURCE_CHANGED_OR_MISSING:src/design_lab/interop/__pycache__/delivery_receipt.cpython-313.pyc",
-        "SOURCE_CHANGED_OR_MISSING:src/design_lab/interop/__pycache__/dtcg.cpython-313.pyc",
-        "SOURCE_CHANGED_OR_MISSING:src/design_lab/interop/__pycache__/penpot.cpython-313.pyc",
-        "SOURCE_CHANGED_OR_MISSING:src/design_lab/interop/__pycache__/timeline.cpython-313.pyc",
-        "SOURCE_CHANGED_OR_MISSING:src/design_lab/interop/delivery_receipt.py"
+        "ARTIFACT_IS_NOT_VERSIONED:src/design_lab/interop/__pycache__/__init__.cpython-313.pyc",
+        "ARTIFACT_IS_NOT_VERSIONED:src/design_lab/interop/__pycache__/delivery_receipt.cpython-313.pyc",
+        "ARTIFACT_IS_NOT_VERSIONED:src/design_lab/interop/__pycache__/dtcg.cpython-313.pyc",
+        "ARTIFACT_IS_NOT_VERSIONED:src/design_lab/interop/__pycache__/penpot.cpython-313.pyc",
+        "ARTIFACT_IS_NOT_VERSIONED:src/design_lab/interop/__pycache__/provenance.cpython-313.pyc",
+        "ARTIFACT_IS_NOT_VERSIONED:src/design_lab/interop/__pycache__/timeline.cpython-313.pyc",
+        "MOVED_SINCE_BOUND_COMMIT:src/design_lab/interop/delivery_receipt.py"
       ],
       "software": {
         "os": "Windows",
@@ -1070,14 +1291,18 @@
         }
       ],
       "binding": "COMMIT",
+      "currency_reasons": [],
+      "current": false,
       "id": "r5-018-static-unit-20260928",
+      "integrity_reasons": [
+        "OUTCOME_NOT_PASS"
+      ],
       "kind": "local_test",
       "note": "静态+单元取证（非完成声明）。该任务的实现模块与测试模块在 4c9f18493e90 上均真实存在，且所引测试随权威套件执行通过。实现模块：integrations/generators/minimax-h3/；测试模块 1 个。PARTIAL：未绑定 host_live（无真实 Adobe 宿主运行）与 delivery（无已交付包），故不宣称本任务完成或验收。",
       "observed_at": "2026-09-28T14:26:42Z",
       "outcome": "PARTIAL",
       "reasons": [
-        "OUTCOME_NOT_PASS",
-        "STALE_SUBJECT_SHA"
+        "OUTCOME_NOT_PASS"
       ],
       "software": {
         "os": "Windows",
@@ -1113,19 +1338,33 @@
         }
       ],
       "binding": "COMMIT",
+      "currency_reasons": [
+        "MOVED_SINCE_BOUND_COMMIT:src/design_lab/interop/delivery_receipt.py"
+      ],
+      "current": false,
       "id": "r5-019-static-unit-20260928",
+      "integrity_reasons": [
+        "OUTCOME_NOT_PASS",
+        "ARTIFACT_IS_NOT_VERSIONED:src/design_lab/interop/__pycache__/__init__.cpython-313.pyc",
+        "ARTIFACT_IS_NOT_VERSIONED:src/design_lab/interop/__pycache__/delivery_receipt.cpython-313.pyc",
+        "ARTIFACT_IS_NOT_VERSIONED:src/design_lab/interop/__pycache__/dtcg.cpython-313.pyc",
+        "ARTIFACT_IS_NOT_VERSIONED:src/design_lab/interop/__pycache__/penpot.cpython-313.pyc",
+        "ARTIFACT_IS_NOT_VERSIONED:src/design_lab/interop/__pycache__/provenance.cpython-313.pyc",
+        "ARTIFACT_IS_NOT_VERSIONED:src/design_lab/interop/__pycache__/timeline.cpython-313.pyc"
+      ],
       "kind": "local_test",
       "note": "静态+单元取证（非完成声明）。该任务的实现模块与测试模块在 4c9f18493e90 上均真实存在，且所引测试随权威套件执行通过。实现模块：src/design_lab/interop/；测试模块 1 个。PARTIAL：未绑定 host_live（无真实 Adobe 宿主运行）与 delivery（无已交付包），故不宣称本任务完成或验收。",
       "observed_at": "2026-09-28T14:26:42Z",
       "outcome": "PARTIAL",
       "reasons": [
         "OUTCOME_NOT_PASS",
-        "STALE_SUBJECT_SHA",
-        "SOURCE_CHANGED_OR_MISSING:src/design_lab/interop/__pycache__/delivery_receipt.cpython-313.pyc",
-        "SOURCE_CHANGED_OR_MISSING:src/design_lab/interop/__pycache__/dtcg.cpython-313.pyc",
-        "SOURCE_CHANGED_OR_MISSING:src/design_lab/interop/__pycache__/penpot.cpython-313.pyc",
-        "SOURCE_CHANGED_OR_MISSING:src/design_lab/interop/__pycache__/timeline.cpython-313.pyc",
-        "SOURCE_CHANGED_OR_MISSING:src/design_lab/interop/delivery_receipt.py"
+        "ARTIFACT_IS_NOT_VERSIONED:src/design_lab/interop/__pycache__/__init__.cpython-313.pyc",
+        "ARTIFACT_IS_NOT_VERSIONED:src/design_lab/interop/__pycache__/delivery_receipt.cpython-313.pyc",
+        "ARTIFACT_IS_NOT_VERSIONED:src/design_lab/interop/__pycache__/dtcg.cpython-313.pyc",
+        "ARTIFACT_IS_NOT_VERSIONED:src/design_lab/interop/__pycache__/penpot.cpython-313.pyc",
+        "ARTIFACT_IS_NOT_VERSIONED:src/design_lab/interop/__pycache__/provenance.cpython-313.pyc",
+        "ARTIFACT_IS_NOT_VERSIONED:src/design_lab/interop/__pycache__/timeline.cpython-313.pyc",
+        "MOVED_SINCE_BOUND_COMMIT:src/design_lab/interop/delivery_receipt.py"
       ],
       "software": {
         "os": "Windows",
@@ -1161,19 +1400,33 @@
         }
       ],
       "binding": "COMMIT",
+      "currency_reasons": [
+        "MOVED_SINCE_BOUND_COMMIT:src/design_lab/interop/delivery_receipt.py"
+      ],
+      "current": false,
       "id": "r5-020-static-unit-20260928",
+      "integrity_reasons": [
+        "OUTCOME_NOT_PASS",
+        "ARTIFACT_IS_NOT_VERSIONED:src/design_lab/interop/__pycache__/__init__.cpython-313.pyc",
+        "ARTIFACT_IS_NOT_VERSIONED:src/design_lab/interop/__pycache__/delivery_receipt.cpython-313.pyc",
+        "ARTIFACT_IS_NOT_VERSIONED:src/design_lab/interop/__pycache__/dtcg.cpython-313.pyc",
+        "ARTIFACT_IS_NOT_VERSIONED:src/design_lab/interop/__pycache__/penpot.cpython-313.pyc",
+        "ARTIFACT_IS_NOT_VERSIONED:src/design_lab/interop/__pycache__/provenance.cpython-313.pyc",
+        "ARTIFACT_IS_NOT_VERSIONED:src/design_lab/interop/__pycache__/timeline.cpython-313.pyc"
+      ],
       "kind": "local_test",
       "note": "静态+单元取证（非完成声明）。该任务的实现模块与测试模块在 4c9f18493e90 上均真实存在，且所引测试随权威套件执行通过。实现模块：src/design_lab/interop/；测试模块 1 个。PARTIAL：未绑定 host_live（无真实 Adobe 宿主运行）与 delivery（无已交付包），故不宣称本任务完成或验收。",
       "observed_at": "2026-09-28T14:26:42Z",
       "outcome": "PARTIAL",
       "reasons": [
         "OUTCOME_NOT_PASS",
-        "STALE_SUBJECT_SHA",
-        "SOURCE_CHANGED_OR_MISSING:src/design_lab/interop/__pycache__/delivery_receipt.cpython-313.pyc",
-        "SOURCE_CHANGED_OR_MISSING:src/design_lab/interop/__pycache__/dtcg.cpython-313.pyc",
-        "SOURCE_CHANGED_OR_MISSING:src/design_lab/interop/__pycache__/penpot.cpython-313.pyc",
-        "SOURCE_CHANGED_OR_MISSING:src/design_lab/interop/__pycache__/timeline.cpython-313.pyc",
-        "SOURCE_CHANGED_OR_MISSING:src/design_lab/interop/delivery_receipt.py"
+        "ARTIFACT_IS_NOT_VERSIONED:src/design_lab/interop/__pycache__/__init__.cpython-313.pyc",
+        "ARTIFACT_IS_NOT_VERSIONED:src/design_lab/interop/__pycache__/delivery_receipt.cpython-313.pyc",
+        "ARTIFACT_IS_NOT_VERSIONED:src/design_lab/interop/__pycache__/dtcg.cpython-313.pyc",
+        "ARTIFACT_IS_NOT_VERSIONED:src/design_lab/interop/__pycache__/penpot.cpython-313.pyc",
+        "ARTIFACT_IS_NOT_VERSIONED:src/design_lab/interop/__pycache__/provenance.cpython-313.pyc",
+        "ARTIFACT_IS_NOT_VERSIONED:src/design_lab/interop/__pycache__/timeline.cpython-313.pyc",
+        "MOVED_SINCE_BOUND_COMMIT:src/design_lab/interop/delivery_receipt.py"
       ],
       "software": {
         "os": "Windows",
@@ -1209,14 +1462,18 @@
         }
       ],
       "binding": "COMMIT",
+      "currency_reasons": [],
+      "current": false,
       "id": "r5-021-static-unit-20260928",
+      "integrity_reasons": [
+        "OUTCOME_NOT_PASS"
+      ],
       "kind": "local_test",
       "note": "静态+单元取证（非完成声明）。该任务的实现模块与测试模块在 4c9f18493e90 上均真实存在，且所引测试随权威套件执行通过。实现模块：integrations/executors/agents/、integrations/hosts/open-design/、integrations/adapter-registry.json；测试模块 4 个。PARTIAL：未绑定 host_live（无真实 Adobe 宿主运行）与 delivery（无已交付包），故不宣称本任务完成或验收。",
       "observed_at": "2026-09-28T14:26:42Z",
       "outcome": "PARTIAL",
       "reasons": [
-        "OUTCOME_NOT_PASS",
-        "STALE_SUBJECT_SHA"
+        "OUTCOME_NOT_PASS"
       ],
       "software": {
         "os": "Windows",
@@ -1258,19 +1515,33 @@
         }
       ],
       "binding": "COMMIT",
+      "currency_reasons": [
+        "MOVED_SINCE_BOUND_COMMIT:src/design_lab/interop/delivery_receipt.py"
+      ],
+      "current": false,
       "id": "r5-022-static-unit-20260928",
+      "integrity_reasons": [
+        "OUTCOME_NOT_PASS",
+        "ARTIFACT_IS_NOT_VERSIONED:src/design_lab/interop/__pycache__/__init__.cpython-313.pyc",
+        "ARTIFACT_IS_NOT_VERSIONED:src/design_lab/interop/__pycache__/delivery_receipt.cpython-313.pyc",
+        "ARTIFACT_IS_NOT_VERSIONED:src/design_lab/interop/__pycache__/dtcg.cpython-313.pyc",
+        "ARTIFACT_IS_NOT_VERSIONED:src/design_lab/interop/__pycache__/penpot.cpython-313.pyc",
+        "ARTIFACT_IS_NOT_VERSIONED:src/design_lab/interop/__pycache__/provenance.cpython-313.pyc",
+        "ARTIFACT_IS_NOT_VERSIONED:src/design_lab/interop/__pycache__/timeline.cpython-313.pyc"
+      ],
       "kind": "local_test",
       "note": "静态+单元取证（非完成声明）。该任务的实现模块与测试模块在 4c9f18493e90 上均真实存在，且所引测试随权威套件执行通过。实现模块：src/design_lab/interop/；测试模块 2 个。PARTIAL：未绑定 host_live（无真实 Adobe 宿主运行）与 delivery（无已交付包），故不宣称本任务完成或验收。",
       "observed_at": "2026-09-28T14:26:42Z",
       "outcome": "PARTIAL",
       "reasons": [
         "OUTCOME_NOT_PASS",
-        "STALE_SUBJECT_SHA",
-        "SOURCE_CHANGED_OR_MISSING:src/design_lab/interop/__pycache__/delivery_receipt.cpython-313.pyc",
-        "SOURCE_CHANGED_OR_MISSING:src/design_lab/interop/__pycache__/dtcg.cpython-313.pyc",
-        "SOURCE_CHANGED_OR_MISSING:src/design_lab/interop/__pycache__/penpot.cpython-313.pyc",
-        "SOURCE_CHANGED_OR_MISSING:src/design_lab/interop/__pycache__/timeline.cpython-313.pyc",
-        "SOURCE_CHANGED_OR_MISSING:src/design_lab/interop/delivery_receipt.py"
+        "ARTIFACT_IS_NOT_VERSIONED:src/design_lab/interop/__pycache__/__init__.cpython-313.pyc",
+        "ARTIFACT_IS_NOT_VERSIONED:src/design_lab/interop/__pycache__/delivery_receipt.cpython-313.pyc",
+        "ARTIFACT_IS_NOT_VERSIONED:src/design_lab/interop/__pycache__/dtcg.cpython-313.pyc",
+        "ARTIFACT_IS_NOT_VERSIONED:src/design_lab/interop/__pycache__/penpot.cpython-313.pyc",
+        "ARTIFACT_IS_NOT_VERSIONED:src/design_lab/interop/__pycache__/provenance.cpython-313.pyc",
+        "ARTIFACT_IS_NOT_VERSIONED:src/design_lab/interop/__pycache__/timeline.cpython-313.pyc",
+        "MOVED_SINCE_BOUND_COMMIT:src/design_lab/interop/delivery_receipt.py"
       ],
       "software": {
         "os": "Windows",
@@ -1307,14 +1578,18 @@
         }
       ],
       "binding": "COMMIT",
+      "currency_reasons": [],
+      "current": false,
       "id": "r5-023-static-unit-20260928",
+      "integrity_reasons": [
+        "OUTCOME_NOT_PASS"
+      ],
       "kind": "local_test",
       "note": "静态+单元取证（非完成声明）。该任务的实现模块与测试模块在 4c9f18493e90 上均真实存在，且所引测试随权威套件执行通过。实现模块：scripts/generate_current_reports.py；测试模块 3 个。PARTIAL：未绑定 host_live（无真实 Adobe 宿主运行）与 delivery（无已交付包），故不宣称本任务完成或验收。",
       "observed_at": "2026-09-28T14:26:42Z",
       "outcome": "PARTIAL",
       "reasons": [
-        "OUTCOME_NOT_PASS",
-        "STALE_SUBJECT_SHA"
+        "OUTCOME_NOT_PASS"
       ],
       "software": {
         "os": "Windows",
@@ -1345,14 +1620,26 @@
         }
       ],
       "binding": "COMMIT",
+      "currency_reasons": [],
+      "current": false,
       "id": "r5-024-static-unit-20260928",
+      "integrity_reasons": [
+        "OUTCOME_NOT_PASS",
+        "ARTIFACT_IS_NOT_VERSIONED:src/design_lab/adapters/__pycache__/__init__.cpython-313.pyc",
+        "ARTIFACT_IS_NOT_VERSIONED:src/design_lab/adapters/__pycache__/illustrator_com.cpython-313.pyc",
+        "ARTIFACT_IS_NOT_VERSIONED:src/design_lab/adapters/__pycache__/photoshop_com.cpython-313.pyc",
+        "ARTIFACT_IS_NOT_VERSIONED:src/design_lab/adapters/__pycache__/spi.cpython-313.pyc"
+      ],
       "kind": "local_test",
       "note": "静态+单元取证（非完成声明）。该任务的实现模块与测试模块在 4c9f18493e90 上均真实存在，且所引测试随权威套件执行通过。实现模块：src/design_lab/adapters/；测试模块 2 个。PARTIAL：未绑定 host_live（无真实 Adobe 宿主运行）与 delivery（无已交付包），故不宣称本任务完成或验收。",
       "observed_at": "2026-09-28T14:26:42Z",
       "outcome": "PARTIAL",
       "reasons": [
         "OUTCOME_NOT_PASS",
-        "STALE_SUBJECT_SHA"
+        "ARTIFACT_IS_NOT_VERSIONED:src/design_lab/adapters/__pycache__/__init__.cpython-313.pyc",
+        "ARTIFACT_IS_NOT_VERSIONED:src/design_lab/adapters/__pycache__/illustrator_com.cpython-313.pyc",
+        "ARTIFACT_IS_NOT_VERSIONED:src/design_lab/adapters/__pycache__/photoshop_com.cpython-313.pyc",
+        "ARTIFACT_IS_NOT_VERSIONED:src/design_lab/adapters/__pycache__/spi.cpython-313.pyc"
       ],
       "software": {
         "os": "Windows",
@@ -1389,17 +1676,27 @@
         }
       ],
       "binding": "COMMIT",
+      "currency_reasons": [
+        "MOVED_SINCE_BOUND_COMMIT:src/design_lab/generators/comfy_task.py"
+      ],
+      "current": false,
       "id": "r5-025-static-unit-20260928",
+      "integrity_reasons": [
+        "OUTCOME_NOT_PASS",
+        "ARTIFACT_IS_NOT_VERSIONED:src/design_lab/generators/__pycache__/__init__.cpython-313.pyc",
+        "ARTIFACT_IS_NOT_VERSIONED:src/design_lab/generators/__pycache__/comfy_http.cpython-313.pyc",
+        "ARTIFACT_IS_NOT_VERSIONED:src/design_lab/generators/__pycache__/comfy_task.cpython-313.pyc"
+      ],
       "kind": "local_test",
       "note": "静态+单元取证（非完成声明）。该任务的实现模块与测试模块在 4c9f18493e90 上均真实存在，且所引测试随权威套件执行通过。实现模块：src/design_lab/generators/；测试模块 1 个。PARTIAL：未绑定 host_live（无真实 Adobe 宿主运行）与 delivery（无已交付包），故不宣称本任务完成或验收。",
       "observed_at": "2026-09-28T14:26:42Z",
       "outcome": "PARTIAL",
       "reasons": [
         "OUTCOME_NOT_PASS",
-        "STALE_SUBJECT_SHA",
-        "SOURCE_CHANGED_OR_MISSING:src/design_lab/generators/__pycache__/comfy_http.cpython-313.pyc",
-        "SOURCE_CHANGED_OR_MISSING:src/design_lab/generators/__pycache__/comfy_task.cpython-313.pyc",
-        "SOURCE_CHANGED_OR_MISSING:src/design_lab/generators/comfy_task.py"
+        "ARTIFACT_IS_NOT_VERSIONED:src/design_lab/generators/__pycache__/__init__.cpython-313.pyc",
+        "ARTIFACT_IS_NOT_VERSIONED:src/design_lab/generators/__pycache__/comfy_http.cpython-313.pyc",
+        "ARTIFACT_IS_NOT_VERSIONED:src/design_lab/generators/__pycache__/comfy_task.cpython-313.pyc",
+        "MOVED_SINCE_BOUND_COMMIT:src/design_lab/generators/comfy_task.py"
       ],
       "software": {
         "os": "Windows",
@@ -1433,19 +1730,29 @@
         }
       ],
       "binding": "COMMIT",
+      "currency_reasons": [
+        "MOVED_SINCE_BOUND_COMMIT:src/design_lab/generators/comfy_task.py",
+        "MOVED_SINCE_BOUND_COMMIT:design-lab/tests/test_comfy_http.py"
+      ],
+      "current": false,
       "id": "r5-026-static-unit-20260928",
+      "integrity_reasons": [
+        "OUTCOME_NOT_PASS",
+        "ARTIFACT_IS_NOT_VERSIONED:src/design_lab/generators/__pycache__/__init__.cpython-313.pyc",
+        "ARTIFACT_IS_NOT_VERSIONED:src/design_lab/generators/__pycache__/comfy_http.cpython-313.pyc",
+        "ARTIFACT_IS_NOT_VERSIONED:src/design_lab/generators/__pycache__/comfy_task.cpython-313.pyc"
+      ],
       "kind": "local_test",
       "note": "静态+单元取证（非完成声明）。该任务的实现模块与测试模块在 4c9f18493e90 上均真实存在，且所引测试随权威套件执行通过。实现模块：src/design_lab/generators/；测试模块 1 个。PARTIAL：未绑定 host_live（无真实 Adobe 宿主运行）与 delivery（无已交付包），故不宣称本任务完成或验收。",
       "observed_at": "2026-09-28T14:26:42Z",
       "outcome": "PARTIAL",
       "reasons": [
         "OUTCOME_NOT_PASS",
-        "STALE_SUBJECT_SHA",
-        "SOURCE_CHANGED_OR_MISSING:src/design_lab/generators/__pycache__/comfy_http.cpython-313.pyc",
-        "SOURCE_CHANGED_OR_MISSING:src/design_lab/generators/__pycache__/comfy_task.cpython-313.pyc",
-        "SOURCE_CHANGED_OR_MISSING:src/design_lab/generators/comfy_task.py",
-        "SOURCE_CHANGED_OR_MISSING:design-lab/tests/test_comfy_http.py",
-        "ARTIFACT_CHANGED_OR_MISSING:design-lab/tests/test_comfy_http.py"
+        "ARTIFACT_IS_NOT_VERSIONED:src/design_lab/generators/__pycache__/__init__.cpython-313.pyc",
+        "ARTIFACT_IS_NOT_VERSIONED:src/design_lab/generators/__pycache__/comfy_http.cpython-313.pyc",
+        "ARTIFACT_IS_NOT_VERSIONED:src/design_lab/generators/__pycache__/comfy_task.cpython-313.pyc",
+        "MOVED_SINCE_BOUND_COMMIT:src/design_lab/generators/comfy_task.py",
+        "MOVED_SINCE_BOUND_COMMIT:design-lab/tests/test_comfy_http.py"
       ],
       "software": {
         "os": "Windows",
@@ -1479,14 +1786,30 @@
         }
       ],
       "binding": "COMMIT",
+      "currency_reasons": [],
+      "current": false,
       "id": "r5-027-static-unit-20260928",
+      "integrity_reasons": [
+        "OUTCOME_NOT_PASS",
+        "ARTIFACT_IS_NOT_VERSIONED:fixtures/domains/game-visual/android-minigame/audio/anomaly.wav",
+        "ARTIFACT_IS_NOT_VERSIONED:fixtures/domains/game-visual/android-minigame/audio/bgm-anomaly-pressure-loop.wav",
+        "ARTIFACT_IS_NOT_VERSIONED:fixtures/domains/game-visual/android-minigame/audio/bgm-night-shift-loop.wav",
+        "ARTIFACT_IS_NOT_VERSIONED:fixtures/domains/game-visual/android-minigame/audio/boot.wav",
+        "ARTIFACT_IS_NOT_VERSIONED:fixtures/domains/game-visual/android-minigame/audio/click.wav",
+        "ARTIFACT_IS_NOT_VERSIONED:fixtures/domains/game-visual/android-minigame/audio/lockdown.wav"
+      ],
       "kind": "local_test",
       "note": "静态+单元取证（非完成声明）。该任务的实现模块与测试模块在 4c9f18493e90 上均真实存在，且所引测试随权威套件执行通过。实现模块：fixtures/domains/game-visual/；测试模块 1 个。PARTIAL：未绑定 host_live（无真实 Adobe 宿主运行）与 delivery（无已交付包），故不宣称本任务完成或验收。",
       "observed_at": "2026-09-28T14:26:42Z",
       "outcome": "PARTIAL",
       "reasons": [
         "OUTCOME_NOT_PASS",
-        "STALE_SUBJECT_SHA"
+        "ARTIFACT_IS_NOT_VERSIONED:fixtures/domains/game-visual/android-minigame/audio/anomaly.wav",
+        "ARTIFACT_IS_NOT_VERSIONED:fixtures/domains/game-visual/android-minigame/audio/bgm-anomaly-pressure-loop.wav",
+        "ARTIFACT_IS_NOT_VERSIONED:fixtures/domains/game-visual/android-minigame/audio/bgm-night-shift-loop.wav",
+        "ARTIFACT_IS_NOT_VERSIONED:fixtures/domains/game-visual/android-minigame/audio/boot.wav",
+        "ARTIFACT_IS_NOT_VERSIONED:fixtures/domains/game-visual/android-minigame/audio/click.wav",
+        "ARTIFACT_IS_NOT_VERSIONED:fixtures/domains/game-visual/android-minigame/audio/lockdown.wav"
       ],
       "software": {
         "os": "Windows",
@@ -1522,17 +1845,23 @@
         }
       ],
       "binding": "COMMIT",
+      "currency_reasons": [
+        "MOVED_SINCE_BOUND_COMMIT:apps/workbench/package.json",
+        "MOVED_SINCE_BOUND_COMMIT:design-lab/tests/test_workbench_native_ui.py"
+      ],
+      "current": false,
       "id": "r5-028-static-unit-20260928",
+      "integrity_reasons": [
+        "OUTCOME_NOT_PASS"
+      ],
       "kind": "local_test",
       "note": "静态+单元取证（非完成声明）。该任务的实现模块与测试模块在 4c9f18493e90 上均真实存在，且所引测试随权威套件执行通过。实现模块：apps/workbench/tsconfig.json、apps/workbench/package.json、apps/workbench/vite.config.ts；测试模块 2 个。PARTIAL：未绑定 host_live（无真实 Adobe 宿主运行）与 delivery（无已交付包），故不宣称本任务完成或验收。",
       "observed_at": "2026-09-28T14:26:42Z",
       "outcome": "PARTIAL",
       "reasons": [
         "OUTCOME_NOT_PASS",
-        "STALE_SUBJECT_SHA",
-        "SOURCE_CHANGED_OR_MISSING:apps/workbench/package.json",
-        "SOURCE_CHANGED_OR_MISSING:design-lab/tests/test_workbench_native_ui.py",
-        "ARTIFACT_CHANGED_OR_MISSING:design-lab/tests/test_workbench_native_ui.py"
+        "MOVED_SINCE_BOUND_COMMIT:apps/workbench/package.json",
+        "MOVED_SINCE_BOUND_COMMIT:design-lab/tests/test_workbench_native_ui.py"
       ],
       "software": {
         "os": "Windows",
@@ -1560,20 +1889,29 @@
         }
       ],
       "binding": "COMMIT",
+      "currency_reasons": [
+        "MOVED_SINCE_BOUND_COMMIT:apps/workbench/contracts.ts",
+        "MOVED_SINCE_BOUND_COMMIT:apps/workbench/shell.ts",
+        "MOVED_SINCE_BOUND_COMMIT:apps/workbench/build/main.js",
+        "MOVED_SINCE_BOUND_COMMIT:design-lab/tests/test_service_http.py",
+        "MOVED_SINCE_BOUND_COMMIT:src/design_lab/http_service.py"
+      ],
+      "current": false,
       "id": "r5-bundle-list-route-http-ui-20260929",
+      "integrity_reasons": [
+        "OUTCOME_NOT_PASS"
+      ],
       "kind": "local_test",
       "note": "PR #211 (merged bf13e46)：把已存在的 Bundles 查询类（native_assets.py，PR #205 落地）通过新增路由 GET /api/projects/<id>/bundles 接入 HTTP 服务，并在 Workbench 项目页新增「最近交付」面板（renderDeliveryPanel），读取该路由并对交付包做 sha256+byte_size fail-closed 核对。修复 WIP 中一处真实 bug（test 传 dict 而非 json.dumps 给 self.request 导致 TypeError）。本地全量 1762 用例 OK，27 用例 test_service_http OK，tsc clean，Vite build 字节确定性验证通过。PARTIAL：这是 E2 受控运行证据（合成 fixture 贯穿路由+面板逻辑），不代表真实宿主 E3、rights E4 或人工 Jury 验收。",
       "observed_at": "2026-09-29T17:45:00Z",
       "outcome": "PARTIAL",
       "reasons": [
         "OUTCOME_NOT_PASS",
-        "STALE_SUBJECT_SHA",
-        "SOURCE_CHANGED_OR_MISSING:apps/workbench/contracts.ts",
-        "SOURCE_CHANGED_OR_MISSING:apps/workbench/shell.ts",
-        "SOURCE_CHANGED_OR_MISSING:apps/workbench/build/main.js",
-        "SOURCE_CHANGED_OR_MISSING:design-lab/tests/test_service_http.py",
-        "SOURCE_CHANGED_OR_MISSING:src/design_lab/http_service.py",
-        "ARTIFACT_CHANGED_OR_MISSING:design-lab/tests/test_service_http.py"
+        "MOVED_SINCE_BOUND_COMMIT:apps/workbench/contracts.ts",
+        "MOVED_SINCE_BOUND_COMMIT:apps/workbench/shell.ts",
+        "MOVED_SINCE_BOUND_COMMIT:apps/workbench/build/main.js",
+        "MOVED_SINCE_BOUND_COMMIT:design-lab/tests/test_service_http.py",
+        "MOVED_SINCE_BOUND_COMMIT:src/design_lab/http_service.py"
       ],
       "software": {
         "full_suite": "python -m unittest discover -s design-lab/tests -p test_*.py -q  ->  Ran 1762 tests, OK (skipped=2)",
@@ -1607,19 +1945,26 @@
         }
       ],
       "binding": "COMMIT",
+      "currency_reasons": [
+        "MOVED_SINCE_BOUND_COMMIT:src/design_lab/http_service.py",
+        "MOVED_SINCE_BOUND_COMMIT:design-lab/tests/test_service_http.py",
+        "MOVED_SINCE_BOUND_COMMIT:design-lab/tests/test_workbench_native_ui.py",
+        "MOVED_SINCE_BOUND_COMMIT:apps/workbench/shell.ts",
+        "MOVED_SINCE_BOUND_COMMIT:apps/workbench/build/main.js"
+      ],
+      "current": false,
       "id": "r5-workbench-http-native-ui-reobserved-20261006",
+      "integrity_reasons": [],
       "kind": "local_test",
       "note": "PASS 级重新观测：把 DL-R5-010 的两条既有 evidence（09-27 / 09-29，均 outcome=PARTIAL，其 PARTIAL 指证据覆盖面为 E2 受控运行）在同一产品代码上以零 skip 重跑，61 用例全 OK，并绑定当前 exact SHA 与所测文件字节哈希。范围边界不变：这是 E2 受控运行时证据，不含真实宿主 host_live、不含 rights/E4 人工验收，也不宣称交付 delivery 完成。",
       "observed_at": "2026-10-05T22:56:02Z",
       "outcome": "PASS",
       "reasons": [
-        "STALE_SUBJECT_SHA",
-        "SOURCE_CHANGED_OR_MISSING:src/design_lab/http_service.py",
-        "SOURCE_CHANGED_OR_MISSING:design-lab/tests/test_service_http.py",
-        "SOURCE_CHANGED_OR_MISSING:design-lab/tests/test_workbench_native_ui.py",
-        "SOURCE_CHANGED_OR_MISSING:apps/workbench/shell.ts",
-        "SOURCE_CHANGED_OR_MISSING:apps/workbench/build/main.js",
-        "ARTIFACT_CHANGED_OR_MISSING:design-lab/tests/test_workbench_native_ui.py"
+        "MOVED_SINCE_BOUND_COMMIT:src/design_lab/http_service.py",
+        "MOVED_SINCE_BOUND_COMMIT:design-lab/tests/test_service_http.py",
+        "MOVED_SINCE_BOUND_COMMIT:design-lab/tests/test_workbench_native_ui.py",
+        "MOVED_SINCE_BOUND_COMMIT:apps/workbench/shell.ts",
+        "MOVED_SINCE_BOUND_COMMIT:apps/workbench/build/main.js"
       ],
       "software": {
         "node": "v24.18.0 (scoop nodejs-lts/current on PATH; without it 14 native-UI cases skip)",
@@ -1639,7 +1984,7 @@
       "task_ids": [
         "DL-R5-010"
       ],
-      "verified": false
+      "verified": true
     },
     {
       "artifacts": [
@@ -1653,21 +1998,28 @@
         }
       ],
       "binding": "COMMIT",
+      "currency_reasons": [
+        "MOVED_SINCE_BOUND_COMMIT:src/design_lab/cli.py",
+        "MOVED_SINCE_BOUND_COMMIT:src/design_lab/runtime/project_backup.py",
+        "MOVED_SINCE_BOUND_COMMIT:src/design_lab/http_service.py",
+        "MOVED_SINCE_BOUND_COMMIT:src/design_lab/workbench.py",
+        "MOVED_SINCE_BOUND_COMMIT:design-lab/tests/test_workbench_launch.py",
+        "MOVED_SINCE_BOUND_COMMIT:design-lab/tests/test_project_backup.py"
+      ],
+      "current": false,
       "id": "r5-m1-runtime-slice-20261006",
+      "integrity_reasons": [],
       "kind": "local_test",
       "note": "M1 运行时切片的 PASS 级观测：一条命令启动（LISTENING/CSP/服务 bundle 与提交态逐字节相等/带 token 的 health/无 token 401）、服务进程重启后项目仍在、备份→恢复→逐文件哈希回读、状态库与版本不兼容时拒绝恢复、干净 wheel 安装在 CI 上跑通同一组启动测试。刻意不把两轴从 PARTIAL 抬升：DL-R5-015 的验收是 M1 整体可用判据，其黄金流仍断在宿主 E3（owner 本轮只授权只读探测）与 Human Jury（BLOCKED_HUMAN），且依赖的 DL-R5-003/014 仍 PARTIAL。本记录只覆盖运行时切片，不构成 M1 声明。",
       "observed_at": "2026-10-06T03:12:05Z",
       "outcome": "PASS",
       "reasons": [
-        "STALE_SUBJECT_SHA",
-        "SOURCE_CHANGED_OR_MISSING:src/design_lab/cli.py",
-        "SOURCE_CHANGED_OR_MISSING:src/design_lab/runtime/project_backup.py",
-        "SOURCE_CHANGED_OR_MISSING:src/design_lab/http_service.py",
-        "SOURCE_CHANGED_OR_MISSING:src/design_lab/workbench.py",
-        "SOURCE_CHANGED_OR_MISSING:design-lab/tests/test_workbench_launch.py",
-        "SOURCE_CHANGED_OR_MISSING:design-lab/tests/test_project_backup.py",
-        "ARTIFACT_CHANGED_OR_MISSING:design-lab/tests/test_workbench_launch.py",
-        "ARTIFACT_CHANGED_OR_MISSING:design-lab/tests/test_project_backup.py"
+        "MOVED_SINCE_BOUND_COMMIT:src/design_lab/cli.py",
+        "MOVED_SINCE_BOUND_COMMIT:src/design_lab/runtime/project_backup.py",
+        "MOVED_SINCE_BOUND_COMMIT:src/design_lab/http_service.py",
+        "MOVED_SINCE_BOUND_COMMIT:src/design_lab/workbench.py",
+        "MOVED_SINCE_BOUND_COMMIT:design-lab/tests/test_workbench_launch.py",
+        "MOVED_SINCE_BOUND_COMMIT:design-lab/tests/test_project_backup.py"
       ],
       "software": {
         "clean_install": "CI job wheel-install-gate at 725c5b12: uv build --wheel, clean venv, Ran 3 tests OK with no skips",
@@ -1688,7 +2040,7 @@
       "task_ids": [
         "DL-R5-015"
       ],
-      "verified": false
+      "verified": true
     },
     {
       "artifacts": [
@@ -1698,16 +2050,22 @@
         }
       ],
       "binding": "COMMIT",
+      "currency_reasons": [
+        "MOVED_SINCE_BOUND_COMMIT:src/design_lab/runtime/project_backup.py",
+        "MOVED_SINCE_BOUND_COMMIT:design-lab/tests/test_project_backup.py",
+        "MOVED_SINCE_BOUND_COMMIT:design-lab/tests/test_evidence_artifact_presence.py"
+      ],
+      "current": false,
       "id": "r5-004-005-backup-consistency-20261007",
+      "integrity_reasons": [],
       "kind": "local_test",
       "note": "Backup and restore consistency, on top of live main fc03a303. Four defects reproduced then fixed (see docs/audits/DESIGNLAB-BACKUP-CONSISTENCY-2026-10-08.md): state.db was archived as raw bytes so WAL-committed rows were lost; a '#' in the runtime root made the naive file-URI form read user_version 0 for a database whose real version is 7 (measured on this machine), which is the number the compatibility gate trusts; the archive was opened before members were enumerated so it could enumerate itself; restore wrote straight into the target, leaving a half-replaced project on failure. A project-level write barrier now reads the writer lease, the publication journal, the host guard and the attempt row before and after capture, and compares monotonic counters -- without those, a publication that starts and finishes inside the window leaves both reads empty and a set difference calls it consistent. Restore re-hashes every artifact row against the archived bytes and counts rows it cannot judge as unverifiable rather than passing them.\nEleven axes: CONTRACT ok (backup-manifest v1 unchanged; sourceLocalRoot and productionQuiescence added, both optional on read) / BACKEND ok / FRONTEND not touched by this change / PERSISTENCE ok / HOST_OR_GENERATOR not applicable here / READBACK ok (37 cases read bytes back, including a real PNG through ProjectService+ImageAssets restored into a different owner root) / QUALITY not claimed / RIGHTS not claimed / PREFLIGHT ok for backup only / DELIVERY not claimed / EVIDENCE ok (this record, bound to an exact commit and a bound-run manifest).\nEvidence level: E2 CONTROLLED_RUNTIME. Synthetic state roots driven through real product code paths; no real host, so host_live stays PARTIAL. Nine gates were falsified against weakened copies of the product module and each went red for the reason it claims to catch (.project-local/tmp/falsify_backup_gates.py); two of them caught my own errors first: comparing expires_at in SQL made every live lease look expired because SQLite orders REAL below TEXT, and publish_version does not release the writer lease so the PREPARED-journal gate was never reached.\nOpen in this task: the asset_publication recovery journal keeps old absolute paths after a cross-root restore, so recover_publications(store_root=new) selects by store_root=?, finds nothing, and silently skips a PREPARED row; writers that never record to the state database are invisible to the barrier, which is why the archive carries tablesObserved; and a root whose database records no writer tables reports WRITES_NOT_OBSERVABLE, which restore echoes rather than upgrading to a proof. DL-R5-004 and DL-R5-005 therefore stay PARTIAL: axis states were not raised, because r5_contract.py:100 requires reassessment=REVIEWED first and that is a review judgement, not something this record may grant.\nOne skip, environment-bounded: test_linked_backup_member_is_refused cannot create a symlink here (WinError 1314, no privilege, not escalated).\nRollback: revert 71a5e974 701ace9c 707c067b 7ee682d9 on qoder/designlab-backup-consistency-20261007; the pre-port uncommitted bytes stay recoverable at rescue/designlab-personal-audit-dirty-20261007 (8eea1c320ca5f61857ff266a23be2170c09b7203).",
       "observed_at": "2026-10-07T16:30:26Z",
       "outcome": "PASS",
       "reasons": [
-        "STALE_SUBJECT_SHA",
-        "SOURCE_CHANGED_OR_MISSING:src/design_lab/runtime/project_backup.py",
-        "SOURCE_CHANGED_OR_MISSING:design-lab/tests/test_project_backup.py",
-        "SOURCE_CHANGED_OR_MISSING:design-lab/tests/test_evidence_artifact_presence.py"
+        "MOVED_SINCE_BOUND_COMMIT:src/design_lab/runtime/project_backup.py",
+        "MOVED_SINCE_BOUND_COMMIT:design-lab/tests/test_project_backup.py",
+        "MOVED_SINCE_BOUND_COMMIT:design-lab/tests/test_evidence_artifact_presence.py"
       ],
       "software": {
         "node": "NOT_MEASURED (FileNotFoundError)",
@@ -1727,7 +2085,7 @@
         "DL-R5-004",
         "DL-R5-005"
       ],
-      "verified": false
+      "verified": true
     },
     {
       "artifacts": [
@@ -1737,17 +2095,24 @@
         }
       ],
       "binding": "COMMIT",
+      "currency_reasons": [
+        "MOVED_SINCE_BOUND_COMMIT:src/design_lab/cli.py",
+        "MOVED_SINCE_BOUND_COMMIT:src/design_lab/http_service.py",
+        "MOVED_SINCE_BOUND_COMMIT:design-lab/tests/test_workbench_launch.py",
+        "MOVED_SINCE_BOUND_COMMIT:docs/audits/DESIGNLAB-LAUNCH-REVIEW-PREFLIGHT-2026-10-08.md"
+      ],
+      "current": false,
       "id": "r5-009-official-launch-install-state-20261008",
+      "integrity_reasons": [],
       "kind": "local_test",
       "note": "Official launch connects its own page and the install state is measured, not assumed. `design-lab workbench` no longer prints a one-time token: the page the service opens picks the session up through GET /api/local-session, answered only when Sec-Fetch-Site is exactly same-origin -- deliberately narrower than `guard`, which tolerates an absent Sec-Fetch-Site and is fine for serving a page but not for handing over a credential. `--manual-connect` keeps the old behaviour for external launchers. OSError winerror 206 is split out of PROJECT_STORE_UNAVAILABLE as PROJECT_PATH_TOO_LONG, because a long path is the real Windows failure here and reporting it as 'store unavailable' sends the operator to the database instead of to where the project lives. capability_library.py inferred the repo root with parents[3], so an installed wheel could not read its four inputs and failed closed as PROJECT_STORE_UNAVAILABLE -- a diagnosis pointing at the wrong subsystem; the inputs now ship in the wheel and resolve install-first. Install state proved at this HEAD rather than inherited from an earlier receipt: uv build -> clean uv venv -> install -> the wheel's own design_lab/resources/workbench/build/main.js is byte-identical to the committed bundle -> four capability-library inputs shipped -> test_workbench_launch ran 3 cases with ZERO skips under DL_LAUNCH_INSTALLED=1 (a source checkout skips that case, so a local OK there proves nothing). Two process defects surfaced on the way and are recorded instead of hidden: `uv build --out` is the wrong flag, the build failed, and the install step silently used a wheel from the previous day -- the harness now deletes the artifact and compares member bytes; and the launch command itself was broken by this wave (see the recovery record) and found only by this proof, not by the gates I had chosen. E2 CONTROLLED_RUNTIME: real interpreter, real venv, real HTTP; no host, so host_live and delivery stay PARTIAL.",
       "observed_at": "2026-10-07T22:56:21Z",
       "outcome": "PASS",
       "reasons": [
-        "STALE_SUBJECT_SHA",
-        "SOURCE_CHANGED_OR_MISSING:src/design_lab/cli.py",
-        "SOURCE_CHANGED_OR_MISSING:src/design_lab/http_service.py",
-        "SOURCE_CHANGED_OR_MISSING:design-lab/tests/test_workbench_launch.py",
-        "ARTIFACT_CHANGED_OR_MISSING:docs/audits/DESIGNLAB-LAUNCH-REVIEW-PREFLIGHT-2026-10-08.md"
+        "MOVED_SINCE_BOUND_COMMIT:src/design_lab/cli.py",
+        "MOVED_SINCE_BOUND_COMMIT:src/design_lab/http_service.py",
+        "MOVED_SINCE_BOUND_COMMIT:design-lab/tests/test_workbench_launch.py",
+        "MOVED_SINCE_BOUND_COMMIT:docs/audits/DESIGNLAB-LAUNCH-REVIEW-PREFLIGHT-2026-10-08.md"
       ],
       "software": {
         "platform": "Windows-11-10.0.26100-SP0",
@@ -1768,7 +2133,7 @@
       "task_ids": [
         "DL-R5-009"
       ],
-      "verified": false
+      "verified": true
     },
     {
       "artifacts": [
@@ -1778,18 +2143,20 @@
         }
       ],
       "binding": "COMMIT",
+      "currency_reasons": [
+        "MOVED_SINCE_BOUND_COMMIT:apps/workbench/shell.ts",
+        "MOVED_SINCE_BOUND_COMMIT:docs/audits/DESIGNLAB-LAUNCH-REVIEW-PREFLIGHT-2026-10-08.md"
+      ],
+      "current": false,
       "id": "r5-014-human-jury-persistence-and-ui-20261008",
+      "integrity_reasons": [],
       "kind": "local_test",
       "note": "Human Jury moved from a validator to a usable capability. human_jury.py had checked verdicts for a while with no table, no route and no screen: a review could not survive a restart and the page could only show a placeholder. Added: design-lab-state-jury-v1.sql as append-only with UPDATE and DELETE triggers that refuse, because rewriting a signed verdict in place is rewriting the acceptance history a project cites; jury_store.record(), which requires the verdict to bind an ACTIVE version of the same project with a matching digest, refuses agent-kind signatories by type name, forbids superseding an already-superseded record (that would fork 'the current verdict'), and never lets a proposal into the verdict column; connect() delegating to asset_store.connect so path policy and the assets-v2 migration are not implemented twice; and four routes. Replay semantics are explicit -- same commit twice replays, same id with different content is 409 -- because a browser retrying after a lost response must not mint a second signature. JuryReviewError maps before the generic ValueError clause so 'artifact_sha256 does not match the version being judged' reaches the page instead of collapsing to INVALID_REQUEST. The review column on the preflight page reads back current verdicts, proposal counts and whether human acceptance actually exists, and signs from reviewable_versions so nobody hand-copies a digest. Two gates caught my own errors: the form collected a note but no score, which the contract requires per axis (every submit would have 400ed), so test_jury_review_form_contract.py now feeds the page's own declared axes through the real validator; and the column's first version used <div class='list'>/<div class='list-item'>, which the markup convention gate caught -- those classes read as a list and are announced as nothing. E2; the verdicts in the table are synthetic fixtures, so E4 human acceptance is NOT claimed and axis states stay PARTIAL pending a reviewer's reassessment (r5_contract requires reassessment=REVIEWED before an axis may read PASS).",
       "observed_at": "2026-10-07T22:56:21Z",
       "outcome": "PASS",
       "reasons": [
-        "STALE_SUBJECT_SHA",
-        "SOURCE_CHANGED_OR_MISSING:src/design_lab/assurance/jury_store.py",
-        "SOURCE_CHANGED_OR_MISSING:src/design_lab/jury_review.py",
-        "SOURCE_CHANGED_OR_MISSING:design-lab/tests/test_jury_review_form_contract.py",
-        "SOURCE_CHANGED_OR_MISSING:apps/workbench/shell.ts",
-        "ARTIFACT_CHANGED_OR_MISSING:docs/audits/DESIGNLAB-LAUNCH-REVIEW-PREFLIGHT-2026-10-08.md"
+        "MOVED_SINCE_BOUND_COMMIT:apps/workbench/shell.ts",
+        "MOVED_SINCE_BOUND_COMMIT:docs/audits/DESIGNLAB-LAUNCH-REVIEW-PREFLIGHT-2026-10-08.md"
       ],
       "software": {
         "platform": "Windows-11-10.0.26100-SP0",
@@ -1811,7 +2178,7 @@
       "task_ids": [
         "DL-R5-014"
       ],
-      "verified": false
+      "verified": true
     },
     {
       "artifacts": [
@@ -1821,17 +2188,24 @@
         }
       ],
       "binding": "COMMIT",
+      "currency_reasons": [
+        "MOVED_SINCE_BOUND_COMMIT:src/design_lab/assurance/production_preflight.py",
+        "MOVED_SINCE_BOUND_COMMIT:design-lab/tests/test_production_preflight.py",
+        "MOVED_SINCE_BOUND_COMMIT:apps/workbench/tests/appshell.mjs",
+        "MOVED_SINCE_BOUND_COMMIT:docs/audits/DESIGNLAB-LAUNCH-REVIEW-PREFLIGHT-2026-10-08.md"
+      ],
+      "current": false,
       "id": "r5-014-artifact-preflight-chain-20261008",
+      "integrity_reasons": [],
       "kind": "local_test",
       "note": "Production preflight of an ARTIFACT now exists and reaches the screen. Before this there were two things that looked like preflight and were not it: /api/task-preflight, which probes tools and resources for a task, and design-lab/production/preflight/check_preflight.py, which walks a directory and returns five string codes -- while profiles/*.json declared a pass|warning|fail x blocker|high|medium vocabulary nothing could emit. A declared vocabulary nobody can produce is a false-green machine: readers assume the checks ran. The emitter reports only checks the profile declares (both directions asserted, since omission and invention green-wash equally), attaches the `criterion` each verdict was judged against including where the criterion came from when the profile states no threshold, and caps the verdict at INCOMPLETE whenever anything is NOT_MEASURED -- so a PSD whose transparency flattening this build cannot inspect reports INCOMPLETE with a reason instead of inheriting a tick. Measured from real bytes with Pillow: pixel size, physical size and effective PPI where DPI is present, colour mode against profile intent, alpha, container format, and link presence and digests against the archive's own manifest. Explicitly NOT measured: bleed, safe area, overprint, transparency flattening, PDF configuration, page order, font embedding/outlining, duration, frame rate, loudness, codec, and size where no cap is declared. The route resolves the bundle from the state database by id within the project and verifies the archived bytes against the registered digest, so no path ever arrives from the browser. The Workbench column is proven twice: a static contract gate checks the profiles the page offers against the profile files AND the route's own query pattern, and appshell block 6 drives the built bundle -- no click no request, one click one request to that bundle's route, criterion on screen, a refusal replacing the previous verdict. Five product mutations each turned the right gate red. Also fixed: the payload claimed design-lab/artifact-preflight/v1 with no schema behind it anywhere -- only a TS interface -- so the schema and a checker over two real wire-serialised payloads now exist and fail on required-but-unemitted, emitted-but-forbidden, nested drift, one-sided version bumps and NOTHING_TO_COMPARE. Preflight verdicts are deliberately NOT persisted: a preflight is a computation over current bytes and re-running it is cheap, while storing PASS gives a judgement more permanence than the bytes have.",
       "observed_at": "2026-10-07T22:56:21Z",
       "outcome": "PASS",
       "reasons": [
-        "STALE_SUBJECT_SHA",
-        "SOURCE_CHANGED_OR_MISSING:src/design_lab/assurance/production_preflight.py",
-        "SOURCE_CHANGED_OR_MISSING:design-lab/tests/test_production_preflight.py",
-        "SOURCE_CHANGED_OR_MISSING:apps/workbench/tests/appshell.mjs",
-        "ARTIFACT_CHANGED_OR_MISSING:docs/audits/DESIGNLAB-LAUNCH-REVIEW-PREFLIGHT-2026-10-08.md"
+        "MOVED_SINCE_BOUND_COMMIT:src/design_lab/assurance/production_preflight.py",
+        "MOVED_SINCE_BOUND_COMMIT:design-lab/tests/test_production_preflight.py",
+        "MOVED_SINCE_BOUND_COMMIT:apps/workbench/tests/appshell.mjs",
+        "MOVED_SINCE_BOUND_COMMIT:docs/audits/DESIGNLAB-LAUNCH-REVIEW-PREFLIGHT-2026-10-08.md"
       ],
       "software": {
         "platform": "Windows-11-10.0.26100-SP0",
@@ -1852,7 +2226,7 @@
       "task_ids": [
         "DL-R5-014"
       ],
-      "verified": false
+      "verified": true
     },
     {
       "artifacts": [
@@ -1862,16 +2236,22 @@
         }
       ],
       "binding": "COMMIT",
+      "currency_reasons": [
+        "MOVED_SINCE_BOUND_COMMIT:apps/workbench/shell.ts",
+        "MOVED_SINCE_BOUND_COMMIT:design-lab/tests/test_native_tasks.py",
+        "MOVED_SINCE_BOUND_COMMIT:docs/audits/DESIGNLAB-LAUNCH-REVIEW-PREFLIGHT-2026-10-08.md"
+      ],
+      "current": false,
       "id": "r5-010-cancel-unacknowledged-stops-being-invisible-20261008",
+      "integrity_reasons": [],
       "kind": "local_test",
       "note": "POST /tasks/<job>/cancel moved the attempt to CANCEL_REQUESTED and answered 202, and no adapter event can acknowledge a stop, so `acknowledge_cancel` -- the only path to RECONCILING -- has no production caller. That leaves two endings for a cancel asked mid-flight: the host fails (CANCELLED) or the host delivers. The second went through `_finish` and committed RECEIPTED with a note that hid the outstanding cancel, and the task readback carried no cancel fields at all, so a refused operation was indistinguishable from an uncontested completion on every surface -- including the page that tells the operator 'requesting cancellation is not the same as cancelling'. RECEIPTED is kept, because the bytes really were published and read back and inventing a state would be the other kind of lie; what changed is legibility. The attempt note now names the unacknowledged cancel, /tasks carries cancel.requested and cancel.acknowledged (COALESCEd, since a pre-v2 attempt may have no resolution row), and 交付中心 tags the row. Two unit cases pin the service half, one of them asserting that an ordinary receipt reports requested:false so the new field cannot read as always-cancelled; appshell block 6 renders the built bundle both ways. Falsified: deleting the marker trips the positive assertion, and widening the predicate to '||' trips the negative one. Still open and named: acknowledge_cancel needs a 'host stopped' event the native protocol does not have, which is a protocol question, not a wire I can add.",
       "observed_at": "2026-10-07T22:56:21Z",
       "outcome": "PASS",
       "reasons": [
-        "STALE_SUBJECT_SHA",
-        "SOURCE_CHANGED_OR_MISSING:apps/workbench/shell.ts",
-        "SOURCE_CHANGED_OR_MISSING:design-lab/tests/test_native_tasks.py",
-        "ARTIFACT_CHANGED_OR_MISSING:docs/audits/DESIGNLAB-LAUNCH-REVIEW-PREFLIGHT-2026-10-08.md"
+        "MOVED_SINCE_BOUND_COMMIT:apps/workbench/shell.ts",
+        "MOVED_SINCE_BOUND_COMMIT:design-lab/tests/test_native_tasks.py",
+        "MOVED_SINCE_BOUND_COMMIT:docs/audits/DESIGNLAB-LAUNCH-REVIEW-PREFLIGHT-2026-10-08.md"
       ],
       "software": {
         "platform": "Windows-11-10.0.26100-SP0",
@@ -1891,7 +2271,7 @@
       "task_ids": [
         "DL-R5-010"
       ],
-      "verified": false
+      "verified": true
     },
     {
       "artifacts": [
@@ -1901,16 +2281,22 @@
         }
       ],
       "binding": "COMMIT",
+      "currency_reasons": [
+        "MOVED_SINCE_BOUND_COMMIT:src/design_lab/cli.py",
+        "MOVED_SINCE_BOUND_COMMIT:design-lab/tests/test_native_tasks.py",
+        "MOVED_SINCE_BOUND_COMMIT:docs/audits/DESIGNLAB-LAUNCH-REVIEW-PREFLIGHT-2026-10-08.md"
+      ],
+      "current": false,
       "id": "r5-004-native-recovery-reachable-20261008",
+      "integrity_reasons": [],
       "kind": "local_test",
       "note": "Restart reconciliation machinery existed with no way to reach it: boot relabelled RUNNING to OUTCOME_UNKNOWN and stopped, so a project that crashed mid-host-run could never be reconciled or quiesced from the product even though reconcile_receipted and quiesce_* were implemented and tested. Now service.py exposes reconcile_interrupted_attempts / native_recovery_decisions / recovery_readback, native_tasks gained recovery_decisions plus a decide path that takes the OS attempt lock before delegating (so continue becomes a bounded worker, never an inline host call), and cli.py grew a native-recovery verb that lists without acting and refuses to decide unless --actor and --receipt are both supplied. Deliberate limit, measured rather than assumed: deciding requires a scoped human authorization, so boot cannot decide for itself -- it announces blockers, and the operator either closes the app or signs for a decision. One honest residual, stated as not-done: reconcile_receipted is now reachable but cannot complete without a live Photoshop/Illustrator, and quiesce_* needs a durable live-PID+nonce identity binding (native_host_guard_v1 has none) -- with a live PID the host is still working and the method's own contract forbids disturbing it. This slice also introduced and then fixed a severe regression: the workbench launch printed 'recovery': recovery, where `recovery` had become the argparse subparser in the same scope, so `design-lab workbench` died in json.dumps before reporting a port. It survived my own verification because I ran the task/recovery/CLI modules and not the launcher's test; the install-state proof is what surfaced it. The parser variable is renamed so nothing in scope can be printed by mistake, and restoring the bug was used to prove the launch test fails on it. The slice's gate also caught two defects in its own first draft (an inline test double whose call the real code never performs, and a claim that the old path re-dispatched when publish_version is fenced to refuse a stale writer). E2; host_live stays PARTIAL.",
       "observed_at": "2026-10-07T22:56:21Z",
       "outcome": "PASS",
       "reasons": [
-        "STALE_SUBJECT_SHA",
-        "SOURCE_CHANGED_OR_MISSING:src/design_lab/cli.py",
-        "SOURCE_CHANGED_OR_MISSING:design-lab/tests/test_native_tasks.py",
-        "ARTIFACT_CHANGED_OR_MISSING:docs/audits/DESIGNLAB-LAUNCH-REVIEW-PREFLIGHT-2026-10-08.md"
+        "MOVED_SINCE_BOUND_COMMIT:src/design_lab/cli.py",
+        "MOVED_SINCE_BOUND_COMMIT:design-lab/tests/test_native_tasks.py",
+        "MOVED_SINCE_BOUND_COMMIT:docs/audits/DESIGNLAB-LAUNCH-REVIEW-PREFLIGHT-2026-10-08.md"
       ],
       "software": {
         "platform": "Windows-11-10.0.26100-SP0",
@@ -1930,7 +2316,7 @@
       "task_ids": [
         "DL-R5-004"
       ],
-      "verified": false
+      "verified": true
     },
     {
       "artifacts": [
@@ -1940,16 +2326,22 @@
         }
       ],
       "binding": "COMMIT",
+      "currency_reasons": [
+        "MOVED_SINCE_BOUND_COMMIT:src/design_lab/native_delivery.py",
+        "MOVED_SINCE_BOUND_COMMIT:design-lab/tests/test_delivery_receipt_wiring.py",
+        "MOVED_SINCE_BOUND_COMMIT:docs/audits/DESIGNLAB-LAUNCH-REVIEW-PREFLIGHT-2026-10-08.md"
+      ],
+      "current": false,
       "id": "r5-005-delivery-receipt-persisted-at-publish-20261008",
+      "integrity_reasons": [],
       "kind": "local_test",
       "note": "build_receipt had zero production callers, so real deliveries carried no receipt document even though the v2 schema and its validator existed. export_bundle now verifies the archive, builds the receipt from those same bytes, validates it against interop-delivery-receipt-v2 INSIDE the product path, persists it and returns it with the bundle; reading a delivery re-verifies rather than trusting the stored row. What it can claim: per-member digests and sizes re-read from the published archive, host and host version, attempt/job identity, persisted publication and receipted timestamps, the C2PA projection digest, and the verified immutable source version as rollback ref. What it cannot claim, and says so: any host readback (every host_readback is null, so the delivery axis stays PARTIAL) and any rights/quality/font verdict (NOT_REVIEWED -> NOT_RUN, NOT_VERIFIED -> UNVERIFIED, never upgraded). Where a fact the document would need is unknown the code refuses with BUNDLE_RECEIPT_UNVERIFIABLE instead of filling a plausible value; input members ship as provenance ingredients rather than being counted as deliverables whose editability is unknowable. Eleven cases include persisted-plus-schema-valid receipt, identical read-back after a restart with a new service instance, project scoping, a tampered row refused, and a refuse-rather-than-invent case; seven gates falsified against weakened copies. Related finding recorded elsewhere: design-lab/schemas/contracts/delivery-receipt.schema.json is v1 and is contradicted by the shipped v2 (it requires delivery_id/delivered_at and forbids receipt_sha256/job_id/deliverables/axes) -- verified by reading both files side by side.",
       "observed_at": "2026-10-07T22:56:21Z",
       "outcome": "PASS",
       "reasons": [
-        "STALE_SUBJECT_SHA",
-        "SOURCE_CHANGED_OR_MISSING:src/design_lab/native_delivery.py",
-        "SOURCE_CHANGED_OR_MISSING:design-lab/tests/test_delivery_receipt_wiring.py",
-        "ARTIFACT_CHANGED_OR_MISSING:docs/audits/DESIGNLAB-LAUNCH-REVIEW-PREFLIGHT-2026-10-08.md"
+        "MOVED_SINCE_BOUND_COMMIT:src/design_lab/native_delivery.py",
+        "MOVED_SINCE_BOUND_COMMIT:design-lab/tests/test_delivery_receipt_wiring.py",
+        "MOVED_SINCE_BOUND_COMMIT:docs/audits/DESIGNLAB-LAUNCH-REVIEW-PREFLIGHT-2026-10-08.md"
       ],
       "software": {
         "platform": "Windows-11-10.0.26100-SP0",
@@ -1968,7 +2360,7 @@
       "task_ids": [
         "DL-R5-005"
       ],
-      "verified": false
+      "verified": true
     },
     {
       "artifacts": [
@@ -1978,17 +2370,24 @@
         }
       ],
       "binding": "COMMIT",
+      "currency_reasons": [
+        "MOVED_SINCE_BOUND_COMMIT:src/design_lab/design_layer.py",
+        "MOVED_SINCE_BOUND_COMMIT:src/design_lab/http_service.py",
+        "MOVED_SINCE_BOUND_COMMIT:apps/workbench/shell.ts",
+        "MOVED_SINCE_BOUND_COMMIT:docs/audits/DESIGNLAB-LAUNCH-REVIEW-PREFLIGHT-2026-10-08.md"
+      ],
+      "current": false,
       "id": "r5-005-design-system-token-write-path-20261008",
+      "integrity_reasons": [],
       "kind": "local_test",
       "note": "Design-system TOKENS had a contract and a CLI but no write path: the workbench could list design systems and bind one, and an operator had no way to record token values and have them persisted, versioned, read back after a restart and shown. write_tokens appends one version per write under the repo's ONE writer lease (generation fenced, through a new read-only assert_writer_fence so a SQLite-only writer that owns its transaction reuses the rule instead of adding a second lock), validates the document against the DTCG schema and the canonical semantic contract BEFORE anything is persisted, and refuses with its own code per reason -- unknown design system, invalid document with the failing field path, a pre-2025.10 document rather than a silently adapted one, no validator importable (503, fail closed), stale expected_version, ambiguous live rows, idempotent replay with different content, a second writer. A published version is never mutated: the previous row only moves its superseded_by pointer, and the new v4 state schema makes rewriting or deleting a content column a DATABASE error, so a caller that bypasses the method still cannot rewrite history. Three routes plus a workbench column that reads the persisted document and its chain, with a form contract test that feeds the page's own declared shape through the real validator -- the same trick that caught the jury form emitting a document the service would always refuse. 36 cases including readback after a restart with a new service instance, lease contention, and two design systems keeping separate chains. The list-container inventory moved 31 -> 32 for this column, named in the gate's comment, because that number is an inventory that may only grow by a verified list.",
       "observed_at": "2026-10-07T22:56:21Z",
       "outcome": "PASS",
       "reasons": [
-        "STALE_SUBJECT_SHA",
-        "SOURCE_CHANGED_OR_MISSING:src/design_lab/design_layer.py",
-        "SOURCE_CHANGED_OR_MISSING:src/design_lab/http_service.py",
-        "SOURCE_CHANGED_OR_MISSING:apps/workbench/shell.ts",
-        "ARTIFACT_CHANGED_OR_MISSING:docs/audits/DESIGNLAB-LAUNCH-REVIEW-PREFLIGHT-2026-10-08.md"
+        "MOVED_SINCE_BOUND_COMMIT:src/design_lab/design_layer.py",
+        "MOVED_SINCE_BOUND_COMMIT:src/design_lab/http_service.py",
+        "MOVED_SINCE_BOUND_COMMIT:apps/workbench/shell.ts",
+        "MOVED_SINCE_BOUND_COMMIT:docs/audits/DESIGNLAB-LAUNCH-REVIEW-PREFLIGHT-2026-10-08.md"
       ],
       "software": {
         "platform": "Windows-11-10.0.26100-SP0",
@@ -2012,7 +2411,7 @@
       "task_ids": [
         "DL-R5-005"
       ],
-      "verified": false
+      "verified": true
     },
     {
       "artifacts": [
@@ -2022,15 +2421,18 @@
         }
       ],
       "binding": "COMMIT",
+      "currency_reasons": [
+        "MOVED_SINCE_BOUND_COMMIT:docs/audits/DESIGNLAB-LAUNCH-REVIEW-PREFLIGHT-2026-10-08.md"
+      ],
+      "current": false,
       "id": "r5-004-publication-journal-rebased-on-restore-20261008",
+      "integrity_reasons": [],
       "kind": "local_test",
       "note": "My own earlier audit record claimed the archived asset_publication journal keeps the old root, so recover_publications(store_root=new) selects store_root=?, finds nothing and silently skips the row. Confirmed against the live bytes, with a correction the worker earned: this build's quiescence barrier refuses to ARCHIVE while a PREPARED row exists, so the symptom reachable today is a COMMITTED row whose stale final_path makes the restored project raise 'publication path escapes store root' over bytes that are plainly present. Restore now rewrites exactly the four filesystem columns (store_root, stage_path, final_path, quarantine_path) of every journal row and nothing else -- state, digests, holder, generation, version_id and ids stay verbatim, because those are the signed parts -- and the store_root=? predicate is deliberately NOT widened, since matching on identity instead would let one root's recovery touch another root's rows. native_host_guard_v1 is asserted unmoved, because reviving an archived guard would let two writers share one host. The honest half is the refusal: when an archive carries no source root and the journal names paths that cannot be proven inside the target, restore refuses instead of reporting success, and a foreign path refuses outright. Five new cases, 42 in the module, 8/8 falsifications against weakened copies including the pre-change behaviour, so the failure mode is shown to have existed rather than asserted. Follow-up this record also owns: verifying the committed HEAD in an isolated worktree exposed that two of these fixtures passed locally and failed at a deeper checkout -- a restore path reaches 276 characters against Windows' 260 cap once the fixture labels are added. Labels shortened and setUp now asserts the remaining depth budget, so the next deepening fails with a number instead of an opaque WinError 206; 42 cases verified green at both depths.",
       "observed_at": "2026-10-07T22:56:21Z",
       "outcome": "PASS",
       "reasons": [
-        "STALE_SUBJECT_SHA",
-        "SOURCE_CHANGED_OR_MISSING:src/design_lab/runtime/project_backup.py",
-        "ARTIFACT_CHANGED_OR_MISSING:docs/audits/DESIGNLAB-LAUNCH-REVIEW-PREFLIGHT-2026-10-08.md"
+        "MOVED_SINCE_BOUND_COMMIT:docs/audits/DESIGNLAB-LAUNCH-REVIEW-PREFLIGHT-2026-10-08.md"
       ],
       "software": {
         "platform": "Windows-11-10.0.26100-SP0",
@@ -2047,7 +2449,7 @@
       "task_ids": [
         "DL-R5-004"
       ],
-      "verified": false
+      "verified": true
     },
     {
       "artifacts": [
@@ -2057,21 +2459,26 @@
         }
       ],
       "binding": "COMMIT",
+      "currency_reasons": [
+        "MOVED_SINCE_BOUND_COMMIT:design-lab/scripts/verify_design_lab.py",
+        "MOVED_SINCE_BOUND_COMMIT:design-lab/scripts/verify_contract_bindings.py",
+        "MOVED_SINCE_BOUND_COMMIT:design-lab/config/contract-bindings.json",
+        "MOVED_SINCE_BOUND_COMMIT:design-lab/tests/test_contract_bindings.py",
+        "MOVED_SINCE_BOUND_COMMIT:docs/audits/DESIGNLAB-LAUNCH-REVIEW-PREFLIGHT-2026-10-08.md"
+      ],
+      "current": false,
       "id": "r5-003-verification-gates-wave-20261008",
+      "integrity_reasons": [],
       "kind": "local_test",
       "note": "Five verification defects, all of the same family: a check that reports success while observing nothing. (1) verify_identity_gate.py utf-8-decoded every file under dist/, so a locally built wheel turned it red while detecting nothing and CI -- a clean checkout with no dist/ -- could never see that. A .whl is a zip and a zip is where a legacy package name actually travels, so containers are now matched by MEMBER NAME and an unopenable container fails closed; measured first that both containers in the active tree are clean by name, and recorded the limit: the frozen task-package archive under docs/audits carries legacy strings in member BODIES, which this gate does not claim to read. (2) Nothing ever validated a record's subject_files. Recomputed from `git show` against the bound commit: 268 declared, 201 reproduce, 67 do not -- 4 substantive over-claims from the 2026-09-09 batch (three digests that differ from the blob at a06c1db0 and one path absent there, i.e. digests taken from the working tree of the moment) and 63 disk-as-subject entries (57 .pyc never tracked, 6 audio fixtures committed after their bound commit). New gate with a TWO-WAY sanctioned list: a new defect fails and an entry that has become verifiable fails too; blessings are per (record, path) so a new record cannot borrow an old exemption. The four substantive records are left as written -- correcting them would fabricate evidence -- and are named in source. (3) The Workbench's preflight column broke canonical-verify while every gate I had run stayed green, because verify_state_vocabularies.py ran only in the workflow and never in the aggregate -- now registered (58 scripts, failed=0). The rule itself needed correcting, not the page: 'PASS' was banned file-wide because task_resources emits only READY/BLOCKED, while production_preflight genuinely verdicts PASS/WARN/BLOCKED/INCOMPLETE. The contract now declares that vocabulary with its source module named and checks it two ways; a status word must belong to SOME declared emitter; and the original lie keeps its own named ban, so 'PASS / BLOCKED' is still rejected. The gate had no test module at all in its whole life; it now has nine cases on real-file-plus-one-substitution fixtures that assert the substitution actually changed what the gate parses -- my first job_store mutation edited a transition value instead of a key and would have passed for no reason. (4) The live ledger has had NO schema since the 2026-09 R5 migration: the only file pins r3-v1 / DL-TP-20260906-R3 / ^R3-..$ / required 'acceptance' and yields 105 violations, while the frozen r3 predecessor validates against it with 0 errors -- so it is the correct contract for the r3 file and the r5 one was simply never written (AGENTS.md notes the r5-v1 string is 'not a file path', i.e. the gap is documented and open). (5) audit_event was written in two places and read by no product code -- a journal nobody can query is not an audit trail. runtime/audit_trail.py reads it through the store's path policy mode=ro, distinguishes no-database / empty / page, keeps actor as an attempt id rather than a person, and pages on the (at, audit_id) row value because a microsecond timestamp alone cannot page without repeating or dropping a row. Three standing guards so it cannot regress: something in src must SELECT it, the reader must be reached from the CLI, and the writes must still exist. Both weakenings (always claim PRESENT; page by offset) demonstrated red. All five are E1/E2 structural-and-controlled claims about verification, and none of them upgrades a task axis: axes require a reviewer's reassessment.",
       "observed_at": "2026-10-07T22:56:21Z",
       "outcome": "PASS",
       "reasons": [
-        "STALE_SUBJECT_SHA",
-        "SOURCE_CHANGED_OR_MISSING:design-lab/scripts/verify_identity_gate.py",
-        "SOURCE_CHANGED_OR_MISSING:design-lab/scripts/verify_ledger_subject_binding.py",
-        "SOURCE_CHANGED_OR_MISSING:design-lab/scripts/verify_design_lab.py",
-        "SOURCE_CHANGED_OR_MISSING:src/design_lab/runtime/audit_trail.py",
-        "SOURCE_CHANGED_OR_MISSING:design-lab/scripts/verify_contract_bindings.py",
-        "SOURCE_CHANGED_OR_MISSING:design-lab/config/contract-bindings.json",
-        "SOURCE_CHANGED_OR_MISSING:design-lab/tests/test_contract_bindings.py",
-        "ARTIFACT_CHANGED_OR_MISSING:docs/audits/DESIGNLAB-LAUNCH-REVIEW-PREFLIGHT-2026-10-08.md"
+        "MOVED_SINCE_BOUND_COMMIT:design-lab/scripts/verify_design_lab.py",
+        "MOVED_SINCE_BOUND_COMMIT:design-lab/scripts/verify_contract_bindings.py",
+        "MOVED_SINCE_BOUND_COMMIT:design-lab/config/contract-bindings.json",
+        "MOVED_SINCE_BOUND_COMMIT:design-lab/tests/test_contract_bindings.py",
+        "MOVED_SINCE_BOUND_COMMIT:docs/audits/DESIGNLAB-LAUNCH-REVIEW-PREFLIGHT-2026-10-08.md"
       ],
       "software": {
         "platform": "Windows-11-10.0.26100-SP0",
@@ -2098,7 +2505,7 @@
       "task_ids": [
         "DL-R5-003"
       ],
-      "verified": false
+      "verified": true
     },
     {
       "artifacts": [
@@ -2108,18 +2515,24 @@
         }
       ],
       "binding": "COMMIT",
+      "currency_reasons": [
+        "MOVED_SINCE_BOUND_COMMIT:src/design_lab/http_service.py",
+        "MOVED_SINCE_BOUND_COMMIT:design-lab/tests/test_domain_pack_readback.py",
+        "MOVED_SINCE_BOUND_COMMIT:apps/workbench/shell.ts",
+        "MOVED_SINCE_BOUND_COMMIT:docs/audits/DESIGNLAB-LAUNCH-REVIEW-PREFLIGHT-2026-10-08.md"
+      ],
+      "current": false,
       "id": "r5-023-domain-pack-readback-20261008",
+      "integrity_reasons": [],
       "kind": "local_test",
       "note": "#/domains was a routed view with no backend at all, while the repository already had the domain packs, a manifest schema and its own checker: the page could not say what was there. GET /api/domains now projects the committed pack directories through that checker and the view renders the result. The honesty rules are enforced by tests rather than asserted in prose: the verdict is the repo's own checker's, unaltered, and a manifest that parses in the projection can still be rejected by the checker because it re-reads from disk -- both are reported rather than reconciled by a local opinion; four states (VALIDATES / INVALID / UNREADABLE / NOT_CHECKED) so absent, unreadable and unparsable are never folded into 'valid'; when the checker cannot be loaded nothing is given a verdict at all; identity fields come from the manifest as declared, and a v1 manifest has no `domain`, so defaulting one would be the projection inventing a claim to fill a column; and VALIDATES is labelled as what it is -- a structural (E1) statement about files in this repository, not a host run, not a design verdict and not an acceptance. Falsified by me after the worker ran out of budget: forcing every pack to VALIDATES turned 4 cases red, and claiming a verdict when the checker was not run turned its case red (an earlier mutation of mine only rewrote prose and proved nothing, which is why the second version aims at the state). ATTRIBUTION LIMITATION, recorded rather than hidden: no R5 task names a domain-pack readback. It is filed under DL-R5-023 as the extension/maintenance surface because that is the nearest declared scope, and any crosswalk from the FINAL-AUTHORITY TaskPack's W-items should re-file it explicitly rather than leave this inference unmarked.",
       "observed_at": "2026-10-07T22:56:21Z",
       "outcome": "PASS",
       "reasons": [
-        "STALE_SUBJECT_SHA",
-        "SOURCE_CHANGED_OR_MISSING:src/design_lab/domain_packs.py",
-        "SOURCE_CHANGED_OR_MISSING:src/design_lab/http_service.py",
-        "SOURCE_CHANGED_OR_MISSING:design-lab/tests/test_domain_pack_readback.py",
-        "SOURCE_CHANGED_OR_MISSING:apps/workbench/shell.ts",
-        "ARTIFACT_CHANGED_OR_MISSING:docs/audits/DESIGNLAB-LAUNCH-REVIEW-PREFLIGHT-2026-10-08.md"
+        "MOVED_SINCE_BOUND_COMMIT:src/design_lab/http_service.py",
+        "MOVED_SINCE_BOUND_COMMIT:design-lab/tests/test_domain_pack_readback.py",
+        "MOVED_SINCE_BOUND_COMMIT:apps/workbench/shell.ts",
+        "MOVED_SINCE_BOUND_COMMIT:docs/audits/DESIGNLAB-LAUNCH-REVIEW-PREFLIGHT-2026-10-08.md"
       ],
       "software": {
         "platform": "Windows-11-10.0.26100-SP0",
@@ -2138,7 +2551,7 @@
       "task_ids": [
         "DL-R5-023"
       ],
-      "verified": false
+      "verified": true
     },
     {
       "artifacts": [
@@ -2148,16 +2561,18 @@
         }
       ],
       "binding": "COMMIT",
+      "currency_reasons": [
+        "MOVED_SINCE_BOUND_COMMIT:docs/audits/DESIGNLAB-LAUNCH-REVIEW-PREFLIGHT-2026-10-08.md"
+      ],
+      "current": false,
       "id": "r5-014-jury-acceptance-is-a-sentence-about-the-project-20261008",
+      "integrity_reasons": [],
       "kind": "local_test",
       "note": "Fixed an over-claim in the capability I had shipped myself: JuryReview.list() computed human_acceptance with any(item['verdict'] == 'APPROVE'), so one signed version out of ten made the project read 已接受. Following it down found the storage fact behind it: publish_version never demotes the bytes it replaced and nothing in the repository writes asset_version.state='SUPERSEDED' (only tests flip it), so 'every ACTIVE version' was a revision history -- the reviewer could sign a superseded draft and it counted. Acceptance now requires the current version of every asset to carry a current APPROVE, an empty reviewable set is NOT_ACCEPTED on purpose (0 of 0 is vacuously true, and a project with nothing published has not been accepted by anyone), and record() refuses a verdict on a replaced revision by naming both version_no values. accepted_versions and reviewable_active_versions travel with the word so the UI can state its denominator, and jury-readback.schema.json binds the rule. E1/E2: 29 tests green (test_jury_http 12, store, form contract); falsifier falsify_jury_acceptance.py drives three mutations -- predicate back to any(), narrowing removed, refusal short-circuited -- each red on the named case, assertion failure not ERROR, restored to 12 green. The first run of that falsifier reported NEED NOT FOUND for one needle I had written from memory as SQL text rather than the module's Python string concatenation; it refused instead of pretending the mutation was inert.",
       "observed_at": "2026-10-07T22:56:21Z",
       "outcome": "PASS",
       "reasons": [
-        "STALE_SUBJECT_SHA",
-        "SOURCE_CHANGED_OR_MISSING:src/design_lab/jury_review.py",
-        "SOURCE_CHANGED_OR_MISSING:src/design_lab/assurance/jury_store.py",
-        "ARTIFACT_CHANGED_OR_MISSING:docs/audits/DESIGNLAB-LAUNCH-REVIEW-PREFLIGHT-2026-10-08.md"
+        "MOVED_SINCE_BOUND_COMMIT:docs/audits/DESIGNLAB-LAUNCH-REVIEW-PREFLIGHT-2026-10-08.md"
       ],
       "software": {
         "platform": "Windows-11-10.0.26100-SP0",
@@ -2176,7 +2591,7 @@
       "task_ids": [
         "DL-R5-014"
       ],
-      "verified": false
+      "verified": true
     },
     {
       "artifacts": [
@@ -2186,16 +2601,22 @@
         }
       ],
       "binding": "COMMIT",
+      "currency_reasons": [
+        "MOVED_SINCE_BOUND_COMMIT:src/design_lab/assurance/production_preflight.py",
+        "MOVED_SINCE_BOUND_COMMIT:design-lab/tests/test_production_preflight.py",
+        "MOVED_SINCE_BOUND_COMMIT:docs/audits/DESIGNLAB-LAUNCH-REVIEW-PREFLIGHT-2026-10-08.md"
+      ],
+      "current": false,
       "id": "r5-014-preflight-measures-the-registered-delivery-not-any-row-20261008",
+      "integrity_reasons": [],
       "kind": "local_test",
       "note": "preflight_bundle resolved 'which bytes to check' with an unordered fetchone over a join that can widen, while creative/asset_versions.create_version(artifacts=[...]) openly registers several artifacts per version. Proven, not asserted: with the old query restored, registering a preview before the deliverable certifies the PREVIEW and reports it as the delivery verdict (the case goes red with the product's own numbers). Selection is now the asset's current version ordered by role then path, and bytes registered on that version but not measured append an artifact-scope NOT_MEASURED finding that recomputes the verdict through the single _aggregate/_recount helper, so there is one rule for how a verdict is computed instead of two that can drift. Honest negative recorded in the audit: the newer-revision case stayed GREEN under the old query -- ORDER BY version_no DESC already got the revision right -- so that test is a contract pin, not evidence of a defect. E1/E2: 33 tests green, two mutations felt on the named cases; verify_artifact_preflight_contract, verify_production_preflight, verify_state_vocabularies and verify_route_payload_contracts all pass on these bytes.",
       "observed_at": "2026-10-07T22:56:21Z",
       "outcome": "PASS",
       "reasons": [
-        "STALE_SUBJECT_SHA",
-        "SOURCE_CHANGED_OR_MISSING:src/design_lab/assurance/production_preflight.py",
-        "SOURCE_CHANGED_OR_MISSING:design-lab/tests/test_production_preflight.py",
-        "ARTIFACT_CHANGED_OR_MISSING:docs/audits/DESIGNLAB-LAUNCH-REVIEW-PREFLIGHT-2026-10-08.md"
+        "MOVED_SINCE_BOUND_COMMIT:src/design_lab/assurance/production_preflight.py",
+        "MOVED_SINCE_BOUND_COMMIT:design-lab/tests/test_production_preflight.py",
+        "MOVED_SINCE_BOUND_COMMIT:docs/audits/DESIGNLAB-LAUNCH-REVIEW-PREFLIGHT-2026-10-08.md"
       ],
       "software": {
         "platform": "Windows-11-10.0.26100-SP0",
@@ -2213,7 +2634,7 @@
       "task_ids": [
         "DL-R5-014"
       ],
-      "verified": false
+      "verified": true
     },
     {
       "artifacts": [
@@ -2223,15 +2644,18 @@
         }
       ],
       "binding": "COMMIT",
+      "currency_reasons": [
+        "MOVED_SINCE_BOUND_COMMIT:docs/audits/DESIGNLAB-LAUNCH-REVIEW-PREFLIGHT-2026-10-08.md"
+      ],
+      "current": false,
       "id": "r5-014-approval-vocabulary-not-reviewed-versus-pending-20261008",
+      "integrity_reasons": [],
       "kind": "local_test",
       "note": "creative/approval.py projected 'no decision record exists' as PENDING, so an untouched RIGHTS gate read as a review in progress -- against this project's own rule that an absent review stays NOT_REVIEWED, which is also how interop/delivery_receipt.py maps it to NOT_RUN. States now split NOT_REVIEWED (nothing filed, or the request was superseded) from PENDING (a real proposal awaiting a human); granted and require_approval were not touched, so the gate blocks exactly as before and only the description of why became honest. Attribution limitation recorded rather than hidden: no R5 task names a rights decision ledger; this is filed under DL-R5-014 as the Human Gate surface and should be re-filed explicitly when the rights chain (adjudicator, append-only table, route, panel, vocabulary source) is dispatched. E1: 42 tests green across approval and decision-ledger modules (the module counted 40 before: one assertion of PENDING was replaced by three semantically correct cases, the block assertion kept), 52 including handoff_readiness; falsify_approval_vocabulary.py proves both halves -- None->PENDING and PROPOSED->NOT_REVIEWED -- each red on the named cases and restored green.",
       "observed_at": "2026-10-07T22:56:21Z",
       "outcome": "PASS",
       "reasons": [
-        "STALE_SUBJECT_SHA",
-        "SOURCE_CHANGED_OR_MISSING:src/design_lab/creative/approval.py",
-        "ARTIFACT_CHANGED_OR_MISSING:docs/audits/DESIGNLAB-LAUNCH-REVIEW-PREFLIGHT-2026-10-08.md"
+        "MOVED_SINCE_BOUND_COMMIT:docs/audits/DESIGNLAB-LAUNCH-REVIEW-PREFLIGHT-2026-10-08.md"
       ],
       "software": {
         "platform": "Windows-11-10.0.26100-SP0",
@@ -2249,7 +2673,7 @@
       "task_ids": [
         "DL-R5-014"
       ],
-      "verified": false
+      "verified": true
     },
     {
       "artifacts": [
@@ -2259,17 +2683,20 @@
         }
       ],
       "binding": "COMMIT",
+      "currency_reasons": [
+        "MOVED_SINCE_BOUND_COMMIT:src/design_lab/native_delivery.py",
+        "MOVED_SINCE_BOUND_COMMIT:docs/audits/DESIGNLAB-LAUNCH-REVIEW-PREFLIGHT-2026-10-08.md"
+      ],
+      "current": false,
       "id": "r5-005-atomic-versions-one-current-row-per-asset-20261008",
+      "integrity_reasons": [],
       "kind": "local_test",
       "note": "The same missing statement of intent appeared in four shipped readers in one session, so it is now an enforced convention. Fixes: jury reviewable list and quality assessable_versions return the highest ACTIVE version_no per asset; preflight and image_assets and native_assets and Bundles also pick ONE artifact per version (deliverable first, then path) because the join can widen independently of revisions; NativeDelivery.content() stopped answering 404 BUNDLE_NOT_FOUND for a package that exists because a contact sheet was registered beside it (measured by mutation: the product's own refusal), and RECEIPT_QUERY's artifact join is left alone deliberately and documented -- it is an EXISTS filter read with fetchone, not a cardinality claim. verify_current_version_rule.py reads every string literal in the shipped modules with AST and fails any statement that filters state='ACTIVE' without naming how it picks the current version (MAX(version_no) / ORDER BY version_no DESC, or pinned version_id / sha256); it fails on an empty scan and on a stale exemption, and it gates on lies rather than counts so adding a compliant reader moves no number. Measured: 11 ACTIVE reads, 8 ruled, 3 pinned, 0 unruled. New coverage where there was none: native_assets/Bundles listing and verify had no test at all (only a __pycache__ of a deleted test_bundles_list.py) -- 6 cases now, including that an unknown asset still 404s for the right reason so the fix cannot trade a false 404 for a false success. 8 gate tests + 2 raster + 6 listing + 46 delivery-scope green; four falsifiers felt; the gate is registered in the aggregate (62 entries) and reaches CI through canonical-verify.yml's verify_design_lab.py step.",
       "observed_at": "2026-10-07T22:56:21Z",
       "outcome": "PASS",
       "reasons": [
-        "STALE_SUBJECT_SHA",
-        "SOURCE_CHANGED_OR_MISSING:src/design_lab/image_assets.py",
-        "SOURCE_CHANGED_OR_MISSING:src/design_lab/native_assets.py",
-        "SOURCE_CHANGED_OR_MISSING:src/design_lab/native_delivery.py",
-        "ARTIFACT_CHANGED_OR_MISSING:docs/audits/DESIGNLAB-LAUNCH-REVIEW-PREFLIGHT-2026-10-08.md"
+        "MOVED_SINCE_BOUND_COMMIT:src/design_lab/native_delivery.py",
+        "MOVED_SINCE_BOUND_COMMIT:docs/audits/DESIGNLAB-LAUNCH-REVIEW-PREFLIGHT-2026-10-08.md"
       ],
       "software": {
         "platform": "Windows-11-10.0.26100-SP0",
@@ -2292,7 +2719,7 @@
         "DL-R5-005",
         "DL-R5-003"
       ],
-      "verified": false
+      "verified": true
     },
     {
       "artifacts": [
@@ -2302,20 +2729,30 @@
         }
       ],
       "binding": "COMMIT",
+      "currency_reasons": [
+        "MOVED_SINCE_BOUND_COMMIT:src/design_lab/http_service.py",
+        "MOVED_SINCE_BOUND_COMMIT:apps/workbench/shell.ts",
+        "MOVED_SINCE_BOUND_COMMIT:apps/workbench/build/main.js",
+        "MOVED_SINCE_BOUND_COMMIT:apps/workbench/tests/appshell.mjs",
+        "MOVED_SINCE_BOUND_COMMIT:design-lab/tests/test_service_http.py",
+        "MOVED_SINCE_BOUND_COMMIT:design-lab/tests/test_delivery_evidence_ui_contract.py",
+        "MOVED_SINCE_BOUND_COMMIT:docs/audits/DESIGNLAB-LAUNCH-REVIEW-PREFLIGHT-2026-10-08.md"
+      ],
+      "current": false,
       "id": "r5-010-delivery-receipt-is-readable-and-the-evidence-page-reads-it-20261008",
+      "integrity_reasons": [],
       "kind": "local_test",
       "note": "GET /api/projects/<id>/bundles/<bundle>/versions/<v>/receipt serves the same DeliveryReceipt V2 the delivery-receipt CLI verb writes, verified by NativeDelivery on every read, and dispatch keeps the two refusals apart: 404 DELIVERY_RECEIPT_NOT_FOUND (we wrote no document about this delivery) versus 409 DELIVERY_RECEIPT_UNVERIFIED (a stored document contradicts its own bytes). Folding either into INVALID_REQUEST would read as a bad request the operator could go back and fix, which is a different fact about different bytes. 证据系统 reads verdicts, preflight and receipt as three independent reads, says 未读回 rather than showing an empty list when a field is absent, keeps 404 and 409 apart on screen, sends one request per click, and issues none before a version has been read back; the panel also states the acceptance denominator (已接受 n/m 当前版本) and prints 未读回, never 0/0, when the service did not supply it. Verified on these bytes by me after the owning agent ran out of budget: 29 service-HTTP tests green run ALONE (the two readiness timeouts in a contended run were my own CPU contention with three other suites, not a defect -- re-measured, not excused), appshell blocks 1-7 pass, tsc --noEmit clean, a fresh vite build reproduces the committed bundle byte for byte, shape-notice coverage reports all 26 seam reads, list-container inventory moved 33->34 for the new jury column with the assertEqual form intact. Process defect recorded: the first UI falsifier reported two green 'passes' because appshell.mjs executes build/main.js in a vm and only greps shell.ts -- it now rebuilds and refuses to run the gate when the build fails.",
       "observed_at": "2026-10-07T22:56:21Z",
       "outcome": "PASS",
       "reasons": [
-        "STALE_SUBJECT_SHA",
-        "SOURCE_CHANGED_OR_MISSING:src/design_lab/http_service.py",
-        "SOURCE_CHANGED_OR_MISSING:apps/workbench/shell.ts",
-        "SOURCE_CHANGED_OR_MISSING:apps/workbench/build/main.js",
-        "SOURCE_CHANGED_OR_MISSING:apps/workbench/tests/appshell.mjs",
-        "SOURCE_CHANGED_OR_MISSING:design-lab/tests/test_service_http.py",
-        "SOURCE_CHANGED_OR_MISSING:design-lab/tests/test_delivery_evidence_ui_contract.py",
-        "ARTIFACT_CHANGED_OR_MISSING:docs/audits/DESIGNLAB-LAUNCH-REVIEW-PREFLIGHT-2026-10-08.md"
+        "MOVED_SINCE_BOUND_COMMIT:src/design_lab/http_service.py",
+        "MOVED_SINCE_BOUND_COMMIT:apps/workbench/shell.ts",
+        "MOVED_SINCE_BOUND_COMMIT:apps/workbench/build/main.js",
+        "MOVED_SINCE_BOUND_COMMIT:apps/workbench/tests/appshell.mjs",
+        "MOVED_SINCE_BOUND_COMMIT:design-lab/tests/test_service_http.py",
+        "MOVED_SINCE_BOUND_COMMIT:design-lab/tests/test_delivery_evidence_ui_contract.py",
+        "MOVED_SINCE_BOUND_COMMIT:docs/audits/DESIGNLAB-LAUNCH-REVIEW-PREFLIGHT-2026-10-08.md"
       ],
       "software": {
         "platform": "Windows-11-10.0.26100-SP0",
@@ -2337,7 +2774,7 @@
         "DL-R5-010",
         "DL-R5-005"
       ],
-      "verified": false
+      "verified": true
     },
     {
       "artifacts": [
@@ -2347,18 +2784,22 @@
         }
       ],
       "binding": "COMMIT",
+      "currency_reasons": [
+        "MOVED_SINCE_BOUND_COMMIT:design-lab/scripts/verify_route_payload_contracts.py",
+        "MOVED_SINCE_BOUND_COMMIT:design-lab/scripts/verify_design_lab.py",
+        "MOVED_SINCE_BOUND_COMMIT:docs/audits/DESIGNLAB-LAUNCH-REVIEW-PREFLIGHT-2026-10-08.md"
+      ],
+      "current": false,
       "id": "r5-003-ledger-schema-and-route-payload-contracts-20261008",
+      "integrity_reasons": [],
       "kind": "local_test",
       "note": "Verification layer, not product surface. The mutable ledger declared schemaVersion design-lab/task-ledger/r5-v1 for a month with no schema behind it: added task-ledger-r5-v1.schema.json plus verify_ledger_schema_pairing.py, which selects a schema BY that field, fails hard when a version names none, and holds schema and data accountable in both directions (undeclared field by path; declared-but-unused property, with a dated two-way register because the frozen r3 schema never closed tasks[] -- 7 fields sit undeclared and 1 declared key is unused, printed as registered_undeclared=7 / registered_unused=1). Live pair: 28 tasks, 40 evidence records, defects=0; 40 tests. Second half: 31 of 32 contract schemas were INERT and 42 route payload versions carried no schema, so five families are now BOUND (path-diagnostic, capability-library, domain-pack-readback, task-resource-preflight, jury-readback), each schema written from a payload captured over a real make_server socket rather than hand-written, cross-checked against the ledger and the emitter's own schemaVersion string both ways (LEDGER_DISAGREES / UNVALIDATED_BINDING / VERSION_DRIFT / MISSING_FROM_EMITTER / UNDECLARED_BY_SCHEMA); three Adobe job-spec versions stay named debt and deleting the debt note now goes red. 83 tests green, bound=12. Both new gates were registered into the aggregate by me after their author flagged it does not own that file. Self-correction recorded: committing verify_design_lab.py whole carried a co-worker's registration line for a verifier that was still untracked, so HEAD listed a MISSING entry -- found by re-reading the SCRIPTS list by AST in a detached worktree of my own commit, and repaired forward by committing the gate, schema and tests together after running them green on those bytes.",
       "observed_at": "2026-10-07T22:56:21Z",
       "outcome": "PASS",
       "reasons": [
-        "STALE_SUBJECT_SHA",
-        "SOURCE_CHANGED_OR_MISSING:design-lab/schemas/task-ledger-r5-v1.schema.json",
-        "SOURCE_CHANGED_OR_MISSING:design-lab/scripts/verify_ledger_schema_pairing.py",
-        "SOURCE_CHANGED_OR_MISSING:design-lab/scripts/verify_route_payload_contracts.py",
-        "SOURCE_CHANGED_OR_MISSING:design-lab/scripts/verify_design_lab.py",
-        "ARTIFACT_CHANGED_OR_MISSING:docs/audits/DESIGNLAB-LAUNCH-REVIEW-PREFLIGHT-2026-10-08.md"
+        "MOVED_SINCE_BOUND_COMMIT:design-lab/scripts/verify_route_payload_contracts.py",
+        "MOVED_SINCE_BOUND_COMMIT:design-lab/scripts/verify_design_lab.py",
+        "MOVED_SINCE_BOUND_COMMIT:docs/audits/DESIGNLAB-LAUNCH-REVIEW-PREFLIGHT-2026-10-08.md"
       ],
       "software": {
         "platform": "Windows-11-10.0.26100-SP0",
@@ -2381,7 +2822,7 @@
         "DL-R5-003",
         "DL-R5-001"
       ],
-      "verified": false
+      "verified": true
     },
     {
       "artifacts": [
@@ -2391,15 +2832,20 @@
         }
       ],
       "binding": "COMMIT",
+      "currency_reasons": [
+        "MOVED_SINCE_BOUND_COMMIT:src/design_lab/cli.py",
+        "MOVED_SINCE_BOUND_COMMIT:docs/audits/DESIGNLAB-LAUNCH-REVIEW-PREFLIGHT-2026-10-08.md"
+      ],
+      "current": false,
       "id": "r5-014-quality-record-persisted-and-project-acceptance-recomputed-20261008",
+      "integrity_reasons": [],
       "kind": "local_test",
       "note": "The quality gate had a contract and nowhere to live: no table held a sealed assessment, so the CLI could not answer what a project's quality verdict was or who signed it. Added the append-only quality_record table (registered additively in runtime/state_resources.py with a dated comment; no existing resource renamed or re-versioned), the store that validates against the record contract and refuses an assessment whose deterministic finding is bound to a different digest than the document describes -- a guard my own first fixture tripped, which is evidence it works -- plus the quality CLI verb and the readback. Two honesty fixes in the readback, both mutation-felt: human_acceptance no longer reads ACCEPTED when one subject out of many was accepted (0 of 0 is NOT_ACCEPTED), and assessable_versions offers the current version per asset instead of the whole revision history, mirroring jury_store so the two surfaces cannot disagree about what 'current' means. E1/E2: 31 quality + 5 state-resource tests green (36 batch), two mutations red on the named cases and restored.",
       "observed_at": "2026-10-07T22:56:21Z",
       "outcome": "PASS",
       "reasons": [
-        "STALE_SUBJECT_SHA",
-        "SOURCE_CHANGED_OR_MISSING:src/design_lab/cli.py",
-        "ARTIFACT_CHANGED_OR_MISSING:docs/audits/DESIGNLAB-LAUNCH-REVIEW-PREFLIGHT-2026-10-08.md"
+        "MOVED_SINCE_BOUND_COMMIT:src/design_lab/cli.py",
+        "MOVED_SINCE_BOUND_COMMIT:docs/audits/DESIGNLAB-LAUNCH-REVIEW-PREFLIGHT-2026-10-08.md"
       ],
       "software": {
         "platform": "Windows-11-10.0.26100-SP0",
@@ -2418,7 +2864,7 @@
       "task_ids": [
         "DL-R5-014"
       ],
-      "verified": false
+      "verified": true
     },
     {
       "artifacts": [
@@ -2428,16 +2874,18 @@
         }
       ],
       "binding": "COMMIT",
+      "currency_reasons": [
+        "MOVED_SINCE_BOUND_COMMIT:docs/audits/DESIGNLAB-LAUNCH-REVIEW-PREFLIGHT-2026-10-08.md"
+      ],
+      "current": false,
       "id": "r5-014-rights-ledger-store-route-verb-and-a-word-for-nobody-filed-20261008",
+      "integrity_reasons": [],
       "kind": "local_test",
       "note": "The RIGHTS gate was the only human gate with a contract and no store: the schema closed its properties, the registry recorded 74 licence subjects, and nothing in src/ read any of it, so no verb, route or release check could cite a decision. Added assurance/rights_ledger.py, which loads rights-decision.schema.json FROM DISK and reads the field list, required trio and decision enum out of that file instead of copying them (a second copy is a second authority able to disagree), enforces append-only history at the row level, carries supersedes as a COLUMN rather than a document field so a smuggled one is refused as unknown, and offers no function that can synthesise PENDING_REVIEW -- an untouched gate reads NOT_REVIEWED because nobody filed it, not because a default was invented. Refusals go out under 14 closed codes and an unlisted code raises AssertionError rather than shipping a word nothing documents. Wired GET/POST /api/projects/{id}/rights, the `rights` CLI verb, the rights block in state-vocabularies.json and the contract-bindings row INERT->BINDING. 58 tests green (test_rights_ledger + test_rights_http). One defect found in my own code after the first commit: resending a decision that stated nothing for an optional field arrived as \"note\": null, did not match the stored document and was answered 409 RIGHTS_DECISION_ID_TAKEN -- the null-to-absent clean-up now runs BEFORE the replay comparison, and the regression test pins it.",
       "observed_at": "2026-10-07T22:56:21Z",
       "outcome": "PASS",
       "reasons": [
-        "STALE_SUBJECT_SHA",
-        "SOURCE_CHANGED_OR_MISSING:src/design_lab/assurance/rights_ledger.py",
-        "SOURCE_CHANGED_OR_MISSING:src/design_lab/rights_review.py",
-        "ARTIFACT_CHANGED_OR_MISSING:docs/audits/DESIGNLAB-LAUNCH-REVIEW-PREFLIGHT-2026-10-08.md"
+        "MOVED_SINCE_BOUND_COMMIT:docs/audits/DESIGNLAB-LAUNCH-REVIEW-PREFLIGHT-2026-10-08.md"
       ],
       "software": {
         "platform": "Windows-11-10.0.26100-SP0",
@@ -2457,7 +2905,7 @@
         "DL-R5-014",
         "DL-R5-003"
       ],
-      "verified": false
+      "verified": true
     },
     {
       "artifacts": [
@@ -2467,17 +2915,20 @@
         }
       ],
       "binding": "COMMIT",
+      "currency_reasons": [
+        "MOVED_SINCE_BOUND_COMMIT:design-lab/tests/test_evidence_artifact_presence.py",
+        "MOVED_SINCE_BOUND_COMMIT:docs/audits/DESIGNLAB-LAUNCH-REVIEW-PREFLIGHT-2026-10-08.md"
+      ],
+      "current": false,
       "id": "r5-003-identity-floor-backup-quiescence-coverage-and-the-fourth-drift-row-20261008",
+      "integrity_reasons": [],
       "kind": "local_test",
       "note": "Three honesty holes in the checking layer itself. verify_identity_gate.py could report a clean tree after examining no files, so it now fails under 2000 scanned with the vacuity reason named -- measured at 2838 in a clean checkout and 3012 in this dirty one, and the comment says which environment the floor was measured against because the CI checkout is the clean one. My first falsification of that floor was WRONG (I claimed mutating the walk root went unnoticed; it is caught by the pre-existing onerror->hits rule), shipped in 8f0d4f98 and retracted in 575df868; the floor was then really proven by neutralising the counter itself. project_backup.PROVED_QUIESCENT only ever covered the tables it happened to name, while jury_record, quality_record, project, asset, approval, audit_event, job, job_attempt, operation_intent, rights_decision and research_finding all commit WITHOUT a writer lease, so a signature that landed inside the backup window was invisible to the quiescence proof; all are now counted, with an enforcement test that a counted table cannot be dropped silently. test_evidence_artifact_presence.py's exact drift inventory moved to four entries with the fourth naming the binding record and the newer record that carries the current binding.",
       "observed_at": "2026-10-07T22:56:21Z",
       "outcome": "PASS",
       "reasons": [
-        "STALE_SUBJECT_SHA",
-        "SOURCE_CHANGED_OR_MISSING:design-lab/scripts/verify_identity_gate.py",
-        "SOURCE_CHANGED_OR_MISSING:src/design_lab/runtime/project_backup.py",
-        "SOURCE_CHANGED_OR_MISSING:design-lab/tests/test_evidence_artifact_presence.py",
-        "ARTIFACT_CHANGED_OR_MISSING:docs/audits/DESIGNLAB-LAUNCH-REVIEW-PREFLIGHT-2026-10-08.md"
+        "MOVED_SINCE_BOUND_COMMIT:design-lab/tests/test_evidence_artifact_presence.py",
+        "MOVED_SINCE_BOUND_COMMIT:docs/audits/DESIGNLAB-LAUNCH-REVIEW-PREFLIGHT-2026-10-08.md"
       ],
       "software": {
         "platform": "Windows-11-10.0.26100-SP0",
@@ -2497,7 +2948,7 @@
         "DL-R5-003",
         "DL-R5-004"
       ],
-      "verified": false
+      "verified": true
     },
     {
       "artifacts": [
@@ -2507,14 +2958,18 @@
         }
       ],
       "binding": "COMMIT",
+      "currency_reasons": [
+        "MOVED_SINCE_BOUND_COMMIT:docs/audits/DESIGNLAB-LAUNCH-REVIEW-PREFLIGHT-2026-10-08.md"
+      ],
+      "current": false,
       "id": "r5-014-right-band-fail-closed-and-the-registry-that-nobody-read-20261008",
+      "integrity_reasons": [],
       "kind": "local_test",
       "note": "handoff_readiness.py classified rights states into three hand-written bands under a comment calling them 'the frozen rights-registry.json set', and a state outside every band fell to an else that emitted a WARNING. READY_FOR_HANDOFF means the BLOCKER band is empty, so an unruled licence position -- a value added under another taskpack, or a misspelling of FORBIDDEN -- read as nothing blocks here. An unclassified state now blocks by name. verify_rights_registry.py binds the classification to the file it claims to read: 74 entries x 4 fields = 296 classifications (284 blocking, 8 restricting, 4 clean, 0 unclassified), the four hand-maintained counts (74/4/70/4) are recomputed from the entries under stated definitions, duplicate subjects are refused, and all 5 generated_from plus 8 per-entry evidence_source citations must resolve. 15 combiner tests + 17 gate tests green. The falsifier restored four failure modes (warn-on-unclassified, unknown-reads-clean, flat territory.state read, dropped blocking band) and each was convicted by the named assertion -- after its first draft turned out to SKIP the primary case, because the anchor did not match the shipped quote style; a mutation that changes no bytes is now reported instead of passing silently. Not closed: the registry lists 74 subjects and nothing selects which ones a project actually uses, so CLEARED still means 'every scope filed here is approved' and the façade says so in does_not_prove. That selection is the owner's RIGHTS decision and was not invented.",
       "observed_at": "2026-10-07T22:56:21Z",
       "outcome": "PASS",
       "reasons": [
-        "STALE_SUBJECT_SHA",
-        "ARTIFACT_CHANGED_OR_MISSING:docs/audits/DESIGNLAB-LAUNCH-REVIEW-PREFLIGHT-2026-10-08.md"
+        "MOVED_SINCE_BOUND_COMMIT:docs/audits/DESIGNLAB-LAUNCH-REVIEW-PREFLIGHT-2026-10-08.md"
       ],
       "software": {
         "platform": "Windows-11-10.0.26100-SP0",
@@ -2534,7 +2989,7 @@
         "DL-R5-014",
         "DL-R5-003"
       ],
-      "verified": false
+      "verified": true
     },
     {
       "artifacts": [
@@ -2544,15 +2999,20 @@
         }
       ],
       "binding": "COMMIT",
+      "currency_reasons": [
+        "MOVED_SINCE_BOUND_COMMIT:apps/workbench/shell.ts",
+        "MOVED_SINCE_BOUND_COMMIT:docs/audits/DESIGNLAB-LAUNCH-REVIEW-PREFLIGHT-2026-10-08.md"
+      ],
+      "current": false,
       "id": "r5-010-research-findings-become-persisted-state-end-to-end-20261008",
+      "integrity_reasons": [],
       "kind": "local_test",
       "note": "research-finding.schema.json declared the shape and the Workbench said, in its own copy, that research had no persisted conclusions and no readback route. Both were true. Added the append-only research_finding table (registered additively in runtime/state_resources.py), assurance/research_store.py, the research_review façade, GET/POST /api/projects/{id}/research and the `research` verb. A claim with no source is refused rather than counted; the read-back re-derives sourced/unsourced counts from the stored bytes instead of the count column, publishes every confidence-vocabulary member including zeros, and emits no completion word at all -- research_verdict is null with the reason attached, because 'how many findings exist' and 'is the research finished' are unrelated questions and no human gate lives here. 53 store + 19 HTTP tests green. research_finding was also added to project_backup.COUNTER_QUERIES: record() commits without a writer lease, so a backup window that swallowed one would still have reported PROVED_QUIESCENT. The 研究洞察 slot now reads this route back, files a finding, and no longer claims a gap the service has closed: appshell block (9) drives it (no completion word drawn, null verdict explained, options sourced from the read-back with no preselection, zero POSTs while building, two local refusals that send nothing, one click one POST carrying exactly the closed field set with no schemaVersion because this contract declares none, identical retry keeps its finding_id while a changed document must take a fresh one, supersede as a query parameter over current findings only, refusal replacing the prior success, and a count the response never carried reading 未读回 rather than 0).",
       "observed_at": "2026-10-07T22:56:21Z",
       "outcome": "PASS",
       "reasons": [
-        "STALE_SUBJECT_SHA",
-        "SOURCE_CHANGED_OR_MISSING:apps/workbench/shell.ts",
-        "ARTIFACT_CHANGED_OR_MISSING:docs/audits/DESIGNLAB-LAUNCH-REVIEW-PREFLIGHT-2026-10-08.md"
+        "MOVED_SINCE_BOUND_COMMIT:apps/workbench/shell.ts",
+        "MOVED_SINCE_BOUND_COMMIT:docs/audits/DESIGNLAB-LAUNCH-REVIEW-PREFLIGHT-2026-10-08.md"
       ],
       "software": {
         "platform": "Windows-11-10.0.26100-SP0",
@@ -2573,7 +3033,7 @@
         "DL-R5-010",
         "DL-R5-004"
       ],
-      "verified": false
+      "verified": true
     },
     {
       "artifacts": [
@@ -2583,17 +3043,24 @@
         }
       ],
       "binding": "COMMIT",
+      "currency_reasons": [
+        "MOVED_SINCE_BOUND_COMMIT:apps/workbench/shell.ts",
+        "MOVED_SINCE_BOUND_COMMIT:apps/workbench/tests/appshell.mjs",
+        "MOVED_SINCE_BOUND_COMMIT:design-lab/tests/test_workbench_css_single_definition.py",
+        "MOVED_SINCE_BOUND_COMMIT:docs/audits/DESIGNLAB-LAUNCH-REVIEW-PREFLIGHT-2026-10-08.md"
+      ],
+      "current": false,
       "id": "r5-014-rights-decision-panel-closes-the-last-gate-with-no-screen-20261008",
+      "integrity_reasons": [],
       "kind": "local_test",
       "note": "The rights gate could store a decision, read one back and be signed from a CLI by someone who could also have edited the file; no screen let an operator reach either. Added the Human RIGHTS panel to 预检 / QA and a read-only column on 证据系统: it clears only with the words the façade emits, offers PENDING_REVIEW as a human choice and never as a default, draws an unread denominator as unread rather than 0/0, transponds the contract's limits instead of restating them, and leaves service state words English-marked. test_rights_ui_contract.py (18 tests) reads shell.ts the way verify_state_vocabularies.py does, so the UI cannot advertise a verdict the service cannot produce; appshell block (8) drives the behaviour, including that building the page sends no POST and that a doomed cross-scope supersede is refused locally. The list-container inventory moved 34->35 with the reason named in the test. Recorded honestly: the agent that wrote this slice stopped at its turn limit mid-falsifier, so its bytes were re-verified here (tsc, vite build, appshell, shape-notice coverage, CSS inventory, vocabulary gate) rather than accepted from its report.",
       "observed_at": "2026-10-07T22:56:21Z",
       "outcome": "PASS",
       "reasons": [
-        "STALE_SUBJECT_SHA",
-        "SOURCE_CHANGED_OR_MISSING:apps/workbench/shell.ts",
-        "SOURCE_CHANGED_OR_MISSING:apps/workbench/tests/appshell.mjs",
-        "SOURCE_CHANGED_OR_MISSING:design-lab/tests/test_workbench_css_single_definition.py",
-        "ARTIFACT_CHANGED_OR_MISSING:docs/audits/DESIGNLAB-LAUNCH-REVIEW-PREFLIGHT-2026-10-08.md"
+        "MOVED_SINCE_BOUND_COMMIT:apps/workbench/shell.ts",
+        "MOVED_SINCE_BOUND_COMMIT:apps/workbench/tests/appshell.mjs",
+        "MOVED_SINCE_BOUND_COMMIT:design-lab/tests/test_workbench_css_single_definition.py",
+        "MOVED_SINCE_BOUND_COMMIT:docs/audits/DESIGNLAB-LAUNCH-REVIEW-PREFLIGHT-2026-10-08.md"
       ],
       "software": {
         "platform": "Windows-11-10.0.26100-SP0",
@@ -2613,7 +3080,7 @@
         "DL-R5-014",
         "DL-R5-010"
       ],
-      "verified": false
+      "verified": true
     },
     {
       "artifacts": [
@@ -2623,16 +3090,20 @@
         }
       ],
       "binding": "COMMIT",
+      "currency_reasons": [
+        "MOVED_SINCE_BOUND_COMMIT:apps/workbench/tests/appshell.mjs",
+        "MOVED_SINCE_BOUND_COMMIT:docs/audits/DESIGNLAB-LAUNCH-REVIEW-PREFLIGHT-2026-10-08.md"
+      ],
+      "current": false,
       "id": "r5-003-the-products-own-capability-table-can-no-longer-go-stale-20261008",
+      "integrity_reasons": [],
       "kind": "local_test",
       "note": "VIEW_NOT_OPEN and CAPABILITY_REGISTRY are machine-readable claims about what the product can do, and nothing compared them with the service. When the research route landed the slot still told the operator no route persisted conclusions and the row still said PLANNED -- an inverted false green, in the one table a reader uses to decide what to trust. verify_capability_self_description.py binds them in both directions: a slot claiming no route is refused when a route whose terminal literal segment names it is dispatched, a row claiming IMPLEMENTED is refused when the route it names is not, and rows now carry an explicit `slot` because prose routes like 'GET /api/research/…' cannot be matched (that case is what the linkage buys). Routes come from the AST reader the boundary ledger already uses, so the two gates cannot disagree about the dispatch table: measured 52 routes, 32 terminal resources, 5 rows, 1 slot legitimately unbacked. 15 teeth tests, including a weakened copy of the gate letting the same lie through and four vacuity floors. The falsifier for the panel exposed two method defects worth recording: two of its anchors also matched the rights helpers, so it had been editing whichever function came first (anchors are now required to match exactly once), and a '\\b共 0 条\\b' guard could never have matched anything because CJK characters are not word characters in JavaScript -- the assertion is on the exact rendered form now and convicts.",
       "observed_at": "2026-10-07T22:56:21Z",
       "outcome": "PASS",
       "reasons": [
-        "STALE_SUBJECT_SHA",
-        "SOURCE_CHANGED_OR_MISSING:design-lab/scripts/verify_capability_self_description.py",
-        "SOURCE_CHANGED_OR_MISSING:apps/workbench/tests/appshell.mjs",
-        "ARTIFACT_CHANGED_OR_MISSING:docs/audits/DESIGNLAB-LAUNCH-REVIEW-PREFLIGHT-2026-10-08.md"
+        "MOVED_SINCE_BOUND_COMMIT:apps/workbench/tests/appshell.mjs",
+        "MOVED_SINCE_BOUND_COMMIT:docs/audits/DESIGNLAB-LAUNCH-REVIEW-PREFLIGHT-2026-10-08.md"
       ],
       "software": {
         "platform": "Windows-11-10.0.26100-SP0",
@@ -2651,7 +3122,7 @@
         "DL-R5-003",
         "DL-R5-010"
       ],
-      "verified": false
+      "verified": true
     },
     {
       "artifacts": [
@@ -2665,15 +3136,18 @@
         }
       ],
       "binding": "COMMIT",
+      "currency_reasons": [
+        "MOVED_SINCE_BOUND_COMMIT:design-lab/tests/test_evidence_artifact_presence.py"
+      ],
+      "current": false,
       "id": "r5-003-per-module-verification-and-two-assertions-my-own-wave-moved-20261008",
+      "integrity_reasons": [],
       "kind": "local_test",
       "note": "Closes the verification hole the wave itself opened, with a measurement instrument the repo did not have. scripts/run_python_tests.py discovers every module into ONE process with no per-module deadline, so a single blocking case means no summary at all: two full-suite attempts this session stalled mid-run, and a stalled run was not allowed to be reported as a pass. Added a per-module pass with a hard timeout (205 modules): 203 OK, and the only two non-OK -- test_reconstruction_evidence.py (faulthandler puts it in ntpath.realpath with an invalid frame) and test_reconstruction_semantics.py (errors=13) -- reproduce identically at the session baseline 1d18ae80, so they are pre-existing and now filed, not attributed to this wave. My own 60s deadline was also wrong: test_verifier_internals takes 81s and passed, so a timeout in that first table was an instrument defect, not a product one. Two assertions moved because content moved: the drift inventory is now (artefact, reason, record-count) with the total pinned, and the domain-pack gate stopped claiming ownership of the whole IMPLEMENTED set while the general rule stays enforced by verify_capability_self_description.py. Neither number is decoration -- each was perturbed by one in a scratch copy of the test and convicted its own assertion, and the shipped file was confirmed byte-identical afterwards. Bound run at this subject: 374 cases, 0 failures, 0 errors, 0 skips.",
       "observed_at": "2026-10-07T23:46:31Z",
       "outcome": "PASS",
       "reasons": [
-        "STALE_SUBJECT_SHA",
-        "SOURCE_CHANGED_OR_MISSING:design-lab/tests/test_evidence_artifact_presence.py",
-        "ARTIFACT_CHANGED_OR_MISSING:design-lab/tests/test_evidence_artifact_presence.py"
+        "MOVED_SINCE_BOUND_COMMIT:design-lab/tests/test_evidence_artifact_presence.py"
       ],
       "software": {
         "platform": "Windows-11-10.0.26100-SP0",
@@ -2690,7 +3164,7 @@
       "task_ids": [
         "DL-R5-003"
       ],
-      "verified": false
+      "verified": true
     },
     {
       "artifacts": [
@@ -2704,15 +3178,18 @@
         }
       ],
       "binding": "COMMIT",
+      "currency_reasons": [
+        "MOVED_SINCE_BOUND_COMMIT:design-lab/tests/test_evidence_artifact_presence.py"
+      ],
+      "current": false,
       "id": "r5-003-artefact-gate-hashed-working-bytes-so-crlf-always-drifted-20261008",
+      "integrity_reasons": [],
       "kind": "local_test",
       "note": "A defect in the checking layer, found because the previous commit's own explanation was wrong. This wave widened verify_evidence_artifact_presence.py's drift inventory from 4 entries to 27 and I recorded the reason as 23 records citing the live audit document. False: the document had not moved. The gate hashed `Path.read_bytes()` and compared it to a record's blob digest, while .gitattributes declares text=auto -- so every CRLF working file drifts on every run regardless of content. `git hash-object` equals the HEAD blob for the audit document, the test module and the bundle, which is the proof. The gate now hashes the committed form (git show HEAD:<path>, index as fallback for a tracked-but-uncommitted path) and the count is back to the four real moves the file named before. Counter-plus-pinned-total form kept, and falsified in BOTH directions: a recorded hash that no longer matches the committed bytes still drifts (that is what a genuine move produces), while flipping a clean artefact's line endings drifts nothing; the probed file is restored and byte-compared afterwards. Sibling gate re-run over its own scope: LEDGER_SUBJECT_BINDING=OK subject_files=388 checked=388 known_unverifiable=67 records=64, EVIDENCE_ARTIFACTS=WARN tracked_broken=0 tracked_drifted=4. Recorded forward as a correction instead of rewriting 493c6a7b or the row filed under it.",
       "observed_at": "2026-10-07T23:54:15Z",
       "outcome": "PASS",
       "reasons": [
-        "STALE_SUBJECT_SHA",
-        "SOURCE_CHANGED_OR_MISSING:design-lab/tests/test_evidence_artifact_presence.py",
-        "ARTIFACT_CHANGED_OR_MISSING:design-lab/tests/test_evidence_artifact_presence.py"
+        "MOVED_SINCE_BOUND_COMMIT:design-lab/tests/test_evidence_artifact_presence.py"
       ],
       "software": {
         "platform": "Windows-11-10.0.26100-SP0",
@@ -2729,7 +3206,7 @@
       "task_ids": [
         "DL-R5-003"
       ],
-      "verified": false
+      "verified": true
     },
     {
       "artifacts": [
@@ -2751,22 +3228,20 @@
         }
       ],
       "binding": "COMMIT",
+      "currency_reasons": [
+        "MOVED_SINCE_BOUND_COMMIT:design-lab/config/contract-bindings.json",
+        "MOVED_SINCE_BOUND_COMMIT:design-lab/tests/test_contract_bindings.py"
+      ],
+      "current": false,
       "id": "r5-010-the-rollback-a-delivery-receipt-promises-is-resolved-when-it-is-read-20261008",
+      "integrity_reasons": [],
       "kind": "local_test",
       "note": "A delivery receipt promises a restore in words and nothing had ever checked that the promise still has a target. `native_bundles._rollback_of` writes ``backup_ref = asset:<id>/version:<id>`` beside procedure text asserting the source version is untouched and was digest-checked when the receipt was written; the read side printed that reference and believed it. Now every read resolves it: `_load` returns (document, stored digest, summary, proofs) and `readback()` publishes them as the design-lab/delivery-receipt-readback/v1 envelope with the state vocabulary, a meaning per word, and does_not_prove. The document itself is not extended -- it signs its own bytes with receipt_sha256 -- so the new fact travels beside it. One query per deliverable against asset_version joined to asset answers RESOLVED / SOURCE_MISSING / OTHER_PROJECT / SOURCE_NOT_ACTIVE / REF_UNPARSED, aggregated as ALL_RESOLVED / PARTLY_UNRESOLVED / NONE_RESOLVED / NOTHING_TO_CHECK; the last two words are kept apart because collapsing them is how an empty ledger starts reading as a clean one, and a reference outside the emitted form is reported with its own text rather than matched to a plausible row. GET /api/projects/<p>/bundles/<asset>/versions/<version>/receipt answers the envelope, the `delivery-receipt` CLI verb publishes rollback_state, rollback_proofs and does_not_prove next to the untouched document, and the evidence page renders the identity, per-deliverable and requirement tables plus the resolver's limits. The route payload schema is a live capture, not a transcription: it $ref-s interop-delivery-receipt-v2 so the envelope cannot fork the shape of what it wraps, and its proof conditionals demand that a RESOLVED row carries non-null identifiers with source_state ACTIVE while REF_UNPARSED carries none. contract-bindings went 51->53 routes (the receipt envelope and the research route) and the unpaid-version inventory 3->4, each with its dated reason. Writing the empty-state renders then found a second defect in what I had just shipped: `_load`'s sqlite-error path returned ('NOTHING_TO_CHECK', []), the same word the resolver uses when a document names no deliverable, so a ledger that could not be queried read as a receipt with nothing to check. The lookup is now wrapped by `_rollback_or_unreadable` and answers its own aggregate word, LEDGER_UNREADABLE, carried through the emitter constant, its meaning sentence, the schema's three enumerations plus the two counts in its own prose (four->five entries, nine->ten keys) and two different sentences on the page. The page also began reading the vocabulary its own response publishes: `rollback_states` and `rollback_state_vocabulary` had arrived and gone unread while the schema description claimed the Workbench rendered them, so a word outside the published list is now painted as a break and named, with an assertion in each direction. Six backend lies and six page collapses are falsified by named cases (one backend lie is convicted by exactly one reachable test, and the falsifier says why rather than pretending otherwise), and every mutation leaves its source file byte-identical with the bundle rebuilt from it. The falsifier's own instrument was wrong first: it read failing test names off the `... FAIL` progress lines, which unittest emits after the LAST line of a multi-line docstring, so it named a sentence and reported three honest convictions as NOT FELT. Bound run: 418 tests, 0 failures, 0 errors, 0 skips, clean tree at this subject. The evidence artefact gate did its job on this wave and punished it: the drift inventory went 5 -> 29, 23 of them because section 22 of the live audit document is now committed and every record that cites that prose names bytes older than the file, and 2 because the commit that widened the list rewrote the very test file two records name. This row therefore binds its artefacts to the rollback code, not to the document. What this does not prove, and says so on every response: no restore has been performed, a RESOLVED row only means the ledger still holds the version the archive was exported from, and the receipt's own axes stay PARTIAL because no host re-opens a delivered artifact -- real-host E3 remains an owner gate.",
       "observed_at": "2026-10-08T01:18:48Z",
       "outcome": "PASS",
       "reasons": [
-        "STALE_SUBJECT_SHA",
-        "SOURCE_CHANGED_OR_MISSING:src/design_lab/native_delivery.py",
-        "SOURCE_CHANGED_OR_MISSING:design-lab/config/contract-bindings.json",
-        "SOURCE_CHANGED_OR_MISSING:design-lab/tests/test_rollback_state_classifier.py",
-        "SOURCE_CHANGED_OR_MISSING:design-lab/tests/test_delivery_receipt_wiring.py",
-        "SOURCE_CHANGED_OR_MISSING:design-lab/tests/test_contract_bindings.py",
-        "SOURCE_CHANGED_OR_MISSING:design-lab/tests/test_workbench_css_single_definition.py",
-        "ARTIFACT_CHANGED_OR_MISSING:src/design_lab/native_delivery.py",
-        "ARTIFACT_CHANGED_OR_MISSING:design-lab/tests/test_rollback_state_classifier.py",
-        "ARTIFACT_CHANGED_OR_MISSING:design-lab/tests/test_delivery_receipt_wiring.py"
+        "MOVED_SINCE_BOUND_COMMIT:design-lab/config/contract-bindings.json",
+        "MOVED_SINCE_BOUND_COMMIT:design-lab/tests/test_contract_bindings.py"
       ],
       "software": {
         "node": "24.18.0 (declared toolchain in .project/paths.json; the UI modules shell out to it, so the browser-free node gates ran)",
@@ -2796,7 +3271,7 @@
       "task_ids": [
         "DL-R5-010"
       ],
-      "verified": false
+      "verified": true
     },
     {
       "artifacts": [
@@ -2814,16 +3289,24 @@
         }
       ],
       "binding": "COMMIT",
+      "currency_reasons": [
+        "MOVED_SINCE_BOUND_COMMIT:design-lab/scripts/verify_contract_bindings.py",
+        "MOVED_SINCE_BOUND_COMMIT:design-lab/config/contract-bindings.json",
+        "MOVED_SINCE_BOUND_COMMIT:design-lab/tests/test_contract_bindings.py",
+        "MOVED_SINCE_BOUND_COMMIT:docs/audits/DESIGNLAB-LAUNCH-REVIEW-PREFLIGHT-2026-10-08.md"
+      ],
+      "current": false,
       "id": "r5-003-the-emitter-pointer-s-line-number-is-read-and-honoured-20261008",
+      "integrity_reasons": [],
       "kind": "local_test",
       "note": "A field every row carried and nobody read. 18 route rows in contract-bindings.json state where their version comes from as ``emitter: 'src/….py:NN'``, and verify_contract_bindings.py has always stripped the ``:NN`` with ``instance_path()`` -- so the number was decoration, and it proved itself so the day this wave landed: adding a docstring paragraph to native_delivery.py moved ``READBACK_SCHEMA_VERSION`` from line 65 to 72, the row still said ``:65``, and VERIFY_CONTRACT_BINDINGS stayed green. Measured before fixing rather than assumed: 11 of 18 lines wrote their version, 4 named a module-level constant holding it, and 3 pointed at unrelated code (`production_preflight.py:324` on `def _aggregate(findings)`, `jury_review.py:53` on `return {`, `native_delivery.py:65` on a blank line). The rule now mirrors the file-half rule -- the line must write the version in code or name the constant whose value it is -- and a missing number, a number past the end of the file and a line inside a docstring are three separately named failures (EMITTER_POINTER_SHAPE / _OUT_OF_RANGE / _IS_PROSE / _NOT_THE_VERSION). Two of this wave's own mistakes are part of the record because they are why the shape is what it is: the check first sat inside rule 7 and produced a second red line for one moved value, which the file's pre-existing 'exactly these errors' assertion caught -- the assertion was right and the gate moved, not the test; and the first pointer repair used a looser rule than the gate and 'fixed' the preflight row onto a sentence inside a docstring (line 37) while the real emission is at 365, so the repair was rewritten to ask the gate's own function which rows are unhonoured and to move each to the nearest line the gate accepts. One row that repair moved unnecessarily (`photoshop_com.py:155`, a subscript write of the version) was put back. Five new cases, one of which loads a weakened COPY of the gate with emitter_pointer_errors short-circuited to ``return []`` and shows the same scratch ledgers stop being convicted, so the red is known to come from the rule and not from the fixture. Bound run at this subject: 423 tests, 0 failures, 0 errors, 0 skips, clean tree; the three gates that import this module (verify_state_vocabularies, verify_route_payload_contracts, verify_capability_self_description) re-ran green, and the drift inventory was still 29 when this run was taken because no record yet named these three paths. This row names all three as its artefacts, so the next edit to the gate, to the ledger or to its test adds three drifts on purpose: that is what binding evidence to the code it describes costs, and it is the cost the r5-003 correction decided to pay rather than cite the audit prose. What this does not do: the pointer is still a line number, so it rots whenever the file is edited above it -- this makes the rot visible, not impossible; pointing at a symbol instead of a coordinate needs its own contract field and is not claimed here.",
       "observed_at": "2026-10-08T01:37:16Z",
       "outcome": "PASS",
       "reasons": [
-        "STALE_SUBJECT_SHA",
-        "SOURCE_CHANGED_OR_MISSING:design-lab/config/contract-bindings.json",
-        "SOURCE_CHANGED_OR_MISSING:docs/audits/DESIGNLAB-LAUNCH-REVIEW-PREFLIGHT-2026-10-08.md",
-        "ARTIFACT_CHANGED_OR_MISSING:design-lab/config/contract-bindings.json"
+        "MOVED_SINCE_BOUND_COMMIT:design-lab/scripts/verify_contract_bindings.py",
+        "MOVED_SINCE_BOUND_COMMIT:design-lab/config/contract-bindings.json",
+        "MOVED_SINCE_BOUND_COMMIT:design-lab/tests/test_contract_bindings.py",
+        "MOVED_SINCE_BOUND_COMMIT:docs/audits/DESIGNLAB-LAUNCH-REVIEW-PREFLIGHT-2026-10-08.md"
       ],
       "software": {
         "platform": "Windows-11-10.0.26100-SP0",
@@ -2843,7 +3326,7 @@
         "DL-R5-003",
         "DL-R5-001"
       ],
-      "verified": false
+      "verified": true
     },
     {
       "artifacts": [
@@ -2857,16 +3340,22 @@
         }
       ],
       "binding": "COMMIT",
+      "currency_reasons": [
+        "MOVED_SINCE_BOUND_COMMIT:design-lab/scripts/verify_design_lab.py",
+        "MOVED_SINCE_BOUND_COMMIT:design-lab/tests/test_evidence_artifact_presence.py",
+        "MOVED_SINCE_BOUND_COMMIT:docs/audits/DESIGNLAB-LAUNCH-REVIEW-PREFLIGHT-2026-10-08.md"
+      ],
+      "current": false,
       "id": "r5-003-seventeen-test-files-ran-nothing-and-one-borrowed-its-import-path-20261008",
+      "integrity_reasons": [],
       "kind": "local_test",
       "note": "Two shapes that made 'it passed' mean nothing, both measured across the whole test tree rather than inferred from one failure. (a) 17 of 206 modules under design-lab/tests defined TestCases but had no ``if __name__ == '__main__': unittest.main()`` block, so executing one of them imported the file, collected nothing and exited 0 -- a per-module sweep that reads exit codes records that as a pass, and mine did, twice today. With the guard added the same 17 files run 184 tests between them, green, with the COM/host-bound cases skipped and naming their reason rather than being silently absent. (b) test_reconstruction_semantics.py carried 13 errors under a fresh process and passed under CI's single-process discovery, because reconstruction lives at packages/capabilities/reconstruction and only its sibling modules insert that root: the 13 behaviours were being verified or not depending on which module the runner had imported first. I had filed those 13 errors as a capability gap; the code is present and all 13 pass once the module can import it, and the same latent shape in test_workbench_launch.py (design_lab reached only through the subprocess PYTHONPATH it builds) was fixed the same way. The new tracked gate design-lab/scripts/verify_test_selfsufficiency.py, wired into verify_design_lab.py so CI runs it, refuses NOT_EXECUTABLE / NO_CASES / UNPARSEABLE / BORROWED_IMPORT_PATH and fails closed on an empty scan or an empty root inventory. Its own rule was wrong once before it was right and that is part of the record: a substring test for 'src'/'capabilities' anywhere in the file reported 35 violations where the tree had 1, because it matched prose and ignored the two spellings the repository really uses (a ``sys.path[:0] = [...]`` slice assignment, and a module-level variable inserted one call later); reading the AST of the sys.path statements leaves the one real gap and no invented work. No find_spec and no site-packages probing, because a gate whose colour depends on whether design_lab happens to be installed on this host gets silenced by the host that finds it inconvenient. 13 tests in the gate's own module, two of them weakened copies -- erase the entry-guard rule or the bootstrap rule in a copy and the same scratch tree stops being convicted, so the red is known to come from the rules rather than the fixtures. Bound run at this subject: 452 tests, 0 failures, 0 errors, 1 skip named (source checkout, so no packaged Workbench resource to serve). Shipped tree: TEST_SELF_SUFFICIENCY=OK scanned=207 executable=207 violations=0. Cost stated rather than hidden: the guards landed on five files that nine records hash as artefacts, so the drift inventory went 29 -> 38 across 11 paths; none of those records is rewritten. Also corrected in section 24: the reconstruction evidence module does not hang -- one of its 37 methods takes 86.2s and ends in an error, which overruns any time box without a loop. That error is still open and is not claimed here.",
       "observed_at": "2026-10-08T01:58:45Z",
       "outcome": "PASS",
       "reasons": [
-        "STALE_SUBJECT_SHA",
-        "SOURCE_CHANGED_OR_MISSING:design-lab/scripts/verify_design_lab.py",
-        "SOURCE_CHANGED_OR_MISSING:design-lab/tests/test_evidence_artifact_presence.py",
-        "SOURCE_CHANGED_OR_MISSING:docs/audits/DESIGNLAB-LAUNCH-REVIEW-PREFLIGHT-2026-10-08.md"
+        "MOVED_SINCE_BOUND_COMMIT:design-lab/scripts/verify_design_lab.py",
+        "MOVED_SINCE_BOUND_COMMIT:design-lab/tests/test_evidence_artifact_presence.py",
+        "MOVED_SINCE_BOUND_COMMIT:docs/audits/DESIGNLAB-LAUNCH-REVIEW-PREFLIGHT-2026-10-08.md"
       ],
       "software": {
         "platform": "Windows-11-10.0.26100-SP0",
@@ -2889,7 +3378,7 @@
         "DL-R5-003",
         "DL-R5-001"
       ],
-      "verified": false
+      "verified": true
     },
     {
       "artifacts": [
@@ -2907,21 +3396,26 @@
         }
       ],
       "binding": "COMMIT",
+      "currency_reasons": [
+        "MOVED_SINCE_BOUND_COMMIT:design-lab/scripts/verify_object_model_backing.py",
+        "MOVED_SINCE_BOUND_COMMIT:design-lab/tests/test_object_model_backing_gate.py",
+        "MOVED_SINCE_BOUND_COMMIT:design-lab/scripts/verify_design_lab.py",
+        "MOVED_SINCE_BOUND_COMMIT:design-lab/config/object-model.json",
+        "MOVED_SINCE_BOUND_COMMIT:docs/audits/DESIGNLAB-LAUNCH-REVIEW-PREFLIGHT-2026-10-08.md"
+      ],
+      "current": false,
       "id": "r5-001-only-five-of-the-21-declared-objects-are-validated-by-product-code-20261008",
+      "integrity_reasons": [],
       "kind": "local_test",
       "note": "object-model.json declares 21 objects and names a schema for each; every gate asked whether the file exists, and none had ever asked whether product code validates against it. Measured with two grep-able literals per object -- the schema file name, and its properties.schemaVersion.const (falling back to $id) -- over src/+packages/+apps/workbench as product and design-lab/scripts as tooling: PRODUCT=5 (research-finding, domain-pack, preflight-report, handoff-package, quality-report), TOOLING_ONLY=9 (brief, command, direction, evidence-record, execution-result, extraction-job, memory-record, project, quality-assessment), UNREFERENCED=7 (artifact, candidate-knowledge, delivery-manifest, design-system, method-card, reference-set, tool-run). verify_object_model_backing.py, wired into verify_design_lab.py so CI runs it, pins all three buckets -- membership, a >=60-character reason naming what implements each non-product object today, and the counts -- so a repaid debt left in the inventory and an object quietly dropped from the model both go red. Two instrument errors are recorded as tests rather than as apologies. The first pass searched for identifiers with word boundaries and called design-system, artifact and the jury record unimplemented, because the version the code writes (design-lab/assurance-jury-record/v2) does not contain the id the model chose: a false 'missing' that would have sent the owner to rebuild working code, which is why the rule is now literal strings only and says so at the top of the file. Then the gate scanned its own inventory as evidence -- its reasons name schema filenames -- and reported 16 TOOLING_ONLY; corpus() now skips the gate's own file, and a test deletes that skip to prove the inflated numbers return. 11 tests: 6 scratch-tree mutations plus 2 weakened-copy reversals. Bound run at this subject: 457 tests, 0 failures, 0 errors, 0 skips, clean tree. Aggregate verifier: 67 gate PASS lines, exit 0; DESIGN_KERNEL=PASS, TEST_SELF_SUFFICIENCY=OK modules=208 executable=208; the drift inventory was still 38 when this run was taken because no record named these paths, and this row now names three -- the gate, its tests and the aggregate verifier -- so the next edit to any of them adds a drift on purpose. What this does not settle: each of the 16 non-product rows still needs its ruling -- wire the schema, rename the object, or retire the declaration -- and MethodCard in particular now has a checked statement instead of a remembered one: the schema object-model points at is read by nothing, while the cards that exist follow visual-quality/master-method-card.schema.json, two shapes and zero producers.",
       "observed_at": "2026-10-08T03:02:07Z",
       "outcome": "PASS",
       "reasons": [
-        "STALE_SUBJECT_SHA",
-        "SOURCE_CHANGED_OR_MISSING:design-lab/scripts/verify_object_model_backing.py",
-        "SOURCE_CHANGED_OR_MISSING:design-lab/tests/test_object_model_backing_gate.py",
-        "SOURCE_CHANGED_OR_MISSING:design-lab/scripts/verify_design_lab.py",
-        "SOURCE_CHANGED_OR_MISSING:design-lab/config/object-model.json",
-        "SOURCE_CHANGED_OR_MISSING:docs/audits/DESIGNLAB-LAUNCH-REVIEW-PREFLIGHT-2026-10-08.md",
-        "ARTIFACT_CHANGED_OR_MISSING:design-lab/scripts/verify_object_model_backing.py",
-        "ARTIFACT_CHANGED_OR_MISSING:design-lab/tests/test_object_model_backing_gate.py",
-        "ARTIFACT_CHANGED_OR_MISSING:design-lab/scripts/verify_design_lab.py"
+        "MOVED_SINCE_BOUND_COMMIT:design-lab/scripts/verify_object_model_backing.py",
+        "MOVED_SINCE_BOUND_COMMIT:design-lab/tests/test_object_model_backing_gate.py",
+        "MOVED_SINCE_BOUND_COMMIT:design-lab/scripts/verify_design_lab.py",
+        "MOVED_SINCE_BOUND_COMMIT:design-lab/config/object-model.json",
+        "MOVED_SINCE_BOUND_COMMIT:docs/audits/DESIGNLAB-LAUNCH-REVIEW-PREFLIGHT-2026-10-08.md"
       ],
       "software": {
         "platform": "Windows-11-10.0.26100-SP0",
@@ -2942,7 +3436,7 @@
         "DL-R5-001",
         "DL-R5-003"
       ],
-      "verified": false
+      "verified": true
     },
     {
       "artifacts": [
@@ -2964,15 +3458,15 @@
         }
       ],
       "binding": "COMMIT",
+      "currency_reasons": [],
+      "current": true,
       "id": "r5-010-template-contracts-and-delivery-bom-20261008",
+      "integrity_reasons": [],
       "kind": "local_test",
       "note": "The contract layer got one notch closer to being executable. MEASURED FIRST: every *.template.json in the repository (three of them) was broken and no gate could see it -- BOM.template.json was rejected three times by the schema its own $schema key names (a $schema property additionalProperties:false forbids, items[0].kind written as the menu string 'editable-source | export | derived', version 1.0.0 where the contract pins const design-lab/bom/v1); JuryRecord.template.json's $schema resolved to packages/schemas/, a path with no file in it; score-sheet.template.json named no contract at all. A template is what a person copies to make a real record, so the honest 'fill in the blanks and submit' workflow was shipping a rejected document every time. verify_template_contracts.py now checks the pointer, the path and the instance, resolving pointers under BOTH conventions actually in use (file-relative $schema, repo-root rubric) and validating with one offline registry built from the 116 in-repo $id values -- the registry is load-bearing, because schema_errors without one reaches the network for a $ref, and an unresolvable reference is reported as SCHEMA_REF_UNRESOLVABLE rather than raised. Zero templates scanned is red and the three-name inventory is pinned in both directions. Requiring a template to validate forced a placeholder rule: legal AND unable to overclaim, so the jury record now carries deterministic.result=FAIL instead of the pre-filled OK it shipped with, axes at the schema minimum 1, and REVISE rather than PASS; free-text keeps replace-with- wording. THEN the delivery-manifest ruling, which is the first of the 16 non-PRODUCT object rows to be settled: object-model.json binds that row to schemas/bom.schema.json, and the only 'bom' in the product was the {'items': [{'id','path','sha256'}]} link fragment inside production_preflight, which that contract rejects outright. The fragment is renamed link_manifest (and the two Chinese messages stop saying BOM); src/design_lab/assurance/delivery_bom.py states the boundary in code, reading its version out of the schema const rather than typing it again, and returns DELIVERY_BOM_INCOMPLETE with a per-field reason for the four fields the chain records nowhere (handoff, repo tree at export, adapter tool version, delivery timestamp) instead of inventing them -- 'unknown' in provenance.boundTreeSha is shown by test to be rejected, not accepted. preflight_archive emits a delivery-bom finding (NOT_MEASURED while unattested) and it reaches the page unchanged because artifactPreflightPanel renders data.findings unfiltered, a property test_artifact_preflight_ui_contract.py already pins -- no front-end edit and no rebuild. That insertion exposed a PRE-EXISTING defect through an old assertion, not a new one: RegisteredArtifactScopeTests requires the NOT_MEASURED count to move with the finding, and it went red at 6 != 5 because preflight_archive inserted its findings AFTER _recount, so counts never described what the page showed; it had looked correct only because the previously inserted finding was a PASS. The recount now happens after the inserts, and a new test compares counts against the findings tally outcome word by word. verify_object_model_backing.py reclassified delivery-manifest as PRODUCT by itself (the schema filename is now in src/), the pinned UNREFERENCED row was deleted rather than reworded, and the counts moved 5/9/7 to 6/9/6; the gate is wired into verify_design_lab.py, which went from 67 to 68 gates with VERIFY_DESIGN_LAB=OK total=68 failed=0. ALSO MEASURED, closing the #19 open item: the reconstruction evidence module run one method at a time in a single process with NO timeout box took TOTAL seconds=1609.5 methods=37 errors=0 failures=0 skipped=0, slowest case 289.4s (test_structure_projection_and_provenance_mutations_fail_closed), then 113.2s and 103.4s. So the earlier 'hang plus 13 errors' was my own concurrency and my own timeout killing the measurement, not a product defect, and any deadline for that module has to be set from these numbers. E2 CONTROLLED_RUNTIME: real interpreter, real repository bytes, no design host -- so host_live and delivery stay PARTIAL, and E3/E4/E5 are untouched by this row.",
       "observed_at": "2026-10-08T03:55:43Z",
       "outcome": "PASS",
-      "reasons": [
-        "STALE_SUBJECT_SHA",
-        "SOURCE_CHANGED_OR_MISSING:src/design_lab/assurance/production_preflight.py"
-      ],
+      "reasons": [],
       "software": {
         "platform": "Windows-11-10.0.26100-SP0",
         "python": "3.13.14 (project .venv)",
@@ -2994,7 +3488,7 @@
       "task_ids": [
         "DL-R5-010"
       ],
-      "verified": false
+      "verified": true
     },
     {
       "artifacts": [
@@ -3016,19 +3510,22 @@
         }
       ],
       "binding": "COMMIT",
+      "currency_reasons": [
+        "MOVED_SINCE_BOUND_COMMIT:design-lab/config/object-model.json",
+        "MOVED_SINCE_BOUND_COMMIT:design-lab/scripts/verify_object_model_backing.py",
+        "MOVED_SINCE_BOUND_COMMIT:design-lab/tests/test_object_model_backing_gate.py"
+      ],
+      "current": false,
       "id": "r5-010-design-system-row-names-the-enforced-contract-20261008",
+      "integrity_reasons": [],
       "kind": "local_test",
       "note": "Second of the sixteen non-PRODUCT object rows, ruled by moving the registry onto the contract the product already enforces rather than by building to the contract it imagined. MEASURED: object-model.json bound design-system to schemas/design-system.schema.json, which no file under src/, packages/, apps/ or design-lab/scripts opens, and which cannot describe the document the route serves -- its tokens map permits string values only, while a DTCG token is an object carrying $value with $type inheritable from an ancestor group -- and its four remaining sections (typography, grid, components, assetContracts) are written by no code path. The real capability is intact and was already gated end to end: design_layer.write_tokens() checks the name against the packaged catalog (UNKNOWN_DESIGN_SYSTEM), validates the submitted document through the structural schema that interop/dtcg.py loads from the repository by path (never from its $id URL) and then through the canonical semantic contract -- $type inheritance, alias resolution with cycle rejection, composite member completeness, per-type $value shape -- BEFORE anything is persisted, refuses pre-2025.10 documents by naming the adapter instead of converting silently, and only then applies the version chain (STALE_REVISION), the single writer lease and the idempotency table; the route is bound in config/contract-bindings.json to the 2025.10 contract emitted by dtcg.py. RULING: the row now names schemas/interop-dtcg-document.schema.json and its description states what is actually held. design-system.schema.json is kept, not deleted, with a root description recording SUPERSEDED 2026-10-08, what replaced it, why, and the condition for binding anything to it again -- give the product a reader and a writer first; deleting the file would have deleted the reason. verify_object_model_backing.py dropped the pinned UNREFERENCED membership row outright rather than rewording it and the counts moved 6/9/6 to 7/9/5, with REAL_COUNTS and the aggregate comment updated to match. Because this row was edited to satisfy a deliberately substring-based classifier, a stronger guard was added beside it: the new test compares the schema path the object model declares with the path dtcg opens at runtime (resolved, equal) and asserts the retired shape is named by no row. FALSIFIED on the real tree: re-pointing schemaRef at design-system.schema.json gave FAILED (failures=1), and restoring returned the file to its original bytes (sha256 match) and OK -- so the guard is live, not decorative. The re-point also made an existing instrument honest. test_oda4_0204b_object_model_roundtrip.py synthesises a minimal instance per schema and went red with 'design-system: {} should be non-empty'. The schema was right and the synthesiser was blind: _build_minimal walks only required/properties, so it never sees rules living behind a root $ref into $defs/rootGroup with minProperties 1 and patternProperties for non-$ members. Neither the assertion nor the row was relaxed -- this object now carries a hand-built minimal document ({brand: {$type: color, $value: #316CFF}}) validated in the same loop, plus a second test that runs it through the product's own semantic validator (token_count 1, canonical true, types {'color': 1}), a check the structural schema cannot express because $type inheritance is invisible at schema level. The blind spot is written into the test so the override is not mistaken for an exemption. Verified at this HEAD: test_object_model_backing_gate 12 OK, test_oda4_0204_object_model 8 OK, test_oda4_0204b_object_model_roundtrip 5 OK, test_design_system_tokens 15 OK, test_design_system_tokens_http 12 OK, test_interop_dtcg 36 OK, test_design_system_token_form_contract 9 OK; OBJECT_MODEL_BACKING=OK product=7 tooling_only=9 unreferenced=5; DESIGN_KERNEL=PASS; VERIFY_ROUTE_PAYLOAD_CONTRACTS=PASS bindings=5 failures=0. E1/E2 only: structural contract plus controlled runtime against the packaged catalog. No design host was opened, so host_live and delivery stay PARTIAL; E3/E4/E5 untouched.",
       "observed_at": "2026-10-08T04:09:13Z",
       "outcome": "PASS",
       "reasons": [
-        "STALE_SUBJECT_SHA",
-        "SOURCE_CHANGED_OR_MISSING:design-lab/config/object-model.json",
-        "SOURCE_CHANGED_OR_MISSING:design-lab/schemas/design-system.schema.json",
-        "SOURCE_CHANGED_OR_MISSING:design-lab/scripts/verify_object_model_backing.py",
-        "SOURCE_CHANGED_OR_MISSING:design-lab/tests/test_object_model_backing_gate.py",
-        "ARTIFACT_CHANGED_OR_MISSING:design-lab/config/object-model.json",
-        "ARTIFACT_CHANGED_OR_MISSING:design-lab/tests/test_object_model_backing_gate.py"
+        "MOVED_SINCE_BOUND_COMMIT:design-lab/config/object-model.json",
+        "MOVED_SINCE_BOUND_COMMIT:design-lab/scripts/verify_object_model_backing.py",
+        "MOVED_SINCE_BOUND_COMMIT:design-lab/tests/test_object_model_backing_gate.py"
       ],
       "software": {
         "platform": "Windows-11-10.0.26100-SP0",
@@ -3050,7 +3547,7 @@
       "task_ids": [
         "DL-R5-010"
       ],
-      "verified": false
+      "verified": true
     },
     {
       "artifacts": [
@@ -3080,14 +3577,18 @@
         }
       ],
       "binding": "COMMIT",
+      "currency_reasons": [
+        "MOVED_SINCE_BOUND_COMMIT:design-lab/config/contract-bindings.json"
+      ],
+      "current": false,
       "id": "r5-003-brief-readback-contract-and-the-prose-classifier-correction-20261008",
+      "integrity_reasons": [],
       "kind": "local_test",
       "note": "A live payload that nobody validated, next to a contract nobody executed, for over a month. MEASURED: GET /api/projects/<id>/briefs was recorded SCHEMA_LESS in config/contract-bindings.json (a paging list with no schemaVersion, described only by a TypeScript interface in shell.ts), while the file the object model names for a brief, schemas/design-brief.schema.json, requires discipline/objective/audience/deliverables that NO code in this repository stores -- the real written, read and rendered record is title, goals (non-empty), constraints?, reference_asset_ids (deduped, max 32, each a real asset of the same project), spec_sha256, version, superseded_by, created_at. design-lab/schemas/brief-readback.schema.json now closes the envelope (schemaVersion, briefs, next_cursor, additionalProperties:false, at most 100 rows to match the LIMIT 101 page) and pins those nine fields with the same limits the writer enforces: goals minItems 1, references maxItems 32, spec_sha256 ^sha256:[0-9a-f]{64}$, version minimum 1, brief_id/superseded_by/next_cursor ^brief-[0-9a-f]{32}$. The reference ids are bounded (max 32, non-empty) but deliberately NOT pattern-pinned to the writer's img-[0-9a-f]{64} shape: a row written before that rule existed would then turn a read into a 500, and nothing in this repository proves such a row cannot exist, so the tightening is left as a named next step instead of being done silently. design_layer._check_brief_readback runs it on list, get AND lineage, so a renamed key, a dropped sha256: prefix or a version 0 answers 500 BRIEF_CONTRACT_VIOLATION carrying the field paths, instead of reaching the page as a short record a reader would interpret as an empty project. deliberately NOT re-pointed at the object row: design-brief.schema.json describes a content model the project may still mean to own, and a silent registry edit would have decided otherwise -- both declarations now stand and the divergence is written into the binding reason. That comment then exposed a defect in the classifier itself, which is the second half of this row. verify_object_model_backing.py matched schema names against RAW file text, so a sentence talking about a schema was indistinguishable from loading one: my explanatory comment promoting nothing made the gate answer 'brief is now PRODUCT'. Under the corrected rule -- tokenize for Python, dropping comments and strings that stand alone as statements (docstrings), keeping paths on assignment right-hand sides and inside calls; whole-line comments dropped for TS/mjs; unparsable files fall back to whole-line comment removal rather than pretending prose is code -- three rows lost a PRODUCT claim and each was re-checked by reading code, not by trusting the bucket: preflight-report (preflight.schema.json appears in src/ only in docstrings; the emitted report is bound to artifact-preflight.schema.json), handoff-package (named only in a docstring, and its own 'design-lab/handoff-readiness/v1' is bound by no schema) and quality-report (jury-record.schema.json is V1 and mentioned only in prose, while human_jury.py:51 loads and :182 reads assurance-jury-record-v2.schema.json). quality-report was re-pointed at V2 on the same evidence rule used for design-system -- same object, the enforced version -- and the repoint guard now compares both moved rows against the path their emitter opens. Pinned counts corrected from 7/9/5 to 5/10/6 with dated membership rows, so the object model now states what six of the twenty-one objects genuinely have behind them. Every earlier product count in the audit (sections 25, 26, 27 and 28.5) is recorded as void for that specific claim in section 28.6; no historical line is rewritten. Six new tests pin the prose rule (whole-line comment, trailing comment, module docstring and function docstring must not promote an object; an assignment or a call argument must). A harness fault of mine is recorded here rather than hidden: the brief-contract test restored DesignLayer._brief from the attribute instead of from __dict__, which installs a plain function on the class, so the next self._brief(row) bound self as the first argument and raised 'takes 1 positional argument but 2 were given' -- 47 failures across three other modules in one bound run, each of which passed alone, surfaced to HTTP callers as 500 INTERNAL. py_compile accepted it, as it accepted a joined def line earlier in the same wave: for these edits a clean compile is not evidence, running the suite is. verify_route_payload_contracts.py gained a brief-readback binding whose compared payloads are the bytes the route itself wrote, from data created through the write routes (POST a brief, POST a revision, then GET the list and GET it for a project with nothing filed). Two refusals during the work are recorded rather than smoothed over: the seed first offered asset id 'a1' and the writer answered INVALID_REFERENCE_ASSET_ID -- the check working, so it was satisfied with a real img-<64 hex> asset row instead of relaxed -- and inserting the seed method split __enter__ from its return self, a break py_compile accepted (verified: an equivalent joined-line sample compiles with rc=0) and which only re-reading the method boundaries caught. A test now pins that all three read paths still call the guard, because a silently un-judged read path is how this class of contract dies. FALSIFIED deliberately: 19 tests inject each lie (renamed key, prefixless digest, empty goals, blank title, version 0, extra field on a closed record, malformed id, missing envelope version, wrong envelope version, bad cursor), one points the guard at a schema without $defs.brief to prove it reads the shipped file instead of a bundled constant, and one writes a brief through the real path and reads it back through all three. The four design_layer.py line pointers in the ledger were re-resolved against the moved file rather than guessed: :63 (new version const), :166 EVENT_KINDS, :291 validate_token_document, :799 hash_document. VERIFIED at this HEAD: the bound run reports 257 tests, 0 failures, 0 errors and ZERO SKIPPES only after PATH was given the declared nodejs-lts 24.18.0 directory -- test_workbench_native_ui gates itself on shutil.which('node') and nothing else, so the two earlier bound runs in this same wave that also printed OK were silently carrying 14 skipped UI cases each. That is the 'local OK can be a skip' failure mode, and it was invisible in the summary line: the case count was 257 either way, only skipped=14 vs skipped=0 distinguished them. Recorded here because the UI is exactly the surface this wave changed (the brief envelope gained a schemaVersion and the preflight panel gained a delivery-bom finding), so a skipped UI module would have meant the readback was never actually rendered. Also verified: VERIFY_ROUTE_PAYLOAD_CONTRACTS=PASS bindings=6 (was 5) with brief-readback cases=2 object-locations=4; VERIFY_CONTRACT_BINDINGS=PASS routes=53 dispatched=53 bound=15 schema_less=38 (was 14/39); DESIGN_KERNEL=PASS; test_brief_readback_contract 19 OK, test_design_layer_http 20 OK, test_design_layer_revision 14 OK, test_route_payload_contracts 20 OK, test_evidence_artifact_presence 4 OK, test_gate_reachability 4 OK, test_test_selfsufficiency_gate 13 OK. E1/E2 only: structural contract plus a controlled HTTP runtime against a scratch project store; no design host involved, so host_live and delivery stay PARTIAL and E3/E4/E5 are untouched by this row. CORRECTION, same day, because the paragraph above overstates what was measured: only ONE earlier run of this wave printed OK while carrying skipped=14 (run_id 9c2ca3652dce at 04:43:10Z on subject 0aded7355c36); the two runs before it printed FAILED (47 failures, then 1 failure). And the OK runs cited by the two preceding rows (457, 244 and 249 tests) reported skipped=0 for a different reason -- their --modules lists never included test_workbench_native_ui at all. So the trap has two halves: a case that is silently skipped inside a chosen module, and a module that is silently not chosen. Only the receipt's own modules list plus its skipped field settle what executed, and run_id cannot tell two runs apart that share subject, manifest and order but differ in PATH -- which is exactly how the skipped=14 and skipped=0 runs of 0aded7355c36 carry the same identifier.",
       "observed_at": "2026-10-08T04:44:35Z",
       "outcome": "PASS",
       "reasons": [
-        "STALE_SUBJECT_SHA",
-        "SOURCE_CHANGED_OR_MISSING:design-lab/config/contract-bindings.json"
+        "MOVED_SINCE_BOUND_COMMIT:design-lab/config/contract-bindings.json"
       ],
       "software": {
         "platform": "Windows-11-10.0.26100-SP0",
@@ -3110,18 +3611,63 @@
       "task_ids": [
         "DL-R5-003"
       ],
-      "verified": false
+      "verified": true
+    },
+    {
+      "artifacts": [
+        {
+          "path": "design-lab/scripts/verify_contract_bindings.py",
+          "sha256": "467b845f9c609544ae7c038d9f40e475502370d0877706859c809c0c59bbca47"
+        },
+        {
+          "path": "design-lab/config/contract-bindings.json",
+          "sha256": "0a246cb1797b4c0ac78b44a8f973eb10aa0283d17496d1357601a4589a8b9aef"
+        },
+        {
+          "path": "design-lab/tests/test_contract_bindings.py",
+          "sha256": "e4fd648ebefdbb46b0cd45f446b9315414c5e9597cd01af1d47a1d775d4a14a4"
+        }
+      ],
+      "binding": "COMMIT",
+      "currency_reasons": [],
+      "current": true,
+      "id": "r5-001-inert-contract-claims-re-measured-and-citations-made-paths-20261008",
+      "integrity_reasons": [],
+      "kind": "local_test",
+      "note": "Thirty rows of the contract ledger said 'nothing implements this', and nothing was checking. design-lab/config/contract-bindings.json holds 32 contract rows and reports schemas=32 binding=2 inert=30; every INERT row defends itself with a prose reason -- 'plan_id/jobs appear nowhere in src/', 'no emitter, no reader'. A negative claim is the one class of ledger entry that cannot fail on its own: the day the schema gets wired, the row keeps saying INERT and the gate keeps passing. So the claim is now re-tested on every run instead of believed. MEASURED, and the first measurement was wrong: matching each schema's required/property names against src/, packages/ and apps/ convicted 27 of the 30 as lies. That verdict was a bug in my instrument -- action, at, note, result, state, decision and changes are field names that occur in practically every product file, so a field name appearing in code is not a shape being produced. The question that works is the one the object-model gate already asks: who NAMES this file. Re-measured at this HEAD with the gate's own product_corpus(): 204 product files under src/, packages/, apps/ and integrations/, and 0 of the 30 INERT schemas are named by any of them, so all thirty claims hold. Recorded as a repeat of section 25's lesson rather than smoothed over. Two rules were added to verify_contract_bindings.py. (8) A citation must be a path: every instances/tests/fixtures entry has to start with a repository path and a numeric :line anchor must fall inside that file (CITATION_MALFORMED, CITATION_LINE_OUT_OF_RANGE). This caught a live defect immediately -- planar-decomposition's fixtures entry read 'generated at run time by design-lab/tests/host_fixtures/qualify_ocr_object_plan.py:45', a sentence parked in the one field whose entire job is to be re-checkable, which made the row look evidenced while nothing could check it. The entry is now the generator path alone (that line is genuinely where the instance is assembled and jsonschema-validated) and the explanation moved to reason. Adjacent bug found while testing it: the scratch-tree builder copied instances and tests but never fixtures, so the gate's fixture rules could not have worked on a copy at all; it copies fixtures now, and the three tests that convict a bad fixtures citation on a scratch tree only go red because the copy carries the file they rewrite. (9) An INERT row that any product file names goes red (INERT_BUT_NAMED_BY_PRODUCT), searched over RAW text, comments and docstrings included. The strictness is deliberate and its cost was measured before shipping: it convicts nothing today, and it can only ever be over-strict -- someone who writes a schema's file name into a src/ comment is asked to justify the row, which is the right outcome for a claim that nothing implements it, while a lenient rule would let a wired schema hide as unimplemented forever. A third correction came from my own new rule. An early version checked file existence for all three citation groups, so a vanished tests file was convicted twice in one run: TEST_ROW_STALE (the pre-existing rule) and CITATION_STALE (mine). The surgicality assertion assert_red_for(..., 1) refused it, which is exactly what 'exactly N red lines' is for in this repository. Existence is now checked only for fixtures; line drift is checked everywhere; instances/tests keep BINDING_ROTTEN, INERT_ROW_HAS_INSTANCE and TEST_ROW_STALE. The rule was not weakened to make a test pass -- the duplicate half was, and the distinct half (a line anchor that no longer points at what it claimed) is still caught. FALSIFIED deliberately: four new tests -- a citation that is prose wearing a path, a citation pointing past the end of its file, a citation to a file that is gone, and an INERT row named by product code in BOTH a string literal and a comment. VERIFIED at this HEAD, re-run rather than inherited: VERIFY_CONTRACT_BINDINGS=PASS schemas=32 binding=2 inert=30 routes=53 dispatched=53 bound=15 schema_less=38; the citation inventory is 15 entries, all with a numeric line anchor, none failing to start with a repository path; test_contract_bindings.py 32 OK; the drift inventory re-measured from the gate at 46 records over 18 distinct artefacts (was 44/16 before this wave, both moved pairs bound to the gate that re-tests the INERT claims and its injection tests) and pinned with a dated reason in test_evidence_artifact_presence.py. The bound suite ran tests_run=310 failures=0 errors=0 skipped=0 on a clean tree at this commit with the declared nodejs-lts 24.18.0 directory on PATH, so the UI module executed rather than self-skipping. STILL OPEN, for the owner and not decided here: what should happen to the thirty INERT contracts. run-event / job-spec / job-attempt / operation-intent / operation-receipt / host-session / document-session describe the same kernel activity as the native_* tables the product already writes, so the likeliest answer is that these rows are a second declared shape for one thing -- but retiring or wiring them is a product decision, and this row only makes 'nothing implements them' into something a machine re-checks. E1/E2 only: a structural ledger plus controlled local execution; no design host is involved, so host_live and delivery stay PARTIAL and E3/E4/E5 are untouched by this row.",
+      "observed_at": "2026-10-08T05:06:06Z",
+      "outcome": "PASS",
+      "reasons": [],
+      "software": {
+        "platform": "Windows-11-10.0.26100-SP0",
+        "python": "3.13.14 (project .venv)",
+        "runner": "python scripts/run_bound_test_suite.py --label r5-001-inert-claims-re-measured-20261008 --modules test_contract_bindings test_object_model_backing_gate test_route_payload_contracts test_brief_readback_contract test_template_contracts_gate test_delivery_bom test_production_preflight test_evidence_artifact_presence test_gate_reachability test_test_selfsufficiency_gate test_state_vocabularies_gate test_rights_ledger test_rights_http test_design_system_tokens test_interop_dtcg -> run_id=testrun-20261008T050528Z-forward-repeat-217977ddde77, tests_run=310, failures=0, errors=0, skipped=0, duration=37.982s, order=forward, worktree_clean=True",
+        "test_manifest": "sha256:da2e45ad9871c6a7a8276254f41ce8b458819e8d75f48fb13feca7c5d0c6daab",
+        "worktree_digest": "sha256:217977ddde772f5a363d0a6b7567e27d22b78ec4ab8f4569205357ba60d4fbd0"
+      },
+      "subject_files": {
+        "design-lab/config/contract-bindings.json": "0a246cb1797b4c0ac78b44a8f973eb10aa0283d17496d1357601a4589a8b9aef",
+        "design-lab/scripts/verify_contract_bindings.py": "467b845f9c609544ae7c038d9f40e475502370d0877706859c809c0c59bbca47",
+        "design-lab/tests/test_contract_bindings.py": "e4fd648ebefdbb46b0cd45f446b9315414c5e9597cd01af1d47a1d775d4a14a4",
+        "design-lab/tests/test_evidence_artifact_presence.py": "fa7607ca04dc84f6b6f7ce691fa7d778814520d74b96bee3088d3583b4feed02"
+      },
+      "subject_sha": "9599cc72f4a11f8e66b41ac8aa15e22e263ab2f5",
+      "task_ids": [
+        "DL-R5-001",
+        "DL-R5-003"
+      ],
+      "verified": true
     }
   ],
   "fresh": false,
   "freshnessMeaning": "at generation only; check verifies bound-input integrity, not current Git or cloud state",
-  "generatedAt": "2026-10-08T04:48:52+00:00",
+  "generatedAt": "2026-10-08T05:33:45+00:00",
   "gitStateMeaning": "generation-time observation, not current HEAD",
   "ledgerUpdatedAt": "2026-10-08T03:04:03Z",
   "note": "DONE_LOCAL concerns the declared task axes and dependencies, not a product release or hosted CI.",
   "schemaVersion": "design-lab/task-progress/r5-v1",
   "subjectMeaning": "subjectType=WORKTREE means the tree was dirty at generation; worktreeDigest covers HEAD plus the non-generated changes",
-  "subjectSha": "59e07a783d56c125ea32b2b9db8df6ddcc97a500",
+  "subjectSha": "ec30c2aeebdb9efeef8f56360b675961ef70598a",
   "subjectType": "COMMIT",
   "taskpack": "DL-TP-20260908-R5",
   "taskpackHash": "31dde89eb4ede81fe88c0a5c5144adfb86af8db4c4d8c263bde2199180369b69",
@@ -5625,10 +6171,10 @@
       "unresolved_conditions": []
     }
   ],
-  "testRunAt": "2026-10-08T04:44:35+00:00",
-  "testRunId": "testrun-20261008T044339Z-forward-repeat-9c2ca3652dce",
-  "testRunMeaning": "bound run: python scripts/run_bound_test_suite.py --label r5-003-brief-readback-and-prose-classifier-with-node-20261008 --modules test_brief_readback_contract test_design_layer_http test_design_layer_revision test_route_payload_contracts test_contract_bindings test_object_model_backing_gate test_evidence_artifact_presence test_gate_reachability test_test_selfsufficiency_gate test_template_contracts_gate test_delivery_bom test_delivery_receipt_wiring test_rollback_state_classifier test_delivery_evidence_ui_contract test_workbench_native_ui",
+  "testRunAt": "2026-10-08T05:06:06+00:00",
+  "testRunId": "testrun-20261008T050528Z-forward-repeat-217977ddde77",
+  "testRunMeaning": "bound run: python scripts/run_bound_test_suite.py --label r5-001-inert-claims-re-measured-20261008 --modules test_contract_bindings test_object_model_backing_gate test_route_payload_contracts test_brief_readback_contract test_template_contracts_gate test_delivery_bom test_production_preflight test_evidence_artifact_presence test_gate_reachability test_test_selfsufficiency_gate test_state_vocabularies_gate test_rights_ledger test_rights_http test_design_system_tokens test_interop_dtcg",
   "testRunResult": "OK",
   "worktreeClean": true,
-  "worktreeDigest": "sha256:33c8a87b3ff93f8adfb3c5d2a4705fac6db2ba0d43ee885b1261a6b99f0e7e67"
+  "worktreeDigest": "sha256:f96f710a4a720379afe6ee501016e20784ba87bdacc1230056ee140316fc4a99"
 }
