@@ -364,7 +364,7 @@
       "handler": "NativeDelivery",
       "schema": "design-lab/schemas/delivery-receipt-readback.schema.json",
       "version": "design-lab/delivery-receipt-readback/v1",
-      "emitter": "src/design_lab/native_delivery.py:65",
+      "emitter": "src/design_lab/native_delivery.py:72",
       "reason": "Re-bound 2026-10-08. The route no longer answers with the bare receipt document: it answers with the design-lab/delivery-receipt-readback/v1 envelope, whose `receipt` member is that document returned verbatim and whose new members resolve each deliverable's rollback reference against the asset ledger. The document is not extended, because it signs its own bytes with receipt_sha256; the resolution therefore travels beside it, and this row binds the envelope schema and the emitter that writes its version. Both still hold: NativeDelivery.readback() reaches the same _load() that delivery_receipt.loads() re-verifies on every read, and test_delivery_evidence_ui_contract.py pins that the envelope carries the stored document rather than a rebuilt one. The two refusals keep their own codes: 404 DELIVERY_RECEIPT_NOT_FOUND means no receipt was recorded for this ACTIVE version, 409 DELIVERY_RECEIPT_UNVERIFIED means a stored document contradicts its own bytes and the service will not certify them."
     },
     {
@@ -484,7 +484,7 @@
       "handler": "JuryReview",
       "schema": "design-lab/schemas/jury-readback.schema.json",
       "version": "design-lab/jury-readback/v1",
-      "emitter": "src/design_lab/jury_review.py:53",
+      "emitter": "src/design_lab/jury_review.py:54",
       "reason": "Debt paid 2026-10-08. The records this envelope wraps were always bound (each is a design-lab/assurance-jury-record/v2 document validated on the way in by the two write routes below); the read path was the unboud half. design-lab/schemas/jury-readback.schema.json now closes the envelope and REFERENCES those records by $ref to assurance-jury-record-v2.schema.json rather than restating them, so one contract owns a jury record. It also binds what a reader can be misled by: ACCEPTED requires at least one ACTIVE reviewable version and a current APPROVE for every one of them, and an empty reviewable set is NOT_ACCEPTED with accepted_versions 0. Two real responses -- a filed review and an empty project -- are validated by design-lab/scripts/verify_route_payload_contracts.py, which is what caught reviewable_versions gaining version_no when the store began offering one row per asset."
     },
     {
@@ -623,7 +623,7 @@
       "handler": "preflight_bundle",
       "schema": "design-lab/schemas/artifact-preflight.schema.json",
       "version": "design-lab/artifact-preflight/v1",
-      "emitter": "src/design_lab/assurance/production_preflight.py:324",
+      "emitter": "src/design_lab/assurance/production_preflight.py:365",
       "reason": "The precedent this ledger is modelled on: the artifact report declares design-lab/artifact-preflight/v1 and is checked against its schema over two real wire-serialised payloads by design-lab/scripts/verify_artifact_preflight_contract.py."
     },
     {

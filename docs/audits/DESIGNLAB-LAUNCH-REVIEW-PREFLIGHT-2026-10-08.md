@@ -922,7 +922,7 @@ shape-notice 31 条接缝)全绿;后端 6 条谎言 + 页面 6 条塌缩,每条�
 SCHEMA_VERSION,` 这类"常量名"行(意图可辩护,但规则无法核验),3 条是真正的错位
 (`production_preflight.py:324` 落在 `def _aggregate(findings)`、`jury_review.py:53` 落在 `return {`,
 另一条是我今天挪动 docstring 后指向空行)。要么让门读这个行号(行内必须出现版本字符串或其所用
-常量名),要么取消这个从不被读取的精度——不能继续留着它假装被检查过。
+常量名),要么取消这个从不被读取的精度——不能继续留着它假装被检查过。(第 23 段:这条在同一轮里就闭合了。要么读它,要么别写它——留着当一个没人读的装饰,是最贵的那种注释。)
 
 ### 22.7 一条从不存在的字段里抄来的引用
 
@@ -938,3 +938,39 @@ SCHEMA_VERSION,` 这类"常量名"行(意图可辩护,但规则无法核验),3 �
 教训是给工具而非给 prose 的:**回执里没有的键,就不要在引用里假装它存在**。装配器是
 `.project-local` 下的未跟踪脚本,CI 看不见它,所以这类缺陷不可能被任何门抓住——只能靠读到一行
 自己产出的记录时,真的去看它说的到底是什么。
+
+
+## 23. 一个从来没人读的行号(2026-10-08 追加,记 #20 闭合)
+
+`contract-bindings.json` 里 18 条 route 行都带 `emitter: "src/….py:NN"`。门只取冒号左边
+(`instance_path()` 把 `:NN` 剥掉),所以那串数字从写进台账那天起就没被读过。今天它当场演示了一次代价:
+我在 `native_delivery.py` 顶部多写了一段 docstring,`READBACK_SCHEMA_VERSION` 从第 65 行被推到 72 行,
+台账里那一行仍然写着 `:65`,**VERIFY_CONTRACT_BINDINGS 全绿**。
+
+先把事实量出来,再决定规则:18 条里 11 条的行确实携带版本字符串;7 条不携带,其中 4 条指向
+`"schemaVersion": SCHEMA_VERSION,` 这种"常量引用"行(意图可辩护),另 3 条是真正的错位——
+`production_preflight.py:324` 落在 `def _aggregate(findings)`,`jury_review.py:53` 落在 `return {`,
+`native_delivery.py:65` 落在一行空白。
+
+门现在读这个行号。规则与文件半边的规则保持同一口径:那一行要么把版本字面写在代码里,要么引用一个
+模块级常量且其值等于该版本;行号缺失、越界、落在 docstring 里,是另外三种各自命名的失败
+(`EMITTER_POINTER_SHAPE` / `_OUT_OF_RANGE` / `_IS_PROSE` / `_NOT_THE_VERSION`)。
+"一个缺陷一条红"也被写进来:如果这个文件已经不写这个版本了,`ROUTE_EMITTER_MISSING` 才是具体结论,
+指针问题不再重复报第二行——我第一次把这条检查插在 rule 7 之后,就违反了自己的 surgicality 约定,
+既有那条"变异只应产出一行红"的断言因此变红。**断言是对的,改的是我的门。**
+
+修数据的过程又教了一次同一课。第一版指针修补用的是"行内含版本字符串即可"这条宽规则,于是它把
+preflight 行修到了 **文档字符串里的一句话**(:37),而真正的发射点在 :365。收紧后的做法是"在门认为可信的行里
+选离原指针最近的一条",并且把 photoshop_com 那条被宽规则误挪的指针还原回 :155——那是一句
+`baseline['schemaVersion']='design-lab/photoshop-native-job/v1'`,下标写,是真发射,门认它。
+**权威必须是门自己的函数**:最后一遍是导入门、对 18 行逐条调用 `emitter_pointer_errors()` 来判定"要不要动",
+而不是在修数据脚本里再抄一份略有不同的规则(抄的那份正好漏了下标写)。
+
+测试 5 条,其中一条把门复制成一个削弱的副本(把 `emitter_pointer_errors` 短路成 `return []`),
+证明三条指针用例的红来自规则而不是来自夹具——削弱后的门对同一份被改坏的台账报告零红。
+数字:`VERIFY_CONTRACT_BINDINGS=PASS schemas=32 binding=2 inert=30 routes=53 dispatched=53 bound=14`,
+`test_contract_bindings.py` 28 例 OK,台账 18 条指针现在全部可核验。
+
+不在本轮做的:把 `emitter` 从 `path:line` 改成 `path`+`symbol`(行号天然会腐烂,哪怕有人读它)。
+现在的规则让腐烂可见,这已经比装饰强;真要根治,该指的是符号而不是坐标,那需要另立一行合同字段与门的
+一次改动,记在这里不当已完成。

@@ -126,6 +126,7 @@ WORD_VERSIONS = re.compile(r'"(design-lab/[a-z0-9-]+/v[0-9]+)"')
 #: A boundary version is `design-lab/<name>/v<N>`; an interop spec version ("2025.10") is not
 #: one, so it is collected by the schema-text scan and never demanded of an emitter here.
 VERSION_TOKEN = re.compile(r'^design-lab/[a-z0-9][a-z0-9.-]*/v[0-9]+$')
+IDENTIFIER = re.compile(r'\b[A-Za-z_][A-Za-z0-9_]*\b')
 
 
 def emitted_versions(path: Path) -> set[str]:
@@ -171,6 +172,96 @@ def emitted_versions(path: Path) -> set[str]:
                 found.add(literal)
     return found
 
+
+
+def module_string_constants(path: Path) -> dict[str, str]:
+    """Top-level ``NAME = "string"`` assignments in one file.
+
+    Needed because a pointer may legitimately land on ``"schemaVersion": SCHEMA_VERSION,`` -- the
+    line does not spell the version out, and the value it names lives one assignment away.
+    """
+    try:
+        tree = ast.parse(path.read_text(encoding='utf-8', errors='ignore'), filename=str(path))
+    except (OSError, SyntaxError, ValueError):
+        return {}
+    found: dict[str, str] = {}
+    for node in tree.body:
+        if isinstance(node, ast.Assign):
+            targets, value = node.targets, node.value
+        elif isinstance(node, ast.AnnAssign) and node.value is not None:
+            targets, value = [node.target], node.value
+        else:
+            continue
+        if isinstance(value, ast.Constant) and isinstance(value.value, str):
+            for target in targets:
+                if isinstance(target, ast.Name):
+                    found[target.id] = value.value
+    return found
+
+
+def prose_lines(path: Path) -> set[int]:
+    """Line numbers covered by a bare string statement -- a module, class or function docstring.
+
+    Versions get quoted in prose all the time (that is how a migration note explains what it
+    changed), and a pointer that lands there honours nothing.
+    """
+    try:
+        tree = ast.parse(path.read_text(encoding='utf-8', errors='ignore'), filename=str(path))
+    except (OSError, SyntaxError, ValueError):
+        return set()
+    covered: set[int] = set()
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Expr) and isinstance(node.value, ast.Constant) \
+                and isinstance(node.value.value, str):
+            covered.update(range(node.lineno, (node.end_lineno or node.lineno) + 1))
+    return covered
+
+
+def emitter_pointer_errors(repo: Path, route: str, ref: str, version: str) -> list[str]:
+    """Does the line the pointer names actually carry this version, or the constant holding it?
+
+    A pointer without a number, a number past the end of the file, and a line that is about
+    something else are three different findings, and all three mean the row's stated location is
+    not where the value comes from.
+    """
+    head, _, tail = ref.partition(':')
+    digits = ''
+    for character in tail.strip():
+        if not character.isdigit():
+            break
+        digits += character
+    if not digits:
+        return [f'{route}: EMITTER_POINTER_SHAPE {ref!r} -- an emitter pointer is `path:line`, and '
+                'without a number there is nothing to honour']
+    path = repo / head
+    if not path.is_file():
+        return []  # ROUTE_EMITTER_MISSING already says the file is gone; one defect, one line.
+    lines = path.read_text(encoding='utf-8', errors='ignore').splitlines()
+    number = int(digits)
+    if not 1 <= number <= len(lines):
+        return [f'{route}: EMITTER_POINTER_OUT_OF_RANGE {ref!r} -- that file has {len(lines)} '
+                'lines, so the row points at a location that does not exist']
+    line = lines[number - 1]
+    prose = number in prose_lines(path)
+    code = line.split('#', 1)[0] if '#' in line else line
+    if prose:
+        return [f'{route}: EMITTER_POINTER_IS_PROSE {ref!r} falls inside a docstring, and a '
+                f'sentence that mentions {version!r} is not where that version comes from -- '
+                '`emitted_versions` already refuses to count a quoted version as an emission, so '
+                'the line half of the pointer has to agree with the file half']
+    if version and version in code:
+        return []
+    constants = module_string_constants(path)
+    if any(constants.get(token) == version for token in IDENTIFIER.findall(code)):
+        return []
+    if version and version in line:
+        return [f'{route}: EMITTER_POINTER_IS_PROSE {ref!r} carries {version!r} only in a comment '
+                'on that line, which is a note about the version rather than the version being '
+                'written or compared']
+    return [f'{route}: EMITTER_POINTER_NOT_THE_VERSION {ref!r} holds {line.strip()[:70]!r}, which '
+            f'neither writes {version!r} nor names a module-level constant whose value it is -- the '
+            'line is decoration: the gate reads the file half of this pointer only, so a row can '
+            'keep pointing somewhere else entirely and still pass']
 
 
 def route_tokens(path: Path) -> list[tuple[str, int]]:
@@ -347,6 +438,7 @@ def check_route_rows(repo: Path, rows, http_text: str, index) -> tuple[list[str]
         version = row.get('version')
         emitter = row.get('emitter')
         reason = (row.get('reason') or '').strip()
+        row_checks_start = len(errors)
         if emitter:
             # Rule 7: the version is taken from the emitter's own AST, so a row cannot keep
             # its claim by restating it. A file that writes no schemaVersion dict at all is
@@ -421,6 +513,12 @@ def check_route_rows(repo: Path, rows, http_text: str, index) -> tuple[list[str]
                     notes.append(f'{route}: SCHEMA_LESS debt {version}')
             else:
                 notes.append(f'{route}: SCHEMA_LESS')
+        # One defect, one line: the pointer is only asked when nothing else about this row failed.
+        # If the emitter no longer writes the version at all, ROUTE_EMITTER_MISSING is the specific
+        # finding, and a second red line for the same moved value would make the suite's "exactly
+        # these errors" assertions meaningless -- which is how this check first went wrong.
+        if emitter and version and len(errors) == row_checks_start:
+            errors.extend(emitter_pointer_errors(repo, route, emitter, version))
     return errors, counted, notes
 
 

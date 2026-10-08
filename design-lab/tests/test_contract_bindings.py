@@ -17,6 +17,7 @@ because the scratch tree was assembled badly -- or that stays green -- is a fail
 """
 from __future__ import annotations
 
+import ast
 import contextlib
 import importlib.util
 import io
@@ -168,6 +169,126 @@ class GateTeethTests(unittest.TestCase):
         errors, _, summary = self.run_gate(self.pristine)
         self.assertEqual(errors, [], f'the unmutated scratch tree is red: {errors[:6]}')
         self.assertEqual(summary['schemas'], CONTRACTS)
+
+    # --- the `:NN` half of an emitter pointer --------------------------------------
+
+    def pointer_rows(self, repo: Path) -> list[dict]:
+        return [row for row in ledger_rows(self.gate, repo)['routes']
+                if row.get('emitter') and row.get('version')]
+
+    def test_every_shipped_emitter_pointer_lands_on_a_line_that_carries_its_version(self):
+        """The line number in `path:line` is read now, and the shipped ledger must survive it.
+
+        `instance_path` has always stripped the `:NN`, so for the whole life of this ledger the
+        number was decoration: adding a docstring paragraph to native_delivery.py shifted the
+        envelope's version constant by three lines and VERIFY_CONTRACT_BINDINGS stayed green.
+        Measured over every row here, not asserted in prose.
+        """
+        rows = self.pointer_rows(REPO)
+        self.assertGreaterEqual(len(rows), 15,
+                                'barely any row carries a pointer, so the loop below checks nothing')
+        broken = [error for row in rows
+                  for error in self.gate.emitter_pointer_errors(REPO, row['route'], row['emitter'],
+                                                                 row['version'])]
+        self.assertEqual(broken, [],
+                         f'the ledger names lines the gate cannot honour: {broken[:4]}')
+
+    def retarget(self, scratch: Path, prefix: str, pointer: str) -> str:
+        """Point the one row whose emitter starts with `prefix` at `pointer`; return its version.
+
+        The scratch ledger is rewritten through `edit_ledger`, so the mutation stays JSON the gate
+        can parse and the case convicts the pointer rule rather than the ledger's syntax.
+        """
+        moved = []
+
+        def mutate(doc):
+            for row in doc['routes']:
+                if (row.get('emitter') or '').startswith(prefix) and row.get('version'):
+                    row['emitter'] = pointer
+                    moved.append(row['version'])
+        edit_ledger(scratch, mutate)
+        self.assertEqual(len(moved), 1, f'{prefix} is named by {len(moved)} rows, not exactly one')
+        return moved[0]
+
+    def test_a_pointer_moved_onto_another_line_is_the_only_red_line(self):
+        head = 'src/design_lab/native_delivery.py'
+        version = next(r['version'] for r in self.pointer_rows(REPO)
+                       if r['emitter'].startswith(head))
+        repo = self.scratch('pointer-moved')
+        self.retarget(repo, head, f'{head}:1')
+        errors, _, _ = self.run_gate(repo)
+        reason = self.assert_red_for(errors, 'EMITTER_POINTER_NOT_THE_VERSION', 1)
+        self.assertIn(head, reason)
+        self.assertIn(version, reason)
+
+    def test_a_pointer_into_prose_is_red_as_prose_not_as_a_missing_version(self):
+        """A sentence that mentions the version is not where the version comes from.
+
+        The gate's own file-half rule already refuses to count a quoted version as an emission
+        (`emitted_versions` says so in its docstring), so a pointer into a docstring has to be
+        refused the same way -- or the ledger could cite a migration note and call it a binding.
+        """
+        head = 'src/design_lab/native_delivery.py'
+        tree = ast.parse((REPO / head).read_text(encoding='utf-8'))
+        docstring = tree.body[0]
+        self.assertIsInstance(docstring.value, ast.Constant,
+                              'the module no longer opens with a docstring, so this fixture is stale')
+        inside = docstring.value.lineno + 1
+        self.assertLessEqual(inside, docstring.value.end_lineno)
+        version = next(r['version'] for r in self.pointer_rows(REPO)
+                       if r['emitter'].startswith(head))
+        repo = self.scratch('pointer-into-prose')
+        self.retarget(repo, head, f'{head}:{inside}')
+        errors, _, _ = self.run_gate(repo)
+        reason = self.assert_red_for(errors, 'EMITTER_POINTER_IS_PROSE', 1)
+        self.assertIn('docstring', reason)
+        self.assertIn(version, reason)
+
+    def test_a_pointer_without_a_number_or_past_the_end_of_the_file_is_named_for_what_it_is(self):
+        ref = 'src/design_lab/native_delivery.py'
+        row = next(r for r in self.pointer_rows(REPO) if r['emitter'].startswith(ref))
+        lines = len((REPO / ref).read_text(encoding='utf-8').splitlines())
+        shape = self.gate.emitter_pointer_errors(REPO, 'r', ref, row['version'])
+        self.assertEqual(len(shape), 1, f'a pointer with no line number: {shape}')
+        self.assertIn('EMITTER_POINTER_SHAPE', shape[0])
+        beyond = self.gate.emitter_pointer_errors(REPO, 'r', f'{ref}:{lines + 1}', row['version'])
+        self.assertEqual(len(beyond), 1, f'a pointer past the end of the file: {beyond}')
+        self.assertIn('EMITTER_POINTER_OUT_OF_RANGE', beyond[0])
+        self.assertIn(f'{lines} lines', beyond[0])
+
+    def test_the_pointer_verdict_comes_from_the_rule_and_not_from_the_fixture(self):
+        """Weaken a COPY of the gate until the pointer question is a no-op, and show it stops
+        convicting.
+
+        Otherwise the three cases above might be naming a line the gate never examined. The
+        weakened copy still judges every other part of the ledger -- it simply stops noticing a
+        moved line, which is exactly the failure this wave set out to make impossible.
+        """
+        head = 'src/design_lab/native_delivery.py'
+        version = next(r['version'] for r in self.pointer_rows(REPO)
+                       if r['emitter'].startswith(head))
+        weak_dir = SCRATCH_BASE / 'gate-pointer-weakened'
+        if weak_dir.exists():
+            shutil.rmtree(weak_dir)
+        weak_dir.mkdir(parents=True)
+        source = GATE_PATH.read_text(encoding='utf-8')
+        weak_path = weak_dir / 'verify_contract_bindings.py'
+        weak_path.write_text(patched(source, "    head, _, tail = ref.partition(':')",
+                                     "    return []\n    head, _, tail = ref.partition(':')"),
+                             encoding='utf-8', newline='\n')
+        weak = load_gate(weak_path)
+        weak.REPO = REPO  # the copy's own module-level root points at its scratch directory
+        self.assertEqual(weak.emitter_pointer_errors(REPO, 'r', f'{head}:1', version), [],
+                         'the weakened gate still convicts, so the shipped rule was never the cause')
+        self.assertEqual(len(self.gate.emitter_pointer_errors(REPO, 'r', f'{head}:1', version)), 1,
+                         'the shipped gate stopped naming the moved pointer')
+        repo = self.scratch('pointer-moved-weakened')
+        self.retarget(repo, head, f'{head}:1')
+        errors, _, _ = weak.run(repo)
+        self.assertEqual(errors, [],
+                          f'the weakened gate found red where the rule is absent: {errors[:3]}')
+        shipped_errors, _, _ = self.run_gate(repo)
+        self.assert_red_for(shipped_errors, 'EMITTER_POINTER_NOT_THE_VERSION', 1)
 
     def test_binding_row_names_a_real_producer_of_its_own_version(self):
         """Not a file-exists check: the producer must emit the version the schema binds."""
