@@ -3657,17 +3657,57 @@
         "DL-R5-003"
       ],
       "verified": true
+    },
+    {
+      "artifacts": [
+        {
+          "path": "src/design_lab/governance/reporting.py",
+          "sha256": "c0f836b8e4562e326dedfcf917e7b8f2a2f4e7b6478cb0e317248ed5c8f050d3"
+        },
+        {
+          "path": "design-lab/tests/test_current_reporting.py",
+          "sha256": "4c4372be64f97522aedeac8a592d7182dd7104d13988c629584fbed713204950"
+        }
+      ],
+      "binding": "COMMIT",
+      "currency_reasons": [],
+      "current": true,
+      "id": "r5-001-the-evidence-projection-could-never-verify-a-commit-bound-receipt-20261008",
+      "integrity_reasons": [],
+      "kind": "local_test",
+      "note": "The last link of the chain was the one that had never been tested against its own claims. MEASURED at e1ca2902 before the change: reports/current/TASK_PROGRESS.json reported 0 of 73 receipts `verified`. Not a display problem -- the axis-demotion rule in reporting.py (226 before this change, 351 after) demotes an axis declared PASS or IMPLEMENTED_LOCAL to UNVERIFIED unless some receipt is verified, belongs to that task and matches the axis kind, so with zero verified receipts NO axis could ever be promoted, and the flag itself carried no information. Two unsatisfiable conditions produced it, both inside project_ledger, which never read the `binding` field at all: it compared a COMMIT receipt's blob digests against the WORKING TREE of whichever commit the projection happened to be generated at, and it demanded the receipt name that same commit. The second is unreachable for any row, because a projection can only record a commit that already exists while the row lands in a later one; the first fails for every file git normalises, which is why config/contract-bindings.json -- CRLF on disk, LF in the blob, and `git status` calling the tree clean -- convicted every receipt naming it. The schema already states the distinction project_ledger ignored (design-lab/schemas/task-ledger-r5-v1.schema.json:316-317: WORKTREE_FILES 'says the bytes came from a dirty tree and may never be presented as a commit'). The fix separates the two questions that were sharing one flag. INTEGRITY (`verified`): are the bytes this receipt hashed still where this receipt says they came from -- git show <subject_sha>:<path> for a COMMIT row, this disk for a WORKTREE_FILES row, this disk for a .project-local/task-artifacts/** runtime artefact. CURRENCY (`current`): does it still describe the bytes the projection is now speaking for -- MOVED_SINCE_BOUND_COMMIT, LOCALLY_MODIFIED_SINCE_SUBJECT, and STALE_SUBJECT_SHA kept for the WORKTREE_FILES rows it was written for. An axis needs both, so nothing was loosened: test_source_mutation_invalidates_prior_pass, test_missing_artifact_does_not_reuse_declared_pass and test_wrong_subject_commit_is_stale all pass unchanged. One path named in both subject_files and artifacts is now checked once, ending the double red line for a single fact (the same one-defect-one-line rule as section 29.4). New reasons name the path: DIGEST_NOT_REPRODUCIBLE_AT_BOUND_COMMIT, PATH_NOT_IN_BOUND_COMMIT, ARTIFACT_IS_NOT_VERSIONED, DIGEST_CONFLICT_FOR_SAME_PATH, RUNTIME_ARTIFACT_ABSENT_ON_THIS_MACHINE, SUBJECT_COMMIT_ABSENT. What it found, stated at the level the evidence supports. Of 502 COMMIT-bound claims, 406 reproduce at their own bound commit and ZERO fail on the digest: the commit binding, where it is a real commit claim, is sound. The defect is elsewhere -- 63 claims cite bytes no commit ever held, across 14 rows all named r5-*-static-unit-20260928: 57 __pycache__/*.pyc byte-compiled caches and 6 wav files under fixtures/domains/game-visual/android-minigame/, which that directory's own .gitignore line 12 excludes. A COMMIT row citing a .pyc claims committed status for bytes that exist on exactly one machine and change on every interpreter run. 33 further COMMIT claims are declared runtime artefacts, which is legitimate, and one of them is already gone from this disk (r5-comfy-http-model-free-live-20260909 -> .project-local/task-artifacts/comfy-http-live-*/result.json), the named instance of the per-machine artefact debt. The 9 WORKTREE_FILES claims are judged against the disk and 2 of them no longer match it, which is those rows admitting their own subject matter. Nothing was rewritten: those 14 and 3 rows stay what they were, and are now named. Two instrument errors of mine are part of this record. First: I classified 'not tracked today' as 'machine-bound', which reported 5 bad paths where there are 63. Second, and worse, my first measurement applied commit semantics to every row and produced 3 'digests that reproduce nowhere', which I wrote into the audit draft as evidence of fabricated records. All three belong to the 3 WORKTREE_FILES rows -- rows that never claimed to be commit observations -- so the accusation was manufactured by the wrong question, the same failure mode as section 29.2, this time aimed at my own instrument. The claim was deleted before shipping. Third catch: my regression test asserted `git status --porcelain` is empty to describe a CRLF-on-disk/LF-in-blob file, and git answered `M src/logic.py` while `git diff --name-only <subject>` answered empty. Probed both against three attribute combinations and the real repository (.project-local/tmp/probe_crlf_status.py); the currency rule uses `diff`, which normalises per attributes and is the semantics this rule needs. VERIFIED at this HEAD, re-run rather than inherited: test_current_reporting.py 43 OK (10 new cases covering the new basis, including the CRLF regression and a contradiction test), test_r5_migration.py 10 OK, bound run tests=387 failures=0 errors=0 skipped=0 order=forward on a clean tree at 981a4a703f6d with the declared nodejs-lts 24.18.0 on PATH, aggregate VERIFY_DESIGN_LAB=OK total=68 failed=0, CURRENT_REPORTS=PASS mode=generate. After the change: 36 of 73 receipts are intact records and 2 still describe today's bytes (r5-010-template-contracts-and-delivery-bom-20261008, r5-001-inert-contract-claims-re-measured-and-citations-made-paths-20261008); reason distribution OUTCOME_NOT_PASS 37, ARTIFACT_IS_NOT_VERSIONED 63, RUNTIME_ARTIFACT_ABSENT_ON_THIS_MACHINE 1, EVIDENCE_DIGEST_DIFFERS 2, MOVED_SINCE_BOUND_COMMIT 149, STALE_SUBJECT_SHA 8, LOCALLY_MODIFIED_SINCE_SUBJECT 1 -- and that last one points at test_current_reporting.py itself, modified by this very wave, which is the rule working. Task counts are UNCHANGED at {'PARTIAL': 28}: this flipped no green light, which is the point -- the field can now be red for a reason and green for a reason. Also recorded because part of why this survived is that no one was watching this component: `verified` has no consumer in this repository outside reporting.py:351 itself -- neither the workbench nor any verify_*.py gate reads the projected field. The LEDGER behind it WAS being refused, by a gate that already used the correct basis (see the correction below); the projection was the un-watched half. E1/E2 only: a projection rule plus its controlled tests; no design host involved, so host_live and delivery stay PARTIAL and E3/E4/E5 are untouched by this row. CORRECTED AFTER DRAFTING, and the correction is part of the record: section 30.6 of the audit doc. I first wrote these 63 citations up as a defect nobody had caught, and that is wrong -- design-lab/scripts/verify_ledger_subject_binding.py already re-computes every subject_files digest from git show <subject_sha>:<path> (its lines 12-14), carries a dated two-way KNOWN list of 67 entries over 17 rows (57 .pyc, 6 .wav, 4 .py), and refuses both an unlisted defect and a listed entry that has quietly become verifiable. It reports LEDGER_SUBJECT_BINDING=OK subject_files=447 checked=447 known_unverifiable=67 records=73 at this HEAD, and it passes inside the 68-gate aggregate. So the ledger WAS being checked, on the correct basis; what was missing was that the projection -- the component that decides axis promotion -- judged the same claims on a different basis and knew nothing about the sanctioned list. The remaining gap is therefore expressiveness, not permission: the projection currently reports sanctioned and new unversioned citations identically as ARTIFACT_IS_NOT_VERSIONED, and the right next step is basis alignment (share that KNOWN list, split the two reasons) -- both stay red, only the unsanctioned one needs an owner. This row deliberately does NOT import the waiver list: a governance-acknowledged unverifiable claim must not be laundered into a promotable record. E2 boundary note unchanged: no design host involved, host_live and delivery stay PARTIAL, E3/E4/E5 untouched.",
+      "observed_at": "2026-10-08T05:43:31Z",
+      "outcome": "PASS",
+      "reasons": [],
+      "software": {
+        "platform": "Windows-11-10.0.26100-SP0",
+        "python": "3.13.14 (project .venv)",
+        "runner": "python scripts/run_bound_test_suite.py --label evidence-binding-basis-20261008 --modules test_current_reporting test_r5_migration test_contract_bindings test_object_model_backing_gate test_route_payload_contracts test_brief_readback_contract test_template_contracts_gate test_delivery_bom test_production_preflight test_evidence_artifact_presence test_gate_reachability test_test_selfsufficiency_gate test_state_vocabularies_gate test_ledger_schema test_rights_ledger test_design_system_tokens test_interop_dtcg -> run_id=testrun-20261008T054252Z-forward-repeat-6b4d91bc77e4, tests_run=387, failures=0, errors=0, skipped=0, duration=39.465s, order=forward, worktree_clean=True",
+        "test_manifest": "sha256:a6ae642369b9570a3ce8eb88c3342b0c79172365be59d277da5cde15b0221c6b",
+        "worktree_digest": "sha256:6b4d91bc77e43e9a9b6796f738cfccc143b58d6796f3f49cae4294ff5f80323f"
+      },
+      "subject_files": {
+        "design-lab/schemas/task-ledger-r5-v1.schema.json": "16bb6319ba472785dd316113e7d9e8741f01de75c0ff1326d1c58cc3c049ed64",
+        "design-lab/tests/test_current_reporting.py": "4c4372be64f97522aedeac8a592d7182dd7104d13988c629584fbed713204950",
+        "src/design_lab/governance/reporting.py": "c0f836b8e4562e326dedfcf917e7b8f2a2f4e7b6478cb0e317248ed5c8f050d3"
+      },
+      "subject_sha": "c9924996e8d206fac7609d53a80d2793b284dfc8",
+      "task_ids": [
+        "DL-R5-001",
+        "DL-R5-003"
+      ],
+      "verified": true
     }
   ],
   "fresh": false,
   "freshnessMeaning": "at generation only; check verifies bound-input integrity, not current Git or cloud state",
-  "generatedAt": "2026-10-08T05:33:45+00:00",
+  "generatedAt": "2026-10-08T05:44:43+00:00",
   "gitStateMeaning": "generation-time observation, not current HEAD",
   "ledgerUpdatedAt": "2026-10-08T03:04:03Z",
   "note": "DONE_LOCAL concerns the declared task axes and dependencies, not a product release or hosted CI.",
   "schemaVersion": "design-lab/task-progress/r5-v1",
   "subjectMeaning": "subjectType=WORKTREE means the tree was dirty at generation; worktreeDigest covers HEAD plus the non-generated changes",
-  "subjectSha": "ec30c2aeebdb9efeef8f56360b675961ef70598a",
+  "subjectSha": "52ce85246094c132a18d4bd177669f6017f7eb35",
   "subjectType": "COMMIT",
   "taskpack": "DL-TP-20260908-R5",
   "taskpackHash": "31dde89eb4ede81fe88c0a5c5144adfb86af8db4c4d8c263bde2199180369b69",
@@ -6171,10 +6211,10 @@
       "unresolved_conditions": []
     }
   ],
-  "testRunAt": "2026-10-08T05:06:06+00:00",
-  "testRunId": "testrun-20261008T050528Z-forward-repeat-217977ddde77",
-  "testRunMeaning": "bound run: python scripts/run_bound_test_suite.py --label r5-001-inert-claims-re-measured-20261008 --modules test_contract_bindings test_object_model_backing_gate test_route_payload_contracts test_brief_readback_contract test_template_contracts_gate test_delivery_bom test_production_preflight test_evidence_artifact_presence test_gate_reachability test_test_selfsufficiency_gate test_state_vocabularies_gate test_rights_ledger test_rights_http test_design_system_tokens test_interop_dtcg",
+  "testRunAt": "2026-10-08T05:43:31+00:00",
+  "testRunId": "testrun-20261008T054252Z-forward-repeat-6b4d91bc77e4",
+  "testRunMeaning": "bound run: python scripts/run_bound_test_suite.py --label evidence-binding-basis-20261008 --modules test_current_reporting test_r5_migration test_contract_bindings test_object_model_backing_gate test_route_payload_contracts test_brief_readback_contract test_template_contracts_gate test_delivery_bom test_production_preflight test_evidence_artifact_presence test_gate_reachability test_test_selfsufficiency_gate test_state_vocabularies_gate test_ledger_schema test_rights_ledger test_design_system_tokens test_interop_dtcg",
   "testRunResult": "OK",
   "worktreeClean": true,
-  "worktreeDigest": "sha256:f96f710a4a720379afe6ee501016e20784ba87bdacc1230056ee140316fc4a99"
+  "worktreeDigest": "sha256:cd10982a49d3df057ba61ee1a62c179795028f8a4416f8fb80c2e21bfe7ae950"
 }

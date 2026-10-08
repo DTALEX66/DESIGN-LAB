@@ -8,15 +8,15 @@
   },
   "fresh": false,
   "freshnessMeaning": "at generation only; check verifies bound-input integrity, not current Git or cloud state",
-  "generatedAt": "2026-10-08T05:33:45+00:00",
+  "generatedAt": "2026-10-08T05:44:43+00:00",
   "git": {
     "branch": "qoder/designlab-backup-consistency-20261007",
     "origin_main": "fc03a3033e900a8066d863a223636cc68804c4fa",
-    "sha": "ec30c2aeebdb9efeef8f56360b675961ef70598a",
+    "sha": "52ce85246094c132a18d4bd177669f6017f7eb35",
     "source_worktree_clean": true,
     "tracked_files": 3079,
     "worktree_changes": [],
-    "worktree_digest": "sha256:f96f710a4a720379afe6ee501016e20784ba87bdacc1230056ee140316fc4a99"
+    "worktree_digest": "sha256:cd10982a49d3df057ba61ee1a62c179795028f8a4416f8fb80c2e21bfe7ae950"
   },
   "gitStateMeaning": "generation-time observation, not current HEAD",
   "hostLive": "derived from host_live axis only",
@@ -29,7 +29,7 @@
     "quarantinedSources": 162
   },
   "subjectMeaning": "subjectType=WORKTREE means the tree was dirty at generation; worktreeDigest covers HEAD plus the non-generated changes",
-  "subjectSha": "ec30c2aeebdb9efeef8f56360b675961ef70598a",
+  "subjectSha": "52ce85246094c132a18d4bd177669f6017f7eb35",
   "subjectType": "COMMIT",
   "taskCounts": {
     "PARTIAL": 28
@@ -37,14 +37,14 @@
   "taskpack": "DL-TP-20260908-R5",
   "taskpackHash": "31dde89eb4ede81fe88c0a5c5144adfb86af8db4c4d8c263bde2199180369b69",
   "taskpackId": "DL-TP-20260908-R5",
-  "testRunAt": "2026-10-08T05:06:06+00:00",
-  "testRunId": "testrun-20261008T050528Z-forward-repeat-217977ddde77",
-  "testRunMeaning": "bound run: python scripts/run_bound_test_suite.py --label r5-001-inert-claims-re-measured-20261008 --modules test_contract_bindings test_object_model_backing_gate test_route_payload_contracts test_brief_readback_contract test_template_contracts_gate test_delivery_bom test_production_preflight test_evidence_artifact_presence test_gate_reachability test_test_selfsufficiency_gate test_state_vocabularies_gate test_rights_ledger test_rights_http test_design_system_tokens test_interop_dtcg",
+  "testRunAt": "2026-10-08T05:43:31+00:00",
+  "testRunId": "testrun-20261008T054252Z-forward-repeat-6b4d91bc77e4",
+  "testRunMeaning": "bound run: python scripts/run_bound_test_suite.py --label evidence-binding-basis-20261008 --modules test_current_reporting test_r5_migration test_contract_bindings test_object_model_backing_gate test_route_payload_contracts test_brief_readback_contract test_template_contracts_gate test_delivery_bom test_production_preflight test_evidence_artifact_presence test_gate_reachability test_test_selfsufficiency_gate test_state_vocabularies_gate test_ledger_schema test_rights_ledger test_design_system_tokens test_interop_dtcg",
   "testRunResult": "OK",
   "tests": {
     "definedTestMethodCount": 2611,
     "executed": "see individual verified ledger receipts"
   },
   "worktreeClean": true,
-  "worktreeDigest": "sha256:f96f710a4a720379afe6ee501016e20784ba87bdacc1230056ee140316fc4a99"
+  "worktreeDigest": "sha256:cd10982a49d3df057ba61ee1a62c179795028f8a4416f8fb80c2e21bfe7ae950"
 }
