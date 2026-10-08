@@ -10,8 +10,8 @@ python scripts/classify_repo.py --check  # 只读校验：派生事实与已提�
 ```
 
 观测 commit 与体量（由上表再生时的真实测量）：
-**跟踪文件 3366 个 · 工作区 60.33 MiB · pack 242.0 MiB**（`observedCommit 810c5e10`，
-再生于 2026-10-08T18:09Z）。工作区体积此前被低估：`blob_sizes()` 用 `git ls-tree HEAD` 按行读，
+**跟踪文件 3366 个 · 工作区 60.35 MiB · pack 242.0 MiB**（`observedCommit 0f5b11f4`，
+再生于 2026-10-08T19:13Z）。工作区体积此前被低估：`blob_sizes()` 用 `git ls-tree HEAD` 按行读，
 非 ASCII 路径被转义后查不到键（11 个文件记成 0 字节），未提交的新文件更整体记成 0——
 同一棵树先后测出 52.28 与 60.22 MiB 而文件数不变。现改从 index + 对象库取，且 blob 读不到即 fail-closed。
 
@@ -40,14 +40,14 @@ python scripts/classify_repo.py --check  # 只读校验：派生事实与已提�
 
 ## 2. 分类规则（`classify_repo.py` 里的有序前缀表）
 
-| 类别 | 含义 | 现量（`810c5e10` 实测） |
+| 类别 | 含义 | 现量（`0f5b11f4` 实测） |
 |---|---|---|
 | `authority` | 顶层权威、治理索引、决策与架构政策 | 10 files / 0.03 MiB / 3 bundles |
 | `planning` | 任务包与任务账本 | 见 §3 |
 | `evidence` | 审计包、黄金用例、域 fixture、评估语料、设计项目产物 | 1184 files / 26.93 MiB |
 | `history` | 冻结历史、交接血统、历史进度账本（含 Record 导入件） | 497 files / 14.85 MiB |
 | `generated` | 当前状态投影、提交的构建产物 | 71 files / 1.23 MiB |
-| `source` | 产品源码、能力包、集成层、门脚本、测试、CI | 1460 files / 11.79 MiB |
+| `source` | 产品源码、能力包、集成层、门脚本、测试、CI | 1460 files / 11.80 MiB |
 | `documentation` | 其余文档 | 119 files / 5.26 MiB |
 | `repo-meta` | 根级运维/政策文档（README、SECURITY、RELEASE、DESIGN.md、design.qa.yaml 等 25 个） | 0.24 MiB |
 

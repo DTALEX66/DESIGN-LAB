@@ -1,10 +1,10 @@
 {
   "schemaVersion": "design-lab/repo-classification/v1",
-  "generatedAt": "2026-10-08T18:35:27Z",
-  "observedCommit": "fe228e5988591bdcbda340807ee523e3ad69b1da",
+  "generatedAt": "2026-10-08T19:13:14Z",
+  "observedCommit": "0f5b11f4bb8c24b3799267e588b1a68b0ba69105",
   "totals": {
     "trackedFiles": 3366,
-    "workingTreeMiB": 60.33,
+    "workingTreeMiB": 60.35,
     "packMiB": 242.0,
     "note": "pack 含全部历史与 tag 归档；working tree 为当前检出字节。两者之差不是垃圾。"
   },
@@ -42,7 +42,7 @@
     "source": {
       "files": 1460,
       "bundles": 8,
-      "mib": 11.79
+      "mib": 11.8
     }
   },
   "bundles": [
@@ -69,7 +69,7 @@
       "category": "source",
       "note": "设计核心其余模块",
       "files": 968,
-      "bytes": 7804206,
+      "bytes": 7811390,
       "cited_by_authority": 7,
       "lastTouch": "2026-10-09"
     },
@@ -78,7 +78,7 @@
       "category": "evidence",
       "note": "审计与验收证据包",
       "files": 835,
-      "bytes": 7496234,
+      "bytes": 7499888,
       "cited_by_authority": 7,
       "lastTouch": "2026-10-09"
     },
@@ -281,6 +281,15 @@
       "lastTouch": "2026-10-07"
     },
     {
+      "path": "DESIGN.md",
+      "category": "repo-meta",
+      "note": "根级运维与政策文档",
+      "files": 1,
+      "bytes": 8754,
+      "cited_by_authority": 0,
+      "lastTouch": "2026-10-09"
+    },
+    {
       "path": ".project/",
       "category": "authority",
       "note": "机器权威索引与策略",
@@ -288,15 +297,6 @@
       "bytes": 8459,
       "cited_by_authority": 2,
       "lastTouch": "2026-10-07"
-    },
-    {
-      "path": "DESIGN.md",
-      "category": "repo-meta",
-      "note": "根级运维与政策文档",
-      "files": 1,
-      "bytes": 8246,
-      "cited_by_authority": 0,
-      "lastTouch": "2026-10-09"
     },
     {
       "path": "WORK-LAB-DESIGN-MODULE-FINAL-HANDOFF-2026-08-07.md",
