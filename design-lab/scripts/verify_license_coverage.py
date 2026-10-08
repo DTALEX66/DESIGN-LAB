@@ -51,10 +51,20 @@ EXCLUDE_PREFIX = (
 
 
 def git_ls() -> list[str]:
+    """Tracked paths through NUL-separated porcelain.
+
+    `git ls-files` escapes and quotes any non-ASCII path, so a line-split read hands
+    back literal "\"docs/…\345\225\206…\"" tokens: they fail the endswith(SOURCE_EXT)
+    test and every such source file silently drops out of coverage. -z is never quoted.
+    """
     out = subprocess.run(
-        ["git", "ls-files"], cwd=REPO, capture_output=True, text=True, encoding="utf-8", errors="replace", check=True,
+        ["git", "ls-files", "-z"], cwd=REPO, capture_output=True, text=True,
+        encoding="utf-8", errors="replace", check=True,
     ).stdout
-    return [l for l in out.splitlines() if l]
+    return [p for p in out.split("\0") if p]
+
+
+IMPORT_MANIFEST = "docs/history/record-imports-2026-10-08/RECORD-IMPORT-MANIFEST.json"
 
 
 def is_excluded(rel: str) -> bool:
@@ -63,10 +73,49 @@ def is_excluded(rel: str) -> bool:
     return rel.startswith(EXCLUDE_PREFIX)
 
 
-def check_source() -> list[str]:
+def inert_imported_sources(files: list[str]) -> set[str]:
+    """Imported originals that may stay header-free — but only while unmodified.
+
+    A task-#29 import landed frozen task packages whose text members include 16
+    historical .py/.mjs scripts. They are inert source blobs (AGENTS.md): rewriting
+    them to add an SPDX header would violate the freeze that the import manifest
+    hashes, so the REUSE source-header rule cannot apply to them. The exemption is
+    not a path prefix that anything can hide behind: each file is exempt only while
+    its bytes still equal the sha256 recorded for it in the manifest. Edit one and
+    it becomes project source again, SPDX required.
+    """
+    import hashlib
+    import json
+
+    manifest = REPO / IMPORT_MANIFEST
+    if not manifest.is_file():
+        return set()
+    try:
+        data = json.loads(manifest.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return set()
+    want = {e["target"]: e["sha256"] for e in data.get("entries", [])
+            if e.get("action") == "LANDED" and e["target"].endswith(SOURCE_EXT)}
+    exempt: set[str] = set()
+    for rel, digest in want.items():
+        if rel not in files:
+            continue
+        p = REPO / rel
+        try:
+            actual = "sha256:" + hashlib.sha256(p.read_bytes()).hexdigest()
+        except OSError:
+            continue
+        if actual == digest:
+            exempt.add(rel)
+    return exempt
+
+
+def check_source() -> tuple[list[str], int]:
+    files = git_ls()
+    exempt = inert_imported_sources(files)
     missing = []
-    for rel in git_ls():
-        if not rel.endswith(SOURCE_EXT) or is_excluded(rel):
+    for rel in files:
+        if not rel.endswith(SOURCE_EXT) or is_excluded(rel) or rel in exempt:
             continue
         p = REPO / rel
         if not p.exists():
@@ -74,7 +123,7 @@ def check_source() -> list[str]:
         head = p.read_text(encoding="utf-8", errors="replace")[:200]
         if "SPDX-License-Identifier" not in head:
             missing.append(rel)
-    return missing
+    return missing, len(exempt)
 
 
 def check_binary_sidecars() -> list[str]:
@@ -88,8 +137,11 @@ def check_binary_sidecars() -> list[str]:
 
 
 def main() -> int:
-    src_missing = check_source()
+    src_missing, inert_exempted = check_source()
     bin_missing = check_binary_sidecars()
+    if inert_exempted:
+        print(f"Inert imported originals exempt from source headers (bytes still equal the "
+              f"manifest sha256): {inert_exempted}")
     print(f"Source files missing SPDX header: {len(src_missing)}")
     for f in src_missing:
         print(f"  MISSING SPDX: {f}")

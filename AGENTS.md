@@ -135,6 +135,24 @@ DESIGN-LAB 是面向职业视觉设计的、AI 原生、平台中立、宿主原
   - `docs/taskpacks/DESIGN-LAB-TODAY-EXECUTION-TASKPACK-2026-09-04.md`（后继：DL-TP-20260906-R3）
   - `docs/taskpacks/DLR-FINAL-20260826-R2-OSS-FAST-TRACK.md`（2026-08-26）
   - `docs/taskpacks/TRI-OSS-FAST-TRACK-20260826-R1.md`（三项目总规划，superseded by standalone-first ADR-001）
+- **任务文档定态登记（2026-10-08 起）**：`design-lab/config/task-document-states.json` 逐个声明规划面与历史面任务文档的状态、依据与取代关系；它是登记记录，不是 Authority，也不是第二派工账本。一致性由 `design-lab/scripts/verify_task_document_states.py`（已入 `verify_design_lab.py` 聚合链）fail-closed 把关：派工入口必须恰好一个且等于 index 的 `taskpackClassificationRule.currentIntegrated`；登记与 `authority-index` 冲突即红；任何 tracked 任务文档无声明即红。
+- **待 owner 裁决的 REQUESTED 包**（受理未采纳，豁免 byte-digest 漂移）：
+  `docs/taskpacks/DESIGN-LAB-GLOBAL-DESIGN-CAPABILITY-INTELLIGENCE-TASKPACK-2026-10-06.md`、
+  `docs/taskpacks/03_DESIGN-LAB_权威修复_双端描述同步_可审计执行提示词_20261006.txt`（及其输入
+  `docs/taskpacks/03_DESIGN-LAB_完整项目描述与未来蓝图_20261006.docx`）。当前派工入口仍是 2026-09-18 统一包。
+- **外部 Record 卷的 DESIGN-LAB 任务文档与包已归档入仓**（任务 DL-REC-29，2026-10-08）：落地件位于
+  `docs/history/record-imports-2026-10-08/`，逐条台账（源路径/字节/sha256/crc32/目标/定态）为
+  `docs/history/record-imports-2026-10-08/RECORD-IMPORT-MANIFEST.md` 与同名 `.json`；可复跑导入器
+  `scripts/record_import_apply.py`，独立复验器 `scripts/record_import_verify.py`（源字节↔工作区↔git blob 三方比对），
+  内容普查器 `scripts/record_import_census.py`。源卷 `D:\All projects\Record`（实测 89 顶层条目 / 168 文件 /
+  15,301,597,876 字节）未被整体复制，源文件一律未删改。
+- **Record 卷内确知存在但不入库的条目**（避免“下次找不到”）：`DESIGN-LAB_UI开发资料总包_按批次.zip` 的 B01–B06
+  图片包 44,183,932 字节（超单文件 5 MiB 与 pack 硬预算，逐成员哈希已登记为 EXTERNAL-ONLY）、
+  `三项目_VI_UI_UX_作品集完整交付包.zip`（属个人作品集项目）、`AAOS-project-archives/`（15.04 GB，DESIGN-LAB 内容命中 0）、
+  `system-software-audit/`（系统体检件，命中 0）、`R5-TASK-RECONCILIATION.csv`（行内容属 ArcheAxis，命中 0）。
+- **R2 发布包原件已入仓**：`docs/history/record-imports-2026-10-08/R2-RELEASE-PACKAGE-2026-09-18/` 内含被
+  `scripts/verify_top_level_authority.py` re-pin 注释引用、此前仓内不存在的两个被取代值（原 `AUTHORITY.md`
+  与原 `authority-index.json`）及 `MANIFEST.json`、`AGENTS-REQUIRED-PATCH.md` 等 6 件；血统可核验。
 - FINAL TaskPack 的剩余任务经 crosswalk 映射到 R5 `depends_on` 及案例条件依赖后执行；前置验收未满足时，只记录实现进展，不宣称整项闭环。宿主、质量与发布各自验收。Comfy、H3、UIA 不作为 Adobe M1 的硬前置。
 - 旧进度账本由原路径转为历史指针；冻结原文在 `reports/history/r3-predecessors-2026-09-06/`。原 `reports/history-baseline.json` 不修改。
 

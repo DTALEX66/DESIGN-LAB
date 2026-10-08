@@ -54,6 +54,22 @@ def git(args: list[str]) -> str:
     return r.stdout.strip()
 
 
+def git_paths(args: list[str]) -> list[str]:
+    """List paths from git through NUL-separated porcelain.
+
+    Plain `git ls-files` quotes any non-ASCII path (core.quotePath), so splitting
+    its stdout by lines hands the caller a literal "\"docs/\\345\\225\\206…\"" token.
+    Pathlib then stats a filename that never existed and every such tracked file is
+    reported missing. -z is the only porcelain that is never quoted, so path lists
+    must be taken from it. Same reason scripts/classify_repo.py uses -z.
+    """
+    r = subprocess.run(["git", *args, "-z"], cwd=REPO, capture_output=True, text=True,
+                       encoding="utf-8", errors="replace")
+    if r.returncode != 0:
+        raise RuntimeError(f"git {' '.join(args)} -z: {r.stderr.strip()}")
+    return [p for p in r.stdout.split("\0") if p]
+
+
 def sha256_of(path: Path) -> str:
     h = hashlib.sha256()
     with path.open("rb") as fh:
@@ -123,8 +139,8 @@ def tracked_blob_sizes() -> dict[str, int]:
     file would then measure 0 bytes and silently pass every size budget.
     """
     sha_by_path: dict[str, str] = {}
-    for line in git(["ls-files", "-s"]).splitlines():
-        meta, _, path = line.partition("\t")
+    for rec in git_paths(["ls-files", "-s"]):
+        meta, _, path = rec.partition("\t")
         parts = meta.split()
         if path and len(parts) >= 2:
             sha_by_path[path] = parts[1]
@@ -164,7 +180,7 @@ def main() -> int:
         warnings.append(f"repo pack {pack_mib:.1f} MiB above {WARN_BUDGET_MIB} MiB warning line")
 
     # 2. per-file cap + 3. binary gate on tracked files
-    tracked = git(["ls-files"]).splitlines()
+    tracked = git_paths(["ls-files"])
     quarantine_bytes = 0
 
     # Large-asset declarations. The pack has already grown past its warning line,

@@ -104,6 +104,13 @@ SCRIPTS = [
     "verify_tool_write_protocols.py",
     "verify_branch_inventory.py",
     "verify_repository_size.py",
+    # Task-document states (DL-REC-29, 2026-10-08): before this, authority-index only
+    # classified by globs plus a current list, so 22 task packs under docs/taskpacks
+    # sat in the unclassifiedFallback forever and "next round cannot find the task"
+    # stayed possible. This gate requires a declared state for every tracked task
+    # document, exactly one dispatch entry equal to the index's currentIntegrated, and
+    # fails when this registry contradicts the index instead of letting two truths drift.
+    "verify_task_document_states.py",
     "verify_dtcg_tokens.py",
     "verify_extraction_chain.py",
     "verify_federation_e2e.py",
