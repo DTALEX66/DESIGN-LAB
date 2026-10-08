@@ -3,7 +3,7 @@
   "taskpack": "DL-TP-20260908-R5",
   "plan_path": "docs/history/taskpacks/r5-20260908/02-TASKS.md",
   "baseline_sha": "ed8d45ab2857b312f6056c43f7bb5e19dd9b65eb",
-  "updated_at": "2026-10-08T01:59:15Z",
+  "updated_at": "2026-10-08T03:04:03Z",
   "source": {
     "path": "docs/history/taskpacks/r5-20260908/tasks.json",
     "sha256": "31dde89eb4ede81fe88c0a5c5144adfb86af8db4c4d8c263bde2199180369b69"
@@ -7965,6 +7965,47 @@
         }
       ],
       "note": "Two shapes that made 'it passed' mean nothing, both measured across the whole test tree rather than inferred from one failure. (a) 17 of 206 modules under design-lab/tests defined TestCases but had no ``if __name__ == '__main__': unittest.main()`` block, so executing one of them imported the file, collected nothing and exited 0 -- a per-module sweep that reads exit codes records that as a pass, and mine did, twice today. With the guard added the same 17 files run 184 tests between them, green, with the COM/host-bound cases skipped and naming their reason rather than being silently absent. (b) test_reconstruction_semantics.py carried 13 errors under a fresh process and passed under CI's single-process discovery, because reconstruction lives at packages/capabilities/reconstruction and only its sibling modules insert that root: the 13 behaviours were being verified or not depending on which module the runner had imported first. I had filed those 13 errors as a capability gap; the code is present and all 13 pass once the module can import it, and the same latent shape in test_workbench_launch.py (design_lab reached only through the subprocess PYTHONPATH it builds) was fixed the same way. The new tracked gate design-lab/scripts/verify_test_selfsufficiency.py, wired into verify_design_lab.py so CI runs it, refuses NOT_EXECUTABLE / NO_CASES / UNPARSEABLE / BORROWED_IMPORT_PATH and fails closed on an empty scan or an empty root inventory. Its own rule was wrong once before it was right and that is part of the record: a substring test for 'src'/'capabilities' anywhere in the file reported 35 violations where the tree had 1, because it matched prose and ignored the two spellings the repository really uses (a ``sys.path[:0] = [...]`` slice assignment, and a module-level variable inserted one call later); reading the AST of the sys.path statements leaves the one real gap and no invented work. No find_spec and no site-packages probing, because a gate whose colour depends on whether design_lab happens to be installed on this host gets silenced by the host that finds it inconvenient. 13 tests in the gate's own module, two of them weakened copies -- erase the entry-guard rule or the bootstrap rule in a copy and the same scratch tree stops being convicted, so the red is known to come from the rules rather than the fixtures. Bound run at this subject: 452 tests, 0 failures, 0 errors, 1 skip named (source checkout, so no packaged Workbench resource to serve). Shipped tree: TEST_SELF_SUFFICIENCY=OK scanned=207 executable=207 violations=0. Cost stated rather than hidden: the guards landed on five files that nine records hash as artefacts, so the drift inventory went 29 -> 38 across 11 paths; none of those records is rewritten. Also corrected in section 24: the reconstruction evidence module does not hang -- one of its 37 methods takes 86.2s and ends in an error, which overruns any time box without a loop. That error is still open and is not claimed here."
+    },
+    {
+      "id": "r5-001-only-five-of-the-21-declared-objects-are-validated-by-product-code-20261008",
+      "task_ids": [
+        "DL-R5-001",
+        "DL-R5-003"
+      ],
+      "kind": "local_test",
+      "outcome": "PASS",
+      "subject_sha": "c3bdaa91e978597d14c8991a9b5c413fb8bd210a",
+      "binding": "COMMIT",
+      "observed_at": "2026-10-08T03:02:07Z",
+      "software": {
+        "python": "3.13.14 (project .venv)",
+        "platform": "Windows-11-10.0.26100-SP0",
+        "runner": "python scripts/run_bound_test_suite.py --label r5-001-object-model-backing-20261008 --modules test_object_model_backing_gate test_test_selfsufficiency_gate test_rollback_state_classifier test_delivery_receipt_wiring test_delivery_evidence_ui_contract test_service_http test_contract_bindings test_route_payload_contracts test_evidence_artifact_presence test_domain_pack_readback test_ledger_schema test_state_vocabularies_gate test_gate_reachability test_capability_self_description_gate test_rights_registry_gate test_handoff_readiness test_rights_ledger test_rights_http test_research_store test_research_http test_workbench_css_single_definition test_backup_watches_written_tables test_current_version_rule test_quality_store test_design_kernel -> run_id=testrun-20261008T030052Z-forward-repeat-a9d6e169b341, tests_run=457, failures=0, errors=0, skipped=0, duration=75.113s, order=forward, worktree_clean=True",
+        "test_manifest": "sha256:f5b2f67767c0b00914e41b9b4a3cebee2d2dfe9d35dddbca12ab19c4c8eb2579",
+        "worktree_digest": "sha256:a9d6e169b3412461d3b22ccf47134441186d644bf02c644d85c0994d1cc038ad"
+      },
+      "subject_files": {
+        "design-lab/scripts/verify_object_model_backing.py": "b1a790f9bbeb7fb27d30b09ff74f87dbeb43a29b28bcbae07b9d64300a8ba471",
+        "design-lab/tests/test_object_model_backing_gate.py": "208ae693e666a24c233a67180e30af897f09dac281e7dc6dea063de022c9687a",
+        "design-lab/scripts/verify_design_lab.py": "086c02ebb6b9f163edb187837fb8b58670fdf563f8577a382463d3efb3ceeff1",
+        "design-lab/config/object-model.json": "3e19a79fe84096eecb829207a82b5477f4930ed72da12b24f386cf1b67751917",
+        "docs/audits/DESIGNLAB-LAUNCH-REVIEW-PREFLIGHT-2026-10-08.md": "fd20396fee03a7e7fdf497e878c4751f20c804b1aaccc820668f33fad7d13898"
+      },
+      "artifacts": [
+        {
+          "path": "design-lab/scripts/verify_object_model_backing.py",
+          "sha256": "b1a790f9bbeb7fb27d30b09ff74f87dbeb43a29b28bcbae07b9d64300a8ba471"
+        },
+        {
+          "path": "design-lab/tests/test_object_model_backing_gate.py",
+          "sha256": "208ae693e666a24c233a67180e30af897f09dac281e7dc6dea063de022c9687a"
+        },
+        {
+          "path": "design-lab/scripts/verify_design_lab.py",
+          "sha256": "086c02ebb6b9f163edb187837fb8b58670fdf563f8577a382463d3efb3ceeff1"
+        }
+      ],
+      "note": "object-model.json declares 21 objects and names a schema for each; every gate asked whether the file exists, and none had ever asked whether product code validates against it. Measured with two grep-able literals per object -- the schema file name, and its properties.schemaVersion.const (falling back to $id) -- over src/+packages/+apps/workbench as product and design-lab/scripts as tooling: PRODUCT=5 (research-finding, domain-pack, preflight-report, handoff-package, quality-report), TOOLING_ONLY=9 (brief, command, direction, evidence-record, execution-result, extraction-job, memory-record, project, quality-assessment), UNREFERENCED=7 (artifact, candidate-knowledge, delivery-manifest, design-system, method-card, reference-set, tool-run). verify_object_model_backing.py, wired into verify_design_lab.py so CI runs it, pins all three buckets -- membership, a >=60-character reason naming what implements each non-product object today, and the counts -- so a repaid debt left in the inventory and an object quietly dropped from the model both go red. Two instrument errors are recorded as tests rather than as apologies. The first pass searched for identifiers with word boundaries and called design-system, artifact and the jury record unimplemented, because the version the code writes (design-lab/assurance-jury-record/v2) does not contain the id the model chose: a false 'missing' that would have sent the owner to rebuild working code, which is why the rule is now literal strings only and says so at the top of the file. Then the gate scanned its own inventory as evidence -- its reasons name schema filenames -- and reported 16 TOOLING_ONLY; corpus() now skips the gate's own file, and a test deletes that skip to prove the inflated numbers return. 11 tests: 6 scratch-tree mutations plus 2 weakened-copy reversals. Bound run at this subject: 457 tests, 0 failures, 0 errors, 0 skips, clean tree. Aggregate verifier: 67 gate PASS lines, exit 0; DESIGN_KERNEL=PASS, TEST_SELF_SUFFICIENCY=OK modules=208 executable=208; the drift inventory was still 38 when this run was taken because no record named these paths, and this row now names three -- the gate, its tests and the aggregate verifier -- so the next edit to any of them adds a drift on purpose. What this does not settle: each of the 16 non-product rows still needs its ruling -- wire the schema, rename the object, or retire the declaration -- and MethodCard in particular now has a checked statement instead of a remembered one: the schema object-model points at is read by nothing, while the cards that exist follow visual-quality/master-method-card.schema.json, two shapes and zero producers."
     }
   ]
 }
