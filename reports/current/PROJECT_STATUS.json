@@ -8,26 +8,21 @@
   },
   "fresh": false,
   "freshnessMeaning": "at generation only; check verifies bound-input integrity, not current Git or cloud state",
-  "generatedAt": "2026-10-08T01:23:56+00:00",
+  "generatedAt": "2026-10-08T01:38:12+00:00",
   "git": {
     "branch": "qoder/designlab-backup-consistency-20261007",
     "origin_main": "fc03a3033e900a8066d863a223636cc68804c4fa",
-    "sha": "7ce7f18419741db8740828ead17610ac0ac90b0e",
+    "sha": "0858d01557913aa99f1d618b9c30e8fa85071188",
     "source_worktree_clean": false,
     "tracked_files": 3069,
     "worktree_changes": [
       {
-        "content": "sha256:6e1cb3d43a868e1fba0bb1473aea85bcdbd2520b6c4545252b8b443a4d174686",
+        "content": "sha256:1adf4ae6286fb679ff156d5f56fa24c956f85f293364ce0654133bd82b055d78",
         "kind": "M",
         "path": "design-lab/config/task-ledger-r3.json"
-      },
-      {
-        "content": "sha256:27d2b44dc96ed1cf409f18bfb30f879e10faa74c43a34d795a2fae3b9dc38734",
-        "kind": "M",
-        "path": "docs/audits/DESIGNLAB-LAUNCH-REVIEW-PREFLIGHT-2026-10-08.md"
       }
     ],
-    "worktree_digest": "sha256:0edc649454aac61d6534cc0e35d0cf928158dc65288ed092bfa81e294e245237"
+    "worktree_digest": "sha256:22cdbbf152c58341f750482cf13cde48c0d6008498e9e7e84a455b370c28f14c"
   },
   "gitStateMeaning": "generation-time observation, not current HEAD",
   "hostLive": "derived from host_live axis only",
@@ -40,7 +35,7 @@
     "quarantinedSources": 162
   },
   "subjectMeaning": "subjectType=WORKTREE means the tree was dirty at generation; worktreeDigest covers HEAD plus the non-generated changes",
-  "subjectSha": "7ce7f18419741db8740828ead17610ac0ac90b0e",
+  "subjectSha": "0858d01557913aa99f1d618b9c30e8fa85071188",
   "subjectType": "WORKTREE",
   "taskCounts": {
     "PARTIAL": 28
@@ -48,14 +43,14 @@
   "taskpack": "DL-TP-20260908-R5",
   "taskpackHash": "31dde89eb4ede81fe88c0a5c5144adfb86af8db4c4d8c263bde2199180369b69",
   "taskpackId": "DL-TP-20260908-R5",
-  "testRunAt": "2026-10-08T01:18:48+00:00",
-  "testRunId": "testrun-20261008T011540Z-forward-repeat-0e3de937db1d",
-  "testRunMeaning": "bound run: python scripts/run_bound_test_suite.py --label r5-010-rollback-readback-20261008 --modules test_rollback_state_classifier test_delivery_receipt_wiring test_delivery_evidence_ui_contract test_service_http test_contract_bindings test_route_payload_contracts test_evidence_artifact_presence test_domain_pack_readback test_ledger_schema test_state_vocabularies_gate test_gate_reachability test_capability_self_description_gate test_rights_registry_gate test_handoff_readiness test_rights_ledger test_rights_http test_research_store test_research_http test_workbench_css_single_definition test_backup_watches_written_tables test_current_version_rule test_quality_store",
+  "testRunAt": "2026-10-08T01:37:16+00:00",
+  "testRunId": "testrun-20261008T013608Z-forward-repeat-fd85e35aa72e",
+  "testRunMeaning": "bound run: python scripts/run_bound_test_suite.py --label r5-020-emitter-pointer-is-read-20261008 --modules test_rollback_state_classifier test_delivery_receipt_wiring test_delivery_evidence_ui_contract test_service_http test_contract_bindings test_route_payload_contracts test_evidence_artifact_presence test_domain_pack_readback test_ledger_schema test_state_vocabularies_gate test_gate_reachability test_capability_self_description_gate test_rights_registry_gate test_handoff_readiness test_rights_ledger test_rights_http test_research_store test_research_http test_workbench_css_single_definition test_backup_watches_written_tables test_current_version_rule test_quality_store",
   "testRunResult": "OK",
   "tests": {
-    "definedTestMethodCount": 2495,
+    "definedTestMethodCount": 2500,
     "executed": "see individual verified ledger receipts"
   },
   "worktreeClean": false,
-  "worktreeDigest": "sha256:0edc649454aac61d6534cc0e35d0cf928158dc65288ed092bfa81e294e245237"
+  "worktreeDigest": "sha256:22cdbbf152c58341f750482cf13cde48c0d6008498e9e7e84a455b370c28f14c"
 }

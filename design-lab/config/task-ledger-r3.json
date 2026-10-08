@@ -3,7 +3,7 @@
   "taskpack": "DL-TP-20260908-R5",
   "plan_path": "docs/history/taskpacks/r5-20260908/02-TASKS.md",
   "baseline_sha": "ed8d45ab2857b312f6056c43f7bb5e19dd9b65eb",
-  "updated_at": "2026-10-08T01:19:47Z",
+  "updated_at": "2026-10-08T01:37:59Z",
   "source": {
     "path": "docs/history/taskpacks/r5-20260908/tasks.json",
     "sha256": "31dde89eb4ede81fe88c0a5c5144adfb86af8db4c4d8c263bde2199180369b69"
@@ -7886,6 +7886,46 @@
         }
       ],
       "note": "A delivery receipt promises a restore in words and nothing had ever checked that the promise still has a target. `native_bundles._rollback_of` writes ``backup_ref = asset:<id>/version:<id>`` beside procedure text asserting the source version is untouched and was digest-checked when the receipt was written; the read side printed that reference and believed it. Now every read resolves it: `_load` returns (document, stored digest, summary, proofs) and `readback()` publishes them as the design-lab/delivery-receipt-readback/v1 envelope with the state vocabulary, a meaning per word, and does_not_prove. The document itself is not extended -- it signs its own bytes with receipt_sha256 -- so the new fact travels beside it. One query per deliverable against asset_version joined to asset answers RESOLVED / SOURCE_MISSING / OTHER_PROJECT / SOURCE_NOT_ACTIVE / REF_UNPARSED, aggregated as ALL_RESOLVED / PARTLY_UNRESOLVED / NONE_RESOLVED / NOTHING_TO_CHECK; the last two words are kept apart because collapsing them is how an empty ledger starts reading as a clean one, and a reference outside the emitted form is reported with its own text rather than matched to a plausible row. GET /api/projects/<p>/bundles/<asset>/versions/<version>/receipt answers the envelope, the `delivery-receipt` CLI verb publishes rollback_state, rollback_proofs and does_not_prove next to the untouched document, and the evidence page renders the identity, per-deliverable and requirement tables plus the resolver's limits. The route payload schema is a live capture, not a transcription: it $ref-s interop-delivery-receipt-v2 so the envelope cannot fork the shape of what it wraps, and its proof conditionals demand that a RESOLVED row carries non-null identifiers with source_state ACTIVE while REF_UNPARSED carries none. contract-bindings went 51->53 routes (the receipt envelope and the research route) and the unpaid-version inventory 3->4, each with its dated reason. Writing the empty-state renders then found a second defect in what I had just shipped: `_load`'s sqlite-error path returned ('NOTHING_TO_CHECK', []), the same word the resolver uses when a document names no deliverable, so a ledger that could not be queried read as a receipt with nothing to check. The lookup is now wrapped by `_rollback_or_unreadable` and answers its own aggregate word, LEDGER_UNREADABLE, carried through the emitter constant, its meaning sentence, the schema's three enumerations plus the two counts in its own prose (four->five entries, nine->ten keys) and two different sentences on the page. The page also began reading the vocabulary its own response publishes: `rollback_states` and `rollback_state_vocabulary` had arrived and gone unread while the schema description claimed the Workbench rendered them, so a word outside the published list is now painted as a break and named, with an assertion in each direction. Six backend lies and six page collapses are falsified by named cases (one backend lie is convicted by exactly one reachable test, and the falsifier says why rather than pretending otherwise), and every mutation leaves its source file byte-identical with the bundle rebuilt from it. The falsifier's own instrument was wrong first: it read failing test names off the `... FAIL` progress lines, which unittest emits after the LAST line of a multi-line docstring, so it named a sentence and reported three honest convictions as NOT FELT. Bound run: 418 tests, 0 failures, 0 errors, 0 skips, clean tree at this subject. The evidence artefact gate did its job on this wave and punished it: the drift inventory went 5 -> 29, 23 of them because section 22 of the live audit document is now committed and every record that cites that prose names bytes older than the file, and 2 because the commit that widened the list rewrote the very test file two records name. This row therefore binds its artefacts to the rollback code, not to the document. What this does not prove, and says so on every response: no restore has been performed, a RESOLVED row only means the ledger still holds the version the archive was exported from, and the receipt's own axes stay PARTIAL because no host re-opens a delivered artifact -- real-host E3 remains an owner gate."
+    },
+    {
+      "id": "r5-003-the-emitter-pointer-s-line-number-is-read-and-honoured-20261008",
+      "task_ids": [
+        "DL-R5-003",
+        "DL-R5-001"
+      ],
+      "kind": "local_test",
+      "outcome": "PASS",
+      "subject_sha": "0858d01557913aa99f1d618b9c30e8fa85071188",
+      "binding": "COMMIT",
+      "observed_at": "2026-10-08T01:37:16Z",
+      "software": {
+        "python": "3.13.14 (project .venv)",
+        "platform": "Windows-11-10.0.26100-SP0",
+        "runner": "python scripts/run_bound_test_suite.py --label r5-020-emitter-pointer-is-read-20261008 --modules test_rollback_state_classifier test_delivery_receipt_wiring test_delivery_evidence_ui_contract test_service_http test_contract_bindings test_route_payload_contracts test_evidence_artifact_presence test_domain_pack_readback test_ledger_schema test_state_vocabularies_gate test_gate_reachability test_capability_self_description_gate test_rights_registry_gate test_handoff_readiness test_rights_ledger test_rights_http test_research_store test_research_http test_workbench_css_single_definition test_backup_watches_written_tables test_current_version_rule test_quality_store -> run_id=testrun-20261008T013608Z-forward-repeat-fd85e35aa72e, tests_run=423, failures=0, errors=0, skipped=0, duration=68.656s, order=forward, worktree_clean=True",
+        "test_manifest": "sha256:fb241ded275de798f738c8a777da2aea7498e5612c5bd9ebacd5bfcb93cbb2de",
+        "worktree_digest": "sha256:fd85e35aa72ec8c707ba0eff5be7176cefa4638d72028b75d0cd49f13f4f8d95"
+      },
+      "subject_files": {
+        "design-lab/scripts/verify_contract_bindings.py": "fa21233adf5e0461ccefb72527f780d336d691c203b73bf3f5829fe05436ffda",
+        "design-lab/config/contract-bindings.json": "3c5af4350cf21f268b5c9156f1c9d8cf02c01ef900c3c6a5f669a7bcc02e3bce",
+        "design-lab/tests/test_contract_bindings.py": "fc2e28935f60861dfba5f2a022612b27857b6cfa159a370da621a25f941ce4fa",
+        "docs/audits/DESIGNLAB-LAUNCH-REVIEW-PREFLIGHT-2026-10-08.md": "1ca170550ba5692984610efb0ed22f43f2a54881b5b652b5c3bf7281210f14c5"
+      },
+      "artifacts": [
+        {
+          "path": "design-lab/scripts/verify_contract_bindings.py",
+          "sha256": "fa21233adf5e0461ccefb72527f780d336d691c203b73bf3f5829fe05436ffda"
+        },
+        {
+          "path": "design-lab/config/contract-bindings.json",
+          "sha256": "3c5af4350cf21f268b5c9156f1c9d8cf02c01ef900c3c6a5f669a7bcc02e3bce"
+        },
+        {
+          "path": "design-lab/tests/test_contract_bindings.py",
+          "sha256": "fc2e28935f60861dfba5f2a022612b27857b6cfa159a370da621a25f941ce4fa"
+        }
+      ],
+      "note": "A field every row carried and nobody read. 18 route rows in contract-bindings.json state where their version comes from as ``emitter: 'src/….py:NN'``, and verify_contract_bindings.py has always stripped the ``:NN`` with ``instance_path()`` -- so the number was decoration, and it proved itself so the day this wave landed: adding a docstring paragraph to native_delivery.py moved ``READBACK_SCHEMA_VERSION`` from line 65 to 72, the row still said ``:65``, and VERIFY_CONTRACT_BINDINGS stayed green. Measured before fixing rather than assumed: 11 of 18 lines wrote their version, 4 named a module-level constant holding it, and 3 pointed at unrelated code (`production_preflight.py:324` on `def _aggregate(findings)`, `jury_review.py:53` on `return {`, `native_delivery.py:65` on a blank line). The rule now mirrors the file-half rule -- the line must write the version in code or name the constant whose value it is -- and a missing number, a number past the end of the file and a line inside a docstring are three separately named failures (EMITTER_POINTER_SHAPE / _OUT_OF_RANGE / _IS_PROSE / _NOT_THE_VERSION). Two of this wave's own mistakes are part of the record because they are why the shape is what it is: the check first sat inside rule 7 and produced a second red line for one moved value, which the file's pre-existing 'exactly these errors' assertion caught -- the assertion was right and the gate moved, not the test; and the first pointer repair used a looser rule than the gate and 'fixed' the preflight row onto a sentence inside a docstring (line 37) while the real emission is at 365, so the repair was rewritten to ask the gate's own function which rows are unhonoured and to move each to the nearest line the gate accepts. One row that repair moved unnecessarily (`photoshop_com.py:155`, a subscript write of the version) was put back. Five new cases, one of which loads a weakened COPY of the gate with emitter_pointer_errors short-circuited to ``return []`` and shows the same scratch ledgers stop being convicted, so the red is known to come from the rule and not from the fixture. Bound run at this subject: 423 tests, 0 failures, 0 errors, 0 skips, clean tree; the three gates that import this module (verify_state_vocabularies, verify_route_payload_contracts, verify_capability_self_description) re-ran green, and the drift inventory was still 29 when this run was taken because no record yet named these three paths. This row names all three as its artefacts, so the next edit to the gate, to the ledger or to its test adds three drifts on purpose: that is what binding evidence to the code it describes costs, and it is the cost the r5-003 correction decided to pay rather than cite the audit prose. What this does not do: the pointer is still a line number, so it rots whenever the file is edited above it -- this makes the rot visible, not impossible; pointing at a symbol instead of a coordinate needs its own contract field and is not claimed here."
     }
   ]
 }
