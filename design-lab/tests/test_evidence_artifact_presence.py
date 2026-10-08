@@ -35,7 +35,7 @@ class EvidenceArtifactPresenceTests(unittest.TestCase):
                          'every tracked evidence artefact must still exist')
         # Known decay, asserted rather than hidden. Each entry is a record whose
         # artefact bytes legitimately moved after the observation, and the inventory is
-        # exact so the NEXT unannounced move still goes red. Forty-two records on fifteen
+        # exact so the NEXT unannounced move still goes red. Forty-four records on sixteen
         # distinct artefacts -- and the numbers here are re-measured, not inherited: see
         # the correction below, because this count was wrong in this file for an hour.
         #   * build/main.js -- a 2026-09-27 record used a mutable build output as
@@ -140,7 +140,17 @@ class EvidenceArtifactPresenceTests(unittest.TestCase):
             ('design-lab/scripts/verify_design_lab.py',
              'HASH_MOVED_SINCE_OBSERVATION'): 1,
             ('design-lab/tests/test_object_model_backing_gate.py',
-             'HASH_MOVED_SINCE_OBSERVATION'): 1,
+             'HASH_MOVED_SINCE_OBSERVATION'): 2,
+            # 2026-10-08, the prose-classifier correction moved two more pairs and added one name.
+            # Both are rows bound to code, which is why they drift when that code is corrected:
+            #   * object-model.json -- a record hashes it as its artefact, and the quality-report row
+            #     was re-pointed onto assurance-jury-record-v2.schema.json (the schema human_jury.py
+            #     actually loads) once the classifier stopped reading docstrings as references;
+            #   * test_object_model_backing_gate.py -- the second drifted record on this file is the
+            #     same wave: REAL_COUNTS re-pinned 7/9/5 to 5/10/6 and the new
+            #     ProseIsNotAReferenceTests added to it.
+            # Neither older record is rewritten; each stays the observation it was.
+            ('design-lab/config/object-model.json', 'HASH_MOVED_SINCE_OBSERVATION'): 1,
             ('docs/audits/DESIGNLAB-LAUNCH-REVIEW-PREFLIGHT-2026-10-08.md',
              'HASH_MOVED_SINCE_OBSERVATION'): 23,
         })
@@ -148,7 +158,7 @@ class EvidenceArtifactPresenceTests(unittest.TestCase):
                          'the drifted-artefact inventory is exact in both directions: a new '
                          'move, a new artefact name, or one more record on a known artefact '
                          'are all findings, and a drifted pair that quietly disappeared is too')
-        self.assertEqual(sum(counts.values()), 42,
+        self.assertEqual(sum(counts.values()), 44,
                          'the total drifted-record count is pinned, not derived')
 
     def test_missing_tracked_artefact_is_a_hard_break_not_a_warning(self):
