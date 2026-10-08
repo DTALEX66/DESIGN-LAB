@@ -651,7 +651,15 @@ const RIGHTS_READBACK = {
     + 'decision for; it holds no requirements list',
     'a rights decision clears none of the quality, production or release gates'],
 };
-const RECEIPT_READBACK = {
+// The document, and the envelope the route actually answers with. `rollback_proofs` is derived
+// from the two `backup_ref` strings below and must stay consistent with them: the first is in the
+// asset:<id>/version:<id> form the emitter writes and so can resolve, the second is not, and the
+// aggregate word says plainly that only one of the two delivered artifacts has a live restore
+// source. A fixture whose proofs disagreed with its own document would test the page against a
+// payload no server can send.
+const RECEIPT_SOURCE_ASSET = 'native-' + 'e'.repeat(64);
+const RECEIPT_SOURCE_VERSION = 'v-' + 'd'.repeat(64);
+const RECEIPT_DOCUMENT = {
   schemaVersion: 'design-lab/delivery-receipt/v2',
   job_id: 'native-job-' + '1'.repeat(64),
   created_at: '2026-10-08T09:00:00+00:00',
@@ -663,11 +671,51 @@ const RECEIPT_READBACK = {
       editable: true, host_readback: null, readback_matches_artifact: null,
       requirements: [{ req_id: 'req-rights-review', status: 'NOT_RUN' },
                      { req_id: 'req-native-bytes-verified', status: 'PASS' }],
-      rollback: { backup_ref: 'asset:native-' + 'e'.repeat(64), procedure: 'drop the appended version' } },
+      rollback: { backup_ref: `asset:${RECEIPT_SOURCE_ASSET}/version:${RECEIPT_SOURCE_VERSION}`,
+        procedure: 'drop the appended version' } },
     { deliverable_id: 'preview.png', artifact_sha256: 'sha256:' + 'f'.repeat(64), byte_size: 1024,
       editable: false, host_readback: null, readback_matches_artifact: null,
       requirements: [{ req_id: 'req-rights-review', status: 'NOT_RUN' }],
-      rollback: { backup_ref: 'asset:native-' + 'e'.repeat(64), procedure: 'drop the appended version' } },
+      rollback: { backup_ref: `asset:${RECEIPT_SOURCE_ASSET}`,
+        procedure: 'drop the appended version' } },
+  ],
+};
+const RECEIPT_READBACK = {
+  schemaVersion: 'design-lab/delivery-receipt-readback/v1',
+  receipt: RECEIPT_DOCUMENT,
+  rollback_state: 'PARTLY_UNRESOLVED',
+  rollback_state_vocabulary: ['ALL_RESOLVED', 'PARTLY_UNRESOLVED', 'NONE_RESOLVED',
+    'NOTHING_TO_CHECK', 'LEDGER_UNREADABLE'],
+  rollback_states: ['RESOLVED', 'SOURCE_MISSING', 'OTHER_PROJECT', 'SOURCE_NOT_ACTIVE',
+    'REF_UNPARSED'],
+  state_meaning: {
+    RESOLVED: 'the named asset version is still recorded here for this project and is ACTIVE',
+    SOURCE_MISSING: 'no such version row exists for the named asset at all',
+    OTHER_PROJECT: 'the version exists but its asset belongs to a different project',
+    SOURCE_NOT_ACTIVE: 'the version row exists but is not ACTIVE',
+    REF_UNPARSED: 'the reference is not in the asset:<id>/version:<id> form this emitter writes',
+    ALL_RESOLVED: 'every deliverable names a restore source that still resolves',
+    PARTLY_UNRESOLVED: 'some deliverables resolve and some do not',
+    NONE_RESOLVED: 'no deliverable names a restore source that resolves',
+    NOTHING_TO_CHECK: 'the receipt carries no deliverables, so there was nothing to resolve',
+    LEDGER_UNREADABLE: 'the asset ledger could not be asked during this read, so no reference '
+      + 'was checked',
+  },
+  rollback_proofs: [
+    { deliverable_id: 'native.psd',
+      backup_ref: `asset:${RECEIPT_SOURCE_ASSET}/version:${RECEIPT_SOURCE_VERSION}`,
+      procedure: 'drop the appended version', state: 'RESOLVED',
+      reason: `version 4 of asset ${RECEIPT_SOURCE_ASSET} is recorded ACTIVE for this project`,
+      asset_id: RECEIPT_SOURCE_ASSET, version_id: RECEIPT_SOURCE_VERSION, version_no: 4,
+      source_state: 'ACTIVE' },
+    { deliverable_id: 'preview.png', backup_ref: `asset:${RECEIPT_SOURCE_ASSET}`,
+      procedure: 'drop the appended version', state: 'REF_UNPARSED',
+      reason: "it is not in the asset:<id>/version:<id> form, so it names no ledger row",
+      asset_id: null, version_id: null, version_no: null, source_state: null },
+  ],
+  does_not_prove: [
+    'a RESOLVED reference proves the source version is still recorded; no restore was performed',
+    'resolution reads the asset ledger only; it opens no host document and re-runs no task',
   ],
 };
 const DESIGN_LAYER_EMPTY = { design_layer: { briefs: [], directions: [], chosen_direction: null,
@@ -785,15 +833,95 @@ await flush();
 const receiptText = receiptBox.textContent;
 for (const must of ['PARTIAL', 'native.psd', 'preview.png', 'sha256:' + 'c'.repeat(64),
                     'req-rights-review', 'NOT_RUN', '无宿主读回记录',
-                    `回滚参照：${RECEIPT_READBACK.deliverables[0].rollback.backup_ref}`])
+                    `回滚参照：${RECEIPT_READBACK.receipt.deliverables[0].rollback.backup_ref}`])
   if (!receiptText.includes(must))
     throw new Error(`交付收据读回缺少 ${must}：${receiptText.slice(0, 220)}`);
+// The rollback column is the new fact, and it has to arrive as the service's words rather than
+// as a paraphrase: each proof's own state, its own reason, and the emitter's caveat sentences.
+for (const must of ['RESOLVED', 'REF_UNPARSED', 'PARTLY_UNRESOLVED', '版本 v4', '未解析出版本号',
+                    'is recorded ACTIVE for this project',
+                    'not in the asset:<id>/version:<id> form',
+                    'no restore was performed', 'the source version is still recorded'])
+  if (!receiptText.includes(must))
+    throw new Error(`回滚核对列缺少 ${must}：${receiptText.slice(0, 260)}`);
+if (receiptText.includes('全部可兑现') || receiptText.includes('回滚成功'))
+  throw new Error('一个 RESOLVED 不能被页面说成全部可兑现或已回滚');
+if (receiptText.includes('不在响应公布的词表内'))
+  throw new Error('主夹具里每个词都在响应自己公布的词表内，不得被说成词表外');
+if (receiptText.includes('该状态的释义未随响应给出'))
+  throw new Error('响应给了 state_meaning，页面不得说释义缺失');
 if (receiptText.includes('轴值未读回'))
   throw new Error('文档给出了 axes.delivery，页面不得说轴值未读回');
+if (receiptText.includes('回滚参照未读回'))
+  throw new Error('响应给了 rollback_proofs，页面不得说未读回');
 const receiptMarked = collectMarked(receiptBox);
-for (const word of ['PARTIAL', 'NOT_RUN'])
+for (const word of ['PARTIAL', 'NOT_RUN', 'RESOLVED', 'REF_UNPARSED'])
   if (!receiptMarked.includes(word))
     throw new Error(`收据状态词 ${word} 必须带 lang="en"：${receiptMarked.join('/')}`);
+
+
+// (c2) The rollback half has five ways to have nothing to show, and they are five different
+// sentences. Re-clicking the same entry with a variant payload is the only way to prove a branch
+// renders: the strings exist in the source either way, and an unrendered one has never been
+// checked against the fact it is supposed to name.
+async function renderReceiptVariant(payload, label) {
+  receiptButton.onclick();
+  const reads = shell.pending.splice(0, shell.pending.length);
+  if (reads.length !== 1)
+    throw new Error(`${label} 发出了 ${reads.length} 个请求，应为 1 个`);
+  reads[0].resolve(response(payload));
+  await flush();
+  return receiptBox.textContent;
+}
+
+const proofless = { ...RECEIPT_READBACK };
+delete proofless.rollback_proofs;
+const prooflessText = await renderReceiptVariant(proofless, '缺 rollback_proofs');
+if (!prooflessText.includes('回滚参照未读回'))
+  throw new Error(`响应没给 rollback_proofs，页面必须说未读回：${prooflessText.slice(0, 240)}`);
+if (!prooflessText.includes('PARTIAL'))
+  throw new Error('回滚半边缺字段，不该把收据文档本身也一并抹掉');
+
+const nothingText = await renderReceiptVariant(
+  { ...RECEIPT_READBACK, rollback_proofs: [], rollback_state: 'NOTHING_TO_CHECK' },
+  'NOTHING_TO_CHECK');
+if (!nothingText.includes('回滚核对未做') || !nothingText.includes('没有交付物条目'))
+  throw new Error(`NOTHING_TO_CHECK 要说成没有条目可核对：${nothingText.slice(0, 240)}`);
+if (nothingText.includes('无法查询'))
+  throw new Error('台账查得动、只是没有条目，不得说成无法查询');
+
+// The service really does answer this way: when the ledger query raises during the read, _load
+// reports LEDGER_UNREADABLE with no proofs. It is a failure to look, not a verdict on the sources.
+const unreadableText = await renderReceiptVariant(
+  { ...RECEIPT_READBACK, rollback_proofs: [], rollback_state: 'LEDGER_UNREADABLE' },
+  'LEDGER_UNREADABLE');
+if (!unreadableText.includes('LEDGER_UNREADABLE') || !unreadableText.includes('无法查询'))
+  throw new Error(`LEDGER_UNREADABLE 要说成没有查过：${unreadableText.slice(0, 240)}`);
+if (unreadableText.includes('没有交付物条目'))
+  throw new Error('台账查不动的读回不得被说成这份收据没有条目');
+
+// A newer emitter inventing a state word is the case the published vocabulary exists for. The
+// page may not paint it the way it paints a word it simply has no colour for.
+const unlistedText = await renderReceiptVariant({
+  ...RECEIPT_READBACK,
+  rollback_proofs: RECEIPT_READBACK.rollback_proofs.map((proof, index) =>
+    index === 0 ? { ...proof, state: 'SOLVED_BY_A_NEWER_EMITTER' } : proof),
+}, '词表外的状态词');
+if (!unlistedText.includes('SOLVED_BY_A_NEWER_EMITTER')
+  || !unlistedText.includes('不在响应公布的词表内'))
+  throw new Error(`响应词表里没有的词必须被点名，不能悄悄按中性色处理：${unlistedText.slice(0, 240)}`);
+
+const caveatText = await renderReceiptVariant(
+  { ...RECEIPT_READBACK, does_not_prove: [] }, '空 does_not_prove');
+if (!caveatText.includes('本读回未给出 does_not_prove'))
+  throw new Error(`does_not_prove 为空必须点名，不能静默少一栏：${caveatText.slice(0, 200)}`);
+
+const meaningText = await renderReceiptVariant(
+  { ...RECEIPT_READBACK, state_meaning: {} }, '空 state_meaning');
+if (!meaningText.includes('该状态的释义未随响应给出'))
+  throw new Error(`响应没带释义时页面必须说出来：${meaningText.slice(0, 200)}`);
+if (!meaningText.includes('REF_UNPARSED'))
+  throw new Error('缺释义只影响释义列，条目本身仍须按服务端的状态词渲染');
 
 // (d) The two refusals are two different sentences. 404 says nothing was recorded;
 // 409 says these bytes will not be certified -- and neither may keep the document that

@@ -631,11 +631,18 @@ def main(argv=None):
             from .interop import InteropError, delivery_receipt
             from .native_delivery import NativeDelivery
             try:
-                document = NativeDelivery(service).receipt(args.project_id, args.bundle, args.version)
+                readback = NativeDelivery(service).readback(args.project_id, args.bundle,
+                                                            args.version)
+                document = readback['receipt']
                 # loads() already verified the document; this report is what the
-                # operator reads: the schema it was validated against and every claim
-                # the receipt does not make.
-                result = {'status': 'DELIVERY_RECEIPT', 'verification': delivery_receipt.verify_receipt(document),
+                # operator reads: the schema it was validated against, every claim
+                # the receipt does not make, and -- since the envelope landed -- whether
+                # the restore point the receipt names still exists in this ledger.
+                result = {'status': 'DELIVERY_RECEIPT',
+                          'verification': delivery_receipt.verify_receipt(document),
+                          'rollback_state': readback['rollback_state'],
+                          'rollback_proofs': readback['rollback_proofs'],
+                          'does_not_prove': readback['does_not_prove'],
                           'receipt': document}
             except ImageAssetError as exc:
                 print(json.dumps({'status': 'ERROR', 'error': exc.code,

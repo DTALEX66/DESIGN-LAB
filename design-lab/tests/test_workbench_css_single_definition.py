@@ -368,7 +368,11 @@ class ListItemIsReallyAListMember(unittest.TestCase):
         # `s.count("el('ul', { class: 'list'")`, because the needle matches the exact class -- a
         # `class: 'list research-findings'` hook would sit outside this inventory while still
         # taking .list styling, so all three use the bare class.
-        self.assertEqual(self.shell.count("el('ul', { class: 'list'"), 38)
+        # 2026-10-08 again: 38 -> 39 for the receipt envelope's does_not_prove list
+        # (rollbackLimits()). The proof table itself is a .table inside .table-wrap like the
+        # receipt's other tables, so it adds no container; the caveat sentences are the emitter's
+        # own and are listed as members so a future single-string collapse cannot drop one.
+        self.assertEqual(self.shell.count("el('ul', { class: 'list'"), 39)
 
 
 if __name__ == "__main__":

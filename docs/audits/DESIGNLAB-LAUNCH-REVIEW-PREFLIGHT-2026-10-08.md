@@ -819,7 +819,7 @@ PLANNED 改成 IMPLEMENTED 来"修好"这张表)。行的 `route` 允许写成�
 
 - **真实宿主 E3 / 真人 Jury E4 / 发布 E5**:仍为 owner 门,未自动化,未被任何绿灯冒充。
 - **D-6 落地工作台壳统一**:第二个壳仍未收,保持 BLOCKED。
-- **`#18` 交付收据承诺的 rollback 引用**:`native_bundles._rollback_of` 写入
+- **`#18` 交付收据承诺的 rollback 引用**(2026-10-08 已闭合,见第 22 段;下面保留的是当时的判断,没有改写):`native_bundles._rollback_of` 写入
   `backup_ref = asset:{id}/version:{version_id}`,procedure 文本声称源版本"未被导出改动且写收据时已核过摘要";
   读回侧从未解析这个引用。修它要把收据路由的响应换成信封(`receipt` 文档本身受 `receipt_sha256`
   自摘要约束,**不能**直接往里加字段,否则响应与它自己声明的摘要不再一致),连带 route payload schema、
@@ -833,5 +833,93 @@ PLANNED 改成 IMPLEMENTED 来"修好"这张表)。行的 `route` 允许写成�
   53+19 条研究测试)才提交。
 
 
+## 22. 回滚信封落地,以及它先把自己两处含糊照出来(2026-10-08 追加)
 
+第 21 段把 #18 记成 BLOCKED 是因为我不知道要付多大代价;真做下来,链路本身不是难点,**难点是
+我原来给它的验收方式**——先记录事实,再记录工具自己的三个错。
 
+### 22.1 链路(每段都有人在读)
+
+`native_delivery.py`: `BACKUP_REF` 只认写入方产出的 `asset:<id>/version:<id>`;
+`_resolve_rollback` 一条查询(`ROLLBACK_LOOKUP`,一次 join)给出逐条状态
+`RESOLVED / SOURCE_MISSING / OTHER_PROJECT / SOURCE_NOT_ACTIVE / REF_UNPARSED`;
+`rollback_proofs` 汇总成 `ALL_RESOLVED / PARTLY_UNRESOLVED / NONE_RESOLVED / NOTHING_TO_CHECK`;
+`_rollback_or_unreadable` 把"台账查不动"单独成词(见 22.3);`_load` 一次返回
+(文档, 存储摘要, 汇总词, 逐条依据),`receipt()` 取文档,`readback()` 取信封。
+
+路由 `GET /api/projects/<32hex>/bundles/<bundle-native-…>/versions/<v-…>/receipt` 现在答的是
+`design-lab/delivery-receipt-readback/v1` 信封。文档本身**不加字段**——它用 `receipt_sha256` 给自己的
+字节出证,加一个字段就等于让响应不再等于它自己声明的摘要;新事实住在信封里,信封版本被
+`contract-bindings.json` 的那一行绑住(routes 51→53,含研究路由;未付版本清单 3→4)。
+route payload schema 是从活体响应抓的,不是照抄的:`receipt` 走 `$ref` 指向
+`interop-delivery-receipt-v2`,所以信封不可能把被包裹文档的形状抄歪;`$defs.proof` 的条件式要求
+`RESOLVED` 必须带非空 id 且 `source_state: ACTIVE`,而 `REF_UNPARSED` 必须全空。
+CLI `delivery-receipt` 与证据页(三张表 + 汇总词 chip + 两句不同空态)都读同一份信封。
+
+词表是数据不是口径:5 个逐条状态 + 5 个汇总词,`state_meaning` 10 条,`does_not_prove` 3 条,
+schema 用 const enum + `minItems` 把 5/5/10 三处钉死,`test_rollback_state_classifier.py` 断言
+"每个词都带释义且没有孤儿释义",`test_delivery_evidence_ui_contract.py` 双向比对页面的配色表与
+emitter 的两份词表(颜色是主张,`ok` 仍只允许给 `RESOLVED`)。
+
+### 22.2 反证工具自己先报错,而不是产品先报错
+
+第一版给出三个 `NOT FELT`,而模块确实红了。原因在工具:它从 ` ... FAIL` 进度行取测试名,而
+`unittest -v` 遇到**多行 docstring** 时会把 ` ... FAIL` 缀在 docstring 的最后一行——于是它读到的是
+一句话的第一个词(`failed=['The', 'The']`),不是测试名。改成解析末尾的 `FAIL:` / `ERROR:` 汇总头之后,
+同样的六个变异全部具名判定。**我没有把这三条 `NOT FELT` 当成"变异没被覆盖"去加测试**——那会把
+一个探针缺陷洗成一次虚假的能力补齐。
+
+第二条错是我自己的期望不切实际,三条配对逐条核对可达性后各归各位:
+
+- `NOTHING_TO_CHECK` 塌缩成 `ALL_RESOLVED`:真实交付永远有交付物条目,所以装配级用例结构上到不了
+  这条分支。修法是删掉那条不可能的配对,只留两个空文档分类器用例,并把"为什么只在这里判定"写进
+  工具,而不是把断言放宽。
+- `BACKUP_REF` 被放宽成可选版本半段:`other_shapes_are_all_unparsed` 报 `NOT FELT` 是**清单的缺口**——
+  那份"必须解析失败的引用"清单里恰好没有真实记录里存在的那种半写引用。补进清单(不是改期望)。
+- 去掉存储列的摘要比较:已有的两个 409 用例改的是 `receipt_json`,会先被 `delivery_receipt.loads()`
+  的自摘要校验拦下,列比较那一行**从未被执行**。补一个只改 `receipt_sha256` 列、且断言
+  `loads()` 仍然接受文档的用例。
+
+### 22.3 写空态测试,逼出一个词盖住两件事
+
+我给页面补"空态也要渲染"的用例时才发现:`_load` 的 `except sqlite3.Error` 路径返回
+`('NOTHING_TO_CHECK', [])`,而 `rollback_proofs` 在文档没有交付物时也返回同一个词。两者共用一个
+空列表,含义相反——"这份收据没有条目可查" vs "台账这次查不动"。页面若照词直译,就会把"没查过"
+说成"没有可查的东西"。因此新增第五个汇总词 `LEDGER_UNREADABLE`,并把 try/except 从 `_load` 提成
+`_rollback_or_unreadable`,好让它可以被单测直接命中(真实路径反而构造不出:删掉任何一张被
+`RECEIPT_QUERY` 自己 join 的表,读回在更早处就 404 了)。链路一次补齐:emitter 常量 → 释义 →
+helper → 共用装载 → schema 三处枚举与它自述里的两个数字("四条"→"五条"、"九个键"→"十个键")→
+页面配色表 → 聚合词 chip → 两句不同的空态。反向塌缩也写成一条变异(`LEDGER_UNREADABLE` 当万能兜底),
+它由两条具名用例判定,其中一条是真实交付路径。
+
+### 22.4 一个写在 schema 描述里的假承诺
+
+`rollback_state_vocabulary` 的 description 原本写着"发布出来,好让 Workbench 渲染它收到的词表,
+而不是手抄一份"。当时**页面根本没读这两个字段**——颜色来自一张被 Python 门钉住的手抄表。
+一句描述不能替实现背书,所以两个调用点现在都对照响应自带词表着色:词在表内 → 照表配色,
+词在表外 → 标 `bad` 并明说"不在响应公布的词表内";词表字段缺席 → 不等同于"词不在表内",两条分支
+不合并。正反两条断言都在(appshell 主夹具禁止出现该句,变体夹具要求出现),两条各由一个变异判定。
+
+### 22.5 我今天写坏了自己的工具
+
+用 heredoc 修反证脚本里的锚点时,`\n` 被吃成真实换行,脚本自身变成无法解析的 Python——`ast.parse`
+在写盘之后才跑到,于是坏文件留在了盘上。已用文件+定点编辑修回,并记进既有偏好:**带转义的改动不走
+heredoc / `python -c`**。同一类错误第二次发生,所以它的归处是记忆,不是这段流水账。
+
+### 22.6 本轮数字与仍未闭合
+
+分类器 19 例、装配 13 例、页面契约与 HTTP 与 bindings 与 CSS 清单共 8 个模块 8/8 OK;
+`tsc` 干净,`vite build` 确定性(重建前后 `build/main.js` 摘要一致),node 三门(unit / appshell /
+shape-notice 31 条接缝)全绿;后端 6 条谎言 + 页面 6 条塌缩,每条具名判定,变异后源文件与 bundle
+逐字节还原。`el('ul', { class: 'list'` 容器清单仍是 39(空态与 limits 都走 `<p>`/既有容器)。
+
+不证明的事照旧:`does_not_prove` 三条随每次响应发出——没有执行过任何恢复;`axes.delivery` 仍是
+`PARTIAL`,因为没有宿主重开过被交付的产物;真实台账里 `backup-1` / `backup://job-7` 这类写法会走
+`REF_UNPARSED` 并原样报出文本,这是如实,不是修复。E3/E4/E5 仍是 owner 门。
+
+新记一条待办(#20):`contract-bindings.json` 的 `emitter` 是 `path:line` 形式,而门只读 `path`——
+实测 18 条指针里 11 条的行确实携带该版本字符串,7 条不携带;其中 4 条指向 `"schemaVersion":
+SCHEMA_VERSION,` 这类"常量名"行(意图可辩护,但规则无法核验),3 条是真正的错位
+(`production_preflight.py:324` 落在 `def _aggregate(findings)`、`jury_review.py:53` 落在 `return {`,
+另一条是我今天挪动 docstring 后指向空行)。要么让门读这个行号(行内必须出现版本字符串或其所用
+常量名),要么取消这个从不被读取的精度——不能继续留着它假装被检查过。

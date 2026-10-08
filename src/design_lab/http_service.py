@@ -214,7 +214,11 @@ def make_server(service, token, port=0, *, local_session=False):
                     # fact about different bytes.
                     match = re.fullmatch(r'/api/projects/([0-9a-f]{32})/bundles/(bundle-native-[0-9a-f]{64})/versions/(v-[0-9a-f]{32})/receipt',self.path)
                     if match:
-                        return self.send_json(200,NativeDelivery(service).receipt(*match.groups()))
+                        # The envelope, not the bare document: a receipt's rollback record names an
+                        # immutable source version and nothing used to look it up on the way out.
+                        # The document itself is still returned byte-for-byte under `receipt`, so
+                        # its self-digest keeps describing exactly the bytes it covers.
+                        return self.send_json(200,NativeDelivery(service).readback(*match.groups()))
                     match = re.fullmatch(r'/api/projects/([0-9a-f]{32})/native-assets(?:\?after=(native-[0-9a-f]{64}))?',self.path)
                     if match:
                         return self.send_json(200,NativeAssets(service).list(match[1],match[2] or ''))

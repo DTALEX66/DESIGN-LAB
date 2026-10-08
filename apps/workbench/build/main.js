@@ -3822,6 +3822,18 @@ async function runArtifactPreflight(projectId, bundleId, profile, host) {
     ));
   }
 }
+const ROLLBACK_STATE_TAGS = {
+  RESOLVED: "ok",
+  SOURCE_MISSING: "bad",
+  OTHER_PROJECT: "bad",
+  SOURCE_NOT_ACTIVE: "warn",
+  REF_UNPARSED: "warn",
+  ALL_RESOLVED: "info",
+  PARTLY_UNRESOLVED: "warn",
+  NONE_RESOLVED: "bad",
+  NOTHING_TO_CHECK: "neutral",
+  LEDGER_UNREADABLE: "warn"
+};
 const RECEIPT_AXIS_TAGS = { PASS: "ok", PARTIAL: "warn" };
 function receiptIdentityRow(label, value) {
   return el(
@@ -3839,8 +3851,118 @@ function deliveryReceiptTableWrap(label, table) {
     "aria-label": label
   }, table);
 }
-function deliveryReceiptPanel(data) {
-  if (!Array.isArray(data.deliverables)) {
+function receiptLine(value, fallback, marked, mono) {
+  const present = typeof value === "string" && value.length > 0;
+  if (!present) return el("div", { class: "muted" }, fallback);
+  const text = value;
+  const body = marked ? en(text) : text;
+  return el("div", mono ? { class: "value-mono" } : {}, body);
+}
+function rollbackLimits(readback) {
+  const lines = Array.isArray(readback.does_not_prove) ? readback.does_not_prove : [];
+  if (!lines.length) {
+    return el(
+      "p",
+      { class: "view-hint" },
+      "本读回未给出 does_not_prove，因此无法说明这些核对结论不覆盖什么。"
+    );
+  }
+  return el("ul", { class: "list" }, ...lines.map((line) => el(
+    "li",
+    { class: "list-item" },
+    el("span", {}, en(line))
+  )));
+}
+function publishedWords(list) {
+  return Array.isArray(list) ? list.filter((word) => typeof word === "string") : null;
+}
+function rollbackTagFor(word, list) {
+  const published = publishedWords(list);
+  if (published !== null && !published.includes(word)) return "bad";
+  return ROLLBACK_STATE_TAGS[word] ?? "neutral";
+}
+function rollbackUnpublishedNote(word, list) {
+  const published = publishedWords(list);
+  return published !== null && !published.includes(word) ? "（不在响应公布的词表内）" : "";
+}
+function rollbackProofTable(readback) {
+  const proofs = Array.isArray(readback.rollback_proofs) ? readback.rollback_proofs : [];
+  const meaning = readback.state_meaning ?? {};
+  return el(
+    "div",
+    {
+      class: "table-wrap",
+      tabindex: "0",
+      role: "region",
+      "aria-label": "回滚参照核对表（可横向滚动）"
+    },
+    el(
+      "table",
+      { class: "table" },
+      el("thead", {}, el(
+        "tr",
+        {},
+        el("th", {}, "交付物"),
+        el("th", {}, "回滚参照"),
+        el("th", {}, "核对"),
+        el("th", {}, "依据")
+      )),
+      el("tbody", {}, ...proofs.map((proof) => {
+        const state = typeof proof.state === "string" ? proof.state : "";
+        const note = typeof meaning[state] === "string" ? meaning[state] : null;
+        return el(
+          "tr",
+          {},
+          el("td", {}, proof.deliverable_id ?? "未记录"),
+          el("td", {}, receiptLine(proof.backup_ref, "文档未记录 backup_ref", false, true)),
+          el(
+            "td",
+            {},
+            el(
+              "span",
+              { class: "tag " + rollbackTagFor(state, readback.rollback_states) },
+              state ? en(state) : "未读回",
+              rollbackUnpublishedNote(state, readback.rollback_states)
+            ),
+            receiptLine(proof.version_no === null || proof.version_no === void 0 ? null : `版本 v${proof.version_no}`, "未解析出版本号", false, true)
+          ),
+          el(
+            "td",
+            {},
+            receiptLine(proof.reason, "服务端未给出依据", true, false),
+            receiptLine(note, "该状态的释义未随响应给出", true, false)
+          )
+        );
+      }))
+    )
+  );
+}
+function rollbackNothingChecked(readback) {
+  const state = typeof readback.rollback_state === "string" && readback.rollback_state.length ? readback.rollback_state : "";
+  const cause = state === "LEDGER_UNREADABLE" ? "台账在本次读回中无法查询，所以没有任何一个引用被核对过；这不说明那些源版本已经不存在。" : '这份收据没有交付物条目可供核对，"没有可核对的东西"与"全部可兑现"不是同一件事。';
+  return el(
+    "p",
+    { class: "view-hint" },
+    "回滚核对未做（",
+    state ? en(state) : "状态未读回",
+    "）：",
+    cause
+  );
+}
+function rollbackProofRows(readback) {
+  if (!Array.isArray(readback.rollback_proofs)) {
+    return [el(
+      "p",
+      { class: "error" },
+      "回滚参照未读回：响应没有给出 rollback_proofs，本页不替它宣布这些引用可兑现或不可兑现。"
+    )];
+  }
+  if (!readback.rollback_proofs.length) return [rollbackNothingChecked(readback)];
+  return [rollbackProofTable(readback)];
+}
+function deliveryReceiptPanel(readback) {
+  const data = readback.receipt;
+  if (!data || !Array.isArray(data.deliverables)) {
     return el(
       "p",
       { class: "error" },
@@ -3848,6 +3970,7 @@ function deliveryReceiptPanel(data) {
     );
   }
   const axis = typeof data.axes?.delivery === "string" ? data.axes.delivery : "";
+  const aggregate = typeof readback.rollback_state === "string" ? readback.rollback_state : "";
   const identity = [
     receiptIdentityRow("文档版本", String(data.schemaVersion ?? "")),
     receiptIdentityRow("收据 id", String(data.receipt_id ?? "")),
@@ -3895,6 +4018,14 @@ function deliveryReceiptPanel(data) {
         { class: "tag " + (RECEIPT_AXIS_TAGS[axis] ?? "neutral") },
         axis ? en(axis) : "轴值未读回"
       ),
+      el(
+        "span",
+        {
+          class: "tag " + rollbackTagFor(aggregate, readback.rollback_state_vocabulary)
+        },
+        aggregate ? en(aggregate) : "回滚汇总未读回",
+        rollbackUnpublishedNote(aggregate, readback.rollback_state_vocabulary)
+      ),
       el("span", { class: "muted" }, `交付收据 · ${data.deliverables.length} 个交付物`)
     ),
     deliveryReceiptTableWrap(
@@ -3933,11 +4064,18 @@ function deliveryReceiptPanel(data) {
         el("tbody", {}, ...requirements)
       )
     ),
+    ...rollbackProofRows(readback),
     el(
       "p",
       { class: "view-hint" },
       "收据读回的是交付时登记的事实：成员摘要、字节、可编辑性声明与逐项要求状态。要求项为 NOT_RUN / UNVERIFIED 说的是这些门当时没有跑，不是跑失败了；本页不把它读成 rights 或质量验收。"
-    )
+    ),
+    el(
+      "p",
+      { class: "view-hint" },
+      "回滚核对只回答一件事：收据点名的那个不可变源版本，现在还在不在本项目的台账里。RESOLVED 不等于已经回滚过——收据自己把这条记录称为计划，本页不替它执行。"
+    ),
+    rollbackLimits(readback)
   );
 }
 function receiptRefusal(error) {

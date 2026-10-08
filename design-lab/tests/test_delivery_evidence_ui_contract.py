@@ -86,6 +86,45 @@ class ReceiptAxisVocabulary(unittest.TestCase):
                          f'the contract can emit {sorted(emitted - painted)} and the page has no '
                          'wording for it, so a real delivery would fall through to neutral')
 
+    def test_the_page_colours_only_the_rollback_states_the_resolver_returns(self):
+        """RESOLVED and 'not checked' cannot share a colour.
+
+        The read-back now answers with a state per deliverable, so the page has a colour map for
+        it -- which is exactly the kind of map that rots silently in both directions: a state the
+        resolver can return with no wording falls through to neutral and reads as unremarkable, and
+        a state the page invented would paint a verdict the service never issued.
+        """
+        # Both vocabularies, because the page now colours the aggregate word too: a gate that
+        # compared only the per-deliverable states would let an invented summary word into the
+        # header chip, and would not notice a summary word the emitter added going uncoloured.
+        emitted = (python_tuple_constant(DELIVERY, 'ROLLBACK_STATES')
+                   | python_tuple_constant(DELIVERY, 'ROLLBACK_SUMMARIES'))
+        painted = map_keys('ROLLBACK_STATE_TAGS',
+                           'the page can no longer say which rollback states it colours')
+        self.assertEqual(painted - emitted, set(),
+                         f'the page colours {sorted(painted - emitted)}, which '
+                         'native_delivery.py never returns as a rollback state')
+        self.assertEqual(emitted - painted - {'RESOLVED'}, set(),
+                         f'the resolver can return {sorted(emitted - painted)} and the page has '
+                         'no wording for it; only RESOLVED is allowed to be the green one')
+        # The colours themselves: exactly one state may read as a good outcome, and the state
+        # that means "the restore you promised has nothing to restore from" may not read as one.
+        colours = dict(re.findall(r"(\w+): '([a-z-]+)'", SHELL_TEXT[
+            SHELL_TEXT.index('const ROLLBACK_STATE_TAGS'):
+            SHELL_TEXT.index('};', SHELL_TEXT.index('const ROLLBACK_STATE_TAGS'))]))
+        self.assertEqual([state for state, colour in colours.items() if colour == 'ok'],
+                         ['RESOLVED'],
+                         f'rollback colours {colours}: only RESOLVED may be painted as a good '
+                         'outcome')
+        self.assertEqual(colours.get('SOURCE_MISSING'), 'bad',
+                         f'a missing restore source is painted {colours.get("SOURCE_MISSING")!r}')
+        # The two words that mean "nothing was concluded" must not read as a verdict about the
+        # sources: an unread ledger is not a lost one, and an empty document is not a clean one.
+        self.assertEqual(colours.get('LEDGER_UNREADABLE'), 'warn',
+                         f'an unread ledger is painted {colours.get("LEDGER_UNREADABLE")!r}')
+        self.assertEqual(colours.get('NOTHING_TO_CHECK'), 'neutral',
+                         f'an empty document is painted {colours.get("NOTHING_TO_CHECK")!r}')
+
     def test_the_jury_acceptance_words_are_the_readbacks_own(self):
         """human_acceptance is one of two words in jury_review.py; a third would be invented."""
         text = JURY.read_text(encoding='utf-8')
@@ -136,9 +175,28 @@ class ReceiptRouteContract(unittest.TestCase):
                           r"/bundles/\(bundle-native-\[0-9a-f\]\{64\}\)"
                           r"/versions/\(v-\[0-9a-f\]\{32\}\)/receipt)'", dispatch)
         assert route, 'http_service.py no longer dispatches the delivery receipt route'
-        self.assertIn('NativeDelivery(service).receipt(*match.groups())', dispatch,
-                      'the route does not read the receipt through NativeDelivery, so it is '
+        self.assertIn('NativeDelivery(service).readback(*match.groups())', dispatch,
+                      'the route no longer reads the receipt through NativeDelivery, so it is '
                       'not the re-verifying read the CLI verb uses')
+        # The route answers with an envelope now, and an envelope is easy to make weaker by
+        # accident: if the document inside it were re-derived instead of returned as stored, the
+        # self-digest would stop describing what the client received. So the same test that used
+        # to be satisfied by one call now pins the path the call takes.
+        delivery = (REPO / 'src' / 'design_lab' / 'native_delivery.py').read_text(
+            encoding='utf-8')
+        readback = delivery[delivery.index('def readback('):]
+        readback = readback[:readback.index('\n    def ') + 1]
+        self.assertIn('self._load(', readback,
+                      'readback() no longer goes through the same re-verifying load as '
+                      'receipt(), so the route could answer with an unverified document')
+        self.assertIn("'receipt':receipt", readback.replace(' ', ''),
+                      'readback() must return the stored document itself, not a rebuilt copy')
+        body = delivery[delivery.index('def _load('):]
+        body = body[:body.index('\n    def ') + 1] if '\n    def ' in body else body
+        for guarantee in ('DELIVERY_RECEIPT_UNVERIFIED', "receipt['receipt_sha256']!=row[1]",
+                          'delivery_receipt.loads(row[0])'):
+            self.assertIn(guarantee, body,
+                          f'the shared load no longer performs {guarantee!r}')
         handler = dispatch.index(route.group(1))
         self.assertLess(handler, dispatch.index('raise RequestError(404, \'NOT_FOUND\')'),
                         'the receipt route must be dispatched before the fall-through 404')

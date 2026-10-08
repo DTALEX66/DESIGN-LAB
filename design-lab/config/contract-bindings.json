@@ -362,10 +362,10 @@
       "method": "GET",
       "kind": "BOUND_SCHEMA",
       "handler": "NativeDelivery",
-      "schema": "design-lab/schemas/interop-delivery-receipt-v2.schema.json",
-      "version": "design-lab/delivery-receipt/v2",
-      "emitter": "src/design_lab/interop/delivery_receipt.py:36",
-      "reason": "Added 2026-10-08 with the route. The response IS the persisted DeliveryReceipt V2 document, so it is bound by the same schema and the same emitter as the POST .../bundle row that writes it: receipt_for_bundle() runs verify_receipt() before anything is stored (src/design_lab/native_bundles.py) and NativeDelivery.receipt() re-parses through delivery_receipt.loads(), which re-verifies identity, digests and the axes claim, on every read. Nothing on this route is answered from a re-derived copy. The two refusals keep their own codes: 404 DELIVERY_RECEIPT_NOT_FOUND means no receipt was ever recorded for this ACTIVE version, 409 DELIVERY_RECEIPT_UNVERIFIED means a stored document contradicts its own bytes and the service will not certify them."
+      "schema": "design-lab/schemas/delivery-receipt-readback.schema.json",
+      "version": "design-lab/delivery-receipt-readback/v1",
+      "emitter": "src/design_lab/native_delivery.py:65",
+      "reason": "Re-bound 2026-10-08. The route no longer answers with the bare receipt document: it answers with the design-lab/delivery-receipt-readback/v1 envelope, whose `receipt` member is that document returned verbatim and whose new members resolve each deliverable's rollback reference against the asset ledger. The document is not extended, because it signs its own bytes with receipt_sha256; the resolution therefore travels beside it, and this row binds the envelope schema and the emitter that writes its version. Both still hold: NativeDelivery.readback() reaches the same _load() that delivery_receipt.loads() re-verifies on every read, and test_delivery_evidence_ui_contract.py pins that the envelope carries the stored document rather than a rebuilt one. The two refusals keep their own codes: 404 DELIVERY_RECEIPT_NOT_FOUND means no receipt was recorded for this ACTIVE version, 409 DELIVERY_RECEIPT_UNVERIFIED means a stored document contradicts its own bytes and the service will not certify them."
     },
     {
       "route": "/api/projects/([0-9a-f]{32})/native-assets(?:\\?after=(native-[0-9a-f]{64}))?",

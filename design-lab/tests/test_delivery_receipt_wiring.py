@@ -225,7 +225,46 @@ class DeliveryReceiptProductTest(unittest.TestCase):
                                                               created['bundle']['version_id'])
         self.assertEqual(caught.exception.code, 'DELIVERY_RECEIPT_UNVERIFIED')
 
+    def test_readback_refuses_a_stored_digest_that_describes_different_bytes(self):
+        """The stored column is compared, not trusted: the parser cannot see it.
+
+        ``delivery_receipt.loads`` re-verifies the document against the ``receipt_sha256`` *inside
+        it*, so editing ``receipt_json`` is stopped by the parser before the comparison below is
+        even reached -- that is the case just above. The column is a second copy of the same fact,
+        written so a query can find a receipt by digest. A row whose column was rewritten to
+        another delivery's digest still hands back a perfectly self-consistent document, and only
+        ``_load``'s own comparison refuses it, so that line had to be exercised on its own.
+        """
+        executed, created = self.deliver()
+        receipt = created['bundle']['receipt']
+        asset_id, version_id = created['bundle']['id'], created['bundle']['version_id']
+        database = self.service.paths.database_path(self.service.database)
+        # Re-seal an edited copy so the forged column value is a genuine digest of a genuine
+        # document: "this row now describes a different delivery", not "someone typed rubbish".
+        edited = json.loads(json.dumps(receipt))
+        edited['deliverables'][0]['byte_size'] += 1
+        forged = delivery_receipt.rebuild_identity(edited)['receipt_sha256']
+        self.assertNotEqual(forged, receipt['receipt_sha256'])
+        with closing(sqlite3.connect(database)) as conn:
+            conn.execute('UPDATE delivery_receipt_v1 SET receipt_sha256=? WHERE version_id=?',
+                         (forged, version_id))
+            conn.commit()
+            stored = conn.execute('SELECT receipt_json FROM delivery_receipt_v1 '
+                                  'WHERE version_id=?', (version_id,)).fetchone()[0]
+        # The bytes the parser reads are untouched, and it accepts them -- which is the point:
+        # nothing inside the document reports the mismatch, so a reader that only parsed would
+        # answer with a receipt whose own digest row contradicts it.
+        self.assertEqual(delivery_receipt.loads(stored), receipt)
+        delivery = NativeDelivery(ProjectService(self.root))
+        for name, read in (('receipt', delivery.receipt), ('readback', delivery.readback)):
+            with self.subTest(reader=name):
+                with self.assertRaises(ImageAssetError) as caught:
+                    read(self.project, asset_id, version_id)
+                self.assertEqual(caught.exception.status, 409)
+                self.assertEqual(caught.exception.code, 'DELIVERY_RECEIPT_UNVERIFIED')
+
     # -- (c) no host readback may be claimed --------------------------------- #
+
 
     def test_a_delivery_the_host_never_reopened_claims_no_readback_and_is_not_a_pass(self):
         executed, created = self.deliver()
@@ -319,6 +358,65 @@ class DeliveryReceiptProductTest(unittest.TestCase):
         self.assertEqual(wrong.returncode, 2, wrong.stderr)
         self.assertEqual(json.loads(wrong.stdout)['error'], 'PROJECT_NOT_FOUND')
 
+    # -- (h) the read-back resolves the rollback reference the receipt promises -- #
+    def test_the_readback_envelope_carries_the_document_and_resolves_its_rollback(self):
+        """The envelope must contain the stored document unchanged, and answer the promise.
+
+        Two separate risks live here. The first is that adding a read-back field quietly
+        re-derives the receipt, so ``receipt_sha256`` stops describing the bytes the client holds
+        -- hence the identity and digest comparisons. The second is that the resolution always
+        reports success because nothing was ever looked up -- hence the real version number and
+        the deliberate missing-version case at the end, run over the same connection.
+        """
+        from design_lab import native_delivery as nd
+        from design_lab.interop import resource_registry
+
+        _executed, created = self.deliver()
+        bundle = created['bundle']
+        delivery = NativeDelivery(self.service)
+        document = delivery.receipt(self.project, bundle['id'], bundle['version_id'])
+        envelope = delivery.readback(self.project, bundle['id'], bundle['version_id'])
+
+        self.assertEqual(envelope['schemaVersion'], nd.READBACK_SCHEMA_VERSION)
+        self.assertEqual(envelope['receipt'], document,
+                         'the envelope must answer with the stored document, not a rebuilt one')
+        self.assertEqual(envelope['receipt']['receipt_sha256'], document['receipt_sha256'])
+        self.assertEqual(envelope['rollback_state'], 'ALL_RESOLVED')
+        proofs = envelope['rollback_proofs']
+        self.assertEqual(len(proofs), len(document['deliverables']))
+        for proof, entry in zip(proofs, document['deliverables']):
+            self.assertEqual(proof['state'], 'RESOLVED', proof)
+            self.assertEqual(proof['backup_ref'], entry['rollback']['backup_ref'])
+            self.assertEqual(proof['deliverable_id'], entry['deliverable_id'])
+            self.assertEqual(proof['source_state'], 'ACTIVE')
+            self.assertIsInstance(proof['version_no'], int)
+            self.assertIn('ACTIVE', proof['reason'])
+        for word in nd.ROLLBACK_STATES + nd.ROLLBACK_SUMMARIES:
+            self.assertIn(word, envelope['state_meaning'])
+        self.assertEqual(envelope['rollback_state_vocabulary'], list(nd.ROLLBACK_SUMMARIES))
+
+        # The payload the route sends is what its bound schema accepts, $ref included.
+        schema = load_schema(ROOT / 'design-lab/schemas/delivery-receipt-readback.schema.json')
+        inner = load_schema(delivery_receipt.SCHEMA_PATH)
+        registry = resource_registry({schema['$id']: schema, inner['$id']: inner})
+        self.assertEqual(schema_errors(schema, envelope, registry=registry), [])
+        self.assertEqual(schema_errors(inner, envelope['receipt']), [])
+
+        # A reference to a version this ledger does not hold is reported as missing, on the same
+        # connection: without this the test above only proves the happy path returns something.
+        absent = dict(deliverables=[dict(deliverable_id='ghost.png',
+                                       rollback=dict(backup_ref=f'asset:{bundle["id"]}/version:'
+                                                                 f'v-{"0" * 64}',
+                                                     procedure='p'))])
+        from contextlib import closing as _closing
+        import sqlite3 as _sqlite3
+        database = self.service.paths.database_path(self.service.database)
+        with _closing(_sqlite3.connect(database.as_uri() + '?mode=ro', uri=True)) as conn:
+            summary, produced = nd.rollback_proofs(conn, absent, self.project)
+        self.assertEqual(summary, 'NONE_RESOLVED')
+        self.assertEqual(produced[0]['state'], 'SOURCE_MISSING')
+        self.assertIsNone(produced[0]['version_no'])
+
 
 class RefusesRatherThanInventsTest(unittest.TestCase):
     """``receipt_for_bundle`` may only restate what the bundle manifest records."""
@@ -399,7 +497,6 @@ class RefusesRatherThanInventsTest(unittest.TestCase):
             rights_profile=delivery_receipt.BUNDLE_RIGHTS_PROFILE,
             created_at='2026-10-08T08:59:00+00:00')))
         self.assertEqual(receipt['deliverables'][0]['provenance'], digest)
-
 
 if __name__ == '__main__':
     unittest.main(verbosity=2)

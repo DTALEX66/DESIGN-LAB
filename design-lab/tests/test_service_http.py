@@ -188,11 +188,34 @@ class ServiceHttpTests(unittest.TestCase):
         bundle_id, version_id = created['bundle']['id'], created['bundle']['version_id']
         route = self.receipt_route(project, bundle_id, version_id)
 
-        status, receipt = self.request(path=route)
-        self.assertEqual(status, 200, receipt)
+        status, envelope = self.request(path=route)
+        self.assertEqual(status, 200, envelope)
+        # 2026-10-08: the route answers with the read-back envelope now, and `receipt` inside it
+        # must be the stored document with nothing added, removed or re-derived -- the document
+        # signs its own bytes with receipt_sha256, so an edited copy would leave the client
+        # holding a digest of something it does not have. Every assertion below is on that
+        # document, unchanged from before the envelope existed.
+        self.assertEqual(envelope['schemaVersion'], 'design-lab/delivery-receipt-readback/v1')
+        receipt = envelope['receipt']
         self.assertEqual(receipt, created['bundle']['receipt'])
         self.assertEqual(receipt['schemaVersion'], 'design-lab/delivery-receipt/v2')
         self.assertEqual(receipt['job_id'], job)
+        # The new half: each deliverable's rollback reference is looked up, and the answer says
+        # what was found instead of repeating the promise back.
+        proofs = envelope['rollback_proofs']
+        self.assertEqual([proof['deliverable_id'] for proof in proofs],
+                         ['native.psd', 'preview.png'])
+        self.assertEqual(envelope['rollback_state'], 'ALL_RESOLVED')
+        for proof, entry in zip(proofs, receipt['deliverables']):
+            self.assertEqual(proof['backup_ref'], entry['rollback']['backup_ref'])
+            self.assertEqual(proof['state'], 'RESOLVED')
+            self.assertEqual(proof['source_state'], 'ACTIVE')
+            self.assertIsInstance(proof['version_no'], int)
+            self.assertIn(proof['state'], envelope['rollback_states'])
+            self.assertIn(envelope['rollback_state'], envelope['rollback_state_vocabulary'])
+        self.assertTrue(envelope['does_not_prove'],
+                        'a read-back that reports a resolved restore point without saying that '
+                        'no restore was performed is the exact overclaim this envelope avoids')
         # No host opens a delivered artifact in this product, so a real delivery is
         # PARTIAL by construction; a route that reported PASS would be the lie.
         self.assertEqual(receipt['axes'], {'delivery': 'PARTIAL'})
