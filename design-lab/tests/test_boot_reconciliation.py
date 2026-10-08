@@ -37,6 +37,27 @@ VERIFIER = ROOT / "scripts" / "verify_recovery_safety.py"
 # repository root; inheriting it makes resolve_paths reject the temp project as an
 # out-of-root policy violation. test_native_recovery_lock.py uses the same convention,
 # which is why its cross-process case passes on CI and this one initially did not.
+def _force_cleanup(tmp: tempfile.TemporaryDirectory) -> None:
+    """Remove a temp project for real, after any injected refusal has been withdrawn.
+
+    A test that injects a permanent `cleanup` refusal must not leak the directory it was
+    told to keep, and must not do it by deleting the attribute inline in a `finally` the
+    assertion can jump over.
+    """
+    try:
+        del tmp.cleanup            # withdraw an instance-level injection, if any
+    except AttributeError:
+        pass
+    deadline = time.monotonic() + 20
+    while Path(tmp.name).exists() and time.monotonic() < deadline:
+        try:
+            tmp.cleanup()
+        except PermissionError:
+            time.sleep(0.2)
+    if Path(tmp.name).exists():
+        raise AssertionError("the temp project leaked")
+
+
 def _cleanup_when_released(tmp: tempfile.TemporaryDirectory,
                            deadline_seconds: float = 10.0) -> None:
     """Remove a temp project once the OS has actually let go of the child's lock file.
@@ -157,16 +178,44 @@ class ProbeIsRequired(unittest.TestCase):
             return False
 
 
-    def test_the_wait_still_fails_when_the_handle_is_never_released(self):
-        """The retry buys a moment, not a pardon.
-
-        Without this case the helper could be quietly widened to `ignore_errors=True` and
-        the suite would go green while leaking a temp project on every run -- the same
-        failure it now exists to survive, just hidden instead of fixed.
-        """
+    def _temp_project(self) -> tempfile.TemporaryDirectory:
         runtime = ROOT / ".project-local/task-runtime/boot-reconciliation-tests"
         runtime.mkdir(parents=True, exist_ok=True)
         tmp = tempfile.TemporaryDirectory(dir=runtime)
+        self.addCleanup(_force_cleanup, tmp)
+        return tmp
+
+    def test_a_permanent_refusal_is_still_propagated_after_the_bounded_wait(self):
+        """The retry buys a moment, not a pardon -- asserted without platform machinery.
+
+        Without this case the helper could be quietly widened to `ignore_errors=True` and
+        the suite would go green while leaking a temp project on every run: the same
+        failure it exists to survive, just hidden instead of fixed. The refusal is injected
+        because which OS mechanism refuses a removal is platform machinery (Windows holds
+        the file, POSIX unlinks it while a process still holds it), whereas the promise
+        under test -- a refusal that does not go away must reach the caller after a bounded
+        number of tries -- is not.
+        """
+        tmp = self._temp_project()
+        attempts = []
+
+        def always_refuse():
+            attempts.append(1)
+            raise PermissionError(13, "Permission denied")
+
+        tmp.cleanup = always_refuse
+        with self.assertRaises(PermissionError):
+            _cleanup_when_released(tmp, deadline_seconds=1.0)
+        self.assertGreater(len(attempts), 1,
+                           "the bounded wait must actually retry before it gives up")
+
+    @unittest.skipIf(os.name != "nt",
+                     "ENVIRONMENT_FAIL: only Windows refuses removal of a file another "
+                     "process still holds; on POSIX an open handle is no obstacle, so there "
+                     "is no real-handle refusal to observe there")
+    def test_the_wait_survives_a_handle_that_is_never_released(self):
+        """End-to-end on the platform that actually has the transient the helper exists for."""
+        tmp = self._temp_project()
         locked = Path(tmp.name) / "held.lock"
         locked.write_bytes(b"x")
         child = subprocess.Popen(
@@ -185,14 +234,6 @@ class ProbeIsRequired(unittest.TestCase):
             child.stdout.close()
             child.terminate()
             child.wait(timeout=20)
-        # The dir is still there because the guard refused to pretend; clean it for real.
-        deadline = time.monotonic() + 20
-        while Path(tmp.name).exists() and time.monotonic() < deadline:
-            try:
-                tmp.cleanup()
-            except PermissionError:
-                time.sleep(0.2)
-        self.assertFalse(Path(tmp.name).exists(), "the temp project leaked")
 
 
 class ProductionEntryIsWired(unittest.TestCase):

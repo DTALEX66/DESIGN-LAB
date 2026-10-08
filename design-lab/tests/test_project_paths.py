@@ -72,6 +72,33 @@ class ProjectPathsTests(unittest.TestCase):
                 self.resolve(project_root=self.root, environ={'PROJECT_LOCAL_ROOT':value})
         self.assertFalse((self.root/'.project-local').exists())
 
+    def test_ambient_root_from_the_enclosing_checkout_cannot_relocate_this_project(self):
+        """A child inherits PROJECT_LOCAL_ROOT; it names the parent checkout, not us.
+
+        `child_environment()` exports the variable, and CI therefore runs every test with
+        the real repository's `.project-local` in its environment. When the caller names a
+        project root below that value, honouring the ambient root put this project's
+        runtime outside its own owning project -- which is exactly how seven
+        `test_audit_trail` cases failed in CI while passing locally.
+        """
+        enclosing = ROOT/'.project-local'
+        self.assertTrue(enclosing in self.root.parents,
+                        'the fixture must stay inside this checkout, as CI runs it')
+        layout = self.resolve(project_root=self.root,
+                              environ={'PROJECT_LOCAL_ROOT': str(enclosing)})
+        self.assertEqual(layout.local_root, self.root/'.project-local',
+                         'an ambient root from above may not move this project\'s runtime')
+        self.assertEqual(layout.sources['project_local_root'], 'default')
+        self.assertEqual(layout.sources.get('ambient_project_local_root_ignored'),
+                         str(enclosing),
+                         'the ignored ambient value must be recorded, not dropped silently')
+
+    def test_ambient_root_from_elsewhere_still_fails_closed(self):
+        """The narrow fallback must not become a way to accept an escaping ambient root."""
+        for value in ('../escape', 'D:/outside', '.project-local/../escape', '.hermes'):
+            with self.subTest(value=value), self.assertRaises(self.error):
+                self.resolve(project_root=self.root, environ={'PROJECT_LOCAL_ROOT': value})
+
     def test_absolute_root_inside_project_is_supported(self):
         target = self.root/'.project-local/selected'
         layout = self.resolve(project_root=self.root, environ={'PROJECT_LOCAL_ROOT':str(target)})

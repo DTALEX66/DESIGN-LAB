@@ -221,6 +221,22 @@ class ProjectPaths:
                 'write_trace': 'NOT_EXECUTED', 'migration': 'NOT_EXECUTED'}
 
 
+def _ambient_root_is_above_project(candidate, root):
+    """True when an inherited PROJECT_LOCAL_ROOT names a directory containing `root`.
+
+    Lexical, and deliberately narrow: it only recognises the shape of a value inherited
+    from an enclosing checkout, where the named project root sits below it. It never
+    widens what a caller may point at, so every other ambient value is still judged by
+    `_local_path`, including protected and escaping ones.
+    """
+    if not isinstance(candidate, str) or not candidate.strip():
+        return False
+    path = Path(candidate.replace('\\', '/'))
+    if not path.is_absolute():
+        path = root/path
+    return root == path or path in root.parents
+
+
 def resolve_paths(*, project_root=None, environ=None, project_local_root=None):
     root = Path(project_root if project_root is not None else PROJECT_ROOT).absolute()
     if not root.is_absolute() or not (root/'AGENTS.md').is_file():
@@ -232,10 +248,27 @@ def resolve_paths(*, project_root=None, environ=None, project_local_root=None):
     value = '.project-local'
     if 'project_local_root' in config:
         value, source = config['project_local_root'], 'config:.project/paths.json'
+    ignored_ambient = None
     if 'PROJECT_LOCAL_ROOT' in env:
-        value, source = env['PROJECT_LOCAL_ROOT'], 'environment:PROJECT_LOCAL_ROOT'
+        candidate = env['PROJECT_LOCAL_ROOT']
+        if _ambient_root_is_above_project(candidate, root):
+            # child_environment() exports PROJECT_LOCAL_ROOT, so every child inherits the
+            # enclosing checkout's own .project-local. When the caller names a project
+            # root below that value — a synthetic fixture nested inside the real
+            # .project-local, or a second checkout — the inherited value cannot be this
+            # project's runtime root. Honouring it raised "runtime root is outside the
+            # owning project" and failed seven test_audit_trail cases in CI only.
+            # Everything else still goes through the policy untouched, so an escaping or
+            # protected ambient value ('../escape', 'E:/protected') keeps failing closed.
+            value, source = '.project-local', 'default'
+            ignored_ambient = candidate
+        else:
+            value, source = candidate, 'environment:PROJECT_LOCAL_ROOT'
     if project_local_root is not None:
         value, source = project_local_root, 'explicit'
     local_root = _local_path(root, value)
-    return ProjectPaths(root, local_root, {'project_local_root': source},
+    provenance = {'project_local_root': source}
+    if ignored_ambient is not None:
+        provenance['ambient_project_local_root_ignored'] = ignored_ambient
+    return ProjectPaths(root, local_root, provenance,
                         config.get('shared_inputs', {}), config.get('tools', {}))

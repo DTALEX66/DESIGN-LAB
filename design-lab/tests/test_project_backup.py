@@ -216,13 +216,23 @@ class ProjectBackupTests(unittest.TestCase):
         escaping = 'projects\\..\\..\\escaped.txt'
         with self.assertRaisesRegex(BackupError, 'traversal'):
             _safe_relative(escaping)
-        # The sink: had the string been accepted, joining it would leave the root.
-        # One posix part containing no '..' is two directories up on Windows.
+        # The sink: what would happen if the guard let a shape through. Which shape that
+        # is depends on the platform's own separator, so it is named per platform and the
+        # claim is asserted on both. On Windows a single accepted posix part
+        # `projects\..\..\escaped.txt` resolves two directories up, because `\` is a
+        # separator there. On POSIX backslash is an ordinary filename character, so that
+        # same string cannot escape and the escape arrives as explicit `..` parts instead.
         root = self.base / 'sink-root'
-        joined = root.joinpath(*PurePosixPath(escaping).parts)
-        self.assertEqual(len(PurePosixPath(escaping).parts), 1)
+        self.assertEqual(len(PurePosixPath(escaping).parts), 1,
+                         'the backslash member is a single posix part, which is what hides it')
+        posix_escape = 'projects/../../escaped.txt'
+        joined = root.joinpath(*PurePosixPath(posix_escape).parts)
         self.assertFalse(joined.resolve().is_relative_to(root.resolve()),
-                         'a single accepted part still resolves outside the root')
+                         f'{posix_escape!r} accepted as parts still resolves outside the root')
+        if os.sep == '\\':
+            native = root.joinpath(PurePosixPath(escaping).parts[0])
+            self.assertFalse(native.resolve().is_relative_to(root.resolve()),
+                             'a single accepted part still resolves outside the root on Windows')
         create_backup(self.local, self.archive)
         evil = self.base / 'backslash.zip'
         _synthetic_archive(evil, {'projects\\..\\escaped.txt': b'evil'})
