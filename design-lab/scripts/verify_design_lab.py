@@ -46,8 +46,8 @@ SCRIPTS = [
     # discovery, which is the only way CI runs them.
     "verify_test_selfsufficiency.py",
     # Which of the 21 declared objects does product code actually validate against? The model reads
-    # like a capability list; six of its schemas are loaded by product code, nine only by verifier
-    # scripts and six by nothing at all, and the gate pins that per object so it cannot quietly grow.
+    # like a capability list; seven of its schemas are loaded by product code, nine only by verifier
+    # scripts and five by nothing at all, and the gate pins that per object so it cannot quietly grow.
     "verify_object_model_backing.py",
     # Every *.template.json is what a person copies to make a real record. All three in the
     # repository were broken on 2026-10-08 -- one pointed outside the checkout, one was rejected

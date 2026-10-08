@@ -34,8 +34,8 @@
     {
       "id": "design-system",
       "name": "DesignSystem",
-      "description": "tokens、type、grid、components、asset contracts",
-      "schemaRef": "schemas/design-system.schema.json"
+      "description": "按目录名登记的 DTCG token 文档（tokens 的结构+语义合同，版本链与 lineage 读回）",
+      "schemaRef": "schemas/interop-dtcg-document.schema.json"
     },
     {
       "id": "domain-pack",

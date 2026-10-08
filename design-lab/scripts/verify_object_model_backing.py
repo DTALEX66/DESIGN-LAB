@@ -69,10 +69,6 @@ TOOLING_ONLY = {
 UNREFERENCED = {
     'reference-set': 'no code at all reads schemas/reference-set.schema.json; references are held as '
                      'design-asset rows and as the brief\'s own reference list',
-    'design-system': 'implemented by another shape entirely: src/design_lab/design_layer.py binds '
-                     'catalog design contracts and src/design_lab/interop/dtcg.py writes the DTCG '
-                     'document the /design-system-tokens route serves; nothing names '
-                     'design-system.schema.json',
     'artifact': 'implemented as rows: the artifact and asset_version tables are the real shape and '
                 'src/design_lab/image_assets.py reads them by column; schemas/artifact.schema.json is '
                 'named nowhere',
@@ -190,7 +186,7 @@ def audit(root: Path, check_counts: bool = True):
                               f'({len((reason or "").strip())} chars is a placeholder)')
     # The counts are pinned as well as the membership, because a bucket that quietly changes size is
     # how a contract layer erodes one object at a time.
-    expected = {'PRODUCT': 6, 'TOOLING_ONLY': 9, 'UNREFERENCED': 6, 'MISSING_SCHEMA_FILE': 0}
+    expected = {'PRODUCT': 7, 'TOOLING_ONLY': 9, 'UNREFERENCED': 5, 'MISSING_SCHEMA_FILE': 0}
     for bucket, want in (expected.items() if check_counts else ()):
         if counts[bucket] != want:
             errors.append(f'{bucket}: {counts[bucket]} objects, expected {want} -- measured '

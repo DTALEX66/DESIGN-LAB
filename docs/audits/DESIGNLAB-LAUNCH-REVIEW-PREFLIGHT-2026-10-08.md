@@ -1220,3 +1220,69 @@ JuryRecord 模板教的是 `jury-record.schema.json` 的 v1 形状，而产品�
 `assurance-jury-record/v2`——这两份 schema 的取舍是一次需要 owner 裁定的形状决定，本轮只修
 指针与合法性，没有替它做决定；真实宿主 E3、真人 Jury E4、发布 E5、D-6 落地壳统一、
 74 主体 rights 台账选择仍为 BLOCKED。
+
+## 27. design-system 行：注册表必须指向被执行的合同，而不是被声明的合同
+
+### 27.1 事实
+
+`design-lab/config/object-model.json` 把 `design-system` 指向 `schemas/design-system.schema.json`。
+全仓（`src/`、`packages/`、`apps/`、`design-lab/scripts`）**没有任何代码打开过这个文件**，而它自己也
+装不下产品真正在服务的东西：
+
+* 它要求 `tokens` 的每个值是**字符串**（`additionalProperties: {"type":"string"}`），而
+  `/api/projects/<id>/design-system-tokens/<name>` 读写的是 W3C DTCG 文档——组是嵌套对象，token 是
+  `{$type,$value,$description}`；
+* 它另外声明的 `typography`、`grid`、`components`、`assetContracts` 四节，没有任何一条代码路径写过。
+
+产品的真实能力在别处，而且是完整的：`design_layer.write_tokens()` 先按打包目录校验 design-system
+名字（`UNKNOWN_DESIGN_SYSTEM`），再跑两层判据——结构层 `interop-dtcg-document.schema.json`
+（由 `src/design_lab/interop/dtcg.py` 的 `SCHEMA_PATH` 从仓内加载，绝不取 `$id` URL），语义层
+`dtcg.validate_document`（`$type` 继承、别名解析与成环拒绝、复合成员完整性、按类型的 `$value`
+形状）；校验**在落库之前**，2025.10 之前的文档点名适配器后拒绝而不是悄悄转换；然后才走版本链
+（`STALE_REVISION`）、单写者租约与幂等表。该路由在 `config/contract-bindings.json` 里也已经绑到由
+`dtcg.py` 发出的 `2025.10` 合同。
+
+所以这不是"缺能力"，是**注册表在指着一份想象里的合同**——和 26 节的 BOM 同一类，只是这一条的实现在
+别处已经做对了。
+
+### 27.2 裁定
+
+1. `design-system` 行的 `schemaRef` 改指 `schemas/interop-dtcg-document.schema.json`，
+   `description` 改写成产品真正持有的形状："按目录名登记的 DTCG token 文档（tokens 的结构+语义合同，
+   版本链与 lineage 读回）"。
+2. `design-system.schema.json` **留在原处不删**，但根上加 `description` 写明
+   `SUPERSEDED 2026-10-08`、被谁替代、为什么（字符串 token 装不下 DTCG 组；另四节零生产者），以及
+   重开的条件：**先给产品一个读它与写它的代码，才允许再被任何对象行指回去**。删文件会让理由消失，
+   留文件并写清条件才能挡住下一个人把它当现成合同绑回去。
+3. `verify_object_model_backing.py` 里那行 UNREFERENCED 成员**整行删除**（不是改写），钉住的计数
+   `6/9/6 → 7/9/5`；`test_object_model_backing_gate.py` 的 `REAL_COUNTS` 同步；聚合脚本注释里那句
+   "六个/六个"改成"七个/五个"。
+4. 新增一条**比字面串匹配更强的**守卫：这一行既然为了满足门的匹配规则而被改写，就必须证明它指的是
+   产品运行时真的打开的那个文件——测试直接比较 `object-model` 声明的路径与 `dtcg.SCHEMA_PATH`
+   （`resolve()` 后相等），并断言退役 schema 不再被任何对象行提及。
+   **已证伪**：把 `schemaRef` 改回退役文件后跑这条测试 → `FAILED (failures=1)`；还原后
+   `digest_match=True` 且 `OK`。
+
+### 27.3 顺带抓到 round-trip 仪器的一个盲区
+
+`test_oda4_0204b_object_model_roundtrip.py` 用 `_build_minimal()` 从 schema 合成最小实例，逐对象验一遍。
+它改指之后这条测试**红了**：`design-system: {} should be non-empty`。查下来不是产品的错，也不是裁定错：
+合成器只走 schema 自身的 `required`/`properties`，**不看 `$ref`/`$defs`/`minProperties`**，而 DTCG
+schema 的全部规则都在 `$defs/rootGroup` 里（`minProperties: 1` + `patternProperties: {"^[^$]": …}`），
+于是它合成出 `{}`，被合同正确地拒绝了。
+
+处理方式是不放宽判据、也不跳过这一行：给这一行**手写**一个最小实例
+`{"brand": {"$type": "color", "$value": "#316CFF"}}`，仍放进同一个校验循环（结构与 `{"tokens": {}}`
+那类合成实例一样必须通过 schema），并另加一条测试用**产品自己的语义校验器**跑它——
+`report["token_count"]==1`、`canonical` 为真、`types=={"color": 1}`。语义层是结构 schema 做不到的
+（`$type` 沿组继承，schema 无法解析），这一条因此比原来的合成回路更强。盲区本身写进注释，
+下一个人看到就知道合成器不覆盖 `$ref` 根，而不是误以为这一行被豁免了。
+
+本轮数字：`OBJECT_MODEL_BACKING=OK objects=21 product=7 tooling_only=9 unreferenced=5`；
+`DESIGN_KERNEL=PASS`；`VERIFY_ROUTE_PAYLOAD_CONTRACTS=PASS bindings=5 failures=0`；
+`test_oda4_0204_object_model=8 OK`、`test_oda4_0204b_object_model_roundtrip=5 OK`、
+`test_design_system_tokens=15 OK`、`test_design_system_tokens_http=12 OK`、
+`test_interop_dtcg=36 OK`、`test_design_system_token_form_contract=9 OK`、
+`test_object_model_backing_gate=12 OK`。
+UNREFERENCED 对象行剩 5 条：`artifact`、`tool-run`、`reference-set`、`candidate-knowledge`、
+`method-card`（其中 `method-card` 仍是 #21 的形状裁定）。

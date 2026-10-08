@@ -24,11 +24,13 @@ REPO = Path(__file__).resolve().parents[2]
 GATE_PATH = REPO / 'design-lab' / 'scripts' / 'verify_object_model_backing.py'
 SCRATCH_BASE = REPO / '.project-local' / 'task-runtime' / 'object-model-backing-scratch'
 
-# Measured 2026-10-08 against HEAD c0d44f00, and pinned inside the gate as well: six of the 21
-# declared objects are validated by product code, nine only by verifier scripts, six by nothing.
-# The sixth PRODUCT is delivery-manifest, which gained a product reader on the same day
-# (src/design_lab/assurance/delivery_bom.py) after the BOM contract was found to be unchecked.
-REAL_COUNTS = {'PRODUCT': 6, 'TOOLING_ONLY': 9, 'UNREFERENCED': 6, 'MISSING_SCHEMA_FILE': 0}
+# Measured 2026-10-08 against HEAD f8cc812e, and pinned inside the gate as well: seven of the 21
+# declared objects are validated by product code, nine only by verifier scripts, five by nothing.
+# The seventh PRODUCT is design-system, whose object row was re-pointed on the same day to
+# schemas/interop-dtcg-document.schema.json -- the contract design_layer/interop.dtcg really
+# enforces -- after design-system.schema.json was found to describe a document no code writes.
+# The sixth is delivery-manifest (src/design_lab/assurance/delivery_bom.py).
+REAL_COUNTS = {'PRODUCT': 7, 'TOOLING_ONLY': 9, 'UNREFERENCED': 5, 'MISSING_SCHEMA_FILE': 0}
 
 
 def load_gate(name: str):
@@ -117,6 +119,31 @@ class ShippedTreeTests(unittest.TestCase):
                 self.assertIn(identifier, gate.TOOLING_ONLY)
             elif bucket == 'UNREFERENCED':
                 self.assertIn(identifier, gate.UNREFERENCED)
+
+
+    def test_a_row_repointed_to_satisfy_the_matcher_must_name_the_file_the_product_opens(self):
+        """The design-system row was moved on 2026-10-08 onto the schema dtcg really loads.
+
+        The classifier is deliberately substring-based, which means a registry edit could make an
+        object look PRODUCT by pointing it at a schema whose name only appears in a comment. For the
+        one row this wave re-pointed, the strongest form is asserted instead: the file the object
+        model names is the file the module opens at runtime, and the retired shape is named by no
+        row at all.
+        """
+        sys.path.insert(0, str(REPO / 'src'))
+        from design_lab.interop import dtcg
+        model = json.loads((REPO / 'design-lab' / 'config' / 'object-model.json')
+                           .read_text(encoding='utf-8'))
+        row = next(item for item in model['objects'] if item['id'] == 'design-system')
+        declared = (REPO / 'design-lab' / row['schemaRef']).resolve()
+        self.assertEqual(dtcg.SCHEMA_PATH.resolve(), declared,
+                         'the object row must name the schema design_layer/dtcg validates against')
+        self.assertNotIn('design-system.schema.json', json.dumps(model, ensure_ascii=False),
+                         'a retired shape may not stay bound to an object')
+        gate = load_gate('object_model_backing_repoint')
+        _counts, errors, buckets, _names = gate.audit(REPO)
+        self.assertEqual([], errors)
+        self.assertEqual('PRODUCT', buckets['design-system'])
 
 
 class ScratchTreeTests(unittest.TestCase):

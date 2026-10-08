@@ -9,6 +9,7 @@ Validates that every core object in object-model.json:
 Requires: jsonschema (declared in requirements.txt).
 """
 import json
+import sys
 import unittest
 from pathlib import Path
 
@@ -20,6 +21,19 @@ except ImportError:
     jsonschema = None  # type: ignore
 
 OBJECT_MODEL = ROOT / "design-lab" / "config" / "object-model.json"
+
+#: Minimal instances the synthesiser below cannot build, hand-built instead of skipped.
+#: ``design-system`` is the one object whose contract is a recursive ``$ref``-rooted document:
+#: ``interop-dtcg-document.schema.json`` puts its rules in ``$defs/rootGroup`` (``minProperties: 1``
+#: plus ``patternProperties`` for non-``$`` members), and ``_build_minimal`` walks only a schema's own
+#: ``required``/``properties``, so it synthesised ``{}`` and the schema correctly refused it. The
+#: document below is the smallest thing the product's own semantic validator accepts, so this row now
+#: proves the contract is satisfiable rather than excusing it -- and it is checked against
+#: ``dtcg.validate_document`` in ``test_design_system_instance_is_semantically_valid`` too, which the
+#: structural schema alone cannot do ($type inheritance across groups is unresolved at schema level).
+MINIMAL_INSTANCES = {
+    "design-system": {"brand": {"$type": "color", "$value": "#316CFF"}},
+}
 
 
 def load_json(path: Path):
@@ -99,12 +113,26 @@ class ObjectModelRoundTripTest(unittest.TestCase):
                 failures.append(f"{obj['id']}: schema missing")
                 continue
             schema = load_json(schema_path)
-            instance = self._build_minimal(schema)
+            instance = MINIMAL_INSTANCES.get(obj["id"]) or self._build_minimal(schema)
             try:
                 jsonschema.validate(instance, schema)
             except jsonschema.ValidationError as exc:
                 failures.append(f"{obj['id']}: {exc.message[:120]}")
         self.assertEqual(failures, [], f"round-trip failures: {failures}")
+
+    def test_design_system_instance_is_semantically_valid(self):
+        """Structure is not enough for a token document, so the product's own validator runs too."""
+        sys.path.insert(0, str(ROOT / "src"))
+        from design_lab.interop import dtcg
+
+        schema = load_json(self.schemas_dir / "interop-dtcg-document.schema.json")
+        document = MINIMAL_INSTANCES["design-system"]
+        jsonschema.validate(document, schema)
+        report = dtcg.validate_document(document)
+        self.assertEqual(1, report["token_count"],
+                         f"the minimal document must carry exactly one token: {report}")
+        self.assertTrue(report["canonical"], report)
+        self.assertEqual({"color": 1}, report["types"], report)
 
     def test_object_count(self):
         self.assertGreaterEqual(len(self.objects), 11, "taskpack requires >= 11 core objects")
