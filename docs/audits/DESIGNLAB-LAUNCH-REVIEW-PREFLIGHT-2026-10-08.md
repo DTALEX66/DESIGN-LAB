@@ -923,3 +923,18 @@ SCHEMA_VERSION,` 这类"常量名"行(意图可辩护,但规则无法核验),3 �
 (`production_preflight.py:324` 落在 `def _aggregate(findings)`、`jury_review.py:53` 落在 `return {`,
 另一条是我今天挪动 docstring 后指向空行)。要么让门读这个行号(行内必须出现版本字符串或其所用
 常量名),要么取消这个从不被读取的精度——不能继续留着它假装被检查过。
+
+### 22.7 一条从不存在的字段里抄来的引用
+
+写台账的临时装配器把 `software.runner` 拼成
+`python scripts/run_bound_test_suite.py --label <标签> -> run_id=…`。但 `run_bound_test_suite.py`
+收了 `--label` **却不把它写进回执**:回执里有 `command` 字段,没有 `label` 字段。于是装配器里
+`run.get('label', '')` 永远是空串,66 条记录里 **25 条**的引用长成 `--label  ->`(两个空格,后面什么都没有)。
+本轮那条我把它换成了回执真实记录的 `command`,后续运行不再产生空引用;那 25 条**不回填**——
+标签对那几次运行已经丢了(只有 `run_id` 里那个时间戳还在),按现在的字节重发一遍等于替它们编造
+一条当时没被记录下来的引用。可核对的部分仍然可核对:每条都带 `run_id`、`test_manifest_sha256`、
+`worktree_digest` 与计数,引用的只是"用什么命令行跑的"这一件事。
+
+教训是给工具而非给 prose 的:**回执里没有的键,就不要在引用里假装它存在**。装配器是
+`.project-local` 下的未跟踪脚本,CI 看不见它,所以这类缺陷不可能被任何门抓住——只能靠读到一行
+自己产出的记录时,真的去看它说的到底是什么。

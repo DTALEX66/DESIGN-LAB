@@ -3,7 +3,7 @@
   "taskpack": "DL-TP-20260908-R5",
   "plan_path": "docs/history/taskpacks/r5-20260908/02-TASKS.md",
   "baseline_sha": "ed8d45ab2857b312f6056c43f7bb5e19dd9b65eb",
-  "updated_at": "2026-10-07T23:54:28Z",
+  "updated_at": "2026-10-08T01:19:47Z",
   "source": {
     "path": "docs/history/taskpacks/r5-20260908/tasks.json",
     "sha256": "31dde89eb4ede81fe88c0a5c5144adfb86af8db4c4d8c263bde2199180369b69"
@@ -7832,6 +7832,60 @@
         }
       ],
       "note": "A defect in the checking layer, found because the previous commit's own explanation was wrong. This wave widened verify_evidence_artifact_presence.py's drift inventory from 4 entries to 27 and I recorded the reason as 23 records citing the live audit document. False: the document had not moved. The gate hashed `Path.read_bytes()` and compared it to a record's blob digest, while .gitattributes declares text=auto -- so every CRLF working file drifts on every run regardless of content. `git hash-object` equals the HEAD blob for the audit document, the test module and the bundle, which is the proof. The gate now hashes the committed form (git show HEAD:<path>, index as fallback for a tracked-but-uncommitted path) and the count is back to the four real moves the file named before. Counter-plus-pinned-total form kept, and falsified in BOTH directions: a recorded hash that no longer matches the committed bytes still drifts (that is what a genuine move produces), while flipping a clean artefact's line endings drifts nothing; the probed file is restored and byte-compared afterwards. Sibling gate re-run over its own scope: LEDGER_SUBJECT_BINDING=OK subject_files=388 checked=388 known_unverifiable=67 records=64, EVIDENCE_ARTIFACTS=WARN tracked_broken=0 tracked_drifted=4. Recorded forward as a correction instead of rewriting 493c6a7b or the row filed under it."
+    },
+    {
+      "id": "r5-010-the-rollback-a-delivery-receipt-promises-is-resolved-when-it-is-read-20261008",
+      "task_ids": [
+        "DL-R5-010"
+      ],
+      "kind": "local_test",
+      "outcome": "PASS",
+      "subject_sha": "7ce7f18419741db8740828ead17610ac0ac90b0e",
+      "binding": "COMMIT",
+      "observed_at": "2026-10-08T01:18:48Z",
+      "software": {
+        "python": "3.13.14 (project .venv)",
+        "platform": "Windows-11-10.0.26100-SP0",
+        "runner": "python scripts/run_bound_test_suite.py --label r5-010-rollback-readback-20261008 --modules test_rollback_state_classifier test_delivery_receipt_wiring test_delivery_evidence_ui_contract test_service_http test_contract_bindings test_route_payload_contracts test_evidence_artifact_presence test_domain_pack_readback test_ledger_schema test_state_vocabularies_gate test_gate_reachability test_capability_self_description_gate test_rights_registry_gate test_handoff_readiness test_rights_ledger test_rights_http test_research_store test_research_http test_workbench_css_single_definition test_backup_watches_written_tables test_current_version_rule test_quality_store -> run_id=testrun-20261008T011540Z-forward-repeat-0e3de937db1d, tests_run=418, failures=0, errors=0, skipped=0, duration=187.384s, order=forward, worktree_clean=True",
+        "test_manifest": "sha256:e14e3f1828c237d0e75b404e1ad6b541deccc013c412ab18df86c0f7a385976d",
+        "worktree_digest": "sha256:0e3de937db1df316e3da1e7415e964734a2cbe871d955ce219cd5a73e7001a52",
+        "node": "24.18.0 (declared toolchain in .project/paths.json; the UI modules shell out to it, so the browser-free node gates ran)"
+      },
+      "subject_files": {
+        "src/design_lab/native_delivery.py": "2e604ce8e70a7f3c39df7e7e4e24634e86315682e3a9132205ee095490146147",
+        "src/design_lab/http_service.py": "3f1f789fc240e9a0635e0f230a861855ee99d05c74358edf785e7458c87f03d0",
+        "src/design_lab/cli.py": "26d08206bbec9418764f49a3012214d24abcbd19547554d3717dbe75330074dd",
+        "design-lab/schemas/delivery-receipt-readback.schema.json": "ebe562ae4c29c9d2d646afb6b1edbfefbcfdf0e5bc6fc5dbbf7575f08ef2afa0",
+        "design-lab/config/contract-bindings.json": "cd2a073d736d9218ce9b8f2ba097ab3340e249d95a43258ab527c6eeb1984ab6",
+        "design-lab/tests/test_rollback_state_classifier.py": "d7e504000ecafae460e34eb6db14b754deb271fdf60e7f562b4bfa699a21f8ad",
+        "design-lab/tests/test_delivery_receipt_wiring.py": "9225e2e259c340033711279f25c427113ecfa18d9aaa15b11ef233e969134d23",
+        "design-lab/tests/test_delivery_evidence_ui_contract.py": "53353b034de0f94d5ae6a6060d99429d9d2723dac0992cd8953885ab4e7266a6",
+        "design-lab/tests/test_service_http.py": "8c35f7426977e9a6f46530760acaa0bf9d59a81bc883bfe6703c4f1da6a8b01e",
+        "design-lab/tests/test_contract_bindings.py": "cef3b44165a319a38c27a9ee250d5aed8b89f00106db1989a0a8667288bad850",
+        "apps/workbench/shell.ts": "c2ce2d9834cb44eeaae18bc320e89101f79ad962ff2ea4576d94b269e53dddd8",
+        "apps/workbench/build/main.js": "a9c095bbd1bb6c577eb5983f76fe1640def04c6ae08517b8aaa21ca66d44cece",
+        "apps/workbench/tests/appshell.mjs": "c59c37c8224a635fb0163f252c4dc461a55d62aea55034ef4d7856062541ca84",
+        "design-lab/tests/test_workbench_css_single_definition.py": "aec703f10b831c7824e9264103c9a18966ebb0fa99b8100255ad70dfb9e7d426"
+      },
+      "artifacts": [
+        {
+          "path": "src/design_lab/native_delivery.py",
+          "sha256": "2e604ce8e70a7f3c39df7e7e4e24634e86315682e3a9132205ee095490146147"
+        },
+        {
+          "path": "design-lab/schemas/delivery-receipt-readback.schema.json",
+          "sha256": "ebe562ae4c29c9d2d646afb6b1edbfefbcfdf0e5bc6fc5dbbf7575f08ef2afa0"
+        },
+        {
+          "path": "design-lab/tests/test_rollback_state_classifier.py",
+          "sha256": "d7e504000ecafae460e34eb6db14b754deb271fdf60e7f562b4bfa699a21f8ad"
+        },
+        {
+          "path": "design-lab/tests/test_delivery_receipt_wiring.py",
+          "sha256": "9225e2e259c340033711279f25c427113ecfa18d9aaa15b11ef233e969134d23"
+        }
+      ],
+      "note": "A delivery receipt promises a restore in words and nothing had ever checked that the promise still has a target. `native_bundles._rollback_of` writes ``backup_ref = asset:<id>/version:<id>`` beside procedure text asserting the source version is untouched and was digest-checked when the receipt was written; the read side printed that reference and believed it. Now every read resolves it: `_load` returns (document, stored digest, summary, proofs) and `readback()` publishes them as the design-lab/delivery-receipt-readback/v1 envelope with the state vocabulary, a meaning per word, and does_not_prove. The document itself is not extended -- it signs its own bytes with receipt_sha256 -- so the new fact travels beside it. One query per deliverable against asset_version joined to asset answers RESOLVED / SOURCE_MISSING / OTHER_PROJECT / SOURCE_NOT_ACTIVE / REF_UNPARSED, aggregated as ALL_RESOLVED / PARTLY_UNRESOLVED / NONE_RESOLVED / NOTHING_TO_CHECK; the last two words are kept apart because collapsing them is how an empty ledger starts reading as a clean one, and a reference outside the emitted form is reported with its own text rather than matched to a plausible row. GET /api/projects/<p>/bundles/<asset>/versions/<version>/receipt answers the envelope, the `delivery-receipt` CLI verb publishes rollback_state, rollback_proofs and does_not_prove next to the untouched document, and the evidence page renders the identity, per-deliverable and requirement tables plus the resolver's limits. The route payload schema is a live capture, not a transcription: it $ref-s interop-delivery-receipt-v2 so the envelope cannot fork the shape of what it wraps, and its proof conditionals demand that a RESOLVED row carries non-null identifiers with source_state ACTIVE while REF_UNPARSED carries none. contract-bindings went 51->53 routes (the receipt envelope and the research route) and the unpaid-version inventory 3->4, each with its dated reason. Writing the empty-state renders then found a second defect in what I had just shipped: `_load`'s sqlite-error path returned ('NOTHING_TO_CHECK', []), the same word the resolver uses when a document names no deliverable, so a ledger that could not be queried read as a receipt with nothing to check. The lookup is now wrapped by `_rollback_or_unreadable` and answers its own aggregate word, LEDGER_UNREADABLE, carried through the emitter constant, its meaning sentence, the schema's three enumerations plus the two counts in its own prose (four->five entries, nine->ten keys) and two different sentences on the page. The page also began reading the vocabulary its own response publishes: `rollback_states` and `rollback_state_vocabulary` had arrived and gone unread while the schema description claimed the Workbench rendered them, so a word outside the published list is now painted as a break and named, with an assertion in each direction. Six backend lies and six page collapses are falsified by named cases (one backend lie is convicted by exactly one reachable test, and the falsifier says why rather than pretending otherwise), and every mutation leaves its source file byte-identical with the bundle rebuilt from it. The falsifier's own instrument was wrong first: it read failing test names off the `... FAIL` progress lines, which unittest emits after the LAST line of a multi-line docstring, so it named a sentence and reported three honest convictions as NOT FELT. Bound run: 418 tests, 0 failures, 0 errors, 0 skips, clean tree at this subject. The evidence artefact gate did its job on this wave and punished it: the drift inventory went 5 -> 29, 23 of them because section 22 of the live audit document is now committed and every record that cites that prose names bytes older than the file, and 2 because the commit that widened the list rewrote the very test file two records name. This row therefore binds its artefacts to the rollback code, not to the document. What this does not prove, and says so on every response: no restore has been performed, a RESOLVED row only means the ledger still holds the version the archive was exported from, and the receipt's own axes stay PARTIAL because no host re-opens a delivered artifact -- real-host E3 remains an owner gate."
     }
   ]
 }
