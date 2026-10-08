@@ -1824,3 +1824,90 @@ appshell ⑦b 钉住两面：必须出现 `/api/evidence-projection`、必须继
 - 17 条无对应：退役即删文件 + 删行，`retire_coherent` 已确认无连带。
 
 不自作主张执行任何一条：升级合同是宣布"边界已受保护"，退役是销毁一个声明，两者都是产品判断。
+
+## 34. 界面换上自己的标志：一张黑白稿怎么穿过被 CSP 锁死的界面
+
+### 34.1 为什么这算能力链上的一环，不是美工活
+
+侧栏品牌砖和旧版页头一直写着 `DL` / `D/L` 两个字母。owner 交了正式黑白稿，要求"匹配界面尺寸比例、
+自行抠出来使用、可以加光效"。难点不在抠图，在服务边界：`src/design_lab/workbench.py` 只服务三条
+固定路径（index.html / main.js / style.css），文件头写着"never serve arbitrary paths or project
+assets"，CSP 是 `img-src data:`。于是"加一张 logo"只有两条路：扩白名单并放宽 CSP（一次安全面变化，
+还要动 wheel 打包与 packaging 校验），或者把资产内联进那条已经被服务的样式表。选了后者，并且把这个
+理由写成断言——`test_workbench_brand_asset.py` 钉住 `img-src data:` 仍在、`ROUTES` 仍是三条；哪天真
+加了资产路由，测试会要求改动者同时交代 CSP，而不是让 data URI 作为孤儿继续躺在样式表里。
+
+### 34.2 抠的过程（可复算，不是手调参数）
+
+源图 1344×1384、mode L。按行墨迹投影得到三条带：681×662、1088×117、758×135。选字标带用的是
+"最接近正方"，不是"第一条带"——第一条带这个假设一旦上游把图裁掉顶部就会静默选中字标。
+alpha 斜坡取 `clip((L-64)/128)`：源图是双峰的（85.2% 低于 32、12.5% 高于 224、中间只有 2.3%），
+所以斜坡几乎不吃掉任何真实边缘。结果 17.93% 不透明 / 76.46% 全透 / 5.61% 过渡，不透明处 RGB 恒为
+255，图形离画布边 10–12px。输出 144×144 透明画布、字形占 86%，PNG 4,953 字节、内联后 6,626 字符。
+
+48px 的槽位放不下 1088×117 的字标带，所以只用图形标；`DESIGN-LAB` 仍是文本，这也正是品牌砖可以
+`aria-hidden` 的前提——名字由文字给出，图像没有可播报的内容。旧写法把 `DL` 放在砖里，读屏会把项目名
+念两遍。光效用 `::after` 承载，因为 `filter` 加在砖上会去给圆角方形的边描光，而不是给字形。
+
+### 34.3 "logo 显示了吗"只能在真浏览器里回答
+
+我一开始把断言写进 `apps/workbench/tests/appshell.mjs`，给 mock 的 `MockElement` 补了
+`querySelector`。结果 `navigator is not defined`：`mountB10Shell` 第一行是能力探测
+`if (typeof probe.querySelector !== 'function') return null;`，注释写明"the vm unit smoke has no
+real querySelectorAll, so this never runs there"。也就是说那个 mock 缺 `querySelector` 是故意的，
+补上它等于改了产品在该壳下的行为——它真的挂载了 B10 侧栏，然后撞上 mock 里没有的 `navigator`。
+已回退，断言改到溢出门里。
+
+样式表文本同样回答不了这个问题：URI 写坏了，声明仍然在。所以门里量的是渲染结果——砖 48×48、
+无文字、`aria-hidden=true`、`::after` 的 filter 生效，以及浏览器自己报出这条 data URI 解码成
+144×144。三个宽度各测一次。
+
+### 34.4 这一片自己被证伪过什么
+
+- 植入故障一：把内联 base64 换成合法但非 PNG 的串 → `OV_BRAND_BROKEN 1440: the mark decoded as
+  decode-failed, not 144x144`。
+- 植入故障二：把 `background:var(--brand-mark) center/76% no-repeat` 换成 `background:none` →
+  `no-data-uri`。
+- 两次都红，恢复后控制绿，且样式表字节与实验前一致（脚本比较 sha256 后才退出）。
+- 单测侧同样可扰：payload 互换、digest 互换、资产缺失三种情况都要求 `--check` 返回 1；
+  砖不消费 token、区域跑到 `:root` 外面、图形贴到画布边（即黑底没抠掉）都会红。
+- `12` 例单测 OK，聚合 `VERIFY_DESIGN_LAB=OK total=68 failed=0`。
+
+### 34.5 顺带纠正的一处旧账
+
+给样式表加东西时撞上了 `test_workbench_css_single_definition.py` 的列表容器精确清单：树里是 41，
+pin 还写着 39，差的两条正是 a0d001a8 加的 `projectionReasonList()` 与 `projectionReceiptRows()`。
+增长是合法的，不合法的是这个 pin 四个提交之前就被打破而没人知道。之所以漏掉：那次报"398 全绿"的运行是
+`--modules` 子集，而这个文件不在子集里。**子集不是全套**，把子集当全套汇报，正是精确清单型 pin 能
+在被打破之后继续活下来的方式。本次之后每片收尾都跑 `--order forward` 全套。
+
+### 34.5b 全套跑出来的另外两处（都是我自己前几片留下的）
+
+同一轮全套还抓到两个子集永远看不见的红：
+
+- `test_oda4_0204b_object_model_roundtrip.py` 的最小实例合成器不解析 `$ref`。`juror` 在
+  `#/$defs/juror` 里是一个对象，合成器因为拿不到 `type` 就回落成字符串 `"test-value"`，于是
+  round-trip 判的是探测器的盲区，不是 schema 的问题。这条从 463416fa 把 quality-report 一行
+  重指到 `assurance-jury-record-v2.schema.json` 起就是红的——那一行的 required 字段全是 `$ref`。
+  修的时候又连着掉出两个同类盲区：digest 的 pattern（schema 故意拒绝全零摘要，所以值改由字段名
+  派生），和 rfc3339 的 pattern（装的 jsonschema 不校验 `format`，schema 只能用正则守时间戳）。
+  schema 三次都对，错的一直是探针；现在解析不了的 `$ref` 会大声失败，不再悄悄塞字符串。
+- 新增一个被跟踪的二进制，在这个仓里不是免费的：`verify_license_coverage.py` 要 SPDX 头与
+  sidecar，`verify_asset_governance.py`（DL-AST-001）要 sha256 对得上、权利字段是布尔、
+  并且没有 sourceId 就必须有人批的例外与到期日。sidecar 按事实写：作者与批准人是 owner
+  本人（DTALEX66），依据就是本次"抠出来使用"的指示；`commercialUse` 真（它进产品界面）、
+  `modelInputAllowed` 真（owner 把文件交给了做抽取的会话）、`redistributable` 假——
+  没有任何一句话说过这个标志可以带到项目之外，品牌怎么授权是 owner 的决定，不是我替他写的。
+  这三项里若有不对，改的就是这个 sidecar。
+
+两处都不是"新发现的缺陷"，是"我前几片没跑全套所以没看见的缺陷"。差别很重要：前者说明门有用，
+后者说明我汇报绿的方式有问题。
+
+### 34.6 交给 owner 的选项
+
+- 完整 lockup（图形标 + `DESIGN-LAB` 字标 + 中文副标）已能量出来并内联，但当前界面没有需要宽版品牌位
+  的版面（没有 splash / 关于视图）。要用的话，入口是 `index.html` 的 legacy header，或者新增一个关于
+  视图——这是版面决定，不是技术缺位。
+- 若希望 logo 作为文件被服务（便于外部宿主或导出物复用），需要同时改 `workbench.ROUTES` 与 CSP
+  `img-src`；`test_workbench_brand_asset.py` 会拦住并要求写明理由。
+- 桌面窗口图标（原生宿主标题栏 / 任务栏）还没用这张稿，那是原生侧的资产通道，不在这条 Web 边界里。
