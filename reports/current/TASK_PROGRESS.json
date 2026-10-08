@@ -3238,7 +3238,8 @@
         "MOVED_SINCE_BOUND_COMMIT:design-lab/tests/test_contract_bindings.py",
         "MOVED_SINCE_BOUND_COMMIT:apps/workbench/shell.ts",
         "MOVED_SINCE_BOUND_COMMIT:apps/workbench/build/main.js",
-        "MOVED_SINCE_BOUND_COMMIT:apps/workbench/tests/appshell.mjs"
+        "MOVED_SINCE_BOUND_COMMIT:apps/workbench/tests/appshell.mjs",
+        "MOVED_SINCE_BOUND_COMMIT:design-lab/tests/test_workbench_css_single_definition.py"
       ],
       "current": false,
       "id": "r5-010-the-rollback-a-delivery-receipt-promises-is-resolved-when-it-is-read-20261008",
@@ -3253,7 +3254,8 @@
         "MOVED_SINCE_BOUND_COMMIT:design-lab/tests/test_contract_bindings.py",
         "MOVED_SINCE_BOUND_COMMIT:apps/workbench/shell.ts",
         "MOVED_SINCE_BOUND_COMMIT:apps/workbench/build/main.js",
-        "MOVED_SINCE_BOUND_COMMIT:apps/workbench/tests/appshell.mjs"
+        "MOVED_SINCE_BOUND_COMMIT:apps/workbench/tests/appshell.mjs",
+        "MOVED_SINCE_BOUND_COMMIT:design-lab/tests/test_workbench_css_single_definition.py"
       ],
       "software": {
         "node": "24.18.0 (declared toolchain in .project/paths.json; the UI modules shell out to it, so the browser-free node gates ran)",
@@ -3525,7 +3527,8 @@
       "currency_reasons": [
         "MOVED_SINCE_BOUND_COMMIT:design-lab/config/object-model.json",
         "MOVED_SINCE_BOUND_COMMIT:design-lab/scripts/verify_object_model_backing.py",
-        "MOVED_SINCE_BOUND_COMMIT:design-lab/tests/test_object_model_backing_gate.py"
+        "MOVED_SINCE_BOUND_COMMIT:design-lab/tests/test_object_model_backing_gate.py",
+        "MOVED_SINCE_BOUND_COMMIT:design-lab/tests/test_oda4_0204b_object_model_roundtrip.py"
       ],
       "current": false,
       "id": "r5-010-design-system-row-names-the-enforced-contract-20261008",
@@ -3537,7 +3540,8 @@
       "reasons": [
         "MOVED_SINCE_BOUND_COMMIT:design-lab/config/object-model.json",
         "MOVED_SINCE_BOUND_COMMIT:design-lab/scripts/verify_object_model_backing.py",
-        "MOVED_SINCE_BOUND_COMMIT:design-lab/tests/test_object_model_backing_gate.py"
+        "MOVED_SINCE_BOUND_COMMIT:design-lab/tests/test_object_model_backing_gate.py",
+        "MOVED_SINCE_BOUND_COMMIT:design-lab/tests/test_oda4_0204b_object_model_roundtrip.py"
       ],
       "software": {
         "platform": "Windows-11-10.0.26100-SP0",
@@ -3795,15 +3799,19 @@
         }
       ],
       "binding": "COMMIT",
-      "currency_reasons": [],
-      "current": true,
+      "currency_reasons": [
+        "MOVED_SINCE_BOUND_COMMIT:apps/workbench/shell.ts"
+      ],
+      "current": false,
       "id": "r5-003-the-evidence-link-gets-a-route-a-card-and-a-cost-worth-asking-20261008",
       "integrity_reasons": [],
       "kind": "local_test",
       "note": "The evidence link had become truthful and still had exactly one reader: the axis rule inside reporting.py. Nobody -- no route, no page, no gate -- could ask 'is any of this verified', which makes sections 30 and 31 unfinished rather than finished. This row is that last gap closed: contract, emitter, route, ledger row, live-socket binding, UI, and a browser gate that measures the panel after the click. design-lab/schemas/evidence-projection.schema.json binds design-lab/evidence-projection/v1 as a closed envelope (subjectSha, ledger, totals, reasonCounts, receipts, taskCounts) whose receipts carry eleven fields and nothing else -- a record's note, software block and per-file digests do not leave the ledger through this surface, because a page that renders a record's own prose about itself is showing an unjudged claim. The reason vocabularies are TWO closed enums (ten integrity tokens, four currency tokens, each optionally ':path'-suffixed) so a reason added in code without being registered in the contract is a violation at the gate, not a new word a reader meets for the first time in production. `evidence_readback._check` runs on every answer. The emitter recomputes project_ledger for the running checkout from the ledger plus the object database and never reads reports/current/: a generated projection is bound to the commit it was written at, and handing that out as 'the state of the code you are running' is the same substitution of stale evidence for observation this whole wave has been removing. Failures are named and status-mapped -- EVIDENCE_LEDGER_ABSENT / EVIDENCE_SUBJECT_UNRESOLVABLE / EVIDENCE_CONTRACT_ABSENT are 503, EVIDENCE_LEDGER_REJECTED / EVIDENCE_CONTRACT_VIOLATION / EVIDENCE_PROJECTION_OVERFLOW are 500 -- and none of them answers an empty receipts list, because '0 records' from a refused read is a fabricated clean bill. http_service.EVIDENCE_READBACK_STATUS is reconciled against the emitter's own AST in both directions: a refusal code with no status, or a status for a code nothing raises, is red. Ledger and gate: the route is BOUND_SCHEMA (routes 53->54, bound 15->16, dispatched follows or the inventory rule fires), and verify_route_payload_contracts.py drives it over a real socket twice -- 156 object locations compared, bindings 6->7, VERIFY_ROUTE_PAYLOAD_CONTRACTS=PASS failures=0. Two calls, not one: two answers for one subject would mean the readback is not a function of the bytes it claims to describe. A defect this row would otherwise have hidden: the first working readback cost 10.0s cold and 10.3s warm -- 502 byte claims, one `git show` process each. That is not a slow page, it is a question nobody will ask, and putting the button further down the screen would have been tuning around it. _CommitReader now reads one `git cat-file --batch` per commit plus one `ls-files -z` and one `diff`: 1.0s, 0 per-claim reads, 21 batches + 21 existence probes. Verdicts are unchanged (the integrity distribution is identical: OUTCOME_NOT_PASS 37, ARTIFACT_IS_NOT_VERSIONED 63, RUNTIME_ARTIFACT_ABSENT_ON_THIS_MACHINE 1, EVIDENCE_DIGEST_DIFFERS 2) and a test compares the batched and per-claim reads path by path including the absent-blob branch, because a speedup that changes a verdict is a different program. The cost guard asserts process SHAPES, not a duration -- a timing budget fails red on a loaded runner and passes green on an idle one while the real regression, back to one process per claim, stays invisible in both. Collapsing the duplicate RUNTIME_ARTIFACT_ROOT declaration is where the sharp edge was: my first slice ran past the class boundary and deleted Claims/basis/claims; the script's own guard caught it before the write, it was restored from HEAD (nothing else in that file was uncommitted), and redone with position-checked anchors. Lesson recorded as a rule: a region-replacement guard must assert what must NOT be in the span, not only what must be. UI: a 证据系统 panel, button-driven like the delivery receipt for the same reason -- a whole-checkout recompute is an explicit action, not a page side effect. Three distinct verdicts derived from the two booleans, never from a hand-copied service enum word, each marked lang=\"en\": VERIFIED CURRENT, VERIFIED NOT CURRENT, NOT VERIFIED. Missing totals or receipts renders no numbers and says which field was absent; a refusal shows the service's own code; a truncated list says it truncated, so 12 rows can never be read as 12 records. The panel lives in a new `preamble` slot of projectPickerPanel rather than in the per-project body: this verdict is about the checkout, so requiring a project selection first made it unaskable on an empty synthetic ledger -- a truth-shape bug, not a layout preference. Gates and falsification: the browser overflow gate gained an INTERACTIONS table and measures the panel AFTER the click at 1440/1280/1920 (clipped=0 stray=0 tiny=0 docX=0), carrying the settled state into the report so a refusal cannot masquerade as a clean measurement, and the python gate demands at least one width actually displayed the readback. Before trusting it, the new clause was pointed at a selector nothing renders: exit 2 with OV_INTERACTION_UNMEASURED, while the control run exits 0. appshell ⑦b pins build-time silence (one request, and never this route), one click one request to the right path, the three verdicts each with lang=\"en\", reason counts taken from the payload, the honest cap notice, and the three failure shapes with no KPI drawn. Two process errors of mine, recorded because they are the interesting kind. First bound run at a0d001a8: FAILED(1), the one red being the drift inventory -- this wave changed four files that older records hash (verify_route_payload_contracts.py, contract-bindings.json, test_contract_bindings.py, reporting.py) -- so the pins were re-measured 47->51 pairs over 20 named artefacts with a dated reason, not relaxed. Second: I chained `git commit -F - <<'MSG' ... MSG && <next command>` on one line, so the terminator was never recognised, the commit was empty, and the bound suite ran on a dirty tree reporting clean=False -- a receipt that looks identical to a valid one. It was discarded and re-run at a clean HEAD with the message in a file; the appender's refusal to bind to a dirty receipt is what made the mistake visible. VERIFIED at this HEAD: test_evidence_readback_contract 17 OK, test_current_reporting 43 OK, test_ledger_subject_binding 19 OK, test_evidence_artifact_presence 4 OK, appshell/unit/shape-notice all pass, VERIFY_CONTRACT_BINDINGS=PASS schemas=32 binding=2 inert=30 routes=54 dispatched=54 bound=16 schema_less=38, projection at 34d2515b: 75 receipts, 38 verified, 1 current, MOVED_SINCE_BOUND_COMMIT 163, task counts {'PARTIAL': 28} -- no axis promoted by this wave. Bound run tests=398 failures=0 errors=0 skipped=0 order=forward clean=True on the nodejs-lts 24.18.0 PATH. E2 controlled-runtime at most, and only for the geometry: a real browser rendering the committed bundle against the live service. No design host is involved, so host_live and delivery stay PARTIAL and E3/E4/E5 are untouched by this row. Owner-gated items unchanged: MethodCard's two shapes, the brief content model, jury template V1 vs product V2, and the wire-or-retire call on the 30 INERT contracts.",
       "observed_at": "2026-10-08T07:38:19Z",
       "outcome": "PASS",
-      "reasons": [],
+      "reasons": [
+        "MOVED_SINCE_BOUND_COMMIT:apps/workbench/shell.ts"
+      ],
       "software": {
         "platform": "Windows-11-10.0.26100-SP0",
         "python": "3.13.14 (project .venv)",
@@ -3829,13 +3837,13 @@
   ],
   "fresh": false,
   "freshnessMeaning": "at generation only; check verifies bound-input integrity, not current Git or cloud state",
-  "generatedAt": "2026-10-08T07:39:46+00:00",
+  "generatedAt": "2026-10-08T09:10:10+00:00",
   "gitStateMeaning": "generation-time observation, not current HEAD",
   "ledgerUpdatedAt": "2026-10-08T03:04:03Z",
   "note": "DONE_LOCAL concerns the declared task axes and dependencies, not a product release or hosted CI.",
   "schemaVersion": "design-lab/task-progress/r5-v1",
   "subjectMeaning": "subjectType=WORKTREE means the tree was dirty at generation; worktreeDigest covers HEAD plus the non-generated changes",
-  "subjectSha": "96db73ff9055d722edb4f6b1f6aebf8232a896ae",
+  "subjectSha": "0f10350846329bd20b51a1464bf0142b30ac2baf",
   "subjectType": "COMMIT",
   "taskpack": "DL-TP-20260908-R5",
   "taskpackHash": "31dde89eb4ede81fe88c0a5c5144adfb86af8db4c4d8c263bde2199180369b69",
@@ -6339,10 +6347,10 @@
       "unresolved_conditions": []
     }
   ],
-  "testRunAt": "2026-10-08T07:38:19+00:00",
-  "testRunId": "testrun-20261008T073719Z-forward-repeat-cf94afd60017",
-  "testRunMeaning": "bound run: python scripts/run_bound_test_suite.py --label evidence-readback-20261008 --modules test_current_reporting test_ledger_subject_binding test_evidence_readback_contract test_contract_bindings test_route_payload_contracts test_object_model_backing_gate test_brief_readback_contract test_template_contracts_gate test_delivery_bom test_production_preflight test_evidence_artifact_presence test_gate_reachability test_test_selfsufficiency_gate test_state_vocabularies_gate test_ledger_schema test_rights_ui_contract test_design_system_tokens test_interop_dtcg",
-  "testRunResult": "OK",
+  "testRunAt": "2026-10-08T08:47:58+00:00",
+  "testRunId": "testrun-20261008T082428Z-forward-f47b374ca55d",
+  "testRunMeaning": "bound run: python scripts/run_bound_test_suite.py --order forward --label brand-wave-full",
+  "testRunResult": "FAILED",
   "worktreeClean": true,
-  "worktreeDigest": "sha256:8db3e1e432c3a5b84afe33300719a43193d92b1ac445357edae3673dad46f390"
+  "worktreeDigest": "sha256:efa3c7e5f6196295f87985cf908537dc78f0591aec1c87d24b6979ebf4ba9395"
 }
