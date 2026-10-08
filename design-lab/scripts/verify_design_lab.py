@@ -45,6 +45,10 @@ SCRIPTS = [
     # that only reached sys.path because a neighbour inserted it first -- both invisible under
     # discovery, which is the only way CI runs them.
     "verify_test_selfsufficiency.py",
+    # Which of the 21 declared objects does product code actually validate against? The model reads
+    # like a capability list; five of its schemas are loaded by nothing at all and nine only by
+    # verifier scripts, and the gate pins that per object so it cannot quietly grow.
+    "verify_object_model_backing.py",
     # CI runs this one directly; it was missing from the aggregate, so a local bound run
     # could go green while the vocabulary contract was broken. That is exactly how a UI
     # change on 2026-10-08 passed every gate I ran and still broke canonical-verify.

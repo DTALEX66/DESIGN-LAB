@@ -1,0 +1,214 @@
+# SPDX-License-Identifier: MIT
+"""Teeth for design-lab/scripts/verify_object_model_backing.py.
+
+The gate's claim is narrow on purpose -- "does any product code name this object's schema, or is the
+only reader a verifier?" -- so the tests check exactly that, on scratch trees, plus the one property
+that bit me while writing it: the gate carries a filename inventory in its own source, so if its
+corpus includes itself, the gate cites its own reasons as evidence and every object it mentions turns
+into a reference. The first run did exactly that and reported 16 TOOLING_ONLY objects; the test below
+keeps that from coming back.
+"""
+from __future__ import annotations
+
+import contextlib
+import importlib.util
+import io
+import json
+import re
+import shutil
+import sys
+import unittest
+from pathlib import Path
+
+REPO = Path(__file__).resolve().parents[2]
+GATE_PATH = REPO / 'design-lab' / 'scripts' / 'verify_object_model_backing.py'
+SCRATCH_BASE = REPO / '.project-local' / 'task-runtime' / 'object-model-backing-scratch'
+
+# Measured 2026-10-08 against HEAD 0a873fc1, and pinned inside the gate as well: five of the 21
+# declared objects are validated by product code, nine only by verifier scripts, seven by nothing.
+REAL_COUNTS = {'PRODUCT': 5, 'TOOLING_ONLY': 9, 'UNREFERENCED': 7, 'MISSING_SCHEMA_FILE': 0}
+
+
+def load_gate(name: str):
+    spec = importlib.util.spec_from_file_location(name, GATE_PATH)
+    module = importlib.util.module_from_spec(spec)
+    sys.modules[spec.name] = module
+    spec.loader.exec_module(module)
+    return module
+
+
+def build_scratch(root: Path, objects, product_text='', tooling_text=''):
+    """A minimal repository: an object model, its schemas, one product file, one verifier script."""
+    if root.exists():
+        shutil.rmtree(root)
+    (root / 'design-lab' / 'config').mkdir(parents=True)
+    (root / 'design-lab' / 'schemas').mkdir(parents=True)
+    (root / 'src').mkdir(parents=True)
+    (root / 'design-lab' / 'scripts').mkdir(parents=True)
+    for obj in objects:
+        schema_name = (obj.get('schemaRef') or '').split('/')[-1]
+        if schema_name:
+            (root / 'design-lab' / 'schemas' / schema_name).write_text(
+                json.dumps({'$schema': 'https://json-schema.org/draft/2020-12/schema',
+                            '$id': f'https://example.invalid/schemas/{schema_name}',
+                            'type': 'object',
+                            'properties': {'schemaVersion': {'const': obj['version']}}}),
+                encoding='utf-8', newline='\n')
+    (root / 'design-lab' / 'config' / 'object-model.json').write_text(
+        json.dumps({'version': 'design-lab/object-model/v1',
+                    'objects': [{k: v for k, v in obj.items() if k != 'version'}
+                                for obj in objects]}, indent=2) + '\n',
+        encoding='utf-8', newline='\n')
+    (root / 'src' / 'product.py').write_text(product_text or '# no schema names here\n',
+                                            encoding='utf-8', newline='\n')
+    (root / 'design-lab' / 'scripts' / 'verifier.py').write_text(
+        tooling_text or '# no schema names here\n', encoding='utf-8', newline='\n')
+    return root
+
+
+def audit(root: Path, check_counts=False):
+    gate = load_gate('object_model_backing_scratch')
+    return gate.audit(root, check_counts)
+
+
+class ShippedTreeTests(unittest.TestCase):
+    def test_the_shipped_tree_passes_with_the_counts_the_gate_pins(self):
+        gate = load_gate('object_model_backing_shipped')
+        counts, errors, buckets, names = gate.audit(REPO)
+        self.assertEqual(errors, [], f'the shipped tree is red: {errors[:4]}')
+        self.assertEqual(counts, REAL_COUNTS)
+        self.assertEqual(len(buckets), sum(REAL_COUNTS.values()))
+
+    def test_main_reports_the_verdict_line_and_exits_zero(self):
+        gate = load_gate('object_model_backing_main')
+        buffer = io.StringIO()
+        with contextlib.redirect_stdout(buffer):
+            code = gate.main([])
+        self.assertEqual(code, 0, buffer.getvalue())
+        self.assertIn('OBJECT_MODEL_BACKING=OK', buffer.getvalue())
+
+    def test_every_non_product_object_carries_a_sentence_naming_what_implements_it(self):
+        """An exemption without a sentence is a way of never looking at the object again.
+
+        The reason has to point somewhere a reader can open -- a path -- or state the absence in words
+        that can be falsified ("no code at all reads…", "nothing names…"). A reason that only
+        restates the bucket ("not wired yet") is the placeholder this refuses.
+        """
+        gate = load_gate('object_model_backing_reasons')
+        path_like = re.compile(r'(src|packages|apps|design-lab)/[\w./-]+|[\w-]+\.py')
+        absence = ('no code', 'nothing names', 'no product code', 'no product path', 'nowhere',
+                   'no producer')
+        for table in (gate.TOOLING_ONLY, gate.UNREFERENCED):
+            for identifier, reason in table.items():
+                self.assertGreaterEqual(len(reason.strip()), 60,
+                                        f'{identifier} has a placeholder exemption')
+                self.assertTrue(path_like.search(reason) or any(word in reason for word in absence),
+                                f'{identifier}: {reason[:70]!r} names no path and no stated absence')
+
+    def test_the_two_inventories_do_not_claim_the_same_object_twice(self):
+        gate = load_gate('object_model_backing_overlap')
+        shared = set(gate.TOOLING_ONLY) & set(gate.UNREFERENCED)
+        self.assertEqual(shared, set(), f'{sorted(shared)} sits in both buckets')
+        _, _, buckets, _ = gate.audit(REPO)
+        for identifier, bucket in buckets.items():
+            if bucket == 'TOOLING_ONLY':
+                self.assertIn(identifier, gate.TOOLING_ONLY)
+            elif bucket == 'UNREFERENCED':
+                self.assertIn(identifier, gate.UNREFERENCED)
+
+
+class ScratchTreeTests(unittest.TestCase):
+    def test_an_unpinned_unreferenced_object_is_named(self):
+        root = build_scratch(SCRATCH_BASE / 'unpinned', [
+            {'id': 'mystery-card', 'name': 'Mystery', 'description': 'd',
+             'schemaRef': 'schemas/mystery-card.schema.json', 'version': 'x/mystery/v1'}])
+        counts, errors, buckets, _ = audit(root)
+        self.assertEqual(buckets['mystery-card'], 'UNREFERENCED')
+        self.assertIn('mystery-card', ' '.join(errors))
+        self.assertIn('not pinned', ' '.join(errors))
+
+    def test_an_object_pinned_as_unreferenced_that_gains_a_product_reference_is_reported(self):
+        """Paying the debt must not leave the old claim sitting in the file."""
+        root = build_scratch(SCRATCH_BASE / 'paid', [
+            {'id': 'artifact', 'name': 'Artifact', 'description': 'd',
+             'schemaRef': 'schemas/artifact.schema.json', 'version': 'x/artifact/v1'}],
+            product_text="SCHEMA = 'artifact.schema.json'\n")
+        counts, errors, buckets, _ = audit(root)
+        self.assertEqual(buckets['artifact'], 'PRODUCT')
+        joined = ' '.join(errors)
+        self.assertIn('pinned as UNREFERENCED but it is now PRODUCT', joined)
+
+    def test_a_missing_schema_file_is_its_own_finding(self):
+        root = build_scratch(SCRATCH_BASE / 'missing', [
+            {'id': 'ghost', 'name': 'Ghost', 'description': 'd',
+             'schemaRef': 'schemas/ghost.schema.json', 'version': 'x/ghost/v1'}])
+        (root / 'design-lab' / 'schemas' / 'ghost.schema.json').unlink()
+        counts, errors, buckets, _ = audit(root)
+        self.assertEqual(buckets['ghost'], 'MISSING_SCHEMA_FILE')
+        self.assertIn('does not exist', ' '.join(errors))
+
+    def test_a_placeholder_reason_is_rejected_even_when_the_bucket_is_right(self):
+        root = build_scratch(SCRATCH_BASE / 'placeholder', [
+            {'id': 'reference-set', 'name': 'R', 'description': 'd',
+             'schemaRef': 'schemas/reference-set.schema.json',
+             'version': 'x/reference-set/v1'}])
+        gate = load_gate('object_model_backing_placeholder')
+        gate.UNREFERENCED = {'reference-set': 'not wired'}
+        counts, errors, buckets, _ = gate.audit(root)
+        self.assertIn('needs a sentence', ' '.join(errors))
+
+    def test_the_pinned_counts_are_only_checked_against_the_real_tree(self):
+        """check_counts=False lets a scratch tree exercise the membership rules without inheriting
+        the real repository's numbers, which is what makes the four cases above meaningful."""
+        root = build_scratch(SCRATCH_BASE / 'counts', [
+            {'id': 'reference-set', 'name': 'R', 'description': 'd',
+             'schemaRef': 'schemas/reference-set.schema.json',
+             'version': 'x/reference-set/v1'}])
+        strict = audit(root, check_counts=True)
+        loose = audit(root, check_counts=False)
+        self.assertIn('expected 7', ' '.join(strict[1]))
+        self.assertEqual(loose[1], [], f'the scratch tree should be clean but: {loose[1]}')
+
+    def test_an_empty_model_fails_closed_rather_than_passing_nothing(self):
+        root = build_scratch(SCRATCH_BASE / 'empty', [])
+        gate = load_gate('object_model_backing_empty')
+        gate.REPO = root
+        buffer = io.StringIO()
+        with contextlib.redirect_stdout(buffer):
+            code = gate.main([])
+        self.assertEqual(code, 1, buffer.getvalue())
+        self.assertIn('objects=0', buffer.getvalue())
+
+
+class CorpusIntegrityTests(unittest.TestCase):
+    def test_the_gate_must_not_cite_its_own_inventory_as_evidence(self):
+        """Remove the self-exclusion and the gate starts reading its own reasons as references.
+
+        This is not hypothetical: the first version of the gate reported 16 TOOLING_ONLY objects
+        because its pinned reasons name schema files, and it was scanning the file those reasons live
+        in. The numbers were wrong in the direction that hides a gap, which is the worst direction.
+        """
+        source = GATE_PATH.read_text(encoding='utf-8')
+        self.assertEqual(source.count('if path.resolve() == here:'), 1)
+        directory = SCRATCH_BASE / 'no-self-exclusion'
+        if directory.exists():
+            shutil.rmtree(directory)
+        directory.mkdir(parents=True)
+        path = directory / 'verify_object_model_backing.py'
+        path.write_text(source.replace('                if path.resolve() == here:\n'
+                                       '                    continue\n', ''),
+                        encoding='utf-8', newline='\n')
+        spec = importlib.util.spec_from_file_location('gate_without_self_exclusion', path)
+        weak = importlib.util.module_from_spec(spec)
+        sys.modules[spec.name] = weak
+        spec.loader.exec_module(weak)
+        counts, errors, buckets, _ = weak.audit(REPO)
+        self.assertNotEqual(counts, REAL_COUNTS,
+                            'the weakened gate agrees with the shipped one, so the corpus never '
+                            'contained this file in the first place')
+        self.assertGreater(counts['TOOLING_ONLY'], REAL_COUNTS['TOOLING_ONLY'],
+                           f'expected self-citation to inflate TOOLING_ONLY, got {counts}')
+
+
+if __name__ == '__main__':
+    unittest.main()

@@ -1053,3 +1053,46 @@ closed**:声明的第二方根若一个可导入名字都产不出来,说明门�
 提到 900s 它还是没跑完,而我唯一一次逐方法计时**被我自己用 `timeout 900` 包住了**,于是量盒子的
 仪器先被盒子杀死,那份"每个方法多少秒"的清单永远没有出来——它现在仍是空缺,下一轮要测的是模块真实
 总时长与逐方法预算,而不是再猜一个大一点的时间盒。**给测量设上限之前,先确认上限不是被测对象的一部分。**
+
+
+## 25. 21 个声明对象里,产品真正校验的只有 5 个(2026-10-08 追加)
+
+`design-lab/config/object-model.json` 声明 21 个对象,每个都指向一个 schema 文件。今天之前,所有门
+只问过两句:"文件存在吗"(`verify_design_kernel.py`)、"路由返回的形状符合它吗"
+(`verify_route_payload_contracts.py`)。从没问过的那句是:**产品代码里,到底有没有人按这个 schema
+校验过任何东西?**——还是一个验证脚本在自我循环地读它?
+
+度量口径刻意窄到可grep:一个对象算被引用,当且仅当它的 **schema 文件名** 或它 schema 里的
+`properties.schemaVersion.const`(没有 const 时用 `$id`)这个字面串,出现在
+`src/`、`packages/`、`apps/workbench/`(=产品)或 `design-lab/scripts/`(=门)。结果:
+
+| 桶 | 数量 | 含义 |
+|---|---|---|
+| PRODUCT | 5 | research-finding、domain-pack、preflight-report、handoff-package、quality-report |
+| TOOLING_ONLY | 9 | brief、command、direction、evidence-record、execution-result、extraction-job、memory-record、project、quality-assessment |
+| UNREFERENCED | 7 | artifact、candidate-knowledge、delivery-manifest、design-system、method-card、reference-set、tool-run |
+
+新门 `verify_object_model_backing.py`(已挂进 `verify_design_lab.py`)把这三桶钉住:桶成员必须逐条
+在册,每条非 PRODUCT 记录必须写明"今天到底是什么在实现它"(门的长度下限 + 测试要求它点名一个路径
+或明确说"无"),计数写死,所以"债还上了却忘了删豁免行"和"某个对象从模型里悄悄消失"两种漂移都会红。
+
+两条仪器错误都留在了测试里,不是留在道歉里:
+
+1. 第一版按标识符做词边界搜索,于是 `design-system`、`artifact` 和 jury record 被判"未实现"——它们
+   全都实现了,只是代码写的版本串是 `design-lab/assurance-jury-record/v2`,而对象模型给它起的 id 是
+   `quality-report`。**一次假阴就能让人去重建已经在跑的东西**,所以规则退回到只做字面串匹配,门顶把
+   这件事写成"为什么不写更聪明的扫描"。
+2. 门把**自己的清单**扫进了语料:它的理由里写着 `schemas/bom.schema.json`、`artifact.schema.json`
+   这些名字,于是第一次跑就报出 16 个 TOOLING_ONLY、7 个"未在册"。加了 corpus 自排除之后数字才落到
+   5/9/7。这一条现在有专门测试:把自排除那两行从副本里删掉,同一棵真实树必须立刻不匹配钉住的计数
+   ——**门的证据集合里不能有门自己**。
+
+顺带把 #21 的说法升级了一次:MethodCard 不是"两个形状冲突、需要人裁定"这么轻——object-model 指向的
+那个 `method-card.schema.json` **全仓库没有任何代码读它**,而真正被使用的
+`visual-quality/master-method-card.schema.json` 走的是研究侧的验证脚本。两个形状、零生产者,这句话
+现在由门钉着,不再靠记忆传递。
+
+本轮数字:门自身 11 条测试 OK(含 6 种 scratch 树变异 + 2 种削弱副本);`DESIGN_KERNEL=PASS`;
+`TEST_SELF_SUFFICIENCY=OK modules=208 executable=208`;`OBJECT_MODEL_BACKING=OK objects=21
+product=5 tooling_only=9 unreferenced=7`。仍开放:16 条非 PRODUCT 记录的逐条裁定(接线、改名或退役)、
+#19 的真实时长、E3/E4/E5、D-6、74 主体 rights 台账选择。
