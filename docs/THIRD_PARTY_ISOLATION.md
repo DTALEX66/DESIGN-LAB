@@ -114,3 +114,51 @@ LICENSE/COPYING/NOTICE 文件（`license_files_absent=0`），所以权利复核
 计数为 **46 条**：`LOCAL_CACHE_ONLY` 37 / `ABSENT_FROM_GIT` 6 / `IN_REPO` 3，与 `disposition` 的
 `CONDITIONAL_POC` 37 / `LOCK_REFERENCE` 6 / `ABSORB_MINIMAL` 3 一一对应。43 是 2026-09-04 的数字，
 其后补进了 3 条 `ABSORB_MINIMAL` 与记录修正；不改写原行是为了让读者看见这条声明曾经过期。
+
+## 聚合项 `tool-control` 的逐源归属（补记于 2026-10-09）
+
+`vendor/sources.lock.json` 的 tool-control 行在 `canonicalUrlAbsentReason.why` 里写的理由是：
+"缓存树里没有 SOURCE.md，只有指向文档/捐赠/配色站的文内链接"。这条理由的**前提没测过**：
+该树自己带两份来源表——根 `README.md`（2026-08-19）第二、三节与 `scripts/README.md`——
+逐子树列了 owner/repo、许可与脚本数。锁与 taxonomy 各说这批来自"四个上游"，
+而这两份表和字节本身给出**七个第三方来源**：
+
+| 声明的来源（照表转录） | 树内位置 | 实测文件 | 实测字节 | 树内有 LICENSE？ |
+|---|---|---|---|---|
+| creold/illustrator-scripts（MIT，README 记 99） | `scripts/illustrator` | 100 | 3,172,528 | 有 |
+| creold/photoshop-scripts（MIT，README 记 11） | `scripts/photoshop` | 12 | 87,594 | 有 |
+| StefanTraistaru/batch-export（MIT，README 记 2） | `scripts/inkscape` | 2 | 23,497 | 无 |
+| Comfy-Org workflow_templates（MIT，README 记 "1+"） | `scripts/comfyui` | 1 | 28,274 | 无 |
+| style-dictionary examples（Apache-2.0，README 记 1） | `scripts/style-dictionary` | 1 | 4,178 | 无 |
+| github/awesome-copilot 的 adobe-illustrator-scripting SKILL（MIT） | `adobe-illustrator-scripting-SKILL.md` | 1 | 35,264 | 无 |
+| abdul-karim-mia/photoshop-automator（README 自写"未核实…许可未核实不吸收"） | `photoshop-automator-SKILL.reference.md` | 1 | 2,620 | 无 |
+| DESIGN-LAB 自述（本仓写入的两份来源表，非第三方内容） | `README.md`、`scripts/README.md` | 2 | 2,926 | — |
+
+八组实测文件数与字节数相加 = 120 / 3,356,881，与该清单自己的 `fileCount` / `totalBytes`
+相等；README 声称的"99 脚本 / 11 脚本"与子树里的 100 / 12 个文件也对得上（多出的正是各
+LICENSE 文件）。也就是说这不是新判断，是把已经写在货里的单据搬到仓内。
+
+门：`design-lab/scripts/verify_vendor_manifests.py` 现在校验 `origins` 声明——每一条第三方
+字节必须恰好属于一个已声明来源（`ORIGINS-UNASSIGNED-ROW`）、每个已声明来源必须真有字节
+（`ORIGINS-EMPTY-ORIGIN`）、子树前缀不得互相嵌套（`ORIGINS-NESTED`）、来源自己发布的文件数/
+字节数/摘要/许可文件名必须与它那些行算出来的一致（`ORIGINS-MEASUREDFILES` /
+`ORIGINS-MEASUREDBYTES` / `ORIGINS-CONTENTDIGEST` / `ORIGINS-LICENSEFILESPRESENT`）、
+不得声称比实际更多的脚本（`ORIGINS-DECLARED-COUNT-UNMATCHED`，单侧判断：子树里多出 LICENSE
+或 README 是合法的，少出来说明记录在吹），且没有 URL 必须写清理由
+（`ORIGINS-URL-UNEXPLAINED`）——我不把 `github.com/creold/...` 这类拼装出来的地址当证据，
+表里只给了 owner/repo。`--write` 只重算实测半边，声明半边与 `reviewedBy` 一律照人写的保留。
+
+**仍然未决（属 owner）**：八条来源的 `reviewedBy`/`rightsDecision` 全为空，门按
+`origins=8 origins_unreviewed=8` 报数不判红；八个来源里只有两个带 LICENSE 文件；
+`abdul-karim-mia/photoshop-automator` 那条连它自己的单据都写着"未核实"。
+把锁的聚合行**拆成独立条目**这一步我没做，但不该按锁写的那个理由来定范围。锁的
+`canonicalUrlAbsentReason.whatWouldCloseIt` 说"ids 被 capability index 与 quarantine registry
+引用"——实测含 `tool-control` 的行数是：`design-lab/config/capability-index.json` **0**、
+`design-lab/research/global-absorption/QUARANTINE_REGISTRY.json` **0**；真正要一起改的是
+`SOURCE_REGISTRY.json` 8 行、`CANDIDATE-TAXONOMY.json` 3 行、`rights-registry.json` 1 行、
+`knowledge-role-classification.json` 1 行、以及锁自己 3 行。外加 `sources.lock.json` 是
+`scripts/deepseek_registry_ssot.py` 认定的规范文件之一、由 `generate_rights_registry.py`
+生成进 `rights-registry.json`，读它的门还有 `verify_source_lock.py` /
+`verify_source_registry.py` / `verify_supply_chain.py` 三道。所以拆分确实是跨记录的协同变更，
+只是集合要按上面测出来的来，不能沿用那句没核过的话。
+本轮先把"每个上游有多少字节、谁没有许可"变成可复核的事实与会响的门，拆分留下一次统一改。

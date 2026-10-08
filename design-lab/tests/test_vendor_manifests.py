@@ -8,9 +8,11 @@ aggregate digest from those rows to prove the manifest and the lock describe the
 bytes without the files being present.
 
 These tests exist because a check nobody can make fail is not a check. Every finding the gate
-emits is fed a planted defect, and the two cases that matter most are pinned directly: the
+emits is fed a planted defect, and the three cases that matter most are pinned directly: the
 row-level recipe must reproduce `digest_dir` byte for byte (if it drifts, `--check` proves
-nothing), and regeneration must never invent a rights review.
+nothing), regeneration must never invent a rights review, and an aggregate root's `origins`
+list must account for every byte exactly once -- which is how `tool-control` was shown to hold
+seven upstreams where the lock named four.
 """
 from __future__ import annotations
 
@@ -104,8 +106,47 @@ class ConsistentState:
             encoding="utf-8", newline="\n")
 
     def findings(self) -> list[str]:
-        problems, _pending, _rows, _no_licence = v.check(self.lock, self.manifests)
-        return problems
+        return v.check(self.lock, self.manifests).problems
+
+    def result(self):
+        return v.check(self.lock, self.manifests)
+
+    def declare(self, origins: list[dict]) -> None:
+        """Write a declaration, then let the generator compute the measured half.
+
+        This is the production path, so the tests also prove `refresh_origins` will not let a
+        declaration keep a stale number.
+        """
+        document = self.manifest()
+        document["origins"] = origins
+        self.save(document)
+        v.write(self.lock, repo=self.repo, manifest_dir=self.manifests)
+
+    def remeasure(self) -> None:
+        """Re-run the presence audit over the current cache, the way the real script does.
+
+        Without this a mutated cache is refused by the drift guard -- which is correct, and is
+        exactly why a test that wants to exercise the writer has to move the lock too.
+        """
+        rows = v.walk_cache(self.cache)
+        count, digest = v.digest_dir(self.cache)
+        self.lock = make_lock(".project-local/cache/vendor/demo-root", rows,
+                              files=count, digest=digest)
+
+
+def demo_origins() -> list[dict]:
+    """`make_cache` holds two upstreams: a nested script tree and two files at the root."""
+    return [
+        {"id": "guide-upstream", "subtree": "references", "upstream": "acme/guide",
+         "upstreamUrl": "https://example.invalid/acme/guide", "licenseAsRecorded": "MIT",
+         "declaredScriptCount": 1, "declaredCountText": "1 guide", "evidenceFile": "README.md",
+         "reviewedBy": None, "rightsDecision": None},
+        {"id": "root-upstream", "files": ["LICENSE", "SKILL.md"], "upstream": "acme/skill",
+         "upstreamUrl": None, "urlAbsentReason": "the tree names owner/repo with no URL",
+         "licenseAsRecorded": "Apache-2.0", "declaredScriptCount": 1,
+         "declaredCountText": "1 skill + licence", "evidenceFile": "README.md",
+         "reviewedBy": None, "rightsDecision": None},
+    ]
 
 
 class VendorManifestTests(unittest.TestCase):
@@ -176,6 +217,14 @@ class VendorManifestTests(unittest.TestCase):
         again = state.manifest()
         self.assertEqual(again["reviewedBy"], "DTALEX66")
         self.assertEqual(again["rightsDecision"], "reference-only")
+
+    def test_writing_twice_changes_no_bytes(self) -> None:
+        """Regeneration must be a fixed point, or every run dirties the tracked record."""
+        state = self.state()
+        first = (state.manifests / "demo-root.json").read_bytes()
+        self.assertEqual(v.write(state.lock, repo=state.repo,
+                                 manifest_dir=state.manifests)[0], 1)
+        self.assertEqual((state.manifests / "demo-root.json").read_bytes(), first)
 
     def test_the_writer_emits_lf_so_the_committed_bytes_are_the_checked_out_bytes(self) -> None:
         """.gitattributes declares `*.json text eol=lf`, but this writer runs on Windows.
@@ -372,32 +421,32 @@ class VendorManifestTests(unittest.TestCase):
         for presence in ("IN_REPO", "ABSENT_FROM_GIT"):
             lock = make_lock(".project-local/cache/vendor/demo-root", rows,
                              presence=presence)
-            problems, pending, counted, _ = v.check(lock, state.manifests)
-            self.assertEqual(problems, [], presence)
-            self.assertEqual((pending, counted), ([], 0), presence)
+            result = v.check(lock, state.manifests)
+            self.assertEqual(result.problems, [], presence)
+            self.assertEqual((result.pending, result.rows), ([], 0), presence)
 
     def test_pending_review_is_counted_and_not_failed(self) -> None:
         state = self.state()
-        problems, pending, rows, no_licence = v.check(state.lock, state.manifests)
-        self.assertEqual(problems, [])
-        self.assertEqual(pending, ["demo-root"])
-        self.assertEqual((rows, no_licence), (3, 0))
+        result = v.check(state.lock, state.manifests)
+        self.assertEqual(result.problems, [])
+        self.assertEqual(result.pending, ["demo-root"])
+        self.assertEqual((result.rows, result.license_files_absent), (3, 0))
+        # A root nobody has split declares nothing, and must not be convicted for it.
+        self.assertEqual((result.origins, result.origins_unreviewed), (0, 0))
 
     def test_a_signed_root_leaves_the_pending_list(self) -> None:
         state = self.state()
         document = state.manifest()
         document["reviewedBy"] = "DTALEX66"
         state.save(document)
-        _problems, pending, _rows, _no_licence = v.check(state.lock, state.manifests)
-        self.assertEqual(pending, [])
+        self.assertEqual(v.check(state.lock, state.manifests).pending, [])
 
     def test_a_tree_without_a_licence_file_is_counted_for_the_reviewer(self) -> None:
         state = self.state()
         document = state.manifest()
         document["licenseFilesPresent"] = []
         state.save(document)
-        _problems, _pending, _rows, no_licence = v.check(state.lock, state.manifests)
-        self.assertEqual(no_licence, 1)
+        self.assertEqual(v.check(state.lock, state.manifests).license_files_absent, 1)
 
     # ---- shipped state and registration ----
 
@@ -438,6 +487,194 @@ class VendorManifestTests(unittest.TestCase):
             encoding="utf-8")
         self.assertIn("verify_vendor_manifests.py", scripts,
                       "a gate nobody invokes is documentation")
+
+
+class VendorOriginTests(unittest.TestCase):
+    """An aggregate vendor root must answer for each of its upstreams, byte by byte."""
+
+    def setUp(self) -> None:
+        self._ctx_stack: list[tempfile.TemporaryDirectory] = []
+
+    def state(self, declared: list[dict] | None = None) -> ConsistentState:
+        ctx = tempfile.TemporaryDirectory()
+        self._ctx_stack.append(ctx)
+        state = ConsistentState(ctx)
+        state.declare(declared if declared is not None else demo_origins())
+        return state
+
+    def tearDown(self) -> None:
+        for ctx in self._ctx_stack:
+            ctx.cleanup()
+        self._ctx_stack.clear()
+
+    def origin(self, state: ConsistentState, key: str) -> dict:
+        return next(o for o in state.manifest()["origins"] if o["id"] == key)
+
+    def test_a_faithful_declaration_validates(self) -> None:
+        state = self.state()
+        self.assertEqual(state.findings(), [])
+        result = state.result()
+        self.assertEqual((result.origins, result.origins_unreviewed), (2, 2))
+
+    def test_the_generator_computes_the_measured_half(self) -> None:
+        """Nothing about the bytes is typed by the person naming the upstreams."""
+        state = self.state()
+        guide = self.origin(state, "guide-upstream")
+        rows = v.walk_cache(state.cache)
+        self.assertEqual(guide["measuredFiles"], 1)
+        self.assertEqual(guide["measuredBytes"], 10)
+        self.assertEqual(guide["contentDigest"],
+                         v.digest_rows([r for r in rows if r["path"].startswith("references/")]))
+        root = self.origin(state, "root-upstream")
+        self.assertEqual(root["licenseFilesPresent"], ["LICENSE"])
+        self.assertEqual(root["measuredFiles"], 2)
+
+    def test_a_file_without_an_owner_is_convicted(self) -> None:
+        state = self.state()
+        (state.cache / "stray.md").write_text("orphan\n", encoding="utf-8", newline="\n")
+        state.remeasure()
+        state.declare(demo_origins())
+        findings = state.findings()
+        self.assertTrue(any("ORIGINS-UNASSIGNED-ROW stray.md" in f for f in findings),
+                        f"an unattributed byte was accepted: {findings}")
+
+    def test_an_origin_that_is_not_in_the_bytes_is_convicted(self) -> None:
+        declared = demo_origins() + [
+            {"id": "ghost", "subtree": "scripts/absent", "upstream": "acme/ghost",
+             "upstreamUrl": "https://example.invalid/acme/ghost", "licenseAsRecorded": "MIT",
+             "declaredScriptCount": 3, "declaredCountText": "3 scripts", "evidenceFile": "R"}]
+        state = self.state(declared)
+        self.assertTrue(any("ORIGINS-EMPTY-ORIGIN ghost" in f for f in state.findings()),
+                        "a named upstream whose files are not in the bundle would otherwise "
+                        "read as held content")
+
+    def test_a_tampered_origin_count_is_convicted(self) -> None:
+        state = self.state()
+        document = state.manifest()
+        document["origins"][0]["measuredFiles"] = 99
+        state.save(document)
+        self.assertTrue(any("ORIGINS-MEASUREDFILES" in f for f in state.findings()))
+
+    def test_a_tampered_origin_digest_is_convicted(self) -> None:
+        state = self.state()
+        document = state.manifest()
+        document["origins"][0]["contentDigest"] = sha(b"not the group")
+        state.save(document)
+        self.assertTrue(any("ORIGINS-CONTENTDIGEST" in f for f in state.findings()))
+
+    def test_two_file_lists_claiming_the_same_row_is_convicted(self) -> None:
+        doubled = [
+            {"id": "a", "files": ["references/guide.md", "LICENSE"], "upstream": "acme/a",
+             "upstreamUrl": "https://example.invalid/a", "licenseAsRecorded": "MIT",
+             "declaredScriptCount": 2, "declaredCountText": "2", "evidenceFile": "R"},
+            {"id": "b", "files": ["references/guide.md", "SKILL.md"], "upstream": "acme/b",
+             "upstreamUrl": "https://example.invalid/b", "licenseAsRecorded": "MIT",
+             "declaredScriptCount": 2, "declaredCountText": "2", "evidenceFile": "R"},
+        ]
+        state = self.state(doubled)
+        findings = state.findings()
+        self.assertTrue(any("ORIGINS-UNASSIGNED-ROW references/guide.md" in f and "matches 2" in f
+                            for f in findings), findings)
+
+    def test_nested_subtree_prefixes_are_convicted(self) -> None:
+        nested = demo_origins() + [
+            {"id": "deeper", "subtree": "references/sub", "upstream": "acme/deeper",
+             "upstreamUrl": "https://example.invalid/d", "licenseAsRecorded": "MIT",
+             "declaredScriptCount": 1, "declaredCountText": "1", "evidenceFile": "R"}]
+        state = self.state(nested)
+        self.assertTrue(any("ORIGINS-NESTED" in f for f in state.findings()),
+                        "with one subtree inside another, a row has two owners and neither "
+                        "count can be trusted")
+
+    def test_a_claim_of_more_scripts_than_the_bytes_is_convicted(self) -> None:
+        over = [demo_origins()[0], dict(demo_origins()[1], declaredScriptCount=77)]
+        state = self.state(over)
+        self.assertTrue(any("ORIGINS-DECLARED-COUNT-UNMATCHED" in f
+                            for f in state.findings()),
+                        "the record would claim 77 scripts where 2 files exist")
+
+    def test_a_licence_file_extra_does_not_convict_a_script_count(self) -> None:
+        """One-sided on purpose: `references` holds 1 file and the record claims 1 script."""
+        state = self.state([dict(o, declaredScriptCount=1) for o in demo_origins()])
+        self.assertFalse([f for f in state.findings() if "DECLARED-COUNT" in f])
+
+    def test_an_unexplained_missing_url_is_convicted(self) -> None:
+        blank = [dict(demo_origins()[0], upstreamUrl=None), demo_origins()[1]]
+        state = self.state(blank)
+        self.assertTrue(any("ORIGINS-URL-UNEXPLAINED guide-upstream" in f
+                            for f in state.findings()),
+                        "a null URL must say why, or the next reader will 'helpfully' invent one")
+
+    def test_a_non_https_url_is_convicted(self) -> None:
+        dodgy = [dict(demo_origins()[0], upstreamUrl="github.com/acme/guide"),
+                 demo_origins()[1]]
+        state = self.state(dodgy)
+        self.assertTrue(any("ORIGINS-URL-SHAPE" in f for f in state.findings()))
+
+    def test_a_nameless_origin_is_convicted(self) -> None:
+        nameless = [dict(demo_origins()[0], upstream="  "), demo_origins()[1]]
+        state = self.state(nameless)
+        self.assertTrue(any("ORIGINS-NO-UPSTREAM" in f for f in state.findings()))
+
+    def test_an_empty_origin_list_is_convicted(self) -> None:
+        state = self.state([])
+        self.assertTrue(any("ORIGINS-UNENUMERATED" in f for f in state.findings()),
+                        "declaring an aggregate and enumerating nothing is the exact lie "
+                        "this check exists for")
+
+    def test_a_count_of_none_needs_the_trees_own_wording(self) -> None:
+        vague = [dict(demo_origins()[0], declaredScriptCount=None, declaredCountText=""),
+                 demo_origins()[1]]
+        state = self.state(vague)
+        self.assertTrue(any("ORIGINS-DECLARED-COUNT-MISSING" in f for f in state.findings()))
+
+    def test_regeneration_keeps_the_declaration_and_updates_the_numbers(self) -> None:
+        state = self.state()
+        (state.cache / "references" / "second.md").write_text("more\n", encoding="utf-8",
+                                                              newline="\n")
+        state.remeasure()
+        state.declare(demo_origins())
+        guide = self.origin(state, "guide-upstream")
+        self.assertEqual(guide["measuredFiles"], 2)
+        self.assertEqual(guide["upstream"], "acme/guide")
+        self.assertEqual(state.findings(), [])
+
+    def test_a_vanished_subtree_is_left_convictable_not_dropped(self) -> None:
+        state = self.state()
+        (state.cache / "references" / "guide.md").unlink()
+        state.remeasure()
+        state.declare(demo_origins())
+        guide = self.origin(state, "guide-upstream")
+        self.assertIsNone(guide["contentDigest"],
+                          "an empty origin must not carry the hash of nothing")
+        self.assertTrue(any("ORIGINS-EMPTY-ORIGIN guide-upstream" in f
+                            for f in state.findings()))
+
+    def test_a_human_origin_review_is_removed_from_the_pending_count(self) -> None:
+        state = self.state()
+        document = state.manifest()
+        document["origins"][0]["reviewedBy"] = "DTALEX66"
+        state.save(document)
+        result = state.result()
+        self.assertEqual((result.origins, result.origins_unreviewed), (2, 1))
+        self.assertEqual(result.problems, [], "a signed origin is not a finding")
+
+    def test_the_shipped_tool_control_aggregate_is_attributed_completely(self) -> None:
+        path = ROOT / "vendor" / "manifests" / "tool-control.json"
+        manifest = json.loads(path.read_text(encoding="utf-8"))
+        origins = manifest["origins"]
+        # Pinned with the reason: the tree's own READMEs name seven upstreams plus our two
+        # provenance tables. A number here moves only when the bundle itself changes.
+        self.assertEqual(len(origins), 8)
+        self.assertEqual(sum(o["measuredFiles"] for o in origins), manifest["fileCount"])
+        self.assertEqual(sum(o["measuredBytes"] for o in origins), manifest["totalBytes"])
+        licensed = [o["id"] for o in origins if o["licenseFilesPresent"]]
+        self.assertEqual(licensed, ["creold-photoshop-scripts", "creold-illustrator-scripts"],
+                         "six of the eight origins have no licence file in the bundle; if that "
+                         "ever reads differently, check the tree before the claim")
+        self.assertEqual([o["id"] for o in origins if o["reviewedBy"]], [],
+                         "an agent must not have signed a per-origin rights decision")
+        self.assertIn("未核实", json.dumps(origins, ensure_ascii=False))
 
 
 if __name__ == "__main__":

@@ -31,6 +31,15 @@ rows that are undeclared. Neither gate speaks for the other -- this one only wal
 owner, `--write` never invents one, and regeneration keeps whatever a human recorded. The
 gate therefore prints `awaiting_owner_review=37` as a count, and it is not a failure -- a
 blank field an agent refused to fill is the correct state.
+
+One root is an aggregate of several upstreams inside one directory: `tool-control`. Its
+manifest additionally carries an `origins` list taken from the provenance tables inside the
+cached tree (`README.md`, `scripts/README.md`), and the gate holds that declaration to the
+rows: every file must belong to exactly one declared origin, every declared origin must hold
+files, and the numbers an origin publishes about itself must be what its own rows say. The
+rule exists because the lock and the candidate taxonomy each describe this bundle as four
+origins with a licence pair, while the tree's own README enumerates seven -- one of them
+marked 未核实 (licence unverified) and five carrying no licence file at all.
 """
 from __future__ import annotations
 
@@ -40,6 +49,7 @@ import json
 import re
 import sys
 from pathlib import Path
+from typing import NamedTuple
 
 REPO = Path(__file__).resolve().parents[2]
 LOCK = REPO / "vendor" / "sources.lock.json"
@@ -55,6 +65,15 @@ LICENSE_FILE = re.compile(r"(^|/)(LICENSE|COPYING|NOTICE)", re.I)
 # Owner-only. No mode of this script writes a value into them; --write copies forward
 # whatever is already in the file so a ruling survives regeneration.
 OWNER_FIELDS = ("reviewedBy", "reviewedAt", "rightsDecision")
+
+
+class CheckResult(NamedTuple):
+    problems: list[str]
+    pending: list[str]
+    rows: int
+    license_files_absent: int
+    origins: int
+    origins_unreviewed: int
 
 
 def digest_from_rows(rows: list[dict]) -> str:
@@ -101,6 +120,110 @@ def license_files_present(rows: list[dict]) -> list[str]:
     return sorted({r["path"] for r in rows if LICENSE_FILE.search(r["path"])})
 
 
+def digest_rows(rows: list[dict]) -> str:
+    return digest_from_rows(rows)
+
+
+def belongs(row_path: str, origin: dict) -> bool:
+    """Does a row belong to this declared origin? Exact file list, or subtree prefix."""
+    files = origin.get("files")
+    if isinstance(files, list):
+        return row_path in files
+    subtree = str(origin.get("subtree") or "")
+    if not subtree:
+        return False
+    return row_path == subtree or row_path.startswith(subtree + "/")
+
+
+def origins_findings(sid: str, manifest: dict) -> tuple[list[str], int, int]:
+    """Validate a per-origin declaration against the manifest's own rows.
+
+    An aggregate vendor root is several upstreams in one directory, and until now the only
+    account of that was prose in the lock -- which was wrong: `tool-control` names four
+    origins while its `scripts/README.md` and root `README.md` enumerate seven, one of them
+    licence-unverified. This check makes the disagreement a finding: every row must belong to
+    exactly one declared origin, every declared origin must hold rows, and the numbers an
+    origin publishes about itself must be what the rows actually say.
+    """
+    problems: list[str] = []
+    origins = manifest.get("origins")
+    if origins is None:
+        return [], 0, 0
+    if not isinstance(origins, list) or not origins:
+        return [f"{sid}: ORIGINS-UNENUMERATED the root declares an origin list but it holds "
+                "nothing -- an aggregate with no enumerated origin is the state this check "
+                "exists to end"], 0, 0
+    rows = manifest.get("files") or []
+
+    prefixes = [str(o.get("subtree") or "") for o in origins if not o.get("files")]
+    for a in prefixes:
+        for b in prefixes:
+            if a != b and b.startswith(a + "/"):
+                problems.append(f"{sid}: ORIGINS-NESTED {a} contains {b}, so a row under {b} "
+                                "has two owners and no honest count for either")
+
+    assigned: dict[str, list[dict]] = {}
+    for row in rows:
+        owners = [o for o in origins if belongs(str(row.get("path")), o)]
+        if len(owners) != 1:
+            problems.append(f"{sid}: ORIGINS-UNASSIGNED-ROW {row.get('path')} matches "
+                            f"{len(owners)} declared origins; every byte in the tree must "
+                            "belong to exactly one upstream")
+            continue
+        key = str(owners[0].get("id") or owners[0].get("subtree") or owners[0].get("files"))
+        assigned.setdefault(key, []).append(row)
+
+    unverified = 0
+    for origin in origins:
+        key = str(origin.get("id") or origin.get("subtree") or origin.get("files"))
+        group = assigned.get(key, [])
+        if not group:
+            problems.append(f"{sid}: ORIGINS-EMPTY-ORIGIN {key} -- declared, but no row in the "
+                            "tree belongs to it")
+            continue
+        if not str(origin.get("upstream") or "").strip():
+            problems.append(f"{sid}: ORIGINS-NO-UPSTREAM {key} -- an origin must be named by "
+                            "whoever published it, from the record inside the tree")
+        url = origin.get("upstreamUrl")
+        if url is None:
+            if not str(origin.get("urlAbsentReason") or "").strip():
+                problems.append(f"{sid}: ORIGINS-URL-UNEXPLAINED {key} -- no URL is acceptable "
+                                "only with the reason written down; a plausible URL typed from "
+                                "an owner name would be invented evidence")
+        elif not str(url).startswith("https://"):
+            problems.append(f"{sid}: ORIGINS-URL-SHAPE {key} says {url!r}, not an https URL "
+                            "recovered from the tree's own record")
+        declared = origin.get("declaredScriptCount")
+        if declared is not None and not isinstance(declared, int):
+            problems.append(f"{sid}: ORIGINS-DECLARED-COUNT {key} says {declared!r}, which is "
+                            "neither an integer taken from the tree's README nor null")
+        if declared is None and not str(origin.get("declaredCountText") or "").strip():
+            problems.append(f"{sid}: ORIGINS-DECLARED-COUNT-MISSING {key} -- either the count "
+                            "the tree states, or the exact wording it used")
+        measured_count = len(group)
+        if isinstance(declared, int) and not isinstance(declared, bool) and declared > measured_count:
+            # Deliberately one-sided: a subtree may hold a LICENSE file and a README alongside
+            # the scripts its source document counted, so equality would be a false rule. It
+            # cannot hold FEWER files than the number of scripts it claims, which is what this
+            # catches -- a record describing more code than the bytes contain.
+            problems.append(f"{sid}: ORIGINS-DECLARED-COUNT-UNMATCHED {key} states "
+                            f"{declared} scripts in the tree's own README but only "
+                            f"{measured_count} files are present, so the claim cannot hold")
+        measured = {
+            "measuredFiles": len(group),
+            "measuredBytes": sum(int(r.get("bytes") or 0) for r in group),
+            "contentDigest": digest_rows(group),
+            "licenseFilesPresent": license_files_present(group),
+        }
+        for field, want in measured.items():
+            if origin.get(field) != want:
+                problems.append(f"{sid}: ORIGINS-{field.upper()} {key} records "
+                                f"{origin.get(field)!r} while its own rows say {want!r}")
+        if not origin.get("reviewedBy"):
+            unverified += 1
+    return problems, unverified, len(origins)
+
+
 def row_findings(source_id: str, rows: list[dict]) -> list[str]:
     """Structural checks on the rows themselves, before any digest is trusted.
 
@@ -132,12 +255,14 @@ def row_findings(source_id: str, rows: list[dict]) -> list[str]:
 
 
 def check(lock: dict, manifest_dir: Path = MANIFEST_DIR,
-          ) -> tuple[list[str], list[str], int, int]:
-    """Return (problems, roots awaiting owner review, rows, license-file-less count)."""
+          ) -> CheckResult:
+    """Verify every cache-only root from repository state alone."""
     problems: list[str] = []
     pending: list[str] = []
     rows_total = 0
     no_license_file = 0
+    origins_declared = 0
+    origins_pending = 0
     cache_only = sources_with_presence(lock)
     known_ids = {s.get("id") for s in cache_only}
 
@@ -194,6 +319,10 @@ def check(lock: dict, manifest_dir: Path = MANIFEST_DIR,
             no_license_file += 1
         if not manifest.get("reviewedBy"):
             pending.append(sid)
+        origin_problems, origin_pending, origin_count = origins_findings(sid, manifest)
+        problems += origin_problems
+        origins_declared += origin_count
+        origins_pending += origin_pending
 
     # Both directions: a manifest whose root is no longer cache-only is a live record of
     # evidence that no longer exists, and would be read as current.
@@ -203,7 +332,30 @@ def check(lock: dict, manifest_dir: Path = MANIFEST_DIR,
                 problems.append(f"MANIFEST-ORPHAN {extra.name} -- no cache-only row in "
                                 "vendor/sources.lock.json owns this root, so the manifest "
                                 "documents a reference that has moved or gone")
-    return problems, sorted(pending), rows_total, no_license_file
+    return CheckResult(problems=problems, pending=sorted(pending), rows=rows_total,
+                       license_files_absent=no_license_file, origins=origins_declared,
+                       origins_unreviewed=origins_pending)
+
+
+def refresh_origins(declared: list[dict], rows: list[dict]) -> list[dict]:
+    """Recompute the measured half of each declared origin; keep the declared half.
+
+    Generation must not launder a stale claim: an origin whose subtree has gone keeps
+    `contentDigest: null` and zero counts, so `--check` convicts it as ORIGINS-EMPTY-ORIGIN
+    instead of the writer quietly dropping it from the record.
+    """
+    refreshed = []
+    for origin in declared:
+        group = [r for r in rows if belongs(str(r.get("path")), origin)]
+        entry = dict(origin)
+        entry.update({
+            "measuredFiles": len(group),
+            "measuredBytes": sum(int(r.get("bytes") or 0) for r in group),
+            "contentDigest": digest_rows(group) if group else None,
+            "licenseFilesPresent": license_files_present(group),
+        })
+        refreshed.append(entry)
+    return refreshed
 
 
 def write(lock: dict, repo: Path = REPO, manifest_dir: Path = MANIFEST_DIR,
@@ -263,6 +415,13 @@ def write(lock: dict, repo: Path = REPO, manifest_dir: Path = MANIFEST_DIR,
             **{field: prior.get(field) for field in OWNER_FIELDS},
             "files": rows,
         }
+        # A declared aggregate keeps its declared half and gets its measured half recomputed;
+        # a root nobody has split yet gains no `origins` key, so the 36 stay as they were.
+        if isinstance(prior.get("origins"), list):
+            document["origins"] = refresh_origins(prior["origins"], rows)
+            for field in ("originsMethod", "originsEvidence"):
+                if prior.get(field):
+                    document[field] = prior[field]
         # LF stated explicitly: `.gitattributes` normalises `*.json text eol=lf`, so a
         # CRLF working copy would not equal the bytes every clone checks out, and any gate
         # that digests working-tree text would disagree with CI about the same record.
@@ -300,36 +459,44 @@ def main(argv: list[str] | None = None) -> int:
         if drift:
             print("VERIFY_VENDOR_MANIFESTS=FAIL mode=write drift=%d" % len(drift))
             return 1
-        problems, pending, check_rows, _ = check(lock)
-        if problems:
+        result = check(lock)
+        if result.problems:
             print("VERIFY_VENDOR_MANIFESTS=FAIL mode=write regenerated_state_findings=%d"
-                  % len(problems))
-            for problem in problems:
+                  % len(result.problems))
+            for problem in result.problems:
                 print("VENDOR_MANIFEST=FAIL " + problem)
             return 1
-        print(f"VERIFY_VENDOR_MANIFESTS=OK mode=write roots={written} rows={check_rows} "
-              f"awaiting_owner_review={len(pending)} cache_missing={len(missing)}")
+        print(f"VERIFY_VENDOR_MANIFESTS=OK mode=write roots={written} rows={result.rows} "
+              f"awaiting_owner_review={len(result.pending)} "
+              f"origins={result.origins} cache_missing={len(missing)}")
         return 0
 
-    problems, pending, rows_total, no_license_file = check(lock)
-    for problem in problems:
+    result = check(lock)
+    for problem in result.problems:
         print("VENDOR_MANIFEST=FAIL " + problem)
-    if pending:
+    if result.pending:
         print("VENDOR_MANIFEST=NOTICE reviewedBy is null for "
-              + ", ".join(pending[:8])
-              + (" ..." if len(pending) > 8 else "")
-              + f" ({len(pending)} roots) -- a rights decision belongs to the owner and an "
-                "agent must not fill it, so this count is reported, not failed")
-    if no_license_file:
-        print(f"VENDOR_MANIFEST=NOTICE license_files_absent={no_license_file} -- these trees "
-              "hold no LICENSE/COPYING/NOTICE file, so the rights review has only the lock's "
-              "word to go on")
+              + ", ".join(result.pending[:8])
+              + (" ..." if len(result.pending) > 8 else "")
+              + f" ({len(result.pending)} roots) -- a rights decision belongs to the owner and "
+                "an agent must not fill it, so this count is reported, not failed")
+    if result.license_files_absent:
+        print(f"VENDOR_MANIFEST=NOTICE license_files_absent={result.license_files_absent} "
+              "-- these trees hold no LICENSE/COPYING/NOTICE file, so the rights review has "
+              "only the lock's word to go on")
+    if result.origins:
+        print(f"VENDOR_MANIFEST=NOTICE origins_declared={result.origins} with "
+              f"reviewedBy_null={result.origins_unreviewed} -- an aggregate root is now "
+              "attributed upstream by upstream, and each of those rights decisions is still "
+              "the owner's")
     roots = len(sources_with_presence(lock))
-    verdict = "OK" if not problems else "FAIL"
-    print(f"VERIFY_VENDOR_MANIFESTS={verdict} roots={roots} rows={rows_total} "
-          f"awaiting_owner_review={len(pending)} license_files_absent={no_license_file} "
-          f"findings={len(problems)}")
-    return 1 if problems else 0
+    verdict = "OK" if not result.problems else "FAIL"
+    print(f"VERIFY_VENDOR_MANIFESTS={verdict} roots={roots} rows={result.rows} "
+          f"awaiting_owner_review={len(result.pending)} "
+          f"license_files_absent={result.license_files_absent} origins={result.origins} "
+          f"origins_unreviewed={result.origins_unreviewed} "
+          f"findings={len(result.problems)}")
+    return 1 if result.problems else 0
 
 
 if __name__ == "__main__":

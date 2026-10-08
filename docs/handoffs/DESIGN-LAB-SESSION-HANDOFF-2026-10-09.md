@@ -89,6 +89,15 @@ creold/photoshop-scripts、creold/illustrator-scripts、Comfy-Org、style-dictio
 `canonicalUrlAbsentReason.whatWouldCloseIt` 写明"ids 被 capability index 与 quarantine registry
 引用，拆分是协同的记录变更，不是改锁"，那是跨三份记录的编辑，属需授权的实现工作。
 
+> 同日更正（2026-10-09 下一回合实测）：本节按"五个子树"计数，是因为只看了 `scripts/` 一层。
+> 根上还有两个各自有来源的 SKILL 文件，且该树自带两份来源表（根 `README.md` §二 与
+> `scripts/README.md`），逐子树写了 owner/repo、许可与脚本数——合计 **7 个第三方来源 + 2 份
+> 本仓自述文档**。锁的 `whatWouldCloseIt` 说 ids 被 capability index 与 quarantine registry 引用，
+> 这句没测过：实测含 `tool-control` 的行数为 capability-index **0**、QUARANTINE_REGISTRY **0**，
+> 而 SOURCE_REGISTRY 8 行、CANDIDATE-TAXONOMY 3 行、rights-registry 1 行、
+> knowledge-role-classification 1 行、锁自身 3 行。逐源归属与校验它的门已落在
+> `vendor/manifests/tool-control.json` 的 `origins` 与 `docs/THIRD_PARTY_ISOLATION.md`。
+
 ## 5. 本轮没有重跑全套的理由，以及跑了什么
 
 目标明令：全套/聚合/普查仅在有新增证据需求或判定需要时执行。本轮跑了：新门本身（两次形态）、
