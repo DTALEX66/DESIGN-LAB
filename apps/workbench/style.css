@@ -20,6 +20,10 @@
   --color-error:#F05252;
   --color-info:#4BAFFF;
 
+  /* 品牌渐变两端：primary-btn / toolbar .seg button.active / .seg button.active 三处同一对端点 */
+  --brand-gradient-from:#1D4FC4;
+  --brand-gradient-to:#2A63D8;
+
   /* 几何（B04 radius） */
   --radius-md:8px;
   --radius-lg:14px;
@@ -204,7 +208,7 @@ form label{flex:1}
   border:1px solid var(--line);border-radius:var(--radius-md);overflow:hidden;
 }
 .preview img{max-width:100%;max-height:430px;object-fit:contain}
-.preview p{padding:22px;background:rgba(13,18,33,.85)}
+.preview p{padding:22px;background:color-mix(in srgb,var(--color-surface) 85%, transparent)}
 
 /* .mono used to be written in three separate blocks and the last one won, so
    this line contributed only overflow-wrap while family and size came from
@@ -566,7 +570,7 @@ html,body{margin:0}
 .brand-mark::after{
   content:'';position:absolute;inset:0;
   background:var(--brand-mark) center/76% no-repeat;
-  filter:drop-shadow(0 0 3px rgba(255,255,255,.5)) drop-shadow(0 0 12px rgba(75,175,255,.45));
+  filter:drop-shadow(0 0 3px rgba(255,255,255,.5)) drop-shadow(0 0 12px color-mix(in srgb,var(--color-secondary) 45%, transparent));
 }
 .brand h1{margin:0;font-size:17px;line-height:1.15}
 .brand small{display:block;margin-top:4px;color:var(--secondary);font-size:10px;letter-spacing:.12em}
@@ -673,7 +677,7 @@ html,body{margin:0}
    #1D4FC4 -> #2A63D8 is the same hue, deeper: 7.08 / 5.42. */
 .primary-btn{
   border:0;color:#fff;font-weight:700;
-  background:linear-gradient(135deg,#1D4FC4,#2A63D8);
+  background:linear-gradient(135deg,var(--brand-gradient-from),var(--brand-gradient-to));
   box-shadow:0 12px 30px color-mix(in srgb,var(--primary) 28%, transparent);
 }
 .primary-btn:hover{transform:translateY(-1px) scale(1.01)}
@@ -844,7 +848,7 @@ html,body{margin:0}
   color:var(--text);padding:10px 12px;border-radius:12px
 }
 .toolbar .seg button.active{
-  background:linear-gradient(135deg,#1D4FC4,#2A63D8);
+  background:linear-gradient(135deg,var(--brand-gradient-from),var(--brand-gradient-to));
   border-color:color-mix(in srgb,var(--primary) 48%, white 4%);
   color:#fff;
 }
@@ -1202,7 +1206,7 @@ html,body{margin:0}
   outline:2px solid var(--color-primary);outline-offset:2px;
 }
 .seg button.active{
-  background:linear-gradient(135deg,#1D4FC4,#2A63D8);
+  background:linear-gradient(135deg,var(--brand-gradient-from),var(--brand-gradient-to));
   border-color:color-mix(in srgb,var(--primary) 48%, white 4%);
   color:#fff;
 }

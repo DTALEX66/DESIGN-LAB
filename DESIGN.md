@@ -26,6 +26,7 @@ externalRunner:
   command: python scripts/run_design_review_plugin.py
   auditors: [audit-design-debt.mjs, audit-a11y.mjs]
 measuredDebtBy: scripts/design_debt_baseline.py
+measuredDebtRegister: design-lab/config/ui-off-palette-colours.json
 measuredDebtAtCommit: 700ee3fb
 ---
 
@@ -45,6 +46,7 @@ measuredDebtAtCommit: 700ee3fb
 | `--color-border` | `#213D66` | 描边 | 1px；分隔靠留白不靠线堆 |
 | `--color-primary` | `#316CFF` | 动作/焦点/选中 | **见 §3 对比度红线** |
 | `--color-secondary` | `#4BAFFF` | 次级强调、图标、cue | — |
+| `--brand-gradient-from/-to` | `#1D4FC4 / #2A63D8` | 主按钮与选中段的渐变两端 | 三处共用同一对端点；不得再在规则里抄字面值 |
 | `--color-text` | `#F5F7FC` | 正文 | — |
 | `--color-muted` | `#9AA3B8` | 次级文本 | 只用于 ≥13px |
 | `--color-success/warning/error` | `#2FC58D / #F4B942 / #F05252` | 状态 | 状态必须同时有文字，不靠颜色单独承载（WCAG 1.4.1） |
@@ -78,10 +80,14 @@ measuredDebtAtCommit: 700ee3fb
 - Do 用 `color-mix(in srgb, var(--x) N%, transparent)` 派生态；Don't 新写字面色值。
   当前存量（由 `scripts/design_debt_baseline.py` 按声明的规则实测，`--check` 看守，
   不再是手点数字）：非令牌声明、去掉注释后的 7 个界面源文件里，
-  字面色值 34 处、字面 px 516 处、阴影声明 26 条（其中 18 条已读 var()）。
-  按次清理，不得增长。此前 §36.4 的 18/360/9 是手点的，任何规则都复现不出来，
-  与外部 design-review 插件的读数也不一致 —— 分歧逐条见
-  `docs/audits/DESIGNLAB-EXTERNAL-DESIGN-REVIEW-2026-10-09.md`。
+  字面色值 26 处、字面 px 516 处、阴影声明 24 条（其中 18 条已读 var()）。
+  26 处色值分两类：**13 处是有色相的字面量**（chromatic），13 处是中性 alpha 遮罩/阴影
+  （neutral-alpha）。每一处有色相的字面量都逐条登记在
+  `design-lab/config/ui-off-palette-colours.json`，`adjudication` 是 owner 专用字段，代理不得填；
+  新增一处即门红（存量只许减）。按次清理，不得增长。此前 §36.4 的 18/360/9 是手点的，
+  任何规则都复现不出来，与外部 design-review 插件的读数也不一致 —— 分歧逐条见
+  `docs/audits/DESIGNLAB-EXTERNAL-DESIGN-REVIEW-2026-10-09.md`（§7 是同日追正段：主色并无重复
+  字面量，`box-shadow:none` 曾被计成债，8 处字面量已换成令牌引用并逐处实测像素未变）。
 - Do 让新交互在键盘与窄屏下同样可达；Don't 用 hover 承载唯一入口。
 
 ## 5. 对标（下一步要做的比较，不是已完成）

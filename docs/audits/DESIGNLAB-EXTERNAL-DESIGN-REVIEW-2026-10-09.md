@@ -187,3 +187,63 @@ Open Design / generated-artifact **全部 success**，仅 2 个**产物上传步
    对比度仍只有本仓一处证据，axe 无法接手。
 4. 界面对标（Figma/Blender/Illustrator/Linear/Raycast 真实参考屏 + CSS/DOM 双层比对）本轮**未做**，
    它是 design.qa.yaml 之外的另一件事。
+
+---
+
+## 7. 追正（同日第二批）：上面有三处要说错的地方，以及据此做掉的真实清理
+
+规则：**已入账的数字不改写，追正另立新段**。本节取代 §2 表里「本仓规则」一列与 §6 的第 3 条。
+
+### 7.1 我说「3 处主色字面量待消灭」——这句是错的，实测为 0
+
+`#316CFF` 在 style.css 里出现在第 2、14、167、671 行：**14 行是令牌定义本身**
+（`--color-primary:#316CFF;`），2/167/671 全在注释里。插件报的 3 处正是那三条注释。
+所以主色**没有任何重复字面量**，清理顺序里排在第一的那件事不存在。
+这也是「按次清理」必须先落到 file:line 而不是落到计数的原因——于是它现在落到了：
+`design-lab/config/ui-off-palette-colours.json`，26 行逐条带 file/line/value/kind/declaration，
+`adjudication` 是 owner 专用字段（脚本重写必须保留它，测试看守），新增一处字面量即门红。
+
+### 7.2 我自己的规则里有两处假债，已修
+
+- `box-shadow:none` 被当取值债计数：实测 2 处（style.css:1355、1357），**阴影存量 26 → 24**。
+  重置不是发明一个 elevation。测试直接断言 `RESET_VALUE` 认 `none`/`inherit` 而不认
+  `0 4px 18px rgba(0,0,0,.35)`，并且 `shadowResetsSkipped > 0`，防止该分支从未被走到。
+- 中性 alpha 与有色相字面量混在一个数里，导致「色值存量」无法指导行动。现分两类：
+  `rgba(0,0,0,α)` / `rgba(255,255,255,α)` 记为 neutral-alpha（遮罩、阴影、状态层），
+  其余记为 chromatic。追正后一次实测：**26 = 13 chromatic + 13 neutral-alpha**。
+
+另有一条实测后**没有**加进去的机制，写明以免下轮重犯：行尾 `//` 注释里是否有漏网的字面量？
+对整个扫描面量得 **0 处**，所以注释规则保持在保守的「整行」形式，不引入会啃掉字符串里
+`https://` 的引号感知切分。
+
+### 7.3 做完的清理：8 处字面量变成令牌引用，像素逐处实测未变
+
+| 改动 | 处数 | 像素未变的证明（真实 Chromium，服务的是 `style.css` 本体） |
+|---|---|---|
+| 三处相同的 `linear-gradient(135deg,#1D4FC4,#2A63D8)` → `var(--brand-gradient-from/-to)`（新令牌在 `:root` 声明，值即原端点） | 6 | 计算值 `linear-gradient(135deg, rgb(29, 79, 196), rgb(42, 99, 216))` |
+| `rgba(13,18,33,.85)` → `color-mix(in srgb, var(--color-surface) 85%, transparent)` | 1 | 计算值 `color(srgb 0.0509804 0.0705882 0.129412 / 0.85)` ≡ `rgba(13, 18, 33, .85)` |
+| `rgba(75,175,255,.45)` → `color-mix(in srgb, var(--color-secondary) 45%, transparent)` | 1 | 计算值同上，等于 `rgba(75, 175, 255, .45)` |
+
+探针第一次报的 `DOES-NOT preview scrim` 是**探针缺陷**不是产品缺陷：Chromium 把解析后的
+`color-mix` 序列化成 `color(srgb …)` 而把字面量序列化成 `rgba(…)`，拿字符串比等于比语法。
+改成按 8-bit 通道解析后比较（容差半级），三处全部 EQUAL，最大通道差 0.13/255。
+
+**没有顺手改的两类**，因为它们需要的是判断而不是机械替换：`.tag.ok/.warn/.bad/.danger`
+四组状态渐变（786–789、683：`#27c86a/#11a74d`、`#f2b541/#c98c00`、`#f87171/#ee5f5f`、
+`#c03030/#8f2a2a`）与棋盘格纹理 `#1a2231/#222c3e`。算术上先否掉了一条"顺手"路子：
+`#1D4FC4` **不等于** `color-mix(in srgb, #316CFF X%, black)` 的任何单一 X
+（R 需 0.592、G 需 0.731、B 需 0.769 三个不同比例），和 `--color-bg` 混也凑不出单一比例——
+也就是说这些蓝是独立取值，替换就必然改像素，属于 §3.1 那条待 owner 裁的红线范围。
+它们现在逐条在登记册里等人裁决，而不是在文档里当一句口号。
+
+### 7.4 本轮判定（实测产物）
+
+`DESIGN_DEBT literal_colors=26 literal_px=516 shadow_declarations=24 shadow_reading_var=18
+shadow_resets_skipped=2 chromatic=13 neutral_alpha=13`；`DESIGN_DEBT_BASELINE=PASS`（含
+`PENDING-OWNER-ADJUDICATION count=26` 这条 NOTICE，它不是红灯：裁决是 owner 的活）；
+`TOKEN_PIXEL_FAILURES=0`；`COLOUR_EQUIVALENCE_FAILURES=0`；
+`BOUND_TEST_RUN=OK tests=65 failures=0 errors=0 skipped=0`
+（`--modules test_workbench_css_single_definition test_design_system_tokens
+test_workbench_brand_asset test_design_debt_baseline test_workbench_packaging`，subject `8e63c6be`）。
+本轮**没有**重跑界面几何门，理由写明：改动被逐处证明为像素与布局中立（计算值相同），
+几何断言无变量可动。
