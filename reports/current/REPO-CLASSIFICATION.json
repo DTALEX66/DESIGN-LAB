@@ -1,11 +1,11 @@
 {
   "schemaVersion": "design-lab/repo-classification/v1",
-  "generatedAt": "2026-10-08T14:32:48Z",
-  "observedCommit": "6c3a52e6eb63f22a93cef07a62b4064114ca7e51",
+  "generatedAt": "2026-10-08T14:38:19Z",
+  "observedCommit": "ce3f06644dde2e3785a2c776318cceac1035fc07",
   "totals": {
     "trackedFiles": 3360,
-    "workingTreeMiB": 52.28,
-    "packMiB": 240.24,
+    "workingTreeMiB": 60.22,
+    "packMiB": 242.0,
     "note": "pack 含全部历史与 tag 归档；working tree 为当前检出字节。两者之差不是垃圾。"
   },
   "categories": {
@@ -17,7 +17,7 @@
     "documentation": {
       "files": 119,
       "bundles": 2,
-      "mib": 5.17
+      "mib": 5.25
     },
     "evidence": {
       "files": 1183,
@@ -32,7 +32,7 @@
     "history": {
       "files": 497,
       "bundles": 4,
-      "mib": 7.07
+      "mib": 14.85
     },
     "repo-meta": {
       "files": 24,
@@ -42,10 +42,19 @@
     "source": {
       "files": 1456,
       "bundles": 8,
-      "mib": 11.63
+      "mib": 11.71
     }
   },
   "bundles": [
+    {
+      "path": "docs/history/",
+      "category": "history",
+      "note": "冻结历史与逐字节基线",
+      "files": 315,
+      "bytes": 11196550,
+      "cited_by_authority": 17,
+      "lastTouch": "2026-10-08"
+    },
     {
       "path": "fixtures/domains/",
       "category": "evidence",
@@ -60,7 +69,7 @@
       "category": "source",
       "note": "设计核心其余模块",
       "files": 965,
-      "bytes": 7731944,
+      "bytes": 7762848,
       "cited_by_authority": 7,
       "lastTouch": "2026-10-08"
     },
@@ -101,15 +110,6 @@
       "lastTouch": "2026-10-06"
     },
     {
-      "path": "docs/history/",
-      "category": "history",
-      "note": "冻结历史与逐字节基线",
-      "files": 315,
-      "bytes": 3042576,
-      "cited_by_authority": 17,
-      "lastTouch": "2026-09-09"
-    },
-    {
       "path": "docs/handoffs/",
       "category": "history",
       "note": "交接血统（非当前入口）",
@@ -141,7 +141,7 @@
       "category": "generated",
       "note": "当前状态投影（由生成器再生）",
       "files": 63,
-      "bytes": 1244753,
+      "bytes": 1244950,
       "cited_by_authority": 4,
       "lastTouch": "2026-10-08"
     },
@@ -150,7 +150,7 @@
       "category": "documentation",
       "note": "其余文档",
       "files": 113,
-      "bytes": 1012443,
+      "bytes": 1097258,
       "cited_by_authority": 12,
       "lastTouch": "2026-10-08"
     },
@@ -186,7 +186,7 @@
       "category": "source",
       "note": "根级门与工具",
       "files": 60,
-      "bytes": 599056,
+      "bytes": 651941,
       "cited_by_authority": 7,
       "lastTouch": "2026-10-08"
     },
@@ -263,6 +263,15 @@
       "lastTouch": "2026-09-27"
     },
     {
+      "path": "AGENTS.md",
+      "category": "authority",
+      "note": "根执行规则",
+      "files": 1,
+      "bytes": 12664,
+      "cited_by_authority": 1,
+      "lastTouch": "2026-10-08"
+    },
+    {
       "path": "README.md",
       "category": "repo-meta",
       "note": "根级运维与政策文档",
@@ -270,15 +279,6 @@
       "bytes": 12597,
       "cited_by_authority": 0,
       "lastTouch": "2026-10-07"
-    },
-    {
-      "path": "AGENTS.md",
-      "category": "authority",
-      "note": "根执行规则",
-      "files": 1,
-      "bytes": 10055,
-      "cited_by_authority": 1,
-      "lastTouch": "2026-09-26"
     },
     {
       "path": ".project/",
@@ -362,6 +362,15 @@
       "lastTouch": "2026-09-24"
     },
     {
+      "path": ".gitattributes",
+      "category": "repo-meta",
+      "note": "根级运维与政策文档",
+      "files": 1,
+      "bytes": 1539,
+      "cited_by_authority": 0,
+      "lastTouch": "2026-10-08"
+    },
+    {
       "path": "GITHUB_DELIVERY.md",
       "category": "repo-meta",
       "note": "根级运维与政策文档",
@@ -396,15 +405,6 @@
       "bytes": 1082,
       "cited_by_authority": 0,
       "lastTouch": "2026-08-07"
-    },
-    {
-      "path": ".gitattributes",
-      "category": "repo-meta",
-      "note": "根级运维与政策文档",
-      "files": 1,
-      "bytes": 1054,
-      "cited_by_authority": 0,
-      "lastTouch": "2026-09-07"
     },
     {
       "path": "package.json",

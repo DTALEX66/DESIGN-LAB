@@ -81,20 +81,44 @@ def tracked_files() -> list[str]:
 
 
 def blob_sizes() -> dict[str, int]:
-    """Working-tree byte size per tracked path (from the HEAD tree)."""
-    out = subprocess.run(['git', 'ls-tree', '-r', '-l', 'HEAD'],
-                         cwd=REPO, capture_output=True, text=True,
-                         encoding='utf-8', errors='replace').stdout
-    sizes: dict[str, int] = {}
-    for line in out.splitlines():
-        if '\t' not in line:
+    """Working-tree byte size per tracked path, taken from the index and object store.
+
+    Two failures this replaces, both found by measuring the same tree twice:
+
+    - `git ls-tree -r -l HEAD` escapes and quotes non-ASCII paths, so 11 tracked
+      files with Chinese names had no key in the returned map and were summed as 0
+      bytes; -z output is the only porcelain that is never quoted.
+    - Reading sizes from HEAD while taking the file list from the index silently
+      priced every staged-but-uncommitted file at 0 bytes: right after a 259-file
+      import the same repository measured 52.28 MiB, then 60.22 MiB, with the
+      tracked file count unchanged. A size projection that under-reads by the whole
+      size of the newest change is the one number the volume budgets depend on.
+    """
+    listing = subprocess.run(['git', 'ls-files', '-s', '-z'], cwd=REPO, capture_output=True)
+    sha_by_path: dict[str, str] = {}
+    for rec in listing.stdout.decode('utf-8').split('\0'):
+        if not rec:
             continue
-        meta, path = line.split('\t', 1)
+        meta, _, path = rec.partition('\t')
         fields = meta.split()
-        if len(fields) < 4 or not fields[3].isdigit():
-            continue
-        sizes[path] = int(fields[3])
-    return sizes
+        if path and len(fields) >= 2:
+            sha_by_path[path] = fields[1]
+    shas = sorted(set(sha_by_path.values()))
+    sizes: dict[str, int] = {}
+    for i in range(0, len(shas), 2000):
+        chunk = shas[i:i + 2000]
+        probe = subprocess.run(['git', 'cat-file', '--batch-check'], input='\n'.join(chunk),
+                               capture_output=True, text=True, cwd=str(REPO),
+                               encoding='utf-8', errors='replace')
+        for line in probe.stdout.splitlines():
+            parts = line.split()
+            if len(parts) >= 3 and parts[1] == 'blob' and parts[2].isdigit():
+                sizes[parts[0]] = int(parts[2])
+    missing = sorted(p for p, s in sha_by_path.items() if s not in sizes)
+    if missing:
+        raise SystemExit(f"CLASSIFY_REPO=FAIL {len(missing)} tracked blobs unreadable, "
+                         f"e.g. {missing[:3]}")
+    return {path: sizes[sha] for path, sha in sha_by_path.items()}
 
 
 def last_touch(path: str) -> str:
