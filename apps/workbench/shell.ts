@@ -1442,6 +1442,177 @@ function rightsFacts(data: RightsReadback): HTMLElement[] {
 
 // 证据系统 — read-only. Filing a rights decision is a Human Gate and happens on
 // 预检 / QA; this column reports what that gate actually produced, next to the delivery.
+// 证据系统 — the evidence link's own state, read from the service rather than assumed.
+//
+// `verified` and `current` are computed per receipt from the ledger plus the object database: the
+// first asks whether the bytes a receipt hashed are still where that receipt says they came from,
+// the second whether it still describes the checkout this service is running. Neither is a field
+// anybody can set, and neither is the same word as the other -- conflating them is what made every
+// receipt read as unverified on 2026-10-08. The read sits behind a button for the same reason the
+// delivery receipt does: it recomputes every byte claim in the ledger, so a verdict about evidence
+// nobody asked to check would be a guess dressed up as a readback.
+interface EvidenceReceipt {
+  id: string;
+  taskIds: string[];
+  kind: string;
+  outcome: string;
+  subjectSha: string;
+  binding: string;
+  observedAt: string;
+  verified: boolean;
+  current: boolean;
+  integrityReasons: string[];
+  currencyReasons: string[];
+}
+
+interface EvidenceProjection {
+  schemaVersion?: string;
+  subjectSha?: string;
+  ledger?: string;
+  totals?: { records?: number; outcomePass?: number; verified?: number;
+             unverified?: number; current?: number };
+  reasonCounts?: { integrity?: Record<string, number>; currency?: Record<string, number> };
+  receipts?: EvidenceReceipt[];
+  taskCounts?: Record<string, number>;
+  error?: string;
+}
+
+// The honest empty for a read that never happened: collections present-but-empty and marked, every
+// scalar absent, because a 0 invented here would be a claim about the ledger that no emitter made.
+const EVIDENCE_PROJECTION_UNREADABLE: EvidenceProjection = {
+  receipts: [], reasonCounts: { integrity: {}, currency: {} }, taskCounts: {},
+};
+
+const PROJECTION_RECEIPT_LIMIT = 12;
+
+// Derived only from the two booleans. No ledger outcome word is hand-copied into this file: the
+// service's vocabulary comes from the payload, and verify_state_vocabularies.py convicts a copy.
+function projectionStateWord(receipt: EvidenceReceipt): string {
+  if (!receipt.verified) return 'NOT VERIFIED';
+  return receipt.current ? 'VERIFIED CURRENT' : 'VERIFIED NOT CURRENT';
+}
+
+function projectionCount(value: number | undefined): string {
+  return typeof value === 'number' ? String(value) : '—';
+}
+
+function projectionReasonList(group: Record<string, number> | undefined,
+                              noneText: string): HTMLElement {
+  const entries = Object.entries(group ?? {}).sort((a, b) => a[0].localeCompare(b[0]));
+  if (!entries.length) return el('p', { class: 'view-hint' }, noneText);
+  return el('ul', { class: 'list' }, ...entries.map(([token, count]) => el('li', { class: 'list-item' },
+    el('div', {}, en(token), el('small', {}, '该理由命中的字节声明数')),
+    el('span', { class: 'tag warn' }, String(count)))));
+}
+
+function projectionReasonLine(label: string, reasons: string[]): HTMLElement {
+  if (!reasons.length) return el('small', {}, `${label}：无`);
+  return el('small', {}, label + '：',
+    ...reasons.slice(0, 3).flatMap((reason, index) => index === 0
+      ? [en(reason)] : [' · ', en(reason)]),
+    ...(reasons.length > 3 ? [el('span', {}, ` 等 ${reasons.length} 项`)] : []));
+}
+
+function projectionReceiptRows(receipts: EvidenceReceipt[]): HTMLElement {
+  const shown = receipts.slice(0, PROJECTION_RECEIPT_LIMIT);
+  const rest = receipts.length - shown.length;
+  return el('ul', { class: 'list' },
+    ...shown.map((receipt) => el('li', { class: 'list-item' },
+      el('div', {},
+        el('strong', {}, receipt.id),
+        el('small', { class: 'value-mono' },
+          `subject ${receipt.subjectSha.slice(0, 12)} · ${receipt.kind}`),
+        projectionReasonLine('完整性理由', receipt.integrityReasons),
+        projectionReasonLine('时效理由', receipt.currencyReasons)),
+      el('span', { class: receipt.verified ? (receipt.current ? 'tag ok' : 'tag info') : 'tag bad' },
+        en(projectionStateWord(receipt))))),
+    ...(rest > 0 ? [el('li', { class: 'list-item' },
+      el('div', {}, el('strong', {}, `其余 ${rest} 条未逐条列出`),
+        el('small', {}, '上方计数覆盖全部记录；此处只是不再展开，不是没有这些记录。')))] : []));
+}
+
+function evidenceProjectionPanel(data: EvidenceProjection, unread: string): HTMLElement {
+  // A 200 whose body carries an error word is its own fact: the request completed and the readback
+  // still declined to carry counts. The shape notice must not swallow that code, or the reviewer is
+  // left with a list of missing keys and no idea that the service named a reason.
+  const refusal = data.error
+    ? `服务端在响应里给出了拒绝码 ${String(data.error)}。` : '';
+  if (unread) {
+    return el('p', { class: 'error' },
+      `${refusal}${unread}；证据链状态未读回。未读回不等于已验证，也不等于没有问题。`);
+  }
+  if (data.error) {
+    return el('p', { class: 'error' },
+      `证据链状态未读回：${String(data.error)}。服务端拒绝时没有给出任何计数，`
+      + '本页不会替它补一个，也不会把拒绝解释成"没有证据问题"。');
+  }
+  const totals = data.totals;
+  const receipts = Array.isArray(data.receipts) ? data.receipts : [];
+  if (!totals || typeof totals.records !== 'number') {
+    return el('p', { class: 'error' },
+      '证据链状态未读回：响应没有给出 totals.records。缺少计数不得被当作 0 条记录。');
+  }
+  if (!Array.isArray(data.receipts)) {
+    return el('p', { class: 'error' },
+      '证据链状态未读回：响应没有给出 receipts 集合，无法逐条判断，也不会显示任何计数。');
+  }
+  return el('div', {},
+    el('div', { class: 'kpi-grid' },
+      kpiCard(projectionCount(totals.records), '条收据', 'config/task-ledger-r3.json'),
+      kpiCard(projectionCount(totals.verified), '字节可复现', '在其绑定提交上重算'),
+      kpiCard(projectionCount(totals.unverified), '不可复现', '含未通过 outcome 的行'),
+      kpiCard(projectionCount(totals.current), '仍适用当前检出', 'verified 的子集')),
+    el('h4', {}, '完整性理由分布（为何这些字节不再在其声称的来源处）'),
+    projectionReasonList(data.reasonCounts?.integrity,
+      '没有完整性理由：本次读回没有发现无法复现的字节声明。'),
+    el('h4', {}, '时效理由分布（为何完整的收据不再描述当前检出的字节）'),
+    projectionReasonList(data.reasonCounts?.currency,
+      '没有时效理由：所有完整收据引用的文件都与当前检出一致。'),
+    el('h4', {}, '逐条收据'),
+    receipts.length ? projectionReceiptRows(receipts)
+      : el('p', { class: 'view-hint' }, '账本没有任何收据；这是读回来的空账本，不是读回失败。'),
+    el('p', { class: 'view-hint' },
+      `判定对象为当前检出 ${data.subjectSha ? data.subjectSha.slice(0, 12) : '（响应未给出）'}`
+      + `，来源 ${data.ledger ?? '（响应未给出）'}。`
+      + '该读回对当前检出重新计算，不读取 reports/current/（生成物绑定它写下时所在的提交）。'
+      + '"仍适用当前检出"是"字节可复现"的子集：完整的收据若引用的文件已移动，它仍是诚实的历史，'
+      + '但不是今天这份代码的证据。'));
+}
+
+async function runEvidenceProjection(host: HTMLElement): Promise<void> {
+  host.replaceChildren(el('p', { class: 'view-loading' },
+    '正在对当前检出重算证据链完整性（逐条复算字节声明，约一秒）…'));
+  try {
+    const data = await apiOrEmpty<EvidenceProjection>('/evidence-projection',
+      EVIDENCE_PROJECTION_UNREADABLE);
+    host.replaceChildren(evidenceProjectionPanel(data, shapeNotice(data)));
+  } catch (error) {
+    const envelope = (error as Error & { serviceEnvelope?: Record<string, unknown> })
+      .serviceEnvelope;
+    const code = typeof envelope?.['error'] === 'string' ? envelope['error'] : errMsg(error);
+    host.replaceChildren(el('p', { class: 'error' },
+      `证据链状态未读回：${String(code)}。服务端在拒绝时没有给出任何计数或收据列表，`
+      + '本页不会把一次拒绝显示成"没有证据问题"。'));
+  }
+}
+
+function evidenceProjectionPanelBox(): HTMLElement {
+  const out = el('div', { class: 'evidence-projection-outcome', id: 'evidence-projection-outcome' },
+    el('p', { class: 'view-hint' },
+      '尚未读回证据链完整性：这一判定要对当前检出逐条复算，不在页面构建时自动执行，'
+      + '也不读取任何生成物。未读回不等于已验证。'));
+  const run = el('button', { type: 'button', class: 'ghost-btn', id: 'evidence-projection-run' },
+    '读回证据链完整性');
+  run.onclick = (): void => { void runEvidenceProjection(out); };
+  return el('div', { class: 'panel' },
+    el('h3', {}, '证据链完整性 · Human EVIDENCE'),
+    run, out,
+    el('p', { class: 'view-hint' },
+      '来源 GET /api/evidence-projection（src/design_lab/governance/evidence_readback.py 依 '
+      + 'design-lab/schemas/evidence-projection.schema.json 校验自身后才应答）。'
+      + '本页只读回，不修改账本：账本行由验证运行时写入，投影状态由这条读回呈现。'));
+}
+
 function evidenceRightsColumn(data: RightsReadback, unread: string): HTMLElement {
   const heading = el('h3', {}, '权利决定读回 · Human RIGHTS');
   if (unread) {
@@ -2411,7 +2582,9 @@ export async function renderSettings(target: HTMLElement): Promise<void> {
 // Shared readback-only project picker. Loads /api/projects once, lets the user
 // pick a project, and re-runs `body(projectId)` on each change. No mutation:
 // only GETs below this point.
-export async function projectPickerPanel(target: HTMLElement, title: string, body: (projectId: string) => Promise<HTMLElement>): Promise<void> {
+export async function projectPickerPanel(target: HTMLElement, title: string,
+                         body: (projectId: string) => Promise<HTMLElement>,
+                         preamble?: HTMLElement): Promise<void> {
   target.replaceChildren(el('p', { class: 'view-loading' }, '正在读回项目台账…'));
   const data = await apiOrEmpty<ProjectListResponse>('/projects', OFFLINE.projects);
   const unread = shapeNotice(data);
@@ -2425,6 +2598,10 @@ export async function projectPickerPanel(target: HTMLElement, title: string, bod
       el('div', { class: 'page-head' },
         el('div', {}, el('h2', {}, title),
           el('p', {}, '只读回服务端台账；本页不提交、不修改。'))),
+      // A preamble is a section that does not depend on picking a project. It renders on the empty
+      // ledger too, because "this checkout has no projects" says nothing about the repo's own
+      // evidence state -- hiding that section behind a missing selection would make it unaskable.
+      ...(preamble ? [preamble] : []),
       el('p', { class: unread || offline ? 'error' : 'view-hint' },
         unread ? `${unread}，因此无法判断台账是否为空`
           : offline ? `${offline}，台账未读回，不能断言为空`
@@ -2443,6 +2620,7 @@ export async function projectPickerPanel(target: HTMLElement, title: string, bod
     el('div', { class: 'page-head' },
       el('div', {}, el('h2', {}, title),
         el('p', {}, '只读回服务端台账；本页不提交、不修改。'))),
+    ...(preamble ? [preamble] : []),
     el('label', { class: 'project-picker' }, '项目', select), content,
     ...shapeNoticeRows(data));
   const load = async (): Promise<void> => {
@@ -3247,7 +3425,7 @@ export async function renderEvidence(target: HTMLElement): Promise<void> {
         + '交付登记的两项读回（预检 / 收据）需要选中交付包后点击执行，E0–E5 证据记录仍无服务路由。'),
       ...shapeNoticeRows(layerResp, bundlesResp, juryResp, rightsResp));
     return done;
-  });
+  }, evidenceProjectionPanelBox());
 }
 
 // 项目详情 — B07 routes.json 的 `/projects/:id`（project-detail）。W03「项目中心」

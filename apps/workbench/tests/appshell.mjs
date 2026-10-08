@@ -980,6 +980,153 @@ if (!blindBox.textContent.includes('未读回收据'))
   throw new Error(`版本 id 缺失时必须说明未读回：${blindBox.textContent.slice(0, 160)}`);
 console.log('ok: ⑦ 证据系统读回裁决/预检/收据：缺字段说未读回不当作空列表、裁决与 lang="en" 上屏、一次点击一个收据请求、404 与 409 两种拒绝各说各话、两框互不覆盖、版本未读回时不发请求');
 
+// ⑦b 证据链完整性读回. The projection publishes two verdicts per receipt and the page may not
+// collapse them into one word, invent a count the service did not send, or let a refusal render as
+// "no evidence problems". Each branch is proven by re-clicking with a variant payload: the strings
+// exist in the source either way, and a branch that never rendered has never been checked against
+// the fact it is supposed to name.
+const projectionButton = byElementId(evidenceView, 'evidence-projection-run');
+const projectionBox = byElementId(evidenceView, 'evidence-projection-outcome');
+if (!projectionButton || !projectionBox)
+  throw new Error('证据系统没有证据链完整性的入口或读回框 —— ⑦b 找不到面');
+if (evidencePaths.includes('/api/evidence-projection'))
+  throw new Error('构建证据页时就读了证据链状态；它要对当前检出逐条复算，必须是一次明确请求');
+if (projectionBox.textContent.includes('VERIFIED'))
+  throw new Error('结论在没有点击之前就出现在屏幕上');
+if (projectionButton.disabled)
+  throw new Error('证据链读回不依赖任何所选交付包，按钮不得是禁用的');
+
+const PROJECTION_SUBJECT = 'c'.repeat(40);
+const PROJECTION_RECEIPTS = [
+  { id: 'r-intact-and-current', taskIds: ['DL-R5-003'], kind: 'local_test', outcome: 'PASS',
+    subjectSha: 'a'.repeat(40), binding: 'COMMIT', observedAt: '2026-10-08T06:05:33Z',
+    verified: true, current: true, integrityReasons: [], currencyReasons: [] },
+  { id: 'r-intact-but-moved', taskIds: ['DL-R5-001'], kind: 'local_test', outcome: 'PASS',
+    subjectSha: 'b'.repeat(40), binding: 'COMMIT', observedAt: '2026-10-08T05:06:06Z',
+    verified: true, current: false, integrityReasons: [],
+    currencyReasons: ['MOVED_SINCE_BOUND_COMMIT:src/design_lab/governance/reporting.py'] },
+  { id: 'r-not-reproducible', taskIds: ['DL-R5-004'], kind: 'structural', outcome: 'PARTIAL',
+    subjectSha: 'd'.repeat(40), binding: 'COMMIT', observedAt: '2026-09-28T14:00:00Z',
+    verified: false, current: false,
+    integrityReasons: ['ARTIFACT_IS_NOT_VERSIONED:src/design_lab/readiness/__pycache__/'
+      + 'host_matrix.cpython-313.pyc'],
+    currencyReasons: [] },
+];
+const PROJECTION_PAYLOAD = {
+  schemaVersion: 'design-lab/evidence-projection/v1',
+  subjectSha: PROJECTION_SUBJECT,
+  ledger: 'design-lab/config/task-ledger-r3.json',
+  totals: { records: PROJECTION_RECEIPTS.length, outcomePass: 2, verified: 2, unverified: 1,
+            current: 1 },
+  reasonCounts: { integrity: { OUTCOME_NOT_PASS: 1, ARTIFACT_IS_NOT_VERSIONED: 1 },
+                  currency: { MOVED_SINCE_BOUND_COMMIT: 1, STALE_SUBJECT_SHA: 8 } },
+  receipts: PROJECTION_RECEIPTS,
+  taskCounts: { PARTIAL: 28 },
+};
+
+async function renderProjectionVariant(payload, label, ok = true) {
+  projectionButton.onclick();
+  const reads = shell.pending.splice(0, shell.pending.length);
+  if (reads.length !== 1)
+    throw new Error(`${label} 发出了 ${reads.length} 个请求，应为 1 个`);
+  if (reads[0].path !== '/api/evidence-projection')
+    throw new Error(`${label} 打到了 ${reads[0].path}，必须是证据链投影自己的路由`);
+  reads[0].resolve(response(payload, ok));
+  await flush();
+  return projectionBox.textContent;
+}
+
+const projectionText = await renderProjectionVariant(PROJECTION_PAYLOAD, '完整读回');
+// The KPI numbers are read off the cards' own data-count, not out of the text: '3' and '条收据' are
+// two nodes, and a substring test on the concatenation would pass even if the value had been glued
+// to the wrong label.
+function kpiPairs(node, out = []) {
+  const kids = node?.children ?? [];
+  for (let index = 0; index < kids.length; index += 1) {
+    const kid = kids[index];
+    if (kid?.dataset?.count !== undefined)
+      out.push([kid.dataset.count, kids[index + 1]?.textContent ?? '']);
+    kpiPairs(kid, out);
+  }
+  return out;
+}
+const projectionKpis = kpiPairs(projectionBox);
+const wantedKpis = [['3', '条收据'], ['2', '字节可复现'], ['1', '不可复现'], ['1', '仍适用当前检出']];
+for (const [value, label] of wantedKpis) {
+  if (!projectionKpis.some((pair) => pair[0] === value && pair[1] === label))
+    throw new Error(`证据链 KPI 缺少 ${value} ${label}，实际读到 ${JSON.stringify(projectionKpis)}`);
+}
+for (const must of ['OUTCOME_NOT_PASS', 'ARTIFACT_IS_NOT_VERSIONED', 'MOVED_SINCE_BOUND_COMMIT',
+                    'STALE_SUBJECT_SHA', 'r-intact-and-current', 'r-intact-but-moved',
+                    'r-not-reproducible', 'design-lab/config/task-ledger-r3.json',
+                    PROJECTION_SUBJECT.slice(0, 12)])
+  if (!projectionText.includes(must))
+    throw new Error(`证据链读回缺少 ${must}：${projectionText.slice(0, 260)}`);
+// The two booleans are two questions. An intact receipt about moved bytes is honest history and is
+// not evidence about this checkout, so it must not wear the same word as one that is still current.
+for (const word of ['VERIFIED CURRENT', 'VERIFIED NOT CURRENT', 'NOT VERIFIED'])
+  if (!projectionText.includes(word))
+    throw new Error(`三种判定必须各说各话，屏幕上没有 ${word}：${projectionText.slice(0, 240)}`);
+const projectionMarked = collectMarked(projectionBox);
+for (const word of ['VERIFIED CURRENT', 'VERIFIED NOT CURRENT', 'NOT VERIFIED',
+                    'OUTCOME_NOT_PASS', 'ARTIFACT_IS_NOT_VERSIONED', 'MOVED_SINCE_BOUND_COMMIT'])
+  if (!projectionMarked.includes(word))
+    throw new Error(`证据链词表中的 ${word} 必须带 lang="en"：${projectionMarked.join('/')}`);
+if (projectionText.includes('全部已验证') || projectionText.includes('没有问题'))
+  throw new Error('一页里只要有 NOT VERIFIED，页面不得说全部已验证或没有问题');
+
+// A readback that caps its list must say it capped it: 12 shown out of N is not "there are 12".
+const overflow = {
+  ...PROJECTION_PAYLOAD,
+  receipts: Array.from({ length: 13 }, (_unused, index) => ({
+    ...PROJECTION_RECEIPTS[0], id: `r-${index}` })),
+  totals: { records: 13, outcomePass: 13, verified: 13, unverified: 0, current: 13 },
+};
+const overflowText = await renderProjectionVariant(overflow, '超出展开上限');
+if (!overflowText.includes('其余 1 条未逐条列出'))
+  throw new Error(`列表被截断时必须说明，不得让 12 条读成全部：${overflowText.slice(0, 200)}`);
+const overflowKpis = kpiPairs(projectionBox);
+if (!overflowKpis.some((pair) => pair[0] === '13' && pair[1] === '条收据'))
+  throw new Error(`计数要覆盖全部记录，与展开条数无关，实际读到 ${JSON.stringify(overflowKpis)}`);
+
+// Every way this read can come back wrong is a different sentence, and none of them may keep the
+// numbers from the previous read on screen.
+const absentTotals = { ...PROJECTION_PAYLOAD };
+delete absentTotals.totals;
+const absentTotalsText = await renderProjectionVariant(absentTotals, '缺 totals');
+if (!absentTotalsText.includes('未读回'))
+  throw new Error(`响应没有 totals，页面必须说未读回：${absentTotalsText.slice(0, 200)}`);
+if (kpiPairs(projectionBox).length || absentTotalsText.includes('VERIFIED CURRENT'))
+  throw new Error('缺计数时不得沿用上一读的数，也不得画任何判定');
+
+const absentReceipts = { ...PROJECTION_PAYLOAD };
+delete absentReceipts.receipts;
+const absentReceiptsText = await renderProjectionVariant(absentReceipts, '缺 receipts');
+if (!absentReceiptsText.includes('未读回') || !absentReceiptsText.includes('receipts'))
+  throw new Error(`响应没有 receipts 集合，页面要说未读回并点名缺什么：${
+    absentReceiptsText.slice(0, 200)}`);
+
+// A named refusal is the route saying it would not guess. The card has to carry the service's own
+// code, and must not be softened into an empty ledger.
+const projectionRefusedText = await renderProjectionVariant({ error: 'EVIDENCE_LEDGER_ABSENT' }, '服务端拒绝', false);
+if (!projectionRefusedText.includes('EVIDENCE_LEDGER_ABSENT') || !projectionRefusedText.includes('未读回'))
+  throw new Error(`拒绝要带上服务端的理由码：${projectionRefusedText.slice(0, 200)}`);
+if (projectionRefusedText.includes('账本没有任何收据') || projectionRefusedText.includes('0 条收据'))
+  throw new Error('一次拒绝不得被显示成"账本是空的"或 0 条记录');
+
+// 200 with an error field in the body is a third thing again: the request completed and the
+// readback still declined to carry counts.
+const inlineRefusalText = await renderProjectionVariant(
+  { error: 'EVIDENCE_CONTRACT_VIOLATION' }, '响应体内带拒绝码');
+if (!inlineRefusalText.includes('EVIDENCE_CONTRACT_VIOLATION')
+  || !inlineRefusalText.includes('未读回'))
+  throw new Error(`200 但带 error 的响应要同时给出拒绝码与未读回：${inlineRefusalText.slice(0, 240)}`);
+if (kpiPairs(projectionBox).length)
+  throw new Error('一个带拒绝码的响应不得画出任何 KPI 数字');
+
+console.log('ok: ⑦b 证据链完整性：构建页面零读回、一次点击一个请求、三个判定各说各话且带 lang="en"、'
+  + '理由分布来自服务端、截断要说明、缺 totals/receipts 说未读回不画数、拒绝带码且不冒充空账本');
+
 // ⑧ 权利决定 · Human RIGHTS. The rights gate got a real route (GET/POST
 // /api/projects/<32-hex>/rights, src/design_lab/rights_review.py) and now has a real
 // surface: a form on 预检 / QA where a human signs, and a read-only column on 证据系统.

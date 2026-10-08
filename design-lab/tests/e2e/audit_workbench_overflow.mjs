@@ -48,6 +48,14 @@ const ROUTES = [
 ];
 
 // Deliberate clip: the screen-reader-only route-change announcer.
+// A route sweep cannot see a panel that only appears after a click, and a button-gated readback is
+// exactly where a clipped KPI grid or a sub-11px caption hides. Each interaction is measured as its
+// own named state; a selector that is not there, or a read that never settles, fails the gate rather
+// than being skipped -- an unrun measurement is not a passing one.
+const INTERACTIONS = [
+  ['evidence', '#evidence-projection-run', 'projection-read'],
+];
+
 const ALLOWLIST = ['sr-status'];
 
 const MEASURE = () => {
@@ -96,6 +104,8 @@ const MEASURE = () => {
 const browser = await chromium.launch({ executablePath: browserPath, args: ['--no-sandbox'] });
 const report = { serviceUrl, widths, routes: {} };
 let clippedTotal = 0, strayTotal = 0, tinyTotal = 0;
+const interactionMissing = [];
+const interactionStates = [];
 
 for (const w of widths) {
   const page = await browser.newPage({ viewport: { width: w, height: 900 } });
@@ -108,6 +118,45 @@ for (const w of widths) {
     await page.waitForTimeout(1000);
     const m = await page.evaluate(MEASURE);
     report.routes[`${w}:${name}`] = m;
+    for (const [route, selector, label] of INTERACTIONS) {
+      if (route !== name) continue;
+      const key = `${w}:${name}+${label}`;
+      const present = await page.locator(selector).count();
+      if (present !== 1) { interactionMissing.push(`${key} ${selector} count=${present}`); continue; }
+      await page.click(selector);
+      let settled = null;
+      try {
+        settled = await page.waitForFunction(() => {
+          const box = document.getElementById('evidence-projection-outcome');
+          if (!box) return 'no-box';
+          if (box.querySelector('.error')) return 'refused';
+          if (box.querySelector('[data-count]')) return 'read';
+          return false;
+        }, { timeout: 25000 });
+      } catch (unused) {
+        interactionMissing.push(`${key}: the readback never settled within 25s`);
+        continue;
+      }
+      const state = await settled.jsonValue();
+      if (state === 'no-box') {
+        interactionMissing.push(`${key}: the outcome box vanished from the document`);
+        continue;
+      }
+      await page.waitForTimeout(400);
+      const im = await page.evaluate(MEASURE);
+      // The state travels with the measurement: a clean geometry report from a panel that showed a
+      // refusal would otherwise look identical to a clean one from a panel that read the ledger back.
+      im.state = state;
+      report.routes[key] = im;
+      interactionStates.push(`${key}=${state}`);
+      clippedTotal += im.clipped.length;
+      strayTotal += im.stray.length;
+      tinyTotal += im.tiny.length;
+      console.log(`w=${String(w).padEnd(5)} ${key.padEnd(34)} docX=${String(im.docOverflowX).padStart(3)} `
+        + `clipped=${String(im.clipped.length).padStart(2)} stray=${String(im.stray.length).padStart(2)} `
+        + `scrollOk=${String(im.scrollOk).padStart(2)} tiny=${String(im.tiny.length).padStart(2)} `
+        + `state=${state}`);
+    }
     clippedTotal += m.clipped.length;
     strayTotal += m.stray.length;
     tinyTotal += m.tiny.length;
@@ -118,9 +167,13 @@ for (const w of widths) {
 await browser.close();
 
 if (outPath) writeFileSync(outPath, JSON.stringify(report, null, 2));
+if (interactionMissing.length) {
+  console.log('OV_INTERACTION_UNMEASURED ' + interactionMissing.join(' | '));
+  fail('OV_INTERACTION_UNMEASURED');
+}
 
 console.log('');
-console.log(`OV_SUMMARY clipped=${clippedTotal} stray=${strayTotal} tiny=${tinyTotal}`);
+console.log(`OV_SUMMARY clipped=${clippedTotal} stray=${strayTotal} tiny=${tinyTotal} interactions=${interactionStates.length} [${interactionStates.join(',')}]`);
 if (clippedTotal > 0) {
   for (const [k, v] of Object.entries(report.routes)) {
     for (const c of v.clipped) console.log(`  CLIPPED ${k} +${c.by}px ${c.el.slice(0, 100)}`);

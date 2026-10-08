@@ -24,6 +24,7 @@ UI. It claims E2 controlled-runtime evidence only — geometry measured in a rea
 browser, not an E3 host run, not an E4 human visual jury, and no claim that the
 UI looks good.
 """
+import json
 import os
 import secrets
 import shutil
@@ -131,6 +132,19 @@ class WorkbenchOverflowGateTests(unittest.TestCase):
         self.assertIn('OV_OK', out, f'gate exited 0 without OV_OK:\n{out[-2000:]}')
         self.assertTrue(report_path.is_file(),
                         f'gate produced no report at {report_path}')
+        # Every named interaction has to have settled on something a reader can tell apart, and at
+        # least one has to have actually read the ledger back: a panel that renders a refusal at
+        # every width is well-formed UI over a readback nobody ever saw.
+        report = json.loads(report_path.read_text(encoding='utf-8'))
+        interactions = {key: value for key, value in report['routes'].items() if '+' in key}
+        self.assertTrue(interactions, 'the gate measured no button-gated panel at all')
+        for key, value in sorted(interactions.items()):
+            self.assertIn(value.get('state'), ('read', 'refused'),
+                          f'{key} settled on {value.get("state")!r}, which is neither a read-back '
+                          'nor a named refusal')
+        self.assertIn('read', {value.get('state') for value in interactions.values()},
+                      'no width ever displayed the readback itself; the gate would have passed on '
+                      'an error card, so the rendered panel is unverified')
 
 
 if __name__ == '__main__':

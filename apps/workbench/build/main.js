@@ -2392,6 +2392,193 @@ function rightsFacts(data) {
   ));
   return nodes;
 }
+const EVIDENCE_PROJECTION_UNREADABLE = {
+  receipts: [],
+  reasonCounts: { integrity: {}, currency: {} },
+  taskCounts: {}
+};
+const PROJECTION_RECEIPT_LIMIT = 12;
+function projectionStateWord(receipt) {
+  if (!receipt.verified) return "NOT VERIFIED";
+  return receipt.current ? "VERIFIED CURRENT" : "VERIFIED NOT CURRENT";
+}
+function projectionCount(value) {
+  return typeof value === "number" ? String(value) : "—";
+}
+function projectionReasonList(group, noneText) {
+  const entries = Object.entries(group ?? {}).sort((a, b) => a[0].localeCompare(b[0]));
+  if (!entries.length) return el("p", { class: "view-hint" }, noneText);
+  return el("ul", { class: "list" }, ...entries.map(([token2, count]) => el(
+    "li",
+    { class: "list-item" },
+    el("div", {}, en(token2), el("small", {}, "该理由命中的字节声明数")),
+    el("span", { class: "tag warn" }, String(count))
+  )));
+}
+function projectionReasonLine(label, reasons) {
+  if (!reasons.length) return el("small", {}, `${label}：无`);
+  return el(
+    "small",
+    {},
+    label + "：",
+    ...reasons.slice(0, 3).flatMap((reason, index) => index === 0 ? [en(reason)] : [" · ", en(reason)]),
+    ...reasons.length > 3 ? [el("span", {}, ` 等 ${reasons.length} 项`)] : []
+  );
+}
+function projectionReceiptRows(receipts) {
+  const shown = receipts.slice(0, PROJECTION_RECEIPT_LIMIT);
+  const rest = receipts.length - shown.length;
+  return el(
+    "ul",
+    { class: "list" },
+    ...shown.map((receipt) => el(
+      "li",
+      { class: "list-item" },
+      el(
+        "div",
+        {},
+        el("strong", {}, receipt.id),
+        el(
+          "small",
+          { class: "value-mono" },
+          `subject ${receipt.subjectSha.slice(0, 12)} · ${receipt.kind}`
+        ),
+        projectionReasonLine("完整性理由", receipt.integrityReasons),
+        projectionReasonLine("时效理由", receipt.currencyReasons)
+      ),
+      el(
+        "span",
+        { class: receipt.verified ? receipt.current ? "tag ok" : "tag info" : "tag bad" },
+        en(projectionStateWord(receipt))
+      )
+    )),
+    ...rest > 0 ? [el(
+      "li",
+      { class: "list-item" },
+      el(
+        "div",
+        {},
+        el("strong", {}, `其余 ${rest} 条未逐条列出`),
+        el("small", {}, "上方计数覆盖全部记录；此处只是不再展开，不是没有这些记录。")
+      )
+    )] : []
+  );
+}
+function evidenceProjectionPanel(data, unread) {
+  const refusal = data.error ? `服务端在响应里给出了拒绝码 ${String(data.error)}。` : "";
+  if (unread) {
+    return el(
+      "p",
+      { class: "error" },
+      `${refusal}${unread}；证据链状态未读回。未读回不等于已验证，也不等于没有问题。`
+    );
+  }
+  if (data.error) {
+    return el(
+      "p",
+      { class: "error" },
+      `证据链状态未读回：${String(data.error)}。服务端拒绝时没有给出任何计数，本页不会替它补一个，也不会把拒绝解释成"没有证据问题"。`
+    );
+  }
+  const totals = data.totals;
+  const receipts = Array.isArray(data.receipts) ? data.receipts : [];
+  if (!totals || typeof totals.records !== "number") {
+    return el(
+      "p",
+      { class: "error" },
+      "证据链状态未读回：响应没有给出 totals.records。缺少计数不得被当作 0 条记录。"
+    );
+  }
+  if (!Array.isArray(data.receipts)) {
+    return el(
+      "p",
+      { class: "error" },
+      "证据链状态未读回：响应没有给出 receipts 集合，无法逐条判断，也不会显示任何计数。"
+    );
+  }
+  return el(
+    "div",
+    {},
+    el(
+      "div",
+      { class: "kpi-grid" },
+      kpiCard(projectionCount(totals.records), "条收据", "config/task-ledger-r3.json"),
+      kpiCard(projectionCount(totals.verified), "字节可复现", "在其绑定提交上重算"),
+      kpiCard(projectionCount(totals.unverified), "不可复现", "含未通过 outcome 的行"),
+      kpiCard(projectionCount(totals.current), "仍适用当前检出", "verified 的子集")
+    ),
+    el("h4", {}, "完整性理由分布（为何这些字节不再在其声称的来源处）"),
+    projectionReasonList(
+      data.reasonCounts?.integrity,
+      "没有完整性理由：本次读回没有发现无法复现的字节声明。"
+    ),
+    el("h4", {}, "时效理由分布（为何完整的收据不再描述当前检出的字节）"),
+    projectionReasonList(
+      data.reasonCounts?.currency,
+      "没有时效理由：所有完整收据引用的文件都与当前检出一致。"
+    ),
+    el("h4", {}, "逐条收据"),
+    receipts.length ? projectionReceiptRows(receipts) : el("p", { class: "view-hint" }, "账本没有任何收据；这是读回来的空账本，不是读回失败。"),
+    el(
+      "p",
+      { class: "view-hint" },
+      `判定对象为当前检出 ${data.subjectSha ? data.subjectSha.slice(0, 12) : "（响应未给出）"}，来源 ${data.ledger ?? "（响应未给出）"}。该读回对当前检出重新计算，不读取 reports/current/（生成物绑定它写下时所在的提交）。"仍适用当前检出"是"字节可复现"的子集：完整的收据若引用的文件已移动，它仍是诚实的历史，但不是今天这份代码的证据。`
+    )
+  );
+}
+async function runEvidenceProjection(host) {
+  host.replaceChildren(el(
+    "p",
+    { class: "view-loading" },
+    "正在对当前检出重算证据链完整性（逐条复算字节声明，约一秒）…"
+  ));
+  try {
+    const data = await apiOrEmpty(
+      "/evidence-projection",
+      EVIDENCE_PROJECTION_UNREADABLE
+    );
+    host.replaceChildren(evidenceProjectionPanel(data, shapeNotice(data)));
+  } catch (error) {
+    const envelope = error.serviceEnvelope;
+    const code = typeof envelope?.["error"] === "string" ? envelope["error"] : errMsg(error);
+    host.replaceChildren(el(
+      "p",
+      { class: "error" },
+      `证据链状态未读回：${String(code)}。服务端在拒绝时没有给出任何计数或收据列表，本页不会把一次拒绝显示成"没有证据问题"。`
+    ));
+  }
+}
+function evidenceProjectionPanelBox() {
+  const out = el(
+    "div",
+    { class: "evidence-projection-outcome", id: "evidence-projection-outcome" },
+    el(
+      "p",
+      { class: "view-hint" },
+      "尚未读回证据链完整性：这一判定要对当前检出逐条复算，不在页面构建时自动执行，也不读取任何生成物。未读回不等于已验证。"
+    )
+  );
+  const run = el(
+    "button",
+    { type: "button", class: "ghost-btn", id: "evidence-projection-run" },
+    "读回证据链完整性"
+  );
+  run.onclick = () => {
+    void runEvidenceProjection(out);
+  };
+  return el(
+    "div",
+    { class: "panel" },
+    el("h3", {}, "证据链完整性 · Human EVIDENCE"),
+    run,
+    out,
+    el(
+      "p",
+      { class: "view-hint" },
+      "来源 GET /api/evidence-projection（src/design_lab/governance/evidence_readback.py 依 design-lab/schemas/evidence-projection.schema.json 校验自身后才应答）。本页只读回，不修改账本：账本行由验证运行时写入，投影状态由这条读回呈现。"
+    )
+  );
+}
 function evidenceRightsColumn(data, unread) {
   const heading = el("h3", {}, "权利决定读回 · Human RIGHTS");
   if (unread) {
@@ -3466,7 +3653,7 @@ async function renderSettings(target) {
     ...shapeNoticeRows(env)
   );
 }
-async function projectPickerPanel(target, title, body) {
+async function projectPickerPanel(target, title, body, preamble) {
   target.replaceChildren(el("p", { class: "view-loading" }, "正在读回项目台账…"));
   const data = await apiOrEmpty("/projects", OFFLINE.projects);
   const unread = shapeNotice(data);
@@ -3483,6 +3670,7 @@ async function projectPickerPanel(target, title, body) {
           el("p", {}, "只读回服务端台账；本页不提交、不修改。")
         )
       ),
+      ...preamble ? [preamble] : [],
       el(
         "p",
         { class: unread || offline ? "error" : "view-hint" },
@@ -3507,6 +3695,7 @@ async function projectPickerPanel(target, title, body) {
         el("p", {}, "只读回服务端台账；本页不提交、不修改。")
       )
     ),
+    ...preamble ? [preamble] : [],
     el("label", { class: "project-picker" }, "项目", select),
     content,
     ...shapeNoticeRows(data)
@@ -4524,7 +4713,7 @@ async function renderEvidence(target) {
       ...shapeNoticeRows(layerResp, bundlesResp, juryResp, rightsResp)
     );
     return done;
-  });
+  }, evidenceProjectionPanelBox());
 }
 const PROJECT_STAGES = [
   { key: "brief", label: "Brief", panelId: "#pd-brief-editor", state: "IMPLEMENTED" },
