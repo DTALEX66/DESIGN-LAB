@@ -887,6 +887,7 @@
         "OUTCOME_NOT_PASS",
         "STALE_SUBJECT_SHA",
         "SOURCE_CHANGED_OR_MISSING:src/design_lab/assurance/handoff_readiness.py",
+        "SOURCE_CHANGED_OR_MISSING:packages/capabilities/quality/jury/JuryRecord.template.json",
         "SOURCE_CHANGED_OR_MISSING:design-lab/tests/test_production_preflight.py"
       ],
       "software": {
@@ -2862,6 +2863,7 @@
       "reasons": [
         "STALE_SUBJECT_SHA",
         "SOURCE_CHANGED_OR_MISSING:design-lab/scripts/verify_design_lab.py",
+        "SOURCE_CHANGED_OR_MISSING:design-lab/tests/test_evidence_artifact_presence.py",
         "SOURCE_CHANGED_OR_MISSING:docs/audits/DESIGNLAB-LAUNCH-REVIEW-PREFLIGHT-2026-10-08.md"
       ],
       "software": {
@@ -2909,7 +2911,14 @@
       "observed_at": "2026-10-08T03:02:07Z",
       "outcome": "PASS",
       "reasons": [
-        "SOURCE_CHANGED_OR_MISSING:docs/audits/DESIGNLAB-LAUNCH-REVIEW-PREFLIGHT-2026-10-08.md"
+        "STALE_SUBJECT_SHA",
+        "SOURCE_CHANGED_OR_MISSING:design-lab/scripts/verify_object_model_backing.py",
+        "SOURCE_CHANGED_OR_MISSING:design-lab/tests/test_object_model_backing_gate.py",
+        "SOURCE_CHANGED_OR_MISSING:design-lab/scripts/verify_design_lab.py",
+        "SOURCE_CHANGED_OR_MISSING:docs/audits/DESIGNLAB-LAUNCH-REVIEW-PREFLIGHT-2026-10-08.md",
+        "ARTIFACT_CHANGED_OR_MISSING:design-lab/scripts/verify_object_model_backing.py",
+        "ARTIFACT_CHANGED_OR_MISSING:design-lab/tests/test_object_model_backing_gate.py",
+        "ARTIFACT_CHANGED_OR_MISSING:design-lab/scripts/verify_design_lab.py"
       ],
       "software": {
         "platform": "Windows-11-10.0.26100-SP0",
@@ -2931,17 +2940,68 @@
         "DL-R5-003"
       ],
       "verified": false
+    },
+    {
+      "artifacts": [
+        {
+          "path": "design-lab/scripts/verify_template_contracts.py",
+          "sha256": "398d9dd18575c5227b442ba6d7fe4a6f28ee76d53fd5cd3bcff0575654dc1401"
+        },
+        {
+          "path": "design-lab/tests/test_template_contracts_gate.py",
+          "sha256": "f474ec87f3c288c25be31b208eb9715db217031e9496384e5fe439f16abcf172"
+        },
+        {
+          "path": "src/design_lab/assurance/delivery_bom.py",
+          "sha256": "d01cb157aa4c576e1d635fcf05db54257a865de79df545fe860d9a419070c0c5"
+        },
+        {
+          "path": "design-lab/tests/test_delivery_bom.py",
+          "sha256": "c6134c0f1059cc6985111d323ad74b3e2bff10f707fbfdc3ede881b6f6fa9ef0"
+        }
+      ],
+      "binding": "COMMIT",
+      "id": "r5-010-template-contracts-and-delivery-bom-20261008",
+      "kind": "local_test",
+      "note": "The contract layer got one notch closer to being executable. MEASURED FIRST: every *.template.json in the repository (three of them) was broken and no gate could see it -- BOM.template.json was rejected three times by the schema its own $schema key names (a $schema property additionalProperties:false forbids, items[0].kind written as the menu string 'editable-source | export | derived', version 1.0.0 where the contract pins const design-lab/bom/v1); JuryRecord.template.json's $schema resolved to packages/schemas/, a path with no file in it; score-sheet.template.json named no contract at all. A template is what a person copies to make a real record, so the honest 'fill in the blanks and submit' workflow was shipping a rejected document every time. verify_template_contracts.py now checks the pointer, the path and the instance, resolving pointers under BOTH conventions actually in use (file-relative $schema, repo-root rubric) and validating with one offline registry built from the 116 in-repo $id values -- the registry is load-bearing, because schema_errors without one reaches the network for a $ref, and an unresolvable reference is reported as SCHEMA_REF_UNRESOLVABLE rather than raised. Zero templates scanned is red and the three-name inventory is pinned in both directions. Requiring a template to validate forced a placeholder rule: legal AND unable to overclaim, so the jury record now carries deterministic.result=FAIL instead of the pre-filled OK it shipped with, axes at the schema minimum 1, and REVISE rather than PASS; free-text keeps replace-with- wording. THEN the delivery-manifest ruling, which is the first of the 16 non-PRODUCT object rows to be settled: object-model.json binds that row to schemas/bom.schema.json, and the only 'bom' in the product was the {'items': [{'id','path','sha256'}]} link fragment inside production_preflight, which that contract rejects outright. The fragment is renamed link_manifest (and the two Chinese messages stop saying BOM); src/design_lab/assurance/delivery_bom.py states the boundary in code, reading its version out of the schema const rather than typing it again, and returns DELIVERY_BOM_INCOMPLETE with a per-field reason for the four fields the chain records nowhere (handoff, repo tree at export, adapter tool version, delivery timestamp) instead of inventing them -- 'unknown' in provenance.boundTreeSha is shown by test to be rejected, not accepted. preflight_archive emits a delivery-bom finding (NOT_MEASURED while unattested) and it reaches the page unchanged because artifactPreflightPanel renders data.findings unfiltered, a property test_artifact_preflight_ui_contract.py already pins -- no front-end edit and no rebuild. That insertion exposed a PRE-EXISTING defect through an old assertion, not a new one: RegisteredArtifactScopeTests requires the NOT_MEASURED count to move with the finding, and it went red at 6 != 5 because preflight_archive inserted its findings AFTER _recount, so counts never described what the page showed; it had looked correct only because the previously inserted finding was a PASS. The recount now happens after the inserts, and a new test compares counts against the findings tally outcome word by word. verify_object_model_backing.py reclassified delivery-manifest as PRODUCT by itself (the schema filename is now in src/), the pinned UNREFERENCED row was deleted rather than reworded, and the counts moved 5/9/7 to 6/9/6; the gate is wired into verify_design_lab.py, which went from 67 to 68 gates with VERIFY_DESIGN_LAB=OK total=68 failed=0. ALSO MEASURED, closing the #19 open item: the reconstruction evidence module run one method at a time in a single process with NO timeout box took TOTAL seconds=1609.5 methods=37 errors=0 failures=0 skipped=0, slowest case 289.4s (test_structure_projection_and_provenance_mutations_fail_closed), then 113.2s and 103.4s. So the earlier 'hang plus 13 errors' was my own concurrency and my own timeout killing the measurement, not a product defect, and any deadline for that module has to be set from these numbers. E2 CONTROLLED_RUNTIME: real interpreter, real repository bytes, no design host -- so host_live and delivery stay PARTIAL, and E3/E4/E5 are untouched by this row.",
+      "observed_at": "2026-10-08T03:55:43Z",
+      "outcome": "PASS",
+      "reasons": [
+        "SOURCE_CHANGED_OR_MISSING:src/design_lab/assurance/production_preflight.py"
+      ],
+      "software": {
+        "platform": "Windows-11-10.0.26100-SP0",
+        "python": "3.13.14 (project .venv)",
+        "runner": "python scripts/run_bound_test_suite.py --label r5-010-template-and-delivery-bom-20261008 --modules test_template_contracts_gate test_delivery_bom test_production_preflight test_artifact_preflight_ui_contract test_contract_bindings test_object_model_backing_gate test_evidence_artifact_presence test_gate_reachability test_test_selfsufficiency_gate test_delivery_receipt_wiring test_rollback_state_classifier test_delivery_evidence_ui_contract test_route_payload_contracts test_state_vocabularies_gate test_service_http -> run_id=testrun-20261008T035509Z-forward-repeat-6d5359327f69, tests_run=244, failures=0, errors=0, skipped=0, duration=34.033s, order=forward, worktree_clean=True",
+        "test_manifest": "sha256:9ae3308fdcfd7cd95e951d02dea9c895232c5b36641fd919d10afddf20ce15ff",
+        "worktree_digest": "sha256:6d5359327f69db91c4e4b1d2b79b0273cace0c2997c9f2f3d252056cd150f521"
+      },
+      "subject_files": {
+        "design-lab/production/handoff/BOM.template.json": "3c20c9a827961dd7026e08e31104eedf0e3c31655d96e164aae5bad368452179",
+        "design-lab/schemas/bom.schema.json": "b9cc34e829c6d155eb8f15d2ec498977f3c3b81578ba09dcc5f67455eec49326",
+        "design-lab/schemas/jury-record.schema.json": "301c192b4841b6abf64ace28e9578402231aab4c164ba4628ecf0f1595c95531",
+        "design-lab/scripts/verify_template_contracts.py": "398d9dd18575c5227b442ba6d7fe4a6f28ee76d53fd5cd3bcff0575654dc1401",
+        "design-lab/tests/test_template_contracts_gate.py": "f474ec87f3c288c25be31b208eb9715db217031e9496384e5fe439f16abcf172",
+        "packages/capabilities/quality/jury/JuryRecord.template.json": "6cbaad792d71abfbcb21bc1c53cd9e22882116e211744d803e600997483f098c",
+        "src/design_lab/assurance/delivery_bom.py": "d01cb157aa4c576e1d635fcf05db54257a865de79df545fe860d9a419070c0c5",
+        "src/design_lab/assurance/production_preflight.py": "e5a3c26cee2a9210059f75561285653360ccfa891f7ce41942d7fa9039d774b1"
+      },
+      "subject_sha": "107118aa4a13b24414eaa61600c652c8d2e03eeb",
+      "task_ids": [
+        "DL-R5-010"
+      ],
+      "verified": false
     }
   ],
   "fresh": false,
   "freshnessMeaning": "at generation only; check verifies bound-input integrity, not current Git or cloud state",
-  "generatedAt": "2026-10-08T03:04:04+00:00",
+  "generatedAt": "2026-10-08T03:57:55+00:00",
   "gitStateMeaning": "generation-time observation, not current HEAD",
   "ledgerUpdatedAt": "2026-10-08T03:04:03Z",
   "note": "DONE_LOCAL concerns the declared task axes and dependencies, not a product release or hosted CI.",
   "schemaVersion": "design-lab/task-progress/r5-v1",
   "subjectMeaning": "subjectType=WORKTREE means the tree was dirty at generation; worktreeDigest covers HEAD plus the non-generated changes",
-  "subjectSha": "c3bdaa91e978597d14c8991a9b5c413fb8bd210a",
+  "subjectSha": "107118aa4a13b24414eaa61600c652c8d2e03eeb",
   "subjectType": "WORKTREE",
   "taskpack": "DL-TP-20260908-R5",
   "taskpackHash": "31dde89eb4ede81fe88c0a5c5144adfb86af8db4c4d8c263bde2199180369b69",
@@ -5445,10 +5505,10 @@
       "unresolved_conditions": []
     }
   ],
-  "testRunAt": "2026-10-08T03:02:07+00:00",
-  "testRunId": "testrun-20261008T030052Z-forward-repeat-a9d6e169b341",
-  "testRunMeaning": "bound run: python scripts/run_bound_test_suite.py --label r5-001-object-model-backing-20261008 --modules test_object_model_backing_gate test_test_selfsufficiency_gate test_rollback_state_classifier test_delivery_receipt_wiring test_delivery_evidence_ui_contract test_service_http test_contract_bindings test_route_payload_contracts test_evidence_artifact_presence test_domain_pack_readback test_ledger_schema test_state_vocabularies_gate test_gate_reachability test_capability_self_description_gate test_rights_registry_gate test_handoff_readiness test_rights_ledger test_rights_http test_research_store test_research_http test_workbench_css_single_definition test_backup_watches_written_tables test_current_version_rule test_quality_store test_design_kernel",
+  "testRunAt": "2026-10-08T03:55:43+00:00",
+  "testRunId": "testrun-20261008T035509Z-forward-repeat-6d5359327f69",
+  "testRunMeaning": "bound run: python scripts/run_bound_test_suite.py --label r5-010-template-and-delivery-bom-20261008 --modules test_template_contracts_gate test_delivery_bom test_production_preflight test_artifact_preflight_ui_contract test_contract_bindings test_object_model_backing_gate test_evidence_artifact_presence test_gate_reachability test_test_selfsufficiency_gate test_delivery_receipt_wiring test_rollback_state_classifier test_delivery_evidence_ui_contract test_route_payload_contracts test_state_vocabularies_gate test_service_http",
   "testRunResult": "OK",
   "worktreeClean": false,
-  "worktreeDigest": "sha256:73cec0873de66c384215e6376eb37cbfcf5a1aea0e1aab03a8ac1d29c2542bbf"
+  "worktreeDigest": "sha256:9cb996f26319d7a859063a84feea4132a1e9d617e4aa3f498c2b05ace4b3db96"
 }
