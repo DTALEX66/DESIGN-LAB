@@ -140,6 +140,12 @@ SCRIPTS = [
     # `subject_sha`/`subjectSha` under reports/current and design-lab/config against a shrinking
     # debt register, and refuses the call shape itself so a tenth cannot appear.
     "verify_report_subject_binding.py",
+    # Each tracked projection that has a read-only re-check form gets re-checked here, in one place,
+    # against its own record -- the gate that was missing when `deepseek_language_inventory.py
+    # --check` had been red for weeks without a single runner. Three records are declared
+    # exclusions because their re-check passes on the generating machine and fails on a clean
+    # checkout of the same commit; the reasons live in the gate, and it runs no writer form.
+    "verify_projection_freshness.py",
     "verify_v2_protocols.py",
     "verify_visual_quality_v21.py",
     "verify_style_master_method.py",

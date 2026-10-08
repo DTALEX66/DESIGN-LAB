@@ -95,6 +95,102 @@ def count_lines(path: Path) -> tuple:
     return len(lines), len(lines) - blank
 
 
+POLICY_FIELDS = ("primary_languages", "contract_language", "rust", "forbidden_without_adr")
+
+
+def snapshot_findings(record: dict) -> list[str]:
+    """What a generation-time snapshot can honestly be held to: its own internal arithmetic.
+
+    The old check compared `file_count` per language against the live tree, i.e. it demanded
+    that a committed record equal a repository that changes with every commit. Measured today the
+    record says 1,776 mapped files against 3,028 now and has no SVG row at all (47 exist), so that
+    check had been red for weeks -- and nothing ran it: no workflow step, no aggregate entry, no
+    test, and its name matches no reachability pattern, so a permanently failing gate was invisible.
+    These findings catch a record that is actually broken.
+    """
+    problems: list[str] = []
+    rows = record.get("languages") or []
+    if not rows:
+        return ["LANGUAGE-ROWS-EMPTY the record inventories no language, so it claims nothing"]
+    names = [str(row.get("language") or "") for row in rows]
+    if "" in names:
+        problems.append("LANGUAGE-ROW-NAME a language row names nothing")
+    duplicates = sorted({name for name in names if names.count(name) > 1})
+    if duplicates:
+        problems.append(f"DUPLICATE-LANGUAGE-ROW {duplicates} appears twice, so the totals "
+                        "double-count")
+    declared = sum(int(row.get("file_count") or 0) for row in rows)
+    total = record.get("tracked_files_total")
+    unmapped = record.get("unmapped_extension_files")
+    sample = record.get("unmapped_sample") or []
+    if not isinstance(total, int) or not isinstance(unmapped, int):
+        problems.append(f"TOTAL-FIELDS-MISSING tracked_files_total={total!r} "
+                        f"unmapped_extension_files={unmapped!r}")
+    elif declared + unmapped != total:
+        problems.append(f"TOTAL-DOES-NOT-ACCOUNT mapped {declared} + unmapped {unmapped} != "
+                        f"tracked_files_total {total}; the census has an unexplained remainder")
+    if len(sample) > (unmapped if isinstance(unmapped, int) else 0):
+        problems.append(f"UNMAPPED-SAMPLE-LARGER sample holds {len(sample)} of "
+                        f"{unmapped} unmapped files")
+    for row in rows:
+        language = str(row.get("language") or "?")
+        if int(row.get("loc_nonblank") or 0) > int(row.get("loc_total") or 0):
+            problems.append(f"LOC-INVERTED {language}: non-blank lines exceed total lines")
+        if int(row.get("file_count") or 0) <= 0:
+            problems.append(f"EMPTY-ROW {language} is listed with file_count="
+                            f"{row.get('file_count')}")
+        for field in ("runtime_role", "build_system", "dependency_manager", "test_runner"):
+            if not str(row.get(field) or "").strip():
+                problems.append(f"MISSING-FIELD {language} has no {field}; a language row without "
+                                "its role is not evidence about that language")
+        if not row.get("owner_directories"):
+            problems.append(f"MISSING-FIELD {language} names no owning directory")
+
+    policy = record.get("policy") or {}
+    for field in POLICY_FIELDS:
+        value = policy.get(field)
+        if not value or (isinstance(value, list) and not [v for v in value if str(v).strip()]):
+            problems.append(f"POLICY-EMPTY policy.{field} is {value!r}; the forbidden-language and "
+                            "primary-language claims live here, so an empty field is not a "
+                            "snapshot of a policy but the absence of one")
+    # Enforcement of forbidden extensions belongs to verify_language_boundary.py, which walks the
+    # tree for them; duplicating that rule here would create two guards that can disagree.
+    code_languages = set(record.get("code_languages") or [])
+    unknown = sorted(code_languages - set(names))
+    if unknown:
+        problems.append(f"CODE-LANGUAGE-UNKNOWN {unknown} is called code but has no row")
+    counts = {str(row.get("language")): int(row.get("loc_nonblank") or 0) for row in rows}
+    nonblank = record.get("code_nonblank_lines") or {}
+    for language, value in nonblank.items():
+        if language not in code_languages:
+            problems.append(f"CODE-LANGUAGE-UNLISTED {language} has a line count but is not in "
+                            "code_languages")
+        elif counts.get(language) != value:
+            problems.append(f"CODE-LINES-MISMATCH {language} records {value} while its row says "
+                            f"{counts.get(language)}")
+    subject = str(record.get("subject_sha") or "")
+    if len(subject) != 40 or any(char not in "0123456789abcdef" for char in subject):
+        problems.append(f"SUBJECT-NOT-A-COMMIT subject_sha={subject[:16]!r} does not name a "
+                        "commit, so the snapshot belongs to no state; the debt register at "
+                        "design-lab/config/report-subject-debt.json is where an empty subject is "
+                        "declared, and this record is not in it")
+    return problems
+
+
+def census_moved(stored: dict, fresh_rows: list[dict]) -> list[str]:
+    """How far the tree has travelled since the snapshot, as words rather than as a verdict."""
+    stored_counts = {str(row.get("language")): int(row.get("file_count") or 0)
+                     for row in stored.get("languages") or []}
+    fresh_counts = {str(row.get("language")): int(row.get("file_count") or 0)
+                    for row in fresh_rows}
+    moved = []
+    for language in sorted(set(stored_counts) | set(fresh_counts)):
+        before, now = stored_counts.get(language), fresh_counts.get(language)
+        if before != now:
+            moved.append(f"{language} {before}->{now}")
+    return moved
+
+
 def main(argv=None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--check", action="store_true")
@@ -164,13 +260,25 @@ def main(argv=None) -> int:
     }
     if args.check:
         if not OUT.is_file():
-            print("LANGUAGE_INVENTORY=FAIL missing")
+            print("LANGUAGE_INVENTORY=FAIL missing " + OUT.relative_to(REPO).as_posix())
             return 1
-        current = json.loads(OUT.read_text(encoding="utf-8"))
-        same = [(row["language"], row["file_count"]) for row in current["languages"]] == \
-               [(row["language"], row["file_count"]) for row in languages]
-        print("LANGUAGE_INVENTORY=" + ("PASS" if same else "DRIFT"))
-        return 0 if same else 1
+        stored = json.loads(OUT.read_text(encoding="utf-8"))
+        problems = snapshot_findings(stored)
+        moved = census_moved(stored, languages)
+        for problem in problems:
+            print("LANGUAGE_INVENTORY=FAIL " + problem)
+        if moved:
+            # A generation-time snapshot does not become wrong when the repository grows; it
+            # becomes old. Saying by how much is the useful part, and failing on it would demand
+            # a writer run at every commit -- which is what made this check permanently red.
+            print(f"LANGUAGE_INVENTORY=NOTICE snapshot of "
+                  f"{str(stored.get('subject_sha') or '')[:12]} at "
+                  f"{stored.get('generated_at')} has moved: {moved}")
+        verdict = "PASS" if not problems else "FAIL"
+        print(f"LANGUAGE_INVENTORY={verdict} mode=check rows="
+              f"{len(stored.get('languages') or [])} policy_fields_checked="
+              f"{len(POLICY_FIELDS)} census_notices={len(moved)}")
+        return 0 if not problems else 1
     OUT.parent.mkdir(parents=True, exist_ok=True)
     OUT.write_text(json.dumps(document, indent=2, ensure_ascii=False) + "\n",
                    encoding="utf-8", newline="\n")

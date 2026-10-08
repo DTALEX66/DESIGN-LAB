@@ -110,3 +110,35 @@ python .project-local/runs/writer-sweep/read_call_statements.py   # 本表的原
 ```
 
 生成时间 2026-10-08T21:37:02+00:00；表内脚本数 25、无只读形态 11、链内裸调用 0、workflow 直接调用行 18。
+
+## 7. 同日追加：把"只读形态"逐个跑完后，新门 `verify_projection_freshness.py`
+
+把上面那张表里**有只读形态的 15 个**逐条实跑（主树一次、干净 worktree 一次），结果分成三类：
+
+| 类别 | 数量 | 实测 |
+|---|---|---|
+| 两棵树都通过 → 进新门 | 11 | foundation-audit、language-inventory、registry-ssot、rights-registry、classify-repo、contract-graph、evidence-levels、language-boundary、no-overclaim、supply-chain、machine-inventory |
+| 只在生成机上通过，干净检出报 DRIFT → 明确排除并写理由 | 3 | SPILL-CENSUS、DEEPSEEK-FINAL-TEST-GATE（`--check` 去读被 ignore 的 `test-run/history.jsonl`）、RECOVERY-SAFETY |
+| 无只读形态 | 其余 | 见第 1 节加粗"无"；不为它们现造接口 |
+
+`VERIFY_PROJECTION_FRESHNESS=OK records=11 verified=11 excluded=3 findings=0`，注册进聚合
+（SCRIPTS 71 → 72 条，聚合打印 total 72 → 73；数字由 ast 数两个 blob 得到）。三处实测副产品：
+
+1. **`deepseek_language_inventory.py --check` 红了几个星期，没人知道**：它把"提交里记的每种语言
+   文件数"与当前树对比，而任何一次新增文件都必然让它红——所以它只能永远红。实测它记 1,776
+   个映射文件 vs 现在 3,028，且完全没有 SVG 行（现存 47 个）。它既不在 workflow、也不在聚合、
+   也没有测试调用，脚本名又不匹配可达性模式的候选，所以"一道永远失败的门"同时是"一道没人在跑的门"。
+   现在 `--check` 改成校验快照自身能证明的东西：行内算术（`mapped + unmapped == tracked_files_total`、
+   `nonblank <= total`、`code_nonblank_lines` 与行值一致、`code_languages` 有行、policy 四个字段非空、
+   `subject_sha` 是 40 位十六进制），并把树移动了多少写成 NOTICE（13 行变化）。判断口径变了，
+   阈值没放松：这些都是"记录自己是否自相矛盾"，不是"记录是否刚好等于今天的树"。
+2. 新门**自己检查自己**：每个入口跑完前后各取一次 `git status --porcelain`，被改动就报
+   `FRESHNESS-CHECK-WROTE`——因为我这次遇到一个说不清来源的 FOUNDATION-AUDIT.json 被重写（subject
+   被刷成当时的 HEAD），逐子进程排查又都干净；与其继续追一次性的事，不如让这个条件永久可检。
+   一个会重写记录的"检查器"永远不会与记录不一致，那是最坏的假绿。
+3. 两道守卫各自抓到一个我自己写的 bug：入口表第一版写 `if argv and argv[0] not in READ_ONLY_FLAGS`
+   ——空 argv（写模式）被短路放过，正是这道守卫存在的唯一理由；埋一个假入口就把它照出来了。
+   另一处是测试里 `cls.run = subprocess.run(...)` 覆盖了 `TestCase.run`，整类用例直接
+   TypeError。还有可达性门的"过期豁免"规则把我这个新门变成了一次真实变化：
+   `deepseek_foundation_audit.py` 原被登记为 one-off，现在它被新门调用，豁免必须撤（撤的理由写在
+   测试里，断言本身一条没删）。

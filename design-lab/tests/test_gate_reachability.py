@@ -36,7 +36,10 @@ MANUAL_GATES = {
         "or by the browser gates",
     "deepseek_content_audit.py": "one-off historical audit run",
     "deepseek_directory_audit.py": "one-off historical audit run",
-    "deepseek_foundation_audit.py": "one-off historical audit run",
+    # `deepseek_foundation_audit.py` was exempted as a one-off. It is no longer one-off:
+    # design-lab/scripts/verify_projection_freshness.py invokes its --check as an entry, and this
+    # test's stale-exemption rule is what surfaced that -- an exemption kept after the script
+    # became reachable is a register that no longer describes the repository.
     "deepseek_post_cleanup_audit.py": "one-off historical audit run",
     "deepseek_size_audit.py": "one-off historical audit run",
 }
