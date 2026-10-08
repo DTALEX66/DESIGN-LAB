@@ -127,6 +127,13 @@ SCRIPTS = [
     "verify_runtime_contracts_v3.py",
     "verify_visual_scoring_v3.py",
     "verify_source_registry.py",
+    # The other half of the vendor lock. `verify_source_registry.py` convicts ABSENT_FROM_GIT
+    # rows that nobody declared; 37 further rows are LOCAL_CACHE_ONLY, i.e. their bytes exist
+    # only in `.project-local/cache/vendor/` on one machine, so CI can never read them. Those
+    # roots now carry a committed per-file manifest, and this gate proves each manifest hashes
+    # to the digest the lock records -- so "we hold these 37 trees" stops being a claim about
+    # somebody's disk. Runs with no arguments: the check reads repository state only.
+    "verify_vendor_manifests.py",
     "verify_v2_protocols.py",
     "verify_visual_quality_v21.py",
     "verify_style_master_method.py",

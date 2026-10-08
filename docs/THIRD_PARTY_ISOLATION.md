@@ -71,3 +71,42 @@
 带删除提交与内容身份，读者可独立复算。`web-content-designer` 的许可另见
 `vendor/sources.lock.json` 的 `licenseCorrection`：锁与 `rights-registry.json` 两处原写 MIT，
 而 SOURCE.md、`QUARANTINE_REGISTRY`（已 reviewed）、SBOM 三处一致为 Apache-2.0，故对齐到有证据的值。
+
+## 仓内登记补全：37 个 cache-only 第三方根的逐文件清单（补记于 2026-10-09）
+
+上面的隔离表第 2 层声明：37 个候选仓的完整字节只存在 `.project-local/cache/vendor/<id>`。
+`vendor/sources.lock.json` 对每个根只记一条 `contentDigest`。那回答"是不是我核过的那批字节"，
+但不回答"里面有什么"——而一份没人能列出的摘要，别人无法复核、上游变动时无法比对、也承载不了
+权利裁决。本回合把后半句补上：每个 cache-only 根一份 `vendor/manifests/<id>.json`，逐文件
+`path`/`bytes`/`sha256`，加聚合 `contentDigest`、`licenseFilesPresent`（树里实测到的许可证文件名）、
+以及留空的 `reviewedBy`/`reviewedAt`/`rightsDecision`。
+
+行级配方与锁完全一致（sha256 覆盖按 `relpath` 排序的 `relpath\0<sha256(bytes)>\0`），因此
+`--check` 在干净克隆里能只靠 manifest 自己的行重算出聚合摘要，再与 manifest 声称的值、锁记录的值
+双向对齐——第三方字节不需要在场，也不允许进仓。进 Git 的只有路径、大小、哈希和许可证文件名，
+第 14 段列的隔离理由 1–5 条照旧成立。实测：37 份清单共 360,201 字节（最大 `baoyu-design.json`
+42,129，最小 `vq-design-md-skill.json` 1,475），覆盖 1,914 个文件 / 35,104,251 字节（33.48 MiB）
+的第三方树，登记体积约为其 1.03%。
+
+门与测：`design-lab/scripts/verify_vendor_manifests.py`。默认形态（也是聚合调用的形态）只读仓内
+状态；`--write` 需要缓存，且只在"walk 结果、`digest_dir`、锁记 `contentDigest`、锁记文件数"四者
+一致时落盘；缓存动过就报 DRIFT 并保持原清单字节不变，绝不把新字节登记在旧身份下。已接进
+`verify_design_lab.py` 的 SCRIPTS（70 → 71），CI 无需缓存即可执行。当前实测输出
+`VERIFY_VENDOR_MANIFESTS=OK roots=37 rows=1914 awaiting_owner_review=37 license_files_absent=0 findings=0`。
+`design-lab/tests/test_vendor_manifests.py` 34 条全绿，逐条给每个 finding 埋一份假记录（缺登记、空清单、
+改行哈希、锁与清单摘要分叉、文件数分叉、字节总数分叉、重复路径、截断哈希、负字节、孤儿清单、
+异 schema、`id` 错位、坏 JSON），并钉住两件最容易悄悄失效的事：行配方必须逐字节复现 `digest_dir`
+（否则 `--check` 只证明了自己），重生成不得代填权利裁决。
+
+与 `verify_source_registry.py` 的分工要说清，免得两道门互相冒充：那条门只审 `ABSENT_FROM_GIT`
+（悬空引用必须带删除提交与退役声明），本门只审 `LOCAL_CACHE_ONLY`。两句合起来才是"46 条 vendor
+引用全部有据"；单看任何一句都会高估覆盖面。
+
+待 owner（不得代签）：37 条 `reviewedBy` 全为空，门按 NOTICE 计数并报 `awaiting_owner_review=37`，
+不判红——留空是"agent 拒绝替 owner 做权利裁决"的正确形态，不是缺陷。实测 37 个根都含
+LICENSE/COPYING/NOTICE 文件（`license_files_absent=0`），所以权利复核有树内文件名可查，不只靠锁的一面之词。
+
+更正（带日期，原文不改）：本档第 11 行写"`vendor/sources.lock.json` 登记 43 项"。本回合直接对该文件
+计数为 **46 条**：`LOCAL_CACHE_ONLY` 37 / `ABSENT_FROM_GIT` 6 / `IN_REPO` 3，与 `disposition` 的
+`CONDITIONAL_POC` 37 / `LOCK_REFERENCE` 6 / `ABSORB_MINIMAL` 3 一一对应。43 是 2026-09-04 的数字，
+其后补进了 3 条 `ABSORB_MINIMAL` 与记录修正；不改写原行是为了让读者看见这条声明曾经过期。
