@@ -142,10 +142,22 @@ const PROBE = () => {
     .map((el) => ({ id: el.id || '(no-id)',
                     real: Array.from(el.options).filter((o) => o.value).length,
                     selected: !!el.value }));
+  // ARIA in HTML does not permit `dialog` on a landmark element: `<aside role="dialog">`
+  // was what the external axe run could not grade (`aria-allowed-role`, unevaluated, on
+  // every screen). The pair is asserted here so it cannot come back silently, and the
+  // accessible name is asserted with it because removing a role must not remove the name.
+  const landmarkDialog = Array.from(document.querySelectorAll(
+    'aside[role="dialog"],main[role="dialog"],nav[role="dialog"],'
+    + 'section[role="dialog"],form[role="dialog"]'))
+    .map((el) => `${el.tagName.toLowerCase()}${el.id ? '#' + el.id : ''}[role=dialog]`);
+  const drawer = document.querySelector('#drawer');
   return {
     contrast, clickableNotReachable, unnamed, images, overflow, targets,
     targetDetail: smallTargets,
     pickers,
+    landmarkDialog,
+    drawer: drawer ? { role: drawer.getAttribute('role'),
+                       name: (drawer.getAttribute('aria-label') || '').trim() } : null,
     gradientBacked,
     focusables: focusables.length,
     paint: Math.round(performance.getEntriesByType('paint')
@@ -247,6 +259,21 @@ for (const width of widths) {
     }
     if (probe.images) add('alt', `${width} ${route} ${probe.images} img without alt`);
     if (probe.overflow > 0) add('overflow', `${width} ${route} +${probe.overflow}px`);
+    for (const bad of probe.landmarkDialog) {
+      add('role-permittedness', `${width} ${route} ${bad} -- a landmark element may not claim`
+        + ' role="dialog" (ARIA in HTML); the external axe run could not grade this pair');
+    }
+    // `#drawer` is mounted on every view, so an absent reading is a broken measurement
+    // rather than a pass. Its name must survive the role removal, or the region becomes
+    // an anonymous landmark a screen reader cannot announce usefully.
+    if (!probe.drawer) {
+      add('role-permittedness', `${width} ${route} #drawer was not in the document`);
+    } else {
+      if (probe.drawer.role) {
+        add('role-permittedness', `${width} ${route} #drawer carries role="${probe.drawer.role}"`);
+      }
+      if (!probe.drawer.name) add('label', `${width} ${route} #drawer has no accessible name`);
+    }
     if (width <= 430 && probe.targets) {
       add('touch-target', `${width} ${route} ${probe.targets} targets under 24px`
         + `: ${probe.targetDetail.slice(0, 3).join(' | ')}`);

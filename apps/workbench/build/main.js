@@ -6349,7 +6349,7 @@ function mountB10Overlays() {
   cancelBtn.onclick = closeModal;
   const drawer = el(
     "aside",
-    { class: "drawer", id: "drawer", role: "dialog", "aria-modal": "false", "aria-label": "工作区详情" },
+    { class: "drawer", id: "drawer", "aria-label": "工作区详情" },
     el("h3", { style: "margin:0 0 8px" }, "工作区 / 前端说明"),
     el(
       "p",

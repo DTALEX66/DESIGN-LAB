@@ -5135,7 +5135,10 @@ function mountB10Overlays(): void {
 
   // --- Drawer --- (B10 aside.drawer#drawer: h3 + p.muted + .status-stack +
   // .panel > h3 + .list > .list-item + .primary-btn)
-  const drawer = el('aside', { class: 'drawer', id: 'drawer', role: 'dialog', 'aria-modal': 'false', 'aria-label': '工作区详情' },
+  // `aside` carries the implicit `complementary` landmark and ARIA in HTML does not allow
+  // `dialog` on it (axe flagged role="dialog" here as unevaluated-permitted); this panel
+  // is not modal anyway -- no focus trap, the page behind it stays usable.
+  const drawer = el('aside', { class: 'drawer', id: 'drawer', 'aria-label': '工作区详情' },
     el('h3', { style: 'margin:0 0 8px' }, '工作区 / 前端说明'),
     el('p', { class: 'muted', style: 'margin-top:0' },
       'Command Palette（Ctrl/Cmd + K）、Toast、Modal 与 Drawer 由本页真实驱动；'
