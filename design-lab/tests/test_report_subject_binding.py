@@ -278,7 +278,18 @@ class ReportSubjectBindingTests(unittest.TestCase):
         self.assertEqual(sorted(r["path"] for r in records),
                          sorted(c["writesRecord"] for c in calls),
                          "a record is declared without its producer call, or the other way round")
+        # Asserted per pair, not as two sorted lists: zipping the two arrays to look at them is
+        # exactly how a mis-paired reading gets written down (I did it in this very session).
+        by_path = {r["path"]: r for r in records}
+        by_script = {c["script"]: c for c in calls}
+        self.assertEqual(len(by_path), len(records), "two records for one path")
+        self.assertEqual(len(by_script), len(calls), "two call rows for one script")
         for call in calls:
+            record = by_path.get(call["writesRecord"])
+            self.assertIsNotNone(record, f"{call['script']} names {call['writesRecord']}")
+            self.assertEqual(record["producer"], call["script"],
+                             f"{record['path']} is attributed to {record['producer']} but its "
+                             f"call row belongs to {call['script']}")
             script = (ROOT / call["script"]).read_text(encoding="utf-8")
             self.assertIn(f'git("{call["joinedArgument"]}")', script,
                           f"{call['script']} no longer contains the declared shape")
