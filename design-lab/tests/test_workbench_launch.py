@@ -9,6 +9,7 @@ restart. No browser, no design host and no human acceptance is involved.
 """
 from __future__ import annotations
 
+import hashlib
 import json
 import os
 from pathlib import Path
@@ -169,16 +170,68 @@ class WorkbenchLaunchTests(unittest.TestCase):
                       'a project created through the launcher must persist across a restart')
 
 
+    def _installed_layout(self) -> dict:
+        """Ask a clean interpreter which design_lab it actually resolves, and what it carries.
+
+        A subprocess is the only honest way: this module puts `REPO/src` on sys.path for
+        self-sufficiency (line 29), so importing design_lab here answers with the source
+        tree even inside the clean wheel-install job. That shadow made the packaged-resource
+        case skip in CI -- and the step asserts it must not skip, because a skip there means
+        the installed layout was never tested. The probe runs without src on the path.
+        """
+        probe = (
+            "import hashlib, json\n"
+            "from pathlib import Path\n"
+            "import design_lab\n"
+            "root = Path(design_lab.__file__).resolve().parent\n"
+            "bundle = root / 'resources' / 'workbench' / 'build' / 'main.js'\n"
+            "out = {'package': str(root), 'srcShadowed': 'src' in root.parts,\n"
+            "       'bundlePresent': bundle.is_file()}\n"
+            "if bundle.is_file():\n"
+            "    out['bundleSha256'] = hashlib.sha256(bundle.read_bytes()).hexdigest()\n"
+            "from design_lab.analysis.capability_library import build\n"
+            "projection = build()\n"
+            "out['capabilities'] = projection['capabilities']\n"
+            "out['counts'] = projection['counts']\n"
+            "print(json.dumps(out))\n"
+        )
+        env = {key: value for key, value in os.environ.items() if key != 'PYTHONPATH'}
+        result = subprocess.run([sys.executable, '-c', probe], cwd=str(REPO), env=env,
+                                capture_output=True, text=True, timeout=180)
+        if result.returncode != 0:
+            if INSTALLED_MODE:
+                self.fail(f'installed layout probe failed (exit {result.returncode}): '
+                          f'{(result.stderr or "").strip()[-400:]}')
+            return {}
+        try:
+            return json.loads(result.stdout.strip().splitlines()[-1])
+        except (IndexError, json.JSONDecodeError) as exc:
+            if INSTALLED_MODE:
+                self.fail(f'installed layout probe returned no readable JSON: {exc} '
+                          f'{result.stdout[:200]!r}')
+            return {}
+
     def test_packaged_install_serves_the_committed_bundle(self):
         # In a source checkout the packaged resource does not exist, so this
         # skips honestly; in a clean wheel install (the CI job) it proves the
         # installed UI is byte-identical to the committed Build Output Truth.
-        from importlib.resources import files
-        packaged = files('design_lab').joinpath('resources', 'workbench',
-                                                'build', 'main.js')
-        if not packaged.is_file():
+        layout = self._installed_layout()
+        if not layout.get('package'):
+            self.skipTest('no installed design_lab resolvable from this interpreter')
+        if INSTALLED_MODE:
+            self.assertFalse(layout['srcShadowed'],
+                             f"the installed probe resolved to a source tree: {layout['package']}")
+            self.assertIn('site-packages', layout['package'],
+                          'DL_LAUNCH_INSTALLED=1 but the interpreter is not using the '
+                          'installed package, so the installed layout is not being tested')
+            self.assertTrue(layout['bundlePresent'],
+                            f"the installed wheel carries no workbench bundle at "
+                            f"{layout['package']}/resources/workbench/build/main.js")
+        if not layout.get('bundlePresent'):
             self.skipTest('source checkout: no packaged workbench resource to verify')
-        self.assertEqual(packaged.read_bytes(), BUNDLE.read_bytes())
+        self.assertEqual(layout['bundleSha256'],
+                         hashlib.sha256(BUNDLE.read_bytes()).hexdigest(),
+                         'the installed UI is not byte-identical to the committed build output')
 
         # Same proof for the capability library, which the wheel used not to ship:
         # it resolved its four inputs from three directories above its own file,
@@ -187,24 +240,14 @@ class WorkbenchLaunchTests(unittest.TestCase):
         # built from the repository is what says the archive carries the real
         # inventory rather than an empty list that happens to render.
         from design_lab.analysis.capability_library import build
-        from_installed = build()
         from_repository = build(REPO)
-        # Same proof for the capability library, which the wheel used not to ship:
-        # it resolved its four inputs from three directories above its own file,
-        # which in an installed build is `<venv>/Lib`, so `/api/capabilities` could
-        # only ever raise there. Comparing the installed projection against the one
-        # built from the repository is what says the archive carries the real
-        # inventory rather than an empty list that happens to render.
-        from design_lab.analysis.capability_library import build
-        from_installed = build()
-        from_repository = build(REPO)
-        self.assertEqual(from_installed['counts'], from_repository['counts'],
+        self.assertEqual(layout['counts'], from_repository['counts'],
                          'the installed library reports different totals than the '
                          'repository inputs it is supposed to be carrying')
-        self.assertEqual(from_installed['capabilities'], from_repository['capabilities'],
+        self.assertEqual(layout['capabilities'], from_repository['capabilities'],
                          'an installed library must answer with the same records, not '
                          'a shorter list that still renders as a populated page')
-        self.assertGreater(from_installed['counts']['total'], 0,
+        self.assertGreater(layout['counts']['total'], 0,
                            'an empty projection would satisfy equality only against '
                            'another empty one')
 

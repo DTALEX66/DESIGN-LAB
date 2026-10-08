@@ -281,9 +281,14 @@ def sha256_bytes(data: bytes) -> str:
 
 
 def deep(path: Path) -> str:
-    """Extended-length backslash form: the only safe way to touch deep paths."""
+    """Extended-length backslash form on Windows only.
+
+    `\\\\?\\` defeats the 260-character limit that the imported atlas paths really reach
+    (longest landed path here: 216 characters). It is a Win32 namespace marker: on POSIX
+    the same prefix becomes part of the filename and every open fails.
+    """
     s = str(Path(os.path.abspath(str(path))))
-    if not s.startswith("\\\\?\\"):
+    if os.name == "nt" and not s.startswith("\\\\?\\"):
         s = "\\\\?\\" + s
     return s
 

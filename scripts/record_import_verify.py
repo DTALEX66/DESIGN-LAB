@@ -45,8 +45,18 @@ CHECKED_ACTIONS = ("LANDED", "ALREADY-IN-REPO", "EXTERNAL-ONLY", "NESTED-CONTAIN
 
 
 def deep(path: str) -> str:
+    """Extended-length form on Windows only.
+
+    `\\\\?\\` is a Win32 namespace prefix: it defeats the 260-character limit that the
+    imported atlas paths really hit (longest 216 characters here, plus the source volume's
+    own nesting). On POSIX the same prefix is literally part of the filename, so prepending
+    it makes every path "not found" -- which is how this verifier failed CI while passing
+    locally.
+    """
     s = os.path.abspath(path)
-    return s if s.startswith("\\\\?\\") else "\\\\?\\" + s
+    if os.name == "nt" and not s.startswith("\\\\?\\"):
+        s = "\\\\?\\" + s
+    return s
 
 
 def crc(data: bytes) -> str:
