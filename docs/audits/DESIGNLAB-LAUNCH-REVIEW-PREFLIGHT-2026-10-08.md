@@ -1761,3 +1761,66 @@ subject=34d2515b9f34`，聚合 `VERIFY_DESIGN_LAB=OK total=68 failed=0`。
 把 `git commit -F - <<'MSG'` 和后续命令接在同一行，heredoc 结束符因此不被识别，提交为空而 bound run
 跑在了脏树上（`clean=False`）——该跑的收据作废，改用 `-F <文件>` 重提再重跑。钉住这条不是因为少见，
 而是因为脏树 receipt 看起来和干净的一模一样。
+
+## 33. 把 30 条 INERT 从"没有实现"变成可拍板的表
+
+### 33.1 为什么还要做这一片
+
+29 片让"nothing implements this"变成可复测的断言，31 片让声明与字节的对应关系只有一个所有者。
+但 owner 决策仍卡着，而且卡的原因不是问题难，是**事实没铺开**：30 条各自一句 prose，没人知道哪条
+其实已经有表在承载同一个活动、哪条真的什么都不对应、退役会牵动什么。缺的是可审查产物，不是勇气。
+
+### 33.2 普查怎么算（可反对，但必须显式反对）
+
+`design-lab/scripts/inert_contract_survey.py` 只算不猜：取 schema 自己声明的顶层属性名 → 在
+`design-lab/schemas/state/*.sql` 解析出的 37 张表里找列名重合最高者 → 报告重合比例与命中字段名 →
+在产品源码里找对该表的 `INSERT/UPDATE/DELETE`（写）与 `FROM/JOIN`（读），只看非注释行 →
+再检查路由清单与账本里有没有别处引用这条 schema，得出"退役是否无连带"。
+
+门槛是显式规则：重合 ≥ 1/3 才算"同一件事被声明两次"。文档写明这是判断门槛、不是产品测量值，
+且每行带自己的 `overlap` 与 `matched_fields`；对 ≤3 属性而只有 1 列重合的行打 `（thin）` 标记，
+因为两字段 schema 用一列就能迈过 1/3——这条性质由测试钉住，而不是藏在分类词后面。
+
+产物落在 `docs/audits/INERT-CONTRACT-SURVEY-2026-10-08.md`，内含可校验 JSON 块，
+`--check` 重算并逐字节比较：改了代码不重跑就是红的；文档因此不是手抄表格。
+
+### 33.3 测出来什么（`45acfe67`）
+
+30 条里：`TABLE_WRITES_THIS_ACTIVITY` 8、`TABLE_EXISTS_UNWRITTEN` 3、`ADJACENT_TABLE_WRITTEN` 2、
+`NO_STATE_COUNTERPART` 17。最刺眼的一行是 `operation-intent.schema.json`：与真实表
+`operation_intent` 重合 **1.00**，且 `store.py`、`job_store.py` 都在写它——同一事物的两种形状，一种被实现、
+一种被声明为合同并标 INERT。`job-spec`(0.67)、`job-attempt`(0.62)、`run-event`(0.50，写方
+`decision_ledger.py`) 同理。另有 3 条形状对得上但没人写表（含 `operation-receipt` 重合 1.00），
+也就是说"接线"对它意味着先有写方，而不是先有 schema。
+
+30 条今天都"可无连带退役"（路由清单与账本没有别处引用）——这只说明选项存在，不是建议。
+
+### 33.4 这一片自己被证伪过什么
+
+- 普查工具在第一版**会崩**：账本声明的 schema 文件不在盘上时直接 `FileNotFoundError`。现在报
+  `SCHEMA_FILE_ABSENT`，既不 crash 也不把它算成可退役。
+- `retire_coherent` 不是恒真装饰：把一条路由指向某个 INERT schema，标记翻成 `False`；把同一条合同
+  在账本里声明两次，也翻成 `False`。两个方向都进测试。
+- 重合算术逐行重算：`overlap` 必须等于 `matched_fields / fields`，`matched_fields` 里每个名字必须
+  真的是那张表的列，报告出来的写方文件必须真含该表的写语句（至少 6 条被逐条核对）。
+- 分类由证据决定：把写方清空，同一行从 `TABLE_WRITES_THIS_ACTIVITY` 掉到 `TABLE_EXISTS_UNWRITTEN`。
+- `--check` 的失效控制：把文档 JSON 里一个 17 改成 16，就被判陈旧。
+
+`test_inert_contract_survey.py` 18 例 OK，聚合 `VERIFY_DESIGN_LAB=OK total=68 failed=0`。
+
+### 33.5 顺带修的一处界面自相矛盾
+
+`证据系统` 页与项目阶段导航都写着"E0–E5 证据记录无服务路由"，而 32 片刚在同一页放了个正在读路由的
+卡片。边界保留了（E0–E5 **逐条**记录仍无路由），措辞改为同时说明证据链完整性可读回并点名路由；
+appshell ⑦b 钉住两面：必须出现 `/api/evidence-projection`、必须继续说逐条记录没有路由、不得复活旧的
+无条件断言（已验证：退回旧文案会红）。提交 `78abda27`。
+
+### 33.6 交给 owner 的具体选择
+
+每条 INERT 的选项、代价与入口都在普查页里（`retire_targets` 给出要动的文件与账本行）：
+- 8 条重叠且已被实现的：要么把 schema 定义改成对齐真实表并升级为 BINDING（需要 emitter 真的产出它），
+  要么退役 schema、保留表作为唯一形状；
+- 3 条形状对得上但没人写：需要产品决定这张表是否要被写，schema 不是缺的部分；
+- 17 条无对应：退役即删文件 + 删行，`retire_coherent` 已确认无连带。
+
+不自作主张执行任何一条：升级合同是宣布"边界已受保护"，退役是销毁一个声明，两者都是产品判断。
