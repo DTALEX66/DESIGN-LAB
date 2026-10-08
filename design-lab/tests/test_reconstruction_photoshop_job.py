@@ -83,3 +83,7 @@ vm.runInContext('var j=JSON.parse(payload);psValidate(j,j.runRoot)',c);console.l
         (self.run/'master.psd').write_bytes(b'preserve')
         with self.assertRaises(AdobeJobError):build(self.scene(),self.run,text_styles={'title':dict(font='ArialMT',size=12,color=[0,0,0])})
         self.assertEqual((self.run/'master.psd').read_bytes(),b'preserve')
+
+
+if __name__ == '__main__':
+    unittest.main()

@@ -120,3 +120,7 @@ class IllustratorComAdapterTests(unittest.TestCase):
                 module.execute(self.job,project_root=self.root,approved_root=self.run)
             self.assertFalse(caught.exception.outcome_unknown)
             invoke.assert_not_called()
+
+
+if __name__ == '__main__':
+    unittest.main()

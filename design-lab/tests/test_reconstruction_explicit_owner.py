@@ -53,3 +53,7 @@ print(json.dumps({'status':'OWNER_BOUND','outputs':sorted(p.name for p in run.it
                                   cwd=owner,env=env,capture_output=True,text=True,encoding='utf-8',timeout=30)
             self.assertEqual(result.returncode,0,result.stderr)
             self.assertEqual(json.loads(result.stdout),{'status':'OWNER_BOUND','outputs':['input.png']})
+
+
+if __name__ == '__main__':
+    unittest.main()

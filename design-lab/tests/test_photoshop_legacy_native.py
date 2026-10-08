@@ -73,3 +73,7 @@ console.log(JSON.stringify({valid,rejected,creates}));
         self.assertIsNone(report['valid'],report['valid'])
         self.assertEqual(report['rejected'],[True]*15)
         self.assertEqual(report['creates'],0)
+
+
+if __name__ == '__main__':
+    unittest.main()

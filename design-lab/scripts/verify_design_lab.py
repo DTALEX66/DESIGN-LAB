@@ -40,6 +40,11 @@ SCRIPTS = [
     # a month), and keep schema and data accountable in both directions.
     "verify_ledger_schema_pairing.py",
     "verify_ledger_subject_binding.py",
+    # Every test module has to run its own tests when executed as a file and import its own paths.
+    # 17 of them had no `unittest.main()` guard (exit 0, zero tests run) and one imported a package
+    # that only reached sys.path because a neighbour inserted it first -- both invisible under
+    # discovery, which is the only way CI runs them.
+    "verify_test_selfsufficiency.py",
     # CI runs this one directly; it was missing from the aggregate, so a local bound run
     # could go green while the vocabulary contract was broken. That is exactly how a UI
     # change on 2026-10-08 passed every gate I ran and still broke canonical-verify.

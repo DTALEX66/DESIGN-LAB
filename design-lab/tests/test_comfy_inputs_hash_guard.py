@@ -35,3 +35,7 @@ class ComfyInputsHashGuardTests(unittest.TestCase):
         from design_lab.generators.comfy_task import ComfyTask
 
         ComfyTask("t1", self._pin(), "sha256:" + "2" * 64).validate()
+
+
+if __name__ == '__main__':
+    unittest.main()

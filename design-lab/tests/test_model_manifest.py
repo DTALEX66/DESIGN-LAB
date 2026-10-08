@@ -231,3 +231,7 @@ class ModelManifestTests(unittest.TestCase):
         self.assertEqual(self.check()['state'], 'METADATA_ONLY')
         path.unlink(); path.symlink_to('../outside')
         self.assertEqual(self.check()['state'], 'METADATA_ONLY')
+
+
+if __name__ == '__main__':
+    unittest.main()

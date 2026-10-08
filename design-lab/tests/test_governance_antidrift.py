@@ -193,3 +193,6 @@ class RuntimeEvidenceAntiDriftTests(unittest.TestCase):
             if a["adapter_id"] == "adapter-comfyui":
                 self.assertFalse(any(c["supported"] for c in a["capabilities"]))
 
+
+if __name__ == '__main__':
+    unittest.main()

@@ -17,3 +17,7 @@ class RirSourceImportTests(unittest.TestCase):
             cwd=ROOT/'apps',env=env,capture_output=True,text=True,encoding='utf-8',timeout=30)
         self.assertEqual(result.returncode,0,result.stderr)
         self.assertRegex(result.stdout.strip(),r'^[0-9a-f]{64}$')
+
+
+if __name__ == '__main__':
+    unittest.main()

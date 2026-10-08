@@ -272,3 +272,7 @@ try{vm.runInNewContext(fs.readFileSync(0,'utf8'),c)}catch(e){process.stdout.writ
             with patch.object(module,'_invoke_com',side_effect=corrupted):
                 with self.assertRaises(module.PhotoshopDispatchError) as caught:module.execute(self.job,project_root=self.root,approved_root=self.run)
                 self.assertTrue(caught.exception.outcome_unknown)
+
+
+if __name__ == '__main__':
+    unittest.main()

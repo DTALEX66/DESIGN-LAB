@@ -427,3 +427,7 @@ rows:elements['design-directions'].children.map(r=>({text:r.textContent,buttons:
         self.assertIn('CHOSEN by workbench-user',live_row['text'])
         self.assertIn('当前',live_row['text'])
         self.assertTrue([b for b in live_row['buttons'] if b.startswith('选为方向')])
+
+
+if __name__ == '__main__':
+    unittest.main()

@@ -144,3 +144,7 @@ class ComfyHttpTests(unittest.TestCase):
             with self.subTest(identity=identity), self.assertRaises(ValueError):
                 ComfyHttp(self.server.server_port).history(identity)
         self.assertEqual(self.requests, [])
+
+
+if __name__ == '__main__':
+    unittest.main()

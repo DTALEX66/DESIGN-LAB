@@ -214,3 +214,7 @@ class ProfileEvidenceTests(unittest.TestCase):
     def test_nonfinite_receipt_number_is_invalid_without_resource_request(self):
         p = self.profile(); p['evidence']['resource_capacity'] = {'vram_mb': float('nan')}
         self.assertIn('EVIDENCE_INVALID', self.codes(self.run_resolver([p])))
+
+
+if __name__ == '__main__':
+    unittest.main()

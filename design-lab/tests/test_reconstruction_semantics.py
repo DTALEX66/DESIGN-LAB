@@ -6,6 +6,7 @@ import errno
 import hashlib
 import os
 import shutil
+import sys
 import unittest
 from pathlib import Path
 from unittest import mock
@@ -15,6 +16,16 @@ from PIL import Image, ImageDraw, ImageFont
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 RUNTIME_ROOT = PROJECT_ROOT / ".project-local" / "task-runtime" / "a2-semantics-tests"
+
+# The reconstruction package lives under packages/capabilities, and this module bootstraps its own
+# import path exactly the way its sibling test_reconstruction_evidence.py does. Without these two
+# inserts all 13 cases here died with `ModuleNotFoundError: No module named 'reconstruction'` --
+# thirteen errors that read as "the capability is missing" while the code they exercise is present at
+# packages/capabilities/reconstruction/{geometry,font_match,providers}/. A test that cannot import the
+# thing it tests has measured nothing, and reporting that as a capability finding would be the wrong
+# conclusion, so the path is fixed here rather than the assertion being removed.
+sys.path.insert(0, str(PROJECT_ROOT / "design-lab"))
+sys.path.insert(0, str(PROJECT_ROOT / "packages" / "capabilities"))
 
 
 class ReconstructionSemanticTests(unittest.TestCase):

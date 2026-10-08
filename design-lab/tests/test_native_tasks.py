@@ -884,3 +884,6 @@ class StartUpRecoveryDecisions(NativeFixture,unittest.TestCase):
         self.assertEqual(self.service.recovery_readback()['pending'],0)
         self.assertEqual(self.service.native_recovery_decisions(),[])
 
+
+if __name__ == '__main__':
+    unittest.main()

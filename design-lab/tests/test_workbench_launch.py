@@ -21,6 +21,12 @@ import urllib.error
 import urllib.request
 
 REPO = Path(__file__).resolve().parents[2]
+# The launcher subprocesses get src on PYTHONPATH (see _env below), but this process imports
+# design_lab too, so the root has to reach sys.path here as well. Without the line the module only
+# runs when an installed copy of design_lab, or another module that ran first, happens to have put
+# it on the path -- the exact dependence design-lab/scripts/verify_test_selfsufficiency.py now
+# refuses to accept.
+sys.path.insert(0, str(REPO / 'src'))
 BUNDLE = REPO / 'apps' / 'workbench' / 'build' / 'main.js'
 # The clean-install CI job sets this so the launcher is exercised through the
 # installed package instead of this source checkout.

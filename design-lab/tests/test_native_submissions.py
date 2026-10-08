@@ -38,3 +38,7 @@ class NativeSubmissionTests(unittest.TestCase):
         self.assertEqual(result['task']['attempt']['attempt_id'],native['attempt']['attempt_id'])
         self.assertEqual(len(TaskQueries(self.service).list(self.project)['tasks']),2)
         self.assertFalse(list(self.root.rglob('master.psd')))
+
+
+if __name__ == '__main__':
+    unittest.main()

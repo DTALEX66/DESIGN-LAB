@@ -78,3 +78,7 @@ class NativePlanTests(unittest.TestCase):
             prepare_plan(self.service,self.project,'photoshop',self.rir,{},self.run)
         self.assertEqual(prior.read_bytes(),b'preserve existing project')
         self.assertEqual(list(self.run.iterdir()),[prior])
+
+
+if __name__ == '__main__':
+    unittest.main()

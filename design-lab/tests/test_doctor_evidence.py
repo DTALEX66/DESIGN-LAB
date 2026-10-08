@@ -88,3 +88,7 @@ class DoctorEvidenceTests(unittest.TestCase):
         self.assertEqual(run.call_args.kwargs['cwd'], ROOT)
         with patch.object(doctor.shutil, 'which', return_value=None):
             self.assertTrue(doctor.check_uv_lock())
+
+
+if __name__ == '__main__':
+    unittest.main()

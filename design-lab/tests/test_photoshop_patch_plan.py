@@ -55,3 +55,7 @@ class PhotoshopPatchPlanTests(unittest.TestCase):
         self.checkpoint.write_bytes(b'changed')
         with self.assertRaises(ValueError):self.prepare(baseline,dict(kind='text',id='title',text='After'))
         self.assertEqual(list(self.run.iterdir()),[])
+
+
+if __name__ == '__main__':
+    unittest.main()
