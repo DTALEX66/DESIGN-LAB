@@ -1,7 +1,7 @@
 {
   "schemaVersion": "design-lab/repo-classification/v1",
-  "generatedAt": "2026-10-08T18:09:23Z",
-  "observedCommit": "810c5e10874f494e51e1417b7c1bbed9c4014081",
+  "generatedAt": "2026-10-08T18:35:27Z",
+  "observedCommit": "fe228e5988591bdcbda340807ee523e3ad69b1da",
   "totals": {
     "trackedFiles": 3366,
     "workingTreeMiB": 60.33,
@@ -69,7 +69,7 @@
       "category": "source",
       "note": "设计核心其余模块",
       "files": 968,
-      "bytes": 7802507,
+      "bytes": 7804206,
       "cited_by_authority": 7,
       "lastTouch": "2026-10-09"
     },
@@ -78,7 +78,7 @@
       "category": "evidence",
       "note": "审计与验收证据包",
       "files": 835,
-      "bytes": 7493582,
+      "bytes": 7496234,
       "cited_by_authority": 7,
       "lastTouch": "2026-10-09"
     },
@@ -141,7 +141,7 @@
       "category": "generated",
       "note": "当前状态投影（由生成器再生）",
       "files": 63,
-      "bytes": 1246083,
+      "bytes": 1246042,
       "cited_by_authority": 4,
       "lastTouch": "2026-10-09"
     },
@@ -150,7 +150,7 @@
       "category": "documentation",
       "note": "其余文档",
       "files": 113,
-      "bytes": 1106862,
+      "bytes": 1107032,
       "cited_by_authority": 12,
       "lastTouch": "2026-10-09"
     },
@@ -168,7 +168,7 @@
       "category": "source",
       "note": "Workbench 前端源码",
       "files": 17,
-      "bytes": 846092,
+      "bytes": 846271,
       "cited_by_authority": 0,
       "lastTouch": "2026-10-09"
     },
@@ -294,7 +294,7 @@
       "category": "repo-meta",
       "note": "根级运维与政策文档",
       "files": 1,
-      "bytes": 7861,
+      "bytes": 8246,
       "cited_by_authority": 0,
       "lastTouch": "2026-10-09"
     },
