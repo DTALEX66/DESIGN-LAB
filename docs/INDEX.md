@@ -10,8 +10,8 @@ python scripts/classify_repo.py --check  # 只读校验：派生事实与已提�
 ```
 
 观测 commit 与体量（由上表再生时的真实测量）：
-**跟踪文件 3360 个 · 工作区 60.22 MiB · pack 242.00 MiB**（`observedCommit ce3f0664`，
-再生于 2026-10-08T14:38Z）。工作区体积此前被低估：`blob_sizes()` 用 `git ls-tree HEAD` 按行读，
+**跟踪文件 3365 个 · 工作区 60.3 MiB · pack 242.0 MiB**（`observedCommit e6c53d05`，
+再生于 2026-10-08T17:37Z）。工作区体积此前被低估：`blob_sizes()` 用 `git ls-tree HEAD` 按行读，
 非 ASCII 路径被转义后查不到键（11 个文件记成 0 字节），未提交的新文件更整体记成 0——
 同一棵树先后测出 52.28 与 60.22 MiB 而文件数不变。现改从 index + 对象库取，且 blob 读不到即 fail-closed。
 
@@ -40,16 +40,16 @@ python scripts/classify_repo.py --check  # 只读校验：派生事实与已提�
 
 ## 2. 分类规则（`classify_repo.py` 里的有序前缀表）
 
-| 类别 | 含义 | 现量（`ce3f0664` 实测） |
+| 类别 | 含义 | 现量（`e6c53d05` 实测） |
 |---|---|---|
 | `authority` | 顶层权威、治理索引、决策与架构政策 | 10 files / 0.03 MiB / 3 bundles |
 | `planning` | 任务包与任务账本 | 见 §3 |
-| `evidence` | 审计包、黄金用例、域 fixture、评估语料、设计项目产物 | 1183 files / 26.91 MiB |
+| `evidence` | 审计包、黄金用例、域 fixture、评估语料、设计项目产物 | 1184 files / 26.92 MiB |
 | `history` | 冻结历史、交接血统、历史进度账本（含 Record 导入件） | 497 files / 14.85 MiB |
 | `generated` | 当前状态投影、提交的构建产物 | 71 files / 1.23 MiB |
-| `source` | 产品源码、能力包、集成层、门脚本、测试、CI | 1456 files / 11.71 MiB |
-| `documentation` | 其余文档 | 119 files / 5.25 MiB |
-| `repo-meta` | 根级运维/政策文档（README、SECURITY、RELEASE、DESIGN.md 等 24 个） | 0.24 MiB |
+| `source` | 产品源码、能力包、集成层、门脚本、测试、CI | 1459 files / 11.77 MiB |
+| `documentation` | 其余文档 | 119 files / 5.26 MiB |
+| `repo-meta` | 根级运维/政策文档（README、SECURITY、RELEASE、DESIGN.md、design.qa.yaml 等 25 个） | 0.24 MiB |
 
 ## 3. 规划件的当前/历史判定
 
@@ -103,11 +103,12 @@ evidenceRef、parentRepoStars 不得冒充自身、无许可不得越过 QUARANT
 ## 5. 体积：能减的和不能减的（实测归因）
 
 ```
-pack 242.00 MiB  −  工作区 60.22 MiB  ≈  181.8 MiB 全部是历史对象
+pack 242.0 MiB  −  工作区 60.3 MiB  ≈  181.7 MiB 全部是历史对象
 ```
 
 按路径前缀对**全体历史 blob** 归因（下表为 2026-10-06 那次全历史归因，本轮未重算；
-本轮可测增量为 pack +1.76 MiB、工作区 +7.94 MiB，全部来自 §3 的 Record 导入）：
+本轮可测增量为 pack +1.76 MiB、工作区 +7.94 MiB，全部来自 §3 的 Record 导入；
+2026-10-09 的外部审计轮再加 5 个文件、工作区 +0.08 MiB，见 `docs/audits/DESIGNLAB-EXTERNAL-DESIGN-REVIEW-2026-10-09.md`）：
 
 | 前缀 | 历史字节 |
 |---|---|
