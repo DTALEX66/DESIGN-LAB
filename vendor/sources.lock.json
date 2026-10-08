@@ -23,7 +23,9 @@
       "sourceRecordLicense": "MIT",
       "upstreamRevision": null,
       "upstreamRefWithoutCommit": "main",
-      "revisionStatement": "branch `main` only; no commit was recorded at vendoring time"
+      "revisionStatement": "branch `main` only; no commit was recorded at vendoring time",
+      "canonicalUrl": "https://github.com/uxKero/anydesign",
+      "canonicalUrlSource": "recovered from c9cde8a5^:design-lab/intelligence/anydesign/SOURCE.md on 2026-10-08"
     },
     {
       "id": "claude-design-skill",
@@ -46,7 +48,9 @@
       "sourceRecordLicense": "MIT",
       "upstreamRevision": null,
       "upstreamRefWithoutCommit": "main",
-      "revisionStatement": "branch `main` only; no commit was recorded at vendoring time"
+      "revisionStatement": "branch `main` only; no commit was recorded at vendoring time",
+      "canonicalUrl": "https://github.com/jiji262/claude-design-skill",
+      "canonicalUrlSource": "recovered from c9cde8a5^:design-lab/intelligence/claude-design-skill/SOURCE.md on 2026-10-08"
     },
     {
       "id": "design-system-prompt",
@@ -69,7 +73,9 @@
       "sourceRecordLicense": "MIT",
       "upstreamRevision": null,
       "upstreamRefWithoutCommit": "main",
-      "revisionStatement": "branch `main` only; no commit was recorded at vendoring time"
+      "revisionStatement": "branch `main` only; no commit was recorded at vendoring time",
+      "canonicalUrl": "https://github.com/Trystan-SA/claude-design-system-prompt",
+      "canonicalUrlSource": "recovered from c9cde8a5^:design-lab/intelligence/design-system-prompt/SOURCE.md on 2026-10-08"
     },
     {
       "id": "motion-engine",
@@ -92,7 +98,9 @@
       "sourceRecordLicense": "MIT",
       "upstreamRevision": null,
       "upstreamRefWithoutCommit": "main",
-      "revisionStatement": "branch `main` only; no commit was recorded at vendoring time"
+      "revisionStatement": "branch `main` only; no commit was recorded at vendoring time",
+      "canonicalUrl": "https://github.com/OpaceDigitalAgency/skills",
+      "canonicalUrlSource": "recovered from c9cde8a5^:design-lab/intelligence/motion-engine/SOURCE.md on 2026-10-08"
     },
     {
       "id": "shipit-ui",
@@ -115,7 +123,9 @@
       "sourceRecordLicense": "MIT",
       "upstreamRevision": null,
       "upstreamRefWithoutCommit": null,
-      "revisionStatement": "the retired SOURCE.md names no branch and no commit; fields present: 来源, 许可"
+      "revisionStatement": "the retired SOURCE.md names no branch and no commit; fields present: 来源, 许可",
+      "canonicalUrl": "https://github.com/shipiit/shipit-ui-design",
+      "canonicalUrlSource": "recovered from c9cde8a5^:design-lab/intelligence/shipit-ui/SOURCE.md on 2026-10-08"
     },
     {
       "id": "web-content-designer",
@@ -145,7 +155,9 @@
         "correctedOn": "2026-10-08",
         "correctedBy": "measured from git plus the two committed registries; rights acceptance for this source was already recorded as reviewed in QUARANTINE_REGISTRY, so no human decision is being substituted here"
       },
-      "revisionStatement": "branch `main` only; no commit was recorded at vendoring time"
+      "revisionStatement": "branch `main` only; no commit was recorded at vendoring time",
+      "canonicalUrl": "https://github.com/lowtidebuild/web-content-designer",
+      "canonicalUrlSource": "recovered from c9cde8a5^:design-lab/intelligence/web-content-designer/SOURCE.md on 2026-10-08"
     },
     {
       "id": "baoyu-design",
@@ -771,7 +783,13 @@
       "diskFiles": 120,
       "contentDigest": "7cbeefec913861a64f5879260b079a30bb03fcc8bd1dd7efd6545b131d88fea2",
       "countMatchesRecord": true,
-      "pathNamedInIsolationRecord": false
+      "pathNamedInIsolationRecord": false,
+      "canonicalUrlAbsentReason": {
+        "declaredOn": "2026-10-08",
+        "why": "multi-origin aggregate, not one upstream: this entry's own notes name creold/photoshop-scripts, creold/illustrator-scripts and Comfy-Org, and the cached tree holds no SOURCE.md — only in-file links to documentation, donation and colour sites. Writing any single canonical URL here would misstate what the bytes are.",
+        "whatWouldCloseIt": "split the bundle into one entry per upstream, each with its own canonicalUrl plus a pinned revision; the ids are referenced by the capability index and the quarantine registry, so the split is a coordinated record change, not a lock edit",
+        "observedFrom": ".project-local/cache/vendor/tool-control (120 files, digest recorded by scripts/amend_source_lock_presence.py)"
+      }
     },
     {
       "id": "huashu-design",

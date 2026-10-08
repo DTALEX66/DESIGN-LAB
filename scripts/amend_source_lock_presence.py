@@ -210,6 +210,14 @@ def main() -> int:
                     "upstreamRefWithoutCommit", "revisionStatement"):
             if key in facts:
                 source[key] = facts[key]
+        if "canonicalUrl" not in source and facts.get("upstreamRepo"):
+            # The lock's own url field was empty for every retired reference, which is why
+            # `url=39/46` read as unfixable: the bytes were gone from the working tree. They
+            # are not gone from git history, so the canonical URL is recovered from the
+            # SOURCE.md inside the deleted tree and marked with where it came from.
+            source["canonicalUrl"] = facts["upstreamRepo"]
+            source["canonicalUrlSource"] = (f"recovered from {(facts.get('retiredIn') or '')[:8]}^:"
+                                            f"{path_of(source)}/SOURCE.md on 2026-10-08")
         if facts.get("sourceRecordLicense") and facts["sourceRecordLicense"] != source.get("license"):
             license_mismatch.append({
                 "id": source["id"],
