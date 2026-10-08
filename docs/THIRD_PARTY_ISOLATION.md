@@ -98,6 +98,10 @@
 异 schema、`id` 错位、坏 JSON），并钉住两件最容易悄悄失效的事：行配方必须逐字节复现 `digest_dir`
 （否则 `--check` 只证明了自己），重生成不得代填权利裁决。
 
+更正（带日期，实测于 `53802797^` 与 `53802797` 两个 blob）：上面写"SCRIPTS（70 → 71）"是错的，
+`verify_design_lab.py` 的 `SCRIPTS` 列表是 **69 → 70**；70 → 71 只是聚合门打印的 `total=`
+（`SCRIPTS` 条数 + `EXTRA_CHECKS` 1 条）。数字由 `ast` 直接数两个版本的列表元素得到，不是回忆。
+
 与 `verify_source_registry.py` 的分工要说清，免得两道门互相冒充：那条门只审 `ABSENT_FROM_GIT`
 （悬空引用必须带删除提交与退役声明），本门只审 `LOCAL_CACHE_ONLY`。两句合起来才是"46 条 vendor
 引用全部有据"；单看任何一句都会高估覆盖面。
