@@ -76,7 +76,8 @@ def build_pristine_scratch(dest: Path) -> Path:
     shutil.copy(REPO / gate.HTTP_REL, dest / gate.HTTP_REL)
     ledger = ledger_rows(gate, REPO)
     for row in ledger['contracts']:
-        for ref in list(row.get('instances') or []) + list(row.get('tests') or []):
+        for ref in (list(row.get('instances') or []) + list(row.get('tests') or [])
+                    + list(row.get('fixtures') or [])):
             source = REPO / ref.split(':', 1)[0]
             if not source.is_file():
                 raise AssertionError(f'the shipped ledger names an absent file: {ref}')
@@ -562,11 +563,81 @@ class GateTeethTests(unittest.TestCase):
             for row in doc['contracts']:
                 if row['schema'].endswith('audit-event.schema.json'):
                     row['status'] = 'INERT'
-                    row['instances'] = ['src/design_lab/runtime/asset_store.py:144']
+                    # A path the scratch tree really holds: the gate checks every citation exists and
+                    # its line is in range before it judges the status, and this case must produce
+                    # exactly one red line -- the status, not a stale citation.
+                    row['instances'] = ['src/design_lab/http_service.py:1']
 
         edit_ledger(repo, mutate)
         errors, _, _ = self.run_gate(repo)
         self.assert_red_for(errors, 'INERT_ROW_HAS_INSTANCE', 1)
+
+    # --- citations: the fields that say where a contract is exercised ----------------
+
+    def test_a_citation_that_is_prose_wearing_a_path_is_named_for_what_it_is(self):
+        """Measured 2026-10-08: one fixtures entry read 'generated at run time by <path>:45'.
+
+        A path field is what the gate can check; a sentence in it is checked by nothing, so the row
+        looked evidenced while resting on prose. The real entry now names the generator line and the
+        explanation moved into the reason.
+        """
+        repo = self.scratch('citation-prose')
+
+        def mutate(doc):
+            for row in doc['contracts']:
+                if row['schema'].endswith('probe-result.schema.json'):
+                    row['fixtures'] = ['generated at run time by '
+                                       'design-lab/tests/test_contract_bindings.py:1']
+
+        edit_ledger(repo, mutate)
+        errors, _, _ = self.run_gate(repo)
+        line = self.assert_red_for(errors, 'CITATION_MALFORMED', 1)
+        self.assertIn('fixtures', line)
+
+    def test_a_citation_pointing_past_the_end_of_its_file_is_red(self):
+        """An in-file anchor is a claim about a line number, and line numbers move."""
+        repo = self.scratch('citation-line-past-end')
+
+        def mutate(doc):
+            for row in doc['contracts']:
+                if row['schema'].endswith('probe-result.schema.json'):
+                    # http_service.py is in the scratch tree, so only the line number can be wrong.
+                    row['fixtures'] = ['src/design_lab/http_service.py:999999']
+
+        edit_ledger(repo, mutate)
+        errors, _, _ = self.run_gate(repo)
+        self.assert_red_for(errors, 'CITATION_LINE_OUT_OF_RANGE', 1)
+
+    def test_a_citation_to_a_file_that_is_gone_is_red(self):
+        repo = self.scratch('citation-gone')
+
+        def mutate(doc):
+            for row in doc['contracts']:
+                if row['schema'].endswith('probe-result.schema.json'):
+                    # fixtures is the group whose absence this rule owns; instances and tests have
+                    # BINDING_ROTTEN / INERT_ROW_HAS_INSTANCE / TEST_ROW_STALE, and one defect must
+                    # produce one red line.
+                    row['fixtures'] = ['src/design_lab/assurance/no_such_module.py:12']
+
+        edit_ledger(repo, mutate)
+        errors, _, _ = self.run_gate(repo)
+        self.assert_red_for(errors, 'CITATION_STALE', 1)
+
+    def test_an_inert_row_named_by_product_code_is_red(self):
+        """'Nothing implements this' is a claim about the sources, so it is re-checked against them.
+
+        The search is raw text, comments included: measured over the shipped tree that convicts
+        nothing, so the strict direction costs no false red today and can only ever ask someone to
+        justify a row rather than let an implemented schema hide as inert.
+        """
+        for label, source in (('a string', 'SCHEMA = "probe-result.schema.json"\n'),
+                              ('a comment', '# see probe-result.schema.json for the shape\n')):
+            repo = self.scratch(f'inert-named-{label.split()[0]}')
+            write_mutant(repo, 'src/design_lab/prose_probe.py', source)
+            errors, _, _ = self.run_gate(repo)
+            line = self.assert_red_for(errors, 'INERT_BUT_NAMED_BY_PRODUCT', 1)
+            self.assertIn('probe-result.schema.json', line)
+            self.assertIn('src/design_lab/prose_probe.py', line)
 
     def test_one_sided_version_bump_is_red(self):
         repo = self.scratch('version-drift')

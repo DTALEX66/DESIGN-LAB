@@ -52,6 +52,15 @@ What it enforces:
    line -- and it is why a paid-off debt is flipped to BOUND_SCHEMA here and re-validated against
    a real response by design-lab/scripts/verify_route_payload_contracts.py, rather than quietly
    stopped being mentioned.
+8. EVERY CITATION IS A PATH FIRST. Each ``instances`` / ``tests`` / ``fixtures`` entry must start
+   with a repository path, the file must exist, and a ``:line`` anchor must fall inside it
+   (CITATION_MALFORMED, CITATION_STALE, CITATION_LINE_OUT_OF_RANGE). One measured entry read
+   'generated at run time by <path>:45' -- a sentence inside the field whose whole purpose is to be
+   re-checkable, so the row looked evidenced while nothing checked it.
+9. INERT IS A CLAIM ABOUT THE SOURCES, SO IT IS RE-MEASURED. An INERT row is red if any file under
+   ``src/``, ``packages/``, ``apps/`` or ``integrations/`` names that schema (INERT_BUT_NAMED_BY_PRODUCT),
+   which is how a schema someone wired up cannot keep hiding as unimplemented. Measured over the
+   shipped tree this convicts nothing, so it is the strict direction with no false reds today.
 
 Usage:
     python design-lab/scripts/verify_contract_bindings.py [--list-routes]
@@ -346,9 +355,78 @@ def instance_path(ref: str) -> str:
     return ref.split(':', 1)[0].strip()
 
 
+CITATION_PREFIXES = ('design-lab/', 'src/', 'apps/', 'packages/', 'scripts/', 'integrations/')
+_LINE_SUFFIX = re.compile(r'^[^:]+:(\d+)')
+
+
+def citation_errors(label: str, group: str, ref: str, repo: Path, *,
+                    check_exists: bool = True) -> list[str]:
+    """One citation in a row's instances / tests / fixtures list, judged as a path.
+
+    These fields are how a row says 'this contract is exercised here', so an entry that is prose
+    wearing a path's clothing is checked by nothing: one measured 2026-10-08 read 'generated at run
+    time by design-lab/tests/host_fixtures/qualify_ocr_object_plan.py:45'.
+
+    The rules are split so one defect yields one red line. Shape is checked for every group; a line
+    anchor is checked whenever the file is present; absence is reported here only for ``fixtures``,
+    because instances and tests already have their own rules for it (BINDING_ROTTEN,
+    INERT_ROW_HAS_INSTANCE and TEST_ROW_STALE) and a second conviction for the same vanished file
+    would make 'exactly N red lines' meaningless.
+    """
+    path = instance_path(ref)
+    if not path.startswith(CITATION_PREFIXES):
+        return [f'{label}: CITATION_MALFORMED {group} entry {ref!r} does not start with a '
+                f'repository path ({", ".join(CITATION_PREFIXES)}); say what you mean in the reason']
+    target = repo / path
+    if not target.is_file():
+        if check_exists:
+            return [f'{label}: CITATION_STALE {group} entry {ref!r} -- {path} does not exist']
+        return []
+    match = _LINE_SUFFIX.match(ref)
+    if not match:
+        return []
+    try:
+        total = len(target.read_text(encoding='utf-8', errors='ignore').splitlines())
+    except OSError as exc:
+        return [f'{label}: CITATION_STALE {group} entry {ref!r} -- {path} cannot be read ({exc})']
+    line = int(match.group(1))
+    if line < 1 or line > total:
+        return [f'{label}: CITATION_LINE_OUT_OF_RANGE {group} entry {ref!r} -- {path} has {total} '
+                'lines; the cited anchor is not in it any more']
+    return []
+
+
+def product_corpus(repo: Path) -> dict[str, str]:
+    """The text of every product source file, keyed by repo-relative path.
+
+    Deliberately raw, comments and docstrings included. Measured 2026-10-08 this convicts nothing --
+    no INERT schema is named by src/, packages/, apps/ or integrations/ even as prose -- so the
+    stricter reading costs no false reds today, and it can only ever be over-strict, never blind:
+    someone who writes a schema's file name into a product comment is being asked to justify the row,
+    which is the right outcome for a claim that nothing implements it.
+    """
+    out = {}
+    for scope in ('src', 'packages', 'apps', 'integrations'):
+        base = repo / scope
+        if not base.is_dir():
+            continue
+        for path in base.rglob('*'):
+            if not path.is_file() or path.suffix not in {'.py', '.ts', '.mjs', '.json'}:
+                continue
+            if {'__pycache__', 'node_modules', 'build', 'dist'} & set(path.parts):
+                continue
+            try:
+                out[path.relative_to(repo).as_posix()] = path.read_text(encoding='utf-8',
+                                                                       errors='ignore')
+            except OSError:
+                continue
+    return out
+
+
 def check_contract_rows(repo: Path, rows, absent=frozenset()) -> tuple[list[str], dict]:
     errors, notes = [], []
     counted = {'BINDING': 0, 'INERT': 0}
+    product = product_corpus(repo)
     for row in rows:
         rel = row.get('schema') or ''
         status = row.get('status')
@@ -377,6 +455,11 @@ def check_contract_rows(repo: Path, rows, absent=frozenset()) -> tuple[list[str]
             continue
         instances = row.get('instances') or []
         tests = row.get('tests') or []
+        fixtures = row.get('fixtures') or []
+        for group, entries in (('instances', instances), ('tests', tests), ('fixtures', fixtures)):
+            for ref in entries:
+                errors.extend(citation_errors(label, group, ref, repo,
+                                              check_exists=(group == 'fixtures')))
         for ref in tests:
             test_path = repo / instance_path(ref)
             if not test_path.is_file():
@@ -405,6 +488,15 @@ def check_contract_rows(repo: Path, rows, absent=frozenset()) -> tuple[list[str]
             if instances:
                 errors.append(f'{label}: INERT_ROW_HAS_INSTANCE -- the row says INERT but names '
                               f'{instances[0]!r}; an implemented schema must be BINDING')
+            named = sorted(p for p, text in product.items() if label in text)
+            if named:
+                # The claim 'nothing implements this' is a claim about the product sources, so it is
+                # re-checked against them rather than kept as prose. Either the row is stale because
+                # someone wired the schema, or the name now appears in src/ for a reason worth
+                # stating in this ledger instead of in a comment.
+                errors.append(f'{label}: INERT_BUT_NAMED_BY_PRODUCT {named[0]} -- an INERT row may '
+                              'not be named by product code; re-classify it or say why this is not '
+                              'an implementation')
             if not reason:
                 errors.append(f'{label}: INERT_REASON_MISSING -- an INERT row must say what is '
                               'actually true about it')

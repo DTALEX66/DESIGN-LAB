@@ -251,9 +251,9 @@
         "design-lab/tests/host_fixtures/qualify_ocr_object_plan.py:28"
       ],
       "fixtures": [
-        "generated at run time by design-lab/tests/host_fixtures/qualify_ocr_object_plan.py:45"
+        "design-lab/tests/host_fixtures/qualify_ocr_object_plan.py:45"
       ],
-      "reason": "The only contract in this directory with a real emitter: DecompositionPlan.to_contract() at src/design_lab/analysis/decomposition.py:164 writes this exact schemaVersion const and field set, and test_planar_decomposition.py:82 validates the emitted JSON against this file rather than a hand-written fixture. src/design_lab/analysis/plan_to_rir.py consumes the plan but names it only in prose, so it is not listed as an instance: an instance the gate cannot re-check against the version literal is a rot risk, not coverage."
+      "reason": "The only contract in this directory with a real emitter: DecompositionPlan.to_contract() at src/design_lab/analysis/decomposition.py:164 writes this exact schemaVersion const and field set, and test_planar_decomposition.py:82 validates the emitted JSON against this file rather than a hand-written fixture. src/design_lab/analysis/plan_to_rir.py consumes the plan but names it only in prose, so it is not listed as an instance: an instance the gate cannot re-check against the version literal is a rot risk, not coverage. The fixtures entry is the generator, not a committed file: the plan instance is assembled and jsonschema-validated at run time on that line, so no JSON sits under design-lab/tests/ for this contract, and the citation is checked for existence and line range like any other."
     },
     {
       "schema": "design-lab/schemas/contracts/probe-result.schema.json",

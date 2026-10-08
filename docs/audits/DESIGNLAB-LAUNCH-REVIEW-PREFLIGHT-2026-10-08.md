@@ -1438,3 +1438,60 @@ V1 模板与 V2 实现之间的取舍仍是要 owner 拍的形状决定，本轮
 把 `staticmethod` 降成了普通函数（类属性被污染，后续模块的 `self._brief(row)` 收到
 `TypeError`，HTTP 层统一吞成 `{'error':'INTERNAL'}`）；以及"能编译"两次都不是证据——
 `py_compile` 对被我并行的 `def` 行与被拆开的 `__enter__` 都返回 0。
+
+## 29. 30 份 INERT 合同：把"没人实现"从一句话变成一条被复测的断言
+
+### 29.1 为什么动这一片
+
+`design-lab/schemas/contracts/` 里 32 份 schema，`VERIFY_CONTRACT_BINDINGS` 报
+`schemas=32 binding=2 inert=30`。这是合同层最大的一片"声明看起来像能力"的地带：30 份被标为
+INERT，每份配一段理由。理由里绝大多数是**否定断言**——"plan_id/jobs appear nowhere in src/"、
+"nothing implements this"。否定断言是散文里最贵的一类：它不会随代码变化而报错，只会悄悄变成谎话。
+本轮不实现这 30 份（那是内核架构决定，要 owner 拍），做的是让"没人实现"这句话**每次运行都被复测**。
+
+### 29.2 我先把测量做错了（这条比结果重要）
+
+第一版我按 schema 的 `required`/属性名去 `src/`、`packages/`、`apps/` 里搜，结果 27/30 都"在产品里
+出现"——于是看起来 27 份 INERT 是谎。那是**我的判据错**，不是账本错：`action`、`at`、`note`、`result`、
+`state`、`decision`、`changes` 这些词在任何代码里满地都是，一个字段名出现在产品里不等于那个形状被实现。
+"名字搜索要按块归属、要处理别名"这条老教训又应验一次。
+
+正确的问法和 25 节给对象模型定下的是同一个：**谁指名这份文件**。按字面文件名在
+`src/`、`packages/`、`apps/`、`integrations/` 的 204 个产品文件里搜，结果是 **0**——
+30 份 INERT 断言全部成立，连"散文里提一句"都没有。
+
+### 29.3 门里新增的规则，和它当场抓到的一处
+
+`verify_contract_bindings.py` 加了两类规则：
+
+- **引用必须是路径**（第 8 条）：`instances` / `tests` / `fixtures` 每一项必须以仓库内路径开头，
+  带 `:行号` 的必须落在文件行数内。当场抓到一处真缺陷：
+  `planar-decomposition` 的 fixtures 写的是
+  `generated at run time by design-lab/tests/host_fixtures/qualify_ocr_object_plan.py:45`——
+  一句散文塞在专门用来被复测的字段里，等于那行"有证据"其实无人可查。改成只留路径（该行确实是
+  实例被组装并 `jsonschema.validate` 的地方），"运行时生成"这句挪进 reason；
+  顺带发现 scratch 树的构造器只复制 `instances`/`tests` 而不复制 `fixtures`，补齐，否则门的
+  fixtures 检查在副本里无法工作。
+- **INERT 是对源码的断言**（第 9 条）：INERT 行若被任何产品文件指名，判
+  `INERT_BUT_NAMED_BY_PRODUCT`。搜索用**原始文本**（含注释），故意取严的一侧：今天它一条都不报，
+  所以代价是零；而将来有人在 `src/` 里注释了一句这份 schema，也被要求出来说清楚——这比让一份
+  已接线的 schema 继续躲在 INERT 后面好。
+
+### 29.4 一个规则被自己的外科性测试挡回来
+
+新加的"文件不存在"检查最初对三组字段一律生效，于是 `tests` 里一个消失的文件同时被
+`TEST_ROW_STALE`（原有规则）和我的 `CITATION_STALE` 各判一次——测试
+`assert_red_for(..., 1)` 立刻红了，报的不是我的规则而是"一个缺陷两行红"。这正是仓库里
+"exactly N reds"存在的意义。改法是按组分工：**形状**三组都查；**行号**在文件存在时查；
+**文件缺失**只由 `fixtures` 走新规则，`instances`/`tests` 继续归 `BINDING_ROTTEN` /
+`INERT_ROW_HAS_INSTANCE` / `TEST_ROW_STALE`。另两条测试也因此换到树内真实存在的路径上，
+否则它们验的是"文件不存在"而不是"行号漂移"。
+
+### 29.5 本轮数字
+
+`VERIFY_CONTRACT_BINDINGS=PASS schemas=32 binding=2 inert=30 routes=53 dispatched=53
+bound=15 schema_less=38`；`test_contract_bindings.py` 32 条 OK（含 4 条新规则的注入测试 +
+一条"字符串与注释都不许躲在 INERT 后面"的双面测试）。
+仍待 owner：这 30 份 INERT 里要不要接线、接哪几份（`run-event`/`job-spec`/`job-attempt`/
+`operation-intent`/`operation-receipt`/`host-session`/`document-session` 这一组明显对着
+native_* 表，是同一内核决定的不同侧面）；本轮只把它们的"没人实现"变成可复测的事实。
