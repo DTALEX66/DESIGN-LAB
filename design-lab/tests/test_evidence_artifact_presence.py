@@ -35,7 +35,7 @@ class EvidenceArtifactPresenceTests(unittest.TestCase):
                          'every tracked evidence artefact must still exist')
         # Known decay, asserted rather than hidden. Each entry is a record whose
         # artefact bytes legitimately moved after the observation, and the inventory is
-        # exact so the NEXT unannounced move still goes red. Twenty-nine records on six
+        # exact so the NEXT unannounced move still goes red. Thirty-eight records on eleven
         # distinct artefacts -- and the numbers here are re-measured, not inherited: see
         # the correction below, because this count was wrong in this file for an hour.
         #   * build/main.js -- a 2026-09-27 record used a mutable build output as
@@ -99,6 +99,22 @@ class EvidenceArtifactPresenceTests(unittest.TestCase):
             # when the prose is extended. The 23 ids are named by the gate's own output; none of
             # them is rewritten -- each stays the observation it was, and the newest records carry
             # the current binding.
+            # 2026-10-08, commit ab45c818 added the missing `unittest.main()` entry guard to five
+            # files that records from 2026-09-27/28 had hashed as artefacts:
+            # test_comfy_http.py (2 records), test_illustrator_com_adapter.py, test_model_manifest.py,
+            # test_photoshop_com_adapter.py and test_workbench_native_ui.py (4 records). Before that
+            # commit, executing any of them ran zero tests and exited 0, so those records were
+            # describing bytes belonging to files whose contents had never been read back per file --
+            # the guard is what makes a per-module run mean anything. Nine more drifted pairs, and
+            # test_workbench_launch.py was already in this list, so its own bootstrap adds none.
+            ('design-lab/tests/test_comfy_http.py', 'HASH_MOVED_SINCE_OBSERVATION'): 2,
+            ('design-lab/tests/test_illustrator_com_adapter.py',
+             'HASH_MOVED_SINCE_OBSERVATION'): 1,
+            ('design-lab/tests/test_model_manifest.py', 'HASH_MOVED_SINCE_OBSERVATION'): 1,
+            ('design-lab/tests/test_photoshop_com_adapter.py',
+             'HASH_MOVED_SINCE_OBSERVATION'): 1,
+            ('design-lab/tests/test_workbench_native_ui.py',
+             'HASH_MOVED_SINCE_OBSERVATION'): 4,
             ('docs/audits/DESIGNLAB-LAUNCH-REVIEW-PREFLIGHT-2026-10-08.md',
              'HASH_MOVED_SINCE_OBSERVATION'): 23,
         })
@@ -106,7 +122,7 @@ class EvidenceArtifactPresenceTests(unittest.TestCase):
                          'the drifted-artefact inventory is exact in both directions: a new '
                          'move, a new artefact name, or one more record on a known artefact '
                          'are all findings, and a drifted pair that quietly disappeared is too')
-        self.assertEqual(sum(counts.values()), 29,
+        self.assertEqual(sum(counts.values()), 38,
                          'the total drifted-record count is pinned, not derived')
 
     def test_missing_tracked_artefact_is_a_hard_break_not_a_warning(self):

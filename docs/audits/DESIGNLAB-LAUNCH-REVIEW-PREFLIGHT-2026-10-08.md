@@ -974,3 +974,49 @@ preflight 行修到了 **文档字符串里的一句话**(:37),而真正的发�
 不在本轮做的:把 `emitter` 从 `path:line` 改成 `path`+`symbol`(行号天然会腐烂,哪怕有人读它)。
 现在的规则让腐烂可见,这已经比装饰强;真要根治,该指的是符号而不是坐标,那需要另立一行合同字段与门的
 一次改动,记在这里不当已完成。
+
+
+## 24. 十七个跑了但一个测试也没执行的测试文件(2026-10-08 追加)
+
+起因是我自己的一条误诊。逐模块验证给出 `204 OK / 1 TIMEOUT / 1 FAILED`,我把 FAILED 那条读成
+"重建能力有 13 个错误",记进了待办 #19。真因不在能力,在**测试文件的自举**:
+`test_reconstruction_semantics.py` 里 `import reconstruction`,而包在
+`packages/capabilities/reconstruction`——它自己不插 sys.path,只靠 CI 那种**单进程 discover**
+里先跑过的邻居把路径塞进去。单进程新起就 13 个 `ModuleNotFoundError`,13 个行为一个也没验过;
+在 CI 里反倒一直是绿的。也就是说:**"这条能力有没有被验证"取决于谁先跑。**
+
+顺手量了一下整个测试面,量出第二种更安静的形状:
+**206 个测试模块里 17 个没有 `if __name__ == '__main__': unittest.main()`**。
+`python design-lab/tests/test_x.py` 对它们来说是"导入文件、什么都不执行、退出 0"——
+任何按退出码判定的逐模块扫描都会把它记成 pass,我今天记了两次。补上守卫之后,这 17 个文件
+合计真的跑出 **184 个测试**,全绿,其中 COM/宿主相关用例是**带原因的 skipped**,不是静默缺席。
+
+新落一个可跟踪的门 `design-lab/scripts/verify_test_selfsufficiency.py`(已挂进
+`verify_design_lab.py`,所以 CI 会跑到),四种红各自命名:
+`NOT_EXECUTABLE` / `NO_CASES` / `UNPARSEABLE` / `BORROWED_IMPORT_PATH`,并且**空扫描与空根 fail
+closed**:声明的第二方根若一个可导入名字都产不出来,说明门在看错的树,此时所有 import 检查都只是
+"无话可说",不能报绿。识别 import 自举用两种仓库里真实存在的拼法(`sys.path[:0]=[str(ROOT/'src'),…]`
+切片赋值,以及先 `_PKG_ROOT = ROOT / "packages" / "capabilities"` 再 insert 的间接变量),
+都从 AST 读——不 `find_spec`、不看 site-packages,因为"这台机器装了 design_lab"会让门的颜色随主机变。
+
+规则本身也错了一次,值得记:第一版 `claims_root` 是"文件文本里出现过 src 或 capabilities 字样 +
+有 sys.path 操作",报了 **35** 条违规;换成 AST 只读 sys.path 语句及其涉及的模块级赋值之后,
+只剩 **1** 条真缺口(`test_workbench_launch.py`:它给子进程配 PYTHONPATH,自己却不插 src)。
+**规则的宽度决定结论的宽度**——35 里有 34 是我的正则造成的假阳,如果照着它们去"修 34 个文件",
+我就把一次真发现变成了一次大扫除。
+
+代价也如实入账:补守卫动到了 5 个被 2026-09-27/28 记录当 artefact 的文件
+(`test_comfy_http.py` 2 条、`test_illustrator_com_adapter.py`、`test_model_manifest.py`、
+`test_photoshop_com_adapter.py` 各 1 条、`test_workbench_native_ui.py` 4 条),
+漂移清单从 29 → **38**(11 个路径)。这一批不是文档引起的,是被修的就是代码本身;
+处理法不变:不重写旧记录,新记录绑代码。
+
+顺便把 #19 的另一半改口:逐方法计时(每方法一个子进程,90s 上限)显示
+`test_reconstruction_evidence.py` 的 37 个方法里,
+`test_structure_bounds_and_semantic_target_mapping_are_exact_not_containment_only`
+单独用了 **86.2s 并且以 errors=1 结束**。所以那不是死循环,是一个慢且错的方法把整模块的墙钟
+顶过了我给的时间盒。原来记的"hang"用词不准,按实测更正;这条错误的性质要单独查,不当本轮已闭合。
+
+门的自测 13 条(`test_test_selfsufficiency_gate.py`),含两条"削弱副本"反证:把入口守卫规则或
+自举规则从副本里抹掉,同一份被改坏的树就不再定罪——红来自规则,不来自夹具。当前树:
+`TEST_SELF_SUFFICIENCY=OK scanned=207 executable=207 violations=0`。
