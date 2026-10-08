@@ -120,7 +120,7 @@ def main(argv=None) -> int:
         "schemaVersion": "design-lab/no-overclaim-audit/v1",
         "task_key": TASK_KEY,
         "audited_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
-        "subject_sha": git("rev-parse HEAD").strip(),
+        "subject_sha": git("rev-parse", "HEAD").strip(),
         "surface": list(SURFACE),
         "rule": "a claim of supported/verified/ready/complete/integrated must carry an evidence "
                 "reference in the same object, or an explicit limitation that makes it honest",
@@ -131,16 +131,27 @@ def main(argv=None) -> int:
         "delegated": {"E3_E4": "scripts/verify_evidence_levels.py owns who may claim which level"},
         "verdict": "PASS" if not unsupported else "FAIL",
     }
+    summary = f"NO_OVERCLAIM={document['verdict']} " + " ".join(
+        f"{k}={v}" for k, v in document["counts"].items())
     if args.check:
-        if not OUT.is_file() or json.loads(OUT.read_text(encoding="utf-8"))["verdict"] != document["verdict"]:
-            print("NO_OVERCLAIM=DRIFT")
+        # The checker must say what it examined. A bare `NO_OVERCLAIM=PASS` with no counts
+        # cannot be told apart from a pass over zero claims, which is the failure mode this
+        # gate exists to catch, so the measurement line is printed in both modes.
+        stored = json.loads(OUT.read_text(encoding="utf-8")) if OUT.is_file() else None
+        if stored is None:
+            print(summary)
+            print("NO_OVERCLAIM=DRIFT no report at " + str(OUT))
             return 1
-        print("NO_OVERCLAIM=PASS")
+        if stored["verdict"] != document["verdict"]:
+            print(summary)
+            print(f"NO_OVERCLAIM=DRIFT stored verdict={stored['verdict']} "
+                  f"fresh={document['verdict']}")
+            return 1
+        print(summary)
         return 0
     OUT.parent.mkdir(parents=True, exist_ok=True)
     OUT.write_text(json.dumps(document, indent=2, ensure_ascii=False) + "\n", encoding="utf-8", newline="\n")
-    print(f"NO_OVERCLAIM={document['verdict']} " + " ".join(f"{k}={v}" for k, v in
-                                                           document["counts"].items()))
+    print(summary)
     for row in unsupported[:12]:
         print(f"  UNSUPPORTED {row['path']} {row['at']} -> {row['claim']} ({row['identity']})")
     return 0 if not unsupported else 1

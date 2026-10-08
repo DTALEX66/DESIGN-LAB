@@ -306,7 +306,7 @@ def main(argv=None) -> int:
         "schemaVersion": "design-lab/evidence-level-audit/v1",
         "task_key": TASK_KEY,
         "audited_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
-        "subject_sha": git("rev-parse HEAD").strip(),
+        "subject_sha": git("rev-parse", "HEAD").strip(),
         "claim_surface": list(CLAIM_SURFACE),
         "out_of_scope": list(OUT_OF_SCOPE_PREFIXES),
         "scope_note": "historical records and superseded taskpacks are excluded: the taskpack "

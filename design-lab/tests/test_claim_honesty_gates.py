@@ -9,6 +9,15 @@ runs. `test_gate_reachability.py` keeps that from recurring.
 
 Each assertion requires the verdict token in the output, not just exit 0: a gate that
 prints nothing and exits 0 has not examined anything.
+
+They are invoked with `--check`, not bare. Measured on 2026-10-09: all three also *write* a
+tracked report in bare mode, so every suite run rewrote
+`reports/current/{SUPPLY-CHAIN-REPORT,EVIDENCE-LEVEL-AUDIT,NO-OVERCLAIM-AUDIT}.json` -- one of
+the reasons "a full run can never be clean" was ever true -- and each of those reports carried
+`subject_sha: ""` because the writer called `git("rev-parse HEAD")` as one argv element, which
+git rejects and the helper returned as empty text. `--check` compares the stored record against
+a fresh computation and writes nothing, which is the stronger claim anyway: the report in the
+repository agrees with what the tool computes now.
 """
 from __future__ import annotations
 
@@ -27,12 +36,19 @@ GATES = (
     ("scripts/verify_supply_chain.py", "SUPPLY_CHAIN=PASS"),
 )
 
+# The tracked artefacts those three gates would rewrite if run in their writer form.
+GATE_OUTPUTS = (
+    "reports/current/NO-OVERCLAIM-AUDIT.json",
+    "reports/current/EVIDENCE-LEVEL-AUDIT.json",
+    "reports/current/SUPPLY-CHAIN-REPORT.json",
+)
+
 
 class ClaimHonestyGateTests(unittest.TestCase):
-    def run_gate(self, relative: str, token: str) -> str:
+    def run_gate(self, relative: str, token: str, *extra: str) -> str:
         script = ROOT / relative
         self.assertTrue(script.is_file(), f'gate missing: {relative}')
-        proc = subprocess.run([sys.executable, '-X', 'utf8', '-B', str(script)],
+        proc = subprocess.run([sys.executable, '-X', 'utf8', '-B', str(script), *extra],
                               cwd=str(ROOT), capture_output=True, text=True,
                               encoding='utf-8', errors='replace', timeout=900)
         output = (proc.stdout or '') + (proc.stderr or '')
@@ -42,7 +58,7 @@ class ClaimHonestyGateTests(unittest.TestCase):
         return output
 
     def test_no_overclaim_passes_and_reports_what_it_examined(self) -> None:
-        output = self.run_gate(*GATES[0])
+        output = self.run_gate(*GATES[0], '--check')
         counts = re.search(r"claims=(\d+).*?unsupported=(\d+)", output, re.S)
         self.assertIsNotNone(counts,
                              f'no_overclaim passed without reporting its counts: {output[:240]}')
@@ -52,10 +68,33 @@ class ClaimHonestyGateTests(unittest.TestCase):
                          'the gate passed while unsupported claims were present')
 
     def test_evidence_levels_keeps_historical_evidence_honest(self) -> None:
-        self.run_gate(*GATES[1])
+        self.run_gate(*GATES[1], '--check')
 
     def test_supply_chain_lock_is_consistent(self) -> None:
-        self.run_gate(*GATES[2])
+        self.run_gate(*GATES[2], '--check')
+
+    def test_running_the_gates_leaves_no_tracked_report_modified(self) -> None:
+        """The suite must not be a writer. This is the shape that made every run dirty.
+
+        Asserted on the porcelain for exactly the three paths those gates own, so a future
+        refactor that points a test back at bare mode fails here instead of quietly becoming
+        the reason a clean checkout is impossible.
+        """
+        for relative, token in GATES:
+            self.run_gate(relative, token, '--check')
+        proc = subprocess.run(['git', 'status', '--porcelain', '--', *GATE_OUTPUTS],
+                              cwd=str(ROOT), capture_output=True, text=True,
+                              encoding='utf-8', errors='replace')
+        self.assertEqual(proc.stdout.strip(), '',
+                         'a gate run rewrote a tracked report: ' + proc.stdout)
+
+    def test_the_three_reports_name_a_commit(self) -> None:
+        """`subject_sha` was empty in all three for the whole time they existed."""
+        for relative in GATE_OUTPUTS:
+            document = json.loads((ROOT / relative).read_text(encoding='utf-8'))
+            subject = str(document.get('subject_sha') or '')
+            self.assertRegex(subject, r'^[0-9a-f]{40}$',
+                             f'{relative} binds itself to {subject!r}, which names no commit')
 
     def test_supply_chain_sees_the_derived_revision_record(self) -> None:
         """The join, asserted.

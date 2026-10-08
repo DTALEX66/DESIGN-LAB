@@ -418,7 +418,7 @@ def main(argv=None) -> int:
         "schemaVersion": "design-lab/supply-chain-report/v1",
         "task_keys": TASK_KEYS,
         "generated_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
-        "subject_sha": git("rev-parse HEAD").strip(),
+        "subject_sha": git("rev-parse", "HEAD").strip(),
         "canonical_adapter_status": list(CANONICAL_STATUS),
         "legacy_status_mapping": LEGACY_STATUS,
         "checks": checks,
