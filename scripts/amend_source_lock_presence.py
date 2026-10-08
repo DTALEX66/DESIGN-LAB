@@ -26,6 +26,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import re
 import subprocess
 from pathlib import Path
 
@@ -85,6 +86,77 @@ def digest_dir(root: Path) -> tuple[int, str | None]:
     return len(files), h.hexdigest()
 
 
+def git(*args: str) -> str:
+    r = subprocess.run(["git", "-C", str(REPO), *args], capture_output=True, text=True,
+                       encoding="utf-8", errors="replace")
+    if r.returncode != 0:
+        return ""
+    return r.stdout.strip()
+
+
+def retired_provenance(path: str) -> dict:
+    """Recover from Git what the working tree no longer holds for a retired path.
+
+    A reference whose directory was deleted is not an unresolvable claim: the deletion
+    commit, the tree it removed (an immutable content identity) and the SOURCE.md inside
+    that tree are all still in this repository's history. Everything here is read from
+    git, never typed: a hand-copied hash is the exact failure this record exists to
+    prevent. When history holds no SOURCE.md, that is stated as `sourceRecordPresent:
+    false` rather than left blank, because "no revision was recorded at vendoring time"
+    and "nobody looked" are different facts.
+    """
+    deletion = git("log", "--diff-filter=D", "-1", "--format=%H%x09%ad",
+                   "--date=format:%Y-%m-%d", "--", path)
+    if not deletion:
+        return {"retiredIn": None}
+    sha, _, date = deletion.partition("\t")
+    tree = git("rev-parse", "--verify", "--quiet", f"{sha}^:{path}")
+    source_md = git("show", f"{sha}^:{path}/SOURCE.md") if tree else ""
+    fields: dict[str, str] = {}
+    for line in source_md.splitlines():
+        match = re.match(r"^\s*[-*]?\s*\**\s*(repo|来源|license|许可|branch[/ ]?commit|branch|commit)"
+                         r"\s*\**\s*[:：]\s*(\S.*)$", line, re.I)
+        if match:
+            # `https://github.com/x/y（MIT）` and `MIT License（LICENSE 副本随附）` both carry
+            # prose after the value in the same field; the full-width paren is not part of
+            # a URL, so the value ends where whitespace or a bracket begins.
+            value = re.split(r"[\s（(]", match.group(2).strip())[0]
+            fields.setdefault(match.group(1).lower().replace("branch/commit", "commit"), value)
+    repo_url = next((v for k, v in fields.items() if k in ("repo", "来源") and v.startswith("http")), None)
+    record_license = next((v for k, v in fields.items() if k in ("license", "许可")), None)
+    # `MIT License（LICENSE 副本随附）` style values carry prose after the SPDX id.
+    if record_license:
+        record_license = re.split(r"[\s（(]", record_license.strip())[0]
+    # `branch/commit:` may carry a SHA (a real pin) or a branch name (not a pin);
+    # `branch:` alone is the same statement in the other field, so both spellings resolve
+    # to "branch only, commit never recorded" rather than to silence or to a fake pin.
+    revision = next((fields[k] for k in ("commit", "branch") if fields.get(k)), None)
+    is_commit_sha = bool(revision and re.fullmatch(r"[0-9a-f]{7,40}", revision))
+    return {
+        "retiredIn": sha,
+        "retiredOn": date,
+        "retiredTreeSha": tree or None,
+        "sourceRecordPresent": bool(source_md),
+        "upstreamRepo": repo_url,
+        "sourceRecordLicense": record_license,
+        # A branch name is not a revision: `main` cannot be re-fetched byte-identically,
+        # so it is recorded as what it is (`upstreamRefWithoutCommit`) and the source stays
+        # visibly unresolved rather than claiming a pinned commit.
+        "upstreamRevision": revision if is_commit_sha else None,
+        "upstreamRefWithoutCommit": None if revision is None or is_commit_sha else revision,
+        # Every retired reference must be able to answer "what was pinned?" in one of
+        # three honest ways: a commit, a branch that was never pinned to a commit, or the
+        # statement that its own source record named neither. The third is generated from
+        # the fields the record actually carries, so it cannot become a blanket excuse.
+        "revisionStatement": (
+            f"commit {revision} recorded in SOURCE.md" if is_commit_sha else
+            f"branch `{revision}` only; no commit was recorded at vendoring time" if revision else
+            "the retired SOURCE.md names no branch and no commit; fields present: "
+            + (", ".join(sorted(fields)) or "none")) if source_md else
+            "no SOURCE.md in the retired tree; see provenanceAbsentReason",
+    }
+
+
 def classify(source: dict, tracked: list[str]) -> dict:
     path = str(source.get("path") or "").replace("\\", "/").strip("/")
     prefix = path + "/"
@@ -97,7 +169,7 @@ def classify(source: dict, tracked: list[str]) -> dict:
     else:
         presence = "ABSENT_FROM_GIT"
     recorded = source.get("files")
-    return {
+    facts = {
         "presence": presence,
         "gitFiles": len(git_files),
         "diskFiles": disk_count,
@@ -108,6 +180,13 @@ def classify(source: dict, tracked: list[str]) -> dict:
         "contentDigest": disk_digest if presence in ("IN_REPO", "LOCAL_CACHE_ONLY") else None,
         "pathNamedInIsolationRecord": retired_in_doc(path),
     }
+    if presence == "ABSENT_FROM_GIT":
+        facts.update(retired_provenance(path))
+    return facts
+
+
+def path_of(source: dict) -> str:
+    return str(source.get("path") or "").replace("\\", "/").strip("/")
 
 
 def main() -> int:
@@ -117,6 +196,7 @@ def main() -> int:
         raise SystemExit("SOURCE_LOCK_UNREADABLE: no sources array")
     tracked = tracked_paths()
     counts = {}
+    license_mismatch: list[dict] = []
     for source in sources:
         facts = classify(source, tracked)
         source["presence"] = facts["presence"]
@@ -125,6 +205,18 @@ def main() -> int:
         source["contentDigest"] = facts["contentDigest"]
         source["countMatchesRecord"] = facts["countMatchesRecord"]
         source["pathNamedInIsolationRecord"] = facts["pathNamedInIsolationRecord"]
+        for key in ("retiredIn", "retiredOn", "retiredTreeSha", "sourceRecordPresent",
+                    "upstreamRepo", "sourceRecordLicense", "upstreamRevision",
+                    "upstreamRefWithoutCommit", "revisionStatement"):
+            if key in facts:
+                source[key] = facts[key]
+        if facts.get("sourceRecordLicense") and facts["sourceRecordLicense"] != source.get("license"):
+            license_mismatch.append({
+                "id": source["id"],
+                "lockSays": source.get("license"),
+                "sourceRecordSays": facts["sourceRecordLicense"],
+                "readFrom": f"{facts['retiredIn'][:8]}^:{path_of(source)}/SOURCE.md",
+            })
         counts[facts["presence"]] = counts.get(facts["presence"], 0) + 1
     unbacked = sorted(s["id"] for s in sources
                       if s["presence"] == "ABSENT_FROM_GIT" and not s["pathNamedInIsolationRecord"])
@@ -146,6 +238,16 @@ def main() -> int:
         # surfaced, not rewritten: why a reference lost its path is an owner call, and
         # silently deleting the record would destroy the only trace it existed.
         "absentReferencesNotNamedInIsolationRecord": unbacked,
+        # A retired reference may keep its record only while its provenance is readable:
+        # which commit deleted it, the tree that was deleted, and what its own SOURCE.md
+        # said. Anything absent here is a reference nobody can re-derive.
+        "absentReferencesWithRecoveredProvenance": sorted(
+            s["id"] for s in sources
+            if s["presence"] == "ABSENT_FROM_GIT" and s.get("retiredTreeSha")),
+        # surfaced, not silently merged: the lock and the recovered source record naming a
+        # different license is a rights question, and both values are reported so the
+        # correction is a decision with evidence rather than a guess.
+        "licenseRecordMismatch": license_mismatch,
     }
     # newline="\n": Path.write_text translates "\n" to os.linesep on Windows, which
     # would make this file's bytes platform-dependent and re-dirty the projections on
@@ -153,7 +255,8 @@ def main() -> int:
     with LOCK.open("w", encoding="utf-8", newline="\n") as handle:
         handle.write(json.dumps(lock, ensure_ascii=False, indent=2) + "\n")
     print("SOURCE_LOCK_PRESENCE=WRITTEN " + json.dumps(lock["presenceAudit"]["counts"], sort_keys=True)
-          + f" unbacked_absent_references={len(unbacked)}")
+          + f" unbacked_absent_references={len(unbacked)}"
+          + f" license_record_mismatch={len(license_mismatch)}")
     return 0
 
 

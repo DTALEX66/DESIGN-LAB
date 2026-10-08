@@ -38,6 +38,8 @@ REGISTRY_SCHEMA = ROOT / "schemas" / "source-registry.schema.json"
 QUARANTINE_SCHEMA = ROOT / "schemas" / "quarantine-registry.schema.json"
 CAPABILITY_INDEX = ROOT / "config" / "capability-index.json"
 EVIDENCE_INDEX = ROOT / "config" / "capability-evidence-index.json"
+# The vendor lock lives at the repository root, one level above design-lab/.
+VENDOR_LOCK = ROOT.parent / "vendor" / "sources.lock.json"
 
 GIT_SHA40 = re.compile(r"^[0-9a-f]{40}$")
 SHA256 = re.compile(r"^sha256:[0-9a-f]{64}$")
@@ -83,6 +85,64 @@ def validate_rights(src: dict, integration: dict) -> list[str]:
         findings.append(f"{source_id}: git origin requires full 40-char version SHA")
     if not SHA256.match(src.get("contentHash", "")):
         findings.append(f"{source_id}: contentHash must be sha256:<64hex>")
+    return findings
+
+
+def vendor_lock_findings(lock_path: Path | None = None) -> list[str]:
+    """An absent vendor reference may stay only as a *declared* historical reference.
+
+    `vendor/sources.lock.json` lists 46 sources; 6 of them point at directories deleted
+    on 2026-09-04, and until 2026-10-08 `SOURCE_REGISTRY=PASS` said nothing about that --
+    two of the six looked "backed" only because the isolation record listed a *file* inside
+    them and the check was a substring. Presence is measured by
+    `scripts/amend_source_lock_presence.py` and committed here, so this gate's job is the
+    other half: refuse a dangling reference, a missing content identity, a license claim
+    that disagrees with the record inside the retired tree, and a revision invented rather
+    than declared.
+    """
+    path = lock_path or VENDOR_LOCK
+    try:
+        lock = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as exc:
+        return [f"vendor sources.lock.json unreadable: {exc}"]
+    audit = lock.get("presenceAudit") or {}
+    if audit.get("schemaVersion") != "design-lab/vendor-presence/v1":
+        return [f"vendor lock has no presence audit (schemaVersion "
+                f"{audit.get('schemaVersion')!r}) — run scripts/amend_source_lock_presence.py"]
+    findings: list[str] = []
+    for source in lock.get("sources") or []:
+        if source.get("presence") != "ABSENT_FROM_GIT":
+            continue
+        sid = source.get("id", "?")
+        path_str = str(source.get("path") or "")
+        if not source.get("pathNamedInIsolationRecord"):
+            findings.append(f"{sid}: absent from git with no retirement declaration naming "
+                            f"`{path_str}` in docs/THIRD_PARTY_ISOLATION.md")
+        for field in ("retiredIn", "retiredTreeSha"):
+            value = str(source.get(field) or "")
+            if not re.fullmatch(r"[0-9a-f]{7,40}", value):
+                findings.append(f"{sid}: {field} is {value!r}, not a commit/tree sha read "
+                                f"from git history")
+        if not str(source.get("upstreamRepo") or "").startswith("https://"):
+            findings.append(f"{sid}: no upstream URL recovered from the retired tree's "
+                            f"SOURCE.md, so the reference cannot be re-acquired or audited")
+        if not source.get("sourceRecordPresent") and not str(source.get("provenanceAbsentReason") or "").strip():
+            findings.append(f"{sid}: retired tree carries no SOURCE.md and states no reason "
+                            f"— silence is not a declaration")
+        # One field carries the whole answer, and it is generated from the retired record
+        # rather than typed by whoever edits the lock: commit / branch-only / never-recorded
+        # are all acceptable, an empty string is not.
+        statement = str(source.get("revisionStatement") or "").strip()
+        if not statement:
+            findings.append(f"{sid}: no revisionStatement — the lock must say whether a commit "
+                            f"was pinned, only a branch was named, or neither was recorded")
+        elif re.fullmatch(r"commit [0-9a-f]{7,40} recorded in SOURCE\.md", statement)                 and not re.fullmatch(r"[0-9a-f]{7,40}", str(source.get("upstreamRevision") or "")):
+            findings.append(f"{sid}: revisionStatement claims a commit but upstreamRevision "
+                            f"is {source.get('upstreamRevision')!r}")
+    for key in ("absentReferencesNotNamedInIsolationRecord", "licenseRecordMismatch"):
+        value = audit.get(key)
+        if value:
+            findings.append(f"presenceAudit.{key} is not empty: {value}")
     return findings
 
 
@@ -201,6 +261,10 @@ def main() -> int:
             errors.append(f"quarantine {where}: {verr.message}")
     except (OSError, json.JSONDecodeError) as exc:
         errors.append(f"QUARANTINE_REGISTRY unreadable: {exc}")
+
+    presence_errors = vendor_lock_findings()
+    if presence_errors:
+        errors.extend(presence_errors)
 
     schema_errors = len(errors)
     governance_gaps = len(gaps)

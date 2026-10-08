@@ -125,9 +125,47 @@ class ClassesMatchTheirOwnClaims(unittest.TestCase):
         recomputed = {s["id"] for s in _sources()
                       if s["presence"] == "ABSENT_FROM_GIT" and not s["pathNamedInIsolationRecord"]}
         self.assertEqual(unbacked, recomputed)
-        # four references lost their path without the isolation record naming them;
-        # this pins the number so a silent fifth one becomes a failing test
-        self.assertEqual(len(unbacked), 4)
+        # 2026-10-08: this pinned 4, because four LOCK_REFERENCE rows pointed at directories
+        # deleted in c9cde8a5 with nothing naming them. Two of the six only looked "backed"
+        # by accident -- the isolation record listed one *file* inside them and the test was
+        # a substring. All six are now declared in docs/THIRD_PARTY_ISOLATION.md's retirement
+        # table with the deletion commit and the deleted tree's SHA recovered from git, so an
+        # unbacked reference is a finding again rather than the status quo. The number stays
+        # pinned at zero: a seventh undeleted reference with no declaration fails here.
+        self.assertEqual(unbacked, set(),
+                         f"undeclared absent references: {sorted(unbacked)}")
+
+    def test_every_absent_reference_carries_recovered_provenance(self) -> None:
+        """A reference may stay only if a reader can re-derive what it pointed at."""
+        for source in _sources():
+            if source["presence"] != "ABSENT_FROM_GIT":
+                continue
+            sid = source["id"]
+            self.assertRegex(str(source.get("retiredIn")), r"^[0-9a-f]{7,40}$")
+            self.assertRegex(str(source.get("retiredTreeSha")), r"^[0-9a-f]{7,40}$",
+                             f"{sid}: no content identity for the deleted tree")
+            self.assertTrue(str(source.get("upstreamRepo", "")).startswith("https://"),
+                            f"{sid}: no upstream URL, so the reference cannot be re-acquired")
+            self.assertTrue(str(source.get("revisionStatement", "")).strip(),
+                            f"{sid}: silent about whether anything was ever pinned")
+
+    def test_a_stripped_declaration_is_still_caught(self) -> None:
+        """Falsification: the rules above must fire on the pre-fix shape of the record."""
+        import copy
+        lock = copy.deepcopy(_lock())
+        for source in lock["sources"]:
+            if source["id"] == "shipit-ui":
+                source["pathNamedInIsolationRecord"] = False
+                source["retiredTreeSha"] = None
+                source["revisionStatement"] = ""
+        recomputed = {s["id"] for s in lock["sources"]
+                      if s["presence"] == "ABSENT_FROM_GIT" and not s["pathNamedInIsolationRecord"]}
+        self.assertEqual(recomputed, {"shipit-ui"})
+        for source in lock["sources"]:
+            if source["id"] != "shipit-ui":
+                continue
+            self.assertFalse(str(source.get("retiredTreeSha") or ""))
+            self.assertFalse(str(source.get("revisionStatement") or "").strip())
 
 
 class DigestsAreMachineScopedEvidence(unittest.TestCase):

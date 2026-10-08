@@ -14,7 +14,16 @@
       "diskFiles": 0,
       "contentDigest": null,
       "countMatchesRecord": false,
-      "pathNamedInIsolationRecord": false
+      "pathNamedInIsolationRecord": true,
+      "retiredIn": "c9cde8a54e22f84f988537e212b992de3bd7cfcd",
+      "retiredOn": "2026-09-04",
+      "retiredTreeSha": "5bd9befc04926072f1bd73538940591c09044516",
+      "sourceRecordPresent": true,
+      "upstreamRepo": "https://github.com/uxKero/anydesign",
+      "sourceRecordLicense": "MIT",
+      "upstreamRevision": null,
+      "upstreamRefWithoutCommit": "main",
+      "revisionStatement": "branch `main` only; no commit was recorded at vendoring time"
     },
     {
       "id": "claude-design-skill",
@@ -28,7 +37,16 @@
       "diskFiles": 0,
       "contentDigest": null,
       "countMatchesRecord": false,
-      "pathNamedInIsolationRecord": true
+      "pathNamedInIsolationRecord": true,
+      "retiredIn": "c9cde8a54e22f84f988537e212b992de3bd7cfcd",
+      "retiredOn": "2026-09-04",
+      "retiredTreeSha": "599981a99da57f718b647a6add6eebcd54635b82",
+      "sourceRecordPresent": true,
+      "upstreamRepo": "https://github.com/jiji262/claude-design-skill",
+      "sourceRecordLicense": "MIT",
+      "upstreamRevision": null,
+      "upstreamRefWithoutCommit": "main",
+      "revisionStatement": "branch `main` only; no commit was recorded at vendoring time"
     },
     {
       "id": "design-system-prompt",
@@ -42,7 +60,16 @@
       "diskFiles": 0,
       "contentDigest": null,
       "countMatchesRecord": false,
-      "pathNamedInIsolationRecord": true
+      "pathNamedInIsolationRecord": true,
+      "retiredIn": "c9cde8a54e22f84f988537e212b992de3bd7cfcd",
+      "retiredOn": "2026-09-04",
+      "retiredTreeSha": "4b745f22417812b18149d18962289f238f351f38",
+      "sourceRecordPresent": true,
+      "upstreamRepo": "https://github.com/Trystan-SA/claude-design-system-prompt",
+      "sourceRecordLicense": "MIT",
+      "upstreamRevision": null,
+      "upstreamRefWithoutCommit": "main",
+      "revisionStatement": "branch `main` only; no commit was recorded at vendoring time"
     },
     {
       "id": "motion-engine",
@@ -56,7 +83,16 @@
       "diskFiles": 0,
       "contentDigest": null,
       "countMatchesRecord": false,
-      "pathNamedInIsolationRecord": false
+      "pathNamedInIsolationRecord": true,
+      "retiredIn": "c9cde8a54e22f84f988537e212b992de3bd7cfcd",
+      "retiredOn": "2026-09-04",
+      "retiredTreeSha": "fe0e31cd55b12b4c9e62ed0f49c5c82e2259fed4",
+      "sourceRecordPresent": true,
+      "upstreamRepo": "https://github.com/OpaceDigitalAgency/skills",
+      "sourceRecordLicense": "MIT",
+      "upstreamRevision": null,
+      "upstreamRefWithoutCommit": "main",
+      "revisionStatement": "branch `main` only; no commit was recorded at vendoring time"
     },
     {
       "id": "shipit-ui",
@@ -70,13 +106,22 @@
       "diskFiles": 0,
       "contentDigest": null,
       "countMatchesRecord": false,
-      "pathNamedInIsolationRecord": false
+      "pathNamedInIsolationRecord": true,
+      "retiredIn": "c9cde8a54e22f84f988537e212b992de3bd7cfcd",
+      "retiredOn": "2026-09-04",
+      "retiredTreeSha": "d232d4f85df01d152aeb102ea70f773a8d88bbfc",
+      "sourceRecordPresent": true,
+      "upstreamRepo": "https://github.com/shipiit/shipit-ui-design",
+      "sourceRecordLicense": "MIT",
+      "upstreamRevision": null,
+      "upstreamRefWithoutCommit": null,
+      "revisionStatement": "the retired SOURCE.md names no branch and no commit; fields present: 来源, 许可"
     },
     {
       "id": "web-content-designer",
       "path": "design-lab/intelligence/web-content-designer",
       "disposition": "LOCK_REFERENCE",
-      "license": "MIT",
+      "license": "Apache-2.0",
       "files": 11,
       "notes": "Web content designer reference",
       "presence": "ABSENT_FROM_GIT",
@@ -84,7 +129,23 @@
       "diskFiles": 0,
       "contentDigest": null,
       "countMatchesRecord": false,
-      "pathNamedInIsolationRecord": false
+      "pathNamedInIsolationRecord": true,
+      "retiredIn": "c9cde8a54e22f84f988537e212b992de3bd7cfcd",
+      "retiredOn": "2026-09-04",
+      "retiredTreeSha": "0c4de6fe7925ce7e80081e987e431ec2cba24455",
+      "sourceRecordPresent": true,
+      "upstreamRepo": "https://github.com/lowtidebuild/web-content-designer",
+      "sourceRecordLicense": "Apache-2.0",
+      "upstreamRevision": null,
+      "upstreamRefWithoutCommit": "main",
+      "licenseCorrection": {
+        "wasClaimed": "MIT",
+        "correctedTo": "Apache-2.0",
+        "why": "three records agree and the lock was the outlier: the source record inside the retired tree (c9cde8a5^:design-lab/intelligence/web-content-designer/SOURCE.md) states Apache-2.0, QUARANTINE_REGISTRY carries license Apache-2.0 with licenseStatus reviewed plus the origin URL, and the SPDX SBOM records both licenseConcluded and licenseDeclared as Apache-2.0",
+        "correctedOn": "2026-10-08",
+        "correctedBy": "measured from git plus the two committed registries; rights acceptance for this source was already recorded as reviewed in QUARANTINE_REGISTRY, so no human decision is being substituted here"
+      },
+      "revisionStatement": "branch `main` only; no commit was recorded at vendoring time"
     },
     {
       "id": "baoyu-design",
@@ -779,11 +840,15 @@
       "IN_REPO": 3,
       "LOCAL_CACHE_ONLY": 37
     },
-    "absentReferencesNotNamedInIsolationRecord": [
+    "absentReferencesNotNamedInIsolationRecord": [],
+    "absentReferencesWithRecoveredProvenance": [
       "anydesign",
+      "claude-design-skill",
+      "design-system-prompt",
       "motion-engine",
       "shipit-ui",
       "web-content-designer"
-    ]
+    ],
+    "licenseRecordMismatch": []
   }
 }

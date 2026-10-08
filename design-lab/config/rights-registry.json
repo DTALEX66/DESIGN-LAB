@@ -267,7 +267,7 @@
     {
       "subject_id": "vendor:web-content-designer",
       "kind": "code-donor",
-      "license": "MIT",
+      "license": "Apache-2.0",
       "territory": {
         "limits": [],
         "state": "NOT_ADJUDICATED"
@@ -281,7 +281,8 @@
       "adjudicated_by": null,
       "decision_owner": "DTALEX66",
       "disposition": "LOCK_REFERENCE",
-      "canonical_url": null
+      "canonical_url": null,
+      "licenseSource": "vendor/sources.lock.json licenseCorrection 2026-10-08; matches QUARANTINE_REGISTRY (reviewed) and sbom-v42.spdx.json"
     },
     {
       "subject_id": "vendor:baoyu-design",
