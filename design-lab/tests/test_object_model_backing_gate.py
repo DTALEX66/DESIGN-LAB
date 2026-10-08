@@ -24,9 +24,11 @@ REPO = Path(__file__).resolve().parents[2]
 GATE_PATH = REPO / 'design-lab' / 'scripts' / 'verify_object_model_backing.py'
 SCRATCH_BASE = REPO / '.project-local' / 'task-runtime' / 'object-model-backing-scratch'
 
-# Measured 2026-10-08 against HEAD 0a873fc1, and pinned inside the gate as well: five of the 21
-# declared objects are validated by product code, nine only by verifier scripts, seven by nothing.
-REAL_COUNTS = {'PRODUCT': 5, 'TOOLING_ONLY': 9, 'UNREFERENCED': 7, 'MISSING_SCHEMA_FILE': 0}
+# Measured 2026-10-08 against HEAD c0d44f00, and pinned inside the gate as well: six of the 21
+# declared objects are validated by product code, nine only by verifier scripts, six by nothing.
+# The sixth PRODUCT is delivery-manifest, which gained a product reader on the same day
+# (src/design_lab/assurance/delivery_bom.py) after the BOM contract was found to be unchecked.
+REAL_COUNTS = {'PRODUCT': 6, 'TOOLING_ONLY': 9, 'UNREFERENCED': 6, 'MISSING_SCHEMA_FILE': 0}
 
 
 def load_gate(name: str):
@@ -166,7 +168,7 @@ class ScratchTreeTests(unittest.TestCase):
              'version': 'x/reference-set/v1'}])
         strict = audit(root, check_counts=True)
         loose = audit(root, check_counts=False)
-        self.assertIn('expected 7', ' '.join(strict[1]))
+        self.assertIn(f"expected {REAL_COUNTS['UNREFERENCED']}", ' '.join(strict[1]))
         self.assertEqual(loose[1], [], f'the scratch tree should be clean but: {loose[1]}')
 
     def test_an_empty_model_fails_closed_rather_than_passing_nothing(self):

@@ -40,7 +40,7 @@ SUFFIXES = {'.py', '.ts', '.mjs'}
 EXCLUDED = {'__pycache__', 'node_modules', 'build', 'dist'}
 
 #: Objects the product never validates against this schema, and what does. Dated 2026-10-08 against
-#: HEAD 0a873fc1. A row must be removed -- not reworded -- when product code starts using the schema.
+#: HEAD c0d44f00. A row must be removed -- not reworded -- when product code starts using the schema.
 TOOLING_ONLY = {
     'brief': 'the product persists and reads briefs through src/design_lab/design_layer.py and the '
              'service store; the only readers of schemas/design-brief.schema.json are '
@@ -85,11 +85,6 @@ UNREFERENCED = {
                    '(id/name/thesis/transferable_methods/shallow_mimicry_risks), which the research '
                    'master studies and verify_style_master_method.py use. Two incompatible declared '
                    'cards, and no product code produces either',
-    'delivery-manifest': 'src/design_lab/assurance/production_preflight.py builds a bom payload '
-                         '(bom={"items": ...}) that travels inside the preflight report, and nothing '
-                         'names schemas/bom.schema.json -- the shape is produced but never '
-                         'contract-checked, so a missing or renamed BOM field cannot be caught by '
-                         'this declaration',
     'candidate-knowledge': 'a KnowledgeCandidate is an exit contract to ArcheAxis (AGENTS.md), written '
                            'out through the rights and human gates rather than stored here, so no code '
                            'in this repository loads schemas/candidate-knowledge.schema.json -- which '
@@ -195,11 +190,11 @@ def audit(root: Path, check_counts: bool = True):
                               f'({len((reason or "").strip())} chars is a placeholder)')
     # The counts are pinned as well as the membership, because a bucket that quietly changes size is
     # how a contract layer erodes one object at a time.
-    expected = {'PRODUCT': 5, 'TOOLING_ONLY': 9, 'UNREFERENCED': 7, 'MISSING_SCHEMA_FILE': 0}
+    expected = {'PRODUCT': 6, 'TOOLING_ONLY': 9, 'UNREFERENCED': 6, 'MISSING_SCHEMA_FILE': 0}
     for bucket, want in (expected.items() if check_counts else ()):
         if counts[bucket] != want:
             errors.append(f'{bucket}: {counts[bucket]} objects, expected {want} -- measured '
-                          '2026-10-08 against HEAD 0a873fc1; move the membership rows as well as this '
+                          '2026-10-08 against HEAD c0d44f00; move the membership rows as well as this '
                           'number, or the count hides a swap')
     return counts, errors, buckets, names
 

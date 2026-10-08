@@ -1096,3 +1096,127 @@ closed**:声明的第二方根若一个可导入名字都产不出来,说明门�
 `TEST_SELF_SUFFICIENCY=OK modules=208 executable=208`;`OBJECT_MODEL_BACKING=OK objects=21
 product=5 tooling_only=9 unreferenced=7`。仍开放:16 条非 PRODUCT 记录的逐条裁定(接线、改名或退役)、
 #19 的真实时长、E3/E4/E5、D-6、74 主体 rights 台账选择。
+from pathlib import Path
+
+DOC = Path(r"D:/All projects/DESIGN-LAB/docs/audits/DESIGNLAB-LAUNCH-REVIEW-PREFLIGHT-2026-10-08.md")
+
+SECTION = """
+
+## 26. 模板是可执行合同的一面：三份 template 全坏，加上 delivery-manifest 的第一次裁定
+
+### 26.1 量出来的，不是推断的
+
+`*.template.json` 这个文件名后缀在本仓库里的意思是"人复制它去填一份真记录"。全仓库一共三份，
+2026-10-08 一次扫描量下来**三份都是坏的**，而门链里没有任何一条看得见：
+
+| 文件 | 坏法 | 后果 |
+|---|---|---|
+| `design-lab/production/handoff/BOM.template.json` | 被自己声明的 `bom.schema.json` 拒绝三次：`$schema` 键落在 `additionalProperties: false` 之外；`items[0].kind` 填的是候选菜单串 `"editable-source \| export \| derived"`；`version` 写 `1.0.0` 而合同钉的是 const | 复制→填空→提交，交上去的一定是无效文档 |
+| `packages/capabilities/quality/jury/JuryRecord.template.json` | `$schema` 指 `../../../schemas/jury-record.schema.json`，从 `packages/capabilities/quality/jury/` 解析出来是 `packages/schemas/`——**仓库里不存在这个路径** | 指针本身就是一句谎；顺带 axes 全填 0（合同 minimum 1）、verdict 填菜单串 |
+| `design-lab/evals/templates/score-sheet.template.json` | 不声明 `$schema`，只声明 `rubric`；而 `rubric` 的值是**仓库根相对**路径 | 形状无人可验；按文件相对解析它也不存在 |
+
+第四点不是缺陷而是约定：仓库里两种相对基准都在用（`$schema` 按文件、`rubric` 按根），而
+已有多个 schema 显式在 `properties` 里声明 `"$schema": {"type": "string"}`——也就是说"实例可以指
+回自己的合同"是被维护的惯例，`bom`/`jury-record` 两个 schema 只是漏了。所以这两处补的是 schema，
+而不是把模板的 `$schema` 键删掉。
+
+### 26.2 门：`design-lab/scripts/verify_template_contracts.py`
+
+十条规则，全部判"现在为假的声明"，不判会漂移的数量：`TEMPLATE_NOT_JSON`、`TEMPLATE_NOT_OBJECT`、
+`NO_CONTRACT_POINTER`、`POINTER_UNRESOLVED`、`POINTER_OUTSIDE_REPO`、`SCHEMA_UNLOADABLE`、
+`TEMPLATE_INVALID`、`RUBRIC_AXES_MISMATCH`/`RUBRIC_HAS_NO_AXES`、`NOTHING_SCANNED`、
+`INVENTORY_MOVED`（模板清单钉死，新增/删除都必须在这里做一次决定）。校验用**离线 registry**，
+由 `design-lab/schemas` 里 116 个 `$id` 组成，因此跨 schema 的 `$ref` 从仓内解析，绝不联网。
+
+写门的过程中被自己的推理抓到一次真缺陷：`schema_errors()` 在不传 registry 时会**去联网取 `$ref`**
+（jsonschema 的 `_warn_for_remote_retrieve`），本机 DNS 直接失败后抛出的是
+`InteropError`，而门只在 `load_schema` 外面包了 try——一个畸形的 `$ref` 会让门**崩**而不是判红，
+跟"候选轴是字符串就 AttributeError"那一类一模一样。于是加了第 8 条 `SCHEMA_REF_UNRESOLVABLE`，
+并有专门测试把 label 钉成 `https://nowhere.invalid/x`。第二条仪器不一致也在测试里露了出来：
+`TEMPLATE_NOT_JSON` 行写成 `... (exc)` 而不是 `... : exc`，规则名解析不到——统一成冒号格式，
+测试从"读到 0 条规则"变成读到正确的那一条。
+
+26 条测试（`test_template_contracts_gate.py`）全部在 scratch 树上注入对应的谎：指向仓库外的
+`../../..`、指向远端 URL、draft-07 的 schema、多余键、与 const 冲突的 version、菜单串占位、
+少一个维度、rubric 无 axes、非 JSON、非对象、空扫描、双向的在册漂移，以及一条
+"构建残留里的同名模板不算合同"（`node_modules` 必须被跳过——这条同时也钉住门不去扫自己的源码）。
+
+### 26.3 占位符怎么裁定
+
+要求"模板自己必须通过合同"就逼出一个必须写下来的决定：封闭 enum 里没有"replace-me"的位置，
+任何合法值都是一个**看起来像结论**的值。规则定为**合法且不得声称好结果**：
+
+- JuryRecord 的 `axes` 从 0 改成下限 1，`verdict`/`humanReview.verdict` 从菜单串改成 `REVISE`
+  （既不宣称通过也不宣称终局拒绝），而 `deterministic.result` 从 `"OK"` 改成 `"FAIL"`——
+  **一份预填"自动化检查已通过"的模板，就是递给复制者的一张假绿灯**，这条改动有专门测试钉住；
+- BOM 的 `version` 改成合同 const，`kind` 改成不声称交付物的 `derived`；自由文本字段保留
+  `replace-with-…` 措辞，未填状态仍然一眼可见（`humanReview.date` 从假日期 `2026-08-13`
+  改回 `replace-with-YYYY-MM-DD`）。
+
+顺带又被自己的仪器骗了一次：用 `grep -c $'\\r'` 判断行尾，四份文件全部报"整文件 CRLF"，而
+按字节数出来的结果是**四份都是纯 LF**。这是第 N 次同一类错误，规则照旧：数 `b"\\r\\n"` 与 `b"\\n"`，
+不要信 grep。
+
+### 26.4 delivery-manifest：16 条非 PRODUCT 记录里的第一条裁定
+
+`object-model.json` 把 `delivery-manifest` 指向 `bom.schema.json`，而产品里唯一叫 `bom` 的东西是
+`production_preflight.py` 拼给链接检查用的 `{'items': [{'id','path','sha256'}]}` 片段——把它送进
+自己声明的合同，三项必填、六个 item 字段、五个 provenance 字段全部缺失，**必拒**。这就是门从未
+执行过的合同的典型形状。
+
+裁定分三步，只做真的：
+
+1. 片段**改名**，不再冒充清单：参数 `bom=` → `link_manifest=`，局部 `bom_items` → `link_items`，
+   两条中文文案把"交付清单（BOM）"改成"链接清单"；四处测试调用点与两个测试函数名同步
+   （`..._bill_of_materials` → `..._link_manifest`）。断言一条没删。
+2. 新模块 `src/design_lab/assurance/delivery_bom.py` 把边界写进代码：`version` 从 schema 的 const
+   **读出来**而不是在这里打一遍；`kind` 由 manifest 的 `role` 决定、`format` 由成员后缀决定、
+   `license` 取交付时记录的 rights 状态（没有就 `NOT_REVIEWED`，绝不编一个 SPDX 串）；`source` 对
+   input 取登记的资产 id、对渲染产物取 `native-attempt:<attempt>/<host>`，未登记的 input 明写
+   `unregistered-input:<name>`。四个字段（`handoff`、`repo_tree_sha`、`tool_version`、
+   `generated_at`）**今天没有任何存储记录能说清**，调用方不证明就返回
+   `DELIVERY_BOM_INCOMPLETE` 并逐条给理由；给了值就进 schema 校验，不合格返回
+   `DELIVERY_BOM_REJECTED`。
+3. 让它在能力链上**被调用**：`preflight_archive()` 现在插入一条 `delivery-bom` finding，写不成时
+   判 `NOT_MEASURED` 并把 `missing` 列表带在 `measured` 里。前端不需要改——
+   `artifactPreflightPanel` 按 `data.findings.map` 全量渲染，而
+   `test_artifact_preflight_ui_contract.py` 早就钉住"不许 filter findings"，所以这条 finding 自动
+   进入页面并带上它自己的判据。
+
+这里又抓到一条**既有**缺陷，而且是靠一条本来就在那儿的老测试：
+`RegisteredArtifactScopeTests.test_bytes_registered_but_not_measured_are_reported_as_unmeasured`
+断言 `NOT_MEASURED` 计数必须**随 finding 移动**。它红了，报 `6 != 5`——原因是
+`preflight_archive()` 在 `_recount()` **之后**才插入 finding，所以 `archive-digest` 和我新加的
+`delivery-bom` 都不在 `counts` 里；两处 `insert` 一直在让聚合数少报，只是原来插的是 `PASS`，
+数字看上去刚好对得上。修法是插入之后再 `_recount(result)`，并加一条新测试逐个字比对
+`counts` 与 findings 的 tally。**门看不见的那一类漂移，靠的是本来就坚持"聚合不许装饰化"的老断言。**
+
+`verify_object_model_backing.py` 随后自动把 `delivery-manifest` 归入 PRODUCT（`src/` 里现在真的
+按文件名加载这份 schema），钉住的成员表和计数一起改：`product=5/unreferenced=7` →
+**`product=6 / tooling_only=9 / unreferenced=6`**，那条 UNREFERENCED 理由整行删除而不是改写；
+顺手把门里两处"measured against HEAD 0a873fc1"更新为本次真正测量所依据的 `c0d44f00`。
+
+### 26.5 #19：那个"挂死"的重建证据模块，实测 26 分 49 秒
+
+单进程、逐方法、**不加任何 box** 跑完 37 个方法，全部 OK：`TOTAL seconds=1609.5 methods=37
+errors=0 failures=0 skipped=0`，最慢一条 289.4s
+（`test_structure_projection_and_provenance_mutations_fail_closed`），其次 113.2s、103.4s。
+先前记录的"挂死 + 13 errors"因此**不是产品缺陷**：13 条 error 来自我自己让两个套件实例并发跑
+同一棵 scratch 树，"挂死"是 `timeout 900` 把测量仪器自己杀了。结论一句话——这个模块本来就慢，
+任何给它设的时限都必须以这组数为准，而不是以"我以为一个单测应该几秒"为准。
+
+### 26.6 本轮数字与仍开放
+
+`TEMPLATE_CONTRACTS=OK templates=3 clean=3 schemas_with_id=116`；
+`OBJECT_MODEL_BACKING=OK objects=21 product=6 tooling_only=9 unreferenced=6`；
+`ARTIFACT_PREFLIGHT_CONTRACT=PASS bindings=1 compared object locations=28`；
+测试新增 43 条（模板门 26 + delivery_bom 17）另加 2 条预检接线断言，
+`test_production_preflight=35 OK`、`test_object_model_backing_gate=11 OK`。
+`verify_template_contracts.py` 已进 `verify_design_lab.py` 的 SCRIPTS，因此不再是一条没人调用的文档。
+
+仍开放：#21 的两个 MethodCard 形状仍无生产者（`method-card.schema.json` 全仓无人读，用的是
+`visual-quality/master-method-card.schema.json`）；15 条非 PRODUCT 记录待逐条裁定；
+JuryRecord 模板教的是 `jury-record.schema.json` 的 v1 形状，而产品实际写的是
+`assurance-jury-record/v2`——这两份 schema 的取舍是一次需要 owner 裁定的形状决定，本轮只修
+指针与合法性，没有替它做决定；真实宿主 E3、真人 Jury E4、发布 E5、D-6 落地壳统一、
+74 主体 rights 台账选择仍为 BLOCKED。

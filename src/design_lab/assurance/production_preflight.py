@@ -51,6 +51,8 @@ import zipfile
 from contextlib import closing
 from pathlib import Path
 
+from design_lab.assurance import delivery_bom
+
 PROFILE_DIR = Path(__file__).resolve().parents[3] / 'design-lab' / 'production' / 'profiles'
 
 PASS = 'PASS'
@@ -110,16 +112,16 @@ def preflight_archive(archive_path, *, profile: str = 'digital', expected_sha256
                 manifest = json.loads(manifest_path.read_text(encoding='utf-8'))
             except json.JSONDecodeError as exc:
                 raise PreflightError(f'bundle-manifest.json 无法解析：{exc}') from None
-        bom_items = []
+        link_items = []
         files = manifest.get('files') or {}
         for name, entry in files.items():
             if isinstance(entry, dict):
-                bom_items.append({'id': name, 'path': str(root / name),
+                link_items.append({'id': name, 'path': str(root / name),
                                   'sha256': entry.get('sha256')})
         artifacts = [root / name for name in names
                      if Path(name).suffix.lower() in ('.png', '.jpg', '.jpeg', '.webp', '.tif')]
         result = run_preflight(artifacts, profile=profile,
-                               bom={'items': bom_items} if bom_items else None)
+                               link_manifest={'items': link_items} if link_items else None)
     result['archive'] = {'name': path.name, 'sha256': digest, 'members': len(names),
                          'manifest_present': bool(files)}
     result['findings'].insert(0, {
@@ -127,7 +129,17 @@ def preflight_archive(archive_path, *, profile: str = 'digital', expected_sha256
         'detail': f'归档按登记摘要读回：{digest[:16]}…',
         'criterion': '摘要必须与状态库中登记的字节一致',
         'measured': {'sha256': digest, 'members': len(names)}})
-    return result
+    bill = delivery_bom.build(manifest=manifest)
+    result['findings'].insert(0, {
+        'id': 'delivery-bom', 'severity': 'medium',
+        'outcome': PASS if bill['status'] == 'DELIVERY_BOM' else NOT_MEASURED,
+        'detail': delivery_bom.summary(bill),
+        'criterion': '交付必须能写成 bom.schema.json 声明的清单；写不成就要说明缺哪一处记录',
+        'measured': {'status': bill['status'], 'missing': list(bill.get('missing') or [])}})
+    # Recomputed after the two inserted findings, not before: an aggregate that describes only the
+    # profile's checks would leave a NOT_MEASURED delivery-bom out of `counts` while the page shows
+    # it, which is the decorative-aggregate case the shipped tests refuse on purpose.
+    return _recount(result)
 
 
 def preflight_bundle(service, project_id, bundle_id, *, profile='digital') -> dict:
@@ -220,7 +232,7 @@ def _read_images(artifacts, severity):
     return images, problems
 
 
-def _measure(check_id, severity, images, profile, bom):
+def _measure(check_id, severity, images, profile, link_manifest):
     """Return findings for one declared check, or [] when nothing applies."""
     single = lambda criterion, outcome, detail, measured=None: _finding(  # noqa: E731
         check_id, severity, outcome, detail, criterion=criterion, measured=measured)
@@ -287,13 +299,13 @@ def _measure(check_id, severity, images, profile, bom):
                        {'bytes': item['bytes']})
                 for item in images]
     if check_id == 'missing-links':
-        if bom is None:
+        if link_manifest is None:
             return [single('清单引用的每个文件必须存在且摘要相符', NOT_MEASURED,
-                           '未提供交付清单（BOM），链接完整性无从判断')]
-        items = bom.get('items') or []
+                           '未提供链接清单，被引用的文件是否可读回无从判断')]
+        items = link_manifest.get('items') or []
         if not items:
             return [single('清单引用的每个文件必须存在且摘要相符', FAIL,
-                           '交付清单为空，无法核对被引用素材')]
+                           '链接清单为空，无法核对被引用素材')]
         broken, digests = [], 0
         for entry in items:
             reference = entry.get('path') or entry.get('ref')
@@ -346,7 +358,8 @@ def _recount(result: dict) -> dict:
     return result
 
 
-def run_preflight(artifacts, *, profile: str = 'digital', bom: dict | None = None) -> dict:
+def run_preflight(artifacts, *, profile: str = 'digital',
+                  link_manifest: dict | None = None) -> dict:
     """Preflight artifact paths against one declared profile."""
     document = load_profile(profile)
     declared = [(check['id'], check.get('severity', 'medium'))
@@ -354,7 +367,7 @@ def run_preflight(artifacts, *, profile: str = 'digital', bom: dict | None = Non
     severity = dict(declared)
     images, findings = _read_images(artifacts, severity)
     for check_id, check_severity in declared:
-        findings.extend(_measure(check_id, check_severity, images, profile, bom))
+        findings.extend(_measure(check_id, check_severity, images, profile, link_manifest))
 
     return _recount({
         # The version below, not design-lab/preflight/v2, is this payload's contract:

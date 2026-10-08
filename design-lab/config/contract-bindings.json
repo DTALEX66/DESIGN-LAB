@@ -623,7 +623,7 @@
       "handler": "preflight_bundle",
       "schema": "design-lab/schemas/artifact-preflight.schema.json",
       "version": "design-lab/artifact-preflight/v1",
-      "emitter": "src/design_lab/assurance/production_preflight.py:365",
+      "emitter": "src/design_lab/assurance/production_preflight.py:378",
       "reason": "The precedent this ledger is modelled on: the artifact report declares design-lab/artifact-preflight/v1 and is checked against its schema over two real wire-serialised payloads by design-lab/scripts/verify_artifact_preflight_contract.py."
     },
     {

@@ -97,16 +97,16 @@ class PreflightTests(unittest.TestCase):
         result = pp.run_preflight([empty], profile='digital')
         self.assertEqual(result['verdict'], 'BLOCKED')
 
-    def test_links_are_checked_against_the_bill_of_materials(self):
+    def test_links_are_checked_against_the_link_manifest(self):
         image = write_image(self.base, 'hero.png')
         other = write_image(self.base, 'logo.png')
-        bom = {'items': [{'id': 'logo', 'path': str(other),
-                          'sha256': hashlib.sha256(other.read_bytes()).hexdigest()}]}
-        good = pp.run_preflight([image], profile='print', bom=bom)
+        manifest = {'items': [{'id': 'logo', 'path': str(other),
+                               'sha256': hashlib.sha256(other.read_bytes()).hexdigest()}]}
+        good = pp.run_preflight([image], profile='print', link_manifest=manifest)
         self.assertEqual(self._first(good, 'missing-links'), pp.PASS)
 
-        bom['items'].append({'id': 'gone', 'path': str(self.base / 'gone.png')})
-        broken = pp.run_preflight([image], profile='print', bom=bom)
+        manifest['items'].append({'id': 'gone', 'path': str(self.base / 'gone.png')})
+        broken = pp.run_preflight([image], profile='print', link_manifest=manifest)
         check = self._checks(broken, 'missing-links')[0]
         self.assertEqual(check['outcome'], pp.FAIL)
         self.assertIn('gone', check['detail'])
@@ -114,13 +114,13 @@ class PreflightTests(unittest.TestCase):
     def test_a_digest_that_does_not_match_the_bytes_is_a_failure(self):
         image = write_image(self.base, 'hero.png')
         other = write_image(self.base, 'logo.png')
-        bom = {'items': [{'id': 'logo', 'path': str(other), 'sha256': 'sha256:' + '0' * 64}]}
-        result = pp.run_preflight([image], profile='print', bom=bom)
+        manifest = {'items': [{'id': 'logo', 'path': str(other), 'sha256': 'sha256:' + '0' * 64}]}
+        result = pp.run_preflight([image], profile='print', link_manifest=manifest)
         self.assertIn('摘要与清单不符', self._checks(result, 'missing-links')[0]['detail'])
 
-    def test_an_empty_bill_of_materials_fails_rather_than_passing_vacuously(self):
+    def test_an_empty_link_manifest_fails_rather_than_passing_vacuously(self):
         image = write_image(self.base, 'hero.png')
-        result = pp.run_preflight([image], profile='print', bom={'items': []})
+        result = pp.run_preflight([image], profile='print', link_manifest={'items': []})
         self.assertEqual(self._first(result, 'missing-links'), pp.FAIL)
 
     def test_no_profile_can_reach_pass_while_anything_is_unmeasured(self):
@@ -206,6 +206,35 @@ class ArchivePreflightTests(unittest.TestCase):
                          f'link check reported: {links[0]["detail"]}')
         self.assertNotEqual(result['verdict'], pp.PASS,
                             'every shipped profile still carries checks this build cannot measure')
+
+    def test_the_delivery_bill_is_reported_as_refused_rather_than_omitted(self):
+        """bom.schema.json is a declared contract, so an archive has to answer for it."""
+        archive, digest = self._archive()
+        result = pp.preflight_archive(archive, profile='digital', expected_sha256=digest)
+        bill = [item for item in result['findings'] if item['id'] == 'delivery-bom']
+        self.assertEqual(1, len(bill), 'the archive path must state the BOM position')
+        self.assertEqual(pp.NOT_MEASURED, bill[0]['outcome'],
+                         'a bill nothing can write cannot be reported as written')
+        self.assertEqual('DELIVERY_BOM_INCOMPLETE', bill[0]['measured']['status'])
+        for field in ('handoff', 'repo_tree_sha', 'tool_version', 'generated_at'):
+            self.assertIn(field, bill[0]['measured']['missing'])
+        self.assertIn('无法写成', bill[0]['detail'])
+
+    def test_every_emitted_finding_is_counted_in_the_aggregate(self):
+        """`counts` must describe the findings the page renders, including the inserted two.
+
+        Before this was checked, archive-digest and delivery-bom were appended after the recount, so
+        a NOT_MEASURED bill could show on the page while the aggregate still reported the old number
+        -- a decorative counter, which is the failure mode the shipped profile tests refuse on
+        purpose.
+        """
+        archive, digest = self._archive()
+        result = pp.preflight_archive(archive, profile='print', expected_sha256=digest)
+        for outcome in (pp.PASS, pp.WARNING, pp.FAIL, pp.NOT_MEASURED, pp.NOT_APPLICABLE):
+            self.assertEqual(
+                result['counts'][outcome],
+                sum(1 for item in result['findings'] if item['outcome'] == outcome),
+                f'counts[{outcome}] disagrees with the findings')
 
     def test_a_digital_archive_reports_only_what_the_digital_profile_declares(self):
         # `missing-links` is declared by print only. Reporting it under digital would
