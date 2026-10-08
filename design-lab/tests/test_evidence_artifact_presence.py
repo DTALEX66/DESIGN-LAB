@@ -35,7 +35,7 @@ class EvidenceArtifactPresenceTests(unittest.TestCase):
                          'every tracked evidence artefact must still exist')
         # Known decay, asserted rather than hidden. Each entry is a record whose
         # artefact bytes legitimately moved after the observation, and the inventory is
-        # exact so the NEXT unannounced move still goes red. Forty-six records on eighteen
+        # exact so the NEXT unannounced move still goes red. Forty-seven records on nineteen
         # distinct artefacts -- and the numbers here are re-measured, not inherited: see
         # the correction below, because this count was wrong in this file for an hour.
         #   * build/main.js -- a 2026-09-27 record used a mutable build output as
@@ -163,12 +163,19 @@ class EvidenceArtifactPresenceTests(unittest.TestCase):
              'HASH_MOVED_SINCE_OBSERVATION'): 1,
             ('docs/audits/DESIGNLAB-LAUNCH-REVIEW-PREFLIGHT-2026-10-08.md',
              'HASH_MOVED_SINCE_OBSERVATION'): 23,
+            # 2026-10-08, commit 9e7db8a4 added one more. It is a record bound to code, not to prose:
+            # reporting.py owns the byte-claim enumeration now, so the older record that hashed it as
+            # its artefact is honestly describing bytes that have since moved. The older record is not
+            # rewritten -- it stays the observation it was, and this line is what makes that visible
+            # instead of silent.
+            ('src/design_lab/governance/reporting.py',
+             'HASH_MOVED_SINCE_OBSERVATION'): 1,
         })
         self.assertEqual(counts, expected,
                          'the drifted-artefact inventory is exact in both directions: a new '
                          'move, a new artefact name, or one more record on a known artefact '
                          'are all findings, and a drifted pair that quietly disappeared is too')
-        self.assertEqual(sum(counts.values()), 46,
+        self.assertEqual(sum(counts.values()), 47,
                          'the total drifted-record count is pinned, not derived')
 
     def test_missing_tracked_artefact_is_a_hard_break_not_a_warning(self):
