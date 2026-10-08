@@ -12,6 +12,13 @@ For current project status, use these normative sources in this order:
 4. `design-lab/scripts/verify_release_gate.py`
 5. `docs/ROADMAP.md`
 
+Whether a record in this directory is still true of the checkout you are reading it from is a
+separate question, and it now has an answer that does not require trusting the prose:
+`GET /api/evidence-projection` (contract `design-lab/schemas/evidence-projection.schema.json`,
+emitter `src/design_lab/governance/evidence_readback.py`) re-derives, for every ledger record,
+whether its bytes still reproduce and whether it still describes the current subject. A dated
+report that the projection marks `verified=false` or `current=false` is history, not status.
+
 A report's E3/E4/E5 wording is historical evidence only unless the current capability index independently binds the same claim to the current checkout with the required runtime, provenance, read-back, human, or exact-SHA evidence. These reports are **not current runtime proof**. In particular, historical reports mentioning ComfyUI or MiniMax H3 do not override the current E0 placeholder state.
 
 Do not edit a dated report to make it appear current. Add a new dated report with an exact tree, runtime identity, and evidence handles when a capability is genuinely requalified.

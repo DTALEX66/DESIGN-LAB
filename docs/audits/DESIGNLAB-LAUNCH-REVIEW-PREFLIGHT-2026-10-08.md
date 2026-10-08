@@ -1911,3 +1911,99 @@ pin 还写着 39，差的两条正是 a0d001a8 加的 `projectionReasonList()` �
 - 若希望 logo 作为文件被服务（便于外部宿主或导出物复用），需要同时改 `workbench.ROUTES` 与 CSP
   `img-src`；`test_workbench_brand_asset.py` 会拦住并要求写明理由。
 - 桌面窗口图标（原生宿主标题栏 / 任务栏）还没用这张稿，那是原生侧的资产通道，不在这条 Web 边界里。
+
+## 35. 开源吸收池的账与货对不上（实测，含一处我自己的探针错误）
+
+### 35.1 先说清楚：字段名猜错那一次
+
+第一版新鲜度探针按猜测的字段名（`observedAt`/`id`/`sha256` 平铺）去读，结果是 980 条候选
+全部"从未观测"、覆盖度全 0。**一批本该互不相同的样本读出全 0，是探针没动，不是池子全过期。**
+换成记录里真实存在的字段（`adoption.observedAt`、`pinnedCommitSHA`、`source.acquiredAt`、
+`integration.target`）之后，数字才分开。这条写进仓，是因为这类"全 0/全同"的读数最容易被人当成
+结论念出去。
+
+### 35.2 池子的真实状态（`CANDIDATE-TAXONOMY.json`，980 条，generatedAt 2026-10-06）
+
+- 观测新鲜度：979 条的 `adoption.observedAt` 距今 ≤7 天（实测 2 天），**唯一没被重观测的是
+  `tool-control`**，它同时也是唯一没有 `pinnedCommitSHA` 的一条；另有 7 条缺 `discoveredAt`。
+- **吸收并没有发生**：980 条 `evidenceLevel` 全是 `E0`，`tier` 全为 `None`，
+  `reviewedBy` **0/980**；disposition 只有 943 DISCOVERED + 37 CONDITIONAL_POC。
+- 类型分布里确实有可复用的料：`component-library` 125、`design-system` 178（合计 303），
+  其中按 `rights.license` 统计 MIT 194 / Apache-2.0 39 / NOASSERTION 31 / 无 23 / CC0 6 / ISC 2。
+
+所以"开源池完成吸收了吗"的答案是：**调研完成、入库未开始**，而且已入库的那一小撮现在对不上账（下节）。
+
+### 35.3 账与货零重叠
+
+- `SOURCE_REGISTRY.json` 6 条，每条 `integration.target` 指向 `design-lab/knowledge/sources/<id>`；
+  **这 6 个 target 现在一个都不存在**。`git log --diff-filter=D` 指到 `c9cde8a5`
+  （2026-09-04，DL-DIR-MIG-R1 目录迁移），`git ls-files` 里已无任何 pixelmatch / ckw-design 路径。
+  也就是说这份"人已审、字节在握"的记录已经悬空 34 天。
+- `.project-local/cache/vendor/` 下实际有 **37 个** vendored 根（baoyu-design、tool-control、
+  ui-ux-pro-max、visual-quality__* 等，合计约 30 MiB），**37 条一条都不在 SOURCE_REGISTRY 里**。
+- `QUARANTINE_REGISTRY.json` 162 条，`contentHash` 0/162、`reviewedBy` 0/162，文档仍停在 2026-08-16。
+
+### 35.4 已有守卫为什么没响
+
+`design-lab/scripts/verify_source_registry.py:143` 确实会报
+"integration.status=active but target is missing"。这 6 条的状态是 `review-required`，
+不在该分支的覆盖范围内——所以这不是"没有门"，是**门的谓词只保护已激活的行，而字节被删掉的
+待审行可以无限期保留"人已审"的样子**。修法应当是：任何带 `target` 的行，若 target 不存在，
+就必须显式声明缺失状态（含缺失起始提交），不能让"删除"伪装成"待审"。本轮记录事实，改门与改状态
+作为下一步，且注册 37 个 vendored 根需要 owner 人审——`verify_candidate_taxonomy.py` 明令
+"代理不得自签 reviewedBy"，我不会替自己签。
+
+### 35.5 关于"缺依赖就跑不了"的追正
+
+上一轮我说 design-review 插件的 `audit-design-debt.mjs` 因缺 `fast-glob` 跑不了，并把这当成
+环境限制。两条都不成立：(1) 我把"没装"当成"不能做"，而仓库自己的令牌门 + 直接扫描能回答同一问题，
+我也确实拿到了数字（1238 条非令牌声明里 18 处字面色值、360 处字面 px、9 条无令牌阴影、12 条 z-index）；
+(2) 本机对 `api.github.com` 与 `registry.npmjs.org` 的实测都是 200，"GitHub 连不上"这条旧记忆是错的。
+
+## 36. 界面设计标准这一问：门本来有，但没问对问题
+
+### 36.1 已有的门覆盖到哪
+
+`design-lab/tests/e2e/audit_workbench_ui.mjs` 是量化 UI 门（对比度、键盘可达、alt、降级态措辞、
+控制台噪声），`audit_workbench_contrast.mjs` 专管 WCAG AA 对比度，溢出门管裁切与不可达文本，
+`test_design_system_tokens.py` / `test_interop_dtcg.py` / `test_workbench_css_single_definition.py`
+管令牌与样式表单定义。本轮实测：UI 门 26 项度量 **0 违规**，令牌三门 **68 例 OK**。
+
+但这些门问的都是"宽度"。`AUDIT_WIDTHS` 默认 1280/1920/2560，配 900px 以上的高度——**在这套门
+跑到的任何一处，侧栏导航都不会溢出**。
+
+### 36.2 实测出来的两个真缺陷（都已修）
+
+1. **矮窗口下侧栏静默吞掉菜单项。** 11 个目的地要 587px；窗口高度 ≤720 时列表开始被裁，
+   实测隐藏量 68px(720) / 177px(620) / 237px(560) / 297px(500) / 317px(480)，屏幕上没有任何
+   "下面还有"的信号。`overflow:auto` 不是可供性：不知道能滚的人不会滚，而被裁掉的恰好是
+   预检/QA、交付中心、证据系统、协作、设置。
+   修法复用旧版底部导航**已有**的同一谓词 `.has-scroll-more` + 粘性 `::after`（那里的注释记录了
+   "绝对定位的伪元素会随条目一起滑走"的踩坑），做成竖向变体，滚到底自动消失；不新造第二套机制。
+2. **窄屏抽屉 Escape 无效。** `setNavOpen()` 打开时把焦点移进抽屉，键盘用户 Enter 打开后
+   没有 Escape 可退。现在 Escape 关闭并复用 setNavOpen 里既有的"焦点还给触发器"分支。
+
+### 36.3 两条断言都做了故障植入
+
+- 把 cue 的 `content` 改成 `none` → 门报 `nav-overflow: cue claims true but paints content=none`。
+- 只把抽屉那一句 Escape 条件改坏（不动命令面板里另一处同名比较）→ 门报
+  `nav-drawer: narrow: Escape left the drawer at aria-expanded=true`。
+  第一次植入我用全局字符串替换，把两处 Escape 一起改了，门因为别的原因红，**证明不了新断言**；
+  重做时按整句条件定位，并要求控制态 0 违规。
+- 恢复：样式表与 bundle 均比对 sha256 后逐字节还原；bundle 另用 vite 重建确认与源码一致。
+
+顺带确认的两个事实（不是缺陷）：`B10_NAV` 11 条 vs `ROUTE_VIEWS` 12 条，差的那条是 `workbench`
+根路由，不需要导航项；抽屉关闭态实测 11/11 目的地不可达，靠的是 `inert`，这是正确行为。
+
+### 36.4 设计债实测（去掉 `:root` 令牌块后的 style.css）
+
+1238 条声明里：字面色值 18 处（`#fff` 若干、`#1D4FC4`、`linear-gradient(135deg,#1D4FC4,#2A63D8)`——
+后两个是绕过 `--color-primary` 的"差不多蓝"）、字面 px 360 处、未走令牌的阴影 9 条、z-index 12 条无层级表。
+
+### 36.5 还缺的那一半：没有机器可读的设计契约
+
+Design QA 要求"源真值 + 渲染实现"两侧都能打开。渲染侧现在能（真实 Chromium + 多视口截图 +
+几何/命中断言）；**源真值侧在仓内不存在**：没有 `DESIGN.md` / `SCREEN_SPEC.md` / `design.qa.yaml`，
+权威设计源是 `D:\All projects\UI套件` 里的 B04/L4/B07 展板（PNG）。因此"界面是否符合设计标准"
+目前只能回答到"符合仓内已编码的令牌/对比度/可达性/响应规则"，**不能**回答"符合设计展板"——
+任何逐像素一致性结论都会是假的。补一个把 UI套件 令牌落成仓内文本的 `DESIGN.md` 是这一步的前提。
