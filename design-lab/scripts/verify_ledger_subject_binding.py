@@ -2,22 +2,31 @@
 # SPDX-License-Identifier: MIT
 """Every evidence record claims it observed specific bytes at a specific commit.
 
-`design-lab/config/task-ledger-r3.json` records, per evidence entry, a `subject_sha` and a
-`subject_files` map {path: sha256}. That is the only mechanism by which an entry can be
-checked by someone who was not there -- and until now nothing checked it:
-`verify_evidence_artifact_presence` looks at `artifacts` (documents the record produced) and
-ignores `subject_files` entirely. So a record could name files that never existed at the
-commit it binds to, or publish a digest that does not match those bytes, and stay green.
+`design-lab/config/task-ledger-r3.json` records, per evidence entry, a `subject_sha`, a `binding`, a
+`subject_files` map {path: sha256} and an `artifacts` list of the same shape. That is the only
+mechanism by which an entry can be checked by someone who was not there -- and until now nothing
+checked `subject_files` at all: `verify_evidence_artifact_presence` looks at `artifacts` and asks
+whether the file is still on disk, which is a different question from whether the bytes are the ones
+the record hashed. So a record could name files that never existed at the commit it binds to, or
+publish a digest that does not match those bytes, and stay green.
 
 This gate recomputes each declared digest from `git show <subject_sha>:<path>` -- the object
-database, never the working tree, so a later edit to the same path cannot move the answer --
-and fails on anything that does not match.
+database, never the working tree, so a later edit to the same path cannot move the answer -- over
+BOTH lists, and fails on anything that does not match.
 
-The KNOWN list is two-way, the way this repo's other ledgers work: an unsanctioned defect
-fails, and a sanctioned entry that has since become verifiable ALSO fails, so the list
-cannot rot into permanent excuses for records nobody ever repairs. Rewriting an old record's
-digests to satisfy the gate would be fabricating evidence; the honest move is to mark the
-defect, date it, and let it block anything new.
+The basis is chosen by the record's own `binding`, which is not a courtesy: `WORKTREE_FILES` means
+"the bytes came from a dirty tree and may never be presented as a commit"
+(`design-lab/schemas/task-ledger-r5-v1.schema.json:316-317`), so judging such a record by the object
+database asks it to reproduce something it disclaims. Those claims are counted and reported as
+`worktree_claims=`, never judged by a basis they reject -- and they no longer sit inside KNOWN, which
+is where four of them were until 2026-10-08: the list had been absorbing a basis error as if it were
+a defect. Paths under `.project-local/task-artifacts/**` are outside the commit basis for the same
+reason and are counted as `runtime=` rather than skipped.
+
+The KNOWN list is two-way, the way this repo's other ledgers work: an unsanctioned defect fails, and
+a sanctioned entry that has since become verifiable ALSO fails, so the list cannot rot into permanent
+excuses for records nobody ever repairs. Rewriting an old record's digests to satisfy the gate would
+be fabricating evidence; the honest move is to mark the defect, date it, and let it block anything new.
 """
 from __future__ import annotations
 
@@ -28,6 +37,13 @@ from hashlib import sha256
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
+sys.path.insert(0, str(ROOT / 'src'))
+
+# One owner for "which paths does this record claim bytes for" -- the current reports project the
+# same claims, and the two of them keeping separate copies is what let them disagree on 2026-10-08.
+from design_lab.governance.reporting import (  # noqa: E402
+    COMMIT_BINDING, DIGEST_CONFLICT, RUNTIME_ARTIFACT_ROOT, WORKTREE_BINDING, basis, claims)
+
 LEDGER = ROOT / 'design-lab/config/task-ledger-r3.json'
 
 MATCH = 'MATCH'
@@ -165,16 +181,8 @@ KNOWN = {
      'fixtures/domains/game-visual/android-minigame/audio/click.wav'): '2026-09-28 record binds 4c9f1849, before this generated audio fixture was committed; the digest came from disk.',
     ('r5-027-static-unit-20260928',
      'fixtures/domains/game-visual/android-minigame/audio/lockdown.wav'): '2026-09-28 record binds 4c9f1849, before this generated audio fixture was committed; the digest came from disk.',
-# 4 entries of this kind.
-    ('r5-comfy-http-model-free-live-20260909',
-     'src/design_lab/generators/comfy_http.py'): '2026-09-09 record binds a06c1db0 and this entry does not equal the bytes at that commit -- the subject was read from the working tree. Left as recorded, because rewriting it would be fabricating evidence.',
-    ('r5-comfy-structural-rejection-20260909',
-     'design-lab/tests/test_comfy_task_protocol.py'): '2026-09-09 record binds a06c1db0 and this entry does not equal the bytes at that commit -- the subject was read from the working tree. Left as recorded, because rewriting it would be fabricating evidence.',
-    ('r5-comfy-structural-rejection-20260909',
-     'src/design_lab/generators/comfy_task.py'): '2026-09-09 record binds a06c1db0 and this entry does not equal the bytes at that commit -- the subject was read from the working tree. Left as recorded, because rewriting it would be fabricating evidence.',
-    ('r5-ps-handoff-review-20260909',
-     'src/design_lab/native_patch_submissions.py'): '2026-09-09 record binds a06c1db0 and this entry does not equal the bytes at that commit -- the subject was read from the working tree. Left as recorded, because rewriting it would be fabricating evidence.',
 }
+
 
 
 
@@ -193,24 +201,51 @@ def commit_exists(commit: str) -> bool:
                           capture_output=True).returncode == 0
 
 
+def tally(records) -> dict:
+    """Counts the OK line must carry, so a narrowed basis is visible instead of silent."""
+    commit_claims = worktree_claims = runtime_pairs = 0
+    for record in records:
+        state = claims(record)
+        versioned = len(state.versioned())
+        if basis(record) == WORKTREE_BINDING:
+            worktree_claims += versioned
+        else:
+            commit_claims += versioned
+        runtime_pairs += len(state.runtime)
+    return {'commit_claims': commit_claims, 'runtime': runtime_pairs,
+            'worktree_claims': worktree_claims,
+            'subject_files': sum(len(record.get('subject_files') or {}) for record in records)}
+
+
 def classify(records, reader, exists) -> list[tuple[str, str, str]]:
-    """[(kind, record_id, path)] for every declared subject file that cannot be reproduced."""
+    """[(kind, record_id, path)] for every committed-bytes claim that cannot be reproduced.
+
+    The basis follows the record's own `binding`. A WORKTREE_FILES entry disclaims commit status
+    ("may never be presented as a commit"), so recomputing it from the object database measures
+    something it never claimed; those are counted by `tally` instead. Four such claims sat in KNOWN
+    until 2026-10-08 as excused defects, which is a basis error being paid for by the waiver list.
+    """
     defects: list[tuple[str, str, str]] = []
     for record in records:
         identity = record.get('id', '(unidentified record)')
         commit = (record.get('subject_sha') or '').strip()
-        files = record.get('subject_files') or {}
-        if not files:
+        state = claims(record)
+        for path in state.conflicts:
+            defects.append((DIGEST_CONFLICT, identity, path))
+        claimed = state.versioned()
+        if basis(record) != COMMIT_BINDING:
+            continue
+        if not claimed:
             continue
         if not commit or not exists(commit):
-            for path in files:
+            for path in claimed:
                 defects.append((NO_COMMIT, identity, path))
             continue
-        for path, declared in files.items():
+        for path, declared in claimed.items():
             blob = reader(commit, path)
             if blob is None:
                 defects.append((ABSENT, identity, path))
-            elif sha256(blob).hexdigest() != str(declared).removeprefix('sha256:'):
+            elif sha256(blob).hexdigest() != declared:
                 defects.append((MISMATCH, identity, path))
     return defects
 
@@ -235,7 +270,6 @@ def main() -> int:
     records = ledger.get('evidence', [])
     defects = classify(records, default_reader, commit_exists)
     unsanctioned, stale = partition(defects)
-    declared = sum(len(record.get('subject_files') or {}) for record in records)
     if unsanctioned:
         print(f'LEDGER_SUBJECT_BINDING=FAIL unsanctioned={len(unsanctioned)}')
         for kind, record_id, path in unsanctioned:
@@ -246,8 +280,11 @@ def main() -> int:
         for record_id, path in stale:
             print(f'  now verifiable but still listed as a known defect: {record_id} :: {path}')
         return 1
-    print(f'LEDGER_SUBJECT_BINDING=OK subject_files={declared} checked='
-          f'{declared} known_unverifiable={len(defects)} records={len(records)}')
+    counts = tally(records)
+    print(f'LEDGER_SUBJECT_BINDING=OK checked={counts["commit_claims"]} '
+          f'subject_files={counts["subject_files"]} runtime={counts["runtime"]} '
+          f'worktree_claims={counts["worktree_claims"]} '
+          f'known_unverifiable={len(defects)} records={len(records)}')
     return 0
 
 

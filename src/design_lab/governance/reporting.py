@@ -241,22 +241,76 @@ class _CommitReader:
         return result.returncode == 0
 
 
-def _claimed_digests(receipt):
-    """Every path this receipt hashes, with the digest it hashes for it.
+RUNTIME_ARTIFACT_ROOT = '.project-local/task-artifacts/'
+COMMIT_BINDING = 'COMMIT'
+WORKTREE_BINDING = 'WORKTREE_FILES'
+DIGEST_CONFLICT = 'DIGEST_CONFLICT_FOR_SAME_PATH'
 
-    subject_files and artifacts can name the same path; one claim per path is checked, and two
-    different digests for one path are a contradiction the row itself has to answer for.
+
+class Claims(tuple):
+    """(claimed, runtime, conflicts, pairs) -- every byte a receipt states, and how to read it.
+
+    `claimed` maps path -> digest over BOTH digest lists, deduplicated; `runtime` is the subset of
+    those paths that lives under the runtime artefact root, where no commit can hold bytes;
+    `conflicts` are paths claimed with two different digests; `pairs` counts the raw entries, so a
+    consumer can show that deduplication is not silently dropping claims.
     """
-    claimed, conflicts = {}, []
-    for relative, digest in (receipt['subject_files'] or {}).items():
-        if claimed.setdefault(relative, digest) != digest:
-            conflicts.append(relative)
-    for artifact in receipt['artifacts']:
-        relative = artifact['path']
-        if claimed.setdefault(relative, artifact['sha256']) != artifact['sha256']:
-            conflicts.append(relative)
-    return claimed, sorted(set(conflicts))
 
+    __slots__ = ()
+
+    def __new__(cls, claimed, runtime, conflicts, pairs):
+        return super().__new__(cls, (claimed, runtime, conflicts, pairs))
+
+    @property
+    def claimed(self):
+        return self[0]
+
+    @property
+    def runtime(self):
+        return self[1]
+
+    @property
+    def conflicts(self):
+        return self[2]
+
+    @property
+    def pairs(self):
+        return self[3]
+
+    def versioned(self):
+        """The paths a commit could actually be asked to hold."""
+        return {path: digest for path, digest in self[0].items() if path not in self[1]}
+
+
+def basis(receipt) -> str:
+    """Which basis this receipt's byte claims must be re-checked against, defaulting to stricter.
+
+    `WORKTREE_FILES` is the record's own disclaimer -- the schema says it "may never be presented as
+    a commit" -- so no component may judge those bytes by the object database and call the difference
+    a defect. On 2026-10-08 the binding gate did exactly that and parked four of the resulting lines
+    in its waiver list, which is a basis error being paid for as evidence debt.
+    """
+    return WORKTREE_BINDING if receipt.get('binding') == WORKTREE_BINDING else COMMIT_BINDING
+
+
+def claims(receipt) -> Claims:
+    """Enumerate a receipt's byte claims once, for every consumer that has to recompute them.
+
+    The projection and the binding gate both recompute digests, and each kept its own copy of "which
+    paths count as a byte claim" -- which is how they came to disagree about what was verified. This
+    function is the single owner of that enumeration; the verdicts stay with the consumers.
+    """
+    pairs = [(path, digest) for path, digest in (receipt.get('subject_files') or {}).items()]
+    pairs += [(item['path'], item['sha256']) for item in (receipt.get('artifacts') or [])]
+    claimed, runtime, conflicts = {}, set(), []
+    for path, digest in pairs:
+        wanted = str(digest).removeprefix('sha256:')
+        if path.startswith(RUNTIME_ARTIFACT_ROOT):
+            runtime.add(path)
+        seen = claimed.setdefault(path, wanted)
+        if seen != wanted:
+            conflicts.append(path)
+    return Claims(claimed, frozenset(runtime), sorted(set(conflicts)), len(pairs))
 
 def _receipt_findings(receipt, subject_sha, reader, commits):
     """Re-check a receipt on the basis its own `binding` declares, then ask if it still speaks for today.
@@ -281,31 +335,31 @@ def _receipt_findings(receipt, subject_sha, reader, commits):
     integrity, currency = [], []
     if receipt['outcome'] != 'PASS':
         integrity.append('OUTCOME_NOT_PASS')
-    claimed, conflicts = _claimed_digests(receipt)
-    for relative in conflicts:
-        integrity.append(f'DIGEST_CONFLICT_FOR_SAME_PATH:{relative}')
-    binding = receipt.get('binding')
+    state = claims(receipt)
+    for relative in state.conflicts:
+        integrity.append(f'{DIGEST_CONFLICT}:{relative}')
+    binding = basis(receipt)
     bound = receipt['subject_sha']
-    if binding == 'COMMIT' and not commits.has_commit(bound):
+    if binding == COMMIT_BINDING and not commits.has_commit(bound):
         integrity.append(f'SUBJECT_COMMIT_ABSENT:{bound}')
         return integrity, currency
-    in_subject = binding == 'COMMIT' and commits.has_commit(subject_sha)
+    in_subject = binding == COMMIT_BINDING and commits.has_commit(subject_sha)
     modified = commits.locally_modified(subject_sha) if in_subject else set()
-    for relative, expected in claimed.items():
+    for relative, expected in state.claimed.items():
         # Every path is still read from disk so a file that changes mid-projection trips Reader.
         raw = reader.read(relative, optional=True)
-        if relative.startswith(RUNTIME_ARTIFACT_ROOT):
+        if relative in state.runtime:
             if raw is None:
                 integrity.append(f'RUNTIME_ARTIFACT_ABSENT_ON_THIS_MACHINE:{relative}')
             elif hashlib.sha256(raw).hexdigest() != expected:
                 integrity.append(f'RUNTIME_ARTIFACT_DIGEST_DIFFERS:{relative}')
             continue
-        if binding == 'COMMIT':
+        if binding == COMMIT_BINDING:
             blob = commits.blob(bound, relative)
             if blob is None:
                 # Two different lies. A path version controlled today simply was not in the commit the
                 # row names, so the row bound the wrong SHA. A path no commit ever held cannot be
-                # re-read at any SHA: measured 2026-10-08, 63 of the 411 COMMIT-bound claims are of
+                # re-read at any SHA: measured 2026-10-08, 63 of the 472 commit-basis claims are of
                 # this kind -- 57 `__pycache__/*.pyc` byte-compiled caches and 6 audio bytes under
                 # `fixtures/domains/game-visual/android-minigame/`, which that directory's own
                 # .gitignore excludes -- spread over 14 receipts dated 2026-09-28.

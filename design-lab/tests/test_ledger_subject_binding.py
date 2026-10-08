@@ -116,9 +116,13 @@ class RealLedger(unittest.TestCase):
         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
         self.assertIn('LEDGER_SUBJECT_BINDING=OK', result.stdout)
 
-    def test_the_gate_actually_compared_the_declared_files(self):
-        """An OK line that checked nothing would be the worst outcome of all: green, and
-        wrong. subject_files and checked must be the same number."""
+    def test_the_gate_reports_every_claim_and_judges_the_ones_it_can(self):
+        """An OK line that checked nothing would be the worst outcome of all: green, and wrong.
+
+        Every claim must land in exactly one of the three reported counts, so a basis narrowed to
+        WORKTREE_FILES rows cannot quietly shrink the denominator -- and `checked` has to exceed the
+        subject_files total, because artefact claims are now judged too.
+        """
         result = subprocess.run([sys.executable, '-B', str(SCRIPT)],
                                 capture_output=True, text=True, encoding='utf-8',
                                 errors='replace', cwd=ROOT)
@@ -127,12 +131,110 @@ class RealLedger(unittest.TestCase):
             'LEDGER_SUBJECT_BINDING=OK ', '').split() if '=' in pair)
         ledger = json.loads((ROOT / 'design-lab/config/task-ledger-r3.json')
                             .read_text(encoding='utf-8'))
-        declared = sum(len(record.get('subject_files') or {})
-                       for record in ledger['evidence'])
-        self.assertEqual(int(fields['subject_files']), declared)
-        self.assertEqual(int(fields['checked']), declared)
-        self.assertGreater(declared, 200, 'the ledger has stopped carrying subject bytes; '
-                                          'this gate would be vacuous')
+        records = ledger['evidence']
+        subject_files = sum(len(record.get('subject_files') or {}) for record in records)
+        artifact_files = sum(len(record.get('artifacts') or []) for record in records)
+        judged = dropped = duplicates = 0
+        for record in records:
+            pairs = list(record.get('subject_files') or {}) + [
+                item['path'] for item in (record.get('artifacts') or [])]
+            runtime_pairs = [p for p in pairs if p.startswith(gate.RUNTIME_ARTIFACT_ROOT)]
+            judged += len(set(pairs) - set(runtime_pairs))
+            dropped += len(runtime_pairs)
+            duplicates += len(pairs) - len(set(pairs))
+        self.assertEqual(int(fields['subject_files']), subject_files)
+        self.assertEqual(int(fields['records']), len(records))
+        self.assertEqual(int(fields['runtime']), dropped)
+        self.assertEqual(int(fields['checked']) + int(fields['worktree_claims']), judged)
+        self.assertEqual(judged + dropped, subject_files + artifact_files - duplicates)
+        self.assertGreater(duplicates, 0, 'no record claims a path twice, so the dedupe rule '
+                                          'is untested by the real ledger')
+        self.assertEqual(int(fields['worktree_claims']), 8,
+                         'the three 2026-09-09 WORKTREE_FILES records are the whole non-commit '
+                         'basis; a change here is a deliberate edit to this line')
+        self.assertGreaterEqual(int(fields['checked']), 472,
+                                'commit-basis coverage shrank below the 2026-10-08 measurement')
+        self.assertGreater(int(fields['checked']), subject_files - 20,
+                           'artefact claims stopped being checked -- subject_files alone was 450')
+
+    def test_the_waiver_list_no_longer_excuses_a_basis_error(self):
+        """KNOWN is for defects a COMMIT record cannot cure without fabricating itself.
+
+        Four entries belonged to WORKTREE_FILES records: judged by the object database they looked
+        broken, but those records never claimed commit bytes, so the list was paying for the gate's
+        own basis instead of naming a defect.
+        """
+        ledger = json.loads((ROOT / 'design-lab/config/task-ledger-r3.json')
+                            .read_text(encoding='utf-8'))
+        binding = {record['id']: record.get('binding') for record in ledger['evidence']}
+        self.assertEqual(sorted(key for key in gate.KNOWN if binding.get(key[0]) != 'COMMIT'), [])
+        self.assertGreaterEqual(len(gate.KNOWN), 60)
+
+
+class BasisAndCoverage(unittest.TestCase):
+    """Which claims the gate judges, and on what basis -- all synthetic, no working tree involved."""
+
+    def test_an_artefact_claim_is_judged_like_a_subject_claim(self):
+        body = b'print(1)\n'
+        good = sha256(body).hexdigest()
+        record = {'id': 'r-a', 'subject_sha': 'c0', 'binding': 'COMMIT',
+                  'subject_files': {'src/a.py': good},
+                  'artifacts': [{'path': 'docs/lie.md', 'sha256': 'b' * 64}]}
+        defects = gate.classify([record], reader({('c0', 'src/a.py'): body}),
+                                lambda _c: True)
+        self.assertEqual(defects, [(gate.ABSENT, 'r-a', 'docs/lie.md')])
+
+    def test_an_artefact_that_reproduces_is_coverage_the_old_gate_did_not_have(self):
+        body = b'{"a": 1}\n'
+        record = {'id': 'r-b', 'subject_sha': 'c0', 'binding': 'COMMIT',
+                  'subject_files': {},
+                  'artifacts': [{'path': 'design-lab/config/thing.json',
+                                 'sha256': sha256(body).hexdigest()}]}
+        self.assertEqual(gate.classify([record], reader({('c0', 'design-lab/config/thing.json'): body}),
+                                        lambda _c: True), [])
+        self.assertEqual(gate.tally([record])['commit_claims'], 1)
+
+    def test_a_worktree_files_record_is_not_judged_by_the_object_database(self):
+        """Its own binding says the bytes came off a dirty tree and may never be presented as a commit."""
+        record = {'id': 'r-c', 'subject_sha': 'c0', 'binding': 'WORKTREE_FILES',
+                  'subject_files': {'src/c.py': 'a' * 64},
+                  'artifacts': [{'path': 'docs/handoff.md', 'sha256': 'b' * 64}]}
+        self.assertEqual(gate.classify([record], reader({}), lambda _c: True), [])
+        counts = gate.tally([record])
+        self.assertEqual(counts['commit_claims'], 0)
+        self.assertEqual(counts['worktree_claims'], 2)
+
+    def test_runtime_artefact_claims_are_counted_rather_than_silently_skipped(self):
+        record = {'id': 'r-d', 'subject_sha': 'c0', 'binding': 'COMMIT',
+                  'subject_files': {},
+                  'artifacts': [{'path': '.project-local/task-artifacts/run/result.json',
+                                 'sha256': 'c' * 64}]}
+        self.assertEqual(gate.classify([record], reader({}), lambda _c: True), [])
+        counts = gate.tally([record])
+        self.assertEqual(counts['runtime'], 1)
+        self.assertEqual(counts['commit_claims'], 0)
+
+    def test_one_path_claimed_with_two_digests_is_a_contradiction(self):
+        body = b'x\n'
+        record = {'id': 'r-e', 'subject_sha': 'c0', 'binding': 'COMMIT',
+                  'subject_files': {'src/e.py': sha256(body).hexdigest()},
+                  'artifacts': [{'path': 'src/e.py', 'sha256': 'f' * 64}]}
+        defects = gate.classify([record], reader({('c0', 'src/e.py'): body}), lambda _c: True)
+        self.assertEqual(defects, [('DIGEST_CONFLICT_FOR_SAME_PATH', 'r-e', 'src/e.py')])
+
+    def test_a_missing_binding_is_read_as_commit_and_stays_strict(self):
+        """Defaulting to the stricter basis: an unlabelled record is held to committed bytes."""
+        record = {'id': 'r-f', 'subject_sha': 'c0', 'subject_files': {'src/f.py': 'a' * 64}}
+        self.assertEqual(gate.classify([record], reader({}), lambda _c: True),
+                         [(gate.ABSENT, 'r-f', 'src/f.py')])
+
+    def test_an_unresolvable_commit_now_costs_both_lists(self):
+        record = {'id': 'r-g', 'subject_sha': 'deadbeef', 'binding': 'COMMIT',
+                  'subject_files': {'src/g.py': 'a' * 64},
+                  'artifacts': [{'path': 'docs/g.md', 'sha256': 'b' * 64}]}
+        defects = gate.classify([record], reader({}), lambda _c: False)
+        self.assertEqual(defects, [(gate.NO_COMMIT, 'r-g', 'src/g.py'),
+                                   (gate.NO_COMMIT, 'r-g', 'docs/g.md')])
 
 
 if __name__ == '__main__':
