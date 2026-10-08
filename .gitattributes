@@ -23,3 +23,11 @@ docs/history/r3-audit-inputs-2026-09-06/old-new-crosswalk.csv binary
 # DP handoff hashes seal original bytes; disable line-ending conversion only.
 docs/handoffs/deepseek-r3-20260906/** -text whitespace=cr-at-eol
 docs/handoffs/deepseek-r3-20260906-v2/** -text whitespace=cr-at-eol
+
+# DL-REC-29 (2026-10-08): Record-imported task packages are byte-frozen originals whose
+# CRC32/size are recorded per member in RECORD-IMPORT-MANIFEST.json. Line-ending
+# normalization would rewrite those bytes, so conversion is disabled for the
+# imported subtree and the 2026-10-06 request pair (same reason as the
+# deepseek-r3-20260906 handoffs above).
+docs/history/record-imports-2026-10-08/** -text whitespace=cr-at-eol
+docs/taskpacks/03_DESIGN-LAB_* -text whitespace=cr-at-eol
