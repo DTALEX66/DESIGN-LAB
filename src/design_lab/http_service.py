@@ -26,7 +26,22 @@ from .rights_review import RightsReview, RightsReviewError, write_fields
 from .research_review import (ResearchReview, ResearchReviewError,
                               write_fields as research_write_fields)
 from .assurance.production_preflight import PreflightError, preflight_bundle
+from .governance.evidence_readback import EvidenceReadbackError, projection as evidence_projection
 from . import workbench
+
+
+#: A readback that cannot be produced is not a readback with nothing in it. The status carries
+#: whether the operator can fix it by looking (503: this checkout has no ledger / no git subject)
+#: or whether code and contract have diverged and a person must change something (500).
+EVIDENCE_READBACK_STATUS = {
+    'EVIDENCE_LEDGER_ABSENT': 503,
+    'EVIDENCE_CONTRACT_ABSENT': 503,
+    'EVIDENCE_SUBJECT_UNRESOLVABLE': 503,
+    'EVIDENCE_LEDGER_REJECTED': 500,
+    'EVIDENCE_CONTRACT_UNLOADABLE': 500,
+    'EVIDENCE_CONTRACT_VIOLATION': 500,
+    'EVIDENCE_PROJECTION_OVERFLOW': 500,
+}
 
 
 class RequestError(ValueError):
@@ -295,6 +310,14 @@ def make_server(service, token, port=0, *, local_session=False):
                         return self.send_json(200, value)
                     if self.path == '/api/projects':
                         return self.send_json(200, {'projects': service.list_projects()})
+                    if self.path == '/api/evidence-projection':
+                        # Not a project view: this is the state of the evidence link for the whole
+                        # checkout the service is running from, recomputed from the ledger and the
+                        # object database on every call. It is served because a person has to be able
+                        # to ask "is any of this actually verified" without reading the projection file
+                        # or trusting a green page; a refusal is returned as a named error, never as an
+                        # empty receipt list that would read as "nothing is wrong".
+                        return self.send_json(200, evidence_projection())
                     layer = DesignLayer(service)
                     if self.path == '/api/design-systems':
                         return self.send_json(200, layer.design_systems())
@@ -511,6 +534,15 @@ def make_server(service, token, port=0, *, local_session=False):
                 self.send_json(exc.status, {'error': exc.code})
             except NativeTaskError:
                 self.send_json(409, {'error':'NATIVE_TASK_REQUIRES_RECONCILIATION'})
+            except EvidenceReadbackError as exc:
+                # Carried with its detail, like the design-layer refusal below: "this checkout has no
+                # ledger" and "the readback does not satisfy its own contract" are different problems
+                # for the operator, and a bare error word would leave the reviewer with a red card and
+                # no way to tell which.
+                payload = {'error': exc.code}
+                if exc.details:
+                    payload['detail'] = exc.details[:10]
+                self.send_json(EVIDENCE_READBACK_STATUS.get(exc.code, 500), payload)
             except DesignLayerError as exc:
                 # Before the generic ValueError clause, and with its detail when it
                 # has one: a refused token document carries the field paths

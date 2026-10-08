@@ -300,6 +300,22 @@ def build_bindings():
             ],
         },
         {
+            'name': 'evidence-projection',
+            'route': '/api/evidence-projection',
+            'method': 'GET',
+            'schema': 'design-lab/schemas/evidence-projection.schema.json',
+            'emitter': 'src/design_lab/governance/evidence_readback.py',
+            'version': 'design-lab/evidence-projection/v1',
+            # The readback is recomputed per call over the checkout the server is running from, so the
+            # payload compared here is the ledger's own state at this commit -- not a fixture. Calling
+            # it twice is deliberate: two answers for one subject would mean the readback is not a
+            # function of the bytes it claims to describe.
+            'cases': lambda h: [
+                ('GET /api/evidence-projection', h.get('/api/evidence-projection')),
+                ('GET /api/evidence-projection again', h.get('/api/evidence-projection')),
+            ],
+        },
+        {
             'name': 'task-resource-preflight',
             'route': '/api/task-preflight',
             'method': 'GET',

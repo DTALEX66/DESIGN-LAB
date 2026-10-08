@@ -446,6 +446,16 @@
       "emitter": "src/design_lab/domain_packs.py:181",
       "reason": "Debt paid 2026-10-08. The inner packs were always bound (design-lab/schemas/domain-pack.schema.json, judged by design-lab/scripts/verify_domain_pack_v2.py); this row was the unboud half. design-lab/schemas/domain-pack-readback.schema.json now closes the envelope, enumerates all four validation states and requires counts.byValidation to carry each of them, so a zero is never an absent category. Validated against the real response by design-lab/scripts/verify_route_payload_contracts.py."
     },
+{
+  "route": "/api/evidence-projection",
+  "method": "GET",
+  "kind": "BOUND_SCHEMA",
+  "handler": "evidence_projection",
+  "schema": "design-lab/schemas/evidence-projection.schema.json",
+  "version": "design-lab/evidence-projection/v1",
+  "emitter": "src/design_lab/governance/evidence_readback.py:29",
+  "reason": "Debt paid 2026-10-08 by section 30 and 31 of docs/audits/DESIGNLAB-LAUNCH-REVIEW-PREFLIGHT-2026-10-08.md: the projection answered two questions -- integrity (are these bytes still where the receipt says they came from) and currency (does this receipt still describe the bytes we are running) -- and nobody outside reporting.py could read either, so the evidence link of the chain was visible only to the code that wrote it. evidence_readback.projection() recomputes project_ledger over THIS checkout from the ledger and the object database (never from reports/current/, which is bound to whatever commit it was generated at) and validates its own payload, so a renamed key, a new reason token registered in code but not in the schema, or a record field leaking into the readback answers a named 500 instead of a short record a reader would call 'no evidence problems'. The reason vocabularies are two closed enums because the two questions are not the same question, and `current` is a subset of `verified` by construction -- the totals carry both counts and a test asserts that relation on the live payload."
+},
     {
       "route": "/api/task-preflight",
       "method": "GET",

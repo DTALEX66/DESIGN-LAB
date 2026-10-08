@@ -465,12 +465,16 @@ class GateTeethTests(unittest.TestCase):
         ledger = json.loads((REPO / self.gate.LEDGER_REL).read_text(encoding='utf-8'))
         expected_bound = sum(1 for row in ledger['routes']
                              if row.get('kind') == self.gate.BOUND_SCHEMA)
-        self.assertEqual(len(lines), 1 + CONTRACTS + 53,
+        # 53 -> 54 on 2026-10-08: /api/evidence-projection was added as a BOUND_SCHEMA row, and the
+        # dispatched count moved with it because the gate refuses a route that arrives without a row
+        # AND a row whose dispatch has gone. The number stays pinned rather than derived: deleting a
+        # row together with its dispatch would otherwise leave every relation here consistent.
+        self.assertEqual(len(lines), 1 + CONTRACTS + 54,
                          'one verdict line, one note per contract row, one per route row')
         verdict = lines[-1]
         self.assertTrue(verdict.startswith('VERIFY_CONTRACT_BINDINGS=PASS'), verdict)
         for token in (f'schemas={CONTRACTS}', f'binding={BINDING_ROWS}', f'inert={INERT_ROWS}',
-                      'routes=53', 'dispatched=53', f'bound={expected_bound}'):
+                      'routes=54', 'dispatched=54', f'bound={expected_bound}'):
             self.assertIn(token, verdict)
 
     # --- failure modes, each against a mutated copy ------------------------------
