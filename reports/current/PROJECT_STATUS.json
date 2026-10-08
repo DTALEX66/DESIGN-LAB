@@ -8,15 +8,15 @@
   },
   "fresh": false,
   "freshnessMeaning": "at generation only; check verifies bound-input integrity, not current Git or cloud state",
-  "generatedAt": "2026-10-08T03:59:01+00:00",
+  "generatedAt": "2026-10-08T04:10:49+00:00",
   "git": {
     "branch": "qoder/designlab-backup-consistency-20261007",
     "origin_main": "fc03a3033e900a8066d863a223636cc68804c4fa",
-    "sha": "9eec0aac586c04298f709932ffe512dce6c23a40",
+    "sha": "c626b8d216e5972fd4fdde6ea1bb8084ca413c06",
     "source_worktree_clean": true,
     "tracked_files": 3077,
     "worktree_changes": [],
-    "worktree_digest": "sha256:078888c5c2609fd491f657bb6aef6e36e60ef895483ed9756d01e633cf259730"
+    "worktree_digest": "sha256:3c75cc5e221ce6606c5cf03c45887f736514f359adcf22e91a8679757e11be59"
   },
   "gitStateMeaning": "generation-time observation, not current HEAD",
   "hostLive": "derived from host_live axis only",
@@ -29,7 +29,7 @@
     "quarantinedSources": 162
   },
   "subjectMeaning": "subjectType=WORKTREE means the tree was dirty at generation; worktreeDigest covers HEAD plus the non-generated changes",
-  "subjectSha": "9eec0aac586c04298f709932ffe512dce6c23a40",
+  "subjectSha": "c626b8d216e5972fd4fdde6ea1bb8084ca413c06",
   "subjectType": "COMMIT",
   "taskCounts": {
     "PARTIAL": 28
@@ -37,14 +37,14 @@
   "taskpack": "DL-TP-20260908-R5",
   "taskpackHash": "31dde89eb4ede81fe88c0a5c5144adfb86af8db4c4d8c263bde2199180369b69",
   "taskpackId": "DL-TP-20260908-R5",
-  "testRunAt": "2026-10-08T03:55:43+00:00",
-  "testRunId": "testrun-20261008T035509Z-forward-repeat-6d5359327f69",
-  "testRunMeaning": "bound run: python scripts/run_bound_test_suite.py --label r5-010-template-and-delivery-bom-20261008 --modules test_template_contracts_gate test_delivery_bom test_production_preflight test_artifact_preflight_ui_contract test_contract_bindings test_object_model_backing_gate test_evidence_artifact_presence test_gate_reachability test_test_selfsufficiency_gate test_delivery_receipt_wiring test_rollback_state_classifier test_delivery_evidence_ui_contract test_route_payload_contracts test_state_vocabularies_gate test_service_http",
+  "testRunAt": "2026-10-08T04:09:13+00:00",
+  "testRunId": "testrun-20261008T040842Z-forward-repeat-89ef3f81b002",
+  "testRunMeaning": "bound run: python scripts/run_bound_test_suite.py --label r5-010-design-system-row-and-token-contract-20261008 --modules test_object_model_backing_gate test_oda4_0204_object_model test_oda4_0204b_object_model_roundtrip test_design_system_tokens test_design_system_tokens_http test_interop_dtcg test_design_system_token_form_contract test_route_payload_contracts test_contract_bindings test_evidence_artifact_presence test_gate_reachability test_research_store test_delivery_bom test_template_contracts_gate",
   "testRunResult": "OK",
   "tests": {
-    "definedTestMethodCount": 2569,
+    "definedTestMethodCount": 2571,
     "executed": "see individual verified ledger receipts"
   },
   "worktreeClean": true,
-  "worktreeDigest": "sha256:078888c5c2609fd491f657bb6aef6e36e60ef895483ed9756d01e633cf259730"
+  "worktreeDigest": "sha256:3c75cc5e221ce6606c5cf03c45887f736514f359adcf22e91a8679757e11be59"
 }
