@@ -153,6 +153,9 @@ pack 242.00 MiB  −  工作区 60.22 MiB  ≈  181.8 MiB 全部是历史对象
 | 装不下的原件（超单文件 5 MiB 或会顶穿 pack 256 MiB 硬预算） | 留在源卷，逐成员登记 名称+大小+CRC32+sha256 的外链行；运行期副本进 `.project-local/` | 为「全部归档」写进仓里把门做红 |
 | 运行期/缓存/大中间件 | `.project-local/`（PROJECT_LOCAL_ROOT） | 仓内任何目录 |
 | 构建产物 | `apps/workbench/build/`（受 Build Output Truth 门钉） | 仓外未提交副本 |
+| 设计契约的存量数字 | `DESIGN.md` §4 的文本必须逐字等于 `scripts/design_debt_baseline.py` 量出来的那句（`design-lab/tests/test_design_debt_baseline.py` 在 CI 看守）| 手点的「大概多少处」 |
+| 外部审查工具的入仓面 | 配置 `design.qa.yaml` + 驱动 `scripts/run_design_review_plugin.py`（插件在 `~/.qoder-cn/plugins`，仓内不复制它） | 把第三方插件源码 vendored 进仓 |
+| 外部审查工具的产物 | `.project-local/runs/design-review/`（原始 JSON）与 `.project-local/task-artifacts/design-review/plugin-run.json`（运行台账：commit/版本/端口）；结论写进 `docs/audits/` | 把每次跑出的 JSON 提交进仓（体积与噪声） |
 
 ## 7. 结构债（记录，不在本轮擅动）
 

@@ -1,0 +1,92 @@
+# design.qa.yaml — run configuration for the external `design-review` plugin's
+# deterministic auditors (audit-design-debt.mjs, audit-a11y.mjs).
+#
+# It exists so an outside tool's numbers are reproducible from committed bytes:
+# the file is the plugin's own native entry point (`design.qa.yaml` at the project
+# root, next to DESIGN.md), and `scripts/run_design_review_plugin.py` starts the
+# real loopback service on exactly the `baseUrl` port below and refuses to run if
+# that port is occupied or if apps/workbench/build differs from HEAD.
+#
+# Scope note that changes how to read the a11y numbers: the plugin only navigates
+# (goto + waitForSelector), so it measures the authenticated-but-EMPTY workspace —
+# no project is created first. The in-repo gates bootstrap a real project, so they
+# measure populated views. Same product, different UI state, and the reports say so.
+project:
+  name: DESIGN-LAB
+  # Bound by scripts/run_design_review_plugin.py; must equal the port it opens.
+  baseUrl: "http://127.0.0.1:8931"
+  outputDir: ".project-local/runs/design-review/.design-qa"
+
+design:
+  designMd: DESIGN.md
+
+code:
+  # The Workbench is native TypeScript + one hand-written stylesheet, and its
+  # whole surface is these files. `build/` is generated and excluded because debt
+  # in a bundle is a consequence, not a decision anyone can edit.
+  include:
+    - "apps/workbench/*.ts"
+    - "apps/workbench/*.css"
+    - "apps/workbench/*.html"
+    - "packages/*/src/**/*.{ts,css,html}"
+  exclude:
+    - "node_modules/**"
+    - "apps/workbench/node_modules/**"
+    - "apps/workbench/build/**"
+
+# Deliberately empty: disabling an axe rule before ever seeing it fail would hide
+# the finding this run exists to produce.
+a11y:
+  disabledRules: []
+  includeSelectors: []
+  excludeSelectors: []
+
+debt:
+  maxHardCodedColors: 0
+  maxArbitraryTailwindValues: 5
+  maxInlineStyles: 0
+  allowedColorValues:
+    - "#000"
+    - "#fff"
+    - "transparent"
+
+# The same 12 hash routes the in-repo overflow gate sweeps (audit_workbench_overflow.mjs
+# ROUTES), so the two scans answer about the same pages. The four 390x844 screens are
+# the mobile states where the nav and KPI rows have been contested.
+screens:
+  - name: workbench
+    app: { url: "/workbench", waitUntil: "networkidle", waitForSelector: "#workspace" }
+  - name: dashboard
+    app: { url: "/workbench#/dashboard", waitUntil: "networkidle", waitForSelector: "#route-view" }
+  - name: projects
+    app: { url: "/workbench#/projects", waitUntil: "networkidle", waitForSelector: "#route-view" }
+  - name: research
+    app: { url: "/workbench#/research", waitUntil: "networkidle", waitForSelector: "#route-view" }
+  - name: brand-systems
+    app: { url: "/workbench#/brand-systems", waitUntil: "networkidle", waitForSelector: "#route-view" }
+  - name: domains
+    app: { url: "/workbench#/domains", waitUntil: "networkidle", waitForSelector: "#route-view" }
+  - name: tools
+    app: { url: "/workbench#/tools", waitUntil: "networkidle", waitForSelector: "#route-view" }
+  - name: preflight
+    app: { url: "/workbench#/preflight", waitUntil: "networkidle", waitForSelector: "#route-view" }
+  - name: deliverables
+    app: { url: "/workbench#/deliverables", waitUntil: "networkidle", waitForSelector: "#route-view" }
+  - name: evidence
+    app: { url: "/workbench#/evidence", waitUntil: "networkidle", waitForSelector: "#route-view" }
+  - name: collaboration
+    app: { url: "/workbench#/collaboration", waitUntil: "networkidle", waitForSelector: "#route-view" }
+  - name: settings
+    app: { url: "/workbench#/settings", waitUntil: "networkidle", waitForSelector: "#route-view" }
+  - name: dashboard-390
+    app: { url: "/workbench#/dashboard", viewport: { width: 390, height: 844 },
+           waitUntil: "networkidle", waitForSelector: "#route-view" }
+  - name: projects-390
+    app: { url: "/workbench#/projects", viewport: { width: 390, height: 844 },
+           waitUntil: "networkidle", waitForSelector: "#route-view" }
+  - name: evidence-390
+    app: { url: "/workbench#/evidence", viewport: { width: 390, height: 844 },
+           waitUntil: "networkidle", waitForSelector: "#route-view" }
+  - name: settings-390
+    app: { url: "/workbench#/settings", viewport: { width: 390, height: 844 },
+           waitUntil: "networkidle", waitForSelector: "#route-view" }

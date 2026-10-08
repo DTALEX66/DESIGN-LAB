@@ -17,10 +17,16 @@ enforcedBy:
   - design-lab/tests/test_design_system_tokens.py
   - design-lab/tests/test_interop_dtcg.py
   - design-lab/tests/test_workbench_css_single_definition.py
+  - design-lab/tests/test_design_debt_baseline.py
   - design-lab/tests/e2e/audit_workbench_contrast.mjs
   - design-lab/tests/e2e/audit_workbench_ui.mjs
   - design-lab/tests/e2e/audit_workbench_overflow.mjs
-measuredDebtAtCommit: 5e077724
+externalRunner:
+  config: design.qa.yaml
+  command: python scripts/run_design_review_plugin.py
+  auditors: [audit-design-debt.mjs, audit-a11y.mjs]
+measuredDebtBy: scripts/design_debt_baseline.py
+measuredDebtAtCommit: 700ee3fb
 ---
 
 # DESIGN-LAB Workbench — 设计契约
@@ -69,9 +75,13 @@ measuredDebtAtCommit: 5e077724
 ## 4. Do / Don't
 
 - Do 复用 `.panel/.tag/.kpi-grid/.list-item` 等既有类；Don't 为单页写局部覆盖色。
-- Do 用 `color-mix(in srgb, var(--x) N%, transparent)` 派生态；Don't 新写字面色值
-  （当前存量：非令牌声明中 18 处字面色、360 处字面 px、9 条无令牌阴影 —— 见
-  `docs/audits/DESIGNLAB-LAUNCH-REVIEW-PREFLIGHT-2026-10-08.md` §36.4，按次清理，不得增长）。
+- Do 用 `color-mix(in srgb, var(--x) N%, transparent)` 派生态；Don't 新写字面色值。
+  当前存量（由 `scripts/design_debt_baseline.py` 按声明的规则实测，`--check` 看守，
+  不再是手点数字）：非令牌声明、去掉注释后的 7 个界面源文件里，
+  字面色值 34 处、字面 px 516 处、阴影声明 26 条（其中 18 条已读 var()）。
+  按次清理，不得增长。此前 §36.4 的 18/360/9 是手点的，任何规则都复现不出来，
+  与外部 design-review 插件的读数也不一致 —— 分歧逐条见
+  `docs/audits/DESIGNLAB-EXTERNAL-DESIGN-REVIEW-2026-10-09.md`。
 - Do 让新交互在键盘与窄屏下同样可达；Don't 用 hover 承载唯一入口。
 
 ## 5. 对标（下一步要做的比较，不是已完成）
@@ -85,7 +95,11 @@ Linear、Raycast**。方法沿用已验证过的规矩：先收割对标的 CSS/
 
 - 令牌取值：从 `apps/workbench/style.css` 读出，非回忆。
 - §3.1 的 4.45:1 与 §2 的 587px/≤720 数字：本轮真实 Chromium 实测（`.project-local/task-artifacts/browser-e2e/workbench-ui-audit.json`、`.project-local/tmp/ui-short-viewport.json`）。
+- §4 存量数字：`scripts/design_debt_baseline.py` 实测，`design-lab/tests/test_design_debt_baseline.py`
+  在 CI 里看守"文档说的 = 量出来的"。
 - 状态是 `proposed`：owner 接受前不得当作已批准的验收标准使用。
-- 未做：与外部对标的像素级还原度比较（§5）；design-review 插件的确定性 runner 在本机仍没跑起来
-  （npm 依赖已装入 `.project-local/runs/node-libs`，ESM 解析钩子因路径转义未完成），
-  上述债数来自仓内自有门 + 直接扫描。
+- 外部确定性 runner：**已跑通**（2026-10-09）。`design.qa.yaml` + `scripts/run_design_review_plugin.py`
+  驱动 design-review 插件的 `audit-design-debt.mjs`（源侧）与 `audit-a11y.mjs`（axe-core，真实
+  Chromium、产品自己的回环服务、committed bundle）。它给的债数与本文件不同，分歧已逐条落档，
+  未挑对自己有利的那个：`docs/audits/DESIGNLAB-EXTERNAL-DESIGN-REVIEW-2026-10-09.md`。
+- 仍未做：与外部对标的像素级还原度比较（§5）。
