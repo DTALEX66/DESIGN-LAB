@@ -10,8 +10,8 @@ python scripts/classify_repo.py --check  # 只读校验：派生事实与已提�
 ```
 
 观测 commit 与体量（由上表再生时的真实测量）：
-**跟踪文件 3365 个 · 工作区 60.3 MiB · pack 242.0 MiB**（`observedCommit e6c53d05`，
-再生于 2026-10-08T17:37Z）。工作区体积此前被低估：`blob_sizes()` 用 `git ls-tree HEAD` 按行读，
+**跟踪文件 3366 个 · 工作区 60.33 MiB · pack 242.0 MiB**（`observedCommit 810c5e10`，
+再生于 2026-10-08T18:09Z）。工作区体积此前被低估：`blob_sizes()` 用 `git ls-tree HEAD` 按行读，
 非 ASCII 路径被转义后查不到键（11 个文件记成 0 字节），未提交的新文件更整体记成 0——
 同一棵树先后测出 52.28 与 60.22 MiB 而文件数不变。现改从 index + 对象库取，且 blob 读不到即 fail-closed。
 
@@ -40,14 +40,14 @@ python scripts/classify_repo.py --check  # 只读校验：派生事实与已提�
 
 ## 2. 分类规则（`classify_repo.py` 里的有序前缀表）
 
-| 类别 | 含义 | 现量（`e6c53d05` 实测） |
+| 类别 | 含义 | 现量（`810c5e10` 实测） |
 |---|---|---|
 | `authority` | 顶层权威、治理索引、决策与架构政策 | 10 files / 0.03 MiB / 3 bundles |
 | `planning` | 任务包与任务账本 | 见 §3 |
-| `evidence` | 审计包、黄金用例、域 fixture、评估语料、设计项目产物 | 1184 files / 26.92 MiB |
+| `evidence` | 审计包、黄金用例、域 fixture、评估语料、设计项目产物 | 1184 files / 26.93 MiB |
 | `history` | 冻结历史、交接血统、历史进度账本（含 Record 导入件） | 497 files / 14.85 MiB |
 | `generated` | 当前状态投影、提交的构建产物 | 71 files / 1.23 MiB |
-| `source` | 产品源码、能力包、集成层、门脚本、测试、CI | 1459 files / 11.77 MiB |
+| `source` | 产品源码、能力包、集成层、门脚本、测试、CI | 1460 files / 11.79 MiB |
 | `documentation` | 其余文档 | 119 files / 5.26 MiB |
 | `repo-meta` | 根级运维/政策文档（README、SECURITY、RELEASE、DESIGN.md、design.qa.yaml 等 25 个） | 0.24 MiB |
 
@@ -103,7 +103,7 @@ evidenceRef、parentRepoStars 不得冒充自身、无许可不得越过 QUARANT
 ## 5. 体积：能减的和不能减的（实测归因）
 
 ```
-pack 242.0 MiB  −  工作区 60.3 MiB  ≈  181.7 MiB 全部是历史对象
+pack 242.0 MiB  −  工作区 60.33 MiB  ≈  181.7 MiB 全部是历史对象
 ```
 
 按路径前缀对**全体历史 blob** 归因（下表为 2026-10-06 那次全历史归因，本轮未重算；
@@ -154,7 +154,7 @@ pack 242.0 MiB  −  工作区 60.3 MiB  ≈  181.7 MiB 全部是历史对象
 | 装不下的原件（超单文件 5 MiB 或会顶穿 pack 256 MiB 硬预算） | 留在源卷，逐成员登记 名称+大小+CRC32+sha256 的外链行；运行期副本进 `.project-local/` | 为「全部归档」写进仓里把门做红 |
 | 运行期/缓存/大中间件 | `.project-local/`（PROJECT_LOCAL_ROOT） | 仓内任何目录 |
 | 构建产物 | `apps/workbench/build/`（受 Build Output Truth 门钉） | 仓外未提交副本 |
-| 设计契约的存量数字 | `DESIGN.md` §4 的文本必须逐字等于 `scripts/design_debt_baseline.py` 量出来的那句（`design-lab/tests/test_design_debt_baseline.py` 在 CI 看守）| 手点的「大概多少处」 |
+| 设计契约的存量数字 | `DESIGN.md` §4 的文本必须逐字等于 `scripts/design_debt_baseline.py` 量出来的那句（`design-lab/tests/test_design_debt_baseline.py` 在 CI 看守）；逐站点色值登记在 `design-lab/config/ui-off-palette-colours.json`，其 `adjudication` 只允许人填，脚本重写必须保留 | 手点的「大概多少处」；代理替 owner 填裁决 |
 | 外部审查工具的入仓面 | 配置 `design.qa.yaml` + 驱动 `scripts/run_design_review_plugin.py`（插件在 `~/.qoder-cn/plugins`，仓内不复制它） | 把第三方插件源码 vendored 进仓 |
 | 外部审查工具的产物 | `.project-local/runs/design-review/`（原始 JSON）与 `.project-local/task-artifacts/design-review/plugin-run.json`（运行台账：commit/版本/端口）；结论写进 `docs/audits/` | 把每次跑出的 JSON 提交进仓（体积与噪声） |
 

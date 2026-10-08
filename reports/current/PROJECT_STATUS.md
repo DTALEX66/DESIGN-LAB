@@ -1,10 +1,10 @@
 # PROJECT_STATUS（生成投影）
 
-任务包：DL-TP-20260908-R5；生成时观察 SHA（不是当前 HEAD）：`e6c53d05af7b24334152f59cab5ed26bb628a61b`。
+任务包：DL-TP-20260908-R5；生成时观察 SHA（不是当前 HEAD）：`810c5e10874f494e51e1417b7c1bbed9c4014081`。
 
-subject_type：`COMMIT`；worktree_clean：`True`；worktree_digest：`sha256:2bbd28fe3042a54e…`；test_run_id：`testrun-20261008T173647Z-forward-repeat-2bbd28fe3042`。
+subject_type：`COMMIT`；worktree_clean：`True`；worktree_digest：`sha256:5214ecec00817d11…`；test_run_id：`testrun-20261008T180825Z-forward-repeat-408d8e20d851`。
 
-唯一编辑源：`design-lab/config/task-ledger-r3.json`。生成时间 2026-10-08T17:37:04+00:00 不代表重新测试或实机验收。
+唯一编辑源：`design-lab/config/task-ledger-r3.json`。生成时间 2026-10-08T18:09:20+00:00 不代表重新测试或实机验收。
 
 | Task | Status | Implementation | Unit | Host live | Delivery |
 |---|---|---|---|---|---|

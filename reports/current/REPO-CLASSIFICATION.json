@@ -1,10 +1,10 @@
 {
   "schemaVersion": "design-lab/repo-classification/v1",
-  "generatedAt": "2026-10-08T17:37:07Z",
-  "observedCommit": "e6c53d05af7b24334152f59cab5ed26bb628a61b",
+  "generatedAt": "2026-10-08T18:09:23Z",
+  "observedCommit": "810c5e10874f494e51e1417b7c1bbed9c4014081",
   "totals": {
-    "trackedFiles": 3365,
-    "workingTreeMiB": 60.3,
+    "trackedFiles": 3366,
+    "workingTreeMiB": 60.33,
     "packMiB": 242.0,
     "note": "pack 含全部历史与 tag 归档；working tree 为当前检出字节。两者之差不是垃圾。"
   },
@@ -22,7 +22,7 @@
     "evidence": {
       "files": 1184,
       "bundles": 5,
-      "mib": 26.92
+      "mib": 26.93
     },
     "generated": {
       "files": 71,
@@ -40,9 +40,9 @@
       "mib": 0.24
     },
     "source": {
-      "files": 1459,
+      "files": 1460,
       "bundles": 8,
-      "mib": 11.77
+      "mib": 11.79
     }
   },
   "bundles": [
@@ -68,8 +68,8 @@
       "path": "design-lab/",
       "category": "source",
       "note": "设计核心其余模块",
-      "files": 967,
-      "bytes": 7788855,
+      "files": 968,
+      "bytes": 7802507,
       "cited_by_authority": 7,
       "lastTouch": "2026-10-09"
     },
@@ -78,7 +78,7 @@
       "category": "evidence",
       "note": "审计与验收证据包",
       "files": 835,
-      "bytes": 7487600,
+      "bytes": 7493582,
       "cited_by_authority": 7,
       "lastTouch": "2026-10-09"
     },
@@ -141,7 +141,7 @@
       "category": "generated",
       "note": "当前状态投影（由生成器再生）",
       "files": 63,
-      "bytes": 1246593,
+      "bytes": 1246083,
       "cited_by_authority": 4,
       "lastTouch": "2026-10-09"
     },
@@ -150,7 +150,7 @@
       "category": "documentation",
       "note": "其余文档",
       "files": 113,
-      "bytes": 1106709,
+      "bytes": 1106862,
       "cited_by_authority": 12,
       "lastTouch": "2026-10-09"
     },
@@ -168,9 +168,9 @@
       "category": "source",
       "note": "Workbench 前端源码",
       "files": 17,
-      "bytes": 845730,
+      "bytes": 846092,
       "cited_by_authority": 0,
-      "lastTouch": "2026-10-08"
+      "lastTouch": "2026-10-09"
     },
     {
       "path": "packages/",
@@ -186,7 +186,7 @@
       "category": "source",
       "note": "根级门与工具",
       "files": 61,
-      "bytes": 677277,
+      "bytes": 684341,
       "cited_by_authority": 7,
       "lastTouch": "2026-10-09"
     },
@@ -294,7 +294,7 @@
       "category": "repo-meta",
       "note": "根级运维与政策文档",
       "files": 1,
-      "bytes": 7129,
+      "bytes": 7861,
       "cited_by_authority": 0,
       "lastTouch": "2026-10-09"
     },
