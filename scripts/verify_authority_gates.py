@@ -38,6 +38,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import subprocess
 import sys
 from datetime import datetime, timezone
@@ -55,19 +56,51 @@ GATES = [
     ("authority-chain", "scripts/deepseek_authority_chain.py", ["--check"]),
     ("source-lock", "scripts/verify_source_lock.py", ["--check"]),
     ("contract-graph", "scripts/verify_contract_graph.py", ["--check"]),
-    ("language-boundary", "scripts/verify_language_boundary.py", []),
+    # Was a bare call, i.e. the writer form. Every other entry in this list verifies a committed
+    # record, and this is the chain CI runs, so a bare call rewrote
+    # reports/current/LANGUAGE-BOUNDARY-SCAN.json inside the job and made the record look fresh
+    # while its measurements went stale against the judgement it also carries. Now it checks.
+    ("language-boundary", "scripts/verify_language_boundary.py", ["--check"]),
 ]
+
+
+def child_env() -> dict[str, str]:
+    """Force UTF-8 on every child interpreter.
+
+    The children print Chinese notes, and a child whose stdout falls back to the console codepage
+    emits CP936 bytes into a pipe the parent then decodes as UTF-8 -- every non-ASCII byte becomes
+    U+FFFD, and printing that back to the same codepage aborts the whole chain with
+    UnicodeEncodeError. Reproduced locally on 2026-10-09 after the `--check` wiring, at
+    `print(f"{status:10s} ...")`; a Linux runner never sees it, which is precisely why it survived.
+    """
+    env = dict(os.environ)
+    env["PYTHONIOENCODING"] = "utf-8"
+    return env
+
+
+def safe_text(value: str) -> str:
+    """Make a report line printable on this console without changing what it says.
+
+    Only the echo is sanitised: exit codes, verdicts and the written record are untouched, so no
+    failure can be hidden by it.
+    """
+    encoding = getattr(sys.stdout, "encoding", None) or "utf-8"
+    try:
+        value.encode(encoding)
+        return value
+    except (UnicodeEncodeError, LookupError):
+        return value.encode(encoding, errors="replace").decode(encoding, errors="replace")
 
 
 def git(*args: str) -> str:
     return subprocess.run(["git", "-C", str(REPO), *args], capture_output=True, text=True,
-                          encoding="utf-8", errors="replace").stdout.strip()
+                          encoding="utf-8", errors="replace", env=child_env()).stdout.strip()
 
 
 def run_gate(name: str, script: str, gate_args: list[str]) -> dict:
     command = [sys.executable, "-B", str(REPO / script), *gate_args]
     result = subprocess.run(command, capture_output=True, text=True, encoding="utf-8",
-                            errors="replace", cwd=str(REPO), timeout=900)
+                            errors="replace", cwd=str(REPO), timeout=900, env=child_env())
     summary = (result.stdout or "").strip().splitlines()
     return {"gate": name, "command": " ".join([script, *gate_args]), "exit_code": result.returncode,
             "result": "PASS" if result.returncode == 0 else "FAIL",
@@ -92,14 +125,15 @@ def bound_run(extra: list[str]) -> int:
     command = [sys.executable, "-B", str(REPO / "scripts/run_bound_test_suite.py"), *extra]
     try:
         result = subprocess.run(command, capture_output=True, text=True, encoding="utf-8",
-                                errors="replace", cwd=str(REPO), timeout=1800)
+                                errors="replace", cwd=str(REPO), timeout=1800,
+                                env=child_env())
     except subprocess.TimeoutExpired as exc:
         # A hung child must surface as a recorded FAIL, not an uncaught exception
         # that swallows the gate result downstream.
         tail = (exc.output or b"").decode("utf-8", "replace")[-400:] if exc.output else ""
-        print(f"test-gate RUN_TIMEOUT child={ ' '.join(extra) } {tail}")
+        print(safe_text(f"test-gate RUN_TIMEOUT child={' '.join(extra)} {tail}"))
         return 124
-    print(last_nonempty_line(result.stdout))
+    print(safe_text(last_nonempty_line(result.stdout)))
     if result.returncode != 0:
         # stderr is preserved verbatim (tail); the child returncode is what is returned
         # so a partial gate failure still records the full result instead of throwing.
@@ -272,7 +306,7 @@ def main(argv=None) -> int:
     for record in results:
         status = record.get("result", "?")
         detail = record.get("summary_line", record.get("note", ""))
-        print(f"{status:10s} {record['gate']:24s} {detail}")
+        print(safe_text(f"{status:10s} {record['gate']:24s} {detail}"))
     deferred = document["full_suite_1392"]
     print(f"FULL_SUITE_1392={deferred.get('state', 'NOT_RECORDED')} (recorded separately, "
           "never absorbed into this verdict)")

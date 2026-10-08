@@ -220,8 +220,36 @@ def scan_vocabulary_copies(files: list, canonical: dict) -> dict:
             "disagreeing_copies": disagreeing}
 
 
+def check_against(stored: dict, fresh: dict) -> tuple[list[str], list[str]]:
+    """Compare the judgement the record carries, not the census around it.
+
+    `verdict` and `failures` are the whole claim this gate makes; the descriptive counts
+    (`tracked_files_scanned` and friends) move with every commit, so pinning them here would turn
+    the check into a re-run of the writer. `subject_sha` is deliberately not compared: the
+    committed record predates the argv fix, so it holds an empty subject by design and that gap
+    lives in `design-lab/config/report-subject-debt.json`, where it is declared and shrinking.
+    """
+    problems: list[str] = []
+    notices: list[str] = []
+    if stored.get("verdict") != fresh.get("verdict"):
+        problems.append(f"verdict stored={stored.get('verdict')!r} fresh={fresh.get('verdict')!r}")
+    stored_failures = list(stored.get("failures") or [])
+    fresh_failures = list(fresh.get("failures") or [])
+    if stored_failures != fresh_failures:
+        problems.append("the failing-set differs: "
+                        f"only-stored={sorted(set(stored_failures) - set(fresh_failures))} "
+                        f"only-fresh={sorted(set(fresh_failures) - set(stored_failures))}")
+    for key in ("tracked_files_scanned",):
+        if stored.get(key) != fresh.get(key):
+            notices.append(f"{key} stored={stored.get(key)} fresh={fresh.get(key)}")
+    return problems, notices
+
+
 def main(argv=None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--check", action="store_true",
+                        help="compare the committed record against a fresh computation and "
+                             "write nothing")
     parser.add_argument("--json", action="store_true", help="print the report path only")
     args = parser.parse_args(argv)
     files = tracked()
@@ -262,6 +290,21 @@ def main(argv=None) -> int:
                           "lost when the number falls",
         },
     }
+    if args.check:
+        if not OUT.is_file():
+            print(f"LANGUAGE_BOUNDARY=FAIL mode=check reason=no committed record at "
+                  f"{OUT.relative_to(REPO).as_posix()}")
+            return 1
+        stored = json.loads(OUT.read_text(encoding="utf-8"))
+        problems, notices = check_against(stored, document)
+        for problem in problems:
+            print("LANGUAGE_BOUNDARY=CHECK_FAIL " + problem)
+        for notice in notices:
+            print("LANGUAGE_BOUNDARY=NOTICE descriptive count moved: " + notice)
+        print(f"LANGUAGE_BOUNDARY={stored.get('verdict')} mode=check "
+              f"judgement_agrees={'yes' if not problems else 'no'} "
+              f"descriptive_drift={len(notices)}")
+        return 1 if problems else 0
     OUT.parent.mkdir(parents=True, exist_ok=True)
     OUT.write_text(json.dumps(document, indent=2, ensure_ascii=False) + "\n",
                    encoding="utf-8", newline="\n")
