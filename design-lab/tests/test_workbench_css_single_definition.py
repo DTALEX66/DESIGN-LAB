@@ -372,7 +372,15 @@ class ListItemIsReallyAListMember(unittest.TestCase):
         # (rollbackLimits()). The proof table itself is a .table inside .table-wrap like the
         # receipt's other tables, so it adds no container; the caveat sentences are the emitter's
         # own and are listed as members so a future single-string collapse cannot drop one.
-        self.assertEqual(self.shell.count("el('ul', { class: 'list'"), 39)
+        # 2026-10-08 again: 39 -> 41 for the evidence projection card (commit a0d001a8). Two
+        # containers, both named: projectionReasonList() lists the emitter's own per-token counts
+        # so the numbers travel with the state word beside them, and projectionReceiptRows() lists
+        # the receipts the projection returned, capped, with the remainder stated in words.
+        # This move is recorded four commits late and the gate has been red since a0d001a8: it was
+        # found while measuring a different stylesheet gate, and the bound run quoted as clean at
+        # 3c43d0af selected modules that did not include this file -- a `--modules` run is not the
+        # suite, and calling it one is how an inventory pin survives being broken.
+        self.assertEqual(self.shell.count("el('ul', { class: 'list'"), 41)
 
 
 if __name__ == "__main__":
