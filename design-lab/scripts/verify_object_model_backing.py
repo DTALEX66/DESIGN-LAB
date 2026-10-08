@@ -64,6 +64,14 @@ TOOLING_ONLY = {
                      'verify_design_memory.py',
     'extraction-job': 'the extraction chain runs without loading its own schema; '
                       'extraction-job.schema.json is read only by verify_extraction_chain.py',
+    'preflight-report': 'the profiles under design-lab/production/profiles/ are what '
+                        'preflight.schema.json judges, and production_preflight.py loads them through '
+                        'load_profile() -- which reads the profile JSON, never the schema. The report '
+                        'the product emits is bound to a different file '
+                        '(schemas/artifact-preflight.schema.json) and compared by '
+                        'verify_artifact_preflight_contract.py; preflight.schema.json appears in src/ '
+                        'only inside docstrings, which is the prose this gate stopped counting on '
+                        '2026-10-08',
 }
 
 UNREFERENCED = {
@@ -81,6 +89,12 @@ UNREFERENCED = {
                    '(id/name/thesis/transferable_methods/shallow_mimicry_risks), which the research '
                    'master studies and verify_style_master_method.py use. Two incompatible declared '
                    'cards, and no product code produces either',
+    'handoff-package': 'nothing reads schemas/design-handoff.schema.json. The handoff the product '
+                       'assembles is decided in src/design_lab/assurance/handoff_readiness.py, which '
+                       'names the file only in its own docstring -- prose this gate stopped counting '
+                       'on 2026-10-08 -- and emits "design-lab/handoff-readiness/v1", a payload '
+                       'version no schema in this repository binds. So the declared handoff document '
+                       'has a reader in the prose and none in the code',
     'candidate-knowledge': 'a KnowledgeCandidate is an exit contract to ArcheAxis (AGENTS.md), written '
                            'out through the rights and human gates rather than stored here, so no code '
                            'in this repository loads schemas/candidate-knowledge.schema.json -- which '
@@ -97,6 +111,85 @@ def version_stamp(schema_path: Path) -> str:
         return ''
     const = ((schema.get('properties') or {}).get('schemaVersion') or {}).get('const')
     return const if isinstance(const, str) else (schema.get('$id') or '')
+
+
+#: Kinds that carry no meaning for "did this statement start here".
+
+
+def _statement_string(tokens, number: int) -> bool:
+    """True when the STRING token at ``number`` is a docstring rather than a value in use.
+
+    A docstring is a string that both begins and ends a statement: ignoring layout tokens, the last
+    thing before it is a newline, an indent, or the colon that opens a block, and the next thing after
+    it is the newline that ends it. A path handed to ``load_schema`` fails that test because it sits
+    inside parentheses or after an equals sign -- which is exactly the difference this gate is for.
+    Single-pass by construction: only the two neighbouring tokens are consulted, never a rescan.
+    """
+    import tokenize
+    before = number - 1
+    while before >= 0 and tokens[before].type in (tokenize.NEWLINE, tokenize.NL, tokenize.INDENT,
+                                                 tokenize.DEDENT, tokenize.COMMENT):
+        before -= 1
+    after = number + 1
+    while after < len(tokens) and tokens[after].type in (tokenize.NL, tokenize.COMMENT):
+        after += 1
+    starts_a_statement = (before < 0
+                          or tokens[before].type in (tokenize.NEWLINE, tokenize.INDENT,
+                                                     tokenize.DEDENT)
+                          or tokens[before].string in (':', '->'))
+    ends_a_statement = after < len(tokens) and tokens[after].type == tokenize.NEWLINE
+    return starts_a_statement and ends_a_statement
+
+
+def code_text(text: str, suffix: str) -> str:
+    """The executable text of a source file, with prose removed.
+
+    A comment or a docstring that names a schema is documentation about that schema, not a reference
+    to it. Without this rule the classifier reports a false PRODUCT the moment anyone writes an honest
+    note in src/ -- measured 2026-10-08, when ``design_layer.py`` gained a comment explaining that
+    ``design-brief.schema.json`` declares a model no code stores, and the gate answered
+    "brief is now PRODUCT" off that comment alone.
+
+    Python goes through ``tokenize``: comments are dropped, and a string literal that stands alone as
+    a statement (a module, class or function docstring) is dropped, while a string inside a call, an
+    assignment or a return -- which is how a path actually reaches code -- is kept. TypeScript and mjs
+    drop whole-line ``//`` comments and ``/* ... */`` blocks; anything else a JS comment can hide in is
+    left alone rather than guessed at.
+    """
+    if suffix == '.py':
+        import io
+        import tokenize
+        pieces = []
+        try:
+            tokens = list(tokenize.generate_tokens(io.StringIO(text).readline))
+        except (tokenize.TokenError, IndentationError, SyntaxError):
+            # Unparsable to tokenize: fall back to whole-line comments rather than pretending prose
+            # was code, so a malformed file never silently gains a reference.
+            return '\n'.join(line for line in text.splitlines() if not line.strip().startswith('#'))
+        for number, token in enumerate(tokens):
+            kind, string = token.type, token.string
+            if kind in (tokenize.COMMENT, tokenize.ENCODING):
+                continue
+            if kind == tokenize.STRING and _statement_string(tokens, number):
+                continue
+            pieces.append(string)
+        return ' '.join(pieces)
+    lines = []
+    in_block = False
+    for line in text.splitlines():
+        stripped = line.strip()
+        if in_block:
+            if '*/' in stripped:
+                in_block = False
+            continue
+        if stripped.startswith('/*'):
+            if '*/' not in stripped:
+                in_block = True
+            continue
+        if stripped.startswith('//'):
+            continue
+        lines.append(line)
+    return '\n'.join(lines)
 
 
 def corpus(root: Path, scopes) -> str:
@@ -117,9 +210,10 @@ def corpus(root: Path, scopes) -> str:
                 if path.resolve() == here:
                     continue
                 try:
-                    pieces.append(path.read_text(encoding='utf-8', errors='ignore'))
+                    raw = path.read_text(encoding='utf-8', errors='ignore')
                 except OSError:
                     continue
+                pieces.append(code_text(raw, path.suffix))
     return '\n'.join(pieces)
 
 
@@ -186,7 +280,7 @@ def audit(root: Path, check_counts: bool = True):
                               f'({len((reason or "").strip())} chars is a placeholder)')
     # The counts are pinned as well as the membership, because a bucket that quietly changes size is
     # how a contract layer erodes one object at a time.
-    expected = {'PRODUCT': 7, 'TOOLING_ONLY': 9, 'UNREFERENCED': 5, 'MISSING_SCHEMA_FILE': 0}
+    expected = {'PRODUCT': 5, 'TOOLING_ONLY': 10, 'UNREFERENCED': 6, 'MISSING_SCHEMA_FILE': 0}
     for bucket, want in (expected.items() if check_counts else ()):
         if counts[bucket] != want:
             errors.append(f'{bucket}: {counts[bucket]} objects, expected {want} -- measured '

@@ -1307,7 +1307,11 @@ UNREFERENCED 对象行剩 5 条：`artifact`、`tool-run`、`reference-set`、`c
 `required[schemaVersion, briefs, next_cursor]` 且 `additionalProperties:false`，`briefs` 上限 100
 （与 `LIMIT 101` 分页一致），记录用 `$defs/brief` 闭合九字段——`brief_id/superseded_by/next_cursor`
 钉 `^brief-[0-9a-f]{32}$`，`spec_sha256` 钉 `^sha256:[0-9a-f]{64}$`，`goals` `minItems:1`，
-`version` `minimum:1`，全部与写入端已经强制的上限对齐，不新增宽恕。
+`version` `minimum:1`，`brief_id/superseded_by/next_cursor`
+钉 `^brief-[0-9a-f]{32}$`——`maxItems/minItems/minLength` 全部与写入端已经强制的上限对齐，不新增宽恕。
+但参考 asset id **有意没有**钉成写入端的 `img-[0-9a-f]{64}`：如果存在 P0-05 规则之前写下的行，加了
+pattern 就把一次读变成 500，而本仓库里没有任何证据能说那种行不存在。所以这条收紧留作点名的下一步，
+不是被忽略，也不是被悄悄做掉。
 `design_layer._check_brief_readback()` 在 **list / get / lineage 三条读路径上**执行，
 不匹配就 `500 BRIEF_CONTRACT_VIOLATION` 并带上字段路径；路由因此不可能把一个"缺列"的简报发给页面，
 让人读成"这个项目没有简报"。
@@ -1354,6 +1358,21 @@ Python 允许 def 行上跟单语句套件，我把这个形状单独拿出来�
 list / get / lineage 三条读路径源码里都仍在调用校验函数——"某一条读路径悄悄不再判"就是这类合同最
 常见的死法。
 
+第三次是我自己造的一次真实污染，而且是本轮最贵的一次：bound run 报
+`tests=191 failures=47 errors=1 skipped=14`，失败集中在 `test_design_layer_http`
+（15 例）和 `verify_route_payload_contracts` 的 `setUpClass`，而我单独跑每一个模块都是绿的。
+读真实异常才看清：我的变异测试写的是
+`original = DesignLayer._brief` → 拿到的是**普通函数**（staticmethod 的描述器已经被解包），
+`finally` 里把它赋回类，于是类属性不再是 staticmethod；之后 `self._brief(row)` 会把 `self`
+当第一个参数传进去 → `TypeError: takes 1 positional argument but 2 were given` →
+HTTP 层统一吞成 `{'error': 'INTERNAL'}`。这个污染活在同一个进程的类对象上，
+所以它把后面三个模块全打红了，而它自己那个模块 19 条全绿。
+修法是从 `__dict__` 取还原（`holder = DesignLayer.__dict__['_brief']`，还原后断言
+`isinstance(DesignLayer.__dict__['_brief'], staticmethod)`），并且这条教训落在测试自己的
+docstring 里：**类属性猴子补丁要按描述器取回，否则一次"复原"就是一次永久破坏**。
+同一轮里 `verify_route_payload_contracts` 的 seed 也顺带被这条污染误导过一次——它的
+`BRIEF_WRITE_REFUSED 500` 其实不是简报合同在判，而是上面那个 TypeError。
+
 ### 28.5 本轮数字
 
 `VERIFY_ROUTE_PAYLOAD_CONTRACTS=PASS bindings=6 failures=0`；`VERIFY_CONTRACT_BINDINGS=PASS
@@ -1370,3 +1389,52 @@ schemas=32 binding=2 inert=30 routes=53 dispatched=53 bound=15 schema_less=38`�
 待 owner 裁定：brief 的两份形状——要么把内容模型（discipline/objective/audience/deliverables/
 success_metrics/brand_assets）做进产品，要么正式退役 `design-brief.schema.json`。本轮只还了读回合同
 这条债，没有替它选。
+
+### 28.6 对本门自己的更正：把注释当引用，门就会自己造出 PRODUCT
+
+写完 28.2 那条注释（解释 `design-brief.schema.json` 的形状无人实现）之后，
+`verify_object_model_backing.py` 报了一条我没预料到的红：
+`brief: pinned as TOOLING_ONLY but it is now PRODUCT`。
+
+查下来不是我接了什么校验，而是**门把散文当成了引用**：它的语料是文件原始文本，
+`classify()` 只做子串匹配，所以 `src/` 里一句注释写着某个 schema 的文件名，就能把那个对象从
+TOOLING_ONLY 抬成 PRODUCT。这等于门自己造绿灯——只要有人**谈到**一份合同，合同就被算成在被执行。
+
+修法在门上而不是在我的注释里：语料改为"可执行文本"。Python 走 `tokenize`，删掉 COMMENT token，
+并删掉"独立成语句的字符串"（模块/类/函数 docstring），而赋值右侧、调用参数里的字符串保留——
+真实加载器写路径的两种方式（`SCHEMA_PATH = PROJECT_ROOT / "…/x.schema.json"`、
+`load_schema('…x.json')`）都因此仍然算数；TS/mjs 删整行 `//` 与 `/* … */`；无法 tokenize 的文件
+退回"只删整行注释"，不假装散文是代码。
+
+**更正后的实测**（`git grep` 逐条核对过，不是听门的）：
+
+| 对象 | 之前 | 现在 | 依据 |
+|---|---|---|---|
+| `delivery-manifest` | PRODUCT | PRODUCT | `delivery_bom.py:36` 赋值 |
+| `design-system` | PRODUCT | PRODUCT | `interop/dtcg.py:80` 赋值 |
+| `domain-pack` | PRODUCT | PRODUCT | `domain_packs.py:44` 赋值 |
+| `research-finding` | PRODUCT | PRODUCT | `research_store.py:86` 赋值 |
+| `quality-report` | PRODUCT | 先降为 UNREFERENCED，再改指 V2 → PRODUCT | V1 只出现在 `human_jury.py` 的 docstring；V2 是 `human_jury.py:51` 的赋值并在 `:182` 被读 |
+| `preflight-report` | PRODUCT | TOOLING_ONLY | `preflight.schema.json` 在 `src/` 里只有 docstring 提到；产品真正绑的是 `artifact-preflight.schema.json` |
+| `handoff-package` | PRODUCT | UNREFERENCED（理由重写） | `handoff_readiness.py` 只在 docstring 里提名，且它自己发的 `design-lab/handoff-readiness/v1` 无任何 schema 绑定 |
+
+于是钉住的计数从 `7/9/5` 更正为 **`5/10/6`**，两条新入册理由（`preflight-report`、
+`handoff-package`）各写明"今天是靠什么实现的"，`brief` 回到 TOOLING_ONLY。
+**本节之前所有 product 计数——25 节的 `product=5`、26 节的 `6/9/6`、27 节的 `7/9/5`、以及
+28.5 自己写的 `7/9/5`——都出自这台把散文当引用的仪器，以本节表格为准。**
+历史行没有被改写，只在这里声明其无效；受影响的具体断言是"某对象的 schema 被产品代码加载"这半句，
+其余（门的规则、测试结果、路由绑定、计数以外的数字）不受影响。
+
+`quality-report` 这一行我没有停在"降级"，而是按 27 节同一判据改指产品真正加载的
+`assurance-jury-record-v2.schema.json`（V1/V2 是同一个对象的两个版本，V2 才是被执行的）。
+改指之后新增的守卫也一并扩到两行：`test_both_repointed_rows_name_the_file_the_product_opens`
+直接比较 `object-model` 声明的路径与 `dtcg.SCHEMA_PATH` / `human_jury.SCHEMA_PATH`。
+遗留：`JuryRecord.template.json` 仍教 V1 形状（它按 26 节要求必须通过 V1 合同），
+V1 模板与 V2 实现之间的取舍仍是要 owner 拍的形状决定，本轮不替它选。
+
+新测试 `ProseIsNotAReferenceTests` 六条把这条规矩钉住：整行注释、行尾注释、模块 docstring、
+函数 docstring **都不能**抬 PRODUCT；赋值右侧与调用参数里的路径**必须**抬。
+另外两次我自己的仪器错也记在这：bound run 里 47 条跨模块失败其实来自我一处 `finally` 复原
+把 `staticmethod` 降成了普通函数（类属性被污染，后续模块的 `self._brief(row)` 收到
+`TypeError`，HTTP 层统一吞成 `{'error':'INTERNAL'}`）；以及"能编译"两次都不是证据——
+`py_compile` 对被我并行的 `def` 行与被拆开的 `__enter__` 都返回 0。

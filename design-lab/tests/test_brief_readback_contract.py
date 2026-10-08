@@ -207,20 +207,29 @@ class ProductProofTests(unittest.TestCase):
         self.assertEqual([1], [item['version'] for item in chain['lineage']['versions']])
 
     def test_a_row_whose_stored_bytes_no_longer_match_the_contract_is_refused(self) -> None:
-        """Simulate the divergence this guard exists for: the writer changed, the contract did not."""
+        """Simulate the divergence this guard exists for: the writer changed, the contract did not.
+
+        The class attribute is taken and put back from ``__dict__`` on purpose. ``DesignLayer._brief``
+        reads as a plain function, so assigning that back installs an unbound function on the class --
+        which then binds ``self`` as the first argument and every later call in the process dies with
+        "takes 1 positional argument but 2 were given". That is exactly how this one test put 47
+        failures across three other modules into a bound run while passing alone.
+        """
         self.layer.create_brief(self.project_id, title='Poster', goals=['warm'], constraints=None,
                                reference_asset_ids=[], idempotency_key='k-2')
-        original = design_layer.DesignLayer._brief
+        holder = design_layer.DesignLayer.__dict__['_brief']
         try:
             def mutated(row):
-                record = original(row)
+                record = holder.__func__(row)
                 record.pop('created_at')
                 return record
             design_layer.DesignLayer._brief = staticmethod(mutated)
             with self.assertRaises(design_layer.DesignLayerError) as caught:
                 self.layer.list_briefs(self.project_id)
         finally:
-            design_layer.DesignLayer._brief = original
+            design_layer.DesignLayer._brief = holder
+        self.assertIsInstance(design_layer.DesignLayer.__dict__['_brief'], staticmethod,
+                              'the restore must leave a staticmethod, not a bare function')
         self.assertEqual('BRIEF_CONTRACT_VIOLATION', caught.exception.code)
         self.assertTrue(any('created_at' in problem for problem in caught.exception.detail),
                         caught.exception.detail)

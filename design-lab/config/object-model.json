@@ -104,8 +104,8 @@
     {
       "id": "quality-report",
       "name": "QualityReport",
-      "description": "质量门禁报告（分层评分 + hard blockers）",
-      "schemaRef": "schemas/jury-record.schema.json",
+      "description": "质量门禁记录（V2：显式 actor、加权判据、人审与 agent 提案分开）",
+      "schemaRef": "schemas/assurance-jury-record-v2.schema.json",
       "adapterMappable": false
     },
     {

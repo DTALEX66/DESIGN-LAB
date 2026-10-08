@@ -24,13 +24,16 @@ REPO = Path(__file__).resolve().parents[2]
 GATE_PATH = REPO / 'design-lab' / 'scripts' / 'verify_object_model_backing.py'
 SCRATCH_BASE = REPO / '.project-local' / 'task-runtime' / 'object-model-backing-scratch'
 
-# Measured 2026-10-08 against HEAD f8cc812e, and pinned inside the gate as well: seven of the 21
-# declared objects are validated by product code, nine only by verifier scripts, five by nothing.
-# The seventh PRODUCT is design-system, whose object row was re-pointed on the same day to
-# schemas/interop-dtcg-document.schema.json -- the contract design_layer/interop.dtcg really
-# enforces -- after design-system.schema.json was found to describe a document no code writes.
-# The sixth is delivery-manifest (src/design_lab/assurance/delivery_bom.py).
-REAL_COUNTS = {'PRODUCT': 7, 'TOOLING_ONLY': 9, 'UNREFERENCED': 5, 'MISSING_SCHEMA_FILE': 0}
+# Measured 2026-10-08 against HEAD a4a76c06, and pinned inside the gate as well: five of the 21
+# declared objects are validated by product code, ten only by verifier scripts, six by nothing.
+# These numbers are LOWER than the ones pinned a few hours earlier (7/9/5) because the classifier was
+# fixed to stop counting prose: preflight-report, handoff-package and quality-report had been read as
+# product references purely from docstrings, and quality-report became honest only after its row was
+# re-pointed to the V2 schema human_jury.py really loads.
+# PRODUCT is: delivery-manifest (assurance/delivery_bom.py), design-system (interop/dtcg.py),
+# quality-report (assurance/human_jury.py), domain-pack (domain_packs.py), research-finding
+# (assurance/research_store.py).
+REAL_COUNTS = {'PRODUCT': 5, 'TOOLING_ONLY': 10, 'UNREFERENCED': 6, 'MISSING_SCHEMA_FILE': 0}
 
 
 def load_gate(name: str):
@@ -144,6 +147,69 @@ class ShippedTreeTests(unittest.TestCase):
         _counts, errors, buckets, _names = gate.audit(REPO)
         self.assertEqual([], errors)
         self.assertEqual('PRODUCT', buckets['design-system'])
+
+    def test_both_repointed_rows_name_the_file_the_product_opens(self):
+        """design-system and quality-report were each moved onto an enforced schema; prove both."""
+        sys.path.insert(0, str(REPO / 'src'))
+        from design_lab.assurance import human_jury
+        from design_lab.interop import dtcg
+        model = json.loads((REPO / 'design-lab' / 'config' / 'object-model.json')
+                           .read_text(encoding='utf-8'))
+        rows = {item['id']: item for item in model['objects']}
+        for identifier, opened in (('design-system', dtcg.SCHEMA_PATH),
+                                   ('quality-report', human_jury.SCHEMA_PATH)):
+            declared = (REPO / 'design-lab' / rows[identifier]['schemaRef']).resolve()
+            self.assertEqual(opened.resolve(), declared,
+                             f'{identifier} does not name the schema its emitter loads')
+        self.assertNotIn('jury-record.schema.json', json.dumps(model, ensure_ascii=False),
+                         'the V1 jury shape may not stay bound to an object')
+
+
+class ProseIsNotAReferenceTests(unittest.TestCase):
+    """A comment or docstring naming a schema documents it; it does not use it.
+
+    This rule earned itself on 2026-10-08: the classifier matched substrings over raw file text, so
+    three rows were counted as validated by product code because a module docstring mentioned the file
+    name -- and a comment I added explaining that ``design-brief.schema.json`` describes a model no
+    code stores would have quietly promoted ``brief`` to PRODUCT too. A gate whose buckets can be moved
+    by writing prose about the bucket is not measuring anything.
+    """
+
+    OBJ = [{'id': 'thing', 'name': 'Thing', 'description': 'd',
+            'schemaRef': 'schemas/thing.schema.json', 'version': 'x/thing/v1'}]
+
+    def bucket(self, name, product_text):
+        """Classify one scratch object whose schema a verifier script loads in code."""
+        root = build_scratch(SCRATCH_BASE / f'prose-{name}', self.OBJ,
+                             product_text=product_text,
+                             tooling_text="SCHEMA = 'schemas/thing.schema.json'\n")
+        _counts, _errors, buckets, _names = audit(root)
+        return buckets['thing']
+
+    def test_a_whole_line_comment_is_not_a_product_reference(self):
+        self.assertEqual('TOOLING_ONLY',
+                         self.bucket('line', '# the shape is schemas/thing.schema.json\n'
+                                             'VALUE = 1\n'))
+
+    def test_a_trailing_comment_is_not_a_product_reference(self):
+        self.assertEqual('TOOLING_ONLY',
+                         self.bucket('trailing', 'VALUE = 1  # schemas/thing.schema.json\n'))
+
+    def test_a_module_docstring_is_not_a_product_reference(self):
+        self.assertEqual('TOOLING_ONLY',
+                         self.bucket('moddoc', '"""See schemas/thing.schema.json."""\nVALUE = 1\n'))
+
+    def test_a_function_docstring_is_not_a_product_reference(self):
+        self.assertEqual('TOOLING_ONLY', self.bucket(
+            'funcdoc', 'def load():\n    """Reads schemas/thing.schema.json."""\n    return 1\n'))
+
+    def test_a_path_in_code_still_is_one(self):
+        """The strip must not swallow real references: this is how a loader names its schema."""
+        self.assertEqual('PRODUCT', self.bucket('assign', "SCHEMA = 'schemas/thing.schema.json'\n"))
+
+    def test_a_path_inside_a_call_still_is_one(self):
+        self.assertEqual('PRODUCT', self.bucket(
+            'call', "load_schema('schemas/thing.schema.json')\n"))
 
 
 class ScratchTreeTests(unittest.TestCase):
