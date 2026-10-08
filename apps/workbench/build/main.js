@@ -6182,6 +6182,23 @@ function mountB10Shell(routeView, syncLegacyNavCue) {
     { route: "collaboration", label: "团队协作", hash: "#/collaboration" },
     { route: "settings", label: "系统设置", hash: "#/settings" }
   ];
+  const navList = el(
+    "nav",
+    { class: "nav", "aria-label": "DESIGN-LAB 导航" },
+    ...B10_NAV.map((n) => el(
+      "button",
+      {
+        type: "button",
+        dataset: { route: n.route },
+        "data-hash": n.hash,
+        onclick: () => {
+          window.location.hash = n.hash;
+        }
+      },
+      el("span", { class: "nav-dot" }),
+      el("span", {}, n.label)
+    ))
+  );
   const sidebar = el(
     "aside",
     { class: "sidebar", id: "app-sidebar" },
@@ -6196,26 +6213,7 @@ function mountB10Shell(routeView, syncLegacyNavCue) {
         el("small", {}, "设计智能与生产能力层")
       )
     ),
-    // A <nav> element, not a div[aria-label]: role=generic does not support an
-    // accessible name, so the label was silently dropped and no navigation
-    // landmark existed on routed views (the legacy <nav> is hidden there).
-    el(
-      "nav",
-      { class: "nav", "aria-label": "DESIGN-LAB 导航" },
-      ...B10_NAV.map((n) => el(
-        "button",
-        {
-          type: "button",
-          dataset: { route: n.route },
-          "data-hash": n.hash,
-          onclick: () => {
-            window.location.hash = n.hash;
-          }
-        },
-        el("span", { class: "nav-dot" }),
-        el("span", {}, n.label)
-      ))
-    ),
+    navList,
     // No identity route exists (/api/health returns status/version/scope only),
     // so the footer cannot name a logged-in workspace owner. 'Alex / Personal
     // Workspace' was leftover B10 mock-up content presented as fact.
@@ -6250,6 +6248,9 @@ function mountB10Shell(routeView, syncLegacyNavCue) {
   navToggle.onclick = () => setNavOpen(!sidebar.classList.contains("open"));
   sidebar.addEventListener("click", (event) => {
     if (event.target.closest("button")) setNavOpen(false);
+  });
+  window.addEventListener("keydown", (event) => {
+    if (event.key === "Escape" && sidebar.classList.contains("open")) setNavOpen(false);
   });
   const topbar = el(
     "header",
@@ -6286,6 +6287,13 @@ function mountB10Shell(routeView, syncLegacyNavCue) {
     )
   );
   document.body.append(app);
+  const syncNavCue = () => {
+    const more = navList.scrollHeight > navList.clientHeight + 1 && navList.scrollTop + navList.clientHeight < navList.scrollHeight - 1;
+    navList.classList.toggle("has-scroll-more", more);
+  };
+  navList.addEventListener("scroll", syncNavCue, { passive: true });
+  window.addEventListener("resize", syncNavCue);
+  syncNavCue();
   const legacyNav = document.querySelector(".app-nav");
   const legacyChrome = Array.from(document.querySelectorAll("body > header, body > main, body > footer"));
   const sync = (view) => {

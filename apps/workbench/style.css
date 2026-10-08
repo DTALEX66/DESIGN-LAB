@@ -571,6 +571,17 @@ html,body{margin:0}
 .brand h1{margin:0;font-size:17px;line-height:1.15}
 .brand small{display:block;margin-top:4px;color:var(--secondary);font-size:10px;letter-spacing:.12em}
 .nav{display:flex;flex-direction:column;gap:7px;overflow:auto;padding-right:4px}
+/* The "more below" cue, shown only while the list actually overflows (see syncNavCue in
+   shell.ts). Sticky rather than absolute for the reason the horizontal cue documents at
+   `.app-nav.has-scroll-more::after`: an absolutely positioned pseudo-element is placed
+   against the scroll container's content box and slides away with the items, so the cue
+   disappears exactly when it is needed. */
+.nav.has-scroll-more::after{
+  content:"⌄";position:sticky;bottom:0;flex:0 0 26px;height:26px;margin-top:-26px;
+  display:grid;place-items:center;color:var(--secondary);font-size:24px;font-weight:700;line-height:1;
+  background:linear-gradient(180deg,transparent,var(--surface) 46%);
+  pointer-events:none;
+}
 .nav button{
   position:relative;
   display:flex;gap:12px;align-items:center;

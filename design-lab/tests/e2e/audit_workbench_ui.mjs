@@ -350,6 +350,107 @@ for (const width of widths) {
   await ctx.close();
 }
 
+// --- nav overflow in a short window, and the collapsed drawer in a narrow one ----------
+// The width sweep above runs at 900px+ heights, where 11 destinations fit and the sidebar
+// never overflows. Both failures guarded here were measured, not imagined: at 1280x720 the
+// nav hides 68px of list and at 900x480 it hides 308px, with no cue of any kind before
+// `.nav.has-scroll-more` existed; and below 840px every destination lives behind
+// #navToggle, where Escape used to leave the drawer open. Asserted as geometry and as
+// hit-tests, because a class can be present while the thing it styles paints nothing.
+for (const [w, h, label] of [[1280, 500, 'short'], [380, 844, 'narrow']]) {
+  const ctx = await b.newContext({ viewport: { width: w, height: h } });
+  const page = await ctx.newPage();
+  page.on('pageerror', (e) => add('pageerror', `${label} ${String(e).slice(0, 120)}`));
+  await page.goto(serviceUrl + '/workbench', { waitUntil: 'load' });
+  await page.locator('#token').fill(token);
+  await page.locator('#connect-form button').first().click();
+  await page.locator('#workspace').waitFor({ state: 'visible', timeout: 20000 });
+  await page.evaluate(() => { window.location.hash = '#/dashboard'; });
+  await page.waitForTimeout(900);
+
+  const NAV_STATE = () => {
+    const nav = document.querySelector('.sidebar .nav');
+    if (!nav) return { present: false };
+    const items = [...nav.querySelectorAll('button')];
+    const last = items[items.length - 1];
+    const reach = (el) => {
+      const r = el.getBoundingClientRect();
+      const cx = r.x + r.width / 2, cy = r.y + r.height / 2;
+      if (cy < 0 || cy > innerHeight || cx < 0 || cx > innerWidth) return 'offscreen';
+      const top = document.elementFromPoint(cx, cy);
+      return top && (top === el || el.contains(top) || top.contains(el)) ? 'hit' : 'covered';
+    };
+    const after = getComputedStyle(nav, '::after');
+    return {
+      present: true, items: items.length,
+      room: nav.scrollHeight - nav.clientHeight,
+      cue: nav.classList.contains('has-scroll-more'),
+      cueContent: after.content, cuePosition: after.position,
+      lastLabel: (last.textContent || '').trim(), lastReach: reach(last),
+      unreachable: items.filter((i) => reach(i) !== 'hit').length,
+      toggle: (() => {
+        const t = document.getElementById('navToggle');
+        return t ? { shown: t.offsetParent !== null, expanded: t.getAttribute('aria-expanded') } : null;
+      })(),
+    };
+  };
+
+  if (label === 'short') {
+    const before = await page.evaluate(NAV_STATE);
+    notes[`nav-${label}`] = before;
+    if (!before.present) add('nav-overflow', 'short: no sidebar nav to measure');
+    else if (before.room > 1) {
+      if (!before.cue) add('nav-overflow', `short: ${before.room}px of nav hidden with no cue`);
+      if (before.cueContent === 'none' || before.cuePosition !== 'sticky') {
+        add('nav-overflow', `short: cue claims ${before.cue} but paints content=${before.cueContent} at ${before.cuePosition}`);
+      }
+      if (before.lastReach !== 'offscreen' && before.lastReach !== 'covered') {
+        add('nav-overflow', `short: last item "${before.lastLabel}" reported ${before.lastReach} while overflowing`);
+      }
+      await page.evaluate(() => {
+        const nav = document.querySelector('.sidebar .nav');
+        nav.scrollTop = nav.scrollHeight;
+      });
+      await page.waitForTimeout(350);
+      const after = await page.evaluate(NAV_STATE);
+      notes[`nav-${label}-scrolled`] = after;
+      if (after.lastReach !== 'hit') {
+        add('nav-overflow', `short: after scrolling to the bottom "${after.lastLabel}" is ${after.lastReach}`);
+      }
+      if (after.cue) add('nav-overflow', 'short: the cue stays on once nothing is left below');
+    } else if (before.cue) {
+      add('nav-overflow', 'short: the cue is on while the nav does not overflow');
+    }
+  } else {
+    const closed = await page.evaluate(NAV_STATE);
+    notes['nav-narrow-closed'] = closed;
+    if (!closed.toggle || !closed.toggle.shown) {
+      add('nav-drawer', 'narrow: no visible #navToggle to open the drawer with');
+    } else {
+      if (closed.toggle.expanded !== 'false') add('nav-drawer', `narrow: drawer starts expanded=${closed.toggle.expanded}`);
+      if (closed.unreachable !== closed.items) {
+        add('nav-drawer', `narrow: ${closed.items - closed.unreachable} destinations are reachable while the drawer is closed`);
+      }
+      await page.locator('#navToggle').click();
+      await page.waitForTimeout(400);
+      const open = await page.evaluate(NAV_STATE);
+      notes['nav-narrow-open'] = open;
+      if (open.toggle.expanded !== 'true') add('nav-drawer', 'narrow: opening left aria-expanded false');
+      if (open.unreachable) {
+        add('nav-drawer', `narrow: ${open.unreachable} of ${open.items} destinations still unreachable with the drawer open`);
+      }
+      await page.keyboard.press('Escape');
+      await page.waitForTimeout(350);
+      const escaped = await page.evaluate(NAV_STATE);
+      notes['nav-narrow-escape'] = escaped;
+      if (escaped.toggle.expanded !== 'false') {
+        add('nav-drawer', `narrow: Escape left the drawer at aria-expanded=${escaped.toggle.expanded}`);
+      }
+    }
+  }
+  await ctx.close();
+}
+
 await b.close();
 
 notes.totalMetrics = metrics.length;

@@ -4942,24 +4942,27 @@ function mountB10Shell(routeView: HTMLElement, syncLegacyNavCue: () => void): B1
     { route: 'settings', label: '系统设置', hash: '#/settings' },
   ];
 
+  // Hoisted out of the sidebar literal because it carries its own overflow cue below.
+  // A <nav> element, not a div[aria-label]: role=generic does not support an accessible
+  // name, so the label was silently dropped and no navigation landmark existed on routed
+  // views (the legacy <nav> is hidden there).
+  const navList = el('nav', { class: 'nav', 'aria-label': 'DESIGN-LAB 导航' },
+    ...B10_NAV.map((n) => el('button', {
+      type: 'button',
+      dataset: { route: n.route },
+      'data-hash': n.hash,
+      onclick: () => { window.location.hash = n.hash; },
+    },
+      el('span', { class: 'nav-dot' }),
+      el('span', {}, n.label))));
+
   const sidebar = el('aside', { class: 'sidebar', id: 'app-sidebar' },
     el('div', { class: 'brand' },
       el('div', { class: 'brand-mark', 'aria-hidden': 'true' }),
       el('div', {},
         el('h1', {}, 'DESIGN-LAB'),
         el('small', {}, '设计智能与生产能力层'))),
-    // A <nav> element, not a div[aria-label]: role=generic does not support an
-    // accessible name, so the label was silently dropped and no navigation
-    // landmark existed on routed views (the legacy <nav> is hidden there).
-    el('nav', { class: 'nav', 'aria-label': 'DESIGN-LAB 导航' },
-      ...B10_NAV.map((n) => el('button', {
-        type: 'button',
-        dataset: { route: n.route },
-        'data-hash': n.hash,
-        onclick: () => { window.location.hash = n.hash; },
-      },
-        el('span', { class: 'nav-dot' }),
-        el('span', {}, n.label)))),
+    navList,
     // No identity route exists (/api/health returns status/version/scope only),
     // so the footer cannot name a logged-in workspace owner. 'Alex / Personal
     // Workspace' was leftover B10 mock-up content presented as fact.
@@ -4998,6 +5001,13 @@ function mountB10Shell(routeView: HTMLElement, syncLegacyNavCue: () => void): B1
   sidebar.addEventListener('click', (event: Event) => {
     if ((event.target as HTMLElement).closest('button')) setNavOpen(false);
   });
+  // Escape is what a keyboard user expects from a disclosure they opened with Enter.
+  // Without it the only way out is to find the toggle again by eye, because setNavOpen()
+  // has already moved focus into the drawer (measured at 380px: aria-expanded stayed
+  // 'true' through Escape before this handler existed).
+  window.addEventListener('keydown', (event: KeyboardEvent) => {
+    if (event.key === 'Escape' && sidebar.classList.contains('open')) setNavOpen(false);
+  });
   const topbar = el('header', { class: 'topbar' },
     navToggle,
     el('div', { class: 'search', id: 'openPalette', role: 'button', tabindex: '0' },
@@ -5024,6 +5034,20 @@ function mountB10Shell(routeView: HTMLElement, syncLegacyNavCue: () => void): B1
       topbar,
       el('section', { class: 'content', id: 'content' }, offlineNotice, routeView)));
   document.body.append(app);
+
+  // The sidebar nav is `overflow:auto`, and 11 destinations need 587px of it. At any
+  // window height at or below 720 the last ones fall below that edge with nothing to say
+  // so (measured: 68px of hidden list at 1280x720, 168px at 1280x620, 308px at 900x480),
+  // so the nav gets the same cue the legacy bottom bar already uses -- a sticky ::after
+  // inside the scroll container, which is the only form that survives scrolling there.
+  const syncNavCue = (): void => {
+    const more = navList.scrollHeight > navList.clientHeight + 1
+      && navList.scrollTop + navList.clientHeight < navList.scrollHeight - 1;
+    navList.classList.toggle('has-scroll-more', more);
+  };
+  navList.addEventListener('scroll', syncNavCue, { passive: true });
+  window.addEventListener('resize', syncNavCue);
+  syncNavCue();
 
   // Legacy chrome that owns the default (empty-hash) workbench view.
   const legacyNav = document.querySelector<HTMLElement>('.app-nav');
