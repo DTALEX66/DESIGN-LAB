@@ -1985,6 +1985,7 @@
       "outcome": "PASS",
       "reasons": [
         "STALE_SUBJECT_SHA",
+        "SOURCE_CHANGED_OR_MISSING:src/design_lab/design_layer.py",
         "SOURCE_CHANGED_OR_MISSING:src/design_lab/http_service.py",
         "SOURCE_CHANGED_OR_MISSING:apps/workbench/shell.ts",
         "ARTIFACT_CHANGED_OR_MISSING:docs/audits/DESIGNLAB-LAUNCH-REVIEW-PREFLIGHT-2026-10-08.md"
@@ -2355,6 +2356,7 @@
         "STALE_SUBJECT_SHA",
         "SOURCE_CHANGED_OR_MISSING:design-lab/schemas/task-ledger-r5-v1.schema.json",
         "SOURCE_CHANGED_OR_MISSING:design-lab/scripts/verify_ledger_schema_pairing.py",
+        "SOURCE_CHANGED_OR_MISSING:design-lab/scripts/verify_route_payload_contracts.py",
         "SOURCE_CHANGED_OR_MISSING:design-lab/scripts/verify_design_lab.py",
         "ARTIFACT_CHANGED_OR_MISSING:docs/audits/DESIGNLAB-LAUNCH-REVIEW-PREFLIGHT-2026-10-08.md"
       ],
@@ -3021,7 +3023,12 @@
       "outcome": "PASS",
       "reasons": [
         "STALE_SUBJECT_SHA",
-        "SOURCE_CHANGED_OR_MISSING:design-lab/schemas/design-system.schema.json"
+        "SOURCE_CHANGED_OR_MISSING:design-lab/config/object-model.json",
+        "SOURCE_CHANGED_OR_MISSING:design-lab/schemas/design-system.schema.json",
+        "SOURCE_CHANGED_OR_MISSING:design-lab/scripts/verify_object_model_backing.py",
+        "SOURCE_CHANGED_OR_MISSING:design-lab/tests/test_object_model_backing_gate.py",
+        "ARTIFACT_CHANGED_OR_MISSING:design-lab/config/object-model.json",
+        "ARTIFACT_CHANGED_OR_MISSING:design-lab/tests/test_object_model_backing_gate.py"
       ],
       "software": {
         "platform": "Windows-11-10.0.26100-SP0",
@@ -3044,17 +3051,77 @@
         "DL-R5-010"
       ],
       "verified": false
+    },
+    {
+      "artifacts": [
+        {
+          "path": "design-lab/schemas/brief-readback.schema.json",
+          "sha256": "e51e69057d732746c957385a6faf105ba3a10168dcfa7994e582cfcb6c3b1368"
+        },
+        {
+          "path": "src/design_lab/design_layer.py",
+          "sha256": "6521da202573ab2c6db5d2ee31b79c5f168975f13793a6b057c01dbbefe86239"
+        },
+        {
+          "path": "design-lab/tests/test_brief_readback_contract.py",
+          "sha256": "ac4a1730690e938034a5349ec8f7e700911448034bbe8617b36e73066928d98a"
+        },
+        {
+          "path": "design-lab/scripts/verify_route_payload_contracts.py",
+          "sha256": "ac4cc0348b0011fa30b2acbcb09ab5ca8093687bcf14e6f0b27f3551d6c1afa4"
+        },
+        {
+          "path": "design-lab/scripts/verify_object_model_backing.py",
+          "sha256": "68ffbb2a0d3e78c5957c03583fd88a3cbed1e3d77a1b5e8045cd34991ad7961b"
+        },
+        {
+          "path": "design-lab/tests/test_object_model_backing_gate.py",
+          "sha256": "cb9a9adb286d2a7d80e9b2e617aaefb6d6cdae5d2f5f3f2e51e93849c2084921"
+        }
+      ],
+      "binding": "COMMIT",
+      "id": "r5-003-brief-readback-contract-and-the-prose-classifier-correction-20261008",
+      "kind": "local_test",
+      "note": "A live payload that nobody validated, next to a contract nobody executed, for over a month. MEASURED: GET /api/projects/<id>/briefs was recorded SCHEMA_LESS in config/contract-bindings.json (a paging list with no schemaVersion, described only by a TypeScript interface in shell.ts), while the file the object model names for a brief, schemas/design-brief.schema.json, requires discipline/objective/audience/deliverables that NO code in this repository stores -- the real written, read and rendered record is title, goals (non-empty), constraints?, reference_asset_ids (deduped, max 32, each a real asset of the same project), spec_sha256, version, superseded_by, created_at. design-lab/schemas/brief-readback.schema.json now closes the envelope (schemaVersion, briefs, next_cursor, additionalProperties:false, at most 100 rows to match the LIMIT 101 page) and pins those nine fields with the same limits the writer enforces: goals minItems 1, references maxItems 32, spec_sha256 ^sha256:[0-9a-f]{64}$, version minimum 1, brief_id/superseded_by/next_cursor ^brief-[0-9a-f]{32}$. The reference ids are bounded (max 32, non-empty) but deliberately NOT pattern-pinned to the writer's img-[0-9a-f]{64} shape: a row written before that rule existed would then turn a read into a 500, and nothing in this repository proves such a row cannot exist, so the tightening is left as a named next step instead of being done silently. design_layer._check_brief_readback runs it on list, get AND lineage, so a renamed key, a dropped sha256: prefix or a version 0 answers 500 BRIEF_CONTRACT_VIOLATION carrying the field paths, instead of reaching the page as a short record a reader would interpret as an empty project. deliberately NOT re-pointed at the object row: design-brief.schema.json describes a content model the project may still mean to own, and a silent registry edit would have decided otherwise -- both declarations now stand and the divergence is written into the binding reason. That comment then exposed a defect in the classifier itself, which is the second half of this row. verify_object_model_backing.py matched schema names against RAW file text, so a sentence talking about a schema was indistinguishable from loading one: my explanatory comment promoting nothing made the gate answer 'brief is now PRODUCT'. Under the corrected rule -- tokenize for Python, dropping comments and strings that stand alone as statements (docstrings), keeping paths on assignment right-hand sides and inside calls; whole-line comments dropped for TS/mjs; unparsable files fall back to whole-line comment removal rather than pretending prose is code -- three rows lost a PRODUCT claim and each was re-checked by reading code, not by trusting the bucket: preflight-report (preflight.schema.json appears in src/ only in docstrings; the emitted report is bound to artifact-preflight.schema.json), handoff-package (named only in a docstring, and its own 'design-lab/handoff-readiness/v1' is bound by no schema) and quality-report (jury-record.schema.json is V1 and mentioned only in prose, while human_jury.py:51 loads and :182 reads assurance-jury-record-v2.schema.json). quality-report was re-pointed at V2 on the same evidence rule used for design-system -- same object, the enforced version -- and the repoint guard now compares both moved rows against the path their emitter opens. Pinned counts corrected from 7/9/5 to 5/10/6 with dated membership rows, so the object model now states what six of the twenty-one objects genuinely have behind them. Every earlier product count in the audit (sections 25, 26, 27 and 28.5) is recorded as void for that specific claim in section 28.6; no historical line is rewritten. Six new tests pin the prose rule (whole-line comment, trailing comment, module docstring and function docstring must not promote an object; an assignment or a call argument must). A harness fault of mine is recorded here rather than hidden: the brief-contract test restored DesignLayer._brief from the attribute instead of from __dict__, which installs a plain function on the class, so the next self._brief(row) bound self as the first argument and raised 'takes 1 positional argument but 2 were given' -- 47 failures across three other modules in one bound run, each of which passed alone, surfaced to HTTP callers as 500 INTERNAL. py_compile accepted it, as it accepted a joined def line earlier in the same wave: for these edits a clean compile is not evidence, running the suite is. verify_route_payload_contracts.py gained a brief-readback binding whose compared payloads are the bytes the route itself wrote, from data created through the write routes (POST a brief, POST a revision, then GET the list and GET it for a project with nothing filed). Two refusals during the work are recorded rather than smoothed over: the seed first offered asset id 'a1' and the writer answered INVALID_REFERENCE_ASSET_ID -- the check working, so it was satisfied with a real img-<64 hex> asset row instead of relaxed -- and inserting the seed method split __enter__ from its return self, a break py_compile accepted (verified: an equivalent joined-line sample compiles with rc=0) and which only re-reading the method boundaries caught. A test now pins that all three read paths still call the guard, because a silently un-judged read path is how this class of contract dies. FALSIFIED deliberately: 19 tests inject each lie (renamed key, prefixless digest, empty goals, blank title, version 0, extra field on a closed record, malformed id, missing envelope version, wrong envelope version, bad cursor), one points the guard at a schema without $defs.brief to prove it reads the shipped file instead of a bundled constant, and one writes a brief through the real path and reads it back through all three. The four design_layer.py line pointers in the ledger were re-resolved against the moved file rather than guessed: :63 (new version const), :166 EVENT_KINDS, :291 validate_token_document, :799 hash_document. VERIFIED at this HEAD: the bound run reports 257 tests, 0 failures, 0 errors and ZERO SKIPPES only after PATH was given the declared nodejs-lts 24.18.0 directory -- test_workbench_native_ui gates itself on shutil.which('node') and nothing else, so the two earlier bound runs in this same wave that also printed OK were silently carrying 14 skipped UI cases each. That is the 'local OK can be a skip' failure mode, and it was invisible in the summary line: the case count was 257 either way, only skipped=14 vs skipped=0 distinguished them. Recorded here because the UI is exactly the surface this wave changed (the brief envelope gained a schemaVersion and the preflight panel gained a delivery-bom finding), so a skipped UI module would have meant the readback was never actually rendered. Also verified: VERIFY_ROUTE_PAYLOAD_CONTRACTS=PASS bindings=6 (was 5) with brief-readback cases=2 object-locations=4; VERIFY_CONTRACT_BINDINGS=PASS routes=53 dispatched=53 bound=15 schema_less=38 (was 14/39); DESIGN_KERNEL=PASS; test_brief_readback_contract 19 OK, test_design_layer_http 20 OK, test_design_layer_revision 14 OK, test_route_payload_contracts 20 OK, test_evidence_artifact_presence 4 OK, test_gate_reachability 4 OK, test_test_selfsufficiency_gate 13 OK. E1/E2 only: structural contract plus a controlled HTTP runtime against a scratch project store; no design host involved, so host_live and delivery stay PARTIAL and E3/E4/E5 are untouched by this row.",
+      "observed_at": "2026-10-08T04:44:35Z",
+      "outcome": "PASS",
+      "reasons": [
+        "STALE_SUBJECT_SHA",
+        "SOURCE_CHANGED_OR_MISSING:design-lab/config/contract-bindings.json"
+      ],
+      "software": {
+        "platform": "Windows-11-10.0.26100-SP0",
+        "python": "3.13.14 (project .venv)",
+        "runner": "python scripts/run_bound_test_suite.py --label r5-003-brief-readback-and-prose-classifier-with-node-20261008 --modules test_brief_readback_contract test_design_layer_http test_design_layer_revision test_route_payload_contracts test_contract_bindings test_object_model_backing_gate test_evidence_artifact_presence test_gate_reachability test_test_selfsufficiency_gate test_template_contracts_gate test_delivery_bom test_delivery_receipt_wiring test_rollback_state_classifier test_delivery_evidence_ui_contract test_workbench_native_ui -> run_id=testrun-20261008T044339Z-forward-repeat-9c2ca3652dce, tests_run=257, failures=0, errors=0, skipped=0, duration=55.518s, order=forward, worktree_clean=True",
+        "test_manifest": "sha256:710aaaca91d497c138999309510c7d171f5f1062f76ff99f5e021122a2cf818c",
+        "worktree_digest": "sha256:9c2ca3652dcee769f36d1ffc240af21e1f6bb9ff38ad238f113403b09d43ae99"
+      },
+      "subject_files": {
+        "design-lab/config/contract-bindings.json": "d8b99a1955c44dd486bb6638736d954a93692bed346860330e05ea8568d6ed29",
+        "design-lab/config/object-model.json": "1ec285aa9a003b067830354bdc010feae63feb5fc3d90103e4e229e161c0f404",
+        "design-lab/schemas/brief-readback.schema.json": "e51e69057d732746c957385a6faf105ba3a10168dcfa7994e582cfcb6c3b1368",
+        "design-lab/scripts/verify_object_model_backing.py": "68ffbb2a0d3e78c5957c03583fd88a3cbed1e3d77a1b5e8045cd34991ad7961b",
+        "design-lab/scripts/verify_route_payload_contracts.py": "ac4cc0348b0011fa30b2acbcb09ab5ca8093687bcf14e6f0b27f3551d6c1afa4",
+        "design-lab/tests/test_brief_readback_contract.py": "ac4a1730690e938034a5349ec8f7e700911448034bbe8617b36e73066928d98a",
+        "design-lab/tests/test_object_model_backing_gate.py": "cb9a9adb286d2a7d80e9b2e617aaefb6d6cdae5d2f5f3f2e51e93849c2084921",
+        "src/design_lab/design_layer.py": "6521da202573ab2c6db5d2ee31b79c5f168975f13793a6b057c01dbbefe86239"
+      },
+      "subject_sha": "0aded7355c36ad02d54fa7462f85ece07e6921bd",
+      "task_ids": [
+        "DL-R5-003"
+      ],
+      "verified": false
     }
   ],
   "fresh": false,
   "freshnessMeaning": "at generation only; check verifies bound-input integrity, not current Git or cloud state",
-  "generatedAt": "2026-10-08T04:10:49+00:00",
+  "generatedAt": "2026-10-08T04:45:13+00:00",
   "gitStateMeaning": "generation-time observation, not current HEAD",
   "ledgerUpdatedAt": "2026-10-08T03:04:03Z",
   "note": "DONE_LOCAL concerns the declared task axes and dependencies, not a product release or hosted CI.",
   "schemaVersion": "design-lab/task-progress/r5-v1",
   "subjectMeaning": "subjectType=WORKTREE means the tree was dirty at generation; worktreeDigest covers HEAD plus the non-generated changes",
-  "subjectSha": "c626b8d216e5972fd4fdde6ea1bb8084ca413c06",
+  "subjectSha": "7aae88ddb5c673ddf96cd34437579a03ed905c61",
   "subjectType": "COMMIT",
   "taskpack": "DL-TP-20260908-R5",
   "taskpackHash": "31dde89eb4ede81fe88c0a5c5144adfb86af8db4c4d8c263bde2199180369b69",
@@ -5558,10 +5625,10 @@
       "unresolved_conditions": []
     }
   ],
-  "testRunAt": "2026-10-08T04:09:13+00:00",
-  "testRunId": "testrun-20261008T040842Z-forward-repeat-89ef3f81b002",
-  "testRunMeaning": "bound run: python scripts/run_bound_test_suite.py --label r5-010-design-system-row-and-token-contract-20261008 --modules test_object_model_backing_gate test_oda4_0204_object_model test_oda4_0204b_object_model_roundtrip test_design_system_tokens test_design_system_tokens_http test_interop_dtcg test_design_system_token_form_contract test_route_payload_contracts test_contract_bindings test_evidence_artifact_presence test_gate_reachability test_research_store test_delivery_bom test_template_contracts_gate",
+  "testRunAt": "2026-10-08T04:44:35+00:00",
+  "testRunId": "testrun-20261008T044339Z-forward-repeat-9c2ca3652dce",
+  "testRunMeaning": "bound run: python scripts/run_bound_test_suite.py --label r5-003-brief-readback-and-prose-classifier-with-node-20261008 --modules test_brief_readback_contract test_design_layer_http test_design_layer_revision test_route_payload_contracts test_contract_bindings test_object_model_backing_gate test_evidence_artifact_presence test_gate_reachability test_test_selfsufficiency_gate test_template_contracts_gate test_delivery_bom test_delivery_receipt_wiring test_rollback_state_classifier test_delivery_evidence_ui_contract test_workbench_native_ui",
   "testRunResult": "OK",
   "worktreeClean": true,
-  "worktreeDigest": "sha256:3c75cc5e221ce6606c5cf03c45887f736514f359adcf22e91a8679757e11be59"
+  "worktreeDigest": "sha256:3e605ced21b6afd13250176230abbe87eb9b264d5b3bf5324532eebdbea0704d"
 }
