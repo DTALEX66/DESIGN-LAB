@@ -275,7 +275,9 @@
         "OUTCOME_NOT_PASS",
         "STALE_SUBJECT_SHA",
         "SOURCE_CHANGED_OR_MISSING:apps/workbench/workbench.ts",
-        "SOURCE_CHANGED_OR_MISSING:apps/workbench/index.html"
+        "SOURCE_CHANGED_OR_MISSING:apps/workbench/index.html",
+        "SOURCE_CHANGED_OR_MISSING:design-lab/tests/test_workbench_native_ui.py",
+        "ARTIFACT_CHANGED_OR_MISSING:design-lab/tests/test_workbench_native_ui.py"
       ],
       "software": {
         "os": "Windows",
@@ -521,7 +523,9 @@
         "STALE_SUBJECT_SHA",
         "SOURCE_CHANGED_OR_MISSING:src/design_lab/readiness/__pycache__/__init__.cpython-313.pyc",
         "SOURCE_CHANGED_OR_MISSING:src/design_lab/readiness/__pycache__/host_matrix.cpython-313.pyc",
-        "SOURCE_CHANGED_OR_MISSING:src/design_lab/readiness/__pycache__/model_radar.cpython-313.pyc"
+        "SOURCE_CHANGED_OR_MISSING:src/design_lab/readiness/__pycache__/model_radar.cpython-313.pyc",
+        "SOURCE_CHANGED_OR_MISSING:design-lab/tests/test_model_manifest.py",
+        "ARTIFACT_CHANGED_OR_MISSING:design-lab/tests/test_model_manifest.py"
       ],
       "software": {
         "os": "Windows",
@@ -612,7 +616,9 @@
         "STALE_SUBJECT_SHA",
         "SOURCE_CHANGED_OR_MISSING:src/design_lab/generators/__pycache__/comfy_http.cpython-313.pyc",
         "SOURCE_CHANGED_OR_MISSING:src/design_lab/generators/__pycache__/comfy_task.cpython-313.pyc",
-        "SOURCE_CHANGED_OR_MISSING:src/design_lab/generators/comfy_task.py"
+        "SOURCE_CHANGED_OR_MISSING:src/design_lab/generators/comfy_task.py",
+        "SOURCE_CHANGED_OR_MISSING:design-lab/tests/test_comfy_http.py",
+        "ARTIFACT_CHANGED_OR_MISSING:design-lab/tests/test_comfy_http.py"
       ],
       "software": {
         "os": "Windows",
@@ -655,7 +661,8 @@
       "outcome": "PARTIAL",
       "reasons": [
         "OUTCOME_NOT_PASS",
-        "STALE_SUBJECT_SHA"
+        "STALE_SUBJECT_SHA",
+        "SOURCE_CHANGED_OR_MISSING:design-lab/tests/test_rir_source_import.py"
       ],
       "software": {
         "os": "Windows",
@@ -698,7 +705,9 @@
         "SOURCE_CHANGED_OR_MISSING:apps/workbench/workbench.ts",
         "SOURCE_CHANGED_OR_MISSING:apps/workbench/shell.ts",
         "SOURCE_CHANGED_OR_MISSING:src/design_lab/workbench.py",
-        "SOURCE_CHANGED_OR_MISSING:apps/workbench/tests/appshell.mjs"
+        "SOURCE_CHANGED_OR_MISSING:design-lab/tests/test_workbench_native_ui.py",
+        "SOURCE_CHANGED_OR_MISSING:apps/workbench/tests/appshell.mjs",
+        "ARTIFACT_CHANGED_OR_MISSING:design-lab/tests/test_workbench_native_ui.py"
       ],
       "software": {
         "os": "Windows",
@@ -739,7 +748,9 @@
       "outcome": "PARTIAL",
       "reasons": [
         "OUTCOME_NOT_PASS",
-        "STALE_SUBJECT_SHA"
+        "STALE_SUBJECT_SHA",
+        "SOURCE_CHANGED_OR_MISSING:design-lab/tests/test_illustrator_com_adapter.py",
+        "ARTIFACT_CHANGED_OR_MISSING:design-lab/tests/test_illustrator_com_adapter.py"
       ],
       "software": {
         "os": "Windows",
@@ -781,7 +792,11 @@
       "outcome": "PARTIAL",
       "reasons": [
         "OUTCOME_NOT_PASS",
-        "STALE_SUBJECT_SHA"
+        "STALE_SUBJECT_SHA",
+        "SOURCE_CHANGED_OR_MISSING:design-lab/tests/test_photoshop_com_adapter.py",
+        "SOURCE_CHANGED_OR_MISSING:design-lab/tests/test_photoshop_patch_plan.py",
+        "SOURCE_CHANGED_OR_MISSING:design-lab/tests/test_photoshop_legacy_native.py",
+        "ARTIFACT_CHANGED_OR_MISSING:design-lab/tests/test_photoshop_com_adapter.py"
       ],
       "software": {
         "os": "Windows",
@@ -1427,7 +1442,9 @@
         "STALE_SUBJECT_SHA",
         "SOURCE_CHANGED_OR_MISSING:src/design_lab/generators/__pycache__/comfy_http.cpython-313.pyc",
         "SOURCE_CHANGED_OR_MISSING:src/design_lab/generators/__pycache__/comfy_task.cpython-313.pyc",
-        "SOURCE_CHANGED_OR_MISSING:src/design_lab/generators/comfy_task.py"
+        "SOURCE_CHANGED_OR_MISSING:src/design_lab/generators/comfy_task.py",
+        "SOURCE_CHANGED_OR_MISSING:design-lab/tests/test_comfy_http.py",
+        "ARTIFACT_CHANGED_OR_MISSING:design-lab/tests/test_comfy_http.py"
       ],
       "software": {
         "os": "Windows",
@@ -1512,7 +1529,9 @@
       "reasons": [
         "OUTCOME_NOT_PASS",
         "STALE_SUBJECT_SHA",
-        "SOURCE_CHANGED_OR_MISSING:apps/workbench/package.json"
+        "SOURCE_CHANGED_OR_MISSING:apps/workbench/package.json",
+        "SOURCE_CHANGED_OR_MISSING:design-lab/tests/test_workbench_native_ui.py",
+        "ARTIFACT_CHANGED_OR_MISSING:design-lab/tests/test_workbench_native_ui.py"
       ],
       "software": {
         "os": "Windows",
@@ -1596,8 +1615,10 @@
         "STALE_SUBJECT_SHA",
         "SOURCE_CHANGED_OR_MISSING:src/design_lab/http_service.py",
         "SOURCE_CHANGED_OR_MISSING:design-lab/tests/test_service_http.py",
+        "SOURCE_CHANGED_OR_MISSING:design-lab/tests/test_workbench_native_ui.py",
         "SOURCE_CHANGED_OR_MISSING:apps/workbench/shell.ts",
-        "SOURCE_CHANGED_OR_MISSING:apps/workbench/build/main.js"
+        "SOURCE_CHANGED_OR_MISSING:apps/workbench/build/main.js",
+        "ARTIFACT_CHANGED_OR_MISSING:design-lab/tests/test_workbench_native_ui.py"
       ],
       "software": {
         "node": "v24.18.0 (scoop nodejs-lts/current on PATH; without it 14 native-UI cases skip)",
@@ -1724,6 +1745,7 @@
         "STALE_SUBJECT_SHA",
         "SOURCE_CHANGED_OR_MISSING:src/design_lab/cli.py",
         "SOURCE_CHANGED_OR_MISSING:src/design_lab/http_service.py",
+        "SOURCE_CHANGED_OR_MISSING:design-lab/tests/test_workbench_launch.py",
         "ARTIFACT_CHANGED_OR_MISSING:docs/audits/DESIGNLAB-LAUNCH-REVIEW-PREFLIGHT-2026-10-08.md"
       ],
       "software": {
@@ -1847,6 +1869,7 @@
       "reasons": [
         "STALE_SUBJECT_SHA",
         "SOURCE_CHANGED_OR_MISSING:apps/workbench/shell.ts",
+        "SOURCE_CHANGED_OR_MISSING:design-lab/tests/test_native_tasks.py",
         "ARTIFACT_CHANGED_OR_MISSING:docs/audits/DESIGNLAB-LAUNCH-REVIEW-PREFLIGHT-2026-10-08.md"
       ],
       "software": {
@@ -1885,6 +1908,7 @@
       "reasons": [
         "STALE_SUBJECT_SHA",
         "SOURCE_CHANGED_OR_MISSING:src/design_lab/cli.py",
+        "SOURCE_CHANGED_OR_MISSING:design-lab/tests/test_native_tasks.py",
         "ARTIFACT_CHANGED_OR_MISSING:docs/audits/DESIGNLAB-LAUNCH-REVIEW-PREFLIGHT-2026-10-08.md"
       ],
       "software": {
@@ -2040,6 +2064,7 @@
         "STALE_SUBJECT_SHA",
         "SOURCE_CHANGED_OR_MISSING:design-lab/scripts/verify_identity_gate.py",
         "SOURCE_CHANGED_OR_MISSING:design-lab/scripts/verify_ledger_subject_binding.py",
+        "SOURCE_CHANGED_OR_MISSING:design-lab/scripts/verify_design_lab.py",
         "SOURCE_CHANGED_OR_MISSING:src/design_lab/runtime/audit_trail.py",
         "SOURCE_CHANGED_OR_MISSING:design-lab/scripts/verify_contract_bindings.py",
         "SOURCE_CHANGED_OR_MISSING:design-lab/config/contract-bindings.json",
@@ -2329,6 +2354,7 @@
         "STALE_SUBJECT_SHA",
         "SOURCE_CHANGED_OR_MISSING:design-lab/schemas/task-ledger-r5-v1.schema.json",
         "SOURCE_CHANGED_OR_MISSING:design-lab/scripts/verify_ledger_schema_pairing.py",
+        "SOURCE_CHANGED_OR_MISSING:design-lab/scripts/verify_design_lab.py",
         "ARTIFACT_CHANGED_OR_MISSING:docs/audits/DESIGNLAB-LAUNCH-REVIEW-PREFLIGHT-2026-10-08.md"
       ],
       "software": {
@@ -2791,6 +2817,7 @@
       "observed_at": "2026-10-08T01:37:16Z",
       "outcome": "PASS",
       "reasons": [
+        "STALE_SUBJECT_SHA",
         "SOURCE_CHANGED_OR_MISSING:design-lab/config/contract-bindings.json",
         "SOURCE_CHANGED_OR_MISSING:docs/audits/DESIGNLAB-LAUNCH-REVIEW-PREFLIGHT-2026-10-08.md",
         "ARTIFACT_CHANGED_OR_MISSING:design-lab/config/contract-bindings.json"
@@ -2814,17 +2841,60 @@
         "DL-R5-001"
       ],
       "verified": false
+    },
+    {
+      "artifacts": [
+        {
+          "path": "design-lab/scripts/verify_test_selfsufficiency.py",
+          "sha256": "13b8a24241feba67beaaba4a31b84d6028a590f51de2873332feb8e0d8be9c75"
+        },
+        {
+          "path": "design-lab/tests/test_test_selfsufficiency_gate.py",
+          "sha256": "e27cd48c96af187f9f27909febf47837362e3fc478abdbe28bd7efde093e05c8"
+        }
+      ],
+      "binding": "COMMIT",
+      "id": "r5-003-seventeen-test-files-ran-nothing-and-one-borrowed-its-import-path-20261008",
+      "kind": "local_test",
+      "note": "Two shapes that made 'it passed' mean nothing, both measured across the whole test tree rather than inferred from one failure. (a) 17 of 206 modules under design-lab/tests defined TestCases but had no ``if __name__ == '__main__': unittest.main()`` block, so executing one of them imported the file, collected nothing and exited 0 -- a per-module sweep that reads exit codes records that as a pass, and mine did, twice today. With the guard added the same 17 files run 184 tests between them, green, with the COM/host-bound cases skipped and naming their reason rather than being silently absent. (b) test_reconstruction_semantics.py carried 13 errors under a fresh process and passed under CI's single-process discovery, because reconstruction lives at packages/capabilities/reconstruction and only its sibling modules insert that root: the 13 behaviours were being verified or not depending on which module the runner had imported first. I had filed those 13 errors as a capability gap; the code is present and all 13 pass once the module can import it, and the same latent shape in test_workbench_launch.py (design_lab reached only through the subprocess PYTHONPATH it builds) was fixed the same way. The new tracked gate design-lab/scripts/verify_test_selfsufficiency.py, wired into verify_design_lab.py so CI runs it, refuses NOT_EXECUTABLE / NO_CASES / UNPARSEABLE / BORROWED_IMPORT_PATH and fails closed on an empty scan or an empty root inventory. Its own rule was wrong once before it was right and that is part of the record: a substring test for 'src'/'capabilities' anywhere in the file reported 35 violations where the tree had 1, because it matched prose and ignored the two spellings the repository really uses (a ``sys.path[:0] = [...]`` slice assignment, and a module-level variable inserted one call later); reading the AST of the sys.path statements leaves the one real gap and no invented work. No find_spec and no site-packages probing, because a gate whose colour depends on whether design_lab happens to be installed on this host gets silenced by the host that finds it inconvenient. 13 tests in the gate's own module, two of them weakened copies -- erase the entry-guard rule or the bootstrap rule in a copy and the same scratch tree stops being convicted, so the red is known to come from the rules rather than the fixtures. Bound run at this subject: 452 tests, 0 failures, 0 errors, 1 skip named (source checkout, so no packaged Workbench resource to serve). Shipped tree: TEST_SELF_SUFFICIENCY=OK scanned=207 executable=207 violations=0. Cost stated rather than hidden: the guards landed on five files that nine records hash as artefacts, so the drift inventory went 29 -> 38 across 11 paths; none of those records is rewritten. Also corrected in section 24: the reconstruction evidence module does not hang -- one of its 37 methods takes 86.2s and ends in an error, which overruns any time box without a loop. That error is still open and is not claimed here.",
+      "observed_at": "2026-10-08T01:58:45Z",
+      "outcome": "PASS",
+      "reasons": [
+        "SOURCE_CHANGED_OR_MISSING:docs/audits/DESIGNLAB-LAUNCH-REVIEW-PREFLIGHT-2026-10-08.md"
+      ],
+      "software": {
+        "platform": "Windows-11-10.0.26100-SP0",
+        "python": "3.13.14 (project .venv)",
+        "runner": "python scripts/run_bound_test_suite.py --label r5-003-test-selfsufficiency-gate-20261008 --modules test_test_selfsufficiency_gate test_evidence_artifact_presence test_gate_reachability test_workbench_launch test_reconstruction_semantics test_rollback_state_classifier test_delivery_receipt_wiring test_delivery_evidence_ui_contract test_service_http test_contract_bindings test_route_payload_contracts test_domain_pack_readback test_ledger_schema test_state_vocabularies_gate test_capability_self_description_gate test_rights_registry_gate test_handoff_readiness test_rights_ledger test_rights_http test_research_store test_research_http test_workbench_css_single_definition test_backup_watches_written_tables test_current_version_rule test_quality_store -> run_id=testrun-20261008T015738Z-forward-repeat-2c5ba49320f9, tests_run=452, failures=0, errors=0, skipped=1, duration=67.791s, order=forward, worktree_clean=True",
+        "test_manifest": "sha256:250d8e03bd04d12841087dbe3b9a357eb508ac5cc9c765ee4ef46b168e184977",
+        "worktree_digest": "sha256:2c5ba49320f97b3a29b8bf90d9d9b1a9072b80b7b8d8a126b5e3333bb7f029e4"
+      },
+      "subject_files": {
+        "design-lab/scripts/verify_design_lab.py": "8b577d2e1de6e9a31890eedae0948f1caa0b95ee67310c2976eed38b4dc456ac",
+        "design-lab/scripts/verify_test_selfsufficiency.py": "13b8a24241feba67beaaba4a31b84d6028a590f51de2873332feb8e0d8be9c75",
+        "design-lab/tests/test_evidence_artifact_presence.py": "7d50c3dca52c475bd6f98f0294aec47547188db1f0006001279afd239a10aae6",
+        "design-lab/tests/test_reconstruction_semantics.py": "67bceae1701d30a9aa18be01be5f0ed0b0ad440dc1c205b98b354195dbbb7d25",
+        "design-lab/tests/test_test_selfsufficiency_gate.py": "e27cd48c96af187f9f27909febf47837362e3fc478abdbe28bd7efde093e05c8",
+        "design-lab/tests/test_workbench_launch.py": "a0729282a4e4240688c21f238a92212420f8d48838cf6797a9bce7041f544972",
+        "docs/audits/DESIGNLAB-LAUNCH-REVIEW-PREFLIGHT-2026-10-08.md": "f427386c2564246dcc7a7fea7cb31517425869114b288ecffefc71610b0ad474"
+      },
+      "subject_sha": "b50278a2c206b3d675a04652be4ba0c82a69d109",
+      "task_ids": [
+        "DL-R5-003",
+        "DL-R5-001"
+      ],
+      "verified": false
     }
   ],
   "fresh": false,
   "freshnessMeaning": "at generation only; check verifies bound-input integrity, not current Git or cloud state",
-  "generatedAt": "2026-10-08T01:38:12+00:00",
+  "generatedAt": "2026-10-08T01:59:16+00:00",
   "gitStateMeaning": "generation-time observation, not current HEAD",
-  "ledgerUpdatedAt": "2026-10-08T01:37:59Z",
+  "ledgerUpdatedAt": "2026-10-08T01:59:15Z",
   "note": "DONE_LOCAL concerns the declared task axes and dependencies, not a product release or hosted CI.",
   "schemaVersion": "design-lab/task-progress/r5-v1",
   "subjectMeaning": "subjectType=WORKTREE means the tree was dirty at generation; worktreeDigest covers HEAD plus the non-generated changes",
-  "subjectSha": "0858d01557913aa99f1d618b9c30e8fa85071188",
+  "subjectSha": "b50278a2c206b3d675a04652be4ba0c82a69d109",
   "subjectType": "WORKTREE",
   "taskpack": "DL-TP-20260908-R5",
   "taskpackHash": "31dde89eb4ede81fe88c0a5c5144adfb86af8db4c4d8c263bde2199180369b69",
@@ -5328,10 +5398,10 @@
       "unresolved_conditions": []
     }
   ],
-  "testRunAt": "2026-10-08T01:37:16+00:00",
-  "testRunId": "testrun-20261008T013608Z-forward-repeat-fd85e35aa72e",
-  "testRunMeaning": "bound run: python scripts/run_bound_test_suite.py --label r5-020-emitter-pointer-is-read-20261008 --modules test_rollback_state_classifier test_delivery_receipt_wiring test_delivery_evidence_ui_contract test_service_http test_contract_bindings test_route_payload_contracts test_evidence_artifact_presence test_domain_pack_readback test_ledger_schema test_state_vocabularies_gate test_gate_reachability test_capability_self_description_gate test_rights_registry_gate test_handoff_readiness test_rights_ledger test_rights_http test_research_store test_research_http test_workbench_css_single_definition test_backup_watches_written_tables test_current_version_rule test_quality_store",
+  "testRunAt": "2026-10-08T01:58:45+00:00",
+  "testRunId": "testrun-20261008T015738Z-forward-repeat-2c5ba49320f9",
+  "testRunMeaning": "bound run: python scripts/run_bound_test_suite.py --label r5-003-test-selfsufficiency-gate-20261008 --modules test_test_selfsufficiency_gate test_evidence_artifact_presence test_gate_reachability test_workbench_launch test_reconstruction_semantics test_rollback_state_classifier test_delivery_receipt_wiring test_delivery_evidence_ui_contract test_service_http test_contract_bindings test_route_payload_contracts test_domain_pack_readback test_ledger_schema test_state_vocabularies_gate test_capability_self_description_gate test_rights_registry_gate test_handoff_readiness test_rights_ledger test_rights_http test_research_store test_research_http test_workbench_css_single_definition test_backup_watches_written_tables test_current_version_rule test_quality_store",
   "testRunResult": "OK",
   "worktreeClean": false,
-  "worktreeDigest": "sha256:22cdbbf152c58341f750482cf13cde48c0d6008498e9e7e84a455b370c28f14c"
+  "worktreeDigest": "sha256:836085747d3cf31ab06fefb3dcbd31c644c57d554680e8ed1117e0e5242e1ea2"
 }

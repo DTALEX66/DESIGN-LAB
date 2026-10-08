@@ -3,7 +3,7 @@
   "taskpack": "DL-TP-20260908-R5",
   "plan_path": "docs/history/taskpacks/r5-20260908/02-TASKS.md",
   "baseline_sha": "ed8d45ab2857b312f6056c43f7bb5e19dd9b65eb",
-  "updated_at": "2026-10-08T01:37:59Z",
+  "updated_at": "2026-10-08T01:59:15Z",
   "source": {
     "path": "docs/history/taskpacks/r5-20260908/tasks.json",
     "sha256": "31dde89eb4ede81fe88c0a5c5144adfb86af8db4c4d8c263bde2199180369b69"
@@ -7926,6 +7926,45 @@
         }
       ],
       "note": "A field every row carried and nobody read. 18 route rows in contract-bindings.json state where their version comes from as ``emitter: 'src/….py:NN'``, and verify_contract_bindings.py has always stripped the ``:NN`` with ``instance_path()`` -- so the number was decoration, and it proved itself so the day this wave landed: adding a docstring paragraph to native_delivery.py moved ``READBACK_SCHEMA_VERSION`` from line 65 to 72, the row still said ``:65``, and VERIFY_CONTRACT_BINDINGS stayed green. Measured before fixing rather than assumed: 11 of 18 lines wrote their version, 4 named a module-level constant holding it, and 3 pointed at unrelated code (`production_preflight.py:324` on `def _aggregate(findings)`, `jury_review.py:53` on `return {`, `native_delivery.py:65` on a blank line). The rule now mirrors the file-half rule -- the line must write the version in code or name the constant whose value it is -- and a missing number, a number past the end of the file and a line inside a docstring are three separately named failures (EMITTER_POINTER_SHAPE / _OUT_OF_RANGE / _IS_PROSE / _NOT_THE_VERSION). Two of this wave's own mistakes are part of the record because they are why the shape is what it is: the check first sat inside rule 7 and produced a second red line for one moved value, which the file's pre-existing 'exactly these errors' assertion caught -- the assertion was right and the gate moved, not the test; and the first pointer repair used a looser rule than the gate and 'fixed' the preflight row onto a sentence inside a docstring (line 37) while the real emission is at 365, so the repair was rewritten to ask the gate's own function which rows are unhonoured and to move each to the nearest line the gate accepts. One row that repair moved unnecessarily (`photoshop_com.py:155`, a subscript write of the version) was put back. Five new cases, one of which loads a weakened COPY of the gate with emitter_pointer_errors short-circuited to ``return []`` and shows the same scratch ledgers stop being convicted, so the red is known to come from the rule and not from the fixture. Bound run at this subject: 423 tests, 0 failures, 0 errors, 0 skips, clean tree; the three gates that import this module (verify_state_vocabularies, verify_route_payload_contracts, verify_capability_self_description) re-ran green, and the drift inventory was still 29 when this run was taken because no record yet named these three paths. This row names all three as its artefacts, so the next edit to the gate, to the ledger or to its test adds three drifts on purpose: that is what binding evidence to the code it describes costs, and it is the cost the r5-003 correction decided to pay rather than cite the audit prose. What this does not do: the pointer is still a line number, so it rots whenever the file is edited above it -- this makes the rot visible, not impossible; pointing at a symbol instead of a coordinate needs its own contract field and is not claimed here."
+    },
+    {
+      "id": "r5-003-seventeen-test-files-ran-nothing-and-one-borrowed-its-import-path-20261008",
+      "task_ids": [
+        "DL-R5-003",
+        "DL-R5-001"
+      ],
+      "kind": "local_test",
+      "outcome": "PASS",
+      "subject_sha": "b50278a2c206b3d675a04652be4ba0c82a69d109",
+      "binding": "COMMIT",
+      "observed_at": "2026-10-08T01:58:45Z",
+      "software": {
+        "python": "3.13.14 (project .venv)",
+        "platform": "Windows-11-10.0.26100-SP0",
+        "runner": "python scripts/run_bound_test_suite.py --label r5-003-test-selfsufficiency-gate-20261008 --modules test_test_selfsufficiency_gate test_evidence_artifact_presence test_gate_reachability test_workbench_launch test_reconstruction_semantics test_rollback_state_classifier test_delivery_receipt_wiring test_delivery_evidence_ui_contract test_service_http test_contract_bindings test_route_payload_contracts test_domain_pack_readback test_ledger_schema test_state_vocabularies_gate test_capability_self_description_gate test_rights_registry_gate test_handoff_readiness test_rights_ledger test_rights_http test_research_store test_research_http test_workbench_css_single_definition test_backup_watches_written_tables test_current_version_rule test_quality_store -> run_id=testrun-20261008T015738Z-forward-repeat-2c5ba49320f9, tests_run=452, failures=0, errors=0, skipped=1, duration=67.791s, order=forward, worktree_clean=True",
+        "test_manifest": "sha256:250d8e03bd04d12841087dbe3b9a357eb508ac5cc9c765ee4ef46b168e184977",
+        "worktree_digest": "sha256:2c5ba49320f97b3a29b8bf90d9d9b1a9072b80b7b8d8a126b5e3333bb7f029e4"
+      },
+      "subject_files": {
+        "design-lab/scripts/verify_test_selfsufficiency.py": "13b8a24241feba67beaaba4a31b84d6028a590f51de2873332feb8e0d8be9c75",
+        "design-lab/tests/test_test_selfsufficiency_gate.py": "e27cd48c96af187f9f27909febf47837362e3fc478abdbe28bd7efde093e05c8",
+        "design-lab/scripts/verify_design_lab.py": "8b577d2e1de6e9a31890eedae0948f1caa0b95ee67310c2976eed38b4dc456ac",
+        "design-lab/tests/test_reconstruction_semantics.py": "67bceae1701d30a9aa18be01be5f0ed0b0ad440dc1c205b98b354195dbbb7d25",
+        "design-lab/tests/test_workbench_launch.py": "a0729282a4e4240688c21f238a92212420f8d48838cf6797a9bce7041f544972",
+        "design-lab/tests/test_evidence_artifact_presence.py": "7d50c3dca52c475bd6f98f0294aec47547188db1f0006001279afd239a10aae6",
+        "docs/audits/DESIGNLAB-LAUNCH-REVIEW-PREFLIGHT-2026-10-08.md": "f427386c2564246dcc7a7fea7cb31517425869114b288ecffefc71610b0ad474"
+      },
+      "artifacts": [
+        {
+          "path": "design-lab/scripts/verify_test_selfsufficiency.py",
+          "sha256": "13b8a24241feba67beaaba4a31b84d6028a590f51de2873332feb8e0d8be9c75"
+        },
+        {
+          "path": "design-lab/tests/test_test_selfsufficiency_gate.py",
+          "sha256": "e27cd48c96af187f9f27909febf47837362e3fc478abdbe28bd7efde093e05c8"
+        }
+      ],
+      "note": "Two shapes that made 'it passed' mean nothing, both measured across the whole test tree rather than inferred from one failure. (a) 17 of 206 modules under design-lab/tests defined TestCases but had no ``if __name__ == '__main__': unittest.main()`` block, so executing one of them imported the file, collected nothing and exited 0 -- a per-module sweep that reads exit codes records that as a pass, and mine did, twice today. With the guard added the same 17 files run 184 tests between them, green, with the COM/host-bound cases skipped and naming their reason rather than being silently absent. (b) test_reconstruction_semantics.py carried 13 errors under a fresh process and passed under CI's single-process discovery, because reconstruction lives at packages/capabilities/reconstruction and only its sibling modules insert that root: the 13 behaviours were being verified or not depending on which module the runner had imported first. I had filed those 13 errors as a capability gap; the code is present and all 13 pass once the module can import it, and the same latent shape in test_workbench_launch.py (design_lab reached only through the subprocess PYTHONPATH it builds) was fixed the same way. The new tracked gate design-lab/scripts/verify_test_selfsufficiency.py, wired into verify_design_lab.py so CI runs it, refuses NOT_EXECUTABLE / NO_CASES / UNPARSEABLE / BORROWED_IMPORT_PATH and fails closed on an empty scan or an empty root inventory. Its own rule was wrong once before it was right and that is part of the record: a substring test for 'src'/'capabilities' anywhere in the file reported 35 violations where the tree had 1, because it matched prose and ignored the two spellings the repository really uses (a ``sys.path[:0] = [...]`` slice assignment, and a module-level variable inserted one call later); reading the AST of the sys.path statements leaves the one real gap and no invented work. No find_spec and no site-packages probing, because a gate whose colour depends on whether design_lab happens to be installed on this host gets silenced by the host that finds it inconvenient. 13 tests in the gate's own module, two of them weakened copies -- erase the entry-guard rule or the bootstrap rule in a copy and the same scratch tree stops being convicted, so the red is known to come from the rules rather than the fixtures. Bound run at this subject: 452 tests, 0 failures, 0 errors, 1 skip named (source checkout, so no packaged Workbench resource to serve). Shipped tree: TEST_SELF_SUFFICIENCY=OK scanned=207 executable=207 violations=0. Cost stated rather than hidden: the guards landed on five files that nine records hash as artefacts, so the drift inventory went 29 -> 38 across 11 paths; none of those records is rewritten. Also corrected in section 24: the reconstruction evidence module does not hang -- one of its 37 methods takes 86.2s and ends in an error, which overruns any time box without a loop. That error is still open and is not claimed here."
     }
   ]
 }
