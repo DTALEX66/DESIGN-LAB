@@ -336,3 +336,65 @@ reviewedBy）保持挂起不代签。判定只读实测产物（last-run.json、
 > 收尾：`git status --porcelain` 必须 0；提交只带本轮实际改的文件；push 后必须用 `git ls-remote`
 > 证明双端一致（不看本地 tracking ref）。每一轮结束给出下一轮提示词。
 
+## 12. 追加（同日第四回合）：任务表 #22 —— "只读形态"在 CI 里到底被不被跑，实测完并接了门
+
+两个提交：`af8f1b9e`（hermes 拆分 + receipts 表 + 形态可达性守卫）、`51c23f90`（审计文档）。
+细节与全部实测数在 `docs/audits/DESIGNLAB-READONLY-MODE-CI-SURFACE-2026-10-09.md`。
+
+1. `deepseek_hermes_migration.py --verify` 在两棵树里都 FAIL 且没人调用。实测它的主张一半真一半过期：
+   109 个归档对象里 108 个还在且 digest 未变、原源无残留；缺的那一个
+   （`runtime/dl-ad-pkg-ci`，253.3 MB / 5559 文件）是**被 tracked 记录删掉的**
+   （`prune-manifest-2026-09-26.json` 的 `phase2.removed[0]` + closeout ledger §C，两处都写明它是 CI
+   可再生产物、都有日期）。现在它从 tracked 副本读 manifest，两份版本记录互相对账：缺的对象必须被 prune
+   记录点名，prune 点名的对象必须有对应迁移记录，本机是否还持有归档只报不判。埋点证明：归档目录存在但被清空
+   → 打印 108 条 `missing target`，而已被记录的那一条不计入。
+2. `verify_projection_freshness.py` 增加第二张表 `RECEIPT_CHECKS`（4 条：hermes `--verify`、
+   `verify_vendor_manifests.py --check` 显式命名、`design_debt_baseline.py --check`、
+   `inert_contract_survey.py --check`）。verdict 行两棵树逐字一致：
+   `VERIFY_PROJECTION_FRESHNESS=OK records=14 verified=18 receipts=4 excluded=0 findings=0`，porcelain 0；
+   整门 27 s，4 条 receipts 实测 123 ms / 135 ms / ≈0 s / ≈1 s。
+3. `test_gate_reachability.py` 新增 `ReadOnlyModeTests`：**声明**只读形态的脚本，该形态必须被调用，否则必须
+   在册并写明实测判定。实测计数：30 个脚本声明 → 21 个的形态确被调用 → 10 个在册，每条附今天的输出与关闭
+   条件（含 `build_candidate_taxonomy.py --check` rc=2：parser 强制 `--observation`，形态根本调不动；
+   `generate_current_reports.py --check` 本机 DRIFT 3 份、干净检出 9 份；`verify_zero_spill.py --self-test`
+   因自检驱动前者而继承同一份红）。三个方向已证伪：删真行 → 红；给没有该形态的脚本加一行 → 红；已调用还留在
+   册 → 红；不动 → 绿。
+4. 两个我自己的仪器缺陷写进审计文档而不是悄悄改掉：判定第一版"名字与 flag 在三行内共现"匹配到了豁免表自己的
+   散文，8 条在册记录被误判为"已调用"（现在四张表按 Python 对象解析，并有一条埋点断言"散文提及不得算调用"）；
+   helper 取名 `test_module_calls`，被 unittest 当用例收集而报缺参数的 TypeError。
+
+**需要 owner 拍板的两句话**（我不能动被 SHA-256 pin 的工作流）：是否给 `verify_projection_freshness.py`
+单独一个命名步骤（成本 27 s 内、以及它会与聚合门重复跑一次，见审计 §4）；工作流注释里那句 "executes the
+220-test critical set" 现在实测是 **225**，注释不在任何门里，只有 owner 改得动。
+
+## 13. 下一轮提示词（可直接粘贴；§11 那份已被本节取代）
+
+> 目标不变：持续推进 DESIGN-LAB 前后端打磨，每轮从已入账缺陷/账本 PARTIAL 余量里挑具体项做掉并验证；
+> 严禁无理由重复全量审计（全套、聚合门、重跑普查只在有新证据需求或判定需要时跑，并写明理由）；
+> 判定只读实测产物（`last-run.json`、门输出、CI job 结论）；owner 裁决项（DESIGN.md 主色、sidecar 签字、
+> REQUESTED 包、投影 `testRunId`/空 `subject_sha` 的重绑策略、`agent_homes.*.path` 脱敏、是否为 freshness
+> 门单独加 CI 步骤）保持挂起不代签。
+> 边界（逐字沿用）：授权项目内本地实现/修复/构建与验证；commit/push/PR/merge/发布/远程删除/付费调用/
+> 跨项目读写/操作真实宿主文档按明确授权分别判断；禁止 reset --hard、clean、批量 restore|checkout、
+> 覆盖未知修改、删真实项目；不读打印密钥；不递归扫全量 `.project-local`|磁盘|Home；E:/F: 无 exact path
+> 不得访问；不改 ACL/提权/全局安装/改 PATH/藏 stderr 让机器协议测试变绿；不改阈值、不删断言、不批量 skip 换绿。
+> 起点（实测于 `51c23f90`，本机与干净检出逐字相同，porcelain 0）：`VERIFY_PROJECTION_FRESHNESS=OK
+> records=14 verified=18 receipts=4 excluded=0 findings=0`；`MIGRATION_VERIFY=PASS objects=109
+> recorded_removals=1`；`AUTHORITY_GATES=PASS gates=6 failed=none`；`VERIFY_DESIGN_LAB=OK total=73 failed=0`；
+> `VERIFY_REPORT_SUBJECT_BINDING=OK records=69 bound=61 declared_unbound=8`；CI 仍从未执行（11 个 job 全
+> `steps=0`）。
+> 第一批（按顺序，全部是已在册缺陷，不做新普查）：
+> 1. 把 `deepseek_content_audit.py --check` 从在册转为强制：用它自己的 writer 重发它点名的两份派生审计
+>    （`THIRD-PARTY-SOURCE-AUDIT.json`、`DUPLICATE-CONTENT-AUDIT.json`）。重发前先测会不会动 `subject_sha`
+>    与 ledger 引用；若触及 owner 未决的重绑策略，就留在册并写明测到的差异，不代签。
+> 2. 诊断 `deepseek_directory_audit.py --check` 与 `deepseek_final_closeout.py --check` 各自为什么 FAIL：
+>    只读实测到字段级；判据过期就按 §8/§10 的"判据来自 tracked 状态 + 机器事实只报不判"重写，记录真相就接进
+>    `RECEIPT_CHECKS` 并从在册删行；一条修不完就留在册，别做半成品。
+> 3. 修 `build_candidate_taxonomy.py --check` 的形态：给 `--observation` 一个 tracked 默认值（并写明这份观测
+>    的来源与日期），或撤掉该 flag；两条路都必须让"声明的只读形态真的可调"成为可测事实，而不是留在册里当注释。
+> 4. 首批第 3 项（界面基准）在没有 owner 的 GUI/联网授权前继续不重跑，只维持"离线材料不足"的实测记录
+>    （6 个缓存根里 css 11 / html 25 / tsx 21 / jsx 119 / svg 26），不造表。
+> 收尾：`git status --porcelain` 必须 0；提交只带本轮实际改的文件；push 后用 `git ls-remote` 证明双端一致
+> （不看本地 tracking ref）。每一轮结束给出下一轮提示词。
+
+
