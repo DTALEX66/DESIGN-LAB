@@ -1683,3 +1683,81 @@ known_unverifiable=63 records=74`；`test_ledger_subject_binding.py` 19 例 OK�
   30 条 INERT 合同的接线或退役，都仍等 owner 选择；可审查产物已在仓内，入口分别是
   `design-lab/schemas/method-card.schema.json` 与 `design-lab/schemas/visual-quality/
   master-method-card.schema.json`、`config/contract-bindings.json`。
+
+## 32. 证据链终于有人能问：一条路由、一张卡片，以及一处把"慢"当成不可用的修复
+
+### 32.1 为什么做这一片
+
+30 与 31 把投影修成了会说真话的东西，但它仍然只有一处消费者：`reporting.py` 里那条轴降级规则。
+也就是说，"这些证据到底站不站得住"这一问，在仓里没有任何人能问——没有路由、没有界面、没有门读它。
+一条只有写它的那段代码读得到的结论，等于没有结论。这一片补的是能力链的最后一格（前端→读回→证据）。
+
+### 32.2 契约与后端：拒绝比空列表更诚实
+
+新合同 `design-lab/schemas/evidence-projection.schema.json`（`design-lab/evidence-projection/v1`）
+闭合并界定了这份读回：`subjectSha / ledger / totals / reasonCounts / receipts / taskCounts`，
+每条收据只有 11 个字段——账本行里的 note、software、逐文件摘要一律不带出去。理由词汇表是两个
+**闭合枚举**（完整性 10 个词、时效性 4 个词，都允许 `:路径` 后缀），所以在代码里新增一个理由而不
+在合同里登记它，会直接被判违规，而不是悄悄多出一个没人解释过的状态词。
+
+发射器 `src/design_lab/governance/evidence_readback.py` 对**当前检出**重算 `project_ledger`：读账本
++ 对象库，绝不读 `reports/current/`（生成物绑定它写下时所在的提交，把它当作"你正在跑的这份代码的
+状态"来供，正是本片在修的那种偷换）。它自检后才应答，失败一律具名：无账本 / 无 git 主题 →
+`EVIDENCE_LEDGER_ABSENT`、`EVIDENCE_SUBJECT_UNRESOLVABLE`（503），合同分歧、账本拒投影、超过上限
+→ `EVIDENCE_CONTRACT_VIOLATION` 等（500）。没有一种失败会退化成"0 条收据"。
+`http_service.EVIDENCE_READBACK_STATUS` 与发射器 AST 里真正抛出的码双向对齐：新增拒绝码不给状态
+是红的，留着没人抛的状态映射也是红的。
+
+路由 `GET /api/evidence-projection` 记为 `BOUND_SCHEMA`（routes 53→54、bound 15→16、dispatched
+同步跟上，否则门口就红），`scripts/verify_route_payload_contracts.py` 用真实 socket 两次调用它，
+比对 **156 个对象位置**（bindings 6→7，`VERIFY_ROUTE_PAYLOAD_CONTRACTS=PASS failures=0`）。
+
+### 32.3 一处把 10 秒当成"不可用"的修复
+
+第一次量测：这条读回 cold 10.0s / warm 10.3s——因为 `_CommitReader` 每条声明起一个
+`git show`（502 条声明 502 个进程）。这不是"页面慢一点"，这是没人会去问的问题；把按钮藏得深一点
+也不解决它。改为**每个提交一次 `git cat-file --batch`**、一次 `ls-files -z`、一次 `diff`：
+现在 1.0s（21 batch + 21 存在性探测 + 2，0 个 `git show`），且判定结果与逐条读法逐字节一致——
+新测试把两条读法逐项对比（含"提交里没有这个路径"这一分支），因为一个改变结论的加速不是优化，
+是另一个程序。成本用进程数量的**结构**断言钉住，不用计时器：计时断言在忙的 runner 上会假红、
+在闲的 runner 上会假绿，而真正的退化（回到每条一个进程）两种情况下都看不见。
+
+顺带清掉一处自己制造的技术债：两连补丁在 `reporting.py` 里留下两份
+`RUNTIME_ARTIFACT_ROOT` 声明。第一次切片修复时把中间整段（含 `class Claims`）误删了——它被
+脚本自己的守卫拦下、从 HEAD 复原、换位置锚点重做。这个教训是具体的：**切片替换的守卫必须断言
+"被替换的区间里不该有什么"**，而不只是断言"我要找的东西在里面"。
+
+### 32.4 界面：三个词必须是三个词
+
+`证据系统` 页新增 `证据链完整性` 面板（`GET /api/evidence-projection`，点按钮才读，理由与交付收据
+一样：它要对整个检出复算，没人选过就出一个结论等于猜）。判定词由两个布尔量派生，绝不手抄服务端的
+枚举词：`VERIFIED CURRENT` / `VERIFIED NOT CURRENT` / `NOT VERIFIED`，并全部带 `lang="en"`。
+缺 `totals` 或缺 `receipts` 时不画任何数字，只说未读回并点名缺什么；带拒绝码的响应把码原样显示，
+绝不显示成"账本是空的"。列表展开上限 12 条，超出必须写明"其余 N 条未逐条列出"，因为把 12 读成
+全部是另一类假绿。
+
+面板挂在 `projectPickerPanel` 新增的 `preamble` 槽里，而不是项目正文里：这条判定说的是检出，不是
+某个项目；挂在选完项目之后，在一个没有项目的合成台账上它就根本问不出来。
+
+### 32.5 门与反证（在 `34d2515b` 重跑）
+
+浏览器溢出/裁剪门新增 `INTERACTIONS` 表：点完按钮之后的那张卡片也被量一次
+（`1440/1280/1920` 三档 clipped=0 stray=0 tiny=0 docX=0），且 settled 状态随测量一起写进报告
+（`read` 还是 `refused`），Python 侧要求至少一档真的读回了东西——一张永远显示错误的卡片几何上可
+以是完美的。**先证伪再相信**：把选择器指向一个不存在的 id，门退出 2 并报
+`OV_INTERACTION_UNMEASURED`；控制组退出 0。
+
+`test_evidence_readback_contract.py` 17 例 OK（含拒绝路径、成本结构、批读与逐条读等价）；
+`test_current_reporting` 43、`test_ledger_subject_binding` 19、appshell/unit/shape-notice 三套 UI
+测试 OK；投影在本次主题提交上：75 条收据、38 条完整、1 条仍适用于当前检出
+（`MOVED_SINCE_BOUND_COMMIT` 163，随本波移动的文件继续增长），任务计数仍 `{'PARTIAL': 28}`——
+这一片没有点亮任何绿灯。bound run `tests=398 failures=0 errors=0 skipped=0 clean=True
+subject=34d2515b9f34`，聚合 `VERIFY_DESIGN_LAB=OK total=68 failed=0`。
+
+### 32.6 一条流程自纠
+
+第一次 bound run 报 `FAILED(1)`，红的是漂移清单（本波改了 4 个被更早记录哈希过的文件）；重测得
+47→51 对 / 20 个具名工件，按日期写明理由后更新钉值，而不是放宽断言。此外我自己犯过一次更低的错误：
+把 `git commit -F - <<'MSG'` 和后续命令接在同一行，heredoc 结束符因此不被识别，提交为空而 bound run
+跑在了脏树上（`clean=False`）——该跑的收据作废，改用 `-F <文件>` 重提再重跑。钉住这条不是因为少见，
+而是因为脏树 receipt 看起来和干净的一模一样。
