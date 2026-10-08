@@ -196,17 +196,22 @@ def _validate(reader, ledger):
     return tasks, receipts, order
 
 
-RUNTIME_ARTIFACT_ROOT = '.project-local/task-artifacts/'
-
-
 class _CommitReader:
-    """Blob access for a receipt bound to a commit, cached so one projection reads each blob once."""
+    """Blob access for receipts bound to commits, with the object reads batched per commit.
+
+    Measured 2026-10-08 at one `git show` per claim: 10.0s cold for 502 claims, which is not a
+    surface a person can ask a question of. One `git cat-file --batch` per distinct commit pulls the
+    same bytes out of the same objects in milliseconds. The per-claim read stays as the fallback for
+    anything this protocol cannot carry, because a wrongly-absent blob would be reported as
+    PATH_NOT_IN_BOUND_COMMIT -- a file the commit supposedly lacks.
+    """
 
     def __init__(self, root):
         self.root = Path(root).resolve()
         self._blobs = {}
         self._commits = {}
         self._modified = {}
+        self._tracked = None
 
     def _run(self, *args):
         return subprocess.run(['git', '-c', 'color.ui=false', '-C', str(self.root), *args],
@@ -224,6 +229,47 @@ class _CommitReader:
             self._blobs[key] = result.stdout if result.returncode == 0 else None
         return self._blobs[key]
 
+    def prefetch(self, sha, relatives):
+        """Fill the cache for every claim of one commit in a single git process."""
+        todo = sorted({path for path in relatives
+                       if (sha, path) not in self._blobs
+                       and '\n' not in path and '\r' not in path})
+        if not todo:
+            return
+        if not self.has_commit(sha):
+            for path in todo:
+                self._blobs[(sha, path)] = None
+            return
+        request = ''.join(f'{sha}:{path}\n' for path in todo).encode('utf-8')
+        result = subprocess.run(['git', '-c', 'color.ui=false', '-C', str(self.root),
+                                 'cat-file', '--batch'], input=request, capture_output=True)
+        if result.returncode != 0:
+            return
+        self._absorb(sha, todo, result.stdout)
+
+    def _absorb(self, sha, ordered, out):
+        """Read `git cat-file --batch` output: one block per request, in request order."""
+        cursor = 0
+        for path in ordered:
+            end = out.find(b'\n', cursor)
+            if end < 0:
+                break
+            header = out[cursor:end].decode('utf-8', 'surrogateescape')
+            cursor = end + 1
+            parts = header.split(' ')
+            if len(parts) == 3 and parts[1] == 'blob' and parts[2].isdigit():
+                size = int(parts[2])
+                self._blobs[(sha, path)] = out[cursor:cursor + size]
+                cursor += size + 1
+            elif header.endswith(' missing'):
+                self._blobs[(sha, path)] = None
+            else:
+                break
+        # Anything the parse did not reach is read the slow unambiguous way rather than guessed at.
+        for path in ordered:
+            if (sha, path) not in self._blobs:
+                self.blob(sha, path)
+
     def locally_modified(self, sha):
         """Paths whose working-tree bytes differ from `sha` -- a dirty tree is not today's bytes."""
         if sha not in self._modified:
@@ -236,10 +282,18 @@ class _CommitReader:
         return self._modified[sha]
 
     def tracked_today(self, relative):
-        """Is this path version controlled at all, on any branch, right now?"""
-        result = self._run('ls-files', '--error-unmatch', '--', relative)
-        return result.returncode == 0
+        """Is this path version controlled at all, on any branch, right now?
 
+        One `git ls-files -z` for the whole checkout rather than one process per claim: a projection
+        asks this hundreds of times and the answer set is the same question asked repeatedly.
+        """
+        if self._tracked is None:
+            result = self._run('ls-files', '-z')
+            if result.returncode != 0:
+                raise ValueError('git inspection failed: ls-files')
+            self._tracked = {line for line in result.stdout.decode('utf-8', 'surrogateescape')
+                             .split('\0') if line}
+        return relative in self._tracked
 
 RUNTIME_ARTIFACT_ROOT = '.project-local/task-artifacts/'
 COMMIT_BINDING = 'COMMIT'
@@ -387,6 +441,14 @@ def project_ledger(root, ledger, subject_sha, *, reader=None):
     reader = reader or Reader(root)
     tasks, receipts, order = _validate(reader, ledger)
     commits = _CommitReader(root)
+    # Every claim of every commit this projection will look at, pulled in one git process each.
+    wanted = {}
+    for receipt in receipts.values():
+        paths, _runtime, _conflicts, _worktree = claims(receipt)
+        wanted.setdefault(receipt['subject_sha'], set()).update(paths)
+        wanted.setdefault(subject_sha, set()).update(paths)
+    for sha, paths in wanted.items():
+        commits.prefetch(sha, paths)
     evaluated = {}
     for eid, receipt in receipts.items():
         integrity, currency = _receipt_findings(receipt, subject_sha, reader, commits)

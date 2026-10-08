@@ -197,5 +197,68 @@ class RouteSurfaceTests(unittest.TestCase):
         self.assertEqual(er.EVIDENCE_PROJECTION_SCHEMA_VERSION, row['version'])
 
 
+class ObjectReadCostTests(unittest.TestCase):
+    """A readback nobody waits for is not a surface; the cost is part of the capability.
+
+    Measured 2026-10-08 before batching: 10.0s cold and 10.3s warm for 75 receipts over 502 byte
+    claims, because every claim took its own `git show`. That was not a slow page -- it was a
+    question nobody could ask. Batched per commit, the same answers cost 1.0s.
+
+    The assertion counts git processes by shape rather than timing anything, because a wall-clock
+    budget would fail on a loaded runner and pass on an idle one while the real regression -- back to
+    one spawn per claim -- stays invisible in both.
+    """
+
+    def _count(self, call):
+        seen = []
+        real = reporting.subprocess.run
+
+        def counting(args, **kwargs):
+            seen.append([str(item) for item in args])
+            return real(args, **kwargs)
+
+        reporting.subprocess.run = counting
+        try:
+            call()
+        finally:
+            reporting.subprocess.run = real
+        return seen
+
+    def test_no_claim_is_read_by_its_own_git_process(self):
+        ledger = json.loads((ROOT / reporting.LEDGER).read_text(encoding='utf-8'))
+        subjects = {entry['subject_sha'] for entry in ledger['evidence']}
+        calls = self._count(lambda: er.projection(subject_sha='a' * 40))
+        per_claim = [args for args in calls if 'show' in args]
+        self.assertEqual([], per_claim,
+                         f'{len(per_claim)} claims fell back to `git show`; the batch never ran')
+        batched = [args for args in calls if '--batch' in args]
+        # one batch per commit the projection reads (the ledger's subjects plus the projection's own)
+        self.assertLessEqual(len(batched), len(subjects) + 2,
+                             'the batch count grew past the commits, so claims are being re-read')
+        self.assertLessEqual(len(calls), 3 * (len(subjects) + 2) + 4,
+                             f'{len(calls)} git processes for {len(subjects)} commits -- the '
+                             'readback is back to per-claim cost')
+
+    def test_the_batched_read_returns_the_same_bytes_as_a_single_claim_read(self):
+        """Speed that changes the verdict is not an optimisation, it is a different program."""
+        ledger = json.loads((ROOT / reporting.LEDGER).read_text(encoding='utf-8'))
+        sample = [entry for entry in ledger['evidence']
+                  if entry.get('binding') == 'COMMIT'][:10]
+        slow = reporting._CommitReader(ROOT)
+        batched = reporting._CommitReader(ROOT)
+        missing = 0
+        for entry in sample:
+            claimed = reporting.claims(entry)[0]
+            batched.prefetch(entry['subject_sha'], claimed)
+            for path in claimed:
+                one = slow.blob(entry['subject_sha'], path)
+                if one is None:
+                    missing += 1
+                self.assertEqual(one, batched.blob(entry['subject_sha'], path),
+                                 f'{path} came back differently through the batch')
+        self.assertGreater(missing, 0,
+                           'no claim was absent in the sample, so the missing-blob path is untested')
+
+
 if __name__ == '__main__':
     unittest.main()
