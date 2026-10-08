@@ -20,6 +20,15 @@ Two rules, both about shape rather than trust:
    a single string containing a space. Splitting inside the helper is not the fix: repository
    paths on this machine contain spaces, so an argument may legitimately hold one; a *subcommand*
    never does.
+
+State on 2026-10-09: all nine joined calls are repaired, so `callSites` is empty and the register
+carries only the data debt. Nine records still hold `subject_sha: ""` and are deliberately left
+that way -- re-running any of their generators rewrites the whole record, and each of the nine is
+cited as evidence by a task that the machine ledger already marks DONE (`task_key` and status are
+recorded per row, read from `reports/current/DEEPSEEK-AUTHORITY-LEDGER-2026-09-14.json`). Closing
+a row is therefore an explicit decision to re-base that task's evidence, not a `python scripts/...`
+away, and each row states that. A row may not keep describing a defect its producer no longer has:
+`producerFixedOn` is checked against the source as it stands.
 """
 from __future__ import annotations
 
@@ -133,10 +142,15 @@ def read_register(root: Path = REPO) -> tuple[dict[str, dict], dict[str, dict], 
         if ident in rows:
             problems.append(f"REPORT-DEBT-DUPLICATE {ident} is declared twice")
             continue
-        for field in ("producer", "reason", "declaredOn"):
+        for field in ("producer", "reason", "declaredOn", "whatWouldCloseIt"):
             if not str(row.get(field) or "").strip():
                 problems.append(f"REPORT-DEBT-ROW-INCOMPLETE {ident} has no {field}; a debt "
-                                "without a producer and a reason is not a declaration")
+                                "without a producer, a reason and the action that would close it "
+                                "is not a declaration")
+        if "producerFixedOn" not in row:
+            problems.append(f"REPORT-DEBT-ROW-INCOMPLETE {ident} does not say whether its "
+                            "producer still has the joined call (`producerFixedOn`, null while it "
+                            "does) -- without that, a row keeps blaming a defect that was fixed")
         rows[ident] = row
 
     call_rows: dict[str, dict] = {}
@@ -167,6 +181,10 @@ def check(root: Path = REPO) -> tuple[list[str], int, int, int]:
     rows, call_rows, register_problems = read_register(root)
     problems += register_problems
     declared = 0
+    # Computed first: the record rows are graded against the producer source as it stands now,
+    # so a row cannot describe a defect that has already been repaired.
+    sites = joined_git_call_sites(root)
+    seen_scripts = {script for script, _command, _line in sites}
 
     # A record can carry both spellings; a consumer reading one gets whatever that key holds.
     by_record: dict[str, dict[str, object]] = {}
@@ -202,6 +220,17 @@ def check(root: Path = REPO) -> tuple[list[str], int, int, int]:
                             "longer exists -- the writer moved or died, so re-derive the row")
         if not (root / rel).is_file():
             problems.append(f"REPORT-DEBT-ORPHAN {ident} is declared but the record is gone")
+        if producer and "producerFixedOn" in row:
+            still_joined = producer in seen_scripts
+            fixed_on = str(row.get("producerFixedOn") or "")
+            if still_joined and fixed_on:
+                problems.append(f"RECORD-PRODUCER-STILL-BROKEN {ident} claims the joined call was "
+                                f"fixed on {fixed_on} but {producer} still contains it")
+            if not still_joined and not fixed_on:
+                problems.append(f"RECORD-DEFECT-STILL-CLAIMED {ident} still describes {producer} "
+                                "as carrying the joined call, which it no longer does: say when "
+                                "it was fixed, and keep the record row for the field that is "
+                                "still unbound")
 
     # Both directions: a row for a field that no longer exists is a live entry in a register
     # that is supposed to shrink only by fixing the thing it names.
@@ -211,9 +240,7 @@ def check(root: Path = REPO) -> tuple[list[str], int, int, int]:
                         "read anywhere in scope -- the record moved, the key changed spelling, "
                         "or the row was typed for a file that never had one")
 
-    seen_scripts: set[str] = set()
-    for script, command, line in joined_git_call_sites(root):
-        seen_scripts.add(script)
+    for script, command, line in sites:
         row = call_rows.get(script)
         if row is None:
             problems.append(f"GIT-ARG-JOINED {script}:{line} calls git({command!r}) as one "

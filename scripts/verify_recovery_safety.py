@@ -295,7 +295,7 @@ def main(argv=None) -> int:
         "schemaVersion": "design-lab/recovery-safety/v1",
         "task_keys": TASK_KEYS,
         "checked_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
-        "subject_sha": git("rev-parse HEAD"),
+        "subject_sha": git("rev-parse", "HEAD"),
         "I000_destructive_operations": {
             "doctrine": "plan -> candidate list -> backup/digest -> verification -> rollback -> receipt",
             "manifests": manifests, "failures": failures,

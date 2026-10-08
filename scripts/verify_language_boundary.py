@@ -244,7 +244,7 @@ def main(argv=None) -> int:
         "schemaVersion": "design-lab/language-boundary-scan/v1",
         "task_keys": TASK_KEYS,
         "generated_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
-        "subject_sha": git("rev-parse HEAD").strip(),
+        "subject_sha": git("rev-parse", "HEAD").strip(),
         "tracked_files_scanned": len(files),
         "language_boundary": boundary,
         "vocabularies": {"canonical": {k: len(v["tokens"]) for k, v in canonical.items()},

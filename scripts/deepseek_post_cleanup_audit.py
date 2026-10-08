@@ -150,7 +150,7 @@ def main(argv=None) -> int:
         "schemaVersion": "design-lab/post-cleanup-audit/v1",
         "task_key": TASK_KEY,
         "measured_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
-        "subject_sha": git("rev-parse HEAD").strip(),
+        "subject_sha": git("rev-parse", "HEAD").strip(),
         "git_status_clean": git("status", "--porcelain=v1").strip() == "",
         "git_dirty_paths": [line for line in git("status", "--porcelain=v1").splitlines() if line.strip()],
         "repository_size": {"pack_mib": size_pack, "tracked_files": len([p for p in git("ls-files").splitlines() if p])},

@@ -158,7 +158,7 @@ def main(argv=None) -> int:
         "schemaVersion": "design-lab/foundation-audit/v1",
         "task_key": TASK_KEY,
         "audited_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
-        "subject_sha": git("rev-parse HEAD").strip(),
+        "subject_sha": git("rev-parse", "HEAD").strip(),
         "files": FOUNDATION,
         "explicit_insert_columns": {"positional_inserts": inserts, "ok": not inserts,
                                    "evidence": "src/design_lab/runtime/asset_store.py names its columns "

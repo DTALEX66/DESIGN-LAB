@@ -105,7 +105,7 @@ def build() -> dict:
         "schemaVersion": "design-lab/rights-registry/v1",
         "task_key": TASK_KEY,
         "generated_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
-        "subject_sha": git("rev-parse HEAD"),
+        "subject_sha": git("rev-parse", "HEAD"),
         "field_meaning": {
             "NOT_ADJUDICATED": "the repository records no decision for this field; the decision "
                                "owner must supply one. The registry never guesses a legal position.",

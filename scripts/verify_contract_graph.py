@@ -281,7 +281,7 @@ def main(argv=None) -> int:
         "schemaVersion": "design-lab/contract-graph/v1",
         "task_key": TASK_KEY,
         "generated_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
-        "subject_sha": git("rev-parse HEAD").strip(),
+        "subject_sha": git("rev-parse", "HEAD").strip(),
         "chain": "Schema -> Python model -> DB -> producer -> consumer -> receipt -> projection",
         "concepts": nodes,
         "declared_tables": declared_tables,

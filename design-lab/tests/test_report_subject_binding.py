@@ -67,9 +67,13 @@ class Tree:
         return v.check(self.root)
 
 
-def row(rel: str, key: str = "subject_sha", producer: str = "scripts/writer.py") -> dict:
+def row(rel: str, key: str = "subject_sha", producer: str = "scripts/writer.py",
+        fixed_on: str | None = "2026-10-09") -> dict:
+    """A valid declaration: who writes it, why it is empty, and what would close it."""
     return {"path": rel, "key": key, "producer": producer,
-            "reason": "the generator joins the git arguments", "declaredOn": "2026-10-09"}
+            "reason": "the generator joined the git arguments",
+            "whatWouldCloseIt": "one intentional run at a recorded head, then delete this row",
+            "declaredOn": "2026-10-09", "producerFixedOn": fixed_on}
 
 
 class ReportSubjectBindingTests(unittest.TestCase):
@@ -262,6 +266,44 @@ class ReportSubjectBindingTests(unittest.TestCase):
         tree.debt([])
         self.assertEqual(tree.problems(), [])
 
+    def test_a_row_must_say_what_would_close_it(self) -> None:
+        tree = self.tree()
+        rel = tree.record("EMPTY.json", {"schemaVersion": "x/v1", "subject_sha": ""})
+        tree.generator("writer.py", "def git(*a): pass\n")
+        naked = {k: value for k, value in row(rel).items() if k != "whatWouldCloseIt"}
+        tree.debt([naked])
+        self.assertTrue(any("whatWouldCloseIt" in f for f in tree.problems()))
+
+    def test_a_row_must_say_whether_its_producer_is_still_broken(self) -> None:
+        tree = self.tree()
+        rel = tree.record("EMPTY.json", {"schemaVersion": "x/v1", "subject_sha": ""})
+        tree.generator("writer.py", "def git(*a): pass\n")
+        naked = {k: value for k, value in row(rel).items() if k != "producerFixedOn"}
+        tree.debt([naked])
+        self.assertTrue(any("producerFixedOn" in f for f in tree.problems()))
+
+    def test_a_row_claiming_a_fix_that_is_not_in_the_source_is_convicted(self) -> None:
+        tree = self.tree()
+        rel = tree.record("EMPTY.json", {"schemaVersion": "x/v1", "subject_sha": ""})
+        tree.generator("writer.py", 'def git(*a):\n    pass\n\n\ngit("rev-parse HEAD")\n')
+        tree.debt([row(rel)], )
+        # The joined call still exists, so the row needs a callSites entry as well; without it
+        # the site is undeclared, and with a fix date the row contradicts the file either way.
+        tree.debt([row(rel)], [{"script": "scripts/writer.py", "joinedArgument": "rev-parse HEAD",
+                                "writesRecord": rel, "reason": "booked",
+                                "declaredOn": "2026-10-09"}])
+        self.assertTrue(any("RECORD-PRODUCER-STILL-BROKEN" in f for f in tree.problems()),
+                        tree.problems())
+
+    def test_a_row_that_still_blames_a_repaired_producer_is_convicted(self) -> None:
+        """The defect description may not outlive the defect without saying so."""
+        tree = self.tree()
+        rel = tree.record("EMPTY.json", {"schemaVersion": "x/v1", "subject_sha": ""})
+        tree.generator("writer.py", 'def git(*a):\n    pass\n\n\ngit("rev-parse", "HEAD")\n')
+        tree.debt([row(rel, fixed_on=None)])
+        self.assertTrue(any("RECORD-DEFECT-STILL-CLAIMED" in f for f in tree.problems()),
+                        tree.problems())
+
     # ---- shipped state ----
 
     def test_the_shipped_repository_passes_the_gate(self) -> None:
@@ -273,26 +315,43 @@ class ReportSubjectBindingTests(unittest.TestCase):
     def test_the_shipped_register_declares_exactly_the_measured_debt(self) -> None:
         document = json.loads((ROOT / DEBT_REL).read_text(encoding="utf-8"))
         records, calls = document["records"], document["callSites"]
-        self.assertEqual(len(records), 9, "the unbound set only moves when a generator is fixed")
-        self.assertEqual(len(calls), 9, "each unbound record is produced by one joined call")
-        self.assertEqual(sorted(r["path"] for r in records),
-                         sorted(c["writesRecord"] for c in calls),
-                         "a record is declared without its producer call, or the other way round")
-        # Asserted per pair, not as two sorted lists: zipping the two arrays to look at them is
-        # exactly how a mis-paired reading gets written down (I did it in this very session).
-        by_path = {r["path"]: r for r in records}
-        by_script = {c["script"]: c for c in calls}
-        self.assertEqual(len(by_path), len(records), "two records for one path")
-        self.assertEqual(len(by_script), len(calls), "two call rows for one script")
-        for call in calls:
-            record = by_path.get(call["writesRecord"])
-            self.assertIsNotNone(record, f"{call['script']} names {call['writesRecord']}")
-            self.assertEqual(record["producer"], call["script"],
-                             f"{record['path']} is attributed to {record['producer']} but its "
-                             f"call row belongs to {call['script']}")
-            script = (ROOT / call["script"]).read_text(encoding="utf-8")
-            self.assertIn(f'git("{call["joinedArgument"]}")', script,
-                          f"{call['script']} no longer contains the declared shape")
+        self.assertEqual(len(records), 9, "the unbound set only moves when a record is re-run")
+        # Pinned with the reason. On 2026-10-09 all nine producers were repaired, so the code
+        # debt is closed and only the data debt is left; a new joined call is refused outright
+        # by GIT-ARG-JOINED instead of landing here as a row.
+        self.assertEqual(calls, [], "a joined git call appeared after the class was closed -- "
+                                    "fix the call, do not declare the shape")
+        self.assertEqual(document["thisRound"]["joinedGitCallSitesFixed"], 9)
+        self.assertEqual(document["thisRound"]["recordsRegenerated"], 0)
+
+    def test_no_joined_git_call_survives_anywhere_in_the_repository(self) -> None:
+        self.assertEqual(v.joined_git_call_sites(), [])
+
+    def test_every_declared_producer_carries_the_repaired_call(self) -> None:
+        """The shipped bytes prove the fix, not the register's prose about it."""
+        document = json.loads((ROOT / DEBT_REL).read_text(encoding="utf-8"))
+        for declared in document["records"]:
+            script = (ROOT / declared["producer"]).read_text(encoding="utf-8")
+            self.assertIn('git("rev-parse", "HEAD")', script,
+                          f"{declared['producer']} does not contain the separated call its row "
+                          "claims")
+            self.assertNotIn('git("rev-parse HEAD")', script,
+                             f"{declared['producer']} still contains the broken shape")
+
+    def test_every_declared_gap_names_the_evidence_it_would_re_base(self) -> None:
+        """Why these nine were not simply re-run: each record is cited by a closed ledger task."""
+        document = json.loads((ROOT / DEBT_REL).read_text(encoding="utf-8"))
+        for declared in document["records"]:
+            tasks = declared["citedByLedgerTasks"]
+            self.assertGreaterEqual(len(tasks), 1,
+                                    f"{declared['path']} cites no ledger task, so nothing "
+                                    "explains why the record was left alone")
+            for task in tasks:
+                self.assertRegex(task, r"^DLDS-[A-Z]\d{3}",
+                                 f"{declared['path']} cites {task!r}, which is not a task_key "
+                                 "read from the ledger")
+            self.assertTrue(str(declared["whatWouldCloseIt"]).strip())
+            self.assertEqual(declared["producerFixedOn"], "2026-10-09")
 
     def test_no_declared_record_is_already_bound(self) -> None:
         document = json.loads((ROOT / DEBT_REL).read_text(encoding="utf-8"))

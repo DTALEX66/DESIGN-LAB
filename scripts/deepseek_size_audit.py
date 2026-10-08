@@ -144,7 +144,7 @@ def main(argv=None) -> int:
         "schemaVersion": "design-lab/repository-size-audit/v1",
         "task_key": TASK_KEY,
         "measured_at": now,
-        "subject_sha": git("rev-parse HEAD").strip(),
+        "subject_sha": git("rev-parse", "HEAD").strip(),
         "tracked": {"files": len(blobs), "bytes": tracked_bytes, "mib": round(tracked_bytes / 1048576, 2)},
         "git_objects": {"in_pack": int(pack.get("in-pack", "0").strip()),
                         "packs": int(pack.get("packs", "0").strip()),

@@ -187,7 +187,7 @@ def main(argv=None) -> int:
         "schemaVersion": "design-lab/spill-census/v1",
         "task_key": TASK_KEY,
         "generated_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
-        "subject_sha": git("rev-parse HEAD").strip(),
+        "subject_sha": git("rev-parse", "HEAD").strip(),
         "scope": {
             "inspected": ["DESIGN-LAB repository", "DESIGN-LAB .project-local", "agent homes at "
                           "path/metadata level"],

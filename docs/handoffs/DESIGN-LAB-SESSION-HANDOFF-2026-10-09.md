@@ -199,3 +199,27 @@ reviewedBy）保持挂起不代签。判定只读实测产物（last-run.json、
 生产脚本逐条写在册子里。**为什么这回合不一次修完**：修完要各自重算记录，而
 `DEEPSEEK-*` 几份被 DeepSeek 血统链与 `generate_rights_registry.py` 的派生链消费，
 重算前必须先确认谁在摘要它们——那是又一次跨记录协同变更，按同一套纪律单独做。
+
+### 8.1 同日更正与推进（同回合内实测，不改上文原句）
+
+上文把剩下的 9 条债写成"逐条可执行"。这条判断被下一回合的实测否证了一半，现按测到的写：
+
+- 九条调用形状**已全部修好**（`git("rev-parse", "HEAD")`），门的 AST 扫描现在
+  `joined_call_sites=0`，所以 `callSites` 数组清空。修的是源码，**没有重跑任何一条记录**，
+  九份记录字节不变。
+- 为什么不能机械重跑：逐条去 `reports/current/DEEPSEEK-AUTHORITY-LEDGER-2026-09-14.json` 里查
+  引用者，**九份全被账本任务引用，且那些任务状态都是 DONE**——
+  CLEAN-TREE-REPORT←DLDS-I020、CONTRACT-GRAPH←DLDS-F000、FOUNDATION-AUDIT←DLDS-F020、
+  LANGUAGE-BOUNDARY-SCAN←DLDS-C020+DLDS-C050、POST-CLEANUP-AUDIT←DLDS-D030+DLDS-E050+DLDS-K030、
+  RECOVERY-SAFETY←DLDS-I000+DLDS-I010、REPOSITORY-SIZE←DLDS-D000、SPILL-CENSUS←DLDS-E000、
+  rights-registry←DLDS-G020。重跑生成器会整条重写记录（不只 subject），于是 DONE 判决所依据的
+  证据被悄悄换底——那不是修缺陷，是改历史。所以这 9 条从"可执行"降级为"需一次有意识的再基线决定"。
+- 门的册子因此加了两个必须互相一致的字段（`RECORD-PRODUCER-STILL-BROKEN` /
+  `RECORD-DEFECT-STILL-CLAIMED`）：`producerFixedOn` 说清生产脚本的缺陷修在哪天，
+  `whatWouldCloseIt` 说清闭合需要动谁的证据；缺任一项即 `REPORT-DEBT-ROW-INCOMPLETE`。
+  顺带纠正我自己的一个读数错误：账本任务数组**没有 `id` 字段**（标识是 `task_key`/`full_id`），
+  所以我先用数组下标当任务号打印了一遍——那些数字对读者毫无意义，现已按 `task_key`+状态记录，
+  并由测试用 `^DLDS-[A-Z]\d{3}$` 钉住。
+- 实测：`VERIFY_REPORT_SUBJECT_BINDING=OK records=69 bound=60 declared_unbound=9
+  joined_call_sites=0 findings=0`；`test_report_subject_binding.py` 33 例 OK（新增两条闭合规则与
+  四条仓内状态断言，含"全仓不再有 joined git 调用"与"每条在册记录的生成脚本都含修好的调用"）。

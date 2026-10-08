@@ -79,7 +79,7 @@ def main(argv=None) -> int:
         "schemaVersion": "design-lab/clean-tree-report/v1",
         "task_key": TASK_KEY,
         "checked_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
-        "subject_sha": git("rev-parse HEAD").strip(),
+        "subject_sha": git("rev-parse", "HEAD").strip(),
         "branch": git("rev-parse", "--abbrev-ref", "HEAD").strip(),
         "clean": not porcelain,
         "dirty_paths": len(porcelain),
