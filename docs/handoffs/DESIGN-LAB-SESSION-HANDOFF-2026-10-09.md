@@ -223,3 +223,32 @@ reviewedBy）保持挂起不代签。判定只读实测产物（last-run.json、
 - 实测：`VERIFY_REPORT_SUBJECT_BINDING=OK records=69 bound=60 declared_unbound=9
   joined_call_sites=0 findings=0`；`test_report_subject_binding.py` 33 例 OK（新增两条闭合规则与
   四条仓内状态断言，含"全仓不再有 joined git 调用"与"每条在册记录的生成脚本都含修好的调用"）。
+
+## 9. 新量到的一条：投影在干净检出上必然漂移，原因不是工作流写的那个
+
+`.github/workflows/canonical-verify.yml` 第 49-52 行的注释说，
+`generate_current_reports.py --check` 在干净检出上"永远不可能通过"，理由写的是
+"投影绑的是生成时的 git 快照"。这句话在同一个头（`69496617`）上被实测否证了原因部分：
+
+- 主树里刚生成完跑 `--check`：`CURRENT_REPORTS=PASS`。
+- 同一个头、同一个提交，detached worktree（完全没有 `.project-local`）跑 `--check`：
+  `CURRENT_REPORTS=DRIFT` 覆盖 9 个文件。逐项对字节重算后，差异字段只有两类，**都不是 git 快照**：
+  1. `testRunId` / `testRunAt` / `testRunResult` / `testRunMeaning`——投影去读了
+     `.project-local/task-artifacts/test-run/last-run.json`（被 ignore 的运行时文件）。
+     干净机器上它是 `null` +"no bound test run"，主树里是
+     `testrun-20261008T204123Z-forward-repeat-e7c4504bc3d0` + `OK`。受影响：
+     `PROJECT_STATUS.json`、`PROJECT_STATUS.md`、`CLOUD_BASELINE.json`、
+     `ADAPTER_EVIDENCE_RECONCILIATION.json`、`KNOWLEDGE_INVENTORY.json`（`--check` 报的 9 个里这几份就是这个原因）。
+  2. `TASK_PROGRESS.json` 里往 reasons 数组里追加
+     `RUNTIME_ARTIFACT_ABSENT_ON_THIS_MACHINE:.project-local/task-artifacts/project-survey-2026-09-27/PROJECT-SURVEY-2026-09-27.md`
+     ——把"这台机器缺这个运行时件"写进被跟踪的记录，而且实测出现两次（同一份缺件被逐条 reason 各追加一遍）。
+
+两个后果都值得单独定夺，不是我该顺手改的：
+- 一条 tracked 投影里带着只有生成机才能证明的测试结果；换台机器它就换成 `null`，
+  也就是说"投影声称的测试绑定"是机器相关的，而账本与 `PROJECT_STATUS.md` 都在把它当事实展示。
+- 缺件信息被写进 tracked 记录，等于让每台机器的磁盘状态参与投影内容——这正是
+  "CI 发现的门必须从仓库回答存在性，不能从本地磁盘回答"那条规则针对的形状，只是发生在投影侧。
+
+工作流文件被 SHA-256 pin，我不动它；这里只把测到的差异写成可核对的字段名。
+下一步决定（owner 项，已在册）：投影是否停止嵌 `testRunId` 与本机缺件；若停止，
+`--check` 就能作为干净检出上的真门接进 CI，那句注释也就有了可以被验证的版本。
