@@ -8,6 +8,7 @@ Validates that every core object in object-model.json:
 
 Requires: jsonschema (declared in requirements.txt).
 """
+import hashlib
 import json
 import sys
 import unittest
@@ -71,18 +72,40 @@ class ObjectModelRoundTripTest(unittest.TestCase):
                 bad.append(f"{obj['id']}: {exc}")
         self.assertEqual(bad, [], f"invalid schemas: {bad}")
 
-    def _build_minimal(self, schema: dict, depth: int = 0) -> dict:
+    def _resolve(self, ref: str, root: dict) -> dict:
+        """Follow a local `$ref`.
+
+        The synthesiser used to fall through to `"test-value"` for any property it could
+        not type, and a `$ref` has no `type` of its own -- so `juror`, which is an object
+        in `#/$defs/juror`, was built as a string and the round-trip convicted the schema
+        for the builder's blind spot. That surfaced when object-model re-pointed
+        quality-report onto assurance-jury-record-v2.schema.json (commit 463416fa).
+        """
+        if not ref.startswith("#/"):
+            self.fail(f"only local $refs are supported here, got {ref}")
+        node = root
+        for part in ref[2:].split("/"):
+            node = node.get(part) if isinstance(node, dict) else None
+        if not isinstance(node, dict):
+            self.fail(f"$ref {ref} does not resolve inside the document")
+        return node
+
+    def _build_minimal(self, schema: dict, depth: int = 0, root: dict | None = None) -> dict:
         """Build a minimal valid instance from schema constraints."""
+        root = schema if root is None else root
         if depth > 3:
             return {}
         instance = {}
         required = schema.get("required", [])
         for req in required:
             prop = schema.get("properties", {}).get(req, {})
-            instance[req] = self._value_for(prop, depth, key=req)
+            instance[req] = self._value_for(prop, depth, key=req, root=root)
         return instance
 
-    def _value_for(self, prop: dict, depth: int, key: str = "") -> object:
+    def _value_for(self, prop: dict, depth: int, key: str = "", root: dict | None = None) -> object:
+        if "$ref" in prop:
+            return self._value_for(self._resolve(prop["$ref"], root or prop), depth,
+                                   key=key, root=root)
         if "const" in prop:
             return prop["const"]
         if "enum" in prop:
@@ -91,13 +114,25 @@ class ObjectModelRoundTripTest(unittest.TestCase):
         if t == "array":
             items = prop.get("items", {})
             min_items = prop.get("minItems", 0)
-            return [self._value_for(items, depth + 1)] * max(1, min_items)
+            return [self._value_for(items, depth + 1, root=root)] * max(1, min_items)
         if t == "object":
-            return self._build_minimal(prop, depth + 1)
+            return self._build_minimal(prop, depth + 1, root)
         if t == "integer" or t == "number":
             return 1
         if t == "boolean":
             return True
+        # A pattern that asks for a digest has to be answered with one. This is tried before the
+        # legacy contentHash branch because that one emits an all-zero digest, which
+        # assurance-jury-record-v2.schema.json rejects on purpose ("an all-zero digest is not a
+        # judged artifact") -- the field name is hashed so the value is nonzero and reproducible.
+        if "sha256:" in (prop.get("pattern") or ""):
+            return "sha256:" + hashlib.sha256(key.encode("utf-8")).hexdigest()
+        # Same blind spot, second shape: `#/$defs/rfc3339` guards the timestamp with a
+        # pattern (the installed jsonschema enforces no `format`), and a string-typed
+        # property with no pattern-aware builder here produced "test-value" for it.
+        # Fixed rather than now(): a fixture that moves with the clock cannot be re-checked.
+        if "\\d{4}-\\d{2}-\\d{2}" in (prop.get("pattern") or ""):
+            return "2026-10-08T09:00:00Z"
         # contentHash-style fields require sha256:<64hex>; others use test-value
         if key in ("contentHash", "content_hash", "content_hash64"):
             return "sha256:" + "0" * 64
