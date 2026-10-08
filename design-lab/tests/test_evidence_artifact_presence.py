@@ -35,7 +35,7 @@ class EvidenceArtifactPresenceTests(unittest.TestCase):
                          'every tracked evidence artefact must still exist')
         # Known decay, asserted rather than hidden. Each entry is a record whose
         # artefact bytes legitimately moved after the observation, and the inventory is
-        # exact so the NEXT unannounced move still goes red. Thirty-eight records on eleven
+        # exact so the NEXT unannounced move still goes red. Forty-two records on fifteen
         # distinct artefacts -- and the numbers here are re-measured, not inherited: see
         # the correction below, because this count was wrong in this file for an hour.
         #   * build/main.js -- a 2026-09-27 record used a mutable build output as
@@ -115,6 +115,32 @@ class EvidenceArtifactPresenceTests(unittest.TestCase):
              'HASH_MOVED_SINCE_OBSERVATION'): 1,
             ('design-lab/tests/test_workbench_native_ui.py',
              'HASH_MOVED_SINCE_OBSERVATION'): 4,
+            ('design-lab/scripts/verify_object_model_backing.py',
+             'HASH_MOVED_SINCE_OBSERVATION'): 1,
+            # 2026-10-08, four more names on this inventory, all of them caused by the wave that
+            # settled the delivery-manifest object row, and each one is a record whose artefact is
+            # the code it described rather than the prose -- which is the binding practice this file
+            # asked for. They drift because that code genuinely moved:
+            #   * contract-bindings.json -- commit 717257ab re-pointed the artifact-preflight
+            #     emitter from production_preflight.py:365 to :378, because the delivery-bom
+            #     finding inserted thirteen lines above it. The pointer is checked by line number on
+            #     purpose, so a real insertion must move it (verify_contract_bindings.py).
+            #   * verify_design_lab.py -- 717257ab added verify_template_contracts.py to SCRIPTS
+            #     (67 gates to 68) and corrected the object-model comment to the new 6/9/6 split.
+            #   * verify_object_model_backing.py -- the same commit deleted the delivery-manifest
+            #     row from UNREFERENCED, re-pinned the counts to product=6/unreferenced=6, and
+            #     replaced the two stale "against HEAD 0a873fc1" citations with the commit the
+            #     re-measurement actually ran at.
+            #   * test_object_model_backing_gate.py -- REAL_COUNTS re-pinned to match, and the
+            #     hardcoded "expected 7" in the weakened-copy test became derived from REAL_COUNTS
+            #     so this class of staleness cannot come back.
+            # Nothing above is rewritten: each stays the observation it was.
+            ('design-lab/config/contract-bindings.json',
+             'HASH_MOVED_SINCE_OBSERVATION'): 1,
+            ('design-lab/scripts/verify_design_lab.py',
+             'HASH_MOVED_SINCE_OBSERVATION'): 1,
+            ('design-lab/tests/test_object_model_backing_gate.py',
+             'HASH_MOVED_SINCE_OBSERVATION'): 1,
             ('docs/audits/DESIGNLAB-LAUNCH-REVIEW-PREFLIGHT-2026-10-08.md',
              'HASH_MOVED_SINCE_OBSERVATION'): 23,
         })
@@ -122,7 +148,7 @@ class EvidenceArtifactPresenceTests(unittest.TestCase):
                          'the drifted-artefact inventory is exact in both directions: a new '
                          'move, a new artefact name, or one more record on a known artefact '
                          'are all findings, and a drifted pair that quietly disappeared is too')
-        self.assertEqual(sum(counts.values()), 38,
+        self.assertEqual(sum(counts.values()), 42,
                          'the total drifted-record count is pinned, not derived')
 
     def test_missing_tracked_artefact_is_a_hard_break_not_a_warning(self):
