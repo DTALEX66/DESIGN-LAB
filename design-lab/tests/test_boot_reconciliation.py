@@ -18,6 +18,7 @@ from pathlib import Path
 import subprocess
 import sys
 import tempfile
+import time
 import unittest
 from contextlib import closing
 from unittest.mock import patch
@@ -36,6 +37,27 @@ VERIFIER = ROOT / "scripts" / "verify_recovery_safety.py"
 # repository root; inheriting it makes resolve_paths reject the temp project as an
 # out-of-root policy violation. test_native_recovery_lock.py uses the same convention,
 # which is why its cross-process case passes on CI and this one initially did not.
+def _cleanup_when_released(tmp: tempfile.TemporaryDirectory,
+                           deadline_seconds: float = 10.0) -> None:
+    """Remove a temp project once the OS has actually let go of the child's lock file.
+
+    `Popen.wait()` returns when the child is reaped, but Windows releases that process's
+    handles during teardown, which can land a moment later; unlinking
+    `native-recovery-locks/<hash>.lock` inside that window raised WinError 32 and turned a
+    passing assertion into a suite ERROR under full-run timing (it never reproduced
+    standalone, which is how it survived). This retries the removal and still raises if the
+    handle is genuinely never released -- a bounded wait, not a swallowed error.
+    """
+    deadline = time.monotonic() + deadline_seconds
+    while True:
+        try:
+            tmp.cleanup()
+            return
+        except PermissionError:
+            if time.monotonic() >= deadline:
+                raise
+
+
 HOLDER_SCRIPT = '''
 import sys, time
 sys.path.insert(0, sys.argv[1])
@@ -55,7 +77,7 @@ class ProbeIsRequired(unittest.TestCase):
         runtime = ROOT / ".project-local/task-runtime/boot-reconciliation-tests"
         runtime.mkdir(parents=True, exist_ok=True)
         tmp = tempfile.TemporaryDirectory(dir=runtime)
-        self.addCleanup(tmp.cleanup)
+        self.addCleanup(_cleanup_when_released, tmp)
         self.root = Path(tmp.name)
         (self.root / "AGENTS.md").write_text("# synthetic reconciliation project", encoding="utf-8")
         self.db = self.root / "state.db"
@@ -133,6 +155,44 @@ class ProbeIsRequired(unittest.TestCase):
                 return True
         except RecoveryBusy:
             return False
+
+
+    def test_the_wait_still_fails_when_the_handle_is_never_released(self):
+        """The retry buys a moment, not a pardon.
+
+        Without this case the helper could be quietly widened to `ignore_errors=True` and
+        the suite would go green while leaking a temp project on every run -- the same
+        failure it now exists to survive, just hidden instead of fixed.
+        """
+        runtime = ROOT / ".project-local/task-runtime/boot-reconciliation-tests"
+        runtime.mkdir(parents=True, exist_ok=True)
+        tmp = tempfile.TemporaryDirectory(dir=runtime)
+        locked = Path(tmp.name) / "held.lock"
+        locked.write_bytes(b"x")
+        child = subprocess.Popen(
+            [sys.executable, "-B", "-c",
+             "import sys,time\n"
+             "f=open(sys.argv[1],'rb')\n"
+             "print('HELD', flush=True)\n"
+             "time.sleep(float(sys.argv[2]))",
+             str(locked), "8"],
+            cwd=str(ROOT), stdout=subprocess.PIPE, text=True)
+        try:
+            self.assertEqual(child.stdout.readline().strip(), "HELD")
+            with self.assertRaises(PermissionError):
+                _cleanup_when_released(tmp, deadline_seconds=1.0)
+        finally:
+            child.stdout.close()
+            child.terminate()
+            child.wait(timeout=20)
+        # The dir is still there because the guard refused to pretend; clean it for real.
+        deadline = time.monotonic() + 20
+        while Path(tmp.name).exists() and time.monotonic() < deadline:
+            try:
+                tmp.cleanup()
+            except PermissionError:
+                time.sleep(0.2)
+        self.assertFalse(Path(tmp.name).exists(), "the temp project leaked")
 
 
 class ProductionEntryIsWired(unittest.TestCase):
