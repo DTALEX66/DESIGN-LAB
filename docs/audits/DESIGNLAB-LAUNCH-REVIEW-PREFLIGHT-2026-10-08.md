@@ -1020,3 +1020,29 @@ closed**:声明的第二方根若一个可导入名字都产不出来,说明门�
 门的自测 13 条(`test_test_selfsufficiency_gate.py`),含两条"削弱副本"反证:把入口守卫规则或
 自举规则从副本里抹掉,同一份被改坏的树就不再定罪——红来自规则,不来自夹具。当前树:
 `TEST_SELF_SUFFICIENCY=OK scanned=207 executable=207 violations=0`。
+
+### 24.1 追正(同日,写完 24 段立刻被打脸的那句)
+
+24 段末尾我写了:"一个方法 86.2s 并以 errors=1 结束……这条错误仍开放"。**这句是错的**,按实测改口。
+
+空闲、单进程、逐方法重跑同三条可疑用例:
+`test_full_canvas_raster_overlay_is_rejected_even_when_hash_bound` → **16.384s OK**;
+`test_structure_bounds_and_semantic_target_mapping_are_exact_not_containment_only` → **50.833s OK**;
+`test_structure_projection_and_provenance_mutations_fail_closed` → **147.274s OK**。
+
+为什么并发会造出红:这个模块的夹具根是**固定共享**的
+`.project-local/task-runtime/reconstruction`(条目名 `c5-<pid>-c6-<uuid>`),而其中一条用例断言的恰是
+"验证前后该目录里 `c6v-*` 集合不变"——并发的兄弟进程在同一时刻往里面放东西,断言就红;另一条 86.2s
+的红同理(它单独跑 50.8s 就过)。第三条根本不是超时,是**我的时间盒比工作短**:90s vs 实测 147.3s。
+所以 #19 换性:没有 hang,没有 error,只有"这个模块单进程需要很久(最慢一个方法 147s)",以及"我给
+逐模块验证设的 240s/90s 上限本身没有依据"。这不是能力缺陷,是**我的仪器缺陷**,而它已经被写成了一条
+待办和一段审计文字——所以这段追正必须留在文档里,而不是悄悄改口。
+
+一并如实记录的残留:被我强杀的两次运行在 `task-runtime/reconstruction` 留下 **124 个 `c5-*` 目录**。
+它们不归那条"无残留"断言管(那条只数 `c6v-*` 前缀),所以这个可见的债没有任何门在看。残留本身不是产品
+问题——是被杀的进程没机会跑 tearDown。清理只能按 PID 存活判定,不能按名字或年龄:今天列进程时发现另外
+两个 `http.server`(00:51 起,属于另一个项目)也挂在 python.exe 名下,**"idle" 不等于"我的"**。
+
+还有一次我自己的操作错误,记在这里因为它是第二次:编辑这条记忆时我用 Edit 替换了段落首行,把该段开头
+整句吃掉了,与今天更早那次"在 bullet 前缀上锚定插入"的错同类。已恢复,规则回到:**锚点必须是完整行,
+改完重读行首**。
