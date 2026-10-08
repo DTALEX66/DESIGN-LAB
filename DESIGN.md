@@ -111,9 +111,11 @@ Linear、Raycast**。方法沿用已验证过的规矩：先收割对标的 CSS/
 
 - 令牌取值：从 `apps/workbench/style.css` 读出，非回忆。
 - §3.1 的 4.45:1 与 §2 的 587px/≤720 数字：本轮真实 Chromium 实测（`.project-local/task-artifacts/browser-e2e/workbench-ui-audit.json`、`.project-local/tmp/ui-short-viewport.json`）。
-- 对比度证据的覆盖面（实测，见审计包 §9）：`design-lab/tests/e2e/audit_workbench_contrast.mjs`
-  在 24 个路由×宽度组合上判 2461 个文本运行，最紧的一对是 4.11:1（要求 3:1，大字）；
-  `color-mix()` 计算出的 `color(srgb …)` 背景已纳入合成，读不懂的颜色一律判红而不是跳过。
+- 对比度证据的覆盖面（实测，见审计包 §9 与 §11）：`design-lab/tests/e2e/audit_workbench_contrast.mjs`
+  在 24 个路由×宽度组合上判 2460 个文本运行，最紧的一对是 4.11:1（要求 3:1，大字）；
+  `color-mix()` 计算出的 `color(srgb …)` 背景已纳入合成，读不懂的颜色一律判红而不是跳过；
+  被**不透明**外来元素完全罩住的文字记为 `obscured` 并跳过（1.4.3 管的是看得见的文字，
+  实测这种只有 1 处），半透明罩层则合成进背景并被自己的控制件看守；
   外部 axe 每屏肯判 22–28 个节点、并因伪元素/渐变/遮挡拒绝评 9–71 个，
   所以对比度不能由 axe 的"0 violations"背书。
 - §4 存量数字：`scripts/design_debt_baseline.py` 实测，`design-lab/tests/test_design_debt_baseline.py`

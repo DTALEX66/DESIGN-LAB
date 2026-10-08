@@ -165,6 +165,13 @@ class WorkbenchContrastGateTests(unittest.TestCase):
         self.assertEqual(summary.get('unparsable'), '0',
                          'a colour the page computes could not be parsed, so at least one '
                          'background was dropped from the stack: %s' % summary)
+        # The veil control answers a different question: text seen *through* a scrim must be
+        # graded against the blended pairing. Its own document, because a fixture has to be
+        # inside the viewport for a hit test to find it.
+        self.assertIn('CT_VEIL_CONTROL caught=yes', out,
+                      'the translucent-veil control did not fire: %s' % out[-800:])
+        self.assertIn('obscured', summary,
+                      'obscured text runs are no longer counted: %s' % summary)
 
     def test_contrast_maths_reference_table_is_satisfied(self):
         """The probe recomputes published WCAG 2.1 ratios with the same lum()/ratio()

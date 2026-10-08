@@ -373,3 +373,32 @@ CI 侧看守加了两条断言（`test_workbench_contrast_gate.py`）：`control
 另有空集正控制，防止"分支从未走到"。实测：`UI_LAYERING=PASS declarations=12 layers=11
 values=[-3,-2,0,2,50,60,88,90,95,110,200]`，`Ran 11 tests … OK`，
 `DESIGN_DEBT_BASELINE=PASS`（债存量未受影响：26 / 516 / 24），`test_gate_reachability OK`。
+
+## 11. 重叠：量完之后，这一格既不是缺口也不是免费的答案
+
+上一轮把 axe 的第三类拒绝（`overlapped by another element`）当成"本仓模型的缺口"列进了计划。
+真去量之后这个说法要分两半，而且我第一版实现自己造了一个假违规。
+
+**实测**（`overlap_census.mjs`，12 条路由 × 1440/390，命中测试用 `elementsFromPoint`）：
+2461 个文本运行里，**只有 1 处**的像素被非祖先元素占据 ——
+390 宽下 `p.eyebrow :: 02 / VERIFIED READBACK` 被 `nav.app-nav` 压住，而 `app-nav` 是**不透明**的（a=1）。
+不透明遮住的文字看不见，WCAG 1.4.3 管的是"看得见文字"的对比度，所以这不是对比度失败；
+"该不该被遮住"是几何门的活。因此现在它被单列为 `obscured` 计数并跳过评分，
+既不记成通过也不记成失败。
+
+**我第一版把这条做错了，被自己的数字抓住**：那次 `belowAA=1`、`CT_MARGIN tightest=1`，
+报的就是这个 eyebrow。原因是我把外来元素的**渐变第一个色标**当成整块不透明蒙版 ——
+和上一轮 3px 指示条同一类错（不可能存在的背景进候选集）。修正两条：
+不透明外来元素 → 算 obscured 不评分；半透明外来层 → 只有它的盒子真的罩住文本盒才参与合成。
+
+**半透明那一格必须能被证明工作**：于是加了第三个控制，放在**自己的文档**里
+（`CT_VEIL_CONTROL`）——白字底下深色，上面盖一层 `rgba(255,255,255,.92)`。
+放进真实页面是不行的：控制件必须在视口内才拿得到命中测试，而把它盖在 UI 上就会污染要量的东西
+（第一版正是这样，控制件在 `left:-10000px`，命中测试永远看不到它，于是"控制没被抓到"其实是控制没在场）。
+实测输出：`CT_VEIL_CONTROL caught=yes coveredForeign=1 ratio=1.18`（1.18:1 < 3:1，红得对）。
+
+最终一轮（widths=1440,390）：
+`CT_SUMMARY checked=2460 belowAA=0 pseudoLayers=1852 coveredForeign=0 obscured=1 unparsable=0
+controlMisses=0 strict=1 mathChecks=4 mathBad=0`，`CT_MARGIN tightest=4.11 need=3`。
+CI 侧 `test_workbench_contrast_gate.py` 新增三条断言（`controlMisses==0`、`unparsable==0`、
+`CT_VEIL_CONTROL caught=yes` 且 `obscured` 字段存在），`Ran 2 tests … OK`（57.3s，1440/1920）。

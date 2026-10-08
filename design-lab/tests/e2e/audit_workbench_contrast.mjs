@@ -137,6 +137,10 @@ const MEASURE = () => {
 
   const canvas = parse(getComputedStyle(document.body).backgroundColor) || { r: 255, g: 255, b: 255, a: 1 };
 
+  // Planted violations. They are excluded from the product counts and reported separately:
+  // each one proves a code path that would otherwise pass silently.
+  const CONTROL_IDS = ['ct-control'];
+
   // Control, planted before the sweep so the ordinary per-node path grades it: white text
   // on a background Chromium reports as `color(srgb 1 1 1)` -- the serialisation a resolved
   // `color-mix()` produces. A parser that cannot read that form drops the background and
@@ -170,6 +174,10 @@ const MEASURE = () => {
   const fails = [];
   let checked = 0;
   let pseudoLayers = 0;
+  let coveredForeign = 0;
+  const coveredExamples = [];
+  let obscured = 0;
+  const obscuredExamples = [];
   let margin = null;
   const desc = (el) => {
     const cls = (el.getAttribute('class') || '').trim();
@@ -240,6 +248,48 @@ const MEASURE = () => {
     walk(0, canvas);
     if (candidates.length === 0) candidates.push(canvas);
 
+    // What actually owns this pixel may not be an ancestor: a modal scrim, a floating card,
+    // a toast. Measured on the shipped UI, one text run in 2461 has such an owner. Two
+    // different things follow, and conflating them produced a false failure the first time:
+    //   · a translucent owner mixes with what is under it, so the visible pairing really is
+    //     lighter -- that is a contrast question and it is graded here;
+    //   · an opaque owner means the text is not visible at all. WCAG 1.4.3 is about text an
+    //     eye can see, so it is skipped here and counted as `obscured`; whether something
+    //     ought to be reachable at all is the geometry gate's question, not this one.
+    let foreign = null;
+    const cx = box.left + box.width / 2;
+    const cy = box.top + box.height / 2;
+    if (cx >= 0 && cy >= 0 && cx < innerWidth && cy < innerHeight) {
+      const hit = document.elementsFromPoint(cx, cy)[0];
+      if (hit && hit !== el && !el.contains(hit) && !hit.contains(el)) {
+        const hs = getComputedStyle(hit);
+        const veil = parse(hs.backgroundColor);
+        const stop = gradientStops(hs.backgroundImage)[0];
+        const owner = (veil && veil.a > 0) ? veil : (stop || null);
+        const name = `${hit.tagName.toLowerCase()}${hit.id ? '#' + hit.id : ''}`;
+        if (owner && owner.a >= 1) {
+          obscured += 1;
+          if (obscuredExamples.length < 4) obscuredExamples.push(name);
+          continue;
+        }
+        if (owner) {
+          // A backdrop only counts for the text it really covers, so require the owner's
+          // box to contain the text box -- the same lesson the pseudo-element branch learned
+          // from a 3px indicator bar.
+          const ownerBox = hit.getBoundingClientRect();
+          const covers = ownerBox.left <= box.left + 1 && ownerBox.right >= box.right - 1
+            && ownerBox.top <= box.top + 1 && ownerBox.bottom >= box.bottom - 1;
+          if (covers) {
+            foreign = owner;
+            coveredForeign += 1;
+            if (coveredExamples.length < 4) {
+              coveredExamples.push(`${name} a=${Math.round(owner.a * 100) / 100}`);
+            }
+          }
+        }
+      }
+    }
+
     // Ancestor opacity makes the text lighter against its own backdrop.
     let alpha = 1;
     for (let p = el; p; p = p.parentElement) alpha *= parseFloat(getComputedStyle(p).opacity) || 1;
@@ -249,10 +299,13 @@ const MEASURE = () => {
     const large = size >= 24 || (size >= 18.66 && bold);
     const need = large ? 3 : 4.5;
 
-    // Worst rendered pairing is the honest one.
+    // Worst rendered pairing is the honest one. A veil above the text is composited over
+    // both the glyph and its background, because that is what reaches the eye.
     let worst = null;
-    for (const bg of candidates) {
-      const eff = over({ r: fg0.r, g: fg0.g, b: fg0.b, a: fg0.a * alpha }, bg);
+    for (const base of candidates) {
+      const bg = foreign ? over({ ...foreign }, base) : base;
+      let eff = over({ r: fg0.r, g: fg0.g, b: fg0.b, a: fg0.a * alpha }, base);
+      if (foreign) eff = over({ ...foreign }, eff);
       const r = ratio(eff, bg);
       if (worst === null || r < worst.ratio) worst = { ratio: r, bg };
     }
@@ -261,7 +314,7 @@ const MEASURE = () => {
     // node's ratio cannot tell a comfortable pass from one one rounding away from red.
     // The planted control is excluded -- it is a deliberate 1:1, so including it would
     // make every run report the tightest pair as the test fixture.
-    if (el.id !== 'ct-control' && (margin === null || worst.ratio < margin.ratio)) {
+    if (!CONTROL_IDS.includes(el.id) && (margin === null || worst.ratio < margin.ratio)) {
       margin = { ratio: Math.round(worst.ratio * 100) / 100, need, el: desc(el).slice(0, 90) };
     }
     if (worst.ratio < need) {
@@ -273,21 +326,22 @@ const MEASURE = () => {
     }
   }
 
-  const controlRow = fails.find((f) => f.el.includes('#ct-control')) || null;
-  const control = {
-    planted: true,
-    reported: !!controlRow,
-    ratio: controlRow ? controlRow.got : null,
-    need: controlRow ? controlRow.need : null,
-  };
-  document.querySelector('#ct-control')?.remove();
+  const control = { planted: CONTROL_IDS.length, reported: 0, detail: [] };
+  for (const id of CONTROL_IDS) {
+    const row = fails.find((f) => f.el.includes('#' + id)) || null;
+    if (row) control.reported += 1;
+    control.detail.push({ id, reported: !!row, ratio: row ? row.got : null });
+  }
+  for (const id of CONTROL_IDS) document.querySelector('#' + id)?.remove();
   return { checked, fails: fails.slice(0, 60), failCount: fails.length, math,
-           pseudoLayers, unknown, control, margin };
+           pseudoLayers, unknown, control, margin,
+           coveredForeign, coveredExamples, obscured, obscuredExamples };
 };
 
 const browser = await chromium.launch({ executablePath: browserPath, args: ['--no-sandbox'] });
 const report = { serviceUrl, widths, routes: {} };
 let failTotal = 0, checkedTotal = 0, unknownTotal = 0, pseudoTotal = 0;
+let coveredTotal = 0, obscuredTotal = 0, controlsExpected = 0, controlsReported = 0;
 const mathChecks = [];
 const unknownSamples = [];
 const controlBad = [];
@@ -305,18 +359,40 @@ for (const w of widths) {
     report.routes[`${w}:${name}`] = m;
     for (const c of m.math) if (!mathChecks.some((k) => k.a === c.a && k.b === c.b)) mathChecks.push(c);
 
-    // The planted control is a deliberate failure; it must be counted as proof the parser
-    // works, never as a product violation.
-    failTotal += m.failCount - (m.control.reported ? 1 : 0);
+    // The planted controls are deliberate failures; they are counted as proof the
+    // parser and the overlap branch work, never as product violations.
+    failTotal += m.failCount - m.control.reported;
+    controlsExpected += m.control.planted;
+    controlsReported += m.control.reported;
     checkedTotal += m.checked;
     unknownTotal += m.unknown.length;
-    if (!m.control.reported) controlBad.push(`${w}:${name} ${JSON.stringify(m.control)}`);
+    if (m.control.reported < m.control.planted)
+      controlBad.push(`${w}:${name} ${JSON.stringify(m.control.detail)}`);
     pseudoTotal += m.pseudoLayers;
+    coveredTotal += m.coveredForeign;
+    obscuredTotal += m.obscured;
     for (const u of m.unknown) if (unknownSamples.length < 12) unknownSamples.push(`${w}:${name} ${u}`);
-    console.log(`w=${String(w).padEnd(5)} ${name.padEnd(13)} checked=${String(m.checked).padStart(4)} belowAA=${String(m.failCount - (m.control.reported ? 1 : 0)).padStart(3)} pseudoLayers=${String(m.pseudoLayers).padStart(3)} unparsable=${m.unknown.length} control=${m.control.reported ? 'caught' : 'MISSED'}`);
+    console.log(`w=${String(w).padEnd(5)} ${name.padEnd(13)} checked=${String(m.checked).padStart(4)} belowAA=${String(m.failCount - (m.control.reported ? 1 : 0)).padStart(3)} pseudoLayers=${String(m.pseudoLayers).padStart(3)} unparsable=${m.unknown.length} covered=${m.coveredForeign} obscured=${m.obscured} control=${m.control.reported}/${m.control.planted}`);
   }
   await page.close();
 }
+// The veil control needs its own document: a fixture has to be inside the viewport for a
+// hit test to see it, and dropping a near-white box over the real UI would contaminate the
+// very measurement it is supposed to validate.
+const veilPage = await browser.newPage({ viewport: { width: 1440, height: 900 } });
+await veilPage.setContent('<!doctype html><html lang="zh-CN"><body style="margin:0;'
+  + 'background:rgb(6,10,20)"><div style="position:relative;width:220px;height:60px;'
+  + 'background:rgb(6,10,20)"><span id="ct-veiltext" style="color:rgb(245,247,252);'
+  + 'font-size:16px">AA VEIL CONTROL</span><span style="position:absolute;inset:0;'
+  + 'background:rgba(255,255,255,.92)"></span></div></body></html>');
+const veilRun = await veilPage.evaluate(MEASURE);
+await veilPage.close();
+const veilRow = veilRun.fails.find((f) => f.el.includes('#ct-veiltext')) || null;
+const veilCaught = !!veilRow && veilRun.coveredForeign >= 1;
+console.log(`CT_VEIL_CONTROL caught=${veilCaught ? 'yes' : 'NO'}`
+  + ` coveredForeign=${veilRun.coveredForeign} ratio=${veilRow ? veilRow.got : 'not-reported'}`
+  + ` (white text under a 92% white veil must fall below AA)`);
+
 const tightest = Object.values(report.routes)
   .map((v) => v.margin).filter(Boolean)
   .sort((a, b) => a.ratio - b.ratio)[0] || null;
@@ -337,7 +413,8 @@ if (mathBad.length > 0) {
 
 console.log('');
 console.log(`CT_SUMMARY checked=${checkedTotal} belowAA=${failTotal} pseudoLayers=${pseudoTotal}`
-  + ` unparsable=${unknownTotal} controlMisses=${controlBad.length} strict=${strict ? 1 : 0}`
+  + ` coveredForeign=${coveredTotal} obscured=${obscuredTotal} unparsable=${unknownTotal}`
+  + ` controlMisses=${controlsExpected - controlsReported} strict=${strict ? 1 : 0}`
   + ` mathChecks=${mathChecks.length} mathBad=${mathChecks.filter((c) => !c.ok).length}`);
 if (failTotal > 0) {
   for (const [k, v] of Object.entries(report.routes)) {
@@ -352,6 +429,11 @@ if (failTotal > 0) {
 // A colour this file cannot read is not a pass. Before this rule existed, a
 // `color(srgb ...)` backdrop (what Chromium returns for a resolved color-mix) simply
 // dropped out of the stack and the text was graded against the page instead of its scrim.
+if (!veilCaught) {
+  console.error('CT_FAIL: the translucent-veil control was not reported, so text seen through'
+    + ' a scrim is being graded against the backdrop behind the scrim');
+  process.exit(1);
+}
 if (controlBad.length > 0) {
   for (const bad of controlBad) console.log(`  CONTROL-MISSED ${bad}`);
   console.error(`CT_FAIL: the white-on-color(srgb) control was not reported as a failure in `
