@@ -5,7 +5,8 @@
   "type": "object",
   "required": ["version", "handoff", "items", "provenance"],
   "properties": {
-    "version": {"type": "string"},
+    "$schema": {"type": "string"},
+    "version": {"const": "design-lab/bom/v1"},
     "generated_at": {"type": "string"},
     "project": {"type": "string"},
     "handoff": {"type": "string", "minLength": 1},

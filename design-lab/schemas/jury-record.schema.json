@@ -5,6 +5,7 @@
   "type": "object",
   "required": ["jury_id", "boundTreeSha", "target", "axes", "deterministic", "humanReview", "evidence", "verdict"],
   "properties": {
+    "$schema": {"type": "string"},
     "jury_id": {"type": "string", "minLength": 1},
     "boundTreeSha": {"type": "string", "minLength": 8},
     "target": {"type": "string", "minLength": 1},

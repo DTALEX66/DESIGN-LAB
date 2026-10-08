@@ -1,13 +1,13 @@
 {
   "$schema": "../../schemas/bom.schema.json",
-  "version": "1.0.0",
+  "version": "design-lab/bom/v1",
   "generated_at": "2026-08-13",
   "project": "DESIGN-LAB",
   "handoff": "replace-with-handoff-id",
   "items": [
     {
       "path": "replace-with-relative-path",
-      "kind": "editable-source | export | derived",
+      "kind": "derived",
       "format": "psd | ai | indd | blend | png | svg | pdf | mp4",
       "sha256": "replace-with-sha256",
       "source": "replace-with-source-record-id-or-origin",
