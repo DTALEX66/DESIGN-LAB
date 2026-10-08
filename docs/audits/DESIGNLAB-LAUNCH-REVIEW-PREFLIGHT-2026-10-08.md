@@ -1622,3 +1622,64 @@ clean=True subject=763bcf471067`，聚合 `VERIFY_DESIGN_LAB=OK total=68 failed=
 
 修正的教训与 30.2 同一类：我把手里仪器的第一次读数当成了事实本身，而没有先问"仓里是否已经有人在
 用正确的基准看同一件事"。本节保留原文并追加修正，不改写已提交的段落。
+
+## 31. 同一个声明不能有两套读法：把"哪些字节算声明"收成一个所有者
+
+### 31.1 为什么做这一片
+
+30.6 留下的不是"投影改好了"，而是一个更硬的事实：仓里有两个组件各自重算收据的字节声明，各自保
+存了一份"哪些路径算声明"的规则。`design-lab/scripts/verify_ledger_subject_binding.py` 用
+`git show <subject_sha>:<path>` 复算 `subject_files`；`src/design_lab/governance/reporting.py` 的
+投影判定 `subject_files` + `artifacts`。两份规则字面不同，判定结果就必然漂移——30 片里投影那条
+永远全红的规则正是这种漂移的一端。把缺陷修好而把根因留着，下一片还会从同一个缝里长出来。
+
+### 31.2 门自己也有一处基准错用，并且把它记成了别人的证据债
+
+门的 `classify()` 完全不读 `binding`。于是它对 `WORKTREE_FILES` 的行也按对象库复算——而 schema
+给这个取值的注释是"字节来自脏工作树，永远不得冒充提交"
+（`design-lab/schemas/task-ledger-r5-v1.schema.json:316-317`）。按被否定的基准审判，必然产出"缺陷"，
+而这 4 条结果被写进了 `KNOWN` 豁免表，理由一字不差是"this entry does not equal the bytes at that
+commit -- the subject was read from the working tree"。也就是说：门知道这些是工作树读数，却把
+**自己的基准错用**记成了记录的证据债。
+
+这不是把那 4 行记录改好，也不是给它们开后门：`WORKTREE_FILES` 的字节本来就只在当时那块磁盘上，
+任何提交都无法复现它们。做法是让门不再用记录自己否定的基准审判它们，并把这类声明**计数并打印**
+（`worktree_claims=8`），而不是当作已豁免的缺陷。豁免表因此从 67 条减到 63 条，全部是真正的
+"提交无法持有的字节"（57 个 `.pyc` + 6 个 `.gitignore` 排除的 wav）。双向腐烂保护不动：
+新出现的未登记缺陷仍红，已变得可核验却仍赖在表里的也仍红。
+
+### 31.3 规则：一个所有者，两个消费者，各自的结论
+
+`design_lab.governance.reporting` 现在拥有 `Claims` / `basis()` / `claims()`：
+`subject_files` 与 `artifacts` 都算字节声明；同一路径只判一次；同一路径被同一行以两个不同摘要
+声明即为自相矛盾（`DIGEST_CONFLICT_FOR_SAME_PATH`）；`.project-local/task-artifacts/**` 落在任何
+提交基准之外，**计数而不丢弃**（`runtime=34`）；缺 `binding` 的行按更严的 `COMMIT` 读。
+
+门 import 这个所有者，只保留自己的结论：`checked=472`（旧口径只看 `subject_files` 是 450，
+其中还包含 4 条不该按提交判的），`worktree_claims=8`、`runtime=34`、`known_unverifiable=63`、
+`records=74`。投影保留自己的两个字段（完整性 / 时效性），但用的是同一份声明枚举，不再自带一套
+路径判定。方向是脚本依赖产品模块，不是反过来。
+
+### 31.4 数字与验证（在 `9e7db8a4` 重跑）
+
+`LEDGER_SUBJECT_BINDING=OK checked=472 subject_files=450 runtime=34 worktree_claims=8
+known_unverifiable=63 records=74`；`test_ledger_subject_binding.py` 19 例 OK（原 11 例，新增 8 例
+分别钉住：artefact 声明按提交判、可复现的 artefact 声明是旧门没有的覆盖、`WORKTREE_FILES` 不被对象
+库审判、runtime 声明被计数不被跳过、同路径双摘要、缺 `binding` 默认更严基准、提交不可解析时两份
+清单都要付出代价、豁免表里不再有非提交基准的条目）；`test_current_reporting.py` 43 例 OK；
+聚合 `VERIFY_DESIGN_LAB=OK total=68 failed=0`；投影在该提交上：74 条收据 **37 条完整**、
+**2 条仍适用于今天的字节**，理由分布 `OUTCOME_NOT_PASS` 37、`ARTIFACT_IS_NOT_VERSIONED` 63、
+`RUNTIME_ARTIFACT_ABSENT_ON_THIS_MACHINE` 1、`EVIDENCE_DIGEST_DIFFERS` 2，时效侧
+`MOVED_SINCE_BOUND_COMMIT` 153、`STALE_SUBJECT_SHA` 8；任务计数仍 `{'PARTIAL': 28}`，
+没有任何轴因本片被点亮。30 片那条 `LOCALLY_MODIFIED_SINCE_SUBJECT` 已随提交消失——规则抓的是
+"生成时该文件仍未提交"，正是它该有的行为。
+
+### 31.5 仍未决（不替 owner 决定）
+
+- 那 63 条"提交永远无法持有"的声明要不要进一步要求 owner 判断：现在它们被具名豁免且双向防腐，
+  但记录本身仍是 `binding: COMMIT` 引用非提交字节。把 `binding` 改为 `WORKTREE_FILES` 才是语义正确
+  的写法，而那等于承认这些行从来不是提交观察——是否允许这样修订历史行，是治理问题。
+- 21 号任务（MethodCard 两种形状、零生产者）与 30 片前述 brief 内容模型、jury 模板 V1/产品 V2、
+  30 条 INERT 合同的接线或退役，都仍等 owner 选择；可审查产物已在仓内，入口分别是
+  `design-lab/schemas/method-card.schema.json` 与 `design-lab/schemas/visual-quality/
+  master-method-card.schema.json`、`config/contract-bindings.json`。
