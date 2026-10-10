@@ -69,7 +69,13 @@ DESIGN-LAB 色板为默认 + 20261009 取值作可选主题"；手机端 FROZEN_
   （144 条、新增 13 条=12 HISTORICAL + 1 REFERENCE、类别零变化、没碰四个钉死文件），
   本地 `AUTHORITY_GATES=PASS gates=7 failed=none`。同一次 CI 里
   `Workbench browser E2E ... (no-skip)` 是 **success**，即新几何闸在干净 runner 上真的跑了。
-  下一次 CI 的预期只剩 Python gate 那 3 条 G 项红——**这是推断**，要读到 run 才算数。
+  **我那条"下一次 CI 只剩 Python gate"的推断被实测推翻了**：@ `2a97a9db`（run 38070445366）
+  authority chain 仍红，但漂移项缩成一条 —— `AUTHORITY_CHAIN=DRIFT entries changed since
+  generation: ['design-lab/config/task-ledger-r3.json']`。原因不是别人改了账本，是我把链的
+  重生成排在了追加回执**之前**：链摘要活账本，而每条新回执都改账本。
+  **顺序规则**：一批里凡是动过 `task-ledger-r3.json` 的，链必须在账本定型后重生成并**与账本同批
+  提交**（本轮就是这么收尾的）。更根本的解法——把活账本在链里标成 `mutable_state`（类别仍比对、
+  摘要视为生成时刻）——要改的是权威闸的语义，属 owner 裁定，与 G 同类，已并进 G。
 - 仍然成立的上一批基线：服务路由 **54** 条（含 `GET /api/projects/{id}/native-runtime`），，
   对账表 **17 屏 / 19 视图 / 54 路由 / 37 令牌**；appshell 合同面 ①–⑯ 块；种植总数 **47**
   （域包合同 6 + 浏览器闸 4 + 成列 4 + tabs 6 + 简报写入 5 + 侧栏提示 2 + 五种拒绝 4 +
