@@ -76,6 +76,76 @@ def git_head() -> str:
     return result.stdout.strip() or "unknown"
 
 
+def seed_native_plan(port: int, token: str, out_dir: Path) -> dict:
+    """Create ONE pending native plan in the throwaway capture state, and record that it is scaffolding.
+
+    Why a script does this rather than the page: every capture run starts its own synthetic project
+    root and an empty `state.db`, so `#/records` renders `制作记录（0）` and the affordances that only
+    exist on a native row -- the 接续 entry -- appear on zero screenshots. A screenshot of an absent
+    control is not evidence that the control works.
+
+    What it is NOT: this is not a task anyone submitted. The project is named as a scaffold, the row
+    is one synthetic RIR with an empty layer list, it is never run, and the whole state dies with the
+    temporary root. All of that is written into `capture-scaffold.json` beside the PNGs so a reader
+    can tell which pixels came from seeded data.
+    """
+    import http.client
+
+    conn = http.client.HTTPConnection("127.0.0.1", port, timeout=30)
+
+    def call(method: str, path: str, payload=None):
+        body = json.dumps(payload) if payload is not None else None
+        headers = {"Authorization": token}
+        if body is not None:
+            headers["Content-Type"] = "application/json"
+        conn.request(method, path, body=body, headers=headers)
+        response = conn.getresponse()
+        raw = response.read().decode("utf-8", errors="replace")
+        return response.status, (json.loads(raw) if raw else {})
+
+    status, created = call("POST", "/api/projects",
+                           {"name": "CAPTURE SCAFFOLD — not a real project"})
+    if status not in (200, 201):
+        raise RuntimeError(f"capture scaffold: project POST returned {status}")
+    project = created["project"]["id"]
+    plan = {
+        "host": "photoshop",
+        "rir": {"schemaVersion": "design-lab/reconstruction-ir/v1",
+                "canvas": {"width": 8, "height": 6, "colorSpace": "srgb",
+                           "background": {"color": "#ffffff", "recorded": True}},
+                "layers": []},
+        "text_styles": {},
+        "idempotency_key": "capture-scaffold-0001",
+    }
+    status, submitted = call("POST", f"/api/projects/{project}/native-plans", plan)
+    if status != 202:
+        raise RuntimeError(f"capture scaffold: native-plans POST returned {status}: "
+                           f"{json.dumps(submitted)[:200]}")
+    task = submitted.get("task") or {}
+    kind = str(task.get("kind", ""))
+    if not kind.endswith("-native"):
+        raise RuntimeError(f"capture scaffold: projected task kind {kind!r} is not a native kind, "
+                           "so the row would not carry the 接续 entry and the screenshots would "
+                           "prove nothing")
+    record = {
+        "scaffolding": True,
+        "note": "合成捕获脚手架：一个从未运行的 native plan，只为让接续入口出现在画面里；"
+                "随临时项目根一起丢弃，不是任何人提交的作业。",
+        "project_id": project,
+        "project_name": created["project"].get("name"),
+        "task_id": task.get("id") or task.get("job_id"),
+        "task_kind": kind,
+        "attempt_state": (task.get("attempt") or {}).get("state"),
+        "host": plan["host"],
+        "rir_layers": len(plan["rir"]["layers"]),
+        "never_run": True,
+    }
+    (out_dir / "capture-scaffold.json").write_text(
+        json.dumps(record, indent=2, ensure_ascii=False) + "\n", encoding="utf-8", newline="\n")
+    conn.close()
+    return record
+
+
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--out", default="docs/UI-CONVERGENCE-20260930/screenshot")
@@ -83,6 +153,11 @@ def main() -> int:
     parser.add_argument("--source-image",
                         default="design-lab/evals/reconstruction/cases/"
                                 "poster-sunrise-001/reference.png")
+    parser.add_argument("--seed-native-plan", action="store_true",
+                        help="create ONE synthetic native plan in the throwaway capture state, so "
+                             "the screenshots show the affordances a zero-row project cannot render. "
+                             "This is capture scaffolding, not product data: it is written down in "
+                             "capture-scaffold.json and dies with the temporary project root.")
     args = parser.parse_args()
 
     node = find_node()
@@ -131,6 +206,9 @@ def main() -> int:
             port = server.server_address[1]
             worker = threading.Thread(target=server.serve_forever, daemon=True)
             worker.start()
+            if args.seed_native_plan:
+                print("CAP_SCAFFOLD=SEEDED " + json.dumps(
+                    seed_native_plan(port, token, out_dir), ensure_ascii=False)[:220])
             env = {
                 **os.environ,
                 "E2E_SERVICE_URL": f"http://127.0.0.1:{port}",

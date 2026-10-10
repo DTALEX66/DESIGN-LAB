@@ -7626,6 +7626,11 @@ function renderUiComponents(target) {
           "色板与明暗开关在左侧导航底部，全站一份。下面六块是当前主题算出来的语义令牌：色块直接刷 var() 的值，所以它们显示的就是界面真正在用的颜色，不是抄来的第二份色表。"
         ),
         el(
+          "p",
+          { class: "uif-spec-note" },
+          "UI-20261009 基线不只换颜色：在包自己的断点上它还换导航轨宽与内容沟槽（≥1200 轨 256/槽 30，768–1199 轨 216/槽 22，窄于此沿用既有折叠布局，手机端本轮 FROZEN_DEFERRED）。DESIGN-LAB 默认主题一字节不变，仍是轨 168/让位 192。包里的排印尺度只有 body/small/h3/micro 已接到界面上，h1/h2 对应哪个标题角色还没定。"
+        ),
+        el(
           "div",
           { class: "uif-row" },
           tokenSwatch("--color-bg"),
