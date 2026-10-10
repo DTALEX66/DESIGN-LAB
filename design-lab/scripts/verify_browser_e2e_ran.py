@@ -25,13 +25,17 @@ import unittest
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
-# Both browser gates ride the same required CI job. `test_workbench_overflow_gate`
+# Every browser gate rides the same required CI job. `test_workbench_overflow_gate`
 # is the rendered-geometry gate (nothing clipped / unreachable / sub-11px); it was
 # falsified against the pre-fix checkout before being wired in, so it can go red.
+# `test_workbench_theme_geometry_gate` joined on 2026-10-11: it measures the nav rail's painted width
+# per palette. The register is a tuple, not a glob, so an unlisted browser suite would skip forever
+# without a finding -- and this comment said "Both" while three modules were already listed.
 TEST_MODULES = (
     "test_workbench_design_layer_e2e",
     "test_workbench_overflow_gate",
     "test_workbench_contrast_gate",
+    "test_workbench_theme_geometry_gate",
 )
 
 

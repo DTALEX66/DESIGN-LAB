@@ -90,7 +90,7 @@ measuredDebtAtCommit: 700ee3fb
 - Do 用 `color-mix(in srgb, var(--x) N%, transparent)` 派生态；Don't 新写字面色值。
   当前存量（由 `scripts/design_debt_baseline.py` 按声明的规则实测，`--check` 看守，
   不再是手点数字）：非令牌声明、去掉注释后的 7 个界面源文件里，
-  字面色值 26 处、字面 px 531 处、阴影声明 25 条（其中 19 条已读 var()）。
+  字面色值 26 处、字面 px 534 处、阴影声明 25 条（其中 19 条已读 var()）。
   26 处色值分两类：**13 处是有色相的字面量**（chromatic），13 处是中性 alpha 遮罩/阴影
   （neutral-alpha）。每一处有色相的字面量都逐条登记在
   `design-lab/config/ui-off-palette-colours.json`，`adjudication` 是 owner 专用字段，代理不得填；
@@ -105,6 +105,10 @@ measuredDebtAtCommit: 700ee3fb
   同日 R2 §5 详情面板复测：px 532→531（把顶栏高度 `height:78px` 抽成 `--uif-topbar` 令牌，少一处字面量；
   抽屉宽度写成 `--uif-drawer:450px` 令牌，边框是不计入的 `1px` 细线），阴影声明 24→25、已读 var() 18→19
   —— 多出来那条是 `box-shadow:var(--shadow-soft)`，即"多了一条已令牌化的阴影"，不是多了一条硬编码。
+  2026-10-11 主题几何复测：px 531→534，三处全是媒体查询里的断点值（`min-width:768px`、
+  `min-width:1200px`、`max-width:1199px`）——CSS 媒体查询不支持 `var()`，这与本文件既有断点段的
+  说明一致，不是新的硬编码尺度；那两条规则本身只用 `var(--uif-sidebar/-sidebar-compact/-gutter-*)`，
+  由 `design-lab/tests/test_workbench_theme_geometry_gate.py` 在真实浏览器里量轨宽与内容让位。
   层级表同步登记 `--layer-detail-panel:70`（`design-lab/config/ui-layering.json` 里
   name/purpose/note 齐全，`verify_ui_layering.py` PASS）。
   同一批给几何闸门补上了此前缺失的**遮挡断言**：对顶栏通知/工作区/搜索入口做

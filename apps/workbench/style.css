@@ -156,9 +156,14 @@
   --uif-light-success:#1b7057;
   --uif-light-warning:#805615;
   --uif-light-danger:#ab384d;
-  /* 排印（size_css_px + body_line_height）。与 X-1/X-2 的 B04/B07 冲突并存，
-     本块只登记 20261009 值供新面消费，不改 --font-* 权威值。 */
-  --uif-font-h1:29px;
+  /* 排印（specs/design_tokens.json 的 typography.size_css_px + body_line_height）。
+     与 X-1/X-2 的 B04/B07 冲突并存，本块只登记，不改 --font-* 权威值。
+     2026-10-11 追正：h1 原先登记 29px，包里是 27 —— 那个 29 既不是包值也不是渲染值
+     （界面 h2 实际由 .page-head h2{32px} 等规则写死），写它的人把它当成了包值。
+     实测 48 个 --uif-* 里 11 个没有任何规则读取；包尺度真正生效的只有 body/small/h3/micro 四个
+     （新的 UI-first 面在读），h1 与 h2 至今没有对应的界面角色。R2 尺度→界面角色的映射属报告
+     owner 裁定项 B，没裁定就仍只登记不生效。 */
+  --uif-font-h1:27px;
   --uif-font-h2:19px;
   --uif-font-h3:16px;
   --uif-font-body:14px;
@@ -175,11 +180,19 @@
   /* 动效（recommended_ms 140/220）；减弱动态沿用上面已有的 reduce 块 */
   --uif-motion-fast:140ms;
   --uif-motion-base:220ms;
-  /* 布局（sidebar 232 / desktop gutter 40 / compact gutter 26） */
-  --uif-sidebar:232px;
-  --uif-gutter-desktop:40px;
-  --uif-gutter-compact:26px;
-  /* 顶栏高度：抽屉/详情面板都要从这条线以下开始，否则会盖住顶栏右端的动作。 */
+  /* 布局（specs/design_tokens.json 的 layout.*：sidebar 256 / compact_sidebar 216 /
+     desktop_gutter 30 / compact_gutter 22）。
+     2026-10-11 追正：这一行原来登记的是 232 / 40 / 26——三个数都不在包里，也不是渲染值
+     （界面导航轨一直是 168px），而登记它的注释把它说成包值。现在值改回包值，
+     并且下面 :root[data-palette="ui2026"] 那组规则真的读取它们：默认配色一字节不变，
+     只有可选主题按 R2 的断点生效。 */
+  --uif-sidebar:256px;
+  --uif-sidebar-compact:216px;
+  --uif-gutter-desktop:30px;
+  --uif-gutter-compact:22px;
+  /* 顶栏高度：抽屉/详情面板都要从这条线以下开始，否则会盖住顶栏右端的动作。
+     78px 是**界面现在的渲染值**（三条规则在读它），包里的 layout.topbar 是 64——
+     这是活冲突不是登记错误，改哪个都要先动已落地布局，记在报告的 owner 裁定项 B。 */
   --uif-topbar:78px;
   /* R2 §3：详情抽屉在 ≥1200 与 768–1199 都是 450px 宽。写成令牌而不是把 450px
      散进规则里——字面 px 存量由 scripts/design_debt_baseline.py 实测看守。 */
@@ -1681,6 +1694,28 @@ body[data-local-session="auto"] #connect-form details { display: none; }
   --tag-info-to:var(--uif-dark-accent);
   /* 浅色下 --bg 是近白，pill 的深色墨不能再跟着 --bg 走。 */
   --tag-ink:var(--uif-dark-accent-text);
+}
+
+/* ---- 可选主题的几何（2026-10-11 追补）--------------------------------------
+   上面那组 --uif-sidebar/--uif-gutter-* 此前被登记却没有任何规则读它，所以"20261009
+   取值做成可选主题"只对颜色成立，尺度是空的。这里补上消费端：默认配色一字节不变
+   （它继续用 .app-nav{168px} 与 .dl-shell>main{margin-left:192px}），只有
+   data-palette="ui2026" 在 R2 自己的断点上换成包里的轨宽与沟槽。
+   导航轨是 fixed，内容列靠 margin-left 让位，两处必须一起改，否则内容会钻到轨下面。
+   <768px 不在此列：移动端 FROZEN_DEFERRED，沿用既有折叠规则，不在本轮改动范围。 */
+@media (min-width:1200px){
+  :root[data-palette="ui2026"] .app-nav{width:var(--uif-sidebar)}
+  :root[data-palette="ui2026"] .dl-shell>main{
+    margin-left:calc(var(--uif-sidebar) + var(--uif-gutter-desktop));
+    padding-right:var(--uif-gutter-desktop);
+  }
+}
+@media (min-width:768px) and (max-width:1199px){
+  :root[data-palette="ui2026"] .app-nav{width:var(--uif-sidebar-compact)}
+  :root[data-palette="ui2026"] .dl-shell>main{
+    margin-left:calc(var(--uif-sidebar-compact) + var(--uif-gutter-compact));
+    padding-right:var(--uif-gutter-compact);
+  }
 }
 
 /* --- UI-first 状态面（pack 屏 15 界面状态） --------------------------------

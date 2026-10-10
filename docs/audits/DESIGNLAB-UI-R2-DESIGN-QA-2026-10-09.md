@@ -339,10 +339,28 @@ DL-UI-U03/U04/U05 与 DL-FINAL-T08/T09，不在本文件里当作"已通过"。
 
 反向也有一条：`ecommerce` 有包、无 §2 名字。当前行为：照常显示，不删。
 
-### B. R2 §3 的三处令牌冲突（沿用第一批记录，未变）
+### B. R2 §3 的三处令牌冲突（2026-10-11 按字节重量，原文是半成品）
 
-h1 27/29px、侧栏 256/232/280px、内容边距 30/40 与 22/26。
-当前行为：保留仓库既有取值，§3 取值不覆盖默认配色与默认尺度。
+原写法：h1 27/29px、侧栏 256/232/280px、内容边距 30/40 与 22/26。实测：
+
+- **包值**（`docs/history/taskpacks/20261009-r2-inputs/ui-r2/specs/design_tokens.json`）：
+  `typography.size_css_px.h1=27`、`layout.sidebar=256`、`compact_sidebar=216`、
+  `desktop_gutter=30`、`compact_gutter=22`、`topbar=64`。
+- **界面实际值**：导航轨 `168px`（`.app-nav`，fixed），内容让位 `192px`（`.dl-shell > main`），
+  页头 `.page-head h2{32px}`、`.route-view h2{24px}`。
+- **当时登记在 `--uif-*` 里的"包值"有三个根本不是包值**：h1 登记 29（包 27）、侧栏登记 232
+  （包 256/216，且 232 在全仓与包里都搜不到）、沟槽登记 40/26（包 30/22）。
+  而且 h1/h2/sidebar/两个沟槽**没有任何规则读取**——"登记"在界面上不可见。
+- 唯一真正活在渲染里的冲突是顶栏：`--uif-topbar:78px` 被三条规则读取，包里是 64px。
+  这一条仍然需要裁定，因为两边都要动已落地布局。
+- 侧栏宽度已按 owner 的"新值做成可选主题"处理：默认配色保持 168/192 一字节不变，
+  `data-palette="ui2026"` 在包自己的断点上取 256/30（≥1200）与 216/22（768–1199），
+  <768 与默认一致（移动端 FROZEN_DEFERRED），由
+  `design-lab/tests/test_workbench_theme_geometry_gate.py` 在真实浏览器里量 `getBoundingClientRect`
+  与内容 `margin-left` 证明。**h1/h2 的尺度仍只登记不生效**：界面对应角色没有唯一答案
+  （`.brand h1` 17px、`body > header h1` 26px、`.page-head h2` 32px、`.route-view h2` 24px），
+  "包的 h1/h2 是界面上的哪一个"需要设计裁定，不裁定就继续只是登记。
+当前行为：默认配色与既有尺度不变；可选主题按包值改轨宽与沟槽；顶栏与 h1/h2 映射待裁定。
 
 ### C. 26 处字面色值的 adjudication 字段
 
@@ -606,6 +624,60 @@ VERIFY_PROJECTION_FRESHNESS=FAIL FRESHNESS-RECEIPT-DRIFT scripts/deepseek_conten
 - 修复后、推送前的本地实测：`VERIFY_ROUTE_PAYLOAD_CONTRACTS=PASS bindings=7 failures=0`，
   `CURRENT_EXECUTION=PASS tasks=34 counts={'NOT_STARTED': 25, 'PARTIAL': 9}`，
   `VERIFY_DESIGN_LAB=OK total=74 failed=0`。
+
+## 第十五批追记（2026-10-11，把 owner 清单逐条按字节重量，结果修掉两个真缺陷）
+
+owner 说"修复发现的问题"。先把 A–F 每一条重新量了一遍（脚本
+`.project-local/tmp/remeasure_owner_list_20261011.py`，只读），量出来的东西有一半确实是裁定，
+**但有一条是我的缺陷**：
+
+- **A 项按实测确认仍缺数据**，不是代码缺失：`build()` 出 60 条能力记录，七个轴
+  **全部 0/60 非空**，每条 `unclassifiedAxes` 长度都是 7，`qualified` 全是 `None`
+  （`.project-local/tmp/measure_axis_population_20261010.py`）。13 个域包目录、12 个声明 slug、
+  `minigame-design` 的 manifest 里没有 `domain` 键。所以那 4 条命名仍是裁定。
+- **C/D/E/F 量下来与原写法一致**：`DESIGN_DEBT_BASELINE=PASS`、字面色值 26 处；
+  `#316CFF` 压 `#FFFFFF` 按 WCAG 相对亮度算就是 **4.45**；`/api/…` 路由里 `draft_routes=[]`
+  （可变草稿面确实不存在）；`design-lab/tests/test_plan_to_rir.py` 退出 0，
+  而 `.project-local/task-artifacts/ocr-qualification/` **不存在**（`is_dir()=False`），
+  所以 F 的"当前机器不可复现"是事实而不是失败。
+- **B 项是缺陷**，已按上面的 B 段重写。三处登记值不是包值（h1 29、侧栏 232、沟槽 40/26），
+  而 232/29 在全仓与包里都搜不到——写它的人（我）把记住的数当成了包值；同时侧栏与两个沟槽
+  没有任何规则读取，"登记"等于没做。
+
+**修的部分**：
+
+1. `--uif-font-h1` 改回 27，布局行改回 256/216/30/22（新增 `--uif-sidebar-compact`），
+   注释写明逐字段来源，并把 78 vs 64 顶栏明确标成"活冲突，属裁定"而不是登记错误。
+2. 可选主题真的读这些值：`@media (min-width:1200px)` 取轨 256 + 沟槽 30，
+   `@media (min-width:768px) and (max-width:1199px)` 取轨 216 + 沟槽 22，两条规则都只在
+   `:root[data-palette="ui2026"]` 下生效；导航轨是 fixed，所以内容列的 `margin-left` 同步改，
+   否则内容会钻到轨下面。默认配色一字节不变。
+3. 新门 `design-lab/tests/test_workbench_theme_tokens.py`（8 项）：登记的令牌必须被读或在
+   "只许缩"的登记表里有理由；声称包出处的值必须等于包；被记成偏差的必须仍是偏差。
+   它当场抓到我自己两处写错：我把六个 `--uif-font-*` 都说成未读，实际 body/small/h3/micro
+   在被 UI-first 面读取；以及"未读"集合应是 8 个而不是我记忆的 11 个（改动后）。
+   种植四株都有罪：值改回 232/40 → 按名点罪；新增无主令牌 → 点罪；把已接线的令牌留在登记表 →
+   点罪；把 78 悄悄对齐成 64 → 点罪。
+4. 新浏览器闸 `design-lab/tests/test_workbench_theme_geometry_gate.py` +
+   `e2e/audit_workbench_theme_geometry.mjs`：真实 Chromium 里逐宽度量 `.app-nav` 的
+   `getBoundingClientRect().width`、内容列 `margin-left`/`padding-right`，三套主题
+   （design-lab/dark、ui2026/dark、ui2026/light）× 五个宽度（1920/1200/960/768/700）。
+   实测：默认恒为 168/192/0；ui2026 在 1920 与 1200 为 256/286/30，在 960 与 768 为 216/238/22；
+   700 时两套主题读数相同（轨吃满 700、让位 16），证明 min-width 没有漏进移动端。
+   回执把量到的 `style.css`/`build/main.js` 摘要写进 JSON，findings 也写进 JSON——
+   第一版只在 stdout 里报，wrapper 截了尾部 3000 字，把 @1920 的定罪行截掉了，
+   于是种植"看起来"只在 @1200 有罪：**读数不在产物里，等于没测到**。
+5. 种植定罪复现：删掉 1200 那条主题规则 → 闸退出 1，findings 覆盖 @1920 与 @1200 两个宽度、
+   三个罪名（`THEME_RAIL_NOT_APPLIED` / `CONTENT_OFFSET_MISMATCH` / `GUTTER_NOT_APPLIED`）；
+   还原后字节一致（`f5410c1ad591`，101,028 B），再跑为绿。
+
+**回归面**：溢出闸按两套配色各重跑 1920/960/620（69 样本/套），`Ran 1 test OK` 各 84s/83s，
+clipped/stray/tiny 均为 0；appshell vm 合同面退出 0（①–⑯ 全过）；
+`test_workbench_css_single_definition` 17 项 OK；`design_debt_baseline --check` 由红转 PASS——
++3 是媒体查询断点（CSS 不支持 `var()`），已按规则的措辞把 DESIGN.md §4 的数字改成 534 并写明原因。
+**界面文案没动**：`#/components` 把这一轴描述成"配色与明暗"，现在它还会改轨宽与沟槽，
+那句话不完整了；但改文案会换 bundle 字节，把与 `6ff8532de49a` 绑定的整套截图作废，
+所以这条记成有理由的后续，等下一次界面批次一起做。
 - **推送后 CI 的真实读数**（`gh run view 38061750943 --log-failed` @ `c46a4525`）：
   `VERIFY_DESIGN_LAB=FAIL total=74 failed=3`，但组成变了——
   `VERIFY_ROUTE_PAYLOAD_CONTRACTS=FAIL bindings=7 failures=1`（121→**1**，剩下那条是
