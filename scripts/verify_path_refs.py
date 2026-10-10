@@ -59,8 +59,15 @@ POLICY_SCHEMA = "design-lab/path-ref-policy/v1"
 # Repo-relative path reference: one or more path segments with a dot-suffixed
 # final segment. Slash-form only (root files are asserted explicitly in
 # check 1); absolute, URL, drive-letter and home-relative refs are excluded.
+#
+# The character classes are ASCII on purpose. Python's \w is Unicode-aware, so a
+# Chinese sentence written without spaces -- "唯一可变状态仍在design-lab/config/..." --
+# was absorbed into one giant token that began in the prose, and the gate then reported a
+# perfectly good reference as missing. Restricting the classes makes the CJK text a boundary,
+# which is what the check needs: it extracts `design-lab/config/task-ledger-r3.json`.
 REF_RE = re.compile(
-    r"(?<![\w.:~/\\])(\.?[\w.-]+/)+[\w.-]+\.(?:md|json|py|yml|yaml|sql|txt|html|css|js|ts|toml|lock)"
+    r"(?<![A-Za-z0-9_.:~/\\-])(\.?[A-Za-z0-9_.+-]+/)+[A-Za-z0-9_.+-]+"
+    r"\.(?:md|json|py|yml|yaml|sql|txt|html|css|js|ts|toml|lock)"
 )
 FENCE_RE = re.compile(r"^\s*(```|~~~)")
 

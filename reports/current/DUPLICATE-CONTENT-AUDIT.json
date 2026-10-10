@@ -2,11 +2,11 @@
   "schemaVersion": "design-lab/duplicate-content-audit/v1",
   "task_key": "DL-TP-20260914-DEEPSEEK-AUTHORITY-R1::DLDS-D040",
   "generatedBy": "scripts/deepseek_content_audit.py",
-  "subjectSha": "14e99f03ae95d76d19bb91c3b70250c96ae567b4",
+  "subjectSha": "42f50c4572a5bbd96cd0f7bdae445214feee3474",
   "projection": true,
   "fresh": false,
   "provenanceMeaning": "subjectSha is HEAD at the end of the run that computed this audit; fresh=false says a generation timestamp is not a test time, and this record is a projection over tracked files, not an execution",
-  "generated_at": "2026-10-08T23:52:21+00:00",
+  "generated_at": "2026-10-10T13:54:49+00:00",
   "threshold_bytes": 65536,
   "groups": [
     {
