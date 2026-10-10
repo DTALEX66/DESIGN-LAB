@@ -2,7 +2,7 @@
 
 DL-UI-U01 交付物。生成器：`scripts/audit_ui_desktop_reconcile_20261009.py`（重跑即重算，手写数字不会被接受）。
 
-- 观察 HEAD：`88529112538165b07b103502782b335ae2267de1`
+- 观察 HEAD：`7d48839618f4c2bbcc5c35f74c2b5d22df1988ec`
 - 工作树：DIRTY（本地未提交，见 AGENTS.md 2026-10-09 归档说明）
 - 服务 dispatch 的路由条数：54
 - ROUTE_VIEWS 条数：19（三入口 + 辅助分组）
@@ -86,7 +86,7 @@ DL-UI-U01 交付物。生成器：`scripts/audit_ui_desktop_reconcile_20261009.p
 | `light.success` | `--uif-light-success` | `#1b7057` | `#1b7057` |
 | `light.warning` | `--uif-light-warning` | `#805615` | `#805615` |
 | `light.danger` | `--uif-light-danger` | `#ab384d` | `#ab384d` |
-| `typography.size_css_px.h1` | `--uif-font-h1` | `29px` | `29px` |
+| `typography.size_css_px.h1` | `--uif-font-h1` | `29px` | `27px` |
 | `typography.size_css_px.h2` | `--uif-font-h2` | `19px` | `19px` |
 | `typography.size_css_px.h3` | `--uif-font-h3` | `16px` | `16px` |
 | `typography.size_css_px.body` | `--uif-font-body` | `14px` | `14px` |
@@ -96,9 +96,9 @@ DL-UI-U01 交付物。生成器：`scripts/audit_ui_desktop_reconcile_20261009.p
 | `radius_css_px.controls` | `--uif-radius-control` | `7px` | `7px` |
 | `radius_css_px.cards` | `--uif-radius-card` | `10px` | `10px` |
 | `radius_css_px.hero` | `--uif-radius-hero` | `12px` | `12px` |
-| `layout.sidebar` | `--uif-sidebar` | `232px` | `232px` |
-| `layout.desktop_gutter` | `--uif-gutter-desktop` | `40px` | `40px` |
-| `layout.compact_gutter` | `--uif-gutter-compact` | `26px` | `26px` |
+| `layout.sidebar` | `--uif-sidebar` | `232px` | `256px` |
+| `layout.desktop_gutter` | `--uif-gutter-desktop` | `40px` | `30px` |
+| `layout.compact_gutter` | `--uif-gutter-compact` | `26px` | `22px` |
 | `motion.recommended_ms.0` | `--uif-motion-fast` | `140ms` | `140ms` |
 | `motion.recommended_ms.1` | `--uif-motion-base` | `220ms` | `220ms` |
 
@@ -108,4 +108,8 @@ DL-UI-U01 交付物。生成器：`scripts/audit_ui_desktop_reconcile_20261009.p
 
 ## 对账结论
 
-- 问题：0 条（本表可复核）
+- 问题：4 条
+  - --uif-font-h1 = 27px，包里 typography.size_css_px.h1 = 29px
+  - --uif-sidebar = 256px，包里 layout.sidebar = 232px
+  - --uif-gutter-desktop = 30px，包里 layout.desktop_gutter = 40px
+  - --uif-gutter-compact = 22px，包里 layout.compact_gutter = 26px

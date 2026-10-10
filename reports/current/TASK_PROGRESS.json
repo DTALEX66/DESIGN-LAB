@@ -12,7 +12,7 @@
   },
   "fresh": false,
   "freshnessMeaning": "at generation only; check verifies bound-input integrity, not current Git or cloud state",
-  "generatedAt": "2026-10-10T15:19:12+00:00",
+  "generatedAt": "2026-10-10T16:35:03+00:00",
   "gitStateMeaning": "generation-time observation, not current HEAD",
   "ledger_partition": "currentExecution",
   "meaning": "Parent/subtask inventory is not a capability count or completion percentage. Definition adoption does not implement product tasks; R5 evidence is historical.",
@@ -27,7 +27,7 @@
     "taskpack": "DL-TP-20260908-R5"
   },
   "subjectMeaning": "subjectType=WORKTREE means the tree was dirty at generation; worktreeDigest covers HEAD plus the non-generated changes",
-  "subjectSha": "d08c6240b043d9bb232c5064d45b48038207c9f4",
+  "subjectSha": "7d48839618f4c2bbcc5c35f74c2b5d22df1988ec",
   "subjectType": "WORKTREE",
   "taskpack": "DL-TP-20261009-UI-FIRST-R1",
   "taskpackHash": "f91ebe9b67ab4f83be91fe8f3ca0fc80fc93176263bec05d883fa6ce6afd6480",
@@ -226,7 +226,8 @@
         "DL-FINAL-T08-contrast-r10",
         "DL-FINAL-T08-static-battery-r10",
         "DL-FINAL-T08-line-ending-gate-r13",
-        "DL-FINAL-T08-clean-clone-reds-diagnosed-r14"
+        "DL-FINAL-T08-clean-clone-reds-diagnosed-r14",
+        "DL-FINAL-T08-owner-list-remeasured-r15"
       ],
       "evidence_level": "SEE_BOUND_RECEIPTS",
       "id": "DL-FINAL-T08",
@@ -558,7 +559,11 @@
         "DL-UI-U02-continue-screens-r10",
         "DL-UI-U02-continue-screens-light-r10",
         "DL-UI-U02-runtime-screens-r13",
-        "DL-UI-U02-runtime-screens-light-r13"
+        "DL-UI-U02-runtime-screens-light-r13",
+        "DL-UI-U02-theme-geometry-registered-values-corrected-r15",
+        "DL-UI-U02-theme-geometry-rendered-r15",
+        "DL-UI-U02-theme-geometry-falsified-r15",
+        "DL-UI-U02-overflow-recheck-both-palettes-r15"
       ],
       "evidence_level": "SEE_BOUND_RECEIPTS",
       "id": "DL-UI-U02",
@@ -813,5 +818,5 @@
   "testRunMeaning": "bound run: python scripts/run_bound_test_suite.py --modules test_boot_reconciliation",
   "testRunResult": "OK",
   "worktreeClean": false,
-  "worktreeDigest": "sha256:6ad0acdcb7a0d2911f5ced080589ab607c77db3ede2fb1c8cbd21bba3745a7dd"
+  "worktreeDigest": "sha256:f6ffa76137b66ebec06fb8851b7c0160bb23fcd53a85fd9e4eccffa4a53ef90f"
 }
