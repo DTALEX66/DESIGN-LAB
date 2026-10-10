@@ -9,13 +9,13 @@
   },
   "fresh": false,
   "freshnessMeaning": "at generation only; check verifies bound-input integrity, not current Git or cloud state",
-  "generatedAt": "2026-10-10T17:44:42+00:00",
+  "generatedAt": "2026-10-10T18:16:28+00:00",
   "gitStateMeaning": "generation-time observation, not current HEAD",
   "migrationStatus": "deferred",
   "quarantinedSources": 162,
   "schemaVersion": "design-lab/knowledge-inventory/v1",
   "subjectMeaning": "subjectType=WORKTREE means the tree was dirty at generation; worktreeDigest covers HEAD plus the non-generated changes",
-  "subjectSha": "4453177c508c8ba5b46825207fd334f9f8e5d628",
+  "subjectSha": "1d0f0c232b6f80d48e98479bec5eaf09b736b1f0",
   "subjectType": "WORKTREE",
   "taskpackHash": "f91ebe9b67ab4f83be91fe8f3ca0fc80fc93176263bec05d883fa6ce6afd6480",
   "taskpackId": "DL-TP-20261009-UI-FIRST-R1",
@@ -24,5 +24,5 @@
   "testRunMeaning": "bound run: python scripts/run_bound_test_suite.py --modules test_boot_reconciliation",
   "testRunResult": "OK",
   "worktreeClean": false,
-  "worktreeDigest": "sha256:94078080afee42b992671c475059fd2a80fb3c802dfa18a2e5c153a9072c3a20"
+  "worktreeDigest": "sha256:b23a0a266d4e13aa87803e43878b194b9a6e4355abb8ef6afab7e83fd076c5ab"
 }

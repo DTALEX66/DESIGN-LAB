@@ -702,3 +702,24 @@ clipped/stray/tiny 均为 0；appshell vm 合同面退出 0（①–⑯ 全过�
   仍红，`VERIFY_PROJECTION_FRESHNESS=FAIL … deepseek_content_audit.py --check` 仍红。
   于是**三个红现在是同一个根因**：受跟踪的判定去重算 gitignored 机器字节（上面 G 项）。
   契约漏项已在 runner 上确认修掉，不是只在我机器上绿。
+
+## 第十六批追记（2026-10-11，补界面文案 + 试图补上接续入口的像素证据）
+
+- **做成的一半**：`#/components` 原本把这条轴描述成"配色与明暗"，而第十五批之后它还会改导航轨宽与
+  内容沟槽，那句话不完整了。屏上现在写明：≥1200 轨 256/槽 30、768–1199 轨 216/槽 22、窄于此沿用
+  既有折叠（手机端 FROZEN_DEFERRED）、默认主题仍是轨 168/让位 192；并写明包里的排印尺度只有
+  body/small/h3/micro 已接到界面，h1/h2 等角色裁定。bundle 重建为 `12647eb8ec78`（354,258 B），
+  `shell.ts` = `5716e15eee79`。
+- **新 bundle 上的回归**：appshell 17 块全过；shape-notice 37 接缝全有主；
+  css-single-definition + contract-bindings + theme-tokens 共 57 项 OK；
+  两套配色各 69 样本的溢出闸两次都是 `Ran 1 test OK`；theme-geometry + contrast 4 项 OK（139s）。
+- **没做成的一半，原因量到了**：接续入口的像素证据。我给 `capture_workbench_screenshots.py`
+  加了 `--seed-native-plan`（在一次性临时态里提交一个从未运行的 native plan，
+  `task_kind=photoshop-native` / `attempt_state=PENDING`，并写 `capture-scaffold.json` 明标脚手架）。
+  实拍回来仍是空态，读图确认：页面上是"未选择项目"。原因是**捕获驱动自己会新建并选中一个
+  `Closeout <stamp>` 项目**（`capture_workbench_screenshots.mjs:178-189`），我先种的那个成了第二个；
+  而 records 只在"恰好一个项目"时自动选中（`shell.ts` 的 `sole` 分支）。
+  再把驱动改成"给了 `CAP_SEED_PROJECT` 就复用不新建"，bootstrap 直接 `CAP_BOOTSTRAP_FAILED`——
+  第一屏没有可选项，选不中。**于是这两处工具改动退回 HEAD**：留一个红着的捕获工具比少一组截图更糟。
+  下一步明确：让驱动在**它自己建的项目**上种 native plan（顺序反过来），重拍后读图确认按钮真在画面里。
+- 账本没被这条未完成的改动污染：本轮没有写任何"截图里能看到接续入口"的回执，因为图里没有。

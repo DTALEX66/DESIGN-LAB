@@ -33,9 +33,9 @@ DESIGN-LAB 色板为默认 + 20261009 取值作可选主题"；手机端 FROZEN_
   `git ls-remote origin refs/heads/qoder/designlab-backup-consistency-20261007` 比对，并确认
   `git status --porcelain=v1` 行数为 0（`4453177c` 时实测 dirty=0、领先 207；`e8294b3f` 时是 199，`d2c848e3` 时是 203——数只在对它做的那次测量上成立）。
   `main` 未合并；领先数用 `git rev-list --count` 现场量（第十三批写的 190 是想出来的数，已追正）。
-- `apps/workbench/build/main.js` = `6ff8532de49a`，353,765 B —— 第十四、十五两批都没动 bundle；
-  `style.css` = `f5410c1ad591`，101,028 B（第十五批改过：登记值改回包值 + 主题真的读它）；
-  `shell.ts` = `d4cb20cfcbc1`；`tests/appshell.mjs` = `1df180c022b2`；`DESIGN.md` = `b5336187979f`。
+- `apps/workbench/build/main.js` = `12647eb8ec78`，354,258 B（第十六批改过界面文案后重建；第十四、十五批
+  没动 bundle，那时是 `6ff8532de49a`/353,765 B）；`style.css` = `f5410c1ad591`，101,028 B；
+  `shell.ts` = `5716e15eee79`；`tests/appshell.mjs` = `1df180c022b2`；`DESIGN.md` = `b5336187979f`。
 - 新闸：`design-lab/tests/test_workbench_theme_tokens.py`（8 项、4 株种植，全部有具名定罪）与
   `design-lab/tests/test_workbench_theme_geometry_gate.py` +
   `e2e/audit_workbench_theme_geometry.mjs`（已注册进 `verify_browser_e2e_ran.py` 的 `TEST_MODULES`；
@@ -106,11 +106,16 @@ DESIGN-LAB 色板为默认 + 20261009 取值作可选主题"；手机端 FROZEN_
    **不含**这两个能力模块，要引用它们的数字必须另加步骤。跑之前确认 `uv` 在 PATH
    （本机 `C:\Users\ALEX\.local\bin\uv`）并留意 `uv build` 是否在 repo 根留下未被 `.gitignore`
    覆盖的 `*.egg-info`。
-2. **接续入口的像素证据**：每个捕获/闸都自起一次性 `state.db`
-   （`.project-local/task-runtime/tmp*/`），所以截图里 `制作记录（0）`，新接的按钮在
-   46 张 PNG 中一张都没出现。要补，就在那份临时 state 里 POST 一个
-   `/api/projects/{id}/native-plans`（只排队、不起宿主、随临时目录丢弃），
-   并在 `SUBJECT.json` 标成捕获脚手架。拒绝卡不必补像素：那需要伪造服务端响应。
+2. **接续入口的像素证据（第十六批试过、没做成，原因已量到，别再走同一条路）**：
+   每个捕获/闸都自起一次性 `state.db`，所以截图里是 `制作记录（0）`/`未选择项目`。
+   我加的 `--seed-native-plan` 会先建一个 `photoshop-native` 的 PENDING 计划
+   （`capture-scaffold.json` 明标脚手架），但**驱动自己会再建并选中 `Closeout <stamp>` 项目**
+   （`capture_workbench_screenshots.mjs:178-189`），于是 records 面对两个项目停在选单，
+   而它只在"恰好一个项目"时自动选中（`shell.ts` 的 `sole` 分支）；把驱动改成复用外部项目 id 后
+   bootstrap 直接 `CAP_BOOTSTRAP_FAILED`（第一屏没有可选项）。两处工具改动已退回 HEAD。
+   **正确顺序**：在驱动建完并选中它自己的项目之后，用同一个 token 向那个 project id
+   POST `/api/projects/{id}/native-plans`（合成 RIR、`layers: []`、永不运行），再拍 `#/records`，
+   并且**读图确认按钮真的在画面上**才算数。拒绝卡不必补像素：那需要伪造服务端响应。
 3. **U06 的观察面已落，动作面仍未授权**：`src/design_lab/native_runtime.py` +
    `GET /api/projects/{id}/native-runtime` 已经把 `native_tasks.py:59-76` 的五张表投影成只读
    回执（ABSENT 与"存在但 0 行"分开、budget 不可得时写 null + 理由、绝不发 DDL、
@@ -167,6 +172,10 @@ RIR 收进默认折叠的次级面。**第十一批**：409 幂等冲突改用 `
 `qualified` 从 `const null` 放开为 `boolean|null`（先实测确认 `model-radar.json` 里
 `"qualification"` 出现 0 次，所以没有伪造通道）；CI 三个红逐条拆开放进报告 G 项与第十四批追记，
 并在 `aa3cb307` 的干净 detached worktree 里复现了其中两个；新回执改 seal 受跟踪文档。
+**第十六批**：`#/components` 补全"这条轴还改轨宽与沟槽"的说明（含具体数字与断点），bundle 重建为
+`12647eb8ec78`；新 bundle 上 appshell 17 块、shape-notice 37 接缝、57 项 CSS/合同/令牌闸、
+两套配色各 69 样本溢出闸、theme-geometry + contrast 全绿。接续入口的像素证据**没拿到**，
+卡点与正确做法见上面第 2 条。
 **第十五批**：把 owner 清单 A–F 逐条按字节重量（A/C/D/E/F 成立，B 是我的缺陷）；`--uif-*` 登记值改回
 包值（h1 27、sidebar 256/216、gutter 30/22），并让 `:root[data-palette="ui2026"]` 在包的断点上真的读它；
 新增 `test_workbench_theme_tokens.py`（令牌要么被读、要么在"只许缩"的登记表里有理由；声称包出处的
