@@ -2,8 +2,8 @@
   "authorityTaskpackHash": "f91ebe9b67ab4f83be91fe8f3ca0fc80fc93176263bec05d883fa6ce6afd6480",
   "authorityTaskpackId": "DL-TP-20261009-UI-FIRST-R1",
   "counts": {
-    "NOT_STARTED": 26,
-    "PARTIAL": 8
+    "NOT_STARTED": 25,
+    "PARTIAL": 9
   },
   "environmentFingerprint": {
     "machine": "AMD64",
@@ -12,7 +12,7 @@
   },
   "fresh": false,
   "freshnessMeaning": "at generation only; check verifies bound-input integrity, not current Git or cloud state",
-  "generatedAt": "2026-10-09T23:03:11+00:00",
+  "generatedAt": "2026-10-10T13:20:15+00:00",
   "gitStateMeaning": "generation-time observation, not current HEAD",
   "ledger_partition": "currentExecution",
   "meaning": "Parent/subtask inventory is not a capability count or completion percentage. Definition adoption does not implement product tasks; R5 evidence is historical.",
@@ -27,7 +27,7 @@
     "taskpack": "DL-TP-20260908-R5"
   },
   "subjectMeaning": "subjectType=WORKTREE means the tree was dirty at generation; worktreeDigest covers HEAD plus the non-generated changes",
-  "subjectSha": "14e99f03ae95d76d19bb91c3b70250c96ae567b4",
+  "subjectSha": "147e6dc99548b25a2adf2a2144a8f792230a4432",
   "subjectType": "WORKTREE",
   "taskpack": "DL-TP-20261009-UI-FIRST-R1",
   "taskpackHash": "f91ebe9b67ab4f83be91fe8f3ca0fc80fc93176263bec05d883fa6ce6afd6480",
@@ -223,7 +223,8 @@
         "DL-FINAL-T08-zoom-sweep-dark-r10",
         "DL-FINAL-T08-zoom-sweep-light-r10",
         "DL-FINAL-T08-contrast-r10",
-        "DL-FINAL-T08-static-battery-r10"
+        "DL-FINAL-T08-static-battery-r10",
+        "DL-FINAL-T08-line-ending-gate-r13"
       ],
       "evidence_level": "SEE_BOUND_RECEIPTS",
       "id": "DL-FINAL-T08",
@@ -553,7 +554,9 @@
         "DL-UI-U02-continue-screens-r9",
         "DL-UI-U02-continue-screens-light-r9",
         "DL-UI-U02-continue-screens-r10",
-        "DL-UI-U02-continue-screens-light-r10"
+        "DL-UI-U02-continue-screens-light-r10",
+        "DL-UI-U02-runtime-screens-r13",
+        "DL-UI-U02-runtime-screens-light-r13"
       ],
       "evidence_level": "SEE_BOUND_RECEIPTS",
       "id": "DL-UI-U02",
@@ -672,15 +675,20 @@
         "DL-UI-U05"
       ],
       "batch": "B2-UI",
-      "evidence": [],
-      "evidence_level": "NO_EVIDENCE",
+      "evidence": [
+        "DL-UI-U06-runtime-ui-r13",
+        "DL-UI-U06-runtime-ui-falsified-r13",
+        "DL-UI-U06-runtime-browser-dark-r13",
+        "DL-UI-U06-runtime-browser-light-r13"
+      ],
+      "evidence_level": "SEE_BOUND_RECEIPTS",
       "id": "DL-UI-U06",
       "implementation_unmet": [
         "DL-UI-U05"
       ],
       "kind": "UI_SUBTASK",
       "priority": "UI_FIRST",
-      "state": "NOT_STARTED",
+      "state": "PARTIAL",
       "title": "运行、观察与恢复控制"
     },
     {
@@ -803,5 +811,5 @@
   "testRunMeaning": "bound run: python scripts/run_bound_test_suite.py --modules test_boot_reconciliation",
   "testRunResult": "OK",
   "worktreeClean": false,
-  "worktreeDigest": "sha256:ebaccc23749b4e57ec2433e2bb42badaad09717c5bee958e2fae679e86925610"
+  "worktreeDigest": "sha256:01171eeb21c47533d285f6f63482b7968b2c87cb6fb7b78e4c3b64c713950414"
 }

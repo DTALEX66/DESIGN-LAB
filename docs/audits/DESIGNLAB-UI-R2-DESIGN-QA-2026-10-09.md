@@ -485,3 +485,44 @@ h1 27/29px、侧栏 256/232/280px、内容边距 30/40 与 22/26。
   现在 `currentExecution` 的 143 条证据里非 PASS 为 0。顺带修掉两个 `-r9-r9` 的双后缀记录 id；
   账本里另有 12 条历史 id 带 `-r7-r2` / `-r8-r2` 形态，属于可读出"哪一批 + 第几次重测"的
   旧命名，不改动历史。
+
+## 第十三批追记（2026-10-10，U06 观察面 + 一次我自己造成的静默事故）
+
+- **U06 缺的是读面，不是动作。** `native_tasks.py` 一直记着宿主占用、静默回执、对账与恢复
+  协议，`http_service.py` 里却没有任何路由投影它们（实测 grep 零命中），所以界面能说出作业
+  状态词，却说不出"Photoshop 现在被占着"。新增 `GET /api/projects/{id}/native-runtime`：
+  只读、`mode=ro`、**绝不建表**——建表是 `native_tasks._connect` 的职责，读侧一旦建表，
+  "这台服务从未跑过原生作业"就会变成"宿主空闲"，正是本仓库已犯过两次的错。
+  `budget` 恒为 null 并带理由，不写 0；不造 IDLE/HEALTHY/READY 这类判定词。
+- **接缝闸先把我拦下了一次**：新的 `apiOrEmpty` 读取必须有自己的 `shapeNotice`，
+  报错原文是 "runtime read through apiOrEmpty but no shapeNotice call reports its missing
+  fields"。按要求把 notice 移到读取点，接缝数 36→37，全部有主。
+- **⑮/⑯ 的种植里有两株是我自己的断言无效**：一株的期望写成了产品文案而不是抛错原文；
+  另一株在整个视图里 grep「未读回」，而作业行的 events 占位句本来就含这四个字——页面坏了
+  它也不会红。后者改成把断言限定在面板内，并补一条反向检查（完整读回不得被当成未读回）。
+- **一次静默事故 + 一次更糟的"修复"**：某个 scratch 用 `Path.write_text()` 重写受跟踪文件，
+  在 Windows 上把 `shell.ts` 等 **9 个文件、23190 行**从 LF 转成 CRLF。`.gitattributes` 明明
+  写着 `* text=auto eol=lf`，而 `core.autocrlf=true` 让 `git status` 一声不响——先暴露的居然是
+  三株种植突然 `count=0`：**闸还在退出 0，却已经不守卫了**。我随后想用一条正则给所有 scratch
+  脚本补 `newline='
+'`，结果把 390 个文件里的 148 个改出语法错误（比原 bug 更糟），只能
+  逐字节回退成"删掉我插入的那段字节"。最终交付的是门而不是笔记：
+  `design-lab/tests/test_working_tree_line_endings.py` 最终形态是"被脚本按字符串锚点匹配的
+  8 个文件必须是纯 LF"，并自带一株种植验证。前两版都被实测否掉：diff 版不可行
+  （`core.autocrlf=true` 下纯换行改动产生的 patch 是 0 字节，git 根本看不见）；全仓字节比对
+  版一上来就红 2,729 个历史 CRLF 文件（连 `.gitattributes` 自己在内），这种门下一个接手的人
+  只会把它改成永真。第三版才既 satisfiable 又能命中本次事故。  行分割吃掉），比对工作树与属性，并按 63 条既有偏差的基线判定——**新增即红，已修却仍留在
+  表里也红**（只能缩）。种植：把 README.md 改成 CRLF → 点名定罪，还原后字节一致。
+  写这个门时自己也错了一次：只取 `parts[2]` 会把 `attr/text=auto eol=lf` 里的 `eol=lf` 丢掉，
+  那样整道门会变成永真。
+- **一个红步骤按瞬时中断处理，而不是放宽判据**：矩阵里浅色主题的溢出闸报
+  `OV_SPEC_BROKEN 1920/960:domains showed 0 row action(s)`，但两份回执在该路由上字节一致，
+  日志里有 `WinError 10053` 连接中止；空闲复跑 80.5s 通过，于是重新落这份回执并把它记在
+  证据里，而不是把那条"必须看到行内动作"的判据调松。
+- 证据目录 `.project-local/task-artifacts/ui-first-20261009/qa-20261009p/`：三宽度 × 23 路由
+  = 69 个样本两套配色全清（含带新面板的 `#/records`）、AA 回执、17 块 vm 日志、五株运行时
+  种植日志、13 项电池（含新增的门与 native-runtime 模块）、23×2 张与 bundle
+  `6ff8532de49a` 绑定的 PNG。账本 153 条证据、非 PASS 0 条。
+- **本轮以 owner 指令收尾**："完成当天跑的任务就停止任务"。因此提交并推送后停在
+  `qoder/designlab-backup-consistency-20261007`，`main` 未合并（该分支领先 origin/main
+  190 个提交），CI 结论、真实宿主 E3、真人评审 E4 与手机端仍为未做/未签。

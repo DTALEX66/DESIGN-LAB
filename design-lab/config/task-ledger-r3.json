@@ -8961,7 +8961,7 @@
         "outcome": "PASS",
         "subject_sha": "14e99f03ae95d76d19bb91c3b70250c96ae567b4",
         "artifact_path": "docs/audits/DESIGNLAB-UI-R2-DESIGN-QA-2026-10-09.md",
-        "artifact_sha256": "8561e902ef0dcb00152832a99beea986b8dcadeb004335e7424d305c2ae02da3",
+        "artifact_sha256": "922cd80072f3b0f05061a0c3206e2bf145ae188637a60836cfb2e8caf71d81e5",
         "command": "design-review:design-qa over the landed desktop batch: R2 spec + 22 reference screens vs 19+19 same-bundle captures; verdict Pass with warnings",
         "exit_code": 0,
         "observed_at": "2026-10-09T17:05:11Z"
@@ -10185,7 +10185,7 @@
         "outcome": "PASS",
         "subject_sha": "14e99f03ae95d76d19bb91c3b70250c96ae567b4",
         "artifact_path": "docs/current/UI-DESKTOP-RECONCILIATION-2026-10-09.md",
-        "artifact_sha256": "fc5ef461e64ff5797a4e8e9f69f5d026b621f2e3286f714d53d8e6cb413b969e",
+        "artifact_sha256": "dbbd0969a6041367dd404fad21e3ebeceed24ac58f18fd6ad5f5401b309705e1",
         "command": "grep -rn '没有任何调用方' apps/workbench/shell.ts scripts/audit_ui_desktop_reconcile_20261009.py -- 五处（四处界面/注释文本 + 生成器一行）都断言 plan_to_rir 在仓库里没有任何调用方，而 design-lab/tests/test_plan_to_rir.py 有 8 处 import：那句话是错的。改成「没有生产调用方（只有 design-lab/tests 在调）」，并重新生成对账表（生成器是唯一作者，手写数字不会被接受）",
         "exit_code": 0,
         "observed_at": "2026-10-09T22:32:09Z"
@@ -10305,7 +10305,7 @@
         "outcome": "PASS",
         "subject_sha": "14e99f03ae95d76d19bb91c3b70250c96ae567b4",
         "artifact_path": "docs/current/UI-DESKTOP-RECONCILIATION-2026-10-09.md",
-        "artifact_sha256": "fc5ef461e64ff5797a4e8e9f69f5d026b621f2e3286f714d53d8e6cb413b969e",
+        "artifact_sha256": "dbbd0969a6041367dd404fad21e3ebeceed24ac58f18fd6ad5f5401b309705e1",
         "command": "grep -rn '没有任何调用方' apps/workbench/shell.ts scripts/audit_ui_desktop_reconcile_20261009.py -- 五处（四处界面/注释文本 + 生成器一行）都断言 plan_to_rir 在仓库里没有任何调用方，而 design-lab/tests/test_plan_to_rir.py 有 8 处 import：那句话是错的。改成「没有生产调用方（只有 design-lab/tests 在调）」，并重新生成对账表（生成器是唯一作者，手写数字不会被接受）",
         "exit_code": 0,
         "observed_at": "2026-10-09T22:54:25Z"

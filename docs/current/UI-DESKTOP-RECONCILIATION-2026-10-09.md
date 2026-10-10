@@ -2,7 +2,7 @@
 
 DL-UI-U01 交付物。生成器：`scripts/audit_ui_desktop_reconcile_20261009.py`（重跑即重算，手写数字不会被接受）。
 
-- 观察 HEAD：`14e99f03ae95d76d19bb91c3b70250c96ae567b4`
+- 观察 HEAD：`147e6dc99548b25a2adf2a2144a8f792230a4432`
 - 工作树：DIRTY（本地未提交，见 AGENTS.md 2026-10-09 归档说明）
 - 服务 dispatch 的路由条数：54
 - ROUTE_VIEWS 条数：19（三入口 + 辅助分组）

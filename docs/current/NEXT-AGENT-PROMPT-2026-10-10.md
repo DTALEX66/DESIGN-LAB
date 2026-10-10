@@ -21,30 +21,40 @@ DESIGN-LAB 色板为默认 + 20261009 取值作可选主题"；手机端 FROZEN_
 
 ## 实测基线（2026-10-10，第十一批之后；不是历史声明）
 
-- HEAD `14e99f03ae95`，**本会话全部改动仍未 commit/push/PR**；远端状态 NOT_VERIFIED。
-- `apps/workbench/build/main.js` = `d5c7c1bf4b8b`，348,556 B；
-  `apps/workbench/shell.ts` = `e87b2b17228f`；
-  `apps/workbench/style.css` = `997df40a7487`，100,362 B（第十一批没动 CSS）。
-- 溢出闸两套配色各 **69 条路由样本**（23 路由 × 宽度 `1920,960,620`）：
-  `clipped=0 stray=0 tiny=0 occluded=0 spec=0`；`1920/960/620:domain-detail` 抽屉均 450px；
-  侧栏提示在三个宽度下都是顶部亮、末端灭（`report.navCue[width]`）。
-  `hiddenPx` 只随**高度**变（闸测它时单独把高度设 620），侧栏是固定 168px 列，
-  所以同一高度下三宽度数值相同是对的；两套配色在同一宽度下差 26px（实测 733 / 759），
-  **任何注释与文档里都不抄这个数字**。
+- HEAD 本地 = 远端 = `147e6dc99548`（分支 `qoder/designlab-backup-consistency-20261007`，
+  2026-10-10 已 commit + push，`git ls-remote` 与工作树 SHA 逐字相同；`main` 未合并，
+  该分支领先 `origin/main` `fc03a303` 共 190 个提交）。工作树干净。
+- `apps/workbench/build/main.js` = `6ff8532de49a`，353,765 B；
+  `apps/workbench/shell.ts` = `d4cb20cfcbc1`；
+  `apps/workbench/style.css` = `4eb367eca1ea`，98,498 B。
+  **样式摘要与第十/十一批记录的 `997df40a7487`／100,362 B 不同，是因为把被 scratch 转成
+  CRLF 的九个受跟踪文件恢复成 LF**（少掉 1,864 个 CR 字节），内容一字未改。
+- 溢出闸两套配色各 **69 个样本**（23 路由 × `1920,960,620`）全清，含新增运行时面板的
+  `#/records`；`navCue` 在三个宽度都是顶部亮、末端灭。`hiddenPx` 只随高度变（侧栏固定
+  168px 列），同一高度下三宽度同值是对的，跨配色差 26px——所以任何注释与文档都不抄这个数字。
 - 账本：`CURRENT_EXECUTION=PASS tasks=34 mobile=FROZEN_DEFERRED
-  counts={NOT_STARTED:27, PARTIAL:7}`，evidence **143 条、非 PASS 0 条**，`DRIFTING=0`，
+  counts={NOT_STARTED:25, PARTIAL:9}`，evidence **153 条、非 PASS 0 条**，`DRIFTING=0`，
   `CURRENT_REPORTS=PASS mode=check`，`TASK_DOC_STATE_GATE=PASS checks=11`，
-  `DESIGN_DEBT_BASELINE=PASS`（26 色值／531 px／25 阴影，其中 19 条读 var()）。
-  U05 现有 12 条证据，状态 PARTIAL（缺的是结构/文字/路径节点编排，属 DL-FINAL-T10）。
-- 合同面 appshell 现有 ①–⑮ 块（本会话新增 ⑪⑬⑭⑮）；`unit.mjs` 与
-  `shape-notice-coverage.mjs`（36 个接缝）同绿。种植总数 **41**：域包合同 6 + 浏览器闸 4 +
-  成列 4 + tabs 6 + 简报写入 5 + 侧栏提示 2 + 五种拒绝 4 + 接续/状态类别 10，
-  全部红在各自分支上、还原后字节一致。
-- 域包读回：13 目录 / 12 声明 slug / `minigame-design` 为 v1、`domain=null`、INVALID（11 条原因）。
-- 能力读回：60 条，七个分类轴全为空，`counts.qualified = 0`，`joinedToTaxonomy = 37`。
-  **这不是投影缺陷**：投影与判定读回都已实现（见下"已落"），空的是出厂数据。
+  `DESIGN_DEBT_BASELINE=PASS`。U05 PARTIAL(14)、U06 PARTIAL(7)、T05 PARTIAL(3)、
+  T06 PARTIAL(2)、T08 44+。
+- 电池扩到 **13 项**：新增 `working-tree-line-endings`（锚点文件必须纯 LF，自带一株种植验证）与
+  `native-runtime-readback`，以及更早补进去的两个能力模块——此前十一批的 ALL_GREEN 对
+  安装布局与七轴透传什么都没说。
+- 合同面 appshell 现有 ①–⑯ 块；种植总数 **47**（域包合同 6 + 浏览器闸 4 + 成列 4 +
+  tabs 6 + 简报写入 5 + 侧栏提示 2 + 五种拒绝 4 + 接续/状态类别 10 + 运行时面板 5 +
+  行尾门 1），全部红在各自分支上、还原后字节一致。
+- 服务路由 54 条（新增 `GET /api/projects/{id}/native-runtime`，合同登记表同批改）；
+  对账表由 `scripts/audit_ui_desktop_reconcile_20261009.py` 重算为 17 屏 / 19 视图 / 54 路由。
 
 ## 本轮该做的（按依赖顺序）
+
+0. **本轮按 owner 指令收尾**："完成当天跑的任务就停止任务"。第十三批已封存并推送，
+   目标停在 U06 观察面完成、动作面未授权的状态。下一个会话从这里继续时，先重读
+   `currentExecution` 与远端 SHA，不要继承本文件的任何"已完成"说法。
+   已完成、别重做：U03 二级入口与 tabs、U04 输入/分析/制作记录（含简报写入与接续）、
+   U05 目标包屏（五种拒绝 + 状态类别 + 接续入口）、U06 只读观察面、T05/T06 取证与记录、
+   三宽度缩放扫描、行尾门。仍未做且顺序在前：R2 §2 领域空结果面、R2 §6 草稿自动保存、
+   U07 成果版本与局部改稿、U08 真人评审与交付预检、U09/T16 知识回执面、T07、T09。
 
 1. **T05 / T06 是"记录"而不是"实现"**（实测，别照卡片施工）：
    `test_capability_library_clean_install.py` 已经做离 repo CWD、剥 `PYTHONPATH`、

@@ -955,6 +955,23 @@
   现改用 `STATE_SPECS` 里本就存在的 `conflict`，并要求两种 409 落在不同类别——忙可重试，
   幂等冲突不可复用同一个键。`NATIVE_SUBMISSION_BUSY` 维持 `unknown`。
 
+## → DL-UI-U06（运行、观察与恢复控制）
+
+- **观察面已落地（2026-10-10 第十三批）**：`native_tasks.py:59-76` 早就记着 U06 点名要的
+  事实——哪个宿主被哪次尝试持有（`native_host_guard_v1`）、是否到达静默并带回执
+  （`native_quiescence_v1`）、对账是否开着（`native_reconciliation_v1`）、恢复协议
+  （`native_recovery_protocol_v2`）——但 `http_service.py` 里**没有任何路由投影它们**，
+  只有动作路由（run/cancel/patch/bundle）。所以缺的是只读观察面，不是第二套 runtime。
+  新增 `src/design_lab/native_runtime.py` + `GET /api/projects/{id}/native-runtime`：
+  以 `mode=ro` 打开状态库且**绝不建表**（建表是 `native_tasks._connect` 的事），
+  因此"表不存在"与"表存在且为空"是两句话；`budget` 为 null 并带理由（仓库里没有任何表
+  记录预算/配额/成本，写 0 会被读成"还有预算"）；不造任何判定词
+  （`proves_production_ready`/`is_host_action_performed` 恒为 false，`does_not_say` 逐条给界面）。
+  `#/records` 的「运行与恢复现场」按这三种"没有"分别措辞，面板内零个可点按钮。
+- **仍属 U06 而未做的**：暂停/取消/对账的**动作**与恢复实跑——那是真实宿主副作用，
+  本会话无授权，界面上保持禁用并写明理由。占用/预算中的"预算"一侧在服务端无字段可读，
+  补它属新 schema 决定，代理不自扩。
+
 ## → DL-FINAL-T07 / owner 裁决
 
 - 强约束与偏好要"分别保存"（R2 §6），但简报合同只有 `constraints` 一个文本字段。

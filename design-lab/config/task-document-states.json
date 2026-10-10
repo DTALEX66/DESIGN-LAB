@@ -414,6 +414,30 @@
       "frozen": false,
       "basis": "20261009 owner授权的资料索引/精简提炼/复验记录，非Authority或第二状态账本",
       "replacement": "docs/taskpacks/DESIGN-LAB-UI-FIRST-INTEGRATED-TASKPACK-2026-10-09.md"
+    },
+    {
+      "path": "docs/current/NEXT-AGENT-PROMPT-2026-10-10.md",
+      "state": "REFERENCE",
+      "role": "RECORD",
+      "frozen": false,
+      "basis": "当前TaskPack派生说明/交接，非第二状态源；AGENTS.md 已写明下一会话提示词不是独立 Authority",
+      "replacement": "docs/taskpacks/DESIGN-LAB-UI-FIRST-INTEGRATED-TASKPACK-2026-10-09.md"
+    },
+    {
+      "path": "docs/current/UI-DESKTOP-RECONCILIATION-2026-10-09.md",
+      "state": "PROJECTION",
+      "role": "RECORD",
+      "frozen": false,
+      "basis": "由 scripts/audit_ui_desktop_reconcile_20261009.py 生成，重跑即重算；手写数字不被接受，它也不是产品验收（表头自己声明只做到结构对账）",
+      "replacement": "docs/taskpacks/DESIGN-LAB-UI-FIRST-INTEGRATED-TASKPACK-2026-10-09.md"
+    },
+    {
+      "path": "docs/taskpacks/20261009-r2-ui/CROSSWALK.md",
+      "state": "REFERENCE",
+      "role": "RECORD",
+      "frozen": false,
+      "basis": "R2 UI 包与当前派工区的映射说明，输入面而非第二账本",
+      "replacement": "docs/taskpacks/DESIGN-LAB-UI-FIRST-INTEGRATED-TASKPACK-2026-10-09.md"
     }
   ]
 }
