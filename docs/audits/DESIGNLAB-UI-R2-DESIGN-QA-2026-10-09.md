@@ -370,7 +370,8 @@ h1 27/29px、侧栏 256/232/280px、内容边距 30/40 与 22/26。
 ### G. 干净 clone 上无法复现的两条真值闸（第十四批实测，需要裁定）
 
 CI run `38057782601` @ `aa3cb307` 的三个红里，两个不是缺陷而是同一个结构问题：
-**受跟踪的判定去重算被 gitignore 掉的机器字节**。
+**受跟踪的判定去重算被 gitignore 掉的机器字节**。修掉契约漏项后再推一轮（run `38061750943`
+@ `c46a4525`）剩下三条红**全部**落回这一个根因，实测读数见第十四批追记末段。
 
 - `CURRENT_EXECUTION=FAIL [Errno 2] … /.project-local/task-artifacts/ui-first-20261009/u06/implementation.json`
   —— 账本 155 条证据里 **150 条**的 artifact 指向 `.project-local`（125 个不同路径），
@@ -383,8 +384,10 @@ CI run `38057782601` @ `aa3cb307` 的三个红里，两个不是缺陷而是同�
 
 三条候选修法，每条都会动一个闸的判定词，我没有自行选：
 
-1. 把回执字节搬进 Git。体量实测 `size-pack=242.71 MiB`，`origin/main` 可达 9430 个 blob
-   = 360.1 MiB 原始字节；这是先前"capture 进 gitignored 证据根"决定要避开的方向。
+1. 把回执字节搬进 Git。体量实测 `size-pack=242.71 MiB`；`origin/main` 可达 9430 个 blob 的
+   **未压缩原始字节合计 = 360.1 MiB**——这是"全部 blob 求和"，既不是 pack 压缩量，也不是
+   按路径归属的那条 minigame-runtime 182.19 MiB，别把三个数当一个用。
+   这是先前明确避开的方向。
 2. 给投影加一个与 `MISMATCH` 分开的具名状态（例如 `ARTIFACTS_ABSENT_IN_CLONE`），
    让"这台机器没有那份字节"不再读成"回执被改过"。
 3. 把 content audit 的 presence 改成 SPILL-CENSUS 的形状：按版本化记录判定，
@@ -588,11 +591,14 @@ VERIFY_PROJECTION_FRESHNESS=FAIL FRESHNESS-RECEIPT-DRIFT scripts/deepseek_conten
   clone 里不存在，判定词从 `NO_FULL_THIRD_PARTY_SOURCE_TREES_TRACKED` 翻成
   `REVIEW_ABSORBED_TREES_OUTSIDE_LOCK`，NOTICE 里 `full_copy_in_ignored_cache` 从 37 变 0、
   `missing_absorbed_tree` 从 0 变 37。同一个 worktree 逻辑就解释了上面那条 `[Errno 2]`。
-- 数字摆在这里：账本 153 条证据里 **150 条的 artifact 指向 gitignored `.project-local`**
-  （125 个不同路径），只有 3 条指向受跟踪文档（本报告 1 条 + 桌面对账表 2 条）。
+- 数字摆在这里：账本证据里 **150 条的 artifact 指向 gitignored `.project-local`**（125 个不同路径）。
+  追加本批两条回执前的普查是 153 条 / 3 条受跟踪（本报告 1 + 对账表 2），追加后是
+  **155 条 / 5 条受跟踪**（本报告 3 + 对账表 2）——两个数都是量出来的，差别就是本批新写的两条
+  改 seal 受跟踪文档。
 - **这两条我没有自行修**，因为三种可能修法都要动真值闸的判定词：把回执字节搬进 Git（本仓库
   实测 `git count-objects -v -H` 的 `size-pack` = **242.71 MiB**，而 `origin/main` 可达的
-  9430 个 blob 原始字节 = **360.1 MiB**；把 125 个 gitignored 回执路径搬进 Git 是往这个方向加，
+  9430 个 blob 的**未压缩原始字节合计** = **360.1 MiB**（全部 blob 求和，既不是 pack 压缩量，
+  也不是按路径归属的 minigame-runtime 182.19 MiB）；把 125 个 gitignored 回执路径搬进 Git 是往这个方向加，
   这是先前明确要避开的）；给投影加一个与 MISMATCH 分开的具名状态（例如
   `ARTIFACTS_ABSENT_IN_CLONE`）；或把 content audit 的 presence 从"重算磁盘"改成 SPILL-CENSUS
   那种"按版本化记录判定、实时普查只作为机器状态上报"。

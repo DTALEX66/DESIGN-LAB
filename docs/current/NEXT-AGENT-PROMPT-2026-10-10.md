@@ -22,11 +22,13 @@ DESIGN-LAB 色板为默认 + 20261009 取值作可选主题"；手机端 FROZEN_
 
 ## 实测基线（2026-10-10，第十四批之后；不是历史声明）
 
-- 内容与数据封存到 `1ab5a936800e`（账本 + 投影 + 对账表），它的父提交 `88529112` 是能力契约修复；
-  下一份提交只是本提示词自身，不改任何闸的输入。分支 `qoder/designlab-backup-consistency-20261007`
-  已 push，`git ls-remote` 与本地 SHA 逐字相同，工作树干净；`main` 未合并，本分支领先
-  `origin/main` `fc03a303` **197** 个提交（`git rev-list --count` 实测；第十三批写的 190 是
-  想出来的数，已在报告里追正）。
+- 本轮的提交链（同一分支，全部已 push）：`88529112` 能力契约修复 → `1ab5a936` 账本回执 +
+  投影 + 对账表 → `c46a4525` 报告的第十四批追记与 G 项 → `e8294b3f` CI 实测读数 + 本提示词基线。
+  **双端一致实测**：`git rev-parse HEAD` = `git ls-remote origin refs/heads/qoder/designlab-backup-consistency-20261007`
+  = `e8294b3fd740`，`git status --porcelain=v1` 行数 0。`main` 未合并，本分支领先 `origin/main`
+  `fc03a303` **199** 个提交（`git rev-list --count origin/main..e8294b3f` 实测；第十三批写的
+  190 是想出来的数，已在报告里追正）。本文件随后还有一次纯文字修正
+  提交：只改这段基线，不动任何闸的输入。
 - `apps/workbench/build/main.js` = `6ff8532de49a`，353,765 B；`shell.ts` = `d4cb20cfcbc1`；
   `style.css` = `4eb367eca1ea`，98,498 B；`tests/appshell.mjs` = `1df180c022b2`。
   **本轮一行界面字节都没动**——批次内容在服务端契约与账本。
@@ -39,7 +41,8 @@ DESIGN-LAB 色板为默认 + 20261009 取值作可选主题"；手机端 FROZEN_
   receipts=5 excluded=0 findings=0`；`PATH_REF_GATE=PASS checks=10`。
 - 账本：**155 条证据、非 PASS 0 条**。其中 **150 条 artifact 指向 gitignored `.project-local`**
   （125 个不同路径），5 条指向受跟踪文档（本报告 3 条 + 对账表 2 条）。仓库体量实测
-  `size-pack=242.71 MiB`；`origin/main` 可达 9430 个 blob = 360.1 MiB 原始字节。
+  `size-pack=242.71 MiB`；`origin/main` 可达 9430 个 blob 的未压缩原始字节合计 = 360.1 MiB
+  （全部 blob 求和，不是 pack 压缩量，也不是按路径归属的 minigame-runtime 182.19 MiB）。
 - CI 实测（`gh run view --log-failed`）：@ `aa3cb307` 为 `VERIFY_DESIGN_LAB=FAIL total=74 failed=3`
   （`VERIFY_ROUTE_PAYLOAD_CONTRACTS=FAIL bindings=7 failures=121` + `CURRENT_EXECUTION=FAIL [Errno 2]`
   + `VERIFY_PROJECTION_FRESHNESS=FAIL … deepseek_content_audit.py --check`）。
@@ -168,11 +171,11 @@ RIR 收进默认折叠的次级面。**第十一批**：409 幂等冲突改用 `
 - 栽桩者按启动时快照还原源文件：**跑闸期间不要编辑 `shell.ts`/`design.ts`/`style.css`
   /`appshell.mjs`/`audit_workbench_overflow.mjs`**，也不要在这时候跑 `uv build`。
 - 每条新断言先种一次错证明会红；种植不红时先怀疑种植。
-- **本地 74/74 绿不等于 CI 绿**：本批 CI 的三个红里有两个在本地永远复现不了，因为受跟踪的
-  判定去重算被 gitignore 掉的机器字节（回执 artifact、vendor 缓存）。复现方式是干净
-  detached worktree（`git worktree add --detach …`，同分支要先 `--detach`），在里面跑闸的
-  `--check`，而不是在本机放宽判据。新写回执请 seal **受跟踪**文档；账本里 150/155 条已经
-  指向 `.project-local`，别再加深。
+- **本地 74/74 绿不等于 CI 绿**：修契约之前 CI 有三个红，其中两个在本地永远复现不了，因为受跟踪的
+  判定去重算被 gitignore 掉的机器字节（回执 artifact、vendor 缓存）；修完之后剩下的三个红**全部**
+  是这一个根因。复现方式是干净 detached worktree（`git worktree add --detach …`，同分支要先
+  `--detach`），在里面跑闸的 `--check`，而不是在本机放宽判据。新写回执请 seal **受跟踪**文档；
+  账本里 150/155 条已经指向 `.project-local`，别再加深。
 - `gh run view <id> --log-failed` 会把整个 job 的 runner setup 一起打进来，找 `FAIL` 行要 grep；
   闸的子级细节（例如 `CONTENT_AUDIT=FAIL records=2 findings=2`）不一定进日志，进日志的只有
   聚合器捕获的最后一行——剩下的靠 worktree 复现，不要照抄记忆。
