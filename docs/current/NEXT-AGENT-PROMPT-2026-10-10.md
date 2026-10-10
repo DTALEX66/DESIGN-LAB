@@ -1,4 +1,4 @@
-# 下一轮任务提示词（DL-TP-20261009-UI-FIRST-R1，接第十四批之后）
+# 下一轮任务提示词（DL-TP-20261009-UI-FIRST-R1，接第十五批之后）
 
 按新任务包继续执行桌面 UI：在已落地的 U01/U02 壳层与可选配色主题、U03 能力目录（详情地址、
 域包二级入口、§4 资产类型 tabs）、U04 输入/分析/制作记录（含简报写入行为证明）、U05 目标包屏
@@ -15,33 +15,42 @@ DESIGN-LAB 色板为默认 + 20261009 取值作可选主题"；手机端 FROZEN_
 6. `docs/taskpacks/20261009-ui-first/TASK-CARDS.md`（含"2026-10-09 Design QA 增量"与
    U05 一节里 2026-10-10 的接续结论）；
 7. `docs/audits/DESIGNLAB-UI-R2-DESIGN-QA-2026-10-09.md` —— 先读文末
-   **「需要 owner 裁定的清单 A–G」**，再读第一~七批、**第八至十一批追记**、第十三批（U06 +
-   行尾事故）与**第十四批**（CI 三个红的拆分）；
+   **「需要 owner 裁定的清单 A–G」**（B 段在第十五批被整段重写过，按字节量过），
+   再读第一~七批、**第八至十一批追记**、第十三批（U06 + 行尾事故）、第十四批（CI 三个红的拆分）
+   与**第十五批**（owner 清单复量结果 + 主题几何缺陷的修法）；
 8. 设计源 `docs/history/taskpacks/20261009-r2-inputs/ui-r2/specs/01_UI_SCHEME.md` 与
    `specs/design_tokens.json`。
 
-## 实测基线（2026-10-10，第十四批之后；不是历史声明）
+## 实测基线（2026-10-11，第十五批之后；不是历史声明）
 
 - 本轮的提交链（同一分支，全部已 push）：`88529112` 能力契约修复 → `1ab5a936` 账本回执 +
   投影 + 对账表 → `c46a4525` 报告的第十四批追记与 G 项 → `e8294b3f` CI 实测读数 + 本提示词基线
-  → 之后是纯文字修正提交。**双端一致不要抄这里的 SHA**：本文件写下的任何 SHA 都会在"提交这份
-  修正"的那一刻过期，第一步自己读回 `git rev-parse HEAD` 与
+  → 之后是纯文字修正提交 → `7d488396` 第十五批主题几何修复 + 两条新闸 → 账本封存提交。
+  **双端一致不要抄这里的 SHA**：本文件写下的任何 SHA 都会在"提交这份修正"的那一刻过期，
+  第一步自己读回 `git rev-parse HEAD` 与
   `git ls-remote origin refs/heads/qoder/designlab-backup-consistency-20261007` 比对，并确认
-  `git status --porcelain=v1` 行数为 0（本轮最后一次实测是 `d08c6240`，MATCH=YES，dirty=0）。
-  `main` 未合并；分支领先 `origin/main` `fc03a303` 的提交数用 `git rev-list --count` 现场量
-  （`e8294b3f` 时为 199；第十三批写的 190 是想出来的数，已在报告里追正）。
-- `apps/workbench/build/main.js` = `6ff8532de49a`，353,765 B；`shell.ts` = `d4cb20cfcbc1`；
-  `style.css` = `4eb367eca1ea`，98,498 B；`tests/appshell.mjs` = `1df180c022b2`。
-  **本轮一行界面字节都没动**——批次内容在服务端契约与账本。
-- `design-lab/schemas/capability-library.schema.json` = `3190c87bfa89`，9,460 B，纯 LF，
-  `required` 与 `properties` 各 26 键且集合相等（脚本断言）。
-- 本地闸：`VERIFY_DESIGN_LAB=OK total=74 failed=0`；
+  `git status --porcelain=v1` 行数为 0（`a22efef7` 时实测 dirty=0、领先 203）。
+  `main` 未合并；领先数用 `git rev-list --count` 现场量（第十三批写的 190 是想出来的数，已追正）。
+- `apps/workbench/build/main.js` = `6ff8532de49a`，353,765 B —— 第十四、十五两批都没动 bundle；
+  `style.css` = `f5410c1ad591`，101,028 B（第十五批改过：登记值改回包值 + 主题真的读它）；
+  `shell.ts` = `d4cb20cfcbc1`；`tests/appshell.mjs` = `1df180c022b2`；`DESIGN.md` = `b5336187979f`。
+- 新闸：`design-lab/tests/test_workbench_theme_tokens.py`（8 项、4 株种植，全部有具名定罪）与
+  `design-lab/tests/test_workbench_theme_geometry_gate.py` +
+  `e2e/audit_workbench_theme_geometry.mjs`（已注册进 `verify_browser_e2e_ran.py` 的 `TEST_MODULES`；
+  那个表是元组不是 glob，**不注册就等于永远静默 skip**，它的注释还写着 "Both" 而实际已有四个）。
+  `run_python_tests.py` 用 discover，实测发现 2965 个用例，两份都在里面。
+- 实测几何（轨宽 / 内容让位 / 右内槽）：默认配色在 1920、1200、960、768 全是 `168 / 192 / 0`；
+  `ui2026` 是 `256 / 286 / 30`（≥1200）与 `216 / 238 / 22`（768–1199）；700 时两套读数相同
+  （轨吃满 700、让位 16），因为移动端 FROZEN_DEFERRED，主题不得漏进去。
+- 本地闸（第十五批封存前实测）：`VERIFY_DESIGN_LAB=OK total=74 failed=0`；
+  `BROWSER_E2E ran=7 skipped=0 failed=0`；
   `VERIFY_ROUTE_PAYLOAD_CONTRACTS=PASS bindings=7 failures=0`（修前 CI 记 failures=121）；
   `CURRENT_EXECUTION=PASS tasks=34 mobile=FROZEN_DEFERRED counts={NOT_STARTED:25, PARTIAL:9}`；
   `TASK_DOC_STATE_GATE=PASS checks=11`；`VERIFY_PROJECTION_FRESHNESS=OK records=14 verified=19
-  receipts=5 excluded=0 findings=0`；`PATH_REF_GATE=PASS checks=10`。
-- 账本：**155 条证据、非 PASS 0 条**。其中 **150 条 artifact 指向 gitignored `.project-local`**
-  （125 个不同路径），5 条指向受跟踪文档（本报告 3 条 + 对账表 2 条）。仓库体量实测
+  receipts=5 excluded=0 findings=0`；`PATH_REF_GATE=PASS checks=10`；
+  `DESIGN_DEBT_BASELINE=PASS`（字面色值 26、字面 px 534，+3 全是媒体查询断点）。
+- 账本：**160 条证据、非 PASS 0 条**。其中 **150 条 artifact 仍指向 gitignored `.project-local`**
+  （125 个不同路径），10 条指向受跟踪文档（本报告 8 条 + 对账表 2 条）。仓库体量实测
   `size-pack=242.71 MiB`；`origin/main` 可达 9430 个 blob 的未压缩原始字节合计 = 360.1 MiB
   （全部 blob 求和，不是 pack 压缩量，也不是按路径归属的 minigame-runtime 182.19 MiB）。
 - CI 实测（`gh run view --log-failed`）：@ `aa3cb307` 为 `VERIFY_DESIGN_LAB=FAIL total=74 failed=3`
@@ -97,7 +106,12 @@ DESIGN-LAB 色板为默认 + 20261009 取值作可选主题"；手机端 FROZEN_
    appshell ⑤/⑪ 的"恰好一次读回"理由，**不要为了绿而放宽断言**。
 5. **R2 §2 上下文二级侧栏**：卡在 owner 裁定清单 A 的 4 条命名上，界面不许猜。
    若加侧栏子项，注意 `.app-nav-item` = 19 被 `browser_design_layer_e2e.mjs` 钉死，
-   改计数必须带日期理由。
+   改计数必须带日期理由。清单 B 段第十五批已按字节重写过：现在**只剩两条**待裁定——
+   顶栏 `--uif-topbar:78px`（三条规则在读）对包的 64px，以及包的 h1/h2 对应界面上哪个角色
+   （`.brand h1` 17 / `body > header h1` 26 / `.page-head h2` 32 / `.route-view h2` 24）。
+   轨宽与沟槽已经不再是"待裁定"：它们按 owner 既有决定做成了可选主题的一部分并被浏览器闸量过；
+   **但 `#/components` 的文案还把它描述成"配色与明暗"，那句话现在不完整**——改它会换 bundle 字节、
+   作废与 `6ff8532de49a` 绑定的整套截图，所以留到下一个真的界面批次一起做。
 6. **R2 §6 草稿自动保存**：`#/intake` 的显式保存已写入服务并有行为证明（⑬）。
    自动保存**不能**写成简报修订（修订是不可变版本，逐键保存会灌爆版本链）；
    需要一条可变草稿行路由，照 `GET/POST /api/projects/{id}/research`
@@ -136,6 +150,11 @@ RIR 收进默认折叠的次级面。**第十一批**：409 幂等冲突改用 `
 `qualified` 从 `const null` 放开为 `boolean|null`（先实测确认 `model-radar.json` 里
 `"qualification"` 出现 0 次，所以没有伪造通道）；CI 三个红逐条拆开放进报告 G 项与第十四批追记，
 并在 `aa3cb307` 的干净 detached worktree 里复现了其中两个；新回执改 seal 受跟踪文档。
+**第十五批**：把 owner 清单 A–F 逐条按字节重量（A/C/D/E/F 成立，B 是我的缺陷）；`--uif-*` 登记值改回
+包值（h1 27、sidebar 256/216、gutter 30/22），并让 `:root[data-palette="ui2026"]` 在包的断点上真的读它；
+新增 `test_workbench_theme_tokens.py`（令牌要么被读、要么在"只许缩"的登记表里有理由；声称包出处的
+值必须等于包）与浏览器闸 `test_workbench_theme_geometry_gate.py`（逐宽度逐主题量轨宽与内容让位），
+并把后者注册进 `verify_browser_e2e_ran.py`；两套配色各重跑溢出闸 69 样本，全清。
 
 ## 环境与坑（都会咬人）
 
@@ -172,7 +191,15 @@ RIR 收进默认折叠的次级面。**第十一批**：409 幂等冲突改用 `
 - 栽桩者按启动时快照还原源文件：**跑闸期间不要编辑 `shell.ts`/`design.ts`/`style.css`
   /`appshell.mjs`/`audit_workbench_overflow.mjs`**，也不要在这时候跑 `uv build`。
 - 每条新断言先种一次错证明会红；种植不红时先怀疑种植。
-- **本地 74/74 绿不等于 CI 绿**：修契约之前 CI 有三个红，其中两个在本地永远复现不了，因为受跟踪的
+- **登记不等于生效**：`--uif-*` 把包的值写进样式表、注释还声称"供新面消费"，但侧栏与两个沟槽
+  没有任何规则读它，而且登记值本身就不是包值（29/232/40/26）。这类东西只有两种处置：真的读它并在
+  浏览器里量几何，或者进一张"只许缩"的登记表并写理由——`test_workbench_theme_tokens.py` 就是这么
+  设计的，它当场抓到我对"哪些没被读"的记忆错了两次。fixed 导航轨变宽时必须同步改内容列的
+  `margin-left`，否则内容钻到轨下面，而 clip/stray 检查**永远不会报**。
+- **种植看起来无效，可能是读数不在产物里**：我的几何种植在 @1920 明明有罪，但 wrapper 的失败消息
+  只截 node 日志尾部 3000 字，@1920 那几行被截掉，于是我差点判定"种不下去"。改成把 findings 写进
+  JSON 回执再断言，同一次运行从"无效"变成 `findings=12 / widths=[1200,1920]`。
+- 本地 74/74 绿不等于 CI 绿：修契约之前 CI 有三个红，其中两个在本地永远复现不了，因为受跟踪的
   判定去重算被 gitignore 掉的机器字节（回执 artifact、vendor 缓存）；修完之后剩下的三个红**全部**
   是这一个根因。复现方式是干净 detached worktree（`git worktree add --detach …`，同分支要先
   `--detach`），在里面跑闸的 `--check`，而不是在本机放宽判据。新写回执请 seal **受跟踪**文档；

@@ -1,27 +1,22 @@
 {
   "checkScope": "bound-input-and-output-integrity; not current Git or cloud freshness",
-  "generatedAt": "2026-10-10T16:35:03+00:00",
+  "generatedAt": "2026-10-10T16:44:08+00:00",
   "gitObservation": {
     "branch": "qoder/designlab-backup-consistency-20261007",
     "origin_main": "fc03a3033e900a8066d863a223636cc68804c4fa",
-    "sha": "7d48839618f4c2bbcc5c35f74c2b5d22df1988ec",
+    "sha": "a22efef7a76108a56398dccf03789eaf6efdc42c",
     "source_worktree_clean": false,
     "tracked_files": 3597,
     "worktree_changes": [
       {
-        "content": "sha256:3ae2a5b3670103264478941d18741eb7561aa18f9141550645fe99c3d6208f66",
+        "content": "sha256:5c8af5e508a2228f14f8625e1a6d177ac71ad94838727cc537d1b62ef851e61b",
         "kind": "M",
-        "path": "design-lab/config/task-ledger-r3.json"
-      },
-      {
-        "content": "sha256:9565afc41a4a2c648340b858b6e68813ff4877bd540e6774a20d5f7fc9fe1889",
-        "kind": "M",
-        "path": "docs/current/UI-DESKTOP-RECONCILIATION-2026-10-09.md"
+        "path": "docs/current/NEXT-AGENT-PROMPT-2026-10-10.md"
       }
     ],
-    "worktree_digest": "sha256:f6ffa76137b66ebec06fb8851b7c0160bb23fcd53a85fd9e4eccffa4a53ef90f"
+    "worktree_digest": "sha256:6328c7068fc4f779674839aabe81d72a400a3902943e4d62ad80c702db7fa7fd"
   },
-  "inputDigest": "sha256:134dbaec8b5332f6724350deedc3395438387bc1ef13211cab8586e668eb04d5",
+  "inputDigest": "sha256:138c865713d2b90080f340247d2a067f582ca01f8283bcbeaddd13b8c43ff15b",
   "inputDigestMeaning": "primary freshness binding: canonical SHA-256 over the exact input files the projections read plus the git tree scope; recomputed at check time (FU-10)",
   "inputHashes": {
     ".github/workflows/canonical-verify.yml": "77734ded9bc7ac5b8223840cf483f70c62dc1c9740b60c2f3cf0219f7790a15e",
@@ -652,15 +647,15 @@
   },
   "ledger": "design-lab/config/task-ledger-r3.json",
   "outputHashes": {
-    "ADAPTER_EVIDENCE_RECONCILIATION.json": "c282b392ca21838f50984f584edebbd7f8d91ec363fd38389e11a621209889cf",
-    "CLOUD_BASELINE.json": "183a9726f4db8106a4897975d16d7dacdaffc8e4b13e9ae840b70fb0e2afdb88",
-    "CLOUD_BASELINE.md": "996baf8c1a643ea704cfbefc03cd2867c992eb782a919d63aedc0468e3812f0b",
-    "DOMAIN_PACK_READINESS.json": "a7d7a4d7b3f453a40b8aa3b070725f8fec920f6cb5643f717e2f5fd8ad7efd52",
-    "KNOWLEDGE_INVENTORY.json": "7d9234c1ebdd377b63d2ff5c532929dc1e90fcb0a7dffcce14b9d1108fadf0a4",
-    "PROJECT_STATUS.json": "e5998e33504a1da9dfcd4f1e888da4018697a986bb7bcd855c97290babe60321",
-    "PROJECT_STATUS.md": "a16f8b3a5622ae6980f73a8525f64e344fe1e5b5f7dbf2a4efb6c85ff1dcabf6",
-    "RELEASE_READINESS.json": "a03db11354e4cb8a4897ae8db91cd9f63f887eb64622503ac9f7a6bc70612119",
-    "TASK_PROGRESS.json": "37915fab5ce84371262b47ac26f333235f786d38d69ad93cb73c4acdcd642da8"
+    "ADAPTER_EVIDENCE_RECONCILIATION.json": "4133fdf80f74adab7407f4621cc14a68e19424b18a625cb79e988145850ab579",
+    "CLOUD_BASELINE.json": "9c0e30c79b18f7a4f7cef8a08fd28e5cd0b4f304eb404bd8910fc000d6879bae",
+    "CLOUD_BASELINE.md": "d25e547e3aa98d8eb0ed30d84b3a9e687af670827b6d69b9a84204ce5ef10e19",
+    "DOMAIN_PACK_READINESS.json": "4b265e3edfd964b70f75d0eda596ca7e50e5adb33fd233ec123db84f4bb443b4",
+    "KNOWLEDGE_INVENTORY.json": "515e45cc5e42b3d5f3bcefd78a37fb922889977d204dd34cf18c58f46a07e10d",
+    "PROJECT_STATUS.json": "76b60fb94badb4461076e25b98db85e755b4344ed09a6b916fcb17f341148051",
+    "PROJECT_STATUS.md": "89df433f69100492279e7ca3747c28211f20f58f217628028546b1112abf9103",
+    "RELEASE_READINESS.json": "1c69d2994325ff95de77ac2d5a10bd8ecb0edd027f24a0a530cf5bc5abbb2d2c",
+    "TASK_PROGRESS.json": "c04e86d444d5454fdc9d205300de390952a879c63b534fdec4044d71807c2fd3"
   },
   "reportRoot": "../../reports/current/",
   "reports": [
@@ -676,5 +671,5 @@
   ],
   "schemaVersion": "design-lab/current-report-index/v3",
   "subjectMeaning": "generation-time git observation, not a freshness claim; exact-SHA evidence is the CI artifact",
-  "subjectSha": "7d48839618f4c2bbcc5c35f74c2b5d22df1988ec"
+  "subjectSha": "a22efef7a76108a56398dccf03789eaf6efdc42c"
 }
