@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://design-lab.local/schemas/capability-library.schema.json",
   "title": "Capability Library V1 (what GET /api/capabilities answers)",
-  "$comment": "Written against the 60-record payload the product emitted on 2026-10-08 (46 sources from vendor/sources.lock.json + 14 models from design-lab/readiness/model-radar.json), captured through design_lab.http_service.make_server on a live socket; see design-lab/scripts/verify_route_payload_contracts.py. Emitter: src/design_lab/analysis/capability_library.py:210 (SCHEMA_VERSION at line 26). Every capability record carries the same 24 keys whichever kind it is, so `required` names all 24 and the document is closed. WHERE A VOCABULARY COMES FROM IS RECORDED HONESTLY: `kind` and `revisionState` are the emitter's own words and are enumerated; `disposition`, `presence`, `license`, `sourceType` and `evidenceLevel` are passed through from the committed records (design-lab/schemas/source-record.schema.json and readiness-model-radar.schema.json own them), so they are typed here and not frozen into an enum the projection does not control. `qualified` and `qualificationEvidence` are const null on purpose: qualification is a host run plus a human acceptance, neither of which a registry can yield, and the module's whole point is that an unqualified capability reports null rather than false or 0.",
+  "$comment": "Written against the 60-record payload the product emitted on 2026-10-08 (46 sources from vendor/sources.lock.json + 14 models from design-lab/readiness/model-radar.json), captured through design_lab.http_service.make_server on a live socket; see design-lab/scripts/verify_route_payload_contracts.py. Emitter: src/design_lab/analysis/capability_library.py:247 (SCHEMA_VERSION at line 26). Every capability record carries the same 26 keys whichever kind it is, so `required` names all 26 and the document is closed. WHERE A VOCABULARY COMES FROM IS RECORDED HONESTLY: `kind` and `revisionState` are the emitter's own words and are enumerated; `disposition`, `presence`, `license`, `sourceType` and `evidenceLevel` are passed through from the committed records (design-lab/schemas/source-record.schema.json and readiness-model-radar.schema.json own them), so they are typed here and not frozen into an enum the projection does not control. `qualified` and `qualificationEvidence` were const null until 2026-10-10: that was honest for the payload this schema was written against, and it became a contract that forbade the DL-FINAL-T06 read-back, which returns a recorded boolean and a real evidence list. They are now typed, and null still means there is no qualification recorded rather than false or 0; qualification remains a host run plus a human acceptance, neither of which a registry can yield. `axes` carries the per-axis values the taxonomy holds (null, a list of strings, or an object), which is the same passthrough T06 asks for.",
   "type": "object",
   "additionalProperties": false,
   "required": [
@@ -66,6 +66,21 @@
     "capabilities": {"type": "array", "items": {"$ref": "#/$defs/capability"}}
   },
   "$defs": {
+    "axisValues": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["domains", "artifactTypes", "capabilityLayers", "aestheticAxes", "styleArchetypes", "tier", "designQuality"],
+      "properties": {
+        "domains": {"type": ["array", "null"], "items": {"type": "string", "minLength": 1}, "description": "declared taxonomy values for this axis, or null when the axis is unclassified for this record"},
+        "artifactTypes": {"type": ["array", "null"], "items": {"type": "string", "minLength": 1}, "description": "declared taxonomy values for this axis, or null when the axis is unclassified for this record"},
+        "capabilityLayers": {"type": ["array", "null"], "items": {"type": "string", "minLength": 1}, "description": "declared taxonomy values for this axis, or null when the axis is unclassified for this record"},
+        "aestheticAxes": {"type": ["object", "null"], "description": "declared taxonomy values for this axis, or null when the axis is unclassified for this record"},
+        "styleArchetypes": {"type": ["array", "null"], "items": {"type": "string", "minLength": 1}, "description": "declared taxonomy values for this axis, or null when the axis is unclassified for this record"},
+        "tier": {"type": ["array", "null"], "items": {"type": "string", "minLength": 1}, "description": "declared taxonomy values for this axis, or null when the axis is unclassified for this record"},
+        "designQuality": {"type": ["object", "null"], "description": "declared taxonomy values for this axis, or null when the axis is unclassified for this record"}
+      },
+      "description": "CLASSIFICATION_AXES (capability_library.py:35) carried per record: DL-FINAL-T06 asks for the values, not just the names of the axes that are empty."
+    },
     "axisList": {
       "type": "array",
       "items": {
@@ -80,8 +95,9 @@
       "required": [
         "id", "kind", "domain", "title", "disposition", "license", "presence", "url",
         "revision", "revisionState", "revisionReason", "repo", "observedAt", "contentDigest",
-        "qualified", "qualificationEvidence", "sourceType", "evidenceLevel", "upstreamOwner",
-        "licenseUrl", "rightsNotes", "removalPath", "popularity", "unclassifiedAxes"
+        "qualified", "qualificationEvidence", "qualificationReason", "sourceType",
+        "evidenceLevel", "upstreamOwner", "licenseUrl", "rightsNotes", "removalPath",
+        "popularity", "unclassifiedAxes", "axes"
       ],
       "properties": {
         "id": {"type": "string"},
@@ -98,8 +114,8 @@
         "repo": {"type": ["string", "null"]},
         "observedAt": {"type": ["string", "null"]},
         "contentDigest": {"type": ["string", "null"]},
-        "qualified": {"const": null},
-        "qualificationEvidence": {"const": null},
+        "qualified": {"type": ["boolean", "null"], "description": "null means no qualification recorded, not false and not 0; true or false only when a recorded verdict exists"},
+        "qualificationEvidence": {"anyOf": [{"type": "null"}, {"type": "array", "items": {"type": "string", "minLength": 1}}]},
         "sourceType": {"type": ["string", "null"]},
         "evidenceLevel": {"type": ["string", "null"]},
         "upstreamOwner": {"type": ["string", "null"]},
@@ -107,7 +123,9 @@
         "rightsNotes": {"type": ["string", "null"]},
         "removalPath": {"type": ["string", "null"]},
         "popularity": {"anyOf": [{"type": "null"}, {"$ref": "#/$defs/popularity"}]},
-        "unclassifiedAxes": {"$ref": "#/$defs/axisList"}
+        "unclassifiedAxes": {"$ref": "#/$defs/axisList"},
+        "axes": {"$ref": "#/$defs/axisValues"},
+        "qualificationReason": {"type": ["string", "null"], "description": "why there is no verdict yet; null once a recorded verdict exists"}
       },
       "allOf": [
         {

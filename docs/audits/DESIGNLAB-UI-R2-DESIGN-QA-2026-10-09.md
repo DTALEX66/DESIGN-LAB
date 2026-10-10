@@ -526,3 +526,51 @@ h1 27/29px、侧栏 256/232/280px、内容边距 30/40 与 22/26。
 - **本轮以 owner 指令收尾**："完成当天跑的任务就停止任务"。因此提交并推送后停在
   `qoder/designlab-backup-consistency-20261007`，`main` 未合并（该分支领先 origin/main
   190 个提交），CI 结论、真实宿主 E3、真人评审 E4 与手机端仍为未做/未签。
+  （第十四批追正：这个 190 是写句子时想出来的数，不是量出来的。`aa3cb307` 实测
+  `git rev-list --count origin/main..aa3cb307` = **195**。）
+
+## 第十四批追记（2026-10-10，把 CI 的三个红闸拆开：一个是我自己的契约漏项，两个是同一台机器的问题）
+
+上一批我只在本地判定就结束了，这次把 CI 的真实读数拉回来逐条对照。run `38057782601` @
+`aa3cb307`：`VERIFY_DESIGN_LAB=FAIL total=74 failed=3`，Python gate 的三条原文是
+
+```
+VERIFY_ROUTE_PAYLOAD_CONTRACTS=FAIL bindings=7 failures=121
+CURRENT_EXECUTION=FAIL [Errno 2] No such file or directory:
+  '/home/runner/work/DESIGN-LAB/DESIGN-LAB/.project-local/task-artifacts/ui-first-20261009/u06/implementation.json'
+VERIFY_PROJECTION_FRESHNESS=FAIL FRESHNESS-RECEIPT-DRIFT scripts/deepseek_content_audit.py --check
+  exited 1: CONTENT_AUDIT=FAIL records=2 findings=2 notices=1
+```
+
+- **第一个红是我的漏项，不是环境差异。**`capability-library.schema.json` 关闭了
+  `additionalProperties`，而 `GET /api/capabilities` 从 DL-FINAL-T06 起每条记录多带 `axes` 和
+  `qualificationReason`。CI 的 121 = 60 条 `SCHEMA_VIOLATION` + 60 条 `UNDECLARED_BY_SCHEMA`
+  + 1 条 evidence-projection 拒答。控制种植（`.project-local/tmp/falsify_schema_fix_batch14.py`）
+  把 schema 换回 HEAD 字节后在本地复现 `failures=120`，错误行与 CI 逐字一致；还原后按 digest
+  断言字节一致（`3190c87bfa89`，9460 B）。修复面：capability 记录声明并必填这 2 个键
+  （`required` 24→26），新增 `$defs.axisValues`（7 个轴，值可以是 null / 字符串数组 / 对象），
+  `qualified` 从 `const null` 放开为 `boolean|null`，`qualificationEvidence` 放开为
+  `null|array`。
+- **放开 `const null` 之前先确认它没有打开伪造通道。**`capability_library.py:70` 的
+  `UNQUALIFIED = None`，`_qualification()` 只有在记录自带 `qualification.qualified` 是 bool 时
+  才写 true/false，否则写 null + 原因；`design-lab/readiness/model-radar.json` 里
+  `"qualification"` 出现 **0** 次，所以今天 60 条全是 null + reason。契约放开的是"以后允许读回
+  一个真实判定"，不是"界面可以把它当成成功"。
+- **第二和第三个红是同一件事的两面：受跟踪的判定去重算被 gitignore 掉的机器字节。**我在
+  `aa3cb307` 的干净 detached worktree（`.project-local/worktrees/ci-repro`，工作树 0 行改动）里
+  复现了 content audit：`CONTENT_AUDIT=FAIL records=2 findings=2 notices=1`，37 个 vendor 树在
+  clone 里不存在，判定词从 `NO_FULL_THIRD_PARTY_SOURCE_TREES_TRACKED` 翻成
+  `REVIEW_ABSORBED_TREES_OUTSIDE_LOCK`，NOTICE 里 `full_copy_in_ignored_cache` 从 37 变 0、
+  `missing_absorbed_tree` 从 0 变 37。同一个 worktree 逻辑就解释了上面那条 `[Errno 2]`。
+- 数字摆在这里：账本 153 条证据里 **150 条的 artifact 指向 gitignored `.project-local`**
+  （125 个不同路径），只有 3 条指向受跟踪文档（本报告 1 条 + 桌面对账表 2 条）。
+- **这两条我没有自行修**，因为三种可能修法都要动真值闸的判定词：把回执字节搬进 Git（本仓库
+  实测 `git count-objects -v -H` 的 `size-pack` = **242.71 MiB**，而 `origin/main` 可达的
+  9430 个 blob 原始字节 = **360.1 MiB**；把 125 个 gitignored 回执路径搬进 Git 是往这个方向加，
+  这是先前明确要避开的）；给投影加一个与 MISMATCH 分开的具名状态（例如
+  `ARTIFACTS_ABSENT_IN_CLONE`）；或把 content audit 的 presence 从"重算磁盘"改成 SPILL-CENSUS
+  那种"按版本化记录判定、实时普查只作为机器状态上报"。
+  这属于 owner 裁定，不属于收尾轮里顺手放宽。
+- 修复后、推送前的本地实测：`VERIFY_ROUTE_PAYLOAD_CONTRACTS=PASS bindings=7 failures=0`，
+  `CURRENT_EXECUTION=PASS tasks=34 counts={'NOT_STARTED': 25, 'PARTIAL': 9}`，
+  `VERIFY_DESIGN_LAB=OK total=74 failed=0`。
