@@ -367,6 +367,32 @@ h1 27/29px、侧栏 256/232/280px、内容边距 30/40 与 22/26。
 本机这些回执不存在，所以 `CONTROLLED_OCR_PASS` 在当前机器上不可复现（不是失败）。
 当前行为：`#/plan` 只画底图一个节点（`inferred:false`），没有真实底图就不编排。
 
+### G. 干净 clone 上无法复现的两条真值闸（第十四批实测，需要裁定）
+
+CI run `38057782601` @ `aa3cb307` 的三个红里，两个不是缺陷而是同一个结构问题：
+**受跟踪的判定去重算被 gitignore 掉的机器字节**。
+
+- `CURRENT_EXECUTION=FAIL [Errno 2] … /.project-local/task-artifacts/ui-first-20261009/u06/implementation.json`
+  —— 账本 155 条证据里 **150 条**的 artifact 指向 `.project-local`（125 个不同路径），
+  5 条指向受跟踪文档。投影在读时逐条重算 SHA，所以在 clone 上必然读不到。
+- `VERIFY_PROJECTION_FRESHNESS=FAIL FRESHNESS-RECEIPT-DRIFT scripts/deepseek_content_audit.py --check
+  exited 1: CONTENT_AUDIT=FAIL records=2 findings=2 notices=1` —— 在 `aa3cb307` 的干净 detached
+  worktree 里复现：37 个 vendor 树在 clone 中不存在，判定词从
+  `NO_FULL_THIRD_PARTY_SOURCE_TREES_TRACKED` 翻成 `REVIEW_ABSORBED_TREES_OUTSIDE_LOCK`，
+  `full_copy_in_ignored_cache` 37→0、`missing_absorbed_tree` 0→37。
+
+三条候选修法，每条都会动一个闸的判定词，我没有自行选：
+
+1. 把回执字节搬进 Git。体量实测 `size-pack=242.71 MiB`，`origin/main` 可达 9430 个 blob
+   = 360.1 MiB 原始字节；这是先前"capture 进 gitignored 证据根"决定要避开的方向。
+2. 给投影加一个与 `MISMATCH` 分开的具名状态（例如 `ARTIFACTS_ABSENT_IN_CLONE`），
+   让"这台机器没有那份字节"不再读成"回执被改过"。
+3. 把 content audit 的 presence 改成 SPILL-CENSUS 的形状：按版本化记录判定，
+   实时普查只作为机器状态上报。
+
+当前行为：本地 `VERIFY_DESIGN_LAB=OK total=74 failed=0`；CI 上这两条保持红，
+不靠调低判据、摘掉闸或让 `--check` 读磁盘缓存来变绿。
+
 ## 第七批追记（2026-10-09 深夜，Major 7：领域成为二级入口）
 
 - **先量再做，量出来的结论改变了设计**：R2 §2 要 11 个领域成为二级导航。读回给的是

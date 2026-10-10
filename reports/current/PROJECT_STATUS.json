@@ -8,26 +8,31 @@
   },
   "fresh": false,
   "freshnessMeaning": "at generation only; check verifies bound-input integrity, not current Git or cloud state",
-  "generatedAt": "2026-10-10T14:45:13+00:00",
+  "generatedAt": "2026-10-10T14:53:48+00:00",
   "git": {
     "branch": "qoder/designlab-backup-consistency-20261007",
     "origin_main": "fc03a3033e900a8066d863a223636cc68804c4fa",
-    "sha": "88529112538165b07b103502782b335ae2267de1",
+    "sha": "1ab5a936800e2894eb32db821a9a9846cb14b449",
     "source_worktree_clean": false,
     "tracked_files": 3594,
     "worktree_changes": [
       {
-        "content": "sha256:8cee5177c1398e2ed3b9b3a5c45d2b65b6fe441e764d5e0132af7f48302ec248",
+        "content": "sha256:b1b997fc10731b4082cbe0fd540bb10935bd5148e8c65510509eb25da65164b2",
         "kind": "M",
         "path": "design-lab/config/task-ledger-r3.json"
       },
       {
-        "content": "sha256:810f9a4e7c0f6b4458adae49416d2af49e2c255ba0ddd7c2e76fd67b360d19e1",
+        "content": "sha256:cf5b0c7cf5d26c02b6143c45b536bc2c09e5c0ca8b87efc272011a3a9a9392cb",
         "kind": "M",
-        "path": "docs/current/UI-DESKTOP-RECONCILIATION-2026-10-09.md"
+        "path": "docs/audits/DESIGNLAB-UI-R2-DESIGN-QA-2026-10-09.md"
+      },
+      {
+        "content": "sha256:35756facd1ac03322842f94cd690d63895321a8092ed6208362af260be7a646e",
+        "kind": "M",
+        "path": "docs/current/NEXT-AGENT-PROMPT-2026-10-10.md"
       }
     ],
-    "worktree_digest": "sha256:90c1693ddadb2cbc3d270b76486df0688b12d5c69f7a8414236faf503ca6fce0"
+    "worktree_digest": "sha256:efee8eb037b4419c6a606413f843de86d8d59ce054ac09ede2f7457e0e15cb73"
   },
   "gitStateMeaning": "generation-time observation, not current HEAD",
   "hostLive": "derived from host_live axis only",
@@ -43,7 +48,7 @@
     "quarantinedSources": 162
   },
   "subjectMeaning": "subjectType=WORKTREE means the tree was dirty at generation; worktreeDigest covers HEAD plus the non-generated changes",
-  "subjectSha": "88529112538165b07b103502782b335ae2267de1",
+  "subjectSha": "1ab5a936800e2894eb32db821a9a9846cb14b449",
   "subjectType": "WORKTREE",
   "taskCounts": {
     "NOT_STARTED": 25,
@@ -61,5 +66,5 @@
     "executed": "see individual verified ledger receipts"
   },
   "worktreeClean": false,
-  "worktreeDigest": "sha256:90c1693ddadb2cbc3d270b76486df0688b12d5c69f7a8414236faf503ca6fce0"
+  "worktreeDigest": "sha256:efee8eb037b4419c6a606413f843de86d8d59ce054ac09ede2f7457e0e15cb73"
 }
