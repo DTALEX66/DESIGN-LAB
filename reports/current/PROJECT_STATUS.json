@@ -8,21 +8,26 @@
   },
   "fresh": false,
   "freshnessMeaning": "at generation only; check verifies bound-input integrity, not current Git or cloud state",
-  "generatedAt": "2026-10-10T16:44:08+00:00",
+  "generatedAt": "2026-10-10T17:01:47+00:00",
   "git": {
     "branch": "qoder/designlab-backup-consistency-20261007",
     "origin_main": "fc03a3033e900a8066d863a223636cc68804c4fa",
-    "sha": "a22efef7a76108a56398dccf03789eaf6efdc42c",
+    "sha": "5a3c8d7efdfa0d7c8864ca200fe0ea76a83c7dd5",
     "source_worktree_clean": false,
     "tracked_files": 3597,
     "worktree_changes": [
       {
-        "content": "sha256:5c8af5e508a2228f14f8625e1a6d177ac71ad94838727cc537d1b62ef851e61b",
+        "content": "sha256:564b12f16567df7fa091874f0395771228382bb662edefded4e3be817b59cc76",
+        "kind": "M",
+        "path": "design-lab/config/task-ledger-r3.json"
+      },
+      {
+        "content": "sha256:f85ca00ccadc9cacc83c0a3aa400c9d07ec04920611d5873f66c71969d1e75a0",
         "kind": "M",
         "path": "docs/current/NEXT-AGENT-PROMPT-2026-10-10.md"
       }
     ],
-    "worktree_digest": "sha256:6328c7068fc4f779674839aabe81d72a400a3902943e4d62ad80c702db7fa7fd"
+    "worktree_digest": "sha256:d4552535324fbc3df1cca1bfe616a03ce5c92a529bcc5e358fb66a7240d9a53e"
   },
   "gitStateMeaning": "generation-time observation, not current HEAD",
   "hostLive": "derived from host_live axis only",
@@ -38,7 +43,7 @@
     "quarantinedSources": 162
   },
   "subjectMeaning": "subjectType=WORKTREE means the tree was dirty at generation; worktreeDigest covers HEAD plus the non-generated changes",
-  "subjectSha": "a22efef7a76108a56398dccf03789eaf6efdc42c",
+  "subjectSha": "5a3c8d7efdfa0d7c8864ca200fe0ea76a83c7dd5",
   "subjectType": "WORKTREE",
   "taskCounts": {
     "NOT_STARTED": 25,
@@ -56,5 +61,5 @@
     "executed": "see individual verified ledger receipts"
   },
   "worktreeClean": false,
-  "worktreeDigest": "sha256:6328c7068fc4f779674839aabe81d72a400a3902943e4d62ad80c702db7fa7fd"
+  "worktreeDigest": "sha256:d4552535324fbc3df1cca1bfe616a03ce5c92a529bcc5e358fb66a7240d9a53e"
 }

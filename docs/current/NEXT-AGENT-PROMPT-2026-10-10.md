@@ -61,7 +61,16 @@ DESIGN-LAB 色板为默认 + 20261009 取值作可选主题"；手机端 FROZEN_
   `[Errno 2]` 与 `content audit` 照旧——**三条红收敛成同一个根因**：受跟踪的判定去重算
   clone 里不存在的机器字节。两个未修的在 `aa3cb307` 的干净 detached worktree
   （`.project-local/worktrees/ci-repro`，`git status` 0 行）里逐字复现过，处置见报告 **G** 项。
-- 仍然成立的上一批基线：服务路由 **54** 条（含 `GET /api/projects/{id}/native-runtime`），
+- CI @ `c5e6efd7`（run 38068881580）实测：failed jobs = `Python gate`（聚合里那 3 条 G 项红）与
+  `DeepSeek authority gate chain`；后者原文是
+  `AUTHORITY_CHAIN=DRIFT entries changed since generation: ['design-lab/config/task-ledger-r3.json',
+  'docs/history/taskpacks/20261009-r2-inputs/ui-r2/...']` —— 这是 20261009 输入落仓后链没重生成，
+  **第十五批已按授权方式修掉**：重跑 `scripts/deepseek_authority_chain.py` 并提交它的记录
+  （144 条、新增 13 条=12 HISTORICAL + 1 REFERENCE、类别零变化、没碰四个钉死文件），
+  本地 `AUTHORITY_GATES=PASS gates=7 failed=none`。同一次 CI 里
+  `Workbench browser E2E ... (no-skip)` 是 **success**，即新几何闸在干净 runner 上真的跑了。
+  下一次 CI 的预期只剩 Python gate 那 3 条 G 项红——**这是推断**，要读到 run 才算数。
+- 仍然成立的上一批基线：服务路由 **54** 条（含 `GET /api/projects/{id}/native-runtime`），，
   对账表 **17 屏 / 19 视图 / 54 路由 / 37 令牌**；appshell 合同面 ①–⑯ 块；种植总数 **47**
   （域包合同 6 + 浏览器闸 4 + 成列 4 + tabs 6 + 简报写入 5 + 侧栏提示 2 + 五种拒绝 4 +
   接续/状态类别 10 + 运行时面板 5 + 行尾门 1）；溢出闸两套配色各 **69** 个样本
@@ -207,6 +216,12 @@ RIR 收进默认折叠的次级面。**第十一批**：409 幂等冲突改用 `
 - `gh run view <id> --log-failed` 会把整个 job 的 runner setup 一起打进来，找 `FAIL` 行要 grep；
   闸的子级细节（例如 `CONTENT_AUDIT=FAIL records=2 findings=2`）不一定进日志，进日志的只有
   聚合器捕获的最后一行——剩下的靠 worktree 复现，不要照抄记忆。
+- **`AUTHORITY_CHAIN=DRIFT` 是"链没重生成"，不是"有人改了权威文件"**：它按路径规则摘要
+  `docs/taskpacks/`、`docs/history/`、账本等条目，所以任何一次账本提交或新归档输入都会让它红，
+  修法就是重跑 `scripts/deepseek_authority_chain.py` 并提交
+  `reports/current/DEEPSEEK-AUTHORITY-CHAIN.json`（2026-10-11 就这么修的）。
+  四个钉死文件（`AUTHORITY.md`、`.project/governance/authority-index.json`、
+  `docs/current/HISTORY-FREEZE-RULES.md`、被钉的旧 taskpack）仍然一个字都不能改。
 - 行号型指针（`file.py:210`）会被正常开发撞坏；改完必须跑 `test_contract_bindings`。
 - `findNodes(root, tagName, needle)` 是"标签 + 文字"两参数谓词，不是回调；要按谓词遍历用
   `walkNodes`。`el()` 把 `id`/`disabled` 走 `setAttribute`，读要用 `attributes.get()`。

@@ -8444,7 +8444,8 @@
           "DL-FINAL-T08-static-battery-r10",
           "DL-FINAL-T08-line-ending-gate-r13",
           "DL-FINAL-T08-clean-clone-reds-diagnosed-r14",
-          "DL-FINAL-T08-owner-list-remeasured-r15"
+          "DL-FINAL-T08-owner-list-remeasured-r15",
+          "DL-FINAL-T08-authority-chain-regenerated-r15"
         ]
       },
       {
@@ -10592,6 +10593,18 @@
         "exit_code": 0,
         "observed_at": "2026-10-10T16:34:23Z",
         "artifact_sha256": "466cfd4cddcac4273fbccf0e7516e21a210bf0c54e28eeb2abb4eff4adc5a16c"
+      },
+      {
+        "id": "DL-FINAL-T08-authority-chain-regenerated-r15",
+        "task_id": "DL-FINAL-T08",
+        "axis": "unit",
+        "outcome": "PASS",
+        "subject_sha": "5a3c8d7efdfa0d7c8864ca200fe0ea76a83c7dd5",
+        "artifact_path": "reports/current/DEEPSEEK-AUTHORITY-CHAIN.json",
+        "command": "CI run 38068881580 @ c5e6efd7 里 DeepSeek authority 作业红在 AUTHORITY_CHAIN=DRIFT entries changed since generation: ['design-lab/config/task-ledger-r3.json', 'docs/history/taskpacks/20261009-r2-inputs/ui-r2/...']；本地复现同一条后按 sanctioned 修法重跑 python scripts/deepseek_authority_chain.py 并提交其记录（不碰四个钉死文件）。实测：AUTHORITY_CHAIN=WRITTEN entries=144，新增 13 条（12 HISTORICAL + 1 REFERENCE，basis 均为路径规则 \"frozen historical path (docs/history/)\"），新旧类别差=0；--check 为 AUTHORITY_CHAIN=PASS；python scripts/verify_authority_gates.py --zero-spill 为 AUTHORITY_GATES=PASS gates=7 failed=none（source-lock 46 条、contract-graph、language-boundary、bound test-gate 四序 skipped=0 一起绿）",
+        "exit_code": 0,
+        "observed_at": "2026-10-10T17:01:47Z",
+        "artifact_sha256": "fc3a2b584c479cbc495d376b893b9477308a578d1ecc812e74978be29423e430"
       }
     ],
     "note": "2026-10-09 第六批（R2 §9 全局搜索按对象类型分组）：命令面板不再只是路由启动器。打开时按对象类型分四组读回真实对象——能力资产（GET /capabilities，结果直接落到 #/capabilities/<id> 那条独立地址）、项目（GET /projects → #/projects/<id>）、设计领域（GET /domains 的 13 个真实域包）、设计系统（GET /design-systems → #/brand-systems）。每条结果显示对象类型与去向，超过每组上限只画前若干条并明说还有多少未列出，不静默截断。三条边界写死：范围只限当前令牌已能读到的路由，服务没有对象级读权限模型，所以面板不说『已按权限过滤』；某一组没答回来就说未读回，不显示 0 条；对象组在首次打开时才读并缓存，不抢首屏。闸门侧把面板变成可测的：溢出/几何闸门新增 global-search 交互态（点 #openPalette → 等四组都给出可行动答案 → 量浮层几何 → Esc 关闭以免污染后续路由），并且 settle 谓词要求每组必须落在『有行 / 明确 0 个 / 明确未读回』三态之一——栽桩证明这条断言会红（让一组读回 0 且把空态文字去掉 → OV_INTERACTION_UNMEASURED，还原后绿且源码字节一致）。遮挡断言在模态浮层打开时按设计跳过，并在回执里写明跳过的原因而不是静默。bundle e9b74265/333652B，两主题各 22 个测量键、各 21 张实拍绑定同一字节；AA 三测含浅色、静态六门、node 三套全绿。第六批补记：分组搜索的浮层自己把尾巴裁掉了——实拍里只有『页面』一组，四组对象在 overflow:hidden 之下不可达，而几何闸门照旧全绿（没有横向溢出，也没有元素被自身盒子裁断）。修法是给面板定高并把 #paletteItems 变成滚动区，并给闸门加一条『滚到底后最后一行必须命中测试可达』的断言；栽桩（去掉滚动区）复现红 reached:false hit:null，还原后绿且 CSS 字节一致。同一轮把几何回执的 subject 扩成同时点名 bundle 与 stylesheet——因为 CSS 是独立文件，改布局时 main.js 字节不变，只绑 bundle 的回执根本区分不出改过没改过。第六批补记：分组搜索的浮层自己把尾巴裁掉了——实拍里只有『页面』一组，四组对象在 overflow:hidden 之下不可达，而几何闸门照旧全绿（没有横向溢出，也没有元素被自身盒子裁断）。修法是给面板定高并把 #paletteItems 变成滚动区，并给闸门加一条『滚到底后最后一行必须命中测试可达』的断言；栽桩（去掉滚动区）复现红 reached:false hit:null，还原后绿且 CSS 字节一致。同一轮把几何回执的 subject 扩成同时点名 bundle 与 stylesheet——因为 CSS 是独立文件，改布局时 main.js 字节不变，只绑 bundle 的回执根本区分不出改过没改过。第六批补记：分组搜索的浮层自己把尾巴裁掉了——实拍里只有『页面』一组，四组对象在 overflow:hidden 之下不可达，而几何闸门照旧全绿（没有横向溢出，也没有元素被自身盒子裁断）。修法是给面板定高并把 #paletteItems 变成滚动区，并给闸门加一条『滚到底后最后一行必须命中测试可达』的断言；栽桩（去掉滚动区）复现红 reached:false hit:null，还原后绿且 CSS 字节一致。同一轮把几何回执的 subject 扩成同时点名 bundle 与 stylesheet——因为 CSS 是独立文件，改布局时 main.js 字节不变，只绑 bundle 的回执根本区分不出改过没改过。U01~U05 与 T08 仍 PARTIAL：commit 授权、键盘/减少动画/200% 人审、宿主 E3、真人 E4 未做。QA 剩余 major：资产类型 tabs、11 领域二级入口、草稿自动保存（服务无 draft 路由，需先补后端）、U05 结构/文本节点（plan_to_rir 无调用方）、nav 内部排版断言；owner 侧：强约束/偏好分字段、三处令牌冲突、26 处字面色裁决。"
