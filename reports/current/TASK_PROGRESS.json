@@ -12,7 +12,7 @@
   },
   "fresh": false,
   "freshnessMeaning": "at generation only; check verifies bound-input integrity, not current Git or cloud state",
-  "generatedAt": "2026-10-10T13:20:15+00:00",
+  "generatedAt": "2026-10-10T14:45:13+00:00",
   "gitStateMeaning": "generation-time observation, not current HEAD",
   "ledger_partition": "currentExecution",
   "meaning": "Parent/subtask inventory is not a capability count or completion percentage. Definition adoption does not implement product tasks; R5 evidence is historical.",
@@ -27,7 +27,7 @@
     "taskpack": "DL-TP-20260908-R5"
   },
   "subjectMeaning": "subjectType=WORKTREE means the tree was dirty at generation; worktreeDigest covers HEAD plus the non-generated changes",
-  "subjectSha": "147e6dc99548b25a2adf2a2144a8f792230a4432",
+  "subjectSha": "88529112538165b07b103502782b335ae2267de1",
   "subjectType": "WORKTREE",
   "taskpack": "DL-TP-20261009-UI-FIRST-R1",
   "taskpackHash": "f91ebe9b67ab4f83be91fe8f3ca0fc80fc93176263bec05d883fa6ce6afd6480",
@@ -123,7 +123,8 @@
       "batch": "B1",
       "evidence": [
         "DL-FINAL-T06-axis-qualification-projection-r11",
-        "DL-FINAL-T05-T06-battery-widened-r11"
+        "DL-FINAL-T05-T06-battery-widened-r11",
+        "DL-FINAL-T06-capability-contract-closed-r14"
       ],
       "evidence_level": "SEE_BOUND_RECEIPTS",
       "id": "DL-FINAL-T06",
@@ -224,7 +225,8 @@
         "DL-FINAL-T08-zoom-sweep-light-r10",
         "DL-FINAL-T08-contrast-r10",
         "DL-FINAL-T08-static-battery-r10",
-        "DL-FINAL-T08-line-ending-gate-r13"
+        "DL-FINAL-T08-line-ending-gate-r13",
+        "DL-FINAL-T08-clean-clone-reds-diagnosed-r14"
       ],
       "evidence_level": "SEE_BOUND_RECEIPTS",
       "id": "DL-FINAL-T08",
@@ -811,5 +813,5 @@
   "testRunMeaning": "bound run: python scripts/run_bound_test_suite.py --modules test_boot_reconciliation",
   "testRunResult": "OK",
   "worktreeClean": false,
-  "worktreeDigest": "sha256:01171eeb21c47533d285f6f63482b7968b2c87cb6fb7b78e4c3b64c713950414"
+  "worktreeDigest": "sha256:90c1693ddadb2cbc3d270b76486df0688b12d5c69f7a8414236faf503ca6fce0"
 }

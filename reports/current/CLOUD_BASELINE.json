@@ -9,62 +9,33 @@
   },
   "fresh": false,
   "freshnessMeaning": "at generation only; check verifies bound-input integrity, not current Git or cloud state",
-  "generatedAt": "2026-10-10T13:20:15+00:00",
+  "generatedAt": "2026-10-10T14:45:13+00:00",
   "gitStateMeaning": "generation-time observation, not current HEAD",
   "local": {
     "branch": "qoder/designlab-backup-consistency-20261007",
     "origin_main": "fc03a3033e900a8066d863a223636cc68804c4fa",
-    "sha": "147e6dc99548b25a2adf2a2144a8f792230a4432",
+    "sha": "88529112538165b07b103502782b335ae2267de1",
     "source_worktree_clean": false,
-    "tracked_files": 3595,
+    "tracked_files": 3594,
     "worktree_changes": [
       {
-        "kind": "D",
-        "path": "design-lab/config/line-ending-baseline.json"
-      },
-      {
-        "content": "sha256:3e47c5b69a73aedf4908201eab4a28be993ca9a20ae2407bbaebb328cd7a0556",
-        "kind": "M",
-        "path": "design-lab/config/task-document-states.json"
-      },
-      {
-        "content": "sha256:1a52236916f63e8db56825dc311b91e226b5957e9e98f46a402ca0fe13034c99",
+        "content": "sha256:8cee5177c1398e2ed3b9b3a5c45d2b65b6fe441e764d5e0132af7f48302ec248",
         "kind": "M",
         "path": "design-lab/config/task-ledger-r3.json"
       },
       {
-        "content": "sha256:514b8e4001bb8b0d511f5ddf2a0a6350e7897bccc04b56917aa0b2fc24b695da",
-        "kind": "M",
-        "path": "design-lab/tests/test_working_tree_line_endings.py"
-      },
-      {
-        "content": "sha256:922cd80072f3b0f05061a0c3206e2bf145ae188637a60836cfb2e8caf71d81e5",
-        "kind": "M",
-        "path": "docs/audits/DESIGNLAB-UI-R2-DESIGN-QA-2026-10-09.md"
-      },
-      {
-        "content": "sha256:d95620085ffe8c65017150c34434025dc096d784d69464049e42a013e345d1f8",
-        "kind": "M",
-        "path": "docs/current/NEXT-AGENT-PROMPT-2026-10-10.md"
-      },
-      {
-        "content": "sha256:dbbd0969a6041367dd404fad21e3ebeceed24ac58f18fd6ad5f5401b309705e1",
+        "content": "sha256:810f9a4e7c0f6b4458adae49416d2af49e2c255ba0ddd7c2e76fd67b360d19e1",
         "kind": "M",
         "path": "docs/current/UI-DESKTOP-RECONCILIATION-2026-10-09.md"
-      },
-      {
-        "content": "sha256:65cb795be9b561f5b5bef8832ee28c0af1ae27478190580aad6182490abc8d17",
-        "kind": "M",
-        "path": "docs/taskpacks/20261009-ui-first/TASK-CARDS.md"
       }
     ],
-    "worktree_digest": "sha256:01171eeb21c47533d285f6f63482b7968b2c87cb6fb7b78e4c3b64c713950414"
+    "worktree_digest": "sha256:90c1693ddadb2cbc3d270b76486df0688b12d5c69f7a8414236faf503ca6fce0"
   },
   "note": "No GitHub API query was run by this generator; tool installation is not inferred.",
   "remoteRef": "origin/main (local tracking ref)",
   "schemaVersion": "design-lab/cloud-baseline/v2",
   "subjectMeaning": "subjectType=WORKTREE means the tree was dirty at generation; worktreeDigest covers HEAD plus the non-generated changes",
-  "subjectSha": "147e6dc99548b25a2adf2a2144a8f792230a4432",
+  "subjectSha": "88529112538165b07b103502782b335ae2267de1",
   "subjectType": "WORKTREE",
   "taskpackHash": "f91ebe9b67ab4f83be91fe8f3ca0fc80fc93176263bec05d883fa6ce6afd6480",
   "taskpackId": "DL-TP-20261009-UI-FIRST-R1",
@@ -79,5 +50,5 @@
     "branchProtection"
   ],
   "worktreeClean": false,
-  "worktreeDigest": "sha256:01171eeb21c47533d285f6f63482b7968b2c87cb6fb7b78e4c3b64c713950414"
+  "worktreeDigest": "sha256:90c1693ddadb2cbc3d270b76486df0688b12d5c69f7a8414236faf503ca6fce0"
 }
