@@ -385,7 +385,7 @@ DL-UI-U03/U04/U05 与 DL-FINAL-T08/T09，不在本文件里当作"已通过"。
 本机这些回执不存在，所以 `CONTROLLED_OCR_PASS` 在当前机器上不可复现（不是失败）。
 当前行为：`#/plan` 只画底图一个节点（`inferred:false`），没有真实底图就不编排。
 
-### G. 干净 clone 上无法复现的两条真值闸（第十四批实测，需要裁定）
+### G. 干净 clone 上无法复现的真值闸债（第十四、十五批实测，需要裁定）
 
 CI run `38057782601` @ `aa3cb307` 的三个红里，两个不是缺陷而是同一个结构问题：
 **受跟踪的判定去重算被 gitignore 掉的机器字节**。修掉契约漏项后再推一轮（run `38061750943`
@@ -400,7 +400,8 @@ CI run `38057782601` @ `aa3cb307` 的三个红里，两个不是缺陷而是同�
   `NO_FULL_THIRD_PARTY_SOURCE_TREES_TRACKED` 翻成 `REVIEW_ABSORBED_TREES_OUTSIDE_LOCK`，
   `full_copy_in_ignored_cache` 37→0、`missing_absorbed_tree` 0→37。
 
-三条候选修法，每条都会动一个闸的判定词，我没有自行选：
+以下修法每一条都会动一个闸的判定词，我没有自行选（编号到 5，其中 1–3 是三种改法，4–5 是同一根因
+另外两个实例的处置）：
 
 1. 把回执字节搬进 Git。体量实测 `size-pack=242.71 MiB`；`origin/main` 可达 9430 个 blob 的
    **未压缩原始字节合计 = 360.1 MiB**——这是"全部 blob 求和"，既不是 pack 压缩量，也不是
@@ -416,9 +417,19 @@ CI run `38057782601` @ `aa3cb307` 的三个红里，两个不是缺陷而是同�
    现用的做法是"链排在账本定型之后、与账本同批提交"，可用但脆。要根治需要把活账本在链里
    标成 `mutable_state`（已有机制，用于 basis 是 requested 工作包的条目：摘要按生成时刻、
    **类别仍逐条比对**）——这是改权威记录的语义，需要 owner 裁定，我没有自行做。
+5. （同一天，第四个实例，就在我要"顺手把链回执绑紧一点"时撞上的）**链记录本身不能被账本里的
+   回执摘要**。我先写的链回执把 artifact 指向 `reports/current/DEEPSEEK-AUTHORITY-CHAIN.json`，
+   而链按字节摘要活账本：重封回执→改账本→链漂移→重生成链→回执摘要又漂移，**没有不动点**。
+   该回执的 artifact 已改绑本报告（判据文字一字未动，我的封存工具本来也拒绝改判据），
+   `AUTHORITY_CHAIN=WRITTEN/PASS` 与 `AUTHORITY_GATES=PASS gates=7 failed=none` 靠重跑生成器复现。
+   一般规则：**回执只能绑"被摘要的对象之外"的文档**；这条与第 1–4 项是同一个形状——
+   受跟踪的记录去摘要会彼此改写的字节。
 
-当前行为：本地 `VERIFY_DESIGN_LAB=OK total=74 failed=0`；CI @ `c46a4525` 三条红全部来自这一条
-根因（见第十四批追记末段的实测读数），不靠调低判据、摘掉闸或让 `--check` 读磁盘缓存来变绿。
+当前行为：本地 `VERIFY_DESIGN_LAB=OK total=74 failed=0`，`AUTHORITY_GATES=PASS gates=7 failed=none`。
+CI 实测：@ `c46a4525` 三条聚合红全部来自这一条根因（读数见第十四批追记末段）；
+@ `4453177c`（run 38071427909）失败作业从 2 个降到 **1 个**——authority chain 作业转绿
+（链排在账本定型之后重生成并同批提交），剩下的就是 Python gate 里那 3 条聚合红。
+不靠调低判据、摘掉闸或让 `--check` 读磁盘缓存来变绿。
 
 ## 第七批追记（2026-10-09 深夜，Major 7：领域成为二级入口）
 

@@ -1,4 +1,6 @@
 # 下一轮任务提示词（DL-TP-20261009-UI-FIRST-R1，接第十五批之后）
+>
+> 文件名里的日期是这份提示词**第一次写成**的日子；内容已在 2026-10-11 的第十五批上重测过，改名会留下断链，所以按冻结规则原地更新并在此声明。仓库里现存 `docs/current/NEXT-AGENT-PROMPT-2026-10-09.md`、`docs/current/NEXT-AGENT-PROMPT-2026-10-10.md`。
 
 按新任务包继续执行桌面 UI：在已落地的 U01/U02 壳层与可选配色主题、U03 能力目录（详情地址、
 域包二级入口、§4 资产类型 tabs）、U04 输入/分析/制作记录（含简报写入行为证明）、U05 目标包屏
@@ -21,15 +23,15 @@ DESIGN-LAB 色板为默认 + 20261009 取值作可选主题"；手机端 FROZEN_
 8. 设计源 `docs/history/taskpacks/20261009-r2-inputs/ui-r2/specs/01_UI_SCHEME.md` 与
    `specs/design_tokens.json`。
 
-## 实测基线（2026-10-11，第十五批之后；不是历史声明）
+## 实测基线（2026-10-11 实测，第十五批之后；不是历史声明）
 
 - 本轮的提交链（同一分支，全部已 push）：`88529112` 能力契约修复 → `1ab5a936` 账本回执 +
   投影 + 对账表 → `c46a4525` 报告的第十四批追记与 G 项 → `e8294b3f` CI 实测读数 + 本提示词基线
-  → 之后是纯文字修正提交 → `7d488396` 第十五批主题几何修复 + 两条新闸 → 账本封存提交。
+  → `7d488396` 第十五批主题几何修复 + 两条新闸 → `a22efef7` 回执与投影 → `5a3c8d3e` 权威链重生成 → `2a97a9db` 链回执 → `4453177c` 链排在账本之后重生成并同批提交。
   **双端一致不要抄这里的 SHA**：本文件写下的任何 SHA 都会在"提交这份修正"的那一刻过期，
   第一步自己读回 `git rev-parse HEAD` 与
   `git ls-remote origin refs/heads/qoder/designlab-backup-consistency-20261007` 比对，并确认
-  `git status --porcelain=v1` 行数为 0（`a22efef7` 时实测 dirty=0、领先 203）。
+  `git status --porcelain=v1` 行数为 0（`4453177c` 时实测 dirty=0、领先 207；`e8294b3f` 时是 199，`d2c848e3` 时是 203——数只在对它做的那次测量上成立）。
   `main` 未合并；领先数用 `git rev-list --count` 现场量（第十三批写的 190 是想出来的数，已追正）。
 - `apps/workbench/build/main.js` = `6ff8532de49a`，353,765 B —— 第十四、十五两批都没动 bundle；
   `style.css` = `f5410c1ad591`，101,028 B（第十五批改过：登记值改回包值 + 主题真的读它）；
@@ -49,9 +51,9 @@ DESIGN-LAB 色板为默认 + 20261009 取值作可选主题"；手机端 FROZEN_
   `TASK_DOC_STATE_GATE=PASS checks=11`；`VERIFY_PROJECTION_FRESHNESS=OK records=14 verified=19
   receipts=5 excluded=0 findings=0`；`PATH_REF_GATE=PASS checks=10`；
   `DESIGN_DEBT_BASELINE=PASS`（字面色值 26、字面 px 534，+3 全是媒体查询断点）。
-- 账本：**160 条证据、非 PASS 0 条**。其中 **150 条 artifact 仍指向 gitignored `.project-local`**
-  （125 个不同路径），10 条指向受跟踪文档（本报告 8 条 + 对账表 2 条）。仓库体量实测
-  `size-pack=242.71 MiB`；`origin/main` 可达 9430 个 blob 的未压缩原始字节合计 = 360.1 MiB
+- 账本：**161 条证据、非 PASS 0 条**。其中 **150 条 artifact 仍指向 gitignored `.project-local`**
+  （125 个不同路径），11 条指向受跟踪文档（本报告 8 条 + 对账表 2 条 + 权威链 1 条）。仓库体量实测
+  `size-pack=244.12 MiB`；`origin/main` 可达 9430 个 blob 的未压缩原始字节合计 = 360.1 MiB
   （全部 blob 求和，不是 pack 压缩量，也不是按路径归属的 minigame-runtime 182.19 MiB）。
 - CI 实测（`gh run view --log-failed`）：@ `aa3cb307` 为 `VERIFY_DESIGN_LAB=FAIL total=74 failed=3`
   （`VERIFY_ROUTE_PAYLOAD_CONTRACTS=FAIL bindings=7 failures=121` + `CURRENT_EXECUTION=FAIL [Errno 2]`
@@ -140,7 +142,7 @@ DESIGN-LAB 色板为默认 + 20261009 取值作可选主题"；手机端 FROZEN_
    exited 1: CONTENT_AUDIT=FAIL records=2 findings=2 notices=1`。
    同一根因：**受跟踪的判定去重算被 gitignore 掉的机器字节**（150/155 条回执的 artifact 在
    `.project-local`；content audit 的 37 个 vendor 树也在）。可选修法三条，都会动判定词，
-   先要 owner 选：① 把回执字节搬进 Git（`size-pack` 已 242.71 MiB，这是先前明确避开的方向）；
+   先要 owner 选：① 把回执字节搬进 Git（`size-pack` 已 244.12 MiB，这是先前明确避开的方向）；
    ② 给投影加一个与 MISMATCH 分开的具名状态（如 `ARTIFACTS_ABSENT_IN_CLONE`），让"这台机器
    没有那份字节"不再读成"回执被改过"；③ 把 content audit 的 presence 改成 SPILL-CENSUS 那种
    "按版本化记录判定、实时普查只作为机器状态上报"。**不得**用调低判据、把闸从聚合里摘掉、
@@ -228,6 +230,13 @@ RIR 收进默认折叠的次级面。**第十一批**：409 幂等冲突改用 `
   `reports/current/DEEPSEEK-AUTHORITY-CHAIN.json`（2026-10-11 就这么修的）。
   四个钉死文件（`AUTHORITY.md`、`.project/governance/authority-index.json`、
   `docs/current/HISTORY-FREEZE-RULES.md`、被钉的旧 taskpack）仍然一个字都不能改。
+- **回执不能绑"会摘要账本"的记录**：`AUTHORITY_CHAIN` 按字节摘要活账本，而我把链回执的 artifact
+  指向了链自己的记录 —— 重封回执→改账本→链漂移→重生成链→回执又漂移，**没有不动点**。
+  判据文字一个字都不能改（我的封存工具会拒绝），所以只能改绑定：把该回执改绑报告文档，
+  链排在账本定型之后重生成并与账本同批提交。写回执前先问："这份 artifact 会不会在我写账本时变？"
+- **修一个 CI 红之前先分清是不是顺序问题**：`2a97a9db` 的 authority chain 仍红，漂移项只剩
+  `task-ledger-r3.json` —— 不是有人改坏账本，是我把链的生成排在追加回执之前。重排后
+  run 38071427909 该作业转绿（失败作业 2→1），剩下 1 个是清单 G。
 - 行号型指针（`file.py:210`）会被正常开发撞坏；改完必须跑 `test_contract_bindings`。
 - `findNodes(root, tagName, needle)` 是"标签 + 文字"两参数谓词，不是回调；要按谓词遍历用
   `walkNodes`。`el()` 把 `id`/`disabled` 走 `setAttribute`，读要用 `attributes.get()`。
