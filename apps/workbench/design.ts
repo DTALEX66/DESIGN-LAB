@@ -216,6 +216,43 @@ export async function refreshDesign() {
   setStatus('设计层已读取。方向选择与绑定不代表制作完成或质量验收。');
 }
 
+export interface BriefDraft {
+  owner: string;
+  title: string;
+  goals: string[];
+  constraints: string | null;
+  references: string[];
+}
+
+/**
+ * The one rule that turns a brief draft into a persisted brief (DL-UI-U04).
+ *
+ * Validation and the idempotency key live here and nowhere else: the legacy form and
+ * the desktop 输入与目标 page both call this, so a second copy of the rule cannot drift
+ * into a different acceptance behaviour on the two surfaces. The key is kept per
+ * (owner, identity) exactly as the form did -- retrying the same content reuses it, and
+ * any change produces a new one, which is what stops a double submit creating two
+ * briefs. Refusals throw with the server's own wording so the caller can only restate
+ * what was actually said.
+ */
+export async function createBrief(draft: BriefDraft): Promise<void> {
+  if (!draft.owner) throw new Error('未选择项目。');
+  const title = draft.title.trim();
+  const goals = draft.goals.map((goal) => goal.trim()).filter(Boolean);
+  if (!title || !goals.length) throw new Error('请填写简报标题与至少一条目标。');
+  const constraints = draft.constraints && draft.constraints.trim() ? draft.constraints.trim() : null;
+  const references = draft.references;
+  const body: Record<string, unknown> = {
+    title, goals, constraints, reference_asset_ids: references, idempotency_key: '',
+  };
+  const identity = JSON.stringify({ owner: draft.owner, title, goals, constraints, references });
+  if (!submittedBrief || submittedBrief.owner !== draft.owner
+      || submittedBrief.identity !== identity)
+    submittedBrief = { owner: draft.owner, identity, key: uuid() };
+  body.idempotency_key = submittedBrief.key;
+  await api(`/projects/${draft.owner}/briefs`, body);
+}
+
 export async function submitBrief() {
   const current = epoch;
   const owner = project;
@@ -227,15 +264,10 @@ export async function submitBrief() {
   const constraints = byId<HTMLInputElement>('brief-constraints').value.trim() || null;
   if (!title || !goals.length) { setStatus('请填写简报标题与至少一条目标。', true); return; }
   const references = selectedReferences();
-  const body: Record<string, unknown> = { title, goals, constraints, reference_asset_ids: references, idempotency_key: '' };
-  const identity = JSON.stringify({ owner, title, goals, constraints, references });
-  if (!submittedBrief || submittedBrief.owner !== owner || submittedBrief.identity !== identity)
-    submittedBrief = { owner, identity, key: uuid() };
-  body.idempotency_key = submittedBrief.key;
   briefBusy = true;
   byId<HTMLButtonElement>('brief-submit').disabled = true;
   try {
-    await api(`/projects/${owner}/briefs`, body);
+    await createBrief({ owner, title, goals, constraints, references });
     if (current !== epoch) return;
     byId<HTMLInputElement>('brief-title').value = '';
     byId<HTMLInputElement>('brief-goals').value = '';
@@ -410,6 +442,40 @@ export function loadDirectionRevision(direction: DesignDirection, focusForm = tr
   if (focusForm) byId<HTMLInputElement>('revision-direction-title').focus();
 }
 
+export interface DirectionRevisionDraft {
+  owner: string;
+  directionId: string;
+  title: string;
+  notes: string[];
+  colorMood: string | null;
+  typeMood: string | null;
+}
+
+/**
+ * The one rule that turns a direction correction into a new version (DL-UI-U04).
+ *
+ * A revision never rewrites the version it came from: the route appends a version and the
+ * server refuses a superseded one (STALE_REVISION), which is why the caller must pass the
+ * direction id it actually loaded rather than "whatever is selected now". Validation lives
+ * here so the legacy form and the 分析与方案 screen cannot drift into different acceptance
+ * behaviour; each submit gets a fresh idempotency key because a correction is a new intent.
+ */
+export async function reviseDirection(draft: DirectionRevisionDraft): Promise<DirectionRevisionResponse> {
+  if (!draft.owner) throw new Error('未选择项目。');
+  if (!draft.directionId) throw new Error('请先选择要修订的方向版本。');
+  const title = draft.title.trim();
+  if (!title) throw new Error('修订需要方向标题');
+  return api<DirectionRevisionResponse>(
+    `/projects/${draft.owner}/directions/${draft.directionId}/revisions`,
+    {
+      title,
+      style_notes: draft.notes.length ? draft.notes : null,
+      color_mood: draft.colorMood,
+      typography_mood: draft.typeMood,
+      idempotency_key: uuid(),
+    });
+}
+
 export async function submitDirectionRevision() {
   const current = epoch;
   const owner = project;
@@ -424,8 +490,8 @@ export async function submitDirectionRevision() {
     const colorMood = byId<HTMLInputElement>('revision-direction-color').value.trim() || null;
     const typeMood = byId<HTMLInputElement>('revision-direction-type').value.trim() || null;
     if (!title) throw new Error('修订需要方向标题');
-    const data = await api<DirectionRevisionResponse>(`/projects/${owner}/directions/${source.direction_id}/revisions`,
-      { title, style_notes: notes.length ? notes : null, color_mood: colorMood, typography_mood: typeMood, idempotency_key: uuid() });
+    const data = await reviseDirection({
+      owner, directionId: source.direction_id, title, notes, colorMood, typeMood });
     if (current !== epoch) return;
     highlightDirection = data.direction.direction_id;
     await refreshDesign();

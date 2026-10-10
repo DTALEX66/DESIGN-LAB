@@ -71,6 +71,40 @@ export interface TaskListResponse {
   next_cursor: string | null;
 }
 
+// DL-UI-U06 (2026-10-10) — the read-only runtime observation over the native tables.
+// `NOT_READ` is NOT a value the service emits: it exists only in the offline fallback below,
+// so a disconnected page can never render "this service never ran a native attempt" (ABSENT)
+// from bytes it never received. The service keeps ABSENT and PRESENT apart; the page keeps
+// both apart from "we did not ask successfully".
+export type NativeRuntimeTableState = 'PRESENT' | 'ABSENT' | 'NOT_READ';
+
+export interface NativeRuntimeSection {
+  table: NativeRuntimeTableState;
+  rows: Array<Record<string, string | null>> | null;
+}
+
+export interface NativeRuntimeResponse {
+  schemaVersion: string;
+  project_id: string;
+  host_guard: NativeRuntimeSection;
+  quiescence: NativeRuntimeSection;
+  reconciliation: NativeRuntimeSection;
+  recovery_protocol: NativeRuntimeSection;
+  executions: NativeRuntimeSection;
+  counts: {
+    hosts_held: number | null;
+    attempts_quiescent_receipted: number | null;
+    reconciliations_open: number | null;
+    executions_receipted: number | null;
+    executions_with_result: number | null;
+  };
+  budget: null;
+  budget_reason: string;
+  proves_production_ready: boolean;
+  is_host_action_performed: boolean;
+  does_not_say: string[];
+}
+
 export interface EventListResponse {
   events: EventRecord[];
   next_cursor: string | null;
@@ -335,7 +369,17 @@ export interface CapabilityRecord {
   contentDigest: string | null;
   /** null means no host run and no human acceptance exists yet - not `false`. */
   qualified: boolean | null;
-  qualificationEvidence: string | null;
+  /** The recorded evidence references, when a qualification record exists at all.
+   *  Corrected on 2026-10-09: the emitter produces a list (`_qualification`), and the
+   *  previous `string | null` would have accepted a shape no record ever sends. */
+  qualificationEvidence: readonly string[] | null;
+  /** Why `qualified` is null, in the service's own words. An unknown without a stated
+   *  reason reads like a missing feature rather than an unmade judgement. */
+  qualificationReason: string | null;
+  /** The seven classification axes with their **values** (DL-FINAL-T06). An empty list
+   *  means the taxonomy carries the field and nobody classified this candidate;
+   *  null means the row has no such field. The UI must keep those two apart. */
+  axes: Readonly<Record<string, string | readonly string[] | Readonly<Record<string, unknown>> | null>>;
   sourceType: string | null;
   evidenceLevel: string | null;
   upstreamOwner: string | null;

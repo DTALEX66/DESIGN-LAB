@@ -433,7 +433,7 @@
       "handler": "capability_library",
       "schema": "design-lab/schemas/capability-library.schema.json",
       "version": "design-lab/capability-library/v1",
-      "emitter": "src/design_lab/analysis/capability_library.py:210",
+      "emitter": "src/design_lab/analysis/capability_library.py:247",
       "reason": "Debt paid 2026-10-08. design-lab/schemas/capability-library.schema.json binds the 24-key record the projection really emits (46 sources + 14 models in this checkout), keeping the emitter's own vocabulary (kind, revisionState) enumerated while disposition/presence/license/sourceType stay pass-through strings owned by source-record.schema.json and readiness-model-radar.schema.json, and holding qualified at const null because no host run and no human acceptance exists yet. A real GET payload is checked against it by design-lab/scripts/verify_route_payload_contracts.py."
     },
     {
@@ -686,6 +686,15 @@
       "version": "design-lab/research-readback/v1",
       "emitter": "src/design_lab/research_review.py:94",
       "reason": "No schema validates this envelope -- named as debt, not as an unremarkable read, in the same shape as the GET .../rights row above. The findings it wraps ARE bound (each is a research-finding document validated by assurance/research_store.py on the way in and re-validated from the stored bytes on the way out); src/design_lab/research_review.py writes the envelope's own schemaVersion while nothing describes the envelope. What this surface deliberately does NOT have is a project-level verdict word: rights has rights_clearance because the rights gate exists, and research has a count because no gate is cleared by writing findings down, so `research_verdict` is null, `proves_design_quality` and `is_knowledge_export` are false, and design-lab/tests/test_research_http.py asserts that the gate vocabulary's own words (CLEARED, NOT_REVIEWED, PENDING_REVIEW, ACCEPTED) never appear in the body. Closing this the way the jury readback was closed needs a research-readback.schema.json plus a payload case in design-lab/scripts/verify_route_payload_contracts.py; that is not claimed here because it was not done."
+    },
+    {
+      "route": "/api/projects/([0-9a-f]{32})/native-runtime",
+      "method": "GET",
+      "kind": "SCHEMA_LESS",
+      "handler": "native_runtime.readback",
+      "version": "design-lab/native-runtime-readback/v1",
+      "emitter": "src/design_lab/native_runtime.py:31",
+      "reason": "Added 2026-10-10 with the route, in the same change rather than after it: test_contract_bindings.test_new_route_without_a_row_is_red refuses a dispatched route with no row. No schema validates this envelope -- the envelope's schemaVersion is written by src/design_lab/native_runtime.py and nothing describes it, which is the same named debt as the GET .../research row above, not an unremarkable read. What the surface reads is the state the existing action routes leave behind (native_tasks.py creates native_host_guard_v1, native_quiescence_v1, native_reconciliation_v1, native_recovery_protocol_v2, native_execution_v1); nothing here creates, mutates or dispatches anything. Three rules the envelope carries because the tables cannot express them: a table that does not exist is reported as table=ABSENT with rows=null and kept apart from an existing-but-empty table, because 'no attempt holds the host' and 'this service never ran a native attempt' are different sentences; `budget` is null with a reason, because no table in this repository records a run budget, quota or cost and a 0 would read as budget available; and `proves_production_ready` / `is_host_action_performed` are false with `does_not_say` naming what a reader must not infer from a held guard row or an open reconciliation. design-lab/tests/test_native_runtime_readback.py asserts the absent-vs-empty split, the null budget, the absence of any verdict word, and that the read opens the database read-only."
     },
     {
       "route": "/api/projects/([0-9a-f]{32})/research(?:\\?supersedes=([A-Za-z0-9_.:-]{1,80}))?",

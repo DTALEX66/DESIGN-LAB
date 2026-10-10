@@ -4,15 +4,15 @@
     "DL-TP-20260914-DEEPSEEK-AUTHORITY-R1::DLDS-I000",
     "DL-TP-20260914-DEEPSEEK-AUTHORITY-R1::DLDS-I010"
   ],
-  "checked_at": "2026-10-08T22:17:52+00:00",
-  "subject_sha": "d6ba107f295dd05b5a6274ceee02eefe066a2a39",
+  "checked_at": "2026-10-08T23:52:12+00:00",
+  "subject_sha": "14e99f03ae95d76d19bb91c3b70250c96ae567b4",
   "verdict_rule": "answerable from tracked state: the archived receipts, the three tools in the repository, and the runtime state machine in src/. The live copies under .project-local are reported as machine state and are never compared, so a clean checkout judges the same as this disk.",
   "I000_destructive_operations": {
     "doctrine": "plan -> candidate list -> backup/digest -> verification -> rollback -> receipt",
-    "receipt_archive": "reports/history/destructive-receipts-2026-09-13",
+    "receipt_archive_root": "docs/audits/DESIGN-LAB-UIKIT-CONFORMANCE-2026-09-28/session",
     "manifests": [
       {
-        "receipt": "reports/history/destructive-receipts-2026-09-13/RUNTIME-CLEANUP-MANIFEST.json",
+        "receipt": "docs/audits/DESIGN-LAB-UIKIT-CONFORMANCE-2026-09-28/session/quarantine/deepseek-round1/RUNTIME-CLEANUP-MANIFEST.json",
         "tool": "scripts/deepseek_runtime_cleanup.py",
         "live_copy": ".project-local/quarantine/deepseek-round1/RUNTIME-CLEANUP-MANIFEST.json",
         "exists": true,
@@ -45,7 +45,7 @@
         "live_copy_state": "MATCHES_ARCHIVED_COPY"
       },
       {
-        "receipt": "reports/history/destructive-receipts-2026-09-13/DELETE-MANIFEST.json",
+        "receipt": "docs/audits/DESIGN-LAB-UIKIT-CONFORMANCE-2026-09-28/session/quarantine/deepseek-round1/DELETE-MANIFEST.json",
         "tool": "scripts/deepseek_quarantine_out_of_pack.py",
         "live_copy": ".project-local/quarantine/deepseek-round1/DELETE-MANIFEST.json",
         "exists": true,
@@ -78,7 +78,7 @@
         "live_copy_state": "MATCHES_ARCHIVED_COPY"
       },
       {
-        "receipt": "reports/history/destructive-receipts-2026-09-13/MIGRATION-MANIFEST.json",
+        "receipt": "docs/audits/DESIGN-LAB-UIKIT-CONFORMANCE-2026-09-28/session/hermes-legacy/MIGRATION-MANIFEST.json",
         "tool": "scripts/deepseek_hermes_migration.py",
         "live_copy": ".project-local/archive/hermes-legacy/MIGRATION-MANIFEST.json",
         "exists": true,

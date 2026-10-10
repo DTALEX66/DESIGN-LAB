@@ -1,10 +1,11 @@
 {
-  "authorityTaskpackHash": "sha256:d9fdaa3ad7ad0055a3f451c853756be41036b32112cacc4d1c17b314c005a2f9",
-  "authorityTaskpackId": "DL-TP-20260914-DEEPSEEK-AUTHORITY-R1",
+  "authorityTaskpackHash": "f91ebe9b67ab4f83be91fe8f3ca0fc80fc93176263bec05d883fa6ce6afd6480",
+  "authorityTaskpackId": "DL-TP-20261009-UI-FIRST-R1",
   "blockers": [
-    "DL-R5-015 acceptance",
-    "host evidence",
-    "rights/quality/release gates",
+    "DL-FINAL-T15 acceptance",
+    "DL-FINAL-T19 real joint learning",
+    "DL-UI-U12 complete desktop acceptance",
+    "rights/human/release permission",
     "exact-SHA delivery"
   ],
   "environmentFingerprint": {
@@ -14,19 +15,19 @@
   },
   "fresh": false,
   "freshnessMeaning": "at generation only; check verifies bound-input integrity, not current Git or cloud state",
-  "generatedAt": "2026-10-08T22:04:48+00:00",
+  "generatedAt": "2026-10-09T23:03:11+00:00",
   "gitStateMeaning": "generation-time observation, not current HEAD",
   "schemaVersion": "design-lab/release-readiness/v2",
   "status": "NOT_RELEASED",
   "subjectMeaning": "subjectType=WORKTREE means the tree was dirty at generation; worktreeDigest covers HEAD plus the non-generated changes",
-  "subjectSha": "df0c16da4e35b1b4f025ec4d07cdd077e5702d5b",
-  "subjectType": "COMMIT",
-  "taskpackHash": "31dde89eb4ede81fe88c0a5c5144adfb86af8db4c4d8c263bde2199180369b69",
-  "taskpackId": "DL-TP-20260908-R5",
+  "subjectSha": "14e99f03ae95d76d19bb91c3b70250c96ae567b4",
+  "subjectType": "WORKTREE",
+  "taskpackHash": "f91ebe9b67ab4f83be91fe8f3ca0fc80fc93176263bec05d883fa6ce6afd6480",
+  "taskpackId": "DL-TP-20261009-UI-FIRST-R1",
   "testRunAt": "2026-10-08T20:41:26+00:00",
   "testRunId": "testrun-20261008T204123Z-forward-repeat-e7c4504bc3d0",
   "testRunMeaning": "bound run: python scripts/run_bound_test_suite.py --modules test_boot_reconciliation",
   "testRunResult": "OK",
-  "worktreeClean": true,
-  "worktreeDigest": "sha256:2fa8aa84264fb6d31ff8e4eddbb29e507a1faa87056824d12ea942991c137207"
+  "worktreeClean": false,
+  "worktreeDigest": "sha256:ebaccc23749b4e57ec2433e2bb42badaad09717c5bee958e2fae679e86925610"
 }

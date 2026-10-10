@@ -380,7 +380,48 @@ class ListItemIsReallyAListMember(unittest.TestCase):
         # found while measuring a different stylesheet gate, and the bound run quoted as clean at
         # 3c43d0af selected modules that did not include this file -- a `--modules` run is not the
         # suite, and calling it one is how an inventory pin survives being broken.
-        self.assertEqual(self.shell.count("el('ul', { class: 'list'"), 41)
+        # 2026-10-09 (DL-UI-U02): 41 -> 42 for the 组件规范 screen's list sample
+        # (renderUiComponents). One container, named: it is the screen that states the ul.list +
+        # li.list-item convention, so the convention is demonstrated by a real list rather than by
+        # a <div> wearing the class. The screen's other blocks are <section>/<p>/<table> and add no
+        # container. This is the inventory growing by one verified column, not a threshold moving.
+        # li 成员，其空态是 emptyLi()，所以读回没到也不会被画成空列表。
+        # 2026-10-09 (DL-UI-U03) again: 42 -> 43 for the capability detail list
+        # (capabilityDetail()) on 能力目录. One container, named: it lists the seven
+        # classification axes with their values, the qualification basis, the licence and
+        # rights line, the evidence level and the "no recorded counter-example" row, so the
+        # detail is a real list of record fields rather than a paragraph a reader has to
+        # parse. Rows are real <li> members; the block's only button is the disabled
+        # 使用此能力 entry, which adds no container.
+        # 2026-10-09 (DL-UI-U04) again: 43 -> 45 for the 输入与目标 screen. Two containers,
+        # both named: referencePickerForProject() lists the project's real imported assets as
+        # checkable <li> members (with media type, size, rights and version carried on the row),
+        # and intakeForm()'s readback column lists the briefs the service returned after a
+        # submit. Neither adds a <div> wearing the list class, and the intake form itself is a
+        # label/input grid, which contributes no container.
+        # 2026-10-09 (DL-UI-U05) again: 45 -> 46 for the 目标生成包 composition list
+        # (planComposer()). One container, named: it lists the nodes the page actually composed
+        # (the user-chosen raster with its recorded rights/version, the canvas taken from that
+        # asset's real size, and the row that states which node families are NOT composed and
+        # why). The RIR preview is a <pre>, so it adds no container.
+        # 2026-10-09 (DL-UI-U04 屏04) again: 46 -> 47 for the 分析与方案 judgement-basis list
+        # (analysisPanel()). One container, named: current direction, method/preference fields,
+        # source/knowledge references, and the design-system binding are each a real <li> member
+        # read back from the design layer. The gap blocks beside it are stateBlock() articles and
+        # the correction form is labels/inputs, so neither adds a container.
+        # 2026-10-09 (DL-UI-U04 屏07 制作记录) 47 -> 49: two containers, both named.
+        # recordsBody() adds the job list itself (one <li> per real TaskRecord read back from
+        # GET /projects/{id}/tasks) and the "what this page may and may not claim" panel, whose
+        # three <li> members state the state-word source, the missing domain field and the
+        # unwired continue action. The per-task event list is `.record-event-list`, not a
+        # `.list` container, so it does not count here.
+        # 2026-10-10 (DL-UI-U06) 49 -> 50: one container, named. runtimeObservation() lists the
+        # five native runtime tables plus the budget row and the emitter's own does_not_say
+        # sentences as real <li> members, because the whole point of that panel is that
+        # ABSENT / PRESENT-empty / NOT-READ are three different rows a reader can tell apart --
+        # which a paragraph cannot carry. The panel's heading and hint are <h3>/<p>, so they add
+        # no container. This is the inventory growing by one verified column, not a threshold.
+        self.assertEqual(self.shell.count("el('ul', { class: 'list'"), 50)
 
 
 if __name__ == "__main__":

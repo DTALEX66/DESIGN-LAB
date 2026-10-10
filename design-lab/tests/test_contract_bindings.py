@@ -350,11 +350,15 @@ class GateTeethTests(unittest.TestCase):
         # the slice that made findings persistable, and its POST sibling is the BOUND_SCHEMA row that
         # validates against research-finding.schema.json. An unchanged list here would be the false
         # claim, not the safer one. The loop below is the teeth and did not move: every remaining
-        # claim still has to name its missing schema.
+        # claim still has to name its missing schema. 2026-10-10 (DL-UI-U06): the list is 5, because
+        # GET /api/projects/<id>/native-runtime answers a design-lab/native-runtime-readback/v1
+        # envelope with no schema behind it -- the same named-debt shape as the rights and research
+        # read-backs, added with the route rather than back-filled after it.
         self.assertEqual(sorted(row['route'] for row in claiming),
                          sorted(['/api/projects/([0-9a-f]{32})/tasks/(native-job-[0-9a-f]{64})/patch',
                                  '/api/projects/([0-9a-f]{32})/native-plans',
                                  '/api/projects/([0-9a-f]{32})/rights',
+                                 '/api/projects/([0-9a-f]{32})/native-runtime',
                                  '/api/projects/([0-9a-f]{32})/research']),
                          'the unpaid version-bearing routes are an inventory, so a paid debt '
                          'left listed as unpaid and an unlisted new debt are both red here')
@@ -469,12 +473,17 @@ class GateTeethTests(unittest.TestCase):
         # dispatched count moved with it because the gate refuses a route that arrives without a row
         # AND a row whose dispatch has gone. The number stays pinned rather than derived: deleting a
         # row together with its dispatch would otherwise leave every relation here consistent.
-        self.assertEqual(len(lines), 1 + CONTRACTS + 54,
+        # 54 -> 55 on 2026-10-10: GET /api/projects/{id}/native-runtime (DL-UI-U06) added one route
+        # row and one dispatch in the same change, so both sides of that relation moved together.
+        self.assertEqual(len(lines), 1 + CONTRACTS + 55,
                          'one verdict line, one note per contract row, one per route row')
         verdict = lines[-1]
         self.assertTrue(verdict.startswith('VERIFY_CONTRACT_BINDINGS=PASS'), verdict)
+        # 54 -> 55 on 2026-10-10 with GET /api/projects/{id}/native-runtime (DL-UI-U06): the
+        # aggregate's own line is what this compares, so a route added without its row -- or a
+        # row without its dispatch -- moves these two numbers apart and stays red.
         for token in (f'schemas={CONTRACTS}', f'binding={BINDING_ROWS}', f'inert={INERT_ROWS}',
-                      'routes=54', 'dispatched=54', f'bound={expected_bound}'):
+                      'routes=55', 'dispatched=55', f'bound={expected_bound}'):
             self.assertIn(token, verdict)
 
     # --- failure modes, each against a mutated copy ------------------------------

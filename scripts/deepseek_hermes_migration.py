@@ -26,7 +26,7 @@ Usage:
     python scripts/deepseek_hermes_migration.py --restore
 
 `--verify` is the read-only form and it is split (2026-10-09): the manifest it audits is the
-versioned copy under ``reports/history/destructive-receipts-2026-09-13``, and an archived object
+versioned copy inside the preserved evidence bundle (``docs/audits/DESIGN-LAB-UIKIT-CONFORMANCE-2026-09-28/session/hermes-legacy``), and an archived object
 that is gone must be named by the versioned prune record, so a deletion without a tracked reason
 still fails. Whether this machine still holds the archive is reported as
 ``archive=MEASURED_ON_THIS_MACHINE`` or ``ABSENT_ON_THIS_MACHINE``; a clean checkout is not a
@@ -46,10 +46,10 @@ REPO = Path(__file__).resolve().parents[1]
 CENSUS = REPO / "reports/current/SPILL-CENSUS.json"
 ARCHIVE = REPO / ".project-local/archive/hermes-legacy"
 MANIFEST = ARCHIVE / "MIGRATION-MANIFEST.json"
-# Versioned copies of the two records the verdict needs. The manifest was archived byte-for-byte
-# on 2026-10-09 (sha256 prefix 5088e4766929b68f, equal to the live copy at copy time), and the
-# prune manifest has been tracked since 2026-09-26.
-TRACKED_MANIFEST = REPO / "reports/history/destructive-receipts-2026-09-13/MIGRATION-MANIFEST.json"
+# Versioned copies of the two records the verdict needs: the migration manifest's tracked copy
+# (sha256 prefix 5088e4766929b68f, equal to the live copy) and the prune manifest, tracked since
+# 2026-09-26.
+TRACKED_MANIFEST = REPO / "docs/audits/DESIGN-LAB-UIKIT-CONFORMANCE-2026-09-28/session/hermes-legacy/MIGRATION-MANIFEST.json"
 PRUNE_RECORD = REPO / ("docs/audits/DESIGN-LAB-UIKIT-CONFORMANCE-2026-09-28/evidence/"
                        "governance-state/prune-manifest-2026-09-26.json")
 ARCHIVE_PREFIX = "archive/hermes-legacy/"

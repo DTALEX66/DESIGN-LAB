@@ -81,6 +81,21 @@ def candidates() -> list:
 def classify(rel: str, head: str) -> tuple:
     """Return (authority_class, basis). Order matters: the R5 pack lives under
     docs/history/ by design and is an active product pack, not history."""
+    # Current owner adoption supersedes the predecessor's self-labelled authority.
+    index = json.loads((REPO / '.project/governance/authority-index.json').read_text(encoding='utf-8'))
+    adoption = index.get('ownerAdoption')
+    if adoption:
+        integrated = index['taskpackClassificationRule']['currentIntegrated']
+        if rel == integrated:
+            return 'CURRENT_INTEGRATED_TASKPACK', 'owner-adopted desktop UI-first dispatch'
+        if rel == LEDGER:
+            return 'CURRENT_TASK_LEDGER', 'currentExecution dispatch; frozen R5 evidence partition'
+        if rel in (AUTHORITY_PACK, AUTHORITY_LEDGER, R5_PACK) or rel.startswith('docs/history/taskpacks/r5-20260908/'):
+            return 'HISTORICAL', 'frozen predecessor, mapped into current UI-first tasks'
+        registry = json.loads((REPO / 'design-lab/config/task-document-states.json').read_text(encoding='utf-8'))
+        declared = next((d for d in registry['documents'] if d['path'] == rel), None)
+        if declared and declared['state'] in ('SUPERSEDED', 'FROZEN', 'NON_AUTHORITATIVE'):
+            return 'HISTORICAL', 'owner-adopted classification registry; old dispatch frozen'
     if rel == AUTHORITY_PACK:
         return "CURRENT_DEEPSEEK_AUTHORITY", "the landed authority taskpack of this run"
     if rel == AUTHORITY_LEDGER:
@@ -119,6 +134,11 @@ def ledger_summary(rel: str) -> dict:
     if isinstance(data.get("taskpack"), dict) and isinstance(data.get("tasks"), list):
         return {"kind": "authority-ledger", "taskpack": data["taskpack"].get("taskpack_id"),
                 "tasks": len(data["tasks"])}
+    if isinstance(data.get('currentExecution'), dict):
+        execution = data['currentExecution']
+        return {'kind': 'single-ledger-with-frozen-predecessor', 'taskpack': execution['taskpack'],
+                'current_partition': 'currentExecution', 'tasks': len(execution['tasks']),
+                'frozen_legacy_tasks': len(data['tasks']), 'evidence_receipts': len(execution['evidence'])}
     if isinstance(data.get("tasks"), list):
         ids = [t.get("id") for t in data["tasks"] if isinstance(t, dict)]
         return {"kind": "task-ledger", "taskpack": data.get("taskpack") or data.get("id"),
@@ -159,12 +179,16 @@ def build() -> dict:
     manifest = (REPO / ".project/manifest.yaml").read_text(encoding="utf-8")
     pack_line = re.search(r"^taskpack:\s*(\S+)", manifest, re.M)
     drift = []
-    if pack_line and pack_line.group(1) != "DL-TP-20260908-R5":
+    index = json.loads((REPO / '.project/governance/authority-index.json').read_text(encoding='utf-8'))
+    live = json.loads((REPO / LEDGER).read_text(encoding='utf-8'))
+    execution = live.get('currentExecution')
+    expected = execution['taskpack'] if execution else 'DL-TP-20260908-R5'
+    if pack_line and pack_line.group(1) != expected:
         drift.append({
             "path": ".project/manifest.yaml",
             "field": "taskpack",
             "recorded": pack_line.group(1),
-            "current_authority": "DL-TP-20260908-R5 (product) / " + AUTHORITY_ID + " (DeepSeek execution)",
+            "current_authority": expected,
             "action": "reconcile in DLDS-B040/B010; not silently rewritten by A010",
         })
     r5 = json.loads((REPO / R5_PACK).read_text(encoding="utf-8"))
@@ -177,6 +201,11 @@ def build() -> dict:
         "subject": {"base_sha": git("rev-parse", "HEAD"), "branch": git("rev-parse", "--abbrev-ref", "HEAD"),
                     "worktree_clean": git("status", "--porcelain=v1") == ""},
         "current_authority": {
+            "top_level": index['authorityId'],
+            "integrated": index['taskpackClassificationRule']['currentIntegrated'],
+            "current_partition": 'currentExecution' if execution else 'tasks',
+            "current_taskpack": expected,
+            "predecessor_meaning": 'DeepSeek/R5 below are lineage only after owner adoption' if execution else 'legacy scoped chain',
             "deepseek_execution": {
                 "taskpack_id": AUTHORITY_ID,
                 "path": AUTHORITY_PACK,
@@ -194,7 +223,7 @@ def build() -> dict:
                 "tasks": len(r5["tasks"]),
                 "note": "unchanged by the authority pack; its host/deferred work belongs to Codex",
             },
-            "single_deepseek_current_pack": True,
+            "single_deepseek_current_pack": not bool(execution),
         },
         "non_authoritative_sources": ["CHAT SUMMARY", "MEMORY SUMMARY", "COMPRESSED CONTEXT",
                                       "HANDOFF SUMMARY"],

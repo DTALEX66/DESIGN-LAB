@@ -5,10 +5,10 @@
   "adjudicationIsOwnerOnly": true,
   "counts": {
     "literalColors": 26,
-    "literalPx": 516,
+    "literalPx": 532,
     "shadowDeclarations": 24,
     "shadowDeclarationsReadingAVar": 18,
-    "shadowResetsSkipped": 2,
+    "shadowResetsSkipped": 3,
     "chromaticLiterals": 13,
     "neutralAlphaLiterals": 13
   },
@@ -16,7 +16,7 @@
     {
       "value": "#2563eb",
       "file": "apps/workbench/shell.ts",
-      "line": 4402,
+      "line": 4531,
       "kind": "chromatic",
       "declaration": "'{\"color\":{\"$type\":\"color\",\"brand\":{\"$value\":\"#2563EB\"},\"surface\":{\"$value\":\"{color.brand}\"}},\"scale\":{\"$type\":\"dimension\",\"space\":{\"md\":{\"$value\":\"16px\"}}}}';",
       "occurrence": 1,
@@ -27,7 +27,7 @@
     {
       "value": "#11a74d",
       "file": "apps/workbench/style.css",
-      "line": 790,
+      "line": 879,
       "kind": "chromatic",
       "declaration": ".tag.ok{background:linear-gradient(135deg,#27c86a,#11a74d)}",
       "occurrence": 1,
@@ -38,7 +38,7 @@
     {
       "value": "#1a2231",
       "file": "apps/workbench/style.css",
-      "line": 1234,
+      "line": 1331,
       "kind": "chromatic",
       "declaration": "background-image:repeating-conic-gradient(#1a2231 0% 25%, #222c3e 0% 50%);",
       "occurrence": 1,
@@ -47,20 +47,9 @@
       "adjudicatedOn": null
     },
     {
-      "value": "#1d4fc4",
-      "file": "apps/workbench/style.css",
-      "line": 187,
-      "kind": "chromatic",
-      "declaration": ".app-nav button:hover{background:#1D4FC4;box-shadow:var(--glow)}",
-      "occurrence": 1,
-      "adjudication": null,
-      "adjudicatedBy": null,
-      "adjudicatedOn": null
-    },
-    {
       "value": "#222c3e",
       "file": "apps/workbench/style.css",
-      "line": 1234,
+      "line": 1331,
       "kind": "chromatic",
       "declaration": "background-image:repeating-conic-gradient(#1a2231 0% 25%, #222c3e 0% 50%);",
       "occurrence": 1,
@@ -71,7 +60,7 @@
     {
       "value": "#27c86a",
       "file": "apps/workbench/style.css",
-      "line": 790,
+      "line": 879,
       "kind": "chromatic",
       "declaration": ".tag.ok{background:linear-gradient(135deg,#27c86a,#11a74d)}",
       "occurrence": 1,
@@ -82,9 +71,20 @@
     {
       "value": "#3c8aff",
       "file": "apps/workbench/style.css",
-      "line": 793,
+      "line": 889,
       "kind": "chromatic",
-      "declaration": ".tag.info{background:linear-gradient(135deg,var(--secondary),#3c8aff)}",
+      "declaration": ":root{--tag-info-from:#4BAFFF;--tag-info-to:#3c8aff}",
+      "occurrence": 1,
+      "adjudication": null,
+      "adjudicatedBy": null,
+      "adjudicatedOn": null
+    },
+    {
+      "value": "#4bafff",
+      "file": "apps/workbench/style.css",
+      "line": 889,
+      "kind": "chromatic",
+      "declaration": ":root{--tag-info-from:#4BAFFF;--tag-info-to:#3c8aff}",
       "occurrence": 1,
       "adjudication": null,
       "adjudicatedBy": null,
@@ -93,7 +93,7 @@
     {
       "value": "#8f2a2a",
       "file": "apps/workbench/style.css",
-      "line": 687,
+      "line": 776,
       "kind": "chromatic",
       "declaration": "background:linear-gradient(135deg,#C03030,#8F2A2A);",
       "occurrence": 1,
@@ -104,7 +104,7 @@
     {
       "value": "#c03030",
       "file": "apps/workbench/style.css",
-      "line": 687,
+      "line": 776,
       "kind": "chromatic",
       "declaration": "background:linear-gradient(135deg,#C03030,#8F2A2A);",
       "occurrence": 1,
@@ -115,7 +115,7 @@
     {
       "value": "#c98c00",
       "file": "apps/workbench/style.css",
-      "line": 791,
+      "line": 880,
       "kind": "chromatic",
       "declaration": ".tag.warn{background:linear-gradient(135deg,#f2b541,#c98c00)}",
       "occurrence": 1,
@@ -126,7 +126,7 @@
     {
       "value": "#ee5f5f",
       "file": "apps/workbench/style.css",
-      "line": 792,
+      "line": 881,
       "kind": "chromatic",
       "declaration": ".tag.bad{background:linear-gradient(135deg,#f87171,#ee5f5f)}",
       "occurrence": 1,
@@ -137,7 +137,7 @@
     {
       "value": "#f2b541",
       "file": "apps/workbench/style.css",
-      "line": 791,
+      "line": 880,
       "kind": "chromatic",
       "declaration": ".tag.warn{background:linear-gradient(135deg,#f2b541,#c98c00)}",
       "occurrence": 1,
@@ -148,7 +148,7 @@
     {
       "value": "#f87171",
       "file": "apps/workbench/style.css",
-      "line": 792,
+      "line": 881,
       "kind": "chromatic",
       "declaration": ".tag.bad{background:linear-gradient(135deg,#f87171,#ee5f5f)}",
       "occurrence": 1,
@@ -159,7 +159,7 @@
     {
       "value": "rgba(0,0,0,.15)",
       "file": "apps/workbench/style.css",
-      "line": 672,
+      "line": 761,
       "kind": "neutral-alpha",
       "declaration": "box-shadow:0 8px 28px rgba(0,0,0,.15);",
       "occurrence": 1,
@@ -170,7 +170,7 @@
     {
       "value": "rgba(0,0,0,.22)",
       "file": "apps/workbench/style.css",
-      "line": 736,
+      "line": 825,
       "kind": "neutral-alpha",
       "declaration": "box-shadow:0 18px 44px rgba(0,0,0,.22), 0 0 0 1px color-mix(in srgb,var(--primary) 10%, white 2%);",
       "occurrence": 1,
@@ -181,7 +181,7 @@
     {
       "value": "rgba(0,0,0,.25)",
       "file": "apps/workbench/style.css",
-      "line": 929,
+      "line": 1026,
       "kind": "neutral-alpha",
       "declaration": "box-shadow:-18px 0 50px rgba(0,0,0,.25);",
       "occurrence": 1,
@@ -192,7 +192,7 @@
     {
       "value": "rgba(0,0,0,.25)",
       "file": "apps/workbench/style.css",
-      "line": 1108,
+      "line": 1205,
       "kind": "neutral-alpha",
       "declaration": "box-shadow:18px 0 50px rgba(0,0,0,.25)",
       "occurrence": 2,
@@ -203,7 +203,7 @@
     {
       "value": "rgba(0,0,0,.28)",
       "file": "apps/workbench/style.css",
-      "line": 902,
+      "line": 999,
       "kind": "neutral-alpha",
       "declaration": "box-shadow:0 16px 34px rgba(0,0,0,.28), inset 0 1px 0 rgba(255,255,255,.03);",
       "occurrence": 1,
@@ -214,7 +214,7 @@
     {
       "value": "rgba(0,0,0,.35)",
       "file": "apps/workbench/style.css",
-      "line": 147,
+      "line": 229,
       "kind": "neutral-alpha",
       "declaration": "box-shadow:0 4px 18px rgba(0,0,0,.35);",
       "occurrence": 1,
@@ -225,7 +225,7 @@
     {
       "value": "rgba(0,0,0,.55)",
       "file": "apps/workbench/style.css",
-      "line": 911,
+      "line": 1008,
       "kind": "neutral-alpha",
       "declaration": "position:fixed;inset:0;background:rgba(0,0,0,.55);backdrop-filter:blur(6px);",
       "occurrence": 1,
@@ -236,7 +236,7 @@
     {
       "value": "rgba(255,255,255,.02)",
       "file": "apps/workbench/style.css",
-      "line": 656,
+      "line": 745,
       "kind": "neutral-alpha",
       "declaration": "box-shadow:inset 0 1px 0 rgba(255,255,255,.02);",
       "occurrence": 1,
@@ -247,7 +247,7 @@
     {
       "value": "rgba(255,255,255,.02)",
       "file": "apps/workbench/style.css",
-      "line": 725,
+      "line": 814,
       "kind": "neutral-alpha",
       "declaration": "box-shadow:var(--shadow-soft), inset 0 1px 0 rgba(255,255,255,.02);",
       "occurrence": 2,
@@ -258,7 +258,7 @@
     {
       "value": "rgba(255,255,255,.02)",
       "file": "apps/workbench/style.css",
-      "line": 1013,
+      "line": 1110,
       "kind": "neutral-alpha",
       "declaration": "linear-gradient(180deg, rgba(255,255,255,.02), transparent);",
       "occurrence": 3,
@@ -269,7 +269,7 @@
     {
       "value": "rgba(255,255,255,.03)",
       "file": "apps/workbench/style.css",
-      "line": 731,
+      "line": 820,
       "kind": "neutral-alpha",
       "declaration": "background:linear-gradient(180deg,rgba(255,255,255,.03),transparent 18%);",
       "occurrence": 1,
@@ -280,7 +280,7 @@
     {
       "value": "rgba(255,255,255,.03)",
       "file": "apps/workbench/style.css",
-      "line": 902,
+      "line": 999,
       "kind": "neutral-alpha",
       "declaration": "box-shadow:0 16px 34px rgba(0,0,0,.28), inset 0 1px 0 rgba(255,255,255,.03);",
       "occurrence": 2,
@@ -291,7 +291,7 @@
     {
       "value": "rgba(255,255,255,.5)",
       "file": "apps/workbench/style.css",
-      "line": 573,
+      "line": 662,
       "kind": "neutral-alpha",
       "declaration": "filter:drop-shadow(0 0 3px rgba(255,255,255,.5)) drop-shadow(0 0 12px color-mix(in srgb,var(--color-secondary) 45%, transparent));",
       "occurrence": 1,

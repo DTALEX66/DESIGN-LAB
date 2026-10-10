@@ -31,3 +31,7 @@ docs/handoffs/deepseek-r3-20260906-v2/** -text whitespace=cr-at-eol
 # deepseek-r3-20260906 handoffs above).
 docs/history/record-imports-2026-10-08/** -text whitespace=cr-at-eol
 docs/taskpacks/03_DESIGN-LAB_* -text whitespace=cr-at-eol
+
+# Owner-adopted input bytes and pre-adoption snapshots are immutable.
+docs/history/taskpacks/20261009-inputs/** -text whitespace=cr-at-eol
+docs/history/taskpacks/20261009-adoption/** -text whitespace=cr-at-eol

@@ -42,6 +42,9 @@
   --layer-flow-node:2;
   --layer-topbar:50;
   --layer-nav-rail:60;
+  /* R2 §5 的能力详情面板：非模态，浮在内容之上，但始终低于工作区抽屉与命令面板，
+     否则地址化面板会把两个全局浮层盖掉。 */
+  --layer-detail-panel:70;
   --layer-drawer:88;
   --layer-scrim:90;
   --layer-palette:95;
@@ -121,6 +124,79 @@
   --brand-mark:url("data:image/png;base64,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");
   /* brand-mark:end */
 
+  /* ---------------------------------------------------------------------
+     UI-20261009-r1 基线（DL-UI-U02）。逐条取自
+     docs/history/taskpacks/20261009-inputs/ui/specs/design_tokens.json，
+     不换算、不"就近取整"。两套深色中性值与上面 B04/B07 权威值接近但不相同
+     （如 bg #080e16 vs #060A14、accent #87dcff vs #316CFF），
+     本块把它们登记为 `--uif-*` 原语，由新落地面消费；全局是否换色是
+     owner 裁决项，见 docs/current/UI-DESKTOP-RECONCILIATION-2026-10-09.md。
+     浅色一侧不是新色板：`:root[data-theme="light"]` 用同一套浅色值重指
+     上面的语义令牌，因此既有界面整体获得浅色主题。
+     --------------------------------------------------------------------- */
+  --uif-dark-bg:#080e16;
+  --uif-dark-surface:#101a26;
+  --uif-dark-raised:#142131;
+  --uif-dark-text:#edf5fc;
+  --uif-dark-muted:#9fb1c3;
+  --uif-dark-border:#283a4d;
+  --uif-dark-accent:#87dcff;
+  --uif-dark-accent-text:#06293b;
+  --uif-dark-success:#8bdfc0;
+  --uif-dark-warning:#f0cd89;
+  --uif-dark-danger:#ffa7b0;
+  --uif-light-bg:#f4f7fa;
+  --uif-light-surface:#ffffff;
+  --uif-light-raised:#f0f5fa;
+  --uif-light-text:#152b3d;
+  --uif-light-muted:#4f657b;
+  --uif-light-border:#cfdae5;
+  --uif-light-accent:#006c9e;
+  --uif-light-accent-text:#ffffff;
+  --uif-light-success:#1b7057;
+  --uif-light-warning:#805615;
+  --uif-light-danger:#ab384d;
+  /* 排印（size_css_px + body_line_height）。与 X-1/X-2 的 B04/B07 冲突并存，
+     本块只登记 20261009 值供新面消费，不改 --font-* 权威值。 */
+  --uif-font-h1:29px;
+  --uif-font-h2:19px;
+  --uif-font-h3:16px;
+  --uif-font-body:14px;
+  --uif-font-small:12px;
+  --uif-font-micro:11px;
+  --uif-body-line-height:1.65;
+  /* 间距（4/8/12/16/24/32/40）与圆角（controls 7 / cards 10 / hero 12） */
+  --uif-space-1:4px;  --uif-space-2:8px;  --uif-space-3:12px; --uif-space-4:16px;
+  --uif-space-6:24px; --uif-space-8:32px; --uif-space-10:40px;
+  --uif-radius-control:7px;
+  --uif-radius-card:10px;
+  --uif-radius-hero:12px;
+  --uif-border-width:1px;
+  /* 动效（recommended_ms 140/220）；减弱动态沿用上面已有的 reduce 块 */
+  --uif-motion-fast:140ms;
+  --uif-motion-base:220ms;
+  /* 布局（sidebar 232 / desktop gutter 40 / compact gutter 26） */
+  --uif-sidebar:232px;
+  --uif-gutter-desktop:40px;
+  --uif-gutter-compact:26px;
+  /* 顶栏高度：抽屉/详情面板都要从这条线以下开始，否则会盖住顶栏右端的动作。 */
+  --uif-topbar:78px;
+  /* R2 §3：详情抽屉在 ≥1200 与 768–1199 都是 450px 宽。写成令牌而不是把 450px
+     散进规则里——字面 px 存量由 scripts/design_debt_baseline.py 实测看守。 */
+  --uif-drawer:450px;
+
+  /* 药丸填充两侧都是亮饱和色，所以墨色两侧都是深色；把这件事写成一个令牌，
+     而不是散落在每条 .tag.* 规则上。浅色下的取值见 :root[data-palette=...] 块。
+     这里写 #060A14 而不是 var(--bg)：--bg 定义在 .dl-shell 作用域里（短别名族），
+     在 :root 上引用它解析不到。#060A14 正是原先 `.tag{color:var(--bg)}` 在界面上
+     算出来的值，所以默认色板逐字节不变。 */
+  --tag-ink:#060A14;
+
+  /* 头像砖的墨色：原先 `.avatar{color:#fff}` 靠的是底色一定深。色板现在可以选
+     浅色一侧，"写在什么底上"就必须成为令牌，而不是一个恒白的字面值。默认 #fff
+     与原先逐字节相同。 */
+  --avatar-ink:#fff;
+
   font-family:system-ui,"Microsoft YaHei",sans-serif;
 }
 
@@ -198,12 +274,19 @@ button{
    Scoped to the legacy regions (`body > header/main/footer` plus the flat
    `.app-nav`) so buttons inside `.app` keep B10's own hover appearance. */
 body > header button:hover,body > main button:hover,body > footer button:hover,
-.app-nav button:hover{background:#1D4FC4;box-shadow:var(--glow)}
+.app-nav button:hover{background:var(--brand-gradient-from);box-shadow:var(--glow)}
 button.secondary{
   background:var(--surface-2);color:var(--ink);border-color:var(--line);
 }
 button.secondary:hover{box-shadow:var(--glow)}
-button:disabled{opacity:.45;cursor:not-allowed}
+/* 禁用态原先靠 `opacity:.45` 表达，那等于把标签压到 3.4:1——对比度闸门会按每条路由
+   报红（2026-10-09 实测：能力详情里"使用此能力"禁用按钮 2.31:1）。可用性提示改由
+   **非文字线索**承担：平涂次级底、虚线边、无投影，墨色仍是可读的次级文本色。
+   这样"不能点"看得出来，字也读得清；WCAG 对非活动控件的豁免不该变成界面写不清字。 */
+button:disabled{
+  cursor:not-allowed;color:var(--muted);background:var(--surface-2);
+  border:1px dashed var(--border-strong);box-shadow:none;transform:none;
+}
 
 form{display:flex;align-items:end;gap:12px;flex-wrap:wrap}
 form label{flex:1}
@@ -645,7 +728,7 @@ html,body{margin:0}
   display:grid;place-items:center;
   background:color-mix(in srgb,var(--surface2) 82%, transparent);
   border:1px solid color-mix(in srgb,var(--border) 72%, transparent);
-  color:#fff;
+  color:var(--avatar-ink);
 }
 .sidebar-footer small{display:block;color:var(--muted);margin-top:3px}
 .main{
@@ -653,7 +736,7 @@ html,body{margin:0}
   min-height:100vh;
 }
 .topbar{
-  height:78px;display:flex;align-items:center;justify-content:space-between;
+  height:var(--uif-topbar);display:flex;align-items:center;justify-content:space-between;
   padding:0 24px;
   border-bottom:1px solid color-mix(in srgb,var(--border) 60%, transparent);
   background:linear-gradient(180deg,color-mix(in srgb,var(--surface) 82%, transparent),color-mix(in srgb,var(--surface) 72%, transparent));
@@ -784,6 +867,12 @@ html,body{margin:0}
   border:1px solid color-mix(in srgb,var(--border) 68%, transparent);
   transition:.18s ease;
 }
+/* A row that carries an action has three children, and `space-between` then parks the
+   middle one at whatever x the text width leaves behind -- so on #/domains the
+   查看详情 buttons sat at four different columns. Read off the rendered screen,
+   2026-10-09; the geometry gate could not see it because nothing was clipped. Letting the
+   text block absorb the slack puts every action and every verdict tag on one column. */
+.list-item:has(> button)>div:first-child{flex:1}
 .row-card:hover,
 .list-item:hover{
   transform:translateY(-1px);
@@ -798,13 +887,21 @@ html,body{margin:0}
    lighter stops because the originals failed even against ink. */
 .tag{
   display:inline-flex;align-items:center;gap:6px;
-  padding:5px 9px;border-radius:999px;font-size:12px;font-weight:700;color:var(--bg);
+  padding:5px 9px;border-radius:999px;font-size:12px;font-weight:700;color:var(--tag-ink);
   white-space:nowrap;
 }
 .tag.ok{background:linear-gradient(135deg,#27c86a,#11a74d)}
 .tag.warn{background:linear-gradient(135deg,#f2b541,#c98c00)}
 .tag.bad{background:linear-gradient(135deg,#f87171,#ee5f5f)}
-.tag.info{background:linear-gradient(135deg,var(--secondary),#3c8aff)}
+/* info 药丸的两端点也是令牌而不是字面值：默认取 #4BAFFF + #3c8aff，正是原规则
+   `linear-gradient(135deg,var(--secondary),#3c8aff)` 在界面上算出来的两个端点。
+   这里**不能**写 var(--secondary)：短别名族定义在 `.dl-shell` 作用域里，:root 上
+   引用解析不到，整条渐变会变成无效值，浅色侧的覆盖也就永远轮不上（实测：第一版
+   这样写，闸门仍然按每条路由报 2.62:1）。
+   浅色一侧改用包自己声明的 accent（#87dcff）：浅色主题的墨色是深色，压在原深蓝上
+   只有 2.62:1。两端同值 = 平涂，不引入第三个蓝。 */
+:root{--tag-info-from:#4BAFFF;--tag-info-to:#3c8aff}
+.tag.info{background:linear-gradient(135deg,var(--tag-info-from),var(--tag-info-to))}
 /* A non-verdict must not borrow the weight of a verdict. PLANNED / UNKNOWN /
    未读回 say "the service has no answer here", and until now they were painted
    with the same saturated .info fill as a real status, so the page read as
@@ -958,13 +1055,18 @@ html,body{margin:0}
 .palette{
   position:fixed;left:50%;top:11vh;transform:translateX(-50%);
   width:min(820px,96vw);
+  /* The grouped search is taller than the viewport: without a bound and a scroll area the
+     object groups sat below `overflow:hidden` and were unreachable -- the sweep still called
+     it clean because nothing overflowed sideways. */
+  max-height:78vh;
   border-radius:20px;overflow:hidden;
   background:linear-gradient(180deg,color-mix(in srgb,var(--surface) 90%, white 1%),color-mix(in srgb,var(--surface) 98%, black 1%));
   border:1px solid color-mix(in srgb,var(--primary) 34%, white 4%);
   box-shadow:var(--shadow);
   display:none;z-index:var(--layer-palette);
 }
-.palette.open{display:block}
+.palette.open{display:grid;grid-template-rows:auto minmax(0,1fr)}
+#paletteItems{overflow:auto;min-height:0}
 .palette input{
   width:calc(100% - 24px);margin:12px;
   border:1px solid var(--border-strong);
@@ -983,6 +1085,23 @@ html,body{margin:0}
 .palette .item:hover{
   background:color-mix(in srgb,var(--surface2) 74%, transparent)
 }
+/* R2 §9 全局搜索的对象分组。全部取值走令牌，不新增字面 px。 */
+.palette-group{display:grid;gap:var(--uif-space-1)}
+.palette-group[hidden]{display:none}
+.palette-group-title{
+  margin:var(--uif-space-3) var(--uif-space-4) 0;
+  font-size:var(--uif-font-small);color:var(--muted);letter-spacing:.04em}
+.palette-group-body{display:grid;gap:0}
+.palette-group-body .view-hint,.palette-group-body .error{
+  margin:0;padding:var(--uif-space-3) var(--uif-space-4);
+  font-size:var(--uif-font-small);overflow-wrap:anywhere}
+.palette-note{
+  margin:0;padding:var(--uif-space-3) var(--uif-space-4);
+  font-size:var(--uif-font-small);color:var(--muted);
+  border-top:1px solid var(--line);overflow-wrap:anywhere}
+.palette-more{
+  margin:0;padding:var(--uif-space-2) var(--uif-space-4);
+  font-size:var(--uif-font-small);color:var(--muted);overflow-wrap:anywhere}
 .toast{
   position:fixed;right:18px;bottom:18px;z-index:var(--layer-toast);
   min-width:220px;max-width:420px;
@@ -1363,6 +1482,11 @@ html,body{margin:0}
   background:var(--accent-hover);color:#fff;font-weight:700;
 }
 .skip-link:focus{left:8px;top:8px}
+/* `.dl-shell a{color:inherit}`（0,1,1）压过 `.skip-link{color:#fff}`（0,1,0），所以
+   跳到主内容这条链的墨色其实是正文色：深色下两者都是近白看不出来，浅色下正文变深
+   墨、底仍是 --accent-hover，实测 2.42:1。补一条更特定的规则，把"写在品牌底上的
+   字是白的"这件事说回来。 */
+.dl-shell a.skip-link{color:#fff}
 
 /* Palette rows became real <button>s so the only route switch left under 840px
    is keyboard-reachable. Reset the legacy `button` fill/padding they inherit. */
@@ -1481,3 +1605,260 @@ body > header p,body > main p,body > footer p{font-size:14px}
 
 /* With auto-connect on, typing a token is the fallback, not the task. */
 body[data-local-session="auto"] #connect-form details { display: none; }
+
+/* ============================================================================
+   DL-UI-U02 (2026-10-09) — 配色主题层 + UI-first 组件面
+   ----------------------------------------------------------------------------
+   owner 决定（2026-10-09）：新任务包的配色**不覆盖**现有配色，现有配色转为一个
+   可选主题；新布局/新架构按新任务包执行。两条轴**正交**，都由 URL 参数选择
+   （与既有 `?dev=1` 同一机制），不写 localStorage —— 显示偏好不该变成一份看起来
+   像产品数据的客户端状态：
+
+     data-palette="design-lab"（缺省） —— UI套件 B04/B07 权威值，上面 :root 块
+       逐字节不变。未带参数的会话、以及 CI 的溢出/对比度/截图基线量到的都是它。
+     data-palette="ui2026"（+ 缺省 dark） —— 20261009 包 dark 一侧
+     data-palette="ui2026" data-scheme="light" —— 同一包 light 一侧
+     design-lab 色板没有声明过浅色值，所以本层不替它臆造：该色板下 data-scheme
+       不产生任何覆盖，界面保持深色语义。
+
+   本层只重指**中性面**（背景/面板/次级面板/边框/正文/次级文本）、三个状态色与
+   装饰性 --glow。刻意不动下面这几族，因为它们是被实测修正过的地板值，跟着色板
+   一起换等于悄悄把修正撤回：
+     --color-primary / --color-secondary / --color-info / --accent / --accent-hover
+       —— Electric Blue 品牌家族。白字压 #316CFF 只有 4.45:1，所以 --accent-hover
+       (#2558DB, 6.0:1) 才被当作填充端点；品牌令牌本身要不要换，是 owner 尚未
+       裁决的那条红线，不在这里替他决定。包的 accent 因此先作为 --uif-*-accent
+       原语登记，供新组件与后续裁决消费。
+     --border-strong —— WCAG 1.4.11 的 3:1 边界地板值（注释里带实测比）。
+     --brand-gradient-from / --brand-gradient-to —— 三处共用同一对品牌端点。
+   取值一律引用上面登记的 --uif-dark-* / --uif-light-* 原语，本块不手写十六进制
+   （--glow 的阴影与 --tag-ink 的例外见各自注释）。
+
+   pill .tag 的墨色：两种色板的填充都是亮饱和色，所以墨色一律深色。原先写
+   color:var(--bg)（深色主题里 = #060A14），现改为 var(--tag-ink)，默认值仍是
+   var(--bg)，因此默认主题逐字节不变；ui2026 浅色下 --bg 会变成近白，必须由
+   --tag-ink 单独承担"墨色与背景无关"这个事实。
+   `:root[...]` 选择器被 design-lab/tests/test_workbench_css_single_definition.py
+   与 test_workbench_brand_asset.py 的 :root 规则豁免，不是第二个 :root 块。
+   ========================================================================= */
+:root[data-palette="ui2026"]{
+  color-scheme:dark;
+  --color-bg:var(--uif-dark-bg);
+  --color-surface:var(--uif-dark-surface);
+  --color-surface-2:var(--uif-dark-raised);
+  --color-border:var(--uif-dark-border);
+  --color-text:var(--uif-dark-text);
+  --color-muted:var(--uif-dark-muted);
+  --color-success:var(--uif-dark-success);
+  --color-warning:var(--uif-dark-warning);
+  --color-error:var(--uif-dark-danger);
+  --glow:0 0 14px rgba(135,220,255,.20);
+  --tag-ink:var(--uif-dark-accent-text);
+}
+
+:root[data-palette="ui2026"][data-scheme="light"]{
+  color-scheme:light;
+  --color-bg:var(--uif-light-bg);
+  --color-surface:var(--uif-light-surface);
+  --color-surface-2:var(--uif-light-raised);
+  --color-border:var(--uif-light-border);
+  --color-text:var(--uif-light-text);
+  --color-muted:var(--uif-light-muted);
+  --color-success:var(--uif-light-success);
+  --color-warning:var(--uif-light-warning);
+  --color-error:var(--uif-light-danger);
+  --glow:0 0 14px rgba(0,108,158,.16);
+  /* 次级蓝与 info 在深色底上是"亮字"角色（#4BAFFF 压 #0D1221 ≈ 7:1）；翻到浅色
+     一侧后同一支字压白底只有 2.37:1，实测被对比度闸门按每条路由报红。包自己声明的
+     light.accent 就是浅色一侧的对应字色，所以这里重指它，而不是让浅色主题带着
+     读不清的小标签上线。仍不动的地板值：--accent-hover、--border-strong、品牌渐变。 */
+  --color-secondary:var(--uif-light-accent);
+  --color-info:var(--uif-light-accent);
+  --avatar-ink:var(--uif-light-text);
+  /* info 药丸的填充端点：浅色主题的墨色是深色，所以填充取包自己声明的 accent
+     （#87dcff），两端同值即平涂，不引入第三种蓝。 */
+  --tag-info-from:var(--uif-dark-accent);
+  --tag-info-to:var(--uif-dark-accent);
+  /* 浅色下 --bg 是近白，pill 的深色墨不能再跟着 --bg 走。 */
+  --tag-ink:var(--uif-dark-accent-text);
+}
+
+/* --- UI-first 状态面（pack 屏 15 界面状态） --------------------------------
+   一个状态块 = 状态词（服务自己的英文词汇，lang="en"）+ 为什么 + 下一步。
+   下一步永远存在：一个说不出口"接下来做什么"的状态就是死胡同文案。 */
+.uif-states{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:var(--uif-space-4)}
+.uif-state{
+  display:grid;gap:var(--uif-space-2);align-content:start;
+  padding:var(--uif-space-4);min-width:0;
+  background:var(--surface-2);border:1px solid var(--line);
+  border-radius:var(--uif-radius-card);
+}
+.uif-state-head{display:flex;align-items:center;gap:var(--uif-space-2);flex-wrap:wrap}
+.uif-state-reason{font-size:var(--uif-font-body);line-height:var(--uif-body-line-height);color:var(--muted);overflow-wrap:anywhere}
+.uif-state-next{
+  font-size:var(--uif-font-small);line-height:1.5;overflow-wrap:anywhere;
+  border-left:3px solid var(--accent);padding:var(--uif-space-2) 0 var(--uif-space-2) var(--uif-space-3);
+}
+.uif-state-next strong{color:var(--ink)}
+
+/* --- 组件规范面（pack 屏 16 组件规范） -------------------------------------- */
+.uif-spec{display:grid;gap:var(--uif-space-4)}
+.uif-spec-block{
+  display:grid;gap:var(--uif-space-3);align-content:start;min-width:0;
+  padding:var(--uif-space-4);background:var(--surface);
+  border:1px solid var(--line);border-radius:var(--uif-radius-card);
+}
+.uif-spec-block > h3{margin:0;font-size:var(--uif-font-h3);letter-spacing:.01em}
+.uif-spec-note{font-size:var(--uif-font-small);line-height:var(--uif-body-line-height);color:var(--muted);overflow-wrap:anywhere}
+.uif-row{display:flex;flex-wrap:wrap;gap:var(--uif-space-3);align-items:center}
+.uif-swatch{
+  display:grid;gap:var(--uif-space-1);min-width:132px;flex:1 1 132px;
+  font-size:var(--uif-font-micro);color:var(--muted);overflow-wrap:anywhere;
+}
+.uif-swatch i{display:block;height:38px;border-radius:var(--uif-radius-control);border:1px solid var(--line)}
+
+/* --- 三入口导航分组标签（不是按钮，不计入路由项） -------------------------- */
+.nav-group{
+  display:block;padding:var(--uif-space-3) 10px var(--uif-space-1);
+  font-size:var(--uif-font-micro);font-weight:700;letter-spacing:.08em;
+  color:var(--muted);text-transform:none;
+}
+
+/* --- 主题开关：放在能看见的地方，键盘可达，状态用 aria-pressed 表达 -------- */
+.theme-toggle{
+  display:inline-flex;align-items:center;gap:var(--uif-space-2);
+  padding:7px 10px;min-height:32px;
+  background:transparent;border:1px solid var(--border-strong);
+  border-radius:var(--uif-radius-control);color:var(--ink);
+  font-size:var(--uif-font-small);font-weight:600;cursor:pointer;
+}
+.theme-toggle:hover{border-color:var(--accent)}
+
+/* 窄屏：状态网格退回单列，中文长串靠 overflow-wrap 而不是裁切。
+   手机端（pack 屏 18–21）本轮 FROZEN_DEFERRED，这里只保证桌面窄窗口不裁。 */
+@media(max-width:760px){
+  .uif-states{grid-template-columns:1fr}
+}
+
+/* 主题控制器**没有禁用态**：`button:disabled{opacity:.45}` 把标签压到 3.4:1，
+   对比度闸门按每条路由报红（2026-10-09 实测），而"按不动的开关"本来就该是缺席加
+   一句说明（.theme-toggle-note 写清为什么这一轴当前只有一个值）。 */
+.theme-toggle-note{font-size:var(--uif-font-small);line-height:1.5;color:var(--muted);overflow-wrap:anywhere}
+/* 分组标签是导航的第一层说明：组前不留多余空隙。 */
+.nav-group:first-child{padding-top:0}
+
+/* 主题控件对：在顶栏里不拉伸，在扁平导航里跟随列布局自然换行。 */
+.theme-toggle-group{display:flex;flex-wrap:wrap;gap:var(--uif-space-2);align-items:center;flex:0 0 auto}
+
+/* DL-UI-U03 (2026-10-09)：能力详情与前置过滤条。
+   详情开在表格单元里，所以两侧都要允许收缩（min-width:0），否则一张长 URL 就能把
+   整列顶出视口——这正是溢出闸门会报 STRAY 的那类缺陷。 */
+.capability-detail{margin-top:8px;min-width:0}
+.capability-detail>summary{cursor:pointer;font-size:var(--uif-font-small);color:var(--muted)}
+.capability-detail[open]>summary{color:var(--ink)}
+.capability-detail .list{margin-top:var(--uif-space-2)}
+/* `small` 是 0.8em：在表格单元里（td 13px）算出来 10.4px，被溢出闸门的 <11px 规则
+   按每个节点报（一次实测 tiny=3960）。详情里的说明文字给一个明确的 12px，而不是
+   让字号跟着宿主容器漂。 */
+.capability-detail small{font-size:12px;line-height:1.5}
+.capability-facets{display:flex;flex-wrap:wrap;gap:var(--uif-space-3);align-items:flex-end}
+.capability-facets .capability-filter{display:grid;gap:var(--uif-space-1);min-width:0;flex:1 1 180px}
+
+/* R2 §4 资产类型 tabs（DL-UI-U03）。同样全部走令牌：`button:focus-visible` 已由上面的
+   全局规则给到 3px 焦点环，这里不再自带一份，免得两套焦点样式互相覆盖。选中态用
+   aria-selected 而不是类名，所以辅助技术读到的选中与画面上是同一个事实。 */
+.asset-tabs{display:flex;flex-wrap:wrap;gap:var(--uif-space-1);align-items:flex-end;
+  border-bottom:var(--uif-border-width) solid var(--border);
+  margin-bottom:var(--uif-space-3)}
+.asset-tab{display:inline-flex;align-items:baseline;gap:var(--uif-space-1);
+  padding:var(--uif-space-1) var(--uif-space-3);border:0;background:none;cursor:pointer;
+  border-radius:var(--uif-radius-control) var(--uif-radius-control) 0 0;
+  color:var(--muted);font-size:var(--uif-font-small)}
+.asset-tab[aria-selected=true]{color:var(--text);background:var(--surface2);
+  border-bottom:var(--uif-border-width) solid var(--primary)}
+.asset-tab small{font-variant-numeric:tabular-nums;color:var(--muted)}
+.asset-empty strong{display:block;margin-bottom:var(--uif-space-1)}
+
+/* R2 §4 已选条件条（DL-UI-U03）。全部取值走令牌，不新增字面 px —— 这条界面的存量
+   由 scripts/design_debt_baseline.py 按实测看守，写进 DESIGN.md §4 的那句话必须与
+   测量一致，多一处就要连带改契约。 */
+.capability-active{display:flex;flex-wrap:wrap;align-items:center;gap:var(--uif-space-2);
+  padding-top:var(--uif-space-2);font-size:var(--uif-font-small)}
+.capability-chip{display:inline-flex;align-items:center;gap:var(--uif-space-1);
+  padding:var(--uif-space-1) var(--uif-space-2);max-width:100%;
+  background:var(--surface-2);border:1px solid var(--border-strong);
+  border-radius:var(--uif-radius-control);color:var(--ink)}
+.capability-chip-text{overflow-wrap:anywhere}
+.capability-chip-x{display:inline-grid;place-items:center;min-width:var(--uif-space-4);
+  padding:0 var(--uif-space-1);background:transparent;border:0;color:var(--ink);
+  font-size:var(--uif-font-body);line-height:1;cursor:pointer}
+.capability-chip-x:hover{color:var(--accent)}
+
+/* R2 §5 详情面板（DL-UI-U03）。地址决定它存不存在，不是隐藏着的浮层；背后列表仍可用，
+   所以它是面板而不是 dialog，不改挂 role="dialog"（DESIGN.md §3 第 6 条）。 */
+.capability-open{margin-top:var(--uif-space-2)}
+.cap-drawer{position:fixed;
+  top:calc(var(--uif-topbar) + var(--uif-space-4));right:var(--uif-space-4);
+  z-index:var(--layer-detail-panel);
+  width:min(var(--uif-drawer),calc(100vw - var(--uif-space-8)));
+  max-height:calc(100vh - var(--uif-topbar) - var(--uif-space-8));overflow:auto;
+  display:grid;gap:var(--uif-space-2);align-content:start;
+  padding:var(--uif-space-4);background:var(--surface);
+  border:1px solid var(--border-strong);border-radius:var(--uif-radius-card);
+  box-shadow:var(--shadow-soft)}
+.cap-drawer-slot[hidden]{display:none}
+.cap-drawer-head{display:flex;flex-wrap:wrap;align-items:center;gap:var(--uif-space-2);
+  justify-content:space-between}
+.cap-drawer-head h3{margin:0;font-size:var(--uif-font-heading);overflow-wrap:anywhere}
+.cap-drawer-row{display:flex;flex-wrap:wrap;align-items:baseline;gap:var(--uif-space-2);
+  padding:var(--uif-space-1) 0;border-top:1px solid var(--line);overflow-wrap:anywhere}
+.cap-drawer-row:first-of-type{border-top:0}
+.cap-drawer h4{margin:var(--uif-space-2) 0 0;font-size:var(--uif-font-body)}
+.cap-drawer-axes{margin:0;padding:0;list-style:none;display:grid;gap:var(--uif-space-1);
+  font-size:var(--uif-font-small);overflow-wrap:anywhere}
+
+/* DL-UI-U04 (2026-10-09)：输入与目标。两列在宽屏并排、窄窗口退回单列，
+   约束组与勾选行不允许把长中文顶出容器。 */
+.intake-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(360px,1fr));gap:var(--uif-space-4)}
+.intake-grid > *{min-width:0}
+.intake-hard{display:grid;gap:var(--uif-space-2);padding:var(--uif-space-3);
+  border:1px solid var(--line);border-radius:var(--uif-radius-card)}
+.intake-check{display:flex;align-items:center;gap:var(--uif-space-2);font-size:var(--uif-font-body)}
+
+/* R2 §6 第三、四组输入（DL-UI-U04）。同样只用令牌，不新增字面 px。 */
+.intake-delivery{display:grid;gap:var(--uif-space-2)}
+.intake-delivery-row{display:grid;gap:var(--uif-space-1);padding:var(--uif-space-2) 0;
+  border-top:1px solid var(--line)}
+.intake-delivery-row:first-child{border-top:0}
+.intake-knowledge{display:grid;gap:var(--uif-space-2)}
+.intake-knowledge-row{display:flex;flex-wrap:wrap;align-items:baseline;gap:var(--uif-space-2);
+  padding:var(--uif-space-2) 0;border-top:1px solid var(--line);
+  font-size:var(--uif-font-body);overflow-wrap:anywhere}
+.intake-knowledge-row:first-child{border-top:0}
+
+/* R2 §7 制作记录与待继续 + 底部任务条（DL-UI-U04）。同样只用令牌。 */
+.record-row{display:grid;gap:var(--uif-space-2)}
+.record-head{display:flex;flex-wrap:wrap;align-items:center;gap:var(--uif-space-2)}
+.record-head strong{overflow-wrap:anywhere}
+.record-facts{display:flex;flex-wrap:wrap;gap:var(--uif-space-3);
+  font-size:var(--uif-font-small);overflow-wrap:anywhere}
+.record-detail{display:grid;gap:var(--uif-space-1)}
+.record-events{font-size:var(--uif-font-small);overflow-wrap:anywhere}
+.record-event-list{margin:0;padding:0;list-style:none;display:grid;
+  gap:var(--uif-space-1);font-size:var(--uif-font-small);overflow-wrap:anywhere}
+.record-empty-note{font-size:var(--uif-font-small);color:var(--muted);
+  overflow-wrap:anywhere}
+.activity-dock{display:flex;flex-wrap:wrap;align-items:center;gap:var(--uif-space-3);
+  margin-top:var(--uif-space-4);padding:var(--uif-space-3) var(--uif-space-4);
+  background:var(--surface-2);border:1px solid var(--border-strong);
+  border-radius:var(--uif-radius-card);font-size:var(--uif-font-body)}
+.intake-references .list,.intake-outcome .list{margin-top:var(--uif-space-2)}
+@media(max-width:760px){.intake-grid{grid-template-columns:1fr}}
+
+/* DL-UI-U05 (2026-10-09)：目标生成包。RIR 预览是可横向滚动的代码块，
+   长 img-ID 不允许顶破面板。 */
+.plan-preview{margin:0;padding:var(--uif-space-3);max-height:340px;overflow:auto;
+  border:1px solid var(--line);border-radius:var(--uif-radius-card);
+  background:var(--surface-2);font-size:var(--uif-font-small);line-height:1.5;
+  overflow-wrap:anywhere;white-space:pre-wrap}
+.plan-layer{margin-top:var(--uif-space-2);min-width:0}

@@ -108,52 +108,26 @@ DESIGN-LAB 是面向职业视觉设计的、AI 原生、平台中立、宿主原
 - 零 checksum、许可冲突、模型不存在或硬件不足时，runtime resolver 必须 fail closed
 - 第三方 `AGENTS/CLAUDE/cursorrules/SKILL/install/affiliate` 作为 inert source blobs 保存，不进入根指令、prompt、tool discovery 或能力计数
 
+## 2026-10-09 当前owner执行决定
+
+以20261009新发最终包＋UI包及手机端澄清为准，桌面UI优先。手机端FROZEN_DEFERRED，不要求本轮手机实现或验收。
+唯一当前包：docs/taskpacks/DESIGN-LAB-UI-FIRST-INTEGRATED-TASKPACK-2026-10-09.md；当前状态编辑原账本currentExecution，旧tasks/evidence冻结且不再派工。
+旧权威/TaskPack原件冻结留档，不因旧文件较详细恢复旧任务。旧有用验收通过新crosswalk保留。
+只归档整理的本次操作未实施产品；未来Agent依任务卡给出可审阅桌面UI，按需补API，别继续无限治理。
+本项目允许已有设计专用有界执行，不重造通用Agent/第二runtime。私有数据/保护盘/恢复/Human Gate边界不变。
+
 ## 当前任务包
 
-> 顶层权威 = `/AUTHORITY.md` (`DL-AUTHORITY-2026-09-18-R2`)。以下“当前/前序”条目
-> 均从属于顶层权威；handoff / memory / chat / 旧 taskpack 不作当前入口。
-
-- **当前统一剩余任务入口（唯一 current integrated TaskPack）**：
-  `docs/taskpacks/DESIGN-LAB-FINAL-AUTHORITY-CONVERGENCE-TASKPACK-2026-09-18.md`
-  （`DL-TP-20260918-FINAL-AUTHORITY-CONVERGENCE-R2`）。整合 R5、DeepSeek Authority、
-  Branch Convergence、UCR、前后端审计与语言/仓库/Host/Quality/Evidence 历史范围；
-  不建第二 mutable task ledger。旧任务 ID 必须经 authority-index/crosswalk 映射后才可执行。
-- **结构/治理前序（subordinate execution lineage，不再高于顶层 Authority）**：
-  `docs/taskpacks/DESIGN-LAB-DEEPSEEK-AUTHORITY-TASKPACK-2026-09-14.md`
-  （`DL-TP-20260914-DEEPSEEK-AUTHORITY-R1`，`STRUCTURAL_PREDECESSOR`）。机器账本
-  `reports/current/DEEPSEEK-AUTHORITY-LEDGER-2026-09-14.json`，唯一写入者
-  `scripts/deepseek_authority_ledger.py`；权威关系对账 `reports/current/DEEPSEEK-AUTHORITY-CHAIN.json`。
-  该包只做仓库收敛/清理/语言治理/结构收口/Codex 准备；真实宿主、设计能力验收与
-  Human Gate 仍归 Codex。会话/记忆/交接摘要一律 `NON_AUTHORITATIVE`，只有落仓文件可授权改动。
-- 产品血统 / 冻结任务定义：`docs/history/taskpacks/r5-20260908/tasks.json`（DL-TP-20260908-R5；不是 current 派工入口，原件冻结，禁止用它编辑执行状态）。中文历史任务卡见同目录 `02-TASKS.md`。
-- 唯一任务状态编辑源：`design-lab/config/task-ledger-r3.json`；按 `depends_on` 派工。
-- 该账本的 `schemaVersion` 字段为 `design-lab/task-ledger/r5-v1`（内嵌 schema 版本标识，**不是文件路径**；账本物理路径始终为 `design-lab/config/task-ledger-r3.json`，从未迁至 `design-lab/task-ledger/r5-v1`）。R3 原账本逐字节冻结于 `docs/history/taskpacks/r3-ledger-pre-r5-20260909.json`，并在活动账本中保留完整前继记录。旧证据不自动提升新任务；条件依赖须记录案例选择和理由（落仓 `docs/decisions/K-CASE-SELECTION-RECORD-*.md`），未决条件阻止验收完成。
-- 当前投影：`reports/current/TASK_PROGRESS.json`、`reports/current/PROJECT_STATUS.md`；生成器 `scripts/generate_current_reports.py`，`--check` 只读验证漂移。
-- 代码、unit、host_live、delivery 四轴分别记录。历史/缺失/源文件变化的证据不能提升当前能力；生成时间不是测试时间。
-- 09-05 多模态方案与交接（SUPERSEDED，历史分工来源）：`docs/taskpacks/DESIGN-LAB-MULTIMODAL-TASK-PLAN-2026-09-05.md`、`docs/taskpacks/DESIGN-LAB-MULTIMODAL-CODEX-HANDOFF-2026-09-05.md`。
-- 历史任务包（superseded，保留为历史证据，不作为 current 派工入口）：
-  - `docs/taskpacks/DESIGN-LAB-TODAY-EXECUTION-TASKPACK-2026-09-04.md`（后继：DL-TP-20260906-R3）
-  - `docs/taskpacks/DLR-FINAL-20260826-R2-OSS-FAST-TRACK.md`（2026-08-26）
-  - `docs/taskpacks/TRI-OSS-FAST-TRACK-20260826-R1.md`（三项目总规划，superseded by standalone-first ADR-001）
-- **任务文档定态登记（2026-10-08 起）**：`design-lab/config/task-document-states.json` 逐个声明规划面与历史面任务文档的状态、依据与取代关系；它是登记记录，不是 Authority，也不是第二派工账本。一致性由 `design-lab/scripts/verify_task_document_states.py`（已入 `verify_design_lab.py` 聚合链）fail-closed 把关：派工入口必须恰好一个且等于 index 的 `taskpackClassificationRule.currentIntegrated`；登记与 `authority-index` 冲突即红；任何 tracked 任务文档无声明即红。
-- **待 owner 裁决的 REQUESTED 包**（受理未采纳，豁免 byte-digest 漂移）：
-  `docs/taskpacks/DESIGN-LAB-GLOBAL-DESIGN-CAPABILITY-INTELLIGENCE-TASKPACK-2026-10-06.md`、
-  `docs/taskpacks/03_DESIGN-LAB_权威修复_双端描述同步_可审计执行提示词_20261006.txt`（及其输入
-  `docs/taskpacks/03_DESIGN-LAB_完整项目描述与未来蓝图_20261006.docx`）。当前派工入口仍是 2026-09-18 统一包。
-- **外部 Record 卷的 DESIGN-LAB 任务文档与包已归档入仓**（任务 DL-REC-29，2026-10-08）：落地件位于
-  `docs/history/record-imports-2026-10-08/`，逐条台账（源路径/字节/sha256/crc32/目标/定态）为
-  `docs/history/record-imports-2026-10-08/RECORD-IMPORT-MANIFEST.md` 与同名 `.json`；可复跑导入器
-  `scripts/record_import_apply.py`，独立复验器 `scripts/record_import_verify.py`（源字节↔工作区↔git blob 三方比对），
-  内容普查器 `scripts/record_import_census.py`。源卷 `D:\All projects\Record`（实测 89 顶层条目 / 168 文件 /
-  15,301,597,876 字节）未被整体复制，源文件一律未删改。
-- **Record 卷内确知存在但不入库的条目**（避免“下次找不到”）：`DESIGN-LAB_UI开发资料总包_按批次.zip` 的 B01–B06
-  图片包 44,183,932 字节（超单文件 5 MiB 与 pack 硬预算，逐成员哈希已登记为 EXTERNAL-ONLY）、
-  `三项目_VI_UI_UX_作品集完整交付包.zip`（属个人作品集项目）、`AAOS-project-archives/`（15.04 GB，DESIGN-LAB 内容命中 0）、
-  `system-software-audit/`（系统体检件，命中 0）、`R5-TASK-RECONCILIATION.csv`（行内容属 ArcheAxis，命中 0）。
-- **R2 发布包原件已入仓**：`docs/history/record-imports-2026-10-08/R2-RELEASE-PACKAGE-2026-09-18/` 内含被
-  `scripts/verify_top_level_authority.py` re-pin 注释引用、此前仓内不存在的两个被取代值（原 `AUTHORITY.md`
-  与原 `authority-index.json`）及 `MANIFEST.json`、`AGENTS-REQUIRED-PATCH.md` 等 6 件；血统可核验。
-- FINAL TaskPack 的剩余任务经 crosswalk 映射到 R5 `depends_on` 及案例条件依赖后执行；前置验收未满足时，只记录实现进展，不宣称整项闭环。宿主、质量与发布各自验收。Comfy、H3、UIA 不作为 Adobe M1 的硬前置。
-- 旧进度账本由原路径转为历史指针；冻结原文在 `reports/history/r3-predecessors-2026-09-06/`。原 `reports/history-baseline.json` 不修改。
-
-（项目特有规则在此基础上补充）
+- 唯一integrated TaskPack：`docs/taskpacks/DESIGN-LAB-UI-FIRST-INTEGRATED-TASKPACK-2026-10-09.md`（`DL-TP-20261009-UI-FIRST-R1`）。以20261009最终包与UI补充、当前owner手机端决定为准。
+- 优先桌面UI：先U01/U02可审阅界面，再能力查询→输入→分析纠正→目标包，随后运行/恢复→改稿→真人评审→交付。手机端FROZEN_DEFERRED，本批不实现/验收，原素材保留。
+- 唯一可变状态源物理路径仍为`design-lab/config/task-ledger-r3.json`；`currentExecution`为当前34项父/子任务派工区，`tasks/evidence`为冻结R5证据区，不再编辑派工。schemaVersion保持r5-v1作为兼容信封，扩展字段有机器合同。
+- 冻结新任务定义：`docs/history/taskpacks/20261009-adoption/TASK-DEFINITIONS.json`；旧28项映射及21件任务文档/58项结构记录普查见该目录OLD-TASK-CROSSWALK.json、OLD-DOCUMENT-CENSUS.json。仅作映射/输入，不是第二账本。
+- 旧20260918统一包、DeepSeek/R5任务定义原字节留在原位置，已在authority-index与task-document-states取代/冻结；正确恢复/安全/证据/Human Gate/双宿主/Golden验收并入新任务。不凭旧DONE重新宣称当前完成。
+- 原始输入：`docs/history/taskpacks/20261009-inputs/ARCHIVE-MANIFEST.json`记录2原ZIP/170成员；文本/代码/SVG逐字节入档，大包/字体/位图完整存本项目`.project-local/task-artifacts/taskpacks-20261009/`（Git忽略）。不能声称Git克隆带完整视觉参考；跨机器交接须附原ZIP。
+- 对话决定、旧任务取舍、批次与任务卡在`docs/taskpacks/20261009-ui-first/`；下一会话提示词为`docs/current/NEXT-AGENT-PROMPT-2026-10-09.md`，不是独立Authority。
+- 当前报告仍由`scripts/generate_current_reports.py`生成；TASK_PROGRESS与PROJECT_STATUS显示当前派工区，旧证据读回保留历史身份。生成不等于执行测试；真实宿主/真人/三方/学习/发布分别记。
+- 任务文档定态登记仍为`design-lab/config/task-document-states.json`，并由`verify_task_document_states.py`与现有aggregate fail-closed检查；恰好一个DISPATCH_ENTRY等于index.currentIntegrated。
+- 原Record导入档案继续保留在`docs/history/record-imports-2026-10-08/`及其manifest；不批量搬迁或修改冻结原件。跨项目素材、系统数据、E/F盘均不因旧包或本轮任务整理获得访问授权。
+- 20261009 owner追加授权Record中本项目资料完整归档、去重、提炼和索引。找资料先读`docs/RECORD-ARCHIVE-INDEX.md`及`docs/current/ARCHIVE-KEY-INFORMATION-2026-10-09.md`；机器来源/成员/hash/canonical登记位于`docs/history/record-archive-2026-10-09/ARCHIVE-MANIFEST.json`。相关原ZIP、素材和递归成员已保存在本项目，按hash复用既有副本/内容对象；旧manifest的EXTERNAL-ONLY是旧时点，不能再据其判断素材未归档。共享作品集/三项目容器只作惰性参考，不提升当前任务或许可。大对象在`.project-local/`且不随Git克隆，迁移须按manifest带齐；原Record不删改，既有冻结路径不删除。
+- 后续新增资料必须同步来源、hash、版本/定态、别名和canonical位置，并更新固定资料索引指向最新完整清单；不能只复制文件、不登记。过时内容先更新精简阅读面和取代关系，不重写冻结原件。
+- 本轮归档与权威同步为本地未提交修改，commit/push/PR/merge/release未执行；后续Agent须重读当前真实状态，不宣称远端/安装副本已同步。

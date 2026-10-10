@@ -382,7 +382,17 @@ try {
         overflowX: nav ? getComputedStyle(nav).overflowX : '',
       };
     });
-    if (layout.itemCount !== 12 || layout.fontSize < 10 || layout.navLeft !== 0 ||
+    // 15 -> 16 across this batch: DL-UI-U01/U02 (2026-10-09) added #/capabilities, #/states and
+    // #/components to ROUTE_VIEWS under the adopted 三入口 IA. The count stays an
+    // EXACT equality on purpose -- it is the reading that says every route table entry
+    // reached the screen as a real button, so a route that silently stopped rendering
+    // still fails here. It is an inventory, not a permanent product limit: the taskpack
+    // says menu count is not fixed ("不机械固定3菜单/16页"), which is why the number
+    // moves with the verified table instead of the check being relaxed.
+    // 16 -> 18: #/intake, #/plan and #/analysis joined 分析与制作 in this batch.
+    // 18 -> 19: #/records (R2 §2/§7 制作记录与待继续) under the same entry. The number still
+    // moves with the verified table rather than the check being loosened.
+    if (layout.itemCount !== 19 || layout.fontSize < 10 || layout.navLeft !== 0 ||
         layout.navWidth < 380 || layout.navHeight > 120 || layout.overflowX !== 'auto') {
       await abort('E2E_MOBILE_APPSHELL_LAYOUT: ' + JSON.stringify(layout), 11, ctx, b);
     }

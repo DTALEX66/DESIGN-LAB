@@ -76,11 +76,14 @@ AUTHORITY_ID = "DL-AUTHORITY-2026-09-18-R2"
 # longer asserts stale dynamic facts; no static release content removed; checks count
 # unchanged at 10):
 #   AUTHORITY.md                   f7c1e6ad… -> 7b29d3ea…  (§13.1 live readback)
+# 2026-10-09 owner adoption: see docs/taskpacks/20261009-ui-first/CONVERSATION-DECISIONS.md; old bytes in docs/history/taskpacks/20261009-adoption/pre-adoption/.
+# New dispatch is additionally pinned; the old taskpack bytes stay pinned as frozen lineage.
 R2_RELEASE_HASHES = {
-    "AUTHORITY.md": "7b29d3ea90122b74a59d3b905a0064fcabd54e0d545e70e3bc3388fbc9c212ec",
-    ".project/governance/authority-index.json": "38c01eb0c2bc87e4131d2e8a74a8a026098d636cf58db7cf139c7fcece75d096",
+    "AUTHORITY.md": "08037bce6b71e105102b4c18525b2a021678339bba8549d80f966c262a8e7814",
+    ".project/governance/authority-index.json": "0e2360042518041f3ce98b72cad9ff3039234c413b18a68a22f1618b6a1c5dce",
     "docs/current/HISTORY-FREEZE-RULES.md": "b970562dbdc8b4ccfff71ba2354a5b718d2a54efde7db7972c4a2ee2b60e6e40",
     "docs/taskpacks/DESIGN-LAB-FINAL-AUTHORITY-CONVERGENCE-TASKPACK-2026-09-18.md": "62f43ef295d4e90462d1e49e657e490400c4b5568f4e4ad1db3e268e12bb10c7",
+    "docs/taskpacks/DESIGN-LAB-UI-FIRST-INTEGRATED-TASKPACK-2026-10-09.md": "f91ebe9b67ab4f83be91fe8f3ca0fc80fc93176263bec05d883fa6ce6afd6480",
 }
 
 HISTORICAL_GLOB_FILES = (
@@ -250,7 +253,7 @@ def check_release_integrity(checks: list[dict]) -> None:
     if problems:
         checks.append({"check": "r2-release-integrity", "result": "FAIL", "detail": "; ".join(problems)})
         return
-    checks.append({"check": "r2-release-integrity", "result": "PASS", "detail": f"{len(R2_RELEASE_HASHES)} release files byte-match the R2 MANIFEST"})
+    checks.append({"check": "r2-release-integrity", "result": "PASS", "detail": f"{len(R2_RELEASE_HASHES)} lineage/current files match the owner-adopted integrity pins"})
 
 
 def main() -> int:
@@ -275,7 +278,7 @@ def main() -> int:
         "checks": checks,
         "failed": [c["check"] for c in failed],
         "verdict": verdict,
-        "meaning": "PASS = the R2 top-level Authority surface is internally consistent; "
+        "meaning": "PASS = the owner-amended top-level Authority surface is internally consistent; "
                    "dynamic facts (branches/PRs/CI) are intentionally NOT frozen here and "
                    "must be live-read on every audit",
     }

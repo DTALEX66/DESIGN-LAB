@@ -29,7 +29,7 @@ sys.path.insert(0, str(ROOT / "scripts"))
 
 import deepseek_hermes_migration as tool  # noqa: E402
 
-MANIFEST_REL = "reports/history/destructive-receipts-2026-09-13/MIGRATION-MANIFEST.json"
+MANIFEST_REL = "docs/audits/DESIGN-LAB-UIKIT-CONFORMANCE-2026-09-28/session/hermes-legacy/MIGRATION-MANIFEST.json"
 PRUNE_REL = ("docs/audits/DESIGN-LAB-UIKIT-CONFORMANCE-2026-09-28/evidence/governance-state/"
              "prune-manifest-2026-09-26.json")
 REMOVED_TARGET = ".project-local/archive/hermes-legacy/runtime/dl-ad-pkg-ci"
@@ -132,7 +132,7 @@ class ArchiveStateTests(unittest.TestCase):
         self._tmp = tempfile.TemporaryDirectory()
         self.tmp = Path(self._tmp.name)
         self.saved = (tool.REPO, tool.ARCHIVE, tool.TRACKED_MANIFEST, tool.PRUNE_RECORD)
-        (self.tmp / "reports/history/destructive-receipts-2026-09-13").mkdir(parents=True)
+        (self.tmp / MANIFEST_REL).parent.mkdir(parents=True)
         (self.tmp / MANIFEST_REL).write_bytes((ROOT / MANIFEST_REL).read_bytes())
         (self.tmp / PRUNE_REL).parent.mkdir(parents=True, exist_ok=True)
         (self.tmp / PRUNE_REL).write_bytes((ROOT / PRUNE_REL).read_bytes())

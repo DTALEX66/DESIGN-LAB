@@ -22,7 +22,7 @@
     "docs/architecture/BOUNDARY_CONTRACT.md",
     "docs/architecture/ARCHITECTURE.md",
     "docs/architecture/LANGUAGE-POLICY.md",
-    "docs/taskpacks/DESIGN-LAB-FINAL-AUTHORITY-CONVERGENCE-TASKPACK-2026-09-18.md",
+    "docs/taskpacks/DESIGN-LAB-UI-FIRST-INTEGRATED-TASKPACK-2026-10-09.md",
     "design-lab/config/task-ledger-r3.json"
   ],
   "current": [
@@ -35,9 +35,7 @@
     "docs/architecture/LANGUAGE-POLICY.md",
     "design-lab/config/product-manifest.json",
     "design-lab/config/task-ledger-r3.json",
-    "docs/history/taskpacks/r5-20260908/tasks.json",
-    "docs/taskpacks/DESIGN-LAB-DEEPSEEK-AUTHORITY-TASKPACK-2026-09-14.md",
-    "docs/taskpacks/DESIGN-LAB-FINAL-AUTHORITY-CONVERGENCE-TASKPACK-2026-09-18.md"
+    "docs/taskpacks/DESIGN-LAB-UI-FIRST-INTEGRATED-TASKPACK-2026-10-09.md"
   ],
   "currentButDrifted": [],
   "historicalSpecific": [
@@ -45,6 +43,24 @@
       "path": "docs/handoffs/DESIGN-LAB-UCR-CONVERGENCE-20260918-HANDOFF.md",
       "classification": "HISTORICAL_EXECUTION_RECORD",
       "reason": "self-label conflicts with AGENTS/top authority; point-in-time branch count is stale; referenced UCR taskpack is not present on remote main"
+    },
+    {
+      "path": "docs/taskpacks/DESIGN-LAB-FINAL-AUTHORITY-CONVERGENCE-TASKPACK-2026-09-18.md",
+      "classification": "SUPERSEDED_SCOPE_PRESERVED",
+      "reason": "20261009 owner采纳；剩余要求已映射到新包，原字节保留",
+      "replacement": "docs/taskpacks/DESIGN-LAB-UI-FIRST-INTEGRATED-TASKPACK-2026-10-09.md"
+    },
+    {
+      "path": "docs/taskpacks/DESIGN-LAB-DEEPSEEK-AUTHORITY-TASKPACK-2026-09-14.md",
+      "classification": "SUPERSEDED_SCOPE_PRESERVED",
+      "reason": "20261009 owner采纳；剩余要求已映射到新包，原字节保留",
+      "replacement": "docs/taskpacks/DESIGN-LAB-UI-FIRST-INTEGRATED-TASKPACK-2026-10-09.md"
+    },
+    {
+      "path": "docs/history/taskpacks/r5-20260908/tasks.json",
+      "classification": "SUPERSEDED_SCOPE_PRESERVED",
+      "reason": "20261009 owner采纳；剩余要求已映射到新包，原字节保留",
+      "replacement": "docs/taskpacks/DESIGN-LAB-UI-FIRST-INTEGRATED-TASKPACK-2026-10-09.md"
     }
   ],
   "projectionRule": {
@@ -64,10 +80,11 @@
     "design-lab/VISUAL_QUALITY_V*.md"
   ],
   "taskpackClassificationRule": {
-    "currentIntegrated": "docs/taskpacks/DESIGN-LAB-FINAL-AUTHORITY-CONVERGENCE-TASKPACK-2026-09-18.md",
+    "currentIntegrated": "docs/taskpacks/DESIGN-LAB-UI-FIRST-INTEGRATED-TASKPACK-2026-10-09.md",
     "lineage": [
       "docs/history/taskpacks/r5-20260908/tasks.json",
-      "docs/taskpacks/DESIGN-LAB-DEEPSEEK-AUTHORITY-TASKPACK-2026-09-14.md"
+      "docs/taskpacks/DESIGN-LAB-DEEPSEEK-AUTHORITY-TASKPACK-2026-09-14.md",
+      "docs/taskpacks/DESIGN-LAB-FINAL-AUTHORITY-CONVERGENCE-TASKPACK-2026-09-18.md"
     ],
     "default": "other active-looking taskpacks are SUPERSEDED_SCOPE_PRESERVED/HISTORICAL until explicitly promoted"
   },
@@ -88,5 +105,17 @@
     "release",
     "irreversible asset deletion",
     "license acceptance"
+  ],
+  "authorityRevision": "UI-FIRST-20261009-R1",
+  "ownerAdoption": {
+    "date": "2026-10-09",
+    "decision": "docs/taskpacks/20261009-ui-first/CONVERSATION-DECISIONS.md",
+    "source_archive": "docs/history/taskpacks/20261009-inputs/ARCHIVE-MANIFEST.json",
+    "ledger_current_partition": "currentExecution",
+    "mobile": "FROZEN_DEFERRED",
+    "priority": "DESKTOP_UI_FIRST"
+  },
+  "frozenLegacyLedgers": [
+    "reports/current/DEEPSEEK-AUTHORITY-LEDGER-2026-09-14.json"
   ]
 }

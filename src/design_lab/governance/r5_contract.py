@@ -51,6 +51,10 @@ def validate(reader, ledger, validate_r3):
     props['plan_path'] = {'const': 'docs/history/taskpacks/r5-20260908/02-TASKS.md'}
     props['source'] = {'const': {'path': SOURCE_PATH, 'sha256': SOURCE_HASH}}
     props['predecessor'] = {'const': {'taskpack': previous['taskpack'], 'sha256': PREDECESSOR_HASH, 'ledger': previous}}
+    if 'currentExecution' in ledger:
+        from .current_execution import schema as current_schema, validate as validate_current
+        props['currentExecution'] = current_schema()
+        validate_current(reader, ledger)
     schema['required'].append('predecessor')
     props['tasks']['minItems'] = props['tasks']['maxItems'] = 28
     task_schema = props['tasks']['items']

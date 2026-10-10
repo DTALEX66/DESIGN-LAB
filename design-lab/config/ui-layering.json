@@ -72,6 +72,17 @@
       "note": null
     },
     {
+      "token": "--layer-detail-panel",
+      "value": 70,
+      "selectors": [
+        ".cap-drawer"
+      ],
+      "usedBy": 1,
+      "name": "detail-panel",
+      "purpose": "R2 §5 的能力详情面板：地址决定存在，非模态，浮在路由内容之上，但低于工作区抽屉与命令面板，避免地址化面板盖住全局浮层",
+      "note": "2026-10-09 新增。取 70：nav-rail 60 之上、drawer 88 之下，所以抽屉打开时仍会盖住详情面板"
+    },
+    {
       "token": "--layer-drawer",
       "value": 88,
       "selectors": [

@@ -64,7 +64,37 @@ def _taxonomy_index(root: Path) -> dict:
 
 #: Qualification is a host run plus a human acceptance outcome. Neither is
 #: derivable from a registry, so the field is null until one is recorded.
+#: UNQUALIFIED is the *value of an absent record*, not a constant the projection
+#: writes for every row: `_qualification` looks the record up first, so a recorded
+#: qualification reaches the UI without any further change (DL-FINAL-T06).
 UNQUALIFIED = None
+
+#: What a reader must be shown when the record is absent. "null" alone invites the
+#: two wrong readings the task card names: not qualified, and not "0 of them".
+NO_QUALIFICATION_RECORD = ("没有资格记录：需要该能力在已安装宿主上的真实运行，"
+                           "加上真人对该版本产物结论的接受；两者都未记录时为 null")
+
+
+def _qualification(candidate: dict | None) -> dict:
+    """Project a recorded qualification, or say which evidence is missing.
+
+    The record shape is `{"qualified": bool, "evidence": [ref, ...]}` on the joined
+    taxonomy entry. Nothing in the repository carries one today, so every row reads
+    back null with the reason attached -- which is a readback of an absent record,
+    not a hardcoded verdict.
+    """
+    record = (candidate or {}).get("qualification")
+    if not isinstance(record, dict):
+        return {"qualified": UNQUALIFIED, "qualificationEvidence": None,
+                "qualificationReason": NO_QUALIFICATION_RECORD}
+    verdict = record.get("qualified")
+    evidence = record.get("evidence")
+    return {
+        "qualified": verdict if isinstance(verdict, bool) else UNQUALIFIED,
+        "qualificationEvidence": evidence if isinstance(evidence, list) else None,
+        "qualificationReason": None if isinstance(verdict, bool) else (
+            '记录存在但判定未填：' + NO_QUALIFICATION_RECORD),
+    }
 
 
 def _read_json(path: Path) -> dict:
@@ -100,8 +130,7 @@ def _source_capability(entry: dict, revisions: dict, unresolved: dict,
         "repo": (pinned or {}).get("repo"),
         "observedAt": entry.get("observedAt"),
         "contentDigest": entry.get("contentDigest"),
-        "qualified": UNQUALIFIED,
-        "qualificationEvidence": None,
+        **_qualification(taxonomy.get(_repo_key(repo_for_id.get(identity)))),
         **_taxonomy_axes(taxonomy.get(_repo_key(repo_for_id.get(identity)))),
     }
 
@@ -112,11 +141,17 @@ def _taxonomy_axes(candidate: dict | None) -> dict:
     `evidenceLevel` and `rights` are real observations; `adoption` is popularity and is
     labelled as such because the taxonomy policy states popularityIsNotQuality. The
     classification axes are surfaced as null when unpopulated rather than defaulted.
+
+    `axes` is the passthrough DL-FINAL-T06 asks for: the **values**, per axis, for the
+    candidates that do carry one. `unclassifiedAxes` alone only answers "which are
+    empty", so a populated axis reached the UI as nothing at all -- the counts and the
+    empty list could both be right while a real classification stayed invisible.
     """
     if not candidate:
         return {"sourceType": None, "evidenceLevel": None, "upstreamOwner": None,
                 "licenseUrl": None, "rightsNotes": None, "removalPath": None,
-                "popularity": None, "unclassifiedAxes": list(CLASSIFICATION_AXES)}
+                "popularity": None, "unclassifiedAxes": list(CLASSIFICATION_AXES),
+                "axes": {axis: None for axis in CLASSIFICATION_AXES}}
     rights = candidate.get("rights") or {}
     adoption = candidate.get("adoption") or {}
     metrics = adoption.get("metrics") or {}
@@ -136,6 +171,7 @@ def _taxonomy_axes(candidate: dict | None) -> dict:
             "isNotQuality": True,
         },
         "unclassifiedAxes": axes,
+        "axes": {axis: candidate.get(axis) for axis in CLASSIFICATION_AXES},
     }
 
 
@@ -158,8 +194,9 @@ def _model_capability(entry: dict) -> dict:
         "repo": None,
         "observedAt": entry.get("observed_at"),
         "contentDigest": None,
-        "qualified": UNQUALIFIED,
-        "qualificationEvidence": None,
+        # A model row has no joined taxonomy entry, so the qualification lookup runs
+        # against nothing: null plus the reason, never a defaulted false.
+        **_qualification(None),
         # Every record carries the same keys, whichever kind it is: a missing axis on a
         # model row must read as unclassified, not as an absent field the view has to
         # special-case.

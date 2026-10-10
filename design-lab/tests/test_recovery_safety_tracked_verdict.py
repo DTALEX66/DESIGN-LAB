@@ -34,7 +34,7 @@ class TrackedInputTests(unittest.TestCase):
         # The regression this test guards is subtle: a path under .project-local reads fine on
         # the machine that generated the record, so every other test still passes.
         for rel in RECEIPTS:
-            self.assertTrue(rel.startswith(gate.RECEIPT_ARCHIVE + "/"), rel)
+            self.assertTrue(rel.startswith(gate.RECEIPT_ROOT + "/"), rel)
             self.assertFalse(rel.startswith(".project-local/"), rel)
 
     def test_every_verdict_input_is_versioned_content(self) -> None:
@@ -78,7 +78,7 @@ class AuditTests(unittest.TestCase):
 
     def scaffold(self, override: dict | None = None) -> str:
         """Copy one archived receipt and its tool into the throwaway tree."""
-        rel = f"{gate.RECEIPT_ARCHIVE}/DELETE-MANIFEST.json"
+        rel = next(r for r in gate.MANIFESTS if r.endswith("/DELETE-MANIFEST.json"))
         document = json.loads((self._repo / rel).read_text(encoding="utf-8"))
         if override:
             for key, value in override.items():
@@ -145,10 +145,9 @@ class AuditTests(unittest.TestCase):
         self.assertFalse(result["ok"])
 
     def test_a_receipt_naming_a_path_outside_the_repository_is_convicted(self) -> None:
-        document = json.loads((self._repo / f"{gate.RECEIPT_ARCHIVE}/DELETE-MANIFEST.json")
-                              .read_text(encoding="utf-8"))
+        rel = next(r for r in gate.MANIFESTS if r.endswith("/DELETE-MANIFEST.json"))
+        document = json.loads((self._repo / rel).read_text(encoding="utf-8"))
         document["files"][0]["path"] = "C:/Users/someone/Desktop/asset.psd"
-        rel = f"{gate.RECEIPT_ARCHIVE}/DELETE-MANIFEST.json"
         target = self.tmp / rel
         target.parent.mkdir(parents=True, exist_ok=True)
         target.write_text(json.dumps(document, indent=2, ensure_ascii=False) + "\n",

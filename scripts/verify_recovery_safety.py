@@ -17,11 +17,14 @@ Writes reports/current/RECOVERY-SAFETY.json.
 The verdict answers from tracked state only. I000 was measured on 2026-10-09 to read its
 three receipts from ``.project-local``, which is gitignored, so in a clean checkout of the
 commit that recorded PASS all three came back missing and the gate reported DRIFT -- a
-destructive-operation receipt that survives only on the machine that produced it is not a
-receipt. The three manifests are therefore archived under ``reports/history/`` (byte-for-byte
-copies, sha256 verified against the live files at copy time) and audited from there. What the
-live copies still hold on this machine is reported, never compared, so a clean CI checkout
-gets the same judgement as this workstation.
+destructive-operation receipt that survives only on one machine is a weak guard. Measured the
+same day: the repository already held all three, byte-identical (sha256 prefixes 8cdfcbfa42dc1623
+/ 044f02b896883e27 / 5088e4766929b68f), inside the preserved evidence bundle at
+``docs/audits/DESIGN-LAB-UIKIT-CONFORMANCE-2026-09-28/session`` -- the duplicate-content audit is what showed it, after I had copied them a
+second time under ``reports/history/`` and removed those copies again. The defect was never that
+the bytes were unversioned, only that the gate read the gitignored ones. What the live copies
+still hold on this machine is reported, never compared, so a clean CI checkout gets the same
+judgement as this workstation.
 
 Usage:
     python scripts/verify_recovery_safety.py [--check]
@@ -45,19 +48,29 @@ TASK_KEYS = ["DL-TP-20260914-DEEPSEEK-AUTHORITY-R1::DLDS-I000",
              "DL-TP-20260914-DEEPSEEK-AUTHORITY-R1::DLDS-I010"]
 AUTHORITY_ID = TASK_KEYS[0].split("::")[0]
 OPERATION_ID = re.compile(r"DLDS-[A-Z]\d{3}")
-RECEIPT_ARCHIVE = "reports/history/destructive-receipts-2026-09-13"
+RECEIPT_ROOT = "docs/audits/DESIGN-LAB-UIKIT-CONFORMANCE-2026-09-28/session"
 # archived receipt -> (the tool that wrote it, the machine-local copy it was taken from)
 MANIFESTS = {
-    f"{RECEIPT_ARCHIVE}/RUNTIME-CLEANUP-MANIFEST.json": (
+    f"{RECEIPT_ROOT}/quarantine/deepseek-round1/RUNTIME-CLEANUP-MANIFEST.json": (
         "scripts/deepseek_runtime_cleanup.py",
         ".project-local/quarantine/deepseek-round1/RUNTIME-CLEANUP-MANIFEST.json"),
-    f"{RECEIPT_ARCHIVE}/DELETE-MANIFEST.json": (
+    f"{RECEIPT_ROOT}/quarantine/deepseek-round1/DELETE-MANIFEST.json": (
         "scripts/deepseek_quarantine_out_of_pack.py",
         ".project-local/quarantine/deepseek-round1/DELETE-MANIFEST.json"),
-    f"{RECEIPT_ARCHIVE}/MIGRATION-MANIFEST.json": (
+    f"{RECEIPT_ROOT}/hermes-legacy/MIGRATION-MANIFEST.json": (
         "scripts/deepseek_hermes_migration.py",
         ".project-local/archive/hermes-legacy/MIGRATION-MANIFEST.json"),
 }
+# Dated correction, 2026-10-09. The first version of this fix archived the three receipts under
+# reports/history/destructive-receipts-2026-09-13 on the reasoning that a receipt living in
+# .project-local "survives only on the machine that produced it". Measured, that was only half true:
+# all three were already tracked, byte-identical (sha256 prefixes 8cdfcbfa42dc1623 /
+# 044f02b896883e27 / 5088e4766929b68f), inside the preserved evidence bundle above -- the duplicate
+# audit's own group list is what showed it. What was actually wrong was that the gate read the
+# gitignored copies while the repository already held the bytes. Those three new files were removed
+# in the same round; the bundle keeps the single tracked copy, and it is a preserved subtree
+# (session/hermes-legacy holds 404 versioned files and 00-INDEX.md cites it), so if that bundle is
+# ever relocated the versioned-input test below is what fails first.
 UNKNOWN_OUTCOME_TESTS = ("design-lab/tests/test_runtime_attempt_safety.py",
                          "design-lab/tests/test_boot_reconciliation.py",
                          "design-lab/tests/test_native_tasks.py")
@@ -389,7 +402,7 @@ def main(argv=None) -> int:
                         "never compared, so a clean checkout judges the same as this disk.",
         "I000_destructive_operations": {
             "doctrine": "plan -> candidate list -> backup/digest -> verification -> rollback -> receipt",
-            "receipt_archive": RECEIPT_ARCHIVE,
+            "receipt_archive_root": RECEIPT_ROOT,
             "manifests": manifests, "failures": failures,
         },
         "I010_unknown_outcome": {

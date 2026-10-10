@@ -65,6 +65,14 @@ function makeContext() {
   const context = vm.createContext({
     document,
     window,
+    // design.ts uuid() calls crypto.randomUUID(), which the context never had -- so the
+    // intake write path died on 'crypto is not defined' before reaching fetch, and the
+    // panel reported that as a service refusal. The counter keeps each call distinct,
+    // which is what the idempotency assertions depend on.
+    crypto: { randomUUID: ((n) => () => {
+      n += 1;
+      return `00000000-0000-4000-8000-${String(n).padStart(12, '0')}`;
+    })(0) },
     Option: class Option extends MockElement {
       constructor(text, value) { super('option'); this.textContent = text; this.value = value; }
     },
@@ -342,6 +350,534 @@ for (const notice of ['未读回：响应缺少', '未读回：未连接', '未�
   if (domainsEmptyText.includes(notice))
     throw new Error(`一次形状完整的空读回不得出现 ${notice}：…${domainsEmptyText.slice(-300)}`);
 console.log('ok: ⑤ #/domains 读一个路由、缺 packs 说未读回、真实读回上屏带 lang="en" 与原因、空目录照实说尚无');
+
+// ⑪ R2 §2 — a domain pack is a SECOND-LEVEL entry: it needs its own address, its own
+// readable facts, and it must stay highlighted inside 设计领域. The honest half of this
+// block matters more than the pretty half. Measured 2026-10-09 against both real readbacks:
+// GET /api/capabilities reports the `domains` classification axis as empty for all 60
+// records, and its `domain` field carries model-radar families (`video-generation`, `asr`,
+// …) whose only literal overlap with a pack slug is the string `3d`. There is therefore no
+// join axis, so the panel has to show a disabled cross-catalog action with a reason instead
+// of inventing "该领域下的能力".
+function walkNodes(root, visit) {
+  if (!root) return;
+  visit(root);
+  for (const child of (root.children ?? [])) walkNodes(child, visit);
+}
+
+function findNodes(root, tagName, needle) {
+  const hits = [];
+  walkNodes(root, (node) => {
+    if (node?.tagName === tagName && (node.textContent ?? '').includes(needle)) hits.push(node);
+  });
+  return hits;
+}
+
+function drawerFor(hash) {
+  let drawer = null;
+  walkNodes(shell.elements.get('route-view'), (node) => {
+    if (node?.attributes?.get('id') === 'domain-drawer') drawer = node;
+  });
+  if (!drawer) throw new Error(`${hash}: 没有渲染域包详情面板 —— 二级入口落空`);
+  return drawer;
+}
+
+async function renderDomainDetail(hash, payload = DOMAINS_READBACK) {
+  shell.window.location.hash = hash;
+  shell.dispatchHashchange();
+  const reads = shell.pending.splice(0, shell.pending.length);
+  if (reads.length !== 1 || reads[0].path !== '/api/domains')
+    throw new Error(`${hash}: 应恰好一次 GET /api/domains，实得 ${reads.length} 次`
+      + `（${reads.map((r) => r.path).join(', ')}）`);
+  reads[0].resolve(response(payload));
+  await flush();
+  return drawerFor(hash);
+}
+
+// The registry route itself: no address is open, so there is no drawer to assert on and
+// the slot must stay hidden rather than painted as an empty panel.
+async function renderDomainRegistry(payload) {
+  shell.window.location.hash = '#/domains';
+  shell.dispatchHashchange();
+  const reads = shell.pending.splice(0, shell.pending.length);
+  if (reads.length !== 1)
+    throw new Error(`#/domains 应恰好一次读回，实得 ${reads.length} 次`);
+  reads[0].resolve(response(payload));
+  await flush();
+  let drawer = null;
+  walkNodes(shell.elements.get('route-view'), (node) => {
+    if (node?.attributes?.get('id') === 'domain-drawer') drawer = node;
+  });
+  if (drawer) throw new Error('#/domains 没有寻址到任何 pack，不得渲染详情面板');
+  return shell.elements.get('route-view');
+}
+
+const firstDrawer = await renderDomainDetail('#/domains/uiux-design');
+for (const fact of ['UI/UX Design Domain Pack', 'ui-ux', 'jsonschema',
+  'design-lab/domain-pack/v2'])
+  if (!firstDrawer.textContent.includes(fact))
+    throw new Error(`详情面板没有给出该域包自己的 ${fact}：${firstDrawer.textContent.slice(0, 200)}`);
+const joinAction = findNodes(firstDrawer, 'BUTTON', '按该领域筛选能力');
+if (joinAction.length !== 1)
+  throw new Error(`详情面板应给出一个"按该领域筛选能力"动作，实得 ${joinAction.length} 个`);
+if (!joinAction[0].attributes.has('disabled'))
+  throw new Error('没有关联轴时这个动作必须禁用，不能留一个必然失败的按钮');
+if (!firstDrawer.textContent.includes('未接线'))
+  throw new Error('禁用动作必须说明为什么禁用');
+if (/条能力/.test(firstDrawer.textContent))
+  throw new Error(`详情面板不得凭空给出能力数量：${firstDrawer.textContent.slice(-260)}`);
+const navOwner = [];
+walkNodes(shell.context.document.body, (node) => {
+  if (node?.dataset?.route === 'design-domains') navOwner.push(node);
+});
+if (navOwner.length !== 1)
+  throw new Error(`导航里应当只有一个 design-domains 入口，实得 ${navOwner.length} 个`);
+if (navOwner[0].attributes.get('aria-current') !== 'page')
+  throw new Error('域包详情必须让父级 设计领域 入口保持高亮，否则读起来像已经离开目录');
+
+// A rejected pack keeps its reasons when addressed directly, and a v1 manifest's silence
+// about `domain` is shown as 未声明 rather than an empty slug.
+const badDrawer = await renderDomainDetail('#/domains/minigame-design');
+if (!badDrawer.textContent.includes("'domain' is a required property"))
+  throw new Error('被拒绝的域包直接寻址时必须带着校验器原因');
+if (!badDrawer.textContent.includes('校验器共 11 条'))
+  throw new Error('原因被截断时必须注明校验器实际给出了多少条');
+if (!badDrawer.textContent.includes('未声明'))
+  throw new Error('v1 清单没有 domain 字段，详情要说未声明而不是留空');
+const badMarked = [];
+walkNodes(badDrawer, (node) => {
+  if (node?.attributes?.get('lang') === 'en') badMarked.push(node.textContent);
+});
+if (!badMarked.includes('INVALID'))
+  throw new Error(`详情里的判定词必须带 lang="en"（服务词汇）：${badMarked.join('/')}`);
+
+// A legal-shaped id outside the readback says it was not found, and borrows nothing.
+const missDrawer = await renderDomainDetail('#/domains/no-such-pack');
+if (!missDrawer.textContent.includes('未找到该域包'))
+  throw new Error(`未找到的详情必须照实说：${missDrawer.textContent.slice(0, 160)}`);
+for (const borrowed of ['jsonschema', 'ui-ux', 'design-lab/domain-pack/v2'])
+  if (missDrawer.textContent.includes(borrowed))
+    throw new Error(`未找到的详情不得借用另一个域包的 ${borrowed}`);
+
+// Only a pack that declares a pack_id owns an address. The list must say so for one that
+// does not, instead of synthesising a link out of the directory name.
+const idless = await renderDomainRegistry({ ...DOMAINS_READBACK,
+  counts: { packs: 3, byValidation: { VALIDATES: 1, INVALID: 1, UNREADABLE: 0, NOT_CHECKED: 1 } },
+  packs: [...DOMAINS_READBACK.packs, { directory: 'legacy-no-id', packId: null, version: null,
+    displayName: null, domain: null, manifestSchemaVersion: null, dependencies: null,
+    validation: 'NOT_CHECKED', validationErrors: [], validationErrorCount: 0, note: null }] });
+if (!idless.textContent.includes('域包登记（3）'))
+  throw new Error(`读回给出 3 个目录时列表必须写 3：${idless.textContent.slice(0, 160)}`);
+const openButtons = findNodes(idless, 'BUTTON', '查看详情');
+if (openButtons.length !== 2)
+  throw new Error(`只有声明了 pack_id 的行才有入口，期望 2 实得 ${openButtons.length}`);
+if (!idless.textContent.includes('无独立地址：清单未声明 pack_id'))
+  throw new Error('没有 pack_id 的域包必须说明它为何没有地址');
+shell.window.location.hash = '#/dashboard';
+openButtons[0].onclick();
+if (shell.window.location.hash !== '#/domains/uiux-design')
+  throw new Error(`行内入口必须落到该 pack 自己的地址，实得 ${shell.window.location.hash}`);
+console.log('ok: ⑪ 域包二级入口有独立地址、父级高亮、跨目录动作禁用并说明原因、借用与凭空计数都不出现');
+
+// ⑫ R2 §4 资产类型 tabs. The shipped catalog has every classification axis empty and
+// counts.qualified = 0, so a tab strip built from that data alone cannot tell an honest
+// empty state apart from a hardcoded one. This block therefore seeds a fixture where ONE
+// record IS classified and IS qualified: the tabs must follow the fields, not the shipped
+// emptiness. It also pins the two lies the design has to refuse -- counting 可调用能力 by
+// `kind` (which would claim every record is callable), and drawing a confident 0 when the
+// readback never answered.
+const AXES_EMPTY = { domains: [], artifactTypes: [], capabilityLayers: [], aestheticAxes: [],
+  styleArchetypes: [], tier: [], designQuality: [] };
+const capabilityRecord = (over) => ({
+  id: 'cap-x', kind: 'source', domain: null, title: 't', disposition: 'CONDITIONAL_POC',
+  license: 'MIT', presence: 'UPSTREAM', url: null, revision: null, revisionState: 'NOT_VERIFIED',
+  revisionReason: null, repo: null, observedAt: null, contentDigest: null,
+  qualified: null, qualificationEvidence: null, qualificationReason: '尚无宿主运行与人工验收',
+  axes: { ...AXES_EMPTY }, sourceType: null, evidenceLevel: null, upstreamOwner: null,
+  licenseUrl: null, rightsNotes: null, removalPath: null, popularity: null,
+  unclassifiedAxes: Object.keys(AXES_EMPTY), ...over,
+});
+const CAPABILITIES_READBACK = {
+  schemaVersion: 'design-lab/capability-library/v1',
+  meaning: 'Read-only projection.', unmeasuredMeans: 'null = not measured.',
+  classification: { joined: 1, unclassifiedAxes: ['domains'], note: '填轴是人工分类工作。' },
+  counts: { total: 3, byKind: { source: 2, model: 1 }, byLicense: { MIT: 3 },
+    byRevisionState: { NOT_VERIFIED: 3 }, qualified: 1 },
+  sources: {},
+  capabilities: [
+    capabilityRecord({ id: 'plain-one' }),
+    capabilityRecord({ id: 'plain-two', kind: 'model' }),
+    capabilityRecord({ id: 'classified-three', qualified: true,
+      qualificationEvidence: ['E2-run-1'], qualificationReason: null,
+      axes: { ...AXES_EMPTY, artifactTypes: ['template'], capabilityLayers: ['specification'] },
+      unclassifiedAxes: ['domains'] }),
+  ],
+};
+
+async function renderCapabilities(payload) {
+  shell.window.location.hash = '#/dashboard';
+  shell.dispatchHashchange();
+  shell.pending.splice(0, shell.pending.length);
+  shell.window.location.hash = '#/capabilities';
+  shell.dispatchHashchange();
+  const reads = shell.pending.splice(0, shell.pending.length);
+  if (reads.length !== 1 || reads[0].path !== '/api/capabilities')
+    throw new Error(`#/capabilities 应恰好一次 GET /api/capabilities，实得 ${reads.length} 次`);
+  reads[0].resolve(response(payload));
+  await flush();
+  return shell.elements.get('route-view');
+}
+
+const tabButtons = (root) => findNodes(root, 'BUTTON', '').filter(
+  (n) => n.attributes.get('role') === 'tab');
+const TAB_LABELS = ['全部资产', '可调用能力', '规范与方法', '案例与参考', '模板与配方'];
+
+const capView = await renderCapabilities(CAPABILITIES_READBACK);
+const tabs = tabButtons(capView);
+if (tabs.length !== TAB_LABELS.length)
+  throw new Error(`§4 要求五张资产类型 tab，实得 ${tabs.length} 张`);
+for (const [i, label] of TAB_LABELS.entries()) {
+  if (!tabs[i].textContent.includes(label))
+    throw new Error(`第 ${i + 1} 张 tab 不是 ${label}：${tabs[i].textContent}`);
+}
+const selected = tabs.filter((t) => t.attributes.get('aria-selected') === 'true');
+if (selected.length !== 1)
+  throw new Error(`tablist 必须恰好一个 aria-selected=true，实得 ${selected.length} 个`);
+
+// The counts come from the fields, so the classified record is what separates the tabs.
+// 全部资产 3 / 可调用能力 1 / 三个类型 tab 各 1 -- and crucially NOT 3 under 可调用能力,
+// which is what mapping that tab to `kind` would have printed.
+const counts = tabs.map((t) => t.textContent.replace(/\D+/g, ''));
+if (counts.join(',') !== '3,1,1,1,1')
+  throw new Error(`tab 计数没有跟着真实字段走，实得 ${counts.join(',')}（期望 3,1,1,1,1）`);
+
+// Selecting a tab filters the table and keeps the entry.
+tabs[1].onclick();
+await flush();
+const callable = shell.elements.get('route-view').textContent;
+if (!callable.includes('classified-three') || callable.includes('plain-one'))
+  throw new Error(`可调用能力应只剩有资格判定的那一条：${callable.slice(0, 200)}`);
+if (!callable.includes('显示 1 / 3 条'))
+  throw new Error(`切 tab 后计数行没跟着走：${callable.slice(0, 200)}`);
+
+// An empty tab keeps its entry and names the field it asked, instead of implying the
+// service judged the category empty.
+tabs[2].onclick();
+await flush();
+const specTab = shell.elements.get('route-view').textContent;
+if (!specTab.includes('规范与方法'))
+  throw new Error('空结果的 tab 不得从屏上消失（R2 §2：不因零条移除分类）');
+tabs[0].onclick();
+await flush();
+
+// The shipped catalog really is unclassified, so the shared-basis disclosure must appear.
+const allEmpty = { ...CAPABILITIES_READBACK,
+  capabilities: [capabilityRecord({ id: 'plain-one' }), capabilityRecord({ id: 'plain-two' })],
+  counts: { ...CAPABILITIES_READBACK.counts, total: 2, qualified: 0 } };
+const emptyView = await renderCapabilities(allEmpty);
+const emptyTabs = tabButtons(emptyView);
+// "0" and "never classified" are different claims. The axis carries no value on any record
+// here, so the three type tabs must badge 未分类 while 可调用能力 keeps its measured zero
+// (no qualification verdicts IS an answer) and 全部资产 keeps its count.
+const emptyBadges = emptyTabs.map((t) => t.textContent.replace(t.children[0].textContent, ''));
+if (emptyBadges.join('|') !== '2|0|未分类|未分类|未分类')
+  throw new Error(`未分类不得被显示成 0 条，实得 ${emptyBadges.join('|')}`);
+emptyTabs[2].onclick();
+await flush();
+const emptyText = shell.elements.get('route-view').textContent;
+for (const phrase of ['同一个空集', 'artifactTypes', '不替它猜词表'])
+  if (!emptyText.includes(phrase))
+    throw new Error(`三个类型 tab 共用一个空轴时，屏上必须写明这一点，缺 ${phrase}`);
+if (!emptyText.includes('未判定') && !emptyText.includes('没有给出任何命中的记录'))
+  throw new Error(`空 tab 必须说清是哪一层空：${emptyText.slice(0, 240)}`);
+
+// The lie block ⑨ exists to catch, in this view's own words: an unread readback must not
+// be drawn as a measured zero.
+const unreadView = await renderCapabilities({});
+const unreadTabs = tabButtons(unreadView).map((t) => t.textContent);
+// Not `/(?<!未读回)\b0\b/`: `\b` is a word boundary over \w only, and CJK is not a word
+// character, so that guard could never have matched anything. The check is on the rendered
+// form -- a tab labelled "未读回" carries no digit at all.
+if (unreadTabs.some((t) => /\d/.test(t)))
+  throw new Error(`未读回时 tab 上不得出现任何数字：${unreadTabs.join(' | ')}`);
+if (!unreadTabs.every((t) => t.includes('未读回')))
+  throw new Error(`未读回时每张 tab 都要标未读回：${unreadTabs.join(' | ')}`);
+if (unreadView.textContent.includes('共 0 条'))
+  throw new Error('未读回的计数被画成了 0 条');
+console.log('ok: ⑫ §4 资产类型 tabs 跟着真实字段计数、可调用能力不按 kind 充数、空轴共用同一空集并写明、未读回不画 0');
+
+// ⑬ R2 §6 输入与目标的**写入**. design.ts createBrief() is the single seam that validates the
+// draft and mints the idempotency key, and #/intake is its routed call site -- yet blocks
+// ⑥⑦⑧⑩ each prove "one click, one POST, exactly the contract keys" for their own panel
+// while this one had no such proof. An unmounted write path is not a delivered screen, and
+// the panel puts a claim on screen ("相同内容重试会复用同一幂等键") that has to be tested.
+// `byElementId` is declared further down the file, so this block uses its own finder built
+// on the ⑪ walkers: `el()` routes `id` through setAttribute, not a property.
+const byIdAttr = (root, id) => {
+  let hit = null;
+  walkNodes(root, (node) => { if (node?.attributes?.get('id') === id) hit = node; });
+  return hit;
+};
+shell.window.location.hash = '#/intake';
+shell.dispatchHashchange();
+const intakeProjectsReq = shell.pending.shift();
+if (intakeProjectsReq.path !== '/api/projects')
+  throw new Error(`输入与目标没有先读项目列表，实得 ${intakeProjectsReq.path}`);
+intakeProjectsReq.resolve(response({ projects: [{ id: 'p1', name: 'Alpha' }] }));
+await flush();
+const intakeView = shell.elements.get('route-view');
+const intakeSelect = byIdAttr(intakeView, '输入与目标-project');
+if (!intakeSelect) throw new Error('输入与目标没有渲染项目选择器，⑬ 找不到入口');
+intakeSelect.value = 'p1';
+intakeSelect.onchange();
+const intakeReads = shell.pending.splice(0, shell.pending.length);
+for (const request of intakeReads) answerIntakeRead(request, { briefs: [] });
+await flush();
+
+const intakeTitle = byIdAttr(intakeView, 'intake-title');
+const intakeGoals = byIdAttr(intakeView, 'intake-goals');
+const intakeConstraints = byIdAttr(intakeView, 'intake-constraints');
+const intakeSubmit = byIdAttr(intakeView, 'intake-submit');
+for (const [name, node] of [['intake-title', intakeTitle], ['intake-goals', intakeGoals],
+  ['intake-constraints', intakeConstraints], ['intake-submit', intakeSubmit]])
+  if (!node) throw new Error(`输入与目标缺少控件 ${name}`);
+
+// A blank title is refused locally: nothing may reach the service.
+intakeTitle.value = '   ';
+intakeGoals.value = '建立识别, , 复用版式';
+intakeSubmit.onclick();
+await flush();
+const emptyTitleReqs = shell.pending.splice(0, shell.pending.length);
+if (emptyTitleReqs.length)
+  throw new Error(`空标题被本地拒绝时仍发出了 ${emptyTitleReqs.length} 个请求`);
+if (!(intakeView.textContent || '').includes('请填写简报标题'))
+  throw new Error('空标题必须给出可行动的拒绝原因');
+
+// One click, one POST, exactly the five contract keys, with the goals split trimmed.
+intakeTitle.value = '  秋季品牌视觉  ';
+intakeGoals.value = '建立识别, , 复用版式';
+intakeConstraints.value = '主色不得改';
+intakeSubmit.onclick();
+await flush();
+const briefReqs = shell.pending.splice(0, shell.pending.length);
+if (briefReqs.length !== 1) {
+  const dbg = (intakeView.textContent || '').replace(/\s+/g, ' ');
+  throw new Error(`一次提交应恰好一个请求，实得 ${briefReqs.length} 个 :: 屏上=${dbg.slice(-420)}`);
+}
+if (briefReqs[0].path !== '/api/projects/p1/briefs')
+  throw new Error(`提交打到了 ${briefReqs[0].path}`);
+const briefBody = JSON.parse(briefReqs[0].init.body);
+const bodyKeys = Object.keys(briefBody).sort().join(',');
+if (bodyKeys !== 'constraints,goals,idempotency_key,reference_asset_ids,title')
+  throw new Error(`简报正文必须恰好是合同五个键，实得 ${bodyKeys}`);
+if (briefBody.title !== '秋季品牌视觉')
+  throw new Error(`标题必须去掉首尾空白后写入，实得 ${JSON.stringify(briefBody.title)}`);
+if (briefBody.goals.join('|') !== '建立识别|复用版式')
+  throw new Error(`空目标段必须被丢掉，实得 ${briefBody.goals.join('|')}`);
+if (!Array.isArray(briefBody.reference_asset_ids))
+  throw new Error('reference_asset_ids 必须是数组');
+if (!/^[0-9a-f-]{36}$/.test(String(briefBody.idempotency_key)))
+  throw new Error(`幂等键形状不对：${briefBody.idempotency_key}`);
+briefReqs[0].resolve(response({ brief_id: 'brief-1', version: 1 }));
+await flush();
+
+// The claim printed on the panel: retrying the SAME content reuses the key, changing it
+// does not. If createBrief ever stops doing this, the copy is the bug.
+// The intake panel reads the brief list AND the project's design layer (for the knowledge
+// context), so a drain must answer each path with its own shape. Handing the design-layer
+// GET the briefs payload made the panel read `chosen_direction` off undefined -- and the
+// suite still printed "all checks passed" while exiting 1, so this helper is used by every
+// drain in this block and the exit code is what gets believed.
+function answerIntakeRead(request, briefsPayload) {
+  if ((request.init?.method ?? 'GET') !== 'GET')
+    throw new Error(`读回阶段出现了写请求 ${request.path} —— 构建界面必须零 POST`);
+  if (request.path.includes('/design-layer')) {
+    request.resolve(response({ design_layer: { briefs: [], directions: [],
+      chosen_direction: null, bindings: [], active_binding: null,
+      design_systems: [] } }));
+    return;
+  }
+  request.resolve(response(briefsPayload));
+}
+
+async function drainIntakeReads(briefsPayload) {
+  await flush();
+  const reads = shell.pending.splice(0, shell.pending.length);
+  for (const request of reads) answerIntakeRead(request, briefsPayload);
+  await flush();
+  return reads.length;
+}
+
+const firstKey = briefBody.idempotency_key;
+await drainIntakeReads({ briefs: [] });
+intakeSubmit.onclick();
+await flush();
+const retryReqs = shell.pending.splice(0, shell.pending.length);
+if (retryReqs.length !== 1)
+  throw new Error(`重试应恰好一个请求，实得 ${retryReqs.length} 个`);
+const retryKey = JSON.parse(retryReqs[0].init.body).idempotency_key;
+if (retryKey !== firstKey)
+  throw new Error(`相同内容重试换了幂等键（${firstKey} -> ${retryKey}），屏上那句话就成了假话`);
+retryReqs[0].resolve(response({ brief_id: 'brief-1', version: 1 }));
+await drainIntakeReads({ briefs: [] });
+intakeTitle.value = '秋季品牌视觉 v2';
+intakeSubmit.onclick();
+await flush();
+const changedReqs = shell.pending.splice(0, shell.pending.length);
+const changedKey = JSON.parse(changedReqs[0].init.body).idempotency_key;
+if (changedKey === firstKey)
+  throw new Error('内容变了还复用同一个幂等键，第二次写入会被服务端当成同一次');
+changedReqs[0].resolve(response({ brief_id: 'brief-2', version: 1 }));
+await drainIntakeReads({ briefs: [] });
+
+// A service refusal keeps the service's own words and never claims persistence.
+intakeTitle.value = '另一个简报';
+intakeGoals.value = '目标一';
+intakeSubmit.onclick();
+await flush();
+const intakeRefused = shell.pending.splice(0, shell.pending.length);
+intakeRefused[0].resolve(response({ error: 'RIGHTS_GATE_BLOCKED', message: '许可未过权利门' }, false));
+await flush();
+const refusalText = (intakeView.textContent || '').replace(/\s+/g, ' ');
+if (refusalText.includes('简报已持久化'))
+  throw new Error('服务拒绝了写入，屏上不得说已持久化');
+console.log('ok: ⑬ 输入与目标的简报写入：构建零 POST、空标题本地拒、一次点击一个请求且只带合同五键、相同内容复用幂等键、改内容换新键、拒绝不谎报已写入');
+
+// ⑭ DL-UI-U05 · 目标生成包的拒绝种类。U05 的验收把 error / forbidden / conflict / timeout
+// 列为不同状态，而 native_submissions.py 确实用五个代码、三种状态码回答。此前 #/plan 把它们
+// 全画成一张"未受理"卡片，读者无法判断该重试、该换键还是该换素材。
+const PLAN_ASSET = { assets: [{ id: 'img-' + 'a'.repeat(62), media_type: 'image/png',
+  width: 1080, height: 1920, rights: 'UNVERIFIED', version_no: 1 }] };
+const byAria = (root, label) => {
+  let hit = null;
+  walkNodes(root, (node) => {
+    if (node?.attributes?.get('aria-label') === label) hit = node;
+  });
+  return hit;
+};
+
+async function openPlan() {
+  shell.window.location.hash = '#/dashboard';
+  shell.dispatchHashchange();
+  shell.pending.splice(0, shell.pending.length);
+  shell.window.location.hash = '#/plan';
+  shell.dispatchHashchange();
+  const projectsReq = shell.pending.shift();
+  if (projectsReq.path !== '/api/projects')
+    throw new Error(`#/plan 没有先读项目列表，实得 ${projectsReq.path}`);
+  projectsReq.resolve(response({ projects: [{ id: 'p1', name: 'Alpha' }] }));
+  await flush();
+  const view = shell.elements.get('route-view');
+  const picker = byIdAttr(view, '目标生成包-project');
+  if (!picker) throw new Error('#/plan 没有渲染项目选择器');
+  picker.value = 'p1';
+  picker.onchange();
+  const assetReq = shell.pending.shift();
+  if (!assetReq.path.endsWith('/assets'))
+    throw new Error(`选项目后 #/plan 应读资产，实得 ${assetReq.path}`);
+  assetReq.resolve(response(PLAN_ASSET));
+  await flush();
+  return view;
+}
+
+const planView = await openPlan();
+const planAssets = byAria(planView, '参考底图资产');
+const planSubmit = byIdAttr(planView, 'plan-submit');
+if (!planAssets || !planSubmit)
+  throw new Error('#/plan 缺少资产选择器或提交按钮');
+
+// No asset chosen -> nothing may leave the page.
+planSubmit.onclick();
+await flush();
+if (shell.pending.length)
+  throw new Error('没有底图时 #/plan 仍然发出了请求；raster.path 必须指向已导入资产');
+if (!(planView.textContent || '').includes('没有底图资产就不提交'))
+  throw new Error('没有底图时页面必须说明为什么不提交');
+
+planAssets.value = PLAN_ASSET.assets[0].id;
+planAssets.onchange();
+await flush();
+
+// Each code gets its own sentence. The pairs that must NOT read alike are the ones a user
+// could act on the wrong way: busy (retry) vs idempotency conflict (do not reuse the key).
+// The third column is the STATE KIND, and it is here because the sentence alone can look
+// right while wearing the wrong semantic class: until 2026-10-10 the 409 idempotency
+// conflict rendered as `forbidden`, which tells the operator to request access when the
+// real action is to stop reusing the key. Both 409s must also land on DIFFERENT kinds.
+const REFUSALS = [
+  ['NATIVE_PLAN_IDEMPOTENCY_CONFLICT', '冲突：这个幂等键已经登记过别的内容', 'conflict'],
+  ['NATIVE_SUBMISSION_BUSY', '未排队：本机服务正忙', 'unknown'],
+  ['NATIVE_PLAN_TOO_LARGE', '目标包超过受理上限', 'error'],
+  ['INVALID_NATIVE_KEY', '幂等键不合法', 'error'],
+  ['INVALID_NATIVE_PLAN', '目标包不符合合同', 'error'],
+];
+const seenTitles = new Set();
+const seenKinds = new Map();
+for (const [code, expected, expectedKind] of REFUSALS) {
+  planSubmit.onclick();
+  await flush();
+  const reqs = shell.pending.splice(0, shell.pending.length);
+  if (reqs.length !== 1)
+    throw new Error(`${code}: 一次点击应恰好一个请求，实得 ${reqs.length} 个`);
+  reqs[0].resolve(response({ error: code }, false));
+  await flush();
+  const text = (planView.textContent || '').replace(/\s+/g, ' ');
+  if (!text.includes(expected))
+    throw new Error(`${code} 必须给出它自己的说法「${expected}」：…${text.slice(-260)}`);
+  const refusalBlocks = [];
+  walkNodes(planView, (node) => {
+    if (node?.dataset?.stateKind !== undefined) refusalBlocks.push(node);
+  });
+  if (refusalBlocks.length !== 1)
+    throw new Error(`${code}: 拒绝面应当恰好一个带状态类别的块，实得 ${refusalBlocks.length} 个`);
+  const kind = refusalBlocks[0].dataset.stateKind;
+  if (kind !== expectedKind)
+    throw new Error(`${code} 的状态类别是 ${kind}，应为 ${expectedKind}`
+      + '（409 幂等冲突是 conflict，不是 forbidden：前者让人换键，后者让人去要权限）');
+  seenKinds.set(code, kind);
+  if (!text.includes(code))
+    throw new Error(`${code}: 屏上必须带上服务端代码本身，那是运维带回 CLI 的把手`);
+  seenTitles.add(expected);
+}
+if (seenTitles.size !== REFUSALS.length)
+  throw new Error('五种拒绝里有两种说了同一句话');
+if (seenKinds.get('NATIVE_PLAN_IDEMPOTENCY_CONFLICT') === seenKinds.get('NATIVE_SUBMISSION_BUSY'))
+  throw new Error('两个 409 用了同一个状态类别：忙是可重试的，幂等冲突不是，共用一个类别'
+    + '就是把"换键"和"再点一次"说成同一件事');
+
+// A transport failure is not a server refusal: nothing was answered, so nothing may be
+// claimed about acceptance -- and the reader is pointed at the task ledger first.
+planSubmit.onclick();
+await flush();
+const lost = shell.pending.splice(0, shell.pending.length);
+lost[0].reject(new Error('Failed to fetch'));
+await flush();
+const lostText = (planView.textContent || '').replace(/\s+/g, ' ');
+if (!lostText.includes('请求没有到达服务端'))
+  throw new Error(`没有回复时必须说"没有到达服务端"，而不是当成一次业务拒绝：${lostText.slice(-260)}`);
+if (lostText.includes('未受理'))
+  throw new Error('连接失败不得被说成服务端未受理——那等于替服务编了一个结论');
+
+// Success still says queueing is not completion.
+planSubmit.onclick();
+await flush();
+const okReq = shell.pending.splice(0, shell.pending.length);
+okReq[0].resolve(response({ task_id: 'native-job-abc', state: 'QUEUED' }));
+await flush();
+const okText = (planView.textContent || '').replace(/\s+/g, ' ');
+if (!okText.includes('排队不等于完成'))
+  throw new Error('受理成功后仍要写明排队不等于宿主已启动');
+
+// U05: 普通用户无需JSON -- the RIR is a secondary, collapsed review surface.
+const rirDetails = [];
+walkNodes(planView, (node) => {
+  if (node?.tagName === 'DETAILS') rirDetails.push(node);
+});
+if (!rirDetails.length)
+  throw new Error('RIR 应放在一个可折叠的次级查看面里，而不是主面板');
+if (rirDetails.some((d) => d.attributes.has('open')))
+  throw new Error('JSON 查看面默认必须收起');
+console.log('ok: ⑭ 目标生成包的五种服务端拒绝各说各话且带代码、两种 409 落在不同状态类别、连接失败不冒充业务拒绝、无底图不发包、排队不等于完成、JSON 默认收起');
 
 // ①/④ OFFLINE sweep. A second context that never connects: devMode() reads
 // window.location.search, so '?dev=1' is what lets the seam answer with its honest empty
@@ -1668,5 +2204,316 @@ if (strippedText.includes('RESEARCH_COMPLETE'))
   throw new Error('空台账被说成了完成');
 
 console.log('ok: ⑨ 研究洞察读回已持久化的结论：判定词一个都不画、null 判定给出服务端的说明、置信度选项来自读回且无预选、构建页面零 POST、空正文与无来源两种本地拒绝都不发请求、一次点击一个 POST 且只带契约字段（无 schemaVersion、未勾选的布尔不写成 false）、相同重发沿用 finding_id 而改动必换新 id、替代作为查询参数且只列现行结论、成功后读回来自服务端、拒绝替换上一条已提交、缺计数说未读回不画 0 条');
+
+// ⑩ 制作记录与待继续 · R2 §7 over the real GET /projects/<id>/tasks. The capture harness
+// boots an empty synthetic project, so no round had ever rendered a task ROW -- an
+// unmounted row function is not a delivered screen. Three records are seeded here:
+// one in-flight, one needing a human (cancel requested, never acknowledged), one receipted.
+// DL-UI-U06 fixtures and the per-path answer ⑩ and ⑯ share. Declared before ⑩ because ⑩
+// renders the same page and must answer both of its reads.
+const RUNTIME_ABSENT = {
+  schemaVersion: 'design-lab/native-runtime-readback/v1', project_id: 'p1',
+  host_guard: { table: 'ABSENT', rows: null },
+  quiescence: { table: 'ABSENT', rows: null },
+  reconciliation: { table: 'ABSENT', rows: null },
+  recovery_protocol: { table: 'ABSENT', rows: null },
+  executions: { table: 'ABSENT', rows: null },
+  counts: { hosts_held: null, attempts_quiescent_receipted: null, reconciliations_open: null,
+    executions_receipted: null, executions_with_result: null },
+  budget: null,
+  budget_reason: 'no table in this repository records a run budget, quota or cost',
+  proves_production_ready: false, is_host_action_performed: false,
+  does_not_say: ['a held guard row says a host is occupied by an attempt, not that waiting is right'],
+};
+const RUNTIME_HELD = {
+  ...RUNTIME_ABSENT,
+  host_guard: { table: 'PRESENT', rows: [{ host: 'photoshop', attempt_id: 'att-held',
+    acquired_at: '2026-10-09T20:00:00Z' }] },
+  quiescence: { table: 'PRESENT', rows: [{ attempt_id: 'att-held', started_at: 'x',
+    receipt_json: null }] },
+  reconciliation: { table: 'PRESENT', rows: [] },
+  recovery_protocol: { table: 'PRESENT', rows: [{ attempt_id: 'att-held',
+    protocol: 'os-lock-v1' }] },
+  executions: { table: 'PRESENT', rows: [{ attempt_id: 'att-held', host: 'photoshop',
+    receipt_json: 'r', result_json: null }] },
+  counts: { hosts_held: 1, attempts_quiescent_receipted: 0, reconciliations_open: 0,
+    executions_receipted: 1, executions_with_result: 0 },
+};
+let runtimeFixture = RUNTIME_ABSENT;
+
+function answerRecords(request) {
+  if (request.path.includes('/native-runtime')) {
+    request.resolve(response(runtimeFixture));
+    return;
+  }
+  request.resolve(response({ tasks: RECORD_TASKS, next_cursor: 'job-z' }));
+}
+
+const RECORD_TASKS = [
+  { kind: 'photoshop-native', state: 'RUNNING', job_id: 'job-a',
+    cancel: { requested: false, acknowledged: false },
+    attempt: { attempt_id: 'att-a', attempt_no: 1, state: 'RUNNING' } },
+  { kind: 'illustrator-native', state: 'CANCEL_REQUESTED', job_id: 'job-b',
+    cancel: { requested: true, acknowledged: false },
+    attempt: { attempt_id: 'att-b', attempt_no: 3, state: 'CANCEL_REQUESTED' } },
+  { kind: 'photoshop-native', state: 'RECEIPTED', job_id: 'job-c',
+    cancel: { requested: false, acknowledged: false },
+    attempt: { attempt_id: 'att-c', attempt_no: 2, state: 'RECEIPTED' } },
+  // ⑮ needs a non-native row: an imported raster has no target package to continue into,
+  // so a 接续 button on it would be a control that leads nowhere.
+  { kind: 'image-import', state: 'RECEIPTED', job_id: 'img-d',
+    cancel: { requested: false, acknowledged: false },
+    attempt: { attempt_id: 'att-d', attempt_no: 1, state: 'RECEIPTED' } },
+];
+
+shell.window.location.hash = '#/records';
+shell.dispatchHashchange();
+const recordProjects = shell.pending.shift();
+recordProjects.resolve(response({ projects: [{ id: 'p1', name: 'Alpha' }] }));
+await flush();
+const recordsView = shell.elements.get('route-view');
+const recordSelect = byElementId(recordsView, '制作记录与待继续-project');
+if (!recordSelect) throw new Error('制作记录没有渲染项目选择器，⑩ 找不到入口');
+recordSelect.value = 'p1';
+recordSelect.onchange();
+const recordRequests = shell.pending.splice(0, shell.pending.length);
+for (const request of recordRequests) {
+  if (request.path.includes('/events'))
+    throw new Error(`没有人展开任何一行，页面却读了 ${request.path} —— 最近确认点不能凭猜测取`);
+  // ⑩ seeds the ledger; ⑯ re-renders this page with other runtime payloads. Answering by
+  // path keeps the two blocks honest: a tasks body served to the runtime read would make
+  // every section look unread and let ⑯ pass on the wrong bytes.
+  answerRecords(request);
+}
+await flush();
+const recordText = (recordsView.textContent || '').replace(/\s+/g, ' ');
+for (const word of ['RUNNING', 'CANCEL_REQUESTED', 'RECEIPTED'])
+  if (!recordText.includes(word))
+    throw new Error(`状态词 ${word} 没有原样出现在读回面上（服务词汇不得翻译或改写）`);
+if (!recordText.includes('领域：无该字段'))
+  throw new Error('TaskRecord 没有领域字段，界面必须说"无该字段"而不是按 kind 猜一个');
+if (!recordText.includes('宿主未确认'))
+  throw new Error('取消请求与宿主确认是两段事实：requested 而未被 ack 时必须说未确认');
+if (!recordText.includes('进行中 1') && !recordText.includes('进行中 1 条')) {
+  if (!/进行中\s*1/.test(recordText))
+    throw new Error(`分组计数错了：${recordText.slice(0, 260)}`);
+}
+// The dock counts only what still needs work: 2 of 3, never the receipted one.
+const dock = byElementId(recordsView, 'activity-dock');
+if (!dock) throw new Error('有 2 条作业仍在进行/待核对，任务条却没渲染');
+const dockText = (dock.textContent || '').replace(/\s+/g, ' ');
+if (!dockText.includes('2 条'))
+  throw new Error(`任务条把待处理数说成了"${dockText.slice(0, 60)}"，应为 2 条`);
+// Expanding one row is what asks for events -- exactly one request, for that job.
+const detail = findIn(recordsView, (node) => Boolean(node && node.tagName === 'DETAILS'));
+if (!detail) throw new Error('找不到"最近确认点与尝试"的展开面');
+const before = shell.pending.length;
+detail.open = true;
+if (typeof detail.ontoggle !== 'function')
+  throw new Error('展开面没有挂 toggle 处理函数 —— 最近确认点永远不会被读回');
+detail.ontoggle();
+await flush();
+const eventRequests = shell.pending.splice(0, shell.pending.length);
+if (eventRequests.length !== 1)
+  throw new Error(`展开一行应当只发一次 events 读回，实际 ${eventRequests.length} 次`);
+if (!eventRequests[0].path.includes('/tasks/job-a/events'))
+  throw new Error(`展开第一行却读了 ${eventRequests[0].path}`);
+eventRequests[0].resolve(response({
+  events: [{ at: '2026-10-09T10:00:00Z', attempt_no: 1, from_state: 'PENDING',
+    to_state: 'RUNNING' }],
+  next_cursor: null,
+}));
+await flush();
+const eventsText = (recordsView.textContent || '').replace(/\s+/g, ' ');
+if (!eventsText.includes('最近确认点：RUNNING ← PENDING'))
+  throw new Error(`最近确认点没有从事件读回里拼出来：${eventsText.slice(0, 260)}`);
+if (before !== 0) throw new Error('展开前不该有挂起的读回请求');
+
+console.log('ok: ⑩ 制作记录读回真实作业：状态词原样出现、领域字段缺失如实说明、取消的 requested 与 ack 分成两段、任务条只数仍在进行/待核对的 2 条而不是 3 条、没人展开就不读 events、展开一行恰好一次读回、最近确认点来自事件而不是猜测');
+
+// ⑮ DL-UI-U05 · 接续入口。此前这一行只有一个人禁用「继续该任务」，理由写的是宿主副作用，
+// 于是把"跳去编排面"和"驱动宿主"混成了同一件事：跳转不产生宿主效果，禁用它的理由根本不成立。
+// 现在两条线分开，并用行为证明分开的那条确实只是跳转——一次点击只改 hash，不发任何请求。
+const continueButtons = [];
+const hostButtons = [];
+walkNodes(recordsView, (node) => {
+  if (node?.tagName !== 'BUTTON') return;
+  const id = node.attributes?.get('id') ?? '';
+  if (id.startsWith('record-continue-')) continueButtons.push(node);
+  if ((node.textContent ?? '') === '启动 / 取消') hostButtons.push(node);
+});
+if (continueButtons.length !== 3)
+  throw new Error(`三条原生作业应有 3 个接续入口，实得 ${continueButtons.length} 个`
+    + '（素材导入那条不该拿到一个通向目标生成包的按钮）');
+if (continueButtons.some((b) => b.attributes.has('disabled')))
+  throw new Error('接续入口被禁用了：目标生成包页已经落地，跳转不是宿主副作用，没有理由禁');
+if (continueButtons.some((b) => typeof b.onclick !== 'function'))
+  throw new Error('接续按钮没有挂点击函数，看着能点其实点了没反应');
+if (hostButtons.length !== 4)
+  throw new Error(`四条记录应有 4 个启动/取消动作，实得 ${hostButtons.length} 个`);
+if (hostButtons.some((b) => !b.attributes.has('disabled')))
+  throw new Error('启动/取消必须保持禁用：本会话没有真实宿主副作用授权');
+const continueText = (recordsView.textContent || '').replace(/\s+/g, ' ');
+if (!continueText.includes('接续只做页面跳转'))
+  throw new Error('接续入口要当场说清它只跳转、宿主与底图仍需重选，否则用户会以为状态被带过去了');
+if (!continueText.includes('没有对应的目标生成包'))
+  throw new Error('素材导入那条要说明为什么没有接续入口，不能只留一个空白');
+
+const beforeContinue = shell.pending.length;
+continueButtons[0].onclick();
+if (shell.pending.length !== beforeContinue)
+  throw new Error('点击接续发出了请求：这一跳应当只是打开编排面，不替服务编任何状态');
+if (shell.window.location.hash !== '#/plan')
+  throw new Error(`接续必须落到目标生成包自己的地址，实得 ${shell.window.location.hash}`);
+
+// 声明面板必须和自己画出来的控件一致：这一页既然有了能点的接续按钮，
+// "这个入口能说什么"那一段就不许再说接续未接线。这些断言必须在重渲染 #/intake 之前跑——
+// 两条路由共用同一个 `route-view` 元素，一旦渲染输入页，这里的 recordsView 就换内容了。
+const claimContinue = findNodes(recordsView, 'LI', '接续到目标生成包')[0];
+if (!claimContinue)
+  throw new Error('声明面板没有为接续单列一行，读者无从判断这一跳的边界');
+if ((claimContinue.textContent || '').includes('未接线'))
+  throw new Error('接续按钮已经接线，声明面板仍写"未接线"——页面自相矛盾');
+if (!(claimContinue.textContent || '').includes('不会自动变成包结构'))
+  throw new Error('声明面板要写清简报字段不会被带过去，否则"已接线"会被读成整条链都通了');
+// 用"本会话无该授权"定位，而不是"启动 / 取消"：每条作业行里都有一个同名的禁用按钮，
+// 按按钮文字找会先命中作业行，那条行当然不写"未接线"。
+const claimHost = findNodes(recordsView, 'LI', '本会话无该授权')[0];
+if (!claimHost || !(claimHost.textContent || '').includes('未接线'))
+  throw new Error('启动/取消必须仍在声明面板里标未接线：那是本会话没有授权的真实宿主副作用');
+
+// 输入与目标页上的同类禁用：DL-UI-U05 落地后「不该看起来可用」的理由已经过期，所以这一
+// 个也接上了；仍然没说谎的地方是"简报字段不会自动变成包结构"。
+shell.window.location.hash = '#/intake';
+shell.dispatchHashchange();
+const intakeProjectsReq2 = shell.pending.shift();
+intakeProjectsReq2.resolve(response({ projects: [{ id: 'p1', name: 'Alpha' }] }));
+await flush();
+const intakeView2 = shell.elements.get('route-view');
+const intakeSelect2 = byIdAttr(intakeView2, '输入与目标-project');
+if (!intakeSelect2) throw new Error('输入与目标没有渲染项目选择器，⑮ 找不到入口');
+intakeSelect2.value = 'p1';
+intakeSelect2.onchange();
+const intakeReads2 = shell.pending.splice(0, shell.pending.length);
+for (const request of intakeReads2) answerIntakeRead(request, { briefs: [] });
+await flush();
+const toPlan = byIdAttr(intakeView2, 'intake-to-plan');
+if (!toPlan) throw new Error('输入与目标页没有渲染到目标生成包的入口');
+if (toPlan.attributes.has('disabled'))
+  throw new Error('目标生成包页已经落地，这一跳没有理由继续禁用');
+const beforeIntake = shell.pending.length;
+toPlan.onclick();
+if (shell.pending.length !== beforeIntake)
+  throw new Error('从输入与目标跳编排面却发出了请求：这一步只是换页');
+if (shell.window.location.hash !== '#/plan')
+  throw new Error(`输入与目标的接续必须落到 #/plan，实得 ${shell.window.location.hash}`);
+const intakeNote = (intakeView2.textContent || '').replace(/\s+/g, ' ');
+if (!intakeNote.includes('不会自动变成目标包字段'))
+  throw new Error('必须写明简报字段不会被带进目标包，否则入口看起来像已经接通了整条链');
+
+console.log('ok: ⑮ 接续入口只做跳转且真的能点：三条原生作业各一个入口、导入行不给入口、'
+  + '启动/取消仍保持禁用、两次点击都只改 hash 不发请求、简报字段不被谎称带进目标包、'
+  + '声明面板与画出来的控件一致');
+
+// ⑯ DL-UI-U06 · 运行与恢复现场。这块要钉的不是"面板画出来了"，而是三种"没有"在屏上
+// 确实是三句话：未读回 / 表不存在 / 表存在且为空。混起来就是本仓库已经犯过两次的错——
+// 把没问到说成答案是零。
+async function openRecordsWithRuntime(doc) {
+  runtimeFixture = doc;
+  shell.window.location.hash = '#/records';
+  shell.dispatchHashchange();
+  const projectsReq = shell.pending.shift();
+  if (!projectsReq) throw new Error('重新进入制作记录没有读项目列表');
+  projectsReq.resolve(response({ projects: [{ id: 'p1', name: 'Alpha' }] }));
+  await flush();
+  const view = shell.elements.get('route-view');
+  const select = byElementId(view, '制作记录与待继续-project');
+  if (!select) throw new Error('⑯ 找不到项目选择器');
+  select.value = 'p1';
+  select.onchange();
+  const reqs = shell.pending.splice(0, shell.pending.length);
+  const paths = reqs.map((r) => r.path);
+  if (!paths.some((p) => p.includes('/native-runtime')))
+    throw new Error(`选了项目却没读运行时投影：${paths.join(' , ')}`);
+  for (const r of reqs) answerRecords(r);
+  await flush();
+  return view;
+}
+
+const absentView = await openRecordsWithRuntime(RUNTIME_ABSENT);
+const absentText = (absentView.textContent || '').replace(/\s+/g, ' ');
+if (!absentText.includes('运行与恢复现场'))
+  throw new Error('运行时观察面板没有渲染');
+if (!absentText.includes('从未记录过原生作业'))
+  throw new Error('表不存在必须说成"从未记录过"，不能给一个零');
+if (absentText.includes('当前没有尝试持有宿主'))
+  throw new Error('ABSENT 被画成了"表存在且为空"：这是两种不同的事实');
+if (/当前 0 个宿主被持有/.test(absentText))
+  throw new Error('hosts_held=null 被印成了 0 —— 没问到不等于答案是零');
+if (!absentText.includes('无该字段') || !absentText.includes('run budget'))
+  throw new Error('预算要作为"无该字段"上屏并带上服务给的理由');
+if (!absentText.includes('not that waiting is right'))
+  throw new Error('does_not_say 的每一句都要成为一行，否则面板只给了数字没给边界');
+
+const heldView = await openRecordsWithRuntime(RUNTIME_HELD);
+const heldText = (heldView.textContent || '').replace(/\s+/g, ' ');
+if (!heldText.includes('1 个宿主被持有：photoshop→att-held'))
+  throw new Error(`占用宿主没有按 host→attempt 上屏：${heldText.slice(heldText.indexOf('宿主占用'), heldText.indexOf('宿主占用') + 120)}`);
+if (!heldText.includes('已记录 1 条，其中带回执 0 条'))
+  throw new Error('静默确认要把"记录了几条"和"几条带回执"分开说');
+if (!heldText.includes('开着 0 条'))
+  throw new Error('表存在且为空时，0 是一个真实答案，必须照说');
+if (!heldText.includes('os-lock-v1'))
+  throw new Error('恢复协议要原样上屏，不改写成人话里的另一个词');
+if (!heldText.includes('读回 1 条'))
+  throw new Error('执行记录要给出条数');
+
+// A payload that arrived without `counts` is unread, not zero-filled. The sections are still
+// carried here on purpose: with them absent the page would crash on a missing field instead of
+// proving that the notice, not the table state, is what keeps the numbers off the screen.
+const partialView = await openRecordsWithRuntime({
+  schemaVersion: 'design-lab/native-runtime-readback/v1', project_id: 'p1',
+  host_guard: { table: 'ABSENT', rows: null },
+  quiescence: { table: 'ABSENT', rows: null },
+  reconciliation: { table: 'ABSENT', rows: null },
+  recovery_protocol: { table: 'ABSENT', rows: null },
+  executions: { table: 'ABSENT', rows: null },
+  budget: null, budget_reason: 'x', proves_production_ready: false,
+  is_host_action_performed: false, does_not_say: [],
+});
+// Scoped to the panel: the task rows already say "最近确认点未读回", so grepping the whole
+// view for 未读回 would pass even with the runtime notice switched off.
+const runtimePanel = (view) => {
+  const found = [];
+  walkNodes(view, (node) => {
+    if (node?.tagName === 'DIV' && (node.textContent || '').includes('运行与恢复现场'))
+      found.push(node);
+  });
+  return found[found.length - 1] ?? null;
+};
+const panelOf = (view) => ((runtimePanel(view)?.textContent) || '').replace(/\s+/g, ' ');
+const partialPanel = panelOf(partialView);
+if (!partialPanel) throw new Error('找不到运行时面板本体');
+if (!partialPanel.includes('未读回：没有问到'))
+  throw new Error(`缺 counts 的读回必须在面板里报"未读回：没有问到"：${partialPanel.slice(0, 200)}`);
+if (partialPanel.includes('从未记录过原生作业'))
+  throw new Error('未读回时不得借用 ABSENT 的说法——那是对表存在与否的判断，而这次什么都没读到');
+
+const heldView2 = await openRecordsWithRuntime(RUNTIME_HELD);
+const heldPanel = panelOf(heldView2);
+if (heldPanel.includes('未读回：没有问到'))
+  throw new Error('完整读回却被当成未读回：notice 不能反过来吞掉已有的数字');
+
+// The panel is observation only: no button inside it may be clickable.
+const panelButtons = [];
+walkNodes(runtimePanel(heldView2), (node) => {
+  if (node?.tagName === 'BUTTON') panelButtons.push(node);
+});
+if (panelButtons.length)
+  throw new Error(`运行时面板里画了 ${panelButtons.length} 个按钮：这一面只观察，`
+    + '启动/取消是宿主副作用，不该出现在这里');
+
+console.log('ok: ⑯ 运行与恢复现场：ABSENT/空表/未读回三种说法互不混用，占用按 host→attempt 上屏，'
+  + '回执数与记录数分开，预算作为无该字段带理由，does_not_say 逐句成行，面板内没有任何可点动作');
 
 console.log('APPSHELL REGRESSION: all checks passed');

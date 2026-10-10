@@ -7,8 +7,8 @@ baseline_sha: 2aca27f69b1909251640382ed3b4195cf9accd9b
 created: 2026-09-01
 supersedes: DL-DIR-MIG-R1
 
-taskpack: DL-TP-20260908-R5
-taskpack_path: docs/history/taskpacks/r5-20260908/tasks.json
+taskpack: DL-TP-20261009-UI-FIRST-R1
+taskpack_path: docs/taskpacks/DESIGN-LAB-UI-FIRST-INTEGRATED-TASKPACK-2026-10-09.md
 deepseek_authority_taskpack: DL-TP-20260914-DEEPSEEK-AUTHORITY-R1
 deepseek_authority_taskpack_path: docs/taskpacks/DESIGN-LAB-DEEPSEEK-AUTHORITY-TASKPACK-2026-09-14.md
 deepseek_authority_ledger: reports/current/DEEPSEEK-AUTHORITY-LEDGER-2026-09-14.json

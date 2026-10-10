@@ -50,9 +50,14 @@ debt:
     - "#fff"
     - "transparent"
 
-# The same 12 hash routes the in-repo overflow gate sweeps (audit_workbench_overflow.mjs
-# ROUTES), so the two scans answer about the same pages. The four 390x844 screens are
-# the mobile states where the nav and KPI rows have been contested.
+# The same hash routes the in-repo overflow gate sweeps (audit_workbench_overflow.mjs
+# ROUTES), so the two scans answer about the same pages. The list grew from 12 to 18 on
+# 2026-10-09 because DL-UI-U01..U05 added #/capabilities, #/states, #/components,
+# #/intake, #/analysis and #/plan; a screen that is not listed here is never opened by
+# this scanner, and "the plugin found nothing" would then be a statement about the list.
+# The four 390x844 screens are the mobile states where the nav and KPI rows have been
+# contested; mobile implementation is FROZEN_DEFERRED by owner decision, but measuring it
+# is evidence, not implementation, so they stay scanned.
 screens:
   - name: workbench
     app: { url: "/workbench", waitUntil: "networkidle", waitForSelector: "#workspace" }
@@ -78,6 +83,18 @@ screens:
     app: { url: "/workbench#/collaboration", waitUntil: "networkidle", waitForSelector: "#route-view" }
   - name: settings
     app: { url: "/workbench#/settings", waitUntil: "networkidle", waitForSelector: "#route-view" }
+  - name: capabilities
+    app: { url: "/workbench#/capabilities", waitUntil: "networkidle", waitForSelector: "#route-view" }
+  - name: intake
+    app: { url: "/workbench#/intake", waitUntil: "networkidle", waitForSelector: "#route-view" }
+  - name: analysis
+    app: { url: "/workbench#/analysis", waitUntil: "networkidle", waitForSelector: "#route-view" }
+  - name: plan
+    app: { url: "/workbench#/plan", waitUntil: "networkidle", waitForSelector: "#route-view" }
+  - name: states
+    app: { url: "/workbench#/states", waitUntil: "networkidle", waitForSelector: "#route-view" }
+  - name: components
+    app: { url: "/workbench#/components", waitUntil: "networkidle", waitForSelector: "#route-view" }
   - name: dashboard-390
     app: { url: "/workbench#/dashboard", viewport: { width: 390, height: 844 },
            waitUntil: "networkidle", waitForSelector: "#route-view" }

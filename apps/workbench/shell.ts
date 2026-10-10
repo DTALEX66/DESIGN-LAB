@@ -6,9 +6,11 @@
 import type {
   AssetContentResponse,
   AssetListResponse,
+  AssetRecord,
   BriefLineageResponse,
   BriefRevisionResponse,
   BundleListResponse,
+  BriefListResponse,
   BundleRecord,
   DesignBrief,
   DesignDirection,
@@ -20,7 +22,11 @@ import type {
   DomainPackValidation,
   EnvironmentResponse,
   CapabilityLibraryResponse,
+  CapabilityRecord,
   EventListResponse,
+  NativeRuntimeResponse,
+  NativeRuntimeSection,
+  TaskRecord,
   HealthResponse,
   ProjectListResponse,
   TaskListResponse,
@@ -35,7 +41,7 @@ import { api, byId, connected, errMsg, projects, setStatus, token } from './work
 // W03 reuses the SAME pure domain helpers the legacy single-page brief flow uses
 // (design.ts): one validation rule, one error vocabulary, one idempotency key
 // source. Sharing them is what "统一旧单页与新路由的用户流程" means here.
-import { revisionHint, splitList, uuid, versionState } from './design.js';
+import { createBrief, reviseDirection, revisionHint, splitList, uuid, versionState } from './design.js';
 
 // Shared dev-mode marker (single source of truth, mirroring main.ts): true when
 // served by a Vite dev server (@vite/client injected) or via ?dev=1. Used to
@@ -203,6 +209,28 @@ const OFFLINE = {
   } as DomainListResponse,
 
   tasks: { tasks: [], next_cursor: null } as TaskListResponse,
+  // DL-UI-U06: every section is NOT_READ, never ABSENT. "This service never recorded a native
+  // attempt" is a claim about the database's table list, and a page that never reached the
+  // database has no basis for it -- the same distinction the read-back itself keeps, carried
+  // one layer further so an offline screen cannot borrow the service's honesty.
+  nativeRuntime: {
+    schemaVersion: 'design-lab/native-runtime-readback/v1',
+    project_id: '',
+    host_guard: { table: 'NOT_READ', rows: null },
+    quiescence: { table: 'NOT_READ', rows: null },
+    reconciliation: { table: 'NOT_READ', rows: null },
+    recovery_protocol: { table: 'NOT_READ', rows: null },
+    executions: { table: 'NOT_READ', rows: null },
+    counts: {
+      hosts_held: null, attempts_quiescent_receipted: null, reconciliations_open: null,
+      executions_receipted: null, executions_with_result: null,
+    },
+    budget: null,
+    budget_reason: '未读回：没有问到预算，因此既不能说有，也不能说没有',
+    proves_production_ready: false,
+    is_host_action_performed: false,
+    does_not_say: [],
+  } as NativeRuntimeResponse,
   bundles: { bundles: [] } as BundleListResponse,
   designLayer: {
     design_layer: {
@@ -231,20 +259,48 @@ const OFFLINE = {
 // Views are bound to REAL service routes only (no invented KPIs):
 //   dashboard / brand-systems / preflight-qa / settings -> /api/* readbacks
 //   the remaining IA slots carry no backend route today and HONESTLY say so.
+//
+// DL-UI-U01/U02 (2026-10-09) — 布局与架构按 20261009 包执行，配色不覆盖既有值。
+// 本表因此做两件事，都不改任何既有 hash：
+//   1. 每个槽位挂上 `entry`：新包的三入口（能力资产 / 分析与制作 / 成果与反馈）
+//      加一个辅助组。分组只是导航的呈现层，路由字节不变，旧链接继续可达。
+//   2. 增加三个槽位，全部落在**已有真实路由**上或**不需要后端**的规格面上：
+//        #/capabilities  GET /api/capabilities（renderCapabilityLibrary 已存在，
+//                        此前只嵌在仪表盘里，没有自己的入口）
+//        #/states        pack 屏 15 界面状态，静态合同面，不发请求
+//        #/components    pack 屏 16 组件规范，静态规格面，不发请求
+//      菜单数量不是永久产品限制（DL-TP-20261009-UI-FIRST-R1），所以这里加项是
+//      按新 IA 落地，不是往表上贴临时页；表里也没有为旧 B10 DOM 回退任何页面。
+//      两处按 12 项钉死的读数随之更新，并在原地写明原因：
+//        design-lab/tests/e2e/browser_design_layer_e2e.mjs 的移动端布局步
+//        design-lab/tests/e2e/{audit_workbench_overflow,audit_workbench_contrast}.mjs
+//        与 capture_workbench_screenshots.mjs 的页面清单（不进清单=从不被渲染，
+//        这是 2026-10-07 记下的那类覆盖洞）。
 // ============================================================================
+export const ROUTE_ENTRIES = ['能力资产', '分析与制作', '成果与反馈', '辅助'] as const;
+export type RouteEntry = (typeof ROUTE_ENTRIES)[number];
+
 export const ROUTE_VIEWS = [
-  { hash: '', view: 'workbench', label: '工作台' },
-  { hash: '#/dashboard', view: 'dashboard', label: '仪表盘' },
-  { hash: '#/projects', view: 'projects', label: '项目' },
-  { hash: '#/research', view: 'research', label: '研究洞察' },
-  { hash: '#/brand-systems', view: 'brand-systems', label: '品牌系统' },
-  { hash: '#/domains', view: 'design-domains', label: '设计领域' },
-  { hash: '#/tools', view: 'creative-tools', label: '创作工具' },
-  { hash: '#/preflight', view: 'preflight-qa', label: '预检 / QA' },
-  { hash: '#/deliverables', view: 'deliverables', label: '交付中心' },
-  { hash: '#/evidence', view: 'evidence', label: '证据系统' },
-  { hash: '#/collaboration', view: 'collaboration', label: '团队协作' },
-  { hash: '#/settings', view: 'settings', label: '系统设置' },
+  { hash: '#/capabilities', view: 'capabilities', label: '能力目录', entry: '能力资产' },
+  { hash: '#/domains', view: 'design-domains', label: '设计领域', entry: '能力资产' },
+  { hash: '#/brand-systems', view: 'brand-systems', label: '品牌系统', entry: '能力资产' },
+  { hash: '#/tools', view: 'creative-tools', label: '创作工具', entry: '能力资产' },
+  { hash: '#/projects', view: 'projects', label: '项目', entry: '分析与制作' },
+  { hash: '#/research', view: 'research', label: '研究洞察', entry: '分析与制作' },
+  { hash: '#/intake', view: 'intake', label: '输入与目标', entry: '分析与制作' },
+  { hash: '#/analysis', view: 'analysis', label: '分析与方案', entry: '分析与制作' },
+  { hash: '#/plan', view: 'plan', label: '目标生成包', entry: '分析与制作' },
+  // R2 §2 把「制作记录与待继续」放在分析与制作入口下：它是找回工作的入口，不是成果面。
+  { hash: '#/records', view: 'records', label: '制作记录与待继续', entry: '分析与制作' },
+  { hash: '#/deliverables', view: 'deliverables', label: '交付中心', entry: '成果与反馈' },
+  { hash: '#/evidence', view: 'evidence', label: '证据系统', entry: '成果与反馈' },
+  { hash: '#/preflight', view: 'preflight-qa', label: '预检 / QA', entry: '成果与反馈' },
+  { hash: '', view: 'workbench', label: '工作台', entry: '辅助' },
+  { hash: '#/dashboard', view: 'dashboard', label: '仪表盘', entry: '辅助' },
+  { hash: '#/settings', view: 'settings', label: '系统设置', entry: '辅助' },
+  { hash: '#/collaboration', view: 'collaboration', label: '团队协作', entry: '辅助' },
+  { hash: '#/states', view: 'ui-states', label: '界面状态', entry: '辅助' },
+  { hash: '#/components', view: 'ui-components', label: '组件规范', entry: '辅助' },
 ] as const;
 export type RouteView = (typeof ROUTE_VIEWS)[number]['view'];
 
@@ -257,14 +313,30 @@ export function viewLabel(view: string): string {
 // ---------------------------------------------------------------------------
 // B07 route #3 is `/projects/:id` (project-detail). It must NOT become a
 // ROUTE_VIEWS entry, for two independently verified reasons:
-//   1. the browser E2E asserts `.app-nav-item` length === 12
-//      (design-lab/tests/e2e/browser_design_layer_e2e.mjs:385). ROUTE_VIEWS
-//      already has exactly 12 entries; a 13th would fail that gate.
-//   2. B10's sidebar has 11 items and no detail page, so a nav button for it
-//      would break the 1:1 sidebar (verified by the B10 dom-diff).
+//   1. the browser E2E counts `.app-nav-item` and requires it to equal the number
+//      of ROUTE_VIEWS entries exactly (design-lab/tests/e2e/
+//      browser_design_layer_e2e.mjs, mobile appshell layout step). That reading is
+//      "every table entry reached the screen as a real button", so a parameterized
+//      route with no page of its own would make the count claim something untrue.
+//      The number itself moved 12 -> 15 on 2026-10-09 when the adopted IA added
+//      three slots; a detail route is not one of them.
+//   2. A sidebar button for a detail page is wrong regardless of the count: the
+//      page has no meaning without an id, so it would navigate to nothing.
 // So the parameterized route is resolved SEPARATELY and is reachable only by
 // navigating from a project row — which is how a detail page should work.
-export type AppView = RouteView | 'project-detail';
+export type AppView = RouteView | 'project-detail' | 'capability-detail' | 'domain-detail';
+
+/** Which nav entry a parameterized detail address lives inside.
+ *
+ * R2 §2/§5 make these routes second-level entries of a list, so selecting one must keep
+ * the parent entry highlighted. Without this the nav goes blank on `#/projects/p-1`,
+ * `#/capabilities/<id>` and `#/domains/<packId>`, which reads as "you have left the
+ * catalog" at exactly the moment the reader drilled into it. */
+const DETAIL_NAV_OWNER: Partial<Record<AppView, RouteView>> = {
+  'project-detail': 'projects',
+  'capability-detail': 'capabilities',
+  'domain-detail': 'design-domains',
+};
 
 const PROJECT_DETAIL_RE = /^#\/projects\/([^/?#]+)$/;
 // Project ids are `uuid4().hex` service-side. Validating the DECODED value is
@@ -290,6 +362,58 @@ export function projectDetailId(hash: string): string | null {
 /** Hash for the project-detail route (B07 `/projects/:id`). */
 export function projectDetailHash(id: string): string {
   return '#/projects/' + encodeURIComponent(id);
+}
+
+// DL-UI-U03 (R2 §5): a capability's full detail must be re-findable, so it gets its own
+// address the same way a project does. Same hardening as above -- validate the DECODED
+// id, because the shape regex admits `%`. Measured charset of the 60 recorded ids is
+// `[a-z0-9-]`, longest 27; anything else (traversal, encoded slash, bare `%`) resolves to
+// "no such route" rather than reaching the payload lookup.
+// DETAIL_ID_RE is shared with the domain-pack detail address below: both identities are
+// repo-declared lower slugs, and one validated shape is one less place to drift.
+const CAPABILITY_DETAIL_RE = /^#\/capabilities\/([^/?#]+)$/;
+const DETAIL_ID_RE = /^[a-z0-9][a-z0-9-]{0,79}$/;
+
+/** Capability id from a `#/capabilities/<id>` hash, or null for any other hash. */
+export function capabilityDetailId(hash: string): string | null {
+  const m = CAPABILITY_DETAIL_RE.exec(hash);
+  if (!m || !m[1]) return null;
+  let decoded: string;
+  try {
+    decoded = decodeURIComponent(m[1]);
+  } catch {
+    return null;
+  }
+  return DETAIL_ID_RE.test(decoded) ? decoded : null;
+}
+
+/** Hash for one capability's detail address. */
+export function capabilityDetailHash(id: string): string {
+  return '#/capabilities/' + encodeURIComponent(id);
+}
+
+// R2 §2 — the domain packs are second-level entries, so one pack needs its own address
+// the same way one capability does. `packId` (not `directory`) is the stable identity a
+// manifest declares, so it is what travels in the hash; a pack whose manifest declares
+// no pack_id has no addressable detail and stays in the list.
+const DOMAIN_DETAIL_RE = /^#\/domains\/([^/?#]+)$/;
+
+/** Pack id from a `#/domains/<packId>` hash, or null for any other hash. */
+export function domainDetailId(hash: string): string | null {
+  const m = DOMAIN_DETAIL_RE.exec(hash);
+  if (!m || !m[1]) return null;
+  let decoded: string;
+  try {
+    decoded = decodeURIComponent(m[1]);
+  } catch {
+    return null;
+  }
+  return DETAIL_ID_RE.test(decoded) ? decoded : null;
+}
+
+/** Hash for one domain pack's detail address, or null when the pack declares no id. */
+export function domainDetailHash(packId: string | null | undefined): string | null {
+  return packId ? '#/domains/' + encodeURIComponent(packId) : null;
 }
 
 // Honest "not open yet" copy per IA slot that has no backend route today.
@@ -1889,7 +2013,7 @@ function researchNumber(data: ResearchReadback, key: keyof ResearchReadback): st
   return typeof value === 'number' ? String(value) : '未读回';
 }
 
-function researchFacts(data: ResearchReadback): HTMLElement {
+export function researchFacts(data: ResearchReadback): HTMLElement {
   const verdict = data.research_verdict;
   // A word here at all would be a claim this surface does not make; anything non-null means the
   // service changed its vocabulary and the page says so instead of quietly painting a badge.
@@ -1927,7 +2051,7 @@ function researchFacts(data: ResearchReadback): HTMLElement {
       '本读回未给出 does_not_prove，因此无法说明这些数字不覆盖什么。')]));
 }
 
-function researchFindingRows(data: ResearchReadback): HTMLElement {
+export function researchFindingRows(data: ResearchReadback): HTMLElement {
   const current = data.current_findings ?? {};
   const findings = data.findings ?? [];
   if (!findings.length) {
@@ -2225,7 +2349,64 @@ function valueRow(label: string, value: string, long: boolean, tagClass = 'info'
 // installs nothing, licenses nothing and qualifies nothing, and an unqualified record
 // stays null rather than becoming a score. The persisted research CONCLUSIONS are still
 // not open and this page says so rather than letting the live table imply otherwise.
-export async function renderCapabilityLibrary(target: HTMLElement): Promise<void> {
+// ---------------------------------------------------------------------------
+// DL-UI-U03 (2026-10-09) — 能力详情：七轴取值、资格依据、许可前置。
+//
+// 这一块的每一条都从记录本身说话，不替记录补结论：
+//   * 轴有值 → 列出值；轴是空容器 → 说"未分类"；轴是 null → 说"该记录无此字段"。
+//     三者不能混为一谈，否则一个没做过的人工分类会看起来像一个已完成的判定。
+//   * qualified=null 是"没有资格记录"，不是"不合格"；服务端把理由随记录一起给出
+//     （capability_library._qualification），界面原样转述。
+//   * 「使用此能力」当前必须禁用：目标生成包还没接（DL-UI-U05），一个按下去不产生
+//     目标包的按钮就是本任务包禁止的假动作。
+// ---------------------------------------------------------------------------
+function axisValueText(value: unknown): string {
+  if (value === null || value === undefined) return '该记录无此字段';
+  if (Array.isArray(value)) return value.length ? value.join('、') : '未分类';
+  if (typeof value === 'object') {
+    const entries = Object.entries(value as Record<string, unknown>);
+    return entries.length ? entries.map(([k, v]) => `${k}：${String(v)}`).join(' · ') : '未分类';
+  }
+  return String(value);
+}
+
+function capabilityDetail(c: CapabilityRecord): HTMLElement {
+  const axes = Object.entries(c.axes ?? {});
+  return el('details', { class: 'capability-detail' },
+    el('summary', {}, '能力详情 · 七轴、资格依据与许可前置'),
+    el('ul', { class: 'list' },
+      ...axes.map(([axis, value]) => el('li', { class: 'list-item' },
+        el('div', {}, el('strong', {}, en(axis)),
+          el('small', {}, axisValueText(value))))),
+      el('li', { class: 'list-item' },
+        el('div', {}, el('strong', {}, '资格判定'),
+          el('small', {}, c.qualified === null
+            ? (c.qualificationReason ?? '未判定')
+            : `已判定为 ${String(c.qualified)}；证据 ${
+              (c.qualificationEvidence ?? []).join('、') || '未列出'}`))),
+      el('li', { class: 'list-item' },
+        el('div', {}, el('strong', {}, '许可与权利'),
+          el('small', {}, `${c.license ?? '无许可记录'}`
+            + `${c.licenseUrl ? ` · ${c.licenseUrl}` : ''}`
+            + `${c.rightsNotes ? ` · ${c.rightsNotes}` : ''}`
+            + '；许可分布不等于使用权，未审的素材不得进入正式交付。'))),
+      el('li', { class: 'list-item' },
+        el('div', {}, el('strong', {}, '证据级'),
+          el('small', {}, c.evidenceLevel
+            ? `${en(c.evidenceLevel)} · 证据级只说明观察强度，不等于设计质量或宿主可运行`
+            : '未记录证据级'))),
+      el('li', { class: 'list-item' },
+        el('div', {}, el('strong', {}, '反例与不适用'),
+          el('small', {}, '仓内尚无按能力记录的失败样本或反例；'
+            + '没有记录就说没有记录，不把空白读成"没有已知问题"。')))),
+    el('button', { type: 'button', class: 'primary-btn', disabled: '' }, '使用此能力'),
+    el('p', { class: 'view-hint' },
+      '此按钮当前禁用：把能力落成目标生成包属于 DL-UI-U05 / DL-FINAL-T10，'
+      + '接通之前它不该看起来可用。'));
+}
+
+export async function renderCapabilityLibrary(target: HTMLElement,
+                                   opts: { openId?: string | null } = {}): Promise<void> {
   target.replaceChildren(el('p', { class: 'view-loading' }, '正在读回能力库…'));
   const data = await apiOrEmpty<CapabilityLibraryResponse>('/capabilities', OFFLINE.capabilities);
   const rows = data.capabilities;
@@ -2235,14 +2416,153 @@ export async function renderCapabilityLibrary(target: HTMLElement): Promise<void
   const shown = el('span', { class: 'muted', id: 'capability-shown' }, '');
   const body = el('tbody', {});
 
+  // DL-UI-U03 权限/许可前置过滤。候选值只从本批读回里取，不再抄一份枚举表；
+  // 没有该字段的记录单独成「无记录」一档——否则它会被静默滤掉，读起来像 0 条。
+  type FacetField = 'license' | 'disposition' | 'presence' | 'evidenceLevel';
+  const FACETS: ReadonlyArray<{ field: FacetField; label: string }> = [
+    { field: 'license', label: '许可' },
+    { field: 'disposition', label: '处置' },
+    { field: 'presence', label: '存在状态' },
+    { field: 'evidenceLevel', label: '证据级' },
+  ];
+  const ANY = '__any__';
+  const NONE = '__none__';
+  const facetPicks = FACETS.map((facet) => {
+    const values = Array.from(new Set(rows.map((c) => c[facet.field])))
+      .sort((a, b) => (a ?? '\uffff').localeCompare(b ?? '\uffff'));
+    const select = el('select', { class: 'input', 'aria-label': `按${facet.label}过滤` },
+      el('option', { value: ANY }, `全部${facet.label}（${values.length} 个取值）`),
+      ...values.map((v) => el('option', { value: v ?? NONE }, v ?? '无记录')));
+    return { field: facet.field, label: facet.label, select };
+  });
+
+  // R2 §4 资产类型 tabs. Each tab is a predicate over a field the readback really carries,
+  // and a tab that comes back empty has to say which field it asked and what that silence
+  // means: an unclassified axis is NOT the service answering "there are none" (§2: 保留入口、
+  // 显示空结果、不伪造能力、不因零条移除分类).
+  //
+  // Two traps, both measured on 2026-10-09 rather than assumed:
+  //   * 可调用能力 must not be counted by `kind`. `kind` answers "what sort of record is
+  //     this" (source 46 / model 14 = all 60 records); callability is `qualified`, and this
+  //     readback reports counts.qualified = 0. Wiring the tab to `kind` would let the screen
+  //     claim 60 callable capabilities on the strength of a type label.
+  //   * The three type tabs all group by `artifactTypes`, which carries no value for any
+  //     record. Splitting them by name would mean inventing the value words, and the card
+  //     says 取值必须来自既有分类轴，不新建字典. So they are one undivided empty set here,
+  //     and the panel says the split is pending human classification instead of implying
+  //     three separately measured groups.
+  const axisFilled = (c: CapabilityRecord, axis: string): boolean => {
+    const v = (c.axes as Record<string, unknown> | undefined)?.[axis];
+    return Array.isArray(v) ? v.length > 0 : v !== undefined && v !== null;
+  };
+  const TYPE_TAB_NOTE = '这一类与相邻两类都按 artifactTypes 轴分组，而本批读回里该轴没有任何'
+    + '取值，所以三类目前给的是同一个空集——不是三种各自量出来的"没有"。等人工分类补上取值后，'
+    + '各 tab 的归属由该轴自己的值决定，这里不替它猜词表。';
+  const ASSET_TABS: ReadonlyArray<{ label: string; basis: string;
+    members: (c: CapabilityRecord) => boolean; note: string }> = [
+    { label: '全部资产', basis: '本批读回的全部记录', members: () => true, note: '' },
+    { label: '可调用能力', basis: 'qualified',
+      members: (c) => c.qualified !== null,
+      note: '这一类按资格判定字段计数，不按 kind：kind 说的是记录类型，可调用性说的是资格。'
+        + '本批读回没有任何一条给出资格判定（未判定不等于不合格，也不等于可用）。' },
+    { label: '规范与方法', basis: 'artifactTypes',
+      members: (c) => axisFilled(c, 'artifactTypes'), note: TYPE_TAB_NOTE },
+    { label: '案例与参考', basis: 'artifactTypes',
+      members: (c) => axisFilled(c, 'artifactTypes'), note: TYPE_TAB_NOTE },
+    { label: '模板与配方', basis: 'artifactTypes',
+      members: (c) => axisFilled(c, 'artifactTypes'), note: TYPE_TAB_NOTE },
+  ];
+  let tabPick = 0;
+  const tabsBox = el('div', { class: 'asset-tabs', role: 'tablist',
+    'aria-label': '资产类型' });
+  // An unread readback is not an empty one. Before this existed the tab strip printed a
+  // confident "0" for every type when the response had omitted `capabilities` (or when
+  // nothing was connected), which is the exact lie appshell block ⑨ was written to catch.
+  const unreadReadback = (): boolean => Boolean(disconnectedNotice(data))
+    || shapeFieldMissing(data, 'capabilities');
+  // A bare "0" on a tab whose axis nobody classified reads as "this category is empty",
+  // which is a different claim from "the field carries no value on any record" -- the same
+  // inversion this batch had to refuse for the domain entries. So the badge names which of
+  // the two it is, derived from the readback rather than hardcoded per tab. 可调用能力 keeps
+  // its number: zero qualification verdicts IS a measured answer.
+  const axisPopulated = (axis: string): boolean => rows.some((c) => axisFilled(c, axis));
+  const tabBadge = (t: typeof ASSET_TABS[number], n: number): string => {
+    if (unreadReadback()) return '未读回';
+    if (t.basis === 'artifactTypes' && !axisPopulated(t.basis)) return '未分类';
+    return String(n);
+  };
+
+  // R2 §4 已选条件条。每个不等于「全部」的取值一枚 chip，单独可移除；关键词也算一条。
+  // 「清除检索条件」只清检索——不清领域选择、不删任务，这是 §4 末段写死的边界。
+  const active = el('div', { class: 'capability-active', id: 'capability-active',
+    'aria-label': '已选检索条件' });
+  const chip = (label: string, value: string, remove: () => void): HTMLElement => el(
+    'span', { class: 'capability-chip' },
+    el('span', { class: 'capability-chip-text' }, `${label}：${value}`),
+    el('button', { type: 'button', class: 'capability-chip-x',
+      'aria-label': `移除条件 ${label} ${value}`, title: `移除 ${label}：${value}`,
+      onclick: () => { remove(); render(); } }, '×'));
+  const clearSearchOnly = (): void => {
+    filter.value = '';
+    for (const f of facetPicks) f.select.value = ANY;
+  };
+  const renderActive = (): void => {
+    const picked: HTMLElement[] = [];
+    const needleNow = (filter.value || '').trim();
+    if (needleNow) {
+      picked.push(chip('关键词', needleNow, () => { filter.value = ''; }));
+    }
+    for (const f of facetPicks) {
+      const v = f.select.value;
+      if (v === ANY || v === '') continue;
+      picked.push(chip(f.label, v === NONE ? '无记录' : v, () => { f.select.value = ANY; }));
+    }
+    if (!picked.length) {
+      active.replaceChildren(el('span', { class: 'muted' },
+        '没有检索条件：下面显示的是这一批读回的全部记录。'));
+      return;
+    }
+    active.replaceChildren(
+      el('span', { class: 'muted' }, `已选 ${picked.length} 项条件`),
+      ...picked,
+      el('button', { type: 'button', class: 'secondary', id: 'capability-clear',
+        onclick: () => { clearSearchOnly(); render(); } }, '清除检索条件'));
+  };
+
   const render = (): void => {
     const needle = (filter.value || '').trim().toLowerCase();
-    const keep = needle
-      ? rows.filter((c) => [c.id, c.license, c.domain, c.disposition, c.presence,
-                            c.revisionState, c.sourceType, c.evidenceLevel,
-                            c.upstreamOwner].join(' ').toLowerCase().includes(needle))
-      : rows;
-    body.replaceChildren(...keep.map((c) => el('tr', {},
+    const faceted = rows.filter((c) => (needle
+      ? [c.id, c.license, c.domain, c.disposition, c.presence,
+         c.revisionState, c.sourceType, c.evidenceLevel,
+         c.upstreamOwner].join(' ').toLowerCase().includes(needle)
+      : true)
+      && facetPicks.every((f) => {
+        const want = f.select.value;
+        // 未选择 = 全部。真实浏览器里 <select> 默认落在第一个 option（ANY）上，
+        // 但 vm 桩没有选择模型、.value 恒为 ''，所以空串必须同样读成"全部"，
+        // 否则桩里这张表会被自己的过滤逻辑清空的假象污染成一条空读回。
+        if (want === ANY || want === '') return true;
+        if (want === NONE) return c[f.field] === null || c[f.field] === undefined;
+        return c[f.field] === want;
+      }));
+    const tab = ASSET_TABS[tabPick];
+    const keep = faceted.filter(tab.members);
+    // Each tab's number is counted over the *faceted* set, so the strip adds up to what the
+    // reader could actually get from here rather than to the whole library.
+    tabsBox.replaceChildren(...ASSET_TABS.map((t, i) => el('button', {
+      type: 'button', role: 'tab', id: `asset-tab-${i}`,
+      class: 'asset-tab' + (i === tabPick ? ' on' : ''),
+      'aria-selected': i === tabPick ? 'true' : 'false',
+      onclick: () => { tabPick = i; render(); },
+    }, el('span', {}, t.label),
+      el('small', {}, tabBadge(t, faceted.filter(t.members).length)))));
+    // R2 §4：结果计数是「当前组合条件下的去重记录数」。同一资产可以出现在多个领域的
+    // 结果里，但只有一份 ID/revision——所以按 ID 收敛，重复的不计第二条。
+    const byId = new Map<string, typeof keep[number]>();
+    for (const c of keep) if (!byId.has(c.id)) byId.set(c.id, c);
+    const unique = Array.from(byId.values());
+    const duplicates = keep.length - unique.length;
+    body.replaceChildren(...unique.map((c) => el('tr', {},
       el('td', {},
         el('strong', {}, c.id),
         el('div', { class: 'muted' }, `${c.kind} · ${c.sourceType ?? '未分类'}`),
@@ -2251,7 +2571,15 @@ export async function renderCapabilityLibrary(target: HTMLElement): Promise<void
         // recorded path for exactly this candidate.
         c.removalPath ? el('details', { class: 'capability-withdraw' },
           el('summary', {}, '撤回路径'),
-          el('p', { class: 'mono' }, c.removalPath)) : ''),
+          el('p', { class: 'mono' }, c.removalPath)) : '',
+        // DL-UI-U03: 详情随记录一起读回，不另开一页去猜。
+        capabilityDetail(c),
+        // R2 §5: 完整详情要有自己的地址，才谈得上"被重新找到"。行内展开是速览，
+        // 这个按钮把地址换成本条记录的稳定 ID。
+        el('button', { type: 'button', class: 'secondary capability-open',
+          'aria-label': `查看 ${c.id} 的完整详情`,
+          onclick: () => { window.location.hash = capabilityDetailHash(c.id); } },
+          '查看详情')),
       el('td', {}, c.license ?? '（无记录）'),
       el('td', {}, c.disposition ?? '—'),
       el('td', {}, c.presence ?? '—'),
@@ -2274,10 +2602,38 @@ export async function renderCapabilityLibrary(target: HTMLElement): Promise<void
             `★ ${c.popularity.stargazerCount ?? '—'} · fork ${c.popularity.forkCount ?? '—'}`
             + ` · ${c.popularity.observedAt?.slice(0, 10) ?? '未记时间'} · 非质量分`)
         : el('span', { class: 'muted' }, '未观测')))));
-    shown.textContent = `显示 ${keep.length} / ${rows.length} 条`;
+    if (!unique.length) {
+      // R2 §2: an empty result keeps its entry and says WHY. Three different silences and
+      // they get three different sentences -- nothing connected / collection never answered
+      // / a real readback in which the tab's own field matches nobody.
+      const headline = unreadReadback()
+        ? `${tab.label}：未读回`
+        : `${tab.label}：本批读回里这一类没有命中记录`;
+      const why = unreadReadback()
+        ? '这一批没有读回能力记录（未连接，或响应没有给出 capabilities），'
+          + '所以这里既不是 0 条，也不是这一类没有资产。'
+        : faceted.length === 0
+          ? `当前关键词与筛选组合下没有候选记录，所以这里说的是检索条件，`
+            + '不是这一类资产的有无。'
+          : `${tab.label} 按 ${tab.basis} 计数；在其余条件剩下的 ${faceted.length} 条候选里，`
+            + '这个字段没有给出任何命中的记录。';
+      body.append(el('tr', { class: 'asset-empty' },
+        el('td', { colspan: String(TABLE_COLUMNS.length) },
+          el('strong', {}, headline),
+          el('p', { class: 'view-hint' }, why),
+          tab.note ? el('p', { class: 'view-hint' }, tab.note) : '')));
+    }
+    shown.textContent = `显示 ${unique.length} / ${rows.length} 条`
+      + (duplicates ? `（本组合下按 ID 去掉 ${duplicates} 条重复）` : '（按 ID 去重）');
+    renderActive();
   };
   filter.oninput = () => { render(); };
+  for (const facet of facetPicks) facet.select.onchange = () => { render(); };
 
+  // The empty-state row spans this list, so the header and the colspan are the same array.
+  // Two hand-typed copies would let the span rot the day a column is added.
+  const TABLE_COLUMNS = ['能力', '许可', '处置', '存在状态', '修订', '资格判定', '证据级',
+    '热度（非质量分）'] as const;
   // 2026-10-08: this page used to carry the research slot's "not open" notice, because it WAS
   // the research slot. Findings now read back over GET /api/projects/{id}/research at the top of
   // this route, so restating a missing route here would be a claim the service no longer supports.
@@ -2298,14 +2654,17 @@ export async function renderCapabilityLibrary(target: HTMLElement): Promise<void
         `许可分布 ${Object.entries(data.counts.byLicense).map(([k, v]) => `${k} ${v}`).join(' · ')}`
         + `；修订 ${Object.entries(data.counts.byRevisionState).map(([k, v]) => `${k} ${v}`).join(' · ')}`
         + `；已判定 ${data.counts.qualified}。本视图不安装、不取证、不代签许可。`),
-      el('label', { class: 'project-picker' }, '过滤', filter),
+      tabsBox,
+      el('div', { class: 'project-picker capability-facets' },
+        el('label', { class: 'capability-filter' }, '关键词', filter),
+        ...facetPicks.map((f) => el('label', { class: 'capability-filter' },
+          f.label, f.select))),
+      active,
       el('div', { class: 'table-wrap', tabindex: '0', role: 'region',
         'aria-label': '能力库表（可横向滚动）' },
         el('table', { class: 'table' },
           el('thead', {}, el('tr', {},
-            el('th', {}, '能力'), el('th', {}, '许可'), el('th', {}, '处置'),
-            el('th', {}, '存在状态'), el('th', {}, '修订'), el('th', {}, '资格判定'),
-            el('th', {}, '证据级'), el('th', {}, '热度（非质量分）'))),
+            ...TABLE_COLUMNS.map((h) => el('th', {}, h)))),
           body))),
     el('div', { class: 'panel' },
       el('h3', {}, '分类轴现状'),
@@ -2321,8 +2680,100 @@ export async function renderCapabilityLibrary(target: HTMLElement): Promise<void
       el('h3', {}, '研究结论'),
       el('p', { class: 'view-hint' }, '研究结论已改为读本项目的持久化路由，在本页上方读回；这里保留登记表卡片本身，不再声称缺少路由。'),
       researchCard ? capabilityCard(researchCard) : el('p', { class: 'view-hint' }, '（登记表无此项）')),
+    capabilityDrawer(rows, opts.openId ?? null),
     ...shapeNoticeRows(data));
   render();
+  // R2 §5: focus lands inside the panel, so Tab and Esc continue from the detail instead
+  // of jumping back to the top of the page. Guarded because the vm harness has no
+  // getElementById.
+  if (opts.openId && typeof document !== 'undefined'
+    && typeof document.getElementById === 'function') {
+    const panel = document.getElementById('capability-drawer');
+    if (panel && typeof panel.focus === 'function') panel.focus();
+  }
+}
+
+/** R2 §5：一条能力的完整详情面板，由地址决定存不存在（不是隐藏着的浮层）。
+ *  非模态：背后仍可滚动可点，所以它不是 dialog，也不改挂 role="dialog"
+ *  （DESIGN.md §3 第 6 条与 `audit_workbench_ui.mjs` 的 role-permittedness 断言）。 */
+function capabilityDrawer(rows: readonly CapabilityRecord[],
+                          openId: string | null): HTMLElement {
+  if (!openId) return el('div', { class: 'cap-drawer-slot', hidden: '' });
+  const found = rows.find((c) => c.id === openId) ?? null;
+  if (!found) {
+    // The address is shareable; the record set is this batch's readback. A hash that
+    // names an id outside it says so instead of drawing an empty shell or borrowing
+    // another record's fields.
+    return el('section', { class: 'cap-drawer', id: 'capability-drawer', tabindex: '-1',
+      'aria-labelledby': 'cap-drawer-title' },
+      el('h3', { id: 'cap-drawer-title' }, '详情地址指向的记录不在本批读回里'),
+      stateBlock({
+        kind: 'unknown', title: '未找到该记录', weight: 'neutral',
+        producer: `#/capabilities/${openId} 不在本批 GET /api/capabilities 的 `
+          + `${rows.length} 条读回里；地址本身合法，但记录身份以读回为准。`,
+        next: '返回能力目录重选一条；不要按 ID 猜测这条能力的资格、许可或证据级。',
+      }),
+      el('div', { class: 'uif-row' },
+        el('button', { type: 'button', class: 'secondary',
+          onclick: () => { window.location.hash = '#/capabilities'; } }, '返回能力目录')));
+  }
+  const row = (label: string, value: HTMLElement | string): HTMLElement => el(
+    'div', { class: 'cap-drawer-row' },
+    el('span', { class: 'muted' }, label),
+    typeof value === 'string' ? el('span', {}, value) : value);
+  const panel = el('section', { class: 'cap-drawer', id: 'capability-drawer', tabindex: '-1',
+    'aria-labelledby': 'cap-drawer-title' },
+    el('div', { class: 'cap-drawer-head' },
+      el('h3', { id: 'cap-drawer-title' }, found.id),
+      el('button', { type: 'button', class: 'secondary', id: 'capability-drawer-close',
+        onclick: () => { window.location.hash = '#/capabilities'; } }, '返回能力目录')),
+    el('p', { class: 'uif-spec-note' },
+      `稳定 ID ${found.id} · 类型 ${found.kind} · 来源 `
+      + `${found.sourceType ?? '未分类'}。这一面板与列表行读的是同一份记录，`
+      + '不是第二份台账；地址可以贴给别人，但对方看到的仍是那一批读回的内容。'),
+    row('领域', found.domain
+      ? el('span', {}, found.domain) : el('span', { class: 'tag neutral' }, '未分类')),
+    row('资产类型', found.kind),
+    row('能力范围 / 资格判定', found.qualified === null
+      ? el('span', { class: 'tag neutral' }, '未判定')
+      : el('span', { class: 'tag info' }, String(found.qualified))),
+    el('p', { class: 'uif-spec-note' }, found.qualificationReason
+      ?? '资格依据：本条记录自带判定，无需补充理由。'),
+    row('许可', found.license ?? '（无记录）'),
+    row('处置 / 存在状态', `${found.disposition ?? '—'} · ${found.presence ?? '—'}`),
+    row('修订', el('span', {},
+      el('span', { class: 'tag ' + (found.revisionState === 'VERIFIED' ? 'ok' : 'warn') },
+        en(found.revisionState)),
+      found.revision ? el('span', { class: 'mono' }, ` ${found.revision}`) : '')),
+    row('证据级', found.evidenceLevel
+      ? el('span', { class: 'tag ' + (found.evidenceLevel === 'E0' ? 'warn' : 'info') },
+          en(found.evidenceLevel))
+      : el('span', { class: 'tag neutral' }, '未记录')),
+    row('热度（非质量分）', found.popularity
+      ? `★ ${found.popularity.stargazerCount ?? '—'} · fork ${found.popularity.forkCount ?? '—'}`
+        + ` · ${found.popularity.observedAt?.slice(0, 10) ?? '未记时间'}`
+      : '未观测'),
+    found.removalPath ? row('撤回路径', el('span', { class: 'mono' }, found.removalPath)) : '',
+    el('h4', {}, '分类轴'),
+    el('p', { class: 'uif-spec-note' },
+      '轴值来自候选分类账；为空的轴显示"未分类"而不是 0，也不由界面代填——填它是人工分类判断，'
+      + '属 DL-FINAL-T06 的验收内容。'),
+    el('ul', { class: 'cap-drawer-axes' }, ...Object.entries(found.axes ?? {}).map(([axis, v]) =>
+      el('li', {}, `${axis} · ${axisValueText(v)}`))),
+    el('div', { class: 'uif-row' },
+      el('button', { type: 'button', class: 'primary-btn', disabled: '' }, '用于本次制作'),
+      el('span', { class: 'theme-toggle-note' },
+        '禁用：把这条 ID 与 revision 带进制作上下文属 DL-UI-U04/U05，'
+        + '接通前它不该看起来可点。')),
+    el('p', { class: 'uif-spec-note' },
+      '本面板不宣称执行资格：分析、目标包生成、真实执行、原生工程交付与真人评审是不同结论，'
+      + '这里只读回记录里已有的字段。'));
+  // Esc on the panel returns to the catalog. Focus is moved in by the caller, so the
+  // keydown is scoped here rather than added to the global Escape chain.
+  panel.addEventListener('keydown', (event: KeyboardEvent) => {
+    if (event.key === 'Escape') window.location.hash = '#/capabilities';
+  });
+  return panel;
 }
 
 // ---------------------------------------------------------------------------
@@ -2378,8 +2829,20 @@ export function domainTone(value: DomainPackValidation | undefined): string {
   return value === undefined ? 'warn' : (DOMAIN_TONE[value] ?? 'warn');
 }
 
-/** One pack directory, identity and declared domain included. */
+/** One pack directory, identity and declared domain included.
+ *
+ * R2 §2 asks the domains to be second-level entries, so each row that owns a declared
+ * `pack_id` gets the same 查看详情 control a capability row uses. A pack whose manifest
+ * declares no id is not given a synthesised address — it says why it has none instead. */
 export function domainPackRow(pack: DomainPackRecord): HTMLElement {
+  const go = domainDetailHash(pack.packId);
+  // The verdict pill is emitted BEFORE the action. With the pill last, every row's action
+  // left edge moved with the width of the verdict word (VALIDATES is ~14px wider than
+  // INVALID), which read as a ragged column on the rendered screen; right-anchoring the
+  // pair puts the actions on one column and the pills on another. The overflow gate measures
+  // both edges now, so this ordering is no longer a matter of taste.
+  const verdict = el('span', { class: 'tag ' + domainTone(pack.validation) },
+    domainVerdict(pack.validation));
   return el('li', { class: 'list-item' },
     el('div', {},
       el('strong', {}, pack.displayName ?? domainRead(pack.directory)),
@@ -2389,11 +2852,100 @@ export function domainPackRow(pack: DomainPackRecord): HTMLElement {
         + ` · 领域 ${domainDeclared(pack.domain)}`
         + ` · 清单 schema ${domainDeclared(pack.manifestSchemaVersion)}`
         + ` · 依赖 ${domainDependencies(pack.dependencies)}`)),
-    el('span', { class: 'tag ' + domainTone(pack.validation) },
-      domainVerdict(pack.validation)));
+    verdict,
+    go
+      ? el('button', { type: 'button', class: 'secondary',
+        onclick: () => { window.location.hash = go; } }, '查看详情')
+      : el('span', { class: 'muted' }, '无独立地址：清单未声明 pack_id'));
 }
 
-export async function renderDomains(target: HTMLElement): Promise<void> {
+/** One domain pack's own facts, at its own address.
+ *
+ * This reuses the `.cap-drawer` component rather than adding a stylesheet block: a
+ * detail panel opened from a list row is the same shape for a capability and for a
+ * pack (head + label/value rows + a disabled action that says why). A second copy of
+ * that CSS would be design-system drift, not a new feature.
+ *
+ * What this panel may NOT do is list "该领域下的能力". Measured 2026-10-09 against the
+ * two readbacks: the capability `domains` classification axis is empty for all 60
+ * records, and the capability `domain` field carries model-radar families
+ * (`video-generation`, `asr`, …) whose single literal overlap with a pack slug (`3d`)
+ * is a string coincidence, not a declared relationship. GET /api/domains carries no
+ * capability reference field either, so any join drawn here would be invented by the
+ * page. The action is therefore shown disabled with that reason. */
+function domainDrawer(packs: readonly DomainPackRecord[],
+  openId: string | null): HTMLElement {
+  if (!openId) return el('div', { class: 'cap-drawer-slot', hidden: '' });
+  const found = packs.find((pack) => pack.packId === openId) ?? null;
+  const row = (label: string, value: HTMLElement | string): HTMLElement => el(
+    'div', { class: 'cap-drawer-row' },
+    el('span', { class: 'muted' }, label),
+    typeof value === 'string' ? el('span', {}, value) : value);
+
+  if (!found) {
+    // The address is shareable; the pack set is this call's readback. An id outside it
+    // says so instead of borrowing another pack's identity or drawing an empty shell.
+    return el('section', { class: 'cap-drawer', id: 'domain-drawer', tabindex: '-1',
+      'aria-labelledby': 'domain-drawer-title' },
+      el('h3', { id: 'domain-drawer-title' }, '详情地址指向的域包不在本批读回里'),
+      stateBlock({
+        kind: 'unknown', title: '未找到该域包', weight: 'neutral',
+        producer: `#/domains/${openId} 不在本批 GET /api/domains 的 `
+          + `${packs.length} 个域包目录读回里；地址本身合法，但域包身份以读回为准。`,
+        next: '返回域包登记重选一条；不要按 pack_id 猜测它的判定、版本或依赖。',
+      }),
+      el('div', { class: 'uif-row' },
+        el('button', { type: 'button', class: 'secondary',
+          onclick: () => { window.location.hash = '#/domains'; } }, '返回域包登记')));
+  }
+
+  const facts = [
+    row('目录', el('span', { class: 'mono' }, domainRead(found.directory))),
+    row('pack_id', el('span', { class: 'mono' }, domainDeclared(found.packId))),
+    row('声明领域', domainDeclared(found.domain)),
+    row('版本', domainDeclared(found.version)),
+    row('清单 schema', el('span', { class: 'mono' },
+      domainDeclared(found.manifestSchemaVersion))),
+    row('依赖', domainDependencies(found.dependencies)),
+    row('结构判定', el('span', { class: 'tag ' + domainTone(found.validation) },
+      domainVerdict(found.validation))),
+    row('判定原因', found.validationErrors.length
+      ? el('span', {}, found.validationErrors.join(' ｜ ')
+        + (found.validationErrors.length < (found.validationErrorCount ?? 0)
+          ? `（校验器共 ${found.validationErrorCount} 条，此处每条只取首行）` : ''))
+      : (found.validation === 'VALIDATES'
+        ? '校验器未给出问题条目（结构级 E1，不是领域能力验收）'
+        : '校验器未给出逐条原因')),
+    row('服务备注', found.note ?? '（服务未给备注）'),
+    el('div', { class: 'cap-drawer-row' },
+      el('button', { type: 'button', class: 'secondary', disabled: '',
+        title: 'GET /api/domains 的域包记录不含能力关联字段，界面无法据此筛选。' },
+        '按该领域筛选能力'),
+      el('span', { class: 'muted' },
+        '未接线：本路由的域包记录里没有任何指向能力目录的字段，能力侧的领域分类也没有'
+        + '已接线的关联。把域包连到能力是能力目录侧的分类工作，补上之后由服务给出，'
+        + '不由本界面猜测。能力侧目前哪些轴为空，看能力库自己的未分类轴清单。')),
+  ];
+  const panel = el('section', { class: 'cap-drawer', id: 'domain-drawer', tabindex: '-1',
+    'aria-labelledby': 'domain-drawer-title' },
+    el('div', { class: 'cap-drawer-head' },
+      el('h3', { id: 'domain-drawer-title' },
+        found.displayName ?? domainRead(found.directory)),
+      el('button', { type: 'button', class: 'secondary', id: 'domain-drawer-close',
+        onclick: () => { window.location.hash = '#/domains'; } }, '返回域包登记')),
+    ...facts,
+    el('p', { class: 'view-hint' },
+      '这里的每一项都来自 GET /api/domains 对这一个目录的读回；判定词来自仓内校验器 ',
+      el('span', { class: 'mono' }, domainRead('design-lab/scripts/verify_domain_pack_v2.py')),
+      '。', en('VALIDATES'), ' 只说明结构合规。'));
+  panel.addEventListener('keydown', (event: KeyboardEvent) => {
+    if (event.key === 'Escape') window.location.hash = '#/domains';
+  });
+  return panel;
+}
+
+export async function renderDomains(target: HTMLElement,
+  opts: { openId?: string | null } = {}): Promise<void> {
   target.replaceChildren(el('p', { class: 'view-loading' }, '正在读回域包…'));
   const data = await apiOrEmpty<DomainListResponse>('/domains', OFFLINE.domains);
   // The seam refills collections at the response level; a pack ROW whose own list is
@@ -2492,6 +3044,7 @@ export async function renderDomains(target: HTMLElement): Promise<void> {
     pageHead,
     kpis,
     ...banner,
+    domainDrawer(packs, opts.openId ?? null),
     packList,
     findingPanel,
     el('p', { class: 'view-hint' },
@@ -2584,7 +3137,12 @@ export async function renderSettings(target: HTMLElement): Promise<void> {
 // only GETs below this point.
 export async function projectPickerPanel(target: HTMLElement, title: string,
                          body: (projectId: string) => Promise<HTMLElement>,
-                         preamble?: HTMLElement): Promise<void> {
+                         preamble?: HTMLElement,
+                         // 选择器本身只 GET；但页面会不会写入由调用方决定，所以这句
+                         // 说明是参数而不是常量。输入与目标页会提交简报，它若继续显示
+                         // "本页不提交、不修改"，屏幕上就是一句假话（2026-10-09 读渲染图
+                         // 时发现）。默认值保持原句，其余只读页逐字节不变。
+                         caption: string = '只读回服务端台账；本页不提交、不修改。'): Promise<void> {
   target.replaceChildren(el('p', { class: 'view-loading' }, '正在读回项目台账…'));
   const data = await apiOrEmpty<ProjectListResponse>('/projects', OFFLINE.projects);
   const unread = shapeNotice(data);
@@ -2597,7 +3155,7 @@ export async function projectPickerPanel(target: HTMLElement, title: string,
     target.replaceChildren(
       el('div', { class: 'page-head' },
         el('div', {}, el('h2', {}, title),
-          el('p', {}, '只读回服务端台账；本页不提交、不修改。'))),
+          el('p', {}, caption))),
       // A preamble is a section that does not depend on picking a project. It renders on the empty
       // ledger too, because "this checkout has no projects" says nothing about the repo's own
       // evidence state -- hiding that section behind a missing selection would make it unaskable.
@@ -2619,7 +3177,7 @@ export async function projectPickerPanel(target: HTMLElement, title: string,
   target.replaceChildren(
     el('div', { class: 'page-head' },
       el('div', {}, el('h2', {}, title),
-        el('p', {}, '只读回服务端台账；本页不提交、不修改。'))),
+        el('p', {}, caption))),
     ...(preamble ? [preamble] : []),
     el('label', { class: 'project-picker' }, '项目', select), content,
     ...shapeNoticeRows(data));
@@ -4703,6 +5261,25 @@ export async function renderRoute(view: AppView, target: HTMLElement): Promise<v
     case 'deliverables': await renderDeliverables(target); return;
     case 'evidence': await renderEvidence(target); return;
     case 'design-domains': await renderDomains(target); return;
+    // R2 §2: the same registry addressed at one pack. The list stays rendered so the
+    // detail is read inside its context instead of replacing it.
+    case 'domain-detail': await renderDomains(target,
+      { openId: domainDetailId(window.location.hash) }); return;
+    // DL-UI-U02 首批页面。能力目录读的是**已有**路由 GET /api/capabilities
+    // （renderCapabilityLibrary 早就存在，此前只嵌在仪表盘里没有自己的入口）；它自己
+    // 带标题「能力库」，所以这里不再叠一层 h2——2026-10-09 读渲染图时发现两块标题
+    // 叠在一起。界面状态与组件规范是规格面，不发请求，所以也不可能编造记录。
+    case 'capabilities': await renderCapabilityLibrary(target); return;
+    // R2 §5: the same catalog, addressed at one record. The list stays rendered so the
+    // detail is read *inside* its context instead of replacing it.
+    case 'capability-detail': await renderCapabilityLibrary(target,
+      { openId: capabilityDetailId(window.location.hash) }); return;
+    case 'intake': await renderIntake(target); return;
+    case 'analysis': await renderAnalysis(target); return;
+    case 'plan': await renderPlan(target); return;
+    case 'records': await renderRecords(target); return;
+    case 'ui-states': renderUiStates(target); return;
+    case 'ui-components': renderUiComponents(target); return;
     // B07 `/projects/:id`. The id comes from the hash (renderRoute receives only
     // the resolved view, matching the existing signature).
     case 'project-detail': {
@@ -4739,7 +5316,7 @@ export function mountAppShell(): void {
   const workspace = byId<HTMLDivElement>('workspace');
   const nav = el('nav', { class: 'app-nav', 'aria-label': 'DESIGN-LAB 导航' },
     el('span', { class: 'app-nav-brand' }, 'DESIGN-LAB'),
-    ...ROUTE_VIEWS.map((route) => el('button', {
+    ...navGroupChunks(ROUTE_VIEWS, (route) => el('button', {
       type: 'button', class: 'app-nav-item', dataset: { route: route.view },
       onclick: () => { window.location.hash = route.hash === '' ? '' : route.hash; },
     }, route.label)),
@@ -4777,6 +5354,9 @@ export function mountAppShell(): void {
   // + main.main > header.topbar + section.content#content).
   const b10 = mountB10Shell(routeView, syncLegacyNavCue);
   if (!b10) document.body.append(routeView);
+  // 配色主题在壳装好后立刻按 URL 参数落一次属性，并把控件挂到当前可见的那层
+  // chrome 上。默认（URL 不带参数）就是既有 design-lab 色板，不改变任何像素。
+  mountThemeControls();
 
   const active = (view: string): void => {
     for (const item of Array.from(nav.querySelectorAll<HTMLButtonElement>('.app-nav-item'))) {
@@ -4791,6 +5371,10 @@ export function mountAppShell(): void {
     // Parameterized B07 route resolved BEFORE the exact-match table (it has no
     // ROUTE_VIEWS entry by design — see the AppView comment).
     if (projectDetailId(window.location.hash)) return 'project-detail';
+    // DL-UI-U03 / R2 §5: same shape for one capability's detail address.
+    if (capabilityDetailId(window.location.hash)) return 'capability-detail';
+    // R2 §2: one domain pack's detail address, same shape again.
+    if (domainDetailId(window.location.hash)) return 'domain-detail';
     const match = ROUTE_VIEWS.find((route) => route.hash === window.location.hash);
     // Dev-mode: an empty hash defaults to the dashboard (the informative B10
     // page) instead of the bare legacy single-page workbench, so opening the
@@ -4803,6 +5387,10 @@ export function mountAppShell(): void {
 
   const show = (): void => {
     const view = current();
+    // 控件文案始终跟着**已生效的属性**走：属性可能在挂载之后才落到 <html> 上
+    // （例如按色板逐条测量的闸门在启动脚本里设置它们），不重读就会出现侧栏说
+    // "DESIGN-LAB 色板"、页面已经是另一套颜色的自相矛盾画面。
+    refreshThemeControls();
     const showWorkbench = view === 'workbench';
     const generation = ++routeGeneration;
     const routeToken = token;
@@ -4820,7 +5408,9 @@ export function mountAppShell(): void {
     }
     login.hidden = true;
     workspace.hidden = true;
-    active(view);
+    // R2 §5/§2: a detail address is still *inside* its catalog, so the nav keeps that
+    // entry highlighted -- opening a detail must not read as having left the list.
+    active(DETAIL_NAV_OWNER[view] ?? view);
     const target = byId<HTMLDivElement>('route-view');
     if (!token && !devMode()) {
       // No service token in memory and no dev bypass: the API views would only
@@ -4927,27 +5517,22 @@ function mountB10Shell(routeView: HTMLElement, syncLegacyNavCue: () => void): B1
   const probe = document.createElement('div');
   if (typeof probe.querySelector !== 'function') return null;
 
-  // Route label / 文案 mirror of B10 NAV (B07 12-route IA, DESIGN-LAB copy).
-  const B10_NAV: Array<{ route: string; label: string; hash: string }> = [
-    { route: 'dashboard', label: '仪表盘', hash: '#/dashboard' },
-    { route: 'projects', label: '项目', hash: '#/projects' },
-    { route: 'research', label: '研究洞察', hash: '#/research' },
-    { route: 'brand-systems', label: '品牌系统', hash: '#/brand-systems' },
-    { route: 'design-domains', label: '设计领域', hash: '#/domains' },
-    { route: 'creative-tools', label: '创作工具', hash: '#/tools' },
-    { route: 'preflight-qa', label: '预检 / QA', hash: '#/preflight' },
-    { route: 'deliverables', label: '交付中心', hash: '#/deliverables' },
-    { route: 'evidence', label: '证据系统', hash: '#/evidence' },
-    { route: 'collaboration', label: '团队协作', hash: '#/collaboration' },
-    { route: 'settings', label: '系统设置', hash: '#/settings' },
-  ];
+  // Route label / 文案 mirror of B10 NAV. DL-UI-U01/U02 (2026-10-09)：这张表此前
+  // 是把 ROUTE_VIEWS 手工再抄一遍（11 条同样的 hash/label），两份一旦漂移就没有
+  // 任何东西会发现，所以侧栏现在**从 ROUTE_VIEWS 派生**，只排除遗留工作台项
+  // （它没有侧栏按钮，空 hash 就是它）。三入口分组也随派生一起进来。
+  const B10_NAV: Array<{ route: string; label: string; hash: string; entry: string }>
+    = ROUTE_VIEWS
+      .filter((route) => route.view !== 'workbench')
+      .map((route) => ({ route: route.view as string, label: route.label as string,
+        hash: route.hash as string, entry: route.entry as string }));
 
   // Hoisted out of the sidebar literal because it carries its own overflow cue below.
   // A <nav> element, not a div[aria-label]: role=generic does not support an accessible
   // name, so the label was silently dropped and no navigation landmark existed on routed
   // views (the legacy <nav> is hidden there).
   const navList = el('nav', { class: 'nav', 'aria-label': 'DESIGN-LAB 导航' },
-    ...B10_NAV.map((n) => el('button', {
+    ...navGroupChunks(B10_NAV, (n) => el('button', {
       type: 'button',
       dataset: { route: n.route },
       'data-hash': n.hash,
@@ -5035,11 +5620,14 @@ function mountB10Shell(routeView: HTMLElement, syncLegacyNavCue: () => void): B1
       el('section', { class: 'content', id: 'content' }, offlineNotice, routeView)));
   document.body.append(app);
 
-  // The sidebar nav is `overflow:auto`, and 11 destinations need 587px of it. At any
-  // window height at or below 720 the last ones fall below that edge with nothing to say
-  // so (measured: 68px of hidden list at 1280x720, 168px at 1280x620, 308px at 900x480),
-  // so the nav gets the same cue the legacy bottom bar already uses -- a sticky ::after
-  // inside the scroll container, which is the only form that survives scrolling there.
+  // The sidebar nav is `overflow:auto`, and the 19 destinations in ROUTE_VIEWS need far more
+  // than a short window shows, so the last ones fall below the edge with nothing to say so.
+  // No figure is quoted here on purpose: the overflow gate now drives this at a 620px-tall
+  // window and records the amount itself in `report.navCue[width]`, and the value is
+  // theme-dependent (the two palettes measured 26px apart on 2026-10-09), so any number
+  // typed into a comment would be a stale measurement pretending to be a real one.
+  // The cue is the same form the legacy bottom bar uses -- a sticky ::after inside the
+  // scroll container, which is the only form that survives scrolling there.
   const syncNavCue = (): void => {
     const more = navList.scrollHeight > navList.clientHeight + 1
       && navList.scrollTop + navList.clientHeight < navList.scrollHeight - 1;
@@ -5174,10 +5762,122 @@ function mountB10Overlays(): void {
   // Rows are real <button>s because this palette is the only route switch left
   // under 840px (the B10 sidebar is display:none there) — a div-with-onclick
   // made every route unreachable by keyboard.
+  // R2 §9 全局搜索按对象类型分组。三条边界写死在这里：
+  //   · 只查当前令牌已经能读到的那几个路由。服务没有对象级读权限模型，所以面板不声称
+  //     做了权限过滤——它不泄露无权对象，是因为它根本读不到，而不是一句"已过滤"。
+  //   · 某一组没读回来就说未读回，不显示 0 条：空集合与没问到是两件事。
+  //   · 对象组在第一次打开面板时才读，不抢首屏；读回后缓存，切主题/换路由不重复请求。
+  const OBJECT_GROUPS: ReadonlyArray<{
+    label: string; path: string; limit: number;
+    rows: (data: any) => Array<{ name: string; go: string; kind: string }>;
+  }> = [
+    {
+      label: '能力资产', path: '/capabilities', limit: 8,
+      rows: (d) => (d?.capabilities ?? []).map((c: CapabilityRecord) => ({
+        name: c.id, kind: `${c.kind}${c.license ? ` · ${c.license}` : ''}`,
+        // 能力详情已有独立地址（R2 §5），所以搜索结果直接落到那一条记录上。
+        go: capabilityDetailHash(c.id),
+      })),
+    },
+    {
+      label: '项目', path: '/projects', limit: 8,
+      rows: (d) => (d?.projects ?? []).map((p: { id: string; name: string }) => ({
+        name: p.name, kind: `项目 ${p.id.slice(0, 8)}`, go: projectDetailHash(p.id),
+      })),
+    },
+    {
+      label: '设计领域', path: '/domains', limit: 8,
+      rows: (d) => (d?.packs ?? []).map((k: { packId: string | null; directory: string;
+        displayName: string | null; domain: string | null }) => ({
+        name: k.displayName ?? k.directory,
+        kind: `领域 ${k.domain ?? '未声明'} · ${k.packId ?? k.directory}`,
+        // R2 §2: a domain row is a second-level entry, so it lands on that pack's own
+        // address. A pack whose manifest declares no pack_id has no address to give —
+        // it falls back to the registry instead of inventing one from the directory name.
+        go: domainDetailHash(k.packId) ?? '#/domains',
+      })),
+    },
+    {
+      label: '设计系统', path: '/design-systems', limit: 8,
+      rows: (d) => (d?.systems ?? []).map((s: { name: string; version_no?: number }) => ({
+        name: s.name, kind: `设计系统${s.version_no ? ` v${s.version_no}` : ''}`,
+        go: '#/brand-systems',
+      })),
+    },
+  ];
+  type SearchRow = { name: string; go: string; kind: string };
+  /** `'unread'` is its own state: a group that never got an answer must not read as 0 objects. */
+  const searchCache = new Map<string, SearchRow[] | 'unread'>();
+  const unreadNote = (path: string): HTMLElement => el('p', { class: 'error' },
+    `未读回：GET /api${path} 没有给回对象集合，因此这一组既不显示条数，也不说"没有"。`);
+  const buildGroup = (group: typeof OBJECT_GROUPS[number])
+    : HTMLElement => {
+    const body = el('div', { class: 'palette-group-body' });
+    const box = el('div', { class: 'palette-group', 'data-group': group.label },
+      el('p', { class: 'palette-group-title' }, group.label), body);
+    const cached = searchCache.get(group.path);
+    if (cached === undefined) {
+      body.replaceChildren(el('p', { class: 'view-hint' }, '尚未读取：打开面板后才向 '
+        + `GET /api${group.path} 取这一组的对象。`));
+    } else if (cached === 'unread') {
+      body.replaceChildren(unreadNote(group.path));
+    } else {
+      renderGroupRows(body, cached, group.limit);
+    }
+    return box;
+  };
+  const renderGroupRows = (body: HTMLElement,
+    rows: SearchRow[], limit: number): void => {
+    if (!rows.length) {
+      body.replaceChildren(el('p', { class: 'view-hint' }, '这一组当前读回 0 个对象。'));
+      return;
+    }
+    const shown = rows.slice(0, limit);
+    body.replaceChildren(
+      ...shown.map((r) => el('button', {
+        type: 'button', class: 'item', dataset: { go: r.go },
+        onclick: () => { window.location.hash = r.go; closePalette(); },
+      }, el('span', {}, r.name), el('small', {}, `${r.kind}`))),
+      rows.length > shown.length
+        ? el('p', { class: 'palette-more' },
+          `还有 ${rows.length - shown.length} 个对象未列出：面板只画前 ${shown.length} 个，`
+          + '输入更具体的关键词可缩小范围。')
+        : '');
+  };
+  const objectsBox = el('div', { id: 'paletteObjects' },
+    el('p', { class: 'palette-note' },
+      '下面按对象类型分组列出可去到的真实对象。范围只限当前令牌已能读到的路由：'
+      + '本服务没有对象级读权限模型，所以这里不说"已按权限过滤"。'),
+    ...OBJECT_GROUPS.map((group) => buildGroup(group)));
+  itemsBox.append(objectsBox);
+  let objectsLoaded = false;
+  const loadSearchObjects = async (): Promise<void> => {
+    if (objectsLoaded) return;
+    objectsLoaded = true;
+    for (const group of OBJECT_GROUPS) {
+      const data = await apiOrEmpty<Record<string, unknown>>(group.path, {});
+      const unread = shapeNotice(data) || disconnectedNotice(data);
+      const rows: SearchRow[] | 'unread' = unread ? 'unread' : group.rows(data);
+      searchCache.set(group.path, rows);
+      const holder = itemsBox.querySelector(`[data-group="${group.label}"]`);
+      const body = holder?.querySelector('.palette-group-body');
+      if (!body) continue;
+      if (rows === 'unread') {
+        (body as HTMLElement).replaceChildren(unreadNote(group.path));
+      } else {
+        renderGroupRows(body as HTMLElement, rows, group.limit);
+      }
+    }
+  };
   const cmds = ROUTE_VIEWS.filter((r) => r.hash !== '')
     .map((r) => ({ go: r.hash, label: r.label }));
+  const routeGroup = el('div', { class: 'palette-group-body' });
+  // R2 §9 opens with the objects a person is looking for; the page list is the fallback, so it
+  // sits after them rather than pushing four object groups below the fold.
+  itemsBox.append(el('div', { class: 'palette-group', 'data-group': '页面' },
+    el('p', { class: 'palette-group-title' }, '页面'), routeGroup));
   for (const c2 of cmds) {
-    itemsBox.append(el('button', {
+    routeGroup.append(el('button', {
       type: 'button', class: 'item', dataset: { go: c2.go },
       onclick: () => { window.location.hash = c2.go; closePalette(); },
     }, el('span', {}, c2.label), el('small', {}, '打开')));
@@ -5186,11 +5886,13 @@ function mountB10Overlays(): void {
   const openPalette = (): void => {
     paletteInvoker = document.activeElement;
     palette.classList.add('open'); paletteInput.focus(); paletteInput.select();
+    void loadSearchObjects();
   };
   const closePalette = (): void => {
     palette.classList.remove('open');
     paletteInput.value = '';
-    itemsBox.querySelectorAll('.item').forEach((i) => { (i as HTMLElement).style.display = ''; });
+    itemsBox.querySelectorAll<HTMLElement>('.item').forEach((i) => { i.style.display = ''; });
+    itemsBox.querySelectorAll<HTMLElement>('.palette-group').forEach((g) => { g.hidden = false; });
     // Hiding the panel with an author `display:none` (`.palette{display:none}`)
     // drops focus to <body>; return it to whatever opened the palette.
     if (document.activeElement === document.body && paletteInvoker
@@ -5200,10 +5902,19 @@ function mountB10Overlays(): void {
     paletteInvoker = null;
   };
   paletteInput.addEventListener('input', () => {
-    const q = paletteInput.value.toLowerCase();
-    itemsBox.querySelectorAll<HTMLElement>('.item').forEach((item) => {
-      item.style.display = item.textContent!.toLowerCase().includes(q) ? 'flex' : 'none';
-    });
+    const q = paletteInput.value.trim().toLowerCase();
+    for (const group of Array.from(itemsBox.querySelectorAll<HTMLElement>('.palette-group'))) {
+      let hits = 0;
+      for (const item of Array.from(group.querySelectorAll<HTMLElement>('.item'))) {
+        const match = !q || (item.textContent || '').toLowerCase().includes(q);
+        item.style.display = match ? 'flex' : 'none';
+        if (match) hits += 1;
+      }
+      // A group with no hit collapses so the readable part of the panel stays the
+      // results -- but only once objects have actually been read back; an unloaded
+      // group must not disappear and look like "nothing matched".
+      group.hidden = hits === 0 && !group.querySelector('.view-hint, .error');
+    }
   });
 
   // --- Keyboard ---
@@ -5245,3 +5956,1411 @@ function wireB10Topbar(openPalette: () => void, showToast: (m: string) => void, 
 // `document` has no `body` and whose context has no `window` — the mount
 // only runs in a real browser when the login panel and a body element
 // both exist. Idempotent via the document flag.
+
+// ============================================================================
+// DL-UI-U02 (2026-10-09) — 桌面 UI 优先层：配色主题轴、状态原语、首批页面
+// ----------------------------------------------------------------------------
+// owner 决定：新任务包带来的是**新布局与新架构**；配色不覆盖现有的，现有的保持
+// 默认，新包的取值做成一个可选主题。两条轴各选各的，正交：
+//
+//   data-palette : design-lab（缺省，UI套件 B04/B07） | ui2026（20261009 包基线）
+//   data-scheme  : dark（缺省） | light —— 只有声明过浅色一侧的色板才有第二个值
+//
+// 选择来自 URL 参数（?palette=ui2026&scheme=light），与既有 `?dev=1` 同一机制；
+// 不写 localStorage：显示偏好不该变成一份看起来像产品数据的客户端状态，而且
+// "刷新回到声明的默认值"本身就是可读回的事实。CSS 侧的地板值保护见
+// apps/workbench/style.css 同段注释（品牌色族与 --border-strong 不随色板换）。
+//
+// design-lab 色板从未声明浅色值，所以选到它时，明暗开关必须**禁用并说明为什么**，
+// 而不是留一个按下去什么都不发生的开关（那正是本任务包禁的假动作）。
+// ============================================================================
+
+export type PaletteId = 'design-lab' | 'ui2026';
+export type SchemeId = 'dark' | 'light';
+
+interface PaletteSpec {
+  id: PaletteId;
+  label: string;
+  schemes: readonly SchemeId[];
+  /** schemes 只有一侧时，界面对另一侧说的话。 */
+  missingScheme: string;
+}
+
+const PALETTES: readonly PaletteSpec[] = [
+  { id: 'design-lab', label: 'DESIGN-LAB 色板', schemes: ['dark'],
+    missingScheme: '这套色板没有声明过浅色值，不自造一套。' },
+  { id: 'ui2026', label: 'UI-20261009 基线', schemes: ['dark', 'light'], missingScheme: '' },
+];
+
+function paletteSpec(id: PaletteId): PaletteSpec {
+  return PALETTES.find((p) => p.id === id) ?? PALETTES[0];
+}
+
+/** URL 查询参数；vm 桩里的 location 可能没有 search，读不到就当没带。 */
+function urlParam(name: string): string | null {
+  try {
+    const search = (window.location as { search?: string }).search;
+    if (typeof search !== 'string' || search.length === 0) return null;
+    for (const pair of search.replace(/^\?/, '').split('&')) {
+      const eq = pair.indexOf('=');
+      if (eq <= 0) continue;
+      if (pair.slice(0, eq) === name) return decodeURIComponent(pair.slice(eq + 1));
+    }
+  } catch { /* vm mock，或百分号转义本身畸形 */ }
+  return null;
+}
+
+/**
+ * 当前生效的主题选择。**已经落在 <html> 上的属性优先**，其次才是 URL 参数：
+ * 属性是界面真正呈现的事实，URL 只是写入属性的入口。顺序反过来时，一个直接设置
+ * 属性的调用方（例如对比度闸门按色板逐条测量）会让按钮文案与实际配色互相矛盾，
+ * 还会让"这一轴当前只有一个值"的说明消失。非法值一律退回该色板缺省侧。
+ */
+export function readThemeChoice(): { palette: PaletteId; scheme: SchemeId } {
+  const applied = typeof document !== 'undefined'
+    && document.documentElement
+    && typeof document.documentElement.getAttribute === 'function'
+    ? {
+        palette: document.documentElement.getAttribute('data-palette'),
+        scheme: document.documentElement.getAttribute('data-scheme'),
+      }
+    : { palette: null, scheme: null };
+  const fromUrl: PaletteId = urlParam('palette') === 'ui2026' ? 'ui2026' : 'design-lab';
+  const palette: PaletteId = applied.palette === 'ui2026' || applied.palette === 'design-lab'
+    ? applied.palette : fromUrl;
+  const spec = paletteSpec(palette);
+  const fromUrlScheme = urlParam('scheme');
+  const wanted = spec.schemes.includes(applied.scheme as SchemeId)
+    ? applied.scheme : (spec.schemes.includes(fromUrlScheme as SchemeId)
+      ? fromUrlScheme : spec.schemes[0]);
+  return { palette, scheme: wanted as SchemeId };
+}
+
+/** 写回 URL：优先 replaceState（不重载、不进历史），没有就退回导航。 */
+function writeUrlParam(name: string, value: string): void {
+  const href = (window.location as { href?: string }).href;
+  if (typeof href !== 'string') return;
+  let target: string;
+  try {
+    const url = new URL(href);
+    url.searchParams.set(name, value);
+    target = url.toString();
+  } catch { return; }
+  const history = (window as { history?: { replaceState?: unknown; state?: unknown } }).history;
+  if (history && typeof history.replaceState === 'function') {
+    (history.replaceState as (state: unknown, title: string, url: string) => void)
+      (history.state ?? null, '', target);
+    return;
+  }
+  (window.location as { href: string }).href = target;
+}
+
+/**
+ * 把选择落到 <html> 的属性上。CSS 只认这两个属性，所以这里就是唯一真相；
+ * 属性名与 style.css 的 :root[data-palette] / [data-scheme] 成对，改一边必红。
+ */
+export function applyTheme(
+  choice: { palette: PaletteId; scheme: SchemeId } = readThemeChoice(),
+): void {
+  if (typeof document === 'undefined') return;
+  const root = document.documentElement;
+  if (!root || typeof root.setAttribute !== 'function') return;
+  root.setAttribute('data-palette', choice.palette);
+  if (choice.scheme === 'dark') root.removeAttribute('data-scheme');
+  else root.setAttribute('data-scheme', choice.scheme);
+}
+
+function cyclePalette(current: PaletteId): PaletteId {
+  const index = PALETTES.findIndex((p) => p.id === current);
+  return PALETTES[(index + 1) % PALETTES.length].id;
+}
+
+/**
+ * 主题控件对。两个按钮都真的做事（写 URL + 改 <html> 属性），是这批页面上唯一
+ * 接线的动作。
+ *
+ * 没有浅色一侧的色板**不给禁用按钮**：`button:disabled{opacity:.45}` 让文字在
+ * 底色上只剩 3.4:1，被对比度闸门按每条路由报红（2026-10-09 实测），而"一个永远
+ * 按不动的开关"本来就该是缺席 + 一句说明，不是摆着让人试。所以这一轴直接不出现，
+ * 原因写在旁边。
+ * 同一时刻屏上只会出现一套：遗留工作台视图里 `.app` 自己隐藏，路由视图里扁平
+ * `.app-nav` 被 hidden，所以不需要给两套控件不同的 id。
+ */
+function themeControlNodes(): HTMLElement[] {
+  const choice = readThemeChoice();
+  const spec = paletteSpec(choice.palette);
+  const nodes: HTMLElement[] = [
+    el('button', {
+      type: 'button', class: 'theme-toggle', dataset: { themeAction: 'palette' },
+      'aria-label': '配色主题',
+      onclick: () => {
+        writeUrlParam('palette', cyclePalette(readThemeChoice().palette));
+        applyTheme(readThemeChoice());
+        refreshThemeControls();
+      },
+    }, spec.label),
+  ];
+  if (spec.schemes.length > 1) {
+    nodes.push(el('button', {
+      type: 'button', class: 'theme-toggle', dataset: { themeAction: 'scheme' },
+      'aria-label': '明暗',
+      onclick: () => {
+        const now = readThemeChoice();
+        const next: SchemeId = now.scheme === 'dark' ? 'light' : 'dark';
+        writeUrlParam('scheme', next);
+        applyTheme(readThemeChoice());
+        refreshThemeControls();
+      },
+    }, choice.scheme === 'light' ? '浅色' : '深色'));
+  }
+  nodes.push(el('span', { class: 'theme-toggle-note' },
+    spec.schemes.length > 1 ? '' : spec.missingScheme));
+  return nodes;
+}
+
+export function buildThemeControls(): HTMLElement {
+  return el('div', { class: 'theme-toggle-group uif-row' }, ...themeControlNodes());
+}
+
+/** 换了色板，可用轴就变了：整组重建成当前应该存在的那些控件。 */
+function refreshThemeControls(): void {
+  if (typeof document === 'undefined' || typeof document.querySelectorAll !== 'function') return;
+  for (const group of Array.from(document.querySelectorAll<HTMLElement>('.theme-toggle-group'))) {
+    group.replaceChildren(...themeControlNodes());
+  }
+}
+
+// ---------------------------------------------------------------------------
+// 状态原语（pack 屏 15 界面状态）
+//
+// 任务包要求覆盖 loading / empty / unknown / offline / forbidden / error /
+// timeout / conflict，且每个都有真实下一步。措辞规则沿用仓库既有的那一条
+// （emptyWording / disconnectedNotice / shapeNotice）：**没有读回过就不能说
+// "尚无"**，所以 empty 与 unread 是两块，不是一块。
+//
+// 状态名一律中文，不往界面里塞服务侧的英文判定词：状态词汇表由
+// design-lab/config/state-vocabularies.json 单一持有，verify_state_vocabularies.py
+// 会拒绝服务发不出的判定字面量（连构建产物一起查）。下面引用服务真实状态的地方
+// 走 en()，取值来自读回，不在这个页面里写死。
+// ---------------------------------------------------------------------------
+
+interface StateSpec {
+  kind: string;
+  title: string;
+  /** 这一块在真实代码里由谁产生。引用调用点，不引用虚构的记录。 */
+  producer: string;
+  /** 界面必须给的下一步。 */
+  next: string;
+  weight: 'neutral' | 'bad';
+}
+
+const STATE_SPECS: readonly StateSpec[] = [
+  { kind: 'loading', title: '正在读回', weight: 'neutral',
+    producer: 'renderRoute 进入视图时先写 .view-loading，读回没有到达前界面不留白。',
+    next: '等本次读回；长时间不动就刷新重新发起，而不是复用上一屏的数据。' },
+  { kind: 'empty', title: '尚无记录', weight: 'neutral',
+    producer: 'emptyWording() 只在服务真的答了"这里没有"时给的说法。',
+    next: '按页面提示创建第一条记录；空集合不等于失败，也不等于功能不可用。' },
+  { kind: 'unread', title: '未读回', weight: 'neutral',
+    producer: 'shapeNotice() / disconnectedNotice()：服务答了但缺字段，或压根没连接。',
+    next: '连接本机设计服务，或检查响应缺了哪个字段；缺字段不会被渲染成"尚无"。' },
+  { kind: 'unknown', title: '未判定', weight: 'neutral',
+    producer: '资格轴的 null 值。capabilityCard 用 .tag.neutral 显示，不借用判定的重量。',
+    next: '补齐资格证据后才可能变成合格或不合格；null 既不是通过也不是失败。' },
+  { kind: 'offline', title: '未连接', weight: 'neutral',
+    producer: 'dev/offline seam：apiOrEmpty() 在没有令牌时给出诚实空载荷，并打标记。',
+    next: '用官方入口启动本机服务，或在高级连接里粘贴临时令牌。' },
+  { kind: 'forbidden', title: '无权进行', weight: 'bad',
+    producer: '服务端拒绝（权利门 / Human Gate 未过）时返回的结论，界面不自行降级。',
+    next: '查看权利与人工门的说明；需要真人结论的动作不能由 Agent 代签。' },
+  { kind: 'error', title: '读取失败', weight: 'bad',
+    producer: '视图级 catch 会把这一面的读回失败与原因留在屏上，不吞成空白。',
+    next: '刷新重读；持续失败时按给出的原因排查服务，而不是反复点击。' },
+  { kind: 'timeout', title: '本次请求超时', weight: 'bad',
+    producer: '宿主/任务读回路径：超时不等于失败，也不等于成功，先对账。',
+    next: '先核对已经发生了什么再决定是否重发，避免对同一文档重复写入。' },
+  { kind: 'conflict', title: '版本冲突', weight: 'bad',
+    producer: '修订已取代的版本时服务端返回 STALE_REVISION，旧版本字节不被改写。',
+    next: '在最新版本上重做这次修改；旧版本保留为历史。' },
+  { kind: 'cancelled', title: '取消已请求', weight: 'neutral',
+    producer: '原生取消没有 ack 事件：requested 与 acknowledged 分开，界面只说请求过。',
+    next: '读回任务状态确认是否真的停下；"请求取消"不等于"已取消"。' },
+  { kind: 'queued', title: '已排队', weight: 'neutral',
+    producer: '计划提交后只排队不启动，启动是显式动作。',
+    next: '在任务行上显式启动；提交本身不会碰宿主。' },
+];
+
+/**
+ * 一个状态块 = 状态名 + 它从哪来 + 下一步。下一步永远存在：一个说不出"接下来
+ * 做什么"的状态就是死胡同文案。
+ */
+export function stateBlock(spec: StateSpec): HTMLElement {
+  return el('article', { class: 'uif-state', dataset: { stateKind: spec.kind } },
+    el('div', { class: 'uif-state-head' },
+      el('span', { class: 'tag ' + spec.weight }, spec.title)),
+    el('p', { class: 'uif-state-reason' }, spec.producer),
+    el('p', { class: 'uif-state-next' }, el('strong', {}, '下一步 '), spec.next));
+}
+
+/** 屏 15 · 界面状态。静态合同面：不读后端，所以也不可能有编造的记录。 */
+export function renderUiStates(target: HTMLElement): void {
+  const filter = el('input', {
+    class: 'input', type: 'search', id: 'uif-state-filter',
+    placeholder: '按状态名 / 来源 / 下一步过滤', 'aria-label': '状态过滤',
+  });
+  const shown = el('span', { class: 'muted' }, '');
+  const grid = el('div', { class: 'uif-states' });
+  const render = (): void => {
+    const needle = (filter.value || '').trim().toLowerCase();
+    const keep = needle
+      ? STATE_SPECS.filter((s) => `${s.title} ${s.kind} ${s.producer} ${s.next}`
+        .toLowerCase().includes(needle))
+      : Array.from(STATE_SPECS);
+    grid.replaceChildren(...keep.map((s) => stateBlock(s)));
+    shown.textContent = keep.length === STATE_SPECS.length
+      ? `共 ${STATE_SPECS.length} 个状态`
+      : `${keep.length} / ${STATE_SPECS.length} 个状态，其余被过滤`;
+  };
+  filter.oninput = render;
+  render();
+  target.replaceChildren(
+    el('h2', {}, viewLabel('ui-states')),
+    el('p', { class: 'muted' },
+      '这是产品自己的状态面：每一块写的都是这个状态由哪段代码产生、界面上必须给什么下一步，'
+      + '不是演示记录。没有读回过的集合一律说未读回，不说尚无。'),
+    el('div', { class: 'uif-row' }, filter, shown),
+    grid,
+  );
+}
+
+/** 令牌样张：色块用 var() 直接刷当前主题算出来的值，不复制第二份色值表。 */
+function tokenSwatch(name: string): HTMLElement {
+  return el('div', { class: 'uif-swatch' },
+    el('i', { style: `background:var(${name});` }),
+    el('span', { class: 'mono' }, name));
+}
+
+/** 组件页里的输入样张：可输入但不接动作，避免留下按了没反应的按钮。 */
+function sampleInput(): HTMLElement {
+  return el('input', {
+    class: 'input', type: 'search', placeholder: '例如：秋季品牌视觉',
+    'aria-label': '组件样张输入框',
+  });
+}
+
+/** 屏 16 · 组件规范。这里出现的每个类名都有真实调用点，不是留着好看的样式。 */
+export function renderUiComponents(target: HTMLElement): void {
+  // 这一列是新增的第 42 个 `ul.list` 容器（清单见
+  // design-lab/tests/test_workbench_css_single_definition.py 的注释）：
+  // 组件规范面里的「列表」样张，两行都是真实 li.list-item 成员。
+  const list = el('ul', { class: 'list' },
+    el('li', { class: 'list-item' },
+      el('div', {}, el('strong', {}, '列表成员'),
+        el('small', {}, 'ul.list + li.list-item 是仓库既有约定，新页面直接用它；'
+          + '行卡片走 .row-card，两种语义不混。'))),
+    el('li', { class: 'list-item' },
+      el('div', {}, el('strong', {}, '空态有两种说法'),
+        el('small', {}, 'emptyLi() 在服务真答"没有"时说尚无，在未连接或缺字段时说未读回。'))));
+
+  const table = el('div', { class: 'table-wrap' },
+    el('table', { class: 'table' },
+      el('thead', {}, el('tr', {},
+        el('th', {}, '规则'), el('th', {}, '为什么这样定'))),
+      el('tbody', {},
+        el('tr', {}, el('td', {}, '状态权重'),
+          el('td', {}, '非判定（未判定 / 未读回 / 计划中）用 .tag.neutral，不借用判定的饱和重量。')),
+        el('tr', {}, el('td', {}, '英文状态词'),
+          el('td', {}, el('span', {}, '服务自己的词汇标记为 '), en('READY'),
+            el('span', {}, '，不翻译成中文，避免产生第二套词汇。'))),
+        el('tr', {}, el('td', {}, '长中文文案'),
+          el('td', {}, '控件与卡片 overflow-wrap:anywhere，窄窗口靠重排而不是裁切。')))));
+
+  // 样张按钮保持**可用**并在本页回显，不做禁用样张。两条理由都实测过：
+  //   1. `button:disabled{opacity:.45}` 把标签压到 3.4:1，对比度闸门会按每条路由报红
+  //      ——一个必然低对比的组件不该被摆进产品里给人抄；
+  //   2. "看着能点、点了什么都不说"正是本任务包禁止的假动作。
+  // 所以这里的规则写成药丸与表格那一行：要么给出真实可见的结果，要么不出现。
+  const echo = el('p', { class: 'uif-spec-note', role: 'status', 'aria-live': 'polite' },
+    '样张回显：还没有点击。');
+  const sample = (label: string, cls: string): HTMLElement => el('button', {
+    type: 'button', class: cls,
+    onclick: () => {
+      echo.textContent = `样张回显：已点击「${label}」，只在页面内回显，不触发产品动作。`;
+    },
+  }, label);
+
+  target.replaceChildren(
+    el('h2', {}, viewLabel('ui-components')),
+    el('p', { class: 'muted' },
+      '这里的样张按钮只做一件事：在本页回显被点击。产品动作由各自视图接线；'
+      + '未接线的动作在各自主页面上以禁用加原因出现，不在这个页面上假装可用。'),
+    el('div', { class: 'uif-spec' },
+      el('section', { class: 'uif-spec-block' },
+        el('h3', {}, '配色与明暗'),
+        // 开关只有一份，在左侧导航底部（路由视图）或扁平导航里（遗留工作台）。这里
+        // 再放一份会在同一屏出现两个控件，且两处文案会随挂载时刻不同而不一致——
+        // 2026-10-09 读渲染图时就是这样被抓出来的。
+        el('p', { class: 'uif-spec-note' },
+          '色板与明暗开关在左侧导航底部，全站一份。下面六块是当前主题算出来的语义令牌：'
+          + '色块直接刷 var() 的值，所以它们显示的就是界面真正在用的颜色，不是抄来的第二份色表。'),
+        el('div', { class: 'uif-row' },
+          tokenSwatch('--color-bg'), tokenSwatch('--color-surface'),
+          tokenSwatch('--color-surface-2'), tokenSwatch('--color-border'),
+          tokenSwatch('--color-text'), tokenSwatch('--color-muted')),
+        el('p', { class: 'uif-spec-note' },
+          '品牌色族与 --border-strong 不随色板切换：它们是被实测修正过的地板值。')),
+      el('section', { class: 'uif-spec-block' },
+        el('h3', {}, '状态药丸'),
+        el('div', { class: 'uif-row' },
+          el('span', { class: 'tag ok' }, '合格'),
+          el('span', { class: 'tag warn' }, '警告'),
+          el('span', { class: 'tag bad' }, '不合格'),
+          el('span', { class: 'tag info' }, '信息'),
+          el('span', { class: 'tag neutral' }, '未判定'))),
+      el('section', { class: 'uif-spec-block' },
+        el('h3', {}, '按钮与输入'),
+        el('div', { class: 'uif-row' },
+          sample('主操作样张', 'primary-btn'),
+          sample('次操作样张', 'secondary'),
+          sample('危险操作样张', 'danger-btn')),
+        echo,
+        el('label', {}, '输入框样张', sampleInput()),
+        el('p', { class: 'uif-spec-note' },
+          '焦点环由全局 :focus-visible 规则给出，主题切换不重定义它；表单边界用'
+          + ' --border-strong（3:1 地板值），装饰边框用 --line。')),
+      el('section', { class: 'uif-spec-block' }, el('h3', {}, '列表'), list),
+      el('section', { class: 'uif-spec-block' }, el('h3', {}, '表格'), table),
+      el('section', { class: 'uif-spec-block' }, el('h3', {}, '状态面'),
+        el('div', { class: 'uif-states' }, ...STATE_SPECS.slice(0, 3).map(stateBlock)))),
+  );
+}
+
+/**
+ * 把主题控件挂到当前**可见**的那层 chrome 上：路由视图挂 B10 侧栏，遗留工作台视图
+ * 挂扁平 `.app-nav`。两处都挂着同一对控件，但同一时刻只有一处可见，所以不会看到
+ * 两份开关，也不需要第二套 id。
+ *
+ * 为什么是侧栏而不是顶栏：先放在 `.top-actions` 里，溢出闸门在 1280 当场报
+ * `STRAY ... button#topNotice +10px` 与 `button#openDrawer +66px` —— 顶栏那一行
+ * 本来就已经排到边界，再插两个控件就把兄弟挤出视口。侧栏是 280px 的纵向栏，
+ * 控件按行换行，不给任何一行增加横向压力。
+ * vm 桩没有 querySelector，这里直接跳过 —— 桩里本来也没有 B10 外壳。
+ */
+export function mountThemeControls(): void {
+  if (typeof document === 'undefined'
+      || typeof document.querySelectorAll !== 'function'
+      || typeof document.querySelector !== 'function') return;
+  const sidebar = document.querySelector<HTMLElement>('#app-sidebar');
+  const flatNav = document.querySelector<HTMLElement>('.app-nav');
+  if (sidebar) sidebar.append(buildThemeControls());
+  if (flatNav) flatNav.append(buildThemeControls());
+  applyTheme();
+}
+
+/**
+ * 按 `entry` 分组渲染导航项。组标签是 <span class="nav-group">，不是按钮，所以
+ * "屏上有几个路由项"这条读数仍然只数 .app-nav-item / .nav button —— 分组改变的是
+ * 呈现层，不是路由数量。扁平 `.app-nav` 与 B10 侧栏共用这一份，避免两张表漂移。
+ */
+export function navGroupChunks<T extends { entry: string }>(
+  items: readonly T[],
+  make: (item: T) => HTMLElement,
+): HTMLElement[] {
+  const out: HTMLElement[] = [];
+  let current: string | null = null;
+  for (const item of items) {
+    if (item.entry !== current) {
+      current = item.entry;
+      out.push(el('span', { class: 'nav-group' }, item.entry));
+    }
+    out.push(make(item));
+  }
+  return out;
+}
+
+// ============================================================================
+// DL-UI-U04 (2026-10-09) — 屏 03 输入与目标
+// ----------------------------------------------------------------------------
+// 这一面接的是**已有**合同，不发明第二套：
+//   POST /api/projects/{id}/briefs      经 design.ts createBrief()（校验与幂等键只有一份）
+//   GET  /api/projects/{id}/assets      参考素材清单
+//   POST /api/projects/{id}/assets      上传真实字节（content_base64 + 幂等键）
+//   GET  /api/projects/{id}/briefs      提交后读回，界面说的是服务端返回的版本
+//
+// 合同里没有的字段，界面上就不假装持久化：简报只记录 title / goals / constraints /
+// reference_asset_ids。所以「精确文案 / 锁比例 / 锁位置 / 编辑范围」和「参考职责」
+// 这些包要求的输入属性，是**编排进 constraints 文本**的，页面上写明这一点；
+// 「输出目标」只决定下一步去哪个界面，未接的路线禁用并说明原因。
+// ============================================================================
+
+interface IntakeConstraintFields {
+  exactText: HTMLInputElement;
+  lockRatio: HTMLInputElement;
+  lockPosition: HTMLInputElement;
+  editScope: HTMLInputElement;
+  toolFormat: HTMLInputElement;
+}
+
+/** R2 §6 第三组「交付目标」的四档。每档后面的接线状态是**仓库事实**，逐条可查：
+ *  分析走 #/analysis 的修订追加；目标包走 POST /native-plans 且只排队（202，不启动宿主）；
+ *  原生可编辑工程的宿主执行与重开读回尚无取证；最终媒体在仓库里没有渲染或导出路由。 */
+const DELIVERY_LEVELS: ReadonlyArray<{ name: string; wired: string; note: string }> = [
+  { name: '分析与方向', wired: '已接线', note: '#/analysis 追加方向修订，不启动宿主、不改已交付版本。' },
+  { name: '目标生成包', wired: '只排队', note: 'POST /native-plans 返回 202；启动仍是任务面上的显式动作。' },
+  { name: '原生可编辑工程', wired: '未取证', note: '宿主执行与关闭重开读回还没有 E2/E3 证据，这一档当前不是可交付。' },
+  { name: '最终媒体（渲染/导出）', wired: '未接线', note: '仓库内没有渲染或导出路由，界面不假装这条路存在。' },
+];
+
+/** 交付范围同样是编排进 constraints 的一句话，不是合同里新造的字段。 */
+function intakeSelectedDeliveryLevels(): string[] {
+  if (typeof document === 'undefined' || typeof document.querySelectorAll !== 'function') return [];
+  return Array.from(document.querySelectorAll<HTMLInputElement>('input[name="intake-delivery-level"]'))
+    .filter((box) => box.checked)
+    .map((box) => box.value);
+}
+
+/** 把输入属性编排成合同真正记录的那一条 constraints。 */
+function composeConstraints(fields: IntakeConstraintFields, freeText: string): string {
+  const parts: string[] = [];
+  if (freeText.trim()) parts.push(freeText.trim());
+  if (fields.exactText.value.trim()) parts.push(`精确文案：${fields.exactText.value.trim()}`);
+  if (fields.lockRatio.checked) parts.push('锁定比例');
+  if (fields.lockPosition.checked) parts.push('锁定位置');
+  if (fields.editScope.value.trim()) parts.push(`编辑范围：${fields.editScope.value.trim()}`);
+  const levels = intakeSelectedDeliveryLevels();
+  if (levels.length) parts.push(`交付目标：${levels.join('、')}`);
+  if (fields.toolFormat.value.trim()) parts.push(`工具与规格：${fields.toolFormat.value.trim()}`);
+  return parts.join('；');
+}
+
+/** 本页自己的勾选集合：遗留单页用 `input[name="reference-asset"]`，
+ *  复用同名会让两个界面互相读到对方的勾选，所以这里用独立的名字。 */
+function intakeSelectedReferences(): string[] {
+  if (typeof document === 'undefined' || typeof document.querySelectorAll !== 'function') return [];
+  return Array.from(document.querySelectorAll<HTMLInputElement>('input[name="intake-reference-asset"]'))
+    .filter((box) => box.checked)
+    .map((box) => box.value);
+}
+
+function intakeForm(projectId: string): HTMLElement {
+  const title = el('input', { class: 'input', type: 'text', maxlength: '160',
+    id: 'intake-title', placeholder: '例如：秋季品牌视觉' });
+  const goals = el('input', { class: 'input', type: 'text', maxlength: '400',
+    id: 'intake-goals', placeholder: '现代, 温暖, 克制' });
+  const freeConstraints = el('input', { class: 'input', type: 'text', maxlength: '400',
+    id: 'intake-constraints', placeholder: '可选：其它约束' });
+  const fields: IntakeConstraintFields = {
+    exactText: el('input', { class: 'input', type: 'text', maxlength: '400',
+      id: 'intake-exact-text', placeholder: '必须逐字出现的文案' }),
+    lockRatio: el('input', { type: 'checkbox', id: 'intake-lock-ratio' }),
+    lockPosition: el('input', { type: 'checkbox', id: 'intake-lock-position' }),
+    editScope: el('input', { class: 'input', type: 'text', maxlength: '200',
+      id: 'intake-edit-scope', placeholder: '例如：仅标题与副标题' }),
+    toolFormat: el('input', { class: 'input', type: 'text', maxlength: '300',
+      id: 'intake-tool-format',
+      placeholder: '例如：Illustrator · AI + PDF · 1080×1920 · 时长不适用' }),
+  };
+  const outcome = el('div', { class: 'intake-outcome' });
+  const submit = el('button', { type: 'button', class: 'primary-btn', id: 'intake-submit' },
+    '保存为简报');
+  const status = el('p', { class: 'view-hint', role: 'status', 'aria-live': 'polite' },
+    '提交即写入本机服务；这一步只固定"为什么设计"，不做制作，也不给质量结论。');
+
+  const readback = async (): Promise<void> => {
+    outcome.replaceChildren(el('p', { class: 'view-loading' }, '正在读回简报…'));
+    let data;
+    try {
+      data = await api<BriefListResponse>(`/projects/${projectId}/briefs`);
+    } catch (error) {
+      outcome.replaceChildren(stateBlock({
+        kind: 'error', title: '读取失败', weight: 'bad',
+        producer: `GET /api/projects/{id}/briefs 被拒：${errMsg(error)}`,
+        next: '刷新重读；持续失败时按给出的原因排查本机服务，而不是重复提交。',
+      }));
+      return;
+    }
+    const briefs = data.briefs;
+    if (!briefs.length) {
+      outcome.replaceChildren(el('p', { class: 'view-hint' },
+        '本项目还没有简报。上面提交成功后这里会列出服务端返回的版本。'));
+      return;
+    }
+    outcome.replaceChildren(
+      el('p', { class: 'view-hint' }, `已读回 ${briefs.length} 份简报（版本与取代关系来自服务端）`),
+      el('ul', { class: 'list' }, ...briefs.map((b) => el('li', { class: 'list-item' },
+        el('div', {},
+          el('strong', {}, `${b.title} · v${b.version}`),
+          el('small', {}, `目标 ${b.goals.join('、') || '未列'}；`
+            + `约束 ${b.constraints ?? '无'}；引用参考 ${b.reference_asset_ids.length} 个`
+            + (b.superseded_by ? '；已被更新版本取代' : ' · 现行版本')))))));
+  };
+
+  submit.onclick = () => {
+    submit.disabled = true;
+    status.textContent = '正在提交…';
+    void (async () => {
+      try {
+        await createBrief({
+          owner: projectId,
+          title: title.value,
+          goals: (goals.value || '').split(',').map((g) => g.trim()).filter(Boolean),
+          constraints: composeConstraints(fields, freeConstraints.value),
+          references: intakeSelectedReferences(),
+        });
+        status.textContent = '简报已持久化；下面是服务端读回的版本。';
+        await readback();
+      } catch (error) {
+        // 服务自己的话留在屏上：拒绝、版本冲突、权利门各有各的说法，不合并成"失败"。
+        status.textContent = '';
+        outcome.replaceChildren(stateBlock({
+          kind: 'forbidden', title: '未写入', weight: 'bad',
+          producer: `POST /api/projects/{id}/briefs 返回：${errMsg(error)}`,
+          next: '按上面的原因修正后重试；相同内容重试会复用同一幂等键，不会重复建简报。',
+        }));
+      } finally {
+        submit.disabled = false;
+      }
+    })();
+  };
+
+  return el('div', { class: 'intake-grid' },
+    el('div', { class: 'uif-spec-block' },
+      el('h3', {}, '需求与目标'),
+      el('label', {}, '简报标题', title),
+      el('label', {}, '目标（逗号分隔）', goals),
+      el('label', {}, '其它约束', freeConstraints),
+      el('p', { class: 'uif-spec-note' },
+        '简报合同记录 title / goals / constraints / reference_asset_ids 四项；'
+        + '下面的输入属性会编排进 constraints 文本，不是四个独立字段。'),
+      el('div', { class: 'intake-hard' },
+        el('label', {}, '精确文案（必须逐字出现）', fields.exactText),
+        el('label', { class: 'intake-check' }, fields.lockRatio, '锁定比例'),
+        el('label', { class: 'intake-check' }, fields.lockPosition, '锁定位置'),
+        el('label', {}, '编辑范围', fields.editScope)),
+      el('div', { class: 'uif-row' }, submit),
+      status,
+      el('div', { class: 'uif-row' },
+        // The blanket disable here went stale the moment DL-UI-U05 landed the composer on
+        // #/plan: 「不该看起来可用」 was justified by "目标生成包还没接通", which is no longer
+        // true. What is still NOT wired is carrying THIS brief's fields into the package
+        // (DL-FINAL-T09/T10), so the button now navigates and the note says precisely which
+        // half is missing instead of hiding the whole step.
+        el('button', {
+          type: 'button', class: 'secondary', id: 'intake-to-plan',
+          onclick: () => { window.location.hash = '#/plan'; },
+        }, '到目标生成包继续'),
+        el('span', { class: 'theme-toggle-note' },
+          '这一步只是打开编排面：简报的标题 / 目标 / 约束留在服务端记录里，'
+            + '不会自动变成目标包字段，宿主与底图要重新选。把简报内容落成包结构属 '
+            + 'DL-FINAL-T09 / DL-FINAL-T10，尚未接线，所以这里不声称已经接上。'))),
+    el('div', { class: 'uif-spec-block' },
+      el('h3', {}, '参考素材与职责'),
+      referencePickerForProject(projectId),
+      el('p', { class: 'uif-spec-note' },
+        '勾选的素材作为 reference_asset_ids 随简报持久化。参考职责（结构 / 风格 / 内容来源）'
+        + '合同里没有独立字段，因此不假装持久化；一张风格参考不会自动成为内容来源或授权来源。'),
+      el('div', { class: 'uif-row' },
+        el('button', { type: 'button', class: 'secondary', disabled: '' }, '上传音频 / 视频 / 3D 参考'),
+        el('span', { class: 'theme-toggle-note' },
+          '禁用：本机导入路由只接受不超过 32 MiB 的 PNG/JPEG 字节，其它模态未实现。')),
+      el('h3', {}, '交付目标'),
+      deliveryTargetPicker(fields.toolFormat),
+      el('h3', {}, '能力与知识'),
+      knowledgeContextForProject(projectId),
+      el('h3', {}, '已提交的简报'),
+      outcome));
+}
+
+/** R2 §6 第三组：交付范围 + 工具与规格。勾选的是范围，说明的是接线状态——
+ *  后者逐条指向仓库里能查到的那条路，不写"应该可以"。 */
+function deliveryTargetPicker(toolFormat: HTMLInputElement): HTMLElement {
+  return el('div', { class: 'intake-delivery' },
+    ...DELIVERY_LEVELS.map((level) => el('div', { class: 'intake-delivery-row' },
+      el('label', { class: 'intake-check' },
+        el('input', { type: 'checkbox', name: 'intake-delivery-level', value: level.name }),
+        el('span', {}, level.name),
+        el('span', { class: 'tag neutral' }, level.wired)),
+      el('p', { class: 'uif-spec-note' }, level.note))),
+    el('label', {}, '工具与格式 / 尺寸 / 时长（可选）', toolFormat),
+    el('p', { class: 'uif-spec-note' },
+      '交付范围与规格会一并编排进 constraints 文本：简报合同没有为它们新造字段，'
+      + '所以这里持久化的是一句话，不是四个独立属性。未取证的档位可以勾选成需求，'
+      + '但它不会因此变成已具备的交付能力。'));
+}
+
+/** R2 §6 第四组：能力与知识。只列已经记录在本项目里的对象身份；
+ *  获准知识 revision 属 ArcheAxis 边界，教学需要属 U06/U07，两者都不假装接好。 */
+function knowledgeContextForProject(projectId: string): HTMLElement {
+  const host = el('div', { class: 'intake-knowledge' },
+    el('p', { class: 'view-loading' }, '正在读回本项目的方向、绑定与简报版本…'));
+  void (async () => {
+    let data: DesignLayerResponse;
+    try {
+      data = await api<DesignLayerResponse>(`/projects/${projectId}/design-layer`);
+    } catch (error) {
+      host.replaceChildren(stateBlock({
+        kind: 'error', title: '能力上下文未读回', weight: 'bad',
+        producer: `GET /api/projects/{id}/design-layer 返回：${errMsg(error)}`,
+        next: '刷新重读；未读回时本页不会把"没有方向"画成事实。',
+      }));
+      return;
+    }
+    const layer = data.design_layer;
+    const chosen = layer.chosen_direction;
+    const binding = layer.active_binding;
+    host.replaceChildren(
+      el('div', { class: 'intake-knowledge-row' },
+        el('span', { class: 'muted' }, '现行方向 revision'),
+        el('span', {}, chosen ? `${chosen.title} · v${chosen.version}` : '未选定方向')),
+      el('div', { class: 'intake-knowledge-row' },
+        el('span', { class: 'muted' }, '绑定设计系统'),
+        el('span', {}, binding
+          ? `${binding.design_system_name} · 绑定 ${binding.direction_id}` : '无活动绑定')),
+      el('div', { class: 'intake-knowledge-row' },
+        el('span', { class: 'muted' }, '简报版本链'),
+        el('span', {}, layer.briefs.length
+          ? layer.briefs.map((b) => `v${b.version}`).join(' → ') : '尚无简报')),
+      el('div', { class: 'intake-knowledge-row' },
+        el('span', { class: 'muted' }, '获准知识 revision'),
+        el('span', { class: 'tag neutral' }, '未接线'),
+        el('span', { class: 'theme-toggle-note' },
+          '长期知识真值归 ArcheAxis，本项目只经 rights 检查与人工批准输出候选；'
+          + '这里不复制一份知识台账，也不声称已取回获准 revision。')),
+      el('div', { class: 'intake-knowledge-row' },
+        el('span', { class: 'muted' }, '教学需要'),
+        el('button', { type: 'button', class: 'secondary', disabled: '' }, '按教学场景导入'),
+        el('span', { class: 'theme-toggle-note' },
+          '禁用：教学表达是场景筛选与需求导入，属 DL-UI-U06/U07，接通前不显示为可用。')));
+  })();
+  return host;
+}
+
+/** 项目内真实资产的可勾选清单（GET /api/projects/{id}/assets）。 */
+function referencePickerForProject(projectId: string): HTMLElement {
+  const host = el('div', { class: 'intake-references' },
+    el('p', { class: 'view-loading' }, '正在读回本项目素材…'));
+  void (async () => {
+    try {
+      const data = await api<AssetListResponse>(`/projects/${projectId}/assets`);
+      if (!data.assets.length) {
+        host.replaceChildren(el('p', { class: 'view-hint' },
+          '本项目还没有已导入素材。导入后勾选，简报会引用它们。'));
+        return;
+      }
+      host.replaceChildren(el('ul', { class: 'list' }, ...data.assets.map((asset) => el(
+        'li', { class: 'list-item' },
+        el('label', { class: 'intake-check' },
+          el('input', { type: 'checkbox', name: 'intake-reference-asset', value: asset.id }),
+          el('span', {}, `${asset.media_type} · ${asset.width}×${asset.height}`
+            + ` · ${asset.id.slice(-8)} · 权利 ${asset.rights} · v${asset.version_no}`
+            + '；导入与读回不等于获得素材使用权。'))))));
+    } catch (error) {
+      host.replaceChildren(stateBlock({
+        kind: 'error', title: '素材未读回', weight: 'bad',
+        producer: `GET /api/projects/{id}/assets 返回：${errMsg(error)}`,
+        next: '刷新重读；未读回时本页不会把空列表画成"本项目没有素材"。',
+      }));
+    }
+  })();
+  return host;
+}
+
+/** 屏 03 · 输入与目标：项目选择由真实台账驱动，没有项目就不摆一张空表。 */
+export async function renderIntake(target: HTMLElement): Promise<void> {
+  await projectPickerPanel(target, viewLabel('intake'),
+    async (projectId: string) => intakeForm(projectId),
+    el('p', { class: 'view-hint' },
+      '简单任务不必走完整项目流程：在这里描述目标、勾选参考、给出强约束，就落成一份可追踪的简报。'
+      + '原始 RIR / JSON 属于高级开发者面，不让普通用户手填。'),
+    '选择项目后填写；本页会写入本机服务（保存简报），不会碰宿主也不改已有版本。');
+}
+
+// ============================================================================
+// DL-UI-U04 / R2 §7 — 制作记录与待继续
+// ----------------------------------------------------------------------------
+// 读的是既有 GET /api/projects/{id}/tasks 与 …/tasks/{job}/events，不新建第二套任务账。
+// 分组沿用 `taskTriage()`，那三个状态集合由 design-lab/scripts/verify_state_vocabularies.py
+// 对着 config/state-vocabularies.json 逐词核对，所以这里不出现界面自造的状态词，
+// 也不把 OUTCOME_UNKNOWN 说成失败。
+//
+// 记录里没有的东西一律显示"无该字段"：TaskRecord 只有 kind / state / job_id /
+// cancel{requested,acknowledged} / attempt{attempt_no,attempt_id,state}，
+// 没有标题、没有领域、没有人类可读的进度——R2 §7 要的领域标签与"最近确认点"
+// 因此分别落在"无该字段"与 events 读回上，不从 job_id 反推。
+// ============================================================================
+
+const TRIAGE_LABEL: Record<TaskTriage, string> = {
+  in_flight: '进行中', needs_human: '待人工核对', failed: '未成功',
+  done: '已有回执', unknown: '未知状态',
+};
+
+/** 一条任务的行。取消是两段事实：请求过 ≠ 宿主确认过。 */
+function taskRecordRow(projectId: string, task: TaskRecord): HTMLElement {
+  const triage = taskTriage(task.attempt.state);
+  const events = el('div', { class: 'record-events', id: `record-events-${task.job_id}` },
+    el('p', { class: 'view-hint' }, '最近确认点未读回：展开后才向 …/tasks/{job}/events 取，'
+      + '列表本身不替每条任务发请求。'));
+  const detail = el('details', { class: 'record-detail' },
+    el('summary', {}, '最近确认点与尝试'), events);
+  // Property form, like every other handler in this file: the vm harness drives
+  // `onchange`/`onclick` directly, and `ontoggle` is the same kind of assignment.
+  detail.ontoggle = (): void => {
+    if (!detail.open || detail.dataset.loading === '1') return;
+    detail.dataset.loading = '1';
+    void loadTaskEvents(projectId, task.job_id, events);
+  };
+  return el('li', { class: 'list-item record-row' },
+    el('div', { class: 'record-head' },
+      el('strong', { class: 'mono' }, task.job_id),
+      el('span', { class: 'tag ' + (triage === 'done' ? 'ok'
+        : triage === 'failed' ? 'bad' : triage === 'unknown' ? 'neutral' : 'warn') },
+        en(task.attempt.state)),
+      el('span', { class: 'tag neutral' }, TRIAGE_LABEL[triage])),
+    el('div', { class: 'record-facts' },
+      el('span', { class: 'muted' }, `kind ${task.kind}`),
+      el('span', { class: 'muted' }, `第 ${task.attempt.attempt_no} 次尝试 · `
+        + `${task.attempt.attempt_id}`),
+      el('span', { class: 'muted' }, task.cancel.requested
+        ? `取消：已请求${task.cancel.acknowledged ? '且宿主已确认' : '，但宿主未确认（原生取消没有 ack 事件）'}`
+        : '取消：未请求'),
+      el('span', { class: 'tag neutral' }, '领域：无该字段')),
+    detail,
+    el('div', { class: 'uif-row' },
+      // Two different actions were conflated here until 2026-10-10: one disabled
+      // 「继续该任务」 justified by host side effects. Opening the composer is a hash
+      // change with no host effect at all, so it is wired; only 启动 / 取消 stay disabled,
+      // and they carry their own reason. A native job is one this page already has a
+      // target-package surface for (`#/plan`); an image-import job does not, so no
+      // continue affordance is painted on it.
+      ...(task.kind.endsWith('-native')
+        ? [el('button', {
+            type: 'button', class: 'secondary', id: `record-continue-${task.job_id}`,
+            onclick: () => { window.location.hash = '#/plan'; },
+          }, '接续：打开目标生成包')]
+        : []),
+      el('button', { type: 'button', class: 'secondary', disabled: '' }, '启动 / 取消'),
+      el('span', { class: 'theme-toggle-note' },
+        task.kind.endsWith('-native')
+          ? '接续只做页面跳转：同一项目重新打开编排面，宿主与底图仍由你重新选一次（这里不替你选，'
+            + '也不把已排队任务读成完成）。启动 / 取消会驱动真实宿主并留下宿主侧效果，'
+            + '本会话未获该授权，本机既有工作台已提供同一动作。'
+          : '这条记录是素材导入，没有对应的目标生成包，所以这里不给接续入口。'
+            + '启动 / 取消会驱动真实宿主并留下宿主侧效果，本会话未获该授权。')));
+}
+
+/** 单条任务的事件读回：最近一次状态迁移就是"最近确认点"。 */
+async function loadTaskEvents(projectId: string, job: string, host: HTMLElement)
+  : Promise<void> {
+  host.replaceChildren(el('p', { class: 'view-loading' }, '正在读回该任务的事件…'));
+  const data = await apiOrEmpty<EventListResponse>(
+    `/projects/${projectId}/tasks/${encodeURIComponent(job)}/events`,
+    { events: [], next_cursor: null });
+  const unread = shapeNotice(data);
+  const offline = disconnectedNotice(data);
+  if (unread || offline) {
+    host.replaceChildren(stateBlock({
+      kind: 'unread', title: '事件未读回', weight: 'neutral',
+      producer: unread || offline || '响应缺少 events 集合',
+      next: '刷新重读；未读回时本页不会把"没有事件"当成"任务没有进展"。',
+    }));
+    return;
+  }
+  if (!data.events.length) {
+    host.replaceChildren(el('p', { class: 'view-hint' },
+      '该任务还没有事件记录：事件由服务在状态迁移时写入，空集合不等于失败。'));
+    return;
+  }
+  const last = data.events[data.events.length - 1];
+  host.replaceChildren(
+    el('p', { class: 'view-hint' },
+      `最近确认点：${last.to_state}${last.from_state ? ` ← ${last.from_state}` : ''}`
+      + ` · 第 ${last.attempt_no} 次尝试 · ${last.at}`),
+    el('ul', { class: 'record-event-list' }, ...data.events.slice(-8).map((e) => el(
+      'li', {}, `${e.at} · 第 ${e.attempt_no} 次 · `
+        + `${e.from_state ? `${e.from_state} → ` : ''}${e.to_state}`))),
+    data.next_cursor ? el('p', { class: 'muted' },
+      `还有更早的事件未取回（游标 ${data.next_cursor}）：本页只读回最近 8 条。`) : '');
+}
+
+export async function renderRecords(target: HTMLElement): Promise<void> {
+  await projectPickerPanel(target, viewLabel('records'),
+    async (projectId: string) => recordsBody(projectId),
+    el('p', { class: 'view-hint' },
+      '这里列出服务里真实存在的作业：状态词、尝试次数与取消标记都来自读回，不是界面推断。'
+      + '没有任务的项目会如实显示空列表，不会画出示例记录。'));
+}
+
+/** DL-UI-U06 · 运行与恢复现场。只读投影：这里没有任何按钮会启动宿主，也没有一个判定词。
+ *  三种"没有"必须分开画：未读回（没问到）、表不存在（这台服务从未记录过原生作业）、
+ *  表存在且为空（问过了，答案是零）。把它们混成"0"就是本仓库已经栽过两次的那类错。 */
+function runtimeObservation(data: NativeRuntimeResponse,
+  unread: string | null): HTMLElement {
+  const word = (section: NativeRuntimeSection, present: string, absent: string): string =>
+    section.table === 'NOT_READ' || unread
+      ? '未读回：没有问到，因此既不是占用也不是空闲'
+      : section.table === 'ABSENT'
+        ? absent
+        : present;
+  const held = (data.host_guard.rows ?? [])
+    .map((row) => `${String(row.host)}→${String(row.attempt_id)}`).join('、');
+  const guardPresent = data.counts.hosts_held === 0
+    ? '表存在且为空：当前没有尝试持有宿主'
+    : `当前 ${String(data.counts.hosts_held)} 个宿主被持有：${held}`;
+  const quiescencePresent = `已记录 ${String((data.quiescence.rows ?? []).length)} 条，`
+    + `其中带回执 ${String(data.counts.attempts_quiescent_receipted ?? 0)} 条`;
+  const reconciliationPresent = `开着 ${String(data.counts.reconciliations_open ?? 0)} 条。`
+    + '一条对账行只说明有人开了对账，不说明它查到了什么或修好了什么。';
+  const recoveryPresent = (data.recovery_protocol.rows ?? [])
+    .map((row) => `${String(row.attempt_id)}：${String(row.protocol)}`).join('、')
+    || '表存在但没有行';
+  const executionPresent = `读回 ${String((data.executions.rows ?? []).length)} 条，`
+    + `其中带回执 ${String(data.counts.executions_receipted ?? 0)} 条、有结果 `
+    + `${String(data.counts.executions_with_result ?? 0)} 条。`
+    + '请求与结果正文不在这条投影里。';
+  const rows: HTMLElement[] = [
+    el('li', { class: 'list-item' }, el('div', {},
+      el('strong', {}, '宿主占用（native_host_guard_v1）'),
+      el('small', {}, word(data.host_guard, guardPresent,
+        '该状态库里没有这张表：这台服务从未记录过原生作业。')))),
+    el('li', { class: 'list-item' }, el('div', {},
+      el('strong', {}, '静默确认（native_quiescence_v1）'),
+      el('small', {}, word(data.quiescence, quiescencePresent,
+        '没有这张表：从未记录过静默确认。')))),
+    el('li', { class: 'list-item' }, el('div', {},
+      el('strong', {}, '对账（native_reconciliation_v1）'),
+      el('small', {}, word(data.reconciliation, reconciliationPresent,
+        '没有这张表：从未开过对账。')))),
+    el('li', { class: 'list-item' }, el('div', {},
+      el('strong', {}, '恢复协议（native_recovery_protocol_v2）'),
+      el('small', {}, word(data.recovery_protocol, recoveryPresent, '没有这张表。')))),
+    el('li', { class: 'list-item' }, el('div', {},
+      el('strong', {}, '执行记录与回执（native_execution_v1，仅本项目）'),
+      el('small', {}, word(data.executions, executionPresent, '没有这张表。')))),
+    el('li', { class: 'list-item' }, el('div', {},
+      el('strong', {}, '占用预算'),
+      el('span', { class: 'tag neutral' }, '无该字段'),
+      el('small', {}, ` ${data.budget_reason}`))),
+  ];
+  for (const sentence of data.does_not_say) {
+    rows.push(el('li', { class: 'list-item' }, el('div', {},
+      el('strong', {}, '这条投影不说的内容'),
+      el('small', {}, sentence))));
+  }
+  return el('div', { class: 'panel' },
+    el('h3', {}, '运行与恢复现场'),
+    el('p', { class: 'view-hint' },
+      '读的是 GET /api/projects/{id}/native-runtime —— 只读投影，不启动宿主、不排队、不取消；'
+        + '启动 / 取消仍是真实宿主副作用，本会话未获授权，所以这里不提供可点的动作。'),
+    el('ul', { class: 'list' }, ...rows));
+}
+
+async function recordsBody(projectId: string): Promise<HTMLElement> {
+  const [data, runtime] = await Promise.all([
+    apiOrEmpty<TaskListResponse>(`/projects/${projectId}/tasks`, OFFLINE.tasks),
+    apiOrEmpty<NativeRuntimeResponse>(`/projects/${projectId}/native-runtime`,
+      OFFLINE.nativeRuntime),
+  ]);
+  // The seam gate requires one shape notice per read: a payload that arrived without
+  // `counts` must be reported as unread instead of letting the panel print `undefined`
+  // where a count belongs.
+  const runtimeUnread = shapeNotice(runtime) || disconnectedNotice(runtime);
+  const wrap = el('div', {});
+  const unread = shapeNotice(data);
+  const offline = disconnectedNotice(data);
+  const tasks = data.tasks;
+  const counts = tasks.reduce<Record<string, number>>((acc, t) => {
+    const key = taskTriage(t.attempt.state);
+    acc[key] = (acc[key] ?? 0) + 1;
+    return acc;
+  }, {});
+  wrap.replaceChildren(
+    el('div', { class: 'panel' },
+      el('h3', {}, `制作记录（${tasks.length}）`),
+      el('p', { class: 'view-hint' },
+        unread ? `${unread}，因此这里的条数不能当作该项目的作业总数`
+          : offline ? `${offline}，作业台账未读回`
+            : tasks.length
+              ? `按服务状态词分组：${Object.entries(counts)
+                .map(([k, v]) => `${TRIAGE_LABEL[k as TaskTriage]} ${v}`).join(' · ')}。`
+                + '游标分页未展开：next_cursor 存在时本页会说明还有更多。'
+              : '该项目当前没有作业记录。空列表是读回结果，不是失败，也不代表从未运行过。'),
+      data.next_cursor ? el('p', { class: 'muted', id: 'records-more' },
+        `还有更多：服务给了下一页游标 ${data.next_cursor}；本视图不自动续读，`
+        + '避免把未取回的条目算进分组计数。') : '',
+      tasks.length
+        ? el('ul', { class: 'list' }, ...tasks.map((t) => taskRecordRow(projectId, t)))
+        : el('p', { class: 'record-empty-note' },
+          'R2 §7 的三条示例记录属于原型，不在这里出现：出现在读回面里的每一行都必须'
+            + '对应一条真实作业。')),
+    el('div', { class: 'panel' },
+      el('h3', {}, '这个入口现在能说什么、不能说什么'),
+      el('ul', { class: 'list' },
+        el('li', { class: 'list-item' }, el('span', {}, '状态词'),
+          el('span', { class: 'tag info' }, '来自服务'),
+          el('small', {}, ' attempt.state 逐词对照 config/state-vocabularies.json，'
+            + 'OUTCOME_UNKNOWN 显示为"未知状态/待人工核对"，不并入失败。')),
+        el('li', { class: 'list-item' }, el('span', {}, '领域标签'),
+          el('span', { class: 'tag neutral' }, '无该字段'),
+          el('small', {}, ' TaskRecord 不带领域；补它属 DL-FINAL-T06 的分类工作，'
+            + '不由界面按 kind 猜测。')),
+        el('li', { class: 'list-item' }, el('span', {}, '接续到目标生成包'),
+          el('span', { class: 'tag ok' }, '已接线'),
+          el('small', {}, ' 只做地址跳转：不发出请求、不启动宿主，宿主与底图到那一页重选。'
+            + '简报字段不会自动变成包结构（属 DL-FINAL-T09/T10）。')),
+        el('li', { class: 'list-item' }, el('span', {}, '启动 / 取消'),
+          el('span', { class: 'tag warn' }, '未接线'),
+          el('small', {}, ' 是真实宿主副作用，本会话无该授权；'
+            + '按钮禁用并说明原因，不画成可点。'))),
+    // DL-UI-U06: the observation half of run/observe/recover, over the tables the existing
+    // action routes already write. It reads a second route, so the panel appears beside the
+    // ledger rather than restating it.
+    runtimeObservation(runtime, runtimeUnread)));
+  // R2 §3 的底部任务条：只在本页真的读到进行中/待核对作业时出现。跨路由常驻的全局任务条
+  // 需要"当前任务"这个应用级概念，服务没有暴露它，所以这里不画一个凭空的常驻条。
+  const dock = activityDock(tasks);
+  if (dock) wrap.append(dock);
+  return wrap;
+}
+
+/** R2 §7 页面底部任务条：只在真的存在进行中/待核对作业时出现。 */
+export function activityDock(tasks: readonly TaskRecord[]): HTMLElement | null {
+  const live = tasks.filter((t) => {
+    const k = taskTriage(t.attempt.state);
+    return k === 'in_flight' || k === 'needs_human';
+  });
+  if (!live.length) return null;
+  return el('div', { class: 'activity-dock', id: 'activity-dock', role: 'status',
+    'aria-label': '当前制作任务' },
+    el('span', {}, `${live.length} 条作业仍在进行或待人工核对`),
+    el('button', { type: 'button', class: 'secondary',
+      onclick: () => { window.location.hash = '#/records'; } }, '回到制作记录'));
+}
+
+// ============================================================================
+// DL-UI-U05 (2026-10-09) — 屏 05 目标生成包
+// ----------------------------------------------------------------------------
+// 合同：POST /api/projects/{id}/native-plans，字段 {host, rir, text_styles,
+// idempotency_key}，返回 202 且**只排队**，不启动宿主；启动仍是任务面上的显式动作。
+// 这一页存在的理由就是 U05 的验收句"普通用户无需手写 RIR"：界面把已经记录在服务的
+// 对象（现行方向、其简报、绑定的设计系统、本项目已导入的真实资产）编排成一份可审阅的
+// 目标生成包，人看的是编排结果而不是 JSON。
+//
+// 不臆造原则：RIR 的每个字段都指向一条真实记录或用户在页面上的明确选择；
+// `inferred:false` 是因为这个节点来自用户勾选，不是检测器推断。
+// 分析派生的结构节点（plan_to_rir 那条桥）目前**没有生产调用方**（design-lab/tests 在调，
+// 服务与本页都不调），本页不假装它接上，
+// 也不把检测推断的节点画进来。
+// ============================================================================
+
+interface RirNode {
+  id: string;
+  type: string;
+  name: string;
+  opacity: number;
+  bounds: { x: number; y: number; width: number; height: number };
+  inferred: boolean;
+  zOrder: number;
+  visible: boolean;
+  locked: boolean;
+  blendMode: string;
+  raster?: { path: string; crop: Record<string, number>; alpha: number; sourceMappings: unknown[] };
+}
+
+/** 由已记录对象编排一份 raster-only 目标包；字段形状取自
+ *  design-lab/schemas/reconstruction/reconstruction-ir.schema.json 的必填集。 */
+export function composeTargetPlan(asset: AssetRecord, host: string): {
+  rir: { schemaVersion: string; canvas: Record<string, unknown>; layers: RirNode[] };
+  textStyles: Record<string, unknown>;
+} {
+  const node: RirNode = {
+    id: 'reference-raster',
+    type: 'raster',
+    name: `${asset.id.slice(-8)} · ${asset.media_type}`,
+    opacity: 1,
+    bounds: { x: 0, y: 0, width: asset.width, height: asset.height },
+    inferred: false,
+    zOrder: 0,
+    visible: true,
+    locked: host === 'illustrator',
+    blendMode: 'normal',
+    raster: {
+      // 导入路由登记的就是这个完整 img-ID；raster.path 必须是它，不是本地路径。
+      path: asset.id,
+      crop: { x: 0, y: 0, width: asset.width, height: asset.height },
+      alpha: 1,
+      sourceMappings: [],
+    },
+  };
+  return {
+    rir: {
+      schemaVersion: 'design-lab/reconstruction-ir/v1',
+      canvas: { width: asset.width, height: asset.height, colorSpace: 'srgb' },
+      layers: [node],
+    },
+    textStyles: {},
+  };
+}
+
+/** A native-plan refusal, in the refusal's own words.
+ *
+ * DL-UI-U05 lists error / forbidden / conflict / timeout as separate states, and
+ * `native_submissions.py` really does answer with five different codes at three different
+ * statuses (400 INVALID_NATIVE_PLAN, 400 INVALID_NATIVE_KEY, 413 NATIVE_PLAN_TOO_LARGE,
+ * 409 NATIVE_SUBMISSION_BUSY, 409 NATIVE_PLAN_IDEMPOTENCY_CONFLICT). Collapsing them into
+ * one "未受理" card told the reader nothing about what to do next: a busy write is retried,
+ * an idempotency conflict must NOT be retried with the same key, and an oversized plan needs
+ * the asset, not the button. The code itself is quoted because it is the handle an operator
+ * takes back to the CLI.
+ */
+function planRefusal(error: unknown): StateSpec {
+  const envelope = (error as Error & { serviceEnvelope?: Record<string, unknown> })
+    .serviceEnvelope;
+  const code = typeof envelope?.['error'] === 'string' ? envelope['error'] : '';
+  if (code === 'NATIVE_PLAN_IDEMPOTENCY_CONFLICT')
+    return {
+      // 409 is a CONFLICT, not a permission verdict: STATE_SPECS has a `conflict` kind for
+      // exactly this, and `forbidden` (「无权进行」) would tell the operator to ask for access
+      // when the real action is "do not reuse this key". The busy 409 below keeps `unknown`
+      // because there the service decided nothing at all.
+      kind: 'conflict', title: '冲突：这个幂等键已经登记过别的内容', weight: 'bad',
+      producer: 'POST /api/projects/{id}/native-plans 返回 NATIVE_PLAN_IDEMPOTENCY_CONFLICT'
+        + '（409）：同一把键下已有的目标包与本次提交的内容摘要不一致。',
+      next: '不要换内容后复用同一个键重试——那正是这条冲突要拦的事。要么把本次改动当成新的'
+        + '一次排队（新键），要么放弃这次改动。服务端没有写入任何东西。',
+    };
+  if (code === 'NATIVE_SUBMISSION_BUSY')
+    return {
+      kind: 'unknown', title: '未排队：本机服务正忙', weight: 'neutral',
+      producer: 'POST /api/projects/{id}/native-plans 返回 NATIVE_SUBMISSION_BUSY（409）：'
+        + '同一项目的上一次受理还没落账。',
+      next: '这是可以重试的一次：等内容不同的排队会换键，重试同内容会沿用同一幂等键而不会'
+        + '产生第二份目标包。排队本身仍不等于宿主已启动。',
+    };
+  if (code === 'NATIVE_PLAN_TOO_LARGE')
+    return {
+      kind: 'error', title: '目标包超过受理上限', weight: 'bad',
+      producer: 'POST /api/projects/{id}/native-plans 返回 NATIVE_PLAN_TOO_LARGE（413）：'
+        + '正文超过服务端 4,000,000 字节的硬上限。',
+      next: '超限的是编排出来的目标包本身，不是网络。换一张更小的底图或减少节点；'
+        + '界面不会截断内容来凑进上限。',
+    };
+  if (code === 'INVALID_NATIVE_KEY')
+    return {
+      kind: 'error', title: '幂等键不合法', weight: 'bad',
+      producer: 'POST /api/projects/{id}/native-plans 返回 INVALID_NATIVE_KEY（400）：'
+        + '键的形状不符合服务端要求。',
+      next: '本页的键由 uuid() 生成，出现这条说明是界面自己发错了，不是用户填错；'
+        + '按代码排查生成处，不要让用户重填。',
+    };
+  if (code === 'INVALID_NATIVE_PLAN')
+    return {
+      kind: 'error', title: '目标包不符合合同', weight: 'bad',
+      producer: 'POST /api/projects/{id}/native-plans 返回 INVALID_NATIVE_PLAN（400）：'
+        + '编排出的 RIR 或宿主字段没有通过合同校验。',
+      next: '本页不替用户猜一个能过校验的值。核对宿主与底图是否仍在本项目的读回里；'
+        + '若两者都在，这是编排缺陷，按代码报修。',
+    };
+  if (!envelope)
+    return {
+      kind: 'error', title: '请求没有到达服务端', weight: 'bad',
+      producer: `POST /api/projects/{id}/native-plans 没有拿到服务回复：${errMsg(error)}。`
+        + '没有回复不等于没有受理——本机可能已经写入，只是这条连接没等到答案。',
+      next: '先回「制作记录与待继续」看这次排队是否已经落账，再决定是否重试；'
+        + '直接重试同内容是安全的（同键），但不要在没核对前改内容重发。',
+    };
+  return {
+    kind: 'forbidden', title: '未受理', weight: 'bad',
+    producer: `POST /api/projects/{id}/native-plans 返回：${code || errMsg(error)}`,
+    next: '按上面的原因修正目标包后重试；界面不会替你猜一个能通过校验的字段值。',
+  };
+}
+
+function planComposer(projectId: string): HTMLElement {
+  const hostSelect = el('select', { class: 'input', 'aria-label': '目标宿主' },
+    el('option', { value: 'illustrator' }, 'Illustrator / AI'),
+    el('option', { value: 'photoshop' }, 'Photoshop / PSD'));
+  const assetSelect = el('select', { class: 'input', 'aria-label': '参考底图资产' },
+    el('option', { value: '' }, '选择本项目已导入的资产'));
+  const layerHost = el('div', { class: 'plan-layer' });
+  const preview = el('pre', { class: 'mono plan-preview' }, '（选择资产后显示编排结果）');
+  const outcome = el('div', { class: 'plan-outcome' });
+  const status = el('p', { class: 'view-hint', role: 'status', 'aria-live': 'polite' },
+    '提交只把目标生成包排队，不启动宿主，也不修改任何已交付版本。');
+  let assets: AssetRecord[] = [];
+
+  const recompute = (): void => {
+    const asset = assets.find((a) => a.id === assetSelect.value);
+    if (!asset) {
+      preview.textContent = '（还没有选择资产：没有真实底图就不编排，不给空画布填假尺寸）';
+      layerHost.replaceChildren();
+      return;
+    }
+    const composed = composeTargetPlan(asset, hostSelect.value);
+    preview.textContent = JSON.stringify(composed.rir, null, 2);
+    layerHost.replaceChildren(el('ul', { class: 'list' },
+      el('li', { class: 'list-item' },
+        el('div', {}, el('strong', {}, '底图 · 用户勾选，非推断'),
+          el('small', {}, `${asset.id} · ${asset.media_type} · ${asset.width}×${asset.height}`
+            + ` · 权利 ${asset.rights} · v${asset.version_no}`))),
+      el('li', { class: 'list-item' },
+        el('div', {}, el('strong', {}, '画布'),
+          el('small', {}, `${String(composed.rir.canvas.width)}×${String(composed.rir.canvas.height)}`
+            + ' · srgb（取自底图真实尺寸，不是页面臆造）'))),
+      el('li', { class: 'list-item' },
+        el('div', {}, el('strong', {}, '结构 / 文字 / 路径节点'),
+          el('small', {}, '本批不编排：分析派生的 plan_to_rir 桥没有生产调用方'
+            + '（仓库里只有 design-lab/tests 在调，服务与本页都不调），'
+            + '画进去就是假结构。文字与路径节点属 U05 剩余项与 DL-FINAL-T10。')))));
+  };
+  hostSelect.onchange = recompute;
+  assetSelect.onchange = recompute;
+
+  const submit = el('button', { type: 'button', class: 'primary-btn', id: 'plan-submit' },
+    '排队这份目标生成包');
+  submit.onclick = () => {
+    const asset = assets.find((a) => a.id === assetSelect.value);
+    if (!asset) {
+      status.textContent = '没有底图资产就不提交：本机服务要求 raster.path 指向已导入的完整 img-ID。';
+      return;
+    }
+    submit.disabled = true;
+    status.textContent = '正在提交…';
+    void (async () => {
+      const composed = composeTargetPlan(asset, hostSelect.value);
+      try {
+        const data = await api<{ task_id?: string; job_id?: string; state?: string }>(
+          `/projects/${projectId}/native-plans`,
+          {
+            host: hostSelect.value,
+            rir: composed.rir,
+            text_styles: composed.textStyles,
+            idempotency_key: uuid(),
+          });
+        const id = data.task_id ?? data.job_id ?? '未给出任务号';
+        status.textContent = '';
+        outcome.replaceChildren(el('p', { class: 'view-hint' },
+          `已排队：${String(id)} · 状态 ${data.state ?? '未读回'}`),
+        el('p', { class: 'view-hint' },
+          '排队不等于完成：启动宿主与读回产物在任务面上是另一步，需要显式动作。'));
+      } catch (error) {
+        status.textContent = '';
+        outcome.replaceChildren(stateBlock(planRefusal(error)));
+      } finally {
+        submit.disabled = false;
+      }
+    })();
+  };
+
+  void (async () => {
+    try {
+      const data = await api<AssetListResponse>(`/projects/${projectId}/assets`);
+      assets = data.assets;
+      assetSelect.replaceChildren(el('option', { value: '' }, '选择本项目已导入的资产'),
+        ...assets.map((a) => el('option', { value: a.id },
+          `${a.id.slice(-8)} · ${a.media_type} · ${a.width}×${a.height}`)));
+      if (!assets.length) {
+        assetSelect.setAttribute('disabled', '');
+        status.textContent = '本项目还没有已导入资产；先在「输入与目标」导入 PNG/JPEG，'
+          + '没有底图就不编排。';
+      }
+    } catch (error) {
+      assetSelect.replaceChildren(el('option', { value: '' }, '素材未读回'));
+      outcome.replaceChildren(stateBlock({
+        kind: 'error', title: '素材未读回', weight: 'bad',
+        producer: `GET /api/projects/{id}/assets 返回：${errMsg(error)}`,
+        next: '刷新重读；读不到资产时本页不会编排任何节点。',
+      }));
+    }
+  })();
+
+  return el('div', { class: 'intake-grid' },
+    el('div', { class: 'uif-spec-block' },
+      el('h3', {}, '目标包组成（来自已记录对象）'),
+      el('label', {}, '目标宿主', hostSelect),
+      el('label', {}, '底图资产', assetSelect),
+      el('div', {}, layerHost),
+      el('p', { class: 'uif-spec-note' },
+        '编排规则只有一条：每个字段指向一条真实记录或你在本页的明确选择。'
+        + '权利位随资产一起显示，导入与读回不等于获得使用权。')),
+    el('div', { class: 'uif-spec-block' },
+      el('h3', {}, '提交与受理结果'),
+      el('div', { class: 'uif-row' }, submit),
+      status,
+      outcome,
+      // U05 的验收写的是"普通用户无需JSON"，所以 RIR 不是这一屏的主面板：它是给要核对
+      // 字节的人用的次级查看面，默认收起。内容仍然来自同一次编排，不是第二份台账。
+      el('details', { class: 'plan-rir' },
+        el('summary', {}, '查看将提交的 RIR（JSON，供核对）'),
+        preview)));
+}
+
+/** 屏 05 · 目标生成包。 */
+export async function renderPlan(target: HTMLElement): Promise<void> {
+  await projectPickerPanel(target, viewLabel('plan'),
+    async (projectId: string) => planComposer(projectId),
+    el('p', { class: 'view-hint' },
+      '这一页替普通用户写 RIR：选择宿主与底图后，界面给出将要提交的完整目标包，'
+      + '你审阅的是编排结果而不是 JSON。'),
+    '本页会向本机服务提交一个排队任务；不启动宿主，不改动已交付版本。');
+}
+
+// ============================================================================
+// DL-UI-U04 (2026-10-09) — 屏 04 分析与方案
+// ----------------------------------------------------------------------------
+// 这一面把"已经知道的"和"还没有来源的"分开写：
+//   * 现行方向、它所依据的简报、绑定的设计系统与 spec 摘要 —— 全部来自
+//     GET /api/projects/{id}/design-layer 的真实字段；
+//   * 方法 / 偏好 = 方向自己的 color_mood / typography_mood / style_notes；
+//   * 软件限制 = CAPABILITY_REGISTRY 里宿主那条自我描述（BLOCKED 就是 BLOCKED）；
+//   * 已识别结构与推断 = 本批**没有**可信来源：analysis/plan_to_rir 这座桥在仓库里
+//     没有生产调用方（design-lab/tests 在调），所以这里不画任何推断节点，只写清缺什么、下一步是什么；
+//   * 本次纠正 = 走 design.ts reviseDirection()（与遗留表单同一规则），
+//     修订追加新版本，不改写旧版本字节。
+// ============================================================================
+
+function analysisPanel(projectId: string): HTMLElement {
+  const layerHost = el('div', { class: 'analysis-layer' });
+  const correctionHost = el('div', { class: 'analysis-correction' });
+
+  const title = el('input', { class: 'input', type: 'text', maxlength: '120',
+    id: 'analysis-revision-title', placeholder: '修订后的方向标题' });
+  const notes = el('input', { class: 'input', type: 'text', maxlength: '600',
+    id: 'analysis-revision-notes', placeholder: '表现备注（逗号分隔，可选）' });
+  const colorMood = el('input', { class: 'input', type: 'text', maxlength: '120',
+    id: 'analysis-revision-color', placeholder: '色彩倾向（可选）' });
+  const typeMood = el('input', { class: 'input', type: 'text', maxlength: '120',
+    id: 'analysis-revision-type', placeholder: '字体倾向（可选）' });
+  const target = el('select', { class: 'input', 'aria-label': '要修订的方向版本' },
+    el('option', { value: '' }, '选择要修订的方向版本'));
+  const status = el('p', { class: 'view-hint', role: 'status', 'aria-live': 'polite' },
+    '修订会追加一个新版本；被取代的旧版本只保留为历史，字节不被改写。');
+  const submit = el('button', { type: 'button', class: 'primary-btn', id: 'analysis-revise' },
+    '保存为方向新版本');
+
+  const load = async (): Promise<void> => {
+    layerHost.replaceChildren(el('p', { class: 'view-loading' }, '正在读回设计层…'));
+    const data = await apiOrEmpty<DesignLayerResponse>(`/projects/${projectId}/design-layer`,
+      OFFLINE.designLayer);
+    const layer = data.design_layer;
+    const chosen = layer.chosen_direction;
+    const brief = chosen
+      ? layer.briefs.find((b) => b.brief_id === chosen.brief_id) ?? null : null;
+    const binding = layer.active_binding;
+
+    target.replaceChildren(el('option', { value: '' }, '选择要修订的方向版本'),
+      ...layer.directions.map((d) => el('option', { value: d.direction_id },
+        `${d.title} · v${d.version}${d.superseded_by ? '（已被取代）' : ' · 现行'}`)));
+
+    const rows: HTMLElement[] = [
+      el('li', { class: 'list-item' }, el('div', {},
+        el('strong', {}, '现行方向'),
+        el('small', {}, chosen
+          ? `${chosen.title} · v${chosen.version} · 由 ${chosen.actor ?? '未记录操作者'} 选定`
+          : '尚无现行方向：选择方向是人工判定，界面不替你选。'))),
+      el('li', { class: 'list-item' }, el('div', {},
+        el('strong', {}, '方法 / 偏好（方向自己的字段）'),
+        el('small', {}, chosen
+          ? `色彩 ${chosen.color_mood ?? '未声明'} · 字体 ${chosen.typography_mood ?? '未声明'}`
+            + ` · 表现备注 ${(chosen.style_notes ?? []).join('、') || '未声明'}`
+          : '无方向即无方法记录。'))),
+      el('li', { class: 'list-item' }, el('div', {},
+        el('strong', {}, '来源与知识引用'),
+        el('small', {}, brief
+          ? `简报《${brief.title}》v${brief.version} · 目标 ${brief.goals.join('、')}`
+            + ` · 约束 ${brief.constraints ?? '无'} · 引用参考 ${brief.reference_asset_ids.length} 个`
+            + ` · spec ${brief.spec_sha256.slice(0, 12)}…`
+          : '未读回：没有现行方向就没有可引用的简报版本。'))),
+      el('li', { class: 'list-item' }, el('div', {},
+        el('strong', {}, '设计系统契约'),
+        el('small', {}, binding
+          ? `${binding.design_system_name} · v${binding.version} · spec `
+            + `${binding.spec_sha256.slice(0, 12)}… · 绑定于方向 `
+            + `${binding.direction_id.slice(-8)}`
+            + (binding.superseded_by ? '（该绑定已被更新版本取代）' : ' · 现行')
+          : '未绑定：绑定决定后续制作使用的契约，缺失时不假装沿用。'))),
+    ];
+    layerHost.replaceChildren(
+      el('ul', { class: 'list' }, ...rows),
+      el('div', { class: 'analysis-gaps' },
+        stateBlock({
+          kind: 'unknown', title: '已识别结构与推断', weight: 'neutral',
+          producer: '本面没有可信来源可列：analysis/plan_to_rir 这座把平面分解 Plan 转成 '
+            + 'RIR 节点的桥没有生产调用方（仓库里只有 design-lab/tests 在调），'
+            + '检测得到的推断内容因此无处读回。',
+          next: '要么把该桥接进一条真实分析路由并按 E2 验收，要么维持"结构节点由人在目标生成包里'
+            + '逐项给出"；在接通之前，本页不画任何推断节点，也不把空白读成"没有结构"。',
+        }),
+        capabilityCardHost('research-insights')),
+      ...shapeNoticeRows(data));
+
+    correctionHost.replaceChildren(
+      el('label', {}, '要修订的方向版本', target),
+      el('label', {}, '修订后的标题', title),
+      el('label', {}, '表现备注', notes),
+      el('div', { class: 'uif-row' },
+        el('label', { class: 'capability-filter' }, '色彩倾向', colorMood),
+        el('label', { class: 'capability-filter' }, '字体倾向', typeMood)),
+      el('div', { class: 'uif-row' }, submit),
+      status);
+
+    submit.onclick = () => {
+      if (!target.value) {
+        status.textContent = '未选择方向版本：修订必须指明改的是哪一版，界面不替你挑。';
+        return;
+      }
+      submit.disabled = true;
+      status.textContent = '正在提交修订…';
+      void (async () => {
+        try {
+          const data = await reviseDirection({
+            owner: projectId,
+            directionId: target.value,
+            title: title.value,
+            notes: (notes.value || '').split(',').map((n) => n.trim()).filter(Boolean),
+            colorMood: colorMood.value.trim() || null,
+            typeMood: typeMood.value.trim() || null,
+          });
+          status.textContent = `已保存为版本 ${data.direction.version}；`
+            + '旧版本只保留为历史。'
+            + (data.direction.chosen
+              ? '选定结论随新版本带走，但设计系统绑定未跟随，需要在最新版本上重新绑定。'
+              : '该方向未被选定，不涉及绑定。');
+          await load();
+        } catch (error) {
+          status.textContent = '';
+          layerHost.append(stateBlock({
+            kind: 'conflict', title: '修订未确认', weight: 'bad',
+            producer: `POST /api/projects/{id}/directions/{dir}/revisions 返回：${revisionHint(error)}`,
+            next: '若是 STALE_REVISION，请在现行版本上重做这次修订；旧版本字节不会被改写。',
+          }));
+        } finally {
+          submit.disabled = false;
+        }
+      })();
+    };
+  };
+
+  void load();
+  return el('div', { class: 'intake-grid' },
+    el('div', { class: 'uif-spec-block' },
+      el('h3', {}, '判断依据（读回，不重述）'), layerHost),
+    el('div', { class: 'uif-spec-block' },
+      el('h3', {}, '本次纠正'), correctionHost));
+}
+
+/** 软件限制一条直接复用能力契约登记表里宿主那条自我描述，不抄第二份状态词。 */
+function capabilityCardHost(capabilityId: string): HTMLElement {
+  const row = CAPABILITY_REGISTRY.find((c) => c.capabilityId === capabilityId);
+  return row ? capabilityCard(row)
+    : el('p', { class: 'view-hint' }, `（能力登记表无 ${capabilityId} 这一条）`);
+}
+
+/** 屏 04 · 分析与方案。 */
+export async function renderAnalysis(target: HTMLElement): Promise<void> {
+  await projectPickerPanel(target, viewLabel('analysis'),
+    async (projectId: string) => analysisPanel(projectId),
+    el('p', { class: 'view-hint' },
+      '检查设计判断并就地纠正：这一面把方向、简报、绑定与缺口分开列出，'
+      + '推断内容必须标为推断，没有来源的部分直说没有来源。'),
+    '本页的修订会写入本机服务并追加新版本；不启动宿主，也不改已交付版本。');
+}

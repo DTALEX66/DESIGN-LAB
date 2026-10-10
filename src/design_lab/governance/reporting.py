@@ -647,7 +647,8 @@ def _build(reader, snapshot, generated_at):
                                        'blockers':[('DL-R5-015' if ledger['taskpack'] == 'DL-TP-20260908-R5' else 'R3-15') + ' acceptance', 'host evidence', 'rights/quality/release gates', 'exact-SHA delivery']})}
     if set(reports) != set(REPORTS):
         raise ValueError('report inventory does not match generated outputs')
-    return reports
+    from .current_execution import update_reports
+    return update_reports(reader, ledger, reports, common)
 
 
 def _index_input_digest(reader, snapshot, report_names):

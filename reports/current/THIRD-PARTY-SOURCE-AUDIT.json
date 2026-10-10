@@ -1,7 +1,12 @@
 {
   "schemaVersion": "design-lab/third-party-source-audit/v1",
   "task_key": "DL-TP-20260914-DEEPSEEK-AUTHORITY-R1::DLDS-D010",
-  "generated_at": "2026-09-13T16:28:53+00:00",
+  "generatedBy": "scripts/deepseek_content_audit.py",
+  "subjectSha": "14e99f03ae95d76d19bb91c3b70250c96ae567b4",
+  "projection": true,
+  "fresh": false,
+  "provenanceMeaning": "subjectSha is HEAD at the end of the run that computed this audit; fresh=false says a generation timestamp is not a test time, and this record is a projection over tracked files, not an execution",
+  "generated_at": "2026-10-08T23:52:21+00:00",
   "lock": {
     "path": "vendor/sources.lock.json",
     "exists": true,
@@ -19,8 +24,8 @@
       "on_disk": false,
       "status": "CORRECT_LOCK_REFERENCE",
       "has_revision": false,
-      "has_url": false,
-      "canonical_url": null,
+      "has_url": true,
+      "canonical_url": "https://github.com/uxKero/anydesign",
       "provenance_source": null
     },
     {
@@ -33,8 +38,8 @@
       "on_disk": false,
       "status": "CORRECT_LOCK_REFERENCE",
       "has_revision": false,
-      "has_url": false,
-      "canonical_url": null,
+      "has_url": true,
+      "canonical_url": "https://github.com/jiji262/claude-design-skill",
       "provenance_source": null
     },
     {
@@ -47,8 +52,8 @@
       "on_disk": false,
       "status": "CORRECT_LOCK_REFERENCE",
       "has_revision": false,
-      "has_url": false,
-      "canonical_url": null,
+      "has_url": true,
+      "canonical_url": "https://github.com/Trystan-SA/claude-design-system-prompt",
       "provenance_source": null
     },
     {
@@ -61,8 +66,8 @@
       "on_disk": false,
       "status": "CORRECT_LOCK_REFERENCE",
       "has_revision": false,
-      "has_url": false,
-      "canonical_url": null,
+      "has_url": true,
+      "canonical_url": "https://github.com/OpaceDigitalAgency/skills",
       "provenance_source": null
     },
     {
@@ -75,22 +80,22 @@
       "on_disk": false,
       "status": "CORRECT_LOCK_REFERENCE",
       "has_revision": false,
-      "has_url": false,
-      "canonical_url": null,
+      "has_url": true,
+      "canonical_url": "https://github.com/shipiit/shipit-ui-design",
       "provenance_source": null
     },
     {
       "id": "web-content-designer",
       "path": "design-lab/intelligence/web-content-designer",
       "disposition": "LOCK_REFERENCE",
-      "license": "MIT",
+      "license": "Apache-2.0",
       "declared_files": 11,
       "tracked_files_now": 0,
       "on_disk": false,
       "status": "CORRECT_LOCK_REFERENCE",
       "has_revision": false,
-      "has_url": false,
-      "canonical_url": null,
+      "has_url": true,
+      "canonical_url": "https://github.com/lowtidebuild/web-content-designer",
       "provenance_source": null
     },
     {
@@ -613,7 +618,7 @@
     },
     {
       "id": "huashu-design",
-      "path": "packages/capabilities/production/huashu-design",
+      "path": "design-lab/research/quarantine/huashu-design",
       "disposition": "ABSORB_MINIMAL",
       "license": "MIT",
       "declared_files": 36,
@@ -660,8 +665,8 @@
     "full_copy_in_ignored_cache": 37,
     "correct_lock_reference": 6,
     "missing_absorbed_tree": 0,
-    "with_canonical_url": 39,
-    "without_canonical_url": 7,
+    "with_canonical_url": 45,
+    "without_canonical_url": 1,
     "with_pinned_revision": 0,
     "without_pinned_revision": 46,
     "without_revision_or_url": 46,
@@ -670,12 +675,6 @@
   },
   "findings": {
     "without_canonical_url": [
-      "anydesign",
-      "claude-design-skill",
-      "design-system-prompt",
-      "motion-engine",
-      "shipit-ui",
-      "web-content-designer",
       "tool-control"
     ],
     "without_pinned_revision": [
@@ -730,9 +729,5 @@
     "absorbed_trees_outside_lock": []
   },
   "verdict": "NO_FULL_THIRD_PARTY_SOURCE_TREES_TRACKED",
-  "note": "LOCK_REFERENCE with no in-repo copy is the intended state, not a stale claim: the full copy was removed and only the reference remains. A CONDITIONAL_POC or ABSORB_MINIMAL entry whose path is gone would be a real defect.",
-  "projection": true,
-  "subjectSha": "042ac635ae7a6042db366f7fb19508fc5db7bc65",
-  "fresh": false,
-  "generatedBy": "scripts/deepseek_content_audit.py"
+  "note": "LOCK_REFERENCE with no in-repo copy is the intended state, not a stale claim: the full copy was removed and only the reference remains. A CONDITIONAL_POC or ABSORB_MINIMAL entry whose path is gone would be a real defect."
 }

@@ -172,10 +172,6 @@ class ReadOnlyModeTests(unittest.TestCase):
             "declares --check but the parser requires --observation, so the read-only form cannot "
             "be invoked as shipped -- measured rc=2 with an argparse usage error in both trees on "
             "2026-10-09. Either default the observation to a tracked file or drop the flag",
-        "deepseek_content_audit.py":
-            "CONTENT_AUDIT=DRIFT ['THIRD-PARTY-SOURCE-AUDIT.json', 'DUPLICATE-CONTENT-AUDIT.json'] "
-            "in both trees: the derived audits it pins are stale. Republish them with their own "
-            "writer, then require the check",
         "deepseek_directory_audit.py":
             "DIRECTORY_AUDIT=FAIL in both trees and the cause is not yet diagnosed, so wiring it "
             "would make the aggregate red on a claim nobody can explain yet",

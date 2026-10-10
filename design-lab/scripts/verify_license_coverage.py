@@ -65,6 +65,7 @@ def git_ls() -> list[str]:
 
 
 IMPORT_MANIFEST = "docs/history/record-imports-2026-10-08/RECORD-IMPORT-MANIFEST.json"
+TASKPACK_ARCHIVE_MANIFEST = "docs/history/taskpacks/20261009-inputs/ARCHIVE-MANIFEST.json"
 
 
 def is_excluded(rel: str) -> bool:
@@ -96,6 +97,20 @@ def inert_imported_sources(files: list[str]) -> set[str]:
         return set()
     want = {e["target"]: e["sha256"] for e in data.get("entries", [])
             if e.get("action") == "LANDED" and e["target"].endswith(SOURCE_EXT)}
+    # Owner-adopted inputs remain inert, byte-frozen originals. This extends the
+    # same per-file hash rule, never a blanket exemption or runtime license grant.
+    archive = REPO / TASKPACK_ARCHIVE_MANIFEST
+    if archive.is_file():
+        try:
+            packages = json.loads(archive.read_text(encoding="utf-8"))["packages"]
+            for package in packages:
+                for member in package["members"]:
+                    rel = member.get("repository_text")
+                    if (rel and rel.startswith("docs/history/taskpacks/20261009-inputs/")
+                            and rel.endswith(SOURCE_EXT)):
+                        want[rel] = "sha256:" + member["sha256"]
+        except (OSError, KeyError, TypeError, json.JSONDecodeError):
+            pass  # No exemption for an unreadable or malformed archive manifest.
     exempt: set[str] = set()
     for rel, digest in want.items():
         if rel not in files:

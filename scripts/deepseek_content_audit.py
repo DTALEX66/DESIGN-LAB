@@ -21,6 +21,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import re
 import subprocess
 from collections import defaultdict
 from datetime import datetime, timezone
@@ -39,6 +40,32 @@ def tracked() -> list:
     return [line for line in subprocess.run(["git", "-C", str(REPO), "ls-files"], capture_output=True,
                                             text=True, encoding="utf-8").stdout.splitlines()
             if line.strip()]
+
+
+def git(*args: str) -> str:
+    """One argv element per argument -- `git("rev-parse HEAD")` returns empty stdout."""
+    return subprocess.run(["git", "-C", str(REPO), *args], capture_output=True, text=True,
+                          encoding="utf-8", errors="replace").stdout.strip()
+
+
+def provenance() -> dict:
+    """The block the committed records carry and the generator did not.
+
+    Measured 2026-10-09: `reports/current/THIRD-PARTY-SOURCE-AUDIT.json` and
+    `DUPLICATE-CONTENT-AUDIT.json` carry `subjectSha` (042ac635...), `generatedBy`, `projection` and
+    `fresh`, none of which this file emits -- so the committed records could not be reproduced by
+    their own generator, and the first republish would have silently dropped a bound subject. The
+    subject binding is what `verify_report_subject_binding.py` reads, so the generator has to own it.
+    """
+    return {
+        "generatedBy": "scripts/deepseek_content_audit.py",
+        "subjectSha": git("rev-parse", "HEAD"),
+        "projection": True,
+        "fresh": False,
+        "provenanceMeaning": "subjectSha is HEAD at the end of the run that computed this audit; "
+                             "fresh=false says a generation timestamp is not a test time, and this "
+                             "record is a projection over tracked files, not an execution",
+    }
 
 
 def third_party_audit(files: list) -> dict:
@@ -101,6 +128,7 @@ def third_party_audit(files: list) -> dict:
     return {
         "schemaVersion": "design-lab/third-party-source-audit/v1",
         "task_key": TASK_KEYS[0],
+        **provenance(),
         "generated_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
         "lock": {"path": LOCK, "exists": lock_path.is_file(),
                  "schemaVersion": lock.get("schemaVersion"), "entries": len(entries)},
@@ -165,6 +193,7 @@ def duplicate_audit(files: list) -> dict:
     return {
         "schemaVersion": "design-lab/duplicate-content-audit/v1",
         "task_key": TASK_KEYS[1],
+        **provenance(),
         "generated_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
         "threshold_bytes": MIN_DUPLICATE_BYTES,
         "groups": duplicates,
@@ -176,6 +205,72 @@ def duplicate_audit(files: list) -> dict:
     }
 
 
+def judgement(third: dict, duplicates: dict, load=None) -> tuple:
+    """Compare the two records against what the tree says now, and split defect from churn.
+
+    The record's own note separates the kinds of list it publishes: an absorbed tree that is missing
+    or outside the lock is a defect, while a source with no canonical URL or pinned revision is
+    declared debt (37 of 46 entries are local-cache-only today and the owner has not ruled on pinning
+    them). So one direction fails and the other is reported. Counts and duplicate groups move with
+    every commit -- pinning them would demand a writer run per commit, which is the disease this
+    branch exists to avoid, and comparing them against a clone's file list would only restate the
+    tree. `load` is a seam so a test can plant a stored-side value without touching a tracked file.
+    """
+    if load is None:
+        def load(name):
+            path = OUT / name
+            return json.loads(path.read_text(encoding="utf-8")) if path.is_file() else None
+    failures, notices = [], []
+    for name, payload, constants, defect_keys in (
+            ("THIRD-PARTY-SOURCE-AUDIT.json", third,
+             ("schemaVersion", "task_key"), ("absorbed_trees_outside_lock",
+                                             "missing_absorbed_trees")),
+            ("DUPLICATE-CONTENT-AUDIT.json", duplicates,
+             ("schemaVersion", "task_key", "threshold_bytes", "policy"), ())):
+        stored = load(name)
+        if stored is None:
+            failures.append(f"CONTENT-AUDIT-RECORD-MISSING {name}")
+            continue
+        for field in constants:
+            if stored.get(field) != payload.get(field):
+                failures.append(f"CONTENT-AUDIT-CONTRACT {name}.{field} stored="
+                                f"{stored.get(field)!r} recomputed={payload.get(field)!r}")
+        for field in ("generatedBy", "subjectSha", "projection", "fresh"):
+            if field not in stored:
+                failures.append(f"CONTENT-AUDIT-NO-PROVENANCE {name} carries no {field}, so the "
+                                "record cannot say what it was computed against")
+        subject = str(stored.get("subjectSha") or "")
+        if subject and not re.fullmatch(r"[0-9a-f]{40}", subject):
+            failures.append(f"CONTENT-AUDIT-SUBJECT {name}.subjectSha={subject!r} names no commit")
+        if stored.get("lock", {}).get("path") != payload.get("lock", {}).get("path"):
+            failures.append(f"CONTENT-AUDIT-CONTRACT {name} audits a different lock than the record")
+        if "verdict" in stored and stored.get("verdict") != payload.get("verdict"):
+            failures.append(f"CONTENT-AUDIT-VERDICT {name} stored={stored.get('verdict')!r} "
+                            f"recomputed={payload.get('verdict')!r}")
+        for key in defect_keys:
+            grew = sorted({str(x) for x in payload["findings"].get(key) or []}
+                          - {str(x) for x in stored["findings"].get(key) or []})
+            if grew:
+                failures.append(f"CONTENT-AUDIT-DEFECT {name}.findings.{key} gained {grew}")
+        if stored.get("counts") != payload.get("counts"):
+            notices.append(f"{name} counts moved stored="
+                           f"{json.dumps(stored.get('counts'), sort_keys=True)} recomputed="
+                           f"{json.dumps(payload.get('counts'), sort_keys=True)}")
+        for key in ("without_canonical_url", "without_pinned_revision"):
+            if key not in stored.get("findings", {}):
+                continue
+            paid = sorted({str(x) for x in stored["findings"].get(key) or []}
+                          - {str(x) for x in payload["findings"].get(key) or []})
+            added = sorted({str(x) for x in payload["findings"].get(key) or []}
+                           - {str(x) for x in stored["findings"].get(key) or []})
+            if paid or added:
+                notices.append(f"{name}.findings.{key} paid={paid or 'none'} new={added or 'none'}")
+        if "groups" in stored and len(stored["groups"]) != len(payload["groups"]):
+            notices.append(f"{name} groups stored={len(stored['groups'])} "
+                           f"recomputed={len(payload['groups'])} (the audit reports, it does not delete)")
+    return failures, notices
+
+
 def main(argv=None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--check", action="store_true")
@@ -184,14 +279,14 @@ def main(argv=None) -> int:
     third = third_party_audit(files)
     duplicates = duplicate_audit(files)
     if args.check:
-        drift = []
-        for name, payload in (("THIRD-PARTY-SOURCE-AUDIT.json", third),
-                              ("DUPLICATE-CONTENT-AUDIT.json", duplicates)):
-            path = OUT / name
-            if not path.is_file() or json.loads(path.read_text(encoding="utf-8"))["counts"] != payload["counts"]:
-                drift.append(name)
-        print("CONTENT_AUDIT=" + ("PASS" if not drift else f"DRIFT {drift}"))
-        return 0 if not drift else 1
+        failures, notices = judgement(third, duplicates)
+        for failure in failures:
+            print("CONTENT_AUDIT=FAIL " + failure)
+        for notice in notices:
+            print("CONTENT_AUDIT=NOTICE " + notice)
+        print(f"CONTENT_AUDIT={'PASS' if not failures else 'FAIL'} records=2 findings={len(failures)} "
+              f"notices={len(notices)}")
+        return 0 if not failures else 1
     OUT.mkdir(parents=True, exist_ok=True)
     for name, payload in (("THIRD-PARTY-SOURCE-AUDIT.json", third),
                           ("DUPLICATE-CONTENT-AUDIT.json", duplicates)):

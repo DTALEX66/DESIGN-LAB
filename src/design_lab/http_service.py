@@ -25,6 +25,10 @@ from .jury_review import JuryReview, JuryReviewError
 from .rights_review import RightsReview, RightsReviewError, write_fields
 from .research_review import (ResearchReview, ResearchReviewError,
                               write_fields as research_write_fields)
+# DL-UI-U06 (2026-10-10): the read-only observation surface over the native runtime tables.
+# The action routes (run/cancel/patch/bundle) already existed; nothing projected the state
+# those actions leave behind, so no page could say which host is currently held.
+from .native_runtime import NativeRuntimeError, readback as native_runtime_readback
 from .assurance.production_preflight import PreflightError, preflight_bundle
 from .governance.evidence_readback import EvidenceReadbackError, projection as evidence_projection
 from . import workbench
@@ -342,6 +346,13 @@ def make_server(service, token, port=0, *, local_session=False):
                         # than a 404 the page would have to invent a word for, and rather than
                         # a "cleared"-shaped field that would read as a gate nobody put here.
                         return self.send_json(200, ResearchReview(service).list(match[1]))
+                    match = re.fullmatch(r'/api/projects/([0-9a-f]{32})/native-runtime', self.path)
+                    if match:
+                        # Read-only by construction: `native_runtime.readback` opens the state
+                        # database `mode=ro` and never creates a table, so an absent table stays
+                        # ABSENT instead of being conjured into an empty one. No host is
+                        # contacted and no attempt is started by reaching this line.
+                        return self.send_json(200, native_runtime_readback(service, match[1]))
                     match = re.fullmatch(r'/api/projects/([0-9a-f]{32})/briefs(?:\?after=(brief-[0-9a-f]{32}))?', self.path)
                     if match:
                         return self.send_json(200, layer.list_briefs(match[1], match[2] or ''))
@@ -575,6 +586,14 @@ def make_server(service, token, port=0, *, local_session=False):
             # on, and folding them into INVALID_REQUEST would leave a page guessing which one
             # it hit.
             except ResearchReviewError as exc:
+                payload = {'error': exc.code}
+                if exc.detail:
+                    payload['detail'] = exc.detail
+                self.send_json(exc.status, payload)
+            # DL-UI-U06: an unreadable state database is 503 (retry once the writer is done),
+            # while an unknown project is 404. Collapsing them would tell a page to go find a
+            # project that does exist when the real answer is "the database refused the read".
+            except NativeRuntimeError as exc:
                 payload = {'error': exc.code}
                 if exc.detail:
                     payload['detail'] = exc.detail

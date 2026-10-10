@@ -90,7 +90,7 @@ measuredDebtAtCommit: 700ee3fb
 - Do 用 `color-mix(in srgb, var(--x) N%, transparent)` 派生态；Don't 新写字面色值。
   当前存量（由 `scripts/design_debt_baseline.py` 按声明的规则实测，`--check` 看守，
   不再是手点数字）：非令牌声明、去掉注释后的 7 个界面源文件里，
-  字面色值 26 处、字面 px 516 处、阴影声明 24 条（其中 18 条已读 var()）。
+  字面色值 26 处、字面 px 531 处、阴影声明 25 条（其中 19 条已读 var()）。
   26 处色值分两类：**13 处是有色相的字面量**（chromatic），13 处是中性 alpha 遮罩/阴影
   （neutral-alpha）。每一处有色相的字面量都逐条登记在
   `design-lab/config/ui-off-palette-colours.json`，`adjudication` 是 owner 专用字段，代理不得填；
@@ -98,6 +98,19 @@ measuredDebtAtCommit: 700ee3fb
   任何规则都复现不出来，与外部 design-review 插件的读数也不一致 —— 分歧逐条见
   `docs/audits/DESIGNLAB-EXTERNAL-DESIGN-REVIEW-2026-10-09.md`（§7 是同日追正段：主色并无重复
   字面量，`box-shadow:none` 曾被计成债，8 处字面量已换成令牌引用并逐处实测像素未变）。
+  2026-10-09 R2 批次复测：px 存量 516→532（+16，全部来自本轮新增的 R2 组件块 ——
+  状态矩阵、规范页、分组导航、主题控件、目录行内详情、输入/分析/计划三屏的网格与内边距，
+  尚未抽成 `--uif-*` 令牌），色值 26 处数量未变但成员变了一对：`#1d4fc4` 被令牌化后其登记行
+  随之删除，新增 `#4bafff`（`--tag-info-from` 的字面值），两处 `adjudication` 均留给 owner，代理未填。
+  同日 R2 §5 详情面板复测：px 532→531（把顶栏高度 `height:78px` 抽成 `--uif-topbar` 令牌，少一处字面量；
+  抽屉宽度写成 `--uif-drawer:450px` 令牌，边框是不计入的 `1px` 细线），阴影声明 24→25、已读 var() 18→19
+  —— 多出来那条是 `box-shadow:var(--shadow-soft)`，即"多了一条已令牌化的阴影"，不是多了一条硬编码。
+  层级表同步登记 `--layer-detail-panel:70`（`design-lab/config/ui-layering.json` 里
+  name/purpose/note 齐全，`verify_ui_layering.py` PASS）。
+  同一批给几何闸门补上了此前缺失的**遮挡断言**：对顶栏通知/工作区/搜索入口做
+  `elementFromPoint` 命中测试，被别的元素接走即 `OV_SPEC_BROKEN`。它抓到的第一个真缺陷就是
+  详情面板压在顶栏右端两个按钮上（`#topNotice covered by button#capability-drawer-close`），
+  修法是让面板从 `--uif-topbar` 之下开始；栽 8px 的故障被复现过，所以这条断言不是装饰。
 - Do 让新交互在键盘与窄屏下同样可达；Don't 用 hover 承载唯一入口。
 
 ## 5. 对标（下一步要做的比较，不是已完成）

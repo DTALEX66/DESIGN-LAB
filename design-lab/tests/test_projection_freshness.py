@@ -78,8 +78,8 @@ class EntryTableTests(unittest.TestCase):
         # A shrinking register: the set is named because a row may only leave by fixing the
         # check, and a new row must be a deliberate edit here as well.
         # RECOVERY-SAFETY left on 2026-10-09: its three destructive-operation receipts were
-        # archived under reports/history/destructive-receipts-2026-09-13 and the gate now
-        # audits them from there, so a clean checkout reaches the same verdict as this disk.
+        # audited from their single tracked copy in the preserved evidence bundle, so a clean
+        # checkout reaches the same verdict as this disk.
         # DEEPSEEK-FINAL-TEST-GATE left the same day: its --check judges the record against
         # versioned test files and its own rows rather than re-deriving runs from a gitignored
         # bound-test history. SPILL-CENSUS left last: it judges the record against the path rules,

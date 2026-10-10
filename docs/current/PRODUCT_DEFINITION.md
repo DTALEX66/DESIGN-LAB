@@ -1,8 +1,21 @@
+# 当前产品定义修订（2026-10-09）
+
+Authority修订UI-FIRST-20261009-R1；以新包＋owner决定为准，旧定义冲突条款由本节替代。
+DESIGN-LAB面向全设计品类的专业能力资产、知识应用与有界自动化，接受文字/截图/文件/多图/音视频，按实际覆盖提供分析、目标生成包、操作方案或原生产物。
+当前优先桌面UI的能力资产、分析与制作、成果与反馈；不以项目看板/审批大厅为中心。旧Project对象与apps/workbench技术路径保留；简单任务不强迫完整项目流程。
+允许已有设计专用执行/观察/核验/恢复；不建通用Agent、第二运行时/画布/知识主库。
+长期知识及学习状态归AAOS/ArcheAxis公共合同；DL保留专业判断、配方、适配、源工程、教学生产和表达修订；WL按许可提供实践和有界支持。独立运行与有界授权快照保留。
+手机端本轮不做，延后/冻结。全品类是目标，不是已支持声明。当前实现证据和操作授权分别判断。
+
+---
+
+以下前继定义保留其适用语义，冲突条款不再负责当前派工。
+
 # PRODUCT_DEFINITION — DESIGN-LAB（设计实验室）
 
 - 版本：`1.1`｜状态：`ACTIVE`｜SSOT 角色：Authority 下的当前产品定义
 - 顶层权威：`/AUTHORITY.md`（`DL-AUTHORITY-2026-09-18-R2`）
-- 当前统一剩余任务入口：`docs/taskpacks/DESIGN-LAB-FINAL-AUTHORITY-CONVERGENCE-TASKPACK-2026-09-18.md`
+- 当前统一剩余任务入口：`docs/taskpacks/DESIGN-LAB-UI-FIRST-INTEGRATED-TASKPACK-2026-10-09.md`
 - 一致性合同：`design-lab/config/product-manifest.json` + `docs/architecture/BOUNDARY_CONTRACT.md`
 
 ## 中文定位

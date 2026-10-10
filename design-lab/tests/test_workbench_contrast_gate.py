@@ -173,6 +173,48 @@ class WorkbenchContrastGateTests(unittest.TestCase):
         self.assertIn('obscured', summary,
                       'obscured text runs are no longer counted: %s' % summary)
 
+    def test_ui2026_light_theme_is_graded_by_the_same_aa_gate(self):
+        """DL-UI-U02 (2026-10-09): the 20261009 baseline ships as a *theme*, so it has
+        to clear the same AA bar as the default one -- an unmeasured theme is an
+        unshipped theme, and a screenshot glance is not a contrast measurement.
+
+        The design-lab palette stays the default and keeps every pixel it had; the
+        pack's values only re-point the neutral family (background / surface / border /
+        text / the three status colours). Brand blues, --accent-hover and
+        --border-strong stay at their measured floor values on purpose, so this case
+        measures what the theme actually changed and not a re-brand.
+        """
+        report = _evidence_dir() / 'workbench-contrast-gate-ui2026-light.json'
+        code, out, _ = _run_gate({
+            'UI_PALETTE': 'ui2026',
+            'UI_SCHEME': 'light',
+            'CT_OUT': str(report),
+        })
+        if code != 0:
+            low = [l for l in out.splitlines() if l.strip().startswith('LOWCONTRAST')]
+            self.fail('CONTRAST_GATE_FAILED under ui2026/light (exit %d)\n'
+                      '--- first 25 offenders ---\n%s\n--- tail ---\n%s'
+                      % (code, '\n'.join(low[:25]), out[-1200:]))
+        self.assertIn('CT_OK', out, 'gate exited 0 without CT_OK:\n%s' % out[-2000:])
+        self.assertTrue(report.is_file(), 'themed run produced no report at %s' % report)
+        # The receipt must name its own subject, or a green file says nothing about
+        # which theme was measured.
+        import json
+        recorded = json.loads(report.read_text(encoding='utf-8'))
+        self.assertEqual(recorded.get('uiPalette'), 'ui2026',
+                         'the report does not say which palette it measured')
+        self.assertEqual(recorded.get('uiScheme'), 'light',
+                         'the report does not say which scheme it measured')
+        checked = int(_summary(out).get('checked', '0'))
+        self.assertGreaterEqual(checked, 500,
+                                'themed probe measured only %d text runs; coverage is suspect'
+                                % checked)
+        summary = _summary(out)
+        self.assertEqual(summary.get('controlMisses'), '0',
+                         'the parser control was not caught under the new theme: %s' % summary)
+        self.assertEqual(summary.get('unparsable'), '0',
+                         'a colour the new theme computes could not be parsed: %s' % summary)
+
     def test_contrast_maths_reference_table_is_satisfied(self):
         """The probe recomputes published WCAG 2.1 ratios with the same lum()/ratio()
         it applies to real text. If that table were skipped, the verdict above would

@@ -6,6 +6,7 @@
 from __future__ import annotations
 
 import importlib.util
+import hashlib
 import json
 import re
 import tempfile
@@ -26,6 +27,28 @@ def load(name: str):
 
 
 class LicenseCoverageTests(unittest.TestCase):
+    def test_taskpack_original_exemption_requires_matching_bytes(self):
+        m = load("verify_license_coverage.py")
+        temp_root = ROOT.parent / ".project-local/task-artifacts/taskpacks-20261009"
+        with tempfile.TemporaryDirectory(dir=temp_root) as raw:
+            m.REPO = Path(raw)
+            old_manifest = m.REPO / m.IMPORT_MANIFEST
+            old_manifest.parent.mkdir(parents=True)
+            old_manifest.write_text('{"entries": []}', encoding="utf-8")
+            rel = "docs/history/taskpacks/20261009-inputs/ui/scripts/source.py"
+            source = m.REPO / rel
+            source.parent.mkdir(parents=True)
+            source.write_bytes(b"print('original')\n")
+            archive = m.REPO / m.TASKPACK_ARCHIVE_MANIFEST
+            archive.write_text(json.dumps({"packages": [{"members": [{
+                "repository_text": rel,
+                "sha256": hashlib.sha256(source.read_bytes()).hexdigest()}]}]}), encoding="utf-8")
+            self.assertEqual(m.inert_imported_sources([rel]), {rel})
+            source.write_bytes(b"print('modified')\n")
+            self.assertEqual(m.inert_imported_sources([rel]), set())
+            archive.write_text("malformed", encoding="utf-8")
+            self.assertEqual(m.inert_imported_sources([rel]), set())
+
     def test_is_excluded_vendored(self):
         m = load("verify_license_coverage.py")
         self.assertTrue(m.is_excluded("research/candidates/visual-quality/hallmark/a.py"))

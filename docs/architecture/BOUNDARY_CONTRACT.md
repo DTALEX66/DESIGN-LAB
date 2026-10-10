@@ -1,3 +1,11 @@
+# 当前边界澄清（2026-10-09 owner采纳）
+
+本节优先于下文前继歧义：禁止的是通用Agent平台/平行运行时，不禁止src/design_lab既有Python/NativeWorkers中的设计专用规划、执行、观察、检查和恢复。
+apps/workbench仍为唯一前端技术壳；主旅程按docs/taskpacks/DESIGN-LAB-UI-FIRST-INTEGRATED-TASKPACK-2026-10-09.md迁移为能力资产、分析制作、成果反馈，不锁旧导航/DOM或菜单数量。
+不接管AAOS长期知识/学习状态、WL全局治理或宿主私有数据；通过公共合同联合，可独立运行。手机端冻结在本批范围之外。
+
+---
+
 # BOUNDARY_CONTRACT — 职责边界合同
 
 - 版本：`1.0`｜状态：`ACTIVE`｜SSOT 角色：边界契约

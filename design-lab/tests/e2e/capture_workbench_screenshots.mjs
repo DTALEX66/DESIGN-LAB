@@ -25,8 +25,34 @@ const referenceSourceRecorded = (() => {
   return rel && !rel.startsWith('..') && !path.isAbsolute(rel) ? rel : sourceImage;
 })();
 const pythonVersion = process.env.CAP_PYTHON_VERSION || 'unknown';
-const widths = (process.env.CAP_WIDTHS || '1280,1920,2560')
-  .split(',').map((w) => Number.parseInt(w, 10)).filter((w) => Number.isFinite(w) && w > 0);
+const widths = (process.env.CAP_WIDTHS || '1280,1920,2560')  .split(',').map((w) => Number.parseInt(w, 10)).filter((w) => Number.isFinite(w) && w > 0);
+
+// DL-UI-U02 (2026-10-09): which colour theme a PNG shows belongs to the evidence, so it
+// comes from the environment, is applied to every page before it is shot, and goes into
+// the filename. The default theme keeps the byte-identical file names it had before, so
+// nothing that reads this directory has to change; only a themed run gets a suffix.
+// This drives the same two <html> attributes applyTheme() writes from ?palette/?scheme
+// (the service dispatches `/workbench` by exact path, so a query string is not an option
+// for a driver that reloads the page).
+const uiPalette = process.env.UI_PALETTE || 'design-lab';
+const uiScheme = process.env.UI_SCHEME || 'dark';
+const themeTag = (uiPalette === 'design-lab' && uiScheme === 'dark')
+  ? '' : `@${uiPalette}-${uiScheme}`;
+// addInitScript runs before ANY page script, so the two <html> attributes already
+// exist when the bundle mounts. Setting them after `load` instead would leave the
+// theme controls describing the palette that was read at boot (the app renders its
+// label from the applied state), i.e. a PNG whose caption contradicts its pixels.
+const paintTheme = async (page) => {
+  await page.addInitScript(([p, s]) => {
+    const apply = () => {
+      document.documentElement.setAttribute('data-palette', p);
+      if (s === 'light') document.documentElement.setAttribute('data-scheme', 'light');
+      else document.documentElement.removeAttribute('data-scheme');
+    };
+    if (document.documentElement) apply();
+    else document.addEventListener('DOMContentLoaded', apply);
+  }, [uiPalette, uiScheme]);
+};
 
 const VIEWPORT_HEIGHT = { 390: 844, 768: 1024, 1280: 800, 1440: 900, 1920: 1080, 2560: 1440 };
 const heightFor = (w) => VIEWPORT_HEIGHT[w] ?? Math.round(w * 0.62);
@@ -68,6 +94,25 @@ const PAGES = [
   { key: 'collaboration', hash: '#/collaboration' },
   { key: 'preflight', hash: '#/preflight' },
   { key: 'settings', hash: '#/settings' },
+  // DL-UI-U02 (2026-10-09): 首批页面。能力目录读 GET /api/capabilities；界面状态与
+  // 组件规范是规格面。不进这份清单就等于从没被渲染过，也就不会在任何闸报错。
+  { key: 'capabilities', hash: '#/capabilities' },
+  // R2 §5 (DL-UI-U03): 一条能力的独立地址。id 来自已提交的 vendor/sources.lock.json；
+  // 若该记录不再存在，界面会画出"未找到该记录"的诚实面板，实拍就会把它照出来。
+  { key: 'capability-detail', hash: '#/capabilities/anydesign' },
+  // R2 §2 (DL-UI-U03): 一个域包的独立地址。brand-design 是本批读回里通过结构校验的
+  // 目录之一；被拒绝的 minigame-design 也能寻址，但它的面板带 11 条校验原因，留给
+  // vm 合同面逐条核对，这里取一张能代表常规形态的图。
+  { key: 'domain-detail', hash: '#/domains/brand-design' },
+  { key: 'states', hash: '#/states' },
+  { key: 'components', hash: '#/components' },
+  { key: 'intake', hash: '#/intake' },
+  { key: 'plan', hash: '#/plan' },
+  { key: 'analysis', hash: '#/analysis' },
+  // R2 §7 (DL-UI-U04): 制作记录与待继续。读 GET /projects/{id}/tasks。
+  { key: 'records', hash: '#/records' },
+  // R2 §9 (DL-FINAL-T08): 分组全局搜索是浮层，只能靠真实点击打开后才有可审阅的一张图。
+  { key: 'search-groups', hash: '#/capabilities', click: '#openPalette' },
 ];
 
 mkdirSync(outDir, { recursive: true });
@@ -121,6 +166,7 @@ const openWorkspace = async (width) => {
   page.on('console', (m) => {
     if (m.type() === 'error') problems.push(`console@${width}: ` + m.text());
   });
+  await paintTheme(page);
   await page.goto(serviceUrl + '/workbench', { waitUntil: 'load' });
   await page.locator('#token').fill(token);
   await page.locator('#connect-form button').first().click();
@@ -206,6 +252,7 @@ for (const width of widths) {
       await page.evaluate(() => { window.location.hash = ''; });
     } else {
       await page.goto(serviceUrl + '/workbench' + hash, { waitUntil: 'load' });
+      await paintTheme(page);
     }
     await page.locator(host).waitFor({ state: 'visible', timeout: 20000 });
     await page.waitForFunction((sel) =>
@@ -217,8 +264,24 @@ for (const width of widths) {
         document.querySelectorAll(sel + ' strong[data-count]'))
       .every((n) => (n.textContent || '').trim() === n.dataset.count),
     host, { timeout: 8000 }).catch(() => problems.push(`kpi-settle-timeout@${width} ${p.key}`));
+    if (p.click) {
+      // An overlay cannot be reached by a hash, so the shot that proves the grouped search
+      // exists has to drive the same click a person would -- and wait until every object group
+      // has answered, or the image would show four "尚未读取" placeholders and look like a pass.
+      await page.click(p.click);
+      await page.waitForFunction(() => {
+        const groups = document.querySelectorAll('#paletteObjects .palette-group');
+        if (groups.length !== 4) return false;
+        return Array.from(groups).every((g) => {
+          const body = g.querySelector('.palette-group-body');
+          const text = (body && body.textContent) || '';
+          return Boolean(body && body.querySelector('.item'))
+            || text.includes('0 个对象') || text.includes('未读回');
+        });
+      }, { timeout: 25000 }).catch(() => problems.push(`palette-not-settled@${width} ${p.key}`));
+    }
     await page.waitForTimeout(400);
-    const file = `${String(shots.length).padStart(2, '0')}-${p.key}@${width}.png`;
+    const file = `${String(shots.length).padStart(2, '0')}-${p.key}@${width}${themeTag}.png`;
     const filePath = path.join(outDir, file);
     const buffer = await page.screenshot({ path: filePath, fullPage: false, animations: 'disabled' });
     const bytes = readFileSync(filePath);
@@ -286,6 +349,9 @@ if (problems.length > 0) {
 
 const manifest = {
   kind: 'workbench-viewport-screenshots',
+  // which colour theme these PNGs show, so the manifest names its own subject
+  uiPalette: process.env.UI_PALETTE || 'design-lab',
+  uiScheme: process.env.UI_SCHEME || 'dark',
   schema: 'design-lab/screenshot-manifest/v1',
   generatedAt: new Date().toISOString(),
   commit,

@@ -50,6 +50,16 @@ const ROUTES = [
   ['research', '#/research'], ['brand-systems', '#/brand-systems'], ['domains', '#/domains'],
   ['tools', '#/tools'], ['preflight', '#/preflight'], ['deliverables', '#/deliverables'],
   ['evidence', '#/evidence'], ['collaboration', '#/collaboration'], ['settings', '#/settings'],
+  // DL-UI-U02 (2026-10-09): the three new slots. A route absent from this list is never
+  // rendered by this gate, so it can never fail it either -- the 2026-10-07 finding.
+  ['capabilities', '#/capabilities'], ['states', '#/states'], ['components', '#/components'],
+  // R2 §2: the domain detail drawer is a surface of its own. Its captions are the muted
+  // small-text kind that most often fails AA, and a route missing here is a route whose
+  // contrast was never measured.
+  ['domain-detail', '#/domains/brand-design'],
+  ['intake', '#/intake'],
+  ['plan', '#/plan'],
+  ['analysis', '#/analysis'],
 ];
 
 const MEASURE = () => {
@@ -339,7 +349,30 @@ const MEASURE = () => {
 };
 
 const browser = await chromium.launch({ executablePath: browserPath, args: ['--no-sandbox'] });
-const report = { serviceUrl, widths, routes: {} };
+// DL-UI-U02 (2026-10-09): which colour theme this run measured is part of the
+// measurement, so it is recorded on the report and comes from the environment, not
+// from a guess. The service answers `/workbench` by exact path, so the theme is set
+// on the live document instead of as a query string -- the URL-parameter path
+// (?palette=ui2026&scheme=light) is what a person uses, and applyTheme() reads it;
+// here we drive the same two attributes that path ends up writing.
+const uiPalette = process.env.UI_PALETTE || 'design-lab';
+const uiScheme = process.env.UI_SCHEME || 'dark';
+const report = { serviceUrl, widths, routes: {}, uiPalette, uiScheme };
+// The Workbench reads which theme is applied at mount, so the two <html> attributes
+// have to exist before any page script runs. `addInitScript`, not an evaluate after
+// `load` -- otherwise this gate measures one palette while the page's own theme
+// controls describe another, and the two disagree inside the same PNG.
+async function paintTheme(p) {
+  await p.addInitScript(([palette, scheme]) => {
+    const apply = () => {
+      document.documentElement.setAttribute('data-palette', palette);
+      if (scheme === 'light') document.documentElement.setAttribute('data-scheme', 'light');
+      else document.documentElement.removeAttribute('data-scheme');
+    };
+    if (document.documentElement) apply();
+    else document.addEventListener('DOMContentLoaded', apply);
+  }, [uiPalette, uiScheme]);
+}
 let failTotal = 0, checkedTotal = 0, unknownTotal = 0, pseudoTotal = 0;
 let coveredTotal = 0, obscuredTotal = 0, controlsExpected = 0, controlsReported = 0;
 const mathChecks = [];
@@ -348,6 +381,7 @@ const controlBad = [];
 
 for (const w of widths) {
   const page = await browser.newPage({ viewport: { width: w, height: 900 } });
+  await paintTheme(page);
   await page.goto(serviceUrl.replace(/\/$/, '') + '/workbench', { waitUntil: 'load' });
   await page.fill('#token', token);
   await page.click('#connect-form button');
