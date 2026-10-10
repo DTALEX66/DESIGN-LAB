@@ -23,12 +23,13 @@ DESIGN-LAB 色板为默认 + 20261009 取值作可选主题"；手机端 FROZEN_
 ## 实测基线（2026-10-10，第十四批之后；不是历史声明）
 
 - 本轮的提交链（同一分支，全部已 push）：`88529112` 能力契约修复 → `1ab5a936` 账本回执 +
-  投影 + 对账表 → `c46a4525` 报告的第十四批追记与 G 项 → `e8294b3f` CI 实测读数 + 本提示词基线。
-  **双端一致实测**：`git rev-parse HEAD` = `git ls-remote origin refs/heads/qoder/designlab-backup-consistency-20261007`
-  = `e8294b3fd740`，`git status --porcelain=v1` 行数 0。`main` 未合并，本分支领先 `origin/main`
-  `fc03a303` **199** 个提交（`git rev-list --count origin/main..e8294b3f` 实测；第十三批写的
-  190 是想出来的数，已在报告里追正）。本文件随后还有一次纯文字修正
-  提交：只改这段基线，不动任何闸的输入。
+  投影 + 对账表 → `c46a4525` 报告的第十四批追记与 G 项 → `e8294b3f` CI 实测读数 + 本提示词基线
+  → 之后是纯文字修正提交。**双端一致不要抄这里的 SHA**：本文件写下的任何 SHA 都会在"提交这份
+  修正"的那一刻过期，第一步自己读回 `git rev-parse HEAD` 与
+  `git ls-remote origin refs/heads/qoder/designlab-backup-consistency-20261007` 比对，并确认
+  `git status --porcelain=v1` 行数为 0（本轮最后一次实测是 `d08c6240`，MATCH=YES，dirty=0）。
+  `main` 未合并；分支领先 `origin/main` `fc03a303` 的提交数用 `git rev-list --count` 现场量
+  （`e8294b3f` 时为 199；第十三批写的 190 是想出来的数，已在报告里追正）。
 - `apps/workbench/build/main.js` = `6ff8532de49a`，353,765 B；`shell.ts` = `d4cb20cfcbc1`；
   `style.css` = `4eb367eca1ea`，98,498 B；`tests/appshell.mjs` = `1df180c022b2`。
   **本轮一行界面字节都没动**——批次内容在服务端契约与账本。
