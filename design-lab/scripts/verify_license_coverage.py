@@ -66,6 +66,9 @@ def git_ls() -> list[str]:
 
 IMPORT_MANIFEST = "docs/history/record-imports-2026-10-08/RECORD-IMPORT-MANIFEST.json"
 TASKPACK_ARCHIVE_MANIFEST = "docs/history/taskpacks/20261009-inputs/ARCHIVE-MANIFEST.json"
+# The R2 UI pack was archived the same way (owner-adopted input, byte-frozen originals with a
+# per-member sha256), so it gets the same per-file rule rather than a path exemption.
+R2_ARCHIVE_MANIFEST = "docs/history/taskpacks/20261009-r2-inputs/ui-r2/ARCHIVE-MANIFEST.json"
 
 
 def is_excluded(rel: str) -> bool:
@@ -111,6 +114,17 @@ def inert_imported_sources(files: list[str]) -> set[str]:
                         want[rel] = "sha256:" + member["sha256"]
         except (OSError, KeyError, TypeError, json.JSONDecodeError):
             pass  # No exemption for an unreadable or malformed archive manifest.
+    r2 = REPO / R2_ARCHIVE_MANIFEST
+    if r2.is_file():
+        try:
+            for package in json.loads(r2.read_text(encoding="utf-8"))["packages"]:
+                for member in package["members"]:
+                    rel = member.get("repository_text")
+                    if (rel and rel.startswith("docs/history/taskpacks/20261009-r2-inputs/")
+                            and rel.endswith(SOURCE_EXT)):
+                        want[rel] = "sha256:" + member["sha256"]
+        except (OSError, KeyError, TypeError, json.JSONDecodeError):
+            pass  # Same rule: a manifest that cannot be read grants nothing.
     exempt: set[str] = set()
     for rel, digest in want.items():
         if rel not in files:
