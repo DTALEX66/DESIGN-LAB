@@ -40,10 +40,14 @@ DESIGN-LAB 色板为默认 + 20261009 取值作可选主题"；手机端 FROZEN_
 - 账本：**155 条证据、非 PASS 0 条**。其中 **150 条 artifact 指向 gitignored `.project-local`**
   （125 个不同路径），5 条指向受跟踪文档（本报告 3 条 + 对账表 2 条）。仓库体量实测
   `size-pack=242.71 MiB`；`origin/main` 可达 9430 个 blob = 360.1 MiB 原始字节。
-- CI 实测（`gh run view 38057782601 --log-failed` @ `aa3cb307`）：
-  `VERIFY_DESIGN_LAB=FAIL total=74 failed=3`。三条里 1 条是能力契约漏项（已修），2 条是同一
-  根因：受跟踪的判定去重算 clone 里不存在的机器字节。两条都在 `aa3cb307` 的干净 detached
-  worktree 里复现过（`.project-local/worktrees/ci-repro`，`git status` 0 行）。
+- CI 实测（`gh run view --log-failed`）：@ `aa3cb307` 为 `VERIFY_DESIGN_LAB=FAIL total=74 failed=3`
+  （`VERIFY_ROUTE_PAYLOAD_CONTRACTS=FAIL bindings=7 failures=121` + `CURRENT_EXECUTION=FAIL [Errno 2]`
+  + `VERIFY_PROJECTION_FRESHNESS=FAIL … deepseek_content_audit.py --check`）。
+  **@ `c46a4525`（本轮推送后，run 38061750943）仍是 failed=3，但组成变了**：
+  `failures=121` → `failures=1`（剩下那条是 evidence-projection 在 clone 上拒答），
+  `[Errno 2]` 与 `content audit` 照旧——**三条红收敛成同一个根因**：受跟踪的判定去重算
+  clone 里不存在的机器字节。两个未修的在 `aa3cb307` 的干净 detached worktree
+  （`.project-local/worktrees/ci-repro`，`git status` 0 行）里逐字复现过，处置见报告 **G** 项。
 - 仍然成立的上一批基线：服务路由 **54** 条（含 `GET /api/projects/{id}/native-runtime`），
   对账表 **17 屏 / 19 视图 / 54 路由 / 37 令牌**；appshell 合同面 ①–⑯ 块；种植总数 **47**
   （域包合同 6 + 浏览器闸 4 + 成列 4 + tabs 6 + 简报写入 5 + 侧栏提示 2 + 五种拒绝 4 +
@@ -96,7 +100,8 @@ DESIGN-LAB 色板为默认 + 20261009 取值作可选主题"；手机端 FROZEN_
    （`http_service.py:337/462`、`research_review.py`、`assurance/research_store.py`、
    `write_fields()` 取自合同、body 上限 65536）的形状做，并同批改合同登记表。
 7. **U09 / T16**：`http_service.py` 里没有任何 knowledge 路由，T16 验收依赖 U09，排在 U 系列之后。
-8. **CI 在干净 clone 上还剩两个红，要的是裁定不是修**（第十四批只修掉了第三个）。原文：
+8. **CI 在干净 clone 上的三条红已收敛成一个结构决定，要的是裁定不是修**（契约漏项在 runner 上
+   确认修掉：`failures=121`→`1`）。原文：
    `CURRENT_EXECUTION=FAIL [Errno 2] No such file or directory: '…/.project-local/task-artifacts/ui-first-20261009/u06/implementation.json'`
    和 `VERIFY_PROJECTION_FRESHNESS=FAIL FRESHNESS-RECEIPT-DRIFT scripts/deepseek_content_audit.py --check
    exited 1: CONTENT_AUDIT=FAIL records=2 findings=2 notices=1`。

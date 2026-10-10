@@ -390,8 +390,8 @@ CI run `38057782601` @ `aa3cb307` 的三个红里，两个不是缺陷而是同�
 3. 把 content audit 的 presence 改成 SPILL-CENSUS 的形状：按版本化记录判定，
    实时普查只作为机器状态上报。
 
-当前行为：本地 `VERIFY_DESIGN_LAB=OK total=74 failed=0`；CI 上这两条保持红，
-不靠调低判据、摘掉闸或让 `--check` 读磁盘缓存来变绿。
+当前行为：本地 `VERIFY_DESIGN_LAB=OK total=74 failed=0`；CI @ `c46a4525` 三条红全部来自这一条
+根因（见第十四批追记末段的实测读数），不靠调低判据、摘掉闸或让 `--check` 读磁盘缓存来变绿。
 
 ## 第七批追记（2026-10-09 深夜，Major 7：领域成为二级入口）
 
@@ -600,3 +600,10 @@ VERIFY_PROJECTION_FRESHNESS=FAIL FRESHNESS-RECEIPT-DRIFT scripts/deepseek_conten
 - 修复后、推送前的本地实测：`VERIFY_ROUTE_PAYLOAD_CONTRACTS=PASS bindings=7 failures=0`，
   `CURRENT_EXECUTION=PASS tasks=34 counts={'NOT_STARTED': 25, 'PARTIAL': 9}`，
   `VERIFY_DESIGN_LAB=OK total=74 failed=0`。
+- **推送后 CI 的真实读数**（`gh run view 38061750943 --log-failed` @ `c46a4525`）：
+  `VERIFY_DESIGN_LAB=FAIL total=74 failed=3`，但组成变了——
+  `VERIFY_ROUTE_PAYLOAD_CONTRACTS=FAIL bindings=7 failures=1`（121→**1**，剩下那条是
+  evidence-projection 在 clone 上拒答），`CURRENT_EXECUTION=FAIL [Errno 2] …u06/implementation.json`
+  仍红，`VERIFY_PROJECTION_FRESHNESS=FAIL … deepseek_content_audit.py --check` 仍红。
+  于是**三个红现在是同一个根因**：受跟踪的判定去重算 gitignored 机器字节（上面 G 项）。
+  契约漏项已在 runner 上确认修掉，不是只在我机器上绿。
