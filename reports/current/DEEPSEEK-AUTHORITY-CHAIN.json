@@ -1,11 +1,11 @@
 {
   "schemaVersion": "design-lab/deepseek-authority-chain/v1",
   "task_key": "DL-TP-20260914-DEEPSEEK-AUTHORITY-R1::DLDS-A010",
-  "generated_at": "2026-10-09T11:52:29+00:00",
+  "generated_at": "2026-10-10T16:54:30+00:00",
   "subject": {
-    "base_sha": "14e99f03ae95d76d19bb91c3b70250c96ae567b4",
+    "base_sha": "c5e6efd79eb5133f7abb6b1ce64eb1df77669d2a",
     "branch": "qoder/designlab-backup-consistency-20261007",
-    "worktree_clean": false
+    "worktree_clean": true
   },
   "current_authority": {
     "top_level": "DL-AUTHORITY-2026-09-18-R2",
@@ -112,8 +112,8 @@
     "CURRENT_INTEGRATED_TASKPACK": 1,
     "CURRENT_TASK_LEDGER": 1,
     "GOVERNANCE_TRUTH": 2,
-    "HISTORICAL": 123,
-    "REFERENCE": 4
+    "HISTORICAL": 135,
+    "REFERENCE": 5
   },
   "entries": [
     {
@@ -132,8 +132,8 @@
     },
     {
       "path": "design-lab/config/task-ledger-r3.json",
-      "bytes": 546355,
-      "sha256": "sha256:af7a0da9934282905d67b528087f6106a1704c1810a616981acd364c629b6928",
+      "bytes": 675819,
+      "sha256": "sha256:3ae2a5b3670103264478941d18741eb7561aa18f9141550645fe99c3d6208f66",
       "authority_class": "CURRENT_TASK_LEDGER",
       "basis": "currentExecution dispatch; frozen R5 evidence partition",
       "mutable_state": "the ledger is rewritten at the close of every task, so its bytes and digest are generation-time",
@@ -143,7 +143,7 @@
         "current_partition": "currentExecution",
         "tasks": 34,
         "frozen_legacy_tasks": 28,
-        "evidence_receipts": 0
+        "evidence_receipts": 160
       }
     },
     {
@@ -1161,6 +1161,192 @@
       }
     },
     {
+      "path": "docs/history/taskpacks/20261009-r2-inputs/ui-r2/AGENT_START.md",
+      "bytes": 2826,
+      "sha256": "sha256:97ff48da47bcf12b6eb8a2988105fc0af97241cb4fbcac713bc24af570fc99dd",
+      "authority_class": "HISTORICAL",
+      "basis": "frozen historical path (docs/history/)"
+    },
+    {
+      "path": "docs/history/taskpacks/20261009-r2-inputs/ui-r2/ARCHIVE-MANIFEST.json",
+      "bytes": 49274,
+      "sha256": "sha256:12bc0c52bf8f7ddcc81be7a6d501c2e16d8339c4c207b78af34e3c2bab1bb70b",
+      "authority_class": "HISTORICAL",
+      "basis": "frozen historical path (docs/history/)",
+      "ledger": {
+        "kind": "unknown-json",
+        "keys": [
+          "date",
+          "originals_git_tracked",
+          "owner_intent",
+          "packages",
+          "reason",
+          "schemaVersion",
+          "supersedes"
+        ]
+      }
+    },
+    {
+      "path": "docs/history/taskpacks/20261009-r2-inputs/ui-r2/README.md",
+      "bytes": 2299,
+      "sha256": "sha256:e33d64132550e0aaf0144da3b42d761c0a830c51e48a2ebd727920c901567db6",
+      "authority_class": "HISTORICAL",
+      "basis": "frozen historical path (docs/history/)"
+    },
+    {
+      "path": "docs/history/taskpacks/20261009-r2-inputs/ui-r2/evidence/source_provenance.json",
+      "bytes": 379,
+      "sha256": "sha256:4acc1bea3fb47e6f2025b16e9656bd190f2a1f39fe1bd40fb1c6efb52c4c3d9e",
+      "authority_class": "HISTORICAL",
+      "basis": "frozen historical path (docs/history/)",
+      "ledger": {
+        "kind": "unknown-json",
+        "keys": [
+          "baseline_filename",
+          "baseline_sha256",
+          "baseline_zip_crc_verified",
+          "new_visual_reference",
+          "scope",
+          "version"
+        ]
+      }
+    },
+    {
+      "path": "docs/history/taskpacks/20261009-r2-inputs/ui-r2/evidence/verification.json",
+      "bytes": 8375,
+      "sha256": "sha256:68e87285acc36b1f2d7f99f431eacd4320f342474070d3565bf97a4be402b4a9",
+      "authority_class": "HISTORICAL",
+      "basis": "frozen historical path (docs/history/)",
+      "ledger": {
+        "kind": "unknown-json",
+        "keys": [
+          "checks",
+          "dimensions",
+          "errors",
+          "external",
+          "failed",
+          "generated_at",
+          "qualification",
+          "runtime"
+        ]
+      }
+    },
+    {
+      "path": "docs/history/taskpacks/20261009-r2-inputs/ui-r2/specs/01_UI_SCHEME.md",
+      "bytes": 13494,
+      "sha256": "sha256:6d81dbcf063e228ecb263de586542360ca8c4434758315b7ec5a4107845b84a0",
+      "authority_class": "HISTORICAL",
+      "basis": "frozen historical path (docs/history/)"
+    },
+    {
+      "path": "docs/history/taskpacks/20261009-r2-inputs/ui-r2/specs/asset_manifest.json",
+      "bytes": 15500,
+      "sha256": "sha256:2d2a6e831a70c8824174bb37185b78bd5573bfb16aa904ed5a35160cc7a95830",
+      "authority_class": "HISTORICAL",
+      "basis": "frozen historical path (docs/history/)",
+      "ledger": {
+        "kind": "unknown-json",
+        "keys": [
+          "assets",
+          "brand",
+          "fonts",
+          "generation_rule",
+          "new_art_prompts",
+          "version"
+        ]
+      }
+    },
+    {
+      "path": "docs/history/taskpacks/20261009-r2-inputs/ui-r2/specs/design_tokens.json",
+      "bytes": 1926,
+      "sha256": "sha256:41482fe14ebc29155a2e3cafc8771af0623e034ce7d44988837ee73e8ff61130",
+      "authority_class": "HISTORICAL",
+      "basis": "frozen historical path (docs/history/)",
+      "ledger": {
+        "kind": "unknown-json",
+        "keys": [
+          "border_width_css_px",
+          "contrast_note",
+          "dark",
+          "kind",
+          "layout",
+          "light",
+          "motion",
+          "radius_css_px"
+        ]
+      }
+    },
+    {
+      "path": "docs/history/taskpacks/20261009-r2-inputs/ui-r2/specs/implementation_tasks.json",
+      "bytes": 2304,
+      "sha256": "sha256:0b2b1fac7f796e08305bbaecbbc8920b7cee8dede920b25d198c1c8df5a3697a",
+      "authority_class": "HISTORICAL",
+      "basis": "frozen historical path (docs/history/)",
+      "ledger": {
+        "kind": "unknown-json",
+        "keys": [
+          "kind",
+          "ledger_rule",
+          "source_mapping",
+          "status",
+          "version",
+          "work_items"
+        ]
+      }
+    },
+    {
+      "path": "docs/history/taskpacks/20261009-r2-inputs/ui-r2/specs/navigation.json",
+      "bytes": 2079,
+      "sha256": "sha256:187c07074ceb2f34244be7e23896454deac851d9dbdbf9c81481d6339fbdc25a",
+      "authority_class": "HISTORICAL",
+      "basis": "frozen historical path (docs/history/)",
+      "ledger": {
+        "kind": "unknown-json",
+        "keys": [
+          "asset_types",
+          "auxiliary",
+          "domains",
+          "facets",
+          "id_rule",
+          "mobile",
+          "primary",
+          "record_rule"
+        ]
+      }
+    },
+    {
+      "path": "docs/history/taskpacks/20261009-r2-inputs/ui-r2/specs/screen_map.json",
+      "bytes": 8939,
+      "sha256": "sha256:6ea47f32f807f1fb87c2930bbe73fb53c58eb1e758789774d2f017b20d9f6a26",
+      "authority_class": "HISTORICAL",
+      "basis": "frozen historical path (docs/history/)",
+      "ledger": {
+        "kind": "unknown-json",
+        "keys": [
+          "screens",
+          "version"
+        ]
+      }
+    },
+    {
+      "path": "docs/history/taskpacks/20261009-r2-inputs/ui-r2/specs/slice_map.json",
+      "bytes": 5082,
+      "sha256": "sha256:3d9948835b9648c18bae9e1919faad9d456501a9379c8674e985f2e3cba04265",
+      "authority_class": "HISTORICAL",
+      "basis": "frozen historical path (docs/history/)",
+      "ledger": {
+        "kind": "unknown-json",
+        "keys": [
+          "css_viewport",
+          "deviceScaleFactor",
+          "note",
+          "pixels",
+          "regions",
+          "screen"
+        ]
+      }
+    },
+    {
       "path": "docs/history/taskpacks/pre-r3-20260904-taskpack.md",
       "bytes": 148147,
       "sha256": "sha256:7432d53bdebb14f21f62390a422268a575e95d97f2fe979ac5dda731434dcadb",
@@ -1301,6 +1487,13 @@
       }
     },
     {
+      "path": "docs/taskpacks/20261009-r2-ui/CROSSWALK.md",
+      "bytes": 6393,
+      "sha256": "sha256:a81d067f5df643cb3ff5d60b9751f7b5d7168e52741bb24d5e316b5dfae330c2",
+      "authority_class": "REFERENCE",
+      "basis": "taskpack retained for reference; not a current dispatch entry"
+    },
+    {
       "path": "docs/taskpacks/20261009-ui-first/CONVERSATION-DECISIONS.md",
       "bytes": 2852,
       "sha256": "sha256:e899c7966dff7f3f8dff9280f3bdc4247b46825632cf1bccf3489d257f3f506e",
@@ -1323,8 +1516,8 @@
     },
     {
       "path": "docs/taskpacks/20261009-ui-first/TASK-CARDS.md",
-      "bytes": 43915,
-      "sha256": "sha256:ac9facd26d4d01618729b63b56d12666aae728d520e6913ad20ce8e55c2bdf65",
+      "bytes": 58123,
+      "sha256": "sha256:65cb795be9b561f5b5bef8832ee28c0af1ae27478190580aad6182490abc8d17",
       "authority_class": "REFERENCE",
       "basis": "taskpack retained for reference; not a current dispatch entry"
     },
