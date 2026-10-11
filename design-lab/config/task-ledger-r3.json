@@ -8372,8 +8372,12 @@
       },
       {
         "id": "DL-FINAL-T07",
-        "state": "NOT_STARTED",
-        "evidence": []
+        "state": "PARTIAL",
+        "evidence": [
+          "DL-FINAL-T07-selected-sources",
+          "DL-FINAL-T07-task-tests",
+          "DL-FINAL-T07-motion-deviations"
+        ]
       },
       {
         "id": "DL-FINAL-T08",
@@ -10709,8 +10713,44 @@
         "exit_code": 0,
         "observed_at": "2026-10-11T08:44:25Z",
         "artifact_sha256": "f8085ca62a6c32b8c9a1e0c98b09af96287b689dd54be2e3fb63e803034842b5"
+      },
+      {
+        "id": "DL-FINAL-T07-selected-sources",
+        "task_id": "DL-FINAL-T07",
+        "axis": "implementation",
+        "outcome": "PASS",
+        "subject_sha": "835fa88001198e9ef7d405360f4541fbb7b899fa",
+        "artifact_path": ".project-local/task-artifacts/ui-first-20261009/t07-batch19/selected-sources-gate.log",
+        "artifact_sha256": "3dcb28076e7a09972fa47f1dee0128827250c09debc57929bab560d1c24810d2",
+        "command": "python design-lab/scripts/verify_selected_source_adaptation.py -- 6 selected sources, 8 REGISTERED_ONLY landings vs 2 MAPPED, 0 CONSUMED; revision/licence/removalPath re-read from CANDIDATE-TAXONOMY.json; 13/13 citations re-read byte-for-byte from the vendored blob",
+        "exit_code": 0,
+        "observed_at": "2026-10-11T09:33:20Z"
+      },
+      {
+        "id": "DL-FINAL-T07-task-tests",
+        "task_id": "DL-FINAL-T07",
+        "axis": "unit",
+        "outcome": "PASS",
+        "subject_sha": "835fa88001198e9ef7d405360f4541fbb7b899fa",
+        "artifact_path": ".project-local/task-artifacts/ui-first-20261009/t07-batch19/task-tests.log",
+        "artifact_sha256": "b6fe562b0cebe4249f8cc8743a47cc4fd8a5d7e1ebca626494df5b8636c97ffb",
+        "command": "python -m unittest design-lab.tests.test_selected_source_adaptation -- 38 tests, each plant convicted by name (popularity-as-reason, registered-as-integrated, qualification-without-evidence, unpinned-not-quarantined)",
+        "exit_code": 0,
+        "observed_at": "2026-10-11T09:33:20Z"
+      },
+      {
+        "id": "DL-FINAL-T07-motion-deviations",
+        "task_id": "DL-FINAL-T07",
+        "axis": "unit",
+        "outcome": "PASS",
+        "subject_sha": "835fa88001198e9ef7d405360f4541fbb7b899fa",
+        "artifact_path": ".project-local/task-artifacts/ui-first-20261009/t07-batch19/motion-deviations.json",
+        "artifact_sha256": "2c6c1135f20218bc0c24cf49bf84e0925ad169ad70a8411a9ed8b93a71b639f4",
+        "command": "python - <<derived validator>> composited_motion_violations(apps/workbench/style.css) -- 2 live declarations animate 'right' (lines 1061/1065); recorded as bounded deviations in selected-sources.json instead of silently widening the rule",
+        "exit_code": 0,
+        "observed_at": "2026-10-11T09:33:20Z"
       }
     ],
-    "note": "2026-10-09 第六批（R2 §9 全局搜索按对象类型分组）：命令面板不再只是路由启动器。打开时按对象类型分四组读回真实对象——能力资产（GET /capabilities，结果直接落到 #/capabilities/<id> 那条独立地址）、项目（GET /projects → #/projects/<id>）、设计领域（GET /domains 的 13 个真实域包）、设计系统（GET /design-systems → #/brand-systems）。每条结果显示对象类型与去向，超过每组上限只画前若干条并明说还有多少未列出，不静默截断。三条边界写死：范围只限当前令牌已能读到的路由，服务没有对象级读权限模型，所以面板不说『已按权限过滤』；某一组没答回来就说未读回，不显示 0 条；对象组在首次打开时才读并缓存，不抢首屏。闸门侧把面板变成可测的：溢出/几何闸门新增 global-search 交互态（点 #openPalette → 等四组都给出可行动答案 → 量浮层几何 → Esc 关闭以免污染后续路由），并且 settle 谓词要求每组必须落在『有行 / 明确 0 个 / 明确未读回』三态之一——栽桩证明这条断言会红（让一组读回 0 且把空态文字去掉 → OV_INTERACTION_UNMEASURED，还原后绿且源码字节一致）。遮挡断言在模态浮层打开时按设计跳过，并在回执里写明跳过的原因而不是静默。bundle e9b74265/333652B，两主题各 22 个测量键、各 21 张实拍绑定同一字节；AA 三测含浅色、静态六门、node 三套全绿。第六批补记：分组搜索的浮层自己把尾巴裁掉了——实拍里只有『页面』一组，四组对象在 overflow:hidden 之下不可达，而几何闸门照旧全绿（没有横向溢出，也没有元素被自身盒子裁断）。修法是给面板定高并把 #paletteItems 变成滚动区，并给闸门加一条『滚到底后最后一行必须命中测试可达』的断言；栽桩（去掉滚动区）复现红 reached:false hit:null，还原后绿且 CSS 字节一致。同一轮把几何回执的 subject 扩成同时点名 bundle 与 stylesheet——因为 CSS 是独立文件，改布局时 main.js 字节不变，只绑 bundle 的回执根本区分不出改过没改过。第六批补记：分组搜索的浮层自己把尾巴裁掉了——实拍里只有『页面』一组，四组对象在 overflow:hidden 之下不可达，而几何闸门照旧全绿（没有横向溢出，也没有元素被自身盒子裁断）。修法是给面板定高并把 #paletteItems 变成滚动区，并给闸门加一条『滚到底后最后一行必须命中测试可达』的断言；栽桩（去掉滚动区）复现红 reached:false hit:null，还原后绿且 CSS 字节一致。同一轮把几何回执的 subject 扩成同时点名 bundle 与 stylesheet——因为 CSS 是独立文件，改布局时 main.js 字节不变，只绑 bundle 的回执根本区分不出改过没改过。第六批补记：分组搜索的浮层自己把尾巴裁掉了——实拍里只有『页面』一组，四组对象在 overflow:hidden 之下不可达，而几何闸门照旧全绿（没有横向溢出，也没有元素被自身盒子裁断）。修法是给面板定高并把 #paletteItems 变成滚动区，并给闸门加一条『滚到底后最后一行必须命中测试可达』的断言；栽桩（去掉滚动区）复现红 reached:false hit:null，还原后绿且 CSS 字节一致。同一轮把几何回执的 subject 扩成同时点名 bundle 与 stylesheet——因为 CSS 是独立文件，改布局时 main.js 字节不变，只绑 bundle 的回执根本区分不出改过没改过。U01~U05 与 T08 仍 PARTIAL：commit 授权、键盘/减少动画/200% 人审、宿主 E3、真人 E4 未做。QA 剩余 major：资产类型 tabs、11 领域二级入口、草稿自动保存（服务无 draft 路由，需先补后端）、U05 结构/文本节点（plan_to_rir 无调用方）、nav 内部排版断言；owner 侧：强约束/偏好分字段、三处令牌冲突、26 处字面色裁决。"
+    "note": "2026-10-11 第三批（DL-FINAL-T07 少量来源知识提炼与中立能力适配）：从 980 条候选里 owner 已记为 CONDITIONAL_POC 的 37 条中选 6 条做了实际阅读，逐条写下用途、来源版本、许可、方法与反例、落点、执行资格与撤回/恢复，产物是 packages/capabilities/selected-sources.json，判定者是新增闸 design-lab/scripts/verify_selected_source_adaptation.py（已接进 canonical 聚合）。三条验收线全部由机器判：(1) 热度只作筛选——star/fork 数只能待在 adoptionFilter(usedFor=FILTER_ONLY, qualitySignal=false)，selectionBasis 里把热度当理由即红，明确否述热度的句子不算（按 mention 与 negation 分别计数，这条教训来自本会话前两次子串禁令误判正确文案）；tier/designQuality 在 6 条来源行里全是未测量，故 qualityClaim 只能是 NOT_MEASURED。(2) 来源登记不算接入——落点默认 REGISTERED_ONLY 且必须写\"还缺什么\"（本轮 8 条），MAPPED 只有当目标文件真的含该 ruleId 才成立（本轮 2 条：MOTION_ACCESSIBILITY.md 与 DESIGN_TOKEN_INTEROP.md），CONSUMED 还要 E2 以上证据与真能驱动它的测试（本轮 0 条，没有任何一条被说成已接入）。(3) 执行资格只能用 design-lab/config/capability-status.json 公布的词表，高于 declared-only 必须给出能通过账本读取根策略复核的路径，且不得越过 promotionLevel 的上限。版本、许可、撤回路径一律与 CANDIDATE-TAXONOMY.json 逐字节比对，不许手写：tool-control 因 pinnedCommitSHA 为空被强制落在 quarantined（capabilityState=missing，唯一一档），它同时证明许可门与撤回门不是空转——它自己的 README 首行宣称\"来源与许可逐项核实\"，同文却把 photoshop-automator 标为\"许可未核实不吸收\"。方法引文 13 条按行号从本地 vendored blob 逐字节回读全部通过（blob 在 .project-local，随 Git 忽略，CI 只能校行跨度，闸把这一点如实打出来，不假装 CI 复核过字节）。由动效方法提炼出的确定性检查对 apps/workbench/style.css 量出 2 处真实偏差（1061、1065 行动画 right 而非 transform），按\"有界偏差\"登记进记录：再多一处或旧偏差已修却未删条目都会判红；改成 transform 要重跑浏览器几何闸与实拍，留作下一批，不静默放宽规则。T07 记 PARTIAL：四条 REGISTERED_ONLY 升 MAPPED 属 Quality/标准文档语义变更（六轴加权求和 vs 该来源\"各维度独立不平均\"的冲突、12 套启发式框架与既有六轴的关系），需要 owner 裁定；真实宿主 E3 与真人 E4 一项未做，不代签。附带如实修正两处我自己的初稿错误：designQuality 实际是空对象 {} 而非 null，按 null 判\"未测量\"会把未评的分读成评过分；新增 packages/ 下一个数据文件使 inert_contract_survey 的 productFiles 由 208 变 209，该闸按自身规则重跑生成后 --check 复绿，INERT 状态分布未变（没有第二条 INERT 合同因此被产品命名）。"
   }
 }

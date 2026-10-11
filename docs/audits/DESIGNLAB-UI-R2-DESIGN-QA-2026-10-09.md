@@ -425,11 +425,34 @@ CI run `38057782601` @ `aa3cb307` 的三个红里，两个不是缺陷而是同�
    一般规则：**回执只能绑"被摘要的对象之外"的文档**；这条与第 1–4 项是同一个形状——
    受跟踪的记录去摘要会彼此改写的字节。
 
-当前行为：本地 `VERIFY_DESIGN_LAB=OK total=74 failed=0`，`AUTHORITY_GATES=PASS gates=7 failed=none`。
+当前行为（2026-10-11 第十九批复测，本地）：`VERIFY_DESIGN_LAB=OK total=75 failed=0`——比上一行的
+74 多出的那一个阶段是新登记的 `verify_selected_source_adaptation.py`（DL-FINAL-T07），不是判据变化；
+`CURRENT_EXECUTION=PASS tasks=34 counts={'NOT_STARTED': 24, 'PARTIAL': 10}` 回执 172 条；
+`AUTHORITY_CHAIN=WRITTEN entries=144` 后 `--check PASS`；`AUTHORITY_GATES=PASS gates=7 failed=none`。
 CI 实测：@ `c46a4525` 三条聚合红全部来自这一条根因（读数见第十四批追记末段）；
 @ `4453177c`（run 38071427909）失败作业从 2 个降到 **1 个**——authority chain 作业转绿
 （链排在账本定型之后重生成并同批提交），剩下的就是 Python gate 里那 3 条聚合红。
 不靠调低判据、摘掉闸或让 `--check` 读磁盘缓存来变绿。
+
+### 本清单新增两项需要裁定的（第十九批，来自来源提炼，界面与闸都不替 owner 猜）
+
+- **H：加权求和 vs「各维度独立、不许平均」。** `packages/capabilities/quality/jury/JURY_MODEL.md`
+  与 13 个 DomainPack 的 `rubric.json` 用的是「各轴权重相加 + pass_threshold」。逐包实测：
+  13 份 rubric 权重合计**全为 100**，轴数 5–7 不等（ecommerce/graphic 7 轴，minigame 5 轴，其余 6 轴），
+  `scale` 全为 `0-100`，`pass_threshold` 为 82（minigame 80）；`JuryRecord.template.json` 的数值轴是
+  5 个（antiSlop/layout/material/readability/commercial），JURY_MODEL 说的「六轴」把第 6 轴计为人审轴。
+  而 `visual-quality__dataviz-critique` 的方法明文「Score each dimension independently — do not average
+  them out… 不要因整体还行就统一给 7-8」，并给了 9-10/7-8/5-6/3-4/1-2 的**分档锚点**。两者不是同一件事：
+  加权求和会把一轴的短板摊平，锚点制不会。改判据属 Quality Gate 语义变更，且会让既有评审读回的历史
+  分数换含义，所以我只在 `packages/capabilities/selected-sources.json` 里把落点登记为
+  `REGISTERED_ONLY` 并写明缺什么，没有自行给 rubric 加轴锚点。**要裁的是：是否改用分档锚点、
+  是否取消加权求和（以及 13 份 rubric 的轴数不一致是否要统一）。**
+- **I：12 套启发式框架与既有六轴的关系。** 同一来源（`ux-audit-skill`）一次引入 Nielsen 10、
+  Shneiderman 8、Gerhardt-Powals、Bastien-Scapin、行为法则、Fogg、Cialdini、Gestalt、Norman、
+  Tognazzini、WCAG 静态可检子集、内容启发式共 12 套，并要求每条发现按「框架#编号」引用。
+  本项目六轴 + 人审门已经在评同一件事。并进来会有两套评分真相，不并进来则「引用具名启发式」这条
+  取证纪律拿不到（它正是我要借的那条，已提炼但不落文档）。
+  **要裁的是：把它当引用词汇表（不改六轴）还是当第二评分体系。**
 
 ## 第七批追记（2026-10-09 深夜，Major 7：领域成为二级入口）
 
@@ -769,3 +792,64 @@ clipped/stray/tiny 均为 0；appshell vm 合同面退出 0（①–⑯ 全过�
   `还没有分类 · 能力目录 60 条读回里，声明该领域的有 0 条；而 60/60 条的 domains 轴都在服务自己的未分类轴清单里`，
   动作禁用，来源行写明数字出自第二次读回；同一屏的 MINIGAME 行如实显示 `领域 未声明`。
   证据目录 `.project-local/task-artifacts/ui-first-20261009/qa-20261011g/screens/`。
+
+## 第十九批追记（2026-10-11，DL-FINAL-T07 来源提炼：闸能判的三件事，和它量出的两处真偏差）
+
+- **本批不动任何界面字节**，所以没有新实拍可看，这一点用摘要证明而不是用话说：
+  `apps/workbench/build/main.js` 仍是 `255e992ac03b3c06…`（358,028 B）、`style.css`
+  `f5410c1ad591a080…`（101,028 B）、`shell.ts` `875d61cf475bb730…`（428,853 B），
+  与第十八批被审阅的那套截图所绑的字节同一三枚摘要；改的是
+  `packages/capabilities/`（新增 1 个数据记录 + 2 份标准文档各 1 条）、`design-lab/scripts`、
+  `design-lab/tests`。上一批的桌面实拍对本批仍然是可审阅面，不需要为凑数重拍一遍。
+- **做了什么**：从 980 条候选里 owner 已记为 CONDITIONAL_POC 的 37 条中选 6 条真读，
+  逐条写用途/来源版本/许可/方法与反例/落点/执行资格/撤回+恢复，落在
+  `packages/capabilities/selected-sources.json`（38 KB，由一次性采集脚本按引用生成：
+  `pinnedCommitSHA`、`rights.license`、`removalPath`、adoption 数字全部从
+  `CANDIDATE-TAXONOMY.json` 复制，13 条方法引文按行号从本地 vendored blob 读出，没有一处手写）。
+- **闸把三条验收线变成可判定的**（`design-lab/scripts/verify_selected_source_adaptation.py`，
+  已接进 canonical 聚合，`total=74 → 75` 是阶段数增加，不是判据变化）：
+  1. 热度只作筛选：star/fork 只能待在 `adoptionFilter(usedFor=FILTER_ONLY, qualitySignal=false)`，
+     `selectionBasis` 里把热度当理由即红；明确否述热度的句子不判红（提及数 vs 否定式提及数分别计——
+     这条纪律来自本会话前两次子串禁令误判正确文案的教训）。
+  2. 登记不算接入：`REGISTERED_ONLY` 8 条（必须写"还缺什么"）/ `MAPPED` 2 条（只有当目标文件里
+     真的写着该 ruleId 才成立：`MOTION_ACCESSIBILITY.md`、`DESIGN_TOKEN_INTEROP.md`）/
+     `CONSUMED` 0 条（还额外要 E2 以上 + 真驱动它的测试）。翻转任一档都会判红。
+  3. 执行资格只能用 `capability-status.json` 公布的词表，且不得越过 `promotionLevel` 的上限；
+     高于 `declared-only` 的每条 evidenceRef 都要通过**账本读取根策略同一个谓词**
+     （复用 `src/design_lab/governance/reporting._safe`，不再抄一份根清单）。
+- **量出来的两处真偏差（不是判据问题，是我借来的规则打到自己产品）**：
+  由动效方法提炼的确定性检查对 `apps/workbench/style.css` 实测 **2 处动画 `right`**
+  （1061、1065 行：`transition: right .28s cubic-bezier(.2,0,0,1),visibility 0s linear …`），
+  与 `visual-quality__taste-skill` L522「Animate ONLY transform and opacity. Never animate
+  top/left/width/height」和 LottieFiles 清单「No layout-triggering properties animated」直接冲突。
+  我没有静默放宽规则，也没在本批顺手改 CSS：改法（`right:-256px` → `transform:translateX(-100%)`）
+  会动到溢出闸测的 rail 几何与两套配色实拍，必须整批重测，故登记为**有界偏差**并留下一批。
+  闸是双向的：多出第 3 处判红，旧偏差已修却未删条目同样判红（`knownDeviations` 与实测逐条比对）。
+- **负面样本特意留着**：`tool-control` 的 `pinnedCommitSHA` 为空，被强制 `quarantined`
+  （`capabilityState=missing`，唯一一档），落点只是既有 COM 模块且全部 `REGISTERED_ONLY`。
+  它同时暴露两处来源侧事实：其 `README.md` 首行宣称"来源与许可逐项核实"，同文第 20 行却把
+  photoshop-automator 标为"未核实/仅参考不吸收"；其运行时路径写在 `.hermes/task-runtime/…`，
+  而本项目的运行/证据根是 `.project-local`。许可门与撤回门因此不是空转——没有这一条，
+  "许可未核实只能参考"的规则永远不会被真实数据触发。
+- **我自己的初稿错了两处，都在闸的第一次运行里被撞出来**（不是产品缺陷，是我的判定式缺陷）：
+  (1) 我按 `designQuality is None` 判"未测量"，而分类表里该字段实际是**空对象 `{}`**——
+  真值反了会导致没评过分的行为"已测量"，且"声称测量需人审引用"那条规则永不触发；
+  现改为 `unmeasured()` 统一覆盖 `null/{}/[]/""`，两个方向各有种植。
+  (2) 我在 packages/ 下新增一个数据文件，使 `inert_contract_survey` 的 `productFiles` 由 208 变 209，
+  该闸按自身规则把整条聚合判红（`VERIFY_PROJECTION_FRESHNESS=FAIL … 改了代码没重跑就是红的`）。
+  按其文档化路径重跑生成器后 `--check` 复绿，**INERT 状态分布一字未变**
+  （`NO_STATE_COUNTERPART=17 TABLE_WRITES_THIS_ACTIVITY=8 ADJACENT_TABLE_WRITTEN=2 TABLE_EXISTS_UNWRITTEN=3`），
+  即没有第二条 INERT 合同因此被我新文件"命名"。
+- **第三方 SKILL.md 一律按惰性素材读，没有执行**（AGENTS.md 的 inert source blobs 规定）。
+  要一份"执行级"的供应链判定，本机已装 `research-copilot:skill-criticagent` 是现成路径，
+  但它会真实拉起被审对象，属宿主副作用，留给 owner 点名后再做，我不自行开这扇门。
+- 回执 3 条入 `currentExecution`（implementation 1 / unit 2，全部 exit 0，
+  绑 `head=835fa880`）：闸输出、38 项任务测试、动效偏差实测 JSON。
+  `DL-FINAL-T07` 由 `NOT_STARTED` 迁 `PARTIAL`：其余 4 条 `REGISTERED_ONLY` 升 `MAPPED`
+  属质量/标准文档语义变更（见新增裁定项 H、I），真实宿主 E3 与真人 E4 一项未做，不代签。
+- 复测读数：`VERIFY_DESIGN_LAB=OK total=75 failed=0`、
+  `python -m unittest design-lab.tests.test_selected_source_adaptation` → `Ran 38 tests OK`、
+  `CURRENT_EXECUTION=PASS tasks=34 counts={'NOT_STARTED': 24, 'PARTIAL': 10}` 回执 172、
+  `AUTHORITY_CHAIN=WRITTEN entries=144` 后 `--check PASS`、`AUTHORITY_GATES=PASS gates=7 failed=none`、
+  `CANDIDATE_TAXONOMY=OK entries=980 domain_packs=13 errors=0`、`CAPABILITY_EVIDENCE_V4=PASS records=8`。
+

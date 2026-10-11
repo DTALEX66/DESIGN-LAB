@@ -97,6 +97,14 @@ SCRIPTS = [
     # the research store landed: the slot still told the operator no route persisted conclusions.
     # This is the check that makes the self-description an assertion instead of a note.
     "verify_capability_self_description.py",
+    # DL-FINAL-T07 (2026-10-11): a handful of external sources were actually read and their
+    # method distilled into packages/capabilities/selected-sources.json. Two lies are easy
+    # there -- treating a star count as a quality signal, and treating "we registered the
+    # repo" as "we integrated the capability" -- so the record's revision, licence and
+    # removal path are re-read from the candidate taxonomy, its landing modes are graded
+    # against the real files and the adapter registry, and its execution qualification is
+    # capped by the vocabulary capability-status.json publishes.
+    "verify_selected_source_adaptation.py",
     "verify_experience_corpus.py",
     "verify_design_actions.py",
     "verify_tool_action_plan.py",
