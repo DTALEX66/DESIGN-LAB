@@ -2,6 +2,7 @@
 // AppShell regression tests for the 2026-09-22 UI convergence slice.
 
 import { readFileSync } from 'node:fs';
+import { createHash } from 'node:crypto';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 import vm from 'node:vm';
@@ -69,10 +70,28 @@ function makeContext() {
     // intake write path died on 'crypto is not defined' before reaching fetch, and the
     // panel reported that as a service refusal. The counter keeps each call distinct,
     // which is what the idempotency assertions depend on.
-    crypto: { randomUUID: ((n) => () => {
-      n += 1;
-      return `00000000-0000-4000-8000-${String(n).padStart(12, '0')}`;
-    })(0) },
+    //
+    // crypto.subtle.digest arrived with batch 22: the idempotency key is now the digest
+    // of the content it identifies (shell.ts sha256Hex), not a fresh uuid per click. A
+    // context with only randomUUID made every submit throw on 'crypto.subtle is not a
+    // function' BEFORE fetch, so the plan-refusal block saw zero requests instead of one
+    // -- a harness gap that made a real code path untested rather than tested. The digest
+    // is the real SHA-256, so a key really derived from the same plan really is the same
+    // key here too.
+    crypto: {
+      randomUUID: ((n) => () => {
+        n += 1;
+        return `00000000-0000-4000-8000-${String(n).padStart(12, '0')}`;
+      })(0),
+      subtle: {
+        digest: async (_algorithm, bytes) =>
+          createHash('sha256').update(Buffer.from(bytes)).digest(),
+      },
+    },
+    // TextEncoder came with the same key change: contentKey() encodes the joined intent
+    // before hashing, so a context without it threw on that line instead of reaching
+    // fetch -- the same failure mode as the missing crypto.subtle above.
+    TextEncoder,
     Option: class Option extends MockElement {
       constructor(text, value) { super('option'); this.textContent = text; this.value = value; }
     },
