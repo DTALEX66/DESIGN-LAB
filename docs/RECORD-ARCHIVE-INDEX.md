@@ -269,3 +269,25 @@
 未混入项的逐文件分类证据在机器清单source_files；其它项目专有大档案未按全卷整复制。
 项目边界：AAOS属于独立项目。AAOS自身任务及文件读取异常不计入DESIGN-LAB待办、阻塞或未完成项；全卷登记中的相关元数据仅供来源定位，跨项目归档仅作合同/历史参考。
 本轮范围的完整性定义：相关原件/共享容器及其全部递归ZIP成员均保留并复验；归档不等于rights准入或产品实现。
+
+## 2026-10-11 新增：云端三项目 DOT 审计包（DESIGN 观测 835fa880）
+
+- 原件：`D:/All projects/Record/AAOS-WORK-DESIGN-cloud-audit-20261011.zip`，8,038,362 B，
+  SHA-256 `b8bd438e74b91cb0193ffda03c13c1191a4dd54bb1614a92ada012519a1fda72`，163 个文件成员，
+  解包 8,675,436 B。逐成员 name/bytes/CRC32/SHA-256/项目归属登记在
+  `docs/history/record-imports-2026-10-11/DOT-AUDIT-MANIFEST.json`（本机生成，非手抄）。
+- 它测的是哪些版本：`DESIGN-LAB main fc03a3033e90…（tree 233ff516…）`，
+  活动分支 `qoder/designlab-backup-consistency-20261007 @ 835fa88001198e9e…（tree daaae705…，
+  工作区干净）`，报告称其领先 main 215 提交。**这与本仓库今天两批工作的起点是同一个提交**，
+  所以它的每条 DESIGN 断言都必须对照当前 HEAD 重读，不能当作现状也不能当作已修。
+- 属于本项目的成员：29 个只谈 DESIGN-LAB、16 个混合提及，合计 45；另有 11 个包内根报告
+  （`00-START-HERE/REPORT/LINUX-REPORT/VISUAL-REVIEW/findings.json/MANIFEST.json` 等）为三项目共用。
+  其余 28 个专属 AAOS/WORK、90 个未带项目标记。**AAOS 与 WORK 的条目只作邻项目参考，
+  不计入 DESIGN-LAB 未完成项**（含 WORK 的 mbcs/CI 身份、AAOS 的恢复与隐私告知条目）。
+- 本项目的副本：按成员原字节解到
+  `.project-local/task-artifacts/record-imports-2026-10-11/dot-audit/`，共 48 个文件
+  ＝45 个谈 DESIGN-LAB 的成员 + 3 个只作上下文读取的根文件（实测 missing=0、extra=0）；
+  Git 忽略，不随 `git clone` 走，跨机器交接须带原 ZIP。二进制证据（PNG）也按哈希
+  登记在机器清单里，未逐张读图的部分不写成结论。
+- 取代关系：本条是新增输入，不改写任何冻结原件；`docs/history/record-archive-2026-10-09/ARCHIVE-MANIFEST.json`
+  仍是那批 Record 导入的清单，本包不属于它，也不得并入它。

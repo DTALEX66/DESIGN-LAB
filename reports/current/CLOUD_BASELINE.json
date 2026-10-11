@@ -9,48 +9,33 @@
   },
   "fresh": false,
   "freshnessMeaning": "at generation only; check verifies bound-input integrity, not current Git or cloud state",
-  "generatedAt": "2026-10-11T10:05:57+00:00",
+  "generatedAt": "2026-10-11T10:28:06+00:00",
   "gitStateMeaning": "generation-time observation, not current HEAD",
   "local": {
     "branch": "qoder/designlab-backup-consistency-20261007",
     "origin_main": "fc03a3033e900a8066d863a223636cc68804c4fa",
-    "sha": "c8139060515498b40ba5e636049816124bb6554f",
+    "sha": "e37ded4eee3ee087919cac22b1c32e8bf5505fba",
     "source_worktree_clean": false,
     "tracked_files": 3601,
     "worktree_changes": [
       {
-        "content": "sha256:295676ceb2a7bc88907ed6b6773c19762805838fc98f381beebfe9aff5d502ec",
+        "content": "sha256:9d95e5d6399add419cd4dacee5c29995de9f943b92de217f656f78558bf6991d",
         "kind": "M",
-        "path": "apps/workbench/style.css"
+        "path": "docs/RECORD-ARCHIVE-INDEX.md"
       },
       {
-        "content": "sha256:fe2d694fd71a24598e5019c99f312da39ae0c59d4ef56414d95e7fca3e3b2693",
-        "kind": "M",
-        "path": "design-lab/config/task-ledger-r3.json"
-      },
-      {
-        "content": "sha256:df1c5cd424fd446b48a69d3c209f4388ce8a541631df9098086ff0184a698339",
-        "kind": "M",
-        "path": "design-lab/tests/test_selected_source_adaptation.py"
-      },
-      {
-        "content": "sha256:2ac1112d20eb3e0a855c133ca7a3c1891e795263edcea2580e6a92254a4b7c21",
-        "kind": "M",
-        "path": "docs/audits/DESIGNLAB-UI-R2-DESIGN-QA-2026-10-09.md"
-      },
-      {
-        "content": "sha256:4e0a1eb6b2d93fcc01a07efdfc3f172cb477f33e6e71936ae5fc52494d2b4741",
-        "kind": "M",
-        "path": "packages/capabilities/selected-sources.json"
+        "content": "sha256:b06facdf8c21be17c144574a4cb533c40b92ae01c92d4e0986012d959eae8fbb",
+        "kind": "U",
+        "path": "docs/history/record-imports-2026-10-11/DOT-AUDIT-MANIFEST.json"
       }
     ],
-    "worktree_digest": "sha256:38a314077830e76e3421401c179676b49b4ad2fa9958a24aa41979721a2bddea"
+    "worktree_digest": "sha256:f04cde52dc44d24186e7556a9ccd36e036267af6758aa50bb43b94278c6a02a4"
   },
   "note": "No GitHub API query was run by this generator; tool installation is not inferred.",
   "remoteRef": "origin/main (local tracking ref)",
   "schemaVersion": "design-lab/cloud-baseline/v2",
   "subjectMeaning": "subjectType=WORKTREE means the tree was dirty at generation; worktreeDigest covers HEAD plus the non-generated changes",
-  "subjectSha": "c8139060515498b40ba5e636049816124bb6554f",
+  "subjectSha": "e37ded4eee3ee087919cac22b1c32e8bf5505fba",
   "subjectType": "WORKTREE",
   "taskpackHash": "f91ebe9b67ab4f83be91fe8f3ca0fc80fc93176263bec05d883fa6ce6afd6480",
   "taskpackId": "DL-TP-20261009-UI-FIRST-R1",
@@ -65,5 +50,5 @@
     "branchProtection"
   ],
   "worktreeClean": false,
-  "worktreeDigest": "sha256:38a314077830e76e3421401c179676b49b4ad2fa9958a24aa41979721a2bddea"
+  "worktreeDigest": "sha256:f04cde52dc44d24186e7556a9ccd36e036267af6758aa50bb43b94278c6a02a4"
 }
