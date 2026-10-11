@@ -1054,3 +1054,26 @@ clipped/stray/tiny 均为 0；appshell vm 合同面退出 0（①–⑯ 全过�
 - 仍未做：真实宿主 E3（需 owner 明确授权）、真人 E4、merge 到 main、release、手机端（FROZEN_DEFERRED）。
   D05/D06/D07/D08（前端发现性与过滤，D08 是我第十八批引入的）按依赖排到下一批；
   owner 清单 A–J 一条未动，本批没有替任何一条猜答案。
+
+### CI 抓到的两处（本地全绿之后）
+
+推送后读 `17d3139f` 的 CI，两个作业红，**两处都是我自己引入的**，而且本地复跑抓不到：
+
+1. **`Workbench strict-TS product gate`** —— `node tests/appshell.mjs`：
+   `NATIVE_PLAN_IDEMPOTENCY_CONFLICT: 一次点击应恰好一个请求，实得 0 个`。
+   根因在**测试脚手架**，不在产品代码：vm context 里有 `crypto.randomUUID`（给旧的 `uuid()` 用），
+   但没有 `crypto.subtle` 和 `TextEncoder`。本批把幂等键改成内容摘要之后，每次提交都在 fetch **之前**
+   抛 `crypto.subtle is not a function`——而"fetch 之前抛出"在断言里读起来就是"没有发出请求"，
+   于是**五个拒绝分支被跳过而不是被测**。补上真实的 SHA-256 与 `TextEncoder` 后 `APPSHELL_EXIT=0`。
+   这条要记住：**同一批里"闸全绿"和"覆盖被静默跳过"可以同时成立**，本地跑同一套 node 用例也不会发现。
+2. **`Python gate` → `DESIGN-LAB unified verify`** —— `VERIFY_CONTRACT_BINDINGS=FAIL`，
+   三条 `EMITTER_POINTER_NOT_THE_VERSION`：rights / research / domain-packs 的绑定按**行号**指向
+   "写出该版本的那一行"，而我加的注释把 `CONTRACT_VERSION` / `CONTRACT_ID` / `SCHEMA_VERSION`
+   的行号整体推下去了。改的是 `design-lab/config/contract-bindings.json` 里的**指针**，
+   不是删注释、也不是改闸的判据。
+
+CI 同期报的另外三条（`verify_route_payload_contracts`、`verify_current_execution`、
+`verify_projection_freshness`）在**本地全 PASS**——它们绑的证据在 `.project-local/` 里，
+干净 clone 上没有这些字节，属交接提示词里点名的 G（干净 clone 无法复现的真值闸债）。
+`VERIFY_DESIGN_LAB=FAIL total=75 failed=2`，剩下的两条（`verify_reconstruction_pipeline`、
+`verify_reconstruction_bundle`）是本机环境问题，已在 HEAD 对照复跑确认同形，不是本批回归。
