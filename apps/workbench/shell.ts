@@ -24,6 +24,7 @@ import type {
   CapabilityLibraryResponse,
   CapabilityRecord,
   EventListResponse,
+  NativePlanResponse,
   NativeRuntimeResponse,
   NativeRuntimeSection,
   TaskRecord,
@@ -4685,7 +4686,10 @@ function renderReferencePanel(id: string): HTMLElement {
     const cancelled = rows.filter((r) => r.status === 'cancelled').length;
     summary.className = 'view-hint';
     summary.textContent = `导入 ${rows.length} 个：成功 ${ok} · 失败 ${failed} · 已取消 ${cancelled}`
-      + (failed ? '（失败项未写入服务端）' : '')
+      // D03: "未写入" was never provable from the client -- a lost *response* still
+      // leaves a written record. What the page can guarantee is the key: the same file
+      // retried reuses it, so a retry cannot turn into a second asset. Say that.
+      + (failed ? '（失败项按失败记；同一文件重试复用同一个键，不会变成第二份素材）' : '')
       // While the service read-back is still running the summary says so, so "the loop
       // finished" is never confused with "the list now reflects the service".
       + (pending ? ` · ${pending}` : '');
@@ -4727,7 +4731,12 @@ function renderReferencePanel(id: string): HTMLElement {
           const bytes = new Uint8Array(await file.arrayBuffer());
           let binary = '';
           for (let i = 0; i < bytes.length; i += 8192) binary += String.fromCharCode(...bytes.subarray(i, i + 8192));
-          await api(`/projects/${id}/assets`, { content_base64: btoa(binary), idempotency_key: uuid() });
+          // D03: the key is the bytes' own digest, so re-importing the same file after a
+          // lost response replays the one asset instead of minting a second one. Two
+          // *different* files with identical bytes are, to the service, the same asset --
+          // that identity is the point of the key, and the row says which file it was.
+          await api(`/projects/${id}/assets`,
+            { content_base64: btoa(binary), idempotency_key: await sha256Hex(bytes) });
           rows.push({ name: file.name, status: 'ok', detail: `${Math.round(file.size / 1024)} KiB · 服务端已确认` });
         } catch (error) {
           rows.push({ name: file.name, status: 'failed', detail: errMsg(error) });
@@ -4755,7 +4764,9 @@ function renderReferencePanel(id: string): HTMLElement {
         showHint(listRead ? `全部 ${ok} 个文件已导入并从服务端读回。`
                           : `全部 ${ok} 个文件已导入；导入后的清单未读回，请稍后刷新。`);
       } else {
-        showHint(`导入结束：成功 ${ok} / ${rows.length}；失败项未写入，`
+        // D03: same correction as the summary line -- the client cannot prove "未写入",
+        // it can promise that retrying the same file reuses its key.
+        showHint(`导入结束：成功 ${ok} / ${rows.length}；失败项按失败记，同一文件重试不会变成第二份素材；`
           + (listRead ? '清单已从服务端重新读回。' : '清单未读回，请稍后刷新。'));
       }
     })();
@@ -7078,7 +7089,15 @@ export function composeTargetPlan(asset: AssetRecord, host: string): {
     inferred: false,
     zOrder: 0,
     visible: true,
-    locked: host === 'illustrator',
+    // D02 (batch 22): this composer declares no explicit host fallback, and the
+    // lowering contract refuses any node carrying `locked` ("unsupported
+    // opacity/visibility/lock/blend; explicit fallback required"). Locking only the
+    // Illustrator default made that host's default plan unreachable: the service
+    // answered 400 INVALID_REQUEST before a job had ever been created, while
+    // Photoshop passed only because the UI happened to send `false`. Both hosts now
+    // compose an unlocked layer. The contract is NOT widened -- a `locked` node is
+    // still refused downstream, and that refusal is pinned by a test.
+    locked: false,
     blendMode: 'normal',
     raster: {
       // 导入路由登记的就是这个完整 img-ID；raster.path 必须是它，不是本地路径。
@@ -7096,6 +7115,41 @@ export function composeTargetPlan(asset: AssetRecord, host: string): {
     },
     textStyles: {},
   };
+}
+
+// --- D01/D03 (batch 22): idempotency keys that survive a retry -----------------
+//
+// The service identifies a submission by sha256(project_id + ':' + host + ':' + key)
+// (native_submissions.py) and an import by sha256(project_id + ':' + key)
+// (image_assets.py). A key minted per click with `uuid()` therefore makes every
+// retry a *second* record: the first attempt stays queued, the page shows the
+// second, and "同键安全"/"失败项未写入" were claims the code did not keep. Binding
+// the key to the content it identifies makes the two directions agree -- same
+// intent, same key, one record; different content, different key, new record.
+
+/** SHA-256 as lowercase hex: 64 chars, which is exactly the service's
+ *  `[A-Za-z0-9_-]{1,64}` idempotency-key contract. */
+async function sha256Hex(bytes: Uint8Array): Promise<string> {
+  const digest = await crypto.subtle.digest('SHA-256', bytes);
+  return Array.from(new Uint8Array(digest))
+    .map((b) => b.toString(16).padStart(2, '0')).join('');
+}
+
+/** Content-bound key for a text-shaped intent (host + composed plan). */
+async function contentKey(parts: string[]): Promise<string> {
+  return sha256Hex(new TextEncoder().encode(parts.join('\u0000')));
+}
+
+/** Read the queued task out of the route's 202 envelope.
+ *
+ * D04: POST /native-plans answers with the task nested under `task`, while this page
+ * read top-level `task_id` / `job_id` and so printed "未给出任务号" for every
+ * submission the service had in fact accepted. One function builds the receipt line,
+ * so the route shape and the page cannot drift apart again unnoticed. */
+export function readPlanReceipt(data: NativePlanResponse | null | undefined): {
+  id: string; state: string;
+} {
+  return { id: data?.task?.job_id ?? '未给出任务号', state: data?.task?.state ?? '未读回' };
 }
 
 /** A native-plan refusal, in the refusal's own words.
@@ -7146,8 +7200,11 @@ function planRefusal(error: unknown): StateSpec {
       kind: 'error', title: '幂等键不合法', weight: 'bad',
       producer: 'POST /api/projects/{id}/native-plans 返回 INVALID_NATIVE_KEY（400）：'
         + '键的形状不符合服务端要求。',
-      next: '本页的键由 uuid() 生成，出现这条说明是界面自己发错了，不是用户填错；'
-        + '按代码排查生成处，不要让用户重填。',
+      // D01: the plan key is now the SHA-256 of (project, host, composed plan), i.e.
+      // 64 lowercase hex chars -- always inside the service's allowed shape.
+      next: '本页的键是 (项目 · 宿主 · 编排结果) 的 SHA-256（64 位十六进制），'
+        + '形状恒定合法；出现这条说明是界面自己发错了，不是用户填错，按代码排查生成处，'
+        + '不要让用户重填。',
     };
   if (code === 'INVALID_NATIVE_PLAN')
     return {
@@ -7198,7 +7255,11 @@ function planComposer(projectId: string): HTMLElement {
       el('li', { class: 'list-item' },
         el('div', {}, el('strong', {}, '底图 · 用户勾选，非推断'),
           el('small', {}, `${asset.id} · ${asset.media_type} · ${asset.width}×${asset.height}`
-            + ` · 权利 ${asset.rights} · v${asset.version_no}`))),
+            // D04: the live /assets payload carries version_id, not version_no, so the
+            // declared field rendered the literal "vundefined". Same guard the asset row
+            // already uses: nothing here may ever print "undefined".
+            + ` · 权利 ${asset.rights} · ${asset.version_no !== undefined
+              ? `v${asset.version_no}` : `版本 ${asset.version_id.slice(0, 12)}…`}`))),
       el('li', { class: 'list-item' },
         el('div', {}, el('strong', {}, '画布'),
           el('small', {}, `${String(composed.rir.canvas.width)}×${String(composed.rir.canvas.height)}`
@@ -7225,18 +7286,22 @@ function planComposer(projectId: string): HTMLElement {
     void (async () => {
       const composed = composeTargetPlan(asset, hostSelect.value);
       try {
-        const data = await api<{ task_id?: string; job_id?: string; state?: string }>(
+        // D01: the key is bound to the intent (project + host + the exact composed
+        // plan), so pressing the button twice -- or pressing it again after a lost
+        // response -- replays the one queued job instead of queueing a second.
+        const data = await api<NativePlanResponse>(
           `/projects/${projectId}/native-plans`,
           {
             host: hostSelect.value,
             rir: composed.rir,
             text_styles: composed.textStyles,
-            idempotency_key: uuid(),
+            idempotency_key: await contentKey([projectId, hostSelect.value,
+              JSON.stringify(composed.rir), JSON.stringify(composed.textStyles)]),
           });
-        const id = data.task_id ?? data.job_id ?? '未给出任务号';
+        const receipt = readPlanReceipt(data);
         status.textContent = '';
         outcome.replaceChildren(el('p', { class: 'view-hint' },
-          `已排队：${String(id)} · 状态 ${data.state ?? '未读回'}`),
+          `已排队：${receipt.id} · 状态 ${receipt.state}`),
         el('p', { class: 'view-hint' },
           '排队不等于完成：启动宿主与读回产物在任务面上是另一步，需要显式动作。'));
       } catch (error) {

@@ -429,5 +429,65 @@ rows:elements['design-directions'].children.map(r=>({text:r.textContent,buttons:
         self.assertTrue([b for b in live_row['buttons'] if b.startswith('选为方向')])
 
 
+    def test_default_composed_plan_receipt_and_key_are_contract_shaped(self):
+        """Batch 22 / D02 + D01 + D04: the parts of the plan screen a contract can pin.
+
+        * D02 — ``composeTargetPlan`` used to set ``locked: host === 'illustrator'``.
+          The lowering contract refuses a locked node without an explicit fallback, so
+          the Illustrator default plan was refused before a job existed.
+        * D01 — the idempotency key must be bound to the intent, so the same composed
+          plan always yields the same key and a different plan a different one.
+        * D04 — the 202 puts the task under ``task``; the receipt reader must read that
+          nesting, not top-level fields that the route never sends.
+        """
+        node=shutil.which('node')
+        if not node:self.skipTest('Node required')
+        script=r'''
+const fs=require('fs'),vm=require('vm'),nc=require('crypto');
+class E{constructor(){this.children=[];this.classList={toggle(){}};}append(x){this.children.push(x)}replaceChildren(){this.children=[];}removeAttribute(){}}
+const elements={};
+const c={document:{getElementById:id=>elements[id]??=new E(),createElement:()=>new E()},
+crypto:{subtle:{digest:async(alg,bytes)=>nc.createHash('sha256').update(Buffer.from(bytes)).digest()}},
+TextEncoder,Buffer,console,fetch:async()=>({ok:true,json:async()=>({})})};
+vm.createContext(c);vm.runInContext(fs.readFileSync(process.argv[1],'utf8'),c);
+// The bundle's top-level declarations live on the vm context, not in this outer
+// script: every call has to be evaluated inside the context, the way the other
+// contract tests in this file already do.
+vm.runInContext(`
+(async()=>{
+const asset={id:'img-'+'a'.repeat(64),media_type:'image/png',width:8,height:6,rights:'NOT_REVIEWED',
+version_id:'v-'+'b'.repeat(32)};
+const job='native-job-'+'c'.repeat(64);
+const ps=composeTargetPlan(asset,'photoshop'),ai=composeTargetPlan(asset,'illustrator');
+const plan=JSON.stringify(ps.rir);
+const k1=await contentKey(['p','photoshop',plan,'{}']);
+const k2=await contentKey(['p','photoshop',plan,'{}']);
+const k3=await contentKey(['p','illustrator',plan,'{}']);
+globalThis.__out=JSON.stringify({
+locked:[ps.rir.layers[0].locked,ai.rir.layers[0].locked],
+keys:[k1,k2,k3],
+receipts:[readPlanReceipt({task:{job_id:job,state:'PENDING'}}),readPlanReceipt({}),readPlanReceipt(null)],
+bytes:[await sha256Hex(new TextEncoder().encode('x'))]});
+})()`,c).then(()=>console.log(c.__out)).catch(e=>{console.error(e);process.exitCode=1});
+'''
+        result=subprocess.run([node,'-e',script,str(ROOT/'apps/workbench/build/main.js')],
+            capture_output=True,text=True,encoding='utf-8',timeout=30)
+        self.assertEqual(result.returncode,0,result.stderr)
+        data=json.loads(result.stdout)
+        self.assertEqual(data['locked'],[False,False],
+            'both hosts must compose an unlocked layer; the lowering contract refuses locked ones')
+        first,second,other=data['keys']
+        self.assertEqual(first,second,'the same intent must produce the same idempotency key')
+        self.assertNotEqual(first,other,'a different host must produce a different key')
+        for key in data['keys']:
+            self.assertRegex(key,r'^[0-9a-f]{64}$',
+                'the service accepts [A-Za-z0-9_-]{1,64}; a 64-char hex digest fits')
+        queued,empty,nothing=data['receipts']
+        self.assertEqual(queued,{'id':'native-job-'+'c'*64,'state':'PENDING'})
+        self.assertEqual(empty['id'],'未给出任务号')
+        self.assertEqual(nothing['id'],'未给出任务号')
+        self.assertEqual(data['bytes'],[__import__('hashlib').sha256(b'x').hexdigest()])
+
+
 if __name__ == '__main__':
     unittest.main()

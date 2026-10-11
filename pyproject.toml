@@ -53,6 +53,19 @@ exclude = ["src/design_lab/reconstruction/__init__.py"]
 # E-SLICE-01 design layer: the design-system catalog manifests that a direction
 # may bind to (design_layer.catalog() resolves this packaged-first).
 "design-lab/design-systems" = "design_lab/resources/design-systems"
+# D09/D10 (batch 22): the three read paths an installed wheel could not serve.
+# `PROJECT_ROOT` is parents[3] of src/design_lab/runtime/paths.py, which is the
+# checkout in a source tree but `Lib/` once installed, so research and rights
+# answered 500 and the domain-pack projection answered rootState MISSING -- all
+# three were "the bytes are not here", not "the answer is no".
+"design-lab/schemas/research-finding.schema.json" = "design_lab/resources/repo/design-lab/schemas/research-finding.schema.json"
+"design-lab/schemas/contracts/rights-decision.schema.json" = "design_lab/resources/repo/design-lab/schemas/contracts/rights-decision.schema.json"
+"design-lab/schemas/domain-pack.schema.json" = "design_lab/resources/repo/design-lab/schemas/domain-pack.schema.json"
+"design-lab/domain-packs" = "design_lab/resources/repo/design-lab/domain-packs"
+# The projection reuses the repo's own checker so a pack it calls VALIDATES cannot be
+# one CI would reject; shipping it keeps that guarantee in an installed wheel
+# (without it every pack would report NOT_CHECKED).
+"design-lab/scripts/verify_domain_pack_v2.py" = "design_lab/resources/repo/design-lab/scripts/verify_domain_pack_v2.py"
 "integrations/hosts/adobe/illustrator/reconstruction-assemble.jsx" = "design_lab/resources/adobe/reconstruction-assemble.jsx"
 "integrations/hosts/adobe/photoshop-reconstruction/legacy-assemble.jsx" = "design_lab/resources/adobe/photoshop-native-assemble.jsx"
 

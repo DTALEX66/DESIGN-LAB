@@ -6051,7 +6051,7 @@ function renderReferencePanel(id) {
     const failed = rows.filter((r) => r.status === "failed").length;
     const cancelled = rows.filter((r) => r.status === "cancelled").length;
     summary.className = "view-hint";
-    summary.textContent = `导入 ${rows.length} 个：成功 ${ok} · 失败 ${failed} · 已取消 ${cancelled}` + (failed ? "（失败项未写入服务端）" : "") + (pending ? ` · ${pending}` : "");
+    summary.textContent = `导入 ${rows.length} 个：成功 ${ok} · 失败 ${failed} · 已取消 ${cancelled}` + (failed ? "（失败项按失败记；同一文件重试复用同一个键，不会变成第二份素材）" : "") + (pending ? ` · ${pending}` : "");
   };
   fileInput.addEventListener("change", () => {
     const n = fileInput.files ? fileInput.files.length : 0;
@@ -6095,7 +6095,10 @@ function renderReferencePanel(id) {
           const bytes = new Uint8Array(await file.arrayBuffer());
           let binary = "";
           for (let i = 0; i < bytes.length; i += 8192) binary += String.fromCharCode(...bytes.subarray(i, i + 8192));
-          await api(`/projects/${id}/assets`, { content_base64: btoa(binary), idempotency_key: uuid() });
+          await api(
+            `/projects/${id}/assets`,
+            { content_base64: btoa(binary), idempotency_key: await sha256Hex(bytes) }
+          );
           rows.push({ name: file.name, status: "ok", detail: `${Math.round(file.size / 1024)} KiB · 服务端已确认` });
         } catch (error) {
           rows.push({ name: file.name, status: "failed", detail: errMsg(error) });
@@ -6115,7 +6118,7 @@ function renderReferencePanel(id) {
       } else if (ok === rows.length) {
         showHint(listRead ? `全部 ${ok} 个文件已导入并从服务端读回。` : `全部 ${ok} 个文件已导入；导入后的清单未读回，请稍后刷新。`);
       } else {
-        showHint(`导入结束：成功 ${ok} / ${rows.length}；失败项未写入，` + (listRead ? "清单已从服务端重新读回。" : "清单未读回，请稍后刷新。"));
+        showHint(`导入结束：成功 ${ok} / ${rows.length}；失败项按失败记，同一文件重试不会变成第二份素材；` + (listRead ? "清单已从服务端重新读回。" : "清单未读回，请稍后刷新。"));
       }
     })();
   });
@@ -8487,7 +8490,15 @@ function composeTargetPlan(asset, host) {
     inferred: false,
     zOrder: 0,
     visible: true,
-    locked: host === "illustrator",
+    // D02 (batch 22): this composer declares no explicit host fallback, and the
+    // lowering contract refuses any node carrying `locked` ("unsupported
+    // opacity/visibility/lock/blend; explicit fallback required"). Locking only the
+    // Illustrator default made that host's default plan unreachable: the service
+    // answered 400 INVALID_REQUEST before a job had ever been created, while
+    // Photoshop passed only because the UI happened to send `false`. Both hosts now
+    // compose an unlocked layer. The contract is NOT widened -- a `locked` node is
+    // still refused downstream, and that refusal is pinned by a test.
+    locked: false,
     blendMode: "normal",
     raster: {
       // 导入路由登记的就是这个完整 img-ID；raster.path 必须是它，不是本地路径。
@@ -8505,6 +8516,16 @@ function composeTargetPlan(asset, host) {
     },
     textStyles: {}
   };
+}
+async function sha256Hex(bytes) {
+  const digest = await crypto.subtle.digest("SHA-256", bytes);
+  return Array.from(new Uint8Array(digest)).map((b) => b.toString(16).padStart(2, "0")).join("");
+}
+async function contentKey(parts) {
+  return sha256Hex(new TextEncoder().encode(parts.join("\0")));
+}
+function readPlanReceipt(data) {
+  return { id: data?.task?.job_id ?? "未给出任务号", state: data?.task?.state ?? "未读回" };
 }
 function planRefusal(error) {
   const envelope = error.serviceEnvelope;
@@ -8543,7 +8564,9 @@ function planRefusal(error) {
       title: "幂等键不合法",
       weight: "bad",
       producer: "POST /api/projects/{id}/native-plans 返回 INVALID_NATIVE_KEY（400）：键的形状不符合服务端要求。",
-      next: "本页的键由 uuid() 生成，出现这条说明是界面自己发错了，不是用户填错；按代码排查生成处，不要让用户重填。"
+      // D01: the plan key is now the SHA-256 of (project, host, composed plan), i.e.
+      // 64 lowercase hex chars -- always inside the service's allowed shape.
+      next: "本页的键是 (项目 · 宿主 · 编排结果) 的 SHA-256（64 位十六进制），形状恒定合法；出现这条说明是界面自己发错了，不是用户填错，按代码排查生成处，不要让用户重填。"
     };
   if (code === "INVALID_NATIVE_PLAN")
     return {
@@ -8609,7 +8632,7 @@ function planComposer(projectId) {
           "div",
           {},
           el("strong", {}, "底图 · 用户勾选，非推断"),
-          el("small", {}, `${asset.id} · ${asset.media_type} · ${asset.width}×${asset.height} · 权利 ${asset.rights} · v${asset.version_no}`)
+          el("small", {}, `${asset.id} · ${asset.media_type} · ${asset.width}×${asset.height} · 权利 ${asset.rights} · ${asset.version_no !== void 0 ? `v${asset.version_no}` : `版本 ${asset.version_id.slice(0, 12)}…`}`)
         )
       ),
       el(
@@ -8658,16 +8681,21 @@ function planComposer(projectId) {
             host: hostSelect.value,
             rir: composed.rir,
             text_styles: composed.textStyles,
-            idempotency_key: uuid()
+            idempotency_key: await contentKey([
+              projectId,
+              hostSelect.value,
+              JSON.stringify(composed.rir),
+              JSON.stringify(composed.textStyles)
+            ])
           }
         );
-        const id = data.task_id ?? data.job_id ?? "未给出任务号";
+        const receipt = readPlanReceipt(data);
         status.textContent = "";
         outcome.replaceChildren(
           el(
             "p",
             { class: "view-hint" },
-            `已排队：${String(id)} · 状态 ${data.state ?? "未读回"}`
+            `已排队：${receipt.id} · 状态 ${receipt.state}`
           ),
           el(
             "p",

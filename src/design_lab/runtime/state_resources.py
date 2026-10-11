@@ -51,3 +51,36 @@ def state_schema(name):
         if source.is_file():
             return source
     raise FileNotFoundError(f'packaged state schema missing: {name}')
+
+
+def repo_resource(relative, packaged_root=('resources', 'repo'),
+                  source_root=('design-lab',)):
+    """Resolve a repository-committed file that a read path needs at runtime.
+
+    ``relative`` keeps the repository's own spelling (``schemas/contracts/
+    rights-decision.schema.json``, ``domain-packs/graphic-design``). Two layouts are
+    consulted, in this order:
+
+    1. the packaged copy under ``design_lab/resources/repo/<source_root>/<relative>``,
+       which is what an installed wheel carries (pyproject force-include);
+    2. this checkout's own tree, reached by walking up from this module -- and only
+       when this module really is the checkout's copy, so an installed wheel can
+       never fall back to a neighbouring unrelated directory.
+
+    D09 (batch 22): contract readers used ``PROJECT_ROOT / ...``, and ``PROJECT_ROOT``
+    is ``Path(__file__).parents[3]``. Three levels above ``src/design_lab/runtime`` is
+    the checkout, but three levels above an installed ``site-packages/design_lab/
+    runtime`` is ``Lib/`` -- so an installed wheel read a path that does not exist and
+    the route answered 500 / MISSING instead of a real verdict.
+    """
+    packaged = files('design_lab').joinpath(*packaged_root, *source_root,
+                                            *Path(relative).parts)
+    if packaged.exists():
+        return packaged
+    module = Path(__file__).resolve()
+    root = module.parents[3]
+    if (root / 'src/design_lab/runtime/state_resources.py').resolve() == module:
+        source = root.joinpath(*source_root, *Path(relative).parts)
+        if source.exists():
+            return source
+    raise FileNotFoundError(f'packaged repository resource missing: {relative}')

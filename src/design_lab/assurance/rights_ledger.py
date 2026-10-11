@@ -62,8 +62,7 @@ import sqlite3
 import uuid
 
 from . import AssuranceError, human_jury, require_rfc3339, require_text
-from ..runtime.paths import PROJECT_ROOT
-from ..runtime.state_resources import state_schema
+from ..runtime.state_resources import repo_resource, state_schema
 
 _RIGHTS = state_schema('design-lab-state-rights-v1.sql')
 
@@ -72,7 +71,10 @@ _RIGHTS = state_schema('design-lab-state-rights-v1.sql')
 #: anything else, so a one-sided bump fails closed here instead of validating a document
 #: against a contract nobody meant.
 CONTRACT_VERSION = 'design-lab/rights-decision/v1'
-CONTRACT_PATH = PROJECT_ROOT / 'design-lab/schemas/contracts/rights-decision.schema.json'
+# D09 (batch 22): packaged-first, for the same reason as the research contract --
+# PROJECT_ROOT resolves to `Lib/` in an installed wheel, which made every rights
+# route answer 500 instead of a verdict.
+CONTRACT_PATH = repo_resource('schemas/contracts/rights-decision.schema.json')
 
 #: Names that identify automation when they appear in a `decided_by` value. Kept separate
 #: from `human_jury.AGENT_ACTOR_KINDS` (a *kind* vocabulary the rights contract cannot

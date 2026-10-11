@@ -15,6 +15,7 @@ import tempfile
 import threading
 import unittest
 from urllib.parse import quote, urlsplit, parse_qsl
+from PIL import Image
 
 ROOT = Path(__file__).resolve().parents[2]
 
@@ -35,6 +36,61 @@ class ServiceHttpTests(unittest.TestCase):
         value['rir']['canvas']['width']=9
         self.assertEqual(self.request('POST',route,json.dumps(value))[0],409)
         self.assertFalse(list(self.root.rglob('master.psd')))
+
+    def test_default_composed_plan_enqueues_for_both_hosts(self):
+        """Batch 22 / D02 + D01 + D04, over the real route.
+
+        The workbench's default plan is a single raster layer. For Illustrator it
+        carried ``locked: true``, and the lowering contract refuses a locked node
+        unless the caller declares an explicit fallback -- so that host's default plan
+        was answered 400 before a job had ever existed, while Photoshop passed only
+        because the UI happened to send ``false``. Both hosts must now enqueue; the
+        202 must carry the task under ``task`` (the nesting the page reads, not the
+        top-level fields it used to read); an identical second POST must replay the
+        one attempt; and a locked layer must still be refused, because the fix moves
+        the page and not the contract.
+        """
+        self.start()
+        project = self.request('POST', body=json.dumps({'name': 'Default plan'}))[1]['project']['id']
+        buffer = io.BytesIO()
+        Image.new('RGB', (8, 6), (20, 30, 40)).save(buffer, format='PNG')
+        raw = buffer.getvalue()
+        # D03: the key is the bytes' own digest, which is what the page now sends.
+        status, body = self.request('POST', f'/api/projects/{project}/assets', json.dumps(
+            {'content_base64': base64.b64encode(raw).decode(),
+             'idempotency_key': hashlib.sha256(raw).hexdigest()}))
+        self.assertEqual(status, 201)
+        asset = body['asset']['id']
+        route = f'/api/projects/{project}/native-plans'
+        for host in ('photoshop', 'illustrator'):
+            with self.subTest(host=host):
+                plan = dict(host=host, text_styles={},
+                    idempotency_key=hashlib.sha256((host + asset).encode()).hexdigest(),
+                    rir=dict(schemaVersion='design-lab/reconstruction-ir/v1',
+                        canvas=dict(width=8, height=6, colorSpace='srgb',
+                            background=dict(color='#ffffff', recorded=True)),
+                        layers=[dict(id='reference-raster', name='raster', type='raster',
+                            opacity=1, bounds=dict(x=0, y=0, width=8, height=6),
+                            inferred=False, zOrder=0, visible=True, locked=False,
+                            blendMode='normal',
+                            raster=dict(path=asset, crop=dict(x=0, y=0, width=8, height=6),
+                                alpha=1, sourceMappings=[]))]))
+                first = self.request('POST', route, json.dumps(plan))
+                self.assertEqual(first[0], 202, first[1])
+                job = first[1]['task']['job_id']
+                self.assertRegex(job, r'^native-job-[0-9a-f]{64}$')
+                self.assertEqual(first[1]['task']['attempt']['state'], 'PENDING')
+                listed = self.request('GET', f'/api/projects/{project}/tasks')[1]['tasks']
+                self.assertIn(job, [task['job_id'] for task in listed])
+                self.assertEqual(self.request('POST', route, json.dumps(plan)), first,
+                    'the same intent must replay the one attempt, not queue a second job')
+                locked = json.loads(json.dumps(plan))
+                locked['rir']['layers'][0]['locked'] = True
+                locked['idempotency_key'] = hashlib.sha256(
+                    (host + asset + 'locked').encode()).hexdigest()
+                refused = self.request('POST', route, json.dumps(locked))
+                self.assertEqual(refused[0], 400,
+                    'a locked layer is still refused: the contract was not widened')
 
     def test_native_cancel_request_persists_without_releasing_running_host_guard(self):
         from contextlib import closing

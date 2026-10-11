@@ -49,6 +49,30 @@ SCHEMA_REL = Path("design-lab") / "schemas" / "domain-pack.schema.json"
 #: pretending the catalog is empty. Closing that is a packaging change, not a UI one.
 REPO_ROOT = Path(__file__).resolve().parents[2]
 
+
+def packaged_root():
+    """The repository root a read should use: packaged resources first, checkout second.
+
+    D09/D10 (batch 22): ``REPO_ROOT`` is ``parents[2]`` of this module, which is the
+    checkout in a source tree but ``site-packages`` once installed, so an installed
+    wheel reported ``rootState MISSING`` -- a truthful but useless answer, since the
+    packs themselves ship with the wheel. The wheel copy wins when it carries the pack
+    root; otherwise this checkout is used and may still report MISSING for real.
+    """
+    from importlib.resources import files
+    # absolute: `design_lab` is a namespace package, so a `..relative` import from
+    # here raises "attempted relative import beyond top-level package".
+    from design_lab.runtime.state_resources import repo_resource
+    try:
+        candidate = files('design_lab').joinpath('resources', 'repo')
+        if (candidate / 'design-lab' / 'domain-packs').is_dir():
+            return candidate
+        # one probe, so a half-populated wheel says which half is missing
+        repo_resource('domain-packs')
+    except (FileNotFoundError, ModuleNotFoundError, OSError):
+        pass
+    return REPO_ROOT
+
 VALIDATES = "VALIDATES"
 INVALID = "INVALID"
 UNREADABLE = "UNREADABLE"
@@ -174,7 +198,7 @@ def _pack_entry(pack: Path, checker: ModuleType | None, checker_note: str | None
 
 def build(root: Path | None = None) -> dict:
     """Return the domain-pack readback for one repository root."""
-    root = REPO_ROOT if root is None else Path(root)
+    root = packaged_root() if root is None else Path(root)
     pack_root = root / PACK_ROOT_REL
     checker, checker_note = _load_checker(root)
     payload = {

@@ -70,8 +70,7 @@ import sqlite3
 import uuid
 
 from . import AssuranceError, human_jury, require_text
-from ..runtime.paths import PROJECT_ROOT
-from ..runtime.state_resources import state_schema
+from ..runtime.state_resources import repo_resource, state_schema
 
 _RESEARCH = state_schema('design-lab-state-research-v1.sql')
 
@@ -83,7 +82,10 @@ _RESEARCH = state_schema('design-lab-state-research-v1.sql')
 #: move, or a different document placed at this path, fails closed here instead of silently
 #: validating findings against a contract nobody meant.
 CONTRACT_ID = 'https://dtalex66.local/schemas/research-finding.json'
-CONTRACT_PATH = PROJECT_ROOT / 'design-lab/schemas/research-finding.schema.json'
+# D09 (batch 22): resolved packaged-first. PROJECT_ROOT is parents[3] of this module,
+# which is the checkout in a source tree but `Lib/` once installed -- the old spelling
+# made an installed wheel answer 500 for every research route.
+CONTRACT_PATH = repo_resource('schemas/research-finding.schema.json')
 
 #: Fields a caller may try to smuggle into the document. Each belongs somewhere else:
 #: ``supersedes``/``recorded_by``/``actor_kind`` are columns on the row (the contract closes
