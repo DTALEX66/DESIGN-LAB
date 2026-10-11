@@ -12,7 +12,7 @@
   },
   "fresh": false,
   "freshnessMeaning": "at generation only; check verifies bound-input integrity, not current Git or cloud state",
-  "generatedAt": "2026-10-11T07:47:17+00:00",
+  "generatedAt": "2026-10-11T08:44:25+00:00",
   "gitStateMeaning": "generation-time observation, not current HEAD",
   "ledger_partition": "currentExecution",
   "meaning": "Parent/subtask inventory is not a capability count or completion percentage. Definition adoption does not implement product tasks; R5 evidence is historical.",
@@ -27,7 +27,7 @@
     "taskpack": "DL-TP-20260908-R5"
   },
   "subjectMeaning": "subjectType=WORKTREE means the tree was dirty at generation; worktreeDigest covers HEAD plus the non-generated changes",
-  "subjectSha": "2b59765d72d79fa5823c27f5140b3da8e8f5648c",
+  "subjectSha": "8fc04680ae31859026bf7d5b95a12a20bc9da7c7",
   "subjectType": "WORKTREE",
   "taskpack": "DL-TP-20261009-UI-FIRST-R1",
   "taskpackHash": "f91ebe9b67ab4f83be91fe8f3ca0fc80fc93176263bec05d883fa6ce6afd6480",
@@ -229,7 +229,8 @@
         "DL-FINAL-T08-clean-clone-reds-diagnosed-r14",
         "DL-FINAL-T08-owner-list-remeasured-r15",
         "DL-FINAL-T08-authority-chain-regenerated-r15",
-        "DL-FINAL-T08-capture-seeding-order-fixed-r17"
+        "DL-FINAL-T08-capture-seeding-order-fixed-r17",
+        "DL-FINAL-T08-overflow-spec-now-checks-state-agreement-r18"
       ],
       "evidence_level": "SEE_BOUND_RECEIPTS",
       "id": "DL-FINAL-T08",
@@ -607,7 +608,9 @@
         "DL-UI-U03-asset-tabs-r2",
         "DL-UI-U03-asset-tabs-falsified-r2",
         "DL-UI-U03-asset-tabs-r3",
-        "DL-UI-U03-asset-tabs-falsified-r3"
+        "DL-UI-U03-asset-tabs-falsified-r3",
+        "DL-UI-U03-domain-capability-join-read-r18",
+        "DL-UI-U03-domain-detail-screens-r18"
       ],
       "evidence_level": "SEE_BOUND_RECEIPTS",
       "id": "DL-UI-U03",
@@ -824,5 +827,5 @@
   "testRunMeaning": "bound run: python scripts/run_bound_test_suite.py --modules test_boot_reconciliation",
   "testRunResult": "OK",
   "worktreeClean": false,
-  "worktreeDigest": "sha256:5517309ef4cd3821b8055fe6131f90dd10877e6e506dbbde79545065ba1c3782"
+  "worktreeDigest": "sha256:6eab978e3f60dd33e2cda926ea52fb40b5d2e6576c71d39c1350518412059615"
 }

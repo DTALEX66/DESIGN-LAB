@@ -33,9 +33,11 @@ DESIGN-LAB 色板为默认 + 20261009 取值作可选主题"；手机端 FROZEN_
   `git ls-remote origin refs/heads/qoder/designlab-backup-consistency-20261007` 比对，并确认
   `git status --porcelain=v1` 行数为 0（`4453177c` 时实测 dirty=0、领先 207；`e8294b3f` 时是 199，`d2c848e3` 时是 203——数只在对它做的那次测量上成立）。
   `main` 未合并；领先数用 `git rev-list --count` 现场量（第十三批写的 190 是想出来的数，已追正）。
-- `apps/workbench/build/main.js` = `12647eb8ec78`，354,258 B（第十六批改过界面文案后重建；第十四、十五批
-  没动 bundle，那时是 `6ff8532de49a`/353,765 B）；`style.css` = `f5410c1ad591`，101,028 B；
-  `shell.ts` = `5716e15eee79`；`tests/appshell.mjs` = `1df180c022b2`；`DESIGN.md` = `b5336187979f`。
+- `apps/workbench/build/main.js` = `255e992ac03b`，358,028 B（第十八批领域关联面重建；
+  第十五批 `6ff8532de49a`/353,765 B → 第十六批 `12647eb8ec78`/354,258 B → 本批）；
+  `shell.ts` = `875d61cf475b`，428,853 B；`style.css` = `f5410c1ad591`，101,028 B（未变）；
+  `tests/appshell.mjs` = `10cf6142c066`；`e2e/audit_workbench_overflow.mjs` = `45fdf72a77d8`；
+  `DESIGN.md` = `b5336187979f`。
 - 新闸：`design-lab/tests/test_workbench_theme_tokens.py`（8 项、4 株种植，全部有具名定罪）与
   `design-lab/tests/test_workbench_theme_geometry_gate.py` +
   `e2e/audit_workbench_theme_geometry.mjs`（已注册进 `verify_browser_e2e_ran.py` 的 `TEST_MODULES`；
@@ -122,9 +124,12 @@ DESIGN-LAB 色板为默认 + 20261009 取值作可选主题"；手机端 FROZEN_
    `DL-UI-U06` 现在 PARTIAL / 4 条回执。**仍然不许做的**：`POST /tasks/{job}/run|cancel|…`
    是真实宿主副作用，按钮保持禁用并各带理由；`native cancel` 没有 ack 事件，不要伪造
    "已停止"状态。
-4. **R2 §2 的领域资产空结果面**：需在 `#/domains/<packId>` 上第二次读
-   `GET /api/capabilities`，并区分"没有已接线关联"与"该领域没有能力"；同时按新事实改写
-   appshell ⑤/⑪ 的"恰好一次读回"理由，**不要为了绿而放宽断言**。
+4. **R2 §2 领域↔能力关联面：第十八批已落，别重做**。详情地址做第二次读回
+   `GET /api/capabilities`，屏上分开五种说法（未读回 / 无关联键 / 还没有分类 / 目录为空 /
+   无已接线关联），任何一种都不许写成"该领域没有能力"；列表页仍只读一次（vm 钉着）。
+   溢出闸的 §2 规格也升级成"禁用状态必须与面板声称的状态一致"。
+   今天的实测：60 条能力记录里 60 条都把 `domains` 列在自己的未分类轴里，所以每个领域都是
+   **还没有分类**——要变成"有/无关联"，缺的是 DL-FINAL-T06 的分类工作，不是界面代码。
 5. **R2 §2 上下文二级侧栏**：卡在 owner 裁定清单 A 的 4 条命名上，界面不许猜。
    若加侧栏子项，注意 `.app-nav-item` = 19 被 `browser_design_layer_e2e.mjs` 钉死，
    改计数必须带日期理由。清单 B 段第十五批已按字节重写过：现在**只剩两条**待裁定——
@@ -173,8 +178,14 @@ RIR 收进默认折叠的次级面。**第十一批**：409 幂等冲突改用 `
 并在 `aa3cb307` 的干净 detached worktree 里复现了其中两个；新回执改 seal 受跟踪文档。
 **第十六批**：`#/components` 补全"这条轴还改轨宽与沟槽"的说明（含具体数字与断点），bundle 重建为
 `12647eb8ec78`；新 bundle 上 appshell 17 块、shape-notice 37 接缝、57 项 CSS/合同/令牌闸、
-两套配色各 69 样本溢出闸、theme-geometry + contrast 全绿。接续入口的像素证据**没拿到**，
-卡点与正确做法见上面第 2 条。
+两套配色各 69 样本溢出闸、theme-geometry + contrast 全绿。
+**第十七批**：种计划搬进捕获驱动内部（在驱动自己建好并选中项目之后），Python 侧那份错顺序的辅助函数
+删除；驱动要求 202 + `kind` 以 `-native` 结尾 + `GET /tasks` 真的列出该行，否则 `CAP_FAIL`。
+两套配色各 46 张实拍绑 `2b59765d`，读图确认 `native-job-…` 行有可用的「接续：打开目标生成包」。
+**第十八批**：领域详情的能力关联面（见上面第 4 条）+ 溢出闸 §2 规格升级；
+vm 面抓到并修掉一个新按钮没有 onclick 的缺陷；三株种植各自具名定罪，
+`shell.ts` 还原字节一致 `875d61cf475b`；两套配色各 46 张实拍绑 `8fc04680`，读图确认
+`还没有分类` 那行与禁用动作一致。
 **第十五批**：把 owner 清单 A–F 逐条按字节重量（A/C/D/E/F 成立，B 是我的缺陷）；`--uif-*` 登记值改回
 包值（h1 27、sidebar 256/216、gutter 30/22），并让 `:root[data-palette="ui2026"]` 在包的断点上真的读它；
 新增 `test_workbench_theme_tokens.py`（令牌要么被读、要么在"只许缩"的登记表里有理由；声称包出处的
