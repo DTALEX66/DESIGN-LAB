@@ -1077,3 +1077,28 @@ CI 同期报的另外三条（`verify_route_payload_contracts`、`verify_current
 干净 clone 上没有这些字节，属交接提示词里点名的 G（干净 clone 无法复现的真值闸债）。
 `VERIFY_DESIGN_LAB=FAIL total=75 failed=2`，剩下的两条（`verify_reconstruction_pipeline`、
 `verify_reconstruction_bundle`）是本机环境问题，已在 HEAD 对照复跑确认同形，不是本批回归。
+
+### `90124f7f` 的 CI 实读（逐作业）
+
+| 作业 | 结论 |
+|---|---|
+| Workbench strict-TS product gate | **success**（本批两处修复之一生效） |
+| Workbench browser E2E（exact-SHA, no-skip） | **success** |
+| Clean wheel install + Workbench launch gate | **success**（D09/D10 的装态读数） |
+| DeepSeek authority gate chain | success |
+| Top-level Authority consistency gate | success |
+| Generated-artifact clean-tree gate | success |
+| License & secret hygiene gate | success |
+| MiniGame node gate | success |
+| Open Design host adapter gate | success（无 Open Design 面变化，正常跳过内部步骤） |
+| CI artifact proof (H001) | skipped（main-run 上传读回，本分支不适用） |
+| Python gate (V3 verifiers + unit tests) | **failure** |
+
+Python 闸的失败面回到**本批开始前的那三条**（`4e5ef345` 的读数逐字相同）：
+`VERIFY_ROUTE_PAYLOAD_CONTRACTS=FAIL bindings=7 failures=1`、
+`CURRENT_EXECUTION=FAIL [Errno 2] … u06/implementation.json`、
+`VERIFY_PROJECTION_FRESHNESS=FAIL records=14 … findings=1`（内含 `CONTENT_AUDIT=FAIL records=2 findings=2`）。
+`VERIFY_DESIGN_LAB=FAIL total=75 failed=3`——**本批新增的那条（contract_bindings）已消失**，
+剩下三条全部指向 `.project-local/` 里干净 clone 不存在的字节，也就是 owner 清单里的 G。
+处置仍属 owner：搬字节进 Git、加具名状态、改 presence 形状，或把活账本标 `mutable_state`；
+**禁止**用调低判据、摘闸、或让 `--check` 读磁盘缓存来换绿。

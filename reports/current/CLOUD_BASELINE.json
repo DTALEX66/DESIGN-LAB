@@ -9,38 +9,38 @@
   },
   "fresh": false,
   "freshnessMeaning": "at generation only; check verifies bound-input integrity, not current Git or cloud state",
-  "generatedAt": "2026-10-11T22:02:37+00:00",
+  "generatedAt": "2026-10-11T22:09:02+00:00",
   "gitStateMeaning": "generation-time observation, not current HEAD",
   "local": {
     "branch": "qoder/designlab-backup-consistency-20261007",
     "origin_main": "fc03a3033e900a8066d863a223636cc68804c4fa",
-    "sha": "e9b533bafd977854cb98d32d684dce62628c41b2",
+    "sha": "90124f7f26de4694490608a36eebce837ffe9dbe",
     "source_worktree_clean": false,
     "tracked_files": 3605,
     "worktree_changes": [
       {
-        "content": "sha256:ebc0ada5511e91ce1824edad9f668ca42dfb02044813df9b710417f4b64f10c3",
+        "content": "sha256:b1dc59dd060ac46f40791c000d277c1a42308b52196bf01906e5dc03b0279b6d",
         "kind": "M",
-        "path": "design-lab/config/contract-bindings.json"
+        "path": ".workbuddy/memory/2026-10-12.md"
       },
       {
-        "content": "sha256:009cbf4c4d6ab588fac8275217fd5f16394cc3a105e44927afb84aa4eb73c6ad",
+        "content": "sha256:52b263518c245263472a1f9313accf4af2667a08cce07075444cb8e5ceaf3383",
         "kind": "M",
         "path": "design-lab/config/task-ledger-r3.json"
       },
       {
-        "content": "sha256:da6c5cd57b20795ca521b486916dab27df756900ef9d09d8fce4d4672eeaba1b",
+        "content": "sha256:c28869ae3402ec4fb690f39bc058ebaad5e415da2e4ea3cb17cb46edcb23173f",
         "kind": "M",
         "path": "docs/audits/DESIGNLAB-UI-R2-DESIGN-QA-2026-10-09.md"
       }
     ],
-    "worktree_digest": "sha256:08cc3d8327a490a4d0a395cc5500a83bfe4406700579f69d1b7854b13be29fa5"
+    "worktree_digest": "sha256:2ba29f52966eb6f0761a4cadf160ed56232f679054e35d2e37ee15c5b0dcaff2"
   },
   "note": "No GitHub API query was run by this generator; tool installation is not inferred.",
   "remoteRef": "origin/main (local tracking ref)",
   "schemaVersion": "design-lab/cloud-baseline/v2",
   "subjectMeaning": "subjectType=WORKTREE means the tree was dirty at generation; worktreeDigest covers HEAD plus the non-generated changes",
-  "subjectSha": "e9b533bafd977854cb98d32d684dce62628c41b2",
+  "subjectSha": "90124f7f26de4694490608a36eebce837ffe9dbe",
   "subjectType": "WORKTREE",
   "taskpackHash": "f91ebe9b67ab4f83be91fe8f3ca0fc80fc93176263bec05d883fa6ce6afd6480",
   "taskpackId": "DL-TP-20261009-UI-FIRST-R1",
@@ -55,5 +55,5 @@
     "branchProtection"
   ],
   "worktreeClean": false,
-  "worktreeDigest": "sha256:08cc3d8327a490a4d0a395cc5500a83bfe4406700579f69d1b7854b13be29fa5"
+  "worktreeDigest": "sha256:2ba29f52966eb6f0761a4cadf160ed56232f679054e35d2e37ee15c5b0dcaff2"
 }
