@@ -17,6 +17,8 @@ const browser = process.env.E2E_BROWSER;
 const outDir = process.env.CAP_OUT_DIR;
 const commit = process.env.CAP_COMMIT || 'unknown';
 const sourceImage = process.env.CAP_SOURCE_IMAGE || '';
+// Set by --seed-native-plan: submit one never-run native plan into the project THIS run creates.
+const seedNativePlan = process.env.CAP_SEED_NATIVE_PLAN === '1';
 // Repo-relative when the file is inside the checkout, absolute (and visibly so) when the
 // operator pointed at something outside it.
 const referenceSourceRecorded = (() => {
@@ -187,6 +189,64 @@ try {
   await page.locator('#project').selectOption({ label: projectName });
   projectId = await page.locator('#project').inputValue();
   if (!projectId) fail('CAP_PROJECT_ID_MISSING');
+
+  // --- capture scaffolding: one never-run native plan, on THIS project -------------------------
+  // Every capture run boots its own synthetic state, so `#/records` reads zero tasks and the
+  // affordances that exist only on a native row -- the 接续 entry -- appear on no screenshot.
+  // The order matters and was measured the hard way: seeding before the driver creates its project
+  // yields two projects, and the page stops at the chooser (it auto-selects a lone project only).
+  // This is scaffolding, not evidence of a submitted job: the plan has no layers, is never run, and
+  // dies with the temporary root. `capture-scaffold.json` says so beside the PNGs.
+  if (seedNativePlan) {
+    const base = serviceUrl.replace(/\/$/, '');
+    const auth = { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' };
+    const plan = {
+      host: 'photoshop',
+      rir: {
+        schemaVersion: 'design-lab/reconstruction-ir/v1',
+        canvas: { width: 8, height: 6, colorSpace: 'srgb',
+                  background: { color: '#ffffff', recorded: true } },
+        layers: [],
+      },
+      text_styles: {},
+      idempotency_key: 'capture-scaffold-0001',
+    };
+    const submitted = await fetch(`${base}/api/projects/${projectId}/native-plans`,
+      { method: 'POST', headers: auth, body: JSON.stringify(plan) });
+    const body = await submitted.json().catch(() => ({}));
+    if (submitted.status !== 202) {
+      fail(`CAP_SEED_NATIVE_PLAN_REFUSED ${submitted.status} ${JSON.stringify(body).slice(0, 200)}`);
+    }
+    const kind = String((body.task || {}).kind || '');
+    if (!kind.endsWith('-native')) {
+      fail(`CAP_SEED_NATIVE_PLAN_KIND ${kind || '(empty)'}: not a native kind, so the row would `
+        + 'carry no 接续 entry and the screenshots would prove nothing');
+    }
+    // Read the row back through the same endpoint the page uses: a plan that the projection does
+    // not list would render nothing, and the PNG would then be evidence of an absent control.
+    const listed = await (await fetch(`${base}/api/projects/${projectId}/tasks`,
+      { headers: { Authorization: `Bearer ${token}` } })).json().catch(() => ({}));
+    const rows = Array.isArray(listed.tasks) ? listed.tasks : [];
+    if (!rows.some((row) => String(row.kind || '').endsWith('-native'))) {
+      fail(`CAP_SEED_NATIVE_PLAN_NOT_LISTED kinds=[${rows.map((r) => r.kind).join(',')}]`);
+    }
+    writeFileSync(path.join(outDir, 'capture-scaffold.json'), JSON.stringify({
+      scaffolding: true,
+      note: '合成捕获脚手架：一个从未运行的 native plan，只为让接续入口出现在画面里；'
+        + '随临时项目根一起丢弃，不是任何人提交的作业。',
+      project_id: projectId,
+      project_name: projectName,
+      task_id: (body.task || {}).id || (body.task || {}).job_id,
+      task_kind: kind,
+      attempt_state: ((body.task || {}).attempt || {}).state,
+      listed_rows: rows.length,
+      host: plan.host,
+      rir_layers: plan.rir.layers.length,
+      never_run: true,
+      no_host_side_effects: true,
+    }, null, 2) + '\n', 'utf8');
+    console.log(`CAP_SCAFFOLD=SEEDED kind=${kind} rows=${rows.length} project=${projectId}`);
+  }
 
   if (sourceImage && existsSync(sourceImage)) {
     const buffer = readFileSync(sourceImage);
