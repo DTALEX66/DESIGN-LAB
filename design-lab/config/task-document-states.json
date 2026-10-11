@@ -438,6 +438,14 @@
       "frozen": false,
       "basis": "R2 UI 包与当前派工区的映射说明，输入面而非第二账本",
       "replacement": "docs/taskpacks/DESIGN-LAB-UI-FIRST-INTEGRATED-TASKPACK-2026-10-09.md"
+    },
+    {
+      "path": "docs/current/NEXT-AGENT-PROMPT-2026-10-11.md",
+      "state": "REFERENCE",
+      "role": "RECORD",
+      "frozen": false,
+      "basis": "当前TaskPack派生说明/交接，非第二状态源；AGENTS.md 已写明下一会话提示词不是独立 Authority",
+      "replacement": "docs/taskpacks/DESIGN-LAB-UI-FIRST-INTEGRATED-TASKPACK-2026-10-09.md"
     }
   ]
 }
