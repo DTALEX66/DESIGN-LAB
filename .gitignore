@@ -69,3 +69,9 @@ reports/current/SECRET-HISTORY-REPORT.json
 
 # Project-local runtime data (DL-DIR-MIG-R1)
 .project-local/
+
+# WorkBuddy's own agent state (session memory, per-user scratch). Same category as
+# .hermes/ above: it is the tool's, not the design truth, and DESIGN-LAB's authority is
+# docs/ + design-lab/config/. `git add -A` pulled a memory file in once (2026-10-12,
+# 5dd2efbc) before this line existed; the fix is the ignore, not a history rewrite.
+.workbuddy/

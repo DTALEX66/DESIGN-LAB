@@ -8,31 +8,25 @@
   },
   "fresh": false,
   "freshnessMeaning": "at generation only; check verifies bound-input integrity, not current Git or cloud state",
-  "generatedAt": "2026-10-11T22:09:02+00:00",
+  "generatedAt": "2026-10-11T22:11:03+00:00",
   "git": {
     "branch": "qoder/designlab-backup-consistency-20261007",
     "origin_main": "fc03a3033e900a8066d863a223636cc68804c4fa",
-    "sha": "90124f7f26de4694490608a36eebce837ffe9dbe",
+    "sha": "5dd2efbc494d9a4dc971f1fa2ba8bc5fd15a6420",
     "source_worktree_clean": false,
-    "tracked_files": 3605,
+    "tracked_files": 3604,
     "worktree_changes": [
       {
-        "content": "sha256:b1dc59dd060ac46f40791c000d277c1a42308b52196bf01906e5dc03b0279b6d",
-        "kind": "M",
+        "kind": "D",
         "path": ".workbuddy/memory/2026-10-12.md"
       },
       {
-        "content": "sha256:52b263518c245263472a1f9313accf4af2667a08cce07075444cb8e5ceaf3383",
+        "content": "sha256:1061c7c70eaea288dbc0776f00a1d9109e91b8ea535883b63b83cebea27edf33",
         "kind": "M",
-        "path": "design-lab/config/task-ledger-r3.json"
-      },
-      {
-        "content": "sha256:c28869ae3402ec4fb690f39bc058ebaad5e415da2e4ea3cb17cb46edcb23173f",
-        "kind": "M",
-        "path": "docs/audits/DESIGNLAB-UI-R2-DESIGN-QA-2026-10-09.md"
+        "path": ".gitignore"
       }
     ],
-    "worktree_digest": "sha256:2ba29f52966eb6f0761a4cadf160ed56232f679054e35d2e37ee15c5b0dcaff2"
+    "worktree_digest": "sha256:14a682b6ee9d58ef4ce420e66ffe03ffbe9349d6fbc5b0046b894ad664294872"
   },
   "gitStateMeaning": "generation-time observation, not current HEAD",
   "hostLive": "derived from host_live axis only",
@@ -48,7 +42,7 @@
     "quarantinedSources": 162
   },
   "subjectMeaning": "subjectType=WORKTREE means the tree was dirty at generation; worktreeDigest covers HEAD plus the non-generated changes",
-  "subjectSha": "90124f7f26de4694490608a36eebce837ffe9dbe",
+  "subjectSha": "5dd2efbc494d9a4dc971f1fa2ba8bc5fd15a6420",
   "subjectType": "WORKTREE",
   "taskCounts": {
     "NOT_STARTED": 24,
@@ -66,5 +60,5 @@
     "executed": "see individual verified ledger receipts"
   },
   "worktreeClean": false,
-  "worktreeDigest": "sha256:2ba29f52966eb6f0761a4cadf160ed56232f679054e35d2e37ee15c5b0dcaff2"
+  "worktreeDigest": "sha256:14a682b6ee9d58ef4ce420e66ffe03ffbe9349d6fbc5b0046b894ad664294872"
 }
