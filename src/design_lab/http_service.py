@@ -176,10 +176,21 @@ def make_server(service, token, port=0, *, local_session=False):
                     if self.headers.get_all('Sec-Fetch-Site', []) != ['same-origin']:
                         raise RequestError(403, 'SAME_ORIGIN_REQUIRED')
                     return self.send_json(200, {'token': token})
-                if self.command == 'GET' and self.path in workbench.ROUTES:
+                # The page routes are matched on the PATH, not on `self.path`, which
+                # BaseHTTPRequestHandler hands back WITH the query string. A browser that
+                # reloads `?palette=ui2026` (the theme control writes exactly that URL) was
+                # therefore not a known page at all: it fell through to the authenticated
+                # branch and answered 401 UNAUTHORIZED -- the cloud DOT audit finding D13,
+                # reproduced by my own capture driver, which had to set the <html> attributes
+                # directly because "the service dispatches /workbench by exact path, so a
+                # query string is not an option". Traversal-shaped paths are still refused:
+                # stripping a query cannot turn `/workbench/main.ts` into a file read, and the
+                # served bytes are asserted byte-identical to the plain page in the test.
+                route_path = urlsplit(self.path).path
+                if self.command == 'GET' and route_path in workbench.ROUTES:
                     self.guard(require_auth=False)
-                    payload, mime = workbench.resource(self.path)
-                    if local_session and self.path == '/workbench':
+                    payload, mime = workbench.resource(route_path)
+                    if local_session and route_path == '/workbench':
                         # The page asks for the session only when its own server
                         # says auto-connect is on; a bundle copied elsewhere must not
                         # knock on a door that will never answer.

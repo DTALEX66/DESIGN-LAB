@@ -36,6 +36,11 @@ TEST_MODULES = (
     "test_workbench_overflow_gate",
     "test_workbench_contrast_gate",
     "test_workbench_theme_geometry_gate",
+    # Joined 2026-10-11 after the DOT audit found both theme buttons were no-ops in a real
+    # browser. The geometry gate sets the <html> attributes itself and so cannot see that:
+    # only a gate that clicks can. An unlisted browser suite skips forever without a finding,
+    # which is exactly how this defect stayed out of every green rollup.
+    "test_workbench_theme_affordance_gate",
 )
 
 

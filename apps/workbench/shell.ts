@@ -6177,8 +6177,15 @@ function themeControlNodes(): HTMLElement[] {
       type: 'button', class: 'theme-toggle', dataset: { themeAction: 'palette' },
       'aria-label': '配色主题',
       onclick: () => {
-        writeUrlParam('palette', cyclePalette(readThemeChoice().palette));
-        applyTheme(readThemeChoice());
+        // applyTheme FIRST, then the URL. readThemeChoice() deliberately prefers the
+        // applied <html> attributes over the query (the contrast gate sets those
+        // attributes directly and the button label must not contradict them), so the
+        // old order -- write the URL, then re-read the choice -- read back the value
+        // it had not written yet and re-applied the palette already on screen.
+        // Both toggles were no-ops in a real browser (DOT audit D13).
+        const next = { ...readThemeChoice(), palette: cyclePalette(readThemeChoice().palette) };
+        applyTheme(next);
+        writeUrlParam('palette', next.palette);
         refreshThemeControls();
       },
     }, spec.label),
@@ -6189,9 +6196,11 @@ function themeControlNodes(): HTMLElement[] {
       'aria-label': '明暗',
       onclick: () => {
         const now = readThemeChoice();
-        const next: SchemeId = now.scheme === 'dark' ? 'light' : 'dark';
-        writeUrlParam('scheme', next);
-        applyTheme(readThemeChoice());
+        const next: { palette: PaletteId; scheme: SchemeId } = {
+          ...now, scheme: now.scheme === 'dark' ? 'light' : 'dark',
+        };
+        applyTheme(next);
+        writeUrlParam('scheme', next.scheme);
         refreshThemeControls();
       },
     }, choice.scheme === 'light' ? '浅色' : '深色'));

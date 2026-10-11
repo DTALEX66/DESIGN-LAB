@@ -297,28 +297,42 @@ def route_tokens(path: Path) -> list[tuple[str, int]]:
                 return left + right
         return None
 
+    # A route may be dispatched on `self.path`, on `urlsplit(self.path).path`, or on a local
+    # name bound to one of those. The third form is what the page branch uses now that the
+    # query string is stripped before matching, and an indirected dispatch target is still a
+    # dispatch target: refusing to see it would make a correct refactor read as a vanished
+    # route, which is the same false red the gate exists to prevent on the other side.
+    path_names = set()
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Assign) and _is_self_path(node.value):
+            path_names.update(t.id for t in node.targets if isinstance(t, ast.Name))
+
     for node in ast.walk(tree):
         if (isinstance(node, ast.Call) and isinstance(node.func, ast.Attribute)
                 and node.func.attr == 'fullmatch' and len(node.args) >= 2):
             pattern, target = literalise(node.args[0]), node.args[1]
-            if pattern and pattern.startswith('/') and isinstance(target, ast.Attribute) \
-                    and target.attr == 'path':
+            target_ok = isinstance(target, ast.Attribute) and target.attr == 'path'
+            target_ok = target_ok or (isinstance(target, ast.Name) and target.id in path_names)
+            if pattern and pattern.startswith('/') and target_ok:
                 found.append((pattern, node.lineno))
         if isinstance(node, ast.Compare) and len(node.ops) == 1:
             op, comparator = node.ops[0], node.comparators[0]
             if isinstance(comparator, ast.Constant) and isinstance(comparator.value, str) \
-                    and _is_self_path(node.left):
+                    and _is_self_path(node.left, path_names):
                 if isinstance(op, ast.Eq):
                     found.append((comparator.value, node.lineno))
         if isinstance(node, ast.Compare) and len(node.ops) == 1 and isinstance(node.ops[0], ast.In) \
-                and _is_self_path(node.left) and isinstance(node.comparators[0], ast.Attribute) \
+                and _is_self_path(node.left, path_names) \
+                and isinstance(node.comparators[0], ast.Attribute) \
                 and node.comparators[0].attr == 'ROUTES':
             found.append(('workbench.ROUTES', node.lineno))
     return found
 
 
-def _is_self_path(node) -> bool:
-    """``self.path`` or ``urlsplit(self.path).path`` -- both forms are dispatched on."""
+def _is_self_path(node, path_names=frozenset()) -> bool:
+    """``self.path``, ``urlsplit(self.path).path``, or a local name bound to either."""
+    if isinstance(node, ast.Name) and node.id in path_names:
+        return True
     if isinstance(node, ast.Attribute) and node.attr == 'path':
         value = node.value
         if isinstance(value, ast.Name) and value.id == 'self':

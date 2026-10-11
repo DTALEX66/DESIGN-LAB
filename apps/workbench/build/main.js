@@ -7429,8 +7429,9 @@ function themeControlNodes() {
       dataset: { themeAction: "palette" },
       "aria-label": "配色主题",
       onclick: () => {
-        writeUrlParam("palette", cyclePalette(readThemeChoice().palette));
-        applyTheme(readThemeChoice());
+        const next = { ...readThemeChoice(), palette: cyclePalette(readThemeChoice().palette) };
+        applyTheme(next);
+        writeUrlParam("palette", next.palette);
         refreshThemeControls();
       }
     }, spec.label)
@@ -7443,9 +7444,12 @@ function themeControlNodes() {
       "aria-label": "明暗",
       onclick: () => {
         const now = readThemeChoice();
-        const next = now.scheme === "dark" ? "light" : "dark";
-        writeUrlParam("scheme", next);
-        applyTheme(readThemeChoice());
+        const next = {
+          ...now,
+          scheme: now.scheme === "dark" ? "light" : "dark"
+        };
+        applyTheme(next);
+        writeUrlParam("scheme", next.scheme);
         refreshThemeControls();
       }
     }, choice.scheme === "light" ? "浅色" : "深色"));

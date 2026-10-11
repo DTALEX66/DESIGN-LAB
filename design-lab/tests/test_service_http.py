@@ -463,6 +463,21 @@ class ServiceHttpTests(unittest.TestCase):
                 stream.close()
             self.process = None
 
+    def raw_get(self, path):
+        """The same authenticated request, but the body comes back as the bytes sent.
+
+        `request` json-decodes everything, which is right for the API and wrong for a page:
+        an HTML answer is not JSON, and forcing callers to hand-roll HTTPConnection is how
+        the page checks below ended up duplicating the transport three times.
+        """
+        conn = http.client.HTTPConnection('127.0.0.1', self.port, timeout=5)
+        try:
+            conn.request('GET', path, headers={'Authorization': 'Bearer ' + self.token})
+            response = conn.getresponse()
+            return response.status, response.read(), response.getheader('Content-Type')
+        finally:
+            conn.close()
+
     def request(self, method='GET', path='/api/projects', body=None, headers=None):
         defaults = {'Authorization': 'Bearer ' + self.token}
         if body is not None:
@@ -513,8 +528,29 @@ class ServiceHttpTests(unittest.TestCase):
             finally:
                 conn.close()
         self.assertEqual(self.request(headers={'Authorization': ''})[0], 401)
-        for path in ('/workbench/../../AGENTS.md', '/workbench/main.ts', '/workbench?file=AGENTS.md'):
+        for path in ('/workbench/../../AGENTS.md', '/workbench/main.ts'):
             self.assertEqual(self.request(path=path)[0], 404)
+        # This case used to sit in that 404 list as `('/workbench?file=AGENTS.md', 404)`,
+        # which pinned the DOT-audit D13 defect as a contract: because the page branch
+        # compared `self.path` (which BaseHTTPRequestHandler returns WITH the query) against
+        # the route table, any `?palette=ui2026` reload was an unknown path -- 404 for an
+        # authenticated client and 401 for a browser navigation, so the theme URL the
+        # interface itself writes could not be loaded. The property that has to hold is that
+        # a query selects no file, and that is now asserted positively instead of by a 404:
+        # the page answers, byte-for-byte the same page, and never the named document.
+        plain_status, plain, plain_mime = self.raw_get('/workbench')
+        self.assertEqual(plain_status, 200)
+        self.assertTrue(plain_mime.startswith('text/html'), plain_mime)
+        query_status, payload, payload_mime = self.raw_get('/workbench?file=AGENTS.md')
+        self.assertEqual(query_status, 200)
+        self.assertTrue(payload_mime.startswith('text/html'), payload_mime)
+        self.assertEqual(payload, plain, 'a query string changed which bytes were served')
+        self.assertNotIn(b'# AGENTS.md', payload)
+        # The reload the interface itself produces must answer, not 401/404.
+        for path in ('/workbench?palette=ui2026&scheme=light', '/workbench?dev=1'):
+            status, body, _ = self.raw_get(path)
+            self.assertEqual(status, 200, path)
+            self.assertEqual(body, plain, path)
         self.assertEqual(self.request(path='/workbench', headers={'Host': 'evil.example'})[0], 403)
         self.assertFalse((self.root / '.project-local').exists())
 

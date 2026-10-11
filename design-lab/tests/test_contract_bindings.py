@@ -24,6 +24,7 @@ import io
 import json
 import shutil
 import sys
+import tempfile
 import unittest
 from pathlib import Path
 
@@ -746,6 +747,54 @@ class GateTeethTests(unittest.TestCase):
             self.assertEqual(len(errors), 1,
                              f'{name} produced {len(errors)} red lines, expected exactly one: '
                              f'{errors[:3]}')
+
+
+class RouteDispatchRecognition(unittest.TestCase):
+    """The recogniser that decides "this route is dispatched" -- proved both directions.
+
+    The page branch was rewritten to match on a local `route_path` bound from
+    `urlsplit(self.path).path` (so `?palette=` reloads reach the page instead of the auth
+    branch), and that refactor produced two `ROUTE_ROW_ABSENT` reds: the recogniser only knew
+    `self.path` and `urlsplit(self.path).path` directly. Widening it is only safe if the
+    strictness is pinned beside it, and no test in this file had ever planted a
+    not-dispatched route -- the verdict that convicted my own correct change had no falsifier
+    of its own, which is how a control quietly stops guarding anything.
+    """
+
+    @staticmethod
+    def _source(with_page_branch: bool) -> str:
+        page = ("        if route_path == '/workbench':\n            pass\n"
+                "        if route_path in workbench.ROUTES:\n            pass\n"
+                if with_page_branch else "")
+        return ('import re\nfrom urllib.parse import urlsplit\n\n'
+                'class Handler:\n    def dispatch(self):\n'
+                '        route_path = urlsplit(self.path).path\n'
+                + page +
+                "        if self.path == '/api/health':\n            pass\n"
+                "        re.fullmatch(r'/api/x/([0-9a-f]{8})', route_path)\n"
+                "        note = '/api/never-dispatched'\n")
+
+    def _keys(self, source: str) -> set:
+        gate = load_gate()
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / 'http_service.py'
+            path.write_text(source, encoding='utf-8', newline='\n')
+            return {key for key, _ in gate.route_tokens(path)}
+
+    def test_an_indirected_dispatch_target_is_recognised(self):
+        keys = self._keys(self._source(True))
+        for expected in ('/workbench', 'workbench.ROUTES', '/api/health', '/api/x/([0-9a-f]{8})'):
+            self.assertIn(expected, keys, f'{expected} is compared on but not counted')
+
+    def test_a_string_that_is_only_mentioned_is_not_a_dispatch(self):
+        self.assertNotIn('/api/never-dispatched', self._keys(self._source(True)),
+                         'a route literal sitting in an assignment was read as a dispatch')
+
+    def test_dropping_the_comparison_removes_the_token(self):
+        keys = self._keys(self._source(False))
+        self.assertNotIn('/workbench', keys, 'the recogniser invents a dispatch that is not there')
+        self.assertNotIn('workbench.ROUTES', keys)
+        self.assertIn('/api/health', keys, 'the rest of the recogniser stopped working')
 
 
 if __name__ == '__main__':

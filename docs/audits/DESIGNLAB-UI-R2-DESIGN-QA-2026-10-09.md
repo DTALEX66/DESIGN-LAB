@@ -924,3 +924,56 @@ clipped/stray/tiny 均为 0；appshell vm 合同面退出 0（①–⑯ 全过�
 - 本批不动 bundle（`build/main.js` 仍是 `255e992ac03b…`）、不动配色、不碰手机端。
   回执 7 条：browser 2 / visual_review 3 / implementation 1 / unit 1，全部 exit 0，账本共 179 条；
   `DL-FINAL-T07` 与 `DL-UI-U02` 仍 PARTIAL，不自行升档。
+
+## 第二十一批追记（2026-10-11，云端审计 D13 落地：主题按钮第一次真的改绘制）
+
+- **审计的观测点是 `835fa880`，不是今天的 HEAD**。我用 `git diff 835fa880..HEAD` 逐文件核对：
+  `apps/workbench/shell.ts`、`src/design_lab/http_service.py`、`native_submissions.py`、
+  `adobe_lowering.py`、`pyproject.toml` 在今天两批里**一字未动**，所以它报的 D01-D09/D11-D13
+  不能当作"已被今天修掉"，只有 D10 的"packs0 被误读成没有域包"那一半在 `835fa880` 内已被 U03 修好。
+- **D13 的两处根因，各自独立**：
+  ① 前端 `themeControlNodes()` 的两个 `onclick` 都是"先 `writeUrlParam`，再
+  `applyTheme(readThemeChoice())`"。而 `readThemeChoice()` 按它自己 6098-6100 行的注释**故意**
+  优先读已应用的 `<html>` 属性（对比度闸就是直接设属性的），于是它读回还没写进去的旧值，
+  再把这个旧值应用一遍——两个按钮在真实浏览器里都是空转。改成"先应用意图值，再写 URL"。
+  ② 服务端 `dispatch` 用 `self.path` 与路由表比较，而 `BaseHTTPRequestHandler` 给的
+  `self.path` **含 query**，所以 `/workbench?palette=ui2026` 不是已知页面，落到需要鉴权的分支，
+  浏览器导航没有 token → 401。现在页面路由按 `urlsplit(self.path).path` 匹配。
+- **为什么今天所有绿聚合都没抓到它**：新增第五份浏览器闸
+  `design-lab/tests/test_workbench_theme_affordance_gate.py`（已登记进
+  `verify_browser_e2e_ran.TEST_MODULES`——不登记就永远 skip，这正是缺陷躲过去的方式）。
+  它点当前 bundle 里的真控件，读数：`data-palette design-lab → ui2026`、
+  `--surface #0D1221 → #101a26`、`body rgb(6,10,20) → rgb(8,14,22)`、
+  `location.search "" → "?palette=ui2026"`、`statuses ["200 (no query)","200 ?palette=ui2026&scheme=light"]`，
+  `findings=0`。第十八批我加"领域关联"按钮时是 vm 合同面抓到缺 onclick；这次 vm 面**根本没有**
+  主题断言（`grep theme apps/workbench/tests/appshell.mjs` 为空），所以属性级合同也无从证伪——
+  只有"点了之后绘制变没变"这一种断言能守它。
+- **第一版探针超时，原因也是要断言的东西**：屏上同时存在两套 `.theme-toggle`（遗留视图那套不可见），
+  Playwright 默认点了隐藏的那条。现在断言"每个动作恰好一条可见"，出现隐藏孪生即罪名。
+- **真值测试的改动如实交代**：`test_service_http.py` 原本把 `/workbench?file=AGENTS.md` 断言成
+  **404**——那正是缺陷的指纹（带 query 的页面路径不被认成页面）。安全属性换成可证的正面断言：
+  页面 200、字节与 `/workbench` **完全相同**、且不含 `# AGENTS.md`；两条 traversal 路径
+  （`/workbench/../../AGENTS.md`、`/workbench/main.ts`）仍必须 404。没有放松任何一项。
+  `Ran 29 tests OK`。
+- **实拍**：本批重建了 bundle（`255e992ac03b…` → `5829f52a4fa7…`，358,130 B），所以第二十批那
+  92 张已绑旧 bundle 的实拍对当前字节作废；两套配色 × 1920/960 各 46 张按新 bundle 重拍
+  （`b21-20261011/`，deviation 照旧记：从工作树拍摄，tracked 的 exact-commit 守卫未动）。
+  另有一张**从点击路径本身**产生的 `clicked-design-lab-to-ui2026@1440.png`，我读过图：左下角控件
+  文字变成"UI-20261009 基线"并多出"深色"，与 `--surface` 变色一致；同一屏显示
+  "请先在工作台连接本机设计服务，再读回此视图。"的空态，所以它证明的是**主题接线**，
+  不证明能力目录读回，两者不混用。
+- 探针自身缺陷也记一条：`--primary` 在 `documentElement` 上读回空串（该令牌定义在 `.dl-shell`
+  作用域），所以闸不以 `primaryVar` 单独判色变，用 `--surface` + `body background` 两条。
+- 复跑读数：`tsc --noEmit` 0；`vite build` 0 且**重构建字节与提交字节相同**
+  （`dirty_after_rebuild=0`，这条是我自己第一次跑 recorder 时把 cwd 与相对脚本路径配错、
+  写出一条假 FAIL 回执之后重做的——撤账本、修调用、重封，不把工具缺陷留在账上）；
+  node `unit/appshell/shape-notice-coverage` 三组 0；`E2E_REQUIRED=1` 五份浏览器套件
+  `ran=8 skipped=0 failed=0`（读数取自日志里的 `E2E_EXIT`，不读 wrapper 状态）。
+- 审计其余条目本批**未动**，按依赖排到下一批：D02（默认 Illustrator 计划 `locked=true` →
+  `adobe_lowering.py:118` 拒绝 → 400，默认关键路径不能排队）→ D01/D03（重试现生成新
+  `idempotency_key`，而界面写着"同键安全"）→ D09（wheel 未随包两份 schema →
+  research/rights 500；旁边 `runtime/state_resources.py` 已有正确的包资源机制）→
+  D04/D05/D06/D07/D08（其中 D08 的"跳转不带领域条件"是我第十八批引入的）→
+  D11/D12 仍属 owner 裁定项 G。AAOS 与 WORK 的条目不计入本项目待办。
+- 回执 8 条：browser 2 / visual_review 3 / unit 2 / implementation 1，全部 exit 0，账本 187 条。
+  `DL-UI-U02` 与 `DL-FINAL-T08` 仍 PARTIAL；真实宿主 E3、真人 E4 未做，手机端 FROZEN_DEFERRED。
