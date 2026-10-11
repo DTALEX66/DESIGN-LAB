@@ -2866,15 +2866,60 @@ export function domainPackRow(pack: DomainPackRecord): HTMLElement {
  * pack (head + label/value rows + a disabled action that says why). A second copy of
  * that CSS would be design-system drift, not a new feature.
  *
- * What this panel may NOT do is list "该领域下的能力". Measured 2026-10-09 against the
- * two readbacks: the capability `domains` classification axis is empty for all 60
- * records, and the capability `domain` field carries model-radar families
- * (`video-generation`, `asr`, …) whose single literal overlap with a pack slug (`3d`)
- * is a string coincidence, not a declared relationship. GET /api/domains carries no
- * capability reference field either, so any join drawn here would be invented by the
- * page. The action is therefore shown disabled with that reason. */
+/** What this panel may NOT do is draw a relationship nobody declared.
+ *
+ * It now reads the capability library a second time and reports the JOIN STATE honestly, which is a
+ * different claim from listing "该领域下的能力". Measured 2026-10-11 against the live readback: the
+ * `domains` classification axis is empty for all 60 records, and every record lists `domains` in the
+ * service's own `unclassifiedAxes`. So the truthful sentence is "还没有分类", not "该领域没有能力" --
+ * and if the second read fails, the page may not say anything about counts at all. The capability
+ * `domain` field (model-radar families like `video-generation`) is never used as a join key: its one
+ * literal overlap with a pack slug (`3d`) is a string coincidence, not a declared relationship. */
+type DomainJoin = {
+  state: 'READ' | 'NOT_READ';
+  records: number;
+  matched: number;
+  unclassified: number;
+  why: string;
+};
+
+/** The join row's wording is the whole point: four different "empty" states must not share a sentence. */
+function domainJoinRow(found: DomainPackRecord, join: DomainJoin | null): HTMLElement {
+  if (join === null) {
+    return el('span', { class: 'muted' }, '列表页不读能力目录；只有打开某个域包的地址才做这次读回。');
+  }
+  if (join.state === 'NOT_READ') {
+    return el('span', {}, el('span', { class: 'tag warn' }, '未读回'),
+      ` ${join.why}。没有读到能力目录，就既不能说有几个关联，也不能说没有关联。`);
+  }
+  if (!found.domain) {
+    return el('span', {}, el('span', { class: 'tag neutral' }, '无关联键'),
+      ` 该域包没有声明领域（pack_id 为 ${domainDeclared(found.packId)} 的清单里 domain 字段缺失），`
+      + `所以没有可查的关联键。这既不是"有 ${join.matched} 条"，也不是"该领域没有能力"。`);
+  }
+  if (join.matched > 0) {
+    return el('span', {}, el('span', { class: 'tag ok' }, `已接线 ${join.matched} 条`),
+      ` 能力目录 ${join.records} 条读回里有 ${join.matched} 条在 axes.domains 声明 `
+      + `${domainRead(found.domain)}；跳转只做地址切换。`);
+  }
+  if (join.records === 0) {
+    return el('span', {}, el('span', { class: 'tag warn' }, '目录为空'),
+      ' 能力目录这次读回 0 条记录：这是目录本身为空，不能读成"该领域没有能力"。');
+  }
+  if (join.unclassified >= join.records) {
+    return el('span', {}, el('span', { class: 'tag neutral' }, '还没有分类'),
+      ` 能力目录 ${join.records} 条读回里，声明该领域的有 0 条；而 ${join.unclassified}/${join.records} `
+      + '条的 domains 轴都在服务自己的未分类轴清单里 —— 这是"分类还没做"，'
+      + '不是"该领域没有能力"。补分类属 DL-FINAL-T06，不由界面猜测。');
+  }
+  return el('span', {}, el('span', { class: 'tag neutral' }, '无已接线关联'),
+    ` 能力目录 ${join.records} 条里有 ${join.records - join.unclassified} 条已给出 domains 分类，`
+    + `其中声明 ${domainRead(found.domain)} 的为 0 条 —— 这是"没有已接线关联"，`
+    + '仍不等于"该领域没有能力"：能力目录只覆盖已登记的来源与模型。');
+}
+
 function domainDrawer(packs: readonly DomainPackRecord[],
-  openId: string | null): HTMLElement {
+  openId: string | null, join: DomainJoin | null = null): HTMLElement {
   if (!openId) return el('div', { class: 'cap-drawer-slot', hidden: '' });
   const found = packs.find((pack) => pack.packId === openId) ?? null;
   const row = (label: string, value: HTMLElement | string): HTMLElement => el(
@@ -2917,14 +2962,25 @@ function domainDrawer(packs: readonly DomainPackRecord[],
         ? '校验器未给出问题条目（结构级 E1，不是领域能力验收）'
         : '校验器未给出逐条原因')),
     row('服务备注', found.note ?? '（服务未给备注）'),
+    row('能力关联', domainJoinRow(found, join)),
     el('div', { class: 'cap-drawer-row' },
-      el('button', { type: 'button', class: 'secondary', disabled: '',
-        title: 'GET /api/domains 的域包记录不含能力关联字段，界面无法据此筛选。' },
-        '按该领域筛选能力'),
+      el('button', { type: 'button', class: 'secondary',
+        onclick: () => { window.location.hash = '#/capabilities'; },
+        disabled: join && join.matched > 0 ? undefined : '',
+        title: join === null
+          ? '列表页不读能力目录；打开某个域包的地址才会做第二次读回。'
+          : join.state === 'NOT_READ'
+            ? `没读到能力目录：${join.why}。既不能说有几个关联，也不能说没有。`
+            : join.matched > 0
+              ? '只做地址跳转：能力目录侧按声明领域过滤，不启动宿主、不改变资格。'
+              : '没有可跳转的关联：该领域的分类还没接线（原因见上一行）。' },
+        '按该领域查看能力'),
       el('span', { class: 'muted' },
-        '未接线：本路由的域包记录里没有任何指向能力目录的字段，能力侧的领域分类也没有'
-        + '已接线的关联。把域包连到能力是能力目录侧的分类工作，补上之后由服务给出，'
-        + '不由本界面猜测。能力侧目前哪些轴为空，看能力库自己的未分类轴清单。')),
+        '这一行的每个数字都来自本路由第二次读回 ',
+        el('span', { class: 'mono' }, domainRead('GET /api/capabilities')),
+        '；关联键只用能力记录自己声明的 ',
+        el('span', { class: 'mono' }, domainRead('axes.domains')),
+        '，不拿 capability.domain 的字符串巧合当关联。')),
   ];
   const panel = el('section', { class: 'cap-drawer', id: 'domain-drawer', tabindex: '-1',
     'aria-labelledby': 'domain-drawer-title' },
@@ -3040,11 +3096,38 @@ export async function renderDomains(target: HTMLElement,
             ? '本次读回的每个域包目录都通过结构校验；这不构成领域能力验收。'
             : '没有可报告的发现，因为判定基础本身未读回（见上方告警）。')]));
 
+  // R2 §2's second readback: the DETAIL address asks the capability library how many records
+  // declare this pack's domain. The list page does not, so a bare `#/domains` still costs one
+  // request. A failed second read is reported as 未读回 rather than as a zero.
+  let join: DomainJoin | null = null;
+  if (opts.openId) {
+    const caps = await apiOrEmpty<CapabilityLibraryResponse>('/capabilities', OFFLINE.capabilities);
+    const unread = disconnectedNotice(caps) || shapeNotice(caps);
+    const rows = Array.isArray(caps.capabilities) ? caps.capabilities : [];
+    const slug = packs.find((pack) => pack.packId === opts.openId)?.domain ?? null;
+    const declaredDomains = (row: CapabilityRecord): string[] => {
+      const axes = (row as { axes?: { domains?: unknown } }).axes;
+      const values = axes && Array.isArray(axes.domains) ? axes.domains : [];
+      return values.filter((value): value is string => typeof value === 'string');
+    };
+    const unclassified = (row: CapabilityRecord): boolean => (Array.isArray(row.unclassifiedAxes)
+      ? row.unclassifiedAxes : []).includes('domains');
+    join = unread
+      ? { state: 'NOT_READ', records: 0, matched: 0, unclassified: 0, why: unread }
+      : {
+        state: 'READ',
+        records: rows.length,
+        matched: slug ? rows.filter((row) => declaredDomains(row).includes(slug)).length : 0,
+        unclassified: rows.filter(unclassified).length,
+        why: '',
+      };
+  }
+
   target.replaceChildren(
     pageHead,
     kpis,
     ...banner,
-    domainDrawer(packs, opts.openId ?? null),
+    domainDrawer(packs, opts.openId ?? null, join),
     packList,
     findingPanel,
     el('p', { class: 'view-hint' },

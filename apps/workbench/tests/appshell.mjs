@@ -382,14 +382,52 @@ function drawerFor(hash) {
   return drawer;
 }
 
-async function renderDomainDetail(hash, payload = DOMAINS_READBACK) {
+// The detail address reads TWO endpoints: the pack's own facts, then the capability library to
+// report the join state. `caps` = null fails the second read, so the panel has to say 未读回.
+function capabilityRecords(total, classifiedOf, domainOf) {
+  return Array.from({ length: total }, (unused, index) => ({
+    id: `cap-${index}`, kind: 'model', domain: null, title: `记录 ${index}`,
+    disposition: 'UNKNOWN', license: null, presence: null, url: null, revision: null,
+    revisionState: 'NOT_VERIFIED', revisionReason: null, repo: null, observedAt: null,
+    contentDigest: null, qualified: null, qualificationEvidence: null,
+    qualificationReason: '没有资格记录', sourceType: null, evidenceLevel: null,
+    upstreamOwner: null, licenseUrl: null, rightsNotes: null, removalPath: null,
+    popularity: null,
+    unclassifiedAxes: index < classifiedOf ? [] : ['domains'],
+    axes: { domains: index < classifiedOf ? [domainOf] : null, artifactTypes: null,
+      capabilityLayers: null, aestheticAxes: null, styleArchetypes: null, tier: null,
+      designQuality: null },
+  }));
+}
+
+function capabilitiesPayload(total, classifiedOf, domainOf) {
+  return {
+    schemaVersion: 'design-lab/capability-library/v1',
+    meaning: '能力目录', unmeasuredMeans: 'null = 未判定',
+    counts: { total, byKind: {}, byLicense: {}, byRevisionState: {}, qualified: 0 },
+    sources: {}, capabilities: capabilityRecords(total, classifiedOf, domainOf),
+  };
+}
+
+async function renderDomainDetail(hash, payload = DOMAINS_READBACK,
+  caps = capabilitiesPayload(60, 0, 'ui-ux')) {
   shell.window.location.hash = hash;
   shell.dispatchHashchange();
-  const reads = shell.pending.splice(0, shell.pending.length);
-  if (reads.length !== 1 || reads[0].path !== '/api/domains')
-    throw new Error(`${hash}: 应恰好一次 GET /api/domains，实得 ${reads.length} 次`
-      + `（${reads.map((r) => r.path).join(', ')}）`);
-  reads[0].resolve(response(payload));
+  const first = shell.pending.splice(0, shell.pending.length);
+  if (first.length !== 1 || first[0].path !== '/api/domains')
+    throw new Error(`${hash}: 第一步应恰好一次 GET /api/domains，实得 ${first.length} 次`
+      + `（${first.map((r) => r.path).join(', ')}）`);
+  first[0].resolve(response(payload));
+  await flush();
+  const second = shell.pending.splice(0, shell.pending.length);
+  if (second.length !== 1 || second[0].path !== '/api/capabilities')
+    throw new Error(`${hash}: 详情地址应再做一次 GET /api/capabilities 读回，实得 `
+      + `${second.length} 次（${second.map((r) => r.path).join(', ')}）`);
+  // `caps === null` asks for the shape the seam has to report: the service answered 200 but the
+  // capability collection is absent, which is "no readback of that field", not "zero records".
+  if (caps === null) second[0].resolve(response({ schemaVersion: 'design-lab/capability-library/v1',
+    meaning: '能力目录', unmeasuredMeans: 'null = 未判定', counts: {}, sources: {} }));
+  else second[0].resolve(response(caps));
   await flush();
   return drawerFor(hash);
 }
@@ -401,7 +439,8 @@ async function renderDomainRegistry(payload) {
   shell.dispatchHashchange();
   const reads = shell.pending.splice(0, shell.pending.length);
   if (reads.length !== 1)
-    throw new Error(`#/domains 应恰好一次读回，实得 ${reads.length} 次`);
+    throw new Error(`#/domains 列表页应恰好一次读回（第二次读只属于详情地址），实得 ${reads.length} 次`
+      + `（${reads.map((r) => r.path).join(', ')}）`);
   reads[0].resolve(response(payload));
   await flush();
   let drawer = null;
@@ -417,15 +456,69 @@ for (const fact of ['UI/UX Design Domain Pack', 'ui-ux', 'jsonschema',
   'design-lab/domain-pack/v2'])
   if (!firstDrawer.textContent.includes(fact))
     throw new Error(`详情面板没有给出该域包自己的 ${fact}：${firstDrawer.textContent.slice(0, 200)}`);
-const joinAction = findNodes(firstDrawer, 'BUTTON', '按该领域筛选能力');
+const joinAction = findNodes(firstDrawer, 'BUTTON', '按该领域查看能力');
 if (joinAction.length !== 1)
-  throw new Error(`详情面板应给出一个"按该领域筛选能力"动作，实得 ${joinAction.length} 个`);
+  throw new Error(`详情面板应给出一个"按该领域查看能力"动作，实得 ${joinAction.length} 个`);
 if (!joinAction[0].attributes.has('disabled'))
-  throw new Error('没有关联轴时这个动作必须禁用，不能留一个必然失败的按钮');
-if (!firstDrawer.textContent.includes('未接线'))
-  throw new Error('禁用动作必须说明为什么禁用');
-if (/条能力/.test(firstDrawer.textContent))
-  throw new Error(`详情面板不得凭空给出能力数量：${firstDrawer.textContent.slice(-260)}`);
+  throw new Error('0 条已接线关联时这个动作必须禁用，不能留一个必然跳转空结果的按钮');
+// The two empties are different facts and must not share a sentence: 60/60 records list
+// `domains` in the service's own unclassified axis set, so the honest wording is 还没有分类.
+if (!firstDrawer.textContent.includes('还没有分类'))
+  throw new Error(`全未分类时面板要说"还没有分类"：${firstDrawer.textContent.slice(-320)}`);
+// Every mention of the phrase must be a negation: the panel may explain that "no wired relation"
+// is NOT "this domain has no capabilities", but it may never assert the latter. Counting mentions
+// against negated mentions is the only form that survives the product quoting the phrase.
+{
+  const said = firstDrawer.textContent;
+  const mentions = (said.match(/该领域没有能力/g) ?? []).length;
+  const negated = (said.match(/(不是|不等于)"?该领域没有能力/g) ?? []).length;
+  if (mentions !== negated)
+    throw new Error(`面板把"没有已接线关联"说成了"该领域没有能力"（${negated}/${mentions} 次是否定式）`
+      + `：${said.slice(-320)}`);
+}
+if (!/60 条读回里有 0 条|声明该领域的有 0 条/.test(firstDrawer.textContent))
+  throw new Error(`关联行必须给出这次读回的实测数字：${firstDrawer.textContent.slice(-320)}`);
+
+// A field the seam had to supply may not borrow the first read's confidence: no counts, 未读回.
+const unreadDrawer = await renderDomainDetail('#/domains/uiux-design', undefined, null);
+if (!unreadDrawer.textContent.includes('未读回'))
+  throw new Error(`能力目录读不到时必须照实说：${unreadDrawer.textContent.slice(-320)}`);
+if (/已接线 \d+ 条|0 条读回/.test(unreadDrawer.textContent))
+  throw new Error(`读不到就不给报数：${unreadDrawer.textContent.slice(-320)}`);
+
+// Some records ARE classified and none names this domain: that is 无已接线关联, not 还没有分类.
+const partialDrawer = await renderDomainDetail('#/domains/uiux-design', undefined,
+  capabilitiesPayload(60, 12, 'video-generation'));
+if (!partialDrawer.textContent.includes('无已接线关联'))
+  throw new Error(`部分已分类时要说"无已接线关联"：${partialDrawer.textContent.slice(-320)}`);
+if (partialDrawer.textContent.includes('还没有分类'))
+  throw new Error('已经给出分类的目录不能被写成"还没有分类"');
+
+// A declared relationship enables the action, and the action still only moves the address.
+const matchedDrawer = await renderDomainDetail('#/domains/uiux-design', undefined,
+  capabilitiesPayload(60, 12, 'ui-ux'));
+const matchedAction = findNodes(matchedDrawer, 'BUTTON', '按该领域查看能力')[0];
+if (matchedAction.attributes.has('disabled'))
+  throw new Error('有已接线关联时动作不该继续禁用');
+const beforeHash = shell.window.location.hash;
+shell.pending.splice(0, shell.pending.length);
+if (typeof matchedAction.onclick !== 'function')
+  throw new Error('关联动作没有 onclick，等于没有接线');
+matchedAction.onclick();
+if (shell.pending.length !== 0)
+  throw new Error(`关联动作只许改地址，实得 ${shell.pending.length} 次请求`);
+if (shell.window.location.hash === beforeHash)
+  throw new Error('关联动作必须真的把地址切到能力目录，否则它什么都不做');
+if (!matchedDrawer.textContent.includes('已接线 12 条'))
+  throw new Error(`命中数要按这次读回给出：${matchedDrawer.textContent.slice(-320)}`);
+
+// A pack that declares no domain at all has no join key: that is neither "N matches" nor
+// "this domain has no capabilities", and the panel must not imply either.
+const noKeyDrawer = await renderDomainDetail('#/domains/minigame-design');
+if (!noKeyDrawer.textContent.includes('无关联键'))
+  throw new Error(`未声明领域的域包要说"无关联键"：${noKeyDrawer.textContent.slice(-320)}`);
+if (noKeyDrawer.textContent.includes('已接线 0 条'))
+  throw new Error(`没有关联键时不得给出命中数：${noKeyDrawer.textContent.slice(-320)}`);
 const navOwner = [];
 walkNodes(shell.context.document.body, (node) => {
   if (node?.dataset?.route === 'design-domains') navOwner.push(node);
