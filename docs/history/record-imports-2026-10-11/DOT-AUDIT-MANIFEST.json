@@ -1,7 +1,7 @@
 {
  "kind": "record-import/DOT-AUDIT-MANIFEST",
  "schemaVersion": "design-lab/record-import/v1",
- "registeredAt": "2026-10-11T10:26:33Z",
+ "registeredAt": "2026-10-11T10:29:57Z",
  "source": {
   "file": "D:\\All projects\\Record\\AAOS-WORK-DESIGN-cloud-audit-20261011.zip",
   "bytes": 8038362,
@@ -49,8 +49,8 @@
   "members": 163,
   "OTHER-PROJECT": 28,
   "MIXED": 16,
-  "UNTAGGED": 90,
-  "DESIGN-LAB": 29
+  "UNTAGGED": 60,
+  "DESIGN-LAB": 59
  },
  "uncompressedBytes": 8675436,
  "localCanonicalCopy": ".project-local/task-artifacts/record-imports-2026-10-11/dot-audit/ (Git 忽略；跨机器交接须随原 ZIP)",
@@ -64,26 +64,56 @@
   "VISUAL-REVIEW.txt",
   "evidence/aaos-vitest.log",
   "evidence/ci-readback.json",
+  "evidence/design-batch-lost-response.png",
+  "evidence/design-batch.json",
+  "evidence/design-brand.png",
   "evidence/design-browser.json",
   "evidence/design-clone.log",
+  "evidence/design-content-audit.log",
+  "evidence/design-created.png",
+  "evidence/design-domain-unfiltered.png",
   "evidence/design-domain.json",
+  "evidence/design-facet-fixture.png",
   "evidence/design-facets.json",
+  "evidence/design-federation.log",
+  "evidence/design-initial.png",
+  "evidence/design-intake.png",
+  "evidence/design-light-diagnostic.png",
+  "evidence/design-narrow.png",
   "evidence/design-navigation.json",
   "evidence/design-node.log",
+  "evidence/design-npm.log",
+  "evidence/design-palette.png",
+  "evidence/design-plan-initial.png",
   "evidence/design-plan-retry-photoshop.json",
   "evidence/design-plan-retry.json",
+  "evidence/design-plan-retry.png",
+  "evidence/design-pnpm.log",
   "evidence/design-python.log",
   "evidence/design-risk-pre.json",
   "evidence/design-route-audit.log",
+  "evidence/design-search-ninth.png",
+  "evidence/design-search.json",
   "evidence/design-server.log",
+  "evidence/design-test-env-retest.log",
+  "evidence/design-theme-click-noop.png",
+  "evidence/design-theme-reload-401.png",
   "evidence/design-theme.json",
+  "evidence/design-ui-dark.png",
+  "evidence/design-ui-light.png",
+  "evidence/design-ui2026-dark-confirmed.png",
   "evidence/design-verify.log",
   "evidence/design-wheel-api.json",
   "evidence/design-wheel-build.log",
   "evidence/design-wheel-domains.log",
   "evidence/design-wheel-install.log",
+  "evidence/design-wheel-server.log",
   "evidence/linux/aaos-libs.log",
   "evidence/linux/design-build.log",
+  "evidence/linux/design-install.log",
+  "evidence/linux/design-lock-unchanged.log",
+  "evidence/linux/design-server-1.log",
+  "evidence/linux/design-server-2.log",
   "evidence/linux/design-typecheck.log",
   "evidence/linux/design-unit.log",
   "evidence/probes/browser_design.py",
@@ -387,7 +417,7 @@
    "crc32": "6a21d939",
    "sha256": "48e08191baa0aac05ead83fb355e64595b728b661279b2c30bfbad7665f0abf8",
    "zip_date": "2026-10-11 03:05:50",
-   "attribution": "UNTAGGED",
+   "attribution": "DESIGN-LAB",
    "extracted_locally": "false"
   },
   {
@@ -396,7 +426,7 @@
    "crc32": "497a4e81",
    "sha256": "db759001e2f75f1969182c0fedb5c1e6afd6a70429b5c6786726e7ecb32e0b7e",
    "zip_date": "2026-10-11 03:05:50",
-   "attribution": "UNTAGGED",
+   "attribution": "DESIGN-LAB",
    "extracted_locally": "false"
   },
   {
@@ -405,7 +435,7 @@
    "crc32": "aabeb953",
    "sha256": "d00f7abd6391e9e76d8a8b22e9fdded15d6915b52459518a78b8dba8862d99c4",
    "zip_date": "2026-10-11 03:05:50",
-   "attribution": "UNTAGGED",
+   "attribution": "DESIGN-LAB",
    "extracted_locally": "false"
   },
   {
@@ -432,7 +462,7 @@
    "crc32": "44578655",
    "sha256": "456f1d60af5dcb09dc10643295a7ff4b4941d36f164b3000210213486821bd14",
    "zip_date": "2026-10-11 03:05:50",
-   "attribution": "UNTAGGED",
+   "attribution": "DESIGN-LAB",
    "extracted_locally": "false"
   },
   {
@@ -441,7 +471,7 @@
    "crc32": "e76532b6",
    "sha256": "ebcd78fdedf0f97bcd19ac313b280c0fe5ee7e9c90dd2c500005dcfad296998c",
    "zip_date": "2026-10-11 03:05:50",
-   "attribution": "UNTAGGED",
+   "attribution": "DESIGN-LAB",
    "extracted_locally": "false"
   },
   {
@@ -450,7 +480,7 @@
    "crc32": "5f61e1b4",
    "sha256": "040a439322956773864836e038bd196e32f186d54a76e55346d255a81dcb7fdf",
    "zip_date": "2026-10-11 03:05:50",
-   "attribution": "UNTAGGED",
+   "attribution": "DESIGN-LAB",
    "extracted_locally": "false"
   },
   {
@@ -468,7 +498,7 @@
    "crc32": "5762ad34",
    "sha256": "b063e78c75194cf1b97e5ac4bc6dfc6522512c19b24a275cf25a8b07dbccd1fb",
    "zip_date": "2026-10-11 03:05:50",
-   "attribution": "UNTAGGED",
+   "attribution": "DESIGN-LAB",
    "extracted_locally": "false"
   },
   {
@@ -486,7 +516,7 @@
    "crc32": "6258ba74",
    "sha256": "0d01c33cc7348dd2c33f14ab55819e61263f75f08ca7c4a7f899a09a19ea7e5a",
    "zip_date": "2026-10-11 03:05:50",
-   "attribution": "UNTAGGED",
+   "attribution": "DESIGN-LAB",
    "extracted_locally": "false"
   },
   {
@@ -495,7 +525,7 @@
    "crc32": "5be76238",
    "sha256": "19db1184bfb4d79bc585003cfe08cc41d2dc4a9dc10dbec663197893ccee2546",
    "zip_date": "2026-10-11 03:05:50",
-   "attribution": "UNTAGGED",
+   "attribution": "DESIGN-LAB",
    "extracted_locally": "false"
   },
   {
@@ -504,7 +534,7 @@
    "crc32": "b9cad809",
    "sha256": "bc3705b04c493fcfd6f4dcf7c9a7577f5e8e6b55ada9dcac40cc109b351453af",
    "zip_date": "2026-10-11 03:05:50",
-   "attribution": "UNTAGGED",
+   "attribution": "DESIGN-LAB",
    "extracted_locally": "false"
   },
   {
@@ -513,7 +543,7 @@
    "crc32": "0a279241",
    "sha256": "4d67f682f04ffd5d1f29888290202630ff2ec2db8cf2551842aebc2297af8a13",
    "zip_date": "2026-10-11 03:05:50",
-   "attribution": "UNTAGGED",
+   "attribution": "DESIGN-LAB",
    "extracted_locally": "false"
   },
   {
@@ -522,7 +552,7 @@
    "crc32": "ab77b925",
    "sha256": "c6691f5bb3952bdbc68376c64bf601f878409af12279ff86827f5323c6d74220",
    "zip_date": "2026-10-11 03:05:50",
-   "attribution": "UNTAGGED",
+   "attribution": "DESIGN-LAB",
    "extracted_locally": "false"
   },
   {
@@ -549,7 +579,7 @@
    "crc32": "b56fad65",
    "sha256": "925eec40f09ed06ca813171c7cae81f2f156543123d3f47bac322584fdf6de6b",
    "zip_date": "2026-10-11 03:05:50",
-   "attribution": "UNTAGGED",
+   "attribution": "DESIGN-LAB",
    "extracted_locally": "false"
   },
   {
@@ -558,7 +588,7 @@
    "crc32": "a8dcd59e",
    "sha256": "e0f02c6876bd5982b84bc35534c24829eb6874194cb7e51cec7f37f05a9012ba",
    "zip_date": "2026-10-11 03:05:50",
-   "attribution": "UNTAGGED",
+   "attribution": "DESIGN-LAB",
    "extracted_locally": "false"
   },
   {
@@ -567,7 +597,7 @@
    "crc32": "2438135e",
    "sha256": "7da93ed7b6f2cb3c93559b3e8c495dc1905efd2f3f8d663678e960ae5215d45e",
    "zip_date": "2026-10-11 03:05:50",
-   "attribution": "UNTAGGED",
+   "attribution": "DESIGN-LAB",
    "extracted_locally": "false"
   },
   {
@@ -594,7 +624,7 @@
    "crc32": "70a8af0f",
    "sha256": "4e774a244633a9ff5d9805670903c15b8e4ae586c312e893da723a952cf2dc28",
    "zip_date": "2026-10-11 03:05:50",
-   "attribution": "UNTAGGED",
+   "attribution": "DESIGN-LAB",
    "extracted_locally": "false"
   },
   {
@@ -603,7 +633,7 @@
    "crc32": "b05b3f32",
    "sha256": "9412fff823f1478fbb898610a52f486b7077752afdbea1dbef4014b6e2e84f4e",
    "zip_date": "2026-10-11 03:05:50",
-   "attribution": "UNTAGGED",
+   "attribution": "DESIGN-LAB",
    "extracted_locally": "false"
   },
   {
@@ -639,7 +669,7 @@
    "crc32": "172c2c61",
    "sha256": "07290910afaee26455de42b2c6517c32489a6d62264db85da557a1427da48893",
    "zip_date": "2026-10-11 03:05:50",
-   "attribution": "UNTAGGED",
+   "attribution": "DESIGN-LAB",
    "extracted_locally": "false"
   },
   {
@@ -648,7 +678,7 @@
    "crc32": "ce721ed8",
    "sha256": "128a7f7d303aca7865146fa5ec10884143a41a14c47c7d009b8d99cc73e3a0cc",
    "zip_date": "2026-10-11 03:05:50",
-   "attribution": "UNTAGGED",
+   "attribution": "DESIGN-LAB",
    "extracted_locally": "false"
   },
   {
@@ -666,7 +696,7 @@
    "crc32": "70a55507",
    "sha256": "b7b3aa92344a38bedb2ba74f765049f69319b8af87f14816cc3a4df38eeb870a",
    "zip_date": "2026-10-11 03:05:50",
-   "attribution": "UNTAGGED",
+   "attribution": "DESIGN-LAB",
    "extracted_locally": "false"
   },
   {
@@ -675,7 +705,7 @@
    "crc32": "9f27065e",
    "sha256": "de9d5c7d83ec7c161647e586cc9ab1d17ddb2f48fa9554bb425f6ba9952bcb18",
    "zip_date": "2026-10-11 03:05:50",
-   "attribution": "UNTAGGED",
+   "attribution": "DESIGN-LAB",
    "extracted_locally": "false"
   },
   {
@@ -684,7 +714,7 @@
    "crc32": "53bc4572",
    "sha256": "8ebaa8ee984f67bd94a1bfb4b4782468f08b259b0344cd3374f2e0c811b01dc1",
    "zip_date": "2026-10-11 03:05:50",
-   "attribution": "UNTAGGED",
+   "attribution": "DESIGN-LAB",
    "extracted_locally": "false"
   },
   {
@@ -702,7 +732,7 @@
    "crc32": "53bc4572",
    "sha256": "8ebaa8ee984f67bd94a1bfb4b4782468f08b259b0344cd3374f2e0c811b01dc1",
    "zip_date": "2026-10-11 03:05:50",
-   "attribution": "UNTAGGED",
+   "attribution": "DESIGN-LAB",
    "extracted_locally": "false"
   },
   {
@@ -711,7 +741,7 @@
    "crc32": "7e072978",
    "sha256": "f4ac423281e749002195a9a01f1882db69682cb68345309f118b5cc62a94a8f6",
    "zip_date": "2026-10-11 03:05:50",
-   "attribution": "UNTAGGED",
+   "attribution": "DESIGN-LAB",
    "extracted_locally": "false"
   },
   {
@@ -720,7 +750,7 @@
    "crc32": "7d7fae81",
    "sha256": "9d35e989d0e07e7945c1465ecfe29c0b9242ce0ba73088ff10d23a84e756e270",
    "zip_date": "2026-10-11 03:05:50",
-   "attribution": "UNTAGGED",
+   "attribution": "DESIGN-LAB",
    "extracted_locally": "false"
   },
   {
@@ -774,7 +804,7 @@
    "crc32": "b49243c3",
    "sha256": "3ed8ce67d76eafdc8c1a3644489e9053e0d39c6f98009c4c189db87b65eedd63",
    "zip_date": "2026-10-11 03:05:50",
-   "attribution": "UNTAGGED",
+   "attribution": "DESIGN-LAB",
    "extracted_locally": "false"
   },
   {
@@ -891,7 +921,7 @@
    "crc32": "58a46fac",
    "sha256": "f290cf7665a08f29643059708cbc7efb5ec52f46baaeb0da396f7f134e8c160b",
    "zip_date": "2026-10-11 03:05:50",
-   "attribution": "UNTAGGED",
+   "attribution": "DESIGN-LAB",
    "extracted_locally": "false"
   },
   {
@@ -900,7 +930,7 @@
    "crc32": "00000000",
    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
    "zip_date": "2026-10-11 03:05:50",
-   "attribution": "UNTAGGED",
+   "attribution": "DESIGN-LAB",
    "extracted_locally": "false"
   },
   {
@@ -909,7 +939,7 @@
    "crc32": "00000000",
    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
    "zip_date": "2026-10-11 03:05:50",
-   "attribution": "UNTAGGED",
+   "attribution": "DESIGN-LAB",
    "extracted_locally": "false"
   },
   {
@@ -918,7 +948,7 @@
    "crc32": "00000000",
    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
    "zip_date": "2026-10-11 03:05:50",
-   "attribution": "UNTAGGED",
+   "attribution": "DESIGN-LAB",
    "extracted_locally": "false"
   },
   {

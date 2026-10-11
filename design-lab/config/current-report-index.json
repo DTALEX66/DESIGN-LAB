@@ -1,27 +1,27 @@
 {
   "checkScope": "bound-input-and-output-integrity; not current Git or cloud freshness",
-  "generatedAt": "2026-10-11T10:28:06+00:00",
+  "generatedAt": "2026-10-11T10:30:38+00:00",
   "gitObservation": {
     "branch": "qoder/designlab-backup-consistency-20261007",
     "origin_main": "fc03a3033e900a8066d863a223636cc68804c4fa",
-    "sha": "e37ded4eee3ee087919cac22b1c32e8bf5505fba",
+    "sha": "062a3cec67692e25acd48a250560faa0556d4383",
     "source_worktree_clean": false,
-    "tracked_files": 3601,
+    "tracked_files": 3602,
     "worktree_changes": [
       {
-        "content": "sha256:9d95e5d6399add419cd4dacee5c29995de9f943b92de217f656f78558bf6991d",
+        "content": "sha256:152eecce938109f42a0a4fc365f68e3d4950d45a21e0e08a4c8f1d3b143eeb64",
         "kind": "M",
         "path": "docs/RECORD-ARCHIVE-INDEX.md"
       },
       {
-        "content": "sha256:b06facdf8c21be17c144574a4cb533c40b92ae01c92d4e0986012d959eae8fbb",
-        "kind": "U",
+        "content": "sha256:2f026074b798c67ff3e9ba318e95c98a35dab6b161d0281e203d1c9c84dd4177",
+        "kind": "M",
         "path": "docs/history/record-imports-2026-10-11/DOT-AUDIT-MANIFEST.json"
       }
     ],
-    "worktree_digest": "sha256:f04cde52dc44d24186e7556a9ccd36e036267af6758aa50bb43b94278c6a02a4"
+    "worktree_digest": "sha256:0fa6f0ae09c80fc903f3399f3894911fbca8c94cc989a28601da09ecbe3345f1"
   },
-  "inputDigest": "sha256:afe34805cf0edf77be643b4c4598b5545a09715d63585dfddff6b0d251c7d59a",
+  "inputDigest": "sha256:29f9164a1c7bfab00e6f44cb1e0ee39ab031d05eab832895837e85606c573273",
   "inputDigestMeaning": "primary freshness binding: canonical SHA-256 over the exact input files the projections read plus the git tree scope; recomputed at check time (FU-10)",
   "inputHashes": {
     ".github/workflows/canonical-verify.yml": "77734ded9bc7ac5b8223840cf483f70c62dc1c9740b60c2f3cf0219f7790a15e",
@@ -663,15 +663,15 @@
   },
   "ledger": "design-lab/config/task-ledger-r3.json",
   "outputHashes": {
-    "ADAPTER_EVIDENCE_RECONCILIATION.json": "2b80b5bb9bcb60f2d6d2525645189abba446aa6eca69fc1cd4b3737c001c7136",
-    "CLOUD_BASELINE.json": "14046bea762815205b165e6480c65c9f74773a90d9d5497d8a62548883a376d3",
-    "CLOUD_BASELINE.md": "af062d038047e31f4f810a6a6a9c248025dd1aa74052bd4f88e837d3af1195e6",
-    "DOMAIN_PACK_READINESS.json": "069c80f447bcb0ae6ad6f70af591810c363a01c1942b843debdf084d3c9c2f2f",
-    "KNOWLEDGE_INVENTORY.json": "36b4ea94be2ccbc500155d01a7a8a78086b74b947c3b22d333a2fbd467e205d2",
-    "PROJECT_STATUS.json": "b205e68c69980fa502fce0bf49bc9037422baa498be55872b91e27448dccd71a",
-    "PROJECT_STATUS.md": "35a40b4c63e1a56c9a89afb4590ce051d5c6ef2881d500dcd637edc0dddb020a",
-    "RELEASE_READINESS.json": "5b56be9485684c0a9a9dc7a80233eecc0def390b9786c7ca4888c3f4b21c0d7a",
-    "TASK_PROGRESS.json": "9b4cf98b6df3085fc94f9bad798e053a97f79a0a2ddc1ba87fa92af1d313f5ec"
+    "ADAPTER_EVIDENCE_RECONCILIATION.json": "611bc598fcbe8e03c9d3dd2f0222621325caa6b9fda358f59ac497e84f57836a",
+    "CLOUD_BASELINE.json": "f71688d7d3508f72bc3531f58aaa276c4e4dfa7c7a63866e01c38feb62efb918",
+    "CLOUD_BASELINE.md": "50088310cece2b9723f5f361aa6f23b4db5e1bf67fb7738776f5fd4964dd48f8",
+    "DOMAIN_PACK_READINESS.json": "6ddd789659fe5546f1f3301f2a93badb7a62c9dc2d2ad274a1a051769cf1b432",
+    "KNOWLEDGE_INVENTORY.json": "cc410109e7119be867d1138ae80bbe2ed95945209625f1459463f810f8e90106",
+    "PROJECT_STATUS.json": "667e0f73b74954f2e61d327b4485a9ce6247b160d8fe4ff7e040796afd2c57c8",
+    "PROJECT_STATUS.md": "8d31ee4de616fba1f2711cdf86ea32534b609194716fbde26ee09183e09fbc95",
+    "RELEASE_READINESS.json": "91708c117de2c88a604b735d98e9200d31b5bd388704c5612e0326e9e124cfdc",
+    "TASK_PROGRESS.json": "3b4165a337872b1e3161dc3e839bcfe08f7af1c26bb8909e417a152fd27ebb45"
   },
   "reportRoot": "../../reports/current/",
   "reports": [
@@ -687,5 +687,5 @@
   ],
   "schemaVersion": "design-lab/current-report-index/v3",
   "subjectMeaning": "generation-time git observation, not a freshness claim; exact-SHA evidence is the CI artifact",
-  "subjectSha": "e37ded4eee3ee087919cac22b1c32e8bf5505fba"
+  "subjectSha": "062a3cec67692e25acd48a250560faa0556d4383"
 }

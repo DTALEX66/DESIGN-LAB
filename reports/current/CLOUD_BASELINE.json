@@ -9,33 +9,33 @@
   },
   "fresh": false,
   "freshnessMeaning": "at generation only; check verifies bound-input integrity, not current Git or cloud state",
-  "generatedAt": "2026-10-11T10:28:06+00:00",
+  "generatedAt": "2026-10-11T10:30:38+00:00",
   "gitStateMeaning": "generation-time observation, not current HEAD",
   "local": {
     "branch": "qoder/designlab-backup-consistency-20261007",
     "origin_main": "fc03a3033e900a8066d863a223636cc68804c4fa",
-    "sha": "e37ded4eee3ee087919cac22b1c32e8bf5505fba",
+    "sha": "062a3cec67692e25acd48a250560faa0556d4383",
     "source_worktree_clean": false,
-    "tracked_files": 3601,
+    "tracked_files": 3602,
     "worktree_changes": [
       {
-        "content": "sha256:9d95e5d6399add419cd4dacee5c29995de9f943b92de217f656f78558bf6991d",
+        "content": "sha256:152eecce938109f42a0a4fc365f68e3d4950d45a21e0e08a4c8f1d3b143eeb64",
         "kind": "M",
         "path": "docs/RECORD-ARCHIVE-INDEX.md"
       },
       {
-        "content": "sha256:b06facdf8c21be17c144574a4cb533c40b92ae01c92d4e0986012d959eae8fbb",
-        "kind": "U",
+        "content": "sha256:2f026074b798c67ff3e9ba318e95c98a35dab6b161d0281e203d1c9c84dd4177",
+        "kind": "M",
         "path": "docs/history/record-imports-2026-10-11/DOT-AUDIT-MANIFEST.json"
       }
     ],
-    "worktree_digest": "sha256:f04cde52dc44d24186e7556a9ccd36e036267af6758aa50bb43b94278c6a02a4"
+    "worktree_digest": "sha256:0fa6f0ae09c80fc903f3399f3894911fbca8c94cc989a28601da09ecbe3345f1"
   },
   "note": "No GitHub API query was run by this generator; tool installation is not inferred.",
   "remoteRef": "origin/main (local tracking ref)",
   "schemaVersion": "design-lab/cloud-baseline/v2",
   "subjectMeaning": "subjectType=WORKTREE means the tree was dirty at generation; worktreeDigest covers HEAD plus the non-generated changes",
-  "subjectSha": "e37ded4eee3ee087919cac22b1c32e8bf5505fba",
+  "subjectSha": "062a3cec67692e25acd48a250560faa0556d4383",
   "subjectType": "WORKTREE",
   "taskpackHash": "f91ebe9b67ab4f83be91fe8f3ca0fc80fc93176263bec05d883fa6ce6afd6480",
   "taskpackId": "DL-TP-20261009-UI-FIRST-R1",
@@ -50,5 +50,5 @@
     "branchProtection"
   ],
   "worktreeClean": false,
-  "worktreeDigest": "sha256:f04cde52dc44d24186e7556a9ccd36e036267af6758aa50bb43b94278c6a02a4"
+  "worktreeDigest": "sha256:0fa6f0ae09c80fc903f3399f3894911fbca8c94cc989a28601da09ecbe3345f1"
 }

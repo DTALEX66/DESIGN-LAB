@@ -280,13 +280,14 @@
   活动分支 `qoder/designlab-backup-consistency-20261007 @ 835fa88001198e9e…（tree daaae705…，
   工作区干净）`，报告称其领先 main 215 提交。**这与本仓库今天两批工作的起点是同一个提交**，
   所以它的每条 DESIGN 断言都必须对照当前 HEAD 重读，不能当作现状也不能当作已修。
-- 属于本项目的成员：29 个只谈 DESIGN-LAB、16 个混合提及，合计 45；另有 11 个包内根报告
+- 属于本项目的成员：59 个只谈 DESIGN-LAB、16 个混合提及，合计 75（其中 18 张 PNG 截图证据）；另有 11 个包内根报告
   （`00-START-HERE/REPORT/LINUX-REPORT/VISUAL-REVIEW/findings.json/MANIFEST.json` 等）为三项目共用。
-  其余 28 个专属 AAOS/WORK、90 个未带项目标记。**AAOS 与 WORK 的条目只作邻项目参考，
+  其余 28 个专属 AAOS/WORK、60 个未带项目标记。**AAOS 与 WORK 的条目只作邻项目参考，
   不计入 DESIGN-LAB 未完成项**（含 WORK 的 mbcs/CI 身份、AAOS 的恢复与隐私告知条目）。
 - 本项目的副本：按成员原字节解到
-  `.project-local/task-artifacts/record-imports-2026-10-11/dot-audit/`，共 48 个文件
-  ＝45 个谈 DESIGN-LAB 的成员 + 3 个只作上下文读取的根文件（实测 missing=0、extra=0）；
+  `.project-local/task-artifacts/record-imports-2026-10-11/dot-audit/`，共 78 个文件
+  ＝75 个谈 DESIGN-LAB 的成员（含 18 张 PNG 截图证据）+ 3 个只作上下文读取的根文件
+  （11 个根报告里已有 8 个属于上面那 75 个；实测按清单核对 missing=0、extra=0）；
   Git 忽略，不随 `git clone` 走，跨机器交接须带原 ZIP。二进制证据（PNG）也按哈希
   登记在机器清单里，未逐张读图的部分不写成结论。
 - 取代关系：本条是新增输入，不改写任何冻结原件；`docs/history/record-archive-2026-10-09/ARCHIVE-MANIFEST.json`
