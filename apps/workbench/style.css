@@ -1047,7 +1047,7 @@ html,body{margin:0}
 .modal .body{color:var(--muted);line-height:1.6}
 .modal .actions{display:flex;justify-content:flex-end;gap:10px;margin-top:18px}
 .drawer{
-  position:fixed;top:0;right:-540px;height:100vh;width:min(520px,95vw);
+  position:fixed;top:0;right:0;transform:translateX(540px);height:100vh;width:min(520px,95vw);
   background:linear-gradient(180deg,color-mix(in srgb,var(--surface) 90%, white 1%),color-mix(in srgb,var(--surface) 98%, black 1%));
   border-left:1px solid color-mix(in srgb,var(--primary) 28%, white 4%);
   box-shadow:-18px 0 50px rgba(0,0,0,.25);
@@ -1056,15 +1056,21 @@ html,body{margin:0}
   /* Off-canvas alone is NOT hidden: every control inside a closed drawer stayed
      Tab-reachable and exposed to assistive tech as a phantom dialog. The
      visibility step is delayed by the slide duration on close and immediate on
-     open, so the transition still reads the same. */
+     open, so the transition still reads the same.
+     The slide is a transform, not `right`: translating the box composites, while
+     animating `right` re-lays out the page every frame. SRC-T07-MOTION-COMPOSITED
+     (packages/capabilities/standards/MOTION_ACCESSIBILITY.md) measured these two
+     declarations as the last layout-triggering animations in this stylesheet.
+     translateX(540px) reproduces the old right:-540px rect exactly: same 540px,
+     same width min(520px,95vw), so every geometry gate reads the same box. */
   visibility:hidden;
-  transition:right .28s cubic-bezier(.2,0,0,1),visibility 0s linear .28s;
+  transition:transform .28s cubic-bezier(.2,0,0,1),visibility 0s linear .28s;
 }
 .drawer.open{
   visibility:visible;
-  transition:right .28s cubic-bezier(.2,0,0,1),visibility 0s linear 0s;
+  transition:transform .28s cubic-bezier(.2,0,0,1),visibility 0s linear 0s;
 }
-.drawer.open{right:0}
+.drawer.open{transform:none}
 .palette{
   position:fixed;left:50%;top:11vh;transform:translateX(-50%);
   width:min(820px,96vw);

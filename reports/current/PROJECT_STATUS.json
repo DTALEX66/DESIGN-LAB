@@ -8,26 +8,41 @@
   },
   "fresh": false,
   "freshnessMeaning": "at generation only; check verifies bound-input integrity, not current Git or cloud state",
-  "generatedAt": "2026-10-11T09:47:17+00:00",
+  "generatedAt": "2026-10-11T10:05:57+00:00",
   "git": {
     "branch": "qoder/designlab-backup-consistency-20261007",
     "origin_main": "fc03a3033e900a8066d863a223636cc68804c4fa",
-    "sha": "2d9ab95ac3bbdc49d441b416f213f8d5e94713d6",
+    "sha": "c8139060515498b40ba5e636049816124bb6554f",
     "source_worktree_clean": false,
     "tracked_files": 3601,
     "worktree_changes": [
       {
-        "content": "sha256:b8e5d2cd445fe327004012c3c1e67b1cc36ff3e3452d992a9d24986f13ece142",
+        "content": "sha256:295676ceb2a7bc88907ed6b6773c19762805838fc98f381beebfe9aff5d502ec",
+        "kind": "M",
+        "path": "apps/workbench/style.css"
+      },
+      {
+        "content": "sha256:fe2d694fd71a24598e5019c99f312da39ae0c59d4ef56414d95e7fca3e3b2693",
         "kind": "M",
         "path": "design-lab/config/task-ledger-r3.json"
       },
       {
-        "content": "sha256:e632a6b67c0ec708e15ed88aed34e2b6bbd3270a52436617533650b59c67b035",
+        "content": "sha256:df1c5cd424fd446b48a69d3c209f4388ce8a541631df9098086ff0184a698339",
+        "kind": "M",
+        "path": "design-lab/tests/test_selected_source_adaptation.py"
+      },
+      {
+        "content": "sha256:2ac1112d20eb3e0a855c133ca7a3c1891e795263edcea2580e6a92254a4b7c21",
         "kind": "M",
         "path": "docs/audits/DESIGNLAB-UI-R2-DESIGN-QA-2026-10-09.md"
+      },
+      {
+        "content": "sha256:4e0a1eb6b2d93fcc01a07efdfc3f172cb477f33e6e71936ae5fc52494d2b4741",
+        "kind": "M",
+        "path": "packages/capabilities/selected-sources.json"
       }
     ],
-    "worktree_digest": "sha256:0eaccedfd4b9fb1d19124883397423237a07c4db6b67533b727c78292d159f05"
+    "worktree_digest": "sha256:38a314077830e76e3421401c179676b49b4ad2fa9958a24aa41979721a2bddea"
   },
   "gitStateMeaning": "generation-time observation, not current HEAD",
   "hostLive": "derived from host_live axis only",
@@ -43,7 +58,7 @@
     "quarantinedSources": 162
   },
   "subjectMeaning": "subjectType=WORKTREE means the tree was dirty at generation; worktreeDigest covers HEAD plus the non-generated changes",
-  "subjectSha": "2d9ab95ac3bbdc49d441b416f213f8d5e94713d6",
+  "subjectSha": "c8139060515498b40ba5e636049816124bb6554f",
   "subjectType": "WORKTREE",
   "taskCounts": {
     "NOT_STARTED": 24,
@@ -61,5 +76,5 @@
     "executed": "see individual verified ledger receipts"
   },
   "worktreeClean": false,
-  "worktreeDigest": "sha256:0eaccedfd4b9fb1d19124883397423237a07c4db6b67533b727c78292d159f05"
+  "worktreeDigest": "sha256:38a314077830e76e3421401c179676b49b4ad2fa9958a24aa41979721a2bddea"
 }

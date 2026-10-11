@@ -66,7 +66,7 @@ class SelectedSourceAdaptation(unittest.TestCase):
         self.assertEqual(0, res.returncode, res.stdout + res.stderr)
         out = res.stdout
         self.assertIn('SELECTED_SOURCES=OK', out)
-        for token in ('records=6', 'mapped=2', 'consumed=0', 'motion_deviations=2'):
+        for token in ('records=6', 'mapped=2', 'consumed=0', 'motion_deviations=0'):
             self.assertIn(token, out)
         # The citations were re-read from the vendored blob here; a green run that checked
         # nothing would print VERIFIED(0) and still exit 0.
@@ -334,14 +334,20 @@ class SelectedSourceAdaptation(unittest.TestCase):
 
     # ---------------------------------------------------- the derived motion validator
     def test_composited_motion_counts_the_real_stylesheet(self):
-        violations = gate.composited_motion_violations(REPO, ['apps/workbench/style.css'])
-        self.assertEqual(2, len(violations), violations)
-        self.assertEqual({'right'}, {v['property'] for v in violations}, violations)
-        self.assertTrue(all(v['declaration'].startswith('transition:') for v in violations))
         land = record(self.doc, 'visual-quality__motion-design-skill')['landing'][0]
-        self.assertEqual([v['declaration'] for v in violations],
-                         [d['declaration'] for d in land['knownDeviations']],
-                         'the record must carry exactly this measurement')
+        scope = land['appliesTo']
+        self.assertIn('apps/workbench/build/main.js', scope,
+                      'the built bundle the applet actually loads is outside the rule scope')
+        self.assertEqual(7, len(scope), scope)
+        violations = gate.composited_motion_violations(REPO, scope)
+        self.assertEqual([], violations, 'a layout-triggering animation came back into the CSS')
+        self.assertEqual([], land['knownDeviations'])
+        # An empty ledger must still say it was measured, or the next reader deletes it
+        # as decoration. The two declarations this rule found on 2026-10-11 are named here.
+        note = land.get('deviationLedgerNote') or ''
+        self.assertIn('NOT', note, 'the empty deviation ledger carries no provenance note')
+        for needle in ('1061', '1065', 'translateX(540px)'):
+            self.assertIn(needle, note, note[:120])
 
     def test_composited_motion_convicts_a_planted_layout_transition(self):
         with tempfile.TemporaryDirectory() as tmp:

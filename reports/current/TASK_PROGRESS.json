@@ -12,7 +12,7 @@
   },
   "fresh": false,
   "freshnessMeaning": "at generation only; check verifies bound-input integrity, not current Git or cloud state",
-  "generatedAt": "2026-10-11T09:47:17+00:00",
+  "generatedAt": "2026-10-11T10:05:57+00:00",
   "gitStateMeaning": "generation-time observation, not current HEAD",
   "ledger_partition": "currentExecution",
   "meaning": "Parent/subtask inventory is not a capability count or completion percentage. Definition adoption does not implement product tasks; R5 evidence is historical.",
@@ -27,7 +27,7 @@
     "taskpack": "DL-TP-20260908-R5"
   },
   "subjectMeaning": "subjectType=WORKTREE means the tree was dirty at generation; worktreeDigest covers HEAD plus the non-generated changes",
-  "subjectSha": "2d9ab95ac3bbdc49d441b416f213f8d5e94713d6",
+  "subjectSha": "c8139060515498b40ba5e636049816124bb6554f",
   "subjectType": "WORKTREE",
   "taskpack": "DL-TP-20261009-UI-FIRST-R1",
   "taskpackHash": "f91ebe9b67ab4f83be91fe8f3ca0fc80fc93176263bec05d883fa6ce6afd6480",
@@ -145,7 +145,9 @@
       "evidence": [
         "DL-FINAL-T07-selected-sources",
         "DL-FINAL-T07-task-tests",
-        "DL-FINAL-T07-motion-deviations"
+        "DL-FINAL-T07-motion-deviations",
+        "DL-FINAL-T07-deviation-ledger-cleared-r20",
+        "DL-FINAL-T07-task-tests-r20"
       ],
       "evidence_level": "SEE_BOUND_RECEIPTS",
       "id": "DL-FINAL-T07",
@@ -573,7 +575,12 @@
         "DL-UI-U02-overflow-recheck-both-palettes-r15",
         "DL-UI-U02-theme-copy-completed-r16",
         "DL-UI-U02-bundle-rebuild-regression-r16",
-        "DL-UI-U02-records-shot-shows-chooser-not-the-affordance-r16"
+        "DL-UI-U02-records-shot-shows-chooser-not-the-affordance-r16",
+        "DL-UI-U02-overflow-gate-composited-r20",
+        "DL-UI-U02-theme-geometry-composited-r20",
+        "DL-UI-U02-captures-default-after-composited-r20",
+        "DL-UI-U02-captures-light-after-composited-r20",
+        "DL-UI-U02-pixel-identity-vs-reviewed-r20"
       ],
       "evidence_level": "SEE_BOUND_RECEIPTS",
       "id": "DL-UI-U02",
@@ -831,5 +838,5 @@
   "testRunMeaning": "bound run: python scripts/run_bound_test_suite.py --modules test_boot_reconciliation",
   "testRunResult": "OK",
   "worktreeClean": false,
-  "worktreeDigest": "sha256:0eaccedfd4b9fb1d19124883397423237a07c4db6b67533b727c78292d159f05"
+  "worktreeDigest": "sha256:38a314077830e76e3421401c179676b49b4ad2fa9958a24aa41979721a2bddea"
 }

@@ -453,6 +453,16 @@ CI 实测：@ `c46a4525` 三条聚合红全部来自这一条根因（读数见�
   本项目六轴 + 人审门已经在评同一件事。并进来会有两套评分真相，不并进来则「引用具名启发式」这条
   取证纪律拿不到（它正是我要借的那条，已提炼但不落文档）。
   **要裁的是：把它当引用词汇表（不改六轴）还是当第二评分体系。**
+- **J：`aside#drawer` 的触发器在桌面宽度上不可点（第二十批实测，原因未定位）。** 想把抽屉的
+  开启几何做成常设断言时，Playwright 在 **1920 / 960 / 1440** 三个宽度都对 `#openDrawer` 报
+  `element is not visible`（locator 已解析到 `<button id="openDrawer" class="ghost-btn">工作区</button>`
+  本身，日志在 `.project-local/task-artifacts/ui-first-20261009/b20-20261011/drawer-trigger-probe-*.log`），
+  而 `apps/workbench/style.css:1264` 在 `@media (max-width:840px)` 里显式写了 `.top-actions{display:none}`。
+  也就是说：窄屏按规则隐藏，宽屏按渲染不可见，**我这个会话测过的每个宽度上都点不到它**，
+  而 `wireB10Topbar()` 仍给它挂了 handler。未定位的是"宽屏为什么不可见"（我没找到隐藏它的规则，
+  所以这条不是结论而是缺口）。**要裁的是：抽屉在桌面是否应当可达**——应当则补一个可达触发器并把
+  断言做成常设闸；不应当则该组件与其 CSS 是移除候选，我不会自行删。
+  本批因此**回退了那段断言**，而不是留一具永不通过的闸。
 
 ## 第七批追记（2026-10-09 深夜，Major 7：领域成为二级入口）
 
@@ -873,4 +883,44 @@ clipped/stray/tiny 均为 0；appshell vm 合同面退出 0（①–⑯ 全过�
   本地一跑就全收；要在 CI 里拿到测试结论，需要 owner 允许把该步骤改成
   `if: always()` 或把聚合链拆开——那是动 CI 拓扑，我不自行做。
 
+## 第二十批追记（2026-10-11，把第十九批量出的两处布局动画改掉，并且真的去数像素）
 
+- 补一条更完整的 CI 读数（@ `c8139060`，run 38129638692，逐作业照抄）：与 `2d9ab95a` 同形——
+  9 个作业 success，只有 `Python gate` failure，三条红仍是
+  `verify_route_payload_contracts.py` / `scripts/verify_current_execution.py` /
+  `verify_projection_freshness.py`，`VERIFY_DESIGN_LAB=FAIL total=75 failed=3`，
+  `Python unit tests` 步骤继续 `skipped`。
+- **改了什么**：`apps/workbench/style.css` 的抽屉从 `right:-540px` ↔ `right:0` 改成
+  `right:0` + `transform:translateX(540px)` ↔ `transform:none`，transition 列表里 `right` → `transform`；
+  `visibility` 的"关闭延迟 .28s / 打开立即"机制一字未动（那是 Tab 可达性的修复，不能被顺手改掉）。
+  等值性是可算的：同一个 540px、同一个 `width:min(520px,95vw)`，所以闭屏矩形
+  `left = innerWidth - width + 540` 与改前完全一致。`style.css` 新字节 `295676ceb2a7…`
+  （101,549 B，原 101,028 B，多出来的是注释）。
+- **闸先证明自己会红**：改完后 `verify_selected_source_adaptation.py` 立刻报两条
+  `recorded deviation … no longer exists`（`knownDeviations` 里还留着已修掉的条目），
+  重采集生成后才 `motion_deviations=0`。判定范围同时从 1 个文件扩到 **7 个前端字节面**
+  （样式表、已提交构建产物 `build/main.js`、`shell/workbench/design/contracts/main` 五个 TS 源），
+  实测总偏差 0；空清单里写了 `deviationLedgerNote` 说明它不是"从未测过"，并由测试钉住
+  （`test_composited_motion_counts_the_real_stylesheet` 要求 scope 含 `build/main.js`，
+  且注释里必须留 1061/1065/translateX(540px) 三个记号）。
+- **浏览器侧复跑**：`E2E_REQUIRED=1 python design-lab/scripts/verify_browser_e2e_ran.py` →
+  `BROWSER_E2E ran=7 skipped=0 failed=0`（四份套件全跑，无跳过）；
+  `workbench-overflow-gate.json` 与 `workbench-theme-geometry-gate.json` 两份报告都把
+  `style.css 295676ceb2a7` 写进自己的字节（`styleSha256`），所以它们测的就是改后的树。
+- **两套配色 × 1920/960 各 46 张重拍**
+  （`.project-local/task-artifacts/ui-first-20261009/b20-20261011/`）。逐张 sha256 与 owner 已审的
+  `qa-20261011g` 集合对比：`design-lab/dark` **29/46** 摘要变了，`ui2026/light` **27/46** 变了。
+  **这个计数本身不能当"像素变了"的证据**——采集每次都新建自己的项目（清单里 `project.name`
+  带毫秒时间戳），落地页内容本来就随运行变。于是改成逐点像素差：`15-domain-detail@1920` 差
+  **0 像素**（`getbbox()` 为 null，逐像素等同，它也在未变的那 17 张里）；`00-workbench@1920` 差
+  **14.149%**，差异框 `x174..1461 / y222..1080`——导航栏（x<174）与右边缘（抽屉所在侧）分毫未动；
+  浅色同形 **13.771%**。结论按证据写：改动没有触及任何被审阅的版面几何；摘要计数变动是运行期
+  内容使然。两份读数在回执 `pixel-digest-comparison.json` 里并存，不用其中一份掩盖另一份。
+- **一次失败尝试换回一条真缺口（见 owner 清单 J）**：我原打算把"抽屉开启后的几何 +
+  computed transitionProperty"做成常设断言（因为路由扫描看不见离屏差异）。它在
+  1920/960/1440 都点不到 `#openDrawer`（Playwright：`element is not visible`，locator 已解析到按钮），
+  而 ≤840 是规则里显式隐藏的。我没有留一具永不通过的闸，也没有把断言改成 JS 直调来"过"，
+  而是回退断言、把三份探针日志与三份宽度读数存档，并把"桌面是否应当可达"作为 J 交给 owner。
+- 本批不动 bundle（`build/main.js` 仍是 `255e992ac03b…`）、不动配色、不碰手机端。
+  回执 7 条：browser 2 / visual_review 3 / implementation 1 / unit 1，全部 exit 0，账本共 179 条；
+  `DL-FINAL-T07` 与 `DL-UI-U02` 仍 PARTIAL，不自行升档。
