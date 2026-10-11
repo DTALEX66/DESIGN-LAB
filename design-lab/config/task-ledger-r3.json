@@ -3,7 +3,7 @@
   "taskpack": "DL-TP-20260908-R5",
   "plan_path": "docs/history/taskpacks/r5-20260908/02-TASKS.md",
   "baseline_sha": "ed8d45ab2857b312f6056c43f7bb5e19dd9b65eb",
-  "updated_at": "2026-10-09T11:17:27+00:00",
+  "updated_at": "2026-10-11T21:44:19Z",
   "source": {
     "path": "docs/history/taskpacks/r5-20260908/tasks.json",
     "sha256": "31dde89eb4ede81fe88c0a5c5144adfb86af8db4c4d8c263bde2199180369b69"
@@ -8358,7 +8358,8 @@
         "evidence": [
           "DL-FINAL-T05-implementation",
           "DL-FINAL-T05-unit",
-          "DL-FINAL-T05-clean-install-measured-r11"
+          "DL-FINAL-T05-clean-install-measured-r11",
+          "DL-FINAL-T05-packaged-read-paths-r22"
         ]
       },
       {
@@ -8588,7 +8589,11 @@
           "DL-UI-U02-browser-battery-rerun-r21",
           "DL-UI-U02-bundle-rebuilt-r21",
           "DL-UI-U02-captures-dark-r21",
-          "DL-UI-U02-captures-light-r21"
+          "DL-UI-U02-captures-light-r21",
+          "DL-UI-U02-browser-battery-r22",
+          "DL-UI-U02-bundle-rebuilt-r22",
+          "DL-UI-U02-captures-default-r22",
+          "DL-UI-U02-captures-ui2026-r22"
         ]
       },
       {
@@ -8656,7 +8661,9 @@
           "DL-UI-U05-continue-affordance-r10",
           "DL-UI-U05-continue-falsified-r10",
           "DL-UI-U05-conflict-kind-r10",
-          "DL-UI-U05-continue-affordance-pixel-evidence-r17"
+          "DL-UI-U05-continue-affordance-pixel-evidence-r17",
+          "DL-UI-U05-plan-key-and-receipt-contract-r22",
+          "DL-UI-U05-both-hosts-enqueue-202-and-readback-r22"
         ]
       },
       {
@@ -8996,7 +9003,7 @@
         "outcome": "PASS",
         "subject_sha": "14e99f03ae95d76d19bb91c3b70250c96ae567b4",
         "artifact_path": "docs/audits/DESIGNLAB-UI-R2-DESIGN-QA-2026-10-09.md",
-        "artifact_sha256": "78d8bef9d627f88788d8a5c8eb392f20e95a9435b05ed92e24ce10feff0867fa",
+        "artifact_sha256": "0324a53d571aed202053877e251d9397a223d348c2d26936219c19d96234edd5",
         "command": "design-review:design-qa over the landed desktop batch: R2 spec + 22 reference screens vs 19+19 same-bundle captures; verdict Pass with warnings",
         "exit_code": 0,
         "observed_at": "2026-10-09T17:05:11Z"
@@ -10547,7 +10554,7 @@
         "command": "python design-lab/scripts/verify_route_payload_contracts.py -> PASS bindings=7 failures=0（修前 CI 记 failures=121 = 60 SCHEMA_VIOLATION + 60 UNDECLARED_BY_SCHEMA + 1 条 evidence-projection 拒答）；控制种植 python .project-local/tmp/falsify_schema_fix_batch14.py 把 schema 换回 HEAD 字节后本地复现 failures=120，错误行与 CI 逐字一致，还原后按 digest 断言字节一致（3190c87bfa89，9460 B）。capability 记录声明并必填 axes/qualificationReason（required 24→26），新增 $defs.axisValues（7 轴，null/字符串数组/对象），qualified 由 const null 放开为 boolean|null，qualificationEvidence 放开为 null|array。放开前实测：capability_library.py:70 UNQUALIFIED=None，_qualification() 只在记录自带 bool 判定时写 true/false，model-radar.json 里 \"qualification\" 出现 0 次，所以今天 60 条仍全为 null+reason，契约没有打开伪造通道",
         "exit_code": 0,
         "observed_at": "2026-10-10T14:45:07Z",
-        "artifact_sha256": "78d8bef9d627f88788d8a5c8eb392f20e95a9435b05ed92e24ce10feff0867fa"
+        "artifact_sha256": "0324a53d571aed202053877e251d9397a223d348c2d26936219c19d96234edd5"
       },
       {
         "id": "DL-FINAL-T08-clean-clone-reds-diagnosed-r14",
@@ -10559,7 +10566,7 @@
         "command": "gh run view 38057782601 --log-failed @ aa3cb307 -> VERIFY_DESIGN_LAB=FAIL total=74 failed=3，三条原文见追记。在 aa3cb307 的干净 detached worktree（.project-local/worktrees/ci-repro，git status 0 行）复现 scripts/deepseek_content_audit.py --check：CONTENT_AUDIT=FAIL records=2 findings=2 notices=1，37 个 vendor 树在 clone 里不存在，判定词从 NO_FULL_THIRD_PARTY_SOURCE_TREES_TRACKED 翻成 REVIEW_ABSORBED_TREES_OUTSIDE_LOCK，NOTICE 里 full_copy_in_ignored_cache 37→0、missing_absorbed_tree 0→37；同一条逻辑解释 CURRENT_EXECUTION=FAIL [Errno 2] .../u06/implementation.json。普查账本：153 条证据里 150 条 artifact 指向 gitignored .project-local（125 个不同路径），3 条指向受跟踪文档。仓库体量实测 size-pack=242.71 MiB，origin/main 可达 9430 blob =360.1 MiB 原始字节。两条未自行修：三种修法都要动真值闸判定词，属 owner 裁定",
         "exit_code": 0,
         "observed_at": "2026-10-10T14:45:07Z",
-        "artifact_sha256": "78d8bef9d627f88788d8a5c8eb392f20e95a9435b05ed92e24ce10feff0867fa"
+        "artifact_sha256": "0324a53d571aed202053877e251d9397a223d348c2d26936219c19d96234edd5"
       },
       {
         "id": "DL-UI-U02-theme-geometry-registered-values-corrected-r15",
@@ -10571,7 +10578,7 @@
         "command": "python -m unittest design-lab.tests.test_workbench_theme_tokens -> Ran 8 tests OK；python scripts/design_debt_baseline.py --check -> DESIGN_DEBT_BASELINE=PASS literal_colors=26 literal_px=534（+3 全是媒体查询断点，CSS 不支持 var()，§4 措辞已按实测改数并写明原因）。缺陷来源是实测而非卡片：--uif-font-h1 登记的 29px 与布局行的 232/40/26 都不是包值（包：h1 27、sidebar 256/compact 216、gutter 30/22），232/29 在全仓与包里都搜不到；且侧栏与两个沟槽没有任何规则读取。48 个 --uif-* 里 11 个未被读，新门把\"读得到或在登记表里有理由\"变成硬约束，登记表只许缩；四株种植各自点罪（值改回 232/40、新增无主令牌、把已接线令牌留在登记表、把 78 悄悄对齐成 64）",
         "exit_code": 0,
         "observed_at": "2026-10-10T16:34:23Z",
-        "artifact_sha256": "78d8bef9d627f88788d8a5c8eb392f20e95a9435b05ed92e24ce10feff0867fa"
+        "artifact_sha256": "0324a53d571aed202053877e251d9397a223d348c2d26936219c19d96234edd5"
       },
       {
         "id": "DL-UI-U02-theme-geometry-rendered-r15",
@@ -10583,7 +10590,7 @@
         "command": "THEME_WIDTHS=1920,1200,960,768,700 python -m unittest design-lab.tests.test_workbench_theme_geometry_gate -> Ran 1 test OK；真实 Chromium 三套主题×五宽度量 getBoundingClientRect 与内容 margin-left/padding-right：默认恒为 rail 168 / offset 192 / pad 0；ui2026 在 1920 与 1200 为 256/286/30，在 960 与 768 为 216/238/22；700 时两套读数相同（轨 700、让位 16），证明 min-width 没漏进 FROZEN_DEFERRED 的移动端。findings 与 style/bundle 摘要都进 JSON 回执",
         "exit_code": 0,
         "observed_at": "2026-10-10T16:34:23Z",
-        "artifact_sha256": "78d8bef9d627f88788d8a5c8eb392f20e95a9435b05ed92e24ce10feff0867fa"
+        "artifact_sha256": "0324a53d571aed202053877e251d9397a223d348c2d26936219c19d96234edd5"
       },
       {
         "id": "DL-UI-U02-theme-geometry-falsified-r15",
@@ -10595,7 +10602,7 @@
         "command": "python .project-local/tmp/falsify_theme_geometry_batch15.py -> FALSIFY_THEME_GEOMETRY=OK （第二次跑 PYTHON_EXIT=0）：删掉 @media (min-width:1200px) 的主题规则后闸退出 1，findings=12 覆盖 @1920 与 @1200，罪名 THEME_RAIL_NOT_APPLIED / CONTENT_OFFSET_MISMATCH / GUTTER_NOT_APPLIED；还原后按 sha256 断言字节一致（f5410c1ad591，101028 B），再跑为绿。第一轮我按 wrapper 的 stdout 尾巴找 @1920 定罪行，只看到 @1200——wrapper 截尾 3000 字，把行数截掉了，于是误判种植无效；改成从 JSON 回执读 findings 才是可信判定",
         "exit_code": 0,
         "observed_at": "2026-10-10T16:34:23Z",
-        "artifact_sha256": "78d8bef9d627f88788d8a5c8eb392f20e95a9435b05ed92e24ce10feff0867fa"
+        "artifact_sha256": "0324a53d571aed202053877e251d9397a223d348c2d26936219c19d96234edd5"
       },
       {
         "id": "DL-UI-U02-overflow-recheck-both-palettes-r15",
@@ -10607,7 +10614,7 @@
         "command": "轨宽在可选主题下真的变了（168→216/256），所以溢出面必须重测：UI_PALETTE=design-lab 与 ui2026 各跑 OV_WIDTHS=1920,960,620 python -m unittest design-lab.tests.test_workbench_overflow_gate -> 两次都是 Ran 1 test OK（83.96s / 82.80s），报告各 69 条路由样本、clipped=0 stray=0 tiny=0。判定取 wrapper 的 exit 0+OV_OK，不取 stdout 摘要——两份配色共用同一个 node 日志，最后一写者赢",
         "exit_code": 0,
         "observed_at": "2026-10-10T16:34:23Z",
-        "artifact_sha256": "78d8bef9d627f88788d8a5c8eb392f20e95a9435b05ed92e24ce10feff0867fa"
+        "artifact_sha256": "0324a53d571aed202053877e251d9397a223d348c2d26936219c19d96234edd5"
       },
       {
         "id": "DL-FINAL-T08-owner-list-remeasured-r15",
@@ -10619,7 +10626,7 @@
         "command": "python .project-local/tmp/remeasure_owner_list_20261011.py + measure_axis_population_20261010.py：A 项仍是数据缺失（60 条记录七个轴 0/60 非空、unclassifiedAxes 每条长度 7、qualified 全 None；13 个包目录、12 个 slug、minigame-design 的 manifest 无 domain 键）；C 项 26 处字面色值与 D 项 #316CFF/白 WCAG 比值 4.45 复算一致；E 项 draft_routes=[]（44 条 /api 正则命中里无草稿面）；F 项 test_plan_to_rir 退出 0 而 .project-local/task-artifacts/ocr-qualification/ is_dir()=False。B 项是唯一被我写错的：登记值不是包值且无人读取，已修并重写该段",
         "exit_code": 0,
         "observed_at": "2026-10-10T16:34:23Z",
-        "artifact_sha256": "78d8bef9d627f88788d8a5c8eb392f20e95a9435b05ed92e24ce10feff0867fa"
+        "artifact_sha256": "0324a53d571aed202053877e251d9397a223d348c2d26936219c19d96234edd5"
       },
       {
         "id": "DL-FINAL-T08-authority-chain-regenerated-r15",
@@ -10631,7 +10638,7 @@
         "command": "CI run 38068881580 @ c5e6efd7 里 DeepSeek authority 作业红在 AUTHORITY_CHAIN=DRIFT entries changed since generation: ['design-lab/config/task-ledger-r3.json', 'docs/history/taskpacks/20261009-r2-inputs/ui-r2/...']；本地复现同一条后按 sanctioned 修法重跑 python scripts/deepseek_authority_chain.py 并提交其记录（不碰四个钉死文件）。实测：AUTHORITY_CHAIN=WRITTEN entries=144，新增 13 条（12 HISTORICAL + 1 REFERENCE，basis 均为路径规则 \"frozen historical path (docs/history/)\"），新旧类别差=0；--check 为 AUTHORITY_CHAIN=PASS；python scripts/verify_authority_gates.py --zero-spill 为 AUTHORITY_GATES=PASS gates=7 failed=none（source-lock 46 条、contract-graph、language-boundary、bound test-gate 四序 skipped=0 一起绿）",
         "exit_code": 0,
         "observed_at": "2026-10-10T17:01:47Z",
-        "artifact_sha256": "78d8bef9d627f88788d8a5c8eb392f20e95a9435b05ed92e24ce10feff0867fa"
+        "artifact_sha256": "0324a53d571aed202053877e251d9397a223d348c2d26936219c19d96234edd5"
       },
       {
         "id": "DL-UI-U02-theme-copy-completed-r16",
@@ -10643,7 +10650,7 @@
         "artifact_path": "docs/audits/DESIGNLAB-UI-R2-DESIGN-QA-2026-10-09.md",
         "exit_code": 0,
         "observed_at": "2026-10-10T18:16:28Z",
-        "artifact_sha256": "78d8bef9d627f88788d8a5c8eb392f20e95a9435b05ed92e24ce10feff0867fa"
+        "artifact_sha256": "0324a53d571aed202053877e251d9397a223d348c2d26936219c19d96234edd5"
       },
       {
         "id": "DL-UI-U02-bundle-rebuild-regression-r16",
@@ -10655,7 +10662,7 @@
         "artifact_path": "docs/audits/DESIGNLAB-UI-R2-DESIGN-QA-2026-10-09.md",
         "exit_code": 0,
         "observed_at": "2026-10-10T18:16:28Z",
-        "artifact_sha256": "78d8bef9d627f88788d8a5c8eb392f20e95a9435b05ed92e24ce10feff0867fa"
+        "artifact_sha256": "0324a53d571aed202053877e251d9397a223d348c2d26936219c19d96234edd5"
       },
       {
         "id": "DL-UI-U02-records-shot-shows-chooser-not-the-affordance-r16",
@@ -10667,7 +10674,7 @@
         "artifact_path": "docs/audits/DESIGNLAB-UI-R2-DESIGN-QA-2026-10-09.md",
         "exit_code": 0,
         "observed_at": "2026-10-10T18:16:28Z",
-        "artifact_sha256": "78d8bef9d627f88788d8a5c8eb392f20e95a9435b05ed92e24ce10feff0867fa"
+        "artifact_sha256": "0324a53d571aed202053877e251d9397a223d348c2d26936219c19d96234edd5"
       },
       {
         "id": "DL-UI-U05-continue-affordance-pixel-evidence-r17",
@@ -10679,7 +10686,7 @@
         "artifact_path": "docs/audits/DESIGNLAB-UI-R2-DESIGN-QA-2026-10-09.md",
         "exit_code": 0,
         "observed_at": "2026-10-11T07:47:17Z",
-        "artifact_sha256": "78d8bef9d627f88788d8a5c8eb392f20e95a9435b05ed92e24ce10feff0867fa"
+        "artifact_sha256": "0324a53d571aed202053877e251d9397a223d348c2d26936219c19d96234edd5"
       },
       {
         "id": "DL-FINAL-T08-capture-seeding-order-fixed-r17",
@@ -10691,7 +10698,7 @@
         "artifact_path": "docs/audits/DESIGNLAB-UI-R2-DESIGN-QA-2026-10-09.md",
         "exit_code": 0,
         "observed_at": "2026-10-11T07:47:17Z",
-        "artifact_sha256": "78d8bef9d627f88788d8a5c8eb392f20e95a9435b05ed92e24ce10feff0867fa"
+        "artifact_sha256": "0324a53d571aed202053877e251d9397a223d348c2d26936219c19d96234edd5"
       },
       {
         "id": "DL-UI-U03-domain-capability-join-read-r18",
@@ -10703,7 +10710,7 @@
         "artifact_path": "docs/audits/DESIGNLAB-UI-R2-DESIGN-QA-2026-10-09.md",
         "exit_code": 0,
         "observed_at": "2026-10-11T08:44:25Z",
-        "artifact_sha256": "78d8bef9d627f88788d8a5c8eb392f20e95a9435b05ed92e24ce10feff0867fa"
+        "artifact_sha256": "0324a53d571aed202053877e251d9397a223d348c2d26936219c19d96234edd5"
       },
       {
         "id": "DL-FINAL-T08-overflow-spec-now-checks-state-agreement-r18",
@@ -10715,7 +10722,7 @@
         "artifact_path": "docs/audits/DESIGNLAB-UI-R2-DESIGN-QA-2026-10-09.md",
         "exit_code": 0,
         "observed_at": "2026-10-11T08:44:25Z",
-        "artifact_sha256": "78d8bef9d627f88788d8a5c8eb392f20e95a9435b05ed92e24ce10feff0867fa"
+        "artifact_sha256": "0324a53d571aed202053877e251d9397a223d348c2d26936219c19d96234edd5"
       },
       {
         "id": "DL-UI-U03-domain-detail-screens-r18",
@@ -10727,7 +10734,7 @@
         "artifact_path": "docs/audits/DESIGNLAB-UI-R2-DESIGN-QA-2026-10-09.md",
         "exit_code": 0,
         "observed_at": "2026-10-11T08:44:25Z",
-        "artifact_sha256": "78d8bef9d627f88788d8a5c8eb392f20e95a9435b05ed92e24ce10feff0867fa"
+        "artifact_sha256": "0324a53d571aed202053877e251d9397a223d348c2d26936219c19d96234edd5"
       },
       {
         "id": "DL-FINAL-T07-selected-sources",
@@ -10856,8 +10863,8 @@
         "outcome": "PASS",
         "subject_sha": "3b0699f9ce8049bad606b1e888ac8e26c155281b",
         "artifact_path": ".project-local/task-artifacts/browser-e2e/workbench-theme-affordance-gate.json",
-        "artifact_sha256": "e03d9b685075428fddd7f14d951968f2f5aed1510df979e724737b124b0cfac9",
-        "command": "python -m unittest design-lab.tests.test_workbench_theme_affordance_gate -- the new gate clicks the shipped control in Chromium: data-palette design-lab -> ui2026, --surface #0D1221 -> #ffffff, and GET /workbench?palette=ui2026&scheme=light answered 200 (was 401). findings=0",
+        "artifact_sha256": "beb7031623f270ed38a57fb32c4a09d6b3cf3c6c312aee8adb0b946bcb58bbe4",
+        "command": "python -m unittest design-lab.tests.test_workbench_theme_affordance_gate -- the new gate clicks the shipped control in Chromium: data-palette design-lab -> ui2026, --surface #0D1221 -> #ffffff, and GET /workbench?palette=ui2026&scheme=light answered 200 (was 401). findings=0 | RESEALED 2026-10-12: this browser gate re-ran inside the b22 battery, so the file at this path is the new run against bundle 91235532ca42 (findings=0). Only the measured artifact hash moved; the gate, its name and its claim are unchanged.",
         "exit_code": 0,
         "observed_at": "2026-10-11T11:25:06Z"
       },
@@ -10868,8 +10875,8 @@
         "outcome": "PASS",
         "subject_sha": "3b0699f9ce8049bad606b1e888ac8e26c155281b",
         "artifact_path": ".project-local/task-artifacts/browser-e2e/affordance-shots/clicked-design-lab-to-ui2026@1440.png",
-        "artifact_sha256": "14f50ee33526c4dd1539a06f9572428970a088f41ad7447fe986b29e999a645f",
-        "command": "page.screenshot taken from the click path itself (not from a driver that presets the attributes); shot set=[\"clicked-design-lab-to-ui2026@1440.png\"]; bundle 5829f52a4fa7",
+        "artifact_sha256": "f84ff656a9b0156cdeb19d600037edda4e6b8a068c7debdcc827c5845247b167",
+        "command": "page.screenshot taken from the click path itself (not from a driver that presets the attributes); shot set=[\"clicked-design-lab-to-ui2026@1440.png\"]; bundle 91235532ca42 (resealed 2026-10-12: the b22 battery re-took this click-path screenshot against the rebuilt bundle; only the measured hash moved)",
         "exit_code": 0,
         "observed_at": "2026-10-11T11:25:06Z"
       },
@@ -10944,6 +10951,90 @@
         "command": "python .project-local/tmp/capture_uncommitted.py b21-20261011/screens-ui2026-light 1920,960 -- re-shot because this batch rebuilt the bundle (5829f52a4fa7); manifest binds 5829f52a4fa7, deviation recorded: shot from the working tree, the tracked exact-commit guard left intact",
         "exit_code": 0,
         "observed_at": "2026-10-11T11:25:06Z"
+      },
+      {
+        "id": "DL-UI-U05-plan-key-and-receipt-contract-r22",
+        "task_id": "DL-UI-U05",
+        "axis": "unit",
+        "outcome": "PASS",
+        "subject_sha": "625658c9ec8bdd7442e411a7d2e888c142f425b2",
+        "artifact_path": ".project-local/task-artifacts/ui-first-20261009/b22-20261012/unit-b22.log",
+        "artifact_sha256": "5392f2d8ff34e9a96ac4f27ecad3134b7c80e2bf1e30f20a9807674b5d5f11d1",
+        "command": "python -m unittest design-lab.tests.test_workbench_native_ui (15 tests; the new case reads composeTargetPlan().rir.layers[0].locked for BOTH hosts, asserts contentKey is stable per intent and distinct per host and hex-shaped, and reads the 202 task out of `task` instead of top-level fields)",
+        "exit_code": 0,
+        "observed_at": "2026-10-11T21:44:19Z"
+      },
+      {
+        "id": "DL-UI-U05-both-hosts-enqueue-202-and-readback-r22",
+        "task_id": "DL-UI-U05",
+        "axis": "unit",
+        "outcome": "PASS",
+        "subject_sha": "625658c9ec8bdd7442e411a7d2e888c142f425b2",
+        "artifact_path": ".project-local/task-artifacts/ui-first-20261009/b22-20261012/http-route-r22.log",
+        "artifact_sha256": "18f061d2c57446b0ec2bcfe0140e20a15d31c6c29c9293151470d78587ef1dc9",
+        "command": "python -m unittest design-lab.tests.test_service_http.ServiceHttpTests.test_default_composed_plan_enqueues_for_both_hosts (real CLI process + loopback: both hosts 202, job_id regex, PENDING attempt, listed by GET /tasks, an identical second POST replays the same body, and a locked layer is still 400 -- the lowering contract was not widened)",
+        "exit_code": 0,
+        "observed_at": "2026-10-11T21:44:19Z"
+      },
+      {
+        "id": "DL-FINAL-T05-packaged-read-paths-r22",
+        "task_id": "DL-FINAL-T05",
+        "axis": "unit",
+        "outcome": "PASS",
+        "subject_sha": "625658c9ec8bdd7442e411a7d2e888c142f425b2",
+        "artifact_path": ".project-local/task-artifacts/ui-first-20261009/b22-20261012/packaged-read-paths-r22.log",
+        "artifact_sha256": "408a7b98fd024857fdc7274405b2fa47eb5eb57b011b6ceb5ae37f084891c93e",
+        "command": "python -m unittest design-lab.tests.test_workbench_served_bundle (4 tests; the served-bundle identity check no longer skips in INSTALLED_MODE, and repo_resource() resolves both the rights and research schemas plus the domain-pack root)",
+        "exit_code": 0,
+        "observed_at": "2026-10-11T21:44:19Z"
+      },
+      {
+        "id": "DL-UI-U02-browser-battery-r22",
+        "task_id": "DL-UI-U02",
+        "axis": "browser",
+        "outcome": "PASS",
+        "subject_sha": "625658c9ec8bdd7442e411a7d2e888c142f425b2",
+        "artifact_path": ".project-local/task-artifacts/ui-first-20261009/b22-20261012/e2e-b22.log",
+        "artifact_sha256": "a4305ef406d87693a73cce04dafb56fb5c75689b1a543170f93ed2bb0bae6795",
+        "command": "E2E_REQUIRED=1 python design-lab/scripts/verify_browser_e2e_ran.py with node from the scoop toolchain (ran=8 skipped=0 failed=0; the reading is E2E_EXIT from the log, not the wrapper status)",
+        "exit_code": 0,
+        "observed_at": "2026-10-11T21:44:19Z"
+      },
+      {
+        "id": "DL-UI-U02-bundle-rebuilt-r22",
+        "task_id": "DL-UI-U02",
+        "axis": "implementation",
+        "outcome": "PASS",
+        "subject_sha": "625658c9ec8bdd7442e411a7d2e888c142f425b2",
+        "artifact_path": ".project-local/task-artifacts/ui-first-20261009/b22-20261012/bundle-r22.json",
+        "artifact_sha256": "3f0e3fbc6dfe386b930725dc6dd257935d8110f8b1dbf5b1bc560e601f272cd9",
+        "command": "sha256+size over apps/workbench/build/main.js, recorded because the bundle changed this batch: every screenshot bound to the previous bytes is void for the current bundle",
+        "exit_code": 0,
+        "observed_at": "2026-10-11T21:44:19Z"
+      },
+      {
+        "id": "DL-UI-U02-captures-default-r22",
+        "task_id": "DL-UI-U02",
+        "axis": "visual_review",
+        "outcome": "PASS",
+        "subject_sha": "625658c9ec8bdd7442e411a7d2e888c142f425b2",
+        "artifact_path": ".project-local/task-artifacts/ui-first-20261009/b22-20261012/screens-default/screenshot-manifest.json",
+        "artifact_sha256": "acd521a8738925da58363f45773e0b3e4e884bc1a840876de54c33ae1b53c79b",
+        "command": "capture_uncommitted.py b22-20261012/screens-default 1920,960 (46 shots; deviation recorded in SUBJECT.json -- shot from the working tree, the tracked exact-commit guard left intact)",
+        "exit_code": 0,
+        "observed_at": "2026-10-11T21:44:19Z"
+      },
+      {
+        "id": "DL-UI-U02-captures-ui2026-r22",
+        "task_id": "DL-UI-U02",
+        "axis": "visual_review",
+        "outcome": "PASS",
+        "subject_sha": "625658c9ec8bdd7442e411a7d2e888c142f425b2",
+        "artifact_path": ".project-local/task-artifacts/ui-first-20261009/b22-20261012/screens-ui2026/screenshot-manifest.json",
+        "artifact_sha256": "5d6d1cfcf142cabdd271ee17ba538c7e8bb474cfca042acedc27393cf7cc5721",
+        "command": "UI_PALETTE=ui2026 capture_uncommitted.py b22-20261012/screens-ui2026 1920,960 (46 shots; same deviation, alternate palette)",
+        "exit_code": 0,
+        "observed_at": "2026-10-11T21:44:19Z"
       }
     ],
     "note": "2026-10-11 第五批（第二十一批，云端 DOT 审计 D13 落地：主题按钮真的改绘制，界面自己写的 URL 能重载）。审计包观测点是 835fa880，我用 git diff 证明 shell.ts / http_service.py 在 835fa880..HEAD 之间一字未动，所以这条不是\"已被今天修掉\"而是新修。两处根因：① 前端 shell.ts 的 palette/scheme 两个 onclick 原来都是\"先 writeUrlParam，再 applyTheme(readThemeChoice())\"，而 readThemeChoice 按 6098-6100 的注释故意优先读已应用的 <html> 属性——于是它读回的是还没写进去的旧值，两个按钮在真实浏览器里都是空转（我把顺序改成先 apply 意图值、再写 URL）；② 服务端 dispatch 用 self.path 与路由表比较，BaseHTTPRequestHandler 给的 self.path 含 query，所以 /workbench?palette=ui2026 落到需要鉴权的分支——浏览器导航没有 token，答案就是 401（现在按 urlsplit(self.path).path 匹配页面路由，遍历型路径仍 404）。新增第五份浏览器闸 test_workbench_theme_affordance_gate（已登记进 verify_browser_e2e_ran.TEST_MODULES；不登记就永远 skip，这正是缺陷躲过所有绿聚合的原因），它点的是当前 bundle 里的真控件，读数 findings=0：data-palette design-lab → ui2026，--surface #0D1221 → #101a26，body rgb(6,10,20) → rgb(8,14,22)，location.search \"\" → \"?palette=ui2026\"，状态读数 [\"200 (no query)\",\"200 ?palette=ui2026&scheme=light\"]。第一版探针超时，原因是屏上同时存在两套 .theme-toggle（遗留视图那套不可见），Playwright 默认点了隐藏那条；现在断言\"每个动作恰好一条可见\"，隐藏孪生控件本身就是罪名。真值测试改动如实交代：design-lab/tests/test_service_http.py 原来把 /workbench?file=AGENTS.md 期望成 404，那正是缺陷的指纹；安全属性换成可证的正面断言——页面 200、字节与 /workbench 完全相同、且不含 '# AGENTS.md'，两条 traversal 路径仍必须 404，没有放松任何一项。实拍：本批重建了 bundle（255e992a… → 5829f52a…，358,130 B），所以第二十批那 92 张已绑旧 bundle 的实拍作废，两套配色 ×1920/960 各 46 张按新 bundle 重拍（b21-20261011/，deviation 照旧记：从工作树拍摄，tracked 的 exact-commit 守卫未动）；另有一张从点击路径本身产生的 clicked-design-lab-to-ui2026@1440.png，我读过图：左下控件文字变成\"UI-20261009 基线\"并多出\"深色\"，与 --surface 变色一致；该屏同时显示\"请先在工作台连接本机设计服务\"的空态，所以它证明的是主题接线，不证明能力目录读回，两者不混。探针缺陷也记一条：--primary 在 documentElement 上读回空串（该令牌定义在 .dl-shell 作用域），闸因此不以 primaryVar 单独判色变。复跑读数：tsc --noEmit 0；vite build 0；node unit/appshell/shape-notice-coverage 三组 0；test_service_http Ran 29 tests OK；E2E_REQUIRED=1 五份浏览器套件 ran=8 skipped=0 failed=0（E2E_EXIT=0 从日志标记读，不读 wrapper）。审计其余条目仍未修：D01/D03 幂等键、D02 默认 Illustrator 计划 locked→400、D04 nested task 与 vundefined、D05 搜索 8 条上限与 design_systems 字段名、D06 objectsLoaded 提前置位、D07 qualified !== null 与三 tab 同谓词、D08 领域跳转不带条件（这条是我第十八批引入的）、D09 wheel 未随包两份 schema、D10 域包不随包、D11/D12 属 owner 裁定项 G。AAOS 与 WORK 的条目不计入本项目。回执 8 条：browser 2 / visual_review 3 / unit 2 / implementation 1；DL-UI-U02 与 DL-FINAL-T08 仍 PARTIAL，真实宿主 E3、真人 E4、手机端 FROZEN_DEFERRED 一项未做。"

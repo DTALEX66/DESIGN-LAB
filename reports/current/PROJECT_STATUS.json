@@ -8,71 +8,26 @@
   },
   "fresh": false,
   "freshnessMeaning": "at generation only; check verifies bound-input integrity, not current Git or cloud state",
-  "generatedAt": "2026-10-11T11:35:10+00:00",
+  "generatedAt": "2026-10-11T21:46:04+00:00",
   "git": {
     "branch": "qoder/designlab-backup-consistency-20261007",
     "origin_main": "fc03a3033e900a8066d863a223636cc68804c4fa",
-    "sha": "3b0699f9ce8049bad606b1e888ac8e26c155281b",
+    "sha": "625658c9ec8bdd7442e411a7d2e888c142f425b2",
     "source_worktree_clean": false,
-    "tracked_files": 3602,
+    "tracked_files": 3604,
     "worktree_changes": [
       {
-        "content": "sha256:5829f52a4fa762fb8afa2ef0420b3da309fbea3018d3055613caecabd3dc33bf",
-        "kind": "M",
-        "path": "apps/workbench/build/main.js"
-      },
-      {
-        "content": "sha256:e4573b7312d75ca4a3f2a16f1610261279d62afde03f0b9f4e2c8f3f972f6f1b",
-        "kind": "M",
-        "path": "apps/workbench/shell.ts"
-      },
-      {
-        "content": "sha256:d274c8b885394921ae59d11b63ac9c3b86dab4e6745b57041a9c942923578ba1",
+        "content": "sha256:ff300ac8e14c84e32d148478bcc74b4e99be7ebadd9dc983c66da2aebdaa3a37",
         "kind": "M",
         "path": "design-lab/config/task-ledger-r3.json"
       },
       {
-        "content": "sha256:b156742a704b204102d4bcd2473cc1e78bb9d82fe06636f252ba0416b580e251",
-        "kind": "M",
-        "path": "design-lab/scripts/verify_browser_e2e_ran.py"
-      },
-      {
-        "content": "sha256:739a26bd89ef547ad14baacfc88899ad067f0d56c594557d3ea35419d5df1f69",
-        "kind": "M",
-        "path": "design-lab/scripts/verify_contract_bindings.py"
-      },
-      {
-        "content": "sha256:fcdd8a2117a48a1792bb6bc823ace562d1578b1fb8e65c73f37690d5cf4dbfb7",
-        "kind": "M",
-        "path": "design-lab/tests/test_contract_bindings.py"
-      },
-      {
-        "content": "sha256:c920cc434ecee98e63e9d4cd1e3b7daeed392c5ec284b6f2b5f3e1149f4d5724",
-        "kind": "M",
-        "path": "design-lab/tests/test_service_http.py"
-      },
-      {
-        "content": "sha256:78d8bef9d627f88788d8a5c8eb392f20e95a9435b05ed92e24ce10feff0867fa",
+        "content": "sha256:0324a53d571aed202053877e251d9397a223d348c2d26936219c19d96234edd5",
         "kind": "M",
         "path": "docs/audits/DESIGNLAB-UI-R2-DESIGN-QA-2026-10-09.md"
-      },
-      {
-        "content": "sha256:af4122483da4c39331dba919d5109816a778898c28d9d67ce2936c1a83a315e6",
-        "kind": "M",
-        "path": "src/design_lab/http_service.py"
-      },
-      {
-        "content": "sha256:2e90475d40c8482be8ff28e0281c60b2e5a5e676f31210bfca768c76c65fe61c",
-        "kind": "U",
-        "path": "design-lab/tests/e2e/audit_workbench_theme_affordance.mjs"
-      },
-      {
-        "content": "sha256:f0ee4cc87209d84775be77a2d309159aa533873e9f857ee6349bd153d5da85bd",
-        "kind": "U",
-        "path": "design-lab/tests/test_workbench_theme_affordance_gate.py"
       }
     ],
-    "worktree_digest": "sha256:207f2cf704f6916339a58e3ce975c6973ac762b1bca3e36b67fc9b9e1a87d84d"
+    "worktree_digest": "sha256:8c62df04c2732e524f4047c9695dfa1b3902b5ccacf65b2d380bfe0f79b2a4bd"
   },
   "gitStateMeaning": "generation-time observation, not current HEAD",
   "hostLive": "derived from host_live axis only",
@@ -88,7 +43,7 @@
     "quarantinedSources": 162
   },
   "subjectMeaning": "subjectType=WORKTREE means the tree was dirty at generation; worktreeDigest covers HEAD plus the non-generated changes",
-  "subjectSha": "3b0699f9ce8049bad606b1e888ac8e26c155281b",
+  "subjectSha": "625658c9ec8bdd7442e411a7d2e888c142f425b2",
   "subjectType": "WORKTREE",
   "taskCounts": {
     "NOT_STARTED": 24,
@@ -102,9 +57,9 @@
   "testRunMeaning": "bound run: python scripts/run_bound_test_suite.py --modules test_boot_reconciliation",
   "testRunResult": "OK",
   "tests": {
-    "definedTestMethodCount": 2987,
+    "definedTestMethodCount": 2990,
     "executed": "see individual verified ledger receipts"
   },
   "worktreeClean": false,
-  "worktreeDigest": "sha256:207f2cf704f6916339a58e3ce975c6973ac762b1bca3e36b67fc9b9e1a87d84d"
+  "worktreeDigest": "sha256:8c62df04c2732e524f4047c9695dfa1b3902b5ccacf65b2d380bfe0f79b2a4bd"
 }

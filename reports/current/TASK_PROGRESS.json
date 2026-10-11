@@ -12,7 +12,7 @@
   },
   "fresh": false,
   "freshnessMeaning": "at generation only; check verifies bound-input integrity, not current Git or cloud state",
-  "generatedAt": "2026-10-11T11:35:10+00:00",
+  "generatedAt": "2026-10-11T21:46:04+00:00",
   "gitStateMeaning": "generation-time observation, not current HEAD",
   "ledger_partition": "currentExecution",
   "meaning": "Parent/subtask inventory is not a capability count or completion percentage. Definition adoption does not implement product tasks; R5 evidence is historical.",
@@ -27,7 +27,7 @@
     "taskpack": "DL-TP-20260908-R5"
   },
   "subjectMeaning": "subjectType=WORKTREE means the tree was dirty at generation; worktreeDigest covers HEAD plus the non-generated changes",
-  "subjectSha": "3b0699f9ce8049bad606b1e888ac8e26c155281b",
+  "subjectSha": "625658c9ec8bdd7442e411a7d2e888c142f425b2",
   "subjectType": "WORKTREE",
   "taskpack": "DL-TP-20261009-UI-FIRST-R1",
   "taskpackHash": "f91ebe9b67ab4f83be91fe8f3ca0fc80fc93176263bec05d883fa6ce6afd6480",
@@ -103,7 +103,8 @@
       "evidence": [
         "DL-FINAL-T05-implementation",
         "DL-FINAL-T05-unit",
-        "DL-FINAL-T05-clean-install-measured-r11"
+        "DL-FINAL-T05-clean-install-measured-r11",
+        "DL-FINAL-T05-packaged-read-paths-r22"
       ],
       "evidence_level": "SEE_BOUND_RECEIPTS",
       "id": "DL-FINAL-T05",
@@ -588,7 +589,11 @@
         "DL-UI-U02-browser-battery-rerun-r21",
         "DL-UI-U02-bundle-rebuilt-r21",
         "DL-UI-U02-captures-dark-r21",
-        "DL-UI-U02-captures-light-r21"
+        "DL-UI-U02-captures-light-r21",
+        "DL-UI-U02-browser-battery-r22",
+        "DL-UI-U02-bundle-rebuilt-r22",
+        "DL-UI-U02-captures-default-r22",
+        "DL-UI-U02-captures-ui2026-r22"
       ],
       "evidence_level": "SEE_BOUND_RECEIPTS",
       "id": "DL-UI-U02",
@@ -693,7 +698,9 @@
         "DL-UI-U05-continue-affordance-r10",
         "DL-UI-U05-continue-falsified-r10",
         "DL-UI-U05-conflict-kind-r10",
-        "DL-UI-U05-continue-affordance-pixel-evidence-r17"
+        "DL-UI-U05-continue-affordance-pixel-evidence-r17",
+        "DL-UI-U05-plan-key-and-receipt-contract-r22",
+        "DL-UI-U05-both-hosts-enqueue-202-and-readback-r22"
       ],
       "evidence_level": "SEE_BOUND_RECEIPTS",
       "id": "DL-UI-U05",
@@ -846,5 +853,5 @@
   "testRunMeaning": "bound run: python scripts/run_bound_test_suite.py --modules test_boot_reconciliation",
   "testRunResult": "OK",
   "worktreeClean": false,
-  "worktreeDigest": "sha256:207f2cf704f6916339a58e3ce975c6973ac762b1bca3e36b67fc9b9e1a87d84d"
+  "worktreeDigest": "sha256:8c62df04c2732e524f4047c9695dfa1b3902b5ccacf65b2d380bfe0f79b2a4bd"
 }

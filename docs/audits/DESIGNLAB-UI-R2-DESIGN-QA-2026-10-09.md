@@ -977,3 +977,80 @@ clipped/stray/tiny 均为 0；appshell vm 合同面退出 0（①–⑯ 全过�
   D11/D12 仍属 owner 裁定项 G。AAOS 与 WORK 的条目不计入本项目待办。
 - 回执 8 条：browser 2 / visual_review 3 / unit 2 / implementation 1，全部 exit 0，账本 187 条。
   `DL-UI-U02` 与 `DL-FINAL-T08` 仍 PARTIAL；真实宿主 E3、真人 E4 未做，手机端 FROZEN_DEFERRED。
+
+## 第二十二批追记（2026-10-12，D02 / D01+D03 / D04 / D09+D10：四处"界面承诺 ≠ 代码行为"）
+
+本批把第二十一批排队的四个可逆工程项做掉。四条都是同一形状的缺陷：**页面对用户说了它做不到的事**，
+而每一处修法都只动**调用方**，不动合同。
+
+### D02：Illustrator 的默认目标包从来排不进队
+
+- 三段链条逐段量过：`composeTargetPlan` 写 `locked: host === 'illustrator'` →
+  `adobe_lowering.lower()` 要求 `not n['locked']`（"explicit fallback required"）→
+  `http_service` 把它折成 400 INVALID_REQUEST。Photoshop 能过**只是因为 UI 恰好发了 `false`**，
+  不是因为两条路径都对。
+- 修法：`locked: false`，两侧宿主一致。**没有**放宽 lowering 合同——新路由测试里显式提交一个
+  `locked: true` 的层，仍然必须是 400，这条拒绝本身被钉住了（审计判据"不放宽 lowering 合同"
+  如果只靠注释，就等于没有）。
+- 跨层读数（真 CLI 进程 + loopback，不是 mock）：两条宿主各 202、`job_id` 合 `native-job-[0-9a-f]{64}`、
+  attempt `PENDING`、随后 `GET /api/projects/{id}/tasks` 能读回同一个 job、**相同 body 的第二次 POST
+  返回完全相同的响应**（幂等重放，不是第二个 job）。
+
+### D01 / D03：幂等键每次点击现生成，于是"同键安全"是假的
+
+- 服务端按 `sha256(project_id:host:key)`（native_submissions）与 `sha256(project_id:key)`
+  （image_assets）认身份；页面在两处按点击调 `uuid()`。丢响应后重试 = 第二个 job / 第二份素材，
+  而界面写着"直接重试同内容是安全的（同键）"和"失败项未写入服务端"。
+- 修法：键**绑内容**。计划用 `sha256(项目 ‖ 宿主 ‖ 编排结果 ‖ 文字样式)`，导入用文件字节自身的
+  `sha256`，都是 64 位十六进制，正好落在服务端的 `[A-Za-z0-9_-]{1,64}` 内。同一意图 → 同一键 →
+  同一个记录；内容变了 → 新键 → 新记录。
+- **文案也一起改**。"失败项未写入服务端"从来不是客户端能证明的（丢的是*响应*，写入照样发生）；
+  客户端能承诺的只有键。现在写的是"失败项按失败记，同一文件重试不会变成第二份素材"。
+  这不是把缺陷说得好听一点，是把断言换成它真正成立的那一条。
+- vm 合同面实测：`contentKey` 同输入同输出、换宿主即换键、形状恒为 64 hex。
+
+### D04：202 把任务嵌在 `task` 里，页面读的是顶层字段
+
+- `TaskQueries.get` 返回 `{'task': {...}}`，`shell.ts` 读 `data.task_id ?? data.job_id`，
+  于是**每一次被受理的提交**都显示"未给出任务号"。同一屏另一处读 `asset.version_no`，
+  而 `/assets` 的载荷里根本没有这个字段（旁边 4611 行已有守卫，这一处没有）→ 渲染出 `vundefined`。
+- 修法：`readPlanReceipt()` 一处构造回执行，版本行回退到 `version_id`。合同面断言
+  `readPlanReceipt({task:{job_id,state}})` 读出嵌套值，`readPlanReceipt({})` 与 `(null)` 退回"未给出任务号"，
+  **没有**把缺失当成成功。
+
+### D09 / D10：装态的 PROJECT_ROOT 指向 `Lib/`
+
+- `runtime/paths.py:17` 的 `PROJECT_ROOT = parents[3]`：源码树里是 checkout，装进 wheel 后是
+  `<venv>/Lib`。于是 `research_store` / `rights_ledger` 读裸路径 → 装版 GET 500；域包投影报
+  `rootState MISSING`。三者说的其实都是同一句"这些字节不在这里"，不是"答案为否"。
+- 修法：**复用旁边已经正确的机制**（`state_resources.state_schema` 的 packaged-first），抽成
+  `repo_resource()`；`pyproject` force-include 补上两份 schema、`domain-packs/` 与
+  `design-lab/scripts/verify_domain_pack_v2.py`（投影复用仓库自己的 checker，少了它每包都会变
+  NOT_CHECKED，"VALIDATES 就等于 CI 也会接受"这个保证就没了）。
+- `domain_packs.py` 里用的是**绝对导入**：`design_lab` 是 namespace package，`..` 相对导入在这里
+  会抛 "attempted relative import beyond top-level package"——第一次就踩到了。
+- `test_workbench_served_bundle.py` 原来 `@skipIf(INSTALLED_MODE)`。那是唯一能抓住"site-packages
+  里躺着一份旧 bundle"的断言，而它恰好在缺陷**第一次被发现的地方**不测量。现在按模式决定
+  应该服务**哪一份**已声明的 bundle，而不是决定要不要测。
+
+### 本批的读数与两处不粉饰的地方
+
+- `tsc --noEmit` 0；`vite build` 0；浏览器五件套 `ran=8 skipped=0 failed=0`（取自日志里的 `E2E_EXIT`）；
+  单元 127 项绿，唯一一条 ERROR 是 `test_native_submissions` 自己的 sys.path（`import test_native_plan`），
+  与本批无关。
+- 聚合闸 85 项里 `verify_reconstruction_pipeline` 与 `verify_reconstruction_bundle` 红。**与本批改动无关**，
+  并且我在 HEAD 对照复跑过：同一形状的失败在未改动的 HEAD 上同样出现（`failures=1, errors=57`）。
+  两条都是**环境**问题，不是判据问题：一个是 Windows 权限语义下 `RollbackBlockedError` 不触发，
+  另一个是本机 sandbox 的 safe-delete 批量确认守卫在 `shutil.rmtree` 上拦截（截图里能看到
+  `[safe-delete][SAFE_DELETE_BULK_CONFIRM_REQUIRED] count=50 threshold=50`）。**没有**为了让聚合变绿去动判据。
+- 回执 7 条：browser 1 / visual_review 2 / unit 3 / implementation 1，账本 187 → 194。
+  另外**重封**了两条 `DL-UI-U02-theme-affordance-*-r21`：本批浏览器电池把那个文件按新 bundle
+  重测了一遍（findings 仍为 0），所以只有实测的 `artifact_sha256` 移动，闸名与主张一字未改，
+  并且在 `command` 里写明为什么动。
+- 实拍：bundle 从 `5829f52a4fa7…` 变成 `91235532ca42…`（359,816 B），第二十一批那 92 张对当前字节作废；
+  两套配色 × 1920/960 各 46 张重拍（`b22-20261012/`，deviation 照旧记在工作树，tracked 的
+  exact-commit 守卫未动）。我读过 `19-plan@1920.png`：目标生成包屏正常渲染，选中态与"排队这份目标
+  生成包"都在；它证明的是**屏还在**，不是队列链路——队列链路由上面的路由测试证明，两者不混用。
+- 仍未做：真实宿主 E3（需 owner 明确授权）、真人 E4、merge 到 main、release、手机端（FROZEN_DEFERRED）。
+  D05/D06/D07/D08（前端发现性与过滤，D08 是我第十八批引入的）按依赖排到下一批；
+  owner 清单 A–J 一条未动，本批没有替任何一条猜答案。
