@@ -106,16 +106,15 @@ DESIGN-LAB 色板为默认 + 20261009 取值作可选主题"；手机端 FROZEN_
    **不含**这两个能力模块，要引用它们的数字必须另加步骤。跑之前确认 `uv` 在 PATH
    （本机 `C:\Users\ALEX\.local\bin\uv`）并留意 `uv build` 是否在 repo 根留下未被 `.gitignore`
    覆盖的 `*.egg-info`。
-2. **接续入口的像素证据（第十六批试过、没做成，原因已量到，别再走同一条路）**：
-   每个捕获/闸都自起一次性 `state.db`，所以截图里是 `制作记录（0）`/`未选择项目`。
-   我加的 `--seed-native-plan` 会先建一个 `photoshop-native` 的 PENDING 计划
-   （`capture-scaffold.json` 明标脚手架），但**驱动自己会再建并选中 `Closeout <stamp>` 项目**
-   （`capture_workbench_screenshots.mjs:178-189`），于是 records 面对两个项目停在选单，
-   而它只在"恰好一个项目"时自动选中（`shell.ts` 的 `sole` 分支）；把驱动改成复用外部项目 id 后
-   bootstrap 直接 `CAP_BOOTSTRAP_FAILED`（第一屏没有可选项）。两处工具改动已退回 HEAD。
-   **正确顺序**：在驱动建完并选中它自己的项目之后，用同一个 token 向那个 project id
-   POST `/api/projects/{id}/native-plans`（合成 RIR、`layers: []`、永不运行），再拍 `#/records`，
-   并且**读图确认按钮真的在画面上**才算数。拒绝卡不必补像素：那需要伪造服务端响应。
+2. **接续入口的像素证据：第十七批已闭，别再做一遍**。种计划搬进驱动内部（在它自己建好并选中
+   `Closeout <stamp>` 项目之后），Python 侧那份"先建一个项目"的辅助函数已删除而不是留着；
+   驱动现在要求 202 + 投影 `kind` 以 `-native` 结尾 + 页面真正读的 `GET /tasks` 列出该行，
+   任一条不满足就 `CAP_FAIL`，不会留下一张什么都证明不了的图。实拍绑 `2b59765d`、
+   两套配色各 46 张（1920/960），读图确认 `native-job-…` 行有可用的「接续：打开目标生成包」
+   与仍禁用的「启动 / 取消」，素材导入行按理由不给入口，声明面板三项与画面一致；
+   `capture-scaffold.json` 与 PNG 同目录声明这是 `layers: []`、永不运行、无宿主副作用的脚手架。
+   产物：`.project-local/task-artifacts/ui-first-20261009/qa-20261011e/screens/`。
+   **这条证据只证明控件被渲染**，不证明宿主接续可用；拒绝卡仍不必补像素（那要伪造服务端响应）。
 3. **U06 的观察面已落，动作面仍未授权**：`src/design_lab/native_runtime.py` +
    `GET /api/projects/{id}/native-runtime` 已经把 `native_tasks.py:59-76` 的五张表投影成只读
    回执（ABSENT 与"存在但 0 行"分开、budget 不可得时写 null + 理由、绝不发 DDL、
