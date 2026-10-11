@@ -852,4 +852,25 @@ clipped/stray/tiny 均为 0；appshell vm 合同面退出 0（①–⑯ 全过�
   `CURRENT_EXECUTION=PASS tasks=34 counts={'NOT_STARTED': 24, 'PARTIAL': 10}` 回执 172、
   `AUTHORITY_CHAIN=WRITTEN entries=144` 后 `--check PASS`、`AUTHORITY_GATES=PASS gates=7 failed=none`、
   `CANDIDATE_TAXONOMY=OK entries=980 domain_packs=13 errors=0`、`CAPABILITY_EVIDENCE_V4=PASS records=8`。
+- **CI 实读（@ `2d9ab95a`，run 38129189122，逐作业照抄）**：
+  `MiniGame node gate`、`DeepSeek authority gate chain`、`Top-level Authority consistency gate`、
+  `License & secret hygiene gate`、`Open Design host adapter gate`、`Workbench strict-TS product gate`、
+  `Clean wheel install + Workbench launch gate`、`Workbench browser E2E (no-skip)`、
+  `Generated-artifact clean-tree gate` **全部 success**；
+  仅 `Python gate (V3 verifiers + unit tests)` failure，失败步骤是 `DESIGN-LAB unified verify`，
+  `VERIFY_DESIGN_LAB=FAIL total=75 failed=3`，三条红分别是
+  `verify_route_payload_contracts.py`（bindings=7 failures=1）、
+  `scripts/verify_current_execution.py`（`[Errno 2] …/.project-local/task-artifacts/ui-first-20261009/u06/implementation.json`）、
+  `verify_projection_freshness.py`（`FRESHNESS-RECEIPT-DRIFT scripts/deepseek_content_audit.py`）。
+  **与本批无关、与第十八批同集合**：三条都是 owner 裁定项 G 的同一根因（受跟踪记录去重算 Git 忽略字节）。
+  新登记的 `verify_selected_source_adaptation.py` 在 CI 里 `PASS`——vendored blob 不在场时它按
+  `SKIPPED` 语义如实报告而不是判红，这正是设计意图（本地 `VERIFIED(13)`，CI `SKIPPED(13)`）。
+- **一条必须说清的覆盖事实（不是本批造成的，但本批让它可见）**：该作业的
+  `Python unit tests` 步骤排在 `DESIGN-LAB unified verify` **之后**，聚合链一红就 `skipped`。
+  实测同样读数 @ `835fa880`（run 38126320592）也是 `failure` + `skipped`。所以
+  在 G 未裁之前，**CI 从不执行那 578 个 unittest 模块，本批的 38 项任务测试只是本地证据**，
+  不能写成"CI 已通过"。`run_python_tests.py` 用 `discover(design-lab/tests, test_*.py)`，
+  本地一跑就全收；要在 CI 里拿到测试结论，需要 owner 允许把该步骤改成
+  `if: always()` 或把聚合链拆开——那是动 CI 拓扑，我不自行做。
+
 
