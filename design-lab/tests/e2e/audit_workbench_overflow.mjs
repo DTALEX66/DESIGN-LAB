@@ -261,26 +261,52 @@ for (const w of widths) {
       && m.layout.drawerW !== 450) {
       specProblems.push(`${w}:${name} drawer width ${m.layout.drawerW} != 450 (R2 §3)`);
     }
-    // R2 §2: the cross-catalog action has to reach the screen in the state the data
-    // actually supports. There is no domain↔capability join axis (measured 2026-10-09: the
-    // capability `domains` classification axis is empty for all 60 records, and that field's
-    // `domain` values are model-radar families), so the button must be present AND disabled
-    // with its reason visible. A live button here would promise a filter nothing can back.
+    // R2 §2: the cross-catalog action has to reach the screen in the state the data actually
+    // supports. There is no domain↔capability join axis (measured 2026-10-11 against the live
+    // readback: all 60 capability records list `domains` among the service's own unclassified
+    // axes), so the action must be disabled -- and since batch 18 the panel also reports WHICH
+    // empty it is, so this gate checks the disabled state and the named state agree. A panel that
+    // said 已接线 N 条 while the button stayed disabled, or the reverse, would be a contradiction
+    // no clip check can see.
     if (name === 'domain-detail') {
       const join = await page.evaluate(() => {
         const drawer = document.querySelector('#domain-drawer');
-        const button = drawer ? drawer.querySelector('button[disabled]') : null;
+        const button = drawer
+          ? Array.from(drawer.querySelectorAll('button'))
+            .find((b) => b.textContent.includes('按该领域查看能力')) : null;
+        const text = drawer ? drawer.textContent : '';
+        // `无已接线关联` contains the substring `已接线`, so a hit-count claim needs its own shape
+        // rather than a substring test -- measured while writing this check.
         return {
           drawer: !!drawer,
           label: button ? button.textContent.trim() : '',
-          reason: drawer ? drawer.textContent.includes('未接线') : false,
+          disabled: button ? button.disabled : null,
+          matched: /已接线 \d+ 条/.test(text),
+          states: ['未读回', '无关联键', '还没有分类', '目录为空', '无已接线关联']
+            .filter((word) => text.includes(word)),
+          forbidden: (() => {
+            // The panel is allowed to QUOTE the phrase in order to deny it
+            // (这是"分类还没做"，不是"该领域没有能力"), so a substring ban misfires.
+            // Every mention must sit inside a negation; a bare assertion is what is forbidden.
+            const mentions = (text.match(/该领域没有能力/g) || []).length;
+            const negated = (text.match(/(不是|不等于)"?该领域没有能力/g) || []).length;
+            return mentions !== negated;
+          })(),
         };
       });
       if (!join.drawer) specProblems.push(`${w}:domain-detail 详情面板不在文档里`);
-      if (!join.label) specProblems.push(`${w}:domain-detail 跨目录动作没有以 disabled 落地`);
-      else if (!join.label.includes('按该领域筛选能力'))
-        specProblems.push(`${w}:domain-detail 被禁用的不是跨目录动作：${join.label}`);
-      if (!join.reason) specProblems.push(`${w}:domain-detail 禁用动作没有把原因写进面板`);
+      if (!join.label) specProblems.push(`${w}:domain-detail 跨目录动作没有上屏`);
+      else if (!join.label.includes('按该领域查看能力'))
+        specProblems.push(`${w}:domain-detail 跨目录动作标签变了：${join.label}`);
+      else if (join.matched && join.disabled)
+        specProblems.push(`${w}:domain-detail 面板说有已接线关联，动作却仍禁用：两者必须一致`);
+      else if (!join.matched && !join.disabled)
+        specProblems.push(`${w}:domain-detail 状态是 ${join.states.join('/') || '(无状态词)'}，`
+          + '动作却不禁用：没有已接线关联时这个按钮点了只会落到空结果');
+      if (!join.matched && !join.states.length)
+        specProblems.push(`${w}:domain-detail 关联行没有说出这是哪一种空`);
+      if (join.forbidden)
+        specProblems.push(`${w}:domain-detail 面板把"没有已接线关联"断言成了"该领域没有能力"`);
     }
     // Found by reading the rendered #/domains, not by any assertion: when a row's trailing
     // columns are sized by their own content, `justify-content:space-between` parks the
