@@ -44,3 +44,16 @@ docs/history/taskpacks/20261009-adoption/** -text whitespace=cr-at-eol
 # blob while the receipt still hashed the working-tree bytes. Evidence is measured, not
 # edited -- it must reach Git exactly as the gate wrote it.
 design-lab/evidence/** binary
+
+# The five authority surfaces the DeepSeek chain pins are byte-frozen for the same reason
+# design-lab/evidence/** is: the chain stores a digest and a clean clone re-checks it, so
+# `* text=auto eol=lf` normalisation makes the recorded digest unreproducible off this
+# machine. Observed 2026-10-13: the chain recorded the working-tree digest 620bf56d while
+# the committed blob was ae368aa0 -- LF in the repository, CRLF in the checkout. The gate
+# that catches this is AUTHORITY_CHAIN=DRIFT, which can never pass on a clone.
+AUTHORITY.md binary
+AGENTS.md binary
+.project/governance/authority-index.json binary
+docs/current/HISTORY-FREEZE-RULES.md binary
+docs/taskpacks/DESIGN-LAB-UI-FIRST-INTEGRATED-TASKPACK-2026-10-09.md binary
+docs/taskpacks/DESIGN-LAB-FINAL-AUTHORITY-CONVERGENCE-TASKPACK-2026-09-18.md binary
