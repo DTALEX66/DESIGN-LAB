@@ -171,7 +171,10 @@ class FindingTests(unittest.TestCase):
     def test_a_drifting_child_is_named_with_its_verdict_line(self) -> None:
         original = v.run_entry_read_only
         try:
-            v.run_entry_read_only = lambda generator, argv: (1, "SOMETHING=DRIFT", [])
+            # run_entry_read_only returns (code, tail, moved, scan_error); a 3-tuple stub left these
+            # two cases raising ValueError instead of exercising the assertion. The fourth value
+            # is the write-DETECTOR error, and "" means the detector ran fine.
+            v.run_entry_read_only = lambda generator, argv: (1, "SOMETHING=DRIFT", [], "")
             failures = v.check()[0]
         finally:
             v.run_entry_read_only = original
@@ -183,7 +186,7 @@ class FindingTests(unittest.TestCase):
         original = v.run_entry_read_only
         try:
             v.run_entry_read_only = lambda generator, argv: (
-                0, "SOMETHING=PASS", ["reports/current/FOUNDATION-AUDIT.json"])
+                0, "SOMETHING=PASS", ["reports/current/FOUNDATION-AUDIT.json"], "")
             failures = v.check()[0]
         finally:
             v.run_entry_read_only = original

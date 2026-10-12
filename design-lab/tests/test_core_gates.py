@@ -30,6 +30,11 @@ class LicenseCoverageTests(unittest.TestCase):
     def test_taskpack_original_exemption_requires_matching_bytes(self):
         m = load("verify_license_coverage.py")
         temp_root = ROOT.parent / ".project-local/task-artifacts/taskpacks-20261009"
+        # A clean clone has no task-artifacts directory, so TemporaryDirectory(dir=...)
+        # raised FileNotFoundError and this case ERRORed on CI while passing here -- a
+        # test that needs a machine-local directory to already exist is not testing the
+        # exemption, it is testing that somebody ran the import once.
+        temp_root.mkdir(parents=True, exist_ok=True)
         with tempfile.TemporaryDirectory(dir=temp_root) as raw:
             m.REPO = Path(raw)
             old_manifest = m.REPO / m.IMPORT_MANIFEST
