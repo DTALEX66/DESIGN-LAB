@@ -124,7 +124,7 @@ DESIGN-LAB 是面向职业视觉设计的、AI 原生、平台中立、宿主原
 - 冻结新任务定义：`docs/history/taskpacks/20261009-adoption/TASK-DEFINITIONS.json`；旧28项映射及21件任务文档/58项结构记录普查见该目录OLD-TASK-CROSSWALK.json、OLD-DOCUMENT-CENSUS.json。仅作映射/输入，不是第二账本。
 - 旧20260918统一包、DeepSeek/R5任务定义原字节留在原位置，已在authority-index与task-document-states取代/冻结；正确恢复/安全/证据/Human Gate/双宿主/Golden验收并入新任务。不凭旧DONE重新宣称当前完成。
 - 原始输入：`docs/history/taskpacks/20261009-inputs/ARCHIVE-MANIFEST.json`记录2原ZIP/170成员；文本/代码/SVG逐字节入档，大包/字体/位图完整存本项目`.project-local/task-artifacts/taskpacks-20261009/`（Git忽略）。不能声称Git克隆带完整视觉参考；跨机器交接须附原ZIP。
-- 对话决定、旧任务取舍、批次与任务卡在`docs/taskpacks/20261009-ui-first/`；**当前**下一会话提示词为`docs/current/NEXT-AGENT-PROMPT-2026-10-12.md`，不是独立Authority（`NEXT-AGENT-PROMPT-2026-10-09/10/11.md`为历史版本，只作时点记录，不再作为接续入口）。
+- 对话决定、旧任务取舍、批次与任务卡在`docs/taskpacks/20261009-ui-first/`；**当前**下一会话提示词为`docs/current/NEXT-AGENT-PROMPT-2026-10-12.md`，不是独立Authority。`docs/current/NEXT-AGENT-PROMPT-2026-10-09.md`、`docs/current/NEXT-AGENT-PROMPT-2026-10-10.md`、`docs/current/NEXT-AGENT-PROMPT-2026-10-11.md`为历史版本，只作时点记录，不再作为接续入口（逐个写全文件名：把多个日期缩写成一个斜杠串会被路径闸当成一个不存在的引用）。
 - 当前报告仍由`scripts/generate_current_reports.py`生成；TASK_PROGRESS与PROJECT_STATUS显示当前派工区，旧证据读回保留历史身份。生成不等于执行测试；真实宿主/真人/三方/学习/发布分别记。
 - 任务文档定态登记仍为`design-lab/config/task-document-states.json`，并由`verify_task_document_states.py`与现有aggregate fail-closed检查；恰好一个DISPATCH_ENTRY等于index.currentIntegrated。
 - 原Record导入档案继续保留在`docs/history/record-imports-2026-10-08/`及其manifest；不批量搬迁或修改冻结原件。跨项目素材、系统数据、E/F盘均不因旧包或本轮任务整理获得访问授权。
