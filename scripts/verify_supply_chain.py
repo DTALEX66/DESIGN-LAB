@@ -365,10 +365,33 @@ def lockfile_audit(files: list) -> dict:
             "ok": "uv.lock" in [Path(f).name for f in present]}
 
 
+#: Owner decision 2026-10-12 (option A for the clean-clone gate debt, previously item G):
+#: the bytes current-execution receipts bind by hash are now TRACKED under this root, and
+#: 82 of them are `.log` gate outputs. The blanket `*.log` ban above existed so stray run
+#: output never enters the repo -- it did not contemplate evidence that a receipt re-hashes
+#: on every read. This is a scoped exemption for one root, not a lowered threshold: outside
+#: `design-lab/evidence/` a tracked `.log` is still an offender, and the exemption is named
+#: here so a reader can see exactly whose decision produced it.
+TRACKED_EVIDENCE_ROOT = "design-lab/evidence/"
+
+
 def generated_artifact_audit(files: list) -> dict:
-    offenders = [f for f in files if f.endswith(GENERATED_MARKERS) or "__pycache__" in f
-                 or f.startswith(("dist/", "build/", "node_modules/"))]
-    return {"offenders": offenders[:30], "count": len(offenders), "ok": not offenders}
+    def exempt(f: str) -> bool:
+        # ONLY `.log` under the tracked evidence root is exempt, and only because a
+        # current-execution receipt re-hashes it on every read. .pyc/.pyo/.tmp/.bak stay
+        # offenders everywhere, evidence root included -- an exemption wide enough to
+        # cover the whole marker tuple would be a lowered criterion wearing a name.
+        return f.startswith(TRACKED_EVIDENCE_ROOT) and f.endswith(".log")
+
+    offenders = [
+        f for f in files
+        if not exempt(f)
+        and (f.endswith(GENERATED_MARKERS) or "__pycache__" in f
+             or f.startswith(("dist/", "build/", "node_modules/")))
+    ]
+    evidence = [f for f in files if exempt(f)]
+    return {"offenders": offenders[:30], "count": len(offenders), "ok": not offenders,
+            "tracked_evidence_exempt": len(evidence)}
 
 
 def binary_inventory(files: list) -> dict:

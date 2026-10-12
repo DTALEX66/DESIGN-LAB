@@ -1,0 +1,9 @@
+[plant A: drawer over topbar] gate_exit=1
+  OV_SPEC_BROKEN 1920:capability-detail 顶栏通知 (#topNotice) covered by button#capability-drawer-close.secondary | 1920:capability-detail 顶栏工作区 (#openDrawer) covered by button#capability-drawer-close.secondary
+  OV_FAIL: OV_SPEC_BROKEN
+  OV_SPEC_BROKEN 1920:capability-detail 顶栏通知 (#topNotice) covered by button#capability-drawer-close.secondary | 1920:capability-detail 顶栏工作区 (#openDrawer) covered by button#capability-drawer-close.secondary
+[plant B: drawer 500px] gate_exit=1
+  OV_SPEC_BROKEN 1920:capability-detail drawer width 500 != 450 (R2 §3)
+  OV_SPEC_BROKEN 1920:capability-detail drawer width 500 != 450 (R2 §3)
+[restored] gate_exit=0 css_restored=36414a566e8a
+expected_restored_sha=36414a566e8a

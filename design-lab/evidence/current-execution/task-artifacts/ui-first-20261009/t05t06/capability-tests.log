@@ -1,0 +1,18 @@
+=== test_capability_library ===
+test_the_route_serves_the_projection_over_the_real_service (design-lab.tests.test_capability_library.RouteTests.test_the_route_serves_the_projection_over_the_real_service) ... ok
+
+----------------------------------------------------------------------
+Ran 14 tests in 0.807s
+
+OK
+=== clean_install ===
+test_build_reads_packaged_resources_with_the_repo_out_of_reach (design-lab.tests.test_capability_library_clean_install.InstalledLayoutTests.test_build_reads_packaged_resources_with_the_repo_out_of_reach) ... ok
+test_missing_packaged_resource_fails_closed (design-lab.tests.test_capability_library_clean_install.InstalledLayoutTests.test_missing_packaged_resource_fails_closed)
+Falsification for the test above: with a resource gone, the library must refuse. ... ok
+test_force_include_names_every_capability_resource (design-lab.tests.test_capability_library_clean_install.PackagingDeclarationTests.test_force_include_names_every_capability_resource) ... ok
+test_the_declaration_does_not_drag_the_candidate_pool_or_user_assets (design-lab.tests.test_capability_library_clean_install.PackagingDeclarationTests.test_the_declaration_does_not_drag_the_candidate_pool_or_user_assets) ... ok
+
+----------------------------------------------------------------------
+Ran 4 tests in 3.103s
+
+OK

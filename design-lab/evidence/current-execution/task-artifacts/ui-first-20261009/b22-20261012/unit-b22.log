@@ -1,0 +1,17 @@
+..............................................................................................................................E
+======================================================================
+ERROR: test_native_submissions (unittest.loader._FailedTest.test_native_submissions)
+----------------------------------------------------------------------
+ImportError: Failed to import test module: test_native_submissions
+Traceback (most recent call last):
+  File "C:\Users\ALEX\AppData\Roaming\uv\python\cpython-3.13-windows-x86_64-none\Lib\unittest\loader.py", line 137, in loadTestsFromName
+    module = __import__(module_name)
+  File "D:\All projects\DESIGN-LAB\design-lab\tests\test_native_submissions.py", line 4, in <module>
+    import test_native_plan as fixtures
+ModuleNotFoundError: No module named 'test_native_plan'
+
+
+----------------------------------------------------------------------
+Ran 127 tests in 45.072s
+
+FAILED (errors=1)

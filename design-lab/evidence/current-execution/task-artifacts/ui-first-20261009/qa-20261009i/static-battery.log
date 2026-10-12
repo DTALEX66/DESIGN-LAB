@@ -1,0 +1,45 @@
+$ python .project-local/tmp/static_battery_batch7.py
+EXTRA_ENV={}
+EXIT=0
+---- output ----
+### css-single-definition exit=0
+.................
+----------------------------------------------------------------------
+Ran 17 tests in 0.041s
+
+OK
+### brand-asset exit=0
+............
+----------------------------------------------------------------------
+Ran 12 tests in 0.032s
+
+OK
+### ui-layering exit=0
+UI_LAYERING scope=style.css declarations=13 layers=12 values=[-3, -2, 0, 2, 50, 60, 70, 88, 90, 95, 110, 200]
+UI_LAYERING=PASS every layer is named, measured from the stylesheet, and the table matches the rules that carry it
+### debt-baseline exit=0
+DESIGN_DEBT_SCOPE files=7 apps/workbench/style.css apps/workbench/main.ts apps/workbench/shell.ts apps/workbench/workbench.ts apps/workbench/design.ts apps/workbench/contracts.ts apps/workbench/index.html
+DESIGN_DEBT literal_colors=26 literal_px=531 shadow_declarations=25 shadow_reading_var=19 shadow_resets_skipped=3 chromatic=13 neutral_alpha=13
+DESIGN_DEBT_BASELINE=NOTICE PENDING-OWNER-ADJUDICATION count=26 values=['#11a74d', '#1a2231', '#222c3e', '#2563eb', '#27c86a', '#3c8aff', '#4bafff', '#8f2a2a', '#c03030', '#c98c00', '#ee5f5f', '#f2b541', '#f87171', 'rgba(0,0,0,.15)', 'rgba(0,0,0,.22)', 'rgba(0,0,0,.25)', 'rgba(0,0,0,.28)', 'rgba(0,0,0,.35)', 'rgba(0,0,0,.55)', 'rgba(255,255,255,.02)', 'rgba(255,255,255,.03)', 'rgba(255,255,255,.5)'] -- an agent must not fill this field
+DESIGN_DEBT_BASELINE=PASS prose matches the measurement and every literal site is registered
+### capability-self-description exit=0
+CAPABILITY_SELF_DESCRIPTION=OK routes=53 resources=33 rows=5 unopen_views=1 findings=0
+### state-vocabularies exit=0
+STATE_VOCABULARIES attempt_states=9 verdicts=['BLOCKED', 'READY'] errors=0
+STATE_VOCABULARIES=OK
+### desktop-reconcile exit=0
+UI_RECONCILIATION: OK（17 屏 / 19 槽 / 53 路由 / 37 令牌逐条相等）
+### contract-bindings exit=0
+................................
+----------------------------------------------------------------------
+Ran 32 tests in 17.167s
+
+OK
+### domain-pack-readback exit=0
+.....................
+----------------------------------------------------------------------
+Ran 21 tests in 2.863s
+
+OK
+STATIC_BATTERY ALL_GREEN
+

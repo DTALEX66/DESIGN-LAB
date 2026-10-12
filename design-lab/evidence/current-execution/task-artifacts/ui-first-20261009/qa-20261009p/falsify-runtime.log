@@ -1,0 +1,14 @@
+$ python .project-local/tmp/falsify_runtime_panel_batch13.py
+EXTRA_ENV={}
+EXIT=0
+---- output ----
+shell.ts baseline = d4cb20cfcbc1
+clean appshell green (exit 0), ⑯ present
+  RED for the right reason [ABSENT reads as an empty table]
+  RED for the right reason [budget prints a number instead of the reason]
+  RED for the right reason [does_not_say sentences dropped]
+  RED for the right reason [the unread notice is ignored]
+  RED for the right reason [an action button appears in the panel]
+restored = d4cb20cfcbc1 match = True clean rc = 0
+FALSIFICATION=OK all 5 runtime-panel plants turned block ⑯ red for the planted reason
+

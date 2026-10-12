@@ -1,0 +1,34 @@
+records: 60
+axes declared: ["domains", "artifactTypes", "capabilityLayers", "aestheticAxes", "styleArchetypes", "tier", "designQuality"]
+
+-- kind --
+{"source": 46, "model": 14}
+
+-- disposition --
+{"LOCK_REFERENCE": 6, "CONDITIONAL_POC": 37, "ABSORB_MINIMAL": 3, "BLOCKED_BY_LICENSE": 4, "EVALUATING": 2, "REJECTED": 1, "WATCH": 7}
+
+-- per-axis population --
+  domains            records_with_no_value=60  distinct_values=0 {}
+  artifactTypes      records_with_no_value=60  distinct_values=0 {}
+  capabilityLayers   records_with_no_value=60  distinct_values=0 {}
+  aestheticAxes      records_with_no_value=60  distinct_values=0 {}
+  styleArchetypes    records_with_no_value=60  distinct_values=0 {}
+  tier               records_with_no_value=60  distinct_values=0 {}
+  designQuality      records_with_no_value=60  distinct_values=0 {}
+
+-- can each §4 tab be answered from the readback? --
+  全部资产       -> all 60 records (no filter)
+  可调用能力      -> kind ∈ ['model', 'source'] matches 60 records
+  规范与方法      -> axis 'capabilityLayers' ∩ ['guideline', 'method', 'specification'] matches 0 records
+  案例与参考      -> axis 'capabilityLayers' ∩ ['case', 'example', 'reference'] matches 0 records
+  模板与配方      -> axis 'artifactTypes' ∩ ['preset', 'recipe', 'template'] matches 0 records
+
+-- what actually backs '可调用能力' --
+counts.qualified (records with a qualification verdict): 0
+counts.joinedToTaxonomy: 37
+unclassifiedAxes: ["aestheticAxes", "artifactTypes", "capabilityLayers", "designQuality", "domains", "styleArchetypes", "tier"]
+classification.note: These axes are declared by the candidate taxonomy and empty for every observed candidate; filling them is a human classification task, not a UI one.
+
+provenance: appended by the run that produced this file
+COMMAND=PYTHONIOENCODING=utf-8 .venv/Scripts/python.exe .project-local/tmp/measure_r2_asset_tabs.py
+EXIT=0

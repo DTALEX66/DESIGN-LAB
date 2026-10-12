@@ -1,0 +1,43 @@
+test_design_layer_slice_in_real_browser (test_workbench_design_layer_e2e.WorkbenchDesignLayerE2ETests.test_design_layer_slice_in_real_browser) ... ok
+test_e2e_script_is_lint_clean (test_workbench_design_layer_e2e.WorkbenchDesignLayerE2ETests.test_e2e_script_is_lint_clean) ... ok
+
+----------------------------------------------------------------------
+Ran 2 tests in 2.747s
+
+OK
+test_no_clipped_or_unreachable_text_in_real_browser (test_workbench_overflow_gate.WorkbenchOverflowGateTests.test_no_clipped_or_unreachable_text_in_real_browser) ... ok
+
+----------------------------------------------------------------------
+Ran 1 test in 81.733s
+
+OK
+test_contrast_maths_reference_table_is_satisfied (test_workbench_contrast_gate.WorkbenchContrastGateTests.test_contrast_maths_reference_table_is_satisfied)
+The probe recomputes published WCAG 2.1 ratios with the same lum()/ratio() ... ok
+test_every_rendered_text_run_meets_aa (test_workbench_contrast_gate.WorkbenchContrastGateTests.test_every_rendered_text_run_meets_aa) ... ok
+test_ui2026_light_theme_is_graded_by_the_same_aa_gate (test_workbench_contrast_gate.WorkbenchContrastGateTests.test_ui2026_light_theme_is_graded_by_the_same_aa_gate)
+DL-UI-U02 (2026-10-09): the 20261009 baseline ships as a *theme*, so it has ... ok
+
+----------------------------------------------------------------------
+Ran 3 tests in 132.178s
+
+OK
+test_optional_palette_geometry_is_rendered_and_default_is_untouched (test_workbench_theme_geometry_gate.WorkbenchThemeGeometryGateTests.test_optional_palette_geometry_is_rendered_and_default_is_untouched) ... ok
+
+----------------------------------------------------------------------
+Ran 1 test in 2.653s
+
+OK
+test_clicking_the_theme_control_changes_the_painted_page (test_workbench_theme_affordance_gate.WorkbenchThemeAffordanceGateTests.test_clicking_the_theme_control_changes_the_painted_page) ... ok
+
+----------------------------------------------------------------------
+Ran 1 test in 3.181s
+
+OK
+BROWSER_E2E[test_workbench_design_layer_e2e] ran=2 skipped=0 failed=0
+BROWSER_E2E[test_workbench_overflow_gate] ran=1 skipped=0 failed=0
+BROWSER_E2E[test_workbench_contrast_gate] ran=3 skipped=0 failed=0
+BROWSER_E2E[test_workbench_theme_geometry_gate] ran=1 skipped=0 failed=0
+BROWSER_E2E[test_workbench_theme_affordance_gate] ran=1 skipped=0 failed=0
+BROWSER_E2E ran=8 skipped=0 failed=0
+BROWSER_E2E: PASS (ran, no-skip, no-skip policy satisfied)
+E2E_EXIT=0

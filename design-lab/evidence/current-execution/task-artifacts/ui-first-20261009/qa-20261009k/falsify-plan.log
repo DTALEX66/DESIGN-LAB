@@ -1,0 +1,13 @@
+$ python .project-local/tmp/falsify_plan_refusals.py
+EXTRA_ENV={}
+EXIT=0
+---- output ----
+shell.ts baseline = dfdf2a2de6b2
+clean appshell green (exit 0), ⑭ present
+  RED for the right reason [all codes collapse]
+  RED for the right reason [transport failure claims a verdict]
+  RED for the right reason [placeholder asset submitted]
+  RED for the right reason [JSON panel open by default]
+restored = dfdf2a2de6b2 match = True clean rc = 0
+FALSIFICATION=OK all 4 plan-refusal plants turned block ⑭ red for the planted reason
+

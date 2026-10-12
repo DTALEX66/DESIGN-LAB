@@ -1,0 +1,15 @@
+$ D:\All projects\DESIGN-LAB\.venv\Scripts\python.exe -c import subprocess,sys;checks=[('css-pin',['-m','unittest','discover','-s','design-lab/tests','-p','test_workbench_css_single_definition.py'],'OK'),('debt',['scripts/design_debt_baseline.py','--check'],'DESIGN_DEBT_BASELINE=PASS'),('layering',['design-lab/scripts/verify_ui_layering.py'],'UI_LAYERING=PASS'),('reconcile',['scripts/audit_ui_desktop_reconcile_20261009.py','--check'],'UI_RECONCILIATION: OK'),('selfdesc',['design-lab/scripts/verify_capability_self_description.py'],'CAPABILITY_SELF_DESCRIPTION=OK'),('vocab',['design-lab/scripts/verify_state_vocabularies.py'],'STATE_VOCABULARIES=OK')];bad=[]
+for n,c,needle in checks:
+    r=subprocess.run([sys.executable,*c],capture_output=True,text=True,encoding='utf-8',errors='replace')
+    out=(r.stdout or '')+(r.stderr or '')
+    print(n,'rc=',r.returncode,'ok=',needle in out)
+    bad += [] if (r.returncode==0 and needle in out) else [n]
+print('STATIC_BATTERY','ALL_GREEN' if not bad else 'RED='+','.join(bad))
+
+css-pin rc= 0 ok= True
+debt rc= 0 ok= True
+layering rc= 0 ok= True
+reconcile rc= 0 ok= True
+selfdesc rc= 0 ok= True
+vocab rc= 0 ok= True
+STATIC_BATTERY ALL_GREEN

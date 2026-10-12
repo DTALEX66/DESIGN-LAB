@@ -1,0 +1,3 @@
+$ D:\All projects\DESIGN-LAB\.venv\Scripts\python.exe scripts/audit_ui_desktop_reconcile_20261009.py --check
+
+UI_RECONCILIATION: OK（17 屏 / 18 槽 / 53 路由 / 37 令牌逐条相等）

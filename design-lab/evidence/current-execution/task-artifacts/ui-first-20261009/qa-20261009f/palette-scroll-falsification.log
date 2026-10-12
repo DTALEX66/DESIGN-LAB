@@ -1,0 +1,5 @@
+[plant: palette cannot scroll] gate_exit=1
+  OV_SPEC_BROKEN 1920:capabilities+global-search grouped search cannot reach its last row: {"ok":false,"scrollable":true,"reached":false,"hit":"null","scrollHeight":1986,"clientHeight":625,"rows":34}
+  OV_FAIL: OV_SPEC_BROKEN
+[restored] gate_exit=0
+FALSIFY_SCROLL=OK the clipped-panel plant went red and the restore went green

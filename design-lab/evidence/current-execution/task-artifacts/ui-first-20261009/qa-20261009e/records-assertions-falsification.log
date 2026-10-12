@@ -1,0 +1,7 @@
+plant rc=1 :: dock counts every task instead of only live ones
+   Error: 任务条把待处理数说成了"3 条作业仍在进行或待人工核对回到制作记录"，应为 2 条
+plant rc=1 :: domain field invented from kind instead of saying 无该字段
+   Error: TaskRecord 没有领域字段，界面必须说"无该字段"而不是按 kind 猜一个
+plant rc=1 :: cancel facts collapsed into one word
+   Error: 取消请求与宿主确认是两段事实：requested 而未被 ack 时必须说未确认
+FALSIFY_10=OK plants=3 restored=green

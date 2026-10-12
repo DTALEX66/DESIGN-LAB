@@ -1,0 +1,10 @@
+test_contrast_maths_reference_table_is_satisfied (design-lab.tests.test_workbench_contrast_gate.WorkbenchContrastGateTests.test_contrast_maths_reference_table_is_satisfied)
+The probe recomputes published WCAG 2.1 ratios with the same lum()/ratio() ... ok
+test_every_rendered_text_run_meets_aa (design-lab.tests.test_workbench_contrast_gate.WorkbenchContrastGateTests.test_every_rendered_text_run_meets_aa) ... ok
+test_ui2026_light_theme_is_graded_by_the_same_aa_gate (design-lab.tests.test_workbench_contrast_gate.WorkbenchContrastGateTests.test_ui2026_light_theme_is_graded_by_the_same_aa_gate)
+DL-UI-U02 (2026-10-09): the 20261009 baseline ships as a *theme*, so it has ... ok
+
+----------------------------------------------------------------------
+Ran 3 tests in 130.471s
+
+OK

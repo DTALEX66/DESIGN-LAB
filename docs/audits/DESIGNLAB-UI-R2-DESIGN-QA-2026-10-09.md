@@ -1102,3 +1102,50 @@ Python 闸的失败面回到**本批开始前的那三条**（`4e5ef345` 的读�
 剩下三条全部指向 `.project-local/` 里干净 clone 不存在的字节，也就是 owner 清单里的 G。
 处置仍属 owner：搬字节进 Git、加具名状态、改 presence 形状，或把活账本标 `mutable_state`；
 **禁止**用调低判据、摘闸、或让 `--check` 读磁盘缓存来换绿。
+
+## 第二十三批追记（2026-10-12，owner 裁定项 G 落地：把证据字节搬进 Git）
+
+**先纠正一个流传的错误数字。** 本清单第 G 条写的是"搬 242.71 MiB 字节进 Git"。
+实测：那 194 条回执里 175 条绑定 `.project-local`，它们**只引用 1.13 MiB / 175 个小文件**
+（JSON 清单、闸日志、一张 115 KiB 的 PNG，最大单个 115.2 KiB）；`.project-local` 整体 5.2 GB，
+其中绝大部分不被任何闸引用。242.71 MiB 是当时整个归档目录的体量，**不是闸真正需要的那部分**。
+这个差别决定了 A 方案是可行的，所以必须先量再让owner 选。
+
+### owner 选择：A（把字节搬进 Git），而不是 B/C/D
+
+- 175 个文件复制到受跟踪根 `design-lab/evidence/current-execution/`，**保持原 `.project-local` 相对形状**
+  （`design-lab/evidence/current-execution/task-artifacts/...`），便于逐条对照来源。
+- 194 条回执的 `artifact_path` 全部改指受跟踪副本；`artifact_sha256` **一个都没动**，
+  因为复制是逐字节的（脚本对每个副本重算哈希，不符即报错中止）。`command` 追加了迁移说明，
+  原命令与原结论保留。
+- `.gitignore` 补了 `!design-lab/evidence/**/*.log`。全局 `*.log` 规则对游离运行输出是对的，
+  它只是没考虑"会被回执逐次重算哈希的证据"这种文件。
+
+### 途中撞上的真实规则冲突（没有绕过，如实记）
+
+搬完字节后 `verify_projection_freshness` 反而红了：
+`SUPPLY_CHAIN=DRIFT ... fresh_failures=['G040_generated_artifacts']`。
+`scripts/verify_supply_chain.py` 的 `generated_artifact_audit` 把任何受跟踪的 `.log`
+判为生成物（`GENERATED_MARKERS = ('.pyc', '.pyo', '.log', '.tmp', '.bak')`）——
+**而A 方案恰恰要求跟踪 82 个 `.log`**。两条规则直接对撞。
+
+处置（这是执行 A 的必要后果，不是一次独立的判据松动）：
+- `verify_supply_chain.py` 增加 `TRACKED_EVIDENCE_ROOT` 豁免，**且只豁免该根下的 `.log`**。
+- **第一版写宽了**：我最初写成"evidence 根下所有 marker 全豁免"，自己的探针立刻抓到
+  `design-lab/evidence/a/x.pyc` 返回 `ok=True`——`.pyc` 根本不该被豁免。已收窄。
+- 收窄后的边界由 6 条探针钉住，全部符合预期：
+  `evidence/x.log →豁免`、`scratch/x.log →仍红`、`evidence/x.pyc →仍红`、
+  `evidence/__pycache__/x.py →仍红`、`evidence/x.tmp →仍红`、`dist/x.log →仍红`。
+  豁免宽到能盖住整个 marker 元组，就是"挂着名字的判据降级"，所以这条边界必须有反例。
+
+### G 落地后的闸读数
+
+原本在干净 clone 上必然失败的三条，现在本地全绿：
+`CURRENT_EXECUTION=PASS tasks=34`、`VERIFY_ROUTE_PAYLOAD_CONTRACTS=PASS bindings=7 failures=0`、
+`VERIFY_PROJECTION_FRESHNESS=OK records=14 verified=19 receipts=5 findings=0`、
+`VERIFY_SUPPLY_CHAIN=PASS (verdict, failure list and every check agree)`。
+
+**仍然未做**：真实宿主 E3、真人 E4、release；owner 清单 A–F、H–J 未动；
+移动端 FROZEN_DEFERRED。`rescue/designlab-personal-audit-dirty-20261007` 经比对**保留**——
+它独有 4 个 HEAD 完全没有的文件（个人产品审计报告、UI 实施报告 A 版、两个 personal_workbench E2 测试），
+不是可删的旧快照。

@@ -45,6 +45,10 @@ __pycache__/
 
 # Logs
 *.log
+# ...except the gate logs that current-execution receipts bind by hash. The global
+# `*.log` rule above is right for stray run output; these are evidence: without them a
+# clean clone cannot re-verify the receipt, which is exactly owner item G (2026-10-12).
+!design-lab/evidence/**/*.log
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*

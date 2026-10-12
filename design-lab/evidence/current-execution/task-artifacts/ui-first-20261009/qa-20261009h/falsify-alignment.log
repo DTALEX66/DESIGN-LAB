@@ -1,0 +1,13 @@
+$ python .project-local/tmp/falsify_row_alignment.py
+EXTRA_ENV={}
+EXIT=0
+---- output ----
+style.css baseline = 9be8d6ea0a53
+clean gate green
+  RED for the right reason [one action widened] :: OV_SPEC_BROKEN 1920:domains row actions are ragged across 23px | 1920:domains verdict pills are ragged across 
+  RED for the right reason [actions hidden] :: OV_SPEC_BROKEN 1920:domains 13 of 13 row actions have zero width; an invisible control is neither aligned nor 
+  RED for the right reason [absorb rule removed] :: OV_SPEC_BROKEN 1920:domains verdict pills are ragged across 7px
+  RED for the right reason [one pill shifted off the column] :: OV_SPEC_BROKEN 1920:domains verdict pills are ragged across 60px
+restored = 9be8d6ea0a53 match = True
+FALSIFICATION=OK all 4 alignment plants convicted by their own branch
+

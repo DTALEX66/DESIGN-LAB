@@ -1,0 +1,7 @@
+[plant: one group answers nothing] gate_exit=1
+  OV_INTERACTION_UNMEASURED 1920:capabilities+global-search: the readback never settled within 25s
+  OV_FAIL: OV_INTERACTION_UNMEASURED
+  OV_INTERACTION_UNMEASURED 1920:capabilities+global-search: the readback never settled within 25s
+  OV_FAIL: OV_INTERACTION_UNMEASURED
+[restored] gate_exit=0
+FALSIFY_SEARCH=OK the empty-group plant went red and the restore went green

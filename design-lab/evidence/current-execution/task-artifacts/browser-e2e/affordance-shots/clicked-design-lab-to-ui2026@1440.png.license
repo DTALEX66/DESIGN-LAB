@@ -1,0 +1,17 @@
+{
+  "schemaVersion": "design-lab/asset-sidecar/v1",
+  "file": "design-lab/evidence/current-execution/task-artifacts/browser-e2e/affordance-shots/clicked-design-lab-to-ui2026@1440.png",
+  "sha256": "sha256:f84ff656a9b0156cdeb19d600037edda4e6b8a068c7debdcc827c5845247b167",
+  "license": "MIT",
+  "author": "DESIGN-LAB Workbench rendered by design-lab/tests/e2e/audit_workbench_theme_affordance.mjs for DTALEX66 (DESIGN-LAB project owner)",
+  "redistributable": true,
+  "modelInputAllowed": false,
+  "commercialUse": true,
+  "sourceId": null,
+  "note": "Same authoring facts the capture driver records for every other screenshot: the bytes are this repository's own Workbench rendering, produced by the theme-affordance gate clicking the shipped palette control. The gate never wrote a sidecar for this shot because the file used to be untracked; tracking it under owner item G (2026-10-12, option A) is what made DL-AST-001 apply.",
+  "exception": {
+    "approvedBy": "2026 DTALEX66 and contributors",
+    "expiresAt": "2027-08-23"
+  },
+  "notes": "First-party render, same shape as the golden-case reference rasters already tracked in design-lab/evals/: this PNG is the project's own Workbench, screenshotted by the theme-affordance gate after it clicked the shipped palette control. No third-party input, so sourceId is null and the owner-approved exception carries the re-verification interval. modelInputAllowed stays false for THIS evidence: it is a record of what a gate observed, and feeding gate output back into a model is exactly the loop this repository's E-level ladder exists to prevent. The gate never wrote a sidecar because the file used to be untracked; tracking it under owner item G (2026-10-12, option A) is what made DL-AST-001 apply."
+}

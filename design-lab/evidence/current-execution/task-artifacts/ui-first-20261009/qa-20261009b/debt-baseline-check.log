@@ -1,0 +1,4 @@
+DESIGN_DEBT_SCOPE files=7 apps/workbench/style.css apps/workbench/main.ts apps/workbench/shell.ts apps/workbench/workbench.ts apps/workbench/design.ts apps/workbench/contracts.ts apps/workbench/index.html
+DESIGN_DEBT literal_colors=26 literal_px=532 shadow_declarations=24 shadow_reading_var=18 shadow_resets_skipped=3 chromatic=13 neutral_alpha=13
+DESIGN_DEBT_BASELINE=NOTICE PENDING-OWNER-ADJUDICATION count=26 values=['#11a74d', '#1a2231', '#222c3e', '#2563eb', '#27c86a', '#3c8aff', '#4bafff', '#8f2a2a', '#c03030', '#c98c00', '#ee5f5f', '#f2b541', '#f87171', 'rgba(0,0,0,.15)', 'rgba(0,0,0,.22)', 'rgba(0,0,0,.25)', 'rgba(0,0,0,.28)', 'rgba(0,0,0,.35)', 'rgba(0,0,0,.55)', 'rgba(255,255,255,.02)', 'rgba(255,255,255,.03)', 'rgba(255,255,255,.5)'] -- an agent must not fill this field
+DESIGN_DEBT_BASELINE=PASS prose matches the measurement and every literal site is registered

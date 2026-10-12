@@ -1,0 +1,15 @@
+$ python .project-local/tmp/falsify_domain_batch7.py
+EXTRA_ENV={}
+EXIT=0
+---- output ----
+shell.ts baseline digest = 2de570986e45
+  RED as expected [join action not disabled] :: throw new Error('没有关联轴时这个动作必须禁用，不能留一个必然失败的按钮');
+  RED as expected [detail route never resolves] :: throw new Error(`${hash}: 应恰好一次 GET /api/domains，实得 ${reads.length} 次`
+  RED as expected [nav highlight mapping dropped] :: throw new Error('域包详情必须让父级 设计领域 入口保持高亮，否则读起来像已经离开目录');
+  RED as expected [not-found drawer borrows another pack] :: throw new Error(`未找到的详情不得借用另一个域包的 ${borrowed}`);
+  RED as expected [id-less pack gets a synthesised address] :: throw new Error(`只有声明了 pack_id 的行才有入口，期望 2 实得 ${openButtons.length}`);
+  RED as expected [truncation note removed from detail] :: throw new Error('原因被截断时必须注明校验器实际给出了多少条');
+restored digest = 2de570986e45 (match=True)
+clean rebuild rc=0 appshell rc=0
+FALSIFICATION=OK all 6 plants turned the suite red, bytes restored
+

@@ -1,0 +1,15 @@
+$ python .project-local/tmp/falsify_asset_tabs.py
+EXTRA_ENV={}
+EXIT=0
+---- output ----
+shell.ts baseline = dfdf2a2de6b2
+clean appshell green, ⑫ present
+  RED for the right reason [count callable by kind]
+  RED for the right reason [unread counts drawn as numbers]
+  RED for the right reason [shared-axis disclosure dropped]
+  RED for the right reason [a tab removed]
+  RED for the right reason [unclassified axis shown as a bare zero]
+  RED for the right reason [empty-state row removed]
+restored = dfdf2a2de6b2 match = True clean appshell rc = 0
+FALSIFICATION=OK all 6 tab plants turned block ⑫ red for the planted reason
+

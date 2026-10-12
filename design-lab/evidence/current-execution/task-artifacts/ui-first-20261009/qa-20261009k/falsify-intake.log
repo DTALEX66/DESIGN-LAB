@@ -1,0 +1,14 @@
+$ python .project-local/tmp/falsify_intake_write.py
+EXTRA_ENV={}
+EXIT=0
+---- output ----
+baselines: {'design.ts': 'be55cec6c040', 'shell.ts': 'dfdf2a2de6b2'}
+clean appshell green (exit 0), ⑬ present
+  RED for the right reason [local title/goals refusal removed]
+  RED for the right reason [empty goal segments kept]
+  RED for the right reason [idempotency key always fresh]
+  RED for the right reason [extra field leaks into the body]
+  RED for the right reason [refusal reported as success]
+restored: {WindowsPath('D:/All projects/DESIGN-LAB/apps/workbench/design.ts'): 'be55cec6c040', WindowsPath('D:/All projects/DESIGN-LAB/apps/workbench/shell.ts'): 'dfdf2a2de6b2'} all match: True clean rc: 0
+FALSIFICATION=OK all 5 intake-write plants turned block ⑬ red for the planted reason
+

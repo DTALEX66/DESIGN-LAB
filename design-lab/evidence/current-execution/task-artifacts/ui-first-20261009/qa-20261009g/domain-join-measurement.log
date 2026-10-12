@@ -1,0 +1,50 @@
+pack domain slugs (12): ["3d", "audio", "brand", "ecommerce", "graphic", "motion", "packaging", "product-ui", "spatial", "ui-ux", "video", "visual"]
+capability rows: 60
+top-level keys : ["capabilities", "classification", "counts", "meaning", "schemaVersion", "sources", "unmeasuredMeans"]
+row keys       : ["axes", "contentDigest", "disposition", "domain", "evidenceLevel", "id", "kind", "license", "licenseUrl", "observedAt", "popularity", "presence", "qualificationEvidence", "qualificationReason", "qualified", "removalPath", "repo", "revision", "revisionReason", "revisionState", "rightsNotes", "sourceType", "title", "unclassifiedAxes", "upstreamOwner", "url"]
+
+-- field `domain` values --
+  None                         46
+  video-generation             4
+  segmentation                 4
+  image-generation             1
+  asr                          1
+  ocr                          1
+  upscaling                    1
+  tts                          1
+  3d                           1
+
+-- classification axis `domains` values --
+  <EMPTY>                      60
+
+axis values that ARE pack slugs : []
+axis values that are NOT slugs  : []
+slugs with no capability        : ["3d", "audio", "brand", "ecommerce", "graphic", "motion", "packaging", "product-ui", "spatial", "ui-ux", "video", "visual"]
+
+field `domain` values that are slugs: ["3d"]
+rows whose `domain` is None         : 46
+
+=== domain pack readback (the right-hand side of the join) ===
+root          = design-lab/domain-packs
+rootState     = PRESENT
+counts        = {"packs": 13, "byValidation": {"VALIDATES": 12, "INVALID": 1, "UNREADABLE": 0, "NOT_CHECKED": 0}}
+checker       = {"path": "design-lab/scripts/verify_domain_pack_v2.py", "state": "LOADED", "note": null}
+n packs       = 13
+
+{"directory": "audio-design", "packId": "audio-design", "domain": "audio", "displayName": "Audio Design Domain Pack", "version": "0.1.0", "schema": "design-lab/domain-pack/v2", "validation": "VALIDATES", "errCount": 0}
+{"directory": "brand-design", "packId": "brand-design", "domain": "brand", "displayName": "Brand Design Domain Pack", "version": "0.1.0", "schema": "design-lab/domain-pack/v2", "validation": "VALIDATES", "errCount": 0}
+{"directory": "ecommerce-design", "packId": "ecommerce-design", "domain": "ecommerce", "displayName": "E-commerce Design Domain Pack", "version": "0.1.0", "schema": "design-lab/domain-pack/v2", "validation": "VALIDATES", "errCount": 0}
+{"directory": "graphic-design", "packId": "graphic-design", "domain": "graphic", "displayName": "Graphic Design Domain Pack", "version": "0.1.0", "schema": "design-lab/domain-pack/v2", "validation": "VALIDATES", "errCount": 0}
+{"directory": "minigame-design", "packId": "minigame-design", "domain": null, "displayName": "MINIGAME Design Domain Pack", "version": "0.1.0", "schema": "workflow/domain-pack/v1", "validation": "INVALID", "errCount": 11}
+{"directory": "motion-design", "packId": "motion-design", "domain": "motion", "displayName": "Motion Design Domain Pack", "version": "0.1.0", "schema": "design-lab/domain-pack/v2", "validation": "VALIDATES", "errCount": 0}
+{"directory": "packaging-design", "packId": "packaging-design", "domain": "packaging", "displayName": "Packaging Design Domain Pack", "version": "0.1.0", "schema": "design-lab/domain-pack/v2", "validation": "VALIDATES", "errCount": 0}
+{"directory": "product-ui-design", "packId": "product-ui-design", "domain": "product-ui", "displayName": "Product UI Design Domain Pack", "version": "0.1.0", "schema": "design-lab/domain-pack/v2", "validation": "VALIDATES", "errCount": 0}
+{"directory": "spatial-design", "packId": "spatial-design", "domain": "spatial", "displayName": "Spatial / Exhibition Design Domain Pack", "version": "0.1.0", "schema": "design-lab/domain-pack/v2", "validation": "VALIDATES", "errCount": 0}
+{"directory": "three-d-design", "packId": "three-d-design", "domain": "3d", "displayName": "3D Design Domain Pack", "version": "0.1.0", "schema": "design-lab/domain-pack/v2", "validation": "VALIDATES", "errCount": 0}
+{"directory": "uiux-design", "packId": "uiux-design", "domain": "ui-ux", "displayName": "UI/UX Design Domain Pack", "version": "0.1.0", "schema": "design-lab/domain-pack/v2", "validation": "VALIDATES", "errCount": 0}
+{"directory": "video-design", "packId": "video-design", "domain": "video", "displayName": "Video Design Domain Pack", "version": "0.1.0", "schema": "design-lab/domain-pack/v2", "validation": "VALIDATES", "errCount": 0}
+{"directory": "visual-design", "packId": "visual-design", "domain": "visual", "displayName": "Visual Design Domain Pack", "version": "0.1.0", "schema": "design-lab/domain-pack/v2", "validation": "VALIDATES", "errCount": 0}
+
+provenance: appended by the run that produced this file (its exit code was measured, not assumed)
+COMMAND=PYTHONIOENCODING=utf-8 .venv/Scripts/python.exe .project-local/tmp/probe_domain_join.py ; then dump_domain_readback.py appended
+EXIT=0

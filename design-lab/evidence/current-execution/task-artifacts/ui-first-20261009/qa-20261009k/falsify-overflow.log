@@ -1,0 +1,13 @@
+$ python .project-local/tmp/falsify_domain_gate_batch7.py
+EXTRA_ENV={}
+EXIT=0
+---- output ----
+shell.ts baseline = dfdf2a2de6b2
+clean gate rc=0
+  RED for the right reason [join action loses disabled]
+  RED for the right reason [join button is the wrong control]
+  RED for the right reason [disable reason disappears]
+  RED for the right reason [detail route stops resolving]
+restored digest = dfdf2a2de6b2 match = True clean gate rc = 0
+FALSIFICATION=OK 4 plants each turned the browser gate red for the planted reason
+

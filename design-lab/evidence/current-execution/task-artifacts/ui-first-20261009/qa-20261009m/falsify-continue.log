@@ -1,0 +1,19 @@
+$ python .project-local/tmp/falsify_continue_batch11.py
+EXTRA_ENV={}
+EXIT=0
+---- output ----
+shell.ts baseline = e87b2b17228f
+clean appshell green (exit 0), ⑮ present
+  RED for the right reason [conflict wears forbidden again]
+  RED for the right reason [continue entry disabled]
+  RED for the right reason [continue button has no handler]
+  RED for the right reason [continue entry on the wrong rows]
+  RED for the right reason [continue lands on the wrong screen]
+  RED for the right reason [host actions become clickable]
+  RED for the right reason [intake claims the brief carries over]
+  RED for the right reason [intake entry disabled again]
+  RED for the right reason [claims panel still says continue is unwired]
+  RED for the right reason [claims row drops the handoff boundary]
+restored = e87b2b17228f match = True clean rc = 0
+FALSIFICATION=OK all 10 continue/state-kind plants turned ⑭/⑮ red for the planted reason
+

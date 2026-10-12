@@ -1,0 +1,15 @@
+test_contrast_maths_reference_table_is_satisfied (test_workbench_contrast_gate.WorkbenchContrastGateTests.test_contrast_maths_reference_table_is_satisfied)
+The probe recomputes published WCAG 2.1 ratios with the same lum()/ratio() ... ok
+test_every_rendered_text_run_meets_aa (test_workbench_contrast_gate.WorkbenchContrastGateTests.test_every_rendered_text_run_meets_aa) ... ok
+test_ui2026_light_theme_is_graded_by_the_same_aa_gate (test_workbench_contrast_gate.WorkbenchContrastGateTests.test_ui2026_light_theme_is_graded_by_the_same_aa_gate)
+DL-UI-U02 (2026-10-09): the 20261009 baseline ships as a *theme*, so it has ... ok
+test_no_clipped_or_unreachable_text_in_real_browser (test_workbench_overflow_gate.WorkbenchOverflowGateTests.test_no_clipped_or_unreachable_text_in_real_browser) ... ok
+test_health_reports_the_served_bundle_identity (test_workbench_served_bundle.ServedBundleTests.test_health_reports_the_served_bundle_identity) ... ok
+test_served_bundle_is_the_committed_bundle_in_a_source_checkout (test_workbench_served_bundle.ServedBundleTests.test_served_bundle_is_the_committed_bundle_in_a_source_checkout) ... ok
+test_unexpected_failure_is_machine_readable_and_keeps_the_server_usable (test_workbench_served_bundle.ServedBundleTests.test_unexpected_failure_is_machine_readable_and_keeps_the_server_usable) ... ok
+
+----------------------------------------------------------------------
+Ran 7 tests in 272.421s
+
+OK
+CLEAN_EXIT=0

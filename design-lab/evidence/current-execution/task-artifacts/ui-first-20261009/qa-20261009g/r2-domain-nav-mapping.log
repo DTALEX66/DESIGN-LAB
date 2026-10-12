@@ -1,0 +1,21 @@
+parsed R2 §2 order (11): ["平面设计", "品牌与 VI", "字体与出版", "包装设计", "3D 建模与渲染", "空间与展示", "动效设计", "视频制作", "音频与声音", "UI 与交互", "游戏视觉"]
+R2 §2 names               : 11
+packs read back           : 13
+declared slugs            : 12 ["3d", "audio", "brand", "ecommerce", "graphic", "motion", "packaging", "product-ui", "spatial", "ui-ux", "video", "visual"]
+slugs whose pack VALIDATES: 12 ["3d", "audio", "brand", "ecommerce", "graphic", "motion", "packaging", "product-ui", "spatial", "ui-ux", "video", "visual"]
+packs declaring no domain : ["minigame-design"]
+
+names with NO pack        : 2 ["字体与出版", "游戏视觉"]
+names fitting exactly 1   : 7
+names fitting 2 packs     : 2 [["平面设计", ["graphic", "visual"]], ["UI 与交互", ["ui-ux", "product-ui"]]]
+packs no R2 name claims   : 1 ["ecommerce"]
+
+R2 §2 also names 游戏视觉, whose only candidate directory is minigame-design --
+that manifest declares workflow/domain-pack/v1, so it carries domain=null and the
+repo checker rejects it (INVALID). The spec therefore asks for an entry the
+readback cannot yet identify, and for a second-level nav whose labels are Chinese
+while the records' own displayName is English.
+
+provenance: appended by the run that produced this file (its exit code was measured, not assumed)
+COMMAND=PYTHONIOENCODING=utf-8 .venv/Scripts/python.exe .project-local/tmp/measure_r2_domain_nav_mapping.py
+EXIT=0

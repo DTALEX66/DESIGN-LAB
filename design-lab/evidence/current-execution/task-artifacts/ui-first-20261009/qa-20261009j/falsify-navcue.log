@@ -1,0 +1,11 @@
+$ python .project-local/tmp/falsify_nav_cue.py
+EXTRA_ENV={}
+EXIT=0
+---- output ----
+shell.ts baseline = db4c89e91cbe
+clean gate green (cue measured lit at top, off at end)
+  RED for the right reason [cue never lights] :: OV_SPEC_BROKEN 1920: 侧栏在顶部且还有 749px 没显示，却没有出现"下面还有"提示
+  RED for the right reason [cue always lights] :: OV_SPEC_BROKEN 1920: 侧栏已滚到底，提示仍然亮着
+restored = db4c89e91cbe match = True
+FALSIFICATION=OK both nav-cue plants convicted by their own branch
+
