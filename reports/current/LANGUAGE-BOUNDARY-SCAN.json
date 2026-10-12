@@ -4,9 +4,9 @@
     "DL-TP-20260914-DEEPSEEK-AUTHORITY-R1::DLDS-C020",
     "DL-TP-20260914-DEEPSEEK-AUTHORITY-R1::DLDS-C050"
   ],
-  "generated_at": "2026-10-08T16:26:52+00:00",
-  "subject_sha": "",
-  "tracked_files_scanned": 3360,
+  "generated_at": "2026-10-12T15:44:30+00:00",
+  "subject_sha": "bdfece9383ef9bb3176af1d6dd0ec9d0f49585a0",
+  "tracked_files_scanned": 3755,
   "language_boundary": {
     "forbidden_language_files": [],
     "fixture_scoped_language_files": [
@@ -232,6 +232,20 @@
       {
         "vocabulary": "evidence_levels",
         "schema": "design-lab/schemas/capability-status.schema.json",
+        "path": "src/design_lab/governance/current_execution.py",
+        "line": 42,
+        "tokens_present": [
+          "BLOCKED",
+          "FAIL",
+          "PASS"
+        ],
+        "agrees_with_schema": true,
+        "extra_tokens": [],
+        "text": "'outcome': {'enum': ['PASS', 'FAIL', 'PARTIAL', 'BLOCKED', 'NOT_EXECUTED']},"
+      },
+      {
+        "vocabulary": "evidence_levels",
+        "schema": "design-lab/schemas/capability-status.schema.json",
         "path": "src/design_lab/interop/delivery_receipt.py",
         "line": 43,
         "tokens_present": [
@@ -305,6 +319,22 @@
       {
         "vocabulary": "task_axes_states",
         "schema": "design-lab/schemas/task-ledger-r3.schema.json",
+        "path": "src/design_lab/governance/current_execution.py",
+        "line": 42,
+        "tokens_present": [
+          "BLOCKED",
+          "FAIL",
+          "NOT_EXECUTED",
+          "PARTIAL",
+          "PASS"
+        ],
+        "agrees_with_schema": true,
+        "extra_tokens": [],
+        "text": "'outcome': {'enum': ['PASS', 'FAIL', 'PARTIAL', 'BLOCKED', 'NOT_EXECUTED']},"
+      },
+      {
+        "vocabulary": "task_axes_states",
+        "schema": "design-lab/schemas/task-ledger-r3.schema.json",
         "path": "src/design_lab/interop/delivery_receipt.py",
         "line": 43,
         "tokens_present": [
@@ -331,8 +361,8 @@
         "text": "and no requirement is ``FAIL``/``BLOCKED``; otherwise ``PARTIAL``."
       }
     ],
-    "copy_count": 13,
-    "agreeing_copies": 13,
+    "copy_count": 15,
+    "agreeing_copies": 15,
     "disagreeing_copies": []
   },
   "failures": [],
