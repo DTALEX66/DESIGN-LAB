@@ -35,3 +35,12 @@ docs/taskpacks/03_DESIGN-LAB_* -text whitespace=cr-at-eol
 # Owner-adopted input bytes and pre-adoption snapshots are immutable.
 docs/history/taskpacks/20261009-inputs/** -text whitespace=cr-at-eol
 docs/history/taskpacks/20261009-adoption/** -text whitespace=cr-at-eol
+
+# Current-execution evidence is byte-frozen the same way: a receipt stores
+# artifact_sha256 and the gate re-hashes the file on every read, so EOL normalisation would
+# make a clean clone disagree with the ledger. CI proved this on 2026-10-12: after option A
+# tracked the bytes, the failures changed from "No such file or directory" to "artifact hash
+# differs", because `* text=auto eol=lf` had rewritten CRLF in the working tree to LF in the
+# blob while the receipt still hashed the working-tree bytes. Evidence is measured, not
+# edited -- it must reach Git exactly as the gate wrote it.
+design-lab/evidence/** binary
