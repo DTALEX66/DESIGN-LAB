@@ -14,6 +14,7 @@ from __future__ import annotations
 import copy
 import json
 import os
+import re
 import subprocess
 import sys
 import tempfile
@@ -68,9 +69,21 @@ class SelectedSourceAdaptation(unittest.TestCase):
         self.assertIn('SELECTED_SOURCES=OK', out)
         for token in ('records=6', 'mapped=2', 'consumed=0', 'motion_deviations=0'):
             self.assertIn(token, out)
-        # The citations were re-read from the vendored blob here; a green run that checked
-        # nothing would print VERIFIED(0) and still exit 0.
-        self.assertNotIn('citations=VERIFIED(0)', out)
+        # The citations are re-read from the vendored blob when that blob is on disk, and
+        # the blob lives in the gitignored vendor cache -- so a clean clone legitimately
+        # verifies zero of them. The original assertion here demanded VERIFIED != 0, which
+        # is true only on a workstation that has fetched the cache and is therefore a test
+        # that could only ever pass in one environment. What must hold everywhere is the
+        # relation: if nothing was re-read, the run has to SAY so. A green line reading
+        # VERIFIED(0) with no note is the silent-pass this test exists to prevent.
+        verified = re.search(r'citations=VERIFIED\((\d+)\)/SKIPPED\((\d+)\)', out)
+        self.assertIsNotNone(verified, out)
+        crosschecked, skipped = int(verified.group(1)), int(verified.group(2))
+        if crosschecked == 0:
+            self.assertGreater(skipped, 0, 'nothing was re-read and nothing was skipped: '
+                                           'the gate silently checked nothing')
+            self.assertIn('SKIPPED citations are inside the gitignored vendor cache', out,
+                          'a run that re-read no citation must state why')
 
     def test_empty_selection_is_not_a_pass(self):
         findings = self.mutated(lambda d: d.__setitem__('selected', []))

@@ -512,11 +512,16 @@ def main() -> int:
                f'citations=VERIFIED({stats["crosschecked"]})/SKIPPED({stats["crosscheck_skipped"]})')
     if findings:
         print(f'SELECTED_SOURCES=FAIL findings={len(findings)} {summary}')
-        if stats['crosscheck_skipped']:
-            print('  note: SKIPPED citations are inside the gitignored vendor cache; CI cannot '
-                  're-read them, so the recorded line spans are the only check that ran there')
         return 1
     print(f'SELECTED_SOURCES=OK {summary}')
+    # Printed on a PASSING run too, deliberately. This note used to live inside the
+    # `if findings:` branch, so the one case where it mattered most was the case that never
+    # printed it: a clean clone, where the vendored blobs are absent, every citation is
+    # skipped, the count reads VERIFIED(0), and the run is green while having re-read
+    # nothing. "Green" and "checked" have to be separable by whoever reads the line.
+    if stats['crosscheck_skipped']:
+        print('  note: SKIPPED citations are inside the gitignored vendor cache; CI cannot '
+              're-read them, so the recorded line spans are the only check that ran there')
     return 0
 
 
