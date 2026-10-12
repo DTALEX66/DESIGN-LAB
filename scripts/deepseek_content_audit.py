@@ -68,6 +68,11 @@ def provenance() -> dict:
     }
 
 
+#: A lock entry whose path is DECLARED to live in the gitignored local cache.
+#: Absence there is a statement about this machine, not about the repository.
+_DECLARED_CACHE_PREFIXES = re.compile(r"^\.project-local/(cache|run|tmp)/")
+
+
 def third_party_audit(files: list) -> dict:
     lock_path = REPO / LOCK
     lock = json.loads(lock_path.read_text(encoding="utf-8")) if lock_path.is_file() else {}
@@ -86,6 +91,21 @@ def third_party_audit(files: list) -> dict:
             # LOCK_REFERENCE means the full copy was deliberately removed and only
             # the reference remains (verify_knowledge_lifecycle.py documents this).
             status = "CORRECT_LOCK_REFERENCE"
+        elif _DECLARED_CACHE_PREFIXES.match(path):
+            # G, fourth instance (owner 2026-10-12): 37 of the 46 lock entries declare a
+            # path under .project-local/cache/vendor/ -- a gitignored cache that exists only
+            # on a machine which fetched it. This audit used to call their absence
+            # MISSING_ABSORBED_TREE and flip the verdict, so the stored record could only
+            # ever be true on the one machine that had the cache: CI read
+            # "absorbed tree missing" where the owner reads "cached copy present".
+            #
+            # That is a machine fact masquerading as a repository verdict. A declared
+            # CACHE path being absent is NOT a defect; an IN-REPO declared path being
+            # absent still is, and still lands in `missing_absorbed_trees` below. The
+            # status is named, not hidden -- CACHE_ABSENT is visibly different from
+            # FULL_COPY_IN_IGNORED_CACHE, so "this machine has not fetched it" never reads
+            # as "the repository is missing it".
+            status = "CACHE_ABSENT"
         else:
             status = "MISSING_ABSORBED_TREE"
         entries.append({
@@ -106,6 +126,7 @@ def third_party_audit(files: list) -> dict:
         })
     present = [e for e in entries if e["status"] == "PRESENT"]
     cached = [e for e in entries if e["status"] == "FULL_COPY_IN_IGNORED_CACHE"]
+    cache_absent = [e for e in entries if e["status"] == "CACHE_ABSENT"]
     references = [e for e in entries if e["status"] == "CORRECT_LOCK_REFERENCE"]
     missing = [e for e in entries if e["status"] == "MISSING_ABSORBED_TREE"]
     unidentified = [e for e in entries if not e["has_revision"] or not e["has_url"]]
@@ -135,6 +156,9 @@ def third_party_audit(files: list) -> dict:
         "entries": entries,
         "counts": {"entries": len(entries), "present": len(present),
                    "full_copy_in_ignored_cache": len(cached),
+                   # Machine-local by construction: this count is expected to differ
+                   # between a workstation that fetched the caches and a clean clone.
+                   "declared_cache_absent": len(cache_absent),
                    "correct_lock_reference": len(references),
                    "missing_absorbed_tree": len(missing),
                    "with_canonical_url": sum(1 for e in entries if e["has_url"]),
@@ -147,14 +171,22 @@ def third_party_audit(files: list) -> dict:
         "findings": {
             "without_canonical_url": [e["id"] for e in entries if not e["has_url"]],
             "without_pinned_revision": [e["id"] for e in entries if not e["has_revision"]],
+            # Defect list only: CACHE_ABSENT entries are deliberately NOT here, because
+            # their absence is a property of the machine, not of the repository.
             "missing_absorbed_trees": [{"id": e["id"], "path": e["path"]} for e in missing],
+            "declared_cache_absent": [{"id": e["id"], "path": e["path"]}
+                                        for e in cache_absent],
             "absorbed_trees_outside_lock": [a["directory"] for a in uncovered],
         },
         "verdict": ("NO_FULL_THIRD_PARTY_SOURCE_TREES_TRACKED" if not uncovered and not missing
                     else "REVIEW_ABSORBED_TREES_OUTSIDE_LOCK"),
         "note": "LOCK_REFERENCE with no in-repo copy is the intended state, not a stale claim: the "
                 "full copy was removed and only the reference remains. A CONDITIONAL_POC or "
-                "ABSORB_MINIMAL entry whose path is gone would be a real defect.",
+                "ABSORB_MINIMAL entry whose IN-REPO path is gone is a real defect and is "
+                "listed under missing_absorbed_trees. An entry whose path is DECLARED under "
+                "the gitignored local cache and is absent on this machine is reported as "
+                "CACHE_ABSENT: that says this machine never fetched it, which is not a "
+                "repository defect and must not move the verdict.",
     }
 
 
