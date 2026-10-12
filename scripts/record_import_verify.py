@@ -162,7 +162,30 @@ def main() -> int:
             continue
         with open(deep(str(dest)), "rb") as fh:
             wt = fh.read()
-        if not equals_record(wt, row):
+        # A row may declare that the repository copy was deliberately rewritten after the
+        # import, and carry the post-import digests plus the commit that did it. Leg 1 still
+        # verified the ARCHIVE against the ZIP above; this only changes which digest the
+        # repository file is held to. The declaration is not a waiver: a row that carries
+        # post-import digests without saying which commit changed the file, or whose file
+        # matches neither the archived nor the declared bytes, still fails.
+        evolved = row.get("repoSha256AfterImport") is not None
+        if evolved and not (row.get("evolvedBy") or {}).get("commit"):
+            failures.append(f"WORKTREE-EVOLVED-UNDECLARED {rel} declares post-import digests "
+                            "but names no commit that changed the file")
+            continue
+        if evolved and not (row.get("evolution") or "").strip():
+            failures.append(f"WORKTREE-EVOLVED-UNEXPLAINED {rel} declares post-import digests "
+                            "but carries no evolution note")
+            continue
+        if evolved and not equals_record(wt, {**row, "sha256": row["repoSha256AfterImport"],
+                                              "crc32": row["repoCrc32AfterImport"],
+                                              "bytes": row["repoBytesAfterImport"]}):
+            failures.append(f"WORKTREE-MISMATCH {rel} is declared evolved to "
+                            f"crc={row['repoCrc32AfterImport']} size={row['repoBytesAfterImport']} "
+                            f"by {(row.get('evolvedBy') or {}).get('commit')} but the file is "
+                            f"crc={crc(wt)} size={len(wt):,}")
+            continue
+        if not evolved and not equals_record(wt, row):
             failures.append(f"WORKTREE-MISMATCH {rel} expected crc={row['crc32']} "
                             f"size={row['bytes']:,} got crc={crc(wt)} size={len(wt):,}")
             continue

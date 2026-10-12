@@ -328,7 +328,15 @@
    "target": ".project/governance/authority-index.json",
    "also_in_repo": [
     ".project/governance/authority-index.json"
-   ]
+   ],
+   "repoBytesAfterImport": 4662,
+   "repoCrc32AfterImport": "021c7c5c",
+   "repoSha256AfterImport": "sha256:0e2360042518041f3ce98b72cad9ff3039234c413b18a68a22f1618b6a1c5dce",
+   "evolvedBy": {
+    "commit": "147e6dc9",
+    "subject": "feat(ui-first): land U03-U06 desktop slices, the U06 runtime read-back, and the gates that caught them"
+   },
+   "evolution": "Archive bytes above unchanged and still verified against the ZIP. This row was ALREADY-IN-REPO, so it also claimed the repository copy equals the archived bytes; that claim stopped holding when 147e6dc9 rewrote the file. Post-import digests recorded; verify_record_verify.py leg 2 holds the repository copy to THESE and still refuses it if they disagree."
   },
   {
    "source_container": "DESIGN-LAB_FINAL_CONSOLIDATED_PACKAGE_2026-09-29.zip",
@@ -343,7 +351,15 @@
    "target": "AUTHORITY.md",
    "also_in_repo": [
     "AUTHORITY.md"
-   ]
+   ],
+   "repoBytesAfterImport": 16997,
+   "repoCrc32AfterImport": "d291f4f1",
+   "repoSha256AfterImport": "sha256:08037bce6b71e105102b4c18525b2a021678339bba8549d80f966c262a8e7814",
+   "evolvedBy": {
+    "commit": "147e6dc9",
+    "subject": "feat(ui-first): land U03-U06 desktop slices, the U06 runtime read-back, and the gates that caught them"
+   },
+   "evolution": "Archive bytes above unchanged and still verified against the ZIP. This row was ALREADY-IN-REPO, so it also claimed the repository copy equals the archived bytes; that claim stopped holding when 147e6dc9 rewrote the file. Post-import digests recorded; verify_record_verify.py leg 2 holds the repository copy to THESE and still refuses it if they disagree."
   },
   {
    "source_container": "DESIGN-LAB_FINAL_CONSOLIDATED_PACKAGE_2026-09-29.zip",
@@ -358,7 +374,15 @@
    "target": "design-lab/config/product-manifest.json",
    "also_in_repo": [
     "design-lab/config/product-manifest.json"
-   ]
+   ],
+   "repoBytesAfterImport": 11404,
+   "repoCrc32AfterImport": "e3788767",
+   "repoSha256AfterImport": "sha256:5e30b0c89b4691f43101124dd4d8feedc9ff2d8964b680a9e4c955d952453c48",
+   "evolvedBy": {
+    "commit": "147e6dc9",
+    "subject": "feat(ui-first): land U03-U06 desktop slices, the U06 runtime read-back, and the gates that caught them"
+   },
+   "evolution": "Archive bytes above unchanged and still verified against the ZIP. This row was ALREADY-IN-REPO, so it also claimed the repository copy equals the archived bytes; that claim stopped holding when 147e6dc9 rewrote the file. Post-import digests recorded; verify_record_verify.py leg 2 holds the repository copy to THESE and still refuses it if they disagree."
   },
   {
    "source_container": "DESIGN-LAB_FINAL_CONSOLIDATED_PACKAGE_2026-09-29.zip",
@@ -403,7 +427,15 @@
    "target": "docs/architecture/BOUNDARY_CONTRACT.md",
    "also_in_repo": [
     "docs/architecture/BOUNDARY_CONTRACT.md"
-   ]
+   ],
+   "repoBytesAfterImport": 2948,
+   "repoCrc32AfterImport": "558c9342",
+   "repoSha256AfterImport": "sha256:46b9201f74a515f2fc723b37c857c0decbbaf872207fd5b7b79ba8fda4e7eed8",
+   "evolvedBy": {
+    "commit": "147e6dc9",
+    "subject": "feat(ui-first): land U03-U06 desktop slices, the U06 runtime read-back, and the gates that caught them"
+   },
+   "evolution": "Archive bytes above unchanged and still verified against the ZIP. This row was ALREADY-IN-REPO, so it also claimed the repository copy equals the archived bytes; that claim stopped holding when 147e6dc9 rewrote the file. Post-import digests recorded; verify_record_verify.py leg 2 holds the repository copy to THESE and still refuses it if they disagree."
   },
   {
    "source_container": "DESIGN-LAB_FINAL_CONSOLIDATED_PACKAGE_2026-09-29.zip",
@@ -433,7 +465,15 @@
    "target": "docs/current/PRODUCT_DEFINITION.md",
    "also_in_repo": [
     "docs/current/PRODUCT_DEFINITION.md"
-   ]
+   ],
+   "repoBytesAfterImport": 6466,
+   "repoCrc32AfterImport": "39288d10",
+   "repoSha256AfterImport": "sha256:8c640c4b65bf7231f5eb29f05f07f86d46f9885a854d723c097771a1f7ebbb19",
+   "evolvedBy": {
+    "commit": "147e6dc9",
+    "subject": "feat(ui-first): land U03-U06 desktop slices, the U06 runtime read-back, and the gates that caught them"
+   },
+   "evolution": "The archive bytes above are unchanged and still verify against the ZIP (leg 1). This row was ALREADY-IN-REPO, so it also claimed the repository copy equals the archived bytes -- a claim that stopped being true when a later batch deliberately rewrote the file. The gate has no way to express that, which made honest evolution unrepresentable. The repository copy was rewritten by 147e6dc9 and its post-import digests are recorded above; verify_record_verify.py leg 2 checks this row against them instead, and still refuses the file if either the archived or the post-import digest disagrees."
   },
   {
    "source_container": "DESIGN-LAB_FINAL_CONSOLIDATED_PACKAGE_2026-09-29.zip",
@@ -1558,7 +1598,15 @@
    "target": "packages/capabilities/standards/DESIGN_TOKEN_INTEROP.md",
    "also_in_repo": [
     "packages/capabilities/standards/DESIGN_TOKEN_INTEROP.md"
-   ]
+   ],
+   "repoBytesAfterImport": 1058,
+   "repoCrc32AfterImport": "8c645d7a",
+   "repoSha256AfterImport": "sha256:46b1acd9f78d5da27a15ef4931264c3667568d3248cc1c749c631b5c3b5081b1",
+   "evolvedBy": {
+    "commit": "da43c4dc",
+    "subject": "feat(T07): distil six sources, and gate popularity, landing and qualification"
+   },
+   "evolution": "The archive bytes above are unchanged and still verify against the ZIP (leg 1). This row was ALREADY-IN-REPO, so it also claimed the repository copy equals the archived bytes -- a claim that stopped being true when a later batch deliberately rewrote the file. The gate has no way to express that, which made honest evolution unrepresentable. The repository copy was rewritten by da43c4dc and its post-import digests are recorded above; verify_record_verify.py leg 2 checks this row against them instead, and still refuses the file if either the archived or the post-import digest disagrees."
   },
   {
    "source_container": "DESIGN-LAB_FINAL_CONSOLIDATED_PACKAGE_2026-09-29.zip",
@@ -1573,7 +1621,15 @@
    "target": "packages/capabilities/standards/MOTION_ACCESSIBILITY.md",
    "also_in_repo": [
     "packages/capabilities/standards/MOTION_ACCESSIBILITY.md"
-   ]
+   ],
+   "repoBytesAfterImport": 949,
+   "repoCrc32AfterImport": "27d28941",
+   "repoSha256AfterImport": "sha256:bd3c17510af8859a4a2e8c83a5d55d258ffd113afa2447647b5257b2baf4205c",
+   "evolvedBy": {
+    "commit": "da43c4dc",
+    "subject": "feat(T07): distil six sources, and gate popularity, landing and qualification"
+   },
+   "evolution": "The archive bytes above are unchanged and still verify against the ZIP (leg 1). This row was ALREADY-IN-REPO, so it also claimed the repository copy equals the archived bytes -- a claim that stopped being true when a later batch deliberately rewrote the file. The gate has no way to express that, which made honest evolution unrepresentable. The repository copy was rewritten by da43c4dc and its post-import digests are recorded above; verify_record_verify.py leg 2 checks this row against them instead, and still refuses the file if either the archived or the post-import digest disagrees."
   },
   {
    "source_container": "DESIGN-LAB_FINAL_CONSOLIDATED_PACKAGE_2026-09-29.zip",
