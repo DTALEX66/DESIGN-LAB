@@ -1,9 +1,9 @@
 {
   "schemaVersion": "design-lab/deepseek-authority-chain/v1",
   "task_key": "DL-TP-20260914-DEEPSEEK-AUTHORITY-R1::DLDS-A010",
-  "generated_at": "2026-10-12T16:09:23+00:00",
+  "generated_at": "2026-10-12T16:31:55+00:00",
   "subject": {
-    "base_sha": "d874a0b45b8f2658224943fde34716f6d69a0d86",
+    "base_sha": "5d54afd2f33fa77e744ba7febaa2ae33ebcca644",
     "branch": "qoder/designlab-backup-consistency-20261007",
     "worktree_clean": false
   },
@@ -155,8 +155,8 @@
     },
     {
       "path": "docs/history/taskpacks/20261009-adoption/AUTHORITY-PIN-CHANGE.json",
-      "bytes": 942,
-      "sha256": "sha256:c78b7b63a72019184d482e24e9bc7fcc11fbbff4f090b7ce91919cc392926e64",
+      "bytes": 1965,
+      "sha256": "sha256:6cb67769c27667210bc92162bbdeefd1a5838e2c529320a6fe663f107fb057f0",
       "authority_class": "HISTORICAL",
       "basis": "frozen historical path (docs/history/)",
       "ledger": {
@@ -164,8 +164,10 @@
         "keys": [
           "after_pins",
           "before_source",
+          "current_pins_note",
           "decision",
-          "meaning"
+          "meaning",
+          "revisions"
         ]
       }
     },

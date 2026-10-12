@@ -76,10 +76,12 @@ AUTHORITY_ID = "DL-AUTHORITY-2026-09-18-R2"
 # longer asserts stale dynamic facts; no static release content removed; checks count
 # unchanged at 10):
 #   AUTHORITY.md                   f7c1e6ad… -> 7b29d3ea…  (§13.1 live readback)
+# 2026-10-12 re-pin: AUTHORITY.md alone, after correcting its stale "commit=NOT_EXECUTED / do not
+# claim the remote is synced" claims. Reason and superseded digest:/n# docs/history/taskpacks/20261009-adoption/AUTHORITY-PIN-CHANGE.json revisions[]. Checks stay at 10.
 # 2026-10-09 owner adoption: see docs/taskpacks/20261009-ui-first/CONVERSATION-DECISIONS.md; old bytes in docs/history/taskpacks/20261009-adoption/pre-adoption/.
 # New dispatch is additionally pinned; the old taskpack bytes stay pinned as frozen lineage.
 R2_RELEASE_HASHES = {
-    "AUTHORITY.md": "08037bce6b71e105102b4c18525b2a021678339bba8549d80f966c262a8e7814",
+    "AUTHORITY.md": "145cc12ea398997ffb55431e61deb785a480668af2128dafa3c8effee1176854",
     ".project/governance/authority-index.json": "0e2360042518041f3ce98b72cad9ff3039234c413b18a68a22f1618b6a1c5dce",
     "docs/current/HISTORY-FREEZE-RULES.md": "b970562dbdc8b4ccfff71ba2354a5b718d2a54efde7db7972c4a2ee2b60e6e40",
     "docs/taskpacks/DESIGN-LAB-FINAL-AUTHORITY-CONVERGENCE-TASKPACK-2026-09-18.md": "62f43ef295d4e90462d1e49e657e490400c4b5568f4e4ad1db3e268e12bb10c7",

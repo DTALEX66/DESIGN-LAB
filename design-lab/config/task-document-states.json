@@ -385,11 +385,11 @@
     },
     {
       "path": "docs/current/NEXT-AGENT-PROMPT-2026-10-09.md",
-      "state": "REFERENCE",
+      "state": "HISTORICAL",
       "role": "RECORD",
       "frozen": false,
-      "basis": "当前TaskPack派生说明/交接，非第二状态源",
-      "replacement": "docs/taskpacks/DESIGN-LAB-UI-FIRST-INTEGRATED-TASKPACK-2026-10-09.md"
+      "basis": "当前TaskPack派生说明/交接，非第二状态源 ｜ 2026-12-12 起降级为历史面，接续入口改为 2026-10-12 版",
+      "replacement": "docs/current/NEXT-AGENT-PROMPT-2026-10-12.md"
     },
     {
       "path": "docs/RECORD-ARCHIVE-INDEX.md",
@@ -417,11 +417,11 @@
     },
     {
       "path": "docs/current/NEXT-AGENT-PROMPT-2026-10-10.md",
-      "state": "REFERENCE",
+      "state": "HISTORICAL",
       "role": "RECORD",
       "frozen": false,
-      "basis": "当前TaskPack派生说明/交接，非第二状态源；AGENTS.md 已写明下一会话提示词不是独立 Authority",
-      "replacement": "docs/taskpacks/DESIGN-LAB-UI-FIRST-INTEGRATED-TASKPACK-2026-10-09.md"
+      "basis": "当前TaskPack派生说明/交接，非第二状态源；AGENTS.md 已写明下一会话提示词不是独立 Authority ｜ 2026-12-12 起降级为历史面，接续入口改为 2026-10-12 版",
+      "replacement": "docs/current/NEXT-AGENT-PROMPT-2026-10-12.md"
     },
     {
       "path": "docs/current/UI-DESKTOP-RECONCILIATION-2026-10-09.md",
@@ -445,6 +445,14 @@
       "role": "RECORD",
       "frozen": false,
       "basis": "当前TaskPack派生说明/交接，非第二状态源；AGENTS.md 已写明下一会话提示词不是独立 Authority",
+      "replacement": "docs/taskpacks/DESIGN-LAB-UI-FIRST-INTEGRATED-TASKPACK-2026-10-09.md"
+    },
+    {
+      "path": "docs/current/NEXT-AGENT-PROMPT-2026-10-12.md",
+      "state": "REFERENCE",
+      "role": "RECORD",
+      "frozen": false,
+      "basis": "当前 TaskPack 派生说明/交接，非第二状态源；AGENTS.md 已写明下一会话提示词不是独立 Authority。本文件同时是 2026-10-12 防漂移更正：它记录四个权威面曾长期声称「本地未提交 / 勿宣称远端已同步」而该说法已失效。",
       "replacement": "docs/taskpacks/DESIGN-LAB-UI-FIRST-INTEGRATED-TASKPACK-2026-10-09.md"
     }
   ]
