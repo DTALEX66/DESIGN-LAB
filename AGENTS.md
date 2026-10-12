@@ -124,10 +124,15 @@ DESIGN-LAB 是面向职业视觉设计的、AI 原生、平台中立、宿主原
 - 冻结新任务定义：`docs/history/taskpacks/20261009-adoption/TASK-DEFINITIONS.json`；旧28项映射及21件任务文档/58项结构记录普查见该目录OLD-TASK-CROSSWALK.json、OLD-DOCUMENT-CENSUS.json。仅作映射/输入，不是第二账本。
 - 旧20260918统一包、DeepSeek/R5任务定义原字节留在原位置，已在authority-index与task-document-states取代/冻结；正确恢复/安全/证据/Human Gate/双宿主/Golden验收并入新任务。不凭旧DONE重新宣称当前完成。
 - 原始输入：`docs/history/taskpacks/20261009-inputs/ARCHIVE-MANIFEST.json`记录2原ZIP/170成员；文本/代码/SVG逐字节入档，大包/字体/位图完整存本项目`.project-local/task-artifacts/taskpacks-20261009/`（Git忽略）。不能声称Git克隆带完整视觉参考；跨机器交接须附原ZIP。
-- 对话决定、旧任务取舍、批次与任务卡在`docs/taskpacks/20261009-ui-first/`；下一会话提示词为`docs/current/NEXT-AGENT-PROMPT-2026-10-09.md`，不是独立Authority。
+- 对话决定、旧任务取舍、批次与任务卡在`docs/taskpacks/20261009-ui-first/`；**当前**下一会话提示词为`docs/current/NEXT-AGENT-PROMPT-2026-10-12.md`，不是独立Authority（`NEXT-AGENT-PROMPT-2026-10-09/10/11.md`为历史版本，只作时点记录，不再作为接续入口）。
 - 当前报告仍由`scripts/generate_current_reports.py`生成；TASK_PROGRESS与PROJECT_STATUS显示当前派工区，旧证据读回保留历史身份。生成不等于执行测试；真实宿主/真人/三方/学习/发布分别记。
 - 任务文档定态登记仍为`design-lab/config/task-document-states.json`，并由`verify_task_document_states.py`与现有aggregate fail-closed检查；恰好一个DISPATCH_ENTRY等于index.currentIntegrated。
 - 原Record导入档案继续保留在`docs/history/record-imports-2026-10-08/`及其manifest；不批量搬迁或修改冻结原件。跨项目素材、系统数据、E/F盘均不因旧包或本轮任务整理获得访问授权。
 - 20261009 owner追加授权Record中本项目资料完整归档、去重、提炼和索引。找资料先读`docs/RECORD-ARCHIVE-INDEX.md`及`docs/current/ARCHIVE-KEY-INFORMATION-2026-10-09.md`；机器来源/成员/hash/canonical登记位于`docs/history/record-archive-2026-10-09/ARCHIVE-MANIFEST.json`。相关原ZIP、素材和递归成员已保存在本项目，按hash复用既有副本/内容对象；旧manifest的EXTERNAL-ONLY是旧时点，不能再据其判断素材未归档。共享作品集/三项目容器只作惰性参考，不提升当前任务或许可。大对象在`.project-local/`且不随Git克隆，迁移须按manifest带齐；原Record不删改，既有冻结路径不删除。
 - 后续新增资料必须同步来源、hash、版本/定态、别名和canonical位置，并更新固定资料索引指向最新完整清单；不能只复制文件、不登记。过时内容先更新精简阅读面和取代关系，不重写冻结原件。
-- 本轮归档与权威同步为本地未提交修改，commit/push/PR/merge/release未执行；后续Agent须重读当前真实状态，不宣称远端/安装副本已同步。
+- **2026-10-12 状态更正（本条取代上面 20261009 那句"本地未提交、勿宣称远端已同步"）**：归档、权威、
+  索引、唯一账本与全部回执字节**已提交并已推送**到 `qoder/designlab-backup-consistency-20261007`，
+  并已快进并入 `main`。当时那句是事实，现在不是；留着会让下一会话**错误地不信任远端**，
+  从而重复劳动或误判同步状态。当前真实 SHA 一律用 `git rev-parse HEAD` 自读，不要抄本文任何数字。
+  仍然**未**执行的是：release、安装态分发、真实宿主 E3、真人 E4、手机端（FROZEN_DEFERRED）。
+  这些边界不因已推送而改变。

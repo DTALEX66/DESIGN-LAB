@@ -16,8 +16,12 @@
 唯一可变状态仍在design-lab/config/task-ledger-r3.json；currentExecution为当前派工区，原R5 tasks/evidence冻结证据区。旧生成器/部署副本须显示这个区分，禁止旧任务复活。
 当前整理仅建立任务体系，不实施UI/宿主、不提升E3/E4/E5。旧安全/数据边界/真实证据/Human Gate/双宿主/Golden守卫保留。
 未来安装/付费/跨仓/宿主副作用/公开发布/commit/push/merge仍由接收会话实际授权判断。
-Authority §17变化依据：owner intent落仓于docs/taskpacks/20261009-ui-first/CONVERSATION-DECISIONS.md；reason=新任务采纳/UI优先；superseded=旧派工入口与冲突导航/目标条款；impact=索引/根规则/manifest/唯一账本/报告/校验同步，旧文件与证据冻结；repository commit=NOT_EXECUTED，live CI for amended tree=NOT_EXECUTED。
-本地归档有效但尚未提交/推送；远端权威仍是其实际SHA版本，不宣称双端已同步。
+Authority §17变化依据：owner intent落仓于docs/taskpacks/20261009-ui-first/CONVERSATION-DECISIONS.md；reason=新任务采纳/UI优先；superseded=旧派工入口与冲突导航/目标条款；impact=索引/根规则/manifest/唯一账本/报告/校验同步，旧文件与证据冻结。
+**2026-10-12 状态更正**：本行原记 `repository commit=NOT_EXECUTED, live CI=NOT_EXECUTED`，且下一行称
+"尚未提交/推送"。两条**当时为真，现已失效**——归档、权威、索引、账本与回执字节已提交、已推送并快进并入 `main`。
+保留原句并标注时点，是因为它记录了 2026-10-09 的真实状态；直接删掉会让后来者以为这段变更从未被提交过。
+**当前 SHA 与 CI 结论一律自读**（`git rev-parse HEAD` / `gh run list`），不要沿用本文任何数字。
+仍未执行：release、安装态分发、真实宿主 E3、真人 E4、手机端。
 
 ---
 

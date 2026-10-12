@@ -29,6 +29,11 @@ Owner明确：AAOS不属于本项目。与AAOS有关的历史载体仅作为DESI
 
 没有commit、push、PR、merge、release、安装、付费、跨仓写入、源文件删除、未知原修改清理或Human Gate代签。本轮改动仍为本地未提交工作。
 
+> **2026-10-12 状态更正**：上段记录的是 2026-10-09 的时点，**"仍为本地未提交工作"现已不成立**——
+> commit、push 与合并进 `main` 均已执行。安装、付费、跨仓写入、源文件删除、Human Gate 代签
+> **至今仍未执行**，那半句继续有效。下一会话请以 `git rev-parse HEAD` 与 `git status --porcelain`
+> 自读当前状态，不要把本段当作现状。
+
 ## 固定接续入口
 
 - 资料定位：docs/RECORD-ARCHIVE-INDEX.md。

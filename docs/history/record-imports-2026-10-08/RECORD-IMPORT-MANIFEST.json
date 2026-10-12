@@ -352,14 +352,14 @@
    "also_in_repo": [
     "AUTHORITY.md"
    ],
-   "repoBytesAfterImport": 16997,
-   "repoCrc32AfterImport": "d291f4f1",
-   "repoSha256AfterImport": "sha256:08037bce6b71e105102b4c18525b2a021678339bba8549d80f966c262a8e7814",
+   "repoBytesAfterImport": 17445,
+   "repoCrc32AfterImport": "b0906445",
+   "repoSha256AfterImport": "sha256:145cc12ea398997ffb55431e61deb785a480668af2128dafa3c8effee1176854",
    "evolvedBy": {
     "commit": "147e6dc9",
     "subject": "feat(ui-first): land U03-U06 desktop slices, the U06 runtime read-back, and the gates that caught them"
    },
-   "evolution": "Archive bytes above unchanged and still verified against the ZIP. This row was ALREADY-IN-REPO, so it also claimed the repository copy equals the archived bytes; that claim stopped holding when 147e6dc9 rewrote the file. Post-import digests recorded; verify_record_verify.py leg 2 holds the repository copy to THESE and still refuses it if they disagree."
+   "evolution": "2026-10-12 drift correction: AUTHORITY.md still said 'repository commit=NOT_EXECUTED' and 'do not claim the remote is synced' after that stopped being true, which would make a fresh session distrust the remote. Corrected in place with the original time point preserved."
   },
   {
    "source_container": "DESIGN-LAB_FINAL_CONSOLIDATED_PACKAGE_2026-09-29.zip",
