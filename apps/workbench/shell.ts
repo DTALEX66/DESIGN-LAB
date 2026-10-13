@@ -17,6 +17,7 @@ import type {
   DesignLayerResponse,
   DesignLayerReadback,
   DesignSystemListResponse,
+  DesignSystemRecord,
   DomainListResponse,
   DomainPackRecord,
   DomainPackValidation,
@@ -415,6 +416,99 @@ export function domainDetailId(hash: string): string | null {
 /** Hash for one domain pack's detail address, or null when the pack declares no id. */
 export function domainDetailHash(packId: string | null | undefined): string | null {
   return packId ? '#/domains/' + encodeURIComponent(packId) : null;
+}
+
+// R2 §2 → §4: opening one pack and asking "which capabilities declare this domain" is a
+// *conditional* address, not a bare one. The condition travels **in the hash**, after a `?`,
+// because every jump in this file is `window.location.hash = …` and that assignment is what
+// fires the router; a condition parked in `location.search` would rewrite the address without
+// ever re-rendering the view. `hashPath` is therefore what the route table matches against,
+// and the route table still matches `#/capabilities` exactly -- one address, one condition.
+const HASH_SPLIT_RE = /^([^?]*)(?:\?(.*))?$/g;
+/** The path part of a hash, with any `?...` condition removed. */
+export function hashPath(hash: string): string {
+  const m = HASH_SPLIT_RE.exec(hash);
+  HASH_SPLIT_RE.lastIndex = 0;
+  return m ? m[1] : hash;
+}
+/** One condition value from a hash's `?...` part, or null when it is absent. */
+export function hashCondition(hash: string, name: string): string | null {
+  const m = HASH_SPLIT_RE.exec(hash);
+  HASH_SPLIT_RE.lastIndex = 0;
+  const query = m && m[2];
+  if (!query) return null;
+  for (const pair of query.split('&')) {
+    const eq = pair.indexOf('=');
+    if (eq <= 0 || pair.slice(0, eq) !== name) continue;
+    try {
+      const value = decodeURIComponent(pair.slice(eq + 1));
+      return value || null;
+    } catch {
+      return null;                      // a malformed escape is no condition, not a crash
+    }
+  }
+  return null;
+}
+/**
+ * The capability-library address carrying one declared domain.
+ *
+ * A slug that is not a non-empty string yields the bare address: a pack that declares no
+ * domain must land on the unfiltered list rather than on a condition that matches nothing
+ * for a reason the reader cannot see.
+ */
+export function capabilityHashForDomain(slug: string | null | undefined): string {
+  return slug ? '#/capabilities?domain=' + encodeURIComponent(slug) : '#/capabilities';
+}
+
+/** The `axes.domains` a capability record declares, as strings. */
+export function declaredDomains(row: { axes?: { domains?: unknown } } | null | undefined): string[] {
+  const values = row?.axes?.domains;
+  return Array.isArray(values)
+    ? values.filter((value): value is string => typeof value === 'string')
+    : [];
+}
+/** True when the record itself says its `domains` axis was never classified. */
+export function domainsUnclassified(row: { unclassifiedAxes?: unknown } | null | undefined): boolean {
+  const axes = row?.unclassifiedAxes;
+  return Array.isArray(axes) && axes.includes('domains');
+}
+
+/**
+ * One search group's rows, keyed by the route it reads.
+ *
+ * Exported as a function so the vm smoke can exercise the **field names** without a browser: the
+ * command palette only exists in a real DOM, so before this the projection was unreachable from
+ * any test and a route's key could be spelled wrong for months. D05 was exactly that --
+ * `/design-systems` answers `{design_systems: …}` and the group read `{systems: …}`, so a
+ * successful readback rendered as "这一组当前读回 0 个对象".
+ */
+export function searchGroupRows(path: string, data: any):
+Array<{ name: string; go: string; kind: string }> {
+  switch (path) {
+    case '/capabilities':
+      return (data?.capabilities ?? []).map((c: CapabilityRecord) => ({
+        name: c.id, kind: `${c.kind}${c.license ? ` · ${c.license}` : ''}`,
+        go: capabilityDetailHash(c.id),
+      }));
+    case '/projects':
+      return (data?.projects ?? []).map((p: { id: string; name: string }) => ({
+        name: p.name, kind: `项目 ${p.id.slice(0, 8)}`, go: projectDetailHash(p.id),
+      }));
+    case '/domains':
+      return (data?.packs ?? []).map((k: { packId: string | null; directory: string;
+        displayName: string | null; domain: string | null }) => ({
+        name: k.displayName ?? k.directory,
+        kind: `领域 ${k.domain ?? '未声明'} · ${k.packId ?? k.directory}`,
+        go: domainDetailHash(k.packId) ?? '#/domains',
+      }));
+    case '/design-systems':
+      return (data?.design_systems ?? []).map((s: DesignSystemRecord) => ({
+        name: s.name, kind: `设计系统${s.version ? ` v${s.version}` : ''}`,
+        go: '#/brand-systems',
+      }));
+    default:
+      return [];
+  }
 }
 
 // Honest "not open yet" copy per IA slot that has no backend route today.
@@ -2458,14 +2552,24 @@ export async function renderCapabilityLibrary(target: HTMLElement,
   };
   const TYPE_TAB_NOTE = '这一类与相邻两类都按 artifactTypes 轴分组，而本批读回里该轴没有任何'
     + '取值，所以三类目前给的是同一个空集——不是三种各自量出来的"没有"。等人工分类补上取值后，'
-    + '各 tab 的归属由该轴自己的值决定，这里不替它猜词表。';
+    + '各 tab 的归属由该轴自己的值决定，这里不替它猜词表。'
+    // Named here because three tabs share one predicate: their numbers are equal by
+    // construction, so none of them is evidence for another. Splitting them needs the axis to
+    // carry values first -- inventing the value words would make the tabs disagree on purpose.
+    + '（三类的谓词是同一个，所以三个数字必然相等；这不是三种各自的读数。）';
   const ASSET_TABS: ReadonlyArray<{ label: string; basis: string;
     members: (c: CapabilityRecord) => boolean; note: string }> = [
     { label: '全部资产', basis: '本批读回的全部记录', members: () => true, note: '' },
     { label: '可调用能力', basis: 'qualified',
-      members: (c) => c.qualified !== null,
+      // `qualified` is a verdict, and its domain is true / false / null ("未判定"). `!== null`
+      // counted a record the service had explicitly judged NOT callable, so the one tab whose
+      // whole purpose is "what can I actually call" listed the refusals beside the passes.
+      // Only the affirmative value belongs here; `false` and `null` are two different refusals
+      // and neither of them is availability.
+      members: (c) => c.qualified === true,
       note: '这一类按资格判定字段计数，不按 kind：kind 说的是记录类型，可调用性说的是资格。'
-        + '本批读回没有任何一条给出资格判定（未判定不等于不合格，也不等于可用）。' },
+        + '只有 qualified === true 才算可调用；false（已判不合格）与 null（未判定）都不在'
+        + '这一类里，两者也不互相冒充。' },
     { label: '规范与方法', basis: 'artifactTypes',
       members: (c) => axisFilled(c, 'artifactTypes'), note: TYPE_TAB_NOTE },
     { label: '案例与参考', basis: 'artifactTypes',
@@ -2507,6 +2611,12 @@ export async function renderCapabilityLibrary(target: HTMLElement,
     filter.value = '';
     for (const f of facetPicks) f.select.value = ANY;
   };
+  // R2 §2 → §4: the condition a domain pack's drawer carries here. It is read from the address
+  // on every render rather than kept in a variable, so a chip's ×, the back button and a
+  // hand-typed address all agree about what the page is showing.
+  const domainCondition = hashCondition(window.location.hash, 'domain');
+  const domainHit = (c: CapabilityRecord): boolean =>
+    domainCondition !== null && declaredDomains(c).includes(domainCondition);
   const renderActive = (): void => {
     const picked: HTMLElement[] = [];
     const needleNow = (filter.value || '').trim();
@@ -2518,16 +2628,34 @@ export async function renderCapabilityLibrary(target: HTMLElement,
       if (v === ANY || v === '') continue;
       picked.push(chip(f.label, v === NONE ? '无记录' : v, () => { f.select.value = ANY; }));
     }
+    // The domain chip is shown in the same bar because it is a condition like any other, and
+    // removed by rewriting the address. 「清除检索条件」 deliberately leaves it alone: R2 §4
+    // says that button clears the search -- not the domain choice and not the task rows.
+    if (domainCondition !== null) {
+      picked.push(chip('声明领域', domainCondition,
+        () => { window.location.hash = capabilityHashForDomain(null); }));
+    }
     if (!picked.length) {
       active.replaceChildren(el('span', { class: 'muted' },
         '没有检索条件：下面显示的是这一批读回的全部记录。'));
       return;
     }
+    // "Not matched" and "nobody classified this axis" are different answers, and a bare count
+    // cannot tell them apart -- the same inversion this view already refuses for the type tabs.
+    const matched = rows.filter(domainHit).length;
+    const unclassified = rows.filter(domainsUnclassified).length;
+    const domainNote = domainCondition === null ? [] : [
+      el('span', { class: 'muted', id: 'capability-domain-note' },
+        `按声明领域过滤：本批读回 ${rows.length} 条里 ${matched} 条在 axes.domains 声明了 `
+        + `“${domainCondition}”，${rows.length - matched} 条没有`
+        + `（其中 ${unclassified} 条自己记着 domains 轴未分类；未分类不等于不属于）。`),
+    ];
     active.replaceChildren(
       el('span', { class: 'muted' }, `已选 ${picked.length} 项条件`),
       ...picked,
       el('button', { type: 'button', class: 'secondary', id: 'capability-clear',
-        onclick: () => { clearSearchOnly(); render(); } }, '清除检索条件'));
+        onclick: () => { clearSearchOnly(); render(); } }, '清除检索条件'),
+      ...domainNote);
   };
 
   const render = (): void => {
@@ -2537,6 +2665,11 @@ export async function renderCapabilityLibrary(target: HTMLElement,
          c.revisionState, c.sourceType, c.evidenceLevel,
          c.upstreamOwner].join(' ').toLowerCase().includes(needle)
       : true)
+      // The domain condition is applied to the whole readback and before the tabs, so the tab
+      // numbers count what this address can actually reach. It matches on `axes.domains` --
+      // the axis the record itself declares -- and never on `capability.domain`, whose equality
+      // with a pack's slug is a string coincidence, not a relation.
+      && (domainCondition === null || domainHit(c))
       && facetPicks.every((f) => {
         const want = f.select.value;
         // 未选择 = 全部。真实浏览器里 <select> 默认落在第一个 option（ANY）上，
@@ -2965,15 +3098,19 @@ function domainDrawer(packs: readonly DomainPackRecord[],
     row('服务备注', found.note ?? '（服务未给备注）'),
     row('能力关联', domainJoinRow(found, join)),
     el('div', { class: 'cap-drawer-row' },
-      el('button', { type: 'button', class: 'secondary',
-        onclick: () => { window.location.hash = '#/capabilities'; },
+      el('button', { type: 'button', class: 'secondary', id: 'domain-view-capabilities',
+        // The condition the tooltip promises travels with the jump. Before this the hash was a
+        // bare `#/capabilities`, so the button said "filter by the declared domain" and then
+        // showed the unfiltered library -- the one thing a reader could not check from here.
+        onclick: () => { window.location.hash = capabilityHashForDomain(found.domain); },
         disabled: join && join.matched > 0 ? undefined : '',
         title: join === null
           ? '列表页不读能力目录；打开某个域包的地址才会做第二次读回。'
           : join.state === 'NOT_READ'
             ? `没读到能力目录：${join.why}。既不能说有几个关联，也不能说没有。`
             : join.matched > 0
-              ? '只做地址跳转：能力目录侧按声明领域过滤，不启动宿主、不改变资格。'
+              ? `只做地址跳转，并把“声明领域 = ${found.domain}”带过去：能力目录按 `
+                + 'axes.domains 过滤，不启动宿主、不改变资格。'
               : '没有可跳转的关联：该领域的分类还没接线（原因见上一行）。' },
         '按该领域查看能力'),
       el('span', { class: 'muted' },
@@ -3106,13 +3243,10 @@ export async function renderDomains(target: HTMLElement,
     const unread = disconnectedNotice(caps) || shapeNotice(caps);
     const rows = Array.isArray(caps.capabilities) ? caps.capabilities : [];
     const slug = packs.find((pack) => pack.packId === opts.openId)?.domain ?? null;
-    const declaredDomains = (row: CapabilityRecord): string[] => {
-      const axes = (row as { axes?: { domains?: unknown } }).axes;
-      const values = axes && Array.isArray(axes.domains) ? axes.domains : [];
-      return values.filter((value): value is string => typeof value === 'string');
-    };
-    const unclassified = (row: CapabilityRecord): boolean => (Array.isArray(row.unclassifiedAxes)
-      ? row.unclassifiedAxes : []).includes('domains');
+    // `declaredDomains` / `domainsUnclassified` are module-level: the capability library applies
+    // the same condition as a filter (`#/capabilities?domain=…`), and two copies of the join key
+    // is how the count here and the list there start disagreeing.
+    const unclassified = domainsUnclassified;
     join = unread
       ? { state: 'NOT_READ', records: 0, matched: 0, unclassified: 0, why: unread }
       : {
@@ -5469,7 +5603,10 @@ export function mountAppShell(): void {
     if (capabilityDetailId(window.location.hash)) return 'capability-detail';
     // R2 §2: one domain pack's detail address, same shape again.
     if (domainDetailId(window.location.hash)) return 'domain-detail';
-    const match = ROUTE_VIEWS.find((route) => route.hash === window.location.hash);
+    // A condition (`#/capabilities?domain=…`) changes what a view shows, never which view it
+    // is: matching the raw hash here made a conditional address fall through to the legacy
+    // workbench page, i.e. the condition silently lost the route it was carried on.
+    const match = ROUTE_VIEWS.find((route) => route.hash === hashPath(window.location.hash));
     // Dev-mode: an empty hash defaults to the dashboard (the informative B10
     // page) instead of the bare legacy single-page workbench, so opening the
     // dev server URL with no hash still shows a populated view.
@@ -5606,10 +5743,13 @@ interface B10Shell {
 }
 
 function mountB10Shell(routeView: HTMLElement, syncLegacyNavCue: () => void): B10Shell | null {
-  // Browser-only guard (same semantics as mountB10Overlays): the vm unit smoke
-  // has no real querySelectorAll, so this never runs there.
-  const probe = document.createElement('div');
-  if (typeof probe.querySelector !== 'function') return null;
+  // Browser-only guard. It asks the **document** whether this is a DOM: the previous probe
+  // asked a throwaway element, which is a property of the harness rather than of a document —
+  // so teaching the vm stub one more element method silently flipped this guard and the whole
+  // B10 shell started mounting into a stub that has no `navigator`. Semantics are unchanged in
+  // both environments: a real browsing context has `document.querySelector`, the vm stub does
+  // not, and there is exactly one place to look.
+  if (typeof document === 'undefined' || typeof document.querySelector !== 'function') return null;
 
   // Route label / 文案 mirror of B10 NAV. DL-UI-U01/U02 (2026-10-09)：这张表此前
   // 是把 ROUTE_VIEWS 手工再抄一遍（11 条同样的 hash/label），两份一旦漂移就没有
@@ -5770,11 +5910,10 @@ function mountB10Shell(routeView: HTMLElement, syncLegacyNavCue: () => void): B1
 // animateKpiCount 自己读 matchMedia（CSS 管不到 textContent 的变化）。
 // ============================================================================
 function mountB10Overlays(): void {
-  // Browser-only: the vm unit smoke's MockElement has no querySelector, so the
-  // overlay wiring (command palette / modal / drawer / toast) is skipped there.
-  // Real Chromium loads get the full B10 interaction layer.
-  const probe = document.createElement('div');
-  if (typeof probe.querySelector !== 'function') return;
+  // Browser-only: the same document-level probe as mountB10Shell. The overlay wiring (command
+  // palette / modal / drawer / toast) builds off `document.body` and element selectors, so the
+  // question "is there a DOM here" belongs to the document, not to a created element.
+  if (typeof document === 'undefined' || typeof document.querySelector !== 'function') return;
 
   // --- Toast --- (B10 .toast#toast; .show is added/removed, as in B10)
   const toast = el('div', { class: 'toast', role: 'status', id: 'toast' }, 'Ready');
@@ -5865,39 +6004,17 @@ function mountB10Overlays(): void {
     label: string; path: string; limit: number;
     rows: (data: any) => Array<{ name: string; go: string; kind: string }>;
   }> = [
-    {
-      label: '能力资产', path: '/capabilities', limit: 8,
-      rows: (d) => (d?.capabilities ?? []).map((c: CapabilityRecord) => ({
-        name: c.id, kind: `${c.kind}${c.license ? ` · ${c.license}` : ''}`,
-        // 能力详情已有独立地址（R2 §5），所以搜索结果直接落到那一条记录上。
-        go: capabilityDetailHash(c.id),
-      })),
-    },
-    {
-      label: '项目', path: '/projects', limit: 8,
-      rows: (d) => (d?.projects ?? []).map((p: { id: string; name: string }) => ({
-        name: p.name, kind: `项目 ${p.id.slice(0, 8)}`, go: projectDetailHash(p.id),
-      })),
-    },
-    {
-      label: '设计领域', path: '/domains', limit: 8,
-      rows: (d) => (d?.packs ?? []).map((k: { packId: string | null; directory: string;
-        displayName: string | null; domain: string | null }) => ({
-        name: k.displayName ?? k.directory,
-        kind: `领域 ${k.domain ?? '未声明'} · ${k.packId ?? k.directory}`,
-        // R2 §2: a domain row is a second-level entry, so it lands on that pack's own
-        // address. A pack whose manifest declares no pack_id has no address to give —
-        // it falls back to the registry instead of inventing one from the directory name.
-        go: domainDetailHash(k.packId) ?? '#/domains',
-      })),
-    },
-    {
-      label: '设计系统', path: '/design-systems', limit: 8,
-      rows: (d) => (d?.systems ?? []).map((s: { name: string; version_no?: number }) => ({
-        name: s.name, kind: `设计系统${s.version_no ? ` v${s.version_no}` : ''}`,
-        go: '#/brand-systems',
-      })),
-    },
+    { label: '能力资产', path: '/capabilities', limit: 8,
+      rows: (d) => searchGroupRows('/capabilities', d) },
+    { label: '项目', path: '/projects', limit: 8,
+      rows: (d) => searchGroupRows('/projects', d) },
+    { label: '设计领域', path: '/domains', limit: 8,
+      rows: (d) => searchGroupRows('/domains', d) },
+    // See `searchGroupRows`: the projection lives outside this scope precisely so a test can
+    // reach it. The route answers `{design_systems: …}` (DesignSystemListResponse) and this
+    // group used to read `{systems: …}` -- a key no response carries.
+    { label: '设计系统', path: '/design-systems', limit: 8,
+      rows: (d) => searchGroupRows('/design-systems', d) },
   ];
   type SearchRow = { name: string; go: string; kind: string };
   /** `'unread'` is its own state: a group that never got an answer must not read as 0 objects. */
@@ -5921,9 +6038,14 @@ function mountB10Overlays(): void {
     return box;
   };
   const renderGroupRows = (body: HTMLElement,
-    rows: SearchRow[], limit: number): void => {
+    rows: SearchRow[], limit: number, needle = ''): void => {
     if (!rows.length) {
-      body.replaceChildren(el('p', { class: 'view-hint' }, '这一组当前读回 0 个对象。'));
+      body.replaceChildren(el('p', { class: 'view-hint' }, needle
+        // The scope is named because it is the thing that was wrong before: the filter ran over
+        // the rows already painted (the first `limit`), so objects past the fold were
+        // unfindable while the hint promised a narrower keyword would reach them.
+        ? `这一组没有符合“${needle}”的对象：过滤在整组读回上做，不是只查已画出的前几条。`
+        : '这一组当前读回 0 个对象。'));
       return;
     }
     const shown = rows.slice(0, limit);
@@ -5944,24 +6066,48 @@ function mountB10Overlays(): void {
       + '本服务没有对象级读权限模型，所以这里不说"已按权限过滤"。'),
     ...OBJECT_GROUPS.map((group) => buildGroup(group)));
   itemsBox.append(objectsBox);
-  let objectsLoaded = false;
+  /** A group whose read threw: shown in place, retryable, and never cached as a result. */
+  const readFailedNote = (path: string, err: unknown): HTMLElement => {
+    const why = err instanceof Error ? err.message : String(err);
+    // No inline `style`: the service serves every response with `style-src 'self'` and no
+    // 'unsafe-inline', so a style ATTRIBUTE is blocked in a real browser and the console error
+    // fails the browser E2E. Spacing here comes from the class, not from a literal px.
+    return el('p', { class: 'error' },
+      `读取失败：GET /api${path} 本次没有读回（${why}）。这一组既不显示条数，也不说"没有"——`
+      + '失败与空集合是两件事。',
+      el('button', { type: 'button', class: 'secondary',
+        onclick: () => { void loadSearchObjects(); } }, '重试这一组'));
+  };
+  // 两个状态，不是一个布尔量。`objectsLoaded = true` 写在任何 await 之前，于是
+  // 一次抛错的读取既留下半张面板，又把面板钉死在"已加载"上——重开也不会再试，而
+  // 读不到的组看起来和"读到 0 个"一模一样。现在只有**全部**组都给出终态才算 done；
+  // 任一组失败就退回 idle，下一次打开面板会重试它。
+  let objectsLoad: 'idle' | 'loading' | 'done' = 'idle';
   const loadSearchObjects = async (): Promise<void> => {
-    if (objectsLoaded) return;
-    objectsLoaded = true;
+    if (objectsLoad !== 'idle') return;
+    objectsLoad = 'loading';
+    let failed = 0;
     for (const group of OBJECT_GROUPS) {
-      const data = await apiOrEmpty<Record<string, unknown>>(group.path, {});
-      const unread = shapeNotice(data) || disconnectedNotice(data);
-      const rows: SearchRow[] | 'unread' = unread ? 'unread' : group.rows(data);
-      searchCache.set(group.path, rows);
+      if (searchCache.has(group.path)) continue;      // 已读回的一组不再重复请求
       const holder = itemsBox.querySelector(`[data-group="${group.label}"]`);
-      const body = holder?.querySelector('.palette-group-body');
-      if (!body) continue;
-      if (rows === 'unread') {
-        (body as HTMLElement).replaceChildren(unreadNote(group.path));
-      } else {
-        renderGroupRows(body as HTMLElement, rows, group.limit);
+      const body = holder?.querySelector<HTMLElement>('.palette-group-body') ?? null;
+      try {
+        const data = await apiOrEmpty<Record<string, unknown>>(group.path, {});
+        const unread = shapeNotice(data) || disconnectedNotice(data);
+        const rows: SearchRow[] | 'unread' = unread ? 'unread' : group.rows(data);
+        searchCache.set(group.path, rows);
+        if (!body) continue;
+        if (rows === 'unread') {
+          body.replaceChildren(unreadNote(group.path));
+        } else {
+          renderGroupRows(body, rows, group.limit);
+        }
+      } catch (err) {
+        failed += 1;
+        if (body) body.replaceChildren(readFailedNote(group.path, err));
       }
     }
+    objectsLoad = failed ? 'idle' : 'done';
   };
   const cmds = ROUTE_VIEWS.filter((r) => r.hash !== '')
     .map((r) => ({ go: r.hash, label: r.label }));
@@ -5980,6 +6126,9 @@ function mountB10Overlays(): void {
   const openPalette = (): void => {
     paletteInvoker = document.activeElement;
     palette.classList.add('open'); paletteInput.focus(); paletteInput.select();
+    // 重画一次已缓存的组：面板关掉时不重填输入框，所以留着上一次的关键词结果会让
+    // "刚打开"与"已过滤"看起来是同一件事。
+    applyPaletteFilter(paletteInput.value.trim().toLowerCase());
     void loadSearchObjects();
   };
   const closePalette = (): void => {
@@ -5995,20 +6144,37 @@ function mountB10Overlays(): void {
     }
     paletteInvoker = null;
   };
-  paletteInput.addEventListener('input', () => {
-    const q = paletteInput.value.trim().toLowerCase();
-    for (const group of Array.from(itemsBox.querySelectorAll<HTMLElement>('.palette-group'))) {
-      let hits = 0;
-      for (const item of Array.from(group.querySelectorAll<HTMLElement>('.item'))) {
-        const match = !q || (item.textContent || '').toLowerCase().includes(q);
-        item.style.display = match ? 'flex' : 'none';
-        if (match) hits += 1;
-      }
-      // A group with no hit collapses so the readable part of the panel stays the
-      // results -- but only once objects have actually been read back; an unloaded
-      // group must not disappear and look like "nothing matched".
-      group.hidden = hits === 0 && !group.querySelector('.view-hint, .error');
+  // 对象组按**整组读回**过滤再分页。此前用的是 DOM 过滤：只有已画出的前 `limit` 行参与
+  // 匹配，第 9 条起输入什么关键词都找不到——而下面的提示写着"输入更具体的关键词可缩小范围"。
+  // 过滤在缓存集合上做，命中数就是整组的命中数。抽成函数是因为面板每次打开也必须重画，
+  // 否则关掉再打开会留着上一次的关键词结果。
+  const applyPaletteFilter = (q: string): void => {
+    for (const group of OBJECT_GROUPS) {
+      const holder = itemsBox.querySelector<HTMLElement>(`[data-group="${group.label}"]`);
+      const body = holder?.querySelector<HTMLElement>('.palette-group-body') ?? null;
+      if (!holder || !body) continue;
+      const cached = searchCache.get(group.path);
+      // 尚未读取 / 未读回 / 读失败：保持原状。一个没读到东西的组不能因为"没有命中"而消失，
+      // 那会把"没问到"画成"没有匹配"。
+      if (cached === undefined || cached === 'unread') continue;
+      const hits = q ? cached.filter((r) => `${r.name} ${r.kind}`.toLowerCase().includes(q))
+        : cached;
+      holder.hidden = hits.length === 0;
+      renderGroupRows(body, hits, group.limit, q);
     }
+    // 页面组（路由启动器）没有分页，全部行都已画出，所以它仍按 DOM 过滤。
+    const routeGroup = itemsBox.querySelector<HTMLElement>('[data-group="页面"]');
+    if (!routeGroup) return;
+    let hits = 0;
+    for (const item of Array.from(routeGroup.querySelectorAll<HTMLElement>('.item'))) {
+      const match = !q || (item.textContent || '').toLowerCase().includes(q);
+      item.style.display = match ? 'flex' : 'none';
+      if (match) hits += 1;
+    }
+    routeGroup.hidden = hits === 0;
+  };
+  paletteInput.addEventListener('input', () => {
+    applyPaletteFilter(paletteInput.value.trim().toLowerCase());
   });
 
   // --- Keyboard ---

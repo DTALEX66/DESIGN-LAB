@@ -36,10 +36,29 @@ class MockElement {
   setAttribute(name, value) { this.attributes.set(name, String(value)); }
   removeAttribute(name) { this.attributes.delete(name); }
   addEventListener() {}
-  querySelectorAll(selector) {
-    if (selector === '.app-nav-item') return this.children.filter((child) => child?.className === 'app-nav-item');
-    return [];
+  // A stub with no `querySelector` does not fail loudly: the caller's `?.` returns undefined and
+  // the branch is skipped, so a code path that only exists inside a selector lookup reads as
+  // "nothing to test". The ⌘K palette was in exactly that state -- every one of its object
+  // groups is rendered through `holder.querySelector('.palette-group-body')`. Selectors here are
+  // the four shapes `el()` can build: `[data-x="y"]`, `.class`, `#id`, and a tag name.
+  matches(selector) {
+    const s = selector.trim();
+    const data = /^\[data-([\w-]+)="([^"]*)"\]$/.exec(s);
+    if (data) return this.dataset?.[data[1].replace(/-(\w)/g, (m, c) => c.toUpperCase())]
+      === data[2];
+    if (s.startsWith('.')) return String(this.className).split(/\s+/).includes(s.slice(1));
+    if (s.startsWith('#')) return this.attributes.get('id') === s.slice(1);
+    return this.tagName === s.toUpperCase();
   }
+  querySelectorAll(selector) {
+    const hits = [];
+    for (const child of this.children) {
+      if (child?.matches?.(selector)) hits.push(child);
+      hits.push(...(child?.querySelectorAll?.(selector) ?? []));
+    }
+    return hits;
+  }
+  querySelector(selector) { return this.querySelectorAll(selector)[0] ?? null; }
 }
 
 function makeContext() {
@@ -528,6 +547,12 @@ if (shell.pending.length !== 0)
   throw new Error(`关联动作只许改地址，实得 ${shell.pending.length} 次请求`);
 if (shell.window.location.hash === beforeHash)
   throw new Error('关联动作必须真的把地址切到能力目录，否则它什么都不做');
+// D08: the tooltip promises the destination filters by the declared domain (`axes.domains`).
+// A bare `#/capabilities` kept that promise uncheckable from here: the reader landed on the
+// unfiltered library with nothing on screen saying which domain they had asked about.
+if (shell.window.location.hash !== '#/capabilities?domain=ui-ux')
+  throw new Error('关联动作必须把声明领域带进地址，实得 '
+    + `${shell.window.location.hash} —— 一个不带条件的跳转与它自己的 tooltip 矛盾`);
 if (!matchedDrawer.textContent.includes('已接线 12 条'))
   throw new Error(`命中数要按这次读回给出：${matchedDrawer.textContent.slice(-320)}`);
 
@@ -716,6 +741,101 @@ if (!unreadTabs.every((t) => t.includes('未读回')))
   throw new Error(`未读回时每张 tab 都要标未读回：${unreadTabs.join(' | ')}`);
 if (unreadView.textContent.includes('共 0 条'))
   throw new Error('未读回的计数被画成了 0 条');
+// D07 — `qualified` is a verdict on a three-value domain: true / false / null (未判定). The
+// 可调用能力 tab asked `!== null`, so a record the service had explicitly judged NOT callable
+// sat beside the callable ones in the one tab whose whole purpose is "what can I actually call".
+// A fixture with all three values is the only form that can tell the two predicates apart.
+{
+  const threeWay = { ...CAPABILITIES_READBACK, capabilities: [
+    capabilityRecord({ id: 'callable-one', qualified: true,
+      qualificationEvidence: ['E2-run-1'], qualificationReason: null }),
+    capabilityRecord({ id: 'refused-two', qualified: false,
+      qualificationReason: '许可不允许再分发' }),
+    capabilityRecord({ id: 'unjudged-three', qualified: null }),
+  ], counts: { ...CAPABILITIES_READBACK.counts, total: 3, qualified: 1 } };
+  const view = await renderCapabilities(threeWay);
+  const t = tabButtons(view);
+  const badge = (tab) => tab.textContent.replace(tab.children[0].textContent, '');
+  if (badge(t[1]) !== '1')
+    throw new Error(`qualified=false 与 null 都不算可调用，这一 tab 应为 1，实得 ${badge(t[1])}`);
+  t[1].onclick();
+  await flush();
+  const text = shell.elements.get('route-view').textContent;
+  if (!text.includes('callable-one'))
+    throw new Error(`可调用能力丢了唯一一条合格记录：${text.slice(0, 200)}`);
+  if (text.includes('refused-two'))
+    throw new Error('qualified=false 的记录被算成了可调用 —— 这正是 `!== null` 做的事');
+  if (text.includes('unjudged-three'))
+    throw new Error('未判定（null）不等于可调用，不得出现在这一类里');
+  t[0].onclick();
+  await flush();
+}
+
+// D08 — the capability library has to be able to ANSWER the condition the domain drawer puts in
+// its address. Three claims are pinned: the conditional address still resolves to this route,
+// the condition is shown as a condition (not silently applied), and removing it is its own
+// action — 「清除检索条件」 is specified to clear the search only.
+{
+  // `byIdAttr` is declared further down the file, and a `const` read before its line is a TDZ
+  // error rather than a null -- so this block carries its own finder over the ⑪ walkers.
+  const condById = (root, id) => {
+    let hit = null;
+    walkNodes(root, (node) => { if (node?.attributes?.get('id') === id) hit = node; });
+    return hit;
+  };
+  const readback = { ...CAPABILITIES_READBACK, capabilities: [
+    capabilityRecord({ id: 'declares-ui-ux',
+      axes: { ...AXES_EMPTY, domains: ['ui-ux'] }, unclassifiedAxes: [] }),
+    capabilityRecord({ id: 'declares-other',
+      axes: { ...AXES_EMPTY, domains: ['video-generation'] }, unclassifiedAxes: [] }),
+    capabilityRecord({ id: 'never-classified', unclassifiedAxes: Object.keys(AXES_EMPTY) }),
+  ], counts: { ...CAPABILITIES_READBACK.counts, total: 3, qualified: 0 } };
+  // A conditional hash is still `#/capabilities`: matching the raw hash sent it to the legacy
+  // workbench page, i.e. the condition quietly lost the route that carried it.
+  shell.window.location.hash = '#/capabilities?domain=ui-ux';
+  shell.dispatchHashchange();
+  const reads = shell.pending.splice(0, shell.pending.length);
+  if (reads.length !== 1 || reads[0].path !== '/api/capabilities')
+    throw new Error(`带条件的地址没有解析成能力目录路由，实得 `
+      + `${reads.map((r) => r.path).join(', ') || '零次读回'}（路由身份必须由路径决定）`);
+  reads[0].resolve(response(readback));
+  await flush();
+  const conditioned = shell.elements.get('route-view');
+  const activeBar = condById(conditioned, 'capability-active');
+  if (!activeBar)
+    throw new Error('条件没有上屏：地址里带着条件，屏上必须能看出在按什么过滤');
+  if (!activeBar.textContent.includes('声明领域') || !activeBar.textContent.includes('ui-ux'))
+    throw new Error(`条件条没有说出条件：${activeBar.textContent.slice(0, 200)}`);
+  // "filtered out" and "never classified" are different answers, and the count has to separate
+  // them -- otherwise a reader cannot tell a strict filter from an unclassified library.
+  if (!/1 条在 axes\.domains 声明了/.test(activeBar.textContent)
+    || !/1 条自己记着 domains 轴未分类/.test(activeBar.textContent))
+    throw new Error(`条件条必须给出命中数与未分类数：${activeBar.textContent.slice(0, 240)}`);
+  if (!conditioned.textContent.includes('declares-ui-ux')
+    || conditioned.textContent.includes('declares-other'))
+    throw new Error(`列表没有按声明领域过滤：${conditioned.textContent.slice(0, 200)}`);
+  // 「清除检索条件」 must leave the domain choice alone (R2 §4 末段), and the chip's own × must
+  // be the thing that removes it.
+  const clearBtn = condById(conditioned, 'capability-clear');
+  if (!clearBtn) throw new Error('条件条没有「清除检索条件」按钮');
+  const hashBeforeClear = shell.window.location.hash;
+  clearBtn.onclick();
+  await flush();
+  if (shell.window.location.hash !== hashBeforeClear)
+    throw new Error('「清除检索条件」不允许清掉领域条件（它只清检索）');
+  const chipX = (activeBar.querySelectorAll('.capability-chip-x') ?? [])[0];
+  if (!chipX) throw new Error('条件条没有可单独移除的条件 chip');
+  chipX.onclick();
+  await flush();
+  if (shell.window.location.hash !== '#/capabilities')
+    throw new Error(`移除条件应把地址收回 #/capabilities，实得 ${shell.window.location.hash}`);
+}
+
+console.log('ok: ⑱ §4 可调用能力只收 qualified === true：false 与 null 各自都不算，'
+  + '载入三类取值的读回才分得开这两个谓词');
+console.log('ok: ⑲ §2→§4 声明领域条件随跳转进入地址（#/capabilities?domain=… 仍解析成能力目录）、'
+  + '条件上屏且分别给出命中数与未分类数、「清除检索条件」不清领域、chip 的 × 才收回条件');
+
 console.log('ok: ⑫ §4 资产类型 tabs 跟着真实字段计数、可调用能力不按 kind 充数、空轴共用同一空集并写明、未读回不画 0');
 
 // ⑬ R2 §6 输入与目标的**写入**. design.ts createBrief() is the single seam that validates the
@@ -2627,5 +2747,39 @@ if (panelButtons.length)
 
 console.log('ok: ⑯ 运行与恢复现场：ABSENT/空表/未读回三种说法互不混用，占用按 host→attempt 上屏，'
   + '回执数与记录数分开，预算作为无该字段带理由，does_not_say 逐句成行，面板内没有任何可点动作');
+
+// D05 — the palette's four object groups project a route's payload into rows, and until this
+// batch that projection lived inside a browser-only scope, so nothing could check the field
+// names. `/design-systems` answers `{design_systems: …}`; the group read `{systems: …}` and a
+// successful readback rendered as "这一组当前读回 0 个对象" — a confident zero over real objects.
+{
+  const rows = shell.context.searchGroupRows;
+  if (typeof rows !== 'function')
+    throw new Error('searchGroupRows 不可达：调色板的分组投影又回到了浏览器专用作用域，'
+      + '字段名将再次无人可测');
+  const systems = rows('/design-systems', { design_systems: [
+    { name: 'ui2026', title: 'UI 基线', version: '2.1', evidence_level: 'E1' },
+  ] });
+  if (systems.length !== 1 || systems[0].name !== 'ui2026' || !systems[0].kind.includes('2.1'))
+    throw new Error(`#/design-systems 分组没有按合同字段 design_systems 取行：`
+      + `${JSON.stringify(systems)}`);
+  if (rows('/design-systems', { systems: [{ name: 'x' }] }).length !== 0)
+    throw new Error('分组仍在读 `systems` —— 那是一个没有任何响应携带过的键');
+  // The other three groups are pinned against their own route's key, so a fix here cannot be a
+  // fix for one group only.
+  if (rows('/capabilities', { capabilities: [{ id: 'c1', kind: 'model', license: null }] }).length !== 1)
+    throw new Error('能力资产分组不认 capabilities');
+  if (rows('/projects', { projects: [{ id: 'abcdefgh', name: 'P' }] }).length !== 1)
+    throw new Error('项目分组不认 projects');
+  if (rows('/domains', { packs: [{ packId: 'uiux-design', directory: 'uiux',
+    displayName: 'UI/UX', domain: 'ui-ux' }] }).length !== 1)
+    throw new Error('设计领域分组不认 packs');
+  if (rows('/domains', { packs: [{ packId: 'uiux-design', directory: 'uiux',
+    displayName: 'UI/UX', domain: 'ui-ux' }] })[0].go !== '#/domains/uiux-design')
+    throw new Error('领域行必须落到该 pack 自己的地址');
+}
+
+console.log('ok: ⑰ 全局搜索的四组对象投影按各自路由的合同字段取行（design_systems 不是 systems），'
+  + '领域行落到 pack 自己的地址');
 
 console.log('APPSHELL REGRESSION: all checks passed');

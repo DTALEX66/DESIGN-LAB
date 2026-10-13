@@ -1263,6 +1263,70 @@ function domainDetailId(hash) {
 function domainDetailHash(packId) {
   return packId ? "#/domains/" + encodeURIComponent(packId) : null;
 }
+const HASH_SPLIT_RE = /^([^?]*)(?:\?(.*))?$/g;
+function hashPath(hash) {
+  const m = HASH_SPLIT_RE.exec(hash);
+  HASH_SPLIT_RE.lastIndex = 0;
+  return m ? m[1] : hash;
+}
+function hashCondition(hash, name) {
+  const m = HASH_SPLIT_RE.exec(hash);
+  HASH_SPLIT_RE.lastIndex = 0;
+  const query = m && m[2];
+  if (!query) return null;
+  for (const pair of query.split("&")) {
+    const eq = pair.indexOf("=");
+    if (eq <= 0 || pair.slice(0, eq) !== name) continue;
+    try {
+      const value = decodeURIComponent(pair.slice(eq + 1));
+      return value || null;
+    } catch {
+      return null;
+    }
+  }
+  return null;
+}
+function capabilityHashForDomain(slug) {
+  return slug ? "#/capabilities?domain=" + encodeURIComponent(slug) : "#/capabilities";
+}
+function declaredDomains(row) {
+  const values = row?.axes?.domains;
+  return Array.isArray(values) ? values.filter((value) => typeof value === "string") : [];
+}
+function domainsUnclassified(row) {
+  const axes = row?.unclassifiedAxes;
+  return Array.isArray(axes) && axes.includes("domains");
+}
+function searchGroupRows(path, data) {
+  switch (path) {
+    case "/capabilities":
+      return (data?.capabilities ?? []).map((c) => ({
+        name: c.id,
+        kind: `${c.kind}${c.license ? ` · ${c.license}` : ""}`,
+        go: capabilityDetailHash(c.id)
+      }));
+    case "/projects":
+      return (data?.projects ?? []).map((p) => ({
+        name: p.name,
+        kind: `项目 ${p.id.slice(0, 8)}`,
+        go: projectDetailHash(p.id)
+      }));
+    case "/domains":
+      return (data?.packs ?? []).map((k) => ({
+        name: k.displayName ?? k.directory,
+        kind: `领域 ${k.domain ?? "未声明"} · ${k.packId ?? k.directory}`,
+        go: domainDetailHash(k.packId) ?? "#/domains"
+      }));
+    case "/design-systems":
+      return (data?.design_systems ?? []).map((s) => ({
+        name: s.name,
+        kind: `设计系统${s.version ? ` v${s.version}` : ""}`,
+        go: "#/brand-systems"
+      }));
+    default:
+      return [];
+  }
+}
 const VIEW_NOT_OPEN = {
   // 'research' left this table on 2026-10-08: GET/POST /api/projects/{id}/research is dispatched
   // by src/design_lab/http_service.py and renderResearch reads it back. A slot that has a route
@@ -3470,14 +3534,19 @@ async function renderCapabilityLibrary(target, opts = {}) {
     const v = c.axes?.[axis];
     return Array.isArray(v) ? v.length > 0 : v !== void 0 && v !== null;
   };
-  const TYPE_TAB_NOTE = '这一类与相邻两类都按 artifactTypes 轴分组，而本批读回里该轴没有任何取值，所以三类目前给的是同一个空集——不是三种各自量出来的"没有"。等人工分类补上取值后，各 tab 的归属由该轴自己的值决定，这里不替它猜词表。';
+  const TYPE_TAB_NOTE = '这一类与相邻两类都按 artifactTypes 轴分组，而本批读回里该轴没有任何取值，所以三类目前给的是同一个空集——不是三种各自量出来的"没有"。等人工分类补上取值后，各 tab 的归属由该轴自己的值决定，这里不替它猜词表。（三类的谓词是同一个，所以三个数字必然相等；这不是三种各自的读数。）';
   const ASSET_TABS = [
     { label: "全部资产", basis: "本批读回的全部记录", members: () => true, note: "" },
     {
       label: "可调用能力",
       basis: "qualified",
-      members: (c) => c.qualified !== null,
-      note: "这一类按资格判定字段计数，不按 kind：kind 说的是记录类型，可调用性说的是资格。本批读回没有任何一条给出资格判定（未判定不等于不合格，也不等于可用）。"
+      // `qualified` is a verdict, and its domain is true / false / null ("未判定"). `!== null`
+      // counted a record the service had explicitly judged NOT callable, so the one tab whose
+      // whole purpose is "what can I actually call" listed the refusals beside the passes.
+      // Only the affirmative value belongs here; `false` and `null` are two different refusals
+      // and neither of them is availability.
+      members: (c) => c.qualified === true,
+      note: "这一类按资格判定字段计数，不按 kind：kind 说的是记录类型，可调用性说的是资格。只有 qualified === true 才算可调用；false（已判不合格）与 null（未判定）都不在这一类里，两者也不互相冒充。"
     },
     {
       label: "规范与方法",
@@ -3535,6 +3604,8 @@ async function renderCapabilityLibrary(target, opts = {}) {
     filter.value = "";
     for (const f of facetPicks) f.select.value = ANY;
   };
+  const domainCondition = hashCondition(window.location.hash, "domain");
+  const domainHit = (c) => domainCondition !== null && declaredDomains(c).includes(domainCondition);
   const renderActive = () => {
     const picked = [];
     const needleNow = (filter.value || "").trim();
@@ -3550,6 +3621,15 @@ async function renderCapabilityLibrary(target, opts = {}) {
         f.select.value = ANY;
       }));
     }
+    if (domainCondition !== null) {
+      picked.push(chip(
+        "声明领域",
+        domainCondition,
+        () => {
+          window.location.hash = capabilityHashForDomain(null);
+        }
+      ));
+    }
     if (!picked.length) {
       active.replaceChildren(el(
         "span",
@@ -3558,6 +3638,15 @@ async function renderCapabilityLibrary(target, opts = {}) {
       ));
       return;
     }
+    const matched = rows.filter(domainHit).length;
+    const unclassified = rows.filter(domainsUnclassified).length;
+    const domainNote = domainCondition === null ? [] : [
+      el(
+        "span",
+        { class: "muted", id: "capability-domain-note" },
+        `按声明领域过滤：本批读回 ${rows.length} 条里 ${matched} 条在 axes.domains 声明了 “${domainCondition}”，${rows.length - matched} 条没有（其中 ${unclassified} 条自己记着 domains 轴未分类；未分类不等于不属于）。`
+      )
+    ];
     active.replaceChildren(
       el("span", { class: "muted" }, `已选 ${picked.length} 项条件`),
       ...picked,
@@ -3569,7 +3658,8 @@ async function renderCapabilityLibrary(target, opts = {}) {
           clearSearchOnly();
           render();
         }
-      }, "清除检索条件")
+      }, "清除检索条件"),
+      ...domainNote
     );
   };
   const render = () => {
@@ -3584,7 +3674,7 @@ async function renderCapabilityLibrary(target, opts = {}) {
       c.sourceType,
       c.evidenceLevel,
       c.upstreamOwner
-    ].join(" ").toLowerCase().includes(needle) : true) && facetPicks.every((f) => {
+    ].join(" ").toLowerCase().includes(needle) : true) && (domainCondition === null || domainHit(c)) && facetPicks.every((f) => {
       const want = f.select.value;
       if (want === ANY || want === "") return true;
       if (want === NONE) return c[f.field] === null || c[f.field] === void 0;
@@ -4076,11 +4166,15 @@ function domainDrawer(packs, openId, join = null) {
         {
           type: "button",
           class: "secondary",
+          id: "domain-view-capabilities",
+          // The condition the tooltip promises travels with the jump. Before this the hash was a
+          // bare `#/capabilities`, so the button said "filter by the declared domain" and then
+          // showed the unfiltered library -- the one thing a reader could not check from here.
           onclick: () => {
-            window.location.hash = "#/capabilities";
+            window.location.hash = capabilityHashForDomain(found.domain);
           },
           disabled: join && join.matched > 0 ? void 0 : "",
-          title: join === null ? "列表页不读能力目录；打开某个域包的地址才会做第二次读回。" : join.state === "NOT_READ" ? `没读到能力目录：${join.why}。既不能说有几个关联，也不能说没有。` : join.matched > 0 ? "只做地址跳转：能力目录侧按声明领域过滤，不启动宿主、不改变资格。" : "没有可跳转的关联：该领域的分类还没接线（原因见上一行）。"
+          title: join === null ? "列表页不读能力目录；打开某个域包的地址才会做第二次读回。" : join.state === "NOT_READ" ? `没读到能力目录：${join.why}。既不能说有几个关联，也不能说没有。` : join.matched > 0 ? `只做地址跳转，并把“声明领域 = ${found.domain}”带过去：能力目录按 axes.domains 过滤，不启动宿主、不改变资格。` : "没有可跳转的关联：该领域的分类还没接线（原因见上一行）。"
         },
         "按该领域查看能力"
       ),
@@ -4234,12 +4328,7 @@ async function renderDomains(target, opts = {}) {
     const unread = disconnectedNotice(caps) || shapeNotice(caps);
     const rows = Array.isArray(caps.capabilities) ? caps.capabilities : [];
     const slug = packs.find((pack) => pack.packId === opts.openId)?.domain ?? null;
-    const declaredDomains = (row) => {
-      const axes = row.axes;
-      const values = axes && Array.isArray(axes.domains) ? axes.domains : [];
-      return values.filter((value) => typeof value === "string");
-    };
-    const unclassified = (row) => (Array.isArray(row.unclassifiedAxes) ? row.unclassifiedAxes : []).includes("domains");
+    const unclassified = domainsUnclassified;
     join = unread ? { state: "NOT_READ", records: 0, matched: 0, unclassified: 0, why: unread } : {
       state: "READ",
       records: rows.length,
@@ -6855,7 +6944,7 @@ function mountAppShell() {
     if (projectDetailId(window.location.hash)) return "project-detail";
     if (capabilityDetailId(window.location.hash)) return "capability-detail";
     if (domainDetailId(window.location.hash)) return "domain-detail";
-    const match = ROUTE_VIEWS.find((route) => route.hash === window.location.hash);
+    const match = ROUTE_VIEWS.find((route) => route.hash === hashPath(window.location.hash));
     if (!match && devMode()) return "dashboard";
     return match ? match.view : "workbench";
   };
@@ -6925,8 +7014,7 @@ function mountAppShell() {
   show();
 }
 function mountB10Shell(routeView, syncLegacyNavCue) {
-  const probe = document.createElement("div");
-  if (typeof probe.querySelector !== "function") return null;
+  if (typeof document === "undefined" || typeof document.querySelector !== "function") return null;
   const B10_NAV = ROUTE_VIEWS.filter((route) => route.view !== "workbench").map((route) => ({
     route: route.view,
     label: route.label,
@@ -7066,8 +7154,7 @@ function mountB10Shell(routeView, syncLegacyNavCue) {
   return { app, sync };
 }
 function mountB10Overlays() {
-  const probe = document.createElement("div");
-  if (typeof probe.querySelector !== "function") return;
+  if (typeof document === "undefined" || typeof document.querySelector !== "function") return;
   const toast = el("div", { class: "toast", role: "status", id: "toast" }, "Ready");
   document.body.append(toast);
   const toastTimer = { t: 0 };
@@ -7150,45 +7237,28 @@ function mountB10Overlays() {
       label: "能力资产",
       path: "/capabilities",
       limit: 8,
-      rows: (d) => (d?.capabilities ?? []).map((c) => ({
-        name: c.id,
-        kind: `${c.kind}${c.license ? ` · ${c.license}` : ""}`,
-        // 能力详情已有独立地址（R2 §5），所以搜索结果直接落到那一条记录上。
-        go: capabilityDetailHash(c.id)
-      }))
+      rows: (d) => searchGroupRows("/capabilities", d)
     },
     {
       label: "项目",
       path: "/projects",
       limit: 8,
-      rows: (d) => (d?.projects ?? []).map((p) => ({
-        name: p.name,
-        kind: `项目 ${p.id.slice(0, 8)}`,
-        go: projectDetailHash(p.id)
-      }))
+      rows: (d) => searchGroupRows("/projects", d)
     },
     {
       label: "设计领域",
       path: "/domains",
       limit: 8,
-      rows: (d) => (d?.packs ?? []).map((k) => ({
-        name: k.displayName ?? k.directory,
-        kind: `领域 ${k.domain ?? "未声明"} · ${k.packId ?? k.directory}`,
-        // R2 §2: a domain row is a second-level entry, so it lands on that pack's own
-        // address. A pack whose manifest declares no pack_id has no address to give —
-        // it falls back to the registry instead of inventing one from the directory name.
-        go: domainDetailHash(k.packId) ?? "#/domains"
-      }))
+      rows: (d) => searchGroupRows("/domains", d)
     },
+    // See `searchGroupRows`: the projection lives outside this scope precisely so a test can
+    // reach it. The route answers `{design_systems: …}` (DesignSystemListResponse) and this
+    // group used to read `{systems: …}` -- a key no response carries.
     {
       label: "设计系统",
       path: "/design-systems",
       limit: 8,
-      rows: (d) => (d?.systems ?? []).map((s) => ({
-        name: s.name,
-        kind: `设计系统${s.version_no ? ` v${s.version_no}` : ""}`,
-        go: "#/brand-systems"
-      }))
+      rows: (d) => searchGroupRows("/design-systems", d)
     }
   ];
   const searchCache = /* @__PURE__ */ new Map();
@@ -7215,9 +7285,9 @@ function mountB10Overlays() {
     }
     return box;
   };
-  const renderGroupRows = (body, rows, limit) => {
+  const renderGroupRows = (body, rows, limit, needle = "") => {
     if (!rows.length) {
-      body.replaceChildren(el("p", { class: "view-hint" }, "这一组当前读回 0 个对象。"));
+      body.replaceChildren(el("p", { class: "view-hint" }, needle ? `这一组没有符合“${needle}”的对象：过滤在整组读回上做，不是只查已画出的前几条。` : "这一组当前读回 0 个对象。"));
       return;
     }
     const shown = rows.slice(0, limit);
@@ -7249,24 +7319,47 @@ function mountB10Overlays() {
     ...OBJECT_GROUPS.map((group) => buildGroup(group))
   );
   itemsBox.append(objectsBox);
-  let objectsLoaded = false;
+  const readFailedNote = (path, err) => {
+    const why = err instanceof Error ? err.message : String(err);
+    return el(
+      "p",
+      { class: "error" },
+      `读取失败：GET /api${path} 本次没有读回（${why}）。这一组既不显示条数，也不说"没有"——失败与空集合是两件事。`,
+      el("button", {
+        type: "button",
+        class: "secondary",
+        onclick: () => {
+          void loadSearchObjects();
+        }
+      }, "重试这一组")
+    );
+  };
+  let objectsLoad = "idle";
   const loadSearchObjects = async () => {
-    if (objectsLoaded) return;
-    objectsLoaded = true;
+    if (objectsLoad !== "idle") return;
+    objectsLoad = "loading";
+    let failed = 0;
     for (const group of OBJECT_GROUPS) {
-      const data = await apiOrEmpty(group.path, {});
-      const unread = shapeNotice(data) || disconnectedNotice(data);
-      const rows = unread ? "unread" : group.rows(data);
-      searchCache.set(group.path, rows);
+      if (searchCache.has(group.path)) continue;
       const holder = itemsBox.querySelector(`[data-group="${group.label}"]`);
-      const body = holder?.querySelector(".palette-group-body");
-      if (!body) continue;
-      if (rows === "unread") {
-        body.replaceChildren(unreadNote(group.path));
-      } else {
-        renderGroupRows(body, rows, group.limit);
+      const body = holder?.querySelector(".palette-group-body") ?? null;
+      try {
+        const data = await apiOrEmpty(group.path, {});
+        const unread = shapeNotice(data) || disconnectedNotice(data);
+        const rows = unread ? "unread" : group.rows(data);
+        searchCache.set(group.path, rows);
+        if (!body) continue;
+        if (rows === "unread") {
+          body.replaceChildren(unreadNote(group.path));
+        } else {
+          renderGroupRows(body, rows, group.limit);
+        }
+      } catch (err) {
+        failed += 1;
+        if (body) body.replaceChildren(readFailedNote(group.path, err));
       }
     }
+    objectsLoad = failed ? "idle" : "done";
   };
   const cmds = ROUTE_VIEWS.filter((r) => r.hash !== "").map((r) => ({ go: r.hash, label: r.label }));
   const routeGroup = el("div", { class: "palette-group-body" });
@@ -7293,6 +7386,7 @@ function mountB10Overlays() {
     palette.classList.add("open");
     paletteInput.focus();
     paletteInput.select();
+    applyPaletteFilter(paletteInput.value.trim().toLowerCase());
     void loadSearchObjects();
   };
   const closePalette = () => {
@@ -7309,17 +7403,29 @@ function mountB10Overlays() {
     }
     paletteInvoker = null;
   };
-  paletteInput.addEventListener("input", () => {
-    const q = paletteInput.value.trim().toLowerCase();
-    for (const group of Array.from(itemsBox.querySelectorAll(".palette-group"))) {
-      let hits = 0;
-      for (const item of Array.from(group.querySelectorAll(".item"))) {
-        const match = !q || (item.textContent || "").toLowerCase().includes(q);
-        item.style.display = match ? "flex" : "none";
-        if (match) hits += 1;
-      }
-      group.hidden = hits === 0 && !group.querySelector(".view-hint, .error");
+  const applyPaletteFilter = (q) => {
+    for (const group of OBJECT_GROUPS) {
+      const holder = itemsBox.querySelector(`[data-group="${group.label}"]`);
+      const body = holder?.querySelector(".palette-group-body") ?? null;
+      if (!holder || !body) continue;
+      const cached = searchCache.get(group.path);
+      if (cached === void 0 || cached === "unread") continue;
+      const hits2 = q ? cached.filter((r) => `${r.name} ${r.kind}`.toLowerCase().includes(q)) : cached;
+      holder.hidden = hits2.length === 0;
+      renderGroupRows(body, hits2, group.limit, q);
     }
+    const routeGroup2 = itemsBox.querySelector('[data-group="页面"]');
+    if (!routeGroup2) return;
+    let hits = 0;
+    for (const item of Array.from(routeGroup2.querySelectorAll(".item"))) {
+      const match = !q || (item.textContent || "").toLowerCase().includes(q);
+      item.style.display = match ? "flex" : "none";
+      if (match) hits += 1;
+    }
+    routeGroup2.hidden = hits === 0;
+  };
+  paletteInput.addEventListener("input", () => {
+    applyPaletteFilter(paletteInput.value.trim().toLowerCase());
   });
   window.addEventListener("keydown", (e) => {
     if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "k") {
