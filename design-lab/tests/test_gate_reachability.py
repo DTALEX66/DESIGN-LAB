@@ -208,10 +208,17 @@ class ReadOnlyModeTests(unittest.TestCase):
             "WORKTREE_INVENTORY=PASS against this machine's registered worktrees; a CI checkout "
             "has exactly one, so the inventory it compares is not a repository property",
         "generate_current_reports.py":
-            "CURRENT_REPORTS=DRIFT: three projections disagree here, nine in a clean checkout. The "
-            "cause is that the projections embed run ids and machine-local absence, which is the "
-            "owner's open ruling -- once the fields stop describing one disk this becomes a "
-            "required check",
+            "CURRENT_REPORTS=DRIFT: three projections disagree here, nine in a clean checkout. "
+            "Measured 2026-10-13 by running the writer form and diffing it: the fields that move "
+            "are `generatedAt` (a timestamp), the whole `gitObservation` block (branch, sha, "
+            "origin_main, tracked_files, worktree_changes, worktree_digest) and `inputDigest`, "
+            "which is derived from them. So the record names the commit that wrote it and cannot "
+            "match one commit later -- the same shape as the D08 reconciliation document that "
+            "embeds its own HEAD. `verify_contract_graph` already carries the pattern that makes "
+            "such a record requirable: it passes while declaring `generated_at`/`subject_sha` "
+            "generation-time. Applying that rule here is a decision about what this record is "
+            "for, not a repair, so it stays the owner's open ruling -- and when the "
+            "non-repository fields stop counting, this becomes a required check",
         "generate_ssot_projections.py":
             "SSOT_PROJECTIONS=DRIFT CAPABILITY_INDEX.json / EVIDENCE_INDEX.json in both trees: the "
             "generated indices differ from their authoring sources. Republish, or record which "
