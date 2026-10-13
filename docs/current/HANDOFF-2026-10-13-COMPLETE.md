@@ -163,6 +163,10 @@ HISTORY-FREEZE-RULES、两个 TaskPack 标 `binary`，并重新入库使 blob ==
 ### 接续入口
 
 `docs/current/NEXT-AGENT-PROMPT-2026-10-12.md` 是当前入口（`AGENTS.md` 已指向它）；
+> **2026-10-13 更正（句子保留，只标失效时点）**：这一句**已不成立**。第二十四批收口后，
+> 当前入口是 `docs/current/NEXT-AGENT-PROMPT-2026-10-13.md`，`AGENTS.md` 已改指它，
+> 2026-10-12 版在 `task-document-states.json` 里降为 `HISTORICAL` 且指针移向新版。
+> 留着上面那句是因为它当时是真的；照着它做会让下一会话从一份已被取代的提示词接续。
 09/10/11 版已降为 `HISTORICAL` 并在 `task-document-states.json` 登记。
 
 ---
