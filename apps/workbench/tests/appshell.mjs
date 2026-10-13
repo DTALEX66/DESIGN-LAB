@@ -2782,4 +2782,82 @@ console.log('ok: ⑯ 运行与恢复现场：ABSENT/空表/未读回三种说法
 console.log('ok: ⑰ 全局搜索的四组对象投影按各自路由的合同字段取行（design_systems 不是 systems），'
   + '领域行落到 pack 自己的地址');
 
+// ⑳ DL-UI-U07 成果版本面板。该项目详情的版本面板在此之前从不渲染（阶段表把它标 PLANNED、panelId 为空），
+// 所以"版本像什么"这条读数一直只能靠 Inspector 的版本环间接猜。本块把它变成可断言的：
+// 读回真实的 BundleRecord 字段，当前 / 已被取代分得开，未读回不画 0。
+{
+  const PID = 'a'.repeat(32);
+  const rows = [
+    { id: 'bundle-native-' + '1'.repeat(64), kind: 'native-package', version_id: 'v-' + '1'.repeat(32),
+      version_no: 1, byte_size: 4096, sha256: '2'.repeat(64), rights: 'UNCLEARED',
+      verification: 'HASH_VERIFIED' },
+    { id: 'bundle-native-' + '1'.repeat(64), kind: 'native-package', version_id: 'v-' + '3'.repeat(32),
+      version_no: 2, byte_size: 5120, sha256: '4'.repeat(64), rights: 'CLEARED',
+      verification: 'HASH_VERIFIED' },
+    { id: 'bundle-web-' + '5'.repeat(64), kind: 'web-export', version_id: 'v-' + '6'.repeat(32),
+      version_no: 1, byte_size: 2048, sha256: '7'.repeat(64), rights: 'CLEARED', verification: '' },
+  ];
+  const answer = async (bundles) => {
+    for (let round = 0; round < 8; round += 1) {
+      const reads = shell.pending.splice(0, shell.pending.length);
+      if (!reads.length) break;
+      for (const r of reads) {
+        if (r.path.endsWith('/bundles')) r.resolve(response(bundles));
+        else if (r.path.endsWith('/tasks')) r.resolve(response({ tasks: [] }));
+        else if (r.path.endsWith('/design-layer')) r.resolve(response({ design_layer: {
+          briefs: [], directions: [], chosen_direction: null, bindings: [], active_binding: null,
+          design_systems: [] } }));
+        else if (r.path.endsWith('/design-systems')) r.resolve(response({ design_systems: [] }));
+        else if (r.path.endsWith('/design-system-tokens')) r.resolve(response({ token_documents: [] }));
+        else if (r.path === '/projects') r.resolve(response({ projects: [{ id: PID, name: 'Alpha' }] }));
+        else r.resolve(response({}));
+      }
+      await flush();
+    }
+  };
+  const open = async (bundles) => {
+    shell.window.location.hash = '#/projects/' + PID;
+    shell.dispatchHashchange();
+    await answer(bundles);
+    const panel = (() => {
+      let hit = null;
+      walkNodes(shell.elements.get('route-view'), (n) => {
+        if (n?.attributes?.get('id') === 'pd-versions-panel') hit = n;
+      });
+      return hit;
+    })();
+    if (!panel) throw new Error('项目详情没有渲染 #pd-versions-panel');
+    return panel;
+  };
+
+  const read = await open({ bundles: rows });
+  const text = read.textContent;
+  if (!text.includes('2 类 / 3 版本'))
+    throw new Error(`版本面板的分类/版本数没有跟着读回走：${text.slice(0, 200)}`);
+  if (!text.includes('v2 · 当前') || !text.includes('v1 · 已被后续版本取代'))
+    throw new Error(`当前版本与已被取代的版本没有分开：${text.slice(0, 300)}`);
+  if (!text.includes('4096 B') || !text.includes('sha256 ' + '4'.repeat(12)))
+    throw new Error(`版本行必须给出该版本自己的字节数与摘要：${text.slice(0, 300)}`);
+  // 权利与核验按服务端原词上屏，不做词表映射 —— 两个字段的取值集不在本文件合同里。
+  if (!text.includes('权利 UNCLEARED') || !text.includes('权利 CLEARED'))
+    throw new Error(`权利必须原词上屏：${text.slice(0, 300)}`);
+  if (!text.includes('核验 HASH_VERIFIED'))
+    throw new Error(`核验必须原词上屏：${text.slice(0, 300)}`);
+  // 面板只读回：它不得声称自己提交改稿，也不得从 version_no 推断改稿来源。
+  if (!text.includes('本面板只读回、不提交改稿'))
+    throw new Error('面板必须写明它不提交改稿（局部改稿入口在 patch 路由）');
+
+  const empty = await open({ bundles: [] });
+  if (!empty.textContent.includes('尚无成果版本'))
+    throw new Error(`空集合要说"尚无成果版本"：${empty.textContent.slice(0, 200)}`);
+  const unread = await open({});
+  if (!unread.textContent.includes('未读回'))
+    throw new Error(`缺 bundles 字段要说未读回，不能画成 0 个版本：${unread.textContent.slice(0, 200)}`);
+  if (/0 类 \/ 0 版本/.test(unread.textContent))
+    throw new Error('未读回被画成了 0 类 / 0 版本');
+}
+
+console.log('ok: ⑳ DL-UI-U07 成果版本面板：读回真实 BundleRecord 的版本链（当前/已被取代、字节数与'
+  + '摘要、权利与核验原词）、空集合说尚无、缺字段说未读回不画 0，并写明本面板只读回不提交改稿');
+
 console.log('APPSHELL REGRESSION: all checks passed');

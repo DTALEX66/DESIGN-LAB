@@ -8680,8 +8680,11 @@
       },
       {
         "id": "DL-UI-U07",
-        "state": "NOT_STARTED",
-        "evidence": []
+        "state": "PARTIAL",
+        "evidence": [
+          "DL-UI-U07-versions-panel-implementation-r25",
+          "DL-UI-U07-versions-panel-unit-r25"
+        ]
       },
       {
         "id": "DL-UI-U08",
@@ -11061,6 +11064,30 @@
         "command": "node tests/unit.mjs + tests/appshell.mjs + tests/shape-notice-coverage.mjs; assertions 17/18/19 added by this batch and all three suites exit 0 | readings produced by .project-local/tmp/seal_b24.py; subject is the worktree measured before this batch's commit, so the receipt names a8a2acc9 and not the commit that binds it",
         "exit_code": 0,
         "observed_at": "2026-10-13T13:35:39+00:00"
+      },
+      {
+        "id": "DL-UI-U07-versions-panel-implementation-r25",
+        "task_id": "DL-UI-U07",
+        "axis": "implementation",
+        "outcome": "PASS",
+        "subject_sha": "1cc9ab5829c8358e253595cd56cc60d382dc8c46",
+        "artifact_path": "design-lab/evidence/current-execution/task-artifacts/ui-first-20261009/b25-20261013/U07-versions-panel-readings.json",
+        "artifact_sha256": "57fb344305d924ac77b63044a32e30be7faac13f149012b9b24252fcf8188ee9",
+        "command": "DL-UI-U07 first increment: #pd-versions-panel renders the version chain from GET /projects/{id}/bundles; the Versions stage flips PLANNED->IMPLEMENTED because its anchor now exists | produced by .project-local/tmp/seal_b25.py",
+        "exit_code": 0,
+        "observed_at": "2026-10-13T16:27:32+00:00"
+      },
+      {
+        "id": "DL-UI-U07-versions-panel-unit-r25",
+        "task_id": "DL-UI-U07",
+        "axis": "unit",
+        "outcome": "PASS",
+        "subject_sha": "1cc9ab5829c8358e253595cd56cc60d382dc8c46",
+        "artifact_path": "design-lab/evidence/current-execution/task-artifacts/ui-first-20261009/b25-20261013/U07-versions-panel-readings.json",
+        "artifact_sha256": "57fb344305d924ac77b63044a32e30be7faac13f149012b9b24252fcf8188ee9",
+        "command": "node tests/unit.mjs + tests/appshell.mjs + tests/shape-notice-coverage.mjs; appshell block 20 added | produced by .project-local/tmp/seal_b25.py",
+        "exit_code": 0,
+        "observed_at": "2026-10-13T16:27:32+00:00"
       }
     ],
     "note": "2026-10-11 第五批（第二十一批，云端 DOT 审计 D13 落地：主题按钮真的改绘制，界面自己写的 URL 能重载）。审计包观测点是 835fa880，我用 git diff 证明 shell.ts / http_service.py 在 835fa880..HEAD 之间一字未动，所以这条不是\"已被今天修掉\"而是新修。两处根因：① 前端 shell.ts 的 palette/scheme 两个 onclick 原来都是\"先 writeUrlParam，再 applyTheme(readThemeChoice())\"，而 readThemeChoice 按 6098-6100 的注释故意优先读已应用的 <html> 属性——于是它读回的是还没写进去的旧值，两个按钮在真实浏览器里都是空转（我把顺序改成先 apply 意图值、再写 URL）；② 服务端 dispatch 用 self.path 与路由表比较，BaseHTTPRequestHandler 给的 self.path 含 query，所以 /workbench?palette=ui2026 落到需要鉴权的分支——浏览器导航没有 token，答案就是 401（现在按 urlsplit(self.path).path 匹配页面路由，遍历型路径仍 404）。新增第五份浏览器闸 test_workbench_theme_affordance_gate（已登记进 verify_browser_e2e_ran.TEST_MODULES；不登记就永远 skip，这正是缺陷躲过所有绿聚合的原因），它点的是当前 bundle 里的真控件，读数 findings=0：data-palette design-lab → ui2026，--surface #0D1221 → #101a26，body rgb(6,10,20) → rgb(8,14,22)，location.search \"\" → \"?palette=ui2026\"，状态读数 [\"200 (no query)\",\"200 ?palette=ui2026&scheme=light\"]。第一版探针超时，原因是屏上同时存在两套 .theme-toggle（遗留视图那套不可见），Playwright 默认点了隐藏那条；现在断言\"每个动作恰好一条可见\"，隐藏孪生控件本身就是罪名。真值测试改动如实交代：design-lab/tests/test_service_http.py 原来把 /workbench?file=AGENTS.md 期望成 404，那正是缺陷的指纹；安全属性换成可证的正面断言——页面 200、字节与 /workbench 完全相同、且不含 '# AGENTS.md'，两条 traversal 路径仍必须 404，没有放松任何一项。实拍：本批重建了 bundle（255e992a… → 5829f52a…，358,130 B），所以第二十批那 92 张已绑旧 bundle 的实拍作废，两套配色 ×1920/960 各 46 张按新 bundle 重拍（b21-20261011/，deviation 照旧记：从工作树拍摄，tracked 的 exact-commit 守卫未动）；另有一张从点击路径本身产生的 clicked-design-lab-to-ui2026@1440.png，我读过图：左下控件文字变成\"UI-20261009 基线\"并多出\"深色\"，与 --surface 变色一致；该屏同时显示\"请先在工作台连接本机设计服务\"的空态，所以它证明的是主题接线，不证明能力目录读回，两者不混。探针缺陷也记一条：--primary 在 documentElement 上读回空串（该令牌定义在 .dl-shell 作用域），闸因此不以 primaryVar 单独判色变。复跑读数：tsc --noEmit 0；vite build 0；node unit/appshell/shape-notice-coverage 三组 0；test_service_http Ran 29 tests OK；E2E_REQUIRED=1 五份浏览器套件 ran=8 skipped=0 failed=0（E2E_EXIT=0 从日志标记读，不读 wrapper）。审计其余条目仍未修：D01/D03 幂等键、D02 默认 Illustrator 计划 locked→400、D04 nested task 与 vundefined、D05 搜索 8 条上限与 design_systems 字段名、D06 objectsLoaded 提前置位、D07 qualified !== null 与三 tab 同谓词、D08 领域跳转不带条件（这条是我第十八批引入的）、D09 wheel 未随包两份 schema、D10 域包不随包、D11/D12 属 owner 裁定项 G。AAOS 与 WORK 的条目不计入本项目。回执 8 条：browser 2 / visual_review 3 / unit 2 / implementation 1；DL-UI-U02 与 DL-FINAL-T08 仍 PARTIAL，真实宿主 E3、真人 E4、手机端 FROZEN_DEFERRED 一项未做。"

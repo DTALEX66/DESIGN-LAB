@@ -4228,13 +4228,17 @@ const PROJECT_STAGES: Array<{
   { key: 'directions',    label: 'Directions',    panelId: '#pd-direction-panel',    state: 'IMPLEMENTED' },
   { key: 'design-system', label: 'Design System', panelId: '#pd-design-system-panel', state: 'IMPLEMENTED' },
   { key: 'production',    label: 'Production',    panelId: '#pd-tasks-panel',        state: 'IMPLEMENTED' },
-  // No #pd-versions-panel is ever rendered: version readback lives in the brief
-  // / direction panels and the Inspector ring. A PLANNED node keeps the stage
-  // honest, because an IMPLEMENTED chip whose anchor does not exist is a button
-  // that silently does nothing (buildStageNav only reveals `note` as a
-  // pointer-only title, so assistive tech and keyboard users never saw it).
-  { key: 'versions',      label: 'Versions',      panelId: '',                       state: 'PLANNED',
-    note: '版本读回在简报 / 方向面板与 Inspector 版本环，无独立 Versions 面板' },
+  // Until 2026-10-13 no #pd-versions-panel was rendered: version readback lived in the brief /
+  // direction panels and the Inspector ring, and a PLANNED node kept the stage honest, because an
+  // IMPLEMENTED chip whose anchor does not exist is a button that silently does nothing
+  // (buildStageNav only reveals `note` as a pointer-only title, so assistive tech and keyboard
+  // users never saw it). The anchor exists now, so the chip is IMPLEMENTED.
+  // DL-UI-U07: the Versions stage now has a real anchor. The panel reads the version chain a
+  // route already returns; what it does *not* have is a revision editor, so the stage note says
+  // so -- and the panel repeats it in visible text, because buildStageNav only exposes a note as
+  // a pointer-only title (the same reason the sibling PLANNED nodes keep their boundary in prose).
+  { key: 'versions',      label: 'Versions',      panelId: '#pd-versions-panel',     state: 'IMPLEMENTED',
+    note: '版本链读回已实现（#pd-versions-panel）；局部改稿仍只有后端的 patch 路由，没有桌面编辑器' },
   // The only preflight with a route is /api/task-preflight — the repo's
   // task-resource doctor. Design quality, Jury and production preflight have no
   // route, so the stage name carries the boundary in visible text.
@@ -5396,6 +5400,56 @@ function renderDeliveryPanel(id: string, data: BundleListResponse): HTMLElement 
       + '读取与 hash 为只读回读，权利 / 质量 / 预检仍由人工验收。'));
 }
 
+// DL-UI-U07 成果版本。版本链全部来自**已有**路由 GET /api/projects/<id>/bundles：BundleRecord
+// 自己带 version_id / version_no / byte_size / sha256 / rights / verification，所以这里不新增
+// 后端、不复制假动作。**它不声称哪一次局部改稿产生了哪个版本**——`parent` 不在 BundleRecord 上
+// （patch 路由 /tasks/<job>/patch 的响应才有），用 version_no>1 猜一个"改稿"标签就是编造。
+// 权利与核验按服务端原词上屏，不做词表映射：这两个字段的取值集不在本文件的合同里。
+function renderVersionsPanel(bundlesResp: BundleListResponse): HTMLElement {
+  const bundles = Array.isArray(bundlesResp.bundles) ? bundlesResp.bundles : [];
+  const unread = disconnectedNotice(bundlesResp) || shapeNotice(bundlesResp);
+  const byKind = new Map<string, BundleRecord[]>();
+  for (const b of bundles) {
+    const list = byKind.get(b.kind) ?? [];
+    list.push(b);
+    byKind.set(b.kind, list);
+  }
+  const groups: HTMLElement[] = [];
+  for (const [kind, list] of byKind) {
+    const ordered = [...list].sort((a, b) => b.version_no - a.version_no);
+    const head = ordered[0];
+    groups.push(el('li', { class: 'list-item' },
+      el('div', {},
+        el('strong', {}, kind),
+        el('small', {}, ordered.length > 1
+          ? `${ordered.length} 个版本 · 当前 v${head.version_no}`
+          : `1 个版本 · v${head.version_no}`)),
+      el('ul', { class: 'list' },
+        ...ordered.map((v, index) => el('li', { class: 'list-item' },
+          el('div', {},
+            el('strong', {}, `v${v.version_no}${index === 0 ? ' · 当前' : ' · 已被后续版本取代'}`),
+            el('small', {}, `${v.version_id} · ${v.byte_size} B · sha256 ${v.sha256.slice(0, 12)}…`)),
+          el('span', { class: 'tag neutral' },
+            `权利 ${v.rights || '未读回'} · 核验 ${v.verification || '未读回'}`))))));
+  }
+  const panel = el('div', { class: 'panel', id: 'pd-versions-panel' },
+    el('h3', {}, unread ? '成果版本（未读回）'
+      : `成果版本（${byKind.size} 类 / ${bundles.length} 版本）`),
+    unread
+      ? el('p', { class: 'error' },
+          '未读回：GET /api/projects/{id}/bundles 没有给回 bundles，所以这里既不列版本，也不说"没有版本"。')
+      : (bundles.length
+        ? el('ul', { class: 'list' }, ...groups)
+        : el('p', { class: 'view-hint' },
+            '尚无成果版本：本项目的 /bundles 读回是空集合，不是"版本读不到"。')),
+    el('p', { class: 'view-hint' },
+      '两张表分开：**格式/版本**看这里（每个版本自己的 id、字节数、摘要、权利与核验原词），'
+      + '**结构与视觉**看交付包清单与预检面，**局部改稿**是写入动作，入口在高级区的 patch 路由 '
+      + '（POST /api/projects/{id}/tasks/{job}/patch），本面板只读回、不提交改稿，'
+      + '也不从 version_no 推断哪一版由改稿产生。'));
+  return panel;
+}
+
 export async function renderProjectDetail(id: string, target: HTMLElement): Promise<void> {
   target.replaceChildren(el('p', { class: 'view-loading' }, '正在读回该项目…'));
   rememberProject(id);   // W03 "最近项目": record the project the user actually opened
@@ -5461,7 +5515,8 @@ export async function renderProjectDetail(id: string, target: HTMLElement): Prom
     el('div', { class: 'project-detail-layout' },
       el('div', { class: 'project-detail-main' },
         el('div', { class: 'two-col', style: 'margin-top:16px' }, taskPanel, layerPanel),
-        el('div', { style: 'margin-top:16px' }, renderDeliveryPanel(id, bundlesResp)),
+        el('div', { style: 'margin-top:16px' }, renderDeliveryPanel(id, bundlesResp),
+          renderVersionsPanel(bundlesResp)),
         el('div', { style: 'margin-top:16px' }, renderBriefEditor(id, layer, target)),
         el('div', { style: 'margin-top:16px' }, renderDirectionPanel(id, layer, target)),
         el('div', { style: 'margin-top:16px' }, renderDesignSystemPanel(id, layer, systemsResp, target)),
@@ -6069,9 +6124,10 @@ function mountB10Overlays(): void {
   /** A group whose read threw: shown in place, retryable, and never cached as a result. */
   const readFailedNote = (path: string, err: unknown): HTMLElement => {
     const why = err instanceof Error ? err.message : String(err);
-    // No inline `style`: the service serves every response with `style-src 'self'` and no
-    // 'unsafe-inline', so a style ATTRIBUTE is blocked in a real browser and the console error
-    // fails the browser E2E. Spacing here comes from the class, not from a literal px.
+    // No inline `style` here: `design_debt_baseline` pins the count of literal px in prose
+    // (`DESIGN.md §4`), so one more `margin-left:8px` makes the recorded sentence disagree with
+    // its own measurement. (`el()` routes a `style` key through `style.cssText`, which the CSP
+    // allows, so the reason is the debt register, not `style-src`.)
     return el('p', { class: 'error' },
       `读取失败：GET /api${path} 本次没有读回（${why}）。这一组既不显示条数，也不说"没有"——`
       + '失败与空集合是两件事。',
