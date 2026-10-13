@@ -1,9 +1,9 @@
 {
   "schemaVersion": "design-lab/deepseek-authority-chain/v1",
   "task_key": "DL-TP-20260914-DEEPSEEK-AUTHORITY-R1::DLDS-A010",
-  "generated_at": "2026-10-13T14:04:56+00:00",
+  "generated_at": "2026-10-13T14:36:06+00:00",
   "subject": {
-    "base_sha": "4bfacf20e13c9ba73904a09ac80f05551b56e47b",
+    "base_sha": "615c1ddb58562a9ea47b6b9a5320b0b0d4e82903",
     "branch": "qoder/designlab-backup-consistency-20261007",
     "worktree_clean": false
   },
@@ -125,8 +125,8 @@
     },
     {
       "path": "AGENTS.md",
-      "bytes": 11713,
-      "sha256": "sha256:620bf56d1421af2400c486844daa7bb32305c9b649a0943958ace907fdd03b80",
+      "bytes": 11762,
+      "sha256": "sha256:ccd6f6269f22fd23d25748c153e3469f26008329bb636ee79b40c38f5e35b26b",
       "authority_class": "GOVERNANCE_TRUTH",
       "basis": "root execution rules"
     },
