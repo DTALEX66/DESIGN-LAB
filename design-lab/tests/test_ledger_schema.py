@@ -488,6 +488,12 @@ class MutatedFailureModes(unittest.TestCase):
             self.fail('no task carries a completion state to test')
         self.assertEqual(run_on(ledger)['failures'], [],
                          'the shape is legal by design; r5_contract.py is what rejects it')
+        # `r5_contract.validate` calls `current_execution.validate` before any R5 rule, and that
+        # guard compares `ledger['tasks']` / `ledger['evidence']` against the frozen predecessor
+        # snapshot -- the very field this fixture mutates. Dropping the partition removes only
+        # the guard scoped to it; without the drop the assertion below fails with
+        # `frozen predecessor partition changed: tasks` and never reaches the rule it names.
+        ledger.pop('currentExecution', None)
         sys.path.insert(0, str(ROOT / 'src'))
         from design_lab.governance import reporting
         with self.assertRaisesRegex(Exception, 'reassessment'):

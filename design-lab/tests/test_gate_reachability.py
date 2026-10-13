@@ -36,7 +36,11 @@ MANUAL_GATES = {
     "capture_workbench_screenshots.mjs":
         "capture tool driven through scripts/capture_workbench_screenshots.py by a human "
         "or by the browser gates",
-    "deepseek_content_audit.py": "one-off historical audit run",
+    # `deepseek_content_audit.py` was exempted here as a one-off historical audit. It is no longer
+    # one-off: design-lab/scripts/verify_projection_freshness.py names its --check as a
+    # RECEIPT_CHECK, and this test's stale-exemption rule is what surfaced the leftover row --
+    # the same shape as `deepseek_foundation_audit.py` above. An exemption kept after the script
+    # became reachable is a register that no longer describes the repository.
     "deepseek_directory_audit.py": "one-off historical audit run",
     # `deepseek_foundation_audit.py` was exempted as a one-off. It is no longer one-off:
     # design-lab/scripts/verify_projection_freshness.py invokes its --check as an entry, and this
@@ -44,6 +48,17 @@ MANUAL_GATES = {
     # became reachable is a register that no longer describes the repository.
     "deepseek_post_cleanup_audit.py": "one-off historical audit run",
     "deepseek_size_audit.py": "one-off historical audit run",
+    # The U01 reconciliation writer/auditor for the 2026-10-09 desktop batch. Its --check demands
+    # byte equality with the committed docs/current/UI-DESKTOP-RECONCILIATION-2026-10-09.md, and
+    # that document embeds the HEAD it was rendered at, so it can only ever match at the commit
+    # that wrote it; the committed copy also carries a hand-written 2026-10-12 correction that the
+    # renderer does not produce. Measured 2026-10-13 in this tree and in a clean clone at
+    # 7799fbe6: rc=1, UI_RECONCILIATION_DRIFT, both trees. It is run by hand when the
+    # reconciliation is republished; see its DECLARED_BUT_UNINVOKED row for what must change
+    # before CI can require it.
+    "audit_ui_desktop_reconcile_20261009.py":
+        "point-in-time reconciliation auditor whose committed document embeds the commit it was "
+        "written at, so its --check is red in every tree by construction, not by drift",
 }
 
 CANDIDATE = re.compile(r"(verify|audit|check|no_overclaim|clean_tree)")
@@ -168,6 +183,13 @@ class ReadOnlyModeTests(unittest.TestCase):
     )
 
     DECLARED_BUT_UNINVOKED = {
+        "audit_ui_desktop_reconcile_20261009.py":
+            "rc=1, UI_RECONCILIATION_DRIFT, measured 2026-10-13 in this tree and in a clean clone "
+            "at 7799fbe6. The diff is entirely in the two lines render() cannot reproduce: the "
+            "observed-HEAD line moves with every commit, and the committed copy carries a "
+            "hand-written 2026-10-12 correction. The predicate is byte equality, so no commit "
+            "after the one that wrote the document can pass. Wire it in once --check judges the "
+            "derived body instead of the document that embeds its own commit",
         "build_candidate_taxonomy.py":
             "declares --check but the parser requires --observation, so the read-only form cannot "
             "be invoked as shipped -- measured rc=2 with an argparse usage error in both trees on "

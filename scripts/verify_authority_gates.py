@@ -24,9 +24,11 @@ Evidence policy (fail-closed, platform-bound):
   test gate verifies the *recorded* critical-set runs against that history;
 * in a fresh CI checkout that history is gitignored and absent, so the
   aggregator EXECUTES the critical set (three orders + the repeat record) under
-  ``run_bound_test_suite.py`` and verifies the freshly generated gate report.
-  The bound records carry the platform fingerprint, so a Linux CI pass is a
-  Linux record and never substitutes for a Windows host result.
+  ``run_bound_test_suite.py`` and verifies the freshly generated gate report,
+  written under the aggregator's own ignored record root rather than over the
+  tracked ``reports/current/DEEPSEEK-FINAL-TEST-GATE.json``. The bound records
+  carry the platform fingerprint, so a Linux CI pass is a Linux record and never
+  substitutes for a Windows host result.
 
 The run record is written under ``.project-local/task-artifacts/authority-gates/``
 (ignored, never tracked); the chain itself must therefore spill nothing.
@@ -187,14 +189,24 @@ def run_test_gate(modules: list[str]) -> dict:
         code = bound_run(["--order", "forward", "--repeat", "2", "--modules", *modules])
         substeps.append({"step": "critical-repeat", "exit_code": code})
         all_ok = code == 0
-    generated = run_gate("test-gate(generate)", "scripts/deepseek_test_gate_report.py", [])
+    # Redirected out of the tracked tree on purpose. The generator's writer form owns
+    # reports/current/DEEPSEEK-FINAL-TEST-GATE.json, and a verification chain that rewrites a
+    # tracked projection makes "the chain is check-only" true on exactly the machines that have
+    # the gitignored bound-test history -- measured 2026-10-13, where a clean checkout ended the
+    # run with that file reported modified and test_language_boundary_check_mode's no-write
+    # assertion fired. The fresh record still has to exist and still has to say PASS; only the
+    # path it lands on changed, and nothing in CI consumes the tracked copy.
+    fresh_record = RECORD.parent / "DEEPSEEK-FINAL-TEST-GATE.json"
+    generated = run_gate("test-gate(generate)", "scripts/deepseek_test_gate_report.py",
+                         ["--out", fresh_record.relative_to(REPO).as_posix()])
     result = "PASS" if all_ok and generated["result"] == "PASS" else "FAIL"
     return {"gate": "test-gate", "result": result, "substeps": substeps,
             "generated_summary": generated.get("summary_line", ""),
             "note": "no local bound history in this checkout; the declared critical set was "
                     "executed here (three orders + a repeat) and the platform fingerprint in "
                     "the bound records is authoritative — a Linux CI pass never stands in "
-                    "for a Windows host result"}
+                    "for a Windows host result. The fresh record is written under "
+                    f"{fresh_record.relative_to(REPO).as_posix()}, never over the tracked copy"}
 
 
 def deferred_state() -> dict:

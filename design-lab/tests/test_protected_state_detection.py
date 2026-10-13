@@ -20,6 +20,7 @@ itself cannot run -- either by exiting non-zero or by refusing to start.
 from __future__ import annotations
 
 import hashlib
+import os
 import subprocess
 import sys
 import tempfile
@@ -134,10 +135,23 @@ class DetectorTests(RepoFixture):
     def test_a_failing_git_call_fails_closed_instead_of_certifying_nothing_changed(self) -> None:
         real = gate.REPO
         outside = Path(tempfile.mkdtemp())          # NOT under the fixture repo, which is a repo
+        # ...but "not under this repository" is not enough. `project_test_environment` points
+        # TEMP/TMPDIR at `.project-local/task-runtime/<namespace>/tmp`, i.e. *inside* the
+        # checkout, so `mkdtemp()` here lands in the repository on CI and in
+        # `scripts/run_python_tests.py` -- and git then walks up, succeeds, and this test reads
+        # the real tree's status instead of a git failure. Measured 2026-10-13: on a host with a
+        # system temp root the test passed, and the same code failed on CI. The ceiling below and
+        # the premise assertion are what make the fixture mean what its name says.
+        previous_ceiling = os.environ.get("GIT_CEILING_DIRECTORIES")
+        os.environ["GIT_CEILING_DIRECTORIES"] = str(outside)
         try:
             # (1) a directory that is not a repository: git runs and refuses
             plain = outside / "plain"
             plain.mkdir()
+            premise = run(["rev-parse", "--show-toplevel"], cwd=plain)
+            self.assertNotEqual(premise.returncode, 0,
+                                f"the fixture is inside a repository after all: "
+                                f"{premise.stdout.strip()}")
             gate.REPO = plain
             snapshot, error = gate.protected_state()
             self.assertEqual(snapshot, {}, error)
@@ -158,6 +172,10 @@ class DetectorTests(RepoFixture):
                                  (broken, failures))
         finally:
             gate.REPO = real
+            if previous_ceiling is None:
+                os.environ.pop("GIT_CEILING_DIRECTORIES", None)
+            else:
+                os.environ["GIT_CEILING_DIRECTORIES"] = previous_ceiling
             import shutil
             shutil.rmtree(outside, ignore_errors=True)
 

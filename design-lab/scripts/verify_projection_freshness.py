@@ -100,6 +100,16 @@ RECEIPT_CHECKS = [
     # nothing wrong. It now fails on contract, verdict, provenance and the two registers the
     # record itself calls defects, and reports count movement. 245 ms measured.
     ("scripts/deepseek_content_audit.py", ["--check"]),
+    # Measured 2026-10-13 in both this tree and a clean clone at 7799fbe6, porcelain empty
+    # before and after: rc=0, `members=97 tracked=23 local=26 reused_from_r1=48 problems=0`.
+    # It re-verifies the hashes of the members already in the repository; the machine-local
+    # members are counted and reported, never required, which is why it holds on a clone.
+    ("scripts/archive_taskpacks_20261009_r2.py", ["--check"]),
+    # Measured 2026-10-13 in both trees: rc=0, `DECLARE-EVOLUTION=OK nothing-to-declare`. This is
+    # the tool the record-evolution declaration is made with; it was added without a caller, which
+    # is exactly the "declared read-only form that nothing invokes" shape this table closes. Its
+    # --check takes no paths, so wiring it here cannot re-declare anything.
+    ("scripts/declare_record_evolution.py", ["--check"]),
 ]
 
 

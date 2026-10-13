@@ -13,6 +13,13 @@ than one that names the scope it did.
 
 Writes reports/current/DEEPSEEK-FINAL-TEST-GATE.json.
 
+``--out`` redirects the writer form. The authority chain points it at its own ignored record root:
+a verification run that rewrites a tracked projection makes "the chain is check-only" true only on
+the machines that happen to have the gitignored history, which is how a green here became a red
+assertion on every clean clone (measured 2026-10-13). ``--check`` deliberately ignores ``--out``:
+it judges the committed record, and being able to point it elsewhere would let the check and the
+record be different files.
+
 `--check` does not re-run anything and does not need this machine's history. Measured on
 2026-10-09 in two trees of `d6ba107f`: the old form compared the whole document against a
 recompute from `.project-local/task-artifacts/test-run/history.jsonl`, which is gitignored, so a
@@ -27,7 +34,7 @@ Executing the critical set is the authority chain's job (`scripts/verify_authori
 which runs it where history is absent; this script never runs tests.
 
 Usage:
-    python scripts/deepseek_test_gate_report.py [--check]
+    python scripts/deepseek_test_gate_report.py [--check] [--out PATH]
 """
 from __future__ import annotations
 
@@ -272,8 +279,13 @@ def build_document() -> dict:
 def main(argv=None) -> int:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument("--check", action="store_true")
+    parser.add_argument("--out", default=str(OUT),
+                        help="writer form only: where to put the record (default "
+                             "reports/current/DEEPSEEK-FINAL-TEST-GATE.json)")
     args = parser.parse_args(argv)
     if args.check:
+        if args.out != str(OUT):
+            parser.error("--check judges the committed record; --out belongs to the writer form")
         if not OUT.is_file():
             print("TEST_GATE=FAIL missing " + OUT.name)
             return 1
@@ -294,13 +306,14 @@ def main(argv=None) -> int:
               f"local_history={state} matching_runs={runs}")
         return 0 if not findings else 1
     document = build_document()
-    OUT.parent.mkdir(parents=True, exist_ok=True)
-    OUT.write_text(json.dumps(document, indent=2, ensure_ascii=False) + "\n",
-                   encoding="utf-8", newline="\n")
+    destination = Path(args.out)
+    destination.parent.mkdir(parents=True, exist_ok=True)
+    destination.write_text(json.dumps(document, indent=2, ensure_ascii=False) + "\n",
+                           encoding="utf-8", newline="\n")
     orders = document["order_independence"]
     print(f"TEST_GATE={document['verdict']} orders={orders['orders_recorded']} "
           f"tests_per_order={document['executed_scope']['tests_per_order']} "
-          f"deferred={FULL_SUITE_DEFERRED['state']}")
+          f"deferred={FULL_SUITE_DEFERRED['state']} wrote={destination}")
     return 0 if document["verdict"] == "PASS" else 1
 
 
