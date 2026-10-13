@@ -100,9 +100,18 @@ class RecordImportFidelityTests(unittest.TestCase):
                 wrong.append(f"missing {row['target']}")
                 continue
             data = path.read_bytes()
-            if f"{zlib.crc32(data) & 0xFFFFFFFF:08x}" != row["crc32"]:
+            # A row may declare that the repository copy was deliberately rewritten after the
+            # import, and then carries its post-import size/crc. Checking such a row against
+            # the ARCHIVED values cannot succeed by construction -- it asserts the thing the
+            # declaration exists to deny. So a declared row is held to the declared values,
+            # and an undeclared one is still held to the archive. Either way a real mismatch
+            # is caught, which is the property this test is for.
+            evolved = row.get("repoCrc32AfterImport") is not None
+            want_crc = row["repoCrc32AfterImport"] if evolved else row["crc32"]
+            want_size = row["repoBytesAfterImport"] if evolved else row["bytes"]
+            if f"{zlib.crc32(data) & 0xFFFFFFFF:08x}" != want_crc:
                 wrong.append(f"crc {row['target']}")
-            if len(data) != row["bytes"]:
+            if len(data) != want_size:
                 wrong.append(f"size {row['target']}")
         self.assertEqual(wrong, [], f"{len(wrong)} archived files disagree with the manifest: "
                                    f"{wrong[:8]}")

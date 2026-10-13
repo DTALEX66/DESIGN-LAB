@@ -324,7 +324,11 @@ class ReportSubjectBindingTests(unittest.TestCase):
                           "reports/current/CLEAN-TREE-REPORT.json",
                           "reports/current/CONTRACT-GRAPH.json",
                           "reports/current/FOUNDATION-AUDIT.json",
-                          "reports/current/LANGUAGE-BOUNDARY-SCAN.json",
+                          # LANGUAGE-BOUNDARY-SCAN.json left this set on 2026-10-13: its
+                          # row required "one intentional run at a recorded head, then
+                          # delete the row in the same commit", and both happened. The
+                          # removal is declared in report-subject-debt.json
+                          # closureNote_2026_12_12 -- this pin is what catches a SILENT one.
                           "reports/current/POST-CLEANUP-AUDIT.json",
                           "reports/current/REPOSITORY-SIZE.json",
                           "reports/current/SPILL-CENSUS.json"],

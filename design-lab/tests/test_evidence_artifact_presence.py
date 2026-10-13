@@ -157,8 +157,12 @@ class EvidenceArtifactPresenceTests(unittest.TestCase):
             #     assertion and requires a citation to be a path;
             #   * test_contract_bindings.py -- four injection cases went with those rules, including
             #     the one that caught this gate convicting one vanished file twice.
+            # Re-measured 2026-10-13: 1 -> 2. A second record began binding this gate when the
+            # EvidenceDirectory preflight wiring was added to its SCRIPTS list, so the same
+            # legitimate move that drifted it the first time drifted it again. Still a moved
+            # artefact, not a new artefact and not a silently absorbed record.
             ('design-lab/scripts/verify_contract_bindings.py',
-             'HASH_MOVED_SINCE_OBSERVATION'): 1,
+             'HASH_MOVED_SINCE_OBSERVATION'): 2,
             ('design-lab/tests/test_contract_bindings.py',
              'HASH_MOVED_SINCE_OBSERVATION'): 2,
             # 2026-10-08, the evidence readback wave (3520c82f / 2aeaaaf4 / a0d001a8) added four
@@ -212,12 +216,19 @@ class EvidenceArtifactPresenceTests(unittest.TestCase):
             # broken=0, and the only difference was this artefact.
             ('design-lab/tests/test_project_paths.py',
              'HASH_MOVED_SINCE_OBSERVATION'): 1,
+            # 2026-10-13, one new pair: the taskpack-original exemption case stopped requiring a
+            # machine-local directory to exist before TemporaryDirectory could use it, so a clean
+            # clone could run it. The record binds this module, the module's bytes moved, and the
+            # inventory is what makes that visible instead of silent. Re-measured at this HEAD:
+            # observed 56 pairs against the 54 pinned before this line, broken=0.
+            ('design-lab/tests/test_core_gates.py',
+             'HASH_MOVED_SINCE_OBSERVATION'): 1,
         })
         self.assertEqual(counts, expected,
                          'the drifted-artefact inventory is exact in both directions: a new '
                          'move, a new artefact name, or one more record on a known artefact '
                          'are all findings, and a drifted pair that quietly disappeared is too')
-        self.assertEqual(sum(counts.values()), 54,
+        self.assertEqual(sum(counts.values()), 56,
                          'the total drifted-record count is pinned, not derived')
 
     def test_missing_tracked_artefact_is_a_hard_break_not_a_warning(self):
