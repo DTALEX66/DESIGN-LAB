@@ -16,7 +16,9 @@ canonical location registered -- not just copied:
     points at the existing canonical path (`reuse_of`), because two copies of one input is
     how they start to disagree.
 
-Read-only re-verification: `--check`. Writing: `--apply`.
+Read-only re-verification: `--check`, which re-hashes the members already in the repository
+against the stored manifest and needs neither the ZIP nor `.project-local` -- a clone can run
+it. Writing: `--apply`.
 """
 from __future__ import annotations
 
@@ -169,8 +171,31 @@ def verify(doc: dict) -> list[str]:
 def main(argv=None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--apply', action='store_true', help='写入仓内/本地副本与原 ZIP 归档')
-    parser.add_argument('--check', action='store_true', help='只读复验已入仓文本成员的哈希')
+    parser.add_argument('--check', action='store_true',
+                        help='只读复验已入仓文本成员的哈希；不读源 ZIP，也不写任何文件')
     args = parser.parse_args(argv)
+
+    if args.check:
+        # The subject of `--check` is the stored record plus the bytes already in the repository;
+        # neither needs the source ZIP, which is never committed (see the module docstring).
+        # Building first put a writer-path prerequisite in front of the read-only form, so the
+        # check was unreachable on every checkout that does not carry the ZIP: measured
+        # 2026-10-13, exit 2 `ARCHIVE_BLOCKED: source zip missing` on CI, exit 0 on a machine
+        # that happens to have D:/All projects/Record. A check that answers differently per
+        # machine is not a repository property and cannot be required; this one now can be.
+        if not MANIFEST.is_file():
+            print(f'ARCHIVE_CHECK=FAIL missing {MANIFEST.relative_to(REPO).as_posix()}')
+            return 1
+        stored = json.loads(MANIFEST.read_text(encoding='utf-8'))
+        problems = verify(stored)
+        counts = stored['packages'][0]['disposition_counts']
+        print(f"R2_ARCHIVE mode=check members={stored['packages'][0]['member_count']} "
+              f"tracked={counts.get('TRACKED_TEXT', 0)} local={counts.get('LOCAL_BINARY_NOT_IN_GIT', 0)} "
+              f"reused_from_r1={counts.get('REUSED_FROM_R1_ARCHIVE_BY_HASH', 0)} "
+              f"problems={len(problems)}")
+        for problem in problems[:12]:
+            print(f'  {problem}')
+        return 1 if problems else 0
 
     doc, problems = build(apply=args.apply)
     if 'error' in doc:
@@ -180,11 +205,8 @@ def main(argv=None) -> int:
         MANIFEST.parent.mkdir(parents=True, exist_ok=True)
         MANIFEST.write_text(json.dumps(doc, ensure_ascii=False, indent=2) + '\n',
                             encoding='utf-8', newline='\n')
-    if args.check and MANIFEST.is_file():
-        stored = json.loads(MANIFEST.read_text(encoding='utf-8'))
-        problems.extend(verify(stored))
     counts = doc['packages'][0]['disposition_counts']
-    print(f"R2_ARCHIVE mode={'apply' if args.apply else ('check' if args.check else 'dry-run')} "
+    print(f"R2_ARCHIVE mode={'apply' if args.apply else 'dry-run'} "
           f"members={doc['packages'][0]['member_count']} "
           f"tracked={counts.get('TRACKED_TEXT', 0)} local={counts.get('LOCAL_BINARY_NOT_IN_GIT', 0)} "
           f"reused_from_r1={counts.get('REUSED_FROM_R1_ARCHIVE_BY_HASH', 0)} "
