@@ -292,3 +292,38 @@
   登记在机器清单里，未逐张读图的部分不写成结论。
 - 取代关系：本条是新增输入，不改写任何冻结原件；`docs/history/record-archive-2026-10-09/ARCHIVE-MANIFEST.json`
   仍是那批 Record 导入的清单，本包不属于它，也不得并入它。
+
+## 2026-10-13 新增：两处"唯一副本在易失位置"的归档（owner 2026-10-13 裁定）
+
+两处都属同一形状：**内容是唯一的，而它所在的目录不随 `git clone` 走**。处置按 owner 的选择：
+信息量部分入 Git，成本大的旧位图登记在原地。
+
+### 1. 2026-10-12 删除 11 个 worktree 前的抢救副本
+
+- 来源：`.project-local/tmp/worktree-salvage-20261012/`（删除 worktree 前的保全副本）。
+- 清单：`docs/history/worktree-salvage-20261012/SALVAGE-MANIFEST.json`（本机生成，非手抄），
+  逐文件 `salvage_relpath` / `bytes` / `sha256` / `disposition`。
+- 处置：**7 个文本/JSON（21,153 B）已入 Git**，保持原相对形状
+  （`closeout/`、`headcheck/`、`shape/` 三个 manifest + 4 份 reports/current JSON）。
+- **78 个未入 Git**（39 张 PNG ＝ 7,649,987 B + 39 个 `.license`）：内容是
+  `docs/UI-CONVERGENCE-20260930/screenshot` 的旧收敛截图，已被 2026-10-09 的 UI 工作面取代。
+  **它们仍留在 `.project-local/tmp/worktree-salvage-20261012/`，但哈希与字节数已登记在清单里**，
+  所以即使目录消失，也仍能判断当时是什么、以及本仓库为它花了多少 pack。
+  pack 已在警戒线（245.54 MiB / 警告 220 / 硬限 256），这 7.25 MiB 是当时不入 Git 的唯一理由。
+
+### 2. `rescue/designlab-personal-audit-dirty-20261007` 的 4 个独有文件
+
+- 该分支**无远端副本**，`@ 8eea1c32`，所以此前这份内容只存在于本机一个分支上。
+- 清单：`docs/history/personal-audit-rescue-20261007/RESCUE-MANIFEST.json`。
+- 处置：把 **4 个 `main` 里根本没有的第一方文件（21,302 B）** 归档进
+  `docs/history/personal-audit-rescue-20261007/`，保持其仓库相对路径：
+  `docs/audits/DESIGNLAB-PERSONAL-PRODUCT-AUDIT-2026-10-07.md`（8,525 B）、
+  `docs/audits/DESIGNLAB-UI-IMPLEMENTATION-REPORT-2026-10-07.md`（6,129 B）、
+  `design-lab/tests/test_personal_workbench_e2e.py`（2,410 B）、
+  `design-lab/tests/e2e/browser_personal_workbench.mjs`（4,238 B）。四行的
+  `in_main_at_archiving` 均为 `false`（归档时逐条实测）。
+- **分支本身保留**，未删；远端分支仍为 2 条（归档内容而非新增分支，是 owner 选的那条路）。
+  该分支其余 diff 都是 `main` 里已存在文件的改动，不在本次复制范围内。
+
+**取代关系**：两条均为新增输入，不改写任何冻结原件，也不并入
+`docs/history/record-archive-2026-10-09/ARCHIVE-MANIFEST.json`（那批 Record 导入的清单仍是它自己那份）。
