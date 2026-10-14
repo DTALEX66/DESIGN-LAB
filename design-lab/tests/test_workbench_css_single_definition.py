@@ -421,7 +421,16 @@ class ListItemIsReallyAListMember(unittest.TestCase):
         # ABSENT / PRESENT-empty / NOT-READ are three different rows a reader can tell apart --
         # which a paragraph cannot carry. The panel's heading and hint are <h3>/<p>, so they add
         # no container. This is the inventory growing by one verified column, not a threshold.
-        self.assertEqual(self.shell.count("el('ul', { class: 'list'"), 50)
+        # 2026-10-13 (DL-UI-U07) again: 50 -> 52 for the 成果版本 panel (renderVersionsPanel) on
+        # 项目详情. Two containers, both named: the outer one lists the bundle kinds, and each
+        # kind's own version chain is a nested ul.list whose rows are real <li> members -- so
+        # "current" and "superseded" sit beside each other inside a list rather than in
+        # paragraphs that happen to line up. The panel's empty state is a <p class="view-hint">
+        # and its unread state is a <p class="error">, deliberately neither emptyLi() nor a list:
+        # "this project has no versions" and "the route did not return the collection" are
+        # different claims, and the second must not be drawn as an empty list. The number moves
+        # because the inventory grew by two verified columns, not because a check was relaxed.
+        self.assertEqual(self.shell.count("el('ul', { class: 'list'"), 52)
 
 
 if __name__ == "__main__":
