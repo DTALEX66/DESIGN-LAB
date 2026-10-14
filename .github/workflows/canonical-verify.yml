@@ -461,9 +461,6 @@ jobs:
   ci-artifact-proof:
     name: "CI artifact proof (H001: main-run upload readback)"
     runs-on: ubuntu-latest
-    # D01: this job is part of the heavy set. It runs for a pull request, for a push to
-    # `main`, and on demand; a push to a development branch runs the light gate instead.
-    if: ${{ github.event_name != 'push' || github.ref == 'refs/heads/main' }}
     # DL-CLOUDAUDIT-H001 (FINAL TaskPack section H): the main-branch side of
     # the release layer's real API readback chain. The canonical verify run
     # uploads artifacts (secret-history-report from license-secret-gate;

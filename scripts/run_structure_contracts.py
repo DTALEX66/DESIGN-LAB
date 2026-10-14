@@ -13,6 +13,12 @@ reachability register. They are enumerated by explicit module name, never by a p
 step fails if the selection is empty -- "ran zero tests and printed nothing" must not read as a
 pass, which is the failure mode a pattern-based selection has.
 
+**Not covered here**: the workflow files themselves. A YAML syntax error or a duplicated mapping
+key in `.github/workflows/*.yml` is rejected by GitHub before any job is created, and the only
+symptom is a run with zero jobs and `conclusion=failure`, which reads like an infrastructure
+flake. This batch hit exactly that. A workflow-syntax step belongs in this family and is not in
+it yet; until it is, validate edited workflows with a linter before pushing.
+
 Usage:
     python scripts/run_structure_contracts.py
 """
