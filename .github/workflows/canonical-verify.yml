@@ -2,7 +2,26 @@ name: Canonical Verify
 
 # Required gates apply to all changes, including new directories and root policy.
 # Per-job optional adapter checks remain below; never skip the whole workflow.
-on: [push, pull_request]
+#
+# D01 (2026-10-14). `on: [push, pull_request]` started the full eleven-job set twice for one
+# SHA the moment a development branch was open as a pull request -- two check-runs, two
+# `uv sync`, two 9-minute unit-test steps, for one tree. The heavy set now runs on a pull
+# request, on a push to `main`, and on demand; a push to any other branch runs the light
+# structural gate below instead, so a development branch still gets a signal without paying
+# for the suite twice. Nothing is skipped on `main`: a push there is the real merge tree and
+# still runs everything.
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+# One group per pull request, one per ref otherwise. A PR edit cancels its own earlier run (the
+# newest tree is the one worth testing) but can never cancel another PR's run, and a push to a
+# branch cannot cancel `main`. The previous file had no `concurrency:` at all, so a fast series
+# of pushes queued every intermediate run to completion.
+concurrency:
+  group: canonical-verify-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 permissions:
   contents: read
@@ -12,6 +31,9 @@ jobs:
   python-gate:
     name: Python gate (V3 verifiers + unit tests)
     runs-on: ubuntu-latest
+    # D01: this job is part of the heavy set. It runs for a pull request, for a push to
+    # `main`, and on demand; a push to a development branch runs the light gate instead.
+    if: ${{ github.event_name != 'push' || github.ref == 'refs/heads/main' }}
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
@@ -37,6 +59,12 @@ jobs:
           mkdir -p /opt/resvg/v0.47.0
           tar -xzf "$archive" -C /opt/resvg/v0.47.0
           chmod +x /opt/resvg/v0.47.0/resvg
+      # D03: the cheap source-structure contracts run before anything expensive. The failing
+      # sample behind this step spent 990.101s on 3011 tests to report `52 != 50` -- an inventory
+      # a static read settles in ~2s. This step enumerates its modules by name and fails if the
+      # selection is empty, so "ran zero tests" can never read as a pass.
+      - name: Early structure contracts (source/DOM inventory, stage anchors, gate register)
+        run: python scripts/run_structure_contracts.py
       - name: Identity boundary gate
         run: python design-lab/scripts/verify_identity_gate.py
       - name: DESIGN-LAB unified verify
@@ -97,6 +125,9 @@ jobs:
   authority-gate:
     name: DeepSeek authority gate chain (DLDS-H010 / DL-AUDIT-20260914-07)
     runs-on: ubuntu-latest
+    # D01: this job is part of the heavy set. It runs for a pull request, for a push to
+    # `main`, and on demand; a push to a development branch runs the light gate instead.
+    if: ${{ github.event_name != 'push' || github.ref == 'refs/heads/main' }}
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
@@ -132,6 +163,9 @@ jobs:
   top-authority-gate:
     name: Top-level Authority consistency gate (DL-AUTHORITY-2026-09-18-R2)
     runs-on: ubuntu-latest
+    # D01: this job is part of the heavy set. It runs for a pull request, for a push to
+    # `main`, and on demand; a push to a development branch runs the light gate instead.
+    if: ${{ github.event_name != 'push' || github.ref == 'refs/heads/main' }}
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
       - name: Run the R2 top-level Authority consistency gate
@@ -155,6 +189,9 @@ jobs:
   node-gate:
     name: MiniGame node gate (+ drift check)
     runs-on: ubuntu-latest
+    # D01: this job is part of the heavy set. It runs for a pull request, for a push to
+    # `main`, and on demand; a push to a development branch runs the light gate instead.
+    if: ${{ github.event_name != 'push' || github.ref == 'refs/heads/main' }}
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
@@ -174,6 +211,9 @@ jobs:
   workbench-gate:
     name: Workbench strict-TS product gate (taskpack 12.2/12.3/12.4/12.5)
     runs-on: ubuntu-latest
+    # D01: this job is part of the heavy set. It runs for a pull request, for a push to
+    # `main`, and on demand; a push to a development branch runs the light gate instead.
+    if: ${{ github.event_name != 'push' || github.ref == 'refs/heads/main' }}
     # Independent of the Python gate: verifies the Workbench front end as a
     # strict-TypeScript product (D002), the D003 Build Output Truth
     # (apps/workbench/build is the single committed Vite outDir), and the
@@ -206,6 +246,9 @@ jobs:
   workbench-browser-e2e:
     name: Workbench browser E2E (exact-SHA controlled-runtime, no-skip)
     runs-on: ubuntu-latest
+    # D01: this job is part of the heavy set. It runs for a pull request, for a push to
+    # `main`, and on demand; a push to a development branch runs the light gate instead.
+    if: ${{ github.event_name != 'push' || github.ref == 'refs/heads/main' }}
     # P0-08: make the browser-level vertical slice a REAL CI job. The shell test
     # (test_workbench_design_layer_e2e.py) is probe-driven and HONESTLY skips on
     # a clean checkout that lacks the toolchain. This job installs the pinned
@@ -265,6 +308,9 @@ jobs:
   wheel-install-gate:
     name: Clean wheel install + Workbench launch gate
     runs-on: ubuntu-latest
+    # D01: this job is part of the heavy set. It runs for a pull request, for a push to
+    # `main`, and on demand; a push to a development branch runs the light gate instead.
+    if: ${{ github.event_name != 'push' || github.ref == 'refs/heads/main' }}
     # C7.1 / C7.2: the Workbench must be reachable from an installed package
     # with no repo CWD or sys.path trick. Build the wheel, install it into a
     # clean environment, then run the launch + restart-persistence tests
@@ -300,6 +346,9 @@ jobs:
   generated-artifact-gate:
     name: Generated-artifact clean-tree gate
     runs-on: ubuntu-latest
+    # D01: this job is part of the heavy set. It runs for a pull request, for a push to
+    # `main`, and on demand; a push to a development branch runs the light gate instead.
+    if: ${{ github.event_name != 'push' || github.ref == 'refs/heads/main' }}
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
@@ -324,6 +373,9 @@ jobs:
   license-secret-gate:
     name: License & secret hygiene gate
     runs-on: ubuntu-latest
+    # D01: this job is part of the heavy set. It runs for a pull request, for a push to
+    # `main`, and on demand; a push to a development branch runs the light gate instead.
+    if: ${{ github.event_name != 'push' || github.ref == 'refs/heads/main' }}
     steps:
       # fetch-depth: 0 — the secret-history scan (DL-CLOUDAUDIT-B1 / G-1)
       # walks every ref's blob revisions, so the job needs full history.
@@ -369,6 +421,9 @@ jobs:
   open-design-host-gate:
     name: Open Design host adapter gate
     runs-on: ubuntu-latest
+    # D01: this job is part of the heavy set. It runs for a pull request, for a push to
+    # `main`, and on demand; a push to a development branch runs the light gate instead.
+    if: ${{ github.event_name != 'push' || github.ref == 'refs/heads/main' }}
     # Platform-neutral CI: the global Python gate always runs the structural
     # Open Design verifier. This conditional job remains as an explicit
     # host-surface audit when plugin/adapter files change.
@@ -406,6 +461,9 @@ jobs:
   ci-artifact-proof:
     name: "CI artifact proof (H001: main-run upload readback)"
     runs-on: ubuntu-latest
+    # D01: this job is part of the heavy set. It runs for a pull request, for a push to
+    # `main`, and on demand; a push to a development branch runs the light gate instead.
+    if: ${{ github.event_name != 'push' || github.ref == 'refs/heads/main' }}
     # DL-CLOUDAUDIT-H001 (FINAL TaskPack section H): the main-branch side of
     # the release layer's real API readback chain. The canonical verify run
     # uploads artifacts (secret-history-report from license-secret-gate;
@@ -450,3 +508,22 @@ jobs:
         run: |
           set -uo pipefail
           python design-lab/scripts/verify_ci_artifact_proof.py
+
+  # D01: the light gate for a push to a development branch. It exists so that restricting the
+  # heavy set (above) does not leave a branch push with no signal at all -- and so that the
+  # signal it does give is the cheap one: a syntax/compile pass over the verifier tree and the
+  # identity boundary, both of which need no dependency install. The pull request that opens
+  # (or updates) against this branch still runs the full set, once.
+  branch-light-gate:
+    name: Branch light gate (compile + identity boundary; development branches only)
+    runs-on: ubuntu-latest
+    if: ${{ github.event_name == 'push' && github.ref != 'refs/heads/main' }}
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5.6.0
+        with:
+          python-version: '3.12'
+      - name: JSON/Schema parse check
+        run: python -m compileall -q design-lab/scripts
+      - name: Identity boundary gate
+        run: python design-lab/scripts/verify_identity_gate.py
