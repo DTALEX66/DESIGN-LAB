@@ -4,9 +4,9 @@
     "DL-TP-20260914-DEEPSEEK-AUTHORITY-R1::DLDS-C020",
     "DL-TP-20260914-DEEPSEEK-AUTHORITY-R1::DLDS-C050"
   ],
-  "generated_at": "2026-10-14T15:18:37+00:00",
-  "subject_sha": "174a804f541ee0c96e3aabd9e0d9b7ed65972840",
-  "tracked_files_scanned": 3774,
+  "generated_at": "2026-10-15T15:26:10+00:00",
+  "subject_sha": "b38ab32aaab94a225b04aacd4d1b925b14e780e9",
+  "tracked_files_scanned": 3776,
   "language_boundary": {
     "forbidden_language_files": [],
     "fixture_scoped_language_files": [
