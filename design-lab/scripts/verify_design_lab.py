@@ -237,22 +237,65 @@ EXTRA_CHECKS = [
     ),
 ]
 
+def resolve_script(name: str, root: Path, repo_root: Path) -> Path:
+    """Where a SCRIPTS entry lives.
+
+    Verifiers inside `design-lab/scripts/` resolve relative to the scripts dir; host-adapter
+    verifiers live outside it (DL-ADP-OD-001) and resolve relative to the repository root, and
+    the `integrations/` ones moved to the repo-root-level tree after DL-DIR-MIG-R1. Factored out
+    so the registry record and the run cannot disagree about which file a name means.
+    """
+    if name.startswith(("adapters/", "integrations/")):
+        script = repo_root / "design-lab" / name
+        if not script.exists():
+            script = repo_root / name
+        return script
+    return root / name
+
+
+def resolve_extra(args: list, root: Path) -> tuple:
+    """The script and the literal arguments an EXTRA_CHECKS entry runs with."""
+    repo_root_dir = root.parent.parent
+    script = (repo_root_dir / "packages" / "capabilities" / args[0]
+              if args[0].startswith("quality/") else root.parent / args[0])
+    resolved = [str(repo_root_dir / "design-lab") if a == "." else a for a in args[1:]]
+    return Path(script), resolved
+
+
+def emit_registry(root: Path, repo_root: Path) -> int:
+    """One line per check: the command the chain runs, its inputs, its args, its result target.
+
+    D05 (2026-10-15). The chain owned a list of 74 names and nothing recorded what each one is
+    invoked with, so "does this step duplicate that verifier?" had to be answered by reading two
+    files side by side -- which is how a redundant invocation survives. This is printed rather
+    than committed on purpose: a committed copy of a list the chain already owns is one more
+    thing that can disagree with the chain.
+    """
+    for index, name in enumerate(SCRIPTS, 1):
+        script = resolve_script(name, root, repo_root)
+        rel = script.relative_to(repo_root).as_posix() if script.is_absolute() else str(script)
+        print(f'CHAIN_CHECK {index:02d} name={name} '
+              f'command="python {rel}" inputs="{rel}" args=[] '
+              f'target=exit_code+first_summary_line present={script.exists()}')
+    for name, args in EXTRA_CHECKS:
+        script, resolved = resolve_extra(args, root)
+        rel = script.relative_to(repo_root).as_posix() if script.is_absolute() else str(script)
+        print(f'CHAIN_CHECK -- name={name} command="python {rel} {" ".join(resolved)}" '
+              f'inputs="{rel}" args={resolved} target=exit_code+last_stdout_line '
+              f'present={script.exists()}')
+    print(f'CHAIN_REGISTRY=EMITTED scripts={len(SCRIPTS)} extra={len(EXTRA_CHECKS)} '
+          f'total={len(SCRIPTS) + len(EXTRA_CHECKS)}')
+    return 0
+
+
 def main() -> int:
     root = Path(__file__).resolve().parent
     results: list[tuple[str, int]] = []
     repo_root = root.parent.parent
+    if '--emit-registry' in sys.argv[1:]:
+        return emit_registry(root, repo_root)
     for name in SCRIPTS:
-        # verifiers inside design-lab/scripts/ resolve relative to the scripts
-        # dir; host-adapter verifiers live outside it (DL-ADP-OD-001) and
-        # resolve relative to the repository root.
-        if name.startswith(("adapters/", "integrations/")):
-            script = repo_root / "design-lab" / name
-            if not script.exists():
-                # integrations/ host verifiers moved to the repo-root-level
-                # integrations/ tree after DL-DIR-MIG-R1.
-                script = repo_root / name
-        else:
-            script = root / name
+        script = resolve_script(name, root, repo_root)
         if not script.exists():
             print(f"MISSING {name} (required verifier absent)")
             results.append((name, 2))
@@ -271,17 +314,8 @@ def main() -> int:
 
     for name, args in EXTRA_CHECKS:
         print(f"\n===== {name} =====\n")
-        # first arg is the script path (resolve under root.parent);
-        # "." target resolves to design-lab/ absolute (scan scope), rest are literal args
-        repo_root_dir = root.parent.parent
-        # quality/jury migrated to packages/capabilities/quality/jury (DL-DIR-MIG-R1)
-        script_arg = str(
-            (repo_root_dir / "packages" / "capabilities" / args[0])
-            if args[0].startswith("quality/")
-            else (root.parent / args[0])
-        )
-        resolved_args = [str(repo_root_dir / "design-lab") if a == "." else a for a in args[1:]]
-        r = run_child([sys.executable, script_arg, *resolved_args])
+        script_arg, resolved_args = resolve_extra(args, root)
+        r = run_child([sys.executable, str(script_arg), *resolved_args])
         tail = (r.stdout or "").strip().splitlines()
         summary = tail[-1] if tail else "(no output)"
         print(summary)

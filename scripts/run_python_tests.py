@@ -16,10 +16,21 @@ Unittest stays the executor. Moving to pytest-xdist here would add an unrelated 
 batch whose subject is feedback time.
 
 Usage:
-    python scripts/run_python_tests.py
+    python scripts/run_python_tests.py                     # the whole suite, one process
+    python scripts/run_python_tests.py --list-modules      # sorted module names, no run
+    python scripts/run_python_tests.py --shard 1/6         # one slice, its own run root
+    python scripts/run_python_tests.py --shard 1/6 --plan design-lab/config/python-test-shards.json
+
+Sharding (D04). A shard is a **process**, not a thread: `--shard i/n` imports and runs only the
+modules assigned to it, inside its own `project_test_environment` root, and writes its own
+`python-tests-timing.json`. Without `--plan` the assignment is `index % n` over the sorted module
+list, which is deterministic but not balanced; with `--plan` it comes from the committed shard
+plan, which is built from measured per-module time. `scripts/run_python_tests_all.py` is the
+orchestrator that runs the shards and proves the union of their test ids equals discovery.
 """
 from __future__ import annotations
 
+import argparse
 import json
 import os
 import sys
@@ -151,24 +162,90 @@ def _write_timing(document: dict) -> Path | None:
     return target
 
 
-def _run() -> int:
+def _discover_module_ids() -> dict[str, list[str]]:
+    """Every module's test ids, sorted. Imports the modules but runs nothing."""
+    loader = unittest.defaultTestLoader
+    suite = loader.discover(start_dir=str(TEST_DIR), pattern="test_*.py",
+                            top_level_dir=str(TEST_DIR))
+    mapping: dict[str, list[str]] = {}
+    stack = [suite]
+    while stack:
+        item = stack.pop()
+        if isinstance(item, unittest.TestSuite):
+            stack.extend(list(item))
+            continue
+        mapping.setdefault(type(item).__module__, []).append(item.id())
+    return {name: sorted(ids) for name, ids in sorted(mapping.items())}
+
+
+def _planned_shards(modules: list[str], plan_path: str | None, shard: tuple[int, int] | None
+                    ) -> tuple[list[str], str]:
+    """The modules this process should run, plus a one-line reason for the record."""
+    if plan_path:
+        plan = json.loads(Path(plan_path).read_text(encoding='utf-8'))
+        assignment: dict[str, str] = plan['assignment']
+        unknown = [m for m in modules if m not in assignment]
+        if unknown:
+            # A module nobody assigned would silently stop being run by every shard, which is
+            # exactly the "no omissions" property this whole mechanism has to hold.
+            raise SystemExit(f'PLAN_INCOMPLETE: {len(unknown)} discovered modules are unassigned, '
+                             f'e.g. {unknown[:3]}')
+        if shard is None:
+            raise SystemExit('--plan requires --shard i/n')
+        wanted = f'shard{shard[0]}'
+        return [m for m in modules if assignment[m] == wanted], f'plan {plan_path} -> {wanted}'
+    if shard is None:
+        return modules, 'serial (single process, whole suite)'
+    index, count = shard
+    return ([m for position, m in enumerate(modules) if position % count == index - 1],
+            f'index % {count} == {index - 1}')
+
+
+def _suite_for(modules: list[str]) -> unittest.TestSuite:
+    loader = unittest.defaultTestLoader
+    suite = unittest.TestSuite()
+    for name in modules:
+        suite.addTests(loader.loadTestsFromName(name))
+    return suite
+
+
+def _run(options: argparse.Namespace) -> int:
     if not TEST_DIR.exists():
         print(f"test dir not found: {TEST_DIR}")
         return 1
-    suite = unittest.defaultTestLoader.discover(
-        start_dir=str(TEST_DIR),
-        pattern="test_*.py",
-        top_level_dir=str(TEST_DIR),
-    )
-    if suite.countTestCases() == 0:
+    if options.list_modules:
+        for name in _discover_module_ids():
+            print(name)
+        return 0
+    shard = None
+    if options.shard:
+        index, _, count = options.shard.partition('/')
+        shard = (int(index), int(count))
+        if not (1 <= shard[0] <= shard[1]):
+            print(f'BAD_SHARD: {options.shard} is not i/n with 1 <= i <= n')
+            return 2
+    discovered = _discover_module_ids()
+    modules, why = _planned_shards(sorted(discovered), options.plan, shard)
+    expected_ids = [tid for name in modules for tid in discovered[name]]
+    if not expected_ids:
         print('TEST_SELECTION_EMPTY: no test cases discovered')
         return 2
+    suite = _suite_for(modules)
+    if suite.countTestCases() == 0:
+        print('TEST_SELECTION_EMPTY: the selected modules yield no test cases')
+        return 2
+    label = f'shard {options.shard}' if options.shard else 'serial'
+    print(f'PYTHON_TESTS_SHARD_START {label} modules={len(modules)} '
+          f'expected_tests={len(expected_ids)} selection={why}')
     runner = unittest.TextTestRunner(verbosity=1, resultclass=_TimingResult)
     started = time.perf_counter()
     result = runner.run(suite)
     wall = time.perf_counter() - started
 
     document = _timing_document(result, wall)
+    document['shard'] = {'label': label, 'modules': modules, 'selection': why,
+                         'expected_tests': len(expected_ids)}
+    document['ran_ids'] = [str(row['id']) for row in result.records]
     written = _write_timing(document)
     print(f"PYTHON_TESTS_TIMING={'WROTE ' + str(written) if written else 'NOT_WRITTEN'} "
           f"tests={document['tests']} wall_seconds={document['wall_seconds']} "
@@ -178,13 +255,37 @@ def _run() -> int:
     for module, bucket in list(document['by_module'].items())[:10]:
         print(f"PYTHON_TESTS_MODULE {float(bucket['seconds']):>9.3f}s "
               f"tests={bucket['tests']} failures={bucket['failures']} {module}")
+    if options.emit_module_timings:
+        # Every module, not just the ten slowest: a balanced shard plan needs the whole table, and
+        # a plan built from the head of a list is a guess wearing a number.
+        for module, bucket in document['by_module'].items():
+            print(f"PYTHON_TESTS_MODULE_ALL {float(bucket['seconds']):>9.3f}s "
+                  f"tests={bucket['tests']} {module}")
+    # The comparison is between what this shard said it would run and what it actually ran: a
+    # module that imports but silently yields nothing would otherwise be counted as covered.
+    ran = sorted(str(row['id']) for row in result.records)
+    if ran != sorted(expected_ids):
+        print(f'SHARD_SELECTION_MISMATCH expected={len(expected_ids)} ran={len(ran)}')
+        return 2
+    print(f'PYTHON_TESTS_SHARD_END {label} ran={len(ran)}')
     return 0 if result.wasSuccessful() else 1
 
 
 def main() -> int:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--shard', metavar='I/N', default=None,
+                        help='run one slice of the suite as its own process')
+    parser.add_argument('--plan', metavar='PATH', default=None,
+                        help='committed shard plan; requires --shard')
+    parser.add_argument('--list-modules', action='store_true',
+                        help='print the sorted module names and exit')
+    parser.add_argument('--emit-module-timings', action='store_true',
+                        help='print every module\'s time, for building a balanced shard plan')
+    options = parser.parse_args()
+    namespace = 'python-tests' if not options.shard else f'python-tests-shard-{options.shard[0]}'
     try:
-        with project_test_environment('python-tests'):
-            return _run()
+        with project_test_environment(namespace):
+            return _run(options)
     except (PathPolicyError, OSError) as exc:
         print(f'TEST_ENVIRONMENT_FAIL: {exc}')
         return 2

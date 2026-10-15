@@ -65,12 +65,23 @@ jobs:
       # selection is empty, so "ran zero tests" can never read as a pass.
       - name: Early structure contracts (source/DOM inventory, stage anchors, gate register)
         run: python scripts/run_structure_contracts.py
-      - name: Identity boundary gate
-        run: python design-lab/scripts/verify_identity_gate.py
       - name: DESIGN-LAB unified verify
+        # D05 (2026-10-15). This step already runs all 74 verifiers, and seven steps that used to
+        # be listed here individually ran scripts from that same list with the same arguments and
+        # no extra flags -- measured, not assumed: identity-boundary, host-adapter-matrix, V3
+        # product manifest, state vocabularies, V3 runtime contracts, V3 visual scoring, and the
+        # V2/V2.1 trio (three scripts in one step). Nine redundant invocations are gone; blocking
+        # is unchanged, because the aggregate runs the same scripts and fails the same job with
+        # rc=1. Proven by breaking `state-vocabularies.json` and watching this step report
+        # `VERIFY_DESIGN_LAB=FAIL` with `verify_state_vocabularies.py` in the failed list.
+        #
+        # Four same-named steps were deliberately KEPT, and they are not duplicates by this rule:
+        # `top-authority-gate` (project drift) and `license-secret-gate` (SBOM) live in their own
+        # jobs, so deleting them would move a failure out of the job that names it;
+        # `open-design-host-gate` runs the adapter verifier conditionally on a changed path, which
+        # the aggregate does not; and `branch-light-gate` runs the identity gate on development
+        # branches, where the aggregate never runs at all.
         run: python design-lab/scripts/verify_design_lab.py
-      - name: Host adapter matrix (E0/E1 only)
-        run: python design-lab/scripts/verify_adapter_matrix.py
       - name: Evidence boundTree freshness
         if: github.event_name == 'push'
         run: python design-lab/scripts/update_evidence_binding.py --check
@@ -88,23 +99,10 @@ jobs:
         # two report WARN, so this documents how much of the ledger is actually
         # readable back without turning the gate permanently red.
         run: python design-lab/scripts/verify_evidence_artifact_presence.py
-      - name: V3 product manifest
-        run: python design-lab/scripts/verify_product_manifest_v3.py
       - name: Repo classification index freshness
         run: python scripts/classify_repo.py --check
       - name: Candidate taxonomy anti-fabrication rules
         run: python design-lab/scripts/verify_candidate_taxonomy.py
-      - name: State vocabulary contract (no hand-copied enums)
-        run: python design-lab/scripts/verify_state_vocabularies.py
-      - name: V3 runtime contracts
-        run: python design-lab/scripts/verify_runtime_contracts_v3.py
-      - name: V3 visual scoring
-        run: python design-lab/scripts/verify_visual_scoring_v3.py
-      - name: V2 / V2.1 protocols
-        run: |
-          python design-lab/scripts/verify_source_registry.py
-          python design-lab/scripts/verify_v2_protocols.py
-          python design-lab/scripts/verify_visual_quality_v21.py
       - name: Domain Pack V2 contract
         run: python design-lab/scripts/verify_domain_pack_v2.py design-lab/domain-packs/uiux-design
       - name: Library index 4-file consistency guard (P1-3)
@@ -113,8 +111,15 @@ jobs:
         # protected, C: is not the declared library drive). Pure-stdlib,
         # read-only, fail-closed; no external root is probed.
         run: python design-lab/scripts/verify_library_index_consistency.py
-      - name: Python unit tests
-        run: python scripts/run_python_tests.py
+      - name: Python unit tests (sharded; the union of the shards must be the suite)
+        # D04. The suite runs once, through the shard orchestrator rather than as one process:
+        # three sequential shards, each its own process with its own project-local run root, and
+        # a check that the union of the test ids they ran equals discovery -- a split that is
+        # quick but drops a module fails here with rc=2. Sequential on purpose: the recovery /
+        # archive / port / environment tests must not be parallelised, and `--jobs` stays 1 until
+        # the phases have been separated. `--emit-module-timings` publishes the complete
+        # per-module table, which is the input a balanced plan is built from.
+        run: python scripts/run_python_tests_all.py --shards 3 --jobs 1 --emit-module-timings
       - name: MiniGame fixture boundary test
         run: python -m unittest design-lab.tests.test_minigame_visual_fixture_boundary -v
       - name: Visual Quality Jury deterministic check
@@ -522,5 +527,8 @@ jobs:
           python-version: '3.12'
       - name: JSON/Schema parse check
         run: python -m compileall -q design-lab/scripts
+      # Kept, unlike the same step in `python-gate`: on a development-branch push the
+      # aggregate does NOT run, so this is the only identity-boundary check that branch
+      # gets. Deleting it as a "duplicate" would leave the light gate covering syntax only.
       - name: Identity boundary gate
         run: python design-lab/scripts/verify_identity_gate.py
