@@ -34,5 +34,13 @@
       "in_main_at_archiving": false,
       "archived_as": "docs/history/personal-audit-rescue-20261007/design-lab/tests/e2e/browser_personal_workbench.mjs"
     }
-  ]
+  ],
+  "fullDelta": {
+    "path": "docs/history/personal-audit-rescue-20261007/FULL-DELTA-vs-main.patch",
+    "bytes": 198945,
+    "sha256": "5d40ab4eb8feaa6e14ba465be550bb49430eaa16738a5bd904f9390685d844f3",
+    "command": "git diff --binary main...rescue/designlab-personal-audit-dirty-20261007",
+    "covers": "7 added + 21 modified paths between main and the branch head, i.e. everything the branch carries that main does not. The four entries above are the subset that is absent from main entirely; this patch is the whole delta, archived so that deleting the branch cannot lose a modified-but-existing file’s older variant.",
+    "restore": "git apply --3way <this file> on a tree at the recorded main side, or read the contained hunks directly; it is a patch, not a frozen release artifact."
+  }
 }

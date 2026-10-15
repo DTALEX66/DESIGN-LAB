@@ -327,3 +327,16 @@
 
 **取代关系**：两条均为新增输入，不改写任何冻结原件，也不并入
 `docs/history/record-archive-2026-10-09/ARCHIVE-MANIFEST.json`（那批 Record 导入的清单仍是它自己那份）。
+
+### 3. 2026-10-15 补充：`rescue/` 分支的**完整 delta** 已归档（删分支前的前置动作）
+
+owner 决定"确认归档后删除"该远端/本地分支。删除前实测发现：该分支**不是** `main` 的祖先，
+除已归档的 4 个"main 里没有的文件"之外，还有 **21 个被改动过的既有文件**（合计
+`git diff --stat` 读作 28 files changed, +2209/-280）。只归档那 4 个就删，会丢掉这些文件的旧变体。
+所以补存整条 delta：
+
+- 文件：`docs/history/personal-audit-rescue-20261007/FULL-DELTA-vs-main.patch`
+- 体量/摘要：**198,945 B**，SHA-256 `5d40ab4eb8feaa6e14ba465be550bb49430eaa16738a5bd904f9390685d844f3`
+- 生成命令：`git diff --binary main...rescue/designlab-personal-audit-dirty-20261007`
+- 登记位置：同目录 `RESCUE-MANIFEST.json` 的 `fullDelta` 字段（命令、字节、hash、覆盖范围、取回方式一并写入）
+- 定态：**PATCH，不是冻结发布件**——用于按需重放或直接读其中的 hunk，不构成对分支存在性的声明。
