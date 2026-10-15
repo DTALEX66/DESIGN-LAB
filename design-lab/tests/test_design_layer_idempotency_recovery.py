@@ -19,7 +19,16 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 if str(ROOT / 'design-lab' / 'tests') not in sys.path:
     sys.path.insert(0, str(ROOT / 'design-lab' / 'tests'))
-from test_design_layer_http import DesignLayerHttpTests
+# Import the MODULE, not the class. `from test_design_layer_http import DesignLayerHttpTests`
+# binds the P0 class as a module attribute of this file, and unittest's discovery collects every
+# TestCase subclass bound in a test module -- so the P0 tests were registered a second time here,
+# under their own id and their own __module__, and the suite ran those twenty tests twice.
+# Measured 2026-10-16: discovery reported 3011 cases for 2991 distinct ids, all twenty duplicates
+# belonging to DesignLayerHttpTests. The docstring below says the P0 methods "already run in
+# test_design_layer_http and would just duplicate the suite"; with a plain class import that
+# sentence was false while looking satisfied. Qualifying through the module keeps the shared
+# implementation and drops the duplicate registration.
+import test_design_layer_http
 
 
 class DesignLayerIdempotencyRecoveryTests(unittest.TestCase):
@@ -35,16 +44,16 @@ class DesignLayerIdempotencyRecoveryTests(unittest.TestCase):
 
     # Delegate P0 harness setup (server + token + SQLite root) verbatim.
     def setUp(self):
-        DesignLayerHttpTests.setUp(self)
+        test_design_layer_http.DesignLayerHttpTests.setUp(self)
 
     # Bind the P0 helpers (same implementation, no fork; this class does NOT
     # inherit them, so pull them in by name).
-    request = DesignLayerHttpTests.request
-    key = DesignLayerHttpTests.key
-    _project = DesignLayerHttpTests._project
-    _import_asset = DesignLayerHttpTests._import_asset
-    _brief = DesignLayerHttpTests._brief
-    _direction = DesignLayerHttpTests._direction
+    request = test_design_layer_http.DesignLayerHttpTests.request
+    key = test_design_layer_http.DesignLayerHttpTests.key
+    _project = test_design_layer_http.DesignLayerHttpTests._project
+    _import_asset = test_design_layer_http.DesignLayerHttpTests._import_asset
+    _brief = test_design_layer_http.DesignLayerHttpTests._brief
+    _direction = test_design_layer_http.DesignLayerHttpTests._direction
 
     def _event_count(self, project_id, kind=None):
         conn = sqlite3.connect(str(self.service.database))

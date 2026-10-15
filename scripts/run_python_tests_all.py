@@ -23,6 +23,7 @@ Usage:
 from __future__ import annotations
 
 import argparse
+import collections
 import json
 import os
 import re
@@ -89,9 +90,17 @@ def _aggregate(expected: dict[str, list[str]], shards: list[dict]) -> dict:
     ran: list[str] = []
     for record in shards:
         ran.extend(record['ran_ids'])
-    duplicates = sorted({tid for tid in ran if ran.count(tid) > 1})
-    missing = sorted(set(expected_ids) - set(ran))
-    unexpected = sorted(set(ran) - set(expected_ids))
+    expected_counts = collections.Counter(expected_ids)
+    ran_counts = collections.Counter(ran)
+    # The invariant is multiset equality: the shards together reproduce exactly what discovery
+    # produced, including any duplication discovery itself carries. The split is not allowed to
+    # add a second copy of anything, and it is not allowed to drop one either.
+    duplicates = sorted(tid for tid, n in ran_counts.items() if n > expected_counts[tid])
+    missing = sorted(tid for tid, n in expected_counts.items() if ran_counts[tid] < n)
+    unexpected = sorted(tid for tid in ran_counts if tid not in expected_counts)
+    # Reported separately so a pre-existing double registration is visible as its own finding
+    # rather than folding into the split's verdict.
+    discovery_duplicates = sorted(tid for tid, n in expected_counts.items() if n > 1)
     outcomes: dict[str, int] = {}
     by_module: dict[str, dict[str, object]] = {}
     for record in shards:
@@ -107,6 +116,8 @@ def _aggregate(expected: dict[str, list[str]], shards: list[dict]) -> dict:
     return {
         'schemaVersion': 'design-lab/python-test-shards/v1',
         'expected_tests': len(expected_ids),
+        'expected_distinct_tests': len(expected_counts),
+        'discovery_duplicates': discovery_duplicates,
         'ran_tests': len(ran),
         'shards': len(shards),
         'duplicates': duplicates,
@@ -118,10 +129,9 @@ def _aggregate(expected: dict[str, list[str]], shards: list[dict]) -> dict:
         'by_module': dict(sorted(by_module.items(),
                                  key=lambda item: float(item[1]['seconds']), reverse=True)),
         'shard_records': shards,
-        'union_exact': not duplicates and not missing and not unexpected
-                      and len(ran) == len(expected_ids),
-        'meaning': 'the shards together must be the suite: union of ran ids equals discovery, '
-                   'with no id counted twice and none unaccounted for',
+        'union_exact': ran_counts == expected_counts,
+        'meaning': 'the shards together must be the suite, as a multiset: the union reproduces '
+                   'discovery exactly, counting every id as many times as discovery does',
     }
 
 
@@ -165,9 +175,15 @@ def _main(options: argparse.Namespace) -> int:
     document = _aggregate(expected, shards)
     written = _write(document)
     print(f"PYTHON_TESTS_UNION={'OK' if document['union_exact'] else 'BROKEN'} "
-          f"expected={document['expected_tests']} ran={document['ran_tests']} "
+          f"expected={document['expected_tests']} "
+          f"distinct={document['expected_distinct_tests']} ran={document['ran_tests']} "
           f"duplicates={len(document['duplicates'])} missing={len(document['missing'])} "
           f"unexpected={len(document['unexpected'])}")
+    if document['discovery_duplicates']:
+        # The suite registering one id twice is its own defect and is reported as such: it makes
+        # the suite run that test twice, and it is not something the split caused or can fix.
+        print(f"PYTHON_TESTS_DISCOVERY_DUPLICATES={len(document['discovery_duplicates'])} "
+              f"first={document['discovery_duplicates'][:3]}")
     for tid in document['duplicates'][:5]:
         print(f'PYTHON_TESTS_DUPLICATE {tid}')
     for tid in document['missing'][:5]:
