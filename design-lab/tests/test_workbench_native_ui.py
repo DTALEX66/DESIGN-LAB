@@ -21,7 +21,16 @@ const c={document:{getElementById:id=>elements[id]??=new E(),createElement:()=>n
 calls.push(path);const label=path.includes('?after=next')?'second':'first';
 return {ok:true,json:async()=>({tasks:[{kind:label,job_id:label,state:'PENDING',attempt:{attempt_no:1,state:'PENDING'}}],
 assets:[{id:label,kind:'psd',version_no:1,version_id:label}],next_cursor:label==='first'?'next':null})};}};
-vm.createContext(c);vm.runInContext(fs.readFileSync(process.argv[1],'utf8'),c);
+// D06 gave `api()` a deadline (AbortController + setTimeout). Each sandbox here is a browser
+// boundary for the real bundle, so the Abort classes are supplied for the same reason crypto
+// and TextEncoder were: without them `api()` threw before reaching the fetch mock and these
+// tests measured nothing. The clock is deliberately NOT the real one. A timer that actually
+// fires would (a) let the deadline abort a request mid-assertion and (b) keep node's event
+// loop alive for up to 45s per call, which is how this fix first turned one test into a
+// 30s subprocess timeout -- the sandbox's own synchronous `setTimeout:fn=>fn()` stub was what
+// kept that hidden until now. Deadlines are proved in the appshell suite's timed block.
+const noTimer=()=>0;
+Object.assign(c,{AbortController,AbortSignal,setTimeout:noTimer,clearTimeout:()=>{}});vm.createContext(c);vm.runInContext(fs.readFileSync(process.argv[1],'utf8'),c);
 (async()=>{const fn=process.argv[2];vm.runInContext("project='p'",c);
 await vm.runInContext(fn+'()',c);await vm.runInContext(fn+'(true)',c);await vm.runInContext(fn+'(true)',c);
 const id=fn==='tasks'?'tasks':'native-assets';
@@ -45,7 +54,16 @@ const fs=require('fs'),vm=require('vm');
 class E {constructor(){this.children=[];this.classList={toggle(){}};}append(x){this.children.push(x)}replaceChildren(){this.children=[];}removeAttribute(){}}
 const elements={},pending=[];
 const c={document:{getElementById:id=>elements[id]??=new E(),createElement:()=>new E()},fetch:path=>new Promise(resolve=>pending.push({path,resolve}))};
-vm.createContext(c);vm.runInContext(fs.readFileSync(process.argv[1],'utf8'),c);
+// D06 gave `api()` a deadline (AbortController + setTimeout). Each sandbox here is a browser
+// boundary for the real bundle, so the Abort classes are supplied for the same reason crypto
+// and TextEncoder were: without them `api()` threw before reaching the fetch mock and these
+// tests measured nothing. The clock is deliberately NOT the real one. A timer that actually
+// fires would (a) let the deadline abort a request mid-assertion and (b) keep node's event
+// loop alive for up to 45s per call, which is how this fix first turned one test into a
+// 30s subprocess timeout -- the sandbox's own synchronous `setTimeout:fn=>fn()` stub was what
+// kept that hidden until now. Deadlines are proved in the appshell suite's timed block.
+const noTimer=()=>0;
+Object.assign(c,{AbortController,AbortSignal,setTimeout:noTimer,clearTimeout:()=>{}});vm.createContext(c);vm.runInContext(fs.readFileSync(process.argv[1],'utf8'),c);
 (async()=>{const fn=process.argv[2];vm.runInContext("project='p';taskCursor=nativeCursor='old-page'",c);
 const base=vm.runInContext(fn+'()',c).catch(e=>e.message);
 const append=vm.runInContext(fn+'(true)',c).catch(e=>e.message);
@@ -70,7 +88,16 @@ class E {constructor(){this.children=[];this.classList={toggle(){}};}append(x){t
 const elements={},pending=[];
 const c={document:{getElementById:id=>elements[id]??=new E(),createElement:()=>new E(),createTextNode:()=>({nodeType:3})},
 fetch:path=>new Promise(resolve=>pending.push({path,resolve}))};
-vm.createContext(c);vm.runInContext(fs.readFileSync(process.argv[1],'utf8'),c);
+// D06 gave `api()` a deadline (AbortController + setTimeout). Each sandbox here is a browser
+// boundary for the real bundle, so the Abort classes are supplied for the same reason crypto
+// and TextEncoder were: without them `api()` threw before reaching the fetch mock and these
+// tests measured nothing. The clock is deliberately NOT the real one. A timer that actually
+// fires would (a) let the deadline abort a request mid-assertion and (b) keep node's event
+// loop alive for up to 45s per call, which is how this fix first turned one test into a
+// 30s subprocess timeout -- the sandbox's own synchronous `setTimeout:fn=>fn()` stub was what
+// kept that hidden until now. Deadlines are proved in the appshell suite's timed block.
+const noTimer=()=>0;
+Object.assign(c,{AbortController,AbortSignal,setTimeout:noTimer,clearTimeout:()=>{}});vm.createContext(c);vm.runInContext(fs.readFileSync(process.argv[1],'utf8'),c);
 (async()=>{const fn=process.argv[2],mode=process.argv[3];vm.runInContext("project='"+'c'.repeat(32)+"';taskCursor=nativeCursor='page1'",c);
 const first=vm.runInContext(fn+'('+(mode==='append'?'true':'')+')',c).catch(e=>e.message);
 const offset=pending.length;const second=vm.runInContext(fn+'()',c);
@@ -110,7 +137,16 @@ const elements={},calls=[],owner='c'.repeat(32);let keys=0;
 const task={kind:process.argv[2],job_id:'native-job-'+'a'.repeat(64),state:'SUCCEEDED',attempt:{attempt_id:'att-'+'b'.repeat(32),attempt_no:1,state:'RECEIPTED'}};
 const c={document:{getElementById:id=>elements[id]??=new E(),createElement:()=>new E()},crypto:{randomUUID:()=>String(++keys)},
 fetch:async(path,options)=>{calls.push({path,body:options.body});return {ok:true,json:async()=>path.endsWith('/patch')?{task:{attempt:{state:'PENDING'}},parent:{version_id:'v-test'}}:{tasks:[task],next_cursor:null}};}};
-vm.createContext(c);vm.runInContext(fs.readFileSync(process.argv[1],'utf8'),c);
+// D06 gave `api()` a deadline (AbortController + setTimeout). Each sandbox here is a browser
+// boundary for the real bundle, so the Abort classes are supplied for the same reason crypto
+// and TextEncoder were: without them `api()` threw before reaching the fetch mock and these
+// tests measured nothing. The clock is deliberately NOT the real one. A timer that actually
+// fires would (a) let the deadline abort a request mid-assertion and (b) keep node's event
+// loop alive for up to 45s per call, which is how this fix first turned one test into a
+// 30s subprocess timeout -- the sandbox's own synchronous `setTimeout:fn=>fn()` stub was what
+// kept that hidden until now. Deadlines are proved in the appshell suite's timed block.
+const noTimer=()=>0;
+Object.assign(c,{AbortController,AbortSignal,setTimeout:noTimer,clearTimeout:()=>{}});vm.createContext(c);vm.runInContext(fs.readFileSync(process.argv[1],'utf8'),c);
 (async()=>{await vm.runInContext("project='"+owner+"';tasks()",c);
 const b=elements.tasks.children.map(li=>li.children[0]).find(b=>b.textContent.startsWith('修改对象'));
 if(b)await b.onclick();c.document.getElementById('patch-json').value=JSON.stringify({kind:'text',id:'title',text:'After'});
@@ -138,7 +174,16 @@ class E {constructor(){this.children=[];this.classList={toggle(){}};}append(x){t
 const elements={},calls=[];let keys=0;
 const c={document:{getElementById:id=>elements[id]??=new E(),createElement:()=>new E()},crypto:{randomUUID:()=>String(++keys)},
 fetch:async(path,options)=>{calls.push({path,body:options.body});return {ok:true,json:async()=>path.endsWith('/native-plans')?{task:{attempt:{state:'PENDING'}}}:{tasks:[],next_cursor:null}};}};
-vm.createContext(c);vm.runInContext(fs.readFileSync(process.argv[1],'utf8'),c);
+// D06 gave `api()` a deadline (AbortController + setTimeout). Each sandbox here is a browser
+// boundary for the real bundle, so the Abort classes are supplied for the same reason crypto
+// and TextEncoder were: without them `api()` threw before reaching the fetch mock and these
+// tests measured nothing. The clock is deliberately NOT the real one. A timer that actually
+// fires would (a) let the deadline abort a request mid-assertion and (b) keep node's event
+// loop alive for up to 45s per call, which is how this fix first turned one test into a
+// 30s subprocess timeout -- the sandbox's own synchronous `setTimeout:fn=>fn()` stub was what
+// kept that hidden until now. Deadlines are proved in the appshell suite's timed block.
+const noTimer=()=>0;
+Object.assign(c,{AbortController,AbortSignal,setTimeout:noTimer,clearTimeout:()=>{}});vm.createContext(c);vm.runInContext(fs.readFileSync(process.argv[1],'utf8'),c);
 (async()=>{vm.runInContext("project='"+'c'.repeat(32)+"'",c);
 c.document.getElementById('plan-host').value='photoshop';c.document.getElementById('plan-rir').value='{"layers":[]}';c.document.getElementById('plan-styles').value='{}';
 if(elements['plan-form']?.onsubmit){await elements['plan-form'].onsubmit({preventDefault(){}});await elements['plan-form'].onsubmit({preventDefault(){}});}
@@ -163,7 +208,16 @@ const elements={},calls=[],owner='c'.repeat(32);
 const task={kind:'photoshop-native',job_id:'native-job-'+'a'.repeat(64),state:'PENDING',attempt:{attempt_id:'att-'+'b'.repeat(32),attempt_no:1,state:'PENDING'}};
 const c={document:{getElementById:id=>elements[id]??=new E(),createElement:()=>new E()},
 fetch:async(path,options)=>{calls.push({path,body:options.body});return {ok:true,json:async()=>path.endsWith('/run')?{task,worker:'STARTED'}:{tasks:[task],next_cursor:null}};}};
-vm.createContext(c);vm.runInContext(fs.readFileSync(process.argv[1],'utf8'),c);
+// D06 gave `api()` a deadline (AbortController + setTimeout). Each sandbox here is a browser
+// boundary for the real bundle, so the Abort classes are supplied for the same reason crypto
+// and TextEncoder were: without them `api()` threw before reaching the fetch mock and these
+// tests measured nothing. The clock is deliberately NOT the real one. A timer that actually
+// fires would (a) let the deadline abort a request mid-assertion and (b) keep node's event
+// loop alive for up to 45s per call, which is how this fix first turned one test into a
+// 30s subprocess timeout -- the sandbox's own synchronous `setTimeout:fn=>fn()` stub was what
+// kept that hidden until now. Deadlines are proved in the appshell suite's timed block.
+const noTimer=()=>0;
+Object.assign(c,{AbortController,AbortSignal,setTimeout:noTimer,clearTimeout:()=>{}});vm.createContext(c);vm.runInContext(fs.readFileSync(process.argv[1],'utf8'),c);
 (async()=>{await vm.runInContext("project='"+owner+"';tasks()",c);
 const b=elements.tasks.children.map(li=>li.children[0]).find(b=>b.textContent.startsWith('启动任务'));
 if(b)await b.onclick();console.log(JSON.stringify({found:!!b,calls,status:elements.status?.textContent}));
@@ -190,7 +244,16 @@ fetch:async(path,options)=>{calls.push({path,body:options.body});let data;
 if(path.endsWith('/cancel')){task.attempt.state='CANCEL_REQUESTED';task.state='CANCEL_REQUESTED';data={task};}
 else if(path.endsWith('/tasks'))data={tasks:[task],next_cursor:null};
 else throw Error('unexpected request');return {ok:true,json:async()=>data};}};
-vm.createContext(c);vm.runInContext(fs.readFileSync(process.argv[1],'utf8'),c);
+// D06 gave `api()` a deadline (AbortController + setTimeout). Each sandbox here is a browser
+// boundary for the real bundle, so the Abort classes are supplied for the same reason crypto
+// and TextEncoder were: without them `api()` threw before reaching the fetch mock and these
+// tests measured nothing. The clock is deliberately NOT the real one. A timer that actually
+// fires would (a) let the deadline abort a request mid-assertion and (b) keep node's event
+// loop alive for up to 45s per call, which is how this fix first turned one test into a
+// 30s subprocess timeout -- the sandbox's own synchronous `setTimeout:fn=>fn()` stub was what
+// kept that hidden until now. Deadlines are proved in the appshell suite's timed block.
+const noTimer=()=>0;
+Object.assign(c,{AbortController,AbortSignal,setTimeout:noTimer,clearTimeout:()=>{}});vm.createContext(c);vm.runInContext(fs.readFileSync(process.argv[1],'utf8'),c);
 (async()=>{await vm.runInContext("project='"+owner+"';tasks()",c);
 const b=elements.tasks.children.map(li=>li.children[0]).find(b=>b.textContent.startsWith('请求取消'));
 if(b)await b.onclick();
@@ -217,7 +280,16 @@ class E {constructor(){this.classList={toggle(){}};}removeAttribute(){}replaceCh
 const elements={},pending=[];
 const c={document:{getElementById:id=>elements[id]??=new E(),createElement:()=>new E()},
 fetch:path=>new Promise(resolve=>pending.push(resolve))};
-vm.createContext(c);vm.runInContext(fs.readFileSync(process.argv[1],'utf8'),c);
+// D06 gave `api()` a deadline (AbortController + setTimeout). Each sandbox here is a browser
+// boundary for the real bundle, so the Abort classes are supplied for the same reason crypto
+// and TextEncoder were: without them `api()` threw before reaching the fetch mock and these
+// tests measured nothing. The clock is deliberately NOT the real one. A timer that actually
+// fires would (a) let the deadline abort a request mid-assertion and (b) keep node's event
+// loop alive for up to 45s per call, which is how this fix first turned one test into a
+// 30s subprocess timeout -- the sandbox's own synchronous `setTimeout:fn=>fn()` stub was what
+// kept that hidden until now. Deadlines are proved in the appshell suite's timed block.
+const noTimer=()=>0;
+Object.assign(c,{AbortController,AbortSignal,setTimeout:noTimer,clearTimeout:()=>{}});vm.createContext(c);vm.runInContext(fs.readFileSync(process.argv[1],'utf8'),c);
 (async()=>{const fn=process.argv[2];vm.runInContext("project='"+'c'.repeat(32)+"'",c);
 const old=vm.runInContext(fn+"({id:'old'})",c),recent=vm.runInContext(fn+"({id:'recent'})",c);
 const response=label=>({ok:true,json:async()=>({content_base64:label,asset:{kind:'psd',media_type:'image/png',version_id:label,verification:label,width:1,height:1,sha256:label}})});
@@ -242,7 +314,16 @@ class E {constructor(){this.children=[];this.classList={toggle(){}};}append(x){t
 const elements={},pending=[];
 const c={document:{getElementById:id=>elements[id]??=new E(),createElement:()=>new E()},
 fetch:path=>new Promise(resolve=>pending.push({path,resolve}))};
-vm.createContext(c);vm.runInContext(fs.readFileSync(process.argv[1],'utf8'),c);
+// D06 gave `api()` a deadline (AbortController + setTimeout). Each sandbox here is a browser
+// boundary for the real bundle, so the Abort classes are supplied for the same reason crypto
+// and TextEncoder were: without them `api()` threw before reaching the fetch mock and these
+// tests measured nothing. The clock is deliberately NOT the real one. A timer that actually
+// fires would (a) let the deadline abort a request mid-assertion and (b) keep node's event
+// loop alive for up to 45s per call, which is how this fix first turned one test into a
+// 30s subprocess timeout -- the sandbox's own synchronous `setTimeout:fn=>fn()` stub was what
+// kept that hidden until now. Deadlines are proved in the appshell suite's timed block.
+const noTimer=()=>0;
+Object.assign(c,{AbortController,AbortSignal,setTimeout:noTimer,clearTimeout:()=>{}});vm.createContext(c);vm.runInContext(fs.readFileSync(process.argv[1],'utf8'),c);
 (async()=>{vm.runInContext("project='"+'c'.repeat(32)+"'",c);
 const old=vm.runInContext("loadEvents('old')",c),recent=vm.runInContext("loadEvents('recent')",c);
 const response=label=>({ok:true,json:async()=>({events:[{at:label,attempt_no:1,to_state:'RECEIPTED'}],next_cursor:null})});
@@ -269,7 +350,16 @@ const c={document:{getElementById:id=>elements[id]??=new E(),createElement:()=>n
 crypto:crypto.webcrypto,Blob,Uint8Array,URL:{createObjectURL:()=> 'blob:fixture',revokeObjectURL(){}},setTimeout:fn=>fn(),
 fetch:async path=>path.endsWith('/bundle')?{ok:true,json:async()=>({bundle:{sha256:hash,byte_size:bytes.length},download_path:route})}:
 {ok:true,arrayBuffer:async()=>Uint8Array.from(tamper?Buffer.from('bad'):bytes).buffer}};
-vm.createContext(c);vm.runInContext(fs.readFileSync(process.argv[1],'utf8'),c);
+// D06 gave `api()` a deadline (AbortController + setTimeout). Each sandbox here is a browser
+// boundary for the real bundle, so the Abort classes are supplied for the same reason crypto
+// and TextEncoder were: without them `api()` threw before reaching the fetch mock and these
+// tests measured nothing. The clock is deliberately NOT the real one. A timer that actually
+// fires would (a) let the deadline abort a request mid-assertion and (b) keep node's event
+// loop alive for up to 45s per call, which is how this fix first turned one test into a
+// 30s subprocess timeout -- the sandbox's own synchronous `setTimeout:fn=>fn()` stub was what
+// kept that hidden until now. Deadlines are proved in the appshell suite's timed block.
+const noTimer=()=>0;
+Object.assign(c,{AbortController,AbortSignal,setTimeout:noTimer,clearTimeout:()=>{}});vm.createContext(c);vm.runInContext(fs.readFileSync(process.argv[1],'utf8'),c);
 (async()=>{await vm.runInContext("project='"+owner+"';exportBundle({job_id:'native-job-"+'a'.repeat(64)+"'})",c);
 tamper=true;let rejected=false;try{await vm.runInContext("exportBundle({job_id:'native-job-"+'a'.repeat(64)+"'})",c)}catch(e){rejected=true;}
 console.log(JSON.stringify({saved,rejected}));})().catch(e=>{console.error(e);process.exitCode=1});
@@ -293,7 +383,16 @@ const c={document:{getElementById:id=>elements[id]??=new Element(),createElement
  else if(route.endsWith('/assets'))data={assets:[]};
  else throw Error('unexpected request');
  return {ok:true,json:async()=>data};}};
-vm.createContext(c);vm.runInContext(fs.readFileSync(process.argv[1],'utf8'),c);
+// D06 gave `api()` a deadline (AbortController + setTimeout). Each sandbox here is a browser
+// boundary for the real bundle, so the Abort classes are supplied for the same reason crypto
+// and TextEncoder were: without them `api()` threw before reaching the fetch mock and these
+// tests measured nothing. The clock is deliberately NOT the real one. A timer that actually
+// fires would (a) let the deadline abort a request mid-assertion and (b) keep node's event
+// loop alive for up to 45s per call, which is how this fix first turned one test into a
+// 30s subprocess timeout -- the sandbox's own synchronous `setTimeout:fn=>fn()` stub was what
+// kept that hidden until now. Deadlines are proved in the appshell suite's timed block.
+const noTimer=()=>0;
+Object.assign(c,{AbortController,AbortSignal,setTimeout:noTimer,clearTimeout:()=>{}});vm.createContext(c);vm.runInContext(fs.readFileSync(process.argv[1],'utf8'),c);
 (async()=>{await vm.runInContext("project='"+'c'.repeat(32)+"';refresh()",c);
  const list=elements['native-assets'];const labels=list?list.children.map(li=>li.children[0].textContent):[];
  if(list?.children[0])await list.children[0].children[0].onclick();
@@ -333,7 +432,16 @@ fetch:async(path,options)=>{calls.push({path,body:options&&options.body});
 if(path.endsWith('/design-layer'))return{ok:true,json:async()=>layer};
 if(path.endsWith('/revisions'))return mode==='stale'?{ok:false,json:async()=>({error:'STALE_REVISION'})}:{ok:false,json:async()=>({error:'UNAUTHORIZED'})};
 throw Error('unexpected request '+path)}};
-vm.createContext(c);vm.runInContext(fs.readFileSync(process.argv[1],'utf8'),c);
+// D06 gave `api()` a deadline (AbortController + setTimeout). Each sandbox here is a browser
+// boundary for the real bundle, so the Abort classes are supplied for the same reason crypto
+// and TextEncoder were: without them `api()` threw before reaching the fetch mock and these
+// tests measured nothing. The clock is deliberately NOT the real one. A timer that actually
+// fires would (a) let the deadline abort a request mid-assertion and (b) keep node's event
+// loop alive for up to 45s per call, which is how this fix first turned one test into a
+// 30s subprocess timeout -- the sandbox's own synchronous `setTimeout:fn=>fn()` stub was what
+// kept that hidden until now. Deadlines are proved in the appshell suite's timed block.
+const noTimer=()=>0;
+Object.assign(c,{AbortController,AbortSignal,setTimeout:noTimer,clearTimeout:()=>{}});vm.createContext(c);vm.runInContext(fs.readFileSync(process.argv[1],'utf8'),c);
 (async()=>{vm.runInContext("project='"+owner+"'",c);
 await vm.runInContext('refreshDesign()',c);
 const row=elements['design-briefs'].children[0];
@@ -400,7 +508,16 @@ const layer={design_layer:{briefs:[],directions:[v1,v2],chosen_direction:v2,bind
 const c={document:{getElementById:id=>elements[id]??=new El(),createElement:()=>new El(),createTextNode:()=>({nodeType:3}),querySelectorAll:()=>[]},
 crypto:{randomUUID:()=>'k'},Option,
 fetch:async path=>{calls.push(path);if(path.endsWith('/design-layer'))return{ok:true,json:async()=>layer};throw Error('unexpected request '+path)}};
-vm.createContext(c);vm.runInContext(fs.readFileSync(process.argv[1],'utf8'),c);
+// D06 gave `api()` a deadline (AbortController + setTimeout). Each sandbox here is a browser
+// boundary for the real bundle, so the Abort classes are supplied for the same reason crypto
+// and TextEncoder were: without them `api()` threw before reaching the fetch mock and these
+// tests measured nothing. The clock is deliberately NOT the real one. A timer that actually
+// fires would (a) let the deadline abort a request mid-assertion and (b) keep node's event
+// loop alive for up to 45s per call, which is how this fix first turned one test into a
+// 30s subprocess timeout -- the sandbox's own synchronous `setTimeout:fn=>fn()` stub was what
+// kept that hidden until now. Deadlines are proved in the appshell suite's timed block.
+const noTimer=()=>0;
+Object.assign(c,{AbortController,AbortSignal,setTimeout:noTimer,clearTimeout:()=>{}});vm.createContext(c);vm.runInContext(fs.readFileSync(process.argv[1],'utf8'),c);
 (async()=>{vm.runInContext("project='"+owner+"'",c);
 await vm.runInContext('refreshDesign()',c);
 console.log(JSON.stringify({active:elements['design-binding-active'].textContent,
@@ -449,7 +566,16 @@ const elements={};
 const c={document:{getElementById:id=>elements[id]??=new E(),createElement:()=>new E()},
 crypto:{subtle:{digest:async(alg,bytes)=>nc.createHash('sha256').update(Buffer.from(bytes)).digest()}},
 TextEncoder,Buffer,console,fetch:async()=>({ok:true,json:async()=>({})})};
-vm.createContext(c);vm.runInContext(fs.readFileSync(process.argv[1],'utf8'),c);
+// D06 gave `api()` a deadline (AbortController + setTimeout). Each sandbox here is a browser
+// boundary for the real bundle, so the Abort classes are supplied for the same reason crypto
+// and TextEncoder were: without them `api()` threw before reaching the fetch mock and these
+// tests measured nothing. The clock is deliberately NOT the real one. A timer that actually
+// fires would (a) let the deadline abort a request mid-assertion and (b) keep node's event
+// loop alive for up to 45s per call, which is how this fix first turned one test into a
+// 30s subprocess timeout -- the sandbox's own synchronous `setTimeout:fn=>fn()` stub was what
+// kept that hidden until now. Deadlines are proved in the appshell suite's timed block.
+const noTimer=()=>0;
+Object.assign(c,{AbortController,AbortSignal,setTimeout:noTimer,clearTimeout:()=>{}});vm.createContext(c);vm.runInContext(fs.readFileSync(process.argv[1],'utf8'),c);
 // The bundle's top-level declarations live on the vm context, not in this outer
 // script: every call has to be evaluated inside the context, the way the other
 // contract tests in this file already do.
