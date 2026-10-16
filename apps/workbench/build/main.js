@@ -507,17 +507,63 @@ const dropSession = () => {
   const badge = byId("connection");
   if (badge) badge.textContent = "未连接";
 };
-async function api(path, body) {
+const READ_TIMEOUT_MS = 15e3;
+const WRITE_TIMEOUT_MS = 45e3;
+let pageGeneration = null;
+const currentGeneration = () => pageGeneration ??= new AbortController();
+function cancelPendingReads() {
+  pageGeneration?.abort();
+  pageGeneration = null;
+}
+class ReadDeadlineError extends Error {
+}
+class PageReadCancelledError extends Error {
+}
+class WriteOutcomeUnknownError extends Error {
+  outcomeUnknown = true;
+}
+async function api(path, body, options = {}) {
+  const isWrite = body !== void 0;
+  const timeoutMs = options.timeoutMs ?? (isWrite ? WRITE_TIMEOUT_MS : READ_TIMEOUT_MS);
+  const controller = new AbortController();
+  let deadlineHit = false;
+  const timer = setTimeout(() => {
+    deadlineHit = true;
+    controller.abort();
+  }, timeoutMs);
+  const cancel = () => controller.abort();
+  const generation = isWrite ? null : currentGeneration();
+  if (generation) generation.signal.addEventListener("abort", cancel, { once: true });
+  options.signal?.addEventListener("abort", cancel, { once: true });
   let response;
   try {
     response = await fetch("/api" + path, {
       method: body ? "POST" : "GET",
       headers: { Authorization: "Bearer " + token, ...body ? { "Content-Type": "application/json" } : {} },
       ...body ? { body: JSON.stringify(body) } : {},
-      cache: "no-store"
+      cache: "no-store",
+      signal: controller.signal
     });
   } catch (error) {
+    if (deadlineHit) {
+      const seconds = timeoutMs >= 1e3 ? Math.round(timeoutMs / 1e3) : timeoutMs / 1e3;
+      if (isWrite)
+        throw new WriteOutcomeUnknownError(
+          `提交已发出，但 ${seconds} 秒内没有答复：结果待核对，不是失败。请先读回该资源确认服务端是否已经落库，再决定是否重发；同一个幂等键重发是安全的，但不要不看读回就重发。`
+        );
+      throw new ReadDeadlineError(
+        `读取超时（${seconds} 秒未答复）：本次读取已放弃。读取没有产生任何写入，可以直接重试。`
+      );
+    }
+    if (controller.signal.aborted)
+      throw new PageReadCancelledError(
+        "页面已切换，本次读取已取消（没有产生写入）。重新进入该页会重新读取。"
+      );
     throw new Error(`无法连接本机设计服务（${errMsg(error)}）`);
+  } finally {
+    clearTimeout(timer);
+    generation?.signal.removeEventListener("abort", cancel);
+    options.signal?.removeEventListener("abort", cancel);
   }
   let value;
   try {
@@ -6872,6 +6918,7 @@ async function renderProjectDetail(id, target) {
   );
 }
 async function renderRoute(view, target) {
+  cancelPendingReads();
   target.replaceChildren();
   switch (view) {
     case "dashboard":

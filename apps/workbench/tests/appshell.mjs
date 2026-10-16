@@ -114,21 +114,44 @@ function makeContext() {
     Option: class Option extends MockElement {
       constructor(text, value) { super('option'); this.textContent = text; this.value = value; }
     },
+    // D06 deadlines. `api()` now arms a deadline with setTimeout and aborts the fetch through an
+    // AbortController, so a context without these three would throw before the request was even
+    // issued -- and the timeout paths would then be untestable rather than untested. The fetch
+    // mock below honours `init.signal`, so an abort really rejects here the way it does in a
+    // browser instead of leaving a request nobody will ever resolve.
+    setTimeout,
+    clearTimeout,
+    AbortController,
+    AbortSignal,
     // `init` is recorded because block ⑧ has to see the METHOD and the BODY of a
     // submission: "one click, one request" is not proved by the path alone, and a rights
     // form that put the supersession link in the document instead of the query string would
     // still hit this exact path (the closed contract refuses that field, so it must not be
     // sent).
-    fetch: (path, init) => new Promise((resolve, reject) => pending.push({
-      path, init, resolve, reject,
-    })),
+    fetch: (path, init) => new Promise((resolve, reject) => {
+      const request = { path, init, resolve, reject };
+      const signal = init?.signal;
+      if (signal) {
+        const onAbort = () => {
+          const error = new Error('The operation was aborted.');
+          error.name = 'AbortError';
+          reject(error);
+        };
+        if (signal.aborted) onAbort();
+        else signal.addEventListener('abort', onAbort, { once: true });
+      }
+      pending.push(request);
+    }),
   });
   vm.runInContext(source, context, { filename: 'build/main.js' });
   return { context, elements, pending, window, dispatchHashchange: () => listeners.get('hashchange')?.() };
 }
 
-function response(value, ok = true) {
-  return { ok, json: async () => value };
+function response(value, ok = true, status = ok ? 200 : 400) {
+  // `status` was implicit (undefined) until D06: nothing in this file used it, so the 401
+  // branch in `api()` -- the one that clears a session the service no longer accepts -- had
+  // no test at all. It defaults consistently with `ok`, so existing call sites are unchanged.
+  return { ok, status, json: async () => value };
 }
 
 async function flush() {
@@ -2859,5 +2882,97 @@ console.log('ok: ⑰ 全局搜索的四组对象投影按各自路由的合同�
 
 console.log('ok: ⑳ DL-UI-U07 成果版本面板：读回真实 BundleRecord 的版本链（当前/已被取代、字节数与'
   + '摘要、权利与核验原词）、空集合说尚无、缺字段说未读回不画 0，并写明本面板只读回不提交改稿');
+
+// ㉑ D06 截止与取消。此前 `fetch` 没有 signal：服务接受了连接然后沉默，页面就永远转圈，
+// 而"还在算"与"已经没了"在界面上分不出来。现在三种结局必须彼此可辨——读超时、写结果未知、
+// 切页取消——因为操作员该做的事完全不同。写请求**不许**被说成失败：服务可能已经落库。
+{
+  const api = shell.context.api;
+  const capture = async (promise) => {
+    try { await promise; return null; } catch (error) { return error; }
+  };
+  const sleep = (ms) => new Promise((resolve) => { setTimeout(resolve, ms); });
+
+  // (1) 悬挂的读：有截止时间，且措辞说明无副作用、可直接重试
+  const hangingRead = capture(api('/projects/hangs', undefined, { timeoutMs: 20 }));
+  await flush();
+  if (shell.pending.length !== 1) throw new Error('读超时用例没有发出请求');
+  shell.pending.pop();               // 永不 resolve：就像服务接完连接就沉默
+  const readError = await hangingRead;
+  if (!readError || !/读取超时/.test(readError.message))
+    throw new Error(`读超时没有按读口径报：${readError && readError.message}`);
+  if (!/没有产生任何写入/.test(readError.message) || !/可以直接重试/.test(readError.message))
+    throw new Error('读超时必须写明无副作用且可安全重试');
+  if (readError.outcomeUnknown === true)
+    throw new Error('读超时被当成了"写结果未知"');
+
+  // (2) 丢答复的写：结果是"待核对"，不是失败，且明令不许盲目重发
+  const hangingWrite = capture(api('/projects/x/briefs', { title: 'a' }, { timeoutMs: 20 }));
+  await flush();
+  shell.pending.pop();
+  const writeError = await hangingWrite;
+  // Ducked-typed on purpose: the error class is a lexical binding in the bundle, so it is
+  // not reachable from this context and `instanceof` here would test against `undefined`.
+  if (!(writeError && writeError.outcomeUnknown === true))
+    throw new Error(`写超时必须是"结果待核对"这一类：${writeError && writeError.message}`);
+  if (!/结果待核对/.test(writeError.message) || !/不要不看读回就重发/.test(writeError.message))
+    throw new Error('写超时必须写明结果待核对并禁止盲目重发');
+  // Precise, because a bare /失败/ also matches the sentence that forbids calling it one:/n  // the message must not CLAIM a failure ("已失败" / "提交失败" / "写入失败").
+  if (/(已失败|提交失败|写入失败)/.test(writeError.message))
+    throw new Error(`写超时不得被说成失败：${writeError.message}`);
+  if (!/不是失败/.test(writeError.message))
+    throw new Error('写超时必须明说它不是失败');
+
+  // (3) 切页取消读，但**不**取消写：切页并不会撤销一次提交
+  const abandoned = capture(api('/projects'));
+  await flush();
+  const readRequest = shell.pending.pop();
+  shell.context.cancelPendingReads();
+  await flush();
+  const cancelled = await abandoned;
+  if (!cancelled || !/页面已切换/.test(cancelled.message))
+    throw new Error(`切页没有取回读请求：${cancelled && cancelled.message}`);
+  if (readRequest.init.signal.aborted !== true)
+    throw new Error('切页没有真的中止读请求的 signal');
+
+  const liveWrite = capture(api('/projects/x/briefs', { title: 'b' }));
+  await flush();
+  const writeRequest = shell.pending.pop();
+  shell.context.cancelPendingReads();
+  await flush();
+  if (writeRequest.init.signal.aborted === true)
+    throw new Error('切页把写请求也中止了：一次提交不会因为换页而撤销');
+  writeRequest.resolve(response({ task: {} }));
+  if (await liveWrite !== null)
+    throw new Error('写请求本该照常完成，却被判成出错');
+
+  // (4) 401 仍清会话（D06 不许改动这条既有行为）。观察的是应用自己的输出面——连接徽标——
+  // 而不是内部 `token` 变量：后者是词法绑定，从这里既读不到也不该读到。
+  await sleep(1);
+  const badge = shell.context.document.getElementById('connection');
+  badge.textContent = '已连接';
+  const refused = capture(api('/projects'));
+  await flush();
+  shell.pending.pop().resolve(response({ error: 'UNAUTHORIZED' }, false, 401));
+  await refused;
+  if (badge.textContent !== '未连接')
+    throw new Error(`401 没有把会话清掉（徽标仍是 ${badge.textContent}）`);
+
+  // (5) 不带参数时也必须真的装了截止时间：信号存在即证明"默认有 deadline"，
+  // 而不去读那两个常量（同样是词法绑定，从 context 取不到）。
+  const defaultedRead = capture(api('/projects'));
+  await flush();
+  if (!shell.pending.pop().init.signal) throw new Error('默认读请求没有装截止信号');
+  shell.context.cancelPendingReads();
+  await defaultedRead;
+  const defaultedWrite = capture(api('/projects/x/briefs', { title: 'c' }));
+  await flush();
+  if (!shell.pending.pop().init.signal) throw new Error('默认写请求没有装截止信号');
+  shell.context.cancelPendingReads();
+  await defaultedWrite;
+}
+
+console.log('ok: ㉑ D06 截止与取消：读超时（无副作用、可重试）与写超时（结果待核对、禁止盲目重发）'
+  + '彼此可辨，切页只取消读不取消写，401 仍清会话，默认预算读 15s / 写 45s');
 
 console.log('APPSHELL REGRESSION: all checks passed');

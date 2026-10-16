@@ -87,7 +87,61 @@ const dropSession = (): void => {
   if (badge) badge.textContent = '未连接';
 };
 
-export async function api<T>(path: string, body?: Record<string, unknown>): Promise<T> {
+// D06 deadlines. A read is cheap to abandon and cheap to redo; a write may have landed, so its
+// deadline is longer and its outcome is reported as unknown rather than as a failure. The read
+// number matches the `/api/local-session` connect probe, which already carried an 8s budget of
+// its own -- that probe was the only request in this app with a deadline, which is exactly why
+// everything else could hang.
+export const READ_TIMEOUT_MS = 15000;
+export const WRITE_TIMEOUT_MS = 45000;
+
+export interface ApiOptions { timeoutMs?: number; signal?: AbortSignal }
+
+// One generation per rendered view. `cancelPendingReads()` is called when the route changes, so
+// a slow read for a page the user has left cannot land on the next page's DOM.
+//
+// Created on first use, not at module load: constructing it at the top level made the bundle
+// throw `AbortController is not defined` under any environment that lacks the global (the
+// classic-script smoke load, for one), so merely importing the workbench failed. A module whose
+// load has no side effects is importable wherever it can run, and the browser always has this.
+let pageGeneration: AbortController | null = null;
+const currentGeneration = (): AbortController => (pageGeneration ??= new AbortController());
+
+export function cancelPendingReads(): void {
+  pageGeneration?.abort();
+  pageGeneration = null;
+}
+
+export class ReadDeadlineError extends Error {}
+export class PageReadCancelledError extends Error {}
+
+/** A write whose answer was lost. Never a failure: the service may have committed it. */
+export class WriteOutcomeUnknownError extends Error {
+  readonly outcomeUnknown = true;
+}
+
+export async function api<T>(path: string, body?: Record<string, unknown>,
+                             options: ApiOptions = {}): Promise<T> {
+  // D06. A request that never answers used to hang the page forever: `fetch` had no signal, so
+  // a service that accepted the socket and then went quiet left every view spinning with no
+  // deadline and no way to tell "still working" from "gone". Three endings are now distinct,
+  // because they call for different operator actions -- and a write is not allowed to be
+  // reported as a failure, since the service may have committed it before the answer was lost.
+  const isWrite = body !== undefined;
+  const timeoutMs = options.timeoutMs ?? (isWrite ? WRITE_TIMEOUT_MS : READ_TIMEOUT_MS);
+  const controller = new AbortController();
+  let deadlineHit = false;
+  const timer = setTimeout(() => {
+    deadlineHit = true;
+    controller.abort();
+  }, timeoutMs);
+  const cancel = () => controller.abort();
+  // A read belongs to the view that asked for it, so leaving the view cancels it. A write does
+  // NOT: navigating away does not undo a submission, and reporting it as cancelled would invite
+  // exactly the blind resend this is meant to prevent.
+  const generation = isWrite ? null : currentGeneration();
+  if (generation) generation.signal.addEventListener('abort', cancel, { once: true });
+  options.signal?.addEventListener('abort', cancel, { once: true });
   let response: Response;
   try {
     response = await fetch('/api' + path, {
@@ -95,12 +149,33 @@ export async function api<T>(path: string, body?: Record<string, unknown>): Prom
       headers: { Authorization: 'Bearer ' + token, ...(body ? { 'Content-Type': 'application/json' } : {}) },
       ...(body ? { body: JSON.stringify(body) } : {}),
       cache: 'no-store',
+      signal: controller.signal,
     });
   } catch (error) {
+    if (deadlineHit) {
+      // Sub-second budgets print as decimals, not as "0 秒": the deadline is real at any
+      // size, and a round-to-zero would read as if nothing had been waited for.
+      const seconds = timeoutMs >= 1000 ? Math.round(timeoutMs / 1000) : timeoutMs / 1000;
+      if (isWrite)
+        throw new WriteOutcomeUnknownError(
+          `提交已发出，但 ${seconds} 秒内没有答复：结果待核对，不是失败。`
+          + '请先读回该资源确认服务端是否已经落库，再决定是否重发；'
+          + '同一个幂等键重发是安全的，但不要不看读回就重发。');
+      throw new ReadDeadlineError(
+        `读取超时（${seconds} 秒未答复）：本次读取已放弃。`
+        + '读取没有产生任何写入，可以直接重试。');
+    }
+    if (controller.signal.aborted)
+      throw new PageReadCancelledError(
+        '页面已切换，本次读取已取消（没有产生写入）。重新进入该页会重新读取。');
     // The request never got an answer. Unwrapped, this reaches the page as the browser's
     // own "Failed to fetch", which is indistinguishable from a view bug and tells the
     // operator nothing to do. Name what is unreachable, keep the browser's reason.
     throw new Error(`无法连接本机设计服务（${errMsg(error)}）`);
+  } finally {
+    clearTimeout(timer);
+    generation?.signal.removeEventListener('abort', cancel);
+    options.signal?.removeEventListener('abort', cancel);
   }
   let value: { error?: string } & Record<string, unknown>;
   try {

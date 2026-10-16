@@ -39,7 +39,7 @@ import type {
   TokenDocumentRecord,
 } from './contracts.js';
 
-import { api, byId, connected, errMsg, projects, setStatus, token } from './workbench.js';
+import { api, byId, cancelPendingReads, connected, errMsg, projects, setStatus, token } from './workbench.js';
 // W03 reuses the SAME pure domain helpers the legacy single-page brief flow uses
 // (design.ts): one validation rule, one error vocabulary, one idempotency key
 // source. Sharing them is what "统一旧单页与新路由的用户流程" means here.
@@ -5532,6 +5532,12 @@ export async function renderProjectDetail(id: string, target: HTMLElement): Prom
 }
 
 export async function renderRoute(view: AppView, target: HTMLElement): Promise<void> {
+  // D06: entering a view retires the previous view's in-flight reads. Without this, a slow read
+  // for the page the operator just left resolved into the new page's DOM -- the same class of
+  // bug as a stale render, and the reason the read paths had no deadline at all: nothing was
+  // ever allowed to be abandoned. Writes are deliberately not covered (`api()` ties only GET to
+  // this generation), because navigating away does not undo a submission.
+  cancelPendingReads();
   target.replaceChildren();
   switch (view) {
     case 'dashboard': await renderDashboard(target); return;
