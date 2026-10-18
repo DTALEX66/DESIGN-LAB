@@ -162,12 +162,19 @@ HISTORY-FREEZE-RULES、两个 TaskPack 标 `binary`，并重新入库使 blob ==
 
 ### 接续入口
 
-`docs/current/NEXT-AGENT-PROMPT-2026-10-12.md` 是当前入口（`AGENTS.md` 已指向它）；
+`docs/history/next-agent-prompts/NEXT-AGENT-PROMPT-2026-10-12.md`（当时写作 `docs/current/NEXT-AGENT-PROMPT-2026-10-12.md`，2026-10-18 该文件已移入历史目录）是当时的入口；
 > **2026-10-13 更正（句子保留，只标失效时点）**：这一句**已不成立**。第二十四批收口后，
-> 当前入口是 `docs/current/NEXT-AGENT-PROMPT-2026-10-13.md`，`AGENTS.md` 已改指它，
+> 当前入口是 `docs/current/NEXT-AGENT-PROMPT.md`（当时名为 `…-2026-10-13.md`，2026-10-18 改为就地更新的无日期文件名），`AGENTS.md` 已改指它，
 > 2026-10-12 版在 `task-document-states.json` 里降为 `HISTORICAL` 且指针移向新版。
 > 留着上面那句是因为它当时是真的；照着它做会让下一会话从一份已被取代的提示词接续。
 09/10/11 版已降为 `HISTORICAL` 并在 `task-document-states.json` 登记。
+
+> **2026-10-18 更正（同一条句子第二次失效，仍只标时点，不改写上文）**：接续入口不再按日期命名。
+> 唯一入口是 `docs/current/NEXT-AGENT-PROMPT.md`（就地更新）；10-09 至 10-13 各版已移入
+> `docs/history/next-agent-prompts/`，在 `task-document-states.json` 里统一降为 `HISTORICAL`，
+> 并在 `docs/history/next-agent-prompts/PROMPT-LINEAGE.json` 逐份登记字节与 sha256。
+> 上面那条更正里的"当前入口是 …-10-13.md"现在是历史，不是指令：按日期命名正是旧副本
+> 反复留在 `docs/current/` 的机制，已废止。
 
 ---
 

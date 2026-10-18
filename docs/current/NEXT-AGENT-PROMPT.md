@@ -1,3 +1,14 @@
+# 下一会话提示词（唯一入口）
+
+> **本文件就地更新，不要再按日期新铸一份。**
+> 2026-10-18 之前它是 `NEXT-AGENT-PROMPT-<日期>.md`，于是每轮都要铸新文件、搬一次指针，
+> 旧副本合法地留在 `docs/current/` 里——这就是"旧路径反复出现"的机制本身。
+> 现在只有这一个文件名；改状态就改这个文件，并把 `updatedAt` / `writtenAtSha` 一起改。
+> 历史条目在 `docs/history/next-agent-prompts/`，逐份登记在其 `PROMPT-LINEAGE.json`。
+
+- **updatedAt**: 2026-10-18
+- **writtenAtSha**: 见 `git rev-parse HEAD`（不抄数字，读当前值）
+
 # 下一会话提示词 — 2026-10-13（第二十四批收口）
 
 **这不是 Authority。** 读它的顺序必须是：

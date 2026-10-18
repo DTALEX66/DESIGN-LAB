@@ -39,5 +39,6 @@ Owner明确：AAOS不属于本项目。与AAOS有关的历史载体仅作为DESI
 - 资料定位：docs/RECORD-ARCHIVE-INDEX.md。
 - 精简旧资料：docs/current/ARCHIVE-KEY-INFORMATION-2026-10-09.md。
 - 完整成员与去重：docs/history/record-archive-2026-10-09/ARCHIVE-MANIFEST.json、MEMBER-INDEX.md。
-- 后续执行：docs/current/NEXT-AGENT-PROMPT-2026-10-09.md，先U01/U02，再U03～U05。
+- 后续执行：`docs/history/next-agent-prompts/NEXT-AGENT-PROMPT-2026-10-09.md`（原文如此；2026-10-18 该文件已移入历史目录，接续入口改成 `docs/current/NEXT-AGENT-PROMPT.md`），
+  先U01/U02，再U03～U05。
 - 只读复验：.venv/Scripts/python.exe scripts/archive_record_design_lab.py；加--source-check核对原卷；--find关键词定位文件。只读任务入口复验使用scripts/verify_current_execution.py，现有报告用scripts/generate_current_reports.py --check。

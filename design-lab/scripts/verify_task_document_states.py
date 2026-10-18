@@ -44,6 +44,7 @@ from __future__ import annotations
 
 import fnmatch
 import json
+import re
 import subprocess
 import sys
 from pathlib import Path
@@ -223,6 +224,43 @@ def main() -> int:
                f"REQUESTED without ownerActionPending={req + rules_req} dead pointers={dead}"
                if not ok else f"REQUESTED entries all state the pending owner ruling; "
                               f"{len(targets)} pointers all resolve to tracked files")
+    # 11 -------------------------------------------------------------------
+    # The accretion defect, checked by name shape rather than by a list of known offenders. A
+    # dated sibling of the canonical entry is how the old copies got there in the first place:
+    # the entry was minted per round, so last round's file stayed in docs/current/ and kept being
+    # cited as "the current one". One dated copy is enough to restart that loop.
+    rule = (registry or {}).get("promptEntryRule") or {}
+    canonical = str(rule.get("canonical") or "")
+    if canonical and canonical in tracked:
+        stem, _, ext = canonical.rpartition(".")
+        pattern = re.compile(re.escape(stem) + r"-\d{4}-\d{2}-\d{2}\." + re.escape(ext) + r"$")
+        dated = sorted(f for f in files if pattern.match(f))
+        ck.add("entry-not-dated-again", not dated,
+               f"dated siblings of {canonical}: {dated}" if dated
+               else f"no dated sibling of {canonical} exists")
+    # 12 -------------------------------------------------------------------
+    # Dangling references in the surfaces that direct a session. A handoff may quote an old path
+    # (that is a record of what was said); the guidance surfaces may not, because a path there is
+    # an instruction, and an instruction pointing at moved bytes is the whole complaint this
+    # check exists to make impossible.
+    guidance = [f for f in ("AGENTS.md", "README.md", "AUTHORITY.md",
+                            "docs/current/NEXT-AGENT-PROMPT.md") if f in tracked]
+    if guidance:
+        ref = re.compile(r"(?<![\w/.-])(docs/[A-Za-z0-9_./-]+\.(?:md|json))")
+        dangling = []
+        for rel in guidance:
+            try:
+                text = (REPO / rel).read_text(encoding="utf-8", errors="replace")
+            except OSError:
+                continue
+            for match in ref.finditer(text):
+                target = match.group(1)
+                if target not in tracked:
+                    dangling.append(f"{rel}:{target}")
+        ck.add("guidance-paths-resolve", not dangling,
+               f"dangling references: {sorted(set(dangling))[:4]}" if dangling
+               else f"{len(guidance)} guidance surfaces, every docs/ path they name is tracked")
+
     for c in ck.checks:
         print(f"{c['result']:6s} {c['check']:34s} {c['detail']}")
     failed = [c["check"] for c in ck.checks if c["result"] != "PASS"]

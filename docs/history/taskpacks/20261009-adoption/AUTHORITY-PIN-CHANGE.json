@@ -20,6 +20,17 @@
       "to": "145cc12ea398997ffb55431e61deb785a480668af2128dafa3c8effee1176854",
       "why": "AUTHORITY.md still carried 'repository commit=NOT_EXECUTED, live CI=NOT_EXECUTED' and '不宣称双端已同步' after that had stopped being true, so a fresh session reading it would correctly conclude the remote is untrustworthy. Corrected in place; the original wording is kept and marked stale rather than deleted.",
       "checks": "unchanged at 10; no criterion removed"
+    },
+    {
+      "when": "2026-10-18",
+      "authority": "owner instruction 2026-10-18: stop stale paths recurring; migrate/freeze/clean old data",
+      "changed": [
+        "docs/taskpacks/DESIGN-LAB-UI-FIRST-INTEGRATED-TASKPACK-2026-10-09.md"
+      ],
+      "from": "f91ebe9b67ab4f83be91fe8f3ca0fc80fc93176263bec05d883fa6ce6afd6480",
+      "to": "2cfd84627352e9f1b29b42787fa43466cd9a836130d826d43678b7733856ffda",
+      "why": "该文件第 7 条指向 docs/current/NEXT-AGENT-PROMPT-2026-10-09.md，而该路径在接续入口收敛为单一无日期文件后已移入 docs/history/next-agent-prompts/。留着它等于在权威文档里保留一条把下一会话带到旧副本的指令，这正是\"旧路径反复出现\"的传播路径。只改这一条指针，任务定义、批次、write set 与验收一字未动。",
+      "checks": "verify_top_level_authority 检查数不变（10）"
     }
   ],
   "current_pins_note": "AUTHORITY.md was re-pinned on 2026-10-12 after a deliberate correction; the superseded pin is preserved in revisions[]. The other four files are unchanged since the 2026-10-09 adoption."

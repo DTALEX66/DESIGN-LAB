@@ -384,14 +384,6 @@
       "replacement": "docs/taskpacks/DESIGN-LAB-UI-FIRST-INTEGRATED-TASKPACK-2026-10-09.md"
     },
     {
-      "path": "docs/current/NEXT-AGENT-PROMPT-2026-10-09.md",
-      "state": "HISTORICAL",
-      "role": "RECORD",
-      "frozen": false,
-      "basis": "当前TaskPack派生说明/交接，非第二状态源 ｜ 2026-12-12 起降级为历史面，接续入口改为 2026-10-12 版",
-      "replacement": "docs/current/NEXT-AGENT-PROMPT-2026-10-12.md"
-    },
-    {
       "path": "docs/RECORD-ARCHIVE-INDEX.md",
       "state": "REFERENCE",
       "role": "RECORD",
@@ -416,14 +408,6 @@
       "replacement": "docs/taskpacks/DESIGN-LAB-UI-FIRST-INTEGRATED-TASKPACK-2026-10-09.md"
     },
     {
-      "path": "docs/current/NEXT-AGENT-PROMPT-2026-10-10.md",
-      "state": "HISTORICAL",
-      "role": "RECORD",
-      "frozen": false,
-      "basis": "当前TaskPack派生说明/交接，非第二状态源；AGENTS.md 已写明下一会话提示词不是独立 Authority ｜ 2026-12-12 起降级为历史面，接续入口改为 2026-10-12 版",
-      "replacement": "docs/current/NEXT-AGENT-PROMPT-2026-10-12.md"
-    },
-    {
       "path": "docs/current/UI-DESKTOP-RECONCILIATION-2026-10-09.md",
       "state": "PROJECTION",
       "role": "RECORD",
@@ -440,22 +424,6 @@
       "replacement": "docs/taskpacks/DESIGN-LAB-UI-FIRST-INTEGRATED-TASKPACK-2026-10-09.md"
     },
     {
-      "path": "docs/current/NEXT-AGENT-PROMPT-2026-10-11.md",
-      "state": "REFERENCE",
-      "role": "RECORD",
-      "frozen": false,
-      "basis": "当前TaskPack派生说明/交接，非第二状态源；AGENTS.md 已写明下一会话提示词不是独立 Authority",
-      "replacement": "docs/taskpacks/DESIGN-LAB-UI-FIRST-INTEGRATED-TASKPACK-2026-10-09.md"
-    },
-    {
-      "path": "docs/current/NEXT-AGENT-PROMPT-2026-10-12.md",
-      "state": "HISTORICAL",
-      "role": "RECORD",
-      "frozen": false,
-      "basis": "当前 TaskPack 派生说明/交接，非第二状态源；AGENTS.md 已写明下一会话提示词不是独立 Authority。2026-10-13 起降级为历史面：接续入口改为 2026-10-13 版，本文件只作时点记录。",
-      "replacement": "docs/current/NEXT-AGENT-PROMPT-2026-10-13.md"
-    },
-    {
       "path": "docs/current/HANDOFF-2026-10-13-COMPLETE.md",
       "state": "REFERENCE",
       "role": "RECORD",
@@ -464,12 +432,57 @@
       "replacement": "docs/taskpacks/DESIGN-LAB-UI-FIRST-INTEGRATED-TASKPACK-2026-10-09.md"
     },
     {
-      "path": "docs/current/NEXT-AGENT-PROMPT-2026-10-13.md",
+      "path": "docs/current/NEXT-AGENT-PROMPT.md",
       "state": "REFERENCE",
       "role": "RECORD",
       "frozen": false,
-      "basis": "当前 TaskPack 派生说明/交接，非第二状态源；AGENTS.md 已写明下一会话提示词不是独立 Authority。本文件同时记录 2026-10-13 两次收口后的状态，以及 #13 / owner 项 F 在代码里量到的根因（plan_to_rir 无生产调用方，且仓库没有真实 OCR 实现，缺的是产品判断不是接线）。",
+      "basis": "唯一接续入口，就地更新。2026-10-18 起不再按日期命名：按日期命名要求每轮铸新文件、搬指针，旧副本会合法地留在 docs/current/ 里，这正是\"旧路径反复出现\"的机制。本条不派工，TaskPack 仍是派工权威。",
       "replacement": "docs/taskpacks/DESIGN-LAB-UI-FIRST-INTEGRATED-TASKPACK-2026-10-09.md"
+    },
+    {
+      "path": "docs/history/next-agent-prompts/PROMPT-LINEAGE.json",
+      "state": "REFERENCE",
+      "role": "RECORD",
+      "frozen": false,
+      "basis": "被替换的按日期命名的提示词的血统清单：逐份记录路径、字节数与定态时的 sha256。它让\"这一轮之前读的是哪份\"可查，同时不把任何一份旧副本留在 docs/current/。"
+    },
+    {
+      "path": "docs/history/next-agent-prompts/NEXT-AGENT-PROMPT-2026-10-09.md",
+      "state": "HISTORICAL",
+      "role": "RECORD",
+      "frozen": false,
+      "basis": "曾是接续入口的按日期副本，现已不是入口；保留用于 lineage（当时为什么那样安排）。",
+      "supersededBy": "docs/current/NEXT-AGENT-PROMPT.md"
+    },
+    {
+      "path": "docs/history/next-agent-prompts/NEXT-AGENT-PROMPT-2026-10-10.md",
+      "state": "HISTORICAL",
+      "role": "RECORD",
+      "frozen": false,
+      "basis": "曾是接续入口的按日期副本，现已不是入口；保留用于 lineage（当时为什么那样安排）。",
+      "supersededBy": "docs/current/NEXT-AGENT-PROMPT.md"
+    },
+    {
+      "path": "docs/history/next-agent-prompts/NEXT-AGENT-PROMPT-2026-10-11.md",
+      "state": "HISTORICAL",
+      "role": "RECORD",
+      "frozen": false,
+      "basis": "曾是接续入口的按日期副本，现已不是入口；保留用于 lineage（当时为什么那样安排）。",
+      "supersededBy": "docs/current/NEXT-AGENT-PROMPT.md"
+    },
+    {
+      "path": "docs/history/next-agent-prompts/NEXT-AGENT-PROMPT-2026-10-12.md",
+      "state": "HISTORICAL",
+      "role": "RECORD",
+      "frozen": false,
+      "basis": "曾是接续入口的按日期副本，现已不是入口；保留用于 lineage（当时为什么那样安排）。",
+      "supersededBy": "docs/current/NEXT-AGENT-PROMPT.md"
     }
-  ]
+  ],
+  "promptEntryRule": {
+    "canonical": "docs/current/NEXT-AGENT-PROMPT.md",
+    "rule": "Edited in place. A dated file under docs/current/ whose name is the canonical stem plus a date is a recurrence of the accretion defect, and verify_task_document_states.py fails on it.",
+    "lineage": "docs/history/next-agent-prompts/PROMPT-LINEAGE.json",
+    "adoptedAt": "2026-10-18"
+  }
 }

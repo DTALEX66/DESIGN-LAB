@@ -2,7 +2,7 @@
 
 桌面UI优先；手机端延后/冻结。当前唯一任务包：[DL-TP-20261009-UI-FIRST-R1](docs/taskpacks/DESIGN-LAB-UI-FIRST-INTEGRATED-TASKPACK-2026-10-09.md)。
 唯一状态源：[原账本](design-lab/config/task-ledger-r3.json)的`currentExecution`；旧R5分区已冻结，不再派工。
-后续Agent／新会话直接使用[交接提示词](docs/current/NEXT-AGENT-PROMPT-2026-10-09.md)；旧任务处置见[逐项映射](docs/taskpacks/20261009-ui-first/OLD-TASK-CROSSWALK.md)。
+后续Agent／新会话直接使用[交接提示词](docs/current/NEXT-AGENT-PROMPT.md)；旧任务处置见[逐项映射](docs/taskpacks/20261009-ui-first/OLD-TASK-CROSSWALK.md)。
 资料定位固定入口：[Record完整归档与去重索引](docs/RECORD-ARCHIVE-INDEX.md)；旧资料先读[关键信息提炼](docs/current/ARCHIVE-KEY-INFORMATION-2026-10-09.md)。索引登记原文件名、ZIP成员身份、hash和项目内唯一实体位置，避免反复找外部文件。
 完整原包和图像在项目内本地档案，Git文本副本与hash清单可复核；Git克隆不带大包。产品任务未在本次整理中实施。
 以下旧能力描述按实际证据理解；冲突目标由AUTHORITY的20261009 owner条款替代，非新任务进度。

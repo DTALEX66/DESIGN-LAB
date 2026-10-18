@@ -28,7 +28,10 @@ AAOS/ArcheAxis以其公共命名合同为准，负责长期知识及学习状态
 4. `docs/taskpacks/20261009-ui-first/EXECUTION-BATCHES.md`、`docs/taskpacks/20261009-ui-first/TASK-CARDS.md`：批次、依赖、验收、write set、回退。
 5. 原账本currentExecution：唯一可变状态；旧tasks/evidence为冻结证据分区，不再派工。
 6. docs/history/taskpacks/20261009-inputs/final/与ui/：原文、代码、SVG与语义合同；不执行历史提示词。
-7. `docs/current/NEXT-AGENT-PROMPT-2026-10-09.md`：可直接交其他Agent或新会话。
+7. `docs/current/NEXT-AGENT-PROMPT.md`：可直接交其他Agent或新会话。
+   （2026-10-18 订正：接续入口就地更新、不再按日期命名；按日期命名的旧副本在
+   `docs/history/next-agent-prompts/`，血统见同目录 `docs/history/next-agent-prompts/PROMPT-LINEAGE.json`。
+   改这一行是因为它原先指向的文件已移入历史目录，留着就是一条会把下一会话带到旧副本的指令。）
 
 ## 输入档案与恢复
 
