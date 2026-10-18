@@ -280,6 +280,13 @@ def route_tokens(path: Path) -> list[tuple[str, int]]:
     adjacent string literals concatenated across lines with ``+ NAME +`` continuations, and a
     text regex either merges two routes or splits one. A Name in a concatenation is rendered
     ``<NAME>`` so the key stays stable when the referenced constant's value changes.
+
+    Two populations are read: the module-level ``ROUTES`` table (the authenticated API
+    surface, one entry per method so ``/api/projects`` legitimately appears for GET and POST),
+    and any dispatch-site comparison still written directly in ``dispatch`` -- the three
+    pre-auth entries (``/api/local-session``, ``/workbench``, ``workbench.ROUTES``). The second
+    walk is what lets a reviewer add a route without touching the table and still be convicted
+    as UNLISTED_ROUTE instead of silently invisible.
     """
     tree = ast.parse(path.read_text(encoding='utf-8'), filename=str(path))
     found: list[tuple[str, int]] = []
@@ -296,6 +303,18 @@ def route_tokens(path: Path) -> list[tuple[str, int]]:
             if left is not None and right is not None:
                 return left + right
         return None
+
+    # The table: `ROUTES = (Route('GET', <pattern>, '<handler>'), ...)`. The pattern is
+    # argument 1; a Name concatenated into it becomes `<NAME>`, matching the ledger key.
+    for node in tree.body:
+        if isinstance(node, ast.Assign) and any(
+                isinstance(target, ast.Name) and target.id == 'ROUTES'
+                for target in node.targets):
+            for element in getattr(node.value, 'elts', []):
+                if isinstance(element, ast.Call) and len(element.args) >= 2:
+                    key = literalise(element.args[1])
+                    if key is not None and key.startswith('/'):
+                        found.append((key, element.lineno))
 
     # A route may be dispatched on `self.path`, on `urlsplit(self.path).path`, or on a local
     # name bound to one of those. The third form is what the page branch uses now that the
@@ -711,8 +730,10 @@ def run(repo: Path = REPO, ledger_path: Path | None = None) -> tuple[list[str], 
         errors.append('NOTHING_TO_COMPARE: no route row is BOUND_SCHEMA -- a boundary ledger in '
                       'which nothing is actually validated proves nothing')
 
+    # One ledger row can cover one path for two methods (/api/projects is GET+POST), so the
+    # dispatched population is the distinct path set, not the table-entry count.
     summary = {'schemas': len(files), 'binding': counts[BINDING], 'inert': counts[INERT],
-               'routes': len(route_rows), 'dispatched': len(tokens),
+               'routes': len(route_rows), 'dispatched': len(token_keys),
                'bound': route_counts[BOUND_SCHEMA], 'schema_less': route_counts[SCHEMA_LESS]}
     return errors, notes, summary
 

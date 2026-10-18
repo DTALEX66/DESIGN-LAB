@@ -86,6 +86,12 @@ SCRIPTS = [
     # where every other ledger gate runs instead of living in a doc nobody executes.
     "verify_contract_bindings.py",
     "verify_route_payload_contracts.py",
+    # The two gates above judge the service against its ledger and its payload schemas; neither
+    # asks whether the page calls a path the service still serves. A renamed route could keep
+    # every backend gate green while the view kept fetching the old path, so the TypeScript call
+    # sites and the ROUTES table are compared in both directions (unserved call red, unreached
+    # route red or named with a measured reason).
+    "verify_workbench_route_calls.py",
     # 2026-10-08: the RIGHTS gate had a 74-subject requirements list, a hand-written band
     # table claiming to classify it, and a `counts` block nothing recomputed. An unclassified
     # licence state fell into a WARNING, so `READY_FOR_HANDOFF` was reachable over a position

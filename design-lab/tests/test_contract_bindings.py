@@ -668,12 +668,13 @@ class GateTeethTests(unittest.TestCase):
         repo = self.scratch('unlisted-route')
         rel = 'src/design_lab/http_service.py'
         original = (repo / rel).read_text(encoding='utf-8')
+        # The authenticated surface is a module-level ROUTES table now; a route that appears
+        # only in dispatch (or only in the table) must still be convicted here.
         write_mutant(repo, rel, patched(
             original,
-            "                    if self.path == '/api/design-systems':\n",
-            "                    if self.path == '/api/telemetry':\n"
-            "                        return self.send_json(200, {'events': []})\n"
-            "                    if self.path == '/api/design-systems':\n"))
+            "    Route('GET', '/api/design-systems', '_list_design_systems', exact=True),\n",
+            "    Route('GET', '/api/telemetry', '_health', exact=True),\n"
+            "    Route('GET', '/api/design-systems', '_list_design_systems', exact=True),\n"))
         errors, _, summary = self.run_gate(repo)
         self.assert_red_for(errors, 'UNLISTED_ROUTE', 1)
         self.assertEqual(summary['dispatched'], summary['routes'] + 1)
