@@ -347,14 +347,24 @@ class AbsentFieldsAreUnread(unittest.TestCase):
 
 class RouteContract(unittest.TestCase):
     def test_both_routes_exist_and_precede_the_fall_through_not_found(self):
+        # Routes are data now (`http_service.ROUTES`), not `re.fullmatch(...)` literals
+        # inside dispatch(). Read the inventory: grepping dispatch() for the old textual
+        # shape would fail against a file that still dispatches both methods correctly.
+        from design_lab.http_service import ROUTES
+
+        # The POST pattern also admits the optional `?supersedes=` query group, so match
+        # the path prefix rather than the whole pattern.
+        scoped = [route for route in ROUTES
+                  if not route.exact
+                  and route.pattern.startswith(r'/api/projects/([0-9a-f]{32})/rights')]
+        self.assertEqual(sorted(route.method for route in scoped), ['GET', 'POST'],
+                         'http_service.py no longer dispatches both rights methods')
+        self.assertEqual({route.action for route in scoped},
+                         {'_list_rights', '_record_rights'},
+                         'a rights route no longer answers through the rights façade')
         text = HTTP.read_text(encoding='utf-8')
         dispatch = text[text.index('def dispatch(self):'):text.index('do_GET = dispatch')]
-        self.assertIn(r"r'/api/projects/([0-9a-f]{32})/rights'", dispatch,
-                      'http_service.py no longer dispatches the rights read-back')
-        post_anchor = r"r'/api/projects/([0-9a-f]{32})/rights'"
-        self.assertIn(post_anchor, dispatch,
-                      'the POST route is gone, so the form would file against a 404')
-        self.assertLess(dispatch.index(post_anchor),
+        self.assertLess(dispatch.index('for route in ROUTES'),
                         dispatch.index("raise RequestError(404, 'NOT_FOUND')"),
                         'the rights read must be dispatched before the fall-through 404')
 

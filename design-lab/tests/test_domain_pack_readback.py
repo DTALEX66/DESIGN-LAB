@@ -408,7 +408,11 @@ class ShellClaimTests(unittest.TestCase):
         IMPLEMENTED, so that is asserted too instead of being left assumed."""
         registry = self._region('const CAPABILITY_REGISTRY', '\n] as const;',
                                 'CAPABILITY_REGISTRY')
-        dispatch = (ROOT / 'src' / 'design_lab' / 'http_service.py').read_text(encoding='utf-8')
+        # The dispatch shape is data now (`http_service.ROUTES`), not an if/elif chain of
+        # `self.path == ...` comparisons. Read the inventory itself: grepping for the old
+        # textual shape would pass on a file that no longer dispatches that way.
+        from design_lab.http_service import ROUTES
+        dispatched = {route.pattern for route in ROUTES if route.method == 'GET'}
         rows = re.findall(r"capabilityId: '([^']+)'(.*?)nextAction:", registry, re.S)
         self.assertTrue(rows, 'no capability rows extracted')
         implemented = [(name, body) for name, body in rows
@@ -429,7 +433,7 @@ class ShellClaimTests(unittest.TestCase):
                          'a capability row is claimed IMPLEMENTED twice, so one of them is not '
                          'the row this gate can vouch for')
         self.assertTrue(implemented, 'no row claims IMPLEMENTED, so the rule below checks nothing')
-        # Flat-route grammar: `self.path == '/api/x'` is how a one-segment route is dispatched, and
+        # Flat-route grammar: a one-segment route is an exact entry in ROUTES, and
         # a scoped route (/api/projects/{id}/research) is a compiled regex instead, so this gate
         # literally cannot vouch for one. Rows outside its grammar are named here rather than left
         # silently unchecked -- verify_capability_self_description.py matches those segment by
@@ -442,7 +446,7 @@ class ShellClaimTests(unittest.TestCase):
             route = re.search(r"route: 'GET (/api/[a-z0-9-]+)'", body)
             self.assertIsNotNone(route, f'{name}: an IMPLEMENTED row declares no exact route')
             path = route.group(1)
-            self.assertIn(f"self.path == '{path}'", dispatch,
+            self.assertIn(path, dispatched,
                           f'{name}: claims {path} is implemented, but http_service.py '
                           'does not dispatch it')
         self.assertTrue(flat, 'no IMPLEMENTED row is inside this gate\'s grammar, so it proves '

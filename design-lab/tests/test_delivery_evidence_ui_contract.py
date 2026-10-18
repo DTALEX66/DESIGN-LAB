@@ -170,11 +170,17 @@ class ReceiptRouteContract(unittest.TestCase):
 
     def test_the_route_dispatches_the_receipt_before_the_generic_not_found(self):
         """The route must exist and must not swallow the receipt's own codes."""
+        from design_lab.http_service import ROUTES
+
+        pattern = (r'/api/projects/([0-9a-f]{32})/bundles/'
+                   r'(bundle-native-[0-9a-f]{64})/versions/(v-[0-9a-f]{32})/receipt')
+        route = [row for row in ROUTES
+                 if row.method == 'GET' and not row.exact and row.pattern == pattern]
+        self.assertEqual(len(route), 1,
+                         'http_service.py no longer dispatches the delivery receipt route')
+        self.assertEqual(route[0].action, '_read_delivery_receipt',
+                         'the receipt route no longer answers through the receipt reader')
         dispatch = dispatch_text()
-        route = re.search(r"re\.fullmatch\(r'(/api/projects/\(\[0-9a-f\]\{32\}\)"
-                          r"/bundles/\(bundle-native-\[0-9a-f\]\{64\}\)"
-                          r"/versions/\(v-\[0-9a-f\]\{32\}\)/receipt)'", dispatch)
-        assert route, 'http_service.py no longer dispatches the delivery receipt route'
         self.assertIn('NativeDelivery(service).readback(*match.groups())', dispatch,
                       'the route no longer reads the receipt through NativeDelivery, so it is '
                       'not the re-verifying read the CLI verb uses')
@@ -197,8 +203,8 @@ class ReceiptRouteContract(unittest.TestCase):
                           'delivery_receipt.loads(row[0])'):
             self.assertIn(guarantee, body,
                           f'the shared load no longer performs {guarantee!r}')
-        handler = dispatch.index(route.group(1))
-        self.assertLess(handler, dispatch.index('raise RequestError(404, \'NOT_FOUND\')'),
+        self.assertLess(dispatch.index('for route in ROUTES'),
+                        dispatch.index('raise RequestError(404, \'NOT_FOUND\')'),
                         'the receipt route must be dispatched before the fall-through 404')
         self.assertLess(dispatch.index('except ImageAssetError'),
                         dispatch.index('except (ValueError, PathPolicyError)'),
