@@ -330,7 +330,13 @@ class ReportSubjectBindingTests(unittest.TestCase):
                           # removal is declared in report-subject-debt.json
                           # closureNote_2026_12_12 -- this pin is what catches a SILENT one.
                           "reports/current/POST-CLEANUP-AUDIT.json",
-                          "reports/current/REPOSITORY-SIZE.json",
+                          # REPOSITORY-SIZE.json left this set on 2026-10-18: its row required
+                          # "re-running the generator rewrites the whole record", and the 2026-10-18
+                          # repo cleanup re-ran scripts/deepseek_size_audit.py, which now writes a
+                          # real subject_sha. The row was removed from records[] in the same commit
+                          # and kept under resolved_2026_10_18; verify_report_subject_binding is what
+                          # refused to let it leave silently (REPORT-DEBT-CLOSED-NOT-REMOVED).
+                          # This pin is exact on purpose: it catches a silent removal, not a recorded one.
                           "reports/current/SPILL-CENSUS.json"],
                          "the unbound set only moves when a record is re-run")
         # Pinned with the reason. On 2026-10-09 all nine producers were repaired, so the code
