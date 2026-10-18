@@ -70,19 +70,6 @@
       "producerRunClass": "one-off historical audit run"
     },
     {
-      "path": "reports/current/REPOSITORY-SIZE.json",
-      "key": "subject_sha",
-      "producer": "scripts/deepseek_size_audit.py",
-      "reason": "the field was written by a generator that called git(\"rev-parse HEAD\") as one argv element: git rejects it, the helper returned empty stdout, and reports/current/REPOSITORY-SIZE.json recorded subject_sha=\"\". The call shape was fixed in scripts/deepseek_size_audit.py on 2026-10-09; the record itself was deliberately not re-run, so the field is still empty.",
-      "whatWouldCloseIt": "Re-running the generator rewrites the whole record, and this one is cited as evidence by DeepSeek ledger task(s) DLDS-D000 (DONE), so the numbers it would publish are re-based along with the subject. one-off historical audit run. Closing therefore means an explicit decision to re-base that task's evidence (or to mark the record historically unbound in the ledger), then one intentional run at a recorded head, then deleting this row in the same commit.",
-      "declaredOn": "2026-10-09",
-      "producerFixedOn": "2026-10-09",
-      "citedByLedgerTasks": [
-        "DLDS-D000 (DONE)"
-      ],
-      "producerRunClass": "one-off historical audit run"
-    },
-    {
       "path": "reports/current/SPILL-CENSUS.json",
       "key": "subject_sha",
       "producer": "scripts/deepseek_spill_census.py",
@@ -110,5 +97,11 @@
     }
   ],
   "callSites": [],
-  "closureNote_2026_12_12": "LANGUAGE-BOUNDARY-SCAN.json#subject_sha closed. The row's own precondition was 'the record deliberately not re-run, so the field is still empty'; verify_language_boundary.py was re-run intentionally on 2026-10-12 at a recorded head (trigger: owner item G option A added 395 tracked files, which invalidated tracked_files_scanned=3360), and the field now carries that head. The generators cited by DLDS-C020/DLDS-C050 therefore read a re-based subject, which is exactly what the row said closing required. Row deleted in the same commit, as that row demanded."
+  "closureNote_2026_12_12": "LANGUAGE-BOUNDARY-SCAN.json#subject_sha closed. The row's own precondition was 'the record deliberately not re-run, so the field is still empty'; verify_language_boundary.py was re-run intentionally on 2026-10-12 at a recorded head (trigger: owner item G option A added 395 tracked files, which invalidated tracked_files_scanned=3360), and the field now carries that head. The generators cited by DLDS-C020/DLDS-C050 therefore read a re-based subject, which is exactly what the row said closing required. Row deleted in the same commit, as that row demanded.",
+  "resolved_2026_10_18": {
+    "path": "reports/current/REPOSITORY-SIZE.json",
+    "key": "subject_sha",
+    "closedBy": "2026-10-18 repo cleanup: scripts/deepseek_size_audit.py was re-run, which is the closure the record itself named (\"whatWouldCloseIt\"). The regenerated record binds the commit it was written at, so the debt is gone and the register shrinks.",
+    "note": "Kept here rather than in records[] because a closed debt is history: leaving it in the open list is what made the gate report REPORT-DEBT-CLOSED-NOT-REMOVED."
+  }
 }
