@@ -19,6 +19,7 @@
 | 8 项必交付 | **PASS** | 见 §0 的交付清单，逐项有本文件小节对应 |
 | 9 条验收标准 | **PASS（文档层）** | 见 §0 的逐条判定 |
 | 最小真实闭环 | **PLANNED / BLOCKED（未执行）** | 需要真实宿主 E3、人工 E4、AAOS 接收或外部模型服务之一；均属 owner 门 |
+| CI（subject `b2cd710c`） | **FAIL（唯一红项：Workbench browser E2E）** | §7.1：main 运行 `39153365631` 的两次 attempt 均为 `failure`；失败行是 palette-route 探针的标题断言，路由本身已落到 `#/capabilities/anydesign`。该 subject 仅改 `RECORD-IMPORT-MANIFEST.json`，未触碰 workbench 运行时或 E2E 代码；Python gate 等其余作业 `success`。该 FAIL 不改变文档范围判定，也不构成产品能力证据 |
 | 产品能力 | **未提升** | 本轮没有改运行时代码；能力证据仍 E0/E1（50 条：E1=13 / E0=37），根 `evals/` 为 0、`design-lab/evals/` 仅 63 个受跟踪文件（reconstruction 6 例），无独立 Prompt Intelligence 运行时 |
 | 真实运行 / 人工验收 / AAOS 接收 | **NOT_EXECUTED** | 没有真实调用、没有真人署名、没有 AAOS 回执 |
 
@@ -34,7 +35,7 @@
 | 4 | 六大能力域能力映射表 | §5 | ✅ |
 | 5 | 技术可行性矩阵 | §6 | ✅ |
 | 6 | 任务重排建议（复用既有账本与 W00–W17） | §8 | ✅ |
-| 7 | 测试/验证报告（命令、退出码、SHA、未执行项） | §7 | ✅（本地定向闸）；CI 回执在落地后追加 |
+| 7 | 测试/验证报告（命令、退出码、SHA、未执行项） | §7 | ✅ 本地定向闸 exit 0；CI 回执见 §7.1，结论 `FAIL`（唯一红项是 Workbench browser E2E 探针） |
 | 8 | 修改文件清单、风险、回滚、下一步 | §3、§6、§8、§9 | ✅ |
 
 ### 0.2 验收标准核对（`source/ACCEPTANCE.md` 9 项）
@@ -248,8 +249,51 @@
 
 ### 7.1 CI 回执（提交后追加）
 
-- 落地提交 SHA：由读者 `git rev-parse HEAD` 自读；本报告不预填。
-- 追加条件：推送工作分支 + 快进 `main` 后，读该 SHA 的 CI 作业；若 CI 未跑/不可读，记 `NOT_VERIFIED`，不得写 success。
+- **被验证提交（subject）**：`b2cd710c765ef4ce681ef891abb17779c7fbcabe`（`fix(records): declare the six files the direction batch rewrote`）；推送后工作分支与 `origin/main` 均指向它。
+- **main 运行**：`39153365631`（Canonical Verify，event=`push`，ref=`refs/heads/main`，attempt=`2`，headSha=`b2cd710c765ef4ce681ef891abb17779c7fbcabe`）：`conclusion=failure`，https://github.com/DTALEX66/DESIGN-LAB/actions/runs/39153365631。
+- **工作分支运行**：`39153360501`（event=`push`，branch=`qoder/designlab-backup-consistency-20261007`）：`conclusion=success`，https://github.com/DTALEX66/DESIGN-LAB/actions/runs/39153360501。开发分支按工作流条件跳过 11 个重型作业，不能当作全量证据。
+- **同链前一轮失败（如实保留）**：run `39151365200`（headSha=`bb514458f6c47b746bbb3d49f38a7cfe55df3417`，本回执 subject 的父提交 `bb514458`）：`conclusion=failure`，https://github.com/DTALEX66/DESIGN-LAB/actions/runs/39151365200；失败作业：`Python gate (V3 verifiers + unit tests)` (failure)。CI 日志可读到 `PYTHON_TESTS_SHARD_RESULT shard=2/3 exit=1 tests=1083 wall_seconds=237.756 outcomes={'FAIL': 3, 'PASS': 1075, 'SKIP': 5}`；失败用例 id 不出现在 CI 日志中（模块计时行只到 `PYTHON_TESTS_MODULE_ALL     1.847s tests=4 test_record_import_fidelity`；`run_python_tests_all.py` 捕获并丢弃各 shard 的 stdout）。在干净 worktree `.project-local/worktrees/bb514458` 按 CI 同一分片命令复现出的 3 个失败用例全部属于 `test_record_import_fidelity`：`test_every_repo_held_row_is_accounted_for`, `test_recorded_hashes_match_the_files_on_disk`, `test_the_archive_still_equals_what_the_manifest_recorded`。根因是方向提交改写了 6 个 ALREADY-IN-REPO 文件却没有更新 `RECORD-IMPORT-MANIFEST.json` 的导入后演化声明。
+- **修复提交（本回执 subject）**：`b2cd710c765ef4ce681ef891abb17779c7fbcabe` 仅更新该 manifest 六行的 `repoBytesAfterImport` / `repoCrc32AfterImport` / `repoSha256AfterImport` / `evolvedBy` / `evolution`；归档 `bytes` / `crc32` / `sha256` 未动，leg 1 仍校验 ZIP。修复后本机 `scripts/record_import_verify.py --head`：`RECORD_VERIFY scope=source+repo rows=492 source_verified=492 source_unreachable=0 worktree_verified=479 mapped_copies_verified=220 blob_verified=469 blob_eol_only=10 blob_absent=0 skipped=0`；本地 `test_record_import_fidelity`：`Ran 4 tests in 13.154s / OK`（`record-fidelity-tests.log`）。
+- **同一 run 的 E2E 作业：逐 attempt 记录**：`Workbench browser E2E (exact-SHA controlled-runtime, no-skip)` 的 GitHub 作业尝试：attempt 1 `failure`（job `117751417448`）；attempt 2 `failure`（job `117754680652`）。attempt 1 的失败行：`palette-route: 1920 landed on #/capabilities/anydesign but the heading is "能力目录" not "anydesignsource · MIT"`；`BROWSER_E2E ran=9 skipped=0 failed=1`（归档 `ci-main2-failed.log`）。随后对同一 run 执行了一次单作业重跑；最后一次 attempt 的 gh 结论 = `failure`。本回执不判定首次失败的原因；重跑后仍未通过。
+- **CI 结论（本回执）**：`FAIL`。本表只记录 gh 在该 SHA 上返回的逐作业结论；没有把 skipped 当 success，也没有把本地读数当 CI 读数。
+
+**main 运行逐作业**：
+
+| 作业 | 结论 |
+|---|---|
+| `Workbench browser E2E (exact-SHA controlled-runtime, no-skip)` | `failure` |
+| `Top-level Authority consistency gate (DL-AUTHORITY-2026-09-18-R2)` | `success` |
+| `Branch light gate (compile + identity boundary; development branches only)` | `skipped` |
+| `License & secret hygiene gate` | `success` |
+| `MiniGame node gate (+ drift check)` | `success` |
+| `Workbench strict-TS product gate (taskpack 12.2/12.3/12.4/12.5)` | `success` |
+| `Python gate (V3 verifiers + unit tests)` | `success` |
+| `DeepSeek authority gate chain (DLDS-H010 / DL-AUDIT-20260914-07)` | `success` |
+| `Open Design host adapter gate` | `success` |
+| `Generated-artifact clean-tree gate` | `success` |
+| `Clean wheel install + Workbench launch gate` | `success` |
+| `CI artifact proof (H001: main-run upload readback)` | `success` |
+
+**工作分支运行逐作业**：
+
+| 作业 | 结论 |
+|---|---|
+| `Branch light gate (compile + identity boundary; development branches only)` | `success` |
+| `Top-level Authority consistency gate (DL-AUTHORITY-2026-09-18-R2)` | `skipped` |
+| `CI artifact proof (H001: main-run upload readback)` | `skipped` |
+| `Generated-artifact clean-tree gate` | `skipped` |
+| `Workbench browser E2E (exact-SHA controlled-runtime, no-skip)` | `skipped` |
+| `MiniGame node gate (+ drift check)` | `skipped` |
+| `Workbench strict-TS product gate (taskpack 12.2/12.3/12.4/12.5)` | `skipped` |
+| `DeepSeek authority gate chain (DLDS-H010 / DL-AUDIT-20260914-07)` | `skipped` |
+| `Python gate (V3 verifiers + unit tests)` | `skipped` |
+| `License & secret hygiene gate` | `skipped` |
+| `Open Design host adapter gate` | `skipped` |
+| `Clean wheel install + Workbench launch gate` | `skipped` |
+
+- **skipped 说明**：main 运行跳过 1 个作业（`Branch light gate (compile + identity boundary; development branches only)`）；工作分支运行跳过 11 个作业。skipped 不计入 success。
+- **时点说明**：§7 第 8 条是提交前工作树字节上的读数。提交后在同一 HEAD 重跑会得到 `CURRENT_REPORTS=STALE ... stored_subject=05a76852… current_head=b2cd710c765e…`（exit 0）；这是生成器的时点语义（`subjectSha` 绑定工作树基线），不是失败。CI 不运行该命令（`canonical-verify.yml` 注释已说明 clean checkout 上无法 PASS）。
+- **回执提交自身**：本回执作为独立 docs 提交推送；其 CI 结果另行读取，不作为 subject `b2cd710c765ef4ce681ef891abb17779c7fbcabe` 的替代证据。
 
 ---
 
