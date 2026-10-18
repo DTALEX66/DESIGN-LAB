@@ -1070,15 +1070,22 @@ byId("more-events").onclick = () => {
 byId("more-native").onclick = () => {
   void nativeAssets(true).catch((e) => setStatus(errMsg(e), true));
 };
-function devMode() {
-  if (typeof document === "undefined" || typeof window === "undefined") return false;
-  if (typeof document.querySelectorAll === "function" && document.querySelectorAll('script[src*="@vite/client"]').length > 0) return true;
-  try {
-    const qs = window.location.search;
-    if (typeof qs === "string" && qs.includes("dev=1")) return true;
-  } catch {
+function el(tag, attrs = {}, ...children) {
+  const node = document.createElement(tag);
+  for (const [key, value] of Object.entries(attrs)) {
+    if (value === null || value === void 0) continue;
+    if (key === "class") node.className = String(value);
+    else if (key === "dataset") for (const [dk, dv] of Object.entries(value)) node.dataset[dk] = String(dv);
+    else if (key.startsWith("on") || key === "type" || key === "value" || key === "placeholder")
+      node[key] = value;
+    else if (key === "style" && node.style) node.style.cssText = String(value);
+    else node.setAttribute(key, String(value));
   }
-  return false;
+  node.append(...children);
+  return node;
+}
+function en(text) {
+  return el("span", { lang: "en" }, text);
 }
 const SHAPE_MISSING = Symbol.for("design-lab/shape-missing");
 const DISCONNECTED = Symbol.for("design-lab/disconnected");
@@ -1101,14 +1108,6 @@ function normaliseShape(live, template, prefix = "") {
     }
   }
   return missing;
-}
-function apiOrEmpty(path, empty) {
-  if (!token && devMode()) return Promise.resolve(markDisconnected(empty));
-  return api(path).then((live) => {
-    const missing = normaliseShape(live, empty);
-    if (missing.length) Object.defineProperty(live, SHAPE_MISSING, { value: missing, enumerable: false });
-    return live;
-  });
 }
 function shapeNoticeRows(...values) {
   const notes = values.map(shapeNotice).filter(Boolean);
@@ -1146,6 +1145,105 @@ function emptyLi(value, noun, hint) {
 function emptyTd(value, noun, hint, colspan) {
   const [head, note] = emptyWording(value, noun, hint);
   return el("td", { colspan: String(colspan) }, `${head} ${note}`);
+}
+const PROJECT_DETAIL_RE = /^#\/projects\/([^/?#]+)$/;
+const PROJECT_ID_RE = /^[0-9a-f]{32}$/;
+function projectDetailId(hash) {
+  const m = PROJECT_DETAIL_RE.exec(hash);
+  if (!m || !m[1]) return null;
+  let decoded;
+  try {
+    decoded = decodeURIComponent(m[1]);
+  } catch {
+    return null;
+  }
+  return PROJECT_ID_RE.test(decoded) ? decoded : null;
+}
+function projectDetailHash(id) {
+  return "#/projects/" + encodeURIComponent(id);
+}
+const CAPABILITY_DETAIL_RE = /^#\/capabilities\/([^/?#]+)$/;
+const DETAIL_ID_RE = /^[a-z0-9][a-z0-9-]{0,79}$/;
+function capabilityDetailId(hash) {
+  const m = CAPABILITY_DETAIL_RE.exec(hash);
+  if (!m || !m[1]) return null;
+  let decoded;
+  try {
+    decoded = decodeURIComponent(m[1]);
+  } catch {
+    return null;
+  }
+  return DETAIL_ID_RE.test(decoded) ? decoded : null;
+}
+function capabilityDetailHash(id) {
+  return "#/capabilities/" + encodeURIComponent(id);
+}
+const DOMAIN_DETAIL_RE = /^#\/domains\/([^/?#]+)$/;
+function domainDetailId(hash) {
+  const m = DOMAIN_DETAIL_RE.exec(hash);
+  if (!m || !m[1]) return null;
+  let decoded;
+  try {
+    decoded = decodeURIComponent(m[1]);
+  } catch {
+    return null;
+  }
+  return DETAIL_ID_RE.test(decoded) ? decoded : null;
+}
+function domainDetailHash(packId) {
+  return packId ? "#/domains/" + encodeURIComponent(packId) : null;
+}
+const HASH_SPLIT_RE = /^([^?]*)(?:\?(.*))?$/g;
+function hashPath(hash) {
+  const m = HASH_SPLIT_RE.exec(hash);
+  HASH_SPLIT_RE.lastIndex = 0;
+  return m ? m[1] : hash;
+}
+function hashCondition(hash, name) {
+  const m = HASH_SPLIT_RE.exec(hash);
+  HASH_SPLIT_RE.lastIndex = 0;
+  const query = m && m[2];
+  if (!query) return null;
+  for (const pair of query.split("&")) {
+    const eq = pair.indexOf("=");
+    if (eq <= 0 || pair.slice(0, eq) !== name) continue;
+    try {
+      const value = decodeURIComponent(pair.slice(eq + 1));
+      return value || null;
+    } catch {
+      return null;
+    }
+  }
+  return null;
+}
+function capabilityHashForDomain(slug) {
+  return slug ? "#/capabilities?domain=" + encodeURIComponent(slug) : "#/capabilities";
+}
+function declaredDomains(row) {
+  const values = row?.axes?.domains;
+  return Array.isArray(values) ? values.filter((value) => typeof value === "string") : [];
+}
+function domainsUnclassified(row) {
+  const axes = row?.unclassifiedAxes;
+  return Array.isArray(axes) && axes.includes("domains");
+}
+function devMode() {
+  if (typeof document === "undefined" || typeof window === "undefined") return false;
+  if (typeof document.querySelectorAll === "function" && document.querySelectorAll('script[src*="@vite/client"]').length > 0) return true;
+  try {
+    const qs = window.location.search;
+    if (typeof qs === "string" && qs.includes("dev=1")) return true;
+  } catch {
+  }
+  return false;
+}
+function apiOrEmpty(path, empty) {
+  if (!token && devMode()) return Promise.resolve(markDisconnected(empty));
+  return api(path).then((live) => {
+    const missing = normaliseShape(live, empty);
+    if (missing.length) Object.defineProperty(live, SHAPE_MISSING, { value: missing, enumerable: false });
+    return live;
+  });
 }
 const OFFLINE = {
   health: { status: "UNKNOWN", version: "—", scope: "dev-offline" },
@@ -1262,87 +1360,6 @@ const DETAIL_NAV_OWNER = {
   "capability-detail": "capabilities",
   "domain-detail": "design-domains"
 };
-const PROJECT_DETAIL_RE = /^#\/projects\/([^/?#]+)$/;
-const PROJECT_ID_RE = /^[0-9a-f]{32}$/;
-function projectDetailId(hash) {
-  const m = PROJECT_DETAIL_RE.exec(hash);
-  if (!m || !m[1]) return null;
-  let decoded;
-  try {
-    decoded = decodeURIComponent(m[1]);
-  } catch {
-    return null;
-  }
-  return PROJECT_ID_RE.test(decoded) ? decoded : null;
-}
-function projectDetailHash(id) {
-  return "#/projects/" + encodeURIComponent(id);
-}
-const CAPABILITY_DETAIL_RE = /^#\/capabilities\/([^/?#]+)$/;
-const DETAIL_ID_RE = /^[a-z0-9][a-z0-9-]{0,79}$/;
-function capabilityDetailId(hash) {
-  const m = CAPABILITY_DETAIL_RE.exec(hash);
-  if (!m || !m[1]) return null;
-  let decoded;
-  try {
-    decoded = decodeURIComponent(m[1]);
-  } catch {
-    return null;
-  }
-  return DETAIL_ID_RE.test(decoded) ? decoded : null;
-}
-function capabilityDetailHash(id) {
-  return "#/capabilities/" + encodeURIComponent(id);
-}
-const DOMAIN_DETAIL_RE = /^#\/domains\/([^/?#]+)$/;
-function domainDetailId(hash) {
-  const m = DOMAIN_DETAIL_RE.exec(hash);
-  if (!m || !m[1]) return null;
-  let decoded;
-  try {
-    decoded = decodeURIComponent(m[1]);
-  } catch {
-    return null;
-  }
-  return DETAIL_ID_RE.test(decoded) ? decoded : null;
-}
-function domainDetailHash(packId) {
-  return packId ? "#/domains/" + encodeURIComponent(packId) : null;
-}
-const HASH_SPLIT_RE = /^([^?]*)(?:\?(.*))?$/g;
-function hashPath(hash) {
-  const m = HASH_SPLIT_RE.exec(hash);
-  HASH_SPLIT_RE.lastIndex = 0;
-  return m ? m[1] : hash;
-}
-function hashCondition(hash, name) {
-  const m = HASH_SPLIT_RE.exec(hash);
-  HASH_SPLIT_RE.lastIndex = 0;
-  const query = m && m[2];
-  if (!query) return null;
-  for (const pair of query.split("&")) {
-    const eq = pair.indexOf("=");
-    if (eq <= 0 || pair.slice(0, eq) !== name) continue;
-    try {
-      const value = decodeURIComponent(pair.slice(eq + 1));
-      return value || null;
-    } catch {
-      return null;
-    }
-  }
-  return null;
-}
-function capabilityHashForDomain(slug) {
-  return slug ? "#/capabilities?domain=" + encodeURIComponent(slug) : "#/capabilities";
-}
-function declaredDomains(row) {
-  const values = row?.axes?.domains;
-  return Array.isArray(values) ? values.filter((value) => typeof value === "string") : [];
-}
-function domainsUnclassified(row) {
-  const axes = row?.unclassifiedAxes;
-  return Array.isArray(axes) && axes.includes("domains");
-}
 function searchGroupRows(path, data) {
   switch (path) {
     case "/capabilities":
@@ -1513,23 +1530,6 @@ function buildVersionRing(versions) {
     svg.append(node);
   });
   return svg;
-}
-function el(tag, attrs = {}, ...children) {
-  const node = document.createElement(tag);
-  for (const [key, value] of Object.entries(attrs)) {
-    if (value === null || value === void 0) continue;
-    if (key === "class") node.className = String(value);
-    else if (key === "dataset") for (const [dk, dv] of Object.entries(value)) node.dataset[dk] = String(dv);
-    else if (key.startsWith("on") || key === "type" || key === "value" || key === "placeholder")
-      node[key] = value;
-    else if (key === "style" && node.style) node.style.cssText = String(value);
-    else node.setAttribute(key, String(value));
-  }
-  node.append(...children);
-  return node;
-}
-function en(text) {
-  return el("span", { lang: "en" }, text);
 }
 function sharedInputRows(response, limit = 4) {
   const entries = Object.entries(response.shared_inputs).slice(0, limit);

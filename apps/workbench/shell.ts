@@ -45,6 +45,34 @@ import { api, byId, cancelPendingReads, connected, errMsg, projects, setStatus, 
 // source. Sharing them is what "统一旧单页与新路由的用户流程" means here.
 import { createBrief, reviseDirection, revisionHint, splitList, uuid, versionState } from './design.js';
 
+// ---------------------------------------------------------------------------
+// D07 batch 1: the shared primitives and the pure address helpers moved to their
+// own modules. They are re-exported here, so this module's public surface is
+// unchanged -- main.ts still imports only mountAppShell, and the source-scanning
+// gates still find every symbol they name.
+//
+// What did NOT move, and why: apiOrEmpty (the native-UI AST gate counts its
+// declaration in this file), the triage state sets (the state-vocabulary gate reads
+// them from this file by regex), and every render function (the list-container and
+// design-debt gates count literals in this file's text).
+// ---------------------------------------------------------------------------
+import {
+  el, en, emptyLi, emptyTd, emptyWording, disconnectedNotice, markDisconnected,
+  normaliseShape, shapeFieldMissing, shapeNotice, shapeNoticeRows, SHAPE_MISSING,
+} from './ui-primitives.js';
+import {
+  capabilityDetailHash, capabilityDetailId, capabilityHashForDomain, declaredDomains,
+  domainDetailHash, domainDetailId, domainsUnclassified, hashCondition, hashPath,
+  projectDetailHash, projectDetailId,
+} from './route-address.js';
+
+export { el, en, emptyLi, emptyTd, emptyWording, disconnectedNotice, shapeFieldMissing, shapeNotice, shapeNoticeRows };
+export {
+  capabilityDetailHash, capabilityDetailId, capabilityHashForDomain, declaredDomains,
+  domainDetailHash, domainDetailId, domainsUnclassified, hashCondition, hashPath,
+  projectDetailHash, projectDetailId,
+};
+
 // Shared dev-mode marker (single source of truth, mirroring main.ts): true when
 // served by a Vite dev server (@vite/client injected) or via ?dev=1. Used to
 // default the empty hash to the dashboard view and keep the login panel hidden
@@ -82,29 +110,9 @@ function devMode(): boolean {
 // today (a well-formed response is untouched, and a partial one stops crashing).
 // The fields that had to be invented are recorded on the object, so a view can say
 // 未读回：响应缺少 … instead of silently rendering the empty case as 尚无.
-const SHAPE_MISSING = Symbol.for('design-lab/shape-missing');
-// The seam's other failure mode: with no session it hands out an honest EMPTY payload
-// so the page structure still renders. That empty is not evidence the ledger has
-// nothing in it, so it is marked at the source and no view may describe it as a zero.
-const DISCONNECTED = Symbol.for('design-lab/disconnected');
-
-function normaliseShape(live: Record<string, unknown>, template: unknown, prefix = ''): string[] {
-  if (template === null || typeof template !== 'object') return [];
-  const missing: string[] = [];
-  for (const [key, want] of Object.entries(template as Record<string, unknown>)) {
-    const field = prefix ? `${prefix}.${key}` : key;
-    if (Array.isArray(want)) {
-      if (!Array.isArray(live[key])) { live[key] = []; missing.push(field); }
-    } else if (want !== null && typeof want === 'object') {
-      if (live[key] === null || typeof live[key] !== 'object') { live[key] = {}; missing.push(field); }
-      missing.push(...normaliseShape(live[key] as Record<string, unknown>, want, field));
-    }
-    // null and primitive fallbacks are skipped: null is a legal live value for
-    // chosen_direction / active_binding / next_cursor, so requiring one would
-    // fabricate a failure the service never produced.
-  }
-  return missing;
-}
+// Since D07 batch 1 the marker, the normaliser and the notice strings live in
+// './ui-primitives.ts'; this declaration stays here because the native-UI AST gate
+// counts it in this file.
 
 function apiOrEmpty<T extends object>(path: string, empty: T): Promise<T> {
   if (!token && devMode()) return Promise.resolve(markDisconnected(empty));
@@ -113,73 +121,6 @@ function apiOrEmpty<T extends object>(path: string, empty: T): Promise<T> {
     if (missing.length) Object.defineProperty(live, SHAPE_MISSING, { value: missing, enumerable: false });
     return live as T;
   });
-}
-
-// One row per view that had to invent a collection because the service left it out.
-// Spread into the view's children; empty means nothing to report, so a healthy read
-// adds no noise. This is deliberately per-view rather than one shared accumulator:
-// renders run off-DOM and race, and a losing generation would otherwise leak its
-// notice into the view that won.
-export function shapeNoticeRows(...values: unknown[]): HTMLElement[] {
-  const notes = values.map(shapeNotice).filter(Boolean);
-  return notes.length ? [el('p', { class: 'error' }, notes.join('；'))] : [];
-}
-
-// What a view must say when the service answered 200 but left a collection out.
-export function shapeNotice(value: unknown): string {
-  const missing = (value as Record<symbol, unknown> | null)?.[SHAPE_MISSING];
-  return Array.isArray(missing) && missing.length
-    ? `未读回：响应缺少 ${missing.join('、')}` : '';
-}
-
-// The per-field question shapeNotice cannot answer: it reports the whole list, and a view
-// that is about to describe an EMPTY collection needs to know whether THAT field is one
-// the seam invented. An empty <ul> may be called 尚无 only when the service really
-// answered "nothing here"; when the seam had to supply the empty, saying 尚无 would be
-// the claim the notice two lines down contradicts.
-export function shapeFieldMissing(value: unknown, field: string): boolean {
-  const missing = (value as Record<symbol, unknown> | null)?.[SHAPE_MISSING];
-  return Array.isArray(missing) && missing.includes(field);
-}
-
-function markDisconnected<T extends object>(payload: T): T {
-  const mark = (target: object): void => {
-    Object.defineProperty(target, DISCONNECTED, { value: true, enumerable: false });
-  };
-  mark(payload);
-  // Views hold the collection they walked (`layer`, not the response root), so the
-  // marker has to survive one level of nesting to be reachable where it is needed.
-  for (const value of Object.values(payload)) {
-    if (value !== null && typeof value === 'object') mark(value);
-  }
-  return payload;
-}
-
-// What a view must say when there was no readback at all. Distinct from shapeNotice:
-// there the service answered and omitted a field; here nothing was ever asked.
-export function disconnectedNotice(value: unknown): string {
-  return (value as Record<symbol, unknown> | null)?.[DISCONNECTED] === true
-    ? '未读回：未连接本机设计服务' : '';
-}
-
-// The two headings an empty collection may carry. `noun` (尚无X) is a claim about the
-// ledger, so it is allowed only on a real readback. Both directions matter: the offline
-// case may not borrow the confident wording, and a real empty may not hide behind 未读回.
-export function emptyWording(value: unknown, noun: string, hint: string): [string, string] {
-  const offline = disconnectedNotice(value);
-  return offline ? ['未读回', offline] : [noun, hint];
-}
-
-export function emptyLi(value: unknown, noun: string, hint: string): HTMLElement {
-  const [head, note] = emptyWording(value, noun, hint);
-  return el('li', { class: 'list-item' }, el('div', {}, el('strong', {}, head), el('small', {}, note)));
-}
-
-export function emptyTd(value: unknown, noun: string, hint: string, colspan: number): HTMLElement {
-  const [head, note] = emptyWording(value, noun, hint);
-  // One text node, not a <small> caption: inside a table cell the 0.8em small is the
-  // size the overflow gate measures, and it failed at every width on the first run.
-  return el('td', { colspan: String(colspan) }, `${head} ${note}`);
 }
 
 // Honest empty payloads for the dev/offline seam (see apiOrEmpty).
@@ -339,139 +280,6 @@ const DETAIL_NAV_OWNER: Partial<Record<AppView, RouteView>> = {
   'capability-detail': 'capabilities',
   'domain-detail': 'design-domains',
 };
-
-const PROJECT_DETAIL_RE = /^#\/projects\/([^/?#]+)$/;
-// Project ids are `uuid4().hex` service-side. Validating the DECODED value is
-// what closes the hole: the regex above admits `%`, so `#/projects/%2e%2e%2f…`
-// decoded into a string containing `/` and `?` and was interpolated straight
-// into API paths. Bare `%` also made decodeURIComponent throw, which aborted
-// the whole route render.
-const PROJECT_ID_RE = /^[0-9a-f]{32}$/;
-
-/** Project id from a `#/projects/<id>` hash, or null for any other hash. */
-export function projectDetailId(hash: string): string | null {
-  const m = PROJECT_DETAIL_RE.exec(hash);
-  if (!m || !m[1]) return null;
-  let decoded: string;
-  try {
-    decoded = decodeURIComponent(m[1]);
-  } catch {
-    return null;
-  }
-  return PROJECT_ID_RE.test(decoded) ? decoded : null;
-}
-
-/** Hash for the project-detail route (B07 `/projects/:id`). */
-export function projectDetailHash(id: string): string {
-  return '#/projects/' + encodeURIComponent(id);
-}
-
-// DL-UI-U03 (R2 §5): a capability's full detail must be re-findable, so it gets its own
-// address the same way a project does. Same hardening as above -- validate the DECODED
-// id, because the shape regex admits `%`. Measured charset of the 60 recorded ids is
-// `[a-z0-9-]`, longest 27; anything else (traversal, encoded slash, bare `%`) resolves to
-// "no such route" rather than reaching the payload lookup.
-// DETAIL_ID_RE is shared with the domain-pack detail address below: both identities are
-// repo-declared lower slugs, and one validated shape is one less place to drift.
-const CAPABILITY_DETAIL_RE = /^#\/capabilities\/([^/?#]+)$/;
-const DETAIL_ID_RE = /^[a-z0-9][a-z0-9-]{0,79}$/;
-
-/** Capability id from a `#/capabilities/<id>` hash, or null for any other hash. */
-export function capabilityDetailId(hash: string): string | null {
-  const m = CAPABILITY_DETAIL_RE.exec(hash);
-  if (!m || !m[1]) return null;
-  let decoded: string;
-  try {
-    decoded = decodeURIComponent(m[1]);
-  } catch {
-    return null;
-  }
-  return DETAIL_ID_RE.test(decoded) ? decoded : null;
-}
-
-/** Hash for one capability's detail address. */
-export function capabilityDetailHash(id: string): string {
-  return '#/capabilities/' + encodeURIComponent(id);
-}
-
-// R2 §2 — the domain packs are second-level entries, so one pack needs its own address
-// the same way one capability does. `packId` (not `directory`) is the stable identity a
-// manifest declares, so it is what travels in the hash; a pack whose manifest declares
-// no pack_id has no addressable detail and stays in the list.
-const DOMAIN_DETAIL_RE = /^#\/domains\/([^/?#]+)$/;
-
-/** Pack id from a `#/domains/<packId>` hash, or null for any other hash. */
-export function domainDetailId(hash: string): string | null {
-  const m = DOMAIN_DETAIL_RE.exec(hash);
-  if (!m || !m[1]) return null;
-  let decoded: string;
-  try {
-    decoded = decodeURIComponent(m[1]);
-  } catch {
-    return null;
-  }
-  return DETAIL_ID_RE.test(decoded) ? decoded : null;
-}
-
-/** Hash for one domain pack's detail address, or null when the pack declares no id. */
-export function domainDetailHash(packId: string | null | undefined): string | null {
-  return packId ? '#/domains/' + encodeURIComponent(packId) : null;
-}
-
-// R2 §2 → §4: opening one pack and asking "which capabilities declare this domain" is a
-// *conditional* address, not a bare one. The condition travels **in the hash**, after a `?`,
-// because every jump in this file is `window.location.hash = …` and that assignment is what
-// fires the router; a condition parked in `location.search` would rewrite the address without
-// ever re-rendering the view. `hashPath` is therefore what the route table matches against,
-// and the route table still matches `#/capabilities` exactly -- one address, one condition.
-const HASH_SPLIT_RE = /^([^?]*)(?:\?(.*))?$/g;
-/** The path part of a hash, with any `?...` condition removed. */
-export function hashPath(hash: string): string {
-  const m = HASH_SPLIT_RE.exec(hash);
-  HASH_SPLIT_RE.lastIndex = 0;
-  return m ? m[1] : hash;
-}
-/** One condition value from a hash's `?...` part, or null when it is absent. */
-export function hashCondition(hash: string, name: string): string | null {
-  const m = HASH_SPLIT_RE.exec(hash);
-  HASH_SPLIT_RE.lastIndex = 0;
-  const query = m && m[2];
-  if (!query) return null;
-  for (const pair of query.split('&')) {
-    const eq = pair.indexOf('=');
-    if (eq <= 0 || pair.slice(0, eq) !== name) continue;
-    try {
-      const value = decodeURIComponent(pair.slice(eq + 1));
-      return value || null;
-    } catch {
-      return null;                      // a malformed escape is no condition, not a crash
-    }
-  }
-  return null;
-}
-/**
- * The capability-library address carrying one declared domain.
- *
- * A slug that is not a non-empty string yields the bare address: a pack that declares no
- * domain must land on the unfiltered list rather than on a condition that matches nothing
- * for a reason the reader cannot see.
- */
-export function capabilityHashForDomain(slug: string | null | undefined): string {
-  return slug ? '#/capabilities?domain=' + encodeURIComponent(slug) : '#/capabilities';
-}
-
-/** The `axes.domains` a capability record declares, as strings. */
-export function declaredDomains(row: { axes?: { domains?: unknown } } | null | undefined): string[] {
-  const values = row?.axes?.domains;
-  return Array.isArray(values)
-    ? values.filter((value): value is string => typeof value === 'string')
-    : [];
-}
-/** True when the record itself says its `domains` axis was never classified. */
-export function domainsUnclassified(row: { unclassifiedAxes?: unknown } | null | undefined): boolean {
-  const axes = row?.unclassifiedAxes;
-  return Array.isArray(axes) && axes.includes('domains');
-}
 
 /**
  * One search group's rows, keyed by the route it reads.
@@ -666,39 +474,6 @@ function buildVersionRing(versions: Array<{ version: number; chosen: boolean; su
     svg.append(node);
   });
   return svg;
-}
-
-export function el<K extends keyof HTMLElementTagNameMap>(tag: K, attrs: Record<string, unknown> = {}, ...children: (Node | string)[]): HTMLElementTagNameMap[K] {
-  const node = document.createElement(tag);
-  for (const [key, value] of Object.entries(attrs)) {
-    if (value === null || value === undefined) continue;
-    if (key === 'class') node.className = String(value);
-    else if (key === 'dataset') for (const [dk, dv] of Object.entries(value as Record<string, unknown>)) (node as HTMLElement).dataset[dk] = String(dv);
-    else if (key.startsWith('on') || key === 'type' || key === 'value' || key === 'placeholder')
-      (node as unknown as Record<string, unknown>)[key] = value;
-    // `style` MUST go through the CSSOM. The service serves every workbench
-    // response with `style-src 'self'` and NO 'unsafe-inline' (CSP in
-    // src/design_lab/workbench.py), which blocks a `style` ATTRIBUTE and logs an
-    // "Applying inline style violates..." console error that the browser E2E
-    // treats as a hard failure; CSSStyleDeclaration writes are exempt. Probed
-    // against the exact CSP in a real browser: setAttribute('style') blocked,
-    // while style.cssText / setProperty / property assignment all applied.
-    // The vm DOM mocks have no CSSStyleDeclaration, so fall back to the
-    // attribute there (a vm context enforces no CSP).
-    else if (key === 'style' && (node as HTMLElement).style) (node as HTMLElement).style.cssText = String(value);
-    else node.setAttribute(key, String(value));
-  }
-  node.append(...children);
-  return node;
-}
-
-// Machine-state words stay English on purpose -- they are the service's own
-// vocabulary, and translating them would create exactly the second vocabulary
-// that verify_state_vocabularies.py exists to prevent. Inside a lang="zh-CN"
-// document they must be marked instead, or a screen reader pronounces them with
-// Chinese phonemes (WCAG 3.1.2 Language of Parts).
-export function en(text: string): HTMLElement {
-  return el('span', { lang: 'en' }, text);
 }
 
 // One shared-input row per declared external root. Only a probe that actually saw

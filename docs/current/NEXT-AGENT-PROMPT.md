@@ -35,7 +35,7 @@ git rev-parse HEAD && git status --porcelain && git log --oneline -5
 gh pr list
 gh run list --branch main --limit 1
 python design-lab/scripts/verify_task_document_states.py     # 13 项，含两道新检查
-python design-lab/scripts/verify_top_level_authority.py      # 10 项，含 5 个 SHA 钉
+python scripts/verify_top_level_authority.py                 # 10 项，含 5 个 SHA 钉
 ```
 
 **别抄本文件的数字当事实。** 上一轮的红灯里有一次就是"文档说已同步、实际没有"。
@@ -66,6 +66,28 @@ python design-lab/scripts/verify_top_level_authority.py      # 10 项，含 5 �
 `docs/architecture/DIRECTORY-AUTHORITY.md` **明文冻结**（"must not gain new consumers"）。
 成文的架构决定优先于清理冲动——要动它，先改那份文档并给出 ADR，不要在清理批里顺手删。
 
+### 3.5 D07 拆分的边界是**量出来的**，不是猜的
+`shell.ts` 7756 行里，能被搬走的和不能被搬走的，差别不在"重不重要"，而在**有没有闸按源码
+文本/位置读它**。已逐条核过 20 个来源（结论落在 D07 batch 1 的提交里），要点：
+
+- `apiOrEmpty` 的**函数声明**必须在 `shell.ts`：`tests/shape-notice-coverage.mjs` 用 TS AST
+  要求 `function apiOrEmpty` 恰好 1 个，并把它当"闸的对象"，搬走即 `exit 1`。
+- `FAILED_STATES` / `HUMAN_STATES` / `IN_FLIGHT_STATES` 不可搬：`verify_state_vocabularies.py`
+  用 `const X = new Set\(\[(.*?)\]\)` 只在本文件正则匹配，找不到就报"词汇表无法校验"。
+- `el('ul', { class: 'list'` 在 `shell.ts` 里**精确 52 次**（`test_workbench_css_single_definition.py`）。
+  任何一个载体搬走，计数就变成 51——它不是"下限"，是对账。
+- `scripts/design_debt_baseline.py` 只测固定 7 个文件，`shell.ts` 贡献 29 个字面 px 与 1 个
+  字面色值；`DESIGN.md §4` 的"26/534/25"是它的投影。搬走 px/色值载体 → 实测下降 → 文档那
+  句话不再成立。**新文件不在 SCOPE 里**，所以新文件里的 px/色值不会被测——这是拆分引入的
+  静默盲区，要么把新文件登记进 SCOPE，要么别往里放字面量。
+- `verify_capability_self_description.py` 的 `CAPABILITY_REGISTRY` 块**不是 43 行，是 3700 行**：
+  它用 `^\];` 收尾，而注册表自己以 `] as const;` 结束，真正的 `^];` 命中在 `PROJECT_STAGES`
+  的闭合行。在那个区间里插入任何 `^];` 或 `capabilityId:` 字面量都会改块边界/行数（闸钉 `rows == 5`）。
+
+**推论**：拆分顺序只能是"先搬没人按文本读的纯函数"，DOM 组件要一批一批搬，且每搬一个
+含 px/色值或 `ul.list` 的组件，都得同时改闸的清单与 `DESIGN.md` 的数字——那是**改合同**，
+不是拆分。不要用一个批次的借口顺手改合同。
+
 ## 4. 三条硬规则（违反会被闸拦，或会被 CI 打回来）
 
 1. **不要铸日期副本。** 入口就地改。
@@ -75,7 +97,7 @@ python design-lab/scripts/verify_top_level_authority.py      # 10 项，含 5 �
 3. **删掉登记行时，钉住它的 pin 要在同一提交里跟着走**，并内联写明理由。否则 CI 会用
    `REPORT-DEBT-CLOSED-NOT-REMOVED` 或精确集合断言回你——这两种红灯都是对的。
 
-## 5. 已经做完的（D01–D06，全部在 `main` 上、CI 逐作业读过）
+## 5. 已经做完的（D01–D06 全在 `main` 上、CI 逐作业读过；D07 只做了第一批）
 
 | 项 | 结果 |
 |---|---|
@@ -85,21 +107,33 @@ python design-lab/scripts/verify_top_level_authority.py      # 10 项，含 5 �
 | D04 分片 | `--shard i/n` 独立进程 + 独立运行根；编排器校验**并集多重集合**等于 discovery |
 | D05 重复调用 | 11 个重复步骤里删 7 个（9 次调用），保留跨作业/条件/轻闸那 4 个；阻断已用注入失败证明 |
 | D06 请求截止 | 读 15s / 写 45s；写超时报"结果待核对，不是失败"并禁止盲目重发；切页只取消读 |
+| D07 拆分（第一批） | `shell.ts` 7756 → 7531 行：`ui-primitives.ts`（`el`/`en` + 形状/未连接/空集措辞）与 `route-address.ts`（纯地址与哈希映射）独立成模块，`shell.ts` 原样再导出，导出面零变化；`build/main.js` 字节数不变（369.51 kB），差异只有模块体顺序 |
 
 顺带修掉的真问题：套件曾把 **20 个测试登记两遍**（`from ... import Class` 让 P0 用例二次进册，
 3011→2991）；工作流曾因**重复映射键**被 GitHub 整份拒收（零作业 + failure，看着像基础设施抖动）。
 
 ## 6. 下一刀：三个候选（按价值，不按顺序）
 
-### A. D07 `shell.ts` 拆分（7751 行）——第一批只做"保持导出边界"的抽取
-先抽共同错误/加载/状态组件与纯格式函数，**不动**页面级 render 的导出面，再谈动态 import。
-**坑**：仓库里有一批"整文件源码出现次数/位置"型合同（`test_workbench_css_single_definition.py`
-的 list 容器精确清单就是其一）。改模块边界时这些会红——按该文件的既有惯例登记"清单长了几列"，
-不要为了让测试过而改数字；能转成页面/DOM 合同的，先转合同再拆文件。
+### A. D07 `shell.ts` 拆分（第一批已交付，共 7531 行）——第二批切 "状态组件" 与 "纯数据编排"
+第一批只搬了两块**没人按文本读**的东西（`ui-primitives.ts` / `route-address.ts`，见 §3.5/§5）。
+第二批的候选，按"搬走不会碰任何清单"排序：
+
+1. `StateSpec` / `STATE_SPECS` / `stateBlock` / `stateMachineStepper`（约 70 行，`el`/`en` 现在
+   已经能从新模块导入，无环）。`renderUiStates` 必须留在 `shell.ts`——它调 `viewLabel()`，
+   而 `viewLabel` 读的 `ROUTE_VIEWS` 被 `appshell.mjs` 与桌面审计脚本按**位置**切出来。
+2. `composeTargetPlan` / `readPlanReceipt` / `sha256Hex` / `contentKey` / `navGroupChunks`
+   （纯数据编排，但要注意 `appshell.mjs` 从 vm 上下文直接读 `searchGroupRows`，同类
+   "bundle 顶层可见" 的符号不要搬）。
+3. 页面级 render 留到最后：它们同时被 `ul.list` 精确计数（52）和 `DESIGN.md` 的 px/色值
+   三元组（26/534/25）钉住，搬一个就要同步改两处合同 + 该文件的登记惯例。
+
+**坑（第一批实测）**：`git diff` 会告诉你 `build/main.js` 只差模块体顺序、字节数一模一样——
+这不是"没生效"，而是 Rollup 把新模块体整体前置了。判据看 `transforming... 6 modules`
+（4 → 6）与 `test_workbench_served_bundle`，不要看字节数。
 
 ### B. D08 列表渲染与 `design_layer` 查询的性能基准
 先建合成基准（100 / 1000 / 10000 项），量 DOM 节点数、响应字节、首屏与切页时间，**再**决定分页。
-`shell.ts` 7751 行只证明维护耦合，不证明首屏慢——不要用行数承诺性能。
+行数只证明维护耦合，不证明首屏慢——不要用行数承诺性能。
 
 ### C. U09（知识回执/离线/反馈）——产品切片
 `U01`–`U07` 都是 PARTIAL；`U08`–`U12` 未开始。做产品切片时，`U07` 的教训是：
@@ -133,6 +167,12 @@ python design-lab/scripts/verify_top_level_authority.py      # 10 项，含 5 �
 - **本机沙箱跑不了全量 Python 套件**：safe-delete shim 会在中途 `SystemExit`，另有
   `rollback_lock_or_permission_failure…` 这类在 Windows 造不出锁的用例。本机聚合闸的基线是
   `total=75 failed=1..2`，**不是** 0；差别只在 CI 上消除。
+- 本机**没有 pytest**。用仓库根 `.venv/Scripts/python.exe`，单模块跑法：
+  `PYTHONPATH="design-lab;src" .venv/Scripts/python.exe -m unittest tests.test_rights_ui_contract`。
+  结构合同那条另有入口：`python scripts/run_structure_contracts.py`（31 个测试，含 52/50 清单）。
+- **本机有一个只在 checkout 里成立的假红**：`design-lab/config/contract-bindings.json` 在工作树是
+  CRLF、HEAD blob 是 LF，于是 `test_working_tree_line_endings` 报它 776 处 CRLF。`git status`
+  干净、`git hash-object` 等于 HEAD blob 就说明是检出形态，不是内容——不要去"修"它。
 - 分片并集是 `PYTHON_TESTS_UNION=OK expected=… distinct=… ran=… duplicates=0 missing=0`；
   它抓过真 bug，改动测试装载方式后务必看这一行。
 - 改工作流先用 `actionlint` 校验（`gh release download` 取单文件即可），
