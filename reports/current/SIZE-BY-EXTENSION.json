@@ -1,43 +1,43 @@
 {
   "schemaVersion": "design-lab/size-by-extension/v1",
   "task_key": "DL-TP-20260914-DEEPSEEK-AUTHORITY-R1::DLDS-D000",
-  "measured_at": "2026-09-13T16:26:39+00:00",
+  "measured_at": "2026-10-18T09:52:03+00:00",
   "tracked": [
     {
-      "extension": ".png",
-      "files": 28,
-      "bytes": 13121261,
-      "mib": 12.513
-    },
-    {
       "extension": ".json",
-      "files": 540,
-      "bytes": 7017749,
-      "mib": 6.693
+      "files": 1267,
+      "bytes": 26538968,
+      "mib": 25.31
     },
     {
-      "extension": ".py",
-      "files": 369,
-      "bytes": 3079241,
-      "mib": 2.937
+      "extension": ".png",
+      "files": 93,
+      "bytes": 20991214,
+      "mib": 20.019
     },
     {
       "extension": ".md",
-      "files": 647,
-      "bytes": 3026223,
-      "mib": 2.886
+      "files": 1019,
+      "bytes": 9195907,
+      "mib": 8.77
+    },
+    {
+      "extension": ".py",
+      "files": 666,
+      "bytes": 6954589,
+      "mib": 6.632
     },
     {
       "extension": ".js",
-      "files": 94,
-      "bytes": 1492941,
-      "mib": 1.424
+      "files": 99,
+      "bytes": 2063165,
+      "mib": 1.968
     },
     {
       "extension": ".csv",
-      "files": 4,
-      "bytes": 1238295,
-      "mib": 1.181
+      "files": 6,
+      "bytes": 1246185,
+      "mib": 1.188
     },
     {
       "extension": ".mp4",
@@ -52,16 +52,58 @@
       "mib": 0.62
     },
     {
+      "extension": ".mjs",
+      "files": 54,
+      "bytes": 583701,
+      "mib": 0.557
+    },
+    {
+      "extension": ".ts",
+      "files": 13,
+      "bytes": 537226,
+      "mib": 0.512
+    },
+    {
+      "extension": ".txt",
+      "files": 106,
+      "bytes": 428466,
+      "mib": 0.409
+    },
+    {
+      "extension": ".css",
+      "files": 12,
+      "bytes": 368505,
+      "mib": 0.351
+    },
+    {
+      "extension": ".zip",
+      "files": 2,
+      "bytes": 343798,
+      "mib": 0.328
+    },
+    {
+      "extension": ".html",
+      "files": 31,
+      "bytes": 328636,
+      "mib": 0.313
+    },
+    {
+      "extension": ".jpg",
+      "files": 1,
+      "bytes": 316830,
+      "mib": 0.302
+    },
+    {
       "extension": ".webp",
       "files": 2,
       "bytes": 303076,
       "mib": 0.289
     },
     {
-      "extension": ".css",
-      "files": 4,
-      "bytes": 221370,
-      "mib": 0.211
+      "extension": ".patch",
+      "files": 1,
+      "bytes": 198945,
+      "mib": 0.19
     },
     {
       "extension": ".lock",
@@ -70,10 +112,58 @@
       "mib": 0.165
     },
     {
-      "extension": ".html",
-      "files": 19,
-      "bytes": 162478,
-      "mib": 0.155
+      "extension": "(none)",
+      "files": 47,
+      "bytes": 160432,
+      "mib": 0.153
+    },
+    {
+      "extension": ".md\"",
+      "files": 20,
+      "bytes": 159263,
+      "mib": 0.152
+    },
+    {
+      "extension": ".log",
+      "files": 82,
+      "bytes": 123953,
+      "mib": 0.118
+    },
+    {
+      "extension": ".gz",
+      "files": 1,
+      "bytes": 119264,
+      "mib": 0.114
+    },
+    {
+      "extension": ".license",
+      "files": 103,
+      "bytes": 102130,
+      "mib": 0.097
+    },
+    {
+      "extension": ".svg",
+      "files": 71,
+      "bytes": 81095,
+      "mib": 0.077
+    },
+    {
+      "extension": ".docx\"",
+      "files": 1,
+      "bytes": 69535,
+      "mib": 0.066
+    },
+    {
+      "extension": ".yaml",
+      "files": 11,
+      "bytes": 55648,
+      "mib": 0.053
+    },
+    {
+      "extension": ".json\"",
+      "files": 7,
+      "bytes": 50261,
+      "mib": 0.048
     },
     {
       "extension": ".jsx",
@@ -82,51 +172,39 @@
       "mib": 0.046
     },
     {
-      "extension": ".mjs",
-      "files": 13,
-      "bytes": 43932,
-      "mib": 0.042
-    },
-    {
-      "extension": ".yaml",
-      "files": 8,
-      "bytes": 28458,
-      "mib": 0.027
-    },
-    {
-      "extension": ".license",
-      "files": 34,
-      "bytes": 23751,
-      "mib": 0.023
-    },
-    {
-      "extension": ".ts",
-      "files": 1,
-      "bytes": 16307,
-      "mib": 0.016
-    },
-    {
-      "extension": "(none)",
-      "files": 44,
-      "bytes": 15523,
-      "mib": 0.015
-    },
-    {
       "extension": ".sql",
-      "files": 6,
-      "bytes": 13100,
-      "mib": 0.012
+      "files": 14,
+      "bytes": 38920,
+      "mib": 0.037
     },
     {
       "extension": ".yml",
-      "files": 4,
-      "bytes": 11927,
-      "mib": 0.011
+      "files": 6,
+      "bytes": 38151,
+      "mib": 0.036
+    },
+    {
+      "extension": ".txt\"",
+      "files": 1,
+      "bytes": 14227,
+      "mib": 0.014
+    },
+    {
+      "extension": ".tsx",
+      "files": 5,
+      "bytes": 10092,
+      "mib": 0.01
     },
     {
       "extension": ".cjs",
       "files": 2,
       "bytes": 7441,
+      "mib": 0.007
+    },
+    {
+      "extension": ".toml",
+      "files": 1,
+      "bytes": 6914,
       "mib": 0.007
     },
     {
@@ -136,44 +214,34 @@
       "mib": 0.006
     },
     {
-      "extension": ".txt",
-      "files": 4,
-      "bytes": 3443,
-      "mib": 0.003
-    },
-    {
       "extension": ".java",
       "files": 1,
       "bytes": 3078,
       "mib": 0.003
     },
     {
-      "extension": ".toml",
+      "extension": ".jsonl",
       "files": 1,
-      "bytes": 2348,
+      "bytes": 2864,
+      "mib": 0.003
+    },
+    {
+      "extension": ".ps1",
+      "files": 4,
+      "bytes": 2056,
       "mib": 0.002
+    },
+    {
+      "extension": ".license\"",
+      "files": 1,
+      "bytes": 1053,
+      "mib": 0.001
     },
     {
       "extension": ".gradle",
       "files": 3,
       "bytes": 647,
       "mib": 0.001
-    },
-    {
-      "extension": ".ps1",
-      "files": 1,
-      "bytes": 509,
-      "mib": 0.0
-    },
-    {
-      "extension": ".in",
-      "files": 1,
-      "bytes": 125,
-      "mib": 0.0
     }
-  ],
-  "projection": true,
-  "subjectSha": "042ac635ae7a6042db366f7fb19508fc5db7bc65",
-  "fresh": false,
-  "generatedBy": "scripts/deepseek_size_audit.py"
+  ]
 }

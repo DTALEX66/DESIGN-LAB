@@ -50,7 +50,7 @@ FAMILIES = [
     ("capability-index", "the product capability inventory and its declared state",
      "design-lab/config/capability-index.json",
      ["design-lab/config/capability-index.json", "design-lab/config/capability-status.json",
-      "design-lab/config/CAPABILITY_INDEX.md", "design-lab/config/capability-index-v1-backup.json"],
+      "design-lab/config/CAPABILITY_INDEX.md"],
      ["design-lab/scripts/generate_capability_indexes.py"]),
     ("evidence-index", "evidence level records and their tree binding",
      "design-lab/config/capability-evidence-index.json",

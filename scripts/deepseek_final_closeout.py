@@ -525,8 +525,10 @@ REMEDIATION_EXCEPTIONS = [
         "and there is no lockfile",
      "state": "BY_DESIGN", "owner": "n/a"},
     {"area": "tracked backups", "exception":
-        "design-lab/config/capability-index-v1-backup.json (445 KB) is still tracked",
-     "state": "REPORTED_NOT_FIXED", "owner": "owner decision"},
+        "design-lab/config/capability-index-v1-backup.json (445 KB) was tracked until "
+        "2026-10-18; removed under the owner's cleanup instruction, and the ssot list that "
+        "named it as part of the capability index no longer does",
+     "state": "RESOLVED_2026_10_18", "owner": "owner decision (2026-10-18 cleanup)"},
     {"area": "legacy package", "exception":
         "design-lab/core is an unused legacy package outside the declared layout",
      "state": "REPORTED_NOT_FIXED", "owner": "owner decision"},

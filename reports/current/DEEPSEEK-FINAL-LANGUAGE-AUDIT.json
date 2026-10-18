@@ -1,8 +1,8 @@
 {
   "schemaVersion": "design-lab/deepseek-final-language-audit/v1",
   "task_key": "DL-TP-20260914-DEEPSEEK-AUTHORITY-R1::DLDS-K020",
-  "audited_at": "2026-09-13T18:57:38+00:00",
-  "subject_sha": "a6d65d636ffe1b7fb2d8c5a023cbe5c338f9d220",
+  "audited_at": "2026-10-18T09:48:10+00:00",
+  "subject_sha": "15b3b6838af52cf7376b2d78fa5dc4389c709d8a",
   "tracked_files": 1907,
   "languages": [
     {
@@ -558,13 +558,56 @@
     },
     {
       "condition": "Host JS ownership is clear",
-      "ok": true,
+      "ok": false,
       "measured": {
         "node_manifests": [
-          "fixtures/domains/game-visual/package.json"
+          "apps/workbench/package.json",
+          "docs/audits/DESIGN-LAB-UIKIT-CONFORMANCE-2026-09-28/session/b10-1to1-handoff/ui-suite-extract/B08/app/package.json",
+          "docs/audits/DESIGN-LAB-UIKIT-CONFORMANCE-2026-09-28/session/b10-1to1-handoff/ui-suite-extract/B08/packages/ui-core/package.json",
+          "docs/audits/DESIGN-LAB-UIKIT-CONFORMANCE-2026-09-28/ui-kit/B08/app/package.json",
+          "docs/audits/DESIGN-LAB-UIKIT-CONFORMANCE-2026-09-28/ui-kit/B08/packages/ui-core/package.json",
+          "fixtures/domains/game-visual/package.json",
+          "package.json"
         ],
-        "second_node_backend": [],
-        "node_lockfiles": [],
+        "second_node_backend": [
+          {
+            "path": "docs/audits/DESIGN-LAB-UIKIT-CONFORMANCE-2026-09-28/session/b10-1to1-handoff/ui-suite-extract/B08/app/package.json",
+            "scripts": [
+              "build",
+              "dev",
+              "preview"
+            ]
+          },
+          {
+            "path": "docs/audits/DESIGN-LAB-UIKIT-CONFORMANCE-2026-09-28/ui-kit/B08/app/package.json",
+            "scripts": [
+              "build",
+              "dev",
+              "preview"
+            ]
+          },
+          {
+            "path": "fixtures/domains/game-visual/package.json",
+            "scripts": [
+              "android:build",
+              "android:inspect",
+              "android:install",
+              "android:prepare",
+              "content:v5:check",
+              "douyin:build",
+              "douyin:check",
+              "serve",
+              "skin:new",
+              "skins:check",
+              "test",
+              "verify",
+              "verify:summary"
+            ]
+          }
+        ],
+        "node_lockfiles": [
+          "pnpm-lock.yaml"
+        ],
         "python_lockfiles": [
           "requirements.txt",
           "uv.lock"
@@ -580,7 +623,9 @@
           "requirements.txt",
           "uv.lock"
         ],
-        "node_lockfiles": [],
+        "node_lockfiles": [
+          "pnpm-lock.yaml"
+        ],
         "multiple_lockfile_managers": false,
         "note": "uv.lock is the Python lock; no second manager is present"
       }
@@ -598,7 +643,7 @@
       "ok": true,
       "measured": {
         "python_packages": 1,
-        "node_manifests": 1,
+        "node_manifests": 7,
         "note": "one Python package tree; no second service implementation"
       }
     },
@@ -611,7 +656,7 @@
           "task_axes_states": 15,
           "provider_license": 9
         },
-        "detected_copies": 13,
+        "detected_copies": 15,
         "disagreeing_copies": 0,
         "detector_is_a_lower_bound": true
       }
@@ -619,12 +664,10 @@
   ],
   "counts": {
     "conditions": 7,
-    "ok": 7,
-    "failed": []
+    "ok": 6,
+    "failed": [
+      "Host JS ownership is clear"
+    ]
   },
-  "verdict": "PASS",
-  "projection": true,
-  "subjectSha": "042ac635ae7a6042db366f7fb19508fc5db7bc65",
-  "fresh": false,
-  "generatedBy": "scripts/deepseek_final_closeout.py"
+  "verdict": "FAIL"
 }

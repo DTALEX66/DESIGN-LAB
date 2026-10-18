@@ -1,6 +1,6 @@
 # DeepSeek Final Audit - DL-TP-20260914-DEEPSEEK-AUTHORITY-R1
 
-Subject: `a6d65d636ffe1b7fb2d8c5a023cbe5c338f9d220` on branch `codex/deepseek-authority-r1`. Written 2026-09-13T18:57:39+00:00.
+Subject: `15b3b6838af52cf7376b2d78fa5dc4389c709d8a` on branch `qoder/designlab-backup-consistency-20261007`. Written 2026-10-18T09:48:21+00:00.
 
 ## Repository Normalization Report
 
@@ -23,14 +23,14 @@ The copy count is a lower bound measured by a line-level detector; it is not a c
 Reclaimed by cleanup: 316.79 MiB across 167 cache/temp entries, each with a digest and a recreation note.
 No like-for-like before/after exists for the runtime roots, and none is claimed: the earliest recorded reading post-dates the deletion it would serve as a 'before' for. See POST-CLEANUP-AUDIT.json#before_after.
 Git pack: current size recorded; the earlier pack state is not recoverable, so no pack reduction is claimed.
-Third-party full source trees are not tracked (NO_FULL_THIRD_PARTY_SOURCE_TREES_TRACKED): 3 present in the tree, 37 only in an ignored cache, 6 via lock reference.
+Third-party full source trees are not tracked (NO_FULL_THIRD_PARTY_SOURCE_TREES_TRACKED): 3 present in the tree, 0 only in an ignored cache, 6 via lock reference.
 Evidence-bearing runtime directories were NOT deleted; they are listed for owner approval, which is the only path the taskpack allows for them.
 
 ## Data Spill Migration Report
 
 Census verdict: CENSUS_COMPLETE; scope is metadata and path level only.
-DESIGN-LAB-owned legacy objects migrated: 10 (11565138 bytes), with per-object digests and restore paths.
-Empty legacy directories cleared by the migration: 3 (the namespace held empty directories only, so nothing with content was deleted).
+DESIGN-LAB-owned legacy objects migrated: 109 (265077183 bytes), with per-object digests and restore paths.
+Empty legacy directories cleared by the migration: 0 (the namespace held empty directories only, so nothing with content was deleted).
 Refused as agent-native: .hermes/skill-call-index.json (DO_NOT_TOUCH).
 No private session, credential, sibling project or E: drive content was read at any point in this run.
 
@@ -47,15 +47,15 @@ Standards alignment: DTCG 2025.10 canonical with legacy behind an adapter, OTIO 
 | Item | Value |
 |---|---|
 | tracked files before | 1832 |
-| tracked files after | 1907 |
+| tracked files after | 3777 |
 | tracked MiB before | 30.15 |
-| tracked MiB after | 31.14 |
-| .project-local MiB now | 4501.02 |
+| tracked MiB after | 69.29 |
+| .project-local MiB now | 6572.22 |
 | reclaimed MiB | 316.79 |
-| git pack MiB now | 210.85 |
+| git pack MiB now | 241.2 |
 | third-party full copies tracked | 3 |
-| spill objects migrated | 10 |
-| empty legacy directories cleared | 3 |
+| spill objects migrated | 109 |
+| empty legacy directories cleared | 0 |
 
 ## Remaining exceptions
 
@@ -65,14 +65,14 @@ Standards alignment: DTCG 2025.10 canonical with legacy behind an adapter, OTIO 
 | runtime volume | OWNER_DELETE_APPROVAL_REQUIRED | .project-local holds evidence-bearing run directories left in place at OWNER_DELETE_APPROVAL_REQUIRED; reclaiming them needs owner approval |
 | python tooling | REPORTED_NOT_FIXED | ruff is declared in pyproject but is not installed, so lint is not enforced by any gate; pytest is not installed and the suite runs under unittest. The dependency lock itself is present: uv.lock and requirements.txt are both tracked |
 | node tooling | BY_DESIGN | no product Node package exists: the only manifest belongs to the game-visual fixture, and there is no lockfile |
-| tracked backups | REPORTED_NOT_FIXED | design-lab/config/capability-index-v1-backup.json (445 KB) is still tracked |
+| tracked backups | RESOLVED_2026_10_18 | design-lab/config/capability-index-v1-backup.json (445 KB) was tracked until 2026-10-18; removed under the owner's cleanup instruction, and the ssot list that named it as part of the capability index no longer does |
 | legacy package | REPORTED_NOT_FIXED | design-lab/core is an unused legacy package outside the declared layout |
 | empty directory | REPORTED_NOT_FIXED | services/ is an empty tracked-adjacent directory (EMPTY_DIR deviation in the directory audit) |
 | live database | NOT_VERIFIABLE_AS_STATED | .project-local/state/ does not exist, so a claim that 'the live database is unmodified' is not verifiable as stated; the proxy used is that no *.db under .project-local changed |
 | agent-native artifact | REFUSED_BY_POLICY | .hermes/skill-call-index.json is not provably DESIGN-LAB-owned and is left untouched (DO_NOT_TOUCH) |
 | measurement | WITHDRAWN_CLAIM | no like-for-like before/after exists for the runtime roots or the git pack, so the only reduction claimed is the digest-backed reclaimed byte count |
 | text encoding in subprocess calls | PARTIALLY_FIXED_AND_REPORTED | 119 tracked call sites pass text=True to subprocess without an explicit encoding, so child output is decoded with the machine locale codec (cp936 on this host). Two are fixed because they broke the verification chain itself: verify_design_lab.py now decodes UTF-8 and tells its children to emit UTF-8, making the chain locale-independent, and verify_review_surface.py, whose child prints Chinese section headings. The remaining 117 are reported rather than rewritten: sweeping them without running the full test suite would be an unverified mass edit |
-| test gate scope | DEFERRED_DECLARED | H010 executed all four required runs over a declared critical set of 16 stateful and contract-holding modules (220 tests: forward, reverse, randomized seed 42, and 20x repetition = 4400 tests, all zero failures). The same three orders over the entire discovered suite (1392 tests) are DEFERRED, not passed: one pass costs roughly 25 minutes against 7.6 seconds for the critical set, and that exact load coincided with the host kernel bugcheck 0x4E that this run is still diagnosing |
+| test gate scope | DEFERRED_DECLARED | H010 executed all four required runs over a declared critical set of 16 stateful and contract-holding modules (220 tests per order in the 2026-09-14 run: forward, reverse, randomized seed 42, and 20x repetition = 4400 tests, all zero failures). Dated 2026-10-09: the gate record now carries the 2026-10-06 runs, which measure 225 tests per order with a 2x repetition = 450; the 220 above was typed, never re-derived from a run. The same three orders over the entire discovered suite (1392 tests) are DEFERRED, not passed: one pass costs roughly 25 minutes against 7.6 seconds for the critical set, and that exact load coincided with the host kernel bugcheck 0x4E that this run is still diagnosing |
 
 ## Done-When criteria
 

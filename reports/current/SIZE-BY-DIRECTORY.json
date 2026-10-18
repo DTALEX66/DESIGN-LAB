@@ -1,76 +1,111 @@
 {
   "schemaVersion": "design-lab/size-by-directory/v1",
   "task_key": "DL-TP-20260914-DEEPSEEK-AUTHORITY-R1::DLDS-D000",
-  "measured_at": "2026-09-13T16:26:39+00:00",
+  "measured_at": "2026-10-18T09:52:03+00:00",
   "tracked_by_area": {
     "docs": {
-      "files": 250,
-      "bytes": 12975991,
-      "mib": 12.37
+      "files": 1622,
+      "bytes": 41556917,
+      "mib": 39.63
+    },
+    "design-lab": {
+      "files": 1148,
+      "bytes": 9736863,
+      "mib": 9.29
     },
     "fixtures": {
       "files": 226,
       "bytes": 8452041,
       "mib": 8.06
     },
-    "design-lab": {
-      "files": 766,
-      "bytes": 4582422,
-      "mib": 4.37
-    },
-    "integrations": {
-      "files": 76,
-      "bytes": 2334341,
-      "mib": 2.23
-    },
-    "packages": {
-      "files": 275,
-      "bytes": 1390747,
-      "mib": 1.33
+    "research": {
+      "files": 6,
+      "bytes": 4409819,
+      "mib": 4.21
     },
     "reports": {
-      "files": 120,
-      "bytes": 1027518,
-      "mib": 0.98
+      "files": 169,
+      "bytes": 3069989,
+      "mib": 2.93
     },
     "src": {
-      "files": 78,
-      "bytes": 681625,
-      "mib": 0.65
+      "files": 102,
+      "bytes": 1294037,
+      "mib": 1.23
+    },
+    "apps": {
+      "files": 17,
+      "bytes": 1211804,
+      "mib": 1.16
+    },
+    "integrations": {
+      "files": 68,
+      "bytes": 872456,
+      "mib": 0.83
+    },
+    "packages": {
+      "files": 240,
+      "bytes": 848196,
+      "mib": 0.81
+    },
+    "scripts": {
+      "files": 69,
+      "bytes": 838030,
+      "mib": 0.8
+    },
+    "\"docs": {
+      "files": 32,
+      "bytes": 435905,
+      "mib": 0.42
+    },
+    "vendor": {
+      "files": 39,
+      "bytes": 415374,
+      "mib": 0.4
     },
     "uv.lock": {
       "files": 1,
       "bytes": 172920,
       "mib": 0.16
     },
-    "scripts": {
-      "files": 20,
-      "bytes": 135217,
-      "mib": 0.13
-    },
-    "apps": {
-      "files": 3,
-      "bytes": 25407,
-      "mib": 0.02
-    },
-    "research": {
-      "files": 2,
-      "bytes": 16320,
-      "mib": 0.02
-    },
-    "vendor": {
-      "files": 1,
-      "bytes": 13544,
-      "mib": 0.01
-    },
     ".github": {
       "files": 5,
-      "bytes": 12125,
+      "bytes": 37224,
+      "mib": 0.04
+    },
+    "pnpm-lock.yaml": {
+      "files": 1,
+      "bytes": 21123,
+      "mib": 0.02
+    },
+    "AUTHORITY.md": {
+      "files": 1,
+      "bytes": 17445,
+      "mib": 0.02
+    },
+    "README.md": {
+      "files": 1,
+      "bytes": 13834,
       "mib": 0.01
     },
     "AGENTS.md": {
       "files": 1,
-      "bytes": 8267,
+      "bytes": 11731,
+      "mib": 0.01
+    },
+    "DESIGN.md": {
+      "files": 1,
+      "bytes": 11588,
+      "mib": 0.01
+    },
+    ".project": {
+      "files": 8,
+      "bytes": 9896,
+      "mib": 0.01
+    },
+    "pyproject.toml": {
+      "files": 1,
+      "bytes": 6914,
       "mib": 0.01
     },
     "WORK-LAB-DESIGN-MODULE-FINAL-HANDOFF-2026-08-07.md": {
@@ -78,9 +113,9 @@
       "bytes": 6398,
       "mib": 0.01
     },
-    "README.md": {
+    "design.qa.yaml": {
       "files": 1,
-      "bytes": 5956,
+      "bytes": 5443,
       "mib": 0.01
     },
     "KNOWLEDGE_ASSET_POLICY.md": {
@@ -88,14 +123,19 @@
       "bytes": 4542,
       "mib": 0.0
     },
-    ".project": {
-      "files": 6,
-      "bytes": 3919,
-      "mib": 0.0
-    },
     "LESSONS_LEARNED.md": {
       "files": 1,
       "bytes": 3370,
+      "mib": 0.0
+    },
+    ".gitattributes": {
+      "files": 1,
+      "bytes": 3190,
+      "mib": 0.0
+    },
+    ".gitignore": {
+      "files": 1,
+      "bytes": 2646,
       "mib": 0.0
     },
     "NOTICE": {
@@ -103,19 +143,9 @@
       "bytes": 2391,
       "mib": 0.0
     },
-    "pyproject.toml": {
-      "files": 1,
-      "bytes": 2348,
-      "mib": 0.0
-    },
     "GITHUB_DELIVERY.md": {
       "files": 1,
-      "bytes": 1588,
-      "mib": 0.0
-    },
-    ".gitignore": {
-      "files": 1,
-      "bytes": 1479,
+      "bytes": 1446,
       "mib": 0.0
     },
     "LICENSING_DECISION_REQUIRED.md": {
@@ -133,14 +163,19 @@
       "bytes": 1082,
       "mib": 0.0
     },
-    ".gitattributes": {
+    "package.json": {
       "files": 1,
-      "bytes": 1054,
+      "bytes": 711,
       "mib": 0.0
     },
     "THIRD_PARTY_SOURCES_V2.md": {
       "files": 1,
       "bytes": 682,
+      "mib": 0.0
+    },
+    "pnpm-workspace.yaml": {
+      "files": 1,
+      "bytes": 592,
       "mib": 0.0
     },
     "requirements.txt": {
@@ -167,62 +202,97 @@
       "files": 1,
       "bytes": 212,
       "mib": 0.0
+    },
+    ".npmrc": {
+      "files": 1,
+      "bytes": 40,
+      "mib": 0.0
     }
   },
   "ignored_by_subdir": {
     ".project-local": {
       "task-runtime": {
-        "files": 56121,
-        "bytes": 3194364414,
-        "mib": 3046.38
+        "files": 76696,
+        "bytes": 4463885031,
+        "mib": 4257.09
       },
       "task-artifacts": {
-        "files": 1660,
-        "bytes": 588949818,
-        "mib": 561.67
+        "files": 5986,
+        "bytes": 1155118407,
+        "mib": 1101.61
+      },
+      "runs": {
+        "files": 5375,
+        "bytes": 597208315,
+        "mib": 569.54
       },
       "projects": {
         "files": 346,
         "bytes": 357703756,
         "mib": 341.13
       },
+      "tmp": {
+        "files": 3166,
+        "bytes": 111903953,
+        "mib": 106.72
+      },
+      "personal-audit-src": {
+        "files": 3562,
+        "bytes": 78909471,
+        "mib": 75.25
+      },
+      "backups": {
+        "files": 1,
+        "bytes": 72651116,
+        "mib": 69.29
+      },
       "cache": {
-        "files": 4994,
-        "bytes": 305397323,
-        "mib": 291.25
+        "files": 1914,
+        "bytes": 35104251,
+        "mib": 33.48
       },
       "archive": {
-        "files": 1,
-        "bytes": 343288,
-        "mib": 0.33
+        "files": 598,
+        "bytes": 12181331,
+        "mib": 11.62
+      },
+      "(root)": {
+        "files": 73,
+        "bytes": 3365325,
+        "mib": 3.21
+      },
+      "ui-kit": {
+        "files": 73,
+        "bytes": 3108792,
+        "mib": 2.96
       },
       "quarantine": {
         "files": 9,
-        "bytes": 172054,
-        "mib": 0.16
+        "bytes": 177894,
+        "mib": 0.17
       },
-      "runs": {
-        "files": 3,
-        "bytes": 101727,
-        "mib": 0.1
+      "artifacts": {
+        "files": 6,
+        "bytes": 58717,
+        "mib": 0.06
       },
-      "tmp-commit-msgs": {
+      "b10": {
         "files": 4,
-        "bytes": 4818,
-        "mib": 0.0
+        "bytes": 44772,
+        "mib": 0.04
+      },
+      "ui-implementation": {
+        "files": 7,
+        "bytes": 30254,
+        "mib": 0.03
+      },
+      "taskpack-inbox": {
+        "files": 2,
+        "bytes": 15719,
+        "mib": 0.01
       }
     },
     ".hermes": {
-      "task-runtime": {
-        "files": 305,
-        "bytes": 10822131,
-        "mib": 10.32
-      },
-      "task-artifacts": {
-        "files": 192,
-        "bytes": 743007,
-        "mib": 0.71
-      },
       "(root)": {
         "files": 1,
         "bytes": 13638,
@@ -231,14 +301,14 @@
     },
     ".venv": {
       "Lib": {
-        "files": 4266,
-        "bytes": 205333875,
-        "mib": 195.82
+        "files": 4339,
+        "bytes": 205884428,
+        "mib": 196.35
       },
       "Scripts": {
-        "files": 21,
-        "bytes": 536470,
-        "mib": 0.51
+        "files": 22,
+        "bytes": 582550,
+        "mib": 0.56
       },
       "(root)": {
         "files": 4,
@@ -249,8 +319,8 @@
     ".pytest_cache": {
       "v": {
         "files": 2,
-        "bytes": 60768,
-        "mib": 0.06
+        "bytes": 2562,
+        "mib": 0.0
       },
       "(root)": {
         "files": 3,
@@ -258,9 +328,5 @@
         "mib": 0.0
       }
     }
-  },
-  "projection": true,
-  "subjectSha": "042ac635ae7a6042db366f7fb19508fc5db7bc65",
-  "fresh": false,
-  "generatedBy": "scripts/deepseek_size_audit.py"
+  }
 }

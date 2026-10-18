@@ -11,9 +11,9 @@
     "provenance": "transcribed from the owner's message in the authority session; the landed file's sha256 is the authority for every later reference"
   },
   "task_key": "DL-TP-20260914-DEEPSEEK-AUTHORITY-R1::DLDS-K040",
-  "written_at": "2026-09-13T18:57:39+00:00",
-  "subject_sha": "a6d65d636ffe1b7fb2d8c5a023cbe5c338f9d220",
-  "branch": "codex/deepseek-authority-r1",
+  "written_at": "2026-10-18T09:48:21+00:00",
+  "subject_sha": "15b3b6838af52cf7376b2d78fa5dc4389c709d8a",
+  "branch": "qoder/designlab-backup-consistency-20261007",
   "task_count": 58,
   "status_counts": {
     "DONE": 58
@@ -290,9 +290,5 @@
     "met_with_exception": 5,
     "not_met": 0,
     "with_a_gap": 5
-  },
-  "projection": true,
-  "subjectSha": "042ac635ae7a6042db366f7fb19508fc5db7bc65",
-  "fresh": false,
-  "generatedBy": "scripts/deepseek_final_closeout.py"
+  }
 }

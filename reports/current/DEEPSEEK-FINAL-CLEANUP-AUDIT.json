@@ -1,8 +1,8 @@
 {
   "schemaVersion": "design-lab/deepseek-final-cleanup-audit/v1",
   "task_key": "DL-TP-20260914-DEEPSEEK-AUTHORITY-R1::DLDS-K010",
-  "audited_at": "2026-09-13T18:57:38+00:00",
-  "subject_sha": "a6d65d636ffe1b7fb2d8c5a023cbe5c338f9d220",
+  "audited_at": "2026-10-18T09:48:10+00:00",
+  "subject_sha": "15b3b6838af52cf7376b2d78fa5dc4389c709d8a",
   "conditions": [
     {
       "condition": "no stale active paths",
@@ -28,7 +28,7 @@
       "measured": {
         "entries": 46,
         "tracked_full_copies": 3,
-        "in_ignored_cache": 37,
+        "in_ignored_cache": 0,
         "verdict": "NO_FULL_THIRD_PARTY_SOURCE_TREES_TRACKED"
       }
     },
@@ -70,7 +70,7 @@
           {
             "path": ".hermes/task-runtime",
             "kind": "empty_directory",
-            "mtime": "2026-09-13T16:31:14+00:00"
+            "mtime": "2026-09-22T15:47:53+00:00"
           }
         ],
         "content_other_than_refused": [],
@@ -98,7 +98,7 @@
       "evidence": "reports/current/SPILL-CENSUS.json, .project-local/quarantine/deepseek-round1/RUNTIME-CLEANUP-MANIFEST.json",
       "measured": {
         "census_verdict": "CENSUS_COMPLETE",
-        "legacy_objects_censused": 4,
+        "legacy_objects_censused": 1,
         "unproven_objects": 1,
         "deleted_entries_with_manifest": 167
       }
@@ -109,9 +109,5 @@
     "ok": 7,
     "failed": []
   },
-  "verdict": "PASS",
-  "projection": true,
-  "subjectSha": "042ac635ae7a6042db366f7fb19508fc5db7bc65",
-  "fresh": false,
-  "generatedBy": "scripts/deepseek_final_closeout.py"
+  "verdict": "PASS"
 }

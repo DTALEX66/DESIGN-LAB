@@ -1,14 +1,39 @@
 {
   "schemaVersion": "design-lab/repository-size-report/v1",
-  "subjectSha": "0b5cb849bfb49f6a63c5cfd017fac017066af55a",
-  "generatedAt": "2026-09-13T16:29:11Z",
-  "measuredAt": "2026-09-13T16:29:11Z",
-  "measuredPackMiB": 210.4,
-  "packMiB": 210.4,
+  "subjectSha": "15b3b6838af52cf7376b2d78fa5dc4389c709d8a",
+  "generatedAt": "2026-10-18T09:51:51Z",
+  "measuredAt": "2026-10-18T09:51:51Z",
+  "measuredPackMiB": 241.2,
+  "packMiB": 241.2,
   "warningMiB": 224.0,
   "limitMiB": 256.0,
-  "status": "OK",
+  "status": "WARNING",
   "largestTrackedBlobs": [
+    {
+      "path": "docs/history/record-archive-2026-10-09/ARCHIVE-MANIFEST.json",
+      "bytes": 2361107,
+      "objectId": "d2685adc31895779513e883522cb791252e2e33c"
+    },
+    {
+      "path": "research/candidates/CANDIDATE-TAXONOMY.json",
+      "bytes": 2230147,
+      "objectId": "f719a96914447a37baf345d7a6ed408cd64bdb06"
+    },
+    {
+      "path": "docs/history/record-archive-2026-10-09/MEMBER-INDEX.md",
+      "bytes": 2181795,
+      "objectId": "72a5df7f094858f289847056f75ca6db9b1d5275"
+    },
+    {
+      "path": "docs/history/record-imports-2026-10-08/FINAL-CONSOLIDATED-2026-09-29/appendices/github-tree.json",
+      "bytes": 2047803,
+      "objectId": "0d5b5138b8845bfa4d136ace2f999f2576ea8ad6"
+    },
+    {
+      "path": "research/candidates/observations/github-observation-20261006T105000Z.json",
+      "bytes": 1803899,
+      "objectId": "eeeb418f4e69c24088fed2067fb98b9dbb1cd4f9"
+    },
     {
       "path": "fixtures/domains/game-visual/exports/minigame-mobile-controls/assets/cctv-elevator-corridor-figure.png",
       "bytes": 1722989,
@@ -60,6 +85,16 @@
       "objectId": "a53ee10c90de05b6c1042ce94a49ff3ede3dd647"
     },
     {
+      "path": "docs/history/record-imports-2026-10-08/FINAL-CONSOLIDATED-2026-09-29/appendices/historical-keyword-occurrences.json",
+      "bytes": 827245,
+      "objectId": "850e1c4d4ec99fe52d9a402be1bc2fd4124e083d"
+    },
+    {
+      "path": "design-lab/config/task-ledger-r3.json",
+      "bytes": 756165,
+      "objectId": "7697e423542e6ae5a0d94fe32667866523ab9d39"
+    },
+    {
       "path": "docs/projects/nebula-tech-culture-wall/assets/nebula_brand_identity_board.png",
       "bytes": 745837,
       "objectId": "add692ba1784a548eafeb72e6bd48abc7974c07b"
@@ -73,41 +108,6 @@
       "path": "docs/projects/nebula-tech-culture-wall/assets/nebula_culture_wall_night.png",
       "bytes": 720846,
       "objectId": "17c9e26cc1e9a58ac05e2eb02b6d4b20e3babfb8"
-    },
-    {
-      "path": "integrations/generators/comfyui/evidence/dl_h3_prod.mp4",
-      "bytes": 578334,
-      "objectId": "c8aedbcff14fff0b0f9fcbe766a6dd0b6143f3c4"
-    },
-    {
-      "path": "integrations/generators/minimax-h3/evidence/dl_h3_prod.mp4",
-      "bytes": 578334,
-      "objectId": "c8aedbcff14fff0b0f9fcbe766a6dd0b6143f3c4"
-    },
-    {
-      "path": "docs/history/r3-recovery-2026-09-07-public-complete.json",
-      "bytes": 483929,
-      "objectId": "2fb3836bacd779116a5fddc71217c1fa50f7fa65"
-    },
-    {
-      "path": "design-lab/research/master-studies/MASTER_REGISTRY.json",
-      "bytes": 473730,
-      "objectId": "58dafde8237a8230f11f6d2ecf19acad19b7a071"
-    },
-    {
-      "path": "design-lab/config/capability-index-v1-backup.json",
-      "bytes": 445103,
-      "objectId": "6836865b90a25f5cad34c593813d1a31b442e47c"
-    },
-    {
-      "path": "docs/history/r3-recovery-2026-09-07.json",
-      "bytes": 443705,
-      "objectId": "6b9d96405b8e972b83abb635b9242e372059f4ae"
-    },
-    {
-      "path": "design-lab/research/global-absorption/QUARANTINE_REGISTRY.json",
-      "bytes": 329968,
-      "objectId": "2c6e61c1e35c69009ce3bb75ad6d7d08313c88c9"
     }
   ],
   "historyRewriteAuthorized": false,

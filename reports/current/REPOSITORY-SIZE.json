@@ -1,48 +1,44 @@
 {
   "schemaVersion": "design-lab/repository-size-audit/v1",
   "task_key": "DL-TP-20260914-DEEPSEEK-AUTHORITY-R1::DLDS-D000",
-  "measured_at": "2026-09-13T16:26:39+00:00",
-  "subject_sha": "",
+  "measured_at": "2026-10-18T09:52:03+00:00",
+  "subject_sha": "15b3b6838af52cf7376b2d78fa5dc4389c709d8a",
   "tracked": {
-    "files": 1848,
-    "bytes": 31867318,
-    "mib": 30.39
+    "files": 3778,
+    "bytes": 73480663,
+    "mib": 70.08
   },
   "git_objects": {
-    "in_pack": 12607,
-    "packs": 2,
-    "size_pack_mib": 210.4,
-    "loose_objects": 0
+    "in_pack": 20912,
+    "packs": 1,
+    "size_pack_mib": 241.2,
+    "loose_objects": 45
   },
   "budget": {
     "warning_mib": 224.0,
     "limit_mib": 256.0,
-    "status": "OK",
+    "status": "WARNING",
     "basis": "measured pack size compared with the thresholds pinned by design-lab/scripts/verify_repository_size.py"
   },
   "ignored_roots": {
     ".project-local": {
-      "files": 63138,
-      "mib": 4241.03
+      "files": 97818,
+      "mib": 6572.22
     },
     ".hermes": {
-      "files": 498,
-      "mib": 11.04
+      "files": 1,
+      "mib": 0.01
     },
     ".venv": {
-      "files": 4291,
-      "mib": 196.33
+      "files": 4365,
+      "mib": 196.9
     },
     ".pytest_cache": {
       "files": 5,
-      "mib": 0.06
+      "mib": 0.0
     }
   },
-  "tracked_binary_objects": 34,
+  "tracked_binary_objects": 103,
   "tracked_model_weight_objects": 0,
-  "note": "pack size is dominated by history, not by the current tree; the audit is observational and authorises no history rewrite",
-  "projection": true,
-  "subjectSha": "042ac635ae7a6042db366f7fb19508fc5db7bc65",
-  "fresh": false,
-  "generatedBy": "scripts/deepseek_size_audit.py"
+  "note": "pack size is dominated by history, not by the current tree; the audit is observational and authorises no history rewrite"
 }
