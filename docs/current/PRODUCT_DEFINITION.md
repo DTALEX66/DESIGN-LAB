@@ -1,3 +1,18 @@
+# 当前产品定义修订（2026-10-19）
+
+Authority修订`DIRECTION-20261019-R1`；以owner 2026-10-19方向调整任务包为准，旧定义冲突条款由本节替代。
+DESIGN-LAB（设计实验室 / Visual Design Lab）是面向职业视觉设计的AI原生、平台中立的**专业视觉智能与可复用设计能力系统**。它把视觉知识、审美判断、设计方法、参考图分析、提示词工程和成功/失败案例，转化为可检索、可组合、可测试、可版本化、可部署的能力；支持用户和Agent进行专业视觉分析、提示词生成与反推、设计能力检索，并通过API、MCP、原生插件、脚本或受控UI自动化调用设计软件。经用户或获授权Agent验收的知识形成候选，再按AAOS正式流程提交审核。
+产品本体是视觉智能＋审美能力工程化＋设计能力库＋设计软件自动化＋受控知识回流。六大能力域：Visual Intelligence / Aesthetic Analysis / Prompt Intelligence / Design Capability Library / Creative Tool Automation / Knowledge Candidate & Evaluation。
+不是第二画布或通用编辑器，不以全流程设计文件制作交付为产品本体；不是通用Agent Runtime、聊天客户端、模型网关或跨项目调度器。原生宿主负责画布内实际编辑。
+模型本地/云端/混合可替换；工具按官方API/SDK → 原生插件 → MCP → 脚本/CLI → 受控UI自动化分层；握手、HTTP 200、退出码或截图不等于真实任务验证。
+WORK-LAB保留通用工作流/全局配置/权限预算/跨项目协调/监测/维护；AAOS保留正式知识真值、来源/证据治理、审核与长期学习。DESIGN-LAB只提交知识候选并读取AAOS状态。
+2026-10-09 UI-FIRST派工已降为前继；`currentExecution` 34项全部`FROZEN_DEFERRED`。本轮只做权威/规划对齐、映射、可行性矩阵、最小真实闭环规划与按范围测试，不实施产品功能。手机端、发布/安装、真实宿主E3、真人E4、AAOS联调、ComfyUI/H3继续冻结或延后。
+完整定义见`docs/taskpacks/DESIGN-LAB-DIRECTION-ALIGNMENT-2026-10-19.md`与`docs/taskpacks/20261019-direction/source/TASKPACK.md`。
+
+---
+
+以下2026-10-09定义保留为前继记录；冲突条款不再负责当前派工。
+
 # 当前产品定义修订（2026-10-09）
 
 Authority修订UI-FIRST-20261009-R1；以新包＋owner决定为准，旧定义冲突条款由本节替代。

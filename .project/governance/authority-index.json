@@ -22,7 +22,7 @@
     "docs/architecture/BOUNDARY_CONTRACT.md",
     "docs/architecture/ARCHITECTURE.md",
     "docs/architecture/LANGUAGE-POLICY.md",
-    "docs/taskpacks/DESIGN-LAB-UI-FIRST-INTEGRATED-TASKPACK-2026-10-09.md",
+    "docs/taskpacks/DESIGN-LAB-DIRECTION-ALIGNMENT-2026-10-19.md",
     "design-lab/config/task-ledger-r3.json"
   ],
   "current": [
@@ -35,10 +35,16 @@
     "docs/architecture/LANGUAGE-POLICY.md",
     "design-lab/config/product-manifest.json",
     "design-lab/config/task-ledger-r3.json",
-    "docs/taskpacks/DESIGN-LAB-UI-FIRST-INTEGRATED-TASKPACK-2026-10-09.md"
+    "docs/taskpacks/DESIGN-LAB-DIRECTION-ALIGNMENT-2026-10-19.md"
   ],
   "currentButDrifted": [],
   "historicalSpecific": [
+    {
+      "path": "docs/taskpacks/DESIGN-LAB-UI-FIRST-INTEGRATED-TASKPACK-2026-10-09.md",
+      "classification": "SUPERSEDED_SCOPE_PRESERVED",
+      "reason": "20261019 owner方向调整；派工已转入DIRECTION包，34项currentExecution任务冻结，原字节保留",
+      "replacement": "docs/taskpacks/DESIGN-LAB-DIRECTION-ALIGNMENT-2026-10-19.md"
+    },
     {
       "path": "docs/handoffs/DESIGN-LAB-UCR-CONVERGENCE-20260918-HANDOFF.md",
       "classification": "HISTORICAL_EXECUTION_RECORD",
@@ -80,11 +86,12 @@
     "design-lab/VISUAL_QUALITY_V*.md"
   ],
   "taskpackClassificationRule": {
-    "currentIntegrated": "docs/taskpacks/DESIGN-LAB-UI-FIRST-INTEGRATED-TASKPACK-2026-10-09.md",
+    "currentIntegrated": "docs/taskpacks/DESIGN-LAB-DIRECTION-ALIGNMENT-2026-10-19.md",
     "lineage": [
       "docs/history/taskpacks/r5-20260908/tasks.json",
       "docs/taskpacks/DESIGN-LAB-DEEPSEEK-AUTHORITY-TASKPACK-2026-09-14.md",
-      "docs/taskpacks/DESIGN-LAB-FINAL-AUTHORITY-CONVERGENCE-TASKPACK-2026-09-18.md"
+      "docs/taskpacks/DESIGN-LAB-FINAL-AUTHORITY-CONVERGENCE-TASKPACK-2026-09-18.md",
+      "docs/taskpacks/DESIGN-LAB-UI-FIRST-INTEGRATED-TASKPACK-2026-10-09.md"
     ],
     "default": "other active-looking taskpacks are SUPERSEDED_SCOPE_PRESERVED/HISTORICAL until explicitly promoted"
   },
@@ -106,7 +113,7 @@
     "irreversible asset deletion",
     "license acceptance"
   ],
-  "authorityRevision": "UI-FIRST-20261009-R1",
+  "authorityRevision": "DIRECTION-20261019-R1",
   "ownerAdoption": {
     "date": "2026-10-09",
     "decision": "docs/taskpacks/20261009-ui-first/CONVERSATION-DECISIONS.md",
@@ -114,6 +121,16 @@
     "ledger_current_partition": "currentExecution",
     "mobile": "FROZEN_DEFERRED",
     "priority": "DESKTOP_UI_FIRST"
+  },
+  "directionAdoption": {
+    "date": "2026-10-19",
+    "decision": "docs/taskpacks/20261019-direction/OWNER-DECISION-2026-10-19.md",
+    "sourceManifest": "docs/taskpacks/20261019-direction/SOURCE-MANIFEST.json",
+    "integratedTaskpack": "docs/taskpacks/DESIGN-LAB-DIRECTION-ALIGNMENT-2026-10-19.md",
+    "positioning": "professional visual intelligence and reusable design capability system",
+    "priorDispatch": "FROZEN_DEFERRED",
+    "mobile": "FROZEN_DEFERRED",
+    "futureCapabilities": "FROZEN_DEFERRED"
   },
   "frozenLegacyLedgers": [
     "reports/current/DEEPSEEK-AUTHORITY-LEDGER-2026-09-14.json"

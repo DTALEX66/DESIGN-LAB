@@ -31,7 +31,27 @@
       "to": "2cfd84627352e9f1b29b42787fa43466cd9a836130d826d43678b7733856ffda",
       "why": "该文件第 7 条指向 docs/current/NEXT-AGENT-PROMPT-2026-10-09.md，而该路径在接续入口收敛为单一无日期文件后已移入 docs/history/next-agent-prompts/。留着它等于在权威文档里保留一条把下一会话带到旧副本的指令，这正是\"旧路径反复出现\"的传播路径。只改这一条指针，任务定义、批次、write set 与验收一字未动。",
       "checks": "verify_top_level_authority 检查数不变（10）"
+    },
+    {
+      "when": "2026-10-19",
+      "authority": "owner instruction 2026-10-19: 其他任务冻结，以这份任务为当前权威与闭环目标（更新项目内的权威和规划），未来能力暂时冻结和延期延后",
+      "changed": [
+        "AUTHORITY.md",
+        ".project/governance/authority-index.json",
+        "docs/taskpacks/DESIGN-LAB-DIRECTION-ALIGNMENT-2026-10-19.md"
+      ],
+      "from": {
+        "AUTHORITY.md": "145cc12ea398997ffb55431e61deb785a480668af2128dafa3c8effee1176854",
+        ".project/governance/authority-index.json": "0e2360042518041f3ce98b72cad9ff3039234c413b18a68a22f1618b6a1c5dce"
+      },
+      "to": {
+        "AUTHORITY.md": "c0853e3d7e6d17170c373cdb8ad439ed00539ed8384aee2ecb017cc073f162f2",
+        ".project/governance/authority-index.json": "cad7ceac73c669ded8bc955468f8c62341a2f9910e65b4fa6e123f04af4bdb38",
+        "docs/taskpacks/DESIGN-LAB-DIRECTION-ALIGNMENT-2026-10-19.md": "98e7d2210181de8a4a3a0c2d8c15c4846b332e3e418a02446a0bb001a1c2e116"
+      },
+      "why": "owner replaced the 2026-10-09 UI-FIRST dispatch with a direction-adjustment package: AUTHORITY.md now names the new pack as the sole current authority, the index moved current/currentIntegrated/boot order to it and kept UI-FIRST as superseded lineage. The ledger's currentExecution identity stays frozen on the UI-FIRST definitions; only its states are frozen to FROZEN_DEFERRED, so task definitions and evidence bytes are unchanged. The new pack is pinned and declared frozen.",
+      "checks": "verify_top_level_authority checks stay at 10; R2_RELEASE_HASHES grows 5 -> 6 (old five kept)"
     }
   ],
-  "current_pins_note": "AUTHORITY.md was re-pinned on 2026-10-12 after a deliberate correction; the superseded pin is preserved in revisions[]. The other four files are unchanged since the 2026-10-09 adoption."
+  "current_pins_note": "Latest change is revisions[-1] (2026-10-19): AUTHORITY.md and the authority index re-pinned, the direction pack added. The 2026-10-09 adoption and the 2026-10-12/2026-10-18 revisions above are kept as superseded digests."
 }

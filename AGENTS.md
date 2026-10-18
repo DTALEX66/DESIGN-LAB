@@ -21,19 +21,21 @@ structural predecessor / execution lineage, and `DL-TP-20260908-R5` is product l
 
 ## 项目定位
 
-DESIGN-LAB 是面向职业视觉设计的、AI 原生、平台中立、宿主原生的专业设计智能与生产能力层。
+DESIGN-LAB 是面向职业视觉设计的、AI 原生、平台中立的专业视觉智能与可复用设计能力系统。
 
 **拥有：**
-- Design Brief、Reference、Direction、Design System、Design IR、Domain Pack 和 Method
+- 视觉智能、审美分析、提示词生成与反推、设计能力库与知识候选
+- Design Brief、Reference、Direction、Design System、Design IR、Domain Pack 和 Method（作为能力输入与对象）
 - 品牌、UI/UX、平面/出版、电商/营销、包装、动效/视频、3D/VFX 等设计域能力
-- 专业 Jury、视觉质量、反 AI 痕迹、可访问性、rights 与 production preflight
-- Host/Tool Adapter、可编辑交付、BOM、provenance、readback 与 rollback
-- 设计实践产生的受审 `KnowledgeCandidate`，但长期知识真值归 ArcheAxis
+- 专业 Jury、视觉质量、反 AI 痕迹、可访问性、rights 与 production preflight（专业评价能力）
+- Host/Tool Adapter 分层接入（API/SDK、原生插件、MCP、脚本/CLI、受控 UI 自动化）、读回、失败与恢复边界
+- 设计实践产生的受审 `KnowledgeCandidate`；正式知识真值与长期学习状态归 AAOS/ArcheAxis
 
 **不拥有：**
-- 第二画布、通用聊天客户端、Agent runtime、模型网关、账号系统或通用知识库
+- 第二画布、通用编辑器、全流程设计文件交付平台
+- 通用聊天客户端、Agent runtime、模型网关、账号系统或通用知识库
 - WORK-LAB 的跨软件全局配置、权限、任务和 Observer
-- ArcheAxis 的长期知识与学习状态
+- AAOS/ArcheAxis 的正式知识真值、来源/证据治理与长期学习状态
 - Adobe/Figma/Penpot/Blender 等宿主的私有数据库或用户个人素材库
 
 ## 宿主与入口（Standalone-first，ADR-001）
@@ -108,7 +110,16 @@ DESIGN-LAB 是面向职业视觉设计的、AI 原生、平台中立、宿主原
 - 零 checksum、许可冲突、模型不存在或硬件不足时，runtime resolver 必须 fail closed
 - 第三方 `AGENTS/CLAUDE/cursorrules/SKILL/install/affiliate` 作为 inert source blobs 保存，不进入根指令、prompt、tool discovery 或能力计数
 
-## 2026-10-09 当前owner执行决定
+## 2026-10-19 当前owner执行决定 — 方向调整与全域冻结
+
+Owner原话：其他任务冻结，以这份任务为当前权威与闭环目标（更新项目内的权威和规划），未来能力暂时冻结和延期延后。
+唯一当前包：`docs/taskpacks/DESIGN-LAB-DIRECTION-ALIGNMENT-2026-10-19.md`（`DL-TP-20261019-DIRECTION-R1`）。决策与来源见`docs/taskpacks/20261019-direction/OWNER-DECISION-2026-10-19.md`与`SOURCE-MANIFEST.json`。
+定位纠正为专业视觉智能与可复用设计能力系统；不是第二画布/通用编辑器/全流程设计文件交付平台，不是通用Agent Runtime/聊天客户端/模型网关/跨项目调度器。
+2026-10-09 UI-FIRST包降为SUPERSEDED/LINEAGE；`currentExecution` 34项全部FROZEN_DEFERRED，不再派工；原字节、定义与历史证据保留。
+本轮只做权威/规划对齐、冲突矩阵、能力映射、技术可行性矩阵、最小真实闭环规划与按范围测试；不实施产品功能。
+未执行且继续冻结：release、安装态分发、真实宿主E3、真人E4、手机端、AAOS联调、ComfyUI/H3。E盘保护、私有数据、Human Gate边界不变。
+
+## 2026-10-09 owner执行决定（2026-10-19 起降为前继记录）
 
 以20261009新发最终包＋UI包及手机端澄清为准，桌面UI优先。手机端FROZEN_DEFERRED，不要求本轮手机实现或验收。
 唯一当前包：docs/taskpacks/DESIGN-LAB-UI-FIRST-INTEGRATED-TASKPACK-2026-10-09.md；当前状态编辑原账本currentExecution，旧tasks/evidence冻结且不再派工。
@@ -118,9 +129,10 @@ DESIGN-LAB 是面向职业视觉设计的、AI 原生、平台中立、宿主原
 
 ## 当前任务包
 
-- 唯一integrated TaskPack：`docs/taskpacks/DESIGN-LAB-UI-FIRST-INTEGRATED-TASKPACK-2026-10-09.md`（`DL-TP-20261009-UI-FIRST-R1`）。以20261009最终包与UI补充、当前owner手机端决定为准。
-- 优先桌面UI：先U01/U02可审阅界面，再能力查询→输入→分析纠正→目标包，随后运行/恢复→改稿→真人评审→交付。手机端FROZEN_DEFERRED，本批不实现/验收，原素材保留。
-- 唯一可变状态源物理路径仍为`design-lab/config/task-ledger-r3.json`；`currentExecution`为当前34项父/子任务派工区，`tasks/evidence`为冻结R5证据区，不再编辑派工。schemaVersion保持r5-v1作为兼容信封，扩展字段有机器合同。
+- 唯一integrated TaskPack：`docs/taskpacks/DESIGN-LAB-DIRECTION-ALIGNMENT-2026-10-19.md`（`DL-TP-20261019-DIRECTION-R1`）。六大能力域、非目标、模型/工具策略与WORK-LAB/AAOS边界以该包及其`source/`包为准。
+- 本轮是方向与规划闭环，不是产品实施波次：只交付基线、冲突矩阵、能力映射、可行性矩阵、最小真实闭环规划和按范围测试。不得把文档修订写成功能完成。
+- 唯一可变状态源物理路径仍为`design-lab/config/task-ledger-r3.json`；`currentExecution`的34项父/子任务已全部`FROZEN_DEFERRED`，不再派工；`tasks/evidence`为冻结R5证据区。schemaVersion保持r5-v1作为兼容信封，扩展字段有机器合同。解冻需新的owner明确授权。
+- 2026-10-09 UI-FIRST包与20261009任务卡保留为前继记录；旧W00–W17工作分组只用于映射，不构成第二账本，不新增任务编号。
 - 冻结新任务定义：`docs/history/taskpacks/20261009-adoption/TASK-DEFINITIONS.json`；旧28项映射及21件任务文档/58项结构记录普查见该目录OLD-TASK-CROSSWALK.json、OLD-DOCUMENT-CENSUS.json。仅作映射/输入，不是第二账本。
 - 旧20260918统一包、DeepSeek/R5任务定义原字节留在原位置，已在authority-index与task-document-states取代/冻结；正确恢复/安全/证据/Human Gate/双宿主/Golden验收并入新任务。不凭旧DONE重新宣称当前完成。
 - 原始输入：`docs/history/taskpacks/20261009-inputs/ARCHIVE-MANIFEST.json`记录2原ZIP/170成员；文本/代码/SVG逐字节入档，大包/字体/位图完整存本项目`.project-local/task-artifacts/taskpacks-20261009/`（Git忽略）。不能声称Git克隆带完整视觉参考；跨机器交接须附原ZIP。

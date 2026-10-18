@@ -80,12 +80,18 @@ AUTHORITY_ID = "DL-AUTHORITY-2026-09-18-R2"
 # claim the remote is synced" claims. Reason and superseded digest:/n# docs/history/taskpacks/20261009-adoption/AUTHORITY-PIN-CHANGE.json revisions[]. Checks stay at 10.
 # 2026-10-09 owner adoption: see docs/taskpacks/20261009-ui-first/CONVERSATION-DECISIONS.md; old bytes in docs/history/taskpacks/20261009-adoption/pre-adoption/.
 # New dispatch is additionally pinned; the old taskpack bytes stay pinned as frozen lineage.
+# 2026-10-19 re-pin for the owner direction adoption: AUTHORITY.md and the authority index name
+# docs/taskpacks/DESIGN-LAB-DIRECTION-ALIGNMENT-2026-10-19.md as the sole current pack, and that
+# pack is pinned here and declared frozen. The predecessor pins stay so lineage bytes remain
+# checked. Reason and superseded digests: docs/history/taskpacks/20261009-adoption/
+# AUTHORITY-PIN-CHANGE.json revisions[]. Checks stay at 10.
 R2_RELEASE_HASHES = {
-    "AUTHORITY.md": "145cc12ea398997ffb55431e61deb785a480668af2128dafa3c8effee1176854",
-    ".project/governance/authority-index.json": "0e2360042518041f3ce98b72cad9ff3039234c413b18a68a22f1618b6a1c5dce",
+    "AUTHORITY.md": "c0853e3d7e6d17170c373cdb8ad439ed00539ed8384aee2ecb017cc073f162f2",
+    ".project/governance/authority-index.json": "cad7ceac73c669ded8bc955468f8c62341a2f9910e65b4fa6e123f04af4bdb38",
     "docs/current/HISTORY-FREEZE-RULES.md": "b970562dbdc8b4ccfff71ba2354a5b718d2a54efde7db7972c4a2ee2b60e6e40",
     "docs/taskpacks/DESIGN-LAB-FINAL-AUTHORITY-CONVERGENCE-TASKPACK-2026-09-18.md": "62f43ef295d4e90462d1e49e657e490400c4b5568f4e4ad1db3e268e12bb10c7",
     "docs/taskpacks/DESIGN-LAB-UI-FIRST-INTEGRATED-TASKPACK-2026-10-09.md": "2cfd84627352e9f1b29b42787fa43466cd9a836130d826d43678b7733856ffda",
+    "docs/taskpacks/DESIGN-LAB-DIRECTION-ALIGNMENT-2026-10-19.md": "98e7d2210181de8a4a3a0c2d8c15c4846b332e3e418a02446a0bb001a1c2e116",
 }
 
 HISTORICAL_GLOB_FILES = (

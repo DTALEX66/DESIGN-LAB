@@ -7,7 +7,19 @@
 
 > 本文件是 DESIGN-LAB 所有人类、GPT、Codex、DeepSeek、Hermes、CI/Agent 在审计、规划和修改项目时的第一权威入口。
 
-## 2026-10-09 OWNER ADOPTION — UI FIRST
+## 2026-10-19 OWNER DIRECTION ADOPTION — VISUAL DESIGN LAB
+
+本条根据 owner 2026-10-19 直接指令生效，优先于下文 2026-10-09 / 0918 的冲突条款；Authority 稳定 ID 保留，修订号 `DIRECTION-20261019-R1`。
+Owner 原话：**其他任务冻结，以这份任务为当前权威与闭环目标（更新项目内的权威和规划），未来能力暂时冻结和延期延后**。
+当前唯一 integrated TaskPack：`docs/taskpacks/DESIGN-LAB-DIRECTION-ALIGNMENT-2026-10-19.md`（`DL-TP-20261019-DIRECTION-R1`）。2026-10-09 UI-FIRST 包降为 `SUPERSEDED / LINEAGE`；其 `currentExecution` 34 项任务全部 `FROZEN_DEFERRED`，不再派工；原字节、定义、历史证据保留。
+正式定位：面向职业视觉设计的 AI 原生、平台中立的**专业视觉智能与可复用设计能力系统**。产品本体是视觉智能 + 审美能力工程化 + 设计能力库 + 设计软件自动化 + 受控知识回流。六大能力域：Visual Intelligence / Aesthetic Analysis / Prompt Intelligence / Design Capability Library / Creative Tool Automation / Knowledge Candidate & Evaluation。
+永久非目标：第二画布或通用编辑器、以全流程设计文件制作交付为产品本体、通用 Agent Runtime / 聊天客户端 / 模型网关 / 跨项目调度器；不接管 WORK-LAB 通用治理，不取代 AAOS 正式知识真源，不把热门资源或模型输出直接认定为合格能力或可信知识。
+模型策略：本地/云端/混合，可替换、按能力与隐私/成本/延迟路由；模型输出是候选判断。工具策略：官方 API/SDK → 原生插件 → MCP → 脚本/CLI → 受控 UI 自动化；握手、HTTP 200、退出码或截图不等于真实任务验证。
+本轮只做权威/规划对齐、冲突矩阵、能力映射、技术可行性矩阵、最小真实闭环规划与按范围测试；**不实施产品功能**。文档修订 ≠ 规划完成 ≠ 代码实现 ≠ 真实运行 ≠ 人工验收 ≠ AAOS 接收。
+未执行且继续冻结：release、安装态分发、真实宿主 E3、真人 E4、手机端、AAOS 联调、ComfyUI/H3。
+Authority §17 变化依据：owner intent 落仓于 `docs/taskpacks/20261019-direction/OWNER-DECISION-2026-10-19.md`；reason=定位纠正与全域冻结；superseded=2026-10-09 UI-FIRST 派工入口及其当前任务派工；impact=索引/根规则/产品定义/边界/路线图/manifest/task-document-states/唯一账本状态同步，旧文件与证据冻结。
+
+## 2026-10-09 OWNER ADOPTION — UI FIRST（2026-10-19 起降为前继记录）
 
 本条根据owner当前直接请求生效，优先于下文20260918/0927的冲突条款；Authority稳定ID保留，修订号UI-FIRST-20261009-R1。
 当前唯一integrated TaskPack：`docs/taskpacks/DESIGN-LAB-UI-FIRST-INTEGRATED-TASKPACK-2026-10-09.md`（`DL-TP-20261009-UI-FIRST-R1`）。旧20260918包与R5/DeepSeek血统停止派工，原字节及证据保留。

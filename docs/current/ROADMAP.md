@@ -1,6 +1,30 @@
 # ROADMAP — 路线图
 
-- 版本：`1.2`｜状态：`ACTIVE`｜SSOT 角色：路线图契约
+- 版本：`1.3`｜状态：`ACTIVE`｜SSOT 角色：路线图契约
+
+## 2026-10-19 方向路线图（当前）
+
+定位：专业视觉智能与可复用设计能力系统；不是画布/通用编辑器/全流程设计文件交付平台。详细契约见`docs/taskpacks/DESIGN-LAB-DIRECTION-ALIGNMENT-2026-10-19.md`。
+
+| 阶段 | 内容 | 状态 |
+|---|---|---|
+| R0 | 冻结与基线：记录 HEAD/分支/dirty；`currentExecution` 34项`FROZEN_DEFERRED`；保护未提交改动 | ✅ 本轮完成（文档与账本状态） |
+| R1 | 权威与规划对齐：AUTHORITY/index/AGENTS/PRODUCT_DEFINITION/BOUNDARY/ROADMAP/manifest/task-document-states/pins | ✅ 本轮完成（仅文档，不是功能） |
+| R2 | 一个最小真实闭环的规划：视觉输入 → 分析/提示词 → 合格工具调用或可验证输出 → 用户/授权Agent验收 → 知识候选 | 📋 已规划，未执行；执行需 owner 授权 |
+| R3 | 能力资格确认：来源/许可/版本核验、隔离测试、真实任务测试、读回/失败验证 | ⏸ FROZEN_DEFERRED |
+| R4 | 模型与工具路由：本地/云端/混合、API/SDK→插件→MCP→脚本→受控UI自动化 | ⏸ 策略已定义；运行时 FROZEN_DEFERRED |
+| R5 | AAOS 知识候选回流：候选字段、验收身份、接收状态回读 | ⏸ FROZEN_DEFERRED；本轮不写 AAOS |
+
+### 本轮证据边界（不得外推）
+
+- 能力状态以`design-lab/config/capability-status.json`为准：research-evidence / design-intelligence / visual-quality / style-master-method / professional-visual-domains / production-handoff / release-evidence / asset-task-service / planar-decomposition / generation-task-protocol 为 E1。
+- `creative-toolchain` 保留一条 2026-08-16 的历史 `runtime-pass`（ComfyUI 0.33.1 用户授权部署 + H3 t2va 真实验生成取证，含提示词ID、22帧、384px、回读通过；生产级参数与音频导出未完成）。该记录**未在当前 HEAD 复验**，且 H3/ComfyUI 已由 owner 冻结；不得当作当前可用性。
+- Adapter Registry：Open Design 为 structural E1（runtime E3 pending）；Figma/Penpot/Blender/ffmpeg/browser/comfyui/adobe/h3 为 declared E0。`provider-capabilities.json` 全部 E0；`model-manifest-trust.json#approved` 为空。
+- 文档修订、规划完成、代码实现、真实运行、人工验收、AAOS 接收是不同状态。
+
+---
+
+以下 J0–J5 与历史基线保留为前继记录（2026-10-19 起冻结，不再派工）。
 
 ## 阶段（按任务包 J 节）
 

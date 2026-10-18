@@ -1,15 +1,15 @@
 {
   "schemaVersion": "design-lab/deepseek-authority-chain/v1",
   "task_key": "DL-TP-20260914-DEEPSEEK-AUTHORITY-R1::DLDS-A010",
-  "generated_at": "2026-10-18T11:32:39+00:00",
+  "generated_at": "2026-10-18T17:41:03+00:00",
   "subject": {
-    "base_sha": "37f19840c99410451571c26a74d6429a03f226d7",
+    "base_sha": "05a768521d31379819227e07f378f97a38c542e3",
     "branch": "qoder/designlab-backup-consistency-20261007",
     "worktree_clean": false
   },
   "current_authority": {
     "top_level": "DL-AUTHORITY-2026-09-18-R2",
-    "integrated": "docs/taskpacks/DESIGN-LAB-UI-FIRST-INTEGRATED-TASKPACK-2026-10-09.md",
+    "integrated": "docs/taskpacks/DESIGN-LAB-DIRECTION-ALIGNMENT-2026-10-19.md",
     "current_partition": "currentExecution",
     "current_taskpack": "DL-TP-20261009-UI-FIRST-R1",
     "predecessor_meaning": "DeepSeek/R5 below are lineage only after owner adoption",
@@ -107,33 +107,41 @@
       "state": "DEFERRED_TO_CODEX"
     }
   ],
-  "drift_findings": [],
+  "drift_findings": [
+    {
+      "path": ".project/manifest.yaml",
+      "field": "taskpack",
+      "recorded": "DL-TP-20261019-DIRECTION-R1",
+      "current_authority": "DL-TP-20261009-UI-FIRST-R1",
+      "action": "reconcile in DLDS-B040/B010; not silently rewritten by A010"
+    }
+  ],
   "classification_counts": {
     "CURRENT_INTEGRATED_TASKPACK": 1,
     "CURRENT_TASK_LEDGER": 1,
     "GOVERNANCE_TRUTH": 2,
-    "HISTORICAL": 135,
-    "REFERENCE": 5
+    "HISTORICAL": 136,
+    "REFERENCE": 11
   },
   "entries": [
     {
       "path": ".project/manifest.yaml",
-      "bytes": 841,
-      "sha256": "sha256:a6255e7ba657a8513023e8ff933dc625e5fb7ebffaa99a2553614511fa91cd3b",
+      "bytes": 833,
+      "sha256": "sha256:04867fada13ddc0c4ec06e2ba84c5665de4a4db49aa492427371bccc51f929ce",
       "authority_class": "GOVERNANCE_TRUTH",
       "basis": "project manifest (see drift note)"
     },
     {
       "path": "AGENTS.md",
-      "bytes": 11731,
-      "sha256": "sha256:794e265c6ad0bce3f39726899faf0c935567fbb995607d0053baa14d06a59d0b",
+      "bytes": 13474,
+      "sha256": "sha256:c36fee1447b0ef25cad9c165cb697f20af91bf3eaaf0dec7b3917b7ac67e9b09",
       "authority_class": "GOVERNANCE_TRUTH",
       "basis": "root execution rules"
     },
     {
       "path": "design-lab/config/task-ledger-r3.json",
-      "bytes": 756165,
-      "sha256": "sha256:34b0f6874f557f7469624c8005d0d942883cf0b61c3beaa9fbd4c6b35e6918ce",
+      "bytes": 752851,
+      "sha256": "sha256:ac638fef836c01bcf3517d60a7bf2500ce519b07164ea3b1c54c56651cdf8f9b",
       "authority_class": "CURRENT_TASK_LEDGER",
       "basis": "currentExecution dispatch; frozen R5 evidence partition",
       "mutable_state": "the ledger is rewritten at the close of every task, so its bytes and digest are generation-time",
@@ -155,8 +163,8 @@
     },
     {
       "path": "docs/history/taskpacks/20261009-adoption/AUTHORITY-PIN-CHANGE.json",
-      "bytes": 2843,
-      "sha256": "sha256:26982ff1e2a7b329fd2fb710baa7e8dcfd8235840ee7954d9e7a40f564a3ac89",
+      "bytes": 4507,
+      "sha256": "sha256:94c878d7647e28292f63f846588669fadc4681ce9d35f8ed635b3f6e04bdb0d0",
       "authority_class": "HISTORICAL",
       "basis": "frozen historical path (docs/history/)",
       "ledger": {
@@ -1524,6 +1532,61 @@
       "basis": "taskpack retained for reference; not a current dispatch entry"
     },
     {
+      "path": "docs/taskpacks/20261019-direction/OWNER-DECISION-2026-10-19.md",
+      "bytes": 2095,
+      "sha256": "sha256:30be26a90b42ace63e4a3e0464db1c714b93a5799ee741532134bb490deacdf8",
+      "authority_class": "REFERENCE",
+      "basis": "taskpack retained for reference; not a current dispatch entry"
+    },
+    {
+      "path": "docs/taskpacks/20261019-direction/SOURCE-MANIFEST.json",
+      "bytes": 1925,
+      "sha256": "sha256:6ee4cac66a0eaec5ba5713c665a7c616c98852f02a23b91882b7ea6fc22a6c15",
+      "authority_class": "REFERENCE",
+      "basis": "taskpack retained for reference; not a current dispatch entry",
+      "ledger": {
+        "kind": "unknown-json",
+        "keys": [
+          "archive",
+          "landingRoot",
+          "meaning",
+          "members",
+          "notExecuted",
+          "ownerDecision",
+          "schema",
+          "version"
+        ]
+      }
+    },
+    {
+      "path": "docs/taskpacks/20261019-direction/source/ACCEPTANCE.md",
+      "bytes": 2169,
+      "sha256": "sha256:b01dc9da3b9b8278461cb992b2cec227eaa3836ccbd2ee9a891f732858c53458",
+      "authority_class": "REFERENCE",
+      "basis": "taskpack retained for reference; not a current dispatch entry"
+    },
+    {
+      "path": "docs/taskpacks/20261019-direction/source/AUTHORITY.md",
+      "bytes": 2188,
+      "sha256": "sha256:4d0fb4201bfb582640a9a1ae9c42d8d468aa454581da9e389628aae66512c791",
+      "authority_class": "REFERENCE",
+      "basis": "taskpack retained for reference; not a current dispatch entry"
+    },
+    {
+      "path": "docs/taskpacks/20261019-direction/source/README.md",
+      "bytes": 501,
+      "sha256": "sha256:54acaabbf486f5ef17efbbf4366a2f348f3926c0fa3884a14980b24de8d7c4cf",
+      "authority_class": "REFERENCE",
+      "basis": "taskpack retained for reference; not a current dispatch entry"
+    },
+    {
+      "path": "docs/taskpacks/20261019-direction/source/TASKPACK.md",
+      "bytes": 7987,
+      "sha256": "sha256:979208cd59b141d018eb4661d393f9b833548e7694016b5ebd9e14e6e61c2f35",
+      "authority_class": "REFERENCE",
+      "basis": "taskpack retained for reference; not a current dispatch entry"
+    },
+    {
       "path": "docs/taskpacks/DESIGN-LAB-CLOUD-REAUDIT-TASKPACK-2026-09-06.md",
       "bytes": 28612,
       "sha256": "sha256:3d6edf1a00f4f4f7eb19005a2acba2c73bd0dc71a6d2ec5ba9ed5ae689c6454c",
@@ -1550,6 +1613,13 @@
       "sha256": "sha256:29b53215f81f230c7977ccd7d4e9861ef7decf5d1b28bf38516f9613b1191785",
       "authority_class": "HISTORICAL",
       "basis": "owner-adopted classification registry; old dispatch frozen"
+    },
+    {
+      "path": "docs/taskpacks/DESIGN-LAB-DIRECTION-ALIGNMENT-2026-10-19.md",
+      "bytes": 13993,
+      "sha256": "sha256:98e7d2210181de8a4a3a0c2d8c15c4846b332e3e418a02446a0bb001a1c2e116",
+      "authority_class": "CURRENT_INTEGRATED_TASKPACK",
+      "basis": "owner-adopted desktop UI-first dispatch"
     },
     {
       "path": "docs/taskpacks/DESIGN-LAB-DIRECTORY-MIGRATION-CLEANUP-TASKPACK-2026-09-01-2.md",
@@ -1653,8 +1723,8 @@
       "path": "docs/taskpacks/DESIGN-LAB-UI-FIRST-INTEGRATED-TASKPACK-2026-10-09.md",
       "bytes": 5329,
       "sha256": "sha256:2cfd84627352e9f1b29b42787fa43466cd9a836130d826d43678b7733856ffda",
-      "authority_class": "CURRENT_INTEGRATED_TASKPACK",
-      "basis": "owner-adopted desktop UI-first dispatch"
+      "authority_class": "HISTORICAL",
+      "basis": "owner-adopted classification registry; old dispatch frozen"
     },
     {
       "path": "docs/taskpacks/DLR-FINAL-20260826-R2-OSS-FAST-TRACK.md",

@@ -7,7 +7,7 @@
 > 历史条目在 `docs/history/next-agent-prompts/`，逐份登记于 `docs/history/next-agent-prompts/PROMPT-LINEAGE.json`。
 > `verify_task_document_states.py` 的 `entry-not-dated-again` 会在有人重新铸日期副本时直接失败。
 
-- **updatedAt**: 2026-10-18
+- **updatedAt**: 2026-10-19
 - **writtenAtSha**: 自己读 `git rev-parse HEAD`（不要抄任何文档里的数字；本文件也不例外）
 
 ## 0. 这份文件是什么
@@ -22,7 +22,7 @@
 2. `/AUTHORITY.md`
 3. `.project/governance/authority-index.json`
 4. 根 `AGENTS.md`
-5. 唯一当前包 `docs/taskpacks/DESIGN-LAB-UI-FIRST-INTEGRATED-TASKPACK-2026-10-09.md`
+5. 唯一当前包 `docs/taskpacks/DESIGN-LAB-DIRECTION-ALIGNMENT-2026-10-19.md`（`DL-TP-20261019-DIRECTION-R1`）
 6. `design-lab/config/task-ledger-r3.json` 的 `currentExecution`
 7. 本文件
 
@@ -34,244 +34,162 @@
 git rev-parse HEAD && git status --porcelain && git log --oneline -5
 gh pr list
 gh run list --branch main --limit 1
-python design-lab/scripts/verify_task_document_states.py     # 13 项，含两道新检查
-python scripts/verify_top_level_authority.py                 # 10 项，含 5 个 SHA 钉
+python scripts/verify_top_level_authority.py                 # 10 项，含 6 个 SHA 钉
+python design-lab/scripts/verify_task_document_states.py     # 13 项
 ```
 
 **别抄本文件的数字当事实。** 上一轮的红灯里有一次就是"文档说已同步、实际没有"。
 
-## 3. 2026-10-18 这一轮改了机制（不是改了措辞）
+## 3. 2026-10-19 的方向调整（本轮唯一的权威变化）
 
-### 3.1 接续入口去日期化
-`docs/current/` 曾有 5 个只差日期的提示词。现在只有一个 `docs/current/NEXT-AGENT-PROMPT.md`；
-4 份旧件 + 本轮被替换的 10-13 正文都进了 `docs/history/next-agent-prompts/`，逐份记录字节与 sha256。
-`AGENTS.md`、README、2026-10-13 交接、任务包第 7 条全部改指唯一入口。
-**任务包本身是 SHA 钉住的**——若你必须改它，按 `AUTHORITY-PIN-CHANGE.json` 的既有流程移钉
-（改 `scripts/verify_top_level_authority.py` 的哈希 + 追加一条 revision），不要只改文件。
+Owner 原话（逐字）：
 
-### 3.2 两道新闸（都已用反例证明会红）
-- `entry-not-dated-again`：不许存在 `<规范名>-YYYY-MM-DD.md`。按**名形状**判，不靠黑名单。
-- `guidance-paths-resolve`：`AGENTS.md` / `README.md` / `AUTHORITY.md` / 本文件里出现的每个 `docs/...`
-  路径必须是受跟踪文件。**分界**：交接/审计**可以**引用死路径（那是记录），指引**不可以**（那是指令）。
+> 其他任务冻结，以这份任务为当前权威与闭环目标（更新项目内的权威和规划），未来能力暂时冻结和延期延后
 
-### 3.3 清掉的三类旧数据
-- `.project-local/worktrees/` 的 6 个孤儿工作树（97 MB，`git worktree list` 一个都不认）——它们是
-  "grep 到旧 `AGENTS.md`、旧 `reports/current/`"的第二个来源。删前逐个确认干净且在 HEAD。
-- `design-lab/config/capability-index-v1-backup.json`（445 KB，备份躺在权威配置目录）+ 空 `services/`。
-- 体积投影按 HEAD 口径重生成（`LARGEST-FILES.json` 等），并结清 `REPOSITORY-SIZE.json#subject_sha`
-  的历史债务。
+落仓结果：
 
-### 3.4 明确**不**删的
-`design-lab/core/`：云审计说"zero consumers"、closeout 叫它 legacy，但
-`docs/architecture/DIRECTORY-AUTHORITY.md` **明文冻结**（"must not gain new consumers"）。
-成文的架构决定优先于清理冲动——要动它，先改那份文档并给出 ADR，不要在清理批里顺手删。
+- 正式定位：**面向职业视觉设计的 AI 原生、平台中立的专业视觉智能与可复用设计能力系统**。
+  产品本体 = 视觉智能 + 审美能力工程化 + 设计能力库 + 设计软件自动化 + 受控知识回流。
+- 六大能力域：Visual Intelligence / Aesthetic Analysis / Prompt Intelligence /
+  Design Capability Library / Creative Tool Automation / Knowledge Candidate & Evaluation。
+- 永久非目标：第二画布或通用编辑器；以全流程设计文件制作交付为产品本体；
+  通用 Agent Runtime / 聊天客户端 / 模型网关 / 跨项目调度器；接管 WORK-LAB 通用治理；
+  取代 AAOS 正式知识真源；把热门资源或模型输出直接认定为合格能力/可信知识；默认外传客户素材。
+- `docs/taskpacks/DESIGN-LAB-UI-FIRST-INTEGRATED-TASKPACK-2026-10-09.md` 降为 `SUPERSEDED / LINEAGE`；
+  `currentExecution` 的 **34 项父/子任务全部 `FROZEN_DEFERRED`**，不再派工；原字节、任务定义与证据保留。
+- 本轮**只做**权威/规划对齐、冲突矩阵、能力映射、技术可行性矩阵、最小真实闭环规划与按范围测试；
+  **不实施产品功能**。解冻任何未来能力都需要 owner 明确授权。
 
-### 3.5 D07 拆分的边界是**量出来的**，不是猜的
-`shell.ts` 7756 行里，能被搬走的和不能被搬走的，差别不在"重不重要"，而在**有没有闸按源码
-文本/位置读它**。已逐条核过 20 个来源（结论落在 D07 batch 1 的提交里），要点：
+本轮同步过的面（都已落盘）：`AUTHORITY.md`、authority index、`AGENTS.md`、
+`docs/current/PRODUCT_DEFINITION.md`、`docs/architecture/BOUNDARY_CONTRACT.md`、`docs/current/ROADMAP.md`、
+`design-lab/config/product-manifest.json`、`design-lab/config/task-document-states.json`、唯一账本状态、
+`.project/manifest.yaml` 的 taskpack 指针、`R2_RELEASE_HASHES`、`AUTHORITY-PIN-CHANGE.json`、`reports/current/**`。
 
-- `apiOrEmpty` 的**函数声明**必须在 `shell.ts`：`tests/shape-notice-coverage.mjs` 用 TS AST
-  要求 `function apiOrEmpty` 恰好 1 个，并把它当"闸的对象"，搬走即 `exit 1`。
-- `FAILED_STATES` / `HUMAN_STATES` / `IN_FLIGHT_STATES` 不可搬：`verify_state_vocabularies.py`
-  用 `const X = new Set\(\[(.*?)\]\)` 只在本文件正则匹配，找不到就报"词汇表无法校验"。
-- `el('ul', { class: 'list'` 在 `shell.ts` 里**精确 52 次**（`test_workbench_css_single_definition.py`）。
-  任何一个载体搬走，计数就变成 51——它不是"下限"，是对账。
-- `scripts/design_debt_baseline.py` 只测固定 7 个文件，`shell.ts` 贡献 29 个字面 px 与 1 个
-  字面色值；`DESIGN.md §4` 的"26/534/25"是它的投影。搬走 px/色值载体 → 实测下降 → 文档那
-  句话不再成立。**新文件不在 SCOPE 里**，所以新文件里的 px/色值不会被测——这是拆分引入的
-  静默盲区，要么把新文件登记进 SCOPE，要么别往里放字面量。
-- `verify_capability_self_description.py` 的 `CAPABILITY_REGISTRY` 块**不是 43 行，是 3700 行**：
-  它用 `^\];` 收尾，而注册表自己以 `] as const;` 结束，真正的 `^];` 命中在 `PROJECT_STAGES`
-  的闭合行。在那个区间里插入任何 `^];` 或 `capabilityId:` 字面量都会改块边界/行数（闸钉 `rows == 5`）。
+**没有**同步、也不得声称同步的：运行时代码、真实宿主调用、模型路由、人工验收、AAOS 接收。
 
-**推论**：拆分顺序只能是"先搬没人按文本读的纯函数"，DOM 组件要一批一批搬，且每搬一个
-含 px/色值或 `ul.list` 的组件，都得同时改闸的清单与 `DESIGN.md` 的数字——那是**改合同**，
-不是拆分。不要用一个批次的借口顺手改合同。
+## 4. 状态是分轴的，不能合成一个"完成"
 
-### 3.6 2026-10-18 全量审计（前端 + 后端 + 治理）：**判定未漂移，P0=0 / P1=3 / P2=13**
+能力状态至少区分：
+`Discovered`、`Reviewed`、`Adapted`、`Installed`、`Loaded/Connected`、`Tested`、
+`Qualified`、`Accepted`、`Knowledge Candidate`、`Ingested/Verified in AAOS`。
 
-完整报告：`docs/audits/DESIGN-LAB-FULL-DRIFT-AUDIT-2026-10-18.md`（审计基线 SHA `0d9041a3`，
-该 SHA 的 CI run `39128580612` 12 作业全 success）。规模：已提交 666 py（运行时 `src/design_lab` 102 ·
-`design-lab/scripts` 116 · `design-lab/tests` 258 · `scripts` 68），`verify_*.py` 共 103 个。
+证据等级仍是 E0–E5：E0 声明 / E1 结构 / E2 受控运行 / E3 真实工作流 /
+E4 独立人审 / E5 发布可复现。**文档修订 ≠ 规划完成 ≠ 代码实现 ≠ 真实运行 ≠ 人工验收 ≠ AAOS 接收。**
 
-**后端八项实测**（都有可复算命令，别抄这段当事实，重跑一遍）：
+当前实测（重跑命令，别抄结论）：
 
-| 检查 | 结论 |
-|---|---|
-| 第二 runtime | **无**。运行时只有 `src/design_lab` 102 文件；`design-lab/` 的 382 py = scripts 116 + tests 258 + core 7 + production 1 |
-| fail-closed | **健康**。`except` 565 行但 `except Exception: pass` 仅 1 处；`domain_packs.py:186`「a checker crash is a finding, not a verdict」、`native_tasks.py` 转 `NativeTaskError` 抛出 |
-| 合同真值 | **P2**：`EVIDENCE_LEVELS`（E0–E5）在 `qa_plane.py:126`、`creative/media/__init__.py:53`、`verify_product_manifest_v3.py:26`、`verify_runtime_contracts_v3.py:21`、`verify_evidence_levels.py` **5 处各写一份**，当前值一致但**无交叉一致性闸** |
-| 证据等级 | **通过**：`test_claim_honesty_gates` 6/6 OK |
-| 安全 | **健康**：仅 `127.0.0.1`；`hmac.compare_digest` + Bearer + token 强制 `[0-9a-f]{64}`；生产代码 `shell=True`/`eval`/`exec` **0 处**；318 处 `execute(` 全参数化；`__pycache__` 提交数 0 |
-| 依赖 | 仅标准库 + `jsonschema` + `sqlite3` |
-| 死路由 | **P1-3**：后端 30+ 路由硬编码在 `http_service.py` 内 `make_server()` 的闭包 `dispatch`（167 行→末尾，**单方法约 478 行**），无集中注册表 → 前后端只能人工 grep 核对。人工核对结果**没有静默死路由**（缺口被前端主动标注「缺」） |
-| 闸看守 | **通过**：`test_gate_reachability` 9/9 OK |
+| 事实 | 复算方式 | 读数 |
+|---|---|---|
+| 能力证据分布 | `design-lab/config/capability-evidence-current.json` 的 `capabilities` | 50 条：E1=13、E0=37 |
+| Provider 证据 | `design-lab/config/provider-capabilities.json` | 全部 E0（未复验运行时） |
+| 已批准模型 | `design-lab/config/model-manifest-trust.json#approved` | 空 |
+| Adobe/Comfy/Penpot 适配器 | `src/design_lab/adapters/`、`src/design_lab/generators/`、`src/design_lab/interop/penpot.py` | 静态/合同层存在；无当前 SHA 的真实宿主 E3 |
+| 历史 ComfyUI/H3 记录 | `docs/current/ROADMAP.md` 的 2026-08-16 `runtime-pass` | 历史记录，未在当前 HEAD 复验；H3/ComfyUI 已冻结 |
+| 评测集 | `git ls-files evals; git ls-files design-lab/evals; git ls-files design-lab/evals/reconstruction` | 根 `evals/` **0**；`design-lab/evals/` **63**；其中 `reconstruction` **20**（6 例 golden corpus + 索引）；**无六域级基准** |
+| Prompt Intelligence 运行时 | `git grep -l -iE 'class .*Prompt' -- 'src/design_lab/**/*.py'; git grep -l -iE 'def .*prompt' -- 'src/design_lab/**/*.py'` | 只命中 `generators/comfy_http.py` 的请求字段；**没有独立运行时模块** |
+| 真实 OCR | `git grep -l -i 'ocr' -- 'src/design_lab/**/*.py'; git grep -l -i 'tesseract' -- 'src/design_lab/**/*.py'` | `ocr` 命中 4 个文件（`analysis/decomposition.py`、`analysis/model_cache.py`、`creative/generative/model_assets.py`、`readiness/model_radar.py`），`tesseract` 0 命中；只有对象计划与模型清单引用，**没有 OCR 引擎实现与生产调用方** |
+| 运行时规模（HEAD 口径） | `git ls-files 'src/design_lab/**/*.py' \| wc -l` | 103 个 .py；creative 21 / runtime 17 / assurance 11 / governance 7 / interop 6 / analysis 6 / adapters 4 / readiness 3 / generators 3 |
+| 能力包 | `git ls-files packages/capabilities \| wc -l` | 178 个受跟踪文件；atoms 21 个目录 |
 
-**前端**：P1=2 —— ①UI 量化门禁**跑得到但不生效**：`test_workbench_ui_audit_gate.py` 确实接线并 shell 出去跑
-`scripts/audit_workbench_ui.py`（再包 `design-lab/tests/e2e/audit_workbench_ui.mjs`），**不是**孤立闸；
-但它缺浏览器就 `skipTest`，而 CI 的 Chromium 只在 `workbench-browser-e2e` 作业装、跑全量套件的
-`python-gate` 没有，且防跳过的 `verify_browser_e2e_ran.py` 的 `TEST_MODULES` **显式元组不含它**
-（该文件 docstring 自己承认"未列出的浏览器套件会永远跳过且无人发现"）。净效果：它报的
-`violations=12`（`button#navToggle` 62x23）不会让任何提交变红。详见 §9。
-②skip-link `href="#content"` 两种状态下都到不了可见内容。P2=12。
+## 5. 六大能力域 → 现有实现映射（只用于映射，不新建账本）
 
-**本轮审计自己犯的两次误判**（已写进报告诚实性声明，别重犯）：
-1. 用"workflow + 4 个聚合器"文本包含扫描推出 **8 个"孤立闸"** → 被 `test_gate_reachability` 9/9 证伪
-   （漏了 `verify_projection_freshness.py` 等中间聚合器）。**先跑闸，别先猜。**
-2. 按 import 关系把 `design-lab/core/` 判为死代码并建议删除 → 被 `DIRECTORY-AUTHORITY.md:65` 证伪：
-   它是**明文冻结的契约参考件**（"must not gain new consumers"），正确处置是"保持冻结 + 加勿引用头注消歧"。
-   注意本文件 §3.4 早就写了这件事，没先读才重复踩。
+六域是**能力视角**，不是新目录、不是新账本、不是新任务编号。实现落在既有模块与既有 W00–W17 工作分组上
+（W 分组见 `docs/audits/DESIGN-LAB-UIKIT-CONFORMANCE-2026-09-28/pack/02_EXECUTION_TASKS.md`）。
 
-### 3.7 2026-10-18 接续轮：审计 P1 三项 + EVIDENCE_LEVELS 已落地（本地实测，CI 待读）
+| 能力域 | 现有实现（模块/配置） | 现有证据 | 主要缺口 | 既有任务映射 |
+|---|---|---|---|---|
+| Visual Intelligence | `src/design_lab/analysis/`（decomposition / plan_to_rir / model_cache / model_manifest / capability_library）、`packages/capabilities/reconstruction/`（34 个受跟踪文件）、`design_layer.py` | E1 结构；`design-lab/evals/reconstruction/` 有 6 例 golden corpus；无六域级一致性与字段完整性实测 | 观察/推断/不确定性未分离到可验证输出；无六域基准集 | W04、W05、W13；T09、T10、T11；U04、U05 |
+| Aesthetic Analysis | `qa_plane.py`、`quality_record/store`、`human_jury`、`jury_store`、`jury_review.py`、`design-tokens.json` | E1；Jury 记录层存在 | 无盲评一致性、维度区分度、反例覆盖；无 E4 | W06、W08、W09；T12；U06 |
+| Prompt Intelligence | 仅 `generators/comfy_http.py` 的请求字段；无独立模块 | E0（结构引用） | 结构化提示词、图像反推、跨模型转换、人工可用性评审全部缺失 | W07、W16；T09、T10；U04 |
+| Design Capability Library | `design-lab/config/capability-*.json`、`packages/capabilities/`（atoms 21 / bundles / plugins / quality / standards）、`verify_knowledge_lifecycle.py` | 50 条能力证据 E1=13 / E0=37；资格状态可追溯 | 去重/分类一致性、许可核验的批量实测；`tool-control` 等来源登记债 | W02、W13；T05、T06、T07；U03 |
+| Creative Tool Automation | `adapters/photoshop_com.py`、`adapters/illustrator_com.py`、`adapters/spi.py`、`generators/comfy_*.py`、`interop/penpot.py` | E0/E1 为主；ComfyUI 2 条为 2026-08-16 历史 E3，未在当前树复验 | 分层选择、超时/取消、失败模式、恢复/回滚逐项声明与实测 | W07、W10、W16；T13、T14；U05、U06 |
+| Knowledge Candidate & Evaluation | `assurance/`（rights / preflight / jury / quality）、`schemas/candidate-knowledge.schema.json`、`knowledge-role-classification.json`、`verify_knowledge_lifecycle.py` | E1；候选字段与生命周期闸存在 | 无 AAOS 接收回读；无真实验收主体/时间/理由 | W08、W17；T16、T18；U09 |
 
-- **P1-3 路由表**：`http_service.py` 的 53 条路由已抽成模块级 `ROUTES`（`/api/projects` 拆 GET+POST），
-  dispatch 按表过滤。新闸 `design-lab/scripts/verify_workbench_route_calls.py` 双向核对：
-  `calls=92 routes=53 matched=43 backend_only=10 dynamic=3 special=1`；10 条豁免逐条带实测理由，
-  新增/消失/被调用都会红。随附 23 个单测，已进 `verify_design_lab.py` 聚合。提交 `72102fea`。
-- **P1-1 UI 审计接线**：`test_workbench_ui_audit_gate` 已进 `verify_browser_e2e_ran.py` 的
-  `TEST_MODULES`；实测 26 个 scope（1280/1920）`violations=[] ok=True`。
-- **P1-2 skip-link**：链接移到 `<body>` 首子节点；`mountAppShell` 的点击处理器按当前壳选择
-  `#content`（路由视图）/`#workspace`（已连接旧视图）/`#login`，`preventDefault` 后 `focus()`，
-  不再把 hash 写成非路由 `#content`。`#content`/`#workspace`/`#login` 加 `tabindex="-1"`。
-  审计新增两条断言：首 Tab 必须落在链接上；每个 route 上 Enter 必须落到唯一可见内容区且 hash 不变。
-  **反例已跑**：把链接放回旧 `<main>`，审计立刻报 `skip link cannot take focus` /
-  `inside hidden MAIN` / `landed on DIV#route-view`。
-- **P2 EVIDENCE_LEVELS**：唯一真源 `src/design_lab/governance/evidence_levels.py`（`EVIDENCE_LEVELS`
-  元组），`qa_plane.py`、`creative/media/__init__.py`、`verify_product_manifest_v3.py`、
-  `verify_runtime_contracts_v3.py`、`scripts/verify_evidence_levels.py` 全部改为导入/派生。
-  实测：`EVIDENCE_LEVELS=PASS`、product manifest `total=493 failed=0`、runtime contracts `total=239 failed=0`、
-  `test_verifier_internals.AggregateChainTests.test_aggregate_verify_runs` OK。
-  新增 runtime 文件使 inert survey 的 `productFiles` 211→212，已按脚本规定重生成投影。
+`design-lab/core/` 是**明文冻结的契约参考件**（`docs/architecture/DIRECTORY-AUTHORITY.md`， "must not gain new consumers"）。
+不要因为"没人 import"就删它；要动它先改那份文档并给出 ADR。
 
-本机没有跑全量套件；以上每条都是定向闸的实测输出。下一轮先自读 HEAD 与 CI 作业，不要把这节当 CI 结论。
+## 6. 最小真实闭环：已规划，未执行
 
-## 4. 四条硬规则（违反会被闸拦，或会被 CI 打回来）
+目标闭环（`docs/taskpacks/DESIGN-LAB-DIRECTION-ALIGNMENT-2026-10-19.md` §10）：
 
-1. **不要铸日期副本。** 入口就地改。
-2. **不要在测试文件的注释里写脚本文件名。** `test_gate_reachability` 把"测试模块里出现的脚本名"
-   当作**调用点**，一句注释就能把一个"豁免的手动闸"变成"可达"，从而触发 `no_exemption_has_gone_stale`。
-   要提就用角色称呼（"体积审计生成器"），并写清为什么不写文件名。
-3. **删掉登记行时，钉住它的 pin 要在同一提交里跟着走**，并内联写明理由。否则 CI 会用
-   `REPORT-DEBT-CLOSED-NOT-REMOVED` 或精确集合断言回你——这两种红灯都是对的。
-4. **先读权威口径，再取证；不要用"有没有人引用/有没有出现在文本里"代替"权威文档怎么规定"。**
-   2026-10-18 审计里这条连犯两次（8 个"孤立闸"、`design-lab/core/` 判死代码），两次都被权威源证伪。
-   正确顺序：`AUTHORITY.md` → `authority-index.json` → `AGENTS.md` → 任务包 → `currentExecution` → 本文件，
-   **然后**才是 grep/grep -c。反例：判断一个模块该不该删，先查 `DIRECTORY-AUTHORITY.md` / closeout / ADR，
-   不要只看 import 计数。
+```
+固定视觉输入（含 brief/参考图）
+  → 分析：观察 / 推断 / 不确定性 分栏输出
+  → 结构化提示词（含目标模型/工具与不确定性）
+  → 一次合格工具调用或可验证输出（读回 + 失败/恢复记录）
+  → 用户或授权 Agent 验收（署名、时间、理由）
+  → 知识候选（来源/许可/版本/测试/哈希/撤回）
+```
 
-## 5. 已经做完的（D01–D06 全在 `main` 上、CI 逐作业读过；D07 只做了第一批）
-
-| 项 | 结果 |
-|---|---|
-| D01 触发去重 | 分支 push 只跑轻闸（compile + identity boundary），`main` 跑全套；顶层加了按 PR/ref 的 `concurrency` |
-| D02 逐测试计时 | 逐测试 id/模块/状态/秒数 + 合并逐模块表，写进本次运行目录并打印 |
-| D03 前置结构合同 | 3 模块 31 测试，作为 `python-gate` 第一步；空选择 rc=2 |
-| D04 分片 | `--shard i/n` 独立进程 + 独立运行根；编排器校验**并集多重集合**等于 discovery |
-| D05 重复调用 | 11 个重复步骤里删 7 个（9 次调用），保留跨作业/条件/轻闸那 4 个；阻断已用注入失败证明 |
-| D06 请求截止 | 读 15s / 写 45s；写超时报"结果待核对，不是失败"并禁止盲目重发；切页只取消读 |
-| D07 拆分（第一批） | `shell.ts` 7756 → 7531 行：`ui-primitives.ts`（`el`/`en` + 形状/未连接/空集措辞）与 `route-address.ts`（纯地址与哈希映射）独立成模块，`shell.ts` 原样再导出，导出面零变化；`build/main.js` 字节数不变（369.51 kB），差异只有模块体顺序 |
-| 全量漂移审计 | 2026-10-18 对前端 + 后端 + 治理层做全量审计：**判定未漂移**，P0=0 / P1=3 / P2=13。报告 `docs/audits/DESIGN-LAB-FULL-DRIFT-AUDIT-2026-10-18.md`（基线 `0d9041a3`，CI run `39128580612` 12 作业全 success） |
-
-顺带修掉的真问题：套件曾把 **20 个测试登记两遍**（`from ... import Class` 让 P0 用例二次进册，
-3011→2991）；工作流曾因**重复映射键**被 GitHub 整份拒收（零作业 + failure，看着像基础设施抖动）。
-
-## 6. 下一刀：四个候选（按价值，不按顺序）
-
-### 0. 后端路由注册表 + 前后端双向闸 —— **已完成（2026-10-18 接续轮，见 §3.7）**
-
-剩余约束：新增路由必须同时补合同行（`test_new_route_without_a_row_is_red`）与本闸的前端调用；
-`guard()` 仍在 `body()` 之前，写路由必须先过 `hmac.compare_digest` 再读 body；`/api/local-session`
-仍是唯一免鉴权路由（特殊分支，不在 `ROUTES`）。`#/api/projects/<32hex>/...` 的正则形态就是合同。
-
-### A. D07 `shell.ts` 拆分（第一批已交付；接续轮后 7547 行）——第二批切 "状态组件" 与 "纯数据编排"
-第一批只搬了两块**没人按文本读**的东西（`ui-primitives.ts` / `route-address.ts`，见 §3.5/§5）。
-第二批的候选，按"搬走不会碰任何清单"排序：
-
-1. `StateSpec` / `STATE_SPECS` / `stateBlock` / `stateMachineStepper`（约 70 行，`el`/`en` 现在
-   已经能从新模块导入，无环）。`renderUiStates` 必须留在 `shell.ts`——它调 `viewLabel()`，
-   而 `viewLabel` 读的 `ROUTE_VIEWS` 被 `appshell.mjs` 与桌面审计脚本按**位置**切出来。
-2. `composeTargetPlan` / `readPlanReceipt` / `sha256Hex` / `contentKey` / `navGroupChunks`
-   （纯数据编排，但要注意 `appshell.mjs` 从 vm 上下文直接读 `searchGroupRows`，同类
-   "bundle 顶层可见" 的符号不要搬）。
-3. 页面级 render 留到最后：它们同时被 `ul.list` 精确计数（52）和 `DESIGN.md` 的 px/色值
-   三元组（26/534/25）钉住，搬一个就要同步改两处合同 + 该文件的登记惯例。
-
-**坑（第一批实测）**：`git diff` 会告诉你 `build/main.js` 只差模块体顺序、字节数一模一样——
-这不是"没生效"，而是 Rollup 把新模块体整体前置了。判据看 `transforming... 6 modules`
-（4 → 6）与 `test_workbench_served_bundle`，不要看字节数。
-
-### B. D08 列表渲染与 `design_layer` 查询的性能基准
-先建合成基准（100 / 1000 / 10000 项），量 DOM 节点数、响应字节、首屏与切页时间，**再**决定分页。
-行数只证明维护耦合，不证明首屏慢——不要用行数承诺性能。
-
-### C. U09（知识回执/离线/反馈）——产品切片
-`U01`–`U07` 都是 PARTIAL；`U08`–`U12` 未开始。做产品切片时，`U07` 的教训是：
-**先交付可审阅的读回面板，把"没建的那一半"写在可见文字里**，不要把 PLANNED 的锚点标成 IMPLEMENTED。
+- 最小可执行切片（不需要外部服务）：固定 fixture + 本地确定性分析 + 提示词结构 + 差异/读回工件；
+  产物必须能复算，失败与低置信必须显式标注。
+- 工具调用段：官方 API/SDK → 原生插件 → MCP → 脚本/CLI → 受控 UI 自动化；
+  **当前没有可用的、未冻结的真实宿主**（Adobe E3 / ComfyUI/H3 / AAOS 均需 owner 授权）。
+- 人工验收段与研究接受段属于 owner 门；不得用 VLM 自评、截图或"AI 说通过"代替。
+- 映射：输入/分析 = T09/T10/U04；目标包 = U05；工具调用 = T13（E3，owner-gated）；
+  验收 = T12（E4，owner-gated）；知识候选 = T16/T18/U09。
+- 下一轮若获授权，先交付"可审阅的读回面板 + 真实数据源 + 可复现测试"，
+  把没建的那一半写在可见文字里，不要把 PLANNED 标成 IMPLEMENTED。
 
 ## 7. 只能由 owner 决定的（不要猜，也不要替他填）
 
-- **E3 真实宿主**、**E4 独立人审**、**E5 发布/安装态分发**：均未执行，且需要明确授权。
+- **E3 真实宿主**、**E4 独立人审**、**E5 发布/安装态分发**：均未执行，需明确授权。
 - **手机端**：`FROZEN_DEFERRED`，本轮不实现不验收。
-- **#13 / owner 项 F**：`plan_to_rir` 无生产调用方，且仓库**没有真实 OCR 实现**——缺的是产品判断
-  （工作台要不要跑本机 OCR），不是接线。
-- **D09 GitHub 必需检查**：需要另外授权。做法是先加一个稳定、绑定实际 SHA 的汇总检查，
-  验证"required + 条件 skip"确实会失败，**再**设为必需；故意失败的子检查必须能阻断。
-- 审计文档里的 owner 清单 A–F、H–J。
+- **解冻 34 项 `FROZEN_DEFERRED` 任务**：需要新的 owner 明确授权；不得自行恢复派工。
+- **AAOS 联调、ComfyUI/H3、外部服务、跨仓库写入、数据外发、E 盘访问**：全部冻结/需授权。
+- **D09 GitHub 必需检查**：需另外授权；先加稳定、绑定实际 SHA 的汇总检查，验证"required + 条件 skip"
+  确实会失败，再设为必需。
 
-## 8. 每批的强制序列
+## 8. 每批的强制序列（按 owner 的效率约束：只跑最小定向闸）
 
 ```
-改动 → 复跑相关闸与测试 → deepseek_authority_chain.py（动过账本/被钉文件/索引时）
-      → verify_authority_gates.py --zero-spill → 回执（先账本、后链，同批提交）
+改动 → 只复跑相关闸与测试（不跑全量套件，除非 owner 显式授权）
+      → 动过账本/被钉文件/索引时：deepseek_authority_chain.py + generate_current_reports.py
       → 提交 → 推工作分支 + 快进 main → 读该 SHA 的 CI 逐作业照抄 → 才允许说"完成"
 ```
 
 **本地结论永远不是 CI 结论。** 读 CI 时按作业读，不要只看总结论。
+上一轮 owner 明确要求：不要无限跑各类全量测试和大型闸门；需要显式授权时先申请。
 
 ## 9. 工具事实（省得再踩）
 
-- `gh run view <id> --log` 有时返回空；可用
+- **本机没有 pytest**。用仓库根 `.venv/Scripts/python.exe` + unittest：
+  `PYTHONPATH="design-lab;src" .venv/Scripts/python.exe -m unittest design-lab.tests.test_ledger_schema`。
+- **系统 Python 缺 `jsonschema`**；报告生成器必须用 `.venv/Scripts/python.exe scripts/generate_current_reports.py`。
+- **账本身份字段仍钉在 `DL-TP-20261009-UI-FIRST-R1`**（这是设计：定义/证据字节不动，只有状态冻结）。
+  因此 `.project/manifest.yaml#taskpack` 指向新包时，`deepseek_authority_chain.py` 会稳定产出**恰好 1 条**
+  drift finding（`recorded=DL-TP-20261019-DIRECTION-R1`、`current_authority=DL-TP-20261009-UI-FIRST-R1`）。
+  `--check` 通过；不要为了让这条 finding 消失去改写账本身份字段。
+- **新包是 SHA 钉住的**。改它必须走 `docs/history/taskpacks/20261009-adoption/AUTHORITY-PIN-CHANGE.json` 流程：
+  追加 revision + 改 `scripts/verify_top_level_authority.py` 的哈希，不要只改文件。
+- `guidance-paths-resolve`：`AGENTS.md` / `README.md` / `AUTHORITY.md` / 本文件里出现的每个 `docs/...`
+  路径必须是**受跟踪文件**。新文档先 `git add` 再跑闸。交接/审计可以引用死路径（那是记录），指引不可以。
+- `entry-not-dated-again`：不许存在 `NEXT-AGENT-PROMPT-<日期>.md`；入口就地改。
+- **不要在测试文件的注释里写脚本文件名**：`test_gate_reachability` 把"测试模块里出现的脚本名"当作调用点，
+  一句注释就能把豁免的手动闸变成"可达"，触发 `no_exemption_has_gone_stale`。用角色称呼。
+- **新增/删除 `apps/workbench/` 下文件会让 `verify_inert_contract_survey` 红**（`productFiles` 计数）。
+  按该脚本自己的文档：先不带 `--check` 重跑刷新投影，再 `--check`；不要手改 JSON。
+- **工作树里有未提交的 U09 改动**（`apps/workbench/shell.ts`、`http_service.py`、`state_resources.py`、
+  若干 untracked schema/test/module 文件）。**本轮不提交、不 reset、不 checkout、不清理它们**；
+  提交前用 `git status` 明确排除。
+- 本机沙箱跑不了全量 Python 套件：safe-delete shim 会中途 `SystemExit`，另有 Windows 造不出锁的用例。
+  本机聚合闸基线**不是 0**；差别只在 CI 上消除。
+- `gh run view <id> --log` 有时返回空；用
   `gh api repos/<owner>/<repo>/actions/jobs/<job_id>/logs --allow-escape-sequences`，
   但日志会被截断，**不要指望它给出失败测试名**——该用本地复现。
-- **本机沙箱跑不了全量 Python 套件**：safe-delete shim 会在中途 `SystemExit`，另有
-  `rollback_lock_or_permission_failure…` 这类在 Windows 造不出锁的用例。本机聚合闸的基线是
-  `total=75 failed=1..2`，**不是** 0；差别只在 CI 上消除。
-- 本机**没有 pytest**。用仓库根 `.venv/Scripts/python.exe`，单模块跑法：
-  `PYTHONPATH="design-lab;src" .venv/Scripts/python.exe -m unittest tests.test_rights_ui_contract`。
-  结构合同那条另有入口：`python scripts/run_structure_contracts.py`（31 个测试，含 52/50 清单）。
-- **本机有一个只在 checkout 里成立的假红**：`design-lab/config/contract-bindings.json` 在工作树是
-  CRLF、HEAD blob 是 LF，于是 `test_working_tree_line_endings` 报它 776 处 CRLF。`git status`
-  干净、`git hash-object` 等于 HEAD blob 就说明是检出形态，不是内容——不要去"修"它。
-- 分片并集是 `PYTHON_TESTS_UNION=OK expected=… distinct=… ran=… duplicates=0 missing=0`；
-  它抓过真 bug，改动测试装载方式后务必看这一行。
-- **两道"诚实性"闸可以单跑，很快**，改动声明/证据/闸接线后先跑这两个：
-  `PYTHONPATH="design-lab;src" .venv/Scripts/python.exe -m unittest design-lab.tests.test_gate_reachability`（9 测试，约 4s）
-  与 `... design-lab.tests.test_claim_honesty_gates`（6 测试，约 13s）。
-  前者**双向**断言"不可达 verifier 集合 == `MANUAL_GATES` 豁免清单"，后者断言证据等级回执。
-- **新增/删除 `apps/workbench/` 下文件会让 `verify_inert_contract_survey` 红**（`productFiles` 计数，
-  D07 第一批 209→211 就是这么红的）。修法在该脚本自己的文档里：先不带 `--check` 重跑刷新投影，
-  再 `--check`；只改 `docs/audits/INERT-CONTRACT-SURVEY-2026-10-08.md` 里那一行，不要手改 JSON。
-- **UI 量化门禁已接线（2026-10-18 接续轮）**：`test_workbench_ui_audit_gate` 已在
-  `verify_browser_e2e_ran.py` 的 `TEST_MODULES` 里。Chromium 仍只在 `workbench-browser-e2e`
-  作业安装，所以 `python-gate` 里它照旧 `skipTest`——这是作业分工，不是静默跳过；带浏览器的作业
-  由不防跳过闸按模块点名，缺跑即红。改这条链时别再把它移出 `TEST_MODULES`。
-- 改工作流先用 `actionlint` 校验（`gh release download` 取单文件即可），
-  **PyYAML 通过不代表 GitHub 会接受**：重复映射键 PyYAML 静默取最后一个。
-- `run_python_tests.py` 的沙箱里 `class`/`const`/`let` 是词法绑定，**不是** vm context 属性；
-  测试里断言错误类型要 duck-typing，不要 `instanceof`。
-- 在 vm 沙箱里补浏览器全局时**先看它是否已定义**：`Object.assign` 覆盖掉沙箱自己的
-  `setTimeout` 会静默改掉该沙箱语义（真计时器还会让 node 事件循环多活 15–45 秒，撞 subprocess 超时）。
+- 改工作流先用 `actionlint` 校验；**PyYAML 通过不代表 GitHub 会接受**（重复映射键 PyYAML 静默取最后一个）。
 
 ## 10. 什么算完成
 
 - 改动有**可复核的读数**（命令 + 输出），不是"应该没问题"。
 - 闸与测试在**同一份字节**上通过；CI 上按作业读到 success。
-- 没建的、没验证的，写在可见文字里（面板、提交信息、本文件），不留在暗示里。
-- 回退路径写明（按批 revert / 按文件 revert），并且冻结件与账本历史不被改写。
+- 没建的、没验证的，写在可见文字里（面板、提交信息、验收报告、本文件），不留在暗示里。
+- 状态分轴写清：文档 / 规划 / 代码 / 真实运行 / 人工验收 / AAOS 接收，各自独立。
+- 回退路径写明（按批 revert / 按文件 revert），冻结件与账本历史不被改写。
 
 > 上一轮三次 CI 红，全部是**闸对了、人错了**：债务被结清却说没结、登记行被删但钉子没动、
 > 一句注释冒充调用点。下次红的时候，先假设闸是对的。
 >
-> 2026-10-18 又补一句：**审计也会错，而且错法有规律**——用 grep 计数代替权威文档、用"没人引用"
+> 2026-10-18 补：**审计也会错，而且错法有规律**——用 grep 计数代替权威文档、用"没人引用"
 > 代替"明文冻结"。所以"完成"还要求：**结论的来源写清楚**（命令 / 权威文档哪一节 / 闸的哪一条），
 > 让下一轮能复算，而不是只能选择相信。

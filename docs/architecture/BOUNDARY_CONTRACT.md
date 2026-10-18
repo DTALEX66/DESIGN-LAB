@@ -1,4 +1,17 @@
-# 当前边界澄清（2026-10-09 owner采纳）
+# 当前边界澄清（2026-10-19 owner方向调整）
+
+本节优先于下文全部前继条款。DESIGN-LAB的正式定位是**专业视觉智能与可复用设计能力系统**，不是画布、通用编辑器或全流程设计文件交付平台。
+- 禁止：第二套Photoshop/Figma/Blender画布或通用编辑器；通用Agent Runtime、聊天客户端、模型网关、跨项目调度器；接管WORK-LAB通用治理；取代AAOS正式知识真源。
+- 允许：视觉分析、审美评估、提示词生成与反推、设计能力Registry、专业评价、分层工具接入（官方API/SDK → 原生插件 → MCP → 脚本/CLI → 受控UI自动化），以及设计专用、有界的执行/观察/核验/恢复。
+- `apps/workbench`仍是唯一前端技术壳，但界面服务于能力（Brief/参考输入/分析/Prompt Builder/能力库/Adapter Registry/真实调用结果/测试对比/人工验收/知识候选），不是画布。
+- 原生宿主负责画布内实际编辑；DESIGN-LAB不持有宿主私有数据库或用户素材库。
+- WORK-LAB拥有通用工作流、全局配置、权限/预算、跨项目路由、监测与维护；AAOS拥有正式知识、来源/证据治理、审核与长期学习。DESIGN-LAB通过版本化合同协作，不写对方私有数据库，只提交知识候选并读取AAOS状态。
+- 2026-10-09 UI-FIRST派工与`currentExecution` 34项任务已冻结（`FROZEN_DEFERRED`），不再派工；手机端继续`FROZEN_DEFERRED`。
+- 本轮只做权威/规划对齐与按范围验证，不实施产品功能；文档修订不等于代码实现或真实运行。
+
+---
+
+# 当前边界澄清（2026-10-09 owner采纳，前继记录）
 
 本节优先于下文前继歧义：禁止的是通用Agent平台/平行运行时，不禁止src/design_lab既有Python/NativeWorkers中的设计专用规划、执行、观察、检查和恢复。
 apps/workbench仍为唯一前端技术壳；主旅程按docs/taskpacks/DESIGN-LAB-UI-FIRST-INTEGRATED-TASKPACK-2026-10-09.md迁移为能力资产、分析制作、成果反馈，不锁旧导航/DOM或菜单数量。

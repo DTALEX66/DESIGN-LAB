@@ -1,9 +1,8 @@
 {
-  "authorityTaskpackHash": "f91ebe9b67ab4f83be91fe8f3ca0fc80fc93176263bec05d883fa6ce6afd6480",
+  "authorityTaskpackHash": "2cfd84627352e9f1b29b42787fa43466cd9a836130d826d43678b7733856ffda",
   "authorityTaskpackId": "DL-TP-20261009-UI-FIRST-R1",
   "counts": {
-    "NOT_STARTED": 24,
-    "PARTIAL": 10
+    "FROZEN_DEFERRED": 34
   },
   "environmentFingerprint": {
     "machine": "AMD64",
@@ -12,7 +11,7 @@
   },
   "fresh": false,
   "freshnessMeaning": "at generation only; check verifies bound-input integrity, not current Git or cloud state",
-  "generatedAt": "2026-10-13T11:40:38+00:00",
+  "generatedAt": "2026-10-18T17:48:15+00:00",
   "gitStateMeaning": "generation-time observation, not current HEAD",
   "ledger_partition": "currentExecution",
   "meaning": "Parent/subtask inventory is not a capability count or completion percentage. Definition adoption does not implement product tasks; R5 evidence is historical.",
@@ -27,10 +26,10 @@
     "taskpack": "DL-TP-20260908-R5"
   },
   "subjectMeaning": "subjectType=WORKTREE means the tree was dirty at generation; worktreeDigest covers HEAD plus the non-generated changes",
-  "subjectSha": "9f5cda914ff3becff754bf38ef9c589f9aef730f",
+  "subjectSha": "05a768521d31379819227e07f378f97a38c542e3",
   "subjectType": "WORKTREE",
   "taskpack": "DL-TP-20261009-UI-FIRST-R1",
-  "taskpackHash": "f91ebe9b67ab4f83be91fe8f3ca0fc80fc93176263bec05d883fa6ce6afd6480",
+  "taskpackHash": "2cfd84627352e9f1b29b42787fa43466cd9a836130d826d43678b7733856ffda",
   "taskpackId": "DL-TP-20261009-UI-FIRST-R1",
   "tasks": [
     {
@@ -42,7 +41,7 @@
       "implementation_unmet": [],
       "kind": "PARENT_TASK",
       "priority": "FOLLOWUP",
-      "state": "NOT_STARTED",
+      "state": "FROZEN_DEFERRED",
       "title": "现状复核与作品证据保全"
     },
     {
@@ -58,7 +57,7 @@
       ],
       "kind": "PARENT_TASK",
       "priority": "FOLLOWUP",
-      "state": "NOT_STARTED",
+      "state": "FROZEN_DEFERRED",
       "title": "最新定义、边界、权威与既有任务映射"
     },
     {
@@ -76,7 +75,7 @@
       ],
       "kind": "PARENT_TASK",
       "priority": "FOLLOWUP",
-      "state": "NOT_STARTED",
+      "state": "FROZEN_DEFERRED",
       "title": "所有Agent发现入口与历史隔离"
     },
     {
@@ -92,7 +91,7 @@
       ],
       "kind": "PARENT_TASK",
       "priority": "FOLLOWUP",
-      "state": "NOT_STARTED",
+      "state": "FROZEN_DEFERRED",
       "title": "机器配置、生成器、校验和CI同步"
     },
     {
@@ -113,7 +112,7 @@
       ],
       "kind": "PARENT_TASK",
       "priority": "UI_SUPPORT",
-      "state": "PARTIAL",
+      "state": "FROZEN_DEFERRED",
       "title": "能力库安装资源与干净wheel核心链"
     },
     {
@@ -135,7 +134,7 @@
       ],
       "kind": "PARENT_TASK",
       "priority": "UI_SUPPORT",
-      "state": "PARTIAL",
+      "state": "FROZEN_DEFERRED",
       "title": "多维分类与资格证据真实投影"
     },
     {
@@ -157,7 +156,7 @@
       ],
       "kind": "PARENT_TASK",
       "priority": "UI_SUPPORT",
-      "state": "PARTIAL",
+      "state": "FROZEN_DEFERRED",
       "title": "少量来源知识提炼和中立能力适配"
     },
     {
@@ -246,7 +245,7 @@
       "implementation_unmet": [],
       "kind": "PARENT_TASK",
       "priority": "UI_SUPPORT",
-      "state": "PARTIAL",
+      "state": "FROZEN_DEFERRED",
       "title": "迁移前端核心入口和辅助信息"
     },
     {
@@ -267,7 +266,7 @@
       ],
       "kind": "PARENT_TASK",
       "priority": "UI_SUPPORT",
-      "state": "NOT_STARTED",
+      "state": "FROZEN_DEFERRED",
       "title": "多模态需求、原创分析及目标生成包"
     },
     {
@@ -284,7 +283,7 @@
       ],
       "kind": "PARENT_TASK",
       "priority": "FOLLOWUP",
-      "state": "NOT_STARTED",
+      "state": "FROZEN_DEFERRED",
       "title": "设计意图与已有原生任务接续"
     },
     {
@@ -303,7 +302,7 @@
       ],
       "kind": "PARENT_TASK",
       "priority": "FOLLOWUP",
-      "state": "NOT_STARTED",
+      "state": "FROZEN_DEFERRED",
       "title": "设计执行路线、租约、幂等与恢复"
     },
     {
@@ -320,7 +319,7 @@
       ],
       "kind": "PARENT_TASK",
       "priority": "UI_SUPPORT",
-      "state": "NOT_STARTED",
+      "state": "FROZEN_DEFERRED",
       "title": "Human Jury真实API和用户入口"
     },
     {
@@ -340,7 +339,7 @@
       ],
       "kind": "PARENT_TASK",
       "priority": "FOLLOWUP",
-      "state": "NOT_STARTED",
+      "state": "FROZEN_DEFERRED",
       "title": "双宿主真实原生往返与异常恢复"
     },
     {
@@ -359,7 +358,7 @@
       ],
       "kind": "PARENT_TASK",
       "priority": "UI_SUPPORT",
-      "state": "NOT_STARTED",
+      "state": "FROZEN_DEFERRED",
       "title": "正式交付、权利、预检与隔离重开"
     },
     {
@@ -380,7 +379,7 @@
       ],
       "kind": "PARENT_TASK",
       "priority": "FOLLOWUP",
-      "state": "NOT_STARTED",
+      "state": "FROZEN_DEFERRED",
       "title": "黄金工作流、固定安装版与资产恢复"
     },
     {
@@ -399,7 +398,7 @@
       ],
       "kind": "PARENT_TASK",
       "priority": "UI_SUPPORT",
-      "state": "NOT_STARTED",
+      "state": "FROZEN_DEFERRED",
       "title": "AAOS版本知识、候选回执及离线边界"
     },
     {
@@ -418,7 +417,7 @@
       ],
       "kind": "PARENT_TASK",
       "priority": "FOLLOWUP",
-      "state": "NOT_STARTED",
+      "state": "FROZEN_DEFERRED",
       "title": "教学需求、表达制作与可修订内容交付"
     },
     {
@@ -438,7 +437,7 @@
       ],
       "kind": "PARENT_TASK",
       "priority": "FOLLOWUP",
-      "state": "NOT_STARTED",
+      "state": "FROZEN_DEFERRED",
       "title": "知识、教学和运行反馈闭环"
     },
     {
@@ -457,7 +456,7 @@
       ],
       "kind": "PARENT_TASK",
       "priority": "FOLLOWUP",
-      "state": "NOT_STARTED",
+      "state": "FROZEN_DEFERRED",
       "title": "三方真实实践到学习的一轮修订"
     },
     {
@@ -475,7 +474,7 @@
       ],
       "kind": "PARENT_TASK",
       "priority": "FOLLOWUP",
-      "state": "NOT_STARTED",
+      "state": "FROZEN_DEFERRED",
       "title": "执行路线公平对照及两版24用例映射"
     },
     {
@@ -499,7 +498,7 @@
       ],
       "kind": "PARENT_TASK",
       "priority": "FOLLOWUP",
-      "state": "NOT_STARTED",
+      "state": "FROZEN_DEFERRED",
       "title": "新会话、防漂移与部署副本核验"
     },
     {
@@ -517,7 +516,7 @@
       ],
       "kind": "PARENT_TASK",
       "priority": "FOLLOWUP",
-      "state": "NOT_STARTED",
+      "state": "FROZEN_DEFERRED",
       "title": "按真实覆盖缺口扩品类与未来路线"
     },
     {
@@ -536,7 +535,7 @@
       "implementation_unmet": [],
       "kind": "UI_SUBTASK",
       "priority": "UI_FIRST",
-      "state": "PARTIAL",
+      "state": "FROZEN_DEFERRED",
       "title": "现状、权威与路由对账"
     },
     {
@@ -602,7 +601,7 @@
       ],
       "kind": "UI_SUBTASK",
       "priority": "UI_FIRST",
-      "state": "PARTIAL",
+      "state": "FROZEN_DEFERRED",
       "title": "设计变量、组件与响应式"
     },
     {
@@ -634,7 +633,9 @@
         "DL-UI-U03-asset-tabs-r3",
         "DL-UI-U03-asset-tabs-falsified-r3",
         "DL-UI-U03-domain-capability-join-read-r18",
-        "DL-UI-U03-domain-detail-screens-r18"
+        "DL-UI-U03-domain-detail-screens-r18",
+        "DL-UI-U03-d05-d08-implementation-r24",
+        "DL-UI-U03-d05-d08-unit-r24"
       ],
       "evidence_level": "SEE_BOUND_RECEIPTS",
       "id": "DL-UI-U03",
@@ -644,7 +645,7 @@
       ],
       "kind": "UI_SUBTASK",
       "priority": "UI_FIRST",
-      "state": "PARTIAL",
+      "state": "FROZEN_DEFERRED",
       "title": "能力查询与资格投影"
     },
     {
@@ -677,7 +678,7 @@
       ],
       "kind": "UI_SUBTASK",
       "priority": "UI_FIRST",
-      "state": "PARTIAL",
+      "state": "FROZEN_DEFERRED",
       "title": "输入、目标与分析纠正"
     },
     {
@@ -709,7 +710,7 @@
       ],
       "kind": "UI_SUBTASK",
       "priority": "UI_FIRST",
-      "state": "PARTIAL",
+      "state": "FROZEN_DEFERRED",
       "title": "目标包与已有原生计划接续"
     },
     {
@@ -730,7 +731,7 @@
       ],
       "kind": "UI_SUBTASK",
       "priority": "UI_FIRST",
-      "state": "PARTIAL",
+      "state": "FROZEN_DEFERRED",
       "title": "运行、观察与恢复控制"
     },
     {
@@ -738,15 +739,18 @@
         "DL-UI-U05"
       ],
       "batch": "B2-UI",
-      "evidence": [],
-      "evidence_level": "NO_EVIDENCE",
+      "evidence": [
+        "DL-UI-U07-versions-panel-implementation-r25",
+        "DL-UI-U07-versions-panel-unit-r25"
+      ],
+      "evidence_level": "SEE_BOUND_RECEIPTS",
       "id": "DL-UI-U07",
       "implementation_unmet": [
         "DL-UI-U05"
       ],
       "kind": "UI_SUBTASK",
       "priority": "UI_FIRST",
-      "state": "NOT_STARTED",
+      "state": "FROZEN_DEFERRED",
       "title": "成果版本与局部改稿"
     },
     {
@@ -762,7 +766,7 @@
       ],
       "kind": "UI_SUBTASK",
       "priority": "UI_FIRST",
-      "state": "NOT_STARTED",
+      "state": "FROZEN_DEFERRED",
       "title": "真人评审与交付预检"
     },
     {
@@ -778,7 +782,7 @@
       ],
       "kind": "UI_SUBTASK",
       "priority": "UI_FIRST",
-      "state": "NOT_STARTED",
+      "state": "FROZEN_DEFERRED",
       "title": "知识回执、离线与反馈"
     },
     {
@@ -796,7 +800,7 @@
       ],
       "kind": "UI_SUBTASK",
       "priority": "UI_FIRST",
-      "state": "NOT_STARTED",
+      "state": "FROZEN_DEFERRED",
       "title": "教学需求接入同一制作流"
     },
     {
@@ -816,7 +820,7 @@
       ],
       "kind": "UI_SUBTASK",
       "priority": "UI_FIRST",
-      "state": "NOT_STARTED",
+      "state": "FROZEN_DEFERRED",
       "title": "辅助连接、状态与旧入口退出"
     },
     {
@@ -844,7 +848,7 @@
       ],
       "kind": "UI_SUBTASK",
       "priority": "UI_FIRST",
-      "state": "NOT_STARTED",
+      "state": "FROZEN_DEFERRED",
       "title": "真实旅程与视觉验收"
     }
   ],
@@ -853,5 +857,5 @@
   "testRunMeaning": "bound run: python scripts/run_bound_test_suite.py --modules test_boot_reconciliation",
   "testRunResult": "OK",
   "worktreeClean": false,
-  "worktreeDigest": "sha256:9e78ce172fc9c76a72109ee9ad6337a2026269d6f935bf7d8bd3f1682dc17d8f"
+  "worktreeDigest": "sha256:7cf5f03ee24978f82b2510bae74421620a71f6dd6299c068124dc9b8c53e37a6"
 }

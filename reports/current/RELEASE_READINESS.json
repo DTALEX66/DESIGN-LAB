@@ -1,5 +1,5 @@
 {
-  "authorityTaskpackHash": "f91ebe9b67ab4f83be91fe8f3ca0fc80fc93176263bec05d883fa6ce6afd6480",
+  "authorityTaskpackHash": "2cfd84627352e9f1b29b42787fa43466cd9a836130d826d43678b7733856ffda",
   "authorityTaskpackId": "DL-TP-20261009-UI-FIRST-R1",
   "blockers": [
     "DL-FINAL-T15 acceptance",
@@ -15,19 +15,19 @@
   },
   "fresh": false,
   "freshnessMeaning": "at generation only; check verifies bound-input integrity, not current Git or cloud state",
-  "generatedAt": "2026-10-13T11:40:38+00:00",
+  "generatedAt": "2026-10-18T17:48:15+00:00",
   "gitStateMeaning": "generation-time observation, not current HEAD",
   "schemaVersion": "design-lab/release-readiness/v2",
   "status": "NOT_RELEASED",
   "subjectMeaning": "subjectType=WORKTREE means the tree was dirty at generation; worktreeDigest covers HEAD plus the non-generated changes",
-  "subjectSha": "9f5cda914ff3becff754bf38ef9c589f9aef730f",
+  "subjectSha": "05a768521d31379819227e07f378f97a38c542e3",
   "subjectType": "WORKTREE",
-  "taskpackHash": "f91ebe9b67ab4f83be91fe8f3ca0fc80fc93176263bec05d883fa6ce6afd6480",
+  "taskpackHash": "2cfd84627352e9f1b29b42787fa43466cd9a836130d826d43678b7733856ffda",
   "taskpackId": "DL-TP-20261009-UI-FIRST-R1",
   "testRunAt": "2026-10-08T20:41:26+00:00",
   "testRunId": "testrun-20261008T204123Z-forward-repeat-e7c4504bc3d0",
   "testRunMeaning": "bound run: python scripts/run_bound_test_suite.py --modules test_boot_reconciliation",
   "testRunResult": "OK",
   "worktreeClean": false,
-  "worktreeDigest": "sha256:9e78ce172fc9c76a72109ee9ad6337a2026269d6f935bf7d8bd3f1682dc17d8f"
+  "worktreeDigest": "sha256:7cf5f03ee24978f82b2510bae74421620a71f6dd6299c068124dc9b8c53e37a6"
 }
