@@ -329,14 +329,14 @@
    "also_in_repo": [
     ".project/governance/authority-index.json"
    ],
-   "repoBytesAfterImport": 4662,
-   "repoCrc32AfterImport": "021c7c5c",
-   "repoSha256AfterImport": "sha256:0e2360042518041f3ce98b72cad9ff3039234c413b18a68a22f1618b6a1c5dce",
+   "repoBytesAfterImport": 5597,
+   "repoCrc32AfterImport": "830bde1f",
+   "repoSha256AfterImport": "sha256:cad7ceac73c669ded8bc955468f8c62341a2f9910e65b4fa6e123f04af4bdb38",
    "evolvedBy": {
-    "commit": "147e6dc9",
-    "subject": "feat(ui-first): land U03-U06 desktop slices, the U06 runtime read-back, and the gates that caught them"
+    "commit": "bb514458",
+    "subject": "docs(direction): adopt the 2026-10-19 owner direction and freeze the 34-task execution"
    },
-   "evolution": "Archive bytes above unchanged and still verified against the ZIP. This row was ALREADY-IN-REPO, so it also claimed the repository copy equals the archived bytes; that claim stopped holding when 147e6dc9 rewrote the file. Post-import digests recorded; verify_record_verify.py leg 2 holds the repository copy to THESE and still refuses it if they disagree."
+   "evolution": "Repository copy rewritten again by bb514458 when the 2026-10-19 owner direction was adopted and the 34 UI-FIRST execution tasks were frozen/deferred. The archived bytes above are unchanged and still verify against the ZIP (leg 1); repoBytesAfterImport / repoCrc32AfterImport / repoSha256AfterImport now record the direction-aligned repository copy, and leg 2 rejects the file if it stops matching them. The prior 147e6dc9 post-import declaration is superseded by this row, not erased from history."
   },
   {
    "source_container": "DESIGN-LAB_FINAL_CONSOLIDATED_PACKAGE_2026-09-29.zip",
@@ -352,14 +352,14 @@
    "also_in_repo": [
     "AUTHORITY.md"
    ],
-   "repoBytesAfterImport": 17445,
-   "repoCrc32AfterImport": "b0906445",
-   "repoSha256AfterImport": "sha256:145cc12ea398997ffb55431e61deb785a480668af2128dafa3c8effee1176854",
+   "repoBytesAfterImport": 19979,
+   "repoCrc32AfterImport": "708a2446",
+   "repoSha256AfterImport": "sha256:c0853e3d7e6d17170c373cdb8ad439ed00539ed8384aee2ecb017cc073f162f2",
    "evolvedBy": {
-    "commit": "147e6dc9",
-    "subject": "feat(ui-first): land U03-U06 desktop slices, the U06 runtime read-back, and the gates that caught them"
+    "commit": "bb514458",
+    "subject": "docs(direction): adopt the 2026-10-19 owner direction and freeze the 34-task execution"
    },
-   "evolution": "2026-10-12 drift correction: AUTHORITY.md still said 'repository commit=NOT_EXECUTED' and 'do not claim the remote is synced' after that stopped being true, which would make a fresh session distrust the remote. Corrected in place with the original time point preserved."
+   "evolution": "Repository copy rewritten again by bb514458 when the 2026-10-19 owner direction was adopted and the 34 UI-FIRST execution tasks were frozen/deferred. The archived bytes above are unchanged and still verify against the ZIP (leg 1); repoBytesAfterImport / repoCrc32AfterImport / repoSha256AfterImport now record the direction-aligned repository copy, and leg 2 rejects the file if it stops matching them. The prior 147e6dc9 post-import declaration is superseded by this row, not erased from history."
   },
   {
    "source_container": "DESIGN-LAB_FINAL_CONSOLIDATED_PACKAGE_2026-09-29.zip",
@@ -375,14 +375,14 @@
    "also_in_repo": [
     "design-lab/config/product-manifest.json"
    ],
-   "repoBytesAfterImport": 11404,
-   "repoCrc32AfterImport": "e3788767",
-   "repoSha256AfterImport": "sha256:5e30b0c89b4691f43101124dd4d8feedc9ff2d8964b680a9e4c955d952453c48",
+   "repoBytesAfterImport": 12002,
+   "repoCrc32AfterImport": "e76bfa26",
+   "repoSha256AfterImport": "sha256:309e1133a84cd0c8ec2b7120038d5e5a0bbf68f97bcf4342249794a8b2856789",
    "evolvedBy": {
-    "commit": "147e6dc9",
-    "subject": "feat(ui-first): land U03-U06 desktop slices, the U06 runtime read-back, and the gates that caught them"
+    "commit": "bb514458",
+    "subject": "docs(direction): adopt the 2026-10-19 owner direction and freeze the 34-task execution"
    },
-   "evolution": "Archive bytes above unchanged and still verified against the ZIP. This row was ALREADY-IN-REPO, so it also claimed the repository copy equals the archived bytes; that claim stopped holding when 147e6dc9 rewrote the file. Post-import digests recorded; verify_record_verify.py leg 2 holds the repository copy to THESE and still refuses it if they disagree."
+   "evolution": "Repository copy rewritten again by bb514458 when the 2026-10-19 owner direction was adopted and the 34 UI-FIRST execution tasks were frozen/deferred. The archived bytes above are unchanged and still verify against the ZIP (leg 1); repoBytesAfterImport / repoCrc32AfterImport / repoSha256AfterImport now record the direction-aligned repository copy, and leg 2 rejects the file if it stops matching them. The prior 147e6dc9 post-import declaration is superseded by this row, not erased from history."
   },
   {
    "source_container": "DESIGN-LAB_FINAL_CONSOLIDATED_PACKAGE_2026-09-29.zip",
@@ -428,14 +428,14 @@
    "also_in_repo": [
     "docs/architecture/BOUNDARY_CONTRACT.md"
    ],
-   "repoBytesAfterImport": 2948,
-   "repoCrc32AfterImport": "558c9342",
-   "repoSha256AfterImport": "sha256:46b9201f74a515f2fc723b37c857c0decbbaf872207fd5b7b79ba8fda4e7eed8",
+   "repoBytesAfterImport": 4586,
+   "repoCrc32AfterImport": "035f3bde",
+   "repoSha256AfterImport": "sha256:9dd06abc3a713c5473d6d06fbe39001a46f46404fbb2d7c6a3a3cbcf56fd1043",
    "evolvedBy": {
-    "commit": "147e6dc9",
-    "subject": "feat(ui-first): land U03-U06 desktop slices, the U06 runtime read-back, and the gates that caught them"
+    "commit": "bb514458",
+    "subject": "docs(direction): adopt the 2026-10-19 owner direction and freeze the 34-task execution"
    },
-   "evolution": "Archive bytes above unchanged and still verified against the ZIP. This row was ALREADY-IN-REPO, so it also claimed the repository copy equals the archived bytes; that claim stopped holding when 147e6dc9 rewrote the file. Post-import digests recorded; verify_record_verify.py leg 2 holds the repository copy to THESE and still refuses it if they disagree."
+   "evolution": "Repository copy rewritten again by bb514458 when the 2026-10-19 owner direction was adopted and the 34 UI-FIRST execution tasks were frozen/deferred. The archived bytes above are unchanged and still verify against the ZIP (leg 1); repoBytesAfterImport / repoCrc32AfterImport / repoSha256AfterImport now record the direction-aligned repository copy, and leg 2 rejects the file if it stops matching them. The prior 147e6dc9 post-import declaration is superseded by this row, not erased from history."
   },
   {
    "source_container": "DESIGN-LAB_FINAL_CONSOLIDATED_PACKAGE_2026-09-29.zip",
@@ -466,14 +466,14 @@
    "also_in_repo": [
     "docs/current/PRODUCT_DEFINITION.md"
    ],
-   "repoBytesAfterImport": 6466,
-   "repoCrc32AfterImport": "39288d10",
-   "repoSha256AfterImport": "sha256:8c640c4b65bf7231f5eb29f05f07f86d46f9885a854d723c097771a1f7ebbb19",
+   "repoBytesAfterImport": 8752,
+   "repoCrc32AfterImport": "4536ef0b",
+   "repoSha256AfterImport": "sha256:7a2de570fc0ddda0963f95288106a74c4d2fab76d9252d09e7157d5618b3185c",
    "evolvedBy": {
-    "commit": "147e6dc9",
-    "subject": "feat(ui-first): land U03-U06 desktop slices, the U06 runtime read-back, and the gates that caught them"
+    "commit": "bb514458",
+    "subject": "docs(direction): adopt the 2026-10-19 owner direction and freeze the 34-task execution"
    },
-   "evolution": "The archive bytes above are unchanged and still verify against the ZIP (leg 1). This row was ALREADY-IN-REPO, so it also claimed the repository copy equals the archived bytes -- a claim that stopped being true when a later batch deliberately rewrote the file. The gate has no way to express that, which made honest evolution unrepresentable. The repository copy was rewritten by 147e6dc9 and its post-import digests are recorded above; verify_record_verify.py leg 2 checks this row against them instead, and still refuses the file if either the archived or the post-import digest disagrees."
+   "evolution": "Repository copy rewritten again by bb514458 when the 2026-10-19 owner direction was adopted and the 34 UI-FIRST execution tasks were frozen/deferred. The archived bytes above are unchanged and still verify against the ZIP (leg 1); repoBytesAfterImport / repoCrc32AfterImport / repoSha256AfterImport now record the direction-aligned repository copy, and leg 2 rejects the file if it stops matching them. The prior 147e6dc9 post-import declaration is superseded by this row, not erased from history."
   },
   {
    "source_container": "DESIGN-LAB_FINAL_CONSOLIDATED_PACKAGE_2026-09-29.zip",
@@ -488,7 +488,15 @@
    "target": "docs/current/ROADMAP.md",
    "also_in_repo": [
     "docs/current/ROADMAP.md"
-   ]
+   ],
+   "repoBytesAfterImport": 9564,
+   "repoCrc32AfterImport": "4d2ef63b",
+   "repoSha256AfterImport": "sha256:748f62e5d1f39af0a781097b3828d0e9904cbfe74beccd7c0cf0a8cbff69d953",
+   "evolvedBy": {
+    "commit": "bb514458",
+    "subject": "docs(direction): adopt the 2026-10-19 owner direction and freeze the 34-task execution"
+   },
+   "evolution": "Repository copy rewritten again by bb514458 when the 2026-10-19 owner direction was adopted and the 34 UI-FIRST execution tasks were frozen/deferred. The archived bytes above are unchanged and still verify against the ZIP (leg 1); repoBytesAfterImport / repoCrc32AfterImport / repoSha256AfterImport now record the direction-aligned repository copy, and leg 2 rejects the file if it stops matching them. The prior 147e6dc9 post-import declaration is superseded by this row, not erased from history."
   },
   {
    "source_container": "DESIGN-LAB_FINAL_CONSOLIDATED_PACKAGE_2026-09-29.zip",
