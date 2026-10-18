@@ -223,12 +223,19 @@ class EvidenceArtifactPresenceTests(unittest.TestCase):
             # observed 56 pairs against the 54 pinned before this line, broken=0.
             ('design-lab/tests/test_core_gates.py',
              'HASH_MOVED_SINCE_OBSERVATION'): 1,
+            # 2026-10-19, one new pair: the route-table rewrite (72102fea) changed how
+            # http_service.py dispatches, and the per-module verification record from
+            # 2026-10-08 binds this test module as its artefact. Correcting the module to
+            # read `ROUTES` moved its bytes, so the record now names older bytes. The
+            # record is not rewritten; the newer binding is the correction's own commit.
+            ('design-lab/tests/test_domain_pack_readback.py',
+             'HASH_MOVED_SINCE_OBSERVATION'): 1,
         })
         self.assertEqual(counts, expected,
                          'the drifted-artefact inventory is exact in both directions: a new '
                          'move, a new artefact name, or one more record on a known artefact '
                          'are all findings, and a drifted pair that quietly disappeared is too')
-        self.assertEqual(sum(counts.values()), 56,
+        self.assertEqual(sum(counts.values()), 57,
                          'the total drifted-record count is pinned, not derived')
 
     def test_missing_tracked_artefact_is_a_hard_break_not_a_warning(self):
