@@ -12,10 +12,11 @@ This package owns the separated assurance planes of DESIGN-LAB:
   one another, a validator, and the guarantee that an automated judge can never
   reach the gate or fill the human field.
 
-A knowledge-feedback candidate module was parked out of the tree by
-DL-TP-20260914-DEEPSEEK-AUTHORITY-R1::DLDS-A040: no current task requires it and
-knowledge migration is explicitly deferred. See
-``reports/current/DEEPSEEK-WORKTREE-INVENTORY.json``.
+The knowledge-feedback candidate module is back in the tree under the current
+integrated TaskPack (T16/U09). It is still a contract module only: it can build a
+PENDING_HUMAN_APPROVAL candidate, record a named human's approval or rejection,
+revoke, and produce the outbound projection, but it has no ArcheAxis transport.
+``src/design_lab/knowledge_review.py`` is the persistence/readback façade.
 
 Boundary: structural contracts and validators only. Nothing in this package
 runs a check, calls a provider, opens a host, reads an artifact, writes a file,

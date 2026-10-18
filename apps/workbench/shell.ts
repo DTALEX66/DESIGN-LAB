@@ -174,6 +174,24 @@ const OFFLINE = {
     is_host_action_performed: false,
     does_not_say: [],
   } as NativeRuntimeResponse,
+  // DL-UI-U09. The zero counts here are "nothing was asked", not "the project has no
+  // candidates": the offline marker on this payload says so, and the panel prints the
+  // disconnected notice beside the counts. `does_not_say` is empty because the service
+  // never spoke; inventing its boundary sentences would be the page testifying.
+  knowledge: {
+    schemaVersion: 'design-lab/assurance-knowledge-candidate-readback/v1',
+    project_id: '',
+    candidates: [], candidate_count: 0, unreadable_count: 0,
+    pending_review_count: 0, approved_count: 0, rejected_count: 0, revoked_count: 0,
+    export_ready_count: 0, conflicts: [], revocation_receipts: [],
+    head_sha: null,
+    outbound: {
+      transport: 'NOT_CONNECTED', destination: 'ArcheAxis', sent_count: 0,
+      last_attempt_at: null,
+      note: '未连接本机设计服务：sent_count 的 0 表示没有问到，不是一次失败的发送。',
+    },
+    does_not_say: [],
+  } as KnowledgeReadback,
   bundles: { bundles: [] } as BundleListResponse,
   designLayer: {
     design_layer: {
@@ -6981,6 +6999,491 @@ function runtimeObservation(data: NativeRuntimeResponse,
     el('ul', { class: 'list' }, ...rows));
 }
 
+// ============================================================================
+// DL-UI-U09 (2026-10-18) — 知识回执与反馈（T16/U09）
+// ----------------------------------------------------------------------------
+// 读回面先于写面：GET /api/projects/{id}/knowledge-candidates 是服务端投影，
+// 候选的 review_state / revocation_state / freshness / export_ready 全部来自它，
+// 本页不根据记录重算，也不替服务补一个缺失字段。
+//
+// 没有建的那一半必须写在可见文字里，而不是画成一个绿点：
+//   * 到 ArcheAxis 的传输不存在 —— outbound.transport 是 NOT_CONNECTED，
+//     sent_count 的 0 是"从未发送"，不是"发送失败后重试到 0"；
+//   * export_ready 只是本地合同检查，不是交付、不是送达、不是对方已接收；
+//   * 人工裁决绑定的是输入框里的名字和浏览器时间；服务无法证明这个人存在，
+//     也无法证明他真的审阅了内容（这需要 Human Gate 的场外证明）；
+//   * 撤销回执保存在本机，不能召回已经被对方持有的副本。
+// 批准/驳回控件存在是因为这是 Human Gate 的桌面入口；agent 没有可提交它而不
+// 具名的方式，服务端也会拒绝 reviewer_kind != "human" 的请求。
+// ============================================================================
+
+interface KnowledgeCandidate {
+  candidate_id: string;
+  candidate_type: string;
+  review_state: string;
+  revocation_state: string;
+  revision: number;
+  created_at: string | null;
+  updated_at: string | null;
+  source_design_lab_sha: string | null;
+  payload_sha256: string | null;
+  supersedes: string | null;
+  title: string | null;
+  statement: string | null;
+  applies_to: string[];
+  license_id: string | null;
+  rights_gate_state: string | null;
+  reviewer_id: string | null;
+  reviewed_at: string | null;
+  revoked_by: string | null;
+  revoked_at: string | null;
+  revocation_reason: string | null;
+  freshness: string;
+  export_ready: boolean;
+  export_blocked_by: string | null;
+}
+
+interface KnowledgeConflict {
+  candidate_id: string;
+  kind: string;
+  detail: string;
+}
+
+interface KnowledgeReadback {
+  schemaVersion: string;
+  project_id: string;
+  candidates: KnowledgeCandidate[];
+  candidate_count: number;
+  unreadable_count: number;
+  pending_review_count: number;
+  approved_count: number;
+  rejected_count: number;
+  revoked_count: number;
+  export_ready_count: number;
+  conflicts: KnowledgeConflict[];
+  revocation_receipts: Array<Record<string, unknown>>;
+  head_sha: string | null;
+  outbound: {
+    transport: string;
+    destination: string;
+    sent_count: number;
+    last_attempt_at: string | null;
+    note: string;
+  };
+  does_not_say: string[];
+}
+
+function knowledgeNumber(value: unknown): string {
+  return typeof value === 'number' ? String(value) : '未读回';
+}
+
+// 服务状态词在标签自身带 lang="en"：套一层 en() 会让外层 span 先命中文字检查，
+// 而它没有语言标记。缺字段时退回中文，不把占位词冒充成英文服务词。
+function knowledgeStateTag(className: string, word: string | null | undefined,
+                           fallback: string): HTMLElement {
+  return word
+    ? el('span', { class: className, lang: 'en' }, word)
+    : el('span', { class: className }, fallback);
+}
+
+function knowledgeCandidateRow(row: KnowledgeCandidate): HTMLElement {
+  const decisionClass = row.review_state === 'APPROVED' ? 'ok'
+    : row.review_state === 'REJECTED' ? 'neutral' : 'warn';
+  const freshClass = row.freshness === 'CURRENT' ? 'ok'
+    : row.freshness === 'STALE' ? 'warn' : 'neutral';
+  const revoked = row.revocation_state === 'REVOKED';
+  return el('li', { class: 'list-item' },
+    el('div', {},
+      el('strong', {}, row.title ?? '标题未读回'),
+      el('span', { class: 'value-mono' }, row.candidate_id)),
+    knowledgeStateTag('tag ' + decisionClass, row.review_state, '未读回'),
+    knowledgeStateTag('tag ' + (revoked ? 'warn' : 'neutral'),
+      revoked ? 'REVOKED' : row.revocation_state, '未读回'),
+    knowledgeStateTag('tag ' + freshClass, row.freshness, 'UNKNOWN'),
+    el('span', { class: 'tag ' + (row.export_ready ? 'ok' : 'neutral') },
+      row.export_ready ? '本地合同允许导出，未发送' : '导出被阻止'),
+    el('small', {},
+      `第 ${String(row.revision)} 版 · 类型 ${row.candidate_type ?? '未读回'}`
+      + ` · 来源修订 ${row.source_design_lab_sha ?? '未读回'}`
+      + ` · 权利门 ${row.rights_gate_state ?? '未读回'}`
+      + (row.supersedes ? ` · 取代 ${row.supersedes}` : ' · 不取代任何候选')),
+    el('small', {},
+      row.export_ready
+        ? 'export_ready=true 只表示本地合同允许导出；本服务没有 ArcheAxis 传输，'
+          + '因此没有发送任何内容。'
+        : `不可导出：${row.export_blocked_by ?? '服务未给出原因'}`),
+    row.review_state === 'PENDING_HUMAN_APPROVAL'
+      ? el('small', {}, '尚无人工裁决：候选写入时固定为 PENDING_HUMAN_APPROVAL。')
+      : el('small', {}, `裁决：${row.reviewer_id ?? '未署名'} @ ${row.reviewed_at ?? '未读回'}`
+        + (revoked && row.revocation_reason ? ` · 撤销原因：${row.revocation_reason}` : '')),
+    row.payload_sha256
+      ? el('small', { class: 'value-mono' }, `payload ${row.payload_sha256}`) : '');
+}
+
+function knowledgeCreateForm(projectId: string, data: KnowledgeReadback,
+                             tasks: readonly TaskRecord[], reload: () => Promise<void>,
+                             outcome: HTMLElement): HTMLElement {
+  const type = el('select', { class: 'input', id: 'knowledge-type' } as never);
+  for (const word of ['METHOD', 'JURY_CORRECTION', 'PRODUCTION_LESSON']) {
+    type.append(new Option(word, word));
+  }
+  const title = el('input', { class: 'input', id: 'knowledge-title', maxlength: '200' });
+  const statement = el('textarea', { class: 'input', id: 'knowledge-statement',
+    maxlength: '4000', 'aria-label': '候选正文' });
+  const appliesTo = el('input', { class: 'input', id: 'knowledge-applies-to', maxlength: '400',
+    placeholder: 'brand-identity, editorial-layout',
+    'aria-label': '适用设计域，用逗号或空格分隔，至少一个' });
+  const license = el('input', { class: 'input', id: 'knowledge-license', maxlength: '200',
+    placeholder: 'CC-BY-4.0 / project-internal / …' });
+  const rights = el('select', { class: 'input', id: 'knowledge-rights' } as never);
+  rights.append(new Option('请选择权利门状态', ''));
+  for (const word of ['UNCHECKED', 'CHECKED', 'BLOCKED']) rights.append(new Option(word, word));
+  const clientAsset = el('select', { class: 'input', id: 'knowledge-client-asset' } as never);
+  const thirdParty = el('select', { class: 'input', id: 'knowledge-third-party' } as never);
+  for (const select of [clientAsset, thirdParty]) {
+    select.append(new Option('请选择', ''));
+    select.append(new Option('不包含（false）', 'false'));
+    select.append(new Option('包含（true）', 'true'));
+  }
+  const redaction = el('input', { class: 'input', id: 'knowledge-redaction', maxlength: '1000',
+    placeholder: '包含客户素材时必填：说明如何脱敏' });
+  const sha = el('input', { class: 'input', id: 'knowledge-source-sha', maxlength: '64',
+    value: data.head_sha ?? '',
+    placeholder: '40-64 位十六进制修订号' });
+  const job = el('input', { class: 'input', id: 'knowledge-job', maxlength: '200',
+    list: 'knowledge-job-ids', placeholder: '产生这条经验的真实 job_id' });
+  const operation = el('input', { class: 'input', id: 'knowledge-operation', maxlength: '200',
+    placeholder: '产生这条经验的 operation_id（页面不推断）' });
+  const evidence = el('input', { class: 'input', id: 'knowledge-evidence', maxlength: '71',
+    placeholder: 'sha256:<64 位十六进制>' });
+  const supersedes = el('select', { class: 'input', id: 'knowledge-supersedes' } as never);
+  supersedes.append(new Option('不替代：这是一条新的候选', ''));
+  for (const candidate of data.candidates) {
+    supersedes.append(new Option(`${candidate.candidate_id}（${candidate.review_state}）`,
+      candidate.candidate_id));
+  }
+  const submit = el('button', { type: 'button', class: 'primary-btn', id: 'knowledge-create-submit' },
+    '记录一条待人工裁决的候选');
+  // 同一份内容重发是幂等重放：候选 id 只在内容变化时重新生成，服务按 id + 内容判断重放。
+  let candidateId = '';
+  let lastFingerprint = '';
+  submit.onclick = (): void => {
+    void (async (): Promise<void> => {
+      const domains = appliesTo.value.split(/[,\n\s]+/).map((part) => part.trim())
+        .filter(Boolean);
+      const text = statement.value.trim();
+      const name = title.value.trim();
+      const refusal = !name ? '标题为空'
+        : !text ? '正文为空'
+          : !domains.length ? '没有任何适用设计域'
+            : !license.value.trim() ? 'license_id 为空：权利门不允许一个空许可证'
+              : !rights.value ? '未选择权利门状态'
+                : !clientAsset.value ? '未声明是否包含客户素材（页面不默认 false）'
+                  : !thirdParty.value ? '未声明是否包含第三方素材（页面不默认 false）'
+                    : !/^[0-9a-f]{40,64}$/.test(sha.value.trim())
+                      ? '来源修订不是 40-64 位小写十六进制'
+                      : !job.value.trim() ? 'job_id 为空'
+                        : !operation.value.trim() ? 'operation_id 为空：页面不替你推断一次操作'
+                          : !/^sha256:[0-9a-f]{64}$/.test(evidence.value.trim())
+                            ? 'evidence_sha256 必须是 sha256:<64 位小写十六进制>'
+                            : clientAsset.value === 'true' && !redaction.value.trim()
+                              ? '声明包含客户素材时必须填写脱敏说明'
+                              : '';
+      if (refusal) {
+        outcome.textContent = `未提交：${refusal}。服务端未写入任何候选。`;
+        return;
+      }
+      const payload = {
+        candidate_type: type.value,
+        source: {
+          design_lab_sha: sha.value.trim(),
+          job_id: job.value.trim(),
+          operation_id: operation.value.trim(),
+          evidence_sha256: evidence.value.trim(),
+        },
+        rights: {
+          license_id: license.value.trim(),
+          rights_gate_state: rights.value,
+          contains_client_asset: clientAsset.value === 'true',
+          contains_third_party_asset: thirdParty.value === 'true',
+          redaction_note: redaction.value.trim() || null,
+        },
+        payload: { title: name, statement: text, applies_to: domains },
+        // 合同要求 body 的顶层键集合完全一致；null 让服务用自己的时钟，
+        // 而不是让浏览器时间冒充服务时间。
+        created_at: null,
+        revocation_entrypoint: 'design-lab/knowledge/revoke',
+      };
+      const previous = supersedes.value;
+      const fingerprint = JSON.stringify({ payload, previous });
+      if (fingerprint !== lastFingerprint) {
+        candidateId = 'kc-' + Math.random().toString(16).slice(2, 34);
+        lastFingerprint = fingerprint;
+      }
+      submit.disabled = true;
+      outcome.textContent = '提交中…';
+      try {
+        await api(`/projects/${projectId}/knowledge-candidates`
+          + (previous ? `?supersedes=${encodeURIComponent(previous)}` : ''),
+        { ...payload, candidate_id: candidateId });
+        await reload();
+        outcome.textContent = '已记录一条候选；它仍是 PENDING_HUMAN_APPROVAL —— '
+          + '批准需要下方由具名的人在场的裁决，写入动作本身不能提升它。';
+      } catch (error) {
+        const envelope = (error as Error & {
+          serviceEnvelope?: Record<string, unknown> }).serviceEnvelope;
+        outcome.textContent = `未记录：${typeof envelope?.error === 'string'
+          ? envelope.error : errMsg(error)}`
+          + (typeof envelope?.detail === 'string' && envelope.detail
+            ? ` —— ${envelope.detail}` : '') + '。服务端未写入任何候选。';
+      } finally {
+        submit.disabled = false;
+      }
+    })().catch((error) => setStatus(errMsg(error), true));
+  };
+  return el('div', { class: 'panel knowledge-form' },
+    el('h3', {}, '记录一条知识候选'),
+    el('p', { class: 'view-hint' },
+      'source 与 rights 的每个字段都指向一条真实记录或你的明确选择：'
+      + '页面不替你编 job_id、operation_id、来源修订或“是否包含客户素材”。'),
+    el('label', {}, '类型', type),
+    el('label', {}, '标题', title),
+    el('label', {}, '正文（会被公开投影的陈述）', statement),
+    el('label', {}, '适用设计域（至少一个）', appliesTo),
+    el('label', {}, '许可证', license),
+    el('label', {}, '权利门状态', rights),
+    el('label', {}, '是否包含客户素材', clientAsset),
+    el('label', {}, '是否包含第三方素材', thirdParty),
+    el('label', {}, '脱敏说明（包含客户素材时必填）', redaction),
+    el('label', {}, `来源修订（读回 HEAD：${data.head_sha ?? 'UNKNOWN'}）`, sha),
+    el('label', {}, 'job_id', job, el('datalist', { id: 'knowledge-job-ids' },
+      ...tasks.map((task) => el('option', { value: task.job_id })))),
+    el('label', {}, 'operation_id', operation),
+    el('label', {}, '证据摘要', evidence),
+    el('label', {}, '取代哪条候选（只列读回中出现过的）', supersedes),
+    submit);
+}
+
+function knowledgeReviewForm(projectId: string, data: KnowledgeReadback,
+                             reload: () => Promise<void>, outcome: HTMLElement): HTMLElement {
+  const target = el('select', { class: 'input', id: 'knowledge-review-target' } as never);
+  for (const candidate of data.candidates) {
+    target.append(new Option(`${candidate.candidate_id}（${candidate.review_state}）`,
+      candidate.candidate_id));
+  }
+  const decision = el('select', { class: 'input', id: 'knowledge-decision' } as never);
+  decision.append(new Option('APPROVE', 'APPROVE'));
+  decision.append(new Option('REJECT', 'REJECT'));
+  const reviewer = el('input', { class: 'input', id: 'knowledge-reviewer', maxlength: '200',
+    placeholder: '裁决人姓名 / 标识（服务把它当作声称的身份）' });
+  const note = el('textarea', { class: 'input', id: 'knowledge-note', maxlength: '2000' });
+  const reason = el('textarea', { class: 'input', id: 'knowledge-reason', maxlength: '2000' });
+  const submit = el('button', { type: 'button', class: 'primary-btn', id: 'knowledge-review-submit' },
+    '记录人工裁决');
+  submit.onclick = (): void => {
+    void (async (): Promise<void> => {
+      const id = target.value;
+      const who = reviewer.value.trim();
+      if (!id) {
+        outcome.textContent = '未提交：没有可裁决的候选。';
+        return;
+      }
+      if (!who) {
+        outcome.textContent = '未提交：裁决人未署名。服务端会拒绝一个没有名字的人工裁决。';
+        return;
+      }
+      if (decision.value === 'REJECT' && !reason.value.trim()) {
+        outcome.textContent = '未提交：驳回必须说明原因（服务端同样拒绝 REASON_REQUIRED）。';
+        return;
+      }
+      // 合同要求 body 顶层键集合完全一致；reviewed_at 取点击时刻的浏览器时钟，
+      // 它是"声称的裁决时间"，不是服务端时间。
+      const body = {
+        decision: decision.value,
+        reviewer_id: who,
+        reviewer_kind: 'human',
+        reviewed_at: new Date().toISOString(),
+        note: note.value.trim() || null,
+        reason: decision.value === 'REJECT' ? reason.value.trim() : null,
+      };
+      submit.disabled = true;
+      outcome.textContent = '提交中…';
+      try {
+        await api(`/projects/${projectId}/knowledge-candidates/${id}/review`, body);
+        await reload();
+        outcome.textContent = decision.value === 'APPROVE'
+          ? '已记录批准。export_ready 若为真仍只表示本地合同允许导出：本服务没有 ArcheAxis 传输，'
+            + '这条候选没有被发送。'
+          : '已记录驳回。被驳回的候选不会出现在导出投影里。';
+      } catch (error) {
+        const envelope = (error as Error & {
+          serviceEnvelope?: Record<string, unknown> }).serviceEnvelope;
+        outcome.textContent = `未记录：${typeof envelope?.error === 'string'
+          ? envelope.error : errMsg(error)}`
+          + (typeof envelope?.detail === 'string' && envelope.detail
+            ? ` —— ${envelope.detail}` : '') + '。服务端未写入任何裁决。';
+      } finally {
+        submit.disabled = false;
+      }
+    })().catch((error) => setStatus(errMsg(error), true));
+  };
+  return el('div', { class: 'panel knowledge-form' },
+    el('h3', {}, '人工裁决'),
+    el('p', { class: 'view-hint' },
+      '这是 Human Gate 的桌面入口：服务端只接受 reviewer_kind="human" 且带具名裁决人的请求，'
+      + 'agent 无法在不署名的情况下批准。页面本身不做身份验证——名字和时间是你输入的声称，'
+      + '服务端无法证明这个人存在或真的审阅了内容。'),
+    el('label', {}, '候选', target),
+    el('label', {}, '裁决', decision),
+    el('label', {}, '裁决人', reviewer),
+    el('label', {}, '备注（可选）', note),
+    el('label', {}, '驳回原因（REJECT 必填）', reason),
+    submit);
+}
+
+function knowledgeRevokeForm(projectId: string, data: KnowledgeReadback,
+                             reload: () => Promise<void>, outcome: HTMLElement): HTMLElement {
+  const target = el('select', { class: 'input', id: 'knowledge-revoke-target' } as never);
+  for (const candidate of data.candidates) {
+    target.append(new Option(`${candidate.candidate_id}（${candidate.revocation_state}）`,
+      candidate.candidate_id));
+  }
+  const reason = el('textarea', { class: 'input', id: 'knowledge-revoke-reason', maxlength: '2000' });
+  const revokedBy = el('input', { class: 'input', id: 'knowledge-revoked-by', maxlength: '200' });
+  const submit = el('button', { type: 'button', class: 'secondary', id: 'knowledge-revoke-submit' },
+    '写入撤销回执');
+  submit.onclick = (): void => {
+    void (async (): Promise<void> => {
+      if (!target.value) {
+        outcome.textContent = '未提交：没有可撤销的候选。';
+        return;
+      }
+      if (!reason.value.trim()) {
+        outcome.textContent = '未提交：撤销必须说明原因。';
+        return;
+      }
+      if (!revokedBy.value.trim()) {
+        outcome.textContent = '未提交：撤销必须具名。';
+        return;
+      }
+      // revoked_at 交给服务端时钟；null 表示"按服务此刻记录"。
+      const body = {
+        reason: reason.value.trim(),
+        revoked_by: revokedBy.value.trim(),
+        revoked_at: null,
+      };
+      submit.disabled = true;
+      outcome.textContent = '提交中…';
+      try {
+        await api(`/projects/${projectId}/knowledge-candidates/${target.value}/revoke`, body);
+        await reload();
+        outcome.textContent = '已写入撤销回执并阻止导出。撤销不能撤回；'
+          + '如果此前已经有副本离开本机，本机撤销不能召回它（本服务没有传输，'
+          + '所以这里实际上没有发生过发送）。';
+      } catch (error) {
+        const envelope = (error as Error & {
+          serviceEnvelope?: Record<string, unknown> }).serviceEnvelope;
+        outcome.textContent = `未记录：${typeof envelope?.error === 'string'
+          ? envelope.error : errMsg(error)}`
+          + (typeof envelope?.detail === 'string' && envelope.detail
+            ? ` —— ${envelope.detail}` : '') + '。服务端未写入任何撤销。';
+      } finally {
+        submit.disabled = false;
+      }
+    })().catch((error) => setStatus(errMsg(error), true));
+  };
+  return el('div', { class: 'panel knowledge-form' },
+    el('h3', {}, '撤销与回执'),
+    el('p', { class: 'view-hint' },
+      '撤销只会阻止之后的导出，并留下一条本机回执；它不会改写既有裁决，'
+      + '也不会召回任何已经离开本机的副本。'),
+    el('label', {}, '候选', target),
+    el('label', {}, '撤销原因', reason),
+    el('label', {}, '申请人', revokedBy),
+    submit);
+}
+
+export async function knowledgePanel(projectId: string,
+                                     tasks: readonly TaskRecord[]): Promise<HTMLElement> {
+  const outcome = el('p', { class: 'view-hint', id: 'knowledge-outcome' }, '');
+  const body = el('div', { id: 'knowledge-body' },
+    el('p', { class: 'view-loading' }, '正在读回知识候选…'));
+  const panel = el('div', { class: 'panel', id: 'knowledge-panel' },
+    el('h3', {}, '知识回执与反馈（T16 / U09）'),
+    el('p', { class: 'view-hint' },
+      '这里读回本项目的 KnowledgeCandidate：写入固定为 PENDING_HUMAN_APPROVAL，'
+      + '只有下方具名的人工裁决能批准或驳回，撤销会留下本机回执。'),
+    el('p', { class: 'view-hint' },
+      '没有建的那一半：本服务没有 ArcheAxis 传输 —— outbound.transport 是 NOT_CONNECTED，'
+      + 'sent_count 的 0 表示从未发送，而不是一次失败的发送；export_ready 只表示本地合同'
+      + '允许导出，不代表送达或对方已接收。'),
+    body, outcome);
+  const load = async (): Promise<void> => {
+    const data = await apiOrEmpty<KnowledgeReadback>(
+      `/projects/${projectId}/knowledge-candidates`, OFFLINE.knowledge);
+    const shape = shapeNotice(data);
+    const offline = disconnectedNotice(data);
+    if (shape || offline) {
+      body.replaceChildren(el('p', { class: 'error' },
+        `${shape || offline}：这里的零值是占位，不是该项目的候选数。`
+        + '未读回时本页不提供裁决或撤销控件，避免对没有读到的记录动手。'));
+      return;
+    }
+    const rows: HTMLElement[] = data.candidates.map(knowledgeCandidateRow);
+    if (data.conflicts.length) {
+      rows.push(el('li', { class: 'list-item' },
+        el('div', {}, el('strong', {}, `存储冲突（${data.conflicts.length}）`),
+          el('small', {}, '读回仍然成功；这些是存储与合同之间的分歧，本页报告它们，'
+            + '但不修复、也不替服务选择一个解释。'))));
+      for (const conflict of data.conflicts) {
+        rows.push(el('li', { class: 'list-item' },
+          el('span', { class: 'tag warn' }, en(conflict.kind ?? '未读回')),
+          el('span', { class: 'value-mono' }, conflict.candidate_id ?? '未读回'),
+          el('small', {}, conflict.detail ?? '无可读详情')));
+      }
+    }
+    if (!rows.length) {
+      rows.push(emptyLi(data, '本项目尚无知识候选',
+        '记录一条候选后在此读回；未读回不等于本项目没有候选。'));
+    }
+    const outbound = data.outbound;
+    rows.push(el('li', { class: 'list-item' },
+      el('div', {}, el('strong', {}, '本读回不说什么'),
+        ...(data.does_not_say.length
+          ? data.does_not_say.map((line) => el('small', {}, line))
+          : [el('small', {}, '服务未给出 does_not_say，因此本页无法说明这份读回不覆盖什么。')]))));
+    body.replaceChildren(
+      el('p', { class: 'view-hint' },
+        `共 ${knowledgeNumber(data.candidate_count)} 条候选 · 待裁决 `
+        + `${knowledgeNumber(data.pending_review_count)} · 已批准 `
+        + `${knowledgeNumber(data.approved_count)} · 已驳回 `
+        + `${knowledgeNumber(data.rejected_count)} · 已撤销 `
+        + `${knowledgeNumber(data.revoked_count)} · 不可读取 `
+        + `${knowledgeNumber(data.unreadable_count)} 条行 · 本地合同可导出 `
+        + `${knowledgeNumber(data.export_ready_count)} 条。`
+        + `freshness 对照的 HEAD 是 ${data.head_sha ?? 'UNKNOWN'}：UNKNOWN 不等于 CURRENT。`),
+      el('p', { class: 'muted' },
+        '出站边界：', en(outbound.transport ?? '未读回'), ' → ',
+        en(outbound.destination ?? '未读回'),
+        `；sent_count=${knowledgeNumber(outbound.sent_count)}；`
+        + `last_attempt_at=${outbound.last_attempt_at ?? 'null'}。`,
+        outbound.note ?? '服务未给出出站说明。'),
+      el('ul', { class: 'list' }, ...rows),
+      knowledgeCreateForm(projectId, data, tasks, safeLoad, outcome),
+      knowledgeReviewForm(projectId, data, safeLoad, outcome),
+      knowledgeRevokeForm(projectId, data, safeLoad, outcome));
+  };
+  const safeLoad = async (): Promise<void> => {
+    try {
+      await load();
+    } catch (error) {
+      body.replaceChildren(el('p', { class: 'error' }, `知识回执未读回：${errMsg(error)}`));
+    }
+  };
+  await safeLoad();
+  return panel;
+}
+
 async function recordsBody(projectId: string): Promise<HTMLElement> {
   const [data, runtime] = await Promise.all([
     apiOrEmpty<TaskListResponse>(`/projects/${projectId}/tasks`, OFFLINE.tasks),
@@ -7041,7 +7544,11 @@ async function recordsBody(projectId: string): Promise<HTMLElement> {
     // DL-UI-U06: the observation half of run/observe/recover, over the tables the existing
     // action routes already write. It reads a second route, so the panel appears beside the
     // ledger rather than restating it.
-    runtimeObservation(runtime, runtimeUnread)));
+    runtimeObservation(runtime, runtimeUnread),
+    // DL-UI-U09: the knowledge readback plus the human decision/revocation controls that
+    // already have routes and a store. Its first read also creates the knowledge tables,
+    // so it is awaited here rather than racing the rest of the view.
+    await knowledgePanel(projectId, tasks)));
   // R2 §3 的底部任务条：只在本页真的读到进行中/待核对作业时出现。跨路由常驻的全局任务条
   // 需要"当前任务"这个应用级概念，服务没有暴露它，所以这里不画一个凭空的常驻条。
   const dock = activityDock(tasks);

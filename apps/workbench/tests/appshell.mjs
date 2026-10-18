@@ -2496,12 +2496,79 @@ const RUNTIME_HELD = {
 };
 let runtimeFixture = RUNTIME_ABSENT;
 
+// DL-UI-U09 fixtures. The records page now also reads the knowledge readback, and ⑩/⑯/㉒
+// all open that page; answering it by path keeps a tasks body from being served to the
+// knowledge route (which would render as a shape notice and hide the forms ㉒ drives).
+const KNOWLEDGE_CANDIDATES = [
+  { candidate_id: 'kc-' + '1'.repeat(32), candidate_type: 'METHOD',
+    review_state: 'PENDING_HUMAN_APPROVAL', revocation_state: 'ACTIVE', revision: 1,
+    created_at: '2026-10-18T09:00:00+00:00', updated_at: '2026-10-18T09:00:00+00:00',
+    source_design_lab_sha: 'a'.repeat(40), payload_sha256: 'b'.repeat(64), supersedes: null,
+    title: '包装色数上限', statement: '色数超过四色时先做打样验证', applies_to: ['packaging'],
+    license_id: 'project-internal', rights_gate_state: 'CHECKED',
+    reviewer_id: null, reviewed_at: null, revoked_by: null, revoked_at: null,
+    revocation_reason: null, freshness: 'CURRENT', export_ready: false,
+    export_blocked_by: 'review_not_approved' },
+  { candidate_id: 'kc-' + '2'.repeat(32), candidate_type: 'PRODUCTION_LESSON',
+    review_state: 'APPROVED', revocation_state: 'REVOKED', revision: 2,
+    created_at: '2026-10-17T08:00:00+00:00', updated_at: '2026-10-17T08:00:00+00:00',
+    source_design_lab_sha: 'd'.repeat(40), payload_sha256: 'e'.repeat(64), supersedes: null,
+    title: '夜间陈列对比度', statement: '夜间货架需要更高的明度差',
+    applies_to: ['packaging', 'retail'],
+    license_id: 'CC-BY-4.0', rights_gate_state: 'CHECKED',
+    reviewer_id: 'Alice', reviewed_at: '2026-10-17T09:00:00+00:00', revoked_by: 'Bob',
+    revoked_at: '2026-10-18T08:00:00+00:00', revocation_reason: '事实已经变化',
+    freshness: 'STALE', export_ready: false, export_blocked_by: 'revoked' },
+  { candidate_id: 'kc-' + '3'.repeat(32), candidate_type: 'JURY_CORRECTION',
+    review_state: 'APPROVED', revocation_state: 'ACTIVE', revision: 1,
+    created_at: '2026-10-18T10:00:00+00:00', updated_at: '2026-10-18T10:00:00+00:00',
+    source_design_lab_sha: 'c'.repeat(40), payload_sha256: 'f'.repeat(64),
+    supersedes: 'kc-' + '2'.repeat(32),
+    title: '评审语汇纠偏', statement: '避免把完成度说成质量', applies_to: ['jury'],
+    license_id: 'project-internal', rights_gate_state: 'CHECKED',
+    reviewer_id: 'Carol', reviewed_at: '2026-10-18T11:00:00+00:00', revoked_by: null,
+    revoked_at: null, revocation_reason: null, freshness: 'CURRENT', export_ready: true,
+    export_blocked_by: null },
+];
+const KNOWLEDGE_READBACK = {
+  schemaVersion: 'design-lab/assurance-knowledge-candidate-readback/v1', project_id: 'p1',
+  candidates: KNOWLEDGE_CANDIDATES, candidate_count: 3, unreadable_count: 0,
+  pending_review_count: 1, approved_count: 2, rejected_count: 0, revoked_count: 1,
+  export_ready_count: 1, conflicts: [], revocation_receipts: [],
+  head_sha: 'c'.repeat(40),
+  outbound: { transport: 'NOT_CONNECTED', destination: 'ArcheAxis', sent_count: 0,
+    last_attempt_at: null,
+    note: '本服务没有 ArcheAxis 传输实现；sent_count 为 0 是因为从未发送，不是一次失败的重试。' },
+  does_not_say: ['a candidate is working knowledge, not a design-quality verdict'],
+};
+let knowledgeFixture = KNOWLEDGE_READBACK;
+
 function answerRecords(request) {
   if (request.path.includes('/native-runtime')) {
     request.resolve(response(runtimeFixture));
     return;
   }
+  if (request.path.includes('/knowledge-candidates')) {
+    request.resolve(response(knowledgeFixture));
+    return;
+  }
   request.resolve(response({ tasks: RECORD_TASKS, next_cursor: 'job-z' }));
+}
+
+// The knowledge read starts AFTER tasks + native-runtime resolve (recordsBody awaits the
+// panel before rendering), so one flat splice would leave it dangling and the next block's
+// "exactly one events read" assertion would count it. Drain in rounds until quiet.
+async function drainRecordReads() {
+  const seen = [];
+  for (let round = 0; round < 8; round += 1) {
+    await flush();
+    const fresh = shell.pending.splice(0, shell.pending.length);
+    if (!fresh.length) break;
+    seen.push(...fresh);
+    for (const request of fresh) answerRecords(request);
+  }
+  await flush();
+  return seen;
 }
 
 const RECORD_TASKS = [
@@ -2531,16 +2598,11 @@ const recordSelect = byElementId(recordsView, '制作记录与待继续-project'
 if (!recordSelect) throw new Error('制作记录没有渲染项目选择器，⑩ 找不到入口');
 recordSelect.value = 'p1';
 recordSelect.onchange();
-const recordRequests = shell.pending.splice(0, shell.pending.length);
+const recordRequests = await drainRecordReads();
 for (const request of recordRequests) {
   if (request.path.includes('/events'))
     throw new Error(`没有人展开任何一行，页面却读了 ${request.path} —— 最近确认点不能凭猜测取`);
-  // ⑩ seeds the ledger; ⑯ re-renders this page with other runtime payloads. Answering by
-  // path keeps the two blocks honest: a tasks body served to the runtime read would make
-  // every section look unread and let ⑯ pass on the wrong bytes.
-  answerRecords(request);
 }
-await flush();
 const recordText = (recordsView.textContent || '').replace(/\s+/g, ' ');
 for (const word of ['RUNNING', 'CANCEL_REQUESTED', 'RECEIPTED'])
   if (!recordText.includes(word))
@@ -2686,12 +2748,10 @@ async function openRecordsWithRuntime(doc) {
   if (!select) throw new Error('⑯ 找不到项目选择器');
   select.value = 'p1';
   select.onchange();
-  const reqs = shell.pending.splice(0, shell.pending.length);
+  const reqs = await drainRecordReads();
   const paths = reqs.map((r) => r.path);
   if (!paths.some((p) => p.includes('/native-runtime')))
     throw new Error(`选了项目却没读运行时投影：${paths.join(' , ')}`);
-  for (const r of reqs) answerRecords(r);
-  await flush();
   return view;
 }
 
@@ -2882,6 +2942,313 @@ console.log('ok: ⑰ 全局搜索的四组对象投影按各自路由的合同�
 
 console.log('ok: ⑳ DL-UI-U07 成果版本面板：读回真实 BundleRecord 的版本链（当前/已被取代、字节数与'
   + '摘要、权利与核验原词）、空集合说尚无、缺字段说未读回不画 0，并写明本面板只读回不提交改稿');
+
+// ㉒ DL-UI-U09 · 知识回执与反馈（T16）。面板要钉的是可观察行为，而不是"控件画出来了"：
+// 构建只读一次、零写；状态 / 新鲜度 / 导出词全部来自读回；创建表单不替人补 job_id、
+// operation_id 或资产布尔；三个写路由的顶层键集合精确（7 / 6 / 3），未选的可选值发 null
+// 而不是编一个 false；同一内容重发沿用 candidate_id；未读回时不提供裁决 / 撤销控件、
+// 也不把占位零画成候选数。三条 Human Gate 边界必须写在可见文字里。
+{
+  if (shell.pending.length)
+    throw new Error(`㉒ 开始前仍有未答复的请求：${shell.pending.map((r) => r.path).join(' ')}`);
+
+  async function openKnowledgeView(payload) {
+    knowledgeFixture = payload;
+    shell.window.location.hash = '#/records';
+    shell.dispatchHashchange();
+    const projectsReq = shell.pending.shift();
+    if (!projectsReq) throw new Error('㉒ 重新进入制作记录没有读项目列表');
+    projectsReq.resolve(response({ projects: [{ id: 'p1', name: 'Alpha' }] }));
+    await flush();
+    const view = shell.elements.get('route-view');
+    const select = byElementId(view, '制作记录与待继续-project');
+    if (!select) throw new Error('㉒ 找不到项目选择器');
+    select.value = 'p1';
+    select.onchange();
+    const reads = await drainRecordReads();
+    return { view, reads };
+  }
+
+  const first = await openKnowledgeView(KNOWLEDGE_READBACK);
+  const view = first.view;
+  const knowledgeReads = first.reads.filter((r) => r.path.includes('/knowledge-candidates'));
+  if (knowledgeReads.length !== 1)
+    throw new Error(`㉒ 构建知识面板应只读一次知识投影，实际 ${knowledgeReads.length} 次`);
+  if (knowledgeReads[0].path !== '/api/projects/p1/knowledge-candidates'
+    || knowledgeReads[0].init.method !== 'GET')
+    throw new Error(`㉒ 知识读回打到了 ${knowledgeReads[0].init.method} ${knowledgeReads[0].path}`);
+  if (first.reads.some((r) => r.init.method !== 'GET'))
+    throw new Error('㉒ 构建知识面板时发出了写请求');
+
+  const panel = byElementId(view, 'knowledge-panel');
+  if (!panel) throw new Error('㉒ 知识面板没有渲染');
+  const panelText = (panel.textContent || '').replace(/\s+/g, ' ');
+  // The half that was NOT built stays visible, not inferred from a green tag.
+  for (const sentence of ['没有建的那一半', '本服务没有 ArcheAxis 传输',
+    'sent_count 的 0 表示从未发送', 'export_ready 只表示本地合同允许导出'])
+    if (!panelText.includes(sentence))
+      throw new Error(`㉒ 面板没有把未建的一半写出来（缺「${sentence}」）`);
+  // Every word below is a stored projection field, not a client-side verdict.
+  for (const word of ['PENDING_HUMAN_APPROVAL', 'APPROVED', 'REVOKED', 'CURRENT', 'STALE'])
+    if (!panelText.includes(word))
+      throw new Error(`㉒ 读回状态词 ${word} 没有上屏`);
+  for (const count of ['共 3 条候选', '待裁决 1', '已批准 2', '已驳回 0', '已撤销 1',
+    '不可读取 0 条行', '本地合同可导出 1 条'])
+    if (!panelText.includes(count))
+      throw new Error(`㉒ 计数没有按读回原样上屏（缺「${count}」）：${panelText.slice(0, 260)}`);
+  if (!panelText.includes('NOT_CONNECTED') || !panelText.includes('ArcheAxis')
+    || !panelText.includes('sent_count=0'))
+    throw new Error('㉒ 出站边界没有按 readback 的 outbound 原样上屏');
+  if (!panelText.includes('a candidate is working knowledge, not a design-quality verdict'))
+    throw new Error('㉒ does_not_say 的每一句都要成为一行');
+  if (!panelText.includes('本地合同允许导出，未发送')
+    || !panelText.includes('不可导出：review_not_approved')
+    || !panelText.includes('不可导出：revoked'))
+    throw new Error('㉒ export_ready 的真假两种说法必须分开，且不等于发送');
+  if (!panelText.includes('撤销原因：事实已经变化') || !panelText.includes('尚无人工裁决'))
+    throw new Error('㉒ 人工裁决与撤销原因必须从读回上屏');
+  const pendingTag = findIn(panel, (node) => node?.tagName === 'SPAN'
+    && node.textContent === 'PENDING_HUMAN_APPROVAL');
+  if (!pendingTag || pendingTag.attributes.get('lang') !== 'en')
+    throw new Error('㉒ 服务状态词必须以 lang="en" 上屏');
+
+  const outcome = byElementId(view, 'knowledge-outcome');
+  const field = (id) => {
+    const node = byElementId(view, id);
+    if (!node) throw new Error(`㉒ 找不到控件 ${id}`);
+    return node;
+  };
+  const sameKeys = (actual, expected) =>
+    JSON.stringify([...actual].sort()) === JSON.stringify([...expected].sort());
+  let createSubmit = field('knowledge-create-submit');
+  const expectCreateRefusal = (needle) => {
+    createSubmit.onclick();
+    if (shell.pending.length)
+      throw new Error(`㉒ 本地拒绝后仍发出了请求：${shell.pending.map((r) => r.path).join(' ')}`);
+    if (!outcome.textContent.includes(needle))
+      throw new Error(`㉒ 期望创建被本地拒绝「${needle}」，实际「${outcome.textContent.slice(0, 140)}」`);
+  };
+
+  // (a) Local refusals: the page never invents the facts only the operator has.
+  const title = field('knowledge-title');
+  const statement = field('knowledge-statement');
+  const appliesTo = field('knowledge-applies-to');
+  const license = field('knowledge-license');
+  const rights = field('knowledge-rights');
+  const clientAsset = field('knowledge-client-asset');
+  const thirdParty = field('knowledge-third-party');
+  const redaction = field('knowledge-redaction');
+  const sha = field('knowledge-source-sha');
+  const job = field('knowledge-job');
+  const operation = field('knowledge-operation');
+  const evidence = field('knowledge-evidence');
+  field('knowledge-type').value = 'METHOD';
+  if (sha.value !== 'c'.repeat(40))
+    throw new Error('㉒ 来源修订必须只从读回的 head_sha 预填，不能凭空生成');
+  if (clientAsset.value !== '' || thirdParty.value !== '')
+    throw new Error('㉒ 资产布尔不得预选：absence 与 false 是不同的记录');
+  expectCreateRefusal('标题为空');
+  title.value = '色数上限';
+  expectCreateRefusal('正文为空');
+  statement.value = '四色以上先打样验证';
+  expectCreateRefusal('没有任何适用设计域');
+  appliesTo.value = 'packaging, print';
+  license.value = 'project-internal';
+  expectCreateRefusal('未选择权利门状态');
+  rights.value = 'CHECKED';
+  expectCreateRefusal('未声明是否包含客户素材');
+  clientAsset.value = 'false';
+  expectCreateRefusal('未声明是否包含第三方素材');
+  thirdParty.value = 'false';
+  sha.value = 'xyz';
+  expectCreateRefusal('来源修订不是 40-64 位小写十六进制');
+  sha.value = 'a'.repeat(40);
+  expectCreateRefusal('job_id 为空');
+  job.value = 'job-a';
+  expectCreateRefusal('operation_id 为空');
+  operation.value = 'op-7';
+  expectCreateRefusal('evidence_sha256 必须是');
+  evidence.value = 'sha256:' + '9'.repeat(64);
+  clientAsset.value = 'true';
+  expectCreateRefusal('必须填写脱敏说明');
+  redaction.value = '只保留色值与版式，不含客户品牌名';
+
+  // (b) One click, one POST, exactly the seven closed-contract keys.
+  createSubmit.onclick();
+  const created = shell.pending.splice(0, shell.pending.length);
+  if (created.length !== 1)
+    throw new Error(`㉒ 一次创建点击发出了 ${created.length} 个请求`);
+  if (created[0].path !== '/api/projects/p1/knowledge-candidates'
+    || created[0].init.method !== 'POST')
+    throw new Error(`㉒ 创建打到了 ${created[0].init.method} ${created[0].path}`);
+  const createBody = JSON.parse(created[0].init.body);
+  if (!sameKeys(Object.keys(createBody), ['candidate_id', 'candidate_type', 'source',
+    'rights', 'payload', 'created_at', 'revocation_entrypoint']))
+    throw new Error(`㉒ 创建体键集合不符：${Object.keys(createBody).join(',')}`);
+  if ('schemaVersion' in createBody)
+    throw new Error('㉒ 创建体带了 schemaVersion：服务端按未知属性拒绝');
+  if (createBody.created_at !== null)
+    throw new Error('㉒ created_at 必须发 null 让服务用自己的时钟');
+  if (createBody.revocation_entrypoint !== 'design-lab/knowledge/revoke')
+    throw new Error(`㉒ revocation_entrypoint 不符：${createBody.revocation_entrypoint}`);
+  if (!/^kc-[0-9a-f]{1,32}$/.test(createBody.candidate_id))
+    throw new Error(`㉒ candidate_id 形状不符：${createBody.candidate_id}`);
+  if (createBody.candidate_type !== 'METHOD')
+    throw new Error(`㉒ 所选类型没有原样送出：${createBody.candidate_type}`);
+  if (!sameKeys(Object.keys(createBody.source),
+    ['design_lab_sha', 'job_id', 'operation_id', 'evidence_sha256'])
+    || createBody.source.job_id !== 'job-a'
+    || createBody.source.operation_id !== 'op-7'
+    || createBody.source.design_lab_sha !== 'a'.repeat(40)
+    || createBody.source.evidence_sha256 !== 'sha256:' + '9'.repeat(64))
+    throw new Error(`㉒ source 形状不符：${JSON.stringify(createBody.source)}`);
+  if (!sameKeys(Object.keys(createBody.rights),
+    ['license_id', 'rights_gate_state', 'contains_client_asset',
+      'contains_third_party_asset', 'redaction_note'])
+    || createBody.rights.contains_client_asset !== true
+    || createBody.rights.contains_third_party_asset !== false
+    || createBody.rights.redaction_note !== '只保留色值与版式，不含客户品牌名')
+    throw new Error(`㉒ rights 形状不符：${JSON.stringify(createBody.rights)}`);
+  if (!sameKeys(Object.keys(createBody.payload), ['title', 'statement', 'applies_to'])
+    || JSON.stringify(createBody.payload.applies_to) !== JSON.stringify(['packaging', 'print']))
+    throw new Error(`㉒ payload 形状不符：${JSON.stringify(createBody.payload)}`);
+  const firstId = createBody.candidate_id;
+
+  // (c) An identical resend replays the id; a changed document must not reuse it.
+  createSubmit.onclick();
+  const resent = shell.pending.splice(0, shell.pending.length);
+  if (resent.length !== 1 || JSON.parse(resent[0].init.body).candidate_id !== firstId)
+    throw new Error('㉒ 完全相同的重复提交换了 candidate_id：服务端会把一次主张记成两条');
+  statement.value = '四色以上先打样验证（补：夜间）';
+  createSubmit.onclick();
+  const changed = shell.pending.splice(0, shell.pending.length);
+  if (changed.length !== 1)
+    throw new Error(`㉒ 改动后的重发发出了 ${changed.length} 个请求`);
+  const changedBody = JSON.parse(changed[0].init.body);
+  if (changedBody.candidate_id === firstId)
+    throw new Error('㉒ 改过的正文仍沿用旧 candidate_id：页面在发注定被拒的写');
+
+  // (d) Success reads the projection back and keeps the candidate pending.
+  changed[0].resolve(response({ candidate_id: changedBody.candidate_id }));
+  await flush();
+  const afterCreate = shell.pending.splice(0, shell.pending.length);
+  if (afterCreate.length !== 1 || !afterCreate[0].path.includes('/knowledge-candidates'))
+    throw new Error(`㉒ 创建成功后应读回一次知识投影，实际 ${
+      afterCreate.map((r) => r.path).join(' ')}`);
+  afterCreate[0].resolve(response(KNOWLEDGE_READBACK));
+  await flush();
+  if (!outcome.textContent.includes('已记录一条候选')
+    || !outcome.textContent.includes('PENDING_HUMAN_APPROVAL'))
+    throw new Error(`㉒ 创建成功后没有说明候选仍需具名裁决：${outcome.textContent.slice(0, 180)}`);
+
+  // (e) Human review: no anonymous approve, no reasonless reject, exactly six keys.
+  const reviewTarget = field('knowledge-review-target');
+  const decision = field('knowledge-decision');
+  const reviewer = field('knowledge-reviewer');
+  const note = field('knowledge-note');
+  const reason = field('knowledge-reason');
+  let reviewSubmit = field('knowledge-review-submit');
+  reviewTarget.value = KNOWLEDGE_CANDIDATES[0].candidate_id;
+  reviewSubmit.onclick();
+  if (shell.pending.length || !outcome.textContent.includes('裁决人未署名'))
+    throw new Error('㉒ 未署名的人工裁决必须被本地拒绝且不发请求');
+  reviewer.value = 'Dana';
+  decision.value = 'REJECT';
+  reviewSubmit.onclick();
+  if (shell.pending.length || !outcome.textContent.includes('驳回必须说明原因'))
+    throw new Error('㉒ 无原因的驳回必须被本地拒绝且不发请求');
+  decision.value = 'APPROVE';
+  reason.value = '理由只属于驳回';
+  reviewSubmit.onclick();
+  const reviewed = shell.pending.splice(0, shell.pending.length);
+  if (reviewed.length !== 1)
+    throw new Error(`㉒ 一次裁决点击发出了 ${reviewed.length} 个请求`);
+  if (reviewed[0].path !== `/api/projects/p1/knowledge-candidates/${
+    KNOWLEDGE_CANDIDATES[0].candidate_id}/review`
+    || reviewed[0].init.method !== 'POST')
+    throw new Error(`㉒ 裁决打到了 ${reviewed[0].path}`);
+  const reviewBody = JSON.parse(reviewed[0].init.body);
+  if (!sameKeys(Object.keys(reviewBody), ['decision', 'reviewer_id', 'reviewer_kind',
+    'reviewed_at', 'note', 'reason']))
+    throw new Error(`㉒ 裁决体键集合不符：${Object.keys(reviewBody).join(',')}`);
+  if (reviewBody.reviewer_kind !== 'human')
+    throw new Error('㉒ reviewer_kind 不是 human：服务端会以 KNOWLEDGE_HUMAN_REVIEW_REQUIRED 拒绝');
+  if (reviewBody.decision !== 'APPROVE' || reviewBody.reviewer_id !== 'Dana')
+    throw new Error(`㉒ 裁决内容不符：${JSON.stringify(reviewBody)}`);
+  if (reviewBody.note !== null || reviewBody.reason !== null)
+    throw new Error('㉒ 未填写的可选字段必须发 null，不能编一个空串');
+  if (!/^\d{4}-\d{2}-\d{2}T/.test(reviewBody.reviewed_at ?? ''))
+    throw new Error('㉒ reviewed_at 必须是 RFC3339 形状的浏览器时钟');
+  reviewed[0].resolve(response({ review_state: 'APPROVED' }));
+  await flush();
+  const afterReview = shell.pending.splice(0, shell.pending.length);
+  if (afterReview.length !== 1 || !afterReview[0].path.includes('/knowledge-candidates'))
+    throw new Error('㉒ 裁决成功后没有读回知识投影');
+  afterReview[0].resolve(response(KNOWLEDGE_READBACK));
+  await flush();
+  if (!outcome.textContent.includes('已记录批准')
+    || !outcome.textContent.includes('这条候选没有被发送'))
+    throw new Error(`㉒ 批准后的说法把 export_ready 说成了发送：${outcome.textContent.slice(0, 180)}`);
+
+  // (f) Revocation writes a local receipt; it cannot recall a copy.
+  const revokeTarget = field('knowledge-revoke-target');
+  const revokeReason = field('knowledge-revoke-reason');
+  const revokedBy = field('knowledge-revoked-by');
+  const revokeSubmit = field('knowledge-revoke-submit');
+  revokeTarget.value = KNOWLEDGE_CANDIDATES[0].candidate_id;
+  revokeSubmit.onclick();
+  if (shell.pending.length || !outcome.textContent.includes('撤销必须说明原因'))
+    throw new Error('㉒ 无原因的撤销必须被本地拒绝且不发请求');
+  revokeReason.value = '事实已经变化';
+  revokeSubmit.onclick();
+  if (shell.pending.length || !outcome.textContent.includes('撤销必须具名'))
+    throw new Error('㉒ 未署名的撤销必须被本地拒绝且不发请求');
+  revokedBy.value = 'Eve';
+  revokeSubmit.onclick();
+  const revoked = shell.pending.splice(0, shell.pending.length);
+  if (revoked.length !== 1)
+    throw new Error(`㉒ 一次撤销点击发出了 ${revoked.length} 个请求`);
+  if (revoked[0].path !== `/api/projects/p1/knowledge-candidates/${
+    KNOWLEDGE_CANDIDATES[0].candidate_id}/revoke`
+    || revoked[0].init.method !== 'POST')
+    throw new Error(`㉒ 撤销打到了 ${revoked[0].path}`);
+  const revokeBody = JSON.parse(revoked[0].init.body);
+  if (!sameKeys(Object.keys(revokeBody), ['reason', 'revoked_by', 'revoked_at']))
+    throw new Error(`㉒ 撤销体键集合不符：${Object.keys(revokeBody).join(',')}`);
+  if (revokeBody.revoked_at !== null || revokeBody.revoked_by !== 'Eve'
+    || revokeBody.reason !== '事实已经变化')
+    throw new Error(`㉒ 撤销内容不符：${JSON.stringify(revokeBody)}`);
+  revoked[0].resolve(response({ revocation_state: 'REVOKED' }));
+  await flush();
+  const afterRevoke = shell.pending.splice(0, shell.pending.length);
+  if (afterRevoke.length !== 1 || !afterRevoke[0].path.includes('/knowledge-candidates'))
+    throw new Error('㉒ 撤销成功后没有读回知识投影');
+  afterRevoke[0].resolve(response(KNOWLEDGE_READBACK));
+  await flush();
+  if (!outcome.textContent.includes('已写入撤销回执并阻止导出')
+    || !outcome.textContent.includes('不能召回'))
+    throw new Error(`㉒ 撤销后的说法越过了本机回执的边界：${outcome.textContent.slice(0, 200)}`);
+
+  // (g) A payload the seam had to refill is unread: no forms, no zero counts.
+  const unread = await openKnowledgeView({ ...KNOWLEDGE_READBACK,
+    candidates: undefined, conflicts: undefined });
+  const unreadText = ((byElementId(unread.view, 'knowledge-panel')?.textContent) || '')
+    .replace(/\s+/g, ' ');
+  if (!unreadText.includes('未读回') || !unreadText.includes('candidates')
+    || !unreadText.includes('响应缺少'))
+    throw new Error(`㉒ 缺集合必须点名未读回的字段：${unreadText.slice(0, 240)}`);
+  if (unreadText.includes('共 0 条候选') || unreadText.includes('共 3 条候选'))
+    throw new Error('㉒ 未读回被画成了候选数');
+  for (const control of ['knowledge-create-submit', 'knowledge-review-submit',
+    'knowledge-revoke-submit'])
+    if (byElementId(unread.view, control))
+      throw new Error(`㉒ 未读回时仍提供了 ${control}：不能对没有读到的记录动手`);
+}
+
+console.log('ok: ㉒ 知识回执与反馈：构建只读一次零写、状态/新鲜度/导出/出站边界全部来自读回、'
+  + '未建的一半写在可见文字里、创建本地拒绝不替人补事实、7 键创建体（无 schemaVersion、'
+  + 'created_at=null）、相同重发沿用 candidate_id 而改动换新、6 键 human 裁决与 3 键撤销、'
+  + '成功后读回来自服务端、未读回不画候选数也不提供裁决/撤销控件');
 
 // ㉑ D06 截止与取消。此前 `fetch` 没有 signal：服务接受了连接然后沉默，页面就永远转圈，
 // 而"还在算"与"已经没了"在界面上分不出来。现在三种结局必须彼此可辨——读超时、写结果未知、

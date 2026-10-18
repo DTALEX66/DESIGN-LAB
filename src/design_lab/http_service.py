@@ -25,6 +25,7 @@ from .jury_review import JuryReview, JuryReviewError
 from .rights_review import RightsReview, RightsReviewError, write_fields
 from .research_review import (ResearchReview, ResearchReviewError,
                               write_fields as research_write_fields)
+from .knowledge_review import KnowledgeReview, KnowledgeReviewError
 # DL-UI-U06 (2026-10-10): the read-only observation surface over the native runtime tables.
 # The action routes (run/cancel/patch/bundle) already existed; nothing projected the state
 # those actions leave behind, so no page could say which host is currently held.
@@ -135,6 +136,9 @@ ROUTES = (
           r'/api/projects/([0-9a-f]{32})/native-runtime',
           '_get_native_runtime'),
     Route('GET',
+          r'/api/projects/([0-9a-f]{32})/knowledge-candidates',
+          '_list_knowledge_candidates'),
+    Route('GET',
           r'/api/projects/([0-9a-f]{32})/briefs(?:\?after=(brief-[0-9a-f]{32}))?',
           '_list_briefs'),
     Route('GET',
@@ -205,6 +209,18 @@ ROUTES = (
           r'/api/projects/([0-9a-f]{32})/research'
             r'(?:\?supersedes=([A-Za-z0-9_.:-]{1,80}))?',
           '_record_research'),
+    Route('POST',
+          r'/api/projects/([0-9a-f]{32})/knowledge-candidates'
+            r'(?:\?supersedes=([A-Za-z0-9_.:-]{1,80}))?',
+          '_create_knowledge_candidate'),
+    Route('POST',
+          r'/api/projects/([0-9a-f]{32})/knowledge-candidates'
+            r'/([A-Za-z0-9_.:-]{1,80})/review',
+          '_review_knowledge_candidate'),
+    Route('POST',
+          r'/api/projects/([0-9a-f]{32})/knowledge-candidates'
+            r'/([A-Za-z0-9_.:-]{1,80})/revoke',
+          '_revoke_knowledge_candidate'),
     Route('POST',
           r'/api/projects/([0-9a-f]{32})/briefs',
           '_create_brief'),
@@ -449,6 +465,15 @@ def make_server(service, token, port=0, *, local_session=False):
                 if exc.detail:
                     payload['detail'] = exc.detail
                 self.send_json(exc.status, payload)
+            # Same position and reasoning again: a candidate refused by its own
+            # contract (bad digest, empty rationale, rights not CHECKED) and a
+            # store that holds a row no longer satisfying it are different answers,
+            # and the page needs the code plus the sentence that explains it.
+            except KnowledgeReviewError as exc:
+                payload = {'error': exc.code}
+                if exc.detail:
+                    payload['detail'] = exc.detail
+                self.send_json(exc.status, payload)
             # DL-UI-U06: an unreadable state database is 503 (retry once the writer is done),
             # while an unknown project is 404. Collapsing them would tell a page to go find a
             # project that does exist when the real answer is "the database refused the read".
@@ -651,6 +676,13 @@ def make_server(service, token, port=0, *, local_session=False):
             # contacted and no attempt is started by reaching this line.
             return self.send_json(200, native_runtime_readback(service, match[1]))
 
+        def _list_knowledge_candidates(self, match):
+            # A read that states its own limits: `outbound` is NOT_CONNECTED because
+            # no ArcheAxis transport exists here, and `export_ready` is a local
+            # contract check. The readback also reports store/contract conflicts by
+            # name instead of dropping the rows they concern.
+            return self.send_json(200, KnowledgeReview(service).list(match[1]))
+
         def _list_briefs(self, match):
             layer = DesignLayer(service)
             return self.send_json(200, layer.list_briefs(match[1], match[2] or ''))
@@ -777,6 +809,36 @@ def make_server(service, token, port=0, *, local_session=False):
             value = self.body(fields=research_write_fields(), limit=65536)
             return self.send_json(201, ResearchReview(service).record(
                 match[1], value, supersedes=match[2]))
+
+        def _create_knowledge_candidate(self, match):
+            # The document is built server-side by the contract module; the caller
+            # supplies only the inputs it validated. `schemaVersion` is not an
+            # input: letting a caller choose it would let a stale client write a
+            # version the read path no longer knows. A supersede link is a query
+            # parameter, the same shape the rights and research routes use: it
+            # names the row being replaced, and the document contract has no field
+            # a caller could disagree with it through.
+            value = self.body(fields={
+                'candidate_id', 'candidate_type', 'source', 'rights', 'payload',
+                'created_at', 'revocation_entrypoint'}, limit=65536)
+            return self.send_json(201, KnowledgeReview(service).create(
+                match[1], value, supersedes=match[2]))
+
+        def _review_knowledge_candidate(self, match):
+            # `reviewer_kind` is a field of the request, not an assumption: the
+            # service refuses anything but a named human, and the refusal travels
+            # as KNOWLEDGE_HUMAN_REVIEW_REQUIRED rather than as a generic 400.
+            value = self.body(fields={
+                'decision', 'reviewer_id', 'reviewer_kind', 'reviewed_at',
+                'note', 'reason'}, limit=16384)
+            return self.send_json(200, KnowledgeReview(service).review(
+                match[1], match[2], value))
+
+        def _revoke_knowledge_candidate(self, match):
+            value = self.body(fields={'reason', 'revoked_by', 'revoked_at'},
+                              limit=16384)
+            return self.send_json(200, KnowledgeReview(service).revoke(
+                match[1], match[2], value))
 
         def _create_brief(self, match):
             layer = DesignLayer(service)

@@ -30,6 +30,11 @@ _NAMES = frozenset({
     # src/design_lab/assurance/research_store.py). Additive: one new immutable resource
     # name, no existing file renamed or re-versioned.
     'design-lab-state-research-v1.sql',
+    # 2026-10-18 U09/T16 knowledge-feedback reachability: the candidate revisions and
+    # revocation receipts store (design-lab/schemas/state/design-lab-state-knowledge-v1.sql,
+    # applied by src/design_lab/knowledge_review.py). Additive: one new immutable resource
+    # name, no existing file renamed or re-versioned.
+    'design-lab-state-knowledge-v1.sql',
     'design-lab-state-design-layer-v1.sql',
     'design-lab-state-design-layer-v2.sql',
     'design-lab-state-design-layer-v3.sql',

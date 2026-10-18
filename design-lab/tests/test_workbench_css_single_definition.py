@@ -430,7 +430,14 @@ class ListItemIsReallyAListMember(unittest.TestCase):
         # "this project has no versions" and "the route did not return the collection" are
         # different claims, and the second must not be drawn as an empty list. The number moves
         # because the inventory grew by two verified columns, not because a check was relaxed.
-        self.assertEqual(self.shell.count("el('ul', { class: 'list'"), 52)
+        # 2026-10-18 (DL-UI-U09) again: 52 -> 53 for the knowledge readback panel
+        # (knowledgePanel) on 制作记录. One container, named: each persisted candidate is a real
+        # <li> member carrying its review/revocation/freshness/export state, every storage
+        # conflict the service reports is a row beside them, and the service's own
+        # does_not_say sentences close the list. The three write forms are labels/inputs and
+        # paragraphs, and the unread state is a <p class="error"> rather than emptyLi(), so
+        # neither adds a container -- "did not ask" must not be drawn as an empty list.
+        self.assertEqual(self.shell.count("el('ul', { class: 'list'"), 53)
 
 
 if __name__ == "__main__":

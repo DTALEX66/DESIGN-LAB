@@ -771,6 +771,46 @@
       "version": "2025.10",
       "emitter": "src/design_lab/interop/dtcg.py:79",
       "reason": "A submitted token document is validated against this schema plus the canonical semantic rules BEFORE anything is persisted, and the write fails closed when no validator is importable (src/design_lab/design_layer.py:291, src/design_lab/interop/dtcg.py:566)."
+    },
+    {
+      "route": "/api/projects/([0-9a-f]{32})/knowledge-candidates",
+      "method": "GET",
+      "kind": "BOUND_SCHEMA",
+      "handler": "KnowledgeReview",
+      "schema": "design-lab/schemas/assurance-knowledge-candidate-readback-v1.schema.json",
+      "version": "design-lab/assurance-knowledge-candidate-readback/v1",
+      "emitter": "src/design_lab/knowledge_review.py:316",
+      "reason": "Closed on creation 2026-10-18: the readback envelope is described by its own schema and the candidate bodies it projects are bound separately by assurance-knowledge-candidate-v2.schema.json. The schema fixes what a reader could otherwise misread: outbound.transport is const NOT_CONNECTED and sent_count const 0 because no ArcheAxis transport exists in this repository, export_ready is a local contract check and not a delivery, freshness UNKNOWN is not CURRENT, disposition counts cannot exceed candidate_count, and the conflict vocabulary is closed so a new disagreement kind cannot be printed without moving this contract. design-lab/tests/test_knowledge_http.py validates real responses against it."
+    },
+    {
+      "route": "/api/projects/([0-9a-f]{32})/knowledge-candidates(?:\\?supersedes=([A-Za-z0-9_.:-]{1,80}))?",
+      "method": "POST",
+      "kind": "BOUND_SCHEMA",
+      "handler": "KnowledgeReview",
+      "schema": "design-lab/schemas/assurance-knowledge-candidate-v2.schema.json",
+      "version": "design-lab/assurance-knowledge-candidate/v2",
+      "emitter": "src/design_lab/assurance/knowledge_feedback.py:269",
+      "reason": "The route refuses an unknown body field and build_candidate validates the document against this closed schema before anything is stored; the document is always PENDING_HUMAN_APPROVAL and cannot carry a review, so an agent cannot create an approved candidate. The persisted revision is re-validated on every read (knowledge_review.validate_candidate)."
+    },
+    {
+      "route": "/api/projects/([0-9a-f]{32})/knowledge-candidates/([A-Za-z0-9_.:-]{1,80})/review",
+      "method": "POST",
+      "kind": "BOUND_SCHEMA",
+      "handler": "KnowledgeReview",
+      "schema": "design-lab/schemas/assurance-knowledge-candidate-v2.schema.json",
+      "version": "design-lab/assurance-knowledge-candidate/v2",
+      "emitter": "src/design_lab/assurance/knowledge_feedback.py:269",
+      "reason": "A decision is applied by approve()/reject(), which require reviewer_kind 'human' with a named reviewer and an RFC3339 timestamp and re-validate the updated document against this schema before it is appended. The facade refuses reviewer_kind other than 'human' with KNOWLEDGE_HUMAN_REVIEW_REQUIRED, so this route cannot fabricate a human gate."
+    },
+    {
+      "route": "/api/projects/([0-9a-f]{32})/knowledge-candidates/([A-Za-z0-9_.:-]{1,80})/revoke",
+      "method": "POST",
+      "kind": "BOUND_SCHEMA",
+      "handler": "KnowledgeReview",
+      "schema": "design-lab/schemas/assurance-knowledge-candidate-revocation-v1.schema.json",
+      "version": "design-lab/assurance-knowledge-candidate-revocation/v1",
+      "emitter": "src/design_lab/assurance/knowledge_feedback.py:414",
+      "reason": "The response is the revocation receipt itself, validated as a closed document with export_blocked const true before it is stored alongside the REVOKED revision in one commit. A receipt is never transferable: apply_revocation binds it to the candidate id and the facade replays an identical revocation rather than rewriting its reason or actor."
     }
   ]
 }

@@ -476,15 +476,21 @@ class GateTeethTests(unittest.TestCase):
         # row together with its dispatch would otherwise leave every relation here consistent.
         # 54 -> 55 on 2026-10-10: GET /api/projects/{id}/native-runtime (DL-UI-U06) added one route
         # row and one dispatch in the same change, so both sides of that relation moved together.
-        self.assertEqual(len(lines), 1 + CONTRACTS + 55,
+        # 55 -> 59 on 2026-10-19 (T16/U09): GET .../knowledge-candidates (read-back envelope),
+        # POST .../knowledge-candidates, POST .../knowledge-candidates/{id}/review and
+        # POST .../knowledge-candidates/{id}/revoke each added a dispatch and a ledger row in
+        # the same change, so the inventory moved by exactly four.
+        self.assertEqual(len(lines), 1 + CONTRACTS + 59,
                          'one verdict line, one note per contract row, one per route row')
         verdict = lines[-1]
         self.assertTrue(verdict.startswith('VERIFY_CONTRACT_BINDINGS=PASS'), verdict)
         # 54 -> 55 on 2026-10-10 with GET /api/projects/{id}/native-runtime (DL-UI-U06): the
         # aggregate's own line is what this compares, so a route added without its row -- or a
         # row without its dispatch -- moves these two numbers apart and stays red.
+        # 55 -> 59 on 2026-10-19 (T16/U09), same change as the inventory above: the four
+        # knowledge routes are dispatched, so their rows are re-checked, not waived.
         for token in (f'schemas={CONTRACTS}', f'binding={BINDING_ROWS}', f'inert={INERT_ROWS}',
-                      'routes=55', 'dispatched=55', f'bound={expected_bound}'):
+                      'routes=59', 'dispatched=59', f'bound={expected_bound}'):
             self.assertIn(token, verdict)
 
     # --- failure modes, each against a mutated copy ------------------------------
