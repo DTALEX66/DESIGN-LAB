@@ -3546,7 +3546,7 @@ function capabilityDetail(c) {
   );
 }
 async function renderCapabilityLibrary(target, opts = {}) {
-  target.replaceChildren(el("p", { class: "view-loading" }, "正在读回能力库…"));
+  target.replaceChildren(el("p", { class: "view-loading" }, "正在读回能力目录…"));
   const data = await apiOrEmpty("/capabilities", OFFLINE.capabilities);
   const rows = data.capabilities;
   const filter = el("input", {
@@ -3554,7 +3554,7 @@ async function renderCapabilityLibrary(target, opts = {}) {
     type: "search",
     id: "capability-filter",
     placeholder: "按 ID / 许可 / 域 / 处置 / 修订状态过滤",
-    "aria-label": "能力库过滤"
+    "aria-label": "能力目录过滤"
   });
   const shown = el("span", { class: "muted", id: "capability-shown" }, "");
   const body = el("tbody", {});
@@ -3846,7 +3846,7 @@ async function renderCapabilityLibrary(target, opts = {}) {
       el(
         "div",
         {},
-        el("h2", {}, "能力库"),
+        el("h2", {}, "能力目录"),
         // The payload carries `unmeasuredMeans` for machines; the reader gets the same
         // rule in the page's own language, with the English state words left untranslated.
         el("p", {}, "只读回仓内已维护的能力记录：来源锁、修订账与模型雷达。空白不等于 0：未经宿主运行与人工验收的项标为 未判定，未取回修订的项标为 NOT_VERIFIED 或 UNRESOLVED；本视图不安装、不取证、不代签许可。")
@@ -3881,7 +3881,7 @@ async function renderCapabilityLibrary(target, opts = {}) {
           class: "table-wrap",
           tabindex: "0",
           role: "region",
-          "aria-label": "能力库表（可横向滚动）"
+          "aria-label": "能力目录表（可横向滚动）"
         },
         el(
           "table",
@@ -6961,7 +6961,7 @@ async function renderRoute(view, target) {
       return;
     // DL-UI-U02 首批页面。能力目录读的是**已有**路由 GET /api/capabilities
     // （renderCapabilityLibrary 早就存在，此前只嵌在仪表盘里没有自己的入口）；它自己
-    // 带标题「能力库」，所以这里不再叠一层 h2——2026-10-09 读渲染图时发现两块标题
+    // 带标题「能力目录」，所以这里不再叠一层 h2——2026-10-09 读渲染图时发现两块标题
     // 叠在一起。界面状态与组件规范是规格面，不发请求，所以也不可能编造记录。
     case "capabilities":
       await renderCapabilityLibrary(target);
@@ -7068,6 +7068,14 @@ function mountAppShell() {
     if (!match && devMode()) return "dashboard";
     return match ? match.view : "workbench";
   };
+  if (typeof document.querySelector === "function") {
+    const skipLink = document.querySelector("a.skip-link");
+    skipLink?.addEventListener("click", (event) => {
+      event.preventDefault();
+      const target = current() === "workbench" ? workspace.hidden ? login : workspace : document.getElementById("content") ?? routeView;
+      target.focus();
+    });
+  }
   let routeGeneration = 0;
   const show = () => {
     const view = current();
@@ -7242,7 +7250,7 @@ function mountB10Shell(routeView, syncLegacyNavCue) {
       "main",
       { class: "main" },
       topbar,
-      el("section", { class: "content", id: "content" }, offlineNotice, routeView)
+      el("section", { class: "content", id: "content", tabindex: "-1" }, offlineNotice, routeView)
     )
   );
   document.body.append(app);

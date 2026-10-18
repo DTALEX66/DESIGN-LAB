@@ -2,11 +2,11 @@
 <html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>DESIGN-LAB · 工作台</title><link rel="stylesheet" href="/workbench/style.css">
 <script type="module" src="/workbench/main.js"></script></head>
-<body><header><div class="mark" aria-hidden="true"></div><div><p class="eyebrow">DESIGN-LAB / LOCAL STUDIO</p><h1>设计工作台</h1></div><span id="connection" class="badge">未连接</span></header>
-<main><a class="skip-link" href="#content">跳到主内容</a><section id="login" class="panel narrow"><p class="eyebrow">SESSION ACCESS</p><h2>连接本机设计服务</h2>
+<body><a class="skip-link" href="#content">跳到主内容</a><header><div class="mark" aria-hidden="true"></div><div><p class="eyebrow">DESIGN-LAB / LOCAL STUDIO</p><h1>设计工作台</h1></div><span id="connection" class="badge">未连接</span></header>
+<main><section id="login" class="panel narrow" tabindex="-1"><p class="eyebrow">SESSION ACCESS</p><h2>连接本机设计服务</h2>
 <p>官方启动入口会自动连接。服务重启后刷新页面即可继续使用。</p>
 <form id="connect-form"><details open><summary>高级连接（兼容外部启动器）</summary><label>临时访问令牌<input id="token" class="input" type="password" autocomplete="off" maxlength="64" spellcheck="false"></label></details><button class="primary-btn">连接本机服务</button></form></section>
-<div id="workspace" hidden><section class="panel toolbar"><div><p class="eyebrow">PROJECT LIBRARY</p><h2>项目与参考</h2></div>
+<div id="workspace" hidden tabindex="-1"><section class="panel toolbar"><div><p class="eyebrow">PROJECT LIBRARY</p><h2>项目与参考</h2></div>
 <label>当前项目<select id="project"><option value="">选择项目</option></select></label><button id="refresh" class="secondary">刷新</button><button id="disconnect" class="secondary">断开</button>
 <form id="create-form"><label>新项目名称<input id="project-name" maxlength="160" required placeholder="例如：秋季品牌视觉"></label><button>新建项目</button></form></section>
 <div class="grid"><section class="panel"><p class="eyebrow">01 / REFERENCE</p><h2>导入真实参考</h2><p>PNG / JPEG，最大 32 MiB。保留原始字节；导入不代表获得素材使用权。</p>

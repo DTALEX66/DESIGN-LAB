@@ -11,9 +11,14 @@ runtime/commercial claims remain bounded by evidence policy.
 from __future__ import annotations
 
 import json
+import sys
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
+
+# Run standalone from any cwd: the ladder is authored in src/, not copied here.
+sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "src"))
+from design_lab.governance.evidence_levels import EVIDENCE_LEVELS  # noqa: E402
 
 ASSISTANCE_DIR = "design-lab"
 MANIFEST_REL = f"{ASSISTANCE_DIR}/config/product-manifest.json"
@@ -23,7 +28,7 @@ CAPABILITY_STATUS_SCHEMA_REL = f"{ASSISTANCE_DIR}/schemas/capability-status.sche
 PROJECT_DEFINITION_REL = "docs/current/PROJECT_DEFINITION.md"
 ARCHITECTURE_REL = "docs/architecture/ARCHITECTURE.md"
 
-EXPECTED_EVIDENCE_LEVELS = ["E0", "E1", "E2", "E3", "E4", "E5"]
+EXPECTED_EVIDENCE_LEVELS = list(EVIDENCE_LEVELS)
 EXPECTED_STATES = ["NOT_RUN", "PASS", "FAIL", "BLOCKED", "UNVERIFIED", "SKIPPED_OPTIONAL"]
 EXPECTED_CAPABILITY_STATES = [
     "missing",

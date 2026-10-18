@@ -53,6 +53,7 @@ import json
 from typing import Mapping
 
 from ..runtime.paths import PROJECT_ROOT
+from ..governance.evidence_levels import EVIDENCE_LEVELS
 from . import AssuranceError, require_digest, require_text
 
 QA_SCHEMA_PATH = PROJECT_ROOT / "design-lab/schemas/assurance-qa-layer.schema.json"
@@ -123,7 +124,6 @@ POLICY_ROWS = (
 )
 
 SEVERITIES = ("BLOCKER", "MAJOR", "MINOR", "INFO")
-EVIDENCE_LEVELS = ("E0", "E1", "E2", "E3", "E4", "E5")
 #: A ``verdict`` on a finding uses the human jury's final vocabulary only. The
 #: non-final ``REVISE`` was dropped by DLDS-F070: a human who wants a revision
 #: rejects with evidence, which keeps exactly one final vocabulary.

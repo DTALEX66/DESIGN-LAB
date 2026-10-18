@@ -2213,7 +2213,7 @@ function valueRow(label: string, value: string, long: boolean, tagClass = 'info'
         el('span', { class: 'tag ' + tagClass }, value));
 }
 
-// 研究洞察 / 能力库 — the capability records the repository already maintains and
+// 研究洞察 / 能力目录 — the capability records the repository already maintains and
 // gates (source lock + vendor revisions + model radar) served as one readback, per the
 // UI plan's single "Research & Capability Library" slot. Read-only by construction: it
 // installs nothing, licenses nothing and qualifies nothing, and an unqualified record
@@ -2277,12 +2277,12 @@ function capabilityDetail(c: CapabilityRecord): HTMLElement {
 
 export async function renderCapabilityLibrary(target: HTMLElement,
                                    opts: { openId?: string | null } = {}): Promise<void> {
-  target.replaceChildren(el('p', { class: 'view-loading' }, '正在读回能力库…'));
+  target.replaceChildren(el('p', { class: 'view-loading' }, '正在读回能力目录…'));
   const data = await apiOrEmpty<CapabilityLibraryResponse>('/capabilities', OFFLINE.capabilities);
   const rows = data.capabilities;
   const filter = el('input', { class: 'input capability-filter', type: 'search', id: 'capability-filter',
     placeholder: '按 ID / 许可 / 域 / 处置 / 修订状态过滤',
-    'aria-label': '能力库过滤' });
+    'aria-label': '能力目录过滤' });
   const shown = el('span', { class: 'muted', id: 'capability-shown' }, '');
   const body = el('tbody', {});
 
@@ -2550,7 +2550,7 @@ export async function renderCapabilityLibrary(target: HTMLElement,
   target.replaceChildren(
     el('div', { class: 'page-head' },
       el('div', {},
-        el('h2', {}, '能力库'),
+        el('h2', {}, '能力目录'),
         // The payload carries `unmeasuredMeans` for machines; the reader gets the same
         // rule in the page's own language, with the English state words left untranslated.
         el('p', {}, '只读回仓内已维护的能力记录：来源锁、修订账与模型雷达。'
@@ -2570,7 +2570,7 @@ export async function renderCapabilityLibrary(target: HTMLElement,
           f.label, f.select))),
       active,
       el('div', { class: 'table-wrap', tabindex: '0', role: 'region',
-        'aria-label': '能力库表（可横向滚动）' },
+        'aria-label': '能力目录表（可横向滚动）' },
         el('table', { class: 'table' },
           el('thead', {}, el('tr', {},
             ...TABLE_COLUMNS.map((h) => el('th', {}, h)))),
@@ -5331,7 +5331,7 @@ export async function renderRoute(view: AppView, target: HTMLElement): Promise<v
       { openId: domainDetailId(window.location.hash) }); return;
     // DL-UI-U02 首批页面。能力目录读的是**已有**路由 GET /api/capabilities
     // （renderCapabilityLibrary 早就存在，此前只嵌在仪表盘里没有自己的入口）；它自己
-    // 带标题「能力库」，所以这里不再叠一层 h2——2026-10-09 读渲染图时发现两块标题
+    // 带标题「能力目录」，所以这里不再叠一层 h2——2026-10-09 读渲染图时发现两块标题
     // 叠在一起。界面状态与组件规范是规格面，不发请求，所以也不可能编造记录。
     case 'capabilities': await renderCapabilityLibrary(target); return;
     // R2 §5: the same catalog, addressed at one record. The list stays rendered so the
@@ -5449,6 +5449,22 @@ export function mountAppShell(): void {
     if (!match && devMode()) return 'dashboard';
     return match ? match.view : 'workbench';
   };
+
+  // WCAG 2.4.1 bypass block. The link is the first child of <body>, so it survives
+  // both shells; whichever shell is visible owns "main content". Its static href
+  // still names the B10 slot, but the native jump cannot be used: on the legacy
+  // view #content sits inside the hidden `.app`, and the `#content` hash is not a
+  // route, so the router would read the jump as "go back to the workbench".
+  if (typeof document.querySelector === 'function') {
+    const skipLink = document.querySelector<HTMLAnchorElement>('a.skip-link');
+    skipLink?.addEventListener('click', (event) => {
+      event.preventDefault();
+      const target = current() === 'workbench'
+        ? (workspace.hidden ? login : workspace)
+        : (document.getElementById('content') ?? routeView);
+      target.focus();
+    });
+  }
 
   let routeGeneration = 0;
 
@@ -5687,7 +5703,7 @@ function mountB10Shell(routeView: HTMLElement, syncLegacyNavCue: () => void): B1
     sidebar,
     el('main', { class: 'main' },
       topbar,
-      el('section', { class: 'content', id: 'content' }, offlineNotice, routeView)));
+      el('section', { class: 'content', id: 'content', tabindex: '-1' }, offlineNotice, routeView)));
   document.body.append(app);
 
   // The sidebar nav is `overflow:auto`, and the 19 destinations in ROUTE_VIEWS need far more

@@ -204,6 +204,80 @@ const assertLive = async (page, width, route) => {
   return true;
 };
 
+// WCAG 2.4.1 bypass block. The link used to live inside legacy <main> and point at
+// #content inside the hidden B10 `.app`: on the legacy view it jumped into a hidden
+// subtree and rewrote the hash to a non-route, and on every routed view the link was
+// hidden together with its parent. Focus it (the :focus rule makes it visible),
+// activate it with Enter, and require the ONE visible content region with an
+// unchanged route.
+const skipLinkLands = async (page, width, route) => {
+  const label = route || '(workbench)';
+  const before = await page.evaluate(() => {
+    const link = document.querySelector('a.skip-link');
+    if (!link) return null;
+    link.focus();
+    const r = link.getBoundingClientRect();
+    const style = getComputedStyle(link);
+    const hidden = (node) => {
+      for (let n = node; n; n = n.parentElement) if (n.hidden) return n.id || n.tagName;
+      return null;
+    };
+    return {
+      hash: window.location.hash,
+      focused: document.activeElement === link,
+      hiddenAncestor: hidden(link),
+      onscreen: r.width > 0 && r.height > 0 && r.x >= 0 && r.y >= 0
+        && r.right <= innerWidth && r.bottom <= innerHeight,
+      display: style.display,
+      visibility: style.visibility,
+    };
+  });
+  if (!before) {
+    add('skip-link', `${width} ${label} has no a.skip-link`);
+    return;
+  }
+  if (!before.focused) add('skip-link', `${width} ${label} skip link cannot take focus`);
+  if (before.hiddenAncestor) {
+    add('skip-link', `${width} ${label} skip link is inside hidden ${before.hiddenAncestor}`);
+  }
+  if (before.display === 'none' || before.visibility === 'hidden' || !before.onscreen) {
+    add('skip-link', `${width} ${label} focused skip link is not on screen`
+      + ` (${before.display}/${before.visibility})`);
+  }
+  await page.keyboard.press('Enter');
+  const after = await page.evaluate(() => {
+    const active = document.activeElement;
+    const hidden = (node) => {
+      for (let n = node; n; n = n.parentElement) if (n.hidden) return n.id || n.tagName;
+      return null;
+    };
+    const r = active ? active.getBoundingClientRect() : null;
+    return {
+      hash: window.location.hash,
+      id: active ? active.id : '',
+      tag: active ? active.tagName : '',
+      hiddenAncestor: active ? hidden(active) : null,
+      size: r ? { w: r.width, h: r.height } : null,
+    };
+  });
+  const expected = route === '' ? 'workspace' : 'content';
+  if (after.hash !== before.hash) {
+    add('skip-link', `${width} ${label} activating the skip link changed the route`
+      + ` ${before.hash || '(empty)'} -> ${after.hash}`);
+  }
+  if (after.id !== expected) {
+    add('skip-link', `${width} ${label} skip link landed on`
+      + ` ${after.tag || 'nothing'}${after.id ? '#' + after.id : ''}, expected #${expected}`);
+  }
+  if (after.hiddenAncestor) {
+    add('skip-link', `${width} ${label} skip target #${after.id || '?'}`
+      + ` is inside hidden ${after.hiddenAncestor}`);
+  }
+  if (!after.size || after.size.w <= 0 || after.size.h <= 0) {
+    add('skip-link', `${width} ${label} skip target #${after.id || '?'} has no box`);
+  }
+};
+
 const connect = async (width) => {
   const ctx = await b.newContext({ viewport: { width, height: HEIGHT[width] ?? 900 } });
   const page = await ctx.newPage();
@@ -212,6 +286,18 @@ const connect = async (width) => {
     if (m.type() === 'error') add('console-error', `${width} ${m.text().slice(0, 120)}`);
   });
   await page.goto(serviceUrl + '/workbench', { waitUntil: 'load' });
+  // WCAG 2.4.1 also requires the bypass link to be the FIRST Tab stop. This is a
+  // fresh document, so the sequential focus starting point is the top of the page.
+  await page.keyboard.press('Tab');
+  const firstStop = await page.evaluate(() => {
+    const el = document.activeElement;
+    return { tag: el ? el.tagName : '', cls: el ? String(el.className || '') : '',
+             id: el ? el.id : '' };
+  });
+  if (firstStop.tag !== 'A' || !firstStop.cls.split(/\s+/).includes('skip-link')) {
+    add('skip-link', `${width} first Tab stop is ${firstStop.tag || 'nothing'}`
+      + `${firstStop.id ? '#' + firstStop.id : ''} (${firstStop.cls}) instead of the skip link`);
+  }
   await page.locator('#token').fill(token);
   await page.locator('#connect-form button').first().click();
   await page.locator('#workspace').waitFor({ state: 'visible', timeout: 20000 });
@@ -241,6 +327,7 @@ for (const width of widths) {
   for (const route of ROUTES) {
     await navigate(page, route);
     if (!(await assertLive(page, width, route))) continue;
+    await skipLinkLands(page, width, route);
     const probe = await page.evaluate(PROBE);
     metrics.push({ width, route: route || '(workbench)', ...probe });
     for (const item of probe.contrast) {
@@ -400,10 +487,15 @@ for (const [w, h, label] of [[1280, 500, 'short'], [380, 844, 'narrow']]) {
     if (!nav) return { present: false };
     const items = [...nav.querySelectorAll('button')];
     const last = items[items.length - 1];
+    const navClient = nav.getBoundingClientRect();
     const reach = (el) => {
       const r = el.getBoundingClientRect();
       const cx = r.x + r.width / 2, cy = r.y + r.height / 2;
       if (cy < 0 || cy > innerHeight || cx < 0 || cx > innerWidth) return 'offscreen';
+      // Below/above the scroll box is CLIPPED, not covered: scrolling reveals it, and the
+      // two failures need different verdicts. `covered` means an element at a point the
+      // scroller is already showing is hit by something else, which scrolling never fixes.
+      if (cy < navClient.top || cy > navClient.bottom) return 'clipped';
       const top = document.elementFromPoint(cx, cy);
       return top && (top === el || el.contains(top) || top.contains(el)) ? 'hit' : 'covered';
     };
@@ -415,6 +507,8 @@ for (const [w, h, label] of [[1280, 500, 'short'], [380, 844, 'narrow']]) {
       cueContent: after.content, cuePosition: after.position,
       lastLabel: (last.textContent || '').trim(), lastReach: reach(last),
       unreachable: items.filter((i) => reach(i) !== 'hit').length,
+      unreachableDetail: items.filter((i) => reach(i) !== 'hit')
+        .map((i) => `${(i.textContent || '').trim()}:${reach(i)}`),
       toggle: (() => {
         const t = document.getElementById('navToggle');
         return t ? { shown: t.offsetParent !== null, expanded: t.getAttribute('aria-expanded') } : null;
@@ -431,7 +525,7 @@ for (const [w, h, label] of [[1280, 500, 'short'], [380, 844, 'narrow']]) {
       if (before.cueContent === 'none' || before.cuePosition !== 'sticky') {
         add('nav-overflow', `short: cue claims ${before.cue} but paints content=${before.cueContent} at ${before.cuePosition}`);
       }
-      if (before.lastReach !== 'offscreen' && before.lastReach !== 'covered') {
+      if (before.lastReach !== 'offscreen' && before.lastReach !== 'clipped') {
         add('nav-overflow', `short: last item "${before.lastLabel}" reported ${before.lastReach} while overflowing`);
       }
       await page.evaluate(() => {
@@ -463,8 +557,31 @@ for (const [w, h, label] of [[1280, 500, 'short'], [380, 844, 'narrow']]) {
       const open = await page.evaluate(NAV_STATE);
       notes['nav-narrow-open'] = open;
       if (open.toggle.expanded !== 'true') add('nav-drawer', 'narrow: opening left aria-expanded false');
-      if (open.unreachable) {
-        add('nav-drawer', `narrow: ${open.unreachable} of ${open.items} destinations still unreachable with the drawer open`);
+      // Eighteen destinations cannot all fit a phone-height drawer: measured at 380x844 the
+      // nav is a 535px-tall scroll box. The invariant is the one the short-window branch
+      // already proves -- the cue is on while there is more below, the box actually scrolls,
+      // and the last destination is reachable once it has. An item that is COVERED near the
+      // top is still a failure: scrolling never frees it.
+      const covered = open.unreachableDetail.filter((entry) => entry.endsWith(':covered'));
+      if (covered.length) {
+        add('nav-drawer', `narrow: ${covered.length} destinations covered with the drawer open: `
+          + covered.slice(0, 4).join(' | '));
+      }
+      if (open.room > 1) {
+        if (!open.cue) add('nav-drawer', `narrow: ${open.room}px of drawer nav hidden with no cue`);
+        await page.evaluate(() => {
+          const nav = document.querySelector('.sidebar .nav');
+          nav.scrollTop = nav.scrollHeight;
+        });
+        await page.waitForTimeout(350);
+        const scrolled = await page.evaluate(NAV_STATE);
+        notes['nav-narrow-scrolled'] = scrolled;
+        if (scrolled.lastReach !== 'hit') {
+          add('nav-drawer', `narrow: after scrolling to the bottom "${scrolled.lastLabel}" is ${scrolled.lastReach}`);
+        }
+        if (scrolled.cue) add('nav-drawer', 'narrow: the cue stays on once nothing is left below');
+      } else if (open.unreachable) {
+        add('nav-drawer', `narrow: ${open.unreachable} of ${open.items} destinations unreachable although the drawer nav does not overflow`);
       }
       await page.keyboard.press('Escape');
       await page.waitForTimeout(350);

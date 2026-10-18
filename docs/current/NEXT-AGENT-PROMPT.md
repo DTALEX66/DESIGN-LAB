@@ -122,6 +122,29 @@ python scripts/verify_top_level_authority.py                 # 10 项，含 5 �
    它是**明文冻结的契约参考件**（"must not gain new consumers"），正确处置是"保持冻结 + 加勿引用头注消歧"。
    注意本文件 §3.4 早就写了这件事，没先读才重复踩。
 
+### 3.7 2026-10-18 接续轮：审计 P1 三项 + EVIDENCE_LEVELS 已落地（本地实测，CI 待读）
+
+- **P1-3 路由表**：`http_service.py` 的 53 条路由已抽成模块级 `ROUTES`（`/api/projects` 拆 GET+POST），
+  dispatch 按表过滤。新闸 `design-lab/scripts/verify_workbench_route_calls.py` 双向核对：
+  `calls=92 routes=53 matched=43 backend_only=10 dynamic=3 special=1`；10 条豁免逐条带实测理由，
+  新增/消失/被调用都会红。随附 23 个单测，已进 `verify_design_lab.py` 聚合。提交 `72102fea`。
+- **P1-1 UI 审计接线**：`test_workbench_ui_audit_gate` 已进 `verify_browser_e2e_ran.py` 的
+  `TEST_MODULES`；实测 26 个 scope（1280/1920）`violations=[] ok=True`。
+- **P1-2 skip-link**：链接移到 `<body>` 首子节点；`mountAppShell` 的点击处理器按当前壳选择
+  `#content`（路由视图）/`#workspace`（已连接旧视图）/`#login`，`preventDefault` 后 `focus()`，
+  不再把 hash 写成非路由 `#content`。`#content`/`#workspace`/`#login` 加 `tabindex="-1"`。
+  审计新增两条断言：首 Tab 必须落在链接上；每个 route 上 Enter 必须落到唯一可见内容区且 hash 不变。
+  **反例已跑**：把链接放回旧 `<main>`，审计立刻报 `skip link cannot take focus` /
+  `inside hidden MAIN` / `landed on DIV#route-view`。
+- **P2 EVIDENCE_LEVELS**：唯一真源 `src/design_lab/governance/evidence_levels.py`（`EVIDENCE_LEVELS`
+  元组），`qa_plane.py`、`creative/media/__init__.py`、`verify_product_manifest_v3.py`、
+  `verify_runtime_contracts_v3.py`、`scripts/verify_evidence_levels.py` 全部改为导入/派生。
+  实测：`EVIDENCE_LEVELS=PASS`、product manifest `total=493 failed=0`、runtime contracts `total=239 failed=0`、
+  `test_verifier_internals.AggregateChainTests.test_aggregate_verify_runs` OK。
+  新增 runtime 文件使 inert survey 的 `productFiles` 211→212，已按脚本规定重生成投影。
+
+本机没有跑全量套件；以上每条都是定向闸的实测输出。下一轮先自读 HEAD 与 CI 作业，不要把这节当 CI 结论。
+
 ## 4. 四条硬规则（违反会被闸拦，或会被 CI 打回来）
 
 1. **不要铸日期副本。** 入口就地改。
@@ -154,24 +177,13 @@ python scripts/verify_top_level_authority.py                 # 10 项，含 5 �
 
 ## 6. 下一刀：四个候选（按价值，不按顺序）
 
-### 0. 后端路由注册表 + 前后端双向闸（2026-10-18 审计**新发现**，建议优先）
+### 0. 后端路由注册表 + 前后端双向闸 —— **已完成（2026-10-18 接续轮，见 §3.7）**
 
-审计 P1-3。`http_service.py` 的 30+ 条 API 路由全部硬编码在 `make_server()` 闭包 `dispatch` 的
-`if self.path == ...` / `re.fullmatch(...)` 链条里（**单方法约 478 行**），`workbench.ROUTES` 只有 3 条静态资源。
+剩余约束：新增路由必须同时补合同行（`test_new_route_without_a_row_is_red`）与本闸的前端调用；
+`guard()` 仍在 `body()` 之前，写路由必须先过 `hmac.compare_digest` 再读 body；`/api/local-session`
+仍是唯一免鉴权路由（特殊分支，不在 `ROUTES`）。`#/api/projects/<32hex>/...` 的正则形态就是合同。
 
-**为什么它优先**：它是另外两条 P1 的**根因共因**——`audit_workbench_ui.mjs` 接不进 CI（P1-1）、
-前后端路由只能人工 grep（P1-3），本质都是"**没有一份可枚举的清单**"。清单一旦存在，
-"有没有接线""对不对得上"就从人工判断变成机械可证伪。
-
-做法：把路由抽成模块级 `ROUTES`（或 `(method, regex, handler)` 表），加一道闸断言
-"前端 `apps/workbench/*.ts` 里出现的 `/api/...` 字面量集合 == 后端注册表集合"（双向，
-缺一边就红，参照 `test_gate_reachability` 的双向豁免写法）。
-
-**坑**：抽表时不要把 `dispatch` 里的鉴权顺序改掉——`guard()` 在 `body()` 之前，写路由必须先过
-`hmac.compare_digest` 再读 body；`/api/local-session` 是唯一**免鉴权**路由（:169，自己读源码确认）。
-另外 `#/api/projects/<32hex>/...` 这类正则里的 id 形态就是合同，改宽改严都会动到 `verify_route_payload_contracts.py`。
-
-### A. D07 `shell.ts` 拆分（第一批已交付，共 7531 行）——第二批切 "状态组件" 与 "纯数据编排"
+### A. D07 `shell.ts` 拆分（第一批已交付；接续轮后 7547 行）——第二批切 "状态组件" 与 "纯数据编排"
 第一批只搬了两块**没人按文本读**的东西（`ui-primitives.ts` / `route-address.ts`，见 §3.5/§5）。
 第二批的候选，按"搬走不会碰任何清单"排序：
 
@@ -239,17 +251,10 @@ python scripts/verify_top_level_authority.py                 # 10 项，含 5 �
 - **新增/删除 `apps/workbench/` 下文件会让 `verify_inert_contract_survey` 红**（`productFiles` 计数，
   D07 第一批 209→211 就是这么红的）。修法在该脚本自己的文档里：先不带 `--check` 重跑刷新投影，
   再 `--check`；只改 `docs/audits/INERT-CONTRACT-SURVEY-2026-10-08.md` 里那一行，不要手改 JSON。
-- **UI 量化门禁"跑得到但不生效"**（2026-10-18 实测，机制与"孤立闸"不同，别混为一谈）：
-  `design-lab/tests/test_workbench_ui_audit_gate.py` **确实接线了**，它 shell 出去跑
-  `scripts/audit_workbench_ui.py`（后者再包 `design-lab/tests/e2e/audit_workbench_ui.mjs`，见其 :28），
-  所以 `test_gate_reachability` 判它可达是**对的**（经 `test_workbench_ui_audit_gate.py:34` 命名）。
-  问题在另外两处：①它依赖 node + `playwright` + Chromium，缺失时 `skipTest`；
-  而 CI 里 Chromium **只在 `workbench-browser-e2e` 作业安装**（yml 260–287），跑全量套件的
-  `python-gate` 没有 → 在那里它必然 skip。②防跳过的 `verify_browser_e2e_ran.py` 用**显式元组**
-  `TEST_MODULES`（不是 glob）只盯 5 个模块，**不含**这一个；该文件自己的 docstring 就写着
-  "an unlisted browser suite would skip forever without a finding"。
-  **净效果**：它 2026-10-07 报的 `violations=12`（`button#navToggle` 62x23）不会让任何提交变红。
-  修法二选一：把它加进 `TEST_MODULES`，或让它不依赖浏览器。
+- **UI 量化门禁已接线（2026-10-18 接续轮）**：`test_workbench_ui_audit_gate` 已在
+  `verify_browser_e2e_ran.py` 的 `TEST_MODULES` 里。Chromium 仍只在 `workbench-browser-e2e`
+  作业安装，所以 `python-gate` 里它照旧 `skipTest`——这是作业分工，不是静默跳过；带浏览器的作业
+  由不防跳过闸按模块点名，缺跑即红。改这条链时别再把它移出 `TEST_MODULES`。
 - 改工作流先用 `actionlint` 校验（`gh release download` 取单文件即可），
   **PyYAML 通过不代表 GitHub 会接受**：重复映射键 PyYAML 静默取最后一个。
 - `run_python_tests.py` 的沙箱里 `class`/`const`/`let` 是词法绑定，**不是** vm context 属性；

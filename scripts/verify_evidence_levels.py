@@ -25,10 +25,15 @@ import argparse
 import json
 import re
 import subprocess
+import sys
 from datetime import datetime, timezone
 from pathlib import Path
 
 REPO = Path(__file__).resolve().parents[1]
+# Run standalone from any cwd: the ladder is authored in src/, not copied here.
+sys.path.insert(0, str(REPO / "src"))
+from design_lab.governance.evidence_levels import EVIDENCE_LEVELS as LADDER  # noqa: E402
+
 OUT = REPO / "reports/current/EVIDENCE-LEVEL-AUDIT.json"
 TASK_KEY = "DL-TP-20260914-DEEPSEEK-AUTHORITY-R1::DLDS-H040"
 # Hosts whose E3 may only ever be claimed by Codex, with a real run.
@@ -37,7 +42,7 @@ CODEX_ONLY = ("photoshop", "illustrator", "premiere", "after effects", "media en
 FORBIDDEN_BY_DEEPSEEK = ("E3", "E4", "E5")
 HISTORICAL_MARKERS = ("historical", "superseded", "pre-convergence", "no current-tree requalification",
                       "not a current capability")
-LEVEL_PATTERN = re.compile(r'"level"\s*:\s*"(E[0-5])"')
+LEVEL_PATTERN = re.compile(r'"level"\s*:\s*"(' + '|'.join(LADDER) + r')"')
 # A section that exists to forbid a claim is not making one. The taskpack itself has
 # such a section ("what DeepSeek may never claim"), and the evidence packet repeats it,
 # so a denial list read as a claim is a false positive that would fail the gate on the
@@ -136,7 +141,8 @@ def scan_markdown_claims(rel: str, text: str, declared_non_claims: list | None =
     in_fence = False
     heading = ""
     lines = text.splitlines()
-    range_pattern = re.compile(r"E[0-5]\s*[-–—]\s*E[0-5]")
+    low, high = LADDER[0][1:], LADDER[-1][1:]
+    range_pattern = re.compile(rf"E[{low}-{high}]\s*[-–—]\s*E[{low}-{high}]")
     for number, line in enumerate(lines, 1):
         if line.lstrip().startswith("#"):
             heading = line.strip()

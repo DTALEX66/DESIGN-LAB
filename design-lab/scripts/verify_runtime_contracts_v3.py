@@ -13,12 +13,19 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import sys
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
+# Run standalone from any cwd: the ladder is authored in src/, not copied here.
+sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "src"))
+from design_lab.governance.evidence_levels import (  # noqa: E402
+    EVIDENCE_LEVELS as EVIDENCE_LEVEL_LADDER,
+)
+
 ASSISTANCE_DIR = "design-lab"
-EVIDENCE_LEVELS = {"E0", "E1", "E2", "E3", "E4", "E5"}
+EVIDENCE_LEVELS = set(EVIDENCE_LEVEL_LADDER)
 EVIDENCE_STATES = {"NOT_RUN", "PASS", "FAIL", "BLOCKED", "UNVERIFIED", "SKIPPED_OPTIONAL"}
 FIRST_PARTY_ATOMS = {
     # V42-0303 (live Open Design daemon discovery): the daemon's built-in

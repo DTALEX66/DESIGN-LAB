@@ -41,6 +41,12 @@ TEST_MODULES = (
     # only a gate that clicks can. An unlisted browser suite skips forever without a finding,
     # which is exactly how this defect stayed out of every green rollup.
     "test_workbench_theme_affordance_gate",
+    # The quantitative audit (26 scopes at the two CI widths, measuring overflow, contrast,
+    # keyboard reachability, targets, names, degraded wording and console noise) was a
+    # manual command until 2026-10-08. On 2026-10-18 it reported three live violations the
+    # entire required context was green over, including a palette row landing on a page
+    # whose title named something else.
+    "test_workbench_ui_audit_gate",
 )
 
 

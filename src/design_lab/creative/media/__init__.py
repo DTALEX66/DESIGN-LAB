@@ -26,6 +26,7 @@ from typing import Any, Mapping
 
 from ...runtime.attempt_contract import canonical_hash, request_hash
 from ...runtime.paths import PROJECT_ROOT
+from ...governance.evidence_levels import EVIDENCE_LEVELS
 
 __all__ = [
     "EVIDENCE_LEVELS",
@@ -50,7 +51,6 @@ __all__ = [
 
 SCHEMA_DIR = PROJECT_ROOT / "design-lab" / "schemas"
 
-EVIDENCE_LEVELS = ("E0", "E1", "E2", "E3", "E4", "E5")
 #: Levels that require a measured execution on a real host.
 MEASURED_EVIDENCE_LEVELS = ("E2", "E3", "E4", "E5")
 STRUCTURAL_EVIDENCE = "E1"
