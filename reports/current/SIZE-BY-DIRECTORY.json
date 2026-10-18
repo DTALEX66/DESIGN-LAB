@@ -1,7 +1,7 @@
 {
   "schemaVersion": "design-lab/size-by-directory/v1",
   "task_key": "DL-TP-20260914-DEEPSEEK-AUTHORITY-R1::DLDS-D000",
-  "measured_at": "2026-10-18T09:52:03+00:00",
+  "measured_at": "2026-10-18T09:53:03+00:00",
   "tracked_by_area": {
     "docs": {
       "files": 1622,
@@ -9,9 +9,9 @@
       "mib": 39.63
     },
     "design-lab": {
-      "files": 1148,
-      "bytes": 9736863,
-      "mib": 9.29
+      "files": 1147,
+      "bytes": 9291873,
+      "mib": 8.86
     },
     "fixtures": {
       "files": 226,
@@ -25,8 +25,8 @@
     },
     "reports": {
       "files": 169,
-      "bytes": 3069989,
-      "mib": 2.93
+      "bytes": 3087782,
+      "mib": 2.94
     },
     "src": {
       "files": 102,
@@ -50,7 +50,7 @@
     },
     "scripts": {
       "files": 69,
-      "bytes": 838030,
+      "bytes": 838160,
       "mib": 0.8
     },
     "\"docs": {

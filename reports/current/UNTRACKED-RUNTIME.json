@@ -1,7 +1,7 @@
 {
   "schemaVersion": "design-lab/untracked-runtime-census/v1",
   "task_key": "DL-TP-20260914-DEEPSEEK-AUTHORITY-R1::DLDS-D000",
-  "measured_at": "2026-10-18T09:52:03+00:00",
+  "measured_at": "2026-10-18T09:53:03+00:00",
   "roots": {
     ".project-local": {
       "files": 97818,

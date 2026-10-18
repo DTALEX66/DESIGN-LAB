@@ -1,8 +1,8 @@
 {
   "schemaVersion": "design-lab/repository-size-report/v1",
-  "subjectSha": "15b3b6838af52cf7376b2d78fa5dc4389c709d8a",
-  "generatedAt": "2026-10-18T09:51:51Z",
-  "measuredAt": "2026-10-18T09:51:51Z",
+  "subjectSha": "11a1839d20c6ef3306ff5ba562a340c870a16d73",
+  "generatedAt": "2026-10-18T09:53:19Z",
+  "measuredAt": "2026-10-18T09:53:19Z",
   "measuredPackMiB": 241.2,
   "packMiB": 241.2,
   "warningMiB": 224.0,
