@@ -332,8 +332,12 @@ class ReportSubjectBindingTests(unittest.TestCase):
                           "reports/current/POST-CLEANUP-AUDIT.json",
                           # REPOSITORY-SIZE.json left this set on 2026-10-18: its row required
                           # "re-running the generator rewrites the whole record", and the 2026-10-18
-                          # repo cleanup re-ran scripts/deepseek_size_audit.py, which now writes a
-                          # real subject_sha. The row was removed from records[] in the same commit
+                          # repo cleanup re-ran the size-audit generator (deliberately not named with
+                          # its filename here: test_gate_reachability treats a script named inside a
+                          # test module as *invoked* by it, so writing the filename would flip that
+                          # script from "exempt manual gate" to "reachable" and fail the stale-exemption
+                          # check -- a comment must not be able to claim a call site), which now writes
+                          # a real subject_sha. The row was removed from records[] in the same commit
                           # and kept under resolved_2026_10_18; verify_report_subject_binding is what
                           # refused to let it leave silently (REPORT-DEBT-CLOSED-NOT-REMOVED).
                           # This pin is exact on purpose: it catches a silent removal, not a recorded one.
