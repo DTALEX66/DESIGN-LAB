@@ -477,6 +477,14 @@
       "frozen": false,
       "basis": "曾是接续入口的按日期副本，现已不是入口；保留用于 lineage（当时为什么那样安排）。",
       "supersededBy": "docs/current/NEXT-AGENT-PROMPT.md"
+    },
+    {
+      "path": "docs/history/next-agent-prompts/NEXT-AGENT-PROMPT-2026-10-13.md",
+      "state": "HISTORICAL",
+      "role": "RECORD",
+      "frozen": false,
+      "basis": "2026-10-13 的接续提示词：原本是入口，2026-10-18 入口收敛为就地更新的单一文件后移入历史。保留它是因为它记录了 #13 / owner 项 F 的根因与当时的下一步；照它接续会读到已过期的状态。",
+      "supersededBy": "docs/current/NEXT-AGENT-PROMPT.md"
     }
   ],
   "promptEntryRule": {
