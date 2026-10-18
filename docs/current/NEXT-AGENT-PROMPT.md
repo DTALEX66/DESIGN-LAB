@@ -88,7 +88,41 @@ python scripts/verify_top_level_authority.py                 # 10 项，含 5 �
 含 px/色值或 `ul.list` 的组件，都得同时改闸的清单与 `DESIGN.md` 的数字——那是**改合同**，
 不是拆分。不要用一个批次的借口顺手改合同。
 
-## 4. 三条硬规则（违反会被闸拦，或会被 CI 打回来）
+### 3.6 2026-10-18 全量审计（前端 + 后端 + 治理）：**判定未漂移，P0=0 / P1=3 / P2=13**
+
+完整报告：`docs/audits/DESIGN-LAB-FULL-DRIFT-AUDIT-2026-10-18.md`（审计基线 SHA `0d9041a3`，
+该 SHA 的 CI run `39128580612` 12 作业全 success）。规模：已提交 666 py（运行时 `src/design_lab` 102 ·
+`design-lab/scripts` 116 · `design-lab/tests` 258 · `scripts` 68），`verify_*.py` 共 103 个。
+
+**后端八项实测**（都有可复算命令，别抄这段当事实，重跑一遍）：
+
+| 检查 | 结论 |
+|---|---|
+| 第二 runtime | **无**。运行时只有 `src/design_lab` 102 文件；`design-lab/` 的 382 py = scripts 116 + tests 258 + core 7 + production 1 |
+| fail-closed | **健康**。`except` 565 行但 `except Exception: pass` 仅 1 处；`domain_packs.py:186`「a checker crash is a finding, not a verdict」、`native_tasks.py` 转 `NativeTaskError` 抛出 |
+| 合同真值 | **P2**：`EVIDENCE_LEVELS`（E0–E5）在 `qa_plane.py:126`、`creative/media/__init__.py:53`、`verify_product_manifest_v3.py:26`、`verify_runtime_contracts_v3.py:21`、`verify_evidence_levels.py` **5 处各写一份**，当前值一致但**无交叉一致性闸** |
+| 证据等级 | **通过**：`test_claim_honesty_gates` 6/6 OK |
+| 安全 | **健康**：仅 `127.0.0.1`；`hmac.compare_digest` + Bearer + token 强制 `[0-9a-f]{64}`；生产代码 `shell=True`/`eval`/`exec` **0 处**；318 处 `execute(` 全参数化；`__pycache__` 提交数 0 |
+| 依赖 | 仅标准库 + `jsonschema` + `sqlite3` |
+| 死路由 | **P1-3**：后端 30+ 路由硬编码在 `http_service.py` 内 `make_server()` 的闭包 `dispatch`（167 行→末尾，**单方法约 478 行**），无集中注册表 → 前后端只能人工 grep 核对。人工核对结果**没有静默死路由**（缺口被前端主动标注「缺」） |
+| 闸看守 | **通过**：`test_gate_reachability` 9/9 OK |
+
+**前端**：P1=2 —— ①UI 量化门禁**跑得到但不生效**：`test_workbench_ui_audit_gate.py` 确实接线并 shell 出去跑
+`scripts/audit_workbench_ui.py`（再包 `design-lab/tests/e2e/audit_workbench_ui.mjs`），**不是**孤立闸；
+但它缺浏览器就 `skipTest`，而 CI 的 Chromium 只在 `workbench-browser-e2e` 作业装、跑全量套件的
+`python-gate` 没有，且防跳过的 `verify_browser_e2e_ran.py` 的 `TEST_MODULES` **显式元组不含它**
+（该文件 docstring 自己承认"未列出的浏览器套件会永远跳过且无人发现"）。净效果：它报的
+`violations=12`（`button#navToggle` 62x23）不会让任何提交变红。详见 §9。
+②skip-link `href="#content"` 两种状态下都到不了可见内容。P2=12。
+
+**本轮审计自己犯的两次误判**（已写进报告诚实性声明，别重犯）：
+1. 用"workflow + 4 个聚合器"文本包含扫描推出 **8 个"孤立闸"** → 被 `test_gate_reachability` 9/9 证伪
+   （漏了 `verify_projection_freshness.py` 等中间聚合器）。**先跑闸，别先猜。**
+2. 按 import 关系把 `design-lab/core/` 判为死代码并建议删除 → 被 `DIRECTORY-AUTHORITY.md:65` 证伪：
+   它是**明文冻结的契约参考件**（"must not gain new consumers"），正确处置是"保持冻结 + 加勿引用头注消歧"。
+   注意本文件 §3.4 早就写了这件事，没先读才重复踩。
+
+## 4. 四条硬规则（违反会被闸拦，或会被 CI 打回来）
 
 1. **不要铸日期副本。** 入口就地改。
 2. **不要在测试文件的注释里写脚本文件名。** `test_gate_reachability` 把"测试模块里出现的脚本名"
@@ -96,6 +130,11 @@ python scripts/verify_top_level_authority.py                 # 10 项，含 5 �
    要提就用角色称呼（"体积审计生成器"），并写清为什么不写文件名。
 3. **删掉登记行时，钉住它的 pin 要在同一提交里跟着走**，并内联写明理由。否则 CI 会用
    `REPORT-DEBT-CLOSED-NOT-REMOVED` 或精确集合断言回你——这两种红灯都是对的。
+4. **先读权威口径，再取证；不要用"有没有人引用/有没有出现在文本里"代替"权威文档怎么规定"。**
+   2026-10-18 审计里这条连犯两次（8 个"孤立闸"、`design-lab/core/` 判死代码），两次都被权威源证伪。
+   正确顺序：`AUTHORITY.md` → `authority-index.json` → `AGENTS.md` → 任务包 → `currentExecution` → 本文件，
+   **然后**才是 grep/grep -c。反例：判断一个模块该不该删，先查 `DIRECTORY-AUTHORITY.md` / closeout / ADR，
+   不要只看 import 计数。
 
 ## 5. 已经做完的（D01–D06 全在 `main` 上、CI 逐作业读过；D07 只做了第一批）
 
@@ -108,11 +147,29 @@ python scripts/verify_top_level_authority.py                 # 10 项，含 5 �
 | D05 重复调用 | 11 个重复步骤里删 7 个（9 次调用），保留跨作业/条件/轻闸那 4 个；阻断已用注入失败证明 |
 | D06 请求截止 | 读 15s / 写 45s；写超时报"结果待核对，不是失败"并禁止盲目重发；切页只取消读 |
 | D07 拆分（第一批） | `shell.ts` 7756 → 7531 行：`ui-primitives.ts`（`el`/`en` + 形状/未连接/空集措辞）与 `route-address.ts`（纯地址与哈希映射）独立成模块，`shell.ts` 原样再导出，导出面零变化；`build/main.js` 字节数不变（369.51 kB），差异只有模块体顺序 |
+| 全量漂移审计 | 2026-10-18 对前端 + 后端 + 治理层做全量审计：**判定未漂移**，P0=0 / P1=3 / P2=13。报告 `docs/audits/DESIGN-LAB-FULL-DRIFT-AUDIT-2026-10-18.md`（基线 `0d9041a3`，CI run `39128580612` 12 作业全 success） |
 
 顺带修掉的真问题：套件曾把 **20 个测试登记两遍**（`from ... import Class` 让 P0 用例二次进册，
 3011→2991）；工作流曾因**重复映射键**被 GitHub 整份拒收（零作业 + failure，看着像基础设施抖动）。
 
-## 6. 下一刀：三个候选（按价值，不按顺序）
+## 6. 下一刀：四个候选（按价值，不按顺序）
+
+### 0. 后端路由注册表 + 前后端双向闸（2026-10-18 审计**新发现**，建议优先）
+
+审计 P1-3。`http_service.py` 的 30+ 条 API 路由全部硬编码在 `make_server()` 闭包 `dispatch` 的
+`if self.path == ...` / `re.fullmatch(...)` 链条里（**单方法约 478 行**），`workbench.ROUTES` 只有 3 条静态资源。
+
+**为什么它优先**：它是另外两条 P1 的**根因共因**——`audit_workbench_ui.mjs` 接不进 CI（P1-1）、
+前后端路由只能人工 grep（P1-3），本质都是"**没有一份可枚举的清单**"。清单一旦存在，
+"有没有接线""对不对得上"就从人工判断变成机械可证伪。
+
+做法：把路由抽成模块级 `ROUTES`（或 `(method, regex, handler)` 表），加一道闸断言
+"前端 `apps/workbench/*.ts` 里出现的 `/api/...` 字面量集合 == 后端注册表集合"（双向，
+缺一边就红，参照 `test_gate_reachability` 的双向豁免写法）。
+
+**坑**：抽表时不要把 `dispatch` 里的鉴权顺序改掉——`guard()` 在 `body()` 之前，写路由必须先过
+`hmac.compare_digest` 再读 body；`/api/local-session` 是唯一**免鉴权**路由（:169，自己读源码确认）。
+另外 `#/api/projects/<32hex>/...` 这类正则里的 id 形态就是合同，改宽改严都会动到 `verify_route_payload_contracts.py`。
 
 ### A. D07 `shell.ts` 拆分（第一批已交付，共 7531 行）——第二批切 "状态组件" 与 "纯数据编排"
 第一批只搬了两块**没人按文本读**的东西（`ui-primitives.ts` / `route-address.ts`，见 §3.5/§5）。
@@ -175,6 +232,24 @@ python scripts/verify_top_level_authority.py                 # 10 项，含 5 �
   干净、`git hash-object` 等于 HEAD blob 就说明是检出形态，不是内容——不要去"修"它。
 - 分片并集是 `PYTHON_TESTS_UNION=OK expected=… distinct=… ran=… duplicates=0 missing=0`；
   它抓过真 bug，改动测试装载方式后务必看这一行。
+- **两道"诚实性"闸可以单跑，很快**，改动声明/证据/闸接线后先跑这两个：
+  `PYTHONPATH="design-lab;src" .venv/Scripts/python.exe -m unittest design-lab.tests.test_gate_reachability`（9 测试，约 4s）
+  与 `... design-lab.tests.test_claim_honesty_gates`（6 测试，约 13s）。
+  前者**双向**断言"不可达 verifier 集合 == `MANUAL_GATES` 豁免清单"，后者断言证据等级回执。
+- **新增/删除 `apps/workbench/` 下文件会让 `verify_inert_contract_survey` 红**（`productFiles` 计数，
+  D07 第一批 209→211 就是这么红的）。修法在该脚本自己的文档里：先不带 `--check` 重跑刷新投影，
+  再 `--check`；只改 `docs/audits/INERT-CONTRACT-SURVEY-2026-10-08.md` 里那一行，不要手改 JSON。
+- **UI 量化门禁"跑得到但不生效"**（2026-10-18 实测，机制与"孤立闸"不同，别混为一谈）：
+  `design-lab/tests/test_workbench_ui_audit_gate.py` **确实接线了**，它 shell 出去跑
+  `scripts/audit_workbench_ui.py`（后者再包 `design-lab/tests/e2e/audit_workbench_ui.mjs`，见其 :28），
+  所以 `test_gate_reachability` 判它可达是**对的**（经 `test_workbench_ui_audit_gate.py:34` 命名）。
+  问题在另外两处：①它依赖 node + `playwright` + Chromium，缺失时 `skipTest`；
+  而 CI 里 Chromium **只在 `workbench-browser-e2e` 作业安装**（yml 260–287），跑全量套件的
+  `python-gate` 没有 → 在那里它必然 skip。②防跳过的 `verify_browser_e2e_ran.py` 用**显式元组**
+  `TEST_MODULES`（不是 glob）只盯 5 个模块，**不含**这一个；该文件自己的 docstring 就写着
+  "an unlisted browser suite would skip forever without a finding"。
+  **净效果**：它 2026-10-07 报的 `violations=12`（`button#navToggle` 62x23）不会让任何提交变红。
+  修法二选一：把它加进 `TEST_MODULES`，或让它不依赖浏览器。
 - 改工作流先用 `actionlint` 校验（`gh release download` 取单文件即可），
   **PyYAML 通过不代表 GitHub 会接受**：重复映射键 PyYAML 静默取最后一个。
 - `run_python_tests.py` 的沙箱里 `class`/`const`/`let` 是词法绑定，**不是** vm context 属性；
@@ -191,3 +266,7 @@ python scripts/verify_top_level_authority.py                 # 10 项，含 5 �
 
 > 上一轮三次 CI 红，全部是**闸对了、人错了**：债务被结清却说没结、登记行被删但钉子没动、
 > 一句注释冒充调用点。下次红的时候，先假设闸是对的。
+>
+> 2026-10-18 又补一句：**审计也会错，而且错法有规律**——用 grep 计数代替权威文档、用"没人引用"
+> 代替"明文冻结"。所以"完成"还要求：**结论的来源写清楚**（命令 / 权威文档哪一节 / 闸的哪一条），
+> 让下一轮能复算，而不是只能选择相信。
