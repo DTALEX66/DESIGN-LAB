@@ -28,10 +28,12 @@ from __future__ import annotations
 
 import json
 import re
+import sys
 import unittest
 from pathlib import Path
 
 REPO = Path(__file__).resolve().parents[2]
+sys.path.insert(0, str(REPO / 'src'))
 SHELL = REPO / 'apps' / 'workbench' / 'shell.ts'
 BUNDLE = REPO / 'apps' / 'workbench' / 'build' / 'main.js'
 REVIEW = REPO / 'src' / 'design_lab' / 'rights_review.py'

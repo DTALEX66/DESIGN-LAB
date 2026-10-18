@@ -16,10 +16,12 @@ from __future__ import annotations
 
 import ast
 import re
+import sys
 import unittest
 from pathlib import Path
 
 REPO = Path(__file__).resolve().parents[2]
+sys.path.insert(0, str(REPO / 'src'))
 SHELL = REPO / 'apps' / 'workbench' / 'shell.ts'
 RECEIPT = REPO / 'src' / 'design_lab' / 'interop' / 'delivery_receipt.py'
 DELIVERY = REPO / 'src' / 'design_lab' / 'native_delivery.py'
