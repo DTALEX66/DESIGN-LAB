@@ -35,6 +35,47 @@ from design_lab.service import ProjectService  # noqa: E402
 CANVAS = (8, 6)
 
 
+def _values_under(document, *keys):
+    """Every string stored under any of `keys`, anywhere in a JSON document.
+
+    Used where the chain used to assert `id in json.dumps(doc)`. A substring match also passes if
+    the id shows up in a message, a cursor or a log line; membership of an identity field is the
+    claim the aggregate actually makes -- that it names these entities as entities.
+    """
+    found = []
+    stack = [document]
+    while stack:
+        node = stack.pop()
+        if isinstance(node, dict):
+            for key, value in node.items():
+                if key in keys:
+                    if isinstance(value, str):
+                        found.append(value)
+                    elif isinstance(value, list):
+                        # `reference_asset_ids` is a list of identities, not a single one, so the
+                        # strings inside it are just as much "this document names the entity".
+                        found.extend(item for item in value if isinstance(item, str))
+                if isinstance(value, (dict, list)):
+                    stack.append(value)
+        elif isinstance(node, list):
+            stack.extend(item for item in node if isinstance(item, (dict, list)))
+    return found
+
+
+def _paths_holding(document, value, prefix=''):
+    """Where a value actually sits in a JSON document, as `a.b[0].c` paths."""
+    hits = []
+    if isinstance(document, dict):
+        for key, child in document.items():
+            hits.extend(_paths_holding(child, value, f'{prefix}.{key}' if prefix else key))
+    elif isinstance(document, list):
+        for index, child in enumerate(document):
+            hits.extend(_paths_holding(child, value, f'{prefix}[{index}]'))
+    elif isinstance(document, str) and value in document:
+        hits.append(prefix or '$')
+    return hits
+
+
 def _png_bytes() -> bytes:
     stream = io.BytesIO()
     from PIL import Image
@@ -120,9 +161,13 @@ class StandaloneChainTests(unittest.TestCase):
         # connected if the earlier writes come back through it.
         layer = self.hop('design-layer', 'GET', f'/api/projects/{project}/design-layer',
                          None, 200)
-        self.assertIn(brief, json.dumps(layer))
-        self.assertIn(direction, json.dumps(layer))
-        self.assertIn(asset, json.dumps(layer))
+        self.assertIn(brief, _values_under(layer, 'brief_id'),
+                      'the aggregate never names the brief as an entity')
+        self.assertIn(direction, _values_under(layer, 'direction_id'),
+                      'the aggregate never names the direction as an entity')
+        self.assertIn(asset, _values_under(layer, 'reference_asset_ids'),
+                      'the aggregate reaches the imported asset only through the brief that '
+                      f'references it; it occurs at {_paths_holding(layer, asset)}')
 
         analysis = self.hop(
             'analysis', 'POST', f'/api/projects/{project}/assets/{asset}/analysis',
