@@ -27,7 +27,7 @@ const referenceSourceRecorded = (() => {
   return rel && !rel.startsWith('..') && !path.isAbsolute(rel) ? rel : sourceImage;
 })();
 const pythonVersion = process.env.CAP_PYTHON_VERSION || 'unknown';
-const widths = (process.env.CAP_WIDTHS || '1280,1920,2560')  .split(',').map((w) => Number.parseInt(w, 10)).filter((w) => Number.isFinite(w) && w > 0);
+const widths = (process.env.CAP_WIDTHS || '1280,1920,2560').split(',').map((w) => Number.parseInt(w, 10)).filter((w) => Number.isFinite(w) && w > 0);
 
 // DL-UI-U02 (2026-10-09): which colour theme a PNG shows belongs to the evidence, so it
 // comes from the environment, is applied to every page before it is shot, and goes into
@@ -70,12 +70,127 @@ if (widths.length === 0) fail('CAP_WIDTHS_EMPTY');
 const req = createRequire(nmDir + '/noop.js');
 const pw = req('playwright');
 
-// Routed pages, in capture order. `dynamic` pages need the bootstrapped id.
+// ---------------------------------------------------------------------------
+// ROUTE INVENTORY -- derived from the served bundle, never typed.
+//
+// Same parser, same reasoning and the same fail-closed shape as the browser E2E step
+// (design-lab/tests/e2e/browser_design_layer_e2e.mjs explains why the source is the bytes
+// `GET /workbench/main.js` hands the browser rather than shell.ts or build/main.js on disk:
+// `design_lab.workbench.resource()` prefers the installed wheel copy, so committed and
+// served bytes can diverge, and the served copy is what a PNG can actually show).
+// It is duplicated here instead of imported because a capture driver and an E2E driver are
+// launched with different cwd/env contracts, and neither may fail to start because the
+// other file moved; the duplication is two owned files, not a third contract.
+//
+// What this buys: the hand-written PAGES list below can be checked against the routes the
+// served app really mounts, so a new ROUTE_VIEWS entry cannot silently go uncaptured and a
+// captured hash that no longer names a route cannot silently keep producing a PNG of a
+// "not open" panel.
+// ---------------------------------------------------------------------------
+const ROUTE_TABLE_MARKER = 'const ROUTE_VIEWS = [';
+
+const sliceArrayBody = (text, openIndex) => {
+  let depth = 0, inStr = null, esc = false;
+  for (let i = openIndex; i < text.length; i += 1) {
+    const ch = text[i];
+    if (inStr) {
+      if (esc) esc = false;
+      else if (ch === '\\') esc = true;
+      else if (ch === inStr) inStr = null;
+      continue;
+    }
+    if (ch === '"' || ch === "'" || ch === '`') inStr = ch;
+    else if (ch === '[' || ch === '{') depth += 1;
+    else if (ch === ']' || ch === '}') {
+      depth -= 1;
+      if (depth === 0) return text.slice(openIndex + 1, i);
+    }
+  }
+  return null;
+};
+
+const sliceEntryObjects = (body) => {
+  const out = [];
+  let depth = 0, buf = '', inStr = null, esc = false;
+  for (const ch of body) {
+    if (inStr) {
+      buf += ch;
+      if (esc) esc = false;
+      else if (ch === '\\') esc = true;
+      else if (ch === inStr) inStr = null;
+      continue;
+    }
+    if (ch === '"' || ch === "'" || ch === '`') { inStr = ch; buf += ch; continue; }
+    if (ch === '{') depth += 1;
+    if (depth > 0) buf += ch;
+    if (ch === '}') {
+      depth -= 1;
+      if (depth === 0) { out.push(buf); buf = ''; }
+    }
+  }
+  return out;
+};
+
+const stringField = (obj, key) => {
+  const m = obj.match(new RegExp('\\b' + key + '\\s*:\\s*["\']([^"\']*)["\']'));
+  return m ? m[1] : null;
+};
+
+/** -> [{hash, view}] | null; null means "unreadable", never "no routes". */
+const parseRouteViews = (bundleText) => {
+  const markerAt = bundleText.indexOf(ROUTE_TABLE_MARKER);
+  if (markerAt < 0) return null;
+  const body = sliceArrayBody(bundleText, markerAt + ROUTE_TABLE_MARKER.length - 1);
+  if (body === null) return null;
+  const routes = [];
+  for (const obj of sliceEntryObjects(body)) {
+    const hash = stringField(obj, 'hash');
+    const view = stringField(obj, 'view');
+    if (hash === null || view === null) return null;
+    if (hash !== '' && !hash.startsWith('#/')) return null;
+    routes.push({ hash, view });
+  }
+  return routes.length > 0 ? routes : null;
+};
+
+/** Read the route table out of the bundle this service is serving. */
+const deriveRouteInventory = async () => {
+  let res;
+  try {
+    res = await fetch(serviceUrl.replace(/\/$/, '') + '/workbench/main.js');
+  } catch (err) {
+    fail('CAP_ROUTE_INVENTORY_UNAVAILABLE: GET /workbench/main.js threw ' +
+      String(err && err.message ? err.message : err).split('\n')[0]);
+  }
+  if (!res || !res.ok) {
+    fail('CAP_ROUTE_INVENTORY_UNAVAILABLE: GET /workbench/main.js answered ' +
+      (res ? res.status : 'no response'));
+  }
+  const text = await res.text();
+  const routes = parseRouteViews(text);
+  if (routes === null) {
+    fail('CAP_ROUTE_INVENTORY_UNREADABLE: no parseable `' + ROUTE_TABLE_MARKER +
+      '` in the served bundle (' + text.length + ' chars)');
+  }
+  return { routes, chars: text.length, sha256: sha256Hex(text) };
+};
+
+const sha256Hex = (text) => createHash('sha256').update(text).digest('hex');
+
+// Routed pages, in capture order. `dynamic` pages need the bootstrapped id and name the
+// table route they drill into through `base` (a parameterized address is not a ROUTE_VIEWS
+// entry of its own -- see shell.ts's B07 note -- so it covers its list route, never itself).
 //
 // This list used to cover 8 of the 12 entries in shell.ts ROUTE_VIEWS, so four routed
 // pages -- including 品牌系统, which has a real /api/* readback -- had never been
 // rendered by any screenshot round. A route that is never captured cannot fail the
 // geometry gates either, so the omission read as "the UI is audited".
+//
+// That hole is now machine-checked, not just documented: the gate under this list compares
+// PAGES against the route table of the bundle the service is serving and exits non-zero if
+// a routed entry has no page here (or if a page here names a route the table no longer
+// has). Adding a route to shell.ts and forgetting it in this list is a red run, not a
+// silent gap in the evidence.
 //
 // The landing surface (工作台) is the app shell, not a `#route-view` page: measured,
 // at the landing URL `#route-view` stays present but empty and hidden, so waiting on it
@@ -86,7 +201,7 @@ const PAGES = [
   { key: 'workbench', hash: '', host: '#workspace' },
   { key: 'dashboard', hash: '#/dashboard' },
   { key: 'projects', hash: '#/projects' },
-  { key: 'project-detail', hash: null, dynamic: true },
+  { key: 'project-detail', hash: null, dynamic: true, base: '#/projects' },
   { key: 'research', hash: '#/research' },
   { key: 'brand-systems', hash: '#/brand-systems' },
   { key: 'domains', hash: '#/domains' },
@@ -116,6 +231,59 @@ const PAGES = [
   // R2 §9 (DL-FINAL-T08): 分组全局搜索是浮层，只能靠真实点击打开后才有可审阅的一张图。
   { key: 'search-groups', hash: '#/capabilities', click: '#openPalette' },
 ];
+
+// --- route coverage gate: runs before the browser launches, so a gap costs no PNGs ------
+// Every hash the served app mounts as a route must have a page in PAGES, and every hash in
+// PAGES must still name a route (or drill into one, for the detail addresses). The hand
+// list stays the order/extra-screens authority -- project-detail, the seeded states and the
+// search overlay are not ROUTE_VIEWS entries and are not required to be -- but it can no
+// longer be silently incomplete.
+const inventory = await deriveRouteInventory();
+const routeInventory = {
+  source: 'served bundle GET /workbench/main.js',
+  bundleSha256: inventory.sha256,
+  bundleChars: inventory.chars,
+  routeEntryCount: inventory.routes.length,
+};
+const tableHashes = new Set(inventory.routes.map((r) => r.hash));
+const byHash = new Map(inventory.routes.map((r) => [r.hash, r]));
+
+// Drilling forms are legal only as `<table hash>/<id>`: a detail address is a second-level
+// entry of a list route (shell.ts B07), never a route of its own.
+const drillsIntoTable = (hash) => [...tableHashes]
+  .some((t) => t !== '' && (hash === t + '/' || hash.startsWith(t + '/')));
+
+const stale = PAGES
+  .filter((p) => !p.dynamic && typeof p.hash === 'string' &&
+    !tableHashes.has(p.hash) && !drillsIntoTable(p.hash))
+  .map((p) => p.key + ' -> ' + p.hash);
+if (stale.length > 0) {
+  fail('CAP_ROUTE_NOT_IN_TABLE: ' + stale.join(', ') +
+    ' -- the served route table has no such hash, so this page renders a "not open" panel ' +
+    'and the PNG would be evidence of a route that does not exist');
+}
+const badDynamic = PAGES
+  .filter((p) => p.dynamic && (typeof p.base !== 'string' || !tableHashes.has(p.base)))
+  .map((p) => p.key + ' base=' + String(p.base));
+if (badDynamic.length > 0) {
+  fail('CAP_DYNAMIC_PAGE_BASE_UNKNOWN: ' + badDynamic.join(', ') +
+    ' -- a dynamic page must name the route table hash it drills into via `base`');
+}
+
+const covered = new Set(PAGES
+  .filter((p) => !p.dynamic && typeof p.hash === 'string')
+  .map((p) => p.hash));
+const uncaptured = inventory.routes
+  .filter((r) => !covered.has(r.hash))
+  .map((r) => (r.hash === '' ? '(landing)' : r.hash) + ' ' + (byHash.get(r.hash) || {}).view);
+if (uncaptured.length > 0) {
+  fail('CAP_ROUTE_UNCAPTURED: ' + uncaptured.join(', ') +
+    ' -- a served route with no PAGES entry is a route no screenshot round has ever ' +
+    'rendered, which is the coverage hole this file documented and did not check');
+}
+console.log('CAP_ROUTE_COVERAGE routes=' + inventory.routes.length +
+  ' captured=' + covered.size + ' of ' + inventory.routes.length +
+  ' pageEntries=' + PAGES.length + ' bundleSha256=' + inventory.sha256);
 
 mkdirSync(outDir, { recursive: true });
 
@@ -294,7 +462,9 @@ try {
 }
 
 // --- capture ----------------------------------------------------------------
-const pageHash = (p) => (p.dynamic ? '#/projects/' + encodeURIComponent(projectId) : p.hash);
+// A dynamic page builds its address from the table hash it drills into (`base`), so the
+// coverage gate above and the capture below cannot drift apart over that literal.
+const pageHash = (p) => (p.dynamic ? p.base + '/' + encodeURIComponent(projectId) : p.hash);
 
 for (const width of widths) {
   const { ctx, page } = await openWorkspace(width);
@@ -427,7 +597,13 @@ const manifest = {
   service: { origin: serviceUrl, pythonVersion },
   browser: { engine: 'chromium', version: browserVersion, executable: browser || 'playwright-default', headless: true },
   nodeVersion: process.version,
-  capture: { fullPage: false, mockUsed: false, viewports: widths, pages: PAGES.map((p) => p.key) },
+  capture: {
+    fullPage: false, mockUsed: false, viewports: widths, pages: PAGES.map((p) => p.key),
+    // The gate that ran above is part of the record: a reader can see which route table
+    // this page set was checked against, and that the check ran at all.
+    routeInventory,
+    routeCoverageChecked: true,
+  },
   screenshots: shots,
 };
 writeFileSync(path.join(outDir, 'screenshot-manifest.json'),

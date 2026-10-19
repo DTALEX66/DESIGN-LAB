@@ -33,6 +33,7 @@
 // exit path writes the evidence summary so CI artifacts and local runs carry
 // the same machine-readable trail.
 import fs from 'node:fs';
+import { createHash } from 'node:crypto';
 import { createRequire } from 'node:module';
 import path from 'node:path';
 import process from 'node:process';
@@ -49,6 +50,9 @@ let page = null;
 // (and its in-memory project id) is thrown away.
 let projectName = '';
 let projectId = '';
+// What the route-inventory step actually derived, so the evidence names its own
+// subject instead of leaving a reader to guess which number was in play.
+let routeInventory = null;
 
 // P0-G: single evidence writer, used by every exit path (PASS and FAIL).
 const writeSummary = (result, error) => {
@@ -62,10 +66,12 @@ const writeSummary = (result, error) => {
                'create-direction', 'choose-direction', 'bind-design-system',
                'revise-brief', 'revise-chosen-direction',
                'binding-rebuild-readback', 'reload-persisted-readback',
-               'persisted-readback', 'mobile-appshell-layout'],
+               'persisted-readback', 'mobile-appshell-layout',
+               'nav-route-inventory-derived-from-served-bundle'],
     consoleErrors: errors.length,
     result,
   };
+  if (routeInventory) payload.routeInventory = routeInventory;
   if (error) payload.error = error;
   fs.writeFileSync(path.join(evidenceDir, 'browser-e2e-summary.json'),
                    JSON.stringify(payload, null, 2) + '\n');
@@ -104,6 +110,106 @@ const abort = async (reason, code, ctx, b) => {
   await captureFailureShot(ctx, b);
   writeSummary('FAIL', reason);
   process.exit(code);
+};
+
+// ---------------------------------------------------------------------------
+// ROUTE INVENTORY -- derived, never typed.
+//
+// `ROUTE_VIEWS` (apps/workbench/shell.ts) is the authority for the routes the Workbench
+// mounts, and mountAppShell() renders exactly one `.app-nav-item` button per entry,
+// stamped `data-route="<view>"` (verified: one `app-nav-item` construction site in the
+// bundle, and navGroupChunks() drops nothing). The mobile-layout step used to compare the
+// button count against a literal integer a human re-typed on every IA change (12 -> 15 ->
+// 18 -> 19, with three stale "12" comments found the same day). The number and the
+// comments are the same drift class; this parses the inventory instead.
+//
+// Source of the expected inventory: the bundle bytes the SERVICE HANDS TO THE BROWSER
+// (`GET /workbench/main.js`), fetched with Node and parsed here. Two measured reasons:
+//   * the DOM alone cannot answer it -- `ROUTE_VIEWS` is not exported to `window` (the
+//     only global the bundle installs is `window.__dlToast`), so a page-side read sees the
+//     MOUNTED buttons, not the table they came from. Expecting the mount to equal the
+//     mount would be a tautology, so the expectation has to come from outside the DOM;
+//   * not `apps/workbench/build/main.js` on disk either -- `design_lab.workbench.resource()`
+//     prefers the installed wheel copy when one exists, so served and committed bytes CAN
+//     diverge (workbench.py's D003 note records a 72,051 B installed bundle vs a 157,747 B
+//     committed one). Serving the checkout is what the browser executed, and the identity
+//     is asserted below (the page hashes the same URL and must agree) rather than assumed.
+// `minify:false` (apps/workbench/vite.config.ts) keeps the array readable, so the entries
+// are recoverable without a TS compiler.
+//
+// Fail-closed: an unreadable marker, an unbalanced literal, an entry without `hash`/`view`
+// or an empty table all ABORT the run -- a parse that yields nothing never degrades into
+// "no expectation, therefore no failure".
+// ---------------------------------------------------------------------------
+const ROUTE_TABLE_MARKER = 'const ROUTE_VIEWS = [';
+
+/** Body of the array literal whose '[' sits at `openIndex`, string-aware. */
+const sliceArrayBody = (text, openIndex) => {
+  let depth = 0, inStr = null, esc = false;
+  for (let i = openIndex; i < text.length; i += 1) {
+    const ch = text[i];
+    if (inStr) {
+      if (esc) esc = false;
+      else if (ch === '\\') esc = true;
+      else if (ch === inStr) inStr = null;
+      continue;
+    }
+    if (ch === '"' || ch === "'" || ch === '`') inStr = ch;
+    else if (ch === '[' || ch === '{') depth += 1;
+    else if (ch === ']' || ch === '}') {
+      depth -= 1;
+      if (depth === 0) return text.slice(openIndex + 1, i);
+    }
+  }
+  return null;
+};
+
+/** Each top-level `{ ... }` of an object-array body, comments and all. */
+const sliceEntryObjects = (body) => {
+  const out = [];
+  let depth = 0, buf = '', inStr = null, esc = false;
+  for (const ch of body) {
+    if (inStr) {
+      buf += ch;
+      if (esc) esc = false;
+      else if (ch === '\\') esc = true;
+      else if (ch === inStr) inStr = null;
+      continue;
+    }
+    if (ch === '"' || ch === "'" || ch === '`') { inStr = ch; buf += ch; continue; }
+    if (ch === '{') depth += 1;
+    if (depth > 0) buf += ch;
+    if (ch === '}') {
+      depth -= 1;
+      if (depth === 0) { out.push(buf); buf = ''; }
+    }
+  }
+  return out;
+};
+
+const stringField = (obj, key) => {
+  const m = obj.match(new RegExp('\\b' + key + '\\s*:\\s*["\']([^"\']*)["\']'));
+  return m ? m[1] : null;
+};
+
+const sha256Hex = (text) => createHash('sha256').update(text).digest('hex');
+
+/** -> [{hash, view}] | null (null means "could not read the table", never "no routes"). */
+const parseRouteViews = (bundleText) => {
+  const markerAt = bundleText.indexOf(ROUTE_TABLE_MARKER);
+  if (markerAt < 0) return null;
+  const body = sliceArrayBody(bundleText, markerAt + ROUTE_TABLE_MARKER.length - 1);
+  if (body === null) return null;
+  const objects = sliceEntryObjects(body);
+  const routes = [];
+  for (const obj of objects) {
+    const hash = stringField(obj, 'hash');
+    const view = stringField(obj, 'view');
+    if (hash === null || view === null) return null;
+    if (hash !== '' && !hash.startsWith('#/')) return null;
+    routes.push({ hash, view });
+  }
+  return routes.length > 0 ? routes : null;
 };
 
 try {
@@ -368,34 +474,97 @@ try {
 
   await step('mobile appshell layout', async () => {
     await page.setViewportSize({ width: 390, height: 844 });
-    const layout = await page.evaluate(() => {
+    const layout = await page.evaluate(async () => {
       const nav = document.querySelector('.app-nav');
       const items = Array.from(document.querySelectorAll('.app-nav-item'));
       const rect = nav?.getBoundingClientRect();
       const firstStyle = items.length ? getComputedStyle(items[0]) : null;
+      // Hash the module THIS document was able to load from the same origin: the page and
+      // the driver must be describing the same bytes, or the inventory below is about some
+      // other bundle. (crypto.subtle is present on http://127.0.0.1, which Chrome treats as
+      // a secure context; when it is absent the length check below still applies.)
+      const served = await fetch('/workbench/main.js');
+      const servedText = await served.text();
+      let servedSha = null;
+      if (globalThis.crypto?.subtle) {
+        const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(servedText));
+        servedSha = Array.from(new Uint8Array(buf))
+          .map((x) => x.toString(16).padStart(2, '0')).join('');
+      }
       return {
-        itemCount: items.length,
+        itemRoutes: items.map((i) => i.dataset?.route ?? ''),
         fontSize: firstStyle ? Number.parseFloat(firstStyle.fontSize) : 0,
         navLeft: rect?.left ?? -1,
         navWidth: rect?.width ?? 0,
         navHeight: rect?.height ?? 0,
         overflowX: nav ? getComputedStyle(nav).overflowX : '',
+        servedStatus: served.status,
+        servedLength: servedText.length,
+        servedSha,
       };
     });
-    // 15 -> 16 across this batch: DL-UI-U01/U02 (2026-10-09) added #/capabilities, #/states and
-    // #/components to ROUTE_VIEWS under the adopted 三入口 IA. The count stays an
-    // EXACT equality on purpose -- it is the reading that says every route table entry
-    // reached the screen as a real button, so a route that silently stopped rendering
-    // still fails here. It is an inventory, not a permanent product limit: the taskpack
-    // says menu count is not fixed ("不机械固定3菜单/16页"), which is why the number
-    // moves with the verified table instead of the check being relaxed.
-    // 16 -> 18: #/intake, #/plan and #/analysis joined 分析与制作 in this batch.
-    // 18 -> 19: #/records (R2 §2/§7 制作记录与待继续) under the same entry. The number still
-    // moves with the verified table rather than the check being loosened.
-    if (layout.itemCount !== 19 || layout.fontSize < 10 || layout.navLeft !== 0 ||
-        layout.navWidth < 380 || layout.navHeight > 120 || layout.overflowX !== 'auto') {
+    // The app-shell geometry reading is unchanged: same thresholds, same exit code.
+    if (layout.fontSize < 10 || layout.navLeft !== 0 || layout.navWidth < 380 ||
+        layout.navHeight > 120 || layout.overflowX !== 'auto') {
       await abort('E2E_MOBILE_APPSHELL_LAYOUT: ' + JSON.stringify(layout), 11, ctx, b);
     }
+
+    // --- route inventory: mounted nav vs the table that produced it --------------
+    let bundleText = null;
+    let bundleStatus = 'FETCH_THREW';
+    try {
+      const res = await fetch(base + '/workbench/main.js');
+      bundleStatus = String(res.status);
+      if (res.ok) bundleText = await res.text();
+    } catch (e) {
+      bundleStatus = 'FETCH_ERROR ' + e.message.split('\n')[0];
+    }
+    if (bundleText === null) {
+      await abort('E2E_BUNDLE_FETCH_FAILED: /workbench/main.js answered ' + bundleStatus, 12, ctx, b);
+    }
+    const table = parseRouteViews(bundleText);
+    if (table === null) {
+      await abort('E2E_ROUTE_TABLE_UNREADABLE: no parseable `' + ROUTE_TABLE_MARKER +
+                  '` in the served bundle (' + bundleText.length + ' chars, sha256:' +
+                  sha256Hex(bundleText) + ')', 12, ctx, b);
+    }
+    const parsedSha = sha256Hex(bundleText);
+    if (layout.servedStatus !== 200 || layout.servedLength !== bundleText.length ||
+        (layout.servedSha !== null && layout.servedSha !== parsedSha)) {
+      await abort('E2E_BUNDLE_IDENTITY_MISMATCH: driver parsed sha256:' + parsedSha +
+                  ' (' + bundleText.length + ' chars) but the page fetched status=' +
+                  layout.servedStatus + ' length=' + layout.servedLength +
+                  ' sha256:' + (layout.servedSha ?? 'unavailable'), 12, ctx, b);
+    }
+    const mounted = [...layout.itemRoutes].sort();
+    const expected = table.map((r) => r.view).sort();
+    routeInventory = {
+      source: 'served bundle GET ' + base + '/workbench/main.js',
+      bundleSha256: parsedSha,
+      bundleChars: bundleText.length,
+      tableEntryCount: table.length,
+      navItemCount: mounted.length,
+      tableViews: table.map((r) => r.view),
+      tableHashes: table.map((r) => r.hash),
+      navRoutes: mounted,
+    };
+    // EXACT equality on both the count and the membership, for the same reason the
+    // literal did: this is the reading that says every table entry reached the screen as
+    // a real button and no button exists that the table does not name. A route that stops
+    // rendering, a button that appears without a route, and a re-labelled view all go red.
+    // It is an inventory, not a product limit: the taskpack says the menu count is not
+    // fixed ("不机械固定3菜单/16页"), and it now moves with the table with nobody editing
+    // this file.
+    if (mounted.length !== table.length || mounted.join('\u0000') !== expected.join('\u0000')) {
+      await abort('E2E_NAV_ROUTE_INVENTORY: nav=' + mounted.length +
+                  ' table=' + table.length +
+                  ' nav-only=[' + mounted.filter((v) => !expected.includes(v)).join(',') +
+                  '] table-only=[' + expected.filter((v) => !mounted.includes(v)).join(',') +
+                  '] ' + JSON.stringify(routeInventory), 12, ctx, b);
+    }
+    console.log('E2E_ROUTE_INVENTORY: ' + JSON.stringify({
+      nav: mounted.length, table: table.length, bundleSha256: parsedSha,
+    }));
   });
 
   // Read back the final state as the persisted-state proof.
