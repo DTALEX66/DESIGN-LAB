@@ -1,16 +1,16 @@
 {
   "checkScope": "bound-input-and-output-integrity; not current Git or cloud freshness",
-  "generatedAt": "2026-10-19T21:34:26+00:00",
+  "generatedAt": "2026-10-19T21:39:57+00:00",
   "gitObservation": {
     "branch": "qoder/designlab-backup-consistency-20261007",
-    "origin_main": "2087509d248feba263f62ec02b501ac1ab6ec34b",
-    "sha": "e3696c6b4b324f4ddfaea6ffcab811a10cf9055d",
+    "origin_main": "6a269c85bd64168e2c2490872b97781d99af02ed",
+    "sha": "5d1101e9416ada6b17a176df84d5f6e6849d81e2",
     "source_worktree_clean": true,
-    "tracked_files": 3730,
+    "tracked_files": 3732,
     "worktree_changes": [],
-    "worktree_digest": "sha256:22dd1ebd95d010866dcbbe4da4b2177377e6885d5c45cc29a1f10ced43ab5983"
+    "worktree_digest": "sha256:7afc875a2939dd1f6212d244c17c388e9fc9dd0c5c6a858bb8a07b459a6b0cb3"
   },
-  "inputDigest": "sha256:772752c450ea1d09ccbcb9be23b1da8d39d1a2a6009315ed01bbd64bd2a0fe4d",
+  "inputDigest": "sha256:c6287982afc1659806dee03a76f3b68ac94d0d17b3a7030179739ef26a16ba13",
   "inputDigestMeaning": "primary freshness binding: canonical SHA-256 over the exact input files the projections read plus the git tree scope; recomputed at check time (FU-10)",
   "inputHashes": {
     ".github/workflows/canonical-verify.yml": "8e8e1a17f7b622cbfa7187f90b6ebb69a2d75ff3f76ca3a0b2ef4a00774f25ac",
@@ -357,6 +357,7 @@
     "design-lab/tests/test_doctor.py": "fd59902574dcc23be5c9faad5d7b241d9d152ca7f3e00c6b2835ceff85dde8c1",
     "design-lab/tests/test_doctor_evidence.py": "fb8111370e7c198110e2efd787b5bba73e3a59bff08eafb59eb2fd0afecd8e5c",
     "design-lab/tests/test_doctor_tool_bindings.py": "f5f79872cb8be8f15697ea0b46894d4f0c2841e4a5910259e79cdf022ba45531",
+    "design-lab/tests/test_documented_counts.py": "d42972e3f4d65c31fa89d65b70763566f229b75afbcae28aca1c3b9dd61e4fd6",
     "design-lab/tests/test_domain_pack_readback.py": "6d14ebef014ca2ee83f992c3ecf83dd248f58de20be223bdbe39395a83a91df5",
     "design-lab/tests/test_effective_evidence.py": "0e63f2670275b078bc6fa2092518007de9a31a00b79d2bd9a4e73d4124bbd298",
     "design-lab/tests/test_evidence_artifact_presence.py": "11b247729e064951f624d566e04f2a3285128905da22b70f57f98c6bb4c3f18a",
@@ -675,15 +676,15 @@
   },
   "ledger": "design-lab/config/task-ledger-r3.json",
   "outputHashes": {
-    "ADAPTER_EVIDENCE_RECONCILIATION.json": "c370ff21fc8b37a39e42554f765588bb0c290a9a34cc1dfe8420594c6c59e3db",
-    "CLOUD_BASELINE.json": "1d01761e3343cfef0b6d16bd1e6601f3d61a4abde2f20a89945c0c61cc6fa00b",
-    "CLOUD_BASELINE.md": "8bb0f226402f0bab7489d2207afad9b93605e9f71178baabfc7b804b01e66bb0",
-    "DOMAIN_PACK_READINESS.json": "15885b222631a64a66e400f14fcf7f46d74c3d9642a20c21e485d9097e542f18",
-    "KNOWLEDGE_INVENTORY.json": "f2aed8e88a01121d51c4b856c86cae833c08cf48ae347ceedb4dd28b2c349a0b",
-    "PROJECT_STATUS.json": "97984eaea8828d23c08569c36bef44edcdc5bb53e341027779ff94d54ce50bab",
-    "PROJECT_STATUS.md": "ab3da4de82d71a6d2875e7e05265a4394766f797ca5b1f43149b177e3d08846f",
-    "RELEASE_READINESS.json": "65c401dece571aae2bb5728b9fc3a58b3c84db9d5a9fc64cbd7cd1c7adb2670e",
-    "TASK_PROGRESS.json": "fe56a27bca51dfdd8001fd185a99faebbf636a5518501805212fc5403296024e"
+    "ADAPTER_EVIDENCE_RECONCILIATION.json": "b0c040e45fd25eb8f3d3c190bed27fa507db63146d03a0a7a11381a6f580f0a3",
+    "CLOUD_BASELINE.json": "27eafcb0d0946c8f2386c36e33811d83562bfa53bb76da1b4e2ecb53209a54b5",
+    "CLOUD_BASELINE.md": "da5e920f0105cf0020a56e49a9a2a64d7a375c14187f4331501da3adb85807c7",
+    "DOMAIN_PACK_READINESS.json": "6ed5a42886b61956fb869ee9209e3e6fc8d4b6db4eb52ce1833c6e57d7427c1b",
+    "KNOWLEDGE_INVENTORY.json": "cece9c8e7dc904453ed6d72d19e2720df8a6a8c6e87b604470ea904fd585557b",
+    "PROJECT_STATUS.json": "71f989782a43c742c1c27ab36ac0ba86439d24ef43d04c84da0aab218ae9a873",
+    "PROJECT_STATUS.md": "6f7d0145b7ddc572ce95246ef06445c9a7046f2424df5a8ffafa91af8d4e9c0d",
+    "RELEASE_READINESS.json": "1244eae66f468187ef59c275b79bf4dd227314c53213a339e337056ddd101c69",
+    "TASK_PROGRESS.json": "bef9509834e451c437e39521af9a96ab5c4f1dde004fb73900a3ebc7ec3b0178"
   },
   "reportRoot": "../../reports/current/",
   "reports": [
@@ -699,5 +700,5 @@
   ],
   "schemaVersion": "design-lab/current-report-index/v3",
   "subjectMeaning": "generation-time git observation, not a freshness claim; exact-SHA evidence is the CI artifact",
-  "subjectSha": "e3696c6b4b324f4ddfaea6ffcab811a10cf9055d"
+  "subjectSha": "5d1101e9416ada6b17a176df84d5f6e6849d81e2"
 }
