@@ -175,6 +175,13 @@ E4 独立人审 / E5 发布可复现。**文档修订 ≠ 规划完成 ≠ 代�
 - **E3 真实宿主**、**E4 独立人审**、**E5 发布/安装态分发**：均未执行，需明确授权。
 - **手机端**：**已从范围移除**（owner 2026-10-19：「再说一遍 不做手机端 只做桌面端」→「授权给你 去掉手机端」）。AUTHORITY.md / AGENTS.md / PRODUCT_DEFINITION / authority-index 的现行条款都已把它从「冻结待排」改为「排除」：不派工、不开路由、不加组件、不做验收、不记为能力缺口或未交付项；恢复需 owner 新的明确授权。机器面留一处说明：账本 `currentExecution.mobile` 由 schema 以 `const: FROZEN_DEFERRED` 钉住、并被 `design-lab/tests/test_current_execution.py` 断言，改这个词属于 schema+测试+UI 状态词的合同变更，不在本次授权内；该值本身的含义就是「手机工作零派工」。桌面端响应式/自适应是交付质量的一部分，不等于手机端，其既有闸门保持不动。
 - **解冻 34 项 `FROZEN_DEFERRED` 任务**：需要新的 owner 明确授权；不得自行恢复派工。
+- **"保留标准通用的接入接口"具体保留到哪一层（2026-10-19 逐层实测，别把"有合同"读成"能接入"）**：
+  官方 API/SDK 层有代码（`adapters/photoshop_com.py`、`adapters/illustrator_com.py`、`adapters/spi.py`、`interop/penpot.py`、`generators/comfy_*.py`），等级以 E0/E1 为主，ComfyUI 的 E2/E3 证据是 2026-08 的、未在当前树复验；
+  原生插件层有注册表与清单（`integrations/adapter-registry.json` 30 条、`integrations/hosts|generators/*/adapter.manifest.json`），闸门 `ADAPTER_REGISTRY=PASS`、`ADAPTER_MATRIX=PASS matrix=9`、`ADAPTER_LOCATOR_AUDIT=PASS`；
+  脚本/CLI 层有 16 个子命令（`src/design_lab/cli.py` 的 `add_parser` 实数）；
+  **MCP 层只有合同没有服务**——`schemas/contracts/design-control-mcp.schema.json` 与 contract-bindings 那一行在，但 `docs/audits/INERT-CONTRACT-SURVEY-2026-10-08.md` 记它 `state=NO_STATE_COUNTERPART`、`route_references=[]`、`table_readers=[]`、`table_writers=[]`；
+  **受控 UI 自动化层在 `src/` 内没有任何模块**（`ui_automation|controlled.ui|accessibility tree|屏幕坐标` 全 0 命中），它只作为策略分层出现在本文件 §上一行。
+  所以：owner 要的"标准通用接入接口"在**合同与注册表层是保留的**，MCP 与受控 UI 自动化两层是**已声明未实现**；把后两层做出来属产品实施，在 `currentExecution` 冻结之内，需 owner 授权才动。
 - **ComfyUI/H3、外部服务、跨仓库写入、数据外发、E 盘访问**：全部冻结/需授权。**AAOS 不在此列**——owner 2026-10-19：「AAOS 不要管，保留标准通用的接入接口等，本项目按照独立能运行的能全链路跑通的项目」。保留 `schemas/candidate-knowledge.schema.json`、`knowledge-role-classification.json`、`verify_knowledge_lifecycle.py` 这些版本化合同与出口，但不得再把 AAOS 联调当作本项目的前置条件或完成判据。
 - **D09 GitHub 必需检查**：需另外授权；先加稳定、绑定实际 SHA 的汇总检查，验证"required + 条件 skip"
   确实会失败，再设为必需。
