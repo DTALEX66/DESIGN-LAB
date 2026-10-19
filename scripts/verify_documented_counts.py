@@ -56,11 +56,44 @@ def http_routes() -> int:
     return _require(len(http_service.ROUTES), 'http_service.ROUTES')
 
 
+CHAIN_TEST = 'design-lab/tests/test_standalone_chain_http.py'
+
+
+def _chain_labels(method: str) -> int:
+    """How many hop labels that test method prints, counted from its own body.
+
+    A label comes from either `self.hop(...)` or a manual `self.hops.append(...)` (the native read
+    back is appended, not called), so both forms count. This is the number quoted as
+    "N 跳验收链" / "N 跳交付链" in the prompt -- if a hop is added and the prose is not, this moves
+    and the sentence fails to match.
+    """
+    src = (REPO / CHAIN_TEST).read_text(encoding='utf-8')
+    start = src.index('def ' + method)
+    nxt = src.find('\n    def ', start + 10)
+    body = src[start:nxt if nxt > 0 else len(src)]
+    calls = len(re.findall(r'self\.hop\(', body))
+    manual = len(re.findall(r'self\.hops\.append\(', body))
+    _require(calls + manual, f'{method} hop labels')
+    return calls + manual
+
+
+def acceptance_hops() -> int:
+    return _chain_labels('test_the_chain_walks_from_project_to_a_reviewed_candidate')
+
+
+def delivery_hops() -> int:
+    return _chain_labels('test_the_delivery_leg_reaches_a_preflight_verdict_on_one_project')
+
+
+# (file, template, measurement). Templates carry enough words to be unambiguous and to fail loudly
+# when the sentence is rewritten rather than updated.
 CLAIMS = [
     ('DESIGN.md', '导航 {n} 项', route_views),
     ('docs/current/NEXT-AGENT-PROMPT.md', '{n} 个子命令（`src/design_lab/cli.py`', cli_subcommands),
     ('docs/current/NEXT-AGENT-PROMPT.md', 'adapter-registry.json` {n} 条', registry_adapters),
     ('docs/current/NEXT-AGENT-PROMPT.md', 'ROUTES` 为准，共 {n} 条', http_routes),
+    ('docs/current/NEXT-AGENT-PROMPT.md', '**{n} 跳验收链**', acceptance_hops),
+    ('docs/current/NEXT-AGENT-PROMPT.md', '**{n} 跳交付链**', delivery_hops),
 ]
 
 
