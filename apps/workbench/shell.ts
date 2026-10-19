@@ -279,8 +279,9 @@ export function viewLabel(view: string): string {
 //      browser_design_layer_e2e.mjs, mobile appshell layout step). That reading is
 //      "every table entry reached the screen as a real button", so a parameterized
 //      route with no page of its own would make the count claim something untrue.
-//      The number itself moved 12 -> 15 on 2026-10-09 when the adopted IA added
-//      three slots; a detail route is not one of them.
+//      The E2E parses this array out of the bundle the service actually serves and
+//      fails closed when it can't; no surface types the count any more, which is why
+//      nothing here records what the number is today.
 //   2. A sidebar button for a detail page is wrong regardless of the count: the
 //      page has no meaning without an id, so it would navigate to nothing.
 // So the parameterized route is resolved SEPARATELY and is reachable only by
