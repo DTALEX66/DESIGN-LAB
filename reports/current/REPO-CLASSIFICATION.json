@@ -1,10 +1,10 @@
 {
   "schemaVersion": "design-lab/repo-classification/v1",
-  "generatedAt": "2026-10-19T10:44:01Z",
-  "observedCommit": "adab123e2efa9ca4fb44de7fd889c10c0aefcc77",
+  "generatedAt": "2026-10-19T11:57:19Z",
+  "observedCommit": "bec00532aab9e0abcf0fb1d3d4eb0947301c336a",
   "totals": {
-    "trackedFiles": 3725,
-    "workingTreeMiB": 69.67,
+    "trackedFiles": 3727,
+    "workingTreeMiB": 69.7,
     "packMiB": 243.12,
     "note": "pack 含全部历史与 tag 归档；working tree 为当前检出字节。两者之差不是垃圾。"
   },
@@ -17,7 +17,7 @@
     "documentation": {
       "files": 13,
       "bundles": 2,
-      "mib": 4.31
+      "mib": 4.32
     },
     "evidence": {
       "files": 1160,
@@ -50,9 +50,9 @@
       "mib": 0.25
     },
     "source": {
-      "files": 1637,
+      "files": 1639,
       "bundles": 8,
-      "mib": 13.21
+      "mib": 13.23
     }
   },
   "bundles": [
@@ -88,7 +88,7 @@
       "category": "evidence",
       "note": "审计与验收证据包",
       "files": 841,
-      "bytes": 7709303,
+      "bytes": 7712898,
       "cited_by_authority": 0,
       "lastTouch": "2026-10-19"
     },
@@ -156,6 +156,15 @@
       "lastTouch": "2026-10-19"
     },
     {
+      "path": "scripts/",
+      "category": "source",
+      "note": "根级门与工具",
+      "files": 72,
+      "bytes": 868016,
+      "cited_by_authority": 3,
+      "lastTouch": "2026-10-19"
+    },
+    {
       "path": "packages/",
       "category": "source",
       "note": "能力包",
@@ -165,20 +174,11 @@
       "lastTouch": "2026-10-11"
     },
     {
-      "path": "scripts/",
-      "category": "source",
-      "note": "根级门与工具",
-      "files": 70,
-      "bytes": 847362,
-      "cited_by_authority": 3,
-      "lastTouch": "2026-10-19"
-    },
-    {
       "path": "docs/",
       "category": "documentation",
       "note": "其余文档",
       "files": 88,
-      "bytes": 567256,
+      "bytes": 576863,
       "cited_by_authority": 13,
       "lastTouch": "2026-10-19"
     },
