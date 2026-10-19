@@ -7589,8 +7589,9 @@ export function activityDock(tasks: readonly TaskRecord[]): HTMLElement | null {
 //
 // 不臆造原则：RIR 的每个字段都指向一条真实记录或用户在页面上的明确选择；
 // `inferred:false` 是因为这个节点来自用户勾选，不是检测器推断。
-// 分析派生的结构节点（plan_to_rir 那条桥）目前**没有生产调用方**（design-lab/tests 在调，
-// 服务与本页都不调），本页不假装它接上，
+// 分析派生的结构节点（plan_to_rir 那条桥）自 2026-10-19 起已有两条生产入口（CLI `analyze` 与
+// POST …/assets/<img-ID>/analysis），但本页不调它，且本机没有合格 OCR 后端可产出观测，
+// 所以本页不假装接上，
 // 也不把检测推断的节点画进来。
 // ============================================================================
 
@@ -7909,8 +7910,9 @@ export async function renderPlan(target: HTMLElement): Promise<void> {
 //     GET /api/projects/{id}/design-layer 的真实字段；
 //   * 方法 / 偏好 = 方向自己的 color_mood / typography_mood / style_notes；
 //   * 软件限制 = CAPABILITY_REGISTRY 里宿主那条自我描述（BLOCKED 就是 BLOCKED）；
-//   * 已识别结构与推断 = 本批**没有**可信来源：analysis/plan_to_rir 这座桥在仓库里
-//     没有生产调用方（design-lab/tests 在调），所以这里不画任何推断节点，只写清缺什么、下一步是什么；
+//   * 已识别结构与推断 = 本批**没有**可信观测来源：analysis/plan_to_rir 这座桥自 2026-10-19
+//     起已有两条生产入口（CLI `analyze` 与 POST …/analysis），但本机没有合格 OCR 后端产出观测，
+//     本页也不调它，所以这里不画任何推断节点，只写清缺什么、下一步是什么；
 //   * 本次纠正 = 走 design.ts reviseDirection()（与遗留表单同一规则），
 //     修订追加新版本，不改写旧版本字节。
 // ============================================================================
@@ -7981,11 +7983,13 @@ function analysisPanel(projectId: string): HTMLElement {
       el('div', { class: 'analysis-gaps' },
         stateBlock({
           kind: 'unknown', title: '已识别结构与推断', weight: 'neutral',
-          producer: '本面没有可信来源可列：analysis/plan_to_rir 这座把平面分解 Plan 转成 '
-            + 'RIR 节点的桥没有生产调用方（仓库里只有 design-lab/tests 在调），'
-            + '检测得到的推断内容因此无处读回。',
-          next: '要么把该桥接进一条真实分析路由并按 E2 验收，要么维持"结构节点由人在目标生成包里'
-            + '逐项给出"；在接通之前，本页不画任何推断节点，也不把空白读成"没有结构"。',
+          producer: '本页不列推断节点，缺的不是入口而是合格的观测来源：analysis/plan_to_rir '
+            + '这座把平面分解 Plan 转成 RIR 节点的桥已接进两条生产入口（CLI `design-lab analyze` 与 '
+            + 'POST …/assets/<img-ID>/analysis，均由 live HTTP 测试按 E2 实跑读回），'
+            + '但本机没有合格的 OCR/分析后端可产出观测（readiness 模型清单 QUALIFIED_LOCAL=0），'
+            + '检测推断的内容因此仍无处读回。',
+          next: '接通那一半已完成；剩下的是 owner 裁定是否让某个本地模型合格，或维持"结构节点由人在'
+            + '目标生成包里逐项给出"。在观测有合格来源之前，本页不画任何推断节点，也不把空白读成"没有结构"。',
         }),
         capabilityCardHost('research-insights')),
       ...shapeNoticeRows(data));

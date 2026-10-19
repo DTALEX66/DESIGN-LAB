@@ -9621,8 +9621,8 @@ function analysisPanel(projectId) {
           kind: "unknown",
           title: "已识别结构与推断",
           weight: "neutral",
-          producer: "本面没有可信来源可列：analysis/plan_to_rir 这座把平面分解 Plan 转成 RIR 节点的桥没有生产调用方（仓库里只有 design-lab/tests 在调），检测得到的推断内容因此无处读回。",
-          next: '要么把该桥接进一条真实分析路由并按 E2 验收，要么维持"结构节点由人在目标生成包里逐项给出"；在接通之前，本页不画任何推断节点，也不把空白读成"没有结构"。'
+          producer: "本页不列推断节点，缺的不是入口而是合格的观测来源：analysis/plan_to_rir 这座把平面分解 Plan 转成 RIR 节点的桥已接进两条生产入口（CLI `design-lab analyze` 与 POST …/assets/<img-ID>/analysis，均由 live HTTP 测试按 E2 实跑读回），但本机没有合格的 OCR/分析后端可产出观测（readiness 模型清单 QUALIFIED_LOCAL=0），检测推断的内容因此仍无处读回。",
+          next: '接通那一半已完成；剩下的是 owner 裁定是否让某个本地模型合格，或维持"结构节点由人在目标生成包里逐项给出"。在观测有合格来源之前，本页不画任何推断节点，也不把空白读成"没有结构"。'
         }),
         capabilityCardHost("research-insights")
       ),
