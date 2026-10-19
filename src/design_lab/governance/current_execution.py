@@ -158,7 +158,9 @@ def update_reports(reader, ledger, reports, common):
     reports['PROJECT_STATUS.json'] = dump(status)
     lines = ['# PROJECT_STATUS（当前派工投影）', '', f'任务包：{p["taskpack"]}；状态唯一编辑源：{ledger["currentExecution"]["plan_path"]}所指原账本currentExecution。',
              '', f'生成时HEAD：{common["subjectSha"]}；subjectType={common["subjectType"]}；生成时间不是测试时间。',
-             '', '桌面UI优先；手机端FROZEN_DEFERRED。22父任务＋12UI子任务，不相加算完成率。',
+             '', '桌面端是唯一交付面；手机端已由 owner 2026-10-19 定为排除项（不是待排期冻结项），'
+             '账本 currentExecution.mobile 仍是 schema const FROZEN_DEFERRED，改词需 owner 授权，故未改。'
+             '22父任务＋12UI子任务，不相加算完成率。',
              '本次归档不实施产品。旧R5状态和证据冻结，不用于关闭新任务。', '',
              '|任务|类型|批次|状态|证据|', '|---|---|---|---|---|']
     lines += ['|' + '|'.join([t['id'], t['kind'], t['batch'], t['state'], t['evidence_level']]) + '|' for t in p['tasks']]

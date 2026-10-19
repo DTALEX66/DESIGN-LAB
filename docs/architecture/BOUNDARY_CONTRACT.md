@@ -6,7 +6,7 @@
 - `apps/workbench`仍是唯一前端技术壳，但界面服务于能力（Brief/参考输入/分析/Prompt Builder/能力库/Adapter Registry/真实调用结果/测试对比/人工验收/知识候选），不是画布。
 - 原生宿主负责画布内实际编辑；DESIGN-LAB不持有宿主私有数据库或用户素材库。
 - WORK-LAB拥有通用工作流、全局配置、权限/预算、跨项目路由、监测与维护；AAOS拥有正式知识、来源/证据治理、审核与长期学习。DESIGN-LAB通过版本化合同协作，不写对方私有数据库，只提交知识候选并读取AAOS状态。
-- 2026-10-09 UI-FIRST派工与`currentExecution` 34项任务已冻结（`FROZEN_DEFERRED`），不再派工；手机端继续`FROZEN_DEFERRED`。
+- 2026-10-09 UI-FIRST派工与`currentExecution` 34项任务已冻结（`FROZEN_DEFERRED`），不再派工；手机端不是"待排期的冻结项"，owner 2026-10-19「再说一遍 不做手机端 只做桌面端」→「授权给你 去掉手机端」把它改为**排除项**（见 AUTHORITY.md 2026-10-19 条款）。账本 `currentExecution.mobile` 仍是 schema const `FROZEN_DEFERRED` 且有测试断言，改词属状态词合同变更，需 owner 另行授权，本轮未改。
 - 本轮只做权威/规划对齐与按范围验证，不实施产品功能；文档修订不等于代码实现或真实运行。
 
 ---

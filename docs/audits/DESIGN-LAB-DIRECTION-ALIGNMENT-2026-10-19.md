@@ -126,7 +126,7 @@
 | 2 | editable delivery / BOM / handoff 作为"拥有"的核心 | 与"不以全流程设计文件交付为产品本体"冲突 | **AMEND**：保留为能力输出、证据与受控交付手段，但不作为产品本体 | AUTHORITY.md、AGENTS.md、BOUNDARY_CONTRACT.md、product-manifest.json |
 | 3 | 2026-10-09 "桌面 UI 优先"作为派工主线 | 新方向要求界面服务于能力，且本轮不实施产品功能 | **DEPRECATE（作为派工） / KEEP（作为技术壳）**：UI-FIRST 包降为 `SUPERSEDED / LINEAGE`；`apps/workbench` 仍是唯一前端技术壳 | authority-index、AGENTS.md、task-document-states、UI-FIRST 包 |
 | 4 | `currentExecution` 34 项继续派工 | owner 明确"其他任务冻结" | **OWNER DECISION**：全部 `FROZEN_DEFERRED`；解冻需新授权 | task-ledger-r3.json、AGENTS.md、ROADMAP.md |
-| 5 | 手机端本轮不实现不验收 | 与既有 `FROZEN_DEFERRED` 一致 | **KEEP** | AUTHORITY.md、AGENTS.md、任务包 §1 |
+| 5 | 手机端本轮不实现不验收 | owner 2026-10-19 追加「再说一遍 不做手机端 只做桌面端」→「授权给你 去掉手机端」：它不是待排期项，而是排除项 | **AMEND**：由"冻结待排"改为**排除项**（处置层=现行面+权威条款，历史原文保留不改写，代码不动）；账本 `currentExecution.mobile` 是 schema const `FROZEN_DEFERRED` 且有测试断言，改词属状态词合同变更，本轮未改 | AUTHORITY.md 2026-10-19 条款、AGENTS.md、BOUNDARY_CONTRACT.md、authority-index `directionAdoption.mobile` |
 | 6 | release / 安装态分发 / 真实宿主 E3 / 真人 E4 / E5 由 owner 授权 | 无变化 | **KEEP** | AUTHORITY.md、任务包 §10、NEXT-AGENT-PROMPT §7 |
 | 7 | AAOS 是长期知识真值 | 与"受控知识回流"方向一致 | **KEEP + 明确候选制**：只提交候选并读取接收状态，不直接写可信知识 | AUTHORITY.md、AGENTS.md、PRODUCT_DEFINITION.md、BOUNDARY_CONTRACT.md |
 | 8 | WORK-LAB 拥有通用治理 | 与"不接管 WORK-LAB"一致 | **KEEP + 明确非目标**：不成为通用 Agent Runtime/跨项目调度器 | BOUNDARY_CONTRACT.md、PRODUCT_DEFINITION.md、product-manifest.json |
@@ -241,7 +241,7 @@
 | 独立人审 E4 | owner 门；本轮没有真人参与 |
 | release / 安装态分发 / E5 | owner 门 |
 | AAOS 联调 / 接收回执 | owner 门；本轮不写 AAOS |
-| 手机端 | `FROZEN_DEFERRED`；本轮不实现不验收 |
+| 手机端 | **排除项**（owner 2026-10-19）；不再是"待排期冻结"。账本状态词仍是 schema const `FROZEN_DEFERRED`，未改 |
 | E 盘访问 | 受保护；无精确授权不访问 |
 
 **CI 回执**：本批次提交并推送后，按精确 SHA 逐作业读取，追加在本节（见 §7.1）。
@@ -311,7 +311,7 @@
 
 ### 8.2 阻塞原因
 
-- **owner 门**：E3/E4/E5、手机端、发布/安装、AAOS、外部服务、E 盘、GUI 启动。
+- **owner 门**：E3/E4/E5、发布/安装、AAOS、外部服务、E 盘、GUI 启动。手机端不在这里——它是排除项，不是等人点头的待办。
 - **冻结令**：未来能力"暂时冻结和延期延后"；本轮不解冻。
 - **证据缺口**：无六域级评测集（仅 `reconstruction` 6 例）、无 Prompt 运行时、无真实 OCR、无当前宿主证据。
 - **数据/许可**：客户/私有素材默认不外传；未核验权利的能力不得标"合格"。
@@ -328,7 +328,7 @@
 | S3 | 真实宿主 E3 + 读回/恢复 | W07/W10；DL-FINAL-T13/T14 | E3 授权 |
 | S4 | 人工验收 E4 | W08；DL-FINAL-T12 | 真人评审授权 |
 | S5 | 知识候选 → AAOS 接收 | W17；DL-FINAL-T16/T18；DL-UI-U09 | AAOS 授权 |
-| S6 | 手机端 / 发布 / 安装态 | — | 当前 `FROZEN_DEFERRED` |
+| S6 | 发布 / 安装态 | — | 当前 `FROZEN_DEFERRED`（手机端不在本序列：已按 owner 2026-10-19 排除） |
 
 **顺序理由**：S0/S1 不需要外部服务，能先把"可复算的视觉分析 + 提示词结构 + 读回工件"做实；
 S2 之后每一步都跨一个 owner 门，不能靠文档或截图冒充。

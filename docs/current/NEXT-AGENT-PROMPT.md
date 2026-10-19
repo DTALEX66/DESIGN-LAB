@@ -112,9 +112,9 @@ E4 独立人审 / E5 发布可复现。**文档修订 ≠ 规划完成 ≠ 代�
 | Adobe/Comfy/Penpot 适配器 | `src/design_lab/adapters/`、`src/design_lab/generators/`、`src/design_lab/interop/penpot.py` | 静态/合同层存在；无当前 SHA 的真实宿主 E3 |
 | 历史 ComfyUI/H3 记录 | `docs/current/ROADMAP.md` 的 2026-08-16 `runtime-pass` | 历史记录，未在当前 HEAD 复验；H3/ComfyUI 已冻结 |
 | 评测集 | `git ls-files evals; git ls-files design-lab/evals; git ls-files design-lab/evals/reconstruction` | 根 `evals/` **0**；`design-lab/evals/` **63**；其中 `reconstruction` **20**（6 例 golden corpus + 索引）；**无六域级基准** |
-| Prompt Intelligence 运行时 | `git grep -l -iE 'class .*Prompt' -- 'src/design_lab/**/*.py'; git grep -l -iE 'def .*prompt' -- 'src/design_lab/**/*.py'` | 只命中 `generators/comfy_http.py` 的请求字段；**没有独立运行时模块** |
-| 真实 OCR | `git grep -l -i 'ocr' -- 'src/design_lab/**/*.py'; git grep -l -i 'tesseract' -- 'src/design_lab/**/*.py'` | `ocr` 命中 4 个文件（`analysis/decomposition.py`、`analysis/model_cache.py`、`creative/generative/model_assets.py`、`readiness/model_radar.py`），`tesseract` 0 命中；只有对象计划与模型清单引用，**没有 OCR 引擎实现与生产调用方** |
-| 运行时规模（HEAD 口径） | `git ls-files 'src/design_lab/**/*.py' \| wc -l` | 103 个 .py；creative 21 / runtime 17 / assurance 11 / governance 7 / interop 6 / analysis 6 / adapters 4 / readiness 3 / generators 3 |
+| Prompt Intelligence 运行时 | `git grep -l -iE 'class .*Prompt' -- 'src/design_lab/*.py'; git grep -l -iE 'def .*prompt' -- 'src/design_lab/*.py'` | 只命中 `generators/comfy_http.py` 的请求字段；**没有独立运行时模块**（两条口令原本写 `**/*.py`，会漏掉 26 个顶层文件；改成 `*.py` 后读数不变，仍是这个结论） |
+| 真实 OCR | `git grep -l -i 'ocr' -- 'src/design_lab/*.py'; git grep -l -i 'tesseract' -- 'src/design_lab/*.py'` | `ocr` 命中 6 个文件（`analysis/decomposition.py`、`analysis/model_cache.py`、`asset_analysis.py`、`http_service.py`、`creative/generative/model_assets.py`、`readiness/model_radar.py`），`tesseract` 0 命中；**没有 OCR 引擎实现**——新增的两个命中是派生入口与路由在"要求操作者提供观测"时提到 OCR，不是引擎。注意本行旧版用 `'src/design_lab/**/*.py'`，该 pathspec 不含 26 个顶层文件，所以旧读数少两个 |
+| 运行时规模（HEAD 口径） | `git ls-files src/design_lab \| grep -c '\.py$'` | 106 个 .py：顶层 26 / creative 21 / runtime 17 / assurance 12 / governance 7 / interop 6 / analysis 6 / adapters 4 / readiness 3 / generators 3 / reconstruction 1。本行旧版写作 103 且引用 `'src/design_lab/**/*.py'`——那个 pathspec 只给 80（它匹配不到 `src/design_lab/` 直属文件），数字与命令本来就不成对，现已换成能复现出口令的那一条 |
 | 能力包 | `git ls-files packages/capabilities \| wc -l` | 178 个受跟踪文件；atoms 21 个目录 |
 
 ## 5. 六大能力域 → 现有实现映射（只用于映射，不新建账本）
@@ -156,12 +156,12 @@ E4 独立人审 / E5 发布可复现。**文档修订 ≠ 规划完成 ≠ 代�
   验收 = T12（E4，owner-gated）；知识候选 = T16/T18/U09。
 - **五段链路的实测现状（2026-10-19 逐条查过，不是推断）**：
   1. 视觉输入 = 已实现且真跑：`src/design_lab/image_assets.py:21 inspect_image`、POST `/api/projects/{id}/assets`（`http_service.py:191`），字节入库并按 sha256 复核。
-  2. 分析/提示词 = **桥在、调用方无**：`analysis/decomposition.py:96 Plan.from_ocr` 与 `analysis/plan_to_rir.py:137`（内部即 `validate_rir`）都有测试通过，但 `plan_to_rir` 无生产调用方；**反向提示词根本没有运行时模块**（`src/design_lab/http_service.py`/`cli.py` 里 grep `analyz|prompt` = 0 命中），`core/providers.py` 只是 39 行能力词汇表。所以这一段既不能声称已实现，也不能靠新建面板冒充。
+  2. 分析/提示词 = **桥在、调用方已有两个（2026-10-19 起）**：`analysis/decomposition.py:96 Plan.from_ocr` 与 `analysis/plan_to_rir.py:137`（内部调用 `reconstruction/contracts.validate_rir`）都有测试通过，生产入口现有两条——CLI `design-lab analyze`（`cli.py:242`/`cli.py:665`）与 `POST /api/projects/<id>/assets/<img-ID>/analysis`（`http_service.py:195`），都经 `src/design_lab/asset_analysis.py:AssetAnalysis.derive`。核验口令：`git grep -c AssetAnalysis -- 'src/design_lab/*.py'` → 三个文件各命中。**仍然缺的是合格的 OCR/分析后端**：观测必须由操作者提供，所以该路由在 workbench 调用闸门里登记为 `backend_only`，页面也不自动编排结构。**反向提示词仍然没有运行时模块**——注意旧版用 `grep 'analyz|prompt'` 作证据是假阴性仪器（代码里写的是 `analysis` 不是 `analyz`，而 CLI 的 `analyze` 动词确实命中），别再拿那条口令的 0 命中当"没有入口"。`design-lab/core/providers.py`（不在 `src/design_lab/core/`）只是 39 行能力词汇表。所以这一段既不能声称已实现，也不能靠新建面板冒充。
   3. 工具调用 = 静态合同 E1；本机唯一可离线真跑的是 vtracer（`providers/vtracer_provider.py:7` → 外部工具链 1.0.0-alpha.3，MIT，`commercialUse: ALLOWED`）；`design-action.schema.json` 在 `src/` 内**没有 emitter**，`integrations/hosts/ffmpeg/` 是空目录。
   4. 验收 = E2 有路由有 UI（`/jury/verdict`、`/jury/proposal`、`quality`/`rights` CLI），但 E4 真人判定按铁律不由代理填。
   5. 知识候选 = 存储与路由齐（`assurance/knowledge_feedback.py:202 build_candidate`、`knowledge_candidate` 表、create/review/revoke 三路由），**缺的是从验收判定到候选的发射器**；导出合同也已存在（`design-lab/schemas/assurance-knowledge-candidate-v2.schema.json` 的 `$defs.export`，第 178 行），**不要再新建一份 export schema**——那会让一个边界出现两个权威。
 - **两处不是工程缺口，是 owner 决定**：(a) 验收记录里没有 `source.job_id`/`operation_id`，而 `build_candidate` 强制要求它们，所以要么改 jury 合同带上这两个引用，要么候选仍只能由人显式提交——代理不得凭空填 provenance；(b) 本机没有合格模型：`readiness/model-radar.json` 14 条里 `QUALIFIED_LOCAL=0` 且全部 `default_enabled: false`，`reconstruction-models.json` 指向的模型根目录不存在，omniparser `commercialUse: DENIED`；磁盘上确有 Qwen2.5-VL-7B GGUF（含 mmproj）但它不在雷达里。要不要把它列为合格本地模型，是许可与资格裁定，不是我能替你定的。
-- **已作废的两条调查结论**（写在这里防止下一会话照它们动手）："export 没有 schema 文件" 与 "plan_to_rir 缺失" 都是错的；前者见上，后者是缺调用方而非缺实现。
+- **已作废的三条调查结论**（写在这里防止下一会话照它们动手）："export 没有 schema 文件" 与 "plan_to_rir 缺失" 都是错的；前者见上，后者是缺调用方而非缺实现。第三条现在也过期了："`plan_to_rir` 无生产调用方" 自 2026-10-19 起不成立（CLI `analyze` + `POST …/assets/<id>/analysis` 两条入口，见 §上一项 2），照旧话去"补第一个调用方"会重复劳动。缺的那一半是**合格后端**，不是调用方。
 - 下一轮若获授权，先交付"可审阅的读回面板 + 真实数据源 + 可复现测试"，
   把没建的那一半写在可见文字里，不要把 PLANNED 标成 IMPLEMENTED。
 
