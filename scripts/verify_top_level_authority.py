@@ -100,7 +100,7 @@ AUTHORITY_ID = "DL-AUTHORITY-2026-09-18-R2"
 # AUTHORITY-PIN-CHANGE.json revisions[]. Checks stay at 10.
 R2_RELEASE_HASHES = {
     "AUTHORITY.md": "4f7bd6c0713563f135bd637c9b9afa19b59ed3889097810c35bf384add88acf8",
-    ".project/governance/authority-index.json": "e03e035aa0fdc2fc81d081e3324fe2cbb760d2afb11ff4d72bef2da9b53d2aa4",
+    ".project/governance/authority-index.json": "7658dfc583d62397174ffefc958d29d35436fbe2ee41663cc48793fec26b9e95",
     "docs/current/HISTORY-FREEZE-RULES.md": "3573b88df6c04be6fa6932327aff94ad8c547a43bfcbc6a3337d4bad50a71322",
     "docs/taskpacks/DESIGN-LAB-FINAL-AUTHORITY-CONVERGENCE-TASKPACK-2026-09-18.md": "62f43ef295d4e90462d1e49e657e490400c4b5568f4e4ad1db3e268e12bb10c7",
     "docs/taskpacks/DESIGN-LAB-UI-FIRST-INTEGRATED-TASKPACK-2026-10-09.md": "2cfd84627352e9f1b29b42787fa43466cd9a836130d826d43678b7733856ffda",

@@ -131,6 +131,7 @@
     "positioning": "professional visual intelligence and reusable design capability system",
     "priorDispatch": "FROZEN_DEFERRED",
     "mobile": "OUT_OF_SCOPE",
+    "aaos": "CONTRACT_ONLY_NOT_A_DEPENDENCY",
     "futureCapabilities": "FROZEN_DEFERRED"
   },
   "frozenLegacyLedgers": [

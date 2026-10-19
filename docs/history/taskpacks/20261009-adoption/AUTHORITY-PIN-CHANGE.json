@@ -126,7 +126,22 @@
    },
    "why": "AAOS 从「未执行且继续冻结」清单移出，并重述项目目标为独立可运行、全链路可跑通：保留版本化公共合同（Schema/API/Manifest）与 KnowledgeCandidate 出口，但外部知识系统的联调/接收不再是本项目的前置条件或完成判据。入口面把最后一根状态轴从「AAOS 接收」改名为「外部知识系统接收」并写明本项目只写候选、只读回执；「当前没有可用的、未冻结的真实宿主」清单里删去 AAOS（它不是宿主）。AGENTS.md 与 NEXT-AGENT-PROMPT 同步改述，均不在钉死清单内；BOUNDARY_CONTRACT 与 product-manifest 的不拥有边界、非目标条款原样保留——那是范围，不是等待。",
    "checks": "verify_top_level_authority 仍 10 项；authority-index 未动（其钉值与上一 revision 相同，故本次 changed 只含 AUTHORITY.md）；docs/history/** 冻结原件未编辑；账本冻结分区字节不变；AGENTS.md 为 -text，blob 字节即工作树字节，行尾形状未变"
+  },
+  {
+   "when": "2026-10-19",
+   "authority": "owner instruction 2026-10-19: 「AAOS 不要管 保留标准通用的接入接口等 本项目按照独立能运行的能全链路跑通的项目」",
+   "changed": [
+    ".project/governance/authority-index.json"
+   ],
+   "from": {
+    ".project/governance/authority-index.json": "e03e035aa0fdc2fc81d081e3324fe2cbb760d2afb11ff4d72bef2da9b53d2aa4"
+   },
+   "to": {
+    ".project/governance/authority-index.json": "7658dfc583d62397174ffefc958d29d35436fbe2ee41663cc48793fec26b9e95"
+   },
+   "why": "权威索引此前记录了同日两条范围裁定中的手机端一条（directionAdoption.mobile=OUT_OF_SCOPE），却对 AAOS 一条只字未提（全文 0 次命中），于是机器面比 AUTHORITY.md / AGENTS.md / PRODUCT_DEFINITION / NEXT-AGENT-PROMPT / BOUNDARY_CONTRACT / 方向验收报告少一项，下一会话读索引仍可能把 AAOS 联调当完成判据。本次补 directionAdoption.aaos=CONTRACT_ONLY_NOT_A_DEPENDENCY 一项，只记关系不记新增强制字段。`after_pins` 是最初采纳快照，不是现值镜像，故不动；re-pin 只体现在这条 revision 的 from/to 里。",
+   "checks": "改后 JSON 仍可解析；verify_top_level_authority 仍 10 项且 r2-release-integrity 以新值通过；该文件同时是 Record 导入清单的 repo 侧绑定件，故另跑 declare_record_evolution.py 声明仓库副本演进（归档字节与 leg 1 不动）"
   }
  ],
- "current_pins_note": "Latest change is revisions[-1] (2026-10-19 standalone-goal reframe): AUTHORITY.md re-pinned after AAOS was taken out of the frozen-dependency list and the project goal was restated as standalone and end-to-end runnable, with the versioned public contracts retained. Earlier revisions are kept as the supersession trail."
+ "current_pins_note": "Latest change is revisions[-1] (2026-10-19 AAOS ruling on the machine surface): .project/governance/authority-index.json re-pinned after directionAdoption gained the aaos key. Earlier revisions are kept as the supersession trail."
 }
