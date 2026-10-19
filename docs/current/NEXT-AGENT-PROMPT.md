@@ -169,9 +169,11 @@ E4 独立人审 / E5 发布可复现。**文档修订 ≠ 规划完成 ≠ 代�
   一句注释就能把豁免的手动闸变成"可达"，触发 `no_exemption_has_gone_stale`。用角色称呼。
 - **新增/删除 `apps/workbench/` 下文件会让 `verify_inert_contract_survey` 红**（`productFiles` 计数）。
   按该脚本自己的文档：先不带 `--check` 重跑刷新投影，再 `--check`；不要手改 JSON。
-- **工作树里有未提交的 U09 改动**（`apps/workbench/shell.ts`、`http_service.py`、`state_resources.py`、
-  若干 untracked schema/test/module 文件）。**本轮不提交、不 reset、不 checkout、不清理它们**；
-  提交前用 `git status` 明确排除。
+- **U09/T16 的在途改动已提交，工作树干净**：`apps/workbench/shell.ts`、`http_service.py`、
+  `state_resources.py`、知识候选运行时与 schema/state、测试与构建产物已在 2026-10-19 的
+  U09 批次上传（用 `git log` 自读 SHA，不要抄文档），CI 在该 SHA 上全绿。
+  **落代码 ≠ 解冻任务**：`currentExecution` 的 34 项仍是 `FROZEN_DEFERRED`；知识候选没有 AAOS
+  接收回执，E3/E4 未执行。若工作树再出现未提交改动，仍按保护规则处理。
 - 本机沙箱跑不了全量 Python 套件：safe-delete shim 会中途 `SystemExit`，另有 Windows 造不出锁的用例。
   本机聚合闸基线**不是 0**；差别只在 CI 上消除。
 - `gh run view <id> --log` 有时返回空；用
