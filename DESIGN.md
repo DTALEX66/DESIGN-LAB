@@ -62,8 +62,14 @@ measuredDebtAtCommit: 700ee3fb
 
 - 宽屏：280px 固定侧栏 + 1fr 内容；顶栏 78px；内容区 padding 26/28/30。
 - 断点：`≤840px` 侧栏转 off-canvas 抽屉（`#navToggle` + `inert`）；`≤760px` 旧版页头导航转底部横滚。
-- **高度也是断点**：侧栏导航 11 项需 587px，窗口高度 ≤720 时列表溢出，此时必须出现
-  `.nav.has-scroll-more` 的粘性 cue，滚到底自动消失。`overflow:auto` 不算可供性。
+- **高度不是"够高就不溢出"**：导航 19 项，列表内容高约 1127px，而 `.nav` 的可视高跟着窗口一起长——
+  实测（宽 1440）视口高 1100 仍溢出 **299px**、900 溢出 499px、750 溢出 649px、620 溢出 779px。
+  所以 `.nav.has-scroll-more` 那个粘性 cue 在正常桌面窗口下是**常态**，不是矮窗口才需要的补丁；
+  滚到底必须自动消失。`overflow:auto` 不算可供性。被切割线切到的元素会随高度换（1100/900 是分组
+  标签，750 是导航按钮），但它与页脚发丝线的间距恒为 **12px**（固定 token 边距）——这条由
+  `design-lab/tests/test_workbench_overflow_gate.py` 的 `OV_NAV_EDGE_TIGHT` 在 900 与 620 两档看守。
+  本条旧版写的是"11 项需 587px、窗口高度 ≤720 时才溢出"，两项都已过期：项数随 IA 变成 19，
+  而溢出在任何正常桌面高度下都成立。
 - 层级：12 处 `z-index` 已全部落成层级表 `design-lab/config/ui-layering.json`（11 层，值与
   选择器由 `design-lab/scripts/verify_ui_layering.py` 从 `style.css` 量得，界面源里不得再出现
   裸数字；表里少一句说明、多一行没用的层、选择的规则变了都对不上号）。**实测遗留**：
@@ -127,7 +133,7 @@ Linear、Raycast**。方法沿用已验证过的规矩：先收割对标的 CSS/
 ## 6. 本文件的验证状态
 
 - 令牌取值：从 `apps/workbench/style.css` 读出，非回忆。
-- §3.1 的 4.45:1 与 §2 的 587px/≤720 数字：本轮真实 Chromium 实测（`.project-local/task-artifacts/browser-e2e/workbench-ui-audit.json`、`.project-local/tmp/ui-short-viewport.json`）。
+- §3.1 的 4.45:1 与 §2 的溢出/间距数字：真实 Chromium 实测（`.project-local/task-artifacts/browser-e2e/workbench-ui-audit.json`、`workbench-overflow-gate.json`、`.project-local/tmp/ui-short-viewport.json`）。§2 那四个溢出值是 2026-10-19 在宽 1440 下按 `OV_HEIGHT=1100/900/750` 加默认短档逐趟重量得到的；旧版 587px 与"≤720 才溢出"两个数作废，不是被推翻后被悄悄替换——替换理由记在同一条里。
 - 对比度证据的覆盖面（实测，见审计包 §9 与 §11）：`design-lab/tests/e2e/audit_workbench_contrast.mjs`
   在 24 个路由×宽度组合上判 2460 个文本运行，最紧的一对是 4.11:1（要求 3:1，大字）；
   `color-mix()` 计算出的 `color(srgb …)` 背景已纳入合成，读不懂的颜色一律判红而不是跳过；
