@@ -4,7 +4,7 @@
     "DL-TP-20260914-DEEPSEEK-AUTHORITY-R1::DLDS-A030",
     "DL-TP-20260914-DEEPSEEK-AUTHORITY-R1::DLDS-A040"
   ],
-  "generated_at": "2026-10-19T08:30:14+00:00",
+  "generated_at": "2026-10-19T09:51:21+00:00",
   "frozen_delta": {
     "range": "9f34b53..5631963",
     "commits": [
@@ -18,7 +18,7 @@
   },
   "current_worktree_clean": false,
   "current_branch": "qoder/designlab-backup-consistency-20261007",
-  "current_sha": "f55f03821e90e61f49ff64e529133b892494756b",
+  "current_sha": "42cb86d5a3fbaee72bdd824e5345dabe0db3bfd7",
   "classification_counts": {
     "KEEP_WITH_FIX": 86,
     "OUT_OF_PACK": 7,
@@ -43,8 +43,8 @@
     {
       "path": "design-lab/config/current-report-index.json",
       "git_status": "M",
-      "bytes": 173021,
-      "sha256": "sha256:e44238cecec5b8a6dc240707e799c08f613a0169ea1b5f10fe0ad2d72b482ab4",
+      "bytes": 92832,
+      "sha256": "sha256:3db41a33adb4276faa4a27664b989facb751c46bd85211a748448dc3a851c2dc",
       "classification": "KEEP_WITH_FIX",
       "attributed_tasks": [
         "DL-TP-20260914-DEEPSEEK-AUTHORITY-R1::DLDS-H030"
@@ -883,8 +883,8 @@
     {
       "path": "integrations/hosts/minimax-design/POC-PLAN.md",
       "git_status": "A",
-      "bytes": 5364,
-      "sha256": "sha256:5898e1978096b5fbbd58ee5e247719043950151ec8efdbade2d291220fe55fa3",
+      "bytes": 5426,
+      "sha256": "sha256:1f214b5e0bae8444477c418094a56ecc590f2459c1a6ee8f795744d3cc267872",
       "classification": "KEEP_WITH_FIX",
       "attributed_tasks": [
         "DL-R5-021",
@@ -943,8 +943,8 @@
     {
       "path": "integrations/hosts/minimax-design/rights-and-provider-policy.md",
       "git_status": "A",
-      "bytes": 2707,
-      "sha256": "sha256:df57544a6d3fd97ebf54ffccb5b9054caeaed307e5589c155a2419e40d1ca139",
+      "bytes": 2811,
+      "sha256": "sha256:55dfbe60b61d9317b8d423057893b3016517f6e2f4179c0e1f2573274e6cebda",
       "classification": "KEEP_WITH_FIX",
       "attributed_tasks": [
         "DL-R5-021",
@@ -964,7 +964,7 @@
       "path": "reports/current/ADAPTER_EVIDENCE_RECONCILIATION.json",
       "git_status": "M",
       "bytes": 9853,
-      "sha256": "sha256:3e7bcedb8a9cd2df0736fbbc998bc106d2496cc931978c772d6895c624195617",
+      "sha256": "sha256:856b9ea7ff31534acf96ddd1343e1939ae2d6feb0d9f6238ca2d5821e81f725d",
       "classification": "KEEP_WITH_FIX",
       "attributed_tasks": [
         "DL-TP-20260914-DEEPSEEK-AUTHORITY-R1::DLDS-H030"
@@ -999,8 +999,8 @@
     {
       "path": "reports/current/CLOUD_BASELINE.json",
       "git_status": "M",
-      "bytes": 82380,
-      "sha256": "sha256:a096fc065d785117a12c7a02b99d39324f6015df6f9ab177179ba8d6989ff612",
+      "bytes": 2191,
+      "sha256": "sha256:90983da1a816f7235e1bdf21c3712bdb28e2f0e04a41499a1bda9ce60d855ab9",
       "classification": "KEEP_WITH_FIX",
       "attributed_tasks": [
         "DL-TP-20260914-DEEPSEEK-AUTHORITY-R1::DLDS-H030"
@@ -1018,7 +1018,7 @@
       "path": "reports/current/CLOUD_BASELINE.md",
       "git_status": "M",
       "bytes": 234,
-      "sha256": "sha256:6f36f0469a1ff3b323f0d8548d56b84172984d3b2e2757a3bae29ba1c333bee5",
+      "sha256": "sha256:36946dfe6d0213540bd9a5f8460224bccd16bb5293fe599d2b1c7fa8a26b9456",
       "classification": "KEEP_WITH_FIX",
       "attributed_tasks": [
         "DL-TP-20260914-DEEPSEEK-AUTHORITY-R1::DLDS-H030"
@@ -1036,7 +1036,7 @@
       "path": "reports/current/DOMAIN_PACK_READINESS.json",
       "git_status": "M",
       "bytes": 3219,
-      "sha256": "sha256:1a58e4cd8c845776a3ec2f8375e23c89c937ae8e75b01d7fc81d12ab5bb6b44b",
+      "sha256": "sha256:575f18bf6c07cb914e2d54bc3a69ff5333e3b5b818085b73adb2416685806669",
       "classification": "KEEP_WITH_FIX",
       "attributed_tasks": [
         "DL-TP-20260914-DEEPSEEK-AUTHORITY-R1::DLDS-H030"
@@ -1072,7 +1072,7 @@
       "path": "reports/current/KNOWLEDGE_INVENTORY.json",
       "git_status": "M",
       "bytes": 1409,
-      "sha256": "sha256:fee8f40d6e543f000f5ff6d8dc3b8f6d20b3ce0c38b0a6a740417246e94c48ef",
+      "sha256": "sha256:d853583a0da9980aac8fec9ad824f4569e38e8af85b45e218841f9694369b9ec",
       "classification": "KEEP_WITH_FIX",
       "attributed_tasks": [
         "DL-TP-20260914-DEEPSEEK-AUTHORITY-R1::DLDS-H030"
@@ -1107,8 +1107,8 @@
     {
       "path": "reports/current/PROJECT_STATUS.json",
       "git_status": "M",
-      "bytes": 82752,
-      "sha256": "sha256:88dcb0f6636b9981025c3e05d4eabaa00e9810cdabb5d9bb4a5a383a3ead7ad0",
+      "bytes": 2563,
+      "sha256": "sha256:f7f9b19cf9612c9ae137efb82296f999de07146900095fda955ab464273c448e",
       "classification": "KEEP_WITH_FIX",
       "attributed_tasks": [
         "DL-TP-20260914-DEEPSEEK-AUTHORITY-R1::DLDS-H030"
@@ -1126,7 +1126,7 @@
       "path": "reports/current/PROJECT_STATUS.md",
       "git_status": "M",
       "bytes": 2730,
-      "sha256": "sha256:adbb98c0338af1830b05d693f3b283873d0ba91f3d63f4dbcf803ac08c3bebef",
+      "sha256": "sha256:96161a20798ae43761c286a5754da008a0f86d2c4180a229f1b287cd164cfd66",
       "classification": "KEEP_WITH_FIX",
       "attributed_tasks": [
         "DL-TP-20260914-DEEPSEEK-AUTHORITY-R1::DLDS-H030"
@@ -1144,7 +1144,7 @@
       "path": "reports/current/RELEASE_READINESS.json",
       "git_status": "M",
       "bytes": 1544,
-      "sha256": "sha256:968d0579e3e031aa31355b55421f064ed4fd7cdbe7e0b72d23c7d95e57d86230",
+      "sha256": "sha256:9188ec83a4b48bb38e9289e1aa4de8648842c14363edf1fa6348310785fa03f3",
       "classification": "KEEP_WITH_FIX",
       "attributed_tasks": [
         "DL-TP-20260914-DEEPSEEK-AUTHORITY-R1::DLDS-H030"
@@ -1162,7 +1162,7 @@
       "path": "reports/current/TASK_PROGRESS.json",
       "git_status": "M",
       "bytes": 25498,
-      "sha256": "sha256:068b5b0f7ff0da00c2b478d68ae8a41f499f0414ec8980640c488a2780b1951f",
+      "sha256": "sha256:d4137884d2b0cec22a22778955ff808d28940a76b5170bb41e80029483a1bbcc",
       "classification": "KEEP_WITH_FIX",
       "attributed_tasks": [
         "DL-TP-20260914-DEEPSEEK-AUTHORITY-R1::DLDS-H030"

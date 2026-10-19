@@ -7,7 +7,7 @@
     ".project/governance/authority-index.json",
     "docs/current/HISTORY-FREEZE-RULES.md"
   ],
-  "why": "2026-10-19 owner方向调整：唯一派工入口为DIRECTION对齐包；UI-FIRST降为前继执行血统，原账本currentExecution的34项任务全部FROZEN_DEFERRED；旧文档原字节留存，状态仍只编辑原账本currentExecution。",
+  "why": "2026-10-19 owner方向调整：唯一派工入口为DIRECTION对齐包；UI-FIRST降为前继执行血统，原账本currentExecution的34项任务全部FROZEN_DEFERRED；旧文档原字节留存，状态仍只编辑原账本currentExecution。 2026-10-19 交接/提示词删除波：5 份按日期提示词副本已删除，其逐份 sha256/字节仍登记在 docs/history/next-agent-prompts/PROMPT-LINEAGE.json，内容与独有事实汇总在 docs/history/archive-2026-10-19/AGGREGATED-RECORD-2026-10-19.md。",
   "vocabulary": {
     "CURRENT": "AUTHORITY.md §11 词汇：当前权威/当前入口",
     "CURRENT_BUT_DRIFTED": "AUTHORITY.md §11 词汇",
@@ -460,46 +460,6 @@
       "role": "RECORD",
       "frozen": false,
       "basis": "被替换的按日期命名的提示词的血统清单：逐份记录路径、字节数与定态时的 sha256。它让\"这一轮之前读的是哪份\"可查，同时不把任何一份旧副本留在 docs/current/。"
-    },
-    {
-      "path": "docs/history/next-agent-prompts/NEXT-AGENT-PROMPT-2026-10-09.md",
-      "state": "HISTORICAL",
-      "role": "RECORD",
-      "frozen": false,
-      "basis": "曾是接续入口的按日期副本，现已不是入口；保留用于 lineage（当时为什么那样安排）。",
-      "supersededBy": "docs/current/NEXT-AGENT-PROMPT.md"
-    },
-    {
-      "path": "docs/history/next-agent-prompts/NEXT-AGENT-PROMPT-2026-10-10.md",
-      "state": "HISTORICAL",
-      "role": "RECORD",
-      "frozen": false,
-      "basis": "曾是接续入口的按日期副本，现已不是入口；保留用于 lineage（当时为什么那样安排）。",
-      "supersededBy": "docs/current/NEXT-AGENT-PROMPT.md"
-    },
-    {
-      "path": "docs/history/next-agent-prompts/NEXT-AGENT-PROMPT-2026-10-11.md",
-      "state": "HISTORICAL",
-      "role": "RECORD",
-      "frozen": false,
-      "basis": "曾是接续入口的按日期副本，现已不是入口；保留用于 lineage（当时为什么那样安排）。",
-      "supersededBy": "docs/current/NEXT-AGENT-PROMPT.md"
-    },
-    {
-      "path": "docs/history/next-agent-prompts/NEXT-AGENT-PROMPT-2026-10-12.md",
-      "state": "HISTORICAL",
-      "role": "RECORD",
-      "frozen": false,
-      "basis": "曾是接续入口的按日期副本，现已不是入口；保留用于 lineage（当时为什么那样安排）。",
-      "supersededBy": "docs/current/NEXT-AGENT-PROMPT.md"
-    },
-    {
-      "path": "docs/history/next-agent-prompts/NEXT-AGENT-PROMPT-2026-10-13.md",
-      "state": "HISTORICAL",
-      "role": "RECORD",
-      "frozen": false,
-      "basis": "2026-10-13 的接续提示词：原本是入口，2026-10-18 入口收敛为就地更新的单一文件后移入历史。保留它是因为它记录了 #13 / owner 项 F 的根因与当时的下一步；照它接续会读到已过期的状态。",
-      "supersededBy": "docs/current/NEXT-AGENT-PROMPT.md"
     }
   ],
   "promptEntryRule": {

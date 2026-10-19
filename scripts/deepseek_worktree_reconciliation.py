@@ -152,15 +152,18 @@ RULES = [
     ("integrations/hosts/minimax-design/", "KEEP_WITH_FIX", ["DL-R5-021", "DL-R5-006", "DLDS-G020"],
      "MiniMax Design host candidate registration (E0, not launched); R5-021 asks for exactly "
      "a per-host version/interface/licence/minimal-case record."),
-    ("docs/history/archive-2026-10-19/handoffs/DEEPSEEK-RIGHTS-REFRESH-MINIMAX-H3-2026-09-13.md", "KEEP", ["DL-R5-018", "DLDS-G030"],
-     "H3 licence evidence record; H3 remains BLOCKED_BY_LICENSE and no run was performed."),
-    ("docs/history/archive-2026-10-19/handoffs/DEEPSEEK-OPEN-DESIGN-E3-READINESS-2026-09-13.md", "KEEP", ["DL-R5-021"],
-     "Open Design E3 readiness and its concrete blocker (no runtime in the recorded scope)."),
-    ("docs/history/archive-2026-10-19/handoffs/DEEPSEEK-DEEP-ADAPTATION-EXECUTION-2026-09-13.md", "KEEP_WITH_FIX", ["DLDS-A030"],
-     "record of the unverified-attribution round; kept as incident evidence and superseded by "
-     "this reconciliation."),
-    ("docs/history/archive-2026-10-19/handoffs/SESSION-RESTART-2026-09-12.md", "KEEP", ["DLDS-A020"],
-     "previous session handoff, retained byte-identical by DLDS-A020."),
+    ("docs/history/archive-2026-10-19/handoffs/DEEPSEEK-RIGHTS-REFRESH-MINIMAX-H3-2026-09-13.md", "REMOVED-2026-10-19", ["DL-R5-018", "DLDS-G030"],
+     "H3 licence evidence record; H3 remains BLOCKED_BY_LICENSE and no run was performed; removed "
+     "from the tree on owner order 2026-10-19 (summarised in docs/history/archive-2026-10-19/AGGREGATED-RECORD-2026-10-19.md)."),
+    ("docs/history/archive-2026-10-19/handoffs/DEEPSEEK-OPEN-DESIGN-E3-READINESS-2026-09-13.md", "REMOVED-2026-10-19", ["DL-R5-021"],
+     "Open Design E3 readiness and its concrete blocker (no runtime in the recorded scope); removed "
+     "from the tree on owner order 2026-10-19 (summarised in docs/history/archive-2026-10-19/AGGREGATED-RECORD-2026-10-19.md)."),
+    ("docs/history/archive-2026-10-19/handoffs/DEEPSEEK-DEEP-ADAPTATION-EXECUTION-2026-09-13.md", "REMOVED-2026-10-19", ["DLDS-A030"],
+     "record of the unverified-attribution round, kept as incident evidence; the document was removed "
+     "from the tree on owner order 2026-10-19 (summarised in docs/history/archive-2026-10-19/AGGREGATED-RECORD-2026-10-19.md, restore handle docs/history/archive-2026-10-19/REMOVALS.json)."),
+    ("docs/history/archive-2026-10-19/handoffs/SESSION-RESTART-2026-09-12.md", "REMOVED-2026-10-19", ["DLDS-A020"],
+     "previous session handoff, retained byte-identical by DLDS-A020; removed from the tree on "
+     "owner order 2026-10-19 (summarised in docs/history/archive-2026-10-19/AGGREGATED-RECORD-2026-10-19.md, restore handle docs/history/archive-2026-10-19/REMOVALS.json)."),
     ("reports/current/", "KEEP_WITH_FIX", ["DLDS-H030"],
      "generated projections; DLDS-H030 regenerates them bound to an exact subject."),
     ("design-lab/config/current-report-index.json", "KEEP_WITH_FIX", ["DLDS-H030"],

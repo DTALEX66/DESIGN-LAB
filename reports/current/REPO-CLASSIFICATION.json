@@ -1,10 +1,10 @@
 {
   "schemaVersion": "design-lab/repo-classification/v1",
-  "generatedAt": "2026-10-19T08:50:32Z",
-  "observedCommit": "0d97a07b34485e8b58c6177cdd397e95f3ffc7d4",
+  "generatedAt": "2026-10-19T09:50:20Z",
+  "observedCommit": "42cb86d5a3fbaee72bdd824e5345dabe0db3bfd7",
   "totals": {
-    "trackedFiles": 3803,
-    "workingTreeMiB": 70.34,
+    "trackedFiles": 3723,
+    "workingTreeMiB": 69.64,
     "packMiB": 241.69,
     "note": "pack 含全部历史与 tag 归档；working tree 为当前检出字节。两者之差不是垃圾。"
   },
@@ -27,12 +27,12 @@
     "generated": {
       "files": 67,
       "bundles": 4,
-      "mib": 1.42
+      "mib": 1.27
     },
     "history": {
-      "files": 812,
+      "files": 732,
       "bundles": 3,
-      "mib": 27.73
+      "mib": 27.25
     },
     "other": {
       "files": 1,
@@ -52,7 +52,7 @@
     "source": {
       "files": 1636,
       "bundles": 8,
-      "mib": 13.27
+      "mib": 13.2
     }
   },
   "bundles": [
@@ -60,9 +60,9 @@
       "path": "docs/history/",
       "category": "history",
       "note": "冻结历史与逐字节基线（含 2026-10-19 归档的 handoffs/taskpacks）",
-      "files": 709,
-      "bytes": 26932726,
-      "cited_by_authority": 17,
+      "files": 639,
+      "bytes": 26497358,
+      "cited_by_authority": 18,
       "lastTouch": "2026-10-19"
     },
     {
@@ -70,7 +70,7 @@
       "category": "source",
       "note": "设计核心其余模块",
       "files": 1156,
-      "bytes": 9496544,
+      "bytes": 9420071,
       "cited_by_authority": 6,
       "lastTouch": "2026-10-19"
     },
@@ -114,8 +114,8 @@
       "path": "reports/history/",
       "category": "history",
       "note": "历史进度账本冻结件",
-      "files": 100,
-      "bytes": 2056462,
+      "files": 90,
+      "bytes": 1989452,
       "cited_by_authority": 0,
       "lastTouch": "2026-10-19"
     },
@@ -142,7 +142,7 @@
       "category": "generated",
       "note": "当前状态投影（由生成器再生）",
       "files": 63,
-      "bytes": 1088397,
+      "bytes": 929121,
       "cited_by_authority": 1,
       "lastTouch": "2026-10-19"
     },

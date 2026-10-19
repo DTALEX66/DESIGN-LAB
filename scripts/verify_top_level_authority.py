@@ -51,6 +51,9 @@ from pathlib import Path
 REPO = Path(__file__).resolve().parents[1]
 RECORD = REPO / ".project-local/task-artifacts/top-authority-gates/latest.json"
 
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from archive_records import RecordUnavailable, read_record  # noqa: E402
+
 AUTHORITY_ID = "DL-AUTHORITY-2026-09-18-R2"
 
 # Static release integrity facts: the four R2 landing files and the byte
@@ -90,10 +93,15 @@ AUTHORITY_ID = "DL-AUTHORITY-2026-09-18-R2"
 # handoffs/, so AUTHORITY.md, the authority index and HISTORY-FREEZE-RULES.md now name that
 # path. Reason, superseded digests and the checks run: docs/history/taskpacks/20261009-adoption/
 # AUTHORITY-PIN-CHANGE.json revisions[]. Checks stay at 10.
+# 2026-10-19 removal re-pin: the UCR handoff, the DeepSeek R5/H3 handoffs and the dated prompt copies
+# were deleted on owner order after being aggregated, so these three surfaces now name the aggregate
+# record and the removal manifest instead of a file that is no longer in the tree. Only those path
+# sentences changed. Reason, from/to digests and the checks run: docs/history/taskpacks/20261009-adoption/
+# AUTHORITY-PIN-CHANGE.json revisions[]. Checks stay at 10.
 R2_RELEASE_HASHES = {
-    "AUTHORITY.md": "8322bd58261c7a936365cc82d3c163f2faffff6f659c34a76119e5cda7bcba30",
-    ".project/governance/authority-index.json": "a26a720aa8765d781b335a2ec155128dbe84b4e74e19920b8a34cb247299b8ad",
-    "docs/current/HISTORY-FREEZE-RULES.md": "3e3c3086789b10e309d843ebfcbc280dde01aebad9c7472f43621830f5286ec8",
+    "AUTHORITY.md": "081b5f9412d2bfa52e4eb31c5a761af68dcc1d2426be160d800bca65e1b5f9d8",
+    ".project/governance/authority-index.json": "3a9903b5a4decffc6a4bf4ecc11fdb0db59ae8ca2c4b562cf201d8b8f7d2c58d",
+    "docs/current/HISTORY-FREEZE-RULES.md": "3573b88df6c04be6fa6932327aff94ad8c547a43bfcbc6a3337d4bad50a71322",
     "docs/taskpacks/DESIGN-LAB-FINAL-AUTHORITY-CONVERGENCE-TASKPACK-2026-09-18.md": "62f43ef295d4e90462d1e49e657e490400c4b5568f4e4ad1db3e268e12bb10c7",
     "docs/taskpacks/DESIGN-LAB-UI-FIRST-INTEGRATED-TASKPACK-2026-10-09.md": "2cfd84627352e9f1b29b42787fa43466cd9a836130d826d43678b7733856ffda",
     "docs/taskpacks/DESIGN-LAB-DIRECTION-ALIGNMENT-2026-10-19.md": "98e7d2210181de8a4a3a0c2d8c15c4846b332e3e418a02446a0bb001a1c2e116",
@@ -219,11 +227,13 @@ def check_agents(checks: list[dict]) -> None:
 
 
 def check_handoff_demoted(checks: list[dict]) -> None:
-    path = REPO / "docs" / "handoffs" / "DESIGN-LAB-UCR-CONVERGENCE-20260918-HANDOFF.md"
-    if not path.is_file():
-        checks.append({"check": "handoff-demoted", "result": "PASS", "detail": "UCR handoff absent; nothing to demote"})
+    rel = HISTORICAL_GLOB_FILES[0]
+    try:
+        raw, where = read_record(rel)
+    except RecordUnavailable as exc:
+        checks.append({"check": "handoff-demoted", "result": "FAIL", "detail": str(exc)})
         return
-    text = path.read_text(encoding="utf-8")
+    text = raw.decode("utf-8", errors="replace")
     problems = []
     if "HISTORICAL_EXECUTION_RECORD" not in text or "NON_AUTHORITATIVE" not in text:
         problems.append("missing HISTORICAL_EXECUTION_RECORD / NON_AUTHORITATIVE banner")
@@ -232,7 +242,8 @@ def check_handoff_demoted(checks: list[dict]) -> None:
     if problems:
         checks.append({"check": "handoff-demoted", "result": "FAIL", "detail": "; ".join(problems)})
         return
-    checks.append({"check": "handoff-demoted", "result": "PASS", "detail": "UCR handoff carries the historical banner"})
+    checks.append({"check": "handoff-demoted", "result": "PASS",
+                   "detail": f"UCR handoff carries the historical banner (read from {where})"})
 
 
 def check_ruff_fact(checks: list[dict]) -> None:

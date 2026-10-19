@@ -1,17 +1,17 @@
 {
   "schemaVersion": "design-lab/size-by-directory/v1",
   "task_key": "DL-TP-20260914-DEEPSEEK-AUTHORITY-R1::DLDS-D000",
-  "measured_at": "2026-10-19T08:50:57+00:00",
+  "measured_at": "2026-10-19T09:50:48+00:00",
   "tracked_by_area": {
     "docs": {
-      "files": 1635,
-      "bytes": 41762219,
-      "mib": 39.83
+      "files": 1638,
+      "bytes": 41973447,
+      "mib": 40.03
     },
     "design-lab": {
       "files": 1156,
-      "bytes": 9496544,
-      "mib": 9.06
+      "bytes": 9420071,
+      "mib": 8.98
     },
     "fixtures": {
       "files": 226,
@@ -25,8 +25,8 @@
     },
     "reports": {
       "files": 169,
-      "bytes": 3244778,
-      "mib": 3.09
+      "bytes": 3085502,
+      "mib": 2.94
     },
     "src": {
       "files": 105,
@@ -207,13 +207,13 @@
   "ignored_by_subdir": {
     ".project-local": {
       "task-runtime": {
-        "files": 79512,
-        "bytes": 4765398513,
-        "mib": 4544.64
+        "files": 79778,
+        "bytes": 4779494280,
+        "mib": 4558.08
       },
       "task-artifacts": {
         "files": 6153,
-        "bytes": 1163427886,
+        "bytes": 1163426725,
         "mib": 1109.53
       },
       "runs": {
@@ -232,9 +232,9 @@
         "mib": 140.65
       },
       "tmp": {
-        "files": 3205,
-        "bytes": 112335725,
-        "mib": 107.13
+        "files": 3236,
+        "bytes": 112756857,
+        "mib": 107.53
       },
       "personal-audit-src": {
         "files": 3562,
@@ -319,8 +319,8 @@
     ".pytest_cache": {
       "v": {
         "files": 2,
-        "bytes": 13944,
-        "mib": 0.01
+        "bytes": 130140,
+        "mib": 0.12
       },
       "(root)": {
         "files": 3,

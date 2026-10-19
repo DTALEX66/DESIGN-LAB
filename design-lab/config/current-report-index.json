@@ -1,22 +1,414 @@
 {
   "checkScope": "bound-input-and-output-integrity; not current Git or cloud freshness",
-  "generatedAt": "2026-10-19T08:51:29+00:00",
+  "generatedAt": "2026-10-19T09:51:21+00:00",
   "gitObservation": {
     "branch": "qoder/designlab-backup-consistency-20261007",
-    "origin_main": "f55f03821e90e61f49ff64e529133b892494756b",
-    "sha": "0d97a07b34485e8b58c6177cdd397e95f3ffc7d4",
+    "origin_main": "7015571e729ec78c266cf45e0bd3b01b2e50973b",
+    "sha": "42cb86d5a3fbaee72bdd824e5345dabe0db3bfd7",
     "source_worktree_clean": false,
-    "tracked_files": 3803,
+    "tracked_files": 3723,
     "worktree_changes": [
       {
-        "content": "sha256:b3d2ed8518b82ae83f9ac71522be2d80f868020e7a2c4d19e7fe010814d33652",
+        "kind": "D",
+        "path": "docs/history/archive-2026-10-19/handoffs/DEEPSEEK-AUTHORITY-ACTIVATION-2026-09-14.md"
+      },
+      {
+        "kind": "D",
+        "path": "docs/history/archive-2026-10-19/handoffs/DEEPSEEK-DEEP-ADAPTATION-EXECUTION-2026-09-13.md"
+      },
+      {
+        "kind": "D",
+        "path": "docs/history/archive-2026-10-19/handoffs/DEEPSEEK-OPEN-DESIGN-E3-READINESS-2026-09-13.md"
+      },
+      {
+        "kind": "D",
+        "path": "docs/history/archive-2026-10-19/handoffs/DEEPSEEK-RIGHTS-REFRESH-MINIMAX-H3-2026-09-13.md"
+      },
+      {
+        "kind": "D",
+        "path": "docs/history/archive-2026-10-19/handoffs/DESIGN-LAB-AUDIT-ARCHITECTURE-WORKBENCH-20260922.md"
+      },
+      {
+        "kind": "D",
+        "path": "docs/history/archive-2026-10-19/handoffs/DESIGN-LAB-BRANCH-DISPOSITION-2026-09-23.md"
+      },
+      {
+        "kind": "D",
+        "path": "docs/history/archive-2026-10-19/handoffs/DESIGN-LAB-BUNDLES-LIST-QUERY-ROUND-2026-09-28.md"
+      },
+      {
+        "kind": "D",
+        "path": "docs/history/archive-2026-10-19/handoffs/DESIGN-LAB-CLOUD-AUDIT-2026-09-25-CLOSURE-2026-09-26.md"
+      },
+      {
+        "kind": "D",
+        "path": "docs/history/archive-2026-10-19/handoffs/DESIGN-LAB-DRIFT-BRANCH-AUDIT-2026-09-22.md"
+      },
+      {
+        "kind": "D",
+        "path": "docs/history/archive-2026-10-19/handoffs/DESIGN-LAB-FULL-EXECUTION-HANDOFF-2026-09-22.md"
+      },
+      {
+        "kind": "D",
+        "path": "docs/history/archive-2026-10-19/handoffs/DESIGN-LAB-NIGHT-CHECKPOINT-2026-09-07.md"
+      },
+      {
+        "kind": "D",
+        "path": "docs/history/archive-2026-10-19/handoffs/DESIGN-LAB-P0-P1-MATURITY-HANDOFF-2026-09-20.md"
+      },
+      {
+        "kind": "D",
+        "path": "docs/history/archive-2026-10-19/handoffs/DESIGN-LAB-PROJECT-SURVEY-TRUTH-RESYNC-2026-09-27.md"
+      },
+      {
+        "kind": "D",
+        "path": "docs/history/archive-2026-10-19/handoffs/DESIGN-LAB-R3-HANDOFF-2026-09-07.md"
+      },
+      {
+        "kind": "D",
+        "path": "docs/history/archive-2026-10-19/handoffs/DESIGN-LAB-REAUDIT-20260915-HANDOFF.md"
+      },
+      {
+        "kind": "D",
+        "path": "docs/history/archive-2026-10-19/handoffs/DESIGN-LAB-REAUDIT-20260916-CLOSURE-HANDOFF.md"
+      },
+      {
+        "kind": "D",
+        "path": "docs/history/archive-2026-10-19/handoffs/DESIGN-LAB-SESSION-HANDOFF-2026-10-06B.md"
+      },
+      {
+        "kind": "D",
+        "path": "docs/history/archive-2026-10-19/handoffs/DESIGN-LAB-SESSION-HANDOFF-2026-10-07.md"
+      },
+      {
+        "kind": "D",
+        "path": "docs/history/archive-2026-10-19/handoffs/DESIGN-LAB-SESSION-HANDOFF-2026-10-08.md"
+      },
+      {
+        "kind": "D",
+        "path": "docs/history/archive-2026-10-19/handoffs/DESIGN-LAB-SESSION-HANDOFF-2026-10-09.md"
+      },
+      {
+        "kind": "D",
+        "path": "docs/history/archive-2026-10-19/handoffs/DESIGN-LAB-SPILL-SLIM-CLOSURE-2026-09-22.md"
+      },
+      {
+        "kind": "D",
+        "path": "docs/history/archive-2026-10-19/handoffs/DESIGN-LAB-UCR-CONVERGENCE-20260918-HANDOFF.md"
+      },
+      {
+        "kind": "D",
+        "path": "docs/history/archive-2026-10-19/handoffs/DESIGN-LAB-UI-AUDIT-CONVERGENCE-2026-09-22.md"
+      },
+      {
+        "kind": "D",
+        "path": "docs/history/archive-2026-10-19/handoffs/DESIGN-LAB-UIKIT-CONFORMANCE-ROUND-2026-09-28.md"
+      },
+      {
+        "kind": "D",
+        "path": "docs/history/archive-2026-10-19/handoffs/DESIGN-LAB-WORKBENCH-VISUAL-AUDIT-HANDOFF-2026-10-06.md"
+      },
+      {
+        "kind": "D",
+        "path": "docs/history/archive-2026-10-19/handoffs/GPT-R3-REVISION-HANDOFF-2026-09-06.md"
+      },
+      {
+        "kind": "D",
+        "path": "docs/history/archive-2026-10-19/handoffs/R5-ATOMIC-BUNDLE-2026-09-09.md"
+      },
+      {
+        "kind": "D",
+        "path": "docs/history/archive-2026-10-19/handoffs/R5-BROWSER-ILLUSTRATOR-REAL-2026-09-09.md"
+      },
+      {
+        "kind": "D",
+        "path": "docs/history/archive-2026-10-19/handoffs/R5-BROWSER-PATCH-2026-09-09.md"
+      },
+      {
+        "kind": "D",
+        "path": "docs/history/archive-2026-10-19/handoffs/R5-BROWSER-PLAN-CANCEL-2026-09-09.md"
+      },
+      {
+        "kind": "D",
+        "path": "docs/history/archive-2026-10-19/handoffs/R5-BUNDLE-FONT-INVENTORY-2026-09-09.md"
+      },
+      {
+        "kind": "D",
+        "path": "docs/history/archive-2026-10-19/handoffs/R5-CI-FIRST-FULL-REGRESSION-2026-09-09.md"
+      },
+      {
+        "kind": "D",
+        "path": "docs/history/archive-2026-10-19/handoffs/R5-COMFY-FINGERPRINT-GATE-2026-09-09.md"
+      },
+      {
+        "kind": "D",
+        "path": "docs/history/archive-2026-10-19/handoffs/R5-COMFY-HTTP-LIVE-2026-09-09.md"
+      },
+      {
+        "kind": "D",
+        "path": "docs/history/archive-2026-10-19/handoffs/R5-COMFY-HTTP-TRANSPORT-2026-09-09.md"
+      },
+      {
+        "kind": "D",
+        "path": "docs/history/archive-2026-10-19/handoffs/R5-COMFY-PRODUCTION-INTAKE-2026-09-09.md"
+      },
+      {
+        "kind": "D",
+        "path": "docs/history/archive-2026-10-19/handoffs/R5-COMFY-STRUCTURAL-REJECTION-2026-09-09.md"
+      },
+      {
+        "kind": "D",
+        "path": "docs/history/archive-2026-10-19/handoffs/R5-COMFY-WHEEL-SMOKE-2026-09-09.md"
+      },
+      {
+        "kind": "D",
+        "path": "docs/history/archive-2026-10-19/handoffs/R5-CURRENT-CONTINUATION-2026-09-09.md"
+      },
+      {
+        "kind": "D",
+        "path": "docs/history/archive-2026-10-19/handoffs/R5-FULL-REGRESSION-VERBOSE-2026-09-09.md"
+      },
+      {
+        "kind": "D",
+        "path": "docs/history/archive-2026-10-19/handoffs/R5-HTTP-INTERMITTENT-DIAGNOSIS-2026-09-09.md"
+      },
+      {
+        "kind": "D",
+        "path": "docs/history/archive-2026-10-19/handoffs/R5-INSTALLED-LIST-FIX-2026-09-09.md"
+      },
+      {
+        "kind": "D",
+        "path": "docs/history/archive-2026-10-19/handoffs/R5-INSTALLED-PLAN-UPGRADE-2026-09-09.md"
+      },
+      {
+        "kind": "D",
+        "path": "docs/history/archive-2026-10-19/handoffs/R5-INSTALLED-QUEUE-SMOKE-2026-09-09.md"
+      },
+      {
+        "kind": "D",
+        "path": "docs/history/archive-2026-10-19/handoffs/R5-NATIVE-PATCH-PLAN-2026-09-09.md"
+      },
+      {
+        "kind": "D",
+        "path": "docs/history/archive-2026-10-19/handoffs/R5-NATIVE-PLAN-INTAKE-2026-09-09.md"
+      },
+      {
+        "kind": "D",
+        "path": "docs/history/archive-2026-10-19/handoffs/R5-PERSISTED-NATIVE-RECOVERY-2026-09-09.md"
+      },
+      {
+        "kind": "D",
+        "path": "docs/history/archive-2026-10-19/handoffs/R5-PHOTOSHOP-COMPLEX-NATIVE-SUCCESS-2026-09-09.md"
+      },
+      {
+        "kind": "D",
+        "path": "docs/history/archive-2026-10-19/handoffs/R5-PHOTOSHOP-COMPLEX-RETRY-2026-09-09.md"
+      },
+      {
+        "kind": "D",
+        "path": "docs/history/archive-2026-10-19/handoffs/R5-PHOTOSHOP-FULL-REGRESSION-2026-09-09.md"
+      },
+      {
+        "kind": "D",
+        "path": "docs/history/archive-2026-10-19/handoffs/R5-PHOTOSHOP-INSTALLED-BUNDLE-2026-09-09.md"
+      },
+      {
+        "kind": "D",
+        "path": "docs/history/archive-2026-10-19/handoffs/R5-PHOTOSHOP-PATCH-PRODUCT-2026-09-09.md"
+      },
+      {
+        "kind": "D",
+        "path": "docs/history/archive-2026-10-19/handoffs/R5-PHOTOSHOP-QUIESCENCE-2026-09-09.md"
+      },
+      {
+        "kind": "D",
+        "path": "docs/history/archive-2026-10-19/handoffs/R5-PHOTOSHOP-REAL-BROWSER-PATCH-2026-09-09.md"
+      },
+      {
+        "kind": "D",
+        "path": "docs/history/archive-2026-10-19/handoffs/R5-PHOTOSHOP-STAGE-DIAGNOSTICS-2026-09-09.md"
+      },
+      {
+        "kind": "D",
+        "path": "docs/history/archive-2026-10-19/handoffs/R5-REFERENCE-RIGHTS-RECHECK-2026-09-09.md"
+      },
+      {
+        "kind": "D",
+        "path": "docs/history/archive-2026-10-19/handoffs/R5-WORKBENCH-CANCELLATION-2026-09-09.md"
+      },
+      {
+        "kind": "D",
+        "path": "docs/history/archive-2026-10-19/handoffs/R5-WORKBENCH-LIST-RACES-2026-09-09.md"
+      },
+      {
+        "kind": "D",
+        "path": "docs/history/archive-2026-10-19/handoffs/SESSION-RESTART-2026-09-12.md"
+      },
+      {
+        "kind": "D",
+        "path": "docs/history/archive-2026-10-19/handoffs/deepseek-r3-20260906-v2/00-input-baseline.json"
+      },
+      {
+        "kind": "D",
+        "path": "docs/history/archive-2026-10-19/handoffs/deepseek-r3-20260906-v2/01-requirements-matrix.json"
+      },
+      {
+        "kind": "D",
+        "path": "docs/history/archive-2026-10-19/handoffs/deepseek-r3-20260906-v2/02-capability-corrections.json"
+      },
+      {
+        "kind": "D",
+        "path": "docs/history/archive-2026-10-19/handoffs/deepseek-r3-20260906-v2/03-history-locator-corrections.json"
+      },
+      {
+        "kind": "D",
+        "path": "docs/history/archive-2026-10-19/handoffs/deepseek-r3-20260906-v2/04-reference-candidates.json"
+      },
+      {
+        "kind": "D",
+        "path": "docs/history/archive-2026-10-19/handoffs/deepseek-r3-20260906-v2/04-reference-exclusions.json"
+      },
+      {
+        "kind": "D",
+        "path": "docs/history/archive-2026-10-19/handoffs/deepseek-r3-20260906-v2/05-DP-RETURN.md"
+      },
+      {
+        "kind": "D",
+        "path": "docs/history/archive-2026-10-19/handoffs/deepseek-r3-20260906-v2/05-results.json"
+      },
+      {
+        "kind": "D",
+        "path": "docs/history/archive-2026-10-19/handoffs/deepseek-r3-20260906-v2/SHA256SUMS.txt"
+      },
+      {
+        "kind": "D",
+        "path": "docs/history/next-agent-prompts/NEXT-AGENT-PROMPT-2026-10-09.md"
+      },
+      {
+        "kind": "D",
+        "path": "docs/history/next-agent-prompts/NEXT-AGENT-PROMPT-2026-10-10.md"
+      },
+      {
+        "kind": "D",
+        "path": "docs/history/next-agent-prompts/NEXT-AGENT-PROMPT-2026-10-11.md"
+      },
+      {
+        "kind": "D",
+        "path": "docs/history/next-agent-prompts/NEXT-AGENT-PROMPT-2026-10-12.md"
+      },
+      {
+        "kind": "D",
+        "path": "docs/history/next-agent-prompts/NEXT-AGENT-PROMPT-2026-10-13.md"
+      },
+      {
+        "kind": "D",
+        "path": "reports/history/ADOBE_UNINSTALL_HANDOFF_20260822.md"
+      },
+      {
+        "kind": "D",
+        "path": "reports/history/OP_PERSONAL_EXPERT_SUITE_HANDOFF_20260812.md"
+      },
+      {
+        "kind": "D",
+        "path": "reports/history/PIXEL_PERFECT_VECTOR_RECONSTRUCTION_HANDOFF_20260823.md"
+      },
+      {
+        "kind": "D",
+        "path": "reports/history/V42_HANDOFF_SUMMARY_20260810.md"
+      },
+      {
+        "kind": "D",
+        "path": "reports/history/V42_HANDOFF_SUMMARY_20260811.md"
+      },
+      {
+        "kind": "D",
+        "path": "reports/history/V42_HANDOFF_SUMMARY_20260815.md"
+      },
+      {
+        "kind": "D",
+        "path": "reports/history/V42_HANDOFF_SUMMARY_20260816.md"
+      },
+      {
+        "kind": "D",
+        "path": "reports/history/V42_HANDOFF_SUMMARY_20260821.md"
+      },
+      {
+        "kind": "D",
+        "path": "reports/history/V42_HANDOFF_SUMMARY_20260822.md"
+      },
+      {
+        "kind": "D",
+        "path": "reports/history/V4_HANDOFF_SUMMARY_20260807.md"
+      },
+      {
+        "content": "sha256:3a9903b5a4decffc6a4bf4ecc11fdb0db59ae8ca2c4b562cf201d8b8f7d2c58d",
+        "kind": "M",
+        "path": ".project/governance/authority-index.json"
+      },
+      {
+        "content": "sha256:081b5f9412d2bfa52e4eb31c5a761af68dcc1d2426be160d800bca65e1b5f9d8",
+        "kind": "M",
+        "path": "AUTHORITY.md"
+      },
+      {
+        "content": "sha256:7b44ee91b6a6b5ea6418d690a5e2438bb2bd78d0670391efdb32f4923d07453c",
         "kind": "M",
         "path": "design-lab/config/repository-size-report.json"
+      },
+      {
+        "content": "sha256:a2df38c826d5a23c4281a8c2eb592154e5fb0549fd03a6ce0e10311f5eba01cd",
+        "kind": "M",
+        "path": "design-lab/config/task-document-states.json"
+      },
+      {
+        "content": "sha256:3573b88df6c04be6fa6932327aff94ad8c547a43bfcbc6a3337d4bad50a71322",
+        "kind": "M",
+        "path": "docs/current/HISTORY-FREEZE-RULES.md"
+      },
+      {
+        "content": "sha256:4427704cf8dc58349fd04167db0df14f862784a4facaefa8cd2e1e4bcbc22c8c",
+        "kind": "M",
+        "path": "docs/history/taskpacks/20261009-adoption/AUTHORITY-PIN-CHANGE.json"
+      },
+      {
+        "content": "sha256:1f214b5e0bae8444477c418094a56ecc590f2459c1a6ee8f795744d3cc267872",
+        "kind": "M",
+        "path": "integrations/hosts/minimax-design/POC-PLAN.md"
+      },
+      {
+        "content": "sha256:55dfbe60b61d9317b8d423057893b3016517f6e2f4179c0e1f2573274e6cebda",
+        "kind": "M",
+        "path": "integrations/hosts/minimax-design/rights-and-provider-policy.md"
+      },
+      {
+        "content": "sha256:2f07fbffe3ebb0b9180e2d9ea39cfad9989067ca1908c9fd464f84276d6ab817",
+        "kind": "M",
+        "path": "scripts/deepseek_authority_chain.py"
+      },
+      {
+        "content": "sha256:b00814a44cf323d1f8b24fc71d048a9c165218f4faf7c532194c0762eb75bfbe",
+        "kind": "M",
+        "path": "scripts/deepseek_authority_ledger.py"
+      },
+      {
+        "content": "sha256:05091a4f4e1c0b378dfd61c8ecd47089b0fdd1e7ee1fd0fc8c489ad6107a939b",
+        "kind": "M",
+        "path": "scripts/deepseek_worktree_reconciliation.py"
+      },
+      {
+        "content": "sha256:dff4cf31eab7388ef052f746e511db19b18daa2044f2a79770d0d7bb84faa899",
+        "kind": "M",
+        "path": "scripts/verify_top_level_authority.py"
+      },
+      {
+        "content": "sha256:c6ff2aae5a4339d242ef746947ac7781279277fe245c56bcd939ed2dbd032deb",
+        "kind": "U",
+        "path": "scripts/archive_records.py"
       }
     ],
-    "worktree_digest": "sha256:1c3be95c1fa42f521f12899a609c691aae8c729821667e407b616689a5e297b4"
+    "worktree_digest": "sha256:500361137bc6748a46586453b238dbec3b3838f04570c303c5714fd2cec8aa6f"
   },
-  "inputDigest": "sha256:7bb49a16dc5412de92451d9002d174a22a3435b69501259c2c12fb882317b29a",
+  "inputDigest": "sha256:8e21ab98dc35e43e17f132771fcc69d7ae5776438af11752f79548832c1c2676",
   "inputDigestMeaning": "primary freshness binding: canonical SHA-256 over the exact input files the projections read plus the git tree scope; recomputed at check time (FU-10)",
   "inputHashes": {
     ".github/workflows/canonical-verify.yml": "bc1bc993847ca8bb1d2a0606dddf88b1ac022dfad1e8c4575d51dd90508df30d",
@@ -294,7 +686,7 @@
     "design-lab/scripts/verify_contract_bindings.py": "6847dcf7dc31a341a676765e5ad3861b490c66fc2444895b5cb28364de57b61b",
     "design-lab/scripts/verify_current_version_rule.py": "70a402e966a9c483d7431589fc7a6683b8b3bd9730a370a002366622c4b461ab",
     "design-lab/scripts/verify_design_lab.py": "c119c2b3c8afa3533974faaccfcfab490f8c0119a5bd0f836448094ab6dd237e",
-    "design-lab/scripts/verify_evidence_artifact_presence.py": "3158d8abcbc35e2159a8d611e81789de4e724fe48c96b8ff8ef773a03d9f6436",
+    "design-lab/scripts/verify_evidence_artifact_presence.py": "a12742c76eb11d2b412bb17c120384835b9815c0a911c6353950d62571243116",
     "design-lab/scripts/verify_identity_gate.py": "004f0835524f4c77697bc00be818898d7a24989bd3c42b53cfe8d3654af732ff",
     "design-lab/scripts/verify_ledger_schema_pairing.py": "486dce3912468a3125b746873b7303a4a499f69a1bdd1d2748584413c32a4c40",
     "design-lab/scripts/verify_ledger_subject_binding.py": "f16545997a8b1834be7fa9ea945091a5e3192764362dabb27d28b345eddbb68f",
@@ -544,10 +936,10 @@
     "docs/audits/DESIGNLAB-BACKUP-CONSISTENCY-2026-10-08.md": "a386339514b5bd8614dc969faa0ee4fddfd38bbfcdd58daa446dc109acae8017",
     "docs/audits/DESIGNLAB-LAUNCH-REVIEW-PREFLIGHT-2026-10-08.md": "acdf507acfe62c6287f5aaa235f07bc0482f9335919c9fbb0f23280d7dda4826",
     "docs/audits/DESIGNLAB-UI-R2-DESIGN-QA-2026-10-09.md": "0304d817d24bd35856731e5f04708e42cedcab2170d689a1d046b6deed6ea7ce",
-    "docs/handoffs/R5-COMFY-HTTP-LIVE-2026-09-09.md": "63467d9d70d17e6b6ba23c03f178ec174bd2151994590ca08b342dec79701480",
-    "docs/handoffs/R5-COMFY-STRUCTURAL-REJECTION-2026-09-09.md": "16a80b2823d81166061b6b7c4d5c900f62cc6c1cc8174081ac22733fdfe47c10",
-    "docs/handoffs/R5-PHOTOSHOP-FULL-REGRESSION-2026-09-09.md": "12c7142d8c75c477dc4e0695e614feb76340cf1d16d78197769d7b72fe165d4a",
-    "docs/handoffs/R5-PHOTOSHOP-PATCH-PRODUCT-2026-09-09.md": "23eafcea6284aa44107ed3d9ede02974689f1c6aecbe0e6b85b549a42ee50059",
+    "docs/handoffs/R5-COMFY-HTTP-LIVE-2026-09-09.md": null,
+    "docs/handoffs/R5-COMFY-STRUCTURAL-REJECTION-2026-09-09.md": null,
+    "docs/handoffs/R5-PHOTOSHOP-FULL-REGRESSION-2026-09-09.md": null,
+    "docs/handoffs/R5-PHOTOSHOP-PATCH-PRODUCT-2026-09-09.md": null,
     "docs/history/archive-2026-10-19/current-records/UI-DESKTOP-RECONCILIATION-2026-10-09.md": "43291aa72cad99269509bc868b7f15d56856786ca1a479e23fba2ef6fe9bfa54",
     "docs/history/taskpacks/20261009-adoption/TASK-DEFINITIONS.json": "9ebf45ac2c0539b5227893799d417af3dbbb90c4a9b90e5861d869dd40b07681",
     "docs/history/taskpacks/20261009-adoption/pre-adoption/design-lab/config/task-ledger-r3.json": "cbffb0c062077818de26a391d54522e3d367d2bdb010f55b959923f9fe8f7f13",
@@ -679,15 +1071,15 @@
   },
   "ledger": "design-lab/config/task-ledger-r3.json",
   "outputHashes": {
-    "ADAPTER_EVIDENCE_RECONCILIATION.json": "856b9ea7ff31534acf96ddd1343e1939ae2d6feb0d9f6238ca2d5821e81f725d",
-    "CLOUD_BASELINE.json": "90983da1a816f7235e1bdf21c3712bdb28e2f0e04a41499a1bda9ce60d855ab9",
-    "CLOUD_BASELINE.md": "36946dfe6d0213540bd9a5f8460224bccd16bb5293fe599d2b1c7fa8a26b9456",
-    "DOMAIN_PACK_READINESS.json": "575f18bf6c07cb914e2d54bc3a69ff5333e3b5b818085b73adb2416685806669",
-    "KNOWLEDGE_INVENTORY.json": "d853583a0da9980aac8fec9ad824f4569e38e8af85b45e218841f9694369b9ec",
-    "PROJECT_STATUS.json": "f7f9b19cf9612c9ae137efb82296f999de07146900095fda955ab464273c448e",
-    "PROJECT_STATUS.md": "96161a20798ae43761c286a5754da008a0f86d2c4180a229f1b287cd164cfd66",
-    "RELEASE_READINESS.json": "9188ec83a4b48bb38e9289e1aa4de8648842c14363edf1fa6348310785fa03f3",
-    "TASK_PROGRESS.json": "d4137884d2b0cec22a22778955ff808d28940a76b5170bb41e80029483a1bbcc"
+    "ADAPTER_EVIDENCE_RECONCILIATION.json": "ace5d62f9e5cb12e4c948a767ab21229074b2ccb62f9fbb09d926e410b239bc3",
+    "CLOUD_BASELINE.json": "02d12a17ed468b91f6a912ed66fefbd9c2266ab54b0937df3090f783edca6917",
+    "CLOUD_BASELINE.md": "82670ea659d43b344f3d6eecfd94d5bfe0c28530e5950f5c51af1a52aa861d45",
+    "DOMAIN_PACK_READINESS.json": "d20b2dcdc46556c24103f691766ecddb69283541f78a4fb76d3f83569a7f36c8",
+    "KNOWLEDGE_INVENTORY.json": "88cd9b904afc18c3a893f0741ff09fa3f61ccbeba525730de6353d1e458eef56",
+    "PROJECT_STATUS.json": "c40492d5fffd7bddca4c3924894afc59894fe36c187c33a4019f9c7048ae7eff",
+    "PROJECT_STATUS.md": "3ce290eccd4e0f408287dfffa537da7fac75bd41e2fac61b86323450162b2e74",
+    "RELEASE_READINESS.json": "e5abb3bebaf4f79f74779f2df1144d62170b105055b4d2fa909360da7a43600b",
+    "TASK_PROGRESS.json": "75f6696951e7210c67c73b27db6b0108f928428c185a4b180616e1905c390e54"
   },
   "reportRoot": "../../reports/current/",
   "reports": [
@@ -703,5 +1095,5 @@
   ],
   "schemaVersion": "design-lab/current-report-index/v3",
   "subjectMeaning": "generation-time git observation, not a freshness claim; exact-SHA evidence is the CI artifact",
-  "subjectSha": "0d97a07b34485e8b58c6177cdd397e95f3ffc7d4"
+  "subjectSha": "42cb86d5a3fbaee72bdd824e5345dabe0db3bfd7"
 }

@@ -166,6 +166,7 @@ def init(args) -> int:
                                           "HANDOFF SUMMARY"],
             "stop_line": {
                 "handoff": "docs/history/archive-2026-10-19/handoffs/SESSION-RESTART-2026-09-12.md",
+                "handoffState": "REMOVED-2026-10-19: bytes recoverable via docs/history/archive-2026-10-19/REMOVALS.json",
                 "state": "EXPLICIT_SCOPE_SUPERSESSION",
                 "scope": "only the DeepSeek tasks listed in this taskpack",
                 "still_frozen": ["Real Host", "Design validation", "GPU inference", "Human Gate"],

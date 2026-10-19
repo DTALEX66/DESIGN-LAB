@@ -1,7 +1,7 @@
 {
   "schemaVersion": "design-lab/largest-files/v1",
   "task_key": "DL-TP-20260914-DEEPSEEK-AUTHORITY-R1::DLDS-D000",
-  "measured_at": "2026-10-19T08:50:57+00:00",
+  "measured_at": "2026-10-19T09:50:48+00:00",
   "tracked_top": [
     {
       "path": "docs/history/record-archive-2026-10-09/ARCHIVE-MANIFEST.json",
@@ -468,11 +468,7 @@
     ".pytest_cache": [
       {
         "path": ".pytest_cache/v/cache/nodeids",
-        "bytes": 13533
-      },
-      {
-        "path": ".pytest_cache/v/cache/lastfailed",
-        "bytes": 411
+        "bytes": 129985
       },
       {
         "path": ".pytest_cache/README.md",
@@ -481,6 +477,10 @@
       {
         "path": ".pytest_cache/CACHEDIR.TAG",
         "bytes": 191
+      },
+      {
+        "path": ".pytest_cache/v/cache/lastfailed",
+        "bytes": 155
       },
       {
         "path": ".pytest_cache/.gitignore",

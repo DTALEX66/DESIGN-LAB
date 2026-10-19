@@ -20,6 +20,7 @@ import hashlib
 import json
 import re
 import subprocess
+import sys
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -52,6 +53,16 @@ SCAN_SUFFIXES = (".md", ".json", ".yaml", ".yml")
 
 def sha256_file(path: Path) -> str:
     return "sha256:" + hashlib.sha256(path.read_bytes()).hexdigest()
+
+
+def sha256_bytes(raw: bytes) -> str:
+    return "sha256:" + hashlib.sha256(raw).hexdigest()
+
+
+STOP_LINE = "docs/history/archive-2026-10-19/handoffs/SESSION-RESTART-2026-09-12.md"
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from archive_records import read_record  # noqa: E402
 
 
 def head_text(path: Path, limit: int = 900) -> str:
@@ -228,8 +239,9 @@ def build() -> dict:
         "non_authoritative_sources": ["CHAT SUMMARY", "MEMORY SUMMARY", "COMPRESSED CONTEXT",
                                       "HANDOFF SUMMARY"],
         "stop_line": {
-            "handoff": "docs/history/archive-2026-10-19/handoffs/SESSION-RESTART-2026-09-12.md",
-            "handoff_sha256": sha256_file(REPO / "docs/history/archive-2026-10-19/handoffs/SESSION-RESTART-2026-09-12.md"),
+            "handoff": STOP_LINE,
+            "handoff_sha256": sha256_bytes(read_record(STOP_LINE)[0]),
+            "handoff_read_from": read_record(STOP_LINE)[1],
             "state": "EXPLICIT_SCOPE_SUPERSESSION",
             "superseded_scope": "only the DeepSeek tasks listed in " + AUTHORITY_ID,
             "still_frozen": ["Real Host", "Design validation", "GPU inference", "Human Gate"],
