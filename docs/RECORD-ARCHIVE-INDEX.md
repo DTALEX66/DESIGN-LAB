@@ -383,5 +383,7 @@ owner 决定"确认归档后删除"该远端/本地分支。删除前实测发�
 - 83 条 `sha256` 字段全部是 `sha256:` + 64 位十六进制（长度直方图只有 71 一个桶），`restoreAt` 83 条同值——截断摘要或逐条漂移的锚点都会在这里露出来；
 - 五份记录均可 UTF-8 解码，`U+FFFD` 计数为 0（中文正文若被写成乱码字节，这里会先炸）。
 
+**本节测于哪个提交**：五个 blob 与全部计数首次读自 `1d33a93f`（那正是交付报告 §0 落定的提交），并在 `11cd7669` 上逐条重算一致；本节所在提交装不下自己的哈希，所以这两个读数都写出来。五个值指向的都是不可变提交对象，本节不会随时间失效。真正会变的情形只有一种——那五份记录被改写。其中四份位于 `docs/history/archive-2026-10-19/**`，属 `docs/current/HISTORY-FREEZE-RULES.md` 认定的冻结家族，按规则不该再被编辑；第五份（交付报告）是 dated 记录，若以后确实要补它，**同时更新本节**，别留下一个和仓库不一致的哈希让下一个会话去猜。核验命令：`git cat-file blob HEAD:<路径>` 取字节后算 SHA-256（本机 `core.autocrlf=true`，直接 `sha256sum <文件>` 得到的是工作树值，不是本节的值）。
+
 **定态**：第 1、2、3 项与第 4、5 项都是**波次的登记件**，不是能力索引、不是派工入口，也不改变 `currentExecution` 34 项的 `FROZEN_DEFERRED`。真值仍读 `design-lab/config/capability-evidence-index.json`、`design-lab/config/capability-status.json` 与 `docs/current/NEXT-AGENT-PROMPT.md`。
 
