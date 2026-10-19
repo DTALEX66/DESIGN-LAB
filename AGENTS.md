@@ -123,7 +123,7 @@ Owner原话：其他任务冻结，以这份任务为当前权威与闭环目标
 ## 2026-10-09 owner执行决定（2026-10-19 起降为前继记录）
 
 以20261009新发最终包＋UI包及手机端澄清为准，桌面UI优先。手机端FROZEN_DEFERRED，不要求本轮手机实现或验收。
-（本段为 2026-10-09 原文，保留不改写；当下唯一包已是 DL-TP-20261019-DIRECTION-R1。）当时唯一当前包：docs/taskpacks/DESIGN-LAB-UI-FIRST-INTEGRATED-TASKPACK-2026-10-09.md；当前状态编辑原账本currentExecution，旧tasks/evidence冻结且不再派工。
+（本段为 2026-10-09 原文，保留不改写；当下唯一包已是 DL-TP-20261019-DIRECTION-R1；本段的「不要求本轮手机实现或验收」已被上文 2026-10-19「范围重申」取代——手机端是排除项，不是待排期项。）当时唯一当前包：docs/taskpacks/DESIGN-LAB-UI-FIRST-INTEGRATED-TASKPACK-2026-10-09.md；当前状态编辑原账本currentExecution，旧tasks/evidence冻结且不再派工。
 旧权威/TaskPack原件冻结留档，不因旧文件较详细恢复旧任务。旧有用验收通过新crosswalk保留。
 只归档整理的本次操作未实施产品；未来Agent依任务卡给出可审阅桌面UI，按需补API，别继续无限治理。
 本项目允许已有设计专用有界执行，不重造通用Agent/第二runtime。私有数据/保护盘/恢复/Human Gate边界不变。
