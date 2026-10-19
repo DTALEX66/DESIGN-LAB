@@ -2,7 +2,7 @@
 
 任务包：DL-TP-20261009-UI-FIRST-R1；状态唯一编辑源：docs/taskpacks/DESIGN-LAB-UI-FIRST-INTEGRATED-TASKPACK-2026-10-09.md所指原账本currentExecution。
 
-生成时HEAD：211b3c4a09c27d137fabbdb748766a5d77007eab；subjectType=WORKTREE；生成时间不是测试时间。
+生成时HEAD：84e93ba2c162523d99e19749d98064bcdd56632c；subjectType=WORKTREE；生成时间不是测试时间。
 
 桌面UI优先；手机端FROZEN_DEFERRED。22父任务＋12UI子任务，不相加算完成率。
 本次归档不实施产品。旧R5状态和证据冻结，不用于关闭新任务。

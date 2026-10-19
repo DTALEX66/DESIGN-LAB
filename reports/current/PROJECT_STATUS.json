@@ -8,41 +8,31 @@
   },
   "fresh": false,
   "freshnessMeaning": "at generation only; check verifies bound-input integrity, not current Git or cloud state",
-  "generatedAt": "2026-10-19T14:42:33+00:00",
+  "generatedAt": "2026-10-19T15:35:44+00:00",
   "git": {
     "branch": "qoder/designlab-backup-consistency-20261007",
-    "origin_main": "211b3c4a09c27d137fabbdb748766a5d77007eab",
-    "sha": "211b3c4a09c27d137fabbdb748766a5d77007eab",
+    "origin_main": "7955b256854cc3ce725a019ae8b8e2149d10b658",
+    "sha": "84e93ba2c162523d99e19749d98064bcdd56632c",
     "source_worktree_clean": false,
-    "tracked_files": 3727,
+    "tracked_files": 3729,
     "worktree_changes": [
       {
-        "content": "sha256:89040288ef70f3d4e078495cb039c07398824cb780337b66093bb93064c95608",
+        "content": "sha256:9a29d33b724363c2579d221b1ce421f2c6aeaafad58ad80219896165ca7a8191",
         "kind": "M",
-        "path": "AGENTS.md"
+        "path": "design-lab/tests/e2e/browser_design_layer_e2e.mjs"
       },
       {
-        "content": "sha256:4f7bd6c0713563f135bd637c9b9afa19b59ed3889097810c35bf384add88acf8",
+        "content": "sha256:92b53f8062e86692fc9953cc2551aaa3308cc73f1c84fd74b1a08664ff2fd398",
         "kind": "M",
-        "path": "AUTHORITY.md"
+        "path": "design-lab/tests/e2e/capture_workbench_screenshots.mjs"
       },
       {
-        "content": "sha256:a030b4359cdf7da5ba559f7c29c3e4b1625caa5bc120b59e3ddec49f2a8f1994",
+        "content": "sha256:ca21aa4cc3c80d92fc37a513400789db193f5270c4f3b51b9e8ee534e6853a50",
         "kind": "M",
-        "path": "docs/current/NEXT-AGENT-PROMPT.md"
-      },
-      {
-        "content": "sha256:e13a1cab1866e1aede297b991d27b07890ab9a3fcf4e267e7447313ccdbec453",
-        "kind": "M",
-        "path": "docs/history/taskpacks/20261009-adoption/AUTHORITY-PIN-CHANGE.json"
-      },
-      {
-        "content": "sha256:a84f11da744024ea1b6e17825061d225abd56c923ba6b26b1fbcfaa72d18899d",
-        "kind": "M",
-        "path": "scripts/verify_top_level_authority.py"
+        "path": "docs/audits/INERT-CONTRACT-SURVEY-2026-10-08.md"
       }
     ],
-    "worktree_digest": "sha256:3afc014cacbafa80641268e05b4abb911abe4379eb5ab6b603478dc4edbf1c7e"
+    "worktree_digest": "sha256:6ab743905cb7b1803804e242ab0518efe09c93fd04fd71c01ca54784e5bc8db8"
   },
   "gitStateMeaning": "generation-time observation, not current HEAD",
   "hostLive": "derived from host_live axis only",
@@ -58,7 +48,7 @@
     "quarantinedSources": 162
   },
   "subjectMeaning": "subjectType=WORKTREE means the tree was dirty at generation; worktreeDigest covers HEAD plus the non-generated changes",
-  "subjectSha": "211b3c4a09c27d137fabbdb748766a5d77007eab",
+  "subjectSha": "84e93ba2c162523d99e19749d98064bcdd56632c",
   "subjectType": "WORKTREE",
   "taskCounts": {
     "FROZEN_DEFERRED": 34
@@ -71,9 +61,9 @@
   "testRunMeaning": "bound run: python scripts/run_bound_test_suite.py --modules test_boot_reconciliation",
   "testRunResult": "OK",
   "tests": {
-    "definedTestMethodCount": 3058,
+    "definedTestMethodCount": 3064,
     "executed": "see individual verified ledger receipts"
   },
   "worktreeClean": false,
-  "worktreeDigest": "sha256:3afc014cacbafa80641268e05b4abb911abe4379eb5ab6b603478dc4edbf1c7e"
+  "worktreeDigest": "sha256:6ab743905cb7b1803804e242ab0518efe09c93fd04fd71c01ca54784e5bc8db8"
 }
