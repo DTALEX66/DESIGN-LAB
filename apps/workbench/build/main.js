@@ -7205,7 +7205,14 @@ function mountB10Shell(routeView, syncLegacyNavCue) {
         "div",
         {},
         el("h1", {}, "DESIGN-LAB"),
-        el("small", {}, "专业视觉智能与可复用设计能力系统")
+        // 16 characters do not fit a 168px rail on one line; break at the phrase's own seam
+        // instead of wherever the browser runs out of room (measured: it split 设计 in two).
+        el(
+          "small",
+          {},
+          el("span", { class: "brand-line" }, "专业视觉智能"),
+          el("span", { class: "brand-line" }, "与可复用设计能力系统")
+        )
       )
     ),
     navList,
