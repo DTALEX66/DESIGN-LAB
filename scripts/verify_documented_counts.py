@@ -16,6 +16,7 @@ because a dead pattern that reports 0 would otherwise green-light a wrong docume
 """
 from __future__ import annotations
 
+import json
 from pathlib import Path
 import re
 import sys
@@ -45,10 +46,35 @@ def cli_subcommands() -> int:
 
 
 def registry_adapters() -> int:
-    import json
     data = json.loads((REPO / 'integrations/adapter-registry.json').read_text(encoding='utf-8'))
     rows = data.get('adapters', data if isinstance(data, list) else [])
     return _require(len(rows), 'adapter-registry')
+
+
+def frozen_current_tasks() -> int:
+    """Every parent and child under `currentExecution`, and they must all still be frozen.
+
+    The prose says "34 项父/子任务全部 FROZEN_DEFERRED" in several places. That sentence carries a
+    boundary, not just a count: unfreezing is an owner decision. So the measurement refuses to
+    report a number while any task has left the frozen state, instead of quietly matching a count
+    over a set that no longer means what the sentence says.
+    """
+    ledger = json.loads((REPO / 'design-lab/config/task-ledger-r3.json').read_text(encoding='utf-8'))
+
+    def walk(node):
+        for task in node.get('tasks') or []:
+            yield task
+            yield from walk(task)
+
+    tasks = list(walk(ledger.get('currentExecution') or {}))
+    _require(len(tasks), 'currentExecution task walk')
+    loose = [str(t.get('id') or '?') for t in tasks if t.get('state') != 'FROZEN_DEFERRED']
+    if loose:
+        raise SystemExit(f'DOCUMENTED_COUNTS=FAIL {len(loose)} currentExecution task(s) are no '
+                         f'longer FROZEN_DEFERRED ({loose[:5]}). Unfreezing is an owner decision; '
+                         'until that is recorded, the sentences claiming all of them are frozen '
+                         'are false and this gate will not help hide it.')
+    return len(tasks)
 
 
 def http_routes() -> int:
@@ -94,6 +120,7 @@ CLAIMS = [
     ('docs/current/NEXT-AGENT-PROMPT.md', 'ROUTES` 为准，共 {n} 条', http_routes),
     ('docs/current/NEXT-AGENT-PROMPT.md', '**{n} 跳验收链**', acceptance_hops),
     ('docs/current/NEXT-AGENT-PROMPT.md', '**{n} 跳交付链**', delivery_hops),
+    ('docs/current/NEXT-AGENT-PROMPT.md', '` 的 **{n} 项父/子任务全部', frozen_current_tasks),
 ]
 
 
