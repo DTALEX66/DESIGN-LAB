@@ -1,14 +1,14 @@
 {
   "schemaVersion": "design-lab/untracked-runtime-census/v1",
   "task_key": "DL-TP-20260914-DEEPSEEK-AUTHORITY-R1::DLDS-D000",
-  "measured_at": "2026-10-19T09:50:48+00:00",
+  "measured_at": "2026-10-19T09:58:45+00:00",
   "roots": {
     ".project-local": {
-      "files": 108850,
-      "bytes": 7364325441,
-      "mib": 7023.17,
+      "files": 108868,
+      "bytes": 7364394425,
+      "mib": 7023.23,
       "oldest_mtime": 1770734472.0,
-      "newest_mtime": 1792403420.7967868,
+      "newest_mtime": 1792403897.7121243,
       "by_subdir": {
         "task-runtime": {
           "files": 79778,
@@ -36,9 +36,9 @@
           "mib": 140.65
         },
         "tmp": {
-          "files": 3236,
-          "bytes": 112756857,
-          "mib": 107.53
+          "files": 3254,
+          "bytes": 112825841,
+          "mib": 107.6
         },
         "personal-audit-src": {
           "files": 3562,
@@ -155,6 +155,6 @@
       }
     }
   },
-  "total_mib": 7220.21,
+  "total_mib": 7220.27,
   "classification_pending": "DLDS-D030/D040 and Wave 4 classify and act; nothing is deleted here"
 }

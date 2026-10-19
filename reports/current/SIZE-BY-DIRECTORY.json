@@ -1,17 +1,17 @@
 {
   "schemaVersion": "design-lab/size-by-directory/v1",
   "task_key": "DL-TP-20260914-DEEPSEEK-AUTHORITY-R1::DLDS-D000",
-  "measured_at": "2026-10-19T09:50:48+00:00",
+  "measured_at": "2026-10-19T09:58:45+00:00",
   "tracked_by_area": {
     "docs": {
-      "files": 1638,
-      "bytes": 41973447,
-      "mib": 40.03
+      "files": 1565,
+      "bytes": 41331743,
+      "mib": 39.42
     },
     "design-lab": {
       "files": 1156,
-      "bytes": 9420071,
-      "mib": 8.98
+      "bytes": 9431654,
+      "mib": 8.99
     },
     "fixtures": {
       "files": 226,
@@ -24,9 +24,9 @@
       "mib": 4.21
     },
     "reports": {
-      "files": 169,
-      "bytes": 3085502,
-      "mib": 2.94
+      "files": 159,
+      "bytes": 3043190,
+      "mib": 2.9
     },
     "src": {
       "files": 105,
@@ -40,7 +40,7 @@
     },
     "integrations": {
       "files": 68,
-      "bytes": 872510,
+      "bytes": 872828,
       "mib": 0.83
     },
     "packages": {
@@ -49,9 +49,9 @@
       "mib": 0.81
     },
     "scripts": {
-      "files": 69,
-      "bytes": 842204,
-      "mib": 0.8
+      "files": 70,
+      "bytes": 847308,
+      "mib": 0.81
     },
     "\"docs": {
       "files": 32,
@@ -80,7 +80,7 @@
     },
     "AUTHORITY.md": {
       "files": 1,
-      "bytes": 20033,
+      "bytes": 20314,
       "mib": 0.02
     },
     "README.md": {
@@ -100,7 +100,7 @@
     },
     ".project": {
       "files": 8,
-      "bytes": 10877,
+      "bytes": 11106,
       "mib": 0.01
     },
     "pyproject.toml": {
@@ -232,9 +232,9 @@
         "mib": 140.65
       },
       "tmp": {
-        "files": 3236,
-        "bytes": 112756857,
-        "mib": 107.53
+        "files": 3254,
+        "bytes": 112825841,
+        "mib": 107.6
       },
       "personal-audit-src": {
         "files": 3562,

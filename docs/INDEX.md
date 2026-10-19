@@ -10,8 +10,8 @@ python scripts/classify_repo.py --check  # 只读校验：派生事实与已提�
 ```
 
 观测 commit 与体量（由上表再生时的真实测量）：
-**跟踪文件 3801 个 · 工作区 70.04 MiB · pack 241.69 MiB**（`observedCommit f55f0382`，
-再生于 2026-10-19T08:24Z）。工作区体积此前被低估：`blob_sizes()` 用 `git ls-tree HEAD` 按行读，
+**跟踪文件 3724 个 · 工作区 69.68 MiB · pack 241.69 MiB**（`observedCommit bdd890fb`，
+再生于 2026-10-19T09:59Z）。工作区体积此前被低估：`blob_sizes()` 用 `git ls-tree HEAD` 按行读，
 非 ASCII 路径被转义后查不到键（11 个文件记成 0 字节），未提交的新文件更整体记成 0——
 同一棵树先后测出 52.28 与 60.22 MiB 而文件数不变。现改从 index + 对象库取，且 blob 读不到即 fail-closed。
 **2026-10-19 修掉的第三个读数缺陷**：分类原先按 bundle 汇总，而 `bundle_key()` 把一个顶层目录收成
@@ -45,19 +45,19 @@ python scripts/classify_repo.py --check  # 只读校验：派生事实与已提�
 
 ## 2. 分类规则（`classify_repo.py` 里的有序前缀表）
 
-| 类别 | 含义 | 现量（`f55f0382` 实测，逐文件计数） |
+| 类别 | 含义 | 现量（`bdd890fb` 实测，逐文件计数） |
 |---|---|---|
 | `authority` | 顶层权威、治理索引、决策与架构政策 | 70 files / 0.31 MiB / 4 bundles |
 | `planning` | 任务包、当前定义面与任务账本 | 21 files / 0.89 MiB |
-| `evidence` | 审计包、黄金用例、域 fixture、评估语料、设计项目产物 | 1159 files / 22.17 MiB |
-| `history` | 冻结历史、归档区（含 2026-10-19 搬入的 handoffs/taskpacks）、Record 导入件 | 810 files / 27.65 MiB |
-| `generated` | 当前状态投影、提交的构建产物 | 67 files / 1.29 MiB |
-| `source` | 产品源码、能力包、集成层、门脚本、测试、CI | 1636 files / 13.20 MiB |
-| `documentation` | 其余文档 | 13 files / 4.30 MiB |
-| `repo-meta` | 根级运维/政策文档（README、SECURITY、RELEASE、DESIGN.md、design.qa.yaml 等 24 个） | 24 files / 0.24 MiB |
-| `other` | 未落入任何规则的件（当前只有 `.project/manifest.yaml`） | 1 file |
+| `evidence` | 审计包、黄金用例、域 fixture、评估语料、设计项目产物 | 1159 files / 22.17 MiB / 5 bundles |
+| `history` | 冻结历史、归档区、Record 导入件 | 732 files / 27.26 MiB / 3 bundles |
+| `generated` | 当前状态投影、提交的构建产物 | 67 files / 1.29 MiB / 4 bundles |
+| `source` | 产品源码、能力包、集成层、门脚本、测试、CI | 1637 files / 13.22 MiB / 8 bundles |
+| `documentation` | 其余文档 | 13 files / 4.31 MiB / 2 bundles |
+| `repo-meta` | 根级运维/政策文档 | 24 files / 0.25 MiB |
+| `other` | 未落入任何规则的件 | 1 file |
 
-九类相加 = 3801 = 跟踪文件总数；这个数字对不上就说明规则漏了或重复了，再生时必须核对。
+九类相加 = 3724 = 跟踪文件总数；这个数字对不上就说明规则漏了或重复了，再生时必须核对。
 
 ## 3. 规划件的当前/历史判定
 
@@ -113,7 +113,7 @@ evidenceRef、parentRepoStars 不得冒充自身、无许可不得越过 QUARANT
 | `fixtures/` | 226 | 域 fixture（`game-visual` 被 clean-tree 门钉住） |
 | `docs/projects/` | 19 | 真实设计项目产物（6.66 MiB，本仓最大单目录产物面） |
 | `docs/golden-cases/` | 11 | 黄金用例 |
-| `reports/history/` | 100 | 冻结历史账本；2026-10-19 归档波次又收进 5 份按日期的 reports 交接摘要 |
+| `reports/history/` | 90 | 冻结历史账本；2026-10-19 先收进 5 份按日期的 reports 交接摘要，随后按 owner 删除指令移出 10 份 loose 交接件（汇总面与恢复句柄见归档区） |
 
 ## 5. 体积：能减的和不能减的（实测归因）
 
@@ -199,6 +199,9 @@ pack 242.0 MiB  −  工作区 60.38 MiB  ≈  181.6 MiB 全部是历史对象
 - `docs/superpowers/`、`docs/research/`、`docs/plans/` 与 `design-lab/research/` 的主题重叠已随本轮
   归档收口：前三者整体进 `docs/history/archive-2026-10-19/`，研究面统一留在
   `design-lab/research/` 与 `research/candidates/`。
+- **2026-10-19 删除波（同一 owner 指令链的第二次重钉）**：83 份过期交接与按日期提示词副本在汇总后删除，跟踪文件从 3806 降到 3724；`docs/history/archive-2026-10-19/AGGREGATED-RECORD-2026-10-19.md` 承载逐份标题/自述/结论/独有事实，`REMOVALS.json` 承载逐份 blob/sha256/crc32/字节/restoreAt，`git show <restoreAt>:<path>` 实测可还原。
+  故意没删的三类写进 `README.md` 的目的地表：owner 随包提供的 deepseek-r3 审计输入 17 件、`PROMPT-LINEAGE.json`、按日期 bundle 目录内的成员。
+  一处真门被这次删除救回来：`verify_top_level_authority.py` 的 `handoff-demoted` 仍按归档前的旧路径找文件，找不到就 PASS 成 "absent; nothing to demote"——文件一搬走这条降级检查就被静默关掉。现改走 `scripts/archive_records.py:read_record()`（工作区→归档移动→removal restoreAt 三层），并把 UCR 条目的 restoreAt 改成假 SHA 验证过它会 FAIL exit=1。
 - **2026-10-08 记录（任务 DL-REC-29）**：该轮把外部 Record 卷的 DESIGN-LAB 任务包落到
   `docs/history/record-imports-2026-10-08/`，并指出该前缀在 `verify_asset_governance.py` 的
   `SKIPPED_PREFIXES` 里，是仓库自己定的"冻结历史面豁免"，不是为过门找的出口——导入件的 sidecar 照写，

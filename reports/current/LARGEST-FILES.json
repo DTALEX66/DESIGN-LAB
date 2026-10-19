@@ -1,7 +1,7 @@
 {
   "schemaVersion": "design-lab/largest-files/v1",
   "task_key": "DL-TP-20260914-DEEPSEEK-AUTHORITY-R1::DLDS-D000",
-  "measured_at": "2026-10-19T09:50:48+00:00",
+  "measured_at": "2026-10-19T09:58:45+00:00",
   "tracked_top": [
     {
       "path": "docs/history/record-archive-2026-10-09/ARCHIVE-MANIFEST.json",
@@ -155,8 +155,8 @@
     },
     {
       "path": "docs/history/record-imports-2026-10-08/RECORD-IMPORT-MANIFEST.json",
-      "bytes": 349913,
-      "object": "8f097c5eae997ca3d2d524268d8b2f5b50d4d216"
+      "bytes": 349453,
+      "object": "09fc87b13d9d6d21cfdac325a129c10bf2fbae6e"
     },
     {
       "path": "docs/history/record-imports-2026-10-08/FINAL-CONSOLIDATED-2026-09-29/appendices/current-task-ledger-snapshot.json",

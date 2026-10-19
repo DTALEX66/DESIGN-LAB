@@ -1,18 +1,18 @@
 {
   "schemaVersion": "design-lab/repository-size-audit/v1",
   "task_key": "DL-TP-20260914-DEEPSEEK-AUTHORITY-R1::DLDS-D000",
-  "measured_at": "2026-10-19T09:50:48+00:00",
-  "subject_sha": "42cb86d5a3fbaee72bdd824e5345dabe0db3bfd7",
+  "measured_at": "2026-10-19T09:58:45+00:00",
+  "subject_sha": "bdd890fbfb35dc6c4ed920a2b246c9b3faaa816d",
   "tracked": {
-    "files": 3806,
-    "bytes": 73735046,
-    "mib": 70.32
+    "files": 3724,
+    "bytes": 73068545,
+    "mib": 69.68
   },
   "git_objects": {
     "in_pack": 21050,
     "packs": 2,
     "size_pack_mib": 241.69,
-    "loose_objects": 358
+    "loose_objects": 426
   },
   "budget": {
     "warning_mib": 224.0,
@@ -22,8 +22,8 @@
   },
   "ignored_roots": {
     ".project-local": {
-      "files": 108850,
-      "mib": 7023.17
+      "files": 108868,
+      "mib": 7023.23
     },
     ".hermes": {
       "files": 1,

@@ -8,413 +8,31 @@
   },
   "fresh": false,
   "freshnessMeaning": "at generation only; check verifies bound-input integrity, not current Git or cloud state",
-  "generatedAt": "2026-10-19T09:51:21+00:00",
+  "generatedAt": "2026-10-19T09:59:17+00:00",
   "git": {
     "branch": "qoder/designlab-backup-consistency-20261007",
-    "origin_main": "7015571e729ec78c266cf45e0bd3b01b2e50973b",
-    "sha": "42cb86d5a3fbaee72bdd824e5345dabe0db3bfd7",
+    "origin_main": "bdd890fbfb35dc6c4ed920a2b246c9b3faaa816d",
+    "sha": "bdd890fbfb35dc6c4ed920a2b246c9b3faaa816d",
     "source_worktree_clean": false,
-    "tracked_files": 3723,
+    "tracked_files": 3724,
     "worktree_changes": [
       {
-        "kind": "D",
-        "path": "docs/history/archive-2026-10-19/handoffs/DEEPSEEK-AUTHORITY-ACTIVATION-2026-09-14.md"
-      },
-      {
-        "kind": "D",
-        "path": "docs/history/archive-2026-10-19/handoffs/DEEPSEEK-DEEP-ADAPTATION-EXECUTION-2026-09-13.md"
-      },
-      {
-        "kind": "D",
-        "path": "docs/history/archive-2026-10-19/handoffs/DEEPSEEK-OPEN-DESIGN-E3-READINESS-2026-09-13.md"
-      },
-      {
-        "kind": "D",
-        "path": "docs/history/archive-2026-10-19/handoffs/DEEPSEEK-RIGHTS-REFRESH-MINIMAX-H3-2026-09-13.md"
-      },
-      {
-        "kind": "D",
-        "path": "docs/history/archive-2026-10-19/handoffs/DESIGN-LAB-AUDIT-ARCHITECTURE-WORKBENCH-20260922.md"
-      },
-      {
-        "kind": "D",
-        "path": "docs/history/archive-2026-10-19/handoffs/DESIGN-LAB-BRANCH-DISPOSITION-2026-09-23.md"
-      },
-      {
-        "kind": "D",
-        "path": "docs/history/archive-2026-10-19/handoffs/DESIGN-LAB-BUNDLES-LIST-QUERY-ROUND-2026-09-28.md"
-      },
-      {
-        "kind": "D",
-        "path": "docs/history/archive-2026-10-19/handoffs/DESIGN-LAB-CLOUD-AUDIT-2026-09-25-CLOSURE-2026-09-26.md"
-      },
-      {
-        "kind": "D",
-        "path": "docs/history/archive-2026-10-19/handoffs/DESIGN-LAB-DRIFT-BRANCH-AUDIT-2026-09-22.md"
-      },
-      {
-        "kind": "D",
-        "path": "docs/history/archive-2026-10-19/handoffs/DESIGN-LAB-FULL-EXECUTION-HANDOFF-2026-09-22.md"
-      },
-      {
-        "kind": "D",
-        "path": "docs/history/archive-2026-10-19/handoffs/DESIGN-LAB-NIGHT-CHECKPOINT-2026-09-07.md"
-      },
-      {
-        "kind": "D",
-        "path": "docs/history/archive-2026-10-19/handoffs/DESIGN-LAB-P0-P1-MATURITY-HANDOFF-2026-09-20.md"
-      },
-      {
-        "kind": "D",
-        "path": "docs/history/archive-2026-10-19/handoffs/DESIGN-LAB-PROJECT-SURVEY-TRUTH-RESYNC-2026-09-27.md"
-      },
-      {
-        "kind": "D",
-        "path": "docs/history/archive-2026-10-19/handoffs/DESIGN-LAB-R3-HANDOFF-2026-09-07.md"
-      },
-      {
-        "kind": "D",
-        "path": "docs/history/archive-2026-10-19/handoffs/DESIGN-LAB-REAUDIT-20260915-HANDOFF.md"
-      },
-      {
-        "kind": "D",
-        "path": "docs/history/archive-2026-10-19/handoffs/DESIGN-LAB-REAUDIT-20260916-CLOSURE-HANDOFF.md"
-      },
-      {
-        "kind": "D",
-        "path": "docs/history/archive-2026-10-19/handoffs/DESIGN-LAB-SESSION-HANDOFF-2026-10-06B.md"
-      },
-      {
-        "kind": "D",
-        "path": "docs/history/archive-2026-10-19/handoffs/DESIGN-LAB-SESSION-HANDOFF-2026-10-07.md"
-      },
-      {
-        "kind": "D",
-        "path": "docs/history/archive-2026-10-19/handoffs/DESIGN-LAB-SESSION-HANDOFF-2026-10-08.md"
-      },
-      {
-        "kind": "D",
-        "path": "docs/history/archive-2026-10-19/handoffs/DESIGN-LAB-SESSION-HANDOFF-2026-10-09.md"
-      },
-      {
-        "kind": "D",
-        "path": "docs/history/archive-2026-10-19/handoffs/DESIGN-LAB-SPILL-SLIM-CLOSURE-2026-09-22.md"
-      },
-      {
-        "kind": "D",
-        "path": "docs/history/archive-2026-10-19/handoffs/DESIGN-LAB-UCR-CONVERGENCE-20260918-HANDOFF.md"
-      },
-      {
-        "kind": "D",
-        "path": "docs/history/archive-2026-10-19/handoffs/DESIGN-LAB-UI-AUDIT-CONVERGENCE-2026-09-22.md"
-      },
-      {
-        "kind": "D",
-        "path": "docs/history/archive-2026-10-19/handoffs/DESIGN-LAB-UIKIT-CONFORMANCE-ROUND-2026-09-28.md"
-      },
-      {
-        "kind": "D",
-        "path": "docs/history/archive-2026-10-19/handoffs/DESIGN-LAB-WORKBENCH-VISUAL-AUDIT-HANDOFF-2026-10-06.md"
-      },
-      {
-        "kind": "D",
-        "path": "docs/history/archive-2026-10-19/handoffs/GPT-R3-REVISION-HANDOFF-2026-09-06.md"
-      },
-      {
-        "kind": "D",
-        "path": "docs/history/archive-2026-10-19/handoffs/R5-ATOMIC-BUNDLE-2026-09-09.md"
-      },
-      {
-        "kind": "D",
-        "path": "docs/history/archive-2026-10-19/handoffs/R5-BROWSER-ILLUSTRATOR-REAL-2026-09-09.md"
-      },
-      {
-        "kind": "D",
-        "path": "docs/history/archive-2026-10-19/handoffs/R5-BROWSER-PATCH-2026-09-09.md"
-      },
-      {
-        "kind": "D",
-        "path": "docs/history/archive-2026-10-19/handoffs/R5-BROWSER-PLAN-CANCEL-2026-09-09.md"
-      },
-      {
-        "kind": "D",
-        "path": "docs/history/archive-2026-10-19/handoffs/R5-BUNDLE-FONT-INVENTORY-2026-09-09.md"
-      },
-      {
-        "kind": "D",
-        "path": "docs/history/archive-2026-10-19/handoffs/R5-CI-FIRST-FULL-REGRESSION-2026-09-09.md"
-      },
-      {
-        "kind": "D",
-        "path": "docs/history/archive-2026-10-19/handoffs/R5-COMFY-FINGERPRINT-GATE-2026-09-09.md"
-      },
-      {
-        "kind": "D",
-        "path": "docs/history/archive-2026-10-19/handoffs/R5-COMFY-HTTP-LIVE-2026-09-09.md"
-      },
-      {
-        "kind": "D",
-        "path": "docs/history/archive-2026-10-19/handoffs/R5-COMFY-HTTP-TRANSPORT-2026-09-09.md"
-      },
-      {
-        "kind": "D",
-        "path": "docs/history/archive-2026-10-19/handoffs/R5-COMFY-PRODUCTION-INTAKE-2026-09-09.md"
-      },
-      {
-        "kind": "D",
-        "path": "docs/history/archive-2026-10-19/handoffs/R5-COMFY-STRUCTURAL-REJECTION-2026-09-09.md"
-      },
-      {
-        "kind": "D",
-        "path": "docs/history/archive-2026-10-19/handoffs/R5-COMFY-WHEEL-SMOKE-2026-09-09.md"
-      },
-      {
-        "kind": "D",
-        "path": "docs/history/archive-2026-10-19/handoffs/R5-CURRENT-CONTINUATION-2026-09-09.md"
-      },
-      {
-        "kind": "D",
-        "path": "docs/history/archive-2026-10-19/handoffs/R5-FULL-REGRESSION-VERBOSE-2026-09-09.md"
-      },
-      {
-        "kind": "D",
-        "path": "docs/history/archive-2026-10-19/handoffs/R5-HTTP-INTERMITTENT-DIAGNOSIS-2026-09-09.md"
-      },
-      {
-        "kind": "D",
-        "path": "docs/history/archive-2026-10-19/handoffs/R5-INSTALLED-LIST-FIX-2026-09-09.md"
-      },
-      {
-        "kind": "D",
-        "path": "docs/history/archive-2026-10-19/handoffs/R5-INSTALLED-PLAN-UPGRADE-2026-09-09.md"
-      },
-      {
-        "kind": "D",
-        "path": "docs/history/archive-2026-10-19/handoffs/R5-INSTALLED-QUEUE-SMOKE-2026-09-09.md"
-      },
-      {
-        "kind": "D",
-        "path": "docs/history/archive-2026-10-19/handoffs/R5-NATIVE-PATCH-PLAN-2026-09-09.md"
-      },
-      {
-        "kind": "D",
-        "path": "docs/history/archive-2026-10-19/handoffs/R5-NATIVE-PLAN-INTAKE-2026-09-09.md"
-      },
-      {
-        "kind": "D",
-        "path": "docs/history/archive-2026-10-19/handoffs/R5-PERSISTED-NATIVE-RECOVERY-2026-09-09.md"
-      },
-      {
-        "kind": "D",
-        "path": "docs/history/archive-2026-10-19/handoffs/R5-PHOTOSHOP-COMPLEX-NATIVE-SUCCESS-2026-09-09.md"
-      },
-      {
-        "kind": "D",
-        "path": "docs/history/archive-2026-10-19/handoffs/R5-PHOTOSHOP-COMPLEX-RETRY-2026-09-09.md"
-      },
-      {
-        "kind": "D",
-        "path": "docs/history/archive-2026-10-19/handoffs/R5-PHOTOSHOP-FULL-REGRESSION-2026-09-09.md"
-      },
-      {
-        "kind": "D",
-        "path": "docs/history/archive-2026-10-19/handoffs/R5-PHOTOSHOP-INSTALLED-BUNDLE-2026-09-09.md"
-      },
-      {
-        "kind": "D",
-        "path": "docs/history/archive-2026-10-19/handoffs/R5-PHOTOSHOP-PATCH-PRODUCT-2026-09-09.md"
-      },
-      {
-        "kind": "D",
-        "path": "docs/history/archive-2026-10-19/handoffs/R5-PHOTOSHOP-QUIESCENCE-2026-09-09.md"
-      },
-      {
-        "kind": "D",
-        "path": "docs/history/archive-2026-10-19/handoffs/R5-PHOTOSHOP-REAL-BROWSER-PATCH-2026-09-09.md"
-      },
-      {
-        "kind": "D",
-        "path": "docs/history/archive-2026-10-19/handoffs/R5-PHOTOSHOP-STAGE-DIAGNOSTICS-2026-09-09.md"
-      },
-      {
-        "kind": "D",
-        "path": "docs/history/archive-2026-10-19/handoffs/R5-REFERENCE-RIGHTS-RECHECK-2026-09-09.md"
-      },
-      {
-        "kind": "D",
-        "path": "docs/history/archive-2026-10-19/handoffs/R5-WORKBENCH-CANCELLATION-2026-09-09.md"
-      },
-      {
-        "kind": "D",
-        "path": "docs/history/archive-2026-10-19/handoffs/R5-WORKBENCH-LIST-RACES-2026-09-09.md"
-      },
-      {
-        "kind": "D",
-        "path": "docs/history/archive-2026-10-19/handoffs/SESSION-RESTART-2026-09-12.md"
-      },
-      {
-        "kind": "D",
-        "path": "docs/history/archive-2026-10-19/handoffs/deepseek-r3-20260906-v2/00-input-baseline.json"
-      },
-      {
-        "kind": "D",
-        "path": "docs/history/archive-2026-10-19/handoffs/deepseek-r3-20260906-v2/01-requirements-matrix.json"
-      },
-      {
-        "kind": "D",
-        "path": "docs/history/archive-2026-10-19/handoffs/deepseek-r3-20260906-v2/02-capability-corrections.json"
-      },
-      {
-        "kind": "D",
-        "path": "docs/history/archive-2026-10-19/handoffs/deepseek-r3-20260906-v2/03-history-locator-corrections.json"
-      },
-      {
-        "kind": "D",
-        "path": "docs/history/archive-2026-10-19/handoffs/deepseek-r3-20260906-v2/04-reference-candidates.json"
-      },
-      {
-        "kind": "D",
-        "path": "docs/history/archive-2026-10-19/handoffs/deepseek-r3-20260906-v2/04-reference-exclusions.json"
-      },
-      {
-        "kind": "D",
-        "path": "docs/history/archive-2026-10-19/handoffs/deepseek-r3-20260906-v2/05-DP-RETURN.md"
-      },
-      {
-        "kind": "D",
-        "path": "docs/history/archive-2026-10-19/handoffs/deepseek-r3-20260906-v2/05-results.json"
-      },
-      {
-        "kind": "D",
-        "path": "docs/history/archive-2026-10-19/handoffs/deepseek-r3-20260906-v2/SHA256SUMS.txt"
-      },
-      {
-        "kind": "D",
-        "path": "docs/history/next-agent-prompts/NEXT-AGENT-PROMPT-2026-10-09.md"
-      },
-      {
-        "kind": "D",
-        "path": "docs/history/next-agent-prompts/NEXT-AGENT-PROMPT-2026-10-10.md"
-      },
-      {
-        "kind": "D",
-        "path": "docs/history/next-agent-prompts/NEXT-AGENT-PROMPT-2026-10-11.md"
-      },
-      {
-        "kind": "D",
-        "path": "docs/history/next-agent-prompts/NEXT-AGENT-PROMPT-2026-10-12.md"
-      },
-      {
-        "kind": "D",
-        "path": "docs/history/next-agent-prompts/NEXT-AGENT-PROMPT-2026-10-13.md"
-      },
-      {
-        "kind": "D",
-        "path": "reports/history/ADOBE_UNINSTALL_HANDOFF_20260822.md"
-      },
-      {
-        "kind": "D",
-        "path": "reports/history/OP_PERSONAL_EXPERT_SUITE_HANDOFF_20260812.md"
-      },
-      {
-        "kind": "D",
-        "path": "reports/history/PIXEL_PERFECT_VECTOR_RECONSTRUCTION_HANDOFF_20260823.md"
-      },
-      {
-        "kind": "D",
-        "path": "reports/history/V42_HANDOFF_SUMMARY_20260810.md"
-      },
-      {
-        "kind": "D",
-        "path": "reports/history/V42_HANDOFF_SUMMARY_20260811.md"
-      },
-      {
-        "kind": "D",
-        "path": "reports/history/V42_HANDOFF_SUMMARY_20260815.md"
-      },
-      {
-        "kind": "D",
-        "path": "reports/history/V42_HANDOFF_SUMMARY_20260816.md"
-      },
-      {
-        "kind": "D",
-        "path": "reports/history/V42_HANDOFF_SUMMARY_20260821.md"
-      },
-      {
-        "kind": "D",
-        "path": "reports/history/V42_HANDOFF_SUMMARY_20260822.md"
-      },
-      {
-        "kind": "D",
-        "path": "reports/history/V4_HANDOFF_SUMMARY_20260807.md"
-      },
-      {
-        "content": "sha256:3a9903b5a4decffc6a4bf4ecc11fdb0db59ae8ca2c4b562cf201d8b8f7d2c58d",
-        "kind": "M",
-        "path": ".project/governance/authority-index.json"
-      },
-      {
-        "content": "sha256:081b5f9412d2bfa52e4eb31c5a761af68dcc1d2426be160d800bca65e1b5f9d8",
-        "kind": "M",
-        "path": "AUTHORITY.md"
-      },
-      {
-        "content": "sha256:7b44ee91b6a6b5ea6418d690a5e2438bb2bd78d0670391efdb32f4923d07453c",
+        "content": "sha256:388718b65c160ec6832c281766834ea20f6286eda437909730e3040b47003f16",
         "kind": "M",
         "path": "design-lab/config/repository-size-report.json"
       },
       {
-        "content": "sha256:a2df38c826d5a23c4281a8c2eb592154e5fb0549fd03a6ce0e10311f5eba01cd",
+        "content": "sha256:c8280e6829ee1f17e8975854634ac14240b338e17edf21a2860fd5d1a5a5d90d",
         "kind": "M",
-        "path": "design-lab/config/task-document-states.json"
+        "path": "docs/INDEX.md"
       },
       {
-        "content": "sha256:3573b88df6c04be6fa6932327aff94ad8c547a43bfcbc6a3337d4bad50a71322",
+        "content": "sha256:22a3cd89439dae2afe27d1fd4292bd82796deb5ed24a6caf4ce062329aee21a9",
         "kind": "M",
-        "path": "docs/current/HISTORY-FREEZE-RULES.md"
-      },
-      {
-        "content": "sha256:4427704cf8dc58349fd04167db0df14f862784a4facaefa8cd2e1e4bcbc22c8c",
-        "kind": "M",
-        "path": "docs/history/taskpacks/20261009-adoption/AUTHORITY-PIN-CHANGE.json"
-      },
-      {
-        "content": "sha256:1f214b5e0bae8444477c418094a56ecc590f2459c1a6ee8f795744d3cc267872",
-        "kind": "M",
-        "path": "integrations/hosts/minimax-design/POC-PLAN.md"
-      },
-      {
-        "content": "sha256:55dfbe60b61d9317b8d423057893b3016517f6e2f4179c0e1f2573274e6cebda",
-        "kind": "M",
-        "path": "integrations/hosts/minimax-design/rights-and-provider-policy.md"
-      },
-      {
-        "content": "sha256:2f07fbffe3ebb0b9180e2d9ea39cfad9989067ca1908c9fd464f84276d6ab817",
-        "kind": "M",
-        "path": "scripts/deepseek_authority_chain.py"
-      },
-      {
-        "content": "sha256:b00814a44cf323d1f8b24fc71d048a9c165218f4faf7c532194c0762eb75bfbe",
-        "kind": "M",
-        "path": "scripts/deepseek_authority_ledger.py"
-      },
-      {
-        "content": "sha256:05091a4f4e1c0b378dfd61c8ecd47089b0fdd1e7ee1fd0fc8c489ad6107a939b",
-        "kind": "M",
-        "path": "scripts/deepseek_worktree_reconciliation.py"
-      },
-      {
-        "content": "sha256:dff4cf31eab7388ef052f746e511db19b18daa2044f2a79770d0d7bb84faa899",
-        "kind": "M",
-        "path": "scripts/verify_top_level_authority.py"
-      },
-      {
-        "content": "sha256:c6ff2aae5a4339d242ef746947ac7781279277fe245c56bcd939ed2dbd032deb",
-        "kind": "U",
-        "path": "scripts/archive_records.py"
+        "path": "docs/history/archive-2026-10-19/README.md"
       }
     ],
-    "worktree_digest": "sha256:500361137bc6748a46586453b238dbec3b3838f04570c303c5714fd2cec8aa6f"
+    "worktree_digest": "sha256:bcee64a5bf188293152947ff4cde588a550a12faaf6d015724c6b07726ecc2f0"
   },
   "gitStateMeaning": "generation-time observation, not current HEAD",
   "hostLive": "derived from host_live axis only",
@@ -430,7 +48,7 @@
     "quarantinedSources": 162
   },
   "subjectMeaning": "subjectType=WORKTREE means the tree was dirty at generation; worktreeDigest covers HEAD plus the non-generated changes",
-  "subjectSha": "42cb86d5a3fbaee72bdd824e5345dabe0db3bfd7",
+  "subjectSha": "bdd890fbfb35dc6c4ed920a2b246c9b3faaa816d",
   "subjectType": "WORKTREE",
   "taskCounts": {
     "FROZEN_DEFERRED": 34
@@ -447,5 +65,5 @@
     "executed": "see individual verified ledger receipts"
   },
   "worktreeClean": false,
-  "worktreeDigest": "sha256:500361137bc6748a46586453b238dbec3b3838f04570c303c5714fd2cec8aa6f"
+  "worktreeDigest": "sha256:bcee64a5bf188293152947ff4cde588a550a12faaf6d015724c6b07726ecc2f0"
 }

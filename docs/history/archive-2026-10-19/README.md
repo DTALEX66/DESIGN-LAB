@@ -30,7 +30,13 @@ Owner 指令（2026-10-19）：任何旧的、过时的、冗余的、陈旧的�
 | 目的地 | 内容 |
 | --- | --- |
 | `docs/history/archive-2026-10-19/**` | 本次归档主体（任务包、handoff、计划、研究、旧当前面记录） |
-| `reports/history/**` | 5 份按日期命名的 reports 交接摘要（同一波次搬入） |
+| `AGGREGATED-RECORD-2026-10-19.md` / `HANDOFF-PROMPT-DIGEST.json` | 83 份已删交接与提示词的逐份汇总：标题、自述、结论、只有它记载的事实 |
+| `REMOVALS.json` | 已删文件的 blob sha1/sha256/crc32/字节与 `restoreAt`；`git show <restoreAt>:<path>` 可还原原件字节 |
+| `handoffs/deepseek-r3-20260906/**` | owner 随包提供的 17 件 R3 审计输入原件——故意没删，删它等于销毁输入 |
+| `reports/history/**` | 5 份按日期命名的 reports 交接摘要（同一波次搬入）；其中 10 份 loose 交接件已按删除指令移出 |
 | `docs/history/record-imports-2026-10-08/**` | DL-REC-29 从 Record 导入的冻结原件，逐文件定态见其 `RECORD-IMPORT-MANIFEST.json` |
-| `docs/history/next-agent-prompts/**` | 历史提示词，逐份登记在 `PROMPT-LINEAGE.json` |
+| `docs/history/next-agent-prompts/**` | 历史提示词血统登记 `PROMPT-LINEAGE.json`（5 份按日期副本已删，逐份 sha256/字节仍登记在表内） |
 | `.project-local/task-artifacts/**` | 大型位图、字体、原 ZIP 等不随 Git 克隆的本机产物 |
+
+要读回一份被删文档的内容，不要手写路径解析：`scripts/archive_records.py:read_record(rel)` 按
+工作区 → 归档移动 → `REMOVALS.json` 的 `restoreAt` 三层取字节并回写来源，三层都不到即报错。
