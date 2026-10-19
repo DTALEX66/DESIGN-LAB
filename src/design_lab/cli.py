@@ -238,6 +238,16 @@ def main(argv=None):
                          help='allow restoring over a non-empty target')
     restore.add_argument('--allow-upgrade', action='store_true',
                          help='restore despite a version or state-schema mismatch')
+    analyze = commands.add_parser(
+        'analyze',
+        help='lower one stored raster asset plus an explicit observation file into a '
+             'reconstruction-ir/v1 document; it runs no model and proves no host call')
+    analyze.add_argument('--project-id', required=True, help='owning project id (32 hex)')
+    analyze.add_argument('--asset', required=True,
+                         help='the img-… identifier the import route returned')
+    analyze.add_argument('--observations', required=True,
+                         help='JSON file holding {"module": …, "detections": [{text, confidence, '
+                              'polygon}]}; observations are supplied, never inferred here')
     args = parser.parse_args(argv)
     if hasattr(sys.stdout, 'reconfigure'):
         sys.stdout.reconfigure(encoding='utf-8')
@@ -651,6 +661,31 @@ def main(argv=None):
             except InteropError as exc:
                 print(json.dumps({'status': 'ERROR', 'error': 'DELIVERY_RECEIPT_UNVERIFIED',
                                   'detail': str(exc)}, ensure_ascii=False))
+                return 2
+        elif args.command == 'analyze':
+            from .asset_analysis import AssetAnalysis, AssetAnalysisError
+            from .image_assets import ImageAssetError
+            try:
+                with open(args.observations, encoding='utf-8') as handle:
+                    observations = json.load(handle)
+            except (OSError, ValueError) as exc:
+                print(json.dumps({'status': 'ERROR', 'error': 'UNREADABLE_OBSERVATIONS',
+                                  'detail': f'{type(exc).__name__}: {exc}'}, ensure_ascii=False))
+                return 2
+            if not isinstance(observations, dict) or set(observations) != {'module', 'detections'}:
+                print(json.dumps({'status': 'ERROR', 'error': 'INVALID_OBSERVATIONS_DOCUMENT',
+                                  'detail': 'the file must be one object holding exactly module and '
+                                            'detections; nothing is inferred on your behalf'},
+                                 ensure_ascii=False))
+                return 2
+            try:
+                result = AssetAnalysis(service).derive(
+                    args.project_id, args.asset, module=observations['module'],
+                    detections=observations['detections'])
+            except (AssetAnalysisError, ImageAssetError) as exc:
+                print(json.dumps({'status': 'ERROR', 'error': getattr(exc, 'code', None)
+                                            or type(exc).__name__, 'detail': str(exc)},
+                                 ensure_ascii=False))
                 return 2
         elif args.command == 'paths':
             result = service.paths.describe()
