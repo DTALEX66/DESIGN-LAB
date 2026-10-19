@@ -143,6 +143,18 @@ authority-index 与账本仍点名的四份包体。
 | 交替主题几何覆盖（补上的盲区） | 溢出审计是唯一只测一个主题的浏览器闸门（对比度测 design-lab/dark + ui2026/light，主题几何扫三种组合，而它握着 CLIPPED/STRAY/TINY/切割线/滚动提示）。播种否证证明这条新用例有牙而非重复：把 `.nav{margin-bottom:0}` 只作用到 `[data-palette=ui2026][data-scheme=light]`，默认主题那条仍 `ok`，新用例在三个宽度上全报 `OV_NAV_EDGE_TIGHT gap=0`——改之前这个 bug 会绿着发出去。恢复后两主题 `Ran 2 tests OK`，整表 `BROWSER_E2E ran=10 skipped=0 failed=0` |
 | 云端判定（逐条实读，不替 CI 宣布） | `72950ce2`、`b07a3906`、`6f4a89a4` 三个 head 的 `main` run 均 `OVERALL=success`，各 11 个真实 job success、`Branch light gate` skipped；同 SHA 在开发分支上的 light-gate run 也是 success，但那是 11 job 全 skipped，只说明编译与身份边界，不能当"CI 通过"引用 |
 
+**闸门 × 维度覆盖矩阵**（本轮逐条查 invocation 得出，不是读注释——溢出闸门的注释本来就写着"按主题分级"，而它实际只测一个）：
+
+| 闸门 | 宽度 | 高度 | 主题 |
+| --- | --- | --- | --- |
+| `test_workbench_overflow_gate` | 1440/1280/1920 | 900 + 620（滚动提示专用一趟） | design-lab/dark **与** ui2026/light（本轮补） |
+| `test_workbench_contrast_gate` | 1440/1920 | 900 | design-lab/dark **与** ui2026/light |
+| `test_workbench_theme_geometry_gate` | 按组合 | 900 | 三种组合（design-lab/dark、ui2026/dark、ui2026/light） |
+| `test_workbench_theme_affordance_gate` | 单宽 | 900 | 它本身就是"点主题按钮"，天然跨主题 |
+| `test_workbench_ui_audit_gate` | 1280/1920 | 900 | **仅默认主题**——它测的溢出/对比/键盘可达/目标尺寸/命名/降级措辞/控制台噪声里，对比与几何已由上面两道按主题覆盖，键盘可达与命名不随色板变；因此本轮不加第二趟（代价约等于把这道 26 scope 的量测翻倍），而是把这条判断记在这里，免得下一轮重新查一遍再得出同样的结论 |
+
+**仍未被任何闸门按主题分的维度**：窗口高度只有 900 与 620 两点，DESIGN.md 第 125 行要求的"尺寸档位逐个截图比较"由 `capture_workbench_screenshots.mjs` 的 `VIEWPORT_HEIGHT` 档位承担（截图是人看的，不是闸门判的）。要把高度也变成断言面，需要给溢出闸门加高度参数——那是下一刀的活，本轮没做，不假装已覆盖。
+
 ## 6. 本轮暴露并修掉的六个缺陷
 
 1. **分类聚合按目录贴标签**：`bundle_key()` 把一个顶层目录收成一个 bundle，于是 `docs/` 里第一个文件的类别
