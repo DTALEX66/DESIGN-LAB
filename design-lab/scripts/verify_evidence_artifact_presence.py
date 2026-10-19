@@ -55,11 +55,51 @@ def _current_bytes(root: Path, rel: str) -> bytes | None:
     return blob
 
 
+def _relocations(root: Path) -> dict[str, dict]:
+    """`recorded path -> {to, blobSha1}` proven by an archive-pass MANIFEST.json.
+
+    A ledger record names the path its artefact had when the observation was made, and those
+    bytes are sealed by hash. An archive pass may move the file without touching a byte, so the
+    record stays true while the path goes stale. Resolving through the manifest keeps both
+    honest: the pair must be recorded, and the blob id at the destination must be the one that
+    was captured before the move.
+    """
+    table: dict[str, dict] = {}
+    for manifest in sorted((root / "docs/history").glob("archive-*/MANIFEST.json")):
+        try:
+            data = json.loads(manifest.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError):
+            continue
+        for group in data.get("groups", []):
+            for entry in group.get("files", []):
+                if entry.get("from") and entry.get("to"):
+                    table[entry["from"]] = {"to": entry["to"], "blob": entry.get("blobSha1"),
+                                            "manifest": manifest.relative_to(root).as_posix()}
+    return table
+
+
+def _removals(root: Path) -> dict[str, dict]:
+    """`path -> entry` for documents the owner ordered deleted, with their restore handles."""
+    table: dict[str, dict] = {}
+    for manifest in sorted((root / "docs/history").glob("archive-*/REMOVALS.json")):
+        try:
+            data = json.loads(manifest.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError):
+            continue
+        for entry in data.get("entries", []):
+            if entry.get("path"):
+                table[entry["path"]] = {**entry, "manifest": manifest.name}
+    return table
+
+
 def evaluate(root: Path, ledger: dict) -> dict:
     index = set(subprocess.run(['git', '-C', str(root), 'ls-files'],
                                capture_output=True, text=True,
                                encoding='utf-8', errors='replace').stdout.splitlines())
+    moves = _relocations(root)
+    removed = _removals(root)
     broken, drifted, runtime_missing, runtime_ok = [], [], [], 0
+    relocated, recovered = [], []
     for receipt in ledger.get('evidence', []):
         for artifact in receipt.get('artifacts', []):
             rel = artifact['path']
@@ -69,15 +109,35 @@ def evaluate(root: Path, ledger: dict) -> dict:
                 else:
                     runtime_missing.append((receipt['id'], rel))
                 continue
-            if rel not in index:
-                # Not tracked and not runtime: nothing can ever read it back.
+            where = rel
+            via = moves.get(rel)
+            if via and rel not in index:
+                where = via['to']
+            gone = removed.get(where) or (via and removed.get(rel))
+            if gone:
+                # Deleted on owner order, but the bytes must still be readable from the object
+                # database or the record's proof is destroyed, not retired.
+                blob = _git(root, 'cat-file', '-e', gone['blobSha1']) is not None
+                if not blob:
+                    broken.append((receipt['id'], rel, 'REMOVED-AND-UNRECOVERABLE'))
+                    continue
+                recovered.append((receipt['id'], rel, gone['restoreAt']))
+                continue
+            if where not in index:
+                # Not tracked, not runtime, not a recorded move or removal: nothing can read it back.
                 broken.append((receipt['id'], rel, 'NOT-IN-GIT-INDEX'))
                 continue
-            path = root / rel
+            if via:
+                current_blob = _git(root, 'rev-parse', f'HEAD:{where}')
+                if current_blob is None or current_blob.strip().decode() != via['blob']:
+                    broken.append((receipt['id'], where, 'RELOCATED-BLOB-DIFFERS'))
+                    continue
+                relocated.append((receipt['id'], rel, where))
+            path = root / where
             if not path.is_file():
                 broken.append((receipt['id'], rel, 'MISSING'))
                 continue
-            current = _current_bytes(root, rel)
+            current = _current_bytes(root, where)
             if current is None:
                 broken.append((receipt['id'], rel, 'NO-GIT-OBJECT'))
                 continue
@@ -85,9 +145,11 @@ def evaluate(root: Path, ledger: dict) -> dict:
                 # The artefact was a mutable source file: it moved on since the
                 # observation. That is decay the projector already accounts for,
                 # not destroyed proof, so it must not make the gate red forever.
+                # Reported under the recorded path, which is the identity the receipt carries;
+                # `relocated` is where the destination is stated.
                 drifted.append((receipt['id'], rel, 'HASH_MOVED_SINCE_OBSERVATION'))
     return {'broken': broken, 'drifted': drifted, 'runtime_missing': runtime_missing,
-            'runtime_ok': runtime_ok}
+            'runtime_ok': runtime_ok, 'relocated': relocated, 'recovered': recovered}
 
 
 def main(argv=None) -> int:
@@ -109,8 +171,15 @@ def main(argv=None) -> int:
         print(f'  RUNTIME-MISSING {receipt_id} -> {rel}')
     if len(missing) > 5:
         print(f'  ... {len(missing) - 5} more runtime artefact references absent')
+    for receipt_id, rel, where in result['relocated'][:5]:
+        print(f'  RELOCATED {receipt_id} -> {rel} read back at {where}')
+    for receipt_id, rel, restore in result['recovered'][:5]:
+        print(f'  RECOVERED {receipt_id} -> {rel} removed on owner order, bytes readable at {restore}')
+    if len(result['relocated']) > 5 or len(result['recovered']) > 5:
+        print('  ... more relocation/recovery lines suppressed')
     summary = (f'tracked_broken={len(broken)} tracked_drifted={len(drifted)} '
-               f'runtime_present={ok} runtime_missing={len(missing)}')
+               f'runtime_present={ok} runtime_missing={len(missing)} '
+               f'relocated={len(result["relocated"])} recovered={len(result["recovered"])}')
     if broken:
         print(f'EVIDENCE_ARTIFACTS=FAIL {summary}')
         return 1
