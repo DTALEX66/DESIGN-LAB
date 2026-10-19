@@ -167,6 +167,19 @@ authority-index 与账本仍点名的四份包体。
 
 这三条数是替 owner 那句「保留标准通用的接入接口」逐层实测出来的，结论按层分开写，不合并成一句"接入已可用"：官方 API/SDK 层有代码但等级以 E0/E1 为主（ComfyUI 的 E2/E3 证据属 2026-08，未在现树复验）；原生插件层与 CLI 层是实的；**MCP 层只有合同没有服务**（`INERT-CONTRACT-SURVEY-2026-10-08.md` 记 `state=NO_STATE_COUNTERPART`、`route_references=[]`、`table_readers=[]`、`table_writers=[]`）；**受控 UI 自动化层零模块**。后两层要补属产品实施，仍在 `currentExecution` 冻结内。普查结果就地写进 `docs/current/NEXT-AGENT-PROMPT.md` 的开放边界一节。
 
+### 5.4 第五批（桌面端验收尺寸 + 定位句一致性）的实测读数
+
+| 命令 | 退出码 | 读数 |
+| --- | --- | --- |
+| `powershell -File .project-local/task-runtime/screen-probe.ps1` | 0 | `SCREEN \\.\DISPLAY1 bounds=2048x1152 working=2048x1104 primary=True` + `APPLIED_DPI=120`。结论：浏览器拿到的 CSS 视口宽是 **2048**，2560 只是面板物理宽——验收尺寸因此按 2048 设，而不是按看起来更大的那个数 |
+| `python scripts/audit_workbench_ui.py --widths 2560`、`--widths 2048` | 0 | 两档各一趟 `AUDIT_SCOPES 13 violations=0 ok=True`。服务日志里那条 503 与 `ConnectionAbortedError` 属 `disconnect-*` scope 自己注入的断连，不是缺陷 |
+| `python -m unittest -q test_workbench_ui_audit_gate`（默认档改为 `1280,1920,2048` 后） | 首趟 1 → 次趟 0 | 首趟红在 `console-error: 1280 Failed to load resource: net::ERR_NO_BUFFER_SPACE`——本机连跑三趟浏览器工装后的套接字缓冲瞬时耗尽，不是产品问题；第二趟 `OK`。**没有给它加重试**：控制台报错就该红，这是闸门在做事 |
+| `OV_HEIGHT=1100 OV_WIDTHS=2048,1440 python -m unittest -q test_workbench_overflow_gate` | 0 | `navEdge gap=12 overflow=299 straddling=["nav-group"]`；`navCue hiddenPx=779`（滚到底 769、提示 true→false）`gap=12`。**与 620 高那一档逐字同值**，因为 `.nav` 的 `clientHeight` 由 CSS 定死、不跟视口长高——所以这条边界几何与窗口高度无关，**不加第三档**，只把高度做成可覆盖（`OV_HEIGHT` / `OV_SHORT_HEIGHT`，默认不变，且失败消息与日志 token 用同一个变量，覆盖后不会报出假高度）。默认档重跑 `Ran 2 tests OK`（162s） |
+| `python -m unittest -q test_workbench_brand_asset` | 0 | `Ran 15 tests OK`，其中 3 条是本轮新增的定位句一致性 |
+| `python .project-local/task-runtime/falsify_positioning_line.py` | 0 | `POSITIONING_FALSIFIER moved=4/4`：改掉权威句、少一份落地页副本、把品牌行后半改一个字、以及让 `.brand-line` 提取式失配，四种破坏各自让对应断言变红；第四种还先报"提取式已失效，不要用它下结论"而不是静默通过 |
+
+**为什么补这三条断言**：定位句「专业视觉智能与可复用设计能力系统」同时出现在权威文本、落地页（`/workbench` 的 served 字节，页头与页脚各一次）与侧栏品牌块（为不断词而拆成的两行）三处，此前**没有任何东西把它们绑在一起**——改一处是免费的，产品可以在三个地方对自己说三种话。现在权威是源头、落地页测的是 `workbench.resource()` 真正吐出的字节（安装态 wheel 一并覆盖）、侧栏测两行拼回去是否仍是那句权威话。三处当前实测一致，这条补的是"下次不一致会红"。
+
 ## 6. 本轮暴露并修掉的六个缺陷
 
 1. **分类聚合按目录贴标签**：`bundle_key()` 把一个顶层目录收成一个 bundle，于是 `docs/` 里第一个文件的类别

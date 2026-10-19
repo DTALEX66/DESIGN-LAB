@@ -15,7 +15,9 @@ What each case is for:
   * the PNG is a cut-out (transparent ground, white glyph, inset from the edge), not a
     rectangle of the artwork's black background;
   * the mechanism that forces inlining is still the mechanism: if an asset route is ever
-    added, this test says so instead of the data URI quietly surviving on its own.
+    added, this test says so instead of the data URI quietly surviving on its own;
+  * the positioning line is one claim across three surfaces -- the authority states it, the
+    served landing page repeats it twice, the rail splits it at a seam -- and they must agree.
 """
 from __future__ import annotations
 
@@ -175,6 +177,46 @@ class InlineMechanismTests(unittest.TestCase):
         self.assertIn(b'--brand-mark', body)
         self.assertEqual(hashlib.sha256(rba.PNG_PATH.read_bytes()).hexdigest()[:16],
                          re.search(rb'brand-mark:begin sha256=([0-9a-f]{16})', body).group(1).decode())
+
+
+class PositioningLineTests(unittest.TestCase):
+    """The positioning line is one claim repeated on three surfaces; AUTHORITY.md is its source.
+
+    The authority states it, the landing page repeats it under the h1 and again in the footer, and
+    the mounted shell splits it across two `.brand-line` spans so it breaks at its own seam instead
+    of mid-word (16 characters do not fit the 168px rail). Before this class nothing tied the three
+    together, so rewording one surface was free and the product could quietly start describing
+    itself differently in three places.
+    """
+
+    LINE = '专业视觉智能与可复用设计能力系统'
+
+    def test_the_authority_still_says_it(self):
+        text = (REPO / 'AUTHORITY.md').read_text(encoding='utf-8')
+        self.assertIn(self.LINE, text,
+                      'AUTHORITY.md no longer carries the line this test pins. Rewording the '
+                      'positioning is the owner call; when it happens, update this constant and '
+                      'every surface that repeats it in the same change')
+
+    def test_the_served_landing_page_repeats_it_in_the_header_and_the_footer(self):
+        """Served bytes, not the checkout file: the wheel copy wins when installed."""
+        from design_lab import workbench
+        body, mime = workbench.resource('/workbench')
+        self.assertEqual(mime, 'text/html')
+        html = body.decode('utf-8')
+        self.assertEqual(html.count(self.LINE), 2,
+                         'the landing page shows the line under the h1 and once in the footer; '
+                         f'the served bytes carry it {html.count(self.LINE)} times')
+
+    def test_the_shell_splits_it_at_the_seam_and_the_pieces_rejoin_the_authority(self):
+        src = (REPO / 'apps' / 'workbench' / 'shell.ts').read_text(encoding='utf-8')
+        parts = re.findall(r"class: 'brand-line' \}, '([^']*)'", src)
+        self.assertEqual(len(parts), 2,
+                         f'expected two brand lines, parsed {parts!r} -- the extraction is '
+                         'stale, do not conclude anything from it')
+        self.assertEqual(''.join(parts), self.LINE,
+                         'the rail breaks the line at a seam; the two halves must still read '
+                         'as the authority sentence, not as two different claims')
 
 
 class _temp_pair:
