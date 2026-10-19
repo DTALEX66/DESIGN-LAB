@@ -479,10 +479,16 @@ for (const w of widths) {
   const cue = await page.evaluate(async () => {
     const nav = document.querySelector('.nav');
     if (!nav) return { present: false };
+    const foot = document.querySelector('.sidebar-footer');
     const read = () => ({
       hiddenPx: nav.scrollHeight - nav.clientHeight,
       atEnd: nav.scrollTop + nav.clientHeight >= nav.scrollHeight - 1,
       cue: nav.classList.contains('has-scroll-more'),
+      // The same boundary the 900px pass measures, now at a height short enough that the
+      // list overflows hard. Height was the one dimension no gate asserted: the nav's
+      // bottom gap is a fixed margin so it should hold, but "should" is what this file is
+      // for -- and at 620px the cue band, the cut line and the footer all crowd together.
+      gap: foot ? Math.round(foot.getBoundingClientRect().top - nav.getBoundingClientRect().bottom) : null,
     });
     nav.scrollTop = 0;
     nav.dispatchEvent(new Event('scroll'));
@@ -507,8 +513,14 @@ for (const w of widths) {
         + '却没有出现"下面还有"提示');
     if (cue.end.cue)
       specProblems.push(`${w}: 侧栏已滚到底，提示仍然亮着`);
+    // 6px is the same floor the 900px pass uses: below that the footer hairline is close
+    // enough to a half-cut glyph to read as an underline drawn under it.
+    if (cue.top.gap === null)
+      specProblems.push(`${w}: 620px 高下找不到 .sidebar-footer，边界无从判断`);
+    else if (cue.top.gap < 6)
+      specProblems.push(`${w}@620h: 页脚边框在导航切割线下方 ${cue.top.gap}px`);
     console.log(`w=${String(w).padEnd(5)} nav-cue     hiddenPx=${String(cue.top.hiddenPx).padStart(4)} `
-      + `atTop=${cue.top.cue} atEnd=${cue.end.cue}`);
+      + `atTop=${cue.top.cue} atEnd=${cue.end.cue} gap620=${cue.top.gap}`);
   }
   // The brand tile is the owner's logo inlined into the stylesheet as a data URI, so
   // "is the logo showing?" cannot be answered from the CSS text: the declaration survives
