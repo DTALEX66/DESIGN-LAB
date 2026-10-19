@@ -9,22 +9,22 @@
   },
   "fresh": false,
   "freshnessMeaning": "at generation only; check verifies bound-input integrity, not current Git or cloud state",
-  "generatedAt": "2026-10-19T22:25:45+00:00",
+  "generatedAt": "2026-10-19T22:38:01+00:00",
   "gitStateMeaning": "generation-time observation, not current HEAD",
   "local": {
     "branch": "qoder/designlab-backup-consistency-20261007",
-    "origin_main": "433cf3e09df5479fe7864fbc6dc8799f136a2e3d",
-    "sha": "f235b736eaf68c54b7233a93904e0d57ed678df0",
+    "origin_main": "7bff1ebc145144d52cd4bb94d6136c52d1da09d2",
+    "sha": "8bdd42f58e24caaa175344fb74f1598b24ddef6d",
     "source_worktree_clean": true,
     "tracked_files": 3732,
     "worktree_changes": [],
-    "worktree_digest": "sha256:43d07579d9ee5925aaa34830b2e43daa57eb021b1e6b0a14e6f43fdffe1f1ee6"
+    "worktree_digest": "sha256:72103a16d3f06404a3540a65924aed9595bc7d7047fd5fdcddc00719cc79bb62"
   },
   "note": "No GitHub API query was run by this generator; tool installation is not inferred.",
   "remoteRef": "origin/main (local tracking ref)",
   "schemaVersion": "design-lab/cloud-baseline/v2",
   "subjectMeaning": "subjectType=WORKTREE means the tree was dirty at generation; worktreeDigest covers HEAD plus the non-generated changes",
-  "subjectSha": "f235b736eaf68c54b7233a93904e0d57ed678df0",
+  "subjectSha": "8bdd42f58e24caaa175344fb74f1598b24ddef6d",
   "subjectType": "COMMIT",
   "taskpackHash": "2cfd84627352e9f1b29b42787fa43466cd9a836130d826d43678b7733856ffda",
   "taskpackId": "DL-TP-20261009-UI-FIRST-R1",
@@ -39,5 +39,5 @@
     "branchProtection"
   ],
   "worktreeClean": true,
-  "worktreeDigest": "sha256:43d07579d9ee5925aaa34830b2e43daa57eb021b1e6b0a14e6f43fdffe1f1ee6"
+  "worktreeDigest": "sha256:72103a16d3f06404a3540a65924aed9595bc7d7047fd5fdcddc00719cc79bb62"
 }
