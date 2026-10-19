@@ -258,6 +258,10 @@ COUNTER_QUERIES = (
     # 2026-10-08: research_store.record() commits a finding with no writer lease either, so a
     # backup window that swallowed one in flight would otherwise still report PROVED_QUIESCENT.
     ('research_finding', 'rowid'),
+    # 2026-10-19 T16/U09: knowledge_feedback.py files a candidate and a revocation straight
+    # through, with no writer lease, so the proof cannot see either land without these rows.
+    ('knowledge_candidate', 'rowid'),
+    ('knowledge_revocation', 'rowid'),
 )
 
 

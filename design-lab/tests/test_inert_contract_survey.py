@@ -216,8 +216,12 @@ class ToolHygiene(unittest.TestCase):
         try:
             moved = scratch / 'survey-copy.md'
             original = DOC.read_text(encoding='utf-8')
-            tampered = original.replace('"NO_STATE_COUNTERPART": 17',
-                                         '"NO_STATE_COUNTERPART": 16')
+            committed = json.loads(re.search(r'```json\n(.*?)\n```', original, re.S).group(1))
+            current = committed['stateCounts']['NO_STATE_COUNTERPART']
+            # Derived from the sheet, not pinned: the control has to bite the counts this
+            # document actually carries, or a regenerated sheet silently disarms it.
+            tampered = original.replace(f'"NO_STATE_COUNTERPART": {current}',
+                                         f'"NO_STATE_COUNTERPART": {current - 1}')
             self.assertNotEqual(original, tampered, 'the control no longer bites the sheet')
             moved.write_text(tampered, encoding='utf-8')
             stale = json.loads(re.search(r'```json\n(.*?)\n```',

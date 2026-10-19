@@ -115,8 +115,12 @@ class EvidenceArtifactPresenceTests(unittest.TestCase):
              'HASH_MOVED_SINCE_OBSERVATION'): 1,
             ('design-lab/tests/test_workbench_native_ui.py',
              'HASH_MOVED_SINCE_OBSERVATION'): 4,
+            # 2026-10-19 T16/U09: candidate-knowledge became PRODUCT, so the pinned
+            # UNREFERENCED row was deleted here -- and the 2026-10-08 records that bound
+            # this gate now name older bytes. One more record on each of these two files,
+            # re-measured at this HEAD rather than inherited: 59 pairs, broken=0.
             ('design-lab/scripts/verify_object_model_backing.py',
-             'HASH_MOVED_SINCE_OBSERVATION'): 1,
+             'HASH_MOVED_SINCE_OBSERVATION'): 2,
             # 2026-10-08, four more names on this inventory, all of them caused by the wave that
             # settled the delivery-manifest object row, and each one is a record whose artefact is
             # the code it described rather than the prose -- which is the binding practice this file
@@ -140,7 +144,7 @@ class EvidenceArtifactPresenceTests(unittest.TestCase):
             ('design-lab/scripts/verify_design_lab.py',
              'HASH_MOVED_SINCE_OBSERVATION'): 1,
             ('design-lab/tests/test_object_model_backing_gate.py',
-             'HASH_MOVED_SINCE_OBSERVATION'): 2,
+             'HASH_MOVED_SINCE_OBSERVATION'): 3,
             # 2026-10-08, the prose-classifier correction moved two more pairs and added one name.
             # Both are rows bound to code, which is why they drift when that code is corrected:
             #   * object-model.json -- a record hashes it as its artefact, and the quality-report row
@@ -235,7 +239,7 @@ class EvidenceArtifactPresenceTests(unittest.TestCase):
                          'the drifted-artefact inventory is exact in both directions: a new '
                          'move, a new artefact name, or one more record on a known artefact '
                          'are all findings, and a drifted pair that quietly disappeared is too')
-        self.assertEqual(sum(counts.values()), 57,
+        self.assertEqual(sum(counts.values()), 59,
                          'the total drifted-record count is pinned, not derived')
 
     def test_missing_tracked_artefact_is_a_hard_break_not_a_warning(self):
