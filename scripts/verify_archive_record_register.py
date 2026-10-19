@@ -11,6 +11,15 @@ purpose is to stop stale paths being read.
 
 Read-only. Never touches a record, so it is safe to run at any time.
 
+Coverage note, because this is where a session learns the rule the hard way: the register is a
+member of the CI `top-authority-gate` job but NOT of `verify_design_lab.py`'s aggregate (that chain
+resolves its members under `design-lab/`, and these two record gates live in the repo-root `scripts/`
+tree). So the one local command that otherwise covers the authority surface does not cover this one,
+and `docs/audits/DESIGN-LAB-ARCHIVE-AND-REMOVAL-2026-10-19.md` is one of the five registered records
+-- editing it invalidates the register and only this script says so. Run it, plus
+`scripts/record_import_verify.py --head`, after touching any registered record or any file the Record
+import manifest holds to a repository digest.
+
     python scripts/verify_archive_record_register.py
 """
 from __future__ import annotations
