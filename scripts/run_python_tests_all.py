@@ -67,6 +67,7 @@ def _run_shard(index: int, count: int, plan: str | None) -> dict:
         'reported_tests': int(match.group('tests')) if match else None,
         'ran_ids': [],
         'outcomes': {},
+        'failed_ids': [],
         'notes': [line for line in out.splitlines()
                   if line.startswith(('PYTHON_TESTS_SHARD_', 'SHARD_SELECTION_MISMATCH',
                                       'TEST_SELECTION_EMPTY', 'TEST_ENVIRONMENT_FAIL',
@@ -78,6 +79,13 @@ def _run_shard(index: int, count: int, plan: str | None) -> dict:
             record['ran_ids'] = document.get('ran_ids', [])
             record['outcomes'] = document.get('outcomes', {})
             record['by_module'] = document.get('by_module', {})
+            # The shard document already carries every test id with its status. Naming the
+            # failures here is what turns `FAIL: 3` into something a reader can act on: without
+            # it, CI publishes a count, the log has no names, and the only way to learn which
+            # three are red is to re-run the shard locally for twenty minutes.
+            record['failed_ids'] = sorted(
+                str(row.get('id')) for row in document.get('records', [])
+                if str(row.get('status')) in ('FAIL', 'ERROR', 'UNEXPECTED_SUCCESS'))
         except (OSError, ValueError) as exc:
             record['notes'].append(f'TIMING_UNREADABLE {type(exc).__name__}: {exc}')
     # A shard that died before its timing file was written still has to be reported as a shard
@@ -172,6 +180,9 @@ def _main(options: argparse.Namespace) -> int:
         print(f"PYTHON_TESTS_SHARD_RESULT shard={index}/{count} exit={record['exit_code']} "
               f"tests={record['reported_tests']} wall_seconds={record['wall_seconds']} "
               f"outcomes={record['outcomes']}")
+        if record['failed_ids']:
+            print(f"PYTHON_TESTS_SHARD_FAILURES shard={index}/{count} "
+                  f"n={len(record['failed_ids'])} ids={', '.join(record['failed_ids'])}")
     document = _aggregate(expected, shards)
     written = _write(document)
     print(f"PYTHON_TESTS_UNION={'OK' if document['union_exact'] else 'BROKEN'} "
