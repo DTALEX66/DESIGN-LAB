@@ -1708,7 +1708,7 @@ body[data-local-session="auto"] #connect-form details { display: none; }
    （它继续用 .app-nav{168px} 与 .dl-shell>main{margin-left:192px}），只有
    data-palette="ui2026" 在 R2 自己的断点上换成包里的轨宽与沟槽。
    导航轨是 fixed，内容列靠 margin-left 让位，两处必须一起改，否则内容会钻到轨下面。
-   <768px 不在此列：移动端 FROZEN_DEFERRED，沿用既有折叠规则，不在本轮改动范围。 */
+   <768px 不在此列：手机端已按 owner 2026-10-19 移出范围，这里只保留桌面窄窗口的既有折叠规则。 */
 @media (min-width:1200px){
   :root[data-palette="ui2026"] .app-nav{width:var(--uif-sidebar)}
   :root[data-palette="ui2026"] .dl-shell>main{
@@ -1776,7 +1776,7 @@ body[data-local-session="auto"] #connect-form details { display: none; }
 .theme-toggle:hover{border-color:var(--accent)}
 
 /* 窄屏：状态网格退回单列，中文长串靠 overflow-wrap 而不是裁切。
-   手机端（pack 屏 18–21）本轮 FROZEN_DEFERRED，这里只保证桌面窄窗口不裁。 */
+   手机端（pack 屏 18–21）已按 owner 2026-10-19 移出范围；这里只保证桌面窄窗口不裁。 */
 @media(max-width:760px){
   .uif-states{grid-template-columns:1fr}
 }

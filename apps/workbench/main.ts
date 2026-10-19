@@ -33,7 +33,7 @@ byId<HTMLButtonElement>('design-system-bind').onclick = () => {
 
 // Dev-mode bypass (local single-user research use): when the page is served by
 // a Vite dev server, the login panel auto-hides and the workspace + AppShell
-// route views mount directly so all 12 B10 pages are browsable without a
+// route views mount directly so all 19 ROUTE_VIEWS screens are browsable without a
 // service token.  API reads stay readback-honest: an API view without a
 // connected token says "请先连接" instead of faking data.  Production
 // builds connect automatically through the official loopback launcher.

@@ -4663,7 +4663,8 @@ async function renderProjects(target) {
             type: "button",
             class: "ghost-btn",
             // B07 `/projects/:id` — reached from a row, never a nav item
-            // (ROUTE_VIEWS must stay 12 for the browser E2E nav assertion).
+            // (ROUTE_VIEWS has 19 entries and the browser E2E asserts that nav item
+            // count; a parameterized detail route must not be added to the table.)
             onclick: () => {
               window.location.hash = projectDetailHash(p.id);
             }
@@ -7204,7 +7205,7 @@ function mountB10Shell(routeView, syncLegacyNavCue) {
         "div",
         {},
         el("h1", {}, "DESIGN-LAB"),
-        el("small", {}, "设计智能与生产能力层")
+        el("small", {}, "专业视觉智能与可复用设计能力系统")
       )
     ),
     navList,
@@ -7975,7 +7976,7 @@ function renderUiComponents(target) {
         el(
           "p",
           { class: "uif-spec-note" },
-          "UI-20261009 基线不只换颜色：在包自己的断点上它还换导航轨宽与内容沟槽（≥1200 轨 256/槽 30，768–1199 轨 216/槽 22，窄于此沿用既有折叠布局，手机端本轮 FROZEN_DEFERRED）。DESIGN-LAB 默认主题一字节不变，仍是轨 168/让位 192。包里的排印尺度只有 body/small/h3/micro 已接到界面上，h1/h2 对应哪个标题角色还没定。"
+          "UI-20261009 基线不只换颜色：在包自己的断点上它还换导航轨宽与内容沟槽（≥1200 轨 256/槽 30，768–1199 轨 216/槽 22，窄于此沿用既有折叠布局，手机端已按 owner 2026-10-19 授权移出范围）。DESIGN-LAB 默认主题一字节不变，仍是轨 168/让位 192。包里的排印尺度只有 body/small/h3/micro 已接到界面上，h1/h2 对应哪个标题角色还没定。"
         ),
         el(
           "div",

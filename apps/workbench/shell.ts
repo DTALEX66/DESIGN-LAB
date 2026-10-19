@@ -3256,7 +3256,8 @@ export async function renderProjects(target: HTMLElement): Promise<void> {
               el('td', {}, el('button', {
                 type: 'button', class: 'ghost-btn',
                 // B07 `/projects/:id` — reached from a row, never a nav item
-                // (ROUTE_VIEWS must stay 12 for the browser E2E nav assertion).
+                // (ROUTE_VIEWS has 19 entries and the browser E2E asserts that nav item
+                // count; a parameterized detail route must not be added to the table.)
                 onclick: () => { window.location.hash = projectDetailHash(p.id); },
               }, '打开'))))
           : [el('tr', {}, emptyTd(data, '尚无项目', '在工作台新建项目后出现。', 4))]))));
@@ -5650,7 +5651,7 @@ function mountB10Shell(routeView: HTMLElement, syncLegacyNavCue: () => void): B1
       el('div', { class: 'brand-mark', 'aria-hidden': 'true' }),
       el('div', {},
         el('h1', {}, 'DESIGN-LAB'),
-        el('small', {}, '设计智能与生产能力层'))),
+        el('small', {}, '专业视觉智能与可复用设计能力系统'))),
     navList,
     // No identity route exists (/api/health returns status/version/scope only),
     // so the footer cannot name a logged-in workspace owner. 'Alex / Personal
@@ -5858,7 +5859,7 @@ function mountB10Overlays(): void {
   palette.append(itemsBox);
   document.body.append(palette);
   const paletteInput = palette.querySelector('input') as HTMLInputElement;
-  // 12 B07 route IA (mirror of ROUTE_VIEWS, the primary-nav minus default).
+  // 19-entry route IA (mirror of ROUTE_VIEWS, the primary-nav minus default).
   // `go` carries the ROUTE hash (`#/dashboard`), not the view id: the router
   // matches `window.location.hash` against ROUTE_VIEWS[].hash, so a `#dashboard`
   // value matched nothing and silently landed on the legacy workbench page.
@@ -6446,7 +6447,7 @@ export function renderUiComponents(target: HTMLElement): void {
         el('p', { class: 'uif-spec-note' },
           'UI-20261009 基线不只换颜色：在包自己的断点上它还换导航轨宽与内容沟槽'
           + '（≥1200 轨 256/槽 30，768–1199 轨 216/槽 22，窄于此沿用既有折叠布局，'
-          + '手机端本轮 FROZEN_DEFERRED）。DESIGN-LAB 默认主题一字节不变，仍是轨 168/让位 192。'
+          + '手机端已按 owner 2026-10-19 授权移出范围）。DESIGN-LAB 默认主题一字节不变，仍是轨 168/让位 192。'
           + '包里的排印尺度只有 body/small/h3/micro 已接到界面上，h1/h2 对应哪个标题角色还没定。'),
         el('div', { class: 'uif-row' },
           tokenSwatch('--color-bg'), tokenSwatch('--color-surface'),

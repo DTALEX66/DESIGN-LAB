@@ -12,7 +12,7 @@
 # 视觉设计实验室 · DESIGN-LAB
 **Visual Design Lab**
 
-> 面向职业视觉设计的 **AI 原生、平台中立、宿主原生**的设计智能与生产能力层。它把设计研究、方法与
+> 面向职业视觉设计的 **AI 原生、平台中立**的专业视觉智能与可复用设计能力系统。它把设计研究、方法与
 > 领域能力、视觉质量判断、专业宿主适配、生产预检（commercial preflight）与可编辑交付，组织成
 > **可执行、可验证、可回滚**的闭环：Brief → Reference → Direction → Design System → 宿主原生产物
 > → 读回（readback）→ 证据（evidence & provenance）→ 回滚。
