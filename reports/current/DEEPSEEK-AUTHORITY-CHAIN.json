@@ -1,11 +1,11 @@
 {
   "schemaVersion": "design-lab/deepseek-authority-chain/v1",
   "task_key": "DL-TP-20260914-DEEPSEEK-AUTHORITY-R1::DLDS-A010",
-  "generated_at": "2026-10-19T09:51:48+00:00",
+  "generated_at": "2026-10-19T10:42:31+00:00",
   "subject": {
-    "base_sha": "42cb86d5a3fbaee72bdd824e5345dabe0db3bfd7",
+    "base_sha": "a0195156858ab45b68abf6d7c7c6db9bb325fea7",
     "branch": "qoder/designlab-backup-consistency-20261007",
-    "worktree_clean": false
+    "worktree_clean": true
   },
   "current_authority": {
     "top_level": "DL-AUTHORITY-2026-09-18-R2",
@@ -134,8 +134,8 @@
     },
     {
       "path": "AGENTS.md",
-      "bytes": 13550,
-      "sha256": "sha256:72c065c2dc01de964e57bbbc0ecf9603b1b2f5745ac41baf0ea3e99a69fd8338",
+      "bytes": 13813,
+      "sha256": "sha256:7ee362a4f8d260796ebada03325055f1db97aa1e9439bb4dd4b357358a6cb5a4",
       "authority_class": "GOVERNANCE_TRUTH",
       "basis": "root execution rules"
     },
@@ -164,8 +164,8 @@
     },
     {
       "path": "docs/history/taskpacks/20261009-adoption/AUTHORITY-PIN-CHANGE.json",
-      "bytes": 8430,
-      "sha256": "sha256:4427704cf8dc58349fd04167db0df14f862784a4facaefa8cd2e1e4bcbc22c8c",
+      "bytes": 8854,
+      "sha256": "sha256:88d8f02561cdacc266f8d431320afee9d447e7ee205a934c9ca44bd5804371c4",
       "authority_class": "HISTORICAL",
       "basis": "frozen historical path (docs/history/)",
       "ledger": {

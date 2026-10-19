@@ -1,23 +1,23 @@
 {
   "schemaVersion": "design-lab/untracked-runtime-census/v1",
   "task_key": "DL-TP-20260914-DEEPSEEK-AUTHORITY-R1::DLDS-D000",
-  "measured_at": "2026-10-19T09:58:45+00:00",
+  "measured_at": "2026-10-19T10:43:08+00:00",
   "roots": {
     ".project-local": {
-      "files": 108868,
-      "bytes": 7364394425,
-      "mib": 7023.23,
+      "files": 108902,
+      "bytes": 7364895916,
+      "mib": 7023.71,
       "oldest_mtime": 1770734472.0,
-      "newest_mtime": 1792403897.7121243,
+      "newest_mtime": 1792406542.783548,
       "by_subdir": {
         "task-runtime": {
-          "files": 79778,
-          "bytes": 4779494280,
-          "mib": 4558.08
+          "files": 79780,
+          "bytes": 4779500376,
+          "mib": 4558.09
         },
         "task-artifacts": {
           "files": 6153,
-          "bytes": 1163426725,
+          "bytes": 1163427275,
           "mib": 1109.53
         },
         "runs": {
@@ -36,9 +36,9 @@
           "mib": 140.65
         },
         "tmp": {
-          "files": 3254,
-          "bytes": 112825841,
-          "mib": 107.6
+          "files": 3286,
+          "bytes": 113320686,
+          "mib": 108.07
         },
         "personal-audit-src": {
           "files": 3562,
@@ -137,14 +137,14 @@
     },
     ".pytest_cache": {
       "files": 5,
-      "bytes": 130670,
+      "bytes": 130683,
       "mib": 0.12,
       "oldest_mtime": 1791258429.984547,
-      "newest_mtime": 1792403111.313962,
+      "newest_mtime": 1792406226.8980725,
       "by_subdir": {
         "v": {
           "files": 2,
-          "bytes": 130140,
+          "bytes": 130153,
           "mib": 0.12
         },
         "(root)": {
@@ -155,6 +155,6 @@
       }
     }
   },
-  "total_mib": 7220.27,
+  "total_mib": 7220.75,
   "classification_pending": "DLDS-D030/D040 and Wave 4 classify and act; nothing is deleted here"
 }

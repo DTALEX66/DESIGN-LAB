@@ -1,7 +1,7 @@
 {
   "schemaVersion": "design-lab/tracked-binary-inventory/v1",
   "task_key": "DL-TP-20260914-DEEPSEEK-AUTHORITY-R1::DLDS-D000",
-  "measured_at": "2026-10-19T09:58:45+00:00",
+  "measured_at": "2026-10-19T10:43:08+00:00",
   "count": 103,
   "by_category": {
     "media": 100,

@@ -4,7 +4,7 @@
     "DL-TP-20260914-DEEPSEEK-AUTHORITY-R1::DLDS-A030",
     "DL-TP-20260914-DEEPSEEK-AUTHORITY-R1::DLDS-A040"
   ],
-  "generated_at": "2026-10-19T09:51:21+00:00",
+  "generated_at": "2026-10-19T10:42:32+00:00",
   "frozen_delta": {
     "range": "9f34b53..5631963",
     "commits": [
@@ -18,7 +18,7 @@
   },
   "current_worktree_clean": false,
   "current_branch": "qoder/designlab-backup-consistency-20261007",
-  "current_sha": "42cb86d5a3fbaee72bdd824e5345dabe0db3bfd7",
+  "current_sha": "a0195156858ab45b68abf6d7c7c6db9bb325fea7",
   "classification_counts": {
     "KEEP_WITH_FIX": 86,
     "OUT_OF_PACK": 7,
@@ -43,8 +43,8 @@
     {
       "path": "design-lab/config/current-report-index.json",
       "git_status": "M",
-      "bytes": 92832,
-      "sha256": "sha256:3db41a33adb4276faa4a27664b989facb751c46bd85211a748448dc3a851c2dc",
+      "bytes": 92383,
+      "sha256": "sha256:85a1b5c1cc3f7a6ed7fc656b76eb6e7b3583819930026331400e4728186a946c",
       "classification": "KEEP_WITH_FIX",
       "attributed_tasks": [
         "DL-TP-20260914-DEEPSEEK-AUTHORITY-R1::DLDS-H030"
@@ -883,8 +883,8 @@
     {
       "path": "integrations/hosts/minimax-design/POC-PLAN.md",
       "git_status": "A",
-      "bytes": 5426,
-      "sha256": "sha256:1f214b5e0bae8444477c418094a56ecc590f2459c1a6ee8f795744d3cc267872",
+      "bytes": 5436,
+      "sha256": "sha256:5db8436dff4d9830720776ac56d3f8e0681bb2efc5fe3100d40ecf838f531fd8",
       "classification": "KEEP_WITH_FIX",
       "attributed_tasks": [
         "DL-R5-021",
@@ -943,8 +943,8 @@
     {
       "path": "integrations/hosts/minimax-design/rights-and-provider-policy.md",
       "git_status": "A",
-      "bytes": 2811,
-      "sha256": "sha256:55dfbe60b61d9317b8d423057893b3016517f6e2f4179c0e1f2573274e6cebda",
+      "bytes": 2821,
+      "sha256": "sha256:6191ff80858152ca8a3f10dfb2fd6e7fa9a5c25719c026d993cbfa568eccb6e2",
       "classification": "KEEP_WITH_FIX",
       "attributed_tasks": [
         "DL-R5-021",
@@ -963,8 +963,8 @@
     {
       "path": "reports/current/ADAPTER_EVIDENCE_RECONCILIATION.json",
       "git_status": "M",
-      "bytes": 9853,
-      "sha256": "sha256:856b9ea7ff31534acf96ddd1343e1939ae2d6feb0d9f6238ca2d5821e81f725d",
+      "bytes": 9849,
+      "sha256": "sha256:45327d468e4c992efdcb7c98408aef1417bd0685f9593b8a7b0406f32ac96789",
       "classification": "KEEP_WITH_FIX",
       "attributed_tasks": [
         "DL-TP-20260914-DEEPSEEK-AUTHORITY-R1::DLDS-H030"
@@ -999,8 +999,8 @@
     {
       "path": "reports/current/CLOUD_BASELINE.json",
       "git_status": "M",
-      "bytes": 2191,
-      "sha256": "sha256:90983da1a816f7235e1bdf21c3712bdb28e2f0e04a41499a1bda9ce60d855ab9",
+      "bytes": 1986,
+      "sha256": "sha256:9d24acd441750313b4a8caf194c5b162e53216d6520d7113f5108039fcf9bbd4",
       "classification": "KEEP_WITH_FIX",
       "attributed_tasks": [
         "DL-TP-20260914-DEEPSEEK-AUTHORITY-R1::DLDS-H030"
@@ -1018,7 +1018,7 @@
       "path": "reports/current/CLOUD_BASELINE.md",
       "git_status": "M",
       "bytes": 234,
-      "sha256": "sha256:36946dfe6d0213540bd9a5f8460224bccd16bb5293fe599d2b1c7fa8a26b9456",
+      "sha256": "sha256:921dc8a8cfe7582e4d3d2efda6deea45eaacad975c64699c3e44878c61df8ddd",
       "classification": "KEEP_WITH_FIX",
       "attributed_tasks": [
         "DL-TP-20260914-DEEPSEEK-AUTHORITY-R1::DLDS-H030"
@@ -1035,8 +1035,8 @@
     {
       "path": "reports/current/DOMAIN_PACK_READINESS.json",
       "git_status": "M",
-      "bytes": 3219,
-      "sha256": "sha256:575f18bf6c07cb914e2d54bc3a69ff5333e3b5b818085b73adb2416685806669",
+      "bytes": 3215,
+      "sha256": "sha256:57df4ba86278650ee07043e9e2fb23087394c6665d4b9887caa3c65dac1b7a3a",
       "classification": "KEEP_WITH_FIX",
       "attributed_tasks": [
         "DL-TP-20260914-DEEPSEEK-AUTHORITY-R1::DLDS-H030"
@@ -1071,8 +1071,8 @@
     {
       "path": "reports/current/KNOWLEDGE_INVENTORY.json",
       "git_status": "M",
-      "bytes": 1409,
-      "sha256": "sha256:d853583a0da9980aac8fec9ad824f4569e38e8af85b45e218841f9694369b9ec",
+      "bytes": 1405,
+      "sha256": "sha256:224eaa7b379a6692200d82a4fefe3a7acd902e50007b5fa27032983471a2879d",
       "classification": "KEEP_WITH_FIX",
       "attributed_tasks": [
         "DL-TP-20260914-DEEPSEEK-AUTHORITY-R1::DLDS-H030"
@@ -1107,8 +1107,8 @@
     {
       "path": "reports/current/PROJECT_STATUS.json",
       "git_status": "M",
-      "bytes": 2563,
-      "sha256": "sha256:f7f9b19cf9612c9ae137efb82296f999de07146900095fda955ab464273c448e",
+      "bytes": 2358,
+      "sha256": "sha256:994060c1b69d813db4c06599ea8069cbd2e9ef8a1699729613bbba627b83a6ca",
       "classification": "KEEP_WITH_FIX",
       "attributed_tasks": [
         "DL-TP-20260914-DEEPSEEK-AUTHORITY-R1::DLDS-H030"
@@ -1125,8 +1125,8 @@
     {
       "path": "reports/current/PROJECT_STATUS.md",
       "git_status": "M",
-      "bytes": 2730,
-      "sha256": "sha256:96161a20798ae43761c286a5754da008a0f86d2c4180a229f1b287cd164cfd66",
+      "bytes": 2728,
+      "sha256": "sha256:6f1fce22161ecabebba3f503313c93385fadccc75bbf1edf27e50bf47b1612ab",
       "classification": "KEEP_WITH_FIX",
       "attributed_tasks": [
         "DL-TP-20260914-DEEPSEEK-AUTHORITY-R1::DLDS-H030"
@@ -1143,8 +1143,8 @@
     {
       "path": "reports/current/RELEASE_READINESS.json",
       "git_status": "M",
-      "bytes": 1544,
-      "sha256": "sha256:9188ec83a4b48bb38e9289e1aa4de8648842c14363edf1fa6348310785fa03f3",
+      "bytes": 1540,
+      "sha256": "sha256:7fe0d48e8fc550ba2e8da4e04080b84b12e138c0c0db6c1794807eead81d7cf7",
       "classification": "KEEP_WITH_FIX",
       "attributed_tasks": [
         "DL-TP-20260914-DEEPSEEK-AUTHORITY-R1::DLDS-H030"
@@ -1161,8 +1161,8 @@
     {
       "path": "reports/current/TASK_PROGRESS.json",
       "git_status": "M",
-      "bytes": 25498,
-      "sha256": "sha256:d4137884d2b0cec22a22778955ff808d28940a76b5170bb41e80029483a1bbcc",
+      "bytes": 25494,
+      "sha256": "sha256:d5b06e1f12018d1039ef0778713851fc09fb33769cd0bf302c57472450d5bdf2",
       "classification": "KEEP_WITH_FIX",
       "attributed_tasks": [
         "DL-TP-20260914-DEEPSEEK-AUTHORITY-R1::DLDS-H030"

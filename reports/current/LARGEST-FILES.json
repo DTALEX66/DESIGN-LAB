@@ -1,7 +1,7 @@
 {
   "schemaVersion": "design-lab/largest-files/v1",
   "task_key": "DL-TP-20260914-DEEPSEEK-AUTHORITY-R1::DLDS-D000",
-  "measured_at": "2026-10-19T09:58:45+00:00",
+  "measured_at": "2026-10-19T10:43:08+00:00",
   "tracked_top": [
     {
       "path": "docs/history/record-archive-2026-10-09/ARCHIVE-MANIFEST.json",
@@ -155,8 +155,8 @@
     },
     {
       "path": "docs/history/record-imports-2026-10-08/RECORD-IMPORT-MANIFEST.json",
-      "bytes": 349453,
-      "object": "09fc87b13d9d6d21cfdac325a129c10bf2fbae6e"
+      "bytes": 349560,
+      "object": "a1fa2a2a1bfe4b0ea1ade0abc3cbda2601e8e3e4"
     },
     {
       "path": "docs/history/record-imports-2026-10-08/FINAL-CONSOLIDATED-2026-09-29/appendices/current-task-ledger-snapshot.json",
@@ -468,7 +468,7 @@
     ".pytest_cache": [
       {
         "path": ".pytest_cache/v/cache/nodeids",
-        "bytes": 129985
+        "bytes": 130151
       },
       {
         "path": ".pytest_cache/README.md",
@@ -479,12 +479,12 @@
         "bytes": 191
       },
       {
-        "path": ".pytest_cache/v/cache/lastfailed",
-        "bytes": 155
-      },
-      {
         "path": ".pytest_cache/.gitignore",
         "bytes": 37
+      },
+      {
+        "path": ".pytest_cache/v/cache/lastfailed",
+        "bytes": 2
       }
     ]
   }

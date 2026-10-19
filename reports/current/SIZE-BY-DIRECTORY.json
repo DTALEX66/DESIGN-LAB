@@ -1,16 +1,16 @@
 {
   "schemaVersion": "design-lab/size-by-directory/v1",
   "task_key": "DL-TP-20260914-DEEPSEEK-AUTHORITY-R1::DLDS-D000",
-  "measured_at": "2026-10-19T09:58:45+00:00",
+  "measured_at": "2026-10-19T10:43:08+00:00",
   "tracked_by_area": {
     "docs": {
-      "files": 1565,
-      "bytes": 41331743,
-      "mib": 39.42
+      "files": 1566,
+      "bytes": 41351897,
+      "mib": 39.44
     },
     "design-lab": {
       "files": 1156,
-      "bytes": 9431654,
+      "bytes": 9422276,
       "mib": 8.99
     },
     "fixtures": {
@@ -25,8 +25,8 @@
     },
     "reports": {
       "files": 159,
-      "bytes": 3043190,
-      "mib": 2.9
+      "bytes": 3015530,
+      "mib": 2.88
     },
     "src": {
       "files": 105,
@@ -40,7 +40,7 @@
     },
     "integrations": {
       "files": 68,
-      "bytes": 872828,
+      "bytes": 872848,
       "mib": 0.83
     },
     "packages": {
@@ -50,7 +50,7 @@
     },
     "scripts": {
       "files": 70,
-      "bytes": 847308,
+      "bytes": 847362,
       "mib": 0.81
     },
     "\"docs": {
@@ -70,7 +70,7 @@
     },
     ".github": {
       "files": 5,
-      "bytes": 37224,
+      "bytes": 37716,
       "mib": 0.04
     },
     "pnpm-lock.yaml": {
@@ -80,7 +80,7 @@
     },
     "AUTHORITY.md": {
       "files": 1,
-      "bytes": 20314,
+      "bytes": 20512,
       "mib": 0.02
     },
     "README.md": {
@@ -90,7 +90,7 @@
     },
     "AGENTS.md": {
       "files": 1,
-      "bytes": 13550,
+      "bytes": 13813,
       "mib": 0.01
     },
     "DESIGN.md": {
@@ -207,13 +207,13 @@
   "ignored_by_subdir": {
     ".project-local": {
       "task-runtime": {
-        "files": 79778,
-        "bytes": 4779494280,
-        "mib": 4558.08
+        "files": 79780,
+        "bytes": 4779500376,
+        "mib": 4558.09
       },
       "task-artifacts": {
         "files": 6153,
-        "bytes": 1163426725,
+        "bytes": 1163427275,
         "mib": 1109.53
       },
       "runs": {
@@ -232,9 +232,9 @@
         "mib": 140.65
       },
       "tmp": {
-        "files": 3254,
-        "bytes": 112825841,
-        "mib": 107.6
+        "files": 3286,
+        "bytes": 113320686,
+        "mib": 108.07
       },
       "personal-audit-src": {
         "files": 3562,
@@ -319,7 +319,7 @@
     ".pytest_cache": {
       "v": {
         "files": 2,
-        "bytes": 130140,
+        "bytes": 130153,
         "mib": 0.12
       },
       "(root)": {

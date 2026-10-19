@@ -1,11 +1,11 @@
 {
   "schemaVersion": "design-lab/repo-classification/v1",
-  "generatedAt": "2026-10-19T09:58:17Z",
-  "observedCommit": "bdd890fbfb35dc6c4ed920a2b246c9b3faaa816d",
+  "generatedAt": "2026-10-19T10:43:45Z",
+  "observedCommit": "a0195156858ab45b68abf6d7c7c6db9bb325fea7",
   "totals": {
-    "trackedFiles": 3724,
-    "workingTreeMiB": 69.68,
-    "packMiB": 241.69,
+    "trackedFiles": 3725,
+    "workingTreeMiB": 69.67,
+    "packMiB": 243.12,
     "note": "pack 含全部历史与 tag 归档；working tree 为当前检出字节。两者之差不是垃圾。"
   },
   "categories": {
@@ -20,14 +20,14 @@
       "mib": 4.31
     },
     "evidence": {
-      "files": 1159,
+      "files": 1160,
       "bundles": 5,
-      "mib": 22.17
+      "mib": 22.18
     },
     "generated": {
       "files": 67,
       "bundles": 4,
-      "mib": 1.29
+      "mib": 1.26
     },
     "history": {
       "files": 732,
@@ -52,7 +52,7 @@
     "source": {
       "files": 1637,
       "bundles": 8,
-      "mib": 13.22
+      "mib": 13.21
     }
   },
   "bundles": [
@@ -61,7 +61,7 @@
       "category": "history",
       "note": "冻结历史与逐字节基线（含 2026-10-19 归档的 handoffs/taskpacks）",
       "files": 639,
-      "bytes": 26498800,
+      "bytes": 26506855,
       "cited_by_authority": 18,
       "lastTouch": "2026-10-19"
     },
@@ -70,7 +70,7 @@
       "category": "source",
       "note": "设计核心其余模块",
       "files": 1156,
-      "bytes": 9431654,
+      "bytes": 9422276,
       "cited_by_authority": 6,
       "lastTouch": "2026-10-19"
     },
@@ -87,8 +87,8 @@
       "path": "docs/audits/",
       "category": "evidence",
       "note": "审计与验收证据包",
-      "files": 840,
-      "bytes": 7698651,
+      "files": 841,
+      "bytes": 7709303,
       "cited_by_authority": 0,
       "lastTouch": "2026-10-19"
     },
@@ -142,7 +142,7 @@
       "category": "generated",
       "note": "当前状态投影（由生成器再生）",
       "files": 63,
-      "bytes": 953819,
+      "bytes": 926159,
       "cited_by_authority": 1,
       "lastTouch": "2026-10-19"
     },
@@ -151,7 +151,7 @@
       "category": "source",
       "note": "宿主/发行集成层",
       "files": 68,
-      "bytes": 872828,
+      "bytes": 872848,
       "cited_by_authority": 0,
       "lastTouch": "2026-10-19"
     },
@@ -169,7 +169,7 @@
       "category": "source",
       "note": "根级门与工具",
       "files": 70,
-      "bytes": 847308,
+      "bytes": 847362,
       "cited_by_authority": 3,
       "lastTouch": "2026-10-19"
     },
@@ -178,7 +178,7 @@
       "category": "documentation",
       "note": "其余文档",
       "files": 88,
-      "bytes": 565809,
+      "bytes": 567256,
       "cited_by_authority": 13,
       "lastTouch": "2026-10-19"
     },
@@ -214,9 +214,9 @@
       "category": "source",
       "note": "CI 定义",
       "files": 5,
-      "bytes": 37224,
+      "bytes": 37716,
       "cited_by_authority": 1,
-      "lastTouch": "2026-10-16"
+      "lastTouch": "2026-10-19"
     },
     {
       "path": "docs/golden-cases/",
@@ -241,7 +241,7 @@
       "category": "authority",
       "note": "顶层权威（唯一）",
       "files": 1,
-      "bytes": 20314,
+      "bytes": 20512,
       "cited_by_authority": 1,
       "lastTouch": "2026-10-19"
     },
@@ -259,7 +259,7 @@
       "category": "authority",
       "note": "根执行规则",
       "files": 1,
-      "bytes": 13550,
+      "bytes": 13813,
       "cited_by_authority": 1,
       "lastTouch": "2026-10-19"
     },
