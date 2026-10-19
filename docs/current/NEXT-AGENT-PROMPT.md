@@ -203,6 +203,16 @@ E4 独立人审 / E5 发布可复现。**文档修订 ≠ 规划完成 ≠ 代�
 - `guidance-paths-resolve`：`AGENTS.md` / `README.md` / `AUTHORITY.md` / 本文件里出现的每个 `docs/...`
   路径必须是**受跟踪文件**。新文档先 `git add` 再跑闸。交接/审计可以引用死路径（那是记录），指引不可以。
 - `entry-not-dated-again`：不许存在 `NEXT-AGENT-PROMPT-<日期>.md`；入口就地改。
+- **登记哈希要算 blob，不要算工作树**：本机 `core.autocrlf=true`，同一份 `docs/history/**` 文件
+  在提交对象里是 LF、检出后是 CRLF，`sha256sum <文件>` 与 `git cat-file blob HEAD:<路径> | sha256sum`
+  必然不同（2026-10-19 实测 `MANIFEST.json` 85,966 B → 87,833 B）。登记件要写清哈希取自提交对象，
+  **并写明测于哪个提交**；提交不能含自己的哈希，所以「首次读自」和「重算于」两个读数都要留下。
+- **跑测试期间不要在同一工作树上 commit**：本轮 pytest 子集跑到一半时我提交了一个 docs 改动，
+  `test_projection_freshness` 立刻 `findings=2 FAIL`；工作树静止后单跑同一条 43.8s PASS，
+  `verify_projection_freshness.py` 直跑 `OK findings=0`。中途改树的运行不是判定，别照着它改产品。
+- **`git ls-remote --tags` 的字段提取会吃掉 SHA**：`sed 's|.*refs/tags/||'` 连前面的 SHA 一起删，
+  比对本地/远端 tag 时会 12/12 全报 MISMATCH。用 `sed 's|\trefs/tags/| |'` 后按 `$2 $1` 输出，
+  再 `diff`（本轮这样核过：12 个 tag 名与对象 id 全部一致）。
 - **不要在测试文件的注释里写脚本文件名**：`test_gate_reachability` 把"测试模块里出现的脚本名"当作调用点，
   一句注释就能把豁免的手动闸变成"可达"，触发 `no_exemption_has_gone_stale`。用角色称呼。
 - **新增/删除 `apps/workbench/` 下文件会让 `verify_inert_contract_survey` 红**（`productFiles` 计数）。
