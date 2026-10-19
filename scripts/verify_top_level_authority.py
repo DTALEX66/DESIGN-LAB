@@ -99,7 +99,7 @@ AUTHORITY_ID = "DL-AUTHORITY-2026-09-18-R2"
 # sentences changed. Reason, from/to digests and the checks run: docs/history/taskpacks/20261009-adoption/
 # AUTHORITY-PIN-CHANGE.json revisions[]. Checks stay at 10.
 R2_RELEASE_HASHES = {
-    "AUTHORITY.md": "081b5f9412d2bfa52e4eb31c5a761af68dcc1d2426be160d800bca65e1b5f9d8",
+    "AUTHORITY.md": "e651c3692dcf070b8b37b63340c6cbc80e4ef6dd8366d46a6832a9d60f52e8b4",
     ".project/governance/authority-index.json": "3a9903b5a4decffc6a4bf4ecc11fdb0db59ae8ca2c4b562cf201d8b8f7d2c58d",
     "docs/current/HISTORY-FREEZE-RULES.md": "3573b88df6c04be6fa6932327aff94ad8c547a43bfcbc6a3337d4bad50a71322",
     "docs/taskpacks/DESIGN-LAB-FINAL-AUTHORITY-CONVERGENCE-TASKPACK-2026-09-18.md": "62f43ef295d4e90462d1e49e657e490400c4b5568f4e4ad1db3e268e12bb10c7",

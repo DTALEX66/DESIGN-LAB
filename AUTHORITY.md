@@ -22,7 +22,7 @@ Authority §17 变化依据：owner intent 落仓于 `docs/taskpacks/20261019-di
 ## 2026-10-09 OWNER ADOPTION — UI FIRST（2026-10-19 起降为前继记录）
 
 本条根据owner当前直接请求生效，优先于下文20260918/0927的冲突条款；Authority稳定ID保留，修订号UI-FIRST-20261009-R1。
-当前唯一integrated TaskPack：`docs/taskpacks/DESIGN-LAB-UI-FIRST-INTEGRATED-TASKPACK-2026-10-09.md`（`DL-TP-20261009-UI-FIRST-R1`）。旧20260918包与R5/DeepSeek血统停止派工，原字节及证据保留。
+（以下两句是 2026-10-09 当日原文，保留不改写；当前入口见上文 §17 与本节标题——2026-10-19 起本包为前继记录。）当时唯一integrated TaskPack：`docs/taskpacks/DESIGN-LAB-UI-FIRST-INTEGRATED-TASKPACK-2026-10-09.md`（`DL-TP-20261009-UI-FIRST-R1`），现由 `DL-TP-20261019-DIRECTION-R1` 取代。旧20260918包与R5/DeepSeek血统停止派工，原字节及证据保留。
 新目标以20261009最终包＋UI补充为准；手机端本轮不做，FROZEN_DEFERRED；桌面UI先行。当前定义与解释见PRODUCT_DEFINITION、docs/taskpacks/20261009-ui-first/CONVERSATION-DECISIONS.md及新包。
 允许现有Python/NativeWorkers的设计专用规划/执行/核验/恢复；仍禁止通用Agent平台、第二运行时/画布/模型网关。能力资产/分析制作/成果反馈是主旅程，旧Workbench技术路径保留，不锁永久菜单数量。
 唯一可变状态仍在design-lab/config/task-ledger-r3.json；currentExecution为当前派工区，原R5 tasks/evidence冻结证据区。旧生成器/部署副本须显示这个区分，禁止旧任务复活。

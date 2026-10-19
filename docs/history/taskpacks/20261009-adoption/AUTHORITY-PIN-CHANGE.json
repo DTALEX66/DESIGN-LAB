@@ -87,11 +87,11 @@
     "docs/current/HISTORY-FREEZE-RULES.md": "3e3c3086789b10e309d843ebfcbc280dde01aebad9c7472f43621830f5286ec8"
    },
    "to": {
-    "AUTHORITY.md": "081b5f9412d2bfa52e4eb31c5a761af68dcc1d2426be160d800bca65e1b5f9d8",
+    "AUTHORITY.md": "e651c3692dcf070b8b37b63340c6cbc80e4ef6dd8366d46a6832a9d60f52e8b4",
     ".project/governance/authority-index.json": "3a9903b5a4decffc6a4bf4ecc11fdb0db59ae8ca2c4b562cf201d8b8f7d2c58d",
     "docs/current/HISTORY-FREEZE-RULES.md": "3573b88df6c04be6fa6932327aff94ad8c547a43bfcbc6a3337d4bad50a71322"
    },
-   "why": "83 份过期交接与按日期提示词在汇总后删除（逐份 blob/字节/restoreAt 登记在 docs/history/archive-2026-10-19/REMOVALS.json，内容与独有事实汇总在 AGGREGATED-RECORD-2026-10-19.md）。三份权威面此前点名这些文件，改为点名汇总面与恢复清单；分类结论、authority ID、检查数均未变。owner 随包提供的 deepseek-r3 审计输入 17 件、PROMPT-LINEAGE.json 与按日期 bundle 成员不在删除范围。 同一提交内二次更正：把两份权威面里指向已删原件的路径字面量改成汇总面/恢复清单的指针，因为 verify_path_refs 与 verify_task_document_states 的指引面扫描会把 AUTHORITY.md 里任何 docs/ 路径当作指令。",
+   "why": "83 份过期交接与按日期提示词在汇总后删除（逐份 blob/字节/restoreAt 登记在 docs/history/archive-2026-10-19/REMOVALS.json，内容与独有事实汇总在 AGGREGATED-RECORD-2026-10-19.md）。三份权威面此前点名这些文件，改为点名汇总面与恢复清单；分类结论、authority ID、检查数均未变。owner 随包提供的 deepseek-r3 审计输入 17 件、PROMPT-LINEAGE.json 与按日期 bundle 成员不在删除范围。 同一提交内二次更正：把两份权威面里指向已删原件的路径字面量改成汇总面/恢复清单的指针，因为 verify_path_refs 与 verify_task_document_states 的指引面扫描会把 AUTHORITY.md 里任何 docs/ 路径当作指令。 另补一处同类问题：§「2026-10-09 OWNER ADOPTION」标题写了降为前继记录，但该节正文里「当前唯一integrated TaskPack：UI-FIRST」仍是现在时，会被后续会话当成当下入口读。按同一条规则处理——旧句原文保留、不删不改，只标注为当日原文并写明由 DL-TP-20261019-DIRECTION-R1 取代；AGENTS.md 里同一批现在时句子同样只加注不重写。",
    "checks": "verify_top_level_authority 仍 10 项；handoff-demoted 检查改为经 archive_records.read_record 读回被删原件字节后核验 banner，不再因文件缺失而静默跳过（此前它会 PASS 成“absent; nothing to demote”，等于把降级检查关掉）"
   }
  ],
