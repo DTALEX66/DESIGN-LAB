@@ -9,28 +9,28 @@
   },
   "fresh": false,
   "freshnessMeaning": "at generation only; check verifies bound-input integrity, not current Git or cloud state",
-  "generatedAt": "2026-10-19T10:43:45+00:00",
+  "generatedAt": "2026-10-19T10:44:01+00:00",
   "gitStateMeaning": "generation-time observation, not current HEAD",
   "local": {
     "branch": "qoder/designlab-backup-consistency-20261007",
     "origin_main": "a0195156858ab45b68abf6d7c7c6db9bb325fea7",
-    "sha": "a0195156858ab45b68abf6d7c7c6db9bb325fea7",
+    "sha": "adab123e2efa9ca4fb44de7fd889c10c0aefcc77",
     "source_worktree_clean": false,
     "tracked_files": 3725,
     "worktree_changes": [
       {
-        "content": "sha256:de017dfe55738a9c4d0c8d1cb2a62b8e9c7f1f8a4eb96fc2ef52acd5b2a20259",
+        "content": "sha256:4a9e4569033fdd696c8e65d6c6d4842e67534f79ecaa48066b6775bf7035f4c6",
         "kind": "M",
         "path": "design-lab/config/repository-size-report.json"
       }
     ],
-    "worktree_digest": "sha256:ce855a61bc884526eea7ddf13b43bca2a4da95a485cd2f66d4d12dd92bfb9d76"
+    "worktree_digest": "sha256:ff9139943a05b2498dee317c05d201abd43ed25a46f066c08339b0bba9c4b33b"
   },
   "note": "No GitHub API query was run by this generator; tool installation is not inferred.",
   "remoteRef": "origin/main (local tracking ref)",
   "schemaVersion": "design-lab/cloud-baseline/v2",
   "subjectMeaning": "subjectType=WORKTREE means the tree was dirty at generation; worktreeDigest covers HEAD plus the non-generated changes",
-  "subjectSha": "a0195156858ab45b68abf6d7c7c6db9bb325fea7",
+  "subjectSha": "adab123e2efa9ca4fb44de7fd889c10c0aefcc77",
   "subjectType": "WORKTREE",
   "taskpackHash": "2cfd84627352e9f1b29b42787fa43466cd9a836130d826d43678b7733856ffda",
   "taskpackId": "DL-TP-20261009-UI-FIRST-R1",
@@ -45,5 +45,5 @@
     "branchProtection"
   ],
   "worktreeClean": false,
-  "worktreeDigest": "sha256:ce855a61bc884526eea7ddf13b43bca2a4da95a485cd2f66d4d12dd92bfb9d76"
+  "worktreeDigest": "sha256:ff9139943a05b2498dee317c05d201abd43ed25a46f066c08339b0bba9c4b33b"
 }
