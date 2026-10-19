@@ -745,7 +745,7 @@ export async function renderDashboard(target: HTMLElement): Promise<void> {
   // rendered; the panels keep their honest text.
   const researchCard = CAPABILITY_REGISTRY.find((c) => c.capabilityId === 'research-insights');
 const deliveryCard = CAPABILITY_REGISTRY.find((c) => c.capabilityId === 'design-domain-model');
-const modulePanels = el('div', { class: 'three-col', style: 'margin-top:16px' },
+const modulePanels = el('div', { class: 'three-col spaced-top' },
     el('div', { class: 'panel' },
       el('h3', {}, 'Research'),
       el('div', { class: 'muted' }, '研究洞察模块：真实读回待接入，未接入前显式 UNKNOWN。')),
@@ -757,7 +757,7 @@ const modulePanels = el('div', { class: 'three-col', style: 'margin-top:16px' },
       el('div', { class: 'muted' }, '交付中心：按任务读回，未打包不宣称交付完成。')));
   // 2026-09-30 — blueprint capability cards on the dashboard: honest PLANNED
   // states with source/owner/route/contract, never a fake "available" button.
-  const blueprintCards = el('div', { class: 'three-col', style: 'margin-top:16px' },
+  const blueprintCards = el('div', { class: 'three-col spaced-top' },
     ...(researchCard ? [capabilityCard(researchCard)] : []),
     ...(deliveryCard ? [capabilityCard(deliveryCard)] : []),
     el('div', { class: 'panel' },
@@ -803,13 +803,13 @@ const modulePanels = el('div', { class: 'three-col', style: 'margin-top:16px' },
   target.replaceChildren(
     pageHead,
     grid,
-    el('div', { class: 'two-col', style: 'margin-top:16px' }, recentPanel, trendPanel),
+    el('div', { class: 'two-col spaced-top' }, recentPanel, trendPanel),
     modulePanels,
     // Pack 01_RESEARCH_AND_PRODUCT §101: the home page should offer 「继续项目」. It is
     // derived from the SAME local recency record the 最近项目 panel uses (project ids only,
     // kept on this machine, never uploaded), and it is honest when there is nothing to
     // continue rather than pointing at an arbitrary project.
-    continuePanel,    el('div', { class: 'two-col', style: 'margin-top:16px' },
+    continuePanel,    el('div', { class: 'two-col spaced-top' },
       triagePanel('needs_human', '待审（需人工处理）', '无待审任务'),
       triagePanel('failed', '失败', '无失败任务')),
     ...shapeNoticeRows(environment, health, projects, systems)),
@@ -817,7 +817,7 @@ const modulePanels = el('div', { class: 'three-col', style: 'margin-top:16px' },
     // 全部来自真实读回：活跃生产 = in_flight triage；最近交付 = /bundles 读回；
     // Host 状态 = /environment shared_inputs + 能力登记表（诚实 UNKNOWN 占位，
     // 不做假探测）；Quick Launch = 跳转各视图的一行直达。
-    el('div', { class: 'two-col', style: 'margin-top:16px' },
+    el('div', { class: 'two-col spaced-top' },
       el('div', { class: 'panel' },
         el('h3', {}, `活跃生产（${activeProductionRows.length}）`),
         el('ul', { class: 'list' },
@@ -848,7 +848,7 @@ const modulePanels = el('div', { class: 'three-col', style: 'margin-top:16px' },
                   b.rights === 'NOT_REVIEWED' ? '权利未审查' : b.rights)))
             : [emptyLi(projects, '尚无交付包', '任务完成并打包后，交付会在此读回。')])),
     )),
-    el('div', { class: 'panel', style: 'margin-top:16px' },
+    el('div', { class: 'panel spaced-top' },
       el('h3', {}, 'Host / Capability 状态'),
       el('div', { class: 'three-col' },
         el('div', { class: 'panel' },
@@ -874,7 +874,7 @@ const modulePanels = el('div', { class: 'three-col', style: 'margin-top:16px' },
               el('span', { class: c.implementationState === 'BLOCKED' ? 'tag warn' : 'tag info' },
                 c.implementationState))))),
       ),
-    el('div', { class: 'panel quick-launch', style: 'margin-top:16px' },
+    el('div', { class: 'panel quick-launch spaced-top' },
       el('h3', {}, 'Quick Launch'),
       el('ul', { class: 'list' },
         el('li', { class: 'list-item' },
@@ -4173,7 +4173,7 @@ function briefFieldRow(prefix: string): {
   const title = el('input', { id: `${prefix}-title`, class: 'input', maxlength: '160', placeholder: '例如：秋季品牌视觉' });
   const goals = el('input', { id: `${prefix}-goals`, class: 'input', maxlength: '400', placeholder: '现代, 温暖, 克制' });
   const constraints = el('input', { id: `${prefix}-constraints`, class: 'input', maxlength: '400', placeholder: '例如：不改变 logo 拓扑' });
-  const row = el('div', { class: 'row-card', style: 'display:grid;gap:8px' },
+  const row = el('div', { class: 'row-card grid-stack' },
     fieldRow('简报标题（必填）', title, `${prefix}-title`),
     fieldRow('目标（逗号分隔，必填）', goals, `${prefix}-goals`),
     fieldRow('约束（可选）', constraints, `${prefix}-constraints`));
@@ -4707,9 +4707,9 @@ function renderReferencePanel(id: string): HTMLElement {
 
   return el('div', { class: 'panel', id: 'pd-reference-panel' },
       heading, list,
-      el('div', { class: 'row-card', style: 'display:grid;gap:8px' },
+      el('div', { class: 'row-card grid-stack' },
         el('strong', {}, '预览（按需读取）'), preview, info),
-    el('div', { class: 'row-card', style: 'display:grid;gap:8px' },
+    el('div', { class: 'row-card grid-stack' },
       el('strong', {}, '批量导入（PNG / JPEG，单个 ≤ 32 MiB）'),
       fieldRow('选择要导入的图片', fileInput, 'pd-ref-files'), selection,
       el('div', { class: 'actions' }, importBtn, cancelBtn),
@@ -4838,7 +4838,7 @@ function renderDirectionPanel(id: string, layer: DesignLayerResponse['design_lay
       ...(layer.directions.length
         ? [...layer.directions].map(directionRow)
         : [emptyLi(layer, '尚无方向候选', '先建立简报，再用下方表单立候选；选定必须由人执行。')])),
-    el('div', { class: 'row-card', style: 'display:grid;gap:8px' },
+    el('div', { class: 'row-card grid-stack' },
       el('strong', {}, '新建方向候选（绑定到某个简报版本）'),
       fieldRow('所属简报版本', briefSelect, 'pd-dir-brief'),
       fieldRow('方向标题（必填）', title, 'pd-dir-title'),
@@ -4932,7 +4932,7 @@ function renderDesignSystemPanel(
               : `不一致：活动绑定属于 ${active.direction_id}，而人工选定的是 ${chosen.direction_id}。`)),
           el('span', { class: consistent ? 'tag ok' : 'tag bad' }, consistent ? '一致' : '不一致'))]
         : [])),
-    el('div', { class: 'row-card', style: 'display:grid;gap:8px' },
+    el('div', { class: 'row-card grid-stack' },
       el('strong', {}, '绑定设计系统（需先有人选定方向）'),
       gate, fieldRow('要绑定的设计系统', select, 'pd-ds-name'),
       el('div', { class: 'actions' }, bindBtn)),
@@ -5102,7 +5102,7 @@ export function renderTokenDocumentPanel(
   return el('div', { class: 'panel', id: 'pd-token-panel' },
     el('h3', {}, `设计系统 Token（DTCG）· 当前文档 ${documents.length}`),
     el('ul', { class: 'list' }, ...rows),
-    el('div', { class: 'row-card', style: 'display:grid;gap:8px' },
+    el('div', { class: 'row-card grid-stack' },
       el('strong', {}, documents.length ? '修订 Token 文档（追加新版本）' : '提交 Token 文档（创建 v1）'),
       gate,
       fieldRow('设计系统', select, 'pd-token-name'),
@@ -5309,14 +5309,14 @@ export async function renderProjectDetail(id: string, target: HTMLElement): Prom
     stageNav,
     el('div', { class: 'project-detail-layout' },
       el('div', { class: 'project-detail-main' },
-        el('div', { class: 'two-col', style: 'margin-top:16px' }, taskPanel, layerPanel),
-        el('div', { style: 'margin-top:16px' }, renderDeliveryPanel(id, bundlesResp),
+        el('div', { class: 'two-col spaced-top' }, taskPanel, layerPanel),
+        el('div', { class: 'spaced-top' }, renderDeliveryPanel(id, bundlesResp),
           renderVersionsPanel(bundlesResp)),
-        el('div', { style: 'margin-top:16px' }, renderBriefEditor(id, layer, target)),
-        el('div', { style: 'margin-top:16px' }, renderDirectionPanel(id, layer, target)),
-        el('div', { style: 'margin-top:16px' }, renderDesignSystemPanel(id, layer, systemsResp, target)),
-        el('div', { style: 'margin-top:16px' }, renderTokenDocumentPanel(id, tokensResp, systemsResp, target)),
-        el('div', { style: 'margin-top:16px' }, renderReferencePanel(id)),
+        el('div', { class: 'spaced-top' }, renderBriefEditor(id, layer, target)),
+        el('div', { class: 'spaced-top' }, renderDirectionPanel(id, layer, target)),
+        el('div', { class: 'spaced-top' }, renderDesignSystemPanel(id, layer, systemsResp, target)),
+        el('div', { class: 'spaced-top' }, renderTokenDocumentPanel(id, tokensResp, systemsResp, target)),
+        el('div', { class: 'spaced-top' }, renderReferencePanel(id)),
       ),
       inspector,
     ),

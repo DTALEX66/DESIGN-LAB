@@ -1766,7 +1766,7 @@ async function renderDashboard(target) {
   const deliveryCard = CAPABILITY_REGISTRY.find((c) => c.capabilityId === "design-domain-model");
   const modulePanels = el(
     "div",
-    { class: "three-col", style: "margin-top:16px" },
+    { class: "three-col spaced-top" },
     el(
       "div",
       { class: "panel" },
@@ -1788,7 +1788,7 @@ async function renderDashboard(target) {
   );
   const blueprintCards = el(
     "div",
-    { class: "three-col", style: "margin-top:16px" },
+    { class: "three-col spaced-top" },
     ...researchCard ? [capabilityCard(researchCard)] : [],
     ...deliveryCard ? [capabilityCard(deliveryCard)] : [],
     el(
@@ -1877,7 +1877,7 @@ async function renderDashboard(target) {
   target.replaceChildren(
     pageHead,
     grid,
-    el("div", { class: "two-col", style: "margin-top:16px" }, recentPanel, trendPanel),
+    el("div", { class: "two-col spaced-top" }, recentPanel, trendPanel),
     modulePanels,
     // Pack 01_RESEARCH_AND_PRODUCT §101: the home page should offer 「继续项目」. It is
     // derived from the SAME local recency record the 最近项目 panel uses (project ids only,
@@ -1886,7 +1886,7 @@ async function renderDashboard(target) {
     continuePanel,
     el(
       "div",
-      { class: "two-col", style: "margin-top:16px" },
+      { class: "two-col spaced-top" },
       triagePanel("needs_human", "待审（需人工处理）", "无待审任务"),
       triagePanel("failed", "失败", "无失败任务")
     ),
@@ -1897,7 +1897,7 @@ async function renderDashboard(target) {
   // 不做假探测）；Quick Launch = 跳转各视图的一行直达。
   el(
     "div",
-    { class: "two-col", style: "margin-top:16px" },
+    { class: "two-col spaced-top" },
     el(
       "div",
       { class: "panel" },
@@ -1956,7 +1956,7 @@ async function renderDashboard(target) {
     ),
     el(
       "div",
-      { class: "panel", style: "margin-top:16px" },
+      { class: "panel spaced-top" },
       el("h3", {}, "Host / Capability 状态"),
       el(
         "div",
@@ -2016,7 +2016,7 @@ async function renderDashboard(target) {
       ),
       el(
         "div",
-        { class: "panel quick-launch", style: "margin-top:16px" },
+        { class: "panel quick-launch spaced-top" },
         el("h3", {}, "Quick Launch"),
         el(
           "ul",
@@ -5751,7 +5751,7 @@ function briefFieldRow(prefix) {
   const constraints = el("input", { id: `${prefix}-constraints`, class: "input", maxlength: "400", placeholder: "例如：不改变 logo 拓扑" });
   const row = el(
     "div",
-    { class: "row-card", style: "display:grid;gap:8px" },
+    { class: "row-card grid-stack" },
     fieldRow("简报标题（必填）", title, `${prefix}-title`),
     fieldRow("目标（逗号分隔，必填）", goals, `${prefix}-goals`),
     fieldRow("约束（可选）", constraints, `${prefix}-constraints`)
@@ -6296,14 +6296,14 @@ function renderReferencePanel(id) {
     list,
     el(
       "div",
-      { class: "row-card", style: "display:grid;gap:8px" },
+      { class: "row-card grid-stack" },
       el("strong", {}, "预览（按需读取）"),
       preview2,
       info2
     ),
     el(
       "div",
-      { class: "row-card", style: "display:grid;gap:8px" },
+      { class: "row-card grid-stack" },
       el("strong", {}, "批量导入（PNG / JPEG，单个 ≤ 32 MiB）"),
       fieldRow("选择要导入的图片", fileInput, "pd-ref-files"),
       selection,
@@ -6436,7 +6436,7 @@ function renderDirectionPanel(id, layer, target) {
     ),
     el(
       "div",
-      { class: "row-card", style: "display:grid;gap:8px" },
+      { class: "row-card grid-stack" },
       el("strong", {}, "新建方向候选（绑定到某个简报版本）"),
       fieldRow("所属简报版本", briefSelect, "pd-dir-brief"),
       fieldRow("方向标题（必填）", title, "pd-dir-title"),
@@ -6534,7 +6534,7 @@ function renderDesignSystemPanel(id, layer, systems, target) {
     ),
     el(
       "div",
-      { class: "row-card", style: "display:grid;gap:8px" },
+      { class: "row-card grid-stack" },
       el("strong", {}, "绑定设计系统（需先有人选定方向）"),
       gate,
       fieldRow("要绑定的设计系统", select, "pd-ds-name"),
@@ -6672,7 +6672,7 @@ function renderTokenDocumentPanel(id, tokens, systems, target) {
     el("ul", { class: "list" }, ...rows),
     el(
       "div",
-      { class: "row-card", style: "display:grid;gap:8px" },
+      { class: "row-card grid-stack" },
       el("strong", {}, documents.length ? "修订 Token 文档（追加新版本）" : "提交 Token 文档（创建 v1）"),
       gate,
       fieldRow("设计系统", select, "pd-token-name"),
@@ -6926,18 +6926,18 @@ async function renderProjectDetail(id, target) {
       el(
         "div",
         { class: "project-detail-main" },
-        el("div", { class: "two-col", style: "margin-top:16px" }, taskPanel, layerPanel),
+        el("div", { class: "two-col spaced-top" }, taskPanel, layerPanel),
         el(
           "div",
-          { style: "margin-top:16px" },
+          { class: "spaced-top" },
           renderDeliveryPanel(id, bundlesResp),
           renderVersionsPanel(bundlesResp)
         ),
-        el("div", { style: "margin-top:16px" }, renderBriefEditor(id, layer, target)),
-        el("div", { style: "margin-top:16px" }, renderDirectionPanel(id, layer, target)),
-        el("div", { style: "margin-top:16px" }, renderDesignSystemPanel(id, layer, systemsResp, target)),
-        el("div", { style: "margin-top:16px" }, renderTokenDocumentPanel(id, tokensResp, systemsResp, target)),
-        el("div", { style: "margin-top:16px" }, renderReferencePanel(id))
+        el("div", { class: "spaced-top" }, renderBriefEditor(id, layer, target)),
+        el("div", { class: "spaced-top" }, renderDirectionPanel(id, layer, target)),
+        el("div", { class: "spaced-top" }, renderDesignSystemPanel(id, layer, systemsResp, target)),
+        el("div", { class: "spaced-top" }, renderTokenDocumentPanel(id, tokensResp, systemsResp, target)),
+        el("div", { class: "spaced-top" }, renderReferencePanel(id))
       ),
       inspector
     ),

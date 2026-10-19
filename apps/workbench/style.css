@@ -824,6 +824,11 @@ html,body{margin:0}
 .kpi-grid{grid-template-columns:repeat(auto-fit,minmax(210px,1fr))}
 .two-col{grid-template-columns:1.2fr 1fr}
 .three-col{grid-template-columns:repeat(3,minmax(0,1fr))}
+/* Two declarations that twenty inline `style:` strings kept repeating. Inline styles are
+   invisible to the alternate palette and to the single-definition gate, and every literal px
+   counts against the debt baseline, so the geometry now comes off the spacing tokens. */
+.spaced-top{margin-top:var(--uif-space-4)}
+.grid-stack{display:grid;gap:var(--uif-space-2)}
 /* The unopened-route slots hold exactly one capability card each, and a fixed
    3-track grid left ~640px of dead canvas beside it under a full-width banner.
    auto-fit collapses the unused tracks, so one card fills the row and two or
