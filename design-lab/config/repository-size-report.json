@@ -1,8 +1,8 @@
 {
   "schemaVersion": "design-lab/repository-size-report/v1",
-  "subjectSha": "f55f03821e90e61f49ff64e529133b892494756b",
-  "generatedAt": "2026-10-19T08:30:38Z",
-  "measuredAt": "2026-10-19T08:30:38Z",
+  "subjectSha": "0d97a07b34485e8b58c6177cdd397e95f3ffc7d4",
+  "generatedAt": "2026-10-19T08:50:32Z",
+  "measuredAt": "2026-10-19T08:50:32Z",
   "measuredPackMiB": 241.69,
   "packMiB": 241.69,
   "warningMiB": 224.0,
@@ -40,7 +40,7 @@
       "objectId": "9cba9c4843f435bab3b73abcc60003ac2df84c51"
     },
     {
-      "path": "docs/handoffs/deepseek-r3-20260906/03-history-crosswalk.json",
+      "path": "docs/history/archive-2026-10-19/handoffs/deepseek-r3-20260906/03-history-crosswalk.json",
       "bytes": 1483165,
       "objectId": "bd968c6c15ef9352e71a2fd0aefe1773a1f7d58e"
     },
@@ -91,8 +91,8 @@
     },
     {
       "path": "design-lab/config/task-ledger-r3.json",
-      "bytes": 752851,
-      "objectId": "e89e56e2ad3bf719dbcf45e352c2c77af2856b8a"
+      "bytes": 752921,
+      "objectId": "1a4176a6630888753cfd4ade84f1d928b7550024"
     },
     {
       "path": "docs/projects/nebula-tech-culture-wall/assets/nebula_brand_identity_board.png",

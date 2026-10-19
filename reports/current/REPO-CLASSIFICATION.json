@@ -1,10 +1,10 @@
 {
   "schemaVersion": "design-lab/repo-classification/v1",
-  "generatedAt": "2026-10-19T08:24:17Z",
-  "observedCommit": "f55f03821e90e61f49ff64e529133b892494756b",
+  "generatedAt": "2026-10-19T08:50:32Z",
+  "observedCommit": "0d97a07b34485e8b58c6177cdd397e95f3ffc7d4",
   "totals": {
-    "trackedFiles": 3801,
-    "workingTreeMiB": 70.04,
+    "trackedFiles": 3803,
+    "workingTreeMiB": 70.34,
     "packMiB": 241.69,
     "note": "pack 含全部历史与 tag 归档；working tree 为当前检出字节。两者之差不是垃圾。"
   },
@@ -17,7 +17,7 @@
     "documentation": {
       "files": 13,
       "bundles": 2,
-      "mib": 4.3
+      "mib": 4.31
     },
     "evidence": {
       "files": 1159,
@@ -27,12 +27,12 @@
     "generated": {
       "files": 67,
       "bundles": 4,
-      "mib": 1.29
+      "mib": 1.42
     },
     "history": {
-      "files": 810,
+      "files": 812,
       "bundles": 3,
-      "mib": 27.65
+      "mib": 27.73
     },
     "other": {
       "files": 1,
@@ -47,12 +47,12 @@
     "repo-meta": {
       "files": 24,
       "bundles": 24,
-      "mib": 0.24
+      "mib": 0.25
     },
     "source": {
       "files": 1636,
       "bundles": 8,
-      "mib": 13.2
+      "mib": 13.27
     }
   },
   "bundles": [
@@ -60,8 +60,8 @@
       "path": "docs/history/",
       "category": "history",
       "note": "冻结历史与逐字节基线（含 2026-10-19 归档的 handoffs/taskpacks）",
-      "files": 707,
-      "bytes": 26845901,
+      "files": 709,
+      "bytes": 26932726,
       "cited_by_authority": 17,
       "lastTouch": "2026-10-19"
     },
@@ -70,7 +70,7 @@
       "category": "source",
       "note": "设计核心其余模块",
       "files": 1156,
-      "bytes": 9419591,
+      "bytes": 9496544,
       "cited_by_authority": 6,
       "lastTouch": "2026-10-19"
     },
@@ -117,14 +117,14 @@
       "files": 100,
       "bytes": 2056462,
       "cited_by_authority": 0,
-      "lastTouch": "2026-10-10"
+      "lastTouch": "2026-10-19"
     },
     {
       "path": "src/",
       "category": "source",
       "note": "产品源码",
       "files": 105,
-      "bytes": 1352596,
+      "bytes": 1354439,
       "cited_by_authority": 0,
       "lastTouch": "2026-10-19"
     },
@@ -133,7 +133,7 @@
       "category": "source",
       "note": "Workbench 前端源码",
       "files": 19,
-      "bytes": 1286448,
+      "bytes": 1286483,
       "cited_by_authority": 0,
       "lastTouch": "2026-10-19"
     },
@@ -142,7 +142,7 @@
       "category": "generated",
       "note": "当前状态投影（由生成器再生）",
       "files": 63,
-      "bytes": 948275,
+      "bytes": 1088397,
       "cited_by_authority": 1,
       "lastTouch": "2026-10-19"
     },
@@ -151,9 +151,9 @@
       "category": "source",
       "note": "宿主/发行集成层",
       "files": 68,
-      "bytes": 872456,
+      "bytes": 872510,
       "cited_by_authority": 0,
-      "lastTouch": "2026-09-18"
+      "lastTouch": "2026-10-19"
     },
     {
       "path": "packages/",
@@ -169,7 +169,7 @@
       "category": "source",
       "note": "根级门与工具",
       "files": 69,
-      "bytes": 839029,
+      "bytes": 842204,
       "cited_by_authority": 3,
       "lastTouch": "2026-10-19"
     },
@@ -178,7 +178,7 @@
       "category": "documentation",
       "note": "其余文档",
       "files": 88,
-      "bytes": 559210,
+      "bytes": 562359,
       "cited_by_authority": 13,
       "lastTouch": "2026-10-19"
     },
@@ -241,7 +241,7 @@
       "category": "authority",
       "note": "顶层权威（唯一）",
       "files": 1,
-      "bytes": 19979,
+      "bytes": 20033,
       "cited_by_authority": 1,
       "lastTouch": "2026-10-19"
     },
@@ -250,16 +250,16 @@
       "category": "repo-meta",
       "note": "根级运维与政策文档",
       "files": 1,
-      "bytes": 13834,
+      "bytes": 14516,
       "cited_by_authority": 0,
-      "lastTouch": "2026-10-18"
+      "lastTouch": "2026-10-19"
     },
     {
       "path": "AGENTS.md",
       "category": "authority",
       "note": "根执行规则",
       "files": 1,
-      "bytes": 13474,
+      "bytes": 13550,
       "cited_by_authority": 1,
       "lastTouch": "2026-10-19"
     },
@@ -277,7 +277,7 @@
       "category": "authority",
       "note": "机器权威索引与策略",
       "files": 8,
-      "bytes": 10823,
+      "bytes": 10877,
       "cited_by_authority": 2,
       "lastTouch": "2026-10-19"
     },
@@ -322,7 +322,7 @@
       "category": "generated",
       "note": "其余报告",
       "files": 2,
-      "bytes": 3531,
+      "bytes": 3681,
       "cited_by_authority": 0,
       "lastTouch": "2026-10-19"
     },
@@ -340,9 +340,9 @@
       "category": "repo-meta",
       "note": "根级运维与政策文档",
       "files": 1,
-      "bytes": 3190,
+      "bytes": 3341,
       "cited_by_authority": 0,
-      "lastTouch": "2026-10-13"
+      "lastTouch": "2026-10-19"
     },
     {
       "path": ".gitignore",

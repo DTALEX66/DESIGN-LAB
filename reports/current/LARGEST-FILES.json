@@ -1,7 +1,7 @@
 {
   "schemaVersion": "design-lab/largest-files/v1",
   "task_key": "DL-TP-20260914-DEEPSEEK-AUTHORITY-R1::DLDS-D000",
-  "measured_at": "2026-10-19T08:29:44+00:00",
+  "measured_at": "2026-10-19T08:50:57+00:00",
   "tracked_top": [
     {
       "path": "docs/history/record-archive-2026-10-09/ARCHIVE-MANIFEST.json",
@@ -34,7 +34,7 @@
       "object": "9cba9c4843f435bab3b73abcc60003ac2df84c51"
     },
     {
-      "path": "docs/handoffs/deepseek-r3-20260906/03-history-crosswalk.json",
+      "path": "docs/history/archive-2026-10-19/handoffs/deepseek-r3-20260906/03-history-crosswalk.json",
       "bytes": 1483165,
       "object": "bd968c6c15ef9352e71a2fd0aefe1773a1f7d58e"
     },
@@ -85,8 +85,8 @@
     },
     {
       "path": "design-lab/config/task-ledger-r3.json",
-      "bytes": 752851,
-      "object": "e89e56e2ad3bf719dbcf45e352c2c77af2856b8a"
+      "bytes": 752921,
+      "object": "1a4176a6630888753cfd4ade84f1d928b7550024"
     },
     {
       "path": "docs/projects/nebula-tech-culture-wall/assets/nebula_brand_identity_board.png",
@@ -155,8 +155,8 @@
     },
     {
       "path": "docs/history/record-imports-2026-10-08/RECORD-IMPORT-MANIFEST.json",
-      "bytes": 346906,
-      "object": "efeb41eb8f03411a547eaf2ea4bfe6c22fa36d44"
+      "bytes": 349913,
+      "object": "8f097c5eae997ca3d2d524268d8b2f5b50d4d216"
     },
     {
       "path": "docs/history/record-imports-2026-10-08/FINAL-CONSOLIDATED-2026-09-29/appendices/current-task-ledger-snapshot.json",
@@ -194,7 +194,7 @@
       "object": "9012e83f64c24336c5aef71cbc0656aac624b932"
     },
     {
-      "path": "docs/UI-CONVERGENCE-20260930/screenshot/34-project-detail@2560.png",
+      "path": "docs/history/archive-2026-10-19/UI-CONVERGENCE-20260930/screenshot/34-project-detail@2560.png",
       "bytes": 306958,
       "object": "15b0838f7a7874a72f8124205ab1b54b13dd38ee"
     },
@@ -234,7 +234,7 @@
       "object": "67da84ed3928d13a6d4284820879c3c112370989"
     },
     {
-      "path": "docs/UI-CONVERGENCE-20260930/screenshot/32-dashboard@2560.png",
+      "path": "docs/history/archive-2026-10-19/UI-CONVERGENCE-20260930/screenshot/32-dashboard@2560.png",
       "bytes": 260375,
       "object": "08a2b7fa8eddf954baf5299550a4f6c4d6ebe6d7"
     },
@@ -244,12 +244,12 @@
       "object": "1b53de308d04c5c06b7c40e7b48185a50ba05a6b"
     },
     {
-      "path": "docs/UI-CONVERGENCE-20260930/screenshot/39-settings@2560.png",
+      "path": "docs/history/archive-2026-10-19/UI-CONVERGENCE-20260930/screenshot/39-settings@2560.png",
       "bytes": 259017,
       "object": "a0d0d9f5b51dad981b096a8328d774dc5c141b2e"
     },
     {
-      "path": "docs/UI-CONVERGENCE-20260930/screenshot/31-settings@1920.png",
+      "path": "docs/history/archive-2026-10-19/UI-CONVERGENCE-20260930/screenshot/31-settings@1920.png",
       "bytes": 244646,
       "object": "d426c791a05a42e30414dfe639c86a2213c7c057"
     }
@@ -468,7 +468,11 @@
     ".pytest_cache": [
       {
         "path": ".pytest_cache/v/cache/nodeids",
-        "bytes": 2560
+        "bytes": 13533
+      },
+      {
+        "path": ".pytest_cache/v/cache/lastfailed",
+        "bytes": 411
       },
       {
         "path": ".pytest_cache/README.md",
@@ -481,10 +485,6 @@
       {
         "path": ".pytest_cache/.gitignore",
         "bytes": 37
-      },
-      {
-        "path": ".pytest_cache/v/cache/lastfailed",
-        "bytes": 2
       }
     ]
   }

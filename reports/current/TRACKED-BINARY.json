@@ -1,7 +1,7 @@
 {
   "schemaVersion": "design-lab/tracked-binary-inventory/v1",
   "task_key": "DL-TP-20260914-DEEPSEEK-AUTHORITY-R1::DLDS-D000",
-  "measured_at": "2026-10-19T08:29:44+00:00",
+  "measured_at": "2026-10-19T08:50:57+00:00",
   "count": 103,
   "by_category": {
     "media": 100,
@@ -129,7 +129,7 @@
       "extension": ".jpg"
     },
     {
-      "path": "docs/UI-CONVERGENCE-20260930/screenshot/34-project-detail@2560.png",
+      "path": "docs/history/archive-2026-10-19/UI-CONVERGENCE-20260930/screenshot/34-project-detail@2560.png",
       "bytes": 306958,
       "object": "15b0838f7a7874a72f8124205ab1b54b13dd38ee",
       "category": "media",
@@ -143,7 +143,7 @@
       "extension": ".png"
     },
     {
-      "path": "docs/UI-CONVERGENCE-20260930/screenshot/32-dashboard@2560.png",
+      "path": "docs/history/archive-2026-10-19/UI-CONVERGENCE-20260930/screenshot/32-dashboard@2560.png",
       "bytes": 260375,
       "object": "08a2b7fa8eddf954baf5299550a4f6c4d6ebe6d7",
       "category": "media",
@@ -157,21 +157,21 @@
       "extension": ".png"
     },
     {
-      "path": "docs/UI-CONVERGENCE-20260930/screenshot/39-settings@2560.png",
+      "path": "docs/history/archive-2026-10-19/UI-CONVERGENCE-20260930/screenshot/39-settings@2560.png",
       "bytes": 259017,
       "object": "a0d0d9f5b51dad981b096a8328d774dc5c141b2e",
       "category": "media",
       "extension": ".png"
     },
     {
-      "path": "docs/UI-CONVERGENCE-20260930/screenshot/31-settings@1920.png",
+      "path": "docs/history/archive-2026-10-19/UI-CONVERGENCE-20260930/screenshot/31-settings@1920.png",
       "bytes": 244646,
       "object": "d426c791a05a42e30414dfe639c86a2213c7c057",
       "category": "media",
       "extension": ".png"
     },
     {
-      "path": "docs/UI-CONVERGENCE-20260930/screenshot/26-project-detail@1920.png",
+      "path": "docs/history/archive-2026-10-19/UI-CONVERGENCE-20260930/screenshot/26-project-detail@1920.png",
       "bytes": 244100,
       "object": "3fb985f30dcfd378fac976d441d5f2fd896f47f6",
       "category": "media",
@@ -199,7 +199,7 @@
       "extension": ".png"
     },
     {
-      "path": "docs/UI-CONVERGENCE-20260930/screenshot/24-dashboard@1920.png",
+      "path": "docs/history/archive-2026-10-19/UI-CONVERGENCE-20260930/screenshot/24-dashboard@1920.png",
       "bytes": 239596,
       "object": "d8a78560c1f3a918f2e13cb8c36d20143b1dce8e",
       "category": "media",
@@ -213,14 +213,14 @@
       "extension": ".png"
     },
     {
-      "path": "docs/UI-CONVERGENCE-20260930/screenshot/23-settings@1280.png",
+      "path": "docs/history/archive-2026-10-19/UI-CONVERGENCE-20260930/screenshot/23-settings@1280.png",
       "bytes": 198192,
       "object": "643e5cc2e32781b86327560ea89718845fcd600f",
       "category": "media",
       "extension": ".png"
     },
     {
-      "path": "docs/UI-CONVERGENCE-20260930/screenshot/16-dashboard@1280.png",
+      "path": "docs/history/archive-2026-10-19/UI-CONVERGENCE-20260930/screenshot/16-dashboard@1280.png",
       "bytes": 184368,
       "object": "bb53402b83d611c0da9e57838aab7e6a3edf6c3c",
       "category": "media",
@@ -234,21 +234,21 @@
       "extension": ".png"
     },
     {
-      "path": "docs/UI-CONVERGENCE-20260930/screenshot/33-projects@2560.png",
+      "path": "docs/history/archive-2026-10-19/UI-CONVERGENCE-20260930/screenshot/33-projects@2560.png",
       "bytes": 170209,
       "object": "f0c77891217337834a5b32d6e8697524f73fa6c7",
       "category": "media",
       "extension": ".png"
     },
     {
-      "path": "docs/UI-CONVERGENCE-20260930/screenshot/18-project-detail@1280.png",
+      "path": "docs/history/archive-2026-10-19/UI-CONVERGENCE-20260930/screenshot/18-project-detail@1280.png",
       "bytes": 166604,
       "object": "2d1725d57cb9cea13d6f6f8c1858a7728612790f",
       "category": "media",
       "extension": ".png"
     },
     {
-      "path": "docs/UI-CONVERGENCE-20260930/screenshot/38-preflight@2560.png",
+      "path": "docs/history/archive-2026-10-19/UI-CONVERGENCE-20260930/screenshot/38-preflight@2560.png",
       "bytes": 163108,
       "object": "dac40367bd84e37a982f152f3f031cde06353750",
       "category": "media",
@@ -283,49 +283,49 @@
       "extension": ".webp"
     },
     {
-      "path": "docs/UI-CONVERGENCE-20260930/screenshot/25-projects@1920.png",
+      "path": "docs/history/archive-2026-10-19/UI-CONVERGENCE-20260930/screenshot/25-projects@1920.png",
       "bytes": 151384,
       "object": "29c042cbcd61d15f76d80271c0c21231e1e8805a",
       "category": "media",
       "extension": ".png"
     },
     {
-      "path": "docs/UI-CONVERGENCE-20260930/screenshot/30-preflight@1920.png",
+      "path": "docs/history/archive-2026-10-19/UI-CONVERGENCE-20260930/screenshot/30-preflight@1920.png",
       "bytes": 144144,
       "object": "cd7d418660fecf7eeb5559856fc8cbc332b5faf1",
       "category": "media",
       "extension": ".png"
     },
     {
-      "path": "docs/UI-CONVERGENCE-20260930/screenshot/15-settings@768.png",
+      "path": "docs/history/archive-2026-10-19/UI-CONVERGENCE-20260930/screenshot/15-settings@768.png",
       "bytes": 138934,
       "object": "0e9a602cbe69cc292b95386a1a71d77adeb163f5",
       "category": "media",
       "extension": ".png"
     },
     {
-      "path": "docs/UI-CONVERGENCE-20260930/screenshot/17-projects@1280.png",
+      "path": "docs/history/archive-2026-10-19/UI-CONVERGENCE-20260930/screenshot/17-projects@1280.png",
       "bytes": 130332,
       "object": "ff4e5523d812f1e6331f2365aa56dc2b6d2c1747",
       "category": "media",
       "extension": ".png"
     },
     {
-      "path": "docs/UI-CONVERGENCE-20260930/screenshot/37-evidence@2560.png",
+      "path": "docs/history/archive-2026-10-19/UI-CONVERGENCE-20260930/screenshot/37-evidence@2560.png",
       "bytes": 130236,
       "object": "c65e26540f7a0f8fa889575118039b4aa5833ccd",
       "category": "media",
       "extension": ".png"
     },
     {
-      "path": "docs/UI-CONVERGENCE-20260930/screenshot/36-deliverables@2560.png",
+      "path": "docs/history/archive-2026-10-19/UI-CONVERGENCE-20260930/screenshot/36-deliverables@2560.png",
       "bytes": 128722,
       "object": "30bb3f60350dd7229818ff1e4cecfa505e3f4c18",
       "category": "media",
       "extension": ".png"
     },
     {
-      "path": "docs/UI-CONVERGENCE-20260930/screenshot/35-creative-tools@2560.png",
+      "path": "docs/history/archive-2026-10-19/UI-CONVERGENCE-20260930/screenshot/35-creative-tools@2560.png",
       "bytes": 127936,
       "object": "c5447240653fc7e09a61ecc2e37aa8945f8bced4",
       "category": "media",
@@ -339,7 +339,7 @@
       "extension": ".png"
     },
     {
-      "path": "docs/UI-CONVERGENCE-20260930/screenshot/22-preflight@1280.png",
+      "path": "docs/history/archive-2026-10-19/UI-CONVERGENCE-20260930/screenshot/22-preflight@1280.png",
       "bytes": 123963,
       "object": "13c17034a725f7ac5db29df4cfba7ae0846a2ed9",
       "category": "media",
@@ -416,21 +416,21 @@
       "extension": ".png"
     },
     {
-      "path": "docs/UI-CONVERGENCE-20260930/screenshot/29-evidence@1920.png",
+      "path": "docs/history/archive-2026-10-19/UI-CONVERGENCE-20260930/screenshot/29-evidence@1920.png",
       "bytes": 111070,
       "object": "85de79a1c6e659429bfe60ed027c1aefeeee6251",
       "category": "media",
       "extension": ".png"
     },
     {
-      "path": "docs/UI-CONVERGENCE-20260930/screenshot/28-deliverables@1920.png",
+      "path": "docs/history/archive-2026-10-19/UI-CONVERGENCE-20260930/screenshot/28-deliverables@1920.png",
       "bytes": 109532,
       "object": "db1e876f1f74875e7fc532c29e994f80163b85e0",
       "category": "media",
       "extension": ".png"
     },
     {
-      "path": "docs/UI-CONVERGENCE-20260930/screenshot/27-creative-tools@1920.png",
+      "path": "docs/history/archive-2026-10-19/UI-CONVERGENCE-20260930/screenshot/27-creative-tools@1920.png",
       "bytes": 109022,
       "object": "631d304717aa4d114edb6fb88bcb5d6f2f1c6147",
       "category": "media",
@@ -444,7 +444,7 @@
       "extension": ".png"
     },
     {
-      "path": "docs/UI-CONVERGENCE-20260930/screenshot/08-dashboard@768.png",
+      "path": "docs/history/archive-2026-10-19/UI-CONVERGENCE-20260930/screenshot/08-dashboard@768.png",
       "bytes": 103072,
       "object": "49536d7de35bf5e538e5d58c1753e36533baee7f",
       "category": "media",
@@ -479,21 +479,21 @@
       "extension": ".png"
     },
     {
-      "path": "docs/UI-CONVERGENCE-20260930/screenshot/21-evidence@1280.png",
+      "path": "docs/history/archive-2026-10-19/UI-CONVERGENCE-20260930/screenshot/21-evidence@1280.png",
       "bytes": 93188,
       "object": "0715aa39b83a349265f4eb39f0f9caa69d486fa6",
       "category": "media",
       "extension": ".png"
     },
     {
-      "path": "docs/UI-CONVERGENCE-20260930/screenshot/20-deliverables@1280.png",
+      "path": "docs/history/archive-2026-10-19/UI-CONVERGENCE-20260930/screenshot/20-deliverables@1280.png",
       "bytes": 91943,
       "object": "63806d6fe38af0a4963b8b87eb5a1e97d519a4d9",
       "category": "media",
       "extension": ".png"
     },
     {
-      "path": "docs/UI-CONVERGENCE-20260930/screenshot/19-creative-tools@1280.png",
+      "path": "docs/history/archive-2026-10-19/UI-CONVERGENCE-20260930/screenshot/19-creative-tools@1280.png",
       "bytes": 91082,
       "object": "1bfe2608e98b93461f3766586cd8908af2f52cc1",
       "category": "media",
@@ -521,14 +521,14 @@
       "extension": ".png"
     },
     {
-      "path": "docs/UI-CONVERGENCE-20260930/screenshot/10-project-detail@768.png",
+      "path": "docs/history/archive-2026-10-19/UI-CONVERGENCE-20260930/screenshot/10-project-detail@768.png",
       "bytes": 88615,
       "object": "8c3f79921f82cd95a7c41ef5c145d962e4f3156e",
       "category": "media",
       "extension": ".png"
     },
     {
-      "path": "docs/UI-CONVERGENCE-20260930/screenshot/09-projects@768.png",
+      "path": "docs/history/archive-2026-10-19/UI-CONVERGENCE-20260930/screenshot/09-projects@768.png",
       "bytes": 88604,
       "object": "85bd54e8b87304d153ad2a4a88deaea362979692",
       "category": "media",
@@ -542,7 +542,7 @@
       "extension": ".png"
     },
     {
-      "path": "docs/UI-CONVERGENCE-20260930/screenshot/14-preflight@768.png",
+      "path": "docs/history/archive-2026-10-19/UI-CONVERGENCE-20260930/screenshot/14-preflight@768.png",
       "bytes": 84307,
       "object": "e2a1458df43494473eea71fb6b7fb9a901424357",
       "category": "media",
@@ -556,7 +556,7 @@
       "extension": ".png"
     },
     {
-      "path": "docs/UI-CONVERGENCE-20260930/screenshot/07-settings@390.png",
+      "path": "docs/history/archive-2026-10-19/UI-CONVERGENCE-20260930/screenshot/07-settings@390.png",
       "bytes": 80416,
       "object": "2c1c7333d645f6b5be4df8fad426fd2390aa8f88",
       "category": "media",
@@ -570,7 +570,7 @@
       "extension": ".png"
     },
     {
-      "path": "docs/UI-CONVERGENCE-20260930/screenshot/00-dashboard@390.png",
+      "path": "docs/history/archive-2026-10-19/UI-CONVERGENCE-20260930/screenshot/00-dashboard@390.png",
       "bytes": 76186,
       "object": "d1d8e1ed5d81a505b429dab041f16423939a2e8d",
       "category": "media",
@@ -584,21 +584,21 @@
       "extension": ".png"
     },
     {
-      "path": "docs/UI-CONVERGENCE-20260930/screenshot/06-preflight@390.png",
+      "path": "docs/history/archive-2026-10-19/UI-CONVERGENCE-20260930/screenshot/06-preflight@390.png",
       "bytes": 67199,
       "object": "7f7c648e874024d0564f06fe79ec531a21620303",
       "category": "media",
       "extension": ".png"
     },
     {
-      "path": "docs/UI-CONVERGENCE-20260930/screenshot/01-projects@390.png",
+      "path": "docs/history/archive-2026-10-19/UI-CONVERGENCE-20260930/screenshot/01-projects@390.png",
       "bytes": 65556,
       "object": "fe1124154c83ffec0c5cac6cc094cee3e2af0730",
       "category": "media",
       "extension": ".png"
     },
     {
-      "path": "docs/UI-CONVERGENCE-20260930/screenshot/02-project-detail@390.png",
+      "path": "docs/history/archive-2026-10-19/UI-CONVERGENCE-20260930/screenshot/02-project-detail@390.png",
       "bytes": 63051,
       "object": "68e13ff5e7f749f0543f5888bf18acd90767a854",
       "category": "media",
@@ -612,21 +612,21 @@
       "extension": ".png"
     },
     {
-      "path": "docs/UI-CONVERGENCE-20260930/screenshot/13-evidence@768.png",
+      "path": "docs/history/archive-2026-10-19/UI-CONVERGENCE-20260930/screenshot/13-evidence@768.png",
       "bytes": 50612,
       "object": "9852d6ce51de3d50e4fb494b37528b3a734ced18",
       "category": "media",
       "extension": ".png"
     },
     {
-      "path": "docs/UI-CONVERGENCE-20260930/screenshot/12-deliverables@768.png",
+      "path": "docs/history/archive-2026-10-19/UI-CONVERGENCE-20260930/screenshot/12-deliverables@768.png",
       "bytes": 49548,
       "object": "f4eff2d8da2bcf7e31d115c945f41e2e4fb3fb9a",
       "category": "media",
       "extension": ".png"
     },
     {
-      "path": "docs/UI-CONVERGENCE-20260930/screenshot/11-creative-tools@768.png",
+      "path": "docs/history/archive-2026-10-19/UI-CONVERGENCE-20260930/screenshot/11-creative-tools@768.png",
       "bytes": 48903,
       "object": "d1359158cf9a76757c0a5585d38e88a79e8adfc6",
       "category": "media",
@@ -640,21 +640,21 @@
       "extension": ".png"
     },
     {
-      "path": "docs/UI-CONVERGENCE-20260930/screenshot/05-evidence@390.png",
+      "path": "docs/history/archive-2026-10-19/UI-CONVERGENCE-20260930/screenshot/05-evidence@390.png",
       "bytes": 40998,
       "object": "0ff4efdc92804ed23960cd0833683056e109ddae",
       "category": "media",
       "extension": ".png"
     },
     {
-      "path": "docs/UI-CONVERGENCE-20260930/screenshot/04-deliverables@390.png",
+      "path": "docs/history/archive-2026-10-19/UI-CONVERGENCE-20260930/screenshot/04-deliverables@390.png",
       "bytes": 39825,
       "object": "86b0ffea9ae92ca33668ecd3e19064b4a2edd041",
       "category": "media",
       "extension": ".png"
     },
     {
-      "path": "docs/UI-CONVERGENCE-20260930/screenshot/03-creative-tools@390.png",
+      "path": "docs/history/archive-2026-10-19/UI-CONVERGENCE-20260930/screenshot/03-creative-tools@390.png",
       "bytes": 39179,
       "object": "900aa97d04e89b6992e28267e4f0fd121ceb0de9",
       "category": "media",

@@ -1,13 +1,13 @@
 {
   "schemaVersion": "design-lab/size-by-extension/v1",
   "task_key": "DL-TP-20260914-DEEPSEEK-AUTHORITY-R1::DLDS-D000",
-  "measured_at": "2026-10-19T08:29:44+00:00",
+  "measured_at": "2026-10-19T08:50:57+00:00",
   "tracked": [
     {
       "extension": ".json",
-      "files": 1271,
-      "bytes": 26168912,
-      "mib": 24.957
+      "files": 1272,
+      "bytes": 26467527,
+      "mib": 25.241
     },
     {
       "extension": ".png",
@@ -17,15 +17,15 @@
     },
     {
       "extension": ".md",
-      "files": 1028,
-      "bytes": 9304516,
-      "mib": 8.873
+      "files": 1029,
+      "bytes": 9311353,
+      "mib": 8.88
     },
     {
       "extension": ".py",
       "files": 673,
-      "bytes": 7097808,
-      "mib": 6.769
+      "bytes": 7105493,
+      "mib": 6.776
     },
     {
       "extension": ".js",
@@ -72,7 +72,7 @@
     {
       "extension": ".css",
       "files": 12,
-      "bytes": 368505,
+      "bytes": 368540,
       "mib": 0.351
     },
     {
@@ -114,7 +114,7 @@
     {
       "extension": "(none)",
       "files": 47,
-      "bytes": 160432,
+      "bytes": 160583,
       "mib": 0.153
     },
     {
