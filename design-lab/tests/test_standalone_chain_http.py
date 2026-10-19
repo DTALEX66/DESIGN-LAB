@@ -95,11 +95,13 @@ class StandaloneChainTests(unittest.TestCase):
         project = self.hop('project', 'POST', '/api/projects',
                            {'name': 'Chain walk'}, 201)['project']['id']
 
-        asset = self.hop(
+        imported = self.hop(
             'asset', 'POST', f'/api/projects/{project}/assets',
             {'content_base64': base64.b64encode(_png_bytes()).decode('ascii'),
              'idempotency_key': 'chain-asset'},
-            201)['asset']['id']
+            201)['asset']
+        asset, asset_version, asset_sha256 = (imported['id'], imported['version_id'],
+                                              imported['sha256'])
 
         brief = self.hop(
             'brief', 'POST', f'/api/projects/{project}/briefs',
@@ -138,9 +140,40 @@ class StandaloneChainTests(unittest.TestCase):
         # it would let a derived IR be read as native truth downstream.
         self.assertIn('proves', analysis)
 
-        # The submission body is imported rather than re-typed: it is a closed contract with
-        # rights and provenance fields, and a second copy here would be a second authority
-        # that could drift from the one the write path enforces.
+        # The acceptance seam: a human verdict filed against the version the ASSET hop just
+        # returned, over HTTP. This is the connection that previously existed only inside two
+        # separate fixtures -- the jury test published its own version straight into the
+        # database, so nothing had ever proved that an imported asset yields something a
+        # verdict can be recorded against.
+        from test_jury_http import CRITERIA
+        verdict = self.hop(
+            'jury-verdict', 'POST', f'/api/projects/{project}/jury/verdict',
+            {'schemaVersion': 'design-lab/assurance-jury-record/v2', 'kind': 'JURY_VERDICT',
+             'jury_record_id': 'jury-chain-1',
+             'subject_ref': f'version:{asset_version}', 'artifact_sha256': asset_sha256,
+             'juror': {'juror_id': 'dtalex66', 'kind': 'HUMAN', 'members': [],
+                       'attestation': 'reviewed the imported artwork'},
+             'criteria': CRITERIA, 'verdict': 'APPROVE',
+             'decided_at': '2026-10-19T00:00:00Z', 'supersedes': None, 'evidence_refs': []},
+            201)
+        self.assertEqual(verdict['subject_ref'], f'version:{asset_version}')
+        jury = self.hop('jury-readback', 'GET', f'/api/projects/{project}/jury', None, 200)
+        self.assertEqual(1, jury['verdict_count'])
+        self.assertEqual('ACCEPTED', jury['human_acceptance'])
+
+        from test_rights_http import decision
+        self.hop('rights', 'POST', f'/api/projects/{project}/rights',
+                 decision(decision_id='rd-chain-1'), 201)
+        rights = self.hop('rights-readback', 'GET', f'/api/projects/{project}/rights',
+                          None, 200)
+        self.assertEqual(1, rights['decision_count'])
+        self.assertEqual('CLEARED', rights['rights_clearance'],
+                         'an approved scope must clear rights, and NOT_REVIEWED here would '
+                         'mean the write never landed')
+
+        # The candidate body is imported rather than re-typed: it is a closed rights and
+        # provenance contract, and a second copy here would be a second authority able to
+        # drift from the one the write path enforces.
         from test_knowledge_http import candidate
         created = self.hop(
             'candidate', 'POST', f'/api/projects/{project}/knowledge-candidates',
@@ -166,6 +199,70 @@ class StandaloneChainTests(unittest.TestCase):
         self.assertIsNotNone(row, f'the reviewed candidate is not in the readback: {self.hops}')
         self.assertEqual('APPROVED', row['review_state'])
         print('CHAIN_HOPS ' + ' '.join(self.hops))
+
+    def test_the_delivery_leg_reaches_a_preflight_verdict_on_one_project(self):
+        """The last reachable segment, on the SAME project the service already owns.
+
+        `test_service_http` seeds a native export into its own fixture project, so nothing had
+        shown that a project can go from a native attempt through a registered bundle to a
+        preflight verdict in one pass. The native dispatch is patched because no host is
+        launched here -- that is the controlled-runtime boundary, not a simulated success: the
+        bundle is real bytes, registered by id, and the preflight verdict is computed from them.
+        """
+        import hashlib
+        from unittest.mock import patch
+        from design_lab.native_tasks import NativeTasks
+
+        project = self.hop('project', 'POST', '/api/projects',
+                           {'name': 'Delivery leg'}, 201)['project']['id']
+        run = self.service.paths.category_dir('runtime', 'chain-delivery')
+        run.mkdir(parents=True, exist_ok=True)
+        job = dict(schemaVersion='design-lab/photoshop-native-job/v1', jobId='chain-export',
+                   runRoot=str(run), width=8, height=6, assets=[], outputName='native.psd',
+                   previewName='preview.png',
+                   layers=[dict(id='background', kind='fill', bounds=[0, 0, 8, 6],
+                                color=[0, 0, 0])])
+
+        def native(_host, payload, **_kwargs):
+            output = {}
+            for kind, name in (('psd', 'native.psd'), ('png', 'preview.png')):
+                data = ('chain controlled ' + kind).encode()
+                (run / name).write_bytes(data)
+                output[kind] = dict(sha256=hashlib.sha256(data).hexdigest(),
+                                    byte_size=len(data))
+            raw = json.dumps(payload, sort_keys=True, ensure_ascii=True,
+                             separators=(',', ':')).encode()
+            return dict(status='NATIVE_READBACK', job_id=payload['jobId'],
+                        job_sha256=hashlib.sha256(raw).hexdigest(), host_version='fixture',
+                        bridge_sha256='b' * 64, inputs={}, artifacts=output,
+                        documents_before=0, documents_after=0)
+
+        with patch('design_lab.native_tasks._dispatch', side_effect=native):
+            attempt = NativeTasks(self.service).execute(
+                project, 'photoshop', job, idempotency_key='chain-export',
+                approved_root=run,
+                # `native_tasks.execute` refuses any scope other than this literal
+                # (`native_tasks.py:94`), which is itself a chain fact: the native leg is
+                # reachable under a controlled test scope, not from an unattended production
+                # caller. Recording it here keeps the delivery hop from reading as E3.
+                authorization=dict(actor='fixture', scope='project-native-test',
+                                   receipt='controlled boundary'))
+        job_id = attempt['attempt']['job_id']
+        self.hops.append('native=READBACK')
+
+        bundle = self.hop(
+            'bundle', 'POST', f'/api/projects/{project}/tasks/{job_id}/bundle', {}, 201)
+        report = self.hop(
+            'preflight', 'POST',
+            f"/api/projects/{project}/bundles/{bundle['bundle']['id']}/preflight", {}, 200)
+        from design_lab.assurance import production_preflight as pp
+        self.assertIn(report['verdict'], pp.VERDICTS)
+        self.assertEqual(sum(report['counts'].values()), len(report['findings']))
+        # Whatever the verdict, it must be about the bytes that were actually registered:
+        # the digest the bundle published is the one the checker was handed.
+        self.assertTrue(any(item.get('measured') for item in report['findings']),
+                        'no finding reports a measurement, so the verdict is not evidence')
+        print('DELIVERY_HOPS ' + ' '.join(self.hops))
 
     def test_export_is_still_not_a_reachable_hop(self):
         """The chain stops before leaving the repository, and this says so rather than pretending.
