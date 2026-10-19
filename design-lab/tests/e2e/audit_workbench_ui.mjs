@@ -17,7 +17,13 @@ if (!serviceUrl || !token || !nmDir) {
 }
 const widths = (process.env.AUDIT_WIDTHS || '1280,1920,2560')
   .split(',').map((w) => Number.parseInt(w, 10)).filter(Number.isFinite);
-const HEIGHT = { 390: 844, 768: 1024, 1280: 800, 1920: 1080, 2560: 1440 };
+// Heights are the CSS viewport each width is judged at. 2048x1152 is not an arbitrary
+// large desktop: it is the owner's own machine measured this round
+// (Win32_VideoController/Screen.Bounds = 2048x1152 logical, WorkingArea 2048x1104,
+// AppliedDPI 120 i.e. 125% scaling on a 2560x1440 panel). The browser sees 2048 CSS px,
+// so 2560 is the panel, not the render box, and no gate measured the width the product
+// is actually used at.
+const HEIGHT = { 390: 844, 768: 1024, 1280: 800, 1920: 1080, 2048: 1152, 2560: 1440 };
 
 const pw = createRequire(nmDir + '/noop.js')('playwright');
 const launchOpts = { headless: true };

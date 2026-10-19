@@ -32,7 +32,15 @@ from test_workbench_design_layer_e2e import _find_browser, _find_node_modules_di
 
 ROOT = _TESTS_DIR.parents[1]
 AUDITOR = ROOT / 'scripts' / 'audit_workbench_ui.py'
-WIDTHS = os.environ.get('UI_AUDIT_WIDTHS', '1280,1920')
+# 2048 joined the swept widths on 2026-10-19 because that is the CSS viewport the owner's
+# machine actually renders at: Screen.Bounds 2048x1152, WorkingArea 2048x1104,
+# AppliedDPI 120 (125% scaling on a 2560x1440 panel). 2560 is the panel, not the box the
+# browser gets, and neither width was measured by any gate before this. Cost: 13 scopes
+# x 3 widths instead of 2. First local attempt came back red on a transient
+# `net::ERR_NO_BUFFER_SPACE` console error at 1280 (this machine, three browser runs back
+# to back); the second was green. That failure is the gate doing its job - a console error
+# is a violation here - not a product defect, so it is recorded rather than smoothed over.
+WIDTHS = os.environ.get('UI_AUDIT_WIDTHS', '1280,1920,2048')
 
 
 def _evidence_dir() -> Path:
