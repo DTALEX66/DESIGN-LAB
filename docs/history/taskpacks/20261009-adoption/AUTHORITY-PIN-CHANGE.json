@@ -1,57 +1,78 @@
 {
-  "decision": "docs/taskpacks/20261009-ui-first/CONVERSATION-DECISIONS.md",
-  "before_source": "docs/history/taskpacks/20261009-adoption/pre-adoption/scripts/verify_top_level_authority.py",
-  "after_pins": {
-    "AUTHORITY.md": "145cc12ea398997ffb55431e61deb785a480668af2128dafa3c8effee1176854",
-    ".project/governance/authority-index.json": "0e2360042518041f3ce98b72cad9ff3039234c413b18a68a22f1618b6a1c5dce",
-    "docs/current/HISTORY-FREEZE-RULES.md": "b970562dbdc8b4ccfff71ba2354a5b718d2a54efde7db7972c4a2ee2b60e6e40",
-    "docs/taskpacks/DESIGN-LAB-FINAL-AUTHORITY-CONVERGENCE-TASKPACK-2026-09-18.md": "62f43ef295d4e90462d1e49e657e490400c4b5568f4e4ad1db3e268e12bb10c7",
-    "docs/taskpacks/DESIGN-LAB-UI-FIRST-INTEGRATED-TASKPACK-2026-10-09.md": "f91ebe9b67ab4f83be91fe8f3ca0fc80fc93176263bec05d883fa6ce6afd6480"
+ "decision": "docs/taskpacks/20261009-ui-first/CONVERSATION-DECISIONS.md",
+ "before_source": "docs/history/taskpacks/20261009-adoption/pre-adoption/scripts/verify_top_level_authority.py",
+ "after_pins": {
+  "AUTHORITY.md": "145cc12ea398997ffb55431e61deb785a480668af2128dafa3c8effee1176854",
+  ".project/governance/authority-index.json": "0e2360042518041f3ce98b72cad9ff3039234c413b18a68a22f1618b6a1c5dce",
+  "docs/current/HISTORY-FREEZE-RULES.md": "b970562dbdc8b4ccfff71ba2354a5b718d2a54efde7db7972c4a2ee2b60e6e40",
+  "docs/taskpacks/DESIGN-LAB-FINAL-AUTHORITY-CONVERGENCE-TASKPACK-2026-09-18.md": "62f43ef295d4e90462d1e49e657e490400c4b5568f4e4ad1db3e268e12bb10c7",
+  "docs/taskpacks/DESIGN-LAB-UI-FIRST-INTEGRATED-TASKPACK-2026-10-09.md": "f91ebe9b67ab4f83be91fe8f3ca0fc80fc93176263bec05d883fa6ce6afd6480"
+ },
+ "meaning": "owner-authorized semantic adoption before re-pin; no check removed; commit/cloud sync NOT_EXECUTED",
+ "revisions": [
+  {
+   "when": "2026-10-12",
+   "authority": "owner instruction 2026-10-12: stop every authority surface from claiming the work is uncommitted",
+   "changed": [
+    "AUTHORITY.md"
+   ],
+   "from": "08037bce6b71e105102b4c18525b2a021678339bba8549d80f966c262a8e7814",
+   "to": "145cc12ea398997ffb55431e61deb785a480668af2128dafa3c8effee1176854",
+   "why": "AUTHORITY.md still carried 'repository commit=NOT_EXECUTED, live CI=NOT_EXECUTED' and '不宣称双端已同步' after that had stopped being true, so a fresh session reading it would correctly conclude the remote is untrustworthy. Corrected in place; the original wording is kept and marked stale rather than deleted.",
+   "checks": "unchanged at 10; no criterion removed"
   },
-  "meaning": "owner-authorized semantic adoption before re-pin; no check removed; commit/cloud sync NOT_EXECUTED",
-  "revisions": [
-    {
-      "when": "2026-10-12",
-      "authority": "owner instruction 2026-10-12: stop every authority surface from claiming the work is uncommitted",
-      "changed": [
-        "AUTHORITY.md"
-      ],
-      "from": "08037bce6b71e105102b4c18525b2a021678339bba8549d80f966c262a8e7814",
-      "to": "145cc12ea398997ffb55431e61deb785a480668af2128dafa3c8effee1176854",
-      "why": "AUTHORITY.md still carried 'repository commit=NOT_EXECUTED, live CI=NOT_EXECUTED' and '不宣称双端已同步' after that had stopped being true, so a fresh session reading it would correctly conclude the remote is untrustworthy. Corrected in place; the original wording is kept and marked stale rather than deleted.",
-      "checks": "unchanged at 10; no criterion removed"
-    },
-    {
-      "when": "2026-10-18",
-      "authority": "owner instruction 2026-10-18: stop stale paths recurring; migrate/freeze/clean old data",
-      "changed": [
-        "docs/taskpacks/DESIGN-LAB-UI-FIRST-INTEGRATED-TASKPACK-2026-10-09.md"
-      ],
-      "from": "f91ebe9b67ab4f83be91fe8f3ca0fc80fc93176263bec05d883fa6ce6afd6480",
-      "to": "2cfd84627352e9f1b29b42787fa43466cd9a836130d826d43678b7733856ffda",
-      "why": "该文件第 7 条指向 docs/current/NEXT-AGENT-PROMPT-2026-10-09.md，而该路径在接续入口收敛为单一无日期文件后已移入 docs/history/next-agent-prompts/。留着它等于在权威文档里保留一条把下一会话带到旧副本的指令，这正是\"旧路径反复出现\"的传播路径。只改这一条指针，任务定义、批次、write set 与验收一字未动。",
-      "checks": "verify_top_level_authority 检查数不变（10）"
-    },
-    {
-      "when": "2026-10-19",
-      "authority": "owner instruction 2026-10-19: 其他任务冻结，以这份任务为当前权威与闭环目标（更新项目内的权威和规划），未来能力暂时冻结和延期延后",
-      "changed": [
-        "AUTHORITY.md",
-        ".project/governance/authority-index.json",
-        "docs/taskpacks/DESIGN-LAB-DIRECTION-ALIGNMENT-2026-10-19.md"
-      ],
-      "from": {
-        "AUTHORITY.md": "145cc12ea398997ffb55431e61deb785a480668af2128dafa3c8effee1176854",
-        ".project/governance/authority-index.json": "0e2360042518041f3ce98b72cad9ff3039234c413b18a68a22f1618b6a1c5dce"
-      },
-      "to": {
-        "AUTHORITY.md": "c0853e3d7e6d17170c373cdb8ad439ed00539ed8384aee2ecb017cc073f162f2",
-        ".project/governance/authority-index.json": "cad7ceac73c669ded8bc955468f8c62341a2f9910e65b4fa6e123f04af4bdb38",
-        "docs/taskpacks/DESIGN-LAB-DIRECTION-ALIGNMENT-2026-10-19.md": "98e7d2210181de8a4a3a0c2d8c15c4846b332e3e418a02446a0bb001a1c2e116"
-      },
-      "why": "owner replaced the 2026-10-09 UI-FIRST dispatch with a direction-adjustment package: AUTHORITY.md now names the new pack as the sole current authority, the index moved current/currentIntegrated/boot order to it and kept UI-FIRST as superseded lineage. The ledger's currentExecution identity stays frozen on the UI-FIRST definitions; only its states are frozen to FROZEN_DEFERRED, so task definitions and evidence bytes are unchanged. The new pack is pinned and declared frozen.",
-      "checks": "verify_top_level_authority checks stay at 10; R2_RELEASE_HASHES grows 5 -> 6 (old five kept)"
-    }
-  ],
-  "current_pins_note": "Latest change is revisions[-1] (2026-10-19): AUTHORITY.md and the authority index re-pinned, the direction pack added. The 2026-10-09 adoption and the 2026-10-12/2026-10-18 revisions above are kept as superseded digests."
+  {
+   "when": "2026-10-18",
+   "authority": "owner instruction 2026-10-18: stop stale paths recurring; migrate/freeze/clean old data",
+   "changed": [
+    "docs/taskpacks/DESIGN-LAB-UI-FIRST-INTEGRATED-TASKPACK-2026-10-09.md"
+   ],
+   "from": "f91ebe9b67ab4f83be91fe8f3ca0fc80fc93176263bec05d883fa6ce6afd6480",
+   "to": "2cfd84627352e9f1b29b42787fa43466cd9a836130d826d43678b7733856ffda",
+   "why": "该文件第 7 条指向 docs/current/NEXT-AGENT-PROMPT-2026-10-09.md，而该路径在接续入口收敛为单一无日期文件后已移入 docs/history/next-agent-prompts/。留着它等于在权威文档里保留一条把下一会话带到旧副本的指令，这正是\"旧路径反复出现\"的传播路径。只改这一条指针，任务定义、批次、write set 与验收一字未动。",
+   "checks": "verify_top_level_authority 检查数不变（10）"
+  },
+  {
+   "when": "2026-10-19",
+   "authority": "owner instruction 2026-10-19: 其他任务冻结，以这份任务为当前权威与闭环目标（更新项目内的权威和规划），未来能力暂时冻结和延期延后",
+   "changed": [
+    "AUTHORITY.md",
+    ".project/governance/authority-index.json",
+    "docs/taskpacks/DESIGN-LAB-DIRECTION-ALIGNMENT-2026-10-19.md"
+   ],
+   "from": {
+    "AUTHORITY.md": "145cc12ea398997ffb55431e61deb785a480668af2128dafa3c8effee1176854",
+    ".project/governance/authority-index.json": "0e2360042518041f3ce98b72cad9ff3039234c413b18a68a22f1618b6a1c5dce"
+   },
+   "to": {
+    "AUTHORITY.md": "c0853e3d7e6d17170c373cdb8ad439ed00539ed8384aee2ecb017cc073f162f2",
+    ".project/governance/authority-index.json": "cad7ceac73c669ded8bc955468f8c62341a2f9910e65b4fa6e123f04af4bdb38",
+    "docs/taskpacks/DESIGN-LAB-DIRECTION-ALIGNMENT-2026-10-19.md": "98e7d2210181de8a4a3a0c2d8c15c4846b332e3e418a02446a0bb001a1c2e116"
+   },
+   "why": "owner replaced the 2026-10-09 UI-FIRST dispatch with a direction-adjustment package: AUTHORITY.md now names the new pack as the sole current authority, the index moved current/currentIntegrated/boot order to it and kept UI-FIRST as superseded lineage. The ledger's currentExecution identity stays frozen on the UI-FIRST definitions; only its states are frozen to FROZEN_DEFERRED, so task definitions and evidence bytes are unchanged. The new pack is pinned and declared frozen.",
+   "checks": "verify_top_level_authority checks stay at 10; R2_RELEASE_HASHES grows 5 -> 6 (old five kept)"
+  },
+  {
+   "when": "2026-10-19",
+   "authority": "owner instruction 2026-10-19 (second re-pin, archive pass): all old/outdated/redundant documents must leave the visible tree, whole directories move to the aggregation area, and old paths must stop being indexed",
+   "changed": [
+    "AUTHORITY.md",
+    ".project/governance/authority-index.json",
+    "docs/current/HISTORY-FREEZE-RULES.md"
+   ],
+   "from": {
+    "AUTHORITY.md": "c0853e3d7e6d17170c373cdb8ad439ed00539ed8384aee2ecb017cc073f162f2",
+    ".project/governance/authority-index.json": "cad7ceac73c669ded8bc955468f8c62341a2f9910e65b4fa6e123f04af4bdb38",
+    "docs/current/HISTORY-FREEZE-RULES.md": "b970562dbdc8b4ccfff71ba2354a5b718d2a54efde7db7972c4a2ee2b60e6e40"
+   },
+   "to": {
+    "AUTHORITY.md": "cee377db1c5e0a2d480d9bf8572f301480a526c4bfad4e96d290982237ebd0db",
+    ".project/governance/authority-index.json": "f6352f59ed7b5dfd522f0919d90fc7636ec404c94882ccd063325513550e7790",
+    "docs/current/HISTORY-FREEZE-RULES.md": "cfb74026fb93f5cfb94393b0ff575dfc31500b96e81e4d1e4f531000edee8a04"
+   },
+   "why": "The UCR convergence handoff was moved with the rest of docs/handoffs/** to docs/history/archive-2026-10-19/handoffs/. Three authority surfaces still named the old path, so a session following Authority would index a path that no longer exists. Only those path strings changed (2 in AUTHORITY.md, 1 path + 1 historicalGlob in the index, 2 in the freeze rules); classification, authority ID and check count are untouched, and the moved bytes are recorded in the archive manifest and move ledger.",
+   "checks": "verify_top_level_authority checks stay at 10; only the three re-pinned digests move; the other three pins unchanged"
+  }
+ ],
+ "current_pins_note": "Latest change is revisions[-1] (2026-10-19 archive pass): AUTHORITY.md, the authority index and HISTORY-FREEZE-RULES.md re-pinned after the UCR handoff moved under docs/history/archive-2026-10-19/. The direction-adoption re-pin and the 2026-10-12/2026-10-18 revisions above are kept as superseded digests."
 }

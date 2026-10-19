@@ -30,7 +30,7 @@ DESIGN-LAB面向全设计品类的专业能力资产、知识应用与有界自�
 
 - 版本：`1.1`｜状态：`ACTIVE`｜SSOT 角色：Authority 下的当前产品定义
 - 顶层权威：`/AUTHORITY.md`（`DL-AUTHORITY-2026-09-18-R2`）
-- 当前统一剩余任务入口：`docs/taskpacks/DESIGN-LAB-UI-FIRST-INTEGRATED-TASKPACK-2026-10-09.md`
+- 当前唯一任务包：`docs/taskpacks/DESIGN-LAB-DIRECTION-ALIGNMENT-2026-10-19.md`；其他任务全部 `FROZEN_DEFERRED`，不再派工
 - 一致性合同：`design-lab/config/product-manifest.json` + `docs/architecture/BOUNDARY_CONTRACT.md`
 
 ## 中文定位

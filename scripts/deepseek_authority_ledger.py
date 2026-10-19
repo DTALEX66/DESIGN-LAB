@@ -165,7 +165,7 @@ def init(args) -> int:
             "non_authoritative_sources": ["CHAT SUMMARY", "MEMORY SUMMARY", "COMPRESSED CONTEXT",
                                           "HANDOFF SUMMARY"],
             "stop_line": {
-                "handoff": "docs/handoffs/SESSION-RESTART-2026-09-12.md",
+                "handoff": "docs/history/archive-2026-10-19/handoffs/SESSION-RESTART-2026-09-12.md",
                 "state": "EXPLICIT_SCOPE_SUPERSESSION",
                 "scope": "only the DeepSeek tasks listed in this taskpack",
                 "still_frozen": ["Real Host", "Design validation", "GPU inference", "Human Gate"],

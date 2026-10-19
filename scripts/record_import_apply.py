@@ -252,7 +252,7 @@ LOOSE_IMPORTS = [
 ]
 
 # The 2026-10-06 request pair: kept in the planning area and marked REQUESTED,
-# exactly like docs/taskpacks/DESIGN-LAB-GLOBAL-DESIGN-CAPABILITY-INTELLIGENCE-TASKPACK-2026-10-06.md.
+# exactly like docs/history/archive-2026-10-19/taskpacks/DESIGN-LAB-GLOBAL-DESIGN-CAPABILITY-INTELLIGENCE-TASKPACK-2026-10-06.md.
 REQUEST_IMPORTS = [
     {
         "source": "03_DESIGN-LAB_完整项目描述与未来蓝图_20261006.docx",
@@ -336,7 +336,7 @@ def repo_crc_index() -> dict[int, list[str]]:
     paths = [p for p in out.split("\0") if p]
     index: dict[int, list[str]] = {}
     for rel in paths:
-        if rel.startswith(IMPORT_ROOT_REL + "/") or rel.startswith("docs/taskpacks/03_DESIGN-LAB_"):
+        if rel.startswith(IMPORT_ROOT_REL + "/") or rel.startswith("docs/history/archive-2026-10-19/taskpacks/03_DESIGN-LAB_"):
             continue
         try:
             data = (REPO / rel).read_bytes()

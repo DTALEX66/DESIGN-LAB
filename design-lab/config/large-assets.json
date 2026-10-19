@@ -23,7 +23,7 @@
       "reason": "审计证据附件；允许小幅增长，超预算须说明是哪次审计。"
     },
     {
-      "prefix": "docs/UI-CONVERGENCE-20260930/",
+      "prefix": "docs/history/archive-2026-10-19/UI-CONVERGENCE-20260930/",
       "budgetMib": 3.0,
       "measuredMib": 0.29,
       "reason": "UI 截图证据（每轮界面变更后整轮重拍）。工作区只留最新一轮，历史增长交给 pack 预算门。"

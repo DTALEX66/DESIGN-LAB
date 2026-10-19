@@ -46,7 +46,7 @@
       "replacement": "docs/taskpacks/DESIGN-LAB-DIRECTION-ALIGNMENT-2026-10-19.md"
     },
     {
-      "path": "docs/handoffs/DESIGN-LAB-UCR-CONVERGENCE-20260918-HANDOFF.md",
+      "path": "docs/history/archive-2026-10-19/handoffs/DESIGN-LAB-UCR-CONVERGENCE-20260918-HANDOFF.md",
       "classification": "HISTORICAL_EXECUTION_RECORD",
       "reason": "self-label conflicts with AGENTS/top authority; point-in-time branch count is stale; referenced UCR taskpack is not present on remote main"
     },
@@ -79,7 +79,7 @@
   "historicalGlobs": [
     "docs/history/**",
     "reports/history/**",
-    "docs/handoffs/**",
+    "docs/history/archive-2026-10-19/handoffs/**",
     "design-lab/ARCHITECTURE_V*.md",
     "design-lab/ROADMAP*.md",
     "design-lab/INTEGRATION_V*.md",

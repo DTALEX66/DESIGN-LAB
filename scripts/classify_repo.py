@@ -31,8 +31,7 @@ CATEGORY_RULES: list[tuple[str, str, str]] = [
     ('design-lab/config/task-ledger-r3.json', 'planning', '唯一可变任务账本'),
     ('docs/current/', 'planning', '当前文档面'),
     ('docs/audits/', 'evidence', '审计与验收证据包'),
-    ('docs/handoffs/', 'history', '交接血统（非当前入口）'),
-    ('docs/history/', 'history', '冻结历史与逐字节基线'),
+    ('docs/history/', 'history', '冻结历史与逐字节基线（含 2026-10-19 归档的 handoffs/taskpacks）'),
     ('reports/history/', 'history', '历史进度账本冻结件'),
     ('reports/current/', 'generated', '当前状态投影（由生成器再生）'),
     ('reports/migration/', 'history', '迁移记录'),
@@ -40,7 +39,6 @@ CATEGORY_RULES: list[tuple[str, str, str]] = [
     ('docs/projects/', 'evidence', '设计项目产物（真实交付样例）'),
     ('docs/decisions/', 'authority', '决策记录（ADR 式）'),
     ('docs/architecture/', 'authority', '架构与语言策略'),
-    ('docs/UI-CONVERGENCE-20260930/', 'evidence', 'UI 收口证据与记录'),
     ('fixtures/', 'evidence', '域 fixture 与回归素材'),
     ('design-lab/evals/', 'evidence', '评估与黄金语料'),
     ('apps/workbench/build/', 'generated', '提交的构建产物（Build Output Truth）'),
@@ -157,6 +155,12 @@ def build() -> dict:
     sizes = blob_sizes()
     refs = authority_references()
     bundles: dict[str, dict] = {}
+    # Categories are tallied per FILE. `bundle_key()` collapses every path under a top-level
+    # directory into one bundle, so labelling a bundle by its first file used to relabel the
+    # whole directory: `docs/` alone mixes docs/taskpacks (planning), docs/history (history),
+    # docs/audits (evidence) and the rest, and `planning` vanished from the projection entirely.
+    by_cat: dict[str, dict] = {}
+    cat_bundles: dict[str, set] = {}
     for path in files:
         category, note = classify(path)
         key = bundle_key(path)
@@ -165,8 +169,14 @@ def build() -> dict:
                                          'cited_by_authority': 0, 'lastTouch': 'earliest'})
         entry['files'] += 1
         entry['bytes'] += sizes.get(path, 0)
+        cat = by_cat.setdefault(category, {'files': 0, 'bytes': 0, 'bundles': 0})
+        cat['files'] += 1
+        cat['bytes'] += sizes.get(path, 0)
+        cat_bundles.setdefault(category, set()).add(key)
         if path in refs or any(r.endswith(path) or path.endswith(r) for r in refs):
             entry['cited_by_authority'] += 1
+    for category, keys in cat_bundles.items():
+        by_cat[category]['bundles'] = len(keys)
     touched = {}
     for key in bundles:
         touched[key] = last_touch(key)
@@ -180,12 +190,6 @@ def build() -> dict:
         if line.startswith('size-pack:'):
             value, unit = line.split(':')[1].strip().split()
             pack_mib = float(value) * {'KiB': 1/1024, 'MiB': 1, 'GiB': 1024, 'B': 1/1048576}[unit]
-    by_cat: dict[str, dict] = {}
-    for entry in bundles.values():
-        c = by_cat.setdefault(entry['category'], {'files': 0, 'bytes': 0, 'bundles': 0})
-        c['files'] += entry['files']
-        c['bytes'] += entry['bytes']
-        c['bundles'] += 1
     return {
         'schemaVersion': 'design-lab/repo-classification/v1',
         'generatedAt': datetime.now(timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ'),

@@ -85,17 +85,22 @@ AUTHORITY_ID = "DL-AUTHORITY-2026-09-18-R2"
 # pack is pinned here and declared frozen. The predecessor pins stay so lineage bytes remain
 # checked. Reason and superseded digests: docs/history/taskpacks/20261009-adoption/
 # AUTHORITY-PIN-CHANGE.json revisions[]. Checks stay at 10.
+# 2026-10-19 archive re-pin (owner instruction: stale material must leave the visible tree and
+# old paths must stop resolving): the UCR handoff moved to docs/history/archive-2026-10-19/
+# handoffs/, so AUTHORITY.md, the authority index and HISTORY-FREEZE-RULES.md now name that
+# path. Reason, superseded digests and the checks run: docs/history/taskpacks/20261009-adoption/
+# AUTHORITY-PIN-CHANGE.json revisions[]. Checks stay at 10.
 R2_RELEASE_HASHES = {
-    "AUTHORITY.md": "c0853e3d7e6d17170c373cdb8ad439ed00539ed8384aee2ecb017cc073f162f2",
-    ".project/governance/authority-index.json": "cad7ceac73c669ded8bc955468f8c62341a2f9910e65b4fa6e123f04af4bdb38",
-    "docs/current/HISTORY-FREEZE-RULES.md": "b970562dbdc8b4ccfff71ba2354a5b718d2a54efde7db7972c4a2ee2b60e6e40",
+    "AUTHORITY.md": "cee377db1c5e0a2d480d9bf8572f301480a526c4bfad4e96d290982237ebd0db",
+    ".project/governance/authority-index.json": "f6352f59ed7b5dfd522f0919d90fc7636ec404c94882ccd063325513550e7790",
+    "docs/current/HISTORY-FREEZE-RULES.md": "cfb74026fb93f5cfb94393b0ff575dfc31500b96e81e4d1e4f531000edee8a04",
     "docs/taskpacks/DESIGN-LAB-FINAL-AUTHORITY-CONVERGENCE-TASKPACK-2026-09-18.md": "62f43ef295d4e90462d1e49e657e490400c4b5568f4e4ad1db3e268e12bb10c7",
     "docs/taskpacks/DESIGN-LAB-UI-FIRST-INTEGRATED-TASKPACK-2026-10-09.md": "2cfd84627352e9f1b29b42787fa43466cd9a836130d826d43678b7733856ffda",
     "docs/taskpacks/DESIGN-LAB-DIRECTION-ALIGNMENT-2026-10-19.md": "98e7d2210181de8a4a3a0c2d8c15c4846b332e3e418a02446a0bb001a1c2e116",
 }
 
 HISTORICAL_GLOB_FILES = (
-    "docs/handoffs/DESIGN-LAB-UCR-CONVERGENCE-20260918-HANDOFF.md",
+    "docs/history/archive-2026-10-19/handoffs/DESIGN-LAB-UCR-CONVERGENCE-20260918-HANDOFF.md",
 )
 
 

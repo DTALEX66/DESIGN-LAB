@@ -55,7 +55,7 @@ INDEX = ".project/governance/authority-index.json"
 AUDITED_PREFIXES = (
     "docs/taskpacks/",
     "docs/history/taskpacks/",
-    "docs/handoffs/",
+    "docs/history/archive-2026-10-19/handoffs/",
     "docs/current/",
     "docs/history/record-imports-2026-10-08/",
 )
@@ -72,6 +72,27 @@ def is_sidecar(rel: str, declared: set[str]) -> bool:
     return rel.endswith(".license") and rel[: -len(".license")] in declared
 
 
+def relocations() -> dict[str, str]:
+    """`recorded path -> current path` for every document an archive pass moved.
+
+    Frozen records (the Record-import manifest, the pinned R3 ledger snapshot) name the
+    path the bytes landed on at the time. Their own bytes are hash-sealed, so the honest
+    fix for a move is to resolve the pointer through the archive manifest, never to
+    rewrite the record. A path absent from both the tree and the manifest stays a failure.
+    """
+    table: dict[str, str] = {}
+    for manifest in sorted((REPO / "docs/history").glob("archive-*/MANIFEST.json")):
+        try:
+            data = json.loads(manifest.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError):
+            continue
+        for group in data.get("groups", []):
+            for entry in group.get("files", []):
+                if entry.get("from") and entry.get("to"):
+                    table[entry["from"]] = entry["to"]
+    return table
+
+
 class Checker:
     def __init__(self) -> None:
         self.checks: list[dict] = []
@@ -84,6 +105,11 @@ def main() -> int:
     ck = Checker()
     files = tracked_files()
     tracked = set(files)
+    moved = relocations()
+
+    def resolves(rel: str) -> bool:
+        """Tracked where named, or tracked where an archive pass moved it."""
+        return rel in tracked or moved.get(rel, rel) in tracked
 
     registry = None
     index = None
@@ -101,10 +127,12 @@ def main() -> int:
         ck.add("registry-valid", False, f"cannot read {REGISTRY}: {exc}")
     # 2 ---------------------------------------------------------------------
     if registry:
-        dangling = [d.get("path") for d in registry["documents"] if d.get("path") not in tracked]
+        dangling = [d.get("path") for d in registry["documents"] if not resolves(d.get("path", ""))]
         ck.add("declared-paths-tracked", not dangling,
                f"untracked declarations: {dangling}" if dangling
-               else f"all {len(registry['documents'])} declared paths are tracked files")
+               else f"all {len(registry['documents'])} declared paths are tracked files "
+                    f"({len([d for d in registry['documents'] if d['path'] not in tracked])} "
+                    "resolved through an archive-move manifest)")
         bad_rules = [r.get("glob") for r in registry["prefixRules"]
                      if not any(fnmatch.fnmatch(f, r["glob"]) for f in files)]
         ck.add("prefix-rules-match-something", not bad_rules,
@@ -177,7 +205,7 @@ def main() -> int:
                             break
                     for e in landed:
                         tgt = e.get("target")
-                        if tgt not in tracked:
+                        if not resolves(tgt):
                             problems.append(f"landed row not tracked: {tgt}")
                             break
                         if e.get("state") in ("CURRENT", "CURRENT_BUT_DRIFTED") \
@@ -218,7 +246,7 @@ def main() -> int:
                 val = item.get(key)
                 if val:
                     targets.append(val)
-        dead = sorted({t for t in targets if t not in tracked})
+        dead = sorted({t for t in targets if not resolves(t)})
         ok = not req and not rules_req and not dead
         ck.add("reasons-and-pointers-complete", ok,
                f"REQUESTED without ownerActionPending={req + rules_req} dead pointers={dead}"

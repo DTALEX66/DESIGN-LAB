@@ -139,7 +139,7 @@ def build(apply: bool) -> tuple[dict, list[str]]:
         'supersedes': {
             'for_information_architecture': 'UI-20261009-r1',
             'kept_from_r1': '交互细节、文案与验收语义仍在 specs/r1/ 的既有归档里',
-            'crosswalk': 'docs/taskpacks/20261009-r2-ui/CROSSWALK.md',
+            'crosswalk': 'docs/history/archive-2026-10-19/taskpacks/20261009-r2-ui/CROSSWALK.md',
         },
         'packages': [{
             'kind': 'ui-r2',

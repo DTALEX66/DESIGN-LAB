@@ -106,6 +106,29 @@ class Reader:
     def __init__(self, root):
         self.root = Path(root).resolve()
         self.hashes = {}
+        self.relocated = {}
+        self._relocations = None
+
+    def _relocation_map(self):
+        """`from -> to` for every document moved by an archive pass.
+
+        Frozen ledgers keep their recorded path (rewriting them would break the
+        SHA-256 they are pinned by), so a path that no longer exists is resolved
+        through the archive manifest instead of being 'fixed' in the frozen bytes.
+        Absent from the manifest stays a hard FileNotFoundError.
+        """
+        if self._relocations is None:
+            table = {}
+            for manifest in sorted(self.root.glob('docs/history/archive-*/MANIFEST.json')):
+                try:
+                    data = _json(manifest.read_bytes())
+                except (ValueError, UnicodeDecodeError):
+                    continue
+                for group in data.get('groups', []):
+                    for entry in group.get('files', []):
+                        table[entry['from']] = entry['to']
+            self._relocations = table
+        return self._relocations
 
     def read(self, relative, optional=False):
         path = _safe(self.root, relative)
@@ -114,6 +137,21 @@ class Reader:
                 raise ValueError('report input exceeds bounded read size')
             raw = path.read_bytes()
         except FileNotFoundError:
+            target = self._relocation_map().get(relative)
+            if target is not None:
+                relocated = _safe(self.root, target)
+                try:
+                    if relocated.stat().st_size > 32 * 1024 * 1024:
+                        raise ValueError('report input exceeds bounded read size')
+                    raw = relocated.read_bytes()
+                    self.relocated[relative] = target
+                    digest = hashlib.sha256(raw).hexdigest()
+                    if relative in self.hashes and self.hashes[relative] != digest:
+                        raise ValueError(f'input changed while projecting: {relative}')
+                    self.hashes[relative] = digest
+                    return raw
+                except FileNotFoundError:
+                    pass
             if not optional:
                 raise
             raw = None

@@ -189,11 +189,10 @@ CLAIM_SURFACE = (
     "design-lab/config/",
     "product-manifest.json",
     "reports/current/",
-    "docs/handoffs/DEEPSEEK-",
 )
 OUT_OF_SCOPE_PREFIXES = ("docs/history/", "reports/history/", "docs/taskpacks/")
 SELF_OUTPUT = "reports/current/EVIDENCE-LEVEL-AUDIT.json"
-AGENT_AUTHORED = ("docs/handoffs/DEEPSEEK-", "reports/current/DEEPSEEK-")
+AGENT_AUTHORED = ("reports/current/DEEPSEEK-",)
 PROFESSIONAL_HOSTS = ("photoshop", "illustrator", "premiere", "after effects", "media encoder",
                       "indesign", "blender", "opendesign", "open design", "minimax design")
 DATED = re.compile(r"20\d\d-\d\d-\d\d")

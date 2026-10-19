@@ -1,17 +1,17 @@
 {
   "schemaVersion": "design-lab/size-by-directory/v1",
   "task_key": "DL-TP-20260914-DEEPSEEK-AUTHORITY-R1::DLDS-D000",
-  "measured_at": "2026-10-18T09:53:03+00:00",
+  "measured_at": "2026-10-19T08:29:44+00:00",
   "tracked_by_area": {
     "docs": {
-      "files": 1622,
-      "bytes": 41556917,
-      "mib": 39.63
+      "files": 1632,
+      "bytes": 41665847,
+      "mib": 39.74
     },
     "design-lab": {
-      "files": 1147,
-      "bytes": 9291873,
-      "mib": 8.86
+      "files": 1156,
+      "bytes": 9419591,
+      "mib": 8.98
     },
     "fixtures": {
       "files": 226,
@@ -25,18 +25,18 @@
     },
     "reports": {
       "files": 169,
-      "bytes": 3087782,
-      "mib": 2.94
+      "bytes": 3104506,
+      "mib": 2.96
     },
     "src": {
-      "files": 102,
-      "bytes": 1294037,
-      "mib": 1.23
+      "files": 105,
+      "bytes": 1352596,
+      "mib": 1.29
     },
     "apps": {
-      "files": 17,
-      "bytes": 1211804,
-      "mib": 1.16
+      "files": 19,
+      "bytes": 1286448,
+      "mib": 1.23
     },
     "integrations": {
       "files": 68,
@@ -50,7 +50,7 @@
     },
     "scripts": {
       "files": 69,
-      "bytes": 838160,
+      "bytes": 839029,
       "mib": 0.8
     },
     "\"docs": {
@@ -80,7 +80,7 @@
     },
     "AUTHORITY.md": {
       "files": 1,
-      "bytes": 17445,
+      "bytes": 19979,
       "mib": 0.02
     },
     "README.md": {
@@ -90,7 +90,7 @@
     },
     "AGENTS.md": {
       "files": 1,
-      "bytes": 11731,
+      "bytes": 13474,
       "mib": 0.01
     },
     "DESIGN.md": {
@@ -100,7 +100,7 @@
     },
     ".project": {
       "files": 8,
-      "bytes": 9896,
+      "bytes": 10823,
       "mib": 0.01
     },
     "pyproject.toml": {
@@ -212,29 +212,34 @@
   "ignored_by_subdir": {
     ".project-local": {
       "task-runtime": {
-        "files": 76696,
-        "bytes": 4463885031,
-        "mib": 4257.09
+        "files": 79503,
+        "bytes": 4765057529,
+        "mib": 4544.31
       },
       "task-artifacts": {
-        "files": 5986,
-        "bytes": 1155118407,
-        "mib": 1101.61
+        "files": 6153,
+        "bytes": 1163427890,
+        "mib": 1109.53
       },
       "runs": {
-        "files": 5375,
-        "bytes": 597208315,
-        "mib": 569.54
+        "files": 5399,
+        "bytes": 597811155,
+        "mib": 570.12
       },
       "projects": {
         "files": 346,
         "bytes": 357703756,
         "mib": 341.13
       },
+      "worktrees": {
+        "files": 7689,
+        "bytes": 147485026,
+        "mib": 140.65
+      },
       "tmp": {
-        "files": 3166,
-        "bytes": 111903953,
-        "mib": 106.72
+        "files": 3177,
+        "bytes": 111930925,
+        "mib": 106.75
       },
       "personal-audit-src": {
         "files": 3562,

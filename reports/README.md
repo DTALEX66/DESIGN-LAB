@@ -10,7 +10,7 @@ For current project status, use these normative sources in this order:
 2. `design-lab/config/capability-status.json`
 3. `design-lab/scripts/verify_design_lab.py`
 4. `design-lab/scripts/verify_release_gate.py`
-5. `docs/ROADMAP.md`
+5. `docs/current/ROADMAP.md`
 
 Whether a record in this directory is still true of the checkout you are reading it from is a
 separate question, and it now has an answer that does not require trusting the prose:
@@ -34,5 +34,6 @@ Do not edit a dated report to make it appear current. Add a new dated report wit
   字节锁定的投影（`src/design_lab/governance/reporting.py`）改以自带的
   `fresh`/`freshnessMeaning`/`subjectSha` 键承担同等语义，不再叠加顶层键以免
   破坏其 `--check` 字节门禁。
-- `reports/history/` — 历史 V4/V42/ODA4 报告（不可篡改归档，不改写）。
-- `reports/V42_HANDOFF_SUMMARY_20260816.md` — 当前交接摘要（DSH 接手锚点）。
+- `reports/history/` — 历史 V4/V42/ODA4 报告与按日期命名的交接摘要（不可篡改归档，不改写）。
+  2026-10-19 起 `reports/` 根级不再放任何按日期命名的 handoff；全部整目录归入此处。
+  当前接续入口是 `docs/current/NEXT-AGENT-PROMPT.md`，不是任何历史 handoff。

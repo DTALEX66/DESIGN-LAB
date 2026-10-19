@@ -8,196 +8,1559 @@
   },
   "fresh": false,
   "freshnessMeaning": "at generation only; check verifies bound-input integrity, not current Git or cloud state",
-  "generatedAt": "2026-10-18T17:48:15+00:00",
+  "generatedAt": "2026-10-19T08:28:34+00:00",
   "git": {
     "branch": "qoder/designlab-backup-consistency-20261007",
-    "origin_main": "05a768521d31379819227e07f378f97a38c542e3",
-    "sha": "05a768521d31379819227e07f378f97a38c542e3",
+    "origin_main": "f55f03821e90e61f49ff64e529133b892494756b",
+    "sha": "f55f03821e90e61f49ff64e529133b892494756b",
     "source_worktree_clean": false,
-    "tracked_files": 3792,
+    "tracked_files": 3801,
     "worktree_changes": [
       {
-        "content": "sha256:30be26a90b42ace63e4a3e0464db1c714b93a5799ee741532134bb490deacdf8",
-        "kind": "A",
-        "path": "docs/taskpacks/20261019-direction/OWNER-DECISION-2026-10-19.md"
+        "content": "sha256:aa17a8fe21b58d223e5abe282d5a4d62b81f2ae23a1ddd29e7ab8c7ce58fa3d0",
+        "kind": "M",
+        "path": ".gitattributes"
       },
       {
-        "content": "sha256:6ee4cac66a0eaec5ba5713c665a7c616c98852f02a23b91882b7ea6fc22a6c15",
-        "kind": "A",
-        "path": "docs/taskpacks/20261019-direction/SOURCE-MANIFEST.json"
-      },
-      {
-        "content": "sha256:b01dc9da3b9b8278461cb992b2cec227eaa3836ccbd2ee9a891f732858c53458",
-        "kind": "A",
-        "path": "docs/taskpacks/20261019-direction/source/ACCEPTANCE.md"
-      },
-      {
-        "content": "sha256:4d0fb4201bfb582640a9a1ae9c42d8d468aa454581da9e389628aae66512c791",
-        "kind": "A",
-        "path": "docs/taskpacks/20261019-direction/source/AUTHORITY.md"
-      },
-      {
-        "content": "sha256:54acaabbf486f5ef17efbbf4366a2f348f3926c0fa3884a14980b24de8d7c4cf",
-        "kind": "A",
-        "path": "docs/taskpacks/20261019-direction/source/README.md"
-      },
-      {
-        "content": "sha256:979208cd59b141d018eb4661d393f9b833548e7694016b5ebd9e14e6e61c2f35",
-        "kind": "A",
-        "path": "docs/taskpacks/20261019-direction/source/TASKPACK.md"
-      },
-      {
-        "content": "sha256:98e7d2210181de8a4a3a0c2d8c15c4846b332e3e418a02446a0bb001a1c2e116",
-        "kind": "A",
-        "path": "docs/taskpacks/DESIGN-LAB-DIRECTION-ALIGNMENT-2026-10-19.md"
-      },
-      {
-        "content": "sha256:cad7ceac73c669ded8bc955468f8c62341a2f9910e65b4fa6e123f04af4bdb38",
+        "content": "sha256:f6352f59ed7b5dfd522f0919d90fc7636ec404c94882ccd063325513550e7790",
         "kind": "M",
         "path": ".project/governance/authority-index.json"
       },
       {
-        "content": "sha256:04867fada13ddc0c4ec06e2ba84c5665de4a4db49aa492427371bccc51f929ce",
-        "kind": "M",
-        "path": ".project/manifest.yaml"
-      },
-      {
-        "content": "sha256:c36fee1447b0ef25cad9c165cb697f20af91bf3eaaf0dec7b3917b7ac67e9b09",
+        "content": "sha256:72c065c2dc01de964e57bbbc0ecf9603b1b2f5745ac41baf0ea3e99a69fd8338",
         "kind": "M",
         "path": "AGENTS.md"
       },
       {
-        "content": "sha256:c0853e3d7e6d17170c373cdb8ad439ed00539ed8384aee2ecb017cc073f162f2",
+        "content": "sha256:cee377db1c5e0a2d480d9bf8572f301480a526c4bfad4e96d290982237ebd0db",
         "kind": "M",
         "path": "AUTHORITY.md"
       },
       {
-        "content": "sha256:67f3c3798929e5152c15e23a912093b87040982aa445a238ecc3489d5eed7a68",
+        "content": "sha256:14c8932baead84185438252553da0c75d5421d339aaeb85370cd4123434e49f5",
         "kind": "M",
-        "path": "apps/workbench/shell.ts"
+        "path": "README.md"
       },
       {
-        "content": "sha256:ae9d265a383db0af1655e3c7814ef6ad9cfe0011af0485f862f610413fe645bc",
+        "content": "sha256:8908e7f48d64417cf9e63c8363b73528e9b96044e9da22d058f1677561029aee",
         "kind": "M",
-        "path": "apps/workbench/tests/appshell.mjs"
+        "path": "apps/workbench/style.css"
       },
       {
-        "content": "sha256:6e1145a4b0e14cb8bfeec62044e94e0a85f3e0fc6f68f09cf514c80171e258f1",
+        "content": "sha256:15106c7f78da7fe439d83da9f6b3b1f2fb603e4e95b5648093624dc2a172ea55",
         "kind": "M",
-        "path": "design-lab/config/contract-bindings.json"
+        "path": "design-lab/config/large-assets.json"
       },
       {
-        "content": "sha256:309e1133a84cd0c8ec2b7120038d5e5a0bbf68f97bcf4342249794a8b2856789",
-        "kind": "M",
-        "path": "design-lab/config/product-manifest.json"
-      },
-      {
-        "content": "sha256:71d169c43cd040d20ef961dcb466896ab6c27206ac040c73cefa278f7870f0eb",
+        "content": "sha256:fc28785fb857ae1fa5b5fc1604d7936f571131c3c83318163ee55de0c9a55725",
         "kind": "M",
         "path": "design-lab/config/task-document-states.json"
       },
       {
-        "content": "sha256:ac638fef836c01bcf3517d60a7bf2500ce519b07164ea3b1c54c56651cdf8f9b",
+        "content": "sha256:a85ae9c42dd1c2fdea263421311476f968d073567b2fcb65008954b6d78122c1",
         "kind": "M",
         "path": "design-lab/config/task-ledger-r3.json"
       },
       {
-        "content": "sha256:1dc4135260cbb0f0ac32e9d8886d4542de8e60ab03208c7392b7f118b1ebee0b",
+        "content": "sha256:830cb8acf9acf69e10eb5c724e793de187ee1b542d06ac3d38eef053f09bf8d5",
         "kind": "M",
-        "path": "design-lab/tests/test_workbench_css_single_definition.py"
+        "path": "design-lab/scripts/verify_task_document_states.py"
       },
       {
-        "content": "sha256:9dd06abc3a713c5473d6d06fbe39001a46f46404fbb2d7c6a3a3cbcf56fd1043",
+        "content": "sha256:5a4f7563fd1b2b517268b0e10e455e89e8c4e618fd01f0bea42197f359302a83",
         "kind": "M",
-        "path": "docs/architecture/BOUNDARY_CONTRACT.md"
+        "path": "design-lab/tests/test_gate_reachability.py"
       },
       {
-        "content": "sha256:f90f597072456c8d342045c0d38ec55fa0828a0759a1f559649237fd6db786c5",
+        "content": "sha256:ebd03ab8f1f2efc96df30a86814d77124bbdcce51ecc18b2ccbaf2c915818954",
         "kind": "M",
-        "path": "docs/current/NEXT-AGENT-PROMPT.md"
+        "path": "design-lab/tests/test_record_import_fidelity.py"
       },
       {
-        "content": "sha256:7a2de570fc0ddda0963f95288106a74c4d2fab76d9252d09e7157d5618b3185c",
+        "content": "sha256:70fe97aae0f9a1006a771df5f2566d4a9d777ca3374d2b7c47a58efac4523050",
+        "kind": "M",
+        "path": "docs/INDEX.md"
+      },
+      {
+        "content": "sha256:2b8e2bc820b0f7e1990f3b7fb52b1dd597d5e3508454c929726e74a13b828088",
+        "kind": "M",
+        "path": "docs/RECORD-ARCHIVE-INDEX.md"
+      },
+      {
+        "content": "sha256:cfb74026fb93f5cfb94393b0ff575dfc31500b96e81e4d1e4f531000edee8a04",
+        "kind": "M",
+        "path": "docs/current/HISTORY-FREEZE-RULES.md"
+      },
+      {
+        "content": "sha256:f06fa74203ef6ca2ec4d0d6d37ce43a70e3d04e0779d23c35f4be07b1a3d7a5b",
         "kind": "M",
         "path": "docs/current/PRODUCT_DEFINITION.md"
       },
       {
-        "content": "sha256:748f62e5d1f39af0a781097b3828d0e9904cbfe74beccd7c0cf0a8cbff69d953",
-        "kind": "M",
-        "path": "docs/current/ROADMAP.md"
-      },
-      {
-        "content": "sha256:94c878d7647e28292f63f846588669fadc4681ce9d35f8ed635b3f6e04bdb0d0",
+        "content": "sha256:8ced505a40e77092d5face84c39765c9714eee8ce69239b41aa56aaa04f94473",
         "kind": "M",
         "path": "docs/history/taskpacks/20261009-adoption/AUTHORITY-PIN-CHANGE.json"
       },
       {
-        "content": "sha256:1c22a07736d1e7a457fac1e855a01b9645395445fa4a84a326cf74ba7e007c9a",
+        "content": "sha256:5898e1978096b5fbbd58ee5e247719043950151ec8efdbade2d291220fe55fa3",
+        "kind": "M",
+        "path": "integrations/hosts/minimax-design/POC-PLAN.md"
+      },
+      {
+        "content": "sha256:df57544a6d3fd97ebf54ffccb5b9054caeaed307e5589c155a2419e40d1ca139",
+        "kind": "M",
+        "path": "integrations/hosts/minimax-design/rights-and-provider-policy.md"
+      },
+      {
+        "content": "sha256:1a8f0f5f214e0230ecef57cd394a0f66719fddc4403078c61b2e70d7ec8867ee",
+        "kind": "M",
+        "path": "reports/README.md"
+      },
+      {
+        "content": "sha256:5292db7bfba1488575fda5410d0f30a3be93f91aad58186b910cfa9a109474fb",
+        "kind": "M",
+        "path": "scripts/archive_taskpacks_20261009_r2.py"
+      },
+      {
+        "content": "sha256:344c0e0e3eda50bfea855895c2724bb2b39ddafe6a27cfeb5f548868431f1147",
+        "kind": "M",
+        "path": "scripts/audit_ui_desktop_reconcile_20261009.py"
+      },
+      {
+        "content": "sha256:3c8c4f026495694b708bfd3fcc66dc9ef9aa36d197cd3df00e9e0c9d713291a3",
+        "kind": "M",
+        "path": "scripts/audit_workbench_ui.py"
+      },
+      {
+        "content": "sha256:a25d8931824b00fe07ba65301504169ae68a103560917b2b8587d8c06db20aa6",
+        "kind": "M",
+        "path": "scripts/capture_workbench_screenshots.py"
+      },
+      {
+        "content": "sha256:0f8f5df7f08035a1fdc160dc8d81eab385864becdd62f343e16b134708162f7c",
+        "kind": "M",
+        "path": "scripts/classify_repo.py"
+      },
+      {
+        "content": "sha256:26a88b34487a2e6301bbb8612048a4e7ddc8e6502a4e4b8532ecfccd7f3a67c4",
+        "kind": "M",
+        "path": "scripts/deepseek_authority_chain.py"
+      },
+      {
+        "content": "sha256:0159c1e9c2ca26c8e7b8536e6b652bfece8f991be0ce0f658212b87328c7e9fc",
+        "kind": "M",
+        "path": "scripts/deepseek_authority_ledger.py"
+      },
+      {
+        "content": "sha256:e01abdcfaa66dea06ca6b8b5ab059189277d81bbca2d1912f24bf553de268008",
+        "kind": "M",
+        "path": "scripts/deepseek_final_closeout.py"
+      },
+      {
+        "content": "sha256:778e8add5e7bb99dbb6cd29ba80adda2b89d5fb9a8df1fe477dd6f8cbe851f2b",
+        "kind": "M",
+        "path": "scripts/deepseek_worktree_reconciliation.py"
+      },
+      {
+        "content": "sha256:5153dc3f44ff01b4b5cb6f2986d42ed2a625e639f3e12fa6b7bc8fda3f5f6f94",
+        "kind": "M",
+        "path": "scripts/record_import_apply.py"
+      },
+      {
+        "content": "sha256:0f8de2aedc504b4519c38d71e1ea7825ddfee1cfb9afd6594cb3602627101c31",
+        "kind": "M",
+        "path": "scripts/verify_evidence_levels.py"
+      },
+      {
+        "content": "sha256:e67500b2dcb975454a43469e67e3862506375a3be037af1503bcfe523ac9900c",
         "kind": "M",
         "path": "scripts/verify_top_level_authority.py"
       },
       {
-        "content": "sha256:0da8b703afd9839b845755c66e9f167dc3ef9ec2448450c646a7f8ba3c4ccc0e",
+        "content": "sha256:0029ea69f06cb8426d097bf66e9076f1f5aaf5b9028fdee87f9d58dd3d75a9ac",
         "kind": "M",
-        "path": "src/design_lab/assurance/__init__.py"
+        "path": "src/design_lab/governance/reporting.py"
       },
       {
-        "content": "sha256:420ccaf693824522d0c788aa03490ba6819e8d3e7bac26ddae75489c9f013d9e",
-        "kind": "M",
-        "path": "src/design_lab/http_service.py"
+        "content": "sha256:bf646b2eaf8843514776337f07aa0df08ee98089c1928468f1b4df50668fe8d1",
+        "kind": "R",
+        "moved_from": "docs/DLR-040-REFACTORING-PLAN.md",
+        "path": "docs/history/archive-2026-10-19/DLR-040-REFACTORING-PLAN.md"
       },
       {
-        "content": "sha256:b88de7efcfccddb4b23dd88d9f9c6a3bf26d878198abed1e30b89130ffc03a09",
-        "kind": "M",
-        "path": "src/design_lab/runtime/state_resources.py"
+        "content": "sha256:8eddbc4bb7ecb0668916b1550ee80d7c25e93bc704ff1283417bfc22ac1b9e28",
+        "kind": "R",
+        "moved_from": "docs/DLR-100-GOLDEN-CASES.md",
+        "path": "docs/history/archive-2026-10-19/DLR-100-GOLDEN-CASES.md"
       },
       {
-        "content": "sha256:583dc73addb023a79bd5d38924fc2bf72cfa2ecb739ea20dbc862b739dbe6e15",
+        "content": "sha256:792a234d7e27f565150124a819e2a3f352b58f9d06bb98b4c31993181d527281",
+        "kind": "R",
+        "moved_from": "docs/UI-CONVERGENCE-20260930/ASSET_MANIFEST.json",
+        "path": "docs/history/archive-2026-10-19/UI-CONVERGENCE-20260930/ASSET_MANIFEST.json"
+      },
+      {
+        "content": "sha256:9f62eafdf39252b6310b0a116625dd34832545cf1266f3a5f53a883d2ee80654",
+        "kind": "R",
+        "moved_from": "docs/UI-CONVERGENCE-20260930/COMPLETION_REPORT.md",
+        "path": "docs/history/archive-2026-10-19/UI-CONVERGENCE-20260930/COMPLETION_REPORT.md"
+      },
+      {
+        "content": "sha256:65edba448d593e37889e6e4b9c129b7063aece254996d03d1104d6aab3754431",
+        "kind": "R",
+        "moved_from": "docs/UI-CONVERGENCE-20260930/FINAL_IA.md",
+        "path": "docs/history/archive-2026-10-19/UI-CONVERGENCE-20260930/FINAL_IA.md"
+      },
+      {
+        "content": "sha256:0a23ee60a1599406ad29d8bcdff05bd3bf282dd9619677194998608e2efa79de",
+        "kind": "R",
+        "moved_from": "docs/UI-CONVERGENCE-20260930/GOLDEN_FLOWS.md",
+        "path": "docs/history/archive-2026-10-19/UI-CONVERGENCE-20260930/GOLDEN_FLOWS.md"
+      },
+      {
+        "content": "sha256:d74f75da2c5f75b1ffef97537b8fa783dce48dd8aaa932f6e61d2fa063beb19c",
+        "kind": "R",
+        "moved_from": "docs/UI-CONVERGENCE-20260930/HOST_UI_MATRIX.md",
+        "path": "docs/history/archive-2026-10-19/UI-CONVERGENCE-20260930/HOST_UI_MATRIX.md"
+      },
+      {
+        "content": "sha256:2904b4645df3b840b680f476167b545bb1626daecef2cc9fc6c0cfde881227b3",
+        "kind": "R",
+        "moved_from": "docs/UI-CONVERGENCE-20260930/MERGE_READY_HANDOFF.md",
+        "path": "docs/history/archive-2026-10-19/UI-CONVERGENCE-20260930/MERGE_READY_HANDOFF.md"
+      },
+      {
+        "content": "sha256:5e45b594fb35986e4e1e37feae8f68db01ac31eecb59ac2a6339264b2a06a9ef",
+        "kind": "R",
+        "moved_from": "docs/UI-CONVERGENCE-20260930/SCREENSHOTS.md",
+        "path": "docs/history/archive-2026-10-19/UI-CONVERGENCE-20260930/SCREENSHOTS.md"
+      },
+      {
+        "content": "sha256:a524e42537369c88db52c4f10421b4ee575e4cfc8a3f41ef8019e67f4f4e32cc",
+        "kind": "R",
+        "moved_from": "docs/UI-CONVERGENCE-20260930/SESSION-RECORD-20261006.md",
+        "path": "docs/history/archive-2026-10-19/UI-CONVERGENCE-20260930/SESSION-RECORD-20261006.md"
+      },
+      {
+        "content": "sha256:8daf403ee83ddc174f817301177a6a3d369177f43e2e8b201e21c85dd914b892",
+        "kind": "R",
+        "moved_from": "docs/UI-CONVERGENCE-20260930/UI-AUDIT-20261006.md",
+        "path": "docs/history/archive-2026-10-19/UI-CONVERGENCE-20260930/UI-AUDIT-20261006.md"
+      },
+      {
+        "content": "sha256:eac35d05f1d89430d952b2b3fb34e11446314531ddf57dfebc84ae37a1167ebe",
+        "kind": "R",
+        "moved_from": "docs/UI-CONVERGENCE-20260930/VISUAL_QA.md",
+        "path": "docs/history/archive-2026-10-19/UI-CONVERGENCE-20260930/VISUAL_QA.md"
+      },
+      {
+        "content": "sha256:a5d400b52258216c630cddb5fce2d04dc99183d3bf3d5b94b7073fbf172cd395",
+        "kind": "R",
+        "moved_from": "docs/UI-CONVERGENCE-20260930/screenshot/00-dashboard@390.png",
+        "path": "docs/history/archive-2026-10-19/UI-CONVERGENCE-20260930/screenshot/00-dashboard@390.png"
+      },
+      {
+        "content": "sha256:074148183f7c5379701c2b86df7ec4481a66f37ca1febcd4189900c86acabf9c",
+        "kind": "R",
+        "moved_from": "docs/UI-CONVERGENCE-20260930/screenshot/00-dashboard@390.png.license",
+        "path": "docs/history/archive-2026-10-19/UI-CONVERGENCE-20260930/screenshot/00-dashboard@390.png.license"
+      },
+      {
+        "content": "sha256:e6de64669ec366570ea8a6d73d2917f4caa6632dad18d1b8de21c27f944d072d",
+        "kind": "R",
+        "moved_from": "docs/UI-CONVERGENCE-20260930/screenshot/01-projects@390.png",
+        "path": "docs/history/archive-2026-10-19/UI-CONVERGENCE-20260930/screenshot/01-projects@390.png"
+      },
+      {
+        "content": "sha256:b60e77d69b265e759f4545ffa0138363dfe8ffbd4c1e3d92b0061645ead577b2",
+        "kind": "R",
+        "moved_from": "docs/UI-CONVERGENCE-20260930/screenshot/01-projects@390.png.license",
+        "path": "docs/history/archive-2026-10-19/UI-CONVERGENCE-20260930/screenshot/01-projects@390.png.license"
+      },
+      {
+        "content": "sha256:4651fddca099c183049fe695377e73a1eadae87f0083380a05cfc987edbb0579",
+        "kind": "R",
+        "moved_from": "docs/UI-CONVERGENCE-20260930/screenshot/02-project-detail@390.png",
+        "path": "docs/history/archive-2026-10-19/UI-CONVERGENCE-20260930/screenshot/02-project-detail@390.png"
+      },
+      {
+        "content": "sha256:f777c3625bd5b2d0ed76b30de90725f7afdc0cf0dacbcf86f66eca7b7200e8d0",
+        "kind": "R",
+        "moved_from": "docs/UI-CONVERGENCE-20260930/screenshot/02-project-detail@390.png.license",
+        "path": "docs/history/archive-2026-10-19/UI-CONVERGENCE-20260930/screenshot/02-project-detail@390.png.license"
+      },
+      {
+        "content": "sha256:3779a93e02d74450dbb5500449470657feb78eb6428fc8884cae079331a83a8c",
+        "kind": "R",
+        "moved_from": "docs/UI-CONVERGENCE-20260930/screenshot/03-creative-tools@390.png",
+        "path": "docs/history/archive-2026-10-19/UI-CONVERGENCE-20260930/screenshot/03-creative-tools@390.png"
+      },
+      {
+        "content": "sha256:b14961b457d54d6cb08f0848f1310006cd8c9eab20f5425884f6432216a08749",
+        "kind": "R",
+        "moved_from": "docs/UI-CONVERGENCE-20260930/screenshot/03-creative-tools@390.png.license",
+        "path": "docs/history/archive-2026-10-19/UI-CONVERGENCE-20260930/screenshot/03-creative-tools@390.png.license"
+      },
+      {
+        "content": "sha256:a4e72f8596bdf1ca3d844e18b063541f678fe2086849c410ee4872c87b592cda",
+        "kind": "R",
+        "moved_from": "docs/UI-CONVERGENCE-20260930/screenshot/04-deliverables@390.png",
+        "path": "docs/history/archive-2026-10-19/UI-CONVERGENCE-20260930/screenshot/04-deliverables@390.png"
+      },
+      {
+        "content": "sha256:e9c38d244d05a79c6848295ccd2ed9b612f92dab5f0cdfbe35505190e586c3c4",
+        "kind": "R",
+        "moved_from": "docs/UI-CONVERGENCE-20260930/screenshot/04-deliverables@390.png.license",
+        "path": "docs/history/archive-2026-10-19/UI-CONVERGENCE-20260930/screenshot/04-deliverables@390.png.license"
+      },
+      {
+        "content": "sha256:4c989d14f750ea60ceb42660e79306ac1494a28c74d2f6a6928e1d5c44dcaf88",
+        "kind": "R",
+        "moved_from": "docs/UI-CONVERGENCE-20260930/screenshot/05-evidence@390.png",
+        "path": "docs/history/archive-2026-10-19/UI-CONVERGENCE-20260930/screenshot/05-evidence@390.png"
+      },
+      {
+        "content": "sha256:e2bc80e093bc355752cc729a2b7ba2999750728145fa67d41b09b861fbb12cc0",
+        "kind": "R",
+        "moved_from": "docs/UI-CONVERGENCE-20260930/screenshot/05-evidence@390.png.license",
+        "path": "docs/history/archive-2026-10-19/UI-CONVERGENCE-20260930/screenshot/05-evidence@390.png.license"
+      },
+      {
+        "content": "sha256:0f3fffbcac1803ba06ecfb66a8bc7c5843216e3795a129336d78827f9aea2f2d",
+        "kind": "R",
+        "moved_from": "docs/UI-CONVERGENCE-20260930/screenshot/06-preflight@390.png",
+        "path": "docs/history/archive-2026-10-19/UI-CONVERGENCE-20260930/screenshot/06-preflight@390.png"
+      },
+      {
+        "content": "sha256:255591ced690b28e4ea502fd67c7c6149ff675764d1d6a81aeb7b61d2ebc0bcc",
+        "kind": "R",
+        "moved_from": "docs/UI-CONVERGENCE-20260930/screenshot/06-preflight@390.png.license",
+        "path": "docs/history/archive-2026-10-19/UI-CONVERGENCE-20260930/screenshot/06-preflight@390.png.license"
+      },
+      {
+        "content": "sha256:7babd93ca16311bcc2059ae683fe56a18aa7d9f37de65042154a5a0b7c9e7eb7",
+        "kind": "R",
+        "moved_from": "docs/UI-CONVERGENCE-20260930/screenshot/07-settings@390.png",
+        "path": "docs/history/archive-2026-10-19/UI-CONVERGENCE-20260930/screenshot/07-settings@390.png"
+      },
+      {
+        "content": "sha256:5d4dffd30908797fc16a9091c031b0b998571b7050ef11ff227e64132c02335c",
+        "kind": "R",
+        "moved_from": "docs/UI-CONVERGENCE-20260930/screenshot/07-settings@390.png.license",
+        "path": "docs/history/archive-2026-10-19/UI-CONVERGENCE-20260930/screenshot/07-settings@390.png.license"
+      },
+      {
+        "content": "sha256:f1ceb5e9fcd5259b561728b7f63662bfab47f0ae64b004359795d9bcb7afc68f",
+        "kind": "R",
+        "moved_from": "docs/UI-CONVERGENCE-20260930/screenshot/08-dashboard@768.png",
+        "path": "docs/history/archive-2026-10-19/UI-CONVERGENCE-20260930/screenshot/08-dashboard@768.png"
+      },
+      {
+        "content": "sha256:ca842d33ed2012ca3f50746bad1bc309b0ee48bde74da38830913950b2f7aaee",
+        "kind": "R",
+        "moved_from": "docs/UI-CONVERGENCE-20260930/screenshot/08-dashboard@768.png.license",
+        "path": "docs/history/archive-2026-10-19/UI-CONVERGENCE-20260930/screenshot/08-dashboard@768.png.license"
+      },
+      {
+        "content": "sha256:7bd747f9e91735d5e9c7d12237cb0c18df4f16e86a0ee6d0aae1fec4fe1ee4fa",
+        "kind": "R",
+        "moved_from": "docs/UI-CONVERGENCE-20260930/screenshot/09-projects@768.png",
+        "path": "docs/history/archive-2026-10-19/UI-CONVERGENCE-20260930/screenshot/09-projects@768.png"
+      },
+      {
+        "content": "sha256:efc1969ea8f9af9af9d1aff97111d2cb1f17f62bedc9c2f1569def9d20f94537",
+        "kind": "R",
+        "moved_from": "docs/UI-CONVERGENCE-20260930/screenshot/09-projects@768.png.license",
+        "path": "docs/history/archive-2026-10-19/UI-CONVERGENCE-20260930/screenshot/09-projects@768.png.license"
+      },
+      {
+        "content": "sha256:ec4f8e86444348d18cc1235b1989e0b74e87f828afe5dd75e70f289b6e5651c1",
+        "kind": "R",
+        "moved_from": "docs/UI-CONVERGENCE-20260930/screenshot/10-project-detail@768.png",
+        "path": "docs/history/archive-2026-10-19/UI-CONVERGENCE-20260930/screenshot/10-project-detail@768.png"
+      },
+      {
+        "content": "sha256:2f1d8afc7b925e466c4ab8c478fe571237d18405e73d09f59cb819afa67ab5e2",
+        "kind": "R",
+        "moved_from": "docs/UI-CONVERGENCE-20260930/screenshot/10-project-detail@768.png.license",
+        "path": "docs/history/archive-2026-10-19/UI-CONVERGENCE-20260930/screenshot/10-project-detail@768.png.license"
+      },
+      {
+        "content": "sha256:30eaeb5ce5c27889a6d528fded1c924c2d2b581e8e0281cde7f443c6103c0f35",
+        "kind": "R",
+        "moved_from": "docs/UI-CONVERGENCE-20260930/screenshot/11-creative-tools@768.png",
+        "path": "docs/history/archive-2026-10-19/UI-CONVERGENCE-20260930/screenshot/11-creative-tools@768.png"
+      },
+      {
+        "content": "sha256:afe8c3b07e9c1f7087aeb8d317688c14b3547c65cf7246b1722f6728072d0f13",
+        "kind": "R",
+        "moved_from": "docs/UI-CONVERGENCE-20260930/screenshot/11-creative-tools@768.png.license",
+        "path": "docs/history/archive-2026-10-19/UI-CONVERGENCE-20260930/screenshot/11-creative-tools@768.png.license"
+      },
+      {
+        "content": "sha256:0eca1a0ffcb227d23e1f42efd67803d4f17660537a0e8f673fb21202f9797e42",
+        "kind": "R",
+        "moved_from": "docs/UI-CONVERGENCE-20260930/screenshot/12-deliverables@768.png",
+        "path": "docs/history/archive-2026-10-19/UI-CONVERGENCE-20260930/screenshot/12-deliverables@768.png"
+      },
+      {
+        "content": "sha256:aec1cb042c22f6af19757e3a0df97c809bb1f0f2f4ccd926fb522ab718281cf6",
+        "kind": "R",
+        "moved_from": "docs/UI-CONVERGENCE-20260930/screenshot/12-deliverables@768.png.license",
+        "path": "docs/history/archive-2026-10-19/UI-CONVERGENCE-20260930/screenshot/12-deliverables@768.png.license"
+      },
+      {
+        "content": "sha256:04621cc73e83276506784b6f3ebd32b9c01734c0167e135bdf1a2db1bf503b85",
+        "kind": "R",
+        "moved_from": "docs/UI-CONVERGENCE-20260930/screenshot/13-evidence@768.png",
+        "path": "docs/history/archive-2026-10-19/UI-CONVERGENCE-20260930/screenshot/13-evidence@768.png"
+      },
+      {
+        "content": "sha256:3a76298a994b460f07881f04eada02c235f88427ed1e5096b09f4c6b90ed5c1a",
+        "kind": "R",
+        "moved_from": "docs/UI-CONVERGENCE-20260930/screenshot/13-evidence@768.png.license",
+        "path": "docs/history/archive-2026-10-19/UI-CONVERGENCE-20260930/screenshot/13-evidence@768.png.license"
+      },
+      {
+        "content": "sha256:26dc2a6a58dfc6f1008285450be874e45e064b48a740d9afd41766259bf457e6",
+        "kind": "R",
+        "moved_from": "docs/UI-CONVERGENCE-20260930/screenshot/14-preflight@768.png",
+        "path": "docs/history/archive-2026-10-19/UI-CONVERGENCE-20260930/screenshot/14-preflight@768.png"
+      },
+      {
+        "content": "sha256:2c8a00832f35d594ceba7a10424acce9b8cc9dfe52ad4acf16093a6d7953f8eb",
+        "kind": "R",
+        "moved_from": "docs/UI-CONVERGENCE-20260930/screenshot/14-preflight@768.png.license",
+        "path": "docs/history/archive-2026-10-19/UI-CONVERGENCE-20260930/screenshot/14-preflight@768.png.license"
+      },
+      {
+        "content": "sha256:95c41727a2ab6c75106f709e901ea75eecdf9c4326a2abffcb661385e37470fc",
+        "kind": "R",
+        "moved_from": "docs/UI-CONVERGENCE-20260930/screenshot/15-settings@768.png",
+        "path": "docs/history/archive-2026-10-19/UI-CONVERGENCE-20260930/screenshot/15-settings@768.png"
+      },
+      {
+        "content": "sha256:688a1b8871e4ebfcb5c9119606785b3139ce277737570d985c57444bd23eca54",
+        "kind": "R",
+        "moved_from": "docs/UI-CONVERGENCE-20260930/screenshot/15-settings@768.png.license",
+        "path": "docs/history/archive-2026-10-19/UI-CONVERGENCE-20260930/screenshot/15-settings@768.png.license"
+      },
+      {
+        "content": "sha256:57b0b6df156bd3cc07d6bdcd6e737c1fa0c048b7a888a68b31ad3b7db87b6af8",
+        "kind": "R",
+        "moved_from": "docs/UI-CONVERGENCE-20260930/screenshot/16-dashboard@1280.png",
+        "path": "docs/history/archive-2026-10-19/UI-CONVERGENCE-20260930/screenshot/16-dashboard@1280.png"
+      },
+      {
+        "content": "sha256:7816348d5af5e595a201abfa57fc04856a07e88021182973e110e028cf954a14",
+        "kind": "R",
+        "moved_from": "docs/UI-CONVERGENCE-20260930/screenshot/16-dashboard@1280.png.license",
+        "path": "docs/history/archive-2026-10-19/UI-CONVERGENCE-20260930/screenshot/16-dashboard@1280.png.license"
+      },
+      {
+        "content": "sha256:2a20819b10cf9a160071df1a35d3212d110f30557a4f35c8efede1ff75b656dc",
+        "kind": "R",
+        "moved_from": "docs/UI-CONVERGENCE-20260930/screenshot/17-projects@1280.png",
+        "path": "docs/history/archive-2026-10-19/UI-CONVERGENCE-20260930/screenshot/17-projects@1280.png"
+      },
+      {
+        "content": "sha256:9ed9c2675124c4d2949934a91aa562b259b29298ca67a712d18b4f3cedb3efc8",
+        "kind": "R",
+        "moved_from": "docs/UI-CONVERGENCE-20260930/screenshot/17-projects@1280.png.license",
+        "path": "docs/history/archive-2026-10-19/UI-CONVERGENCE-20260930/screenshot/17-projects@1280.png.license"
+      },
+      {
+        "content": "sha256:bd158b26effa56878a8bd9c8331bb14491f4562bf379bfbcc935cc2c3ab09bff",
+        "kind": "R",
+        "moved_from": "docs/UI-CONVERGENCE-20260930/screenshot/18-project-detail@1280.png",
+        "path": "docs/history/archive-2026-10-19/UI-CONVERGENCE-20260930/screenshot/18-project-detail@1280.png"
+      },
+      {
+        "content": "sha256:ffef27dd02ef4f79a509204762b87f8a8639a5ce7420a7cff67b0d94b3ea6a95",
+        "kind": "R",
+        "moved_from": "docs/UI-CONVERGENCE-20260930/screenshot/18-project-detail@1280.png.license",
+        "path": "docs/history/archive-2026-10-19/UI-CONVERGENCE-20260930/screenshot/18-project-detail@1280.png.license"
+      },
+      {
+        "content": "sha256:7dc2356d3e0c3a75fef57aa839bba91918240a0b782c7c14d16f2f69f8fe1606",
+        "kind": "R",
+        "moved_from": "docs/UI-CONVERGENCE-20260930/screenshot/19-creative-tools@1280.png",
+        "path": "docs/history/archive-2026-10-19/UI-CONVERGENCE-20260930/screenshot/19-creative-tools@1280.png"
+      },
+      {
+        "content": "sha256:9596c125ea44f10d7f588000311c43a158e6fdab75510310bb4bcbdec8996180",
+        "kind": "R",
+        "moved_from": "docs/UI-CONVERGENCE-20260930/screenshot/19-creative-tools@1280.png.license",
+        "path": "docs/history/archive-2026-10-19/UI-CONVERGENCE-20260930/screenshot/19-creative-tools@1280.png.license"
+      },
+      {
+        "content": "sha256:d7a81e3449adafa7266f4a8f2fd377a2e5dc037b78feedda59e677134c4f6c1d",
+        "kind": "R",
+        "moved_from": "docs/UI-CONVERGENCE-20260930/screenshot/20-deliverables@1280.png",
+        "path": "docs/history/archive-2026-10-19/UI-CONVERGENCE-20260930/screenshot/20-deliverables@1280.png"
+      },
+      {
+        "content": "sha256:628b78f4eb9042292dee22a5188e4957b346090d7ebca0502d9e55b43893f876",
+        "kind": "R",
+        "moved_from": "docs/UI-CONVERGENCE-20260930/screenshot/20-deliverables@1280.png.license",
+        "path": "docs/history/archive-2026-10-19/UI-CONVERGENCE-20260930/screenshot/20-deliverables@1280.png.license"
+      },
+      {
+        "content": "sha256:de33dc092451ce82093c2283710d5cccb5a6d47e5fe6b2127cf48dab1490c3e3",
+        "kind": "R",
+        "moved_from": "docs/UI-CONVERGENCE-20260930/screenshot/21-evidence@1280.png",
+        "path": "docs/history/archive-2026-10-19/UI-CONVERGENCE-20260930/screenshot/21-evidence@1280.png"
+      },
+      {
+        "content": "sha256:92b2f1be6f52cab59b4fbc6e7d49d1e9caa46d0d187265b61087dcbcc3730332",
+        "kind": "R",
+        "moved_from": "docs/UI-CONVERGENCE-20260930/screenshot/21-evidence@1280.png.license",
+        "path": "docs/history/archive-2026-10-19/UI-CONVERGENCE-20260930/screenshot/21-evidence@1280.png.license"
+      },
+      {
+        "content": "sha256:03abfcc319d2d51cd10c9598e9ab91afc29b78f9626e6f668877199c1cbd76be",
+        "kind": "R",
+        "moved_from": "docs/UI-CONVERGENCE-20260930/screenshot/22-preflight@1280.png",
+        "path": "docs/history/archive-2026-10-19/UI-CONVERGENCE-20260930/screenshot/22-preflight@1280.png"
+      },
+      {
+        "content": "sha256:7d40b26334d7b8d433b01b443b8efcdd1d9cdeaf70d16cc7f3fcfa5793c8d1ff",
+        "kind": "R",
+        "moved_from": "docs/UI-CONVERGENCE-20260930/screenshot/22-preflight@1280.png.license",
+        "path": "docs/history/archive-2026-10-19/UI-CONVERGENCE-20260930/screenshot/22-preflight@1280.png.license"
+      },
+      {
+        "content": "sha256:344fb2dc5af7cb2fbb55bb67bfa3d6de86989ebdb1a505777d831f42a866c81e",
+        "kind": "R",
+        "moved_from": "docs/UI-CONVERGENCE-20260930/screenshot/23-settings@1280.png",
+        "path": "docs/history/archive-2026-10-19/UI-CONVERGENCE-20260930/screenshot/23-settings@1280.png"
+      },
+      {
+        "content": "sha256:a7c696b2be4a60a288e2cf476303ced0f06a98b51be5423aed6a5ec8cce44369",
+        "kind": "R",
+        "moved_from": "docs/UI-CONVERGENCE-20260930/screenshot/23-settings@1280.png.license",
+        "path": "docs/history/archive-2026-10-19/UI-CONVERGENCE-20260930/screenshot/23-settings@1280.png.license"
+      },
+      {
+        "content": "sha256:36abc911561b041b7328b94b3c1af9ae686d942693df17cf704797de644c5676",
+        "kind": "R",
+        "moved_from": "docs/UI-CONVERGENCE-20260930/screenshot/24-dashboard@1920.png",
+        "path": "docs/history/archive-2026-10-19/UI-CONVERGENCE-20260930/screenshot/24-dashboard@1920.png"
+      },
+      {
+        "content": "sha256:ed07fb82283fc970591ea276aad9d09e81883111c8deca016258035956e58774",
+        "kind": "R",
+        "moved_from": "docs/UI-CONVERGENCE-20260930/screenshot/24-dashboard@1920.png.license",
+        "path": "docs/history/archive-2026-10-19/UI-CONVERGENCE-20260930/screenshot/24-dashboard@1920.png.license"
+      },
+      {
+        "content": "sha256:fcf9a21a36f738c3eb1b2badf5c9bb61362323de71430a46d38e5ab7c8a05a0e",
+        "kind": "R",
+        "moved_from": "docs/UI-CONVERGENCE-20260930/screenshot/25-projects@1920.png",
+        "path": "docs/history/archive-2026-10-19/UI-CONVERGENCE-20260930/screenshot/25-projects@1920.png"
+      },
+      {
+        "content": "sha256:3e6bfbc1942a740fa27379d07e4c01c7dc667a9c7882817bf234b66fd2106d7f",
+        "kind": "R",
+        "moved_from": "docs/UI-CONVERGENCE-20260930/screenshot/25-projects@1920.png.license",
+        "path": "docs/history/archive-2026-10-19/UI-CONVERGENCE-20260930/screenshot/25-projects@1920.png.license"
+      },
+      {
+        "content": "sha256:f872acdaa7d8da497713ae6040483fb5a26042acd046f07bece30927caff8b68",
+        "kind": "R",
+        "moved_from": "docs/UI-CONVERGENCE-20260930/screenshot/26-project-detail@1920.png",
+        "path": "docs/history/archive-2026-10-19/UI-CONVERGENCE-20260930/screenshot/26-project-detail@1920.png"
+      },
+      {
+        "content": "sha256:68ed436b9310048332d27752de1406395001a0429b8dcc32e46583ca4d2bedbf",
+        "kind": "R",
+        "moved_from": "docs/UI-CONVERGENCE-20260930/screenshot/26-project-detail@1920.png.license",
+        "path": "docs/history/archive-2026-10-19/UI-CONVERGENCE-20260930/screenshot/26-project-detail@1920.png.license"
+      },
+      {
+        "content": "sha256:467b58406981439c4c6ce968553284727057f78eb9c5d88f73b065a28fc118d3",
+        "kind": "R",
+        "moved_from": "docs/UI-CONVERGENCE-20260930/screenshot/27-creative-tools@1920.png",
+        "path": "docs/history/archive-2026-10-19/UI-CONVERGENCE-20260930/screenshot/27-creative-tools@1920.png"
+      },
+      {
+        "content": "sha256:8ba6baaebd3d4bee1f637ec4596f5d792a16a8220b2c6c337eb048e593729360",
+        "kind": "R",
+        "moved_from": "docs/UI-CONVERGENCE-20260930/screenshot/27-creative-tools@1920.png.license",
+        "path": "docs/history/archive-2026-10-19/UI-CONVERGENCE-20260930/screenshot/27-creative-tools@1920.png.license"
+      },
+      {
+        "content": "sha256:b7e780b2e2434e41bc42bfab4218556c7da902d910d825118d1ffa56f389ae69",
+        "kind": "R",
+        "moved_from": "docs/UI-CONVERGENCE-20260930/screenshot/28-deliverables@1920.png",
+        "path": "docs/history/archive-2026-10-19/UI-CONVERGENCE-20260930/screenshot/28-deliverables@1920.png"
+      },
+      {
+        "content": "sha256:b0caa9fea01b1b310833a23204325182a1033dd4365c333f6cced131ff7044aa",
+        "kind": "R",
+        "moved_from": "docs/UI-CONVERGENCE-20260930/screenshot/28-deliverables@1920.png.license",
+        "path": "docs/history/archive-2026-10-19/UI-CONVERGENCE-20260930/screenshot/28-deliverables@1920.png.license"
+      },
+      {
+        "content": "sha256:b562198581d84b0bdcbb364856a6ce24ce972fb12bcdf2951132b55a0a517755",
+        "kind": "R",
+        "moved_from": "docs/UI-CONVERGENCE-20260930/screenshot/29-evidence@1920.png",
+        "path": "docs/history/archive-2026-10-19/UI-CONVERGENCE-20260930/screenshot/29-evidence@1920.png"
+      },
+      {
+        "content": "sha256:fe1320fae6ef325b473330297c44b0a19cdf9c94b40b20e7e4186deb9bec9a8f",
+        "kind": "R",
+        "moved_from": "docs/UI-CONVERGENCE-20260930/screenshot/29-evidence@1920.png.license",
+        "path": "docs/history/archive-2026-10-19/UI-CONVERGENCE-20260930/screenshot/29-evidence@1920.png.license"
+      },
+      {
+        "content": "sha256:df0eba1d2e3a7c1a703a2b3f790342f2fffc36786de77b90433f8d7ad1d53e04",
+        "kind": "R",
+        "moved_from": "docs/UI-CONVERGENCE-20260930/screenshot/30-preflight@1920.png",
+        "path": "docs/history/archive-2026-10-19/UI-CONVERGENCE-20260930/screenshot/30-preflight@1920.png"
+      },
+      {
+        "content": "sha256:ec40c26a5bb29e011a31a0c01aac76234409e3d336d67a9e6ecea761f853fe44",
+        "kind": "R",
+        "moved_from": "docs/UI-CONVERGENCE-20260930/screenshot/30-preflight@1920.png.license",
+        "path": "docs/history/archive-2026-10-19/UI-CONVERGENCE-20260930/screenshot/30-preflight@1920.png.license"
+      },
+      {
+        "content": "sha256:d87f8f2ebe8b24cd363f7d0441bdfbabe194359f28728a4a8b14a3e17f76bc1f",
+        "kind": "R",
+        "moved_from": "docs/UI-CONVERGENCE-20260930/screenshot/31-settings@1920.png",
+        "path": "docs/history/archive-2026-10-19/UI-CONVERGENCE-20260930/screenshot/31-settings@1920.png"
+      },
+      {
+        "content": "sha256:aeafd4b001846ed394b175dd57f39e52e428922682d8fb2b256869e88ec1179b",
+        "kind": "R",
+        "moved_from": "docs/UI-CONVERGENCE-20260930/screenshot/31-settings@1920.png.license",
+        "path": "docs/history/archive-2026-10-19/UI-CONVERGENCE-20260930/screenshot/31-settings@1920.png.license"
+      },
+      {
+        "content": "sha256:c42355060b72d1755f6341b9f222d46b0feb60564e325ec507de9abf3cb3e0ad",
+        "kind": "R",
+        "moved_from": "docs/UI-CONVERGENCE-20260930/screenshot/32-dashboard@2560.png",
+        "path": "docs/history/archive-2026-10-19/UI-CONVERGENCE-20260930/screenshot/32-dashboard@2560.png"
+      },
+      {
+        "content": "sha256:22943d5b847edf3d08c8872f03d07178dc9dddd138591fb2f3e94f73ed6cbfe6",
+        "kind": "R",
+        "moved_from": "docs/UI-CONVERGENCE-20260930/screenshot/32-dashboard@2560.png.license",
+        "path": "docs/history/archive-2026-10-19/UI-CONVERGENCE-20260930/screenshot/32-dashboard@2560.png.license"
+      },
+      {
+        "content": "sha256:557c47bfcc4bd51e04833538c21a34fa1934f60ba21529250fe59ab63b8f2f33",
+        "kind": "R",
+        "moved_from": "docs/UI-CONVERGENCE-20260930/screenshot/33-projects@2560.png",
+        "path": "docs/history/archive-2026-10-19/UI-CONVERGENCE-20260930/screenshot/33-projects@2560.png"
+      },
+      {
+        "content": "sha256:d458f9d19be8de2d680b2e18ec116c753271d831e04e395a95b3ad3b33a8f9fe",
+        "kind": "R",
+        "moved_from": "docs/UI-CONVERGENCE-20260930/screenshot/33-projects@2560.png.license",
+        "path": "docs/history/archive-2026-10-19/UI-CONVERGENCE-20260930/screenshot/33-projects@2560.png.license"
+      },
+      {
+        "content": "sha256:121c6792109aa935e716a5bc12e0e5679baefc5d97c61249512e1b31595befb2",
+        "kind": "R",
+        "moved_from": "docs/UI-CONVERGENCE-20260930/screenshot/34-project-detail@2560.png",
+        "path": "docs/history/archive-2026-10-19/UI-CONVERGENCE-20260930/screenshot/34-project-detail@2560.png"
+      },
+      {
+        "content": "sha256:f5f06f7ec74e6b2d2e1e5d23cf69b5cdc28feb8e7e48d7367813cc370b1b3876",
+        "kind": "R",
+        "moved_from": "docs/UI-CONVERGENCE-20260930/screenshot/34-project-detail@2560.png.license",
+        "path": "docs/history/archive-2026-10-19/UI-CONVERGENCE-20260930/screenshot/34-project-detail@2560.png.license"
+      },
+      {
+        "content": "sha256:1484a87b0f1933a89c4d367e50d3469e0a7e3214d846fb46ae1c6f77e16e9f44",
+        "kind": "R",
+        "moved_from": "docs/UI-CONVERGENCE-20260930/screenshot/35-creative-tools@2560.png",
+        "path": "docs/history/archive-2026-10-19/UI-CONVERGENCE-20260930/screenshot/35-creative-tools@2560.png"
+      },
+      {
+        "content": "sha256:b76957233f7905816ae3165f95e676d048be0192497573050dfa252ef2036e25",
+        "kind": "R",
+        "moved_from": "docs/UI-CONVERGENCE-20260930/screenshot/35-creative-tools@2560.png.license",
+        "path": "docs/history/archive-2026-10-19/UI-CONVERGENCE-20260930/screenshot/35-creative-tools@2560.png.license"
+      },
+      {
+        "content": "sha256:4040e6344aa124acd092e3aab180c5a0523584e21280a01226c77a487060b510",
+        "kind": "R",
+        "moved_from": "docs/UI-CONVERGENCE-20260930/screenshot/36-deliverables@2560.png",
+        "path": "docs/history/archive-2026-10-19/UI-CONVERGENCE-20260930/screenshot/36-deliverables@2560.png"
+      },
+      {
+        "content": "sha256:3e091ae6f571772c5bbf9404aa79bb7f735daa5be02c1744f574aca5fbc102e5",
+        "kind": "R",
+        "moved_from": "docs/UI-CONVERGENCE-20260930/screenshot/36-deliverables@2560.png.license",
+        "path": "docs/history/archive-2026-10-19/UI-CONVERGENCE-20260930/screenshot/36-deliverables@2560.png.license"
+      },
+      {
+        "content": "sha256:e245898c3f0b1e375bff7725e3541943cdf6640676036068767f28e28d5b2e4e",
+        "kind": "R",
+        "moved_from": "docs/UI-CONVERGENCE-20260930/screenshot/37-evidence@2560.png",
+        "path": "docs/history/archive-2026-10-19/UI-CONVERGENCE-20260930/screenshot/37-evidence@2560.png"
+      },
+      {
+        "content": "sha256:9ae7e2ae4f2960fc5421ad81b57d6426c5f8c9c940fc1261655a310bcf907c6f",
+        "kind": "R",
+        "moved_from": "docs/UI-CONVERGENCE-20260930/screenshot/37-evidence@2560.png.license",
+        "path": "docs/history/archive-2026-10-19/UI-CONVERGENCE-20260930/screenshot/37-evidence@2560.png.license"
+      },
+      {
+        "content": "sha256:2566357e31e8a0b7f4c9f14fd081eb56b588733ba65944af06985fdb4659adf6",
+        "kind": "R",
+        "moved_from": "docs/UI-CONVERGENCE-20260930/screenshot/38-preflight@2560.png",
+        "path": "docs/history/archive-2026-10-19/UI-CONVERGENCE-20260930/screenshot/38-preflight@2560.png"
+      },
+      {
+        "content": "sha256:7cf5e05e120c0bb61c7c09db66c2b4c6ef6e3bf50e3a82a92c7b2957d05d5e7d",
+        "kind": "R",
+        "moved_from": "docs/UI-CONVERGENCE-20260930/screenshot/38-preflight@2560.png.license",
+        "path": "docs/history/archive-2026-10-19/UI-CONVERGENCE-20260930/screenshot/38-preflight@2560.png.license"
+      },
+      {
+        "content": "sha256:1cbb578aedea1145326f037e880a33ab3d776df58161ac1d5e75574c69392453",
+        "kind": "R",
+        "moved_from": "docs/UI-CONVERGENCE-20260930/screenshot/39-settings@2560.png",
+        "path": "docs/history/archive-2026-10-19/UI-CONVERGENCE-20260930/screenshot/39-settings@2560.png"
+      },
+      {
+        "content": "sha256:79e8f3b42af9b9ae0d3353f7d1521bb11e03961d37042aa85db4cdedb4ce6061",
+        "kind": "R",
+        "moved_from": "docs/UI-CONVERGENCE-20260930/screenshot/39-settings@2560.png.license",
+        "path": "docs/history/archive-2026-10-19/UI-CONVERGENCE-20260930/screenshot/39-settings@2560.png.license"
+      },
+      {
+        "content": "sha256:7824dfb304335f2dd519df0cef3892fabf22e8c2876002cd14f4039a50a530bb",
+        "kind": "R",
+        "moved_from": "docs/UI-CONVERGENCE-20260930/screenshot/screenshot-manifest.json",
+        "path": "docs/history/archive-2026-10-19/UI-CONVERGENCE-20260930/screenshot/screenshot-manifest.json"
+      },
+      {
+        "content": "sha256:f6a792d4ecee8ce3f10b8f6f1e675a5424bb6ac477cf58d467564ca615140df9",
+        "kind": "R",
+        "moved_from": "docs/UI-CONVERGENCE-20260930/ui-audit/report-before-fix.json",
+        "path": "docs/history/archive-2026-10-19/UI-CONVERGENCE-20260930/ui-audit/report-before-fix.json"
+      },
+      {
+        "content": "sha256:7bb2888673cd18c43dbcb14e4c1c615af41008274f21a0291e5da1029d43e18a",
+        "kind": "R",
+        "moved_from": "docs/UI-CONVERGENCE-20260930/ui-audit/report.json",
+        "path": "docs/history/archive-2026-10-19/UI-CONVERGENCE-20260930/ui-audit/report.json"
+      },
+      {
+        "content": "sha256:04734463d165507c7ed07c7b46aa8c94e2fe4ae94f9332f477921a49e10e914a",
+        "kind": "R",
+        "moved_from": "WORK-LAB-DESIGN-MODULE-FINAL-HANDOFF-2026-08-07.md",
+        "path": "docs/history/archive-2026-10-19/WORK-LAB-DESIGN-MODULE-FINAL-HANDOFF-2026-08-07.md"
+      },
+      {
+        "content": "sha256:aa3831a8d67810134e54ccaea1438b2d656c8ce70d2a3a1fc15c3cfdfcb8a610",
+        "kind": "R",
+        "moved_from": "docs/current/ARCHIVE-KEY-INFORMATION-2026-10-09.md",
+        "path": "docs/history/archive-2026-10-19/current-records/ARCHIVE-KEY-INFORMATION-2026-10-09.md"
+      },
+      {
+        "content": "sha256:6c4d7088b137fcfcbd9e71c38f16235e2f449a613deff0a58ddbd6bffd29a63e",
+        "kind": "R",
+        "moved_from": "docs/current/HANDOFF-2026-10-13-COMPLETE.md",
+        "path": "docs/history/archive-2026-10-19/current-records/HANDOFF-2026-10-13-COMPLETE.md"
+      },
+      {
+        "content": "sha256:0f5a208fcaf69d8f1c2504da01f8cd64193ea2d303a08438d710c71fb3cc3570",
+        "kind": "R",
+        "moved_from": "docs/current/TASKPACK-ADOPTION-VERIFICATION-2026-10-09.md",
+        "path": "docs/history/archive-2026-10-19/current-records/TASKPACK-ADOPTION-VERIFICATION-2026-10-09.md"
+      },
+      {
+        "content": "sha256:43291aa72cad99269509bc868b7f15d56856786ca1a479e23fba2ef6fe9bfa54",
+        "kind": "R",
+        "moved_from": "docs/current/UI-DESKTOP-RECONCILIATION-2026-10-09.md",
+        "path": "docs/history/archive-2026-10-19/current-records/UI-DESKTOP-RECONCILIATION-2026-10-09.md"
+      },
+      {
+        "content": "sha256:644198f3d9ffc800b78cfdc1f906190a36b258320791c50e0f7f83165638720e",
+        "kind": "R",
+        "moved_from": "docs/handoffs/DEEPSEEK-AUTHORITY-ACTIVATION-2026-09-14.md",
+        "path": "docs/history/archive-2026-10-19/handoffs/DEEPSEEK-AUTHORITY-ACTIVATION-2026-09-14.md"
+      },
+      {
+        "content": "sha256:ad3b40682351c69175369b5691a48685e9b03163cbc0ba031707124c2d1f1411",
+        "kind": "R",
+        "moved_from": "docs/handoffs/DEEPSEEK-DEEP-ADAPTATION-EXECUTION-2026-09-13.md",
+        "path": "docs/history/archive-2026-10-19/handoffs/DEEPSEEK-DEEP-ADAPTATION-EXECUTION-2026-09-13.md"
+      },
+      {
+        "content": "sha256:712818193a20e45f378bdfeb2c6eae118fb16143704c77fdb555dd2a5a638553",
+        "kind": "R",
+        "moved_from": "docs/handoffs/DEEPSEEK-OPEN-DESIGN-E3-READINESS-2026-09-13.md",
+        "path": "docs/history/archive-2026-10-19/handoffs/DEEPSEEK-OPEN-DESIGN-E3-READINESS-2026-09-13.md"
+      },
+      {
+        "content": "sha256:f524ee7c74aa58a6ccdc1f87e7824d7d524eb0ab4d855a52157fa341a4bff8c4",
+        "kind": "R",
+        "moved_from": "docs/handoffs/DEEPSEEK-RIGHTS-REFRESH-MINIMAX-H3-2026-09-13.md",
+        "path": "docs/history/archive-2026-10-19/handoffs/DEEPSEEK-RIGHTS-REFRESH-MINIMAX-H3-2026-09-13.md"
+      },
+      {
+        "content": "sha256:f79bb0210b8317f23383ff2adc61f76cba87f6724291e8eea1b9b7e492c46c68",
+        "kind": "R",
+        "moved_from": "docs/handoffs/DESIGN-LAB-AUDIT-ARCHITECTURE-WORKBENCH-20260922.md",
+        "path": "docs/history/archive-2026-10-19/handoffs/DESIGN-LAB-AUDIT-ARCHITECTURE-WORKBENCH-20260922.md"
+      },
+      {
+        "content": "sha256:15a4dfd458ced0b919c181651e624221c9f5338dcb927c594f1a2afabe1e0027",
+        "kind": "R",
+        "moved_from": "docs/handoffs/DESIGN-LAB-BRANCH-DISPOSITION-2026-09-23.md",
+        "path": "docs/history/archive-2026-10-19/handoffs/DESIGN-LAB-BRANCH-DISPOSITION-2026-09-23.md"
+      },
+      {
+        "content": "sha256:88c3659eb573213c29c39ec6f56d4635cf94730f2fa9d6c8d4bb63bf47bb8c74",
+        "kind": "R",
+        "moved_from": "docs/handoffs/DESIGN-LAB-BUNDLES-LIST-QUERY-ROUND-2026-09-28.md",
+        "path": "docs/history/archive-2026-10-19/handoffs/DESIGN-LAB-BUNDLES-LIST-QUERY-ROUND-2026-09-28.md"
+      },
+      {
+        "content": "sha256:3637f2b68c32240162b324d8c4cd4b8dfb0db62bf69e7a12301ca59a09605004",
+        "kind": "R",
+        "moved_from": "docs/handoffs/DESIGN-LAB-CLOUD-AUDIT-2026-09-25-CLOSURE-2026-09-26.md",
+        "path": "docs/history/archive-2026-10-19/handoffs/DESIGN-LAB-CLOUD-AUDIT-2026-09-25-CLOSURE-2026-09-26.md"
+      },
+      {
+        "content": "sha256:4574fde6983cb7dc6a417273c3288f1f1326f34e68d0cb95649fa051c53fe8b5",
+        "kind": "R",
+        "moved_from": "docs/handoffs/DESIGN-LAB-DRIFT-BRANCH-AUDIT-2026-09-22.md",
+        "path": "docs/history/archive-2026-10-19/handoffs/DESIGN-LAB-DRIFT-BRANCH-AUDIT-2026-09-22.md"
+      },
+      {
+        "content": "sha256:27d46355cef15e8a30e58e353e7fa3f2ab0e3edd0b863ea883d5fc0b48a34be8",
+        "kind": "R",
+        "moved_from": "docs/handoffs/DESIGN-LAB-FULL-EXECUTION-HANDOFF-2026-09-22.md",
+        "path": "docs/history/archive-2026-10-19/handoffs/DESIGN-LAB-FULL-EXECUTION-HANDOFF-2026-09-22.md"
+      },
+      {
+        "content": "sha256:91394f17dd91aded778f62eb302be70f4fe7c7816321fa116a9f79741d905374",
+        "kind": "R",
+        "moved_from": "docs/handoffs/DESIGN-LAB-NIGHT-CHECKPOINT-2026-09-07.md",
+        "path": "docs/history/archive-2026-10-19/handoffs/DESIGN-LAB-NIGHT-CHECKPOINT-2026-09-07.md"
+      },
+      {
+        "content": "sha256:1357fe960bf29c742b8154b1e4cf78755d3e8d5c2d9b5e1968b5d3d5a92c5301",
+        "kind": "R",
+        "moved_from": "docs/handoffs/DESIGN-LAB-P0-P1-MATURITY-HANDOFF-2026-09-20.md",
+        "path": "docs/history/archive-2026-10-19/handoffs/DESIGN-LAB-P0-P1-MATURITY-HANDOFF-2026-09-20.md"
+      },
+      {
+        "content": "sha256:bb459c6dac908bf106a5e5857ab631e136466080c399472c5ad8953e61d68df6",
+        "kind": "R",
+        "moved_from": "docs/handoffs/DESIGN-LAB-PROJECT-SURVEY-TRUTH-RESYNC-2026-09-27.md",
+        "path": "docs/history/archive-2026-10-19/handoffs/DESIGN-LAB-PROJECT-SURVEY-TRUTH-RESYNC-2026-09-27.md"
+      },
+      {
+        "content": "sha256:3d509f2bec5db2dff259e8ab66d8615d33571b3a982e4470a31b0574ce1bf911",
+        "kind": "R",
+        "moved_from": "docs/handoffs/DESIGN-LAB-R3-HANDOFF-2026-09-07.md",
+        "path": "docs/history/archive-2026-10-19/handoffs/DESIGN-LAB-R3-HANDOFF-2026-09-07.md"
+      },
+      {
+        "content": "sha256:43de5a8cfc1d8e75c676125de93b5187c0f4fa29d0f1923a6782d2d033edc731",
+        "kind": "R",
+        "moved_from": "docs/handoffs/DESIGN-LAB-REAUDIT-20260915-HANDOFF.md",
+        "path": "docs/history/archive-2026-10-19/handoffs/DESIGN-LAB-REAUDIT-20260915-HANDOFF.md"
+      },
+      {
+        "content": "sha256:921e8e469abf52d44ded71840560479c15aff137c054b8acee8457335a8e3f5f",
+        "kind": "R",
+        "moved_from": "docs/handoffs/DESIGN-LAB-REAUDIT-20260916-CLOSURE-HANDOFF.md",
+        "path": "docs/history/archive-2026-10-19/handoffs/DESIGN-LAB-REAUDIT-20260916-CLOSURE-HANDOFF.md"
+      },
+      {
+        "content": "sha256:68c197a44c315a3882c7cb07f47938633b71f3fb7856df1a458d231056f80dc5",
+        "kind": "R",
+        "moved_from": "docs/handoffs/DESIGN-LAB-SESSION-HANDOFF-2026-10-06B.md",
+        "path": "docs/history/archive-2026-10-19/handoffs/DESIGN-LAB-SESSION-HANDOFF-2026-10-06B.md"
+      },
+      {
+        "content": "sha256:32d25fd4ea0cbfec03343f7f47e84240407c3a2938bfb947beb22b4cfda1957f",
+        "kind": "R",
+        "moved_from": "docs/handoffs/DESIGN-LAB-SESSION-HANDOFF-2026-10-07.md",
+        "path": "docs/history/archive-2026-10-19/handoffs/DESIGN-LAB-SESSION-HANDOFF-2026-10-07.md"
+      },
+      {
+        "content": "sha256:a57536f33be93db5ff338f88565f9a08222d93d2d8fcfed0c473691f52e02a7f",
+        "kind": "R",
+        "moved_from": "docs/handoffs/DESIGN-LAB-SESSION-HANDOFF-2026-10-08.md",
+        "path": "docs/history/archive-2026-10-19/handoffs/DESIGN-LAB-SESSION-HANDOFF-2026-10-08.md"
+      },
+      {
+        "content": "sha256:7c00c52795b686768df6501b2d5cf2b602f98a21b820c193755c8e1f00a0767a",
+        "kind": "R",
+        "moved_from": "docs/handoffs/DESIGN-LAB-SESSION-HANDOFF-2026-10-09.md",
+        "path": "docs/history/archive-2026-10-19/handoffs/DESIGN-LAB-SESSION-HANDOFF-2026-10-09.md"
+      },
+      {
+        "content": "sha256:b01f9fc3249e1a936b92e5d45dc423c616035a6fce379e1f711f65914115aa0a",
+        "kind": "R",
+        "moved_from": "docs/handoffs/DESIGN-LAB-SPILL-SLIM-CLOSURE-2026-09-22.md",
+        "path": "docs/history/archive-2026-10-19/handoffs/DESIGN-LAB-SPILL-SLIM-CLOSURE-2026-09-22.md"
+      },
+      {
+        "content": "sha256:40062b260a342112f8c43efee908dd8fd33d1f925cdb36576b937d44f2318562",
+        "kind": "R",
+        "moved_from": "docs/handoffs/DESIGN-LAB-UCR-CONVERGENCE-20260918-HANDOFF.md",
+        "path": "docs/history/archive-2026-10-19/handoffs/DESIGN-LAB-UCR-CONVERGENCE-20260918-HANDOFF.md"
+      },
+      {
+        "content": "sha256:b7129584cc44cdb61540560de6776935523e9fa389e48c5188364f7c35d6b568",
+        "kind": "R",
+        "moved_from": "docs/handoffs/DESIGN-LAB-UI-AUDIT-CONVERGENCE-2026-09-22.md",
+        "path": "docs/history/archive-2026-10-19/handoffs/DESIGN-LAB-UI-AUDIT-CONVERGENCE-2026-09-22.md"
+      },
+      {
+        "content": "sha256:fcf136c74343f47508e2560720e617692b1f3b9db9652084271ce0491aa5fa4f",
+        "kind": "R",
+        "moved_from": "docs/handoffs/DESIGN-LAB-UIKIT-CONFORMANCE-ROUND-2026-09-28.md",
+        "path": "docs/history/archive-2026-10-19/handoffs/DESIGN-LAB-UIKIT-CONFORMANCE-ROUND-2026-09-28.md"
+      },
+      {
+        "content": "sha256:3b12fd5f7ce4bfa6b34e9807bfa199bc671b2fdad660350d70ecd855c4a99ea1",
+        "kind": "R",
+        "moved_from": "docs/handoffs/DESIGN-LAB-WORKBENCH-VISUAL-AUDIT-HANDOFF-2026-10-06.md",
+        "path": "docs/history/archive-2026-10-19/handoffs/DESIGN-LAB-WORKBENCH-VISUAL-AUDIT-HANDOFF-2026-10-06.md"
+      },
+      {
+        "content": "sha256:cdad72b8171c082d487d7ffc1be283a8cd65afc3c8f1322f4bb2d5c5c52f2b25",
+        "kind": "R",
+        "moved_from": "docs/handoffs/GPT-R3-REVISION-HANDOFF-2026-09-06.md",
+        "path": "docs/history/archive-2026-10-19/handoffs/GPT-R3-REVISION-HANDOFF-2026-09-06.md"
+      },
+      {
+        "content": "sha256:bc0a12ba1963a1a39888d0e41cda2e7abfe741b8ed9fb08bfb66106e37e0b9a0",
+        "kind": "R",
+        "moved_from": "docs/handoffs/R5-ATOMIC-BUNDLE-2026-09-09.md",
+        "path": "docs/history/archive-2026-10-19/handoffs/R5-ATOMIC-BUNDLE-2026-09-09.md"
+      },
+      {
+        "content": "sha256:be71090bff53d4eaa2238bf3f0d3441c0f9feb85d3f71617270245502d3d39f7",
+        "kind": "R",
+        "moved_from": "docs/handoffs/R5-BROWSER-ILLUSTRATOR-REAL-2026-09-09.md",
+        "path": "docs/history/archive-2026-10-19/handoffs/R5-BROWSER-ILLUSTRATOR-REAL-2026-09-09.md"
+      },
+      {
+        "content": "sha256:2730f19b88c73f7c9df0f57f6cbab5c72bb82bafe022ad3c7b3fad24d7b4bf2d",
+        "kind": "R",
+        "moved_from": "docs/handoffs/R5-BROWSER-PATCH-2026-09-09.md",
+        "path": "docs/history/archive-2026-10-19/handoffs/R5-BROWSER-PATCH-2026-09-09.md"
+      },
+      {
+        "content": "sha256:7f7140003c31287f99fc68fb7ada7666f241234ab8e0e40ab8eeaa5bf97e3bd9",
+        "kind": "R",
+        "moved_from": "docs/handoffs/R5-BROWSER-PLAN-CANCEL-2026-09-09.md",
+        "path": "docs/history/archive-2026-10-19/handoffs/R5-BROWSER-PLAN-CANCEL-2026-09-09.md"
+      },
+      {
+        "content": "sha256:76613f97c138d3dbb9dd859e1fa21927d9c930909836ab7fc58328465b66815a",
+        "kind": "R",
+        "moved_from": "docs/handoffs/R5-BUNDLE-FONT-INVENTORY-2026-09-09.md",
+        "path": "docs/history/archive-2026-10-19/handoffs/R5-BUNDLE-FONT-INVENTORY-2026-09-09.md"
+      },
+      {
+        "content": "sha256:3132a041280a5fdaeeda2078824aa4def150c82b5d65b9a8e1a9321a520be637",
+        "kind": "R",
+        "moved_from": "docs/handoffs/R5-CI-FIRST-FULL-REGRESSION-2026-09-09.md",
+        "path": "docs/history/archive-2026-10-19/handoffs/R5-CI-FIRST-FULL-REGRESSION-2026-09-09.md"
+      },
+      {
+        "content": "sha256:873c4f1c2221c2014875c888ad90a90d27a7e90caaa4724b044a7d018f9290c4",
+        "kind": "R",
+        "moved_from": "docs/handoffs/R5-COMFY-FINGERPRINT-GATE-2026-09-09.md",
+        "path": "docs/history/archive-2026-10-19/handoffs/R5-COMFY-FINGERPRINT-GATE-2026-09-09.md"
+      },
+      {
+        "content": "sha256:63467d9d70d17e6b6ba23c03f178ec174bd2151994590ca08b342dec79701480",
+        "kind": "R",
+        "moved_from": "docs/handoffs/R5-COMFY-HTTP-LIVE-2026-09-09.md",
+        "path": "docs/history/archive-2026-10-19/handoffs/R5-COMFY-HTTP-LIVE-2026-09-09.md"
+      },
+      {
+        "content": "sha256:6c9ba1ac5a365b834103307ccd2987b1c35c5a23bd7cb9255a77a3cbacf7fa4f",
+        "kind": "R",
+        "moved_from": "docs/handoffs/R5-COMFY-HTTP-TRANSPORT-2026-09-09.md",
+        "path": "docs/history/archive-2026-10-19/handoffs/R5-COMFY-HTTP-TRANSPORT-2026-09-09.md"
+      },
+      {
+        "content": "sha256:81c7b56fe2ceb3d6ccc703036b0379a1d1a66a614c0540d881d934fa8883d83f",
+        "kind": "R",
+        "moved_from": "docs/handoffs/R5-COMFY-PRODUCTION-INTAKE-2026-09-09.md",
+        "path": "docs/history/archive-2026-10-19/handoffs/R5-COMFY-PRODUCTION-INTAKE-2026-09-09.md"
+      },
+      {
+        "content": "sha256:16a80b2823d81166061b6b7c4d5c900f62cc6c1cc8174081ac22733fdfe47c10",
+        "kind": "R",
+        "moved_from": "docs/handoffs/R5-COMFY-STRUCTURAL-REJECTION-2026-09-09.md",
+        "path": "docs/history/archive-2026-10-19/handoffs/R5-COMFY-STRUCTURAL-REJECTION-2026-09-09.md"
+      },
+      {
+        "content": "sha256:38e96b4471fa66d7f6ebdd70c3fef04af6262f46d6bdc8e459e24c69e574e723",
+        "kind": "R",
+        "moved_from": "docs/handoffs/R5-COMFY-WHEEL-SMOKE-2026-09-09.md",
+        "path": "docs/history/archive-2026-10-19/handoffs/R5-COMFY-WHEEL-SMOKE-2026-09-09.md"
+      },
+      {
+        "content": "sha256:e01a1e8ca06c22d90212112ff75ea35c4de3de0b975f9c29fade5b6f521bf26b",
+        "kind": "R",
+        "moved_from": "docs/handoffs/R5-CURRENT-CONTINUATION-2026-09-09.md",
+        "path": "docs/history/archive-2026-10-19/handoffs/R5-CURRENT-CONTINUATION-2026-09-09.md"
+      },
+      {
+        "content": "sha256:9f066cd8fe851e76a96a68f1a5d44ed80dca9adabb6066625937bc35653898e4",
+        "kind": "R",
+        "moved_from": "docs/handoffs/R5-FULL-REGRESSION-VERBOSE-2026-09-09.md",
+        "path": "docs/history/archive-2026-10-19/handoffs/R5-FULL-REGRESSION-VERBOSE-2026-09-09.md"
+      },
+      {
+        "content": "sha256:0dc75f413398386633836516b761d29ee6fbe605ff56e0843d1262485495e0bd",
+        "kind": "R",
+        "moved_from": "docs/handoffs/R5-HTTP-INTERMITTENT-DIAGNOSIS-2026-09-09.md",
+        "path": "docs/history/archive-2026-10-19/handoffs/R5-HTTP-INTERMITTENT-DIAGNOSIS-2026-09-09.md"
+      },
+      {
+        "content": "sha256:89e6352e6c77703be3adee790b3ce87379f5c82b90c6fd5ed8545ed81f542d63",
+        "kind": "R",
+        "moved_from": "docs/handoffs/R5-INSTALLED-LIST-FIX-2026-09-09.md",
+        "path": "docs/history/archive-2026-10-19/handoffs/R5-INSTALLED-LIST-FIX-2026-09-09.md"
+      },
+      {
+        "content": "sha256:8aa6628ba9b8b55535daf1da27196ea9086d1190121924d93a24e69164d7d9a0",
+        "kind": "R",
+        "moved_from": "docs/handoffs/R5-INSTALLED-PLAN-UPGRADE-2026-09-09.md",
+        "path": "docs/history/archive-2026-10-19/handoffs/R5-INSTALLED-PLAN-UPGRADE-2026-09-09.md"
+      },
+      {
+        "content": "sha256:0d48f20f68dcf5697ecb7c594c9048433f24a75b4d800e6fb36e89302a901b4a",
+        "kind": "R",
+        "moved_from": "docs/handoffs/R5-INSTALLED-QUEUE-SMOKE-2026-09-09.md",
+        "path": "docs/history/archive-2026-10-19/handoffs/R5-INSTALLED-QUEUE-SMOKE-2026-09-09.md"
+      },
+      {
+        "content": "sha256:a15d0b732af081e5d11d69c9ead50810a6a454114ec67c53e20bdb200d3c4204",
+        "kind": "R",
+        "moved_from": "docs/handoffs/R5-NATIVE-PATCH-PLAN-2026-09-09.md",
+        "path": "docs/history/archive-2026-10-19/handoffs/R5-NATIVE-PATCH-PLAN-2026-09-09.md"
+      },
+      {
+        "content": "sha256:835657eb11cfae5cdbb287f9efe614d9e18971023e42267f9261abc39a28112c",
+        "kind": "R",
+        "moved_from": "docs/handoffs/R5-NATIVE-PLAN-INTAKE-2026-09-09.md",
+        "path": "docs/history/archive-2026-10-19/handoffs/R5-NATIVE-PLAN-INTAKE-2026-09-09.md"
+      },
+      {
+        "content": "sha256:d8eae21dde549d699fc2309b469de447c5cad8e78f6cf882832a21349d0a3c07",
+        "kind": "R",
+        "moved_from": "docs/handoffs/R5-PERSISTED-NATIVE-RECOVERY-2026-09-09.md",
+        "path": "docs/history/archive-2026-10-19/handoffs/R5-PERSISTED-NATIVE-RECOVERY-2026-09-09.md"
+      },
+      {
+        "content": "sha256:5f2e02644de6f10ef68a8ae6ca0929f22f4c373c72e5dc09b599c46200b5e3e2",
+        "kind": "R",
+        "moved_from": "docs/handoffs/R5-PHOTOSHOP-COMPLEX-NATIVE-SUCCESS-2026-09-09.md",
+        "path": "docs/history/archive-2026-10-19/handoffs/R5-PHOTOSHOP-COMPLEX-NATIVE-SUCCESS-2026-09-09.md"
+      },
+      {
+        "content": "sha256:920b76bbb3550e081c79bef8382c75f0b2eb439500feb6a766efa41f1a872cc6",
+        "kind": "R",
+        "moved_from": "docs/handoffs/R5-PHOTOSHOP-COMPLEX-RETRY-2026-09-09.md",
+        "path": "docs/history/archive-2026-10-19/handoffs/R5-PHOTOSHOP-COMPLEX-RETRY-2026-09-09.md"
+      },
+      {
+        "content": "sha256:12c7142d8c75c477dc4e0695e614feb76340cf1d16d78197769d7b72fe165d4a",
+        "kind": "R",
+        "moved_from": "docs/handoffs/R5-PHOTOSHOP-FULL-REGRESSION-2026-09-09.md",
+        "path": "docs/history/archive-2026-10-19/handoffs/R5-PHOTOSHOP-FULL-REGRESSION-2026-09-09.md"
+      },
+      {
+        "content": "sha256:e620b3491d0b89a42310dc7baf9404a983acbf4f3f5e32ab40f34ab0c957bfa8",
+        "kind": "R",
+        "moved_from": "docs/handoffs/R5-PHOTOSHOP-INSTALLED-BUNDLE-2026-09-09.md",
+        "path": "docs/history/archive-2026-10-19/handoffs/R5-PHOTOSHOP-INSTALLED-BUNDLE-2026-09-09.md"
+      },
+      {
+        "content": "sha256:23eafcea6284aa44107ed3d9ede02974689f1c6aecbe0e6b85b549a42ee50059",
+        "kind": "R",
+        "moved_from": "docs/handoffs/R5-PHOTOSHOP-PATCH-PRODUCT-2026-09-09.md",
+        "path": "docs/history/archive-2026-10-19/handoffs/R5-PHOTOSHOP-PATCH-PRODUCT-2026-09-09.md"
+      },
+      {
+        "content": "sha256:6a6af6ddcef55b302f4dbf0396cef861063126e1131428c0f63f5518b802ff6a",
+        "kind": "R",
+        "moved_from": "docs/handoffs/R5-PHOTOSHOP-QUIESCENCE-2026-09-09.md",
+        "path": "docs/history/archive-2026-10-19/handoffs/R5-PHOTOSHOP-QUIESCENCE-2026-09-09.md"
+      },
+      {
+        "content": "sha256:03ac079840804e64389e03a3789196dec10f746ac41bfeb3bd7f43d47da1e18b",
+        "kind": "R",
+        "moved_from": "docs/handoffs/R5-PHOTOSHOP-REAL-BROWSER-PATCH-2026-09-09.md",
+        "path": "docs/history/archive-2026-10-19/handoffs/R5-PHOTOSHOP-REAL-BROWSER-PATCH-2026-09-09.md"
+      },
+      {
+        "content": "sha256:259ace1b2cd700cada67b275de135d1b7c2a09cb5cff11e04e07dc2ce26bd1fd",
+        "kind": "R",
+        "moved_from": "docs/handoffs/R5-PHOTOSHOP-STAGE-DIAGNOSTICS-2026-09-09.md",
+        "path": "docs/history/archive-2026-10-19/handoffs/R5-PHOTOSHOP-STAGE-DIAGNOSTICS-2026-09-09.md"
+      },
+      {
+        "content": "sha256:99f4e662d750b75a35a6ed05470adc2cdb272bc4cf0143fbad7eb7f0ae25f726",
+        "kind": "R",
+        "moved_from": "docs/handoffs/R5-REFERENCE-RIGHTS-RECHECK-2026-09-09.md",
+        "path": "docs/history/archive-2026-10-19/handoffs/R5-REFERENCE-RIGHTS-RECHECK-2026-09-09.md"
+      },
+      {
+        "content": "sha256:d81ddeea53906f0f710b8c8b14aac3d6202ce531db3b3e599ce5dd2d2608c1f7",
+        "kind": "R",
+        "moved_from": "docs/handoffs/R5-WORKBENCH-CANCELLATION-2026-09-09.md",
+        "path": "docs/history/archive-2026-10-19/handoffs/R5-WORKBENCH-CANCELLATION-2026-09-09.md"
+      },
+      {
+        "content": "sha256:49cbf326baec92a941ed7d3b18389360fc81bce3de1a61be8c627f183d45e7f5",
+        "kind": "R",
+        "moved_from": "docs/handoffs/R5-WORKBENCH-LIST-RACES-2026-09-09.md",
+        "path": "docs/history/archive-2026-10-19/handoffs/R5-WORKBENCH-LIST-RACES-2026-09-09.md"
+      },
+      {
+        "content": "sha256:0020d454fd5a98dc72c1a74f4f36769e64a8a83ce36b1ca71f8bda70c9c5a6f8",
+        "kind": "R",
+        "moved_from": "docs/handoffs/SESSION-RESTART-2026-09-12.md",
+        "path": "docs/history/archive-2026-10-19/handoffs/SESSION-RESTART-2026-09-12.md"
+      },
+      {
+        "content": "sha256:bccd5c04ae0b2fe0aab58f1ede1228266975dfc43343bc8ce4b81fede60dcc22",
+        "kind": "R",
+        "moved_from": "docs/handoffs/deepseek-r3-20260906-v2/00-input-baseline.json",
+        "path": "docs/history/archive-2026-10-19/handoffs/deepseek-r3-20260906-v2/00-input-baseline.json"
+      },
+      {
+        "content": "sha256:ac6d41f9ad79511bebeb3c1e8f96f318945454c7bd4d0f1d5d8b078d8b048948",
+        "kind": "R",
+        "moved_from": "docs/handoffs/deepseek-r3-20260906-v2/01-requirements-matrix.json",
+        "path": "docs/history/archive-2026-10-19/handoffs/deepseek-r3-20260906-v2/01-requirements-matrix.json"
+      },
+      {
+        "content": "sha256:a65242440daee289ed03b5b0bdb2ff0b2c76f12a5a167ae489ac6a801b3ec610",
+        "kind": "R",
+        "moved_from": "docs/handoffs/deepseek-r3-20260906-v2/02-capability-corrections.json",
+        "path": "docs/history/archive-2026-10-19/handoffs/deepseek-r3-20260906-v2/02-capability-corrections.json"
+      },
+      {
+        "content": "sha256:edc1c6040a2ac1ae4cad2ba66aeede4a67c7fd43fe4a593cbd4957c786e3786d",
+        "kind": "R",
+        "moved_from": "docs/handoffs/deepseek-r3-20260906-v2/03-history-locator-corrections.json",
+        "path": "docs/history/archive-2026-10-19/handoffs/deepseek-r3-20260906-v2/03-history-locator-corrections.json"
+      },
+      {
+        "content": "sha256:bdaa7099194deb6fe7313e373cd834673e746da7a52406fd5eb300ef1aa868c5",
+        "kind": "R",
+        "moved_from": "docs/handoffs/deepseek-r3-20260906-v2/04-reference-candidates.json",
+        "path": "docs/history/archive-2026-10-19/handoffs/deepseek-r3-20260906-v2/04-reference-candidates.json"
+      },
+      {
+        "content": "sha256:5510b64391bcd78c769750fe45caa3092365370cc973c1fea7f9782596ac5764",
+        "kind": "R",
+        "moved_from": "docs/handoffs/deepseek-r3-20260906-v2/04-reference-exclusions.json",
+        "path": "docs/history/archive-2026-10-19/handoffs/deepseek-r3-20260906-v2/04-reference-exclusions.json"
+      },
+      {
+        "content": "sha256:411a0411848cd1a63d03df73866456c68a12cb40a5607582e87d215ebd67b884",
+        "kind": "R",
+        "moved_from": "docs/handoffs/deepseek-r3-20260906-v2/05-DP-RETURN.md",
+        "path": "docs/history/archive-2026-10-19/handoffs/deepseek-r3-20260906-v2/05-DP-RETURN.md"
+      },
+      {
+        "content": "sha256:968071cc6e0a4732a6bd0c9631c5c27c53454094ffce9ec258b309c37f80db88",
+        "kind": "R",
+        "moved_from": "docs/handoffs/deepseek-r3-20260906-v2/05-results.json",
+        "path": "docs/history/archive-2026-10-19/handoffs/deepseek-r3-20260906-v2/05-results.json"
+      },
+      {
+        "content": "sha256:c18bc5bee48224ad860541696fbdf94fb280136e1ebeb6ffb3c551e8885281f6",
+        "kind": "R",
+        "moved_from": "docs/handoffs/deepseek-r3-20260906-v2/SHA256SUMS.txt",
+        "path": "docs/history/archive-2026-10-19/handoffs/deepseek-r3-20260906-v2/SHA256SUMS.txt"
+      },
+      {
+        "content": "sha256:5b1d9f558e67a7cd619cd26694529176af6a5a077973a288fe450cc875101ae0",
+        "kind": "R",
+        "moved_from": "docs/handoffs/deepseek-r3-20260906/01-requirements-matrix.json",
+        "path": "docs/history/archive-2026-10-19/handoffs/deepseek-r3-20260906/01-requirements-matrix.json"
+      },
+      {
+        "content": "sha256:fb582cb402d096c1c6a5f7b31fbfb45a926cacc48be47f851a57f97b54b480d2",
+        "kind": "R",
+        "moved_from": "docs/handoffs/deepseek-r3-20260906/02-history-locators.json",
+        "path": "docs/history/archive-2026-10-19/handoffs/deepseek-r3-20260906/02-history-locators.json"
+      },
+      {
+        "content": "sha256:17adf222513760e255484208add86aa829e79ae3da098a5aa4f8db91fce7d64b",
+        "kind": "R",
+        "moved_from": "docs/handoffs/deepseek-r3-20260906/03-history-crosswalk.json",
+        "path": "docs/history/archive-2026-10-19/handoffs/deepseek-r3-20260906/03-history-crosswalk.json"
+      },
+      {
+        "content": "sha256:9977e98860c80d578c10f462a57c124ff5e972f284fc64f6d95b8f3a4dfab1d2",
+        "kind": "R",
+        "moved_from": "docs/handoffs/deepseek-r3-20260906/04-path-link-findings.json",
+        "path": "docs/history/archive-2026-10-19/handoffs/deepseek-r3-20260906/04-path-link-findings.json"
+      },
+      {
+        "content": "sha256:5d2cc9ee1bb9b8527d57882d84c44a8fd404502540fab632e600a15476349ad6",
+        "kind": "R",
+        "moved_from": "docs/handoffs/deepseek-r3-20260906/05-ci-proposal.md",
+        "path": "docs/history/archive-2026-10-19/handoffs/deepseek-r3-20260906/05-ci-proposal.md"
+      },
+      {
+        "content": "sha256:418038a9f7e9ca6aeca1f383c3e9998bf774109b0f5f225da9f5be97db270a08",
+        "kind": "R",
+        "moved_from": "docs/handoffs/deepseek-r3-20260906/05-ci-trigger-matrix.json",
+        "path": "docs/history/archive-2026-10-19/handoffs/deepseek-r3-20260906/05-ci-trigger-matrix.json"
+      },
+      {
+        "content": "sha256:e83193f57672847c5acb0c9da7b7ced0d07cb6b6d7ecc22806c4576d210c370c",
+        "kind": "R",
+        "moved_from": "docs/handoffs/deepseek-r3-20260906/06-test-evidence-catalog.json",
+        "path": "docs/history/archive-2026-10-19/handoffs/deepseek-r3-20260906/06-test-evidence-catalog.json"
+      },
+      {
+        "content": "sha256:78b620adbbafe22801ba00cc3b140c8a1fd809fde30f78e4c60831781d918a72",
+        "kind": "R",
+        "moved_from": "docs/handoffs/deepseek-r3-20260906/07-capability-evidence-gaps.json",
+        "path": "docs/history/archive-2026-10-19/handoffs/deepseek-r3-20260906/07-capability-evidence-gaps.json"
+      },
+      {
+        "content": "sha256:6e2ca848fefb8479215b66840c033f268e854b829c2c02a97ee18aa3edfb167b",
+        "kind": "R",
+        "moved_from": "docs/handoffs/deepseek-r3-20260906/08-reconstruction-acceptance.md",
+        "path": "docs/history/archive-2026-10-19/handoffs/deepseek-r3-20260906/08-reconstruction-acceptance.md"
+      },
+      {
+        "content": "sha256:dfd1153d4c7849b94c5ddea588e2a71ef8265a378816f9f1ee3a5c983ab2903d",
+        "kind": "R",
+        "moved_from": "docs/handoffs/deepseek-r3-20260906/08-reference-candidates.json",
+        "path": "docs/history/archive-2026-10-19/handoffs/deepseek-r3-20260906/08-reference-candidates.json"
+      },
+      {
+        "content": "sha256:c0d72ffd8925179555bae740fa12d97d39846420c96ef5335b0981639cba935a",
+        "kind": "R",
+        "moved_from": "docs/handoffs/deepseek-r3-20260906/09-existing-interfaces.json",
+        "path": "docs/history/archive-2026-10-19/handoffs/deepseek-r3-20260906/09-existing-interfaces.json"
+      },
+      {
+        "content": "sha256:857425319637cdd0c42559cd0b02d45373d45e6d9a966226c07d27b4a1bd3578",
+        "kind": "R",
+        "moved_from": "docs/handoffs/deepseek-r3-20260906/09-operator-runbook.md",
+        "path": "docs/history/archive-2026-10-19/handoffs/deepseek-r3-20260906/09-operator-runbook.md"
+      },
+      {
+        "content": "sha256:32c30011b9593fc11e976e3837549faee274c70ff1df0eae0e4c7d6f057352f8",
+        "kind": "R",
+        "moved_from": "docs/handoffs/deepseek-r3-20260906/10-report-consistency.json",
+        "path": "docs/history/archive-2026-10-19/handoffs/deepseek-r3-20260906/10-report-consistency.json"
+      },
+      {
+        "content": "sha256:d5db6fc8ed5cb13c9a631d808f54a531cb94bc5813d0f044e285e08798472b0b",
+        "kind": "R",
+        "moved_from": "docs/handoffs/deepseek-r3-20260906/11-delivery-checklist.md",
+        "path": "docs/history/archive-2026-10-19/handoffs/deepseek-r3-20260906/11-delivery-checklist.md"
+      },
+      {
+        "content": "sha256:0ce5d7e289dc4490acafdecc00157df9ee4f6f1db56cfab9ddb7e00337153c4a",
+        "kind": "R",
+        "moved_from": "docs/handoffs/deepseek-r3-20260906/11-repository-maintenance.json",
+        "path": "docs/history/archive-2026-10-19/handoffs/deepseek-r3-20260906/11-repository-maintenance.json"
+      },
+      {
+        "content": "sha256:cca1fe6b62a05969748fc283bc986f08fb8cc494cd175a6312cecace6a1fc03b",
+        "kind": "R",
+        "moved_from": "docs/handoffs/deepseek-r3-20260906/12-DEEPSEEK-RETURN.md",
+        "path": "docs/history/archive-2026-10-19/handoffs/deepseek-r3-20260906/12-DEEPSEEK-RETURN.md"
+      },
+      {
+        "content": "sha256:02746f731f5e6e4797874e911f5b512727f645fd3ebdbee31acafee0692a687e",
+        "kind": "R",
+        "moved_from": "docs/handoffs/deepseek-r3-20260906/12-results.json",
+        "path": "docs/history/archive-2026-10-19/handoffs/deepseek-r3-20260906/12-results.json"
+      },
+      {
+        "content": "sha256:17ec2f5e717fb79d98e5ae73229c5cb812fc01b645077245aeda25fa16804bd6",
+        "kind": "R",
+        "moved_from": "docs/plans/WORKBENCH-ENTRY-2026-09-08.md",
+        "path": "docs/history/archive-2026-10-19/plans/WORKBENCH-ENTRY-2026-09-08.md"
+      },
+      {
+        "content": "sha256:1401d993a0d22e7537f8650468aa5a1f4562417278eda98045fd81778a2e0217",
+        "kind": "R",
+        "moved_from": "docs/research/MMD-001-minimax-design-adapter-research.md",
+        "path": "docs/history/archive-2026-10-19/research/MMD-001-minimax-design-adapter-research.md"
+      },
+      {
+        "content": "sha256:1b306854de36c77614ac958d2a6347f734640d6a1281f3e2dc0fd62498cc44c9",
+        "kind": "R",
+        "moved_from": "docs/research/ai-design-intent-enhancement-report.md",
+        "path": "docs/history/archive-2026-10-19/research/ai-design-intent-enhancement-report.md"
+      },
+      {
+        "content": "sha256:f4e4ec8b005ce7ea08e74c559efe5a27bdce1ca934fc63e0ac7a2571a2462b57",
+        "kind": "R",
+        "moved_from": "docs/research/exhibition-design-enhancement-report.md",
+        "path": "docs/history/archive-2026-10-19/research/exhibition-design-enhancement-report.md"
+      },
+      {
+        "content": "sha256:8e6e1d54c3b1f2956796e2793a1ed706b8649e2fcd108662fe5373f81746b09a",
+        "kind": "R",
+        "moved_from": "docs/research/full-maturity-audit-2026-09-19.md",
+        "path": "docs/history/archive-2026-10-19/research/full-maturity-audit-2026-09-19.md"
+      },
+      {
+        "content": "sha256:9aaed717c896941fa40b886c674dcc9f5a002f140ed6396e3ac75210fed074ca",
+        "kind": "R",
+        "moved_from": "docs/research/open-design-skill-catalog.md",
+        "path": "docs/history/archive-2026-10-19/research/open-design-skill-catalog.md"
+      },
+      {
+        "content": "sha256:5a8645df022ff5f0ae5972b975d0a422cf5baa92d5bebd702cf619842c1a556e",
+        "kind": "R",
+        "moved_from": "docs/superpowers/plans/2026-08-22-pixel-perfect-vector-reconstruction-index.md",
+        "path": "docs/history/archive-2026-10-19/superpowers/plans/2026-08-22-pixel-perfect-vector-reconstruction-index.md"
+      },
+      {
+        "content": "sha256:97842ba7a61ea2507c6c1366cbf3fe33b02886b6ff09a57aca73bd4a829c196b",
+        "kind": "R",
+        "moved_from": "docs/superpowers/plans/2026-08-22-vector-reconstruction-adobe-adapters.md",
+        "path": "docs/history/archive-2026-10-19/superpowers/plans/2026-08-22-vector-reconstruction-adobe-adapters.md"
+      },
+      {
+        "content": "sha256:cfa4abacdbd8e8a93015854b0d908733ae9726f867e5604e95c34954c88a55d2",
+        "kind": "R",
+        "moved_from": "docs/superpowers/plans/2026-08-22-vector-reconstruction-ai-decomposition.md",
+        "path": "docs/history/archive-2026-10-19/superpowers/plans/2026-08-22-vector-reconstruction-ai-decomposition.md"
+      },
+      {
+        "content": "sha256:4faf3ed5c9b7adc908d22c648893a812c919429356d9ad09ee7bac32f423636b",
+        "kind": "R",
+        "moved_from": "docs/superpowers/plans/2026-08-22-vector-reconstruction-deterministic-core.md",
+        "path": "docs/history/archive-2026-10-19/superpowers/plans/2026-08-22-vector-reconstruction-deterministic-core.md"
+      },
+      {
+        "content": "sha256:0a6045b34acf8d1f19499db08161dedcfed3648976551fa2e73dd456952c1042",
+        "kind": "R",
+        "moved_from": "docs/superpowers/plans/2026-08-22-vector-reconstruction-hardening-release.md",
+        "path": "docs/history/archive-2026-10-19/superpowers/plans/2026-08-22-vector-reconstruction-hardening-release.md"
+      },
+      {
+        "content": "sha256:e4d98d9eeb2104bb1048b6067e542c6b04d70ed8b95fca7872738a4d8d2be19c",
+        "kind": "R",
+        "moved_from": "docs/superpowers/plans/2026-08-23-pixel-perfect-vector-reconstruction-execution-rulings.md",
+        "path": "docs/history/archive-2026-10-19/superpowers/plans/2026-08-23-pixel-perfect-vector-reconstruction-execution-rulings.md"
+      },
+      {
+        "content": "sha256:2748706d3069022faf6a603f6fcb2de57e9d598518b2067d1d19e813573cd88b",
+        "kind": "R",
+        "moved_from": "docs/superpowers/plans/2026-09-08-native-task-execution.md",
+        "path": "docs/history/archive-2026-10-19/superpowers/plans/2026-09-08-native-task-execution.md"
+      },
+      {
+        "content": "sha256:976d0c6eeb764478427bdc73c90d8b6765911e43eb4ac6b9d95bdc9318c4e267",
+        "kind": "R",
+        "moved_from": "docs/superpowers/plans/2026-09-09-r5-ledger-migration.md",
+        "path": "docs/history/archive-2026-10-19/superpowers/plans/2026-09-09-r5-ledger-migration.md"
+      },
+      {
+        "content": "sha256:7047d35bb4c165a89d383043872b0564f71e0c59fb55f13e1b30f2b504aceb82",
+        "kind": "R",
+        "moved_from": "docs/superpowers/specs/2026-08-22-pixel-perfect-vector-reconstruction-design.md",
+        "path": "docs/history/archive-2026-10-19/superpowers/specs/2026-08-22-pixel-perfect-vector-reconstruction-design.md"
+      },
+      {
+        "content": "sha256:4bb7f6e45ace55264c8f791b054dbcc47f3763c805463d7221f5fb54a1c054f3",
+        "kind": "R",
+        "moved_from": "docs/taskpacks/03_DESIGN-LAB_完整项目描述与未来蓝图_20261006.docx",
+        "path": "docs/history/archive-2026-10-19/taskpacks/03_DESIGN-LAB_完整项目描述与未来蓝图_20261006.docx"
+      },
+      {
+        "content": "sha256:d928f07822e8089750a860e398b554b552747487e6def1967b502bba97a98193",
+        "kind": "R",
+        "moved_from": "docs/taskpacks/03_DESIGN-LAB_完整项目描述与未来蓝图_20261006.docx.license",
+        "path": "docs/history/archive-2026-10-19/taskpacks/03_DESIGN-LAB_完整项目描述与未来蓝图_20261006.docx.license"
+      },
+      {
+        "content": "sha256:4cc801435bb777b2708b4f9d4d5f979be47715792a056d210aacdedb7fe1cd6e",
+        "kind": "R",
+        "moved_from": "docs/taskpacks/03_DESIGN-LAB_权威修复_双端描述同步_可审计执行提示词_20261006.txt",
+        "path": "docs/history/archive-2026-10-19/taskpacks/03_DESIGN-LAB_权威修复_双端描述同步_可审计执行提示词_20261006.txt"
+      },
+      {
+        "content": "sha256:a81d067f5df643cb3ff5d60b9751f7b5d7168e52741bb24d5e316b5dfae330c2",
+        "kind": "R",
+        "moved_from": "docs/taskpacks/20261009-r2-ui/CROSSWALK.md",
+        "path": "docs/history/archive-2026-10-19/taskpacks/20261009-r2-ui/CROSSWALK.md"
+      },
+      {
+        "content": "sha256:3d6edf1a00f4f4f7eb19005a2acba2c73bd0dc71a6d2ec5ba9ed5ae689c6454c",
+        "kind": "R",
+        "moved_from": "docs/taskpacks/DESIGN-LAB-CLOUD-REAUDIT-TASKPACK-2026-09-06.md",
+        "path": "docs/history/archive-2026-10-19/taskpacks/DESIGN-LAB-CLOUD-REAUDIT-TASKPACK-2026-09-06.md"
+      },
+      {
+        "content": "sha256:a905602a2ac6db980e8ecff4b2053c52c2106f7cc52eb916a0c3978d5393fbdf",
+        "kind": "R",
+        "moved_from": "docs/taskpacks/DESIGN-LAB-CODEX-REAL-HOST-HANDOFF.md",
+        "path": "docs/history/archive-2026-10-19/taskpacks/DESIGN-LAB-CODEX-REAL-HOST-HANDOFF.md"
+      },
+      {
+        "content": "sha256:29b53215f81f230c7977ccd7d4e9861ef7decf5d1b28bf38516f9613b1191785",
+        "kind": "R",
+        "moved_from": "docs/taskpacks/DESIGN-LAB-DEEPSEEK-EXECUTION-2026-09-06.md",
+        "path": "docs/history/archive-2026-10-19/taskpacks/DESIGN-LAB-DEEPSEEK-EXECUTION-2026-09-06.md"
+      },
+      {
+        "content": "sha256:b544eced9b006bbf07e22e38bede4957a5c7d59fb9fd5c96f78e2cd7a0c5b5f8",
+        "kind": "R",
+        "moved_from": "docs/taskpacks/DESIGN-LAB-DIRECTORY-MIGRATION-CLEANUP-TASKPACK-2026-09-01-2.md",
+        "path": "docs/history/archive-2026-10-19/taskpacks/DESIGN-LAB-DIRECTORY-MIGRATION-CLEANUP-TASKPACK-2026-09-01-2.md"
+      },
+      {
+        "content": "sha256:1bb87aab7399e7564b25c7fb277dd5dfbe8ffb2d4ea1ab3617b1b01e16b57a23",
+        "kind": "R",
+        "moved_from": "docs/taskpacks/DESIGN-LAB-DIRECTORY-MIGRATION-CLEANUP-TASKPACK-2026-09-01-3.md",
+        "path": "docs/history/archive-2026-10-19/taskpacks/DESIGN-LAB-DIRECTORY-MIGRATION-CLEANUP-TASKPACK-2026-09-01-3.md"
+      },
+      {
+        "content": "sha256:15660e0806f65b30b6256a6617149813ab77873148e3456a75f86ce0bce976f0",
+        "kind": "R",
+        "moved_from": "docs/taskpacks/DESIGN-LAB-DIRECTORY-MIGRATION-CLEANUP-TASKPACK-2026-09-01.md",
+        "path": "docs/history/archive-2026-10-19/taskpacks/DESIGN-LAB-DIRECTORY-MIGRATION-CLEANUP-TASKPACK-2026-09-01.md"
+      },
+      {
+        "content": "sha256:841c9f48d4cd4ef739f988daaa2a7fd69b1501d2c0578543dd0b8d1e30b3b2d3",
+        "kind": "R",
+        "moved_from": "docs/taskpacks/DESIGN-LAB-DP-CORRECTION-TASKPACK-V2-2026-09-06.md",
+        "path": "docs/history/archive-2026-10-19/taskpacks/DESIGN-LAB-DP-CORRECTION-TASKPACK-V2-2026-09-06.md"
+      },
+      {
+        "content": "sha256:14f359938707f2389e5a2e13b048ab4436b7f05fe2278c34e115577d022e2f62",
+        "kind": "R",
+        "moved_from": "docs/taskpacks/DESIGN-LAB-FINAL-TASKPACK-2026-08-25-2.md",
+        "path": "docs/history/archive-2026-10-19/taskpacks/DESIGN-LAB-FINAL-TASKPACK-2026-08-25-2.md"
+      },
+      {
+        "content": "sha256:83c4d2b09cffe74537b0e4e8f06f690923aecbf7c066ce6308ee0bddbe091905",
+        "kind": "R",
+        "moved_from": "docs/taskpacks/DESIGN-LAB-FINAL-TASKPACK-2026-08-25.md",
+        "path": "docs/history/archive-2026-10-19/taskpacks/DESIGN-LAB-FINAL-TASKPACK-2026-08-25.md"
+      },
+      {
+        "content": "sha256:8acad56c5f979971c3a3b32d6c8640f0a3729027adf4fa175b808214ef2e5cab",
+        "kind": "R",
+        "moved_from": "docs/taskpacks/DESIGN-LAB-GLOBAL-DESIGN-CAPABILITY-INTELLIGENCE-TASKPACK-2026-10-06.md",
+        "path": "docs/history/archive-2026-10-19/taskpacks/DESIGN-LAB-GLOBAL-DESIGN-CAPABILITY-INTELLIGENCE-TASKPACK-2026-10-06.md"
+      },
+      {
+        "content": "sha256:c340ea26a68c9b11e25035b8eb53e5bc2974c77db98f36e0c6c6ad2d2e29220a",
+        "kind": "R",
+        "moved_from": "docs/taskpacks/DESIGN-LAB-GPT-REMAINING-2026-09-06.md",
+        "path": "docs/history/archive-2026-10-19/taskpacks/DESIGN-LAB-GPT-REMAINING-2026-09-06.md"
+      },
+      {
+        "content": "sha256:63f3f42f7a38a4e1f3ec2915f63ea638d813358766a2c304ac3d321da0d8864e",
+        "kind": "R",
+        "moved_from": "docs/taskpacks/DESIGN-LAB-MULTIMODAL-CODEX-HANDOFF-2026-09-05.md",
+        "path": "docs/history/archive-2026-10-19/taskpacks/DESIGN-LAB-MULTIMODAL-CODEX-HANDOFF-2026-09-05.md"
+      },
+      {
+        "content": "sha256:39ba9316843c2ff4c3e0703d061d69c45af41ac919e93d9799e7ed51d30c73d8",
+        "kind": "R",
+        "moved_from": "docs/taskpacks/DESIGN-LAB-MULTIMODAL-TASK-PLAN-2026-09-05.md",
+        "path": "docs/history/archive-2026-10-19/taskpacks/DESIGN-LAB-MULTIMODAL-TASK-PLAN-2026-09-05.md"
+      },
+      {
+        "content": "sha256:5fc15cad4a02f7a7e4966bc1c000d4ea39e4b5d3b2dae5389d1ada4c0fdd8fc0",
+        "kind": "R",
+        "moved_from": "docs/taskpacks/DESIGN-LAB-SPLIT-HANDOFF-2026-09-06.md",
+        "path": "docs/history/archive-2026-10-19/taskpacks/DESIGN-LAB-SPLIT-HANDOFF-2026-09-06.md"
+      },
+      {
+        "content": "sha256:f6f1c034855ee6e4d4c417e6d1b6f1766e5f65d6e4ab4917e23d9da33502a6c1",
+        "kind": "R",
+        "moved_from": "docs/taskpacks/DESIGN-LAB-TODAY-EXECUTION-TASKPACK-2026-09-04.md",
+        "path": "docs/history/archive-2026-10-19/taskpacks/DESIGN-LAB-TODAY-EXECUTION-TASKPACK-2026-09-04.md"
+      },
+      {
+        "content": "sha256:b38a0b6d61ffe2c572bd5c40565845c8fb4347a6fe52de1d203acfb49de2a75b",
+        "kind": "R",
+        "moved_from": "docs/taskpacks/DESIGN-LAB-TODAY-JOB-LEDGER-2026-09-04.yaml",
+        "path": "docs/history/archive-2026-10-19/taskpacks/DESIGN-LAB-TODAY-JOB-LEDGER-2026-09-04.yaml"
+      },
+      {
+        "content": "sha256:62273b57064f723a316f29e004acce228fdac84ad3bd84d8b9890a281f04143c",
+        "kind": "R",
+        "moved_from": "docs/taskpacks/DLR-FINAL-20260826-R2-OSS-FAST-TRACK.md",
+        "path": "docs/history/archive-2026-10-19/taskpacks/DLR-FINAL-20260826-R2-OSS-FAST-TRACK.md"
+      },
+      {
+        "content": "sha256:b51456a00795935ef562da7fd2277a3133cbcbf90eaf1299577aa9f416bde3ba",
+        "kind": "R",
+        "moved_from": "docs/taskpacks/R4.1-R3-INCREMENTAL-ALIGNMENT-2026-09-07.md",
+        "path": "docs/history/archive-2026-10-19/taskpacks/R4.1-R3-INCREMENTAL-ALIGNMENT-2026-09-07.md"
+      },
+      {
+        "content": "sha256:8d49e7f0382f5985c019523733480ede244f701f0598c74a5e76cec61a600010",
+        "kind": "R",
+        "moved_from": "docs/taskpacks/TRI-OSS-FAST-TRACK-20260826-R1.md",
+        "path": "docs/history/archive-2026-10-19/taskpacks/TRI-OSS-FAST-TRACK-20260826-R1.md"
+      },
+      {
+        "content": "sha256:0513165e30a49022fae0002d26eecf1f3d3288d797761da447e63accfbf16889",
+        "kind": "R",
+        "moved_from": "reports/ADOBE_UNINSTALL_HANDOFF_20260822.md",
+        "path": "reports/history/ADOBE_UNINSTALL_HANDOFF_20260822.md"
+      },
+      {
+        "content": "sha256:c09824ee031a98c05b2a3052b45259beb2a8551a44a1af975ed8cba110c5aa68",
+        "kind": "R",
+        "moved_from": "reports/PIXEL_PERFECT_VECTOR_RECONSTRUCTION_HANDOFF_20260823.md",
+        "path": "reports/history/PIXEL_PERFECT_VECTOR_RECONSTRUCTION_HANDOFF_20260823.md"
+      },
+      {
+        "content": "sha256:3a8514769eaea83e04ddc852daa6e0ceed0405b4da4103ca965856b0c00f854e",
+        "kind": "R",
+        "moved_from": "reports/V42_HANDOFF_SUMMARY_20260816.md",
+        "path": "reports/history/V42_HANDOFF_SUMMARY_20260816.md"
+      },
+      {
+        "content": "sha256:b26bf59d1c291575a45b3f52e94ea8cd5b6ba10988ac2617ba02db4371b91de9",
+        "kind": "R",
+        "moved_from": "reports/V42_HANDOFF_SUMMARY_20260821.md",
+        "path": "reports/history/V42_HANDOFF_SUMMARY_20260821.md"
+      },
+      {
+        "content": "sha256:3a301d3d83afa154494a50bc09e7a972299dd904aeec96580acb0aa7dc3b9044",
+        "kind": "R",
+        "moved_from": "reports/V42_HANDOFF_SUMMARY_20260822.md",
+        "path": "reports/history/V42_HANDOFF_SUMMARY_20260822.md"
+      },
+      {
+        "content": "sha256:10dd1e3ec20280027ca8ba39d8165269d21ee17d9de84b99dba95fbaffabcce0",
         "kind": "U",
-        "path": "design-lab/schemas/assurance-knowledge-candidate-readback-v1.schema.json"
+        "path": "docs/history/archive-2026-10-19/MANIFEST.json"
       },
       {
-        "content": "sha256:be2fed3cf7f0b3b9037a006dec8e2807e5960a5587a9f332cae7e87b68ca0e2e",
+        "content": "sha256:57775ae876bd4f7aaca06b80d53fe0c1969a5629bc684ca0a50b139a30c6165a",
         "kind": "U",
-        "path": "design-lab/schemas/assurance-knowledge-candidate-revocation-v1.schema.json"
-      },
-      {
-        "content": "sha256:b8acac7b50470ec4688310675a9c6ba6e64f834648bdcfd6f928862668d681dc",
-        "kind": "U",
-        "path": "design-lab/schemas/assurance-knowledge-candidate-v2.schema.json"
-      },
-      {
-        "content": "sha256:c7e61fb3341a8cf9e44f9c34205bc59e0dc8217bd204b9fa7a6aecccce541c3b",
-        "kind": "U",
-        "path": "design-lab/schemas/state/design-lab-state-knowledge-v1.sql"
-      },
-      {
-        "content": "sha256:f8793ebeb669544ff6be95e4cb4bc89bb0011c8256ccdba0b2e995317f1ded31",
-        "kind": "U",
-        "path": "design-lab/tests/test_assurance_knowledge_feedback.py"
-      },
-      {
-        "content": "sha256:19445fbc761db912aeaf289c1bda004b21f3ac37914a4f2ab169a8067ad30ee4",
-        "kind": "U",
-        "path": "design-lab/tests/test_knowledge_http.py"
-      },
-      {
-        "content": "sha256:cbb7df6a6684716a77b7217c8e7b3a382cb9a389d449edb9bf80af030967ca0f",
-        "kind": "U",
-        "path": "docs/audits/DESIGN-LAB-DIRECTION-ALIGNMENT-2026-10-19.md"
-      },
-      {
-        "content": "sha256:0d36ecb27bf6d91682067529633528da3f90a3b72c319e909b39eec1a83a277a",
-        "kind": "U",
-        "path": "src/design_lab/assurance/knowledge_feedback.py"
-      },
-      {
-        "content": "sha256:d5edf135e93dcab368aa74115ec07bb36f1654a1559f9028f2215d2a3c7a6bc2",
-        "kind": "U",
-        "path": "src/design_lab/knowledge_review.py"
+        "path": "docs/history/archive-2026-10-19/README.md"
       }
     ],
-    "worktree_digest": "sha256:7cf5f03ee24978f82b2510bae74421620a71f6dd6299c068124dc9b8c53e37a6"
+    "worktree_digest": "sha256:21e5e571b2467161a259c920e45b26d6d437e17d8d13fa9b7c2f24cdac1658b9"
   },
   "gitStateMeaning": "generation-time observation, not current HEAD",
   "hostLive": "derived from host_live axis only",
@@ -213,7 +1576,7 @@
     "quarantinedSources": 162
   },
   "subjectMeaning": "subjectType=WORKTREE means the tree was dirty at generation; worktreeDigest covers HEAD plus the non-generated changes",
-  "subjectSha": "05a768521d31379819227e07f378f97a38c542e3",
+  "subjectSha": "f55f03821e90e61f49ff64e529133b892494756b",
   "subjectType": "WORKTREE",
   "taskCounts": {
     "FROZEN_DEFERRED": 34
@@ -230,5 +1593,5 @@
     "executed": "see individual verified ledger receipts"
   },
   "worktreeClean": false,
-  "worktreeDigest": "sha256:7cf5f03ee24978f82b2510bae74421620a71f6dd6299c068124dc9b8c53e37a6"
+  "worktreeDigest": "sha256:21e5e571b2467161a259c920e45b26d6d437e17d8d13fa9b7c2f24cdac1658b9"
 }

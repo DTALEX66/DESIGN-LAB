@@ -37,7 +37,7 @@
 |位图/字体（不入 Git）|26 → `.project-local/task-artifacts/taskpacks-20261009-r2/extracted/`|
 |按 hash 复用 R1 已归档副本|48 → 不重复落盘，manifest 里逐条记 canonical 指向|
 |定态|`FROZEN_INPUT_NOT_DISPATCH`：全部 97 件是输入，不是派工单；派工仍走 `DL-TP-20261009-UI-FIRST-R1`|
-|取代关系|信息架构/布局/视觉/响应面取代 R1 的对应段落；交互细节、文案与验收语义仍读 R1 归档。取舍逐条见 `docs/taskpacks/20261009-r2-ui/CROSSWALK.md`|
+|取代关系|信息架构/布局/视觉/响应面取代 R1 的对应段落；交互细节、文案与验收语义仍读 R1 归档。取舍逐条见 `docs/history/archive-2026-10-19/taskpacks/20261009-r2-ui/CROSSWALK.md`|
 
 只读复验：`.venv/Scripts/python.exe scripts/archive_taskpacks_20261009_r2.py --check`
 （按成员 name+size+sha256+crc32 逐条对账，输出 `R2_ARCHIVE mode=check members=97 … problems=0`）。
@@ -55,8 +55,8 @@
 |01_汇总报告.html|ARCHIVED_SHARED_REFERENCE|[打开](<D:/All projects/DESIGN-LAB/.project-local/task-artifacts/record-archive-2026-10-09/objects/b5/b53830704a7f045d8e7e68fada28269a3c284cea4f378ef924876e38c13072d6/01_汇总报告.html>) · `.project-local/task-artifacts/record-archive-2026-10-09/objects/b5/b53830704a7f045d8e7e68fada28269a3c284cea4f378ef924876e38c13072d6/01_汇总报告.html`|
 |02_WORK-LAB_完整项目描述与未来蓝图_20261006.docx|ARCHIVED_SHARED_REFERENCE|[打开](<D:/All projects/DESIGN-LAB/.project-local/task-artifacts/record-archive-2026-10-09/objects/f3/f3784a9950adce06e8d87015a0ecb39d1ed4fdb3b93d5ccd3c9b40398bea3440/02_WORK-LAB_完整项目描述与未来蓝图_20261006.docx>) · `.project-local/task-artifacts/record-archive-2026-10-09/objects/f3/f3784a9950adce06e8d87015a0ecb39d1ed4fdb3b93d5ccd3c9b40398bea3440/02_WORK-LAB_完整项目描述与未来蓝图_20261006.docx`|
 |02_WORK-LAB_权威修复_双端描述同步_可审计执行提示词_20261006.txt|ARCHIVED_SHARED_REFERENCE|[打开](<D:/All projects/DESIGN-LAB/.project-local/task-artifacts/record-archive-2026-10-09/objects/8d/8d4a48185357aeadb99d9a2760a9ba05e6ab4fc744c0e3cb48a12904cf565247/02_WORK-LAB_权威修复_双端描述同步_可审计执行提示词_20261006.txt>) · `.project-local/task-artifacts/record-archive-2026-10-09/objects/8d/8d4a48185357aeadb99d9a2760a9ba05e6ab4fc744c0e3cb48a12904cf565247/02_WORK-LAB_权威修复_双端描述同步_可审计执行提示词_20261006.txt`|
-|03_DESIGN-LAB_完整项目描述与未来蓝图_20261006.docx|ARCHIVED_PROJECT_ORIGINAL|[打开](<D:/All projects/DESIGN-LAB/docs/taskpacks/03_DESIGN-LAB_完整项目描述与未来蓝图_20261006.docx>) · `docs/taskpacks/03_DESIGN-LAB_完整项目描述与未来蓝图_20261006.docx`|
-|03_DESIGN-LAB_权威修复_双端描述同步_可审计执行提示词_20261006.txt|ARCHIVED_PROJECT_ORIGINAL|[打开](<D:/All projects/DESIGN-LAB/docs/taskpacks/03_DESIGN-LAB_权威修复_双端描述同步_可审计执行提示词_20261006.txt>) · `docs/taskpacks/03_DESIGN-LAB_权威修复_双端描述同步_可审计执行提示词_20261006.txt`|
+|03_DESIGN-LAB_完整项目描述与未来蓝图_20261006.docx|ARCHIVED_PROJECT_ORIGINAL|[打开](<D:/All projects/DESIGN-LAB/docs/history/archive-2026-10-19/taskpacks/03_DESIGN-LAB_完整项目描述与未来蓝图_20261006.docx>) · `docs/history/archive-2026-10-19/taskpacks/03_DESIGN-LAB_完整项目描述与未来蓝图_20261006.docx`|
+|03_DESIGN-LAB_权威修复_双端描述同步_可审计执行提示词_20261006.txt|ARCHIVED_PROJECT_ORIGINAL|[打开](<D:/All projects/DESIGN-LAB/docs/history/archive-2026-10-19/taskpacks/03_DESIGN-LAB_权威修复_双端描述同步_可审计执行提示词_20261006.txt>) · `docs/history/archive-2026-10-19/taskpacks/03_DESIGN-LAB_权威修复_双端描述同步_可审计执行提示词_20261006.txt`|
 |03_价格与额度工作簿.xlsx|ARCHIVED_SHARED_REFERENCE|[打开](<D:/All projects/DESIGN-LAB/.project-local/task-artifacts/record-archive-2026-10-09/objects/42/42528b02714eab50a1f31a7e7f6ae4b03132fe560b885b1bd4da4f5f6b9c42c3/03_价格与额度工作簿.xlsx>) · `.project-local/task-artifacts/record-archive-2026-10-09/objects/42/42528b02714eab50a1f31a7e7f6ae4b03132fe560b885b1bd4da4f5f6b9c42c3/03_价格与额度工作簿.xlsx`|
 |05_附件完整性与工作簿审计.json|ARCHIVED_SHARED_REFERENCE|[打开](<D:/All projects/DESIGN-LAB/.project-local/task-artifacts/record-archive-2026-10-09/objects/67/67dfe3fb9f5f1ecfd78bbb0d41aba784da1bbd32b547463b8fed186d8d46accd/05_附件完整性与工作簿审计.json>) · `.project-local/task-artifacts/record-archive-2026-10-09/objects/67/67dfe3fb9f5f1ecfd78bbb0d41aba784da1bbd32b547463b8fed186d8d46accd/05_附件完整性与工作簿审计.json`|
 |08_DESIGN-LAB_工作区接入交接.md|ARCHIVED_PROJECT_ORIGINAL|[打开](<D:/All projects/DESIGN-LAB/docs/history/record-imports-2026-10-08/WORKSPACE-INTAKE-HANDOFF-2026-09-15.md>) · `docs/history/record-imports-2026-10-08/WORKSPACE-INTAKE-HANDOFF-2026-09-15.md`|
@@ -306,7 +306,7 @@
 - 处置：**7 个文本/JSON（21,153 B）已入 Git**，保持原相对形状
   （`closeout/`、`headcheck/`、`shape/` 三个 manifest + 4 份 reports/current JSON）。
 - **78 个未入 Git**（39 张 PNG ＝ 7,649,987 B + 39 个 `.license`）：内容是
-  `docs/UI-CONVERGENCE-20260930/screenshot` 的旧收敛截图，已被 2026-10-09 的 UI 工作面取代。
+  `docs/history/archive-2026-10-19/UI-CONVERGENCE-20260930/screenshot` 的旧收敛截图，已被 2026-10-09 的 UI 工作面取代（2026-10-19 整目录归档）。
   **它们仍留在 `.project-local/tmp/worktree-salvage-20261012/`，但哈希与字节数已登记在清单里**，
   所以即使目录消失，也仍能判断当时是什么、以及本仓库为它花了多少 pack。
   pack 已在警戒线（245.54 MiB / 警告 220 / 硬限 256），这 7.25 MiB 是当时不入 Git 的唯一理由。

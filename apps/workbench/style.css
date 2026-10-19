@@ -130,7 +130,7 @@
      不换算、不"就近取整"。两套深色中性值与上面 B04/B07 权威值接近但不相同
      （如 bg #080e16 vs #060A14、accent #87dcff vs #316CFF），
      本块把它们登记为 `--uif-*` 原语，由新落地面消费；全局是否换色是
-     owner 裁决项，见 docs/current/UI-DESKTOP-RECONCILIATION-2026-10-09.md。
+     owner 裁决项，见 docs/history/archive-2026-10-19/current-records/UI-DESKTOP-RECONCILIATION-2026-10-09.md。
      浅色一侧不是新色板：`:root[data-theme="light"]` 用同一套浅色值重指
      上面的语义令牌，因此既有界面整体获得浅色主题。
      --------------------------------------------------------------------- */

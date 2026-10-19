@@ -6,9 +6,9 @@ Authority: `DL-AUTHORITY-2026-09-18-R2`
 
 历史材料仅用于 lineage、decision rationale、residual comparison、evidence provenance、rollback/history。
 
-已冻结家族：`docs/history/**`、`reports/history/**`、`docs/handoffs/**`、versioned ARCHITECTURE/ROADMAP/INTEGRATION/VISUAL_QUALITY、superseded taskpacks、old branch/completion/status reports。
+已冻结家族：`docs/history/**`、`reports/history/**`、`docs/history/archive-2026-10-19/handoffs/**`、versioned ARCHITECTURE/ROADMAP/INTEGRATION/VISUAL_QUALITY、superseded taskpacks、old branch/completion/status reports。
 
-特别冲突：`docs/handoffs/DESIGN-LAB-UCR-CONVERGENCE-20260918-HANDOFF.md` 自称 “tracked 权威交接”，但从 `DL-AUTHORITY-2026-09-18-R2` 起被明确降为 `HISTORICAL_EXECUTION_RECORD / NON_AUTHORITATIVE`。它的 branch 数已经过时，并引用一个未出现在远端 main taskpacks 目录的 UCR TaskPack，因此不得作为未来审计入口。
+特别冲突：`docs/history/archive-2026-10-19/handoffs/DESIGN-LAB-UCR-CONVERGENCE-20260918-HANDOFF.md` 自称 “tracked 权威交接”，但从 `DL-AUTHORITY-2026-09-18-R2` 起被明确降为 `HISTORICAL_EXECUTION_RECORD / NON_AUTHORITATIVE`。它的 branch 数已经过时，并引用一个未出现在远端 main taskpacks 目录的 UCR TaskPack，因此不得作为未来审计入口。
 
 检索到旧文件时：先读 AUTHORITY -> 查 index -> 找 current replacement/crosswalk -> 对比 live code/CI -> 只保留历史用途。
 

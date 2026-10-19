@@ -82,7 +82,7 @@ def git_head() -> str:
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--out",
-                        default="docs/UI-CONVERGENCE-20260930/ui-audit/report.json")
+                        default=".project-local/task-artifacts/ui-audit/report.json")
     parser.add_argument("--widths", default="1280,1920,2560")
     args = parser.parse_args()
 

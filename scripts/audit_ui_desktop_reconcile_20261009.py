@@ -35,7 +35,7 @@ UI_INPUTS = REPO / 'docs/history/taskpacks/20261009-inputs/ui/specs'
 SHELL_TS = REPO / 'apps/workbench/shell.ts'
 STYLE_CSS = REPO / 'apps/workbench/style.css'
 LEDGER = REPO / 'design-lab/config/task-ledger-r3.json'
-OUT_MD = REPO / 'docs/current/UI-DESKTOP-RECONCILIATION-2026-10-09.md'
+OUT_MD = REPO / 'docs/history/archive-2026-10-19/current-records/UI-DESKTOP-RECONCILIATION-2026-10-09.md'
 
 sys.path.insert(0, str(REPO / 'design-lab/scripts'))
 from verify_capability_self_description import (  # noqa: E402

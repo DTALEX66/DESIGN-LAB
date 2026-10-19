@@ -1,7 +1,7 @@
 {
   "schemaVersion": "design-lab/largest-files/v1",
   "task_key": "DL-TP-20260914-DEEPSEEK-AUTHORITY-R1::DLDS-D000",
-  "measured_at": "2026-10-18T09:53:03+00:00",
+  "measured_at": "2026-10-19T08:29:44+00:00",
   "tracked_top": [
     {
       "path": "docs/history/record-archive-2026-10-09/ARCHIVE-MANIFEST.json",
@@ -85,8 +85,8 @@
     },
     {
       "path": "design-lab/config/task-ledger-r3.json",
-      "bytes": 756165,
-      "object": "7697e423542e6ae5a0d94fe32667866523ab9d39"
+      "bytes": 752851,
+      "object": "e89e56e2ad3bf719dbcf45e352c2c77af2856b8a"
     },
     {
       "path": "docs/projects/nebula-tech-culture-wall/assets/nebula_brand_identity_board.png",
@@ -135,8 +135,8 @@
     },
     {
       "path": "apps/workbench/shell.ts",
-      "bytes": 448606,
-      "object": "054cdc02b904ce50858094288045089b0f0172cd"
+      "bytes": 465110,
+      "object": "cf02b9af8d9271ccf1b7144888dd187336d4f4e3"
     },
     {
       "path": "docs/history/r3-recovery-2026-09-07.json",
@@ -150,18 +150,18 @@
     },
     {
       "path": "apps/workbench/build/main.js",
-      "bytes": 369512,
-      "object": "5b989688dea134ffbb6e8c1a2c5b8682bb94be3e"
+      "bytes": 391855,
+      "object": "611dbf6800388fe67ca75388f8c7eafaa06c04c0"
+    },
+    {
+      "path": "docs/history/record-imports-2026-10-08/RECORD-IMPORT-MANIFEST.json",
+      "bytes": 346906,
+      "object": "efeb41eb8f03411a547eaf2ea4bfe6c22fa36d44"
     },
     {
       "path": "docs/history/record-imports-2026-10-08/FINAL-CONSOLIDATED-2026-09-29/appendices/current-task-ledger-snapshot.json",
       "bytes": 346040,
       "object": "384e33ab0c56a0b76c8c3d64b73e3b125fb48101"
-    },
-    {
-      "path": "docs/history/record-imports-2026-10-08/RECORD-IMPORT-MANIFEST.json",
-      "bytes": 345568,
-      "object": "0114282118fefe07f321df395416765bbaaf1ba1"
     },
     {
       "path": "docs/audits/DESIGN-LAB-UIKIT-CONFORMANCE-2026-09-28/session/DESIGN-LAB-FINAL-TASK-PACKAGE-2026-09-04.zip",

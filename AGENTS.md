@@ -141,7 +141,7 @@ Owner原话：其他任务冻结，以这份任务为当前权威与闭环目标
 - 当前报告仍由`scripts/generate_current_reports.py`生成；TASK_PROGRESS与PROJECT_STATUS显示当前派工区，旧证据读回保留历史身份。生成不等于执行测试；真实宿主/真人/三方/学习/发布分别记。
 - 任务文档定态登记仍为`design-lab/config/task-document-states.json`，并由`verify_task_document_states.py`与现有aggregate fail-closed检查；恰好一个DISPATCH_ENTRY等于index.currentIntegrated。
 - 原Record导入档案继续保留在`docs/history/record-imports-2026-10-08/`及其manifest；不批量搬迁或修改冻结原件。跨项目素材、系统数据、E/F盘均不因旧包或本轮任务整理获得访问授权。
-- 20261009 owner追加授权Record中本项目资料完整归档、去重、提炼和索引。找资料先读`docs/RECORD-ARCHIVE-INDEX.md`及`docs/current/ARCHIVE-KEY-INFORMATION-2026-10-09.md`；机器来源/成员/hash/canonical登记位于`docs/history/record-archive-2026-10-09/ARCHIVE-MANIFEST.json`。相关原ZIP、素材和递归成员已保存在本项目，按hash复用既有副本/内容对象；旧manifest的EXTERNAL-ONLY是旧时点，不能再据其判断素材未归档。共享作品集/三项目容器只作惰性参考，不提升当前任务或许可。大对象在`.project-local/`且不随Git克隆，迁移须按manifest带齐；原Record不删改，既有冻结路径不删除。
+- 20261009 owner追加授权Record中本项目资料完整归档、去重、提炼和索引。找资料先读`docs/RECORD-ARCHIVE-INDEX.md`；2026-10-09 关键信息提炼已归档到`docs/history/archive-2026-10-19/current-records/ARCHIVE-KEY-INFORMATION-2026-10-09.md`；机器来源/成员/hash/canonical登记位于`docs/history/record-archive-2026-10-09/ARCHIVE-MANIFEST.json`。相关原ZIP、素材和递归成员已保存在本项目，按hash复用既有副本/内容对象；旧manifest的EXTERNAL-ONLY是旧时点，不能再据其判断素材未归档。共享作品集/三项目容器只作惰性参考，不提升当前任务或许可。大对象在`.project-local/`且不随Git克隆，迁移须按manifest带齐；原Record不删改，既有冻结路径不删除。
 - 后续新增资料必须同步来源、hash、版本/定态、别名和canonical位置，并更新固定资料索引指向最新完整清单；不能只复制文件、不登记。过时内容先更新精简阅读面和取代关系，不重写冻结原件。
 - **2026-10-12 状态更正（本条取代上面 20261009 那句"本地未提交、勿宣称远端已同步"）**：归档、权威、
   索引、唯一账本与全部回执字节**已提交并已推送**到 `qoder/designlab-backup-consistency-20261007`，

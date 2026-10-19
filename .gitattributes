@@ -20,21 +20,22 @@ docs/history/taskpacks/pre-r3-* binary
 # User-supplied R3 audit metadata: preserve original archive bytes.
 docs/history/r3-audit-inputs-2026-09-06/history-current-tree-coverage.json binary
 docs/history/r3-audit-inputs-2026-09-06/old-new-crosswalk.csv binary
-# DP handoff hashes seal original bytes; disable line-ending conversion only.
-docs/handoffs/deepseek-r3-20260906/** -text whitespace=cr-at-eol
-docs/handoffs/deepseek-r3-20260906-v2/** -text whitespace=cr-at-eol
-
 # DL-REC-29 (2026-10-08): Record-imported task packages are byte-frozen originals whose
 # CRC32/size are recorded per member in RECORD-IMPORT-MANIFEST.json. Line-ending
 # normalization would rewrite those bytes, so conversion is disabled for the
-# imported subtree and the 2026-10-06 request pair (same reason as the
-# deepseek-r3-20260906 handoffs above).
+# imported subtree.
 docs/history/record-imports-2026-10-08/** -text whitespace=cr-at-eol
-docs/taskpacks/03_DESIGN-LAB_* -text whitespace=cr-at-eol
 
 # Owner-adopted input bytes and pre-adoption snapshots are immutable.
 docs/history/taskpacks/20261009-inputs/** -text whitespace=cr-at-eol
 docs/history/taskpacks/20261009-adoption/** -text whitespace=cr-at-eol
+
+# 2026-10-19 archive normalization: the byte-frozen subtrees keep their original
+# line endings at their new location. Without these two rules a `git add` would
+# rewrite CRLF to LF and the recorded evidence hashes would stop reproducing.
+docs/history/archive-2026-10-19/handoffs/deepseek-r3-20260906/** -text whitespace=cr-at-eol
+docs/history/archive-2026-10-19/handoffs/deepseek-r3-20260906-v2/** -text whitespace=cr-at-eol
+docs/history/archive-2026-10-19/taskpacks/03_DESIGN-LAB_* -text whitespace=cr-at-eol
 
 # Current-execution evidence is byte-frozen the same way: a receipt stores
 # artifact_sha256 and the gate re-hashes the file on every read, so EOL normalisation would

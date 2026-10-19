@@ -2,14 +2,14 @@
 
 - Task: `DL-TP-20260914-DEEPSEEK-AUTHORITY-R1::DLDS-A030` (+ A040 attribution)
 - Delta: `9f34b53..5631963` on `codex/r3-runtime-correctness`
-- Generated: 2026-09-13T16:16:24+00:00
-- Current branch `codex/deepseek-authority-r1` at `d934472956eb`, worktree clean: False
+- Generated: 2026-10-19T08:30:14+00:00
+- Current branch `qoder/designlab-backup-consistency-20261007` at `f55f03821e90`, worktree clean: False
 
 ## Classification counts
 
-- `KEEP`: 3
-- `KEEP_WITH_FIX`: 87
+- `KEEP_WITH_FIX`: 86
 - `OUT_OF_PACK`: 7
+- `UNPROVEN`: 4
 
 ## Why this delta is not 'done' work
 
@@ -21,13 +21,6 @@ file is therefore re-attributed to a real R5 product task or to a task of
 
 ## Files by classification
 
-### KEEP
-
-| file | tasks | why |
-|---|---|---|
-| `docs/handoffs/DEEPSEEK-OPEN-DESIGN-E3-READINESS-2026-09-13.md` | DL-R5-021 | Open Design E3 readiness and its concrete blocker (no runtime in the recorded scope). |
-| `docs/handoffs/DEEPSEEK-RIGHTS-REFRESH-MINIMAX-H3-2026-09-13.md` | DL-R5-018, DL-TP-20260914-DEEPSEEK-AUTHORITY-R1::DLDS-G030 | H3 licence evidence record; H3 remains BLOCKED_BY_LICENSE and no run was performed. |
-| `docs/handoffs/SESSION-RESTART-2026-09-12.md` | DL-TP-20260914-DEEPSEEK-AUTHORITY-R1::DLDS-A020 | previous session handoff, retained byte-identical by DLDS-A020. |
 ### KEEP_WITH_FIX
 
 | file | tasks | why |
@@ -69,7 +62,6 @@ file is therefore re-attributed to a real R5 product task or to a task of
 | `design-lab/tests/test_media_video_boundary.py` | DL-TP-20260914-DEEPSEEK-AUTHORITY-R1::DLDS-H010 | unit tests; DLDS-H010 requires the full forward/reverse/randomized gate. |
 | `design-lab/tests/test_readiness_host_matrix.py` | DL-TP-20260914-DEEPSEEK-AUTHORITY-R1::DLDS-H010 | unit tests; DLDS-H010 requires the full forward/reverse/randomized gate. |
 | `design-lab/tests/test_readiness_model_radar.py` | DL-TP-20260914-DEEPSEEK-AUTHORITY-R1::DLDS-H010 | unit tests; DLDS-H010 requires the full forward/reverse/randomized gate. |
-| `docs/handoffs/DEEPSEEK-DEEP-ADAPTATION-EXECUTION-2026-09-13.md` | DL-TP-20260914-DEEPSEEK-AUTHORITY-R1::DLDS-A030 | record of the unverified-attribution round; kept as incident evidence and superseded by this reconciliation. |
 | `integrations/hosts/minimax-design/POC-PLAN.md` | DL-R5-021, DL-R5-006, DL-TP-20260914-DEEPSEEK-AUTHORITY-R1::DLDS-G020 | MiniMax Design host candidate registration (E0, not launched); R5-021 asks for exactly a per-host version/interface/licence/minimal-case record. |
 | `integrations/hosts/minimax-design/adapter.manifest.json` | DL-R5-021, DL-R5-006, DL-TP-20260914-DEEPSEEK-AUTHORITY-R1::DLDS-G020 | MiniMax Design host candidate registration (E0, not launched); R5-021 asks for exactly a per-host version/interface/licence/minimal-case record. |
 | `integrations/hosts/minimax-design/evidence/README.md` | DL-R5-021, DL-R5-006, DL-TP-20260914-DEEPSEEK-AUTHORITY-R1::DLDS-G020 | MiniMax Design host candidate registration (E0, not launched); R5-021 asks for exactly a per-host version/interface/licence/minimal-case record. |
@@ -130,6 +122,14 @@ file is therefore re-attributed to a real R5 product task or to a task of
 | `src/design_lab/assurance/knowledge_feedback.py` | — | no R5 task and no authority task requires a knowledge-candidate export; the handoff states knowledge migration stays deferred. Parked, not deleted. |
 | `src/design_lab/readiness/reconstruction_bench.py` | — | no task requires a reconstruction scoring bench; the existing R5-009/R5-013 scope does not include it. Parked, not deleted. |
 | `src/design_lab/readiness/vector_provider.py` | — | no R5 or authority task requires a vectorisation provider SPI. Parked, not deleted. |
+### UNPROVEN
+
+| file | tasks | why |
+|---|---|---|
+| `docs/handoffs/DEEPSEEK-DEEP-ADAPTATION-EXECUTION-2026-09-13.md` | — | no rule matched: attribution must be supplied before this file may stay |
+| `docs/handoffs/DEEPSEEK-OPEN-DESIGN-E3-READINESS-2026-09-13.md` | — | no rule matched: attribution must be supplied before this file may stay |
+| `docs/handoffs/DEEPSEEK-RIGHTS-REFRESH-MINIMAX-H3-2026-09-13.md` | — | no rule matched: attribution must be supplied before this file may stay |
+| `docs/handoffs/SESSION-RESTART-2026-09-12.md` | — | no rule matched: attribution must be supplied before this file may stay |
 
 ## Out-of-pack files (parked, not deleted)
 
@@ -140,6 +140,13 @@ file is therefore re-attributed to a real R5 product task or to a task of
 - `src/design_lab/assurance/knowledge_feedback.py`
 - `src/design_lab/readiness/reconstruction_bench.py`
 - `src/design_lab/readiness/vector_provider.py`
+
+## Unproven files (must be attributed before they stay)
+
+- `docs/handoffs/DEEPSEEK-DEEP-ADAPTATION-EXECUTION-2026-09-13.md`
+- `docs/handoffs/DEEPSEEK-OPEN-DESIGN-E3-READINESS-2026-09-13.md`
+- `docs/handoffs/DEEPSEEK-RIGHTS-REFRESH-MINIMAX-H3-2026-09-13.md`
+- `docs/handoffs/SESSION-RESTART-2026-09-12.md`
 
 ## Rollback
 

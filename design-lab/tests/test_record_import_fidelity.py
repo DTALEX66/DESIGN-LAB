@@ -31,7 +31,7 @@ SCRIPT = ROOT / "scripts" / "record_import_verify.py"
 MANIFEST_REL = "docs/history/record-imports-2026-10-08/RECORD-IMPORT-MANIFEST.json"
 MANIFEST = ROOT / MANIFEST_REL
 VOLUME = Path(r"D:\All projects\Record")
-IMPORT_PREFIXES = ("docs/history/record-imports-2026-10-08/", "docs/taskpacks/03_DESIGN-LAB_")
+IMPORT_PREFIXES = ("docs/history/record-imports-2026-10-08/", "docs/history/archive-2026-10-19/taskpacks/03_DESIGN-LAB_")
 REPO_HELD_ACTIONS = ("LANDED", "ALREADY-IN-REPO")
 
 
@@ -126,7 +126,7 @@ class RecordImportFidelityTests(unittest.TestCase):
         attrs = (ROOT / ".gitattributes").read_text(encoding="utf-8")
         self.assertIn("docs/history/record-imports-2026-10-08/** -text", attrs,
                       "the byte-frozen import subtree lost its -text protection")
-        self.assertIn("docs/taskpacks/03_DESIGN-LAB_* -text", attrs,
+        self.assertIn("docs/history/archive-2026-10-19/taskpacks/03_DESIGN-LAB_* -text", attrs,
                       "the 2026-10-06 request pair lost its -text protection")
         protected = tuple(IMPORT_PREFIXES)
         offenders: list[str] = []

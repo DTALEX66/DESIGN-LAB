@@ -1,13 +1,13 @@
 {
   "schemaVersion": "design-lab/size-by-extension/v1",
   "task_key": "DL-TP-20260914-DEEPSEEK-AUTHORITY-R1::DLDS-D000",
-  "measured_at": "2026-10-18T09:53:03+00:00",
+  "measured_at": "2026-10-19T08:29:44+00:00",
   "tracked": [
     {
       "extension": ".json",
-      "files": 1266,
-      "bytes": 26111398,
-      "mib": 24.902
+      "files": 1271,
+      "bytes": 26168912,
+      "mib": 24.957
     },
     {
       "extension": ".png",
@@ -17,21 +17,21 @@
     },
     {
       "extension": ".md",
-      "files": 1019,
-      "bytes": 9196280,
-      "mib": 8.77
+      "files": 1028,
+      "bytes": 9304516,
+      "mib": 8.873
     },
     {
       "extension": ".py",
-      "files": 666,
-      "bytes": 6954719,
-      "mib": 6.633
+      "files": 673,
+      "bytes": 7097808,
+      "mib": 6.769
     },
     {
       "extension": ".js",
       "files": 99,
-      "bytes": 2063165,
-      "mib": 1.968
+      "bytes": 2085508,
+      "mib": 1.989
     },
     {
       "extension": ".csv",
@@ -54,14 +54,14 @@
     {
       "extension": ".mjs",
       "files": 54,
-      "bytes": 583701,
-      "mib": 0.557
+      "bytes": 611707,
+      "mib": 0.583
     },
     {
       "extension": ".ts",
-      "files": 13,
-      "bytes": 537226,
-      "mib": 0.512
+      "files": 15,
+      "bytes": 567748,
+      "mib": 0.541
     },
     {
       "extension": ".txt",
@@ -84,7 +84,7 @@
     {
       "extension": ".html",
       "files": 31,
-      "bytes": 328636,
+      "bytes": 328664,
       "mib": 0.313
     },
     {
@@ -156,7 +156,7 @@
     {
       "extension": ".yaml",
       "files": 11,
-      "bytes": 55648,
+      "bytes": 55640,
       "mib": 0.053
     },
     {
@@ -173,9 +173,9 @@
     },
     {
       "extension": ".sql",
-      "files": 14,
-      "bytes": 38920,
-      "mib": 0.037
+      "files": 15,
+      "bytes": 41838,
+      "mib": 0.04
     },
     {
       "extension": ".yml",

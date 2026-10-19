@@ -32,7 +32,7 @@ TASK_KEYS = {key: f"DL-TP-20260914-DEEPSEEK-AUTHORITY-R1::DLDS-{key}"
 LEDGER = OUTDIR / "DEEPSEEK-AUTHORITY-LEDGER-2026-09-14.json"
 CLEANUP_MANIFEST = REPO / ".project-local/quarantine/deepseek-round1/RUNTIME-CLEANUP-MANIFEST.json"
 MIGRATION_MANIFEST = REPO / ".project-local/archive/hermes-legacy/MIGRATION-MANIFEST.json"
-HANDOFF = "docs/taskpacks/DESIGN-LAB-CODEX-REAL-HOST-HANDOFF.md"
+HANDOFF = "docs/history/archive-2026-10-19/taskpacks/DESIGN-LAB-CODEX-REAL-HOST-HANDOFF.md"
 PACKET_FILES = [
     "DEEPSEEK-FINAL-AUDIT.md",
     "DEEPSEEK-TASK-STATE.json",
@@ -229,7 +229,8 @@ DONE_WHEN = [
      "EVIDENCE-LEVEL-AUDIT.json: 4 claims examined, 0 overclaims, all historical and qualified",
      ""),
     (31, "the Codex handoff is fully generated", "MET",
-     "docs/taskpacks/DESIGN-LAB-CODEX-REAL-HOST-HANDOFF.md: 8 domains with contract, fixture, "
+     "docs/history/archive-2026-10-19/taskpacks/DESIGN-LAB-CODEX-REAL-HOST-HANDOFF.md: "
+     "8 domains with contract, fixture, "
      "commands, evidence template, do-not-claim list and rollback", ""),
     (32, "the worktree is clean or every change is attributed", "MET",
      "the tree is clean at the recorded subject; every committed change names an owner task",

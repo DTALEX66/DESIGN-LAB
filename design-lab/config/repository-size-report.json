@@ -1,10 +1,10 @@
 {
   "schemaVersion": "design-lab/repository-size-report/v1",
-  "subjectSha": "11a1839d20c6ef3306ff5ba562a340c870a16d73",
-  "generatedAt": "2026-10-18T09:53:19Z",
-  "measuredAt": "2026-10-18T09:53:19Z",
-  "measuredPackMiB": 241.2,
-  "packMiB": 241.2,
+  "subjectSha": "f55f03821e90e61f49ff64e529133b892494756b",
+  "generatedAt": "2026-10-19T08:30:38Z",
+  "measuredAt": "2026-10-19T08:30:38Z",
+  "measuredPackMiB": 241.69,
+  "packMiB": 241.69,
   "warningMiB": 224.0,
   "limitMiB": 256.0,
   "status": "WARNING",
@@ -91,8 +91,8 @@
     },
     {
       "path": "design-lab/config/task-ledger-r3.json",
-      "bytes": 756165,
-      "objectId": "7697e423542e6ae5a0d94fe32667866523ab9d39"
+      "bytes": 752851,
+      "objectId": "e89e56e2ad3bf719dbcf45e352c2c77af2856b8a"
     },
     {
       "path": "docs/projects/nebula-tech-culture-wall/assets/nebula_brand_identity_board.png",

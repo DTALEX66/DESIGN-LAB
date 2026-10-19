@@ -1,59 +1,78 @@
 {
   "schemaVersion": "design-lab/repo-classification/v1",
-  "generatedAt": "2026-10-08T20:02:41Z",
-  "observedCommit": "45ee831d539cc4c91c71612566a0a12cb0573329",
+  "generatedAt": "2026-10-19T08:24:17Z",
+  "observedCommit": "f55f03821e90e61f49ff64e529133b892494756b",
   "totals": {
-    "trackedFiles": 3369,
-    "workingTreeMiB": 60.38,
-    "packMiB": 242.0,
+    "trackedFiles": 3801,
+    "workingTreeMiB": 70.04,
+    "packMiB": 241.69,
     "note": "pack 含全部历史与 tag 归档；working tree 为当前检出字节。两者之差不是垃圾。"
   },
   "categories": {
     "authority": {
-      "files": 10,
-      "bundles": 3,
-      "mib": 0.03
+      "files": 70,
+      "bundles": 4,
+      "mib": 0.31
     },
     "documentation": {
-      "files": 119,
+      "files": 13,
       "bundles": 2,
-      "mib": 5.26
+      "mib": 4.3
     },
     "evidence": {
-      "files": 1184,
+      "files": 1159,
       "bundles": 5,
-      "mib": 26.94
+      "mib": 22.17
     },
     "generated": {
-      "files": 71,
-      "bundles": 3,
-      "mib": 1.23
+      "files": 67,
+      "bundles": 4,
+      "mib": 1.29
     },
     "history": {
-      "files": 497,
-      "bundles": 4,
-      "mib": 14.85
+      "files": 810,
+      "bundles": 3,
+      "mib": 27.65
+    },
+    "other": {
+      "files": 1,
+      "bundles": 1,
+      "mib": 0.0
+    },
+    "planning": {
+      "files": 21,
+      "bundles": 2,
+      "mib": 0.89
     },
     "repo-meta": {
-      "files": 25,
-      "bundles": 25,
+      "files": 24,
+      "bundles": 24,
       "mib": 0.24
     },
     "source": {
-      "files": 1463,
+      "files": 1636,
       "bundles": 8,
-      "mib": 11.82
+      "mib": 13.2
     }
   },
   "bundles": [
     {
       "path": "docs/history/",
       "category": "history",
-      "note": "冻结历史与逐字节基线",
-      "files": 315,
-      "bytes": 11196550,
+      "note": "冻结历史与逐字节基线（含 2026-10-19 归档的 handoffs/taskpacks）",
+      "files": 707,
+      "bytes": 26845901,
       "cited_by_authority": 17,
-      "lastTouch": "2026-10-08"
+      "lastTouch": "2026-10-19"
+    },
+    {
+      "path": "design-lab/",
+      "category": "source",
+      "note": "设计核心其余模块",
+      "files": 1156,
+      "bytes": 9419591,
+      "cited_by_authority": 6,
+      "lastTouch": "2026-10-19"
     },
     {
       "path": "fixtures/domains/",
@@ -65,22 +84,13 @@
       "lastTouch": "2026-09-04"
     },
     {
-      "path": "design-lab/",
-      "category": "source",
-      "note": "设计核心其余模块",
-      "files": 971,
-      "bytes": 7837108,
-      "cited_by_authority": 7,
-      "lastTouch": "2026-10-09"
-    },
-    {
       "path": "docs/audits/",
       "category": "evidence",
       "note": "审计与验收证据包",
-      "files": 835,
-      "bytes": 7504964,
-      "cited_by_authority": 7,
-      "lastTouch": "2026-10-09"
+      "files": 840,
+      "bytes": 7698651,
+      "cited_by_authority": 0,
+      "lastTouch": "2026-10-19"
     },
     {
       "path": "docs/projects/",
@@ -92,15 +102,6 @@
       "lastTouch": "2026-08-31"
     },
     {
-      "path": "docs/UI-CONVERGENCE-20260930/",
-      "category": "evidence",
-      "note": "UI 收口证据与记录",
-      "files": 93,
-      "bytes": 5286403,
-      "cited_by_authority": 1,
-      "lastTouch": "2026-10-07"
-    },
-    {
       "path": "research/",
       "category": "documentation",
       "note": "研究素材",
@@ -110,49 +111,40 @@
       "lastTouch": "2026-10-06"
     },
     {
-      "path": "docs/handoffs/",
-      "category": "history",
-      "note": "交接血统（非当前入口）",
-      "files": 84,
-      "bytes": 2257236,
-      "cited_by_authority": 1,
-      "lastTouch": "2026-10-08"
-    },
-    {
       "path": "reports/history/",
       "category": "history",
       "note": "历史进度账本冻结件",
-      "files": 95,
-      "bytes": 2022118,
+      "files": 100,
+      "bytes": 2056462,
       "cited_by_authority": 0,
-      "lastTouch": "2026-09-26"
+      "lastTouch": "2026-10-10"
     },
     {
       "path": "src/",
       "category": "source",
       "note": "产品源码",
-      "files": 100,
-      "bytes": 1268613,
+      "files": 105,
+      "bytes": 1352596,
       "cited_by_authority": 0,
-      "lastTouch": "2026-10-08"
+      "lastTouch": "2026-10-19"
+    },
+    {
+      "path": "apps/",
+      "category": "source",
+      "note": "Workbench 前端源码",
+      "files": 19,
+      "bytes": 1286448,
+      "cited_by_authority": 0,
+      "lastTouch": "2026-10-19"
     },
     {
       "path": "reports/current/",
       "category": "generated",
       "note": "当前状态投影（由生成器再生）",
       "files": 63,
-      "bytes": 1246021,
-      "cited_by_authority": 4,
-      "lastTouch": "2026-10-09"
-    },
-    {
-      "path": "docs/",
-      "category": "documentation",
-      "note": "其余文档",
-      "files": 113,
-      "bytes": 1107032,
-      "cited_by_authority": 12,
-      "lastTouch": "2026-10-09"
+      "bytes": 948275,
+      "cited_by_authority": 1,
+      "lastTouch": "2026-10-19"
     },
     {
       "path": "integrations/",
@@ -164,30 +156,39 @@
       "lastTouch": "2026-09-18"
     },
     {
-      "path": "apps/",
-      "category": "source",
-      "note": "Workbench 前端源码",
-      "files": 17,
-      "bytes": 846941,
-      "cited_by_authority": 0,
-      "lastTouch": "2026-10-09"
-    },
-    {
       "path": "packages/",
       "category": "source",
       "note": "能力包",
-      "files": 239,
-      "bytes": 809031,
+      "files": 240,
+      "bytes": 848196,
       "cited_by_authority": 0,
-      "lastTouch": "2026-10-08"
+      "lastTouch": "2026-10-11"
     },
     {
       "path": "scripts/",
       "category": "source",
       "note": "根级门与工具",
-      "files": 61,
-      "bytes": 684341,
-      "cited_by_authority": 7,
+      "files": 69,
+      "bytes": 839029,
+      "cited_by_authority": 3,
+      "lastTouch": "2026-10-19"
+    },
+    {
+      "path": "docs/",
+      "category": "documentation",
+      "note": "其余文档",
+      "files": 88,
+      "bytes": 559210,
+      "cited_by_authority": 13,
+      "lastTouch": "2026-10-19"
+    },
+    {
+      "path": "vendor/",
+      "category": "source",
+      "note": "第三方源码副本（inert source blobs）",
+      "files": 39,
+      "bytes": 415374,
+      "cited_by_authority": 0,
       "lastTouch": "2026-10-09"
     },
     {
@@ -209,31 +210,13 @@
       "lastTouch": "2026-09-04"
     },
     {
-      "path": "vendor/",
-      "category": "source",
-      "note": "第三方源码副本（inert source blobs）",
-      "files": 2,
-      "bytes": 48211,
-      "cited_by_authority": 0,
-      "lastTouch": "2026-10-09"
-    },
-    {
-      "path": "reports/",
-      "category": "generated",
-      "note": "其余报告",
-      "files": 7,
-      "bytes": 37875,
-      "cited_by_authority": 1,
-      "lastTouch": "2026-10-09"
-    },
-    {
       "path": ".github/",
       "category": "source",
       "note": "CI 定义",
       "files": 5,
-      "bytes": 30560,
+      "bytes": 37224,
       "cited_by_authority": 1,
-      "lastTouch": "2026-10-06"
+      "lastTouch": "2026-10-16"
     },
     {
       "path": "docs/golden-cases/",
@@ -258,63 +241,63 @@
       "category": "authority",
       "note": "顶层权威（唯一）",
       "files": 1,
-      "bytes": 15036,
+      "bytes": 19979,
       "cited_by_authority": 1,
-      "lastTouch": "2026-09-27"
-    },
-    {
-      "path": "AGENTS.md",
-      "category": "authority",
-      "note": "根执行规则",
-      "files": 1,
-      "bytes": 12664,
-      "cited_by_authority": 1,
-      "lastTouch": "2026-10-08"
+      "lastTouch": "2026-10-19"
     },
     {
       "path": "README.md",
       "category": "repo-meta",
       "note": "根级运维与政策文档",
       "files": 1,
-      "bytes": 12597,
+      "bytes": 13834,
       "cited_by_authority": 0,
-      "lastTouch": "2026-10-07"
+      "lastTouch": "2026-10-18"
+    },
+    {
+      "path": "AGENTS.md",
+      "category": "authority",
+      "note": "根执行规则",
+      "files": 1,
+      "bytes": 13474,
+      "cited_by_authority": 1,
+      "lastTouch": "2026-10-19"
     },
     {
       "path": "DESIGN.md",
       "category": "repo-meta",
       "note": "根级运维与政策文档",
       "files": 1,
-      "bytes": 9608,
+      "bytes": 11588,
       "cited_by_authority": 0,
-      "lastTouch": "2026-10-09"
+      "lastTouch": "2026-10-11"
     },
     {
       "path": ".project/",
       "category": "authority",
       "note": "机器权威索引与策略",
       "files": 8,
-      "bytes": 8459,
+      "bytes": 10823,
       "cited_by_authority": 2,
-      "lastTouch": "2026-10-07"
-    },
-    {
-      "path": "WORK-LAB-DESIGN-MODULE-FINAL-HANDOFF-2026-08-07.md",
-      "category": "repo-meta",
-      "note": "根级运维与政策文档",
-      "files": 1,
-      "bytes": 6398,
-      "cited_by_authority": 0,
-      "lastTouch": "2026-09-04"
+      "lastTouch": "2026-10-19"
     },
     {
       "path": "pyproject.toml",
       "category": "repo-meta",
       "note": "根级运维与政策文档",
       "files": 1,
-      "bytes": 5726,
+      "bytes": 6914,
       "cited_by_authority": 0,
-      "lastTouch": "2026-10-08"
+      "lastTouch": "2026-10-12"
+    },
+    {
+      "path": "design.qa.yaml",
+      "category": "repo-meta",
+      "note": "根级运维与政策文档",
+      "files": 1,
+      "bytes": 5443,
+      "cited_by_authority": 0,
+      "lastTouch": "2026-10-10"
     },
     {
       "path": "KNOWLEDGE_ASSET_POLICY.md",
@@ -335,13 +318,13 @@
       "lastTouch": "2026-08-31"
     },
     {
-      "path": "design.qa.yaml",
-      "category": "repo-meta",
-      "note": "根级运维与政策文档",
-      "files": 1,
-      "bytes": 4317,
+      "path": "reports/",
+      "category": "generated",
+      "note": "其余报告",
+      "files": 2,
+      "bytes": 3531,
       "cited_by_authority": 0,
-      "lastTouch": "2026-10-09"
+      "lastTouch": "2026-10-19"
     },
     {
       "path": "LESSONS_LEARNED.md",
@@ -353,6 +336,24 @@
       "lastTouch": "2026-08-25"
     },
     {
+      "path": ".gitattributes",
+      "category": "repo-meta",
+      "note": "根级运维与政策文档",
+      "files": 1,
+      "bytes": 3190,
+      "cited_by_authority": 0,
+      "lastTouch": "2026-10-13"
+    },
+    {
+      "path": ".gitignore",
+      "category": "repo-meta",
+      "note": "根级运维与政策文档",
+      "files": 1,
+      "bytes": 2646,
+      "cited_by_authority": 0,
+      "lastTouch": "2026-10-12"
+    },
+    {
       "path": "NOTICE",
       "category": "repo-meta",
       "note": "根级运维与政策文档",
@@ -360,24 +361,6 @@
       "bytes": 2391,
       "cited_by_authority": 0,
       "lastTouch": "2026-08-13"
-    },
-    {
-      "path": ".gitignore",
-      "category": "repo-meta",
-      "note": "根级运维与政策文档",
-      "files": 1,
-      "bytes": 2005,
-      "cited_by_authority": 0,
-      "lastTouch": "2026-09-24"
-    },
-    {
-      "path": ".gitattributes",
-      "category": "repo-meta",
-      "note": "根级运维与政策文档",
-      "files": 1,
-      "bytes": 1539,
-      "cited_by_authority": 0,
-      "lastTouch": "2026-10-08"
     },
     {
       "path": "GITHUB_DELIVERY.md",

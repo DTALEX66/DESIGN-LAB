@@ -105,6 +105,27 @@ def equals_record(data: bytes, row: dict) -> bool:
             and sha(data) == row["sha256"])
 
 
+def archive_moves() -> dict[str, str]:
+    """`recorded path -> current path` proven by an archive-pass MANIFEST.json.
+
+    An import row seals where bytes landed. When a later archive pass relocates the file
+    without touching it, the honest record is a pointer to the move, not a rewrite of the
+    sealed row -- and the pointer must be checkable against the manifest that measured the
+    move, or any dead row could be 'repaired' by inventing a path.
+    """
+    table: dict[str, str] = {}
+    for manifest in sorted((REPO / "docs/history").glob("archive-*/MANIFEST.json")):
+        try:
+            data = json.loads(manifest.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError):
+            continue
+        for group in data.get("groups", []):
+            for entry in group.get("files", []):
+                if entry.get("from") and entry.get("to"):
+                    table[entry["from"]] = entry["to"]
+    return table
+
+
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--head", action="store_true", help="compare blobs against HEAD, not the index")
@@ -125,8 +146,9 @@ def main() -> int:
 
     counters = {"rows": len(rows), "source_verified": 0, "source_unreachable": 0,
                 "worktree_verified": 0, "mapped_copies_verified": 0, "blob_verified": 0,
-                "blob_eol_only": 0, "blob_absent": 0, "skipped": 0}
+                "blob_eol_only": 0, "blob_absent": 0, "moved_rows": 0, "skipped": 0}
     failures: list[str] = []
+    moves = archive_moves()
 
     for row in rows:
         action = row["action"]
@@ -155,6 +177,22 @@ def main() -> int:
         if action not in ("LANDED", "ALREADY-IN-REPO"):
             continue
         rel = row["target"]
+        # A relocation declaration is checked against the archive manifest that measured the
+        # move, then the sealed digests are re-verified at the new location. The row keeps its
+        # original `target` so the import record stays readable as what actually happened.
+        move = row.get("movedTo")
+        if move is not None:
+            declared = move.get("path")
+            if not declared or moves.get(rel) != declared:
+                failures.append(f"MOVE-UNPROVEN {rel}: declares {declared!r}, which no "
+                                "docs/history/archive-*/MANIFEST.json records as a move")
+                continue
+            if not (move.get("reason") or "").strip() or not (move.get("by") or {}).get("commit"):
+                failures.append(f"MOVE-UNEXPLAINED {rel}: declares a move without a reason "
+                                "or the commit that performed it")
+                continue
+            rel = declared
+            counters["moved_rows"] += 1
         dest = REPO / rel
         if not dest.is_file():
             failures.append(f"WORKTREE-MISSING {rel}"

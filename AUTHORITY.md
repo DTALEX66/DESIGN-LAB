@@ -171,7 +171,7 @@ Merge/delete/release/force-push 仍属于 owner-authorized destructive actions�
 
 **Handoff 永远不是顶层 Authority。** 它只记录时间点执行状态，后续 merge/branch/CI 可立即使它过时。
 
-`docs/handoffs/DESIGN-LAB-UCR-CONVERGENCE-20260918-HANDOFF.md` 明确分类为 `HISTORICAL_EXECUTION_RECORD`；即使文件自己写“tracked 权威交接”，也不得覆盖本 Authority。
+`docs/history/archive-2026-10-19/handoffs/DESIGN-LAB-UCR-CONVERGENCE-20260918-HANDOFF.md` 明确分类为 `HISTORICAL_EXECUTION_RECORD`；即使文件自己写“tracked 权威交接”，也不得覆盖本 Authority。
 
 未来 GPT 不得因为某个旧文档更详细，就拿它重建当前架构。
 
@@ -246,7 +246,7 @@ Merge/delete/release/force-push 仍属于 owner-authorized destructive actions�
 3. 修改 `AGENTS.md`，Authority 强制第一读 — CLOSED（`AGENTS.md` MUST READ FIRST；verifier check `agents-authority-first` PASS）
 4. 落仓统一最终 TaskPack — CLOSED（`docs/taskpacks/DESIGN-LAB-FINAL-AUTHORITY-CONVERGENCE-TASKPACK-2026-09-18.md`）
 5. 分类/冻结所有 active-looking 历史文档/TaskPack/Handoff — CLOSED（index `historicalGlobs` + `historicalSpecific` + `taskpackClassificationRule`）
-6. 将 PR #120 Handoff 首屏明确标为 HISTORICAL/NON_AUTHORITATIVE — CLOSED（`docs/handoffs/DESIGN-LAB-UCR-CONVERGENCE-20260918-HANDOFF.md` 首屏 banner）
+6. 将 PR #120 Handoff 首屏明确标为 HISTORICAL/NON_AUTHORITATIVE — CLOSED（`docs/history/archive-2026-10-19/handoffs/DESIGN-LAB-UCR-CONVERGENCE-20260918-HANDOFF.md` 首屏 banner）
 7. 接入现有 authority-chain，不建第二 ledger — CLOSED（`scripts/deepseek_authority_chain.py` + `reports/current/DEEPSEEK-AUTHORITY-CHAIN.json`）
 8. 新增 Authority/index consistency verifier — CLOSED（`scripts/verify_top_level_authority.py`，10 checks）
 9. main required checks 加入 Authority gate — CLOSED（gh 读回 main protection：含 `Top-level Authority consistency gate (DL-AUTHORITY-2026-09-18-R2)`；该门禁落地时为 7 项，截至 §13.1 观察时点为 9 项）

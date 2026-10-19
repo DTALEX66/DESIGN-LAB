@@ -1,39 +1,44 @@
 {
   "schemaVersion": "design-lab/untracked-runtime-census/v1",
   "task_key": "DL-TP-20260914-DEEPSEEK-AUTHORITY-R1::DLDS-D000",
-  "measured_at": "2026-10-18T09:53:03+00:00",
+  "measured_at": "2026-10-19T08:29:44+00:00",
   "roots": {
     ".project-local": {
-      "files": 97818,
-      "bytes": 6891467104,
-      "mib": 6572.22,
+      "files": 108516,
+      "bytes": 7349063923,
+      "mib": 7008.61,
       "oldest_mtime": 1770734472.0,
-      "newest_mtime": 1792316744.9632523,
+      "newest_mtime": 1792398558.5574028,
       "by_subdir": {
         "task-runtime": {
-          "files": 76696,
-          "bytes": 4463885031,
-          "mib": 4257.09
+          "files": 79503,
+          "bytes": 4765057529,
+          "mib": 4544.31
         },
         "task-artifacts": {
-          "files": 5986,
-          "bytes": 1155118407,
-          "mib": 1101.61
+          "files": 6153,
+          "bytes": 1163427890,
+          "mib": 1109.53
         },
         "runs": {
-          "files": 5375,
-          "bytes": 597208315,
-          "mib": 569.54
+          "files": 5399,
+          "bytes": 597811155,
+          "mib": 570.12
         },
         "projects": {
           "files": 346,
           "bytes": 357703756,
           "mib": 341.13
         },
+        "worktrees": {
+          "files": 7689,
+          "bytes": 147485026,
+          "mib": 140.65
+        },
         "tmp": {
-          "files": 3166,
-          "bytes": 111903953,
-          "mib": 106.72
+          "files": 3177,
+          "bytes": 111930925,
+          "mib": 106.75
         },
         "personal-audit-src": {
           "files": 3562,
@@ -150,6 +155,6 @@
       }
     }
   },
-  "total_mib": 6769.13,
+  "total_mib": 7205.53,
   "classification_pending": "DLDS-D030/D040 and Wave 4 classify and act; nothing is deleted here"
 }

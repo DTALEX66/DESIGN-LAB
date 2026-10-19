@@ -49,7 +49,7 @@ MANUAL_GATES = {
     "deepseek_post_cleanup_audit.py": "one-off historical audit run",
     "deepseek_size_audit.py": "one-off historical audit run",
     # The U01 reconciliation writer/auditor for the 2026-10-09 desktop batch. Its --check demands
-    # byte equality with the committed docs/current/UI-DESKTOP-RECONCILIATION-2026-10-09.md, and
+    # byte equality with the committed archive-2026-10-19/current-records/UI-DESKTOP-RECONCILIATION-2026-10-09.md, and
     # that document embeds the HEAD it was rendered at, so it can only ever match at the commit
     # that wrote it; the committed copy also carries a hand-written 2026-10-12 correction that the
     # renderer does not produce. Measured 2026-10-13 in this tree and in a clean clone at

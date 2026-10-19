@@ -20,7 +20,7 @@ scope for this execution. Nothing below was performed.
 |---|---|---|
 | Application present | MiniMax Design 3.0.10 | `reports/current/MACHINE_INVENTORY.json`, `observed_at 2026-09-13T14:54:08+00:00` |
 | Local data root | `C:/Users/ALEX/AppData/Local/com.minimax.hub` (path recorded as a location only) | `docs/LOCAL_ENVIRONMENT.md` |
-| Model weights | MiniMax H3, four component files | separate acceptance path, see `docs/handoffs/DEEPSEEK-RIGHTS-REFRESH-MINIMAX-H3-2026-09-13.md` |
+| Model weights | MiniMax H3, four component files | separate acceptance path, see `docs/history/archive-2026-10-19/handoffs/DEEPSEEK-RIGHTS-REFRESH-MINIMAX-H3-2026-09-13.md` |
 | Launch performed | no | this execution |
 | API called | no | this execution |
 | Artifact produced | no | this execution |

@@ -228,8 +228,8 @@ def build() -> dict:
         "non_authoritative_sources": ["CHAT SUMMARY", "MEMORY SUMMARY", "COMPRESSED CONTEXT",
                                       "HANDOFF SUMMARY"],
         "stop_line": {
-            "handoff": "docs/handoffs/SESSION-RESTART-2026-09-12.md",
-            "handoff_sha256": sha256_file(REPO / "docs/handoffs/SESSION-RESTART-2026-09-12.md"),
+            "handoff": "docs/history/archive-2026-10-19/handoffs/SESSION-RESTART-2026-09-12.md",
+            "handoff_sha256": sha256_file(REPO / "docs/history/archive-2026-10-19/handoffs/SESSION-RESTART-2026-09-12.md"),
             "state": "EXPLICIT_SCOPE_SUPERSESSION",
             "superseded_scope": "only the DeepSeek tasks listed in " + AUTHORITY_ID,
             "still_frozen": ["Real Host", "Design validation", "GPU inference", "Human Gate"],

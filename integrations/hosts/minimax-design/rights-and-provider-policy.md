@@ -11,7 +11,7 @@
   being installed, licensed to the owner, or present in a subscription.
 - **Model weights are a different question.** MiniMax H3 has its own licence
   record and its own fail-closed rule; see
-  `docs/handoffs/DEEPSEEK-RIGHTS-REFRESH-MINIMAX-H3-2026-09-13.md`. Accepting the
+  `docs/history/archive-2026-10-19/handoffs/DEEPSEEK-RIGHTS-REFRESH-MINIMAX-H3-2026-09-13.md`. Accepting the
   application never accepts the weights.
 - **Output rights are not claimed.** DESIGN-LAB asserts no rights over whatever
   the host produces. Any client delivery of host output requires its own

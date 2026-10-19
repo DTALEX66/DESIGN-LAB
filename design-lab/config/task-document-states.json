@@ -30,10 +30,10 @@
   },
   "prefixRules": [
     {
-      "glob": "docs/handoffs/**",
+      "glob": "docs/history/archive-2026-10-19/handoffs/**",
       "state": "NON_AUTHORITATIVE",
       "role": "RECORD",
-      "basis": "authority-index historicalGlobs 含 docs/handoffs/**；HISTORY-FREEZE-RULES 明写“Handoff 永远不是顶层 Authority”。",
+      "basis": "authority-index historicalGlobs 含 docs/history/archive-2026-10-19/handoffs/**；HISTORY-FREEZE-RULES 明写“Handoff 永远不是顶层 Authority”。",
       "replacement": "docs/taskpacks/DESIGN-LAB-FINAL-AUTHORITY-CONVERGENCE-TASKPACK-2026-09-18.md"
     },
     {
@@ -52,7 +52,7 @@
       "replacement": "docs/taskpacks/DESIGN-LAB-FINAL-AUTHORITY-CONVERGENCE-TASKPACK-2026-09-18.md"
     },
     {
-      "glob": "docs/taskpacks/03_DESIGN-LAB_*",
+      "glob": "docs/history/archive-2026-10-19/taskpacks/03_DESIGN-LAB_*",
       "state": "SUPERSEDED",
       "role": "RECORD",
       "basis": "20261009 owner采纳新发包；旧请求不再派工，有用需求由crosswalk并入",
@@ -137,7 +137,7 @@
       "basis": "唯一账本，currentExecution当前派工；旧R5分区冻结证据，不再派工。"
     },
     {
-      "path": "docs/taskpacks/DESIGN-LAB-GLOBAL-DESIGN-CAPABILITY-INTELLIGENCE-TASKPACK-2026-10-06.md",
+      "path": "docs/history/archive-2026-10-19/taskpacks/DESIGN-LAB-GLOBAL-DESIGN-CAPABILITY-INTELLIGENCE-TASKPACK-2026-10-06.md",
       "state": "SUPERSEDED",
       "role": "RECORD",
       "frozen": true,
@@ -145,7 +145,7 @@
       "supersededBy": "docs/taskpacks/DESIGN-LAB-UI-FIRST-INTEGRATED-TASKPACK-2026-10-09.md"
     },
     {
-      "path": "docs/taskpacks/DESIGN-LAB-CLOUD-REAUDIT-TASKPACK-2026-09-06.md",
+      "path": "docs/history/archive-2026-10-19/taskpacks/DESIGN-LAB-CLOUD-REAUDIT-TASKPACK-2026-09-06.md",
       "state": "SUPERSEDED",
       "role": "RECORD",
       "supersededBy": "docs/taskpacks/DESIGN-LAB-UI-FIRST-INTEGRATED-TASKPACK-2026-10-09.md",
@@ -153,7 +153,7 @@
       "basis": "20261009新包覆盖本批；旧需求取舍由crosswalk登记，不自动恢复。"
     },
     {
-      "path": "docs/taskpacks/DESIGN-LAB-CODEX-REAL-HOST-HANDOFF.md",
+      "path": "docs/history/archive-2026-10-19/taskpacks/DESIGN-LAB-CODEX-REAL-HOST-HANDOFF.md",
       "state": "SUPERSEDED",
       "role": "RECORD",
       "basis": "20261009新包覆盖本批；旧需求取舍由crosswalk登记，不自动恢复。",
@@ -161,7 +161,7 @@
       "supersededBy": "docs/taskpacks/DESIGN-LAB-UI-FIRST-INTEGRATED-TASKPACK-2026-10-09.md"
     },
     {
-      "path": "docs/taskpacks/DESIGN-LAB-DEEPSEEK-EXECUTION-2026-09-06.md",
+      "path": "docs/history/archive-2026-10-19/taskpacks/DESIGN-LAB-DEEPSEEK-EXECUTION-2026-09-06.md",
       "state": "SUPERSEDED",
       "role": "RECORD",
       "supersededBy": "docs/taskpacks/DESIGN-LAB-UI-FIRST-INTEGRATED-TASKPACK-2026-10-09.md",
@@ -169,7 +169,7 @@
       "basis": "20261009新包覆盖本批；旧需求取舍由crosswalk登记，不自动恢复。"
     },
     {
-      "path": "docs/taskpacks/DESIGN-LAB-DIRECTORY-MIGRATION-CLEANUP-TASKPACK-2026-09-01.md",
+      "path": "docs/history/archive-2026-10-19/taskpacks/DESIGN-LAB-DIRECTORY-MIGRATION-CLEANUP-TASKPACK-2026-09-01.md",
       "state": "SUPERSEDED",
       "role": "RECORD",
       "supersededBy": "docs/taskpacks/DESIGN-LAB-UI-FIRST-INTEGRATED-TASKPACK-2026-10-09.md",
@@ -177,7 +177,7 @@
       "basis": "20261009新包覆盖本批；旧需求取舍由crosswalk登记，不自动恢复。"
     },
     {
-      "path": "docs/taskpacks/DESIGN-LAB-DIRECTORY-MIGRATION-CLEANUP-TASKPACK-2026-09-01-2.md",
+      "path": "docs/history/archive-2026-10-19/taskpacks/DESIGN-LAB-DIRECTORY-MIGRATION-CLEANUP-TASKPACK-2026-09-01-2.md",
       "state": "SUPERSEDED",
       "role": "RECORD",
       "supersededBy": "docs/taskpacks/DESIGN-LAB-UI-FIRST-INTEGRATED-TASKPACK-2026-10-09.md",
@@ -185,7 +185,7 @@
       "basis": "20261009新包覆盖本批；旧需求取舍由crosswalk登记，不自动恢复。"
     },
     {
-      "path": "docs/taskpacks/DESIGN-LAB-DIRECTORY-MIGRATION-CLEANUP-TASKPACK-2026-09-01-3.md",
+      "path": "docs/history/archive-2026-10-19/taskpacks/DESIGN-LAB-DIRECTORY-MIGRATION-CLEANUP-TASKPACK-2026-09-01-3.md",
       "state": "SUPERSEDED",
       "role": "RECORD",
       "supersededBy": "docs/taskpacks/DESIGN-LAB-UI-FIRST-INTEGRATED-TASKPACK-2026-10-09.md",
@@ -193,7 +193,7 @@
       "basis": "20261009新包覆盖本批；旧需求取舍由crosswalk登记，不自动恢复。"
     },
     {
-      "path": "docs/taskpacks/DESIGN-LAB-DP-CORRECTION-TASKPACK-V2-2026-09-06.md",
+      "path": "docs/history/archive-2026-10-19/taskpacks/DESIGN-LAB-DP-CORRECTION-TASKPACK-V2-2026-09-06.md",
       "state": "SUPERSEDED",
       "role": "RECORD",
       "supersededBy": "docs/taskpacks/DESIGN-LAB-UI-FIRST-INTEGRATED-TASKPACK-2026-10-09.md",
@@ -201,7 +201,7 @@
       "basis": "20261009新包覆盖本批；旧需求取舍由crosswalk登记，不自动恢复。"
     },
     {
-      "path": "docs/taskpacks/DESIGN-LAB-FINAL-TASKPACK-2026-08-25.md",
+      "path": "docs/history/archive-2026-10-19/taskpacks/DESIGN-LAB-FINAL-TASKPACK-2026-08-25.md",
       "state": "SUPERSEDED",
       "role": "RECORD",
       "supersededBy": "docs/taskpacks/DESIGN-LAB-UI-FIRST-INTEGRATED-TASKPACK-2026-10-09.md",
@@ -209,7 +209,7 @@
       "basis": "20261009新包覆盖本批；旧需求取舍由crosswalk登记，不自动恢复。"
     },
     {
-      "path": "docs/taskpacks/DESIGN-LAB-FINAL-TASKPACK-2026-08-25-2.md",
+      "path": "docs/history/archive-2026-10-19/taskpacks/DESIGN-LAB-FINAL-TASKPACK-2026-08-25-2.md",
       "state": "SUPERSEDED",
       "role": "RECORD",
       "supersededBy": "docs/taskpacks/DESIGN-LAB-UI-FIRST-INTEGRATED-TASKPACK-2026-10-09.md",
@@ -217,7 +217,7 @@
       "basis": "20261009新包覆盖本批；旧需求取舍由crosswalk登记，不自动恢复。"
     },
     {
-      "path": "docs/taskpacks/DESIGN-LAB-GPT-REMAINING-2026-09-06.md",
+      "path": "docs/history/archive-2026-10-19/taskpacks/DESIGN-LAB-GPT-REMAINING-2026-09-06.md",
       "state": "SUPERSEDED",
       "role": "RECORD",
       "supersededBy": "docs/taskpacks/DESIGN-LAB-UI-FIRST-INTEGRATED-TASKPACK-2026-10-09.md",
@@ -225,7 +225,7 @@
       "basis": "20261009新包覆盖本批；旧需求取舍由crosswalk登记，不自动恢复。"
     },
     {
-      "path": "docs/taskpacks/DESIGN-LAB-MULTIMODAL-TASK-PLAN-2026-09-05.md",
+      "path": "docs/history/archive-2026-10-19/taskpacks/DESIGN-LAB-MULTIMODAL-TASK-PLAN-2026-09-05.md",
       "state": "SUPERSEDED",
       "role": "RECORD",
       "supersededBy": "docs/taskpacks/DESIGN-LAB-UI-FIRST-INTEGRATED-TASKPACK-2026-10-09.md",
@@ -233,7 +233,7 @@
       "frozen": true
     },
     {
-      "path": "docs/taskpacks/DESIGN-LAB-MULTIMODAL-CODEX-HANDOFF-2026-09-05.md",
+      "path": "docs/history/archive-2026-10-19/taskpacks/DESIGN-LAB-MULTIMODAL-CODEX-HANDOFF-2026-09-05.md",
       "state": "SUPERSEDED",
       "role": "RECORD",
       "supersededBy": "docs/taskpacks/DESIGN-LAB-UI-FIRST-INTEGRATED-TASKPACK-2026-10-09.md",
@@ -241,7 +241,7 @@
       "frozen": true
     },
     {
-      "path": "docs/taskpacks/DESIGN-LAB-SPLIT-HANDOFF-2026-09-06.md",
+      "path": "docs/history/archive-2026-10-19/taskpacks/DESIGN-LAB-SPLIT-HANDOFF-2026-09-06.md",
       "state": "SUPERSEDED",
       "role": "RECORD",
       "supersededBy": "docs/taskpacks/DESIGN-LAB-UI-FIRST-INTEGRATED-TASKPACK-2026-10-09.md",
@@ -249,7 +249,7 @@
       "basis": "20261009新包覆盖本批；旧需求取舍由crosswalk登记，不自动恢复。"
     },
     {
-      "path": "docs/taskpacks/DESIGN-LAB-TODAY-EXECUTION-TASKPACK-2026-09-04.md",
+      "path": "docs/history/archive-2026-10-19/taskpacks/DESIGN-LAB-TODAY-EXECUTION-TASKPACK-2026-09-04.md",
       "state": "SUPERSEDED",
       "role": "RECORD",
       "supersededBy": "docs/taskpacks/DESIGN-LAB-UI-FIRST-INTEGRATED-TASKPACK-2026-10-09.md",
@@ -257,7 +257,7 @@
       "frozen": true
     },
     {
-      "path": "docs/taskpacks/DESIGN-LAB-TODAY-JOB-LEDGER-2026-09-04.yaml",
+      "path": "docs/history/archive-2026-10-19/taskpacks/DESIGN-LAB-TODAY-JOB-LEDGER-2026-09-04.yaml",
       "state": "SUPERSEDED",
       "role": "RECORD",
       "frozen": true,
@@ -265,7 +265,7 @@
       "supersededBy": "docs/taskpacks/DESIGN-LAB-UI-FIRST-INTEGRATED-TASKPACK-2026-10-09.md"
     },
     {
-      "path": "docs/taskpacks/DLR-FINAL-20260826-R2-OSS-FAST-TRACK.md",
+      "path": "docs/history/archive-2026-10-19/taskpacks/DLR-FINAL-20260826-R2-OSS-FAST-TRACK.md",
       "state": "SUPERSEDED",
       "role": "RECORD",
       "supersededBy": "docs/taskpacks/DESIGN-LAB-UI-FIRST-INTEGRATED-TASKPACK-2026-10-09.md",
@@ -273,7 +273,7 @@
       "frozen": true
     },
     {
-      "path": "docs/taskpacks/R4.1-R3-INCREMENTAL-ALIGNMENT-2026-09-07.md",
+      "path": "docs/history/archive-2026-10-19/taskpacks/R4.1-R3-INCREMENTAL-ALIGNMENT-2026-09-07.md",
       "state": "SUPERSEDED",
       "role": "RECORD",
       "supersededBy": "docs/taskpacks/DESIGN-LAB-UI-FIRST-INTEGRATED-TASKPACK-2026-10-09.md",
@@ -281,7 +281,7 @@
       "frozen": true
     },
     {
-      "path": "docs/taskpacks/TRI-OSS-FAST-TRACK-20260826-R1.md",
+      "path": "docs/history/archive-2026-10-19/taskpacks/TRI-OSS-FAST-TRACK-20260826-R1.md",
       "state": "SUPERSEDED",
       "role": "RECORD",
       "supersededBy": "docs/taskpacks/DESIGN-LAB-UI-FIRST-INTEGRATED-TASKPACK-2026-10-09.md",
@@ -407,44 +407,44 @@
       "replacement": "docs/taskpacks/DESIGN-LAB-UI-FIRST-INTEGRATED-TASKPACK-2026-10-09.md"
     },
     {
-      "path": "docs/current/ARCHIVE-KEY-INFORMATION-2026-10-09.md",
-      "state": "REFERENCE",
+      "path": "docs/history/archive-2026-10-19/current-records/ARCHIVE-KEY-INFORMATION-2026-10-09.md",
+      "state": "HISTORICAL",
       "role": "RECORD",
-      "frozen": false,
-      "basis": "20261009 owner授权的资料索引/精简提炼/复验记录，非Authority或第二状态账本",
+      "frozen": true,
+      "basis": "20261009 owner授权的资料索引/精简提炼/复验记录；2026-10-19 从 docs/current 归档，非Authority或第二状态账本",
+      "replacement": "docs/RECORD-ARCHIVE-INDEX.md"
+    },
+    {
+      "path": "docs/history/archive-2026-10-19/current-records/TASKPACK-ADOPTION-VERIFICATION-2026-10-09.md",
+      "state": "HISTORICAL",
+      "role": "RECORD",
+      "frozen": true,
+      "basis": "20261009 任务包采纳核验的时点记录；2026-10-19 从 docs/current 归档，非Authority或第二状态账本",
+      "replacement": "docs/taskpacks/DESIGN-LAB-DIRECTION-ALIGNMENT-2026-10-19.md"
+    },
+    {
+      "path": "docs/history/archive-2026-10-19/current-records/UI-DESKTOP-RECONCILIATION-2026-10-09.md",
+      "state": "HISTORICAL",
+      "role": "RECORD",
+      "frozen": true,
+      "basis": "由 scripts/audit_ui_desktop_reconcile_20261009.py 生成的时点对账；2026-10-19 从 docs/current 归档为历史记录，重跑不再代表当前状态",
+      "replacement": "docs/taskpacks/DESIGN-LAB-DIRECTION-ALIGNMENT-2026-10-19.md"
+    },
+    {
+      "path": "docs/history/archive-2026-10-19/taskpacks/20261009-r2-ui/CROSSWALK.md",
+      "state": "HISTORICAL",
+      "role": "RECORD",
+      "frozen": true,
+      "basis": "R2 UI 包与派工区的映射说明；2026-10-19 随旧任务包归档，输入面而非第二账本",
       "replacement": "docs/taskpacks/DESIGN-LAB-UI-FIRST-INTEGRATED-TASKPACK-2026-10-09.md"
     },
     {
-      "path": "docs/current/TASKPACK-ADOPTION-VERIFICATION-2026-10-09.md",
-      "state": "REFERENCE",
+      "path": "docs/history/archive-2026-10-19/current-records/HANDOFF-2026-10-13-COMPLETE.md",
+      "state": "HISTORICAL",
       "role": "RECORD",
-      "frozen": false,
-      "basis": "20261009 owner授权的资料索引/精简提炼/复验记录，非Authority或第二状态账本",
-      "replacement": "docs/taskpacks/DESIGN-LAB-UI-FIRST-INTEGRATED-TASKPACK-2026-10-09.md"
-    },
-    {
-      "path": "docs/current/UI-DESKTOP-RECONCILIATION-2026-10-09.md",
-      "state": "PROJECTION",
-      "role": "RECORD",
-      "frozen": false,
-      "basis": "由 scripts/audit_ui_desktop_reconcile_20261009.py 生成，重跑即重算；手写数字不被接受，它也不是产品验收（表头自己声明只做到结构对账）",
-      "replacement": "docs/taskpacks/DESIGN-LAB-UI-FIRST-INTEGRATED-TASKPACK-2026-10-09.md"
-    },
-    {
-      "path": "docs/taskpacks/20261009-r2-ui/CROSSWALK.md",
-      "state": "REFERENCE",
-      "role": "RECORD",
-      "frozen": false,
-      "basis": "R2 UI 包与当前派工区的映射说明，输入面而非第二账本",
-      "replacement": "docs/taskpacks/DESIGN-LAB-UI-FIRST-INTEGRATED-TASKPACK-2026-10-09.md"
-    },
-    {
-      "path": "docs/current/HANDOFF-2026-10-13-COMPLETE.md",
-      "state": "REFERENCE",
-      "role": "RECORD",
-      "frozen": false,
-      "basis": "2026-10-13 分支治理 + owner 项 G 落地 + 防漂移的完整交接。非第二状态源；其权威读法仍以 /AUTHORITY.md 与 index 为首。文中所有 SHA/计数均为时点值，须自读。",
-      "replacement": "docs/taskpacks/DESIGN-LAB-UI-FIRST-INTEGRATED-TASKPACK-2026-10-09.md"
+      "frozen": true,
+      "basis": "2026-10-13 分支治理 + owner 项 G 落地 + 防漂移的完整交接；2026-10-19 从 docs/current 归档。非第二状态源；其权威读法仍以 /AUTHORITY.md 与 index 为首。文中所有 SHA/计数均为时点值，须自读。",
+      "replacement": "docs/current/NEXT-AGENT-PROMPT.md"
     },
     {
       "path": "docs/current/NEXT-AGENT-PROMPT.md",
