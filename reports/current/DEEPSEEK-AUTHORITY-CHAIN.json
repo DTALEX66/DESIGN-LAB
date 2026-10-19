@@ -1,9 +1,9 @@
 {
   "schemaVersion": "design-lab/deepseek-authority-chain/v1",
   "task_key": "DL-TP-20260914-DEEPSEEK-AUTHORITY-R1::DLDS-A010",
-  "generated_at": "2026-10-19T13:25:05+00:00",
+  "generated_at": "2026-10-19T13:41:36+00:00",
   "subject": {
-    "base_sha": "92ec160d0143e053690ac3334f315e25b454309b",
+    "base_sha": "0c1a8112d298e1c9def0918912e3482bbcca66f5",
     "branch": "qoder/designlab-backup-consistency-20261007",
     "worktree_clean": false
   },
@@ -134,15 +134,15 @@
     },
     {
       "path": "AGENTS.md",
-      "bytes": 14545,
-      "sha256": "sha256:cb0c309390d49d0c5de8f7f836241e881d042ceba29cc67c35e046a58dd7c5a1",
+      "bytes": 14817,
+      "sha256": "sha256:80abbaa605260c831d2ad6d47777e0f0d45df96257dd8c5142aafdada88cd4b3",
       "authority_class": "GOVERNANCE_TRUTH",
       "basis": "root execution rules"
     },
     {
       "path": "design-lab/config/task-ledger-r3.json",
-      "bytes": 752921,
-      "sha256": "sha256:1e01e4d9eb8281691ffbb7047f4221f9e7566dd84c5ffbdd9ed2737430976d69",
+      "bytes": 753099,
+      "sha256": "sha256:a5c891cfb4ca45574ec3ba805e3a17355c2273a2513afc0885b2a8ef8bf73ab5",
       "authority_class": "CURRENT_TASK_LEDGER",
       "basis": "currentExecution dispatch; frozen R5 evidence partition",
       "mutable_state": "the ledger is rewritten at the close of every task, so its bytes and digest are generation-time",
@@ -164,8 +164,8 @@
     },
     {
       "path": "docs/history/taskpacks/20261009-adoption/AUTHORITY-PIN-CHANGE.json",
-      "bytes": 8854,
-      "sha256": "sha256:88d8f02561cdacc266f8d431320afee9d447e7ee205a934c9ca44bd5804371c4",
+      "bytes": 10699,
+      "sha256": "sha256:f890c6d8ef42a0c1537bf46182435eb7546e78168da9e3ad806753c4d97e508b",
       "authority_class": "HISTORICAL",
       "basis": "frozen historical path (docs/history/)",
       "ledger": {

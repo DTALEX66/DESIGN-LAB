@@ -8,21 +8,56 @@
   },
   "fresh": false,
   "freshnessMeaning": "at generation only; check verifies bound-input integrity, not current Git or cloud state",
-  "generatedAt": "2026-10-19T13:25:28+00:00",
+  "generatedAt": "2026-10-19T13:42:11+00:00",
   "git": {
     "branch": "qoder/designlab-backup-consistency-20261007",
     "origin_main": "92ec160d0143e053690ac3334f315e25b454309b",
-    "sha": "92ec160d0143e053690ac3334f315e25b454309b",
+    "sha": "0c1a8112d298e1c9def0918912e3482bbcca66f5",
     "source_worktree_clean": false,
     "tracked_files": 3727,
     "worktree_changes": [
       {
-        "content": "sha256:cb0c309390d49d0c5de8f7f836241e881d042ceba29cc67c35e046a58dd7c5a1",
+        "content": "sha256:e03e035aa0fdc2fc81d081e3324fe2cbb760d2afb11ff4d72bef2da9b53d2aa4",
+        "kind": "M",
+        "path": ".project/governance/authority-index.json"
+      },
+      {
+        "content": "sha256:80abbaa605260c831d2ad6d47777e0f0d45df96257dd8c5142aafdada88cd4b3",
         "kind": "M",
         "path": "AGENTS.md"
+      },
+      {
+        "content": "sha256:6f0ec9bbf2ca32db70d0f488a6c68e2b62795387755e9a58e06ccfe09bab8f50",
+        "kind": "M",
+        "path": "AUTHORITY.md"
+      },
+      {
+        "content": "sha256:a5c891cfb4ca45574ec3ba805e3a17355c2273a2513afc0885b2a8ef8bf73ab5",
+        "kind": "M",
+        "path": "design-lab/config/task-ledger-r3.json"
+      },
+      {
+        "content": "sha256:732e87097143e3da21370ee8497dc1cc1a93827c28eb4afe1234f4dcb64d7887",
+        "kind": "M",
+        "path": "docs/current/NEXT-AGENT-PROMPT.md"
+      },
+      {
+        "content": "sha256:f852331b2442986cc56a960b9aba977851f52ad6cd45c1a87898810565579a96",
+        "kind": "M",
+        "path": "docs/current/PRODUCT_DEFINITION.md"
+      },
+      {
+        "content": "sha256:f890c6d8ef42a0c1537bf46182435eb7546e78168da9e3ad806753c4d97e508b",
+        "kind": "M",
+        "path": "docs/history/taskpacks/20261009-adoption/AUTHORITY-PIN-CHANGE.json"
+      },
+      {
+        "content": "sha256:ee8773d833d9634c1a0b23635cd8354af98123d09176726900e22e0c1a64e7e4",
+        "kind": "M",
+        "path": "scripts/verify_top_level_authority.py"
       }
     ],
-    "worktree_digest": "sha256:4695f7f5ff8a84442f04fe426c32de9f7fb9d22089bc4a7e417b989f10f28810"
+    "worktree_digest": "sha256:3cbe668a11d1bff7314ad4a6ca382485ba5f7b0b1244ea2721433c852071541f"
   },
   "gitStateMeaning": "generation-time observation, not current HEAD",
   "hostLive": "derived from host_live axis only",
@@ -38,7 +73,7 @@
     "quarantinedSources": 162
   },
   "subjectMeaning": "subjectType=WORKTREE means the tree was dirty at generation; worktreeDigest covers HEAD plus the non-generated changes",
-  "subjectSha": "92ec160d0143e053690ac3334f315e25b454309b",
+  "subjectSha": "0c1a8112d298e1c9def0918912e3482bbcca66f5",
   "subjectType": "WORKTREE",
   "taskCounts": {
     "FROZEN_DEFERRED": 34
@@ -55,5 +90,5 @@
     "executed": "see individual verified ledger receipts"
   },
   "worktreeClean": false,
-  "worktreeDigest": "sha256:4695f7f5ff8a84442f04fe426c32de9f7fb9d22089bc4a7e417b989f10f28810"
+  "worktreeDigest": "sha256:3cbe668a11d1bff7314ad4a6ca382485ba5f7b0b1244ea2721433c852071541f"
 }
