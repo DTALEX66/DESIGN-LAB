@@ -1,11 +1,11 @@
 {
  "schemaVersion": "design-lab/archive-move-manifest/v1",
  "batch": "archive-2026-10-19",
- "generatedAt": "2026-10-19T08:17:39+00:00",
- "subjectHead": "f55f03821e90e61f49ff64e529133b892494756b",
+ "generatedAt": "2026-10-19T10:39:22+00:00",
+ "subjectHead": "856ed98f76a57a8ac3bc10d4588e7026ff555177",
  "authority": "owner instruction 2026-10-19: old / outdated / redundant material must leave the visible surfaces, whole directories move to the aggregation location, and no session may index an old path again",
  "taskPack": "docs/taskpacks/DESIGN-LAB-DIRECTION-ALIGNMENT-2026-10-19.md",
- "movement": "git mv only. No byte was rewritten: every path below is re-read from the git index and its blob SHA-1 and size are compared with the value recorded before the move.",
+ "movement": "git mv only. No byte was rewritten: every path still in the tree is re-read from the git index and its blob SHA-1 and size are compared with the value recorded before the move. Paths removed by a later owner-ordered wave carry status=REMOVED plus the restore commit, and are counted separately -- they are not claimed as re-verifiable from the working tree.",
  "destinations": [
   {
    "root": "docs/history/archive-2026-10-19/**",
@@ -20,7 +20,9 @@
   "groups": 40,
   "files": 228,
   "bytes": 8416910,
-  "byteIdentityVerified": 228,
+  "byteIdentityVerified": 155,
+  "removedSinceThisPass": 73,
+  "removalRecord": "docs/history/archive-2026-10-19/REMOVALS.json",
   "bytesRewritten": 0
  },
  "frozen": true,
@@ -603,409 +605,545 @@
      "from": "docs/handoffs/DEEPSEEK-AUTHORITY-ACTIVATION-2026-09-14.md",
      "to": "docs/history/archive-2026-10-19/handoffs/DEEPSEEK-AUTHORITY-ACTIVATION-2026-09-14.md",
      "blobSha1": "bf82c950a466bbdde5349f90cd7af3afe6983632",
-     "bytes": 3430
+     "bytes": 3430,
+     "status": "REMOVED",
+     "restoreAt": "7015571e729ec78c266cf45e0bd3b01b2e50973b"
     },
     {
      "from": "docs/handoffs/DEEPSEEK-DEEP-ADAPTATION-EXECUTION-2026-09-13.md",
      "to": "docs/history/archive-2026-10-19/handoffs/DEEPSEEK-DEEP-ADAPTATION-EXECUTION-2026-09-13.md",
      "blobSha1": "0956607e632284695441d3d0455a676aaa2b3c6c",
-     "bytes": 19843
+     "bytes": 19843,
+     "status": "REMOVED",
+     "restoreAt": "7015571e729ec78c266cf45e0bd3b01b2e50973b"
     },
     {
      "from": "docs/handoffs/DEEPSEEK-OPEN-DESIGN-E3-READINESS-2026-09-13.md",
      "to": "docs/history/archive-2026-10-19/handoffs/DEEPSEEK-OPEN-DESIGN-E3-READINESS-2026-09-13.md",
      "blobSha1": "f6ac45124bb7381edafd72165f5d7ba34e777fb0",
-     "bytes": 5530
+     "bytes": 5530,
+     "status": "REMOVED",
+     "restoreAt": "7015571e729ec78c266cf45e0bd3b01b2e50973b"
     },
     {
      "from": "docs/handoffs/DEEPSEEK-RIGHTS-REFRESH-MINIMAX-H3-2026-09-13.md",
      "to": "docs/history/archive-2026-10-19/handoffs/DEEPSEEK-RIGHTS-REFRESH-MINIMAX-H3-2026-09-13.md",
      "blobSha1": "1d3eb718f08fe571bbfc511efa548722a2a735d5",
-     "bytes": 10133
+     "bytes": 10133,
+     "status": "REMOVED",
+     "restoreAt": "7015571e729ec78c266cf45e0bd3b01b2e50973b"
     },
     {
      "from": "docs/handoffs/DESIGN-LAB-AUDIT-ARCHITECTURE-WORKBENCH-20260922.md",
      "to": "docs/history/archive-2026-10-19/handoffs/DESIGN-LAB-AUDIT-ARCHITECTURE-WORKBENCH-20260922.md",
      "blobSha1": "c90471a038246a874f4b29a8811f5a2c1c710a9d",
-     "bytes": 6803
+     "bytes": 6803,
+     "status": "REMOVED",
+     "restoreAt": "7015571e729ec78c266cf45e0bd3b01b2e50973b"
     },
     {
      "from": "docs/handoffs/DESIGN-LAB-BRANCH-DISPOSITION-2026-09-23.md",
      "to": "docs/history/archive-2026-10-19/handoffs/DESIGN-LAB-BRANCH-DISPOSITION-2026-09-23.md",
      "blobSha1": "707a8942f1e6995714135e101b86e596d7da9d2d",
-     "bytes": 5731
+     "bytes": 5731,
+     "status": "REMOVED",
+     "restoreAt": "7015571e729ec78c266cf45e0bd3b01b2e50973b"
     },
     {
      "from": "docs/handoffs/DESIGN-LAB-BUNDLES-LIST-QUERY-ROUND-2026-09-28.md",
      "to": "docs/history/archive-2026-10-19/handoffs/DESIGN-LAB-BUNDLES-LIST-QUERY-ROUND-2026-09-28.md",
      "blobSha1": "ec7087f6c08d9f7f4ca15cf0906ad0acffae5454",
-     "bytes": 7118
+     "bytes": 7118,
+     "status": "REMOVED",
+     "restoreAt": "7015571e729ec78c266cf45e0bd3b01b2e50973b"
     },
     {
      "from": "docs/handoffs/DESIGN-LAB-CLOUD-AUDIT-2026-09-25-CLOSURE-2026-09-26.md",
      "to": "docs/history/archive-2026-10-19/handoffs/DESIGN-LAB-CLOUD-AUDIT-2026-09-25-CLOSURE-2026-09-26.md",
      "blobSha1": "f291e0fb79a882ba1bb3ecf8c5f6b67f3f9a76c0",
-     "bytes": 9082
+     "bytes": 9082,
+     "status": "REMOVED",
+     "restoreAt": "7015571e729ec78c266cf45e0bd3b01b2e50973b"
     },
     {
      "from": "docs/handoffs/DESIGN-LAB-DRIFT-BRANCH-AUDIT-2026-09-22.md",
      "to": "docs/history/archive-2026-10-19/handoffs/DESIGN-LAB-DRIFT-BRANCH-AUDIT-2026-09-22.md",
      "blobSha1": "3db4abc657c16c99cb1ec8468253de846af7488f",
-     "bytes": 5625
+     "bytes": 5625,
+     "status": "REMOVED",
+     "restoreAt": "7015571e729ec78c266cf45e0bd3b01b2e50973b"
     },
     {
      "from": "docs/handoffs/DESIGN-LAB-FULL-EXECUTION-HANDOFF-2026-09-22.md",
      "to": "docs/history/archive-2026-10-19/handoffs/DESIGN-LAB-FULL-EXECUTION-HANDOFF-2026-09-22.md",
      "blobSha1": "427c2deb803e74ab52ec5bf347689d5fb81fdfbd",
-     "bytes": 8572
+     "bytes": 8572,
+     "status": "REMOVED",
+     "restoreAt": "7015571e729ec78c266cf45e0bd3b01b2e50973b"
     },
     {
      "from": "docs/handoffs/DESIGN-LAB-NIGHT-CHECKPOINT-2026-09-07.md",
      "to": "docs/history/archive-2026-10-19/handoffs/DESIGN-LAB-NIGHT-CHECKPOINT-2026-09-07.md",
      "blobSha1": "59488e7ff33c8997a8aa3a7dabbd5f7b1397e635",
-     "bytes": 11109
+     "bytes": 11109,
+     "status": "REMOVED",
+     "restoreAt": "7015571e729ec78c266cf45e0bd3b01b2e50973b"
     },
     {
      "from": "docs/handoffs/DESIGN-LAB-P0-P1-MATURITY-HANDOFF-2026-09-20.md",
      "to": "docs/history/archive-2026-10-19/handoffs/DESIGN-LAB-P0-P1-MATURITY-HANDOFF-2026-09-20.md",
      "blobSha1": "f3e070620a6d8c883e55b3dedea194827e2c2a0c",
-     "bytes": 22813
+     "bytes": 22813,
+     "status": "REMOVED",
+     "restoreAt": "7015571e729ec78c266cf45e0bd3b01b2e50973b"
     },
     {
      "from": "docs/handoffs/DESIGN-LAB-PROJECT-SURVEY-TRUTH-RESYNC-2026-09-27.md",
      "to": "docs/history/archive-2026-10-19/handoffs/DESIGN-LAB-PROJECT-SURVEY-TRUTH-RESYNC-2026-09-27.md",
      "blobSha1": "87a0f2ed68d36f78bca3e7c5f0fcf843953c6027",
-     "bytes": 9593
+     "bytes": 9593,
+     "status": "REMOVED",
+     "restoreAt": "7015571e729ec78c266cf45e0bd3b01b2e50973b"
     },
     {
      "from": "docs/handoffs/DESIGN-LAB-R3-HANDOFF-2026-09-07.md",
      "to": "docs/history/archive-2026-10-19/handoffs/DESIGN-LAB-R3-HANDOFF-2026-09-07.md",
      "blobSha1": "5fdbd2bf3aee76f5326611978883c040a7a5ceca",
-     "bytes": 10446
+     "bytes": 10446,
+     "status": "REMOVED",
+     "restoreAt": "7015571e729ec78c266cf45e0bd3b01b2e50973b"
     },
     {
      "from": "docs/handoffs/DESIGN-LAB-REAUDIT-20260915-HANDOFF.md",
      "to": "docs/history/archive-2026-10-19/handoffs/DESIGN-LAB-REAUDIT-20260915-HANDOFF.md",
      "blobSha1": "f91f1679035b28eeec839b58c50c9b100d4bed7a",
-     "bytes": 7192
+     "bytes": 7192,
+     "status": "REMOVED",
+     "restoreAt": "7015571e729ec78c266cf45e0bd3b01b2e50973b"
     },
     {
      "from": "docs/handoffs/DESIGN-LAB-REAUDIT-20260916-CLOSURE-HANDOFF.md",
      "to": "docs/history/archive-2026-10-19/handoffs/DESIGN-LAB-REAUDIT-20260916-CLOSURE-HANDOFF.md",
      "blobSha1": "170432eb9cd83402642d19a242dad1ee6bf2a981",
-     "bytes": 6572
+     "bytes": 6572,
+     "status": "REMOVED",
+     "restoreAt": "7015571e729ec78c266cf45e0bd3b01b2e50973b"
     },
     {
      "from": "docs/handoffs/DESIGN-LAB-SESSION-HANDOFF-2026-10-06B.md",
      "to": "docs/history/archive-2026-10-19/handoffs/DESIGN-LAB-SESSION-HANDOFF-2026-10-06B.md",
      "blobSha1": "50d1f00487dbc82853d4e6a184d18ab0d5f57399",
-     "bytes": 14369
+     "bytes": 14369,
+     "status": "REMOVED",
+     "restoreAt": "7015571e729ec78c266cf45e0bd3b01b2e50973b"
     },
     {
      "from": "docs/handoffs/DESIGN-LAB-SESSION-HANDOFF-2026-10-07.md",
      "to": "docs/history/archive-2026-10-19/handoffs/DESIGN-LAB-SESSION-HANDOFF-2026-10-07.md",
      "blobSha1": "39ee7b7f1d9ee88a4bfd4ef451015672b92a867c",
-     "bytes": 9828
+     "bytes": 9828,
+     "status": "REMOVED",
+     "restoreAt": "7015571e729ec78c266cf45e0bd3b01b2e50973b"
     },
     {
      "from": "docs/handoffs/DESIGN-LAB-SESSION-HANDOFF-2026-10-08.md",
      "to": "docs/history/archive-2026-10-19/handoffs/DESIGN-LAB-SESSION-HANDOFF-2026-10-08.md",
      "blobSha1": "e3533e842e74553401b18ac3cefb469affc8d727",
-     "bytes": 8709
+     "bytes": 8709,
+     "status": "REMOVED",
+     "restoreAt": "7015571e729ec78c266cf45e0bd3b01b2e50973b"
     },
     {
      "from": "docs/handoffs/DESIGN-LAB-SESSION-HANDOFF-2026-10-09.md",
      "to": "docs/history/archive-2026-10-19/handoffs/DESIGN-LAB-SESSION-HANDOFF-2026-10-09.md",
      "blobSha1": "c157432730967291f43e5a084650b54010cff998",
-     "bytes": 35990
+     "bytes": 35990,
+     "status": "REMOVED",
+     "restoreAt": "7015571e729ec78c266cf45e0bd3b01b2e50973b"
     },
     {
      "from": "docs/handoffs/DESIGN-LAB-SPILL-SLIM-CLOSURE-2026-09-22.md",
      "to": "docs/history/archive-2026-10-19/handoffs/DESIGN-LAB-SPILL-SLIM-CLOSURE-2026-09-22.md",
      "blobSha1": "a261e76d6da8317647dfd825928abab0c76ba20e",
-     "bytes": 3582
+     "bytes": 3582,
+     "status": "REMOVED",
+     "restoreAt": "7015571e729ec78c266cf45e0bd3b01b2e50973b"
     },
     {
      "from": "docs/handoffs/DESIGN-LAB-UCR-CONVERGENCE-20260918-HANDOFF.md",
      "to": "docs/history/archive-2026-10-19/handoffs/DESIGN-LAB-UCR-CONVERGENCE-20260918-HANDOFF.md",
      "blobSha1": "dc9a77624e38da214901979dbeb9a4661b087254",
-     "bytes": 3784
+     "bytes": 3784,
+     "status": "REMOVED",
+     "restoreAt": "7015571e729ec78c266cf45e0bd3b01b2e50973b"
     },
     {
      "from": "docs/handoffs/DESIGN-LAB-UI-AUDIT-CONVERGENCE-2026-09-22.md",
      "to": "docs/history/archive-2026-10-19/handoffs/DESIGN-LAB-UI-AUDIT-CONVERGENCE-2026-09-22.md",
      "blobSha1": "67f30601d449bec2fcad628fc206e611d5b7df13",
-     "bytes": 7014
+     "bytes": 7014,
+     "status": "REMOVED",
+     "restoreAt": "7015571e729ec78c266cf45e0bd3b01b2e50973b"
     },
     {
      "from": "docs/handoffs/DESIGN-LAB-UIKIT-CONFORMANCE-ROUND-2026-09-28.md",
      "to": "docs/history/archive-2026-10-19/handoffs/DESIGN-LAB-UIKIT-CONFORMANCE-ROUND-2026-09-28.md",
      "blobSha1": "7aab46c699e1f8fe9c6735c4b995b886cce02429",
-     "bytes": 5383
+     "bytes": 5383,
+     "status": "REMOVED",
+     "restoreAt": "7015571e729ec78c266cf45e0bd3b01b2e50973b"
     },
     {
      "from": "docs/handoffs/DESIGN-LAB-WORKBENCH-VISUAL-AUDIT-HANDOFF-2026-10-06.md",
      "to": "docs/history/archive-2026-10-19/handoffs/DESIGN-LAB-WORKBENCH-VISUAL-AUDIT-HANDOFF-2026-10-06.md",
      "blobSha1": "39f56f4ff01c266c849ea35ceee5c5f60c6b35ab",
-     "bytes": 14019
+     "bytes": 14019,
+     "status": "REMOVED",
+     "restoreAt": "7015571e729ec78c266cf45e0bd3b01b2e50973b"
     },
     {
      "from": "docs/handoffs/GPT-R3-REVISION-HANDOFF-2026-09-06.md",
      "to": "docs/history/archive-2026-10-19/handoffs/GPT-R3-REVISION-HANDOFF-2026-09-06.md",
      "blobSha1": "e8b53c830e7c6659a2070b39e6829ad42b8d806f",
-     "bytes": 9615
+     "bytes": 9615,
+     "status": "REMOVED",
+     "restoreAt": "7015571e729ec78c266cf45e0bd3b01b2e50973b"
     },
     {
      "from": "docs/handoffs/R5-ATOMIC-BUNDLE-2026-09-09.md",
      "to": "docs/history/archive-2026-10-19/handoffs/R5-ATOMIC-BUNDLE-2026-09-09.md",
      "blobSha1": "c30e8afd7e0118693e1dacc887ee0945cff58e65",
-     "bytes": 6298
+     "bytes": 6298,
+     "status": "REMOVED",
+     "restoreAt": "7015571e729ec78c266cf45e0bd3b01b2e50973b"
     },
     {
      "from": "docs/handoffs/R5-BROWSER-ILLUSTRATOR-REAL-2026-09-09.md",
      "to": "docs/history/archive-2026-10-19/handoffs/R5-BROWSER-ILLUSTRATOR-REAL-2026-09-09.md",
      "blobSha1": "153d44bedbc2e26e2e616bdd3a944de6d40b2490",
-     "bytes": 4750
+     "bytes": 4750,
+     "status": "REMOVED",
+     "restoreAt": "7015571e729ec78c266cf45e0bd3b01b2e50973b"
     },
     {
      "from": "docs/handoffs/R5-BROWSER-PATCH-2026-09-09.md",
      "to": "docs/history/archive-2026-10-19/handoffs/R5-BROWSER-PATCH-2026-09-09.md",
      "blobSha1": "52a452116e488f883a180af171f1606c4df97c3e",
-     "bytes": 4612
+     "bytes": 4612,
+     "status": "REMOVED",
+     "restoreAt": "7015571e729ec78c266cf45e0bd3b01b2e50973b"
     },
     {
      "from": "docs/handoffs/R5-BROWSER-PLAN-CANCEL-2026-09-09.md",
      "to": "docs/history/archive-2026-10-19/handoffs/R5-BROWSER-PLAN-CANCEL-2026-09-09.md",
      "blobSha1": "5ec4ad6e31afda631265d3ca432fccefba8e5171",
-     "bytes": 1640
+     "bytes": 1640,
+     "status": "REMOVED",
+     "restoreAt": "7015571e729ec78c266cf45e0bd3b01b2e50973b"
     },
     {
      "from": "docs/handoffs/R5-BUNDLE-FONT-INVENTORY-2026-09-09.md",
      "to": "docs/history/archive-2026-10-19/handoffs/R5-BUNDLE-FONT-INVENTORY-2026-09-09.md",
      "blobSha1": "7acaa3e256d6419872a18cdcce9e9700300aa9e7",
-     "bytes": 2349
+     "bytes": 2349,
+     "status": "REMOVED",
+     "restoreAt": "7015571e729ec78c266cf45e0bd3b01b2e50973b"
     },
     {
      "from": "docs/handoffs/R5-CI-FIRST-FULL-REGRESSION-2026-09-09.md",
      "to": "docs/history/archive-2026-10-19/handoffs/R5-CI-FIRST-FULL-REGRESSION-2026-09-09.md",
      "blobSha1": "79b6b9099d976400b51fdc02206886524cfa0474",
-     "bytes": 3570
+     "bytes": 3570,
+     "status": "REMOVED",
+     "restoreAt": "7015571e729ec78c266cf45e0bd3b01b2e50973b"
     },
     {
      "from": "docs/handoffs/R5-COMFY-FINGERPRINT-GATE-2026-09-09.md",
      "to": "docs/history/archive-2026-10-19/handoffs/R5-COMFY-FINGERPRINT-GATE-2026-09-09.md",
      "blobSha1": "abf35156f514f6e79e0813020917a29123a34337",
-     "bytes": 1245
+     "bytes": 1245,
+     "status": "REMOVED",
+     "restoreAt": "7015571e729ec78c266cf45e0bd3b01b2e50973b"
     },
     {
      "from": "docs/handoffs/R5-COMFY-HTTP-LIVE-2026-09-09.md",
      "to": "docs/history/archive-2026-10-19/handoffs/R5-COMFY-HTTP-LIVE-2026-09-09.md",
      "blobSha1": "ff0932b35f30408879f2c9354e0b44f8a9c1939c",
-     "bytes": 1954
+     "bytes": 1954,
+     "status": "REMOVED",
+     "restoreAt": "7015571e729ec78c266cf45e0bd3b01b2e50973b"
     },
     {
      "from": "docs/handoffs/R5-COMFY-HTTP-TRANSPORT-2026-09-09.md",
      "to": "docs/history/archive-2026-10-19/handoffs/R5-COMFY-HTTP-TRANSPORT-2026-09-09.md",
      "blobSha1": "e7606116ab239383841a3dd20f9abaaa976d8bd3",
-     "bytes": 3681
+     "bytes": 3681,
+     "status": "REMOVED",
+     "restoreAt": "7015571e729ec78c266cf45e0bd3b01b2e50973b"
     },
     {
      "from": "docs/handoffs/R5-COMFY-PRODUCTION-INTAKE-2026-09-09.md",
      "to": "docs/history/archive-2026-10-19/handoffs/R5-COMFY-PRODUCTION-INTAKE-2026-09-09.md",
      "blobSha1": "538b977c01fee1ef558214d27121dd715e8954a8",
-     "bytes": 3094
+     "bytes": 3094,
+     "status": "REMOVED",
+     "restoreAt": "7015571e729ec78c266cf45e0bd3b01b2e50973b"
     },
     {
      "from": "docs/handoffs/R5-COMFY-STRUCTURAL-REJECTION-2026-09-09.md",
      "to": "docs/history/archive-2026-10-19/handoffs/R5-COMFY-STRUCTURAL-REJECTION-2026-09-09.md",
      "blobSha1": "3af2a0bc22e9fbb6a30304b0fffd87e39baa768d",
-     "bytes": 1490
+     "bytes": 1490,
+     "status": "REMOVED",
+     "restoreAt": "7015571e729ec78c266cf45e0bd3b01b2e50973b"
     },
     {
      "from": "docs/handoffs/R5-COMFY-WHEEL-SMOKE-2026-09-09.md",
      "to": "docs/history/archive-2026-10-19/handoffs/R5-COMFY-WHEEL-SMOKE-2026-09-09.md",
      "blobSha1": "720dda50bd9acbcfb27919ad01c0b63a34472190",
-     "bytes": 1376
+     "bytes": 1376,
+     "status": "REMOVED",
+     "restoreAt": "7015571e729ec78c266cf45e0bd3b01b2e50973b"
     },
     {
      "from": "docs/handoffs/R5-CURRENT-CONTINUATION-2026-09-09.md",
      "to": "docs/history/archive-2026-10-19/handoffs/R5-CURRENT-CONTINUATION-2026-09-09.md",
      "blobSha1": "83333280f25ff68a5f4c09edd6e1297cd0ed6df8",
-     "bytes": 8834
+     "bytes": 8834,
+     "status": "REMOVED",
+     "restoreAt": "7015571e729ec78c266cf45e0bd3b01b2e50973b"
     },
     {
      "from": "docs/handoffs/R5-FULL-REGRESSION-VERBOSE-2026-09-09.md",
      "to": "docs/history/archive-2026-10-19/handoffs/R5-FULL-REGRESSION-VERBOSE-2026-09-09.md",
      "blobSha1": "81318caa537216d76d7267cccf97e5703406621d",
-     "bytes": 2469
+     "bytes": 2469,
+     "status": "REMOVED",
+     "restoreAt": "7015571e729ec78c266cf45e0bd3b01b2e50973b"
     },
     {
      "from": "docs/handoffs/R5-HTTP-INTERMITTENT-DIAGNOSIS-2026-09-09.md",
      "to": "docs/history/archive-2026-10-19/handoffs/R5-HTTP-INTERMITTENT-DIAGNOSIS-2026-09-09.md",
      "blobSha1": "029d6dcb770dd4ec50056f0d9314afc0101bf169",
-     "bytes": 1875
+     "bytes": 1875,
+     "status": "REMOVED",
+     "restoreAt": "7015571e729ec78c266cf45e0bd3b01b2e50973b"
     },
     {
      "from": "docs/handoffs/R5-INSTALLED-LIST-FIX-2026-09-09.md",
      "to": "docs/history/archive-2026-10-19/handoffs/R5-INSTALLED-LIST-FIX-2026-09-09.md",
      "blobSha1": "9670677bd58402df154d8b4e5c9e1540940277f3",
-     "bytes": 8676
+     "bytes": 8676,
+     "status": "REMOVED",
+     "restoreAt": "7015571e729ec78c266cf45e0bd3b01b2e50973b"
     },
     {
      "from": "docs/handoffs/R5-INSTALLED-PLAN-UPGRADE-2026-09-09.md",
      "to": "docs/history/archive-2026-10-19/handoffs/R5-INSTALLED-PLAN-UPGRADE-2026-09-09.md",
      "blobSha1": "c5dd8c6aeda90eb87b5486ec4b643fbf15824d3d",
-     "bytes": 3151
+     "bytes": 3151,
+     "status": "REMOVED",
+     "restoreAt": "7015571e729ec78c266cf45e0bd3b01b2e50973b"
     },
     {
      "from": "docs/handoffs/R5-INSTALLED-QUEUE-SMOKE-2026-09-09.md",
      "to": "docs/history/archive-2026-10-19/handoffs/R5-INSTALLED-QUEUE-SMOKE-2026-09-09.md",
      "blobSha1": "45a1a576ea3ac3d7f24672f0222ebacc943e096c",
-     "bytes": 1382
+     "bytes": 1382,
+     "status": "REMOVED",
+     "restoreAt": "7015571e729ec78c266cf45e0bd3b01b2e50973b"
     },
     {
      "from": "docs/handoffs/R5-NATIVE-PATCH-PLAN-2026-09-09.md",
      "to": "docs/history/archive-2026-10-19/handoffs/R5-NATIVE-PATCH-PLAN-2026-09-09.md",
      "blobSha1": "2e8b71fa6dead01a48b054c30f7cdabd43e66d7a",
-     "bytes": 2254
+     "bytes": 2254,
+     "status": "REMOVED",
+     "restoreAt": "7015571e729ec78c266cf45e0bd3b01b2e50973b"
     },
     {
      "from": "docs/handoffs/R5-NATIVE-PLAN-INTAKE-2026-09-09.md",
      "to": "docs/history/archive-2026-10-19/handoffs/R5-NATIVE-PLAN-INTAKE-2026-09-09.md",
      "blobSha1": "19725a0153a26bc40790fb4c554532db20b2e817",
-     "bytes": 2624
+     "bytes": 2624,
+     "status": "REMOVED",
+     "restoreAt": "7015571e729ec78c266cf45e0bd3b01b2e50973b"
     },
     {
      "from": "docs/handoffs/R5-PERSISTED-NATIVE-RECOVERY-2026-09-09.md",
      "to": "docs/history/archive-2026-10-19/handoffs/R5-PERSISTED-NATIVE-RECOVERY-2026-09-09.md",
      "blobSha1": "08b27d41c814a43ed754b6f1eeee78439285855d",
-     "bytes": 6106
+     "bytes": 6106,
+     "status": "REMOVED",
+     "restoreAt": "7015571e729ec78c266cf45e0bd3b01b2e50973b"
     },
     {
      "from": "docs/handoffs/R5-PHOTOSHOP-COMPLEX-NATIVE-SUCCESS-2026-09-09.md",
      "to": "docs/history/archive-2026-10-19/handoffs/R5-PHOTOSHOP-COMPLEX-NATIVE-SUCCESS-2026-09-09.md",
      "blobSha1": "f3a248ca3abe1494d3db9928fa84471094152fbf",
-     "bytes": 3269
+     "bytes": 3269,
+     "status": "REMOVED",
+     "restoreAt": "7015571e729ec78c266cf45e0bd3b01b2e50973b"
     },
     {
      "from": "docs/handoffs/R5-PHOTOSHOP-COMPLEX-RETRY-2026-09-09.md",
      "to": "docs/history/archive-2026-10-19/handoffs/R5-PHOTOSHOP-COMPLEX-RETRY-2026-09-09.md",
      "blobSha1": "dfda034c95e9c8e82cae2a0b93ce2c974c1156b2",
-     "bytes": 2073
+     "bytes": 2073,
+     "status": "REMOVED",
+     "restoreAt": "7015571e729ec78c266cf45e0bd3b01b2e50973b"
     },
     {
      "from": "docs/handoffs/R5-PHOTOSHOP-FULL-REGRESSION-2026-09-09.md",
      "to": "docs/history/archive-2026-10-19/handoffs/R5-PHOTOSHOP-FULL-REGRESSION-2026-09-09.md",
      "blobSha1": "0ce44b4ba4796b46b3c99b88b7d2fd2d653fc587",
-     "bytes": 2656
+     "bytes": 2656,
+     "status": "REMOVED",
+     "restoreAt": "7015571e729ec78c266cf45e0bd3b01b2e50973b"
     },
     {
      "from": "docs/handoffs/R5-PHOTOSHOP-INSTALLED-BUNDLE-2026-09-09.md",
      "to": "docs/history/archive-2026-10-19/handoffs/R5-PHOTOSHOP-INSTALLED-BUNDLE-2026-09-09.md",
      "blobSha1": "6b3e3ad7f6e29552c83dbc6b7fada1b3ab657b02",
-     "bytes": 3360
+     "bytes": 3360,
+     "status": "REMOVED",
+     "restoreAt": "7015571e729ec78c266cf45e0bd3b01b2e50973b"
     },
     {
      "from": "docs/handoffs/R5-PHOTOSHOP-PATCH-PRODUCT-2026-09-09.md",
      "to": "docs/history/archive-2026-10-19/handoffs/R5-PHOTOSHOP-PATCH-PRODUCT-2026-09-09.md",
      "blobSha1": "cae35417f5d4558625fd9f0b1e26546f2ba05f87",
-     "bytes": 6768
+     "bytes": 6768,
+     "status": "REMOVED",
+     "restoreAt": "7015571e729ec78c266cf45e0bd3b01b2e50973b"
     },
     {
      "from": "docs/handoffs/R5-PHOTOSHOP-QUIESCENCE-2026-09-09.md",
      "to": "docs/history/archive-2026-10-19/handoffs/R5-PHOTOSHOP-QUIESCENCE-2026-09-09.md",
      "blobSha1": "f08d2923c9b5fdb4c34cc8a48287f9c3fbaed2d3",
-     "bytes": 1649
+     "bytes": 1649,
+     "status": "REMOVED",
+     "restoreAt": "7015571e729ec78c266cf45e0bd3b01b2e50973b"
     },
     {
      "from": "docs/handoffs/R5-PHOTOSHOP-REAL-BROWSER-PATCH-2026-09-09.md",
      "to": "docs/history/archive-2026-10-19/handoffs/R5-PHOTOSHOP-REAL-BROWSER-PATCH-2026-09-09.md",
      "blobSha1": "e899545c41a49722574be1a9847070195f5551c1",
-     "bytes": 3677
+     "bytes": 3677,
+     "status": "REMOVED",
+     "restoreAt": "7015571e729ec78c266cf45e0bd3b01b2e50973b"
     },
     {
      "from": "docs/handoffs/R5-PHOTOSHOP-STAGE-DIAGNOSTICS-2026-09-09.md",
      "to": "docs/history/archive-2026-10-19/handoffs/R5-PHOTOSHOP-STAGE-DIAGNOSTICS-2026-09-09.md",
      "blobSha1": "0f15c1af2c14966546762e12ef4dbf88549f5aab",
-     "bytes": 4846
+     "bytes": 4846,
+     "status": "REMOVED",
+     "restoreAt": "7015571e729ec78c266cf45e0bd3b01b2e50973b"
     },
     {
      "from": "docs/handoffs/R5-REFERENCE-RIGHTS-RECHECK-2026-09-09.md",
      "to": "docs/history/archive-2026-10-19/handoffs/R5-REFERENCE-RIGHTS-RECHECK-2026-09-09.md",
      "blobSha1": "45f9c8c67a50a8b9825d4c02f440c81ce5960376",
-     "bytes": 2054
+     "bytes": 2054,
+     "status": "REMOVED",
+     "restoreAt": "7015571e729ec78c266cf45e0bd3b01b2e50973b"
     },
     {
      "from": "docs/handoffs/R5-WORKBENCH-CANCELLATION-2026-09-09.md",
      "to": "docs/history/archive-2026-10-19/handoffs/R5-WORKBENCH-CANCELLATION-2026-09-09.md",
      "blobSha1": "d6a0c9e3ae4a351ffa8322c232f6664becd5cb39",
-     "bytes": 1717
+     "bytes": 1717,
+     "status": "REMOVED",
+     "restoreAt": "7015571e729ec78c266cf45e0bd3b01b2e50973b"
     },
     {
      "from": "docs/handoffs/R5-WORKBENCH-LIST-RACES-2026-09-09.md",
      "to": "docs/history/archive-2026-10-19/handoffs/R5-WORKBENCH-LIST-RACES-2026-09-09.md",
      "blobSha1": "da9a23d350376bd49e9659d9c384cc06d735cd1c",
-     "bytes": 2517
+     "bytes": 2517,
+     "status": "REMOVED",
+     "restoreAt": "7015571e729ec78c266cf45e0bd3b01b2e50973b"
     },
     {
      "from": "docs/handoffs/SESSION-RESTART-2026-09-12.md",
      "to": "docs/history/archive-2026-10-19/handoffs/SESSION-RESTART-2026-09-12.md",
      "blobSha1": "087a170428a7a3ab54fe8ed2e0507ce28e196b38",
-     "bytes": 6882
+     "bytes": 6882,
+     "status": "REMOVED",
+     "restoreAt": "7015571e729ec78c266cf45e0bd3b01b2e50973b"
     },
     {
      "from": "docs/handoffs/deepseek-r3-20260906-v2/00-input-baseline.json",
      "to": "docs/history/archive-2026-10-19/handoffs/deepseek-r3-20260906-v2/00-input-baseline.json",
      "blobSha1": "4139e8914d6a9c609dda8ae4980ebc0ffa4b325b",
-     "bytes": 15069
+     "bytes": 15069,
+     "status": "REMOVED",
+     "restoreAt": "7015571e729ec78c266cf45e0bd3b01b2e50973b"
     },
     {
      "from": "docs/handoffs/deepseek-r3-20260906-v2/01-requirements-matrix.json",
      "to": "docs/history/archive-2026-10-19/handoffs/deepseek-r3-20260906-v2/01-requirements-matrix.json",
      "blobSha1": "b89da95b467d3b5fd7890b8a326bdac3bb309935",
-     "bytes": 158037
+     "bytes": 158037,
+     "status": "REMOVED",
+     "restoreAt": "7015571e729ec78c266cf45e0bd3b01b2e50973b"
     },
     {
      "from": "docs/handoffs/deepseek-r3-20260906-v2/02-capability-corrections.json",
      "to": "docs/history/archive-2026-10-19/handoffs/deepseek-r3-20260906-v2/02-capability-corrections.json",
      "blobSha1": "bb51f383b34bedf836de812f5dbeaf978159a991",
-     "bytes": 3959
+     "bytes": 3959,
+     "status": "REMOVED",
+     "restoreAt": "7015571e729ec78c266cf45e0bd3b01b2e50973b"
     },
     {
      "from": "docs/handoffs/deepseek-r3-20260906-v2/03-history-locator-corrections.json",
      "to": "docs/history/archive-2026-10-19/handoffs/deepseek-r3-20260906-v2/03-history-locator-corrections.json",
      "blobSha1": "561bd9093de8e0be069a5c5c29d4e09d52191491",
-     "bytes": 3609
+     "bytes": 3609,
+     "status": "REMOVED",
+     "restoreAt": "7015571e729ec78c266cf45e0bd3b01b2e50973b"
     },
     {
      "from": "docs/handoffs/deepseek-r3-20260906-v2/04-reference-candidates.json",
      "to": "docs/history/archive-2026-10-19/handoffs/deepseek-r3-20260906-v2/04-reference-candidates.json",
      "blobSha1": "f83e7f7147ba801441bd96c5f5a036375d96d4ea",
-     "bytes": 7926
+     "bytes": 7926,
+     "status": "REMOVED",
+     "restoreAt": "7015571e729ec78c266cf45e0bd3b01b2e50973b"
     },
     {
      "from": "docs/handoffs/deepseek-r3-20260906-v2/04-reference-exclusions.json",
      "to": "docs/history/archive-2026-10-19/handoffs/deepseek-r3-20260906-v2/04-reference-exclusions.json",
      "blobSha1": "2520ba65711ee9db308b06a640553e250f84b29e",
-     "bytes": 3469
+     "bytes": 3469,
+     "status": "REMOVED",
+     "restoreAt": "7015571e729ec78c266cf45e0bd3b01b2e50973b"
     },
     {
      "from": "docs/handoffs/deepseek-r3-20260906-v2/05-DP-RETURN.md",
      "to": "docs/history/archive-2026-10-19/handoffs/deepseek-r3-20260906-v2/05-DP-RETURN.md",
      "blobSha1": "27c53d0597ab74b567a615e717f05bb0828e1a39",
-     "bytes": 3533
+     "bytes": 3533,
+     "status": "REMOVED",
+     "restoreAt": "7015571e729ec78c266cf45e0bd3b01b2e50973b"
     },
     {
      "from": "docs/handoffs/deepseek-r3-20260906-v2/05-results.json",
      "to": "docs/history/archive-2026-10-19/handoffs/deepseek-r3-20260906-v2/05-results.json",
      "blobSha1": "3e3c4baba0e3a547dbd06111c6e8a7ad89a330ed",
-     "bytes": 2443
+     "bytes": 2443,
+     "status": "REMOVED",
+     "restoreAt": "7015571e729ec78c266cf45e0bd3b01b2e50973b"
     },
     {
      "from": "docs/handoffs/deepseek-r3-20260906-v2/SHA256SUMS.txt",
      "to": "docs/history/archive-2026-10-19/handoffs/deepseek-r3-20260906-v2/SHA256SUMS.txt",
      "blobSha1": "4c33204f40f4eb2de8db703ff6ff8d2ed7d28bed",
-     "bytes": 744
+     "bytes": 744,
+     "status": "REMOVED",
+     "restoreAt": "7015571e729ec78c266cf45e0bd3b01b2e50973b"
     },
     {
      "from": "docs/handoffs/deepseek-r3-20260906/01-requirements-matrix.json",
@@ -1655,7 +1793,9 @@
      "from": "reports/ADOBE_UNINSTALL_HANDOFF_20260822.md",
      "to": "reports/history/ADOBE_UNINSTALL_HANDOFF_20260822.md",
      "blobSha1": "be5d5aecf4e072dd51301a681b1ca8dd968e8b06",
-     "bytes": 3811
+     "bytes": 3811,
+     "status": "REMOVED",
+     "restoreAt": "7015571e729ec78c266cf45e0bd3b01b2e50973b"
     }
    ]
   },
@@ -1669,7 +1809,9 @@
      "from": "reports/PIXEL_PERFECT_VECTOR_RECONSTRUCTION_HANDOFF_20260823.md",
      "to": "reports/history/PIXEL_PERFECT_VECTOR_RECONSTRUCTION_HANDOFF_20260823.md",
      "blobSha1": "748a3f644f68da549f01cd250e3a694d4c8c45e4",
-     "bytes": 20881
+     "bytes": 20881,
+     "status": "REMOVED",
+     "restoreAt": "7015571e729ec78c266cf45e0bd3b01b2e50973b"
     }
    ]
   },
@@ -1683,7 +1825,9 @@
      "from": "reports/V42_HANDOFF_SUMMARY_20260816.md",
      "to": "reports/history/V42_HANDOFF_SUMMARY_20260816.md",
      "blobSha1": "53c20bbec6e12ad9f088ed8681db1967b9e903c4",
-     "bytes": 4256
+     "bytes": 4256,
+     "status": "REMOVED",
+     "restoreAt": "7015571e729ec78c266cf45e0bd3b01b2e50973b"
     }
    ]
   },
@@ -1697,7 +1841,9 @@
      "from": "reports/V42_HANDOFF_SUMMARY_20260821.md",
      "to": "reports/history/V42_HANDOFF_SUMMARY_20260821.md",
      "blobSha1": "4881b426eb9e5ff294e4c93ebb65f0282fc48217",
-     "bytes": 2672
+     "bytes": 2672,
+     "status": "REMOVED",
+     "restoreAt": "7015571e729ec78c266cf45e0bd3b01b2e50973b"
     }
    ]
   },
@@ -1711,7 +1857,9 @@
      "from": "reports/V42_HANDOFF_SUMMARY_20260822.md",
      "to": "reports/history/V42_HANDOFF_SUMMARY_20260822.md",
      "blobSha1": "9967d2f42f12637dbb07a702a2e7a5f511ab2b9f",
-     "bytes": 2724
+     "bytes": 2724,
+     "status": "REMOVED",
+     "restoreAt": "7015571e729ec78c266cf45e0bd3b01b2e50973b"
     }
    ]
   }
