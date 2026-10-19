@@ -670,9 +670,6 @@ html,body{margin:0}
 .brand>div{min-width:0}
 .brand small{display:block}
 .brand .brand-line{display:block}
-/* The landing header carries the same authoritative line the routed rail shows; before this
-   the positioning existed only inside `.brand`, whose ancestor is display:none pre-login. */
-.tagline{margin:6px 0 0;font-size:12px;color:var(--muted)}
 .brand-mark{
   position:relative;
   flex:none;  /* the tile must never shrink: it is 48x48 by contract */
