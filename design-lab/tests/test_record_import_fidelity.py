@@ -40,6 +40,33 @@ def run_verifier(*flags: str) -> subprocess.CompletedProcess:
                           capture_output=True, text=True, encoding="utf-8", errors="replace")
 
 
+def _verifier_module():
+    """Load scripts/record_import_verify.py so this test shares its predicates."""
+    import importlib.util
+    spec = importlib.util.spec_from_file_location("record_import_verify", SCRIPT)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+def held_path(row: dict, moves: dict[str, str]) -> str:
+    """Where a repo-held row's bytes must be found today.
+
+    An archive pass may relocate a landed original without touching a byte. The row then
+    declares `movedTo`, and that declaration is only accepted if the archive manifest
+    records exactly that pair -- so a stale pointer gets proven or rejected, never patched
+    by editing the sealed row.
+    """
+    move = row.get("movedTo")
+    if not move:
+        return row["target"]
+    if moves.get(row["target"]) != move.get("path"):
+        raise AssertionError(f"unproven move declaration for {row['target']}: {move}")
+    if not (move.get("reason") or "").strip() or not (move.get("by") or {}).get("commit"):
+        raise AssertionError(f"move declaration without reason or commit: {row['target']}")
+    return move["path"]
+
+
 def summary_line(stdout: str) -> dict[str, int]:
     line = next((l for l in stdout.splitlines() if l.startswith("RECORD_VERIFY scope=")), "")
     out: dict[str, int] = {}
@@ -92,10 +119,11 @@ class RecordImportFidelityTests(unittest.TestCase):
     def test_recorded_hashes_match_the_files_on_disk(self) -> None:
         """Independent recomputation, not just the verifier's own bookkeeping."""
         wrong: list[str] = []
+        moves = _verifier_module().archive_moves()
         for row in self.rows:
             if row["action"] not in REPO_HELD_ACTIONS:
                 continue
-            path = ROOT / row["target"]
+            path = ROOT / held_path(row, moves)
             if not path.is_file():
                 wrong.append(f"missing {row['target']}")
                 continue

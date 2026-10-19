@@ -100,7 +100,15 @@
    "target": "docs/current/HISTORY-FREEZE-RULES.md",
    "also_in_repo": [
     "docs/current/HISTORY-FREEZE-RULES.md"
-   ]
+   ],
+   "repoSha256AfterImport": "sha256:3e3c3086789b10e309d843ebfcbc280dde01aebad9c7472f43621830f5286ec8",
+   "repoCrc32AfterImport": "0186ef6a",
+   "repoBytesAfterImport": 1216,
+   "evolvedBy": {
+    "commit": "896c53bc",
+    "subject": "fix(archive): restore the pinned files' line endings and prove the three moved originals"
+   },
+   "evolution": "此行原先声明仓库副本等于归档字节（无 post-import 摘要）；归档波次把冻结家族清单与特别冲突条目里的 docs/handoffs 路径改为 docs/history/archive-2026-10-19/handoffs；规则语义未变。此行原先只声明“仓库副本等于归档字节”，没有 post-import 摘要，所以权威文件一改就必然报 WORKTREE-MISMATCH；现按同一演进机制登记，行尾已恢复 LF。 归档原件字节与 ZIP 的逐成员比对（leg 1）不受影响；leg 2 改按上面的 post-import 摘要把关，两条摘要都对不上即拒。"
   },
   {
    "source_container": "DESIGN-LAB-AUTHORITY-CONVERGENCE-2026-09-18-R2.zip",
@@ -329,14 +337,14 @@
    "also_in_repo": [
     ".project/governance/authority-index.json"
    ],
-   "repoBytesAfterImport": 5597,
-   "repoCrc32AfterImport": "830bde1f",
-   "repoSha256AfterImport": "sha256:cad7ceac73c669ded8bc955468f8c62341a2f9910e65b4fa6e123f04af4bdb38",
+   "repoBytesAfterImport": 5651,
+   "repoCrc32AfterImport": "557142cc",
+   "repoSha256AfterImport": "sha256:a26a720aa8765d781b335a2ec155128dbe84b4e74e19920b8a34cb247299b8ad",
    "evolvedBy": {
-    "commit": "bb514458",
-    "subject": "docs(direction): adopt the 2026-10-19 owner direction and freeze the 34-task execution"
+    "commit": "896c53bc",
+    "subject": "fix(archive): restore the pinned files' line endings and prove the three moved originals"
    },
-   "evolution": "Repository copy rewritten again by bb514458 when the 2026-10-19 owner direction was adopted and the 34 UI-FIRST execution tasks were frozen/deferred. The archived bytes above are unchanged and still verify against the ZIP (leg 1); repoBytesAfterImport / repoCrc32AfterImport / repoSha256AfterImport now record the direction-aligned repository copy, and leg 2 rejects the file if it stops matching them. The prior 147e6dc9 post-import declaration is superseded by this row, not erased from history."
+   "evolution": "上一版 post-import 摘要为 sha256:cad7ceac73c669ded8bc955468f8c62341a2f9910e65b4fa6e123f04af4bdb38（by bb514458），因归档波次与随后的行尾更正而失效；归档波次改两处路径字符串：UCR handoff 的 historicalSpecific 条目，以及 historicalGlobs 里 docs/handoffs/** 换成归档后的前缀；分级结论未变。行尾已按原像恢复为 LF。 归档原件字节与 ZIP 的逐成员比对（leg 1）不受影响；leg 2 改按上面的 post-import 摘要把关，两条摘要都对不上即拒。"
   },
   {
    "source_container": "DESIGN-LAB_FINAL_CONSOLIDATED_PACKAGE_2026-09-29.zip",
@@ -352,14 +360,14 @@
    "also_in_repo": [
     "AUTHORITY.md"
    ],
-   "repoBytesAfterImport": 19979,
-   "repoCrc32AfterImport": "708a2446",
-   "repoSha256AfterImport": "sha256:c0853e3d7e6d17170c373cdb8ad439ed00539ed8384aee2ecb017cc073f162f2",
+   "repoBytesAfterImport": 20033,
+   "repoCrc32AfterImport": "39d5aeef",
+   "repoSha256AfterImport": "sha256:8322bd58261c7a936365cc82d3c163f2faffff6f659c34a76119e5cda7bcba30",
    "evolvedBy": {
-    "commit": "bb514458",
-    "subject": "docs(direction): adopt the 2026-10-19 owner direction and freeze the 34-task execution"
+    "commit": "896c53bc",
+    "subject": "fix(archive): restore the pinned files' line endings and prove the three moved originals"
    },
-   "evolution": "Repository copy rewritten again by bb514458 when the 2026-10-19 owner direction was adopted and the 34 UI-FIRST execution tasks were frozen/deferred. The archived bytes above are unchanged and still verify against the ZIP (leg 1); repoBytesAfterImport / repoCrc32AfterImport / repoSha256AfterImport now record the direction-aligned repository copy, and leg 2 rejects the file if it stops matching them. The prior 147e6dc9 post-import declaration is superseded by this row, not erased from history."
+   "evolution": "上一版 post-import 摘要为 sha256:c0853e3d7e6d17170c373cdb8ad439ed00539ed8384aee2ecb017cc073f162f2（by bb514458），因归档波次与随后的行尾更正而失效；归档波次把 UCR 收口 handoff 的两处引用改到 docs/history/archive-2026-10-19/handoffs/ 下的新路径；分类、authority ID、检查数均未变。仓库副本随后又被更正回 LF 行尾（896c53bc），所以本行摘要按恢复 LF 之后的字节记录。 归档原件字节与 ZIP 的逐成员比对（leg 1）不受影响；leg 2 改按上面的 post-import 摘要把关，两条摘要都对不上即拒。"
   },
   {
    "source_container": "DESIGN-LAB_FINAL_CONSOLIDATED_PACKAGE_2026-09-29.zip",
@@ -466,14 +474,14 @@
    "also_in_repo": [
     "docs/current/PRODUCT_DEFINITION.md"
    ],
-   "repoBytesAfterImport": 8752,
-   "repoCrc32AfterImport": "4536ef0b",
-   "repoSha256AfterImport": "sha256:7a2de570fc0ddda0963f95288106a74c4d2fab76d9252d09e7157d5618b3185c",
+   "repoBytesAfterImport": 8788,
+   "repoCrc32AfterImport": "ace3960f",
+   "repoSha256AfterImport": "sha256:9c3833c9cb4e89ca85bfd4534779f16cba2257acfb9722c7f1699e1d8eaecc0a",
    "evolvedBy": {
-    "commit": "bb514458",
-    "subject": "docs(direction): adopt the 2026-10-19 owner direction and freeze the 34-task execution"
+    "commit": "896c53bc",
+    "subject": "fix(archive): restore the pinned files' line endings and prove the three moved originals"
    },
-   "evolution": "Repository copy rewritten again by bb514458 when the 2026-10-19 owner direction was adopted and the 34 UI-FIRST execution tasks were frozen/deferred. The archived bytes above are unchanged and still verify against the ZIP (leg 1); repoBytesAfterImport / repoCrc32AfterImport / repoSha256AfterImport now record the direction-aligned repository copy, and leg 2 rejects the file if it stops matching them. The prior 147e6dc9 post-import declaration is superseded by this row, not erased from history."
+   "evolution": "上一版 post-import 摘要为 sha256:7a2de570fc0ddda0963f95288106a74c4d2fab76d9252d09e7157d5618b3185c（by bb514458），因归档波次与随后的行尾更正而失效；“当前统一剩余任务入口”一句改指 2026-10-19 方向包并记录其余任务 FROZEN_DEFERRED；这是 owner 2026-10-19 方向采纳的落地，不是新任务进度。 归档原件字节与 ZIP 的逐成员比对（leg 1）不受影响；leg 2 改按上面的 post-import 摘要把关，两条摘要都对不上即拒。"
   },
   {
    "source_container": "DESIGN-LAB_FINAL_CONSOLIDATED_PACKAGE_2026-09-29.zip",
