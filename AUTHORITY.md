@@ -16,13 +16,13 @@ Owner 原话：**其他任务冻结，以这份任务为当前权威与闭环目
 永久非目标：第二画布或通用编辑器、以全流程设计文件制作交付为产品本体、通用 Agent Runtime / 聊天客户端 / 模型网关 / 跨项目调度器；不接管 WORK-LAB 通用治理，不取代 AAOS 正式知识真源，不把热门资源或模型输出直接认定为合格能力或可信知识。
 模型策略：本地/云端/混合，可替换、按能力与隐私/成本/延迟路由；模型输出是候选判断。工具策略：官方 API/SDK → 原生插件 → MCP → 脚本/CLI → 受控 UI 自动化；握手、HTTP 200、退出码或截图不等于真实任务验证。
 本轮只做权威/规划对齐、冲突矩阵、能力映射、技术可行性矩阵、最小真实闭环规划与按范围测试；**不实施产品功能**。文档修订 ≠ 规划完成 ≠ 代码实现 ≠ 真实运行 ≠ 人工验收 ≠ AAOS 接收。
-未执行且继续冻结：release、安装态分发、真实宿主 E3、真人 E4、手机端、AAOS 联调、ComfyUI/H3。
+未执行且继续冻结：release、安装态分发、真实宿主 E3、真人 E4、AAOS 联调、ComfyUI/H3。手机端已从范围移除（owner 2026-10-19 授权：「再说一遍 不做手机端 只做桌面端」「授权给你 去掉手机端」）：它不是待办、不是能力缺口、也不是待排期项；恢复需 owner 新的明确授权。
 Authority §17 变化依据：owner intent 落仓于 `docs/taskpacks/20261019-direction/OWNER-DECISION-2026-10-19.md`；reason=定位纠正与全域冻结；superseded=2026-10-09 UI-FIRST 派工入口及其当前任务派工；impact=索引/根规则/产品定义/边界/路线图/manifest/task-document-states/唯一账本状态同步，旧文件与证据冻结。
 
 ## 2026-10-09 OWNER ADOPTION — UI FIRST（2026-10-19 起降为前继记录）
 
 本条根据owner当前直接请求生效，优先于下文20260918/0927的冲突条款；Authority稳定ID保留，修订号UI-FIRST-20261009-R1。
-（以下两句是 2026-10-09 当日原文，保留不改写；当前入口见上文 §17 与本节标题——2026-10-19 起本包为前继记录。）当时唯一integrated TaskPack：`docs/taskpacks/DESIGN-LAB-UI-FIRST-INTEGRATED-TASKPACK-2026-10-09.md`（`DL-TP-20261009-UI-FIRST-R1`），现由 `DL-TP-20261019-DIRECTION-R1` 取代。旧20260918包与R5/DeepSeek血统停止派工，原字节及证据保留。
+（以下两句是 2026-10-09 当日原文，保留不改写；当前入口见上文 §17 与本节标题——2026-10-19 起本包为前继记录；本段的「手机端本轮不做」已被 §17 的范围条款取代：手机端是排除项，不是待排期项。）当时唯一integrated TaskPack：`docs/taskpacks/DESIGN-LAB-UI-FIRST-INTEGRATED-TASKPACK-2026-10-09.md`（`DL-TP-20261009-UI-FIRST-R1`），现由 `DL-TP-20261019-DIRECTION-R1` 取代。旧20260918包与R5/DeepSeek血统停止派工，原字节及证据保留。
 新目标以20261009最终包＋UI补充为准；手机端本轮不做，FROZEN_DEFERRED；桌面UI先行。当前定义与解释见PRODUCT_DEFINITION、docs/taskpacks/20261009-ui-first/CONVERSATION-DECISIONS.md及新包。
 允许现有Python/NativeWorkers的设计专用规划/执行/核验/恢复；仍禁止通用Agent平台、第二运行时/画布/模型网关。能力资产/分析制作/成果反馈是主旅程，旧Workbench技术路径保留，不锁永久菜单数量。
 唯一可变状态仍在design-lab/config/task-ledger-r3.json；currentExecution为当前派工区，原R5 tasks/evidence冻结证据区。旧生成器/部署副本须显示这个区分，禁止旧任务复活。
@@ -33,7 +33,7 @@ Authority §17变化依据：owner intent落仓于docs/taskpacks/20261009-ui-fir
 "尚未提交/推送"。两条**当时为真，现已失效**——归档、权威、索引、账本与回执字节已提交、已推送并快进并入 `main`。
 保留原句并标注时点，是因为它记录了 2026-10-09 的真实状态；直接删掉会让后来者以为这段变更从未被提交过。
 **当前 SHA 与 CI 结论一律自读**（`git rev-parse HEAD` / `gh run list`），不要沿用本文任何数字。
-仍未执行：release、安装态分发、真实宿主 E3、真人 E4、手机端。
+仍未执行：release、安装态分发、真实宿主 E3、真人 E4、手机端。（本行是 2026-10-12 当时的读数，保留不改写；其中「手机端」已于 2026-10-19 按 owner 授权移出范围，见上文 §17。）
 
 ---
 

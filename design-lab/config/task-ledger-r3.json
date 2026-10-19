@@ -11090,6 +11090,6 @@
         "observed_at": "2026-10-13T16:27:32+00:00"
       }
     ],
-    "note": "2026-10-19 owner方向调整：其他任务冻结，currentExecution全部34项任务FROZEN_DEFERRED，本区不再派工，未来能力延期。任务定义、证据与legacy_snapshot保持原字节；唯一当前权威为 docs/taskpacks/DESIGN-LAB-DIRECTION-ALIGNMENT-2026-10-19.md。"
+    "note": "2026-10-19 owner方向调整：其他任务冻结，currentExecution全部34项任务FROZEN_DEFERRED，本区不再派工，未来能力延期。任务定义、证据与legacy_snapshot保持原字节；唯一当前权威为 docs/taskpacks/DESIGN-LAB-DIRECTION-ALIGNMENT-2026-10-19.md。owner 2026-10-19 授权去掉手机端：手机工作零派工，且不再作为待排期能力，本区 mobile 字段保持 schema const FROZEN_DEFERRED 的语义即不派工。"
   }
 }

@@ -130,7 +130,7 @@
     "integratedTaskpack": "docs/taskpacks/DESIGN-LAB-DIRECTION-ALIGNMENT-2026-10-19.md",
     "positioning": "professional visual intelligence and reusable design capability system",
     "priorDispatch": "FROZEN_DEFERRED",
-    "mobile": "FROZEN_DEFERRED",
+    "mobile": "OUT_OF_SCOPE",
     "futureCapabilities": "FROZEN_DEFERRED"
   },
   "frozenLegacyLedgers": [
