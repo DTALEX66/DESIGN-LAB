@@ -192,6 +192,16 @@ authority-index 与账本仍点名的四份包体。
 
 三个提取式都写成"匹配不到就 `SystemExit`"，因为一个死掉的式子返回 0 会让闸门把"读不到"当成"没有差异"，那正是本轮 §6.3 那条缺陷的同一种错法。
 
+### 5.6 第七批（2048 采集档、jury 读侧证据、计数闸门扩到六条）
+
+| 命令 | 退出码 | 读数 |
+| --- | --- | --- |
+| `python scripts/capture_workbench_screenshots.py --widths 2048` | 0 | 23 张 @2048×1152。此前该宽度没有档位，会走 `w * 0.62` 兜底算出 1270——一个谁都没有的画幅；已在 `VIEWPORT_HEIGHT` 补上实测的 `2048:1152` |
+| 2048 档人工查看 | — | 仪表盘与能力目录逐张看，并**当场否证了自己一次目测错判**：能力目录在宽屏下看着像"表头与单元格逐列错位"，读构造才知道那一屏是单个 `<table>`（表头是 `shell.ts:2563` 的 `TABLE_COLUMNS`，每格 `el('td', …)`），列宽由整列共享，结构上不可能逐行错位。结论：2048 档无缺陷（同档系统性检查已由 ui_audit 判 13 scope `violations=0`） |
+| `python -m unittest -q test_standalone_chain_http` | 0 | `Ran 4 tests OK`，链上读数不变（13 跳 + 4 跳）。新增一条证明 `GET /projects/<id>/jury` 的 `reviewable_versions` 会给出 `version:<导入返回的 version_id>` 且 `artifact_sha256` 等于导入摘要——桌面 jury 面板的判定对象确实有来源；此前只证明过"拿导入响应里的 id 能 POST 判定"，那不等于界面列得出来 |
+| `python scripts/verify_documented_counts.py --verbose` | 0 | `DOCUMENTED_COUNTS=PASS claims=6`：新增两条把提示词里的"**13 跳验收链** / **4 跳交付链**"对回测试方法体（`self.hop(` 调用数加手工 `hops.append(` 数）。跳数一变，句子立刻对不上——今天加 jury 那条时正是这个数最容易悄悄过期 |
+| `python -m unittest -q test_documented_counts test_standalone_chain_http` | 0 | `Ran 6 tests OK`，播种反证仍然红（`prose says ['18'], measurement says 19`） |
+
 ## 6. 本轮暴露并修掉的六个缺陷
 
 1. **分类聚合按目录贴标签**：`bundle_key()` 把一个顶层目录收成一个 bundle，于是 `docs/` 里第一个文件的类别
