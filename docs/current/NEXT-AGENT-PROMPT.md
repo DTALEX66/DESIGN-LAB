@@ -86,6 +86,7 @@ Owner 两条指令：旧的不许留在明面上；旧的都删除，但先审�
 - **指针的替代**：指引面不再点名任何已删文件；需要原件内容时用 `scripts/archive_records.py:read_record(rel)`，
   它按 工作区 → 归档移动 → 删除清单 restoreAt 三层解析，并把来源回写进报告
   （`handoff_read_from: removed-at:<sha>`）。三层都不到即 `RecordUnavailable`，不放行。
+- **逐条证据与读数**：`docs/audits/DESIGN-LAB-ARCHIVE-AND-REMOVAL-2026-10-19.md`（命令 + 退出码 + 六个被修掉的缺陷 + 回滚方法）。
 - **重钉**：本轮 AUTHORITY.md / authority-index.json / HISTORY-FREEZE-RULES.md 共重钉两次
   （归档改路径一次、删除改指针一次），每次都在 `AUTHORITY-PIN-CHANGE.json` 追加 revision。
 

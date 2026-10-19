@@ -199,6 +199,7 @@ pack 242.0 MiB  −  工作区 60.38 MiB  ≈  181.6 MiB 全部是历史对象
 - `docs/superpowers/`、`docs/research/`、`docs/plans/` 与 `design-lab/research/` 的主题重叠已随本轮
   归档收口：前三者整体进 `docs/history/archive-2026-10-19/`，研究面统一留在
   `design-lab/research/` 与 `research/candidates/`。
+- **本轮交付记录**：`docs/audits/DESIGN-LAB-ARCHIVE-AND-REMOVAL-2026-10-19.md`——基线读法、实测数字、命令与退出码、六个被暴露并修掉的缺陷、回滚方法。方向批次那份 dated 报告的 §7 数字已被它取代（按规则不改写旧报告）。
 - **2026-10-19 删除波（同一 owner 指令链的第二次重钉）**：83 份过期交接与按日期提示词副本在汇总后删除，跟踪文件从 3806 降到 3724；`docs/history/archive-2026-10-19/AGGREGATED-RECORD-2026-10-19.md` 承载逐份标题/自述/结论/独有事实，`REMOVALS.json` 承载逐份 blob/sha256/crc32/字节/restoreAt，`git show <restoreAt>:<path>` 实测可还原。
   故意没删的三类写进 `README.md` 的目的地表：owner 随包提供的 deepseek-r3 审计输入 17 件、`PROMPT-LINEAGE.json`、按日期 bundle 目录内的成员。
   一处真门被这次删除救回来：`verify_top_level_authority.py` 的 `handoff-demoted` 仍按归档前的旧路径找文件，找不到就 PASS 成 "absent; nothing to demote"——文件一搬走这条降级检查就被静默关掉。现改走 `scripts/archive_records.py:read_record()`（工作区→归档移动→removal restoreAt 三层），并把 UCR 条目的 restoreAt 改成假 SHA 验证过它会 FAIL exit=1。
