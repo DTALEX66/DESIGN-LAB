@@ -233,6 +233,23 @@ authority-index 与账本仍点名的四份包体。
 
 **同时暴露一条闸门灵敏度事实**：带着这个 16px 错位，`test_workbench_overflow_gate`、`test_workbench_ui_audit_gate`、`test_workbench_theme_geometry_gate`、`test_workbench_contrast_gate` 四道（8 个测试）**全绿**——它们看的是溢出、边界、对比度、控件尺寸与命名，不看"某张卡离上一张卡多远"。而像素比对在这里也分不开：数据屏每次采集都换播种项目名，`01-dashboard` 无论对比哪一对都有约 1700 px 差值，与噪声同量级。最终依据是级联本身：删掉那条之后，匹配 `div.panel.quick-launch.spaced-top` 且设置 `margin-top` 的规则只剩 `.spaced-top`，其 token 为 16px，与被替换的内联值逐字相等。修法与验证方式都记下来，是因为"四道浏览器闸门绿"并不能证明一次样式重构没有改变可见结果。
 
+### 5.9 第十批（把层叠冲突做成闸门：同一形状的第二处回归）
+
+§5.8 记了第一处（`.quick-launch{margin-top:0}`）。写闸门去防它复发时，同一形状的第二处当场被抓出来：
+
+| 项 | 实测 |
+| --- | --- |
+| `.row-card` 的声明 | `display:flex; gap:12px`（style.css:885-897，与 `.list-item` 共用一条规则） |
+| `.grid-stack` 的定义位置 | style.css:831 —— **早于** `.row-card`，同特异性 |
+| 后果 | 6 张 `.row-card grid-stack` 卡片在折叠后按源码顺序变成 flex/12px，而它们折叠前是内联 grid/8px |
+| 四道浏览器闸门 | 带着这处错位**全绿**（8 个测试）——它们不量卡片间距，也不看复合层叠 |
+| 像素比对 | 分不开：数据屏任意两次采集都差约 1700 px（播种项目名带时间戳），16px 级别的位移淹没在噪声里 |
+| 修法 | 加 `.row-card.grid-stack{display:grid;gap:var(--uif-space-2)}`（特异性 0-2-0，与文件顺序无关）。**没有**采用"把工具类挪到文件末尾"那种做法——那只是把下一次冲突推到更晚的位置 |
+| 新闸门 | `scripts/verify_utility_class_conflicts.py`：读样式表与 `shell.ts` 里字面 `class:` 集合，工具类与同元素上的组件类共享属性即红，除非有复合规则显式解决。`UTILITY_CONFLICTS=PASS checked=20 utilities=['grid-stack','spaced-top']` |
+| 反证 | `design-lab/tests/test_utility_class_conflicts.py` 三条：当前树绿；**删掉那条复合规则必须回红**并点名 gap 冲突；shell 里没有任何工具类时报 FAIL 而不是 PASS |
+
+**这一批真正的产出不是那 20 处折叠，而是这条事实**：对本项目的工作台而言，"浏览器闸门全绿"不构成"布局未变"的证据。闸门量的是溢出、边界距离、对比度、控件尺寸与命名；卡片之间差 16px 不在任何一条断言里。要么按复合选择器把意图写死（现在这样做），要么给间距本身加断言——后者需要想清楚锚点集合，不在本轮里顺手做。
+
 ## 6. 本轮暴露并修掉的六个缺陷
 
 1. **分类聚合按目录贴标签**：`bundle_key()` 把一个顶层目录收成一个 bundle，于是 `docs/` 里第一个文件的类别
