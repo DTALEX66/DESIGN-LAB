@@ -9,9 +9,9 @@
     "platform": "Windows-11-10.0.26100-SP0",
     "python": "3.13.14"
   },
-  "fresh": false,
+  "fresh": true,
   "freshnessMeaning": "at generation only; check verifies bound-input integrity, not current Git or cloud state",
-  "generatedAt": "2026-10-19T09:59:17+00:00",
+  "generatedAt": "2026-10-19T10:21:56+00:00",
   "gitStateMeaning": "generation-time observation, not current HEAD",
   "ledger_partition": "currentExecution",
   "meaning": "Parent/subtask inventory is not a capability count or completion percentage. Definition adoption does not implement product tasks; R5 evidence is historical.",
@@ -26,8 +26,8 @@
     "taskpack": "DL-TP-20260908-R5"
   },
   "subjectMeaning": "subjectType=WORKTREE means the tree was dirty at generation; worktreeDigest covers HEAD plus the non-generated changes",
-  "subjectSha": "bdd890fbfb35dc6c4ed920a2b246c9b3faaa816d",
-  "subjectType": "WORKTREE",
+  "subjectSha": "1e8413f713104ab3d7025053d77c8763d3d1a51b",
+  "subjectType": "COMMIT",
   "taskpack": "DL-TP-20261009-UI-FIRST-R1",
   "taskpackHash": "2cfd84627352e9f1b29b42787fa43466cd9a836130d826d43678b7733856ffda",
   "taskpackId": "DL-TP-20261009-UI-FIRST-R1",
@@ -856,6 +856,6 @@
   "testRunId": "testrun-20261008T204123Z-forward-repeat-e7c4504bc3d0",
   "testRunMeaning": "bound run: python scripts/run_bound_test_suite.py --modules test_boot_reconciliation",
   "testRunResult": "OK",
-  "worktreeClean": false,
-  "worktreeDigest": "sha256:bcee64a5bf188293152947ff4cde588a550a12faaf6d015724c6b07726ecc2f0"
+  "worktreeClean": true,
+  "worktreeDigest": "sha256:e259d04ec9edf1f1e8d06c2cac29f7032c2dce0f6fda59671f389cc8c25862d8"
 }

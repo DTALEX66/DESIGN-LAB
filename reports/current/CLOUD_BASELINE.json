@@ -7,41 +7,25 @@
     "platform": "Windows-11-10.0.26100-SP0",
     "python": "3.13.14"
   },
-  "fresh": false,
+  "fresh": true,
   "freshnessMeaning": "at generation only; check verifies bound-input integrity, not current Git or cloud state",
-  "generatedAt": "2026-10-19T09:59:17+00:00",
+  "generatedAt": "2026-10-19T10:21:56+00:00",
   "gitStateMeaning": "generation-time observation, not current HEAD",
   "local": {
     "branch": "qoder/designlab-backup-consistency-20261007",
-    "origin_main": "bdd890fbfb35dc6c4ed920a2b246c9b3faaa816d",
-    "sha": "bdd890fbfb35dc6c4ed920a2b246c9b3faaa816d",
-    "source_worktree_clean": false,
+    "origin_main": "1e8413f713104ab3d7025053d77c8763d3d1a51b",
+    "sha": "1e8413f713104ab3d7025053d77c8763d3d1a51b",
+    "source_worktree_clean": true,
     "tracked_files": 3724,
-    "worktree_changes": [
-      {
-        "content": "sha256:388718b65c160ec6832c281766834ea20f6286eda437909730e3040b47003f16",
-        "kind": "M",
-        "path": "design-lab/config/repository-size-report.json"
-      },
-      {
-        "content": "sha256:c8280e6829ee1f17e8975854634ac14240b338e17edf21a2860fd5d1a5a5d90d",
-        "kind": "M",
-        "path": "docs/INDEX.md"
-      },
-      {
-        "content": "sha256:22a3cd89439dae2afe27d1fd4292bd82796deb5ed24a6caf4ce062329aee21a9",
-        "kind": "M",
-        "path": "docs/history/archive-2026-10-19/README.md"
-      }
-    ],
-    "worktree_digest": "sha256:bcee64a5bf188293152947ff4cde588a550a12faaf6d015724c6b07726ecc2f0"
+    "worktree_changes": [],
+    "worktree_digest": "sha256:e259d04ec9edf1f1e8d06c2cac29f7032c2dce0f6fda59671f389cc8c25862d8"
   },
   "note": "No GitHub API query was run by this generator; tool installation is not inferred.",
   "remoteRef": "origin/main (local tracking ref)",
   "schemaVersion": "design-lab/cloud-baseline/v2",
   "subjectMeaning": "subjectType=WORKTREE means the tree was dirty at generation; worktreeDigest covers HEAD plus the non-generated changes",
-  "subjectSha": "bdd890fbfb35dc6c4ed920a2b246c9b3faaa816d",
-  "subjectType": "WORKTREE",
+  "subjectSha": "1e8413f713104ab3d7025053d77c8763d3d1a51b",
+  "subjectType": "COMMIT",
   "taskpackHash": "2cfd84627352e9f1b29b42787fa43466cd9a836130d826d43678b7733856ffda",
   "taskpackId": "DL-TP-20261009-UI-FIRST-R1",
   "testRunAt": "2026-10-08T20:41:26+00:00",
@@ -54,6 +38,6 @@
     "openPullRequests",
     "branchProtection"
   ],
-  "worktreeClean": false,
-  "worktreeDigest": "sha256:bcee64a5bf188293152947ff4cde588a550a12faaf6d015724c6b07726ecc2f0"
+  "worktreeClean": true,
+  "worktreeDigest": "sha256:e259d04ec9edf1f1e8d06c2cac29f7032c2dce0f6fda59671f389cc8c25862d8"
 }
