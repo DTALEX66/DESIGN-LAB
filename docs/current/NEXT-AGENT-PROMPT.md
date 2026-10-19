@@ -191,8 +191,15 @@ E4 独立人审 / E5 发布可复现。**文档修订 ≠ 规划完成 ≠ 代�
 ```
 改动 → 只复跑相关闸与测试（不跑全量套件，除非 owner 显式授权）
       → 动过账本/被钉文件/索引时：deepseek_authority_chain.py + generate_current_reports.py
+      → 动过 Record 导入清单绑定的跟踪文件时：declare_record_evolution.py <路径> --why "…"
       → 提交 → 推工作分支 + 快进 main → 读该 SHA 的 CI 逐作业照抄 → 才允许说"完成"
 ```
+
+**Record 那一步不是可选项**：清单里有 479 行按 CRC/大小绑定仓库内的跟踪文件（含 `docs/LOCAL_ENVIRONMENT.md`、
+`docs/architecture/BOUNDARY_CONTRACT.md` 这类看着像"随便改改"的文档），改一个就红三条
+`test_record_import_fidelity`。改前先 `python scripts/record_import_verify.py --head` 看这一行动没动；
+红了用 `declare_record_evolution.py` 走登记机制，别改断言。2026-10-19 这一轮就两次踩它：
+先是 `BOUNDARY_CONTRACT.md`，后是 `LOCAL_ENVIRONMENT.md`——两次都不是内容缺陷，是清单没跟上。
 
 **本地结论永远不是 CI 结论。** 读 CI 时按作业读，不要只看总结论。
 上一轮 owner 明确要求：不要无限跑各类全量测试和大型闸门；需要显式授权时先申请。

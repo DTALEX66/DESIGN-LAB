@@ -405,7 +405,15 @@
    "target": "docs/LOCAL_ENVIRONMENT.md",
    "also_in_repo": [
     "docs/LOCAL_ENVIRONMENT.md"
-   ]
+   ],
+   "repoBytesAfterImport": 6533,
+   "repoCrc32AfterImport": "980e4292",
+   "repoSha256AfterImport": "sha256:a486575e0abd4557b1000ada2f3cf0b4455995751083dcf0dba6ec473d0d3ad9",
+   "evolvedBy": {
+    "commit": "caccaf81",
+    "subject": "docs(env): record the display geometry the desktop gates are keyed to"
+   },
+   "evolution": "2026-10-19: the display geometry row (2048x1152 logical at AppliedDPI 120) was added because the desktop UI gate is now keyed to the CSS box the owner actually renders at"
   },
   {
    "source_container": "DESIGN-LAB_FINAL_CONSOLIDATED_PACKAGE_2026-09-29.zip",
