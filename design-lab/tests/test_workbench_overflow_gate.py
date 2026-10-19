@@ -54,9 +54,15 @@ def _evidence_dir():
 
 
 class WorkbenchOverflowGateTests(unittest.TestCase):
-    def test_no_clipped_or_unreachable_text_in_real_browser(self):
-        if not GATE_SCRIPT.is_file():
-            self.skipTest(f'overflow gate script missing: {GATE_SCRIPT}')
+    def _run_gate(self, report_name, theme_env=None):
+        """Boot the real service, run the audit once, and hand back what it printed.
+
+        Factored out because the theme is a parameter of this gate, not of the browser: the
+        stylesheet re-points the neutral family per `data-palette`/`data-scheme`, so the same
+        layout can collapse under one theme and hold under another. Only the default theme was
+        ever measured here, while the contrast and theme-geometry gates already sweep more than
+        one -- an unmeasured theme is an unshipped theme.
+        """
         node = shutil.which('node')
         if not node:
             self.skipTest('E2E toolchain unavailable: node not on PATH')
@@ -84,11 +90,11 @@ class WorkbenchOverflowGateTests(unittest.TestCase):
 
         evidence = _evidence_dir()
         evidence.mkdir(parents=True, exist_ok=True)
-        report_path = evidence / 'workbench-overflow-gate.json'
+        report_path = evidence / report_name
         # Windows: subprocess.run(capture_output=..., timeout=...) can leave the
         # pipe handle blocking after the child is killed, so the child writes to
         # a file and we wait on the process instead of the pipe.
-        log_path = parent / 'overflow-gate.log'
+        log_path = parent / (report_name.replace('.json', '') + '.log')
 
         with patch.dict(os.environ, {'PROJECT_LOCAL_ROOT': str(root / '.project-local')}):
             service = ProjectService(str(root))
@@ -106,6 +112,7 @@ class WorkbenchOverflowGateTests(unittest.TestCase):
                     'OV_WIDTHS': WIDTHS,
                     'OV_STRICT': '1',
                     'OV_OUT': str(report_path),
+                    **(theme_env or {}),
                 }
                 with open(log_path, 'w', encoding='utf-8') as logf:
                     proc = subprocess.Popen(
@@ -123,7 +130,9 @@ class WorkbenchOverflowGateTests(unittest.TestCase):
                 worker.join()
                 server.server_close()
                 tmp.cleanup()
+        return code, out, report_path
 
+    def _fail_open(self, code, out, report_path):
         summary = next((line for line in out.splitlines()
                         if line.startswith('OV_SUMMARY')), out[-800:])
         if code != 0:
@@ -132,10 +141,16 @@ class WorkbenchOverflowGateTests(unittest.TestCase):
         self.assertIn('OV_OK', out, f'gate exited 0 without OV_OK:\n{out[-2000:]}')
         self.assertTrue(report_path.is_file(),
                         f'gate produced no report at {report_path}')
+        return json.loads(report_path.read_text(encoding='utf-8'))
+
+    def test_no_clipped_or_unreachable_text_in_real_browser(self):
+        if not GATE_SCRIPT.is_file():
+            self.skipTest(f'overflow gate script missing: {GATE_SCRIPT}')
+        code, out, report_path = self._run_gate('workbench-overflow-gate.json')
+        report = self._fail_open(code, out, report_path)
         # Every named interaction has to have settled on something a reader can tell apart, and at
         # least one has to have actually read the ledger back: a panel that renders a refusal at
         # every width is well-formed UI over a readback nobody ever saw.
-        report = json.loads(report_path.read_text(encoding='utf-8'))
         interactions = {key: value for key, value in report['routes'].items() if '+' in key}
         self.assertTrue(interactions, 'the gate measured no button-gated panel at all')
         for key, value in sorted(interactions.items()):
@@ -164,6 +179,39 @@ class WorkbenchOverflowGateTests(unittest.TestCase):
             self.assertGreater(seen.get('uriChars', 0), 1000,
                                f'{width}: the data URI is a stub, not the mark')
             self.assertTrue(seen.get('glow'), f'{width}: the mark has no bloom')
+
+
+    def test_the_ui2026_light_theme_is_graded_by_the_same_geometry_gate(self):
+        """DL-UI-U02's rule applied to layout: an unmeasured theme is an unshipped theme.
+
+        The theme re-points the neutral family -- background, surface, border, text and the
+        status colours -- and a border or surface width that only exists under one palette can
+        change what fits. Contrast and theme geometry already sweep the combinations; this gate
+        owns CLIPPED / STRAY / TINY / the nav-cut boundary and the scroll cue, and until now it
+        measured one theme.
+        """
+        if not GATE_SCRIPT.is_file():
+            self.skipTest(f'overflow gate script missing: {GATE_SCRIPT}')
+        code, out, report_path = self._run_gate(
+            'workbench-overflow-gate-ui2026-light.json',
+            {'UI_PALETTE': 'ui2026', 'UI_SCHEME': 'light'})
+        report = self._fail_open(code, out, report_path)
+        # The receipt has to name the theme it describes, or a green file is ambiguous about
+        # which subject was actually cleared.
+        self.assertEqual('ui2026', report['uiPalette'])
+        self.assertEqual('light', report['uiScheme'])
+        # The sidebar boundary that started this: the nav's cut line must not sit on the
+        # identity footer's hairline under either theme.
+        for width, edge in sorted(report['navEdge'].items()):
+            self.assertGreaterEqual(
+                edge['gap'], 6,
+                f'ui2026/light @{width}: footer hairline {edge["gap"]}px under the nav cut '
+                f'line{" with a group label half-cut on it" if edge["labelStraddling"] else ""}')
+        self.assertTrue(report['brand'], 'the themed run measured no brand tile')
+        for width, seen in report['brand'].items():
+            if seen.get('size', [0])[0]:
+                self.assertEqual([48, 48], seen['size'],
+                                 f'ui2026/light @{width}: the tile is {seen["size"]}, not 48x48')
 
 
 if __name__ == '__main__':
