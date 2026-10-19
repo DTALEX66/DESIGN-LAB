@@ -190,6 +190,14 @@ E4 独立人审 / E5 发布可复现。**文档修订 ≠ 规划完成 ≠ 代�
   而钉死文件不做行尾归一，改动直接进 blob——哈希还跟着更新了，所以门全绿也没发现。
   改这类文件必须 `read_bytes` / `write_bytes` 并按原像形状回落；改完用
   `git diff --numstat` 看行数是否与预期一致，再核 blob 与原像的行尾。
+- **新入库的 `scripts/verify_*.py` 本身就是 CI 面改动**：`design-lab/tests/test_gate_reachability.py` 的
+  `test_every_orphaned_gate_is_exempted_with_a_reason` 会把「没有任何 workflow、也没有任何测试点名」的
+  校验脚本判为孤儿闸并失败——本轮就因此让 `66fdade1` 的 Python 作业变红：
+  `STRUCTURE_CONTRACTS=FAIL tests=31 failures=1`，offender 就是刚加的登记校验器。
+  合同给的两条正当出口只有：接进 `.github/workflows/canonical-verify.yml`（本轮接在 
+  `top-authority-gate` 第 5 步），或按既有豁免面写明理由。所以加闸时必须同一次跑 
+  `python scripts/run_structure_contracts.py`（31 项）再谈提交——它不在我原先认定的『小闸门』集合里，
+  本地因此一点征兆都没有。改 workflow 后还要 YAML 解析复核与 `named steps` 重名检查。
 - **指引面点名已删文件会双门齐红**：`verify_path_refs` 与 `verify_task_document_states` 的
   `guidance-paths-resolve` 都把 `AUTHORITY.md` 里的 `docs/...` 当指令。写"某文件已删除"时不要留它的路径字面量，
   留汇总面/恢复清单的路径。
