@@ -215,6 +215,29 @@ const MEASURE = () => {
     }
   }
   }
+  // The nav is the sidebar's only scroll region and the identity footer sits directly under
+  // it. When the list overflows, an item is always cut in half at that edge -- nothing is
+  // clipped *out of* its box, so no CLIPPED check can see it. What makes it a defect is the
+  // footer's 1px top border landing on the cut line: the hairline reads as an underline drawn
+  // under a half-visible word. Record the gap between the two edges so the boundary has a
+  // number, and which kind of item happens to straddle it.
+  out.navEdge = (() => {
+    const nav = document.querySelector('.sidebar .nav');
+    const foot = document.querySelector('.sidebar-footer');
+    if (!nav || !foot) return null;
+    const nr = nav.getBoundingClientRect();
+    const fr = foot.getBoundingClientRect();
+    const straddling = Array.from(nav.children).filter((c) => {
+      const r = c.getBoundingClientRect();
+      return r.height > 0 && r.top < nr.bottom - 1 && r.bottom > nr.bottom + 1;
+    });
+    return {
+      gap: Math.round(fr.top - nr.bottom),
+      overflow: nav.scrollHeight - nav.clientHeight,
+      straddling: straddling.map((c) => c.className || c.tagName.toLowerCase()),
+      labelStraddling: straddling.some((c) => c.classList.contains('nav-group')),
+    };
+  })();
   return out;
 };
 
@@ -229,7 +252,7 @@ const bundlePath = new URL('../../../apps/workbench/build/main.js', import.meta.
 const stylePath = new URL('../../../apps/workbench/style.css', import.meta.url);
 const bundleSha256 = createHash('sha256').update(readFileSync(bundlePath)).digest('hex');
 const styleSha256 = createHash('sha256').update(readFileSync(stylePath)).digest('hex');
-const report = { serviceUrl, widths, routes: {}, brand: {}, uiPalette, uiScheme,
+const report = { serviceUrl, widths, routes: {}, brand: {}, navEdge: {}, uiPalette, uiScheme,
   subject: { bundle: 'apps/workbench/build/main.js', bundleSha256,
     bundleBytes: statSync(bundlePath).size,
     stylesheet: 'apps/workbench/style.css', styleSha256,
@@ -240,6 +263,9 @@ const specProblems = [];
 const interactionStates = [];
 // The brand tile, measured once per width. See BRAND_PROBE below for what it proves.
 const brandProblems = [];
+// One record per route whose sidebar list actually scrolls; reduced to the tightest gap per
+// width below, because the nav is global chrome and repeats on every route.
+const navEdges = [];
 
 for (const w of widths) {
   const page = await browser.newPage({ viewport: { width: w, height: 900 } });
@@ -253,6 +279,9 @@ for (const w of widths) {
     await page.waitForTimeout(1000);
     const m = await page.evaluate(MEASURE);
     report.routes[`${w}:${name}`] = m;
+    if (m.navEdge && m.navEdge.overflow > 0) {
+      navEdges.push({ key: `${w}:${name}`, ...m.navEdge });
+    }
     // R2 §3 fixes the capability detail panel at 450 CSS px on desktop widths. A panel that
     // quietly turns full-width is neither clipped nor stray, so nothing else in this gate
     // would notice; assert the number the spec actually names. The domain detail reuses the
@@ -532,6 +561,23 @@ for (const w of widths) {
 }
 await browser.close();
 
+// Reduce the nav/footer boundary to the tightest observation per width. A scrolling list must
+// cut SOME item in half at its edge; that is not the defect. The defect is the identity
+// footer's 1px top border sitting on that cut line, where it reads as an underline drawn
+// under a half-visible word -- and no CLIPPED check can see it, because the item is whole
+// inside its own box. Six px is the shortest gap that separates a hairline from a glyph.
+const navEdgeProblems = [];
+for (const e of navEdges) {
+  const w = e.key.split(':')[0];
+  if (!report.navEdge[w] || e.gap < report.navEdge[w].gap) report.navEdge[w] = e;
+}
+for (const [w, e] of Object.entries(report.navEdge)) {
+  if (e.gap < 6) {
+    navEdgeProblems.push(`${w}px: footer hairline ${e.gap}px under the nav cut line`
+      + (e.labelStraddling ? ', a group label is half-cut on it' : ''));
+  }
+}
+
 if (outPath) writeFileSync(outPath, JSON.stringify(report, null, 2));
 if (specProblems.length) {
   console.log('OV_SPEC_BROKEN ' + specProblems.join(' | '));
@@ -545,9 +591,13 @@ if (brandProblems.length) {
   console.log('OV_BRAND_BROKEN ' + brandProblems.join(' | '));
   fail('OV_BRAND_BROKEN');
 }
+if (navEdgeProblems.length) {
+  console.log('OV_NAV_EDGE_TIGHT ' + navEdgeProblems.join(' | '));
+  fail('OV_NAV_EDGE_TIGHT');
+}
 
 console.log('');
-console.log(`OV_SUMMARY clipped=${clippedTotal} stray=${strayTotal} tiny=${tinyTotal} interactions=${interactionStates.length} [${interactionStates.join(',')}] brand=${Object.keys(report.brand).length} spec=${specProblems.length} theme=${uiPalette}/${uiScheme}`);
+console.log(`OV_SUMMARY clipped=${clippedTotal} stray=${strayTotal} tiny=${tinyTotal} interactions=${interactionStates.length} [${interactionStates.join(',')}] brand=${Object.keys(report.brand).length} navEdge=${Object.keys(report.navEdge).length} spec=${specProblems.length} theme=${uiPalette}/${uiScheme}`);
 if (clippedTotal > 0) {
   for (const [k, v] of Object.entries(report.routes)) {
     for (const c of v.clipped) console.log(`  CLIPPED ${k} +${c.by}px ${c.el.slice(0, 100)}`);
