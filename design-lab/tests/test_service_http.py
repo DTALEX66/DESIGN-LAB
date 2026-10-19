@@ -221,6 +221,51 @@ class ServiceHttpTests(unittest.TestCase):
         self.assertEqual(status,200)
         self.assertEqual(foreign['bundles'],[])
 
+    def test_preflight_route_measures_a_registered_bundle_over_http(self):
+        # `POST .../bundles/<id>/preflight` is the only production entry to the preflight
+        # checker and the workbench calls it, but until now every preflight test called
+        # `pp.preflight_bundle(...)` in-process -- so the route's own defaults, its profile
+        # grammar and the shape the page actually receives were unexercised. A verdict that
+        # only ever exists in-process is not something the service can be said to emit.
+        project,other,job=self.seed_exportable_native();self.start()
+        status,created=self.request('POST','/api/projects/'+project+'/tasks/'+job+'/bundle','{}')
+        self.assertEqual(status,201)
+        bundle=created['bundle']['id']
+        route=f'/api/projects/{project}/bundles/{bundle}/preflight'
+        status,report=self.request('POST',route,'{}')
+        self.assertEqual(status,200)
+        # The profile is optional on the route, so this is where the default is pinned.
+        self.assertEqual(report['profile'],'digital')
+        # The vocabulary is the module's own, not a list copied here: it has four members and
+        # `INCOMPLETE` is one of them. This fixture ships a PSD whose transparency flattening
+        # this build cannot inspect, so the honest answer is INCOMPLETE -- a PASS arriving over
+        # this route would mean the service certified bytes it never opened.
+        from design_lab.assurance import production_preflight as pp
+        self.assertIn(report['verdict'],pp.VERDICTS)
+        unmeasured=[item for item in report['findings'] if item['outcome']=='NOT_MEASURED']
+        self.assertTrue(unmeasured,'the fixture was expected to leave something unmeasured')
+        self.assertEqual(report['verdict'],'INCOMPLETE')
+        # The aggregate must account for every finding it ships, over HTTP as well as in
+        # process: a dropped row here would silently upgrade the verdict.
+        self.assertEqual(sum(report['counts'].values()),len(report['findings']))
+        self.assertTrue(all(item['criterion'] for item in report['findings']),
+                        'a finding without its criterion cannot be reviewed by a person')
+        # An unregistered bundle is named, not guessed at, and a foreign project cannot
+        # reach another project's delivery through this route.
+        self.assertEqual(self.request('POST',
+            f'/api/projects/{project}/bundles/bundle-{"0"*64}/preflight','{}')[0],404)
+        # A foreign project cannot reach another project's delivery through this route. It
+        # answers 400 here while the sibling export route answers 404 for the same
+        # "not yours / not registered" condition -- the divergence is real and recorded rather
+        # than quietly harmonised, because the status code is part of what the workbench
+        # branches on and changing it is a contract decision, not a test decision.
+        foreign=self.request('POST',f'/api/projects/{other}/bundles/{bundle}/preflight','{}')
+        self.assertEqual(foreign[0],400)
+        self.assertNotIn('verdict',foreign[1])
+        # The profile grammar lives in the route pattern, so an undeclared profile must not
+        # reach the checker with the default quietly substituted.
+        self.assertEqual(self.request('POST',route+'?profile=bronze','{}')[0],404)
+
     def receipt_route(self, project, bundle_id, version_id):
         return (f'/api/projects/{project}/bundles/{bundle_id}/versions/{version_id}/receipt')
 
