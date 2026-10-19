@@ -630,6 +630,16 @@
       "reason": "No schema and none is needed: the body is exactly content_base64 plus idempotency_key, size- and content-type-pinned by http_service.py body(), and the response is an asset identifier record with no schemaVersion."
     },
     {
+      "route": "/api/projects/([0-9a-f]{32})/assets/(img-[0-9a-f]{64})/analysis",
+      "method": "POST",
+      "kind": "BOUND_SCHEMA",
+      "handler": "AssetAnalysis",
+      "schema": "design-lab/schemas/reconstruction/reconstruction-ir.schema.json",
+      "version": "design-lab/reconstruction-ir/v1",
+      "emitter": "src/design_lab/analysis/plan_to_rir.py:160",
+      "reason": "The route answers with an envelope whose `rir` member is the reconstruction-ir/v1 document the bridge produced, validated by validate_rir before it is sent. The emitter is the bridge that writes the version, not this handler: the handler adds no schemaVersion of its own, and the IR is the payload whose shape matters. Observations are supplied by the caller because no local OCR backend is qualified (readiness/model-radar.json: QUALIFIED_LOCAL=0, every entry default_enabled:false); an empty observation set is refused with NO_OBSERVATIONS rather than answered with an empty document."
+    },
+    {
       "route": "/api/projects/([0-9a-f]{32})/bundles/(bundle-native-[0-9a-f]{64})/preflight(?:\\?profile=(print|digital|video))?",
       "method": "POST",
       "kind": "BOUND_SCHEMA",

@@ -13,11 +13,14 @@ empty-input case is asserted to refuse rather than to emit an empty document tha
 analysis that found nothing.
 """
 import base64
+import http.client
 import io
 import json
 import os
+import secrets
 import sys
 import tempfile
+import threading
 import unittest
 from contextlib import closing
 from pathlib import Path
@@ -120,14 +123,102 @@ class AssetAnalysisTests(unittest.TestCase):
             self.analysis.derive(self.project, 'img-' + '0' * 64,
                                  module='ocr-fixture', detections=_detections())
 
-    def test_the_identity_is_reproducible_from_the_bytes_and_the_observation(self):
-        first = self.analysis.derive(self.project, self.asset_id,
-                                     module='ocr-fixture', detections=_detections())
-        second = self.analysis.derive(self.project, self.asset_id,
-                                      module='ocr-fixture', detections=_detections())
-        self.assertEqual(first['decomposition_id'], second['decomposition_id'])
-        self.assertEqual(first['rir_sha256'], second['rir_sha256'],
-                         'the same bytes and the same observation must produce the same document')
+    def test_identity_is_reproducible_and_the_digest_only_with_a_pinned_timestamp(self):
+        """The id comes from stored bytes; the document digest needs a pinned clock.
+
+        Asserting byte-stability without a timestamp would be a false claim about the bridge — and
+        worse, a timing-dependent one: it stamps each node with the moment of lowering at one-second
+        granularity, so two quick calls agree by accident and two slow ones do not.
+        """
+        free = self.analysis.derive(self.project, self.asset_id,
+                                    module='ocr-fixture', detections=_detections())
+        pinned_a = self.analysis.derive(self.project, self.asset_id, module='ocr-fixture',
+                                        detections=_detections(), timestamp='2026-10-20T00:00:00Z')
+        pinned_b = self.analysis.derive(self.project, self.asset_id, module='ocr-fixture',
+                                        detections=_detections(), timestamp='2026-10-20T00:00:00Z')
+        self.assertEqual(free['decomposition_id'], pinned_a['decomposition_id'],
+                         'the identity is derived from the bytes and the observation, not the clock')
+        self.assertEqual(pinned_a['rir_sha256'], pinned_b['rir_sha256'],
+                         'a pinned timestamp must make the artefact re-computable')
+        self.assertNotEqual(pinned_a['rir_sha256'], free['rir_sha256'],
+                            'the unpinned document carries this call clock; it is not a stable digest')
+
+
+class AssetAnalysisHttpTests(unittest.TestCase):
+    """The same seam over the real loopback service, because a page can only call a route.
+
+    `verify_workbench_route_calls.py` demands that a dispatched route is either called by the
+    Workbench or explained as backend-only; this class is part of that explanation being true rather
+    than merely asserted.
+    """
+
+    def setUp(self):
+        parent = ROOT / '.project-local/task-runtime/asset-analysis-http'
+        parent.mkdir(parents=True, exist_ok=True)
+        os.environ.pop('PROJECT_LOCAL_ROOT', None)
+        self._temp = tempfile.TemporaryDirectory(dir=parent)
+        self.root = Path(self._temp.name)
+        (self.root / 'AGENTS.md').write_text('# asset analysis http fixture', encoding='utf-8')
+        from design_lab.http_service import make_server
+        self.service = ProjectService(str(self.root))
+        self.token = secrets.token_hex(32)
+        self.server = make_server(self.service, self.token, port=0)
+        self.port = self.server.server_address[1]
+        self.thread = threading.Thread(target=self.server.serve_forever, daemon=True)
+        self.thread.start()
+
+        def _stop(self=self):
+            self.server.shutdown()
+            self.thread.join()
+            self.server.server_close()
+        self.addCleanup(_stop)
+        self.addCleanup(self._temp.cleanup)
+        self.project = self.service.create_project('Analysis http')['id']
+        stream = io.BytesIO()
+        from PIL import Image
+        Image.new('RGB', CANVAS, 'white').save(stream, format='PNG')
+        self.asset = ImageAssets(self.service).import_image(
+            self.project, base64.b64encode(stream.getvalue()).decode('ascii'), 'http-1')['asset']
+
+    def request(self, method, path, body=None):
+        headers = {'Authorization': 'Bearer ' + self.token,
+                   'Host': f'127.0.0.1:{self.port}',
+                   'Origin': f'http://127.0.0.1:{self.port}',
+                   'Sec-Fetch-Site': 'same-origin'}
+        raw = None
+        if body is not None:
+            headers['Content-Type'] = 'application/json'
+            raw = json.dumps(body).encode('utf-8')
+        conn = http.client.HTTPConnection('127.0.0.1', self.port, timeout=10)
+        try:
+            conn.request(method, path, body=raw, headers=headers)
+            resp = conn.getresponse()
+            return resp.status, json.loads(resp.read())
+        finally:
+            conn.close()
+
+    def test_the_route_answers_with_the_bridge_document(self):
+        status, payload = self.request(
+            'POST', f'/api/projects/{self.project}/assets/{self.asset["id"]}/analysis',
+            {'module': 'ocr-fixture', 'detections': _detections(), 'decomposition_id': None})
+        self.assertEqual(status, 201, f'the analysis route must answer 201: {payload}')
+        self.assertEqual(payload['rir']['schemaVersion'], 'design-lab/reconstruction-ir/v1')
+        self.assertEqual(payload['rir']['provenance']['evidence'], [self.asset['id']])
+        self.assertEqual(payload['asset']['sha256'], self.asset['sha256'],
+                         'the response must bind to the bytes the store verified')
+
+    def test_an_empty_observation_set_is_a_400_not_an_empty_document(self):
+        status, payload = self.request(
+            'POST', f'/api/projects/{self.project}/assets/{self.asset["id"]}/analysis',
+            {'module': 'ocr-fixture', 'detections': [], 'decomposition_id': None})
+        self.assertEqual(status, 400, f'an empty observation set must be refused: {payload}')
+        self.assertEqual(payload['error'], 'NO_OBSERVATIONS')
+
+    def test_a_foreign_asset_is_not_analysed(self):
+        status, payload = self.request(
+            'POST', f'/api/projects/{self.project}/assets/img-{"0" * 64}/analysis',
+            {'module': 'ocr-fixture', 'detections': _detections(), 'decomposition_id': None})
+        self.assertEqual(status, 404, f'unknown asset must not be analysed: {payload}')
 
 
 if __name__ == '__main__':

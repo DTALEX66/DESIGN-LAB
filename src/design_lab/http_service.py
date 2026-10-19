@@ -10,6 +10,7 @@ from urllib.parse import parse_qsl, urlsplit
 from . import __version__
 from .runtime.asset_store import AssetError
 from .runtime.paths import PathPolicyError
+from .asset_analysis import AssetAnalysis, AssetAnalysisError
 from .image_assets import ImageAssets, ImageAssetError
 from .task_queries import TaskQueries
 from .task_commands import TaskCommands
@@ -190,6 +191,9 @@ ROUTES = (
     Route('POST',
           r'/api/projects/([0-9a-f]{32})/assets',
           '_import_asset'),
+    Route('POST',
+          r'/api/projects/([0-9a-f]{32})/assets/(img-[0-9a-f]{64})/analysis',
+          '_derive_asset_analysis'),
     Route('POST',
           r'/api/projects/([0-9a-f]{32})/bundles'
             r'/(bundle-native-[0-9a-f]{64})/preflight'
@@ -761,6 +765,20 @@ def make_server(service, token, port=0, *, local_session=False):
         def _import_asset(self, match):
             value = self.body(fields={'content_base64', 'idempotency_key'}, limit=45_000_256)
             return self.send_json(201, ImageAssets(service).import_image(match[1], **value))
+
+        def _derive_asset_analysis(self, match):
+            # Observations arrive from the caller: no local OCR backend is qualified, so this route
+            # lowers what it is given and refuses to invent any. `body()` requires the exact key set,
+            # so `decomposition_id` must be present; send it as null to let the service derive a
+            # reproducible identity from the stored bytes.
+            value = self.body(fields={'module', 'detections', 'decomposition_id'}, limit=262_144)
+            try:
+                result = AssetAnalysis(service).derive(
+                    match[1], match[2], module=value['module'], detections=value['detections'],
+                    decomposition_id=value['decomposition_id'])
+            except AssetAnalysisError as exc:
+                return self.send_json(400, {'status': 'ERROR', 'error': exc.code, 'detail': exc.detail})
+            return self.send_json(201, result)
 
         def _preflight_bundle(self, match):
             # The bundle is resolved from the state database by id and

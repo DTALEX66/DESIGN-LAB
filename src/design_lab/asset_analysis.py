@@ -43,8 +43,16 @@ class AssetAnalysis:
         self.service = service
         self.assets = ImageAssets(service)
 
-    def derive(self, project_id, asset_id, *, module, detections, decomposition_id=None):
-        """Return the IR document for one stored asset and one explicit observation set."""
+    def derive(self, project_id, asset_id, *, module, detections, decomposition_id=None,
+               timestamp=None):
+        """Return the IR document for one stored asset and one explicit observation set.
+
+        `timestamp` is passed through to the bridge deliberately. Left unset, every node carries the
+        wall clock of this call at one-second granularity, so the document digest is not stable and two
+        calls that happen to land in the same second will look reproducible when they are not. A caller
+        who needs a re-computable artefact pins one, the same convention `build_candidate` uses for
+        `created_at`.
+        """
         if not isinstance(module, str) or not 0 < len(module) <= 64:
             raise AssetAnalysisError('INVALID_MODULE',
                                      'module must be one short string naming the observation backend')
@@ -71,7 +79,8 @@ class AssetAnalysis:
             # refusal is the product answer; restating it as a 200 with a shrunk document is not.
             raise AssetAnalysisError('INVALID_OBSERVATION', str(exc)) from exc
 
-        rir = plan_to_rir(plan, raster_path=asset_id, project_root=PROJECT_ROOT)
+        rir = plan_to_rir(plan, raster_path=asset_id, project_root=PROJECT_ROOT,
+                          timestamp=timestamp)
         return {
             'status': 'ASSET_ANALYSIS',
             'decomposition_id': identity,

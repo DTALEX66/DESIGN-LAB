@@ -7800,9 +7800,10 @@ function planComposer(projectId: string): HTMLElement {
             + ' · srgb（取自底图真实尺寸，不是页面臆造）'))),
       el('li', { class: 'list-item' },
         el('div', {}, el('strong', {}, '结构 / 文字 / 路径节点'),
-          el('small', {}, '本批不编排：分析派生的 plan_to_rir 桥没有生产调用方'
-            + '（仓库里只有 design-lab/tests 在调，服务与本页都不调），'
-            + '画进去就是假结构。文字与路径节点属 U05 剩余项与 DL-FINAL-T10。')))));
+          el('small', {}, '本页不自动编排结构：桥已接通（POST …/assets/<img-ID>/analysis '
+            + '与 `design-lab analyze` 两条生产入口），但本机没有合格的 OCR/分析后端可产出观测，'
+            + '把猜测画进节点就是假结构。观测由操作者提供，合格模型待 owner 裁定；'
+            + '文字与路径节点属 U05 剩余项与 DL-FINAL-T10。')))));
   };
   hostSelect.onchange = recompute;
   assetSelect.onchange = recompute;

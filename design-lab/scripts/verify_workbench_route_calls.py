@@ -99,6 +99,13 @@ SPECIAL_ROUTES = {
 #: Each reason names the measured consumer (a test or the aggregate route the page does use),
 #: because "nobody calls it" and "the UI reads the same data another way" are different claims.
 BACKEND_ONLY: dict[tuple[str, str], str] = {
+    ('POST', r'/api/projects/([0-9a-f]{32})/assets/(img-[0-9a-f]{64})/analysis'):
+        'the Workbench cannot supply observations for this route: no local OCR backend is qualified '
+        '(design-lab/readiness/model-radar.json reports QUALIFIED_LOCAL=0 with every entry '
+        'default_enabled:false), and routing the structure a person typed on the page through here '
+        'would add nothing to what the page already composes locally. The route is exercised live by '
+        'design-lab/tests/test_asset_analysis.py and by the `design-lab analyze` verb, which is the '
+        'operator path until the owner qualifies a model.',
     ('GET', r'/api/projects/([0-9a-f]{32})/briefs/(brief-[0-9a-f]{32})'):
         'the design view reads briefs, directions and their bindings in one round trip through '
         'GET .../design-layer; the single-brief read is exercised for external clients by '
