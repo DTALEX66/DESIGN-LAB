@@ -277,6 +277,8 @@ E4 独立人审 / E5 发布可复现。**文档修订 ≠ 规划完成 ≠ 代�
 - **两个闸门里的 "routes" 不是同一个东西，别去"对齐"它们**：`verify_contract_bindings` 报 `routes=60`，数的是 `design-lab/config/contract-bindings.json` 的 route 行（每行带 handler/kind/marker/method/reason/route）；`verify_workbench_route_calls` 报 `routes=58`，数的是 `http_service.ROUTES` 的路由模式。本轮实跑过一条自以为是"对账"的口令：拿 `row['route']` 去比 `pattern`，结果是"60 条声明全部命中服务、同时 58 条服务里 57 条未被声明"——两个结论互不相容，说明字段映射本身就是错的，不是数据有缺口。**这条口令不要再用**；真要查某个路由有没有登记，得先读那个 JSON 自己的 schema 与闸门的读法。
 - **本轮在 tip 上重跑过的只读闸门（一次成批，供下一轮对照基线）**：`AUTHORITY_GATES=PASS gates=7`、`VERIFY_CONTRACT_BINDINGS=PASS schemas=32 routes=60 dispatched=60 bound=21 schema_less=39`、`VERIFY_WORKBENCH_ROUTE_CALLS=PASS calls=96 routes=58 matched=47 backend_only=11`、`STRUCTURE_CONTRACTS=PASS tests=31`、`DOCUMENTED_COUNTS=PASS claims=4`、`KNOWLEDGE_LIFECYCLE=PASS findings=0`。
 
+- **2048×1152 这一档已经人工看过，而且我在那里看错过一次**：采集工装补了 `2048:1152` 档（原来会走 `w*0.62` 的兜底，量出一个谁都没有的画幅），重采 23 张后逐张看仪表盘与能力目录。能力目录在宽屏下看着像"表头与单元格逐列错位"（`MIT` 落在 许可 表头左边、`UNRESOLVED` 徽标落在 修订 表头右边）。读构造即被否证：那一屏是**单个 `<table>`**（表头清单是 `apps/workbench/shell.ts` 里的 `TABLE_COLUMNS`，起于 2563 行；每格都是 `el('td', …)`），列宽由整列共享，结构上不可能逐行错位——看到的是目测像素的误差，加上 auto 布局把富余宽度全给最宽列造成的空档。所以 **2048 档没有缺陷**（同档的系统性检查已由 ui_audit 判 13 scope `violations=0`）。教训写下来：宽屏截图里"列不对齐"这种判断，先回去读它是 `table` 还是 `grid`，不要拿肉眼估的 x 坐标下断言。
+
 ## 10. 什么算完成
 
 - 改动有**可复核的读数**（命令 + 输出），不是"应该没问题"。

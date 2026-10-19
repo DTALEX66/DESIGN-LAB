@@ -56,7 +56,11 @@ const paintTheme = async (page) => {
   }, [uiPalette, uiScheme]);
 };
 
-const VIEWPORT_HEIGHT = { 390: 844, 768: 1024, 1280: 800, 1440: 900, 1920: 1080, 2560: 1440 };
+// Heights are the CSS viewport each width is captured at. 2048x1152 is measured, not invented:
+// it is the box the owner's machine renders in (Screen.Bounds 2048x1152, AppliedDPI 120 on a
+// 2560x1440 panel at 125%). Without this entry the fallback below would have captured that width
+// at 1270 -- an aspect ratio nobody has.
+const VIEWPORT_HEIGHT = { 390: 844, 768: 1024, 1280: 800, 1440: 900, 1920: 1080, 2048: 1152, 2560: 1440 };
 const heightFor = (w) => VIEWPORT_HEIGHT[w] ?? Math.round(w * 0.62);
 
 const fail = (reason) => {
