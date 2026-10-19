@@ -340,3 +340,48 @@ owner 决定"确认归档后删除"该远端/本地分支。删除前实测发�
 - 生成命令：`git diff --binary main...rescue/designlab-personal-audit-dirty-20261007`
 - 登记位置：同目录 `RESCUE-MANIFEST.json` 的 `fullDelta` 字段（命令、字节、hash、覆盖范围、取回方式一并写入）
 - 定态：**PATCH，不是冻结发布件**——用于按需重放或直接读其中的 hunk，不构成对分支存在性的声明。
+
+## 2026-10-19 新增：归档与移除波次的五份记录（owner 2026-10-19 指令）
+
+本节登记 2026-10-19 归档波次产出的**五份记录**本身。此前只在 `docs/current/NEXT-AGENT-PROMPT.md` §3.1 和审计报告里被提到，没有进固定资料索引——按根指令「后续新增资料必须同步来源、hash、版本/定态、别名和 canonical 位置」，本条补齐。波次本身的过程与逐条缺陷不在这里重述，读第 5 项那份交付报告。
+
+**哈希一律取自提交对象**：`.venv/Scripts/python.exe -c "import hashlib,subprocess;print(hashlib.sha256(subprocess.run(['git','cat-file','blob','HEAD:<路径>'],capture_output=True).stdout).hexdigest())"`。**哈希一律取自提交对象**：`git cat-file blob HEAD:<路径>` 的字节做 SHA-256。本机 `core.autocrlf=true`，工作树里有 2 份被还原成 CRLF（`MANIFEST.json` 多 1,867 B、`DESIGN-LAB-ARCHIVE-AND-REMOVAL-2026-10-19.md` 多 140 B），所以直接对本地文件算出的不是下表的值。两个读数都记在这里，免得下一会话把它当成漂移去「修」。
+
+| # | canonical 路径 | 别名 | 版本 / 定态 | blob SHA-1 | 体量 | blob SHA-256 | 内容与计数 |
+|---|---|---|---|---|---|---|---|
+| 1 | `docs/history/archive-2026-10-19/MANIFEST.json` | 档案清单 / 移动清单 / move manifest | design-lab/archive-move-manifest/v1 | `2e247bf101e1` | 85,966 B | `cf903cbbf3ce2d73…` | 40 组 / 228 文件 / 8,416,910 B 的整目录移动台账；`byteIdentityVerified=155`、`removedSinceThisPass=73`、`bytesRewritten=0` |
+| 2 | `docs/history/archive-2026-10-19/REMOVALS.json` | 移除清单 / 删除登记 / removal record | design-lab/archive-removal/v1 | `27370e630035` | 46,699 B | `b93c0391eaefc3b5…` | 83 份旧交接/提示词原件的移除登记（713,606 B），跨  + `docs/history/**` 73 份 / `reports/history/**` 10 份；逐条含 `blobSha1`/`sha256`/`crc32`/`bytes`/`restoreAt`/`recoverWith`，统一锚点 `restoreAt=7015571e729ec78c266cf45e0bd3b01b2e50973b`，`keptAuditInputs=17`（owner 提供的 R3 审计输入不删） |
+| 3 | `docs/history/archive-2026-10-19/HANDOFF-PROMPT-DIGEST.json` | 交接与提示词汇总登记 / digest | design-lab/archive-digest/v1 | `c76a3f6cc9f9` | 102,291 B | `2d5e6684a48fee59…` | 读取于 `readAtCommit=f55f0382`、对 `verifiedAgainstHead=7015571e` 复核；106 条目 → 删除 83 / 保留 23，合计 2,443,642 B；`blobIdsReDerived=1` |
+| 4 | `docs/history/archive-2026-10-19/AGGREGATED-RECORD-2026-10-19.md` | 归档汇总与追溯记录 / 可读汇总 | 无 schemaVersion（Markdown 汇总件） | `d8a3f843647b` | 62,238 B | `bb82f0fab6ffbf47…` | 3 个 `##` 小节；承载被删文档的标题/用途/结论/取代关系与唯一事实，使第 2 项的删除是退役而不是丢失 |
+| 5 | `docs/audits/DESIGN-LAB-ARCHIVE-AND-REMOVAL-2026-10-19.md` | 波次交付报告 / 审计正文 | 无 schemaVersion（交付报告） | `01d2f02799f5` | 12,318 B | `3856e321c5295dde…` | 实测 10 个 `##` 小节（§0 结论与状态声明 / §1 指令 / §2 基线读法 / §3 实测计数 / §4 防再索引机制 / §5 命令·退出码·读数 / §6 六个缺陷 + §6.5 第七个 / §7 回滚 / §8 风险与下一步） |
+
+完整 SHA-256（逐条，便于跨机器核对）：
+
+- 1. `docs/history/archive-2026-10-19/MANIFEST.json` → `cf903cbbf3ce2d7321954984b12cc5eda36df0f5dadf78f954b1922d794329dc`
+- 2. `docs/history/archive-2026-10-19/REMOVALS.json` → `b93c0391eaefc3b5cb8b7efa16a20a6f7b343b4c25641f26155a88b4fe0fb3fc`
+- 3. `docs/history/archive-2026-10-19/HANDOFF-PROMPT-DIGEST.json` → `2d5e6684a48fee594ebe966e7bae9ea38a295bd0b84221e822b4975fe62fec4f`
+- 4. `docs/history/archive-2026-10-19/AGGREGATED-RECORD-2026-10-19.md` → `bb82f0fab6ffbf4713ad76de294ac335b3a5664597dc8591f1c46db1b109483f`
+- 5. `docs/audits/DESIGN-LAB-ARCHIVE-AND-REMOVAL-2026-10-19.md` → `3856e321c5295ddee07b60cbffb9425cd12cc889482e4de4fd80580972b56743`
+
+**生成命令**（五份都由仓库内脚本产出，不是手抄；脚本本身留在 `.project-local/task-runtime/`，属一次性工具面，不入 Git）：
+
+- 第 1 项：`.venv/Scripts/python.exe .project-local/task-runtime/build_archive_manifest.py`（逐行重读 git index，比对移动前记录的 blob SHA-1 与字节数）
+- 第 2 项：`.venv/Scripts/python.exe .project-local/task-runtime/build_removals.py`（每条先用 `git show restoreAt:<path>` 读回原文，再算 sha256/crc32，读不到即中止）
+- 第 3、4 项：`.venv/Scripts/python.exe .project-local/task-runtime/publish_aggregation.py`（blob 标识全部从 git 重新导出——这一步实测纠正了 1 处 39 位的手抄截断）
+- 第 5 项：面向 `docs/taskpacks/20261019-direction/source/ACCEPTANCE.md` 的「必交付」与「最终报告格式」两份清单写成，§0 的结论取自同轮 CI 与闸门实测读数
+
+**取代与被取代关系**：
+
+- 这五份记录**不取代** `docs/history/record-archive-2026-10-09/ARCHIVE-MANIFEST.json`，也不并入其 101/180/111 普查读数；那批 Record 导入的清单仍是它自己那一份。
+- 第 1 项是「路径去了哪里」的权威答复；第 2 项是「原件为何不在、怎么取回」的权威答复。两者的消费者已接到读侧：`scripts/archive_records.py`、`src/design_lab/governance/reporting.py`、`scripts/record_import_verify.py`、`design-lab/scripts/verify_evidence_artifact_presence.py`、`design-lab/scripts/verify_task_document_states.py`。旧路径因此**不能再被索引为可达资料**，但按 blob 取回始终可证。
+- 第 2 项引用的 `restoreAt` 提交是一个**读取锚点**，不是当前 HEAD；当前 SHA 一律 `git rev-parse HEAD` 自读。
+
+**一致性实测**（写本条时当场跑过，非引用旧读数）：
+
+- `REMOVALS.json` 的 `summary.files=83` ＝ `entries` 数组长度 ＝ 摘要登记的第 3 项 `counts.deleted=83`，且按根拆解为 73（`docs/history/**`） + 10（`reports/history/**`）；
+- 字节：`REMOVALS.summary.bytes=713,606` ＝ 摘要 `counts.deletedBytes=713,606`；
+- 83 条 `sha256` 字段全部是 `sha256:` + 64 位十六进制（长度直方图只有 71 一个桶），`restoreAt` 83 条同值——截断摘要或逐条漂移的锚点都会在这里露出来；
+- 五份记录均可 UTF-8 解码，`U+FFFD` 计数为 0（中文正文若被写成乱码字节，这里会先炸）。
+
+**定态**：第 1、2、3 项与第 4、5 项都是**波次的登记件**，不是能力索引、不是派工入口，也不改变 `currentExecution` 34 项的 `FROZEN_DEFERRED`。真值仍读 `design-lab/config/capability-evidence-index.json`、`design-lab/config/capability-status.json` 与 `docs/current/NEXT-AGENT-PROMPT.md`。
+
