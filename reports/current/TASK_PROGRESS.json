@@ -11,7 +11,7 @@
   },
   "fresh": false,
   "freshnessMeaning": "at generation only; check verifies bound-input integrity, not current Git or cloud state",
-  "generatedAt": "2026-10-19T20:19:30+00:00",
+  "generatedAt": "2026-10-19T20:32:59+00:00",
   "gitStateMeaning": "generation-time observation, not current HEAD",
   "ledger_partition": "currentExecution",
   "meaning": "Parent/subtask inventory is not a capability count or completion percentage. Definition adoption does not implement product tasks; R5 evidence is historical.",
@@ -26,7 +26,7 @@
     "taskpack": "DL-TP-20260908-R5"
   },
   "subjectMeaning": "subjectType=WORKTREE means the tree was dirty at generation; worktreeDigest covers HEAD plus the non-generated changes",
-  "subjectSha": "caccaf81e7d14af3261fe1ebccb45d8e83d58933",
+  "subjectSha": "ead4dfebb4b198a01afd20eaddc11467913b79e9",
   "subjectType": "COMMIT",
   "taskpack": "DL-TP-20261009-UI-FIRST-R1",
   "taskpackHash": "2cfd84627352e9f1b29b42787fa43466cd9a836130d826d43678b7733856ffda",
@@ -857,5 +857,5 @@
   "testRunMeaning": "bound run: python scripts/run_bound_test_suite.py --modules test_boot_reconciliation",
   "testRunResult": "OK",
   "worktreeClean": true,
-  "worktreeDigest": "sha256:534865f5a3dbba26e0f8cdf2d222453ab0b31220782bb070141234086a7a34b2"
+  "worktreeDigest": "sha256:a777cd9082fbaac60ebbdf92bb3a2cc1a9d4f0335cbd0dc0f8ac651f2625f984"
 }
