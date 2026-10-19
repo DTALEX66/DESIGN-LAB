@@ -217,6 +217,22 @@ authority-index 与账本仍点名的四份包体。
 
 结论：本轮无障碍侧**没有发现需要改产品的缺陷**；产出是一条原来缺失的覆盖（渲染出的标题顺序）与它自己的反证。
 
+### 5.8 第九批（设计债复核：棘轮看不见的"种类"，以及它抓出的一次真回归）
+
+基线闸门数的是"非令牌声明不许增长"，看不见**同一声明被重复多少次**、也看不见内联样式。按种类扫的结果：
+
+| 项 | 实测 | 判读 |
+| --- | --- | --- |
+| `shell.ts` 内联 `style:` 站点 | 27 处，其中 `margin-top:16px` **14 次**、`display:grid;gap:8px` **6 次**、`display:grid;gap:10px` 2 次、其余 5 个各 1 次 | 20/27 是两个声明的重复，属于"该收成类"而不是"该登记的字面量" |
+| 收成 | `.spaced-top{margin-top:var(--uif-space-4)}`、`.grid-stack{display:grid;gap:var(--uif-space-2)}`（style.css 830/831 行，各定义一次） | token 值 16px / 8px 与原内联逐字相同；`literal_px` 由 **534 → 514**，`--check` 立刻以"DESIGN.md §4 没有这句原话"为由拒绝，直到文档改成实测句为止——这正是这条闸门该有的行为 |
+| `gap:10px` 那 2 处 | 保留内联 | 10px 不在间距档（4/8/12/16/24/32/40）上，改成 8px 是可见变化而不是重构；要归一需要先决定加哪个 token，那是 owner 侧的选择 |
+| `!important` | 7 处，逐条看：`[hidden]`、reduced-motion 块内 3 条、`.error` 颜色（注释写明是 load-bearing） | 都是有意例外，不算债 |
+| 色值字面量 | 26 处登记在 `ui-off-palette-colours.json`，`adjudication` 空 | 闸门自己报 `NOTICE PENDING-OWNER-ADJUDICATION`，代理不得填 |
+
+**这次重构制造了一次真实回归，而且是像素比对抓到的**：`.quick-launch{margin-top:0}` 从来没生效过——它唯一的使用处一直挂着内联 `margin-top:16px`，内联优先级压过类规则；把内联换成 `.spaced-top` 之后，这条死声明按源码顺序（它定义在 1479 行，晚于 830 行）开始获胜，把仪表盘那张卡顶到 0。已删除该死声明并在原处写明它曾经是死的，免得有人把它当"面板自己的间距"加回来。
+
+**同时暴露一条闸门灵敏度事实**：带着这个 16px 错位，`test_workbench_overflow_gate`、`test_workbench_ui_audit_gate`、`test_workbench_theme_geometry_gate`、`test_workbench_contrast_gate` 四道（8 个测试）**全绿**——它们看的是溢出、边界、对比度、控件尺寸与命名，不看"某张卡离上一张卡多远"。而像素比对在这里也分不开：数据屏每次采集都换播种项目名，`01-dashboard` 无论对比哪一对都有约 1700 px 差值，与噪声同量级。最终依据是级联本身：删掉那条之后，匹配 `div.panel.quick-launch.spaced-top` 且设置 `margin-top` 的规则只剩 `.spaced-top`，其 token 为 16px，与被替换的内联值逐字相等。修法与验证方式都记下来，是因为"四道浏览器闸门绿"并不能证明一次样式重构没有改变可见结果。
+
 ## 6. 本轮暴露并修掉的六个缺陷
 
 1. **分类聚合按目录贴标签**：`bundle_key()` 把一个顶层目录收成一个 bundle，于是 `docs/` 里第一个文件的类别
