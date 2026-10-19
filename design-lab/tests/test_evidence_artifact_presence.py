@@ -12,6 +12,7 @@ import collections
 import copy
 import importlib.util
 import json
+import subprocess
 import unittest
 from pathlib import Path
 
@@ -234,13 +235,23 @@ class EvidenceArtifactPresenceTests(unittest.TestCase):
             # record is not rewritten; the newer binding is the correction's own commit.
             ('design-lab/tests/test_domain_pack_readback.py',
              'HASH_MOVED_SINCE_OBSERVATION'): 1,
+            # 2026-10-19, the archive/removal wave aged the gate's own module. A record binds
+            # design-lab/scripts/verify_evidence_artifact_presence.py as its artefact; the wave added
+            # relocation and recovery resolution to that gate, so HEAD's bytes for it are now newer
+            # than the record's digest. This is the property the inventory exists to make visible --
+            # a record that names a source file ages when that file is edited -- and it is the same
+            # self-inflicted entry this file already documents twice for itself. Re-measured, not
+            # inherited: the delta between the pinned Counter and the run was exactly this one pair.
+            ('design-lab/scripts/verify_evidence_artifact_presence.py',
+             'HASH_MOVED_SINCE_OBSERVATION'): 1,
         })
         self.assertEqual(counts, expected,
                          'the drifted-artefact inventory is exact in both directions: a new '
                          'move, a new artefact name, or one more record on a known artefact '
                          'are all findings, and a drifted pair that quietly disappeared is too')
-        self.assertEqual(sum(counts.values()), 59,
-                         'the total drifted-record count is pinned, not derived')
+        self.assertEqual(sum(counts.values()), 60,
+                         'the total drifted-record count is pinned, not derived '
+                         '(59 -> 60 on 2026-10-19: the gate module aged its own binding record)')
 
     def test_missing_tracked_artefact_is_a_hard_break_not_a_warning(self):
         ledger = copy.deepcopy(_ledger())
@@ -253,17 +264,57 @@ class EvidenceArtifactPresenceTests(unittest.TestCase):
         self.assertEqual([entry[2] for entry in result['broken']], ['NOT-IN-GIT-INDEX'])
 
     def test_changed_artefact_bytes_count_as_drift_not_destruction(self):
+        """Decay vs destruction, asserted on a document the tree still holds.
+
+        The 2026-10-19 removal wave deleted four handoff documents that ledger records name as
+        artefacts. Those rows now resolve through REMOVALS.json into the `recovered` category: the
+        gate can prove the bytes are still reachable (git cat-file on the recorded blob) but cannot
+        compare content drift, because there is no tracked file left to hash. Tampering one of those
+        rows would assert nothing, so the candidate is chosen among artefacts the tree still holds,
+        and the recovered set is pinned by its own test below rather than quietly skipped.
+        """
         ledger = copy.deepcopy(_ledger())
+        relocated = set(gate._relocations(REPO)) | set(gate._removals(REPO))
         for receipt in ledger['evidence']:
             for artifact in receipt['artifacts']:
-                if not artifact['path'].startswith('.project-local'):
-                    artifact['sha256'] = 'f' * 64
-                    result = gate.evaluate(REPO, ledger)
-                    self.assertIn((receipt['id'], artifact['path'],
-                                   'HASH_MOVED_SINCE_OBSERVATION'), result['drifted'])
-                    self.assertEqual(result['broken'], [])
-                    return
-        self.fail('no tracked artefact found to tamper with')
+                path = artifact['path']
+                if path.startswith('.project-local') or path in relocated:
+                    continue
+                artifact['sha256'] = 'f' * 64
+                result = gate.evaluate(REPO, ledger)
+                self.assertIn((receipt['id'], path,
+                               'HASH_MOVED_SINCE_OBSERVATION'), result['drifted'])
+                self.assertEqual(result['broken'], [])
+                return
+        self.fail('no live tracked artefact found to tamper with')
+
+    def test_removed_artefacts_are_recovered_by_provable_objects_not_marked_present(self):
+        """A removed artefact must be named, with a blob the object store still holds.
+
+        This is the guard the removal wave replaced the drift check with. `recovered` is not a
+        warning bucket: each entry is a ledger record whose artefact left the tree on owner order,
+        and the gate only counts it as recovered after `git cat-file -e` accepts the blob the removal
+        manifest recorded. Drop the manifest and these same four rows come back as BROKEN -- which is
+        why the inventory is pinned in both directions here.
+        """
+        result = gate.evaluate(REPO, _ledger())
+        self.assertEqual(sorted((receipt, path) for receipt, path, _ in result['recovered']),
+                         [('r5-comfy-http-model-free-live-20260909',
+                           'docs/handoffs/R5-COMFY-HTTP-LIVE-2026-09-09.md'),
+                          ('r5-comfy-structural-rejection-20260909',
+                           'docs/handoffs/R5-COMFY-STRUCTURAL-REJECTION-2026-09-09.md'),
+                          ('r5-ps-handoff-review-20260909',
+                           'docs/handoffs/R5-PHOTOSHOP-FULL-REGRESSION-2026-09-09.md'),
+                          ('r5-ps-handoff-review-20260909',
+                           'docs/handoffs/R5-PHOTOSHOP-PATCH-PRODUCT-2026-09-09.md')],
+                         'the recovered set is exactly the four handoff artefacts the removal wave '
+                         'deleted; a fifth one appearing here means an unannounced deletion')
+        self.assertEqual(result['broken'], [])
+        for _, path, restore in result['recovered']:
+            self.assertTrue(restore and len(restore) == 40, f'{path} names no full restore commit')
+            self.assertEqual(subprocess.run(['git', '-C', str(REPO), 'cat-file', '-e', restore],
+                                            capture_output=True).returncode, 0,
+                             f'{path} is not readable at its own restoreAt')
 
     def test_runtime_paths_only_warn(self):
         ledger = copy.deepcopy(_ledger())
