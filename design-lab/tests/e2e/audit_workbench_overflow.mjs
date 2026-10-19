@@ -228,6 +228,23 @@ const MEASURE = () => {
   // footer's 1px top border landing on the cut line: the hairline reads as an underline drawn
   // under a half-visible word. Record the gap between the two edges so the boundary has a
   // number, and which kind of item happens to straddle it.
+  // Heading order is the screen-reader map of a screen: h2 straight to h4 reads as "a section
+  // went missing". axe reports it only when it evaluates the node, and it declined 9-71 nodes
+  // per screen here, so the sequence is measured from the rendered DOM instead.
+  out.headings = (() => {
+    const view = document.querySelector('#route-view');
+    if (!view) return { levels: [], skip: null, note: 'no #route-view' };
+    const nodes = Array.from(view.querySelectorAll('h1,h2,h3,h4,h5,h6'))
+      .filter((h) => h.getClientRects().length > 0);
+    const levels = nodes.map((h) => Number(h.tagName.slice(1)));
+    for (let i = 1; i < levels.length; i += 1) {
+      if (levels[i] > levels[i - 1] + 1) {
+        return { levels, note: null, skip: `h${levels[i - 1]} -> h${levels[i]} at `
+          + `"${(nodes[i].textContent || '').trim().slice(0, 40)}"` };
+      }
+    }
+    return { levels, skip: null, note: null };
+  })();
   out.navEdge = (() => {
     const nav = document.querySelector('.sidebar .nav');
     const foot = document.querySelector('.sidebar-footer');

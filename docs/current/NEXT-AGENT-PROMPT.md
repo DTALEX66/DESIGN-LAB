@@ -281,6 +281,8 @@ E4 独立人审 / E5 发布可复现。**文档修订 ≠ 规划完成 ≠ 代�
 
 - **桌面 jury 面板的判定对象有测试了**：面板不自己找版本，它把 `GET /api/projects/<id>/jury` 返回的 `reviewable_versions` 直接灌进版本下拉（`apps/workbench/shell.ts` 的 `juryVerdictForm(projectId, data.reviewable_versions ?? [], reload)`），再对着读回来的 `subject_ref` 提交判定。新增 `test_the_jury_readback_offers_an_imported_asset_version_as_a_verdict_target` 证明：真导入一张图之后，读侧会给出 `version:<该版本>` 且 `artifact_sha256` 等于导入返回的摘要——此前只证明过"拿导入响应里的 version_id 能 POST 判定"，那不等于界面能列出它。
 
+- **无障碍复核（本轮，桌面端）**：能测的都测了——**没有发现可修的缺陷，但补了一条原来没人看的断言**。自动化看不见的部分逐项核过：`outline:none` **0** 处、`:focus-visible` 规则 **10** 条、`prefers-reduced-motion` 在 CSS 与 shell 各有处理（1 / 3 处）、toast 自带 `role="status"`（`apps/workbench/shell.ts:5794`）、状态词按合同在标签自身带 `lang="en"`（7085 行写明为什么不再套一层 `en()`）、表单侧 `<label>` **72** 处对 `aria-label` **44** 处。**新增**：溢出闸门现在逐屏量渲染出的标题序列并断言不得跨级跳（23 条路由读数里 **0** 处跳级；落地路由 `workbench` 的 h1 在 `#route-view` 之外，作为具名例外而不是静默放过），并有一条播种反证证明三条分支都会红——axe 每屏仍拒评 9–71 个节点，标题顺序本来没有任何东西在看。**仍属人工**：真实读屏软件下的措辞与键盘-only 主路径本轮没做，也没假装做过。
+
 ## 10. 什么算完成
 
 - 改动有**可复核的读数**（命令 + 输出），不是"应该没问题"。

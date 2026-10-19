@@ -143,11 +143,60 @@ class WorkbenchOverflowGateTests(unittest.TestCase):
                         f'gate produced no report at {report_path}')
         return json.loads(report_path.read_text(encoding='utf-8'))
 
+    # `#route-view` is what a screen-reader user navigates by heading, so a jump from h2 straight
+    # to h4 reads as a section that vanished. axe reports that only when it evaluates the node, and
+    # it declined 9-71 nodes per screen here, so the rendered sequence is asserted instead.
+    # `workbench` is the landing route: its h1 is the static header outside the route view, so it
+    # has no heading in here by design -- the exception is named rather than left implicit.
+    HEADINGLESS_ROUTES = {'workbench'}
+
+    def _assert_heading_order(self, report):
+        measured = 0
+        for key, value in sorted(report['routes'].items()):
+            if '+' in key or not isinstance(value, dict) or 'headings' not in value:
+                continue
+            route = key.split(':', 1)[-1]
+            headings = value['headings']
+            self.assertIsNone(headings.get('skip'),
+                              f'{key}: the rendered heading order skips a level '
+                              f'({headings.get("skip")})')
+            if headings.get('levels'):
+                measured += 1
+            else:
+                self.assertIn(route, self.HEADINGLESS_ROUTES,
+                              f'{key}: this screen renders no heading at all, so a screen reader '
+                              'has nothing to jump to')
+        self.assertGreaterEqual(measured, 15,
+                                f'only {measured} screens produced a heading sequence; the '
+                                'measurement has stopped covering the route table')
+
+    def test_the_heading_assertion_can_fail(self):
+        """A guard nobody has seen red guards nothing: both branches are planted here."""
+        skipped = {'routes': {'1440:dashboard': {'headings': {
+            'levels': [2, 4], 'skip': 'h2 -> h4 at "某面板"'}}}}
+        with self.assertRaises(AssertionError) as raised:
+            self._assert_heading_order(skipped)
+        self.assertIn('skips a level', str(raised.exception))
+
+        nameless = {'routes': {'1440:dashboard': {'headings': {'levels': [], 'skip': None}}}}
+        with self.assertRaises(AssertionError) as raised:
+            self._assert_heading_order(nameless)
+        self.assertIn('no heading at all', str(raised.exception))
+
+        # The count floor is what stops a measurement that quietly stopped measuring from
+        # passing as a clean run.
+        thin = {'routes': {f'1440:r{i}': {'headings': {'levels': [2, 3], 'skip': None}}
+                           for i in range(3)}}
+        with self.assertRaises(AssertionError) as raised:
+            self._assert_heading_order(thin)
+        self.assertIn('stopped covering the route table', str(raised.exception))
+
     def test_no_clipped_or_unreachable_text_in_real_browser(self):
         if not GATE_SCRIPT.is_file():
             self.skipTest(f'overflow gate script missing: {GATE_SCRIPT}')
         code, out, report_path = self._run_gate('workbench-overflow-gate.json')
         report = self._fail_open(code, out, report_path)
+        self._assert_heading_order(report)
         # Every named interaction has to have settled on something a reader can tell apart, and at
         # least one has to have actually read the ledger back: a panel that renders a refusal at
         # every width is well-formed UI over a readback nobody ever saw.

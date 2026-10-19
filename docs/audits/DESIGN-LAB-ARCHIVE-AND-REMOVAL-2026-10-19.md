@@ -202,6 +202,21 @@ authority-index 与账本仍点名的四份包体。
 | `python scripts/verify_documented_counts.py --verbose` | 0 | `DOCUMENTED_COUNTS=PASS claims=6`：新增两条把提示词里的"**13 跳验收链** / **4 跳交付链**"对回测试方法体（`self.hop(` 调用数加手工 `hops.append(` 数）。跳数一变，句子立刻对不上——今天加 jury 那条时正是这个数最容易悄悄过期 |
 | `python -m unittest -q test_documented_counts test_standalone_chain_http` | 0 | `Ran 6 tests OK`，播种反证仍然红（`prose says ['18'], measurement says 19`） |
 
+### 5.7 第八批（无障碍复核：自动化看不见的部分，以及补上的一条断言）
+
+| 检查 | 读数 | 判读 |
+| --- | --- | --- |
+| `grep -c "outline:none" apps/workbench/style.css` | 0 | 焦点环没有被抹掉 |
+| `grep -c ":focus-visible" apps/workbench/style.css` | 10 | 焦点可见态是成体系的规则而不是零星几处 |
+| `grep -c "prefers-reduced-motion"`（CSS / shell） | 1 / 3 | 动效有降级路径（CSS 4 处 `animation:`、20 处 `transition:` 都在其约束内） |
+| toast 实现 | `el('div', { class: 'toast', role: 'status', id: 'toast' }, …)`（`shell.ts:5794`） | 播报走 `role="status"`，不是只有视觉变化 |
+| 状态词 `lang` | 标签自带 `lang="en"`；`shell.ts:7085` 写明为何不再套一层 `en()`（外层会先被文字检查命中） | 与状态词合同一致，未翻译 |
+| 表单标注 | `<label>` 72 处 / `aria-label` 44 处 | 以原生标注为主，ARIA 是补充 |
+| **新增**：逐屏标题序列（溢出闸门 `out.headings`） | 23 条路由读数中跳级 **0** 处；唯一无标题的是落地路由 `workbench`（其 h1 在 `#route-view` 之外），作为具名例外 | axe 每屏拒评 9–71 个节点，标题顺序此前没有任何东西在看；现在由 `test_workbench_overflow_gate` 断言，且三条分支（跳级 / 无标题 / 覆盖数掉到 15 以下）都有播种反证证明会红 |
+| 本轮人工未做 | 真实读屏软件下的措辞、键盘-only 主路径 | 记为待人工，不写成通过 |
+
+结论：本轮无障碍侧**没有发现需要改产品的缺陷**；产出是一条原来缺失的覆盖（渲染出的标题顺序）与它自己的反证。
+
 ## 6. 本轮暴露并修掉的六个缺陷
 
 1. **分类聚合按目录贴标签**：`bundle_key()` 把一个顶层目录收成一个 bundle，于是 `docs/` 里第一个文件的类别
