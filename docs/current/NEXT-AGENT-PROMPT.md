@@ -67,6 +67,28 @@ Owner 原话（逐字）：
 
 **没有**同步、也不得声称同步的：运行时代码、真实宿主调用、模型路由、人工验收、AAOS 接收。
 
+### 3.1 2026-10-19 归档与删除波（明面已经换了形状）
+
+Owner 两条指令：旧的不许留在明面上；旧的都删除，但先审计、汇总成可追溯记录、并给出替代。已执行完：
+
+- **移动**：228 个跟踪文件 `git mv` 进 `docs/history/archive-2026-10-19/**`（85 份按日期交接、19 个旧任务包、
+  `docs/plans|research|superpowers`、UI-CONVERGENCE 证据包 93 件、4 份旧当前面记录、根级 WORK-LAB 交接），
+  5 份 reports 交接摘要进 `reports/history/`。逐文件 `原路径→新路径→blob→字节` 在
+  `docs/history/archive-2026-10-19/MANIFEST.json`，228/228 复验字节一致。
+- **删除**：83 份（68 交接 + 5 按日期提示词 + 10 份 loose reports 交接），共 713,606 字节。
+  删前先汇总：`AGGREGATED-RECORD-2026-10-19.md`（每份的标题/自述/结论/只有它记载的事实）+
+  `HANDOFF-PROMPT-DIGEST.json`；恢复句柄在 `REMOVALS.json`（blob sha1/sha256/crc32/bytes/restoreAt），
+  逐条 `git show <restoreAt>:<path>` 实测过才算登记。
+- **明面现状**：`docs/` 不再有 `handoffs/`；`docs/taskpacks/` 只剩 4 个包体 + 2 个来源目录（14 个跟踪文件），
+  因为 `authority-index` 与账本仍点名这四件，被钉字节不能改。
+- **故意没删**：`handoffs/deepseek-r3-20260906/` 17 件（owner 随包提供的审计输入原件）、`PROMPT-LINEAGE.json`、
+  按日期 bundle 目录里的成员。删这些是销毁输入或拆散 bundle，不是清理陈旧材料。
+- **指针的替代**：指引面不再点名任何已删文件；需要原件内容时用 `scripts/archive_records.py:read_record(rel)`，
+  它按 工作区 → 归档移动 → 删除清单 restoreAt 三层解析，并把来源回写进报告
+  （`handoff_read_from: removed-at:<sha>`）。三层都不到即 `RecordUnavailable`，不放行。
+- **重钉**：本轮 AUTHORITY.md / authority-index.json / HISTORY-FREEZE-RULES.md 共重钉两次
+  （归档改路径一次、删除改指针一次），每次都在 `AUTHORITY-PIN-CHANGE.json` 追加 revision。
+
 ## 4. 状态是分轴的，不能合成一个"完成"
 
 能力状态至少区分：
@@ -153,8 +175,20 @@ E4 独立人审 / E5 发布可复现。**文档修订 ≠ 规划完成 ≠ 代�
 
 ## 9. 工具事实（省得再踩）
 
-- **本机没有 pytest**。用仓库根 `.venv/Scripts/python.exe` + unittest：
-  `PYTHONPATH="design-lab;src" .venv/Scripts/python.exe -m unittest design-lab.tests.test_ledger_schema`。
+- **本机 `.venv` 里没有 pytest，但装得上**：
+  `uv run --python .venv/Scripts/python.exe --with pytest --no-sync -m pytest <files> -q`。
+  这条取代早前"本机没有 pytest，只能用 unittest"的记录（2026-10-19 实测：单文件与 21 项子集都能跑）。
+  跑整个 `design-lab/tests` 目录时 capture 阶段会在某个关掉 stdout 的用例上崩掉
+  （`ValueError: I/O operation on closed file`，此时 `no tests ran`）——那是本地工装缺陷，不是产品红；
+  要么只跑定向子集，要么交给 CI。
+- **`Path.write_text` 在 Windows 会把 `\n` 写成 `\r\n`**。本轮补丁脚本因此把三个 `binary` 属性的钉死文件
+  （AUTHORITY.md、authority-index.json、HISTORY-FREEZE-RULES.md）和 `cr-at-eol` 子树里的登记表悄悄改成 CRLF，
+  而钉死文件不做行尾归一，改动直接进 blob——哈希还跟着更新了，所以门全绿也没发现。
+  改这类文件必须 `read_bytes` / `write_bytes` 并按原像形状回落；改完用
+  `git diff --numstat` 看行数是否与预期一致，再核 blob 与原像的行尾。
+- **指引面点名已删文件会双门齐红**：`verify_path_refs` 与 `verify_task_document_states` 的
+  `guidance-paths-resolve` 都把 `AUTHORITY.md` 里的 `docs/...` 当指令。写"某文件已删除"时不要留它的路径字面量，
+  留汇总面/恢复清单的路径。
 - **系统 Python 缺 `jsonschema`**；报告生成器必须用 `.venv/Scripts/python.exe scripts/generate_current_reports.py`。
 - **账本身份字段仍钉在 `DL-TP-20261009-UI-FIRST-R1`**（这是设计：定义/证据字节不动，只有状态冻结）。
   因此 `.project/manifest.yaml#taskpack` 指向新包时，`deepseek_authority_chain.py` 会稳定产出**恰好 1 条**
