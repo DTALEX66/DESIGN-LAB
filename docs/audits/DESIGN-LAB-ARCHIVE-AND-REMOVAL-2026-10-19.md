@@ -155,6 +155,18 @@ authority-index 与账本仍点名的四份包体。
 
 **高度维度本轮补上了**：溢出审计原先只在 900px 高下比几何，620px 那一趟只判滚动提示出不出。同一趟里导航与页脚都在屏幕上，所以顺手把边界也量了——实测 `gap620=12`（1440/1280/1920、两个主题一致，列表溢出 779px）。把阈值从 6 抬到 13 会让闸门 `OV_SPEC_BROKEN`，恢复后两主题重跑仍绿，所以这条比较是活的而不是装饰。**仍未按主题分的只剩 ui_audit 那道**（理由见上表），而 DESIGN.md 第 125 行要求的"尺寸档位逐个截图比较"仍由 `capture_workbench_screenshots.mjs` 的 `VIEWPORT_HEIGHT` 档位承担——截图是人看的，不是闸门判的。
 
+### 5.3 第四批（接口层普查 + 链路收口）的实测读数
+
+| 命令 | 退出码 | 读数 |
+| --- | --- | --- |
+| `gh run view 39310800333 --repo DTALEX66/DESIGN-LAB --json headBranch,event,conclusion,jobs` | 0 | `BRANCH=main EVENT=push CONC=success jobs=12`：11 个作业 `success`，只有 `Branch light gate` 是 `skipped`（它按设计只在开发分支跑）。这是 `fd5e426e` 的 exact-SHA 判定，也是独立链路那两条腿的收口证据——同一个 SHA 的分支 run 39310790208 是 light gate，不能拿它的"success"当 CI 通过 |
+| `PYTHONPATH="design-lab/tests;src" python -m unittest -q test_standalone_chain_http test_contract_bindings` | 0 | `Ran 38 tests ... OK`，逐跳读数原样复现：`CHAIN_HOPS project=201 asset=201 brief=201 direction=201 design-layer=200 analysis=201 jury-verdict=201 jury-readback=200 rights=201 rights-readback=200 candidate=201 review=200 candidate-readback=200`（13 跳）与 `DELIVERY_HOPS project=201 native=READBACK bundle=201 preflight=200`（4 跳） |
+| `grep -c "add_parser(" src/design_lab/cli.py` | 0 | 16（脚本/CLI 层实数） |
+| `integrations/adapter-registry.json` 条目数 | 0 | 30（原生插件层实数，另有 `ADAPTER_REGISTRY=PASS`、`ADAPTER_MATRIX=PASS matrix=9`、`ADAPTER_LOCATOR_AUDIT=PASS`） |
+| `grep -rniE "ui_automation\|controlled\.ui\|accessibility tree\|屏幕坐标" src/ \| wc -l` | 0 | 0——受控 UI 自动化层在 `src/` 内没有任何模块 |
+
+这三条数是替 owner 那句「保留标准通用的接入接口」逐层实测出来的，结论按层分开写，不合并成一句"接入已可用"：官方 API/SDK 层有代码但等级以 E0/E1 为主（ComfyUI 的 E2/E3 证据属 2026-08，未在现树复验）；原生插件层与 CLI 层是实的；**MCP 层只有合同没有服务**（`INERT-CONTRACT-SURVEY-2026-10-08.md` 记 `state=NO_STATE_COUNTERPART`、`route_references=[]`、`table_readers=[]`、`table_writers=[]`）；**受控 UI 自动化层零模块**。后两层要补属产品实施，仍在 `currentExecution` 冻结内。普查结果就地写进 `docs/current/NEXT-AGENT-PROMPT.md` 的开放边界一节。
+
 ## 6. 本轮暴露并修掉的六个缺陷
 
 1. **分类聚合按目录贴标签**：`bundle_key()` 把一个顶层目录收成一个 bundle，于是 `docs/` 里第一个文件的类别
@@ -190,6 +202,12 @@ authority-index 与账本仍点名的四份包体。
 侧栏导航是唯一滚动区，身份页脚紧贴其下。列表在底部边缘必然把某一项切一半，而页脚的 1px 上边框正好压在那条切割线上——读起来像有人给半个分组标签画了下划线。上一轮我只在 1440 下用眼睛看到它，没量化，所以当时按"未测量"记成了待裁定项；本轮先测再说：`OV_NAV_EDGE_TIGHT 1440/1280/1920 gap=0`，且三个宽度上被切的那一项都是 `nav-group` 分组标签。
 
 任何 CLIPPED 检查都看不见它：元素在自己的盒子里是完整的，盒子只是被滚动了。修法是给导航一个 token 级下边距（`--uif-space-3`，实测 `gap=12`），让切割线与边框分开——滚动列表躲不开切项，但可以把切项离线。同时把这条边界做成闸门：溢出审计现在逐宽度量导航底边与页脚边框的距离，切割线 6px 内出现边框即 `OV_NAV_EDGE_TIGHT` 退出 2（先以未修字节实跑为红，再以修后字节实跑为绿，不是推定）。
+
+## 6.8 第十个缺陷（写现行面时删掉了邻居的冻结条目）
+
+给 `docs/current/NEXT-AGENT-PROMPT.md` 追加接口层普查那条时，`old_string` 只取了既有条目的**第一行**。编辑工具按整段匹配替换，于是连带把「ComfyUI/H3、外部服务、跨仓库写入、数据外发、E 盘访问：全部冻结/需授权」整条删掉，并把它的 AAOS 续句并进了我的新条目——一次自以为是"纯追加"的写入实际做了一次改写。删掉的这条是范围边界条款，在"现行面"上把它抹掉，等于对下一个会话放宽 owner 边界，比写错数字更严重。
+
+发现靠的是把写回读回来，而不是靠 diff 看着顺眼：编辑后立即读该区域，看到两条被合成一条，再按"这条改动应当是若干行新增、零行删除"去验——`git diff --stat` 报 7 行新增却同时有删除，就是断言不成立的信号。修法是重新拆成两条，并确认提交的 diff 为 `1 file changed, 7 insertions(+)` 且**零删除行**。既有那条「往满行条目里追加时锚点要取完整边界」的教训在文档面同样成立，这次是它的一次复发，因此记进报告而不只记进记忆。
 
 ## 7. 回滚方法
 
