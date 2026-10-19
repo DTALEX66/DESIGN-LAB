@@ -1475,8 +1475,10 @@ html,body{margin:0}
 .capability-card{display:grid;gap:8px;padding:14px}
 .capability-card h3{margin:0;font-size:var(--font-caption);color:var(--text)}
 
-/* Quick Launch 面板 */
-.quick-launch{margin-top:0}
+/* Quick Launch 面板：这里原来写着 `.quick-launch{margin-top:0}`，但它唯一的使用处
+   （仪表盘那张卡）一直带着内联 `margin-top:16px`，内联优先级压过它，所以这条声明
+   从来没有生效过。把内联换成 `.spaced-top` 之后它突然开始生效，把卡片顶到 0 —— 一次
+   可见回归，是像素比对而不是推理抓到的。删掉这条死声明，间距由 `.spaced-top` 承担。 */
 
 /* 高对比模式增强 */
 @media(prefers-contrast:more){
