@@ -480,7 +480,10 @@ class GateTeethTests(unittest.TestCase):
         # POST .../knowledge-candidates, POST .../knowledge-candidates/{id}/review and
         # POST .../knowledge-candidates/{id}/revoke each added a dispatch and a ledger row in
         # the same change, so the inventory moved by exactly four.
-        self.assertEqual(len(lines), 1 + CONTRACTS + 59,
+        # 59 -> 60 on 2026-10-19: POST /api/projects/{id}/assets/{img}/analysis added one dispatch and
+        # one BOUND_SCHEMA row in the same change (the reconstruction-ir/v1 emitter is
+        # src/design_lab/analysis/plan_to_rir.py:160), so both sides of the relation moved together.
+        self.assertEqual(len(lines), 1 + CONTRACTS + 60,
                          'one verdict line, one note per contract row, one per route row')
         verdict = lines[-1]
         self.assertTrue(verdict.startswith('VERIFY_CONTRACT_BINDINGS=PASS'), verdict)
@@ -490,7 +493,7 @@ class GateTeethTests(unittest.TestCase):
         # 55 -> 59 on 2026-10-19 (T16/U09), same change as the inventory above: the four
         # knowledge routes are dispatched, so their rows are re-checked, not waived.
         for token in (f'schemas={CONTRACTS}', f'binding={BINDING_ROWS}', f'inert={INERT_ROWS}',
-                      'routes=59', 'dispatched=59', f'bound={expected_bound}'):
+                      'routes=60', 'dispatched=60', f'bound={expected_bound}'):
             self.assertIn(token, verdict)
 
     # --- failure modes, each against a mutated copy ------------------------------
