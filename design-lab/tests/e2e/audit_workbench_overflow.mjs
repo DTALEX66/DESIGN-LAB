@@ -5,6 +5,7 @@
 //
 // Env: E2E_SERVICE_URL E2E_TOKEN E2E_NODE_MODULES [E2E_BROWSER]
 //      [OV_WIDTHS=1440,1024,390] [OV_OUT=<json path>] [OV_STRICT=1]
+//      [OV_HEIGHT=900] [OV_SHORT_HEIGHT=620]
 //      [UI_PALETTE=design-lab|ui2026] [UI_SCHEME=dark|light]
 //
 // Geometry is graded per theme, not once: a palette block that re-points only colours still
@@ -38,6 +39,12 @@ const widths = (process.env.OV_WIDTHS || '1440,1280,1920')
   .split(',').map((w) => Number.parseInt(w, 10)).filter((w) => Number.isFinite(w) && w > 0);
 const outPath = process.env.OV_OUT || '';
 const strict = process.env.OV_STRICT === '1';
+// The two viewport heights the gate judges, now overridable so a coverage question gets answered by
+// measuring rather than by arguing: `OV_HEIGHT=1100` asks what the sidebar looks like on a machine
+// whose working area is 1104 tall. Defaults are unchanged -- 900 is the nominal pass, 620 the short
+// end where the cue band, the cut line and the footer crowd together -- and that is what CI runs.
+const mainHeight = Number.parseInt(process.env.OV_HEIGHT || '900', 10);
+const shortHeight = Number.parseInt(process.env.OV_SHORT_HEIGHT || '620', 10);
 const uiPalette = process.env.UI_PALETTE || 'design-lab';
 const uiScheme = process.env.UI_SCHEME || 'dark';
 
@@ -268,7 +275,7 @@ const brandProblems = [];
 const navEdges = [];
 
 for (const w of widths) {
-  const page = await browser.newPage({ viewport: { width: w, height: 900 } });
+  const page = await browser.newPage({ viewport: { width: w, height: mainHeight } });
   await paintTheme(page);
   await page.goto(serviceUrl.replace(/\/$/, '') + '/workbench', { waitUntil: 'load' });
   await page.fill('#token', token);
@@ -474,7 +481,7 @@ for (const w of widths) {
   // and asserting non-overlap would be wrong. What has to hold is that it appears exactly
   // while there is more to see and disappears at the end -- and that a window short enough to
   // make the question real was actually measured.
-  await page.setViewportSize({ width: w, height: 620 });
+  await page.setViewportSize({ width: w, height: shortHeight });
   await page.waitForTimeout(700);
   const cue = await page.evaluate(async () => {
     const nav = document.querySelector('.nav');
@@ -484,10 +491,10 @@ for (const w of widths) {
       hiddenPx: nav.scrollHeight - nav.clientHeight,
       atEnd: nav.scrollTop + nav.clientHeight >= nav.scrollHeight - 1,
       cue: nav.classList.contains('has-scroll-more'),
-      // The same boundary the 900px pass measures, now at a height short enough that the
-      // list overflows hard. Height was the one dimension no gate asserted: the nav's
+      // The same boundary the nominal-height pass measures, now at a height short enough that
+      // the list overflows hard. Height was the one dimension no gate asserted: the nav's
       // bottom gap is a fixed margin so it should hold, but "should" is what this file is
-      // for -- and at 620px the cue band, the cut line and the footer all crowd together.
+      // for -- and at the short height the cue band, the cut line and the footer crowd together.
       gap: foot ? Math.round(foot.getBoundingClientRect().top - nav.getBoundingClientRect().bottom) : null,
     });
     nav.scrollTop = 0;
@@ -505,7 +512,7 @@ for (const w of widths) {
   if (!cue.present) {
     specProblems.push(`${w}: 侧栏 .nav 不在文档里，溢出提示无从判断`);
   } else if (cue.top.hiddenPx <= 0) {
-    specProblems.push(`${w}: 620px 高的窗口下侧栏没有溢出（hiddenPx=${cue.top.hiddenPx}），`
+    specProblems.push(`${w}: ${shortHeight}px 高的窗口下侧栏没有溢出（hiddenPx=${cue.top.hiddenPx}），`
       + '溢出提示这条断言因此没有测到任何东西');
   } else {
     if (!cue.top.cue)
@@ -513,14 +520,14 @@ for (const w of widths) {
         + '却没有出现"下面还有"提示');
     if (cue.end.cue)
       specProblems.push(`${w}: 侧栏已滚到底，提示仍然亮着`);
-    // 6px is the same floor the 900px pass uses: below that the footer hairline is close
+    // 6px is the same floor the nominal-height pass uses: below that the footer hairline is close
     // enough to a half-cut glyph to read as an underline drawn under it.
     if (cue.top.gap === null)
-      specProblems.push(`${w}: 620px 高下找不到 .sidebar-footer，边界无从判断`);
+      specProblems.push(`${w}: ${shortHeight}px 高下找不到 .sidebar-footer，边界无从判断`);
     else if (cue.top.gap < 6)
-      specProblems.push(`${w}@620h: 页脚边框在导航切割线下方 ${cue.top.gap}px`);
+      specProblems.push(`${w}@${shortHeight}h: 页脚边框在导航切割线下方 ${cue.top.gap}px`);
     console.log(`w=${String(w).padEnd(5)} nav-cue     hiddenPx=${String(cue.top.hiddenPx).padStart(4)} `
-      + `atTop=${cue.top.cue} atEnd=${cue.end.cue} gap620=${cue.top.gap}`);
+      + `atTop=${cue.top.cue} atEnd=${cue.end.cue} gap${shortHeight}=${cue.top.gap}`);
   }
   // The brand tile is the owner's logo inlined into the stylesheet as a data URI, so
   // "is the logo showing?" cannot be answered from the CSS text: the declaration survives
