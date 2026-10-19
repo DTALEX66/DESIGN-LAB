@@ -1,32 +1,16 @@
 {
   "checkScope": "bound-input-and-output-integrity; not current Git or cloud freshness",
-  "generatedAt": "2026-10-19T15:35:44+00:00",
+  "generatedAt": "2026-10-19T16:40:48+00:00",
   "gitObservation": {
     "branch": "qoder/designlab-backup-consistency-20261007",
-    "origin_main": "7955b256854cc3ce725a019ae8b8e2149d10b658",
-    "sha": "84e93ba2c162523d99e19749d98064bcdd56632c",
-    "source_worktree_clean": false,
+    "origin_main": "bb5bbbe7c065a151347d2d11c29cbc0b53690cc9",
+    "sha": "3f1f76f0fab00049a81454ba46de9c12cab5dac8",
+    "source_worktree_clean": true,
     "tracked_files": 3729,
-    "worktree_changes": [
-      {
-        "content": "sha256:9a29d33b724363c2579d221b1ce421f2c6aeaafad58ad80219896165ca7a8191",
-        "kind": "M",
-        "path": "design-lab/tests/e2e/browser_design_layer_e2e.mjs"
-      },
-      {
-        "content": "sha256:92b53f8062e86692fc9953cc2551aaa3308cc73f1c84fd74b1a08664ff2fd398",
-        "kind": "M",
-        "path": "design-lab/tests/e2e/capture_workbench_screenshots.mjs"
-      },
-      {
-        "content": "sha256:ca21aa4cc3c80d92fc37a513400789db193f5270c4f3b51b9e8ee534e6853a50",
-        "kind": "M",
-        "path": "docs/audits/INERT-CONTRACT-SURVEY-2026-10-08.md"
-      }
-    ],
-    "worktree_digest": "sha256:6ab743905cb7b1803804e242ab0518efe09c93fd04fd71c01ca54784e5bc8db8"
+    "worktree_changes": [],
+    "worktree_digest": "sha256:61d06da94e627e91758dcab49321fa519df1f3ba9f9f87dce7bdf1d030eebfea"
   },
-  "inputDigest": "sha256:9753d6be554fca64a4905c8889b5eeba52dbf6699e3fc9b2e71c309fd969c5ec",
+  "inputDigest": "sha256:e1730bb9baa25c0cd5bc8904dcb17d332dcfbf687991d0795b93aa177ba86f6d",
   "inputDigestMeaning": "primary freshness binding: canonical SHA-256 over the exact input files the projections read plus the git tree scope; recomputed at check time (FU-10)",
   "inputHashes": {
     ".github/workflows/canonical-verify.yml": "8e8e1a17f7b622cbfa7187f90b6ebb69a2d75ff3f76ca3a0b2ef4a00774f25ac",
@@ -38,18 +22,18 @@
     ".project/governance/data-ownership.yaml": "7202baea30612c9acbc722be331913193dec505547bc8e8d73a82642735199c4",
     ".project/manifest.yaml": "04867fada13ddc0c4ec06e2ba84c5665de4a4db49aa492427371bccc51f929ce",
     ".project/paths.json": "8fe9dbbf85876c42b8d86ef7e2473c826fa431f309023df52fc770b3753b8703",
-    "apps/workbench/build/main.js": "966f3641423fd7fcf849a76b8e2f06d37fbb004f64f5bf792b02e687c0b30601",
+    "apps/workbench/build/main.js": "f179b0515a944035726aa695e704d0222bfe84f8020a57c17b27d478238ecc0c",
     "apps/workbench/contracts.ts": "aefa451a51d08504eb4fa2ffaebcc741de2ebf8462ca0712a626f84cc787ac13",
     "apps/workbench/index.html": "6a67bc1ade21e6f5e8854da42af4e807b44fa6267ca2cf7ce98460568dc5e281",
     "apps/workbench/package.json": "eb72bc124143e2a03753051749699f42bb7fd2a17c36f34bcaf9cfb84d0b86a8",
-    "apps/workbench/shell.ts": "97412fab05e08e1a5431b69f0880331ac3bc24ef6899335d4b76691a6d02c6da",
+    "apps/workbench/shell.ts": "bfdec753d26f1d9a932bba5e6917866b25a974868c74771b564658640dc9af39",
     "apps/workbench/tests/appshell.mjs": "ae9d265a383db0af1655e3c7814ef6ad9cfe0011af0485f862f610413fe645bc",
     "apps/workbench/tests/unit.mjs": "07ff42d2b84097d2ef9dfb60445ef273eb800089d564aa31782c7aa68a001431",
     "apps/workbench/tsconfig.json": "256454be6a2fc1bc9b520dd3c39f2336f92f757a79e10b1c2dd8cfade8b254e8",
     "apps/workbench/vite.config.ts": "c58e0c2ae118a94d8e34673a809cbab2a49f8edea88c4293344f10bd2bf8cce7",
     "apps/workbench/workbench.ts": "fadc5b29ca057d0cdf2f5af19aa935046c7000d0ca24ad2473777be797f25f8a",
     "design-lab/config/capability-evidence-current.json": "e4f660303c4b2c635914748e8b2c8851257668d96ed05192cc56bd66e2539f96",
-    "design-lab/config/contract-bindings.json": "6e1145a4b0e14cb8bfeec62044e94e0a85f3e0fc6f68f09cf514c80171e258f1",
+    "design-lab/config/contract-bindings.json": "bab5c94cdfc7a3953171db80cf7f4e71fdd9fb4e95d5adf3e4f88efe6e773e0c",
     "design-lab/config/object-model.json": "1ec285aa9a003b067830354bdc010feae63feb5fc3d90103e4e229e161c0f404",
     "design-lab/config/product-manifest.json": "309e1133a84cd0c8ec2b7120038d5e5a0bbf68f97bcf4342249794a8b2856789",
     "design-lab/config/state-vocabularies.json": "54460ab51c86488102351f52198cc412a1724b725ff178c980dd560ad5e51e4a",
@@ -317,7 +301,7 @@
     "design-lab/tests/test_adapter_locator_audit.py": "90e6ad4d932a24ef2a9322217a0d378dbcf1d5e90232c0846b7c2cffdef7c5fd",
     "design-lab/tests/test_adapter_spi.py": "cf63fd86b7d611063cc745850ac7a3c346cd442c06d51447c422834d8c954b43",
     "design-lab/tests/test_artifact_preflight_ui_contract.py": "13a0114d4f29d15d0b6181c2d754f66befcdc2bce574df0854e9c5c008f5e32e",
-    "design-lab/tests/test_asset_analysis.py": "29af0eb47386ad0e27a2c85f5c2cca2a572e14c7cc7fddba35fff9578ea6f3b2",
+    "design-lab/tests/test_asset_analysis.py": "ba19d46f82d14e5755aaeeab99079e8f612ec94881d4e12920f8dcae28e30251",
     "design-lab/tests/test_asset_store.py": "6521b14d97db1f5b682c5b9cd2035ec580756d2018f165b70f744d85a065a296",
     "design-lab/tests/test_assurance_jury.py": "152671fadcbb0a729e5b0aaba2cc05db510a276b5e96d0bde3e6d66870b8ac0f",
     "design-lab/tests/test_assurance_knowledge_feedback.py": "f8793ebeb669544ff6be95e4cb4bc89bb0011c8256ccdba0b2e995317f1ded31",
@@ -649,7 +633,7 @@
     "src/design_lab/generators/comfy_task.py": "a852120ebebbd8f1b8eeac14ad030a0d87d9f4d095131d4a6729c4081f378fb7",
     "src/design_lab/governance/evidence_readback.py": "5c947e5ebbb8f46d13a445642f1fe6a481fcd7eaabaf32ebbcb124a8db8511ad",
     "src/design_lab/governance/reporting.py": "44cc2b14f6cb2a88f6a7bfa7b6a13199f1ab2590461fb11aea747208f9912c0e",
-    "src/design_lab/http_service.py": "420ccaf693824522d0c788aa03490ba6819e8d3e7bac26ddae75489c9f013d9e",
+    "src/design_lab/http_service.py": "f2ba9c52a52cb1238568a43df82c71cbb984aa9610ec6e04f275ae6d5abc4cba",
     "src/design_lab/image_assets.py": "453ad053af345519b31b746aeb4874e4f7bd8b37ff150f4dd89835973c46de9a",
     "src/design_lab/interop/__init__.py": "00b913119c1b2e5cbb4e4cd3c9c1b9ee457b83ad0b7d28fed4d6e95b9eff712d",
     "src/design_lab/interop/__pycache__/__init__.cpython-313.pyc": "b39468bf926720d40688b3efea04766ba5b6ccc309a0c4773d3de814154e6cb1",
@@ -690,15 +674,15 @@
   },
   "ledger": "design-lab/config/task-ledger-r3.json",
   "outputHashes": {
-    "ADAPTER_EVIDENCE_RECONCILIATION.json": "1ede84a7cf5e98ba20e9b120a4c311f9cfd9523b9bb68325983bcab0b4b214a4",
-    "CLOUD_BASELINE.json": "13078e3b61564a6479fc4f5ffc0fd309f50f28d69536c97e807a36ed4e6ebf18",
-    "CLOUD_BASELINE.md": "b151d4c1fda4e6e49feb14347781300147abd0b0c18c9947a4cba594b9e6683a",
-    "DOMAIN_PACK_READINESS.json": "1f951e4708a97d58afa9092c161cdac5666b1cc527ec2ef1263b16c2add82ec0",
-    "KNOWLEDGE_INVENTORY.json": "bc62169d57095e278318d186efe68517a65a0ca23897d844c24a56facddc3698",
-    "PROJECT_STATUS.json": "a4caece27727363ea61362e4e9675c58a1ecdb5f3dc7d844aeca29c76f90270a",
-    "PROJECT_STATUS.md": "48de1be57c9209ea68205f5bff64e06850045295b9e9db6d804ea2a0a3dfc2d4",
-    "RELEASE_READINESS.json": "d2eb84b86b86bdd9a47f514780fa3da564e622bd237bfb1063948998fbd7f7c8",
-    "TASK_PROGRESS.json": "5a36f4f4b78c3006b58f7b28b5516074bb0d505937fd3284d6c934eda43c2806"
+    "ADAPTER_EVIDENCE_RECONCILIATION.json": "4e0e988c4ea3e7bcc92ea3bd6fe983be4f6362d3e1af3be89a69b3478efa86eb",
+    "CLOUD_BASELINE.json": "3ea4b10c96c923c8b671b5898a0f6660156d2b6a1ff2311796fa11deea534915",
+    "CLOUD_BASELINE.md": "ea488c0042f3e75ba405e0d44c4538c652ab89b9b8045712e61e44b4401ea0a4",
+    "DOMAIN_PACK_READINESS.json": "73d0717606ac40cce98e5e710e1b95c1b2ba8f4881a9b8864050ce7cb8be7946",
+    "KNOWLEDGE_INVENTORY.json": "1a7fc4c28af26efa43d75a429f8034d018e655df179d721b3c5fe536e955cf49",
+    "PROJECT_STATUS.json": "f87c69cb43a19fcbe70a64d868d2832f599b08ef77774cd7e28a23c812385c6d",
+    "PROJECT_STATUS.md": "50dc74b210ad252bfdb1041e08d837cd979f233c808e3c6d6a12353237b52ec4",
+    "RELEASE_READINESS.json": "51c3cf0c4c43a36365da55bbf2a5a2da4677873a44f0fb3df9438597cbf7232d",
+    "TASK_PROGRESS.json": "6daa0ed63d474fca9779ac9238f871ac9240e29cb9e6823fe7ad8e0332196233"
   },
   "reportRoot": "../../reports/current/",
   "reports": [
@@ -714,5 +698,5 @@
   ],
   "schemaVersion": "design-lab/current-report-index/v3",
   "subjectMeaning": "generation-time git observation, not a freshness claim; exact-SHA evidence is the CI artifact",
-  "subjectSha": "84e93ba2c162523d99e19749d98064bcdd56632c"
+  "subjectSha": "3f1f76f0fab00049a81454ba46de9c12cab5dac8"
 }

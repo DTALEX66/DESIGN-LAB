@@ -8,31 +8,15 @@
   },
   "fresh": false,
   "freshnessMeaning": "at generation only; check verifies bound-input integrity, not current Git or cloud state",
-  "generatedAt": "2026-10-19T15:35:44+00:00",
+  "generatedAt": "2026-10-19T16:40:48+00:00",
   "git": {
     "branch": "qoder/designlab-backup-consistency-20261007",
-    "origin_main": "7955b256854cc3ce725a019ae8b8e2149d10b658",
-    "sha": "84e93ba2c162523d99e19749d98064bcdd56632c",
-    "source_worktree_clean": false,
+    "origin_main": "bb5bbbe7c065a151347d2d11c29cbc0b53690cc9",
+    "sha": "3f1f76f0fab00049a81454ba46de9c12cab5dac8",
+    "source_worktree_clean": true,
     "tracked_files": 3729,
-    "worktree_changes": [
-      {
-        "content": "sha256:9a29d33b724363c2579d221b1ce421f2c6aeaafad58ad80219896165ca7a8191",
-        "kind": "M",
-        "path": "design-lab/tests/e2e/browser_design_layer_e2e.mjs"
-      },
-      {
-        "content": "sha256:92b53f8062e86692fc9953cc2551aaa3308cc73f1c84fd74b1a08664ff2fd398",
-        "kind": "M",
-        "path": "design-lab/tests/e2e/capture_workbench_screenshots.mjs"
-      },
-      {
-        "content": "sha256:ca21aa4cc3c80d92fc37a513400789db193f5270c4f3b51b9e8ee534e6853a50",
-        "kind": "M",
-        "path": "docs/audits/INERT-CONTRACT-SURVEY-2026-10-08.md"
-      }
-    ],
-    "worktree_digest": "sha256:6ab743905cb7b1803804e242ab0518efe09c93fd04fd71c01ca54784e5bc8db8"
+    "worktree_changes": [],
+    "worktree_digest": "sha256:61d06da94e627e91758dcab49321fa519df1f3ba9f9f87dce7bdf1d030eebfea"
   },
   "gitStateMeaning": "generation-time observation, not current HEAD",
   "hostLive": "derived from host_live axis only",
@@ -48,8 +32,8 @@
     "quarantinedSources": 162
   },
   "subjectMeaning": "subjectType=WORKTREE means the tree was dirty at generation; worktreeDigest covers HEAD plus the non-generated changes",
-  "subjectSha": "84e93ba2c162523d99e19749d98064bcdd56632c",
-  "subjectType": "WORKTREE",
+  "subjectSha": "3f1f76f0fab00049a81454ba46de9c12cab5dac8",
+  "subjectType": "COMMIT",
   "taskCounts": {
     "FROZEN_DEFERRED": 34
   },
@@ -61,9 +45,9 @@
   "testRunMeaning": "bound run: python scripts/run_bound_test_suite.py --modules test_boot_reconciliation",
   "testRunResult": "OK",
   "tests": {
-    "definedTestMethodCount": 3064,
+    "definedTestMethodCount": 3067,
     "executed": "see individual verified ledger receipts"
   },
-  "worktreeClean": false,
-  "worktreeDigest": "sha256:6ab743905cb7b1803804e242ab0518efe09c93fd04fd71c01ca54784e5bc8db8"
+  "worktreeClean": true,
+  "worktreeDigest": "sha256:61d06da94e627e91758dcab49321fa519df1f3ba9f9f87dce7bdf1d030eebfea"
 }
