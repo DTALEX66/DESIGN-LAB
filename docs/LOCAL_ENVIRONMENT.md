@@ -27,6 +27,7 @@
 | H3 video/audio VAE | `model-library` 下 `ComfyUI/vae/minimax_h3_video_vae_fp16.safetensors`、`minimax_h3_audio_vae_fp32.safetensors` | 纳入上述四组件全量校验；H3 整体加载、资源峰值和输出仍待实测 |
 | Whisper ASR | `model-library` 下 `whisper/faster-whisper-large-v3-turbo/` | [CPU INT8 转写与 VAD 对照](decisions/R3-ASR-CPU-VAD-AUDIT-2026-09-07.md)已执行；无 VAD 静音误识别原件保留。只证明受控识别，不是 TTS、GPU、自然录音基准或生产资格接入 |
 | OCR det＋rec 候选 | 项目 `.project-local/task-artifacts/ocr-qualification/`；ONNX 隔离环境 `.project-local/task-runtime/ocr-onnx-01/v/` | [ONNX 受控检测＋识别](decisions/R3-OCR-ONNX-CONTROLLED-2026-09-08.md)两轮各 5 类合成样例通过；不等于复杂参考或生产资格。[原 Paddle 路线](decisions/R3-OCR-PREPARATION-BOUNDARY-2026-09-07.md)仓外缓存拒绝仍保留，不关闭保护求绿 |
+| 本机显示环境（桌面端验收宽度依据） | 2026-10-19 实测：`Screen.Bounds` 2048×1152、`WorkingArea` 2048×1104、`AppliedDPI` 120，即 2560×1440 面板按 125% 缩放 | 浏览器拿到的是 **2048 CSS px**，不是 2560：桌面 UI 闸门因此把 2048 加进扫描档（`design-lab/tests/test_workbench_ui_audit_gate.py` 扫 1280/1920/2048，`audit_workbench_ui.mjs` 的 `HEIGHT` 表配 2048→1152）。别把面板物理宽当验收宽——那会量一个用户看不到的盒子 |
 
 ## 禁止重复的错误
 
