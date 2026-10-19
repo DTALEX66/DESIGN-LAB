@@ -154,6 +154,14 @@ E4 独立人审 / E5 发布可复现。**文档修订 ≠ 规划完成 ≠ 代�
 - 人工验收段与研究接受段属于 owner 门；不得用 VLM 自评、截图或"AI 说通过"代替。
 - 映射：输入/分析 = T09/T10/U04；目标包 = U05；工具调用 = T13（E3，owner-gated）；
   验收 = T12（E4，owner-gated）；知识候选 = T16/T18/U09。
+- **五段链路的实测现状（2026-10-19 逐条查过，不是推断）**：
+  1. 视觉输入 = 已实现且真跑：`src/design_lab/image_assets.py:21 inspect_image`、POST `/api/projects/{id}/assets`（`http_service.py:191`），字节入库并按 sha256 复核。
+  2. 分析/提示词 = **桥在、调用方无**：`analysis/decomposition.py:96 Plan.from_ocr` 与 `analysis/plan_to_rir.py:137`（内部即 `validate_rir`）都有测试通过，但 `plan_to_rir` 无生产调用方；**反向提示词根本没有运行时模块**（`src/design_lab/http_service.py`/`cli.py` 里 grep `analyz|prompt` = 0 命中），`core/providers.py` 只是 39 行能力词汇表。所以这一段既不能声称已实现，也不能靠新建面板冒充。
+  3. 工具调用 = 静态合同 E1；本机唯一可离线真跑的是 vtracer（`providers/vtracer_provider.py:7` → 外部工具链 1.0.0-alpha.3，MIT，`commercialUse: ALLOWED`）；`design-action.schema.json` 在 `src/` 内**没有 emitter**，`integrations/hosts/ffmpeg/` 是空目录。
+  4. 验收 = E2 有路由有 UI（`/jury/verdict`、`/jury/proposal`、`quality`/`rights` CLI），但 E4 真人判定按铁律不由代理填。
+  5. 知识候选 = 存储与路由齐（`assurance/knowledge_feedback.py:202 build_candidate`、`knowledge_candidate` 表、create/review/revoke 三路由），**缺的是从验收判定到候选的发射器**；导出合同也已存在（`design-lab/schemas/assurance-knowledge-candidate-v2.schema.json` 的 `$defs.export`，第 178 行），**不要再新建一份 export schema**——那会让一个边界出现两个权威。
+- **两处不是工程缺口，是 owner 决定**：(a) 验收记录里没有 `source.job_id`/`operation_id`，而 `build_candidate` 强制要求它们，所以要么改 jury 合同带上这两个引用，要么候选仍只能由人显式提交——代理不得凭空填 provenance；(b) 本机没有合格模型：`readiness/model-radar.json` 14 条里 `QUALIFIED_LOCAL=0` 且全部 `default_enabled: false`，`reconstruction-models.json` 指向的模型根目录不存在，omniparser `commercialUse: DENIED`；磁盘上确有 Qwen2.5-VL-7B GGUF（含 mmproj）但它不在雷达里。要不要把它列为合格本地模型，是许可与资格裁定，不是我能替你定的。
+- **已作废的两条调查结论**（写在这里防止下一会话照它们动手）："export 没有 schema 文件" 与 "plan_to_rir 缺失" 都是错的；前者见上，后者是缺调用方而非缺实现。
 - 下一轮若获授权，先交付"可审阅的读回面板 + 真实数据源 + 可复现测试"，
   把没建的那一半写在可见文字里，不要把 PLANNED 标成 IMPLEMENTED。
 
