@@ -197,6 +197,14 @@ jobs:
         # (allowAutoInstall=false, officialReleaseOnly, E-drive protected,
         # D-drive external roots) must be present and consistent.
         run: python scripts/verify_path_refs.py
+      - name: Archive-wave record register gate
+        # Fail-closed, stdlib-only, read-only: parses the register section of
+        # docs/RECORD-ARCHIVE-INDEX.md back out as a reader sees it and re-derives every
+        # cited blob SHA-1, byte count and SHA-256 from `git cat-file blob HEAD:<path>`.
+        # A digest that no longer matches the repository, a table row disagreeing with its
+        # own full-digest bullet, or a path that does not resolve in the document whose
+        # purpose is to stop stale paths being re-indexed, all fail the run.
+        run: python scripts/verify_archive_record_register.py
 
   node-gate:
     name: MiniGame node gate (+ drift check)
