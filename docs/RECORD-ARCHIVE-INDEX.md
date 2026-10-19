@@ -343,17 +343,18 @@ owner 决定"确认归档后删除"该远端/本地分支。删除前实测发�
 
 ## 2026-10-19 新增：归档与移除波次的五份记录（owner 2026-10-19 指令）
 
-本节登记 2026-10-19 归档波次产出的**五份记录**本身。此前只在 `docs/current/NEXT-AGENT-PROMPT.md` §3.1 和审计报告里被提到，没有进固定资料索引——按根指令「后续新增资料必须同步来源、hash、版本/定态、别名和 canonical 位置」，本条补齐。波次本身的过程与逐条缺陷不在这里重述，读第 5 项那份交付报告。
+本节登记 2026-10-19 归档波次产出的**五份记录**本身。波次过程与逐条缺陷不在这里重述，读第 5 项那份交付报告；
+本节由 `scripts/generate_archive_record_register.py` 生成、由 `scripts/verify_archive_record_register.py` 反向核对（两脚本均在 Git 里，克隆后可重跑）。
 
-**哈希一律取自提交对象**：`.venv/Scripts/python.exe -c "import hashlib,subprocess;print(hashlib.sha256(subprocess.run(['git','cat-file','blob','HEAD:<路径>'],capture_output=True).stdout).hexdigest())"`。**哈希一律取自提交对象**：`git cat-file blob HEAD:<路径>` 的字节做 SHA-256。本机 `core.autocrlf=true`，工作树里有 2 份被还原成 CRLF（`MANIFEST.json` 多 1,867 B、`DESIGN-LAB-ARCHIVE-AND-REMOVAL-2026-10-19.md` 多 140 B），所以直接对本地文件算出的不是下表的值。两个读数都记在这里，免得下一会话把它当成漂移去「修」。
+**哈希一律取自提交对象**（`git cat-file blob HEAD:<路径>` 的字节做 SHA-256）。本机 `core.autocrlf=true`，工作树里有 2 份被还原成 CRLF（`MANIFEST.json` 多 1,867 B、`DESIGN-LAB-ARCHIVE-AND-REMOVAL-2026-10-19.md` 多 150 B），所以直接对本地文件算出的不是下表的值；这不是漂移，别去『修』它。
 
 | # | canonical 路径 | 别名 | 版本 / 定态 | blob SHA-1 | 体量 | blob SHA-256 | 内容与计数 |
 |---|---|---|---|---|---|---|---|
-| 1 | `docs/history/archive-2026-10-19/MANIFEST.json` | 档案清单 / 移动清单 / move manifest | design-lab/archive-move-manifest/v1 | `2e247bf101e1` | 85,966 B | `cf903cbbf3ce2d73…` | 40 组 / 228 文件 / 8,416,910 B 的整目录移动台账；`byteIdentityVerified=155`、`removedSinceThisPass=73`、`bytesRewritten=0` |
-| 2 | `docs/history/archive-2026-10-19/REMOVALS.json` | 移除清单 / 删除登记 / removal record | design-lab/archive-removal/v1 | `27370e630035` | 46,699 B | `b93c0391eaefc3b5…` | 83 份旧交接/提示词原件的移除登记（713,606 B），跨  + `docs/history/**` 73 份 / `reports/history/**` 10 份；逐条含 `blobSha1`/`sha256`/`crc32`/`bytes`/`restoreAt`/`recoverWith`，统一锚点 `restoreAt=7015571e729ec78c266cf45e0bd3b01b2e50973b`，`keptAuditInputs=17`（owner 提供的 R3 审计输入不删） |
+| 1 | `docs/history/archive-2026-10-19/MANIFEST.json` | 档案清单 / 移动清单 / move manifest | design-lab/archive-move-manifest/v1 | `2e247bf101e1` | 85,966 B | `cf903cbbf3ce2d73…` | 40 组 / 228 文件 / 8,416,910 B 的整目录移动台账；组行与目的地两个方向都求和回 `228`；`byteIdentityVerified=155`、`removedSinceThisPass=73`、`bytesRewritten=0` |
+| 2 | `docs/history/archive-2026-10-19/REMOVALS.json` | 移除清单 / 删除登记 / removal record | design-lab/archive-removal/v1 | `27370e630035` | 46,699 B | `b93c0391eaefc3b5…` | 83 份旧交接/提示词原件的移除登记（713,606 B），跨 `docs/history/**` 73 份 + `reports/history/**` 10 份；逐条含 `blobSha1`/`sha256`/`crc32`/`bytes`/`restoreAt`/`recoverWith`，统一锚点 `restoreAt=7015571e729ec78c266cf45e0bd3b01b2e50973b`，`keptAuditInputs=17`（owner 提供的 R3 审计输入不删） |
 | 3 | `docs/history/archive-2026-10-19/HANDOFF-PROMPT-DIGEST.json` | 交接与提示词汇总登记 / digest | design-lab/archive-digest/v1 | `c76a3f6cc9f9` | 102,291 B | `2d5e6684a48fee59…` | 读取于 `readAtCommit=f55f0382`、对 `verifiedAgainstHead=7015571e` 复核；106 条目 → 删除 83 / 保留 23，合计 2,443,642 B；`blobIdsReDerived=1` |
-| 4 | `docs/history/archive-2026-10-19/AGGREGATED-RECORD-2026-10-19.md` | 归档汇总与追溯记录 / 可读汇总 | 无 schemaVersion（Markdown 汇总件） | `d8a3f843647b` | 62,238 B | `bb82f0fab6ffbf47…` | 3 个 `##` 小节；承载被删文档的标题/用途/结论/取代关系与唯一事实，使第 2 项的删除是退役而不是丢失 |
-| 5 | `docs/audits/DESIGN-LAB-ARCHIVE-AND-REMOVAL-2026-10-19.md` | 波次交付报告 / 审计正文 | 无 schemaVersion（交付报告） | `01d2f02799f5` | 12,318 B | `3856e321c5295dde…` | 实测 10 个 `##` 小节（§0 结论与状态声明 / §1 指令 / §2 基线读法 / §3 实测计数 / §4 防再索引机制 / §5 命令·退出码·读数 / §6 六个缺陷 + §6.5 第七个 / §7 回滚 / §8 风险与下一步） |
+| 4 | `docs/history/archive-2026-10-19/AGGREGATED-RECORD-2026-10-19.md` | 归档汇总与追溯记录 / 可读汇总 | 无 schemaVersion（Markdown 汇总件） | `d8a3f843647b` | 62,238 B | `bb82f0fab6ffbf47…` | 3 个 `##` 小节；承载被删文档的标题/自述/结论/取代关系与只有它记载的事实，使第 2 项的删除是退役而不是丢失 |
+| 5 | `docs/audits/DESIGN-LAB-ARCHIVE-AND-REMOVAL-2026-10-19.md` | 波次交付报告 / 审计正文 | 无 schemaVersion（交付报告） | `fbfc17269850` | 14,247 B | `9f48ca1f0fa3b5d1…` | 11 个 `##` 小节，标题逐条读自报告正文：0. 结论与状态声明（先看这一节） / 1. Owner 原话与本轮边界 / 2. 基线怎么读（不抄本文件的数字） / 3. 做了什么（全部为实测数字） / 4. 防"再次索引旧路径"的机制 / 5. 命令、退出码与读数（本会话实测，均为定向闸口） / 6. 本轮暴露并修掉的六个缺陷 / 6.5 第七个缺陷（本次复核自己发现的） / 6.6 第八个缺陷（owner 追问「还有没做完的吗」时暴露） / 7. 回滚方法 / 8. 风险与下一步 |
 
 完整 SHA-256（逐条，便于跨机器核对）：
 
@@ -361,29 +362,32 @@ owner 决定"确认归档后删除"该远端/本地分支。删除前实测发�
 - 2. `docs/history/archive-2026-10-19/REMOVALS.json` → `b93c0391eaefc3b5cb8b7efa16a20a6f7b343b4c25641f26155a88b4fe0fb3fc`
 - 3. `docs/history/archive-2026-10-19/HANDOFF-PROMPT-DIGEST.json` → `2d5e6684a48fee594ebe966e7bae9ea38a295bd0b84221e822b4975fe62fec4f`
 - 4. `docs/history/archive-2026-10-19/AGGREGATED-RECORD-2026-10-19.md` → `bb82f0fab6ffbf4713ad76de294ac335b3a5664597dc8591f1c46db1b109483f`
-- 5. `docs/audits/DESIGN-LAB-ARCHIVE-AND-REMOVAL-2026-10-19.md` → `3856e321c5295ddee07b60cbffb9425cd12cc889482e4de4fd80580972b56743`
+- 5. `docs/audits/DESIGN-LAB-ARCHIVE-AND-REMOVAL-2026-10-19.md` → `9f48ca1f0fa3b5d1ff0fb5a23e0da11a2db27aa96e4acfd83ebd13058d2bc633`
 
-**生成命令**（五份都由仓库内脚本产出，不是手抄；脚本本身留在 `.project-local/task-runtime/`，属一次性工具面，不入 Git）：
+**五份记录是怎么产出的**：
 
-- 第 1 项：`.venv/Scripts/python.exe .project-local/task-runtime/build_archive_manifest.py`（逐行重读 git index，比对移动前记录的 blob SHA-1 与字节数）
-- 第 2 项：`.venv/Scripts/python.exe .project-local/task-runtime/build_removals.py`（每条先用 `git show restoreAt:<path>` 读回原文，再算 sha256/crc32，读不到即中止）
-- 第 3、4 项：`.venv/Scripts/python.exe .project-local/task-runtime/publish_aggregation.py`（blob 标识全部从 git 重新导出——这一步实测纠正了 1 处 39 位的手抄截断）
-- 第 5 项：面向 `docs/taskpacks/20261019-direction/source/ACCEPTANCE.md` 的「必交付」与「最终报告格式」两份清单写成，§0 的结论取自同轮 CI 与闸门实测读数
+- 第 1 项 `docs/history/archive-2026-10-19/MANIFEST.json`：波次脚本逐行重读 git index，比对移动前记录的 blob SHA-1 与字节数；
+- 第 2 项 `REMOVALS.json`：每条先用 `git show <restoreAt>:<path>` 读回原文，再算 sha256/crc32，读不到即中止；
+- 第 3、4 项 `HANDOFF-PROMPT-DIGEST.json` 与 `AGGREGATED-RECORD-2026-10-19.md`：由汇总脚本产出，blob 标识全部从 git 重新导出（该步实测纠正过 1 处 39 位的手抄截断）；
+- 第 5 项交付报告：面向 `docs/taskpacks/20261019-direction/source/ACCEPTANCE.md` 的「必交付」与「最终报告格式」两份清单写成，§0 结论取自同轮 CI 与闸门实测读数。
+
+> **这三类产出脚本不在 Git 里**：它们是一次性波次工装，留在 `.project-local/task-runtime/`（该根被 Git 忽略，且第 1、2 项的脚本会改写 `docs/history/**` 冻结件，不宜作为常备面）。本节的数字**不需要**它们即可复现：哈希与体量按上面的 `git cat-file` 一条命令就能重算，计数直接从各记录自己的 `summary`/`counts` 字段读——这条复现路由 `scripts/verify_archive_record_register.py` 执行，它只读、不改任何记录。
 
 **取代与被取代关系**：
 
 - 这五份记录**不取代** `docs/history/record-archive-2026-10-09/ARCHIVE-MANIFEST.json`，也不并入其 101/180/111 普查读数；那批 Record 导入的清单仍是它自己那一份。
-- 第 1 项是「路径去了哪里」的权威答复；第 2 项是「原件为何不在、怎么取回」的权威答复。两者的消费者已接到读侧：`scripts/archive_records.py`、`src/design_lab/governance/reporting.py`、`scripts/record_import_verify.py`、`design-lab/scripts/verify_evidence_artifact_presence.py`、`design-lab/scripts/verify_task_document_states.py`。旧路径因此**不能再被索引为可达资料**，但按 blob 取回始终可证。
-- 第 2 项引用的 `restoreAt` 提交是一个**读取锚点**，不是当前 HEAD；当前 SHA 一律 `git rev-parse HEAD` 自读。
+- 第 1 项答复「路径去了哪里」，第 2 项答复「原件为何不在、怎么取回」。读侧消费者已接上：`scripts/archive_records.py`、`src/design_lab/governance/reporting.py`、`scripts/record_import_verify.py`、`design-lab/scripts/verify_evidence_artifact_presence.py`、`design-lab/scripts/verify_task_document_states.py`。旧路径因此不能再被索引为可达资料，但按 blob 取回始终可证。
+- 第 2 项引用的 `restoreAt` 是**读取锚点**，不是当前 HEAD；当前 SHA 一律 `git rev-parse HEAD` 自读。
 
-**一致性实测**（写本条时当场跑过，非引用旧读数）：
+**一致性实测**（由生成脚本当场校验，任一不等即中止）：
 
-- `REMOVALS.json` 的 `summary.files=83` ＝ `entries` 数组长度 ＝ 摘要登记的第 3 项 `counts.deleted=83`，且按根拆解为 73（`docs/history/**`） + 10（`reports/history/**`）；
+- 移动：组行 228 ＝ 目的地求和 228 ＝ `summary.files=228`；
+- 移除：`REMOVALS.summary.files=83` ＝ `entries` 长度 ＝ 摘要 `counts.deleted=83`，按根拆为 73（`docs/history/**`） + 10（`reports/history/**`）；
 - 字节：`REMOVALS.summary.bytes=713,606` ＝ 摘要 `counts.deletedBytes=713,606`；
-- 83 条 `sha256` 字段全部是 `sha256:` + 64 位十六进制（长度直方图只有 71 一个桶），`restoreAt` 83 条同值——截断摘要或逐条漂移的锚点都会在这里露出来；
-- 五份记录均可 UTF-8 解码，`U+FFFD` 计数为 0（中文正文若被写成乱码字节，这里会先炸）。
+- 83 条 `sha256` 全是 `sha256:` + 64 位十六进制，`restoreAt` 同值一条；
+- 五份记录均可 UTF-8 解码且不含 `U+FFFD`（中文正文若被写成乱码字节，这里会先炸）。
 
-**本节测于哪个提交**：五个 blob 与全部计数首次读自 `1d33a93f`（那正是交付报告 §0 落定的提交），并在 `11cd7669` 上逐条重算一致；本节所在提交装不下自己的哈希，所以这两个读数都写出来。五个值指向的都是不可变提交对象，本节不会随时间失效。真正会变的情形只有一种——那五份记录被改写。其中四份位于 `docs/history/archive-2026-10-19/**`，属 `docs/current/HISTORY-FREEZE-RULES.md` 认定的冻结家族，按规则不该再被编辑；第五份（交付报告）是 dated 记录，若以后确实要补它，**同时更新本节**，别留下一个和仓库不一致的哈希让下一个会话去猜。核验命令：`git cat-file blob HEAD:<路径>` 取字节后算 SHA-256（本机 `core.autocrlf=true`，直接 `sha256sum <文件>` 得到的是工作树值，不是本节的值）。
+**本节测于哪个提交**：五个 blob 首次读自 `bec00532`（交付报告 §0 落定的那一次），并在 `bec00532` 上逐条重算；本节所在提交装不下自己的哈希，所以两个读数都写出来。五个值指向的都是不可变提交对象，本节不会随时间失效；真正会变的情形只有「记录本身被改写」。四份在 `docs/history/archive-2026-10-19/**`，属 `docs/current/HISTORY-FREEZE-RULES.md` 认定的冻结家族，按规则不该再编辑；第五份是 dated 交付报告，若以后确实要补它，就重跑 `python scripts/generate_archive_record_register.py` 让本节跟着更新，别留下和仓库不一致的哈希。
 
-**定态**：第 1、2、3 项与第 4、5 项都是**波次的登记件**，不是能力索引、不是派工入口，也不改变 `currentExecution` 34 项的 `FROZEN_DEFERRED`。真值仍读 `design-lab/config/capability-evidence-index.json`、`design-lab/config/capability-status.json` 与 `docs/current/NEXT-AGENT-PROMPT.md`。
+**定态**：五份都是**波次的登记件**，不是能力索引、不是派工入口，也不改变 `currentExecution` 34 项的 `FROZEN_DEFERRED`。真值仍读 `design-lab/config/capability-evidence-index.json`、`design-lab/config/capability-status.json` 与 `docs/current/NEXT-AGENT-PROMPT.md`。
 
