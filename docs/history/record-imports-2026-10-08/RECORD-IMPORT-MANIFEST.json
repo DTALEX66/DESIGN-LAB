@@ -360,14 +360,14 @@
    "also_in_repo": [
     "AUTHORITY.md"
    ],
-   "repoBytesAfterImport": 20314,
-   "repoCrc32AfterImport": "fa14bd43",
-   "repoSha256AfterImport": "sha256:081b5f9412d2bfa52e4eb31c5a761af68dcc1d2426be160d800bca65e1b5f9d8",
+   "repoBytesAfterImport": 20512,
+   "repoCrc32AfterImport": "0bc4bc7b",
+   "repoSha256AfterImport": "sha256:e651c3692dcf070b8b37b63340c6cbc80e4ef6dd8366d46a6832a9d60f52e8b4",
    "evolvedBy": {
-    "commit": "e9ff0717",
-    "subject": "chore(archive): remove the stale handoffs and dated prompts the owner ordered deleted"
+    "commit": "8f0c4387ba9984e5e4f843d8eb0c96124a6f8fa9",
+    "subject": "docs(authority): mark the 2026-10-09 present-tense dispatch lines as that day's wording"
    },
-   "evolution": "上一版 post-import 摘要 sha256:8322bd58261c7a936365cc82d3c163f2faffff6f659c34a76119e5cda7bcba30（by 896c53bc）因删除波失效；删除波把指向已删 UCR 原件的两处路径字面量改成汇总面与恢复清单的指针（指引面不得点名死路径，两条路径门都会红）。分类、authority ID、检查数未变。 归档原件与 ZIP 的逐成员比对（leg 1）不受影响；leg 2 按本摘要把关，两条都对不上即拒。"
+   "evolution": "上一版 post-import 摘要 sha256:081b5f9412d2bfa52e4eb31c5a761af68dcc1d2426be160d800bca65e1b5f9d8（by e9ff0717）因该批文字改动而失效；§2026-10-09 采纳条款正文里的现在时句子（「当前唯一integrated TaskPack：UI-FIRST」）会被后续会话当成当下入口读。旧句原文保留不删，只加注为当日原文并写明由 DL-TP-20261019-DIRECTION-R1 取代；authority ID、分类、检查数均未变。 归档原件与 ZIP 的逐成员比对（leg 1）不受影响；leg 2 按本摘要把关。"
   },
   {
    "source_container": "DESIGN-LAB_FINAL_CONSOLIDATED_PACKAGE_2026-09-29.zip",
