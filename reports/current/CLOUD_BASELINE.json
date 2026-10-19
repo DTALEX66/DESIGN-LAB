@@ -9,28 +9,28 @@
   },
   "fresh": false,
   "freshnessMeaning": "at generation only; check verifies bound-input integrity, not current Git or cloud state",
-  "generatedAt": "2026-10-19T18:28:52+00:00",
+  "generatedAt": "2026-10-19T18:34:15+00:00",
   "gitStateMeaning": "generation-time observation, not current HEAD",
   "local": {
     "branch": "qoder/designlab-backup-consistency-20261007",
-    "origin_main": "72950ce2aa477ff18c59fbeb13326da6b6f53406",
-    "sha": "9ee490b4863472654e788cb18a3a651fcd7a65c9",
+    "origin_main": "b07a3906b3fc0b25e13184533f2b439381794793",
+    "sha": "b07a3906b3fc0b25e13184533f2b439381794793",
     "source_worktree_clean": false,
     "tracked_files": 3729,
     "worktree_changes": [
       {
-        "content": "sha256:ed4a1d04bf2762da9bd7e5f7be630738d4dd4dee1c30f87a9a039bb15938ed79",
-        "kind": "M",
-        "path": "docs/current/NEXT-AGENT-PROMPT.md"
+        "content": "sha256:de9edf602c9fcfa96e1b65edc9ff748a02bcca7c198966c2bd74454e1243aa04",
+        "kind": "U",
+        "path": "design-lab/tests/test_standalone_chain_http.py"
       }
     ],
-    "worktree_digest": "sha256:86df7a25c4f44a1117ce31e6cbcc49f24d21879895210a2aa7bafd0d65c087b6"
+    "worktree_digest": "sha256:8d3e4ee7bd9f658b5716e6bdcfa1c0c00f15cace51b84aa8261c7c9106415fe3"
   },
   "note": "No GitHub API query was run by this generator; tool installation is not inferred.",
   "remoteRef": "origin/main (local tracking ref)",
   "schemaVersion": "design-lab/cloud-baseline/v2",
   "subjectMeaning": "subjectType=WORKTREE means the tree was dirty at generation; worktreeDigest covers HEAD plus the non-generated changes",
-  "subjectSha": "9ee490b4863472654e788cb18a3a651fcd7a65c9",
+  "subjectSha": "b07a3906b3fc0b25e13184533f2b439381794793",
   "subjectType": "WORKTREE",
   "taskpackHash": "2cfd84627352e9f1b29b42787fa43466cd9a836130d826d43678b7733856ffda",
   "taskpackId": "DL-TP-20261009-UI-FIRST-R1",
@@ -45,5 +45,5 @@
     "branchProtection"
   ],
   "worktreeClean": false,
-  "worktreeDigest": "sha256:86df7a25c4f44a1117ce31e6cbcc49f24d21879895210a2aa7bafd0d65c087b6"
+  "worktreeDigest": "sha256:8d3e4ee7bd9f658b5716e6bdcfa1c0c00f15cace51b84aa8261c7c9106415fe3"
 }
