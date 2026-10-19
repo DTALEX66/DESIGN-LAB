@@ -274,6 +274,9 @@ E4 独立人审 / E5 发布可复现。**文档修订 ≠ 规划完成 ≠ 代�
 
 - **溢出闸门的高度维度：这一条我先前写错过，现在的版本是重量过的**。把高度做成可覆盖（`OV_HEIGHT` / `OV_SHORT_HEIGHT`，默认仍是 900/620，CI 不变）之后，在宽度 1440 上按名义高 1100 / 900 / 750 各跑一趟：`navEdge overflow` = **299 / 499 / 649**，`gap` 三趟都是 **12**，而被切的元素在 1100 与 900 是 `nav-group` 分组标签、**到 750 变成 `button` 导航项**。所以列表溢出量**随视口高变化**（`.nav` 的 `clientHeight` 跟着窗口长高）；我上一版写的"clientHeight 由 CSS 定死、几何与高度无关"是错的，错因是把 620 那一趟的 `hiddenPx=779` 当成两趟的共同读数——而当时我只覆盖了名义高度，短档根本没变，两次当然同值。真正与高度无关的只有**发丝线与切割线的间距**（固定 token 边距，620/750/900/1100 四档实测恒为 12）。结论不变但理由换了：CI 不加 1100 档，因为 1100 与 900 切到同一个元素、判同一条不变量，属重复；750 会切到另一个元素，说明现有 900+620 两档也不是摆设。
 
+- **两个闸门里的 "routes" 不是同一个东西，别去"对齐"它们**：`verify_contract_bindings` 报 `routes=60`，数的是 `design-lab/config/contract-bindings.json` 的 route 行（每行带 handler/kind/marker/method/reason/route）；`verify_workbench_route_calls` 报 `routes=58`，数的是 `http_service.ROUTES` 的路由模式。本轮实跑过一条自以为是"对账"的口令：拿 `row['route']` 去比 `pattern`，结果是"60 条声明全部命中服务、同时 58 条服务里 57 条未被声明"——两个结论互不相容，说明字段映射本身就是错的，不是数据有缺口。**这条口令不要再用**；真要查某个路由有没有登记，得先读那个 JSON 自己的 schema 与闸门的读法。
+- **本轮在 tip 上重跑过的只读闸门（一次成批，供下一轮对照基线）**：`AUTHORITY_GATES=PASS gates=7`、`VERIFY_CONTRACT_BINDINGS=PASS schemas=32 routes=60 dispatched=60 bound=21 schema_less=39`、`VERIFY_WORKBENCH_ROUTE_CALLS=PASS calls=96 routes=58 matched=47 backend_only=11`、`STRUCTURE_CONTRACTS=PASS tests=31`、`DOCUMENTED_COUNTS=PASS claims=4`、`KNOWLEDGE_LIFECYCLE=PASS findings=0`。
+
 ## 10. 什么算完成
 
 - 改动有**可复核的读数**（命令 + 输出），不是"应该没问题"。
