@@ -24,16 +24,17 @@ REPO = Path(__file__).resolve().parents[2]
 GATE_PATH = REPO / 'design-lab' / 'scripts' / 'verify_object_model_backing.py'
 SCRATCH_BASE = REPO / '.project-local' / 'task-runtime' / 'object-model-backing-scratch'
 
-# Measured 2026-10-08 against HEAD a4a76c06, and pinned inside the gate as well: five of the 21
-# declared objects are validated by product code, ten only by verifier scripts, six by nothing.
+# Measured 2026-10-08 against HEAD a4a76c06, and pinned inside the gate as well: six of the 21
+# declared objects are validated by product code, ten only by verifier scripts, five by nothing.
 # These numbers are LOWER than the ones pinned a few hours earlier (7/9/5) because the classifier was
 # fixed to stop counting prose: preflight-report, handoff-package and quality-report had been read as
 # product references purely from docstrings, and quality-report became honest only after its row was
 # re-pointed to the V2 schema human_jury.py really loads.
 # PRODUCT is: delivery-manifest (assurance/delivery_bom.py), design-system (interop/dtcg.py),
 # quality-report (assurance/human_jury.py), domain-pack (domain_packs.py), research-finding
-# (assurance/research_store.py).
-REAL_COUNTS = {'PRODUCT': 5, 'TOOLING_ONLY': 10, 'UNREFERENCED': 6, 'MISSING_SCHEMA_FILE': 0}
+# (assurance/research_store.py), and since 2026-10-19 candidate-knowledge
+# (assurance/knowledge_feedback.py loads the V1 schema for its downward projection).
+REAL_COUNTS = {'PRODUCT': 6, 'TOOLING_ONLY': 10, 'UNREFERENCED': 5, 'MISSING_SCHEMA_FILE': 0}
 
 
 def load_gate(name: str):

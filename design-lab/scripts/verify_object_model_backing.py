@@ -95,11 +95,6 @@ UNREFERENCED = {
                        'on 2026-10-08 -- and emits "design-lab/handoff-readiness/v1", a payload '
                        'version no schema in this repository binds. So the declared handoff document '
                        'has a reader in the prose and none in the code',
-    'candidate-knowledge': 'a KnowledgeCandidate is an exit contract to ArcheAxis (AGENTS.md), written '
-                           'out through the rights and human gates rather than stored here, so no code '
-                           'in this repository loads schemas/candidate-knowledge.schema.json -- which '
-                           'means the shape the object model declares is not the shape any sender '
-                           'produces',
 }
 
 
@@ -279,8 +274,11 @@ def audit(root: Path, check_counts: bool = True):
                 errors.append(f'{identifier}: a {label} row needs a sentence naming what implements it '
                               f'({len((reason or "").strip())} chars is a placeholder)')
     # The counts are pinned as well as the membership, because a bucket that quietly changes size is
-    # how a contract layer erodes one object at a time.
-    expected = {'PRODUCT': 5, 'TOOLING_ONLY': 10, 'UNREFERENCED': 6, 'MISSING_SCHEMA_FILE': 0}
+    # how a contract layer erodes one object at a time. 5/10/6 -> 6/10/5 on 2026-10-19 (T16/U09):
+    # candidate-knowledge is now PRODUCT because assurance/knowledge_feedback.py loads the V1 schema
+    # to validate its downward projection, so the pinned UNREFERENCED row was deleted rather than
+    # reworded and the two buckets moved together.
+    expected = {'PRODUCT': 6, 'TOOLING_ONLY': 10, 'UNREFERENCED': 5, 'MISSING_SCHEMA_FILE': 0}
     for bucket, want in (expected.items() if check_counts else ()):
         if counts[bucket] != want:
             errors.append(f'{bucket}: {counts[bucket]} objects, expected {want} -- measured '

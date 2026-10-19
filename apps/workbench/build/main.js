@@ -8639,7 +8639,7 @@ function knowledgeStateTag(className, word, fallback) {
   return word ? el("span", { class: className, lang: "en" }, word) : el("span", { class: className }, fallback);
 }
 function knowledgeCandidateRow(row) {
-  const decisionClass = row.review_state === "APPROVED" ? "ok" : row.review_state === "REJECTED" ? "neutral" : "warn";
+  const decisionClass = row.review_state === "PENDING_HUMAN_APPROVAL" ? "warn" : row.review_state === "REJECTED" ? "neutral" : row.export_ready ? "ok" : "neutral";
   const freshClass = row.freshness === "CURRENT" ? "ok" : row.freshness === "STALE" ? "warn" : "neutral";
   const revoked = row.revocation_state === "REVOKED";
   return el(

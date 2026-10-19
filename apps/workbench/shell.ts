@@ -7087,8 +7087,12 @@ function knowledgeStateTag(className: string, word: string | null | undefined,
 }
 
 function knowledgeCandidateRow(row: KnowledgeCandidate): HTMLElement {
-  const decisionClass = row.review_state === 'APPROVED' ? 'ok'
-    : row.review_state === 'REJECTED' ? 'neutral' : 'warn';
+  // Color follows the local export contract, not a client-side approval verdict; the
+  // tag text itself is the service word. Naming an approval status literal here would be
+  // the rights-panel lie verify_state_vocabularies.py exists to refuse.
+  const decisionClass = row.review_state === 'PENDING_HUMAN_APPROVAL' ? 'warn'
+    : row.review_state === 'REJECTED' ? 'neutral'
+      : row.export_ready ? 'ok' : 'neutral';
   const freshClass = row.freshness === 'CURRENT' ? 'ok'
     : row.freshness === 'STALE' ? 'warn' : 'neutral';
   const revoked = row.revocation_state === 'REVOKED';

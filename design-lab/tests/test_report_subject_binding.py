@@ -322,7 +322,13 @@ class ReportSubjectBindingTests(unittest.TestCase):
         self.assertEqual(sorted(row["path"] for row in records),
                          ["design-lab/config/rights-registry.json",
                           "reports/current/CLEAN-TREE-REPORT.json",
-                          "reports/current/CONTRACT-GRAPH.json",
+                          # reports/current/CONTRACT-GRAPH.json left this set on 2026-10-19:
+                          # its row required an intentional generator run at a recorded head,
+                          # then deleting the row in the same commit. T16/U09 added tables to
+                          # the graph, the generator was re-run at that head, and the removal
+                          # is recorded under resolved_2026_10_19 -- this pin catches a SILENT
+                          # removal, not a recorded one. (The generator is not named here:
+                          # test_gate_reachability would read the filename as a call site.)
                           "reports/current/FOUNDATION-AUDIT.json",
                           # LANGUAGE-BOUNDARY-SCAN.json left this set on 2026-10-13: its
                           # row required "one intentional run at a recorded head, then

@@ -27,7 +27,7 @@
 {
   "contracts": 32,
   "inertRows": 30,
-  "productFiles": 212,
+  "productFiles": 214,
   "rows": [
     {
       "best_table": null,
@@ -237,10 +237,12 @@
       "version": "design-lab/delivery-receipt/v1"
     },
     {
-      "best_table": null,
+      "best_table": "knowledge_candidate",
       "fields": 3,
-      "matched_fields": [],
-      "overlap": 0.0,
+      "matched_fields": [
+        "revision"
+      ],
+      "overlap": 0.333,
       "reason": "Nothing implements this. context_id and the revision pairing appear nowhere in src/.",
       "retire_coherent": true,
       "retire_targets": [
@@ -249,10 +251,14 @@
       ],
       "route_references": [],
       "schema": "design-lab/schemas/contracts/design-context.schema.json",
-      "state": "NO_STATE_COUNTERPART",
-      "table_readers": [],
-      "table_writers": [],
-      "thin_match": false,
+      "state": "TABLE_WRITES_THIS_ACTIVITY",
+      "table_readers": [
+        "src/design_lab/knowledge_review.py"
+      ],
+      "table_writers": [
+        "src/design_lab/knowledge_review.py"
+      ],
+      "thin_match": true,
       "version": "design-lab/design-context/v1"
     },
     {
@@ -725,11 +731,11 @@
   "schemaVersion": "design-lab/inert-contract-survey/v1",
   "stateCounts": {
     "ADJACENT_TABLE_WRITTEN": 2,
-    "NO_STATE_COUNTERPART": 17,
+    "NO_STATE_COUNTERPART": 16,
     "TABLE_EXISTS_UNWRITTEN": 3,
-    "TABLE_WRITES_THIS_ACTIVITY": 8
+    "TABLE_WRITES_THIS_ACTIVITY": 9
   },
-  "tables": 37
+  "tables": 39
 }
 ```
 
@@ -746,7 +752,7 @@
 | `capability-ref.schema.json` | 2 | — | 0.00 | — | NO_STATE_COUNTERPART | 是 |
 | `change-set.schema.json` | 3 | — | 0.00 | — | NO_STATE_COUNTERPART | 是 |
 | `delivery-receipt.schema.json` | 6 | operation_receipt | 0.33 | — | TABLE_EXISTS_UNWRITTEN | 是 |
-| `design-context.schema.json` | 3 | — | 0.00 | — | NO_STATE_COUNTERPART | 是 |
+| `design-context.schema.json` | 3 | knowledge_candidate | 0.33 | knowledge_review.py | TABLE_WRITES_THIS_ACTIVITY（thin） | 是 |
 | `design-control-mcp.schema.json` | 2 | — | 0.00 | — | NO_STATE_COUNTERPART | 是 |
 | `design-diff.schema.json` | 4 | — | 0.00 | — | NO_STATE_COUNTERPART | 是 |
 | `document-session.schema.json` | 5 | — | 0.00 | — | NO_STATE_COUNTERPART | 是 |

@@ -378,11 +378,18 @@ for (const width of widths) {
   if (!paletteOpen) {
     add('palette', `${width} Ctrl+K did not open the palette`);
   } else {
-    const rows = await page.evaluate(() => Array.from(
-      document.querySelectorAll('#paletteItems .item')).map((i) => ({
-      label: i.textContent.replace('打开', '').trim(), go: i.dataset.go,
-      keyboard: i.tagName === 'BUTTON' || i.tabIndex >= 0,
-    })));
+    // Probe a PAGE row, not rows[0]: the object groups are appended before the page list
+    // and settle asynchronously, so rows[0] can be a capability row whose destination is
+    // the shared 能力目录 page headed by the page title, not by the object name. The
+    // label-equals-heading contract only holds for rows that ARE pages.
+    const rows = await page.evaluate(() => {
+      const groups = Array.from(document.querySelectorAll('#paletteItems .palette-group'));
+      const pages = groups.find((g) => g.dataset.group === '页面') || document;
+      return Array.from(pages.querySelectorAll('.item')).map((i) => ({
+        label: i.textContent.replace('打开', '').trim(), go: i.dataset.go,
+        keyboard: i.tagName === 'BUTTON' || i.tabIndex >= 0,
+      }));
+    });
     if (!rows.length) add('palette', `${width} palette has no rows`);
     if (rows.some((r) => !r.keyboard)) add('palette-keyboard', `${width} palette rows are not focusable`);
     const probeRow = rows[0];
