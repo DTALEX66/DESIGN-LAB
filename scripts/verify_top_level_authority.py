@@ -91,9 +91,9 @@ AUTHORITY_ID = "DL-AUTHORITY-2026-09-18-R2"
 # path. Reason, superseded digests and the checks run: docs/history/taskpacks/20261009-adoption/
 # AUTHORITY-PIN-CHANGE.json revisions[]. Checks stay at 10.
 R2_RELEASE_HASHES = {
-    "AUTHORITY.md": "cee377db1c5e0a2d480d9bf8572f301480a526c4bfad4e96d290982237ebd0db",
-    ".project/governance/authority-index.json": "f6352f59ed7b5dfd522f0919d90fc7636ec404c94882ccd063325513550e7790",
-    "docs/current/HISTORY-FREEZE-RULES.md": "cfb74026fb93f5cfb94393b0ff575dfc31500b96e81e4d1e4f531000edee8a04",
+    "AUTHORITY.md": "8322bd58261c7a936365cc82d3c163f2faffff6f659c34a76119e5cda7bcba30",
+    ".project/governance/authority-index.json": "a26a720aa8765d781b335a2ec155128dbe84b4e74e19920b8a34cb247299b8ad",
+    "docs/current/HISTORY-FREEZE-RULES.md": "3e3c3086789b10e309d843ebfcbc280dde01aebad9c7472f43621830f5286ec8",
     "docs/taskpacks/DESIGN-LAB-FINAL-AUTHORITY-CONVERGENCE-TASKPACK-2026-09-18.md": "62f43ef295d4e90462d1e49e657e490400c4b5568f4e4ad1db3e268e12bb10c7",
     "docs/taskpacks/DESIGN-LAB-UI-FIRST-INTEGRATED-TASKPACK-2026-10-09.md": "2cfd84627352e9f1b29b42787fa43466cd9a836130d826d43678b7733856ffda",
     "docs/taskpacks/DESIGN-LAB-DIRECTION-ALIGNMENT-2026-10-19.md": "98e7d2210181de8a4a3a0c2d8c15c4846b332e3e418a02446a0bb001a1c2e116",

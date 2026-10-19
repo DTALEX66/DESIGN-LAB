@@ -66,12 +66,12 @@
     "docs/current/HISTORY-FREEZE-RULES.md": "b970562dbdc8b4ccfff71ba2354a5b718d2a54efde7db7972c4a2ee2b60e6e40"
    },
    "to": {
-    "AUTHORITY.md": "cee377db1c5e0a2d480d9bf8572f301480a526c4bfad4e96d290982237ebd0db",
-    ".project/governance/authority-index.json": "f6352f59ed7b5dfd522f0919d90fc7636ec404c94882ccd063325513550e7790",
-    "docs/current/HISTORY-FREEZE-RULES.md": "cfb74026fb93f5cfb94393b0ff575dfc31500b96e81e4d1e4f531000edee8a04"
+    "AUTHORITY.md": "8322bd58261c7a936365cc82d3c163f2faffff6f659c34a76119e5cda7bcba30",
+    ".project/governance/authority-index.json": "a26a720aa8765d781b335a2ec155128dbe84b4e74e19920b8a34cb247299b8ad",
+    "docs/current/HISTORY-FREEZE-RULES.md": "3e3c3086789b10e309d843ebfcbc280dde01aebad9c7472f43621830f5286ec8"
    },
-   "why": "The UCR convergence handoff was moved with the rest of docs/handoffs/** to docs/history/archive-2026-10-19/handoffs/. Three authority surfaces still named the old path, so a session following Authority would index a path that no longer exists. Only those path strings changed (2 in AUTHORITY.md, 1 path + 1 historicalGlob in the index, 2 in the freeze rules); classification, authority ID and check count are untouched, and the moved bytes are recorded in the archive manifest and move ledger.",
-   "checks": "verify_top_level_authority checks stay at 10; only the three re-pinned digests move; the other three pins unchanged"
+   "why": "The UCR convergence handoff was moved with the rest of docs/handoffs/** to docs/history/archive-2026-10-19/handoffs/. Three authority surfaces still named the old path, so a session following Authority would index a path that no longer exists. Only those path strings changed (2 in AUTHORITY.md, 1 path + 1 historicalGlob in the index, 2 in the freeze rules); classification, authority ID and check count are untouched, and the moved bytes are recorded in the archive manifest and move ledger. 另记一次自查更正：本会话的补丁脚本在 Windows 文本模式下把这 LF-only 文件的行尾改成了 CRLF，而 .gitattributes 对这三个文件设了 binary（不做行尾归一），因此逐字节被写进了提交。已按原像恢复为 LF 并重新计算摘要；路径字符串改动不变。",
+   "checks": "verify_top_level_authority checks stay at 10; only the three re-pinned digests move; the other three pins unchanged; record_import_verify leg 2/3 restored to the pre-archive shape"
   }
  ],
  "current_pins_note": "Latest change is revisions[-1] (2026-10-19 archive pass): AUTHORITY.md, the authority index and HISTORY-FREEZE-RULES.md re-pinned after the UCR handoff moved under docs/history/archive-2026-10-19/. The direction-adoption re-pin and the 2026-10-12/2026-10-18 revisions above are kept as superseded digests."

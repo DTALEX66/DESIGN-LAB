@@ -676,7 +676,16 @@
    "target": "docs/taskpacks/DESIGN-LAB-DIRECTORY-MIGRATION-CLEANUP-TASKPACK-2026-09-01.md",
    "also_in_repo": [
     "docs/taskpacks/DESIGN-LAB-DIRECTORY-MIGRATION-CLEANUP-TASKPACK-2026-09-01.md"
-   ]
+   ],
+   "movedTo": {
+    "path": "docs/history/archive-2026-10-19/taskpacks/DESIGN-LAB-DIRECTORY-MIGRATION-CLEANUP-TASKPACK-2026-09-01.md",
+    "by": {
+     "commit": "0de9d064",
+     "subject": "chore(archive): move stale taskpacks, handoffs and dated records off the visible tree"
+    },
+    "reason": "2026-10-19 归档波次只改路径不改字节：随 docs/taskpacks 旧包家族搬入 docs/history/archive-2026-10-19/taskpacks/，逐文件 原路径→新路径→blob→字节 登记在该目录 MANIFEST.json；源卷 Record 原件未动。",
+    "manifest": "docs/history/archive-2026-10-19/MANIFEST.json"
+   }
   },
   {
    "source_container": "DESIGN-LAB_FINAL_CONSOLIDATED_PACKAGE_2026-09-29.zip",
@@ -3399,7 +3408,16 @@
    "action": "LANDED",
    "written_this_run": false,
    "target": "docs/taskpacks/03_DESIGN-LAB_完整项目描述与未来蓝图_20261006.docx",
-   "sidecar": "docs/taskpacks/03_DESIGN-LAB_完整项目描述与未来蓝图_20261006.docx.license"
+   "sidecar": "docs/taskpacks/03_DESIGN-LAB_完整项目描述与未来蓝图_20261006.docx.license",
+   "movedTo": {
+    "path": "docs/history/archive-2026-10-19/taskpacks/03_DESIGN-LAB_完整项目描述与未来蓝图_20261006.docx",
+    "by": {
+     "commit": "0de9d064",
+     "subject": "chore(archive): move stale taskpacks, handoffs and dated records off the visible tree"
+    },
+    "reason": "2026-10-19 归档波次只改路径不改字节：随 docs/taskpacks 旧包家族搬入 docs/history/archive-2026-10-19/taskpacks/，逐文件 原路径→新路径→blob→字节 登记在该目录 MANIFEST.json；源卷 Record 原件未动。",
+    "manifest": "docs/history/archive-2026-10-19/MANIFEST.json"
+   }
   },
   {
    "source_container": "03_DESIGN-LAB_权威修复_双端描述同步_可审计执行提示词_20261006.txt",
@@ -3412,7 +3430,16 @@
    "note": "2026-10-06 请求包，未采纳为 Authority；与 10-06 capability 包同为 REQUESTED。",
    "action": "LANDED",
    "written_this_run": false,
-   "target": "docs/taskpacks/03_DESIGN-LAB_权威修复_双端描述同步_可审计执行提示词_20261006.txt"
+   "target": "docs/taskpacks/03_DESIGN-LAB_权威修复_双端描述同步_可审计执行提示词_20261006.txt",
+   "movedTo": {
+    "path": "docs/history/archive-2026-10-19/taskpacks/03_DESIGN-LAB_权威修复_双端描述同步_可审计执行提示词_20261006.txt",
+    "by": {
+     "commit": "0de9d064",
+     "subject": "chore(archive): move stale taskpacks, handoffs and dated records off the visible tree"
+    },
+    "reason": "2026-10-19 归档波次只改路径不改字节：随 docs/taskpacks 旧包家族搬入 docs/history/archive-2026-10-19/taskpacks/，逐文件 原路径→新路径→blob→字节 登记在该目录 MANIFEST.json；源卷 Record 原件未动。",
+    "manifest": "docs/history/archive-2026-10-19/MANIFEST.json"
+   }
   },
   {
    "source_container": "08_DESIGN-LAB_工作区接入交接.md",
