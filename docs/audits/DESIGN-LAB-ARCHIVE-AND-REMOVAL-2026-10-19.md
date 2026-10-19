@@ -11,12 +11,15 @@
 
 - **结论：`PARTIAL`**。本波次声明范围内的动作已落地：40 组 / 228 文件整目录移动（逐条按 blob
   SHA-1 与字节数复核，`bytesRewritten=0`）、83 份旧交接/提示词的"先汇总再移除"、被这些路径绑定的
-  读侧消费者全部改指新位、六份权威钉值重钉并逐次记录理由（`AUTHORITY-PIN-CHANGE.json` 实测 7 条 revisions；2026-10-19 占 5 条：方向批次、归档波、删除波、手机端移出范围、AAOS 改为非依赖）、投影再生成。
-- **不写 `PASS` 的理由**：其一，已推送 tip 的云端判定**实测为红**——`main` 上 `c71e3d21` 的 run 39287724318
-  共 11 个 job，其中 `Python gate` 失败（`shard 3/3 tests=975 FAIL=1`，CI 只发布计数不发布测试名）；同一 SHA 在
-  开发分支上的 run 39287715573 是 light gate（11 个 job `skipped`），那句"success"只描述编译与身份边界，
-  不是 CI 通过。红因定位见 §5 末。其二，owner 门外的边界（release / 安装态分发 / 真实宿主 E3 / 真人 E4 /
-  AAOS 接收 / ComfyUI·H3）依旧不解锁；**手机端不在这一列**——它已由 owner 2026-10-19 定为排除项，不是待授权项。
+  读侧消费者全部改指新位、六份权威钉值重钉并逐次记录理由（`AUTHORITY-PIN-CHANGE.json` 实测 8 条 revisions；2026-10-19 占 6 条：方向批次、归档波、删除波、手机端移出范围、AAOS 改为非依赖、AAOS 补进机器面）、投影再生成。
+- **不写 `PASS` 的理由只剩一条**：owner 门外的边界（release / 安装态分发 / 真实宿主 E3 / 真人 E4 /
+  AAOS 接收 / ComfyUI·H3）依旧不解锁，波次再干净也不解锁它们。**手机端不在这一列**——它已由 owner
+  2026-10-19 定为排除项，不是待授权项。
+  云端判定不再是理由：`c71e3d21` 那次确实红（`main` run 39287724318 的 `Python gate` 报
+  `shard 3/3 tests=975 FAIL=1`，且同 SHA 在开发分支上的 39287715573 是 light gate——11 个 job 全
+  `skipped`，那句"success"只描述编译与身份边界，不能当 CI 通过引用），红因已定位并修复（§5 末与
+  §5.1）；此后 `72950ce2`、`b07a3906`、`6f4a89a4` 三个 head 的 `main` run 均 `OVERALL=success`
+  （各 11 个真实 job success + light gate skipped）。当前 tip 的判定按 §5.2 的方式逐 job 读，不代读。
 - **状态声明（`ACCEPTANCE.md` 第 10 项：六件事是不同状态）**：
   - 文档修订＝本波次这一份报告与五份登记件已完成；
   - 规划完成＝方向包 `DL-TP-20261019-DIRECTION-R1` 已闭环，`currentExecution` 34 项仍全部
