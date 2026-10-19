@@ -341,8 +341,8 @@
    "repoCrc32AfterImport": "6db72da5",
    "repoSha256AfterImport": "sha256:e03e035aa0fdc2fc81d081e3324fe2cbb760d2afb11ff4d72bef2da9b53d2aa4",
    "evolvedBy": {
-    "commit": "28b6849cad83fb06b8848a4728a83a35aa129172",
-    "subject": "docs(scope): drop 手机端 from the frozen-deferred list and record it as excluded"
+    "commit": "f4384cde550cc892a95708358e2c2d665317a3b1",
+    "subject": "docs(authority): take AAOS off the project's critical path and state the standalone goal"
    },
    "evolution": "上一版 post-import 摘要 sha256:a26a720aa8765d781b335a2ec155128dbe84b4e74e19920b8a34cb247299b8ad（by 896c53bc）因删除波失效；historicalSpecific 条目改指汇总面并保留 formerly 原路径；reason 补记原件已按 owner 指令删除。分级结论未变。 归档原件与 ZIP 的逐成员比对（leg 1）不受影响；leg 2 按本摘要把关，两条都对不上即拒。"
   },
@@ -360,12 +360,12 @@
    "also_in_repo": [
     "AUTHORITY.md"
    ],
-   "repoBytesAfterImport": 21013,
-   "repoCrc32AfterImport": "0c0ed1a6",
-   "repoSha256AfterImport": "sha256:6f0ec9bbf2ca32db70d0f488a6c68e2b62795387755e9a58e06ccfe09bab8f50",
+   "repoBytesAfterImport": 21658,
+   "repoCrc32AfterImport": "7de2eba7",
+   "repoSha256AfterImport": "sha256:4f7bd6c0713563f135bd637c9b9afa19b59ed3889097810c35bf384add88acf8",
    "evolvedBy": {
-    "commit": "28b6849cad83fb06b8848a4728a83a35aa129172",
-    "subject": "docs(scope): drop 手机端 from the frozen-deferred list and record it as excluded"
+    "commit": "f4384cde550cc892a95708358e2c2d665317a3b1",
+    "subject": "docs(authority): take AAOS off the project's critical path and state the standalone goal"
    },
    "evolution": "上一版 post-import 摘要 sha256:081b5f9412d2bfa52e4eb31c5a761af68dcc1d2426be160d800bca65e1b5f9d8（by e9ff0717）因该批文字改动而失效；§2026-10-09 采纳条款正文里的现在时句子（「当前唯一integrated TaskPack：UI-FIRST」）会被后续会话当成当下入口读。旧句原文保留不删，只加注为当日原文并写明由 DL-TP-20261019-DIRECTION-R1 取代；authority ID、分类、检查数均未变。 归档原件与 ZIP 的逐成员比对（leg 1）不受影响；leg 2 按本摘要把关。"
   },
@@ -478,8 +478,8 @@
    "repoCrc32AfterImport": "6206a559",
    "repoSha256AfterImport": "sha256:f852331b2442986cc56a960b9aba977851f52ad6cd45c1a87898810565579a96",
    "evolvedBy": {
-    "commit": "28b6849cad83fb06b8848a4728a83a35aa129172",
-    "subject": "docs(scope): drop 手机端 from the frozen-deferred list and record it as excluded"
+    "commit": "f4384cde550cc892a95708358e2c2d665317a3b1",
+    "subject": "docs(authority): take AAOS off the project's critical path and state the standalone goal"
    },
    "evolution": "上一版 post-import 摘要为 sha256:7a2de570fc0ddda0963f95288106a74c4d2fab76d9252d09e7157d5618b3185c（by bb514458），因归档波次与随后的行尾更正而失效；“当前统一剩余任务入口”一句改指 2026-10-19 方向包并记录其余任务 FROZEN_DEFERRED；这是 owner 2026-10-19 方向采纳的落地，不是新任务进度。 归档原件字节与 ZIP 的逐成员比对（leg 1）不受影响；leg 2 改按上面的 post-import 摘要把关，两条摘要都对不上即拒。"
   },
