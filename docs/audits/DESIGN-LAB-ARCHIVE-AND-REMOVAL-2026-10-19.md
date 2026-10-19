@@ -180,6 +180,18 @@ authority-index 与账本仍点名的四份包体。
 
 **为什么补这三条断言**：定位句「专业视觉智能与可复用设计能力系统」同时出现在权威文本、落地页（`/workbench` 的 served 字节，页头与页脚各一次）与侧栏品牌块（为不断词而拆成的两行）三处，此前**没有任何东西把它们绑在一起**——改一处是免费的，产品可以在三个地方对自己说三种话。现在权威是源头、落地页测的是 `workbench.resource()` 真正吐出的字节（安装态 wheel 一并覆盖）、侧栏测两行拼回去是否仍是那句权威话。三处当前实测一致，这条补的是"下次不一致会红"。
 
+### 5.5 第六批（把"文档说的 = 量出来的"补成一条闸门）
+
+本轮两处过期数字都是人眼撞出来的：源码注释还在叙述"12 → 15"（表里已经 19 条），设计契约还写"导航 11 项需 587px、≤720 才溢出"（19 项，且任何桌面高度下都溢出）。仓库里已经有这个机制的先例（`design_debt_baseline.py --check` 就是"债的散文对回实测"），所以补的是同一条机制覆盖剩下没人管的计数。
+
+| 命令 | 退出码 | 读数 |
+| --- | --- | --- |
+| `python scripts/verify_documented_counts.py --verbose` | 0 | `DOCUMENTED_COUNTS=PASS claims=4 route_views=19 cli=16 adapters=30 routes=58`。四条各有一个只读代码的测量式（`ROUTE_VIEWS` 条目数、`cli.py` 的 `add_parser(`、适配器注册表长度、`http_service.ROUTES` 长度），散文只提供句子，不参与测量 |
+| `python -m unittest -q test_documented_counts` | 0 | `Ran 2 tests OK`。第二条把 `DESIGN.md` 的"导航 19 项"改成 18 再跑闸门，实读输出 `FAIL DESIGN.md: prose says ['18'], measurement says 19` 并退出 1；它同时拒绝一种退化情形——若模板已经匹配不到任何句子，测试自己先红（"the claim is unpinned and this falsifier is testing nothing"） |
+| `python -m unittest -q test_gate_reachability` | 0 | `Ran 9 tests OK`：新脚本经测试模块进入 Python gate，不需要动工作流文件 |
+
+三个提取式都写成"匹配不到就 `SystemExit`"，因为一个死掉的式子返回 0 会让闸门把"读不到"当成"没有差异"，那正是本轮 §6.3 那条缺陷的同一种错法。
+
 ## 6. 本轮暴露并修掉的六个缺陷
 
 1. **分类聚合按目录贴标签**：`bundle_key()` 把一个顶层目录收成一个 bundle，于是 `docs/` 里第一个文件的类别

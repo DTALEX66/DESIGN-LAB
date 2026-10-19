@@ -1,0 +1,91 @@
+#!/usr/bin/env python3
+# SPDX-License-Identifier: MIT
+"""Prose numbers must equal measured numbers.
+
+Two stale figures reached a live surface this session: a source comment that still narrated the
+workbench route table as 15 entries (it is 19), and DESIGN.md's "11 nav items need 587px, the list
+only overflows below 720" (19 items, and it overflows at every desktop height measured). Both were
+believed, and nothing failed. The repo already solves this once -- `scripts/design_debt_baseline.py
+--check` compares the debt prose against the measurement -- so this is the same mechanism for the
+counts no gate owned yet.
+
+A claim is (file, a template holding exactly one `{n}`, a callable). The measurement reads code,
+never the sentence; the sentence is never an input to the measurement -- that separation is the only
+thing keeping this from being a tautology. Every extractor fails loudly when it matches nothing,
+because a dead pattern that reports 0 would otherwise green-light a wrong document.
+"""
+from __future__ import annotations
+
+from pathlib import Path
+import re
+import sys
+
+REPO = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(REPO / 'src'))
+
+
+def _require(count: int, what: str) -> int:
+    if count == 0:
+        raise SystemExit(f'DOCUMENTED_COUNTS=FAIL the {what} extractor matched nothing; '
+                         'a dead pattern must not be allowed to report a count')
+    return count
+
+
+def route_views() -> int:
+    """Entries in the workbench route table -- the authority for how many nav items exist."""
+    src = (REPO / 'apps/workbench/shell.ts').read_text(encoding='utf-8')
+    start = src.index('export const ROUTE_VIEWS')
+    body = src[start:src.index('] as const', start)]
+    return _require(len(re.findall(r'^\s{2}\{ hash:', body, re.M)), 'ROUTE_VIEWS')
+
+
+def cli_subcommands() -> int:
+    src = (REPO / 'src/design_lab/cli.py').read_text(encoding='utf-8')
+    return _require(src.count('add_parser('), 'cli add_parser')
+
+
+def registry_adapters() -> int:
+    import json
+    data = json.loads((REPO / 'integrations/adapter-registry.json').read_text(encoding='utf-8'))
+    rows = data.get('adapters', data if isinstance(data, list) else [])
+    return _require(len(rows), 'adapter-registry')
+
+
+def http_routes() -> int:
+    from design_lab import http_service
+    return _require(len(http_service.ROUTES), 'http_service.ROUTES')
+
+
+CLAIMS = [
+    ('DESIGN.md', '导航 {n} 项', route_views),
+    ('docs/current/NEXT-AGENT-PROMPT.md', '{n} 个子命令（`src/design_lab/cli.py`', cli_subcommands),
+    ('docs/current/NEXT-AGENT-PROMPT.md', 'adapter-registry.json` {n} 条', registry_adapters),
+    ('docs/current/NEXT-AGENT-PROMPT.md', 'ROUTES` 为准，共 {n} 条', http_routes),
+]
+
+
+def check(verbose: bool = False) -> int:
+    problems = []
+    for rel, template, measure in CLAIMS:
+        truth = measure()
+        text = (REPO / rel).read_text(encoding='utf-8')
+        want = template.format(n=truth)
+        if want in text:
+            if verbose:
+                print(f'PASS {rel}: {want}')
+            continue
+        said = re.findall(template.format(n=r'(\d+)'), text)
+        problems.append(f'{rel}: prose says {said or "nothing"}, measurement says {truth} '
+                        f'(expected the sentence "{want}")')
+    for line in problems:
+        print('FAIL ' + line)
+    if problems:
+        print(f'DOCUMENTED_COUNTS=FAIL claims={len(CLAIMS)} failed={len(problems)}')
+        return 1
+    print(f'DOCUMENTED_COUNTS=PASS claims={len(CLAIMS)} route_views={route_views()} '
+          f'cli={cli_subcommands()} adapters={registry_adapters()} routes={http_routes()}')
+    return 0
+
+
+if __name__ == '__main__':
+    raise SystemExit(check('--verbose' in sys.argv))
