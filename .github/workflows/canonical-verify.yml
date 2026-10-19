@@ -173,11 +173,18 @@ jobs:
     if: ${{ github.event_name != 'push' || github.ref == 'refs/heads/main' }}
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          # The demoted-handoff check reads a document that was removed from the tree on owner
+          # order, through the removal manifest's restoreAt. A depth-1 checkout has no such commit,
+          # so the gate would report the bytes unreadable and go red on a shallow clone while
+          # passing locally. Every other job that touches history already does this.
+          fetch-depth: 0
       - name: Run the R2 top-level Authority consistency gate
         # Deterministic, stdlib-only: verifies AUTHORITY.md / authority-index.json /
         # AGENTS.md / current taskpack / demoted handoff / single Ruff fact / R2
         # release hashes are all mutually consistent. No network, no untrusted
-        # input; reads only the working tree.
+        # input; reads the working tree plus, for a removed document, the object
+        # database (see fetch-depth above).
         run: python scripts/verify_top_level_authority.py
       - name: Language/product drift guard (DL-GOV-130)
         # G-B: wire the existing DL-GOV-130 guard into CI. Fail-closed,

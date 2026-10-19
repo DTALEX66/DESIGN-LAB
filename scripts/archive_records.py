@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+# SPDX-License-Identifier: MIT
 """Read a governance document that the tree no longer holds at its recorded path.
 
 Records name paths. A document may have been archived (path changed, bytes untouched) and then

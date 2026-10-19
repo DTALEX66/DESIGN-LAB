@@ -321,14 +321,19 @@ class ReportSubjectBindingTests(unittest.TestCase):
         # the register's `thisRound.rebasedOn` records that run and what it did not decide.
         self.assertEqual(sorted(row["path"] for row in records),
                          ["design-lab/config/rights-registry.json",
-                          "reports/current/CLEAN-TREE-REPORT.json",
-                          # reports/current/CONTRACT-GRAPH.json left this set on 2026-10-19:
-                          # its row required an intentional generator run at a recorded head,
-                          # then deleting the row in the same commit. T16/U09 added tables to
-                          # the graph, the generator was re-run at that head, and the removal
-                          # is recorded under resolved_2026_10_19 -- this pin catches a SILENT
-                          # removal, not a recorded one. (The generator is not named here:
-                          # test_gate_reachability would read the filename as a call site.)
+                          # Two rows left this set on 2026-10-19, each by the mechanism its own row
+                          # demanded -- an intentional producer run at a recorded head, then the row
+                          # deleted in that same pass and preserved under resolved_2026_10_19 (which is
+                          # now a list of the two). CONTRACT-GRAPH left when T16/U09 added the knowledge
+                          # read-back tables and the graph was re-run at 15ec42a4; CLEAN-TREE left when
+                          # the archive/removal wave ran its producer at e9ff0717 and committed the
+                          # output, so subject_sha stopped being empty. DLDS-I020's cited record is
+                          # re-based along with that run, and the register says so rather than hiding it.
+                          # Neither departure is silent: this pin is exact on purpose, and the gate that
+                          # reports REPORT-DEBT-CLOSED-NOT-REMOVED is what forces the bookkeeping to
+                          # follow the fact instead of the other way round.
+                          # FOUNDATION-AUDIT / POST-CLEANUP-AUDIT / SPILL-CENSUS / rights-registry stay:
+                          # their rows still name work that has not been done.
                           "reports/current/FOUNDATION-AUDIT.json",
                           # LANGUAGE-BOUNDARY-SCAN.json left this set on 2026-10-13: its
                           # row required "one intentional run at a recorded head, then
