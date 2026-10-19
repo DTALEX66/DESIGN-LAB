@@ -245,6 +245,34 @@ class StandaloneChainTests(unittest.TestCase):
         self.assertEqual('APPROVED', row['review_state'])
         print('CHAIN_HOPS ' + ' '.join(self.hops))
 
+    def test_the_jury_readback_offers_an_imported_asset_version_as_a_verdict_target(self):
+        """What the desktop's jury panel actually reads.
+
+        The panel never goes looking for versions of its own: `apps/workbench/shell.ts` renders
+        `reviewable_versions` from GET /projects/<id>/jury straight into the version select, and
+        posts the verdict against whatever that read offered. So "a person can judge an imported
+        asset from the UI" rests on that one field. The chain walk above proves a verdict can be
+        posted against a version id taken from the *import* response, which is not the same claim.
+        """
+        project = self.hop('project', 'POST', '/api/projects',
+                           {'name': 'Jury target read'}, 201)['project']['id']
+        imported = self.hop(
+            'asset', 'POST', f'/api/projects/{project}/assets',
+            {'content_base64': base64.b64encode(_png_bytes()).decode('ascii'),
+             'idempotency_key': 'jury-target-asset'},
+            201)['asset']
+
+        offered = self.hop('jury-targets', 'GET', f'/api/projects/{project}/jury', None, 200)
+        rows = offered['reviewable_versions']
+        want = f"version:{imported['version_id']}"
+        self.assertIn(want, [row['subject_ref'] for row in rows],
+                      f'the read side never offers the imported version as reviewable: '
+                      f'{[row["subject_ref"] for row in rows]}')
+        self.assertEqual(imported['sha256'],
+                         next(row['artifact_sha256'] for row in rows if row['subject_ref'] == want),
+                         'the panel is offered a label for the version but not the bytes the '
+                         'verdict is actually about')
+
     def test_the_delivery_leg_reaches_a_preflight_verdict_on_one_project(self):
         """The last reachable segment, on the SAME project the service already owns.
 

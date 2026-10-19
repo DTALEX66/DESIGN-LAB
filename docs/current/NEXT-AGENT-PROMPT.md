@@ -279,6 +279,8 @@ E4 独立人审 / E5 发布可复现。**文档修订 ≠ 规划完成 ≠ 代�
 
 - **2048×1152 这一档已经人工看过，而且我在那里看错过一次**：采集工装补了 `2048:1152` 档（原来会走 `w*0.62` 的兜底，量出一个谁都没有的画幅），重采 23 张后逐张看仪表盘与能力目录。能力目录在宽屏下看着像"表头与单元格逐列错位"（`MIT` 落在 许可 表头左边、`UNRESOLVED` 徽标落在 修订 表头右边）。读构造即被否证：那一屏是**单个 `<table>`**（表头清单是 `apps/workbench/shell.ts` 里的 `TABLE_COLUMNS`，起于 2563 行；每格都是 `el('td', …)`），列宽由整列共享，结构上不可能逐行错位——看到的是目测像素的误差，加上 auto 布局把富余宽度全给最宽列造成的空档。所以 **2048 档没有缺陷**（同档的系统性检查已由 ui_audit 判 13 scope `violations=0`）。教训写下来：宽屏截图里"列不对齐"这种判断，先回去读它是 `table` 还是 `grid`，不要拿肉眼估的 x 坐标下断言。
 
+- **桌面 jury 面板的判定对象有测试了**：面板不自己找版本，它把 `GET /api/projects/<id>/jury` 返回的 `reviewable_versions` 直接灌进版本下拉（`apps/workbench/shell.ts` 的 `juryVerdictForm(projectId, data.reviewable_versions ?? [], reload)`），再对着读回来的 `subject_ref` 提交判定。新增 `test_the_jury_readback_offers_an_imported_asset_version_as_a_verdict_target` 证明：真导入一张图之后，读侧会给出 `version:<该版本>` 且 `artifact_sha256` 等于导入返回的摘要——此前只证明过"拿导入响应里的 version_id 能 POST 判定"，那不等于界面能列出它。
+
 ## 10. 什么算完成
 
 - 改动有**可复核的读数**（命令 + 输出），不是"应该没问题"。
