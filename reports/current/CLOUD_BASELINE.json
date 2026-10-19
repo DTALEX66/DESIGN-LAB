@@ -9,63 +9,48 @@
   },
   "fresh": false,
   "freshnessMeaning": "at generation only; check verifies bound-input integrity, not current Git or cloud state",
-  "generatedAt": "2026-10-19T13:42:11+00:00",
+  "generatedAt": "2026-10-19T14:42:33+00:00",
   "gitStateMeaning": "generation-time observation, not current HEAD",
   "local": {
     "branch": "qoder/designlab-backup-consistency-20261007",
-    "origin_main": "92ec160d0143e053690ac3334f315e25b454309b",
-    "sha": "0c1a8112d298e1c9def0918912e3482bbcca66f5",
+    "origin_main": "211b3c4a09c27d137fabbdb748766a5d77007eab",
+    "sha": "211b3c4a09c27d137fabbdb748766a5d77007eab",
     "source_worktree_clean": false,
     "tracked_files": 3727,
     "worktree_changes": [
       {
-        "content": "sha256:e03e035aa0fdc2fc81d081e3324fe2cbb760d2afb11ff4d72bef2da9b53d2aa4",
-        "kind": "M",
-        "path": ".project/governance/authority-index.json"
-      },
-      {
-        "content": "sha256:80abbaa605260c831d2ad6d47777e0f0d45df96257dd8c5142aafdada88cd4b3",
+        "content": "sha256:89040288ef70f3d4e078495cb039c07398824cb780337b66093bb93064c95608",
         "kind": "M",
         "path": "AGENTS.md"
       },
       {
-        "content": "sha256:6f0ec9bbf2ca32db70d0f488a6c68e2b62795387755e9a58e06ccfe09bab8f50",
+        "content": "sha256:4f7bd6c0713563f135bd637c9b9afa19b59ed3889097810c35bf384add88acf8",
         "kind": "M",
         "path": "AUTHORITY.md"
       },
       {
-        "content": "sha256:a5c891cfb4ca45574ec3ba805e3a17355c2273a2513afc0885b2a8ef8bf73ab5",
-        "kind": "M",
-        "path": "design-lab/config/task-ledger-r3.json"
-      },
-      {
-        "content": "sha256:732e87097143e3da21370ee8497dc1cc1a93827c28eb4afe1234f4dcb64d7887",
+        "content": "sha256:a030b4359cdf7da5ba559f7c29c3e4b1625caa5bc120b59e3ddec49f2a8f1994",
         "kind": "M",
         "path": "docs/current/NEXT-AGENT-PROMPT.md"
       },
       {
-        "content": "sha256:f852331b2442986cc56a960b9aba977851f52ad6cd45c1a87898810565579a96",
-        "kind": "M",
-        "path": "docs/current/PRODUCT_DEFINITION.md"
-      },
-      {
-        "content": "sha256:f890c6d8ef42a0c1537bf46182435eb7546e78168da9e3ad806753c4d97e508b",
+        "content": "sha256:e13a1cab1866e1aede297b991d27b07890ab9a3fcf4e267e7447313ccdbec453",
         "kind": "M",
         "path": "docs/history/taskpacks/20261009-adoption/AUTHORITY-PIN-CHANGE.json"
       },
       {
-        "content": "sha256:ee8773d833d9634c1a0b23635cd8354af98123d09176726900e22e0c1a64e7e4",
+        "content": "sha256:a84f11da744024ea1b6e17825061d225abd56c923ba6b26b1fbcfaa72d18899d",
         "kind": "M",
         "path": "scripts/verify_top_level_authority.py"
       }
     ],
-    "worktree_digest": "sha256:3cbe668a11d1bff7314ad4a6ca382485ba5f7b0b1244ea2721433c852071541f"
+    "worktree_digest": "sha256:3afc014cacbafa80641268e05b4abb911abe4379eb5ab6b603478dc4edbf1c7e"
   },
   "note": "No GitHub API query was run by this generator; tool installation is not inferred.",
   "remoteRef": "origin/main (local tracking ref)",
   "schemaVersion": "design-lab/cloud-baseline/v2",
   "subjectMeaning": "subjectType=WORKTREE means the tree was dirty at generation; worktreeDigest covers HEAD plus the non-generated changes",
-  "subjectSha": "0c1a8112d298e1c9def0918912e3482bbcca66f5",
+  "subjectSha": "211b3c4a09c27d137fabbdb748766a5d77007eab",
   "subjectType": "WORKTREE",
   "taskpackHash": "2cfd84627352e9f1b29b42787fa43466cd9a836130d826d43678b7733856ffda",
   "taskpackId": "DL-TP-20261009-UI-FIRST-R1",
@@ -80,5 +65,5 @@
     "branchProtection"
   ],
   "worktreeClean": false,
-  "worktreeDigest": "sha256:3cbe668a11d1bff7314ad4a6ca382485ba5f7b0b1244ea2721433c852071541f"
+  "worktreeDigest": "sha256:3afc014cacbafa80641268e05b4abb911abe4379eb5ab6b603478dc4edbf1c7e"
 }

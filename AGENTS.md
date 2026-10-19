@@ -52,7 +52,7 @@ DESIGN-LAB 是面向职业视觉设计的、AI 原生、平台中立的专业视
 - 项目 Owner：DTALEX66
 - 代码 SSOT：`D:/All projects/DESIGN-LAB`（本地）/ `github.com/DTALEX66/DESIGN-LAB`（云端）
 - 设计真值：本仓库内的 Design IR、Domain Pack、Jury、Human Gate、rights、preflight
-- 知识出口：经 rights 检查和人工批准的 `KnowledgeCandidate` 可提交 ArcheAxis
+- 知识出口：经 rights 检查和人工批准的 `KnowledgeCandidate` 可提交 ArcheAxis；这是**可选的标准合同出口**，不是本项目的完成条件，也不等待对方联调
 
 ## Evidence 等级（E0-E5）
 
@@ -117,7 +117,7 @@ Owner原话：其他任务冻结，以这份任务为当前权威与闭环目标
 定位纠正为专业视觉智能与可复用设计能力系统；不是第二画布/通用编辑器/全流程设计文件交付平台，不是通用Agent Runtime/聊天客户端/模型网关/跨项目调度器。
 2026-10-09 UI-FIRST包降为SUPERSEDED/LINEAGE；`currentExecution` 34项全部FROZEN_DEFERRED，不再派工；原字节、定义与历史证据保留。
 本轮只做权威/规划对齐、冲突矩阵、能力映射、技术可行性矩阵、最小真实闭环规划与按范围测试；不实施产品功能。
-未执行且继续冻结：release、安装态分发、真实宿主E3、真人E4、AAOS联调、ComfyUI/H3。E盘保护、私有数据、Human Gate边界不变。手机端已从冻结待排清单移出并排除出范围（owner 2026-10-19 授权：去掉手机端），不得再作为待办、缺口或派工项出现。
+未执行且继续冻结：release、安装态分发、真实宿主E3、真人E4、ComfyUI/H3。AAOS联调不再是本项目的冻结依赖或门（owner 2026-10-19）。项目目标（owner 2026-10-19）：DESIGN-LAB 按**独立可运行、全链路可跑通**的项目标准推进——视觉输入 → 分析/提示词生成或反推 → 可验证输出或合格工具调用 → 用户/授权 Agent 验收 → 知识候选在本项目内留存。AAOS 不是本项目的依赖、闸门或待排期联调项；保留的是标准、通用、版本化的公共接入接口（Schema/API/Manifest 合同与 `KnowledgeCandidate` 出口），外部知识系统能通过合同连接，但本项目不等待其联调结果才宣布闭环成立。E盘保护、私有数据、Human Gate边界不变。手机端已从冻结待排清单移出并排除出范围（owner 2026-10-19 授权：去掉手机端），不得再作为待办、缺口或派工项出现。
 范围重申（owner 2026-10-19 原话：「再说一遍 不做手机端 只做桌面端」）：手机端是**排除项**，不是「本轮暂缓」。任何后续批次都不得把手机端列为待办、不得为其派工、不得把它计入能力缺口或未交付项；解除只认 owner 新的明确授权。桌面端自适应布局（`apps/workbench/style.css` 的媒体查询等）不等于手机交付，不得当作扩到手机端的依据。实测 `currentExecution` 34 项状态直方图仍全部 `FROZEN_DEFERRED`，即当前不存在任何可派工的手机工作。
 
 ## 2026-10-09 owner执行决定（2026-10-19 起降为前继记录）

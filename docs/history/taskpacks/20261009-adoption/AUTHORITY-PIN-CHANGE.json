@@ -111,7 +111,22 @@
    },
    "why": "手机端从「未执行且继续冻结」清单移出并改为排除项：AUTHORITY.md 的 2026-10-19 条款与 2026-10-12 更正行（保留原读数并标注取代）、authority-index 的 directionAdoption.mobile 改为 OUT_OF_SCOPE（该字段无消费者、无闸门绑定；ownerAdoption 内那份是 2026-10-09 记录，未动）。AGENTS.md / PRODUCT_DEFINITION / NEXT-AGENT-PROMPT 同步改述，但它们不在钉死清单内。账本 currentExecution.mobile 是 schema const FROZEN_DEFERRED 且有测试断言，改词属 schema+测试+UI 状态词的合同变更，不在本次授权范围，已在入口面写明。",
    "checks": "verify_top_level_authority 仍 10 项；2026-10-09 当日原文逐字保留，只扩展我自己写的取代标注；冻结分区 tasks/evidence/source/predecessor/taskpack/plan_path/baseline_sha 字节不变，本次只动 currentExecution.note 一句；authority-index 仍解析通过且 ownerAdoption.mobile 保持原值"
+  },
+  {
+   "when": "2026-10-19",
+   "authority": "owner instruction 2026-10-19: 「AAOS 不要管 保留标准通用的接入接口等 本项目按照独立能运行的能全链路跑通的项目」",
+   "changed": [
+    "AUTHORITY.md"
+   ],
+   "from": {
+    "AUTHORITY.md": "6f0ec9bbf2ca32db70d0f488a6c68e2b62795387755e9a58e06ccfe09bab8f50"
+   },
+   "to": {
+    "AUTHORITY.md": "4f7bd6c0713563f135bd637c9b9afa19b59ed3889097810c35bf384add88acf8"
+   },
+   "why": "AAOS 从「未执行且继续冻结」清单移出，并重述项目目标为独立可运行、全链路可跑通：保留版本化公共合同（Schema/API/Manifest）与 KnowledgeCandidate 出口，但外部知识系统的联调/接收不再是本项目的前置条件或完成判据。入口面把最后一根状态轴从「AAOS 接收」改名为「外部知识系统接收」并写明本项目只写候选、只读回执；「当前没有可用的、未冻结的真实宿主」清单里删去 AAOS（它不是宿主）。AGENTS.md 与 NEXT-AGENT-PROMPT 同步改述，均不在钉死清单内；BOUNDARY_CONTRACT 与 product-manifest 的不拥有边界、非目标条款原样保留——那是范围，不是等待。",
+   "checks": "verify_top_level_authority 仍 10 项；authority-index 未动（其钉值与上一 revision 相同，故本次 changed 只含 AUTHORITY.md）；docs/history/** 冻结原件未编辑；账本冻结分区字节不变；AGENTS.md 为 -text，blob 字节即工作树字节，行尾形状未变"
   }
  ],
- "current_pins_note": "Latest change is revisions[-1] (2026-10-19 scope removal): AUTHORITY.md and authority-index.json re-pinned after 手机端 was taken out of the frozen-deferred list and recorded as an exclusion on owner authorization. Earlier revisions are kept as the supersession trail."
+ "current_pins_note": "Latest change is revisions[-1] (2026-10-19 standalone-goal reframe): AUTHORITY.md re-pinned after AAOS was taken out of the frozen-dependency list and the project goal was restated as standalone and end-to-end runnable, with the versioned public contracts retained. Earlier revisions are kept as the supersession trail."
 }
