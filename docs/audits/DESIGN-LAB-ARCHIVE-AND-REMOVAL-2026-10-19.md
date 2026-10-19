@@ -147,13 +147,13 @@ authority-index 与账本仍点名的四份包体。
 
 | 闸门 | 宽度 | 高度 | 主题 |
 | --- | --- | --- | --- |
-| `test_workbench_overflow_gate` | 1440/1280/1920 | 900 + 620（滚动提示专用一趟） | design-lab/dark **与** ui2026/light（本轮补） |
+| `test_workbench_overflow_gate` | 1440/1280/1920 | 900（全套几何）+ 620（滚动提示与边界） | design-lab/dark **与** ui2026/light（本轮补） |
 | `test_workbench_contrast_gate` | 1440/1920 | 900 | design-lab/dark **与** ui2026/light |
 | `test_workbench_theme_geometry_gate` | 按组合 | 900 | 三种组合（design-lab/dark、ui2026/dark、ui2026/light） |
 | `test_workbench_theme_affordance_gate` | 单宽 | 900 | 它本身就是"点主题按钮"，天然跨主题 |
 | `test_workbench_ui_audit_gate` | 1280/1920 | 900 | **仅默认主题**——它测的溢出/对比/键盘可达/目标尺寸/命名/降级措辞/控制台噪声里，对比与几何已由上面两道按主题覆盖，键盘可达与命名不随色板变；因此本轮不加第二趟（代价约等于把这道 26 scope 的量测翻倍），而是把这条判断记在这里，免得下一轮重新查一遍再得出同样的结论 |
 
-**仍未被任何闸门按主题分的维度**：窗口高度只有 900 与 620 两点，DESIGN.md 第 125 行要求的"尺寸档位逐个截图比较"由 `capture_workbench_screenshots.mjs` 的 `VIEWPORT_HEIGHT` 档位承担（截图是人看的，不是闸门判的）。要把高度也变成断言面，需要给溢出闸门加高度参数——那是下一刀的活，本轮没做，不假装已覆盖。
+**高度维度本轮补上了**：溢出审计原先只在 900px 高下比几何，620px 那一趟只判滚动提示出不出。同一趟里导航与页脚都在屏幕上，所以顺手把边界也量了——实测 `gap620=12`（1440/1280/1920、两个主题一致，列表溢出 779px）。把阈值从 6 抬到 13 会让闸门 `OV_SPEC_BROKEN`，恢复后两主题重跑仍绿，所以这条比较是活的而不是装饰。**仍未按主题分的只剩 ui_audit 那道**（理由见上表），而 DESIGN.md 第 125 行要求的"尺寸档位逐个截图比较"仍由 `capture_workbench_screenshots.mjs` 的 `VIEWPORT_HEIGHT` 档位承担——截图是人看的，不是闸门判的。
 
 ## 6. 本轮暴露并修掉的六个缺陷
 
