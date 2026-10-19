@@ -1,16 +1,16 @@
 {
   "checkScope": "bound-input-and-output-integrity; not current Git or cloud freshness",
-  "generatedAt": "2026-10-19T19:07:27+00:00",
+  "generatedAt": "2026-10-19T19:25:34+00:00",
   "gitObservation": {
     "branch": "qoder/designlab-backup-consistency-20261007",
-    "origin_main": "6f4a89a46eb1d5a6d49d2e40d17133c5cdb0278f",
-    "sha": "ebdf9c79e69f59ffc2878a4ba42b1c98ab724119",
+    "origin_main": "fd5e426e474e58b2a1def5f668695ee854a1ebdb",
+    "sha": "0299c6cb6aaee033b57b93b8e5b6c07b875ac445",
     "source_worktree_clean": true,
     "tracked_files": 3730,
     "worktree_changes": [],
-    "worktree_digest": "sha256:19e72cfa6851784551be4fc941135251bc613aa7c24f0f56282f3e5583f2f023"
+    "worktree_digest": "sha256:8b85adeb664df7e688bcc449ad1d72b4fa744540349366debe28ad59040786a9"
   },
-  "inputDigest": "sha256:96f73661b3c5e4b6db7c7154c2778f98776ced1192fb012036d50c0cac644f5c",
+  "inputDigest": "sha256:67a81b476fe87a7aa8764bccc54e6ab07f9860bfbca3df2750336f0eb4d77672",
   "inputDigestMeaning": "primary freshness binding: canonical SHA-256 over the exact input files the projections read plus the git tree scope; recomputed at check time (FU-10)",
   "inputHashes": {
     ".github/workflows/canonical-verify.yml": "8e8e1a17f7b622cbfa7187f90b6ebb69a2d75ff3f76ca3a0b2ef4a00774f25ac",
@@ -675,15 +675,15 @@
   },
   "ledger": "design-lab/config/task-ledger-r3.json",
   "outputHashes": {
-    "ADAPTER_EVIDENCE_RECONCILIATION.json": "51a26c2d3ddc963cdec16ca92a252408cc2628a1296efcff0e65bd74b95f881f",
-    "CLOUD_BASELINE.json": "9113d57ac6fab35e8e57ade349fad12c63b236d70d4c05810ed39ba24f481112",
-    "CLOUD_BASELINE.md": "6c4ec21c2f12c34c82efc6080ae181ecc0cf576f8fd19002e8956fe4dc228b29",
-    "DOMAIN_PACK_READINESS.json": "c783286f537047cc204acfe59d4fe26726b17dfa20a0fc422fa851c3f8e6f25f",
-    "KNOWLEDGE_INVENTORY.json": "2480ccf6b5df57353d90d248d49ee55c84419a00bfc71f686ef26f04b1bdd05c",
-    "PROJECT_STATUS.json": "0f682127fd164b406324a05308a52f86a46eb2097297cede9a7a520f0b01ce75",
-    "PROJECT_STATUS.md": "05175a2ba232fa892dc4ab9c051642751090086a822fa648b2e10aea1eb5a92c",
-    "RELEASE_READINESS.json": "4bd16cb0e4d09f6c6a4cb47675b14d42a2e954486f12a81dd3ceec737fe31adc",
-    "TASK_PROGRESS.json": "3b74fe7ca04f6ff2633d68c9ebc0fda39205541c87db640c535ab5d721763680"
+    "ADAPTER_EVIDENCE_RECONCILIATION.json": "a53e80c627c8181dd106a25aa0396d01a28d54916aa315b99427019011010383",
+    "CLOUD_BASELINE.json": "f4cff31dea39eb22a6cad00683b502011c8a0a39975da348e1e66dacd4c2cd83",
+    "CLOUD_BASELINE.md": "96319e83414c8a9ef754c624c754e46037b2244a14f2e75edac87d66a1e94ef6",
+    "DOMAIN_PACK_READINESS.json": "8b1107a62d4835182a5c466e540f2707052e496893cfa9e8afe8108c9864c6c3",
+    "KNOWLEDGE_INVENTORY.json": "4abea19ba3c0be16d3ba8f0479cbca1361a32ee103622ca22d5ac00fa8d963b9",
+    "PROJECT_STATUS.json": "cdc1fa753a5faad131942265f7b11b06ef7aaa9da32f4bbc0d526d6676173091",
+    "PROJECT_STATUS.md": "e733fa048d3f99944e3fe36a25f3f126b14807ed2e7e2863ec94ce1f003419ef",
+    "RELEASE_READINESS.json": "f13476c59fc7cc625a2ea8ffef75ed1deb9b0800c49e5a1740ad308969cc8271",
+    "TASK_PROGRESS.json": "a4b8847896be60a644f783234697631af663e99eeb4ac0cc4ccb5769f53b3474"
   },
   "reportRoot": "../../reports/current/",
   "reports": [
@@ -699,5 +699,5 @@
   ],
   "schemaVersion": "design-lab/current-report-index/v3",
   "subjectMeaning": "generation-time git observation, not a freshness claim; exact-SHA evidence is the CI artifact",
-  "subjectSha": "ebdf9c79e69f59ffc2878a4ba42b1c98ab724119"
+  "subjectSha": "0299c6cb6aaee033b57b93b8e5b6c07b875ac445"
 }
