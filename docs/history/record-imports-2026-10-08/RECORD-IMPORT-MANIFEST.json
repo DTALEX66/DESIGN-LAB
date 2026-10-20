@@ -482,14 +482,14 @@
    "also_in_repo": [
     "docs/current/PRODUCT_DEFINITION.md"
    ],
-   "repoBytesAfterImport": 11221,
-   "repoCrc32AfterImport": "93a62b09",
-   "repoSha256AfterImport": "sha256:28e2fbcf0ded1b4dad3b91595cc90346d4fa42502bc0fce2f8705a04a507f0df",
+   "repoBytesAfterImport": 11466,
+   "repoCrc32AfterImport": "efe38284",
+   "repoSha256AfterImport": "sha256:a0e925302f642b5f64b47be77d9bd3c17de70ee070cda42c6774069a7e5f17e2",
    "evolvedBy": {
-    "commit": "5ba0ffd9",
-    "subject": "feat(contracts): bind the three envelopes that only had a version string"
+    "commit": "638019bf",
+    "subject": "docs(standards): register the industry specs with their real provenance, UNKNOWNs and all"
    },
-   "evolution": "The archive bytes recorded above are unchanged and still verify against the source ZIP (leg 1). This row is held to the repository copy's post-import digests instead, because commit 5ba0ffd9 deliberately rewrote that file after the import. Leg 2 still refuses the file if it matches neither the archived nor the declared bytes."
+   "evolution": "The archive bytes recorded above are unchanged and still verify against the source ZIP (leg 1). This row is held to the repository copy's post-import digests instead, because commit 638019bf deliberately rewrote that file after the import. Leg 2 still refuses the file if it matches neither the archived nor the declared bytes."
   },
   {
    "source_container": "DESIGN-LAB_FINAL_CONSOLIDATED_PACKAGE_2026-09-29.zip",
