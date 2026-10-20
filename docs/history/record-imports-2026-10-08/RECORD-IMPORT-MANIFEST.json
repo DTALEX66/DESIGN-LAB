@@ -337,14 +337,14 @@
    "also_in_repo": [
     ".project/governance/authority-index.json"
    ],
-   "repoBytesAfterImport": 5923,
-   "repoCrc32AfterImport": "24c99239",
-   "repoSha256AfterImport": "sha256:7658dfc583d62397174ffefc958d29d35436fbe2ee41663cc48793fec26b9e95",
+   "repoBytesAfterImport": 7088,
+   "repoCrc32AfterImport": "71cc7dd5",
+   "repoSha256AfterImport": "sha256:fd01ce37148e183deab6a2064ba80062327e351b97eb78f66361573684fe4744",
    "evolvedBy": {
-    "commit": "3808f42b",
-    "subject": "fix(authority): record the AAOS ruling on the machine surface too"
+    "commit": "a5ef95ae",
+    "subject": "docs(authority): adopt the owner's 2026-10-20 partial unfreeze, then re-pin"
    },
-   "evolution": "The archive bytes recorded above are unchanged and still verify against the source ZIP (leg 1). This row is held to the repository copy's post-import digests instead, because commit 3808f42b deliberately rewrote that file after the import. Leg 2 still refuses the file if it matches neither the archived nor the declared bytes."
+   "evolution": "owner 2026-10-20 定点解冻与范围收口：AUTHORITY.md 增加 UNFREEZE-20261020-R1 采纳块并就地标注原禁止条款的失效范围；authority-index.json 增加 unfreezeAdoption；PRODUCT_DEFINITION.md 增加 2026-10-20 修订节。归档字节与 leg 1 不动。"
   },
   {
    "source_container": "DESIGN-LAB_FINAL_CONSOLIDATED_PACKAGE_2026-09-29.zip",
@@ -360,14 +360,14 @@
    "also_in_repo": [
     "AUTHORITY.md"
    ],
-   "repoBytesAfterImport": 21658,
-   "repoCrc32AfterImport": "7de2eba7",
-   "repoSha256AfterImport": "sha256:4f7bd6c0713563f135bd637c9b9afa19b59ed3889097810c35bf384add88acf8",
+   "repoBytesAfterImport": 25527,
+   "repoCrc32AfterImport": "0d22ab0d",
+   "repoSha256AfterImport": "sha256:7cd2db03544a3008c613e6730eeca859a1f73626e9010cb8eafa963d18a6022a",
    "evolvedBy": {
-    "commit": "f4384cde550cc892a95708358e2c2d665317a3b1",
-    "subject": "docs(authority): take AAOS off the project's critical path and state the standalone goal"
+    "commit": "a5ef95ae",
+    "subject": "docs(authority): adopt the owner's 2026-10-20 partial unfreeze, then re-pin"
    },
-   "evolution": "上一版 post-import 摘要 sha256:081b5f9412d2bfa52e4eb31c5a761af68dcc1d2426be160d800bca65e1b5f9d8（by e9ff0717）因该批文字改动而失效；§2026-10-09 采纳条款正文里的现在时句子（「当前唯一integrated TaskPack：UI-FIRST」）会被后续会话当成当下入口读。旧句原文保留不删，只加注为当日原文并写明由 DL-TP-20261019-DIRECTION-R1 取代；authority ID、分类、检查数均未变。 归档原件与 ZIP 的逐成员比对（leg 1）不受影响；leg 2 按本摘要把关。"
+   "evolution": "owner 2026-10-20 定点解冻与范围收口：AUTHORITY.md 增加 UNFREEZE-20261020-R1 采纳块并就地标注原禁止条款的失效范围；authority-index.json 增加 unfreezeAdoption；PRODUCT_DEFINITION.md 增加 2026-10-20 修订节。归档字节与 leg 1 不动。"
   },
   {
    "source_container": "DESIGN-LAB_FINAL_CONSOLIDATED_PACKAGE_2026-09-29.zip",
@@ -482,14 +482,14 @@
    "also_in_repo": [
     "docs/current/PRODUCT_DEFINITION.md"
    ],
-   "repoBytesAfterImport": 9048,
-   "repoCrc32AfterImport": "6206a559",
-   "repoSha256AfterImport": "sha256:f852331b2442986cc56a960b9aba977851f52ad6cd45c1a87898810565579a96",
+   "repoBytesAfterImport": 11171,
+   "repoCrc32AfterImport": "ec2cfb4c",
+   "repoSha256AfterImport": "sha256:f93281d22ade395db12349edb9d8f47bcff0742ced5d9be18c0fab6621ca0067",
    "evolvedBy": {
-    "commit": "f4384cde550cc892a95708358e2c2d665317a3b1",
-    "subject": "docs(authority): take AAOS off the project's critical path and state the standalone goal"
+    "commit": "a5ef95ae",
+    "subject": "docs(authority): adopt the owner's 2026-10-20 partial unfreeze, then re-pin"
    },
-   "evolution": "上一版 post-import 摘要为 sha256:7a2de570fc0ddda0963f95288106a74c4d2fab76d9252d09e7157d5618b3185c（by bb514458），因归档波次与随后的行尾更正而失效；“当前统一剩余任务入口”一句改指 2026-10-19 方向包并记录其余任务 FROZEN_DEFERRED；这是 owner 2026-10-19 方向采纳的落地，不是新任务进度。 归档原件字节与 ZIP 的逐成员比对（leg 1）不受影响；leg 2 改按上面的 post-import 摘要把关，两条摘要都对不上即拒。"
+   "evolution": "owner 2026-10-20 定点解冻与范围收口：AUTHORITY.md 增加 UNFREEZE-20261020-R1 采纳块并就地标注原禁止条款的失效范围；authority-index.json 增加 unfreezeAdoption；PRODUCT_DEFINITION.md 增加 2026-10-20 修订节。归档字节与 leg 1 不动。"
   },
   {
    "source_container": "DESIGN-LAB_FINAL_CONSOLIDATED_PACKAGE_2026-09-29.zip",
