@@ -82,7 +82,7 @@ Owner 原话（逐字）：
 其余 34 项仍 `FROZEN_DEFERRED`（`scripts/verify_documented_counts.py` 实测，任何一项解冻都会让四处句子同时红）。
 新落地的范围收口：**字体库与第三方素材的权利判定移出本项目范围**，不得再列为缺口或开工前提；
 `source.job_id` / `operation_id` 改为界面可填写 + 可显式选择"不使用"，代理不得自行铸造标识冒充来源证据；
-`DESIGN.md` 在 owner 真实测试前不进已批准状态，逐条配色归属与品牌蓝裁定**挂起不是阻塞**，不要再反复请示。业界规范入库这一步已落地一半（2026-10-21）：`packages/capabilities/standards/INDUSTRY_SPEC_REGISTER.md` 按「可吸收 / 只可引用 / 今日未能核验」三档登记 11 条外部规范的出处、版本与许可原话，取不到的字段一律留 UNKNOWN——PDF/UA、WCAG 3、IEC 61966-2-1 三条要重取，不许补一个日期顶上。
+`DESIGN.md` 在 owner 真实测试前不进已批准状态，逐条配色归属与品牌蓝裁定**挂起不是阻塞**，不要再反复请示。业界规范入库这一步已落地一半（2026-10-21）：`packages/capabilities/standards/INDUSTRY_SPEC_REGISTER.md` 按「可吸收 / 只可引用 / 今日未能核验」三档登记 11 条外部规范的出处、版本与许可原话，取不到的字段一律留 UNKNOWN——WCAG 3.0 草案已在第二轮直接取到（页面原话「W3C Working Draft 10 September 2026」，许可为 W3C 文档使用规则；它是方向不是判据，本项目现行判据仍是 WCAG 2.2 AA）；PDF/UA-1 与 IEC 61966-2-1 两条仍取不到出版方页面（ISO 目录 403、pdfa.org 全站 403/404、IEC 那个编号实测返回 CISPR 25:2008），版次只有二手线索，登记件里原样标为未核验——下一位要重取，而不是补一个日期顶上。
 
 本轮同步过的面（都已落盘）：`AUTHORITY.md`、authority index、`AGENTS.md`、
 `docs/current/PRODUCT_DEFINITION.md`、`docs/architecture/BOUNDARY_CONTRACT.md`、`docs/current/ROADMAP.md`、
