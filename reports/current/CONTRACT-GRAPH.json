@@ -1,8 +1,8 @@
 {
   "schemaVersion": "design-lab/contract-graph/v1",
   "task_key": "DL-TP-20260914-DEEPSEEK-AUTHORITY-R1::DLDS-F000",
-  "generated_at": "2026-10-20T15:47:05+00:00",
-  "subject_sha": "ea3cb20e22eb5a3a11d3a11597f33f3af4ba5c88",
+  "generated_at": "2026-10-20T16:05:27+00:00",
+  "subject_sha": "b7b07c35a97ae1feecfc653ab700d04d8530ef59",
   "chain": "Schema -> Python model -> DB -> producer -> consumer -> receipt -> projection",
   "concepts": {
     "Job": {

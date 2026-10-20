@@ -8,36 +8,15 @@
   },
   "fresh": false,
   "freshnessMeaning": "at generation only; check verifies bound-input integrity, not current Git or cloud state",
-  "generatedAt": "2026-10-20T15:08:23+00:00",
+  "generatedAt": "2026-10-20T16:10:58+00:00",
   "git": {
     "branch": "qoder/designlab-backup-consistency-20261007",
-    "origin_main": "44e8defb381a0e43855166b7fdb6789643c5a091",
-    "sha": "8821f3ce91845014123c91722f563dc98e8a7b58",
-    "source_worktree_clean": false,
-    "tracked_files": 3741,
-    "worktree_changes": [
-      {
-        "content": "sha256:7af62192816deabd201e807b37703c4f80ce9dcb6cf942af01aae8b32fcff564",
-        "kind": "M",
-        "path": "src/design_lab/runtime/state_resources.py"
-      },
-      {
-        "content": "sha256:43be754dc440b10f32beab6ec49f049d576806c53a4a773c0c76160b0d62429e",
-        "kind": "U",
-        "path": "design-lab/schemas/model-selection-v1.schema.json"
-      },
-      {
-        "content": "sha256:892a7eed0a9a2fb13b8ec41ef81d7aead5b31e36d8c87a09f9f1deee1f1e052d",
-        "kind": "U",
-        "path": "design-lab/schemas/state/design-lab-state-model-selection-v1.sql"
-      },
-      {
-        "content": "sha256:46808dd67f99835a9b92d22101620bdf8838c79f6545bb31279d1b7be704d3ef",
-        "kind": "U",
-        "path": "src/design_lab/model_selection.py"
-      }
-    ],
-    "worktree_digest": "sha256:7a2603dd024e560a946fc64265fb5fad563dc56de45d1062ba1b98da269a0c71"
+    "origin_main": "ea3cb20e22eb5a3a11d3a11597f33f3af4ba5c88",
+    "sha": "b7b07c35a97ae1feecfc653ab700d04d8530ef59",
+    "source_worktree_clean": true,
+    "tracked_files": 3745,
+    "worktree_changes": [],
+    "worktree_digest": "sha256:fa164a675579342dfc4a7a92ca2ed645e0bc7ead0a113a0f78dda220bf402d6a"
   },
   "gitStateMeaning": "generation-time observation, not current HEAD",
   "hostLive": "derived from host_live axis only",
@@ -53,8 +32,8 @@
     "quarantinedSources": 162
   },
   "subjectMeaning": "subjectType=WORKTREE means the tree was dirty at generation; worktreeDigest covers HEAD plus the non-generated changes",
-  "subjectSha": "8821f3ce91845014123c91722f563dc98e8a7b58",
-  "subjectType": "WORKTREE",
+  "subjectSha": "b7b07c35a97ae1feecfc653ab700d04d8530ef59",
+  "subjectType": "COMMIT",
   "taskCounts": {
     "FROZEN_DEFERRED": 34
   },
@@ -66,9 +45,9 @@
   "testRunMeaning": "bound run: python scripts/run_bound_test_suite.py --modules test_boot_reconciliation",
   "testRunResult": "OK",
   "tests": {
-    "definedTestMethodCount": 3106,
+    "definedTestMethodCount": 3114,
     "executed": "see individual verified ledger receipts"
   },
-  "worktreeClean": false,
-  "worktreeDigest": "sha256:7a2603dd024e560a946fc64265fb5fad563dc56de45d1062ba1b98da269a0c71"
+  "worktreeClean": true,
+  "worktreeDigest": "sha256:fa164a675579342dfc4a7a92ca2ed645e0bc7ead0a113a0f78dda220bf402d6a"
 }
