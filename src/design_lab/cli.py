@@ -281,6 +281,26 @@ def main(argv=None):
     exporting.add_argument('--project-id', required=True, help='owning project id (32 hex)')
     exporting.add_argument('--candidate', required=True,
                            help='the candidate id the knowledge-candidates route returned')
+    models = commands.add_parser(
+        'models', help='the model catalogue and this project\'s recorded choice; listing and '
+                       'choosing run no model and send nothing')
+    models_action = models.add_subparsers(dest='action', required=True)
+    models_action.add_parser('list', help='print GET /api/models as assembled from the registries')
+    models_show = models_action.add_parser('show', help='read back one project\'s recorded choice')
+    models_show.add_argument('--project-id', required=True, help='owning project id (32 hex)')
+    models_choose = models_action.add_parser(
+        'choose', help='record a choice for one project: a catalogue model_id, or --unused')
+    models_choose.add_argument('--project-id', required=True, help='owning project id (32 hex)')
+    models_choose.add_argument('--model', default=None,
+                               help='a model_id exactly as GET /api/models reports it; the service '
+                                    'copies its facts, it does not accept yours')
+    models_choose.add_argument('--unused', action='store_true',
+                               help='record the explicit decision not to use a model')
+    models_choose.add_argument('--actor', required=True,
+                               help='who made this choice (required: an unattributed choice is not '
+                                    'a decision anyone can read back)')
+    models_choose.add_argument('--actor-kind', default='human', choices=('human', 'agent'),
+                               help='the design layer\'s vocabulary, not a second one')
     args = parser.parse_args(argv)
     if hasattr(sys.stdout, 'reconfigure'):
         sys.stdout.reconfigure(encoding='utf-8')
@@ -760,6 +780,24 @@ def main(argv=None):
                 result = KnowledgeReview(service).export_document(args.project_id, args.candidate)
             except KnowledgeReviewError as exc:
                 print(json.dumps({'status': 'ERROR', 'error': exc.code, 'detail': exc.detail},
+                                 ensure_ascii=False))
+                return 2
+        elif args.command == 'models':
+            from .model_catalog import ModelCatalogError, catalog as model_catalog
+            from .model_selection import ModelSelection, ModelSelectionError
+            try:
+                if args.action == 'list':
+                    result = model_catalog()
+                elif args.action == 'show':
+                    result = ModelSelection(service).readback(args.project_id)
+                else:
+                    result = ModelSelection(service).record(
+                        args.project_id, model_id=args.model, declared_unused=args.unused,
+                        actor=args.actor, actor_kind=args.actor_kind)
+            except (ModelCatalogError, ModelSelectionError) as exc:
+                print(json.dumps({'status': 'ERROR', 'error': getattr(exc, 'code', None)
+                                            or type(exc).__name__,
+                                  'detail': getattr(exc, 'detail', None) or str(exc)},
                                  ensure_ascii=False))
                 return 2
         elif args.command == 'paths':

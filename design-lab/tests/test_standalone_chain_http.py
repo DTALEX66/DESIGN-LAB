@@ -189,11 +189,32 @@ class StandaloneChainTests(unittest.TestCase):
         # This is the segment that had no entry point at all before 2026-10-20, so the chain could
         # not reach it: a composition is only proof if it carries the brief and direction the chain
         # just wrote, and a reversal is only proof if it restates the observations this hop supplied.
+        # The operator's model choice, walked between the records and the prompt that must carry
+        # it: the catalogue is read, one of its own rows is chosen, and the composition has to
+        # echo that revision -- otherwise "the user chose" would be a UI claim with no chain behind
+        # it, and the prompt could name a model nobody recorded a decision about.
+        catalogue = self.hop('catalog', 'GET', '/api/models', None, 200)
+        chosen_model = catalogue['models'][0]['model_id']
+        self.assertEqual('design-lab/model-catalog/v1', catalogue['schemaVersion'])
+        self.assertEqual(0, catalogue['counts']['default_enabled_true'],
+                         'the chain now walks a catalogue whose defaults are enabled; that is a '
+                         'qualification claim the radar has not made, so re-read this hop on purpose')
+        choice = self.hop('model-choose', 'POST',
+                          f'/api/projects/{project}/model-selection/choose',
+                          {'model_id': chosen_model, 'declared_unused': False,
+                           'actor': 'chain-operator', 'actor_kind': 'human'}, 201)
+        self.assertEqual('CHOSEN', choice['state'])
+
         composed = self.hop(
             'prompt-compose', 'POST', f'/api/projects/{project}/prompts',
             {'brief_id': brief, 'direction_id': direction, 'target': 'image-generation'}, 201)
         prompt_document = composed['document']
         self.assertEqual('design-lab/prompt-composition/v1', prompt_document['schemaVersion'])
+        self.assertEqual('CHOSEN', prompt_document['model']['selection_state'])
+        self.assertEqual(chosen_model, prompt_document['model']['selected']['model_id'],
+                         'the composition did not carry the choice the chain just recorded')
+        self.assertEqual(choice['selection']['revision'],
+                         prompt_document['model']['selected']['revision'])
         self.assertIn('Chain brief', prompt_document['prompt_text'],
                       'the composition did not carry the brief the chain wrote one hop earlier')
         self.assertIn('Chain direction', json.dumps(prompt_document, ensure_ascii=False),
