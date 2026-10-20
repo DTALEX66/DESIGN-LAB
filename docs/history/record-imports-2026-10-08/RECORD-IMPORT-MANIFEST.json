@@ -482,14 +482,14 @@
    "also_in_repo": [
     "docs/current/PRODUCT_DEFINITION.md"
    ],
-   "repoBytesAfterImport": 11171,
-   "repoCrc32AfterImport": "ec2cfb4c",
-   "repoSha256AfterImport": "sha256:f93281d22ade395db12349edb9d8f47bcff0742ced5d9be18c0fab6621ca0067",
+   "repoBytesAfterImport": 11221,
+   "repoCrc32AfterImport": "93a62b09",
+   "repoSha256AfterImport": "sha256:28e2fbcf0ded1b4dad3b91595cc90346d4fa42502bc0fce2f8705a04a507f0df",
    "evolvedBy": {
-    "commit": "a5ef95ae",
-    "subject": "docs(authority): adopt the owner's 2026-10-20 partial unfreeze, then re-pin"
+    "commit": "5ba0ffd9",
+    "subject": "feat(contracts): bind the three envelopes that only had a version string"
    },
-   "evolution": "owner 2026-10-20 定点解冻与范围收口：AUTHORITY.md 增加 UNFREEZE-20261020-R1 采纳块并就地标注原禁止条款的失效范围；authority-index.json 增加 unfreezeAdoption；PRODUCT_DEFINITION.md 增加 2026-10-20 修订节。归档字节与 leg 1 不动。"
+   "evolution": "The archive bytes recorded above are unchanged and still verify against the source ZIP (leg 1). This row is held to the repository copy's post-import digests instead, because commit 5ba0ffd9 deliberately rewrote that file after the import. Leg 2 still refuses the file if it matches neither the archived nor the declared bytes."
   },
   {
    "source_container": "DESIGN-LAB_FINAL_CONSOLIDATED_PACKAGE_2026-09-29.zip",
