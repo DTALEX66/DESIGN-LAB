@@ -263,6 +263,42 @@ authority-index 与账本仍点名的四份包体。
 
 结论写进现行面：**对这一类 bug，不依赖 fixture 数据的静态闸门是主承重的**，浏览器那道只保证"渲染出来的站点"算对了。它每次跑会打一行 `NOTE ... not rendered under this fixture: ['grid-stack']`，把盲区说出来而不是静默通过。播种后 `git diff` 对 `style.css` 为 0 行，两处注入都已还原。
 
+### 5.11 三份信封补上 schema：契约补齐，以及一处被自己挪坏的指针
+
+前几批把三段解冻面接完之后，留下的 named debt 是**三份自己写了 `schemaVersion`、却没有任何 schema 描述其形状的信封**：`GET /api/models`（`design-lab/model-catalog/v1`）、`GET …/model-selection`（`design-lab/model-selection-readback/v1`）、`GET …/knowledge-candidates/<id>/export`（当时只写 `status`，连版本都没有）。第三批那轮账本曾经试图把 v2 schema 直接绑到导出信封上，被闸门以 `ROUTE_VERSION_UNBOUND` 判红——v2 的 const 是 `…/candidate/v2`，绑上去就是在替一个没人检查的形状背书。这一批改的就是那一笔：先让信封写自己的版本（`knowledge_review.py` 新增 `EXPORT_VERSION`，导出体第一键变为 `"schemaVersion"`），再写 schema，再喂 live 载荷，账本三行同时翻成 `BOUND_SCHEMA`。三件事一次做完，因为"schema 存在但没人绑"与"账本说绑了但没载荷"都是这一面存在要拒绝的半态。
+
+**实测读数**（定向闸门，全量由 CI 在同一 SHA 上重跑）：
+
+| 面 | 改前 | 改后（同一提交内实测） |
+| --- | --- | --- |
+| 账本路由 kinds | `BOUND_SCHEMA` 23 / `SCHEMA_LESS` 43 | `BOUND_SCHEMA` 26 / `SCHEMA_LESS` 40（`routes=66` 未变） |
+| 载荷闸门绑定 | `bindings=7` | `VERIFY_ROUTE_PAYLOAD_CONTRACTS=PASS bindings=10 failures=0` |
+| 新增三条的比对量 | — | model-catalog `cases=1 locations=30`；model-selection-readback `cases=3 locations=9`；candidate-export `cases=1 locations=9` |
+| 未付的版本债清单 | 7 条 | 5 条（`test_contract_bindings.py` 的钉死清单，逐项记日期与原因） |
+
+30 这个数字是可核对的：根节点 1 + `sources`、`hardware`、`counts`、`counts.placement`、`join`、`selection`
+六个容器节点 = 7，再加 14 条模型行与 9 条端点行。它同时也是"这份 schema 真的走进了每一行"的证据——
+只比 `$` 一层的 schema 只会给出 1（`policy` 是字符串数组，不产生对象节点）。
+
+**新绑定的两条播种，各自红在它该红的原因上**（写在 `design-lab/tests/test_route_payload_contracts.py`，不碰出厂文件）：
+
+| 播种 | 结果 |
+| --- | --- |
+| 把 `counts.qualified_local` 保持 0，而把第一条模型行的 `radar_state` 改成 `QUALIFIED_LOCAL` | **红**：`SCHEMA_VIOLATION … models/0/radar_state`——目录的 fail-closed 计数不是散文，是断言。这条不变式是 `#/models` 那一页唯一的防呆：注册表没记合格，页面就不许长出合格的样子 |
+| 从读回信封 schema 里删掉 `state`（closed 对象） | **红 ×3**：`UNDECLARED_BY_SCHEMA ['state']`，三个真实载荷各一次——路由发了 schema 不声明的字段 |
+
+另外补了可达性断言：`$.selection#oneOf`、`$.history[0]`、`$.export`、`$.v1_projection`、`$.provenance` 必须真的被下探。这三份 schema 都刻意 `$ref` 记录本身（存下来的选择、v2 的 `$defs/export`、v1 投影）而不是重述形状，$ref 若没被跟进，"引用"就只是措辞。
+
+**自己制造并被闸门当场抓住的一处**：插入 `EXPORT_VERSION` 让 `knowledge_review.py` 整体下移一行，账本里另一条**与本批无关**的读回行指针 `src/design_lab/knowledge_review.py:316` 于是指到了 `return {` 上，`VERIFY_CONTRACT_BINDINGS=FAIL` 原话是 `EMITTER_POINTER_NOT_THE_VERSION 'src/design_lab/knowledge_review.py:316' holds 'return {' … the line is decoration`。指针会随文档悄悄腐烂，这条闸门只读文件半边的指针、却要求行半边也认账，所以一次 +1 行的编辑就足够让它红。已重测为 `:317` 并重跑绿。
+
+**一处刻意的收窄，写进 schema 的 `$comment` 而不是留成暗坑**：目录的 `placement` 只允许直方图真正计数的三个词（`local`/`huggingface`/`vendor`），而雷达自己的 schema 的 `source.kind` 枚举还多一个 `modelscope`。今天 14 条里没有该 kind，但一条 `modelscope` 记录会让 `counts.placement` 之和少于 `counts.models`，并让选择该模型时撞上一份 schema 的枚举。所以这个差被 `design-lab/tests/test_model_catalog.py:65`（每行的 placement 必须落在词表内）先抓住，扩词汇要求 catalog schema、`model-selection-v1.schema.json` 与状态库的 `CHECK` 三处一起动。
+
+**仍未付的 5 条**：Adobe 两个 job-spec 债（`…/tasks/(native-job-…)/patch`、`…/native-plans`）与 rights / research / native-runtime 三份读回。`POST …/model-selection/choose` 留在 `SCHEMA_LESS` 是有意的：它回的是操作收据，收据本身不写版本，而里面的选择文档是被 `model-selection-v1.schema.json` 绑住的。
+
+**上一条批次的 CI 红，是这一批顺手补的，也是本轮最该记的一条**：`b28aa57f` 在 main 上的 Canonical Verify 唯一失败项是 `test_backup_watches_written_tables.CoverageTests.test_every_written_table_is_watched_by_the_proof`，实读 `['model_selection'] != []`。上一批新增 `model_selection` 表时，本地 `VERIFY_DESIGN_LAB=OK total=76 failed=0` 与四条浏览器闸门全绿——**因为那 76 项是 `verify_*.py` 验证器，不含单元测试；这条断言住在测试里，只有 CI 的 "Python unit tests (sharded)" 那一步会跑**。修法按测试自己的指示来：把 `('model_selection', 'rowid')` 加进 `project_backup.py` 的 `COUNTER_QUERIES`（追加式选择表没有写者租约，静默证明看不见它就等于"备份窗口吞掉一次决定还宣称 PROVED_QUIESCENT"），并写明日期与理由；`WITHOUT ROWID` 那条同时复核——复合主键 `(project_id, revision)` 仍是 rowid 表，计数器可用。
+
+这不是新缺陷，是同一类缺陷的**第二次**：那条测试的文件头就写着"一份人工判定在备份窗口里落地而无人看见，直到 601a6422；这道测试是为了让它不能再安静地发生"。这次它做到了——只是它说话的地方不在我这一轮的量法里。写下来的规则：**加表就是加消费者**，DDL 变化之后必须至少跑 `test_backup_watches_written_tables`，或直接跑分片全量；定向闸门绿不等于契约绿。播种核对：还原 `COUNTER_QUERIES` 那一行后该测试重新变红，读数仍是 `['model_selection']`。
+
 ## 6. 本轮暴露并修掉的六个缺陷
 
 1. **分类聚合按目录贴标签**：`bundle_key()` 把一个顶层目录收成一个 bundle，于是 `docs/` 里第一个文件的类别

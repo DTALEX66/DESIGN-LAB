@@ -262,6 +262,11 @@ COUNTER_QUERIES = (
     # through, with no writer lease, so the proof cannot see either land without these rows.
     ('knowledge_candidate', 'rowid'),
     ('knowledge_revocation', 'rowid'),
+    # 2026-10-20: ModelSelection.record() appends a choice with no writer lease, and the row is
+    # immutable (the no-update/no-delete triggers make the revision itself the record), so a backup
+    # window that swallowed one would otherwise still report PROVED_QUIESCENT while the decision
+    # path the operator reads back had moved.
+    ('model_selection', 'rowid'),
 )
 
 

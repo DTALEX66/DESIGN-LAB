@@ -1,11 +1,15 @@
 # SPDX-License-Identifier: MIT
 """Teeth for design-lab/scripts/verify_route_payload_contracts.py.
 
-Five route families used to answer with a payload naming a ``schemaVersion`` that no schema
-file described anywhere. They are bound now, and this module is what keeps the binding honest
-rather than decorative. One live server is booted for the whole class (``make_server`` on a
-real socket, a scratch project root, a real jury verdict and proposal filed through the write
-routes), and every payload compared below is the body that server actually wrote.
+Every family in design-lab/scripts/verify_route_payload_contracts.py started as a payload that
+named a ``schemaVersion`` no schema file described anywhere. The three paid on 2026-10-20 --
+GET /api/models, GET .../model-selection and GET .../knowledge-candidates/<id>/export -- came in
+the same move as their schema, their ledger row and their live payloads, which is the only way a
+new binding is evidence rather than a claim. They are bound now, and this module is what keeps the
+binding honest rather than decorative. One live server is booted for the whole class
+(``make_server`` on a real socket, a scratch project root, a real jury verdict and proposal filed
+through the write routes, a brief with a revision, an approved knowledge candidate and a recorded
+model choice), and every payload compared below is the body that server actually wrote.
 
 Both obligations are tested:
 
@@ -81,9 +85,13 @@ class RoutePayloadContractTests(unittest.TestCase):
             self.assertGreaterEqual(int(note.split('cases=')[1].split()[0]), 1, note)
 
     def test_every_family_is_covered_by_its_own_real_cases(self):
-        """Not one fixture standing in for five boundaries: each binding must reach the route."""
+        """Not one fixture standing in for several boundaries: each binding must reach the route."""
         expected = {'path-diagnostic': 1, 'capability-library': 1, 'domain-pack-readback': 1,
-                    'jury-readback': 2, 'task-resource-preflight': 3}
+                    'jury-readback': 2, 'task-resource-preflight': 3, 'model-catalog': 1,
+                    # Three states, three real rows: a pick, an explicit declination, and a project
+                    # nobody has asked. One payload standing in for all three would let the envelope
+                    # collapse them and this file would not notice.
+                    'model-selection-readback': 3, 'knowledge-candidate-export': 1}
         for name, count in expected.items():
             cases = self.payloads[name]
             self.assertEqual(len(cases), count, f'{name} captured {len(cases)} payloads')
@@ -166,6 +174,55 @@ class RoutePayloadContractTests(unittest.TestCase):
                                        schema_doc=schema2,
                                        cases=self.payloads[binding['name']])
         self.assertEqual(len(self.convicting(errors, 'UNDECLARED_BY_SCHEMA')), 2, errors)
+
+    def test_a_selection_document_is_judged_by_the_contract_that_owns_it(self):
+        """The three 2026-10-20 bindings $ref their records -- the stored choice, the v2 export
+        def, the v1 projection -- rather than restating them. A nested document that was never
+        descended into would make that a claim, so each reach is asserted and one envelope field
+        is removed to prove the envelope itself is compared too."""
+        binding = self.binding('model-selection-readback')
+        schema = load_schema(binding)
+        nodes = GATE.comparisons(schema, self.payloads[binding['name']][0][1], '$', [],
+                                 self.docs, schema, self.reg)
+        paths = {node['path'] for node in nodes}
+        self.assertTrue(any(p.startswith('$.selection#oneOf') for p in paths),
+                        f'the referenced selection document was never descended into: '
+                        f'{sorted(paths)}')
+        self.assertTrue(any(p.startswith('$.history[0]') for p in paths),
+                        'the decision path was never descended into')
+        export = self.binding('knowledge-candidate-export')
+        export_schema = load_schema(export)
+        nodes = GATE.comparisons(export_schema, self.payloads[export['name']][0][1], '$', [],
+                                 self.docs, export_schema, self.reg)
+        paths = {node['path'] for node in nodes}
+        self.assertIn('$.export', paths)
+        self.assertIn('$.v1_projection', paths)
+        self.assertIn('$.provenance', paths)
+        mutated = copy.deepcopy(schema)
+        del mutated['properties']['state']
+        mutated['required'].remove('state')
+        errors, _ = GATE.check_binding(binding, docs=self.docs, reg=self.reg, rows=self.rows,
+                                       schema_doc=mutated, cases=self.payloads[binding['name']])
+        self.assertEqual(len(self.convicting(errors, 'UNDECLARED_BY_SCHEMA')), 3, errors)
+
+    def test_a_readiness_claim_that_disagrees_with_the_rows_is_red(self):
+        """The catalogue's fail-closed numbers are the page's only defence against a green chip
+        the registry does not support, so they are bound as invariants. A payload that claims
+        QUALIFIED_LOCAL under counts.qualified_local=0 must be convicted by the schema, not by a
+        sentence in a reason field."""
+        binding = self.binding('model-catalog')
+        schema = load_schema(binding)
+        label, payload = self.payloads['model-catalog'][0]
+        self.assertEqual(0, payload['counts']['qualified_local'],
+                         'the registry moved; this case is about the zero-qualified invariant')
+        lying = copy.deepcopy(payload)
+        lying['models'][0]['radar_state'] = 'QUALIFIED_LOCAL'
+        errors, _ = GATE.check_binding(binding, docs=self.docs, reg=self.reg, rows=self.rows,
+                                       schema_doc=schema,
+                                       cases=[(f'{label} with one row promoted', lying)])
+        convicting = self.convicting(errors, 'SCHEMA_VIOLATION')
+        self.assertTrue(convicting, 'the zero-qualified invariant caught nothing')
+        self.assertIn('models/0/radar_state', convicting[0])
 
     # --- one-sided version moves ----------------------------------------------------
 

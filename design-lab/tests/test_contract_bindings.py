@@ -358,15 +358,23 @@ class GateTeethTests(unittest.TestCase):
         # catalogue): the list is 6, because GET /api/models emits
         # design-lab/model-catalog/v1 with no schema behind it -- named here as debt in the same
         # form, and the gate itself convicted the alternative (SCHEMA_LESS_DEBT_UNNAMED when the
-        # row drops the version while its emitter still writes one).
+        # row drops the version while its emitter still writes one); the model-selection read-back
+        # joined it the same day. 2026-10-20 (second batch, the payment): the list is 5 again,
+        # because both of those were paid in exactly the shape the five 2026-10-08 debts were --
+        # design-lab/schemas/model-catalog-v1.schema.json and
+        # design-lab/schemas/model-selection-readback-v1.schema.json, each fed the live payload in
+        # design-lab/scripts/verify_route_payload_contracts.py -- and GET
+        # .../knowledge-candidates/<id>/export left this set with them, its envelope now writing
+        # design-lab/assurance-knowledge-candidate-export/v1 behind
+        # design-lab/schemas/assurance-knowledge-candidate-export-v1.schema.json. What stays listed
+        # is unpaid on purpose: the Adobe job-spec debts and the three read-backs nobody has written
+        # a payload case for.
         self.assertEqual(sorted(row['route'] for row in claiming),
                          sorted(['/api/projects/([0-9a-f]{32})/tasks/(native-job-[0-9a-f]{64})/patch',
                                  '/api/projects/([0-9a-f]{32})/native-plans',
                                  '/api/projects/([0-9a-f]{32})/rights',
                                  '/api/projects/([0-9a-f]{32})/native-runtime',
-                                 '/api/projects/([0-9a-f]{32})/research',
-                                 '/api/models',
-                                 '/api/projects/([0-9a-f]{32})/model-selection']),
+                                 '/api/projects/([0-9a-f]{32})/research']),
                          'the unpaid version-bearing routes are an inventory, so a paid debt '
                          'left listed as unpaid and an unlisted new debt are both red here')
         for row in claiming:

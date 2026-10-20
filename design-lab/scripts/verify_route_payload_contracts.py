@@ -11,6 +11,10 @@ artifact-preflight gap (commit 1ea64bbe) repeated five times: a reader sees
 ``schemaVersion`` and assumes a boundary is enforced.
 
 Each debt has now been closed one way or the other, and this script is what keeps it closed.
+Three more were paid here on 2026-10-20 -- GET /api/models, GET .../model-selection and GET
+.../knowledge-candidates/<id>/export -- each added with the live payload that produced it, in the
+same move as the schema and the ledger row, because a schema nobody feeds a real response to is a
+reader-visible claim of enforcement.
 It does not trust a ledger row that says BOUND_SCHEMA -- it drives the product over a real
 socket and checks what came back:
 
@@ -108,6 +112,7 @@ class Harness:
             sys.path.insert(0, str(SRC))
         from design_lab.assurance import jury_store
         from design_lab.http_service import make_server
+        from design_lab.model_catalog import catalog
         from design_lab.runtime import asset_store as assets
         from design_lab.service import ProjectService
         self.jury_store = jury_store
@@ -115,6 +120,7 @@ class Harness:
         self.service = ProjectService(project)
         self.filled = self.service.create_project('Payload Contract Filled')['id']
         self.empty = self.service.create_project('Payload Contract Empty')['id']
+        self.declined = self.service.create_project('Payload Contract Declined')['id']
         self.version_id, self.digest = self._publish(b'artwork under review')
         self.token = secrets.token_hex(32)
         self.httpd = make_server(self.service, self.token, 0)
@@ -122,7 +128,62 @@ class Harness:
         self.thread.start()
         self._file_jury_records()
         self.brief_id = self._seed_briefs()
+        self.candidate_id = self._file_candidate_for_export()
+        self.chosen_model_id = self._file_model_choices(catalog())
         return self
+
+    def _file_candidate_for_export(self):
+        """A real candidate, approved by a named human, so the export route can answer 200.
+
+        Written through the two write routes rather than by hand: an approved document assembled
+        here would bind a shape the store cannot hold, and the export envelope's whole claim is
+        that it projects a *stored* row. ``rights_gate_state`` is CHECKED because an unchecked
+        rights gate is refused with its own reason -- a 409 would be a finding, not a skip.
+        """
+        document = {
+            'candidate_id': 'kc-payload-1',
+            'candidate_type': 'METHOD',
+            'source': {'design_lab_sha': 'a' * 40, 'job_id': 'job-payload-1',
+                       'operation_id': 'UNUSED', 'evidence_sha256': 'sha256:' + 'b' * 64},
+            'rights': {'license_id': 'MIT', 'rights_gate_state': 'CHECKED',
+                       'contains_client_asset': False, 'contains_third_party_asset': False,
+                       'redaction_note': None},
+            'payload': {'title': 'judge hierarchy before decoration',
+                        'statement': 'type and image outrank a decorative device when they conflict',
+                        'applies_to': ['editorial', 'brand']},
+            'created_at': '2026-10-18T00:00:00Z',
+            'revocation_entrypoint': 'design-lab/knowledge/revoke',
+        }
+        status, body = self.call('POST', f'/api/projects/{self.filled}/knowledge-candidates',
+                                 document)
+        if status != 201:
+            raise RuntimeError(f'CANDIDATE_WRITE_REFUSED {status} {body}')
+        status, body = self.call(
+            'POST', f'/api/projects/{self.filled}/knowledge-candidates/kc-payload-1/review',
+            {'decision': 'APPROVE', 'reviewer_id': 'dtalex66', 'reviewer_kind': 'human',
+             'reviewed_at': '2026-10-18T00:00:00Z', 'note': None, 'reason': None})
+        if status != 200:
+            raise RuntimeError(f'CANDIDATE_REVIEW_REFUSED {status} {body}')
+        return 'kc-payload-1'
+
+    def _file_model_choices(self, catalogue_document):
+        """One pick and one explicit 「不用」, so all three read-back states are real rows.
+
+        The model id is taken from the catalogue this same server serves -- not typed into this
+        file -- because a choice can only be made from what the registries record, and a
+        hard-coded id would turn into a refusal the day the radar moves. ``UNUSED`` is the
+        declination branch: DECLINED and NEVER_ASKED are different facts and both are compared.
+        """
+        model_id = catalogue_document['models'][0]['model_id']
+        for project_id, payload in (
+                (self.filled, {'model_id': model_id, 'declared_unused': False}),
+                (self.declined, {'model_id': None, 'declared_unused': True})):
+            body = {'actor': 'dtalex66', 'actor_kind': 'human', **payload}
+            status, answer = self.call('POST',
+                                       f'/api/projects/{project_id}/model-selection/choose', body)
+            if status != 201:
+                raise RuntimeError(f'MODEL_CHOICE_REFUSED {project_id} {status} {answer}')
+        return model_id
 
     def _seed_briefs(self):
         """A real brief plus a real revision of it, through the write routes.
@@ -332,6 +393,58 @@ def build_bindings():
                 ('GET ?task=DL-R5-008', h.get('/api/task-preflight?task='
                                               'DL-TP-20260914-DEEPSEEK-AUTHORITY-R1%3A%3ADL-R5-008')),
             ],
+        },
+        {
+            'name': 'model-catalog',
+            'route': '/api/models',
+            'method': 'GET',
+            'schema': 'design-lab/schemas/model-catalog-v1.schema.json',
+            'emitter': 'src/design_lab/model_catalog.py',
+            'version': 'design-lab/model-catalog/v1',
+            # The picker document the owner asked for on 2026-10-20 (「不锁死 做好菜单导航和接口
+            # 用户自行选择本地或者是云端模型」). Its rows are copied from the two registries the
+            # repository keeps, so what is compared here is a recount of those files, not a fixture:
+            # the fail-closed counters (qualified_local, default_enabled_true, weights_recorded) are
+            # the page's only defence against a readiness chip the registry does not support, and
+            # they are bound here as invariants against the rows they summarise.
+            'cases': lambda h: [('GET /api/models', h.get('/api/models'))],
+        },
+        {
+            'name': 'model-selection-readback',
+            'route': '/api/projects/([0-9a-f]{32})/model-selection',
+            'method': 'GET',
+            'schema': 'design-lab/schemas/model-selection-readback-v1.schema.json',
+            'emitter': 'src/design_lab/model_selection.py',
+            'version': 'design-lab/model-selection-readback/v1',
+            # All three states the envelope exists to keep apart, each from a real row: a pick made
+            # through the write route, an explicit 「不用」, and a project nobody has asked. Two of
+            # them look the same in an empty list, which is exactly the misreading the schema
+            # forbids by binding `state`, `selection` and `revision_count` together.
+            'cases': lambda h: [
+                ('GET .../model-selection after a pick',
+                 h.get(f'/api/projects/{h.filled}/model-selection')),
+                ('GET .../model-selection after a declination',
+                 h.get(f'/api/projects/{h.declined}/model-selection')),
+                ('GET .../model-selection never asked',
+                 h.get(f'/api/projects/{h.empty}/model-selection')),
+            ],
+        },
+        {
+            'name': 'knowledge-candidate-export',
+            'route': '/api/projects/([0-9a-f]{32})/knowledge-candidates'
+                     '/([A-Za-z0-9_.:-]{1,80})/export',
+            'method': 'GET',
+            'schema': 'design-lab/schemas/assurance-knowledge-candidate-export-v1.schema.json',
+            'emitter': 'src/design_lab/knowledge_review.py',
+            'version': 'design-lab/assurance-knowledge-candidate-export/v1',
+            # The envelope `export_payload` never had a version of: it wraps two bound projections
+            # ($defs/export and candidate-knowledge v1) and said nothing about itself. Now it says
+            # schemaVersion, and the schema keeps the honesty half of the claim machine-checked --
+            # transport NOT_CONNECTED, sent_count 0, and a provenance echo that can only be a
+            # supplied id or the literal UNUSED.
+            'cases': lambda h: [('GET .../export of an approved candidate',
+                                 h.get(f'/api/projects/{h.filled}/knowledge-candidates'
+                                       f'/{h.candidate_id}/export'))],
         },
     ]
 

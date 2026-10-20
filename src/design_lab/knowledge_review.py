@@ -39,6 +39,7 @@ from .runtime.paths import PROJECT_ROOT
 from .runtime.state_resources import state_schema
 
 READBACK_VERSION = "design-lab/assurance-knowledge-candidate-readback/v1"
+EXPORT_VERSION = "design-lab/assurance-knowledge-candidate-export/v1"
 
 #: The route pattern's own vocabulary: a candidate id that cannot be addressed
 #: by a later review/revoke URL is refused at creation rather than stored.
@@ -592,6 +593,7 @@ class KnowledgeReview:
         canonical = _canonical(payload)
         source = document.get("source") if isinstance(document.get("source"), dict) else {}
         return {
+            "schemaVersion": EXPORT_VERSION,
             "status": "CANDIDATE_EXPORT",
             "project_id": project_id,
             "candidate_id": candidate_id,
