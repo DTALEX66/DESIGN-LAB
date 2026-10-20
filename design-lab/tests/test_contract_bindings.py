@@ -354,13 +354,18 @@ class GateTeethTests(unittest.TestCase):
         # claim still has to name its missing schema. 2026-10-10 (DL-UI-U06): the list is 5, because
         # GET /api/projects/<id>/native-runtime answers a design-lab/native-runtime-readback/v1
         # envelope with no schema behind it -- the same named-debt shape as the rights and research
-        # read-backs, added with the route rather than back-filled after it.
+        # read-backs, added with the route rather than back-filled after it. 2026-10-20 (model
+        # catalogue): the list is 6, because GET /api/models emits
+        # design-lab/model-catalog/v1 with no schema behind it -- named here as debt in the same
+        # form, and the gate itself convicted the alternative (SCHEMA_LESS_DEBT_UNNAMED when the
+        # row drops the version while its emitter still writes one).
         self.assertEqual(sorted(row['route'] for row in claiming),
                          sorted(['/api/projects/([0-9a-f]{32})/tasks/(native-job-[0-9a-f]{64})/patch',
                                  '/api/projects/([0-9a-f]{32})/native-plans',
                                  '/api/projects/([0-9a-f]{32})/rights',
                                  '/api/projects/([0-9a-f]{32})/native-runtime',
-                                 '/api/projects/([0-9a-f]{32})/research']),
+                                 '/api/projects/([0-9a-f]{32})/research',
+                                 '/api/models']),
                          'the unpaid version-bearing routes are an inventory, so a paid debt '
                          'left listed as unpaid and an unlisted new debt are both red here')
         for row in claiming:
@@ -483,7 +488,14 @@ class GateTeethTests(unittest.TestCase):
         # 59 -> 60 on 2026-10-19: POST /api/projects/{id}/assets/{img}/analysis added one dispatch and
         # one BOUND_SCHEMA row in the same change (the reconstruction-ir/v1 emitter is
         # src/design_lab/analysis/plan_to_rir.py:160), so both sides of the relation moved together.
-        self.assertEqual(len(lines), 1 + CONTRACTS + 60,
+        # 60 -> 64 on 2026-10-20 (the three owner-authorised entry points): POST .../prompts and
+        # POST .../assets/{img}/prompt-reversal (both BOUND_SCHEMA against the new
+        # prompt-composition/v1 and prompt-reversal/v1 contracts), GET
+        # .../knowledge-candidates/{id}/export (SCHEMA_LESS, named debt: the envelope carries no
+        # version while its inner export document is validated by code) and GET /api/models
+        # (SCHEMA_LESS with design-lab/model-catalog/v1 named as unpaid). Each added a dispatch and
+        # a row in the same change, so both sides of the relation moved together.
+        self.assertEqual(len(lines), 1 + CONTRACTS + 64,
                          'one verdict line, one note per contract row, one per route row')
         verdict = lines[-1]
         self.assertTrue(verdict.startswith('VERIFY_CONTRACT_BINDINGS=PASS'), verdict)
@@ -493,7 +505,7 @@ class GateTeethTests(unittest.TestCase):
         # 55 -> 59 on 2026-10-19 (T16/U09), same change as the inventory above: the four
         # knowledge routes are dispatched, so their rows are re-checked, not waived.
         for token in (f'schemas={CONTRACTS}', f'binding={BINDING_ROWS}', f'inert={INERT_ROWS}',
-                      'routes=60', 'dispatched=60', f'bound={expected_bound}'):
+                      'routes=64', 'dispatched=64', f'bound={expected_bound}'):
             self.assertIn(token, verdict)
 
     # --- failure modes, each against a mutated copy ------------------------------
