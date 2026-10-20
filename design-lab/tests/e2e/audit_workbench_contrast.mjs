@@ -58,6 +58,10 @@ const ROUTES = [
   // contrast was never measured.
   ['domain-detail', '#/domains/brand-design'],
   ['intake', '#/intake'],
+  // 提示词工程与模型选择是两条新读面。不进这份清单就永远不会被这个闸渲染，也就
+  // 永远不会让它失败——2026-10-07 记下的正是这种覆盖洞，而不是假设。
+  ['prompt-intelligence', '#/prompts'],
+  ['model-selection', '#/models'],
   ['plan', '#/plan'],
   ['analysis', '#/analysis'],
 ];

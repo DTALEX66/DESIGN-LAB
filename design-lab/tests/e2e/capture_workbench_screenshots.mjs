@@ -230,6 +230,11 @@ const PAGES = [
   { key: 'intake', hash: '#/intake' },
   { key: 'plan', hash: '#/plan' },
   { key: 'analysis', hash: '#/analysis' },
+  // 提示词工程与模型选择是两条新读面：#/prompts 读 design-layer 与 assets 并发两条
+  // POST 路由，#/models 读 GET /api/models。不进这份清单就等于从没被渲染过，也就不会
+  // 在任何几何闸上报错——这个洞 2026-10-07 记过一次，清单与路由表的比对现在是机器做的。
+  { key: 'prompt-intelligence', hash: '#/prompts' },
+  { key: 'model-selection', hash: '#/models' },
   // R2 §7 (DL-UI-U04): 制作记录与待继续。读 GET /projects/{id}/tasks。
   { key: 'records', hash: '#/records' },
   // R2 §9 (DL-FINAL-T08): 分组全局搜索是浮层，只能靠真实点击打开后才有可审阅的一张图。

@@ -25,9 +25,19 @@ import type {
   CapabilityLibraryResponse,
   CapabilityRecord,
   EventListResponse,
+  ModelCatalogEndpointRow,
+  ModelCatalogModelRow,
+  ModelCatalogResponse,
   NativePlanResponse,
   NativeRuntimeResponse,
   NativeRuntimeSection,
+  PromptCompositionDocument,
+  PromptCompositionReadback,
+  PromptReversalDocument,
+  PromptReversalLayer,
+  PromptReversalReadback,
+  PromptSection,
+  PromptSectionSource,
   TaskRecord,
   HealthResponse,
   ProjectListResponse,
@@ -193,12 +203,28 @@ const OFFLINE = {
     does_not_say: [],
   } as KnowledgeReadback,
   bundles: { bundles: [] } as BundleListResponse,
+  // 提示词反推需要一条真实存在的图像资产，所以资产清单也走同一只读接缝：没有读到
+  // assets 时说未读回，而不是"这个项目没有素材"。
+  assets: { assets: [] } as AssetListResponse,
   designLayer: {
     design_layer: {
       briefs: [], directions: [], chosen_direction: null,
       bindings: [], active_binding: null, design_systems: [],
     },
   } as DesignLayerResponse,
+  // 模型目录的诚实空载荷：两份清单都空、计数为零（零在这里表示"没有问到"，由上面的
+  // 未连接标记说明），selection 的两个词位留空而不写服务端的值——离线时把
+  // NOT_CONNECTED 或 USER_CHOSEN_NOT_LOCKED 画在屏上，就是页面在替服务说话。
+  models: {
+    schemaVersion: 'design-lab/model-catalog/v1', observed_at: null,
+    sources: {}, hardware: {}, policy: {},
+    counts: { models: 0, endpoints: 0, qualified_local: 0, default_enabled_true: 0,
+              weights_recorded: 0, placement: {} },
+    models: [], endpoints: [],
+    join: { key: null, reason: '' },
+    selection: { mode: '', rules: [], transport: '', executed: false },
+    claims_not_made: [],
+  } as ModelCatalogResponse,
   environment: {
     schemaVersion: 'v1', status: 'OFFLINE',
     project_root: '—', project_local_root: '.project-local',
@@ -241,15 +267,23 @@ const OFFLINE = {
 export const ROUTE_ENTRIES = ['能力资产', '分析与制作', '成果与反馈', '辅助'] as const;
 export type RouteEntry = (typeof ROUTE_ENTRIES)[number];
 
+// 表体内不要写带花括号的注释：Vite 的构建不去注释，而
+// design-lab/tests/e2e/browser_design_layer_e2e.mjs 从产物里逐条目解析 hash/view 来核对导航数，
+// 一个 `{id}` 会被当成条目对象，整张表就判定为读不出（E2E_ROUTE_TABLE_UNREADABLE）。路由模板串放表外。
 export const ROUTE_VIEWS = [
   { hash: '#/capabilities', view: 'capabilities', label: '能力目录', entry: '能力资产' },
   { hash: '#/domains', view: 'design-domains', label: '设计领域', entry: '能力资产' },
   { hash: '#/brand-systems', view: 'brand-systems', label: '品牌系统', entry: '能力资产' },
   { hash: '#/tools', view: 'creative-tools', label: '创作工具', entry: '能力资产' },
+  // 模型候选的唯一可读回来源是 GET /api/capabilities 里 kind='model' 的那批记录（其
+  // sources.radar 指向 design-lab/readiness/model-radar.json）。这里不加任何模型名或族名：
+  // 手抄一份雷达就是这个仓库反复gate掉的第二台账。
+  { hash: '#/models', view: 'model-selection', label: '模型选择', entry: '能力资产' },
   { hash: '#/projects', view: 'projects', label: '项目', entry: '分析与制作' },
   { hash: '#/research', view: 'research', label: '研究洞察', entry: '分析与制作' },
   { hash: '#/intake', view: 'intake', label: '输入与目标', entry: '分析与制作' },
   { hash: '#/analysis', view: 'analysis', label: '分析与方案', entry: '分析与制作' },
+  { hash: '#/prompts', view: 'prompt-intelligence', label: '提示词工程', entry: '分析与制作' },
   { hash: '#/plan', view: 'plan', label: '目标生成包', entry: '分析与制作' },
   // R2 §2 把「制作记录与待继续」放在分析与制作入口下：它是找回工作的入口，不是成果面。
   { hash: '#/records', view: 'records', label: '制作记录与待继续', entry: '分析与制作' },
@@ -3257,7 +3291,7 @@ export async function renderProjects(target: HTMLElement): Promise<void> {
               el('td', {}, el('button', {
                 type: 'button', class: 'ghost-btn',
                 // B07 `/projects/:id` — reached from a row, never a nav item
-                // (ROUTE_VIEWS has 19 entries and the browser E2E asserts that nav item
+                // (ROUTE_VIEWS has 21 entries and the browser E2E asserts that nav item
                 // count; a parameterized detail route must not be added to the table.)
                 onclick: () => { window.location.hash = projectDetailHash(p.id); },
               }, '打开'))))
@@ -5360,6 +5394,10 @@ export async function renderRoute(view: AppView, target: HTMLElement): Promise<v
       { openId: capabilityDetailId(window.location.hash) }); return;
     case 'intake': await renderIntake(target); return;
     case 'analysis': await renderAnalysis(target); return;
+    // 提示词工程读的是已有设计层投影，写的是本批新加的两条 POST 路由；模型选择是一个
+    // 诚实占位面——它只读 GET /api/capabilities 与 /api/environment，没有 /api/models。
+    case 'prompt-intelligence': await renderPromptIntelligence(target); return;
+    case 'model-selection': await renderModelSelection(target); return;
     case 'plan': await renderPlan(target); return;
     case 'records': await renderRecords(target); return;
     case 'ui-states': renderUiStates(target); return;
@@ -5729,7 +5767,7 @@ function mountB10Shell(routeView: HTMLElement, syncLegacyNavCue: () => void): B1
       el('section', { class: 'content', id: 'content', tabindex: '-1' }, offlineNotice, routeView)));
   document.body.append(app);
 
-  // The sidebar nav is `overflow:auto`, and the 19 destinations in ROUTE_VIEWS need far more
+  // The sidebar nav is `overflow:auto`, and the 21 destinations in ROUTE_VIEWS need far more
   // than a short window shows, so the last ones fall below the edge with nothing to say so.
   // No figure is quoted here on purpose: the overflow gate now drives this at a 620px-tall
   // window and records the amount itself in `report.navCue[width]`, and the value is
@@ -5863,7 +5901,7 @@ function mountB10Overlays(): void {
   palette.append(itemsBox);
   document.body.append(palette);
   const paletteInput = palette.querySelector('input') as HTMLInputElement;
-  // 19-entry route IA (mirror of ROUTE_VIEWS, the primary-nav minus default).
+  // 21-entry route IA (mirror of ROUTE_VIEWS, the primary-nav minus default).
   // `go` carries the ROUTE hash (`#/dashboard`), not the view id: the router
   // matches `window.location.hash` against ROUTE_VIEWS[].hash, so a `#dashboard`
   // value matched nothing and silently landed on the legacy workbench page.
@@ -8065,4 +8103,586 @@ export async function renderAnalysis(target: HTMLElement): Promise<void> {
       '检查设计判断并就地纠正：这一面把方向、简报、绑定与缺口分开列出，'
       + '推断内容必须标为推断，没有来源的部分直说没有来源。'),
     '本页的修订会写入本机服务并追加新版本；不启动宿主，也不改已交付版本。');
+}
+
+// ============================================================================
+// 提示词工程 · #/prompts（提示词生成与反推的桌面入口）
+// ----------------------------------------------------------------------------
+// 两条路由，一台入口，零编造：
+//   POST /api/projects/{id}/prompts                           {brief_id, direction_id, target}
+//   POST /api/projects/{id}/assets/{img-ID}/prompt-reversal   {module, detections, decomposition_id}
+//
+// 页面上所有可选项都来自**已有**读回：GET /projects/{id}/design-layer 给简报与方向，
+// GET /projects/{id}/assets 给资产。没有新增清单路由，也没有第二条台账。
+//
+// 三条不能含糊的事实，写在界面上而不是藏在代码里：
+//   · 正文里的每一句要么是某条存过字段的原文（带它自己的 spec_sha256），要么是本页的框架句
+//     （带规则名）。缺的字段进 unknown 并带上缺的原因，不会静默消失；
+//   · 服务端不持久化这份文档（_compose_prompt 不写库），所以按钮说的是"生成并读回"，
+//     不是"保存"；
+//   · 反推的观测（detections）由操作者粘贴。本机没有合格的视觉后端（readiness 雷达
+//     QUALIFIED_LOCAL=0），页面替用户编一组观测就是伪造观察，所以初始正文是空数组，
+//     提交它得到的 400 NO_OBSERVATIONS 会被原样画出来。
+//
+// 拒绝一律画拒绝：状态词 + detail 原文（detail 可能是字符串，也可能是字段数组，两种都是
+// 服务端真实发过的形态）。没有空白面板，也没有把失败说成成功。
+// ============================================================================
+
+/** POST …/prompts 的 target 候选。权威在服务端：`prompt_intelligence.visual_families()` 取
+ *  模块常量与雷达登记族的交集，不接受时答 400 UNKNOWN_TARGET 并把可接受值写进 detail。
+ *  这三项写在这里只因为选择器要有可点的东西，本页不做任何本地接受判定，也不宣称自己是
+ *  词表的所有者——若某个族从雷达里消失，本页把它作为一次命名拒绝画出来，而不是替服务端圆场。 */
+const PROMPT_TARGETS: readonly string[] = ['image-generation', 'video-generation', '3d'];
+
+/** 反推路由只接受这一种资产身份形状（逐字来自 http_service 的路由模式）。 */
+const REVERSAL_ASSET_ID = /^img-[0-9a-f]{64}$/;
+
+/** 一条 section 的出处，按服务端自己写的 kind 分两种说法。 */
+function promptSourceProvenance(source: PromptSectionSource): string {
+  if (source.kind === 'stored') {
+    const id = source.brief_id ?? source.direction_id ?? '身份未记录';
+    const version = source.version === undefined ? '版本未记录' : `v${source.version}`;
+    return `存过字段原文 · ${id} · ${version} · spec ${source.spec_sha256 ?? '未记录'}`;
+  }
+  if (source.kind === 'framing') {
+    return `本页框架句 · 规则：${source.rule ?? '未记录规则'}`;
+  }
+  // 服务发不出的 kind 不该被界面翻译成它没说过的话：原样带出来，由读者判断。
+  return `来源类型 ${source.kind}（既不是 stored 也不是 framing，本页不重新标注）`;
+}
+
+/** 服务端的 detail 有两种真实形态：UNKNOWN_TARGET 是一句话，BRIEF_NOT_FOUND 是字段数组。 */
+function promptErrorDetail(error: unknown): string {
+  const envelope = (error as { serviceEnvelope?: { detail?: unknown } } | null)?.serviceEnvelope;
+  const detail = envelope?.detail;
+  if (typeof detail === 'string') return detail;
+  if (Array.isArray(detail)) {
+    const lines = detail.filter((line): line is string => typeof line === 'string');
+    return lines.length ? lines.join('；')
+      : '（服务端返回了空的字段说明数组，没有给出可修正的字段）';
+  }
+  return '（本次回复没有携带 detail）';
+}
+
+/** 一次拒绝：状态词与可修正的 detail 都留在屏上。空白不是可接受的呈现。 */
+function promptRefusal(error: unknown, route: string): HTMLElement {
+  const envelope = (error as Error & { serviceEnvelope?: Record<string, unknown> })
+    .serviceEnvelope;
+  const code = typeof envelope?.['error'] === 'string' ? envelope['error'] : '';
+  if (!envelope) {
+    return stateBlock({
+      kind: 'error', title: '没有拿到服务端回复', weight: 'bad',
+      producer: `${route} 没有返回可读的回复：${errMsg(error)}。`
+        + '没有回复不等于没有生成——这份文档不落库，但请求是否到达过只有服务端知道。',
+      next: '先确认本机设计服务仍在运行，再重新发起一次生成。装配是确定性的：同样的存过记录与'
+        + '同样的目标得到同一个 composition_id，所以重发同一份内容不会产生第二份文档。',
+    });
+  }
+  return stateBlock({
+    kind: 'conflict',
+    title: `未生成：${code || '服务端给出了一个本页没有名字的拒绝'}`, weight: 'bad',
+    producer: `${route} 返回 ${code || errMsg(error)}；detail：${promptErrorDetail(error)}。`
+      + '本页不替你改字段来"过校验"，也不把这次拒绝显示成已生成。',
+    next: '按 detail 修正后再发起：版本已被取代就改选现行版本，方向不属于这份简报就换回它自己的'
+      + '方向，目标不在接受集合里就按括号里列出的族重选，观测为空就先补观测。',
+  });
+}
+
+/** 两份文档共有的三段诚实面：unknown（带原因）、claims_not_made、model 块。 */
+function promptHonestyBlocks(document: PromptCompositionDocument
+                             | PromptReversalDocument): HTMLElement[] {
+  const unknownRows = document.unknown.length
+    ? document.unknown.map((row) => el('tr', {},
+        el('th', { scope: 'row' }, row.field),
+        el('td', {}, row.reason)))
+    // unknown 为空不是好消息：合同要求它非空，所以空数组只会出现在文档被动过之后。
+    : [el('tr', {}, el('td', { colspan: '2' },
+      '这份文档没有列出任何 unknown 项；合同要求该列表非空，'
+      + '所以这一行应当当作缺陷去查生成处，而不是读成"没有不知道的"。'))];
+  return [
+    el('h4', {}, '这份提示词不知道的东西（逐条带原因）'),
+    el('div', { class: 'table-wrap', tabindex: '0', role: 'region',
+      'aria-label': '未知项表（可横向滚动）' },
+      el('table', { class: 'table' },
+        el('thead', {}, el('tr', {},
+          el('th', { scope: 'col' }, '字段'),
+          el('th', { scope: 'col' }, '为什么不知道'))),
+        el('tbody', {}, ...unknownRows))),
+    el('h4', {}, '这份文档没有说过的话（逐条来自服务端）'),
+    ...document.claims_not_made.map((line) => el('p', { class: 'uif-spec-note' }, line)),
+    el('h4', {}, '模型块（读回，不是本页的判定）'),
+    el('p', { class: 'uif-spec-note' },
+      `model.executed 读回为 ${String(document.model.executed)}：没有模型运行过。`
+      + `model.selected 读回为 ${document.model.selected === null
+        ? 'null（未选择任何模型）' : document.model.selected}。`
+      + '合同层规定这两个字段在本仓当前能产出的每一份文档里都是这个形状，'
+      + '所以这里没有"已生成图像"或"模型已判定"可言。'),
+    el('p', { class: 'uif-spec-note' }, `文档合同版本 ${document.schemaVersion}。`),
+  ];
+}
+
+function compositionReadbackPanel(readback: PromptCompositionReadback): HTMLElement {
+  const doc = readback.document;
+  const sectionRows = doc.sections.map((section: PromptSection) => el('tr', {},
+    el('th', { scope: 'row' }, section.kind),
+    el('td', {}, section.text),
+    el('td', {}, el('span', { class: 'mono' }, promptSourceProvenance(section.source)))));
+  return el('div', { class: 'row-card grid-stack' },
+    el('p', { class: 'uif-spec-note' },
+      '状态 ', en(readback.status), ' · 文档摘要 ',
+      el('span', { class: 'mono' }, readback.document_sha256)),
+    el('p', { class: 'uif-spec-note' }, '装配身份 ',
+      el('span', { class: 'mono' }, doc.composition_id),
+      '（同样的存过记录与同样的目标得到同一个 ID，所以这份读回可以重算并比对）'),
+    el('h4', {}, '提示词正文（服务端原文）'),
+    el('pre', { class: 'mono plan-preview' }, doc.prompt_text),
+    el('h4', {}, `逐段出处（${doc.sections.length} 段）`),
+    el('div', { class: 'table-wrap', tabindex: '0', role: 'region',
+      'aria-label': '提示词逐段出处表（可横向滚动）' },
+      el('table', { class: 'table' },
+        el('thead', {}, el('tr', {},
+          el('th', { scope: 'col' }, '段别'),
+          el('th', { scope: 'col' }, '正文'),
+          el('th', { scope: 'col' }, '出处（读回）'))),
+        el('tbody', {}, ...sectionRows))),
+    el('p', { class: 'uif-spec-note' },
+      `存过字段段落 ${doc.observed.length} 段，框架句 ${doc.framing.length} 段：`
+      + '前者每段带它自己那条记录的 spec_sha256，后者只带本页拥有的标注规则。'),
+    ...promptHonestyBlocks(doc));
+}
+
+function reversalReadbackPanel(readback: PromptReversalReadback): HTMLElement {
+  const doc = readback.document;
+  const layerRows = doc.layers.map((layer: PromptReversalLayer) => el('tr', {},
+    el('th', { scope: 'row' }, el('span', { class: 'mono' }, layer.id)),
+    el('td', {}, layer.type),
+    el('td', {}, layer.name),
+    el('td', {}, `${layer.bounds.x}, ${layer.bounds.y} · `
+      + `${layer.bounds.width}×${layer.bounds.height}`),
+    el('td', {}, `${String(layer.confidence.score)} · ${layer.confidence.method}`)));
+  return el('div', { class: 'row-card grid-stack' },
+    el('p', { class: 'uif-spec-note' },
+      '状态 ', en(readback.status), ' · 文档摘要 ',
+      el('span', { class: 'mono' }, readback.document_sha256)),
+    el('p', { class: 'uif-spec-note' }, '反推身份 ',
+      el('span', { class: 'mono' }, doc.reversal_id), ' · 绑定字节 ',
+      el('span', { class: 'mono' }, doc.asset.sha256)),
+    el('p', { class: 'uif-spec-note' },
+      `观测模块 ${doc.observation.module || '（未填写）'} · 分解 `
+      + `${doc.observation.decomposition_id || '未提供（服务端为本次观测派生了自己的分解身份）'}`
+      + ` · RIR 摘要 ${doc.observation.rir_sha256} · 区域数 `
+      + String(doc.observation.object_count)),
+    el('h4', {}, '反推正文（服务端原文）'),
+    el('pre', { class: 'mono plan-preview' }, doc.prompt_text),
+    el('h4', {}, `观测到的区域（${doc.layers.length} 个；置信度属于你提交的那个观测模块）`),
+    el('div', { class: 'table-wrap', tabindex: '0', role: 'region',
+      'aria-label': '反推区域表（可横向滚动）' },
+      el('table', { class: 'table' },
+        el('thead', {}, el('tr', {},
+          ...['节点 ID', '类型', '名称', '边界', '置信度 · 方法']
+            .map((h) => el('th', { scope: 'col' }, h)))),
+        el('tbody', {}, ...layerRows))),
+    el('p', { class: 'uif-spec-note' },
+      `绑定画布 ${doc.asset.width}×${doc.asset.height} · ${doc.asset.media_type} · 资产 ID `),
+    el('p', { class: 'mono' }, doc.asset.id),
+    ...promptHonestyBlocks(doc));
+}
+
+/** 选择器的第一行必须把"没有读到"与"读到了但没有"分开说，与 emptyLi 同一个规则。 */
+function promptSelectPlaceholder(unread: boolean, count: number,
+                                 noun: string, action: string): string {
+  return unread ? `未读回：${noun}未取回，不能断言为空`
+    : count > 0 ? `选择${noun}（共 ${count} 项）` : `尚无${noun}：${action}`;
+}
+
+async function promptIntelligencePanel(projectId: string): Promise<HTMLElement> {
+  const layerData = await apiOrEmpty<DesignLayerResponse>(
+    `/projects/${projectId}/design-layer`, OFFLINE.designLayer);
+  const assetsData = await apiOrEmpty<AssetListResponse>(
+    `/projects/${projectId}/assets`, OFFLINE.assets);
+  const layer = layerData.design_layer;
+  const briefsUnread = Boolean(shapeFieldMissing(layerData, 'design_layer.briefs')
+    || disconnectedNotice(layerData));
+  const assetsUnread = Boolean(shapeFieldMissing(assetsData, 'assets')
+    || disconnectedNotice(assetsData));
+  const reversalAssets = assetsData.assets.filter((a) => REVERSAL_ASSET_ID.test(a.id));
+
+  // --- 装配：简报 +（可选）方向 + 目标 ---
+  const briefSelect = el('select', { class: 'input', id: 'prompt-brief' },
+    el('option', { value: '' }, promptSelectPlaceholder(
+      briefsUnread, layer.briefs.length, '简报',
+      '先在「输入与目标」建立这份项目的第一份简报')),
+      ...layer.briefs.map((brief) => el('option', { value: brief.brief_id },
+        `${brief.title} · v${brief.version} · ${brief.brief_id.slice(-8)}`
+        + (brief.superseded_by ? '（已被取代，服务端会拒绝这次装配）' : ''))));
+  const directionSelect = el('select', { class: 'input', id: 'prompt-direction' });
+  const targetSelect = el('select', { class: 'input', id: 'prompt-target' },
+    ...PROMPT_TARGETS.map((family) => el('option', { value: family }, family)));
+  const composeOutcome = el('div', { class: 'spaced-top' });
+  const composeStatus = el('p', { class: 'view-hint', role: 'status',
+    'aria-live': 'polite' }, '');
+  const composeButton = el('button', {
+    type: 'button', class: 'primary-btn', id: 'prompt-compose',
+    disabled: layer.briefs.length ? null : '',
+  }, '生成提示词并读回（服务端不落库）');
+
+  const fillDirections = (): void => {
+    const briefId = briefSelect.value;
+    const rows = layer.directions.filter((d) => !briefId || d.brief_id === briefId);
+    directionSelect.replaceChildren(
+      el('option', { value: '' }, '不指定方向（只装配这份简报自己）'),
+      ...rows.map((d) => el('option', { value: d.direction_id },
+        `${d.title} · v${d.version} · ${d.direction_id.slice(-8)}`
+        + `${d.chosen ? ' · 已选定' : ' · 未选定'}`
+        + (d.superseded_by ? '（已被取代，服务端会拒绝）' : ''))));
+  };
+  fillDirections();
+  briefSelect.onchange = () => { fillDirections(); };
+
+  composeButton.onclick = () => {
+    if (!briefSelect.value) {
+      composeStatus.textContent = '未选择简报：装配必须有明确来源，界面不替你挑一份简报。';
+      return;
+    }
+    composeButton.disabled = true;
+    composeOutcome.replaceChildren();
+    composeStatus.textContent = '正在提交并等待读回…';
+    void (async () => {
+      try {
+        const readback = await api<PromptCompositionReadback>(
+          `/projects/${projectId}/prompts`, {
+            brief_id: briefSelect.value,
+            direction_id: directionSelect.value || null,
+            target: targetSelect.value,
+          });
+        composeStatus.textContent = '';
+        composeOutcome.replaceChildren(compositionReadbackPanel(readback));
+      } catch (error) {
+        composeStatus.textContent = '';
+        composeOutcome.replaceChildren(promptRefusal(
+          error, `POST /api/projects/{id}/prompts（目标 ${targetSelect.value}）`));
+      } finally {
+        composeButton.disabled = !briefSelect.value;
+      }
+    })();
+  };
+
+  // --- 反推：一条已存图像 + 操作者提供的观测 ---
+  const assetSelect = el('select', { class: 'input', id: 'prompt-reverse-asset' },
+    el('option', { value: '' }, promptSelectPlaceholder(
+      assetsUnread, reversalAssets.length, '可反推的图像资产',
+      '先在「输入与目标」导入 PNG/JPEG；没有存过的字节就没有可绑定的反推')),
+      ...reversalAssets.map((a) => el('option', { value: a.id },
+        `${a.id.slice(-8)} · ${a.media_type} · ${a.width}×${a.height} · 权利 ${a.rights}`)));
+  const moduleInput = el('input', { class: 'input', id: 'prompt-observation-module',
+    type: 'text', maxlength: '120', placeholder: '观测模块名（来自你的观测来源）' });
+  const decompositionInput = el('input', { class: 'input', id: 'prompt-decomposition',
+    type: 'text', maxlength: '120', placeholder: 'decomposition_id（留空表示没有）' });
+  const detectionsInput = el('textarea', {
+    class: 'input', id: 'prompt-detections', rows: '10', spellcheck: 'false',
+    'aria-label': 'detections 观测数组 JSON',
+  }, '[]');
+  const reverseOutcome = el('div', { class: 'spaced-top' });
+  const reverseStatus = el('p', { class: 'view-hint', role: 'status',
+    'aria-live': 'polite' }, '');
+  const reverseButton = el('button', {
+    type: 'button', class: 'primary-btn', id: 'prompt-reverse',
+    disabled: reversalAssets.length ? null : '',
+  }, '按这些观测生成反推并读回');
+
+  reverseButton.onclick = () => {
+    if (!assetSelect.value) {
+      reverseStatus.textContent = '未选择资产：反推必须绑定一条已存字节，界面不替你猜一张图。';
+      return;
+    }
+    let detections: unknown;
+    try {
+      detections = JSON.parse(detectionsInput.value) as unknown;
+    } catch (error) {
+      // 这是本页的本地检查，不是服务端返回码：没有一条代码名可以被冒充成服务端的回答。
+      reverseStatus.textContent = '正文不是合法 JSON（界面本地检查，未提交，'
+        + `服务端未收到任何请求）：${errMsg(error)}`;
+      return;
+    }
+    if (!Array.isArray(detections)) {
+      reverseStatus.textContent = 'detections 必须是数组（界面本地检查，未提交）：'
+        + '空数组由服务端作为 NO_OBSERVATIONS 拒绝，非数组由服务端作为字段校验失败拒绝，'
+        + '两种都不该由界面替用户改成能过校验的形状。';
+      return;
+    }
+    reverseButton.disabled = true;
+    reverseOutcome.replaceChildren();
+    reverseStatus.textContent = '正在提交并等待读回…';
+    void (async () => {
+      try {
+        const readback = await api<PromptReversalReadback>(
+          `/projects/${projectId}/assets/${assetSelect.value}/prompt-reversal`, {
+            module: moduleInput.value,
+            detections,
+            decomposition_id: decompositionInput.value.trim() || null,
+          });
+        reverseStatus.textContent = '';
+        reverseOutcome.replaceChildren(reversalReadbackPanel(readback));
+      } catch (error) {
+        reverseStatus.textContent = '';
+        reverseOutcome.replaceChildren(promptRefusal(
+          error, 'POST /api/projects/{id}/assets/{img-ID}/prompt-reversal'));
+      } finally {
+        reverseButton.disabled = !assetSelect.value;
+      }
+    })();
+  };
+
+  return el('div', { class: 'grid-stack' },
+    el('div', { class: 'intake-grid' },
+      el('div', { class: 'uif-spec-block' },
+        el('h3', {}, '装配提示词（只读已存记录）'),
+        el('p', { class: 'uif-spec-note' },
+          '每一句要么是某条存过字段的原文（带它自己的 spec_sha256），要么是本页的框架句'
+            + '（带规则名）。本页不推断画面内容：没有存过的受众、色板、情绪一律不出现在正文里，'
+            + '而是进 unknown 并说明为什么不知道。'),
+        el('label', {}, '简报', briefSelect),
+        el('label', {}, '方向（可留空）', directionSelect),
+        el('label', {}, '目标', targetSelect),
+        el('div', { class: 'uif-row' }, composeButton),
+        composeStatus, composeOutcome),
+      el('div', { class: 'uif-spec-block' },
+        el('h3', {}, '反推提示词（观测由你提供）'),
+        el('p', { class: 'uif-spec-note' },
+          '本仓没有合格的本地视觉后端（readiness 雷达 QUALIFIED_LOCAL=0，每条目 '
+            + 'default_enabled 为 false），所以没有任何代码读过这些像素。'
+            + '正文里的文字与几何全部来自你在下面粘贴的观测，连同它们的置信度一起带出，'
+            + '不会被重新标注成本产品的观察。'),
+        el('label', {}, '资产', assetSelect),
+        el('label', {}, '观测模块', moduleInput),
+        el('label', {}, 'detections（JSON 数组）', detectionsInput),
+        el('label', {}, 'decomposition_id（可留空）', decompositionInput),
+        el('div', { class: 'uif-row' }, reverseButton),
+        reverseStatus, reverseOutcome)),
+    el('p', { class: 'uif-spec-note' },
+      '本页写两条路由，两条都不落库：装配返回的文档由存过记录推导，重发同一份请求得到同一个 '
+        + 'ID；反推返回的文档绑定该资产的 sha256 与本次观测的 RIR 摘要。'
+        + '两者都不含模型执行、宿主调用或人工验收。'),
+    ...(assetsData.assets.length > reversalAssets.length
+      ? [el('p', { class: 'view-hint' },
+          `本项目读回 ${assetsData.assets.length} 项资产，其中 ${reversalAssets.length} 项是这条`
+          + '反推路由接受的图像资产身份（img- 前缀加 64 位十六进制）；其余身份这条路由不接受，'
+          + '本页不列出来让人误以为可以反推。')]
+      : []),
+    ...shapeNoticeRows(layerData, assetsData));
+}
+
+/** 提示词工程。可选项全部来自本项目的已有读回。 */
+export async function renderPromptIntelligence(target: HTMLElement): Promise<void> {
+  await projectPickerPanel(target, viewLabel('prompt-intelligence'),
+    async (projectId: string) => promptIntelligencePanel(projectId),
+    el('p', { class: 'view-hint' },
+      '提示词的两端都在这一页：从已存的简报与方向装配一段可逐段追溯的正文，'
+      + '或把你提供的观测转成一条已存资产的反推描述。'
+      + '两个方向都不运行模型、不调用宿主、不替人验收，也不把文档写进台账。'),
+    '本页向本机服务提交生成请求，服务端不落库；不启动宿主，不修改任何已交付版本。');
+}
+// ============================================================================
+// 模型选择 · #/models —— 读 GET /api/models：两份清单一屏并列，合并不做
+// ----------------------------------------------------------------------------
+// 服务端（`src/design_lab/model_catalog.py`）把 model radar 与 provider-capabilities 作为
+// **两个段落**交出来，`join.key` 恒为 null 并自带原因：model_id 与
+// provider_id/endpoint_ref 没有共用字段，页面把它们合成一张表就是编造一层关系。所以这里
+// 画两张表，永远不画第二张合并表。
+//
+// 页面不维护模型名单：族名、radar_state、placement、许可与证据级全部取自读回的行，
+// shell.ts 里不写任何一个模型名（手抄 design-lab/readiness/model-radar.json 正是这个仓库
+// 反复 gate 掉的第二台账）。读不到就说未读回，不按记忆补。
+//
+// 选择这件事在本页的真相，写在看得见的地方而不是按钮标题里：
+//   · selection.transport 与 selection.executed 原样显示；仓内没有外发通道，
+//     所以这里不出现"已应用""已生效""已发送到云端"；
+//   · claims_not_made 逐条列出（服务端的句子，不缩写）；
+//   · 「用于本次制作」禁用：提示词文档的 model.selected 恒为 null、executed 恒为 false，
+//     这条路由本身也不接受选择。禁用是这一面的结论，不是界面缺陷。
+// 三条读回分工不同：GET /api/models 是选择面本身；GET /api/capabilities 给雷达在能力库里
+// 的投影响应（以及"null 不是 0"那条规则）；GET /api/environment 给模型缓存根。
+// ============================================================================
+
+function modelPlacementLine(counts: Record<string, number>): string {
+  const entries = Object.entries(counts);
+  return entries.length
+    ? entries.map(([kind, value]) => `${kind} ${String(value)}`).join(' · ')
+    : '位置分布未读回';
+}
+
+export async function renderModelSelection(target: HTMLElement): Promise<void> {
+  target.replaceChildren(el('p', { class: 'view-loading' }, '正在读回模型目录…'));
+  const catalog = await apiOrEmpty<ModelCatalogResponse>('/models', OFFLINE.models);
+  const caps = await apiOrEmpty<CapabilityLibraryResponse>('/capabilities', OFFLINE.capabilities);
+  const env = await apiOrEmpty<EnvironmentResponse>('/environment', OFFLINE.environment);
+  const offline = Boolean(disconnectedNotice(catalog));
+  const modelsUnread = offline || shapeFieldMissing(catalog, 'models');
+  const selectionUnread = offline || shapeFieldMissing(catalog, 'selection');
+  const countsUnread = offline || shapeFieldMissing(catalog, 'counts');
+  // 族与来源位置的可选值来自读回的行，不是本页写死的枚举。
+  const families = Array.from(new Set(catalog.models.map((row) => row.family ?? '')))
+    .filter((value) => value !== '').sort();
+
+  const familyFilter = el('select', { class: 'input', id: 'model-family',
+    'aria-label': '按读回的族过滤候选' },
+    el('option', { value: '' }, families.length ? '全部族' : '族未读回'),
+    ...families.map((family) => el('option', { value: family }, family)));
+  const modelTable = el('div', { class: 'table-wrap', tabindex: '0', role: 'region',
+    'aria-label': '模型候选读回表（可横向滚动）' });
+  const MODEL_COLUMNS = ['候选', '族', '来源位置', 'radar 状态', '机器状态',
+    '许可 · 商用位', '默认启用', '权重摘要数', '阻塞原因'] as const;
+
+  const paint = (): void => {
+    const keep = familyFilter.value;
+    const rows = catalog.models.filter((row) => !keep || (row.family ?? '') === keep);
+    if (!rows.length) {
+      // 空表也要说清是哪一种空：读不到、和读到"这份登记确实没有行"，是两句不同的话。
+      modelTable.replaceChildren(el('table', { class: 'table' },
+        el('tbody', {}, el('tr', {}, emptyTd(catalog,
+          modelsUnread ? '未读回' : '本目录无模型候选行',
+          modelsUnread ? 'GET /api/models 没有把 models 带回来，本页不补任何名字。'
+            : '这份读回里一行都没有；服务端在目录为空时本身会拒绝并命名原因，所以这一行值得核对生成处。',
+          MODEL_COLUMNS.length)))));
+      return;
+    }
+    modelTable.replaceChildren(
+      el('table', { class: 'table' },
+        el('thead', {}, el('tr', {},
+          ...MODEL_COLUMNS.map((h) => el('th', { scope: 'col' }, h)))),
+        el('tbody', {}, ...rows.map((row: ModelCatalogModelRow) => el('tr', {},
+          el('th', { scope: 'row' }, row.model_id),
+          el('td', {}, row.family ?? '未记录'),
+          el('td', {}, row.placement ? en(row.placement) : '未记录'),
+          el('td', {}, en(row.radar_state ?? '未记录')),
+          el('td', {}, row.machine_state ? en(row.machine_state) : '未记录'),
+          el('td', {}, row.license_id ?? '未记录许可'),
+          el('td', {}, String(row.default_enabled)),
+          el('td', {}, String(row.weights_recorded)),
+          el('td', {}, row.blocking_reason ?? '（无记录）'))))));
+  };
+  familyFilter.onchange = paint;
+  paint();
+
+  const endpointColumns = ['提供方', '端点引用', '能力（读回）', 'local_first',
+    '许可', '许可风险', '证据级'] as const;
+  const endpointRows = catalog.endpoints.length
+    ? catalog.endpoints.map((row: ModelCatalogEndpointRow) => el('tr', {},
+        el('th', { scope: 'row' }, row.provider_id),
+        el('td', {}, el('span', { class: 'mono' }, row.endpoint_ref ?? '未记录')),
+        el('td', {}, (row.capabilities ?? []).join('、') || '未记录'),
+        el('td', {}, row.local_first === null ? '未记录' : String(row.local_first)),
+        el('td', {}, row.license ?? '未记录许可'),
+        el('td', {}, row.license_risk ? en(row.license_risk) : '未记录'),
+        el('td', {}, row.evidence_level ? en(row.evidence_level) : '未记录')))
+    : [el('tr', {}, emptyTd(catalog,
+        shapeFieldMissing(catalog, 'endpoints') ? '未读回' : '本目录无端点行',
+        shapeFieldMissing(catalog, 'endpoints')
+          ? 'GET /api/models 没有把 endpoints 带回来。' : 'provider 登记里没有可读的端点行。',
+        endpointColumns.length))];
+
+  const cacheRoot = env.roots['model_cache'];
+  const modelsInLibrary = caps.capabilities.filter((row) => row.kind === 'model').length;
+
+  const head = el('div', { class: 'page-head' },
+    el('div', {},
+      el('h2', {}, '模型选择'),
+      el('p', {}, '只读回服务端已经登记的模型候选与可调用端点，两份清单并列呈现、不做合并。'
+        + '本页不维护模型名单，不写死族名，不显示任何未经读回的资格，也不宣称选择已经生效。')),
+    el('div', { class: 'page-actions' },
+      el('button', { type: 'button', class: 'primary-btn', disabled: '' }, '用于本次制作')));
+
+  const candidatePanel = el('div', { class: 'panel' },
+    el('h3', {}, `模型候选（读回 ${modelsUnread ? '未读回' : String(catalog.models.length)} 行）`),
+    el('p', { class: 'view-hint' },
+      countsUnread
+        ? `${disconnectedNotice(catalog) || shapeNotice(catalog)}，所以本页不显示任何计数`
+        : `合格本地模型 ${String(catalog.counts.qualified_local)} · `
+          + `default_enabled 为 true ${String(catalog.counts.default_enabled_true)} · `
+          + `有权重摘要 ${String(catalog.counts.weights_recorded)} · `
+          + `来源位置 ${modelPlacementLine(catalog.counts.placement)}。`
+          + '这些数是从登记里数出来的，不是本页判定的：本目录不为任何一行提升资格。'),
+    el('label', { class: 'capability-filter' }, '族（取自读回值）', familyFilter),
+    modelTable);
+
+  const joinLine = shapeFieldMissing(catalog, 'join') || offline
+    ? '合并关系未读回：本次读回没有带回 join，所以本页不说两份清单是什么关系。'
+    : `合并关系读回为 join.key ${catalog.join.key === null ? 'null（服务端自己给的）'
+      : catalog.join.key ?? '未记录'}。`
+      + `原因原文：${catalog.join.reason || '（本次读回没有带原因）'}`;
+  const endpointPanel = el('div', { class: 'panel' },
+    el('h3', {}, `可调用端点（读回 ${shapeFieldMissing(catalog, 'endpoints') || offline
+      ? '未读回' : String(catalog.endpoints.length)} 行）`),
+    el('div', { class: 'table-wrap', tabindex: '0', role: 'region',
+      'aria-label': '可调用端点读回表（可横向滚动）' },
+      el('table', { class: 'table' },
+        el('thead', {}, el('tr', {},
+          ...endpointColumns.map((h) => el('th', { scope: 'col' }, h)))),
+        el('tbody', {}, ...endpointRows))),
+    el('p', { class: 'view-hint' }, joinLine),
+    el('p', { class: 'view-hint' },
+      '这两张表来自同一次 GET /api/models。把它们合成一张会造出一层数据不支持的关系，'
+      + '而那正是本项目点名的失败形状，所以本页永远分列。'));
+
+  const ruleLines = selectionUnread
+    ? [el('p', { class: 'uif-spec-note' },
+        '规则列表未读回：本次读回没有带回 selection.rules，本页不替它写规则。')]
+    : catalog.selection.rules.map((rule) => el('p', { class: 'uif-spec-note' }, rule));
+  const claimLines = shapeFieldMissing(catalog, 'claims_not_made') || offline
+    ? [el('p', { class: 'uif-spec-note' },
+        'claims_not_made 未读回：本页不替服务端编它没说过的话。')]
+    : catalog.claims_not_made.map((line) => el('p', { class: 'uif-spec-note' }, line));
+
+  const selectionPanel = el('div', { class: 'panel' },
+    el('h3', {}, '选择在这里意味着什么'),
+    el('p', { class: 'view-hint' },
+      selectionUnread
+        ? `${disconnectedNotice(catalog) || shapeNotice(catalog)}，`
+          + '所以本页不显示 transport 或 executed 的值，也不按记忆写一个。'
+        : '本页不锁定模型：选择是一次被记录的动作，不改变任何一行的合格状态，'
+          + '而本仓没有把素材送到任何地方的通道，所以这里没有"已应用"可说。'),
+    selectionUnread
+      ? el('p', { class: 'view-hint' },
+          'selection.mode / transport / executed 三个值本次没有读回，所以这里不显示它们，'
+          + '也不按仓内记忆写一个。')
+      : el('p', { class: 'view-hint' },
+          'selection.mode ', en(catalog.selection.mode || '未记录'), ' · selection.transport ',
+          en(catalog.selection.transport || '未记录'), ' · selection.executed ',
+          String(catalog.selection.executed), '（三个值都取自读回）'),
+    el('p', { class: 'uif-spec-note' },
+      '禁用「用于本次制作」不是界面缺陷：提示词文档的 model.selected 恒为 null、executed 恒为 false，'
+      + '而 GET /api/models 本身不接受选择。要落到一次生成，请去「提示词工程」选目标族——'
+      + '那是服务端会校验并命名拒绝的一条写路由。'),
+    el('h4', {}, '选择规则（逐条来自服务端）'),
+    ...ruleLines,
+    el('h4', {}, '这份目录没有说过的话（逐条来自服务端）'),
+    ...claimLines);
+
+  const libraryUnread = Boolean(disconnectedNotice(caps))
+    || shapeFieldMissing(caps, 'capabilities');
+  const crossPanel = el('div', { class: 'panel' },
+    el('h3', {}, '旁证：能力库投影与环境路径事实'),
+    el('p', { class: 'view-hint' },
+      libraryUnread
+        ? `${disconnectedNotice(caps) || shapeNotice(caps)}，所以本页不给出旁证行数`
+        : `GET /api/capabilities 读回 ${caps.counts.total} 条，其中 kind 为 model 的 `
+          + `${String(modelsInLibrary)} 条；来源标注 `
+          + `${Object.entries(caps.sources).map(([key, value]) => `${key}=${value}`).join(' · ')
+            || '未提供'}。`
+          + '那是同一批登记在能力库里的投影，本页用它做旁证而不是当第二个权威：'
+          + `服务自己的说法是 ${caps.unmeasuredMeans}。`),
+    el('h4', {}, '与模型有关的路径事实'),
+    el('p', { class: 'view-hint' },
+      '路径诊断状态 ',
+      disconnectedNotice(env) || !env.status ? '未读回' : en(env.status), '；'
+      + (cacheRoot && cacheRoot.path
+        ? `模型缓存根 ${cacheRoot.path} · 归属 ${cacheRoot.ownership ?? '未记录'} · `
+          + `可写 ${String(cacheRoot.writable)}`
+        : '模型缓存根未读回：这条响应里没有可读的 model_cache，本页不猜一个路径。')),
+    el('p', { class: 'view-hint' },
+      '本机运行、真实推理、资格判定与许可接受都在别处取证：本页不安装、不取证、不代签许可，'
+      + '也不把目录里的行数说成可用模型数。'));
+
+  target.replaceChildren(head, candidatePanel, endpointPanel, selectionPanel, crossPanel,
+    ...shapeNoticeRows(catalog, caps, env));
 }

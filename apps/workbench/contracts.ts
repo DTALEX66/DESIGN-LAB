@@ -287,6 +287,151 @@ export interface DirectionLineageResponse {
   lineage: DirectionLineage;
 }
 
+// --- Prompt intelligence: POST /api/projects/<id>/prompts and the per-asset reversal ---
+// Typed from the two schemas the emitter validates itself
+// (`design-lab/schemas/prompt-composition-v1.schema.json`, `.../prompt-reversal-v1.schema.json`,
+// checked by `prompt_intelligence.check_document`). Two rules follow from how the module is
+// written and are the reason these shapes are boring:
+//   * `source.kind` is only ever `stored` or `framing` — the page shows what the record says and
+//     never re-labels it, so the field stays an open string here rather than a hand-copied enum
+//     (LANGUAGE-POLICY §5: no enum is copied between languages without a check on both sides);
+//   * `model.executed` is `false` in every document this service can produce, and `selected` is
+//     always null. Both are rendered as read, not as a page-side claim.
+export interface PromptSectionSource {
+  kind: string;
+  brief_id?: string;
+  direction_id?: string;
+  version?: number;
+  spec_sha256?: string;
+  rule?: string;
+}
+
+export interface PromptSection {
+  kind: string;
+  text: string;
+  source: PromptSectionSource;
+}
+
+/** One thing the prompt does not know, in the emitter's own words. */
+export interface PromptUnknown {
+  field: string;
+  reason: string;
+}
+
+export interface PromptModelBlock {
+  selected: string | null;
+  executed: boolean;
+}
+
+export interface PromptCompositionDocument {
+  schemaVersion: string;
+  composition_id: string;
+  project_id: string;
+  target: string;
+  prompt_text: string;
+  sections: PromptSection[];
+  observed: PromptSectionSource[];
+  framing: PromptSectionSource[];
+  unknown: PromptUnknown[];
+  model: PromptModelBlock;
+  claims_not_made: string[];
+}
+
+export interface PromptReversalLayer {
+  id: string;
+  type: string;
+  name: string;
+  bounds: { x: number; y: number; width: number; height: number };
+  confidence: { score: number; method: string };
+}
+
+export interface PromptReversalDocument {
+  schemaVersion: string;
+  reversal_id: string;
+  project_id: string;
+  asset: { id: string; sha256: string; width: number; height: number; media_type: string };
+  observation: {
+    module: string;
+    decomposition_id: string;
+    rir_sha256: string;
+    object_count: number;
+  };
+  prompt_text: string;
+  layers: PromptReversalLayer[];
+  unknown: PromptUnknown[];
+  model: PromptModelBlock;
+  claims_not_made: string[];
+}
+
+/** The 201 envelope both routes answer with: the document plus a digest over its own bytes. */
+export interface PromptCompositionReadback {
+  status: string;
+  document: PromptCompositionDocument;
+  document_sha256: string;
+}
+
+export interface PromptReversalReadback {
+  status: string;
+  document: PromptReversalDocument;
+  document_sha256: string;
+}
+
+// --- model catalogue: GET /api/models (the picker's read of two registries) --
+// `src/design_lab/model_catalog.py` assembles this from the model radar and the provider
+// capability record and returns them as TWO sections with `join.key` null, because no field is
+// shared between model_id and provider_id. The page therefore renders two tables and never one
+// merged one — a joined row would fabricate a relationship the data cannot support. Status words
+// (radar_state, machine_state, hardware_fit, placement, evidence_level) are carried as read
+// strings: this file must not become a second copy of the radar's vocabulary.
+export interface ModelCatalogModelRow {
+  model_id: string;
+  family: string;
+  placement: string | null;
+  source_ref: string | null;
+  radar_state: string;
+  machine_state: string | null;
+  hardware_fit: string | null;
+  vram_gib_required: number | null;
+  commercial_use: string | null;
+  license_id: string | null;
+  default_enabled: boolean;
+  weights_recorded: number;
+  blocking_reason: string | null;
+  evidence_ref: string | null;
+}
+
+export interface ModelCatalogEndpointRow {
+  provider_id: string;
+  endpoint_ref: string;
+  capabilities: string[] | null;
+  local_first: boolean | null;
+  license: string | null;
+  license_risk: string | null;
+  evidence_level: string | null;
+  source: string | null;
+}
+
+export interface ModelCatalogResponse {
+  schemaVersion: string;
+  observed_at: string | null;
+  sources: Record<string, string>;
+  hardware: Record<string, unknown>;
+  policy: Record<string, unknown>;
+  counts: {
+    models: number;
+    endpoints: number;
+    qualified_local: number;
+    default_enabled_true: number;
+    weights_recorded: number;
+    placement: Record<string, number>;
+  };
+  models: ModelCatalogModelRow[];
+  endpoints: ModelCatalogEndpointRow[];
+  join: { key: string | null; reason: string };
+  selection: { mode: string; rules: string[]; transport: string; executed: boolean };
+  claims_not_made: string[];
+}
+
 // --- design-system TOKEN documents (W06 token write chain) -----------------
 // The record the service persists and reads back. `document` is the DTCG token
 // document exactly as written; the CSS custom-property map is a projection and is
