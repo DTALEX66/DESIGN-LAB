@@ -329,6 +329,54 @@ class GateTeethTests(unittest.TestCase):
         self.assertIn(row['version'], schema_text)
         self.assertIn(row['version'], (REPO / row['emitter'].split(':')[0]).read_text(encoding='utf-8'))
 
+    def test_a_version_string_names_one_shape_across_the_schema_tree(self):
+        """Two documents carrying the same `schemaVersion` is the defect the export envelope
+        briefly had: a reader resolving the top-level field would apply the envelope's contract to
+        the wrapped v2 export document, which requires a different key set, and vice versa. The
+        render caught it, not the gate -- so the gate carries it now.
+
+        An inventory, not a floor: a new collision is red until someone says why the two shapes are
+        the same contract, and a listed pair that stops colliding must be dropped from the list.
+        """
+        by_version: dict[str, set[str]] = {}
+        for path in sorted((REPO / 'design-lab' / 'schemas').rglob('*.schema.json')):
+            try:
+                document = json.loads(path.read_text(encoding='utf-8'))
+            except (OSError, ValueError):
+                continue
+            if not isinstance(document, dict):
+                continue
+            found = [(((document.get('properties') or {}).get('schemaVersion') or {}).get('const'),
+                      path.name)]
+            for name, sub in (document.get('$defs') or {}).items():
+                if isinstance(sub, dict):
+                    found.append((((sub.get('properties') or {}).get('schemaVersion') or {}).get('const'),
+                                  f'{path.name}#/$defs/{name}'))
+            for const, where in found:
+                if isinstance(const, str):
+                    by_version.setdefault(const, set()).add(where)
+        collisions = {version: sorted(places) for version, places in by_version.items()
+                      if len(places) > 1}
+        self.assertEqual(
+            collisions,
+            # Each pair below is one contract stated twice -- a $defs member of the document that
+            # owns the version, re-listed by the file that describes it -- not two shapes sharing
+            # a name. The 2026-10-21 export envelope was the fourth entry and was NOT that: it
+            # wrapped a different key set under the same string, so it moved to
+            # design-lab/assurance-knowledge-candidate-export-envelope/v1.
+            {'design-lab/assurance-jury-record/v2': [
+                'assurance-jury-record-v2.schema.json',
+                'assurance-jury-record-v2.schema.json#/$defs/proposal',
+                'assurance-quality-record.schema.json#/$defs/jury_verdict'],
+             'design-lab/assurance-knowledge-candidate-revocation/v1': [
+                'assurance-knowledge-candidate-revocation-v1.schema.json',
+                'assurance-knowledge-candidate-v2.schema.json#/$defs/revocation_record'],
+             'design-lab/operation-intent/v1': [
+                'job-spec.schema.json#/$defs/operationIntentRef',
+                'operation-intent.schema.json']},
+            'a schemaVersion shared by two places must be the same contract restated, '
+            'not two shapes wearing one name')
+
     def test_a_version_claiming_route_without_a_schema_says_so(self):
         """A SCHEMA_LESS row whose payload declares a version must name the missing schema, so
         'deliberately schema-less' cannot quietly mean 'nobody looked'."""
@@ -365,8 +413,8 @@ class GateTeethTests(unittest.TestCase):
         # design-lab/schemas/model-selection-readback-v1.schema.json, each fed the live payload in
         # design-lab/scripts/verify_route_payload_contracts.py -- and GET
         # .../knowledge-candidates/<id>/export left this set with them, its envelope now writing
-        # design-lab/assurance-knowledge-candidate-export/v1 behind
-        # design-lab/schemas/assurance-knowledge-candidate-export-v1.schema.json. What stays listed
+        # design-lab/assurance-knowledge-candidate-export-envelope/v1 behind
+        # design-lab/schemas/assurance-knowledge-candidate-export-envelope-v1.schema.json. What stays listed
         # is unpaid on purpose: the Adobe job-spec debts and the three read-backs nobody has written
         # a payload case for.
         self.assertEqual(sorted(row['route'] for row in claiming),

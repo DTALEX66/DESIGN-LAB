@@ -434,9 +434,9 @@ def build_bindings():
             'route': '/api/projects/([0-9a-f]{32})/knowledge-candidates'
                      '/([A-Za-z0-9_.:-]{1,80})/export',
             'method': 'GET',
-            'schema': 'design-lab/schemas/assurance-knowledge-candidate-export-v1.schema.json',
+            'schema': 'design-lab/schemas/assurance-knowledge-candidate-export-envelope-v1.schema.json',
             'emitter': 'src/design_lab/knowledge_review.py',
-            'version': 'design-lab/assurance-knowledge-candidate-export/v1',
+            'version': 'design-lab/assurance-knowledge-candidate-export-envelope/v1',
             # The envelope `export_payload` never had a version of: it wraps two bound projections
             # ($defs/export and candidate-knowledge v1) and said nothing about itself. Now it says
             # schemaVersion, and the schema keeps the honesty half of the claim machine-checked --

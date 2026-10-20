@@ -2502,7 +2502,7 @@ let runtimeFixture = RUNTIME_ABSENT;
 // GET …/knowledge-candidates/<id>/export 的信封，字段取自服务真实产出的那一版
 // （design-lab/tests/test_knowledge_http.py 与 verify_route_payload_contracts.py 读回的同形物）。
 const KNOWLEDGE_EXPORT_ENVELOPE = {
-  schemaVersion: 'design-lab/assurance-knowledge-candidate-export/v1',
+  schemaVersion: 'design-lab/assurance-knowledge-candidate-export-envelope/v1',
   status: 'CANDIDATE_EXPORT',
   project_id: 'p1',
   candidate_id: 'kc-' + '3'.repeat(32),
@@ -3295,7 +3295,7 @@ console.log('ok: ⑳ DL-UI-U07 成果版本面板：读回真实 BundleRecord �
   await flush();
   const exportText = exportBody.textContent;
   for (const needle of [
-    'design-lab/assurance-knowledge-candidate-export/v1',
+    'design-lab/assurance-knowledge-candidate-export-envelope/v1',
     'design-lab/assurance-knowledge-candidate/v2',
     'design-lab/candidate-knowledge/v1',
     'source_id job-1:UNUSED',

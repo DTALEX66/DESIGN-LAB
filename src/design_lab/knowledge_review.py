@@ -39,7 +39,7 @@ from .runtime.paths import PROJECT_ROOT
 from .runtime.state_resources import state_schema
 
 READBACK_VERSION = "design-lab/assurance-knowledge-candidate-readback/v1"
-EXPORT_VERSION = "design-lab/assurance-knowledge-candidate-export/v1"
+EXPORT_VERSION = "design-lab/assurance-knowledge-candidate-export-envelope/v1"
 
 #: The route pattern's own vocabulary: a candidate id that cannot be addressed
 #: by a later review/revoke URL is refused at creation rather than stored.

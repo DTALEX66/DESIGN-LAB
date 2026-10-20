@@ -320,6 +320,25 @@ owner 那句话的前半句早就落地了——`#/knowledge` 的创建表单里
 
 **一处值得记的读法**：探针第一次跑炸在自己的 `node.options`（`<input>` 没有 `options`），第二次炸在 Playwright 拒绝填禁用框——两次"失败"都是功能在起作用，而不是缺陷。把禁用做成"锁住可见内容"而不是"清空并隐藏"，正是为了让操作者随时能改主意而不丢输入。
 
+### 5.13 导出出口终于有人能按到，以及按下去之后发现的一个重名版本
+
+§5.11 把导出信封绑上了 schema，但 `apps/workbench/shell.ts` 只调 knowledge-candidates 的读回、审阅与撤销——**没有导出**。也就是说"可寻址"停在 HTTP/CLI 两级，操作者手上那台界面还差一级。这一批补那一级：每条候选一行一个 `读回导出文档` 按钮，`export_ready=false` 的行是禁用的且按钮文字自己说明"本条被合同阻止"；面板渲染信封版本、两份投影、编号回显（`USER_SUPPLIED` / `EXPLICITLY_UNUSED` 分开）、freshness、出站三事实与 `does_not_say` 逐句。按钮文字带"不发送"三个字，因为一个只写「导出」的控件会被读成已经交付。
+
+**浏览器实测**（真服务 + 真 Chromium + 出厂 bundle，2048×1152）：创建 → 具名批准 → 同一行的按钮从 `disabled:true` 变 `disabled:false`、文字从"本条被合同阻止"变"读回导出文档（不发送）"→ 点下去发的是 GET，面板读数原样为
+
+```
+CANDIDATE_EXPORT 信封 design-lab/assurance-knowledge-candidate-export-envelope/v1 · kc-ab21ca7f037708 · 第 2 版
+v1 投影：design-lab/candidate-knowledge/v1 source_id job-export-probe:UNUSED
+编号回显：job_id job-export-probe（USER_SUPPLIED）· operation_id UNUSED（EXPLICITLY_UNUSED）
+出站：NOT_CONNECTED；sent_count=0；bytes=878
+```
+
+`errors: []`、`overflow: false`；UI 审计三档宽度 `AUDIT_SCOPES 45 violations=0`（第一次跑在 2048 撞到一个 `net::ERR_NO_BUFFER_SPACE` 控制台错误，与 §5.7 记过的那次同源，重跑单进程即绿）。
+
+**这一屏顺带抓出一个 §5.11 自己造的缺陷**：信封的 `schemaVersion` 当时取名 `design-lab/assurance-knowledge-candidate-export/v1`——而那正是 `knowledge_feedback.EXPORT_VERSION` 从很久以前起就给**被包裹的那份 v2 导出文档**用的字符串。一个版本名，两种形状：读回顶层字段的人会把信封的合同套在被包文档上（键集合不同），反之亦然。闸门抓不到它，因为每一侧各自自洽；是渲染出来的面板把两个版本并排打在屏幕上才看出重名。修法是把**新的一方**改名（信封 → `...-export-envelope/v1`，文件与 `$id` 同改），因为被叫错的一方不能是已经出厂、被三处测试与 CLI 断言的那一个。
+
+顺手把这类缺陷变成机器可见的：`test_contract_bindings.py` 新增一条清单式断言，扫全树 `schemaVersion` const（含 `$defs`），**同名不同形即红**，现存三对合法重名逐对写明理由（同一合同被自己的 `$defs` 与描述它的文件各说一次）。清单不是地板：新重名要红到有人说明为什么两者是同一份合同，说明完失效了也要从清单里删掉。
+
 ## 6. 本轮暴露并修掉的六个缺陷
 
 1. **分类聚合按目录贴标签**：`bundle_key()` 把一个顶层目录收成一个 bundle，于是 `docs/` 里第一个文件的类别
