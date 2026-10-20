@@ -39,6 +39,11 @@ _NAMES = frozenset({
     'design-lab-state-design-layer-v2.sql',
     'design-lab-state-design-layer-v3.sql',
     'design-lab-state-design-layer-v4.sql',
+    # 2026-10-20 model-selection reachability: the per-project record of an operator choosing a
+    # model, or declining to (design-lab/schemas/state/design-lab-state-model-selection-v1.sql,
+    # applied by src/design_lab/model_selection.py). Additive: one new immutable resource name, no
+    # existing file renamed or re-versioned.
+    'design-lab-state-model-selection-v1.sql',
 })
 
 

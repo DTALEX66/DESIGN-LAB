@@ -77,9 +77,11 @@
     "model": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["selected", "executed"],
+      "required": ["selected", "selection_state", "executed"],
+      "description": "$comment: same three states as the composition contract -- a recorded choice is echoed, a declination and never-being-asked are reported as themselves, and `executed` is const false because no model ran.",
       "properties": {
         "selected": {"type": ["object", "null"]},
+        "selection_state": {"enum": ["CHOSEN", "DECLINED", "NEVER_ASKED"]},
         "executed": {"const": false}
       }
     },

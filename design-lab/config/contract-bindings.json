@@ -829,7 +829,7 @@
       "handler": "PromptIntelligence",
       "schema": "design-lab/schemas/prompt-composition-v1.schema.json",
       "version": "design-lab/prompt-composition/v1",
-      "emitter": "src/design_lab/prompt_intelligence.py:177",
+      "emitter": "src/design_lab/prompt_intelligence.py:184",
       "reason": "The route answers with a PROMPT_READBACK envelope whose `document` member is this contract; the document is validated by prompt_intelligence.check_document before the handler can return it, so a shortened or re-labelled prompt is a named 500 rather than a page that reads an incomplete prompt as a complete one. Nothing is persisted: the document is derived from the design_brief and design_direction rows, so `sections[].source` must carry the owning id, version and spec_sha256 (or be a framing rule this module names), and `model.executed` is const false because no model runs here. Refusals keep distinct codes: 404 BRIEF_NOT_FOUND, 409 STALE_REVISION for a superseded brief or a choice that points at one, 409 DIRECTION_NOT_UNDER_BRIEF, 400 UNKNOWN_TARGET for a family the model radar does not record. This is the entry point AUTHORITY.md's Prompt Intelligence domain claimed while `prompt` had zero occurrences in the route table, the CLI and the workbench."
     },
     {
@@ -839,7 +839,7 @@
       "handler": "PromptIntelligence",
       "schema": "design-lab/schemas/prompt-reversal-v1.schema.json",
       "version": "design-lab/prompt-reversal/v1",
-      "emitter": "src/design_lab/prompt_intelligence.py:282",
+      "emitter": "src/design_lab/prompt_intelligence.py:292",
       "reason": "Same envelope and same runtime check as the composition route, binding the reversal document. Observations are supplied by the caller and lowered by the existing reconstruction bridge, because no local vision backend is qualified (readiness/model-radar.json: QUALIFIED_LOCAL=0, every entry default_enabled:false); an empty set is refused with NO_OBSERVATIONS rather than answered with a prompt that looks described, and `unknown` must keep the semantic-content, colour and font entries so the document cannot be read as a description of what the picture depicts. An asset id that is not this project's answers the same 404 ASSET_NOT_FOUND as an id that was never imported, so the route is not an existence oracle over other projects' assets."
     },
     {
@@ -857,6 +857,21 @@
       "handler": "model_catalog",
       "emitter": "src/design_lab/model_catalog.py:123",
       "reason": "The catalogue writes its own schemaVersion (design-lab/model-catalog/v1, emitted at src/design_lab/model_catalog.py:123) and nothing validates that shape yet -- named as debt in the same form as the GET .../research row, not as an unremarkable read. Closing it needs a model-catalog schema plus a payload case in design-lab/scripts/verify_route_payload_contracts.py. What the route is for: the owner un-locked model choice on 2026-10-20 (「不锁死 做好菜单导航和接口 用户自行选择本地或者是云端模型」), and a picker needs one honest document. It returns the two registries the product already keeps -- design-lab/readiness/model-radar.json (14 candidate models) and design-lab/config/provider-capabilities.json (9 endpoints) -- with join.key null and a stated reason, because no field is shared between model_id and provider_id and a merged table would fabricate the relationship. Counts are measured, not asserted: qualified_local 0, default_enabled_true 0, weights_recorded 0, placement local 6 / huggingface 7 / vendor 1, so the page cannot render a readiness chip the registry does not support. selection.transport is NOT_CONNECTED and executed is false: choosing here records an operator action and sends nothing, and a cloud choice has to name that material leaves the machine. An unreadable registry answers 503 MODEL_CATALOG_UNAVAILABLE rather than an empty list that would read as \"no candidates exist\". Bound by design-lab/tests/test_model_catalog.py, which re-reads both registries in the test so a counter bug and a hand-written expectation cannot move together."
+    },
+    {
+      "route": "/api/projects/([0-9a-f]{32})/model-selection/choose",
+      "method": "POST",
+      "kind": "SCHEMA_LESS",
+      "handler": "ModelSelection",
+      "reason": "No schema validates this answer and none is claimed: the response is the operation receipt (status MODEL_SELECTION, the stored selection, replayed, revision_count, state) and it carries no schemaVersion of its own, while the selection document inside it IS bound by design-lab/schemas/model-selection-v1.schema.json -- validated by model_selection._check() before any row is written, so a document the contract refuses cannot reach the store. Refusals keep distinct codes: 400 MODEL_SELECTION_REQUIRED when neither a model nor an explicit declination is given, 400 MODEL_SELECTION_CONFLICT when both are, 400 ACTOR_REQUIRED and 400 INVALID_ACTOR_KIND (the design layer's lowercase human/agent vocabulary, not a second one), 404 MODEL_NOT_IN_CATALOGUE so a choice can only be made from what the registries record, and 409 MODEL_SELECTION_CONCURRENT_UPDATE. Replaying the same choice returns the existing revision with replayed true rather than appending a no-op, because the decision path has to stay readable."
+    },
+    {
+      "route": "/api/projects/([0-9a-f]{32})/model-selection",
+      "method": "GET",
+      "kind": "SCHEMA_LESS",
+      "version": "design-lab/model-selection-readback/v1",
+      "emitter": "src/design_lab/model_selection.py:228",
+      "reason": "The read-back envelope writes design-lab/model-selection-readback/v1 and no schema describes it -- named as debt in the same form as the rights, research and native-runtime read-backs rather than left unremarkable, and the gate itself convicted the alternative (SCHEMA_LESS_DEBT_UNNAMED fires when a row drops the version its emitter still writes). What IS bound: every element of `selection` and `history` is a design-lab/model-selection/v1 document validated on the way in and re-read from the stored bytes on the way out. The envelope exists to keep three answers apart -- CHOSEN, DECLINED (the operator's explicit 「不用」) and NEVER_ASKED -- and `does_not_say` states in the visible text that the last two are not the same fact, which is the failure this surface would otherwise invite: an empty list reading as a decision."
     }
   ]
 }

@@ -194,8 +194,10 @@ class PromptIntelligenceTests(unittest.TestCase):
         # Audience, brand assets and copy are not modelled by the design layer. A prompt that left
         # them out silently would read as though they had been considered and found absent.
         self.assertTrue({'audience', 'brand_assets', 'copy_text'} <= fields, f'unknown: {fields}')
-        self.assertEqual(document['model'], {'selected': None, 'executed': False},
-                         'composition ran no model and must not be able to claim otherwise')
+        self.assertEqual({'selected': None, 'selection_state': 'NEVER_ASKED', 'executed': False},
+                         document['model'],
+                         'composition ran no model and must not be able to claim otherwise; a project '
+                         'nobody has asked yet is NEVER_ASKED, not a declination')
         self.assertTrue(len(document['claims_not_made']) >= 4)
 
     def test_a_superseded_brief_version_is_refused(self):
@@ -297,7 +299,7 @@ class PromptIntelligenceTests(unittest.TestCase):
                             'spec_sha256': 'sha256:' + '0' * 64}}],
             'observed': [], 'framing': [],
             'unknown': [{'field': 'audience', 'reason': 'not modelled'}],
-            'model': {'selected': None, 'executed': False},
+            'model': {'selected': None, 'selection_state': 'NEVER_ASKED', 'executed': False},
             'claims_not_made': ['a', 'b', 'c', 'd'],
         }
         self.assertEqual(check_document(document, COMPOSITION_SCHEMA_PATH,

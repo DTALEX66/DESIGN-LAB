@@ -40,6 +40,7 @@ from .asset_analysis import AssetAnalysis, AssetAnalysisError
 from .design_layer import DesignLayer, DesignLayerError
 from .image_assets import ImageAssetError
 from .interop import InteropError, load_schema, schema_errors
+from .model_selection import ModelSelection
 from .readiness import ReadinessError
 from .readiness.model_radar import load_registry
 from .runtime.paths import PROJECT_ROOT
@@ -129,8 +130,10 @@ def check_document(document, schema_path, label):
 
 class PromptIntelligence:
     def __init__(self, service):
+        self.service = service
         self.layer = DesignLayer(service)
         self.analysis = AssetAnalysis(service)
+        self.selection = ModelSelection(service)
 
     # -- generation -------------------------------------------------------------
 
@@ -173,12 +176,17 @@ class PromptIntelligence:
                                          {'kind': 'stored', **sources['direction']}))
 
         prompt_text = '\n'.join(section['text'] for section in sections)
+        # The operator's recorded choice is echoed, never inferred, and it does not make the
+        # document model-generated: `executed` stays false because nothing here ran anything.
+        selection = self.selection.readback(project_id)
+        chosen = selection['selection'] if selection['state'] == 'CHOSEN' else None
         document = {
             'schemaVersion': COMPOSITION_VERSION,
             'composition_id': 'prompt-' + _digest([project_id, brief['brief_id'], brief['version'],
                                                    (direction or {}).get('direction_id', ''),
                                                    (direction or {}).get('version', ''),
-                                                   target, prompt_text]),
+                                                   target, prompt_text, selection['state'],
+                                                   (chosen or {}).get('revision', '')]),
             'project_id': project_id,
             'target': target,
             'prompt_text': prompt_text,
@@ -188,7 +196,7 @@ class PromptIntelligence:
             'framing': [section['source'] for section in sections
                         if section['source'].get('kind') == 'framing'],
             'unknown': list(NOT_MODELLED),
-            'model': {'selected': None, 'executed': False},
+            'model': {'selected': chosen, 'selection_state': selection['state'], 'executed': False},
             'claims_not_made': list(CLAIMS_NOT_MADE),
         }
         if direction is None:
@@ -278,6 +286,8 @@ class PromptIntelligence:
             lines.append('visible text, exactly as observed: ' + ' | '.join(texts))
         prompt_text = '\n'.join(lines)
 
+        selection = self.selection.readback(project_id)
+        chosen = selection['selection'] if selection['state'] == 'CHOSEN' else None
         return check_document({
             'schemaVersion': REVERSAL_VERSION,
             'reversal_id': 'reversal-' + _digest(
@@ -298,7 +308,8 @@ class PromptIntelligence:
                                               'not supplied on this path'},
                 {'field': 'font', 'reason': 'fontCandidates is empty in the IR; no face was matched'},
             ],
-            'model': {'selected': None, 'executed': False},
+            'model': {'selected': chosen, 'selection_state': selection['state'],
+                      'executed': False},
             'claims_not_made': [
                 'this is not a description of what the image depicts: it restates recorded observations',
                 'the confidence values belong to the supplied observation module, not to this product',

@@ -432,6 +432,54 @@ export interface ModelCatalogResponse {
   claims_not_made: string[];
 }
 
+// --- model selection: GET / POST .../model-selection(/choose) ----------------
+// A recorded act of choosing, per project, with the catalogue's facts copied in at that moment.
+// The three states are the point of the read: CHOSEN, DECLINED (the operator said 不用) and
+// NEVER_ASKED are different facts and the page must not merge them. `executed` appears nowhere in
+// these shapes: a choice is not a run, and the type must not be able to say otherwise.
+export interface ModelSelectionSnapshot {
+  placement: string | null;
+  radar_state: string | null;
+  machine_state: string | null;
+  commercial_use: string | null;
+  weights_recorded: number | null;
+  qualified_local: boolean;
+}
+
+export interface ModelSelectionRecord {
+  schemaVersion: string;
+  project_id: string;
+  revision: number;
+  model_id: string | null;
+  declared_unused: boolean;
+  snapshot: ModelSelectionSnapshot | null;
+  actor: string;
+  actor_kind: string;
+  recorded_at: string;
+  claims_not_made: string[];
+}
+
+export interface ModelSelectionReadback {
+  schemaVersion?: string;
+  project_id?: string;
+  state?: 'CHOSEN' | 'DECLINED' | 'NEVER_ASKED' | string;
+  selection?: ModelSelectionRecord | null;
+  revision_count?: number;
+  unreadable_count?: number;
+  history?: ModelSelectionRecord[];
+  claims_not_made?: string[];
+  does_not_say?: string[];
+}
+
+export interface ModelSelectionWritten {
+  status?: string;
+  selection?: ModelSelectionRecord | null;
+  replayed?: boolean;
+  revision_count?: number;
+  state?: string;
+  claims_not_made?: string[];
+}
+
 // --- design-system TOKEN documents (W06 token write chain) -----------------
 // The record the service persists and reads back. `document` is the DTCG token
 // document exactly as written; the CSS custom-property map is a projection and is

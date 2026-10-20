@@ -56,9 +56,11 @@
     "model": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["selected", "executed"],
+      "required": ["selected", "selection_state", "executed"],
+      "description": "$comment: `selected` is the operator's recorded model-selection document (design-lab/schemas/model-selection-v1.schema.json binds its shape and the composition test validates a real one against it), or null when the operator declined or was never asked. `executed` is const false: echoing a choice is not running a model.",
       "properties": {
         "selected": {"type": ["object", "null"]},
+        "selection_state": {"enum": ["CHOSEN", "DECLINED", "NEVER_ASKED"]},
         "executed": {"const": false}
       }
     },

@@ -118,6 +118,9 @@ ROUTES = (
     Route('GET', '/api/environment', '_environment', exact=True),
     Route('GET', '/api/capabilities', '_capabilities', exact=True),
     Route('GET', '/api/models', '_models', exact=True),
+    Route('GET',
+          r'/api/projects/([0-9a-f]{32})/model-selection',
+          '_read_model_selection'),
     Route('GET', '/api/domains', '_domains', exact=True),
     Route('GET', '/api/task-preflight', '_task_preflight', exact=True, path_only=True),
     Route('GET', '/api/projects', '_list_projects', exact=True),
@@ -200,6 +203,9 @@ ROUTES = (
     Route('POST',
           r'/api/projects/([0-9a-f]{32})/assets/(img-[0-9a-f]{64})/analysis',
           '_derive_asset_analysis'),
+    Route('POST',
+          r'/api/projects/([0-9a-f]{32})/model-selection/choose',
+          '_record_model_selection'),
     Route('POST',
           r'/api/projects/([0-9a-f]{32})/prompts',
           '_compose_prompt'),
@@ -810,6 +816,32 @@ def make_server(service, token, port=0, *, local_session=False):
                     decomposition_id=value['decomposition_id'])
             except AssetAnalysisError as exc:
                 return self.send_json(400, {'status': 'ERROR', 'error': exc.code, 'detail': exc.detail})
+            return self.send_json(201, result)
+
+        def _read_model_selection(self, match):
+            # Three states stay three states: CHOSEN, DECLINED (the operator said "not used") and
+            # NEVER_ASKED. Collapsing the last two is how a picker ends up reporting a decision
+            # nobody made.
+            from .model_selection import ModelSelection, ModelSelectionError
+            try:
+                return self.send_json(200, ModelSelection(service).readback(match[1]))
+            except ModelSelectionError as exc:
+                return self.send_json(exc.status, {'status': 'ERROR', 'error': exc.code,
+                                                   'detail': exc.detail})
+
+        def _record_model_selection(self, match):
+            # Exact key set: a choice either names a catalogue model or declines, and the actor is
+            # required because an unattributed selection is not a decision anyone can read back.
+            from .model_selection import ModelSelection, ModelSelectionError
+            value = self.body(fields={'model_id', 'declared_unused', 'actor', 'actor_kind'})
+            try:
+                result = ModelSelection(service).record(
+                    match[1], model_id=value['model_id'],
+                    declared_unused=value['declared_unused'], actor=value['actor'],
+                    actor_kind=value['actor_kind'])
+            except ModelSelectionError as exc:
+                return self.send_json(exc.status, {'status': 'ERROR', 'error': exc.code,
+                                                   'detail': exc.detail})
             return self.send_json(201, result)
 
         def _compose_prompt(self, match):

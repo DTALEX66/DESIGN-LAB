@@ -365,7 +365,8 @@ class GateTeethTests(unittest.TestCase):
                                  '/api/projects/([0-9a-f]{32})/rights',
                                  '/api/projects/([0-9a-f]{32})/native-runtime',
                                  '/api/projects/([0-9a-f]{32})/research',
-                                 '/api/models']),
+                                 '/api/models',
+                                 '/api/projects/([0-9a-f]{32})/model-selection']),
                          'the unpaid version-bearing routes are an inventory, so a paid debt '
                          'left listed as unpaid and an unlisted new debt are both red here')
         for row in claiming:
@@ -495,7 +496,7 @@ class GateTeethTests(unittest.TestCase):
         # version while its inner export document is validated by code) and GET /api/models
         # (SCHEMA_LESS with design-lab/model-catalog/v1 named as unpaid). Each added a dispatch and
         # a row in the same change, so both sides of the relation moved together.
-        self.assertEqual(len(lines), 1 + CONTRACTS + 64,
+        self.assertEqual(len(lines), 1 + CONTRACTS + 66,
                          'one verdict line, one note per contract row, one per route row')
         verdict = lines[-1]
         self.assertTrue(verdict.startswith('VERIFY_CONTRACT_BINDINGS=PASS'), verdict)
@@ -505,7 +506,7 @@ class GateTeethTests(unittest.TestCase):
         # 55 -> 59 on 2026-10-19 (T16/U09), same change as the inventory above: the four
         # knowledge routes are dispatched, so their rows are re-checked, not waived.
         for token in (f'schemas={CONTRACTS}', f'binding={BINDING_ROWS}', f'inert={INERT_ROWS}',
-                      'routes=64', 'dispatched=64', f'bound={expected_bound}'):
+                      'routes=66', 'dispatched=66', f'bound={expected_bound}'):
             self.assertIn(token, verdict)
 
     # --- failure modes, each against a mutated copy ------------------------------

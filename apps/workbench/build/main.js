@@ -10217,6 +10217,107 @@ function modelPlacementLine(counts) {
   const entries = Object.entries(counts);
   return entries.length ? entries.map(([kind, value]) => `${kind} ${String(value)}`).join(" · ") : "位置分布未读回";
 }
+async function modelSelectionPanel(projectId, candidates) {
+  const read = await apiOrEmpty(
+    `/projects/${projectId}/model-selection`,
+    {}
+  );
+  const state = read.state ?? null;
+  const selection = read.selection ?? null;
+  const unread = state === void 0 || state === null;
+  const modelSelect = el(
+    "select",
+    { class: "input", id: `ms-model-${projectId}` },
+    el("option", { value: "" }, candidates.length ? "选择候选（来自读回）" : "候选未读回"),
+    ...candidates.map((row) => el(
+      "option",
+      { value: row.model_id },
+      `${row.model_id} · ${row.family} · ${row.placement ?? "未记录"} · ${row.radar_state}`
+    ))
+  );
+  const kindSelect = el(
+    "select",
+    { class: "input", id: `ms-kind-${projectId}` },
+    el("option", { value: "" }, "谁在做这次选择（必选）"),
+    el("option", { value: "human" }, "我本人（human）"),
+    el("option", { value: "agent" }, "代理（agent）")
+  );
+  const status = el("p", { class: "view-hint", role: "status", "aria-live": "polite" }, "");
+  const outcome = el("div", { class: "spaced-top" });
+  const submit = async (body) => {
+    const kind = kindSelect.value;
+    if (!kind) {
+      status.textContent = "未记录：先说明是谁在做这次选择（界面本地检查，未提交）。";
+      return;
+    }
+    if (body.model_id === null && !body.declared_unused) {
+      status.textContent = "未记录：要么选一个候选，要么显式选择「不使用」（界面本地检查，未提交）。";
+      return;
+    }
+    status.textContent = "正在提交并等待读回…";
+    outcome.replaceChildren();
+    try {
+      const written = await api(
+        `/projects/${projectId}/model-selection/choose`,
+        {
+          model_id: body.model_id,
+          declared_unused: body.declared_unused,
+          actor: "workbench-operator",
+          actor_kind: kind
+        }
+      );
+      status.textContent = "";
+      outcome.replaceChildren(el(
+        "p",
+        { class: "view-hint" },
+        `已记录 rev${String(written.revision_count)} · ${written.replayed ? "与上一条相同，未追加新修订" : "新修订已追加"} · 状态 ` + en(String(written.state))
+      ));
+      outcome.append(await modelSelectionPanel(projectId, candidates));
+    } catch (error) {
+      status.textContent = "";
+      outcome.replaceChildren(promptRefusal(
+        error,
+        `POST /api/projects/{id}/model-selection/choose`
+      ));
+    }
+  };
+  const chooseButton = el(
+    "button",
+    {
+      type: "button",
+      class: "primary-btn",
+      id: `ms-choose-${projectId}`,
+      disabled: candidates.length ? null : ""
+    },
+    "记录这次选择"
+  );
+  chooseButton.onclick = () => void submit({
+    model_id: modelSelect.value || null,
+    declared_unused: false
+  });
+  const declineButton = el("button", {
+    type: "button",
+    class: "ghost-btn",
+    id: `ms-decline-${projectId}`
+  }, "不使用模型（显式记录）");
+  declineButton.onclick = () => void submit({ model_id: null, declared_unused: true });
+  const stateLine = unread ? "当前选择未读回：这次 GET 没有带回 state，本页不猜。" : state === "NEVER_ASKED" ? '当前状态 NEVER_ASKED：这个项目还没人被问过，既不是"已选择不使用"，也不是"没有答案"。' : state === "DECLINED" ? `当前状态 DECLINED：操作者显式记录了「不使用」${selection ? `（rev${String(selection.revision)} · ${selection.actor_kind} · ${selection.recorded_at}）` : ""}。这是决定，不是缺数据。` : `当前状态 CHOSEN：${selection?.model_id ?? "未记录"} · rev${String(selection?.revision ?? 0)} · 由 ${selection?.actor_kind ?? "未记录"}「${selection?.actor ?? "未记录"}」记录于 ${selection?.recorded_at ?? "未记录"}。快照（选择当时目录的说法）：${selection?.snapshot?.placement ?? "未记录"} / ${selection?.snapshot?.radar_state ?? "未记录"} / ${selection?.snapshot?.machine_state ?? "未记录"} / 权重摘要 ${String(selection?.snapshot?.weights_recorded ?? 0)} 条 / qualified_local ${String(selection?.snapshot?.qualified_local ?? false)}。`;
+  return el(
+    "div",
+    { class: "grid-stack" },
+    el("p", { class: "view-hint" }, stateLine),
+    ...shapeNoticeRows(read),
+    ...typeof read.revision_count === "number" ? [el(
+      "p",
+      { class: "view-hint" },
+      `决策路径共 ${String(read.revision_count)} 个修订；改主意是追加新修订，不覆盖旧决定。`
+    )] : [],
+    el("div", { class: "uif-row" }, modelSelect, kindSelect, chooseButton, declineButton),
+    status,
+    outcome,
+    ...Array.isArray(read.does_not_say) ? read.does_not_say.map((line) => el("p", { class: "uif-spec-note" }, line)) : []
+  );
+}
 async function renderModelSelection(target) {
   target.replaceChildren(el("p", { class: "view-loading" }, "正在读回模型目录…"));
   const catalog = await apiOrEmpty("/models", OFFLINE.models);
@@ -10331,14 +10432,48 @@ async function renderModelSelection(target) {
       "div",
       {},
       el("h2", {}, "模型选择"),
-      el("p", {}, "只读回服务端已经登记的模型候选与可调用端点，两份清单并列呈现、不做合并。本页不维护模型名单，不写死族名，不显示任何未经读回的资格，也不宣称选择已经生效。")
+      el("p", {}, '只读回服务端已经登记的模型候选与可调用端点，两份清单并列呈现、不做合并。本页不维护模型名单，不写死族名，不显示任何未经读回的资格。选择按项目记录：记下的只是"谁在什么时候选了哪个"，不代表加载、推理或发送。')
     ),
-    el(
-      "div",
-      { class: "page-actions" },
-      el("button", { type: "button", class: "primary-btn", disabled: "" }, "用于本次制作")
-    )
+    el("div", { class: "page-actions" })
   );
+  const projects2 = await apiOrEmpty("/projects", OFFLINE.projects);
+  const projectSelect = el(
+    "select",
+    { class: "input", id: "model-selection-project" },
+    el("option", { value: "" }, projects2.projects.length ? "选择项目" : "尚无项目"),
+    ...projects2.projects.map((row) => el(
+      "option",
+      { value: row.id },
+      `${row.name} · ${row.id.slice(-8)}`
+    ))
+  );
+  const selectionHost = el(
+    "div",
+    { class: "panel" },
+    el("h3", {}, "本项目的选择（读回 + 记录）"),
+    el("p", { class: "view-hint" }, "先选一个项目：选择是记在项目上的，不是一个全局开关。")
+  );
+  const loadSelection = async () => {
+    if (!projectSelect.value) {
+      selectionHost.replaceChildren(
+        el("h3", {}, "本项目的选择（读回 + 记录）"),
+        el(
+          "p",
+          { class: "view-hint" },
+          projects2.projects.length ? "未选择项目：本页不替操作者挑一个项目来记录选择。" : "尚无项目可读回：没有项目就没有可记录选择的作用域。"
+        )
+      );
+      return;
+    }
+    selectionHost.replaceChildren(
+      el("h3", {}, "本项目的选择（读回 + 记录）"),
+      el("p", { class: "view-loading" }, "正在读回当前选择…")
+    );
+    selectionHost.append(await modelSelectionPanel(projectSelect.value, catalog.models));
+  };
+  projectSelect.onchange = () => void loadSelection();
+  void loadSelection();
+  const choicePanel = el("div", { class: "panel" }, projectSelect, selectionHost);
   const candidatePanel = el(
     "div",
     { class: "panel" },
@@ -10419,7 +10554,7 @@ async function renderModelSelection(target) {
     el(
       "p",
       { class: "uif-spec-note" },
-      "禁用「用于本次制作」不是界面缺陷：提示词文档的 model.selected 恒为 null、executed 恒为 false，而 GET /api/models 本身不接受选择。要落到一次生成，请去「提示词工程」选目标族——那是服务端会校验并命名拒绝的一条写路由。"
+      '「记录这次选择」写的是 POST /api/projects/<id>/model-selection/choose：它把"谁在什么时候选了哪个"记在**这个项目**上，提示词文档随后会原样带出这条选择（model.selected），但 model.executed 恒为 false —— 记录不等于加载、不等于推理、不等于发送。改主意是追加新修订，旧修订仍是证据。'
     ),
     el("h4", {}, "选择规则（逐条来自服务端）"),
     ...ruleLines,
@@ -10454,9 +10589,10 @@ async function renderModelSelection(target) {
     head,
     candidatePanel,
     endpointPanel,
+    choicePanel,
     selectionPanel,
     crossPanel,
-    ...shapeNoticeRows(catalog, caps, env)
+    ...shapeNoticeRows(catalog, caps, env, projects2)
   );
 }
 byId("design-brief-form").onsubmit = (event) => {
