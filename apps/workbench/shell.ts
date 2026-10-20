@@ -8602,7 +8602,10 @@ async function modelSelectionPanel(projectId: string,
       ? [el('p', { class: 'view-hint' },
         `决策路径共 ${String(read.revision_count)} 个修订；改主意是追加新修订，不覆盖旧决定。`)]
       : []),
-    el('div', { class: 'uif-row' }, modelSelect, kindSelect, chooseButton, declineButton),
+    el('div', { class: 'uif-row' },
+      el('label', { class: 'capability-filter' }, '候选（来自读回）', modelSelect),
+      el('label', { class: 'capability-filter' }, '谁在做这次选择', kindSelect),
+      chooseButton, declineButton),
     status, outcome,
     ...(Array.isArray(read.does_not_say)
       ? read.does_not_say.map((line) => el('p', { class: 'uif-spec-note' }, line)) : []));
@@ -8715,7 +8718,9 @@ export async function renderModelSelection(target: HTMLElement): Promise<void> {
   };
   projectSelect.onchange = () => void loadSelection();
   void loadSelection();
-  const choicePanel = el('div', { class: 'panel' }, projectSelect, selectionHost);
+  const choicePanel = el('div', { class: 'panel' },
+    el('label', { class: 'capability-filter' }, '项目（选择记在这个项目上）', projectSelect),
+    selectionHost);
 
   const candidatePanel = el('div', { class: 'panel' },
     el('h3', {}, `模型候选（读回 ${modelsUnread ? '未读回' : String(catalog.models.length)} 行）`),
