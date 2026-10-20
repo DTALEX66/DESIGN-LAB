@@ -250,6 +250,19 @@ authority-index 与账本仍点名的四份包体。
 
 **这一批真正的产出不是那 20 处折叠，而是这条事实**：对本项目的工作台而言，"浏览器闸门全绿"不构成"布局未变"的证据。闸门量的是溢出、边界距离、对比度、控件尺寸与命名；卡片之间差 16px 不在任何一条断言里。要么按复合选择器把意图写死（现在这样做），要么给间距本身加断言——后者需要想清楚锚点集合，不在本轮里顺手做。
 
+### 5.10 第十一批（层叠冲突的第二道闸门，以及它自己被抓到的盲区）
+
+§5.9 的静态闸门只读源码，不看渲染结果。这一批补了浏览器里的那道：溢出审计对每个带工具类的元素读 `getComputedStyle`，与它该用的间距 token 逐一比对（`--uif-space-4`=16px、`--uif-space-2`=8px），python 侧断言 `bad == []` 且 token 确实解析出值。
+
+**两道闸门各被种一次真实的 bug，结果不一样，这个差别就是要记的东西**：
+
+| 播种 | 静态闸门 | 浏览器闸门 |
+| --- | --- | --- |
+| 把死声明 `.quick-launch{margin-top:0}` 追加回样式表末尾 | **红**：`FAIL shell.ts:877 class="panel quick-launch spaced-top": .spaced-top sets margin-top:var(--uif-space-4), but .quick-launch also sets margin-top:0` | **没红**——那张卡在测试 fixture 下不渲染。实读 `seen: {'spaced-top': 9}`，而 shell 里有 14 处 `spaced-top`，即 5 处本轮根本没上屏 |
+| 把 `.three-col{margin-top:0}` 追加回末尾（仪表盘确实渲染的站点） | 红 | **红**：`design-lab/dark: 1280:dashboard: a utility class lost the cascade -- .spaced-top expected margin-top:16px but computed 0px alongside .three-col` |
+
+结论写进现行面：**对这一类 bug，不依赖 fixture 数据的静态闸门是主承重的**，浏览器那道只保证"渲染出来的站点"算对了。它每次跑会打一行 `NOTE ... not rendered under this fixture: ['grid-stack']`，把盲区说出来而不是静默通过。播种后 `git diff` 对 `style.css` 为 0 行，两处注入都已还原。
+
 ## 6. 本轮暴露并修掉的六个缺陷
 
 1. **分类聚合按目录贴标签**：`bundle_key()` 把一个顶层目录收成一个 bundle，于是 `docs/` 里第一个文件的类别

@@ -245,6 +245,37 @@ const MEASURE = () => {
     }
     return { levels, skip: null, note: null };
   })();
+  // The cascade, checked where it actually lands. Two silent regressions came from folding
+  // repeated inline `style:` strings into utility classes: a component class defined later in the
+  // stylesheet took the property back by source order (`.quick-launch{margin-top:0}`,
+  // `.row-card{display:flex;gap:12px}`), and no gate noticed because none of them measures how far
+  // apart two panels sit. So read the computed value on every element that carries a utility class
+  // and compare it against the token the class is supposed to apply.
+  out.utilityGeometry = (() => {
+    const rootStyle = getComputedStyle(document.documentElement);
+    const token = (name) => rootStyle.getPropertyValue(name).trim();
+    const space2 = token('--uif-space-2');
+    const space4 = token('--uif-space-4');
+    const EXPECT = [['spaced-top', 'margin-top', space4],
+                    ['grid-stack', 'display', 'grid'],
+                    ['grid-stack', 'gap', space2]];
+    const bad = [];
+    const seen = {};
+    let checked = 0;
+    for (const [cls, prop, want] of EXPECT) {
+      if (!want) { bad.push({ cls, prop, want: 'a resolved token', got: 'empty/missing token' }); continue; }
+      for (const node of document.querySelectorAll(`.${cls}`)) {
+        checked += 1;
+        seen[cls] = (seen[cls] || 0) + 1;
+        const got = getComputedStyle(node)[prop];
+        if (got !== want) {
+          bad.push({ cls, prop, want, got,
+                     coClasses: Array.from(node.classList).filter((c) => c !== cls).join('.') });
+        }
+      }
+    }
+    return { checked, seen, bad, tokens: { space2, space4 } };
+  })();
   out.navEdge = (() => {
     const nav = document.querySelector('.sidebar .nav');
     const foot = document.querySelector('.sidebar-footer');

@@ -53,6 +53,20 @@ def _evidence_dir():
     return ROOT / '.project-local' / 'task-artifacts' / 'browser-e2e'
 
 
+def vucc_utility_names():
+    """The class names the static conflict gate guards.
+
+    Both guards must cover the same set: if the stylesheet gains a utility that only one of them
+    knows about, the other silently stops being relevant and nothing says so.
+    """
+    import importlib.util
+    script = ROOT / 'scripts' / 'verify_utility_class_conflicts.py'
+    spec = importlib.util.spec_from_file_location('verify_utility_class_conflicts', script)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return sorted(module.UTILITIES)
+
+
 class WorkbenchOverflowGateTests(unittest.TestCase):
     def _run_gate(self, report_name, theme_env=None):
         """Boot the real service, run the audit once, and hand back what it printed.
@@ -191,12 +205,52 @@ class WorkbenchOverflowGateTests(unittest.TestCase):
             self._assert_heading_order(thin)
         self.assertIn('stopped covering the route table', str(raised.exception))
 
+    def _assert_utility_geometry(self, report, label):
+        """Every element carrying a layout utility must actually compute the token's value.
+
+        This is the browser-side half of the guard: the static conflict check can see that two
+        classes set the same property, but only the rendered style says who won. Both regressions
+        from folding inline styles into `.spaced-top` / `.grid-stack` were invisible to every
+        existing assertion because none of them measures inter-panel spacing.
+        """
+        checked = 0
+        seen: dict[str, int] = {}
+        for key, value in sorted(report['routes'].items()):
+            if '+' in key or not isinstance(value, dict):
+                continue
+            geometry = value.get('utilityGeometry')
+            if not geometry:
+                continue
+            checked += geometry['checked']
+            for cls, count in (geometry.get('seen') or {}).items():
+                seen[cls] = seen.get(cls, 0) + count
+            self.assertTrue(geometry['tokens'].get('space2') and geometry['tokens'].get('space4'),
+                            f'{label} {key}: the spacing tokens the utilities rely on did not '
+                            f'resolve ({geometry["tokens"]})')
+            self.assertEqual(geometry['bad'], [],
+                             f'{label} {key}: a utility class lost the cascade -- '
+                             + '; '.join(f".{b['cls']} expected {b['prop']}:{b['want']} but "
+                                         f"computed {b['got']} alongside .{b.get('coClasses') or '-'}"
+                                         for b in geometry['bad']))
+        # Division of labour, stated because it is load-bearing: the static gate covers all twenty
+        # sites, this one covers the sites the fixture actually renders. `grid-stack` lives on panels
+        # that need data the walk does not always have, so an absent utility is reported as coverage
+        # rather than failed -- and the static conflict check is what guards those sites meanwhile.
+        self.assertGreaterEqual(checked, 1,
+                                f'{label}: no rendered element carried any utility class '
+                                f'({seen}); this pass computed nothing')
+        missing = sorted(set(vucc_utility_names()) - set(seen))
+        if missing:
+            print(f'NOTE {label} computed only {seen}; not rendered under this fixture: {missing} '
+                  '(guarded statically by scripts/verify_utility_class_conflicts.py)')
+
     def test_no_clipped_or_unreachable_text_in_real_browser(self):
         if not GATE_SCRIPT.is_file():
             self.skipTest(f'overflow gate script missing: {GATE_SCRIPT}')
         code, out, report_path = self._run_gate('workbench-overflow-gate.json')
         report = self._fail_open(code, out, report_path)
         self._assert_heading_order(report)
+        self._assert_utility_geometry(report, 'design-lab/dark:')
         # Every named interaction has to have settled on something a reader can tell apart, and at
         # least one has to have actually read the ledger back: a panel that renders a refusal at
         # every width is well-formed UI over a readback nobody ever saw.
@@ -247,6 +301,7 @@ class WorkbenchOverflowGateTests(unittest.TestCase):
         report = self._fail_open(code, out, report_path)
         # The receipt has to name the theme it describes, or a green file is ambiguous about
         # which subject was actually cleared.
+        self._assert_utility_geometry(report, 'ui2026/light:')
         self.assertEqual('ui2026', report['uiPalette'])
         self.assertEqual('light', report['uiScheme'])
         # The sidebar boundary that started this: the nav's cut line must not sit on the

@@ -285,6 +285,8 @@ E4 独立人审 / E5 发布可复现。**文档修订 ≠ 规划完成 ≠ 代�
 
 - **工具类与组件类的层叠冲突现在有闸门**：`scripts/verify_utility_class_conflicts.py`。来历是同一批里两次静默回归，形状完全一样——把重复内联样式收成 `.spaced-top` / `.grid-stack` 之后，组件类（`.quick-launch{margin-top:0}`、`.row-card{display:flex;gap:12px}`，都定义在工具类之后）按源码顺序开始获胜，元素被挪位；而**四道浏览器闸门全程绿**（它们量溢出/边界/对比度/控件尺寸，不量卡片间距）。正确修法是把意图写成复合选择器（`.row-card.grid-stack{...}`，特异性 0-2-0，与文件顺序无关），不是把工具类挪到文件末尾。闸门读样式表 + `shell.ts` 里字面 `class:` 集合：工具类与同一元素上的组件类共享属性即红，除非有复合规则显式解决；当前 20 个受保护站点干净，测试里删掉那条复合规则必须回红。**给样式做"等价重构"之前先看这条**，也别再把"浏览器闸门绿"当成布局未变的证据。
 
+- **层叠冲突现在有两道闸门，各自都被播种证明会红**：静态的 `scripts/verify_utility_class_conflicts.py` 与浏览器里的 `test_workbench_overflow_gate._assert_utility_geometry`。**两道各有覆盖范围，别拿一道当两道用**：把 `.quick-launch{margin-top:0}` 种回去，静态闸门立刻红（`FAIL shell.ts:877 class="panel quick-launch spaced-top" ...`），而浏览器闸门**没红**——那张卡在测试 fixture 下根本没渲染（`seen: {'spaced-top': 9}`，shell 里有 14 处）；把 `.three-col{margin-top:0}` 种回去，浏览器闸门就红了，报 `.spaced-top expected margin-top:16px but computed 0px alongside .three-col`（在 `1280:dashboard`）。所以：**对这一类 bug，不依赖 fixture 数据的静态闸门才是主承重**，浏览器那道只覆盖渲染出来的站点（每次跑会打 `NOTE ... not rendered under this fixture: [...]` 把盲区说出来，而不是静默通过）。
+
 ## 10. 什么算完成
 
 - 改动有**可复核的读数**（命令 + 输出），不是"应该没问题"。
