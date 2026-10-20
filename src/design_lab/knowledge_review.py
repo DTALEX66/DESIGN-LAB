@@ -549,3 +549,60 @@ class KnowledgeReview:
                 raise KnowledgeReviewError(409, "KNOWLEDGE_CONCURRENT_UPDATE",
                                            str(exc)) from None
         return record
+
+    def export_document(self, project_id, candidate_id) -> dict:
+        """Produce both outbound projections of one stored candidate, or name the exact refusal.
+
+        This is the caller ``export_payload`` and ``to_v1_projection`` never had: before it they were
+        reachable only from their own self-label, so "exportable" existed as a boolean on the readback
+        and no surface could ask for the document a transfer would carry. Producing it is still not a
+        transfer -- ``outbound.transport`` stays ``NOT_CONNECTED`` and ``sent_count`` stays 0 because
+        nothing is sent, and ``bytes`` counts what was assembled, not what left the machine.
+
+        The refusal is the product answer and keeps its own reason: an unapproved candidate, an agent
+        approval, an unchecked rights gate or a revoked document each say so rather than answering
+        200 with an empty body. ``source.job_id`` / ``source.operation_id`` are echoed exactly as
+        stored -- this method never fills a provenance field on anyone's behalf.
+        """
+        self._check_project(project_id)
+        with closing(self._connect()) as conn:
+            rows = [row for row in _latest_rows(conn, project_id)
+                    if row["candidate_id"] == candidate_id]
+        if not rows:
+            raise KnowledgeReviewError(404, "CANDIDATE_NOT_FOUND")
+        row = rows[0]
+        try:
+            document = json.loads(row["document_json"])
+        except (TypeError, ValueError):
+            raise KnowledgeReviewError(409, "CANDIDATE_DOCUMENT_UNREADABLE",
+                                       f"stored revision {row['revision']} of {candidate_id} is not "
+                                       "readable JSON; nothing is exported from an unreadable row"
+                                       ) from None
+        if not isinstance(document, dict):
+            raise KnowledgeReviewError(409, "CANDIDATE_DOCUMENT_UNREADABLE",
+                                       "the stored document is not an object")
+        try:
+            payload = knowledge_feedback.export_payload(document)
+        except AssuranceError as exc:
+            raise KnowledgeReviewError(409, "CANDIDATE_EXPORT_REFUSED", str(exc)) from None
+        try:
+            projection = knowledge_feedback.to_v1_projection(document)
+        except AssuranceError as exc:
+            raise KnowledgeReviewError(409, "CANDIDATE_V1_PROJECTION_REFUSED", str(exc)) from None
+        canonical = _canonical(payload)
+        source = document.get("source") if isinstance(document.get("source"), dict) else {}
+        return {
+            "status": "CANDIDATE_EXPORT",
+            "project_id": project_id,
+            "candidate_id": candidate_id,
+            "revision": row["revision"],
+            "export": payload,
+            "v1_projection": projection,
+            "provenance": {"job_id": source.get("job_id"), "operation_id": source.get("operation_id"),
+                            "design_lab_sha": source.get("design_lab_sha"),
+                            "payload_sha256": payload.get("payload_sha256")},
+            "freshness": _freshness(source.get("design_lab_sha"), _head_sha()),
+            "outbound": {"transport": "NOT_CONNECTED", "sent_count": 0,
+                          "bytes": len(canonical.encode('utf-8'))},
+            "does_not_say": list(DOES_NOT_SAY),
+        }

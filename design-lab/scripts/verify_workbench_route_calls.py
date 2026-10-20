@@ -106,6 +106,16 @@ BACKEND_ONLY: dict[tuple[str, str], str] = {
         'would add nothing to what the page already composes locally. The route is exercised live by '
         'design-lab/tests/test_asset_analysis.py and by the `design-lab analyze` verb, which is the '
         'operator path until the owner qualifies a model.',
+    ('GET', r'/api/projects/([0-9a-f]{32})/knowledge-candidates'
+            r'/([A-Za-z0-9_.:-]{1,80})/export'):
+        'the Workbench has no export surface yet, and this row is the honest placeholder for that, '
+        'not a design decision: the exit assembles two outbound projections and sends nothing '
+        '(outbound.transport NOT_CONNECTED, sent_count 0), so a page button labelled 导出 would '
+        'invite a delivery reading the service cannot support. The operator path today is the '
+        'design-lab export-candidate verb; the route is exercised live by '
+        'design-lab/tests/test_knowledge_http.py and by the export hop of '
+        'design-lab/tests/test_standalone_chain_http.py. When a review panel calls it, delete this '
+        'row -- the gate convicts a stale BACKEND_ONLY once the front end reaches the route.',
     ('GET', r'/api/projects/([0-9a-f]{32})/briefs/(brief-[0-9a-f]{32})'):
         'the design view reads briefs, directions and their bindings in one round trip through '
         'GET .../design-layer; the single-brief read is exercised for external clients by '

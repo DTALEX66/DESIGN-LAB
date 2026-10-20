@@ -430,6 +430,86 @@ class KnowledgeHttpTests(unittest.TestCase):
         # The document is still ACTIVE: a receipt alone does not revoke in the read.
         self.assertEqual('ACTIVE', readback['candidates'][0]['revocation_state'])
 
+    # -- export -----------------------------------------------------------------
+
+    def export(self, candidate_id, *, project_id=None):
+        return self.call('GET', f'/api/projects/{project_id or self.project_id}'
+                               f'/knowledge-candidates/{candidate_id}/export')
+
+    def test_an_unapproved_candidate_refuses_export_with_its_own_reason(self):
+        self.create()
+        status, body = self.export('kc-http-1')
+        self.assertEqual(409, status, body)
+        self.assertEqual('CANDIDATE_EXPORT_REFUSED', body['error'])
+        # The refusal names the gate that stopped it rather than returning an empty export,
+        # because "nothing came back" and "you are not allowed to take this" are different facts.
+        self.assertIn('PENDING_HUMAN_APPROVAL', body['detail'])
+
+    def test_export_produces_both_projections_and_still_says_nothing_was_sent(self):
+        self.create()
+        self.assertEqual(200, self.review('kc-http-1')[0])
+        status, body = self.export('kc-http-1')
+        self.assertEqual(200, status, body)
+        self.assertEqual('CANDIDATE_EXPORT', body['status'])
+
+        import jsonschema
+        schema = json.loads((REPO / 'design-lab' / 'schemas'
+                             / 'assurance-knowledge-candidate-v2.schema.json')
+                            .read_text(encoding='utf-8'))
+        # The export subdef is carried with the root's $defs: its own `$ref: #/$defs/source`
+        # resolves against the document it lives in, so lifting it bare would fail on a pointer
+        # rather than on the data.
+        target = {**schema['$defs']['export'], '$defs': schema['$defs']}
+        validator = jsonschema.Draft202012Validator(target, registry=_registry())
+        errors = sorted(validator.iter_errors(body['export']),
+                        key=lambda error: list(error.path))
+        self.assertEqual([], [f"{'/'.join(str(part) for part in error.path)}: {error.message}"
+                              for error in errors],
+                         'the route served an export document its own contract rejects')
+        self.assertEqual('design-lab/assurance-knowledge-candidate-export/v1',
+                         body['export']['schemaVersion'])
+        self.assertEqual('APPROVED', body['export']['review']['state'])
+
+        projection = body['v1_projection']
+        self.assertEqual('design-lab/candidate-knowledge/v1', projection['schemaVersion'])
+        # The v1 source_id is built from the ids the submitter stored, not from ones this
+        # service invented -- that is the difference between a projection and a provenance claim.
+        self.assertEqual('job-knowledge-1:op-knowledge-1', projection['source_id'])
+        self.assertIsNone(projection['compiled_ref'],
+                          'nothing compiles here, so the v1 projection must not carry a compiled link')
+
+        self.assertEqual({'job_id': 'job-knowledge-1', 'operation_id': 'op-knowledge-1'},
+                         {key: body['provenance'][key] for key in ('job_id', 'operation_id')})
+        self.assertEqual('NOT_CONNECTED', body['outbound']['transport'])
+        self.assertEqual(0, body['outbound']['sent_count'])
+        self.assertGreater(body['outbound']['bytes'], 0)
+        self.assertIn('传输未实现', json.dumps(body['does_not_say'], ensure_ascii=False),
+                      'an export answer without the transport disclaimer reads as a delivery')
+
+    def test_exporting_a_revoked_candidate_is_refused(self):
+        self.create()
+        self.assertEqual(200, self.review('kc-http-1')[0])
+        self.assertEqual(200, self.revoke('kc-http-1')[0])
+        status, body = self.export('kc-http-1')
+        self.assertEqual(409, status, body)
+        self.assertEqual('CANDIDATE_EXPORT_REFUSED', body['error'])
+        self.assertIn('revoked', body['detail'])
+
+    def test_export_refuses_an_unknown_candidate_and_one_from_another_project(self):
+        self.create()
+        status, body = self.export('kc-never-submitted')
+        self.assertEqual(404, status, body)
+        self.assertEqual('CANDIDATE_NOT_FOUND', body['error'])
+
+        other = self.call('POST', '/api/projects', {'name': 'Other project'})
+        self.assertEqual(201, other[0], other[1])
+        other_id = other[1]['project']['id']
+        # Same answer from both paths: the route must not become an oracle for whether some
+        # other project holds a candidate with this id.
+        status, body = self.export('kc-http-1', project_id=other_id)
+        self.assertEqual(404, status, body)
+        self.assertEqual('CANDIDATE_NOT_FOUND', body['error'])
+
     # -- persistence ------------------------------------------------------------
 
     def test_a_decision_survives_a_server_restart(self):

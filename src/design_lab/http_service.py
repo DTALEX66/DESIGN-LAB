@@ -11,6 +11,7 @@ from . import __version__
 from .runtime.asset_store import AssetError
 from .runtime.paths import PathPolicyError
 from .asset_analysis import AssetAnalysis, AssetAnalysisError
+from .prompt_intelligence import PromptIntelligence, PromptIntelligenceError
 from .image_assets import ImageAssets, ImageAssetError
 from .task_queries import TaskQueries
 from .task_commands import TaskCommands
@@ -140,6 +141,10 @@ ROUTES = (
           r'/api/projects/([0-9a-f]{32})/knowledge-candidates',
           '_list_knowledge_candidates'),
     Route('GET',
+          r'/api/projects/([0-9a-f]{32})/knowledge-candidates'
+            r'/([A-Za-z0-9_.:-]{1,80})/export',
+          '_export_knowledge_candidate'),
+    Route('GET',
           r'/api/projects/([0-9a-f]{32})/briefs(?:\?after=(brief-[0-9a-f]{32}))?',
           '_list_briefs'),
     Route('GET',
@@ -194,6 +199,12 @@ ROUTES = (
     Route('POST',
           r'/api/projects/([0-9a-f]{32})/assets/(img-[0-9a-f]{64})/analysis',
           '_derive_asset_analysis'),
+    Route('POST',
+          r'/api/projects/([0-9a-f]{32})/prompts',
+          '_compose_prompt'),
+    Route('POST',
+          r'/api/projects/([0-9a-f]{32})/assets/(img-[0-9a-f]{64})/prompt-reversal',
+          '_reverse_asset_prompt'),
     Route('POST',
           r'/api/projects/([0-9a-f]{32})/bundles'
             r'/(bundle-native-[0-9a-f]{64})/preflight'
@@ -687,6 +698,13 @@ def make_server(service, token, port=0, *, local_session=False):
             # name instead of dropping the rows they concern.
             return self.send_json(200, KnowledgeReview(service).list(match[1]))
 
+        def _export_knowledge_candidate(self, match):
+            # Produces the two outbound projections and nothing more: no transport exists, so a
+            # successful answer means "assembled and contract-valid", never "sent". A candidate the
+            # contract will not release answers 409 with the refusal sentence, not 200 with a body.
+            return self.send_json(200, KnowledgeReview(service).export_document(
+                match[1], match[2]))
+
         def _list_briefs(self, match):
             layer = DesignLayer(service)
             return self.send_json(200, layer.list_briefs(match[1], match[2] or ''))
@@ -779,6 +797,33 @@ def make_server(service, token, port=0, *, local_session=False):
             except AssetAnalysisError as exc:
                 return self.send_json(400, {'status': 'ERROR', 'error': exc.code, 'detail': exc.detail})
             return self.send_json(201, result)
+
+        def _compose_prompt(self, match):
+            # Exact key set, nullable direction: a prompt over a brief alone is a real answer,
+            # an absent key is a caller bug. Nothing is persisted -- the document is derived from
+            # the stored brief/direction rows, so re-POSTing the same request re-computes it.
+            value = self.body(fields={'brief_id', 'direction_id', 'target'}, limit=65_536)
+            try:
+                document = PromptIntelligence(service).compose(
+                    match[1], brief_id=value['brief_id'],
+                    direction_id=value['direction_id'], target=value['target'])
+            except PromptIntelligenceError as exc:
+                return self.send_json(exc.status, {'status': 'ERROR', 'error': exc.code,
+                                                   'detail': exc.detail})
+            return self.send_json(201, PromptIntelligence.readback(document))
+
+        def _reverse_asset_prompt(self, match):
+            # The observations are supplied, never inferred: no qualified vision backend exists, so
+            # a reversal that read the pixels would be a fabricated observation wearing a document.
+            value = self.body(fields={'module', 'detections', 'decomposition_id'}, limit=262_144)
+            try:
+                document = PromptIntelligence(service).reverse(
+                    match[1], match[2], module=value['module'], detections=value['detections'],
+                    decomposition_id=value['decomposition_id'])
+            except PromptIntelligenceError as exc:
+                return self.send_json(exc.status, {'status': 'ERROR', 'error': exc.code,
+                                                   'detail': exc.detail})
+            return self.send_json(201, PromptIntelligence.readback(document))
 
         def _preflight_bundle(self, match):
             # The bundle is resolved from the state database by id and

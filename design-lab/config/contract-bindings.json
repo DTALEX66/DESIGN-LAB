@@ -446,16 +446,16 @@
       "emitter": "src/design_lab/domain_packs.py:205",
       "reason": "Debt paid 2026-10-08. The inner packs were always bound (design-lab/schemas/domain-pack.schema.json, judged by design-lab/scripts/verify_domain_pack_v2.py); this row was the unboud half. design-lab/schemas/domain-pack-readback.schema.json now closes the envelope, enumerates all four validation states and requires counts.byValidation to carry each of them, so a zero is never an absent category. Validated against the real response by design-lab/scripts/verify_route_payload_contracts.py."
     },
-{
-  "route": "/api/evidence-projection",
-  "method": "GET",
-  "kind": "BOUND_SCHEMA",
-  "handler": "evidence_projection",
-  "schema": "design-lab/schemas/evidence-projection.schema.json",
-  "version": "design-lab/evidence-projection/v1",
-  "emitter": "src/design_lab/governance/evidence_readback.py:29",
-  "reason": "Debt paid 2026-10-08 by section 30 and 31 of docs/audits/DESIGNLAB-LAUNCH-REVIEW-PREFLIGHT-2026-10-08.md: the projection answered two questions -- integrity (are these bytes still where the receipt says they came from) and currency (does this receipt still describe the bytes we are running) -- and nobody outside reporting.py could read either, so the evidence link of the chain was visible only to the code that wrote it. evidence_readback.projection() recomputes project_ledger over THIS checkout from the ledger and the object database (never from reports/current/, which is bound to whatever commit it was generated at) and validates its own payload, so a renamed key, a new reason token registered in code but not in the schema, or a record field leaking into the readback answers a named 500 instead of a short record a reader would call 'no evidence problems'. The reason vocabularies are two closed enums because the two questions are not the same question, and `current` is a subset of `verified` by construction -- the totals carry both counts and a test asserts that relation on the live payload."
-},
+    {
+      "route": "/api/evidence-projection",
+      "method": "GET",
+      "kind": "BOUND_SCHEMA",
+      "handler": "evidence_projection",
+      "schema": "design-lab/schemas/evidence-projection.schema.json",
+      "version": "design-lab/evidence-projection/v1",
+      "emitter": "src/design_lab/governance/evidence_readback.py:29",
+      "reason": "Debt paid 2026-10-08 by section 30 and 31 of docs/audits/DESIGNLAB-LAUNCH-REVIEW-PREFLIGHT-2026-10-08.md: the projection answered two questions -- integrity (are these bytes still where the receipt says they came from) and currency (does this receipt still describe the bytes we are running) -- and nobody outside reporting.py could read either, so the evidence link of the chain was visible only to the code that wrote it. evidence_readback.projection() recomputes project_ledger over THIS checkout from the ledger and the object database (never from reports/current/, which is bound to whatever commit it was generated at) and validates its own payload, so a renamed key, a new reason token registered in code but not in the schema, or a record field leaking into the readback answers a named 500 instead of a short record a reader would call 'no evidence problems'. The reason vocabularies are two closed enums because the two questions are not the same question, and `current` is a subset of `verified` by construction -- the totals carry both counts and a test asserts that relation on the live payload."
+    },
     {
       "route": "/api/task-preflight",
       "method": "GET",
@@ -821,6 +821,33 @@
       "version": "design-lab/assurance-knowledge-candidate-revocation/v1",
       "emitter": "src/design_lab/assurance/knowledge_feedback.py:414",
       "reason": "The response is the revocation receipt itself, validated as a closed document with export_blocked const true before it is stored alongside the REVOKED revision in one commit. A receipt is never transferable: apply_revocation binds it to the candidate id and the facade replays an identical revocation rather than rewriting its reason or actor."
+    },
+    {
+      "route": "/api/projects/([0-9a-f]{32})/prompts",
+      "method": "POST",
+      "kind": "BOUND_SCHEMA",
+      "handler": "PromptIntelligence",
+      "schema": "design-lab/schemas/prompt-composition-v1.schema.json",
+      "version": "design-lab/prompt-composition/v1",
+      "emitter": "src/design_lab/prompt_intelligence.py:177",
+      "reason": "The route answers with a PROMPT_READBACK envelope whose `document` member is this contract; the document is validated by prompt_intelligence.check_document before the handler can return it, so a shortened or re-labelled prompt is a named 500 rather than a page that reads an incomplete prompt as a complete one. Nothing is persisted: the document is derived from the design_brief and design_direction rows, so `sections[].source` must carry the owning id, version and spec_sha256 (or be a framing rule this module names), and `model.executed` is const false because no model runs here. Refusals keep distinct codes: 404 BRIEF_NOT_FOUND, 409 STALE_REVISION for a superseded brief or a choice that points at one, 409 DIRECTION_NOT_UNDER_BRIEF, 400 UNKNOWN_TARGET for a family the model radar does not record. This is the entry point AUTHORITY.md's Prompt Intelligence domain claimed while `prompt` had zero occurrences in the route table, the CLI and the workbench."
+    },
+    {
+      "route": "/api/projects/([0-9a-f]{32})/assets/(img-[0-9a-f]{64})/prompt-reversal",
+      "method": "POST",
+      "kind": "BOUND_SCHEMA",
+      "handler": "PromptIntelligence",
+      "schema": "design-lab/schemas/prompt-reversal-v1.schema.json",
+      "version": "design-lab/prompt-reversal/v1",
+      "emitter": "src/design_lab/prompt_intelligence.py:282",
+      "reason": "Same envelope and same runtime check as the composition route, binding the reversal document. Observations are supplied by the caller and lowered by the existing reconstruction bridge, because no local vision backend is qualified (readiness/model-radar.json: QUALIFIED_LOCAL=0, every entry default_enabled:false); an empty set is refused with NO_OBSERVATIONS rather than answered with a prompt that looks described, and `unknown` must keep the semantic-content, colour and font entries so the document cannot be read as a description of what the picture depicts. An asset id that is not this project's answers the same 404 ASSET_NOT_FOUND as an id that was never imported, so the route is not an existence oracle over other projects' assets."
+    },
+    {
+      "route": "/api/projects/([0-9a-f]{32})/knowledge-candidates/([A-Za-z0-9_.:-]{1,80})/export",
+      "method": "GET",
+      "kind": "SCHEMA_LESS",
+      "handler": "KnowledgeReview",
+      "reason": "No schema validates this envelope -- named as debt, not as an unremarkable read, in the same shape as the GET .../research row above. What it wraps IS bound: the `export` member is the v2 export document, produced by knowledge_feedback.export_payload(), which validates itself against assurance-knowledge-candidate-v2.schema.json#/$defs/export before returning, and `v1_projection` is bound by design-lab/schemas/candidate-knowledge.schema.json. The envelope writes `status` and no schemaVersion, so binding the v2 schema here would claim a shape nothing checks -- the gate convicted exactly that move (ROUTE_VERSION_UNBOUND: the v2 schema's own const is .../candidate/v2). Closing the debt needs an export-envelope schema plus a payload case in design-lab/scripts/verify_route_payload_contracts.py, not a restated version string in this row. This route is the caller `export_payload` and `to_v1_projection` never had: before it they had zero callers in src/ and 'exportable' existed only as the readback's export_ready boolean. Producing the document is still not delivering it -- outbound.transport is NOT_CONNECTED and sent_count is 0 because no ArcheAxis transport exists in this repository, `bytes` counts what was assembled, and a candidate the contract will not release (not APPROVED, agent reviewer_kind, rights not CHECKED, or revoked) answers 409 CANDIDATE_EXPORT_REFUSED with the refusal sentence instead of 200. source.job_id and source.operation_id are echoed exactly as stored; this route never fills a provenance field on the caller's behalf."
     }
   ]
 }

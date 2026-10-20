@@ -248,6 +248,39 @@ def main(argv=None):
     analyze.add_argument('--observations', required=True,
                          help='JSON file holding {"module": …, "detections": [{text, confidence, '
                               'polygon}]}; observations are supplied, never inferred here')
+    prompt = commands.add_parser(
+        'prompt', help='Prompt Intelligence: compose a visual prompt from stored records, or '
+                       'reverse-describe one stored asset from an explicit observation file')
+    prompt_action = prompt.add_subparsers(dest='action', required=True)
+    prompt_generate = prompt_action.add_parser(
+        'generate',
+        help='assemble a prompt-composition/v1 document from one live brief (and, when one is '
+             'chosen or named, its direction); nothing is invented and no model runs')
+    prompt_generate.add_argument('--project-id', required=True, help='owning project id (32 hex)')
+    prompt_generate.add_argument('--brief', required=True,
+                                 help='the brief-… identifier the brief route returned')
+    prompt_generate.add_argument('--direction', default=None,
+                                 help='optional direction-…; without it the single chosen direction '
+                                      'of that brief is used, and with none the prompt says so')
+    prompt_generate.add_argument('--target', default='image-generation',
+                                 help='a visual family recorded in design-lab/readiness/'
+                                      'model-radar.json (image-generation, video-generation, 3d)')
+    prompt_reverse = prompt_action.add_parser(
+        'reverse',
+        help='restate one stored asset as a prompt from an explicit observation file; it describes '
+             'what was observed, never what the picture depicts')
+    prompt_reverse.add_argument('--project-id', required=True, help='owning project id (32 hex)')
+    prompt_reverse.add_argument('--asset', required=True,
+                                help='the img-… identifier the import route returned')
+    prompt_reverse.add_argument('--observations', required=True,
+                                help='the same {"module", "detections"} file analyze accepts')
+    exporting = commands.add_parser(
+        'export-candidate',
+        help='produce the two outbound projections of one stored knowledge candidate; nothing is '
+             'sent, because this repository has no ArcheAxis transport')
+    exporting.add_argument('--project-id', required=True, help='owning project id (32 hex)')
+    exporting.add_argument('--candidate', required=True,
+                           help='the candidate id the knowledge-candidates route returned')
     args = parser.parse_args(argv)
     if hasattr(sys.stdout, 'reconfigure'):
         sys.stdout.reconfigure(encoding='utf-8')
@@ -685,6 +718,48 @@ def main(argv=None):
             except (AssetAnalysisError, ImageAssetError) as exc:
                 print(json.dumps({'status': 'ERROR', 'error': getattr(exc, 'code', None)
                                             or type(exc).__name__, 'detail': str(exc)},
+                                 ensure_ascii=False))
+                return 2
+        elif args.command == 'prompt':
+            from .prompt_intelligence import PromptIntelligence, PromptIntelligenceError
+            intelligence = PromptIntelligence(service)
+            if args.action == 'generate':
+                try:
+                    document = intelligence.compose(args.project_id, brief_id=args.brief,
+                                                   direction_id=args.direction, target=args.target)
+                except PromptIntelligenceError as exc:
+                    print(json.dumps({'status': 'ERROR', 'error': exc.code, 'detail': exc.detail},
+                                     ensure_ascii=False))
+                    return 2
+            else:
+                try:
+                    with open(args.observations, encoding='utf-8') as handle:
+                        observations = json.load(handle)
+                except (OSError, ValueError) as exc:
+                    print(json.dumps({'status': 'ERROR', 'error': 'UNREADABLE_OBSERVATIONS',
+                                      'detail': f'{type(exc).__name__}: {exc}'}, ensure_ascii=False))
+                    return 2
+                if not isinstance(observations, dict) or set(observations) != {'module', 'detections'}:
+                    print(json.dumps({'status': 'ERROR', 'error': 'INVALID_OBSERVATIONS_DOCUMENT',
+                                      'detail': 'the file must be one object holding exactly module and '
+                                                'detections; nothing is inferred on your behalf'},
+                                     ensure_ascii=False))
+                    return 2
+                try:
+                    document = intelligence.reverse(args.project_id, args.asset,
+                                                    module=observations['module'],
+                                                    detections=observations['detections'])
+                except PromptIntelligenceError as exc:
+                    print(json.dumps({'status': 'ERROR', 'error': exc.code, 'detail': exc.detail},
+                                     ensure_ascii=False))
+                    return 2
+            result = PromptIntelligence.readback(document)
+        elif args.command == 'export-candidate':
+            from .knowledge_review import KnowledgeReview, KnowledgeReviewError
+            try:
+                result = KnowledgeReview(service).export_document(args.project_id, args.candidate)
+            except KnowledgeReviewError as exc:
+                print(json.dumps({'status': 'ERROR', 'error': exc.code, 'detail': exc.detail},
                                  ensure_ascii=False))
                 return 2
         elif args.command == 'paths':

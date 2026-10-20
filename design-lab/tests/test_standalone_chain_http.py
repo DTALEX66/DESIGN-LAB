@@ -185,6 +185,36 @@ class StandaloneChainTests(unittest.TestCase):
         # it would let a derived IR be read as native truth downstream.
         self.assertIn('proves', analysis)
 
+        # Prompt Intelligence, both directions, over the identifiers the earlier hops returned.
+        # This is the segment that had no entry point at all before 2026-10-20, so the chain could
+        # not reach it: a composition is only proof if it carries the brief and direction the chain
+        # just wrote, and a reversal is only proof if it restates the observations this hop supplied.
+        composed = self.hop(
+            'prompt-compose', 'POST', f'/api/projects/{project}/prompts',
+            {'brief_id': brief, 'direction_id': direction, 'target': 'image-generation'}, 201)
+        prompt_document = composed['document']
+        self.assertEqual('design-lab/prompt-composition/v1', prompt_document['schemaVersion'])
+        self.assertIn('Chain brief', prompt_document['prompt_text'],
+                      'the composition did not carry the brief the chain wrote one hop earlier')
+        self.assertIn('Chain direction', json.dumps(prompt_document, ensure_ascii=False),
+                      'no direction section reached the prompt, so the brief/direction seam is not '
+                      'the one the chain established')
+        self.assertEqual(False, prompt_document['model']['executed'],
+                         'a chain document may not claim a model ran')
+
+        reversal = self.hop(
+            'prompt-reverse', 'POST',
+            f'/api/projects/{project}/assets/{asset}/prompt-reversal',
+            {'module': 'ocr-fixture',
+             'detections': [{'text': 'CHAIN', 'confidence': 0.83,
+                             'polygon': [[1, 1], [4, 1], [4, 3], [1, 3]]}],
+             'decomposition_id': None}, 201)
+        self.assertEqual('design-lab/prompt-reversal/v1', reversal['document']['schemaVersion'])
+        self.assertEqual(asset_sha256, reversal['document']['asset']['sha256'],
+                         'the reversal is not bound to the bytes the asset hop imported')
+        self.assertIn('CHAIN', reversal['document']['prompt_text'],
+                      'the supplied observation never reached the reversal text')
+
         # The acceptance seam: a human verdict filed against the version the ASSET hop just
         # returned, over HTTP. This is the connection that previously existed only inside two
         # separate fixtures -- the jury test published its own version straight into the
@@ -243,6 +273,23 @@ class StandaloneChainTests(unittest.TestCase):
                     if item['candidate_id'] == candidate_id), None)
         self.assertIsNotNone(row, f'the reviewed candidate is not in the readback: {self.hops}')
         self.assertEqual('APPROVED', row['review_state'])
+
+        # The exit the segment never had: the approved candidate the review hop just decided is
+        # now addressable as an export. Answering 200 is only "assembled and contract-valid" --
+        # the envelope has to keep saying nothing left the machine, or the chain would end in a
+        # delivery claim the service cannot make.
+        exported = self.hop(
+            'export', 'GET',
+            f'/api/projects/{project}/knowledge-candidates/{candidate_id}/export', None, 200)
+        self.assertEqual('design-lab/assurance-knowledge-candidate-export/v1',
+                         exported['export']['schemaVersion'])
+        self.assertEqual('NOT_CONNECTED', exported['outbound']['transport'])
+        self.assertEqual(0, exported['outbound']['sent_count'])
+        self.assertEqual('job-knowledge-1', exported['provenance']['job_id'],
+                         'the export did not echo the provenance ids the candidate hop stored')
+        self.assertEqual('job-knowledge-1:op-knowledge-1',
+                         exported['v1_projection']['source_id'],
+                         'the v1 projection rebuilt source_id from something other than the stored ids')
         print('CHAIN_HOPS ' + ' '.join(self.hops))
 
     def test_the_jury_readback_offers_an_imported_asset_version_as_a_verdict_target(self):
@@ -337,23 +384,36 @@ class StandaloneChainTests(unittest.TestCase):
                         'no finding reports a measurement, so the verdict is not evidence')
         print('DELIVERY_HOPS ' + ' '.join(self.hops))
 
-    def test_export_is_still_not_a_reachable_hop(self):
-        """The chain stops before leaving the repository, and this says so rather than pretending.
+    def test_the_export_hop_exists_but_still_sends_nothing(self):
+        """The chain now reaches the exit; it still does not reach outside the repository.
 
-        Two facts are pinned: no route matches an export path, and the read-back projection
-        declares its outbound transport as not connected. If someone adds the export leg, the
-        first of these goes red and the claim in docs/current/NEXT-AGENT-PROMPT.md has to be
-        re-earned deliberately.
+        This case used to assert that NO export route existed, so that anyone wiring the exit would
+        have to re-earn the entry-point claim on purpose rather than by accident. The exit landed on
+        owner authorisation (2026-10-20), so the boundary moved one notch and is pinned here in its
+        new place: an export route exists and is walked by the acceptance chain above, while the
+        transport it would need remains absent. Those are different facts, and the envelope has to
+        keep saying so -- `outbound.transport` stays NOT_CONNECTED and `sent_count` stays 0, which is
+        what stops a green export from being read as a delivery.
         """
         from design_lab.http_service import ROUTES
         export_routes = [route.pattern for route in ROUTES if 'export' in route.pattern]
-        self.assertEqual([], export_routes,
-                         f'an export route appeared ({export_routes}); the standalone chain '
-                         'now reaches further than this file and the entry-point claim say')
+        self.assertEqual(
+            ['/api/projects/([0-9a-f]{32})/knowledge-candidates'
+             '/([A-Za-z0-9_.:-]{1,80})/export'], export_routes,
+            'the export route moved or multiplied; the acceptance chain walks exactly one export hop, '
+            'so a second one needs its own hop and its own claim')
+        # Nothing in the route table can put the document on a wire.
+        self.assertEqual([], [route.pattern for route in ROUTES
+                              if 'send' in route.pattern or 'deliver-to' in route.pattern],
+                         'a transport route appeared; then the chain claim, the readback text and '
+                         'this file all need to change together')
         source = (ROOT / 'src/design_lab/knowledge_review.py').read_text(encoding='utf-8')
         self.assertIn('"transport": "NOT_CONNECTED"', source,
                       'the outbound transport no longer says NOT_CONNECTED; if a real transport '
                       'was added, update the chain claim in the same change')
+        self.assertEqual(2, source.count('"transport": "NOT_CONNECTED"'),
+                         'the readback and the export envelope are two different answers and both '
+                         'must keep saying nothing was sent')
 
 
 if __name__ == '__main__':
