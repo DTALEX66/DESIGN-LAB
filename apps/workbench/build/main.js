@@ -8785,6 +8785,18 @@ function knowledgeCreateForm(projectId, data, tasks2, reload, outcome) {
     maxlength: "200",
     placeholder: "产生这条经验的 operation_id（页面不推断）"
   });
+  const jobMode = el("select", { class: "input", id: "knowledge-job-mode" });
+  const operationMode = el("select", { class: "input", id: "knowledge-operation-mode" });
+  for (const select of [jobMode, operationMode]) {
+    select.append(new Option("请选择：填写编号，还是显式声明不使用", ""));
+    select.append(new Option("我来填写", "fill"));
+    select.append(new Option("不使用（发送字面量 UNUSED）", "unused"));
+  }
+  const syncProvenance = (mode, field) => {
+    field.disabled = mode.value === "unused";
+  };
+  jobMode.onchange = () => syncProvenance(jobMode, job);
+  operationMode.onchange = () => syncProvenance(operationMode, operation);
   const evidence = el("input", {
     class: "input",
     id: "knowledge-evidence",
@@ -8811,7 +8823,12 @@ function knowledgeCreateForm(projectId, data, tasks2, reload, outcome) {
       const domains = appliesTo.value.split(/[,\n\s]+/).map((part) => part.trim()).filter(Boolean);
       const text = statement.value.trim();
       const name = title.value.trim();
-      const refusal = !name ? "标题为空" : !text ? "正文为空" : !domains.length ? "没有任何适用设计域" : !license.value.trim() ? "license_id 为空：权利门不允许一个空许可证" : !rights.value ? "未选择权利门状态" : !clientAsset.value ? "未声明是否包含客户素材（页面不默认 false）" : !thirdParty.value ? "未声明是否包含第三方素材（页面不默认 false）" : !/^[0-9a-f]{40,64}$/.test(sha.value.trim()) ? "来源修订不是 40-64 位小写十六进制" : !job.value.trim() ? "job_id 为空" : !operation.value.trim() ? "operation_id 为空：页面不替你推断一次操作" : !/^sha256:[0-9a-f]{64}$/.test(evidence.value.trim()) ? "evidence_sha256 必须是 sha256:<64 位小写十六进制>" : clientAsset.value === "true" && !redaction.value.trim() ? "声明包含客户素材时必须填写脱敏说明" : "";
+      const provenanceError = (label, mode, field) => !mode.value ? `未声明 ${label} 的来源：选「我来填写」或「不使用」，页面不替你选` : mode.value === "unused" && field.value.trim() ? `${label} 冲突：已选择「不使用」，但填写框里还有内容——清空它或改选「我来填写」，页面不会替你丢掉已经打进去的东西` : mode.value === "fill" && !field.value.trim() ? `${label} 为空：选了「我来填写」就得真的填；这次确实没有编号请改选「不使用」` : "";
+      const jobError = provenanceError("job_id", jobMode, job);
+      const operationError = provenanceError("operation_id", operationMode, operation);
+      const jobId = jobMode.value === "unused" ? "UNUSED" : job.value.trim();
+      const operationId = operationMode.value === "unused" ? "UNUSED" : operation.value.trim();
+      const refusal = !name ? "标题为空" : !text ? "正文为空" : !domains.length ? "没有任何适用设计域" : !license.value.trim() ? "license_id 为空：权利门不允许一个空许可证" : !rights.value ? "未选择权利门状态" : !clientAsset.value ? "未声明是否包含客户素材（页面不默认 false）" : !thirdParty.value ? "未声明是否包含第三方素材（页面不默认 false）" : !/^[0-9a-f]{40,64}$/.test(sha.value.trim()) ? "来源修订不是 40-64 位小写十六进制" : jobError ? jobError : operationError ? operationError : !/^sha256:[0-9a-f]{64}$/.test(evidence.value.trim()) ? "evidence_sha256 必须是 sha256:<64 位小写十六进制>" : clientAsset.value === "true" && !redaction.value.trim() ? "声明包含客户素材时必须填写脱敏说明" : "";
       if (refusal) {
         outcome.textContent = `未提交：${refusal}。服务端未写入任何候选。`;
         return;
@@ -8820,8 +8837,8 @@ function knowledgeCreateForm(projectId, data, tasks2, reload, outcome) {
         candidate_type: type.value,
         source: {
           design_lab_sha: sha.value.trim(),
-          job_id: job.value.trim(),
-          operation_id: operation.value.trim(),
+          job_id: jobId,
+          operation_id: operationId,
           evidence_sha256: evidence.value.trim()
         },
         rights: {
@@ -8867,7 +8884,7 @@ function knowledgeCreateForm(projectId, data, tasks2, reload, outcome) {
     el(
       "p",
       { class: "view-hint" },
-      "source 与 rights 的每个字段都指向一条真实记录或你的明确选择：页面不替你编 job_id、operation_id、来源修订或“是否包含客户素材”。"
+      "source 与 rights 的每个字段都指向一条真实记录或你的明确选择：页面不替你编 job_id、operation_id、来源修订或“是否包含客户素材”。两个编号各有三种说得过去的状态：写下来、显式选择「不使用」（服务端存字面量 UNUSED，读回报成 EXPLICITLY_UNUSED）、或什么都没选——最后一种会被拒，因为“没填”和“声明没有”不是同一件事。"
     ),
     el("label", {}, "类型", type),
     el("label", {}, "标题", title),
@@ -8879,11 +8896,13 @@ function knowledgeCreateForm(projectId, data, tasks2, reload, outcome) {
     el("label", {}, "是否包含第三方素材", thirdParty),
     el("label", {}, "脱敏说明（包含客户素材时必填）", redaction),
     el("label", {}, `来源修订（读回 HEAD：${data.head_sha ?? "UNKNOWN"}）`, sha),
+    el("label", {}, "job_id 的来处", jobMode),
     el("label", {}, "job_id", job, el(
       "datalist",
       { id: "knowledge-job-ids" },
       ...tasks2.map((task) => el("option", { value: task.job_id }))
     )),
+    el("label", {}, "operation_id 的来处", operationMode),
     el("label", {}, "operation_id", operation),
     el("label", {}, "证据摘要", evidence),
     el("label", {}, "取代哪条候选（只列读回中出现过的）", supersedes),

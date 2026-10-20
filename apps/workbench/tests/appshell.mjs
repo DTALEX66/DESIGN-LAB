@@ -3063,9 +3063,31 @@ console.log('ok: ⑳ DL-UI-U07 成果版本面板：读回真实 BundleRecord �
   sha.value = 'xyz';
   expectCreateRefusal('来源修订不是 40-64 位小写十六进制');
   sha.value = 'a'.repeat(40);
-  expectCreateRefusal('job_id 为空');
+  // 编号的三个状态各说一句：没选、选了不使用却还留着输入、选了填写却空着。
+  // 「没填」与「声明没有」在服务端是两个不同的事实（前者 400，后者存成 UNUSED），页面不能把它们
+  // 压成同一条拒绝，也不能让操作者靠背一个魔法字符串来表达后者。
+  const jobMode = field('knowledge-job-mode');
+  const operationMode = field('knowledge-operation-mode');
+  expectCreateRefusal('未声明 job_id 的来源');
+  jobMode.value = 'fill';
+  jobMode.onchange();
+  if (job.disabled) throw new Error('㉒ 选择「我来填写」后填写框必须可用');
+  expectCreateRefusal('job_id 为空：选了「我来填写」');
   job.value = 'job-a';
-  expectCreateRefusal('operation_id 为空');
+  expectCreateRefusal('未声明 operation_id 的来源');
+  operationMode.value = 'unused';
+  operationMode.onchange();
+  if (!operation.disabled)
+    throw new Error('㉒ 声明不使用时填写框应禁用（但已输入的内容不得被清空）');
+  // 空着 + 不使用 = 一个说得过去的声明：本地不再拒绝编号，下一道坎是证据摘要。
+  expectCreateRefusal('evidence_sha256 必须是');
+  operation.value = 'op-7';
+  expectCreateRefusal('operation_id 冲突：已选择「不使用」');
+  operation.value = '';
+  operationMode.value = 'fill';
+  operationMode.onchange();
+  if (operation.disabled) throw new Error('㉒ 改回「我来填写」后填写框仍被锁着');
+  expectCreateRefusal('operation_id 为空：选了「我来填写」');
   operation.value = 'op-7';
   expectCreateRefusal('evidence_sha256 必须是');
   evidence.value = 'sha256:' + '9'.repeat(64);
@@ -3140,6 +3162,29 @@ console.log('ok: ⑳ DL-UI-U07 成果版本面板：读回真实 BundleRecord �
   if (!outcome.textContent.includes('已记录一条候选')
     || !outcome.textContent.includes('PENDING_HUMAN_APPROVAL'))
     throw new Error(`㉒ 创建成功后没有说明候选仍需具名裁决：${outcome.textContent.slice(0, 180)}`);
+
+  // (d2) 显式「不使用」必须真的上线路：发的是字面量 UNUSED，不是把空串丢给服务端去猜意图。
+  operation.value = '';
+  operationMode.value = 'unused';
+  operationMode.onchange();
+  createSubmit.onclick();
+  const declined = shell.pending.splice(0, shell.pending.length);
+  if (declined.length !== 1)
+    throw new Error(`㉒ 一次「不使用」提交发出了 ${declined.length} 个请求`);
+  const declinedBody = JSON.parse(declined[0].init.body);
+  if (declinedBody.source.operation_id !== 'UNUSED')
+    throw new Error(`㉒ 「不使用」没有发送字面量 UNUSED：${
+      JSON.stringify(declinedBody.source)}`);
+  if (declinedBody.source.job_id !== 'job-a')
+    throw new Error(`㉒ 一条编号声明不使用，把另一条填写中的编号也带走了：${
+      JSON.stringify(declinedBody.source)}`);
+  declined[0].resolve(response({ candidate_id: declinedBody.candidate_id }));
+  await flush();
+  const afterDecline = shell.pending.splice(0, shell.pending.length);
+  if (afterDecline.length !== 1 || !afterDecline[0].path.includes('/knowledge-candidates'))
+    throw new Error('㉒ 「不使用」的候选写入后没有读回一次投影');
+  afterDecline[0].resolve(response(KNOWLEDGE_READBACK));
+  await flush();
 
   // (e) Human review: no anonymous approve, no reasonless reject, exactly six keys.
   const reviewTarget = field('knowledge-review-target');

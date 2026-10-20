@@ -7203,6 +7203,24 @@ function knowledgeCreateForm(projectId: string, data: KnowledgeReadback,
     list: 'knowledge-job-ids', placeholder: '产生这条经验的真实 job_id' });
   const operation = el('input', { class: 'input', id: 'knowledge-operation', maxlength: '200',
     placeholder: '产生这条经验的 operation_id（页面不推断）' });
+  // owner 2026-10-20：「编号问题留出可填写位置，用户自行填写或者选择用没用」。写入合同早就把两件事
+  // 分开了——空白被 400 拒掉并点名是哪个字段，字面量 UNUSED 被存下并在读回里报成
+  // EXPLICITLY_UNUSED——所以缺的不是合同，是那个「不使用」的选项本身；没有它，操作者只能靠记住一个
+  // 魔法字符串来表达「这次没有编号」。
+  const jobMode = el('select', { class: 'input', id: 'knowledge-job-mode' } as never);
+  const operationMode = el('select', { class: 'input', id: 'knowledge-operation-mode' } as never);
+  for (const select of [jobMode, operationMode]) {
+    select.append(new Option('请选择：填写编号，还是显式声明不使用', ''));
+    select.append(new Option('我来填写', 'fill'));
+    select.append(new Option('不使用（发送字面量 UNUSED）', 'unused'));
+  }
+  const syncProvenance = (mode: HTMLSelectElement, field: HTMLInputElement): void => {
+    // 选择「不使用」时只禁用填写框，不清空它：填过的内容留着可见，来回切换不丢东西，而「已经选了
+    // 不使用但框里还有字」在提交时被当作自己的冲突拒绝，而不是被静默丢掉。
+    field.disabled = mode.value === 'unused';
+  };
+  jobMode.onchange = (): void => syncProvenance(jobMode, job);
+  operationMode.onchange = (): void => syncProvenance(operationMode, operation);
   const evidence = el('input', { class: 'input', id: 'knowledge-evidence', maxlength: '71',
     placeholder: 'sha256:<64 位十六进制>' });
   const supersedes = el('select', { class: 'input', id: 'knowledge-supersedes' } as never);
@@ -7222,6 +7240,22 @@ function knowledgeCreateForm(projectId: string, data: KnowledgeReadback,
         .filter(Boolean);
       const text = statement.value.trim();
       const name = title.value.trim();
+      // 三个可达的状态各自一句话：没选（页面不替你选）、选了不使用却还留着输入（冲突，不静默丢弃）、
+      // 选了填写却空着（和「声明没有」不是同一件事）。字面量只在显式「不使用」时发送。
+      const provenanceError = (label: string, mode: HTMLSelectElement,
+                               field: HTMLInputElement): string =>
+        !mode.value ? `未声明 ${label} 的来源：选「我来填写」或「不使用」，页面不替你选`
+          : mode.value === 'unused' && field.value.trim()
+            ? `${label} 冲突：已选择「不使用」，但填写框里还有内容——清空它或改选「我来填写」，`
+              + '页面不会替你丢掉已经打进去的东西'
+            : mode.value === 'fill' && !field.value.trim()
+              ? `${label} 为空：选了「我来填写」就得真的填；这次确实没有编号请改选「不使用」`
+              : '';
+      const jobError = provenanceError('job_id', jobMode, job);
+      const operationError = provenanceError('operation_id', operationMode, operation);
+      const jobId = jobMode.value === 'unused' ? 'UNUSED' : job.value.trim();
+      const operationId = operationMode.value === 'unused'
+        ? 'UNUSED' : operation.value.trim();
       const refusal = !name ? '标题为空'
         : !text ? '正文为空'
           : !domains.length ? '没有任何适用设计域'
@@ -7231,8 +7265,8 @@ function knowledgeCreateForm(projectId: string, data: KnowledgeReadback,
                   : !thirdParty.value ? '未声明是否包含第三方素材（页面不默认 false）'
                     : !/^[0-9a-f]{40,64}$/.test(sha.value.trim())
                       ? '来源修订不是 40-64 位小写十六进制'
-                      : !job.value.trim() ? 'job_id 为空'
-                        : !operation.value.trim() ? 'operation_id 为空：页面不替你推断一次操作'
+                      : jobError ? jobError
+                        : operationError ? operationError
                           : !/^sha256:[0-9a-f]{64}$/.test(evidence.value.trim())
                             ? 'evidence_sha256 必须是 sha256:<64 位小写十六进制>'
                             : clientAsset.value === 'true' && !redaction.value.trim()
@@ -7246,8 +7280,8 @@ function knowledgeCreateForm(projectId: string, data: KnowledgeReadback,
         candidate_type: type.value,
         source: {
           design_lab_sha: sha.value.trim(),
-          job_id: job.value.trim(),
-          operation_id: operation.value.trim(),
+          job_id: jobId,
+          operation_id: operationId,
           evidence_sha256: evidence.value.trim(),
         },
         rights: {
@@ -7294,7 +7328,10 @@ function knowledgeCreateForm(projectId: string, data: KnowledgeReadback,
     el('h3', {}, '记录一条知识候选'),
     el('p', { class: 'view-hint' },
       'source 与 rights 的每个字段都指向一条真实记录或你的明确选择：'
-      + '页面不替你编 job_id、operation_id、来源修订或“是否包含客户素材”。'),
+      + '页面不替你编 job_id、operation_id、来源修订或“是否包含客户素材”。'
+      + '两个编号各有三种说得过去的状态：写下来、显式选择「不使用」（服务端存字面量 UNUSED，'
+      + '读回报成 EXPLICITLY_UNUSED）、或什么都没选——最后一种会被拒，因为“没填”和“声明没有”'
+      + '不是同一件事。'),
     el('label', {}, '类型', type),
     el('label', {}, '标题', title),
     el('label', {}, '正文（会被公开投影的陈述）', statement),
@@ -7305,8 +7342,10 @@ function knowledgeCreateForm(projectId: string, data: KnowledgeReadback,
     el('label', {}, '是否包含第三方素材', thirdParty),
     el('label', {}, '脱敏说明（包含客户素材时必填）', redaction),
     el('label', {}, `来源修订（读回 HEAD：${data.head_sha ?? 'UNKNOWN'}）`, sha),
+    el('label', {}, 'job_id 的来处', jobMode),
     el('label', {}, 'job_id', job, el('datalist', { id: 'knowledge-job-ids' },
       ...tasks.map((task) => el('option', { value: task.job_id })))),
+    el('label', {}, 'operation_id 的来处', operationMode),
     el('label', {}, 'operation_id', operation),
     el('label', {}, '证据摘要', evidence),
     el('label', {}, '取代哪条候选（只列读回中出现过的）', supersedes),
