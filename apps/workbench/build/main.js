@@ -8685,7 +8685,104 @@ function knowledgeNumber(value) {
 function knowledgeStateTag(className, word, fallback) {
   return word ? el("span", { class: className, lang: "en" }, word) : el("span", { class: className }, fallback);
 }
-function knowledgeCandidateRow(row) {
+function exportPanelRows(data) {
+  const projection = (label, version, extra) => el("small", {}, `${label}：`, version ? el("span", { class: "value-mono" }, en(version)) : el("span", { class: "tag neutral" }, "未读回"), ` ${extra}`);
+  const provenance = data.provenance ?? {};
+  return [
+    el(
+      "p",
+      { class: "view-hint" },
+      el("span", { class: "tag ok" }, data.status ? en(data.status) : "状态未读回"),
+      " 信封 ",
+      data.schemaVersion ? el("span", { class: "value-mono" }, en(data.schemaVersion)) : el("span", { class: "tag neutral" }, "版本未读回"),
+      ` · ${data.candidate_id ?? "候选 id 未读回"} · 第 ${data.revision === void 0 || data.revision === null ? "未读回" : String(data.revision)} 版`
+    ),
+    projection(
+      "v2 导出文档",
+      data.export?.schemaVersion,
+      `载荷摘要 ${data.export?.payload_sha256 ?? "未读回"}`
+    ),
+    projection(
+      "v1 投影",
+      data.v1_projection?.schemaVersion,
+      `source_id ${data.v1_projection?.source_id ?? "未读回"}（由提交者存下的两个编号拼接，本页不美化、不补全）`
+    ),
+    el(
+      "small",
+      {},
+      `编号回显：job_id ${provenance.job_id ?? "未读回"}（`,
+      en(provenance.job_id_state ?? "UNKNOWN"),
+      `）· operation_id ${provenance.operation_id ?? "未读回"}（`,
+      en(provenance.operation_id_state ?? "UNKNOWN"),
+      "）。EXPLICITLY_UNUSED 是操作者显式声明的「不用」，USER_SUPPLIED 是被填进来的值；两者都不是本页面推断的。"
+    ),
+    el(
+      "small",
+      {},
+      `来源修订 ${provenance.design_lab_sha ?? "未读回"} · freshness `,
+      en(data.freshness ?? "UNKNOWN"),
+      "（UNKNOWN 不等于 CURRENT）。"
+    ),
+    el(
+      "small",
+      {},
+      "出站：",
+      en(data.outbound?.transport ?? "未读回"),
+      `；sent_count=${data.outbound?.sent_count === void 0 || data.outbound?.sent_count === null ? "未读回" : String(data.outbound.sent_count)}`,
+      `；bytes=${data.outbound?.bytes === void 0 || data.outbound?.bytes === null ? "未读回" : String(data.outbound.bytes)}`,
+      "。bytes 计的是这份文档被组装出来的字节，不是离开本机的字节——本服务没有传输通道。"
+    ),
+    ...data.does_not_say && data.does_not_say.length ? [el(
+      "p",
+      { class: "muted" },
+      el("strong", {}, "这份导出文档不说的话："),
+      ...data.does_not_say.map((line) => el("small", {}, line))
+    )] : [el("small", {}, "服务未给出 does_not_say，因此本页无法说明这份导出文档不覆盖什么。")]
+  ];
+}
+function knowledgeExportPanel(projectId) {
+  const body = el(
+    "div",
+    { id: "knowledge-export-body" },
+    el("p", { class: "muted" }, "尚未读回任何导出文档：点某一行候选上的「读回导出文档」。")
+  );
+  const select = async (candidateId) => {
+    body.replaceChildren(el("p", { class: "view-loading" }, "正在读回导出文档…"));
+    try {
+      const data = await api(
+        `/projects/${projectId}/knowledge-candidates/${encodeURIComponent(candidateId)}/export`
+      );
+      body.replaceChildren(...exportPanelRows(data));
+    } catch (error) {
+      const envelope = error.serviceEnvelope;
+      body.replaceChildren(
+        el(
+          "p",
+          {},
+          el("span", { class: "tag warn" }, "导出被拒绝"),
+          el("span", { class: "value-mono" }, ` ${candidateId}`)
+        ),
+        el("small", {}, `未读回：${typeof envelope?.error === "string" ? envelope.error : errMsg(error)}` + (typeof envelope?.detail === "string" && envelope.detail ? ` —— ${envelope.detail}` : "")),
+        el("small", {}, "拒绝本身就是产品答案：它点名是哪道门拦住的（未批准、已撤销、权利门未 CHECKED 或审阅人是 agent）。本页不把它改写成一次空导出，也不自动重试。")
+      );
+    }
+  };
+  return {
+    element: el(
+      "div",
+      { class: "panel", id: "knowledge-export-panel" },
+      el("h3", {}, "导出文档（读回，不发送）"),
+      el(
+        "p",
+        { class: "view-hint" },
+        "这里走 GET …/knowledge-candidates/<id>/export：产出 v2 导出文档与 v1 投影两份出站文档，并原样回显存储中的两个编号。本服务没有 ArcheAxis 传输，outbound.transport 恒为 NOT_CONNECTED、sent_count 恒为 0，所以「读回导出文档」不等于「已经交给对方」。"
+      ),
+      body
+    ),
+    select
+  };
+}
+function knowledgeCandidateRow(row, index, onExport) {
   const decisionClass = row.review_state === "PENDING_HUMAN_APPROVAL" ? "warn" : row.review_state === "REJECTED" ? "neutral" : row.export_ready ? "ok" : "neutral";
   const freshClass = row.freshness === "CURRENT" ? "ok" : row.freshness === "STALE" ? "warn" : "neutral";
   const revoked = row.revocation_state === "REVOKED";
@@ -8721,6 +8818,18 @@ function knowledgeCandidateRow(row) {
       row.export_ready ? "export_ready=true 只表示本地合同允许导出；本服务没有 ArcheAxis 传输，因此没有发送任何内容。" : `不可导出：${row.export_blocked_by ?? "服务未给出原因"}`
     ),
     row.review_state === "PENDING_HUMAN_APPROVAL" ? el("small", {}, "尚无人工裁决：候选写入时固定为 PENDING_HUMAN_APPROVAL。") : el("small", {}, `裁决：${row.reviewer_id ?? "未署名"} @ ${row.reviewed_at ?? "未读回"}` + (revoked && row.revocation_reason ? ` · 撤销原因：${row.revocation_reason}` : "")),
+    el(
+      "button",
+      {
+        type: "button",
+        class: "secondary",
+        id: `knowledge-export-${String(index)}`,
+        disabled: row.export_ready ? void 0 : "",
+        onclick: () => onExport(row.candidate_id)
+      },
+      // 按钮文字带上"不发送"：一个只读回文档的动作如果被写成「导出」，就会被读成已经交付。
+      row.export_ready ? "读回导出文档（不发送）" : "读回导出文档（本条被合同阻止）"
+    ),
     row.payload_sha256 ? el("small", { class: "value-mono" }, `payload ${row.payload_sha256}`) : ""
   );
 }
@@ -9058,6 +9167,7 @@ async function knowledgePanel(projectId, tasks2) {
     { id: "knowledge-body" },
     el("p", { class: "view-loading" }, "正在读回知识候选…")
   );
+  const exportPanel = knowledgeExportPanel(projectId);
   const panel = el(
     "div",
     { class: "panel", id: "knowledge-panel" },
@@ -9090,7 +9200,13 @@ async function knowledgePanel(projectId, tasks2) {
       ));
       return;
     }
-    const rows = data.candidates.map(knowledgeCandidateRow);
+    const rows = data.candidates.map((row, index) => knowledgeCandidateRow(
+      row,
+      index,
+      (candidateId) => {
+        void exportPanel.select(candidateId);
+      }
+    ));
     if (data.conflicts.length) {
       rows.push(el(
         "li",
@@ -9149,7 +9265,8 @@ async function knowledgePanel(projectId, tasks2) {
       el("ul", { class: "list" }, ...rows),
       knowledgeCreateForm(projectId, data, tasks2, safeLoad, outcome),
       knowledgeReviewForm(projectId, data, safeLoad, outcome),
-      knowledgeRevokeForm(projectId, data, safeLoad, outcome)
+      knowledgeRevokeForm(projectId, data, safeLoad, outcome),
+      exportPanel.element
     );
   };
   const safeLoad = async () => {

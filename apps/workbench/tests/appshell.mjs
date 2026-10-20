@@ -2499,6 +2499,39 @@ let runtimeFixture = RUNTIME_ABSENT;
 // DL-UI-U09 fixtures. The records page now also reads the knowledge readback, and ⑩/⑯/㉒
 // all open that page; answering it by path keeps a tasks body from being served to the
 // knowledge route (which would render as a shape notice and hide the forms ㉒ drives).
+// GET …/knowledge-candidates/<id>/export 的信封，字段取自服务真实产出的那一版
+// （design-lab/tests/test_knowledge_http.py 与 verify_route_payload_contracts.py 读回的同形物）。
+const KNOWLEDGE_EXPORT_ENVELOPE = {
+  schemaVersion: 'design-lab/assurance-knowledge-candidate-export/v1',
+  status: 'CANDIDATE_EXPORT',
+  project_id: 'p1',
+  candidate_id: 'kc-' + '3'.repeat(32),
+  revision: 1,
+  export: {
+    schemaVersion: 'design-lab/assurance-knowledge-candidate/v2',
+    candidate_id: 'kc-' + '3'.repeat(32),
+    candidate_type: 'JURY_CORRECTION',
+    license_id: 'project-internal',
+    payload_sha256: 'sha256:' + 'f'.repeat(64),
+  },
+  v1_projection: {
+    schemaVersion: 'design-lab/candidate-knowledge/v1',
+    candidate_id: 'kc-' + '3'.repeat(32),
+    source_id: 'job-1:UNUSED',
+    knowledge_type: 'JURY_CORRECTION',
+    state: 'APPROVED',
+    content_hash: 'sha256:' + 'f'.repeat(64),
+  },
+  provenance: {
+    job_id: 'job-1', operation_id: 'UNUSED',
+    job_id_state: 'USER_SUPPLIED', operation_id_state: 'EXPLICITLY_UNUSED',
+    design_lab_sha: 'c'.repeat(40), payload_sha256: 'sha256:' + 'f'.repeat(64),
+  },
+  freshness: 'CURRENT',
+  outbound: { transport: 'NOT_CONNECTED', sent_count: 0, bytes: 1234 },
+  does_not_say: ['传输未实现：本服务不连接 ArcheAxis，也不会自动重试；export_ready 只表示本地合同允许导出，不代表已经发送或对方已经接收。'],
+};
+
 const KNOWLEDGE_CANDIDATES = [
   { candidate_id: 'kc-' + '1'.repeat(32), candidate_type: 'METHOD',
     review_state: 'PENDING_HUMAN_APPROVAL', revocation_state: 'ACTIVE', revision: 1,
@@ -3234,6 +3267,60 @@ console.log('ok: ⑳ DL-UI-U07 成果版本面板：读回真实 BundleRecord �
   if (!outcome.textContent.includes('已记录批准')
     || !outcome.textContent.includes('这条候选没有被发送'))
     throw new Error(`㉒ 批准后的说法把 export_ready 说成了发送：${outcome.textContent.slice(0, 180)}`);
+
+  // (e2) 导出出口在界面上可达：一行候选一个按钮，被合同阻止的两行是禁用的，能读回的那一行
+  // 发一次 GET，并把两份投影、编号回显与出站事实原样上屏——而且不得说成"已发送"。
+  const exportBody = byElementId(view, 'knowledge-export-body');
+  const exportButtons = [0, 1, 2].map((index) => field(`knowledge-export-${String(index)}`));
+  if (exportButtons[0].attributes.has('disabled') === false
+    || exportButtons[1].attributes.has('disabled') === false)
+    throw new Error('㉒ export_ready=false 的行必须禁用导出按钮，而不是给一次注定被拒的点击');
+  if (exportButtons[2].attributes.has('disabled'))
+    throw new Error('㉒ export_ready=true 的行不该被挡住：本地合同允许导出就该能读回文档');
+  if (!exportButtons[0].textContent.includes('本条被合同阻止'))
+    throw new Error(`㉒ 禁用按钮要说出被挡住的是这一条：${exportButtons[0].textContent}`);
+  if (!exportButtons[2].textContent.includes('不发送'))
+    throw new Error('㉒ 按钮文字不得只写「导出」，那会被读成已经交付');
+  exportButtons[2].onclick();
+  await flush();
+  const exportCall = shell.pending.splice(0, shell.pending.length);
+  if (exportCall.length !== 1
+    || exportCall[0].path !== `/api/projects/p1/knowledge-candidates/${
+      KNOWLEDGE_CANDIDATES[2].candidate_id}/export`)
+    throw new Error(`㉒ 导出读回打到了 ${exportCall.map((r) => r.path).join(' ')}`);
+  if (exportCall[0].init && exportCall[0].init.method !== undefined
+    && exportCall[0].init.method !== 'GET')
+    throw new Error('㉒ 导出读回必须是 GET：它产出文档，不投递文档');
+  exportCall[0].resolve(response(KNOWLEDGE_EXPORT_ENVELOPE));
+  await flush();
+  const exportText = exportBody.textContent;
+  for (const needle of [
+    'design-lab/assurance-knowledge-candidate-export/v1',
+    'design-lab/assurance-knowledge-candidate/v2',
+    'design-lab/candidate-knowledge/v1',
+    'source_id job-1:UNUSED',
+    'USER_SUPPLIED', 'EXPLICITLY_UNUSED',
+    'NOT_CONNECTED', 'sent_count=0', 'bytes=1234',
+    '传输未实现',
+  ]) {
+    if (!exportText.includes(needle))
+      throw new Error(`㉒ 导出文档面板缺「${needle}」：${exportText.slice(0, 260)}`);
+  }
+  if (/已发送|发送成功|delivered/i.test(exportText))
+    throw new Error(`㉒ 导出面板把一次读回说成了一次投递：${exportText.slice(0, 200)}`);
+  // 409 是产品答案：拒绝要留下它自己的原因，而不是变成一个空面板。
+  exportButtons[2].onclick();
+  await flush();
+  const refused = shell.pending.splice(0, shell.pending.length);
+  refused[0].resolve(response({ status: 'ERROR', error: 'CANDIDATE_EXPORT_REFUSED',
+    detail: 'candidate is PENDING_HUMAN_APPROVAL; only a named human approval releases it' },
+  false, 409));
+  await flush();
+  const refusalText = exportBody.textContent;
+  if (!refusalText.includes('导出被拒绝')
+    || !refusalText.includes('CANDIDATE_EXPORT_REFUSED')
+    || !refusalText.includes('PENDING_HUMAN_APPROVAL'))
+    throw new Error(`㉒ 拒绝没有点名是哪道门拦住的：${refusalText.slice(0, 220)}`);
 
   // (f) Revocation writes a local receipt; it cannot recall a copy.
   const revokeTarget = field('knowledge-revoke-target');
