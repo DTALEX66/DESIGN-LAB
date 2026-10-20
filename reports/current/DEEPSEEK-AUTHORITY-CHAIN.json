@@ -1,11 +1,11 @@
 {
   "schemaVersion": "design-lab/deepseek-authority-chain/v1",
   "task_key": "DL-TP-20260914-DEEPSEEK-AUTHORITY-R1::DLDS-A010",
-  "generated_at": "2026-10-19T18:02:57+00:00",
+  "generated_at": "2026-10-20T13:00:21+00:00",
   "subject": {
-    "base_sha": "35d69224ccbcf288c9ee7a7e02b8e8b401710295",
+    "base_sha": "178549e9057a59289f9d099b4bb2b6bbf4f470be",
     "branch": "qoder/designlab-backup-consistency-20261007",
-    "worktree_clean": true
+    "worktree_clean": false
   },
   "current_authority": {
     "top_level": "DL-AUTHORITY-2026-09-18-R2",
@@ -122,7 +122,7 @@
     "CURRENT_TASK_LEDGER": 1,
     "GOVERNANCE_TRUTH": 2,
     "HISTORICAL": 117,
-    "REFERENCE": 10
+    "REFERENCE": 11
   },
   "entries": [
     {
@@ -134,8 +134,8 @@
     },
     {
       "path": "AGENTS.md",
-      "bytes": 15547,
-      "sha256": "sha256:89040288ef70f3d4e078495cb039c07398824cb780337b66093bb93064c95608",
+      "bytes": 17873,
+      "sha256": "sha256:4812a416daa6dc674e840aa9043e9e3dc84778ffcea63b15f183a47cb80e9e98",
       "authority_class": "GOVERNANCE_TRUTH",
       "basis": "root execution rules"
     },
@@ -164,8 +164,8 @@
     },
     {
       "path": "docs/history/taskpacks/20261009-adoption/AUTHORITY-PIN-CHANGE.json",
-      "bytes": 13595,
-      "sha256": "sha256:89e2d245ed59ffab5b8bdf7c6b0e0d1311cd91e1f2ceb3aae8044586ddf40005",
+      "bytes": 16175,
+      "sha256": "sha256:a70f6086cd5ce9f871409b3c1296e2b2bed90320e872736d8b578a9ea744ffb7",
       "authority_class": "HISTORICAL",
       "basis": "frozen historical path (docs/history/)",
       "ledger": {
@@ -1577,6 +1577,13 @@
       "path": "docs/taskpacks/20261019-direction/source/TASKPACK.md",
       "bytes": 7987,
       "sha256": "sha256:979208cd59b141d018eb4661d393f9b833548e7694016b5ebd9e14e6e61c2f35",
+      "authority_class": "REFERENCE",
+      "basis": "taskpack retained for reference; not a current dispatch entry"
+    },
+    {
+      "path": "docs/taskpacks/20261020-unfreeze/OWNER-DECISION-2026-10-20.md",
+      "bytes": 4938,
+      "sha256": "sha256:66b92b05d8be5ba0afe10f791a3681c46333f8d06d04ce88e86e5cdbf448a2e2",
       "authority_class": "REFERENCE",
       "basis": "taskpack retained for reference; not a current dispatch entry"
     },
