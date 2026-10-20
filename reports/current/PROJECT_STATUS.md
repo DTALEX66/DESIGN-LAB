@@ -2,7 +2,7 @@
 
 任务包：DL-TP-20261009-UI-FIRST-R1；状态唯一编辑源：docs/taskpacks/DESIGN-LAB-UI-FIRST-INTEGRATED-TASKPACK-2026-10-09.md所指原账本currentExecution。
 
-生成时HEAD：34ced91f5cc33ce453f0f11807395abd5f4d8a37；subjectType=COMMIT；生成时间不是测试时间。
+生成时HEAD：82b9e49661de69b683219a70633d1eec5d63fa83；subjectType=COMMIT；生成时间不是测试时间。
 
 桌面端是唯一交付面；手机端已由 owner 2026-10-19 定为排除项（不是待排期冻结项），账本 currentExecution.mobile 仍是 schema const FROZEN_DEFERRED，改词需 owner 授权，故未改。22父任务＋12UI子任务，不相加算完成率。
 本次归档不实施产品。旧R5状态和证据冻结，不用于关闭新任务。
