@@ -339,6 +339,8 @@ v1 投影：design-lab/candidate-knowledge/v1 source_id job-export-probe:UNUSED
 
 顺手把这类缺陷变成机器可见的：`test_contract_bindings.py` 新增一条清单式断言，扫全树 `schemaVersion` const（含 `$defs`），**同名不同形即红**，现存三对合法重名逐对写明理由（同一合同被自己的 `$defs` 与描述它的文件各说一次）。清单不是地板：新重名要红到有人说明为什么两者是同一份合同，说明完失效了也要从清单里删掉。
 
+**上面那段浏览器证据是 scratch 探针，不能从克隆里重跑**——所以这一段现在住进了出厂链路：`design-lab/tests/e2e/browser_design_layer_e2e.mjs` 的链条多出第 13 段，创建→具名批准→断言按钮从 `disabled` 变可用→点下去→断言面板里同时出现 `…-export-envelope/v1`（信封）与 `…-export/v1`（被包的 v2 文档）与 `design-lab/candidate-knowledge/v1`（v1 投影）、`job-e2e-export:UNUSED`、`USER_SUPPLIED`/`EXPLICITLY_UNUSED`、`NOT_CONNECTED`/`sent_count=0`/`bytes=`，并且断言屏上**没有**「已发送 / 发送成功 / delivered」。这一段落进链路时自己撞了两次：先是在旧 DOM 上等 `visible`（按钮在重载前就在屏幕上，读到的是过期状态），再是把被包文档的版本号断言成了 `…/candidate/v2`——真实读数证明 `…-export/v1` 一直属于被包文档，重名的是我新加的信封那一侧。两次都是这条链该抓的东西，现在它每次都抓。
+
 ## 6. 本轮暴露并修掉的六个缺陷
 
 1. **分类聚合按目录贴标签**：`bundle_key()` 把一个顶层目录收成一个 bundle，于是 `docs/` 里第一个文件的类别

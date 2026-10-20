@@ -591,6 +591,78 @@ try {
     await abort(detail, 5, ctx, b);
   }
 
+  // The export exit, in a real browser. appshell ㉒ already drives the same sequence in jsdom,
+  // but a DOM shim cannot say whether the control is really clickable, whether the GET really
+  // leaves the page, or whether the panel really paints the service's bytes. This is the chain
+  // that answers those three: create -> a named human approves -> the row's control goes live ->
+  // the panel renders both projections, the stored ids and the outbound facts.
+  await page.evaluate(() => { window.location.hash = '#/records'; });
+  await page.locator('#knowledge-create-submit').waitFor({ state: 'visible', timeout: 20000 });
+  await page.locator('#knowledge-type').selectOption('METHOD');
+  await page.locator('#knowledge-title').fill('E2E export chain');
+  await page.locator('#knowledge-statement')
+    .fill('the export exit is reachable from the page, not only from a route');
+  await page.locator('#knowledge-applies-to').fill('editorial');
+  await page.locator('#knowledge-license').fill('project-internal');
+  await page.locator('#knowledge-rights').selectOption('CHECKED');
+  await page.locator('#knowledge-client-asset').selectOption('false');
+  await page.locator('#knowledge-third-party').selectOption('false');
+  await page.locator('#knowledge-job-mode').selectOption('fill');
+  await page.locator('#knowledge-job').fill('job-e2e-export');
+  // The declination branch, exercised on the wire: 不使用 sends the literal, and the filled
+  // job_id above travels unchanged beside it.
+  await page.locator('#knowledge-operation-mode').selectOption('unused');
+  await page.locator('#knowledge-evidence').fill('sha256:' + 'e'.repeat(64));
+  await page.locator('#knowledge-create-submit').click();
+  // Wait on the control's actual state, not its visibility: the row is already on screen before
+  // the reload, so a visibility wait passes against the stale DOM and reads the wrong answer.
+  const outcomeText = async () => page.locator('#knowledge-outcome').innerText();
+  const waitExportEnabled = async (want) => page.waitForFunction((expected) => {
+    const button = document.getElementById('knowledge-export-0');
+    return !!button && (expected ? !button.disabled : button.disabled);
+  }, want, { timeout: 20000 }).then(() => true).catch(() => false);
+  if (!await waitExportEnabled(false)) {
+    await abort('E2E_EXPORT_LIVE_BEFORE_APPROVAL: an unapproved candidate offered a working '
+                + 'export control; outcome=' + await outcomeText(), 13, ctx, b);
+  }
+  await page.locator('#knowledge-review-target').selectOption({ index: 0 });
+  await page.locator('#knowledge-decision').selectOption('APPROVE');
+  await page.locator('#knowledge-reviewer').fill('E2E Reviewer');
+  await page.locator('#knowledge-review-submit').click();
+  if (!await waitExportEnabled(true)) {
+    await abort('E2E_EXPORT_STILL_BLOCKED_AFTER_APPROVAL: outcome=' + await outcomeText()
+                + ' row=' + await page.locator('#knowledge-body').innerText()
+                  .then((text) => text.slice(0, 300)), 13, ctx, b);
+  }
+  await page.locator('#knowledge-export-0').click();
+  // The panel starts in a loading state; read it only once that text is gone, or the assertion
+  // below measures a spinner.
+  await page.waitForFunction(() => {
+    const node = document.getElementById('knowledge-export-body');
+    return !!node && !/正在读回/.test(node.textContent) && node.textContent.length > 40;
+  }, null, { timeout: 20000 });
+  const exportText = await page.locator('#knowledge-export-body').innerText();
+  const missing = ['CANDIDATE_EXPORT',
+    // The envelope and the document it wraps carry DIFFERENT versions: the envelope is
+    // ...-export-envelope/v1, the wrapped v2 export document has always been ...-export/v1.
+    // Asserting both, side by side, is the browser-side twin of the collision the render caught.
+    'design-lab/assurance-knowledge-candidate-export-envelope/v1',
+    'design-lab/assurance-knowledge-candidate-export/v1',
+    'design-lab/candidate-knowledge/v1',
+    'job-e2e-export:UNUSED', 'USER_SUPPLIED', 'EXPLICITLY_UNUSED',
+    'NOT_CONNECTED', 'sent_count=0', 'bytes=']
+    .filter((needle) => !exportText.includes(needle));
+  if (missing.length || /已发送|发送成功|delivered/i.test(exportText)) {
+    await abort('E2E_EXPORT_PANEL: missing=' + JSON.stringify(missing)
+                + ' text=' + exportText.slice(0, 300), 13, ctx, b);
+  }
+  console.log('E2E_EXPORT_EXIT: ' + JSON.stringify({
+    envelope: exportText.includes(
+      'design-lab/assurance-knowledge-candidate-export-envelope/v1'),
+    sentClaim: /已发送|发送成功|delivered/i.test(exportText),
+    bytes: (exportText.match(/bytes=(\d+)/) || [])[1] ?? null,
+  }));
+
   await ctx.close();
   await b.close();
 
