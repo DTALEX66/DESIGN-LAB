@@ -107,8 +107,19 @@ DESIGN-LAB 是面向职业视觉设计的、AI 原生、平台中立的专业视
 - 用户已确认本机有 ComfyUI、Photoshop、Illustrator、MiniMax H3 本地模型和 MiniMax Design 软件；这是用户提供的存在性信息，不替代当前版本、启动、推理、读回和回滚测试。MiniMax Design 软件与 H3 模型分开验收。
 
 - 未校验模型（`UNQUALIFIED_*`）默认 `defaultEnabled: false`
+- 模型不做锁定（owner 2026-10-20：「不锁死 做好菜单导航和接口 用户自行选择本地或者是云端模型」）：默认值 fail-closed 与“用户能不能选”是两件事。用户显式选择是一次被记录的动作，不改变合格状态、不把 `UNKNOWN` 写成合格、不宣称推理已验证；云端选项必须写明哪些数据离开本机。
 - 零 checksum、许可冲突、模型不存在或硬件不足时，runtime resolver 必须 fail closed
 - 第三方 `AGENTS/CLAUDE/cursorrules/SKILL/install/affiliate` 作为 inert source blobs 保存，不进入根指令、prompt、tool discovery 或能力计数
+
+## 2026-10-20 owner执行决定 — 定点解冻与范围收口
+
+Owner原话（逐字）：「1 可以做」「大模型可以 但为什么要锁死呢？不锁死 做好菜单导航和接口 用户自行选择本地或者是云端模型」「编号问题留出可填写位置，用户自行填写或者选择用没用」「三方素材和字库不在本项目范围内」「现在都没有真实测试过呢 怎么批准 …设计规范按照网上最专业的先收入库里 后期落地我自行测试」「手机端不是冻结 是不做了」「E盘不动」。决策记录：`docs/taskpacks/20261020-unfreeze/OWNER-DECISION-2026-10-20.md`（会话内指令，无外部包、无源哈希，不得虚构）。
+
+- 定点解冻：下文 2026-10-19 的「不实施产品功能」在且仅在**三段**上失效——Prompt Intelligence 入口、`KnowledgeCandidate` 导出出口（`export_payload`/`to_v1_projection` 接真实调用方）、模型选择接口。`currentExecution` 其余 34 项仍 `FROZEN_DEFERRED`；release、安装态分发、真实宿主 E3、真人 E4、ComfyUI、MiniMax H3 继续冻结。
+- 编号：`source.job_id` / `operation_id` 由界面提供可填写位置并允许显式选择“不使用”；代理不得自行铸造标识并当作来源证据展示。
+- 范围收口：字体库与第三方素材的权利判定**移出本项目范围**，不得再作为缺口、待办或开工前提；不变的是既有边界（不默认上传客户素材、不持有用户素材库、E 盘受保护）。
+- `DESIGN.md` 在 owner 真实测试前不进入已批准状态；先把业界最专业的设计规范收入库内作参考素材。逐条配色归属与品牌蓝裁定为挂起项，不是阻塞项，不得反复请示。
+- 手机端是**排除项**（不是冻结、不是待办、不是缺口）；AAOS 仍不是依赖或门，只保留标准、通用、版本化的公共接入接口。
 
 ## 2026-10-19 当前owner执行决定 — 方向调整与全域冻结
 

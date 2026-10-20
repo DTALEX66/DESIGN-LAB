@@ -141,7 +141,25 @@
    },
    "why": "权威索引此前记录了同日两条范围裁定中的手机端一条（directionAdoption.mobile=OUT_OF_SCOPE），却对 AAOS 一条只字未提（全文 0 次命中），于是机器面比 AUTHORITY.md / AGENTS.md / PRODUCT_DEFINITION / NEXT-AGENT-PROMPT / BOUNDARY_CONTRACT / 方向验收报告少一项，下一会话读索引仍可能把 AAOS 联调当完成判据。本次补 directionAdoption.aaos=CONTRACT_ONLY_NOT_A_DEPENDENCY 一项，只记关系不记新增强制字段。`after_pins` 是最初采纳快照，不是现值镜像，故不动；re-pin 只体现在这条 revision 的 from/to 里。",
    "checks": "改后 JSON 仍可解析；verify_top_level_authority 仍 10 项且 r2-release-integrity 以新值通过；该文件同时是 Record 导入清单的 repo 侧绑定件，故另跑 declare_record_evolution.py 声明仓库副本演进（归档字节与 leg 1 不动）"
+  },
+  {
+   "when": "2026-10-20",
+   "authority": "owner instruction 2026-10-19/20: 「1 可以做」「大模型可以 但为什么要锁死呢？不锁死 做好菜单导航和接口 用户自行选择本地或者是云端模型」「编号问题留出可填写位置，用户自行填写或者选择用没用」「三方素材和字库不在本项目范围内」「设计规范按照网上最专业的先收入库里 后期落地我自行测试」「手机端不是冻结 是不做了」「E盘不动」",
+   "changed": [
+    "AUTHORITY.md",
+    ".project/governance/authority-index.json"
+   ],
+   "from": {
+    "AUTHORITY.md": "4f7bd6c0713563f135bd637c9b9afa19b59ed3889097810c35bf384add88acf8",
+    ".project/governance/authority-index.json": "7658dfc583d62397174ffefc958d29d35436fbe2ee41663cc48793fec26b9e95"
+   },
+   "to": {
+    "AUTHORITY.md": "7cd2db03544a3008c613e6730eeca859a1f73626e9010cb8eafa963d18a6022a",
+    ".project/governance/authority-index.json": "fd01ce37148e183deab6a2064ba80062327e351b97eb78f66361573684fe4744"
+   },
+   "why": "2026-10-19 的「本轮不实施产品功能」是一条普遍禁止，而 owner 随后点名放行三段产品实施（Prompt Intelligence 入口、KnowledgeCandidate 导出出口、模型选择接口）。若只改 AGENTS.md / PRODUCT_DEFINITION 而不动 Authority，下一会话仍会从冻结的权威面读回「不实施产品功能」并把这三次实施判为越权——这正是本文件存在的目的。AUTHORITY.md 增加 UNFREEZE-20261020-R1 采纳块，并在原句后就地标注该禁止仅在且仅在这三段上失效（原句保留不改写）；索引增加 unfreezeAdoption，把解冻清单、编号=用户可填或显式不用、字体/三方素材权利判定=OUT_OF_SCOPE、DESIGN.md 批准=挂起而非阻塞、仍冻结清单一次性写成机器可读面。被 pin 的 DIRECTION 任务包原字节不动：它仍是冻结血统，其冲突条款由更新的上位 owner 条款取代，而不是被改写。",
+   "checks": "两份文件均为 LF 且 eol=lf（无 CR 字节），worktree sha256 与 CI checkout 读回一致；改后 JSON 仍可解析；verify_top_level_authority 仍 10 项且 r2-release-integrity 以新值通过；AGENTS.md 不在 pin 清单内，其 CRLF-CRLF（\\r\\r\\n）行结束按原样保留，插入后 lone-LF 计数不变；本文件同时是 Record 导入清单的 repo 侧绑定件，另跑 declare_record_evolution.py 声明仓库副本演进（归档字节与 leg 1 不动）"
   }
  ],
- "current_pins_note": "Latest change is revisions[-1] (2026-10-19 AAOS ruling on the machine surface): .project/governance/authority-index.json re-pinned after directionAdoption gained the aaos key. Earlier revisions are kept as the supersession trail."
+ "current_pins_note": "Latest change is revisions[-1] (2026-10-20 partial unfreeze): AUTHORITY.md and .project/governance/authority-index.json re-pinned after the UNFREEZE-20261020-R1 adoption block and the unfreezeAdoption key landed; the pinned direction taskpack bytes are untouched. Earlier revisions are kept as the supersession trail."
 }

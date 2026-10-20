@@ -134,6 +134,30 @@
     "aaos": "CONTRACT_ONLY_NOT_A_DEPENDENCY",
     "futureCapabilities": "FROZEN_DEFERRED"
   },
+  "unfreezeAdoption": {
+    "date": "2026-10-20",
+    "authorityRevision": "UNFREEZE-20261020-R1",
+    "decision": "docs/taskpacks/20261020-unfreeze/OWNER-DECISION-2026-10-20.md",
+    "sourceKind": "OWNER_IN_SESSION_INSTRUCTION_NO_PACKAGE_NO_SOURCE_HASH",
+    "supersedesInPart": "DL-TP-20261019-DIRECTION-R1 的「本轮不实施产品功能」普遍禁止；其余条款不变",
+    "unfrozenProductSegments": [
+      "PROMPT_INTELLIGENCE_ENTRY",
+      "KNOWLEDGE_CANDIDATE_EXPORT_EXIT",
+      "MODEL_SELECTION_INTERFACE"
+    ],
+    "modelSelection": "NOT_LOCKED_USER_PICKS_LOCAL_OR_CLOUD — fail-closed 默认值规则不变；用户的显式选择不改变合格状态、不把 UNKNOWN 写成合格；云端选项必须披露离开本机的数据",
+    "identifiers": "USER_FILLABLE_OR_EXPLICITLY_UNUSED — 代理不得自行铸造 job_id/operation_id 并当作来源证据",
+    "thirdPartyAssetsAndFonts": "OUT_OF_SCOPE",
+    "designContractApproval": "DEFERRED_PENDING_OWNER_TESTING_NOT_A_BLOCKER",
+    "stillFrozen": [
+      "RELEASE",
+      "INSTALLED_DISTRIBUTION",
+      "REAL_HOST_E3",
+      "HUMAN_E4",
+      "COMFYUI",
+      "MINIMAX_H3"
+    ]
+  },
   "frozenLegacyLedgers": [
     "reports/current/DEEPSEEK-AUTHORITY-LEDGER-2026-09-14.json"
   ]

@@ -67,6 +67,13 @@
       "replacement": "docs/taskpacks/DESIGN-LAB-DIRECTION-ALIGNMENT-2026-10-19.md"
     },
     {
+      "glob": "docs/taskpacks/20261020-unfreeze/**",
+      "state": "FROZEN",
+      "role": "RECORD",
+      "basis": "2026-10-20 owner定点解冻与范围收口的逐字裁决记录。来源是会话内指令，无外部包、无源哈希，因此这里不登记sha256、也不许后人补造SOURCE-MANIFEST.json。它的权威效力由 AUTHORITY.md 的 UNFREEZE-20261020-R1 采纳块与 authority-index.json 的 unfreezeAdoption 承担（记录本身是时点转录，冻结不改写；更正另立新日期记录）。",
+      "replacement": null
+    },
+    {
       "glob": "docs/audits/DESIGN-LAB-UIKIT-CONFORMANCE-2026-09-28/pack/**",
       "state": "FROZEN",
       "role": "RECORD",

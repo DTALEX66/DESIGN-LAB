@@ -113,6 +113,13 @@ def delivery_hops() -> int:
 
 # (file, template, measurement). Templates carry enough words to be unambiguous and to fail loudly
 # when the sentence is rewritten rather than updated.
+#
+# The frozen-count sentence appears on four authority surfaces that all restate the same ledger fact.
+# The 2026-10-20 owner unfreeze does NOT move this number: it authorizes three product segments that
+# are not ledger tasks (`currentExecution` keeps its 34 `FROZEN_DEFERRED` rows, measured here), so the
+# walk still refusing to report a count while any row has left the frozen state remains the honest
+# guard -- if a future batch unfreezes a ledger task, every one of these four sentences goes red at
+# once rather than quietly agreeing with a stale ledger.
 CLAIMS = [
     ('DESIGN.md', '导航 {n} 项', route_views),
     ('docs/current/NEXT-AGENT-PROMPT.md', '{n} 个子命令（`src/design_lab/cli.py`', cli_subcommands),
@@ -121,6 +128,11 @@ CLAIMS = [
     ('docs/current/NEXT-AGENT-PROMPT.md', '**{n} 跳验收链**', acceptance_hops),
     ('docs/current/NEXT-AGENT-PROMPT.md', '**{n} 跳交付链**', delivery_hops),
     ('docs/current/NEXT-AGENT-PROMPT.md', '` 的 **{n} 项父/子任务全部', frozen_current_tasks),
+    ('AUTHORITY.md', '其余 {n} 项仍 `FROZEN_DEFERRED`', frozen_current_tasks),
+    ('AGENTS.md', '其余 {n} 项仍 `FROZEN_DEFERRED`', frozen_current_tasks),
+    ('docs/current/PRODUCT_DEFINITION.md', '其余 {n} 项仍 `FROZEN_DEFERRED`', frozen_current_tasks),
+    ('docs/taskpacks/20261020-unfreeze/OWNER-DECISION-2026-10-20.md',
+     '其余 {n} 项仍 `FROZEN_DEFERRED`', frozen_current_tasks),
 ]
 
 

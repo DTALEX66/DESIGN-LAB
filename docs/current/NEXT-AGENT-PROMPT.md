@@ -7,7 +7,7 @@
 > 历史条目在 `docs/history/next-agent-prompts/`，逐份登记于 `docs/history/next-agent-prompts/PROMPT-LINEAGE.json`。
 > `verify_task_document_states.py` 的 `entry-not-dated-again` 会在有人重新铸日期副本时直接失败。
 
-- **updatedAt**: 2026-10-19
+- **updatedAt**: 2026-10-20
 - **writtenAtSha**: 自己读 `git rev-parse HEAD`（不要抄任何文档里的数字；本文件也不例外）
 
 ## 0. 这份文件是什么
@@ -59,13 +59,39 @@ Owner 原话（逐字）：
   `currentExecution` 的 **34 项父/子任务全部 `FROZEN_DEFERRED`**，不再派工；原字节、任务定义与证据保留。
 - 本轮**只做**权威/规划对齐、冲突矩阵、能力映射、技术可行性矩阵、最小真实闭环规划与按范围测试；
   **不实施产品功能**。解冻任何未来能力都需要 owner 明确授权。
+  （2026-10-20 更新：这条普遍禁止已被 owner 后续直接指令在**三段**上取消，见下文「当前授权面」。
+  原句保留，因为它记录 2026-10-19 那一轮的效力范围。）
+
+## 2.0 当前授权面（2026-10-20 定点解冻）
+
+逐字原话与解释见 `docs/taskpacks/20261020-unfreeze/OWNER-DECISION-2026-10-20.md`；机器面读
+`.project/governance/authority-index.json` 的 `unfreezeAdoption`。**只放行三段产品实施**：
+
+1. **Prompt Intelligence 入口** —— 提示词生成与反推成为可调用面（服务 façade、CLI、HTTP 路由、工作台面板）。
+   实施前的基线实测（2026-10-19）：`prompt` 在 `src/design_lab/http_service.py`、`src/design_lab/cli.py`、
+   `apps/workbench/shell.ts` 三处 0 命中，只作为产品声明存在于边界合同与方向包。
+   这三处命中数在实施后必须重新实测并改写本句，不得留作现状。
+2. **`KnowledgeCandidate` 导出出口** —— 把 `export_payload` / `to_v1_projection`（`src/` 内原本零调用者）
+   接到真实调用方，让"导出"成为可寻址动作；`outbound.transport` 仍是 `NOT_CONNECTED`，不得因为加了出口就宣称已发送。
+3. **模型选择接口** —— 不锁死：菜单导航 + 接口，用户自行选择本地或云端模型。
+   fail-closed 的**默认值**规则不变（`UNQUALIFIED_*` 默认 `defaultEnabled: false`；零 checksum、许可冲突、
+   模型不存在、硬件不足时 resolver 仍拒绝）。用户的显式选择是被记录的用户动作，不改变合格状态、
+   不把 `UNKNOWN` 写成合格、不宣称推理已验证；云端项必须写明哪些数据离开本机。
+
+仍不做：release、安装态分发、真实宿主 E3、真人 E4、ComfyUI、MiniMax H3 验收；`currentExecution`
+其余 34 项仍 `FROZEN_DEFERRED`（`scripts/verify_documented_counts.py` 实测，任何一项解冻都会让四处句子同时红）。
+新落地的范围收口：**字体库与第三方素材的权利判定移出本项目范围**，不得再列为缺口或开工前提；
+`source.job_id` / `operation_id` 改为界面可填写 + 可显式选择"不使用"，代理不得自行铸造标识冒充来源证据；
+`DESIGN.md` 在 owner 真实测试前不进已批准状态，逐条配色归属与品牌蓝裁定**挂起不是阻塞**，不要再反复请示。
 
 本轮同步过的面（都已落盘）：`AUTHORITY.md`、authority index、`AGENTS.md`、
 `docs/current/PRODUCT_DEFINITION.md`、`docs/architecture/BOUNDARY_CONTRACT.md`、`docs/current/ROADMAP.md`、
 `design-lab/config/product-manifest.json`、`design-lab/config/task-document-states.json`、唯一账本状态、
 `.project/manifest.yaml` 的 taskpack 指针、`R2_RELEASE_HASHES`、`AUTHORITY-PIN-CHANGE.json`、`reports/current/**`。
 
-**没有**同步、也不得声称同步的：运行时代码、真实宿主调用、模型路由、人工验收。「AAOS 接收」不再列入本项目同步范围：owner 2026-10-19 定调本项目独立全链路跑通，外部知识系统只通过版本化公共合同连接，其接收状态既不由本项目宣称，也不作为本项目的完成条件。
+**没有**同步、也不得声称同步的：真实宿主调用、人工验收。（原句还列有"运行时代码、模型路由"——
+2026-10-20 定点解冻后，上文「当前授权面」三段的运行时代码与模型选择接口**属于本轮实施范围**，
+但"路由到已合格模型"仍然不得声称：合格判定只在真实取证后由 owner 验收。）「AAOS 接收」不再列入本项目同步范围：owner 2026-10-19 定调本项目独立全链路跑通，外部知识系统只通过版本化公共合同连接，其接收状态既不由本项目宣称，也不作为本项目的完成条件。
 
 ### 3.1 2026-10-19 归档与删除波（明面已经换了形状）
 
@@ -164,8 +190,8 @@ E4 独立人审 / E5 发布可复现。**文档修订 ≠ 规划完成 ≠ 代�
   能靠调用入口真跑通的链是 项目 → 简报 → 参考图入库 → 资产分析派生 RIR（CLI `analyze` + POST `…/assets/<img-ID>/analysis`，live HTTP 已测）→ 原生计划提交 → jury 判定 → rights 记录 → 打包 → **preflight**（POST `…/bundles/<id>/preflight`，2026-10-19 起有 live HTTP 测试；此前所有 preflight 测试都只在进程内调 `preflight_bundle`，路由的默认 profile 与返回形状从未被走过）→ 知识候选创建/审阅/撤回。
   **两个断点没有任何调用入口，不是"还没接"而是没有实现**：(1) Prompt Intelligence——`prompt` 在 `http_service.py`、`cli.py`、`apps/workbench/shell.ts` 三处 0 命中，也没有承载模块，它只作为产品主张出现在 BOUNDARY_CONTRACT 与任务包 §9；(2) 候选导出——`assurance/knowledge_feedback.py:458 export_payload` 与 `:521 to_v1_projection` 在整个 `src/` 内**零调用方**（除各自函数体内那行 `_document(candidate, "…")` 自指标签），出站 `outbound.transport` 在 `knowledge_review.py:337` 硬编码 `NOT_CONNECTED`，该模块第 11 行的注释本身就写明"本仓库没有 ArcheAxis transport"。所以导出段缺的不是接线，是一个真实出口。
   另两处口径要写清：`quality` 记录只有 CLI（`cli.py:99`），**没有路由**，所以它既不算 matched 也不算 backend_only；`/jury/proposal` 有路由但页面不调（BACKEND_ONLY，理由已登记）。
-  **链上走查（2026-10-19 起有了第一条，并已覆盖到交付段）**：`design-lab/tests/test_standalone_chain_http.py` 用一个服务、一个项目，按上一跳真实返回的 id 依次走 **13 跳验收链**——project→asset→brief→direction→design-layer 读回→资产分析派生 reconstruction-ir/v1→**jury 判定（对着 asset 那一跳返回的 version_id 与 sha256 直接落判，201）**→jury 读回→**rights 决策**→rights 读回（CLEARED）→知识候选→人工审阅→候选读回，实测 `project=201 asset=201 brief=201 direction=201 design-layer=200 analysis=201 jury-verdict=201 jury-readback=200 rights=201 rights-readback=200 candidate=201 review=200 candidate-readback=200`；另有 **4 跳交付链** `project=201 native=READBACK bundle=201 preflight=200`。此前每个缝各自有测试但没人按顺序走过，"独立全链路"是从逐跳绿灯拼出来的主张。写这条链时发现的两个链事实，都记在测试注释里：jury 的判定对象此前只能靠测试自己往数据库里 publish 版本，从未证明"导入的资产能长出一个可判的 version"；`native_tasks.execute` 只接受字面量 scope `project-native-test`（`native_tasks.py:94`），所以交付段是受控 E2 而不是真实宿主 E3。仍**没有**任何入口的两段是提示词与导出，因此它们不可能被任何走查覆盖；`test_design_layer_http.py:147` 那条 6 跳走查仍止于 design-layer。所以"独立全链路跑通"当前的准确说法是：**除提示词段与导出段外，每一跳都有可调入口与 live 证据，但没有一条端到端把它们串起来的测试**。补这条链是工程活，补那两段是 owner 决定（`currentExecution` 冻结，代理不自建）。
-- **两处不是工程缺口，是 owner 决定**：(a) 验收记录里没有 `source.job_id`/`operation_id`，而 `build_candidate` 强制要求它们，所以要么改 jury 合同带上这两个引用，要么候选仍只能由人显式提交——代理不得凭空填 provenance；(b) 本机没有合格模型：`readiness/model-radar.json` 14 条里 `QUALIFIED_LOCAL=0` 且全部 `default_enabled: false`，`reconstruction-models.json` 指向的模型根目录不存在，omniparser `commercialUse: DENIED`；磁盘上确有 Qwen2.5-VL-7B GGUF（含 mmproj）但它不在雷达里。要不要把它列为合格本地模型，是许可与资格裁定，不是我能替你定的。
+  **链上走查（2026-10-19 起有了第一条，并已覆盖到交付段）**：`design-lab/tests/test_standalone_chain_http.py` 用一个服务、一个项目，按上一跳真实返回的 id 依次走 **13 跳验收链**——project→asset→brief→direction→design-layer 读回→资产分析派生 reconstruction-ir/v1→**jury 判定（对着 asset 那一跳返回的 version_id 与 sha256 直接落判，201）**→jury 读回→**rights 决策**→rights 读回（CLEARED）→知识候选→人工审阅→候选读回，实测 `project=201 asset=201 brief=201 direction=201 design-layer=200 analysis=201 jury-verdict=201 jury-readback=200 rights=201 rights-readback=200 candidate=201 review=200 candidate-readback=200`；另有 **4 跳交付链** `project=201 native=READBACK bundle=201 preflight=200`。此前每个缝各自有测试但没人按顺序走过，"独立全链路"是从逐跳绿灯拼出来的主张。写这条链时发现的两个链事实，都记在测试注释里：jury 的判定对象此前只能靠测试自己往数据库里 publish 版本，从未证明"导入的资产能长出一个可判的 version"；`native_tasks.execute` 只接受字面量 scope `project-native-test`（`native_tasks.py:94`），所以交付段是受控 E2 而不是真实宿主 E3。仍**没有**任何入口的两段是提示词与导出，因此它们不可能被任何走查覆盖；`test_design_layer_http.py:147` 那条 6 跳走查仍止于 design-layer。所以"独立全链路跑通"当前的准确说法是：**除提示词段与导出段外，每一跳都有可调入口与 live 证据，但没有一条端到端把它们串起来的测试**。补这条链是工程活；补那两段曾经是 owner 决定，**2026-10-20 已授权实施**（见上文「2.0 当前授权面」），实施完成后本句的"除提示词段与导出段外"必须重新实测改写。
+- **两处曾经不是工程缺口、而是 owner 决定，现在一条已定、一条仍待裁**：(a) 验收记录里没有 `source.job_id`/`operation_id`，而 `build_candidate` 强制要求它们——owner 2026-10-20 定了做法：「编号问题留出可填写位置，用户自行填写或者选择用没用」。所以界面与接口提供可填写位置并允许显式选择"不使用"，代理仍不得凭空填 provenance。(b) 本机没有合格模型：`readiness/model-radar.json` 14 条里 `QUALIFIED_LOCAL=0` 且全部 `default_enabled: false`，`reconstruction-models.json` 指向的模型根目录不存在，omniparser `commercialUse: DENIED`；磁盘上确有 Qwen2.5-VL-7B GGUF（含 mmproj）但它不在雷达里。要不要把它列为合格本地模型，是许可与资格裁定，不是我能替你定的。
 - **链的桌面可达性，一句话（本轮直接读 `design-lab/scripts/verify_workbench_route_calls.py` 的 `BACKEND_ONLY` 表得出，不是估计）**：13 跳验收链里 **12 跳在 workbench 有真实调用点**，唯一没有的是"资产分析派生 RIR"那一跳——它登记为 `backend_only`，登记理由写的是本机无合格 OCR/分析后端（`readiness/model-radar.json` 报 `QUALIFIED_LOCAL=0`、全部 `default_enabled:false`），操作者路径是 CLI `design-lab analyze`。这张表是**双向防陈旧**的：路由消失却仍登记会红，前端已经开始调用却仍登记也会红，所以这句总结会跟着表一起失效，不会悄悄过期。owner 两条待决里"要不要把磁盘上的 Qwen2.5-VL-7B GGUF 列为合格本地模型"正是这一跳能否进页面的前置——缺的是资格裁定，不是代码。
 - **已作废的三条调查结论**（写在这里防止下一会话照它们动手）："export 没有 schema 文件" 与 "plan_to_rir 缺失" 都是错的；前者见上，后者是缺调用方而非缺实现。第三条现在也过期了："`plan_to_rir` 无生产调用方" 自 2026-10-19 起不成立（CLI `analyze` + `POST …/assets/<id>/analysis` 两条入口，见 §上一项 2），照旧话去"补第一个调用方"会重复劳动。缺的那一半是**合格后端**，不是调用方。
 - 下一轮若获授权，先交付"可审阅的读回面板 + 真实数据源 + 可复现测试"，
@@ -175,7 +201,9 @@ E4 独立人审 / E5 发布可复现。**文档修订 ≠ 规划完成 ≠ 代�
 
 - **E3 真实宿主**、**E4 独立人审**、**E5 发布/安装态分发**：均未执行，需明确授权。
 - **手机端**：**已从范围移除**（owner 2026-10-19：「再说一遍 不做手机端 只做桌面端」→「授权给你 去掉手机端」）。AUTHORITY.md / AGENTS.md / PRODUCT_DEFINITION / authority-index 的现行条款都已把它从「冻结待排」改为「排除」：不派工、不开路由、不加组件、不做验收、不记为能力缺口或未交付项；恢复需 owner 新的明确授权。机器面留一处说明：账本 `currentExecution.mobile` 由 schema 以 `const: FROZEN_DEFERRED` 钉住、并被 `design-lab/tests/test_current_execution.py` 断言，改这个词属于 schema+测试+UI 状态词的合同变更，不在本次授权内；该值本身的含义就是「手机工作零派工」。桌面端响应式/自适应是交付质量的一部分，不等于手机端，其既有闸门保持不动。
-- **解冻 34 项 `FROZEN_DEFERRED` 任务**：需要新的 owner 明确授权；不得自行恢复派工。
+- **解冻 34 项 `FROZEN_DEFERRED` 任务**：需要新的 owner 明确授权；不得自行恢复派工。owner 2026-10-20 放行的是**三段产品实施**（提示词入口、导出出口、模型选择接口），不是账本任务解冻——`currentExecution` 34 项一项未动，`scripts/verify_documented_counts.py` 实测并在四处句子同时看守。
+- **已从范围移出，不要再当缺口登记**：字体库与第三方素材的权利判定（owner 2026-10-20：「三方素材和字库不在本项目范围内」）。保留的只是既有数据边界：不默认上传客户素材、不持有用户素材库、E 盘受保护。`DESIGN.md` 的批准、字面配色的逐条归属（存量以 `scripts/design_debt_baseline.py --check` 与
+`design-lab/config/ui-off-palette-colours.json` 实测为准，本文件不复述数字）、品牌 `#316CFF` 能否承载白字——owner 原话「我现在看不见」，属**挂起项而非开工前提**，不要为它们反复请示；本轮按「设计规范按照网上最专业的先收入库里」把业界规范作为参考素材入库，落地验收由 owner 自行测试。
 - **"保留标准通用的接入接口"具体保留到哪一层（2026-10-19 逐层实测，别把"有合同"读成"能接入"）**：
   官方 API/SDK 层有代码（`adapters/photoshop_com.py`、`adapters/illustrator_com.py`、`adapters/spi.py`、`interop/penpot.py`、`generators/comfy_*.py`），等级以 E0/E1 为主，ComfyUI 的 E2/E3 证据是 2026-08 的、未在当前树复验；
   原生插件层有注册表与清单（`integrations/adapter-registry.json` 30 条、`integrations/hosts|generators/*/adapter.manifest.json`），闸门 `ADAPTER_REGISTRY=PASS`、`ADAPTER_MATRIX=PASS matrix=9`、`ADAPTER_LOCATOR_AUDIT=PASS`；

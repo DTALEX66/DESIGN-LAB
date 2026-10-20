@@ -98,9 +98,18 @@ AUTHORITY_ID = "DL-AUTHORITY-2026-09-18-R2"
 # record and the removal manifest instead of a file that is no longer in the tree. Only those path
 # sentences changed. Reason, from/to digests and the checks run: docs/history/taskpacks/20261009-adoption/
 # AUTHORITY-PIN-CHANGE.json revisions[]. Checks stay at 10.
+# 2026-10-20 re-pin (AUTHORITY §17: owner intent = 「1 可以做」「不锁死 做好菜单导航和接口 用户自行选择本地
+# 或者是云端模型」「编号问题留出可填写位置」「三方素材和字库不在本项目范围内」「设计规范按照网上最专业的先
+# 收入库里 后期落地我自行测试」; reason = 定点解冻与范围收口; superseded = the 2026-10-19 digests; impact =
+# AUTHORITY.md gains the UNFREEZE-20261020-R1 adoption block and marks its own 「不实施产品功能」 clause as
+# lifted for exactly three segments, and the index gains unfreezeAdoption so a later session reads the
+# unfreeze list from the machine surface instead of re-deriving it from chat. The pinned direction taskpack
+# bytes are NOT touched — it stays frozen lineage, superseded in part by the newer owner clause):
+#   AUTHORITY.md                        4f7bd6c0… -> 7cd2db03…
+#   authority-index.json                7658dfc5… -> fd01ce37…
 R2_RELEASE_HASHES = {
-    "AUTHORITY.md": "4f7bd6c0713563f135bd637c9b9afa19b59ed3889097810c35bf384add88acf8",
-    ".project/governance/authority-index.json": "7658dfc583d62397174ffefc958d29d35436fbe2ee41663cc48793fec26b9e95",
+    "AUTHORITY.md": "7cd2db03544a3008c613e6730eeca859a1f73626e9010cb8eafa963d18a6022a",
+    ".project/governance/authority-index.json": "fd01ce37148e183deab6a2064ba80062327e351b97eb78f66361573684fe4744",
     "docs/current/HISTORY-FREEZE-RULES.md": "3573b88df6c04be6fa6932327aff94ad8c547a43bfcbc6a3337d4bad50a71322",
     "docs/taskpacks/DESIGN-LAB-FINAL-AUTHORITY-CONVERGENCE-TASKPACK-2026-09-18.md": "62f43ef295d4e90462d1e49e657e490400c4b5568f4e4ad1db3e268e12bb10c7",
     "docs/taskpacks/DESIGN-LAB-UI-FIRST-INTEGRATED-TASKPACK-2026-10-09.md": "2cfd84627352e9f1b29b42787fa43466cd9a836130d826d43678b7733856ffda",
