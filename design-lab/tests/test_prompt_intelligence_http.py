@@ -25,9 +25,11 @@ import unittest
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
-for candidate in (ROOT / 'src', ROOT / 'design-lab' / 'tests'):
-    if str(candidate) not in sys.path:
-        sys.path.insert(0, str(candidate))
+# Spelled as literal inserts, not a loop over candidates: design-lab/scripts/verify_test_selfsufficiency.py
+# reads the root's name inside the sys.path statement itself, and a module that imports `design_lab`
+# must claim that root on its own rather than borrow a sibling's.
+sys.path.insert(0, str(ROOT / 'src'))
+sys.path.insert(0, str(ROOT / 'design-lab' / 'tests'))
 
 from design_lab.prompt_intelligence import (  # noqa: E402
     COMPOSITION_SCHEMA_PATH, PromptIntelligence, PromptIntelligenceError, check_document)

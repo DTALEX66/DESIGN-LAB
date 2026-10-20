@@ -14,9 +14,10 @@ import sys
 import unittest
 
 ROOT = Path(__file__).resolve().parents[2]
-for candidate in (ROOT / 'src', ROOT / 'design-lab' / 'tests'):
-    if str(candidate) not in sys.path:
-        sys.path.insert(0, str(candidate))
+# Literal inserts naming the roots: verify_test_selfsufficiency.py only credits a module that
+# claims `src` in the sys.path statement itself, and this file imports `design_lab` directly.
+sys.path.insert(0, str(ROOT / 'src'))
+sys.path.insert(0, str(ROOT / 'design-lab' / 'tests'))
 
 from design_lab.model_catalog import (  # noqa: E402
     CLAIMS_NOT_MADE, PLACEMENTS, catalog)
