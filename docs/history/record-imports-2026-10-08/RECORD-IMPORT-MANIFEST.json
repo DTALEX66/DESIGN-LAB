@@ -444,14 +444,14 @@
    "also_in_repo": [
     "docs/architecture/BOUNDARY_CONTRACT.md"
    ],
-   "repoBytesAfterImport": 4928,
-   "repoCrc32AfterImport": "6556b94f",
-   "repoSha256AfterImport": "sha256:3b47233afa241f58be1a00f93cd6c8d7a8ee1d4859f92d786e688e12c97ba66e",
+   "repoBytesAfterImport": 5670,
+   "repoCrc32AfterImport": "2485d448",
+   "repoSha256AfterImport": "sha256:815262c90cfc553b6271c32741fe11ead68d6acd813d9b459e49eb9e10a1996e",
    "evolvedBy": {
-    "commit": "1ecaf3d0",
-    "subject": "docs(records): stop four live surfaces from restating a superseded scope"
+    "commit": "21095fb1",
+    "subject": "docs(boundary): mark the clauses the 2026-10-20 ruling lifts or removes"
    },
-   "evolution": "The archive bytes recorded above are unchanged and still verify against the source ZIP (leg 1). This row is held to the repository copy's post-import digests instead, because commit 1ecaf3d0 deliberately rewrote that file after the import. Leg 2 still refuses the file if it matches neither the archived nor the declared bytes."
+   "evolution": "owner 2026-10-20 定点解冻：边界合同里「不实施产品功能」这条普遍禁止在提示词入口、导出出口、模型选择接口三段上失效，另把字体库与第三方素材权利判定移出范围；原句保留并就地标注，仍约束其余产品工作。"
   },
   {
    "source_container": "DESIGN-LAB_FINAL_CONSOLIDATED_PACKAGE_2026-09-29.zip",
