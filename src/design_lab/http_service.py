@@ -117,6 +117,7 @@ ROUTES = (
     Route('GET', '/api/health', '_health', exact=True),
     Route('GET', '/api/environment', '_environment', exact=True),
     Route('GET', '/api/capabilities', '_capabilities', exact=True),
+    Route('GET', '/api/models', '_models', exact=True),
     Route('GET', '/api/domains', '_domains', exact=True),
     Route('GET', '/api/task-preflight', '_task_preflight', exact=True, path_only=True),
     Route('GET', '/api/projects', '_list_projects', exact=True),
@@ -613,6 +614,19 @@ def make_server(service, token, port=0, *, local_session=False):
             # reads the committed records, never a machine-local cache.
             from .analysis.capability_library import build
             return self.send_json(200, build())
+
+        def _models(self, match):
+            # The picker's read: two registries side by side with the join left unclaimed, and
+            # counts taken from what the records actually hold (qualified_local 0, recorded weight
+            # hashes 0) so the page cannot render a readiness chip the radar does not support.
+            # A registry that refuses to load is 503 with a named code -- an empty list here would
+            # read as "no candidates exist", which is a different fact.
+            from .model_catalog import ModelCatalogError, catalog
+            try:
+                return self.send_json(200, catalog())
+            except ModelCatalogError as exc:
+                return self.send_json(503, {'status': 'ERROR', 'error': 'MODEL_CATALOG_UNAVAILABLE',
+                                            'detail': str(exc)})
 
         def _domains(self, match):
             # Same class of read as /api/capabilities: committed repository
