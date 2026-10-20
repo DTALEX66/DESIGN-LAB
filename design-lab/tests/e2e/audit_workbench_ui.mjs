@@ -324,9 +324,13 @@ await boot.locator('#design-briefs li').first().waitFor({ state: 'visible', time
 await bootCtx.close();
 
 // '' is the legacy workbench view, which is the only view that owns #workspace.
+// prompt-intelligence and model-selection joined on 2026-10-20, the day they became reachable:
+// the overflow and contrast sweeps already carried them, and leaving them out of this one meant
+// their contrast floor, keyboard reachability and geometry were never measured anywhere.
 const ROUTES = ['', '#/dashboard', '#/projects', `#/projects/${projectId}`, '#/tools',
                 '#/deliverables', '#/evidence', '#/preflight', '#/settings',
-                '#/research', '#/domains', '#/collaboration', '#/brand-systems'];
+                '#/research', '#/domains', '#/collaboration', '#/brand-systems',
+                '#/prompts', '#/models'];
 
 for (const width of widths) {
   const { ctx, page } = await connect(width);
