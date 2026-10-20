@@ -510,6 +510,39 @@ class KnowledgeHttpTests(unittest.TestCase):
         self.assertEqual(404, status, body)
         self.assertEqual('CANDIDATE_NOT_FOUND', body['error'])
 
+    # -- provenance ids (owner 2026-10-20: fill it, or say it is not used) --------
+
+    def test_a_candidate_may_declare_the_ids_unused_but_not_leave_them_blank(self):
+        """`UNUSED` is an explicit operator choice; absence is still a refusal."""
+        status, body = self.create(candidate(source={
+            'design_lab_sha': 'a' * 40, 'job_id': 'UNUSED', 'operation_id': 'UNUSED',
+            'evidence_sha256': 'sha256:' + 'b' * 64}))
+        self.assertEqual(201, status, body)
+        self.assertEqual('UNUSED', body['source']['job_id'],
+                         'the service rewrote what the person typed')
+
+        for blank, label in (('', 'empty'), ('   ', 'spaces'), (None, 'null')):
+            status, body = self.create(
+                candidate(candidate_id=f'kc-blank-{label}', source={
+                    'design_lab_sha': 'a' * 40, 'job_id': blank, 'operation_id': 'op-1',
+                    'evidence_sha256': 'sha256:' + 'b' * 64}))
+            self.assertEqual(400, status, f'job_id={blank!r} answered {status}: {body}')
+            self.assertIn('source.job_id', json.dumps(body, ensure_ascii=False),
+                          'the refusal must name the field it is refusing')
+
+    def test_the_export_labels_whether_the_ids_were_filled_or_declared_unused(self):
+        self.create(candidate(source={
+            'design_lab_sha': 'a' * 40, 'job_id': 'job-real-7', 'operation_id': 'UNUSED',
+            'evidence_sha256': 'sha256:' + 'b' * 64}))
+        self.assertEqual(200, self.review('kc-http-1')[0])
+        status, body = self.export('kc-http-1')
+        self.assertEqual(200, status, body)
+        self.assertEqual('USER_SUPPLIED', body['provenance']['job_id_state'])
+        self.assertEqual('EXPLICITLY_UNUSED', body['provenance']['operation_id_state'])
+        # The v1 projection composes source_id from the stored strings, so a declared non-use
+        # travels as itself instead of being silently filled in for the receiving system.
+        self.assertEqual('job-real-7:UNUSED', body['v1_projection']['source_id'])
+
     # -- persistence ------------------------------------------------------------
 
     def test_a_decision_survives_a_server_restart(self):

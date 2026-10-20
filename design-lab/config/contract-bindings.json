@@ -799,7 +799,7 @@
       "handler": "KnowledgeReview",
       "schema": "design-lab/schemas/assurance-knowledge-candidate-v2.schema.json",
       "version": "design-lab/assurance-knowledge-candidate/v2",
-      "emitter": "src/design_lab/assurance/knowledge_feedback.py:269",
+      "emitter": "src/design_lab/assurance/knowledge_feedback.py:289",
       "reason": "The route refuses an unknown body field and build_candidate validates the document against this closed schema before anything is stored; the document is always PENDING_HUMAN_APPROVAL and cannot carry a review, so an agent cannot create an approved candidate. The persisted revision is re-validated on every read (knowledge_review.validate_candidate)."
     },
     {
@@ -809,7 +809,7 @@
       "handler": "KnowledgeReview",
       "schema": "design-lab/schemas/assurance-knowledge-candidate-v2.schema.json",
       "version": "design-lab/assurance-knowledge-candidate/v2",
-      "emitter": "src/design_lab/assurance/knowledge_feedback.py:269",
+      "emitter": "src/design_lab/assurance/knowledge_feedback.py:289",
       "reason": "A decision is applied by approve()/reject(), which require reviewer_kind 'human' with a named reviewer and an RFC3339 timestamp and re-validate the updated document against this schema before it is appended. The facade refuses reviewer_kind other than 'human' with KNOWLEDGE_HUMAN_REVIEW_REQUIRED, so this route cannot fabricate a human gate."
     },
     {
@@ -819,7 +819,7 @@
       "handler": "KnowledgeReview",
       "schema": "design-lab/schemas/assurance-knowledge-candidate-revocation-v1.schema.json",
       "version": "design-lab/assurance-knowledge-candidate-revocation/v1",
-      "emitter": "src/design_lab/assurance/knowledge_feedback.py:414",
+      "emitter": "src/design_lab/assurance/knowledge_feedback.py:434",
       "reason": "The response is the revocation receipt itself, validated as a closed document with export_blocked const true before it is stored alongside the REVOKED revision in one commit. A receipt is never transferable: apply_revocation binds it to the candidate id and the facade replays an identical revocation rather than rewriting its reason or actor."
     },
     {

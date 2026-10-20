@@ -46,8 +46,8 @@
           "pattern": "^(?!0+$)[0-9a-f]{7,64}$",
           "description": "Nonzero lowercase hexadecimal DESIGN-LAB revision (git SHA-1 or SHA-256)."
         },
-        "job_id": {"type": "string", "minLength": 1},
-        "operation_id": {"type": "string", "minLength": 1},
+        "job_id": {"type": "string", "minLength": 1, "description": "Operator-supplied job identifier, or the literal \"UNUSED\". Owner 2026-10-20: 「编号问题留出可填写位置，用户自行填写或者选择用没用」. Blank is refused; the service never substitutes a value."},
+        "operation_id": {"type": "string", "minLength": 1, "description": "Operator-supplied operation identifier, or the literal \"UNUSED\"; same rule as job_id, read back as source.state EXPLICITLY_UNUSED when it holds the literal."},
         "evidence_sha256": {"$ref": "#/$defs/sha256"}
       }
     },

@@ -599,6 +599,9 @@ class KnowledgeReview:
             "export": payload,
             "v1_projection": projection,
             "provenance": {"job_id": source.get("job_id"), "operation_id": source.get("operation_id"),
+                            "job_id_state": knowledge_feedback.provenance_state(source.get("job_id")),
+                            "operation_id_state": knowledge_feedback.provenance_state(
+                                source.get("operation_id")),
                             "design_lab_sha": source.get("design_lab_sha"),
                             "payload_sha256": payload.get("payload_sha256")},
             "freshness": _freshness(source.get("design_lab_sha"), _head_sha()),

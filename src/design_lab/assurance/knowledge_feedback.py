@@ -57,6 +57,26 @@ V1_KNOWLEDGE_TYPES = {
 }
 DEFAULT_REVOCATION_ENTRYPOINT = "design-lab/knowledge/revoke"
 
+#: Owner ruling 2026-10-20: 「编号问题留出可填写位置，用户自行填写或者选择用没用」. The literal is
+#: the explicit "not used" choice. A blank or absent id stays a refusal, because "the operator
+#: declared there is no job id" and "nobody answered" are different facts and a provenance record
+#: must not have to guess between them. Nothing here ever substitutes a value.
+PROVENANCE_UNUSED = "UNUSED"
+
+
+def provenance_state(value) -> str:
+    """How a reader should describe what an id field holds: a supplied id, or a declared non-use."""
+    if isinstance(value, str) and value.strip() == PROVENANCE_UNUSED:
+        return "EXPLICITLY_UNUSED"
+    return "USER_SUPPLIED"
+
+
+def require_provenance_id(value, field: str) -> str:
+    """``require_text`` plus the one accepted exception: the literal ``UNUSED``."""
+    if isinstance(value, str) and value.strip() == PROVENANCE_UNUSED:
+        return PROVENANCE_UNUSED
+    return require_text(value, field)
+
 # Field names that must never leave this project, whatever plane put them there.
 PRIVATE_FIELD_NAMES = frozenset({
     "client_asset", "client_assets", "client_brief", "client_briefs", "brief_body",
@@ -224,8 +244,8 @@ def build_candidate(*, candidate_id, candidate_type, source, rights, payload,
         raise AssuranceError("payload must be the lesson/method/correction content object")
 
     design_lab_sha = require_design_lab_sha(source.get("design_lab_sha"))
-    for field in ("job_id", "operation_id"):
-        require_text(source.get(field), f"source.{field}")
+    job_id = require_provenance_id(source.get("job_id"), "source.job_id")
+    operation_id = require_provenance_id(source.get("operation_id"), "source.operation_id")
     evidence_sha256 = require_digest(source.get("evidence_sha256"), "source.evidence_sha256")
 
     rights_gate_state = rights.get("rights_gate_state")
@@ -271,8 +291,8 @@ def build_candidate(*, candidate_id, candidate_type, source, rights, payload,
         "candidate_type": candidate_type,
         "source": {
             "design_lab_sha": design_lab_sha,
-            "job_id": source["job_id"],
-            "operation_id": source["operation_id"],
+            "job_id": job_id,
+            "operation_id": operation_id,
             "evidence_sha256": evidence_sha256,
         },
         "rights": {
