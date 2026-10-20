@@ -1,6 +1,6 @@
 # CLOUD_BASELINE
 
-Generation-time local HEAD (not current): `6210563558d1e958724a35097f79b86bf7edbfcc`
+Generation-time local HEAD (not current): `1727dc0ecf3c8d932456c88b625e81185340ba08`
 
 Generation-time local origin/main: `0694a15f20493dc8b82e978478172ea7c673fdf2`
 
