@@ -14,7 +14,8 @@ import shutil
 import subprocess
 
 from PIL import Image
-from ..runtime.paths import resolve_paths
+from ..interop import InteropError, load_schema, schema_errors
+from ..runtime.paths import PROJECT_ROOT, resolve_paths
 
 
 class PhotoshopDispatchError(RuntimeError):
@@ -112,6 +113,24 @@ return ['DL_PS_QUIESCENT_V1',__JOB__,before,app.documents.length,count].join('|'
         recovery_script_sha256=hashlib.sha256(script.encode('utf-8')).hexdigest())
 
 
+#: Each closed shape this adapter accepts, with the contract file that states it. Keyed by
+#: version on purpose: an unmapped schemaVersion is a refusal, not a guess about which file
+#: was meant.
+JOB_CONTRACTS={
+    'design-lab/photoshop-native-job/v1':'design-lab/schemas/reconstruction/photoshop-native-job.schema.json',
+    'design-lab/photoshop-patch-job/v1':'design-lab/schemas/reconstruction/photoshop-patch-job.schema.json',
+}
+
+
+def _contract_problems(job):
+    """Judge a job against its own contract before anything reaches the host."""
+    version=job.get('schemaVersion')
+    relative=JOB_CONTRACTS.get(version)
+    if relative is None:return [f'no contract is mapped for schemaVersion {version!r}']
+    try:return schema_errors(load_schema(PROJECT_ROOT/relative),job,limit=3)
+    except InteropError as exc:return [f'{relative} cannot be read: {exc}']
+
+
 def execute(job,*,project_root,approved_root,timeout=300):
     """Run a closed job and seal actual readback; no persistent state mutation."""
     try:
@@ -155,6 +174,8 @@ def execute(job,*,project_root,approved_root,timeout=300):
             baseline['schemaVersion']='design-lab/photoshop-native-job/v1'
             expected=json.loads(json.dumps(baseline));_photoshop_patch(expected,job['patch'],apply=True)
             entry='psRunPatchJob(job,'+json.dumps(baseline)+','+json.dumps(expected)+',root,observe)'
+        problems=_contract_problems(job)
+        if problems:raise ValueError('job contract invalid: '+problems[0])
         for asset in job['assets']:
             if not isinstance(asset,dict) or set(asset)!={'id','path'}:raise ValueError('invalid asset fields')
             path=inside(asset['path']);inputs[str(path)]=_digest(path,32*1024*1024)

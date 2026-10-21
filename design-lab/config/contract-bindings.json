@@ -583,11 +583,12 @@
     {
       "route": "/api/projects/([0-9a-f]{32})/tasks/(native-job-[0-9a-f]{64})/patch",
       "method": "POST",
-      "kind": "SCHEMA_LESS",
+      "kind": "BOUND_SCHEMA",
       "handler": "NativePatchSubmissions",
-      "emitter": "src/design_lab/adapters/illustrator_com.py:123",
+      "schema": "design-lab/schemas/reconstruction/adobe-patch-job.schema.json",
+      "emitter": "src/design_lab/adapters/illustrator_com.py:117",
       "version": "design-lab/adobe-patch-job/v1",
-      "reason": "The request body carries a patch document declaring design-lab/adobe-patch-job/v1 or design-lab/photoshop-patch-job/v1 and there is NO SCHEMA for either: src/design_lab/adapters/illustrator_com.py:122-129 and src/design_lab/adapters/photoshop_com.py:121-128 enforce required-key sets and a schemaVersion equality by hand. That is a real check, but it is not this contract surface, and a new field shape would be judged only by hand-written sets. Recorded debt."
+      "reason": "Paid 2026-10-22 (B2b). This one POST dispatches a patch job for either Adobe host, so two contracts cover it: design-lab/schemas/reconstruction/adobe-patch-job.schema.json for design-lab/adobe-patch-job/v1 (the version this row binds) and design-lab/schemas/reconstruction/photoshop-patch-job.schema.json for design-lab/photoshop-patch-job/v1. Both versions are keyed in each adapter's own JOB_CONTRACTS map (src/design_lab/adapters/illustrator_com.py, src/design_lab/adapters/photoshop_com.py), so the shape is judged by the file that states it and not only by hand-written key sets: the adapter loads the contract for the version in the body and refuses a mismatch before any COM call. The hand checks stayed; the schema adds the fields they never typed (layers must be an array, artboard and authorization must be objects). The filesystem rules -- run-root containment, the checkpoint's own bytes, width x height area, the target existing yet -- remain hand checks because a JSON Schema cannot see them, and design-lab/tests/test_illustrator_com_adapter.py and design-lab/tests/test_photoshop_com_adapter.py hold the falsifiers."
     },
     {
       "route": "/api/projects/([0-9a-f]{32})/tasks/(native-job-[0-9a-f]{64})/run",
@@ -599,11 +600,12 @@
     {
       "route": "/api/projects/([0-9a-f]{32})/native-plans",
       "method": "POST",
-      "kind": "SCHEMA_LESS",
+      "kind": "BOUND_SCHEMA",
       "handler": "NativeSubmissions",
-      "emitter": "src/design_lab/adapters/photoshop_com.py:155",
+      "schema": "design-lab/schemas/reconstruction/photoshop-native-job.schema.json",
+      "emitter": "src/design_lab/adapters/photoshop_com.py:120",
       "version": "design-lab/photoshop-native-job/v1",
-      "reason": "The job built from this submission declares design-lab/photoshop-native-job/v1 (src/design_lab/adapters/photoshop_com.py:155) and there is NO SCHEMA for it. The sibling Adobe vocabulary design-lab/adobe-host-job/v1 does have a file, design-lab/schemas/reconstruction/adobe-host-job.schema.json, but no src/ module loads it, so it validates nothing on this path -- the same declared-but-unread shape this ledger exists to name. Recorded debt."
+      "reason": "Paid 2026-10-22 (B2b). The job this submission builds declares design-lab/photoshop-native-job/v1 and is now judged by design-lab/schemas/reconstruction/photoshop-native-job.schema.json, which src/design_lab/adapters/photoshop_com.py loads from its own version map before the first COM call -- the defect this row used to name was that the sibling adobe-host-job file existed while no src/ module read it, and that is fixed on both sides now: the Illustrator adapter reads adobe-host-job.schema.json and adobe-patch-job.schema.json, this one reads the two Photoshop files. The canvas AREA bound, the run-root containment, the not-yet-existing outputs and the image decode remain hand checks; a schema cannot multiply two fields or open a file."
     },
     {
       "route": "/api/projects/([0-9a-f]{32})/tasks/(native-job-[0-9a-f]{64})/cancel",

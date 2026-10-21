@@ -273,6 +273,58 @@ try{vm.runInNewContext(fs.readFileSync(0,'utf8'),c)}catch(e){process.stdout.writ
                 with self.assertRaises(module.PhotoshopDispatchError) as caught:module.execute(self.job,project_root=self.root,approved_root=self.run)
                 self.assertTrue(caught.exception.outcome_unknown)
 
+    def patch_job(self):
+        """The same closed job plus one staged checkpoint and one leaf move."""
+        checkpoint=self.run/'checkpoint.psd'
+        header=bytearray(b'8BPS\x00\x01'+b'\x00'*8)
+        header+=int(6).to_bytes(4,'big')+int(8).to_bytes(4,'big')      # height, width
+        header+=b'\x00'*4
+        checkpoint.write_bytes(bytes(header[:26])+b'synthetic, not a real PSD')
+        job=dict(self.job)
+        job.update(schemaVersion='design-lab/photoshop-patch-job/v1',checkpoint=str(checkpoint),
+            checkpointSha256=hashlib.sha256(checkpoint.read_bytes()).hexdigest(),
+            patch=dict(kind='move',id='image',delta=[1,1]))
+        return job
+
+    def test_the_shipped_jobs_conform_to_the_contracts_they_declare(self):
+        """Both closed shapes pass their own contract file, so a refusal below is a real refusal."""
+        module=self.adapter()
+        self.assertEqual(module._contract_problems(self.job),[])
+        self.assertEqual(module._contract_problems(self.patch_job()),[])
+
+    def test_a_layer_tree_that_is_not_a_list_is_refused_by_the_contract(self):
+        """B2b (2026-10-22): `set(job)==required` judged the keys, never the value of `layers`.
+
+        These shapes passed every hand check that a native job's `layers` gets -- execute()
+        reads no field of it -- and were handed to Photoshop anyway. The contract file refuses
+        them before the first COM call; the list-of-lists case is judged on the patch shape,
+        whose own file says a layer is an object because native_patch_plan._photoshop_patch
+        indexes every item.
+        """
+        module=self.adapter()
+        cases=[(self.job,{'id':'image'}),(self.job,'image'),(self.patch_job(),[['id','image']])]
+        for job,unshaped in cases:
+            probe=dict(job);probe['layers']=unshaped
+            with self.subTest(layers=unshaped,version=probe['schemaVersion']):
+                self.assertTrue(module._contract_problems(probe),
+                                f'layers={unshaped!r} passed the contract check')
+                with patch.object(module,'_invoke_com') as invoke:
+                    with self.assertRaises(module.PhotoshopDispatchError) as caught:
+                        module.execute(probe,project_root=self.root,approved_root=self.run)
+                    self.assertFalse(caught.exception.outcome_unknown)
+                    invoke.assert_not_called()
+
+    def test_every_version_the_adapter_compares_has_a_contract_file_on_disk(self):
+        """A version added to the hand check without a contract file is caught here, not on a host."""
+        module=self.adapter()
+        for version,relative in module.JOB_CONTRACTS.items():
+            with self.subTest(version=version):
+                self.assertTrue((ROOT/relative).is_file(),f'{version} maps to absent {relative}')
+                document=json.loads((ROOT/relative).read_text(encoding='utf-8'))
+                self.assertEqual(document['properties']['schemaVersion']['const'],version,
+                                 f'{relative} binds {document["properties"]["schemaVersion"]["const"]!r}, '
+                                 f'not the {version!r} the adapter selects it by')
+
 
 if __name__ == '__main__':
     unittest.main()

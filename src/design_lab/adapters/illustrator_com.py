@@ -15,7 +15,8 @@ import shutil
 import subprocess
 
 from PIL import Image
-from ..runtime.paths import resolve_paths
+from ..interop import InteropError, load_schema, schema_errors
+from ..runtime.paths import PROJECT_ROOT, resolve_paths
 
 
 class IllustratorDispatchError(RuntimeError):
@@ -108,6 +109,24 @@ return ['DL_QUIESCENT_V1',__JOB__,before,app.documents.length,count].join('|');
         recovery_script_sha256=hashlib.sha256(script.encode('utf-8')).hexdigest())
 
 
+#: Each closed shape this adapter accepts, with the contract file that states it. Keyed by
+#: version on purpose: an unmapped schemaVersion is a refusal, not a guess about which file
+#: was meant.
+JOB_CONTRACTS={
+    'design-lab/adobe-host-job/v1':'design-lab/schemas/reconstruction/adobe-host-job.schema.json',
+    'design-lab/adobe-patch-job/v1':'design-lab/schemas/reconstruction/adobe-patch-job.schema.json',
+}
+
+
+def _contract_problems(job):
+    """Judge a job against its own contract before anything reaches the host."""
+    version=job.get('schemaVersion')
+    relative=JOB_CONTRACTS.get(version)
+    if relative is None:return [f'no contract is mapped for schemaVersion {version!r}']
+    try:return schema_errors(load_schema(PROJECT_ROOT/relative),job,limit=3)
+    except InteropError as exc:return [f'{relative} cannot be read: {exc}']
+
+
 def execute(job,*,project_root,approved_root,timeout=120):
     """Execute one already qualified closed job; return actual bound readback.
 
@@ -152,6 +171,8 @@ def execute(job,*,project_root,approved_root,timeout=120):
             if set(patch)!=({'kind','id','text'} if patch['kind']=='text' else {'kind','id','points'}):raise ValueError('patch fields invalid')
             if not isinstance(patch['id'],str) or not re.fullmatch(r'[A-Za-z][A-Za-z0-9_-]{0,79}',patch['id']):raise ValueError('patch identity invalid')
             if job['operations']!=['openAI','readback','patchObject','saveAI','reopen','readback','exportPNG','exportSVG']:raise ValueError('patch operations invalid')
+        problems=_contract_problems(job)
+        if problems:raise ValueError('job contract invalid: '+problems[0])
         if not isinstance(job['assets'],list) or len(job['assets'])>500:raise ValueError('assets invalid')
         for asset in job['assets']:
             if not isinstance(asset,dict) or set(asset)!={'id','path'}:raise ValueError('asset fields invalid')

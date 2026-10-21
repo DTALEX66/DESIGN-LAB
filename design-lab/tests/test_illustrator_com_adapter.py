@@ -121,6 +121,46 @@ class IllustratorComAdapterTests(unittest.TestCase):
             self.assertFalse(caught.exception.outcome_unknown)
             invoke.assert_not_called()
 
+    def test_the_shipped_fixture_conforms_to_the_contract_it_declares(self):
+        """The closed job this suite dispatches is judged by the contract file, and passes it.
+
+        Without this the next test only proves a refusal happened somewhere.
+        """
+        module=self.adapter()
+        self.assertEqual(module._contract_problems(self.job),[])
+        checkpoint=self.patch_job()
+        self.assertEqual(module._contract_problems(self.job),[])
+        self.assertTrue(checkpoint.is_file())
+
+    def test_fields_the_hand_key_sets_never_typed_are_refused_by_the_contract(self):
+        """B2b (2026-10-22): `set(job)==required` says which keys exist, not what they hold.
+
+        These three shapes passed every hand check in execute() and were handed to the host
+        anyway; the contract file is what stops them now, before any COM call.
+        """
+        module=self.adapter()
+        for field,unshaped in (('authorization',None),('layers',{'id':'layer'}),('artboard','8x6')):
+            job=dict(self.job);job[field]=unshaped
+            with self.subTest(field=field):
+                problems=module._contract_problems(job)
+                self.assertTrue(problems,f'{field}={unshaped!r} passed the contract check')
+                with patch.object(module,'_invoke_com') as invoke:
+                    with self.assertRaises(module.IllustratorDispatchError) as caught:
+                        module.execute(job,project_root=self.root,approved_root=self.run)
+                    self.assertFalse(caught.exception.outcome_unknown)
+                    invoke.assert_not_called()
+
+    def test_every_version_the_adapter_compares_has_a_contract_file_on_disk(self):
+        """A version added to the hand check without a contract row is caught here, not in production."""
+        module=self.adapter()
+        for version,relative in module.JOB_CONTRACTS.items():
+            with self.subTest(version=version):
+                self.assertTrue((ROOT/relative).is_file(),f'{version} maps to absent {relative}')
+                document=json.loads((ROOT/relative).read_text(encoding='utf-8'))
+                self.assertEqual(document['properties']['schemaVersion']['const'],version,
+                                 f'{relative} binds {document["properties"]["schemaVersion"]["const"]!r}, '
+                                 f'not the {version!r} the adapter selects it by')
+
 
 if __name__ == '__main__':
     unittest.main()

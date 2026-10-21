@@ -422,9 +422,19 @@ class GateTeethTests(unittest.TestCase):
         # superseded chain and nothing filed), and the same runtime route read before any native table
         # existed and after one attempt had been recorded. 29 routes are BOUND_SCHEMA and 37 stay
         # SCHEMA_LESS; every one of those 37 still names its debt in its own reason.
-        self.assertEqual(sorted(row['route'] for row in claiming),
-                         sorted(['/api/projects/([0-9a-f]{32})/tasks/(native-job-[0-9a-f]{64})/patch',
-                                 '/api/projects/([0-9a-f]{32})/native-plans']),
+        # 2026-10-22 (B2b): the set is EMPTY. The two Adobe job-spec debts were the last ones, and they
+        # were paid in the shape the sentence above said they needed -- not as a response envelope fed to
+        # the payload harness, but as request-body contracts the adapter itself loads before it touches
+        # the host: design-lab/schemas/reconstruction/adobe-patch-job.schema.json,
+        # design-lab/schemas/reconstruction/photoshop-patch-job.schema.json and
+        # design-lab/schemas/reconstruction/photoshop-native-job.schema.json, each keyed in that
+        # adapter's own JOB_CONTRACTS map. 33 routes are BOUND_SCHEMA and 35 stay SCHEMA_LESS. The empty
+        # list is the load-bearing part: this assertion is equality with a stated inventory, so a new
+        # version-bearing SCHEMA_LESS row is red even while nothing is owed. The loop below now grades
+        # nothing, which is why the Adobe teeth live in
+        # design-lab/tests/test_illustrator_com_adapter.py and
+        # design-lab/tests/test_photoshop_com_adapter.py instead of being declared covered here.
+        self.assertEqual(sorted(row['route'] for row in claiming), [],
                          'the unpaid version-bearing routes are an inventory, so a paid debt '
                          'left listed as unpaid and an unlisted new debt are both red here')
         for row in claiming:
@@ -469,9 +479,12 @@ class GateTeethTests(unittest.TestCase):
             # A closed family, laundered by calling it SCHEMA_LESS again and removing the debt.
             ('paid-then-unlined', '/api/task-preflight',
              lambda row: (row.pop('version'), row.update(kind='SCHEMA_LESS'))),
-            # A debt still unpaid, laundered by removing only the version it names.
-            ('debt-unlined', '/api/projects/([0-9a-f]{32})/tasks/(native-job-[0-9a-f]{64})/patch',
-             lambda row: row.pop('version')),
+            # 2026-10-22 (B2b): nothing shipped is an unpaid version-bearing debt any more, so the
+            # second subject is the paid Adobe row laundered back -- the version line deleted while
+            # its emitter still compares that version, which is the finding this test exists for.
+            ('paid-laundered-unlined',
+             '/api/projects/([0-9a-f]{32})/tasks/(native-job-[0-9a-f]{64})/patch',
+             lambda row: (row.pop('version'), row.update(kind='SCHEMA_LESS'))),
         ):
             repo = self.scratch(name)
 
@@ -781,18 +794,24 @@ class GateTeethTests(unittest.TestCase):
         self.assert_red_for(errors, 'ROUTE_EMITTER_MISSING', 1)
 
     def test_schema_less_row_whose_debt_is_already_paid_is_red(self):
-        """A ledger that under-claims is as wrong as one that over-claims."""
+        """A ledger that under-claims is as wrong as one that over-claims.
+
+        2026-10-22 (B2b): every shipped version-bearing debt is paid, so there is no live row to
+        pay off in place. The plant is therefore the laundering itself -- a BOUND_SCHEMA row called
+        SCHEMA_LESS again while the schema file that pays it is still on disk. That is the same
+        finding the older form produced (a debt listed as unpaid that a schema already covers), and
+        it is the one that a future row can actually regress into.
+        """
         repo = self.scratch('stale-schema-less')
-        victim = None
-        for row in ledger_rows(self.gate, REPO)['routes']:
-            if row['kind'] == self.gate.SCHEMA_LESS and row.get('version'):
-                victim = row['version']
-                break
-        self.assertTrue(victim, 'no version-bearing SCHEMA_LESS row exists to pay off')
-        (repo / 'design-lab/schemas/paid-off-debt.schema.json').write_text(json.dumps({
-            '$schema': 'https://json-schema.org/draft/2020-12/schema', 'title': 'paid',
-            'type': 'object', 'properties': {'schemaVersion': {'const': victim}}}, indent=2),
-            encoding='utf-8', newline='\n')
+        victim = 'design-lab/adobe-patch-job/v1'
+        route = '/api/projects/([0-9a-f]{32})/tasks/(native-job-[0-9a-f]{64})/patch'
+
+        def apply(doc):
+            for row in doc['routes']:
+                if row['route'] == route:
+                    row['kind'] = self.gate.SCHEMA_LESS
+
+        edit_ledger(repo, apply)
         errors, _, _ = self.run_gate(repo)
         reason = self.assert_red_for(errors, 'SCHEMA_LESS_STALE', 1)
         self.assertIn(victim, reason)
