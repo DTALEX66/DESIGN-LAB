@@ -379,6 +379,8 @@ owner 发来 `DESIGN-LAB_独立闭环审计包_20261021.zip`（19 成员，`sha2
 
 **一件没做的事，说清楚为什么不做**：本机分片全量（`run_python_tests_all.py --shards 3 --jobs 1`）跑到一半被我主动停掉，不是失败——本仓库的既有记录写明本机沙箱跑不出干净聚合（safe-delete shim 中途 `SystemExit`、Windows 造不出锁的用例），而 `git commit` 会移动 HEAD，让 `test_projection_freshness` 在运行中报出我无法与真问题区分的红。权威判定由该精确 SHA 的 CI `PYTHON_TESTS_UNION` 给出；本批的本地信号是那五个定向套件与上面三道闸的实测读数。
 
+**收尾序列里被闸门抓出的第三件事：我刷新了契约普查，却漏了契约图。** `verify_design_lab` 的 76 项里 `verify_projection_freshness` 报 `FRESHNESS-DRIFT reports/current/CONTRACT-GRAPH.json — fields changed since generation: ['declared_tables']`：两张新表进了 `declared_tables`，而 `scripts/generate_current_reports.py` 不生产那份投影，它由 `scripts/verify_contract_graph.py` 自己写。这条红是**闸门的正确判决**，不是噪声——工作树静止、聚合闸自跑、只有一项红，红里点名了变化的字段。修法是重跑该脚本（`CONTRACT_GRAPH=NO_BROKEN_LINK concepts=11 complete=11 breaks=0`，diff 里恰好是两行新表指向新的 state SQL），再重钉一次投影。教训形状：**普查与图是两份派生件，加表要各刷一次**，`generate_current_reports.py` 不代表所有派生面已经跟上。
+
 
 ## 6. 本轮暴露并修掉的六个缺陷
 
