@@ -341,6 +341,18 @@ v1 投影：design-lab/candidate-knowledge/v1 source_id job-export-probe:UNUSED
 
 **上面那段浏览器证据是 scratch 探针，不能从克隆里重跑**——所以这一段现在住进了出厂链路：`design-lab/tests/e2e/browser_design_layer_e2e.mjs` 的链条多出第 13 段，创建→具名批准→断言按钮从 `disabled` 变可用→点下去→断言面板里同时出现 `…-export-envelope/v1`（信封）与 `…-export/v1`（被包的 v2 文档）与 `design-lab/candidate-knowledge/v1`（v1 投影）、`job-e2e-export:UNUSED`、`USER_SUPPLIED`/`EXPLICITLY_UNUSED`、`NOT_CONNECTED`/`sent_count=0`/`bytes=`，并且断言屏上**没有**「已发送 / 发送成功 / delivered」。这一段落进链路时自己撞了两次：先是在旧 DOM 上等 `visible`（按钮在重载前就在屏幕上，读到的是过期状态），再是把被包文档的版本号断言成了 `…/candidate/v2`——真实读数证明 `…-export/v1` 一直属于被包文档，重名的是我新加的信封那一侧。两次都是这条链该抓的东西，现在它每次都抓。
 
+### 5.14 第十二批（外部审计包核验 + 现行面三处过期现状句）
+
+owner 发来 `DESIGN-LAB_独立闭环审计包_20261021.zip`（19 成员，`sha256sum -c SHA256SUMS.txt` 全 OK，包内审计 SHA 与 live `main` 同号）。**8 条断言逐条对回当前字节，全部成立**，因此本批不重审、只修被它抓到的现状面：DL-01 `model.executed` 恒 false（`src/design_lab/prompt_intelligence.py:199`、`:312`）、DL-02 无 prompt/analysis/result 表（`grep CREATE TABLE src/design_lab/` 12 处命中里 0 处是结果表）且 `apps/workbench/shell.ts:8278` 自己写明"服务端不持久化这份文档"、DL-03 审阅只认 human（`src/design_lab/knowledge_review.py:426`）、DL-06 `shell.ts` 8975 行、IF-01 `schemas=32 binding=2 routes=66 bound=26 schema_less=40`、OSS-01 `records=6 mapped=2 consumed=0`。
+
+**DL-05 是唯一一条"文档落后于代码"的，也就是本批的活**：`docs/current/PRODUCT_DEFINITION.md` 第 6 行仍写导出「2026-10-20 已落地，界面按钮仍未接」，而 `#/records` 的知识面板与每行读回按钮已在 §5.13 落地并进厂；`docs/current/ROADMAP.md` R2 仍写「已规划，未执行」，而验收链 18 跳 + 交付链 4 跳每一跳都有 live 入口。两处改成实测分轴读数，并把 owner 同日三条裁定写进现行面：**推理执行不接**（只做契约与错误路径）、**验收与外发都保持 human-only**（可以拆存储与状态词，不拆"谁能验收"）、**导出保持只读回**（按钮文字里的"不发送"是有意的）。
+
+**自己撞出来的第二处过期句在本文件自己身上**：§9 那条"写进文档的数字现在有闸门了"还写着「当前 4 条」并举 `导航 19 项 / CLI 子命令 16 / HTTP 路由 58`。闸门看不见它——`verify_documented_counts.py` 比对的是它自己 CLAIMS 里的模板串，不是这句对白话的举例——所以它是**人眼复核撞出来的**，不是门抓出来的。现改写为实测 `claims=11`：`route_views=21`、`cli=24`、`adapters=30`、`routes=64`、18 跳 / 4 跳两条链、以及「其余 34 项仍 FROZEN_DEFERRED」这一句在五份权威件上的逐字复述。教训记成一句：**修正句本身也是新断言**，写之前先跑那条检查。
+
+**批次序列实跑**（Record 那一步不是可选项）：`record_import_verify.py --head` 在改前只报两行 NOTE，改后如实报出 `WORKTREE-MISMATCH docs/current/PRODUCT_DEFINITION.md`（声明 `crc=efe38284 size=11466`，实测 `e3728ae2 / 12288`）与 `ROADMAP.md`（`4d2ef63b / 9564` 对 `33926668 / 9879`），走 `declare_record_evolution.py` 把两行绑到真实提交 `442cc71b`，回读 `RECORD_VERIFY=OK rows=492 worktree_verified=479 mapped_copies_verified=220 blob_eol_only=12`，单测 `test_record_import_fidelity` 4 项 OK。`DOCUMENTED_COUNTS=PASS claims=11`、`PATH_REF_GATE=PASS checks=10`。本批**没有**动产品代码、账本与 schema，所以 34 项 `FROZEN_DEFERRED` 与钉住的六份权威件字节一字未改。
+
+**本批自己造成的缺陷，按 §6.8 同一条形状又犯了一次**：插入 §5.14 时把锚点定在下一节的标题行 `## 6. 本轮暴露并修掉的六个缺陷` 上，替换后那一行被吃掉，六个缺陷的正文变成无题悬空。当场用 `grep "^## 6"` 发现并补回，净差异回到 +12/−0。也就是说 §6.8 记过的教训（**never anchor an insert on the neighbour's own line prefix**）在这轮之前只是被写下、没被执行；本批把它当作插入纪律复检的一条固定动作：改 markdown 结构后必须 `git diff --numstat` 看删除数，删除数不为 0 而本意是纯新增，就是锚点吃掉了邻居。
+
 ## 6. 本轮暴露并修掉的六个缺陷
 
 1. **分类聚合按目录贴标签**：`bundle_key()` 把一个顶层目录收成一个 bundle，于是 `docs/` 里第一个文件的类别
