@@ -415,14 +415,16 @@ class GateTeethTests(unittest.TestCase):
         # .../knowledge-candidates/<id>/export left this set with them, its envelope now writing
         # design-lab/assurance-knowledge-candidate-export-envelope/v1 behind
         # design-lab/schemas/assurance-knowledge-candidate-export-envelope-v1.schema.json. What stays listed
-        # is unpaid on purpose: the Adobe job-spec debts and the three read-backs nobody has written
-        # a payload case for.
+        # is unpaid on purpose: the Adobe job-spec debts, which are request-body shapes rather than
+        # envelopes this server writes. 2026-10-22 (the three read-backs): 5 -> 2, as GET .../rights,
+        # GET .../research and GET .../native-runtime each gained a schema and live payload cases --
+        # three rights responses (cleared, a human refusal, an empty ledger), two research responses (a
+        # superseded chain and nothing filed), and the same runtime route read before any native table
+        # existed and after one attempt had been recorded. 29 routes are BOUND_SCHEMA and 37 stay
+        # SCHEMA_LESS; every one of those 37 still names its debt in its own reason.
         self.assertEqual(sorted(row['route'] for row in claiming),
                          sorted(['/api/projects/([0-9a-f]{32})/tasks/(native-job-[0-9a-f]{64})/patch',
-                                 '/api/projects/([0-9a-f]{32})/native-plans',
-                                 '/api/projects/([0-9a-f]{32})/rights',
-                                 '/api/projects/([0-9a-f]{32})/native-runtime',
-                                 '/api/projects/([0-9a-f]{32})/research']),
+                                 '/api/projects/([0-9a-f]{32})/native-plans']),
                          'the unpaid version-bearing routes are an inventory, so a paid debt '
                          'left listed as unpaid and an unlisted new debt are both red here')
         for row in claiming:

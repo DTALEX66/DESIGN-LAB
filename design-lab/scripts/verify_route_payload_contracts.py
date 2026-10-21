@@ -130,7 +130,109 @@ class Harness:
         self.brief_id = self._seed_briefs()
         self.candidate_id = self._file_candidate_for_export()
         self.chosen_model_id = self._file_model_choices(catalog())
+        self._file_rights_decisions()
+        self._file_research_findings()
         return self
+
+    def _file_rights_decisions(self):
+        """One cleared project and one refused project, through the write route.
+
+        Both clearance branches have to be real rows: the envelope's load-bearing claim is that
+        `CLEARED` needs a filed scope AND a current APPROVED for every filed scope, and a schema
+        written only against the empty read would let an emitter start clearing 0-of-0. The
+        refused project carries an APPROVED and a DENIED, so `unapproved_scopes`,
+        `approved_scope_count` and `filed_scope_count` are compared against a fork a reader can
+        check by hand instead of a word they are asked to trust.
+        """
+        def document(decision_id, scope, decision):
+            return {
+                'schemaVersion': 'design-lab/rights-decision/v1', 'decision_id': decision_id,
+                'use_scope': scope, 'decision': decision, 'decided_by': 'dtalex66',
+                'decided_at': '2026-10-08T00:00:00Z', 'territory': 'worldwide',
+                'license_ref': 'OFL-1.1', 'note': 'judged against rows filed through this '
+                                                  'boundary',
+            }
+        for project, documents in (
+                (self.filled, [document('rd-payload-1', 'commercial-print', 'APPROVED')]),
+                (self.declined, [document('rd-payload-2', 'commercial-print', 'APPROVED'),
+                                 document('rd-payload-3', 'web', 'DENIED')])):
+            for body_document in documents:
+                status, body = self.call('POST', f'/api/projects/{project}/rights',
+                                         body_document)
+                if status != 201:
+                    raise RuntimeError(f'RIGHTS_WRITE_REFUSED '
+                                       f'{body_document["decision_id"]} {status} {body}')
+
+    def _file_research_findings(self):
+        """A live finding, the row that superseded it, and a project that has none.
+
+        `superseded_finding_count` is only ever nonzero when a real chain was filed, so the
+        second write goes through `?supersedes=` instead of being simulated. The writer refuses a
+        finding with no `sourceRefs`, which is why `unsourced_finding_count` is bound here as a
+        counted field rather than a constant.
+        """
+        first = {'finding_id': 'rf-payload-1',
+                 'claim': 'the reference set carries two fonts, so the pairing is a decision '
+                          'somebody already made',
+                 'sourceRefs': ['interview-07'], 'confidence': 'medium', 'notDesignRule': True}
+        second = {'finding_id': 'rf-payload-2',
+                  'claim': 'the same pairing is a default, not a decision: both references came '
+                           'from one bundle',
+                  'sourceRefs': ['bench-competitor-2026-05', 'interview-07'],
+                  'confidence': 'high', 'notDesignRule': True}
+        status, body = self.call('POST', f'/api/projects/{self.declined}/research', first)
+        if status != 201:
+            raise RuntimeError(f'RESEARCH_WRITE_REFUSED rf-payload-1 {status} {body}')
+        status, body = self.call('POST',
+                                 f'/api/projects/{self.declined}/research'
+                                 f'?supersedes=rf-payload-1', second)
+        if status != 201:
+            raise RuntimeError(f'RESEARCH_SUPERSEDE_REFUSED rf-payload-2 {status} {body}')
+
+    def native_runtime_cases(self):
+        """The same route read before and after a native attempt was recorded.
+
+        Order is the contract: the first read has to happen while the tables do not exist,
+        because creating them belongs to `native_tasks._connect` and this read may not. The rows
+        seeded here are the ones the projection publishes -- a held host, a quiescence carrying a
+        receipt, an open reconciliation, its os-lock-v1 protocol, and an execution carrying both a
+        receipt and a result -- under the attempt chain the guard's foreign key requires.
+        """
+        absent = self.get(f'/api/projects/{self.empty}/native-runtime')
+        from design_lab.native_tasks import NativeTasks
+        conn = NativeTasks(self.service)._connect()
+        try:
+            conn.execute('INSERT INTO operation_intent VALUES (?,?,?,?,?)',
+                         ('op-payload-1', f'native:{self.filled}:photoshop', 'key-payload-1',
+                          'c' * 64, '2026-10-08T00:00:00Z'))
+            conn.execute("INSERT INTO job (job_id, operation_id) VALUES ('job-payload-1', "
+                         "'op-payload-1')")
+            conn.execute("INSERT INTO job_attempt VALUES ('job-payload-1', 1, "
+                         "'2026-10-08T00:00:00Z')")
+            for number, attempt in enumerate(('att-payload-guard', 'att-payload-exec',
+                                              'att-payload-qui', 'att-payload-rec'), start=1):
+                conn.execute("INSERT INTO attempt_state VALUES (?,?,?,'RUNNING',"
+                             "'2026-10-08T00:00:00Z',NULL,'payload contract')",
+                             (attempt, 'job-payload-1', number))
+            conn.execute('INSERT INTO native_host_guard_v1 VALUES (?,?,?)',
+                         ('photoshop', 'att-payload-guard', '2026-10-08T00:00:00Z'))
+            conn.execute('INSERT INTO native_execution_v1 VALUES (?,?,?,?,?,?)',
+                         ('att-payload-exec', self.filled, 'photoshop', '{"action":"payload"}',
+                          '{"receipt":"payload"}', '{"result":"payload"}'))
+            conn.execute('INSERT INTO native_quiescence_v1 VALUES (?,?,?,?)',
+                         ('att-payload-qui', '{"authorization":"payload"}',
+                          '2026-10-08T00:00:00Z', '{"receipt":"payload"}'))
+            conn.execute('INSERT INTO native_reconciliation_v1 VALUES (?,?,?)',
+                         ('att-payload-rec', '{"authorization":"payload"}',
+                          '2026-10-08T00:00:00Z'))
+            conn.execute('INSERT INTO native_recovery_protocol_v2 VALUES (?,?)',
+                         ('att-payload-rec', 'os-lock-v1'))
+            conn.commit()
+        finally:
+            conn.close()
+        present = self.get(f'/api/projects/{self.filled}/native-runtime')
+        return [('GET .../native-runtime with no native table yet', absent),
+                ('GET .../native-runtime after a recorded attempt', present)]
 
     def _file_candidate_for_export(self):
         """A real candidate, approved by a named human, so the export route can answer 200.
@@ -446,6 +548,56 @@ def build_bindings():
                                  h.get(f'/api/projects/{h.filled}/knowledge-candidates'
                                        f'/{h.candidate_id}/export'))],
         },
+        {
+            'name': 'rights-readback',
+            'route': '/api/projects/([0-9a-f]{32})/rights',
+            'method': 'GET',
+            'schema': 'design-lab/schemas/rights-readback.schema.json',
+            'emitter': 'src/design_lab/rights_review.py',
+            'version': 'design-lab/rights-readback/v1',
+            # Three real clearances, not three copies of one: a project that reads CLEARED, a
+            # project where a human refused one scope, and a project nobody filed. The empty read
+            # is the branch that tempts an emitter into reporting 0-of-0 as cleared, so it is
+            # compared against the same required fields rather than a lenient variant.
+            'cases': lambda h: [
+                ('GET .../rights after one APPROVED scope',
+                 h.get(f'/api/projects/{h.filled}/rights')),
+                ('GET .../rights with an APPROVED and a DENIED scope',
+                 h.get(f'/api/projects/{h.declined}/rights')),
+                ('GET .../rights with nothing filed',
+                 h.get(f'/api/projects/{h.empty}/rights')),
+            ],
+        },
+        {
+            'name': 'research-readback',
+            'route': '/api/projects/([0-9a-f]{32})/research',
+            'method': 'GET',
+            'schema': 'design-lab/schemas/research-readback.schema.json',
+            'emitter': 'src/design_lab/research_review.py',
+            'version': 'design-lab/research-readback/v1',
+            # A superseded chain and an empty project. The envelope is bound to `research_verdict:
+            # null` on purpose: this surface publishes counts because writing findings down clears
+            # no gate, and an emitter that starts inventing a completion word has to change the
+            # contract first.
+            'cases': lambda h: [
+                ('GET .../research with a superseded finding',
+                 h.get(f'/api/projects/{h.declined}/research')),
+                ('GET .../research with nothing filed',
+                 h.get(f'/api/projects/{h.empty}/research')),
+            ],
+        },
+        {
+            'name': 'native-runtime-readback',
+            'route': '/api/projects/([0-9a-f]{32})/native-runtime',
+            'method': 'GET',
+            'schema': 'design-lab/schemas/native-runtime-readback.schema.json',
+            'emitter': 'src/design_lab/native_runtime.py',
+            'version': 'design-lab/native-runtime-readback/v1',
+            # The absent/present split is the whole reason this route exists, so both sides are
+            # compared, and in that order -- the first read happens before any native table was
+            # created by the attempt chain seeded below it.
+            'cases': lambda h: h.native_runtime_cases(),
+        },
     ]
 
 
@@ -455,11 +607,29 @@ def registry():
     assurance-jury-record-v2.schema.json is in this set: the readback envelope references the
     record instead of restating it, which is the only way this file can stay honest when the
     record's own contract moves.
+
+    design-lab/schemas/contracts/ is loaded second and only for ids nothing else claims. The
+    rights decision lives there (design-lab/schemas/contracts/rights-decision.schema.json is the
+    file rights_ledger.py actually validates writes against), and a readback that restated those
+    fields would be a second authority able to disagree with the write path -- so the owner's own
+    document has to be reachable. Loading it after the top-level set keeps every resolution an
+    existing binding already relies on exactly as it was.
     """
     resources, docs = [], {}
     for path in sorted(SCHEMA_DIR.rglob('*.schema.json')):
         if 'contracts' in path.parts:
             continue
+        try:
+            doc = json.loads(path.read_text(encoding='utf-8'))
+        except (OSError, ValueError):
+            continue
+        if not isinstance(doc, dict) or not isinstance(doc.get('$id'), str):
+            continue
+        if doc['$id'] in docs:
+            continue
+        resources.append((doc['$id'], referencing.Resource.from_contents(doc)))
+        docs[doc['$id']] = doc
+    for path in sorted((SCHEMA_DIR / 'contracts').glob('*.schema.json')):
         try:
             doc = json.loads(path.read_text(encoding='utf-8'))
         except (OSError, ValueError):

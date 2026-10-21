@@ -672,11 +672,12 @@
     {
       "route": "/api/projects/([0-9a-f]{32})/rights",
       "method": "GET",
-      "kind": "SCHEMA_LESS",
+      "kind": "BOUND_SCHEMA",
       "handler": "RightsReview",
       "version": "design-lab/rights-readback/v1",
-      "emitter": "src/design_lab/rights_review.py:101",
-      "reason": "No schema validates this envelope -- named as debt, not as an unremarkable read. The decisions it wraps ARE bound (each is a design-lab/rights-decision/v1 document, validated by assurance/rights_ledger.py on the way in and re-validated from the stored bytes on the way out); src/design_lab/rights_review.py writes the envelope's own schemaVersion while nothing describes the envelope. The word a reader can be misled by is rights_clearance: CLEARED requires at least one filed use scope AND a current APPROVED for every filed scope, an empty ledger reads NOT_REVIEWED rather than 0-of-0 cleared, and PENDING_REVIEW is only ever a word a human filed -- never one the facade infers. design-lab/tests/test_rights_http.py asserts those rules against real responses. Closing this the way the jury readback was closed needs a rights-readback.schema.json plus a payload case in design-lab/scripts/verify_route_payload_contracts.py; that is not claimed here because it was not done."
+      "emitter": "src/design_lab/rights_review.py:48",
+      "reason": "Paid 2026-10-22: design-lab/schemas/rights-readback.schema.json closes the envelope that src/design_lab/rights_review.py writes, and the payload cases in design-lab/scripts/verify_route_payload_contracts.py feed it three live responses -- one APPROVED scope (CLEARED), an APPROVED plus a DENIED (NOT_REVIEWED with a real unapproved_scopes entry), and a project nobody filed. The decisions it wraps were always bound and are REFERENCED by $ref to design-lab/schemas/contracts/rights-decision.schema.json rather than restated, so one contract owns a rights decision. The clearance rule the facade documents is now machine-checked in the schema: CLEARED requires filed_scope_count >= 1 and an empty unapproved_scopes, and filed_scope_count == 0 forces NOT_REVIEWED, so an emitter that starts reading 0-of-0 as cleared violates this document instead of quietly agreeing with the prose. PENDING_REVIEW stays a word a human may file inside decision_states and never one this facade infers.",
+      "schema": "design-lab/schemas/rights-readback.schema.json"
     },
     {
       "route": "/api/projects/([0-9a-f]{32})/rights(?:\\?supersedes=([A-Za-z0-9_.:-]{1,80}))?",
@@ -691,20 +692,22 @@
     {
       "route": "/api/projects/([0-9a-f]{32})/research",
       "method": "GET",
-      "kind": "SCHEMA_LESS",
+      "kind": "BOUND_SCHEMA",
       "handler": "ResearchReview",
       "version": "design-lab/research-readback/v1",
-      "emitter": "src/design_lab/research_review.py:94",
-      "reason": "No schema validates this envelope -- named as debt, not as an unremarkable read, in the same shape as the GET .../rights row above. The findings it wraps ARE bound (each is a research-finding document validated by assurance/research_store.py on the way in and re-validated from the stored bytes on the way out); src/design_lab/research_review.py writes the envelope's own schemaVersion while nothing describes the envelope. What this surface deliberately does NOT have is a project-level verdict word: rights has rights_clearance because the rights gate exists, and research has a count because no gate is cleared by writing findings down, so `research_verdict` is null, `proves_design_quality` and `is_knowledge_export` are false, and design-lab/tests/test_research_http.py asserts that the gate vocabulary's own words (CLEARED, NOT_REVIEWED, PENDING_REVIEW, ACCEPTED) never appear in the body. Closing this the way the jury readback was closed needs a research-readback.schema.json plus a payload case in design-lab/scripts/verify_route_payload_contracts.py; that is not claimed here because it was not done."
+      "emitter": "src/design_lab/research_review.py:40",
+      "reason": "Paid 2026-10-22: design-lab/schemas/research-readback.schema.json closes the envelope that src/design_lab/research_review.py writes, fed two live responses -- a finding plus the row that superseded it, and a project with nothing filed. Findings are REFERENCED by $ref to design-lab/schemas/research-finding.schema.json. What this surface still deliberately has no is a project-level verdict word, and that absence is now bound rather than merely asserted: research_verdict is type null, proves_design_quality and is_knowledge_export are const false. Rights has rights_clearance because a rights gate exists; research publishes counts because writing findings down clears no gate.",
+      "schema": "design-lab/schemas/research-readback.schema.json"
     },
     {
       "route": "/api/projects/([0-9a-f]{32})/native-runtime",
       "method": "GET",
-      "kind": "SCHEMA_LESS",
+      "kind": "BOUND_SCHEMA",
       "handler": "native_runtime.readback",
       "version": "design-lab/native-runtime-readback/v1",
       "emitter": "src/design_lab/native_runtime.py:31",
-      "reason": "Added 2026-10-10 with the route, in the same change rather than after it: test_contract_bindings.test_new_route_without_a_row_is_red refuses a dispatched route with no row. No schema validates this envelope -- the envelope's schemaVersion is written by src/design_lab/native_runtime.py and nothing describes it, which is the same named debt as the GET .../research row above, not an unremarkable read. What the surface reads is the state the existing action routes leave behind (native_tasks.py creates native_host_guard_v1, native_quiescence_v1, native_reconciliation_v1, native_recovery_protocol_v2, native_execution_v1); nothing here creates, mutates or dispatches anything. Three rules the envelope carries because the tables cannot express them: a table that does not exist is reported as table=ABSENT with rows=null and kept apart from an existing-but-empty table, because 'no attempt holds the host' and 'this service never ran a native attempt' are different sentences; `budget` is null with a reason, because no table in this repository records a run budget, quota or cost and a 0 would read as budget available; and `proves_production_ready` / `is_host_action_performed` are false with `does_not_say` naming what a reader must not infer from a held guard row or an open reconciliation. design-lab/tests/test_native_runtime_readback.py asserts the absent-vs-empty split, the null budget, the absence of any verdict word, and that the read opens the database read-only."
+      "reason": "Paid 2026-10-22: design-lab/schemas/native-runtime-readback.schema.json closes the envelope that src/design_lab/native_runtime.py writes, fed the same route read twice -- before any native table existed (every section ABSENT, every count null) and after one attempt held the host, reached quiescence with a receipt, opened a reconciliation, recorded os-lock-v1 and left an execution row. The absent/present split this route exists to keep apart is bound per section (table ABSENT exactly when rows is null) and every count allows null, so a future emitter cannot collapse ABSENT into 0. budget stays null and the two honesty flags stay const false.",
+      "schema": "design-lab/schemas/native-runtime-readback.schema.json"
     },
     {
       "route": "/api/projects/([0-9a-f]{32})/research(?:\\?supersedes=([A-Za-z0-9_.:-]{1,80}))?",

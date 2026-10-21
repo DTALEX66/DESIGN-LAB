@@ -353,6 +353,18 @@ owner 发来 `DESIGN-LAB_独立闭环审计包_20261021.zip`（19 成员，`sha2
 
 **本批自己造成的缺陷，按 §6.8 同一条形状又犯了一次**：插入 §5.14 时把锚点定在下一节的标题行 `## 6. 本轮暴露并修掉的六个缺陷` 上，替换后那一行被吃掉，六个缺陷的正文变成无题悬空。当场用 `grep "^## 6"` 发现并补回，净差异回到 +12/−0。也就是说 §6.8 记过的教训（**never anchor an insert on the neighbour's own line prefix**）在这轮之前只是被写下、没被执行；本批把它当作插入纪律复检的一条固定动作：改 markdown 结构后必须 `git diff --numstat` 看删除数，删除数不为 0 而本意是纯新增，就是锚点吃掉了邻居。
 
+### 5.15 第十三批（三份读回债付掉，以及我自己的 schema 被自己种的红）
+
+`schema_less=40` 里的三条读回还清：GET `…/rights`、GET `…/research`、GET `…/native-runtime`。做法仍是那一条配方，不留半态——schema + live 载荷用例 + 账本行翻 `BOUND_SCHEMA` 并重测 emitter 行号 + 测试钉死清单同步。三条 envelope 都**先取真字节再写文档**：`rights` 用三个真项目（一份 APPROVED＝CLEARED、一份 APPROVED＋DENIED＝NOT_REVIEWED 且有真实 `unapproved_scopes`、一份没人填过），`research` 用一条被 supersede 的真链加一份空账本，`native-runtime` 用**同一路由读两次**——先在没有任何 native 表时读（五段全 ABSENT、五个计数全 null），再在播种一条持锁 attempt 链之后读（五段全 PRESENT 且各自带真行）。emitter 行号是从源文件重算出来的，不是抄的：`rights_review.py:101→48`、`research_review.py:94→40`、`native_runtime.py:31→31`，取的都是 `_READBACK_VERSION = '<version>'` 那一行。被包的记录一律 `$ref` 不重述：rights 决定引 `schemas/contracts/rights-decision.schema.json`，research 结论引 `schemas/research-finding.schema.json`；为此 `registry()` 现在第二轮装载 `contracts/`，且只登记没人占用的 `$id`（全库 127 个 `$id` 实测 0 冲突），所以既有绑定的解析结果一字未变。
+
+**读数**：`VERIFY_ROUTE_PAYLOAD_CONTRACTS=PASS bindings=13 failures=0`（rights 3 例 10 处对象位、research 2 例 5 处、runtime 2 例 14 处）；`VERIFY_CONTRACT_BINDINGS=PASS schemas=32 binding=2 inert=30 routes=66 dispatched=66 bound=29 schema_less=37`；单测 `test_contract_bindings` 36 项 OK、`test_route_payload_contracts` 26 项 OK。
+
+**我自己种出来的第一条红，是真窟窿**。我给 runtime 的计数写成 `["integer","null"]` 就以为锁住了 absent/present；把 ABSENT 项目的 `hosts_held` 从 null 改成 0 种下去，闸门一声不响。也就是说这份 schema 当时允许"这台服务从没跑过原生 attempt"被读成"没有主机被占"——恰好是这条路由存在的理由。修法是八条 if/then 把每个计数段与其表的 `table` 值双向锁死（ABSENT ⇒ 该计数必须是 null，PRESENT ⇒ 必须是 integer），种的那条假话随即被 `SCHEMA_VIOLATION` 判红，并且这条播种现在常驻在出厂测试里，不再是我手下的临时探针。教训与 §6 那几条同形：**属性类型相同不等于关系被绑定**。
+
+**第二条红是覆盖面的，不是产品的**：`test_every_family_is_covered_by_its_own_real_cases` 的 `expected` 字典只列出它当时想到的绑定，`brief-readback` 与 `evidence-projection` 从来不在清单里——我新增三条后把断言改成"清单必须与 `build_bindings()` 全集相等"，第一次跑就报出这两个历史缺口。一个只证明自己列举过的总体的闸门，加不加新面都一样绿；现在漏列即红。
+
+**Adobe 两条为什么仍然挂着（不是忘了，是不肯用假付款换计数）**：`POST …/native-plans` 与 `POST …/tasks/(native-job-…)/patch` 声明的 `design-lab/photoshop-native-job/v1`、`design-lab/adobe-patch-job/v1`、`design-lab/photoshop-patch-job/v1` 都不是本服务写出的 envelope——实测 `POST …/native-plans` 的响应是 native_submission 读回，作业文档只在 adapter 内部构造（`photoshop_com.py:121-157` 手写键集、路径审批、画布预算、checkpoint 头校验）。因此补一份没人装载的 schema 文件正是这块账本点名要禁的事（同一账本对 `adobe-host-job/v1` 的判词就是"有文件但没有 src/ 模块读它，所以它不校验任何东西"）。诚实的付法是让那两个 adapter 边界装载 schema，属产品代码改动，且本机不做真实宿主 E3；记在此处而不是顺手改成 `BOUND_SCHEMA`。
+
 ## 6. 本轮暴露并修掉的六个缺陷
 
 1. **分类聚合按目录贴标签**：`bundle_key()` 把一个顶层目录收成一个 bundle，于是 `docs/` 里第一个文件的类别

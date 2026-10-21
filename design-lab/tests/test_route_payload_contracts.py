@@ -91,7 +91,22 @@ class RoutePayloadContractTests(unittest.TestCase):
                     # Three states, three real rows: a pick, an explicit declination, and a project
                     # nobody has asked. One payload standing in for all three would let the envelope
                     # collapse them and this file would not notice.
-                    'model-selection-readback': 3, 'knowledge-candidate-export': 1}
+                    'model-selection-readback': 3, 'knowledge-candidate-export': 1,
+                    # Both were in the gate before this file started checking the list, and neither
+                    # was listed: two boundaries the coverage assertion silently did not cover.
+                    'brief-readback': 2, 'evidence-projection': 2,
+                    # Cleared, refused by a human, and never filed. The third is the branch an
+                    # emitter can turn into a false CLEARED, so it has to be a real read.
+                    'rights-readback': 3,
+                    # A superseded chain and nothing filed -- `superseded_finding_count` is only
+                    # ever nonzero when a real chain exists.
+                    'research-readback': 2,
+                    # The same route before any native table and after one attempt: the absent /
+                    # present split this projection exists to keep apart.
+                    'native-runtime-readback': 2}
+        self.assertEqual(sorted(expected), sorted(b['name'] for b in self.bindings),
+                         'a binding added here without being listed below is a boundary this '
+                         'file silently stopped covering')
         for name, count in expected.items():
             cases = self.payloads[name]
             self.assertEqual(len(cases), count, f'{name} captured {len(cases)} payloads')
@@ -223,6 +238,96 @@ class RoutePayloadContractTests(unittest.TestCase):
         convicting = self.convicting(errors, 'SCHEMA_VIOLATION')
         self.assertTrue(convicting, 'the zero-qualified invariant caught nothing')
         self.assertIn('models/0/radar_state', convicting[0])
+
+    # --- the rules each new envelope exists to keep ---------------------------------
+
+    def test_clearing_zero_of_zero_rights_scopes_is_red(self):
+        """`rights_clearance` is the one word a reader can be misled by.
+
+        The façade's rule is that CLEARED needs a filed scope and a current APPROVED for every
+        filed scope, so an empty ledger reads NOT_REVIEWED. A `all()` over an empty scope set
+        returns True and would silently report a gate nobody reviewed as cleared -- this case
+        plants exactly that lie on the project that never filed anything, against the shipped
+        schema, and requires the schema to convict it.
+        """
+        binding = self.binding('rights-readback')
+        schema = load_schema(binding)
+        label, payload = self.payloads['rights-readback'][2]
+        self.assertEqual(0, payload['filed_scope_count'],
+                         'this case is about the empty ledger; a filed row would make it vacuous')
+        self.assertEqual('NOT_REVIEWED', payload['rights_clearance'])
+        lying = copy.deepcopy(payload)
+        lying['rights_clearance'] = 'CLEARED'
+        errors, _ = GATE.check_binding(binding, docs=self.docs, reg=self.reg, rows=self.rows,
+                                       schema_doc=schema,
+                                       cases=[(f'{label} reported as cleared', lying)])
+        self.assertTrue(self.convicting(errors, 'SCHEMA_VIOLATION'),
+                        'the 0-of-0 rule caught nothing: the schema is prose with a $id')
+
+    def test_a_partially_refused_rights_gate_cannot_claim_clearance(self):
+        binding = self.binding('rights-readback')
+        schema = load_schema(binding)
+        label, payload = self.payloads['rights-readback'][1]
+        self.assertTrue(payload['unapproved_scopes'],
+                        'the refusal branch is what this case plants a lie against')
+        self.assertEqual('NOT_REVIEWED', payload['rights_clearance'])
+        lying = copy.deepcopy(payload)
+        lying['rights_clearance'] = 'CLEARED'
+        errors, _ = GATE.check_binding(binding, docs=self.docs, reg=self.reg, rows=self.rows,
+                                       schema_doc=schema,
+                                       cases=[(f'{label} with the refusal ignored', lying)])
+        self.assertTrue(self.convicting(errors, 'SCHEMA_VIOLATION'),
+                        'CLEARED survived a filed DENIED: unapproved_scopes is not bound to it')
+
+    def test_a_research_verdict_word_invented_on_the_readback_is_red(self):
+        """Research publishes counts because writing findings down clears no gate.
+
+        `research_verdict: null` is not a missing value waiting to be filled; it is the sentence
+        'this surface has no verdict'. A future emitter that starts printing ACCEPTED or CLEARED
+        here has to edit this contract first, and the UI may not advertise a verdict the service
+        cannot emit.
+        """
+        binding = self.binding('research-readback')
+        schema = load_schema(binding)
+        label, payload = self.payloads['research-readback'][0]
+        self.assertIsNone(payload['research_verdict'])
+        for word in ('ACCEPTED', 'CLEARED', 'PENDING_REVIEW'):
+            lying = copy.deepcopy(payload)
+            lying['research_verdict'] = word
+            errors, _ = GATE.check_binding(binding, docs=self.docs, reg=self.reg, rows=self.rows,
+                                           schema_doc=schema,
+                                           cases=[(f'{label} claiming {word}', lying)])
+            self.assertTrue(self.convicting(errors, 'SCHEMA_VIOLATION'),
+                            f'{word} passed as a research verdict')
+
+    def test_an_absent_native_table_collapsed_into_zero_is_red(self):
+        """'This service never ran a native attempt' is not 'no attempt holds the host'.
+
+        The projection keeps the two apart with `table: ABSENT` plus null rows and null counts.
+        Reporting PRESENT with zero rows -- or a count of 0 where the table is absent -- is the
+        collapse this case plants, on the payload read before any native table existed.
+        """
+        binding = self.binding('native-runtime-readback')
+        schema = load_schema(binding)
+        label, payload = self.payloads['native-runtime-readback'][0]
+        self.assertEqual('ABSENT', payload['host_guard']['table'])
+        self.assertIsNone(payload['counts']['hosts_held'])
+        collapsed = copy.deepcopy(payload)
+        collapsed['counts']['hosts_held'] = 0
+        errors, _ = GATE.check_binding(binding, docs=self.docs, reg=self.reg, rows=self.rows,
+                                       schema_doc=schema,
+                                       cases=[(f'{label} with a zero count', collapsed)])
+        self.assertTrue(self.convicting(errors, 'SCHEMA_VIOLATION'),
+                        'a null count and a zero are interchangeable to this schema -- they are '
+                        'different sentences to a reader')
+        pretend = copy.deepcopy(payload)
+        pretend['budget'] = 0
+        errors, _ = GATE.check_binding(binding, docs=self.docs, reg=self.reg, rows=self.rows,
+                                       schema_doc=schema,
+                                       cases=[(f'{label} with a budget', pretend)])
+        self.assertTrue(self.convicting(errors, 'SCHEMA_VIOLATION'),
+                        'budget 0 would read as "budget available" on a surface that never '
+                        'measured one')
 
     # --- one-sided version moves ----------------------------------------------------
 
