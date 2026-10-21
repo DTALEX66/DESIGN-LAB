@@ -27,7 +27,7 @@
 {
   "contracts": 32,
   "inertRows": 30,
-  "productFiles": 218,
+  "productFiles": 219,
   "rows": [
     {
       "best_table": null,
@@ -471,7 +471,7 @@
       "version": "design-lab/job-spec/v1"
     },
     {
-      "best_table": "rights_decision",
+      "best_table": "prompt_result_review",
       "fields": 3,
       "matched_fields": [
         "decision"
@@ -487,11 +487,10 @@
       "schema": "design-lab/schemas/contracts/jury-decision.schema.json",
       "state": "TABLE_WRITES_THIS_ACTIVITY",
       "table_readers": [
-        "src/design_lab/assurance/rights_ledger.py",
-        "src/design_lab/rights_review.py"
+        "src/design_lab/prompt_results.py"
       ],
       "table_writers": [
-        "src/design_lab/assurance/rights_ledger.py"
+        "src/design_lab/prompt_results.py"
       ],
       "thin_match": true,
       "version": "design-lab/jury-decision/v1"
@@ -735,7 +734,7 @@
     "TABLE_EXISTS_UNWRITTEN": 3,
     "TABLE_WRITES_THIS_ACTIVITY": 9
   },
-  "tables": 40
+  "tables": 42
 }
 ```
 
@@ -762,7 +761,7 @@
 | `integration-def.schema.json` | 4 | — | 0.00 | — | NO_STATE_COUNTERPART | 是 |
 | `job-attempt.schema.json` | 8 | attempt_state | 0.62 | job_store.py | TABLE_WRITES_THIS_ACTIVITY | 是 |
 | `job-spec.schema.json` | 3 | attempt_state | 0.67 | job_store.py | TABLE_WRITES_THIS_ACTIVITY | 是 |
-| `jury-decision.schema.json` | 3 | rights_decision | 0.33 | rights_ledger.py | TABLE_WRITES_THIS_ACTIVITY（thin） | 是 |
+| `jury-decision.schema.json` | 3 | prompt_result_review | 0.33 | prompt_results.py | TABLE_WRITES_THIS_ACTIVITY（thin） | 是 |
 | `knowledge-candidate.schema.json` | 3 | approval | 0.33 | approval.py | TABLE_WRITES_THIS_ACTIVITY（thin） | 是 |
 | `operation-intent.schema.json` | 4 | operation_intent | 1.00 | store.py, job_store.py | TABLE_WRITES_THIS_ACTIVITY | 是 |
 | `operation-receipt.schema.json` | 4 | operation_receipt | 1.00 | — | TABLE_EXISTS_UNWRITTEN | 是 |

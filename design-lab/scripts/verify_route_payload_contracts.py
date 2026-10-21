@@ -132,7 +132,49 @@ class Harness:
         self.chosen_model_id = self._file_model_choices(catalog())
         self._file_rights_decisions()
         self._file_research_findings()
+        self._produce_prompt_results()
         return self
+
+    def _produce_prompt_results(self):
+        """Compose for real, then have a named human accept one of the two.
+
+        Three review states have to be rows rather than adjectives: a stored-and-accepted result, a
+        stored-and-nobody-signed one, and a project that never produced anything. The composition is
+        produced by POSTing the route the page uses, so the bytes in the store are the bytes the
+        route published -- not a document assembled here. The current brief id is read back from
+        GET .../briefs because composing from a superseded revision is a real refusal, and a
+        hard-coded id would turn this harness red for the wrong reason the day the fixture moves.
+        """
+        for project in (self.filled, self.declined):
+            if project == self.declined:
+                status, body = self.call('POST', f'/api/projects/{project}/briefs', {
+                    'title': 'Store the prompt, then judge it', 'goals': ['traceable'],
+                    'constraints': None, 'reference_asset_ids': [],
+                    'idempotency_key': 'brief-for-results'})
+                if status != 201:
+                    raise RuntimeError(f'BRIEF_FOR_PROMPT_REFUSED {status} {body}')
+            _status, listing = self.call('GET', f'/api/projects/{project}/briefs')
+            brief_id = next(row['brief_id'] for row in listing['briefs']
+                            if row['superseded_by'] is None)
+            status, body = self.call('POST', f'/api/projects/{project}/prompts',
+                                     {'brief_id': brief_id, 'direction_id': None,
+                                      'target': 'image-generation'})
+            if status != 201:
+                raise RuntimeError(f'PROMPT_COMPOSE_REFUSED {project} {status} {body}')
+            stored = body['document']
+            if stored['composition_id'] not in json.dumps(
+                    self.get(f'/api/projects/{project}/prompt-results')):
+                raise RuntimeError(f'PROMPT_RESULT_NOT_KEPT {stored["composition_id"]}')
+            if project == self.filled:
+                status, body = self.call(
+                    'POST', f'/api/projects/{project}/prompt-results'
+                            f'/{stored["composition_id"]}/review',
+                    {'decision': 'ACCEPTED', 'reviewer': 'dtalex66', 'reviewer_kind': 'human',
+                     'reviewed_at': '2026-10-22T00:00:00Z',
+                     'note': 'every sentence in the text is a field I filed'})
+                if status != 201:
+                    raise RuntimeError(f'PROMPT_REVIEW_REFUSED {status} {body}')
+                self.prompt_result_id = stored['composition_id']
 
     def _file_rights_decisions(self):
         """One cleared project and one refused project, through the write route.
@@ -597,6 +639,28 @@ def build_bindings():
             # compared, and in that order -- the first read happens before any native table was
             # created by the attempt chain seeded below it.
             'cases': lambda h: h.native_runtime_cases(),
+        },
+        {
+            'name': 'prompt-result-readback',
+            'route': '/api/projects/([0-9a-f]{32})/prompt-results',
+            'method': 'GET',
+            'schema': 'design-lab/schemas/prompt-result-readback-v1.schema.json',
+            'emitter': 'src/design_lab/prompt_results.py',
+            'version': 'design-lab/prompt-result-readback/v1',
+            # The gap this closes is that a prompt used to exist only in the response body. Three
+            # states are compared because they are three different sentences: a stored result a
+            # named human accepted, a stored result nobody signed, and a project where nothing was
+            # ever produced. NOT_CURRENT is in the vocabulary as the corruption branch -- no write
+            # path can create it today, since a review copies the digest out of the stored row --
+            # and this file does not pretend to have observed it.
+            'cases': lambda h: [
+                ('GET .../prompt-results with an accepted composition',
+                 h.get(f'/api/projects/{h.filled}/prompt-results')),
+                ('GET .../prompt-results with an unreviewed composition',
+                 h.get(f'/api/projects/{h.declined}/prompt-results')),
+                ('GET .../prompt-results with nothing produced',
+                 h.get(f'/api/projects/{h.empty}/prompt-results')),
+            ],
         },
     ]
 

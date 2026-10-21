@@ -44,6 +44,11 @@ _NAMES = frozenset({
     # applied by src/design_lab/model_selection.py). Additive: one new immutable resource name, no
     # existing file renamed or re-versioned.
     'design-lab-state-model-selection-v1.sql',
+    # 2026-10-22 prompt-result reachability: the stored prompt compositions and reversals, plus the
+    # human acceptance that binds one of them (design-lab/schemas/state/
+    # design-lab-state-prompt-results-v1.sql, applied by src/design_lab/prompt_results.py). Additive:
+    # one new immutable resource name, no existing file renamed or re-versioned.
+    'design-lab-state-prompt-results-v1.sql',
 })
 
 

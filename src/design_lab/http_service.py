@@ -12,6 +12,7 @@ from .runtime.asset_store import AssetError
 from .runtime.paths import PathPolicyError
 from .asset_analysis import AssetAnalysis, AssetAnalysisError
 from .prompt_intelligence import PromptIntelligence, PromptIntelligenceError
+from .prompt_results import PromptResults, PromptResultError
 from .image_assets import ImageAssets, ImageAssetError
 from .task_queries import TaskQueries
 from .task_commands import TaskCommands
@@ -212,6 +213,13 @@ ROUTES = (
     Route('POST',
           r'/api/projects/([0-9a-f]{32})/assets/(img-[0-9a-f]{64})/prompt-reversal',
           '_reverse_asset_prompt'),
+    Route('GET',
+          r'/api/projects/([0-9a-f]{32})/prompt-results',
+          '_list_prompt_results'),
+    Route('POST',
+          r'/api/projects/([0-9a-f]{32})/prompt-results'
+            r'/((?:prompt|reversal)-[0-9a-f]{32})/review',
+          '_review_prompt_result'),
     Route('POST',
           r'/api/projects/([0-9a-f]{32})/bundles'
             r'/(bundle-native-[0-9a-f]{64})/preflight'
@@ -846,8 +854,10 @@ def make_server(service, token, port=0, *, local_session=False):
 
         def _compose_prompt(self, match):
             # Exact key set, nullable direction: a prompt over a brief alone is a real answer,
-            # an absent key is a caller bug. Nothing is persisted -- the document is derived from
-            # the stored brief/direction rows, so re-POSTing the same request re-computes it.
+            # an absent key is a caller bug. The document is derived from the stored brief/direction
+            # rows, so re-POSTing the same request re-computes the same id -- and now keeps it: the
+            # composition is stored as an addressable revision (see prompt_results.py) and the
+            # response says which revision it wrote.
             value = self.body(fields={'brief_id', 'direction_id', 'target'}, limit=65_536)
             try:
                 document = PromptIntelligence(service).compose(
@@ -856,7 +866,7 @@ def make_server(service, token, port=0, *, local_session=False):
             except PromptIntelligenceError as exc:
                 return self.send_json(exc.status, {'status': 'ERROR', 'error': exc.code,
                                                    'detail': exc.detail})
-            return self.send_json(201, PromptIntelligence.readback(document))
+            return self._answered_prompt(match[1], document)
 
         def _reverse_asset_prompt(self, match):
             # The observations are supplied, never inferred: no qualified vision backend exists, so
@@ -869,7 +879,47 @@ def make_server(service, token, port=0, *, local_session=False):
             except PromptIntelligenceError as exc:
                 return self.send_json(exc.status, {'status': 'ERROR', 'error': exc.code,
                                                    'detail': exc.detail})
+            return self._answered_prompt(match[1], document)
+
+        def _answered_prompt(self, project_id, document):
+            """Keep the document this service just produced, then answer exactly as before.
+
+            The store is written before the response, and a store refusal is the answer -- not a
+            warning. A route that returned 201 while keeping nothing is exactly the shape this
+            slice exists to remove: the caller would hold a document with no address, no version
+            and nothing a human could accept later. The response body itself is unchanged, because
+            prompt-composition-v1 and prompt-reversal-v1 close their key sets: what the document
+            IS stays defined by those contracts, and the storage facts (revision, digest, review
+            state) are read from GET /api/projects/<id>/prompt-results instead of being smuggled
+            into a closed document.
+            """
+            try:
+                PromptResults(service).store(project_id, document)
+            except PromptResultError as exc:
+                return self.send_json(exc.status, {'status': 'ERROR', 'error': exc.code,
+                                                   'detail': exc.detail})
             return self.send_json(201, PromptIntelligence.readback(document))
+
+        def _list_prompt_results(self, match):
+            try:
+                envelope = PromptResults(service).readback(match[1])
+            except PromptResultError as exc:
+                return self.send_json(exc.status, {'status': 'ERROR', 'error': exc.code,
+                                                   'detail': exc.detail})
+            return self.send_json(200, envelope)
+
+        def _review_prompt_result(self, match):
+            value = self.body(fields={'decision', 'reviewer', 'reviewer_kind', 'reviewed_at',
+                                      'note'}, limit=65_536)
+            try:
+                record = PromptResults(service).review(
+                    match[1], result_id=match[2], decision=value['decision'],
+                    reviewer=value['reviewer'], reviewer_kind=value['reviewer_kind'],
+                    reviewed_at=value['reviewed_at'], note=value['note'])
+            except PromptResultError as exc:
+                return self.send_json(exc.status, {'status': 'ERROR', 'error': exc.code,
+                                                   'detail': exc.detail})
+            return self.send_json(201, record)
 
         def _preflight_bundle(self, match):
             # The bundle is resolved from the state database by id and

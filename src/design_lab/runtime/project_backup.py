@@ -267,6 +267,12 @@ COUNTER_QUERIES = (
     # window that swallowed one would otherwise still report PROVED_QUIESCENT while the decision
     # path the operator reads back had moved.
     ('model_selection', 'rowid'),
+    # 2026-10-22: PromptResults.store() and .review() both append without a writer lease, and the
+    # rows are immutable by trigger. Without these two the proof would report PROVED_QUIESCENT over a
+    # window that swallowed a stored prompt or a signature in flight -- and a signature is exactly the
+    # kind of row the project gets asked to cite later.
+    ('prompt_result', 'rowid'),
+    ('prompt_result_review', 'rowid'),
 )
 
 

@@ -236,6 +236,37 @@ class StandaloneChainTests(unittest.TestCase):
         self.assertIn('CHAIN', reversal['document']['prompt_text'],
                       'the supplied observation never reached the reversal text')
 
+        # The segment the audit called 缺关键一段: both prompt documents used to exist only in the
+        # response body. Reading the store back is now a hop in the chain, and it is asserted against
+        # the digests the producing hops published -- so this test no longer proves merely that
+        # several routes answered on one server, but that one artifact travelled.
+        stored = self.hop('prompt-results', 'GET',
+                          f'/api/projects/{project}/prompt-results', None, 200)
+        by_id = {item['result_id']: item for item in stored['results']}
+        self.assertEqual(2, stored['result_count'],
+                         'both produced documents must be kept, not just the last one')
+        composition_row = by_id[prompt_document['composition_id']]
+        self.assertEqual(composed['document_sha256'], composition_row['content_sha256'],
+                         'the stored digest is not the digest the composing route published')
+        self.assertEqual(composition_row['review_state'], 'UNREVIEWED',
+                         'a result nobody signed must not arrive pre-accepted')
+        self.assertEqual(by_id[reversal['document']['reversal_id']]['content_sha256'],
+                         reversal['document_sha256'])
+        self.assertEqual('image-generation', composition_row['document']['target'])
+
+        # A named human accepts the composition. This is the local acceptance record; it is not the
+        # outbound candidate approval further down, and it is not a jury verdict on artwork.
+        accepted = self.hop(
+            'prompt-accept', 'POST',
+            f'/api/projects/{project}/prompt-results'
+            f'/{prompt_document["composition_id"]}/review',
+            {'decision': 'ACCEPTED', 'reviewer': 'dtalex66', 'reviewer_kind': 'human',
+             'reviewed_at': '2026-10-19T00:00:00Z',
+             'note': 'every sentence in the text is a field I filed for this project'}, 201)
+        self.assertEqual(composition_row['content_sha256'],
+                         accepted['review']['content_sha256'],
+                         'the signature does not quote the bytes it says it judged')
+
         # The acceptance seam: a human verdict filed against the version the ASSET hop just
         # returned, over HTTP. This is the connection that previously existed only inside two
         # separate fixtures -- the jury test published its own version straight into the
@@ -267,15 +298,33 @@ class StandaloneChainTests(unittest.TestCase):
                          'an approved scope must clear rights, and NOT_REVIEWED here would '
                          'mean the write never landed')
 
-        # The candidate body is imported rather than re-typed: it is a closed rights and
-        # provenance contract, and a second copy here would be a second authority able to
-        # drift from the one the write path enforces.
+        # The candidate is derived from what this chain actually accepted rather than imported from
+        # an unrelated fixture: its `evidence_sha256` is the digest of the composition the human hop
+        # signed, and its statement is about that signature. The rights and provenance *shape* still
+        # comes from the closed contract helper, because restating that shape here would create a
+        # second authority able to drift from the write path. Two provenance ids stay the literal
+        # UNUSED: the owner fills those, a proxy may not mint them, and this chain now shows the
+        # export echoing that choice instead of a fabricated job number. `design_lab_sha` remains
+        # the fixture's obvious placeholder on purpose -- a test must not smuggle a live commit into
+        # a record that could later be read as a citation of one.
         from test_knowledge_http import candidate
         created = self.hop(
             'candidate', 'POST', f'/api/projects/{project}/knowledge-candidates',
-            candidate(candidate_id='kc-chain-1'), 201)
+            candidate(candidate_id='kc-chain-1',
+                      source={'design_lab_sha': 'a' * 40, 'job_id': 'UNUSED',
+                              'operation_id': 'UNUSED',
+                              'evidence_sha256': composition_row['content_sha256']},
+                      payload={'title': 'compose from filed fields, then sign the bytes',
+                               'statement': 'a prompt assembled only from stored fields is '
+                                            're-checkable: the accepted result '
+                                            f'{prompt_document["composition_id"]} was signed by a '
+                                            'named human against its own content digest',
+                               'applies_to': ['editorial', 'brand']}), 201)
         self.assertEqual('PENDING_HUMAN_APPROVAL', created['review']['state'],
                          'a fresh candidate must not arrive pre-approved')
+        self.assertEqual(composition_row['content_sha256'],
+                         created['source']['evidence_sha256'],
+                         'the candidate does not cite the artifact this chain produced and accepted')
         candidate_id = created['candidate_id']
 
         reviewed = self.hop(
@@ -306,11 +355,17 @@ class StandaloneChainTests(unittest.TestCase):
                          exported['export']['schemaVersion'])
         self.assertEqual('NOT_CONNECTED', exported['outbound']['transport'])
         self.assertEqual(0, exported['outbound']['sent_count'])
-        self.assertEqual('job-knowledge-1', exported['provenance']['job_id'],
+        self.assertEqual('UNUSED', exported['provenance']['job_id'],
                          'the export did not echo the provenance ids the candidate hop stored')
-        self.assertEqual('job-knowledge-1:op-knowledge-1',
+        self.assertEqual('EXPLICITLY_UNUSED', exported['provenance']['job_id_state'],
+                         'an explicit "not used" must be distinguishable from a blank field')
+        self.assertEqual('UNUSED:UNUSED',
                          exported['v1_projection']['source_id'],
                          'the v1 projection rebuilt source_id from something other than the stored ids')
+        self.assertEqual(composition_row['content_sha256'],
+                         exported['export']['source']['evidence_sha256'],
+                         'the exported candidate cites something other than the artifact this chain '
+                         'produced and a human accepted')
         print('CHAIN_HOPS ' + ' '.join(self.hops))
 
     def test_the_jury_readback_offers_an_imported_asset_version_as_a_verdict_target(self):

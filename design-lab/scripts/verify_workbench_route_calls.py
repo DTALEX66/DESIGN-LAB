@@ -99,6 +99,20 @@ SPECIAL_ROUTES = {
 #: Each reason names the measured consumer (a test or the aggregate route the page does use),
 #: because "nobody calls it" and "the UI reads the same data another way" are different claims.
 BACKEND_ONLY: dict[tuple[str, str], str] = {
+    ('GET', r'/api/projects/([0-9a-f]{32})/prompt-results'):
+        'true as of 2026-10-22, and it should go red when the panel lands: the #/prompts page still '
+        'answers 生成并读回 without listing the stored revisions, so no Workbench call site reaches '
+        'this read yet. The route is exercised live by design-lab/tests/test_prompt_results.py and '
+        'by the standalone chain, which is where the stored digest is compared against the digest '
+        'the composing route published. This is not a permanent backend surface -- the desktop UI '
+        'is the next slice, and when it starts calling, this exemption must be deleted rather than '
+        'left to rot.',
+    ('POST', r'/api/projects/([0-9a-f]{32})/prompt-results/((?:prompt|reversal)-[0-9a-f]{32})/review'):
+        'true as of 2026-10-22 for the same reason and with the same expiry: signing a prompt result '
+        'is a human act, and the page has no signature control yet. A named human files it through '
+        'this route in design-lab/tests/test_prompt_results.py, where the agent refusal, the '
+        'unknown-result 404 and the digest a signature quotes are all asserted against a live '
+        'server.',
     ('POST', r'/api/projects/([0-9a-f]{32})/assets/(img-[0-9a-f]{64})/analysis'):
         'the Workbench cannot supply observations for this route: no local OCR backend is qualified '
         '(design-lab/readiness/model-radar.json reports QUALIFIED_LOCAL=0 with every entry '

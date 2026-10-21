@@ -103,7 +103,10 @@ class RoutePayloadContractTests(unittest.TestCase):
                     'research-readback': 2,
                     # The same route before any native table and after one attempt: the absent /
                     # present split this projection exists to keep apart.
-                    'native-runtime-readback': 2}
+                    'native-runtime-readback': 2,
+                    # Accepted, stored-but-unsigned, and never produced. Three review sentences that
+                    # a page must not be able to collapse into one empty panel.
+                    'prompt-result-readback': 3}
         self.assertEqual(sorted(expected), sorted(b['name'] for b in self.bindings),
                          'a binding added here without being listed below is a boundary this '
                          'file silently stopped covering')

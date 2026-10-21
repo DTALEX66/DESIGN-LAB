@@ -880,6 +880,24 @@
       "version": "design-lab/model-selection-readback/v1",
       "emitter": "src/design_lab/model_selection.py:228",
       "reason": "Paid on 2026-10-20: design-lab/schemas/model-selection-readback-v1.schema.json describes the envelope that writes design-lab/model-selection-readback/v1 at src/design_lab/model_selection.py:228, and design-lab/scripts/verify_route_payload_contracts.py feeds it three live payloads -- a pick, an explicit 「不用」, and a project nobody has asked. The debt it replaces was named rather than left unremarkable because the gate convicted the alternative (SCHEMA_LESS_DEBT_UNNAMED fires when a row drops the version its emitter still writes). Every element of `selection` and `history` $refs design-lab/schemas/model-selection-v1.schema.json instead of restating it, so the record and its read-back cannot drift: those documents are validated on the way in and re-read from the stored bytes on the way out. The envelope exists to keep three answers apart -- CHOSEN, DECLINED (the operator's explicit 「不用」) and NEVER_ASKED -- and `does_not_say` states in the visible text that the last two are not the same fact, which is the failure this surface would otherwise invite: an empty list reading as a decision."
+    },
+    {
+      "route": "/api/projects/([0-9a-f]{32})/prompt-results",
+      "method": "GET",
+      "kind": "BOUND_SCHEMA",
+      "schema": "design-lab/schemas/prompt-result-readback-v1.schema.json",
+      "version": "design-lab/prompt-result-readback/v1",
+      "emitter": "src/design_lab/prompt_results.py:46",
+      "reason": "Added 2026-10-22 with the route, in the same change rather than after it: test_contract_bindings.test_new_route_without_a_row_is_red refuses a dispatched route with no row. This is the read side of the slice that closes the audit gap \"prompt results were produced and thrown away\": every composition and reversal this service generated is now stored under the id the document itself carries, and a human acceptance is kept as a separate append-only row quoting the content_sha256 it judged. The stored prompt documents are REFERENCED by $ref to prompt-composition-v1 / prompt-reversal-v1 rather than restated, and the review rows to prompt-result-review-v1. Three honesty rules are bound here rather than left to prose: executed is const false (nothing ran), columns_match_document is const true (the scalar columns may not drift from the document they restate), and state NONE may not coexist with a nonzero count -- NONE means this service never produced a prompt, UNREVIEWED means it produced one nobody signed, and NOT_CURRENT means a signature exists about other bytes."
+    },
+    {
+      "route": "/api/projects/([0-9a-f]{32})/prompt-results/((?:prompt|reversal)-[0-9a-f]{32})/review",
+      "method": "POST",
+      "kind": "BOUND_SCHEMA",
+      "schema": "design-lab/schemas/prompt-result-review-v1.schema.json",
+      "version": "design-lab/prompt-result-review/v1",
+      "emitter": "src/design_lab/prompt_results.py:47",
+      "reason": "Added 2026-10-22 with the route. The body's exact key set is the contract's own property names, read from what the store validates: prompt_results.py checks the review document against prompt-result-review-v1 on the way in and the table repeats the two rules the schema cannot enforce alone -- reviewer_kind = 'human' and a foreign key onto a result this project actually stored. Owner ruling 2026-10-21 keeps local acceptance human-only as well as the outbound approval, so an agent signature is refused with a message quoting that ruling; a review naming an unstored result is 404 rather than a row that could never be re-read. The response wraps the stored document and adds a revision number; it does not re-sign anything."
     }
   ]
 }

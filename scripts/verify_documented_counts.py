@@ -146,7 +146,12 @@ def check(verbose: bool = False) -> int:
             if verbose:
                 print(f'PASS {rel}: {want}')
             continue
-        said = re.findall(template.format(n=r'(\d+)'), text)
+        # The template is prose, not a pattern: '**{n} 跳验收链**' starts with `**`, which is an
+        # illegal regex on its own. Escaping first and substituting the escaped placeholder keeps the
+        # report path from raising PatternError exactly when a document is stale -- the one moment the
+        # gate has to answer with a finding instead of a traceback.
+        pattern = re.escape(template).replace(re.escape('{n}'), r'(\d+)')
+        said = re.findall(pattern, text)
         problems.append(f'{rel}: prose says {said or "nothing"}, measurement says {truth} '
                         f'(expected the sentence "{want}")')
     for line in problems:

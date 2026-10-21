@@ -365,6 +365,21 @@ owner 发来 `DESIGN-LAB_独立闭环审计包_20261021.zip`（19 成员，`sha2
 
 **Adobe 两条为什么仍然挂着（不是忘了，是不肯用假付款换计数）**：`POST …/native-plans` 与 `POST …/tasks/(native-job-…)/patch` 声明的 `design-lab/photoshop-native-job/v1`、`design-lab/adobe-patch-job/v1`、`design-lab/photoshop-patch-job/v1` 都不是本服务写出的 envelope——实测 `POST …/native-plans` 的响应是 native_submission 读回，作业文档只在 adapter 内部构造（`photoshop_com.py:121-157` 手写键集、路径审批、画布预算、checkpoint 头校验）。因此补一份没人装载的 schema 文件正是这块账本点名要禁的事（同一账本对 `adobe-host-job/v1` 的判词就是"有文件但没有 src/ 模块读它，所以它不校验任何东西"）。诚实的付法是让那两个 adapter 边界装载 schema，属产品代码改动，且本机不做真实宿主 E3；记在此处而不是顺手改成 `BOUND_SCHEMA`。
 
+### 5.16 第十四批（提示词结果落库：把"逐跳绿灯"改成"一条产物身份贯穿"）
+
+审计闭环表里最硬的一条是"结果保存与版本＝缺关键一段"：两条提示词路由产出一份完整带版本文档之后就把它丢了，`apps/workbench/shell.ts:8278` 的现行注释自己写着"服务端不持久化这份文档"，所以 18 跳链证明的只是**同一台服务器上多个接口能顺序调用**，不是**同一份专业产物走过了分析→验收→留存**。本批补这一刀，全程不留半态。
+
+**落了什么**（`git ls-files` 与 `grep` 实测，不是计划）：新表两张（`design-lab/schemas/state/design-lab-state-prompt-results-v1.sql`：`prompt_result` 追加式、`prompt_result_review` 追加式，`reviewer_kind` 在**表上**被 CHECK 钉成 `'human'`，并对 `(project_id, result_id)` 建复合外键——签名不能指向一条不存在或不属于本项目的结果，这不是约定而是不可表示）；两张表都拒绝 UPDATE/DELETE（触发器），与 model_selection/research/rights/jury 同一血统；`src/design_lab/prompt_results.py` 在写入前用 `interop.load_schema` 对三份新合同校验；`POST …/prompts` 与 `POST …/assets/<id>/prompt-reversal` 现在**先落库再回答**，落库失败就是这一跳的回答（代理不许返回 201 却什么都没留下）；新读回 `GET …/prompt-results` 与新签署 `POST …/prompt-results/<id>/review`。响应体一字未改——两份 prompt 合同是闭合键集，把"存了第几版"塞进去会让文档合同变成 envelope 的附件，存储事实改由读回路由披露。**记账与闸门同批跟上**：账本 `routes 66→68`、`bound 29→31`，两条新路由都是 BOUND_SCHEMA 且 emitter 行号从源文件重算；`verify_workbench_route_calls.py` 的 `BACKEND_ONLY` 收了两条带"应在面板落地时删除"的过期理由（本批不动界面，界面是下一刀）；`project_backup.COUNTER_QUERIES` 加两张表并由 `test_backup_watches_written_tables`（5 项 OK）证明写入面不再对它们失明。
+
+**贯穿的证据**：`test_standalone_chain_http.py` 的验收链由 18 跳变 **20 跳**——新增 `prompt-results=200`（两份文档都在库里，存下的 `content_sha256` 等于产生它那一跳发布的 `document_sha256`，且新产物读回为 UNREVIEWED）与 `prompt-accept=201`（具名人工签署，签名引用的摘要=该行摘要）。第 17 跳的知识候选不再 `from test_knowledge_http import candidate` 原样搬运无关固定件：它的 `evidence_sha256` 取自本次被签署的组合，两个编号用字面量 `UNUSED`，导出段随之回显 `provenance.job_id=UNUSED / job_id_state=EXPLICITLY_UNUSED / v1_projection.source_id=UNUSED:UNUSED`。`test_prompt_results.py` 18 项把"存的就是给你看的字节"、同 id 不同摘要＝409 碰撞、`executed=true` 不可入库、无来源不可入库、Agent 签署 400 且理由里点名 2026-10-21 裁定、跨项目签名 404、直接 SQL 也改不动删不掉、以及"有一行读不出来"必须报 `unreadable_count` 而不是假装没有产物。
+
+**读数**：`VERIFY_ROUTE_PAYLOAD_CONTRACTS=PASS bindings=14 failures=0`（prompt-result-readback 3 例 91 处对象位——被包文档按 `$ref` 拉到自己的合同上比，不是在本文件里重述）；`VERIFY_CONTRACT_BINDINGS=PASS schemas=32 binding=2 routes=68 dispatched=68 bound=31 schema_less=37`；`VERIFY_WORKBENCH_ROUTE_CALLS=PASS calls=107 routes=66 matched=53 backend_only=13`；`DOCUMENTED_COUNTS=PASS claims=11 routes=66`（"20 跳验收链 / HTTP 路由 66 = 37 GET + 29 POST"两句现值由闸门对回代码）。单测定向全绿：prompt_results 18、standalone_chain 4、contract_bindings 36、route_payload 26、backup_watches 5。
+
+**三件自己造出来的东西，都写在这里。** 第一件是**闸门的报错路径自己崩了**：`scripts/verify_documented_counts.py` 在发现某句过期时把模板当正则用，而 `'**{n} 跳验收链**'` 以 `**` 开头是非法模式——我把跳数从 18 改成 20 之前，它本该报"这句过期"，实际抛的是 `re.PatternError: nothing to repeat`。一个只在失败时崩的仪器等于把失败藏起来；现在先 `re.escape` 再替换转义后的占位符。第二件是**我差点把已经说对的行改错**：审计包正文把 PDF/UA-1 写成 "ISO 19005-1"（19005-1 是 PDF/A-1），而仓库登记件里写的本来就是正确的 `ISO 14289-1`——按审计去"修"就会把对的改成错的；已把这条差异记进项目记忆并保留 C 档未核验状态。第三件**是 §6.8 与 §5.14 已经点名过的那个形状，我在同一批里又犯了一次**：插入 §5.16 时 again 把锚点定在下一节标题行上，`## 6.` 再次被吃掉，`git diff --numstat` 报 `+14/−1` 才暴露。区别只在于这次是我明知故犯——§5.14 里我自己写了"改 markdown 结构后必须看删除数"，而这次我在写完 §5.16 后先去跑别的检查，没有立刻看 numstat。**教训的具体形状因此变了**：不是"要知道这条规则"，而是"结构编辑的下一步必须是 `grep '^## 6\.'` 与 numstat，不许插入别的动作"。补回后净差异 `+14/−0`。
+
+**一件没做的事，说清楚为什么不做**：本机分片全量（`run_python_tests_all.py --shards 3 --jobs 1`）跑到一半被我主动停掉，不是失败——本仓库的既有记录写明本机沙箱跑不出干净聚合（safe-delete shim 中途 `SystemExit`、Windows 造不出锁的用例），而 `git commit` 会移动 HEAD，让 `test_projection_freshness` 在运行中报出我无法与真问题区分的红。权威判定由该精确 SHA 的 CI `PYTHON_TESTS_UNION` 给出；本批的本地信号是那五个定向套件与上面三道闸的实测读数。
+
+
 ## 6. 本轮暴露并修掉的六个缺陷
 
 1. **分类聚合按目录贴标签**：`bundle_key()` 把一个顶层目录收成一个 bundle，于是 `docs/` 里第一个文件的类别
