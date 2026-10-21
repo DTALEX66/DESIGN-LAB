@@ -422,9 +422,15 @@ owner 的要求是"按网上最专业的先收入库里，落地我自行测试"
 
 新文件同时进了三处人口登记，否则会被"只证明自己列出的清单"放过：`verify_browser_e2e_ran.py` 的 `TEST_MODULES`（注册表是元组不是 glob，未登记的浏览器套件会永远跳过而无发现）、`test_gate_reachability.py` 认得到的 `.mjs` 名单、以及 `LICENSE_COVERAGE=OK` / `VERIFY_EXECUTION_PATH_GATE=PASS files=8` 两项卫生闸门。本轮没有在本机跑整条 no-skip 浏览器套件：机器上有 WORK-LAB 与 ArcheAxis 的并行作业在跑，全套浏览器闸口在竞争下极慢，而 CI 的 required 作业才是权威——本机只定向跑了新模块（1 项 OK）与 §5.18 的链。`SELECTED_SOURCES=OK records=6 registered_only=8 mapped=1 consumed=1 motion_deviations=0 citations=VERIFIED(13)/SKIPPED(0)`，该模块 39 项 OK。
 
-### 5.21 CI 读数与本批边界（写在推送之后回填的位置）
+### 5.21 CI 读数与本批边界（逐作业，绑定精确 SHA）
 
-三批（`6ca44f46`、`ee46de6a`、B5 提交）合并为一次推送后，逐作业读数记录在此；未读到之前本节不得出现"CI 已绿"字样。已知的前置事实：`35bddcfd` 的主运行 11 项作业里唯一 FAIL 是 Python 闸门，失败 id 为 `test_contract_bindings.GateTeethTests.test_verdict_line_is_what_the_aggregate_matches`，`PYTHON_TESTS_UNION=OK expected=3139 distinct=3139 ran=3139 duplicates=0 missing=0 unexpected=0`，shard=3/3 `outcomes={'FAIL': 1, 'PASS': 1093, 'SKIP': 1}`——这一条已由 `6ca44f46` 的派生式修复取代，是否真的转绿只认新精确 SHA 的作业日志。
+**`f4b727e15ccf551a0fb58b74d26f8b7bd94fc26a` 已推到 `main` 与 `qoder/designlab-backup-consistency-20261007`，主运行 39654042652 `conclusion=success`**，逐作业（照 artifact 原样转录，不重组判决）：Python gate success、DeepSeek authority gate chain success、Workbench strict-TS product gate success、MiniGame node gate (+drift) success、Generated-artifact clean-tree gate success、Clean wheel install + Workbench launch gate success、License & secret hygiene gate success、Open Design host adapter gate success、Top-level Authority consistency gate success、Workbench browser E2E (exact-SHA controlled-runtime, no-skip) success、CI artifact proof (H001) success；Branch light gate `skipped`——该作业按设计只在开发分支跑，不是缺失。备份分支上的轻量运行 39654053174 同样 success。
+
+Python 闸门的计数回执：三个分片全 `exit=0`——`shard=1/3 tests=947 outcomes={'PASS': 945, 'SKIP': 2}`、`shard=2/3 tests=1143 outcomes={'PASS': 1127, 'SKIP': 16}`、`shard=3/3 tests=1057 outcomes={'PASS': 1053, 'SKIP': 4}`，`PYTHON_TESTS_UNION=OK expected=3147 distinct=3147 ran=3147 duplicates=0 missing=0 unexpected=0`。上一轮同一条是 `expected=3139` 且 shard=3/3 有 1 项 FAIL（`test_contract_bindings.GateTeethTests.test_verdict_line_is_what_the_aggregate_matches`）——**本批把它转绿了**，3139 → 3147 的 +8 就是本批新增的测试数（Illustrator 3、Photoshop 3、精选来源 1、motion 包装器 1）。CI 只出计数不出测试名，所以这句对照是按作业 id 与两次读数写的，不是从名字表里读的。
+
+浏览器 no-skip 作业逐模块回执：`test_workbench_design_layer_e2e ran=2 skipped=0 failed=0`、`overflow_gate ran=3`、`contrast_gate ran=3`、`theme_geometry_gate ran=1`、`theme_affordance_gate ran=1`、`ui_audit_gate ran=1`、**`test_workbench_motion_gate ran=1 skipped=0 failed=0`**，合计 `BROWSER_E2E ran=12 skipped=0 failed=0` → `BROWSER_E2E: PASS (ran, no-skip, no-skip policy satisfied)`。这条对本批有分量：§5.20 那条 CONSUMED 的度量闸门在 CI 的 pinned playwright + chromium 下**没有跳过**，植入的 `adoptedStyleSheets` 缺陷在该浏览器构建里同样被判出——若那边的 Chromium 构建与我本机不同，`MA_SELF_TEST_INCONCLUSIVE` 会红，而不是把 0 违规当成通过。
+
+状态分级（不要把上一级当成下一级）：B3 桌面半、B2b、B5 三条均为 **CI_VERIFIED_EXACT_SHA @ f4b727e1**（本地实跑在前，逐作业读数在后）。§5.17 那批（B4，`35bddcfd`）的内容闸门全绿，但它的主运行被同一行硬编码测试判为 failure，该红已由本批取代；因此 B4 的准确说法是 **BRANCH_PUBLISHED + 内容闸门绿 + 其唯一 FAIL 已在 f4b727e1 转绿**，不是"当时就 11/11 success"。仍未执行、也未因这次推送而改变的：release、安装态分发、真实宿主 E3、真人 E4、ComfyUI、MiniMax H3；`currentExecution` 34 项仍 `FROZEN_DEFERRED`；手机端仍是排除项。
 
 ## 6. 本轮暴露并修掉的六个缺陷
 

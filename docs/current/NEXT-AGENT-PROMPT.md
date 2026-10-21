@@ -197,6 +197,13 @@ E4 独立人审 / E5 发布可复现。**文档修订 ≠ 规划完成 ≠ 代�
 - **已作废的三条调查结论**（写在这里防止下一会话照它们动手）："export 没有 schema 文件" 与 "plan_to_rir 缺失" 都是错的；前者见上（且 2026-10-20 起信封自己也写了 `design-lab/assurance-knowledge-candidate-export-envelope/v1`，不再只靠正文里的 `status` 认身份），后者是缺调用方而非缺实现。第三条现在也过期了："`plan_to_rir` 无生产调用方" 自 2026-10-19 起不成立（CLI `analyze` + `POST …/assets/<id>/analysis` 两条入口，见 §上一项 2），照旧话去"补第一个调用方"会重复劳动。缺的那一半是**合格后端**，不是调用方。
 - 下一轮若获授权，先交付"可审阅的读回面板 + 真实数据源 + 可复现测试"，
   把没建的那一半写在可见文字里，不要把 PLANNED 标成 IMPLEMENTED。
+  **2026-10-22 之后的实际剩余面（B2–B5 已全部落地并 CI_VERIFIED @ `f4b727e1`，见审计件 §5.18–§5.21）**：
+  ①带版本号的未付契约债清单实测为空（35 条 SCHEMA_LESS 都是"信封自己不带 schemaVersion"的选择，不是欠账）；
+  ②规范登记件仍有四条取数欠账（PDF/UA-1 版次、IEC 61966-2-1 出版方页、Apple/Material/Fluent 的编辑日期）——
+  那是重跑只读取数，不是判据变更，也不需 owner 批准；
+  ③真正卡住的只剩 owner 面：合格后端（`QUALIFIED_LOCAL=0`，磁盘上那条 Qwen2.5-VL-7B 是否列为合格是许可裁定）、
+  `DESIGN.md` 批准与配色归属（挂起，非前提）、以及 E3/E4/E5 与 34 项 `FROZEN_DEFERRED`。
+  代理不得替 owner 填任何一项，也不得把②以外的剩余面当缺口重复派工。
 
 ## 7. 只能由 owner 决定的（不要猜，也不要替他填）
 
