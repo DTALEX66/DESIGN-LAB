@@ -382,6 +382,18 @@ owner 发来 `DESIGN-LAB_独立闭环审计包_20261021.zip`（19 成员，`sha2
 **收尾序列里被闸门抓出的第三件事：我刷新了契约普查，却漏了契约图。** `verify_design_lab` 的 76 项里 `verify_projection_freshness` 报 `FRESHNESS-DRIFT reports/current/CONTRACT-GRAPH.json — fields changed since generation: ['declared_tables']`：两张新表进了 `declared_tables`，而 `scripts/generate_current_reports.py` 不生产那份投影，它由 `scripts/verify_contract_graph.py` 自己写。这条红是**闸门的正确判决**，不是噪声——工作树静止、聚合闸自跑、只有一项红，红里点名了变化的字段。修法是重跑该脚本（`CONTRACT_GRAPH=NO_BROKEN_LINK concepts=11 complete=11 breaks=0`，diff 里恰好是两行新表指向新的 state SQL），再重钉一次投影。教训形状：**普查与图是两份派生件，加表要各刷一次**，`generate_current_reports.py` 不代表所有派生面已经跟上。
 
 
+### 5.17 第十五批（规范出处第二轮取证：两条仍取不到，一条被我自己写错过）
+
+owner 的要求是"按网上最专业的先收入库里，落地我自行测试"，登记件的价值全在出处诚实。第二轮用只读子智能体重跑，每条记录实际 URL、HTTP 结果与页面原话。
+
+**结论是两条仍是 UNKNOWN，而且这次把"为什么取不到"写成了可复算的清单。** PDF/UA-1：iso.org 的 `/standard/71374`、`/38369`、`/64599` 与 `/obp/ui` 一律 **403**（整站拦非浏览器客户端），pdfa.org 根页与三条子路径仍 403，本轮新试的三条国家标准渠道 `webstore.ansi.org` **403**、`knowledge.bsigroup.com` **404 "Product not found"**、DIN webstore 连接失败——版次不补、不猜，C 档保留。IEC 61966-2-1：`webstore.iec.ch/en/publication/78` 这轮直接读到页面自己印的 "CISPR 25:2008 … Withdrawn (2016-10-27) … Superseded by CISPR 25:2021"，确认那个编号从来不是 sRGB；IEC 检索面 404。新取到的可打开侧页是 ICC 的色彩编码登记 `registry.color.org/rgb-registry/srgb`，原话 Reference "sRGB"、Def "IEC 61966-2-1:1999"、"see Amendment 1"、"Updated April 2015"，并写明该国际标准"available through National Standards Bodies"——按**只可引用**登记，不当作 IEC 出版记录。
+
+**三家设计语言的版本面本轮被实测否证了一次**：登记件第四节原先写着"Apple 的 `.../tutorials/data/design/human-interface-guidelines.json` 实测可用"，而那一族 JSON 现在**全部 404**；可打开的是纯 Markdown 姊妹页 `…/human-interface-guidelines.md`，它只给 frontmatter `"metadataVersion" : "0.1.0"` 与 "Copyright © 2026 Apple Inc."，**没有任何编辑日期**——0.1.0 是内容元数据的 schema 标记，登记里明确写了它不是 HIG 版本。Material 侧 `m3.material.io/sitemap.xml` 给出 `<lastmod>`（首页 2026-07-08、/blog 2026-10-06），登记为"站点最后修改日，不是规范版本"；Fluent 侧 /whats-new 404、/get-started/whatisnew 自述无带日期条目，页面上唯一版本串是 "DOMPurify version is 3.4.15"——那是随页打包的净化库，登记件里专门写了一行**不得把它当 Fluent 版本**，因为这类误认一旦写进登记就会被后来者当出处。
+
+**顺带纠正一处外部误记，而不是照它改**：随包审计把 PDF/UA-1 写成 "ISO 19005-1"（19005-1 是 PDF/A-1），仓库这一行本来就是 `ISO 14289-1`。按审计措辞去"修"会把对的改成错的，所以只在登记里记下这个差异。`ACCESSIBILITY_BASELINE.md` 的 PDF/UA 那条也按审计要求处理清楚了：它是本项目自己的**做法**（分剖面记录 + 附校验器证据），不需要出版方出处；需要出处的是"符合 ISO 14289-1:YYYY"这类带版次断言——已在原位标注取证前不得这样写。
+
+**本批只动 `packages/capabilities/standards/**` 与本登记件**，不碰产品代码，也**没有新增判据**：现行对比度判据仍是 WCAG 2.2 AA，APCA 仍是 B 档行业动向记录，改阈值要 owner 裁定。
+
 ## 6. 本轮暴露并修掉的六个缺陷
 
 1. **分类聚合按目录贴标签**：`bundle_key()` 把一个顶层目录收成一个 bundle，于是 `docs/` 里第一个文件的类别
