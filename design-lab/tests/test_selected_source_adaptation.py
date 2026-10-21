@@ -67,7 +67,10 @@ class SelectedSourceAdaptation(unittest.TestCase):
         self.assertEqual(0, res.returncode, res.stdout + res.stderr)
         out = res.stdout
         self.assertIn('SELECTED_SOURCES=OK', out)
-        for token in ('records=6', 'mapped=2', 'consumed=0', 'motion_deviations=0'):
+        for token in ('records=6', 'mapped=1', 'consumed=1', 'motion_deviations=0'):
+            # 2026-10-22 (B5): the first CONSUMED landing was earned by a browser measurement, so the
+            # register moved from mapped=2/consumed=0 to mapped=1/consumed=1. These are counts of the
+            # shipped record, not a floor: a landing that quietly reverts to MAPPED goes red here.
             self.assertIn(token, out)
         # The citations are re-read from the vendored blob when that blob is on disk, and
         # the blob lives in the gitignored vendor cache -- so a clean clone legitimately
@@ -190,10 +193,49 @@ class SelectedSourceAdaptation(unittest.TestCase):
         def mutate(d):
             land = record(d, 'visual-quality__motion-design-skill')['landing'][0]
             land['mode'] = 'CONSUMED'
-            land['proof'] = {'testPath': 'design-lab/tests/test_selected_source_adaptation.py'}
+            # Chosen because it names neither the rule nor the standard: this test file now quotes
+            # both (the positive check below needed them), so pointing the plant back at itself used
+            # to satisfy the very requirement it was meant to refuse.
+            land['proof'] = {'testPath': 'design-lab/config/contract-bindings.json'}
+            # The shipped landing is a real CONSUMED at E2 since 2026-10-22, so this plant has to
+            # lower the level itself; relying on the record still saying E1 was the whole claim.
+            record(d, 'visual-quality__motion-design-skill')['executionQualification'] \
+                ['evidenceLevel'] = 'E1'
         findings = self.mutated(mutate)
         only(findings, 'CONSUMED requires evidence level E2')
         self.assertTrue(any('names both' in f for f in findings), findings)
+
+    def test_the_one_shipped_consumed_landing_is_a_browser_measurement(self):
+        """The positive claim behind `consumed=1`, written as a test rather than as prose.
+
+        A CONSUMED landing is the strongest mode this ladder has. It is here because the motion
+        rule is read in a real Chromium over the built bundle, the same scanner has to convict a
+        planted layout transition before the zero is trusted, and the evidence level says E2 --
+        controlled runtime, not a host run and not a human jury.
+        """
+        consumed = [(rec, land) for rec in self.doc['selected'] for land in rec['landing']
+                    if land.get('mode') == 'CONSUMED']
+        self.assertEqual([rec['sourceId'] for rec, _ in consumed],
+                         ['visual-quality__motion-design-skill'],
+                         'a second CONSUMED landing has to be earned the same way, not added')
+        rec, land = consumed[0]
+        self.assertEqual(land['ruleId'], 'SRC-T07-MOTION-COMPOSITED')
+        test_path = REPO / land['proof']['testPath']
+        self.assertTrue(test_path.is_file(), f'{test_path} is not a file')
+        text = test_path.read_text(encoding='utf-8', errors='replace')
+        self.assertIn('SRC-T07-MOTION-COMPOSITED', text)
+        self.assertIn('MOTION_ACCESSIBILITY.md', text)
+        self.assertEqual(rec['executionQualification']['evidenceLevel'], 'E2',
+                         'the record claims consumption at a level the gate would refuse')
+        self.assertEqual(rec['executionQualification']['capabilityState'], 'structural-pass',
+                         'E2 measurement is not an isolated run; the state must not have drifted')
+        for ref in ('design-lab/tests/e2e/audit_workbench_motion.mjs',
+                    'design-lab/tests/test_workbench_motion_gate.py'):
+            self.assertTrue((REPO / ref).is_file(), f'{ref} is cited but absent')
+        harness = (REPO / 'design-lab/tests/e2e/audit_workbench_motion.mjs') \
+            .read_text(encoding='utf-8', errors='replace')
+        self.assertIn('dlMotionPlant', harness,
+                      'the browser half no longer contains its own falsifier')
 
     # ------------------------------------------------------------------ revision/licence
     def test_revision_and_license_are_copied_by_reference(self):

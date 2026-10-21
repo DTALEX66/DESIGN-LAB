@@ -394,6 +394,38 @@ owner 的要求是"按网上最专业的先收入库里，落地我自行测试"
 
 **本批只动 `packages/capabilities/standards/**` 与本登记件**，不碰产品代码，也**没有新增判据**：现行对比度判据仍是 WCAG 2.2 AA，APCA 仍是 B 档行业动向记录，改阈值要 owner 裁定。
 
+### 5.18 第十六批（B3 桌面半：面板改成能签字，浏览器链把这件事写进回执）
+
+§5.16 落了存储与路由，页面还写着"两条都不落库"。这批把桌面端接上：`apps/workbench/shell.ts` 新增结果面板（修订 / 类型 / 身份尾号 / 摘要尾号 / 生成时间 / 签署状态），`executed` 仍为真时单独点出，签字表单固定 `reviewer_kind:'human'`，裁决人没署名就在本页拒发，不发请求。owner 2026-10-21 的三条裁定都在界面上可见：不落模型执行、不外发、只读回。
+
+实跑读数（本机，2026-10-21/22）：`npx tsc --noEmit` 无输出；`npm run test:unit` 出 "APPSHELL REGRESSION: all checks passed" 与 "shape-notice coverage: all bindings reported"；浏览器链 `E2E_REQUIRED=1` → `Ran 2 tests … OK`，回执 `"result": "PASS"`、`consoleErrors: 0`、`bundleSha256 10df5e3a01a713959914009adc06d3b83d9db9ee58b27d6145ec7a338e27ace7`。链里第 14 节走的是真页面：选中未被取代的 brief → 点生成 → 等 `option` 值匹配 `^(prompt|reversal)-[0-9a-f]{32}$` → 逐行断言"没人签过/UNREVIEWED" → 匿名签字被本地拒 → 署名后读回 ACCEPTED 与 `E2E Reviewer` → 面板不得出现 `已发送|发送成功|delivered|模型已执行`。
+
+**这两轮把证据从 stdout 搬进了回执。** 子进程 stdout 被 Python 包装器在成功时吞掉，直接跑 mjs 又只会得到 `E2E_CONFIG_MISSING`，所以"链跑过第 14 节"原本只能靠人眼看日志。现在 `browser-e2e-summary.json` 的 `scenario` 里多一条 `prompt-result-compose-store-sign`，并带 `promptLoop`（本次实测 `{"resultId":"prompt-76f1ab5da4f7b5d28daacc40051cf6fc","unsignedRow":true,"signedRow":true,"reviewerShown":true,"overclaim":false}`），`E2E_REQUIRED=1` 时包装器直接断言这几项——跳过这一节的运行不可能再被读成 PASS。
+
+自己造的三处红，都记下来：`selectOption({index:1})` 选中的是**已被取代的 v1 brief**，服务器按合同回 409 STALE_REVISION；改成按文本挑未取代的那条。第二个更坏——守卫写了 `/UNREVIEWED/`，而面板自己的说明文字里就有这个词，于是断言**为错误的原因变绿**（真因是 compose 还在飞，状态是"正在提交，等待读回"）；改成等 option 值本身，并逐行断言。第三处 `shape-notice-coverage.mjs` 拒绝新读回路径没有 `shapeNotice`：读回的字段缺失必须被说出来，不能用"未读回"糊过去。`verify_workbench_route_calls.py` 的 `CANDIDATES` 探测词表原本没有 prompt-result 的 id 形状，会让新 POST 被误报 `FRONTEND_ROUTE_UNSERVED`，有意扩了词表（不是扩产品面）。同批把 `test_contract_bindings.py` 里硬写的 `routes=66` 改成从台账派生——CI 在 81dc4fc2 就是被这行写红的（本地 35bddcfd 的主运行仍显示这一条为唯一 FAIL，见 §5.21）。提交 `6ca44f46`（状态：IMPL_LOCAL + TESTED_LOCAL；CI 读数见 §5.21）。
+
+### 5.19 第十七批（B2b：Adobe 的作业契约，写出来就必须被读到）
+
+`design-lab/tests/test_contract_bindings.py` 的欠账清单最后剩两条，都是 Adobe 作业形状：`POST …/tasks/<native-job>/patch` 声明 `design-lab/adobe-patch-job/v1`（与 `photoshop-patch-job/v1` 同一路由），`POST …/native-plans` 声明 `design-lab/photoshop-native-job/v1`。这三份 schema 逐条只重写适配器**已经在做**的手检：键集精确、`jobId`/`rirHash` 形状、`checkpointSha256` 64 hex、Illustrator 的 `operations` 常量表、Photoshop 的画布边长与输出名。没写的也不是摆设——画布**面积**上限、路径包含、checkpoint 字节、输出文件尚不存在，JSON Schema 看不见这些，reason 里逐条点名为仍然由手检负责。
+
+关键一条：**schema 不能只写不读**。台账原句就是在定"声明了却没人读"这个罪，所以同批把装载接进 `illustrator_com.py` / `photoshop_com.py`：各自一个 `JOB_CONTRACTS` 版本表，`execute()` 在任何 COM 调用前按 body 里的版本取文件校验，取不到文件或不认识版本都是预检拒绝（`outcome_unknown=False`）。没动的 130 个既有 execute 调用点全绿：`test_illustrator_com_adapter.py` 10 项、`test_photoshop_com_adapter.py` 18 项、`test_native_tasks.py` 47 项、`test_native_quiescence.py` 3 项。
+
+新增的牙齿有两条正向断言与两条种的红：装运夹具必须**通过**自己的契约（否则下一条红可能只是读不到文件），以及手检从未判过的字段现在被拒——`layers` 必须是列表、`artboard`/`authorization` 必须是对象。第三枚探针反而把我自己的假设照出来了：我给 Photoshop 原生作业种了 `layers=[['id','image']]`，它合法通过，因为**原生路径**根本不读 layers 的元素；`_photoshop_patch` 会逐个索引元素，所以"每项是对象"这条只在 patch 契约里写，探针也移到 patch 形状上。欠账清空后 `test_a_debt_row_cannot_be_laundered_by_deleting_the_version_line` 与 `test_schema_less_row_whose_debt_is_already_paid_is_red` 失去了天然的受害者（今天已无带版本的 SCHEMA_LESS 行），两者改为**把已付的 Adobe 行洗回去**作为种植方式，并在测试里写清牙齿搬到了哪两个文件。闸门实测：`VERIFY_CONTRACT_BINDINGS=PASS schemas=32 binding=2 inert=30 routes=68 dispatched=68 bound=33 schema_less=35`，`VERIFY_ROUTE_PAYLOAD_CONTRACTS=PASS bindings=14 failures=0`，该模块 36 项 OK。提交 `ee46de6a`（IMPL_LOCAL + TESTED_LOCAL）。
+
+### 5.20 第十八批（B5：第一条 CONSUMED 必须是"量出来的"，并且同一把扫描器要能判红）
+
+`packages/capabilities/selected-sources.json` 的阶梯一直是 8 条 REGISTERED_ONLY + 2 条 MAPPED、0 条 CONSUMED。这批把 `SRC-T07-MOTION-COMPOSITED` 升为 CONSUMED，证据级别 E1 → E2，`capabilityState` 保持 `structural-pass`（受控运行时不是宿主级隔离运行）。判据原文只禁布局属性（`width/height/top/left/right/bottom/margin*/padding*`），所以新闸门的禁用集合与文本扫描器**完全一致**——`design-lab/tests/test_workbench_motion_gate.py` 里有一条对照断言：文本扫过 7 个 `appliesTo` 文件得出的条数必须等于浏览器读到的条数，两条闸门对同一字节只能给一个答案。
+
+实跑读数（`MA_SUMMARY`）：21 个导航项 → 21 个不同 location、22 次扫描、9614 条 CSSOM 规则、88 个 `@keyframes`、154 个关键帧步进、8995 个渲染元素、布局动效 **0** 条；同一把扫描器先必须判出植入缺陷的 **3** 条（`@keyframes dlMotionPlant` 的 from/to + `.dl-motion-plant{transition:width}`）。刻意不判的两项写进回执而不是沉默：`transition: all` 132 处、`stroke-dashoffset` 等非布局动画 110 处——本闸门不自造比判据更严的标准，但把它看见的交出。回执绑定字节：`styleSha256`/`bundleSha256` 由测试与盘上文件对账。
+
+自己造的坑，五个，全部记原样：① 第一版按 `rule.keyFrames` 识别关键帧，Chromium 用的是 `keyRules`（`cssRules` 为别名），于是 4 个 `@keyframes` 一个没读到；② 更坏的一版把分组判断写成 `if (rule.cssRules) { walk(); continue; }`，而 CSS 嵌套让**每条普通样式规则**都有了 `.cssRules`，结果 `styleRules=0` 而页面照样"零违规"——这正是"绿闸门读的是空输入"这一类，靠 `keyframeRules/styleRules` 覆盖率计数才被抓住；③ 植入用 `addStyleTag` 被产品的 CSP `style-src 'self'` 直接拒绝，改成 constructed stylesheet，不为过闸门而放宽产品策略；④ 该 Chromium 的 `document.styleSheets` **不含** `adoptedStyleSheets`（实测 `adopted=1, sheets=1`），扫描器改为两个集合都走，否则"页面用了构造式样式表"这种真实写法会扫成干净；⑤ 原有的 CONSUMED 种植测试把 proof 指向自己所在的文件，而那个文件为了新的正向断言开始引用规则名与标准名，于是"缺测试"这一条再也不响——种植改用 `design-lab/config/contract-bindings.json`，同时正向测试 `test_the_one_shipped_consumed_landing_is_a_browser_measurement` 把 consumed=1 的成立条件写成测试而非散文。另有一处依赖隐式值：种植原先假设 `evidenceLevel` 仍是 E1，现在必须自己降级。
+
+新文件同时进了三处人口登记，否则会被"只证明自己列出的清单"放过：`verify_browser_e2e_ran.py` 的 `TEST_MODULES`（注册表是元组不是 glob，未登记的浏览器套件会永远跳过而无发现）、`test_gate_reachability.py` 认得到的 `.mjs` 名单、以及 `LICENSE_COVERAGE=OK` / `VERIFY_EXECUTION_PATH_GATE=PASS files=8` 两项卫生闸门。本轮没有在本机跑整条 no-skip 浏览器套件：机器上有 WORK-LAB 与 ArcheAxis 的并行作业在跑，全套浏览器闸口在竞争下极慢，而 CI 的 required 作业才是权威——本机只定向跑了新模块（1 项 OK）与 §5.18 的链。`SELECTED_SOURCES=OK records=6 registered_only=8 mapped=1 consumed=1 motion_deviations=0 citations=VERIFIED(13)/SKIPPED(0)`，该模块 39 项 OK。
+
+### 5.21 CI 读数与本批边界（写在推送之后回填的位置）
+
+三批（`6ca44f46`、`ee46de6a`、B5 提交）合并为一次推送后，逐作业读数记录在此；未读到之前本节不得出现"CI 已绿"字样。已知的前置事实：`35bddcfd` 的主运行 11 项作业里唯一 FAIL 是 Python 闸门，失败 id 为 `test_contract_bindings.GateTeethTests.test_verdict_line_is_what_the_aggregate_matches`，`PYTHON_TESTS_UNION=OK expected=3139 distinct=3139 ran=3139 duplicates=0 missing=0 unexpected=0`，shard=3/3 `outcomes={'FAIL': 1, 'PASS': 1093, 'SKIP': 1}`——这一条已由 `6ca44f46` 的派生式修复取代，是否真的转绿只认新精确 SHA 的作业日志。
+
 ## 6. 本轮暴露并修掉的六个缺陷
 
 1. **分类聚合按目录贴标签**：`bundle_key()` 把一个顶层目录收成一个 bundle，于是 `docs/` 里第一个文件的类别

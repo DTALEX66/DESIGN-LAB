@@ -47,6 +47,11 @@ TEST_MODULES = (
     # entire required context was green over, including a palette row landing on a page
     # whose title named something else.
     "test_workbench_ui_audit_gate",
+    # Joined 2026-10-22 (B5): the motion gate reads SRC-T07-MOTION-COMPOSITED out of Chromium's own
+    # CSSOM and computed styles over every nav route, and it is the proof behind the first CONSUMED
+    # landing in packages/capabilities/selected-sources.json. A CONSUMED claim whose measuring gate
+    # could skip silently would be a record kept alive by nobody looking, so it belongs on this list.
+    "test_workbench_motion_gate",
 )
 
 

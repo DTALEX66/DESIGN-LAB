@@ -428,9 +428,12 @@
         {
           "kind": "Method",
           "path": "packages/capabilities/standards/MOTION_ACCESSIBILITY.md",
-          "mode": "MAPPED",
+          "mode": "CONSUMED",
           "ruleId": "SRC-T07-MOTION-COMPOSITED",
           "derivedFromMethod": "SRC-T07-MOTION-COMPOSITED",
+          "proof": {
+            "testPath": "design-lab/tests/test_workbench_motion_gate.py"
+          },
           "appliesTo": [
             "apps/workbench/style.css",
             "apps/workbench/build/main.js",
@@ -441,7 +444,8 @@
             "apps/workbench/main.ts"
           ],
           "knownDeviations": [],
-          "deviationLedgerNote": "an empty knownDeviations is NOT 'never measured': this rule found 2 live declarations on 2026-10-11 (apps/workbench/style.css:1061 and :1065, both transitioning `right`), and they were cleared the same day by translating the drawer with transform:translateX(540px), which reproduces the same rect. The gate re-derives this list every run, so a new layout-triggering animation -- or a stale entry left behind after a fix -- both go red."
+          "deviationLedgerNote": "an empty knownDeviations is NOT 'never measured': this rule found 2 live declarations on 2026-10-11 (apps/workbench/style.css:1061 and :1065, both transitioning `right`), and they were cleared the same day by translating the drawer with transform:translateX(540px), which reproduces the same rect. The gate re-derives this list every run, so a new layout-triggering animation -- or a stale entry left behind after a fix -- both go red.",
+          "consumedNote": "升为 CONSUMED 于 2026-10-22：判据不再只由文本扫描决定。design-lab/tests/e2e/audit_workbench_motion.mjs 在真实 Chromium 里逐条点击导航（21 个导航项、21 个不同 location、22 次扫描），读 Chromium 自己解析出来的 CSSOM 与渲染元素的 computed style：9614 条规则、88 个 @keyframes、154 个关键帧步进、8995 个元素，布局属性动效 0 条。同一份扫描器必须先把植入的缺陷判出来（@keyframes dlMotionPlant 的 from/to 与 .dl-motion-plant 的 transition:width，共 3 条）才算这轮 0 是证据；植入用 constructed stylesheet，因为产品的 CSP 是 style-src 'self'，内联 style 会被拒。本闸门刻意不判的两项也写进回执而不是沉默：transition:all 132 处、stroke-dashoffset 等非布局动画 110 处 -- 判据原文只禁布局属性，本闸门不自造更严的标准。禁用的属性集合与 verify_selected_source_adaptation.py 的文本扫描一致，两条闸门对同一字节必须给同一个答案，测试里有这条对照。"
         },
         {
           "kind": "DomainPack",
@@ -454,13 +458,15 @@
       "promotionLevel": "statically_verified",
       "executionQualification": {
         "capabilityState": "structural-pass",
-        "evidenceLevel": "E1",
+        "evidenceLevel": "E2",
         "evidenceRefs": [
           "packages/capabilities/standards/MOTION_ACCESSIBILITY.md",
           "design-lab/scripts/verify_selected_source_adaptation.py",
-          "design-lab/tests/test_selected_source_adaptation.py"
+          "design-lab/tests/test_selected_source_adaptation.py",
+          "design-lab/tests/test_workbench_motion_gate.py",
+          "design-lab/tests/e2e/audit_workbench_motion.mjs"
         ],
-        "blockingReason": "validator 已对本仓库 CSS 出真实判定，但没有宿主级运行证据，不得升为 isolated-pass 以上。"
+        "blockingReason": "E2 只到受控运行时：真实 Chromium 读的是本仓库构建出的页面与样式，不是宿主里的设计文件，也不是真人视觉裁决，所以 capabilityState 仍是 structural-pass，不得升为 isolated-pass 以上。"
       },
       "taskTest": {
         "file": "design-lab/tests/test_selected_source_adaptation.py",
