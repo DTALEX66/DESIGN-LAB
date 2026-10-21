@@ -1616,7 +1616,15 @@
    "target": "packages/capabilities/standards/ACCESSIBILITY_BASELINE.md",
    "also_in_repo": [
     "packages/capabilities/standards/ACCESSIBILITY_BASELINE.md"
-   ]
+   ],
+   "repoBytesAfterImport": 1622,
+   "repoCrc32AfterImport": "65e078f6",
+   "repoSha256AfterImport": "sha256:f5c8fb8b49aacdcef479431ed9c8b545151ccb1d951ba70e791e3d3e36c542d4",
+   "evolvedBy": {
+    "commit": "cf994484",
+    "subject": "docs(standards): second-round provenance re-fetch, with the unreachable routes listed"
+   },
+   "evolution": "owner 2026-10-22 B4: PDF/UA line annotated as project practice, with an ISO-edition conformance claim barred pending publisher evidence"
   },
   {
    "source_container": "DESIGN-LAB_FINAL_CONSOLIDATED_PACKAGE_2026-09-29.zip",
