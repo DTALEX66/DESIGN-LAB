@@ -482,14 +482,14 @@
    "also_in_repo": [
     "docs/current/PRODUCT_DEFINITION.md"
    ],
-   "repoBytesAfterImport": 12288,
-   "repoCrc32AfterImport": "e3728ae2",
-   "repoSha256AfterImport": "sha256:8d325c977745e2d60f473d30c5773f158d003d539dae8af3d08ef893b9dd6339",
+   "repoBytesAfterImport": 12546,
+   "repoCrc32AfterImport": "1f89a478",
+   "repoSha256AfterImport": "sha256:16a08ed4510aa5f307e2a58324462c08af3a3f73d3ea12709e2d7cff988493fa",
    "evolvedBy": {
-    "commit": "442cc71b",
-    "subject": "docs(current): the three unfrozen segments now state what was measured"
+    "commit": "f929eb60",
+    "subject": "feat(prompts): keep the documents this service produces, and let a human sign one"
    },
-   "evolution": "owner 2026-10-21 audit DL-05: current-face sentences corrected to measured readings (export control shipped; closed loop partly executed at E2); inference and acceptance scope ruled closed"
+   "evolution": "owner 2026-10-22 B3: prompt results now stored and human-signed, so the current-face sentences moved from 'not persisted' to the measured reading; ROADMAP R2 re-based on the 20-hop chain"
   },
   {
    "source_container": "DESIGN-LAB_FINAL_CONSOLIDATED_PACKAGE_2026-09-29.zip",
@@ -505,14 +505,14 @@
    "also_in_repo": [
     "docs/current/ROADMAP.md"
    ],
-   "repoBytesAfterImport": 9879,
-   "repoCrc32AfterImport": "33926668",
-   "repoSha256AfterImport": "sha256:8c9024b21cb1d6e397777c938e35edc325180aa944cc0063b7e98d9d89a759e0",
+   "repoBytesAfterImport": 9948,
+   "repoCrc32AfterImport": "e2a6a1e8",
+   "repoSha256AfterImport": "sha256:8170c994a00247a4291cf77e127b36abdd23784d44a1a7e4249c17f4c2c4ad2f",
    "evolvedBy": {
-    "commit": "442cc71b",
-    "subject": "docs(current): the three unfrozen segments now state what was measured"
+    "commit": "f929eb60",
+    "subject": "feat(prompts): keep the documents this service produces, and let a human sign one"
    },
-   "evolution": "owner 2026-10-21 audit DL-05: current-face sentences corrected to measured readings (export control shipped; closed loop partly executed at E2); inference and acceptance scope ruled closed"
+   "evolution": "owner 2026-10-22 B3: prompt results now stored and human-signed, so the current-face sentences moved from 'not persisted' to the measured reading; ROADMAP R2 re-based on the 20-hop chain"
   },
   {
    "source_container": "DESIGN-LAB_FINAL_CONSOLIDATED_PACKAGE_2026-09-29.zip",
