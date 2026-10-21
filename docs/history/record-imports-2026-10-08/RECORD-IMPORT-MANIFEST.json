@@ -482,14 +482,14 @@
    "also_in_repo": [
     "docs/current/PRODUCT_DEFINITION.md"
    ],
-   "repoBytesAfterImport": 12546,
-   "repoCrc32AfterImport": "1f89a478",
-   "repoSha256AfterImport": "sha256:16a08ed4510aa5f307e2a58324462c08af3a3f73d3ea12709e2d7cff988493fa",
+   "repoBytesAfterImport": 12754,
+   "repoCrc32AfterImport": "86469eee",
+   "repoSha256AfterImport": "sha256:2cb48ba19dc5ae996cff2bae839eaf138664f743fbd8d34723ded86fee4594d5",
    "evolvedBy": {
-    "commit": "f929eb60",
-    "subject": "feat(prompts): keep the documents this service produces, and let a human sign one"
+    "commit": "a1ed336e",
+    "subject": "test(workbench): measure the motion rule in a browser, then let it earn the first CONSUMED"
    },
-   "evolution": "owner 2026-10-22 B3: prompt results now stored and human-signed, so the current-face sentences moved from 'not persisted' to the measured reading; ROADMAP R2 re-based on the 20-hop chain"
+   "evolution": "B3 桌面面板落地：PRODUCT_DEFINITION 的 Prompt Intelligence 段把'桌面端还没有列出结果与签署的面板'改为实测面板事实"
   },
   {
    "source_container": "DESIGN-LAB_FINAL_CONSOLIDATED_PACKAGE_2026-09-29.zip",

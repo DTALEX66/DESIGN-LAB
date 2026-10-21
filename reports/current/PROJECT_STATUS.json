@@ -8,15 +8,26 @@
   },
   "fresh": false,
   "freshnessMeaning": "at generation only; check verifies bound-input integrity, not current Git or cloud state",
-  "generatedAt": "2026-10-21T17:08:43+00:00",
+  "generatedAt": "2026-10-21T18:31:33+00:00",
   "git": {
     "branch": "qoder/designlab-backup-consistency-20261007",
-    "origin_main": "81dc4fc242520a3efeecde55c77f0f5ba5bd01d3",
-    "sha": "672faf733981acfff945bf54f921e4cdd81795d0",
-    "source_worktree_clean": true,
-    "tracked_files": 3758,
-    "worktree_changes": [],
-    "worktree_digest": "sha256:912ac3809d05b9f2f0746f11a0b7c38e979807d9c690d413f4481f4628083b4d"
+    "origin_main": "35bddcfd5827e35906e86a1872a53992dee09b8f",
+    "sha": "a1ed336e0679980595ac881afaaa389bc4d318e0",
+    "source_worktree_clean": false,
+    "tracked_files": 3763,
+    "worktree_changes": [
+      {
+        "content": "sha256:7b99b5bf93f6548f6c43f9efb1b0722f801ab8b349d59d30a1f6c941a309b057",
+        "kind": "M",
+        "path": "docs/RECORD-ARCHIVE-INDEX.md"
+      },
+      {
+        "content": "sha256:98a18df2167c6fd43a4560678f4670c246681da92f96dfdae964fd93bf27a4f4",
+        "kind": "M",
+        "path": "docs/history/record-imports-2026-10-08/RECORD-IMPORT-MANIFEST.json"
+      }
+    ],
+    "worktree_digest": "sha256:8028fb4c3c32b5055188c69d57896a85e77dd1498ecbebfb6d770ba1c3817024"
   },
   "gitStateMeaning": "generation-time observation, not current HEAD",
   "hostLive": "derived from host_live axis only",
@@ -32,8 +43,8 @@
     "quarantinedSources": 162
   },
   "subjectMeaning": "subjectType=WORKTREE means the tree was dirty at generation; worktreeDigest covers HEAD plus the non-generated changes",
-  "subjectSha": "672faf733981acfff945bf54f921e4cdd81795d0",
-  "subjectType": "COMMIT",
+  "subjectSha": "a1ed336e0679980595ac881afaaa389bc4d318e0",
+  "subjectType": "WORKTREE",
   "taskCounts": {
     "FROZEN_DEFERRED": 34
   },
@@ -45,9 +56,9 @@
   "testRunMeaning": "bound run: python scripts/run_bound_test_suite.py --modules test_boot_reconciliation",
   "testRunResult": "OK",
   "tests": {
-    "definedTestMethodCount": 3139,
+    "definedTestMethodCount": 3147,
     "executed": "see individual verified ledger receipts"
   },
-  "worktreeClean": true,
-  "worktreeDigest": "sha256:912ac3809d05b9f2f0746f11a0b7c38e979807d9c690d413f4481f4628083b4d"
+  "worktreeClean": false,
+  "worktreeDigest": "sha256:8028fb4c3c32b5055188c69d57896a85e77dd1498ecbebfb6d770ba1c3817024"
 }
