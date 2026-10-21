@@ -554,7 +554,16 @@ class GateTeethTests(unittest.TestCase):
         # version while its inner export document is validated by code) and GET /api/models
         # (SCHEMA_LESS with design-lab/model-catalog/v1 named as unpaid). Each added a dispatch and
         # a row in the same change, so both sides of the relation moved together.
-        self.assertEqual(len(lines), 1 + CONTRACTS + 66,
+        # Derived from the ledger on purpose. This line pinned `1 + CONTRACTS + 66` as a literal
+        # since 2026-10-20, and the two prompt-result routes added on 2026-10-22 each brought a
+        # ledger row with a dispatch: the gate printed 101 notes, the pinned expectation said 99,
+        # and CI convicted the batch (the only red in run 39640544489). A count literal here does
+        # not test the gate -- it tests whether someone remembered to edit a number. Reading the
+        # row inventory from the same file the gate walks keeps the real invariant: the number of
+        # notes must equal the number of rows it claims to have re-checked, per side.
+        shipped = ledger_rows(self.gate, REPO)
+        self.assertEqual(len(lines),
+                         1 + len(shipped.get('contracts') or []) + len(shipped['routes']),
                          'one verdict line, one note per contract row, one per route row')
         verdict = lines[-1]
         self.assertTrue(verdict.startswith('VERIFY_CONTRACT_BINDINGS=PASS'), verdict)
@@ -564,7 +573,8 @@ class GateTeethTests(unittest.TestCase):
         # 55 -> 59 on 2026-10-19 (T16/U09), same change as the inventory above: the four
         # knowledge routes are dispatched, so their rows are re-checked, not waived.
         for token in (f'schemas={CONTRACTS}', f'binding={BINDING_ROWS}', f'inert={INERT_ROWS}',
-                      'routes=66', 'dispatched=66', f'bound={expected_bound}'):
+                      f'routes={len(shipped["routes"])}',
+                      f'dispatched={len(shipped["routes"])}', f'bound={expected_bound}'):
             self.assertIn(token, verdict)
 
     # --- failure modes, each against a mutated copy ------------------------------

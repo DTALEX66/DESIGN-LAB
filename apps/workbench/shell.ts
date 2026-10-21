@@ -8275,8 +8275,8 @@ export async function renderAnalysis(target: HTMLElement): Promise<void> {
 // 三条不能含糊的事实，写在界面上而不是藏在代码里：
 //   · 正文里的每一句要么是某条存过字段的原文（带它自己的 spec_sha256），要么是本页的框架句
 //     （带规则名）。缺的字段进 unknown 并带上缺的原因，不会静默消失；
-//   · 服务端不持久化这份文档（_compose_prompt 不写库），所以按钮说的是"生成并读回"，
-//     不是"保存"；
+//   · 服务端把这份文档存成一条可寻址的结果（GET …/prompt-results 读回，人工签署在下面的面板），
+//     所以按钮说的是"生成并读回（同时存为一条可签署的结果）"；落库只写本机状态库，不外发；
 //   · 反推的观测（detections）由操作者粘贴。本机没有合格的视觉后端（readiness 雷达
 //     QUALIFIED_LOCAL=0），页面替用户编一组观测就是伪造观察，所以初始正文是空数组，
 //     提交它得到的 400 NO_OBSERVATIONS 会被原样画出来。
@@ -8452,6 +8452,163 @@ function promptSelectPlaceholder(unread: boolean, count: number,
     : count > 0 ? `选择${noun}（共 ${count} 项）` : `尚无${noun}：${action}`;
 }
 
+/** 一条已存提示词结果。字段集合逐字跟 GET …/prompt-results 的行一致；缺字段按缺失呈现。 */
+interface PromptResultReview {
+  decision?: string;
+  reviewer?: string;
+  reviewed_at?: string;
+  content_sha256?: string;
+}
+
+interface PromptResultRow {
+  revision?: number;
+  result_id?: string;
+  kind?: string;
+  content_sha256?: string;
+  executed?: boolean;
+  created_at?: string;
+  review_state?: string;
+  review?: PromptResultReview | null;
+}
+
+interface PromptResultsResponse {
+  schemaVersion?: string;
+  state?: string;
+  result_count?: number;
+  accepted_count?: number;
+  unreadable_count?: number;
+  results?: PromptResultRow[];
+  does_not_say?: string[];
+}
+
+/** 签署状态词的中性说法；状态词本身按合同留在英文并标 lang="en"。 */
+function promptReviewStateLabel(row: PromptResultRow): string {
+  switch (row.review_state) {
+    case 'ACCEPTED': return '已有人工接受';
+    case 'DECLINED': return '已有人工拒绝';
+    case 'NOT_CURRENT': return '签名描述的是另一份字节';
+    case 'UNREVIEWED': return '没人签过';
+    default: return `状态未读回（${row.review_state ?? '字段缺失'}）`;
+  }
+}
+
+/**
+ * 结果列表 + 人工签署入口：落库那一半的桌面半边。
+ *
+ * 三条呈现规则不容含糊：①`executed` 若为 true 要当场说出来（服务端不该发出这样的行）；
+ * ②签署必须具名且 `reviewer_kind` 写死 'human'——owner 2026-10-21 把本地验收与外发审批一起
+ * 留给人工，所以页面不提供代理身份选项；③时间戳是浏览器声称的时间，不是服务端时间。
+ * 页面也不维护清单：每行都来自这次 GET 的回复，重读就是重新 GET。
+ */
+function promptResultsBody(projectId: string, data: PromptResultsResponse,
+  reload: () => Promise<void>, flags: { notice: string; resultsUnread: boolean;
+    countUnread: boolean; acceptedUnread: boolean }): HTMLElement {
+  const rows = data.results ?? [];
+  const offline = disconnectedNotice(data as unknown as Record<string, unknown>);
+  const target = el('select', { class: 'input', id: 'prompt-review-result' },
+    el('option', { value: '' }, rows.length ? '选择一条已存结果'
+      : '没有可签署的结果：本项目还没有产过提示词'),
+    ...rows.map((row) => el('option', { value: row.result_id ?? '' },
+      `第 ${row.revision ?? '?'} 版 · ${row.kind ?? '类型未记录'} · `
+      + `${(row.result_id ?? '身份未记录').slice(-8)} · ${promptReviewStateLabel(row)}`)));
+  const decision = el('select', { class: 'input', id: 'prompt-review-decision' },
+    el('option', { value: 'ACCEPTED' }, '接受'),
+    el('option', { value: 'DECLINED' }, '拒绝'));
+  const reviewer = el('input', { class: 'input', id: 'prompt-review-reviewer', type: 'text',
+    maxlength: '120', placeholder: '裁决人（你自己的名字，服务端要求具名）' });
+  const note = el('textarea', { class: 'input', id: 'prompt-review-note', maxlength: '2000' });
+  const status = el('p', { class: 'view-hint', role: 'status', 'aria-live': 'polite' }, '');
+  const outcome = el('div', { class: 'spaced-top' });
+  const submit = el('button', { type: 'button', class: 'primary-btn',
+    id: 'prompt-review-submit', disabled: rows.length ? null : '' }, '记录人工签署');
+
+  submit.onclick = (): void => {
+    void (async (): Promise<void> => {
+      const id = target.value;
+      const who = reviewer.value.trim();
+      if (!id) {
+        status.textContent = '未提交：没有选中任何已存结果。';
+        return;
+      }
+      if (!who) {
+        status.textContent = '未提交：裁决人未署名。服务端只接受具名的人工签署。';
+        return;
+      }
+      const body = { decision: decision.value, reviewer: who, reviewer_kind: 'human',
+        reviewed_at: new Date().toISOString(), note: note.value.trim() || null };
+      submit.disabled = true;
+      status.textContent = '提交中…';
+      try {
+        await api(`/projects/${projectId}/prompt-results/${id}/review`, body);
+        await reload();
+        status.textContent = decision.value === 'ACCEPTED'
+          ? '已记录人工接受。接受只说明这个名字认领了这条摘要对应的字节：它没有导出、没有发送，'
+            + '也没有运行任何模型。'
+          : '已记录人工拒绝。这条结果仍在库里——被拒绝本身也是留痕。';
+      } catch (error) {
+        const envelope = (error as Error & {
+          serviceEnvelope?: Record<string, unknown> }).serviceEnvelope;
+        outcome.replaceChildren(promptRefusal(error,
+          'POST /api/projects/{id}/prompt-results/{result}/review'));
+        status.textContent = `未记录：${typeof envelope?.error === 'string'
+          ? envelope.error : errMsg(error)}`
+          + (typeof envelope?.detail === 'string' && envelope.detail
+            ? ` —— ${envelope.detail}` : '') + '。服务端未写入任何签署。';
+      } finally {
+        submit.disabled = false;
+      }
+    })().catch((error) => setStatus(errMsg(error), true));
+  };
+
+  return el('div', { class: 'panel spaced-top', id: 'prompt-results-panel' },
+    el('h3', {}, '已存提示词结果与人工签署'),
+    ...(flags.notice ? [el('p', { class: 'view-hint' }, flags.notice)] : []),
+    el('p', { class: 'view-hint' },
+      `${flags.countUnread ? '结果数未读回' : `读回 ${data.result_count ?? 0} 条结果`}，`
+      + `${flags.acceptedUnread ? '接受数未读回' : `其中 ${data.accepted_count ?? 0} 条有人工接受`}`
+      + (data.unreadable_count ? `；另有 ${data.unreadable_count} 行的文档读不出来` : '')
+      + '。每条结果的身份就是文档自带的 ID：同样的存过记录与同样的目标重新装配，得到的是同一条，'
+        + '而不是第二份。'),
+    offline
+      ? stateBlock({ kind: 'error', title: '没有读到服务端的结果清单', weight: 'bad',
+        producer: 'GET /api/projects/{id}/prompt-results 没有返回可读回复。',
+        next: '先确认本机设计服务仍在运行；这一面板不做本地清单，也不补一份内存里的假记录。' })
+      : el('table', { class: 'data' },
+        el('thead', {}, el('tr', {},
+          el('th', {}, '修订'), el('th', {}, '类型'), el('th', {}, '身份尾号'),
+          el('th', {}, '摘要尾号'), el('th', {}, '生成时间'), el('th', {}, '签署状态'))),
+        el('tbody', {}, ...rows.map((row) => el('tr', {},
+          el('td', {}, String(row.revision ?? '未记录')),
+          el('td', {}, row.kind ?? '未记录'),
+          el('td', {}, (row.result_id ?? '未记录').slice(-8)),
+          el('td', {}, (row.content_sha256 ?? '未记录').replace(/^sha256:/, '').slice(-8)),
+          el('td', {}, row.created_at ?? '未记录'),
+          el('td', {},
+            el('span', { lang: 'en' }, row.review_state ?? 'unreadable'),
+            ' · ', promptReviewStateLabel(row),
+            row.review?.reviewer
+              ? `（${row.review.reviewer} @ ${row.review.reviewed_at ?? '时间未读回'}）` : '',
+            row.executed === true
+              ? ' · 这一行声称执行过模型：服务端不该发出这样的文档' : ''))))),
+    ...(rows.length || offline ? [] : [el('p', { class: 'view-hint' },
+      flags.resultsUnread
+        ? 'results 字段未读回：这一屏不知道库里有没有结果，界面不替服务端填一个空清单。'
+        : '表里没有行：不是"没有可签的"，而是这台服务还没为该项目产出过提示词。')]),
+    ...(data.does_not_say ?? []).map((line) => el('p', { class: 'uif-spec-note' }, line)),
+    el('div', { class: 'uif-spec-block' },
+      el('h3', {}, '人工签署（Human Gate 的桌面入口）'),
+      el('p', { class: 'uif-spec-note' },
+        '服务端只接受 reviewer_kind="human" 且具名的签署，页面因此不提供代理身份选项。'
+          + '名字与时间是你声称的，服务端不验证这个人是否真的看过内容；签署引用的是这条结果的'
+          + ' content_sha256，改了输入得到的是新文档与新摘要，旧签名不再描述现在这一份。'),
+      el('label', {}, '结果', target),
+      el('label', {}, '裁决', decision),
+      el('label', {}, '裁决人', reviewer),
+      el('label', {}, '备注（可选）', note),
+      el('div', { class: 'uif-row' }, submit),
+      status, outcome));
+}
+
 async function promptIntelligencePanel(projectId: string): Promise<HTMLElement> {
   const layerData = await apiOrEmpty<DesignLayerResponse>(
     `/projects/${projectId}/design-layer`, OFFLINE.designLayer);
@@ -8464,6 +8621,21 @@ async function promptIntelligencePanel(projectId: string): Promise<HTMLElement> 
     || disconnectedNotice(assetsData));
   const reversalAssets = assetsData.assets.filter((a) => REVERSAL_ASSET_ID.test(a.id));
 
+  // 已存结果面板：清单与签署状态一律来自 GET …/prompt-results 的本次回复，页面不自存副本。
+  const resultsHost = el('div', { id: 'prompt-results-host' });
+  const reloadResults = async (): Promise<void> => {
+    const data = await apiOrEmpty<PromptResultsResponse>(
+      `/projects/${projectId}/prompt-results`, {});
+    const notice = shapeNotice(data);
+    resultsHost.replaceChildren(promptResultsBody(projectId, data, reloadResults, {
+      notice,
+      resultsUnread: shapeFieldMissing(data, 'results'),
+      countUnread: shapeFieldMissing(data, 'result_count'),
+      acceptedUnread: shapeFieldMissing(data, 'accepted_count'),
+    }));
+  };
+  await reloadResults();
+
   // --- 装配：简报 +（可选）方向 + 目标 ---
   const briefSelect = el('select', { class: 'input', id: 'prompt-brief' },
     el('option', { value: '' }, promptSelectPlaceholder(
@@ -8475,13 +8647,13 @@ async function promptIntelligencePanel(projectId: string): Promise<HTMLElement> 
   const directionSelect = el('select', { class: 'input', id: 'prompt-direction' });
   const targetSelect = el('select', { class: 'input', id: 'prompt-target' },
     ...PROMPT_TARGETS.map((family) => el('option', { value: family }, family)));
-  const composeOutcome = el('div', { class: 'spaced-top' });
-  const composeStatus = el('p', { class: 'view-hint', role: 'status',
+  const composeOutcome = el('div', { class: 'spaced-top', id: 'prompt-compose-outcome' });
+  const composeStatus = el('p', { class: 'view-hint', id: 'prompt-compose-status', role: 'status',
     'aria-live': 'polite' }, '');
   const composeButton = el('button', {
     type: 'button', class: 'primary-btn', id: 'prompt-compose',
     disabled: layer.briefs.length ? null : '',
-  }, '生成提示词并读回（服务端不落库）');
+  }, '生成提示词并读回（同时存为一条可签署的结果）');
 
   const fillDirections = (): void => {
     const briefId = briefSelect.value;
@@ -8514,6 +8686,7 @@ async function promptIntelligencePanel(projectId: string): Promise<HTMLElement> 
           });
         composeStatus.textContent = '';
         composeOutcome.replaceChildren(compositionReadbackPanel(readback));
+        await reloadResults();
       } catch (error) {
         composeStatus.textContent = '';
         composeOutcome.replaceChildren(promptRefusal(
@@ -8580,6 +8753,7 @@ async function promptIntelligencePanel(projectId: string): Promise<HTMLElement> 
           });
         reverseStatus.textContent = '';
         reverseOutcome.replaceChildren(reversalReadbackPanel(readback));
+        await reloadResults();
       } catch (error) {
         reverseStatus.textContent = '';
         reverseOutcome.replaceChildren(promptRefusal(
@@ -8616,10 +8790,12 @@ async function promptIntelligencePanel(projectId: string): Promise<HTMLElement> 
         el('label', {}, 'decomposition_id（可留空）', decompositionInput),
         el('div', { class: 'uif-row' }, reverseButton),
         reverseStatus, reverseOutcome)),
+    resultsHost,
     el('p', { class: 'uif-spec-note' },
-      '本页写两条路由，两条都不落库：装配返回的文档由存过记录推导，重发同一份请求得到同一个 '
-        + 'ID；反推返回的文档绑定该资产的 sha256 与本次观测的 RIR 摘要。'
-        + '两者都不含模型执行、宿主调用或人工验收。'),
+      '本页写两条生成路由，两条都会把产出的文档存成一条可寻址的结果：装配返回的文档由存过记录'
+        + '推导，重发同一份请求得到同一个 ID，因此得到的是同一条结果而不是第二份；反推返回的文档'
+        + '绑定该资产的 sha256 与本次观测的 RIR 摘要。两者都不含模型执行与宿主调用，'
+        + '人工验收是下面那个面板里另一次具名写入，不是生成这一步的副作用。'),
     ...(assetsData.assets.length > reversalAssets.length
       ? [el('p', { class: 'view-hint' },
           `本项目读回 ${assetsData.assets.length} 项资产，其中 ${reversalAssets.length} 项是这条`
@@ -8635,9 +8811,10 @@ export async function renderPromptIntelligence(target: HTMLElement): Promise<voi
     async (projectId: string) => promptIntelligencePanel(projectId),
     el('p', { class: 'view-hint' },
       '提示词的两端都在这一页：从已存的简报与方向装配一段可逐段追溯的正文，'
-      + '或把你提供的观测转成一条已存资产的反推描述。'
-      + '两个方向都不运行模型、不调用宿主、不替人验收，也不把文档写进台账。'),
-    '本页向本机服务提交生成请求，服务端不落库；不启动宿主，不修改任何已交付版本。');
+      + '或把你提供的观测转成一条已存资产的反推描述。产出的文档会存下来并可被具名人工签署；'
+      + '两个方向都不运行模型、不调用宿主、也不替人验收。'),
+    '本页向本机服务提交生成请求并把产出存为一条结果（只写本机状态库，不外发）；'
+      + '签署同样只写本机，不导出、不发送，也不修改任何已交付版本。');
 }
 // ============================================================================
 // 模型选择 · #/models —— 读 GET /api/models：两份清单一屏并列，合并不做

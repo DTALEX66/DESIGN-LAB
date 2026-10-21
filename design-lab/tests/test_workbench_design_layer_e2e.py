@@ -24,6 +24,7 @@ the honest local answer is the skip reason, not an evidence gap.
 """
 import json
 import os
+import re
 import secrets
 import shutil
 import subprocess
@@ -159,6 +160,25 @@ class WorkbenchDesignLayerE2ETests(unittest.TestCase):
                 self.assertEqual(payload.get('result'), 'PASS',
                                  'E2E summary is not a PASS run: '
                                  + summary.read_text(encoding='utf-8'))
+                # B3 (2026-10-21): the prompt-result slice must be visible in the
+                # artifact, not only on stdout — a required run whose evidence says
+                # "compose → store → human signature" never happened is a gap, and
+                # an overclaim in the shipped panel is a lie.
+                self.assertIn('prompt-result-compose-store-sign',
+                              payload.get('scenario') or [],
+                              'E2E_REQUIRED summary does not list the prompt-result '
+                              'scenario: ' + str(payload.get('scenario')))
+                loop = payload.get('promptLoop') or {}
+                self.assertEqual(
+                    [loop.get('unsignedRow'), loop.get('signedRow'),
+                     loop.get('reviewerShown'), loop.get('overclaim')],
+                    [True, True, True, False],
+                    'E2E prompt-result facts are not the expected shape: '
+                    + json.dumps(loop, ensure_ascii=False))
+                self.assertTrue(re.match(r'^(prompt|reversal)-[0-9a-f]{32}$',
+                                         str(loop.get('resultId'))),
+                                'E2E prompt-result id is not the id shape the route '
+                                'accepts: ' + str(loop.get('resultId')))
 
     def test_e2e_script_is_lint_clean(self):
         # The browser driver must be a parseable ESM module; guard against a

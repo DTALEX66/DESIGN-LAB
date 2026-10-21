@@ -53,24 +53,30 @@ let projectId = '';
 // What the route-inventory step actually derived, so the evidence names its own
 // subject instead of leaving a reader to guess which number was in play.
 let routeInventory = null;
+// Set only when the prompt-result slice actually ran, so the summary can never
+// claim a scenario that was skipped and a reader need not scrape stdout.
+let promptLoop = null;
 
 // P0-G: single evidence writer, used by every exit path (PASS and FAIL).
 const writeSummary = (result, error) => {
   fs.mkdirSync(evidenceDir, { recursive: true });
+  const scenario = ['create-project', 'import-reference', 'create-brief',
+                    'create-direction', 'choose-direction', 'bind-design-system',
+                    'revise-brief', 'revise-chosen-direction',
+                    'binding-rebuild-readback', 'reload-persisted-readback',
+                    'persisted-readback', 'mobile-appshell-layout',
+                    'nav-route-inventory-derived-from-served-bundle'];
+  if (promptLoop) scenario.push('prompt-result-compose-store-sign');
   const payload = {
     kind: 'workbench-browser-e2',
     subjectSha: process.env.E2E_SUBJECT_SHA || 'local',
     browser: { engine: 'chromium', version: browserInfo },
     workflowRunId: process.env.E2E_WORKFLOW_RUN_ID || 'local',
-    scenario: ['create-project', 'import-reference', 'create-brief',
-               'create-direction', 'choose-direction', 'bind-design-system',
-               'revise-brief', 'revise-chosen-direction',
-               'binding-rebuild-readback', 'reload-persisted-readback',
-               'persisted-readback', 'mobile-appshell-layout',
-               'nav-route-inventory-derived-from-served-bundle'],
+    scenario,
     consoleErrors: errors.length,
     result,
   };
+  if (promptLoop) payload.promptLoop = promptLoop;
   if (routeInventory) payload.routeInventory = routeInventory;
   if (error) payload.error = error;
   fs.writeFileSync(path.join(evidenceDir, 'browser-e2e-summary.json'),
@@ -662,6 +668,93 @@ try {
     sentClaim: /已发送|发送成功|delivered/i.test(exportText),
     bytes: (exportText.match(/bytes=(\d+)/) || [])[1] ?? null,
   }));
+
+  // 14. The prompt result travels through the shipped page. The two prompt routes used to answer
+  // and keep nothing, so nothing on this page could be signed; this section drives the real
+  // affordance -- compose -> the stored row appears -> a named human signs it -> the row's own
+  // state word changes. Every wait here is on a DOM fact the panel can only have after the wire
+  // answered: the panel's own explanatory copy mentions UNREVIEWED / ACCEPTED / NOT_CURRENT as
+  // words, so a substring search over the whole panel can pass with zero rows. That is how the
+  // first version of this section lied to itself, and it is why the row is identified by the
+  // OPTION VALUE the service mints, not by prose.
+  await page.evaluate(() => { window.location.hash = '#/prompts'; });
+  await page.locator('#prompt-brief').waitFor({ state: 'visible', timeout: 20000 });
+  // The chain revised its brief, so this select carries a v1 labelled 已被取代 and a v2 that is
+  // current. Choosing by index would silently pick whichever one the server refuses.
+  const currentBrief = await page.locator('#prompt-brief option').evaluateAll(
+    (options) => (options.find((o) => o.value && !/已被取代/.test(o.textContent ?? ''))
+      ?? {}).value ?? '');
+  if (!currentBrief) {
+    await abort('E2E_PROMPT_NO_CURRENT_BRIEF: the brief select offered no un-superseded option',
+      14, ctx, b);
+  }
+  await page.locator('#prompt-brief').selectOption(currentBrief);
+  await page.locator('#prompt-target').selectOption('image-generation');
+  const storedRowId = () => page.locator('#prompt-review-result option').evaluateAll(
+    (options) => options.map((o) => o.value).find((value) =>
+      /^(prompt|reversal)-[0-9a-f]{32}$/.test(value)) ?? '');
+  await page.locator('#prompt-compose').click();
+  await page.waitForFunction(() => Array.from(
+    document.querySelectorAll('#prompt-review-result option'))
+    .some((o) => /^(prompt|reversal)-[0-9a-f]{32}$/.test(o.value)), null,
+  { timeout: 30000 }).catch(() => false);
+  const reviewTarget = await storedRowId();
+  if (!reviewTarget) {
+    const diagnostics = await page.evaluate(() => ({
+      options: Array.from(document.querySelectorAll('#prompt-review-result option'))
+        .map((o) => o.value),
+      compose: (document.getElementById('prompt-compose-outcome')?.innerText ?? '').slice(0, 300),
+      status: (document.getElementById('prompt-compose-status')?.innerText ?? '').slice(0, 200),
+    }));
+    await abort('E2E_PROMPT_NO_STORED_ROW: '
+                + JSON.stringify(diagnostics).replace(/[\r\n]+/g, ' · '), 14, ctx, b);
+  }
+  const resultsText = () => page.locator('#prompt-results-panel').innerText();
+  const rowText = await page.locator('#prompt-results-panel tbody tr').first().innerText();
+  if (!/UNREVIEWED/.test(rowText) || !/没人签过/.test(rowText)) {
+    await abort('E2E_PROMPT_ROW_STATE: the stored row did not present itself as produced but '
+                + 'unsigned. row=' + rowText.replace(/[\r\n]+/g, ' · '), 14, ctx, b);
+  }
+  if (!/reviewer_kind="human"/.test(await resultsText())) {
+    await abort('E2E_PROMPT_SIGN_BOUNDARY_MISSING: the panel must say that signing is a human act '
+                + 'the service enforces.', 14, ctx, b);
+  }
+  await page.locator('#prompt-review-result').selectOption(reviewTarget);
+  await page.locator('#prompt-review-decision').selectOption('ACCEPTED');
+  // The local refusal first: an unnamed signature must never reach the wire.
+  await page.locator('#prompt-review-submit').click();
+  const refusedLocally = await resultsText();
+  if (!/未提交：裁决人未署名/.test(refusedLocally)) {
+    await abort('E2E_PROMPT_ANON_SIGN_NOT_REFUSED: an empty reviewer name should be stopped on '
+                + 'the page. text=' + refusedLocally.slice(-300).replace(/[\r\n]+/g, ' · '),
+    14, ctx, b);
+  }
+  await page.locator('#prompt-review-reviewer').fill('E2E Reviewer');
+  await page.locator('#prompt-review-note').fill('read the assembled fields against the digest');
+  await page.locator('#prompt-review-submit').click();
+  await page.waitForFunction(() => {
+    const rows = document.querySelectorAll('#prompt-results-panel tbody tr');
+    return rows.length > 0 && /ACCEPTED/.test(rows[0].textContent)
+      && /E2E Reviewer/.test(rows[0].textContent);
+  }, null, { timeout: 30000 }).catch(() => false);
+  const signedRow = await page.locator('#prompt-results-panel tbody tr').first().innerText();
+  if (!/ACCEPTED/.test(signedRow) || !/E2E Reviewer/.test(signedRow)) {
+    await abort('E2E_PROMPT_SIGN_NOT_READ_BACK: the row did not come back carrying the human '
+                + 'signature. row=' + signedRow.replace(/[\r\n]+/g, ' · '), 14, ctx, b);
+  }
+  const panelAfter = await resultsText();
+  if (/已发送|发送成功|delivered|模型已执行/.test(panelAfter)) {
+    await abort('E2E_PROMPT_OVERCLAIM: the results panel asserted a delivery or an inference run: '
+                + panelAfter.slice(0, 300), 14, ctx, b);
+  }
+  promptLoop = {
+    resultId: reviewTarget,
+    unsignedRow: /UNREVIEWED/.test(rowText),
+    signedRow: /ACCEPTED/.test(signedRow),
+    reviewerShown: /E2E Reviewer/.test(signedRow),
+    overclaim: /已发送|发送成功|delivered|模型已执行/.test(panelAfter),
+  };
+  console.log('E2E_PROMPT_LOOP: ' + JSON.stringify(promptLoop));
 
   await ctx.close();
   await b.close();
