@@ -9,34 +9,23 @@
   },
   "fresh": false,
   "freshnessMeaning": "at generation only; check verifies bound-input integrity, not current Git or cloud state",
-  "generatedAt": "2026-10-21T18:31:33+00:00",
+  "generatedAt": "2026-10-21T18:59:37+00:00",
   "gitStateMeaning": "generation-time observation, not current HEAD",
   "local": {
     "branch": "qoder/designlab-backup-consistency-20261007",
-    "origin_main": "35bddcfd5827e35906e86a1872a53992dee09b8f",
-    "sha": "a1ed336e0679980595ac881afaaa389bc4d318e0",
-    "source_worktree_clean": false,
+    "origin_main": "f4b727e15ccf551a0fb58b74d26f8b7bd94fc26a",
+    "sha": "2544868af0ae5a462f96a837b1eb1bbc5b97f325",
+    "source_worktree_clean": true,
     "tracked_files": 3763,
-    "worktree_changes": [
-      {
-        "content": "sha256:7b99b5bf93f6548f6c43f9efb1b0722f801ab8b349d59d30a1f6c941a309b057",
-        "kind": "M",
-        "path": "docs/RECORD-ARCHIVE-INDEX.md"
-      },
-      {
-        "content": "sha256:98a18df2167c6fd43a4560678f4670c246681da92f96dfdae964fd93bf27a4f4",
-        "kind": "M",
-        "path": "docs/history/record-imports-2026-10-08/RECORD-IMPORT-MANIFEST.json"
-      }
-    ],
-    "worktree_digest": "sha256:8028fb4c3c32b5055188c69d57896a85e77dd1498ecbebfb6d770ba1c3817024"
+    "worktree_changes": [],
+    "worktree_digest": "sha256:b9f71c58fea6da9a463644e3f163ad29c3a1ba99f7a0e936273073f3ca07a012"
   },
   "note": "No GitHub API query was run by this generator; tool installation is not inferred.",
   "remoteRef": "origin/main (local tracking ref)",
   "schemaVersion": "design-lab/cloud-baseline/v2",
   "subjectMeaning": "subjectType=WORKTREE means the tree was dirty at generation; worktreeDigest covers HEAD plus the non-generated changes",
-  "subjectSha": "a1ed336e0679980595ac881afaaa389bc4d318e0",
-  "subjectType": "WORKTREE",
+  "subjectSha": "2544868af0ae5a462f96a837b1eb1bbc5b97f325",
+  "subjectType": "COMMIT",
   "taskpackHash": "2cfd84627352e9f1b29b42787fa43466cd9a836130d826d43678b7733856ffda",
   "taskpackId": "DL-TP-20261009-UI-FIRST-R1",
   "testRunAt": "2026-10-08T20:41:26+00:00",
@@ -49,6 +38,6 @@
     "openPullRequests",
     "branchProtection"
   ],
-  "worktreeClean": false,
-  "worktreeDigest": "sha256:8028fb4c3c32b5055188c69d57896a85e77dd1498ecbebfb6d770ba1c3817024"
+  "worktreeClean": true,
+  "worktreeDigest": "sha256:b9f71c58fea6da9a463644e3f163ad29c3a1ba99f7a0e936273073f3ca07a012"
 }
