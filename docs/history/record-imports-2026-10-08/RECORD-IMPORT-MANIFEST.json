@@ -482,14 +482,14 @@
    "also_in_repo": [
     "docs/current/PRODUCT_DEFINITION.md"
    ],
-   "repoBytesAfterImport": 11466,
-   "repoCrc32AfterImport": "efe38284",
-   "repoSha256AfterImport": "sha256:a0e925302f642b5f64b47be77d9bd3c17de70ee070cda42c6774069a7e5f17e2",
+   "repoBytesAfterImport": 12288,
+   "repoCrc32AfterImport": "e3728ae2",
+   "repoSha256AfterImport": "sha256:8d325c977745e2d60f473d30c5773f158d003d539dae8af3d08ef893b9dd6339",
    "evolvedBy": {
-    "commit": "638019bf",
-    "subject": "docs(standards): register the industry specs with their real provenance, UNKNOWNs and all"
+    "commit": "442cc71b",
+    "subject": "docs(current): the three unfrozen segments now state what was measured"
    },
-   "evolution": "The archive bytes recorded above are unchanged and still verify against the source ZIP (leg 1). This row is held to the repository copy's post-import digests instead, because commit 638019bf deliberately rewrote that file after the import. Leg 2 still refuses the file if it matches neither the archived nor the declared bytes."
+   "evolution": "owner 2026-10-21 audit DL-05: current-face sentences corrected to measured readings (export control shipped; closed loop partly executed at E2); inference and acceptance scope ruled closed"
   },
   {
    "source_container": "DESIGN-LAB_FINAL_CONSOLIDATED_PACKAGE_2026-09-29.zip",
@@ -505,14 +505,14 @@
    "also_in_repo": [
     "docs/current/ROADMAP.md"
    ],
-   "repoBytesAfterImport": 9564,
-   "repoCrc32AfterImport": "4d2ef63b",
-   "repoSha256AfterImport": "sha256:748f62e5d1f39af0a781097b3828d0e9904cbfe74beccd7c0cf0a8cbff69d953",
+   "repoBytesAfterImport": 9879,
+   "repoCrc32AfterImport": "33926668",
+   "repoSha256AfterImport": "sha256:8c9024b21cb1d6e397777c938e35edc325180aa944cc0063b7e98d9d89a759e0",
    "evolvedBy": {
-    "commit": "bb514458",
-    "subject": "docs(direction): adopt the 2026-10-19 owner direction and freeze the 34-task execution"
+    "commit": "442cc71b",
+    "subject": "docs(current): the three unfrozen segments now state what was measured"
    },
-   "evolution": "Repository copy rewritten again by bb514458 when the 2026-10-19 owner direction was adopted and the 34 UI-FIRST execution tasks were frozen/deferred. The archived bytes above are unchanged and still verify against the ZIP (leg 1); repoBytesAfterImport / repoCrc32AfterImport / repoSha256AfterImport now record the direction-aligned repository copy, and leg 2 rejects the file if it stops matching them. The prior 147e6dc9 post-import declaration is superseded by this row, not erased from history."
+   "evolution": "owner 2026-10-21 audit DL-05: current-face sentences corrected to measured readings (export control shipped; closed loop partly executed at E2); inference and acceptance scope ruled closed"
   },
   {
    "source_container": "DESIGN-LAB_FINAL_CONSOLIDATED_PACKAGE_2026-09-29.zip",
