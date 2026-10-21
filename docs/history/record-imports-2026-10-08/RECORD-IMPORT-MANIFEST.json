@@ -505,14 +505,14 @@
    "also_in_repo": [
     "docs/current/ROADMAP.md"
    ],
-   "repoBytesAfterImport": 9948,
-   "repoCrc32AfterImport": "e2a6a1e8",
-   "repoSha256AfterImport": "sha256:8170c994a00247a4291cf77e127b36abdd23784d44a1a7e4249c17f4c2c4ad2f",
+   "repoBytesAfterImport": 10125,
+   "repoCrc32AfterImport": "cd2902b9",
+   "repoSha256AfterImport": "sha256:1deec9c6277752b3dd80ee44eecc1289dcdd49dd4253ffeaecfdbb604efdf00d",
    "evolvedBy": {
-    "commit": "f929eb60",
-    "subject": "feat(prompts): keep the documents this service produces, and let a human sign one"
+    "commit": "7b0852b5",
+    "subject": "docs(roadmap): R2 no longer lists the prompt panel as missing"
    },
-   "evolution": "owner 2026-10-22 B3: prompt results now stored and human-signed, so the current-face sentences moved from 'not persisted' to the measured reading; ROADMAP R2 re-based on the 20-hop chain"
+   "evolution": "R2 行去掉已落地的桌面面板缺口（B3 面板 2026-10-22 接上并进浏览器链路）"
   },
   {
    "source_container": "DESIGN-LAB_FINAL_CONSOLIDATED_PACKAGE_2026-09-29.zip",
