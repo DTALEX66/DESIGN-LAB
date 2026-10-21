@@ -199,8 +199,14 @@ E4 独立人审 / E5 发布可复现。**文档修订 ≠ 规划完成 ≠ 代�
   把没建的那一半写在可见文字里，不要把 PLANNED 标成 IMPLEMENTED。
   **2026-10-22 之后的实际剩余面（B2–B5 已全部落地并 CI_VERIFIED @ `f4b727e1`，见审计件 §5.18–§5.21）**：
   ①带版本号的未付契约债清单实测为空（35 条 SCHEMA_LESS 都是"信封自己不带 schemaVersion"的选择，不是欠账）；
-  ②规范登记件仍有四条取数欠账（PDF/UA-1 版次、IEC 61966-2-1 出版方页、Apple/Material/Fluent 的编辑日期）——
-  那是重跑只读取数，不是判据变更，也不需 owner 批准；
+  ②规范登记件的第三轮取证已于同日跑完（见审计件 §5.22）：Apple 与 Fluent 各补到一条服务端可读的面，
+  但**这一轮推翻的是本件自己上一轮的读数**——`.../tutorials/data/design/human-interface-guidelines.json`
+  本轮直连 **200**（给 `schemaVersion 0.3.0` 与版权年，仍无编辑日期），而上一轮登记为"全族 404"；
+  两轮读数都留着，不删旧、不粉饰。仍未结的是两条 C 档：**PDF/UA-1 版次**（ISO/PDF Association 403、NEN 503、
+  Beuth→DIN 404、EAN/TBS 与 Wayback 连接失败、BSI 404，只有第三方索引捕获到 Edition 2 / 2014-12 / 17 页，
+  按捕获登记不升级为已核验）与 **IEC 61966-2-1 出版记录**（`/publication/2960` 实测是 IEC 60695-4 防火测试，
+  编号不可猜；检索与预览面 404/连接失败）。这些是重跑取数，不是判据变更，也不需 owner 批准；
+  带版次的符合性断言在取证到位前仍不得写。
   ③真正卡住的只剩 owner 面：合格后端（`QUALIFIED_LOCAL=0`，磁盘上那条 Qwen2.5-VL-7B 是否列为合格是许可裁定）、
   `DESIGN.md` 批准与配色归属（挂起，非前提）、以及 E3/E4/E5 与 34 项 `FROZEN_DEFERRED`。
   代理不得替 owner 填任何一项，也不得把②以外的剩余面当缺口重复派工。

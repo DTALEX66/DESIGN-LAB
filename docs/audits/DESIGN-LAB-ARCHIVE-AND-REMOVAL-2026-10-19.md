@@ -432,6 +432,16 @@ Python 闸门的计数回执：三个分片全 `exit=0`——`shard=1/3 tests=94
 
 状态分级（不要把上一级当成下一级）：B3 桌面半、B2b、B5 三条均为 **CI_VERIFIED_EXACT_SHA @ f4b727e1**（本地实跑在前，逐作业读数在后）。§5.17 那批（B4，`35bddcfd`）的内容闸门全绿，但它的主运行被同一行硬编码测试判为 failure，该红已由本批取代；因此 B4 的准确说法是 **BRANCH_PUBLISHED + 内容闸门绿 + 其唯一 FAIL 已在 f4b727e1 转绿**，不是"当时就 11/11 success"。仍未执行、也未因这次推送而改变的：release、安装态分发、真实宿主 E3、真人 E4、ComfyUI、MiniMax H3；`currentExecution` 34 项仍 `FROZEN_DEFERRED`；手机端仍是排除项。
 
+### 5.22 第十九批（规范出处第三轮，以及我自己把登记件写红的两次）
+
+**第一次是序列错误。** §5.21 把 CI 读数写进审计件之后，我推了 `26cb7975`，但没有重跑 `scripts/generate_archive_record_register.py`——而审计件本身就是登记件的第 5 行。CI 的 Top-level Authority 作业随即报 `RECORD_REGISTER_GATE=FAIL checks=5 problems=5`：`blob SHA-1 claim d1577174b595 vs f793d9d7e265`、`bytes claim 89,924 vs 92,342`、`SHA-256 prefix claim 8214ee17858b3735 vs fba2e65ac0fcbe5f`、`bullet disagrees with table (path or digest)`、`bullet 5: digest no longer matches the committed blob`。这条红是闸门的正确判决：我在"重测登记件"之后又改了同一个被登记的文件——最后一个写者就是它的所有人。修法是把**所有内容编辑放在重测之前**，再按原序列走：`f6af3825` 上四脚本本地复跑全绿（`TOP_AUTHORITY_GATE=PASS checks=10`、`PROJECT_DRIFT=PASS findings=0`、`PATH_REF_GATE=PASS checks=10`、`RECORD_REGISTER_GATE=PASS checks=5 problems=0`），聚合 `VERIFY_DESIGN_LAB=OK total=76 failed=0`。
+
+**第二次是本件自己写错的一句读数。** 第三轮取证用只读子智能体跑了八条以上新渠道，主会话再直连复核关键一条，结果**推翻的是我自己上一轮的登记**：`developer.apple.com/tutorials/data/design/human-interface-guidelines.json` 本轮 **200**（原样给 `"copyright": "Copyright © 2026 Apple Inc. All rights reserved."` 与 `"schemaVersion": {"major": 0, "minor": 3, "patch": 0}`，仍无任何编辑日期或规范版本），而 §5.17 与登记件第四节写的是"那一族 JSON 全部 404"。两轮读数不同就登记两次：不删旧读数、不把新读数说成"一直如此"，也不因为"现在能打开"就把它当版本证据。同轮另两条：Fluent 的 `learn.microsoft.com/en-us/windows/apps/design/` 在 HTML `<head>` 里服务端就给 `ms.date: 2026-10-07`、`updated_at: 2026-10-08T15:21`、`git_commit_id: a6d48a8e…`、`ms.update-cycle: 365-days`（登记为文档页编辑日期与提交号，**不是** Fluent 2 版本号）；Material 侧仍只有 `sitemap.xml` 的 `<lastmod>`，`/get-started` 与 `/blog` 的服务端 HTML 不出版本、日期与许可。
+
+**两条 C 档欠账仍未结，渠道清单变长了。** PDF/UA-1：ISO 与 PDF Association 仍 403，NEN **503**，Beuth→DIN Media 301 后 **404**，EAN/TBS 与 Wayback 连接失败，BSI 产品页仍在 404 族——唯一新增是第三方索引对出版方页面的字段捕获（Edition 2 / Publication date 2014-12 / 17 页 / ISO/TC 171/SC 2 / 前版本 2012 已撤回），按捕获登记，**不升级为已核验版次**，`ACCESSIBILITY_BASELINE.md` 里带版次的符合性断言因此仍未解禁。IEC 61966-2-1：`webstore.iec.ch/en/publication/2960` 打开的是 "IEC 60695-4:2012 … Fire hazard testing"，把"换个编号猜"这条路堵死；`/en/search?q=…` 404、searchresults 与 preview PDF 连接失败、`sfs.fi`/`standard.no`/`nen.nl`/`sist.es`/`aenor.com` 无命中——出版记录仍 UNKNOWN。三者版本号一律 UNKNOWN 不变。
+
+**这批不动判据**：现行对比度判据仍是 WCAG 2.2 AA，APCA 仍是 B 档行业动向记录。`INDUSTRY_SPEC_REGISTER.md` 是出处件，没有闸门给它出判决；同一目录里的 `MOTION_ACCESSIBILITY.md` 却由 `verify_selected_source_adaptation.py` 逐字核对 `ruleId` 是否出现在正文——**同目录两种强度**，改错文件时才分得出来。
+
 ## 6. 本轮暴露并修掉的六个缺陷
 
 1. **分类聚合按目录贴标签**：`bundle_key()` 把一个顶层目录收成一个 bundle，于是 `docs/` 里第一个文件的类别
