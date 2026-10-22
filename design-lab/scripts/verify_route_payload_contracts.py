@@ -441,6 +441,33 @@ class Harness:
             self._bodies[path] = body
         return self._bodies[path]
 
+    def fresh_root_rollup(self):
+        """The same read on a checkout nothing has opened yet.
+
+        A throwaway synthetic root gets only the base tables, so this is the branch where every
+        unopened surface has to come back null and named in absentSurfaces -- the one distinction
+        the contract refuses to swap, and the one this harness can never show from its own root,
+        because the earlier cases already created those tables here.
+        """
+        from design_lab.project_index import ProjectIndex
+        from design_lab.service import ProjectService
+
+        temp = tempfile.TemporaryDirectory(dir=self.root)
+        saved = os.environ.get('PROJECT_LOCAL_ROOT')
+        try:
+            fresh = Path(temp.name)
+            (fresh / 'AGENTS.md').write_text('# synthetic unopened checkout', encoding='utf-8')
+            os.environ['PROJECT_LOCAL_ROOT'] = str(fresh / '.project-local')
+            service = ProjectService(str(fresh))
+            service.create_project('Nothing Opened Yet')
+            return ProjectIndex(service).list()
+        finally:
+            if saved is None:
+                os.environ.pop('PROJECT_LOCAL_ROOT', None)
+            else:
+                os.environ['PROJECT_LOCAL_ROOT'] = saved
+            temp.cleanup()
+
 
 #: name -> the route it serves, the schema that binds it, the emitter that writes the version,
 #: and the real payloads to compare. Adding a row is how the next unschema'd payload gets
@@ -464,6 +491,23 @@ def build_bindings():
             'emitter': 'src/design_lab/analysis/capability_library.py',
             'version': 'design-lab/capability-library/v1',
             'cases': lambda h: [('GET /api/capabilities', h.get('/api/capabilities'))],
+        },
+        {
+            'name': 'project-list',
+            'route': '/api/projects',
+            'method': 'GET',
+            'schema': 'design-lab/schemas/project-list-v1.schema.json',
+            'emitter': 'src/design_lab/project_index.py',
+            'version': 'design-lab/project-list/v1',
+            # Two real branches, both from live bytes: this checkout, where several surfaces have
+            # been opened by earlier cases so their counts are integers; and a throwaway root where
+            # only the base tables exist, so every unopened surface has to come back null and named
+            # in absentSurfaces. A schema that only fit the populated branch would be a nicer
+            # document than the code.
+            'cases': lambda h: [
+                ('GET /api/projects on this checkout', h.get('/api/projects')),
+                ('GET /api/projects on a checkout nothing has opened', h.fresh_root_rollup()),
+            ],
         },
         {
             'name': 'domain-pack-readback',

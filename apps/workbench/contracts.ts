@@ -57,14 +57,44 @@ export interface NativeAssetRecord {
   verification: string;
 }
 
-export interface ProjectRecord {
+export interface ProjectSummary {
   id: string;
   name: string;
+  created_at: string;
+}
+
+export interface ProjectRecord extends ProjectSummary {
+  // null means that surface's table has never been created on this checkout; 0 means it exists and
+  // this project holds none. The two are never interchangeable -- see `surfaceRule` below.
+  objects: {
+    assets: number | null; briefs: number | null; currentBriefs: number | null;
+    directions: number | null; designSystemBindings: number | null;
+    designLayerEvents: number | null; promptResults: number | null;
+    knowledgeCandidates: number | null; juryRecords: number | null;
+    rightsDecisions: number | null; researchFindings: number | null;
+    creativeJobs: number | null; modelSelectionRevisions: number | null;
+    qualityRecords: number | null;
+  };
+  absentSurfaces: string[];
+  last_activity_at: string | null;
+  waiting: {
+    promptResultsUnsigned: number | null; promptResultsNotCurrent: number | null;
+    knowledgeCandidatesPendingReview: number | null;
+    knowledgeCandidatesExportReady: number | null;
+  };
 }
 
 export interface ProjectListResponse {
+  schemaVersion: string;
   projects: ProjectRecord[];
+  surfaceRule: string;
+  does_not_say: string[];
 }
+
+// What the shipped screens read from /api/projects today. The roll-up fields are declared on
+// `ProjectRecord`/`ProjectListResponse` because the route sends them; a seam must not claim to
+// expect fields no panel reads yet, or the shape guard reports a "missing" field the page ignores.
+export type ProjectListView = Pick<ProjectListResponse, 'projects'>;
 
 export interface TaskListResponse {
   tasks: TaskRecord[];
@@ -129,7 +159,7 @@ export interface NativeAssetVerifyResponse {
 }
 
 export interface ProjectCreateResponse {
-  project: ProjectRecord;
+  project: ProjectSummary;
 }
 
 export interface TaskDispatchResponse {
@@ -603,7 +633,12 @@ export interface CapabilityLibraryResponse {
     byKind: Record<string, number>;
     byLicense: Record<string, number>;
     byRevisionState: Record<string, number>;
-    qualified: number;
+    // Four numbers, not one: "how many carry a qualification verdict" and "how many are
+    // qualified" are different claims, and the single key read like the second one.
+    qualificationVerdicts: number;
+    qualifiedTrue: number;
+    qualifiedFalse: number;
+    qualificationNotAdjudicated: number;
   };
   sources: Record<string, string>;
   capabilities: CapabilityRecord[];

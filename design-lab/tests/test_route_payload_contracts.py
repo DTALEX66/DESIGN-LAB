@@ -106,7 +106,10 @@ class RoutePayloadContractTests(unittest.TestCase):
                     'native-runtime-readback': 2,
                     # Accepted, stored-but-unsigned, and never produced. Three review sentences that
                     # a page must not be able to collapse into one empty panel.
-                    'prompt-result-readback': 3}
+                    'prompt-result-readback': 3,
+                    # This checkout (tables opened by earlier cases) and a throwaway root where they
+                    # were never created: the null-vs-0 branch only the second one can show.
+                    'project-list': 2}
         self.assertEqual(sorted(expected), sorted(b['name'] for b in self.bindings),
                          'a binding added here without being listed below is a boundary this '
                          'file silently stopped covering')

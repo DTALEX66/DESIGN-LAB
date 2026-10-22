@@ -31,7 +31,9 @@
     "counts": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["total", "joinedToTaxonomy", "byKind", "byLicense", "byRevisionState", "qualified"],
+      "required": ["total", "joinedToTaxonomy", "byKind", "byLicense", "byRevisionState",
+                   "qualificationVerdicts", "qualifiedTrue", "qualifiedFalse",
+                   "qualificationNotAdjudicated"],
       "properties": {
         "total": {"type": "integer", "minimum": 0},
         "joinedToTaxonomy": {"type": "integer", "minimum": 0},
@@ -50,7 +52,10 @@
           "propertyNames": {"enum": ["VERIFIED", "UNRESOLVED", "NOT_VERIFIED"]},
           "additionalProperties": {"type": "integer", "minimum": 0}
         },
-        "qualified": {"type": "integer", "minimum": 0}
+        "qualificationVerdicts": {"type": "integer", "minimum": 0},
+        "qualifiedTrue": {"type": "integer", "minimum": 0},
+        "qualifiedFalse": {"type": "integer", "minimum": 0},
+        "qualificationNotAdjudicated": {"type": "integer", "minimum": 0}
       }
     },
     "sources": {

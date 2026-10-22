@@ -1254,7 +1254,16 @@ const OFFLINE = {
     schemaVersion: "design-lab/capability-library/v1",
     meaning: "未连接本机设计服务",
     unmeasuredMeans: "null = 未判定，不是 0",
-    counts: { total: 0, byKind: {}, byLicense: {}, byRevisionState: {}, qualified: 0 },
+    counts: {
+      total: 0,
+      byKind: {},
+      byLicense: {},
+      byRevisionState: {},
+      qualificationVerdicts: 0,
+      qualifiedTrue: 0,
+      qualifiedFalse: 0,
+      qualificationNotAdjudicated: 0
+    },
     sources: {},
     capabilities: []
   },
@@ -3918,7 +3927,7 @@ async function renderCapabilityLibrary(target, opts = {}) {
       el(
         "p",
         { class: "view-hint" },
-        `许可分布 ${Object.entries(data.counts.byLicense).map(([k, v]) => `${k} ${v}`).join(" · ")}；修订 ${Object.entries(data.counts.byRevisionState).map(([k, v]) => `${k} ${v}`).join(" · ")}；已判定 ${data.counts.qualified}。本视图不安装、不取证、不代签许可。`
+        `许可分布 ${Object.entries(data.counts.byLicense).map(([k, v]) => `${k} ${v}`).join(" · ")}；修订 ${Object.entries(data.counts.byRevisionState).map(([k, v]) => `${k} ${v}`).join(" · ")}；资格判定 ${data.counts.qualificationVerdicts}（合格 ${data.counts.qualifiedTrue} / 不合格 ${data.counts.qualifiedFalse} / 未裁定 ${data.counts.qualificationNotAdjudicated}）。本视图不安装、不取证、不代签许可。`
       ),
       tabsBox,
       el(
@@ -4686,9 +4695,9 @@ async function renderProjects(target) {
           {},
           el("th", { scope: "row" }, expandableTitle(p.name)),
           el("td", {}, p.id),
-          // /api/projects returns only {id, name}: ProjectRecord carries no
-          // status field, so the ledger cannot say "Active". The same page
-          // already refuses to guess 进行中/已完成 in its KPIs.
+          // The roll-up now also carries objects/waiting/last_activity_at, but there is still no
+          // status field: a project record cannot say 进行中/已完成, so this column stays the
+          // read-back fact it was. The same page already refuses to guess one in its KPIs.
           el("td", {}, el("span", { class: "tag neutral" }, "未读回")),
           el("td", {}, el("button", {
             type: "button",

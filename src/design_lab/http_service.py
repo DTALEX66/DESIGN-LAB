@@ -13,6 +13,7 @@ from .runtime.paths import PathPolicyError
 from .asset_analysis import AssetAnalysis, AssetAnalysisError
 from .prompt_intelligence import PromptIntelligence, PromptIntelligenceError
 from .prompt_results import PromptResults, PromptResultError
+from .project_index import ProjectIndex, ProjectIndexError
 from .image_assets import ImageAssets, ImageAssetError
 from .task_queries import TaskQueries
 from .task_commands import TaskCommands
@@ -675,7 +676,14 @@ def make_server(service, token, port=0, *, local_session=False):
             return self.send_json(200, value)
 
         def _list_projects(self, match):
-            return self.send_json(200, {'projects': service.list_projects()})
+            # Refused rather than degraded when the roll-up contradicts its own contract: a project
+            # list that reports "0 待签" for a surface it never opened is worse than no list at all.
+            try:
+                return self.send_json(200, ProjectIndex(service).list())
+            except ProjectIndexError as exc:
+                return self.send_json(500, {'status': 'ERROR',
+                                            'error': 'PROJECT_LIST_CONTRACT_VIOLATION',
+                                            'detail': str(exc)})
 
         def _evidence_projection(self, match):
             # Not a project view: this is the state of the evidence link for the whole

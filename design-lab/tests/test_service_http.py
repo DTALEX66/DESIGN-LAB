@@ -600,7 +600,18 @@ class ServiceHttpTests(unittest.TestCase):
         self.assertEqual(record['name'], 'Native editable poster')
         self.stop()
         self.start()
-        self.assertEqual(self.request(), (200, {'projects': [record]}))
+        status, envelope = self.request()
+        self.assertEqual(200, status)
+        # The listing is now the roll-up, so a restart test asserts both halves: the record came
+        # back, and on a checkout where nothing else was ever opened every unopened surface reads
+        # null-and-named rather than 0.
+        self.assertEqual('design-lab/project-list/v1', envelope['schemaVersion'])
+        self.assertEqual([record], [{key: item[key] for key in ('id', 'name', 'created_at')}
+                                     for item in envelope['projects']])
+        self.assertEqual(0, envelope['projects'][0]['objects']['assets'])
+        self.assertIsNone(envelope['projects'][0]['objects']['promptResults'])
+        self.assertIn('promptResults', envelope['projects'][0]['absentSurfaces'])
+        self.assertIsNone(envelope['projects'][0]['last_activity_at'])
         self.assertEqual(self.request(path='/api/projects/' + record['id']), (200, {'project': record}))
 
     def test_health_and_environment_are_read_only(self):
@@ -610,7 +621,11 @@ class ServiceHttpTests(unittest.TestCase):
         self.assertEqual(health['status'], 'OK')
         self.assertEqual(health['scope'], 'project-metadata')
         self.assertEqual(self.request(path='/api/environment')[0], 200)
-        self.assertEqual(self.request(), (200, {'projects': []}))
+        status, listing = self.request()
+        self.assertEqual((status, listing['projects']), (200, []))
+        self.assertEqual('design-lab/project-list/v1', listing['schemaVersion'])
+        self.assertEqual(4, len(listing['does_not_say']),
+                         'the empty list still has to say what its nulls mean')
         self.assertFalse((self.root / '.project-local').exists())
 
     def test_workbench_assets_are_fixed_local_and_do_not_open_api_auth(self):

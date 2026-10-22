@@ -119,6 +119,19 @@ def connect(db_path, *, project_root=None) -> sqlite3.Connection:
     return connection
 
 
+def _state_of(latest, content_sha256):
+    """The only place a stored acceptance is judged.
+
+    ``readback`` and the project roll-up both call this, so the desk's front page cannot count a
+    signature as current while the detail page says it describes other bytes -- and vice versa.
+    """
+    if latest is None:
+        return 'UNREVIEWED'
+    if latest['content_sha256'] != content_sha256:
+        return 'NOT_CURRENT'
+    return latest['decision']
+
+
 def _canonical(document) -> str:
     return json.dumps(document, ensure_ascii=False, sort_keys=True)
 
@@ -371,12 +384,7 @@ class PromptResults:
                 continue
             latest = next((review for review in reversed(reviews)
                            if review['result_id'] == row['result_id']), None)
-            if latest is None:
-                state = 'UNREVIEWED'
-            elif latest['content_sha256'] != row['content_sha256']:
-                state = 'NOT_CURRENT'
-            else:
-                state = latest['decision']
+            state = _state_of(latest, row['content_sha256'])
             # The columns are a restatement of the document; say so loudly instead of preferring
             # whichever one is easier to read.
             columns_match = _source_columns(record['document'], row['kind'])
@@ -425,6 +433,30 @@ class PromptResults:
                 'NOT_CURRENT 表示存在一份签名，但它签的是另一份字节；旧签名不会被改写，只是不再描述现在。',
             ],
         }, _READBACK_SCHEMA_PATH, 'prompt-result readback', registry=_ref_registry())
+
+    def pending_counts(self, project_id) -> dict:
+        """How many stored results no signature currently describes, without reading the documents.
+
+        Deliberately cheaper than :meth:`readback`: the judgement needs only the stored row digests
+        and the review rows, so a per-project roll-up does not have to parse and schema-validate
+        every document just to say how many are waiting for a person. The verdict itself is
+        ``_state_of``, the same one the read-back uses.
+        """
+        self._check_project(project_id)
+        with closing(self._connect()) as conn:
+            rows = conn.execute(
+                'SELECT result_id, content_sha256 FROM prompt_result WHERE project_id=?'
+                ' ORDER BY revision', (project_id,)).fetchall()
+            reviews = [json.loads(row['document_json']) for row in conn.execute(
+                'SELECT document_json FROM prompt_result_review WHERE project_id=?'
+                ' ORDER BY review_revision', (project_id,)).fetchall()]
+        counts = {'total': len(rows), 'unreviewed': 0, 'accepted': 0,
+                  'declined': 0, 'not_current': 0}
+        for row in rows:
+            latest = next((review for review in reversed(reviews)
+                           if review['result_id'] == row['result_id']), None)
+            counts[_state_of(latest, row['content_sha256']).lower()] += 1
+        return counts
 
 
 def _now() -> str:

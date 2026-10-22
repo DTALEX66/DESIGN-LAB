@@ -158,6 +158,30 @@ async function flush() {
   for (let i = 0; i < 20; i += 1) await null;
 }
 
+// The /api/projects envelope since 2026-10-22 (backend A): a row carries per-surface counts where
+// null means "that surface was never opened on this checkout" and 0 means "empty". The fixture has
+// to say the same thing the route does, or the shape guard below is right to complain.
+const projectRow = (id, name) => ({
+  id, name, created_at: '2026-10-22T00:00:00+00:00',
+  objects: { assets: 0, briefs: null, currentBriefs: null, directions: null,
+    designSystemBindings: null, designLayerEvents: null, promptResults: null,
+    knowledgeCandidates: null, juryRecords: null, rightsDecisions: null,
+    researchFindings: null, creativeJobs: null, modelSelectionRevisions: null,
+    qualityRecords: null },
+  absentSurfaces: ['briefs', 'currentBriefs', 'directions', 'designSystemBindings',
+    'designLayerEvents', 'promptResults', 'knowledgeCandidates', 'juryRecords',
+    'rightsDecisions', 'researchFindings', 'creativeJobs', 'modelSelectionRevisions',
+    'qualityRecords'],
+  last_activity_at: null,
+  waiting: { promptResultsUnsigned: null, promptResultsNotCurrent: null,
+    knowledgeCandidatesPendingReview: null, knowledgeCandidatesExportReady: null },
+});
+const projectsEnvelope = (rows) => ({
+  schemaVersion: 'design-lab/project-list/v1', projects: rows,
+  surfaceRule: 'null = 该表面在此检出从未建表；0 = 表在而此项目没有记录。两者不可互换。',
+  does_not_say: ['对象计数不是完成度，也不等于有人验收过。'],
+});
+
 const shell = makeContext();
 shell.window.location.hash = '#/dashboard';
 shell.dispatchHashchange();
@@ -175,7 +199,7 @@ const firstConnectRequest = shell.pending.shift();
 const secondConnectRequest = shell.pending.shift();
 secondConnectRequest.resolve(response({ error: 'UNAUTHORIZED' }, false));
 await secondConnect;
-firstConnectRequest.resolve(response({ projects: [] }));
+firstConnectRequest.resolve(response(projectsEnvelope([])));
 await firstConnect;
 await flush();
 if (shell.elements.get('login').hidden || !shell.elements.get('workspace').hidden)
@@ -184,7 +208,7 @@ if (shell.elements.get('login').hidden || !shell.elements.get('workspace').hidde
 const token = shell.context.document.getElementById('token');
 token.value = 'a'.repeat(64);
 const connect = shell.elements.get('connect-form').onsubmit({ preventDefault() {} });
-shell.pending.shift().resolve(response({ projects: [] }));
+shell.pending.shift().resolve(response(projectsEnvelope([])));
 await connect;
 await flush();
 
@@ -213,7 +237,7 @@ const latestDashboardRequests = shell.pending.splice(0, 4);
 // environment readback — first. Their late success must be rejected by the
 // generation guard, so the current loading state survives.
 dashboardRequests[0].resolve(response({ status: 'OK', version: 'test', scope: 'local' }));
-dashboardRequests[1].resolve(response({ projects: [] }));
+dashboardRequests[1].resolve(response(projectsEnvelope([])));
 dashboardRequests[2].resolve(response({ design_systems: [] }));
 dashboardRequests[3].resolve(response({
   status: 'OK', schemaVersion: 'v1', project_root: 'D:/project', project_local_root: '.project-local',
@@ -225,7 +249,7 @@ if (!shell.elements.get('route-view').textContent.includes('正在读回当前�
   throw new Error('旧 dashboard success 不得覆盖新 dashboard 的 loading 状态');
 // Now resolve the CURRENT (gen3) dashboard's requests so it commits.
 latestDashboardRequests[0].resolve(response({ status: 'OK', version: 'test', scope: 'local' }));
-latestDashboardRequests[1].resolve(response({ projects: [] }));
+latestDashboardRequests[1].resolve(response(projectsEnvelope([])));
 latestDashboardRequests[2].resolve(response({ design_systems: [] }));
 latestDashboardRequests[3].resolve(response({
   status: 'OK', schemaVersion: 'v1', project_root: 'D:/project', project_local_root: '.project-local',
@@ -260,7 +284,7 @@ shell.pending.splice(0, 4);   // the dashboard's own reads, left unresolved on p
 shell.window.location.hash = '#/projects';
 shell.dispatchHashchange();
 const goodProjects = shell.pending.shift();
-goodProjects.resolve(response({ projects: [{ id: 'p1', name: 'Alpha' }] }));
+goodProjects.resolve(response(projectsEnvelope([projectRow('p1', 'Alpha')])));
 await flush();
 const goodText = shell.elements.get('route-view').textContent;
 if (goodText.includes('未读回：响应缺少'))
@@ -640,7 +664,8 @@ if (shell.window.location.hash !== '#/domains/uiux-design')
 console.log('ok: ⑪ 域包二级入口有独立地址、父级高亮、跨目录动作禁用并说明原因、借用与凭空计数都不出现');
 
 // ⑫ R2 §4 资产类型 tabs. The shipped catalog has every classification axis empty and
-// counts.qualified = 0, so a tab strip built from that data alone cannot tell an honest
+// counts.qualifiedTrue = 0 (all 60 records sit in qualificationNotAdjudicated), so a tab strip
+// built from that data alone cannot tell an honest
 // empty state apart from a hardcoded one. This block therefore seeds a fixture where ONE
 // record IS classified and IS qualified: the tabs must follow the fields, not the shipped
 // emptiness. It also pins the two lies the design has to refuse -- counting 可调用能力 by
@@ -878,7 +903,7 @@ shell.dispatchHashchange();
 const intakeProjectsReq = shell.pending.shift();
 if (intakeProjectsReq.path !== '/api/projects')
   throw new Error(`输入与目标没有先读项目列表，实得 ${intakeProjectsReq.path}`);
-intakeProjectsReq.resolve(response({ projects: [{ id: 'p1', name: 'Alpha' }] }));
+intakeProjectsReq.resolve(response(projectsEnvelope([projectRow('p1', 'Alpha')])));
 await flush();
 const intakeView = shell.elements.get('route-view');
 const intakeSelect = byIdAttr(intakeView, '输入与目标-project');
@@ -1020,7 +1045,7 @@ async function openPlan() {
   const projectsReq = shell.pending.shift();
   if (projectsReq.path !== '/api/projects')
     throw new Error(`#/plan 没有先读项目列表，实得 ${projectsReq.path}`);
-  projectsReq.resolve(response({ projects: [{ id: 'p1', name: 'Alpha' }] }));
+  projectsReq.resolve(response(projectsEnvelope([projectRow('p1', 'Alpha')])));
   await flush();
   const view = shell.elements.get('route-view');
   const picker = byIdAttr(view, '目标生成包-project');
@@ -1176,7 +1201,7 @@ console.log(`ok: ① 未连接态 ${offlineChecked} 个视图报告未读回，$
 shell.window.location.hash = '#/projects';
 shell.dispatchHashchange();
 const emptyProjects = shell.pending.shift();
-emptyProjects.resolve(response({ projects: [] }));
+emptyProjects.resolve(response(projectsEnvelope([])));
 await flush();
 const liveEmptyText = shell.elements.get('route-view').textContent;
 if (!liveEmptyText.includes('尚无项目 在工作台新建项目后出现。'))
@@ -1308,7 +1333,7 @@ const PREFLIGHT_READBACK = {
 shell.window.location.hash = '#/deliverables';
 shell.dispatchHashchange();
 const deliverableProjects = shell.pending.shift();
-deliverableProjects.resolve(response({ projects: [{ id: 'p1', name: 'Alpha' }] }));
+deliverableProjects.resolve(response(projectsEnvelope([projectRow('p1', 'Alpha')])));
 await flush();
 const routeView = shell.elements.get('route-view');
 const projectSelect = byElementId(routeView, '交付中心-project');
@@ -1523,7 +1548,7 @@ shell.dispatchHashchange();
 const evidencePickerRequest = shell.pending.splice(0, shell.pending.length);
 if (evidencePickerRequest.length !== 1)
   throw new Error(`#/evidence 打开时发出了 ${evidencePickerRequest.length} 个请求，应只有项目台账`);
-evidencePickerRequest[0].resolve(response({ projects: [{ id: 'p1', name: 'Alpha' }] }));
+evidencePickerRequest[0].resolve(response(projectsEnvelope([projectRow('p1', 'Alpha')])));
 await flush();
 const evidenceView = shell.elements.get('route-view');
 const evidenceSelect = byElementId(evidenceView, '证据系统-project');
@@ -1938,7 +1963,7 @@ console.log('ok: ⑦b 证据链完整性：构建页面零读回、一次点击�
 // service's own (lang="en", never translated). The 未读回 half is the shape this repo has
 // been burned on: a count the response never carried must not be drawn as 0/0, and
 // NOT_REVIEWED must not read as "somebody owes an answer".
-const RIGHTS_PROJECTS = { projects: [{ id: 'p1', name: 'Alpha' }, { id: 'p2', name: 'Beta' }] };
+const RIGHTS_PROJECTS = projectsEnvelope([projectRow('p1', 'Alpha'), projectRow('p2', 'Beta')]);
 let rightsFixture = RIGHTS_READBACK;
 const rightsAnswer = (path) => (path === '/api/projects' ? RIGHTS_PROJECTS
   : path.includes('/rights') ? rightsFixture : JURY_READBACK);
@@ -2624,7 +2649,7 @@ const RECORD_TASKS = [
 shell.window.location.hash = '#/records';
 shell.dispatchHashchange();
 const recordProjects = shell.pending.shift();
-recordProjects.resolve(response({ projects: [{ id: 'p1', name: 'Alpha' }] }));
+recordProjects.resolve(response(projectsEnvelope([projectRow('p1', 'Alpha')])));
 await flush();
 const recordsView = shell.elements.get('route-view');
 const recordSelect = byElementId(recordsView, '制作记录与待继续-project');
@@ -2737,7 +2762,7 @@ if (!claimHost || !(claimHost.textContent || '').includes('未接线'))
 shell.window.location.hash = '#/intake';
 shell.dispatchHashchange();
 const intakeProjectsReq2 = shell.pending.shift();
-intakeProjectsReq2.resolve(response({ projects: [{ id: 'p1', name: 'Alpha' }] }));
+intakeProjectsReq2.resolve(response(projectsEnvelope([projectRow('p1', 'Alpha')])));
 await flush();
 const intakeView2 = shell.elements.get('route-view');
 const intakeSelect2 = byIdAttr(intakeView2, '输入与目标-project');
@@ -2774,7 +2799,7 @@ async function openRecordsWithRuntime(doc) {
   shell.dispatchHashchange();
   const projectsReq = shell.pending.shift();
   if (!projectsReq) throw new Error('重新进入制作记录没有读项目列表');
-  projectsReq.resolve(response({ projects: [{ id: 'p1', name: 'Alpha' }] }));
+  projectsReq.resolve(response(projectsEnvelope([projectRow('p1', 'Alpha')])));
   await flush();
   const view = shell.elements.get('route-view');
   const select = byElementId(view, '制作记录与待继续-project');
@@ -2925,7 +2950,7 @@ console.log('ok: ⑰ 全局搜索的四组对象投影按各自路由的合同�
           design_systems: [] } }));
         else if (r.path.endsWith('/design-systems')) r.resolve(response({ design_systems: [] }));
         else if (r.path.endsWith('/design-system-tokens')) r.resolve(response({ token_documents: [] }));
-        else if (r.path === '/projects') r.resolve(response({ projects: [{ id: PID, name: 'Alpha' }] }));
+        else if (r.path === '/projects') r.resolve(response(projectsEnvelope([projectRow(PID, 'Alpha')])));
         else r.resolve(response({}));
       }
       await flush();
@@ -2991,7 +3016,7 @@ console.log('ok: ⑳ DL-UI-U07 成果版本面板：读回真实 BundleRecord �
     shell.dispatchHashchange();
     const projectsReq = shell.pending.shift();
     if (!projectsReq) throw new Error('㉒ 重新进入制作记录没有读项目列表');
-    projectsReq.resolve(response({ projects: [{ id: 'p1', name: 'Alpha' }] }));
+    projectsReq.resolve(response(projectsEnvelope([projectRow('p1', 'Alpha')])));
     await flush();
     const view = shell.elements.get('route-view');
     const select = byElementId(view, '制作记录与待继续-project');

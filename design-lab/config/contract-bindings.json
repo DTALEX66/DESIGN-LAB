@@ -469,9 +469,12 @@
     {
       "route": "/api/projects",
       "method": "GET+POST",
-      "kind": "SCHEMA_LESS",
+      "kind": "BOUND_SCHEMA",
       "handler": "list_projects",
-      "reason": "No schema and none is needed for the envelope: one dispatch serves the project listing and project creation. Both bodies are a single name field or an id list from the project store; the exact-key-set rule in http_service.py body() is what refuses extra fields. src/design_lab/service.py declares no schemaVersion."
+      "schema": "design-lab/schemas/project-list-v1.schema.json",
+      "emitter": "src/design_lab/project_index.py:36",
+      "version": "design-lab/project-list/v1",
+      "reason": "Paid 2026-10-22 (backend A, for Stitch screen D01). The GET half now answers design-lab/project-list/v1: each project row carries per-surface record counts, the newest stored timestamp and the numbers still waiting on a named human, and the contract binds the one distinction a page cannot recover afterwards -- a count is null exactly when that surface's table has never been created here (the surface is then named in absentSurfaces), and 0 exactly when the table exists and holds nothing. It refuses both directions, and it refuses a pending number for a surface the row admits it never opened. The counts are not re-derived: prompt-result states come through the same _state_of predicate the prompt-result read-back uses, and the candidate counters come out of that resource's own read-back. The POST half is still this dispatch's honest gap: the creation echo {'project': {id, name, created_at}} carries no schemaVersion, so it is named here rather than counted as bound by the GET half."
     },
     {
       "route": "/api/design-systems",

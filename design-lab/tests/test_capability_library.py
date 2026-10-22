@@ -81,7 +81,16 @@ class ProjectionTests(unittest.TestCase):
         for record in self.doc['capabilities']:
             self.assertIsNone(record['qualified'], f"{record['id']} claims a verdict")
             self.assertIsNone(record['qualificationEvidence'])
-        self.assertEqual(self.doc['counts']['qualified'], 0)
+        counts = self.doc['counts']
+        self.assertEqual(len(self.doc['capabilities']), counts['total'])
+        self.assertEqual(0, counts['qualifiedTrue'],
+                         'a qualification needs a host run and a human acceptance; neither exists '
+                         'in this repository, so nothing may be reported as qualified')
+        self.assertEqual(0, counts['qualifiedFalse'])
+        self.assertEqual(0, counts['qualificationVerdicts'])
+        self.assertEqual(counts['total'], counts['qualificationNotAdjudicated'],
+                         'the split has to partition the records it counted, not hint at a third '
+                         'category nobody reported')
 
     def test_absent_revision_is_not_verified_never_absent_provenance(self):
         states = {r['id']: r['revisionState'] for r in self.doc['capabilities']}

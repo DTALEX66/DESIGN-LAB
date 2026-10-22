@@ -803,7 +803,10 @@ def main(argv=None):
         elif args.command == 'paths':
             result = service.paths.describe()
         elif args.action == 'list':
-            result = {'projects': service.list_projects()}
+            # Same roll-up the HTTP surface answers, so the two cannot disagree about what a
+            # project holds or who still has to sign for it.
+            from .project_index import ProjectIndex
+            result = ProjectIndex(service).list()
         else:
             result = {'project': service.create_project(args.name)}
     except (ValueError, OSError, sqlite3.Error, AssetError, PathPolicyError,

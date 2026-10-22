@@ -264,7 +264,16 @@ def build(root: Path | None = None) -> dict:
             "byKind": tally("kind"),
             "byLicense": tally("license"),
             "byRevisionState": tally("revisionState"),
-            "qualified": sum(1 for c in capabilities if c["qualified"] is not None),
+            # Four numbers, because one key could only ever answer one of the two questions and it
+            # read like the other: a page that shows "合格 0" for a library where nothing has ever
+            # been judged is technically true and practically a claim. A verdict requires a host run
+            # plus a human acceptance, which no registry in this repository can yield.
+            "qualificationVerdicts": sum(1 for c in capabilities
+                                         if isinstance(c["qualified"], bool)),
+            "qualifiedTrue": sum(1 for c in capabilities if c["qualified"] is True),
+            "qualifiedFalse": sum(1 for c in capabilities if c["qualified"] is False),
+            "qualificationNotAdjudicated": sum(1 for c in capabilities
+                                               if c["qualified"] is None),
         },
         "sources": {"lock": LOCK_REL.as_posix(), "revisions": REVISIONS_REL.as_posix(),
                     "radar": RADAR_REL.as_posix()},

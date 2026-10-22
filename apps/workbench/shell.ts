@@ -42,7 +42,7 @@ import type {
   PromptSectionSource,
   TaskRecord,
   HealthResponse,
-  ProjectListResponse,
+  ProjectListView,
   TaskListResponse,
   TaskPreflightResource,
   TaskPreflightResponse,
@@ -138,13 +138,15 @@ function apiOrEmpty<T extends object>(path: string, empty: T): Promise<T> {
 // Honest empty payloads for the dev/offline seam (see apiOrEmpty).
 const OFFLINE = {
   health: { status: 'UNKNOWN', version: '—', scope: 'dev-offline' } as HealthResponse,
-  projects: { projects: [] } as ProjectListResponse,
+  projects: { projects: [] } as ProjectListView,
   designSystems: { design_systems: [] } as DesignSystemListResponse,
   tokenDocuments: { token_documents: [] } as TokenDocumentListResponse,
   capabilities: {
     schemaVersion: 'design-lab/capability-library/v1',
     meaning: '未连接本机设计服务', unmeasuredMeans: 'null = 未判定，不是 0',
-    counts: { total: 0, byKind: {}, byLicense: {}, byRevisionState: {}, qualified: 0 },
+    counts: { total: 0, byKind: {}, byLicense: {}, byRevisionState: {},
+              qualificationVerdicts: 0, qualifiedTrue: 0, qualifiedFalse: 0,
+              qualificationNotAdjudicated: 0 },
     sources: {}, capabilities: [],
   } as CapabilityLibraryResponse,
   // The domain readback's honest empty: the counts are zero because nothing was read,
@@ -663,7 +665,7 @@ export async function renderDashboard(target: HTMLElement): Promise<void> {
   target.replaceChildren(el('p', { class: 'view-loading' }, '正在读回服务状态…'));
   const [health, projects, systems, environment] = await Promise.all([
     apiOrEmpty<HealthResponse>('/health', OFFLINE.health),
-    apiOrEmpty<ProjectListResponse>('/projects', OFFLINE.projects),
+    apiOrEmpty<ProjectListView>('/projects', OFFLINE.projects),
     apiOrEmpty<DesignSystemListResponse>('/design-systems', OFFLINE.designSystems),
     apiOrEmpty<EnvironmentResponse>('/environment', OFFLINE.environment),
   ]);
@@ -1055,7 +1057,7 @@ function acceptanceFraction(data: JuryReadback): string {
 
 export async function renderJuryReview(host: HTMLElement): Promise<void> {
   host.replaceChildren(el('p', { class: 'view-loading' }, '正在读回评审记录…'));
-  const projects = await apiOrEmpty<ProjectListResponse>('/projects', OFFLINE.projects);
+  const projects = await apiOrEmpty<ProjectListView>('/projects', OFFLINE.projects);
   const projectShape = shapeNotice(projects);
   if (projectShape) {
     host.replaceChildren(el('p', { class: 'error' },
@@ -1842,7 +1844,7 @@ function rightsDecisionForm(projectId: string, data: RightsReadback,
 
 export async function renderRightsReview(host: HTMLElement): Promise<void> {
   host.replaceChildren(el('p', { class: 'view-loading' }, '正在读回权利决定…'));
-  const projects = await apiOrEmpty<ProjectListResponse>('/projects', OFFLINE.projects);
+  const projects = await apiOrEmpty<ProjectListView>('/projects', OFFLINE.projects);
   const projectShape = shapeNotice(projects);
   if (projectShape) {
     host.replaceChildren(el('p', { class: 'error' },
@@ -2087,7 +2089,7 @@ function researchDecisionForm(projectId: string, data: ResearchReadback, reload:
 
 export async function renderResearch(host: HTMLElement): Promise<void> {
   host.replaceChildren(el('p', { class: 'view-loading' }, '正在读回研究结论…'));
-  const projects = await apiOrEmpty<ProjectListResponse>('/projects', OFFLINE.projects);
+  const projects = await apiOrEmpty<ProjectListView>('/projects', OFFLINE.projects);
   const projectShape = shapeNotice(projects);
   if (projectShape) {
     host.replaceChildren(el('p', { class: 'error' }, `研究项目清单未读回：${projectShape}`));
@@ -2617,7 +2619,9 @@ export async function renderCapabilityLibrary(target: HTMLElement,
       el('p', { class: 'view-hint' },
         `许可分布 ${Object.entries(data.counts.byLicense).map(([k, v]) => `${k} ${v}`).join(' · ')}`
         + `；修订 ${Object.entries(data.counts.byRevisionState).map(([k, v]) => `${k} ${v}`).join(' · ')}`
-        + `；已判定 ${data.counts.qualified}。本视图不安装、不取证、不代签许可。`),
+        + `；资格判定 ${data.counts.qualificationVerdicts}（合格 ${data.counts.qualifiedTrue}`
+        + ` / 不合格 ${data.counts.qualifiedFalse} / 未裁定 ${data.counts.qualificationNotAdjudicated}）`
+        + `。本视图不安装、不取证、不代签许可。`),
       tabsBox,
       el('div', { class: 'project-picker capability-facets' },
         el('label', { class: 'capability-filter' }, '关键词', filter),
@@ -3192,7 +3196,7 @@ export async function projectPickerPanel(target: HTMLElement, title: string,
                          // 时发现）。默认值保持原句，其余只读页逐字节不变。
                          caption: string = '只读回服务端台账；本页不提交、不修改。'): Promise<void> {
   target.replaceChildren(el('p', { class: 'view-loading' }, '正在读回项目台账…'));
-  const data = await apiOrEmpty<ProjectListResponse>('/projects', OFFLINE.projects);
+  const data = await apiOrEmpty<ProjectListView>('/projects', OFFLINE.projects);
   const unread = shapeNotice(data);
   const offline = disconnectedNotice(data);
   if (!data.projects.length) {
@@ -3258,7 +3262,7 @@ export async function projectPickerPanel(target: HTMLElement, title: string,
 // project happens in the workbench; this page just lists the ledger.
 export async function renderProjects(target: HTMLElement): Promise<void> {
   target.replaceChildren(el('p', { class: 'view-loading' }, '正在读回项目台账…'));
-  const data = await apiOrEmpty<ProjectListResponse>('/projects', OFFLINE.projects);
+  const data = await apiOrEmpty<ProjectListView>('/projects', OFFLINE.projects);
   const n = data.projects.length;
   // B10 1:1 page-head + kpi-grid（真实读回值，非 B10 演示数字）。
   const pageHead = el('div', { class: 'page-head' },
@@ -3286,9 +3290,9 @@ export async function renderProjects(target: HTMLElement): Promise<void> {
           ? data.projects.map((p) => el('tr', {},
               el('th', { scope: 'row' }, expandableTitle(p.name)),
               el('td', {}, p.id),
-              // /api/projects returns only {id, name}: ProjectRecord carries no
-              // status field, so the ledger cannot say "Active". The same page
-              // already refuses to guess 进行中/已完成 in its KPIs.
+              // The roll-up now also carries objects/waiting/last_activity_at, but there is still no
+              // status field: a project record cannot say 进行中/已完成, so this column stays the
+              // read-back fact it was. The same page already refuses to guess one in its KPIs.
               el('td', {}, el('span', { class: 'tag neutral' }, '未读回')),
               el('td', {}, el('button', {
                 type: 'button', class: 'ghost-btn',
@@ -5284,7 +5288,7 @@ function renderVersionsPanel(bundlesResp: BundleListResponse): HTMLElement {
 export async function renderProjectDetail(id: string, target: HTMLElement): Promise<void> {
   target.replaceChildren(el('p', { class: 'view-loading' }, '正在读回该项目…'));
   rememberProject(id);   // W03 "最近项目": record the project the user actually opened
-  const listing = await apiOrEmpty<ProjectListResponse>('/projects', OFFLINE.projects);
+  const listing = await apiOrEmpty<ProjectListView>('/projects', OFFLINE.projects);
   const named = listing.projects.find((p) => p.id === id);
   const [tasks, layerResp, systemsResp, bundlesResp, tokensResp] = await Promise.all([
     apiOrEmpty<TaskListResponse>(`/projects/${id}/tasks`, OFFLINE.tasks),
@@ -9026,7 +9030,7 @@ export async function renderModelSelection(target: HTMLElement): Promise<void> {
 
   // The choice is per project, so the picker is scoped to one: a global "apply" button would let a
   // single click look like it applied to every project at once.
-  const projects = await apiOrEmpty<ProjectListResponse>('/projects', OFFLINE.projects);
+  const projects = await apiOrEmpty<ProjectListView>('/projects', OFFLINE.projects);
   const projectSelect = el('select', { class: 'input', id: 'model-selection-project' },
     el('option', { value: '' }, projects.projects.length ? '选择项目' : '尚无项目'),
     ...projects.projects.map((row) => el('option', { value: row.id },
