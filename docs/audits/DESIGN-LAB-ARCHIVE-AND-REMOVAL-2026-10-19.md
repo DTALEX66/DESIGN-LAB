@@ -515,6 +515,20 @@ Windows 报 `[WinError 206] 文件名或扩展名太长`。上一批（本批之
 
 **闸门计数不变的原因**：`VERIFY_CONTRACT_BINDINGS=PASS routes=68 bound=36 schema_less=32` 与 `VERIFY_ROUTE_PAYLOAD_CONTRACTS=PASS bindings=17` 一字未动——本批改的是"合同从哪里读"，不是"哪条边界有没有合同"；`INERT_SURVEY=OK rows=30`、`STATE_VOCABULARIES=OK`、`WORKBENCH PACKAGING: all 5 passed`、聚合 `VERIFY_DESIGN_LAB=OK total=76 failed=0`（尾枚重跑同值）。wheel `1,068,459 B`。
 
+### 5.26 第二十三批（后端 F：把装机面"没测"的那一半真测完，并修掉本机背了两批的路径超长红）
+
+owner 这句还是「继续打磨后端」。§5.24 与 §5.25 各自留下一条明写的欠账——"14 条 GET 行没调用"和"本机两条安装态用例稳定红"——这一批就把这两条结清，不加新功能、不动前端。
+
+**先更正我自己连写两轮的读数**：那两节写的是"账本 37 条 GET 行"。逐行数一遍是 **39 条**：我当时的过滤条件是 `route.startswith('/api/')`，把 `/workbench` 与 `workbench.ROUTES` 两行滤掉了却没说。分母写错不是无害的近似，它正是这批要修的毛病本身，所以原句保留不改，以本句为准。
+
+**① 每一条 GET 都用真实对象调用一次**（`design-lab/tests/test_standalone_chain_http.py` 新增 `test_every_ledger_get_route_is_answered_in_this_layout`）：先用写入路由造出资产、简报、方向，再复用交付腿（`_deliver_to_preflight()` 从原来的交付用例里抽出来共用，不复制第二份）拿到交付项目、job、bundle 与 version id，然后把账本每行的 id 槽位换成**这台服务刚写进去的值**逐条调用。断言是双向的：每行必须在覆盖表里有一条读法，否则红——新增路由不能靠"没人加"溜过去；反过来，表里出现账本已不声明的路由也红。槽位缺值直接失败，不会把字面量 `{token}` 当路径发出去。5xx 只允许一张按布局分开的名单，而且**名单必须与实际发生的 5xx 完全相等**：不再发生的那条会让断言红，免得一个旧豁免悄悄给下一条 5xx 背书。
+**读数**：源码布局 `routes=39 reads=39 answered=35 verdicts=4`，未点名 5xx 为 0；装好的 wheel 里 `routes=39 reads=38 answered=34 verdicts=4`，唯一被点名的 5xx 是 `/api/evidence-projection → 503 EVIDENCE_LEDGER_ABSENT`——安装的产品里没有可投影的治理检出，它点名缺哪个台账文件而不是给一张干净回执；同一条在源码检出里回 200，两侧名单互换即为红，所以这条不是被豁免掉的失败，是被读出来的差别。三条"仍然没读"逐条写明理由：`…/native-assets/<id>/verify` 需要先被登记的原生资产（交付腿注册的是 bundle 与版本，不是资产行）；`…/knowledge-candidates/<id>/export` 由同一布局里的验收链走到 `export=200`，本扫描不重复建候选；`workbench.ROUTES` 那行本来就不是 URL，是账本记的模块表名。**CI 的装机步现在额外要求日志里出现 `GET_SWEEP layout=installed`**——用例被重构空转时，作业不能照样绿。
+
+**② 本机背了两批的那两条红**（`test_capability_library_clean_install`）：根因量清了——不是代码，是**这台机器的路径长度上限**：runner 把自己的临时根放在 `.project-local/task-runtime/python-tests-shard-1/<32hex>/tmp/`（133 字符），wheel 解包后最深的一条是 `…/design_lab/resources/repo/design-lab/domain-packs/uiux-design/benchmarks/<pack>-golden/implementations/<baseline|enhanced>.html`，377 个成员里正好 8 条超过 259 字符，**没有一条是探针要读的**。修法是逐成员解包 + **对"跳过了什么"下断言**：只允许 `resources/repo/design-lab/domain-packs/` 下的基准页被跳过，四个能力库输入若被跳过即红，其它任何成员跳不过；判据是**成员名而不是 errno**——同一台机器上同一类超长路径在 `makedirs` 处报 `WinError 206`、在 `open` 处报 `[Errno 2]`，我一开始按错误码过滤，实跑立刻不复现，这就是"按码过滤会悄悄再坏一次"的现场版。另加一条不对称用例 `test_an_unextractable_member_the_probe_needs_is_a_finding`，分别证明"需要的成员被跳过必须红"与"基准页被跳过必须放行"，否则这段豁免等于没测。
+**验证**：在 runner 自己的深临时根下重跑该模块，`Ran 5 tests / OK / errors=0 failures=0 skipped=0`（此前稳定 2 ERROR）；植入仍然有效（把能力库输入从解包站点移走 → 探针必须拒绝，那条用例就在同一模块里）。这不是把测试关掉换来的绿。
+
+**闸门与实跑**：定向 `test_standalone_chain_http` 源码 5 OK、装机 5 OK（两次都打印自己的分母），`test_capability_library_clean_install` 5 OK（含 runner 环境），`test_evidence_artifact_presence`/`test_packaged_contract_resources`/`test_route_payload_contracts`/`test_contract_bindings` 合计 78 OK；`VERIFY_CONTRACT_BINDINGS=PASS routes=68 dispatched=68 bound=36 schema_less=32`、`VERIFY_ROUTE_PAYLOAD_CONTRACTS=PASS bindings=17 failures=0`（这批没改任何边界，只改了"有没有被读到"）；聚合与全量 union 读数、CI 逐作业读数在本节末回填。**状态**：IMPL_LOCAL + TESTED_LOCAL @ `74a461f4`；边界不变——E3/E4/E5、ComfyUI/H3、`currentExecution` 34 项、手机端排除项、字体与三方素材出范围、推理不接、签署与导出仍只本地具名 human，一字未动。级别仍是 E2：sweep 量的是"这台装好的服务答不答"，不是"产物好不好"。
+
 ## 6. 本轮暴露并修掉的六个缺陷
 
 1. **分类聚合按目录贴标签**：`bundle_key()` 把一个顶层目录收成一个 bundle，于是 `docs/` 里第一个文件的类别

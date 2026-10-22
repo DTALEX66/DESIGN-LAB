@@ -251,15 +251,29 @@ E4 独立人审 / E5 发布可复现。**文档修订 ≠ 规划完成 ≠ 代�
   `design-lab/tests/test_packaged_contract_resources.py` 把这份报告变成闸门，并**把"空群体"本身判红**。
   它的两条盲区写在工具头部注释里，别把它们当已解决：先把根存进变量的两步拼法不追；不同打包前缀的
   合法 packaged-first 读法会被报成 NOT-SHIPPED（现在只有 Adobe 桥那一条，宿主派发仍冻结）。
-  **本机唯一未结的读数**：`test_capability_library_clean_install` 两条安装态用例在本机绑定跑里稳定
+  **本机那条未结的读数已经结清**（原本记在这里，现由后端 F 修完，见下条与 §5.26）：
+  `test_capability_library_clean_install` 两条安装态用例在本机绑定跑里稳定
   `[WinError 206] 文件名或扩展名太长`（解包 wheel 到 `.project-local/task-runtime/python-tests-shard-1/…`
-  的深路径），上一批本机同样两条、Linux CI 三次全绿——未修；要修就给这条用例一个更短的临时根或只解包
-  需要的成员，别把"CI 绿"当"已解释"。
+  的深路径，377 个成员里 8 条超 259 字符且探针一条都不读），Linux CI 三次全绿。
   更正一句旧话：`/api/evidence-projection` 在安装包里回 `503 EVIDENCE_LEDGER_ABSENT`，detail 是
   `design-lab/config/task-ledger-r3.json is not in this checkout`，判决仍然正确，但它命名的那个"检出"
   其实是解释器目录 `…/Lib`——上一轮写的"临时根没有台账"说错了对象。
-  **剩下的装机面剩余面（诚实的"没测"）**：那 14 条需要真实资产/简报/方向/产物 id 的 GET 行本轮仍未逐条调用；
-  要付就照同一把尺子——先把夹具塞进链里，再读，别用"绿的就当没问题"顶。
+  **上一轮那两条"没测/未修"，同日第二十三批（后端 F）都结清了**（审计件 §5.26）：
+  ① 分母先更正——账本是 **39 条** GET 行，不是前两轮写的 37 条（我当时的 `startswith('/api/')` 过滤把
+  `/workbench` 与 `workbench.ROUTES` 悄悄滤掉了）。现在 `test_standalone_chain_http` 里新增
+  `test_every_ledger_get_route_is_answered_in_this_layout`：用写入路由造出真实资产/简报/方向，再经
+  `_deliver_to_preflight()`（从交付腿抽出来共用）拿 job/bundle/version id，把每一行的槽位换成真值调用。
+  读数：源码 `routes=39 reads=39 answered=35 verdicts=4` 无未点名 5xx；装机 `reads=38 answered=34
+  verdicts=4`，唯一被点名的 5xx 是 `/api/evidence-projection → 503 EVIDENCE_LEDGER_ABSENT`
+  （安装态没有可投影的治理检出；同一条在源码检出回 200，两侧名单互换即红，所以这不是豁免是差别）。
+  仍未读的 3 条各带原因：`…/native-assets/<id>/verify` 需要先登记的原生资产；候选 export 由同一布局的
+  验收链走到 `export=200`；`workbench.ROUTES` 不是 URL。覆盖表**双向**断言，新路由没人写读法就红；
+  CI 装机步额外要求日志出现 `GET_SWEEP layout=installed`。
+  ② 本机那两条 `[WinError 206]` 修好了：逐成员解包 + 对跳过集合下断言（只许 domain-pack 基准页被跳，
+  能力库四个输入不许跳），判据用成员名而非 errno（同一超长路径在 `makedirs` 报 206、在 `open` 报
+  `[Errno 2]`，按码过滤会悄悄再坏一次），并加了一条不对称用例证明这条豁免两侧都有效。在 runner 自己的
+  深临时根下该模块 `Ran 5 tests / OK / errors=0 skipped=0`。**后端 F 状态：IMPL_LOCAL + TESTED_LOCAL
+  @ `74a461f4`**，CI 逐作业读数见 §5.26 末。
   ②规范登记件的第三轮取证已于同日跑完（见审计件 §5.22）：Apple 与 Fluent 各补到一条服务端可读的面，
   但**这一轮推翻的是本件自己上一轮的读数**——`.../tutorials/data/design/human-interface-guidelines.json`
   本轮直连 **200**（给 `schemaVersion 0.3.0` 与版权年，仍无编辑日期），而上一轮登记为"全族 404"；
