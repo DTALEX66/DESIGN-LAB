@@ -386,6 +386,9 @@ jobs:
           # The GET sweep prints its own denominator. Requiring the installed line keeps a future
           # refactor from turning the case into a no-op while the job still reads green.
           grep -q "GET_SWEEP layout=installed" chain.log
+          # The native-asset verify route re-reads stored bytes; the line names all three verdicts it
+          # must produce in this layout, so a check that quietly stopped hashing cannot pass.
+          grep -q "NATIVE_VERIFY layout=installed clean=HASH_VERIFIED tampered=NATIVE_ARTIFACT_UNVERIFIED unknown=NATIVE_ASSET_NOT_FOUND" chain.log
 
       - name: Walk every POST row against the installed package
         env:

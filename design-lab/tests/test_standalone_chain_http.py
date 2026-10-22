@@ -444,6 +444,68 @@ class StandaloneChainTests(unittest.TestCase):
                         'no finding reports a measurement, so the verdict is not evidence')
         print('DELIVERY_HOPS ' + ' '.join(self.hops))
 
+    def test_the_native_asset_verify_route_re_reads_the_stored_bytes(self):
+        """What `…/native-assets/<id>/verify` measures, proved by moving the bytes.
+
+        The list route answers `verification: METADATA_ONLY` for the same row, so the only
+        difference a caller can act on is this route's own re-hash. A label that would also come back
+        `HASH_VERIFIED` if the file were tampered with would be decoration, so the control is the
+        tamper: the ledger's stored artifact is rewritten with bytes of the SAME length (a size
+        check alone would still pass), the verdict must move to `NATIVE_ARTIFACT_UNVERIFIED`, and
+        restoring the original bytes must bring `HASH_VERIFIED` back. The unknown-id half is the
+        other boundary: an id shaped like a native asset but never registered is 404, not a
+        verification of nothing.
+        """
+        from contextlib import closing
+        import sqlite3
+        delivered = self._deliver_to_preflight()
+        project = delivered['project']
+        listed = self.call('GET', f'/api/projects/{project}/native-assets')[1]['assets']
+        self.assertTrue(listed, 'the delivery leg registered no native asset to verify')
+        row = listed[0]
+        self.assertEqual('METADATA_ONLY', row['verification'],
+                         'the list route started claiming byte verification it does not perform')
+
+        with closing(sqlite3.connect(self.service.database)) as conn:
+            stored = conn.execute(
+                'SELECT f.path FROM artifact f JOIN asset_version v ON f.version_id=v.version_id '
+                'WHERE v.version_id=?', (row['version_id'],)).fetchone()[0]
+        artifact = Path(stored)
+        self.assertTrue(artifact.is_file(),
+                        f'the ledger points at a missing artifact: {stored}')
+        original = artifact.read_bytes()
+        self.addCleanup(artifact.write_bytes, original)
+
+        status, answer = self.call('GET',
+                                   f'/api/projects/{project}/native-assets/{row["id"]}/verify')
+        self.assertEqual(status, 200, answer)
+        checked = answer['asset']
+        self.assertEqual('HASH_VERIFIED', checked['verification'])
+        # The verdict must be about the row the list route published, not a re-derived one.
+        self.assertEqual((row['id'], row['version_id'], row['sha256'], row['byte_size']),
+                         (checked['id'], checked['version_id'], checked['sha256'],
+                          checked['byte_size']))
+        self.assertEqual(original, artifact.read_bytes(),
+                         'verify rewrote the artifact it was only supposed to read')
+
+        artifact.write_bytes(b'X' * len(original))
+        tampered = self.call('GET', f'/api/projects/{project}/native-assets/{row["id"]}/verify')
+        self.assertEqual(409, tampered[0], tampered[1])
+        self.assertEqual('NATIVE_ARTIFACT_UNVERIFIED', tampered[1]['error'],
+                         'a same-length rewrite of the stored bytes slipped past the check')
+        artifact.write_bytes(original)
+        again = self.call('GET', f'/api/projects/{project}/native-assets/{row["id"]}/verify')
+        self.assertEqual((200, 'HASH_VERIFIED'), (again[0], again[1]['asset']['verification']),
+                         'the verdict did not come back when the bytes were restored')
+
+        ghost = 'native-' + '0' * 64
+        missing = self.call('GET', f'/api/projects/{project}/native-assets/{ghost}/verify')
+        self.assertEqual(404, missing[0], missing[1])
+        self.assertEqual('NATIVE_ASSET_NOT_FOUND', missing[1]['error'])
+        print('NATIVE_VERIFY layout=' + ('installed' if INSTALLED_MODE else 'source')
+              + ' clean=HASH_VERIFIED tampered=NATIVE_ARTIFACT_UNVERIFIED'
+              ' unknown=NATIVE_ASSET_NOT_FOUND')
+
     def _deliver_to_preflight(self):
         """Run the native leg under the controlled scope, bundle it, and preflight that bundle.
 
@@ -565,9 +627,7 @@ class StandaloneChainTests(unittest.TestCase):
         '/api/projects/([0-9a-f]{32})/native-assets(?:\\?after=(native-[0-9a-f]{64}))?':
             ['/api/projects/{delivery_project}/native-assets'],
         '/api/projects/([0-9a-f]{32})/native-assets/(native-[0-9a-f]{64})/verify':
-            ['UNCONSTRUCTED: verifying needs a registered native asset id, and the delivered '
-             'fixture registers a bundle and its versions, not an asset row -- this is "not '
-             'called", not a pass'],
+            ['/api/projects/{delivery_project}/native-assets/{native_asset}/verify'],
         '/api/projects/([0-9a-f]{32})/knowledge-candidates/([A-Za-z0-9_.:-]{1,80})/export':
             ['COVERED-ELSEWHERE: the acceptance walk above creates, reviews and exports one '
              'candidate in this same layout (export=200), so the read is measured -- just not by '
@@ -628,10 +688,19 @@ class StandaloneChainTests(unittest.TestCase):
         names = _values_under(systems, 'name', 'id')
         self.assertTrue(names, 'the design-system catalog named no entry to build a token route')
 
+        # The delivery leg registers a native asset row (the primary artifact the host read back),
+        # so `…/native-assets/<id>/verify` is constructible here -- it was filed UNCONSTRUCTED on the
+        # claim that the leg "registers a bundle, not an asset row", and that claim is false: the same
+        # leg's own GET /native-assets answers this id.
+        native_assets = self.call('GET', f"/api/projects/{delivered['project']}/native-assets")[1]
+        self.assertTrue(native_assets['assets'],
+                        'the delivery leg produced no native asset row to verify, so the verify '
+                        'route would silently go unmeasured again')
         slots = {'project': project, 'asset': imported['id'], 'brief': brief,
                  'direction': direction, 'design_system': names[0],
                  'delivery_project': delivered['project'], 'bundle': delivered['bundle']['id'],
-                 'version': delivered['bundle']['version_id'], 'job': delivered['job_id']}
+                 'version': delivered['bundle']['version_id'], 'job': delivered['job_id'],
+                 'native_asset': native_assets['assets'][0]['id']}
 
         layout = 'installed' if INSTALLED_MODE else 'source'
         answered, verdicts, unmeasured, refused = [], [], [], {}
@@ -643,7 +712,7 @@ class StandaloneChainTests(unittest.TestCase):
                 path = re.sub(r'\{(\w+)\}', lambda match: slots.get(match.group(1), ''), read)
                 missing = sorted(name for name in ('project', 'asset', 'brief', 'direction',
                                                    'design_system', 'delivery_project', 'bundle',
-                                                   'version', 'job')
+                                                   'version', 'job', 'native_asset')
                                  if '{' + name + '}' in read and not slots.get(name))
                 self.assertEqual(missing, [],
                                  f'{read} needs a slot this sweep has no value for: {missing}')
