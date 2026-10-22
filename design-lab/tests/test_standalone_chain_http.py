@@ -17,6 +17,7 @@ import http.client
 import io
 import json
 import os
+import re
 import secrets
 import sys
 import tempfile
@@ -432,6 +433,25 @@ class StandaloneChainTests(unittest.TestCase):
         launched here -- that is the controlled-runtime boundary, not a simulated success: the
         bundle is real bytes, registered by id, and the preflight verdict is computed from them.
         """
+        outcome = self._deliver_to_preflight()
+        report = outcome['report']
+        from design_lab.assurance import production_preflight as pp
+        self.assertIn(report['verdict'], pp.VERDICTS)
+        self.assertEqual(sum(report['counts'].values()), len(report['findings']))
+        # Whatever the verdict, it must be about the bytes that were actually registered:
+        # the digest the bundle published is the one the checker was handed.
+        self.assertTrue(any(item.get('measured') for item in report['findings']),
+                        'no finding reports a measurement, so the verdict is not evidence')
+        print('DELIVERY_HOPS ' + ' '.join(self.hops))
+
+    def _deliver_to_preflight(self):
+        """Run the native leg under the controlled scope, bundle it, and preflight that bundle.
+
+        Extracted because two cases need the same delivered bundle: the leg's own verdict
+        assertions, and the layout sweep that calls every ledger route, which cannot name a
+        bundle-version id without it. Nothing about the boundary changed by moving it -- the
+        dispatch is still patched, so this stays a controlled runtime, not a host run.
+        """
         import hashlib
         from unittest.mock import patch
         from design_lab.native_tasks import NativeTasks
@@ -478,14 +498,202 @@ class StandaloneChainTests(unittest.TestCase):
         report = self.hop(
             'preflight', 'POST',
             f"/api/projects/{project}/bundles/{bundle['bundle']['id']}/preflight", {}, 200)
-        from design_lab.assurance import production_preflight as pp
-        self.assertIn(report['verdict'], pp.VERDICTS)
-        self.assertEqual(sum(report['counts'].values()), len(report['findings']))
-        # Whatever the verdict, it must be about the bytes that were actually registered:
-        # the digest the bundle published is the one the checker was handed.
-        self.assertTrue(any(item.get('measured') for item in report['findings']),
-                        'no finding reports a measurement, so the verdict is not evidence')
-        print('DELIVERY_HOPS ' + ' '.join(self.hops))
+        return dict(project=project, job_id=job_id, bundle=bundle['bundle'], report=report)
+
+    #: Every GET row the ledger declares, as the concrete paths this sweep performs against it.
+    #: The mapping is asserted in both directions, so a route added to the ledger cannot be quietly
+    #: dropped from the sweep: it fails until someone names a read for it or records why no id can
+    #: be constructed here. `{token}` slots are filled from objects this service wrote.
+    GET_READS = {
+        '/api/health': ['/api/health'],
+        '/api/environment': ['/api/environment'],
+        '/api/local-session': ['/api/local-session'],
+        '/api/capabilities': ['/api/capabilities'],
+        '/api/domains': ['/api/domains'],
+        '/api/models': ['/api/models'],
+        '/api/design-systems': ['/api/design-systems'],
+        '/api/evidence-projection': ['/api/evidence-projection'],
+        '/api/task-preflight': ['/api/task-preflight?task=image-import:{project}'],
+        '/api/projects/([0-9a-f]{32})': ['/api/projects/{project}'],
+        '/api/projects/([0-9a-f]{32})/design-layer': ['/api/projects/{project}/design-layer'],
+        '/api/projects/([0-9a-f]{32})/jury': ['/api/projects/{project}/jury'],
+        '/api/projects/([0-9a-f]{32})/rights': ['/api/projects/{project}/rights'],
+        '/api/projects/([0-9a-f]{32})/research': ['/api/projects/{project}/research'],
+        '/api/projects/([0-9a-f]{32})/native-runtime':
+            ['/api/projects/{project}/native-runtime'],
+        '/api/projects/([0-9a-f]{32})/model-selection':
+            ['/api/projects/{project}/model-selection'],
+        '/api/projects/([0-9a-f]{32})/prompt-results': ['/api/projects/{project}/prompt-results'],
+        '/api/projects/([0-9a-f]{32})/knowledge-candidates':
+            ['/api/projects/{project}/knowledge-candidates'],
+        '/api/projects/([0-9a-f]{32})/briefs(?:\\?after=(brief-[0-9a-f]{32}))?':
+            ['/api/projects/{project}/briefs'],
+        '/api/projects/([0-9a-f]{32})/briefs/(brief-[0-9a-f]{32})':
+            ['/api/projects/{project}/briefs/{brief}'],
+        '/api/projects/([0-9a-f]{32})/briefs/(brief-[0-9a-f]{32})/lineage':
+            ['/api/projects/{project}/briefs/{brief}/lineage'],
+        '/api/projects/([0-9a-f]{32})/directions(?:\\?after=(direction-[0-9a-f]{32}))?':
+            ['/api/projects/{project}/directions'],
+        '/api/projects/([0-9a-f]{32})/directions/(direction-[0-9a-f]{32})':
+            ['/api/projects/{project}/directions/{direction}'],
+        '/api/projects/([0-9a-f]{32})/directions/(direction-[0-9a-f]{32})/lineage':
+            ['/api/projects/{project}/directions/{direction}/lineage'],
+        '/api/design-briefs/(brief-[0-9a-f]{32})/lineage':
+            ['/api/design-briefs/{brief}/lineage'],
+        '/api/design-directions/(direction-[0-9a-f]{32})/lineage':
+            ['/api/design-directions/{direction}/lineage'],
+        '/api/projects/([0-9a-f]{32})/design-system-tokens':
+            ['/api/projects/{project}/design-system-tokens'],
+        '/api/projects/([0-9a-f]{32})/design-system-tokens/(<DESIGN_SYSTEM_NAME_PATTERN>)(/lineage)?':
+            ['/api/projects/{project}/design-system-tokens/{design_system}',
+             '/api/projects/{project}/design-system-tokens/{design_system}/lineage'],
+        '/api/projects/([0-9a-f]{32})/assets(?:/(img-[0-9a-f]{64})/content)?':
+            ['/api/projects/{project}/assets', '/api/projects/{project}/assets/{asset}/content'],
+        '/api/projects/([0-9a-f]{32})/tasks(?:\\?after=((?:native-)?job-[0-9a-f]{64}))?':
+            ['/api/projects/{delivery_project}/tasks'],
+        '/api/projects/([0-9a-f]{32})/tasks/((?:native-)?job-[0-9a-f]{64})(/events)?'
+        '(?:\\?after=([0-9]{1,16}))?':
+            ['/api/projects/{delivery_project}/tasks/{job}',
+             '/api/projects/{delivery_project}/tasks/{job}/events'],
+        '/api/projects/([0-9a-f]{32})/bundles': ['/api/projects/{delivery_project}/bundles'],
+        '/api/projects/([0-9a-f]{32})/bundles/(bundle-native-[0-9a-f]{64})/versions/'
+        '(v-[0-9a-f]{32})/content':
+            ['/api/projects/{delivery_project}/bundles/{bundle}/versions/{version}/content'],
+        '/api/projects/([0-9a-f]{32})/bundles/(bundle-native-[0-9a-f]{64})/versions/'
+        '(v-[0-9a-f]{32})/receipt':
+            ['/api/projects/{delivery_project}/bundles/{bundle}/versions/{version}/receipt'],
+        '/api/projects/([0-9a-f]{32})/native-assets(?:\\?after=(native-[0-9a-f]{64}))?':
+            ['/api/projects/{delivery_project}/native-assets'],
+        '/api/projects/([0-9a-f]{32})/native-assets/(native-[0-9a-f]{64})/verify':
+            ['UNCONSTRUCTED: verifying needs a registered native asset id, and the delivered '
+             'fixture registers a bundle and its versions, not an asset row -- this is "not '
+             'called", not a pass'],
+        '/api/projects/([0-9a-f]{32})/knowledge-candidates/([A-Za-z0-9_.:-]{1,80})/export':
+            ['COVERED-ELSEWHERE: the acceptance walk above creates, reviews and exports one '
+             'candidate in this same layout (export=200), so the read is measured -- just not by '
+             'this sweep'],
+        'workbench.ROUTES': ['NOT-A-PATH: a ledger row naming the module table, not a URL'],
+        '/workbench': ['/workbench'],
+    }
+
+    #: 5xx the sweep may see, per layout, and what each one actually asserts. There is one entry:
+    #: an installed wheel has no governance checkout to project, so the evidence projection answers
+    #: 503 naming the ledger file it cannot find rather than issuing a clean bill -- a verdict about
+    #: the install, not a packaged contract it failed to open. The same route answers 200 in a
+    #: source checkout, which is what makes the empty set there meaningful rather than lucky.
+    EXPECTED_REFUSALS = {
+        'source': {},
+        'installed': {'/api/evidence-projection': (503, 'EVIDENCE_LEDGER_ABSENT')},
+    }
+
+    def test_every_ledger_get_route_is_answered_in_this_layout(self):
+        """Call every GET boundary the ledger declares against objects this service really wrote.
+
+        The claim this retires is the one §5.24 had to leave open: 14 GET rows were 'not called'
+        because they need a real asset, brief, direction, bundle or version id. Here the same
+        objects the acceptance chain writes are used to construct them, and the reading is printed
+        as a denominator (constructed / answered / named-verdict / not-constructible) so the next
+        reader can see what was measured and what was not. A 5xx that is not a documented refusal is
+        a finding: inside an installed wheel it is the same class of defect this batch paid -- a
+        contract file the route could not open, answering as if it were a verdict.
+        """
+        ledger = json.loads((ROOT / 'design-lab' / 'config' / 'contract-bindings.json')
+                            .read_text(encoding='utf-8'))
+        rows = [row['route'] for row in ledger['routes'] if row['method'] == 'GET']
+        self.assertEqual(sorted(set(rows) - set(self.GET_READS)), [],
+                         'these ledger GET routes have no entry in this sweep, so they would be '
+                         'silently unmeasured: ' + str(sorted(set(rows) - set(self.GET_READS))))
+        self.assertEqual(sorted(set(self.GET_READS) - set(rows)), [],
+                         'this sweep names routes the ledger no longer declares: '
+                         + str(sorted(set(self.GET_READS) - set(rows))))
+
+        project = self.hop('project', 'POST', '/api/projects', {'name': 'GET sweep'}, 201
+                           )['project']['id']
+        imported = self.hop(
+            'asset', 'POST', f'/api/projects/{project}/assets',
+            {'content_base64': base64.b64encode(_png_bytes()).decode('ascii'),
+             'idempotency_key': 'sweep-asset'}, 201)['asset']
+        brief = self.hop(
+            'brief', 'POST', f'/api/projects/{project}/briefs',
+            {'title': 'Sweep brief', 'goals': ['sweep'], 'constraints': None,
+             'reference_asset_ids': [imported['id']], 'idempotency_key': 'sweep-brief'},
+            201)['brief']['brief_id']
+        direction = self.hop(
+            'direction', 'POST', f'/api/projects/{project}/directions',
+            {'brief_id': brief, 'title': 'Sweep direction', 'style_notes': ['measured'],
+             'color_mood': 'cool', 'typography_mood': 'sans',
+             'idempotency_key': 'sweep-direction'}, 201)['direction']['direction_id']
+        delivered = self._deliver_to_preflight()
+        systems = self.call('GET', '/api/design-systems')[1]
+        names = _values_under(systems, 'name', 'id')
+        self.assertTrue(names, 'the design-system catalog named no entry to build a token route')
+
+        slots = {'project': project, 'asset': imported['id'], 'brief': brief,
+                 'direction': direction, 'design_system': names[0],
+                 'delivery_project': delivered['project'], 'bundle': delivered['bundle']['id'],
+                 'version': delivered['bundle']['version_id'], 'job': delivered['job_id']}
+
+        layout = 'installed' if INSTALLED_MODE else 'source'
+        answered, verdicts, unmeasured, refused = [], [], [], {}
+        for route, reads in self.GET_READS.items():
+            for read in reads:
+                if read.startswith(('UNCONSTRUCTED:', 'COVERED-ELSEWHERE:', 'NOT-A-PATH:')):
+                    unmeasured.append((route, read.split(':', 1)[0], read.split(':', 1)[1][:60]))
+                    continue
+                path = re.sub(r'\{(\w+)\}', lambda match: slots.get(match.group(1), ''), read)
+                missing = sorted(name for name in ('project', 'asset', 'brief', 'direction',
+                                                   'design_system', 'delivery_project', 'bundle',
+                                                   'version', 'job')
+                                 if '{' + name + '}' in read and not slots.get(name))
+                self.assertEqual(missing, [],
+                                 f'{read} needs a slot this sweep has no value for: {missing}')
+                status, payload = self.status_and_code(path)
+                label = f'{read} -> {status}' + (f' {payload}' if status >= 400 else '')
+                if status < 300:
+                    answered.append(label)
+                elif status < 500:
+                    verdicts.append(label)
+                else:
+                    allowed = self.EXPECTED_REFUSALS[layout].get(path)
+                    if allowed != (status, payload):
+                        self.fail(f'{route} answered {label}: an unearned 5xx is either a contract '
+                                  'file the service could not open or a refusal nobody read yet -- '
+                                  'inspect it before naming it in EXPECTED_REFUSALS')
+                    refused[path] = (status, payload)
+        # Checked in both directions: a named refusal that stops happening is as stale as a new one
+        # that appears without being earned, and an unused entry would excuse the next 5xx.
+        self.assertEqual(refused, self.EXPECTED_REFUSALS[layout],
+                         f'the {layout} layout answered a different set of permitted 5xx: '
+                         f'{sorted(refused)} vs {sorted(self.EXPECTED_REFUSALS[layout])}')
+        self.assertGreaterEqual(len(answered), 30,
+                                'the sweep stopped reaching real reads: ' + str(len(answered)))
+        print('GET_SWEEP layout=' + ('installed' if INSTALLED_MODE else 'source')
+              + ' routes=' + str(len(rows)) + ' reads='
+              + str(len(answered) + len(verdicts)) + ' answered=' + str(len(answered))
+              + ' verdicts=' + str(len(verdicts)) + ' unmeasured=' + str(len(unmeasured)))
+        for route, kind, reason in unmeasured:
+            print('GET_SWEEP_UNMEASURED ' + kind + ' ' + route + ' :: ' + reason)
+
+    def status_and_code(self, path):
+        """Status plus the error code (or byte count), without assuming the body is JSON.
+
+        A bundle's content route answers a ZIP, and the previous habit of parsing every body meant
+        a real 200 could crash the sweep -- which is a worse report than a refusal.
+        """
+        conn = http.client.HTTPConnection('127.0.0.1', self.port, timeout=20)
+        try:
+            conn.request('GET', path, headers={'Authorization': 'Bearer ' + self.token,
+                                               'Host': f'127.0.0.1:{self.port}',
+                                               'Origin': f'http://127.0.0.1:{self.port}',
+                                               'Sec-Fetch-Site': 'same-origin'})
+            response = conn.getresponse()
+            raw = response.read()
+        finally:
+            conn.close()
+        try:
+            return response.status, json.loads(raw).get('error', '')
+        except (ValueError, AttributeError):
+            return response.status, 'bytes:' + str(len(raw))
 
     def test_the_export_hop_exists_but_still_sends_nothing(self):
         """The chain now reaches the exit; it still does not reach outside the repository.

@@ -98,11 +98,60 @@ class PackagingDeclarationTests(unittest.TestCase):
 
 
 class InstalledLayoutTests(unittest.TestCase):
+    #: Windows refuses a plain path longer than 259 characters, and the runner's own temp root is
+    #: already 133 characters long, so eight domain-pack benchmark pages physically cannot be
+    #: created under it (measured: 8 of 377 members, all under this prefix, none of them a file the
+    #: probe opens). They are skipped -- and the skip set is asserted, because an unbounded
+    #: `except OSError` would let the extraction quietly drop a resource the probe does read, and
+    #: the test would then report a packaged layout that no real install ever ships.
+    BENCHMARK_PREFIX = 'design_lab/resources/repo/design-lab/domain-packs/'
+
     def _extract(self, wheel: Path) -> Path:
         target = Path(tempfile.mkdtemp(prefix='dl-t05-site-'))
+        self.skipped = {}
         with zipfile.ZipFile(wheel) as archive:
-            archive.extractall(target)
+            for member in archive.infolist():
+                if member.is_dir():
+                    continue
+                try:
+                    archive.extract(member, target)
+                except OSError as exc:
+                    # The name decides whether this is acceptable, not the errno: the same too-long
+                    # path surfaces as WinError 206 from makedirs in one place and as a plain
+                    # `[Errno 2]` from the open in another, so filtering on the code would silently
+                    # re-break the next time Windows changes its mind.
+                    self.skipped[member.filename] = str(exc)[-120:]
+        self._assert_skips_are_harmless()
         return target
+
+    def _assert_skips_are_harmless(self) -> None:
+        offenders = sorted(name for name in self.skipped
+                           if not name.startswith(self.BENCHMARK_PREFIX))
+        self.assertEqual(offenders, [],
+                         'these wheel members could not be created and are not benchmark pages, so '
+                         f'the layout under test is not the layout an install carries: {offenders} '
+                         f'{[self.skipped[name] for name in offenders[:2]]}')
+        self.assertEqual([name for name in SHIPPED if name in self.skipped], [],
+                          'a capability-library resource the probe reads was skipped; the '
+                          'refusal test below would pass on a broken extraction instead of on a '
+                          'missing resource')
+
+    def test_an_unextractable_member_the_probe_needs_is_a_finding(self):
+        """The skip allowance is safe only because a needed member cannot hide inside it.
+
+        Without this pair of assertions the guard could be satisfied by an empty prefix test, and a
+        future platform limit that bites a capability-library resource would look like a passing
+        installed-layout run.
+        """
+        self.skipped = {SHIPPED[0]: '[WinError 206] 文件名或扩展名太长'}
+        with self.assertRaises(self.failureException):
+            self._assert_skips_are_harmless()
+        self.skipped = {self.BENCHMARK_PREFIX
+                        + 'uiux-design/benchmarks/x-golden/implementations/baseline.html':
+                            '[Errno 2] No such file or directory'}
+        self._assert_skips_are_harmless()
+        self.skipped = {}
+        self._assert_skips_are_harmless()
 
     def _run_probe(self, site: Path) -> dict:
         cwd = Path(tempfile.mkdtemp(prefix='dl-t05-cwd-'))

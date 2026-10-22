@@ -383,6 +383,9 @@ jobs:
           ! grep -q "skipped" chain.log
           grep -q "CHAIN_HOPS" chain.log
           grep -q "DELIVERY_HOPS" chain.log
+          # The GET sweep prints its own denominator. Requiring the installed line keeps a future
+          # refactor from turning the case into a no-op while the job still reads green.
+          grep -q "GET_SWEEP layout=installed" chain.log
 
   generated-artifact-gate:
     name: Generated-artifact clean-tree gate
