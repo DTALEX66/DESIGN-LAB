@@ -198,16 +198,31 @@ E4 独立人审 / E5 发布可复现。**文档修订 ≠ 规划完成 ≠ 代�
 - 下一轮若获授权，先交付"可审阅的读回面板 + 真实数据源 + 可复现测试"，
   把没建的那一半写在可见文字里，不要把 PLANNED 标成 IMPLEMENTED。
   **2026-10-22 之后的实际剩余面（B2–B5 已全部落地并 CI_VERIFIED @ `f4b727e1`，见审计件 §5.18–§5.21）**：
-  ①带版本号的未付契约债清单实测为空（34 条 SCHEMA_LESS 都是"信封自己不带 schemaVersion"的选择，不是欠账）；
-  **后端 A/B 已于同日落地（审计件 §5.23）**：`GET /api/projects` 现回 `design-lab/project-list/v1`，
+  ①带版本号的未付契约债清单实测为空（余下 32 条 SCHEMA_LESS 都是"信封自己不带 schemaVersion"的选择，不是欠账）；
+  **后端 A/B/D 已落地（审计件 §5.23 与 §5.24）**：`GET /api/projects` 现回 `design-lab/project-list/v1`，
   逐项目给 14 个表面的计数、最晚时间戳与"还没人签"的两个数，合同把 **null=该表面在此检出从未建表**
   与 **0=表在而此项目没有记录** 绑成双向不可互换；能力库的 `counts.qualified` 拆成
   `qualificationVerdicts / qualifiedTrue / qualifiedFalse / qualificationNotAdjudicated`
-  （旧字段"读起来像合格数、算的是有判定数"，今天同为 0，将来会分岔）。实测读数：
-  `VERIFY_CONTRACT_BINDINGS=PASS routes=68 dispatched=68 bound=34 schema_less=34`、
-  `VERIFY_ROUTE_PAYLOAD_CONTRACTS=PASS bindings=15`。D07/D08 经复核**不是缺口**：候选每行已带
+  （旧字段"读起来像合格数、算的是有判定数"，今天同为 0，将来会分岔）；三条任务读回合成一份
+  `design-lab/task-readback/v1`（`surface` 判别 + `limit=100` 与 `truncated`/`next_cursor` 同源 +
+  状态词汇读自 `design-lab/config/state-vocabularies.json` + `does_not_say` 点名取消语义），台账那两行
+  "recorded debt"随之付掉并更正了两处过期理由。实测读数：
+  `VERIFY_CONTRACT_BINDINGS=PASS routes=68 dispatched=68 bound=36 schema_less=32`、
+  `VERIFY_ROUTE_PAYLOAD_CONTRACTS=PASS bindings=17`。D07/D08 经复核**不是缺口**：候选每行已带
   `export_ready/export_blocked_by`，任务记录已带 `cancel.requested` 与 `cancel.acknowledged` 两个布尔——
-  但后者没有通往 true 的宿主事件，界面可显示"宿主未确认"，不得画成会自己变绿的进度。
+  两者都有真实写入路径（`job_store.acknowledge_cancel` 在 `CANCEL_REQUESTED` 上置 1 并转 `RECONCILING`，
+  `native_tasks._failed` 的派发前被拒路径也置 1），语义是**适配层已确认、仍需读回**，不是宿主已停手；
+  界面可显示"已确认取消，仍需读回"，不得画成会自己变绿的进度。（此处上一版写的"没有通往 true 的宿主
+  事件"是没打开那两个函数就下的结论，已在 §5.23 原样更正。）
+  **A 批欠下的两条 CI 红已在 §5.24 记账并修掉**，其中一条是安装态才会踩的：`PROJECT_ROOT` 是
+  `Path(__file__).parents[3]`，在 wheel 里指向解释器的 `Lib`，于是 `/api/projects` 打不开自己的合同、
+  启动器回 `status: ERROR`。改走 `repo_resource()` 并给 `pyproject` 补三行 `force-include`，另加一个
+  从磁盘枚举 `repo_resource('…')` 字面量的闸门（`design-lab/tests/test_packaged_contract_resources.py`，
+  含一条"删掉声明必须判红"的手检）。接入侧要读的字段清单：列表页
+  `{schemaVersion, surface:'list', limit, truncated, next_cursor, count, stateVocabulary, tasks, does_not_say}`，
+  详情页同信封但 `surface:'task'` 且 `truncated` 恒 false、`next_cursor` 恒 null，事件页 `surface:'events'`
+  且**游标是 `event_no` 整数**——`apps/workbench/contracts.ts` 现在把 `next_cursor` 写成 `string | null`，
+  对事件页不精确，接入时随信封一起改正（本批不动界面）。
   ②规范登记件的第三轮取证已于同日跑完（见审计件 §5.22）：Apple 与 Fluent 各补到一条服务端可读的面，
   但**这一轮推翻的是本件自己上一轮的读数**——`.../tutorials/data/design/human-interface-guidelines.json`
   本轮直连 **200**（给 `schemaVersion 0.3.0` 与版权年，仍无编辑日期），而上一轮登记为"全族 404"；
