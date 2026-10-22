@@ -9,28 +9,28 @@
   },
   "fresh": false,
   "freshnessMeaning": "at generation only; check verifies bound-input integrity, not current Git or cloud state",
-  "generatedAt": "2026-10-22T22:25:20+00:00",
+  "generatedAt": "2026-10-22T22:40:36+00:00",
   "gitStateMeaning": "generation-time observation, not current HEAD",
   "local": {
     "branch": "qoder/designlab-backup-consistency-20261007",
-    "origin_main": "12a19a2005a53324317c5544ec29b3bd1a741277",
-    "sha": "32c78ac2d76ba82ba0253574f59bc5444897e8e3",
+    "origin_main": "51c14f100a80cdc444634ecf5977d28f7a407c08",
+    "sha": "f2b919ae693e9ba08925bbc3d25e437b04465ad4",
     "source_worktree_clean": false,
     "tracked_files": 3771,
     "worktree_changes": [
       {
-        "content": "sha256:852bf9bd253d74fc399635ddc6e08919e42985d8931de152946b8a23c928ad43",
+        "content": "sha256:db7cc84f6d296ca48ab4090791eb0c9a6af3511b609e0414da989f7c46033a13",
         "kind": "M",
         "path": "docs/RECORD-ARCHIVE-INDEX.md"
       }
     ],
-    "worktree_digest": "sha256:f53d525db6d7db327a88431d6a514e1da84cd9e087d26ed9ed853201e5dff52f"
+    "worktree_digest": "sha256:89e775f887ee02c17e61780859a1c9b65a0e72640ecc909374568123718d01b9"
   },
   "note": "No GitHub API query was run by this generator; tool installation is not inferred.",
   "remoteRef": "origin/main (local tracking ref)",
   "schemaVersion": "design-lab/cloud-baseline/v2",
   "subjectMeaning": "subjectType=WORKTREE means the tree was dirty at generation; worktreeDigest covers HEAD plus the non-generated changes",
-  "subjectSha": "32c78ac2d76ba82ba0253574f59bc5444897e8e3",
+  "subjectSha": "f2b919ae693e9ba08925bbc3d25e437b04465ad4",
   "subjectType": "WORKTREE",
   "taskpackHash": "2cfd84627352e9f1b29b42787fa43466cd9a836130d826d43678b7733856ffda",
   "taskpackId": "DL-TP-20261009-UI-FIRST-R1",
@@ -45,5 +45,5 @@
     "branchProtection"
   ],
   "worktreeClean": false,
-  "worktreeDigest": "sha256:f53d525db6d7db327a88431d6a514e1da84cd9e087d26ed9ed853201e5dff52f"
+  "worktreeDigest": "sha256:89e775f887ee02c17e61780859a1c9b65a0e72640ecc909374568123718d01b9"
 }
