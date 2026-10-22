@@ -133,6 +133,7 @@ class Harness:
         self._file_rights_decisions()
         self._file_research_findings()
         self._produce_prompt_results()
+        self._seed_design_layer()
         return self
 
     def _produce_prompt_results(self):
@@ -402,6 +403,151 @@ class Harness:
         if status != 201:
             raise RuntimeError(f'BRIEF_REVISION_REFUSED {status} {body}')
         return brief_id
+
+    # -- design-layer family (batch I, 2026-10-23) ------------------------------------------
+    #: The exact request fields these routes take -- the same five and six the page posts and the
+    #: write sweep sends, restated here as field sets, not as a second fixture vocabulary. Every
+    #: payload compared below is the answer the product wrote in response to one of these.
+    BRIEF_FIELDS = {'title': 'Family brief, measured', 'goals': ['bound', 'restrained'],
+                    'constraints': None, 'reference_asset_ids': []}
+    DIRECTION_FIELDS = {'title': 'Family direction, measured', 'style_notes': ['restrained'],
+                        'color_mood': 'cool', 'typography_mood': 'sans'}
+
+    def post(self, label, path, body):
+        """A real write through a real socket, kept as the response the route produced.
+
+        The caller names the idempotency key in the body, so a replay case is the SAME key sent
+        twice and lands in the emitter's `SELECT ... WHERE operation_id=?` branch instead of
+        quietly creating a second row.
+        """
+        if 'idempotency_key' not in body:
+            raise AssertionError(f'{label}: a write case must name its own idempotency key')
+        status, answer = self.call('POST', path, body)
+        if status not in (200, 201):
+            raise RuntimeError(f'DESIGN_WRITE_REFUSED {path} -> {status} {answer}')
+        return (f'{label} [{status}]', answer)
+
+    def new_brief(self, key):
+        status, answer = self.call('POST', f'/api/projects/{self.filled}/briefs',
+                                   dict(self.BRIEF_FIELDS, idempotency_key=key))
+        if status != 201:
+            raise RuntimeError(f'BRIEF_SEED_REFUSED {key} -> {status} {answer}')
+        return answer['brief']['brief_id']
+
+    def new_direction(self, key, brief_id):
+        status, answer = self.call('POST', f'/api/projects/{self.filled}/directions',
+                                   dict(self.DIRECTION_FIELDS, brief_id=brief_id,
+                                        idempotency_key=key))
+        if status != 201:
+            raise RuntimeError(f'DIRECTION_SEED_REFUSED {key} -> {status} {answer}')
+        return answer['direction']['direction_id']
+
+    def _seed_design_layer(self):
+        """A brief chain, a direction chain, a human choice, a binding and one token document.
+
+        Seeded once, through the routes that serve them, because the reads and the writes in this
+        family answer about *chains*: a revision must target the live tip (an already-superseded row
+        answers 409 STALE_REVISION by design), and a lineage read of a superseded version is a
+        different branch from a read of the tip. The ids kept here are therefore both ends.
+        """
+        self.design_system = self.get('/api/design-systems')['design_systems'][0]['name']
+        self.dl_brief_v1 = self.new_brief('family-brief-seed')
+        self.dl_brief_tip = self.post('POST .../briefs/<id>/revisions seeds the tip',
+                                      f'/api/projects/{self.filled}/briefs'
+                                      f'/{self.dl_brief_v1}/revisions',
+                                      dict(self.BRIEF_FIELDS,
+                                           title='Family brief, measured v2',
+                                           idempotency_key='family-brief-rev-seed'))[
+            1]['brief']['brief_id']
+        self.dl_direction_v1 = self.new_direction('family-direction-seed', self.dl_brief_tip)
+        self.dl_direction_tip = self.post('POST .../directions/<id>/revisions seeds the tip',
+                                          f'/api/projects/{self.filled}/directions'
+                                          f'/{self.dl_direction_v1}/revisions',
+                                          dict(self.DIRECTION_FIELDS,
+                                               title='Family direction, measured v2',
+                                               idempotency_key='family-direction-seed-v2'))[
+            1]['direction']['direction_id']
+        self.post('POST .../directions/<id>/choose seeds the human choice',
+                  f'/api/projects/{self.filled}/directions/{self.dl_direction_tip}/choose',
+                  {'actor': 'dtalex66', 'actor_kind': 'human',
+                   'idempotency_key': 'family-choose-seed'})
+        self.post('POST .../directions/<id>/bind seeds the binding',
+                  f'/api/projects/{self.filled}/directions/{self.dl_direction_tip}/bind',
+                  {'design_system_name': self.design_system,
+                   'idempotency_key': 'family-bind-seed'})
+        self.post('POST .../design-system-tokens/<name> seeds one document',
+                  f'/api/projects/{self.filled}/design-system-tokens/{self.design_system}',
+                  {'document': {'color': {'$type': 'color', 'brand': {'$value': '#2563EB'}}},
+                   'expected_version': 0, 'actor': 'ALEX', 'actor_kind': 'human',
+                   'idempotency_key': 'family-token-seed'})
+
+    def design_write_cases(self, group):
+        """The write answers of one route, each produced now, plus its idempotent replay.
+
+        Two cases per row on purpose: the create/append branch and the replay branch are different
+        code paths in the emitter (`SELECT ... WHERE operation_id=?` returning the stored row), and
+        both are route answers a caller can receive. They are compared against the same envelope.
+        """
+        if group == 'briefs':
+            return [self.post('POST .../briefs creates', f'/api/projects/{self.filled}/briefs',
+                              dict(self.BRIEF_FIELDS, idempotency_key='case-brief-create')),
+                    self.post('POST .../briefs replays the same key',
+                              f'/api/projects/{self.filled}/briefs',
+                              dict(self.BRIEF_FIELDS, idempotency_key='case-brief-create'))]
+        if group == 'directions':
+            brief_id = self.new_brief('case-direction-parent')
+            body = dict(self.DIRECTION_FIELDS, brief_id=brief_id,
+                        idempotency_key='case-direction-create')
+            path = f'/api/projects/{self.filled}/directions'
+            return [self.post('POST .../directions creates', path, body),
+                    self.post('POST .../directions replays the same key', path, body)]
+        if group == 'choose':
+            brief_id = self.new_brief('case-choose-parent')
+            direction_id = self.new_direction('case-choose-direction', brief_id)
+            path = f'/api/projects/{self.filled}/directions/{direction_id}/choose'
+            body = {'actor': 'dtalex66', 'actor_kind': 'human',
+                    'idempotency_key': 'case-choose-once'}
+            return [self.post('POST .../directions/<id>/choose records the human choice', path, body),
+                    self.post('POST .../directions/<id>/choose replays the same key', path, body)]
+        if group == 'bind':
+            path = f'/api/projects/{self.filled}/directions/{self.dl_direction_tip}/bind'
+            body = {'design_system_name': self.design_system,
+                    'idempotency_key': f'case-bind-{secrets.token_hex(8)}'}
+            return [self.post('POST .../directions/<id>/bind appends a binding version', path, body),
+                    self.post('POST .../directions/<id>/bind replays the same key', path, body)]
+        if group == 'brief-revisions-scoped':
+            parent = self.new_brief('case-brief-rev-scoped-parent')
+            path = f'/api/projects/{self.filled}/briefs/{parent}/revisions'
+            body = dict(self.BRIEF_FIELDS, title='Family brief, revised in place',
+                        idempotency_key='case-brief-rev-scoped')
+            return [self.post('POST .../briefs/<id>/revisions appends', path, body),
+                    self.post('POST .../briefs/<id>/revisions replays the same key', path, body)]
+        if group == 'brief-revisions-by-id':
+            parent = self.new_brief('case-brief-rev-byid-parent')
+            path = f'/api/design-briefs/{parent}/revisions'
+            body = dict(self.BRIEF_FIELDS, title='Family brief, revised by id',
+                        idempotency_key='case-brief-rev-byid')
+            return [self.post('POST /api/design-briefs/<id>/revisions appends', path, body),
+                    self.post('POST /api/design-briefs/<id>/revisions replays the same key',
+                              path, body)]
+        if group == 'direction-revisions-scoped':
+            brief_id = self.new_brief('case-direction-rev-scoped-brief')
+            parent = self.new_direction('case-direction-rev-scoped-parent', brief_id)
+            path = f'/api/projects/{self.filled}/directions/{parent}/revisions'
+            body = dict(self.DIRECTION_FIELDS, title='Family direction, revised in place',
+                        idempotency_key='case-direction-rev-scoped')
+            return [self.post('POST .../directions/<id>/revisions appends', path, body),
+                    self.post('POST .../directions/<id>/revisions replays the same key', path, body)]
+        if group == 'direction-revisions-by-id':
+            brief_id = self.new_brief('case-direction-rev-byid-brief')
+            parent = self.new_direction('case-direction-rev-byid-parent', brief_id)
+            path = f'/api/design-directions/{parent}/revisions'
+            body = dict(self.DIRECTION_FIELDS, title='Family direction, revised by id',
+                        idempotency_key='case-direction-rev-byid')
+            return [self.post('POST /api/design-directions/<id>/revisions appends', path, body),
+                    self.post('POST /api/design-directions/<id>/revisions replays the same key',
+                              path, body)]
+        raise AssertionError(f'no design-layer write cases for {group!r}')
 
     def __exit__(self, *exc):
         if self.httpd is not None:
@@ -769,6 +915,244 @@ def build_bindings():
                 ('GET .../prompt-results with nothing produced',
                  h.get(f'/api/projects/{h.empty}/prompt-results')),
             ],
+        },
+        # ---- the design-layer family, paid 2026-10-23 (batch I) ------------------------------
+        # Seventeen routes that answered with a wrapper carrying no version of their own. The
+        # objects below are not a fixture vocabulary: each one is produced by posting to the write
+        # routes with the same field sets the page and the write sweep send, and what is compared is
+        # the answer the route wrote. Two families of branch are deliberately doubled out --
+        # the live tip versus a superseded member of the same chain, and a project that holds
+        # something versus a project that holds nothing -- because those are the readings a page
+        # can silently confuse and the only ones an empty list cannot show.
+        {
+            'name': 'design-layer-rollup',
+            'route': '/api/projects/([0-9a-f]{32})/design-layer',
+            'method': 'GET',
+            'schema': 'design-lab/schemas/design-layer-rollup-v1.schema.json',
+            'emitter': 'src/design_lab/design_layer.py',
+            'version': 'design-lab/design-layer-rollup/v1',
+            'cases': lambda h: [
+                ('GET .../design-layer with a chosen and bound direction',
+                 h.get(f'/api/projects/{h.filled}/design-layer')),
+                ('GET .../design-layer of a project with nothing filed',
+                 h.get(f'/api/projects/{h.empty}/design-layer')),
+            ],
+        },
+        {
+            'name': 'design-record-brief-detail',
+            'route': '/api/projects/([0-9a-f]{32})/briefs/(brief-[0-9a-f]{32})',
+            'method': 'GET',
+            'schema': 'design-lab/schemas/design-record-v1.schema.json',
+            'emitter': 'src/design_lab/design_layer.py',
+            'version': 'design-lab/design-record/v1',
+            'cases': lambda h: [
+                ('GET .../briefs/<id> of the live tip',
+                 h.get(f'/api/projects/{h.filled}/briefs/{h.dl_brief_tip}')),
+                ('GET .../briefs/<id> of a superseded version',
+                 h.get(f'/api/projects/{h.filled}/briefs/{h.dl_brief_v1}')),
+            ],
+        },
+        {
+            'name': 'design-record-direction-detail',
+            'route': '/api/projects/([0-9a-f]{32})/directions/(direction-[0-9a-f]{32})',
+            'method': 'GET',
+            'schema': 'design-lab/schemas/design-record-v1.schema.json',
+            'emitter': 'src/design_lab/design_layer.py',
+            'version': 'design-lab/design-record/v1',
+            # The chosen direction and its superseded parent are two different answers: only one of
+            # them carries actor, actor_kind and chosen=true, which is the whole record of the
+            # Human Gate decision. A schema that could not tell them apart would let a page read an
+            # unchosen version as the choice.
+            'cases': lambda h: [
+                ('GET .../directions/<id> of the chosen tip',
+                 h.get(f'/api/projects/{h.filled}/directions/{h.dl_direction_tip}')),
+                ('GET .../directions/<id> of the superseded version',
+                 h.get(f'/api/projects/{h.filled}/directions/{h.dl_direction_v1}')),
+            ],
+        },
+        {
+            'name': 'design-collection-directions',
+            'route': '/api/projects/([0-9a-f]{32})/directions(?:\\?after=(direction-[0-9a-f]{32}))?',
+            'method': 'GET',
+            'schema': 'design-lab/schemas/design-collection-v1.schema.json',
+            'emitter': 'src/design_lab/design_layer.py',
+            'version': 'design-lab/design-collection/v1',
+            'cases': lambda h: [
+                ('GET .../directions with two versions filed',
+                 h.get(f'/api/projects/{h.filled}/directions')),
+                ('GET .../directions with nothing filed',
+                 h.get(f'/api/projects/{h.empty}/directions')),
+            ],
+        },
+        {
+            'name': 'design-collection-tokens',
+            'route': '/api/projects/([0-9a-f]{32})/design-system-tokens',
+            'method': 'GET',
+            'schema': 'design-lab/schemas/design-collection-v1.schema.json',
+            'emitter': 'src/design_lab/design_layer.py',
+            'version': 'design-lab/design-collection/v1',
+            # The branch the discriminator exists for: this collection has NO next_cursor, because
+            # the reader takes every live row. Compared against a project with a document and one
+            # without, so an emitter that grew a cursor field here would be convicted rather than
+            # flattered.
+            'cases': lambda h: [
+                ('GET .../design-system-tokens with one live document',
+                 h.get(f'/api/projects/{h.filled}/design-system-tokens')),
+                ('GET .../design-system-tokens with none',
+                 h.get(f'/api/projects/{h.empty}/design-system-tokens')),
+            ],
+        },
+        {
+            'name': 'design-collection-systems',
+            'route': '/api/design-systems',
+            'method': 'GET',
+            'schema': 'design-lab/schemas/design-collection-v1.schema.json',
+            'emitter': 'src/design_lab/design_layer.py',
+            'version': 'design-lab/design-collection/v1',
+            # The catalog rows are the same objects the roll-up serves under design_layer
+            # .design_systems -- which is exactly why this route needed its own binding: two routes
+            # answering one shape must be compared against the SAME document from both sides, or
+            # the roll-up's copy quietly becomes the only place the shape is judged. One case is
+            # honest here: catalog() has no empty branch to show -- the packaged manifests are
+            # either in the build or the product has no design systems at all.
+            'cases': lambda h: [('GET /api/design-systems', h.get('/api/design-systems'))],
+        },
+        {
+            'name': 'design-lineage-brief-scoped',
+            'route': '/api/projects/([0-9a-f]{32})/briefs/(brief-[0-9a-f]{32})/lineage',
+            'method': 'GET',
+            'schema': 'design-lab/schemas/design-lineage-v1.schema.json',
+            'emitter': 'src/design_lab/design_layer.py',
+            'version': 'design-lab/design-lineage/v1',
+            # Asked from the tip and from the superseded member: the chain is resolved through the
+            # revision events, so any member must return the same two versions with the same
+            # root_id and live_id. One id asked twice, two answers, is the defect this pair catches.
+            'cases': lambda h: [
+                ('GET .../briefs/<tip>/lineage',
+                 h.get(f'/api/projects/{h.filled}/briefs/{h.dl_brief_tip}/lineage')),
+                ('GET .../briefs/<superseded>/lineage',
+                 h.get(f'/api/projects/{h.filled}/briefs/{h.dl_brief_v1}/lineage')),
+            ],
+        },
+        {
+            'name': 'design-lineage-direction-scoped',
+            'route': '/api/projects/([0-9a-f]{32})/directions/(direction-[0-9a-f]{32})/lineage',
+            'method': 'GET',
+            'schema': 'design-lab/schemas/design-lineage-v1.schema.json',
+            'emitter': 'src/design_lab/design_layer.py',
+            'version': 'design-lab/design-lineage/v1',
+            'cases': lambda h: [
+                ('GET .../directions/<tip>/lineage',
+                 h.get(f'/api/projects/{h.filled}/directions/{h.dl_direction_tip}/lineage')),
+                ('GET .../directions/<superseded>/lineage',
+                 h.get(f'/api/projects/{h.filled}/directions/{h.dl_direction_v1}/lineage')),
+            ],
+        },
+        {
+            'name': 'design-lineage-brief-by-id',
+            'route': '/api/design-briefs/(brief-[0-9a-f]{32})/lineage',
+            'method': 'GET',
+            'schema': 'design-lab/schemas/design-lineage-v1.schema.json',
+            'emitter': 'src/design_lab/design_layer.py',
+            'version': 'design-lab/design-lineage/v1',
+            # The id-scoped twin of the project-scoped read: same document, owner resolved from the
+            # record itself. Both ends of the chain are fed to it because the emitter has to reach
+            # the same lineage from either.
+            'cases': lambda h: [
+                ('GET /api/design-briefs/<tip>/lineage',
+                 h.get(f'/api/design-briefs/{h.dl_brief_tip}/lineage')),
+                ('GET /api/design-briefs/<superseded>/lineage',
+                 h.get(f'/api/design-briefs/{h.dl_brief_v1}/lineage')),
+            ],
+        },
+        {
+            'name': 'design-lineage-direction-by-id',
+            'route': '/api/design-directions/(direction-[0-9a-f]{32})/lineage',
+            'method': 'GET',
+            'schema': 'design-lab/schemas/design-lineage-v1.schema.json',
+            'emitter': 'src/design_lab/design_layer.py',
+            'version': 'design-lab/design-lineage/v1',
+            'cases': lambda h: [
+                ('GET /api/design-directions/<tip>/lineage',
+                 h.get(f'/api/design-directions/{h.dl_direction_tip}/lineage')),
+                ('GET /api/design-directions/<superseded>/lineage',
+                 h.get(f'/api/design-directions/{h.dl_direction_v1}/lineage')),
+            ],
+        },
+        {
+            'name': 'design-record-brief-create',
+            'route': '/api/projects/([0-9a-f]{32})/briefs',
+            'method': 'POST',
+            'schema': 'design-lab/schemas/design-record-v1.schema.json',
+            'emitter': 'src/design_lab/design_layer.py',
+            'version': 'design-lab/design-record/v1',
+            'cases': lambda h: h.design_write_cases('briefs'),
+        },
+        {
+            'name': 'design-record-direction-create',
+            'route': '/api/projects/([0-9a-f]{32})/directions',
+            'method': 'POST',
+            'schema': 'design-lab/schemas/design-record-v1.schema.json',
+            'emitter': 'src/design_lab/design_layer.py',
+            'version': 'design-lab/design-record/v1',
+            'cases': lambda h: h.design_write_cases('directions'),
+        },
+        {
+            'name': 'design-record-direction-choose',
+            'route': '/api/projects/([0-9a-f]{32})/directions/(direction-[0-9a-f]{32})/choose',
+            'method': 'POST',
+            'schema': 'design-lab/schemas/design-record-v1.schema.json',
+            'emitter': 'src/design_lab/design_layer.py',
+            'version': 'design-lab/design-record/v1',
+            # The Human Gate's own answer. Binding it says nothing about who may choose -- the
+            # emitter refuses a non-human actor_kind with 403 HUMAN_DIRECTION_CHOICE_REQUIRED before
+            # it writes -- it binds what the caller is handed back once that refusal has passed.
+            'cases': lambda h: h.design_write_cases('choose'),
+        },
+        {
+            'name': 'design-record-direction-bind',
+            'route': '/api/projects/([0-9a-f]{32})/directions/(direction-[0-9a-f]{32})/bind',
+            'method': 'POST',
+            'schema': 'design-lab/schemas/design-record-v1.schema.json',
+            'emitter': 'src/design_lab/design_layer.py',
+            'version': 'design-lab/design-record/v1',
+            'cases': lambda h: h.design_write_cases('bind'),
+        },
+        {
+            'name': 'design-record-brief-revise-scoped',
+            'route': '/api/projects/([0-9a-f]{32})/briefs/(brief-[0-9a-f]{32})/revisions',
+            'method': 'POST',
+            'schema': 'design-lab/schemas/design-record-v1.schema.json',
+            'emitter': 'src/design_lab/design_layer.py',
+            'version': 'design-lab/design-record/v1',
+            'cases': lambda h: h.design_write_cases('brief-revisions-scoped'),
+        },
+        {
+            'name': 'design-record-direction-revise-scoped',
+            'route': '/api/projects/([0-9a-f]{32})/directions/(direction-[0-9a-f]{32})/revisions',
+            'method': 'POST',
+            'schema': 'design-lab/schemas/design-record-v1.schema.json',
+            'emitter': 'src/design_lab/design_layer.py',
+            'version': 'design-lab/design-record/v1',
+            'cases': lambda h: h.design_write_cases('direction-revisions-scoped'),
+        },
+        {
+            'name': 'design-record-brief-revise-by-id',
+            'route': '/api/design-briefs/(brief-[0-9a-f]{32})/revisions',
+            'method': 'POST',
+            'schema': 'design-lab/schemas/design-record-v1.schema.json',
+            'emitter': 'src/design_lab/design_layer.py',
+            'version': 'design-lab/design-record/v1',
+            'cases': lambda h: h.design_write_cases('brief-revisions-by-id'),
+        },
+        {
+            'name': 'design-record-direction-revise-by-id',
+            'route': '/api/design-directions/(direction-[0-9a-f]{32})/revisions',
+            'method': 'POST',
+            'schema': 'design-lab/schemas/design-record-v1.schema.json',
+            'emitter': 'src/design_lab/design_layer.py',
+            'version': 'design-lab/design-record/v1',
+            'cases': lambda h: h.design_write_cases('direction-revisions-by-id'),
         },
     ]
 

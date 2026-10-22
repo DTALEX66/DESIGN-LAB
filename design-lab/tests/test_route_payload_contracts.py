@@ -115,7 +115,30 @@ class RoutePayloadContractTests(unittest.TestCase):
                     # `truncated`/`next_cursor` and the cancel flags mean different things. The
                     # detail binding reads the same job as a record and as an event page, which is
                     # the only way the `surface` discriminator is compared rather than asserted.
-                    'task-readback-list': 2, 'task-readback-detail': 2}
+                    'task-readback-list': 2, 'task-readback-detail': 2,
+                    # The design-layer family, paid 2026-10-23. Seventeen rows, and every one of
+                    # them is compared against two answers rather than one: the shape a reader can
+                    # confuse is not a missing field, it is a live tip read as a superseded version,
+                    # a project with rows read as an empty one, a choice that was never made read as
+                    # a blank panel, or a token list given a cursor it does not have. Each binding
+                    # therefore carries both sides of the distinction it exists to keep.
+                    'design-layer-rollup': 2,
+                    'design-record-brief-detail': 2, 'design-record-direction-detail': 2,
+                    'design-collection-directions': 2, 'design-collection-tokens': 2,
+                    # The catalog read: one case, because catalog() has no empty branch a fixture
+                    # could show.
+                    'design-collection-systems': 1,
+                    'design-lineage-brief-scoped': 2, 'design-lineage-direction-scoped': 2,
+                    'design-lineage-brief-by-id': 2, 'design-lineage-direction-by-id': 2,
+                    # Write answers: the append branch and the replay of the same idempotency key,
+                    # which is a DIFFERENT code path in the emitter (it returns the stored row) and
+                    # the same boundary a caller can be handed.
+                    'design-record-brief-create': 2, 'design-record-direction-create': 2,
+                    'design-record-direction-choose': 2, 'design-record-direction-bind': 2,
+                    'design-record-brief-revise-scoped': 2,
+                    'design-record-direction-revise-scoped': 2,
+                    'design-record-brief-revise-by-id': 2,
+                    'design-record-direction-revise-by-id': 2}
         self.assertEqual(sorted(expected), sorted(b['name'] for b in self.bindings),
                          'a binding added here without being listed below is a boundary this '
                          'file silently stopped covering')
@@ -496,6 +519,92 @@ class RoutePayloadContractTests(unittest.TestCase):
         self.assertTrue(lines[-1].startswith('VERIFY_ROUTE_PAYLOAD_CONTRACTS=PASS'), lines[-1])
         self.assertIn(f'bindings={len(self.bindings)}', lines[-1])
         self.assertIn('failures=0', lines[-1])
+
+    # --- the design-layer family's own teeth (batch I, 2026-10-23) -------------------------
+
+    def _weakened(self, name, index, mutate):
+        """One real payload, mutated in a copy, put back through its own binding."""
+        binding = self.binding(name)
+        cases = list(self.payloads[name])
+        label, payload = cases[index]
+        cases[index] = (label, mutate(payload))
+        errors, _ = GATE.check_binding(binding, docs=self.docs, reg=self.reg, rows=self.rows,
+                                       cases=cases)
+        return errors
+
+    def test_a_record_envelope_whose_discriminator_lies_is_red(self):
+        """`record_kind` is judged against the key that is present, not trusted because it is there.
+
+        A brief served under `direction` is the mislabelling a page cannot see: the wrapper key it
+        indexes is the only other hint, and if the discriminator is decorative the two can disagree
+        silently and the panel renders a binding as a direction.
+        """
+        def lie(payload):
+            mutated = dict(payload)
+            mutated['record_kind'] = 'direction'
+            return mutated
+
+        errors = self._weakened('design-record-brief-detail', 0, lie)
+        for token in ('SCHEMA_VIOLATION', 'MISSING_FROM_EMITTER', 'UNDECLARED_BY_SCHEMA'):
+            self.assertTrue(self.convicting(errors, token), f'{token}: {errors[:4]}')
+
+    def test_a_chain_that_lost_its_root_is_red(self):
+        def strip_root(payload):
+            lineage = dict(payload['lineage'])
+            lineage.pop('root_id')
+            return {**payload, 'lineage': lineage}
+
+        errors = self._weakened('design-lineage-brief-scoped', 0, strip_root)
+        self.assertTrue(self.convicting(errors, 'MISSING_FROM_EMITTER'), errors[:4])
+        self.assertTrue(self.convicting(errors, 'SCHEMA_VIOLATION'), errors[:4])
+
+    def test_a_collection_that_invents_a_cursor_is_red(self):
+        """The token list has no paging, and a `next_cursor` appearing on it is convicted.
+
+        This is the branch a lenient union would let through: one envelope, two shapes, and an
+        emitter that grew a cursor would look like a correct answer to a reader that already knows
+        the direction list carries one.
+        """
+        def add_cursor(payload):
+            return {**payload, 'next_cursor': None}
+
+        errors = self._weakened('design-collection-tokens', 0, add_cursor)
+        self.assertTrue(self.convicting(errors, 'UNDECLARED_BY_SCHEMA'), errors[:4])
+        self.assertTrue(self.convicting(errors, 'SCHEMA_VIOLATION'), errors[:4])
+
+    def test_an_empty_object_standing_in_for_a_missing_choice_is_red(self):
+        """P0-02: `chosen_direction` is null or a real chosen row -- `{}` is neither.
+
+        An empty dict is the shape an emitter reaches for when it wants to say "nothing chosen"
+        without a nullable field, and a page would render it as a choice with blank content.
+        """
+        def hollow(payload):
+            layer = dict(payload['design_layer'])
+            layer['chosen_direction'] = {}
+            return {**payload, 'design_layer': layer}
+
+        errors = self._weakened('design-layer-rollup', 1, hollow)
+        self.assertTrue(self.convicting(errors, 'SCHEMA_VIOLATION'), errors[:4])
+        self.assertTrue(self.convicting(errors, 'MISSING_FROM_EMITTER'), errors[:4])
+
+    def test_the_append_and_the_replay_of_a_write_share_one_envelope(self):
+        """Both branches of each write route are the same boundary, measured on the real answers.
+
+        The replay is not a second copy of the append: it is the emitter's
+        `SELECT ... WHERE operation_id=?` path returning the stored row, and a status that differs
+        (201 then 200) is exactly why the key sets have to be compared rather than assumed.
+        """
+        writes = [name for name in sorted(self.payloads) if name.startswith('design-record-')
+                  and any(word in name for word in ('create', 'choose', 'bind', 'revise'))]
+        self.assertEqual(len(writes), 8, writes)
+        for name in writes:
+            cases = self.payloads[name]
+            self.assertEqual(len(cases), 2, f'{name} does not carry an append and a replay')
+            (first_label, first), (second_label, second) = cases
+            self.assertEqual(sorted(first), sorted(second),
+                             f'{name}: the replay answer is a different shape from the append')
+            self.assertEqual(first['record_kind'], second['record_kind'], name)
+            self.assertNotEqual(first_label, second_label, f'{name}: both cases are the same call')
 
 
 if __name__ == '__main__':

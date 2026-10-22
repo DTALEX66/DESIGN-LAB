@@ -95,6 +95,123 @@ def _check_brief_readback(payload, *, envelope: bool):
     return payload
 
 
+#: The four envelopes this family answered with no version of its own, measured 2026-10-23 off a
+#: live `make_server` boot rather than read off the source: a one-record wrapper (`{brief: …}`,
+#: `{direction: …}`, `{binding: …}`) served by ten routes, a live-row list (`{directions: …}`,
+#: `{token_documents: …}`), a version chain (`{lineage: …}`) and the roll-up (`{design_layer: …}`).
+#: Each gets ONE document and ONE version; the record shapes inside them are `$ref`'d from the file
+#: that already owns them, so paying this debt does not create a second description of a row.
+DESIGN_RECORD_SCHEMA_VERSION = 'design-lab/design-record/v1'
+DESIGN_COLLECTION_SCHEMA_VERSION = 'design-lab/design-collection/v1'
+DESIGN_LINEAGE_SCHEMA_VERSION = 'design-lab/design-lineage/v1'
+DESIGN_LAYER_ROLLUP_SCHEMA_VERSION = 'design-lab/design-layer-rollup/v1'
+
+# repo_resource, as for the brief read-back: an installed wheel's PROJECT_ROOT is the interpreter's
+# own Lib, and a check that cannot open its schema must not answer as a verdict about the work.
+DESIGN_RECORD_SCHEMA_PATH = repo_resource('schemas/design-record-v1.schema.json')
+DESIGN_COLLECTION_SCHEMA_PATH = repo_resource('schemas/design-collection-v1.schema.json')
+DESIGN_LINEAGE_SCHEMA_PATH = repo_resource('schemas/design-lineage-v1.schema.json')
+DESIGN_LAYER_ROLLUP_SCHEMA_PATH = repo_resource('schemas/design-layer-rollup-v1.schema.json')
+
+#: Every document the four envelopes can `$ref` into, including themselves. The set is named here
+#: because a reference that resolves to nothing is reported by jsonschema as a defect in the
+#: PAYLOAD, which would blame a project's records for a packaging fault in this build.
+_DESIGN_CONTRACT_FILES = (
+    ('design-lab/schemas/brief-readback.schema.json', lambda: BRIEF_READBACK_SCHEMA_PATH),
+    ('design-lab/schemas/design-record-v1.schema.json', lambda: DESIGN_RECORD_SCHEMA_PATH),
+    ('design-lab/schemas/design-collection-v1.schema.json',
+     lambda: DESIGN_COLLECTION_SCHEMA_PATH),
+    ('design-lab/schemas/design-lineage-v1.schema.json', lambda: DESIGN_LINEAGE_SCHEMA_PATH),
+    ('design-lab/schemas/design-layer-rollup-v1.schema.json',
+     lambda: DESIGN_LAYER_ROLLUP_SCHEMA_PATH),
+)
+
+#: Distinguishes "this list has no cursor field at all" from "this list is on its last page".
+_UNSET = object()
+
+
+def _design_contracts():
+    """Load the envelope documents and the one they borrow the brief shape from, offline."""
+    from .interop import load_schema, resource_registry
+    documents = {}
+    for label, get_path in _DESIGN_CONTRACT_FILES:
+        document = load_schema(get_path())
+        ident = document.get('$id')
+        if not isinstance(ident, str) or not ident:
+            raise DesignLayerError(500, 'DESIGN_CONTRACT_UNREADABLE',
+                                  [f'{label} declares no `$id`, so the envelope that `$ref`'
+                                   's it cannot resolve the reference'])
+        documents[ident] = document
+    dtcg_document = dtcg.load_schema()
+    documents.setdefault(dtcg_document['$id'], dtcg_document)
+    return resource_registry(documents)
+
+
+def _check_design_envelope(code, schema_path, version, payload):
+    """Refuse to serve an envelope that does not satisfy its own contract.
+
+    The emitter writes every key in these documents, so a mismatch means code and contract have
+    already diverged -- a renamed wrapper key, a record that grew a field, a version bumped on one
+    side only. Serving it anyway is the failure this guard exists for: the page would read a short
+    record and call the project empty. The version is compared against the file before validating,
+    because a schema that binds a different version than the emitter stamps is one defect that
+    looks like none.
+    """
+    from .interop import load_schema
+    try:
+        schema = load_schema(schema_path)
+    except InteropError as exc:
+        raise DesignLayerError(500, code, [str(exc)]) from exc
+    bound = ((schema.get('properties') or {}).get('schemaVersion') or {}).get('const')
+    if bound != version:
+        raise DesignLayerError(500, code,
+                               [f'{schema_path.name} binds {bound!r}, not {version!r} -- the '
+                                'contract and the emitter disagree about which version this is'])
+    try:
+        problems = schema_errors(schema, payload, registry=_design_contracts())
+    except (InteropError, KeyError, TypeError) as exc:
+        raise DesignLayerError(500, code, [str(exc)]) from exc
+    if problems:
+        raise DesignLayerError(500, code, problems)
+    return payload
+
+
+def _check_design_record(kind, record):
+    """The one-record answer a brief/direction/binding read or write gives."""
+    if kind not in ('brief', 'direction', 'binding'):
+        raise DesignLayerError(500, 'DESIGN_RECORD_CONTRACT_VIOLATION',
+                               [f'{kind!r} is not a record kind this envelope can carry'])
+    return _check_design_envelope(
+        'DESIGN_RECORD_CONTRACT_VIOLATION', DESIGN_RECORD_SCHEMA_PATH,
+        DESIGN_RECORD_SCHEMA_VERSION,
+        {'schemaVersion': DESIGN_RECORD_SCHEMA_VERSION, 'record_kind': kind, kind: record})
+
+
+def _check_design_collection(kind, rows, next_cursor=_UNSET):
+    """The live-row list of one design-layer collection, paged or not as the writer actually is."""
+    payload = {'schemaVersion': DESIGN_COLLECTION_SCHEMA_VERSION, 'collection': kind, kind: rows}
+    if next_cursor is not _UNSET:
+        payload['next_cursor'] = next_cursor
+    return _check_design_envelope('DESIGN_COLLECTION_CONTRACT_VIOLATION',
+                                  DESIGN_COLLECTION_SCHEMA_PATH, DESIGN_COLLECTION_SCHEMA_VERSION,
+                                  payload)
+
+
+def _check_design_lineage(subject_kind, node):
+    return _check_design_envelope(
+        'DESIGN_LINEAGE_CONTRACT_VIOLATION', DESIGN_LINEAGE_SCHEMA_PATH,
+        DESIGN_LINEAGE_SCHEMA_VERSION,
+        {'schemaVersion': DESIGN_LINEAGE_SCHEMA_VERSION, 'subject_kind': subject_kind,
+         'lineage': node})
+
+
+def _check_design_rollup(node):
+    return _check_design_envelope(
+        'DESIGN_LAYER_ROLLUP_CONTRACT_VIOLATION', DESIGN_LAYER_ROLLUP_SCHEMA_PATH,
+        DESIGN_LAYER_ROLLUP_SCHEMA_VERSION,
+        {'schemaVersion': DESIGN_LAYER_ROLLUP_SCHEMA_VERSION, 'design_layer': node})
+
+
 def _catalog_root():
     """Return the first design-system catalog root that actually has manifests."""
     from importlib.resources import files
@@ -457,7 +574,7 @@ class DesignLayer:
                 existing = conn.execute(
                     "SELECT * FROM design_brief WHERE operation_id=?", (operation_id,)).fetchone()
                 if existing is not None:
-                    return {'brief': self._brief(dict(existing))}
+                    return _check_design_record('brief', self._brief(dict(existing)))
                 # P0-05: fail closed before persisting — every reference must be a
                 # real asset of this project (malformed / unknown / cross-project).
                 refs = self._verify_references(conn, project_id, refs)
@@ -479,7 +596,7 @@ class DesignLayer:
                     payload={'brief_id': brief_id, 'version': 1, 'spec_sha256': spec})
                 created = conn.execute(
                     'SELECT * FROM design_brief WHERE brief_id=?', (brief_id,)).fetchone()
-        return {'brief': self._brief(dict(created))}
+        return _check_design_record('brief', self._brief(dict(created)))
 
     def list_briefs(self, project_id, after=''):
         self._check_project(project_id)
@@ -497,7 +614,8 @@ class DesignLayer:
             "SELECT * FROM design_brief WHERE project_id=? AND brief_id=?", (project_id, brief_id))
         if not rows:
             raise DesignLayerError(404, 'BRIEF_NOT_FOUND')
-        return {'brief': _check_brief_readback(self._brief(rows[0]), envelope=False)}
+        return _check_design_record(
+            'brief', _check_brief_readback(self._brief(rows[0]), envelope=False))
 
     def revise_brief(self, project_id, brief_id, *, title, goals, constraints,
                      reference_asset_ids, idempotency_key):
@@ -548,7 +666,7 @@ class DesignLayer:
                 if existing is not None:
                     # Idempotent replay: the same key returns the same new
                     # version, and appends nothing new.
-                    return {'brief': self._brief(dict(existing))}
+                    return _check_design_record('brief', self._brief(dict(existing)))
                 if parent['superseded_by'] is not None:
                     raise DesignLayerError(409, 'STALE_REVISION')
                 refs = self._verify_references(conn, project_id, refs)
@@ -572,7 +690,7 @@ class DesignLayer:
                              'previous_version': int(parent['version']), 'spec_sha256': spec})
                 created = conn.execute(
                     "SELECT * FROM design_brief WHERE brief_id=?", (revised_id,)).fetchone()
-        return {'brief': self._brief(dict(created))}
+        return _check_design_record('brief', self._brief(dict(created)))
 
     # -- directions ---------------------------------------------------------
     def create_direction(self, project_id, *, brief_id, title, style_notes,
@@ -600,7 +718,7 @@ class DesignLayer:
                 if existing is not None:
                     row = conn.execute(
                         "SELECT * FROM design_direction WHERE direction_id=?", (existing[0],)).fetchone()
-                    return {'direction': self._direction(dict(row))}
+                    return _check_design_record('direction', self._direction(dict(row)))
                 direction_id = cstore.new_id('direction')
                 conn.execute(
                     "INSERT INTO design_direction (direction_id, operation_id, project_id, brief_id,"
@@ -616,7 +734,7 @@ class DesignLayer:
                              'spec_sha256': spec})
                 created = conn.execute(
                     'SELECT * FROM design_direction WHERE direction_id=?', (direction_id,)).fetchone()
-        return {'direction': self._direction(dict(created))}
+        return _check_design_record('direction', self._direction(dict(created)))
 
     def list_directions(self, project_id, brief_id=None, after=''):
         self._check_project(project_id)
@@ -628,8 +746,9 @@ class DesignLayer:
         sql += " AND direction_id>? ORDER BY direction_id LIMIT 101"
         params.append(after)
         rows = self._rows(sql, params)
-        return {'directions': [self._direction(r) for r in rows[:100]],
-                'next_cursor': rows[99]['direction_id'] if len(rows) > 100 else None}
+        return _check_design_collection(
+            'directions', [self._direction(r) for r in rows[:100]],
+            next_cursor=rows[99]['direction_id'] if len(rows) > 100 else None)
 
     def get_direction(self, project_id, direction_id):
         self._check_project(project_id)
@@ -637,7 +756,7 @@ class DesignLayer:
                           (project_id, direction_id))
         if not rows:
             raise DesignLayerError(404, 'DIRECTION_NOT_FOUND')
-        return {'direction': self._direction(rows[0])}
+        return _check_design_record('direction', self._direction(rows[0]))
 
     def revise_direction(self, project_id, direction_id, *, title, style_notes, color_mood,
                          typography_mood, idempotency_key):
@@ -681,7 +800,7 @@ class DesignLayer:
                     "SELECT * FROM design_direction WHERE operation_id=?",
                     (operation_id,)).fetchone()
                 if existing is not None:
-                    return {'direction': self._direction(dict(existing))}
+                    return _check_design_record('direction', self._direction(dict(existing)))
                 if parent['superseded_by'] is not None:
                     raise DesignLayerError(409, 'STALE_REVISION')
                 version = int(parent['version']) + 1
@@ -718,7 +837,7 @@ class DesignLayer:
                              'previous_chosen_direction_id': direction_id if carried else None})
                 created = conn.execute(
                     "SELECT * FROM design_direction WHERE direction_id=?", (revised_id,)).fetchone()
-        return {'direction': self._direction(dict(created))}
+        return _check_design_record('direction', self._direction(dict(created)))
 
     def choose_direction(self, project_id, direction_id, *, actor, actor_kind, idempotency_key):
         """Record which direction is chosen (the Golden Workflow 1 "Human Choice").
@@ -786,7 +905,7 @@ class DesignLayer:
                                  'actor': actor, 'actor_kind': actor_kind})
                 updated = conn.execute(
                     "SELECT * FROM design_direction WHERE direction_id=?", (direction_id,)).fetchone()
-        return {'direction': self._direction(dict(updated))}
+        return _check_design_record('direction', self._direction(dict(updated)))
 
     # -- design-system binding ---------------------------------------------
     def bind_design_system(self, project_id, direction_id, *, design_system_name,
@@ -827,7 +946,7 @@ class DesignLayer:
                     row = conn.execute(
                         "SELECT * FROM design_system_binding WHERE binding_id=?",
                         (existing[0],)).fetchone()
-                    return {'binding': self._binding(dict(row))}
+                    return _check_design_record('binding', self._binding(dict(row)))
                 # F-2a: a binding for this direction that already exists means this
                 # write REPLACES it -- recorded as binding-rebound carrying the
                 # replaced id. The replaced row is left exactly as written (the v1
@@ -857,7 +976,7 @@ class DesignLayer:
                                                    else None})
                 created = conn.execute(
                     "SELECT * FROM design_system_binding WHERE binding_id=?", (binding_id,)).fetchone()
-        return {'binding': self._binding(dict(created))}
+        return _check_design_record('binding', self._binding(dict(created)))
 
     # -- design-system token documents (write + readback) -------------------
     @staticmethod
@@ -1015,8 +1134,9 @@ class DesignLayer:
     def list_token_documents(self, project_id):
         """The project's LIVE token documents -- an honest empty list when none."""
         self._check_project(project_id)
-        return {'token_documents': [self._token_document(row)
-                                    for row in self._live_token_rows(project_id)]}
+        return _check_design_collection(
+            'token_documents', [self._token_document(row)
+                                for row in self._live_token_rows(project_id)])
 
     def get_tokens(self, project_id, design_system_name):
         """The live token document of one design system in this project."""
@@ -1081,14 +1201,14 @@ class DesignLayer:
                             'brief-revised', 'BRIEF_NOT_FOUND', self._brief)
         for record in chain['versions']:
             _check_brief_readback(record, envelope=False)
-        return {'lineage': {'brief_id': brief_id, **chain}}
+        return _check_design_lineage('brief', {'brief_id': brief_id, **chain})
 
     def lineage_direction(self, project_id, direction_id):
         """The direction's version chain, oldest version first (read-only)."""
         self._check_project(project_id)
-        return {'lineage': {'direction_id': direction_id, **self._chain(
+        return _check_design_lineage('direction', {'direction_id': direction_id, **self._chain(
             project_id, direction_id, "SELECT * FROM design_direction WHERE project_id=?",
-            'direction_id', 'direction-revised', 'DIRECTION_NOT_FOUND', self._direction)}}
+            'direction_id', 'direction-revised', 'DIRECTION_NOT_FOUND', self._direction)})
 
     def _chain(self, project_id, row_id, select_sql, id_column, revised_kind, not_found, shape):
         """Resolve one record's version chain from the append-only events.
@@ -1128,7 +1248,7 @@ class DesignLayer:
     # -- design-system catalog ---------------------------------------------
     def design_systems(self):
         """Read-only catalog of packaged design systems (the bindable contracts)."""
-        return {'design_systems': catalog()}
+        return _check_design_collection('design_systems', catalog())
 
     # -- readback: the full slice ------------------------------------------
     def get_design_layer(self, project_id):
@@ -1157,13 +1277,11 @@ class DesignLayer:
                 active_binding = max(
                     owned,
                     key=lambda b: (int(b['version']), b['created_at'], b['binding_id']))
-        return {
-            'design_layer': {
-                'briefs': briefs,
-                'directions': directions,
-                'chosen_direction': chosen_dir,
-                'bindings': [self._binding(b) for b in bindings],
-                'active_binding': self._binding(dict(active_binding)) if active_binding else None,
-                'design_systems': catalog(),
-            }
-        }
+        return _check_design_rollup({
+            'briefs': briefs,
+            'directions': directions,
+            'chosen_direction': chosen_dir,
+            'bindings': [self._binding(b) for b in bindings],
+            'active_binding': self._binding(dict(active_binding)) if active_binding else None,
+            'design_systems': catalog(),
+        })

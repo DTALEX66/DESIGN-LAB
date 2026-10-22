@@ -485,16 +485,22 @@
     {
       "route": "/api/design-systems",
       "method": "GET",
-      "kind": "SCHEMA_LESS",
+      "kind": "BOUND_SCHEMA",
       "handler": "design_systems",
-      "reason": "No schema: src/design_lab/design_layer.py returns the packaged design-system catalog with no schemaVersion, and nothing validates the envelope at the boundary. Recorded debt."
+      "schema": "design-lab/schemas/design-collection-v1.schema.json",
+      "version": "design-lab/design-collection/v1",
+      "emitter": "src/design_lab/design_layer.py:105",
+      "reason": "The bindable design-system catalog: src/design_lab/design_layer.py design_systems() answers the packaged manifests read by catalog() -- four rows measured 2026-10-23, each with name, title, version and evidence_level. Debt paid 2026-10-23 as the third branch of design-lab/schemas/design-collection-v1.schema.json (collection='design_systems'), because the row shape was already bound inside design-lab/schemas/design-layer-rollup-v1.schema.json ($defs.design_system, which this branch $refs rather than restates): leaving the route that serves those very rows unbound would have made the roll-up the only place the catalog shape was judged, so the same bytes answered bound in one route and unjudged in another. design_layer._check_design_collection() runs the envelope on every read and answers 500 DESIGN_COLLECTION_CONTRACT_VIOLATION on a mismatch; the branch declares no next_cursor because catalog() is not paged."
     },
     {
       "route": "/api/projects/([0-9a-f]{32})/design-layer",
       "method": "GET",
-      "kind": "SCHEMA_LESS",
+      "kind": "BOUND_SCHEMA",
       "handler": "get_design_layer",
-      "reason": "No schema: the project's design-layer roll-up is assembled in src/design_lab/design_layer.py with no schemaVersion. Recorded debt."
+      "schema": "design-lab/schemas/design-layer-rollup-v1.schema.json",
+      "version": "design-lab/design-layer-rollup/v1",
+      "emitter": "src/design_lab/design_layer.py:107",
+      "reason": "The project's design-layer roll-up, assembled in src/design_lab/design_layer.py. Debt was that the assembler stated no version, so the one document the Workbench evidence panel and the standalone-chain acceptance both read was described only by whatever the page happened to index. Debt paid 2026-10-23. design-lab/schemas/design-layer-rollup-v1.schema.json binds the wrapper and the six keys of the slice, with chosen_direction and active_binding as oneOf[null, record] -- the two fields that must go null rather than fall back to a plausible row (P0-02: no invented Human Choice; P0-D: a binding left on a direction that is no longer chosen). design_layer._check_design_rollup() answers 500 DESIGN_LAYER_ROLLUP_CONTRACT_VIOLATION on a mismatch."
     },
     {
       "route": "/api/projects/([0-9a-f]{32})/jury",
@@ -519,58 +525,82 @@
     {
       "route": "/api/projects/([0-9a-f]{32})/briefs/(brief-[0-9a-f]{32})",
       "method": "GET",
-      "kind": "SCHEMA_LESS",
+      "kind": "BOUND_SCHEMA",
       "handler": "get_brief",
-      "reason": "No schema for the envelope itself: one brief record wrapped in {brief: ...} with no schemaVersion on the wrapper. The record is no longer unjudged -- design_layer validates it against $defs.brief of design-lab/schemas/brief-readback.schema.json on every read (500 BRIEF_CONTRACT_VIOLATION with field paths on a mismatch). Recorded debt: binding the wrapper needs the envelope version, which only list_briefs carries today."
+      "schema": "design-lab/schemas/design-record-v1.schema.json",
+      "version": "design-lab/design-record/v1",
+      "emitter": "src/design_lab/design_layer.py:104",
+      "reason": "One brief, wrapped in {brief: ...}. The record stopped being unjudged on 2026-10-08 (validated through $defs.brief of design-lab/schemas/brief-readback.schema.json on every read); what stayed unpaid was the wrapper, which carried no schemaVersion. Debt paid 2026-10-23. design-lab/schemas/design-record-v1.schema.json binds the wrapper (schemaVersion, record_kind, and exactly one record key) and, through `$ref`, the record itself; design_layer._check_design_record() runs it on every one of these answers, so a renamed wrapper key or a record that drifted out of its own definition answers 500 DESIGN_RECORD_CONTRACT_VIOLATION with the field paths instead of being served."
     },
     {
       "route": "/api/projects/([0-9a-f]{32})/directions(?:\\?after=(direction-[0-9a-f]{32}))?",
       "method": "GET",
-      "kind": "SCHEMA_LESS",
+      "kind": "BOUND_SCHEMA",
       "handler": "list_directions",
-      "reason": "No schema for the envelope: a paging list from src/design_lab/design_layer.py with no schemaVersion. Recorded debt."
+      "schema": "design-lab/schemas/design-collection-v1.schema.json",
+      "version": "design-lab/design-collection/v1",
+      "emitter": "src/design_lab/design_layer.py:105",
+      "reason": "The paged direction list of one project. Debt was that this is the sibling of the brief list -- same page shape, same 100-row cap, same null cursor on a full page -- but only one of the two had a contract. Debt paid 2026-10-23. design-lab/schemas/design-collection-v1.schema.json binds the wrapper (schemaVersion, the `collection` discriminator, the row array and the cursor branch the writer actually has) and, through `$ref`, the rows themselves; design_layer._check_design_collection() runs it on every read, so a short row answers 500 DESIGN_COLLECTION_CONTRACT_VIOLATION rather than an empty panel."
     },
     {
       "route": "/api/projects/([0-9a-f]{32})/directions/(direction-[0-9a-f]{32})",
       "method": "GET",
-      "kind": "SCHEMA_LESS",
+      "kind": "BOUND_SCHEMA",
       "handler": "get_direction",
-      "reason": "No schema for the envelope: one direction record with no schemaVersion. Recorded debt."
+      "schema": "design-lab/schemas/design-record-v1.schema.json",
+      "version": "design-lab/design-record/v1",
+      "emitter": "src/design_lab/design_layer.py:104",
+      "reason": "One direction, wrapped in {direction: ...}. Debt paid 2026-10-23. design-lab/schemas/design-record-v1.schema.json binds the wrapper (schemaVersion, record_kind, and exactly one record key) and, through `$ref`, the record itself; design_layer._check_design_record() runs it on every one of these answers, so a renamed wrapper key or a record that drifted out of its own definition answers 500 DESIGN_RECORD_CONTRACT_VIOLATION with the field paths instead of being served."
     },
     {
       "route": "/api/projects/([0-9a-f]{32})/briefs/(brief-[0-9a-f]{32})/lineage",
       "method": "GET",
-      "kind": "SCHEMA_LESS",
+      "kind": "BOUND_SCHEMA",
       "handler": "lineage_brief",
-      "reason": "No schema for the envelope: the superseded_by chain plus design_layer_event rows, assembled in src/design_lab/design_layer.py with no schemaVersion on the wrapper. Each version in the chain is now judged -- lineage_brief runs every record through $defs.brief of design-lab/schemas/brief-readback.schema.json and refuses a mismatch as 500 BRIEF_CONTRACT_VIOLATION. The event kinds it reports are pinned by EVENT_KINDS (design_layer.py:166) and the table CHECK, not by a schema. Recorded debt: the wrapper."
+      "schema": "design-lab/schemas/design-lineage-v1.schema.json",
+      "version": "design-lab/design-lineage/v1",
+      "emitter": "src/design_lab/design_layer.py:106",
+      "reason": "The brief's superseded_by chain. The reason this row carried before 2026-10-23 said the document was \"the chain plus design_layer_event rows\" -- that was wrong, and the measured payload corrects it: _chain() READS design_layer_event to find each row's parent (the brief-revised payloads map new_id to old_id) and then serves records; no event row is in the answer. The event kinds themselves stay pinned by EVENT_KINDS and the table CHECK, not by this schema. Debt paid 2026-10-23. design-lab/schemas/design-lineage-v1.schema.json binds the wrapper (schemaVersion, subject_kind) and the chain node: root_id, requested_id, live_id and a versions array whose items are `$ref`'d from the record owner. design_layer._check_design_lineage() runs it on every chain read and answers 500 DESIGN_LINEAGE_CONTRACT_VIOLATION on a mismatch."
     },
     {
       "route": "/api/projects/([0-9a-f]{32})/directions/(direction-[0-9a-f]{32})/lineage",
       "method": "GET",
-      "kind": "SCHEMA_LESS",
+      "kind": "BOUND_SCHEMA",
       "handler": "lineage_direction",
-      "reason": "No schema for the envelope, as for the brief lineage: chain plus events from src/design_lab/design_layer.py, no schemaVersion. Recorded debt."
+      "schema": "design-lab/schemas/design-lineage-v1.schema.json",
+      "version": "design-lab/design-lineage/v1",
+      "emitter": "src/design_lab/design_layer.py:106",
+      "reason": "The direction's chain, same document as the brief chain with the direction's own id-coordinate. Debt paid 2026-10-23. design-lab/schemas/design-lineage-v1.schema.json binds the wrapper (schemaVersion, subject_kind) and the chain node: root_id, requested_id, live_id and a versions array whose items are `$ref`'d from the record owner. design_layer._check_design_lineage() runs it on every chain read and answers 500 DESIGN_LINEAGE_CONTRACT_VIOLATION on a mismatch."
     },
     {
       "route": "/api/design-briefs/(brief-[0-9a-f]{32})/lineage",
       "method": "GET",
-      "kind": "SCHEMA_LESS",
+      "kind": "BOUND_SCHEMA",
       "handler": "project_of_brief",
-      "reason": "No schema for the envelope: the id-scoped lineage read, same document as the project-scoped form, resolved through project_of_brief so a foreign id fails closed. Recorded debt."
+      "schema": "design-lab/schemas/design-lineage-v1.schema.json",
+      "version": "design-lab/design-lineage/v1",
+      "emitter": "src/design_lab/design_layer.py:106",
+      "reason": "The id-scoped form of the brief chain: the same document, with the owner project resolved through project_of_brief so a foreign id fails closed instead of reading another project's history. Debt paid 2026-10-23. design-lab/schemas/design-lineage-v1.schema.json binds the wrapper (schemaVersion, subject_kind) and the chain node: root_id, requested_id, live_id and a versions array whose items are `$ref`'d from the record owner. design_layer._check_design_lineage() runs it on every chain read and answers 500 DESIGN_LINEAGE_CONTRACT_VIOLATION on a mismatch."
     },
     {
       "route": "/api/design-directions/(direction-[0-9a-f]{32})/lineage",
       "method": "GET",
-      "kind": "SCHEMA_LESS",
+      "kind": "BOUND_SCHEMA",
       "handler": "project_of_direction",
-      "reason": "No schema for the envelope: the id-scoped direction lineage read. Recorded debt."
+      "schema": "design-lab/schemas/design-lineage-v1.schema.json",
+      "version": "design-lab/design-lineage/v1",
+      "emitter": "src/design_lab/design_layer.py:106",
+      "reason": "The id-scoped form of the direction chain, resolved through project_of_direction. Debt paid 2026-10-23. design-lab/schemas/design-lineage-v1.schema.json binds the wrapper (schemaVersion, subject_kind) and the chain node: root_id, requested_id, live_id and a versions array whose items are `$ref`'d from the record owner. design_layer._check_design_lineage() runs it on every chain read and answers 500 DESIGN_LINEAGE_CONTRACT_VIOLATION on a mismatch."
     },
     {
       "route": "/api/projects/([0-9a-f]{32})/design-system-tokens",
       "method": "GET",
-      "kind": "SCHEMA_LESS",
+      "kind": "BOUND_SCHEMA",
       "handler": "list_token_documents",
-      "reason": "No schema for the LIST envelope: src/design_lab/design_layer.py list_token_documents wraps per-system rows whose documents are individually bound by the write path below, but the envelope declares no schemaVersion. Recorded debt."
+      "schema": "design-lab/schemas/design-collection-v1.schema.json",
+      "version": "design-lab/design-collection/v1",
+      "emitter": "src/design_lab/design_layer.py:105",
+      "reason": "The project's LIVE token documents. Each document inside was already bound on the write path; the list wrapper declared nothing about itself, and this row also carries the honesty of having no cursor -- the reader takes every live row, so the schema forbids a next_cursor here instead of implying paging that does not exist. Debt paid 2026-10-23. design-lab/schemas/design-collection-v1.schema.json binds the wrapper (schemaVersion, the `collection` discriminator, the row array and the cursor branch the writer actually has) and, through `$ref`, the rows themselves; design_layer._check_design_collection() runs it on every read, so a short row answers 500 DESIGN_COLLECTION_CONTRACT_VIOLATION rather than an empty panel."
     },
     {
       "route": "/api/projects/([0-9a-f]{32})/design-system-tokens/(<DESIGN_SYSTEM_NAME_PATTERN>)(/lineage)?",
@@ -733,58 +763,82 @@
     {
       "route": "/api/projects/([0-9a-f]{32})/briefs",
       "method": "POST",
-      "kind": "SCHEMA_LESS",
+      "kind": "BOUND_SCHEMA",
       "handler": "create_brief",
-      "reason": "No schema: a brief is created from five exact body fields and persisted as design-layer rows; neither the request document nor the response envelope carries a schemaVersion, and design-lab/schemas/design-brief.schema.json is not loaded on this path. Recorded debt."
+      "schema": "design-lab/schemas/design-record-v1.schema.json",
+      "version": "design-lab/design-record/v1",
+      "emitter": "src/design_lab/design_layer.py:104",
+      "reason": "The brief create: five exact body fields in, one wrapped brief back (201), and a replayed idempotency key returns the SAME wrapped record through the same envelope check. This is NOT design-lab/schemas/design-brief.schema.json, whose discipline/objective/audience/deliverables content model no code stores; that divergence stays an open owner decision. Debt paid 2026-10-23. design-lab/schemas/design-record-v1.schema.json binds the wrapper (schemaVersion, record_kind, and exactly one record key) and, through `$ref`, the record itself; design_layer._check_design_record() runs it on every one of these answers, so a renamed wrapper key or a record that drifted out of its own definition answers 500 DESIGN_RECORD_CONTRACT_VIOLATION with the field paths instead of being served."
     },
     {
       "route": "/api/projects/([0-9a-f]{32})/directions",
       "method": "POST",
-      "kind": "SCHEMA_LESS",
+      "kind": "BOUND_SCHEMA",
       "handler": "create_direction",
-      "reason": "No schema: same as the brief write -- six exact fields, rows in the design-layer tables, no schemaVersion on either side. Recorded debt."
+      "schema": "design-lab/schemas/design-record-v1.schema.json",
+      "version": "design-lab/design-record/v1",
+      "emitter": "src/design_lab/design_layer.py:104",
+      "reason": "The direction create: six exact body fields in, one wrapped direction back, and the same envelope on an idempotent replay. Debt paid 2026-10-23. design-lab/schemas/design-record-v1.schema.json binds the wrapper (schemaVersion, record_kind, and exactly one record key) and, through `$ref`, the record itself; design_layer._check_design_record() runs it on every one of these answers, so a renamed wrapper key or a record that drifted out of its own definition answers 500 DESIGN_RECORD_CONTRACT_VIOLATION with the field paths instead of being served."
     },
     {
       "route": "/api/projects/([0-9a-f]{32})/directions/(direction-[0-9a-f]{32})/choose",
       "method": "POST",
-      "kind": "SCHEMA_LESS",
+      "kind": "BOUND_SCHEMA",
       "handler": "choose_direction",
-      "reason": "No schema: a human-gate decision recorded as an event row (actor/actor_kind/idempotency_key), enforced by EVENT_KINDS and the table CHECK in src/design_lab/design_layer.py rather than by a payload document."
+      "schema": "design-lab/schemas/design-record-v1.schema.json",
+      "version": "design-lab/design-record/v1",
+      "emitter": "src/design_lab/design_layer.py:104",
+      "reason": "The Human-Gate direction choice. The decision itself stays guarded by the code, not by a payload document: actor_kind must be the literal human or the route answers 403 HUMAN_DIRECTION_CHOICE_REQUIRED, and the single-choice invariant is one transaction that de-selects the previous direction before selecting this one. What is bound here is the answer the caller receives. Debt paid 2026-10-23. design-lab/schemas/design-record-v1.schema.json binds the wrapper (schemaVersion, record_kind, and exactly one record key) and, through `$ref`, the record itself; design_layer._check_design_record() runs it on every one of these answers, so a renamed wrapper key or a record that drifted out of its own definition answers 500 DESIGN_RECORD_CONTRACT_VIOLATION with the field paths instead of being served."
     },
     {
       "route": "/api/projects/([0-9a-f]{32})/directions/(direction-[0-9a-f]{32})/bind",
       "method": "POST",
-      "kind": "SCHEMA_LESS",
+      "kind": "BOUND_SCHEMA",
       "handler": "bind_design_system",
-      "reason": "No schema: a binding row plus event, validated by the catalog membership check in src/design_lab/design_layer.py. Recorded debt."
+      "schema": "design-lab/schemas/design-record-v1.schema.json",
+      "version": "design-lab/design-record/v1",
+      "emitter": "src/design_lab/design_layer.py:104",
+      "reason": "A binding row plus its event, refused before the write unless the design system is in the packaged catalog (UNKNOWN_DESIGN_SYSTEM). The answer is the wrapped binding record. Debt paid 2026-10-23. design-lab/schemas/design-record-v1.schema.json binds the wrapper (schemaVersion, record_kind, and exactly one record key) and, through `$ref`, the record itself; design_layer._check_design_record() runs it on every one of these answers, so a renamed wrapper key or a record that drifted out of its own definition answers 500 DESIGN_RECORD_CONTRACT_VIOLATION with the field paths instead of being served."
     },
     {
       "route": "/api/projects/([0-9a-f]{32})/briefs/(brief-[0-9a-f]{32})/revisions",
       "method": "POST",
-      "kind": "SCHEMA_LESS",
+      "kind": "BOUND_SCHEMA",
       "handler": "revise_brief",
-      "reason": "No schema: the next immutable version of a brief, guarded by expected_version/superseded_by chain rules in src/design_lab/design_layer.py. Recorded debt."
+      "schema": "design-lab/schemas/design-record-v1.schema.json",
+      "version": "design-lab/design-record/v1",
+      "emitter": "src/design_lab/design_layer.py:104",
+      "reason": "The next immutable version of a brief: a new row, the parent superseded_by pointer moved in the same transaction, and 409 STALE_REVISION if the caller revises a row that is already superseded. The answer is the wrapped new version. Debt paid 2026-10-23. design-lab/schemas/design-record-v1.schema.json binds the wrapper (schemaVersion, record_kind, and exactly one record key) and, through `$ref`, the record itself; design_layer._check_design_record() runs it on every one of these answers, so a renamed wrapper key or a record that drifted out of its own definition answers 500 DESIGN_RECORD_CONTRACT_VIOLATION with the field paths instead of being served."
     },
     {
       "route": "/api/projects/([0-9a-f]{32})/directions/(direction-[0-9a-f]{32})/revisions",
       "method": "POST",
-      "kind": "SCHEMA_LESS",
+      "kind": "BOUND_SCHEMA",
       "handler": "revise_direction",
-      "reason": "No schema: the direction revision chain, same rules as the brief revision. Recorded debt."
+      "schema": "design-lab/schemas/design-record-v1.schema.json",
+      "version": "design-lab/design-record/v1",
+      "emitter": "src/design_lab/design_layer.py:104",
+      "reason": "The direction revision chain, same append-only rules as the brief revision. Debt paid 2026-10-23. design-lab/schemas/design-record-v1.schema.json binds the wrapper (schemaVersion, record_kind, and exactly one record key) and, through `$ref`, the record itself; design_layer._check_design_record() runs it on every one of these answers, so a renamed wrapper key or a record that drifted out of its own definition answers 500 DESIGN_RECORD_CONTRACT_VIOLATION with the field paths instead of being served."
     },
     {
       "route": "/api/design-briefs/(brief-[0-9a-f]{32})/revisions",
       "method": "POST",
-      "kind": "SCHEMA_LESS",
+      "kind": "BOUND_SCHEMA",
       "handler": "revise_brief",
-      "reason": "No schema: the id-scoped form of the brief revision, which resolves the owner before writing so a foreign id cannot append. Recorded debt."
+      "schema": "design-lab/schemas/design-record-v1.schema.json",
+      "version": "design-lab/design-record/v1",
+      "emitter": "src/design_lab/design_layer.py:104",
+      "reason": "The id-scoped brief revision, which resolves the owner project before writing so a foreign id cannot append to a chain it does not belong to. Debt paid 2026-10-23. design-lab/schemas/design-record-v1.schema.json binds the wrapper (schemaVersion, record_kind, and exactly one record key) and, through `$ref`, the record itself; design_layer._check_design_record() runs it on every one of these answers, so a renamed wrapper key or a record that drifted out of its own definition answers 500 DESIGN_RECORD_CONTRACT_VIOLATION with the field paths instead of being served."
     },
     {
       "route": "/api/design-directions/(direction-[0-9a-f]{32})/revisions",
       "method": "POST",
-      "kind": "SCHEMA_LESS",
+      "kind": "BOUND_SCHEMA",
       "handler": "revise_direction",
-      "reason": "No schema: the id-scoped form of the direction revision. Recorded debt."
+      "schema": "design-lab/schemas/design-record-v1.schema.json",
+      "version": "design-lab/design-record/v1",
+      "emitter": "src/design_lab/design_layer.py:104",
+      "reason": "The id-scoped direction revision, same owner resolution before writing. Debt paid 2026-10-23. design-lab/schemas/design-record-v1.schema.json binds the wrapper (schemaVersion, record_kind, and exactly one record key) and, through `$ref`, the record itself; design_layer._check_design_record() runs it on every one of these answers, so a renamed wrapper key or a record that drifted out of its own definition answers 500 DESIGN_RECORD_CONTRACT_VIOLATION with the field paths instead of being served."
     },
     {
       "route": "/api/projects/([0-9a-f]{32})/design-system-tokens/(<DESIGN_SYSTEM_NAME_PATTERN>)",

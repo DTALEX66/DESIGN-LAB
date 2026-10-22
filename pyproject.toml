@@ -105,6 +105,15 @@ exclude = ["src/design_lab/reconstruction/__init__.py"]
 # one CI would reject; shipping it keeps that guarantee in an installed wheel
 # (without it every pack would report NOT_CHECKED).
 "design-lab/scripts/verify_domain_pack_v2.py" = "design_lab/resources/repo/design-lab/scripts/verify_domain_pack_v2.py"
+# Batch I (2026-10-23): the four design-layer envelope contracts the emitter now validates every
+# answer against (`src/design_lab/design_layer.py` DESIGN_*_SCHEMA_PATH). In-service validation makes
+# these reads, not optional: an installed wheel that cannot open them would answer 500
+# DESIGN_*_CONTRACT_VIOLATION on briefs, directions, bindings, lineage reads and the roll-up -- a
+# contract file missing at a path, wearing the mask of a judgement about the design work.
+"design-lab/schemas/design-record-v1.schema.json" = "design_lab/resources/repo/design-lab/schemas/design-record-v1.schema.json"
+"design-lab/schemas/design-collection-v1.schema.json" = "design_lab/resources/repo/design-lab/schemas/design-collection-v1.schema.json"
+"design-lab/schemas/design-lineage-v1.schema.json" = "design_lab/resources/repo/design-lab/schemas/design-lineage-v1.schema.json"
+"design-lab/schemas/design-layer-rollup-v1.schema.json" = "design_lab/resources/repo/design-lab/schemas/design-layer-rollup-v1.schema.json"
 "integrations/hosts/adobe/illustrator/reconstruction-assemble.jsx" = "design_lab/resources/adobe/reconstruction-assemble.jsx"
 "integrations/hosts/adobe/photoshop-reconstruction/legacy-assemble.jsx" = "design_lab/resources/adobe/photoshop-native-assemble.jsx"
 

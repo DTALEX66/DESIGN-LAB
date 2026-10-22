@@ -169,6 +169,48 @@ def get_sweep_unmeasured() -> int:
     return count
 
 
+PAYLOAD_GATE = 'design-lab/scripts/verify_route_payload_contracts.py'
+
+#: The four envelope versions the design-layer family got on 2026-10-23. Named here because the
+#: sentence this measures claims a row COUNT, and a count of "the rows that carry these versions"
+#: can only be re-checked against the ledger that records them.
+DESIGN_LAYER_FAMILY_VERSIONS = ('design-lab/design-record/v1',
+                                'design-lab/design-collection/v1',
+                                'design-lab/design-lineage/v1',
+                                'design-lab/design-layer-rollup/v1')
+
+
+def ledger_kind(kind: str) -> int:
+    """How many route rows the ledger classifies as `kind` right now."""
+    document = json.loads((REPO / LEDGER).read_text(encoding='utf-8'))
+    count = len([row for row in document['routes'] if row.get('kind') == kind])
+    _require(count, f'ledger {kind} rows')
+    return count
+
+
+def design_layer_family_rows() -> int:
+    """Route rows bound by one of the four design-layer envelope versions."""
+    document = json.loads((REPO / LEDGER).read_text(encoding='utf-8'))
+    count = len([row for row in document['routes']
+                 if row.get('version') in DESIGN_LAYER_FAMILY_VERSIONS])
+    _require(count, 'design-layer family rows')
+    return count
+
+
+def payload_gate_bindings() -> int:
+    """Bindings the live-payload gate declares, counted from its own table.
+
+    The gate prints `bindings=N` from `len(build_bindings())`; the prose quotes that number, so it
+    is re-derived from the same list literal rather than copied from a run.
+    """
+    src = (REPO / PAYLOAD_GATE).read_text(encoding='utf-8')
+    region = src[src.index('def build_bindings('):src.index('\ndef registry(',
+                           src.index('def build_bindings('))]
+    count = len(re.findall(r"^\s+'name': ", region, re.M))
+    _require(count, 'payload-gate bindings')
+    return count
+
+
 # (file, template, measurement). Templates carry enough words to be unambiguous and to fail loudly
 # when the sentence is rewritten rather than updated.
 #
@@ -189,6 +231,14 @@ CLAIMS = [
     ('docs/current/NEXT-AGENT-PROMPT.md', '其中 **{n} 行**逐行真写', write_sweep_walked),
     ('docs/current/NEXT-AGENT-PROMPT.md', '账本是 **{n} 条** GET 行', ledger_get_rows),
     ('docs/current/NEXT-AGENT-PROMPT.md', '仍有 **{n} 条**没被这条扫描读到', get_sweep_unmeasured),
+    # The design-layer family's three denominators (batch I, 2026-10-23): how many rows that family
+    # was paid, how many route rows still have no contract at all, and how many live bindings the
+    # payload gate now runs. All three are counted from the ledger and the gate table itself.
+    ('docs/current/NEXT-AGENT-PROMPT.md', '这一族付掉 **{n} 行**', design_layer_family_rows),
+    ('docs/current/NEXT-AGENT-PROMPT.md', '账本仍有 **{n} 行**没有合同',
+     lambda: ledger_kind('SCHEMA_LESS')),
+    ('docs/current/NEXT-AGENT-PROMPT.md', 'live 载荷比对现在 **{n} 条绑定**',
+     payload_gate_bindings),
     ('docs/current/NEXT-AGENT-PROMPT.md', '**{n} 跳验收链**', acceptance_hops),
     ('docs/current/NEXT-AGENT-PROMPT.md', '**{n} 跳交付链**', delivery_hops),
     ('docs/current/NEXT-AGENT-PROMPT.md', '` 的 **{n} 项父/子任务全部', frozen_current_tasks),
