@@ -242,6 +242,19 @@ E4 独立人审 / E5 发布可复现。**文档修订 ≠ 规划完成 ≠ 代�
   missing: production/profiles`，拒绝发生在导入时而不是悄悄回落。
   **CI 里已有永久的一步**：clean-wheel 作业新增 "Walk the acceptance chain against the installed package"，
   断言 `Ran [1-9][0-9]* tests`（不钉死用例数）、`^OK`、无 `skipped`、`CHAIN_HOPS` 与 `DELIVERY_HOPS` 都打印。
+  **后端 E 状态：CI_VERIFIED_EXACT_SHA @ `f804af9f`**（main 与备份分支同指此枚；11 个重作业全绿，
+  `PYTHON_TESTS_UNION=OK expected=3169 distinct=3169 ran=3169 missing=0 unexpected=0`，新加的装机链步骤
+  在该枚为 `success`；打包修正单枚 `2102ba8b` 也独立跑过一遍全绿）。
+  审计工具也在库里了：`design-lab/scripts/audit_repo_root_reads.py` 从 `http_service.py` 走 AST import 闭包，
+  报告路由可达的仓库根读取及其打包声明状态，`--control` 会从 git 取修复前字节证明检测器还看得见病
+  （它曾因为只认 `ast.Call` 而对 `parents[3]` 的 `ast.Subscript` 形式报过假的 "0 remaining"）。
+  `design-lab/tests/test_packaged_contract_resources.py` 把这份报告变成闸门，并**把"空群体"本身判红**。
+  它的两条盲区写在工具头部注释里，别把它们当已解决：先把根存进变量的两步拼法不追；不同打包前缀的
+  合法 packaged-first 读法会被报成 NOT-SHIPPED（现在只有 Adobe 桥那一条，宿主派发仍冻结）。
+  **本机唯一未结的读数**：`test_capability_library_clean_install` 两条安装态用例在本机绑定跑里稳定
+  `[WinError 206] 文件名或扩展名太长`（解包 wheel 到 `.project-local/task-runtime/python-tests-shard-1/…`
+  的深路径），上一批本机同样两条、Linux CI 三次全绿——未修；要修就给这条用例一个更短的临时根或只解包
+  需要的成员，别把"CI 绿"当"已解释"。
   更正一句旧话：`/api/evidence-projection` 在安装包里回 `503 EVIDENCE_LEDGER_ABSENT`，detail 是
   `design-lab/config/task-ledger-r3.json is not in this checkout`，判决仍然正确，但它命名的那个"检出"
   其实是解释器目录 `…/Lib`——上一轮写的"临时根没有台账"说错了对象。

@@ -511,7 +511,9 @@ owner 这句是「继续打磨后端」。既然 §5.24 量到的根因是"检�
 `…\.project-local\task-runtime\python-tests-shard-1\<32hex>\tmp\dl-t05-site-xxxx\design_lab\resources\repo\design-lab\domain-packs\uiux-design\benchmarks\ecommerce-pdp-checkout-golden\implementations`，
 Windows 报 `[WinError 206] 文件名或扩展名太长`。上一批（本批之前）的本地 union 已经是同样这两条、同样位置，Linux 上三次 CI 全绿——**这是本机路径长度上限，不是代码缺陷，也不是本批引入**；`_installed_site()` 在检出内的 `.venv` 被判为"源码布局"而回落到解包，是它踩中的机制。修法要么给该用例一个更短的临时根，要么只解包它真正需要的成员；在拿到这两条之一的实测前，不把"CI 绿"写成"已解释"。级别不变：这两条本机红不改变 §5.25 上面任何一条装机面读数，那些是从 site-packages 真实解析（`site-packages` + `bundleOrigin=packaged`）跑出来的。
 
-**本批最终读数**（回填位）：全量 union `PYTHON_TESTS_UNION=OK expected=3167 distinct=3167 ran=3167 duplicates=0 missing=0 unexpected=0`，本机 shard=1 的 2 条即上面 ②，shard=3 的 1 条即 ① 的旧钉值（修后转绿）；聚合 `VERIFY_DESIGN_LAB=OK total=76 failed=0`；CI 逐作业读数按推送后的精确 SHA 另记。
+**本批最终读数**（回填完成）：CI 逐作业——代码枚 `2102ba8b`（打包修正）run `39821106405` 与本批尾枚 `f804af9f`（审计工具 + 两条闸门用例）run `39823168783` **均 `completed success`**，11 个重作业全绿、`Branch light gate` 按 D01 规则 skipped；`Clean wheel install + Workbench launch gate` 作业里新加的 **"Walk the acceptance chain against the installed package" 步骤为 `success`**（这一步按构造无法靠"没跑"变绿：它要求 `Ran [1-9][0-9]* tests`、`^OK`、无 `skipped`，并且 `CHAIN_HOPS` 与 `DELIVERY_HOPS` 两行都被打印）。Python 闸门：`2102ba8b` 为 `PYTHON_TESTS_UNION=OK expected=3167 distinct=3167 ran=3167 duplicates=0 missing=0 unexpected=0`（三分片 exit=0），尾枚 `f804af9f` 为 `expected=3169 distinct=3169 ran=3169 missing=0 unexpected=0`——多出的 2 条正是审计工具的两条用例。**状态：CI_VERIFIED_EXACT_SHA @ `f804af9f`**（main 与备份分支同指此枚；下面的文字/投影重绑另算一枚，不改上面任何读数）。本机全量 union 的 2 条 Windows 路径长度 ERROR 见本节末 ②。
+
+**闸门计数不变的原因**：`VERIFY_CONTRACT_BINDINGS=PASS routes=68 bound=36 schema_less=32` 与 `VERIFY_ROUTE_PAYLOAD_CONTRACTS=PASS bindings=17` 一字未动——本批改的是"合同从哪里读"，不是"哪条边界有没有合同"；`INERT_SURVEY=OK rows=30`、`STATE_VOCABULARIES=OK`、`WORKBENCH PACKAGING: all 5 passed`、聚合 `VERIFY_DESIGN_LAB=OK total=76 failed=0`（尾枚重跑同值）。wheel `1,068,459 B`。
 
 ## 6. 本轮暴露并修掉的六个缺陷
 
