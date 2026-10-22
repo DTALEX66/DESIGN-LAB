@@ -251,11 +251,11 @@
   },
   "fresh": false,
   "freshnessMeaning": "at generation only; check verifies bound-input integrity, not current Git or cloud state",
-  "generatedAt": "2026-10-22T22:09:28+00:00",
+  "generatedAt": "2026-10-22T22:25:20+00:00",
   "gitStateMeaning": "generation-time observation, not current HEAD",
   "schemaVersion": "design-lab/adapter-reconciliation/v2",
   "subjectMeaning": "subjectType=WORKTREE means the tree was dirty at generation; worktreeDigest covers HEAD plus the non-generated changes",
-  "subjectSha": "3fccf596dc60cfc4e327e088ce1da1630aa474ae",
+  "subjectSha": "32c78ac2d76ba82ba0253574f59bc5444897e8e3",
   "subjectType": "WORKTREE",
   "taskpackHash": "2cfd84627352e9f1b29b42787fa43466cd9a836130d826d43678b7733856ffda",
   "taskpackId": "DL-TP-20261009-UI-FIRST-R1",
@@ -264,5 +264,5 @@
   "testRunMeaning": "bound run: python scripts/run_bound_test_suite.py --modules test_boot_reconciliation",
   "testRunResult": "OK",
   "worktreeClean": false,
-  "worktreeDigest": "sha256:9b403afda83db38deb1152d891b6e134fd56567e335e796a80dd5a6d2bf0bd77"
+  "worktreeDigest": "sha256:f53d525db6d7db327a88431d6a514e1da84cd9e087d26ed9ed853201e5dff52f"
 }
