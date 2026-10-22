@@ -227,7 +227,9 @@ E4 独立人审 / E5 发布可复现。**文档修订 ≠ 规划完成 ≠ 代�
   `PYTHON_TESTS_UNION=OK expected=3167 distinct=3167 ran=3167 missing=0 unexpected=0`，
   安装态作业 `Ran 3 tests` 且步骤三条 grep 全过——§5.23 欠的两条红就是在这一枚上转正的）。
   **下一刀已经量好，不是猜的（装机面债，不是产品缺口）**：在干净安装的 wheel 上逐条调用账本里 37 条
-  `GET /api/…`，14 条 2xx，三条**因为合同文件走 `PROJECT_ROOT` 而在安装态读不到**——
+  `GET /api/…`，只用一个真实项目 id 就能构造 URL 的是 23 条：14 条 2xx、6 条给出本该给的判决
+  （404 指向不存在的 id、400、403），**另有 14 条需要真实资产/简报 id，本轮没调用——那是"没测"不是"没问题"**。
+  其中三条**因为合同文件走 `PROJECT_ROOT` 而在安装态读不到**——
   `GET /api/models` → `503 MODEL_CATALOG_UNAVAILABLE`、`GET …/prompt-results` →
   `500 PROMPT_RESULT_CONTRACT_UNREADABLE`、`GET …/design-layer` → `500 INTERNAL`。根因同一个：
   `PROJECT_ROOT = Path(__file__).parents[3]` 在检出里是仓库根，在安装态是解释器的 `Lib`。修法就是这批用过的那三件套：
