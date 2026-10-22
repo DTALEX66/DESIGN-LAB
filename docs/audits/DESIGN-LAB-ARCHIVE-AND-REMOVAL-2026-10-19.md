@@ -561,6 +561,19 @@ owner 这句仍然是「继续打磨后端」。§5.26 把读侧量完了，写�
 - **本机绑定重跑（Windows 那一半，Linux CI 给不了）**：`scripts/run_python_tests_all.py --shards 3 --jobs 1` 三片 `exit=0`——`shard=1/3 tests=977 {'PASS':976,'SKIP':1}`、`shard=2/3 tests=1127 {'PASS':1124,'SKIP':3}`、`shard=3/3 tests=1073 {'PASS':1072,'SKIP':1}`（该片本机 1534.497s 对 CI 455.817s）、`PYTHON_TESTS_UNION=OK expected=3177`，**零 ERROR**：§5.26 修掉的那两条本机 `[WinError 206]`/`[Errno 2]` 没有回来。边界照实写：这次本机跑从 `6a05e347` 起跑，最后两枚（`276ea88e` 计数口径与散文、`fa0cf178` 投影重绑）落在跑的过程中，所以本机这条覆盖的是"写侧扫描 + 信封拒绝映射"这棵代码树；**最终枚的全套读数以 CI 那一条为准**，本批新增的两条计数断言在推送前各自跑过（播种 30/29 皆红、照实写 `claims=13 PASS`，`test_documented_counts` 同模块 OK）。聚合在最终树重跑同值：`VERIFY_DESIGN_LAB=OK total=76 failed=0`、`VERIFY_RESULT=OK total=549 failed=0`。
 - 本轮之后：**状态 CI_VERIFIED_EXACT_SHA @ `fa0cf178`**（下面这条记录本身与投影重绑是纯文字＋派生件，另算一枚，不改上面任何读数）。
 
+### 5.28 第二十五批（后端 H：把读侧最后一条"没调用"换成真调用，并先证它量的是字节）
+
+owner 这句还是「继续打磨后端」。§5.26 清了 14 条没调用的 GET 行，却留下一条以自己写的理由关闭的洞——`…/native-assets/<id>/verify` 登记为 `UNCONSTRUCTED: verifying needs a registered native asset id, and the delivered fixture registers a bundle and its versions, **not an asset row**`。这句话是**错的**，而且它错得很像样：交付腿确实注册 bundle，但它同时也注册了那一行原生资产。批次 G 的写侧扫描把 `GET /api/projects/<id>/native-assets` 的答案原样打印出来，洞自己就露出来了：`{"id": "native-b5553c…", "kind": "psd", "version_id": "v-47f897…", "verification": "METADATA_ONLY"}` 就在手里。**先更正旧句，再改代码**：登记理由不删，以本句为准。
+
+**① 那条读法换成真调用**：`GET_READS` 里那一格改成 `/api/projects/{delivery_project}/native-assets/{native_asset}/verify`，槽位由交付腿自己的列表读回答；列表若空，扫描立刻红（`the delivery leg produced no native asset row to verify`），这样"这条又没人走了"不能靠一句注释重新溜进来。`native_asset` 也进缺槽即红的名单，不再多一处能吞下未填占位符的地方。分母随之移动，两侧各跑一遍：源码 `reads=39 answered=35 unmeasured=3` → `reads=40 answered=36 unmeasured=2`；装机 `reads=38 answered=34 unmeasured=3` → `reads=39 answered=35 unmeasured=2`。剩下 2 条不是洞而是判决：候选 export 在同一布局的验收链里走到 `export=200`（本扫描不重复建候选），`workbench.ROUTES` 那行本身不是 URL。
+
+**② 判决的含义先用播种钉死**（新增 `test_the_native_asset_verify_route_re_reads_the_stored_bytes`）：这条路由与列表行的区别只在它自己那一次重算——列表 `verification=METADATA_ONLY`，verify 答 `HASH_VERIFIED`。要断言"它读的是字节"，就必须让字节动起来：从账本 `artifact` 行取该版本真正的落盘路径（`…/assets/versions/<32hex>/native.psd`），把它改成**等长**的字节——只比大小的检查照样过——判决必须变成 `409 NATIVE_ARTIFACT_UNVERIFIED`；写回原字节必须回到 `HASH_VERIFIED`；一个形状合法但从未登记过的 id 必须 `404 NATIVE_ASSET_NOT_FOUND`。三步都在同一个用例里，且 verify 前后不改写文件（断言字节原样）。
+**仪器自己的牙齿也验过**：把 `native_assets.py` 那行摘要比较改成永假，这条用例必须红。实测四步——带比较 `OK`；去掉比较 `FAILED（409 != 200）`；恢复原文件 `OK`；再跑一次 `OK`。这条播种不是走过场：去掉比较后判决**仍然**答 `HASH_VERIFIED`，也就是说没有这一步，"它重算了摘要"这句话本身是没人能推翻的装饰。
+
+**③ 没有新增打包面债务**：这条路由读的是项目自己的资产库字节，不是仓库里的合同/配置文件；源码与装机两侧同值（`NATIVE_VERIFY layout=installed clean=HASH_VERIFIED tampered=NATIVE_ARTIFACT_UNVERIFIED unknown=NATIVE_ASSET_NOT_FOUND`）就是证据，因此三件套这一批没有要付的账。CI 的装机步现要求这整串出现——它把三个判决一次钉死，只答 200 的空转实现不能过。写侧扫描读数一字未动（`rows=29 walked=28 written=28 read_backs=34 refused=0 excluded=1`）。
+
+**闸门与实跑**：`test_standalone_chain_http` 源码 6 OK / 装机 6 OK，`test_installed_write_surface` 装机 6 OK，两模块合跑 12 OK；`VERIFY_CONTRACT_BINDINGS=PASS routes=68 dispatched=68`；改过受治散文后按批次 G 学到的那条单独跑了 `DOCUMENTED_COUNTS`。**状态**：IMPL_LOCAL + TESTED_LOCAL。边界不变：E3/E4/E5、安装态分发、release、ComfyUI/H3、`currentExecution` 34 项、手机端排除项、字体与三方素材出范围、推理不接、签署与审核仍只接受具名 human、导出仍只读回，一字未动；级别仍是 E2——这条路由证的是"存下的字节还是不是它自己"，不是"产物好不好"，也不因为能重算摘要就变成宿主读回。
+
 ## 6. 本轮暴露并修掉的六个缺陷
 
 1. **分类聚合按目录贴标签**：`bundle_key()` 把一个顶层目录收成一个 bundle，于是 `docs/` 里第一个文件的类别

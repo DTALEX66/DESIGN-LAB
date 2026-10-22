@@ -298,6 +298,22 @@ E4 独立人审 / E5 发布可复现。**文档修订 ≠ 规划完成 ≠ 代�
   POST `/assets` 路由现为 **203**（原写 191），POST `…/assets/<img>/analysis` 现为 **206**（原写 195）。
   三处都不是本批改行号改坏的（本批插入在 470 行之后），是更早批次留下的、且**没有任何闸门会读它们**——
   与 §5.25 那次被 `EMITTER_POINTER_NOT_THE_VERSION` 当场抓住的账本指针同一形状，只是散文坏了不会响。
+  **同日第二十五批（后端 H）把读侧最后一条"没调用"结清了**（审计件 §5.28）：批次 F 那句
+  "`…/native-assets/<id>/verify` 需要先登记的原生资产"是**错的**——交付腿自己就登记了一行
+  `{"id": "native-<64hex>", "kind": "psd", "verification": "METADATA_ONLY"}`，`GET …/native-assets`
+  当场答出来，只是当时没人去读。现在那条 UNCONSTRUCTED 已换成真调用，扫描分母随之移动：
+  源码 `reads=39 answered=35 unmeasured=3` → `reads=40 answered=36 unmeasured=2`，
+  装机 `reads=38 answered=34 unmeasured=3` → `reads=39 answered=35 unmeasured=2`；仍未读的 2 条是
+  候选 export（同一布局的验收链已走到 `export=200`）与 `workbench.ROUTES`（那行不是 URL）。
+  **这条路由量的是字节**，且已用播种证明不是标签：列表行的 `verification` 是 `METADATA_ONLY`，
+  verify 行自己重算摘要后答 `HASH_VERIFIED`；把账本记下的那个 `native.psd` 改成**等长**的字节
+  （只查大小也过得去）判决必须变成 `409 NATIVE_ARTIFACT_UNVERIFIED`，改回来必须回到 `HASH_VERIFIED`，
+  形状合法但从未登记过的 id 必须 `404 NATIVE_ASSET_NOT_FOUND`；再把 `native_assets.py` 里那行摘要比较
+  改成永假，这条用例必须红——实测四步：带比较 OK、去掉比较红、恢复 OK、恢复后再 OK，
+  所以这不是"看着像有牙齿"的断言。两侧都跑：源码 6 OK，装好的 wheel 里
+  `NATIVE_VERIFY layout=installed clean=HASH_VERIFIED tampered=NATIVE_ARTIFACT_UNVERIFIED
+  unknown=NATIVE_ASSET_NOT_FOUND`，写侧扫描读数一字未动。CI 的装机步现同时要求这行整串出现。
+  本批未新增打包面债务：这条路由读的是项目自己的资产库字节，不读仓库合同文件，两侧同值即是证据。
   口径也补清：66 是 `ROUTES` 条目数（`/api/projects` 在那里是 GET 与 POST 两枚），账本 68 行 =
   39 GET + 28 POST + 1 `GET+POST`，所以读侧分母 39、写侧分母 29，两个数不可互换。
   ②规范登记件的第三轮取证已于同日跑完（见审计件 §5.22）：Apple 与 Fluent 各补到一条服务端可读的面，
