@@ -9,28 +9,28 @@
   },
   "fresh": false,
   "freshnessMeaning": "at generation only; check verifies bound-input integrity, not current Git or cloud state",
-  "generatedAt": "2026-10-22T20:18:57+00:00",
+  "generatedAt": "2026-10-22T20:32:13+00:00",
   "gitStateMeaning": "generation-time observation, not current HEAD",
   "local": {
     "branch": "qoder/designlab-backup-consistency-20261007",
-    "origin_main": "2b8c782e478f781cc1d43ce5d197025ca52db89d",
-    "sha": "f5543d1b0ccba084c53f404a817cfc973f915536",
+    "origin_main": "1ff547bb1cb69da3cc95a804d1aca626ef24ccad",
+    "sha": "31e945dd15cd81f7de3ec2ccc4b0f2ee63aa79a0",
     "source_worktree_clean": false,
     "tracked_files": 3771,
     "worktree_changes": [
       {
-        "content": "sha256:3e304c489ce5b405b8cf82fb5309f06016d8559f7df4af12a7e8d211a267a552",
+        "content": "sha256:6a35bfc74e0fb908ac17934f263bab0236bfede404da5d1de57a1c3e01a641c2",
         "kind": "M",
         "path": "docs/RECORD-ARCHIVE-INDEX.md"
       }
     ],
-    "worktree_digest": "sha256:1fb3470419dde90bf88a409a187e4c2a5ac8e36dda1da31e2317bfb311c02a8c"
+    "worktree_digest": "sha256:94f74adda1d872c6e1c200865c7e98b5a6cc0c413b9730f898195ed4a77bc8fd"
   },
   "note": "No GitHub API query was run by this generator; tool installation is not inferred.",
   "remoteRef": "origin/main (local tracking ref)",
   "schemaVersion": "design-lab/cloud-baseline/v2",
   "subjectMeaning": "subjectType=WORKTREE means the tree was dirty at generation; worktreeDigest covers HEAD plus the non-generated changes",
-  "subjectSha": "f5543d1b0ccba084c53f404a817cfc973f915536",
+  "subjectSha": "31e945dd15cd81f7de3ec2ccc4b0f2ee63aa79a0",
   "subjectType": "WORKTREE",
   "taskpackHash": "2cfd84627352e9f1b29b42787fa43466cd9a836130d826d43678b7733856ffda",
   "taskpackId": "DL-TP-20261009-UI-FIRST-R1",
@@ -45,5 +45,5 @@
     "branchProtection"
   ],
   "worktreeClean": false,
-  "worktreeDigest": "sha256:1fb3470419dde90bf88a409a187e4c2a5ac8e36dda1da31e2317bfb311c02a8c"
+  "worktreeDigest": "sha256:94f74adda1d872c6e1c200865c7e98b5a6cc0c413b9730f898195ed4a77bc8fd"
 }
