@@ -274,6 +274,12 @@ E4 独立人审 / E5 发布可复现。**文档修订 ≠ 规划完成 ≠ 代�
   `[Errno 2]`，按码过滤会悄悄再坏一次），并加了一条不对称用例证明这条豁免两侧都有效。在 runner 自己的
   深临时根下该模块 `Ran 5 tests / OK / errors=0 skipped=0`。**后端 F 状态：IMPL_LOCAL + TESTED_LOCAL
   @ `74a461f4`**，CI 逐作业读数见 §5.26 末。
+  **后端 F 复核后：CI_VERIFIED_EXACT_SHA @ `11e30625`**（main 与备份分支同指此枚；11 个重作业全绿，
+  `PYTHON_TESTS_UNION=OK expected=3171 distinct=3171 ran=3171 missing=0 unexpected=0`；CI 装机步骤日志原文
+  `GET_SWEEP layout=installed routes=39 reads=38 answered=34 verdicts=4 unmeasured=3`，该步骤要求这行必须出现，
+  所以用例被重构成空转时作业不能照绿）。本机绑定重跑 `scripts/run_python_tests_all.py --shards 3 --jobs 1`
+  三分片全 `exit=0`（`shard=1/3 outcomes={'PASS': 1104,'SKIP': 2}`），此前稳定复现的两条本机 ERROR 消失——
+  这条只能在 Windows 上量，Linux CI 给不了这个证据。
   ②规范登记件的第三轮取证已于同日跑完（见审计件 §5.22）：Apple 与 Fluent 各补到一条服务端可读的面，
   但**这一轮推翻的是本件自己上一轮的读数**——`.../tutorials/data/design/human-interface-guidelines.json`
   本轮直连 **200**（给 `schemaVersion 0.3.0` 与版权年，仍无编辑日期），而上一轮登记为"全族 404"；
