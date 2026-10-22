@@ -146,6 +146,29 @@ def write_sweep_walked() -> int:
     return count
 
 
+
+def ledger_get_rows() -> int:
+    """Ledger rows whose method is GET only -- the read sweep's denominator."""
+    document = json.loads((REPO / LEDGER).read_text(encoding='utf-8'))
+    rows = [row['route'] for row in document['routes'] if row['method'] == 'GET']
+    _require(len(rows), 'ledger GET rows')
+    return len(rows)
+
+
+def get_sweep_unmeasured() -> int:
+    """How many ledger GET rows the read sweep still does not call, counted from its own table.
+
+    The sweep prints this number; the prose quotes it. Counting the marker-prefixed entries
+    (`UNCONSTRUCTED:` / `COVERED-ELSEWHERE:` / `NOT-A-PATH:`) rather than trusting the sentence keeps
+    "we stopped measuring this" from being reported as "there was nothing to measure".
+    """
+    src = (REPO / CHAIN_TEST).read_text(encoding='utf-8')
+    region = src[src.index('GET_READS = {'):src.index('#: 5xx the sweep may see')]
+    count = len(re.findall(r"\['(UNCONSTRUCTED:|COVERED-ELSEWHERE:|NOT-A-PATH:)", region))
+    _require(count, 'read-sweep unmeasured entries')
+    return count
+
+
 # (file, template, measurement). Templates carry enough words to be unambiguous and to fail loudly
 # when the sentence is rewritten rather than updated.
 #
@@ -164,6 +187,8 @@ CLAIMS = [
     # actually performs. Both are quoted in the current face, and they differ by the excluded rows.
     ('docs/current/NEXT-AGENT-PROMPT.md', '账本 **{n} 条 POST 行**', ledger_post_rows),
     ('docs/current/NEXT-AGENT-PROMPT.md', '其中 **{n} 行**逐行真写', write_sweep_walked),
+    ('docs/current/NEXT-AGENT-PROMPT.md', '账本是 **{n} 条** GET 行', ledger_get_rows),
+    ('docs/current/NEXT-AGENT-PROMPT.md', '仍有 **{n} 条**没被这条扫描读到', get_sweep_unmeasured),
     ('docs/current/NEXT-AGENT-PROMPT.md', '**{n} 跳验收链**', acceptance_hops),
     ('docs/current/NEXT-AGENT-PROMPT.md', '**{n} 跳交付链**', delivery_hops),
     ('docs/current/NEXT-AGENT-PROMPT.md', '` 的 **{n} 项父/子任务全部', frozen_current_tasks),
