@@ -85,22 +85,29 @@ def http_routes() -> int:
 CHAIN_TEST = 'design-lab/tests/test_standalone_chain_http.py'
 
 
-def _chain_labels(method: str) -> int:
-    """How many hop labels that test method prints, counted from its own body.
+def _chain_labels(*methods: str) -> int:
+    """How many hop labels that walk prints, counted from the bodies it actually runs.
 
     A label comes from either `self.hop(...)` or a manual `self.hops.append(...)` (the native read
     back is appended, not called), so both forms count. This is the number quoted as
     "N 跳验收链" / "N 跳交付链" in the prompt -- if a hop is added and the prose is not, this moves
     and the sentence fails to match.
+
+    Several methods may be named because the delivery walk shares its seed with the GET sweep: the
+    hops live in `_deliver_to_preflight`, and a single-method pattern went red the moment that
+    helper was extracted. Counting the delegation target keeps the claim measured instead of
+    pinning the file's shape in place.
     """
     src = (REPO / CHAIN_TEST).read_text(encoding='utf-8')
-    start = src.index('def ' + method)
-    nxt = src.find('\n    def ', start + 10)
-    body = src[start:nxt if nxt > 0 else len(src)]
-    calls = len(re.findall(r'self\.hop\(', body))
-    manual = len(re.findall(r'self\.hops\.append\(', body))
-    _require(calls + manual, f'{method} hop labels')
-    return calls + manual
+    total = 0
+    for method in methods:
+        start = src.index('def ' + method)
+        nxt = src.find('\n    def ', start + 10)
+        body = src[start:nxt if nxt > 0 else len(src)]
+        total += len(re.findall(r'self\.hop\(', body))
+        total += len(re.findall(r'self\.hops\.append\(', body))
+    _require(total, '+'.join(methods) + ' hop labels')
+    return total
 
 
 def acceptance_hops() -> int:
@@ -108,7 +115,8 @@ def acceptance_hops() -> int:
 
 
 def delivery_hops() -> int:
-    return _chain_labels('test_the_delivery_leg_reaches_a_preflight_verdict_on_one_project')
+    return _chain_labels('test_the_delivery_leg_reaches_a_preflight_verdict_on_one_project',
+                         '_deliver_to_preflight')
 
 
 # (file, template, measurement). Templates carry enough words to be unambiguous and to fail loudly
