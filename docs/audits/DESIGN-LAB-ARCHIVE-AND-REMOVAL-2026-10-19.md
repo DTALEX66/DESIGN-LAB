@@ -537,6 +537,20 @@ owner 这句还是「继续打磨后端」。§5.24 与 §5.25 各自留下一�
 - 一处自己被闸门抓住的记录：把交付腿的夹具抽成 `_deliver_to_preflight()` 后，`verify_documented_counts.py` 报 `the …_delivery_leg… hop labels extractor matched nothing`——它按**方法名**在方法体里数跳数，重构把跳数搬走了。闸门拒绝报数是正确行为，修法是让度量跟着委托链走（`5e621da3`），而不是把重构回退；"4 跳交付链"那句现在量的还是那 4 跳。
 - 本轮之后：**状态 CI_VERIFIED_EXACT_SHA @ `11e30625`**（main 与备份分支同指此枚；下面的记录与投影重绑是纯文字＋派生件，另算一枚，不改上面任何读数）。
 
+### 5.27 第二十四批（后端 G：把写侧也搬进"装好的包"里度量，并让播种的故障把一处误判顶出来）
+
+owner 这句仍然是「继续打磨后端」。§5.26 把读侧量完了，写侧却没有对应的度量：每个 POST 路由各自有测试，但每份测试都从检出里给自己播种夹具，所以"这台装好的服务能不能写"从未被任何一次运行摊开过。这批只做这件事，不加功能、不动前端一行。
+
+**① 写侧覆盖表**（`design-lab/tests/test_installed_write_surface.py`，`3f542016`）：账本里带 POST 的行共 **29 条**（含 `('GET+POST', '/api/projects')` 那条创建行），逐行按对象依赖顺序真写一次，并**每条都用 GET 读回**。断言与读侧同构且同样双向：账本每行必须在这张表里有一条走法或一条明写的豁免，否则红；表里出现账本已不声明的路由也红；同一路由重复登记也红。槽位由上一跳真实返回的 id 填，缺值即失败，不会把字面量 `{brief}` 发出去当请求（这一点单独有一条用例守着，因为它只会变成一个没人细看的 400）。5xx 名单按布局分开、并与实际发生**完全相等**：多一条即红，少一条——曾经豁免过而这次不再发生的——也红。播种用例有四条：账本里插一条没人走的行必须被点名为"未度量"；把整张表清空必须报出全部分母；豁免名单与实际拒绝互换必须两头都响；槽位替换与 DTCG 花括号必须分得开。
+**读数（同一把尺子两侧各跑一遍）**：源码布局 `POST_SWEEP layout=source rows=29 walked=28 written=28 read_backs=34 refused=0 excluded=1`；装好的 wheel 里 `POST_SWEEP layout=installed` 后面**一字不差相同**。两侧都没有未点名 5xx，所以本批没有新增"三件套"要付——这不是侥幸，是 §5.25 那批把读路径全部改走 `repo_resource` 之后，写路径第一次被真的走到时给出的确认。wheel 实测 1,073,668 字节。
+**一条不走的行**：`POST …/tasks/<job>/run` 的体就一个 `attempt_id`，本扫描手里就有——但 `native_workers.start()` 会 spawn 一个 `design_lab native-worker` 子进程去派发真实创意宿主。owner 2026-10-19/21 的冻结与本轮"不触发任何真实宿主/模型执行"都在，所以它登记为 `FROZEN-BY-POLICY` 而不是"构造不出合法体"：**能不能构造体**与**准不允许做这次写**是两件事，混成一件就会让下一个读的人以为那是技术缺口。原生腿本身照 §5.24 的边界走：`_dispatch` 被 patch、scope 用字面量 `project-native-test`，产物是真字节并按 id 登记——这仍是 E2 受控运行时，不是 E3。
+
+**② 播种把一处误判顶了出来**（`8b83652d`）：为证明这张表在安装布局里不是空转，我把 wheel 里的三个合同文件挨个移走再复跑。两次都是整模块 ERROR，原因同一枚且诚实——`task_queries.py` 在 import 期就 `repo_resource('schemas/task-readback-v1.schema.json')`，文件不在则服务根本起不来（`FileNotFoundError: packaged repository resource missing: …`）。第三次移走 `config/state-vocabularies.json` 时露出的就不是"缺文件"而是**判决本身**：`POST …/tasks/<job>/bundle` 回 **400 INVALID_REQUEST**。机制是 `TaskReadbackError` 继承 `ValueError`，而 dispatch 的兜底子句把所有 `ValueError` 一律写成 400——读侧两条路由（`_list_tasks`、`_task_detail_or_events`）在批次 D 各自就地包过，写侧那几条（bundle/patch/cancel/native-plans）顺手建同一份信封却没包。后果是把一句"服务器的合同文件读不出来"发给调用者读成"你的请求不合法"，与 §5.25 记过的 `PROJECT_STORE_UNAVAILABLE` 指错方向是同一类缺陷的第二个实例。修法按 dispatch 既有的家规：在通用 `ValueError` 子句**之前**加一条 `except TaskReadbackError`，原样带出 `exc.status` 与该码自己的 detail，并补一条不对称用例（`test_a_write_route_that_builds_an_envelope_names_the_contract_not_the_request`）——把这条子句删掉该用例必须红、留着必须绿，四步实测：带子句 OK、删子句 FAILED、恢复、再 OK。**没有**新增打包侧债务：那个配置文件本来就在 wheel 里（批次 D 已 force-include），这批修的是状态映射，不是可见性。
+
+**③ 顺带更正三处没人看守的散文指针**：`docs/current/NEXT-AGENT-PROMPT.md` 里"路由清单以 `http_service.py:93` 的 `ROUTES` 为准"、以及第 1、2 段里的 `:191`（POST assets）与 `:195`（POST analysis）在 HEAD 上分别应为 **94 / 203 / 206**。这不是本批改行号改坏的——本批的插入在 470 行之后，三处都在它上面，是更早的批次改动留下的、且**没有任何闸门会读它们**。§5.25 记过账本发射器指针被自己的闸门抓住；散文里同形状的引用坏了不会响，所以更危险。已按当次实测改写，并写明"以 `ROUTES` 表为准、不要抄这里的数字"。同时那句"共 66 条 = 37 GET + 29 POST"现在补了口径：66 是 `http_service.ROUTES` 的条目数（`/api/projects` 在那里是 GET 与 POST 两枚 Route），而账本是 68 行 = 39 GET + 28 POST + 1 `GET+POST`，两侧扫描各自的分母因此不同（读侧 39、写侧 29）。
+
+**闸门与实跑**：定向 `test_installed_write_surface` 源码 6 OK / 装机 6 OK（两侧都打印自己的分母）、`test_standalone_chain_http` 源码与装机各 5 OK、`test_task_readback_envelope`/`test_packaged_contract_resources`/`test_contract_bindings`/`test_service_http` 合计 OK；`VERIFY_CONTRACT_BINDINGS=PASS routes=68 dispatched=68 bound=36 schema_less=32`（本批没动任何边界，只动了一次错误映射）、`DOCUMENTED_COUNTS=PASS claims=11 routes=66`。**状态**：IMPL_LOCAL + TESTED_LOCAL @ `3f542016`。边界不变：E3/E4/E5、安装态分发、release、ComfyUI/H3、`currentExecution` 34 项、手机端排除项、字体与三方素材出范围、推理不接、签署与审核仍只接受具名 human、导出仍只读回，一字未动；级别仍是 E2——这张表量的是"这台装好的服务写不写得进、读不读得回"，不是"产物好不好"。
+
 ## 6. 本轮暴露并修掉的六个缺陷
 
 1. **分类聚合按目录贴标签**：`bundle_key()` 把一个顶层目录收成一个 bundle，于是 `docs/` 里第一个文件的类别

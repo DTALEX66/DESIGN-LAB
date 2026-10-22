@@ -181,12 +181,12 @@ E4 独立人审 / E5 发布可复现。**文档修订 ≠ 规划完成 ≠ 代�
 - 映射：输入/分析 = T09/T10/U04；目标包 = U05；工具调用 = T13（E3，owner-gated）；
   验收 = T12（E4，owner-gated）；知识候选 = T16/T18/U09。
 - **五段链路的实测现状（2026-10-19 逐条查过，不是推断）**：
-  1. 视觉输入 = 已实现且真跑：`src/design_lab/image_assets.py:21 inspect_image`、POST `/api/projects/{id}/assets`（`http_service.py:191`），字节入库并按 sha256 复核。
-  2. 分析/提示词 = **桥在、调用方已有两个（2026-10-19 起）**：`analysis/decomposition.py:96 Plan.from_ocr` 与 `analysis/plan_to_rir.py:137`（内部调用 `reconstruction/contracts.validate_rir`）都有测试通过，生产入口现有两条——CLI `design-lab analyze`（`cli.py:242`/`cli.py:665`）与 `POST /api/projects/<id>/assets/<img-ID>/analysis`（`http_service.py:195`），都经 `src/design_lab/asset_analysis.py:AssetAnalysis.derive`。核验口令：`git grep -c AssetAnalysis -- 'src/design_lab/*.py'` → 三个文件各命中。**仍然缺的是合格的 OCR/分析后端**：观测必须由操作者提供，所以该路由在 workbench 调用闸门里登记为 `backend_only`，页面也不自动编排结构。**反向提示词仍然没有运行时模块**——注意旧版用 `grep 'analyz|prompt'` 作证据是假阴性仪器（代码里写的是 `analysis` 不是 `analyz`，而 CLI 的 `analyze` 动词确实命中），别再拿那条口令的 0 命中当"没有入口"。`design-lab/core/providers.py`（不在 `src/design_lab/core/`）只是 39 行能力词汇表。所以这一段既不能声称已实现，也不能靠新建面板冒充。
+  1. 视觉输入 = 已实现且真跑：`src/design_lab/image_assets.py:21 inspect_image`、POST `/api/projects/{id}/assets`（`http_service.py:203`，2026-10-22 复测），字节入库并按 sha256 复核。
+  2. 分析/提示词 = **桥在、调用方已有两个（2026-10-19 起）**：`analysis/decomposition.py:96 Plan.from_ocr` 与 `analysis/plan_to_rir.py:137`（内部调用 `reconstruction/contracts.validate_rir`）都有测试通过，生产入口现有两条——CLI `design-lab analyze`（`cli.py:242`/`cli.py:665`）与 `POST /api/projects/<id>/assets/<img-ID>/analysis`（`http_service.py:206`，2026-10-22 复测），都经 `src/design_lab/asset_analysis.py:AssetAnalysis.derive`。核验口令：`git grep -c AssetAnalysis -- 'src/design_lab/*.py'` → 三个文件各命中。**仍然缺的是合格的 OCR/分析后端**：观测必须由操作者提供，所以该路由在 workbench 调用闸门里登记为 `backend_only`，页面也不自动编排结构。**反向提示词仍然没有运行时模块**——注意旧版用 `grep 'analyz|prompt'` 作证据是假阴性仪器（代码里写的是 `analysis` 不是 `analyz`，而 CLI 的 `analyze` 动词确实命中），别再拿那条口令的 0 命中当"没有入口"。`design-lab/core/providers.py`（不在 `src/design_lab/core/`）只是 39 行能力词汇表。所以这一段既不能声称已实现，也不能靠新建面板冒充。
   3. 工具调用 = 静态合同 E1；本机唯一可离线真跑的是 vtracer（`providers/vtracer_provider.py:7` → 外部工具链 1.0.0-alpha.3，MIT，`commercialUse: ALLOWED`）；`design-action.schema.json` 在 `src/` 内**没有 emitter**，`integrations/hosts/ffmpeg/` 是空目录。
   4. 验收 = E2 有路由有 UI（`/jury/verdict`、`/jury/proposal`、`quality`/`rights` CLI），但 E4 真人判定按铁律不由代理填。
   5. 知识候选 = 存储与路由齐（`assurance/knowledge_feedback.py:202 build_candidate`、`knowledge_candidate` 表、create/review/revoke 三路由），**缺的是从验收判定到候选的发射器**；导出合同也已存在（`design-lab/schemas/assurance-knowledge-candidate-v2.schema.json` 的 `$defs.export`，第 178 行），**不要再新建一份 export schema**——那会让一个边界出现两个权威。
-- **独立全链路的真实可跑面（2026-10-22 复测，路由清单以 `http_service.py:93` 的 `ROUTES` 为准，共 66 条 = 37 GET + 29 POST）**：
+- **独立全链路的真实可跑面（2026-10-22 复测，路由清单以 `http_service.py:94` 的 `ROUTES` 为准（2026-10-22 复测：66 枚 Route = 37 GET + 29 POST；账本 `contract-bindings.json` 是 68 行 = 39 GET + 28 POST + 1 `GET+POST`，所以下面读侧扫描的分母是 39、写侧是 29，两数不可互换。别抄这里的数字，自读表））**：
   能靠调用入口真跑通的链是 项目 → 简报 → 参考图入库 → 资产分析派生 RIR（CLI `analyze` + POST `…/assets/<img-ID>/analysis`，live HTTP 已测）→ 原生计划提交 → jury 判定 → rights 记录 → 打包 → **preflight**（POST `…/bundles/<id>/preflight`，2026-10-19 起有 live HTTP 测试；此前所有 preflight 测试都只在进程内调 `preflight_bundle`，路由的默认 profile 与返回形状从未被走过）→ 知识候选创建/审阅/撤回。
   **两个断点没有任何调用入口，不是"还没接"而是没有实现**：(1) Prompt Intelligence——`prompt` 在 `http_service.py`、`cli.py`、`apps/workbench/shell.ts` 三处 0 命中，也没有承载模块，它只作为产品主张出现在 BOUNDARY_CONTRACT 与任务包 §9；(2) 候选导出——`assurance/knowledge_feedback.py:458 export_payload` 与 `:521 to_v1_projection` 在整个 `src/` 内**零调用方**（除各自函数体内那行 `_document(candidate, "…")` 自指标签），出站 `outbound.transport` 在 `knowledge_review.py:337` 硬编码 `NOT_CONNECTED`，该模块第 11 行的注释本身就写明"本仓库没有 ArcheAxis transport"。所以导出段缺的不是接线，是一个真实出口。（本行是 2026-10-19 的诊断，两段已于 2026-10-20 落地，见上头两条的落地状态；照本行去"补第一个调用方"会重复劳动。）
   另两处口径要写清：`quality` 记录只有 CLI（`cli.py:99`），**没有路由**，所以它既不算 matched 也不算 backend_only；`/jury/proposal` 有路由但页面不调（BACKEND_ONLY，理由已登记）。
@@ -280,6 +280,27 @@ E4 独立人审 / E5 发布可复现。**文档修订 ≠ 规划完成 ≠ 代�
   所以用例被重构成空转时作业不能照绿）。本机绑定重跑 `scripts/run_python_tests_all.py --shards 3 --jobs 1`
   三分片全 `exit=0`（`shard=1/3 outcomes={'PASS': 1104,'SKIP': 2}`），此前稳定复现的两条本机 ERROR 消失——
   这条只能在 Windows 上量，Linux CI 给不了这个证据。
+  **写侧的同一把尺子已于同日第二十四批（后端 G）量完**（审计件 §5.27）：`design-lab/tests/`
+  `test_installed_write_surface.py` 把账本 **29 条 POST 行**（含 `GET+POST` 那条创建行）按对象依赖顺序
+  逐行真写、**每行都用 GET 读回**，覆盖表双向断言、槽位缺值即红、5xx 名单按布局分开且必须与实际发生
+  完全相等。读数两侧一字不差：源码 `rows=29 walked=28 written=28 read_backs=34 refused=0 excluded=1`，
+  装好的 wheel 同样如此——本批没有新增"三件套"要付，这是 §5.25 付清读路径之后写侧第一次被真走到时
+  给出的确认，不是侥幸。唯一不走的行是 `POST …/tasks/<job>/run`：体只有一个 `attempt_id` 而扫描手里就有，
+  但 `native_workers.start()` 会 spawn 子进程派发真实宿主，冻结与"不触发真实宿主/模型执行"都在，所以按
+  `FROZEN-BY-POLICY` 点名登记，不冒充"构造不出合法体"。**播种把一处误判顶了出来**：把 wheel 里的
+  `config/state-vocabularies.json` 移走后 `POST …/tasks/<job>/bundle` 回 **400 INVALID_REQUEST**——
+  `TaskReadbackError` 继承 `ValueError`，写侧那几条顺手建同一份信封的路由没像读侧两条那样就地包，于是
+  "服务器读不出合同文件"被发成"你的请求不合法"。已按 dispatch 家规在通用 `ValueError` 子句前补一条
+  具名子句（`8b83652d`），并加一条不对称用例：删掉该子句必红、恢复必绿，四步实跑已记。**后端 G 状态：
+  IMPL_LOCAL + TESTED_LOCAL @ `3f542016`**；级别仍是 E2——这张表量的是"这台装好的服务写不写得进、
+  读不读得回"，不是产物好不好。CI 装机步现同时要求 `GET_SWEEP layout=installed` 与 `POST_SWEEP
+  layout=installed`（外加 `POST_SWEEP_WRITTEN`/`POST_SWEEP_EXCLUDED` 两行与"没有未点名 5xx"）。
+  顺带更正本件里三处没人看守的散文行号：`http_service.py` 的 `ROUTES` 现为 **94** 行（原写 93），
+  POST `/assets` 路由现为 **203**（原写 191），POST `…/assets/<img>/analysis` 现为 **206**（原写 195）。
+  三处都不是本批改行号改坏的（本批插入在 470 行之后），是更早批次留下的、且**没有任何闸门会读它们**——
+  与 §5.25 那次被 `EMITTER_POINTER_NOT_THE_VERSION` 当场抓住的账本指针同一形状，只是散文坏了不会响。
+  口径也补清：66 是 `ROUTES` 条目数（`/api/projects` 在那里是 GET 与 POST 两枚），账本 68 行 =
+  39 GET + 28 POST + 1 `GET+POST`，所以读侧分母 39、写侧分母 29，两个数不可互换。
   ②规范登记件的第三轮取证已于同日跑完（见审计件 §5.22）：Apple 与 Fluent 各补到一条服务端可读的面，
   但**这一轮推翻的是本件自己上一轮的读数**——`.../tutorials/data/design/human-interface-guidelines.json`
   本轮直连 **200**（给 `schemaVersion 0.3.0` 与版权年，仍无编辑日期），而上一轮登记为"全族 404"；
