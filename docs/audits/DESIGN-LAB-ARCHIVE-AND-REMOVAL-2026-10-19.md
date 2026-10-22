@@ -671,3 +671,101 @@ owner 点名要"调用技能插件辅助执行"，本轮实际用了三类，各
 两个仪器教训值得记：整页 `getbbox()` 在有活数据的页面上毫无用处——一个十六进制字符变了就能把框拉到 `x=1411`，所以第一版脚本输出的框全是"整页"，必须改成按带计数才看得见结构；以及"两张图差多少像素"这个问题问错了对象，该问的是"差在哪个带、几何有没有动"。
 
 **基线没有被更新**：按回归评审自己的规矩，基线只能在 owner 认可实现结果后重制，owner 本轮未看这批图，所以旧基线原样留着。要让像素回归成为可用闸门，缺的不是阈值而是**一个冻结 fixture 的采集面**（播种项目名、冻结时间、固定作业行），那属产品工装，等授权再动。
+
+### 5.29 第二十六批（后端 I：设计层这一族从"账本记 SCHEMA_LESS"改成了有合同，而守卫第一个判红的是我自己的补丁）
+
+owner 这句仍是「继续打磨后端」。§5.27/§5.28 把两侧都搬进了"装好的包"里度量，但账本里 `SCHEMA_LESS`
+还剩 32 行，其中 **20 行属于设计层这一族**（brief / direction / design-layer / design-system-tokens），
+18 行没有合同。这一族不是边角：它是 `#/brief`、`#/direction`、`#/system` 三块面板的读回面，也是
+`CHAIN_HOPS … brief=201 direction=201 design-layer=200` 那两跳走过的地方。这一批改的就是那 17 行。
+
+**① 开局现数，不抄任何提示词里的数字**（全部当场打出）：账本 68 行 = 39 GET + 28 POST + 1
+`GET+POST`，`BOUND_SCHEMA` 36 / `SCHEMA_LESS` 32；这一族按路由名第一轮量成 20 行 = 3 已绑 + 17 未绑，改用**账本的 handler 落在 `design_layer` 的哪几个方法上**重量得 21 行 = 3 已绑 + 18 未绑——漏掉的是 `GET /api/design-systems`：它的行形状已经被 `design-layer-rollup-v1.schema.json` 的 `$defs.design_system` 绑住，而它自己的信封不带版本，留它就是留一个半态，所以一并付掉；载荷闸门
+`VERIFY_ROUTE_PAYLOAD_CONTRACTS=PASS bindings=17 failures=0`；界面调用面
+`VERIFY_WORKBENCH_ROUTE_CALLS=PASS calls=109 routes=66 matched=55 backend_only=11 dynamic=3 special=1`
+——未绑的 17 行里 7 行是 `backend_only`（单读简报、方向列表与单读、四条 lineage 中的两条、
+两条 id 域 revisions），也就是说它们没被界面读过，但**被两侧扫描真写过真读过**，付款的依据是那两个
+扫描的字节，不是面板。
+
+**② 文档是先量字节再写的，不是先写再对着代码看**。用一次性服务把这一族每条路由的回答打出来
+（`.project-local/scratch/g/probe5.py` 打 11 读 6 写的键集与形状，`probe6.py` 补 id 前缀、目录
+evidence 档位、可选字段全缺时的 null、被超版链与 `active_binding` 非空那一支）。量出来的东西决定了
+四条判据：token 文档 id 前缀是 `tokdoc-`；目录行的 `evidence_level` 今天是 `E0`/`E2`（因此
+pattern 写成 E0–E5 阶梯而不是某个值）；`style_notes/color_mood/typography_mood/actor/actor_kind`
+按 `design-lab/schemas/state/design-lab-state-design-layer-v1.sql` 的 NOT NULL 与否定可空性，
+`actor_kind` 直接钉成 `human|agent|null`（表上 CHECK 就这三个）；`token_count` 的 `minimum: 1`
+是从 `design-lab/schemas/state/design-lab-state-design-layer-v4.sql` 的 CHECK 抄来的，不是我给的。
+
+**③ 四份信封合同，形状一律 `$ref` 不重述**（"一份合同只有一个主人"）：
+`design-lab/schemas/design-record-v1.schema.json`（`design-lab/design-record/v1`，一条记录的信封，
+读写共用，`record_kind` 判别，brief 引 `brief-readback.schema.json#/$defs/brief`，direction/binding
+在此首次做主人）、`design-collection-v1.schema.json`（`design-lab/design-collection/v1`，
+`collection` 判别；方向页必须有 `next_cursor`、token 页**禁止**有，因为读侧真的没有分页）、
+`design-lineage-v1.schema.json`（`design-lab/design-lineage/v1`，`subject_kind` 判别）、
+`design-layer-rollup-v1.schema.json`（`design-lab/design-layer-rollup/v1`，`chosen_direction` 与
+`active_binding` 只能是 `null` 或一条真记录——P0-02/P0-D 那两个"不许回落"的规矩从此不只是注释）。
+DTCG 文档引 `interop-dtcg-document.schema.json`，因为那份文件才是它的主人。
+
+**④ 服务侧每次都判，而且第一个受害者是我**。`_check_design_record` / `_check_design_collection` /
+`_check_design_lineage` / `_check_design_rollup` 装载自己的合同，先比 `schemaVersion` const 再校验，
+不符就 500 带字段路径（`DESIGN_RECORD_CONTRACT_VIOLATION` 等四个具名码，沿用
+`BRIEF_CONTRACT_VIOLATION` 的形状）。我按下第一条守卫的地方就是我自己写的补丁：`get_design_layer`
+被我包成了 `{design_layer: {design_layer: {…}}}`，实跑立刻
+`500 DESIGN_LAYER_ROLLUP_CONTRACT_VIOLATION`，detail 七条
+（`'briefs' is a required property` ×6 + `Additional properties are not allowed ('design_layer' was unexpected)`），
+抛出点在 `src/design_lab/design_layer.py` 的信封函数里——先红的是我的编辑，不是产品，也不是闸门。
+emitter 行号从源文件重算：`:104/:105/:106/:107` 四个版本常量，`BRIEF_READBACK` 的 `:64` 一字未动
+（新常量全插在它下面，就是为了不动那条已被账本钉住的指针）。
+
+**⑤ 点名更正一条我自己写错的断言**：账本 brief 链那行的旧 reason 写着这条文档是
+"superseded_by 链**加 design_layer_event 行**"。实测字节里没有事件行：`_chain()` 读
+`design_layer_event` 只是用 `*-revised` 载荷里的 `new_id→old_id` 找回父行，交出的仍是记录本身。
+新的 reason 按实测改写，并把事件 kinds 的归属写明白——仍由 `EVENT_KINDS`（`design_layer.py`）与表
+CHECK 管，不由这份 schema 管。旧读数在本节保留原文以便对照，不删。
+
+**⑥ 载荷闸门只变大不变松**：17 条绑定 → 35 条，新增的 18 条里 17 条各两例真实载荷（目录那一行一例，`catalog()` 没有空分支可给）——活梢与被超版、
+有内容与空项目、追加（201）与同一幂等键的重放（200），没有一条用一个载荷冒充多个边界。
+`design-lab/tests/test_route_payload_contracts.py` 的绑定清单钉同步扩到 35 项（这条钉本身就是"加了
+绑定却没进清单"的红），并新增五条只针对这一族的种红：判别器说谎（brief 体配 `record_kind=direction`
+同时触发 `SCHEMA_VIOLATION`/`MISSING_FROM_EMITTER`/`UNDECLARED_BY_SCHEMA`）、链丢 `root_id`、
+token 列表凭空长出游标、`{}` 冒充"没有选择"、追加与重放键集必须一致。该模块 31 项 OK。
+
+**⑦ 打包三件套，并证它会红**：四个新读取点全走 `runtime/state_resources.repo_resource()`，
+`pyproject` 补四行 force-include，`design-lab/tests/test_packaged_contract_resources.py` 从磁盘枚举
+调用点（42 项含 `test_contract_bindings` 全 OK）。植入检查：把装好的 wheel 里
+`design_lab/resources/repo/design-lab/schemas/design-layer-rollup-v1.schema.json` 移走，装机扫描
+`Ran 6 tests in 0.099s / FAILED (errors=6)`，traceback 落在
+`design_layer.py:114 → state_resources.py:101 FileNotFoundError: packaged repository resource missing:
+schemas/design-layer-rollup-v1.schema.json`——拒绝发生在**导入期**，比路由 500 更早、更硬，与既有
+`BRIEF_READBACK_SCHEMA_PATH` 同一个形状，不是新引入的风险类；装回即 `Ran 6 tests / OK`。
+wheel 从 1,073,608 字节到 1,082,262 字节，成员 354 → 381。
+
+**⑧ 两侧扫描的语义与读数一字未动**，这是"不改扫描来迁就合同"的可复核部分：源码
+`GET_SWEEP layout=source routes=39 reads=40 answered=36 verdicts=4 unmeasured=2`、
+`POST_SWEEP layout=source rows=29 walked=28 written=28 read_backs=34 refused=0 excluded=1`、
+`NATIVE_VERIFY layout=source clean=HASH_VERIFIED tampered=NATIVE_ARTIFACT_UNVERIFIED unknown=NATIVE_ASSET_NOT_FOUND`；
+装机 `GET_SWEEP layout=installed routes=39 reads=39 answered=35 verdicts=4 unmeasured=2`、
+`POST_SWEEP layout=installed rows=29 walked=28 written=28 read_backs=34 refused=0 excluded=1`、
+`NATIVE_VERIFY layout=installed` 同串，`CHAIN_HOPS … design-layer=200 … export=200` 与
+`DELIVERY_HOPS project=201 native=READBACK bundle=201 preflight=200` 照旧。信封是加在回答**上**的。
+
+**⑨ 受治散文的数字全部交闸门现数**：`scripts/verify_documented_counts.py` 加三条测量
+（这一族付掉的行数、账本还剩多少行没有合同、载荷闸门现有多少条绑定），claims 15 → 18，
+`DOCUMENTED_COUNTS=PASS claims=18`；三条各自播种皆红且报出句名（16/14/33 三枚，逐条
+`FAIL … prose says ['16'], measurement says 17`，恢复即 PASS），并且本批改写了两处过期数字
+（"余下 32 条 SCHEMA_LESS"改为带日期的读数并指向现值；"当前 11 条读数"改为只以闸门自己输出的
+`claims=<n>` 为准）。现状面新增"后端 I"整块，旧读数不删。
+
+**闸门与实跑**：`VERIFY_CONTRACT_BINDINGS=PASS routes=68 dispatched=68 bound=54 schema_less=14`
+（36+18 / 32−18，两个方向都对得上）、`VERIFY_ROUTE_PAYLOAD_CONTRACTS=PASS bindings=35 failures=0`、
+`VERIFY_WORKBENCH_ROUTE_CALLS=PASS calls=109 routes=66 matched=55 backend_only=11 dynamic=3 special=1`
+（本批没碰界面调用面）、`DOCUMENTED_COUNTS=PASS claims=18`；定向
+`test_standalone_chain_http`+`test_installed_write_surface` 源码 12 OK / 装机 12 OK、
+`test_route_payload_contracts` 31 OK、`test_contract_bindings`+`test_packaged_contract_resources` 42 OK。
+前端 0 文件。本机整轮 union 与聚合读数见下一条回填。
+
+**边界不变**：宿主 E3、真人 E4、release、安装态分发、ComfyUI / MiniMax H3、`currentExecution`
+34 项 `FROZEN_DEFERRED` 继续冻结；手机端仍是排除项，不是待办；字体与三方素材不在本项目范围内；
+模型不锁死但默认 fail-closed，显式选择只是被记录的动作；编号仍用字面量 `UNUSED`，代理不自造标识；
+签署与审核仍只接受具名 human；导出仍只读回；E 盘不动。级别仍是 E2——这一批改的是"信封自己说的
+是不是真的"，不是产物好不好。

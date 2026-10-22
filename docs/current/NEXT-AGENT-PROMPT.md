@@ -198,7 +198,7 @@ E4 独立人审 / E5 发布可复现。**文档修订 ≠ 规划完成 ≠ 代�
 - 下一轮若获授权，先交付"可审阅的读回面板 + 真实数据源 + 可复现测试"，
   把没建的那一半写在可见文字里，不要把 PLANNED 标成 IMPLEMENTED。
   **2026-10-22 之后的实际剩余面（B2–B5 已全部落地并 CI_VERIFIED @ `f4b727e1`，见审计件 §5.18–§5.21）**：
-  ①带版本号的未付契约债清单实测为空（余下 32 条 SCHEMA_LESS 都是"信封自己不带 schemaVersion"的选择，不是欠账）；
+  ①带版本号的未付契约债清单实测为空（当时余下 32 条 SCHEMA_LESS 都是"信封自己不带 schemaVersion"的选择，不是欠账；2026-10-23 后端 I 把其中设计层一族付成有版本有合同，剩下的条数交 `scripts/verify_documented_counts.py` 现读，不抄本文字）；
   **后端 A/B/D 已落地（审计件 §5.23 与 §5.24）**：`GET /api/projects` 现回 `design-lab/project-list/v1`，
   逐项目给 14 个表面的计数、最晚时间戳与"还没人签"的两个数，合同把 **null=该表面在此检出从未建表**
   与 **0=表在而此项目没有记录** 绑成双向不可互换；能力库的 `counts.qualified` 拆成
@@ -316,6 +316,47 @@ E4 独立人审 / E5 发布可复现。**文档修订 ≠ 规划完成 ≠ 代�
   本批未新增打包面债务：这条路由读的是项目自己的资产库字节，不读仓库合同文件，两侧同值即是证据。本节的两个读侧分母（39 条 GET 行、仍有 2 条没被读到）也已交 `scripts/verify_documented_counts.py` 现数（claims 13 → 15，两条各自播种皆红、照实写 PASS），所以它们不能悄悄变陈旧。**后端 H 状态：IMPL_LOCAL + TESTED_LOCAL @ `4454531b`，复核后 CI_VERIFIED_EXACT_SHA @ `51c14f10`（main 与备份分支同指此枚，run `39865099663` = completed success、12 作业无非绿；其代码前枚 `d9976d0c` 同枚全绿，11 个重作业全绿，CI 装机步同一条日志里给全 `GET_SWEEP`/`NATIVE_VERIFY`/`POST_SWEEP` 三行且要求整串出现，`PYTHON_TESTS_UNION=OK expected=3178 …missing=0 unexpected=0`；本机把三个模块放进取数器自己的深 TEMP 重跑 `Ran 17 tests / OK / exit=0`、零 `WinError 206`——本机整轮 union 未跑完就被中止，所以"全套通过"这条只按 CI 那枚报，不冒充本机证据。细节见 §5.28 末）。
   口径也补清：66 是 `ROUTES` 条目数（`/api/projects` 在那里是 GET 与 POST 两枚），账本 68 行 =
   39 GET + 28 POST + 1 `GET+POST`，所以读侧分母 39、写侧分母 29，两个数不可互换。
+  **同日第二十六批（后端 I）把设计层这一族从"账本记 SCHEMA_LESS"改成了有合同**（审计件 §5.29）。
+  先现数再动手：账本 68 行、`BOUND_SCHEMA` 36 / `SCHEMA_LESS` 32，按"账本的 handler 落在
+  `design_layer` 的哪几个方法上"量出这一族 21 行 = 3 已绑 + 18 行未绑；载荷闸门当时 `bindings=17`。四份信封合同全部
+  **按实测字节**写（先用真服务把每条路由的字节打出来，再写文档）：
+  `design-lab/schemas/design-record-v1.schema.json`（一条记录的信封，读与写共用，`record_kind` 判别）、
+  `design-collection-v1.schema.json`（活行列表，`collection` 判别，方向页带游标、token 页**不许**有游标）、
+  `design-lineage-v1.schema.json`（版本链，`subject_kind` 判别）、`design-layer-rollup-v1.schema.json`
+  （整片读回，`chosen_direction` 与 `active_binding` 只能是 null 或真记录）。被包的形状一律 `$ref`
+  不重述：brief 行回 `design-lab/schemas/brief-readback.schema.json` 的 `$defs.brief`，DTCG 文档回
+  `design-lab/schemas/interop-dtcg-document.schema.json`，direction / binding / token_document 由新文件
+  第一次做主人。服务侧每次都判——`_check_design_record` / `_check_design_collection` /
+  `_check_design_lineage` / `_check_design_rollup` 装载自己的合同，不符就 500
+  `DESIGN_*_CONTRACT_VIOLATION` 带字段路径，且先比版本再校验。**这条守卫当场咬了我一口**：我把
+  `get_design_layer` 包成了双层 `design_layer`，闸门立刻红了七条并指名 `'design_layer' was unexpected`——
+  先红的是我的补丁，不是产品。18 行随之翻成 BOUND_SCHEMA（第 18 行是我第一轮按路由名过滤时漏掉的
+  `GET /api/design-systems`——换成"账本的 handler 落在 `design_layer` 的哪几个方法上"重新量才找出来），
+  emitter 逐行重钉为
+  `src/design_lab/design_layer.py:104`、`:105`、`:106`、`:107`（各版本常量自己那行，`BRIEF_READBACK` 的
+  `:64` 一字未动），设计层这一族付掉 **18 行**，账本仍有 **14 行**没有合同，
+  live 载荷比对现在 **35 条绑定**——每条绑定两例真实载荷（目录读那一行只有一例：`catalog()`
+  没有"空目录"这一分支可给）：活梢与被超版、有内容与空项目、
+  追加与同幂等键的重放。一条写在账本 reason 里的旧断言被实测字节推翻并点名更正：brief 链那行原写
+  "superseded_by 链**加 design_layer_event 行**"，实测文档里根本没有事件行——`_chain()` 读
+  `design_layer_event` 只是用 `*-revised` 载荷找回父行，交出的仍是记录；事件 kinds 仍归
+  `EVENT_KINDS` 与表 CHECK 管，不由这份 schema 管。打包按三件套付清：四个新 `repo_resource('schemas/…')`
+  读取点 + 四行 `pyproject` force-include + `design-lab/tests/test_packaged_contract_resources.py`
+  从磁盘枚举；植入检查做过——把装好的包里的
+  `resources/repo/design-lab/schemas/design-layer-rollup-v1.schema.json` 移走，装机扫描立刻
+  `FileNotFoundError: packaged repository resource missing: schemas/design-layer-rollup-v1.schema.json`
+  （抛在 `design_layer.py:114` 的导入期，六条用例全部红在 setUp 之前），装回即 `Ran 6 tests / OK`。
+  **两侧扫描的语义与读数一字未动**，这是本批的可复核部分：源码
+  `GET_SWEEP layout=source routes=39 reads=40 answered=36 verdicts=4 unmeasured=2`、
+  `POST_SWEEP layout=source rows=29 walked=28 written=28 read_backs=34 refused=0 excluded=1`，
+  装机 `GET_SWEEP layout=installed routes=39 reads=39 answered=35` 与
+  `POST_SWEEP layout=installed` 同值、`NATIVE_VERIFY` 两侧同串；信封是**加在回答上的**，不是改回答。
+  前端 0 文件。牙在测试里：`design-lab/tests/test_route_payload_contracts.py` 的绑定清单钉从 17 项
+  扩到 35 项，另加五条只针对这一族的种红（判别器说谎、链丢 `root_id`、token 列表凭空长出游标、
+  `{}` 冒充"没有选择"、追加与重放键集必须一致），该模块 31 项 OK。**后端 I 状态：IMPL_LOCAL +
+  TESTED_LOCAL**（本机三片 union、聚合与 CI 逐作业读数在本节末与 §5.29 回填，未跑完之前不写成通过）。
+  级别仍是 E2：这一批改的是"信封自己说的是不是真的"，不是产物好不好；宿主 E3、真人 E4、release、
+  安装态分发、ComfyUI / MiniMax H3 与 `currentExecution` 34 项继续冻结，手机端仍是排除项。
   ②规范登记件的第三轮取证已于同日跑完（见审计件 §5.22）：Apple 与 Fluent 各补到一条服务端可读的面，
   但**这一轮推翻的是本件自己上一轮的读数**——`.../tutorials/data/design/human-interface-guidelines.json`
   本轮直连 **200**（给 `schemaVersion 0.3.0` 与版权年，仍无编辑日期），而上一轮登记为"全族 404"；
@@ -428,7 +469,7 @@ E4 独立人审 / E5 发布可复现。**文档修订 ≠ 规划完成 ≠ 代�
 - **跨轮像素回归没有解释力，除非先冻结 fixture**（本轮实跑证实，不是推定）：23 张 1440 截图与改动前基线比对，品牌块 0 px、导航带每张 48–52 px（其中 4 行 2 px 正是页脚发丝线下移 12 px 的预期变化，其余是导航点同一几何下的亚像素边缘差）、内容带 26 万像素集中在带活数据的屏（`21-records` 一张就 10.6 万，看下去是播种项目名 `Closeout 179…` 与多出一条真实 `RECEIPTED` 作业，版式没动）。两个仪器教训：整页 `getbbox()` 在活数据页上毫无用处（一个十六进制字符就能把框拉到最右），必须按布局带计数；以及**基线没有被覆盖**——按规矩只有 owner 认可实现结果后才能重制。
 - **推 `main` 的取消规则是半条，别按半条办事**：`cancel-in-progress` 的条件写作 `github.event_name == 'pull_request'`，所以**正在跑**的 main run 不会被后一次 push 打断（实测 `37bee232` 在跑时推了 `0c0a50c3`，两个各自跑完、各自 11 个真作业 success）；但**还在排队**的那条会——`9a3a3f37` 一个字作业都没跑就被 `2087509d` 顶掉了（`CONC=cancelled jobs=0`）。所以：不必为"怕取消"压批次，但也别以为每个 tip 都会各自出判定——只有队尾那个会。读到 `cancelled` 就当"被取代"，不要当证据。
 - **`GET /api/projects/<id>/design-layer` 里没有资产实体**（本轮把链路测试的断言从"子串出现"改成"作为身份字段的值出现"时量出来的）：投影只有 `briefs / directions / chosen_direction / bindings / active_binding / design_systems` 六个键，资产仅通过 `design_layer.briefs[i].reference_asset_ids[j]` 被引用。所以桌面端要显示"这个资产的分析/判定"，要么从简报的引用列表拿 id 再单独读，要么走资产自己的路由——别以为聚合读回里能直接找到资产对象。
-- **写进文档的数字现在有闸门了**：`scripts/verify_documented_counts.py` 把契约与提示词里逐条写出的计数对回代码——当前 11 条读数（2026-10-22 实测）：`DESIGN.md` 的"导航 21 项"、CLI 子命令 24、适配器注册表 30、HTTP 路由 66、20 跳验收链、4 跳交付链，剩下五处是同一条账本事实在 `NEXT-AGENT-PROMPT.md`（"34 项父/子任务全部"）、`AUTHORITY.md`、`AGENTS.md`、`docs/current/PRODUCT_DEFINITION.md` 与 20261020 owner 决定件里的逐字复述。测量只读代码、句子只被比对，两边不互相喂数据；任何提取式匹配不到就 `SystemExit`，不会退化成"读到 0 所以没有差异"。它经 `design-lab/tests/test_documented_counts.py` 进 CI（不用改工作流），并且自带播种反证：把 DESIGN.md 那个 21 改成 20，闸门立刻红。今天那两处过期数字（源码注释里的 15、契约里的"11 项 / 587px / ≤720 才溢出"）都是靠人眼撞出来的，这条闸门的作用是让下一处自己红——本句自己就红过两次：一次是 2026-10-21 它写"当前 4 条"并列出 19/16/58 三个对不上代码的数字（闸门看不见，因为那三个数不在它的模板里，是人眼撞出来的）；一次是 2026-10-22 加了两跳之后。**同一批还修了这条闸门自己的一个缺陷**：它在"报告哪句过期"时把模板当正则用，`**{n} 跳验收链**` 以 `**` 开头就是非法模式，于是一次普通的散文过期变成 traceback 而不是 finding；现在先 `re.escape` 再替换占位符，过期必须说得出名字。
+- **写进文档的数字现在有闸门了**：`scripts/verify_documented_counts.py` 把契约与提示词里逐条写出的计数对回代码——下面列的是 2026-10-22 那一批的 11 条（条数本身只以它自己输出的 `claims=<n>` 为准，2026-10-23 后端 I 又交进三条设计层分母）：`DESIGN.md` 的"导航 21 项"、CLI 子命令 24、适配器注册表 30、HTTP 路由 66、20 跳验收链、4 跳交付链，剩下五处是同一条账本事实在 `NEXT-AGENT-PROMPT.md`（"34 项父/子任务全部"）、`AUTHORITY.md`、`AGENTS.md`、`docs/current/PRODUCT_DEFINITION.md` 与 20261020 owner 决定件里的逐字复述。测量只读代码、句子只被比对，两边不互相喂数据；任何提取式匹配不到就 `SystemExit`，不会退化成"读到 0 所以没有差异"。它经 `design-lab/tests/test_documented_counts.py` 进 CI（不用改工作流），并且自带播种反证：把 DESIGN.md 那个 21 改成 20，闸门立刻红。今天那两处过期数字（源码注释里的 15、契约里的"11 项 / 587px / ≤720 才溢出"）都是靠人眼撞出来的，这条闸门的作用是让下一处自己红——本句自己就红过两次：一次是 2026-10-21 它写"当前 4 条"并列出 19/16/58 三个对不上代码的数字（闸门看不见，因为那三个数不在它的模板里，是人眼撞出来的）；一次是 2026-10-22 加了两跳之后。**同一批还修了这条闸门自己的一个缺陷**：它在"报告哪句过期"时把模板当正则用，`**{n} 跳验收链**` 以 `**` 开头就是非法模式，于是一次普通的散文过期变成 traceback 而不是 finding；现在先 `re.escape` 再替换占位符，过期必须说得出名字。
 - **`generate_current_reports.py --check` 的三种词要分清**：`STALE` 退出 0（绑定输入没动、HEAD 前移了，正常）；`DRIFT` 退出 1（**被绑定的输入本身老化**——跟踪的源码/文档/测试改了都算，必须重生成并重钉）；`PASS` 才是当前字节自洽。本轮 `DRIFT` 出现过两次，两次都是我自己刚提交了绑定输入，不是闸门在找事。
 
 - **溢出闸门的高度维度：这一条我先前写错过，现在的版本是重量过的**。把高度做成可覆盖（`OV_HEIGHT` / `OV_SHORT_HEIGHT`，默认仍是 900/620，CI 不变）之后，在宽度 1440 上按名义高 1100 / 900 / 750 各跑一趟：`navEdge overflow` = **299 / 499 / 649**，`gap` 三趟都是 **12**，而被切的元素在 1100 与 900 是 `nav-group` 分组标签、**到 750 变成 `button` 导航项**。所以列表溢出量**随视口高变化**（`.nav` 的 `clientHeight` 跟着窗口长高）；我上一版写的"clientHeight 由 CSS 定死、几何与高度无关"是错的，错因是把 620 那一趟的 `hiddenPx=779` 当成两趟的共同读数——而当时我只覆盖了名义高度，短档根本没变，两次当然同值。真正与高度无关的只有**发丝线与切割线的间距**（固定 token 边距，620/750/900/1100 四档实测恒为 12）。结论不变但理由换了：CI 不加 1100 档，因为 1100 与 900 切到同一个元素、判同一条不变量，属重复；750 会切到另一个元素，说明现有 900+620 两档也不是摆设。
