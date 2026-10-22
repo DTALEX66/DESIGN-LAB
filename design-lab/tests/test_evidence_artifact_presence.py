@@ -244,14 +244,35 @@ class EvidenceArtifactPresenceTests(unittest.TestCase):
             # inherited: the delta between the pinned Counter and the run was exactly this one pair.
             ('design-lab/scripts/verify_evidence_artifact_presence.py',
              'HASH_MOVED_SINCE_OBSERVATION'): 1,
+            # 2026-10-23, four new pairs, all of them records bound to the code they describe, and
+            # all four files moved for the same reason: this batch pointed their contract/config
+            # reads at `runtime/state_resources.repo_resource()` so an installed wheel can open them
+            # (see the delivery report §5.25). `delivery_bom.py` and `evidence_readback.py` are the
+            # two that only a live installed run caught -- a missing packaged file had been answering
+            # `409 NATIVE_BUNDLE_UNVERIFIED` and `503 EVIDENCE_LEDGER_ABSENT`, i.e. wearing the mask
+            # of a verdict; `design_layer.py` answered `500 INTERNAL`; `dtcg.py` ships the same
+            # interop contract. Nothing older is rewritten: each stays the observation it was, and
+            # the newer bytes are bound by this batch's own commits. Re-measured at HEAD `90d7d4ed`
+            # with this file's own spy, not inherited: observed 64 pairs against the 60 pinned before
+            # these four lines, broken=0, and the delta was exactly these four names.
+            ('src/design_lab/assurance/delivery_bom.py',
+             'HASH_MOVED_SINCE_OBSERVATION'): 1,
+            ('src/design_lab/design_layer.py',
+             'HASH_MOVED_SINCE_OBSERVATION'): 1,
+            ('src/design_lab/governance/evidence_readback.py',
+             'HASH_MOVED_SINCE_OBSERVATION'): 1,
+            ('src/design_lab/interop/dtcg.py',
+             'HASH_MOVED_SINCE_OBSERVATION'): 1,
         })
         self.assertEqual(counts, expected,
                          'the drifted-artefact inventory is exact in both directions: a new '
                          'move, a new artefact name, or one more record on a known artefact '
                          'are all findings, and a drifted pair that quietly disappeared is too')
-        self.assertEqual(sum(counts.values()), 60,
+        self.assertEqual(sum(counts.values()), 64,
                          'the total drifted-record count is pinned, not derived '
-                         '(59 -> 60 on 2026-10-19: the gate module aged its own binding record)')
+                         '(59 -> 60 on 2026-10-19: the gate module aged its own binding record; '
+                         '60 -> 64 on 2026-10-23: four records aged when their bound code moved to '
+                         'repo_resource so an installed wheel can open its own contracts)')
 
     def test_missing_tracked_artefact_is_a_hard_break_not_a_warning(self):
         ledger = copy.deepcopy(_ledger())

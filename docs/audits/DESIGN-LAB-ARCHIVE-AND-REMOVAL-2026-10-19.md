@@ -504,6 +504,14 @@ owner 这句是「继续打磨后端」。既然 §5.24 量到的根因是"检�
 
 **边界与级别**：这一批把"独立可运行"的主张从**源码检出**扩展到**安装好的包**，证据级别仍是 E2 受控运行时——同一台机器、合成夹具、无真实宿主、无真人验收；`preflight=200` 不等于产物可用，`export=200` 不等于已发送。E3/E4/E5、ComfyUI/H3、`currentExecution` 34 项、手机端排除项、字体与三方素材出范围，一字未动。
 
+**两条本批自己量出来的尾巴，都按"看得见"而不是"吸收掉"处理**：
+① 证据台账的漂移清单涨了 4 对。`test_evidence_artifact_presence.py` 看守的是"哪条记录把它描述的代码当工件、而那段代码后来动了"——本批改的 `delivery_bom.py`、`design_layer.py`、`governance/evidence_readback.py`、`interop/dtcg.py` 各被一条 2026-10-08 的记录绑定，字节一变就到期。按该文件的既有做法：**旧记录一字不改**，在清单里加四条带日期的行并写明原因，总数从 60 钉到 64；这 4 对是用该测试自己的度量重新量出来的（actual 64 / pinned 60，差集恰好这四个名字），不是从上文抄的。
+② 全量 union 在这台机器上稳定复现 2 条 ERROR，**原因这次拿到了 raise site**：`test_capability_library_clean_install` 的两条安装态用例要把 wheel 解包到临时根，而解出来的最深一条路径是
+`…\.project-local\task-runtime\python-tests-shard-1\<32hex>\tmp\dl-t05-site-xxxx\design_lab\resources\repo\design-lab\domain-packs\uiux-design\benchmarks\ecommerce-pdp-checkout-golden\implementations`，
+Windows 报 `[WinError 206] 文件名或扩展名太长`。上一批（本批之前）的本地 union 已经是同样这两条、同样位置，Linux 上三次 CI 全绿——**这是本机路径长度上限，不是代码缺陷，也不是本批引入**；`_installed_site()` 在检出内的 `.venv` 被判为"源码布局"而回落到解包，是它踩中的机制。修法要么给该用例一个更短的临时根，要么只解包它真正需要的成员；在拿到这两条之一的实测前，不把"CI 绿"写成"已解释"。级别不变：这两条本机红不改变 §5.25 上面任何一条装机面读数，那些是从 site-packages 真实解析（`site-packages` + `bundleOrigin=packaged`）跑出来的。
+
+**本批最终读数**（回填位）：全量 union `PYTHON_TESTS_UNION=OK expected=3167 distinct=3167 ran=3167 duplicates=0 missing=0 unexpected=0`，本机 shard=1 的 2 条即上面 ②，shard=3 的 1 条即 ① 的旧钉值（修后转绿）；聚合 `VERIFY_DESIGN_LAB=OK total=76 failed=0`；CI 逐作业读数按推送后的精确 SHA 另记。
+
 ## 6. 本轮暴露并修掉的六个缺陷
 
 1. **分类聚合按目录贴标签**：`bundle_key()` 把一个顶层目录收成一个 bundle，于是 `docs/` 里第一个文件的类别
