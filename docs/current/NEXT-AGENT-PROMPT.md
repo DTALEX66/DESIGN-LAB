@@ -223,6 +223,22 @@ E4 独立人审 / E5 发布可复现。**文档修订 ≠ 规划完成 ≠ 代�
   详情页同信封但 `surface:'task'` 且 `truncated` 恒 false、`next_cursor` 恒 null，事件页 `surface:'events'`
   且**游标是 `event_no` 整数**——`apps/workbench/contracts.ts` 现在把 `next_cursor` 写成 `string | null`，
   对事件页不精确，接入时随信封一起改正（本批不动界面）。
+  **本批状态：CI_VERIFIED_EXACT_SHA @ `91186bc7`**（分支与 main 同指此枚；11 个重作业全绿，
+  `PYTHON_TESTS_UNION=OK expected=3167 distinct=3167 ran=3167 missing=0 unexpected=0`，
+  安装态作业 `Ran 3 tests` 且步骤三条 grep 全过——§5.23 欠的两条红就是在这一枚上转正的）。
+  **下一刀已经量好，不是猜的（装机面债，不是产品缺口）**：在干净安装的 wheel 上逐条调用账本里 37 条
+  `GET /api/…`，14 条 2xx，三条**因为合同文件走 `PROJECT_ROOT` 而在安装态读不到**——
+  `GET /api/models` → `503 MODEL_CATALOG_UNAVAILABLE`、`GET …/prompt-results` →
+  `500 PROMPT_RESULT_CONTRACT_UNREADABLE`、`GET …/design-layer` → `500 INTERNAL`。根因同一个：
+  `PROJECT_ROOT = Path(__file__).parents[3]` 在检出里是仓库根，在安装态是解释器的 `Lib`。修法就是这批用过的那三件套：
+  改走 `runtime/state_resources.repo_resource('<相对 design-lab/ 的路径>')`、在 `pyproject.toml`
+  的 `[tool.hatch.build.targets.wheel.force-include]` 补对应行、让
+  `design-lab/tests/test_packaged_contract_resources.py` 从磁盘枚举调用点看守；全仓同形状的路径表达式还有
+  29 处（分布在 33 个模块），但**只有被路由真实读到的那几条才需要付**，别为了清单整齐批量改写。
+  验收必须按这批量：`uv build --wheel` → 干净 venv 装上 → 从装好的包里起服务逐条调用，
+  并且做一次植入（把某个打包副本移走，看它是不是真的变红）——源码检出里的绿不能证明安装态。
+  `GET /api/evidence-projection` 的 `503 EVIDENCE_LEDGER_ABSENT` 不算这一类，那是那个临时根没有台账时
+  它该有的判决。
   ②规范登记件的第三轮取证已于同日跑完（见审计件 §5.22）：Apple 与 Fluent 各补到一条服务端可读的面，
   但**这一轮推翻的是本件自己上一轮的读数**——`.../tutorials/data/design/human-interface-guidelines.json`
   本轮直连 **200**（给 `schemaVersion 0.3.0` 与版权年，仍无编辑日期），而上一轮登记为"全族 404"；
