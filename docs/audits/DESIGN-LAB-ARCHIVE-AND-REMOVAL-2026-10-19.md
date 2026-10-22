@@ -442,6 +442,24 @@ Python 闸门的计数回执：三个分片全 `exit=0`——`shard=1/3 tests=94
 
 **这批不动判据**：现行对比度判据仍是 WCAG 2.2 AA，APCA 仍是 B 档行业动向记录。`INDUSTRY_SPEC_REGISTER.md` 是出处件，没有闸门给它出判决；同一目录里的 `MOTION_ACCESSIBILITY.md` 却由 `verify_selected_source_adaptation.py` 逐字核对 `ruleId` 是否出现在正文——**同目录两种强度**，改错文件时才分得出来。
 
+### 5.23 第二十批（后端 A/B/C/D：把 Stitch 的 D01/D05/D07/D08 需要的字段先做成真的）
+
+owner 的分工是"后端你按审计报告做，前端我交给 STITCH，做好再告诉你接入"。所以这批不动视觉、不动导航形状，只把设计稿要求、而 API 目前答不上来的字段做成能答的。
+
+**A（D01 首页台账）**：`GET /api/projects` 原先只回 `{id, name, created_at}`，页面要么猜、要么每项目每资源各打一次。现在回 `design-lab/project-list/v1`：逐项目给 14 个表面的记录数、最晚时间戳、以及"还没人签"的两个数。**这批真正的合同是一条双向绑定**：某个计数为 null **当且仅当**该表面的表在此检出从未建过（并且表面名出现在 `absentSurfaces`）——0 是"表在、这个项目一条没有"。种的红两条方向各有测试：给未建表的表面报 0、把已报 absent 的表面写成有数，都被 schema 判红；`project_index.py` 在出口前自校合同，违反就是 500 `PROJECT_LIST_CONTRACT_VIOLATION`（测试用替换 `_one` 的方式把谎种进构造器，证明拒绝发生在服务端而不是纸面）。**没有第二套判定**：未签/已过期走 `prompt_results._state_of`（与读回同一函数，抽出后两处共用），候选侧直接取该资源自己读回的计数；漂移测试手工插一条引用了别的摘要的签名，要求读回与台账同时说 `NOT_CURRENT`、且 `accepted_count` 为 0、`unreviewed` 为 0——这是仓库里第一次真正构造出该状态。
+
+**B（D05 能力库计数）**：`counts.qualified` 算的是"有资格判定记录的数量"，但字段名读起来是"合格数"；今天两者都是 0，所以这不是当前错误而是将来的错误。拆成 `qualificationVerdicts / qualifiedTrue / qualifiedFalse / qualificationNotAdjudicated` 四个数，schema 的 required 与 closed properties 同步，UI 那句话改成四个数并排，`contracts.ts` 与离线夹具一起换。测试里加了旧 schema 给不了的分区不变式：`total = verdicts + notAdjudicated`。
+
+**C（D07 候选导出）不是缺口，实测后取消**：`KnowledgeReview.list` 每行已经带 `export_ready` 与 `export_blocked_by`，信封已有 `export_ready_count / pending_review_count / revoked_count / conflicts / head_sha / outbound`，而且 `test_knowledge_http.py:236 / :281` 正反两向早就断言过。所以本批给 C 的交付是这条实测记录，加上台账里的 `knowledgeCandidatesExportReady` 与读回数字必须一致（不一致就是两处各算一套的开端）。
+
+**D（D08 记录与取消语义）也没有缺口，但有一处必须写下来**：任务记录已含 `state`、`updated_at` 与 `cancel.{requested, acknowledged}` 两个布尔——设计要的"取消已发"与"宿主确认已停"在数据上是两件事；差别在于 **`acknowledged` 目前没有通往 true 的宿主事件**（见既有的 native-cancel 记录），所以前端可以显示"宿主未确认"，但不能把它画成一条会自己变绿的进度。本批把这条限制写在这里而不是新造状态；给 `GET …/tasks` 补信封 schema（状态词汇 + 100 条上限 + `next_cursor` + 不声明已取消）留下一批做，它顺带能付掉台账里那两行"recorded debt"。
+
+**闸门与实跑**：`VERIFY_CONTRACT_BINDINGS=PASS routes=68 dispatched=68 bound=34 schema_less=34`（A 把 `/api/projects` 从 SCHEMA_LESS 翻成 BOUND_SCHEMA，理由里点名 POST 半边仍未绑——一次 dispatch 两种载荷，不假装整行付清）；`VERIFY_ROUTE_PAYLOAD_CONTRACTS=PASS bindings=15`，其中 project-list 用两条真实载荷：这条检出（表面被前面用例开过，计数是整数）与一个一次性新根（什么都没开过，全部 null 且被点名）。定向：`test_project_rollup` 6、`test_capability_library` 14、`test_contract_bindings` 36、`test_route_payload_contracts` 26、`test_service_http` 31、`test_prompt_results` 18、`test_design_layer_http` 20、`test_knowledge_http` 22 全 OK；`tsc --noEmit` 0、`npm run build` 0（bundle 446.18 kB / gzip 119.84 kB）、`npm run test:unit` 0（47 处 seam 形状告警覆盖不变）。聚合第一次报的单项红是我自己的序列错——改了 `capability_library.py` 却没刷 inert 普查，`inert_contract_survey.py` 重跑后（`productFiles` 219→220）`--check` 转绿；这条红与 §5.22 同一形状：**派生件必须在内容写完之后重测**。
+
+**前端只做了两处文字**：能力库那句计数说明，和 `/api/projects` 读回的 seam 声明——`apiOrEmpty` 是拿离线模板与真实载荷对形状的，台账换了信封之后把模板写成页面真正读的 `{projects: []}`（`ProjectListView`），路由发出的其余字段由 `ProjectListResponse` 声明。把离线模板扩成新信封的第一版做法被自己的形状守卫连坐了两处夹具（"形状完整的响应不得出现形状告警"、"研究洞察没有读回 …/research"），那是断言在正确工作，收窄 seam 声明才是修法，改完两处夹具仍保留真实信封形状。
+
+**状态**：IMPL_LOCAL + TESTED_LOCAL @ `de1bde57`；CI 逐作业读数回填在本节末。边界不变：推理执行仍未接、`model.executed` 恒 false、签署与审核仍只接受具名 human、导出仍只读回；E3/E4/E5、ComfyUI/H3、`currentExecution` 34 项、手机端排除项一字未动。
+
 ## 6. 本轮暴露并修掉的六个缺陷
 
 1. **分类聚合按目录贴标签**：`bundle_key()` 把一个顶层目录收成一个 bundle，于是 `docs/` 里第一个文件的类别
