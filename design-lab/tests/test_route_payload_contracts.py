@@ -109,7 +109,13 @@ class RoutePayloadContractTests(unittest.TestCase):
                     'prompt-result-readback': 3,
                     # This checkout (tables opened by earlier cases) and a throwaway root where they
                     # were never created: the null-vs-0 branch only the second one can show.
-                    'project-list': 2}
+                    'project-list': 2,
+                    # One envelope, three surfaces. The list binding reads a project with nothing
+                    # recorded and one carrying an acknowledged cancellation -- the two pages where
+                    # `truncated`/`next_cursor` and the cancel flags mean different things. The
+                    # detail binding reads the same job as a record and as an event page, which is
+                    # the only way the `surface` discriminator is compared rather than asserted.
+                    'task-readback-list': 2, 'task-readback-detail': 2}
         self.assertEqual(sorted(expected), sorted(b['name'] for b in self.bindings),
                          'a binding added here without being listed below is a boundary this '
                          'file silently stopped covering')

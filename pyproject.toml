@@ -62,6 +62,13 @@ exclude = ["src/design_lab/reconstruction/__init__.py"]
 "design-lab/schemas/contracts/rights-decision.schema.json" = "design_lab/resources/repo/design-lab/schemas/contracts/rights-decision.schema.json"
 "design-lab/schemas/domain-pack.schema.json" = "design_lab/resources/repo/design-lab/schemas/domain-pack.schema.json"
 "design-lab/domain-packs" = "design_lab/resources/repo/design-lab/domain-packs"
+# Backend A/D (2026-10-22): the two read-back envelopes the desk and the task pages are validated
+# against, plus the state vocabulary the task envelope copies its status words out of. All three are
+# read through repo_resource; without these lines an installed wheel answers /api/projects and the
+# task reads with a contract-file refusal instead of a verdict.
+"design-lab/schemas/project-list-v1.schema.json" = "design_lab/resources/repo/design-lab/schemas/project-list-v1.schema.json"
+"design-lab/schemas/task-readback-v1.schema.json" = "design_lab/resources/repo/design-lab/schemas/task-readback-v1.schema.json"
+"design-lab/config/state-vocabularies.json" = "design_lab/resources/repo/design-lab/config/state-vocabularies.json"
 # The projection reuses the repo's own checker so a pack it calls VALIDATES cannot be
 # one CI would reject; shipping it keeps that guarantee in an installed wheel
 # (without it every pack would report NOT_CHECKED).

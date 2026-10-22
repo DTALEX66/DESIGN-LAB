@@ -31,10 +31,14 @@ import sqlite3
 from pathlib import Path
 
 from .interop import load_schema, schema_errors
-from .runtime.paths import PROJECT_ROOT
+from .runtime.state_resources import repo_resource
 
 PROJECT_LIST_VERSION = 'design-lab/project-list/v1'
-SCHEMA_PATH = PROJECT_ROOT / 'design-lab/schemas/project-list-v1.schema.json'
+# Read through `repo_resource`, not `PROJECT_ROOT`: three levels above an installed
+# `site-packages/design_lab/runtime` is the interpreter's own `Lib`, so a `PROJECT_ROOT` read would
+# make the desk's front page 500 on a wheel -- the same D09 defect the research and rights contracts
+# already hit.
+SCHEMA_PATH = repo_resource('schemas/project-list-v1.schema.json')
 
 #: (key shown to the UI, table, timestamp column or None, count only the newest revision)
 _SURFACES = (

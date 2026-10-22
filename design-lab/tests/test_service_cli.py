@@ -35,7 +35,18 @@ class ServiceCliTests(unittest.TestCase):
         record = json.loads(created.stdout)['project']
         listed = self.invoke('projects', 'list')
         self.assertEqual(listed.returncode, 0, listed.stderr + listed.stdout)
-        self.assertEqual(json.loads(listed.stdout)['projects'], [record])
+        envelope = json.loads(listed.stdout)
+        # `projects list` answers a roll-up, not the create echo. Identity is what has to survive the
+        # process boundary; the counts are read from this checkout's tables and say which surfaces
+        # were never opened here (null) rather than holding nothing (0).
+        self.assertEqual(
+            [{'id': row['id'], 'name': row['name'], 'created_at': row['created_at']}
+             for row in envelope['projects']], [record])
+        self.assertEqual(envelope['schemaVersion'], 'design-lab/project-list/v1')
+        row = envelope['projects'][0]
+        self.assertEqual(row['objects']['assets'], 0)
+        self.assertIsNone(row['objects']['promptResults'])
+        self.assertIn('promptResults', row['absentSurfaces'])
         self.assertTrue((self.root / '.project-local/task-runtime/service/state.db').is_file())
 
     def test_list_and_paths_do_not_create_runtime_state(self):

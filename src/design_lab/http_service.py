@@ -15,7 +15,7 @@ from .prompt_intelligence import PromptIntelligence, PromptIntelligenceError
 from .prompt_results import PromptResults, PromptResultError
 from .project_index import ProjectIndex, ProjectIndexError
 from .image_assets import ImageAssets, ImageAssetError
-from .task_queries import TaskQueries
+from .task_queries import TaskQueries, TaskReadbackError
 from .task_commands import TaskCommands
 from .native_submissions import NativeSubmissions
 from .native_patch_submissions import NativePatchSubmissions
@@ -596,13 +596,25 @@ def make_server(service, token, port=0, *, local_session=False):
             # it reachable from the service and the workbench UI.
             return self.send_json(200,Bundles(service).list(match[1]))
 
+        def _answer_task_read(self, read):
+            # Named refusal, with the detail: "the vocabulary file cannot be read" and "this page
+            # claims it is the end while holding a cursor" are different problems for the operator,
+            # and a bare red card on the task panel would not say which one to fix.
+            try:
+                return self.send_json(200, read())
+            except TaskReadbackError as exc:
+                return self.send_json(exc.status, {'error': exc.code, 'detail': str(exc)})
+
         def _list_tasks(self, match):
-            return self.send_json(200, TaskQueries(service).list(match[1], match[2] or ''))
+            query = TaskQueries(service)
+            return self._answer_task_read(lambda: query.list(match[1], match[2] or ''))
 
         def _task_detail_or_events(self, match):
             query = TaskQueries(service)
-            return self.send_json(200, query.events(match[1], match[2], int(match[4] or 0))
-                                  if match[3] else query.get(match[1], match[2]))
+            if match[3]:
+                return self._answer_task_read(
+                    lambda: query.events(match[1], match[2], int(match[4] or 0)))
+            return self._answer_task_read(lambda: query.get(match[1], match[2]))
 
         def _list_or_read_assets(self, match):
             images = ImageAssets(service)

@@ -391,16 +391,22 @@
     {
       "route": "/api/projects/([0-9a-f]{32})/tasks(?:\\?after=((?:native-)?job-[0-9a-f]{64}))?",
       "method": "GET",
-      "kind": "SCHEMA_LESS",
+      "kind": "BOUND_SCHEMA",
       "handler": "TaskQueries",
-      "reason": "No schema: src/design_lab/task_queries.py returns task records whose attempt/cancel/state vocabulary is pinned by design-lab/schemas/status-vocabulary (the status contract gate) and by apps/workbench/contracts.ts TaskRecord, but the response envelope declares no schemaVersion and nothing validates it. Recorded debt, not a clean boundary."
+      "schema": "design-lab/schemas/task-readback-v1.schema.json",
+      "emitter": "src/design_lab/task_queries.py:24",
+      "version": "design-lab/task-readback/v1",
+      "reason": "Paid 2026-10-22 (backend D, for Stitch screen D08). The list read now answers the shared design-lab/task-readback/v1 envelope: it names its own 100-row page size, says whether it truncated and gives the cursor from the same comparison (the contract refuses truncated=false next to a cursor, and refuses an empty page claiming truncation), carries the attempt-state words out of design-lab/config/state-vocabularies.json instead of re-typing them, and states the operation-level truth the code actually holds -- those words exist only as literals at the job_store._op() write sites, so the payload lists what this page observed rather than a closed list nobody declared. Two claims in the old row were wrong and are corrected here rather than carried forward: it cited design-lab/schemas/status-vocabulary, which is not a file in this repository (the vocabulary contract is the config above, guarded by design-lab/scripts/verify_state_vocabularies.py), and cancel.acknowledged is reachable -- job_store.acknowledge_cancel sets it on a CANCEL_REQUESTED attempt and moves the state to RECONCILING with the note 'adapter acknowledged cancellation; readback still required' -- so the envelope says what the flag asserts (the adapter confirmed the cancellation) and what it never asserts (the host stopped, or the artifact was reconciled)."
     },
     {
       "route": "/api/projects/([0-9a-f]{32})/tasks/((?:native-)?job-[0-9a-f]{64})(/events)?(?:\\?after=([0-9]{1,16}))?",
       "method": "GET",
-      "kind": "SCHEMA_LESS",
+      "kind": "BOUND_SCHEMA",
       "handler": "TaskQueries",
-      "reason": "No schema: one dispatch covers the task read and its event page. src/design_lab/task_queries.py builds both from the native_execution_v1 tables and emits no schemaVersion, so neither is validated at the boundary. Recorded debt."
+      "schema": "design-lab/schemas/task-readback-v1.schema.json",
+      "emitter": "src/design_lab/task_queries.py:24",
+      "version": "design-lab/task-readback/v1",
+      "reason": "Paid 2026-10-22 (backend D). One dispatch serves the single-task read and its event page, and both now answer the same design-lab/task-readback/v1 envelope with a `surface` discriminator ('task' or 'events'); the contract requires the payload key that belongs to the announced surface and forbids the other two, so a route cannot answer a list where a record was asked. The rows come from job / operation_intent / operation_state / attempt_state / attempt_resolution -- the earlier reason said native_execution_v1, which is the execution receipt table, not what this read joins. The detail surface pins truncated=false and next_cursor=null because it has no page to continue."
     },
     {
       "route": "/api/projects/([0-9a-f]{32})/assets(?:/(img-[0-9a-f]{64})/content)?",

@@ -276,6 +276,49 @@ class Harness:
         return [('GET .../native-runtime with no native table yet', absent),
                 ('GET .../native-runtime after a recorded attempt', present)]
 
+    def task_readback_cases(self):
+        """The three task reads, one of them carrying a cancellation the adapter acknowledged.
+
+        Seeded through the product's own writers (`job_store.begin_attempt/transition/
+        request_cancel/acknowledge_cancel`) rather than raw INSERTs: the point of this binding is
+        that the emitted state words and the cancel flags are what the state machine actually
+        produced, so a fixture that hand-wrote them could pass a schema that no longer matches the
+        machine.
+        """
+        from design_lab.runtime import job_store
+
+        if getattr(self, '_task_cases', None) is not None:
+            # Two bindings read the same four payloads: re-running the state machine would ask it
+            # to re-take a transition it already made, and that refusal is a real signal, not noise.
+            return self._task_cases
+        empty = self.get(f'/api/projects/{self.empty}/tasks')
+        # Opened through job_store, not NativeTasks._connect(): the latter creates the native
+        # execution tables, and the native-runtime binding's first case is the payload read while
+        # that table was still ABSENT. A seed that opens it here would quietly turn that case into
+        # PRESENT and retire the distinction it exists to protect.
+        conn = job_store.connect(self.service.database,
+                                 project_root=self.service.paths.project_root)
+        try:
+            job_id = 'job-' + 'a' * 64
+            attempt = job_store.begin_attempt(
+                conn, job_id, operation_id='op-' + 'b' * 64,
+                idempotency_scope=f'native:{self.filled}:photoshop',
+                idempotency_key='payload-contract-cancel', request_hash='c' * 64)
+            job_store.transition(conn, attempt['attempt_id'], 'RUNNING')
+            job_store.request_cancel(conn, attempt['attempt_id'])
+            job_store.acknowledge_cancel(conn, attempt['attempt_id'])
+            conn.commit()
+        finally:
+            conn.close()
+        self._task_cases = [('GET .../tasks with nothing recorded', empty),
+                            ('GET .../tasks after an acknowledged cancellation',
+                             self.get(f'/api/projects/{self.filled}/tasks')),
+                            ('GET .../tasks/<job>',
+                             self.get(f'/api/projects/{self.filled}/tasks/{job_id}')),
+                            ('GET .../tasks/<job>/events',
+                             self.get(f'/api/projects/{self.filled}/tasks/{job_id}/events'))]
+        return self._task_cases
+
     def _file_candidate_for_export(self):
         """A real candidate, approved by a named human, so the export route can answer 200.
 
@@ -508,6 +551,27 @@ def build_bindings():
                 ('GET /api/projects on this checkout', h.get('/api/projects')),
                 ('GET /api/projects on a checkout nothing has opened', h.fresh_root_rollup()),
             ],
+        },
+        {
+            'name': 'task-readback-list',
+            'route': r'/api/projects/([0-9a-f]{32})/tasks(?:\?after=((?:native-)?job-[0-9a-f]{64}))?',
+            'method': 'GET',
+            'schema': 'design-lab/schemas/task-readback-v1.schema.json',
+            'emitter': 'src/design_lab/task_queries.py',
+            'version': 'design-lab/task-readback/v1',
+            'cases': lambda h: h.task_readback_cases()[:2],
+        },
+        {
+            'name': 'task-readback-detail',
+            'route': '/api/projects/([0-9a-f]{32})/tasks/((?:native-)?job-[0-9a-f]{64})'
+                     r'(/events)?(?:\?after=([0-9]{1,16}))?',
+            'method': 'GET',
+            'schema': 'design-lab/schemas/task-readback-v1.schema.json',
+            'emitter': 'src/design_lab/task_queries.py',
+            'version': 'design-lab/task-readback/v1',
+            # One envelope, two surfaces: the detail read and the event page differ only in which
+            # payload key they carry, and the contract refuses a surface shipping the other one's.
+            'cases': lambda h: h.task_readback_cases()[2:],
         },
         {
             'name': 'domain-pack-readback',

@@ -809,13 +809,24 @@ class ServiceHttpTests(unittest.TestCase):
         _, readback = self.request(path=endpoint + '/' + imported['asset']['id'] + '/content')
         self.assertEqual(base64.b64decode(readback['content_base64']), data)
 
+    def _empty_task_list(self, path):
+        """A page that holds nothing still has to say so in the same envelope as one that does."""
+        status, page = self.request(path=path)
+        self.assertEqual(status, 200)
+        self.assertEqual(page['schemaVersion'], 'design-lab/task-readback/v1')
+        self.assertEqual(page['tasks'], [])
+        self.assertEqual(page['count'], 0)
+        self.assertFalse(page['truncated'])
+        self.assertIsNone(page['next_cursor'])
+        return page
+
     def test_task_history_survives_restart_and_is_project_scoped(self):
         self.start()
         _, first = self.request('POST', body='{"name":"Task owner"}')
         _, second = self.request('POST', body='{"name":"Other owner"}')
         root = '/api/projects/' + first['project']['id']
         other = '/api/projects/' + second['project']['id']
-        self.assertEqual(self.request(path=root + '/tasks'), (200, {'tasks': [], 'next_cursor': None}))
+        self._empty_task_list(root + '/tasks')
         _, payload = self.image_body()
         _, imported = self.request('POST', root + '/assets', payload)
         job_id = imported['attempt']['job_id']
@@ -830,19 +841,25 @@ class ServiceHttpTests(unittest.TestCase):
         self.assertEqual(task['attempt']['state'], 'RECEIPTED')
         self.assertEqual(task['kind'], 'image-import')
         self.assertNotIn('note', task['attempt'])
-        self.assertEqual(self.request(path=root + '/tasks/' + job_id), (200, {'task': task}))
+        status, detail = self.request(path=root + '/tasks/' + job_id)
+        self.assertEqual(status, 200)
+        self.assertEqual(detail['task'], task)
+        self.assertEqual(detail['surface'], 'task')
+        self.assertEqual(detail['count'], 1)
         status, events = self.request(path=root + '/tasks/' + job_id + '/events')
         self.assertEqual(status, 200)
         self.assertEqual([e['to_state'] for e in events['events']], ['PENDING', 'RUNNING', 'RECEIPTED'])
         self.assertTrue(all('detail' not in e and 'evidence_json' not in e for e in events['events']))
         cursor = events['events'][-1]['event_no']
-        self.assertEqual(self.request(path=root + '/tasks/' + job_id + '/events?after=' + str(cursor)),
-                         (200, {'events': [], 'next_cursor': None}))
-        self.assertEqual(self.request(path=other + '/tasks'), (200, {'tasks': [], 'next_cursor': None}))
+        status, tail = self.request(path=root + '/tasks/' + job_id + '/events?after=' + str(cursor))
+        self.assertEqual(status, 200)
+        self.assertEqual(tail['events'], [])
+        self.assertFalse(tail['truncated'])
+        self.assertIsNone(tail['next_cursor'])
+        self.assertEqual(self._empty_task_list(other + '/tasks')['surface'], 'list')
         for tail in ('', '/events'):
             self.assertEqual(self.request(path=other + '/tasks/' + job_id + tail)[0], 404)
-        self.assertEqual(self.request(path=root + '/tasks?after=' + job_id),
-                         (200, {'tasks': [], 'next_cursor': None}))
+        self._empty_task_list(root + '/tasks?after=' + job_id)
 
     def test_task_reads_cannot_create_state_or_accept_ambiguous_cursors(self):
         self.start()
