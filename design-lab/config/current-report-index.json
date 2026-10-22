@@ -1,25 +1,25 @@
 {
   "checkScope": "bound-input-and-output-integrity; not current Git or cloud freshness",
-  "generatedAt": "2026-10-22T19:16:08+00:00",
+  "generatedAt": "2026-10-22T20:18:57+00:00",
   "gitObservation": {
     "branch": "qoder/designlab-backup-consistency-20261007",
-    "origin_main": "11e3062542eaf0ed6646c2ed46b8bfe74e713b9a",
-    "sha": "bc791c1181967bd57801fcf5fe5d35c917b28c93",
+    "origin_main": "2b8c782e478f781cc1d43ce5d197025ca52db89d",
+    "sha": "f5543d1b0ccba084c53f404a817cfc973f915536",
     "source_worktree_clean": false,
-    "tracked_files": 3770,
+    "tracked_files": 3771,
     "worktree_changes": [
       {
-        "content": "sha256:5b79b467dc366f49a4ef4abff0f92d4a86723b8e2cfcfae420a8c005639edc0c",
+        "content": "sha256:3e304c489ce5b405b8cf82fb5309f06016d8559f7df4af12a7e8d211a267a552",
         "kind": "M",
         "path": "docs/RECORD-ARCHIVE-INDEX.md"
       }
     ],
-    "worktree_digest": "sha256:a46fea86ab09b65e74a625033e6517bf0acaa6e9b04796209ea60a8b85fce1d2"
+    "worktree_digest": "sha256:1fb3470419dde90bf88a409a187e4c2a5ac8e36dda1da31e2317bfb311c02a8c"
   },
-  "inputDigest": "sha256:b16db0aed3481f85ab1808d3339b40d963453d49c8d66abbc19fb9461fa40183",
+  "inputDigest": "sha256:cffe1d17f95813075e332b2a2517642d591310ee18a79585ede56c5eebe9711a",
   "inputDigestMeaning": "primary freshness binding: canonical SHA-256 over the exact input files the projections read plus the git tree scope; recomputed at check time (FU-10)",
   "inputHashes": {
-    ".github/workflows/canonical-verify.yml": "69b168bd6a2cf95cdb4fd5ca5c0f7b39195b8581d9f8e5a43325837e1d0d68c0",
+    ".github/workflows/canonical-verify.yml": "1744a3d2b613ed9489e0289c14e7a9f65aa0a28eda0b71aae484e70eaca7d562",
     ".github/workflows/release-gate.yml": "47250ec304e1e400596419116435f2df5386f08c16cf0e73f83c926aaf045722",
     ".project-local/task-artifacts/comfy-http-live-bb63046b6f444fe9a7a96d0bf66f949b/result.json": null,
     ".project-local/task-artifacts/designlab-followup-taskpack-20260928/W00-EVIDENCE-SCAN.json": "554fcddf2c2e3c321fbf8d5c74ab389aa6ac20cc0c54cfc41acab37430ee5001",
@@ -392,6 +392,7 @@
     "design-lab/tests/test_inert_blob_placement.py": "fd45a774c5fd59f01b6475837317c580a30c130e3770f463032adb1ff6d6996d",
     "design-lab/tests/test_inert_contract_survey.py": "740bba9b3f44d64bdd3bc519090018c54cba0692753a6bc5d3e59c6c337cd201",
     "design-lab/tests/test_installed_state_resources.py": "e178091e882ef695ecbfb9ea5ba870efcbb6230be46ce0ef3fc138c413f36798",
+    "design-lab/tests/test_installed_write_surface.py": "b83e0703d35fea566459db289fafca5d4c214843a52b2fa3766113c92cf07651",
     "design-lab/tests/test_interop_dtcg.py": "7966d77272c8f696da73882ab7979f1808c81087b7a97c30dbc4721f774bf269",
     "design-lab/tests/test_interop_penpot.py": "0bacc3f240be4628a5fd7c14166cce256a08a65b66118c9cab33e2953cc7b6e6",
     "design-lab/tests/test_interop_provenance.py": "0e9706c852681ba98b1670c79c6a3e39874d6de9b246a44347282ea3eb6916c4",
@@ -650,7 +651,7 @@
     "src/design_lab/generators/comfy_task.py": "a852120ebebbd8f1b8eeac14ad030a0d87d9f4d095131d4a6729c4081f378fb7",
     "src/design_lab/governance/evidence_readback.py": "801e154d121a7b8708e1c6c476dc0dc18daa8dacbdf5d631a2be8648d439f517",
     "src/design_lab/governance/reporting.py": "44cc2b14f6cb2a88f6a7bfa7b6a13199f1ab2590461fb11aea747208f9912c0e",
-    "src/design_lab/http_service.py": "69878fa5e6ed80e8a052632617061a751b3301086209396a03188ec9763356d4",
+    "src/design_lab/http_service.py": "b561bbaca2f2c334b684c0051a9a3326dae9bb9165286ea27f122796c8e5d329",
     "src/design_lab/image_assets.py": "453ad053af345519b31b746aeb4874e4f7bd8b37ff150f4dd89835973c46de9a",
     "src/design_lab/interop/__init__.py": "00b913119c1b2e5cbb4e4cd3c9c1b9ee457b83ad0b7d28fed4d6e95b9eff712d",
     "src/design_lab/interop/__pycache__/__init__.cpython-313.pyc": "b39468bf926720d40688b3efea04766ba5b6ccc309a0c4773d3de814154e6cb1",
@@ -691,15 +692,15 @@
   },
   "ledger": "design-lab/config/task-ledger-r3.json",
   "outputHashes": {
-    "ADAPTER_EVIDENCE_RECONCILIATION.json": "21f237ddde851b0b112454a75a2cc1f1541f7b1f761e12eb178f8d517b4f62a7",
-    "CLOUD_BASELINE.json": "bd8e51d0ee7e659e6132864cfed6e6cb2b936628084a359e8a2a1beb5e26bfc2",
-    "CLOUD_BASELINE.md": "d83703414d6cabffd0e54c12b1687003db22716e01d7d0d3f78483a05eb8d892",
-    "DOMAIN_PACK_READINESS.json": "c1abd5a158a2108a760336a57dc7a65e38bbe39d35788df7478dca1ba0444e4f",
-    "KNOWLEDGE_INVENTORY.json": "9821affdd347f8e78237ccfb00bdbf5eb3ff95c9b2133f12a76f436f125136b1",
-    "PROJECT_STATUS.json": "0a1b10352bd21c3c9ec42553ada9954ba2abd4e9e261fc3cb040b179867ff658",
-    "PROJECT_STATUS.md": "5d276b9127c65c77c2825c84f3b3eda592870d6fd0f9aadd9bb53409fe4a0314",
-    "RELEASE_READINESS.json": "cd0b96eca8bf4e6dd2e1b9bed02ebca96ba8c31e12388b9d03d2cb2acc5c0fee",
-    "TASK_PROGRESS.json": "6346f6dbb7b223a4fa151235ba67b8a67e8e1d58741e0fdeb76a49fd4453f430"
+    "ADAPTER_EVIDENCE_RECONCILIATION.json": "885c6ec9324d0a62cdeae8424f03e0ba150f753600045f0b2edb94fab9347fad",
+    "CLOUD_BASELINE.json": "16ac233140297d373003fcf5cd9eb947a635141f35be1526319be1f87df16e1f",
+    "CLOUD_BASELINE.md": "557cecc5c98594cb135ec800797d10284a75cb9caffeae49d3a0db419cb0d4f8",
+    "DOMAIN_PACK_READINESS.json": "794a7504ea67a8503c11bdf3ea3aaeebeba3b49e01b3303b84dd25790a54abc3",
+    "KNOWLEDGE_INVENTORY.json": "15153f4a72ed353e365e8548284bb0eb416997c0d3ae310eca08cd56ab0c0cb1",
+    "PROJECT_STATUS.json": "edaca2885d85b93f031541850d0754c502120479f2185a132f7bc8775cb5903c",
+    "PROJECT_STATUS.md": "a2b6d29ca51b7be6adef1065438c80106469db39ef363fc7d96bfe2366df722e",
+    "RELEASE_READINESS.json": "37a257ba3a7a71871a97e981ade9cc06e4457b378f3c80afefc67b821e7ab346",
+    "TASK_PROGRESS.json": "73b13dc3bb193490d03efb15cf56c45f5a9d86707421ec06c0a67f944eb1ad98"
   },
   "reportRoot": "../../reports/current/",
   "reports": [
@@ -715,5 +716,5 @@
   ],
   "schemaVersion": "design-lab/current-report-index/v3",
   "subjectMeaning": "generation-time git observation, not a freshness claim; exact-SHA evidence is the CI artifact",
-  "subjectSha": "bc791c1181967bd57801fcf5fe5d35c917b28c93"
+  "subjectSha": "f5543d1b0ccba084c53f404a817cfc973f915536"
 }
