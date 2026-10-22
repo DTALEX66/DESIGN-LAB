@@ -291,8 +291,7 @@ E4 独立人审 / E5 发布可复现。**文档修订 ≠ 规划完成 ≠ 代�
   `config/state-vocabularies.json` 移走后 `POST …/tasks/<job>/bundle` 回 **400 INVALID_REQUEST**——
   `TaskReadbackError` 继承 `ValueError`，写侧那几条顺手建同一份信封的路由没像读侧两条那样就地包，于是
   "服务器读不出合同文件"被发成"你的请求不合法"。已按 dispatch 家规在通用 `ValueError` 子句前补一条
-  具名子句（`8b83652d`），并加一条不对称用例：删掉该子句必红、恢复必绿，四步实跑已记；批次 D 给两条读路由就地加的那层包装与它产出逐字节相同的拒绝体，已删——一个字节面不留两个主人。两侧读数与 wheel 字节在删包装后重测：源码与装机同值，wheel 1,073,608 字节。**后端 G 状态：
-  IMPL_LOCAL + TESTED_LOCAL @ `3f542016`**；级别仍是 E2——这张表量的是"这台装好的服务写不写得进、
+  具名子句（`8b83652d`），并加一条不对称用例：删掉该子句必红、恢复必绿，四步实跑已记；批次 D 给两条读路由就地加的那层包装与它产出逐字节相同的拒绝体，已删——一个字节面不留两个主人。两侧读数与 wheel 字节在删包装后重测：源码与装机同值，wheel 1,073,608 字节。**后端 G 状态：IMPL_LOCAL + TESTED_LOCAL @ `3f542016`，复核后 CI_VERIFIED_EXACT_SHA @ `fa0cf178`**（main 与备份分支同指此枚；11 个重作业全绿，CI 装机步日志原文 `POST_SWEEP layout=installed rows=29 walked=28 written=28 read_backs=34 refused=0 excluded=1`，该步骤要求这行与 `POST_SWEEP_WRITTEN`/`POST_SWEEP_EXCLUDED` 都出现且"未点名 5xx"不出现；`PYTHON_TESTS_UNION=OK expected=3177 …missing=0 unexpected=0`，本机三片 exit=0 零 ERROR——但一处中间红要点名：`1ff547bb` 那枚的 Python 作业红在 `test_documented_counts`，因为我重写了计数闸门的**逐字锚句**，而 `verify_design_lab --check` 那 76 项不含这条闸门也不含单元测试；改过受治散文后必须单独跑它，细节与两处修正见 §5.27 末）。级别仍是 E2——这张表量的是"这台装好的服务写不写得进、
   读不读得回"，不是产物好不好。CI 装机步现同时要求 `GET_SWEEP layout=installed` 与 `POST_SWEEP
   layout=installed`（外加 `POST_SWEEP_WRITTEN`/`POST_SWEEP_EXCLUDED` 两行与"没有未点名 5xx"）。
   顺带更正本件里三处没人看守的散文行号：`http_service.py` 的 `ROUTES` 现为 **94** 行（原写 93），
