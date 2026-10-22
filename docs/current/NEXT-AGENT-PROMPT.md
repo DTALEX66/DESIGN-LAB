@@ -226,21 +226,27 @@ E4 独立人审 / E5 发布可复现。**文档修订 ≠ 规划完成 ≠ 代�
   **本批状态：CI_VERIFIED_EXACT_SHA @ `91186bc7`**（分支与 main 同指此枚；11 个重作业全绿，
   `PYTHON_TESTS_UNION=OK expected=3167 distinct=3167 ran=3167 missing=0 unexpected=0`，
   安装态作业 `Ran 3 tests` 且步骤三条 grep 全过——§5.23 欠的两条红就是在这一枚上转正的）。
-  **下一刀已经量好，不是猜的（装机面债，不是产品缺口）**：在干净安装的 wheel 上逐条调用账本里 37 条
-  `GET /api/…`，只用一个真实项目 id 就能构造 URL 的是 23 条：14 条 2xx、6 条给出本该给的判决
-  （404 指向不存在的 id、400、403），**另有 14 条需要真实资产/简报 id，本轮没调用——那是"没测"不是"没问题"**。
-  其中三条**因为合同文件走 `PROJECT_ROOT` 而在安装态读不到**——
-  `GET /api/models` → `503 MODEL_CATALOG_UNAVAILABLE`、`GET …/prompt-results` →
-  `500 PROMPT_RESULT_CONTRACT_UNREADABLE`、`GET …/design-layer` → `500 INTERNAL`。根因同一个：
-  `PROJECT_ROOT = Path(__file__).parents[3]` 在检出里是仓库根，在安装态是解释器的 `Lib`。修法就是这批用过的那三件套：
-  改走 `runtime/state_resources.repo_resource('<相对 design-lab/ 的路径>')`、在 `pyproject.toml`
-  的 `[tool.hatch.build.targets.wheel.force-include]` 补对应行、让
-  `design-lab/tests/test_packaged_contract_resources.py` 从磁盘枚举调用点看守；全仓同形状的路径表达式还有
-  29 处（分布在 33 个模块），但**只有被路由真实读到的那几条才需要付**，别为了清单整齐批量改写。
-  验收必须按这批量：`uv build --wheel` → 干净 venv 装上 → 从装好的包里起服务逐条调用，
-  并且做一次植入（把某个打包副本移走，看它是不是真的变红）——源码检出里的绿不能证明安装态。
-  `GET /api/evidence-projection` 的 `503 EVIDENCE_LEDGER_ABSENT` 不算这一类，那是那个临时根没有台账时
-  它该有的判决。
+  **上一轮点名的"装机面债"已在同日第二十二批（后端 E）付清，别再照旧话重做**（审计件 §5.25）：
+  度量换了地方——静态用 AST 从 `http_service.py` 走 import 闭包列出 `PROJECT_ROOT` 拼出来的仓库读取（18 条里 17 条没有 force-include 声明），
+  动态把 `design-lab/tests/test_standalone_chain_http.py` 改成能 honour `DL_LAUNCH_INSTALLED=1` 并在 `setUp`
+  先验布局（包路径含 `site-packages`、`/api/health` 的 `bundleOrigin=packaged`），在装好的 wheel 上跑整条链。
+  **静态单独不够**：`production_preflight.py` / `delivery_bom.py` / `evidence_readback.py` 把同一个根拼成
+  `Path(__file__).parents[3]`，清单看不见，是安装态实跑抓出来的——`GET …/design-layer` `500 INTERNAL`、
+  `POST …/tasks/<job>/bundle` **`409 NATIVE_BUNDLE_UNVERIFIED`（缺文件伪装成语义判决，最坏的一种）**、
+  `POST …/bundles/<id>/preflight` `503 PROJECT_STORE_UNAVAILABLE`（矛头指向用户的数据库）。
+  现在 20 处读取改走 `repo_resource()` 并补 20 行 force-include，装机链 **4 条用例全绿**，
+  `CHAIN_HOPS … export=200` 与 `DELIVERY_HOPS project=201 native=READBACK bundle=201 preflight=200`；
+  装机 GET 面（能用一个真实项目 id 构造的 23 条）2xx 由 14 升到 **17**，`/api/models`、
+  `…/prompt-results`、`…/design-layer` 三条拒绝全部转正。植入检查做过：移走
+  `resources/repo/design-lab/production/profiles` 后立刻 `FileNotFoundError: packaged repository resource
+  missing: production/profiles`，拒绝发生在导入时而不是悄悄回落。
+  **CI 里已有永久的一步**：clean-wheel 作业新增 "Walk the acceptance chain against the installed package"，
+  断言 `Ran [1-9][0-9]* tests`（不钉死用例数）、`^OK`、无 `skipped`、`CHAIN_HOPS` 与 `DELIVERY_HOPS` 都打印。
+  更正一句旧话：`/api/evidence-projection` 在安装包里回 `503 EVIDENCE_LEDGER_ABSENT`，detail 是
+  `design-lab/config/task-ledger-r3.json is not in this checkout`，判决仍然正确，但它命名的那个"检出"
+  其实是解释器目录 `…/Lib`——上一轮写的"临时根没有台账"说错了对象。
+  **剩下的装机面剩余面（诚实的"没测"）**：那 14 条需要真实资产/简报/方向/产物 id 的 GET 行本轮仍未逐条调用；
+  要付就照同一把尺子——先把夹具塞进链里，再读，别用"绿的就当没问题"顶。
   ②规范登记件的第三轮取证已于同日跑完（见审计件 §5.22）：Apple 与 Fluent 各补到一条服务端可读的面，
   但**这一轮推翻的是本件自己上一轮的读数**——`.../tutorials/data/design/human-interface-guidelines.json`
   本轮直连 **200**（给 `schemaVersion 0.3.0` 与版权年，仍无编辑日期），而上一轮登记为"全族 404"；
