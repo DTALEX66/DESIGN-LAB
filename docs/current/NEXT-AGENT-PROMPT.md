@@ -313,7 +313,7 @@ E4 独立人审 / E5 发布可复现。**文档修订 ≠ 规划完成 ≠ 代�
   所以这不是"看着像有牙齿"的断言。两侧都跑：源码 6 OK，装好的 wheel 里
   `NATIVE_VERIFY layout=installed clean=HASH_VERIFIED tampered=NATIVE_ARTIFACT_UNVERIFIED
   unknown=NATIVE_ASSET_NOT_FOUND`，写侧扫描读数一字未动。CI 的装机步现同时要求这行整串出现。
-  本批未新增打包面债务：这条路由读的是项目自己的资产库字节，不读仓库合同文件，两侧同值即是证据。本节的两个读侧分母（39 条 GET 行、仍有 2 条没被读到）也已交 `scripts/verify_documented_counts.py` 现数（claims 13 → 15，两条各自播种皆红、照实写 PASS），所以它们不能悄悄变陈旧。**后端 H 状态：IMPL_LOCAL + TESTED_LOCAL @ `4454531b`，复核后 CI_VERIFIED_EXACT_SHA @ `d9976d0c`**（main 与备份分支同指此枚；11 个重作业全绿，CI 装机步同一条日志里给全 `GET_SWEEP`/`NATIVE_VERIFY`/`POST_SWEEP` 三行且要求整串出现，`PYTHON_TESTS_UNION=OK expected=3178 …missing=0 unexpected=0`；本机把三个模块放进取数器自己的深 TEMP 重跑 `Ran 17 tests / OK / exit=0`、零 `WinError 206`——本机整轮 union 未跑完就被中止，所以"全套通过"这条只按 CI 那枚报，不冒充本机证据。细节见 §5.28 末）。
+  本批未新增打包面债务：这条路由读的是项目自己的资产库字节，不读仓库合同文件，两侧同值即是证据。本节的两个读侧分母（39 条 GET 行、仍有 2 条没被读到）也已交 `scripts/verify_documented_counts.py` 现数（claims 13 → 15，两条各自播种皆红、照实写 PASS），所以它们不能悄悄变陈旧。**后端 H 状态：IMPL_LOCAL + TESTED_LOCAL @ `4454531b`，复核后 CI_VERIFIED_EXACT_SHA @ `51c14f10`（main 与备份分支同指此枚，run `39865099663` = completed success、12 作业无非绿；其代码前枚 `d9976d0c` 同枚全绿，11 个重作业全绿，CI 装机步同一条日志里给全 `GET_SWEEP`/`NATIVE_VERIFY`/`POST_SWEEP` 三行且要求整串出现，`PYTHON_TESTS_UNION=OK expected=3178 …missing=0 unexpected=0`；本机把三个模块放进取数器自己的深 TEMP 重跑 `Ran 17 tests / OK / exit=0`、零 `WinError 206`——本机整轮 union 未跑完就被中止，所以"全套通过"这条只按 CI 那枚报，不冒充本机证据。细节见 §5.28 末）。
   口径也补清：66 是 `ROUTES` 条目数（`/api/projects` 在那里是 GET 与 POST 两枚），账本 68 行 =
   39 GET + 28 POST + 1 `GET+POST`，所以读侧分母 39、写侧分母 29，两个数不可互换。
   ②规范登记件的第三轮取证已于同日跑完（见审计件 §5.22）：Apple 与 Fluent 各补到一条服务端可读的面，

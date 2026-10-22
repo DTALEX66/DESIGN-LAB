@@ -580,6 +580,7 @@ owner 这句还是「继续打磨后端」。§5.26 清了 14 条没调用的 GE
 - **本机 Windows 那条只能在本机量的证据**：把三个模块放进取数器自己的深 TEMP（`.project-local/task-runtime/python-tests-shard-1/313d501449a54770ad3986c2a1ffdd82/tmp`，133+ 字符基底）跑，`Ran 17 tests / OK / exit=0`，无 `WinError 206`、无 `[Errno 2]`、无 skipped——§5.26 那处按成员名判定的解包豁免仍然成立，没有因为本批新增读法而回归。本机整轮 union 未跑完就被中止（该片在 Windows 上单片要 1500s 量级），**所以本枚的"全套通过"读数以 CI 那条为准，本机这条只覆盖 Windows 专有的路径长度面**，不写成全套。
 - 一处自己差点留下的错，记下来：播种用的驱动把 `native_assets.py` 改坏再改回，它打印的 `restored identical: True` 比的是**解码后的文本**——那种比较看不见行尾改动，而本仓 `.gitattributes` 是 `*.py text eol=lf`。真正的对账是字节：工作树与 `HEAD` 同一 blob（`11c325be…`，5968 字节，0 个 CRLF），并且仓库自有的 `test_working_tree_line_endings` 在聚合里一直绿。**一条不会失败的校验不是校验**，它只是把事故改成了日志。聚合读数在最终树上：`VERIFY_RESULT=OK total=549 failed=0`、`VERIFY_DESIGN_LAB=OK total=76 failed=0`、`RECORD_REGISTER_GATE=PASS checks=5 problems=0`、`DOCUMENTED_COUNTS=PASS claims=13`。
 - 本轮之后：**状态 CI_VERIFIED_EXACT_SHA @ `d9976d0c`**（下面这条记录本身与投影重绑是纯文字＋派生件，另算一枚，不改上面任何读数）。
+- 补一枚读数，免得本节点名的 SHA 落后于树上那枚：把两个读侧分母交给闸门现数的那条（`32c78ac2`）与它的投影重绑（`51c14f10`，main 与备份分支现同指此枚）在 CI 上同样 `completed success`——run `39865099663`，12 个作业，无一条非绿（`Branch light gate` 仍按 D01 skipped）。其后若再有纯记录提交，按同一约定另算一枚，不改以上任何读数。
 
 ## 6. 本轮暴露并修掉的六个缺陷
 
