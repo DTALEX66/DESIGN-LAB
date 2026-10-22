@@ -52,8 +52,13 @@ from contextlib import closing
 from pathlib import Path
 
 from design_lab.assurance import delivery_bom
+from design_lab.runtime.state_resources import repo_resource
 
-PROFILE_DIR = Path(__file__).resolve().parents[3] / 'design-lab' / 'production' / 'profiles'
+# repo_resource, not a parents[3] spelling of the checkout: inside an installed wheel that is
+# the interpreter's own Lib, and the preflight then answers 503 PROJECT_STORE_UNAVAILABLE -- a
+# diagnosis that points the operator at their database while the real cause is a missing
+# packaged profile directory.
+PROFILE_DIR = repo_resource('production/profiles')
 
 PASS = 'PASS'
 WARNING = 'WARNING'

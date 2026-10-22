@@ -43,14 +43,12 @@ from .interop import InteropError, load_schema, schema_errors
 from .model_selection import ModelSelection
 from .readiness import ReadinessError
 from .readiness.model_radar import load_registry
-from .runtime.paths import PROJECT_ROOT
+from .runtime.state_resources import repo_resource
 
 COMPOSITION_VERSION = 'design-lab/prompt-composition/v1'
 REVERSAL_VERSION = 'design-lab/prompt-reversal/v1'
-COMPOSITION_SCHEMA_PATH = (Path(PROJECT_ROOT) / 'design-lab' / 'schemas'
-                           / 'prompt-composition-v1.schema.json')
-REVERSAL_SCHEMA_PATH = (Path(PROJECT_ROOT) / 'design-lab' / 'schemas'
-                        / 'prompt-reversal-v1.schema.json')
+COMPOSITION_SCHEMA_PATH = repo_resource('schemas/prompt-composition-v1.schema.json')
+REVERSAL_SCHEMA_PATH = repo_resource('schemas/prompt-reversal-v1.schema.json')
 
 #: A composition id is `prompt-` + 32 hex; reversal is `reversal-` + 32 hex.
 COMPOSITION_ID = re.compile(r'^prompt-[0-9a-f]{32}$')

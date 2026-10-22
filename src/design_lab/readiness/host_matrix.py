@@ -28,13 +28,13 @@ from pathlib import Path
 
 from jsonschema import Draft202012Validator
 
-from ..runtime.paths import PROJECT_ROOT
+from ..runtime.state_resources import repo_resource
 from . import ReadinessError
 
 TASK_ID = "DL-P0-070"
 SCHEMA_VERSION = "design-lab/readiness-host-matrix/v1"
-SCHEMA_PATH = PROJECT_ROOT / "design-lab/schemas/readiness-host-matrix.schema.json"
-MATRIX_PATH = PROJECT_ROOT / "design-lab/readiness/adobe-host-matrix.json"
+SCHEMA_PATH = repo_resource('schemas/readiness-host-matrix.schema.json')
+MATRIX_PATH = repo_resource('readiness/adobe-host-matrix.json')
 
 API_KINDS = ("UXP", "COM", "CLI", "FILE_FORMAT", "PLUGIN")
 VERIFICATION_STATES = ("NOT_VERIFIED", "VERIFIED_STRUCTURAL", "VERIFIED_LIVE")

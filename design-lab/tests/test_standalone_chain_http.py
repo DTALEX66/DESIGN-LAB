@@ -25,7 +25,19 @@ import unittest
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
+# The clean-install CI job sets DL_LAUNCH_INSTALLED=1 so the chain is walked against the INSTALLED
+# package -- the same convention design-lab/tests/test_workbench_launch.py already uses. Without it
+# this module puts the checkout on the path, which is correct for a source run and wrong for a
+# packaged one: `PROJECT_ROOT` is `parents[3]` of the module, the repository here but the
+# interpreter's own `Lib` in a wheel, so every contract a route opens through it is unopenable
+# there. Only the installed run can see that class of defect.
+INSTALLED_MODE = os.environ.get('DL_LAUNCH_INSTALLED') == '1'
 for candidate in (ROOT / 'src', ROOT / 'design-lab' / 'tests'):
+    if INSTALLED_MODE and candidate == ROOT / 'src':
+        # Only the package resolution changes under the flag. The tests directory still has to be
+        # importable: this module borrows fixtures from a sibling test file, and dropping that path
+        # would turn an installed run into a ModuleNotFoundError -- a red for the wrong reason.
+        continue
     if str(candidate) not in sys.path:
         sys.path.insert(0, str(candidate))
 
@@ -98,6 +110,21 @@ class StandaloneChainTests(unittest.TestCase):
         self.port = self.server.server_address[1]
         self.thread = threading.Thread(target=self.server.serve_forever, daemon=True)
         self.thread.start()
+
+        if INSTALLED_MODE:
+            # Name the layout before spending 20 hops on it. A run that silently imported the
+            # checkout would answer every route from the source tree and report the packaged
+            # layout as healthy -- the failure mode test_workbench_launch refuses for the same
+            # reason, so the guard belongs here too, not in prose.
+            import design_lab
+            resolved = Path(design_lab.__file__).resolve()
+            self.assertIn('site-packages', resolved.parts,
+                          f'DL_LAUNCH_INSTALLED=1 but this process imports design_lab from '
+                          f'{resolved}: the packaged layout is not being exercised')
+            status, health = self.call('GET', '/api/health')
+            self.assertEqual(status, 200, health)
+            self.assertEqual(health.get('bundleOrigin'), 'packaged',
+                             'the served UI came from the checkout, not from the wheel')
 
         def _stop(self=self):
             self.server.shutdown()

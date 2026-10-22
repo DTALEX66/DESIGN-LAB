@@ -28,14 +28,15 @@ import json
 from datetime import datetime
 
 from ..runtime.attempt_contract import canonical_hash, request_hash
-from ..runtime.paths import PROJECT_ROOT
+from ..runtime.state_resources import repo_resource
 from . import InteropError, load_schema, schema_errors
 from .provenance import (SIGNING_STATUS, build_manifest, manifest_digest,
                          validate_manifest)
 
 SCHEMA_VERSION = "design-lab/delivery-receipt/v2"
 TASK_ID = "DL-P0-161"
-SCHEMA_PATH = PROJECT_ROOT / "design-lab/schemas/interop-delivery-receipt-v2.schema.json"
+SCHEMA_PATH = repo_resource('schemas/interop-delivery-receipt-v2.schema.json')
+SCHEMA_REPOSITORY_PATH = 'design-lab/schemas/interop-delivery-receipt-v2.schema.json'
 
 DELIVERY_AXES = ("PASS", "PARTIAL")
 #: Requirement statuses reused from the repository's provenance record vocabulary.
@@ -443,7 +444,7 @@ def verify_receipt(receipt) -> dict:
             )
     return {
         "schemaVersion": SCHEMA_VERSION,
-        "schema_path": SCHEMA_PATH.relative_to(PROJECT_ROOT).as_posix(),
+        "schema_path": SCHEMA_REPOSITORY_PATH,
         "receipt_id": receipt["receipt_id"],
         "receipt_sha256": receipt["receipt_sha256"],
         "job_id": receipt["job_id"],

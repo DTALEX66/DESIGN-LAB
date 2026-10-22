@@ -363,6 +363,27 @@ jobs:
           grep -q "^OK$" launch.log
           ! grep -q "skipped" launch.log
 
+      - name: Walk the acceptance chain against the installed package
+        env:
+          DL_LAUNCH_INSTALLED: "1"
+        # A source checkout cannot see this class of defect at all. `PROJECT_ROOT` is parents[3] of
+        # the module -- the repository here, the interpreter's own Lib inside a wheel -- so every
+        # route that opens its contract through it answers 500/503 only once the product is
+        # installed. Measured on 2026-10-23: the design-layer read-back answered `500 INTERNAL` and
+        # a delivery bundle answered `409 NATIVE_BUNDLE_UNVERIFIED` (a semantic verdict about the
+        # work, caused by a missing packaged file), and preflight answered
+        # `503 PROJECT_STORE_UNAVAILABLE`, pointing the operator at their database.
+        # Assert the outcome and that the hop table was actually printed; do not pin the case
+        # count, because a brittle "Ran N tests" is how a green job hides a suite that drifted.
+        run: |
+          .venv-clean/bin/python -m unittest design-lab.tests.test_standalone_chain_http -v > chain.log 2>&1
+          tail -40 chain.log
+          grep -qE "^Ran [1-9][0-9]* tests" chain.log
+          grep -q "^OK" chain.log
+          ! grep -q "skipped" chain.log
+          grep -q "CHAIN_HOPS" chain.log
+          grep -q "DELIVERY_HOPS" chain.log
+
   generated-artifact-gate:
     name: Generated-artifact clean-tree gate
     runs-on: ubuntu-latest

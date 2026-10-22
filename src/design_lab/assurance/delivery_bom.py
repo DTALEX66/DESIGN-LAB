@@ -31,9 +31,9 @@ from pathlib import Path
 import re
 
 from ..interop import load_schema, schema_errors
+from ..runtime.state_resources import repo_resource
 
-REPO = Path(__file__).resolve().parents[3]
-BOM_SCHEMA_PATH = REPO / 'design-lab' / 'schemas' / 'bom.schema.json'
+BOM_SCHEMA_PATH = repo_resource('schemas/bom.schema.json')
 
 #: role as ``native_bundles`` records it -> the kind vocabulary the BOM contract allows.
 KIND_BY_ROLE = {'primary': 'export', 'preview': 'derived', 'input': 'derived'}

@@ -73,11 +73,12 @@ import functools
 import json
 import re
 
-from ..runtime.paths import PROJECT_ROOT
+from ..runtime.state_resources import repo_resource
 from . import InteropError, load_schema as _load_schema, schema_errors
 
 SCHEMA_VERSION = "2025.10"
-SCHEMA_PATH = PROJECT_ROOT / "design-lab/schemas/interop-dtcg-document.schema.json"
+SCHEMA_PATH = repo_resource('schemas/interop-dtcg-document.schema.json')
+SCHEMA_REPOSITORY_PATH = 'design-lab/schemas/interop-dtcg-document.schema.json'
 
 #: The token types defined by DTCG 2025.10.
 TOKEN_TYPES = (
@@ -589,7 +590,7 @@ def validate_document(document) -> dict:
         type_counts[record["type"]] = type_counts.get(record["type"], 0) + 1
     return {
         "schemaVersion": SCHEMA_VERSION,
-        "schema_path": SCHEMA_PATH.relative_to(PROJECT_ROOT).as_posix(),
+        "schema_path": SCHEMA_REPOSITORY_PATH,
         "canonical": True,
         "token_count": len(tokens),
         "group_count": len(_groups),

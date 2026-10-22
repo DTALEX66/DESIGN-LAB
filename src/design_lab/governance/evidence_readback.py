@@ -25,10 +25,14 @@ from pathlib import Path
 
 from design_lab.governance import reporting
 from design_lab.interop import InteropError, schema_errors
+from design_lab.runtime.state_resources import repo_resource
 
 EVIDENCE_PROJECTION_SCHEMA_VERSION = 'design-lab/evidence-projection/v1'
+# REPO_ROOT stays: this projection describes the checkout the service runs from, and in a wheel
+# there is no such checkout -- that is a fact about the install, not a path to paper over.
 REPO_ROOT = Path(__file__).resolve().parents[3]
-SCHEMA_PATH = REPO_ROOT / 'design-lab/schemas/evidence-projection.schema.json'
+SCHEMA_REPOSITORY_PATH = 'design-lab/schemas/evidence-projection.schema.json'
+SCHEMA_PATH = repo_resource('schemas/evidence-projection.schema.json')
 
 #: The contract bounds the record list; refusing beats truncating, because a cut list would still
 #: carry a `totals` block that reads as complete.
@@ -52,7 +56,7 @@ def _schema() -> dict:
     if key not in _SCHEMA_CACHE:
         if not SCHEMA_PATH.is_file():
             raise EvidenceReadbackError(
-                'EVIDENCE_CONTRACT_ABSENT', [f'{SCHEMA_PATH.relative_to(REPO_ROOT)} is not on disk'])
+                'EVIDENCE_CONTRACT_ABSENT', [f'{SCHEMA_REPOSITORY_PATH} is not on disk'])
         _SCHEMA_CACHE[key] = json.loads(SCHEMA_PATH.read_text(encoding='utf-8'))
     return _SCHEMA_CACHE[key]
 

@@ -39,18 +39,14 @@ from .assurance import utc_now_rfc3339
 from .interop import (InteropError, load_schema, resource_registry, schema_errors)
 from .prompt_intelligence import (COMPOSITION_SCHEMA_PATH, REVERSAL_SCHEMA_PATH,
                                   COMPOSITION_VERSION, REVERSAL_VERSION)
-from .runtime.paths import PROJECT_ROOT
-from .runtime.state_resources import state_schema
+from .runtime.state_resources import repo_resource, state_schema
 
 RESULT_VERSION = 'design-lab/prompt-result/v1'
 READBACK_VERSION = 'design-lab/prompt-result-readback/v1'
 REVIEW_VERSION = 'design-lab/prompt-result-review/v1'
-RESULT_SCHEMA_PATH = (Path(PROJECT_ROOT) / 'design-lab' / 'schemas'
-                      / 'prompt-result-v1.schema.json')
-_READBACK_SCHEMA_PATH = (Path(PROJECT_ROOT) / 'design-lab' / 'schemas'
-                         / 'prompt-result-readback-v1.schema.json')
-_REVIEW_SCHEMA_PATH = (Path(PROJECT_ROOT) / 'design-lab' / 'schemas'
-                       / 'prompt-result-review-v1.schema.json')
+RESULT_SCHEMA_PATH = repo_resource('schemas/prompt-result-v1.schema.json')
+_READBACK_SCHEMA_PATH = repo_resource('schemas/prompt-result-readback-v1.schema.json')
+_REVIEW_SCHEMA_PATH = repo_resource('schemas/prompt-result-review-v1.schema.json')
 _STATE = state_schema('design-lab-state-prompt-results-v1.sql')
 
 #: The readback envelope references the two prompt contracts instead of restating them, so the

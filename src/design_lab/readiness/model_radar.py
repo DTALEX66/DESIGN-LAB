@@ -30,13 +30,13 @@ from __future__ import annotations
 
 from jsonschema import Draft202012Validator
 
-from ..runtime.paths import PROJECT_ROOT
+from ..runtime.state_resources import repo_resource
 from . import ReadinessError
 
 TASK_ID = "DL-P1-100"
 SCHEMA_VERSION = "design-lab/readiness-model-radar/v1"
-SCHEMA_PATH = PROJECT_ROOT / "design-lab/schemas/readiness-model-radar.schema.json"
-REGISTRY_PATH = PROJECT_ROOT / "design-lab/readiness/model-radar.json"
+SCHEMA_PATH = repo_resource('schemas/readiness-model-radar.schema.json')
+REGISTRY_PATH = repo_resource('readiness/model-radar.json')
 EXTERNAL_ASSETS_REF = "design-lab/config/external-assets-index.json"
 INVENTORY_REF = "reports/current/MACHINE_INVENTORY.json"
 

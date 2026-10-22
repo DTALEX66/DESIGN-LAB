@@ -459,7 +459,7 @@
       "handler": "evidence_projection",
       "schema": "design-lab/schemas/evidence-projection.schema.json",
       "version": "design-lab/evidence-projection/v1",
-      "emitter": "src/design_lab/governance/evidence_readback.py:29",
+      "emitter": "src/design_lab/governance/evidence_readback.py:30",
       "reason": "Debt paid 2026-10-08 by section 30 and 31 of docs/audits/DESIGNLAB-LAUNCH-REVIEW-PREFLIGHT-2026-10-08.md: the projection answered two questions -- integrity (are these bytes still where the receipt says they came from) and currency (does this receipt still describe the bytes we are running) -- and nobody outside reporting.py could read either, so the evidence link of the chain was visible only to the code that wrote it. evidence_readback.projection() recomputes project_ledger over THIS checkout from the ledger and the object database (never from reports/current/, which is bound to whatever commit it was generated at) and validates its own payload, so a renamed key, a new reason token registered in code but not in the schema, or a record field leaking into the readback answers a named 500 instead of a short record a reader would call 'no evidence problems'. The reason vocabularies are two closed enums because the two questions are not the same question, and `current` is a subset of `verified` by construction -- the totals carry both counts and a test asserts that relation on the live payload."
     },
     {
@@ -513,7 +513,7 @@
       "handler": "list_briefs",
       "schema": "design-lab/schemas/brief-readback.schema.json",
       "version": "design-lab/brief-readback/v1",
-      "emitter": "src/design_lab/design_layer.py:63",
+      "emitter": "src/design_lab/design_layer.py:64",
       "reason": "Debt paid 2026-10-08. The envelope carried no identity, so the brief list the Workbench pages through was described only by a TypeScript interface in shell.ts. design-lab/schemas/brief-readback.schema.json now closes the envelope (schemaVersion, briefs, next_cursor), pins the record fields it actually serves, and bounds the page at 100 rows with at most 32 references per brief -- the limits the writer already enforces. design_layer._check_brief_readback() runs it on every read, so a code change that renames a key or drops the sha256: prefix answers 500 BRIEF_CONTRACT_VIOLATION with the field paths instead of serving a short record. This is NOT design-lab/schemas/design-brief.schema.json, whose discipline/objective/audience/deliverables model no code stores; that divergence stays an open decision."
     },
     {
@@ -657,7 +657,7 @@
       "handler": "preflight_bundle",
       "schema": "design-lab/schemas/artifact-preflight.schema.json",
       "version": "design-lab/artifact-preflight/v1",
-      "emitter": "src/design_lab/assurance/production_preflight.py:378",
+      "emitter": "src/design_lab/assurance/production_preflight.py:383",
       "reason": "The precedent this ledger is modelled on: the artifact report declares design-lab/artifact-preflight/v1 and is checked against its schema over two real wire-serialised payloads by design-lab/scripts/verify_artifact_preflight_contract.py."
     },
     {
@@ -843,7 +843,7 @@
       "handler": "PromptIntelligence",
       "schema": "design-lab/schemas/prompt-composition-v1.schema.json",
       "version": "design-lab/prompt-composition/v1",
-      "emitter": "src/design_lab/prompt_intelligence.py:184",
+      "emitter": "src/design_lab/prompt_intelligence.py:48",
       "reason": "The route answers with a PROMPT_READBACK envelope whose `document` member is this contract; the document is validated by prompt_intelligence.check_document before the handler can return it, so a shortened or re-labelled prompt is a named 500 rather than a page that reads an incomplete prompt as a complete one. Nothing is persisted: the document is derived from the design_brief and design_direction rows, so `sections[].source` must carry the owning id, version and spec_sha256 (or be a framing rule this module names), and `model.executed` is const false because no model runs here. Refusals keep distinct codes: 404 BRIEF_NOT_FOUND, 409 STALE_REVISION for a superseded brief or a choice that points at one, 409 DIRECTION_NOT_UNDER_BRIEF, 400 UNKNOWN_TARGET for a family the model radar does not record. This is the entry point AUTHORITY.md's Prompt Intelligence domain claimed while `prompt` had zero occurrences in the route table, the CLI and the workbench."
     },
     {
@@ -853,7 +853,7 @@
       "handler": "PromptIntelligence",
       "schema": "design-lab/schemas/prompt-reversal-v1.schema.json",
       "version": "design-lab/prompt-reversal/v1",
-      "emitter": "src/design_lab/prompt_intelligence.py:292",
+      "emitter": "src/design_lab/prompt_intelligence.py:49",
       "reason": "Same envelope and same runtime check as the composition route, binding the reversal document. Observations are supplied by the caller and lowered by the existing reconstruction bridge, because no local vision backend is qualified (readiness/model-radar.json: QUALIFIED_LOCAL=0, every entry default_enabled:false); an empty set is refused with NO_OBSERVATIONS rather than answered with a prompt that looks described, and `unknown` must keep the semantic-content, colour and font entries so the document cannot be read as a description of what the picture depicts. An asset id that is not this project's answers the same 404 ASSET_NOT_FOUND as an id that was never imported, so the route is not an existence oracle over other projects' assets."
     },
     {
@@ -889,8 +889,8 @@
       "kind": "BOUND_SCHEMA",
       "schema": "design-lab/schemas/model-selection-readback-v1.schema.json",
       "version": "design-lab/model-selection-readback/v1",
-      "emitter": "src/design_lab/model_selection.py:228",
-      "reason": "Paid on 2026-10-20: design-lab/schemas/model-selection-readback-v1.schema.json describes the envelope that writes design-lab/model-selection-readback/v1 at src/design_lab/model_selection.py:228, and design-lab/scripts/verify_route_payload_contracts.py feeds it three live payloads -- a pick, an explicit 「不用」, and a project nobody has asked. The debt it replaces was named rather than left unremarkable because the gate convicted the alternative (SCHEMA_LESS_DEBT_UNNAMED fires when a row drops the version its emitter still writes). Every element of `selection` and `history` $refs design-lab/schemas/model-selection-v1.schema.json instead of restating it, so the record and its read-back cannot drift: those documents are validated on the way in and re-read from the stored bytes on the way out. The envelope exists to keep three answers apart -- CHOSEN, DECLINED (the operator's explicit 「不用」) and NEVER_ASKED -- and `does_not_say` states in the visible text that the last two are not the same fact, which is the failure this surface would otherwise invite: an empty list reading as a decision."
+      "emitter": "src/design_lab/model_selection.py:39",
+      "reason": "Paid on 2026-10-20: design-lab/schemas/model-selection-readback-v1.schema.json describes the envelope that writes design-lab/model-selection-readback/v1 at src/design_lab/model_selection.py:39, and design-lab/scripts/verify_route_payload_contracts.py feeds it three live payloads -- a pick, an explicit 「不用」, and a project nobody has asked. The debt it replaces was named rather than left unremarkable because the gate convicted the alternative (SCHEMA_LESS_DEBT_UNNAMED fires when a row drops the version its emitter still writes). Every element of `selection` and `history` $refs design-lab/schemas/model-selection-v1.schema.json instead of restating it, so the record and its read-back cannot drift: those documents are validated on the way in and re-read from the stored bytes on the way out. The envelope exists to keep three answers apart -- CHOSEN, DECLINED (the operator's explicit 「不用」) and NEVER_ASKED -- and `does_not_say` states in the visible text that the last two are not the same fact, which is the failure this surface would otherwise invite: an empty list reading as a decision."
     },
     {
       "route": "/api/projects/([0-9a-f]{32})/prompt-results",
@@ -898,7 +898,7 @@
       "kind": "BOUND_SCHEMA",
       "schema": "design-lab/schemas/prompt-result-readback-v1.schema.json",
       "version": "design-lab/prompt-result-readback/v1",
-      "emitter": "src/design_lab/prompt_results.py:46",
+      "emitter": "src/design_lab/prompt_results.py:45",
       "reason": "Added 2026-10-22 with the route, in the same change rather than after it: test_contract_bindings.test_new_route_without_a_row_is_red refuses a dispatched route with no row. This is the read side of the slice that closes the audit gap \"prompt results were produced and thrown away\": every composition and reversal this service generated is now stored under the id the document itself carries, and a human acceptance is kept as a separate append-only row quoting the content_sha256 it judged. The stored prompt documents are REFERENCED by $ref to prompt-composition-v1 / prompt-reversal-v1 rather than restated, and the review rows to prompt-result-review-v1. Three honesty rules are bound here rather than left to prose: executed is const false (nothing ran), columns_match_document is const true (the scalar columns may not drift from the document they restate), and state NONE may not coexist with a nonzero count -- NONE means this service never produced a prompt, UNREVIEWED means it produced one nobody signed, and NOT_CURRENT means a signature exists about other bytes."
     },
     {
@@ -907,7 +907,7 @@
       "kind": "BOUND_SCHEMA",
       "schema": "design-lab/schemas/prompt-result-review-v1.schema.json",
       "version": "design-lab/prompt-result-review/v1",
-      "emitter": "src/design_lab/prompt_results.py:47",
+      "emitter": "src/design_lab/prompt_results.py:46",
       "reason": "Added 2026-10-22 with the route. The body's exact key set is the contract's own property names, read from what the store validates: prompt_results.py checks the review document against prompt-result-review-v1 on the way in and the table repeats the two rules the schema cannot enforce alone -- reviewer_kind = 'human' and a foreign key onto a result this project actually stored. Owner ruling 2026-10-21 keeps local acceptance human-only as well as the outbound approval, so an agent signature is refused with a message quoting that ruling; a review naming an unstored result is 404 rather than a row that could never be re-read. The response wraps the stored document and adds a revision number; it does not re-sign anything."
     }
   ]

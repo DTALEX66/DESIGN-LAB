@@ -34,10 +34,20 @@ def call_sites(tree=SRC) -> set[str]:
 
 
 def is_declared(relative: str, pyproject: str) -> bool:
-    source = f'{SOURCE_ROOT}/{relative}'
-    target = f'{PACKAGED_PREFIX}{source}'
-    return any(f'"{source}"' in line and f'"{target}"' in line
-               for line in pyproject.splitlines())
+    """Whether a force-include line ships this read -- by its own key or by a directory key.
+
+    `design-lab/schemas/state` and `design-lab/readiness` are declared as directories, so a child
+    of one needs no line of its own. Matching is on whole quoted keys, never on a bare substring,
+    or `readiness` would appear to declare `readiness-archive.json`.
+    """
+    parts = Path(relative).parts
+    for depth in range(len(parts), 0, -1):
+        source = f'{SOURCE_ROOT}/' + '/'.join(parts[:depth])
+        target = f'{PACKAGED_PREFIX}{source}'
+        if any(f'"{source}"' in line and f'"{target}"' in line
+               for line in pyproject.splitlines()):
+            return True
+    return False
 
 
 class PackagedContractResourceTests(unittest.TestCase):
@@ -49,9 +59,12 @@ class PackagedContractResourceTests(unittest.TestCase):
         # Without this, an inert regex would report "nothing to check" and every other test here
         # would pass over an empty population.
         self.assertTrue(self.sites, 'no repo_resource call site was found in src/design_lab')
-        self.assertIn('schemas/project-list-v1.schema.json', self.sites)
-        self.assertIn('schemas/task-readback-v1.schema.json', self.sites)
-        self.assertIn('config/state-vocabularies.json', self.sites)
+        for expected in ('schemas/project-list-v1.schema.json', 'schemas/task-readback-v1.schema.json',
+                         'config/state-vocabularies.json', 'schemas/bom.schema.json',
+                         'schemas/evidence-projection.schema.json', 'production/profiles',
+                         'config/provider-capabilities.json', 'readiness/model-radar.json',
+                         'schemas/prompt-result-v1.schema.json'):
+            self.assertIn(expected, self.sites)
 
     def test_every_repo_resource_read_is_declared_in_the_wheel(self):
         undeclared = sorted(site for site in self.sites if not is_declared(site, self.pyproject))

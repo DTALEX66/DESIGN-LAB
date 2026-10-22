@@ -30,10 +30,10 @@ from pathlib import Path
 
 from .readiness import ReadinessError
 from .readiness.model_radar import load_registry
-from .runtime.paths import PROJECT_ROOT
+from .runtime.state_resources import repo_resource
 
 CATALOG_VERSION = 'design-lab/model-catalog/v1'
-PROVIDERS_PATH = PROJECT_ROOT / 'design-lab' / 'config' / 'provider-capabilities.json'
+PROVIDERS_PATH = repo_resource('config/provider-capabilities.json')
 
 #: Placement words the page may show. `huggingface` and `vendor` are acquisition routes recorded by
 #: the registry, not cloud inference endpoints: nothing here can claim a hosted model call is wired.

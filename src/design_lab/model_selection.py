@@ -33,12 +33,11 @@ import sqlite3
 
 from .interop import InteropError, load_schema, schema_errors
 from .model_catalog import catalog
-from .runtime.paths import PROJECT_ROOT
-from .runtime.state_resources import state_schema
+from .runtime.state_resources import repo_resource, state_schema
 
 SELECTION_VERSION = 'design-lab/model-selection/v1'
 READBACK_VERSION = 'design-lab/model-selection-readback/v1'
-SCHEMA_PATH = PROJECT_ROOT / 'design-lab/schemas/model-selection-v1.schema.json'
+SCHEMA_PATH = repo_resource('schemas/model-selection-v1.schema.json')
 _STATE = state_schema('design-lab-state-model-selection-v1.sql')
 
 ACTOR_KINDS = ('human', 'agent')

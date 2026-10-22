@@ -43,6 +43,7 @@ from .creative.store import CreativeError
 from .interop import InteropError, dtcg, schema_errors
 from .runtime import asset_store as assets
 from .runtime.paths import PROJECT_ROOT, PathPolicyError
+from .runtime.state_resources import repo_resource
 
 # P0-07: the design-system catalog (source of the design contracts a direction
 # may bind to) is packaged into the wheel under design_lab/resources/
@@ -61,8 +62,9 @@ _CATALOG_SOURCE = ('design-lab', 'design-systems')
 #: than leave the served payload described only by a TypeScript interface in the page, the payload
 #: gets the contract it actually satisfies; the divergence of the two shapes stays an open decision.
 BRIEF_READBACK_SCHEMA_VERSION = 'design-lab/brief-readback/v1'
-BRIEF_READBACK_SCHEMA_PATH = (Path(PROJECT_ROOT) / 'design-lab' / 'schemas'
-                              / 'brief-readback.schema.json')
+# repo_resource, not PROJECT_ROOT: the installed wheel's PROJECT_ROOT is the interpreter's own Lib,
+# so a source-green run cannot see that the brief read-back contract is simply absent there.
+BRIEF_READBACK_SCHEMA_PATH = repo_resource('schemas/brief-readback.schema.json')
 
 
 def _brief_readback_schema():

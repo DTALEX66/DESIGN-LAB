@@ -35,11 +35,11 @@ import re
 from typing import Mapping
 
 from ..runtime.attempt_contract import request_hash
-from ..runtime.paths import PROJECT_ROOT
+from ..runtime.state_resources import repo_resource
 from . import AssuranceError, require_digest, require_rfc3339, require_text, utc_now_rfc3339
 
-SCHEMA_PATH = PROJECT_ROOT / "design-lab/schemas/assurance-knowledge-candidate-v2.schema.json"
-V1_SCHEMA_PATH = PROJECT_ROOT / "design-lab/schemas/candidate-knowledge.schema.json"
+SCHEMA_PATH = repo_resource('schemas/assurance-knowledge-candidate-v2.schema.json')
+V1_SCHEMA_PATH = repo_resource('schemas/candidate-knowledge.schema.json')
 
 CANDIDATE_VERSION = "design-lab/assurance-knowledge-candidate/v2"
 EXPORT_VERSION = "design-lab/assurance-knowledge-candidate-export/v1"

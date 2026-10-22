@@ -69,6 +69,38 @@ exclude = ["src/design_lab/reconstruction/__init__.py"]
 "design-lab/schemas/project-list-v1.schema.json" = "design_lab/resources/repo/design-lab/schemas/project-list-v1.schema.json"
 "design-lab/schemas/task-readback-v1.schema.json" = "design_lab/resources/repo/design-lab/schemas/task-readback-v1.schema.json"
 "design-lab/config/state-vocabularies.json" = "design_lab/resources/repo/design-lab/config/state-vocabularies.json"
+# Backend E (2026-10-23): the rest of the contract/config reads the HTTP service can reach. Walked
+# by an AST import closure from src/design_lab/http_service.py, so this list is the reachable surface,
+# not a tidy inventory -- and the walk is what caught two of them answering a *semantic* verdict
+# (`500 INTERNAL` on the design-layer read-back, `409 NATIVE_BUNDLE_UNVERIFIED` on a delivery bundle)
+# where the real cause was a contract file that does not exist at that path inside a wheel.
+# design-lab/tests/test_packaged_contract_resources.py enumerates repo_resource call sites from disk
+# and refuses any one that stops being declared here.
+"design-lab/config/provider-capabilities.json" = "design_lab/resources/repo/design-lab/config/provider-capabilities.json"
+"design-lab/readiness" = "design_lab/resources/repo/design-lab/readiness"
+"design-lab/schemas/assurance-jury-record-v2.schema.json" = "design_lab/resources/repo/design-lab/schemas/assurance-jury-record-v2.schema.json"
+"design-lab/schemas/assurance-knowledge-candidate-v2.schema.json" = "design_lab/resources/repo/design-lab/schemas/assurance-knowledge-candidate-v2.schema.json"
+"design-lab/schemas/brief-readback.schema.json" = "design_lab/resources/repo/design-lab/schemas/brief-readback.schema.json"
+"design-lab/schemas/candidate-knowledge.schema.json" = "design_lab/resources/repo/design-lab/schemas/candidate-knowledge.schema.json"
+"design-lab/schemas/interop-c2pa-manifest.schema.json" = "design_lab/resources/repo/design-lab/schemas/interop-c2pa-manifest.schema.json"
+"design-lab/schemas/interop-delivery-receipt-v2.schema.json" = "design_lab/resources/repo/design-lab/schemas/interop-delivery-receipt-v2.schema.json"
+"design-lab/schemas/interop-dtcg-document.schema.json" = "design_lab/resources/repo/design-lab/schemas/interop-dtcg-document.schema.json"
+"design-lab/schemas/model-selection-v1.schema.json" = "design_lab/resources/repo/design-lab/schemas/model-selection-v1.schema.json"
+"design-lab/schemas/prompt-composition-v1.schema.json" = "design_lab/resources/repo/design-lab/schemas/prompt-composition-v1.schema.json"
+"design-lab/schemas/prompt-reversal-v1.schema.json" = "design_lab/resources/repo/design-lab/schemas/prompt-reversal-v1.schema.json"
+"design-lab/schemas/prompt-result-v1.schema.json" = "design_lab/resources/repo/design-lab/schemas/prompt-result-v1.schema.json"
+"design-lab/schemas/prompt-result-readback-v1.schema.json" = "design_lab/resources/repo/design-lab/schemas/prompt-result-readback-v1.schema.json"
+"design-lab/schemas/prompt-result-review-v1.schema.json" = "design_lab/resources/repo/design-lab/schemas/prompt-result-review-v1.schema.json"
+"design-lab/schemas/readiness-host-matrix.schema.json" = "design_lab/resources/repo/design-lab/schemas/readiness-host-matrix.schema.json"
+"design-lab/schemas/readiness-model-radar.schema.json" = "design_lab/resources/repo/design-lab/schemas/readiness-model-radar.schema.json"
+# Found by walking the delivery leg inside an installed wheel, not by grepping for PROJECT_ROOT:
+# these three readers spell the repository root as `Path(__file__).parents[3]`, which a name-based
+# sweep misses. The preflight one was the worst of the group -- it answered
+# `503 PROJECT_STORE_UNAVAILABLE`, pointing the operator at their database, for a missing profile
+# directory.
+"design-lab/production/profiles" = "design_lab/resources/repo/design-lab/production/profiles"
+"design-lab/schemas/bom.schema.json" = "design_lab/resources/repo/design-lab/schemas/bom.schema.json"
+"design-lab/schemas/evidence-projection.schema.json" = "design_lab/resources/repo/design-lab/schemas/evidence-projection.schema.json"
 # The projection reuses the repo's own checker so a pack it calls VALIDATES cannot be
 # one CI would reject; shipping it keeps that guarantee in an installed wheel
 # (without it every pack would report NOT_CHECKED).

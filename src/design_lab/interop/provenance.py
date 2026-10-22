@@ -50,7 +50,7 @@ from __future__ import annotations
 from datetime import datetime
 
 from ..runtime.attempt_contract import canonical_hash, request_hash
-from ..runtime.paths import PROJECT_ROOT
+from ..runtime.state_resources import repo_resource
 from . import InteropError, load_schema, schema_errors
 
 C2PA_SPEC_VERSION = "2.4"
@@ -65,7 +65,8 @@ SIGNING_STATUS = "UNSIGNED_STRUCTURAL_ONLY"
 SOURCE_OF_TRUTH = "design-lab-asset-graph"
 TASK_ID = "DL-P0-160"
 
-SCHEMA_PATH = PROJECT_ROOT / "design-lab/schemas/interop-c2pa-manifest.schema.json"
+SCHEMA_PATH = repo_resource('schemas/interop-c2pa-manifest.schema.json')
+SCHEMA_REPOSITORY_PATH = 'design-lab/schemas/interop-c2pa-manifest.schema.json'
 
 ASSERTION_ACTIONS = "c2pa.actions"
 ASSERTION_INGREDIENT = "c2pa.ingredient"
@@ -543,7 +544,7 @@ def validate_manifest(manifest, *, expected_inputs=None) -> dict:
 
     return {
         "schemaVersion": manifest["c2pa_spec_version"],
-        "schema_path": SCHEMA_PATH.relative_to(PROJECT_ROOT).as_posix(),
+        "schema_path": SCHEMA_REPOSITORY_PATH,
         "claim_version": manifest["claim_version"],
         "signature_assertion": manifest["signature"],
         "projection_of": manifest["design_lab"]["projection_of"],

@@ -45,10 +45,10 @@ from functools import lru_cache
 import json
 from typing import Mapping
 
-from ..runtime.paths import PROJECT_ROOT
+from ..runtime.state_resources import repo_resource
 from . import AssuranceError, require_digest, require_rfc3339, require_text
 
-SCHEMA_PATH = PROJECT_ROOT / "design-lab/schemas/assurance-jury-record-v2.schema.json"
+SCHEMA_PATH = repo_resource('schemas/assurance-jury-record-v2.schema.json')
 
 KIND_VERDICT = "JURY_VERDICT"
 KIND_PROPOSAL = "JURY_PROPOSAL"
