@@ -387,6 +387,27 @@ jobs:
           # refactor from turning the case into a no-op while the job still reads green.
           grep -q "GET_SWEEP layout=installed" chain.log
 
+      - name: Walk every POST row against the installed package
+        env:
+          DL_LAUNCH_INSTALLED: "1"
+        # The read sweep proves the packaged contract files are readable from a wheel. This proves the
+        # write routes can still assemble their envelopes and persist what they answered there: every
+        # POST row in design-lab/config/contract-bindings.json is performed against the installed
+        # package and read back through a GET, and the coverage is asserted in both directions, so a
+        # route added to the ledger cannot appear only in the product and never in a run.
+        run: |
+          .venv-clean/bin/python -m unittest design-lab.tests.test_installed_write_surface -v > write.log 2>&1
+          tail -40 write.log
+          grep -qE "^Ran [1-9][0-9]* tests" write.log
+          grep -q "^OK$" write.log
+          ! grep -q "skipped" write.log
+          grep -q "POST_SWEEP layout=installed" write.log
+          # The walk must enumerate what it claims, and an unearned 5xx is the failure this step
+          # exists to catch -- its message says so explicitly, so grep for the absence of the verdict.
+          grep -q "POST_SWEEP_WRITTEN" write.log
+          grep -q "POST_SWEEP_EXCLUDED" write.log
+          ! grep -q "unearned 5xx" write.log
+
   generated-artifact-gate:
     name: Generated-artifact clean-tree gate
     runs-on: ubuntu-latest
