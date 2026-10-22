@@ -574,6 +574,13 @@ owner 这句还是「继续打磨后端」。§5.26 清了 14 条没调用的 GE
 
 **闸门与实跑**：`test_standalone_chain_http` 源码 6 OK / 装机 6 OK，`test_installed_write_surface` 装机 6 OK，两模块合跑 12 OK；`VERIFY_CONTRACT_BINDINGS=PASS routes=68 dispatched=68`；改过受治散文后按批次 G 学到的那条单独跑了 `DOCUMENTED_COUNTS`。**状态**：IMPL_LOCAL + TESTED_LOCAL。边界不变：E3/E4/E5、安装态分发、release、ComfyUI/H3、`currentExecution` 34 项、手机端排除项、字体与三方素材出范围、推理不接、签署与审核仍只接受具名 human、导出仍只读回，一字未动；级别仍是 E2——这条路由证的是"存下的字节还是不是它自己"，不是"产物好不好"，也不因为能重算摘要就变成宿主读回。
 
+**回填：CI 逐作业、步骤级日志与本机 Windows 证据（读数按精确 SHA）**
+- **`d9976d0c`（main 与备份分支同指此枚）run `39859065304` = `completed success`**：11 个重作业全绿，`Branch light gate` 按 D01 规则 skipped。步骤级：`Walk the acceptance chain against the installed package` 与 `Walk every POST row against the installed package` 均 `success`，其日志原文一次给全三条读数——`GET_SWEEP layout=installed routes=39 reads=39 answered=35 verdicts=4 unmeasured=2`、`NATIVE_VERIFY layout=installed clean=HASH_VERIFIED tampered=NATIVE_ARTIFACT_UNVERIFIED unknown=NATIVE_ASSET_NOT_FOUND`、`POST_SWEEP layout=installed rows=29 walked=28 written=28 read_backs=34 refused=0 excluded=1`（两模块各 `Ran 6 tests`）。CI 那一步现在把整串 `NATIVE_VERIFY …` 当作 grep 目标，所以"只答 200 的空实现"过不去。
+- `PYTHON_TESTS_UNION=OK expected=3178 distinct=3178 ran=3178 duplicates=0 missing=0 unexpected=0`，三片 `exit=0`（3177 → 3178 正是这条新用例；`test_standalone_chain_http` 由 5 条变 6 条，`PYTHON_TESTS_MODULE_ALL 4.831s tests=6`）。
+- **本机 Windows 那条只能在本机量的证据**：把三个模块放进取数器自己的深 TEMP（`.project-local/task-runtime/python-tests-shard-1/313d501449a54770ad3986c2a1ffdd82/tmp`，133+ 字符基底）跑，`Ran 17 tests / OK / exit=0`，无 `WinError 206`、无 `[Errno 2]`、无 skipped——§5.26 那处按成员名判定的解包豁免仍然成立，没有因为本批新增读法而回归。本机整轮 union 未跑完就被中止（该片在 Windows 上单片要 1500s 量级），**所以本枚的"全套通过"读数以 CI 那条为准，本机这条只覆盖 Windows 专有的路径长度面**，不写成全套。
+- 一处自己差点留下的错，记下来：播种用的驱动把 `native_assets.py` 改坏再改回，它打印的 `restored identical: True` 比的是**解码后的文本**——那种比较看不见行尾改动，而本仓 `.gitattributes` 是 `*.py text eol=lf`。真正的对账是字节：工作树与 `HEAD` 同一 blob（`11c325be…`，5968 字节，0 个 CRLF），并且仓库自有的 `test_working_tree_line_endings` 在聚合里一直绿。**一条不会失败的校验不是校验**，它只是把事故改成了日志。聚合读数在最终树上：`VERIFY_RESULT=OK total=549 failed=0`、`VERIFY_DESIGN_LAB=OK total=76 failed=0`、`RECORD_REGISTER_GATE=PASS checks=5 problems=0`、`DOCUMENTED_COUNTS=PASS claims=13`。
+- 本轮之后：**状态 CI_VERIFIED_EXACT_SHA @ `d9976d0c`**（下面这条记录本身与投影重绑是纯文字＋派生件，另算一枚，不改上面任何读数）。
+
 ## 6. 本轮暴露并修掉的六个缺陷
 
 1. **分类聚合按目录贴标签**：`bundle_key()` 把一个顶层目录收成一个 bundle，于是 `docs/` 里第一个文件的类别
