@@ -354,7 +354,7 @@ owner 决定"确认归档后删除"该远端/本地分支。删除前实测发�
 | 2 | `docs/history/archive-2026-10-19/REMOVALS.json` | 移除清单 / 删除登记 / removal record | design-lab/archive-removal/v1 | `27370e630035` | 46,699 B | `b93c0391eaefc3b5…` | 83 份旧交接/提示词原件的移除登记（713,606 B），跨 `docs/history/**` 73 份 + `reports/history/**` 10 份；逐条含 `blobSha1`/`sha256`/`crc32`/`bytes`/`restoreAt`/`recoverWith`，统一锚点 `restoreAt=7015571e729ec78c266cf45e0bd3b01b2e50973b`，`keptAuditInputs=17`（owner 提供的 R3 审计输入不删） |
 | 3 | `docs/history/archive-2026-10-19/HANDOFF-PROMPT-DIGEST.json` | 交接与提示词汇总登记 / digest | design-lab/archive-digest/v1 | `c76a3f6cc9f9` | 102,291 B | `2d5e6684a48fee59…` | 读取于 `readAtCommit=f55f0382`、对 `verifiedAgainstHead=7015571e` 复核；106 条目 → 删除 83 / 保留 23，合计 2,443,642 B；`blobIdsReDerived=1` |
 | 4 | `docs/history/archive-2026-10-19/AGGREGATED-RECORD-2026-10-19.md` | 归档汇总与追溯记录 / 可读汇总 | 无 schemaVersion（Markdown 汇总件） | `d8a3f843647b` | 62,238 B | `bb82f0fab6ffbf47…` | 3 个 `##` 小节；承载被删文档的标题/自述/结论/取代关系与只有它记载的事实，使第 2 项的删除是退役而不是丢失 |
-| 5 | `docs/audits/DESIGN-LAB-ARCHIVE-AND-REMOVAL-2026-10-19.md` | 波次交付报告 / 审计正文 | 无 schemaVersion（交付报告） | `2ee0a0de9faf` | 141,532 B | `9ff581fd158341b8…` | 15 个 `##` 小节，标题逐条读自报告正文：0. 结论与状态声明（先看这一节） / 1. Owner 原话与本轮边界 / 2. 基线怎么读（不抄本文件的数字） / 3. 做了什么（全部为实测数字） / 4. 防"再次索引旧路径"的机制 / 5. 命令、退出码与读数（本会话实测，均为定向闸口） / 6. 本轮暴露并修掉的六个缺陷 / 6.5 第七个缺陷（本次复核自己发现的） / 6.6 第八个缺陷（owner 追问「还有没做完的吗」时暴露） / 6.7 第九个缺陷（UI 对齐走查发现，先量化再修） / 6.8 第十个缺陷（写现行面时删掉了邻居的冻结条目） / 7. 回滚方法 / 8. 风险与下一步 / 9. 技能走查记录：量到了什么，量不到什么 / 10. 像素回归实跑（§9.1 那条判断这轮被自己验了一遍） |
+| 5 | `docs/audits/DESIGN-LAB-ARCHIVE-AND-REMOVAL-2026-10-19.md` | 波次交付报告 / 审计正文 | 无 schemaVersion（交付报告） | `100824bab3c2` | 144,841 B | `f813c9fc6960c826…` | 15 个 `##` 小节，标题逐条读自报告正文：0. 结论与状态声明（先看这一节） / 1. Owner 原话与本轮边界 / 2. 基线怎么读（不抄本文件的数字） / 3. 做了什么（全部为实测数字） / 4. 防"再次索引旧路径"的机制 / 5. 命令、退出码与读数（本会话实测，均为定向闸口） / 6. 本轮暴露并修掉的六个缺陷 / 6.5 第七个缺陷（本次复核自己发现的） / 6.6 第八个缺陷（owner 追问「还有没做完的吗」时暴露） / 6.7 第九个缺陷（UI 对齐走查发现，先量化再修） / 6.8 第十个缺陷（写现行面时删掉了邻居的冻结条目） / 7. 回滚方法 / 8. 风险与下一步 / 9. 技能走查记录：量到了什么，量不到什么 / 10. 像素回归实跑（§9.1 那条判断这轮被自己验了一遍） |
 
 完整 SHA-256（逐条，便于跨机器核对）：
 
@@ -362,7 +362,7 @@ owner 决定"确认归档后删除"该远端/本地分支。删除前实测发�
 - 2. `docs/history/archive-2026-10-19/REMOVALS.json` → `b93c0391eaefc3b5cb8b7efa16a20a6f7b343b4c25641f26155a88b4fe0fb3fc`
 - 3. `docs/history/archive-2026-10-19/HANDOFF-PROMPT-DIGEST.json` → `2d5e6684a48fee594ebe966e7bae9ea38a295bd0b84221e822b4975fe62fec4f`
 - 4. `docs/history/archive-2026-10-19/AGGREGATED-RECORD-2026-10-19.md` → `bb82f0fab6ffbf4713ad76de294ac335b3a5664597dc8591f1c46db1b109483f`
-- 5. `docs/audits/DESIGN-LAB-ARCHIVE-AND-REMOVAL-2026-10-19.md` → `9ff581fd158341b82b4507cf9189aedac15c4f1bf136ca2d430cd525349c30b2`
+- 5. `docs/audits/DESIGN-LAB-ARCHIVE-AND-REMOVAL-2026-10-19.md` → `f813c9fc6960c826c80e9a4205bd6cf07dbc70474999fbb5d0a8520d7fcb1504`
 
 **五份记录是怎么产出的**：
 
@@ -387,7 +387,7 @@ owner 决定"确认归档后删除"该远端/本地分支。删除前实测发�
 - 83 条 `sha256` 全是 `sha256:` + 64 位十六进制，`restoreAt` 同值一条；
 - 五份记录均可 UTF-8 解码且不含 `U+FFFD`（中文正文若被写成乱码字节，这里会先炸）。
 
-**本节测于哪个提交**：五个 blob 首次读自 `276ea88e`（交付报告 §0 落定的那一次），并在 `276ea88e` 上逐条重算；本节所在提交装不下自己的哈希，所以两个读数都写出来。五个值指向的都是不可变提交对象，本节不会随时间失效；真正会变的情形只有「记录本身被改写」。四份在 `docs/history/archive-2026-10-19/**`，属 `docs/current/HISTORY-FREEZE-RULES.md` 认定的冻结家族，按规则不该再编辑；第五份是 dated 交付报告，若以后确实要补它，就重跑 `python scripts/generate_archive_record_register.py` 让本节跟着更新，别留下和仓库不一致的哈希。
+**本节测于哪个提交**：五个 blob 首次读自 `f3ca50a1`（交付报告 §0 落定的那一次），并在 `f3ca50a1` 上逐条重算；本节所在提交装不下自己的哈希，所以两个读数都写出来。五个值指向的都是不可变提交对象，本节不会随时间失效；真正会变的情形只有「记录本身被改写」。四份在 `docs/history/archive-2026-10-19/**`，属 `docs/current/HISTORY-FREEZE-RULES.md` 认定的冻结家族，按规则不该再编辑；第五份是 dated 交付报告，若以后确实要补它，就重跑 `python scripts/generate_archive_record_register.py` 让本节跟着更新，别留下和仓库不一致的哈希。
 
 **定态**：五份都是**波次的登记件**，不是能力索引、不是派工入口，也不改变 `currentExecution` 34 项的 `FROZEN_DEFERRED`。真值仍读 `design-lab/config/capability-evidence-index.json`、`design-lab/config/capability-status.json` 与 `docs/current/NEXT-AGENT-PROMPT.md`。
 

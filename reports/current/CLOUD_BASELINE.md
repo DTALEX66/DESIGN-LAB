@@ -1,7 +1,7 @@
 # CLOUD_BASELINE
 
-Generation-time local HEAD (not current): `276ea88eb854aac4fb10c386cf9ca163b0e525c8`
+Generation-time local HEAD (not current): `f3ca50a1c8e8294c7eb706560737f100c9d89e86`
 
-Generation-time local origin/main: `6a05e347f9b458a2028f36335bded5f61ee7d83c`
+Generation-time local origin/main: `fa0cf1785010ecc282ed1c0464f550704c73b4b4`
 
 GitHub live readback / exact-SHA CI: NOT EXECUTED.
