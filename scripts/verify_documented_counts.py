@@ -119,6 +119,33 @@ def delivery_hops() -> int:
                          '_deliver_to_preflight')
 
 
+WRITE_TEST = 'design-lab/tests/test_installed_write_surface.py'
+LEDGER = 'design-lab/config/contract-bindings.json'
+
+
+def ledger_post_rows() -> int:
+    """POST-containing ledger rows -- the denominator the write sweep is checked against."""
+    document = json.loads((REPO / LEDGER).read_text(encoding='utf-8'))
+    rows = [row['route'] for row in document['routes'] if 'POST' in row['method']]
+    _require(len(rows), 'ledger POST rows')
+    return len(rows)
+
+
+def write_sweep_walked() -> int:
+    """How many rows the write table performs, counted from the table itself.
+
+    The prose distinguishes "walked" from "excluded", so the number has to come from the table's own
+    entries rather than from the ledger: those two differ by exactly the rows the sweep refuses to
+    POST, and a sentence that conflated them must not be able to agree with itself.
+    """
+    src = (REPO / WRITE_TEST).read_text(encoding='utf-8')
+    start = src.index('WRITES = (')
+    region = src[start:src.index('# -- the walk', start)]
+    count = len(re.findall(r"^\s+\{'route':", region, re.M))
+    _require(count, 'write-sweep WRITES entries')
+    return count
+
+
 # (file, template, measurement). Templates carry enough words to be unambiguous and to fail loudly
 # when the sentence is rewritten rather than updated.
 #
@@ -133,6 +160,10 @@ CLAIMS = [
     ('docs/current/NEXT-AGENT-PROMPT.md', '{n} 个子命令（`src/design_lab/cli.py`', cli_subcommands),
     ('docs/current/NEXT-AGENT-PROMPT.md', 'adapter-registry.json` {n} 条', registry_adapters),
     ('docs/current/NEXT-AGENT-PROMPT.md', 'ROUTES` 为准，共 {n} 条', http_routes),
+    # The write sweep's two denominators: the ledger's POST rows, and how many of them the table
+    # actually performs. Both are quoted in the current face, and they differ by the excluded rows.
+    ('docs/current/NEXT-AGENT-PROMPT.md', '账本 **{n} 条 POST 行**', ledger_post_rows),
+    ('docs/current/NEXT-AGENT-PROMPT.md', '其中 **{n} 行**逐行真写', write_sweep_walked),
     ('docs/current/NEXT-AGENT-PROMPT.md', '**{n} 跳验收链**', acceptance_hops),
     ('docs/current/NEXT-AGENT-PROMPT.md', '**{n} 跳交付链**', delivery_hops),
     ('docs/current/NEXT-AGENT-PROMPT.md', '` 的 **{n} 项父/子任务全部', frozen_current_tasks),

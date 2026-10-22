@@ -281,8 +281,8 @@ E4 独立人审 / E5 发布可复现。**文档修订 ≠ 规划完成 ≠ 代�
   三分片全 `exit=0`（`shard=1/3 outcomes={'PASS': 1104,'SKIP': 2}`），此前稳定复现的两条本机 ERROR 消失——
   这条只能在 Windows 上量，Linux CI 给不了这个证据。
   **写侧的同一把尺子已于同日第二十四批（后端 G）量完**（审计件 §5.27）：`design-lab/tests/`
-  `test_installed_write_surface.py` 把账本 **29 条 POST 行**（含 `GET+POST` 那条创建行）按对象依赖顺序
-  逐行真写、**每行都用 GET 读回**，覆盖表双向断言、槽位缺值即红、5xx 名单按布局分开且必须与实际发生
+  `test_installed_write_surface.py` 把账本 **29 条 POST 行**（含 `GET+POST` 那条创建行）登记成一张按对象依赖顺序排的覆盖表，
+  其中 **28 行**逐行真写、每行都用 GET 读回，剩下 1 行按政策点名不走，覆盖表双向断言、槽位缺值即红、5xx 名单按布局分开且必须与实际发生
   完全相等。读数两侧一字不差：源码 `rows=29 walked=28 written=28 read_backs=34 refused=0 excluded=1`，
   装好的 wheel 同样如此——本批没有新增"三件套"要付，这是 §5.25 付清读路径之后写侧第一次被真走到时
   给出的确认，不是侥幸。唯一不走的行是 `POST …/tasks/<job>/run`：体只有一个 `attempt_id` 而扫描手里就有，
