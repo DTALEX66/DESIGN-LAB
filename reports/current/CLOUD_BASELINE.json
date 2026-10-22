@@ -9,28 +9,28 @@
   },
   "fresh": false,
   "freshnessMeaning": "at generation only; check verifies bound-input integrity, not current Git or cloud state",
-  "generatedAt": "2026-10-22T14:43:26+00:00",
+  "generatedAt": "2026-10-22T15:21:29+00:00",
   "gitStateMeaning": "generation-time observation, not current HEAD",
   "local": {
     "branch": "qoder/designlab-backup-consistency-20261007",
-    "origin_main": "95829383a03ecea053f47c0de95d019b5d1de210",
-    "sha": "7cd32a17d4984d6a00927f04ba96e0194d91ab63",
+    "origin_main": "91186bc7165049177044d3e620c5a94058bd4489",
+    "sha": "43abfc442696b05b03a23f64b3f72455054de9ce",
     "source_worktree_clean": false,
     "tracked_files": 3769,
     "worktree_changes": [
       {
-        "content": "sha256:29eb428028e0bb923434433b409f0ee695fa7df96708a87e51c2ae0a4a8d2639",
+        "content": "sha256:4af625679d8d84a0ff067e28234d3fe4ded274e1f3d25a20d96c19bd52b0bb00",
         "kind": "M",
         "path": "docs/RECORD-ARCHIVE-INDEX.md"
       }
     ],
-    "worktree_digest": "sha256:b3d380b445b14bb2ab44133fbeabe19f1fef7b03c3d3e874f79eec9a72cadf08"
+    "worktree_digest": "sha256:eea0a4be165fb39468774599f2cb7ba64c130187aaa421d20a7ea2025e710cd6"
   },
   "note": "No GitHub API query was run by this generator; tool installation is not inferred.",
   "remoteRef": "origin/main (local tracking ref)",
   "schemaVersion": "design-lab/cloud-baseline/v2",
   "subjectMeaning": "subjectType=WORKTREE means the tree was dirty at generation; worktreeDigest covers HEAD plus the non-generated changes",
-  "subjectSha": "7cd32a17d4984d6a00927f04ba96e0194d91ab63",
+  "subjectSha": "43abfc442696b05b03a23f64b3f72455054de9ce",
   "subjectType": "WORKTREE",
   "taskpackHash": "2cfd84627352e9f1b29b42787fa43466cd9a836130d826d43678b7733856ffda",
   "taskpackId": "DL-TP-20261009-UI-FIRST-R1",
@@ -45,5 +45,5 @@
     "branchProtection"
   ],
   "worktreeClean": false,
-  "worktreeDigest": "sha256:b3d380b445b14bb2ab44133fbeabe19f1fef7b03c3d3e874f79eec9a72cadf08"
+  "worktreeDigest": "sha256:eea0a4be165fb39468774599f2cb7ba64c130187aaa421d20a7ea2025e710cd6"
 }
