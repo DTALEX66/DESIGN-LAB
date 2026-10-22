@@ -513,6 +513,15 @@ def make_server(service, token, port=0, *, local_session=False):
                 if exc.detail:
                     payload['detail'] = exc.detail
                 self.send_json(exc.status, payload)
+            # The task envelope guards its own contract, and the write routes that build one on the
+            # way to an answer (bundle, patch, cancel, plan submission) are not the two read routes
+            # wrapped locally. `TaskReadbackError` is a ValueError, so without this clause it lands
+            # on the generic 400 below and tells the caller their request was invalid when the real
+            # answer is that the envelope could not be assembled. Measured 2026-10-23 by moving the
+            # packaged `config/state-vocabularies.json` out of an installed wheel: POST
+            # …/tasks/<job>/bundle answered 400 INVALID_REQUEST.
+            except TaskReadbackError as exc:
+                self.send_json(exc.status, {'error': exc.code, 'detail': str(exc)})
             # A preflight refusal is a statement about the artifact ("the archive
             # digest does not match what was approved", "a manifest member is
             # missing"), so it must reach the page intact.
