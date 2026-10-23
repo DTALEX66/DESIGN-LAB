@@ -1,22 +1,22 @@
 {
   "checkScope": "bound-input-and-output-integrity; not current Git or cloud freshness",
-  "generatedAt": "2026-10-22T23:44:57+00:00",
+  "generatedAt": "2026-10-23T12:18:42+00:00",
   "gitObservation": {
     "branch": "qoder/designlab-backup-consistency-20261007",
-    "origin_main": "2d6ede51cd0f49e9b99c27f09924a0db29843b89",
-    "sha": "dbe2d8c7705a06eb3d5a52bf38f3197439ca568a",
+    "origin_main": "efa5a8afb7e9b04bd05c7b6ad96f9872d46e4823",
+    "sha": "4694778c45f7ef50fc4fe2b861d9063d392be2e5",
     "source_worktree_clean": false,
-    "tracked_files": 3775,
+    "tracked_files": 3797,
     "worktree_changes": [
       {
-        "content": "sha256:aa0263e543c22396d60485c35c4935d5de27eeb62adda8650ea823704844d22b",
+        "content": "sha256:602c8e333956d0368ef2a92f2c9293ba80e87b1bf2a8278c67984a123b06e96d",
         "kind": "M",
         "path": "docs/RECORD-ARCHIVE-INDEX.md"
       }
     ],
-    "worktree_digest": "sha256:aa37167f88b4aa16058d46d311f78de995e6142cd000a96fc3b16d3a332cbf05"
+    "worktree_digest": "sha256:87a19a66dfe0ce34041124fd4fdf515086280f2362c559d57edbf9179e821180"
   },
-  "inputDigest": "sha256:01afb5f6f0867cb6c979a94c158f74d65d95fcc98b7ba51391829fd8609e48fb",
+  "inputDigest": "sha256:bd9f1de4d85a6796a2720cd2d185fcdac3c4b5594e72ed951ce98ae38191d879",
   "inputDigestMeaning": "primary freshness binding: canonical SHA-256 over the exact input files the projections read plus the git tree scope; recomputed at check time (FU-10)",
   "inputHashes": {
     ".github/workflows/canonical-verify.yml": "c5f7670f5d3745e781481e88204d9a218dd8a8ba467e835e983c112666ee0b2b",
@@ -43,7 +43,7 @@
     "design-lab/config/object-model.json": "1ec285aa9a003b067830354bdc010feae63feb5fc3d90103e4e229e161c0f404",
     "design-lab/config/product-manifest.json": "309e1133a84cd0c8ec2b7120038d5e5a0bbf68f97bcf4342249794a8b2856789",
     "design-lab/config/state-vocabularies.json": "54460ab51c86488102351f52198cc412a1724b725ff178c980dd560ad5e51e4a",
-    "design-lab/config/task-ledger-r3.json": "a5c891cfb4ca45574ec3ba805e3a17355c2273a2513afc0885b2a8ef8bf73ab5",
+    "design-lab/config/task-ledger-r3.json": "bd195769459e2bb733a4ef9cbc6b08b845eea7b5fac1aa012c300824033e2ea1",
     "design-lab/domain-packs/audio-design/handoff-contract.json": "95d62def98e8eb71f36c06496edce4705c6bf22d17eda762acf846642ea6ba6c",
     "design-lab/domain-packs/audio-design/manifest.json": "5460b5287c74237cb8780b5eb5ff47e02b37b655ea453c03f1e99230cd70c171",
     "design-lab/domain-packs/audio-design/preflight.json": "a423b34d800c239cdab47df245f72e15f2ecca0402a10158fa06a6d2f187d0e8",
@@ -342,7 +342,7 @@
     "design-lab/tests/test_creative_migration.py": "a72a7258499451cfcd61bf9e62f96b1e0dc6153c1bd2ffdcd874f0bca32ec57b",
     "design-lab/tests/test_creative_session_link.py": "93fa8abef5f84172b579496816884c2159a845940e44b17063bb9d864c17e86c",
     "design-lab/tests/test_creative_version_guard.py": "65b9f04ad787bd033782154ca4c271029fd3164963a95f5ce7301d5f4b31a9f1",
-    "design-lab/tests/test_current_execution.py": "1dd9f52c105767c2f07c86e4d9c2fec7bf000d6bf0980e5dc05852bd68c1c03e",
+    "design-lab/tests/test_current_execution.py": "2c51fe919845311a4a192741599a626456f43ecb3c16c679c2ed77d2349fb6ec",
     "design-lab/tests/test_current_reporting.py": "4c4372be64f97522aedeac8a592d7182dd7104d13988c629584fbed713204950",
     "design-lab/tests/test_current_version_rule.py": "94e861c2245c030d1ea0d8b06cec6c5ba0e42223c6997f62b44590c99e0c5966",
     "design-lab/tests/test_deliverable_claims_match_emitters.py": "2e93975cd2a0f74484084e257430268d71907c8f5baa32cb29513d2abb4adaba",
@@ -562,15 +562,15 @@
     "docs/handoffs/R5-PHOTOSHOP-FULL-REGRESSION-2026-09-09.md": null,
     "docs/handoffs/R5-PHOTOSHOP-PATCH-PRODUCT-2026-09-09.md": null,
     "docs/history/archive-2026-10-19/current-records/UI-DESKTOP-RECONCILIATION-2026-10-09.md": "43291aa72cad99269509bc868b7f15d56856786ca1a479e23fba2ef6fe9bfa54",
-    "docs/history/taskpacks/20261009-adoption/TASK-DEFINITIONS.json": "9ebf45ac2c0539b5227893799d417af3dbbb90c4a9b90e5861d869dd40b07681",
     "docs/history/taskpacks/20261009-adoption/pre-adoption/design-lab/config/task-ledger-r3.json": "cbffb0c062077818de26a391d54522e3d367d2bdb010f55b959923f9fe8f7f13",
+    "docs/history/taskpacks/20261023-adoption/TASK-DEFINITIONS.json": "e54f55f3246263926f45eef70bfbc0d6839301b680235c4e37cab8e0e70176ed",
     "docs/history/taskpacks/r3-ledger-pre-r5-20260909.json": "2df7e722b96443dbfa451060f6747cfff135fa48847eb6eb212fae5fe46d65fb",
     "docs/history/taskpacks/r3-tasks-2026-09-06.json": "fd042fb4259c2fd06edbf9eea715ba03c0c869aeedbc0767270bac25e6e7a272",
     "docs/history/taskpacks/r5-20260908/02-TASKS.md": "bba6893e89a28163e4d09a5c742a142faf0a9773623c55c32928f9a2ec296b39",
     "docs/history/taskpacks/r5-20260908/tasks.json": "31dde89eb4ede81fe88c0a5c5144adfb86af8db4c4d8c263bde2199180369b69",
-    "docs/taskpacks/20261009-ui-first/CONVERSATION-DECISIONS.md": "e899c7966dff7f3f8dff9280f3bdc4247b46825632cf1bccf3489d257f3f506e",
+    "docs/taskpacks/20261023-ui-kb/OWNER-DECISION-2026-10-23.md": "33dba2e3ec015032ce8a5066d45f2362570b13d0277f48297ee83b348c72a208",
     "docs/taskpacks/DESIGN-LAB-CLOUD-REAUDIT-TASKPACK-2026-09-06.md": "3d6edf1a00f4f4f7eb19005a2acba2c73bd0dc71a6d2ec5ba9ed5ae689c6454c",
-    "docs/taskpacks/DESIGN-LAB-UI-FIRST-INTEGRATED-TASKPACK-2026-10-09.md": "2cfd84627352e9f1b29b42787fa43466cd9a836130d826d43678b7733856ffda",
+    "docs/taskpacks/DESIGN-LAB-DESKTOP-KB-INTEGRATED-TASKPACK-2026-10-23.md": "ed7d4dbd8bb38dd543318dca20701da0c64e7f5743356b217de478f65f80be5c",
     "fixtures/domains/game-visual/.gitignore": "263423b98c4407e9292d4edf3092f9c125c14bacd79b12b5ab109a082108dc92",
     "fixtures/domains/game-visual/AGENTS.md": "8ddc3231f25dafb97f8c1560112ec82a0b864e569704f46fc3e501cf30740b46",
     "fixtures/domains/game-visual/android-minigame/audio/anomaly.wav": "382f95baa224c665f52e2c7d55982c0a57cba90079803896322209d6e52a0203",
@@ -692,15 +692,15 @@
   },
   "ledger": "design-lab/config/task-ledger-r3.json",
   "outputHashes": {
-    "ADAPTER_EVIDENCE_RECONCILIATION.json": "6bce1419d2229c55c290b2e42be6f5c76aa3290143c403b34e41af5e65cd5b38",
-    "CLOUD_BASELINE.json": "d071b6a22a2fae8dffeacefeef7fbadb09a52417dd1118d199893835d4502f78",
-    "CLOUD_BASELINE.md": "4f6857ce228697089f2aca6cc496438ebed385845597827eea321fd2353c6292",
-    "DOMAIN_PACK_READINESS.json": "f27629da580b4548359322ebe8fb1bbd1741e4206c3143a933574f0c4d5ec85e",
-    "KNOWLEDGE_INVENTORY.json": "1e28ff1678b96769ff20cd7d575b20121c6332e7dfbf07cdca083ccf08241737",
-    "PROJECT_STATUS.json": "720ffb855b574102e44dcb19528cb8bb23036a6a86ceced9c971e05fd504876e",
-    "PROJECT_STATUS.md": "fa320e92b33137db087977d740524fe2b84dc5a6c90faeeca1c08a9557f518a0",
-    "RELEASE_READINESS.json": "adc3764f3acff0c034d8e379d431d1a210bfdae2c330ebb5c3473701cf84196e",
-    "TASK_PROGRESS.json": "fa40b6572c64cd77545a9aec3baf58dfcfa8b072e0db4042e61ef21883f39c63"
+    "ADAPTER_EVIDENCE_RECONCILIATION.json": "f784fb17b2f97b1bedda170da6f15858d4935235237b1ed8659a48e511743694",
+    "CLOUD_BASELINE.json": "19e8ddfcd7e9592f07d7378a64219a204bf1dbf3fe06a1d04f7f317dce83f49f",
+    "CLOUD_BASELINE.md": "fbe13ea16370f00a49b7125fb1174ac9d7ffe35dda2e993e77b4ef3f9a9e9c9e",
+    "DOMAIN_PACK_READINESS.json": "72b7f7e5ac17818852586a39b2cb50c484349dab9d9f6863f6ff4df17ae44559",
+    "KNOWLEDGE_INVENTORY.json": "5f2460323b118cac9f61dbec0310f8e1e91c379077cc578a6ae75c080b0e3ac1",
+    "PROJECT_STATUS.json": "f8df7c84930ef487464ade15642eed1f6a9cc411ab3f524211678693eb902da6",
+    "PROJECT_STATUS.md": "98c103f3454710f2f80d7eaef6757af0439121586775c1a765a79623f0c7204b",
+    "RELEASE_READINESS.json": "8ca347def50c5ca9e443ee32d36819a1b1c8f2a6b5169dd86dd387055c7793f8",
+    "TASK_PROGRESS.json": "d1d252060931c11b9e8371226d493c88a8cf58ddee55107e325173b5cf7f32a0"
   },
   "reportRoot": "../../reports/current/",
   "reports": [
@@ -716,5 +716,5 @@
   ],
   "schemaVersion": "design-lab/current-report-index/v3",
   "subjectMeaning": "generation-time git observation, not a freshness claim; exact-SHA evidence is the CI artifact",
-  "subjectSha": "dbe2d8c7705a06eb3d5a52bf38f3197439ca568a"
+  "subjectSha": "4694778c45f7ef50fc4fe2b861d9063d392be2e5"
 }

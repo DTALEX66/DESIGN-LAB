@@ -241,8 +241,8 @@
       "tool": "eagle-mcp-server (npm)"
     }
   ],
-  "authorityTaskpackHash": "2cfd84627352e9f1b29b42787fa43466cd9a836130d826d43678b7733856ffda",
-  "authorityTaskpackId": "DL-TP-20261009-UI-FIRST-R1",
+  "authorityTaskpackHash": "ed7d4dbd8bb38dd543318dca20701da0c64e7f5743356b217de478f65f80be5c",
+  "authorityTaskpackId": "DL-TP-20261023-DESKTOP-KB-R1",
   "capabilityIndexEntries": 50,
   "environmentFingerprint": {
     "machine": "AMD64",
@@ -251,18 +251,18 @@
   },
   "fresh": false,
   "freshnessMeaning": "at generation only; check verifies bound-input integrity, not current Git or cloud state",
-  "generatedAt": "2026-10-22T23:44:57+00:00",
+  "generatedAt": "2026-10-23T12:18:42+00:00",
   "gitStateMeaning": "generation-time observation, not current HEAD",
   "schemaVersion": "design-lab/adapter-reconciliation/v2",
   "subjectMeaning": "subjectType=WORKTREE means the tree was dirty at generation; worktreeDigest covers HEAD plus the non-generated changes",
-  "subjectSha": "dbe2d8c7705a06eb3d5a52bf38f3197439ca568a",
+  "subjectSha": "4694778c45f7ef50fc4fe2b861d9063d392be2e5",
   "subjectType": "WORKTREE",
-  "taskpackHash": "2cfd84627352e9f1b29b42787fa43466cd9a836130d826d43678b7733856ffda",
-  "taskpackId": "DL-TP-20261009-UI-FIRST-R1",
+  "taskpackHash": "ed7d4dbd8bb38dd543318dca20701da0c64e7f5743356b217de478f65f80be5c",
+  "taskpackId": "DL-TP-20261023-DESKTOP-KB-R1",
   "testRunAt": "2026-10-08T20:41:26+00:00",
   "testRunId": "testrun-20261008T204123Z-forward-repeat-e7c4504bc3d0",
   "testRunMeaning": "bound run: python scripts/run_bound_test_suite.py --modules test_boot_reconciliation",
   "testRunResult": "OK",
   "worktreeClean": false,
-  "worktreeDigest": "sha256:aa37167f88b4aa16058d46d311f78de995e6142cd000a96fc3b16d3a332cbf05"
+  "worktreeDigest": "sha256:87a19a66dfe0ce34041124fd4fdf515086280f2362c559d57edbf9179e821180"
 }

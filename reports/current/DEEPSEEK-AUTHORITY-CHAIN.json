@@ -1,17 +1,17 @@
 {
   "schemaVersion": "design-lab/deepseek-authority-chain/v1",
   "task_key": "DL-TP-20260914-DEEPSEEK-AUTHORITY-R1::DLDS-A010",
-  "generated_at": "2026-10-20T13:00:21+00:00",
+  "generated_at": "2026-10-23T12:17:35+00:00",
   "subject": {
-    "base_sha": "178549e9057a59289f9d099b4bb2b6bbf4f470be",
+    "base_sha": "4a70d740418333f0229d29c5bec3d3f8dae6e6b7",
     "branch": "qoder/designlab-backup-consistency-20261007",
     "worktree_clean": false
   },
   "current_authority": {
     "top_level": "DL-AUTHORITY-2026-09-18-R2",
-    "integrated": "docs/taskpacks/DESIGN-LAB-DIRECTION-ALIGNMENT-2026-10-19.md",
+    "integrated": "docs/taskpacks/DESIGN-LAB-DESKTOP-KB-INTEGRATED-TASKPACK-2026-10-23.md",
     "current_partition": "currentExecution",
-    "current_taskpack": "DL-TP-20261009-UI-FIRST-R1",
+    "current_taskpack": "DL-TP-20261023-DESKTOP-KB-R1",
     "predecessor_meaning": "DeepSeek/R5 below are lineage only after owner adoption",
     "deepseek_execution": {
       "taskpack_id": "DL-TP-20260914-DEEPSEEK-AUTHORITY-R1",
@@ -113,7 +113,7 @@
       "path": ".project/manifest.yaml",
       "field": "taskpack",
       "recorded": "DL-TP-20261019-DIRECTION-R1",
-      "current_authority": "DL-TP-20261009-UI-FIRST-R1",
+      "current_authority": "DL-TP-20261023-DESKTOP-KB-R1",
       "action": "reconcile in DLDS-B040/B010; not silently rewritten by A010"
     }
   ],
@@ -121,8 +121,8 @@
     "CURRENT_INTEGRATED_TASKPACK": 1,
     "CURRENT_TASK_LEDGER": 1,
     "GOVERNANCE_TRUTH": 2,
-    "HISTORICAL": 117,
-    "REFERENCE": 11
+    "HISTORICAL": 119,
+    "REFERENCE": 23
   },
   "entries": [
     {
@@ -134,23 +134,23 @@
     },
     {
       "path": "AGENTS.md",
-      "bytes": 17873,
-      "sha256": "sha256:4812a416daa6dc674e840aa9043e9e3dc84778ffcea63b15f183a47cb80e9e98",
+      "bytes": 21886,
+      "sha256": "sha256:9048d39438288757b1807131c98fa6945b3e2e5165b3b19d1c1e979289ab8c45",
       "authority_class": "GOVERNANCE_TRUTH",
       "basis": "root execution rules"
     },
     {
       "path": "design-lab/config/task-ledger-r3.json",
-      "bytes": 753099,
-      "sha256": "sha256:a5c891cfb4ca45574ec3ba805e3a17355c2273a2513afc0885b2a8ef8bf73ab5",
+      "bytes": 754762,
+      "sha256": "sha256:bd195769459e2bb733a4ef9cbc6b08b845eea7b5fac1aa012c300824033e2ea1",
       "authority_class": "CURRENT_TASK_LEDGER",
       "basis": "currentExecution dispatch; frozen R5 evidence partition",
       "mutable_state": "the ledger is rewritten at the close of every task, so its bytes and digest are generation-time",
       "ledger": {
         "kind": "single-ledger-with-frozen-predecessor",
-        "taskpack": "DL-TP-20261009-UI-FIRST-R1",
+        "taskpack": "DL-TP-20261023-DESKTOP-KB-R1",
         "current_partition": "currentExecution",
-        "tasks": 34,
+        "tasks": 50,
         "frozen_legacy_tasks": 28,
         "evidence_receipts": 198
       }
@@ -164,8 +164,8 @@
     },
     {
       "path": "docs/history/taskpacks/20261009-adoption/AUTHORITY-PIN-CHANGE.json",
-      "bytes": 16175,
-      "sha256": "sha256:a70f6086cd5ce9f871409b3c1296e2b2bed90320e872736d8b578a9ea744ffb7",
+      "bytes": 18555,
+      "sha256": "sha256:35e4f859c96687d57c550ef2fda4b65b6af33b764bd1b4f43c9e41704c281a0b",
       "authority_class": "HISTORICAL",
       "basis": "frozen historical path (docs/history/)",
       "ledger": {
@@ -1358,6 +1358,20 @@
       }
     },
     {
+      "path": "docs/history/taskpacks/20261023-adoption/TASK-DEFINITIONS.json",
+      "bytes": 89864,
+      "sha256": "sha256:e54f55f3246263926f45eef70bfbc0d6839301b680235c4e37cab8e0e70176ed",
+      "authority_class": "HISTORICAL",
+      "basis": "frozen historical path (docs/history/)",
+      "ledger": {
+        "kind": "task-ledger",
+        "taskpack": "DL-TP-20261023-DESKTOP-KB-R1",
+        "schemaVersion": null,
+        "tasks": 50,
+        "evidence_receipts": 0
+      }
+    },
+    {
       "path": "docs/history/taskpacks/pre-r3-20260904-taskpack.md",
       "bytes": 148147,
       "sha256": "sha256:7432d53bdebb14f21f62390a422268a575e95d97f2fe979ac5dda731434dcadb",
@@ -1588,6 +1602,128 @@
       "basis": "taskpack retained for reference; not a current dispatch entry"
     },
     {
+      "path": "docs/taskpacks/20261023-ui-kb/OWNER-DECISION-2026-10-23.md",
+      "bytes": 5671,
+      "sha256": "sha256:33dba2e3ec015032ce8a5066d45f2362570b13d0277f48297ee83b348c72a208",
+      "authority_class": "REFERENCE",
+      "basis": "taskpack retained for reference; not a current dispatch entry"
+    },
+    {
+      "path": "docs/taskpacks/20261023-ui-kb/SOURCE-MANIFEST.json",
+      "bytes": 9814,
+      "sha256": "sha256:f1dcc401bba7b7bf3540cc8be912a5a041c55f169407785ea6cf2821c8d1ac64",
+      "authority_class": "REFERENCE",
+      "basis": "taskpack retained for reference; not a current dispatch entry",
+      "ledger": {
+        "kind": "unknown-json",
+        "keys": [
+          "adoptedAt",
+          "limitations",
+          "members",
+          "observedHead",
+          "ownerInstruction",
+          "package",
+          "packageConsistencyJson",
+          "packageSelfCheck"
+        ]
+      }
+    },
+    {
+      "path": "docs/taskpacks/20261023-ui-kb/source/00_先读这里.md",
+      "bytes": 982,
+      "sha256": "sha256:644327dd9442cab3d4a3d2a694ba5d8a08d0b0dde2553a20952265f486560bac",
+      "authority_class": "REFERENCE",
+      "basis": "taskpack retained for reference; not a current dispatch entry"
+    },
+    {
+      "path": "docs/taskpacks/20261023-ui-kb/source/01_需求原文与取代关系.md",
+      "bytes": 4323,
+      "sha256": "sha256:ee1be120c7d3f9b51f9758bcbaa155601075e66acba3264fb5ed2d05e49a8672",
+      "authority_class": "REFERENCE",
+      "basis": "taskpack retained for reference; not a current dispatch entry"
+    },
+    {
+      "path": "docs/taskpacks/20261023-ui-kb/source/02_完整产品方案.md",
+      "bytes": 24247,
+      "sha256": "sha256:3d1a46e718455bb74a0d7e0a5bf9493c1d413e95de689798095e0bae21418721",
+      "authority_class": "REFERENCE",
+      "basis": "taskpack retained for reference; not a current dispatch entry"
+    },
+    {
+      "path": "docs/taskpacks/20261023-ui-kb/source/06_分阶段实施与验收.md",
+      "bytes": 4554,
+      "sha256": "sha256:80ca1b37fe5f0404e02de675d9f85a918f77b9db5840becc11fe020f7267a483",
+      "authority_class": "REFERENCE",
+      "basis": "taskpack retained for reference; not a current dispatch entry"
+    },
+    {
+      "path": "docs/taskpacks/20261023-ui-kb/source/07_接口与数据演进.md",
+      "bytes": 3553,
+      "sha256": "sha256:3d257b2eefe82137175eb0b4a1da237eb4f7fcaab86b6e3e79969c17e314e567",
+      "authority_class": "REFERENCE",
+      "basis": "taskpack retained for reference; not a current dispatch entry"
+    },
+    {
+      "path": "docs/taskpacks/20261023-ui-kb/source/09_DESIGN.md",
+      "bytes": 2315,
+      "sha256": "sha256:0a63630ad6cf8cf749b5908eeb55f5be8f0cb05001e6112579ee3e2b501e6f00",
+      "authority_class": "REFERENCE",
+      "basis": "taskpack retained for reference; not a current dispatch entry"
+    },
+    {
+      "path": "docs/taskpacks/20261023-ui-kb/source/11_模型选择与验证.md",
+      "bytes": 1639,
+      "sha256": "sha256:cf0234f1e8f022f07f09af7bfacc634f122e6c18665da87c24323f98b8349cf1",
+      "authority_class": "REFERENCE",
+      "basis": "taskpack retained for reference; not a current dispatch entry"
+    },
+    {
+      "path": "docs/taskpacks/20261023-ui-kb/source/12_方案边界与需求.json",
+      "bytes": 20765,
+      "sha256": "sha256:ac752e5df12dcbd080f80d8a21061e3e23fea031018873f3f099f8b3162ab0c3",
+      "authority_class": "REFERENCE",
+      "basis": "taskpack retained for reference; not a current dispatch entry",
+      "ledger": {
+        "kind": "unknown-json",
+        "keys": [
+          "currentScope",
+          "dailyNavigation",
+          "date",
+          "documentKind",
+          "exampleOnly",
+          "externalExecutionPerformed",
+          "futureScope",
+          "modelRoles"
+        ]
+      }
+    },
+    {
+      "path": "docs/taskpacks/20261023-ui-kb/source/13_包内一致性核对.json",
+      "bytes": 793,
+      "sha256": "sha256:f6df4ea261ad60e151570a92cdc2fa6c86419c7f0c64f6fffc9e374a03adf161",
+      "authority_class": "REFERENCE",
+      "basis": "taskpack retained for reference; not a current dispatch entry",
+      "ledger": {
+        "kind": "unknown-json",
+        "keys": [
+          "checkedAt",
+          "checks",
+          "notExecuted",
+          "requirementCount",
+          "scope",
+          "sectionCount",
+          "sourceCount"
+        ]
+      }
+    },
+    {
+      "path": "docs/taskpacks/20261023-ui-kb/source/示例/三类交接场景.md",
+      "bytes": 3177,
+      "sha256": "sha256:2a415ea9e40af9773f5790ffb5c3c50b4d5d000bdf307a64cbfd59888c1f0c24",
+      "authority_class": "REFERENCE",
+      "basis": "taskpack retained for reference; not a current dispatch entry"
+    },
+    {
       "path": "docs/taskpacks/DESIGN-LAB-DEEPSEEK-AUTHORITY-TASKPACK-2026-09-14.md",
       "bytes": 25133,
       "sha256": "sha256:d9fdaa3ad7ad0055a3f451c853756be41036b32112cacc4d1c17b314c005a2f9",
@@ -1595,11 +1731,18 @@
       "basis": "frozen predecessor, mapped into current UI-first tasks"
     },
     {
+      "path": "docs/taskpacks/DESIGN-LAB-DESKTOP-KB-INTEGRATED-TASKPACK-2026-10-23.md",
+      "bytes": 15653,
+      "sha256": "sha256:ed7d4dbd8bb38dd543318dca20701da0c64e7f5743356b217de478f65f80be5c",
+      "authority_class": "CURRENT_INTEGRATED_TASKPACK",
+      "basis": "owner-adopted desktop UI-first dispatch"
+    },
+    {
       "path": "docs/taskpacks/DESIGN-LAB-DIRECTION-ALIGNMENT-2026-10-19.md",
       "bytes": 13993,
       "sha256": "sha256:98e7d2210181de8a4a3a0c2d8c15c4846b332e3e418a02446a0bb001a1c2e116",
-      "authority_class": "CURRENT_INTEGRATED_TASKPACK",
-      "basis": "owner-adopted desktop UI-first dispatch"
+      "authority_class": "HISTORICAL",
+      "basis": "owner-adopted classification registry; old dispatch frozen"
     },
     {
       "path": "docs/taskpacks/DESIGN-LAB-FINAL-AUTHORITY-CONVERGENCE-TASKPACK-2026-09-18.md",

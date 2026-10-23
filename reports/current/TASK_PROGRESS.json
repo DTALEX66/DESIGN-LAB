@@ -1,8 +1,10 @@
 {
-  "authorityTaskpackHash": "2cfd84627352e9f1b29b42787fa43466cd9a836130d826d43678b7733856ffda",
-  "authorityTaskpackId": "DL-TP-20261009-UI-FIRST-R1",
+  "authorityTaskpackHash": "ed7d4dbd8bb38dd543318dca20701da0c64e7f5743356b217de478f65f80be5c",
+  "authorityTaskpackId": "DL-TP-20261023-DESKTOP-KB-R1",
   "counts": {
-    "FROZEN_DEFERRED": 34
+    "FROZEN_DEFERRED": 34,
+    "IN_PROGRESS": 1,
+    "NOT_STARTED": 15
   },
   "environmentFingerprint": {
     "machine": "AMD64",
@@ -11,12 +13,12 @@
   },
   "fresh": false,
   "freshnessMeaning": "at generation only; check verifies bound-input integrity, not current Git or cloud state",
-  "generatedAt": "2026-10-22T23:44:57+00:00",
+  "generatedAt": "2026-10-23T12:18:42+00:00",
   "gitStateMeaning": "generation-time observation, not current HEAD",
   "ledger_partition": "currentExecution",
   "meaning": "Parent/subtask inventory is not a capability count or completion percentage. Definition adoption does not implement product tasks; R5 evidence is historical.",
   "mobile": "FROZEN_DEFERRED",
-  "plan_path": "docs/taskpacks/DESIGN-LAB-UI-FIRST-INTEGRATED-TASKPACK-2026-10-09.md",
+  "plan_path": "docs/taskpacks/DESIGN-LAB-DESKTOP-KB-INTEGRATED-TASKPACK-2026-10-23.md",
   "predecessor": {
     "counts": {
       "PARTIAL": 28
@@ -26,11 +28,11 @@
     "taskpack": "DL-TP-20260908-R5"
   },
   "subjectMeaning": "subjectType=WORKTREE means the tree was dirty at generation; worktreeDigest covers HEAD plus the non-generated changes",
-  "subjectSha": "dbe2d8c7705a06eb3d5a52bf38f3197439ca568a",
+  "subjectSha": "4694778c45f7ef50fc4fe2b861d9063d392be2e5",
   "subjectType": "WORKTREE",
-  "taskpack": "DL-TP-20261009-UI-FIRST-R1",
-  "taskpackHash": "2cfd84627352e9f1b29b42787fa43466cd9a836130d826d43678b7733856ffda",
-  "taskpackId": "DL-TP-20261009-UI-FIRST-R1",
+  "taskpack": "DL-TP-20261023-DESKTOP-KB-R1",
+  "taskpackHash": "ed7d4dbd8bb38dd543318dca20701da0c64e7f5743356b217de478f65f80be5c",
+  "taskpackId": "DL-TP-20261023-DESKTOP-KB-R1",
   "tasks": [
     {
       "acceptance_unmet": [],
@@ -850,6 +852,236 @@
       "priority": "UI_FIRST",
       "state": "FROZEN_DEFERRED",
       "title": "真实旅程与视觉验收"
+    },
+    {
+      "acceptance_unmet": [],
+      "batch": "K0",
+      "evidence": [],
+      "evidence_level": "NO_EVIDENCE",
+      "id": "DL-KB-01",
+      "implementation_unmet": [],
+      "kind": "PARENT_TASK",
+      "priority": "UI_FIRST",
+      "state": "IN_PROGRESS",
+      "title": "方案包落仓、权威与规划覆盖替换、台账加入"
+    },
+    {
+      "acceptance_unmet": [],
+      "batch": "K1",
+      "evidence": [],
+      "evidence_level": "NO_EVIDENCE",
+      "id": "DL-KB-02",
+      "implementation_unmet": [],
+      "kind": "PARENT_TASK",
+      "priority": "UI_FIRST",
+      "state": "NOT_STARTED",
+      "title": "知识条目可写面：新增、读取、列表与一个权威写入点"
+    },
+    {
+      "acceptance_unmet": [],
+      "batch": "K1-UI",
+      "evidence": [],
+      "evidence_level": "NO_EVIDENCE",
+      "id": "DL-KB-03",
+      "implementation_unmet": [
+        "DL-KB-02"
+      ],
+      "kind": "UI_SUBTASK",
+      "priority": "UI_FIRST",
+      "state": "NOT_STARTED",
+      "title": "「知识与提示词库」屏：搜索主视觉、标签、列表与详情"
+    },
+    {
+      "acceptance_unmet": [],
+      "batch": "K1-contract",
+      "evidence": [],
+      "evidence_level": "NO_EVIDENCE",
+      "id": "DL-KB-04",
+      "implementation_unmet": [
+        "DL-KB-02"
+      ],
+      "kind": "PARENT_TASK",
+      "priority": "UI_SUPPORT",
+      "state": "NOT_STARTED",
+      "title": "中文检索与两字以下回退"
+    },
+    {
+      "acceptance_unmet": [],
+      "batch": "K2",
+      "evidence": [],
+      "evidence_level": "NO_EVIDENCE",
+      "id": "DL-KB-05",
+      "implementation_unmet": [
+        "DL-KB-02"
+      ],
+      "kind": "PARENT_TASK",
+      "priority": "UI_SUPPORT",
+      "state": "NOT_STARTED",
+      "title": "修订、并发前置条件与推荐版本分离"
+    },
+    {
+      "acceptance_unmet": [],
+      "batch": "K2-UI",
+      "evidence": [],
+      "evidence_level": "NO_EVIDENCE",
+      "id": "DL-KB-06",
+      "implementation_unmet": [
+        "DL-KB-01"
+      ],
+      "kind": "UI_SUBTASK",
+      "priority": "UI_FIRST",
+      "state": "NOT_STARTED",
+      "title": "三主入口外壳与导航重构"
+    },
+    {
+      "acceptance_unmet": [],
+      "batch": "K3",
+      "evidence": [],
+      "evidence_level": "NO_EVIDENCE",
+      "id": "DL-KB-07",
+      "implementation_unmet": [
+        "DL-KB-02"
+      ],
+      "kind": "PARENT_TASK",
+      "priority": "UI_SUPPORT",
+      "state": "NOT_STARTED",
+      "title": "中立方案对象与一份创意意图"
+    },
+    {
+      "acceptance_unmet": [
+        "DL-KB-06"
+      ],
+      "batch": "K3-UI",
+      "evidence": [],
+      "evidence_level": "NO_EVIDENCE",
+      "id": "DL-KB-08",
+      "implementation_unmet": [
+        "DL-KB-07"
+      ],
+      "kind": "UI_SUBTASK",
+      "priority": "UI_FIRST",
+      "state": "NOT_STARTED",
+      "title": "「设计辅助」初始态与方案详情屏"
+    },
+    {
+      "acceptance_unmet": [],
+      "batch": "K4",
+      "evidence": [],
+      "evidence_level": "NO_EVIDENCE",
+      "id": "DL-KB-09",
+      "implementation_unmet": [],
+      "kind": "PARENT_TASK",
+      "priority": "UI_SUPPORT",
+      "state": "NOT_STARTED",
+      "title": "目标档案：软件×模型×入口"
+    },
+    {
+      "acceptance_unmet": [
+        "DL-KB-06"
+      ],
+      "batch": "K4-UI",
+      "evidence": [],
+      "evidence_level": "NO_EVIDENCE",
+      "id": "DL-KB-10",
+      "implementation_unmet": [
+        "DL-KB-09"
+      ],
+      "kind": "UI_SUBTASK",
+      "priority": "UI_SUPPORT",
+      "state": "NOT_STARTED",
+      "title": "目标组合选择面板屏"
+    },
+    {
+      "acceptance_unmet": [],
+      "batch": "K5",
+      "evidence": [],
+      "evidence_level": "NO_EVIDENCE",
+      "id": "DL-KB-11",
+      "implementation_unmet": [
+        "DL-KB-07",
+        "DL-KB-09"
+      ],
+      "kind": "PARENT_TASK",
+      "priority": "UI_SUPPORT",
+      "state": "NOT_STARTED",
+      "title": "三形态导出与执行状态声明"
+    },
+    {
+      "acceptance_unmet": [
+        "DL-KB-06"
+      ],
+      "batch": "K5-UI",
+      "evidence": [],
+      "evidence_level": "NO_EVIDENCE",
+      "id": "DL-KB-12",
+      "implementation_unmet": [
+        "DL-KB-05",
+        "DL-KB-07"
+      ],
+      "kind": "UI_SUBTASK",
+      "priority": "UI_SUPPORT",
+      "state": "NOT_STARTED",
+      "title": "「我的方案」屏"
+    },
+    {
+      "acceptance_unmet": [],
+      "batch": "K6",
+      "evidence": [],
+      "evidence_level": "NO_EVIDENCE",
+      "id": "DL-KB-13",
+      "implementation_unmet": [
+        "DL-KB-06"
+      ],
+      "kind": "PARENT_TASK",
+      "priority": "UI_SUPPORT",
+      "state": "NOT_STARTED",
+      "title": "轻量与性能：先量基线再改"
+    },
+    {
+      "acceptance_unmet": [
+        "DL-KB-06"
+      ],
+      "batch": "K6-UI",
+      "evidence": [],
+      "evidence_level": "NO_EVIDENCE",
+      "id": "DL-KB-14",
+      "implementation_unmet": [
+        "DL-KB-02",
+        "DL-KB-09"
+      ],
+      "kind": "UI_SUBTASK",
+      "priority": "UI_FIRST",
+      "state": "NOT_STARTED",
+      "title": "状态与错误面"
+    },
+    {
+      "acceptance_unmet": [],
+      "batch": "K7",
+      "evidence": [],
+      "evidence_level": "NO_EVIDENCE",
+      "id": "DL-KB-15",
+      "implementation_unmet": [
+        "DL-KB-09",
+        "DL-KB-11"
+      ],
+      "kind": "PARENT_TASK",
+      "priority": "FOLLOWUP",
+      "state": "NOT_STARTED",
+      "title": "方案助手模型真实接入的前置对账"
+    },
+    {
+      "acceptance_unmet": [],
+      "batch": "K8",
+      "evidence": [],
+      "evidence_level": "NO_EVIDENCE",
+      "id": "DL-KB-16",
+      "implementation_unmet": [
+        "DL-KB-11"
+      ],
+      "kind": "PARENT_TASK",
+      "priority": "FOLLOWUP",
+      "state": "NOT_STARTED",
+      "title": "可选外部结果反馈"
     }
   ],
   "testRunAt": "2026-10-08T20:41:26+00:00",
@@ -857,5 +1089,5 @@
   "testRunMeaning": "bound run: python scripts/run_bound_test_suite.py --modules test_boot_reconciliation",
   "testRunResult": "OK",
   "worktreeClean": false,
-  "worktreeDigest": "sha256:aa37167f88b4aa16058d46d311f78de995e6142cd000a96fc3b16d3a332cbf05"
+  "worktreeDigest": "sha256:87a19a66dfe0ce34041124fd4fdf515086280f2362c559d57edbf9179e821180"
 }
