@@ -345,6 +345,10 @@ class KnowledgeLibraryTests(unittest.TestCase):
             samples.append((time.perf_counter() - started) * 1000)
         samples.sort()
         p95 = samples[max(0, int(len(samples) * 0.95) - 1)]
+        # Printed, not just asserted: the product plan publishes a 300 ms budget, and a budget
+        # without the measured number beside it cannot be checked later. CI keeps the line.
+        print(f'KNOWLEDGE_SEARCH_P95_MS={p95:.1f} budget={knowledge_library.SEARCH_P95_BUDGET_MS} '
+              f'entries=1000 samples={len(samples)}')
         self.assertLessEqual(
             p95, knowledge_library.SEARCH_P95_BUDGET_MS,
             f'p95 {p95:.1f} ms over {len(samples)} searches at 1,000 entries exceeds the '
