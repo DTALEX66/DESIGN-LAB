@@ -444,14 +444,14 @@
    "also_in_repo": [
     "docs/architecture/BOUNDARY_CONTRACT.md"
    ],
-   "repoBytesAfterImport": 5670,
-   "repoCrc32AfterImport": "2485d448",
-   "repoSha256AfterImport": "sha256:815262c90cfc553b6271c32741fe11ead68d6acd813d9b459e49eb9e10a1996e",
+   "repoBytesAfterImport": 8739,
+   "repoCrc32AfterImport": "882f7815",
+   "repoSha256AfterImport": "sha256:ed64fc32bbd1e29e16f3d360b9ce86e59b05a47dccde63061177169df7b606ca",
    "evolvedBy": {
-    "commit": "21095fb1",
-    "subject": "docs(boundary): mark the clauses the 2026-10-20 ruling lifts or removes"
+    "commit": "3e776216",
+    "subject": "docs(governance): put the boundary face in sync with what is now dispatched, and date one stale reading"
    },
-   "evolution": "owner 2026-10-20 定点解冻：边界合同里「不实施产品功能」这条普遍禁止在提示词入口、导出出口、模型选择接口三段上失效，另把字体库与第三方素材权利判定移出范围；原句保留并就地标注，仍约束其余产品工作。"
+   "evolution": "owner 2026-10-23 采纳 DL-TP-20261023-DESKTOP-KB-R1 后的覆盖替换与同日更正：ROADMAP 先加 2026-10-23 U0…U8 段、再把 U4 那句 2026-10-21 旧读数改成带日期的读数；BOUNDARY_CONTRACT 前置 2026-10-23 节并把 2026-10-19 节的优先句改成只优先于其下文。归档字节与 leg 1 不动，本行由仓库副本的后导入摘要持有。"
   },
   {
    "source_container": "DESIGN-LAB_FINAL_CONSOLIDATED_PACKAGE_2026-09-29.zip",
@@ -505,14 +505,14 @@
    "also_in_repo": [
     "docs/current/ROADMAP.md"
    ],
-   "repoBytesAfterImport": 12124,
-   "repoCrc32AfterImport": "310ae066",
-   "repoSha256AfterImport": "sha256:40af10fc4d3daa12fa98ddc9bf7e6a9b23e66365feb5120bb2b68b89a0b953be",
+   "repoBytesAfterImport": 12257,
+   "repoCrc32AfterImport": "51b1ec50",
+   "repoSha256AfterImport": "sha256:fb8f5c4e81ca41689ef8be078faccaa4881a98e2fad41ae4ad89c3109b6cff90",
    "evolvedBy": {
-    "commit": "277f4649",
-    "subject": "docs(governance): adopt the desktop-UI/knowledge-base pack as the only dispatch entry"
+    "commit": "3e776216",
+    "subject": "docs(governance): put the boundary face in sync with what is now dispatched, and date one stale reading"
    },
-   "evolution": "owner 2026-10-23 指令「更新覆盖替换到权威和规划里」：这四份是 record-import 清单的 repo 侧持有行，DL-TP-20261023-DESKTOP-KB-R1 采纳时逐份改写的是仓库副本（AUTHORITY.md 加 DESKTOP-KB-20261023-R1 采纳块并把 2026-10-19 那句标为当日原文；authority-index.json 的 current/boot-order/currentIntegrated 重绑并新增 desktopKbAdoption；PRODUCT_DEFINITION.md 与 ROADMAP.md 前置 2026-10-23 节）。归档字节与 leg 1 未动，仍对源 ZIP 可验；本行改由 commit 277f4649 的仓库副本摘要持有，leg 2 仍拒绝既不符合归档也不符合声明的字节。"
+   "evolution": "owner 2026-10-23 采纳 DL-TP-20261023-DESKTOP-KB-R1 后的覆盖替换与同日更正：ROADMAP 先加 2026-10-23 U0…U8 段、再把 U4 那句 2026-10-21 旧读数改成带日期的读数；BOUNDARY_CONTRACT 前置 2026-10-23 节并把 2026-10-19 节的优先句改成只优先于其下文。归档字节与 leg 1 不动，本行由仓库副本的后导入摘要持有。"
   },
   {
    "source_container": "DESIGN-LAB_FINAL_CONSOLIDATED_PACKAGE_2026-09-29.zip",
