@@ -351,115 +351,7 @@ owner 发来 `DESIGN-LAB_独立闭环审计包_20261021.zip`（19 成员，`sha2
 
 **批次序列实跑**（Record 那一步不是可选项）：`record_import_verify.py --head` 在改前只报两行 NOTE，改后如实报出 `WORKTREE-MISMATCH docs/current/PRODUCT_DEFINITION.md`（声明 `crc=efe38284 size=11466`，实测 `e3728ae2 / 12288`）与 `ROADMAP.md`（`4d2ef63b / 9564` 对 `33926668 / 9879`），走 `declare_record_evolution.py` 把两行绑到真实提交 `442cc71b`，回读 `RECORD_VERIFY=OK rows=492 worktree_verified=479 mapped_copies_verified=220 blob_eol_only=12`，单测 `test_record_import_fidelity` 4 项 OK。`DOCUMENTED_COUNTS=PASS claims=11`、`PATH_REF_GATE=PASS checks=10`。本批**没有**动产品代码、账本与 schema，所以 34 项 `FROZEN_DEFERRED` 与钉住的六份权威件字节一字未改。
 
-**本批自己造成的缺陷，按 §6.8 同一条形状又犯了一次**：插入 §5.14 时把锚点定在下一节的标题行 `
-**批次 I 的收尾读数（写成这样，是因为它们各自来自不同的地方）**。CI 那枚是权威：`efa5a8afb7e9b04bd05c7b6ad96f9872d46e4823`
-上 main 与备份分支同指，两次 push run `39943398842` / `39943381425` 均 completed success；12 个作业里除
-「Branch light gate」按规则 skipped 之外全部 success，无失败作业。Python 作业三分片 exit=0，
-`PYTHON_TESTS_UNION=OK expected=3183 distinct=3183 ran=3183 duplicates=0 missing=0 unexpected=0`
-（PASS 3161、SKIP 22），同作业内 `VERIFY_CONTRACT_BINDINGS=PASS schemas=32 binding=2 inert=30 routes=68
-dispatched=68 bound=54 schema_less=14`、`VERIFY_ROUTE_PAYLOAD_CONTRACTS=PASS bindings=35 failures=0`、
-`VERIFY_WORKBENCH_ROUTE_CALLS=PASS calls=109 routes=66 matched=55 backend_only=11 dynamic=3 special=1`、
-`VERIFY_DESIGN_LAB=OK total=76 failed=0`；清轮安装作业在同一枚上给全三行
-`GET_SWEEP layout=installed routes=39 reads=39 answered=35 verdicts=4 unmeasured=2`、
-`POST_SWEEP layout=installed rows=29 walked=28 written=28 read_backs=34 refused=0 excluded=1`、
-`NATIVE_VERIFY layout=installed clean=HASH_VERIFIED tampered=NATIVE_ARTIFACT_UNVERIFIED …`，
-与本机 §5.29 前面那两组源码/装机读数逐字相同。
-
-**本机整轮没有拿到同一条绿**，这一条必须点名而不是略过：本机三片跑完是 `union-exit=1`，shard 1/2 全绿，
-shard 3 报 `outcomes={'ERROR': 1, 'FAIL': 59, 'PASS': 1007, 'SKIP': 6}`，红集中在
-`test_reconstruction_evidence`、`test_verifier_internals`、`test_workbench_*_gate`、`test_service_cli`、
-`test_ui_layering`、`test_spill_census_tracked_verdict` 这些读整棵树或要 node/浏览器的套件。
-**归因未定**，因为那一轮与我往同一棵树里解包、落 20261023 方案包的时间重叠，而这些套件里多数带
-snapshot/diff 或 tree-hash 断言——并发写会把自己的活动当成违规。手上有证据的只有一条：把其中两个模块
-（`test_ui_layering`、`test_service_cli`）在静默树上单跑，`Ran 15 tests / OK`、`DRIVER failures=0 errors=0 skipped=0`，
-所以它们不是本质上坏。结论按证据强度写：**"全套通过"这条只按 CI 那枚报**；本机那 60 项要在静默树上重跑三分片
-才能 either 归零 or 升级为真缺陷，重跑结果进下一份读数，不在此处冒充。
-
-### 5.30 第二十七批（规划轮 J0：一份 Record 投递包变成权威、账本与归档三面，而两处工具缺陷先红给我看）
-
-owner 2026-10-23 原话：**「读取分析，按照这个执行（前端UI有新规划），并且归档到统一项目里，更新覆盖替换到权威和规划里」**
-与 **「先分析拆解，加入到优先到任务台账里」**。这一批不落产品功能，只做三件事：把投递包逐字节归档并登记、
-把权威与规划覆盖替换到新包、把新派工按优先级写进唯一账本。桌面 UI 从此进入当前派工面——批次 I 那句
-「前端 0 文件」是 I 的边界，不是此后每轮的边界。
-
-**先量再写（不是抄包里的数字）**。包内 `13_包内一致性核对.json` 自报 `requirementCount 66 / sourceCount 38 /
-sectionCount 19`，`00_先读这里.md` 自报观察 `main@2d6ede51`。这些是作者时点，本批一律不引用为现状。本仓
-落仓时实测的现状四条：`capability_library.py` 是只读投影（无写入面）、`prompt_intelligence.py` 不调用模型、
-`prompt_results.py` 存储层要求 `executed=false`、`model_selection.py` 只记录选择——四条都由代码读回，
-与本件 §5.24、§5.26 的旧读数一致，所以新包的"待开发"清单不是凭空列的。合同账本与闸门的读数取
-`efa5a8af` 那枚：68 行 = BOUND_SCHEMA 54 + SCHEMA_LESS 14，live 载荷比对 35 条绑定，前端对账 calls=109，
-`ROUTE_VIEWS` 21 条。
-
-**归档的取证顺序**：`certutil` 先量两份投递原件（ZIP 70,319 B / `9fadae0ae12712c3…`，HTML 59,898 B /
-`614b4a7c15bfb649…`）；解包后拿包内自带的 `SHA256SUMS.txt`（16 行）逐行重算其余 16 名成员，
-**0 不匹配、0 缺失**才允许落地；17 名成员 `write_bytes` 落到 `docs/taskpacks/20261023-ui-kb/source/`
-（155,573 B），每份落地后立刻回读比哈希。卷宗根下那份 HTML 与包内同名成员**同一 sha256**，
-所以只留一份规范副本、另一处登记成别名（`aliases` + `deduplication.groups`），不复制第二份内容对象。
-ZIP 原件按 AGENTS.md 既有规则留在 `.project-local/record-archive-2026-10-23/`（Git 忽略）并在两份 manifest
-里写明"不随克隆走、迁移须按摘要补齐"。既往普查一律不改写：2026-10-09 的 101 份 / 180 成员、2026-10-11 的
-DOT 清单、2026-10-19 的五件波次登记与它们 `summary` 里的计数，本节只追加、不并入（`RECORD-ARCHIVE-INDEX.md`
-末节 + 生成器-owned 的五行登记表未动，`RECORD_REGISTER_GATE=PASS checks=5 pathish_named=30 problems=0`）。
-
-**第一处工具缺陷在我自己身上**：登记完之后 `verify_archive_record_register.py` 报 6 条
-"unresolvable path"，其中四条点的是我刚落地的中文名成员。它拿 `git ls-files` 的文本按行切分建集合，
-而 git porcelain 会把非 ASCII 路径八进制引用（`"docs/…\345\205\210…"`），于是**已入仓的文件在闸门眼里不存在**。
-同一件事在 `.gitattributes` 与 `verify_task_document_states.py` 都用 `-z` 处理过，这条闸门是漏网的那一条。
-改成 `git ls-files -z` 后四条同时消失；另外两条是真错——我在散文里给 schema 标识加了反引号
-（`design-lab/taskpack-source-manifest/v1` 不是路径），改成不带反引号并写明原因。**这两条都要点名**：
-一条是工具的假阳，一条是我的措辞。修完再跑 `git -c core.quotepath=false ls-files` 与 `cat-file blob :path`
-逐份复核：**17/17 的 index blob 摘要等于登记摘要**，其中 03/04/05 三份 CSV 的 CRLF（67 / 39 / 10 对）
-在 index blob 里原样保留——`.gitattributes` 已为这三棵子树写 `-text whitespace=cr-at-eol`，
-否则 `* text=auto eol=lf` 会把登记摘要变成不可复现的机器绑定值（同一件事这件上已记过两次）。
-
-**权威与规划的覆盖替换按 §17 走**：`AUTHORITY.md` 增 `DESKTOP-KB-20261023-R1` 采纳块，并把 2026-10-19 那句
-「当前唯一 integrated TaskPack」标为**当日原文 + 更正括注**，不删；`authority-index.json` 的
-`current` / `mandatoryAuditBootOrder` / `taskpackClassificationRule.currentIntegrated` 指向新包，方向包进
-`lineage` 与 `historicalSpecific`（`SUPERSEDED_DISPATCH_ENTRY_LINEAGE`，replacement 指向新包），新增
-`desktopKbAdoption` 机读块（派工段、冻结段未动、前端进派工、模型本轮不部署、手机排除、AAOS 未来合同、
-stillFrozen 七项）；`task-document-states.json` 里方向包降 `SUPERSEDED/LINEAGE`、新包升
-`CURRENT/DISPATCH_ENTRY`、新前缀规则 `docs/taskpacks/20261023-ui-kb/**`＝FROZEN/RECORD，
-`NEXT-AGENT-PROMPT.md` 的 replacement 跟着换。两份被钉面字节变了就重钉：
-`AUTHORITY.md 7cd2db03… -> 00126066…`、`authority-index.json fd01ce37… -> 9a0e1a58…`，
-`AUTHORITY-PIN-CHANGE.json` 追加第 10 条 revision（意图/原因/被取代/影响/跑的闸），
-`R2_RELEASE_HASHES` 其余四项一字未动。**闸数没减**：`TOP_AUTHORITY_GATE=PASS checks=10 failed=none`、
-`TASK_DOC_STATE_GATE=PASS checks=13 failed=none`。
-
-**台账加入的做法**：`currentExecution` 的 `validate()` 要求 `set(tasks) == set(definitions.tasks)`，
-所以加派工只能换绑定义原件，不能只往账本里塞行。定义原件落在
-`docs/history/taskpacks/20261023-adoption/TASK-DEFINITIONS.json`（89,864 B，`e54f55f324626392…`），
-**逐字携带 20261009 那份的 34 条定义**再加 16 条新条目——旧原件在 `docs/history/**` 冻结家族里，
-按 HISTORY-FREEZE-RULES 不得改写，所以它是被复制携带而不是被编辑；账本 `currentExecution.source` 只钉当前
-绑定的这一份，`legacy_snapshot` 与被携带件的出处关系写在 `AGENTS.md` 与裁决件里。账本改前先证明
-`json.dumps(..., ensure_ascii=False, indent=2) + '\n'` 与磁盘字节**逐字节相同**才动手（754,760 B →
-50 行任务：`{'FROZEN_DEFERRED': 34, 'IN_PROGRESS': 1, 'NOT_STARTED': 15}`，198 条证据一行未增）。
-`mobile` 仍是 schema `const FROZEN_DEFERRED`，一个字节没动。
-
-**第二处过期是我自己的闸门**：`verify_documented_counts.py` 原先在**任何**一项离开 `FROZEN_DEFERRED`
-时直接 `SystemExit` 拒绝报数，理由写在 docstring 里——解冻是 owner 决定。owner 今天把决定记下来了，
-所以这条拒数变成"把新派工也当成谎"，它保护的句子（四处「其余 34 项仍」）其实仍然为真。改成
-**两个分开的实测数**：仍冻结 34、当前派工 16，各自钉自己的句子（`claims` 18 → 20）。保护没变弱：
-悄悄解冻任何旧行会改 34 这个数，四处句子同时红。播种复证两条都红——把 16 改成 17（界面面）与 15
-（任务包）各红一次，把 34 改成 35 也红一次，恢复后逐字节相同（`BOTH_CLAIMS_FALSIFIED_AND_RESTORED`）。
-顺带两处硬写数：`current_execution.py` 报告里「22父任务＋12UI子任务」与「本次归档不实施产品」按投影计数与
-新边界改写；`test_current_execution.py` 的 `{'NOT_STARTED': 34}` 改成从账本自身取行数，
-免得每加一条派工就有人来编辑测试。
-
-**登记件与投影是两次提交**：本件被登记件量着（登记表第五行就是它），所以内容提交之后才跑
-`scripts/generate_archive_record_register.py` 与 `scripts/generate_current_reports.py`，
-`deepseek_authority_chain.py` 也要重写——新落地的 taskpack/decision/manifest 都进了它的 entries，
-不改写就是 `AUTHORITY_CHAIN=DRIFT`。`.project/manifest.yaml` 的 taskpack 指针与账本
-`currentExecution.taskpack` 本来就不一致（那条既有 drift 读数保留，不顺手抹平）。
-
-**边界一条没松**：手机端仍是排除项（`mobile` 常量、`AGENTS.md`、`AUTHORITY.md` 三处未改词）；
-字体与三方素材仍在范围外；模型不锁死但默认 fail-closed、`UNKNOWN` 不写成合格、云端须披露离开本机的数据，
-且**本批不部署模型、不下载权重**；编号仍 `UNUSED`；签署与审核仍只接受具名 human；导出仍只读回；
-AAOS 仍只是未来合同；E 盘不动；release / 安装态分发 / 真实宿主 E3 / 真人 E4 / ComfyUI / MiniMax H3
-与旧 34 项继续冻结。**本批改动的字节面是权威、规划、登记、台账与三条闸门/一处测试断言，产品代码 0 文件、
-前端 0 文件、模型 0 调用**——交付性质是 E1（结构与登记可证）加对既有 E2 读数的引用，不是 E3/E4/release。
-
----
-
-## 6. 本轮暴露并修掉的六个缺陷` 上，替换后那一行被吃掉，六个缺陷的正文变成无题悬空。当场用 `grep "^## 6"` 发现并补回，净差异回到 +12/−0。也就是说 §6.8 记过的教训（**never anchor an insert on the neighbour's own line prefix**）在这轮之前只是被写下、没被执行；本批把它当作插入纪律复检的一条固定动作：改 markdown 结构后必须 `git diff --numstat` 看删除数，删除数不为 0 而本意是纯新增，就是锚点吃掉了邻居。
+**本批自己造成的缺陷，按 §6.8 同一条形状又犯了一次**：插入 §5.14 时把锚点定在下一节的标题行 `## 6. 本轮暴露并修掉的六个缺陷` 上，替换后那一行被吃掉，六个缺陷的正文变成无题悬空。当场用 `grep "^## 6"` 发现并补回，净差异回到 +12/−0。也就是说 §6.8 记过的教训（**never anchor an insert on the neighbour's own line prefix**）在这轮之前只是被写下、没被执行；本批把它当作插入纪律复检的一条固定动作：改 markdown 结构后必须 `git diff --numstat` 看删除数，删除数不为 0 而本意是纯新增，就是锚点吃掉了邻居。
 
 ### 5.15 第十三批（三份读回债付掉，以及我自己的 schema 被自己种的红）
 
@@ -689,6 +581,114 @@ owner 这句还是「继续打磨后端」。§5.26 清了 14 条没调用的 GE
 - 一处自己差点留下的错，记下来：播种用的驱动把 `native_assets.py` 改坏再改回，它打印的 `restored identical: True` 比的是**解码后的文本**——那种比较看不见行尾改动，而本仓 `.gitattributes` 是 `*.py text eol=lf`。真正的对账是字节：工作树与 `HEAD` 同一 blob（`11c325be…`，5968 字节，0 个 CRLF），并且仓库自有的 `test_working_tree_line_endings` 在聚合里一直绿。**一条不会失败的校验不是校验**，它只是把事故改成了日志。聚合读数在最终树上：`VERIFY_RESULT=OK total=549 failed=0`、`VERIFY_DESIGN_LAB=OK total=76 failed=0`、`RECORD_REGISTER_GATE=PASS checks=5 problems=0`、`DOCUMENTED_COUNTS=PASS claims=13`。
 - 本轮之后：**状态 CI_VERIFIED_EXACT_SHA @ `d9976d0c`**（下面这条记录本身与投影重绑是纯文字＋派生件，另算一枚，不改上面任何读数）。
 - 补一枚读数，免得本节点名的 SHA 落后于树上那枚：把两个读侧分母交给闸门现数的那条（`32c78ac2`）与它的投影重绑（`51c14f10`，main 与备份分支现同指此枚）在 CI 上同样 `completed success`——run `39865099663`，12 个作业，无一条非绿（`Branch light gate` 仍按 D01 skipped）。其后若再有纯记录提交，按同一约定另算一枚，不改以上任何读数。
+
+**批次 I 的收尾读数（写成这样，是因为它们各自来自不同的地方）**。CI 那枚是权威：`efa5a8afb7e9b04bd05c7b6ad96f9872d46e4823`
+上 main 与备份分支同指，两次 push run `39943398842` / `39943381425` 均 completed success；12 个作业里除
+「Branch light gate」按规则 skipped 之外全部 success，无失败作业。Python 作业三分片 exit=0，
+`PYTHON_TESTS_UNION=OK expected=3183 distinct=3183 ran=3183 duplicates=0 missing=0 unexpected=0`
+（PASS 3161、SKIP 22），同作业内 `VERIFY_CONTRACT_BINDINGS=PASS schemas=32 binding=2 inert=30 routes=68
+dispatched=68 bound=54 schema_less=14`、`VERIFY_ROUTE_PAYLOAD_CONTRACTS=PASS bindings=35 failures=0`、
+`VERIFY_WORKBENCH_ROUTE_CALLS=PASS calls=109 routes=66 matched=55 backend_only=11 dynamic=3 special=1`、
+`VERIFY_DESIGN_LAB=OK total=76 failed=0`；清轮安装作业在同一枚上给全三行
+`GET_SWEEP layout=installed routes=39 reads=39 answered=35 verdicts=4 unmeasured=2`、
+`POST_SWEEP layout=installed rows=29 walked=28 written=28 read_backs=34 refused=0 excluded=1`、
+`NATIVE_VERIFY layout=installed clean=HASH_VERIFIED tampered=NATIVE_ARTIFACT_UNVERIFIED …`，
+与本机 §5.29 前面那两组源码/装机读数逐字相同。
+
+**本机整轮没有拿到同一条绿**，这一条必须点名而不是略过：本机三片跑完是 `union-exit=1`，shard 1/2 全绿，
+shard 3 报 `outcomes={'ERROR': 1, 'FAIL': 59, 'PASS': 1007, 'SKIP': 6}`，红集中在
+`test_reconstruction_evidence`、`test_verifier_internals`、`test_workbench_*_gate`、`test_service_cli`、
+`test_ui_layering`、`test_spill_census_tracked_verdict` 这些读整棵树或要 node/浏览器的套件。
+**归因未定**，因为那一轮与我往同一棵树里解包、落 20261023 方案包的时间重叠，而这些套件里多数带
+snapshot/diff 或 tree-hash 断言——并发写会把自己的活动当成违规。手上有证据的只有一条：把其中两个模块
+（`test_ui_layering`、`test_service_cli`）在静默树上单跑，`Ran 15 tests / OK`、`DRIVER failures=0 errors=0 skipped=0`，
+所以它们不是本质上坏。结论按证据强度写：**"全套通过"这条只按 CI 那枚报**；本机那 60 项要在静默树上重跑三分片
+才能 either 归零 or 升级为真缺陷，重跑结果进下一份读数，不在此处冒充。
+
+
+### 5.30 第二十七批（规划轮 J0：一份 Record 投递包变成权威、账本与归档三面，而两处工具缺陷先红给我看）
+
+owner 2026-10-23 原话：**「读取分析，按照这个执行（前端UI有新规划），并且归档到统一项目里，更新覆盖替换到权威和规划里」**
+与 **「先分析拆解，加入到优先到任务台账里」**。这一批不落产品功能，只做三件事：把投递包逐字节归档并登记、
+把权威与规划覆盖替换到新包、把新派工按优先级写进唯一账本。桌面 UI 从此进入当前派工面——批次 I 那句
+「前端 0 文件」是 I 的边界，不是此后每轮的边界。
+
+**先量再写（不是抄包里的数字）**。包内 `13_包内一致性核对.json` 自报 `requirementCount 66 / sourceCount 38 /
+sectionCount 19`，`00_先读这里.md` 自报观察 `main@2d6ede51`。这些是作者时点，本批一律不引用为现状。本仓
+落仓时实测的现状四条：`capability_library.py` 是只读投影（无写入面）、`prompt_intelligence.py` 不调用模型、
+`prompt_results.py` 存储层要求 `executed=false`、`model_selection.py` 只记录选择——四条都由代码读回，
+与本件 §5.24、§5.26 的旧读数一致，所以新包的"待开发"清单不是凭空列的。合同账本与闸门的读数取
+`efa5a8af` 那枚：68 行 = BOUND_SCHEMA 54 + SCHEMA_LESS 14，live 载荷比对 35 条绑定，前端对账 calls=109，
+`ROUTE_VIEWS` 21 条。
+
+**归档的取证顺序**：`certutil` 先量两份投递原件（ZIP 70,319 B / `9fadae0ae12712c3…`，HTML 59,898 B /
+`614b4a7c15bfb649…`）；解包后拿包内自带的 `SHA256SUMS.txt`（16 行）逐行重算其余 16 名成员，
+**0 不匹配、0 缺失**才允许落地；17 名成员 `write_bytes` 落到 `docs/taskpacks/20261023-ui-kb/source/`
+（155,573 B），每份落地后立刻回读比哈希。卷宗根下那份 HTML 与包内同名成员**同一 sha256**，
+所以只留一份规范副本、另一处登记成别名（`aliases` + `deduplication.groups`），不复制第二份内容对象。
+ZIP 原件按 AGENTS.md 既有规则留在 `.project-local/record-archive-2026-10-23/`（Git 忽略）并在两份 manifest
+里写明"不随克隆走、迁移须按摘要补齐"。既往普查一律不改写：2026-10-09 的 101 份 / 180 成员、2026-10-11 的
+DOT 清单、2026-10-19 的五件波次登记与它们 `summary` 里的计数，本节只追加、不并入（`RECORD-ARCHIVE-INDEX.md`
+末节 + 生成器-owned 的五行登记表未动，`RECORD_REGISTER_GATE=PASS checks=5 pathish_named=30 problems=0`）。
+
+**第一处工具缺陷在我自己身上**：登记完之后 `verify_archive_record_register.py` 报 6 条
+"unresolvable path"，其中四条点的是我刚落地的中文名成员。它拿 `git ls-files` 的文本按行切分建集合，
+而 git porcelain 会把非 ASCII 路径八进制引用（`"docs/…\345\205\210…"`），于是**已入仓的文件在闸门眼里不存在**。
+同一件事在 `.gitattributes` 与 `verify_task_document_states.py` 都用 `-z` 处理过，这条闸门是漏网的那一条。
+改成 `git ls-files -z` 后四条同时消失；另外两条是真错——我在散文里给 schema 标识加了反引号
+（`design-lab/taskpack-source-manifest/v1` 不是路径），改成不带反引号并写明原因。**这两条都要点名**：
+一条是工具的假阳，一条是我的措辞。修完再跑 `git -c core.quotepath=false ls-files` 与 `cat-file blob :path`
+逐份复核：**17/17 的 index blob 摘要等于登记摘要**，其中 03/04/05 三份 CSV 的 CRLF（67 / 39 / 10 对）
+在 index blob 里原样保留——`.gitattributes` 已为这三棵子树写 `-text whitespace=cr-at-eol`，
+否则 `* text=auto eol=lf` 会把登记摘要变成不可复现的机器绑定值（同一件事这件上已记过两次）。
+
+**权威与规划的覆盖替换按 §17 走**：`AUTHORITY.md` 增 `DESKTOP-KB-20261023-R1` 采纳块，并把 2026-10-19 那句
+「当前唯一 integrated TaskPack」标为**当日原文 + 更正括注**，不删；`authority-index.json` 的
+`current` / `mandatoryAuditBootOrder` / `taskpackClassificationRule.currentIntegrated` 指向新包，方向包进
+`lineage` 与 `historicalSpecific`（`SUPERSEDED_DISPATCH_ENTRY_LINEAGE`，replacement 指向新包），新增
+`desktopKbAdoption` 机读块（派工段、冻结段未动、前端进派工、模型本轮不部署、手机排除、AAOS 未来合同、
+stillFrozen 七项）；`task-document-states.json` 里方向包降 `SUPERSEDED/LINEAGE`、新包升
+`CURRENT/DISPATCH_ENTRY`、新前缀规则 `docs/taskpacks/20261023-ui-kb/**`＝FROZEN/RECORD，
+`NEXT-AGENT-PROMPT.md` 的 replacement 跟着换。两份被钉面字节变了就重钉：
+`AUTHORITY.md 7cd2db03… -> 00126066…`、`authority-index.json fd01ce37… -> 9a0e1a58…`，
+`AUTHORITY-PIN-CHANGE.json` 追加第 10 条 revision（意图/原因/被取代/影响/跑的闸），
+`R2_RELEASE_HASHES` 其余四项一字未动。**闸数没减**：`TOP_AUTHORITY_GATE=PASS checks=10 failed=none`、
+`TASK_DOC_STATE_GATE=PASS checks=13 failed=none`。
+
+**台账加入的做法**：`currentExecution` 的 `validate()` 要求 `set(tasks) == set(definitions.tasks)`，
+所以加派工只能换绑定义原件，不能只往账本里塞行。定义原件落在
+`docs/history/taskpacks/20261023-adoption/TASK-DEFINITIONS.json`（89,864 B，`e54f55f324626392…`），
+**逐字携带 20261009 那份的 34 条定义**再加 16 条新条目——旧原件在 `docs/history/**` 冻结家族里，
+按 HISTORY-FREEZE-RULES 不得改写，所以它是被复制携带而不是被编辑；账本 `currentExecution.source` 只钉当前
+绑定的这一份，`legacy_snapshot` 与被携带件的出处关系写在 `AGENTS.md` 与裁决件里。账本改前先证明
+`json.dumps(..., ensure_ascii=False, indent=2) + '\n'` 与磁盘字节**逐字节相同**才动手（754,760 B →
+50 行任务：`{'FROZEN_DEFERRED': 34, 'IN_PROGRESS': 1, 'NOT_STARTED': 15}`，198 条证据一行未增）。
+`mobile` 仍是 schema `const FROZEN_DEFERRED`，一个字节没动。
+
+**第二处过期是我自己的闸门**：`verify_documented_counts.py` 原先在**任何**一项离开 `FROZEN_DEFERRED`
+时直接 `SystemExit` 拒绝报数，理由写在 docstring 里——解冻是 owner 决定。owner 今天把决定记下来了，
+所以这条拒数变成"把新派工也当成谎"，它保护的句子（四处「其余 34 项仍」）其实仍然为真。改成
+**两个分开的实测数**：仍冻结 34、当前派工 16，各自钉自己的句子（`claims` 18 → 20）。保护没变弱：
+悄悄解冻任何旧行会改 34 这个数，四处句子同时红。播种复证两条都红——把 16 改成 17（界面面）与 15
+（任务包）各红一次，把 34 改成 35 也红一次，恢复后逐字节相同（`BOTH_CLAIMS_FALSIFIED_AND_RESTORED`）。
+顺带两处硬写数：`current_execution.py` 报告里「22父任务＋12UI子任务」与「本次归档不实施产品」按投影计数与
+新边界改写；`test_current_execution.py` 的 `{'NOT_STARTED': 34}` 改成从账本自身取行数，
+免得每加一条派工就有人来编辑测试。
+
+**登记件与投影是两次提交**：本件被登记件量着（登记表第五行就是它），所以内容提交之后才跑
+`scripts/generate_archive_record_register.py` 与 `scripts/generate_current_reports.py`，
+`deepseek_authority_chain.py` 也要重写——新落地的 taskpack/decision/manifest 都进了它的 entries，
+不改写就是 `AUTHORITY_CHAIN=DRIFT`。`.project/manifest.yaml` 的 taskpack 指针与账本
+`currentExecution.taskpack` 本来就不一致（那条既有 drift 读数保留，不顺手抹平）。
+
+**边界一条没松**：手机端仍是排除项（`mobile` 常量、`AGENTS.md`、`AUTHORITY.md` 三处未改词）；
+字体与三方素材仍在范围外；模型不锁死但默认 fail-closed、`UNKNOWN` 不写成合格、云端须披露离开本机的数据，
+且**本批不部署模型、不下载权重**；编号仍 `UNUSED`；签署与审核仍只接受具名 human；导出仍只读回；
+AAOS 仍只是未来合同；E 盘不动；release / 安装态分发 / 真实宿主 E3 / 真人 E4 / ComfyUI / MiniMax H3
+与旧 34 项继续冻结。**本批改动的字节面是权威、规划、登记、台账与三条闸门/一处测试断言，产品代码 0 文件、
+前端 0 文件、模型 0 调用**——交付性质是 E1（结构与登记可证）加对既有 E2 读数的引用，不是 E3/E4/release。
+
+---
 
 ## 6. 本轮暴露并修掉的六个缺陷
 
