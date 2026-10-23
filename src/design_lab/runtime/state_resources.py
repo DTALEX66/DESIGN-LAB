@@ -49,6 +49,12 @@ _NAMES = frozenset({
     # design-lab-state-prompt-results-v1.sql, applied by src/design_lab/prompt_results.py). Additive:
     # one new immutable resource name, no existing file renamed or re-versioned.
     'design-lab-state-prompt-results-v1.sql',
+    # 2026-10-23 DL-KB-02 knowledge-library reachability: the entries a person wrote down, their
+    # append-only revisions, and the derived FTS5 trigram index
+    # (design-lab/schemas/state/design-lab-state-knowledge-library-v1.sql, applied by
+    # src/design_lab/knowledge_library.py). Additive: one new immutable resource name, no existing
+    # file renamed or re-versioned.
+    'design-lab-state-knowledge-library-v1.sql',
 })
 
 

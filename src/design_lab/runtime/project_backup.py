@@ -273,6 +273,13 @@ COUNTER_QUERIES = (
     # kind of row the project gets asked to cite later.
     ('prompt_result', 'rowid'),
     ('prompt_result_review', 'rowid'),
+    # 2026-10-23 DL-KB-02: knowledge_library writes three tables with no writer lease -- the
+    # entry identity row, its append-only revisions, and the derived-index receipt. A backup
+    # window that swallowed an entry (or its replacement revision) would otherwise still
+    # report PROVED_QUIESCENT while the library the operator reads back had moved.
+    ('knowledge_entry', 'rowid'),
+    ('knowledge_entry_revision', 'rowid'),
+    ('knowledge_index_state', 'rowid'),
 )
 
 

@@ -64,6 +64,8 @@ const ROUTES = [
   ['model-selection', '#/models'],
   ['plan', '#/plan'],
   ['analysis', '#/analysis'],
+  // DL-KB-03/06: 知识与提示词库的 meta 行、命中说明与详情小字都是小号弱色文本，最容易掉 AA。
+  ['knowledge', '#/knowledge'],
 ];
 
 const MEASURE = () => {

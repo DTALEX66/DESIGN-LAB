@@ -134,6 +134,7 @@ class Harness:
         self._file_research_findings()
         self._produce_prompt_results()
         self._seed_design_layer()
+        self._seed_knowledge()
         return self
 
     def _produce_prompt_results(self):
@@ -480,6 +481,80 @@ class Harness:
                   {'document': {'color': {'$type': 'color', 'brand': {'$value': '#2563EB'}}},
                    'expected_version': 0, 'actor': 'ALEX', 'actor_kind': 'human',
                    'idempotency_key': 'family-token-seed'})
+
+    # -- knowledge library family (batch K, 2026-10-23) --------------------------------------
+    #: The create route's exact field set. `recommended: True` on revision 1 and `False` on the
+    #: revision is deliberate: it is the only way to produce the branch where the newest bytes and
+    #: the recommended revision are different documents, which the detail readback renders as two
+    #: separate numbers plus the recommended document.
+    KNOWLEDGE_FIELDS = {
+        'entry_type': 'METHOD',
+        'title': '分镜拆解三步法',
+        'summary': '把一段脚本拆成镜头表：先定节拍，再定景别，最后定转场。',
+        'domain_tags': ['film'],
+        'task_tags': ['storyboard'],
+        'target_tools': ['storyboarder'],
+        'body': '第一步按段落切节拍。第二步给每个节拍选景别。第三步只标必要的转场。',
+        'applicability': '适合 30-90 秒短片的分镜前置。',
+        'limits': '不适用于需要精确口型对位的动画。',
+        'source': {'sourceId': 'payload-contracts', 'origin': 'UNKNOWN',
+                   'author': 'payload-contracts', 'license': 'UNKNOWN',
+                   'licenseStatus': 'unknown', 'allowedUsage': 'UNKNOWN',
+                   'citationScope': 'UNKNOWN', 'version': '1',
+                   'observedAt': '2026-10-23T00:00:00Z', 'contentHash': 'UNKNOWN',
+                   'verification': 'UNVERIFIED'},
+        'related_capability_ids': [],
+        'recommended': True,
+        'created_by': 'payload-contracts',
+        'supersedes': None,
+    }
+
+    def _seed_knowledge(self):
+        """One real entry, its revision, a search that hits it and an import, through the routes.
+
+        The search case asks for ``分镜`` -- a two-character Chinese word the FTS5 trigram index
+        cannot answer -- so the payload compared here is the one produced by the fallback the
+        product actually ships, not a query that would have passed on the index alone. The import
+        case is sent twice: the first answer is CREATED and the second DUPLICATE, and both are
+        route answers a caller can receive.
+        """
+        status, created = self.call('POST', '/api/knowledge-entries', dict(self.KNOWLEDGE_FIELDS))
+        if status != 201:
+            raise RuntimeError(f'KNOWLEDGE_CREATE_REFUSED {status} {created}')
+        entry_id = created['entry']['knowledge_entry_id']
+        revision = dict(self.KNOWLEDGE_FIELDS, title='分镜拆解三步法（修订）', recommended=False,
+                        expected_revision=1)
+        revision.pop('supersedes')
+        status, revised = self.call('POST', f'/api/knowledge-entries/{entry_id}/revisions',
+                                    revision)
+        if status != 201:
+            raise RuntimeError(f'KNOWLEDGE_REVISION_REFUSED {status} {revised}')
+        imported = {key: value for key, value in self.KNOWLEDGE_FIELDS.items()
+                    if key != 'created_by'}
+        imported['imported_by'] = 'payload-contracts'
+        status, imported_once = self.call('POST', '/api/knowledge-entries/import', imported)
+        if status != 201:
+            raise RuntimeError(f'KNOWLEDGE_IMPORT_REFUSED {status} {imported_once}')
+        status, imported_twice = self.call('POST', '/api/knowledge-entries/import', imported)
+        if status != 201:
+            raise RuntimeError(f'KNOWLEDGE_IMPORT_REPLAY_REFUSED {status} {imported_twice}')
+        status, rebuilt = self.call('POST', '/api/knowledge-entries/index-rebuild', {})
+        if status != 200:
+            raise RuntimeError(f'KNOWLEDGE_REBUILD_REFUSED {status} {rebuilt}')
+        self.knowledge = {
+            'create': ('POST /api/knowledge-entries', created),
+            'revise': ('POST .../revisions appends revision 2', revised),
+            'detail': (f'GET /api/knowledge-entries/{entry_id}',
+                       self.get(f'/api/knowledge-entries/{entry_id}')),
+            'search': ('GET .../search?q=分镜 (two characters, fallback)',
+                       self.get('/api/knowledge-entries/search?q=%E5%88%86%E9%95%9C')),
+            'import': ('POST .../import creates', imported_once),
+            'import-replay': ('POST .../import replays the same source version', imported_twice),
+            'rebuild': ('POST .../index-rebuild', rebuilt),
+        }
+
+    def knowledge_cases(self, *names):
+        return [self.knowledge[name] for name in names]
 
     def design_write_cases(self, group):
         """The write answers of one route, each produced now, plus its idempotent replay.
@@ -1153,6 +1228,70 @@ def build_bindings():
             'emitter': 'src/design_lab/design_layer.py',
             'version': 'design-lab/design-record/v1',
             'cases': lambda h: h.design_write_cases('direction-revisions-by-id'),
+        },
+        # DL-KB-02/04 (batch K, 2026-10-23). Every payload below is the answer the product
+        # produced to a real request through a real socket; the entry, its revision and the
+        # import were written by the routes themselves, not assembled here.
+        {
+            'name': 'knowledge-library-search',
+            'route': '/api/knowledge-entries/search',
+            'method': 'GET',
+            'schema': 'design-lab/schemas/knowledge-library-readback-v1.schema.json',
+            'emitter': 'src/design_lab/knowledge_library.py',
+            'version': 'design-lab/knowledge-library/v1',
+            # The query is 分镜 -- two characters, which the trigram index cannot answer, so the
+            # compared payload is the fallback's answer rather than one the index alone produced.
+            'cases': lambda h: h.knowledge_cases('search'),
+        },
+        {
+            'name': 'knowledge-entry-write-create',
+            'route': '/api/knowledge-entries',
+            'method': 'POST',
+            'schema': 'design-lab/schemas/knowledge-entry-write-v1.schema.json',
+            'emitter': 'src/design_lab/knowledge_library.py',
+            'version': 'design-lab/knowledge-entry-write/v1',
+            'cases': lambda h: h.knowledge_cases('create'),
+        },
+        {
+            'name': 'knowledge-entry-write-revise',
+            'route': '/api/knowledge-entries/(kentry-[0-9a-f]{32})/revisions',
+            'method': 'POST',
+            'schema': 'design-lab/schemas/knowledge-entry-write-v1.schema.json',
+            'emitter': 'src/design_lab/knowledge_library.py',
+            'version': 'design-lab/knowledge-entry-write/v1',
+            # Revision 2 is written with recommended:false, so this is the branch a client
+            # reads as "the newest bytes are not the recommended ones".
+            'cases': lambda h: h.knowledge_cases('revise'),
+        },
+        {
+            'name': 'knowledge-entry-import',
+            'route': '/api/knowledge-entries/import',
+            'method': 'POST',
+            'schema': 'design-lab/schemas/knowledge-import-v1.schema.json',
+            'emitter': 'src/design_lab/knowledge_library.py',
+            'version': 'design-lab/knowledge-import/v1',
+            # Both answers: the first import writes, the second is recognised as a duplicate
+            # with no write. A schema that only fit the created branch would be a nicer document
+            # than the code.
+            'cases': lambda h: h.knowledge_cases('import', 'import-replay'),
+        },
+        {
+            'name': 'knowledge-entry-readback',
+            'route': '/api/knowledge-entries/(kentry-[0-9a-f]{32})',
+            'method': 'GET',
+            'schema': 'design-lab/schemas/knowledge-entry-readback-v1.schema.json',
+            'emitter': 'src/design_lab/knowledge_library.py',
+            'version': 'design-lab/knowledge-entry-readback/v1',
+            'cases': lambda h: h.knowledge_cases('detail'),
+        },
+        {
+            'name': 'knowledge-index-rebuild',
+            'route': '/api/knowledge-entries/index-rebuild',
+            'method': 'POST',
+            'schema': 'design-lab/schemas/knowledge-index-rebuild-v1.schema.json',
+            'emitter': 'src/design_lab/knowledge_library.py',
+            'version': 'design-lab/knowledge-index-rebuild/v1',
+            'cases': lambda h: h.knowledge_cases('rebuild'),
         },
     ]
 

@@ -31,8 +31,16 @@ class MockElement {
     return this._text + this.children.map((child) => child?.textContent ?? String(child)).join('');
   }
   get childNodes() { return this.children; }
+  // A real HTMLSelectElement exposes its option elements (and a value that defaults to the
+  // first one). The knowledge screen rebuilds the type filter only when `options.length`
+  // changed -- without this getter that read throws inside renderAnswer and the view shows
+  // the route-level failure, i.e. the gate would be measuring the shim, not the page.
+  get options() { return this.children.filter((child) => child?.tagName === 'OPTION'); }
   append(...nodes) { this.children.push(...nodes); }
   replaceChildren(...nodes) { this.children = nodes; this._text = ''; }
+  // openForm() scrolls the new panel into view. Browsers have it, a div mock does not, and
+  // the throw happened inside the click handler before any assertion could run.
+  scrollIntoView() {}
   setAttribute(name, value) { this.attributes.set(name, String(value)); }
   removeAttribute(name) { this.attributes.delete(name); }
   addEventListener() {}
@@ -111,6 +119,12 @@ function makeContext() {
     // before hashing, so a context without it threw on that line instead of reaching
     // fetch -- the same failure mode as the missing crypto.subtle above.
     TextEncoder,
+    // DL-KB-04: the knowledge screen builds its query with URLSearchParams before it calls
+    // fetch. A fresh vm context has the language intrinsics but not the host's web globals,
+    // so without this the whole view rejected on 'URLSearchParams is not defined' -- and the
+    // request-failure sweep below then read a fabricated failure for a route that never got
+    // as far as asking.
+    URLSearchParams,
     Option: class Option extends MockElement {
       constructor(text, value) { super('option'); this.textContent = text; this.value = value; }
     },
@@ -221,11 +235,33 @@ if (activeDashboard?.attributes.get('aria-current') !== 'page')
 shell.window.location.hash = '#/settings';
 shell.dispatchHashchange();
 const dashboardRequests = shell.pending.splice(0, 4);
-const settingsRequest = shell.pending.shift();
-settingsRequest.resolve(response({
+// DL-KB-06: 设置页只收四件事，因此并发读回三条路由（环境、模型目录、知识索引）。
+// 这三条要一起结清：漏掉任何一条，它会留到下一次 splice 里，让下一个 dashboard 的
+// 四个请求整体错位，失败会以一句与原因无关的文案出现。
+const settingsRequests = shell.pending.splice(0, 3);
+settingsRequests[0].resolve(response({
   status: 'OK', schemaVersion: 'v1', project_root: 'D:/project', project_local_root: '.project-local',
   write_trace: 'NONE', migration: 'NONE', agent_profile: { status: 'DISABLED' },
   roots: {}, shared_inputs: {},
+}));
+settingsRequests[1].resolve(response({
+  schemaVersion: 'design-lab/model-catalog/v1', observed_at: null,
+  sources: {}, hardware: {}, policy: {},
+  counts: { models: 0, endpoints: 0, qualified_local: 0, default_enabled_true: 0,
+            weights_recorded: 0, placement: {} },
+  models: [], endpoints: [],
+  join: { key: null, reason: '' },
+  selection: { mode: '', rules: [], transport: '', executed: false },
+  claims_not_made: [],
+}));
+settingsRequests[2].resolve(response({
+  schemaVersion: 'design-lab/knowledge-library/v1', query: null,
+  filters: { type: null, domain: null, task: null, target: null },
+  entryTypes: [], licenseStates: [], strategy: 'BROWSE',
+  matched_terms: [], total: 0, offset: 0, limit: 1, returned: 0, next_offset: null,
+  entries: [], explanation: null,
+  index: { rows: 0, indexed: 0, rebuilt_at: null },
+  does_not_say: [],
 }));
 await flush();
 shell.window.location.hash = '#/dashboard';
@@ -3498,5 +3534,389 @@ console.log('ok: ㉒ 知识回执与反馈：构建只读一次零写、状态/�
 
 console.log('ok: ㉑ D06 截止与取消：读超时（无副作用、可重试）与写超时（结果待核对、禁止盲目重发）'
   + '彼此可辨，切页只取消读不取消写，401 仍清会话，默认预算读 15s / 写 45s');
+
+// ㉓ DL-KB-02/03/04 · 知识与提示词库。这一块要证明的不是"页面存在"：搜索是主入口、类目词表
+// 来自读回、列表不带正文/哈希/路径、详情按需读回、新增与修订都是真实 POST 且一次点击只发一次、
+// 写后立刻按服务返回的编号读回、无命中只解释不编造。㉑ 的最后一步按 401 清了会话，所以先重连：
+// 在登出状态跑完整的新增流程，证明的是别的东西。
+{
+  const tokenField = shell.elements.get('token');
+  tokenField.value = 'b'.repeat(64);
+  const reconnect = shell.elements.get('connect-form').onsubmit({ preventDefault() {} });
+  shell.pending.shift().resolve(response(projectsEnvelope([])));
+  await reconnect;
+  await flush();
+
+  const routeView = () => shell.elements.get('route-view');
+  const text = (node) => (node?.textContent || '').replace(/\s+/g, ' ');
+  const sameKeys = (actual, expected) =>
+    JSON.stringify([...actual].sort()) === JSON.stringify([...expected].sort());
+  const expectQuiet = (label) => {
+    if (shell.pending.length)
+      throw new Error(`㉓ ${label}后仍有未答复的请求：${shell.pending.map((r) => r.path).join(' ')}`);
+  };
+  expectQuiet('重连');
+
+  const VOCABULARY = [
+    { value: 'STANDARD', label: '规范' }, { value: 'METHOD', label: '方法' },
+    { value: 'PROMPT', label: '提示词' }, { value: 'MODEL_GUIDE', label: '模型指南' },
+    { value: 'RECIPE', label: '配方' }, { value: 'CASE', label: '案例' },
+  ];
+  const SOURCE = {
+    sourceId: 'internal-storyboard', origin: 'D:/guides/storyboard.md', author: 'ALEX-DESK',
+    license: 'project-internal', licenseStatus: 'reviewed',
+    allowedUsage: '仅本项目内部使用', citationScope: '内部引用，不转引',
+    version: '2026-10', observedAt: '2026-10-23T09:00:00+00:00',
+    contentHash: 'sha256:' + 'd'.repeat(64), verification: 'UNVERIFIED',
+  };
+  const entryView = (over = {}) => ({
+    schemaVersion: 'design-lab/knowledge-entry/v1',
+    knowledge_entry_id: 'kentry-1', revision: 2, entry_type: 'METHOD',
+    title: '分镜拆解三步法', summary: '把一场戏拆成可拍摄的镜头',
+    domain_tags: ['film', 'animation'], task_tags: ['storyboard'], target_tools: ['photoshop'],
+    body: '先定机位，再定景别，最后核对轴线。',
+    applicability: '实拍与动画分镜', limits: '不适用于纯文字脚本；镜头数超过 80 时先分层。',
+    source: { ...SOURCE }, related_capability_ids: [],
+    content_sha256: 'sha256:' + 'a'.repeat(64), supersedes: null, recommended: true,
+    created_at: '2026-10-23T09:00:00+00:00', created_by: 'ALEX',
+    claims_not_made: ['保存不等于核验'],
+    ...over,
+  });
+  const rowView = (over = {}) => ({
+    knowledge_entry_id: 'kentry-1', revision: 2, latest_revision: 2,
+    recommended_revision: 1, recommended_is_latest: false, entry_type: 'METHOD',
+    title: '分镜拆解三步法', summary: '把一场戏拆成可拍摄的镜头',
+    domain_tags: ['film', 'animation'], task_tags: ['storyboard'], target_tools: ['photoshop'],
+    status: 'ACTIVE', content_sha256: 'sha256:' + 'a'.repeat(64),
+    updated_at: '2026-10-23T09:00:00+00:00', license: 'project-internal',
+    license_status: 'reviewed', source_id: 'internal-storyboard', source_version: '2026-10',
+    matched_fields: [], matched_terms: [],
+    ...over,
+  });
+  const libraryView = (over = {}) => ({
+    schemaVersion: 'design-lab/knowledge-library/v1', query: null,
+    filters: { type: null, domain: null, task: null, target: null },
+    entryTypes: VOCABULARY, licenseStates: ['reviewed', 'unknown', 'reference-only'],
+    strategy: 'BROWSE', matched_terms: [], total: 2, offset: 0, limit: 50, returned: 2,
+    next_offset: null, explanation: null,
+    entries: [rowView(), rowView({
+      knowledge_entry_id: 'kentry-2', revision: 2, recommended_revision: 2,
+      recommended_is_latest: true, entry_type: 'PROMPT',
+      title: '粒子光效提示词模板', summary: '给粒子光效写可复现的提示词',
+      target_tools: ['after-effects'],
+    })],
+    index: { rows: 2, indexed: 2, rebuilt_at: '2026-10-23T09:05:00+00:00' },
+    does_not_say: ['保存不等于核验', '索引不是第二真值'],
+    ...over,
+  });
+
+  // (1) 首屏 = 一次检索读回。搜索框是主视觉，但词表与许可状态必须来自这一份答案。
+  shell.window.location.hash = '#/knowledge';
+  shell.dispatchHashchange();
+  await flush();
+  const firstReads = shell.pending.splice(0, shell.pending.length);
+  if (firstReads.length !== 1)
+    throw new Error(`㉓ 知识与提示词库首屏应只发一次检索读回，实际 ${firstReads.length} 次`);
+  const firstRead = firstReads[0];
+  if (firstRead.init.method !== 'GET' || !firstRead.path.startsWith('/api/knowledge-entries/search?'))
+    throw new Error(`㉓ 首屏读回打到了 ${firstRead.init.method} ${firstRead.path}`);
+  const firstParams = new URLSearchParams(firstRead.path.split('?')[1]);
+  if (firstParams.get('offset') !== '0' || firstParams.get('limit') !== '50')
+    throw new Error(`㉓ 首屏分页不诚实：offset=${firstParams.get('offset')} limit=${firstParams.get('limit')}`);
+  if (firstParams.has('q') || firstParams.has('type'))
+    throw new Error(`㉓ 首屏不该带检索词或类型筛选：${firstRead.path}`);
+  firstRead.resolve(response(libraryView({ total: 52, returned: 2, next_offset: 50 })));
+  await flush();
+
+  const view = routeView();
+  const results = byElementId(view, 'kb-results');
+  if (!byElementId(view, 'kb-query')) throw new Error('㉓ 搜索框没有渲染');
+  const typeSelect = byElementId(view, 'kb-type');
+  if (!typeSelect || typeSelect.options.length !== VOCABULARY.length + 1)
+    throw new Error(`㉓ 类型筛选应来自读回的 ${VOCABULARY.length} 项词表，实际 ${typeSelect?.options.length}`);
+  if (typeSelect.options[1].textContent !== '规范')
+    throw new Error(`㉓ 类型词表不是服务给的标签：${typeSelect.options[1].textContent}`);
+  if (!results || results.children.length !== 2)
+    throw new Error(`㉓ 检索答案应有 2 行，实际 ${results?.children.length}`);
+  const metaText = text(view);
+  if (!metaText.includes('共 52 条') || !metaText.includes('浏览模式')
+    || !metaText.includes('策略 BROWSE') || !metaText.includes('索引 2/2'))
+    throw new Error(`㉓ 检索说明不完整：${metaText.slice(0, 240)}`);
+  const listText = text(results);
+  if (!listText.includes('分镜拆解三步法') || !listText.includes('适用：photoshop')
+    || !listText.includes('r2') || !listText.includes('ACTIVE')
+    || !listText.includes('推荐 r1 · 非最新'))
+    throw new Error(`㉓ 行字段不齐（标题/用途/目标/修订/状态/推荐）：${listText.slice(0, 240)}`);
+  if (!listText.includes('推荐 r2'))
+    throw new Error('㉓ 推荐即最新的一行没有按「推荐 r2」显示');
+  if (listText.includes('先定机位') || listText.includes('sha256:')
+    || listText.includes('D:/guides/storyboard.md'))
+    throw new Error('㉓ 列表里出现了正文/哈希/路径：这些只应在详情里');
+  if (!metaText.includes('服务声明：保存不等于核验；索引不是第二真值'))
+    throw new Error('㉓ does_not_say 没有原样上屏');
+  expectQuiet('首屏');
+
+  // 初始页 ≤50 且下一页可继续：追加而不是替换，next_offset 为空时按钮必须消失。
+  const moreHost = byElementId(view, 'kb-more');
+  const moreButton = findIn(moreHost, (node) => node?.tagName === 'BUTTON'
+    && String(node.textContent).startsWith('加载更多'));
+  if (!moreButton) throw new Error('㉓ next_offset 非空时必须给出「加载更多」');
+  if (!String(moreButton.textContent).includes('已显示 2 / 共 52'))
+    throw new Error(`㉓ 加载更多没有报进度：${moreButton.textContent}`);
+  moreButton.onclick();
+  await flush();
+  const pageTwo = shell.pending.splice(0, shell.pending.length);
+  if (pageTwo.length !== 1) throw new Error(`㉓ 加载更多发出了 ${pageTwo.length} 个请求`);
+  const pageTwoParams = new URLSearchParams(pageTwo[0].path.split('?')[1]);
+  if (pageTwoParams.get('offset') !== '50' || pageTwoParams.get('limit') !== '50')
+    throw new Error(`㉓ 加载更多的分页不对：${pageTwo[0].path}`);
+  pageTwo[0].resolve(response(libraryView({
+    total: 52, offset: 50, returned: 1, next_offset: null,
+    entries: [rowView({ knowledge_entry_id: 'kentry-50', title: '第 51 条' })],
+  })));
+  await flush();
+  if (results.children.length !== 3)
+    throw new Error(`㉓ 加载更多应追加而不是替换，实际 ${results.children.length} 行`);
+  if (findIn(moreHost, (node) => node?.tagName === 'BUTTON'
+    && String(node.textContent).startsWith('加载更多')))
+    throw new Error('㉓ next_offset 为 null 时「加载更多」必须消失');
+  expectQuiet('加载更多');
+
+  // (2) 详情按需读回：点行之前不预读，点了才发一次 GET。
+  const openButton = findIn(results.children[0], (node) => node?.className === 'kb-open');
+  if (typeof openButton?.onclick !== 'function') throw new Error('㉓ 行标题不是可打开的按钮');
+  openButton.onclick();
+  await flush();
+  const detailReads = shell.pending.splice(0, shell.pending.length);
+  if (detailReads.length !== 1 || detailReads[0].path !== '/api/knowledge-entries/kentry-1'
+    || detailReads[0].init.method !== 'GET')
+    throw new Error(`㉓ 详情读回不对：${detailReads.map((r) => `${r.init.method} ${r.path}`).join(' ')}`);
+  detailReads[0].resolve(response({
+    schemaVersion: 'design-lab/knowledge-entry-detail/v1',
+    knowledge_entry_id: 'kentry-1', status: 'ACTIVE', latest_revision: 2,
+    recommended_revision: 1, current: entryView(), recommended: entryView({ revision: 1 }),
+    superseded_by: null,
+    revisions: [
+      { revision: 2, content_sha256: 'sha256:' + 'a'.repeat(64), entry_type: 'METHOD',
+        title: '分镜拆解三步法', recommended: false, created_at: '2026-10-23T09:00:00+00:00',
+        created_by: 'ALEX', readable: true },
+      { revision: 1, content_sha256: 'sha256:' + 'c'.repeat(64), entry_type: 'METHOD',
+        title: '分镜拆解两步法', recommended: true, created_at: '2026-10-22T09:00:00+00:00',
+        created_by: 'ALEX', readable: true },
+    ],
+    unreadable_count: 0, index: { rows: 2, indexed: 2, rebuilt_at: null },
+    does_not_say: ['保存不等于核验'],
+  }));
+  await flush();
+  const detailText = text(byElementId(view, 'kb-detail'));
+  for (const needle of ['先定机位', '来源与许可', 'internal-storyboard', 'project-internal',
+    'sha256:' + 'a'.repeat(64), 'UNVERIFIED', '修订历史', 'r2 · 分镜拆解三步法',
+    'r1 · 分镜拆解两步法', '推荐版本 r1（不是最新 r2）', '保存不等于核验'])
+    if (!detailText.includes(needle))
+      throw new Error(`㉓ 详情没有按读回上屏「${needle}」：${detailText.slice(0, 300)}`);
+  expectQuiet('详情');
+
+  // (3) 新增：本地拒绝不替人补事实，一次点击只发一次真实 POST。
+  byElementId(view, 'kb-new').onclick();
+  const form = () => byElementId(view, 'kb-form');
+  const formText = () => text(form());
+  const newType = byElementId(view, 'kb-new-entry-type');
+  if (!newType || newType.options.length !== VOCABULARY.length)
+    throw new Error(`㉓ 新增表单的类型选项应来自同一份读回词表，实际 ${newType?.options.length}`);
+  if (!formText().includes('编号由服务生成') || !formText().includes('UNVERIFIED'))
+    throw new Error(`㉓ 新增表单没有说明编号来源与核验状态：${formText().slice(0, 200)}`);
+  newType.value = 'METHOD';
+  const submitNew = findIn(form(), (node) => node?.className === 'primary-btn');
+  if (typeof submitNew?.onclick !== 'function') throw new Error('㉓ 新增表单没有提交按钮');
+  submitNew.onclick();
+  expectQuiet('空表单');
+  if (!formText().includes('标题、一句话用途和正文都必须填写'))
+    throw new Error(`㉓ 空表单应被本地拒绝：${formText().slice(0, 200)}`);
+  byElementId(view, 'kb-new-title').value = '分镜拆解三步法';
+  byElementId(view, 'kb-new-summary').value = '把一场戏拆成可拍摄的镜头';
+  byElementId(view, 'kb-new-body').value = '先定机位，再定景别，最后核对轴线。';
+  submitNew.onclick();
+  expectQuiet('缺记录人');
+  if (!formText().includes('记录人必填'))
+    throw new Error(`㉓ 缺记录人时应被本地拒绝：${formText().slice(0, 200)}`);
+  byElementId(view, 'kb-new-applicability').value = '实拍与动画分镜';
+  byElementId(view, 'kb-new-limits').value = '不适用于纯文字脚本；镜头数超过 80 时先分层。';
+  byElementId(view, 'kb-new-domains').value = 'film、animation';
+  byElementId(view, 'kb-new-tasks').value = 'storyboard';
+  byElementId(view, 'kb-new-targets').value = 'photoshop';
+  byElementId(view, 'kb-new-source-id').value = 'internal-storyboard';
+  byElementId(view, 'kb-new-source-version').value = '2026-10';
+  byElementId(view, 'kb-new-license').value = 'project-internal';
+  byElementId(view, 'kb-new-license-status').value = 'reviewed';
+  byElementId(view, 'kb-new-author').value = 'ALEX';
+  submitNew.onclick();
+  await flush();
+  const createWrites = shell.pending.splice(0, shell.pending.length);
+  if (createWrites.length !== 1)
+    throw new Error(`㉓ 一次新增点击发出了 ${createWrites.length} 个请求`);
+  if (createWrites[0].init.method !== 'POST' || createWrites[0].path !== '/api/knowledge-entries')
+    throw new Error(`㉓ 新增打到了 ${createWrites[0].init.method} ${createWrites[0].path}`);
+  const createBody = JSON.parse(createWrites[0].init.body);
+  const createKeys = ['entry_type', 'title', 'summary', 'body', 'applicability', 'limits',
+    'domain_tags', 'task_tags', 'target_tools', 'related_capability_ids', 'recommended',
+    'source', 'created_by', 'supersedes'];
+  if (!sameKeys(Object.keys(createBody), createKeys))
+    throw new Error(`㉓ 新增体键集合不符：${Object.keys(createBody).join(',')}`);
+  if ('schemaVersion' in createBody || 'created_at' in createBody)
+    throw new Error('㉓ 新增体带了服务端字段（schemaVersion/created_at 由服务写）');
+  if (createBody.created_by !== 'ALEX' || createBody.supersedes !== null)
+    throw new Error(`㉓ 记录人/取代字段不符：${createBody.created_by} / ${createBody.supersedes}`);
+  if (createBody.entry_type !== 'METHOD' || createBody.recommended !== true)
+    throw new Error('㉓ 类型或推荐标记没有原样送出');
+  if (JSON.stringify(createBody.domain_tags) !== JSON.stringify(['film', 'animation']))
+    throw new Error(`㉓ 顿号分隔的领域标签没有拆开：${JSON.stringify(createBody.domain_tags)}`);
+  if (!sameKeys(Object.keys(createBody.source),
+    ['sourceId', 'version', 'license', 'licenseStatus']))
+    throw new Error(`㉓ 留空的来源字段被页面编造了：${Object.keys(createBody.source).join(',')}`);
+
+  const NEW_ID = 'kentry-20261023-storyboard';
+  createWrites[0].resolve(response({
+    schemaVersion: 'design-lab/knowledge-write/v1', status: 'WRITTEN', stored: true,
+    revision: 1, entry: entryView({ knowledge_entry_id: NEW_ID, revision: 1 }),
+    claims_not_made: ['保存不等于核验'],
+  }));
+  await flush();
+  const createSearch = shell.pending.splice(0, shell.pending.length);
+  if (createSearch.length !== 1 || !createSearch[0].path.startsWith('/api/knowledge-entries/search?'))
+    throw new Error(`㉓ 写后应立刻重搜一次：${createSearch.map((r) => r.path).join(' ')}`);
+  createSearch[0].resolve(response(libraryView({
+    total: 3, returned: 3,
+    entries: [rowView({ knowledge_entry_id: NEW_ID, revision: 1, latest_revision: 1,
+      recommended_revision: 1, recommended_is_latest: true }), ...libraryView().entries],
+  })));
+  await flush();
+  const createDetail = shell.pending.splice(0, shell.pending.length);
+  if (createDetail.length !== 1 || createDetail[0].path !== `/api/knowledge-entries/${NEW_ID}`)
+    throw new Error(`㉓ 写后没有按服务返回的编号读回详情：${createDetail.map((r) => r.path).join(' ')}`);
+  createDetail[0].resolve(response({
+    schemaVersion: 'design-lab/knowledge-entry-detail/v1',
+    knowledge_entry_id: NEW_ID, status: 'ACTIVE', latest_revision: 1,
+    recommended_revision: 1, current: entryView({ knowledge_entry_id: NEW_ID, revision: 1 }),
+    recommended: entryView({ knowledge_entry_id: NEW_ID, revision: 1 }),
+    superseded_by: null,
+    revisions: [{ revision: 1, content_sha256: 'sha256:' + 'a'.repeat(64),
+      entry_type: 'METHOD', title: '分镜拆解三步法', recommended: true,
+      created_at: '2026-10-23T09:00:00+00:00', created_by: 'ALEX', readable: true }],
+    unreadable_count: 0, index: { rows: 3, indexed: 3, rebuilt_at: null },
+    does_not_say: ['保存不等于核验'],
+  }));
+  await flush();
+  if (!formText().includes(`已写入 r1 · ${NEW_ID}`) || !formText().includes('sha256:' + 'a'.repeat(64)))
+    throw new Error(`㉓ 写入回执没有按服务返回值上屏：${formText().slice(0, 240)}`);
+  if (!text(byElementId(view, 'kb-detail')).includes(NEW_ID))
+    throw new Error('㉓ 写后读回没有落在详情面');
+  expectQuiet('新增读回');
+
+  // (4) 修订：从读回的正文起稿，带上 expected_revision；旧版本留在历史里。
+  const reviseButton = findIn(byElementId(view, 'kb-detail'),
+    (node) => node?.tagName === 'BUTTON' && node.textContent === '修订为新版本');
+  if (typeof reviseButton?.onclick !== 'function') throw new Error('㉓ 详情里没有修订入口');
+  reviseButton.onclick();
+  const reviseTitle = byElementId(view, 'kb-revise-title');
+  if (!reviseTitle || reviseTitle.value !== '分镜拆解三步法')
+    throw new Error('㉓ 修订表单没有从读回的标题起稿');
+  if (byElementId(view, 'kb-revise-author').value !== '')
+    throw new Error('㉓ 修订人不得预填：服务不持有身份，读回里也没有「现在的操作者」');
+  byElementId(view, 'kb-revise-body').value = '先定机位，再定景别，最后核对轴线与视线高度。';
+  byElementId(view, 'kb-revise-author').value = 'ALEX';
+  findIn(form(), (node) => node?.className === 'primary-btn').onclick();
+  await flush();
+  const reviseWrites = shell.pending.splice(0, shell.pending.length);
+  if (reviseWrites.length !== 1
+    || reviseWrites[0].path !== `/api/knowledge-entries/${NEW_ID}/revisions`)
+    throw new Error(`㉓ 修订打到了 ${reviseWrites.map((r) => r.path).join(' ')}`);
+  const reviseBody = JSON.parse(reviseWrites[0].init.body);
+  if (reviseBody.expected_revision !== 1 || reviseBody.created_by !== 'ALEX')
+    throw new Error(`㉓ 修订没有带读到的 expected_revision：${JSON.stringify(reviseBody)}`);
+  if ('schemaVersion' in reviseBody || 'supersedes' in reviseBody)
+    throw new Error('㉓ 修订体不应携带 schemaVersion/supersedes');
+  if (!reviseBody.body.includes('视线高度'))
+    throw new Error('㉓ 修订后的正文没有送出');
+  reviseWrites[0].resolve(response({
+    schemaVersion: 'design-lab/knowledge-write/v1', status: 'WRITTEN', stored: true,
+    revision: 2, entry: entryView({ knowledge_entry_id: NEW_ID, revision: 2,
+      body: '先定机位，再定景别，最后核对轴线与视线高度。' }),
+    claims_not_made: ['保存不等于核验'],
+  }));
+  await flush();
+  const reviseSearch = shell.pending.splice(0, shell.pending.length);
+  if (reviseSearch.length !== 1) throw new Error(`㉓ 修订后应重搜一次，实际 ${reviseSearch.length}`);
+  reviseSearch[0].resolve(response(libraryView({
+    total: 3, returned: 3,
+    entries: [rowView({ knowledge_entry_id: NEW_ID, revision: 2, latest_revision: 2,
+      recommended_revision: 2, recommended_is_latest: true }), ...libraryView().entries],
+  })));
+  await flush();
+  const reviseDetail = shell.pending.splice(0, shell.pending.length);
+  if (reviseDetail.length !== 1 || reviseDetail[0].path !== `/api/knowledge-entries/${NEW_ID}`)
+    throw new Error(`㉓ 修订后没有读回详情：${reviseDetail.map((r) => r.path).join(' ')}`);
+  reviseDetail[0].resolve(response({
+    schemaVersion: 'design-lab/knowledge-entry-detail/v1',
+    knowledge_entry_id: NEW_ID, status: 'ACTIVE', latest_revision: 2,
+    recommended_revision: 2,
+    current: entryView({ knowledge_entry_id: NEW_ID, revision: 2,
+      body: '先定机位，再定景别，最后核对轴线与视线高度。' }),
+    recommended: entryView({ knowledge_entry_id: NEW_ID, revision: 2,
+      body: '先定机位，再定景别，最后核对轴线与视线高度。' }),
+    superseded_by: null,
+    revisions: [
+      { revision: 2, content_sha256: 'sha256:' + 'b'.repeat(64), entry_type: 'METHOD',
+        title: '分镜拆解三步法', recommended: true,
+        created_at: '2026-10-23T10:00:00+00:00', created_by: 'ALEX', readable: true },
+      { revision: 1, content_sha256: 'sha256:' + 'a'.repeat(64), entry_type: 'METHOD',
+        title: '分镜拆解三步法', recommended: false,
+        created_at: '2026-10-23T09:00:00+00:00', created_by: 'ALEX', readable: true },
+    ],
+    unreadable_count: 0, index: { rows: 3, indexed: 3, rebuilt_at: null },
+    does_not_say: ['保存不等于核验'],
+  }));
+  await flush();
+  if (!formText().includes(`已写入 r2 · ${NEW_ID}`))
+    throw new Error(`㉓ 修订回执没有上屏：${formText().slice(0, 240)}`);
+  if (!text(byElementId(view, 'kb-detail')).includes('r1 · 分镜拆解三步法'))
+    throw new Error('㉓ 修订后旧版本必须仍在修订历史里');
+  expectQuiet('修订读回');
+
+  // (5) 无命中只解释，不编造：两字检索词走子串回退，答案为空时列表里只有一行解释。
+  const searchForm = findIn(view, (node) => node?.tagName === 'FORM');
+  byElementId(view, 'kb-query').value = '霓虹';
+  searchForm.onsubmit({ preventDefault() {} });
+  await flush();
+  const missReads = shell.pending.splice(0, shell.pending.length);
+  if (missReads.length !== 1 || !missReads[0].path.startsWith('/api/knowledge-entries/search?'))
+    throw new Error(`㉓ 无命中查询没有发出检索：${missReads.map((r) => r.path).join(' ')}`);
+  const missParams = new URLSearchParams(missReads[0].path.split('?')[1]);
+  if (missParams.get('q') !== '霓虹') throw new Error(`㉓ 检索词没有送出：${missReads[0].path}`);
+  missReads[0].resolve(response(libraryView({
+    query: '霓虹', strategy: 'SHORT_FALLBACK', matched_terms: ['霓虹'],
+    total: 0, returned: 0, entries: [], next_offset: null,
+    explanation: '没有命中「霓虹」的条目。库中现有 3 条；检索只匹配标题、摘要、正文、'
+      + '领域/任务标签和目标工具，不做近义词扩写，也不推荐未命中的相关条目。',
+  })));
+  await flush();
+  const missText = text(view);
+  if (!missText.includes('没有命中的条目') || !missText.includes('没有命中「霓虹」的条目'))
+    throw new Error(`㉓ 无命中没有按服务解释上屏：${missText.slice(0, 260)}`);
+  if (!missText.includes('策略 SHORT_FALLBACK') || !missText.includes('子串回退命中'))
+    throw new Error('㉓ 两字检索词没有说明 trigram 答不了、由子串回退');
+  const missRows = byElementId(view, 'kb-results').children.filter((node) => node?.tagName === 'LI');
+  if (missRows.length !== 1)
+    throw new Error(`㉓ 无命中时列表只能有一行解释，实际 ${missRows.length} 行`);
+  if (text(missRows[0]).includes('分镜拆解三步法'))
+    throw new Error('㉓ 无命中时上一次的答案仍留在列表里');
+  if (findIn(view, (node) => node?.tagName === 'BUTTON'
+    && String(node.textContent).startsWith('加载更多')))
+    throw new Error('㉓ 无命中时不得出现「加载更多」');
+  expectQuiet('无命中');
+}
+
+console.log('ok: ㉓ DL-KB-02/03/04 知识与提示词库：首屏一次检索且词表/许可状态来自读回、列表不带正文哈希路径、'
+  + '详情按需读回、空表单与缺记录人本地拒绝、新增 14 键 POST（无 schemaVersion/created_at、留空来源不编造）、'
+  + '修订带 expected_revision 且旧版本留在历史、写后按返回编号读回、两字检索词走子串回退且无命中只解释不编造');
 
 console.log('APPSHELL REGRESSION: all checks passed');

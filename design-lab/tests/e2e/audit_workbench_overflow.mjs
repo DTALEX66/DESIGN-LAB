@@ -97,6 +97,8 @@ const ROUTES = [
   ['plan', '#/plan'],
   ['analysis', '#/analysis'],
   ['records', '#/records'],
+  // DL-KB-03/06: 知识与提示词库是本批新增的读面，搜索框、meta 行与两栏详情都在几何闸里。
+  ['knowledge', '#/knowledge'],
 ];
 
 // Deliberate clip: the screen-reader-only route-change announcer.

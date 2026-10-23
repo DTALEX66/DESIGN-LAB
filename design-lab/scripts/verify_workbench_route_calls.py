@@ -85,6 +85,9 @@ CANDIDATES = (
     # but the wrong answer for a call the backend really does dispatch.
     'prompt-' + HEX32,
     'reversal-' + HEX32,
+    # 2026-10-23: knowledge library entry ids are `kentry-` + 32 hex (the shape
+    # src/design_lab/knowledge_library.py mints and the read/revise route patterns require).
+    'kentry-' + HEX32,
     'design-system',
     'print',
     'digital',

@@ -1925,3 +1925,35 @@ body[data-local-session="auto"] #connect-form details { display: none; }
   background:var(--surface-2);font-size:var(--uif-font-small);line-height:1.5;
   overflow-wrap:anywhere;white-space:pre-wrap}
 .plan-layer{margin-top:var(--uif-space-2);min-width:0}
+
+/* DL-KB-03/04（2026-10-23）：知识与提示词库。搜索是主视觉，列表行只保留标题、一句话用途、
+   适用目标与版本/状态；长中文与长 ID 必须能换行。宽度用 ch/令牌，不新增字面 px —— §4 的
+   存量由 scripts/design_debt_baseline.py 按实测看守，多一处就要连带改契约。 */
+.kb-search{flex:2 1 24ch;min-width:0}
+.kb-meta{display:grid;gap:var(--uif-space-1);margin:var(--uif-space-2) 0 var(--uif-space-3)}
+.kb-meta p{margin:0;font-size:var(--uif-font-small);overflow-wrap:anywhere}
+.kb-split{align-items:start}
+.kb-detail-panel{display:grid;gap:var(--uif-space-2);align-content:start}
+.kb-detail-head{display:flex;flex-wrap:wrap;align-items:flex-start;justify-content:space-between;
+  gap:var(--uif-space-2)}
+.kb-detail-head h3{margin:0;font-size:var(--uif-font-heading);overflow-wrap:anywhere}
+.kb-detail-head p{margin:var(--uif-space-1) 0 0}
+.kb-detail-panel h4{margin:var(--uif-space-3) 0 0;font-size:var(--uif-font-body)}
+.kb-badges{display:flex;flex-wrap:wrap;align-items:center;gap:var(--uif-space-1);
+  justify-content:flex-end}
+.kb-badges-start{justify-content:flex-start}
+.kb-actions{display:flex;flex-wrap:wrap;align-items:center;gap:var(--uif-space-2);
+  padding:var(--uif-space-2) 0}
+.kb-row{flex-wrap:wrap;align-items:flex-start}
+.kb-row-main{display:flex;flex-direction:column;gap:var(--uif-space-1);
+  flex:1 1 24ch;min-width:0}
+.kb-row-main small{overflow-wrap:anywhere}
+.kb-open{background:none;border:0;padding:0;color:var(--text);font:inherit;
+  cursor:pointer;text-align:left;overflow-wrap:anywhere}
+.kb-open:hover{color:var(--accent)}
+.kb-body{margin:var(--uif-space-2) 0;white-space:pre-wrap;overflow-wrap:anywhere}
+.kb-form-fields{margin-top:var(--uif-space-2)}
+.kb-form .field-row{margin-bottom:var(--uif-space-2)}
+.kb-form .field-row .input{width:100%}
+.kb-span{grid-column:1 / -1}
+.kb-form{padding:var(--uif-space-4)}

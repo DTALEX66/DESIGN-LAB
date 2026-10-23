@@ -237,6 +237,9 @@ const PAGES = [
   { key: 'model-selection', hash: '#/models' },
   // R2 §7 (DL-UI-U04): 制作记录与待继续。读 GET /projects/{id}/tasks。
   { key: 'records', hash: '#/records' },
+  // DL-KB-03 (2026-10-23): 知识与提示词库。搜索是主视觉，读 GET /api/knowledge-entries/search；
+  // 不进这份清单就等于这一面从没被真实渲染过，也就不会在任何闸上报错。
+  { key: 'knowledge', hash: '#/knowledge' },
   // R2 §9 (DL-FINAL-T08): 分组全局搜索是浮层，只能靠真实点击打开后才有可审阅的一张图。
   { key: 'search-groups', hash: '#/capabilities', click: '#openPalette' },
 ];

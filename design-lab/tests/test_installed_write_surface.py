@@ -43,6 +43,26 @@ TOKENS = {'color': {'$type': 'color', 'brand': {'$value': '#2563EB'},
                    'surface': {'$value': '{color.brand}'}},
           'scale': {'$type': 'dimension', 'space': {'md': {'$value': '16px'}}}}
 
+#: DL-KB-02 (batch K). One knowledge entry, written by the create route and then revised,
+#: imported and indexed by the three write routes beside it. The source is the same vocabulary
+#: SourceRecord uses, with UNKNOWN where a person said nothing -- the store's own relaxation, and
+#: the reason this body is a real request instead of a shortcut around the contract.
+KNOWLEDGE_SOURCE = {'sourceId': 'sweep-knowledge', 'origin': 'UNKNOWN', 'author': 'sweep',
+                    'license': 'UNKNOWN', 'licenseStatus': 'unknown',
+                    'allowedUsage': 'UNKNOWN', 'citationScope': 'UNKNOWN', 'version': '1',
+                    'observedAt': '2026-10-23T00:00:00Z', 'contentHash': 'UNKNOWN',
+                    'verification': 'UNVERIFIED'}
+KNOWLEDGE_ENTRY = {
+    'entry_type': 'METHOD', 'title': '分镜拆解三步法',
+    'summary': '把一段脚本拆成镜头表：先定节拍，再定景别，最后定转场。',
+    'domain_tags': ['film'], 'task_tags': ['storyboard'], 'target_tools': ['storyboarder'],
+    'body': '第一步按段落切节拍。第二步给每个节拍选景别。第三步只标必要的转场。',
+    'applicability': '适合 30-90 秒短片的分镜前置。',
+    'limits': '不适用于需要精确口型对位的动画。',
+    'source': KNOWLEDGE_SOURCE, 'related_capability_ids': [], 'recommended': True,
+    'created_by': 'sweep', 'supersedes': None,
+}
+
 _SLOT = re.compile(r'\{(\w+)\}')
 
 
@@ -317,6 +337,31 @@ class InstalledWriteSurfaceTests(unittest.TestCase):
          'body': {'host': 'photoshop', 'rir': '{rir}', 'text_styles': {},
                   'idempotency_key': 'sweep-plan'},
          'capture': {'plan_job': 'task.job_id'}, 'check': 'check_native_plan'},
+        # DL-KB-02 (batch K): the library's three writes and its index rebuild. None is
+        # project-scoped -- the library is global like /api/capabilities -- so the paths carry no
+        # {project} slot.
+        {'route': '/api/knowledge-entries', 'label': 'knowledge-create', 'status': 201,
+         'path': '/api/knowledge-entries', 'body': KNOWLEDGE_ENTRY,
+         'capture': {'kentry': 'entry.knowledge_entry_id'}, 'check': 'check_knowledge_create'},
+        {'route': '/api/knowledge-entries/(kentry-[0-9a-f]{32})/revisions',
+         'label': 'knowledge-revise', 'status': 201,
+         'path': '/api/knowledge-entries/{kentry}/revisions',
+         'body': {key: value for key, value in KNOWLEDGE_ENTRY.items()
+                  if key not in ('created_by', 'supersedes')}
+                 | {'title': '分镜拆解三步法（修订）', 'recommended': False,
+                    'created_by': 'sweep', 'expected_revision': 1},
+         'check': 'check_knowledge_revision'},
+        {'route': '/api/knowledge-entries/import', 'label': 'knowledge-import', 'status': 201,
+         'path': '/api/knowledge-entries/import',
+         'body': {key: value for key, value in KNOWLEDGE_ENTRY.items()
+                  if key not in ('created_by',)}
+                 | {'source': dict(KNOWLEDGE_SOURCE, sourceId='sweep-knowledge-import'),
+                    'imported_by': 'sweep'},
+         'capture': {'kentry_imported': 'knowledge_entry_id'},
+         'check': 'check_knowledge_import'},
+        {'route': '/api/knowledge-entries/index-rebuild', 'label': 'knowledge-index-rebuild',
+         'status': 200, 'path': '/api/knowledge-entries/index-rebuild', 'body': {},
+         'check': 'check_knowledge_index_rebuild'},
     )
 
     # -- the walk ---------------------------------------------------------------------
@@ -641,6 +686,46 @@ class InstalledWriteSurfaceTests(unittest.TestCase):
         staged = self.service.paths.category_dir('projects', slots['project'], 'native-plans')
         self.assertFalse(staged.exists() and list(staged.rglob('master.psd')),
                          'a plan submission produced host output without a host run')
+
+    def check_knowledge_create(self, row, payload, slots):
+        detail = self.read_back(row, '/api/knowledge-entries/{kentry}')
+        self.assertEqual('ACTIVE', detail['status'], 'a fresh entry is not readable as ACTIVE')
+        self.assertEqual(1, detail['latest_revision'])
+        self.assertEqual(KNOWLEDGE_ENTRY['title'], detail['current']['title'],
+                         'the bytes the read route answers are not the ones the create route wrote')
+        self.assertEqual('UNVERIFIED', detail['current']['source']['verification'],
+                         'storing an entry upgraded a source nobody checked')
+
+    def check_knowledge_revision(self, row, payload, slots):
+        detail = self.read_back(row, '/api/knowledge-entries/{kentry}')
+        self.assertEqual(2, detail['latest_revision'],
+                         'the revision did not become the newest bytes')
+        self.assertEqual(1, detail['recommended_revision'],
+                         'revision 2 was written with recommended:false, so the recommendation '
+                         'must still point at revision 1')
+        self.assertIsNotNone(detail['recommended'],
+                             'the recommended revision is not the latest, so the read must carry '
+                             'its document instead of leaving the page to guess')
+        self.assertEqual([1, 2], [item['revision'] for item in detail['revisions']],
+                         'the revision replaced its parent instead of appending to it')
+
+    def check_knowledge_import(self, row, payload, slots):
+        detail = self.read_back(row, '/api/knowledge-entries/{kentry_imported}')
+        self.assertEqual('sweep-knowledge-import', detail['current']['source']['sourceId'])
+        listed = self.read_back(row, '/api/knowledge-entries/search?q=%E5%88%86%E9%95%9C')
+        self.assertIn(slots['kentry_imported'],
+                      [entry['knowledge_entry_id'] for entry in listed['entries']],
+                      'the imported entry is not reachable from the search the page uses')
+
+    def check_knowledge_index_rebuild(self, row, payload, slots):
+        self.assertEqual(payload['indexed'], payload['index']['indexed'],
+                         'the rebuild counted rows it did not leave in the index')
+        listed = self.read_back(row, '/api/knowledge-entries/search?q=%E5%88%86%E9%95%9C')
+        self.assertGreaterEqual(listed['total'], 2,
+                                'after a rebuild the two-character query no longer finds the '
+                                'entries this sweep wrote: the derived index was rebuilt empty')
+        self.assertEqual(payload['rebuilt_at'], listed['index']['rebuilt_at'],
+                         'the read reports an index state the rebuild did not write')
 
     # -- machinery the table depends on -----------------------------------------------
     def prepare_candidate(self, slots):

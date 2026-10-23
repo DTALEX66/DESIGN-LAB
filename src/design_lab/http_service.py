@@ -13,6 +13,9 @@ from .runtime.paths import PathPolicyError
 from .asset_analysis import AssetAnalysis, AssetAnalysisError
 from .prompt_intelligence import PromptIntelligence, PromptIntelligenceError
 from .prompt_results import PromptResults, PromptResultError
+# DL-KB-02 (2026-10-23): the knowledge library is a global surface like /api/capabilities -- it
+# belongs to the operator, not to a project, and nothing on it is scoped by a project id.
+from .knowledge_library import DEFAULT_LIMIT, KnowledgeLibrary, KnowledgeLibraryError
 from .project_index import ProjectIndex, ProjectIndexError
 from .image_assets import ImageAssets, ImageAssetError
 from .task_queries import TaskQueries, TaskReadbackError
@@ -71,9 +74,9 @@ class Route:
     """One authenticated API route: what it matches, which Handler method answers.
 
     `exact` routes compare the whole target for equality instead of running a regex.
-    `path_only` drops the query string before matching (only /api/task-preflight does:
-    its query is parsed by the handler, and a missing/blank task must answer
-    TASK_REQUIRED rather than 404). `when` is the extra predicate a pattern cannot say:
+    `path_only` drops the query string before matching (task-preflight and the knowledge list
+    do: their queries are parsed by the handler, and a missing/blank value must answer its own
+    code rather than 404). `when` is the extra predicate a pattern cannot say:
     the task-detail pattern also admits `/events` but must refuse a bare `?after=`.
     """
     __slots__ = ('method', 'pattern', 'action', 'exact', 'path_only', 'when')
@@ -125,6 +128,20 @@ ROUTES = (
           '_read_model_selection'),
     Route('GET', '/api/domains', '_domains', exact=True),
     Route('GET', '/api/task-preflight', '_task_preflight', exact=True, path_only=True),
+    # DL-KB-02/DL-KB-04. Search lives on its own path so the collection path carries exactly one
+    # answer: POST /api/knowledge-entries creates an entry, and a GET there would make one ledger
+    # row describe two different documents. Browsing is the same route with no `q` (strategy
+    # BROWSE). The query (q/type/domain/task/target/offset/limit) is parsed inside the handler the
+    # same way task-preflight does, so a malformed parameter answers a named refusal instead of 404.
+    Route('GET', '/api/knowledge-entries/search', '_search_knowledge_entries', exact=True,
+          path_only=True),
+    Route('POST', '/api/knowledge-entries', '_create_knowledge_entry', exact=True),
+    Route('POST', '/api/knowledge-entries/import', '_import_knowledge_entry', exact=True),
+    Route('POST', '/api/knowledge-entries/index-rebuild', '_rebuild_knowledge_index',
+          exact=True),
+    Route('GET', r'/api/knowledge-entries/(kentry-[0-9a-f]{32})', '_get_knowledge_entry'),
+    Route('POST', r'/api/knowledge-entries/(kentry-[0-9a-f]{32})/revisions',
+          '_revise_knowledge_entry'),
     Route('GET', '/api/projects', '_list_projects', exact=True),
     Route('GET', '/api/evidence-projection', '_evidence_projection', exact=True),
     Route('GET', '/api/design-systems', '_list_design_systems', exact=True),
@@ -501,6 +518,16 @@ def make_server(service, token, port=0, *, local_session=False):
             # store that holds a row no longer satisfying it are different answers,
             # and the page needs the code plus the sentence that explains it.
             except KnowledgeReviewError as exc:
+                payload = {'error': exc.code}
+                if exc.detail:
+                    payload['detail'] = exc.detail
+                self.send_json(exc.status, payload)
+            # The library's refusals are the operator's next instruction: "the entry moved to a
+            # newer revision, re-read it", "this version is already stored with another digest",
+            # "an import needs a source id and a version". Folded into the generic 400 below,
+            # every one of them would arrive as INVALID_REQUEST and the page could not tell a
+            # stale write from a malformed one.
+            except KnowledgeLibraryError as exc:
                 payload = {'error': exc.code}
                 if exc.detail:
                     payload['detail'] = exc.detail
@@ -1020,6 +1047,76 @@ def make_server(service, token, port=0, *, local_session=False):
                               limit=16384)
             return self.send_json(200, KnowledgeReview(service).revoke(
                 match[1], match[2], value))
+
+        # DL-KB-02/04: the library a person writes into, as opposed to the candidate a run
+        # produced. The six routes share one store (knowledge_library.KnowledgeLibrary) and one
+        # writer inside it; these methods only translate HTTP into its calls.
+        def _search_knowledge_entries(self, match):
+            # A global read, like /api/capabilities: no project id is needed to search a prompt
+            # library, and scoping it per project would make the same entry invisible from the
+            # next project. The query is parsed with urlsplit + parse_qsl for the same reason
+            # _task_preflight does it -- the route declares path_only, so a present query must
+            # reach the handler instead of turning into a 404.
+            params = dict(parse_qsl(urlsplit(self.path).query, keep_blank_values=True))
+
+            def number(name, default):
+                raw = params.get(name)
+                if raw is None or raw == '':
+                    return default
+                try:
+                    return int(raw)
+                except ValueError:
+                    raise KnowledgeLibraryError(
+                        400, 'KNOWLEDGE_FILTER_MALFORMED',
+                        f'{name} must be an integer, got {raw!r}') from None
+
+            return self.send_json(200, KnowledgeLibrary(service).search(
+                query=params.get('q') or None,
+                entry_type=params.get('type') or None,
+                domain=params.get('domain') or None,
+                task=params.get('task') or None,
+                target=params.get('target') or None,
+                offset=number('offset', 0),
+                limit=number('limit', DEFAULT_LIMIT)))
+
+        def _get_knowledge_entry(self, match):
+            return self.send_json(200, KnowledgeLibrary(service).detail(match[1]))
+
+        def _create_knowledge_entry(self, match):
+            # Exact key set: an unknown field is refused instead of dropped, so a client that
+            # believes it set `source.license` cannot have its typo silently discarded.
+            # `schemaVersion` is deliberately not a field -- the store writes its own, and a
+            # caller choosing it could write a version the read path does not know.
+            value = self.body(fields={
+                'entry_type', 'title', 'summary', 'domain_tags', 'task_tags', 'target_tools',
+                'body', 'applicability', 'limits', 'source', 'related_capability_ids',
+                'recommended', 'created_by', 'supersedes'}, limit=262144)
+            return self.send_json(201, KnowledgeLibrary(service).create(value))
+
+        def _revise_knowledge_entry(self, match):
+            value = self.body(fields={
+                'entry_type', 'title', 'summary', 'domain_tags', 'task_tags', 'target_tools',
+                'body', 'applicability', 'limits', 'source', 'related_capability_ids',
+                'recommended', 'created_by', 'expected_revision'}, limit=262144)
+            return self.send_json(201, KnowledgeLibrary(service).revise(
+                match[1], value))
+
+        def _import_knowledge_entry(self, match):
+            # Same document contract as create, plus `imported_by` and the same optional
+            # `supersedes` link: an import is how an authoritative document replaces a rough
+            # note, and a set of fields that quietly differed from create would be a second
+            # contract for the same document.
+            value = self.body(fields={
+                'entry_type', 'title', 'summary', 'domain_tags', 'task_tags', 'target_tools',
+                'body', 'applicability', 'limits', 'source', 'related_capability_ids',
+                'recommended', 'imported_by', 'supersedes'}, limit=262144)
+            return self.send_json(201, KnowledgeLibrary(service).import_entry(value))
+
+        def _rebuild_knowledge_index(self, match):
+            # The rebuild is the index's proof of derivability, not a repair of a read: an
+            # empty body keeps it from taking parameters it would have to pretend to honour.
+            self.body(fields=set(), limit=1024)
+            return self.send_json(200, KnowledgeLibrary(service).rebuild_index())
 
         def _create_brief(self, match):
             layer = DesignLayer(service)

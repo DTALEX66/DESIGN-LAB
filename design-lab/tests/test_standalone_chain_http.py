@@ -573,6 +573,12 @@ class StandaloneChainTests(unittest.TestCase):
         '/api/capabilities': ['/api/capabilities'],
         '/api/domains': ['/api/domains'],
         '/api/models': ['/api/models'],
+        # DL-KB-02/04 (batch K). Two reads of the search route on purpose: the bare path is the
+        # browse branch, and the query is a two-character Chinese word the trigram index cannot
+        # answer, so this sweep measures the fallback the product actually ships.
+        '/api/knowledge-entries/search': ['/api/knowledge-entries/search',
+                                          '/api/knowledge-entries/search?q=%E5%88%86%E9%95%9C'],
+        '/api/knowledge-entries/(kentry-[0-9a-f]{32})': ['/api/knowledge-entries/{kentry}'],
         '/api/design-systems': ['/api/design-systems'],
         '/api/evidence-projection': ['/api/evidence-projection'],
         '/api/task-preflight': ['/api/task-preflight?task=image-import:{project}'],
@@ -684,6 +690,23 @@ class StandaloneChainTests(unittest.TestCase):
              'color_mood': 'cool', 'typography_mood': 'sans',
              'idempotency_key': 'sweep-direction'}, 201)['direction']['direction_id']
         delivered = self._deliver_to_preflight()
+        # The knowledge library is global (like /api/capabilities), so the entry this sweep reads
+        # back is written through the create route with no project id: the read is measured on an
+        # object this service really stored, not on an id assembled by hand.
+        knowledge = self.hop('knowledge', 'POST', '/api/knowledge-entries', {
+            'entry_type': 'METHOD', 'title': '分镜拆解三步法',
+            'summary': '把一段脚本拆成镜头表：先定节拍，再定景别，最后定转场。',
+            'domain_tags': ['film'], 'task_tags': ['storyboard'],
+            'target_tools': ['storyboarder'],
+            'body': '第一步按段落切节拍。第二步给每个节拍选景别。第三步只标必要的转场。',
+            'applicability': 'UNKNOWN', 'limits': 'UNKNOWN',
+            'source': {'sourceId': 'get-sweep', 'origin': 'UNKNOWN', 'author': 'sweep',
+                       'license': 'UNKNOWN', 'licenseStatus': 'unknown',
+                       'allowedUsage': 'UNKNOWN', 'citationScope': 'UNKNOWN', 'version': '1',
+                       'observedAt': '2026-10-23T00:00:00Z', 'contentHash': 'UNKNOWN',
+                       'verification': 'UNVERIFIED'},
+            'related_capability_ids': [], 'recommended': True, 'created_by': 'sweep',
+            'supersedes': None}, 201)['entry']['knowledge_entry_id']
         systems = self.call('GET', '/api/design-systems')[1]
         names = _values_under(systems, 'name', 'id')
         self.assertTrue(names, 'the design-system catalog named no entry to build a token route')
@@ -700,7 +723,7 @@ class StandaloneChainTests(unittest.TestCase):
                  'direction': direction, 'design_system': names[0],
                  'delivery_project': delivered['project'], 'bundle': delivered['bundle']['id'],
                  'version': delivered['bundle']['version_id'], 'job': delivered['job_id'],
-                 'native_asset': native_assets['assets'][0]['id']}
+                 'native_asset': native_assets['assets'][0]['id'], 'kentry': knowledge}
 
         layout = 'installed' if INSTALLED_MODE else 'source'
         answered, verdicts, unmeasured, refused = [], [], [], {}
@@ -712,7 +735,7 @@ class StandaloneChainTests(unittest.TestCase):
                 path = re.sub(r'\{(\w+)\}', lambda match: slots.get(match.group(1), ''), read)
                 missing = sorted(name for name in ('project', 'asset', 'brief', 'direction',
                                                    'design_system', 'delivery_project', 'bundle',
-                                                   'version', 'job', 'native_asset')
+                                                   'version', 'job', 'native_asset', 'kentry')
                                  if '{' + name + '}' in read and not slots.get(name))
                 self.assertEqual(missing, [],
                                  f'{read} needs a slot this sweep has no value for: {missing}')

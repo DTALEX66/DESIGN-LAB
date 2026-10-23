@@ -91,6 +91,17 @@ exclude = ["src/design_lab/reconstruction/__init__.py"]
 "design-lab/schemas/prompt-result-v1.schema.json" = "design_lab/resources/repo/design-lab/schemas/prompt-result-v1.schema.json"
 "design-lab/schemas/prompt-result-readback-v1.schema.json" = "design_lab/resources/repo/design-lab/schemas/prompt-result-readback-v1.schema.json"
 "design-lab/schemas/prompt-result-review-v1.schema.json" = "design_lab/resources/repo/design-lab/schemas/prompt-result-review-v1.schema.json"
+# DL-KB-02 (2026-10-23): the knowledge library's entry contract, its two readback envelopes, the
+# import answer and the two write envelopes. All six are read through repo_resource; without these
+# lines an installed wheel would open the state SQL (shipped with the schemas/state directory above)
+# and then refuse every knowledge route as KNOWLEDGE_CONTRACT_UNREADABLE -- a missing file, not a
+# verdict.
+"design-lab/schemas/knowledge-entry-v1.schema.json" = "design_lab/resources/repo/design-lab/schemas/knowledge-entry-v1.schema.json"
+"design-lab/schemas/knowledge-entry-readback-v1.schema.json" = "design_lab/resources/repo/design-lab/schemas/knowledge-entry-readback-v1.schema.json"
+"design-lab/schemas/knowledge-library-readback-v1.schema.json" = "design_lab/resources/repo/design-lab/schemas/knowledge-library-readback-v1.schema.json"
+"design-lab/schemas/knowledge-import-v1.schema.json" = "design_lab/resources/repo/design-lab/schemas/knowledge-import-v1.schema.json"
+"design-lab/schemas/knowledge-entry-write-v1.schema.json" = "design_lab/resources/repo/design-lab/schemas/knowledge-entry-write-v1.schema.json"
+"design-lab/schemas/knowledge-index-rebuild-v1.schema.json" = "design_lab/resources/repo/design-lab/schemas/knowledge-index-rebuild-v1.schema.json"
 "design-lab/schemas/readiness-host-matrix.schema.json" = "design_lab/resources/repo/design-lab/schemas/readiness-host-matrix.schema.json"
 "design-lab/schemas/readiness-model-radar.schema.json" = "design_lab/resources/repo/design-lab/schemas/readiness-model-radar.schema.json"
 # Found by walking the delivery leg inside an installed wheel, not by grepping for PROJECT_ROOT:

@@ -1343,6 +1343,28 @@ const OFFLINE = {
     does_not_say: []
   },
   bundles: { bundles: [] },
+  // DL-KB-03: 知识库检索答案的诚实空载荷。两个列表都空是因为什么都没问到；台账数字为 0
+  // 同样表示"没有问到"，由未连接标记说明。`entryTypes` / `licenseStates` 留空而不是手抄一份
+  // 词表：离线页不显示类型选项，而不是编一套标签。`does_not_say` 也留空——服务没说话，
+  // 页面不替它声明边界。
+  knowledgeLibrary: {
+    schemaVersion: "design-lab/knowledge-library/v1",
+    query: null,
+    filters: { type: null, domain: null, task: null, target: null },
+    entryTypes: [],
+    licenseStates: [],
+    strategy: "BROWSE",
+    matched_terms: [],
+    total: 0,
+    offset: 0,
+    limit: 50,
+    returned: 0,
+    next_offset: null,
+    entries: [],
+    explanation: null,
+    index: { rows: 0, indexed: 0, rebuilt_at: null },
+    does_not_say: []
+  },
   // 提示词反推需要一条真实存在的图像资产，所以资产清单也走同一只读接缝：没有读到
   // assets 时说未读回，而不是"这个项目没有素材"。
   assets: { assets: [] },
@@ -1393,31 +1415,36 @@ const OFFLINE = {
   }
 };
 const ROUTE_VIEWS = [
-  { hash: "#/capabilities", view: "capabilities", label: "能力目录", entry: "能力资产" },
-  { hash: "#/domains", view: "design-domains", label: "设计领域", entry: "能力资产" },
-  { hash: "#/brand-systems", view: "brand-systems", label: "品牌系统", entry: "能力资产" },
-  { hash: "#/tools", view: "creative-tools", label: "创作工具", entry: "能力资产" },
+  // 设计辅助：拿到一个目标、看清它、找到参考与方法。
+  { hash: "", view: "workbench", label: "工作台", entry: "设计辅助" },
+  { hash: "#/dashboard", view: "dashboard", label: "仪表盘", entry: "设计辅助" },
+  { hash: "#/intake", view: "intake", label: "输入与目标", entry: "设计辅助" },
+  { hash: "#/analysis", view: "analysis", label: "分析与方案", entry: "设计辅助" },
+  { hash: "#/prompts", view: "prompt-intelligence", label: "提示词工程", entry: "设计辅助" },
+  { hash: "#/research", view: "research", label: "研究洞察", entry: "设计辅助" },
+  { hash: "#/capabilities", view: "capabilities", label: "能力目录", entry: "设计辅助" },
+  { hash: "#/domains", view: "design-domains", label: "设计领域", entry: "设计辅助" },
+  { hash: "#/brand-systems", view: "brand-systems", label: "品牌系统", entry: "设计辅助" },
+  { hash: "#/tools", view: "creative-tools", label: "创作工具", entry: "设计辅助" },
+  // 知识与提示词库：搜索是这一屏的主视觉，条目在服务里真实写入、修订与读回。
+  { hash: "#/knowledge", view: "knowledge", label: "知识与提示词库", entry: "知识与提示词库" },
+  // 我的方案：从项目到交付与证据，找回工作也在这里。
+  { hash: "#/projects", view: "projects", label: "项目", entry: "我的方案" },
+  { hash: "#/plan", view: "plan", label: "目标生成包", entry: "我的方案" },
+  // R2 §2 把「制作记录与待继续」放在方案入口下：它是找回工作的入口，不是成果面。
+  { hash: "#/records", view: "records", label: "制作记录与待继续", entry: "我的方案" },
+  { hash: "#/deliverables", view: "deliverables", label: "交付中心", entry: "我的方案" },
+  { hash: "#/evidence", view: "evidence", label: "证据系统", entry: "我的方案" },
+  { hash: "#/preflight", view: "preflight-qa", label: "预检 / QA", entry: "我的方案" },
+  // 设置与诊断：只收模型服务、目标工具档案、导入更新、备份与诊断。
+  { hash: "#/settings", view: "settings", label: "系统设置", entry: "设置与诊断" },
   // 模型候选的唯一可读回来源是 GET /api/capabilities 里 kind='model' 的那批记录（其
   // sources.radar 指向 design-lab/readiness/model-radar.json）。这里不加任何模型名或族名：
   // 手抄一份雷达就是这个仓库反复gate掉的第二台账。
-  { hash: "#/models", view: "model-selection", label: "模型选择", entry: "能力资产" },
-  { hash: "#/projects", view: "projects", label: "项目", entry: "分析与制作" },
-  { hash: "#/research", view: "research", label: "研究洞察", entry: "分析与制作" },
-  { hash: "#/intake", view: "intake", label: "输入与目标", entry: "分析与制作" },
-  { hash: "#/analysis", view: "analysis", label: "分析与方案", entry: "分析与制作" },
-  { hash: "#/prompts", view: "prompt-intelligence", label: "提示词工程", entry: "分析与制作" },
-  { hash: "#/plan", view: "plan", label: "目标生成包", entry: "分析与制作" },
-  // R2 §2 把「制作记录与待继续」放在分析与制作入口下：它是找回工作的入口，不是成果面。
-  { hash: "#/records", view: "records", label: "制作记录与待继续", entry: "分析与制作" },
-  { hash: "#/deliverables", view: "deliverables", label: "交付中心", entry: "成果与反馈" },
-  { hash: "#/evidence", view: "evidence", label: "证据系统", entry: "成果与反馈" },
-  { hash: "#/preflight", view: "preflight-qa", label: "预检 / QA", entry: "成果与反馈" },
-  { hash: "", view: "workbench", label: "工作台", entry: "辅助" },
-  { hash: "#/dashboard", view: "dashboard", label: "仪表盘", entry: "辅助" },
-  { hash: "#/settings", view: "settings", label: "系统设置", entry: "辅助" },
-  { hash: "#/collaboration", view: "collaboration", label: "团队协作", entry: "辅助" },
-  { hash: "#/states", view: "ui-states", label: "界面状态", entry: "辅助" },
-  { hash: "#/components", view: "ui-components", label: "组件规范", entry: "辅助" }
+  { hash: "#/models", view: "model-selection", label: "模型选择", entry: "设置与诊断" },
+  { hash: "#/collaboration", view: "collaboration", label: "团队协作", entry: "设置与诊断" },
+  { hash: "#/states", view: "ui-states", label: "界面状态", entry: "设置与诊断" },
+  { hash: "#/components", view: "ui-components", label: "组件规范", entry: "设置与诊断" }
 ];
 function viewLabel(view) {
   return ROUTE_VIEWS.find((route) => route.view === view)?.label ?? view;
@@ -4467,7 +4494,16 @@ async function renderDomains(target, opts = {}) {
 }
 async function renderSettings(target) {
   target.replaceChildren(el("p", { class: "view-loading" }, "正在读回运行环境…"));
-  const env = await apiOrEmpty("/environment", OFFLINE.environment);
+  const [env, catalog, knowledge] = await Promise.all([
+    apiOrEmpty("/environment", OFFLINE.environment),
+    apiOrEmpty("/models", OFFLINE.models),
+    apiOrEmpty(
+      "/knowledge-entries/search?limit=1",
+      OFFLINE.knowledgeLibrary
+    )
+  ]);
+  const catalogOffline = disconnectedNotice(catalog);
+  const knowledgeOffline = disconnectedNotice(knowledge);
   const rows = [
     { label: "环境状态", value: env.status, long: false },
     { label: "诊断契约", value: env.schemaVersion, long: true },
@@ -4488,36 +4524,137 @@ async function renderSettings(target) {
       "div",
       {},
       el("h2", {}, "系统设置"),
-      el("p", {}, "设置页只读回服务端诊断；本服务不修改任何配置。")
+      el("p", {}, "这一页只收四件事：模型服务、目标工具档案、导入更新、备份与诊断。设置只读回服务端诊断，不修改任何配置；没有读回的项不用默认值代替。")
     ),
     el("div", { class: "page-actions" })
   );
-  target.replaceChildren(
-    pageHead,
-    // This panel is the only child of the row, so it must not sit in a
-    // three-column grid: at 1440 it rendered ~450px wide with 950px of empty
-    // canvas to its right. Full width lets .list-item's space-between put the
-    // label left and the status pill right, which reads as designed rather
-    // than truncated.
-    el(
-      "div",
-      { class: "panel" },
-      // The panel heading and its first row were both called 环境状态, so the
-      // page read the heading as a duplicate of the value under it. The panel is
-      // a readback of the service environment; the row inside it is the status.
-      el("h3", {}, "服务端环境读回"),
+  const modelsPanel = el(
+    "section",
+    { class: "panel", id: "settings-models" },
+    el("h3", {}, "模型服务"),
+    ...catalogOffline ? [el("p", { class: "error" }, `${catalogOffline}；模型候选、端点与资格计数都未读回。`)] : [
       el(
         "ul",
         { class: "list" },
-        ...rows.map((r) => valueRow(
-          r.label,
-          r.value,
-          r.long,
-          r.label === "代理配置" ? "warn" : "info"
-        ))
+        valueRow("目录契约", catalog.schemaVersion, true),
+        valueRow("观测时间", catalog.observed_at ?? "未记录", false),
+        valueRow(
+          "候选 / 可调用端点",
+          `${catalog.counts.models} / ${catalog.counts.endpoints}`,
+          false
+        ),
+        valueRow("合格本地模型", String(catalog.counts.qualified_local), false),
+        valueRow("默认启用", String(catalog.counts.default_enabled_true), false),
+        valueRow(
+          "选择传输",
+          `${catalog.selection.transport} · executed=${String(catalog.selection.executed)}`,
+          true
+        )
+      ),
+      el(
+        "p",
+        { class: "view-hint" },
+        '选择按项目记录，记下的只是"谁在什么时候选了哪个"；它不代表加载、推理或发送。默认 fail-closed 与"用户能选"是两件事：选了也不改变合格状态。'
       )
+    ],
+    el(
+      "div",
+      { class: "kb-actions" },
+      el("button", {
+        type: "button",
+        class: "ghost-btn",
+        onclick: () => {
+          window.location.hash = "#/models";
+        }
+      }, "打开模型选择")
+    )
+  );
+  const targetProfilesPanel = el(
+    "section",
+    { class: "panel", id: "settings-target-profiles" },
+    el("h3", {}, "目标工具档案"),
+    el(
+      "p",
+      { class: "view-hint" },
+      '目标工具档案（软件 × 模型 × 入口）还没有存储：本服务没有档案路由，也没有可读回的档案行。在档案建立之前，这一节不展示任何"已支持"的组合，也不写死软件名或版本。'
     ),
-    // 路径诊断是后端对接面，不是设计生产面：默认收起，展开才占版面。
+    el(
+      "div",
+      { class: "kb-actions" },
+      el("button", {
+        type: "button",
+        class: "ghost-btn",
+        onclick: () => {
+          window.location.hash = "#/tools";
+        }
+      }, "创作工具现状"),
+      el("button", {
+        type: "button",
+        class: "ghost-btn",
+        onclick: () => {
+          window.location.hash = "#/models";
+        }
+      }, "模型候选")
+    )
+  );
+  const importPanel = el(
+    "section",
+    { class: "panel", id: "settings-import" },
+    el("h3", {}, "导入更新"),
+    el(
+      "p",
+      { class: "view-hint" },
+      "知识条目的新增、修订、导入与「导入新版本并替代」都在知识与提示词库：导入只写本机服务、不抓取来源，旧版本保留不覆盖。"
+    ),
+    el(
+      "p",
+      { class: "view-hint" },
+      '本服务没有联网更新或安装包通道；这一页不提供"检查更新"按钮，也不宣称有新版本。'
+    ),
+    el(
+      "div",
+      { class: "kb-actions" },
+      el("button", {
+        type: "button",
+        class: "ghost-btn",
+        onclick: () => {
+          window.location.hash = "#/knowledge";
+        }
+      }, "打开知识与提示词库")
+    )
+  );
+  const indexLine = knowledgeOffline ? el("p", { class: "error" }, `${knowledgeOffline}；检索索引状态未读回。`) : el(
+    "p",
+    {},
+    `知识条目 ${knowledge.index.rows} 条 · 派生索引 ${knowledge.index.indexed} 行` + (knowledge.index.rebuilt_at ? ` · 上次重建 ${knowledge.index.rebuilt_at}` : "") + (knowledge.index.indexed === knowledge.index.rows ? "" : "（不完整，可在库内重建）")
+  );
+  const backupPanel = el(
+    "section",
+    { class: "panel", id: "settings-backup" },
+    // 面板标题与首行不能再同名（此前两处都叫"环境状态"，读起来像重复）；标题说明这是
+    // 哪一类信息，行内才是值。
+    el("h3", {}, "备份与诊断"),
+    el(
+      "ul",
+      { class: "list" },
+      ...rows.map((r) => valueRow(
+        r.label,
+        r.value,
+        r.long,
+        r.label === "代理配置" ? "warn" : "info"
+      ))
+    ),
+    indexLine,
+    el(
+      "p",
+      { class: "view-hint" },
+      '本服务没有备份路由：备份是文件系统操作，这一页不伪造"备份"按钮。写入以追加方式保存，诊断读数来自本次实时读回。'
+    )
+  );
+  target.replaceChildren(
+    pageHead,
+    el("div", { class: "two-col" }, modelsPanel, targetProfilesPanel),
+    el("div", { class: "two-col" }, importPanel, backupPanel),
     el(
       "details",
       { class: "advanced" },
@@ -4562,8 +4699,881 @@ async function renderSettings(target) {
       )
     ),
     el("p", { class: "view-hint" }, "代理配置私有状态不可写：PRIVATE_NOT_INSPECTED · 不可写。本服务不读取、不打印任何凭据。"),
-    ...shapeNoticeRows(env)
+    ...shapeNoticeRows(env, catalog, knowledge)
   );
+}
+const KB_STRATEGY_MEANING = {
+  BROWSE: "没有检索词，按写入时间从新到旧浏览",
+  TRIGRAM: "全部检索词都由 FTS5 trigram 索引回答",
+  SHORT_FALLBACK: "检索词短于 3 个字符，trigram 索引答不了，由子串回退命中",
+  MIXED: "部分检索词由索引回答；索引答空或过短的词走子串回退"
+};
+const KB_FIELD_LABELS = {
+  title: "标题",
+  summary: "摘要",
+  body: "正文",
+  domain_tags: "领域标签",
+  task_tags: "任务标签",
+  target_tools: "目标工具"
+};
+function kbTypeLabel(vocabulary, value) {
+  return vocabulary.find((option) => option.value === value)?.label ?? value;
+}
+function kbTagList(raw) {
+  return raw.split(/[,，、;；]/).map((value) => value.trim()).filter(Boolean);
+}
+function kbSourceRows(source) {
+  return [
+    valueRow("来源 ID", source.sourceId, true),
+    valueRow("来源版本", source.version, false),
+    valueRow("出处", source.origin, true),
+    valueRow("作者", source.author, true),
+    valueRow(
+      "许可",
+      source.license,
+      false,
+      source.license === "UNKNOWN" ? "neutral" : "info"
+    ),
+    valueRow(
+      "许可状态",
+      source.licenseStatus,
+      false,
+      source.licenseStatus === "reviewed" ? "ok" : source.licenseStatus === "reference-only" ? "warn" : "neutral"
+    ),
+    valueRow("允许用途", source.allowedUsage, true),
+    valueRow("引用范围", source.citationScope, true),
+    valueRow("观测时间", source.observedAt, false),
+    valueRow("来源内容哈希", source.contentHash, true),
+    valueRow(
+      "核验状态",
+      source.verification,
+      false,
+      source.verification === "UNVERIFIED" ? "warn" : "neutral"
+    )
+  ];
+}
+function kbEntryBlocks(doc, vocabulary) {
+  return [
+    el(
+      "div",
+      { class: "kb-badges kb-badges-start" },
+      el("span", { class: "tag info" }, kbTypeLabel(vocabulary, doc.entry_type)),
+      el(
+        "span",
+        { class: "tag " + (doc.recommended ? "ok" : "neutral") },
+        doc.recommended ? "推荐版本" : "非推荐版本"
+      ),
+      el("span", { class: "tag neutral" }, `r${doc.revision}`)
+    ),
+    el("p", { class: "kb-body" }, doc.body),
+    el(
+      "ul",
+      { class: "list" },
+      valueRow("摘要", doc.summary, true),
+      valueRow("适用场景", doc.applicability, true),
+      valueRow("边界与反例", doc.limits, true),
+      valueRow("领域标签", doc.domain_tags.join("、"), true),
+      valueRow("任务标签", doc.task_tags.join("、"), true),
+      valueRow("适用目标", doc.target_tools.join("、"), true),
+      valueRow(
+        "关联能力",
+        doc.related_capability_ids.length ? doc.related_capability_ids.join("、") : "（无）",
+        true
+      ),
+      valueRow("内容哈希", doc.content_sha256, true),
+      valueRow("写入时间 / 记录人", `${doc.created_at} · ${doc.created_by}`, true),
+      valueRow("取代", doc.supersedes ?? "（无）", true)
+    )
+  ];
+}
+function kbDetailPanel(detail, vocabulary, actions) {
+  const current = detail.current;
+  const children = [
+    el(
+      "div",
+      { class: "kb-detail-head" },
+      el(
+        "div",
+        {},
+        el("h3", {}, current ? current.title : `条目 ${detail.knowledge_entry_id}`),
+        el("p", { class: "value-mono" }, detail.knowledge_entry_id)
+      ),
+      el(
+        "div",
+        { class: "kb-badges" },
+        el(
+          "span",
+          { class: "tag " + (detail.status === "ACTIVE" ? "ok" : "neutral") },
+          en(detail.status)
+        ),
+        el("span", { class: "tag info" }, `最新 r${detail.latest_revision ?? "？"}`),
+        detail.recommended_revision === null ? el("span", { class: "tag neutral" }, "无推荐版本") : el("span", { class: "tag " + (detail.recommended_revision === detail.latest_revision ? "info" : "warn") }, `推荐 r${detail.recommended_revision}`)
+      )
+    )
+  ];
+  if (detail.superseded_by) {
+    children.push(el(
+      "p",
+      { class: "view-hint" },
+      "这条条目已被取代，取代它的是 ",
+      el("button", {
+        type: "button",
+        class: "ghost-btn",
+        onclick: () => actions.open(detail.superseded_by)
+      }, detail.superseded_by)
+    ));
+  }
+  if (!current) {
+    children.push(el(
+      "p",
+      { class: "error" },
+      `最新版本的 JSON 无法解析（不可读版本 ${detail.unreadable_count} 个）：本次读回不展示正文，也不猜测它的内容。`
+    ));
+  } else {
+    children.push(...kbEntryBlocks(current, vocabulary));
+    children.push(el("h4", {}, "来源与许可"));
+    children.push(el("ul", { class: "list" }, ...kbSourceRows(current.source)));
+    children.push(el(
+      "div",
+      { class: "kb-actions" },
+      el("button", {
+        type: "button",
+        class: "primary-btn",
+        onclick: () => actions.revise(current)
+      }, "修订为新版本"),
+      el("button", {
+        type: "button",
+        class: "ghost-btn",
+        onclick: () => actions.importReplace(current)
+      }, "导入新版本并替代")
+    ));
+  }
+  if (detail.recommended && detail.recommended_revision !== detail.latest_revision) {
+    children.push(el(
+      "h4",
+      {},
+      `推荐版本 r${detail.recommended_revision}（不是最新 r${detail.latest_revision}）`
+    ));
+    children.push(el(
+      "p",
+      { class: "view-hint" },
+      "推荐版本是写入时记录下来的判断，不是自动排序；下面是那个版本的正文。"
+    ));
+    children.push(...kbEntryBlocks(detail.recommended, vocabulary));
+  }
+  children.push(el("h4", {}, "修订历史（旧版本保留，不覆盖）"));
+  children.push(el("ul", { class: "list" }, ...detail.revisions.map((revision) => el(
+    "li",
+    { class: "list-item" },
+    el(
+      "div",
+      {},
+      el("strong", {}, `r${revision.revision} · ${revision.title}`),
+      el(
+        "small",
+        {},
+        `${revision.created_at} · ${revision.created_by}` + (revision.readable ? "" : " · JSON 不可读")
+      ),
+      el("small", { class: "value-mono" }, revision.content_sha256)
+    ),
+    el(
+      "div",
+      { class: "kb-badges" },
+      el(
+        "span",
+        { class: "tag " + (revision.recommended ? "ok" : "neutral") },
+        revision.recommended ? "推荐" : "记录"
+      )
+    )
+  ))));
+  if (detail.unreadable_count) {
+    children.push(el(
+      "p",
+      { class: "error" },
+      `另有 ${detail.unreadable_count} 个版本行无法解析；它们仍计入历史，不会被隐藏。`
+    ));
+  }
+  if (detail.does_not_say.length) {
+    children.push(el("h4", {}, "服务声明它没有说的话"));
+    children.push(el("ul", { class: "list" }, ...detail.does_not_say.map((line) => el("li", { class: "list-item" }, line))));
+  }
+  return el("section", { class: "panel kb-detail-panel" }, ...children);
+}
+function knowledgeEntryFields(prefix, vocabulary, licenseStates, initial) {
+  const entryType = el(
+    "select",
+    { id: `${prefix}-entry-type`, class: "input" },
+    ...vocabulary.length ? vocabulary.map((option) => el("option", { value: option.value }, option.label)) : [el("option", { value: "" }, "类型清单未读回")]
+  );
+  const title = el("input", {
+    id: `${prefix}-title`,
+    class: "input",
+    maxlength: "160",
+    placeholder: "例如：分镜拆解三步法"
+  });
+  const summary = el("input", {
+    id: `${prefix}-summary`,
+    class: "input",
+    maxlength: "300",
+    placeholder: "一句话说明它能解决什么问题"
+  });
+  const body = el("textarea", {
+    id: `${prefix}-body`,
+    class: "input",
+    rows: "6",
+    placeholder: "方法、步骤、提示词或配方正文"
+  });
+  const applicability = el("input", {
+    id: `${prefix}-applicability`,
+    class: "input",
+    maxlength: "400",
+    placeholder: "什么时候适用；留空则服务写 UNKNOWN"
+  });
+  const limits = el("input", {
+    id: `${prefix}-limits`,
+    class: "input",
+    maxlength: "400",
+    placeholder: "边界、反例与失败条件；留空则服务写 UNKNOWN"
+  });
+  const domainTags = el("input", {
+    id: `${prefix}-domains`,
+    class: "input",
+    placeholder: "例如：film、brand"
+  });
+  const taskTags = el("input", {
+    id: `${prefix}-tasks`,
+    class: "input",
+    placeholder: "例如：storyboard、naming"
+  });
+  const targetTools = el("input", {
+    id: `${prefix}-targets`,
+    class: "input",
+    placeholder: "例如：photoshop、figma"
+  });
+  const related = el("input", {
+    id: `${prefix}-related`,
+    class: "input",
+    placeholder: "capability id，逗号分隔（可选）"
+  });
+  const sourceId = el("input", {
+    id: `${prefix}-source-id`,
+    class: "input",
+    maxlength: "200",
+    placeholder: "例如：internal-style-guide"
+  });
+  const sourceVersion = el("input", {
+    id: `${prefix}-source-version`,
+    class: "input",
+    maxlength: "120",
+    placeholder: "例如：2026-10"
+  });
+  const sourceOrigin = el("input", {
+    id: `${prefix}-source-origin`,
+    class: "input",
+    maxlength: "400",
+    placeholder: "路径或 URL（服务不会去抓取）"
+  });
+  const sourceAuthor = el("input", {
+    id: `${prefix}-source-author`,
+    class: "input",
+    maxlength: "200",
+    placeholder: "原作者或机构"
+  });
+  const license = el("input", {
+    id: `${prefix}-license`,
+    class: "input",
+    maxlength: "120",
+    placeholder: "例如：CC-BY-4.0；留空则 UNKNOWN"
+  });
+  const licenseStatus = el(
+    "select",
+    { id: `${prefix}-license-status`, class: "input" },
+    ...licenseStates.length ? licenseStates.map((state) => el("option", { value: state }, state)) : [el("option", { value: "" }, "许可状态清单未读回")]
+  );
+  const allowedUsage = el("input", {
+    id: `${prefix}-allowed-usage`,
+    class: "input",
+    maxlength: "400",
+    placeholder: "允许的用途范围"
+  });
+  const citationScope = el("input", {
+    id: `${prefix}-citation-scope`,
+    class: "input",
+    maxlength: "400",
+    placeholder: "引用范围（内部 / 署名 / 不可转引）"
+  });
+  const author = el("input", {
+    id: `${prefix}-author`,
+    class: "input",
+    maxlength: "120",
+    placeholder: "你的名字或代号（必填，服务不持有身份）"
+  });
+  const recommended = el("input", { type: "checkbox", id: `${prefix}-recommended` });
+  const setIf = (input, value) => {
+    if (value && value !== "UNKNOWN") input.value = value;
+  };
+  if (initial) {
+    title.value = initial.title;
+    summary.value = initial.summary;
+    body.value = initial.body;
+    setIf(applicability, initial.applicability);
+    setIf(limits, initial.limits);
+    setIf(domainTags, initial.domain_tags.join("、"));
+    setIf(taskTags, initial.task_tags.join("、"));
+    setIf(targetTools, initial.target_tools.join("、"));
+    setIf(related, initial.related_capability_ids.join("、"));
+    setIf(sourceId, initial.source.sourceId);
+    setIf(sourceVersion, initial.source.version);
+    setIf(sourceOrigin, initial.source.origin);
+    setIf(sourceAuthor, initial.source.author);
+    setIf(license, initial.source.license);
+    setIf(allowedUsage, initial.source.allowedUsage);
+    setIf(citationScope, initial.source.citationScope);
+    if (vocabulary.some((option) => option.value === initial.entry_type))
+      entryType.value = initial.entry_type;
+    if (licenseStates.includes(initial.source.licenseStatus))
+      licenseStatus.value = initial.source.licenseStatus;
+    recommended.checked = initial.recommended;
+  } else {
+    recommended.checked = true;
+  }
+  const element = el(
+    "div",
+    { class: "two-col kb-form-fields" },
+    fieldRow("类型", entryType, `${prefix}-entry-type`),
+    fieldRow("标题（必填）", title, `${prefix}-title`),
+    fieldRow("一句话用途（必填）", summary, `${prefix}-summary`),
+    fieldRow("适用目标（逗号分隔）", targetTools, `${prefix}-targets`),
+    fieldRow("领域标签（逗号分隔）", domainTags, `${prefix}-domains`),
+    fieldRow("任务标签（逗号分隔）", taskTags, `${prefix}-tasks`),
+    el(
+      "div",
+      { class: "kb-span" },
+      fieldRow("正文（必填）", body, `${prefix}-body`)
+    ),
+    el(
+      "div",
+      { class: "kb-span" },
+      fieldRow("适用场景（可选）", applicability, `${prefix}-applicability`)
+    ),
+    el(
+      "div",
+      { class: "kb-span" },
+      fieldRow("边界与反例（可选）", limits, `${prefix}-limits`)
+    ),
+    fieldRow("来源 ID", sourceId, `${prefix}-source-id`),
+    fieldRow("来源版本", sourceVersion, `${prefix}-source-version`),
+    fieldRow("出处（路径或 URL）", sourceOrigin, `${prefix}-source-origin`),
+    fieldRow("来源作者", sourceAuthor, `${prefix}-source-author`),
+    fieldRow("许可", license, `${prefix}-license`),
+    fieldRow("许可状态", licenseStatus, `${prefix}-license-status`),
+    fieldRow("允许用途", allowedUsage, `${prefix}-allowed-usage`),
+    fieldRow("引用范围", citationScope, `${prefix}-citation-scope`),
+    el(
+      "div",
+      { class: "kb-span" },
+      fieldRow("关联能力 ID（逗号分隔，可选）", related, `${prefix}-related`)
+    ),
+    el(
+      "div",
+      { class: "kb-span" },
+      fieldRow("记录人（必填）", author, `${prefix}-author`)
+    ),
+    fieldRow("标记为推荐版本", recommended, `${prefix}-recommended`)
+  );
+  return {
+    entryType,
+    title,
+    summary,
+    body,
+    applicability,
+    limits,
+    domainTags,
+    taskTags,
+    targetTools,
+    related,
+    sourceId,
+    sourceVersion,
+    sourceOrigin,
+    sourceAuthor,
+    license,
+    licenseStatus,
+    allowedUsage,
+    citationScope,
+    author,
+    recommended,
+    element
+  };
+}
+function knowledgeFormPanel(kind, vocabulary, licenseStates, initial, replaceId, onWritten) {
+  const prefix = kind === "create" ? "kb-new" : kind === "revise" ? "kb-revise" : "kb-import";
+  const fields = knowledgeEntryFields(prefix, vocabulary, licenseStates, initial);
+  const supersedes = el("input", {
+    id: `${prefix}-supersedes`,
+    class: "input",
+    placeholder: "kentry-…（可选：这条导入替代哪一条）"
+  });
+  if (replaceId) supersedes.value = replaceId;
+  const notice = el("div", { role: "status", "aria-live": "polite" });
+  const submit = el(
+    "button",
+    { type: "button", class: "primary-btn" },
+    kind === "revise" ? `提交 r${(initial?.revision ?? 0) + 1}` : kind === "import" ? "导入并读回" : "写入并读回"
+  );
+  const heading = kind === "create" ? "新增条目" : kind === "revise" ? `修订 r${initial?.revision ?? "？"} → r${(initial?.revision ?? 0) + 1}` : "从文件导入";
+  const caption = kind === "create" ? "编号由服务生成（kentry-…）；写入后立即读回。来源核验状态永远是 UNVERIFIED——保存不等于核验。" : kind === "revise" ? "旧版本保留，当前版本是最大修订号；提交会带上读到的 expected_revision，冲突时服务拒绝而不是覆盖。" : "同一来源 ID + 版本的同内容再导入返回 DUPLICATE（不写）；不同版本并存，结果里会列出 related_entries。导入不抓取来源。";
+  const collect = () => {
+    const source = {};
+    const fromInput = (key, input) => {
+      const value = input.value.trim();
+      if (value) source[key] = value;
+    };
+    fromInput("sourceId", fields.sourceId);
+    fromInput("version", fields.sourceVersion);
+    fromInput("origin", fields.sourceOrigin);
+    fromInput("author", fields.sourceAuthor);
+    fromInput("license", fields.license);
+    fromInput("allowedUsage", fields.allowedUsage);
+    fromInput("citationScope", fields.citationScope);
+    if (fields.licenseStatus.value) source.licenseStatus = fields.licenseStatus.value;
+    return {
+      entry_type: fields.entryType.value,
+      title: fields.title.value.trim(),
+      summary: fields.summary.value.trim(),
+      body: fields.body.value.trim(),
+      applicability: fields.applicability.value.trim() || void 0,
+      limits: fields.limits.value.trim() || void 0,
+      domain_tags: kbTagList(fields.domainTags.value),
+      task_tags: kbTagList(fields.taskTags.value),
+      target_tools: kbTagList(fields.targetTools.value),
+      related_capability_ids: kbTagList(fields.related.value),
+      recommended: fields.recommended.checked,
+      source
+    };
+  };
+  const missing = () => {
+    if (!fields.entryType.value)
+      return "类型清单未读回（未连接本机服务）：先连接服务，类型选项才会从服务端读回。";
+    if (!fields.title.value.trim() || !fields.summary.value.trim() || !fields.body.value.trim())
+      return "标题、一句话用途和正文都必须填写；这三项在服务里也不能是 UNKNOWN。";
+    if (!fields.author.value.trim())
+      return kind === "import" ? "导入人必填：服务不持有身份，页面不会替你铸造一个。" : "记录人必填：服务不持有身份，页面不会替你铸造一个。";
+    if (kind === "import" && (!fields.sourceId.value.trim() || !fields.sourceVersion.value.trim()))
+      return '导入必须填写来源 ID 和来源版本：否则重复导入无法与"新版本"区分，服务也会拒绝。';
+    return "";
+  };
+  submit.onclick = () => {
+    const problem = missing();
+    if (problem) {
+      notice.replaceChildren(el("p", { class: "error" }, problem));
+      return;
+    }
+    submit.disabled = true;
+    notice.replaceChildren(el("p", { class: "view-loading" }, "正在写入…"));
+    void (async () => {
+      try {
+        if (kind === "import") {
+          const body = collect();
+          body.imported_by = fields.author.value.trim();
+          body.supersedes = supersedes.value.trim() || null;
+          const response = await api("/knowledge-entries/import", body);
+          notice.replaceChildren(
+            el(
+              "p",
+              {},
+              "导入结果 ",
+              el(
+                "span",
+                { class: "tag " + (response.outcome === "DUPLICATE" ? "warn" : "ok") },
+                en(response.outcome)
+              ),
+              ` · ${response.knowledge_entry_id} · r${response.revision}`
+            ),
+            el("p", { class: "value-mono" }, en(response.explanation)),
+            ...response.related_entries.length ? [el("p", { class: "muted" }, `同源其它版本：${response.related_entries.join("、")}`)] : []
+          );
+          onWritten(response.knowledge_entry_id);
+        } else if (kind === "revise" && initial) {
+          const body = collect();
+          body.created_by = fields.author.value.trim();
+          body.expected_revision = initial.revision;
+          const response = await api(
+            `/knowledge-entries/${initial.knowledge_entry_id}/revisions`,
+            body
+          );
+          notice.replaceChildren(
+            el("p", {}, `已写入 r${response.revision} · ${response.entry.knowledge_entry_id}`),
+            el("p", { class: "value-mono" }, response.entry.content_sha256),
+            el("p", { class: "muted" }, "旧版本仍在修订历史里；写入不等于核验，也不会导出。")
+          );
+          onWritten(response.entry.knowledge_entry_id);
+        } else {
+          const body = collect();
+          body.created_by = fields.author.value.trim();
+          body.supersedes = null;
+          const response = await api("/knowledge-entries", body);
+          notice.replaceChildren(
+            el("p", {}, `已写入 r${response.revision} · ${response.entry.knowledge_entry_id}`),
+            el("p", { class: "value-mono" }, response.entry.content_sha256),
+            el("p", { class: "muted" }, "已按服务返回的编号读回；保存不等于核验，也不会导出。")
+          );
+          onWritten(response.entry.knowledge_entry_id);
+        }
+      } catch (error) {
+        notice.replaceChildren(el("p", { class: "error" }, `写入失败：${errMsg(error)}`));
+      } finally {
+        submit.disabled = false;
+      }
+    })();
+  };
+  return el(
+    "section",
+    { class: "panel kb-form" },
+    el(
+      "div",
+      { class: "kb-detail-head" },
+      el("h3", {}, heading),
+      el("span", { class: "tag neutral" }, "真实写入")
+    ),
+    el("p", { class: "view-hint" }, caption),
+    fields.element,
+    ...kind === "import" ? [fieldRow("替代哪一条（可选）", supersedes, `${prefix}-supersedes`)] : [],
+    el("div", { class: "kb-actions" }, submit),
+    notice
+  );
+}
+async function renderKnowledgeLibrary(target) {
+  const query = el("input", {
+    id: "kb-query",
+    class: "input kb-search",
+    type: "search",
+    placeholder: "搜索标题、摘要、正文、标签或目标工具（中文短词也可以）",
+    "aria-label": "知识检索词"
+  });
+  const type = el("select", { id: "kb-type", class: "input", "aria-label": "按条目类型筛选" });
+  type.append(el("option", { value: "" }, "全部类型"));
+  const domain = el("input", {
+    id: "kb-domain",
+    class: "input",
+    placeholder: "领域标签（精确匹配）",
+    "aria-label": "按领域标签筛选"
+  });
+  const task = el("input", {
+    id: "kb-task",
+    class: "input",
+    placeholder: "任务标签（精确匹配）",
+    "aria-label": "按任务标签筛选"
+  });
+  const targetTool = el("input", {
+    id: "kb-target",
+    class: "input",
+    placeholder: "目标工具（精确匹配）",
+    "aria-label": "按目标工具筛选"
+  });
+  const searchButton = el("button", { type: "submit", class: "primary-btn", id: "kb-search" }, "搜索");
+  const clearButton = el("button", { type: "button", class: "ghost-btn", id: "kb-clear" }, "清空条件");
+  const newButton = el("button", { type: "button", class: "ghost-btn", id: "kb-new" }, "新增条目");
+  const importButton = el("button", { type: "button", class: "ghost-btn", id: "kb-import" }, "导入条目");
+  const rebuildButton = el("button", { type: "button", class: "ghost-btn", id: "kb-rebuild" }, "重建检索索引");
+  const meta = el("div", { class: "kb-meta", role: "status", "aria-live": "polite" });
+  meta.replaceChildren(el("p", { class: "view-loading" }, "正在检索…"));
+  const results = el("ul", { class: "list", id: "kb-results" });
+  const moreHost = el("div", { class: "kb-actions", id: "kb-more" });
+  const listPanel = el(
+    "section",
+    { class: "panel" },
+    el("h3", {}, "检索结果"),
+    results,
+    moreHost
+  );
+  const detailHost = el(
+    "div",
+    { id: "kb-detail" },
+    el(
+      "section",
+      { class: "panel" },
+      el("h3", {}, "条目详情"),
+      el(
+        "p",
+        { class: "muted" },
+        "从左侧选择一条条目：正文、来源、许可、内容哈希、修订历史与推荐版本都在这里。"
+      )
+    )
+  );
+  const formHost = el("div", { id: "kb-form" });
+  const notes = el("div", { id: "kb-notes" });
+  let vocabulary = [];
+  let licenseStates = [];
+  let shown = 0;
+  let pendingNotice = "";
+  let committed = false;
+  const searchForm = el("form", { class: "toolbar", onsubmit: (event) => {
+    event.preventDefault();
+    void runSearch(0);
+  } }, query, type, domain, task, targetTool, searchButton, clearButton);
+  const readFilters = () => {
+    const params = new URLSearchParams();
+    if (query.value.trim()) params.set("q", query.value.trim());
+    if (type.value) params.set("type", type.value);
+    if (domain.value.trim()) params.set("domain", domain.value.trim());
+    if (task.value.trim()) params.set("task", task.value.trim());
+    if (targetTool.value.trim()) params.set("target", targetTool.value.trim());
+    return params;
+  };
+  const load = async (offset) => {
+    const params = readFilters();
+    params.set("offset", String(offset));
+    params.set("limit", "50");
+    try {
+      const answer = await apiOrEmpty(
+        `/knowledge-entries/search?${params.toString()}`,
+        OFFLINE.knowledgeLibrary
+      );
+      pendingNotice = shapeNotice(answer);
+      return answer;
+    } catch (error) {
+      if (!committed) throw error;
+      results.replaceChildren();
+      moreHost.replaceChildren();
+      notes.replaceChildren();
+      meta.replaceChildren(el(
+        "p",
+        { class: "error" },
+        `检索失败：${errMsg(error)}（列表已清空，避免把上一次的答案留在这里）`
+      ));
+      return null;
+    }
+  };
+  function renderDetail(detail) {
+    detailHost.replaceChildren(kbDetailPanel(detail, vocabulary, {
+      open: (id) => {
+        void openDetail(id);
+      },
+      revise: (doc) => openForm("revise", doc, null),
+      importReplace: (doc) => openForm("import", doc, doc.knowledge_entry_id)
+    }));
+  }
+  async function openDetail(id) {
+    detailHost.replaceChildren(el("p", { class: "view-loading" }, "正在读回条目…"));
+    try {
+      const detail = await api(`/knowledge-entries/${id}`);
+      renderDetail(detail);
+    } catch (error) {
+      detailHost.replaceChildren(el("p", { class: "error" }, `条目读回失败：${errMsg(error)}`));
+    }
+  }
+  function openForm(kind, doc, replaceId) {
+    formHost.replaceChildren(knowledgeFormPanel(
+      kind,
+      vocabulary,
+      licenseStates,
+      doc,
+      replaceId,
+      (entryId) => {
+        void runSearch(0, entryId);
+      }
+    ));
+    formHost.scrollIntoView({ block: "start" });
+  }
+  const rowFor = (row, showMatch) => {
+    const targets = row.target_tools.length ? row.target_tools.join("、") : "UNKNOWN";
+    const why = showMatch && row.matched_fields.length ? `命中：${row.matched_fields.map((field) => KB_FIELD_LABELS[field] ?? field).join("、")}（检索词 ${row.matched_terms.join("、")}）` : "";
+    return el(
+      "li",
+      { class: "list-item kb-row" },
+      el(
+        "div",
+        { class: "kb-row-main" },
+        el(
+          "button",
+          {
+            type: "button",
+            class: "kb-open",
+            onclick: () => {
+              void openDetail(row.knowledge_entry_id);
+            }
+          },
+          el("strong", {}, row.title)
+        ),
+        el("small", {}, row.summary),
+        el("small", {}, `适用：${targets}`),
+        ...why ? [el("small", { class: "muted" }, why)] : []
+      ),
+      el(
+        "div",
+        { class: "kb-badges" },
+        el("span", { class: "tag info" }, `r${row.revision}`),
+        el(
+          "span",
+          { class: "tag " + (row.status === "ACTIVE" ? "ok" : "neutral") },
+          en(row.status)
+        ),
+        row.recommended_revision === null ? el("span", { class: "tag neutral" }, "无推荐版本") : el(
+          "span",
+          { class: "tag " + (row.recommended_is_latest ? "info" : "warn") },
+          row.recommended_is_latest ? `推荐 r${row.recommended_revision}` : `推荐 r${row.recommended_revision} · 非最新`
+        )
+      )
+    );
+  };
+  const renderAnswer = (data, append) => {
+    committed = true;
+    if (data.entryTypes.length) {
+      vocabulary = data.entryTypes;
+      if (type.options.length !== vocabulary.length + 1) {
+        const selected = type.value;
+        type.replaceChildren(
+          el("option", { value: "" }, "全部类型"),
+          ...vocabulary.map((option) => el("option", { value: option.value }, option.label))
+        );
+        type.value = vocabulary.some((option) => option.value === selected) ? selected : "";
+      }
+    }
+    if (data.licenseStates.length) licenseStates = data.licenseStates;
+    const offline = disconnectedNotice(data);
+    const activeFilters = [
+      data.filters.type,
+      data.filters.domain,
+      data.filters.task,
+      data.filters.target
+    ].filter(Boolean);
+    if (offline) {
+      meta.replaceChildren(
+        el("p", { class: "muted" }, offline),
+        el(
+          "p",
+          { class: "muted" },
+          "检索策略、索引状态与条目数都未读回：这一页不会用 0 或 BROWSE 代替没有问到的读数。"
+        )
+      );
+    } else {
+      const strategy = KB_STRATEGY_MEANING[data.strategy];
+      const indexNote = data.index.indexed === data.index.rows ? `索引 ${data.index.indexed}/${data.index.rows}` : `索引 ${data.index.indexed}/${data.index.rows}（不完整，可重建）`;
+      meta.replaceChildren(
+        el(
+          "p",
+          {},
+          `共 ${data.total} 条`,
+          data.query ? ` · 检索词「${data.query}」` : " · 浏览模式",
+          activeFilters.length ? ` · 筛选 ${activeFilters.join("、")}` : "",
+          " · 策略 ",
+          en(data.strategy),
+          strategy ? `：${strategy}` : "：本页没有这个策略的解释文案",
+          ` · ${indexNote}`
+        ),
+        ...data.index.indexed !== data.index.rows ? [el(
+          "p",
+          { class: "error" },
+          "派生索引与条目数不一致：这次答案可能不完整；重建索引后重搜。"
+        )] : [],
+        ...pendingNotice ? [el("p", { class: "error" }, pendingNotice)] : []
+      );
+    }
+    const showMatch = Boolean(data.query);
+    if (!append) {
+      results.replaceChildren();
+      shown = 0;
+    }
+    if (!data.entries.length) {
+      const condition = Boolean(data.query) || activeFilters.length > 0;
+      results.append(el(
+        "li",
+        { class: "list-item" },
+        el(
+          "div",
+          {},
+          el("strong", {}, offline ? "未读回" : condition ? "没有命中的条目" : "当前没有条目"),
+          el("small", {}, offline || data.explanation || '服务没有给出解释；本页不会推荐"相近"的条目来填空。')
+        )
+      ));
+      moreHost.replaceChildren();
+      notes.replaceChildren();
+      return;
+    }
+    const rows = data.entries.map((row) => rowFor(row, showMatch));
+    if (append) results.append(...rows);
+    else results.replaceChildren(...rows);
+    shown += data.entries.length;
+    moreHost.replaceChildren(...data.next_offset === null ? [] : [el("button", {
+      type: "button",
+      class: "ghost-btn",
+      onclick: () => {
+        void runSearch(data.next_offset);
+      }
+    }, `加载更多（已显示 ${shown} / 共 ${data.total}）`)]);
+    if (!offline && data.does_not_say.length) {
+      notes.replaceChildren(el(
+        "p",
+        { class: "view-hint" },
+        `服务声明：${data.does_not_say.join("；")}`
+      ));
+    } else {
+      notes.replaceChildren();
+    }
+  };
+  async function runSearch(offset, focusId) {
+    const data = await load(offset);
+    if (!data) return;
+    renderAnswer(data, offset > 0);
+    if (focusId) await openDetail(focusId);
+  }
+  clearButton.onclick = () => {
+    query.value = "";
+    type.value = "";
+    domain.value = "";
+    task.value = "";
+    targetTool.value = "";
+    void runSearch(0);
+  };
+  newButton.onclick = () => openForm("create", null, null);
+  importButton.onclick = () => openForm("import", null, null);
+  rebuildButton.onclick = () => {
+    rebuildButton.disabled = true;
+    void (async () => {
+      try {
+        const response = await api(
+          "/knowledge-entries/index-rebuild",
+          {}
+        );
+        const receipt = el(
+          "p",
+          { class: "view-hint" },
+          `索引已重建：${response.indexed} 条 · ${response.rebuilt_at}。重建只动派生索引，不改任何条目。`
+        );
+        await runSearch(0);
+        meta.append(receipt);
+      } catch (error) {
+        meta.replaceChildren(el("p", { class: "error" }, `重建失败：${errMsg(error)}`));
+      } finally {
+        rebuildButton.disabled = false;
+      }
+    })();
+  };
+  target.replaceChildren(
+    el(
+      "div",
+      { class: "page-head" },
+      el(
+        "div",
+        {},
+        el("h2", {}, "知识与提示词库"),
+        el("p", {}, "搜索是这一页的主入口：查规范、方法、提示词、模型指南、配方与案例；列表是检索的答案，不是全表导出。新增、修订与导入都写入本机服务并立刻读回。")
+      ),
+      el("div", { class: "page-actions" }, newButton, importButton, rebuildButton)
+    ),
+    searchForm,
+    el(
+      "p",
+      { class: "view-hint" },
+      "领域 / 任务 / 目标工具是标签的精确匹配筛选。检索只匹配标题、摘要、正文与这三类标签，不做近义词扩写，也不调用模型。"
+    ),
+    meta,
+    formHost,
+    el("div", { class: "split kb-split" }, listPanel, detailHost),
+    notes
+  );
+  const initial = await load(0);
+  if (initial) renderAnswer(initial, false);
 }
 async function projectPickerPanel(target, title, body, preamble, caption = "只读回服务端台账；本页不提交、不修改。") {
   target.replaceChildren(el("p", { class: "view-loading" }, "正在读回项目台账…"));
@@ -7004,6 +8014,10 @@ async function renderRoute(view, target) {
     case "settings":
       await renderSettings(target);
       return;
+    // DL-KB-03/04: 知识与提示词库。搜索是主视觉，列表是检索的答案；详情、修订、导入都读回服务。
+    case "knowledge":
+      await renderKnowledgeLibrary(target);
+      return;
     case "projects":
       await renderProjects(target);
       return;
@@ -7311,9 +8325,20 @@ function mountB10Shell(routeView, syncLegacyNavCue) {
       { class: "search", id: "openPalette", role: "button", tabindex: "0" },
       `${modKey} K　搜索页面 / 命令 / 资源`
     ),
+    // DL-KB-06：右上角的设置入口。它是普通 .ghost-btn，不是 .app-nav-item —— 后者必须与
+    // ROUTE_VIEWS 逐条相等（browser_design_layer_e2e.mjs），多一个按钮就多一条假路由。
     el(
       "div",
       { class: "top-actions" },
+      el("button", {
+        type: "button",
+        class: "ghost-btn",
+        id: "openSettings",
+        "aria-label": "打开系统设置",
+        onclick: () => {
+          window.location.hash = "#/settings";
+        }
+      }, "设置"),
       el("button", { type: "button", class: "ghost-btn", id: "topNotice" }, "通知"),
       el("button", { type: "button", class: "ghost-btn", id: "openDrawer" }, "工作区")
     )
