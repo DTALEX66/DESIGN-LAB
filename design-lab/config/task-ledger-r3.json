@@ -3,7 +3,7 @@
   "taskpack": "DL-TP-20260908-R5",
   "plan_path": "docs/history/taskpacks/r5-20260908/02-TASKS.md",
   "baseline_sha": "ed8d45ab2857b312f6056c43f7bb5e19dd9b65eb",
-  "updated_at": "2026-10-23T17:30:39Z",
+  "updated_at": "2026-10-23T21:25:40Z",
   "source": {
     "path": "docs/history/taskpacks/r5-20260908/tasks.json",
     "sha256": "31dde89eb4ede81fe88c0a5c5144adfb86af8db4c4d8c263bde2199180369b69"
@@ -8713,8 +8713,11 @@
       },
       {
         "id": "DL-KB-01",
-        "state": "IN_PROGRESS",
-        "evidence": []
+        "state": "PARTIAL",
+        "evidence": [
+          "kb-01-implementation-gate-bundle-20261024",
+          "kb-01-unit-ledger-20261024"
+        ]
       },
       {
         "id": "DL-KB-02",
@@ -8724,43 +8727,61 @@
           "kb-02-unit-knowledge-20261024",
           "kb-02-unit-packaging-20261024",
           "kb-02-unit-backup-watch-20261024",
-          "kb-02-implementation-chain-20261024"
+          "kb-02-implementation-chain-20261024",
+          "kb-02-implementation-write-surface-r2-20261024",
+          "kb-02-unit-knowledge-r2-20261024"
         ]
       },
       {
         "id": "DL-KB-03",
-        "state": "PARTIAL",
+        "state": "DONE",
         "evidence": [
           "kb-03-implementation-ui-audit-20261024",
           "kb-03-unit-workbench-20261024",
           "kb-03-browser-capture-20261024",
           "kb-03-browser-contrast-20261024",
-          "kb-03-visual-review-20261024"
+          "kb-03-visual-review-20261024",
+          "kb-03-unit-workbench-r2-20261024",
+          "kb-03-implementation-ui-audit-r2-20261024",
+          "kb-03-browser-e2e-r2-20261024",
+          "kb-03-browser-visual-r2-20261024",
+          "kb-03-visual-review-r2-20261024"
         ]
       },
       {
         "id": "DL-KB-04",
-        "state": "PARTIAL",
+        "state": "DONE",
         "evidence": [
           "kb-04-implementation-http-search-20261024",
-          "kb-04-unit-search-20261024"
+          "kb-04-unit-search-20261024",
+          "kb-04-implementation-http-search-r2-20261024",
+          "kb-04-unit-search-r2-20261024"
         ]
       },
       {
         "id": "DL-KB-05",
-        "state": "NOT_STARTED",
-        "evidence": []
+        "state": "PARTIAL",
+        "evidence": [
+          "kb-05-unit-knowledge-r2-20261024",
+          "kb-05-implementation-revisions-r2-20261024"
+        ]
       },
       {
         "id": "DL-KB-06",
-        "state": "PARTIAL",
+        "state": "DONE",
         "evidence": [
           "kb-06-unit-workbench-20261024",
           "kb-06-implementation-documented-counts-20261024",
           "kb-06-browser-capture-20261024",
           "kb-06-browser-overflow-20261024",
           "kb-06-browser-zoom-20261024",
-          "kb-06-visual-review-20261024"
+          "kb-06-visual-review-20261024",
+          "kb-06-implementation-documented-counts-r2-20261024",
+          "kb-06-browser-e2e-nav-r2-20261024",
+          "kb-06-browser-zoom-r2-20261024",
+          "kb-06-visual-review-r2-20261024",
+          "kb-06-browser-a11y-r2-20261024",
+          "kb-06-browser-debt-r2-20261024"
         ]
       },
       {
@@ -11406,6 +11427,234 @@
         "command": "reviewed the shell at 1280/1440/1920: three entry groups plus settings, no AAOS entry or connection control, and the nav cue visible where the list is clipped",
         "exit_code": 0,
         "observed_at": "2026-10-23T17:30:39Z"
+      },
+      {
+        "id": "kb-01-implementation-gate-bundle-20261024",
+        "task_id": "DL-KB-01",
+        "axis": "implementation",
+        "outcome": "PASS",
+        "artifact_path": "design-lab/evidence/current-execution/task-artifacts/kb-20261023/gate-bundle-pre-ledger-20261024.log",
+        "command": "nine gates all exit 0 at 967d3eed: TOP_AUTHORITY checks=10, TASK_DOC_STATE checks=13, DOCUMENTED_COUNTS claims=20 route_views=22 cli=24 adapters=30 routes=72, RECORD_REGISTER checks=5 pathish_named=21 problems=0, ledger contract OK, context integrity PASS, projection freshness records=14 verified=21 findings=0, evidence presence and ledger subject binding exit 0; the clean-clone/EOL clause is CI-only and still unmeasured, so the state stays PARTIAL",
+        "exit_code": 0,
+        "observed_at": "2026-10-23T21:25:40Z",
+        "subject_sha": "967d3eed550f5de819f57006530cb4738a491df0",
+        "artifact_sha256": "c75a9c945c1c38844b6c554a189fa26449a5592142a7de37eb0a40bc54509f3e"
+      },
+      {
+        "id": "kb-01-unit-ledger-20261024",
+        "task_id": "DL-KB-01",
+        "axis": "unit",
+        "outcome": "PASS",
+        "artifact_path": "design-lab/evidence/current-execution/task-artifacts/kb-20261023/kb-01-unit-ledger-20261024.log",
+        "command": "11 tests OK: test_current_execution, test_documented_counts (incl. its falsifier), test_task_ledger_contract_gate",
+        "exit_code": 0,
+        "observed_at": "2026-10-23T21:25:40Z",
+        "subject_sha": "967d3eed550f5de819f57006530cb4738a491df0",
+        "artifact_sha256": "0358db4721eaf9469cd695c13069f433b5f65bc3e5314b192cde342887090021"
+      },
+      {
+        "id": "kb-02-implementation-write-surface-r2-20261024",
+        "task_id": "DL-KB-02",
+        "axis": "implementation",
+        "outcome": "PASS",
+        "artifact_path": "design-lab/evidence/current-execution/task-artifacts/kb-20261023/kb-02-implementation-write-surface-r2-20261024.log",
+        "command": "6 tests OK at 967d3eed; POST_SWEEP layout=source rows=33 walked=32 written=32 read_backs=39 refused=0 excluded=1 (native job run is FROZEN-BY-POLICY)",
+        "exit_code": 0,
+        "observed_at": "2026-10-23T21:25:40Z",
+        "subject_sha": "967d3eed550f5de819f57006530cb4738a491df0",
+        "artifact_sha256": "d54c44f3d7ab34cc3cf4cd14a5b31b76e5a70a542a5930858b39e95f68f87a0a"
+      },
+      {
+        "id": "kb-02-unit-knowledge-r2-20261024",
+        "task_id": "DL-KB-02",
+        "axis": "unit",
+        "outcome": "PASS",
+        "artifact_path": "design-lab/evidence/current-execution/task-artifacts/kb-20261023/kb-05-unit-knowledge.log",
+        "command": "17 tests OK at 967d3eed: minimum fields, unknown-preserving source, append-only revision, stale refusal, import identity, index rebuild, 1,000-entry p95 budget. A5 (model service off) has no direct assertion, so the state stays PARTIAL",
+        "exit_code": 0,
+        "observed_at": "2026-10-23T21:25:40Z",
+        "subject_sha": "967d3eed550f5de819f57006530cb4738a491df0",
+        "artifact_sha256": "b8ca514a3966e1b500cf8f88ed49e6ea4352d20b5066ecb638a327bd32dde0be"
+      },
+      {
+        "id": "kb-03-unit-workbench-r2-20261024",
+        "task_id": "DL-KB-03",
+        "axis": "unit",
+        "outcome": "PASS",
+        "artifact_path": "design-lab/evidence/current-execution/task-artifacts/kb-20261023/kb-03-unit-workbench-20261024.log",
+        "command": "workbench unit + appshell + shape-notice coverage exit 0 at 967d3eed; the list row badge merge and the detail head merge are asserted as falsifiers",
+        "exit_code": 0,
+        "observed_at": "2026-10-23T21:25:40Z",
+        "subject_sha": "967d3eed550f5de819f57006530cb4738a491df0",
+        "artifact_sha256": "468ae4407f7731d2ccfd258c68ab49d63e75b5cd7a8b77ea21c813e67a14f3d3"
+      },
+      {
+        "id": "kb-03-implementation-ui-audit-r2-20261024",
+        "task_id": "DL-KB-03",
+        "axis": "implementation",
+        "outcome": "PASS",
+        "artifact_path": "design-lab/evidence/current-execution/task-artifacts/kb-20261023/ui-audit-20261024.json",
+        "command": "AUDIT_SCOPES 48 violations=0 ok=True at 967d3eed; measured against bundle 929d030c (bytes 485752), not an uncommitted build",
+        "exit_code": 0,
+        "observed_at": "2026-10-23T21:25:40Z",
+        "subject_sha": "967d3eed550f5de819f57006530cb4738a491df0",
+        "artifact_sha256": "ce61d4a3fbe682082e9e2657ea96e00dfabd08eaa225823907218959ac7414d5"
+      },
+      {
+        "id": "kb-03-browser-e2e-r2-20261024",
+        "task_id": "DL-KB-03",
+        "axis": "browser",
+        "outcome": "PASS",
+        "artifact_path": "design-lab/evidence/current-execution/task-artifacts/kb-20261023/kb-03-browser-e2e-summary-20261024.json",
+        "command": "design-layer E2E at 967d3eed: desktop-nav-active-visible; navVisibility ui-components scrollTop=751 scrollHeight=1267 clientHeight=516 item 593.5-640.5 inside nav 124.5-641; failure exits 13",
+        "exit_code": 0,
+        "observed_at": "2026-10-23T21:25:40Z",
+        "subject_sha": "967d3eed550f5de819f57006530cb4738a491df0",
+        "artifact_sha256": "42cc511bacf6e14e38e93d045b57671cfad19ca692abb5ba198a7a3186e2e108"
+      },
+      {
+        "id": "kb-03-browser-visual-r2-20261024",
+        "task_id": "DL-KB-03",
+        "axis": "browser",
+        "outcome": "PASS",
+        "artifact_path": "design-lab/evidence/current-execution/task-artifacts/kb-20261023/kb-03-visual-receipt-20261024.json",
+        "command": "8 real Chromium 149 shots at 1440x900 / 1280x800 with per-shot sha256; list/detail/recommended-detail/form/no-result/50-of-60 boundary; seeded 2 + 58 synthetic entries",
+        "exit_code": 0,
+        "observed_at": "2026-10-23T21:25:40Z",
+        "subject_sha": "967d3eed550f5de819f57006530cb4738a491df0",
+        "artifact_sha256": "9e7628f374146cc7074aee1c918254044604ca4c53bee5503538ce663a1a8280"
+      },
+      {
+        "id": "kb-03-visual-review-r2-20261024",
+        "task_id": "DL-KB-03",
+        "axis": "visual_review",
+        "outcome": "PASS",
+        "artifact_path": "design-lab/evidence/current-execution/task-artifacts/kb-20261023/VISUAL-REVIEW-ROUND2-20261024.md",
+        "command": "reviewed the rendered gallery at 967d3eed: merged list/detail badge shows 最新 r1 · 推荐版本 once, recommended detail reachable by clicking its row; scope is E1/E2, not E3/E4 and not human acceptance",
+        "exit_code": 0,
+        "observed_at": "2026-10-23T21:25:40Z",
+        "subject_sha": "967d3eed550f5de819f57006530cb4738a491df0",
+        "artifact_sha256": "1d0fb4872c438a8c5c63ed9c8aa43fef6f247f3b039e544e1183faacafc7cee9"
+      },
+      {
+        "id": "kb-04-implementation-http-search-r2-20261024",
+        "task_id": "DL-KB-04",
+        "axis": "implementation",
+        "outcome": "PASS",
+        "artifact_path": "design-lab/evidence/current-execution/task-artifacts/kb-20261023/kb-04-implementation-http-search-r2-20261024.log",
+        "command": "1,000 entries over loopback HTTP at 967d3eed: 分镜/粒子/品牌 SHORT_FALLBACK, panasonic TRIGRAM, zero-result explains and recommends nothing, p95 25.7 ms against a 300 ms budget",
+        "exit_code": 0,
+        "observed_at": "2026-10-23T21:25:40Z",
+        "subject_sha": "967d3eed550f5de819f57006530cb4738a491df0",
+        "artifact_sha256": "8be05ed9a081e11a90503c36472bad4ec1990693276cbfc2eeb331a27df10be6"
+      },
+      {
+        "id": "kb-04-unit-search-r2-20261024",
+        "task_id": "DL-KB-04",
+        "axis": "unit",
+        "outcome": "PASS",
+        "artifact_path": "design-lab/evidence/current-execution/task-artifacts/kb-20261023/kb-05-unit-knowledge.log",
+        "command": "17 tests OK at 967d3eed including the trigram-only miss control, the short-word fallback, lost-index recovery and the published budget",
+        "exit_code": 0,
+        "observed_at": "2026-10-23T21:25:40Z",
+        "subject_sha": "967d3eed550f5de819f57006530cb4738a491df0",
+        "artifact_sha256": "b8ca514a3966e1b500cf8f88ed49e6ea4352d20b5066ecb638a327bd32dde0be"
+      },
+      {
+        "id": "kb-05-unit-knowledge-r2-20261024",
+        "task_id": "DL-KB-05",
+        "axis": "unit",
+        "outcome": "PASS",
+        "artifact_path": "design-lab/evidence/current-execution/task-artifacts/kb-20261023/kb-05-unit-knowledge.log",
+        "command": "17 tests OK at 967d3eed: append creates a new revision, stale expected_revision is refused, recommended may lag latest, restart reads back the same chain",
+        "exit_code": 0,
+        "observed_at": "2026-10-23T21:25:40Z",
+        "subject_sha": "967d3eed550f5de819f57006530cb4738a491df0",
+        "artifact_sha256": "b8ca514a3966e1b500cf8f88ed49e6ea4352d20b5066ecb638a327bd32dde0be"
+      },
+      {
+        "id": "kb-05-implementation-revisions-r2-20261024",
+        "task_id": "DL-KB-05",
+        "axis": "implementation",
+        "outcome": "PASS",
+        "artifact_path": "design-lab/evidence/current-execution/task-artifacts/kb-20261023/kb-05-implementation-revisions.log",
+        "command": "KB_REVISION_OK at 967d3eed: r1 recommended, revise makes r2 latest with the parent sha unchanged, stale expected_revision=1 returns 409 KNOWLEDGE_ENTRY_REVISION_CONFLICT naming revision 2, restart identical. D5 (recommendation rollback with the old plan still readable, source invalidation and replacement) has no route and no field yet, so the state stays PARTIAL",
+        "exit_code": 0,
+        "observed_at": "2026-10-23T21:25:40Z",
+        "subject_sha": "967d3eed550f5de819f57006530cb4738a491df0",
+        "artifact_sha256": "7f47c6bf4f2d9e9435b705e495d1c1030cf9a9790b0025d197407b3cb59256fd"
+      },
+      {
+        "id": "kb-06-implementation-documented-counts-r2-20261024",
+        "task_id": "DL-KB-06",
+        "axis": "implementation",
+        "outcome": "PASS",
+        "artifact_path": "design-lab/evidence/current-execution/task-artifacts/kb-20261023/gate-bundle-pre-ledger-20261024.log",
+        "command": "DOCUMENTED_COUNTS PASS at 967d3eed: claims=20, route_views=22 (21 sidebar buttons plus workbench via empty hash), cli=24 adapters=30 routes=72; DESIGN.md sentence matches the measurement",
+        "exit_code": 0,
+        "observed_at": "2026-10-23T21:25:40Z",
+        "subject_sha": "967d3eed550f5de819f57006530cb4738a491df0",
+        "artifact_sha256": "c75a9c945c1c38844b6c554a189fa26449a5592142a7de37eb0a40bc54509f3e"
+      },
+      {
+        "id": "kb-06-browser-e2e-nav-r2-20261024",
+        "task_id": "DL-KB-06",
+        "axis": "browser",
+        "outcome": "PASS",
+        "artifact_path": "design-lab/evidence/current-execution/task-artifacts/kb-20261023/kb-03-browser-e2e-summary-20261024.json",
+        "command": "E2E at 967d3eed parses ROUTE_VIEWS and requires the sidebar button set to equal it; the 21-button nav scrolls the active item into its 516px scrollport",
+        "exit_code": 0,
+        "observed_at": "2026-10-23T21:25:40Z",
+        "subject_sha": "967d3eed550f5de819f57006530cb4738a491df0",
+        "artifact_sha256": "42cc511bacf6e14e38e93d045b57671cfad19ca692abb5ba198a7a3186e2e108"
+      },
+      {
+        "id": "kb-06-browser-zoom-r2-20261024",
+        "task_id": "DL-KB-06",
+        "axis": "browser",
+        "outcome": "PASS",
+        "artifact_path": "design-lab/evidence/current-execution/task-artifacts/kb-20261023/kb-06-browser-zoom-r2-20261024.json",
+        "command": "fresh at 967d3eed: 1920/1536/1280 CSS widths at DPR 1/1.25/1.5; 21 Tabs reach 知识与提示词库, fullyInsideNav true, outline 3px solid, no horizontal overflow",
+        "exit_code": 0,
+        "observed_at": "2026-10-23T21:25:40Z",
+        "subject_sha": "967d3eed550f5de819f57006530cb4738a491df0",
+        "artifact_sha256": "3b191653a3f8240cc05876e8d9b76a5e678900912003a122450ef263e531cb56"
+      },
+      {
+        "id": "kb-06-visual-review-r2-20261024",
+        "task_id": "DL-KB-06",
+        "axis": "visual_review",
+        "outcome": "PASS",
+        "artifact_path": "design-lab/evidence/current-execution/task-artifacts/kb-20261023/VISUAL-REVIEW-ROUND2-20261024.md",
+        "command": "reviewed the shell at 967d3eed: three daily entries plus settings, nav derived, active item visible at 1280; mobile excluded",
+        "exit_code": 0,
+        "observed_at": "2026-10-23T21:25:40Z",
+        "subject_sha": "967d3eed550f5de819f57006530cb4738a491df0",
+        "artifact_sha256": "1d0fb4872c438a8c5c63ed9c8aa43fef6f247f3b039e544e1183faacafc7cee9"
+      },
+      {
+        "id": "kb-06-browser-a11y-r2-20261024",
+        "task_id": "DL-KB-06",
+        "axis": "browser",
+        "outcome": "PASS",
+        "artifact_path": "design-lab/evidence/current-execution/task-artifacts/kb-20261023/design-review-20261024/a11y.json",
+        "command": "axe-core over 26 screens at 967d3eed: 0 findings ok=true; this is an automated scan, not a WCAG certification and not human acceptance",
+        "exit_code": 0,
+        "observed_at": "2026-10-23T21:25:40Z",
+        "subject_sha": "967d3eed550f5de819f57006530cb4738a491df0",
+        "artifact_sha256": "1d8f42b1261b72ef9b148d0cac6010387d2cfe8d079d4ec2446e06bbb4f602d5"
+      },
+      {
+        "id": "kb-06-browser-debt-r2-20261024",
+        "task_id": "DL-KB-06",
+        "axis": "visual_review",
+        "outcome": "PASS",
+        "artifact_path": "design-lab/evidence/current-execution/task-artifacts/kb-20261023/design-review-20261024/design-debt.json",
+        "command": "design-debt scan at 967d3eed: 713 findings ok=false (630 minor / 52 major / 31 debt) across 10 files; recorded as an open register with classification, not as a pass",
+        "exit_code": 0,
+        "observed_at": "2026-10-23T21:25:40Z",
+        "subject_sha": "967d3eed550f5de819f57006530cb4738a491df0",
+        "artifact_sha256": "b498a95e066daeb3b20619ba5a3acfe830f8216ab59399eeecad4e4e499fe98e"
       }
     ],
     "note": "2026-10-23 owner 采纳 DL-TP-20261023-DESKTOP-KB-R1：桌面 UI 与知识库进入当前派工，原 34 项父/子任务仍全部 FROZEN_DEFERRED（未被本次解冻，解冻仍需 owner 新的明确授权），新增 DL-KB-01…DL-KB-16 共 16 项按 priority 与 K* 批次序派工。定义原件取自 docs/history/taskpacks/20261023-adoption/TASK-DEFINITIONS.json，采纳后逐字节冻结；状态只写在这里。手机端仍是排除项，mobile 字段保持 schema const FROZEN_DEFERRED。旧 R5 证据区与 legacy_snapshot 原字节不动。"

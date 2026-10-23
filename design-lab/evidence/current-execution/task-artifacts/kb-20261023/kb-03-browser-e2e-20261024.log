@@ -1,0 +1,7 @@
+test_design_layer_slice_in_real_browser (tests.test_workbench_design_layer_e2e.WorkbenchDesignLayerE2ETests.test_design_layer_slice_in_real_browser) ... ok
+test_e2e_script_is_lint_clean (tests.test_workbench_design_layer_e2e.WorkbenchDesignLayerE2ETests.test_e2e_script_is_lint_clean) ... ok
+
+----------------------------------------------------------------------
+Ran 2 tests in 3.478s
+
+OK

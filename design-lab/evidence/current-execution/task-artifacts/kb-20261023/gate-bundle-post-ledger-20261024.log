@@ -1,0 +1,120 @@
+== TOP_LEVEL_AUTHORITY ==
+PASS   authority-md-exists          DL-AUTHORITY-2026-09-18-R2
+PASS   authority-index-valid        DL-AUTHORITY-2026-09-18-R2
+PASS   authority-id-consistent      index and AUTHORITY.md agree
+PASS   current-paths-exist          10 current paths present
+PASS   no-historical-collision      CURRENT set disjoint from historical globs/specifics (lineage references exempt)
+PASS   current-integrated-taskpack  docs/taskpacks/DESIGN-LAB-DESKTOP-KB-INTEGRATED-TASKPACK-2026-10-23.md
+PASS   agents-authority-first       AGENTS.md names the top authority first
+PASS   handoff-demoted              UCR handoff carries the historical banner (read from removed-at:7015571e729ec78c266cf45e0bd3b01b2e50973b)
+PASS   single-ruff-fact             ruff: CONFIGURED_NOT_ENFORCED
+PASS   r2-release-integrity         6 lineage/current files match the owner-adopted integrity pins
+TOP_AUTHORITY_GATE=PASS checks=10 failed=none
+exit=0
+== TASK_DOC_STATES ==
+PASS   registry-valid                     52 per-file declarations, 8 prefix rules, subordinate surface tracked
+PASS   declared-paths-tracked             all 52 declared paths are tracked files (0 resolved through an archive-move manifest)
+PASS   prefix-rules-match-something       8 prefix rules all match tracked files
+PASS   index-readable                     authorityId=DL-AUTHORITY-2026-09-18-R2
+PASS   single-dispatch-entry              declared=['docs/taskpacks/DESIGN-LAB-DESKTOP-KB-INTEGRATED-TASKPACK-2026-10-23.md'] states=['CURRENT'] indexCurrentIntegrated=docs/taskpacks/DESIGN-LAB-DESKTOP-KB-INTEGRATED-TASKPACK-2026-10-23.md
+PASS   current-matches-index              12 CURRENT declarations, 2 carrying an explicit indexOmitted reason
+PASS   index-current-all-declared         all 10 index.current paths declared
+PASS   no-undeclared-task-document        484 tracked files under the audited prefixes, every one covered
+PASS   import-manifest-consistent         259 landed rows / 492 manifest rows: every state inside the vocabulary, every landed byte tracked, nothing claiming CURRENT
+PASS   pinned-files-declared-frozen       all 6 SHA-256-pinned release files declared frozen
+PASS   reasons-and-pointers-complete      REQUESTED entries all state the pending owner ruling; 41 pointers all resolve to tracked files
+PASS   entry-not-dated-again              no dated sibling of docs/current/NEXT-AGENT-PROMPT.md exists
+PASS   guidance-paths-resolve             4 guidance surfaces, every docs/ path they name is tracked
+TASK_DOC_STATE_GATE=PASS checks=13 failed=none
+exit=0
+== DOCUMENTED_COUNTS ==
+DOCUMENTED_COUNTS=PASS claims=20 route_views=22 cli=24 adapters=30 routes=72
+exit=0
+== ARCHIVE_RECORD_REGISTER ==
+RECORD_REGISTER_GATE=PASS checks=5 pathish_named=21 problems=0
+exit=0
+== TASK_LEDGER_CONTRACT ==
+TASK_LEDGER_CONTRACT=OK
+exit=0
+== CONTEXT_INTEGRITY ==
+
+VERIFY_CONTEXT_INTEGRITY=PASS capsule/receipt schemas + TaskPack pointer + current-looking detector clean
+exit=0
+== PROJECTION_FRESHNESS ==
+VERIFY_PROJECTION_FRESHNESS=OK records=14 verified=21 receipts=7 excluded=0 findings=0
+exit=0
+== EVIDENCE_ARTIFACT_PRESENCE ==
+  DRIFTED r5-workbench-strict-ts-build-truth-20260927 -> apps/workbench/build/main.js (HASH_MOVED_SINCE_OBSERVATION)
+  DRIFTED r5-workbench-native-task-ui-tests-20260927 -> design-lab/tests/test_workbench_native_ui.py (HASH_MOVED_SINCE_OBSERVATION)
+  DRIFTED r5-002-static-unit-20260928 -> design-lab/tests/test_project_paths.py (HASH_MOVED_SINCE_OBSERVATION)
+  DRIFTED r5-003-static-unit-20260928 -> design-lab/tests/test_core_gates.py (HASH_MOVED_SINCE_OBSERVATION)
+  DRIFTED r5-006-static-unit-20260928 -> design-lab/tests/test_model_manifest.py (HASH_MOVED_SINCE_OBSERVATION)
+  DRIFTED r5-008-static-unit-20260928 -> design-lab/tests/test_comfy_http.py (HASH_MOVED_SINCE_OBSERVATION)
+  DRIFTED r5-010-static-unit-20260928 -> design-lab/tests/test_workbench_native_ui.py (HASH_MOVED_SINCE_OBSERVATION)
+  DRIFTED r5-011-static-unit-20260928 -> design-lab/tests/test_illustrator_com_adapter.py (HASH_MOVED_SINCE_OBSERVATION)
+  DRIFTED r5-012-static-unit-20260928 -> design-lab/tests/test_photoshop_com_adapter.py (HASH_MOVED_SINCE_OBSERVATION)
+  DRIFTED r5-026-static-unit-20260928 -> design-lab/tests/test_comfy_http.py (HASH_MOVED_SINCE_OBSERVATION)
+  DRIFTED r5-028-static-unit-20260928 -> design-lab/tests/test_workbench_native_ui.py (HASH_MOVED_SINCE_OBSERVATION)
+  DRIFTED r5-bundle-list-route-http-ui-20260929 -> design-lab/tests/test_service_http.py (HASH_MOVED_SINCE_OBSERVATION)
+  DRIFTED r5-workbench-http-native-ui-reobserved-20261006 -> design-lab/tests/test_workbench_native_ui.py (HASH_MOVED_SINCE_OBSERVATION)
+  DRIFTED r5-m1-runtime-slice-20261006 -> design-lab/tests/test_workbench_launch.py (HASH_MOVED_SINCE_OBSERVATION)
+  DRIFTED r5-m1-runtime-slice-20261006 -> design-lab/tests/test_project_backup.py (HASH_MOVED_SINCE_OBSERVATION)
+  DRIFTED r5-009-official-launch-install-state-20261008 -> docs/audits/DESIGNLAB-LAUNCH-REVIEW-PREFLIGHT-2026-10-08.md (HASH_MOVED_SINCE_OBSERVATION)
+  DRIFTED r5-014-human-jury-persistence-and-ui-20261008 -> docs/audits/DESIGNLAB-LAUNCH-REVIEW-PREFLIGHT-2026-10-08.md (HASH_MOVED_SINCE_OBSERVATION)
+  DRIFTED r5-014-artifact-preflight-chain-20261008 -> docs/audits/DESIGNLAB-LAUNCH-REVIEW-PREFLIGHT-2026-10-08.md (HASH_MOVED_SINCE_OBSERVATION)
+  DRIFTED r5-010-cancel-unacknowledged-stops-being-invisible-20261008 -> docs/audits/DESIGNLAB-LAUNCH-REVIEW-PREFLIGHT-2026-10-08.md (HASH_MOVED_SINCE_OBSERVATION)
+  DRIFTED r5-004-native-recovery-reachable-20261008 -> docs/audits/DESIGNLAB-LAUNCH-REVIEW-PREFLIGHT-2026-10-08.md (HASH_MOVED_SINCE_OBSERVATION)
+  DRIFTED r5-005-delivery-receipt-persisted-at-publish-20261008 -> docs/audits/DESIGNLAB-LAUNCH-REVIEW-PREFLIGHT-2026-10-08.md (HASH_MOVED_SINCE_OBSERVATION)
+  DRIFTED r5-005-design-system-token-write-path-20261008 -> docs/audits/DESIGNLAB-LAUNCH-REVIEW-PREFLIGHT-2026-10-08.md (HASH_MOVED_SINCE_OBSERVATION)
+  DRIFTED r5-004-publication-journal-rebased-on-restore-20261008 -> docs/audits/DESIGNLAB-LAUNCH-REVIEW-PREFLIGHT-2026-10-08.md (HASH_MOVED_SINCE_OBSERVATION)
+  DRIFTED r5-003-verification-gates-wave-20261008 -> docs/audits/DESIGNLAB-LAUNCH-REVIEW-PREFLIGHT-2026-10-08.md (HASH_MOVED_SINCE_OBSERVATION)
+  DRIFTED r5-023-domain-pack-readback-20261008 -> docs/audits/DESIGNLAB-LAUNCH-REVIEW-PREFLIGHT-2026-10-08.md (HASH_MOVED_SINCE_OBSERVATION)
+  DRIFTED r5-014-jury-acceptance-is-a-sentence-about-the-project-20261008 -> docs/audits/DESIGNLAB-LAUNCH-REVIEW-PREFLIGHT-2026-10-08.md (HASH_MOVED_SINCE_OBSERVATION)
+  DRIFTED r5-014-preflight-measures-the-registered-delivery-not-any-row-20261008 -> docs/audits/DESIGNLAB-LAUNCH-REVIEW-PREFLIGHT-2026-10-08.md (HASH_MOVED_SINCE_OBSERVATION)
+  DRIFTED r5-014-approval-vocabulary-not-reviewed-versus-pending-20261008 -> docs/audits/DESIGNLAB-LAUNCH-REVIEW-PREFLIGHT-2026-10-08.md (HASH_MOVED_SINCE_OBSERVATION)
+  DRIFTED r5-005-atomic-versions-one-current-row-per-asset-20261008 -> docs/audits/DESIGNLAB-LAUNCH-REVIEW-PREFLIGHT-2026-10-08.md (HASH_MOVED_SINCE_OBSERVATION)
+  DRIFTED r5-010-delivery-receipt-is-readable-and-the-evidence-page-reads-it-20261008 -> docs/audits/DESIGNLAB-LAUNCH-REVIEW-PREFLIGHT-2026-10-08.md (HASH_MOVED_SINCE_OBSERVATION)
+  DRIFTED r5-003-ledger-schema-and-route-payload-contracts-20261008 -> docs/audits/DESIGNLAB-LAUNCH-REVIEW-PREFLIGHT-2026-10-08.md (HASH_MOVED_SINCE_OBSERVATION)
+  DRIFTED r5-014-quality-record-persisted-and-project-acceptance-recomputed-20261008 -> docs/audits/DESIGNLAB-LAUNCH-REVIEW-PREFLIGHT-2026-10-08.md (HASH_MOVED_SINCE_OBSERVATION)
+  DRIFTED r5-014-rights-ledger-store-route-verb-and-a-word-for-nobody-filed-20261008 -> docs/audits/DESIGNLAB-LAUNCH-REVIEW-PREFLIGHT-2026-10-08.md (HASH_MOVED_SINCE_OBSERVATION)
+  DRIFTED r5-003-identity-floor-backup-quiescence-coverage-and-the-fourth-drift-row-20261008 -> docs/audits/DESIGNLAB-LAUNCH-REVIEW-PREFLIGHT-2026-10-08.md (HASH_MOVED_SINCE_OBSERVATION)
+  DRIFTED r5-014-right-band-fail-closed-and-the-registry-that-nobody-read-20261008 -> docs/audits/DESIGNLAB-LAUNCH-REVIEW-PREFLIGHT-2026-10-08.md (HASH_MOVED_SINCE_OBSERVATION)
+  DRIFTED r5-010-research-findings-become-persisted-state-end-to-end-20261008 -> docs/audits/DESIGNLAB-LAUNCH-REVIEW-PREFLIGHT-2026-10-08.md (HASH_MOVED_SINCE_OBSERVATION)
+  DRIFTED r5-014-rights-decision-panel-closes-the-last-gate-with-no-screen-20261008 -> docs/audits/DESIGNLAB-LAUNCH-REVIEW-PREFLIGHT-2026-10-08.md (HASH_MOVED_SINCE_OBSERVATION)
+  DRIFTED r5-003-the-products-own-capability-table-can-no-longer-go-stale-20261008 -> docs/audits/DESIGNLAB-LAUNCH-REVIEW-PREFLIGHT-2026-10-08.md (HASH_MOVED_SINCE_OBSERVATION)
+  DRIFTED r5-003-per-module-verification-and-two-assertions-my-own-wave-moved-20261008 -> design-lab/tests/test_evidence_artifact_presence.py (HASH_MOVED_SINCE_OBSERVATION)
+  DRIFTED r5-003-per-module-verification-and-two-assertions-my-own-wave-moved-20261008 -> design-lab/tests/test_domain_pack_readback.py (HASH_MOVED_SINCE_OBSERVATION)
+  DRIFTED r5-003-artefact-gate-hashed-working-bytes-so-crlf-always-drifted-20261008 -> design-lab/scripts/verify_evidence_artifact_presence.py (HASH_MOVED_SINCE_OBSERVATION)
+  DRIFTED r5-003-artefact-gate-hashed-working-bytes-so-crlf-always-drifted-20261008 -> design-lab/tests/test_evidence_artifact_presence.py (HASH_MOVED_SINCE_OBSERVATION)
+  DRIFTED r5-003-the-emitter-pointer-s-line-number-is-read-and-honoured-20261008 -> design-lab/scripts/verify_contract_bindings.py (HASH_MOVED_SINCE_OBSERVATION)
+  DRIFTED r5-003-the-emitter-pointer-s-line-number-is-read-and-honoured-20261008 -> design-lab/config/contract-bindings.json (HASH_MOVED_SINCE_OBSERVATION)
+  DRIFTED r5-003-the-emitter-pointer-s-line-number-is-read-and-honoured-20261008 -> design-lab/tests/test_contract_bindings.py (HASH_MOVED_SINCE_OBSERVATION)
+  DRIFTED r5-001-only-five-of-the-21-declared-objects-are-validated-by-product-code-20261008 -> design-lab/scripts/verify_object_model_backing.py (HASH_MOVED_SINCE_OBSERVATION)
+  DRIFTED r5-001-only-five-of-the-21-declared-objects-are-validated-by-product-code-20261008 -> design-lab/tests/test_object_model_backing_gate.py (HASH_MOVED_SINCE_OBSERVATION)
+  DRIFTED r5-001-only-five-of-the-21-declared-objects-are-validated-by-product-code-20261008 -> design-lab/scripts/verify_design_lab.py (HASH_MOVED_SINCE_OBSERVATION)
+  DRIFTED r5-010-template-contracts-and-delivery-bom-20261008 -> src/design_lab/assurance/delivery_bom.py (HASH_MOVED_SINCE_OBSERVATION)
+  DRIFTED r5-010-design-system-row-names-the-enforced-contract-20261008 -> design-lab/config/object-model.json (HASH_MOVED_SINCE_OBSERVATION)
+  DRIFTED r5-010-design-system-row-names-the-enforced-contract-20261008 -> src/design_lab/interop/dtcg.py (HASH_MOVED_SINCE_OBSERVATION)
+  DRIFTED r5-010-design-system-row-names-the-enforced-contract-20261008 -> design-lab/tests/test_object_model_backing_gate.py (HASH_MOVED_SINCE_OBSERVATION)
+  DRIFTED r5-010-design-system-row-names-the-enforced-contract-20261008 -> design-lab/tests/test_oda4_0204b_object_model_roundtrip.py (HASH_MOVED_SINCE_OBSERVATION)
+  DRIFTED r5-003-brief-readback-contract-and-the-prose-classifier-correction-20261008 -> src/design_lab/design_layer.py (HASH_MOVED_SINCE_OBSERVATION)
+  DRIFTED r5-003-brief-readback-contract-and-the-prose-classifier-correction-20261008 -> design-lab/scripts/verify_route_payload_contracts.py (HASH_MOVED_SINCE_OBSERVATION)
+  DRIFTED r5-003-brief-readback-contract-and-the-prose-classifier-correction-20261008 -> design-lab/scripts/verify_object_model_backing.py (HASH_MOVED_SINCE_OBSERVATION)
+  DRIFTED r5-003-brief-readback-contract-and-the-prose-classifier-correction-20261008 -> design-lab/tests/test_object_model_backing_gate.py (HASH_MOVED_SINCE_OBSERVATION)
+  DRIFTED r5-001-inert-contract-claims-re-measured-and-citations-made-paths-20261008 -> design-lab/scripts/verify_contract_bindings.py (HASH_MOVED_SINCE_OBSERVATION)
+  DRIFTED r5-001-inert-contract-claims-re-measured-and-citations-made-paths-20261008 -> design-lab/config/contract-bindings.json (HASH_MOVED_SINCE_OBSERVATION)
+  DRIFTED r5-001-inert-contract-claims-re-measured-and-citations-made-paths-20261008 -> design-lab/tests/test_contract_bindings.py (HASH_MOVED_SINCE_OBSERVATION)
+  DRIFTED r5-001-the-evidence-projection-could-never-verify-a-commit-bound-receipt-20261008 -> src/design_lab/governance/reporting.py (HASH_MOVED_SINCE_OBSERVATION)
+  DRIFTED r5-003-one-owner-for-byte-claims-and-a-gate-that-stops-judging-disclaimed-bytes-20261008 -> src/design_lab/governance/reporting.py (HASH_MOVED_SINCE_OBSERVATION)
+  DRIFTED r5-003-the-evidence-link-gets-a-route-a-card-and-a-cost-worth-asking-20261008 -> src/design_lab/governance/evidence_readback.py (HASH_MOVED_SINCE_OBSERVATION)
+  DRIFTED r5-003-the-evidence-link-gets-a-route-a-card-and-a-cost-worth-asking-20261008 -> apps/workbench/shell.ts (HASH_MOVED_SINCE_OBSERVATION)
+  RUNTIME-MISSING r5-comfy-http-model-free-live-20260909 -> .project-local/task-artifacts/comfy-http-live-bb63046b6f444fe9a7a96d0bf66f949b/result.json
+  RECOVERED r5-comfy-http-model-free-live-20260909 -> docs/handoffs/R5-COMFY-HTTP-LIVE-2026-09-09.md removed on owner order, bytes readable at 7015571e729ec78c266cf45e0bd3b01b2e50973b
+  RECOVERED r5-comfy-structural-rejection-20260909 -> docs/handoffs/R5-COMFY-STRUCTURAL-REJECTION-2026-09-09.md removed on owner order, bytes readable at 7015571e729ec78c266cf45e0bd3b01b2e50973b
+  RECOVERED r5-ps-handoff-review-20260909 -> docs/handoffs/R5-PHOTOSHOP-PATCH-PRODUCT-2026-09-09.md removed on owner order, bytes readable at 7015571e729ec78c266cf45e0bd3b01b2e50973b
+  RECOVERED r5-ps-handoff-review-20260909 -> docs/handoffs/R5-PHOTOSHOP-FULL-REGRESSION-2026-09-09.md removed on owner order, bytes readable at 7015571e729ec78c266cf45e0bd3b01b2e50973b
+EVIDENCE_ARTIFACTS=WARN tracked_broken=0 tracked_drifted=64 runtime_present=33 runtime_missing=1 relocated=0 recovered=4 (runtime root is gitignored; drift means the artefact was a mutable source file that has moved on since the observation)
+exit=0
+== LEDGER_SUBJECT_BINDING ==
+LEDGER_SUBJECT_BINDING=OK checked=483 subject_files=460 runtime=34 worktree_claims=8 known_unverifiable=63 records=76
+exit=0

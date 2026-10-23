@@ -1,0 +1,20 @@
+test_a_post_row_added_to_the_ledger_without_an_entry_here_is_convicted (design-lab.tests.test_installed_write_surface.InstalledWriteSurfaceTests.test_a_post_row_added_to_the_ledger_without_an_entry_here_is_convicted)
+The falsifier for the coverage claim: plant a row and check that the plant moves. ... ok
+test_a_refusal_list_is_compared_in_both_directions (design-lab.tests.test_installed_write_surface.InstalledWriteSurfaceTests.test_a_refusal_list_is_compared_in_both_directions)
+A named refusal that stopped happening must be as loud as an unearned one appearing. ... ok
+test_a_slot_this_sweep_never_captured_is_reported_rather_than_sent_literally (design-lab.tests.test_installed_write_surface.InstalledWriteSurfaceTests.test_a_slot_this_sweep_never_captured_is_reported_rather_than_sent_literally)
+A leftover `{brief}` in a path would be a 400 nobody reads as a coverage hole. ... ok
+test_a_write_route_that_builds_an_envelope_names_the_contract_not_the_request (design-lab.tests.test_installed_write_surface.InstalledWriteSurfaceTests.test_a_write_route_that_builds_an_envelope_names_the_contract_not_the_request)
+The conviction this batch's plant produced, pinned so it cannot come back. ... ok
+test_every_ledger_post_row_is_walked_or_named_in_this_layout (design-lab.tests.test_installed_write_surface.InstalledWriteSurfaceTests.test_every_ledger_post_row_is_walked_or_named_in_this_layout)
+POST each row for real, read it back, and name every refusal that actually happened. ... ok
+test_the_exclusions_are_real_ledger_rows_and_every_row_has_a_check (design-lab.tests.test_installed_write_surface.InstalledWriteSurfaceTests.test_the_exclusions_are_real_ledger_rows_and_every_row_has_a_check)
+A table that names a method nobody wrote, or excludes a row the ledger never had, is a ... ok
+
+----------------------------------------------------------------------
+Ran 6 tests in 4.370s
+
+OK
+POST_SWEEP layout=source rows=33 walked=32 written=32 read_backs=39 refused=0 excluded=1
+POST_SWEEP_WRITTEN project asset brief direction choose bind tokens analysis model-choose compose reverse prompt-sign jury-verdict jury-proposal rights research candidate candidate-review candidate-revoke brief-rev brief-rev-by-id direction-rev direction-rev-by-id bundle preflight patch cancel native-plan knowledge-create knowledge-revise knowledge-import knowledge-index-rebuild
+POST_SWEEP_EXCLUDED /api/projects/([0-9a-f]{32})/tasks/(native-job-[0-9a-f]{64})/run :: FROZEN-BY-POLICY: the body is one attempt_id and this sweep has one, but native_workers.start() spawns a child process running `design_lab native-work

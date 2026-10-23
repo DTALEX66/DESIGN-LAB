@@ -580,7 +580,7 @@ try {
 
   // ------------------------------------------------------------------------
   // K-NAV-VISIBLE: on a routed screen the B10 sidebar is the only element that
-  // says "you are here", and its 22 buttons live in an `overflow:auto` column
+  // says "you are here", and its 21 buttons live in an `overflow:auto` column
   // that is taller than a desktop window. Opening a late route must scroll the
   // COLUMN to the selected button; before 2026-10-24 sync() only toggled
   // .active/aria-current, so the screen could open with no visible selection.

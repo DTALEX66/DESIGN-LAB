@@ -9,17 +9,27 @@
   },
   "fresh": false,
   "freshnessMeaning": "at generation only; check verifies bound-input integrity, not current Git or cloud state",
-  "generatedAt": "2026-10-23T19:58:24+00:00",
+  "generatedAt": "2026-10-23T21:25:48+00:00",
   "gitStateMeaning": "generation-time observation, not current HEAD",
   "local": {
     "branch": "qoder/designlab-backup-consistency-20261007",
-    "origin_main": "d9a8412bd93550fdb7983d5535f643b314f90d3e",
-    "sha": "ffbec465b76a374ac5cc082282597adafa8d9c1f",
+    "origin_main": "98136863bd6d2063f96a962a37af25dcd89db440",
+    "sha": "967d3eed550f5de819f57006530cb4738a491df0",
     "source_worktree_clean": false,
     "tracked_files": 3854,
     "worktree_changes": [
       {
-        "content": "sha256:c49b4427cae9103515c06aac71d803458e69c0ca5fb4ad8603926492f9566df3",
+        "content": "sha256:002aecfd1488f2219901ede550737b816d55b4358e5e7c91333750138a03a482",
+        "kind": "M",
+        "path": "design-lab/config/task-ledger-r3.json"
+      },
+      {
+        "content": "sha256:4dcbc7c49939eb356daf786311414a24e2380b03edfafd2a3c000e313057eb35",
+        "kind": "M",
+        "path": "design-lab/tests/e2e/browser_design_layer_e2e.mjs"
+      },
+      {
+        "content": "sha256:917d51e4093e336b62bac1f17f158ac5771fb81195aed0432f20c98d1a3b9697",
         "kind": "M",
         "path": "docs/RECORD-ARCHIVE-INDEX.md"
       },
@@ -32,15 +42,115 @@
         "content": "sha256:13c275506e946cc3df2e2a30250454ec64a88046c5b04ad2ffaeca601b692efe",
         "kind": "U",
         "path": ".cursor/rules/universal-agent-core.mdc"
+      },
+      {
+        "content": "sha256:1d0fb4872c438a8c5c63ed9c8aa43fef6f247f3b039e544e1183faacafc7cee9",
+        "kind": "U",
+        "path": "design-lab/evidence/current-execution/task-artifacts/kb-20261023/VISUAL-REVIEW-ROUND2-20261024.md"
+      },
+      {
+        "content": "sha256:1d8f42b1261b72ef9b148d0cac6010387d2cfe8d079d4ec2446e06bbb4f602d5",
+        "kind": "U",
+        "path": "design-lab/evidence/current-execution/task-artifacts/kb-20261023/design-review-20261024/a11y.json"
+      },
+      {
+        "content": "sha256:b498a95e066daeb3b20619ba5a3acfe830f8216ab59399eeecad4e4e499fe98e",
+        "kind": "U",
+        "path": "design-lab/evidence/current-execution/task-artifacts/kb-20261023/design-review-20261024/design-debt.json"
+      },
+      {
+        "content": "sha256:7b173f8766ff2908a273b866f355770679baaaf7727a806a390e2922642fd76d",
+        "kind": "U",
+        "path": "design-lab/evidence/current-execution/task-artifacts/kb-20261023/design-review-20261024/design-review.json"
+      },
+      {
+        "content": "sha256:d8d09a7ed2b6709c27c351a107d8b6296743cbfae1077a42389e1a70de639527",
+        "kind": "U",
+        "path": "design-lab/evidence/current-execution/task-artifacts/kb-20261023/design-review-20261024/runner.log"
+      },
+      {
+        "content": "sha256:c75a9c945c1c38844b6c554a189fa26449a5592142a7de37eb0a40bc54509f3e",
+        "kind": "U",
+        "path": "design-lab/evidence/current-execution/task-artifacts/kb-20261023/gate-bundle-pre-ledger-20261024.log"
+      },
+      {
+        "content": "sha256:0358db4721eaf9469cd695c13069f433b5f65bc3e5314b192cde342887090021",
+        "kind": "U",
+        "path": "design-lab/evidence/current-execution/task-artifacts/kb-20261023/kb-01-unit-ledger-20261024.log"
+      },
+      {
+        "content": "sha256:d54c44f3d7ab34cc3cf4cd14a5b31b76e5a70a542a5930858b39e95f68f87a0a",
+        "kind": "U",
+        "path": "design-lab/evidence/current-execution/task-artifacts/kb-20261023/kb-02-implementation-write-surface-r2-20261024.log"
+      },
+      {
+        "content": "sha256:30c4be6b4de38d091e14f06a970d0578e35529f1b37f11b456b837bbf99ac5b9",
+        "kind": "U",
+        "path": "design-lab/evidence/current-execution/task-artifacts/kb-20261023/kb-03-browser-e2e-20261024.log"
+      },
+      {
+        "content": "sha256:42cc511bacf6e14e38e93d045b57671cfad19ca692abb5ba198a7a3186e2e108",
+        "kind": "U",
+        "path": "design-lab/evidence/current-execution/task-artifacts/kb-20261023/kb-03-browser-e2e-summary-20261024.json"
+      },
+      {
+        "content": "sha256:468ae4407f7731d2ccfd258c68ab49d63e75b5cd7a8b77ea21c813e67a14f3d3",
+        "kind": "U",
+        "path": "design-lab/evidence/current-execution/task-artifacts/kb-20261023/kb-03-unit-workbench-20261024.log"
+      },
+      {
+        "content": "sha256:89229aae5e0166f568238f130b08247685d4a65d7daf6b662a035eca0329db7d",
+        "kind": "U",
+        "path": "design-lab/evidence/current-execution/task-artifacts/kb-20261023/kb-03-visual-probe-20261024.log"
+      },
+      {
+        "content": "sha256:9e7628f374146cc7074aee1c918254044604ca4c53bee5503538ce663a1a8280",
+        "kind": "U",
+        "path": "design-lab/evidence/current-execution/task-artifacts/kb-20261023/kb-03-visual-receipt-20261024.json"
+      },
+      {
+        "content": "sha256:8be05ed9a081e11a90503c36472bad4ec1990693276cbfc2eeb331a27df10be6",
+        "kind": "U",
+        "path": "design-lab/evidence/current-execution/task-artifacts/kb-20261023/kb-04-implementation-http-search-r2-20261024.log"
+      },
+      {
+        "content": "sha256:7f47c6bf4f2d9e9435b705e495d1c1030cf9a9790b0025d197407b3cb59256fd",
+        "kind": "U",
+        "path": "design-lab/evidence/current-execution/task-artifacts/kb-20261023/kb-05-implementation-revisions.log"
+      },
+      {
+        "content": "sha256:b8ca514a3966e1b500cf8f88ed49e6ea4352d20b5066ecb638a327bd32dde0be",
+        "kind": "U",
+        "path": "design-lab/evidence/current-execution/task-artifacts/kb-20261023/kb-05-unit-knowledge.log"
+      },
+      {
+        "content": "sha256:3b191653a3f8240cc05876e8d9b76a5e678900912003a122450ef263e531cb56",
+        "kind": "U",
+        "path": "design-lab/evidence/current-execution/task-artifacts/kb-20261023/kb-06-browser-zoom-r2-20261024.json"
+      },
+      {
+        "content": "sha256:ce61d4a3fbe682082e9e2657ea96e00dfabd08eaa225823907218959ac7414d5",
+        "kind": "U",
+        "path": "design-lab/evidence/current-execution/task-artifacts/kb-20261023/ui-audit-20261024.json"
+      },
+      {
+        "content": "sha256:b5ce02183bb33cdaf68faf8de6c9fd87a5b00f87672d17b25a8d590cb794bc2e",
+        "kind": "U",
+        "path": "design-lab/evidence/current-execution/task-artifacts/kb-20261023/ui-audit-20261024.log"
+      },
+      {
+        "content": "sha256:fc69f5fee54024d70a388b329088390bc15b8fcd2f264ed553c85343868b54d5",
+        "kind": "U",
+        "path": "design-lab/scripts/knowledge_revision_probe.py"
       }
     ],
-    "worktree_digest": "sha256:27b6935d94188a5a1dfad6ae12f9d42ab96aa51f2661d151f916f5bd4161c2fd"
+    "worktree_digest": "sha256:4f25852a71584aa4e14692722b73b5cf22e15401a6175550b8c21905b7ea7b51"
   },
   "note": "No GitHub API query was run by this generator; tool installation is not inferred.",
   "remoteRef": "origin/main (local tracking ref)",
   "schemaVersion": "design-lab/cloud-baseline/v2",
   "subjectMeaning": "subjectType=WORKTREE means the tree was dirty at generation; worktreeDigest covers HEAD plus the non-generated changes",
-  "subjectSha": "ffbec465b76a374ac5cc082282597adafa8d9c1f",
+  "subjectSha": "967d3eed550f5de819f57006530cb4738a491df0",
   "subjectType": "WORKTREE",
   "taskpackHash": "ed7d4dbd8bb38dd543318dca20701da0c64e7f5743356b217de478f65f80be5c",
   "taskpackId": "DL-TP-20261023-DESKTOP-KB-R1",
@@ -55,5 +165,5 @@
     "branchProtection"
   ],
   "worktreeClean": false,
-  "worktreeDigest": "sha256:27b6935d94188a5a1dfad6ae12f9d42ab96aa51f2661d151f916f5bd4161c2fd"
+  "worktreeDigest": "sha256:4f25852a71584aa4e14692722b73b5cf22e15401a6175550b8c21905b7ea7b51"
 }

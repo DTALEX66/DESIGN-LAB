@@ -1,0 +1,21 @@
+test_dependency_cycle_is_rejected_even_with_a_matching_source_hash (test_current_execution.CurrentExecutionTests.test_dependency_cycle_is_rejected_even_with_a_matching_source_hash) ... ok
+test_done_without_independent_axes_is_rejected (test_current_execution.CurrentExecutionTests.test_done_without_independent_axes_is_rejected) ... ok
+test_historical_axis_cannot_be_edited_in_current_work (test_current_execution.CurrentExecutionTests.test_historical_axis_cannot_be_edited_in_current_work) ... ok
+test_missing_subtask_cannot_hide_behind_parent_inventory (test_current_execution.CurrentExecutionTests.test_missing_subtask_cannot_hide_behind_parent_inventory) ... ok
+test_old_receipts_never_qualify_new_ui (test_current_execution.CurrentExecutionTests.test_old_receipts_never_qualify_new_ui) ... ok
+test_a_prose_number_that_disagrees_is_caught (test_documented_counts.DocumentedCountsTests.test_a_prose_number_that_disagrees_is_caught)
+The claim is keyed by file, so rewriting the sentence must not slip through. ... ok
+test_every_documented_count_matches_the_code (test_documented_counts.DocumentedCountsTests.test_every_documented_count_matches_the_code) ... ok
+test_completion_state_without_reassessment_is_rejected (test_task_ledger_contract_gate.TaskLedgerContractGateTests.test_completion_state_without_reassessment_is_rejected) ... ok
+test_evidence_record_without_retained_artefact_is_rejected (test_task_ledger_contract_gate.TaskLedgerContractGateTests.test_evidence_record_without_retained_artefact_is_rejected) ... ok
+test_repo_ledger_satisfies_its_own_contract (test_task_ledger_contract_gate.TaskLedgerContractGateTests.test_repo_ledger_satisfies_its_own_contract) ... ok
+test_the_frozen_partition_guard_still_fires_first (test_task_ledger_contract_gate.TaskLedgerContractGateTests.test_the_frozen_partition_guard_still_fires_first)
+Positive control for the two fixtures below: the dropped guard is live. ... ok
+
+----------------------------------------------------------------------
+Ran 11 tests in 0.542s
+
+OK
+FAIL DESIGN.md: prose says ['21'], measurement says 22 (expected the sentence "导航 22 项")
+DOCUMENTED_COUNTS=FAIL claims=20 failed=1
+DOCUMENTED_COUNTS=PASS claims=20 route_views=22 cli=24 adapters=30 routes=72
