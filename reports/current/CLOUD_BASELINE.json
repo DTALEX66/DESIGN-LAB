@@ -9,24 +9,19 @@
   },
   "fresh": false,
   "freshnessMeaning": "at generation only; check verifies bound-input integrity, not current Git or cloud state",
-  "generatedAt": "2026-10-23T17:41:00+00:00",
+  "generatedAt": "2026-10-23T18:34:18+00:00",
   "gitStateMeaning": "generation-time observation, not current HEAD",
   "local": {
     "branch": "qoder/designlab-backup-consistency-20261007",
     "origin_main": "d5444cb30fabd0736273e7e291d62d52b53fe4cf",
-    "sha": "4036069833048b02461e16369ec015f0be41916b",
+    "sha": "408c92239e3c04843afe4e9f21d7652eccfe3410",
     "source_worktree_clean": false,
     "tracked_files": 3854,
     "worktree_changes": [
       {
-        "content": "sha256:d500ad5bb541619d86c15c64080aeaaa46918e70c8b057dda6c4f6e31dbea451",
+        "content": "sha256:a352cbb7b200c45e1a6de924a87628a79a655ad1374717ae583e828a63d9f502",
         "kind": "M",
         "path": "docs/RECORD-ARCHIVE-INDEX.md"
-      },
-      {
-        "content": "sha256:c5139dd86beba311ba8b00699fd8232539c5f09bb9216576f98bb39c3e79dd47",
-        "kind": "M",
-        "path": "docs/audits/INERT-CONTRACT-SURVEY-2026-10-08.md"
       },
       {
         "content": "sha256:20c42724e2840e557fa61f1695921ed8449928c50b62f5e15bb692f2ba62ed01",
@@ -39,13 +34,13 @@
         "path": ".cursor/rules/universal-agent-core.mdc"
       }
     ],
-    "worktree_digest": "sha256:1b52b5ef212aa9b6c3ac4ef270a17bab4aea2b0c372d29034a5bb22fe0b505cc"
+    "worktree_digest": "sha256:3129498ec09b0e76b50103df760bf7958413f5a5c9c3ec10bffe4aee12060446"
   },
   "note": "No GitHub API query was run by this generator; tool installation is not inferred.",
   "remoteRef": "origin/main (local tracking ref)",
   "schemaVersion": "design-lab/cloud-baseline/v2",
   "subjectMeaning": "subjectType=WORKTREE means the tree was dirty at generation; worktreeDigest covers HEAD plus the non-generated changes",
-  "subjectSha": "4036069833048b02461e16369ec015f0be41916b",
+  "subjectSha": "408c92239e3c04843afe4e9f21d7652eccfe3410",
   "subjectType": "WORKTREE",
   "taskpackHash": "ed7d4dbd8bb38dd543318dca20701da0c64e7f5743356b217de478f65f80be5c",
   "taskpackId": "DL-TP-20261023-DESKTOP-KB-R1",
@@ -60,5 +55,5 @@
     "branchProtection"
   ],
   "worktreeClean": false,
-  "worktreeDigest": "sha256:1b52b5ef212aa9b6c3ac4ef270a17bab4aea2b0c372d29034a5bb22fe0b505cc"
+  "worktreeDigest": "sha256:3129498ec09b0e76b50103df760bf7958413f5a5c9c3ec10bffe4aee12060446"
 }
