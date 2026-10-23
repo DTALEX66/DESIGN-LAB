@@ -359,6 +359,13 @@ owner 决定"确认归档后删除"该远端/本地分支。删除前实测发�
 
 **本次不并入库**：本节是追加投递，独立清单与计数；不改写 2026-10-09 的 Record 普查（101 份 / 180 成员）、2026-10-11 的 DOT 审计清单、2026-10-13 的两处唯一副本登记，也不并入 2026-10-19 波次五份记录的 `summary` 计数。上方那张五件登记件表格由 `scripts/generate_archive_record_register.py` 生成，本节不参与它的行数与摘要校验。
 
+**本节的位置是被生成器逼定的**：`scripts/generate_archive_record_register.py` 从自己的标题改写到文件末尾，
+所以第一次把本节追加在那张五件登记表之后的一轮再生成里被直接删掉（76,437 → 73,712 B）。现在它和
+2026-10-11、2026-10-13 两节同侧（登记表之前），再生成后逐字节不变。代价要说清楚：
+`scripts/verify_archive_record_register.py` 只扫它自己标题之后的正文，所以本节的 pathish 引用不再由那条闸
+复核——`pathish_named` 从 30 回到 21 就是这个位移，不是引用变少；本节的路径与摘要在落仓当刻由
+SOURCE-MANIFEST 的逐成员 sha256/crc32 与 `git cat-file blob :<path>` 逐一核过（17/17 命中）。
+
 **字节保护**：`docs/taskpacks/20261023-ui-kb/**`、`docs/history/record-archive-2026-10-23/**` 与 `docs/history/taskpacks/20261023-adoption/**` 已在 `.gitattributes` 标 `-text`，因为三份 CSV 原件自带 CRLF，而登记的是落地字节的 sha256——`* text=auto eol=lf` 一旦改写，登记摘要就从干净克隆复现不出来（同一件事在 `design-lab/evidence/**` 与权威五面上已各踩过一次）。
 
 **定态**：本包不是能力索引、不是第二账本。派工入口是 `DL-TP-20261023-DESKTOP-KB-R1` → `docs/taskpacks/DESIGN-LAB-DESKTOP-KB-INTEGRATED-TASKPACK-2026-10-23.md`；落仓时观察 HEAD `efa5a8afb7e9b04bd05c7b6ad96f9872d46e4823`，作者包内基线 `2d6ede51cd0f49e9b99c27f09924a0db29843b89` 保留为作者观察时点。当前 SHA 一律 `git rev-parse HEAD` 自读。

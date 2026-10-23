@@ -631,6 +631,13 @@ ZIP 原件按 AGENTS.md 既有规则留在 `.project-local/record-archive-2026-1
 DOT 清单、2026-10-19 的五件波次登记与它们 `summary` 里的计数，本节只追加、不并入（`RECORD-ARCHIVE-INDEX.md`
 末节 + 生成器-owned 的五行登记表未动，`RECORD_REGISTER_GATE=PASS checks=5 pathish_named=30 problems=0`）。
 
+**这条 PASS 读数后来跟着一个位移改过一次**：本节原先追加在五件登记表之后，而
+`generate_archive_record_register.py` 从自己的标题改写到文件末尾，下一轮再生成直接把它删掉
+（76,437 → 73,712 B，`grep -c` 该标题变成 0）；移到登记表之前、与 2026-10-11 / 2026-10-13 两节同侧之后，
+再生成逐字节不变。代价是那条闸不再扫描本节的 pathish 引用，`pathish_named` 由 30 回到 21。
+两个 `problems=0` 都是各自位置上的真读数，不是同一个扫描范围。
+
+
 **第一处工具缺陷在我自己身上**：登记完之后 `verify_archive_record_register.py` 报 6 条
 "unresolvable path"，其中四条点的是我刚落地的中文名成员。它拿 `git ls-files` 的文本按行切分建集合，
 而 git porcelain 会把非 ASCII 路径八进制引用（`"docs/…\345\205\210…"`），于是**已入仓的文件在闸门眼里不存在**。
