@@ -374,6 +374,23 @@ if (noticeViews < 8)
   throw new Error(`只有 ${noticeViews} 个视图报告了缺失形状（下限 8）—— ⑤ 的铺开出现了回归`);
 console.log(`ok: ⑤ 形状告警渲染在 ${noticeViews} 个视图上；${silentViews.length} 个路由不读服务：${silentViews.join(' ')}`);
 
+// ㉔ DL-KB-06: the vm smoke cannot mount the B10 sidebar (mountB10Shell asks the mock
+// *document* for querySelector and the stub deliberately lacks it), so this pins the
+// derivation at its source: B10_NAV must be computed from ROUTE_VIEWS, never a literal
+// table. The rendered button set is compared against the served bundle's route table in
+// the real browser by capture_workbench_screenshots.mjs (CAP_NAV_SET).
+const b10Start = shellSource.indexOf('const B10_NAV');
+const b10End = shellSource.indexOf('const navList', b10Start);
+if (b10Start < 0 || b10End < b10Start)
+  throw new Error('㉔ B10_NAV 定位失败 —— 导航派生检查失去覆盖面');
+const b10Block = shellSource.slice(b10Start, b10End);
+if (!/=\s*ROUTE_VIEWS\s*\.filter\([\s\S]*?\.map\(/.test(b10Block.replace(/\n\s*/g, ' ')))
+  throw new Error('㉔ B10_NAV 不再从 ROUTE_VIEWS 派生：' + b10Block.slice(0, 200));
+const handCopiedNav = b10Block.match(/hash:\s*'#/g) ?? [];
+if (handCopiedNav.length)
+  throw new Error(`㉔ B10_NAV 里出现 ${handCopiedNav.length} 个手抄 hash`);
+console.log('ok: ㉔ B10_NAV 从 ROUTE_VIEWS 派生且没有手抄 hash；渲染集合由截图采集在真浏览器里比对');
+
 // ⑤ TARGETED, #/domains. The sweep above proves a notice can reach a screen; it cannot
 // prove this particular page asks for anything. `#/domains` was the route with no backend
 // at all — listed, reachable, reading nothing while the repository held the packs and the

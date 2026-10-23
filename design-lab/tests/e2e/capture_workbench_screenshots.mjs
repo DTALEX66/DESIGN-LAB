@@ -478,8 +478,37 @@ try {
 // coverage gate above and the capture below cannot drift apart over that literal.
 const pageHash = (p) => (p.dynamic ? p.base + '/' + encodeURIComponent(projectId) : p.hash);
 
+// DL-KB-06: the sidebar renders from ROUTE_VIEWS, but "derived in source" is a claim until
+// the buttons a person can actually click are compared with the route table parsed from the
+// SERVED bundle. A hand-copied nav or a route that silently loses its button fails here.
+let navProof = null;
+const assertNavSet = async (page, width) => {
+  const rendered = await page.evaluate(() => Array.from(
+    document.querySelectorAll('#app-sidebar .nav button'))
+    .map((node) => ({ hash: node.getAttribute('data-hash'), route: node.dataset.route || '' })));
+  const expected = inventory.routes.filter((route) => route.hash !== '');
+  const missing = expected.filter((route) => !rendered.some((node) => node.hash === route.hash));
+  const extra = rendered.filter((node) => !expected.some((route) => route.hash === node.hash));
+  const duplicates = rendered.filter((node, index) =>
+    rendered.findIndex((other) => other.hash === node.hash) !== index);
+  if (rendered.length === 0 || missing.length || extra.length || duplicates.length)
+    fail('CAP_NAV_SET_MISMATCH rendered=' + rendered.length + ' expected=' + expected.length
+      + ' missing=[' + missing.map((route) => route.hash).join(' ') + ']'
+      + ' extra=[' + extra.map((node) => String(node.hash)).join(' ') + ']'
+      + ' duplicates=[' + duplicates.map((node) => String(node.hash)).join(' ') + ']');
+  navProof = {
+    width,
+    expected: expected.length,
+    rendered: rendered.length,
+    hashes: rendered.map((node) => node.hash),
+    matchesRouteTable: true,
+  };
+  console.log('CAP_NAV_SET rendered=' + rendered.length + ' expected=' + expected.length + ' equal=1');
+};
+
 for (const width of widths) {
   const { ctx, page } = await openWorkspace(width);
+  if (!navProof) await assertNavSet(page, width);
   for (const p of PAGES) {
     const hash = pageHash(p);
     const host = p.host || '#route-view';
@@ -615,6 +644,7 @@ const manifest = {
     // this page set was checked against, and that the check ran at all.
     routeInventory,
     routeCoverageChecked: true,
+    navRouteProof: navProof,
   },
   screenshots: shots,
 };
