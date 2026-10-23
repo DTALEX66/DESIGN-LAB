@@ -94,11 +94,12 @@ owner 原话（逐字）：**「读取分析，按照这个执行（前端UI是�
 
 **台账读数（2026-10-24 收尾时现数，不是抄来的）**：`currentExecution` 现有 50 行，其中
 仍冻结 **34 项**（`DL-FINAL-T01…T22` 与 `DL-UI-U01…U12`，一行都没被解冻），当前可派工 **16 项**
-（`DL-KB-01…DL-KB-16`）。第一批四刀已落：`DL-KB-02/03/04/06` = `PARTIAL`（不是 DONE——
-真人验收未发生，最高 E2），`DL-KB-01` = `IN_PROGRESS`，其余 11 项 `NOT_STARTED`。
-`currentExecution.evidence` 216 条全部 PASS：198 条历史 + 18 条新回执，新回执逐条绑
-`7f5e68d7` 的产物；证据包 `kb-20261023/` 共 48 个文件，其中 47 份（索引自身除外）逐份登记字节与
-sha256。定义原件
+（`DL-KB-01…DL-KB-16`）。第二轮收口后的状态是 `DONE 3`（`DL-KB-03/04/06`，三条轴各有 PASS 回执——
+这是账本的 DONE，证据等级仍是 E1/E2，真人验收未发生）、`PARTIAL 3`（`DL-KB-01/02/05`）、
+`NOT_STARTED 10`（`DL-KB-07…16`）。`currentExecution.evidence` 235 条全部 PASS：216 条历史 +
+19 条新回执，新回执逐条绑 `967d3eed` 的产物。证据包 `kb-20261023/` 现有 70 个受跟踪文件；
+`evidence-index.json` 仍是第一刀在 `7f5e68d7` 的 47 份索引，**不是全量清单**——第二轮起的回执
+以账本 `artifact_sha256` 为准。定义原件
 `docs/history/taskpacks/20261023-adoption/TASK-DEFINITIONS.json`，账本按 sha256 钉它，采纳后逐字节冻结。
 
 **四个空白是实测出来的，不是听来的**（同一批字节上）：`capability_library.py` 是只读投影、没有写入面；
@@ -136,18 +137,23 @@ matched=61 / backend_only=11 / dynamic=3 / special=1，`ROUTE_VIEWS` 21 → **22
 逐作业全绿，收尾提交后的 run `40013185833`（main）与 `40013198844`（分支）在 `d9a8412b` 同样全绿
 （细节见审计 §5.32、§5.33）。下一会话自读 `git rev-parse HEAD`，不要抄这两个 SHA。
 
-**下一刀是 DL-KB-05，先量再写。** 修订链已经追加（`_write_revision` 是唯一写入点，当前版本 =
-`MAX(revision)`，`recommended` 是记录值不是排序），所以缺的只有两件：并发前置条件（写入带期望修订、
-冲突有可读提示）与推荐版本回退后的读回（旧修订仍在，回退不改写历史摘要）。之后进 K3：`DL-KB-07`
-（中立方案对象 + 一份创意意图）与 `DL-KB-08`（设计辅助初始态 + 方案详情四态）。**先量现状再动手**：
-上一轮的教训是"卡片说缺的"经常已经存在一半。
+**DL-KB-05 已经量到它能到的边界，下一刀是 K3。** 修订链的追加与冲突前置条件已有真实 HTTP 探针
+（`design-lab/scripts/knowledge_revision_probe.py`）：r1 是推荐版本，修订后 r2 成为最新且父摘要不变，
+带 `expected_revision=1` 的过期写返回 `409 KNOWLEDGE_ENTRY_REVISION_CONFLICT` 并点名 revision 2，
+重启后链一致（`KB_REVISION_OK`）。停在 PARTIAL 的是 D5：**推荐版本回退没有路由、失效来源没有字段**，
+它依赖尚未开工的 `DL-KB-07`。所以下一刀是 `DL-KB-07`（中立方案对象 + 一份创意意图）与
+`DL-KB-08`（设计辅助初始态 + 方案详情四态）。**先量现状再动手**：上一轮的教训是"卡片说缺的"
+经常已经存在一半；`DL-KB-02` 的 A5（模型服务关闭时仍可写入、检索、编辑与复制）也还没有直接断言，
+不要因为五条写路由都在就把它读成已证。
 
-**本轮留下的账**（下一轮同批付或明确记录）：`apps/workbench/shell.ts:4241` 的注释仍写
-「ROUTE_VIEWS has 21 entries」（实测 22，且原样进了 `build/main.js`），没有门禁断言它，改 UI 时同批改；
-真实中文知识语料仍只有探针合成的 2 + 58 条，不含 owner 的条目；写入路径的逐屏截图只覆盖新增；
-1280×800 首屏侧栏只露第一个分组（有滚动提示，150% Tab 实测可达）；详情徽章「最新 r1」与「非推荐版本 r1」
-语义正确但可读性一般。这些都在 `design-lab/evidence/current-execution/task-artifacts/kb-20261023/
-VISUAL-REVIEW.md` 的「仍然未证」里，下一轮不要把它们读成已完成。
+**本轮留下的账**（下一轮同批付或明确记录）：真实中文知识语料仍只有探针合成的那批，不含 owner 的条目；
+写入路径的逐屏截图只覆盖新增；1280 宽档侧栏仍要滚动才能看全分组（这是密度事实，不是缺陷；当前项在
+100/125/150% 三档实测滚入视口，`fullyInsideNav=true`）；design-review 的 713 条设计债
+（`design-lab/evidence/current-execution/task-artifacts/kb-20261023/design-review-20261024/design-debt.json`）
+是**未关闭的登记**，`style.css` 683 条里有一部分就是 token 定义，清理属版式轮次，不许写成"已清零"；
+a11y 的 0 findings 只是自动扫描（axe 每屏仍拒评若干节点），不是 WCAG 认证；1920 档的播种截图还没采，
+第二轮的八张截图是 1440/1280。这些都在同目录 `VISUAL-REVIEW-ROUND2-20261024.md` 的「仍然未证」里，
+下一轮不要把它们读成已完成。
 
 本轮同步过的面（都已落盘）：`AUTHORITY.md`、authority index、`AGENTS.md`、
 `docs/current/PRODUCT_DEFINITION.md`、`docs/architecture/BOUNDARY_CONTRACT.md`、`docs/current/ROADMAP.md`、

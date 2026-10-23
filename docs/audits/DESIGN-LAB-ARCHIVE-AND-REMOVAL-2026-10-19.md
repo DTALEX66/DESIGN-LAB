@@ -1140,6 +1140,15 @@ adapters=30、routes=72）、`RECORD_REGISTER_GATE` 5 项、账本合同、上�
 这次的内容没有变，但**证据文件的编码也是证据的一部分**：一份二进制上不可读的日志
 会让整个聚合链红，而它看起来只是"一份日志"。
 
+**并集复跑全绿（同一棵树，`60e40773`）。** `run_python_tests_all.py --shards 6` 六片全部
+`exit=0`：1/6 `tests=626 {'PASS':626}` 1310.396s、2/6 `626 {'PASS':625,'SKIP':1}` 75.221s、
+3/6 `562 {'PASS':561,'SKIP':1}` 265.913s、4/6 `476 {'PASS':475,'SKIP':1}` 182.048s
+（r2 红的那两条就在这一片）、5/6 `380 {'PASS':379,'SKIP':1}` 48.001s、
+6/6 `530 {'PASS':529,'SKIP':1}` 126.230s；`PYTHON_TESTS_UNION=OK expected=3200 distinct=3200
+ran=3200 duplicates=0 missing=0 unexpected=0`，`UNION_RUNNER_EXIT=0`，合计 PASS 3195 / SKIP 5。
+r2（红）与 r3（绿）两份日志都入库，不删不改：红的那份记录的是修复前的事实。
+本机读数永远不是 CI 读数，最终判据仍是推送后逐作业读到的结果。
+
 **设计审查插件第一次跑全。** `design-review` 插件对 `design.qa.yaml` 的 26 个屏幕
 （22 条桌面路由 + 4 个 390×844 窄窗探针）跑出：
 
