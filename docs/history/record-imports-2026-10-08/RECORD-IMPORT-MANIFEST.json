@@ -337,14 +337,14 @@
    "also_in_repo": [
     ".project/governance/authority-index.json"
    ],
-   "repoBytesAfterImport": 7088,
-   "repoCrc32AfterImport": "71cc7dd5",
-   "repoSha256AfterImport": "sha256:fd01ce37148e183deab6a2064ba80062327e351b97eb78f66361573684fe4744",
+   "repoBytesAfterImport": 9708,
+   "repoCrc32AfterImport": "3e9bec11",
+   "repoSha256AfterImport": "sha256:9a0e1a58190767cf39709242ec429254a018415c9cb6e0219293b414ff3a8a07",
    "evolvedBy": {
-    "commit": "a5ef95ae",
-    "subject": "docs(authority): adopt the owner's 2026-10-20 partial unfreeze, then re-pin"
+    "commit": "277f4649",
+    "subject": "docs(governance): adopt the desktop-UI/knowledge-base pack as the only dispatch entry"
    },
-   "evolution": "owner 2026-10-20 定点解冻与范围收口：AUTHORITY.md 增加 UNFREEZE-20261020-R1 采纳块并就地标注原禁止条款的失效范围；authority-index.json 增加 unfreezeAdoption；PRODUCT_DEFINITION.md 增加 2026-10-20 修订节。归档字节与 leg 1 不动。"
+   "evolution": "owner 2026-10-23 指令「更新覆盖替换到权威和规划里」：这四份是 record-import 清单的 repo 侧持有行，DL-TP-20261023-DESKTOP-KB-R1 采纳时逐份改写的是仓库副本（AUTHORITY.md 加 DESKTOP-KB-20261023-R1 采纳块并把 2026-10-19 那句标为当日原文；authority-index.json 的 current/boot-order/currentIntegrated 重绑并新增 desktopKbAdoption；PRODUCT_DEFINITION.md 与 ROADMAP.md 前置 2026-10-23 节）。归档字节与 leg 1 未动，仍对源 ZIP 可验；本行改由 commit 277f4649 的仓库副本摘要持有，leg 2 仍拒绝既不符合归档也不符合声明的字节。"
   },
   {
    "source_container": "DESIGN-LAB_FINAL_CONSOLIDATED_PACKAGE_2026-09-29.zip",
@@ -360,14 +360,14 @@
    "also_in_repo": [
     "AUTHORITY.md"
    ],
-   "repoBytesAfterImport": 25527,
-   "repoCrc32AfterImport": "0d22ab0d",
-   "repoSha256AfterImport": "sha256:7cd2db03544a3008c613e6730eeca859a1f73626e9010cb8eafa963d18a6022a",
+   "repoBytesAfterImport": 29509,
+   "repoCrc32AfterImport": "a8b4f161",
+   "repoSha256AfterImport": "sha256:00126066fd7715c3e4d2d5daceaf0b9d894be6ee8339c622c87621d6b0adfb58",
    "evolvedBy": {
-    "commit": "a5ef95ae",
-    "subject": "docs(authority): adopt the owner's 2026-10-20 partial unfreeze, then re-pin"
+    "commit": "277f4649",
+    "subject": "docs(governance): adopt the desktop-UI/knowledge-base pack as the only dispatch entry"
    },
-   "evolution": "owner 2026-10-20 定点解冻与范围收口：AUTHORITY.md 增加 UNFREEZE-20261020-R1 采纳块并就地标注原禁止条款的失效范围；authority-index.json 增加 unfreezeAdoption；PRODUCT_DEFINITION.md 增加 2026-10-20 修订节。归档字节与 leg 1 不动。"
+   "evolution": "owner 2026-10-23 指令「更新覆盖替换到权威和规划里」：这四份是 record-import 清单的 repo 侧持有行，DL-TP-20261023-DESKTOP-KB-R1 采纳时逐份改写的是仓库副本（AUTHORITY.md 加 DESKTOP-KB-20261023-R1 采纳块并把 2026-10-19 那句标为当日原文；authority-index.json 的 current/boot-order/currentIntegrated 重绑并新增 desktopKbAdoption；PRODUCT_DEFINITION.md 与 ROADMAP.md 前置 2026-10-23 节）。归档字节与 leg 1 未动，仍对源 ZIP 可验；本行改由 commit 277f4649 的仓库副本摘要持有，leg 2 仍拒绝既不符合归档也不符合声明的字节。"
   },
   {
    "source_container": "DESIGN-LAB_FINAL_CONSOLIDATED_PACKAGE_2026-09-29.zip",
@@ -482,14 +482,14 @@
    "also_in_repo": [
     "docs/current/PRODUCT_DEFINITION.md"
    ],
-   "repoBytesAfterImport": 12754,
-   "repoCrc32AfterImport": "86469eee",
-   "repoSha256AfterImport": "sha256:2cb48ba19dc5ae996cff2bae839eaf138664f743fbd8d34723ded86fee4594d5",
+   "repoBytesAfterImport": 16086,
+   "repoCrc32AfterImport": "929180f1",
+   "repoSha256AfterImport": "sha256:c3bfe49665e5470acda58de01178bbac9a2b4160b6f96cc9d6a71d02e3b1bad1",
    "evolvedBy": {
-    "commit": "a1ed336e",
-    "subject": "test(workbench): measure the motion rule in a browser, then let it earn the first CONSUMED"
+    "commit": "277f4649",
+    "subject": "docs(governance): adopt the desktop-UI/knowledge-base pack as the only dispatch entry"
    },
-   "evolution": "B3 桌面面板落地：PRODUCT_DEFINITION 的 Prompt Intelligence 段把'桌面端还没有列出结果与签署的面板'改为实测面板事实"
+   "evolution": "owner 2026-10-23 指令「更新覆盖替换到权威和规划里」：这四份是 record-import 清单的 repo 侧持有行，DL-TP-20261023-DESKTOP-KB-R1 采纳时逐份改写的是仓库副本（AUTHORITY.md 加 DESKTOP-KB-20261023-R1 采纳块并把 2026-10-19 那句标为当日原文；authority-index.json 的 current/boot-order/currentIntegrated 重绑并新增 desktopKbAdoption；PRODUCT_DEFINITION.md 与 ROADMAP.md 前置 2026-10-23 节）。归档字节与 leg 1 未动，仍对源 ZIP 可验；本行改由 commit 277f4649 的仓库副本摘要持有，leg 2 仍拒绝既不符合归档也不符合声明的字节。"
   },
   {
    "source_container": "DESIGN-LAB_FINAL_CONSOLIDATED_PACKAGE_2026-09-29.zip",
@@ -505,14 +505,14 @@
    "also_in_repo": [
     "docs/current/ROADMAP.md"
    ],
-   "repoBytesAfterImport": 10125,
-   "repoCrc32AfterImport": "cd2902b9",
-   "repoSha256AfterImport": "sha256:1deec9c6277752b3dd80ee44eecc1289dcdd49dd4253ffeaecfdbb604efdf00d",
+   "repoBytesAfterImport": 12124,
+   "repoCrc32AfterImport": "310ae066",
+   "repoSha256AfterImport": "sha256:40af10fc4d3daa12fa98ddc9bf7e6a9b23e66365feb5120bb2b68b89a0b953be",
    "evolvedBy": {
-    "commit": "7b0852b5",
-    "subject": "docs(roadmap): R2 no longer lists the prompt panel as missing"
+    "commit": "277f4649",
+    "subject": "docs(governance): adopt the desktop-UI/knowledge-base pack as the only dispatch entry"
    },
-   "evolution": "R2 行去掉已落地的桌面面板缺口（B3 面板 2026-10-22 接上并进浏览器链路）"
+   "evolution": "owner 2026-10-23 指令「更新覆盖替换到权威和规划里」：这四份是 record-import 清单的 repo 侧持有行，DL-TP-20261023-DESKTOP-KB-R1 采纳时逐份改写的是仓库副本（AUTHORITY.md 加 DESKTOP-KB-20261023-R1 采纳块并把 2026-10-19 那句标为当日原文；authority-index.json 的 current/boot-order/currentIntegrated 重绑并新增 desktopKbAdoption；PRODUCT_DEFINITION.md 与 ROADMAP.md 前置 2026-10-23 节）。归档字节与 leg 1 未动，仍对源 ZIP 可验；本行改由 commit 277f4649 的仓库副本摘要持有，leg 2 仍拒绝既不符合归档也不符合声明的字节。"
   },
   {
    "source_container": "DESIGN-LAB_FINAL_CONSOLIDATED_PACKAGE_2026-09-29.zip",
