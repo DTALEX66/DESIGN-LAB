@@ -127,8 +127,13 @@ def build() -> tuple[list[dict], str]:
         if "\ufffd" in item["data"].decode("utf-8"):
             raise SystemExit(f"{rel} contains a replacement character")
 
-    divergent = [(p, rec[p]["worktree"] - rec[p]["bytes"]) for p in PATHS
-                 if rec[p]["worktree"] is not None and rec[p]["worktree"] != rec[p]["bytes"]]
+    divergent = []
+    for p in PATHS:
+        item = rec[p]
+        if item["worktree"] is None or item["worktree"] == item["bytes"]:
+            continue
+        if (REPO / p).read_bytes().replace(b"\r\n", b"\n") == item["data"]:
+            divergent.append((p, item["worktree"] - item["bytes"]))
 
     rows = [
         dict(idx=str(i + 1), rec=rec[p], alias=ALIASES[p.rsplit("/", 1)[1]], version=version, what=what)

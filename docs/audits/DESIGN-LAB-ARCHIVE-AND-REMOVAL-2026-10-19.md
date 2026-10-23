@@ -1060,3 +1060,26 @@ unexpected=0`，合计 PASS 3195 / SKIP 5，`UNION_EXIT=0`。上一轮同一口�
 没有安装态分发，没有真实宿主 E3。**边界不变**：手机端仍是排除项；字体与三方素材不在范围内；
 模型不锁死但默认 fail-closed，本轮不部署模型、不下载权重；编号仍是 `UNUSED`；导出仍只读回；
 AAOS 仍只是未来合同；E 盘不动；旧 34 项继续冻结。
+
+### 5.33 收尾提交与逐作业读数（`48a7e030` → `d9a8412b`）
+
+回填这份 5.32 的提交是 `48a7e030`（审计、交接提示词、`large-assets.json`、证据索引四件）；
+随后在 `48a7e030` 上重生成三份投影（`records=5 bytes 77253->77192`、
+`AUTHORITY_CHAIN=WRITTEN entries=146`、`CURRENT_REPORTS=PASS mode=generate`），三个 `--check`
+全绿后提交 `d9a8412b`（12 个投影文件，53 增 53 删）。两个提交一起 fast-forward 推送，
+所以两个 ref 的 CI 读数都在 `d9a8412b`：
+
+- **main**：run `40013185833`，`Canonical Verify`，`success`，`19:39:56Z → 19:55:25Z`。
+  12 个作业 11 个 success；逐步骤扫描 `conclusion` 非 success/skipped 的步骤为 0 条；
+  `Branch light gate` 在 main 上 skipped（设计如此）。
+- **分支**：run `40013198844`，同一 SHA，`success`；`Branch light gate` success（8 步），
+  其余 11 个作业按设计 skipped。两个运行的覆盖面互补，合起来没有未跑的作业。
+- `GitHub Actions` 另有一条 runner 标签迁移提示（ubuntu-latest → Ubuntu 26，2026-10-19 起），
+  不影响本次结论。
+
+这次只改了一处代码：`scripts/generate_archive_record_register.py` 的「工作树里有 N 份被还原成 CRLF」
+原来把**任何**工作树与 blob 的字节差都归因成 CRLF。回填本节时审计文件有未提交编辑，生成器就把那
+1,267 B 写成「被还原成 CRLF」，并把这个错误归因写进了索引。修复是先把工作树按 `\r\n→\n` 归一化再
+与 blob 比，只有归一化后相等才算行尾差异；反证是同一个带未提交编辑的工作树，修复前报 2 份
+（`MANIFEST.json` 1,867 B + 审计 1,267 B），修复后报 1 份（只有真的 `MANIFEST.json`）。
+CI 从 `cf77b2c2` 的 `success` 推进到 `d9a8412b` 的 `success`，中间没有出现红。
