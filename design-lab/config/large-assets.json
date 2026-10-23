@@ -33,6 +33,12 @@
       "budgetMib": 1.1,
       "measuredMib": 1.1,
       "reason": "冻结历史（含 2 段 mp4 证据）。HISTORY-FREEZE-RULES 禁止增改，故余量为 0。"
+    },
+    {
+      "prefix": "design-lab/evidence/current-execution/task-artifacts/kb-20261023/",
+      "budgetMib": 4.0,
+      "measuredMib": 3.25,
+      "reason": "批次 K 知识库纵切（DL-KB-02/03/04/06）的 E2 证据：检索日志、路由读回 JSON、1440/1280 截图与缩放截图。账本 currentExecution 的 artifact_sha256 直接绑定这些字节，不能挪进 Git 忽略的 .project-local；按轮新增，不重拍历史轮。"
     }
   ]
 }

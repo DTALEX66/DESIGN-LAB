@@ -468,6 +468,14 @@ body > footer{
     flex:0 0 auto;width:auto;min-width:max-content;
     padding:8px 10px;text-align:center;font-size:11px;white-space:nowrap;
   }
+  /* 横向滚动条里的组标签是分隔词，不是一列。基规则没给 flex，默认 0 1 auto 会把它
+     压到 32px、四个字竖排成 121px，按钮跟着 stretch 到同一高度，整条底栏吃掉 138px
+     视口（browser_design_layer_e2e.mjs 的 120px 阈值按 138 报红；实测隐藏标签降到
+     56px，标签单行不收缩同样 56px）。 */
+  .nav-group{
+    flex:0 0 auto;white-space:nowrap;align-self:center;
+    padding:0 2px 0 8px;
+  }
 }
 /* B10 content slot: `#route-view` fills `.content` (B10 puts each page directly
    in `.content`; there is no max-width there and the 26/28/30 padding is

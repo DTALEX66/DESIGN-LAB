@@ -138,7 +138,14 @@ class RoutePayloadContractTests(unittest.TestCase):
                     'design-record-brief-revise-scoped': 2,
                     'design-record-direction-revise-scoped': 2,
                     'design-record-brief-revise-by-id': 2,
-                    'design-record-direction-revise-by-id': 2}
+                    'design-record-direction-revise-by-id': 2,
+                    # The knowledge library, paid 2026-10-23. The import binding carries two
+                    # answers because a replayed import is a different branch from the write
+                    # (it returns the stored entry and writes nothing); the search binding
+                    # carries the short-word fallback's answer, not one trigram produced.
+                    'knowledge-library-search': 1, 'knowledge-entry-write-create': 1,
+                    'knowledge-entry-write-revise': 1, 'knowledge-entry-import': 2,
+                    'knowledge-entry-readback': 1, 'knowledge-index-rebuild': 1}
         self.assertEqual(sorted(expected), sorted(b['name'] for b in self.bindings),
                          'a binding added here without being listed below is a boundary this '
                          'file silently stopped covering')

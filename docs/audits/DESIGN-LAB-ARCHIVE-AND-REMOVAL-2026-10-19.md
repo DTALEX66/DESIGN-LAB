@@ -725,6 +725,112 @@ leg 1 仍对源 ZIP 可验。声明之后 `RECORD_VERIFY=OK blobs=HEAD`
 `.project-local/task-artifacts/**` 的字节上，删了就把证据面自己删了——要么按审计确认后再清、
 要么由 owner 决定把上限调到能覆盖真实状态并同步那句话，两条都不是本轮可以顺手做的。
 
+### 5.31 第二十八批（批次 K 第一刀：知识库从账本行变成能写、能搜、能读回的桌面纵切）
+
+owner 的批次顺序是 K0 知识管理与中文检索 → 中立方案与目标档案/导出 → 一个方案助手模型的真实接入 →
+内容方法与反馈。这一批落 K0 的第一刀，四个任务按派工顺序做完：DL-KB-02（写面）、DL-KB-04（中文检索）、
+DL-KB-03（知识与提示词库屏）、DL-KB-06（三入口外壳）。验收判据不是"文件在不在"，而是真实前端 +
+真实 API + 持久化 + 进程重启后读回 + 错误态；四项都按这个判据留了读数。
+
+**① 写面是六条路由，不是一段说明。** `src/design_lab/knowledge_library.py` 落三张表
+（`knowledge_entry`、`knowledge_entry_revision`、`knowledge_index_state`），`http_service.py` 加六条路由：
+`GET /api/knowledge-entries/search`、`POST /api/knowledge-entries`、`POST /api/knowledge-entries/import`、
+`POST /api/knowledge-entries/index-rebuild`、`GET /api/knowledge-entries/(kentry-…)`、
+`POST /api/knowledge-entries/(kentry-…)/revisions`。HTTP 路由 66 → 72，合同账本 68 → 74 行
+（`VERIFY_CONTRACT_BINDINGS=PASS schemas=32 binding=2 inert=30 routes=74 dispatched=74 bound=60
+schema_less=14`：六条全进 BOUND_SCHEMA，SCHEMA_LESS 仍是 14）。四件套同一批付：`contract-bindings.json`
+六行（emitter 指向真正写 `schemaVersion` 的那一行）、六份 schema 进 `design-lab/schemas/` 并进打包三件套、
+`verify_route_payload_contracts.py` 的活载荷用例（bindings 35 → 41）、`verify_workbench_route_calls.py`
+认得前端调用（`calls=117 routes=72 matched=61 backend_only=11 dynamic=3 special=1`）。
+写侧扫描 `POST_SWEEP layout=source rows=33 walked=32 written=32 read_backs=39 refused=0 excluded=1`，
+被排除的仍是 §5.27 那条 FROZEN-BY-POLICY 的 native 派发，不是新缺口。
+
+**② 修订只追加，不覆盖。** `_write_revision()` 在同一个事务里删旧 FTS 行、插新修订、推进
+`knowledge_index_state`；条目身份 `kentry-` 不变，修订号递增，旧修订留在表里。
+`_fields()` 要求 title/summary/body，静默字段一律 `UNKNOWN`（不拿空串冒充"没有"）；
+`_source()` 拒绝把 `VERIFIED` 与未知许可/已复核这两对矛盾写进去。`test_knowledge_library` 17 项 OK
+（含"只准 trigram 的两字中文必须 miss"这条对照）、`test_packaged_contract_resources` 6 项 OK、
+`test_backup_watches_written_tables` 5 项 OK、`test_installed_write_surface` 与
+`test_standalone_chain_http` 各 6 项 OK——最后一条是进程内真写、真读、真回执，不是 mock。
+
+**③ 中文检索的判据是「短词必须命中」，不是「英文能搜」。** FTS5 的 trigram 对两个汉字没有词元，所以
+`分镜`/`粒子`/`品牌` 走 `SHORT_FALLBACK`（子串回退），`panasonic` 走 `TRIGRAM`；单元层先断言只准 trigram
+时两字中文必须 miss，再断言回退命中——英文通过不算中文可用。1,000 条经真实回环 HTTP 播种后的读数
+（`kb-search-http.log`，`KB_HTTP_PROBE_COMMIT=7f5e68d7…`）：四条查询 `"total": 1000` 全部命中；
+零结果查询 `"total": 0` 并带解释「检索只匹配标题、摘要、正文、领域/任务标签和目标工具，不做近义词扩写，
+也不推荐未命中的相关条目」。p95：单元 26.1 ms、HTTP 30.4 ms，预算 300 ms（各 30 次采样，1,000 条）。
+阈值与读数在同一份日志里发布，不先写"很快"再补数字。
+
+**④ 界面是按渲染结果改出来的，四处缺陷各有一条可复跑的检查。** 所有 PNG 都是真实 Chromium 对真实
+回环服务的读回（bundle `apps/workbench/build/main.js` sha256 `6bbd86d9…`）：①「新增 / 导入 / 重建索引」
+在 1440 下被挤成两行（`1a7b7a2b`）；② 零结果标题重复服务句子，屏上读成「没有命中的条目没有命中「…」的条目。」
+（`2ac55ce1`）；③ 新增/导入表单打开后只能靠写入成功消失，改主意只能离开页面（`4ffa77b8`，行动区加「取消」，
+探针真点击后断言表单从 DOM 移除）；④ 零结果时右侧仍挂着上一次选中的完整详情，读起来像本次命中
+（`7f5e68d7`，加「右侧是上次选中的条目，不在本次检索结果里」并由 `apps/workbench/tests/appshell.mjs` ㉓ 断言）。
+首屏 50 行、`加载更多（已显示 50 / 共 60）`、点击后 60 行且按钮消失；空库与零结果是两句不同的话，
+都给出下一步，不编造示例条目。
+
+**⑤ 导航是派生的，缩放是量的。** `ROUTE_VIEWS` 21 → 22，侧栏仍是
+`ROUTE_VIEWS.filter(...).map(...)` 派生而不是手写清单；采集器把渲染出的按钮集与服务路由表逐项比对：
+`CAP_NAV_SET rendered=21 expected=21 equal=1`，`CAP_ROUTE_COVERAGE routes=22 captured=24 of 22
+pageEntries=26`。100%/125%/150% 三档（1920×1080 物理屏 → 1920/1536/1280 CSS 宽）用 Tab 实测：
+三档都按 21 次到达「知识与提示词库」，焦点环 3px solid、`fullyInsideNav=true`；150% 时侧栏滚动 263px
+把它带进视口（`navScrollTop` 0/17/263），三档 `scrollWidth == innerWidth`，无横向溢出。
+侧栏四个分组标签「设计辅助 / 知识与提示词库 / 我的方案 / 设置与诊断」与右上角设置入口在回执里逐项可读；
+没有 AAOS 入口、没有连接按钮、也没有"未连接"红灯。
+
+**⑥ 这一批有三处红是我自己造的，形状都记下来。**
+第一处是**日志的编码也是证据**：`unit-knowledge.log` 与 `test_standalone_chain_http.log` 是重定向的 Python
+stdout，在这台机器上按 cp936 写出，`verify_identity_gate.py` 报 `IDENTITY_GATE=FAIL total=2 scanned=3219`
+并给出具体字节位置——闸门是对的。改用 `PYTHONIOENCODING=utf-8` 重跑，单元 p95 由 24.7 变 26.1（同一套件、
+同一台机器，重跑读数），所有被绑定的摘要跟着重算；`VISUAL-REVIEW.md` 里那句 p95 也随之改成
+「24.7（首发）/ 26.1（UTF-8 重跑）」，两条绑它的视觉回执与 `evidence-index.json` 同步重绑
+（`736d5eaae0fa…`），追记的是读数来源，不是重新测一遍。
+第二处是**自引用工件**：`test_standalone_chain_http` 会打 `/api/evidence-projection`，而这条路由在运行中
+重新哈希账本绑定的工件路径；一旦把 stdout 重定向到它自己那条已绑定的日志上，服务读到的就是"正在写的文件"，
+返回 `500 EVIDENCE_LEDGER_REJECTED … current evidence artifact hash differs`。这不是产品缺陷也不是闸门缺陷，
+而是测量顺序：改为先写临时文件、跑完再把最终字节装回工件路径、最后绑摘要，才自洽。
+第三处是**投影比我诚实**：`VERIFY_PROJECTION_FRESHNESS` 指出 `CONTRACT-GRAPH.json` 的 `declared_tables`
+少三张（42 → 45，正是这一族的三张表），`INERT-CONTRACT-SURVEY` 则是"从已经移动的代码上算的"；
+两者在 `6d8ee5b5` 重新生成。修完 `VERIFY_DESIGN_LAB=OK total=76 failed=0`。
+
+**⑦ 账本只说它量到的事。** `currentExecution` 50 行 = 34 `FROZEN_DEFERRED` + 1 `IN_PROGRESS`（DL-KB-01）
++ 4 `PARTIAL`（DL-KB-02/03/04/06）+ 11 `NOT_STARTED`；证据 198 → 216 条，18 条新回执全部绑
+`7f5e68d7` 的产物。四条是 `PARTIAL` 不是 `DONE`：**真人验收没有发生**，本轮最高只到 E2（受控运行时），
+不是 E3（真实工作流），更不是 release。证据包 `kb-20261023/` 35 个文件逐份登记在 `evidence-index.json`
+（字节 + sha256），7 张播种截图与 3 张缩放截图各带许可 sidecar。
+
+**⑧ 全量并集抓到的五处红：两处是钉死的测试没同改，两处是账没跟着 CSS 走，一处是真版式缺陷。**
+`PYTHON_TESTS_UNION=OK expected=3200 distinct=3200 ran=3200 …` 之后 `FAIL=5`。
+`test_route_payload_contracts` 的族清单没有六条知识路由（闸门原话：「a binding added here without being
+listed below is a boundary this file silently stopped covering」），`test_workbench_css_single_definition`
+仍钉 53 个 `.list` 容器而实测 59——新增的六个在注释里逐一具名（设置页的模型服务与备份诊断两个面板，
+知识屏的条目字段 / 来源许可 / 修订历史 / 服务 `does_not_say` 四组；检索结果容器是原位替换，不计入）。
+补上后两个模块各自 31 / 17 项全绿。`test_workbench_theme_geometry_gate` 单独复跑两次均绿，
+暂记为并集里的环境性红，待重跑复核，不写成已解释。
+真缺陷是 **390px 窄窗底栏**：`.nav-group` 在横向滚动条里没有 `flex`，默认 `0 1 auto` 把它压到
+31.9px，四个字竖排成 121px，按钮跟着 `stretch` 到同一高度，整条底栏 138px，超过 E2E 的 120px 阈值
+（`browser_design_layer_e2e.mjs` 的 `mobile appshell layout`，码 11）。分组标签自 `147e6dc9` 起就在
+扁平导航里，本轮把组名换成更长的三入口名字后实测越线；旧包高没有回测，这里只断言当前字节的读数。
+**没有放宽阈值**：同一个 `@media(max-width:760px)` 里给 `.nav-group` 加
+`flex:0 0 auto; white-space:nowrap; align-self:center`，先证伪再修——隐藏标签 138→56，标签单行不收缩
+同为 56，修后 E2E 两个用例通过。这条按桌面窄窗口自适应处理，不是手机端交付，也没有把手机端列为待办。
+另两处红是账要跟着 CSS 走：`verify_asset_governance` 指出 `shots/seeded/knowledge-zoom-150.png`
+（356 KiB）没有声明 bundle，已在 `large-assets.json` 增加 `kb-20261023/`（实测 3.25 MiB / 预算 4.0 MiB，
+理由写明账本摘要直接绑定这些字节，不能挪进 Git 忽略目录）；`design_debt_baseline` 因新增一条规则把
+字面 px 从 514 变 516，`DESIGN.md` §4 的那句同改。两处完成后 `VERIFY_PROJECTION_FRESHNESS=OK`、
+`ASSET_GOVERNANCE=OK`、`VERIFY_DESIGN_LAB=OK total=76 failed=0`。
+
+**边界一条没松**：手机端仍是排除项（本轮只在 1920/1536/1280 的桌面 CSS 宽上量）；
+字体与三方素材仍不在本项目范围内；模型不锁死但默认 fail-closed，本批不部署模型、不下载权重；
+编号仍是字面量 `UNUSED`；签署与验收仍只接受具名 human；导出仍只读回；AAOS 仍只是未来合同；
+E 盘不动；release、安装态分发、真实宿主 E3、真人 E4、ComfyUI、MiniMax H3 与旧 34 项继续冻结。
+
+**仍然未证（写在这里，不留到下一轮才发现）**：真实中文知识语料只有探针合成的 2 + 58 条，
+不含 owner 的实际条目；写入路径的逐屏截图只覆盖新增，修改与导入靠单元/接口层测试；
+1920 只截了空库；1280×800 首屏侧栏只露出第一个分组（有滚动提示，150% 的 Tab 实测证明可达，
+本轮未改版式）；详情徽章同时显示「最新 r1」与「非推荐版本 r1」，语义正确但可读性一般，留给版式轮次。
+
 ## 6. 本轮暴露并修掉的六个缺陷
 
 1. **分类聚合按目录贴标签**：`bundle_key()` 把一个顶层目录收成一个 bundle，于是 `docs/` 里第一个文件的类别

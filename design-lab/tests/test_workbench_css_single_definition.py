@@ -437,7 +437,15 @@ class ListItemIsReallyAListMember(unittest.TestCase):
         # does_not_say sentences close the list. The three write forms are labels/inputs and
         # paragraphs, and the unread state is a <p class="error"> rather than emptyLi(), so
         # neither adds a container -- "did not ask" must not be drawn as an empty list.
-        self.assertEqual(self.shell.count("el('ul', { class: 'list'"), 53)
+        # 2026-10-23 (DL-KB-03/06, batch K) again: 53 -> 59. Six new containers, all named:
+        # two in the settings view rebuilt by the three-entry shell (模型服务 value rows,
+        # 备份与诊断 diagnostics rows), and four on the knowledge screen -- the entry's own
+        # field block (kbEntryBlocks), the 来源与许可 block, the 修订历史 chain, and the
+        # service's does_not_say sentences (the last only when the service sent any). The
+        # search results container is not one of the six: it replaced the pre-existing list
+        # in the same position, so only a first-screen form and empty-state paragraph vary
+        # around it. Empty states on this screen stay <p>/emptyLi(), as above.
+        self.assertEqual(self.shell.count("el('ul', { class: 'list'"), 59)
 
 
 if __name__ == "__main__":

@@ -11330,7 +11330,7 @@
         "outcome": "PASS",
         "subject_sha": "7f5e68d7430f876a6190dd869c4f1b1b8d6cf92d",
         "artifact_path": "design-lab/evidence/current-execution/task-artifacts/kb-20261023/VISUAL-REVIEW.md",
-        "artifact_sha256": "c8f4f0cce865f254fbc22ff2f5430850f041168fde1440029ade1d41d8dddfbb",
+        "artifact_sha256": "736d5eaae0fad16bd271f5ef9b09ebede9acb89f05c6b689d84c93da7ced312d",
         "command": "reviewed every captured knowledge PNG (empty state 1440/1280/1920) plus seeded list, detail and form at 1440/1280, no-result and the 50/60 boundary at 1440; two copy/layout defects were found and fixed before the final capture",
         "exit_code": 0,
         "observed_at": "2026-10-23T17:30:39Z"
@@ -11402,7 +11402,7 @@
         "outcome": "PASS",
         "subject_sha": "7f5e68d7430f876a6190dd869c4f1b1b8d6cf92d",
         "artifact_path": "design-lab/evidence/current-execution/task-artifacts/kb-20261023/VISUAL-REVIEW.md",
-        "artifact_sha256": "c8f4f0cce865f254fbc22ff2f5430850f041168fde1440029ade1d41d8dddfbb",
+        "artifact_sha256": "736d5eaae0fad16bd271f5ef9b09ebede9acb89f05c6b689d84c93da7ced312d",
         "command": "reviewed the shell at 1280/1440/1920: three entry groups plus settings, no AAOS entry or connection control, and the nav cue visible where the list is clipped",
         "exit_code": 0,
         "observed_at": "2026-10-23T17:30:39Z"
